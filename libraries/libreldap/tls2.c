@@ -336,6 +336,10 @@ ldap_int_tls_connect( LDAP *ld, LDAPConn *conn, const char *host )
 		err = ldap_pvt_tls_check_hostname( ld, ssl, host );
 	}
 
+	if ( err == 0 ) {
+		err = ldap_pvt_tls_check_hostname( ld, ssl, host );
+	}
+
 	if ( err < 0 )
 	{
 		char buf[256], *msg;
