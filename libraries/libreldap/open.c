@@ -47,6 +47,68 @@ int ldap_open_defconn( LDAP *ld )
 	return 0;
 }
 
+/*
+ * ldap_connect - Connect to an ldap server.
+ *
+ * Example:
+ *	LDAP	*ld;
+ *	ldap_initialize( &ld, url );
+ *	ldap_connect( ld );
+ */
+int
+ldap_connect( LDAP *ld )
+{
+	ber_socket_t sd = AC_SOCKET_INVALID;
+	int rc = LDAP_SUCCESS;
+
+	LDAP_MUTEX_LOCK( &ld->ld_conn_mutex );
+	if ( ber_sockbuf_ctrl( ld->ld_sb, LBER_SB_OPT_GET_FD, &sd ) == -1 ) {
+		rc = ldap_open_defconn( ld );
+	}
+	LDAP_MUTEX_UNLOCK( &ld->ld_conn_mutex );
+
+	return rc;
+}
+
+/*
+ * ldap_open - initialize and connect to an ldap server.  A magic cookie to
+ * be used for future communication is returned on success, NULL on failure.
+ * "host" may be a space-separated list of hosts or IP addresses
+ *
+ * Example:
+ *	LDAP	*ld;
+ *	ld = ldap_open( hostname, port );
+ */
+
+LDAP *
+ldap_open( LDAP_CONST char *host, int port )
+{
+	int rc;
+	LDAP		*ld;
+
+	Debug( LDAP_DEBUG_TRACE, "ldap_open(%s, %d)\n",
+		host, port );
+
+	ld = ldap_init( host, port );
+	if ( ld == NULL ) {
+		return( NULL );
+	}
+
+	LDAP_MUTEX_LOCK( &ld->ld_conn_mutex );
+	rc = ldap_open_defconn( ld );
+	LDAP_MUTEX_UNLOCK( &ld->ld_conn_mutex );
+
+	if( rc < 0 ) {
+		ldap_ld_free( ld, 0, NULL, NULL );
+		ld = NULL;
+	}
+
+	Debug( LDAP_DEBUG_TRACE, "ldap_open: %s\n",
+		ld != NULL ? "succeeded" : "failed" );
+
+	return ld;
+}
+
 int
 ldap_create( LDAP **ldp )
 {
