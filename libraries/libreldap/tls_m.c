@@ -2207,6 +2207,8 @@ tlsm_deferred_ctx_init( void *arg )
 			       "TLS: warning: minimum TLS protocol level set to "
 			       "include SSLv2 - SSLv2 is insecure - do not use\n" );
 		}
+		PK11_FreeSlot( ctx->tc_certdb_slot );
+		ctx->tc_certdb_slot = NULL;
 	}
 	if ( SECSuccess != SSL_OptionSet( ctx->tc_model, SSL_ENABLE_SSL2, sslv2 ) ) {
  		Debug( LDAP_DEBUG_ANY,
