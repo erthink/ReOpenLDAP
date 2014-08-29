@@ -922,6 +922,8 @@ struct MDB_txn {
 	 *	dirty_list into mt_parent after freeing hidden mt_parent pages.
 	 */
 	unsigned int	mt_dirty_room;
+
+	MDB_IDL mt_used_pages;
 };
 
 /** Enough space for 2^32 nodes with minimum of 2 keys per node. I.e., plenty.
@@ -1685,7 +1687,7 @@ mdb_page_alloc(MDB_cursor *mc, int num, MDB_page **mp)
 	if (txn->mt_dirty_room == 0)
 		return MDB_TXN_FULL;
 
-	for (op = MDB_FIRST;; op = MDB_NEXT) {
+	for (op = MDB_LAST;; op = MDB_PREV) {
 		MDB_val key, data;
 		MDB_node *leaf;
 		pgno_t *idl, old_id, new_id;
@@ -1704,12 +1706,14 @@ mdb_page_alloc(MDB_cursor *mc, int num, MDB_page **mp)
 				break;
 		}
 
-		if (op == MDB_FIRST) {	/* 1st iteration */
+		if (op == MDB_LAST) {	/* 1st iteration */
 			/* Prepare to fetch more and coalesce */
 			oldest = mdb_find_oldest(txn);
 			last = env->me_pglast;
+			if(last != 0)
+				oldest = last;
 			mdb_cursor_init(&m2, txn, FREE_DBI, NULL);
-			if (last) {
+			if (0 && last) {
 				op = MDB_SET_RANGE;
 				key.mv_data = &last; /* will look up last+1 */
 				key.mv_size = sizeof(last);
@@ -1720,10 +1724,7 @@ mdb_page_alloc(MDB_cursor *mc, int num, MDB_page **mp)
 		if (Paranoid && retry < 0 && mop_len)
 			break;
 
-		last++;
 		/* Do not fetch more if the record will be too recent */
-		if (oldest <= last)
-			break;
 		rc = mdb_cursor_get(&m2, &key, NULL, op);
 		if (rc) {
 			if (rc == MDB_NOTFOUND)
@@ -1732,7 +1733,7 @@ mdb_page_alloc(MDB_cursor *mc, int num, MDB_page **mp)
 		}
 		last = *(txnid_t*)key.mv_data;
 		if (oldest <= last)
-			break;
+			continue;
 		np = m2.mc_pg[m2.mc_top];
 		leaf = NODEPTR(np, m2.mc_ki[m2.mc_top]);
 		if ((rc = mdb_node_read(txn, leaf, &data)) != MDB_SUCCESS)
@@ -1740,6 +1741,12 @@ mdb_page_alloc(MDB_cursor *mc, int num, MDB_page **mp)
 
 		idl = (MDB_ID *) data.mv_data;
 		i = idl[0];
+
+		/* append ID to list for future free */
+		if(txn->mt_used_pages == NULL)
+			txn->mt_used_pages = mdb_midl_alloc(100);
+		mdb_midl_append(&txn->mt_used_pages, last);
+
 		if (!mop) {
 			if (!(env->me_pghead = mop = mdb_midl_alloc(i)))
 				return ENOMEM;
@@ -2326,6 +2333,7 @@ mdb_txn_begin(MDB_env *env, MDB_txn *parent, unsigned int flags, MDB_txn **ret)
 		txn->mt_dbflags = (unsigned char *)(txn->mt_cursors + env->me_maxdbs);
 	}
 	txn->mt_env = env;
+	txn->mt_used_pages = NULL;
 
 	if (parent) {
 		unsigned int i;
@@ -2511,13 +2519,13 @@ mdb_freelist_save(MDB_txn *txn)
 	MDB_cursor mc;
 	MDB_env	*env = txn->mt_env;
 	int rc, maxfree_1pg = env->me_maxfree_1pg, more = 1;
-	txnid_t	pglast = 0, head_id = 0;
+	txnid_t	pglast = 0, head_id = 0, saved_start = 0;
 	pgno_t	freecnt = 0, *free_pgs, *mop;
 	ssize_t	head_room = 0, total_room = 0, mop_len, clean_limit;
 
 	mdb_cursor_init(&mc, txn, FREE_DBI, NULL);
 
-	if (env->me_pghead) {
+	if (0 && env->me_pghead) {
 		/* Make sure first page of freeDB is touched and on freelist */
 		rc = mdb_page_search(&mc, NULL, MDB_PS_FIRST|MDB_PS_MODIFY);
 		if (rc && rc != MDB_NOTFOUND)
@@ -2537,7 +2545,7 @@ mdb_freelist_save(MDB_txn *txn)
 		/* If using records from freeDB which we have not yet
 		 * deleted, delete them and any we reserved for me_pghead.
 		 */
-		while (pglast < env->me_pglast) {
+		while (0 && pglast < env->me_pglast) {
 			rc = mdb_cursor_first(&mc, &key, NULL);
 			if (rc)
 				return rc;
@@ -2549,6 +2557,26 @@ mdb_freelist_save(MDB_txn *txn)
 				return rc;
 		}
 
+		if(txn->mt_used_pages != NULL) {
+			unsigned int i = 0;
+			for(; i < txn->mt_used_pages[0]; ++i) {
+				key.mv_data = &txn->mt_used_pages[i + 1];
+				key.mv_size = sizeof(txn->mt_used_pages[0]);
+
+				saved_start = head_id = *(txnid_t *)key.mv_data;
+				total_room = head_room = 0;
+
+				rc = mdb_cursor_get(&mc, &key, NULL, MDB_SET);
+				if (rc && rc != MDB_NOTFOUND)
+					return rc;
+				rc = mdb_cursor_del(&mc, 0);
+				if (rc)
+					return rc;
+			}
+			mdb_midl_free(txn->mt_used_pages);
+			txn->mt_used_pages = NULL;
+
+		}
 		/* Save the IDL of pages freed by this txn, to a single record */
 		if (freecnt < txn->mt_free_pgs[0]) {
 			if (!freecnt) {
@@ -2629,16 +2657,18 @@ mdb_freelist_save(MDB_txn *txn)
 	rc = MDB_SUCCESS;
 	if (mop_len) {
 		MDB_val key, data;
+		key.mv_data = &saved_start;
+		key.mv_size = sizeof(saved_start);
 
 		mop += mop_len;
-		rc = mdb_cursor_first(&mc, &key, &data);
+		rc = mdb_cursor_get(&mc, &key, &data, MDB_SET);
 		for (; !rc; rc = mdb_cursor_next(&mc, &key, &data, MDB_NEXT)) {
 			unsigned flags = MDB_CURRENT;
 			txnid_t id = *(txnid_t *)key.mv_data;
 			ssize_t	len = (ssize_t)(data.mv_size / sizeof(MDB_ID)) - 1;
 			MDB_ID save;
 
-			assert(len >= 0 && id <= env->me_pglast);
+			assert(len >= 0 && id >= env->me_pglast);
 			key.mv_data = &id;
 			if (len > mop_len) {
 				len = mop_len;
