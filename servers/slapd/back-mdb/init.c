@@ -152,6 +152,15 @@ mdb_db_open( BackendDB *be, ConfigReply *cr )
 
 	mdb_env_set_oomkiller( mdb->mi_dbenv, mdb->mi_oomkill ? mdb_oomkiller : NULL);
 
+	rc = mdb_env_set_syncbytes( mdb->mi_dbenv, mdb->mi_txn_cp_kbyte * 1024ul);
+	if( rc != 0 ) {
+		Debug( LDAP_DEBUG_ANY,
+			LDAP_XSTRING(mdb_db_open) ": database \"%s\": "
+			"mdb_env_set_sync_threshold failed: %s (%d).\n",
+			be->be_suffix[0].bv_val, mdb_strerror(rc), rc );
+		goto fail;
+	}
+
 #ifdef HAVE_EBCDIC
 	strcpy( path, mdb->mi_dbenv_home );
 	__atoe( path );
