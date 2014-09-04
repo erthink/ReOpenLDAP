@@ -523,6 +523,8 @@ mdb_cf_gen( ConfigArgs *c )
 			return 1;
 		}
 		mdb->mi_txn_cp_kbyte = l;
+		if ( mdb->mi_flags & MDB_IS_OPEN )
+			mdb_env_set_syncbytes( mdb->mi_dbenv, mdb->mi_txn_cp_kbyte * 1024ull);
 		if ( lutil_atolx( &l, c->argv[2], 0 ) != 0 ) {
 			fprintf( stderr, "%s: "
 				"invalid seconds \"%s\" in \"checkpoint\".\n",
