@@ -29,14 +29,14 @@ Other database options are described in the
 .BR slapd.conf (5)
 manual page.
 .TP
-.BI checkpoint \ <kbyte>\ <min>
+.BI checkpoint \ <kbyte>\ <sec>
 Specify the frequency for flushing the database disk buffers.
 This setting is only needed if the \fBdbnosync\fP option is used.
 The checkpoint will occur if either \fI<kbyte>\fP data has been written or
-\fI<min>\fP minutes have passed since the last checkpoint.
+\fI<sec>\fP seconds have passed since the last checkpoint.
 Both arguments default to zero, in which case they are ignored. When
-the \fI<min>\fP argument is non-zero, an internal task will run every 
-\fI<min>\fP minutes to perform the checkpoint.
+the \fI<sec>\fP argument is non-zero, an internal task will run every
+\fI<sec>\fP seconds to perform the checkpoint.
 Note: currently the \fI<kbyte>\fP setting is unimplemented.
 .TP
 .B dbnosync

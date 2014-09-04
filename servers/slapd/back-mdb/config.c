@@ -51,7 +51,7 @@ static ConfigTable mdbcfg[] = {
 			"SYNTAX OMsDirectoryString SINGLE-VALUE )", NULL, NULL },
 	{ "checkpoint", "kbyte> <min", 3, 3, 0, ARG_MAGIC|MDB_CHKPT,
 		mdb_cf_gen, "( OLcfgDbAt:1.2 NAME 'olcDbCheckpoint' "
-			"DESC 'Database checkpoint interval in kbytes and minutes' "
+			"DESC 'Database checkpoint interval in kbytes and seconds' "
 			"SYNTAX OMsDirectoryString SINGLE-VALUE )",NULL, NULL },
 	{ "dbnosync", NULL, 1, 2, 0, ARG_ON_OFF|ARG_MAGIC|MDB_DBNOSYNC,
 		mdb_cf_gen, "( OLcfgDbAt:1.4 NAME 'olcDbNoSync' "
@@ -123,7 +123,8 @@ mdb_checkpoint( void *ctx, void *arg )
 	struct re_s *rtask = arg;
 	struct mdb_info *mdb = rtask->arg;
 
-	mdb_env_sync( mdb->mi_dbenv, 1 );
+	if ( mdb->mi_flags & MDB_IS_OPEN )
+		mdb_env_sync( mdb->mi_dbenv, 1 );
 	ldap_pvt_thread_mutex_lock( &slapd_rq.rq_mutex );
 	ldap_pvt_runqueue_stoptask( &slapd_rq, rtask );
 	ldap_pvt_thread_mutex_unlock( &slapd_rq.rq_mutex );
@@ -312,7 +313,7 @@ mdb_cf_gen( ConfigArgs *c )
 				char buf[64];
 				struct berval bv;
 				bv.bv_len = snprintf( buf, sizeof(buf), "%ld %ld",
-					(long) mdb->mi_txn_cp_kbyte, (long) mdb->mi_txn_cp_min );
+					(long) mdb->mi_txn_cp_kbyte, (long) mdb->mi_txn_cp_sec );
 				if ( bv.bv_len > 0 && bv.bv_len < sizeof(buf) ) {
 					bv.bv_val = buf;
 					value_add_one( &c->rvalue_vals, &bv );
@@ -572,18 +573,18 @@ mdb_cf_gen( ConfigArgs *c )
 		mdb->mi_txn_cp_kbyte = l;
 		if ( lutil_atolx( &l, c->argv[2], 0 ) != 0 ) {
 			fprintf( stderr, "%s: "
-				"invalid minutes \"%s\" in \"checkpoint\".\n",
+				"invalid seconds \"%s\" in \"checkpoint\".\n",
 				c->log, c->argv[2] );
 			return 1;
 		}
-		mdb->mi_txn_cp_min = l;
+		mdb->mi_txn_cp_sec = l;
 		/* If we're in server mode and time-based checkpointing is enabled,
 		 * submit a task to perform periodic checkpoints.
 		 */
-		if ((slapMode & SLAP_SERVER_MODE) && mdb->mi_txn_cp_min ) {
+		if ((slapMode & SLAP_SERVER_MODE) && mdb->mi_txn_cp_sec ) {
 			struct re_s *re = mdb->mi_txn_cp_task;
 			if ( re ) {
-				re->interval.tv_sec = mdb->mi_txn_cp_min * 60;
+				re->interval.tv_sec = mdb->mi_txn_cp_sec;
 			} else {
 				if ( c->be->be_suffix == NULL || BER_BVISNULL( &c->be->be_suffix[0] ) ) {
 					fprintf( stderr, "%s: "
@@ -593,7 +594,7 @@ mdb_cf_gen( ConfigArgs *c )
 				}
 				ldap_pvt_thread_mutex_lock( &slapd_rq.rq_mutex );
 				mdb->mi_txn_cp_task = ldap_pvt_runqueue_insert( &slapd_rq,
-					mdb->mi_txn_cp_min * 60, mdb_checkpoint, mdb,
+					mdb->mi_txn_cp_sec, mdb_checkpoint, mdb,
 					LDAP_XSTRING(mdb_checkpoint), c->be->be_suffix[0].bv_val );
 				ldap_pvt_thread_mutex_unlock( &slapd_rq.rq_mutex );
 			}
