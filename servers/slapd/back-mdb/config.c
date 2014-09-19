@@ -117,6 +117,12 @@ static slap_verbmasks mdb_envflags[] = {
 	{ BER_BVC("writemap"),	MDB_WRITEMAP },
 	{ BER_BVC("mapasync"),	MDB_MAPASYNC },
 	{ BER_BVC("nordahead"),	MDB_NORDAHEAD },
+#ifdef MDB_LIFORECLAIM
+	{ BER_BVC("lifo"),		MDB_LIFORECLAIM },
+#endif
+#ifdef MDB_COALESCE
+	{ BER_BVC("coalesce"),	MDB_COALESCE },
+#endif
 	{ BER_BVNULL, 0 }
 };
 
