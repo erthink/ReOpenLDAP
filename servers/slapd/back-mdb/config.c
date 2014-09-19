@@ -113,6 +113,12 @@ static slap_verbmasks mdb_envflags[] = {
 	{ BER_BVC("nordahead"),	MDB_NORDAHEAD },
 #define MDB_OOMKILL (MDB_NOMEMINIT << 4)
 	{ BER_BVC("oomkill"),	MDB_OOMKILL },
+#ifdef MDB_LIFORECLAIM
+	{ BER_BVC("lifo"),		MDB_LIFORECLAIM },
+#endif
+#ifdef MDB_COALESCE
+	{ BER_BVC("coalesce"),	MDB_COALESCE },
+#endif
 	{ BER_BVNULL, 0 }
 };
 
