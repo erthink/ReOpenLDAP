@@ -386,6 +386,10 @@ extern BI_tool_entry_modify		mdb_tool_entry_modify;
 
 extern mdb_idl_keyfunc mdb_tool_idl_add;
 
+void backtrace_set_enable( int value );
+int backtrace_get_enable();
+void backtrace_set_dir(const char* path );
+
 LDAP_END_DECL
 
 #endif /* _PROTO_MDB_H */

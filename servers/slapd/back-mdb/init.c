@@ -70,6 +70,11 @@ mdb_db_init( BackendDB *be, ConfigReply *cr )
 	SLAP_DBFLAGS( be ) |= SLAP_DBFLAG_ONE_SUFFIX;
 #endif
 
+#ifndef _WIN32
+	backtrace_set_dir( mdb->mi_dbenv_home );
+	backtrace_set_enable( 1 );
+#endif
+
 	rc = mdb_monitor_db_init( be );
 
 	return rc;
@@ -505,4 +510,3 @@ mdb_back_initialize(
 SLAP_BACKEND_INIT_MODULE( mdb )
 
 #endif /* SLAPD_MDB == SLAPD_MOD_DYNAMIC */
-

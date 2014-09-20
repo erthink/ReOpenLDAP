@@ -40,7 +40,8 @@ enum {
 	MDB_MAXSIZE,
 	MDB_MODE,
 	MDB_SSTACK,
-	MDB_DREAMCATCHER
+	MDB_DREAMCATCHER,
+	MDB_NOBACKTRACE
 };
 
 static ConfigTable mdbcfg[] = {
@@ -62,6 +63,10 @@ static ConfigTable mdbcfg[] = {
 			"DESC 'Database environment flags' "
 			"EQUALITY caseIgnoreMatch "
 			"SYNTAX OMsDirectoryString )", NULL, NULL },
+	{ "nobacktrace", NULL, 1, 2, 0, ARG_ON_OFF|ARG_MAGIC|MDB_NOBACKTRACE,
+		mdb_cf_gen, "( OLcfgDbAt:12.99 NAME 'olcNoBacktrace' "
+			"DESC 'Disable backtrace generation on SIGSEGV' "
+			"SYNTAX OMsBoolean SINGLE-VALUE )", NULL, NULL },
 	{ "index", "attr> <[pres,eq,approx,sub]", 2, 3, 0, ARG_MAGIC|MDB_INDEX,
 		mdb_cf_gen, "( OLcfgDbAt:0.2 NAME 'olcDbIndex' "
 		"DESC 'Attribute index parameters' "
@@ -356,6 +361,10 @@ mdb_cf_gen( ConfigArgs *c )
 			}
 			break;
 
+		case MDB_NOBACKTRACE:
+			c->value_int = ! backtrace_get_enable();
+			break;
+
 		case MDB_DBNOSYNC:
 			if ( mdb->mi_dbenv_flags & MDB_NOSYNC )
 				c->value_int = 1;
@@ -404,6 +413,7 @@ mdb_cf_gen( ConfigArgs *c )
 		case MDB_SSTACK:
 		case MDB_MAXREADERS:
 		case MDB_MAXSIZE:
+		case MDB_NOBACKTRACE:
 			break;
 
 		case MDB_CHKPT:
@@ -653,8 +663,13 @@ mdb_cf_gen( ConfigArgs *c )
 		if ( mdb->mi_dbenv_home )
 			ch_free( mdb->mi_dbenv_home );
 		mdb->mi_dbenv_home = c->value_string;
+		backtrace_set_dir( c->value_string );
 
 		}
+		break;
+
+	case MDB_NOBACKTRACE:
+		backtrace_set_enable( !c->value_int );
 		break;
 
 	case MDB_DBNOSYNC:
