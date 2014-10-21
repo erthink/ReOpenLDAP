@@ -1550,6 +1550,39 @@ int	mdb_reader_check(MDB_env *env, int *dead);
 	 */
 int  mdb_txn_straggler(MDB_txn *txnm, int *percent);
 
+	/** @brief A callback function for killing a laggard readers,
+	 * called in case of MDB_MAP_FULL error.
+	 *
+	 * @param[in] env An environment handle returned by #mdb_env_create().
+	 * @param[in] pid pid of the reader process.
+	 * @param[in] thread_id thread_id of the reader thread.
+	 * @param[in] txn Transaction number on which stalled.
+	 * @return -1 on failure (reader is not killed),
+	 *         0 on a race condition (no such reader),
+	 *		   1 on success (reader was killed),
+	 *		   >1 on success (reader was SURE killed).
+	 */
+typedef int (MDB_oomkiller_func)(MDB_env *env, int pid, void* thread_id, size_t txn);
+
+	/** @brief Set the oomkiller callback.
+	 *
+	 * Callback will be called only on out-of-pages case for killing
+	 * a laggard readers to allowing reclaiming of freeDB.
+	 *
+	 * @param[in] env An environment handle returned by #mdb_env_create().
+	 * @param[in] oomkiller A #MDB_oomkiller_func function or NULL to disable.
+	 */
+void mdb_env_set_oomkiller(MDB_env *env, MDB_oomkiller_func *oomkiller);
+
+	/** @brief Get the current oomkiller callback.
+	 *
+	 * Callback will be called only on out-of-pages case for killing
+	 * a laggard readers to allowing reclaiming of freeDB.
+	 *
+	 * @param[in] env An environment handle returned by #mdb_env_create().
+	 * @return A #MDB_oomkiller_func function or NULL if disabled.
+	 */
+MDB_oomkiller_func* mdb_env_get_oomkiller(MDB_env *env);
 /**	@} */
 
 #ifdef __cplusplus

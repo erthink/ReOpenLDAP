@@ -1145,6 +1145,7 @@ struct MDB_env {
 #endif
 	void		*me_userctx;	 /**< User-settable context */
 	MDB_assert_func *me_assert_func; /**< Callback for assertion failures */
+	MDB_oomkiller_func *me_oomkiller; /**< Callback for killing laggard readers */
 };
 
 	/** Nested transaction */
@@ -1900,6 +1901,77 @@ mdb_find_oldest(MDB_txn *txn)
 	return oldest;
 }
 
+static txnid_t
+mdb_laggard_reader(MDB_env *env, int *laggard)
+{
+	txnid_t tail = 0;
+	if (laggard)
+		*laggard = -1;
+	if (env->me_txns->mti_txnid > 1) {
+		int i;
+		MDB_reader *r = env->me_txns->mti_readers;
+
+		tail = env->me_txns->mti_txnid - 1;
+		for (i = env->me_txns->mti_numreaders; --i >= 0; ) {
+			if (r[i].mr_pid) {
+				txnid_t mr = r[i].mr_txnid;
+				if (tail > mr) {
+					tail = mr;
+					if (laggard)
+						*laggard = i;
+				}
+			}
+		}
+	}
+
+	return tail;
+}
+
+static int
+mdb_oomkill_laggard(MDB_env *env)
+{
+	int dead, idx;
+	txnid_t tail = mdb_laggard_reader(env, &idx);
+	if (idx < 0)
+		return 0;
+
+	for(;;) {
+		MDB_reader *r;
+		MDB_THR_T tid;
+		pid_t pid;
+		int rc;
+
+		if (mdb_reader_check(env, &dead))
+			break;
+
+		if (dead && tail < mdb_laggard_reader(env, NULL))
+			return 1;
+
+		if (!env->me_oomkiller)
+			break;
+
+		r = &env->me_txns->mti_readers[ idx ];
+		pid = r->mr_pid;
+		tid = r->mr_tid;
+		if (r->mr_txnid != tail || pid <= 0)
+			continue;
+
+		rc = env->me_oomkiller(env, pid, (void*) tid, tail);
+		if (rc < 0)
+			break;
+
+		if (rc) {
+			r->mr_txnid = (txnid_t)-1;
+			if (rc > 1) {
+				r->mr_tid = 0;
+				r->mr_pid = 0;
+			}
+		}
+	}
+
+	return tail < mdb_laggard_reader(env, NULL);
+}
+
 /** Add a page to the txn's dirty list */
 static void
 mdb_page_dirty(MDB_txn *txn, MDB_page *mp)
@@ -1978,6 +2050,7 @@ mdb_page_alloc(MDB_cursor *mc, int num, MDB_page **mp)
 		goto fail;
 	}
 
+oomkill_retry:;
 	for (op = MDB_FIRST;; op = MDB_NEXT) {
 		MDB_val key, data;
 		MDB_node *leaf;
@@ -2073,9 +2146,11 @@ mdb_page_alloc(MDB_cursor *mc, int num, MDB_page **mp)
 	i = 0;
 	pgno = txn->mt_next_pgno;
 	if (pgno + num >= env->me_maxpg) {
-			DPUTS("DB size maxed out");
-			rc = MDB_MAP_FULL;
-			goto fail;
+		DPUTS("DB size maxed out");
+		if (mdb_oomkill_laggard(env))
+			goto oomkill_retry;
+		rc = MDB_MAP_FULL;
+		goto fail;
 	}
 
 search_done:
@@ -9446,4 +9521,18 @@ mdb_reader_check(MDB_env *env, int *dead)
 		*dead = count;
 	return MDB_SUCCESS;
 }
+
+void
+mdb_env_set_oomkiller(MDB_env *env, MDB_oomkiller_func *oomkiller)
+{
+	if (env)
+		env->me_oomkiller = oomkiller;
+}
+
+MDB_oomkiller_func*
+mdb_env_get_oomkiller(MDB_env *env)
+{
+	return env ? env->me_oomkiller : NULL;
+}
+
 /** @} */
