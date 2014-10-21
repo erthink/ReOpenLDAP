@@ -39,7 +39,8 @@ enum {
 	MDB_MAXREADERS,
 	MDB_MAXSIZE,
 	MDB_MODE,
-	MDB_SSTACK
+	MDB_SSTACK,
+	MDB_DREAMCATCHER
 };
 
 static ConfigTable mdbcfg[] = {
@@ -74,6 +75,10 @@ static ConfigTable mdbcfg[] = {
 		mdb_cf_gen, "( OLcfgDbAt:12.2 NAME 'olcDbMaxSize' "
 		"DESC 'Maximum size of DB in bytes' "
 		"SYNTAX OMsInteger SINGLE-VALUE )", NULL, NULL },
+	{ "dreamcatcher", "lag> <percentage", 3, 3, 0, ARG_MAGIC|MDB_DREAMCATCHER,
+		mdb_cf_gen, "( OLcfgDbAt:12.4 NAME 'olcDbDreamcatcher' "
+			"DESC 'Dreamcatcher to avoids withhold of reclaiming' "
+			"SYNTAX OMsDirectoryString SINGLE-VALUE )",NULL, NULL },
 	{ "mode", "mode", 2, 2, 0, ARG_MAGIC|MDB_MODE,
 		mdb_cf_gen, "( OLcfgDbAt:0.3 NAME 'olcDbMode' "
 		"DESC 'Unix permissions of database files' "
@@ -300,6 +305,23 @@ mdb_cf_gen( ConfigArgs *c )
 			}
 			break;
 
+		case MDB_DREAMCATCHER:
+			if ( mdb->mi_renew_lag ) {
+				char buf[64];
+				struct berval bv;
+				bv.bv_len = snprintf( buf, sizeof(buf), "%ld %ld",
+					(long) mdb->mi_renew_lag, (long) mdb->mi_renew_percent );
+				if ( bv.bv_len > 0 && bv.bv_len < sizeof(buf) ) {
+					bv.bv_val = buf;
+					value_add_one( &c->rvalue_vals, &bv );
+				} else {
+					rc = 1;
+				}
+			} else {
+				rc = 1;
+			}
+			break;
+
 		case MDB_DIRECTORY:
 			if ( mdb->mi_dbenv_home ) {
 				c->value_string = ch_strdup( mdb->mi_dbenv_home );
@@ -366,6 +388,10 @@ mdb_cf_gen( ConfigArgs *c )
 				ldap_pvt_thread_mutex_unlock( &slapd_rq.rq_mutex );
 			}
 			mdb->mi_txn_cp = 0;
+			break;
+		case MDB_DREAMCATCHER:
+			mdb->mi_renew_lag = 0;
+			mdb->mi_renew_percent = 0;
 			break;
 		case MDB_DIRECTORY:
 			mdb->mi_flags |= MDB_RE_OPEN;
@@ -548,6 +574,24 @@ mdb_cf_gen( ConfigArgs *c )
 				ldap_pvt_thread_mutex_unlock( &slapd_rq.rq_mutex );
 			}
 		}
+		} break;
+
+	case MDB_DREAMCATCHER: {
+		long	l;
+		if ( lutil_atolx( &l, c->argv[1], 0 ) != 0 || l < 1 ) {
+			fprintf( stderr, "%s: "
+				"invalid lag \"%s\" in \"dreamcatcher\".\n",
+				c->log, c->argv[1] );
+			return 1;
+		}
+		mdb->mi_renew_lag = l;
+		if ( lutil_atolx( &l, c->argv[2], 0 ) != 0 || l < 0 || l > 100 ) {
+			fprintf( stderr, "%s: "
+				"invalid percentage \"%s\" in \"dreamcatcher\".\n",
+				c->log, c->argv[2] );
+			return 1;
+		}
+		mdb->mi_renew_percent = l;
 		} break;
 
 	case MDB_DIRECTORY: {

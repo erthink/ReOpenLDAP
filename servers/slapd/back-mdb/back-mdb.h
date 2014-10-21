@@ -83,6 +83,8 @@ struct mdb_info {
 	uint32_t	mi_txn_cp_kbyte;
 	struct re_s		*mi_txn_cp_task;
 	struct re_s		*mi_index_task;
+	uint32_t	mi_renew_lag;
+	uint32_t	mi_renew_percent;
 
 	mdb_monitor_t	mi_monitor;
 

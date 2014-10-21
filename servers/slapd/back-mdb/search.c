@@ -340,22 +340,29 @@ typedef struct ww_ctx {
  * case return an LDAP_BUSY error - let the client know this search
  * couldn't succeed, but might succeed on a retry.
  */
+
+static void
+mdb_befree( Operation *op, ww_ctx *ww )
+{
+	assert(! ww->flag);
+	if ( ww->mcd ) {
+		MDB_val key, data;
+		mdb_cursor_get( ww->mcd, &key, &data, MDB_GET_CURRENT );
+		memcpy( &ww->key, key.mv_data, sizeof(ID) );
+		ww->data.mv_size = data.mv_size;
+		ww->data.mv_data = op->o_tmpalloc( data.mv_size, op->o_tmpmemctx );
+		memcpy(ww->data.mv_data, data.mv_data, data.mv_size);
+	}
+	mdb_txn_reset( ww->txn );
+	ww->flag = 1;
+}
+
 static void
 mdb_writewait( Operation *op, slap_callback *sc )
 {
 	ww_ctx *ww = sc->sc_private;
-	if ( !ww->flag ) {
-		if ( ww->mcd ) {
-			MDB_val key, data;
-			mdb_cursor_get( ww->mcd, &key, &data, MDB_GET_CURRENT );
-			memcpy( &ww->key, key.mv_data, sizeof(ID) );
-			ww->data.mv_size = data.mv_size;
-			ww->data.mv_data = op->o_tmpalloc( data.mv_size, op->o_tmpmemctx );
-			memcpy(ww->data.mv_data, data.mv_data, data.mv_size);
-		}
-		mdb_txn_reset( ww->txn );
-		ww->flag = 1;
-	}
+	if ( !ww->flag )
+		mdb_befree( op, ww );
 }
 
 static int
@@ -796,7 +803,6 @@ loop_begin:
 			goto done;
 		}
 
-
 		if ( nsubs < ncand ) {
 			unsigned i;
 			/* Is this entry in the candidate list? */
@@ -1034,14 +1040,6 @@ notfound:
 			ber_bvarray_free( erefs );
 			rs->sr_ref = NULL;
 
-			if ( wwctx.flag ) {
-				rs->sr_err = mdb_waitfixup( op, &wwctx, mci, mcd );
-				if ( rs->sr_err ) {
-					send_ldap_result( op, rs );
-					goto done;
-				}
-			}
-
 			goto loop_continue;
 		}
 
@@ -1096,13 +1094,6 @@ notfound:
 					}
 					goto done;
 				}
-				if ( wwctx.flag ) {
-					rs->sr_err = mdb_waitfixup( op, &wwctx, mci, mcd );
-					if ( rs->sr_err ) {
-						send_ldap_result( op, rs );
-						goto done;
-					}
-				}
 			}
 
 		} else {
@@ -1113,6 +1104,21 @@ notfound:
 		}
 
 loop_continue:
+		if ( ! wwctx.flag && mdb->mi_renew_lag ) {
+			int percentage, lag = mdb_txn_straggler( ltid, &percentage );
+			if ( lag >= mdb->mi_renew_lag && percentage >= mdb->mi_renew_percent ) {
+				Debug( LDAP_DEBUG_TRACE, "dreamcather: lag %d, percentage %u%%\n", lag, percentage, 0 );
+				mdb_befree( op, &wwctx );
+			}
+		}
+		if ( wwctx.flag ) {
+			rs->sr_err = mdb_waitfixup( op, &wwctx, mci, mcd );
+			if ( rs->sr_err ) {
+				send_ldap_result( op, rs );
+				goto done;
+			}
+		}
+
 		if( e != NULL ) {
 			if ( e != base )
 				mdb_entry_return( op, e );
