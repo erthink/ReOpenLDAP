@@ -111,6 +111,8 @@ static slap_verbmasks mdb_envflags[] = {
 	{ BER_BVC("writemap"),	MDB_WRITEMAP },
 	{ BER_BVC("mapasync"),	MDB_MAPASYNC },
 	{ BER_BVC("nordahead"),	MDB_NORDAHEAD },
+#define MDB_OOMKILL (MDB_NOMEMINIT << 4)
+	{ BER_BVC("oomkill"),	MDB_OOMKILL },
 	{ BER_BVNULL, 0 }
 };
 
@@ -126,6 +128,23 @@ mdb_checkpoint( void *ctx, void *arg )
 	ldap_pvt_runqueue_stoptask( &slapd_rq, rtask );
 	ldap_pvt_thread_mutex_unlock( &slapd_rq.rq_mutex );
 	return NULL;
+}
+
+/* perform killing a laggard readers */
+int
+mdb_oomkiller(MDB_env *env, int pid, void* thread_id, size_t txn)
+{
+	if ( pid != getpid() ) {
+		if ( kill( pid, SIGKILL ) == 0 ) {
+			Debug( LDAP_DEBUG_ANY, "oomkiller: SIGKILL to pid %i\n", pid, 0, 0 );
+			sched_yield();
+			return 2;
+		}
+		if ( errno == ESRCH )
+			return 0;
+		Debug( LDAP_DEBUG_ANY, "oomkiller: SIGKILL to pid %i: %s\n", pid, strerror(errno), 0 );
+	}
+	return -1;
 }
 
 /* reindex entries on the fly */
@@ -335,12 +354,15 @@ mdb_cf_gen( ConfigArgs *c )
 				c->value_int = 1;
 			break;
 
-		case MDB_ENVFLAGS:
-			if ( mdb->mi_dbenv_flags ) {
-				mask_to_verbs( mdb_envflags, mdb->mi_dbenv_flags, &c->rvalue_vals );
-			}
+		case MDB_ENVFLAGS: {
+			long flags = mdb->mi_dbenv_flags;
+			if ( mdb->mi_oomkill )
+				flags |= MDB_OOMKILL;
+			if ( flags )
+				mask_to_verbs( mdb_envflags, flags, &c->rvalue_vals );
 			if ( !c->rvalue_vals ) rc = 1;
 			break;
+		}
 
 		case MDB_INDEX:
 			mdb_attr_index_unparse( mdb, &c->rvalue_vals );
@@ -406,6 +428,8 @@ mdb_cf_gen( ConfigArgs *c )
 			break;
 
 		case MDB_ENVFLAGS:
+			mdb->mi_oomkill = 0;
+			mdb_env_set_oomkiller( mdb->mi_dbenv, NULL );
 			if ( c->valx == -1 ) {
 				int i;
 				for ( i=0; mdb_envflags[i].mask; i++) {
@@ -640,6 +664,14 @@ mdb_cf_gen( ConfigArgs *c )
 		for ( i=1; i<c->argc; i++ ) {
 			j = verb_to_mask( c->argv[i], mdb_envflags );
 			if ( mdb_envflags[j].mask ) {
+
+				if ( MDB_OOMKILL == mdb_envflags[j].mask ) {
+					mdb->mi_oomkill = 1;
+					if ( mdb->mi_flags & MDB_IS_OPEN )
+						mdb_env_set_oomkiller( mdb->mi_dbenv, mdb_oomkiller );
+					break;
+				}
+
 				if ( mdb->mi_flags & MDB_IS_OPEN )
 					rc = mdb_env_set_flags( mdb->mi_dbenv, mdb_envflags[j].mask, 1 );
 				else

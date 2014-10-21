@@ -20,6 +20,8 @@ LDAP_BEGIN_DECL
 
 #define MDB_UCTYPE	"MDB"
 
+MDB_oomkiller_func mdb_oomkiller;
+
 /*
  * attr.c
  */

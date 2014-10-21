@@ -150,6 +150,8 @@ mdb_db_open( BackendDB *be, ConfigReply *cr )
 		goto fail;
 	}
 
+	mdb_env_set_oomkiller( mdb->mi_dbenv, mdb->mi_oomkill ? mdb_oomkiller : NULL);
+
 #ifdef HAVE_EBCDIC
 	strcpy( path, mdb->mi_dbenv_home );
 	__atoe( path );
