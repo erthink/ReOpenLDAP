@@ -85,6 +85,9 @@ struct mdb_info {
 	struct re_s		*mi_index_task;
 	uint32_t	mi_renew_lag;
 	uint32_t	mi_renew_percent;
+#define MDB_OOM_KILL	1
+#define MDB_OOM_YIELD	2
+	int			mi_oom_flags;
 
 	mdb_monitor_t	mi_monitor;
 

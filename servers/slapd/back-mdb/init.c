@@ -119,6 +119,8 @@ mdb_db_open( BackendDB *be, ConfigReply *cr )
 		goto fail;
 	}
 
+	mdb_env_set_userctx(mdb->mi_dbenv, mdb);
+
 	if ( mdb->mi_readers ) {
 		rc = mdb_env_set_maxreaders( mdb->mi_dbenv, mdb->mi_readers );
 		if( rc != 0 ) {
@@ -156,6 +158,8 @@ mdb_db_open( BackendDB *be, ConfigReply *cr )
 			be->be_suffix[0].bv_val, mdb_strerror(rc), rc );
 		goto fail;
 	}
+
+	mdb_env_set_oomfunc( mdb->mi_dbenv, mdb->mi_oom_flags ? mdb_oom_handler : NULL);
 
 #ifdef HAVE_EBCDIC
 	strcpy( path, mdb->mi_dbenv_home );

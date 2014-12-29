@@ -40,7 +40,8 @@ enum {
 	MDB_MAXSIZE,
 	MDB_MODE,
 	MDB_SSTACK,
-	MDB_DREAMCATCHER
+	MDB_DREAMCATCHER,
+	MDB_OOMFLAGS
 };
 
 static ConfigTable mdbcfg[] = {
@@ -79,6 +80,11 @@ static ConfigTable mdbcfg[] = {
 		mdb_cf_gen, "( OLcfgDbAt:12.4 NAME 'olcDbDreamcatcher' "
 			"DESC 'Dreamcatcher to avoids withhold of reclaiming' "
 			"SYNTAX OMsDirectoryString SINGLE-VALUE )",NULL, NULL },
+	{ "oom-handler", "flags", 2, 0, 0, ARG_MAGIC|MDB_OOMFLAGS,
+		mdb_cf_gen, "( OLcfgDbAt:12.5 NAME 'olcDbOomFlags' "
+			"DESC 'Database OOM-handler flags' "
+			"EQUALITY caseIgnoreMatch "
+			"SYNTAX OMsDirectoryString SINGLE-VALUE )", NULL, NULL },
 	{ "mode", "mode", 2, 2, 0, ARG_MAGIC|MDB_MODE,
 		mdb_cf_gen, "( OLcfgDbAt:0.3 NAME 'olcDbMode' "
 		"DESC 'Unix permissions of database files' "
@@ -114,6 +120,12 @@ static slap_verbmasks mdb_envflags[] = {
 	{ BER_BVNULL, 0 }
 };
 
+static slap_verbmasks oom_flags[] = {
+	{ BER_BVC("kill"),	MDB_OOM_KILL },
+	{ BER_BVC("yield"),	MDB_OOM_YIELD },
+	{ BER_BVNULL, 0 }
+};
+
 /* perform periodic syncs */
 static void *
 mdb_checkpoint( void *ctx, void *arg )
@@ -126,6 +138,35 @@ mdb_checkpoint( void *ctx, void *arg )
 	ldap_pvt_runqueue_stoptask( &slapd_rq, rtask );
 	ldap_pvt_thread_mutex_unlock( &slapd_rq.rq_mutex );
 	return NULL;
+}
+
+/* perform killing a laggard readers */
+int
+mdb_oom_handler(MDB_env *env, int pid, void* thread_id, size_t txnid, unsigned gap, int retry)
+{
+	struct mdb_info *mdb = mdb_env_get_userctx(env);
+
+	if ( (mdb->mi_oom_flags & MDB_OOM_KILL) && pid != getpid() ) {
+		if ( kill( pid, SIGKILL ) == 0 ) {
+			Debug( LDAP_DEBUG_ANY, "oom-handler: txnid %zu gap %u, KILLED pid %i\n",
+				   txnid, gap, pid );
+			ldap_pvt_thread_yield();
+			return 2;
+		}
+		if ( errno == ESRCH )
+			return 0;
+		Debug( LDAP_DEBUG_ANY, "oom-handler: retry %d, UNABLE kill pid %i: %s\n",
+			   retry, pid, STRERROR(errno) );
+	}
+
+	if ( (mdb->mi_oom_flags & MDB_OOM_YIELD) && ! slapd_shutdown ) {
+		Debug( LDAP_DEBUG_ANY, "oom-handler: txnid %zu gap %u, retry %d, YIELD\n",
+			   txnid, gap, retry );
+		ldap_pvt_thread_yield();
+		return 0;
+	}
+
+	return -1;
 }
 
 /* reindex entries on the fly */
@@ -336,9 +377,14 @@ mdb_cf_gen( ConfigArgs *c )
 			break;
 
 		case MDB_ENVFLAGS:
-			if ( mdb->mi_dbenv_flags ) {
+			if ( mdb->mi_dbenv_flags )
 				mask_to_verbs( mdb_envflags, mdb->mi_dbenv_flags, &c->rvalue_vals );
-			}
+			if ( !c->rvalue_vals ) rc = 1;
+			break;
+
+		case MDB_OOMFLAGS:
+			if ( mdb->mi_oom_flags )
+				mask_to_verbs( oom_flags, mdb->mi_oom_flags, &c->rvalue_vals );
 			if ( !c->rvalue_vals ) rc = 1;
 			break;
 
@@ -438,6 +484,11 @@ mdb_cf_gen( ConfigArgs *c )
 					rc = 1;
 				}
 			}
+			break;
+
+		case MDB_OOMFLAGS:
+			mdb->mi_oom_flags = 0;
+			mdb_env_set_oomfunc( mdb->mi_dbenv, NULL );
 			break;
 
 		case MDB_INDEX:
@@ -664,6 +715,25 @@ mdb_cf_gen( ConfigArgs *c )
 			}
 		}
 		}
+		break;
+
+	case MDB_OOMFLAGS: {
+		int i, j;
+		for ( i=1; i<c->argc; i++ ) {
+			j = verb_to_mask( c->argv[i], oom_flags );
+			if ( oom_flags[j].mask ) {
+				mdb->mi_oom_flags |= oom_flags[j].mask;
+			} else {
+				/* unknown keyword */
+				snprintf( c->cr_msg, sizeof( c->cr_msg ), "%s: unknown keyword \"%s\"",
+					c->argv[0], c->argv[i] );
+				Debug( LDAP_DEBUG_ANY, "%s %s\n", c->log, c->cr_msg );
+				return 1;
+			}
+		}
+		}
+		if ( mdb->mi_flags & MDB_IS_OPEN )
+			mdb_env_set_oomfunc( mdb->mi_dbenv, mdb_oom_handler );
 		break;
 
 	case MDB_INDEX:
