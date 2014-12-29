@@ -322,8 +322,7 @@ static void scope_chunk_ret( Operation *op, ID2 *scopes )
 static void *search_stack( Operation *op );
 
 typedef struct ww_ctx {
-	MDB_txn *txn;
-	MDB_cursor *mcd;	/* if set, save cursor context */
+	IdScopes *isc;
 	ID key;
 	MDB_val data;
 	int flag;
@@ -339,46 +338,151 @@ typedef struct ww_ctx {
  * case return an LDAP_BUSY error - let the client know this search
  * couldn't succeed, but might succeed on a retry.
  */
+
 static void
-mdb_writewait( Operation *op, slap_callback *sc )
+mdb_detach_txn( Operation *op, ww_ctx* ww, int finally )
 {
-	ww_ctx *ww = sc->sc_private;
-	if ( !ww->flag ) {
-		if ( ww->mcd ) {
-			MDB_val key, data;
-			mdb_cursor_get( ww->mcd, &key, &data, MDB_GET_CURRENT );
+	IdScopes* isc = ww->isc;
+	MDB_val key, data;
+
+	if (ww->flag)
+		return;
+
+	if (! finally ) {
+		size_t more, last;
+		char* old_begin = isc->area_ptr;
+		char* old_end = old_begin + isc->area_size;
+		int crazyhard = 2; // LY: crazyhard, see dn2id.c, line 910
+		int i;
+
+		last = more = 0;
+		for(i = 1; i <= isc->scopes[0].mid; ++i) {
+			if (! isc->scopes[i].mval.mv_data)
+				continue;
+			size_t len = isc->scopes[i].mval.mv_size;
+			if ((char*) isc->scopes[i].mval.mv_data >= old_begin
+					&& (char*) isc->scopes[i].mval.mv_data + len <= old_end) {
+				size_t end_offset = (char*) isc->scopes[i].mval.mv_data + len - old_begin;
+				if (end_offset > last)
+					last = end_offset;
+			} else
+				more += len;
+		}
+
+		for(i = 0; i < isc->numrdns; ++i) {
+			if (! isc->nrdns[i].bv_val)
+				continue;
+			size_t len = isc->nrdns[i].bv_len + 1 + isc->rdns[i].bv_len;
+			if (isc->nrdns[i].bv_val - crazyhard >= old_begin && isc->rdns[i].bv_val < old_end) {
+				size_t end_offset = isc->nrdns[i].bv_val + len - old_begin;
+				if (end_offset > last)
+					last = end_offset;
+			} else
+				more += len + crazyhard;
+		}
+
+		if (more) {
+			size_t need = last + more;
+			if (need > isc->area_size) {
+				need += need / 2 + 4096;
+				isc->area_ptr = ch_realloc(isc->area_ptr, need);
+				isc->area_size = need;
+			}
+
+			ptrdiff_t offset = isc->area_ptr - old_begin;
+			for(i = 1; i <= isc->scopes[0].mid; ++i) {
+				if (! isc->scopes[i].mval.mv_data)
+					continue;
+				size_t len = isc->scopes[i].mval.mv_size;
+				if ((char*) isc->scopes[i].mval.mv_data >= old_begin
+						&& (char*) isc->scopes[i].mval.mv_data + len <= old_end) {
+					isc->scopes[i].mval.mv_data = (char*) isc->scopes[i].mval.mv_data + offset;
+				} else {
+					isc->scopes[i].mval.mv_data =
+						memcpy(isc->area_ptr + last, isc->scopes[i].mval.mv_data, len);
+					last += len;
+				}
+			}
+
+			for(i = 0; i < isc->numrdns; ++i) {
+				if (! isc->nrdns[i].bv_val)
+					continue;
+				size_t len = isc->nrdns[i].bv_len + 1 + isc->rdns[i].bv_len;
+				if (isc->nrdns[i].bv_val - crazyhard >= old_begin && isc->rdns[i].bv_val < old_end) {
+					isc->nrdns[i].bv_val += offset;
+					isc->rdns[i].bv_val += offset;
+				} else {
+					memcpy(isc->area_ptr + last, isc->nrdns[i].bv_val - crazyhard, len + crazyhard);
+					isc->nrdns[i].bv_val = isc->area_ptr + last + crazyhard;
+					isc->rdns[i].bv_val = isc->nrdns[i].bv_val + isc->nrdns[i].bv_len + 1;
+					last += len + crazyhard;
+				}
+			}
+			assert(last <= isc->area_size);
+		}
+
+		if (mdb_cursor_get( isc->mc, &key, &data, MDB_GET_CURRENT ) == MDB_SUCCESS ) {
 			memcpy( &ww->key, key.mv_data, sizeof(ID) );
 			ww->data.mv_size = data.mv_size;
 			ww->data.mv_data = op->o_tmpalloc( data.mv_size, op->o_tmpmemctx );
 			memcpy(ww->data.mv_data, data.mv_data, data.mv_size);
 		}
-		mdb_txn_reset( ww->txn );
-		ww->flag = 1;
+	}
+
+	mdb_txn_reset( isc->mt );
+	ww->flag = 1;
+}
+
+static void
+mdb_dreamcatcher(Operation *op, ww_ctx *ww, slap_callback *sc, struct mdb_info *mdb)
+{
+	if ( ! ww->flag && mdb->mi_renew_lag ) {
+		int percentage, lag = mdb_txn_straggler( ww->isc->mt, &percentage );
+		if ( lag >= mdb->mi_renew_lag && percentage >= mdb->mi_renew_percent ) {
+			if ( sc->sc_private == ww ) {
+				Debug( LDAP_DEBUG_ANY, "dreamcatcher: lag %d, percentage %u%%\n", lag, percentage );
+				mdb_detach_txn( op, ww, 0 );
+			} else
+				Debug( LDAP_DEBUG_ANY, "dreamcatcher: UNABLE lag %d, percentage %u%%\n", lag, percentage );
+		}
 	}
 }
 
-static int
-mdb_waitfixup( Operation *op, ww_ctx *ww, MDB_cursor *mci, MDB_cursor *mcd )
+static void
+mdb_writewait( Operation *op, slap_callback *sc )
 {
+	ww_ctx *ww = sc->sc_private;
+	if ( !ww->flag )
+		mdb_detach_txn( op, ww, 0 );
+}
+
+static int
+mdb_waitfixup( Operation *op, ww_ctx* ww, MDB_cursor *mci )
+{
+	IdScopes* isc = ww->isc;
 	int rc = 0;
+
 	ww->flag = 0;
-	mdb_txn_renew( ww->txn );
-	mdb_cursor_renew( ww->txn, mci );
-	mdb_cursor_renew( ww->txn, mcd );
-	if ( ww->mcd ) {
+	rc = mdb_txn_renew( isc->mt );
+	assert(rc == 0);
+	rc = mdb_cursor_renew( isc->mt, mci );
+	assert(rc == 0);
+	rc = mdb_cursor_renew( isc->mt, isc->mc );
+	assert(rc == 0);
+	if ( ww->data.mv_data ) {
 		MDB_val key, data;
 		key.mv_size = sizeof(ID);
 		key.mv_data = &ww->key;
 		data = ww->data;
-		rc = mdb_cursor_get( mcd, &key, &data, MDB_GET_BOTH );
+		rc = mdb_cursor_get( isc->mc, &key, &data, MDB_GET_BOTH );
 		if ( rc == MDB_NOTFOUND ) {
 			data = ww->data;
-			rc = mdb_cursor_get( mcd, &key, &data, MDB_GET_BOTH_RANGE );
+			rc = mdb_cursor_get( isc->mc, &key, &data, MDB_GET_BOTH_RANGE );
 			/* the loop will skip this node using NEXT_DUP but we want it
 			 * sent, so go back one space first
 			 */
 			if ( rc == MDB_SUCCESS )
-				mdb_cursor_get( mcd, &key, &data, MDB_PREV_DUP );
+				mdb_cursor_get( isc->mc, &key, &data, MDB_PREV_DUP );
 			else
 				rc = LDAP_BUSY;
 		} else if ( rc ) {
@@ -449,6 +553,9 @@ mdb_search( Operation *op, SlapReply *rs )
 	isc.scopes = scopes;
 	isc.oscope = op->ors_scope;
 	isc.sctmp = stack;
+	isc.area_ptr = NULL;
+	isc.area_size = 0;
+	isc.numrdns = 0;
 
 	if ( op->ors_deref & LDAP_DEREF_FINDING ) {
 		MDB_IDL_ZERO(candidates);
@@ -684,12 +791,12 @@ dn2entry_retry:
 	}
 
 	wwctx.flag = 0;
+	wwctx.isc = &isc;
+	wwctx.data.mv_data = NULL;
 	/* If we're running in our own read txn */
 	if (  moi == &opinfo ) {
 		cb.sc_writewait = mdb_writewait;
 		cb.sc_private = &wwctx;
-		wwctx.txn = ltid;
-		wwctx.mcd = NULL;
 		cb.sc_next = op->o_callback;
 		op->o_callback = &cb;
 	}
@@ -743,7 +850,6 @@ dn2entry_retry:
 			iscopes[0] = 0;
 		}
 
-		wwctx.mcd = mcd;
 		isc.id = base->e_id;
 		isc.numrdns = 0;
 		rc = mdb_dn2id_walk( op, &isc );
@@ -766,6 +872,8 @@ loop_begin:
 		/* check for abandon */
 		if ( op->o_abandon ) {
 			rs->sr_err = SLAPD_ABANDON;
+			if ( cb.sc_private )
+				mdb_detach_txn( op, &wwctx, 1 );
 			send_ldap_result( op, rs );
 			goto done;
 		}
@@ -783,13 +891,14 @@ loop_begin:
 		if ( op->ors_tlimit != SLAP_NO_LIMIT
 				&& slap_get_time() > stoptime )
 		{
+			if ( cb.sc_private )
+				mdb_detach_txn( op, &wwctx, 1 );
 			rs->sr_err = LDAP_TIMELIMIT_EXCEEDED;
 			rs->sr_ref = rs->sr_v2ref;
 			send_ldap_result( op, rs );
 			rs->sr_err = LDAP_SUCCESS;
 			goto done;
 		}
-
 
 		if ( nsubs < ncand ) {
 			unsigned i;
@@ -880,6 +989,8 @@ notfound:
 						break;
 					}
 					if ( rs->sr_err ) {
+						if ( cb.sc_private )
+							mdb_detach_txn( op, &wwctx, 1 );
 						rs->sr_err = LDAP_OTHER;
 						rs->sr_text = "internal error in get_nextid";
 						send_ldap_result( op, rs );
@@ -890,6 +1001,8 @@ notfound:
 
 				goto loop_continue;
 			} else if ( rs->sr_err ) {
+				if ( cb.sc_private )
+					mdb_detach_txn( op, &wwctx, 1 );
 				rs->sr_err = LDAP_OTHER;
 				rs->sr_text = "internal error in mdb_id2edata";
 				send_ldap_result( op, rs );
@@ -898,6 +1011,8 @@ notfound:
 
 			rs->sr_err = mdb_entry_decode( op, ltid, &edata, &e );
 			if ( rs->sr_err ) {
+				if ( cb.sc_private )
+					mdb_detach_txn( op, &wwctx, 1 );
 				rs->sr_err = LDAP_OTHER;
 				rs->sr_text = "internal error in mdb_entry_decode";
 				send_ldap_result( op, rs );
@@ -1018,6 +1133,7 @@ notfound:
 			rs->sr_entry = e;
 			rs->sr_flags = 0;
 
+			mdb_dreamcatcher(op, &wwctx, &cb, mdb);
 			send_search_reference( op, rs );
 
 			if (e != base)
@@ -1029,14 +1145,6 @@ notfound:
 			ber_bvarray_free( erefs );
 			rs->sr_ref = NULL;
 
-			if ( wwctx.flag ) {
-				rs->sr_err = mdb_waitfixup( op, &wwctx, mci, mcd );
-				if ( rs->sr_err ) {
-					send_ldap_result( op, rs );
-					goto done;
-				}
-			}
-
 			goto loop_continue;
 		}
 
@@ -1047,6 +1155,8 @@ notfound:
 			/* check size limit */
 			if ( get_pagedresults(op) > SLAP_CONTROL_IGNORED ) {
 				if ( rs->sr_nentries >= ((PagedResultsState *)op->o_pagedresults_state)->ps_size ) {
+					if ( cb.sc_private )
+						mdb_detach_txn( op, &wwctx, 1 );
 					mdb_entry_return( op, e );
 					e = NULL;
 					send_paged_response( op, rs, &lastid, tentries );
@@ -1077,26 +1187,22 @@ notfound:
 				default:		/* entry not sent */
 					break;
 				case LDAP_BUSY:
+					if ( cb.sc_private )
+						mdb_detach_txn( op, &wwctx, 1 );
 					send_ldap_result( op, rs );
 					goto done;
 				case LDAP_UNAVAILABLE:
 				case LDAP_SIZELIMIT_EXCEEDED:
+					if ( cb.sc_private )
+						mdb_detach_txn( op, &wwctx, 1 );
 					if ( rs->sr_err == LDAP_SIZELIMIT_EXCEEDED ) {
 						rs->sr_ref = rs->sr_v2ref;
 						send_ldap_result( op, rs );
 						rs->sr_err = LDAP_SUCCESS;
-
 					} else {
 						rs->sr_err = LDAP_OTHER;
 					}
 					goto done;
-				}
-				if ( wwctx.flag ) {
-					rs->sr_err = mdb_waitfixup( op, &wwctx, mci, mcd );
-					if ( rs->sr_err ) {
-						send_ldap_result( op, rs );
-						goto done;
-					}
 				}
 			}
 
@@ -1114,6 +1220,17 @@ loop_continue:
 			RS_ASSERT( rs->sr_entry == NULL );
 			e = NULL;
 			rs->sr_entry = NULL;
+		}
+
+		mdb_dreamcatcher(op, &wwctx, &cb, mdb);
+
+		if ( wwctx.flag ) {
+			rs->sr_err = mdb_waitfixup( op, &wwctx, mci );
+			if ( rs->sr_err ) {
+				mdb_detach_txn( op, &wwctx, 1 );
+				send_ldap_result( op, rs );
+				goto done;
+			}
 		}
 
 		if ( nsubs < ncand ) {
@@ -1153,6 +1270,8 @@ nochange:
 	rs->sr_ref = rs->sr_v2ref;
 	rs->sr_err = (rs->sr_v2ref == NULL) ? LDAP_SUCCESS : LDAP_REFERRAL;
 	rs->sr_rspoid = NULL;
+	if ( cb.sc_private )
+		mdb_detach_txn( op, &wwctx, 1 );
 	if ( get_pagedresults(op) > SLAP_CONTROL_IGNORED ) {
 		send_paged_response( op, rs, NULL, 0 );
 	} else {
@@ -1188,6 +1307,9 @@ done:
 	if (base)
 		mdb_entry_return( op, base );
 	scope_chunk_ret( op, scopes );
+
+	if (isc.area_ptr)
+		ch_free(isc.area_ptr);
 
 	return rs->sr_err;
 }
@@ -1259,8 +1381,10 @@ static void *search_stack( Operation *op )
 	}
 
 	if ( !ret ) {
-		ret = ch_malloc( mdb->mi_search_stack_depth * MDB_IDL_UM_SIZE
-			* sizeof( ID ) );
+		size_t case_stack = mdb->mi_search_stack_depth * MDB_IDL_UM_SIZE * sizeof( ID );
+		size_t case_sctmp = MDB_IDL_UM_SIZE * sizeof( ID2 );
+		size_t size = (case_stack > case_sctmp) ? case_stack : case_sctmp;
+		ret = ch_malloc( size );
 		if ( op->o_threadctx ) {
 			ldap_pvt_thread_pool_setkey( op->o_threadctx, (void *)search_stack,
 				ret, search_stack_free, NULL, NULL );

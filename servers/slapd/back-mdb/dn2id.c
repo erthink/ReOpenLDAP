@@ -838,12 +838,18 @@ mdb_dn2id_walk(
 	int rc, n;
 	ID nsubs;
 
+	isc->scopes[0].mid = 0;
 	if ( !isc->numrdns ) {
 		key.mv_data = &isc->id;
 		key.mv_size = sizeof(ID);
 		rc = mdb_cursor_get( isc->mc, &key, &data, MDB_SET );
-		isc->scopes[0].mid = isc->id;
-		isc->numrdns++;
+		isc->scopes[0 + 1].mid = isc->id;
+
+		isc->nrdns[0].bv_val = NULL;
+		isc->nrdns[0].bv_len = 0;
+		isc->rdns[0] = isc->nrdns[0];
+		isc->numrdns = 1;
+
 		isc->nscope = 0;
 		/* skip base if not a subtree walk */
 		if ( isc->oscope == LDAP_SCOPE_SUBTREE ||
@@ -870,7 +876,7 @@ mdb_dn2id_walk(
 					continue;
 			}
 			n = isc->numrdns;
-			isc->scopes[n].mid = isc->id;
+			isc->scopes[n + 1].mid = isc->id;
 			n--;
 			isc->nrdns[n].bv_len = ((d->nrdnlen[0] & 0x7f) << 8) | d->nrdnlen[1];
 			isc->nrdns[n].bv_val = d->nrdn;
@@ -901,7 +907,7 @@ mdb_dn2id_walk(
 					break;
 				/* pop up to prev node */
 				n = isc->numrdns - 1;
-				key.mv_data = &isc->scopes[n].mid;
+				key.mv_data = &isc->scopes[n + 1].mid;
 				key.mv_size = sizeof(ID);
 				data.mv_data = isc->nrdns[n].bv_val - 2;
 				data.mv_size = 1;	/* just needs to be non-zero, mdb_dup_compare doesn't care */

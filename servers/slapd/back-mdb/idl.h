@@ -94,6 +94,8 @@ typedef struct IdScopes {
 	int oscope;
 	struct berval rdns[MAXRDNS];
 	struct berval nrdns[MAXRDNS];
+	char* area_ptr;
+	unsigned area_size;
 } IdScopes;
 
 LDAP_BEGIN_DECL
