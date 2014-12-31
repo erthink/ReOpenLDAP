@@ -332,7 +332,9 @@ mdb_monitor_db_open( BackendDB *be )
 		len = strlen( fname );
 		if ( fname[ 0 ] != '/' ) {
 			/* get full path name */
-			getcwd( path, sizeof( path ) );
+			if (getcwd( path, sizeof( path ) ))
+				return errno;
+
 			pathlen = strlen( path );
 
 			if ( fname[ 0 ] == '.' && fname[ 1 ] == '/' ) {
