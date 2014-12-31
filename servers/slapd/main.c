@@ -906,7 +906,7 @@ unhandled_option:;
 	if ( !no_detach ) {
 		if ( lutil_pair( waitfds ) < 0 ) {
 			Debug( LDAP_DEBUG_ANY,
-				"main: lutil_pair failed: %d\n" );
+				"main: lutil_pair failed\n" );
 			rc = 1;
 			goto destroy;
 		}
