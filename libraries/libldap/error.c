@@ -24,6 +24,18 @@
 #include <ac/time.h>
 
 #include "ldap-int.h"
+#include "ac/errno.h"
+
+#ifdef HAVE_STRERROR_R
+const char* strerror_safe(int err) {
+	static __thread char buf[1024];
+#if HAVE_NONPOSIX_STRERROR_R
+	return strerror_r(err, buf, sizeof(buf));
+#else
+	return ! strerror_r(err, buf, sizeof(buf)) ? _AC_ERRNO_UNKNOWN : buf;
+#endif /* HAVE_NONPOSIX_STRERROR_R */
+}
+#endif /* HAVE_STRERROR_R */
 
 void ldap_int_error_init( void ) {
 }

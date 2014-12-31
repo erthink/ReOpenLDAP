@@ -36,7 +36,10 @@
 #undef _AC_ERRNO_UNKNOWN
 #define _AC_ERRNO_UNKNOWN "unknown error"
 
-#ifdef HAVE_SYS_ERRLIST
+#ifdef HAVE_STRERROR_R
+	const char* strerror_safe(int err);
+#	define	STRERROR(e) strerror_safe(e)
+#elif defined(HAVE_SYS_ERRLIST)
 	/* this is thread safe */
 #	define	STRERROR(e) ( (e) > -1 && (e) < sys_nerr \
 			? sys_errlist[(e)] : _AC_ERRNO_UNKNOWN )
