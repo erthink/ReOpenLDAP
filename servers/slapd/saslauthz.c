@@ -182,14 +182,14 @@ int slap_parse_user( struct berval *id, struct berval *user,
 	if ( !BER_BVISNULL( mech ) ) {
 		assert( mech->bv_val == id->bv_val + 2 );
 
-		AC_MEMCPY( mech->bv_val - 2, mech->bv_val, mech->bv_len + 1 );
+		memmove( mech->bv_val - 2, mech->bv_val, mech->bv_len + 1 );
 		mech->bv_val -= 2;
 	}
 
 	if ( !BER_BVISNULL( realm ) ) {
 		assert( realm->bv_val >= id->bv_val + 2 );
 
-		AC_MEMCPY( realm->bv_val - 2, realm->bv_val, realm->bv_len + 1 );
+		memmove( realm->bv_val - 2, realm->bv_val, realm->bv_len + 1 );
 		realm->bv_val -= 2;
 	}
 

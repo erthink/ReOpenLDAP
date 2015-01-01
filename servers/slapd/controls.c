@@ -994,7 +994,7 @@ slap_remove_control(
 		op->o_tmpfree( op->o_ctrls[ j ], op->o_tmpmemctx );
 
 		if ( i > 1 ) {
-			AC_MEMCPY( &op->o_ctrls[ j ], &op->o_ctrls[ j + 1 ],
+			memmove( &op->o_ctrls[ j ], &op->o_ctrls[ j + 1 ],
 				( i - j ) * sizeof( LDAPControl * ) );
 
 		} else {

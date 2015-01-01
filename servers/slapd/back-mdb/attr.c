@@ -71,7 +71,7 @@ ainfo_insert( struct mdb_info *mdb, AttrInfo *a )
 	mdb->mi_attrs = ch_realloc( mdb->mi_attrs, ( mdb->mi_nattrs+1 ) *
 		sizeof( AttrInfo * ));
 	if ( x < mdb->mi_nattrs )
-		AC_MEMCPY( &mdb->mi_attrs[x+1], &mdb->mi_attrs[x],
+		memmove( &mdb->mi_attrs[x+1], &mdb->mi_attrs[x],
 			( mdb->mi_nattrs - x ) * sizeof( AttrInfo *));
 	mdb->mi_attrs[x] = a;
 	mdb->mi_nattrs++;

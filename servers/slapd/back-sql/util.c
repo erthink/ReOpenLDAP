@@ -411,7 +411,7 @@ backsql_split_pattern(
 
 		} else if ( real_end[ 1 ] == SPLIT_CHAR ) {
 			expected++;
-			AC_MEMCPY( real_end, real_end + 1, strlen( real_end ) );
+			memmove( real_end, real_end + 1, strlen( real_end ) );
 			end = strchr( real_end + 1, SPLIT_CHAR );
 			continue;
 		}

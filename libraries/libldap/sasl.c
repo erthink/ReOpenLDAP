@@ -628,7 +628,7 @@ sb_sasl_generic_drop_packet (
 
 	len = p->sec_buf_in.buf_ptr - p->sec_buf_in.buf_end;
 	if ( len > 0 )
-		AC_MEMCPY( p->sec_buf_in.buf_base, p->sec_buf_in.buf_base +
+		memmove( p->sec_buf_in.buf_base, p->sec_buf_in.buf_base +
 			p->sec_buf_in.buf_end, len );
 
 	if ( len >= 4 ) {

@@ -204,7 +204,7 @@ int bdb_idl_insert( ID *ids, ID id )
 
 	} else {
 		/* insert id */
-		AC_MEMCPY( &ids[x+1], &ids[x], (ids[0]-x) * sizeof(ID) );
+		memmove( &ids[x+1], &ids[x], (ids[0]-x) * sizeof(ID) );
 		ids[x] = id;
 	}
 
@@ -262,7 +262,7 @@ int bdb_idl_delete( ID *ids, ID id )
 		}
 
 	} else {
-		AC_MEMCPY( &ids[x], &ids[x+1], (1+ids[0]-x) * sizeof(ID) );
+		memmove( &ids[x], &ids[x+1], (1+ids[0]-x) * sizeof(ID) );
 	}
 
 #if IDL_DEBUG > 1

@@ -71,7 +71,7 @@ ainfo_insert( struct bdb_info *bdb, AttrInfo *a )
 	bdb->bi_attrs = ch_realloc( bdb->bi_attrs, ( bdb->bi_nattrs+1 ) *
 		sizeof( AttrInfo * ));
 	if ( x < bdb->bi_nattrs )
-		AC_MEMCPY( &bdb->bi_attrs[x+1], &bdb->bi_attrs[x],
+		memmove( &bdb->bi_attrs[x+1], &bdb->bi_attrs[x],
 			( bdb->bi_nattrs - x ) * sizeof( AttrInfo *));
 	bdb->bi_attrs[x] = a;
 	bdb->bi_nattrs++;

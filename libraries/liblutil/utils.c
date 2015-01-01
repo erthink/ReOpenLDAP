@@ -841,7 +841,7 @@ lutil_str2bin( struct berval *in, struct berval *out, void *ctx )
 			num.buf[num.beg] = neg;
 		}
 		if ( num.beg )
-			AC_MEMCPY( num.buf, num.buf+num.beg, num.len );
+			memmove( num.buf, num.buf+num.beg, num.len );
 		out->bv_len = num.len;
 decfail:
 		if ( tmp != tmpbuf ) {

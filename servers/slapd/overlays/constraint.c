@@ -401,7 +401,7 @@ constraint_cf_gen( ConfigArgs *c )
 						rc = ARG_BAD_CONF;
 						goto done;
 					}
-					AC_MEMCPY( &ap.lud->lud_filter[0], &ap.lud->lud_filter[1], len - 2 );
+					memmove( &ap.lud->lud_filter[0], &ap.lud->lud_filter[1], len - 2 );
 					ap.lud->lud_filter[len - 2] = '\0';
 				}
 

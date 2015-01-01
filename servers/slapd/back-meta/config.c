@@ -1342,7 +1342,7 @@ meta_back_cf_gen( ConfigArgs *c )
 
 			if ( i ) {
 				bv.bv_len -= i;
-				AC_MEMCPY( bv.bv_val, &bv.bv_val[ i ],
+				memmove( bv.bv_val, &bv.bv_val[ i ],
 					bv.bv_len + 1 );
 			}
 
@@ -1599,7 +1599,7 @@ meta_back_cf_gen( ConfigArgs *c )
 
 				if ( i ) {
 					bc.bv_len -= i;
-					AC_MEMCPY( bc.bv_val, &bc.bv_val[ i ], bc.bv_len + 1 );
+					memmove( bc.bv_val, &bc.bv_val[ i ], bc.bv_len + 1 );
 				}
 
 				bv = bc;
@@ -2722,7 +2722,7 @@ idassert-authzFrom	"dn:<rootdn>"
 			int len = strlen( argv[ 0 ] );
 
 			ber_str2bv( line, 0, 0, &bv );
-			AC_MEMCPY( &bv.bv_val[ len ], &bv.bv_val[ len + 1 ],
+			memmove( &bv.bv_val[ len ], &bv.bv_val[ len + 1 ],
 				bv.bv_len - ( len + 1 ));
 			bv.bv_val[ bv.bv_len - 1] = '"';
 			ber_bvarray_add( &mt->mt_rwmap.rwm_bva_rewrite, &bv );

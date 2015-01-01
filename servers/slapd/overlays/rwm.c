@@ -2014,7 +2014,7 @@ rwm_bva_add(
 		int	len = strlen( argv[ 0 ] );
 
 		ber_str2bv( line, 0, 0, &bv );
-		AC_MEMCPY( &bv.bv_val[ len ], &bv.bv_val[ len + 1 ],
+		memmove( &bv.bv_val[ len ], &bv.bv_val[ len + 1 ],
 			bv.bv_len - ( len + 1 ) );
 		bv.bv_val[ bv.bv_len - 1 ] = '"';
 

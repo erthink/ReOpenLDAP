@@ -2317,7 +2317,7 @@ acl_regex_normalized_dn(
 			for ( q = &p[2]; q[0] == ' '; q++ ) {
 				/* DO NOTHING */ ;
 			}
-			AC_MEMCPY( p+1, q, len-(q-str)+1);
+			memmove( p+1, q, len-(q-str)+1);
 		}
 	}
 	pattern->bv_val = str;

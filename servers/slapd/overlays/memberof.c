@@ -616,10 +616,10 @@ memberof_op_add( Operation *op, SlapReply *rs )
 						break;
 					}
 
-					AC_MEMCPY( &a->a_vals[ i ], &a->a_vals[ i + 1 ],
+					memmove( &a->a_vals[ i ], &a->a_vals[ i + 1 ],
 						sizeof( struct berval ) * ( j - i ) );
 					if ( a->a_nvals != a->a_vals ) {
-						AC_MEMCPY( &a->a_nvals[ i ], &a->a_nvals[ i + 1 ],
+						memmove( &a->a_nvals[ i ], &a->a_nvals[ i + 1 ],
 							sizeof( struct berval ) * ( j - i ) );
 					}
 					i--;
@@ -698,10 +698,10 @@ memberof_op_add( Operation *op, SlapReply *rs )
 						break;
 					}
 
-					AC_MEMCPY( &a->a_vals[ i ], &a->a_vals[ i + 1 ],
+					memmove( &a->a_vals[ i ], &a->a_vals[ i + 1 ],
 						sizeof( struct berval ) * ( j - i ) );
 					if ( a->a_nvals != a->a_vals ) {
-						AC_MEMCPY( &a->a_nvals[ i ], &a->a_nvals[ i + 1 ],
+						memmove( &a->a_nvals[ i ], &a->a_nvals[ i + 1 ],
 							sizeof( struct berval ) * ( j - i ) );
 					}
 					i--;
@@ -922,9 +922,9 @@ memberof_op_modify( Operation *op, SlapReply *rs )
 								break;
 							}
 
-							AC_MEMCPY( &ml->sml_values[ i ], &ml->sml_values[ i + 1 ],
+							memmove( &ml->sml_values[ i ], &ml->sml_values[ i + 1 ],
 								sizeof( struct berval ) * ( j - i ) );
-							AC_MEMCPY( &ml->sml_nvalues[ i ], &ml->sml_nvalues[ i + 1 ],
+							memmove( &ml->sml_nvalues[ i ], &ml->sml_nvalues[ i + 1 ],
 								sizeof( struct berval ) * ( j - i ) );
 							i--;
 						}
@@ -1022,10 +1022,10 @@ memberof_op_modify( Operation *op, SlapReply *rs )
 								break;
 							}
 
-							AC_MEMCPY( &ml->sml_values[ i ], &ml->sml_values[ i + 1 ],
+							memmove( &ml->sml_values[ i ], &ml->sml_values[ i + 1 ],
 								sizeof( struct berval ) * ( j - i ) );
 							if ( ml->sml_nvalues != ml->sml_values ) {
-								AC_MEMCPY( &ml->sml_nvalues[ i ], &ml->sml_nvalues[ i + 1 ],
+								memmove( &ml->sml_nvalues[ i ], &ml->sml_nvalues[ i + 1 ],
 									sizeof( struct berval ) * ( j - i ) );
 							}
 							i--;
@@ -1140,10 +1140,10 @@ memberof_op_modify( Operation *op, SlapReply *rs )
 							break;
 						}
 
-						AC_MEMCPY( &ml->sml_values[ i ], &ml->sml_values[ i + 1 ],
+						memmove( &ml->sml_values[ i ], &ml->sml_values[ i + 1 ],
 							sizeof( struct berval ) * ( j - i ) );
 						if ( ml->sml_nvalues != ml->sml_values ) {
-							AC_MEMCPY( &ml->sml_nvalues[ i ], &ml->sml_nvalues[ i + 1 ],
+							memmove( &ml->sml_nvalues[ i ], &ml->sml_nvalues[ i + 1 ],
 								sizeof( struct berval ) * ( j - i ) );
 						}
 						i--;

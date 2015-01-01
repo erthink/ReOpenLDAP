@@ -398,7 +398,7 @@ ber_start_seqorset(
 			return -1;
 	}
 	dest = *p;
-	AC_MEMCPY( dest, headptr, headlen );
+	memmove( dest, headptr, headlen );
 	ber->ber_sos_ptr = dest + headlen;
 
 	ber->ber_sos_inner = dest + taglen - ber->ber_buf;
@@ -467,7 +467,7 @@ ber_put_seqorset( BerElement *ber )
 		if ( unused != 0 ) {
 			/* length(length) < the reserved SOS_LENLEN bytes */
 			xlen -= unused;
-			AC_MEMCPY( lenptr, p, xlen );
+			memmove( lenptr, p, xlen );
 			ber->ber_sos_ptr = (char *) lenptr + xlen;
 		}
 	}

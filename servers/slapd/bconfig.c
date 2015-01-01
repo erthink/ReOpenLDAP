@@ -2107,7 +2107,7 @@ sortval_reject:
 					s = ber_bvchr( &bv, '"' );
 					assert( s != NULL );
 					/* move the trailing quote of argv[0] to the end */
-					AC_MEMCPY( s, s + 1, bv.bv_len - ( s - bv.bv_val ) );
+					memmove( s, s + 1, bv.bv_len - ( s - bv.bv_val ) );
 					bv.bv_val[ bv.bv_len - 1 ] = '"';
 
 				} else {
