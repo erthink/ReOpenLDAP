@@ -1958,7 +1958,7 @@ accesslog_op_mod( Operation *op, SlapReply *rs )
 
 			op->o_bd->bd_info = (BackendInfo *)on->on_info;
 			rc = be_entry_get_rw( op, &op->o_req_ndn, NULL, NULL, 0, &e );
-			if ( e ) {
+			if ( !rc && e ) {
 				if ( test_filter( op, e, li->li_oldf ) == LDAP_COMPARE_TRUE )
 					li->li_old = entry_dup( e );
 				be_entry_release_rw( op, e, 0 );
@@ -1971,7 +1971,7 @@ accesslog_op_mod( Operation *op, SlapReply *rs )
 
 			op->o_bd->bd_info = (BackendInfo *)on->on_info;
 			rc = be_entry_get_rw( op, &op->o_req_ndn, NULL, NULL, 0, &e );
-			if ( e ) {
+			if ( !rc && e ) {
 				Attribute *a = attr_find( e->e_attrs, slap_schema.si_ad_entryUUID );
 				if ( a ) {
 					ber_dupbv( &li->li_uuid, &a->a_vals[0] );
@@ -2178,7 +2178,7 @@ accesslog_db_root(
 	op->o_ndn = li->li_db->be_rootndn;
 	rc = be_entry_get_rw( op, li->li_db->be_nsuffix, NULL, NULL, 0, &e );
 
-	if ( e ) {
+	if ( !rc && e ) {
 		be_entry_release_rw( op, e, 0 );
 
 	} else {
