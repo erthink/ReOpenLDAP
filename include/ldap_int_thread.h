@@ -34,6 +34,10 @@ LDAP_END_DECL
  *                                *
  **********************************/
 
+#ifndef __USE_UNIX98
+#define __USE_UNIX98 1
+#endif
+
 #include <pthread.h>
 #ifdef HAVE_SCHED_H
 #include <sched.h>
