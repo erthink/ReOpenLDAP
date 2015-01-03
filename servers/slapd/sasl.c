@@ -1191,6 +1191,7 @@ int slap_sasl_destroy( void )
 	return 0;
 }
 
+#ifdef HAVE_CYRUS_SASL
 static char *
 slap_sasl_peer2ipport( struct berval *peer )
 {
@@ -1224,6 +1225,7 @@ slap_sasl_peer2ipport( struct berval *peer )
 
 	return ipport;
 }
+#endif /* SASL */
 
 int slap_sasl_open( Connection *conn, int reopen )
 {

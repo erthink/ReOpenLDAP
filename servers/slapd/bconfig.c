@@ -776,7 +776,11 @@ ConfigTable olcDatabaseDummy[] = {
 
 /* Routines to check if a child can be added to this type */
 static ConfigLDAPadd cfAddSchema, cfAddInclude, cfAddDatabase,
-	cfAddBackend, cfAddModule, cfAddOverlay;
+	cfAddBackend, cfAddOverlay;
+#ifdef SLAPD_MODULES
+static ConfigLDAPadd cfAddModule;
+#endif
+
 
 /* NOTE: be careful when defining array members
  * that can be conditionally compiled */
@@ -4845,6 +4849,7 @@ cfAddBackend( CfEntryInfo *p, Entry *e, struct config_args_s *ca )
 	return LDAP_SUCCESS;
 }
 
+#ifdef SLAPD_MODULES
 static int
 cfAddModule( CfEntryInfo *p, Entry *e, struct config_args_s *ca )
 {
@@ -4853,6 +4858,7 @@ cfAddModule( CfEntryInfo *p, Entry *e, struct config_args_s *ca )
 	}
 	return LDAP_SUCCESS;
 }
+#endif /* SLAPD_MODULES */
 
 static int
 cfAddOverlay( CfEntryInfo *p, Entry *e, struct config_args_s *ca )
@@ -6079,7 +6085,7 @@ config_back_modrdn( Operation *op, SlapReply *rs )
 		}
 		op->oq_modrdn = modr;
 	} else {
-		CfEntryInfo *ce2, *cebase, **cprev, **cbprev, *ceold;
+		CfEntryInfo *ce2, *cebase ALLOW_UNUSED, **cprev, **cbprev, *ceold;
 		req_modrdn_s modr = op->oq_modrdn;
 		int i;
 
@@ -6737,7 +6743,7 @@ config_back_db_open( BackendDB *be, ConfigReply *cr )
 {
 	CfBackInfo *cfb = be->be_private;
 	struct berval rdn;
-	Entry *e, *parent;
+	Entry *e;
 	CfEntryInfo *ce, *ceparent;
 	int i, unsupp = 0;
 	BackendInfo *bi;
@@ -6797,7 +6803,6 @@ config_back_db_open( BackendDB *be, ConfigReply *cr )
 	ce = e->e_private;
 	cfb->cb_root = ce;
 
-	parent = e;
 	ceparent = ce;
 
 #ifdef SLAPD_MODULES
@@ -7166,7 +7171,7 @@ config_tool_entry_put( BackendDB *be, Entry *e, struct berval *text )
 	CfBackInfo *cfb = be->be_private;
 	BackendInfo *bi = cfb->cb_db.bd_info;
 	int rc;
-	struct berval rdn, vals[ 2 ];
+	struct berval rdn;
 	ConfigArgs ca;
 	OperationBuffer opbuf;
 	Entry *ce;
@@ -7186,8 +7191,6 @@ config_tool_entry_put( BackendDB *be, Entry *e, struct berval *text )
 					strncmp( e->e_nname.bv_val +
 					STRLENOF( "olcDatabase" ), "=frontend",
 					STRLENOF( "=frontend" ))) {
-				vals[1].bv_len = 0;
-				vals[1].bv_val = NULL;
 				memset( &ca, 0, sizeof(ConfigArgs));
 				ca.be = frontendDB;
 				ca.bi = frontendDB->bd_info;
@@ -7280,8 +7283,6 @@ config_tool_entry_put( BackendDB *be, Entry *e, struct berval *text )
 					strncmp( e->e_nname.bv_val +
 					STRLENOF( "olcDatabase" ), "=config",
 					STRLENOF( "=config" )) ) {
-				vals[1].bv_len = 0;
-				vals[1].bv_val = NULL;
 				memset( &ca, 0, sizeof(ConfigArgs));
 				ca.be = LDAP_STAILQ_FIRST( &backendDB );
 				ca.bi = ca.be->bd_info;

@@ -196,11 +196,6 @@ int
 fe_extended( Operation *op, SlapReply *rs )
 {
 	struct extop_list	*ext = NULL;
-	struct berval		reqdata = BER_BVNULL;
-
-	if (op->ore_reqdata) {
-		reqdata = *op->ore_reqdata;
-	}
 
 	ext = find_extop(supp_ext_list, &op->ore_reqoid );
 	if ( ext == NULL ) {

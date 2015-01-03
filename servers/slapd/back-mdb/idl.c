@@ -186,6 +186,7 @@ int mdb_idl_insert( ID *ids, ID id )
 	return 0;
 }
 
+#if 0 /* unused */
 static int mdb_idl_delete( ID *ids, ID id )
 {
 	unsigned x;
@@ -242,6 +243,7 @@ static int mdb_idl_delete( ID *ids, ID id )
 
 	return 0;
 }
+#endif /* unused */
 
 static char *
 mdb_show_key(

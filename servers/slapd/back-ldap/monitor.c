@@ -1032,7 +1032,7 @@ ldap_back_monitor_db_close( BackendDB *be )
 
 	if ( li && !BER_BVISNULL( &li->li_monitor_info.lmi_ndn ) ) {
 		BackendInfo		*mi;
-		monitor_extra_t		*mbe;
+		monitor_extra_t		*mbe ALLOW_UNUSED;
 
 		/* check if monitor is configured and usable */
 		mi = backend_info( "monitor" );

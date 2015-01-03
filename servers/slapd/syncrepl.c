@@ -2103,11 +2103,8 @@ syncrepl_op_modify( Operation *op, SlapReply *rs )
 	if ( match < 0 ) {
 		Operation op2 = *op;
 		AttributeName an[2];
-		const char *text;
 		struct berval bv;
-		char *ptr;
-		Modifications *ml;
-		int size, rc;
+		int size;
 		SlapReply rs1 = {0};
 		resolve_ctxt rx;
 		slap_callback cb = { NULL, syncrepl_resolve_cb, NULL, NULL };
@@ -2195,7 +2192,7 @@ syncrepl_message_to_op(
 	size_t textlen = sizeof txtbuf;
 
 	struct berval	bdn, dn = BER_BVNULL, ndn;
-	struct berval	bv, bv2 __attribute__((unused)), *bvals = NULL;
+	struct berval	bv, bv2 ALLOW_UNUSED, *bvals = NULL;
 	struct berval	rdn = BER_BVNULL, sup = BER_BVNULL,
 		prdn = BER_BVNULL, nrdn = BER_BVNULL,
 		psup = BER_BVNULL, nsup = BER_BVNULL;
@@ -2461,7 +2458,7 @@ syncrepl_message_to_entry(
 	char txtbuf[SLAP_TEXT_BUFLEN];
 	size_t textlen = sizeof txtbuf;
 
-	struct berval	bdn = BER_BVNULL, dn, ndn, bv2 __attribute__((unused));
+	struct berval	bdn = BER_BVNULL, dn, ndn, bv2 ALLOW_UNUSED;
 	int		rc, is_ctx;
 
 	*modlist = NULL;
@@ -3346,7 +3343,7 @@ syncrepl_del_nonpresent(
 		}
 		si->si_refreshDelete ^= NP_DELETE_ONE;
 	} else {
-		Filter *cf, *of = NULL;
+		Filter *of = NULL;
 		Filter mmf[2];
 		AttributeAssertion mmaa;
 		SlapReply rs_search = {REP_RESULT};
@@ -3387,7 +3384,6 @@ syncrepl_del_nonpresent(
 			op->ors_filter = mmf;
 			filter2bv_x( op, op->ors_filter, &op->ors_filterstr );
 		} else {
-			cf = NULL;
 			op->ors_filterstr = si->si_filterstr;
 		}
 		op->o_nocaching = 1;
@@ -4223,7 +4219,7 @@ nonpresent_callback(
 {
 	syncinfo_t *si = op->o_callback->sc_private;
 	Attribute *a;
-	int count = 0;
+	int count ALLOW_UNUSED = 0;
 	struct berval* present_uuid = NULL;
 	struct nonpresent_entry *np_entry;
 

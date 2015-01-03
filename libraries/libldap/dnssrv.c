@@ -324,7 +324,8 @@ int ldap_domain2hostlist(
 	p += 4;
 
 	while (p < reply + len) {
-	    int type, class, ttl, size;
+	    int type, size;
+	    int class ALLOW_UNUSED, ttl ALLOW_UNUSED;
 	    status = dn_expand(reply, reply + len, p, host, sizeof(host));
 	    if (status < 0) {
 		goto out;

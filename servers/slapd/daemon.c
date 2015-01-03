@@ -2343,9 +2343,10 @@ loop:
 
 	while ( !slapd_shutdown ) {
 		ber_socket_t		i;
-		int			ns, nwriters;
+		int			ns;
+		int			nwriters ALLOW_UNUSED;
 		int			at;
-		ber_socket_t		nfds;
+		ber_socket_t		nfds ALLOW_UNUSED;
 #if SLAP_EVENTS_ARE_INDEXED
 		ber_socket_t		nrfds, nwfds;
 #endif /* SLAP_EVENTS_ARE_INDEXED */
@@ -2739,7 +2740,8 @@ loop:
 #endif /* LDAP_DEBUG */
 
 		for ( i = 0; i < ns; i++ ) {
-			int rc = 1, fd, w = 0, r = 0;
+			int rc = 1, fd, w = 0;
+			int r ALLOW_UNUSED = 0;
 
 			if ( SLAP_EVENT_IS_LISTENER( tid, i ) ) {
 				rc = slap_listener_activate( SLAP_EVENT_LISTENER( tid, i ) );

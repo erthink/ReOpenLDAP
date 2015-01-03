@@ -2232,7 +2232,7 @@ ldap_back_proxy_authz_bind(
 	struct berval		*bindcred )
 {
 	ldapinfo_t	*li = (ldapinfo_t *)op->o_bd->be_private;
-	struct berval	ndn;
+	struct berval	ndn ALLOW_UNUSED;
 	int		msgid;
 	int		rc;
 

@@ -330,7 +330,6 @@ unique_new_domain ( unique_domain **domainp,
 {
 	char *uri_start;
 	int rc = LDAP_SUCCESS;
-	int uri_err = 0;
 	unique_domain * domain;
 	LDAPURLDesc *url_desc, *url_descs = NULL;
 
@@ -374,7 +373,6 @@ unique_new_domain ( unique_domain **domainp,
 					     c );
 		if ( rc ) {
 			rc = ARG_BAD_CONF;
-			uri_err = 1;
 			goto exit;
 		}
 	}

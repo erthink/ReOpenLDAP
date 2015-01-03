@@ -82,7 +82,7 @@ monitor_cache_add(
 	Entry		*e )
 {
 	monitor_cache_t	*mc;
-	monitor_entry_t	*mp;
+	monitor_entry_t	*mp ALLOW_UNUSED;
 	int		rc;
 
 	assert( mi != NULL );

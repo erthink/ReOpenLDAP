@@ -108,7 +108,7 @@ struct berval * UTF8bvnormalize(
 	unsigned flags,
 	void *ctx )
 {
-	int i, j, len, clen, outpos, ucsoutlen, outsize, last;
+	int i, j, len, clen, outpos, ucsoutlen, outsize;
 	char *out, *outtmp, *s;
 	ac_uint4 *ucs, *p, *ucsout;
 
@@ -265,8 +265,6 @@ struct berval * UTF8bvnormalize(
 		if ( i == len ) {
 			break;
 		}
-
-		last = i;
 
 		/* Allocate more space in out if necessary */
 		if (len - i >= outsize - outpos) {

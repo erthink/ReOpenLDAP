@@ -316,7 +316,6 @@ constraint_cf_gen( ConfigArgs *c )
 				}
 				ber_str2bv( c->argv[3], 0, 1, &ap.val );
 			} else if ( strcasecmp( c->argv[2], SIZE_STR ) == 0 ) {
-				size_t size;
 				char *endptr;
 
 				ap.type = CONSTRAINT_SIZE;
@@ -324,7 +323,6 @@ constraint_cf_gen( ConfigArgs *c )
 				if ( *endptr )
 					rc = ARG_BAD_CONF;
 			} else if ( strcasecmp( c->argv[2], COUNT_STR ) == 0 ) {
-				size_t count;
 				char *endptr;
 
 				ap.type = CONSTRAINT_COUNT;
@@ -873,7 +871,6 @@ add_violation:
 static int
 constraint_check_count_violation( Modifications *m, Entry *target_entry, constraint *cp )
 {
-	BerVarray b = NULL;
 	unsigned ce = 0;
 	unsigned ca;
 	int j;
@@ -1008,8 +1005,6 @@ constraint_update( Operation *op, SlapReply *rs )
 
 	rc = LDAP_CONSTRAINT_VIOLATION;
 	for(;m; m = m->sml_next) {
-		unsigned ce = 0;
-
 		if (is_at_operational( m->sml_desc->ad_type )) continue;
 
 		if ((( m->sml_op & LDAP_MOD_OP ) != LDAP_MOD_ADD) &&

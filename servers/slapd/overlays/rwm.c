@@ -266,8 +266,7 @@ rwm_op_add( Operation *op, SlapReply *rs )
 	struct ldaprwmap	*rwmap =
 			(struct ldaprwmap *)on->on_bi.bi_private;
 
-	int			rc,
-				i;
+	int			rc;
 	Attribute		**ap = NULL;
 	char			*olddn = op->o_req_dn.bv_val;
 	int			isupdate;
@@ -288,7 +287,7 @@ rwm_op_add( Operation *op, SlapReply *rs )
 
 	/* Count number of attributes in entry */
 	isupdate = be_shadow_update( op );
-	for ( i = 0, ap = &op->oq_add.rs_e->e_attrs; *ap; ) {
+	for ( ap = &op->oq_add.rs_e->e_attrs; *ap; ) {
 		Attribute	*a;
 
 		if ( (*ap)->a_desc == slap_schema.si_ad_objectClass ||

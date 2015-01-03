@@ -129,7 +129,7 @@ rewrite_param_destroy(
 		struct rewrite_info *info
 )
 {
-	int count;
+	int count ALLOW_UNUSED;
 
 	assert( info != NULL );
 
@@ -146,4 +146,3 @@ rewrite_param_destroy(
 
 	return REWRITE_SUCCESS;
 }
-

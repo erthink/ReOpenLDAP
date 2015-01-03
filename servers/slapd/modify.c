@@ -870,7 +870,7 @@ void slap_mods_opattrs(
 	struct berval nname;
 	char timebuf[ LDAP_LUTIL_GENTIME_BUFSIZE ];
 	char csnbuf[ LDAP_PVT_CSNSTR_BUFSIZE ];
-	Modifications *mod, **modtail, *modlast;
+	Modifications *mod, **modtail, *modlast ALLOW_UNUSED;
 	int gotcsn = 0, gotmname = 0, gotmtime = 0;
 
 	if ( SLAP_LASTMOD( op->o_bd ) && !op->orm_no_opattrs ) {

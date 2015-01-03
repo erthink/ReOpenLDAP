@@ -587,7 +587,7 @@ int mdb_ad_read( struct mdb_info *mdb, MDB_txn *txn )
 	}
 	mdb->mi_numads = i-1;
 
-done:
+/* done: */
 	if ( rc == MDB_NOTFOUND )
 		rc = 0;
 

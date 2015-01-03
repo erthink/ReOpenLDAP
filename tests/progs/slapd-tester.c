@@ -962,7 +962,6 @@ get_search_filters( char *filename, char *filters[], char *attrs[], char *bases[
 
 		while (( filter < MAXREQS ) && ( fgets( line, BUFSIZ, fp ))) {
 			char	*nl;
-			int	got_URL = 0;
 
 			if (( nl = strchr( line, '\r' )) || ( nl = strchr( line, '\n' )))
 				*nl = '\0';
@@ -972,7 +971,6 @@ get_search_filters( char *filename, char *filters[], char *attrs[], char *bases[
 			if ( luds && strncmp( line, "ldap:///", STRLENOF( "ldap:///" ) ) == 0 ) {
 				LDAPURLDesc	*lud;
 
-				got_URL = 1;
 				bases[filter] = NULL;
 				if ( ldap_url_parse( line, &lud ) != LDAP_URL_SUCCESS ) {
 					filter = -filter - 1;

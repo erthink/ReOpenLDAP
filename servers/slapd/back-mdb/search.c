@@ -292,7 +292,7 @@ static void scope_chunk_free( void *key, void *data )
 
 static ID2 *scope_chunk_get( Operation *op )
 {
-	struct mdb_info *mdb = (struct mdb_info *) op->o_bd->be_private;
+	struct mdb_info *mdb ALLOW_UNUSED = (struct mdb_info *) op->o_bd->be_private;
 	ID2 *ret = NULL;
 
 	ldap_pvt_thread_pool_getkey( op->o_threadctx, (void *)scope_chunk_get,
@@ -309,7 +309,7 @@ static ID2 *scope_chunk_get( Operation *op )
 
 static void scope_chunk_ret( Operation *op, ID2 *scopes )
 {
-	struct mdb_info *mdb = (struct mdb_info *) op->o_bd->be_private;
+	struct mdb_info *mdb ALLOW_UNUSED = (struct mdb_info *) op->o_bd->be_private;
 	void *ret = NULL;
 
 	ldap_pvt_thread_pool_getkey( op->o_threadctx, (void *)scope_chunk_get,
@@ -402,7 +402,6 @@ mdb_search( Operation *op, SlapReply *rs )
 	void	*stack;
 	Entry		*e = NULL, *base = NULL;
 	Entry		*matched = NULL;
-	AttributeName	*attrs;
 	slap_mask_t	mask;
 	time_t		stoptime;
 	int		manageDSAit;
@@ -416,7 +415,6 @@ mdb_search( Operation *op, SlapReply *rs )
 	MDB_txn			*ltid = NULL;
 
 	Debug( LDAP_DEBUG_TRACE, "=> " LDAP_XSTRING(mdb_search) "\n");
-	attrs = op->oq_search.rs_attrs;
 
 	manageDSAit = get_manageDSAit( op );
 

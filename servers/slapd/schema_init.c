@@ -641,7 +641,6 @@ int octetStringIndexer(
 	void *ctx )
 {
 	int i;
-	size_t slen, mlen;
 	BerVarray keys;
 	HASH_CONTEXT HASHcontext;
 	unsigned char HASHdigest[HASH_BYTES];
@@ -657,9 +656,6 @@ int octetStringIndexer(
 	assert( i > 0 );
 
 	keys = slap_sl_malloc( sizeof( struct berval ) * (i+1), ctx );
-
-	slen = syntax->ssyn_oidlen;
-	mlen = mr->smr_oidlen;
 
 	hashPreset( &HASHcontext, prefix, 0, syntax, mr);
 	for( i=0; !BER_BVISNULL( &values[i] ); i++ ) {
@@ -686,7 +682,6 @@ int octetStringFilter(
 	BerVarray *keysp,
 	void *ctx )
 {
-	size_t slen, mlen;
 	BerVarray keys;
 	HASH_CONTEXT HASHcontext;
 	unsigned char HASHdigest[HASH_BYTES];
@@ -694,9 +689,6 @@ int octetStringFilter(
 	struct berval digest;
 	digest.bv_val = (char *)HASHdigest;
 	digest.bv_len = sizeof(HASHdigest);
-
-	slen = syntax->ssyn_oidlen;
-	mlen = mr->smr_oidlen;
 
 	keys = slap_sl_malloc( sizeof( struct berval ) * 2, ctx );
 
@@ -849,7 +841,6 @@ octetStringSubstringsIndexer(
 	void *ctx )
 {
 	ber_len_t i, nkeys;
-	size_t slen, mlen;
 	BerVarray keys;
 
 	HASH_CONTEXT HCany, HCini, HCfin;
@@ -894,9 +885,6 @@ octetStringSubstringsIndexer(
 	}
 
 	keys = slap_sl_malloc( sizeof( struct berval ) * (nkeys+1), ctx );
-
-	slen = syntax->ssyn_oidlen;
-	mlen = mr->smr_oidlen;
 
 	if ( flags & SLAP_INDEX_SUBSTR_ANY )
 		hashPreset( &HCany, prefix, SLAP_INDEX_SUBSTR_PREFIX, syntax, mr );
@@ -971,7 +959,7 @@ octetStringSubstringsFilter (
 	SubstringsAssertion *sa;
 	char pre;
 	ber_len_t nkeys = 0;
-	size_t slen, mlen, klen;
+	size_t klen;
 	BerVarray keys;
 	HASH_CONTEXT HASHcontext;
 	unsigned char HASHdigest[HASH_BYTES];
@@ -1022,9 +1010,6 @@ octetStringSubstringsFilter (
 
 	digest.bv_val = (char *)HASHdigest;
 	digest.bv_len = sizeof(HASHdigest);
-
-	slen = syntax->ssyn_oidlen;
-	mlen = mr->smr_oidlen;
 
 	keys = slap_sl_malloc( sizeof( struct berval ) * (nkeys+1), ctx );
 	nkeys = 0;

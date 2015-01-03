@@ -113,7 +113,7 @@ int mdb_index_param(
 	switch( ftype ) {
 	case LDAP_FILTER_PRESENT:
 		type = SLAP_INDEX_PRESENT;
-		if( IS_SLAP_INDEX( mask, SLAP_INDEX_PRESENT ) ) {
+		if( IS_SLAP_INDEX( mask, type ) ) {
 			*prefixp = presence_key[0];
 			goto done;
 		}
@@ -122,7 +122,7 @@ int mdb_index_param(
 	case LDAP_FILTER_APPROX:
 		type = SLAP_INDEX_APPROX;
 		if ( desc->ad_type->sat_approx ) {
-			if( IS_SLAP_INDEX( mask, SLAP_INDEX_APPROX ) ) {
+			if( IS_SLAP_INDEX( mask, type ) ) {
 				goto done;
 			}
 			break;
@@ -133,14 +133,14 @@ int mdb_index_param(
 
 	case LDAP_FILTER_EQUALITY:
 		type = SLAP_INDEX_EQUALITY;
-		if( IS_SLAP_INDEX( mask, SLAP_INDEX_EQUALITY ) ) {
+		if( IS_SLAP_INDEX( mask, type ) ) {
 			goto done;
 		}
 		break;
 
 	case LDAP_FILTER_SUBSTRINGS:
 		type = SLAP_INDEX_SUBSTR;
-		if( IS_SLAP_INDEX( mask, SLAP_INDEX_SUBSTR ) ) {
+		if( IS_SLAP_INDEX( mask, type ) ) {
 			goto done;
 		}
 		break;
@@ -172,11 +172,11 @@ static int indexer(
 	int opid,
 	slap_mask_t mask )
 {
-	int rc = LDAP_OTHER, i;
+	int rc = LDAP_OTHER;
 	struct berval *keys;
 	MDB_cursor *mc = ai->ai_cursor;
 	mdb_idl_keyfunc *keyfunc;
-	char *err;
+	char *err  ALLOW_UNUSED;
 
 	assert( mask != 0 );
 

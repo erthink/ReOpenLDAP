@@ -815,7 +815,7 @@ int entry_decode(EntryHeader *eh, Entry **e, void *ctx)
 int entry_decode(EntryHeader *eh, Entry **e)
 #endif
 {
-	int i, j, nattrs, nvals;
+	int i, j, nattrs, nvals ALLOW_UNUSED;
 	int rc;
 	Attribute *a;
 	Entry *x;
