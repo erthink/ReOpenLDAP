@@ -102,7 +102,7 @@ rewrite_param_get(
 	ldap_pvt_thread_rdwr_runlock( &info->li_params_mutex );
 #endif /* USE_REWRITE_LDAP_PVT_THREADS */
 
-	return REWRITE_SUCCESS;
+	return rc;
 }
 
 static void
