@@ -16,6 +16,7 @@
 #include "portable.h"
 
 #include <stdio.h>
+#include <unistd.h>
 #include <ac/stdarg.h>
 #include <ac/string.h>
 #include <ac/ctype.h>
