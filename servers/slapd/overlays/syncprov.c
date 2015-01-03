@@ -1513,7 +1513,7 @@ syncprov_add_slog( Operation *op )
 			 * wipe out anything in the log if we see them.
 			 */
 			ldap_pvt_thread_mutex_lock( &sl->sl_mutex );
-			while ( se = sl->sl_head ) {
+			while ( (se = sl->sl_head) != NULL ) {
 				sl->sl_head = se->se_next;
 				ch_free( se );
 			}
@@ -2289,8 +2289,8 @@ syncprov_search_response( Operation *op, SlapReply *rs )
 		 * control.
 		 */
 		if ( !rs->sr_entry ) {
-			assert( rs->sr_entry != NULL );
 			Debug( LDAP_DEBUG_ANY, "bogus referral in context\n" );
+			assert( rs->sr_entry != NULL );
 			return SLAP_CB_CONTINUE;
 		}
 		a = attr_find( rs->sr_entry->e_attrs, slap_schema.si_ad_entryCSN );
