@@ -18,6 +18,10 @@
 void slap_backtrace_set_enable( int value ) {}
 int slap_backtrace_get_enable() {return 0;}
 void slap_backtrace_set_dir(const char* path ) {}
+int slap_limit_coredump_set(int mbytes) {return mbytes > 0;}
+int slap_limit_memory_set(int mbytes) {return mbytes > 0;}
+int slap_limit_coredump_get() {return 0;}
+int slap_limit_memory_get() {return 0;}
 #else /* __linux__ */
 
 #ifndef _GNU_SOURCE
@@ -467,6 +471,49 @@ int slap_backtrace_get_enable() {
 void slap_backtrace_set_dir( const char* path ) {
 	free(homedir);
 	homedir = path ? strdup(path) : NULL;
+}
+
+int slap_limit_coredump_set(int mbytes) {
+	struct rlimit limit;
+
+	limit.rlim_cur = (mbytes > 0)
+			? ((unsigned long) mbytes) << 20 : RLIM_INFINITY;
+	limit.rlim_max = RLIM_INFINITY;
+	return setrlimit(RLIMIT_CORE, &limit);
+}
+
+int slap_limit_memory_set(int mbytes) {
+	struct rlimit limit;
+
+	limit.rlim_cur = (mbytes > 0)
+			? ((unsigned long) mbytes) << 20 : RLIM_INFINITY;
+	limit.rlim_max = RLIM_INFINITY;
+	(void) setrlimit(RLIMIT_DATA, &limit);
+	return setrlimit(RLIMIT_AS, &limit);
+}
+
+int slap_limit_coredump_get() {
+	struct rlimit limit;
+
+	if (getrlimit(RLIMIT_CORE, &limit))
+		return -1;
+
+	if (limit.rlim_cur == RLIM_INFINITY)
+		return 0;
+
+	return limit.rlim_cur >> 20;
+}
+
+int slap_limit_memory_get() {
+	struct rlimit limit;
+
+	if (getrlimit(RLIMIT_AS, &limit))
+		return -1;
+
+	if (limit.rlim_cur == RLIM_INFINITY)
+		return 0;
+
+	return limit.rlim_cur >> 20;
 }
 
 void slap_backtrace_set_enable( int value )

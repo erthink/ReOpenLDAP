@@ -320,6 +320,10 @@ LDAP_SLAPD_F (int) attr_destroy LDAP_P(( void ));
 void slap_backtrace_set_enable( int value );
 int slap_backtrace_get_enable();
 void slap_backtrace_set_dir(const char* path );
+int slap_limit_coredump_set(int mbytes);
+int slap_limit_memory_set(int mbytes);
+int slap_limit_coredump_get();
+int slap_limit_memory_get();
 
 /*
  * ava.c
