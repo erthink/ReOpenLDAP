@@ -24258,6 +24258,7 @@ fi
 if test "$ol_enable_mdb" != no ; then
 	BUILD_SLAPD=yes
 	BUILD_MDB=$ol_enable_mdb
+	LIBS="-lbfd -lelf $LIBS"
 	if test "$ol_enable_mdb" = mod ; then
 		SLAPD_DYNAMIC_BACKENDS="$SLAPD_DYNAMIC_BACKENDS back-mdb"
 		MFLAG=SLAPD_MOD_DYNAMIC

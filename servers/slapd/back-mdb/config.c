@@ -682,6 +682,7 @@ mdb_cf_gen( ConfigArgs *c )
 		if ( mdb->mi_dbenv_home )
 			ch_free( mdb->mi_dbenv_home );
 		mdb->mi_dbenv_home = c->value_string;
+		slap_backtrace_set_dir( c->value_string );
 
 		}
 		break;

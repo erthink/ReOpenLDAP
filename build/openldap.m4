@@ -1142,3 +1142,28 @@ AC_DEFUN([OL_SSL_COMPAT],
 #endif
 	], [ol_cv_ssl_crl_compat=yes], [ol_cv_ssl_crl_compat=no])])
 ])
+dnl
+dnl ===========================================================================
+dnl Check for some custom valgrind modules
+AC_ARG_ENABLE(valgrind,
+  AS_HELP_STRING([--disable-valgrind],
+		 [Disable valgrind support]),
+  [use_valgrind=$enableval], [use_valgrind=yes])
+
+if test "x$use_valgrind" = "xyes"; then
+    PKG_CHECK_MODULES(VALGRIND, valgrind, [
+	    _save_CFLAGS="$CFLAGS"
+	    _save_CPPFLAGS="$CPPFLAGS"
+	    CFLAGS="$CFLAGS $VALGRIND_CFLAGS"
+	    CPPFLAGS="$CPPFLAGS $VALGRIND_CFLAGS"
+	    AC_CHECK_HEADER([valgrind.h], [AC_DEFINE([HAVE_VALGRIND], [1],
+			    [Define to 1 if you have Valgrind])])
+	    AC_CHECK_HEADER([lockdep.h], [AC_DEFINE([HAVE_LOCKDEP], [1],
+			    [Define to 1 if you have the Valgrind lockdep tool])])
+	    AC_CHECK_HEADER([memfault.h], [AC_DEFINE([HAVE_MEMFAULT], [1],
+			    [Define to 1 if you have the Valgrind memfault tool])])
+	    CAIRO_CFLAGS="$VALGRIND_CFLAGS $CAIRO_CFLAGS"
+	    CFLAGS="$_save_CFLAGS"
+	    CPPFLAGS="$_save_CPPFLAGS"
+	], AC_MSG_RESULT(no))
+fi
