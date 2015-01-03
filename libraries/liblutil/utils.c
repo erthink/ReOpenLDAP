@@ -669,7 +669,7 @@ typedef struct lutil_int_decnum {
 static void
 scale( int new, lutil_int_decnum *prev, unsigned char *tmp )
 {
-	int i, j;
+	int i, j = -1;
 	unsigned char *in = prev->buf+prev->beg;
 	unsigned int part;
 	unsigned char *out = tmp + prev->bufsiz - prev->len;

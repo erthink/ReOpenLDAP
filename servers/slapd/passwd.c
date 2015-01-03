@@ -53,7 +53,7 @@ int passwd_extop(
 	Modifications *ml;
 	slap_callback cb = { NULL, slap_null_cb, NULL, NULL };
 	int i, nhash;
-	char **hashes, idNul;
+	char **hashes, idNul = 0;
 	int rc;
 	BackendDB *op_be;
 	int freenewpw = 0;

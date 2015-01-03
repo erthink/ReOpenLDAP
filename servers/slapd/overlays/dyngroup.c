@@ -76,7 +76,7 @@ static int dgroup_cf( ConfigArgs *c )
 				ch_free( ap );
 			}
 		} else {
-			adpair **app, *ap;
+			adpair **app, *ap = NULL;
 			int i;
 			app = (adpair **)&on->on_bi.bi_private;
 			for (i=0; i<=c->valx; i++, app = &ap->ap_next) {

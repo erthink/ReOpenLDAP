@@ -1291,7 +1291,7 @@ ppolicy_restrict(
 	}
 
 	if ( op->o_conn && !BER_BVISEMPTY( &pwcons[op->o_conn->c_conn_idx].dn )) {
-		LDAPControl **oldctrls;
+		LDAPControl **oldctrls = NULL;
 		/* if the current authcDN doesn't match the one we recorded,
 		 * then an intervening Bind has succeeded and the restriction
 		 * no longer applies. (ITS#4516)

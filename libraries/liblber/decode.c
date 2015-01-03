@@ -366,6 +366,7 @@ ber_get_stringbvl( BerElement *ber, bgbvr *b )
 		char *bo;				/* BvOff */
 	} res;
 
+	res.bo = NULL;
 	tag = ber_skip_tag( ber, &bv.bv_len );
 
 	if ( tag != LBER_DEFAULT ) {

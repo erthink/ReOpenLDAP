@@ -841,7 +841,7 @@ do_syncrep2(
 		BerVarray		syncUUIDs;
 		ber_len_t		len;
 		ber_tag_t		si_tag;
-		Entry			*entry;
+		Entry			*entry = NULL;
 		struct berval	bdn;
 
 		if ( slapd_shutdown ) {
@@ -2195,7 +2195,7 @@ syncrepl_message_to_op(
 	size_t textlen = sizeof txtbuf;
 
 	struct berval	bdn, dn = BER_BVNULL, ndn;
-	struct berval	bv, bv2, *bvals = NULL;
+	struct berval	bv, bv2 __attribute__((unused)), *bvals = NULL;
 	struct berval	rdn = BER_BVNULL, sup = BER_BVNULL,
 		prdn = BER_BVNULL, nrdn = BER_BVNULL,
 		psup = BER_BVNULL, nsup = BER_BVNULL;
@@ -2461,7 +2461,7 @@ syncrepl_message_to_entry(
 	char txtbuf[SLAP_TEXT_BUFLEN];
 	size_t textlen = sizeof txtbuf;
 
-	struct berval	bdn = BER_BVNULL, dn, ndn, bv2;
+	struct berval	bdn = BER_BVNULL, dn, ndn, bv2 __attribute__((unused));
 	int		rc, is_ctx;
 
 	*modlist = NULL;
@@ -3346,7 +3346,7 @@ syncrepl_del_nonpresent(
 		}
 		si->si_refreshDelete ^= NP_DELETE_ONE;
 	} else {
-		Filter *cf, *of;
+		Filter *cf, *of = NULL;
 		Filter mmf[2];
 		AttributeAssertion mmaa;
 		SlapReply rs_search = {REP_RESULT};

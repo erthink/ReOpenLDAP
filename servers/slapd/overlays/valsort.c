@@ -212,7 +212,7 @@ static void
 do_sort( Operation *op, Attribute *a, int beg, int num, slap_mask_t sort )
 {
 	int i, j, gotnvals;
-	struct berval tmp, ntmp, *vals = NULL, *nvals;
+	struct berval tmp = {0}, ntmp, *vals = NULL, *nvals;
 
 	gotnvals = (a->a_vals != a->a_nvals );
 
@@ -351,7 +351,7 @@ valsort_response( Operation *op, SlapReply *rs )
 			/* Insertion sort */
 			for ( i=1; i<n; i++) {
 				long idx = index[i];
-				struct berval tmp = a->a_vals[i], ntmp;
+				struct berval tmp = a->a_vals[i], ntmp = {0};
 				if ( gotnvals ) ntmp = a->a_nvals[i];
 				j = i;
 				while (( j>0 ) && (index[j-1] > idx )) {

@@ -74,7 +74,7 @@ main( int argc, char *argv[] )
 
 	char		*matcheddn = NULL, *text = NULL, **refs = NULL;
 	LDAPControl **ctrls = NULL;
-	int		id, code;
+	int		id, code = LDAP_OTHER;
 	LDAPMessage	*res = NULL;
 
 	tool_init( TOOL_EXOP );

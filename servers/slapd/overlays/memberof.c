@@ -1365,7 +1365,7 @@ memberof_res_modify( Operation *op, SlapReply *rs )
 	memberof_t	*mo = (memberof_t *)on->on_bi.bi_private;
 
 	int		i, rc;
-	Modifications	*ml, *mml = NULL;
+	Modifications	*ml = NULL, *mml = NULL;
 	BerVarray	vals;
 
 	if ( rs->sr_err != LDAP_SUCCESS ) {

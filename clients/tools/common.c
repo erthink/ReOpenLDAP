@@ -1489,9 +1489,9 @@ tool_bind( LDAP *ld )
 		tool_exit( ld, LDAP_NOT_SUPPORTED );
 #endif
 	} else {
-		int msgid, err, rc;
+		int msgid, err = LDAP_SUCCESS, rc;
 		LDAPMessage *result;
-		LDAPControl **ctrls;
+		LDAPControl **ctrls = NULL;
 		char msgbuf[256];
 		char *matched = NULL;
 		char *info = NULL;

@@ -278,10 +278,8 @@ start_again:;
 	}
 
 	if ( lr != NULL ) {
-		LDAPConn *lc;
-		int freeconn = 0;
+		LDAPConn *lc = NULL;
 		if ( sendabandon || lr->lr_status == LDAP_REQST_WRITING ) {
-			freeconn = 1;
 			lc = lr->lr_conn;
 		}
 		if ( origid == msgid ) {
@@ -291,7 +289,7 @@ start_again:;
 			lr->lr_abandoned = 1;
 		}
 
-		if ( freeconn ) {
+		if ( lc ) {
 			/* release ld_req_mutex while grabbing ld_conn_mutex to
 			 * prevent deadlock.
 			 */

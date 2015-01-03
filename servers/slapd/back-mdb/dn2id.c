@@ -562,7 +562,7 @@ mdb_id2name(
 	MDB_dbi dbi = mdb->mi_dn2id;
 	MDB_val		key, data;
 	MDB_cursor	*cursor;
-	int		rc, len, nlen;
+	int		rc = LDAP_OTHER, len, nlen;
 	char dn[SLAP_LDAPDN_MAXLEN], ndn[SLAP_LDAPDN_MAXLEN], *ptr;
 	char *dptr, *nptr;
 	diskNode *d;

@@ -172,7 +172,7 @@ static int indexer(
 	int opid,
 	slap_mask_t mask )
 {
-	int rc, i;
+	int rc = LDAP_OTHER, i;
 	struct berval *keys;
 	MDB_cursor *mc = ai->ai_cursor;
 	mdb_idl_keyfunc *keyfunc;

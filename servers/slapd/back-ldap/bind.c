@@ -855,8 +855,8 @@ ldap_back_getconn(
 	} else {
 		struct berval	tmpbinddn,
 				tmpbindcred,
-				save_o_dn,
-				save_o_ndn;
+				save_o_dn = {0},
+				save_o_ndn = {0};
 		int		isproxyauthz;
 
 		/* need cleanup */

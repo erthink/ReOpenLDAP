@@ -618,7 +618,7 @@ syncprov_findcsn( Operation *op, find_csn_t mode, struct berval *csn )
 	sync_control *srs = NULL;
 	struct slap_limits_set fc_limits;
 	int i, rc = LDAP_SUCCESS, findcsn_retry = 1;
-	int maxid;
+	int maxid = -1;
 
 	if ( mode != FIND_MAXCSN ) {
 		srs = op->o_controls[slap_cids.sc_LDAPsync];
@@ -651,7 +651,7 @@ again:
 				break;
 			}
 		}
-		if ( i == si->si_numcsns ) {
+		if ( maxid < 0 ) {
 			/* No match: this is multimaster, and none of the content in the DB
 			 * originated locally. Treat like no CSN.
 			 */
@@ -2430,8 +2430,8 @@ syncprov_op_search( Operation *op, SlapReply *rs )
 	sync_control *srs;
 	BerVarray ctxcsn;
 	int i, *sids, numcsns;
-	struct berval mincsn, maxcsn;
-	int minsid, maxsid;
+	struct berval mincsn, maxcsn = {0};
+	int minsid = 0, maxsid = 0;
 	int dirty = 0;
 
 	if ( !(op->o_sync_mode & SLAP_SYNC_REFRESH) ) return SLAP_CB_CONTINUE;

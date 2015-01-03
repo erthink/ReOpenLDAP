@@ -446,7 +446,7 @@ try_read1msg(
 	ber_tag_t	tag;
 	ber_len_t	len;
 	int		foundit = 0;
-	LDAPRequest	*lr, *tmplr, dummy_lr = { 0 };
+	LDAPRequest	*lr = NULL, *tmplr, dummy_lr = { 0 };
 	BerElement	tmpber;
 	int		rc, refer_cnt, hadref, simple_request, err;
 	ber_int_t	lderr;

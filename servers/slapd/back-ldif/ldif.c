@@ -638,7 +638,7 @@ ldif_read_entry(
 {
 	int rc;
 	Entry *entry;
-	char *entry_as_string;
+	char *entry_as_string = NULL;
 	struct berval rdn;
 
 	/* TODO: Does slapd prevent Abandon of Bind as per rfc4511?

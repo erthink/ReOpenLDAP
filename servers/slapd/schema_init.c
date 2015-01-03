@@ -2597,7 +2597,7 @@ integerIndexer(
 	struct berval itmp;
 	BerVarray keys;
 	ber_len_t vlen;
-	int i, rc;
+	int i, rc = LDAP_OTHER;
 	unsigned maxstrlen = index_intlen_strlen + INDEX_INTLEN_CHOP-1;
 
 	/* count the values and find max needed length */

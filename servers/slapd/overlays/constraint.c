@@ -151,7 +151,7 @@ constraint_cf_gen( ConfigArgs *c )
 				char *tstr = NULL;
 				int quotes = 0, numeric = 0;
 				int j;
-				size_t val;
+				size_t val = 0;
 				char val_buf[SLAP_TEXT_BUFLEN] = { '\0' };
 
 				bv.bv_len = STRLENOF("  ");

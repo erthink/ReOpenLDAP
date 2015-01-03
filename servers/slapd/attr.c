@@ -297,7 +297,7 @@ attr_valfind(
 	struct berval nval = BER_BVNULL, *cval;
 	MatchingRule *mr;
 	const char *text;
-	int match = -1, rc;
+	int match = -1, rc = LDAP_OTHER;
 	unsigned i, n;
 
 	if ( flags & SLAP_MR_ORDERING )

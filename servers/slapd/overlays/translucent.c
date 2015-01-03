@@ -1179,7 +1179,7 @@ static int translucent_bind(Operation *op, SlapReply *rs) {
 	slap_overinst *on = (slap_overinst *) op->o_bd->bd_info;
 	translucent_info *ov = on->on_bi.bi_private;
 	BackendDB *db;
-	slap_callback sc = { 0 }, *save_cb;
+	slap_callback sc = { 0 }, *save_cb = NULL;
 	int rc;
 
 	Debug(LDAP_DEBUG_TRACE, "translucent_bind: <%s> method %d\n",

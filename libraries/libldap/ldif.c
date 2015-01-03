@@ -820,7 +820,7 @@ ldif_read_record(
 	int         *buflenp )  /* ptr to length of *bufp                  */
 {
 	char        line[LDIF_MAXLINE], *nbufp;
-	ber_len_t   lcur = 0, len;
+	ber_len_t   lcur = 0, len = 0;
 	int         last_ch = '\n', found_entry = 0, stop, top_comment = 0;
 
 	for ( stop = 0;  !stop;  last_ch = line[len-1] ) {

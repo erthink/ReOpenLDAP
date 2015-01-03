@@ -601,7 +601,7 @@ url2query(
 			tempstr = BER_BVNULL,
 			uuid = BER_BVNULL;
 	int		attrset;
-	time_t		expiry_time;
+	time_t		expiry_time = 0;
 	time_t		refresh_time;
 	unsigned long	answerable_cnt;
 	int		i,
@@ -3528,7 +3528,7 @@ consistency_check(
 	cm->cc_arg = arg;
 
 	for (templ = qm->templates; templ; templ=templ->qmnext) {
-		time_t ttl;
+		time_t ttl = 0;
 		if ( !templ->query_last ) continue;
 		pause = 0;
 		op->o_time = slap_get_time();

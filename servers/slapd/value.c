@@ -345,7 +345,7 @@ ordered_value_sort( Attribute *a, int do_renumber )
 	/* If values have indexes, sort the values */
 	if ( index ) {
 		int *indexes, j, idx;
-		struct berval ntmp;
+		struct berval ntmp = {0};
 
 #if 0
 		/* Strip index from normalized values */

@@ -394,7 +394,7 @@ int
 mdb_search( Operation *op, SlapReply *rs )
 {
 	struct mdb_info *mdb = (struct mdb_info *) op->o_bd->be_private;
-	ID		id, cursor, nsubs, ncand, cscope;
+	ID		id, cursor, nsubs, ncand, cscope = -1;
 	ID		lastid = NOID;
 	ID		candidates[MDB_IDL_UM_SIZE];
 	ID		iscopes[MDB_IDL_DB_SIZE];

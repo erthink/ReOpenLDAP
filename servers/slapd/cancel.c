@@ -31,7 +31,7 @@ const struct berval slap_EXOP_CANCEL = BER_BVC(LDAP_EXOP_CANCEL);
 
 int cancel_extop( Operation *op, SlapReply *rs )
 {
-	Operation *o;
+	Operation *o = NULL;
 	int rc;
 	int opid;
 	BerElement *ber;

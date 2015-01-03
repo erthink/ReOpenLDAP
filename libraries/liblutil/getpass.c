@@ -75,8 +75,8 @@ lutil_getpass( const char *prompt )
 	unsigned i;
 #if defined(HAVE_TERMIOS_H) || defined(HAVE_SGTTY_H)
 	TERMIO_TYPE ttyb;
-	TERMFLAG_TYPE flags;
-	RETSIGTYPE (*sig)( int sig );
+	TERMFLAG_TYPE flags = 0;
+	RETSIGTYPE (*sig)( int sig ) = NULL;
 #endif
 
 	if( prompt == NULL ) prompt = _("Password: ");

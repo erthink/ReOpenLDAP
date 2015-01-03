@@ -98,7 +98,7 @@ again:
 	{
 		BackendDB *bd;
 		Entry *e;
-		int prev_DN_strict;
+		int prev_DN_strict = -1;
 
 		if ( erec->lineno < jumpline )
 			goto again;
