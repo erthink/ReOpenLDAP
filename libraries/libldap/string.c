@@ -56,7 +56,7 @@ static int int_strspn( const char *str, const char *delim )
 #if defined( HAVE_STRPBRK )
 #define int_strpbrk strpbrk
 #else
-static char *(int_strpbrk)( const char *str, const char *accept )
+static const char *(int_strpbrk)( const char *str, const char *accept )
 {
 	const char *p;
 
@@ -94,7 +94,7 @@ char *(ldap_pvt_strtok)( char *str, const char *delim, char **pos )
 		return NULL;
 	}
 
-	p = int_strpbrk( str, delim );
+	p = (char*) int_strpbrk( str, delim );
 	if (p==NULL) {
 		*pos = NULL;
 

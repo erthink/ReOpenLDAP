@@ -1240,7 +1240,7 @@ done:
 }
 
 #ifndef SLAP_AUTH_REWRITE
-static int slap_sasl_rx_off(char *rep, int *off)
+static int slap_sasl_rx_off(const char *rep, int *off)
 {
 	const char *c;
 	int n;
