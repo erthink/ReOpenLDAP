@@ -823,7 +823,7 @@ bdb_cf_gen( ConfigArgs *c )
 		ch_free( testpath );
 		if ( !f ) {
 			snprintf( c->cr_msg, sizeof( c->cr_msg ), "%s: invalid path: %s",
-				c->log, strerror( errno ));
+				c->log, STRERROR( errno ));
 			Debug( LDAP_DEBUG_ANY, "%s\n", c->cr_msg );
 			return -1;
 		}

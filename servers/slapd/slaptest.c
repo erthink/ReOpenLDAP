@@ -70,7 +70,7 @@ test_file( const char *fname, const char *ftype )
 				Debug( LDAP_DEBUG_ANY, "unable to open file "
 					"\"%s\": %d (%s)\n",
 					fname,
-					save_errno, strerror( save_errno ) );
+					save_errno, STRERROR( save_errno ) );
 
 				return -1;
 			}
@@ -82,7 +82,7 @@ test_file( const char *fname, const char *ftype )
 		Debug( LDAP_DEBUG_ANY, "unable to stat file "
 			"\"%s\": %d (%s)\n",
 			slapd_pid_file,
-			save_errno, strerror( save_errno ) );
+			save_errno, STRERROR( save_errno ) );
 		return -1;
 	}
 

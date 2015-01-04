@@ -1144,7 +1144,7 @@ file2anlist( AttributeName *an, const char *fname, const char *brkstr )
 	if ( fp == NULL ) {
 		Debug( LDAP_DEBUG_ANY,
 			"get_attrs_from_file: failed to open attribute list file "
-			"\"%s\": %s\n", fname, strerror(errno) );
+			"\"%s\": %s\n", fname, STRERROR(errno) );
 		return NULL;
 	}
 

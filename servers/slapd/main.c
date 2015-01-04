@@ -937,7 +937,7 @@ unhandled_option:;
 			Debug( LDAP_DEBUG_ANY, "unable to open pid file "
 				"\"%s\": %d (%s)\n",
 				slapd_pid_file,
-				save_errno, strerror( save_errno ) );
+				save_errno, STRERROR( save_errno ) );
 
 			free( slapd_pid_file );
 			slapd_pid_file = NULL;
@@ -959,7 +959,7 @@ unhandled_option:;
 			Debug( LDAP_DEBUG_ANY, "unable to open args file "
 				"\"%s\": %d (%s)\n",
 				slapd_args_file,
-				save_errno, strerror( save_errno ) );
+				save_errno, STRERROR( save_errno ) );
 
 			free( slapd_args_file );
 			slapd_args_file = NULL;

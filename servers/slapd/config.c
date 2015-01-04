@@ -730,7 +730,7 @@ read_config_file(const char *fname, int depth, ConfigArgs *cf, ConfigTable *cft)
 		ldap_syslog = 1;
 		Debug(LDAP_DEBUG_ANY,
 		    "could not stat config file \"%s\": %s (%d)\n",
-		    fname, strerror(errno), errno);
+			fname, STRERROR(errno), errno);
 		ch_free( c );
 		return(1);
 	}
@@ -749,7 +749,7 @@ read_config_file(const char *fname, int depth, ConfigArgs *cf, ConfigTable *cft)
 		ldap_syslog = 1;
 		Debug(LDAP_DEBUG_ANY,
 		    "could not open config file \"%s\": %s (%d)\n",
-		    fname, strerror(errno), errno);
+			fname, STRERROR(errno), errno);
 		ch_free( c );
 		return(1);
 	}
