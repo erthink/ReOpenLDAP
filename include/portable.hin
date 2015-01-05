@@ -1152,6 +1152,36 @@
 #	include <stddef.h>
 #endif
 
+#ifdef HAVE_ANSIDECL_H
+#	include <ansidecl.h>
+#endif
+
+#ifndef __has_attribute
+#	define __has_attribute(x) 0
+#endif
+
+#if !defined(GCC_VERSION) && defined(__GNUC__)
+#	define GCC_VERSION (__GNUC__ * 1000 + __GNUC_MINOR__)
+#endif /* GCC_VERSION */
+
+#ifndef ALLOW_UNUSED
+#	ifdef ATTRIBUTE_UNUSED
+#		define ALLOW_UNUSED ATTRIBUTE_UNUSED
+#	elif defined(GCC_VERSION) && (GCC_VERSION >= 3004)
+#		define ALLOW_UNUSED __attribute__((__unused__))
+#	elif __has_attribute(__unused__)
+#		define ALLOW_UNUSED __attribute__((__unused__))
+#	elif __has_attribute(unused)
+#		define ALLOW_UNUSED __attribute__((unused))
+#	else
+#		define ALLOW_UNUSED
+#	endif
+#endif /* ALLOW_UNUSED */
+
+#if !defined(__thread) && (defined(_MSC_VER) || defined(__DMC__))
+#	define __thread __declspec(thread)
+#endif
+
 #ifdef HAVE_EBCDIC
 /* ASCII/EBCDIC converting replacements for stdio funcs
  * vsnprintf and snprintf are used too, but they are already
