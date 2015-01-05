@@ -56,14 +56,14 @@
 
 #ifdef LDAP_DEBUG
 
-#define oslocal_debug(ld,fmt,arg1,arg2,arg3) \
+#define oslocal_debug(ld,...) \
 do { \
-	ldap_log_printf(ld, LDAP_DEBUG_TRACE, fmt, arg1, arg2, arg3); \
+	ldap_log_printf(ld, LDAP_DEBUG_TRACE, __VA_ARGS__); \
 } while(0)
 
 #else
 
-#define oslocal_debug(ld,fmt,arg1,arg2,arg3) ((void)0)
+#define oslocal_debug(ld,fmt,...) ((void)0)
 
 #endif /* LDAP_DEBUG */
 

@@ -2952,27 +2952,13 @@ struct Connection {
 	SEND_LDAP_INTERMEDIATE *c_send_ldap_intermediate;
 };
 
-#ifdef LDAP_DEBUG
-#ifdef LDAP_SYSLOG
 #ifdef LOG_LOCAL4
-#define SLAP_DEFAULT_SYSLOG_USER	LOG_LOCAL4
+#	define SLAP_DEFAULT_SYSLOG_USER	LOG_LOCAL4
 #endif /* LOG_LOCAL4 */
 
-#define Statslog( level, fmt, connid, opid, arg1, arg2, arg3 )	\
-	Log5( (level), ldap_syslog_level, (fmt), (connid), (opid), (arg1), (arg2), (arg3) )
-#define StatslogTest( level ) ((ldap_debug | ldap_syslog) & (level))
-#else /* !LDAP_SYSLOG */
-#define Statslog( level, fmt, connid, opid, arg1, arg2, arg3 )	\
-	do { \
-		if ( ldap_debug & (level) ) \
-			lutil_debug( ldap_debug, (level), (fmt), (connid), (opid), (arg1), (arg2), (arg3) );\
-	} while (0)
-#define StatslogTest( level ) (ldap_debug & (level))
-#endif /* !LDAP_SYSLOG */
-#else /* !LDAP_DEBUG */
-#define Statslog( level, fmt, connid, opid, arg1, arg2, arg3 ) ((void) 0)
-#define StatslogTest( level ) (0)
-#endif /* !LDAP_DEBUG */
+#define Statslog( level, ... )	\
+	Log( (level), ldap_syslog_level, __VA_ARGS__ )
+#define StatslogTest( level ) LogTest(level)
 
 /*
  * listener; need to access it from monitor backend
