@@ -994,7 +994,7 @@ unhandled_option:;
 
 #ifndef HAVE_WINSOCK
 	if ( !no_detach ) {
-		write( waitfds[1], "1", 1 );
+		int ignore ALLOW_UNUSED = write( waitfds[1], "1", 1 );
 		close( waitfds[1] );
 	}
 #endif
