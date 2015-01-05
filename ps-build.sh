@@ -5,16 +5,36 @@ failure() {
         exit 1
 }
 
+step_begin() {
+	echo "##teamcity[blockOpened name='$1']"
+	#echo "##teamcity[progressStart '$1']"
+}
+
+step_finish() {
+	sleep 1
+	#echo "##teamcity[progressEnd '$1']"
+	echo "##teamcity[blockClosed name='$1']"
+}
+
+step_begin "cleanup"
+git clean -x -f -d -e .ccache/ -e tests/testrun/ -e times.log || failure "cleanup"
+step_finish "cleanup"
+echo "======================================================================="
+step_begin "prepare"
+
 BUILD_NUMBER=${1:-build_number_as_the_first_parameter}
 PREFIX=${2:-$(pwd)/install_prefix_as_the_second_parameter}/openldap
 
 echo "BUILD_NUMBER: $BUILD_NUMBER"
 echo "PREFIX: $PREFIX"
 
-git clean -x -f -d -e .ccache/ || failure "git clean"
 git fetch git://git.openldap.org/openldap.git --prune --tags || failure "git fetch"
 BUILD_ID=$(git describe --abbrev=15 --always --long | sed "s/^.\+-\([0-9]\+-g[0-9a-f]\+\)\$/.${BUILD_NUMBER}-\1/")
 echo "BUILD_ID: $BUILD_ID"
+
+step_finish "prepare"
+echo "======================================================================="
+step_begin "configure"
 
 CFLAGS="-Wall -g -Os" CPPFLAGS="-Wall -g -Os" ./configure \
 	--prefix=${PREFIX} --enable-dynacl --enable-ldap \
@@ -32,26 +52,51 @@ mkdir -p ${PREFIX}/bin \
 		| sed 's/lmdb-backend/slapd/g;s/EXTENSION/[+]/g;s/BUGFIX/[-] /g;s/FEATURE/[+]/g;s/CHANGE/[!]/g;s/TRIVIA/[*]/g;s/ - / /g' \
 		| tr -s ' ' ' ' | grep -v ' ITS#[0-9]\{4\}$' | sort -r | uniq -u \
 	&& /bin/echo -e "\nPackage version: $PACKAGE\nSource code tag: $(git describe --abbrev=15 --long --always)" ) > ${PREFIX}/changelog.txt \
-	|| failure "prepare-1"
+	|| failure "fix-1"
 
 find ./ -name Makefile -type f | xargs sed -e "s/STRIP = -s/STRIP =/g;s/\(VERSION= .\+\)/\1${BUILD_ID}/g" -i \
-	|| failure "prepare-2"
+	|| failure "fix-2"
+
+step_finish "configure"
+echo "======================================================================="
+step_begin "build mdb-tools"
 
 (cd libraries/liblmdb && make -j4 -k && cp mdb_copy mdb_stat ${PREFIX}/bin/) \
 	|| failure "build-1"
 
-make -k -j4 install \
+step_finish "build mdb-tools"
+echo "======================================================================="
+step_begin "build openldap"
+
+make -k -j4 \
 	|| failure "build-2"
 
+step_finish "build openldap"
+echo "======================================================================="
+step_begin "install"
+
+make -k -j4 install \
+	|| failure "install"
+
+step_finish "install"
+echo "======================================================================="
+step_begin "sweep"
+
 find ${PREFIX} -name '*.a' -o -name '*.la' | xargs -r rm \
-	|| failure "clean-1"
+	|| failure "sweep-1"
 find ${PREFIX} -type d -empty | xargs -r rm -r \
-	|| failure "clean-2"
+	|| failure "sweep-2"
 rm -r ${PREFIX}/var ${PREFIX}/include && ln -s /var ${PREFIX}/ \
-	|| failure "clean-3"
+	|| failure "sweep-3"
+
+step_finish "sweep"
+echo "======================================================================="
+step_begin "packaging"
 
 FILE="openldap.$PACKAGE.tar.xz"
 tar -caf $FILE --owner=root -C ${PREFIX}/.. openldap \
 	&& echo "##teamcity[publishArtifacts '$FILE']" \
 	&& cat ${PREFIX}/changelog.txt >&2 \
 	|| failure "tar"
+
+step_finish "packaging"
