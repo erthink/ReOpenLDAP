@@ -248,7 +248,7 @@ tlso_ctx_init( struct ldapoptions *lo, struct ldaptls *lt, int is_server )
 	{
 		Debug( LDAP_DEBUG_ANY,
 			   "TLS: could not set cipher list %s.\n",
-			   lo->ldo_tls_ciphersuite, 0, 0 );
+			   lo->ldo_tls_ciphersuite );
 		tlso_report_error();
 		return -1;
 	}
@@ -261,8 +261,7 @@ tlso_ctx_init( struct ldapoptions *lo, struct ldaptls *lt, int is_server )
 			Debug( LDAP_DEBUG_ANY, "TLS: "
 				"could not load verify locations (file:`%s',dir:`%s').\n",
 				lo->ldo_tls_cacertfile ? lo->ldo_tls_cacertfile : "",
-				lo->ldo_tls_cacertdir ? lo->ldo_tls_cacertdir : "",
-				0 );
+				lo->ldo_tls_cacertdir ? lo->ldo_tls_cacertdir : "" );
 			tlso_report_error();
 			return -1;
 		}
@@ -275,8 +274,7 @@ tlso_ctx_init( struct ldapoptions *lo, struct ldaptls *lt, int is_server )
 				Debug( LDAP_DEBUG_ANY, "TLS: "
 					"could not load client CA list (file:`%s',dir:`%s').\n",
 					lo->ldo_tls_cacertfile ? lo->ldo_tls_cacertfile : "",
-					lo->ldo_tls_cacertdir ? lo->ldo_tls_cacertdir : "",
-					0 );
+					lo->ldo_tls_cacertdir ? lo->ldo_tls_cacertdir : "" );
 				tlso_report_error();
 				return -1;
 			}
@@ -291,7 +289,7 @@ tlso_ctx_init( struct ldapoptions *lo, struct ldaptls *lt, int is_server )
 	{
 		Debug( LDAP_DEBUG_ANY,
 			"TLS: could not use certificate `%s'.\n",
-			lo->ldo_tls_certfile,0,0);
+			lo->ldo_tls_certfile);
 		tlso_report_error();
 		return -1;
 	}
@@ -303,7 +301,7 @@ tlso_ctx_init( struct ldapoptions *lo, struct ldaptls *lt, int is_server )
 	{
 		Debug( LDAP_DEBUG_ANY,
 			"TLS: could not use key file `%s'.\n",
-			lo->ldo_tls_keyfile,0,0);
+			lo->ldo_tls_keyfile);
 		tlso_report_error();
 		return -1;
 	}
@@ -316,7 +314,7 @@ tlso_ctx_init( struct ldapoptions *lo, struct ldaptls *lt, int is_server )
 		if (( bio=BIO_new_file( lt->lt_dhfile,"r" )) == NULL ) {
 			Debug( LDAP_DEBUG_ANY,
 				"TLS: could not use DH parameters file `%s'.\n",
-				lo->ldo_tls_dhfile,0,0);
+				lo->ldo_tls_dhfile);
 			tlso_report_error();
 			return -1;
 		}
@@ -511,8 +509,7 @@ tlso_session_chkhost( LDAP *ld, tls_session *sess, const char *name_in )
 	x = tlso_get_cert(s);
 	if (!x) {
 		Debug( LDAP_DEBUG_ANY,
-			"TLS: unable to get peer certificate.\n",
-			0, 0, 0 );
+			"TLS: unable to get peer certificate.\n" );
 		/* If this was a fatal condition, things would have
 		 * aborted long before now.
 		 */
@@ -624,8 +621,7 @@ tlso_session_chkhost( LDAP *ld, tls_session *sess, const char *name_in )
 		{
 no_cn:
 			Debug( LDAP_DEBUG_ANY,
-				"TLS: unable to get common name from peer certificate.\n",
-				0, 0, 0 );
+				"TLS: unable to get common name from peer certificate.\n" );
 			ret = LDAP_CONNECT_ERROR;
 			if ( ld->ld_error ) {
 				LDAP_FREE( ld->ld_error );
@@ -956,7 +952,7 @@ tlso_info_cb( const SSL *ssl, int where, int ret )
 	if ( where & SSL_CB_LOOP ) {
 		Debug( LDAP_DEBUG_TRACE,
 			   "TLS trace: %s:%s\n",
-			   op, state, 0 );
+			   op, state );
 
 	} else if ( where & SSL_CB_ALERT ) {
 		char *atype = (char *) SSL_alert_type_string_long( ret );
@@ -983,11 +979,11 @@ tlso_info_cb( const SSL *ssl, int where, int ret )
 		if ( ret == 0 ) {
 			Debug( LDAP_DEBUG_TRACE,
 				   "TLS trace: %s:failed in %s\n",
-				   op, state, 0 );
+				   op, state );
 		} else if ( ret < 0 ) {
 			Debug( LDAP_DEBUG_TRACE,
 				   "TLS trace: %s:error in %s\n",
-				   op, state, 0 );
+				   op, state );
 		}
 	}
 #ifdef HAVE_EBCDIC
@@ -1033,11 +1029,11 @@ tlso_verify_cb( int ok, X509_STORE_CTX *ctx )
 		   "TLS certificate verification: depth: %d, err: %d, subject: %s,",
 		   errdepth, errnum,
 		   sname ? sname : "-unknown-" );
-	Debug( LDAP_DEBUG_TRACE, " issuer: %s\n", iname ? iname : "-unknown-", 0, 0 );
+	Debug( LDAP_DEBUG_TRACE, " issuer: %s\n", iname ? iname : "-unknown-" );
 	if ( !ok ) {
 		Debug( LDAP_DEBUG_ANY,
 			"TLS certificate verification: Error, %s\n",
-			certerr, 0, 0 );
+			certerr );
 	}
 	if ( sname )
 		CRYPTO_free ( sname );
@@ -1108,7 +1104,7 @@ tlso_tmp_rsa_cb( SSL *ssl, int is_export, int key_length )
 	if ( !tmp_rsa ) {
 		Debug( LDAP_DEBUG_ANY,
 			"TLS: Failed to generate temporary %d-bit %s RSA key\n",
-			key_length, is_export ? "export" : "domestic", 0 );
+			key_length, is_export ? "export" : "domestic" );
 	}
 	return tmp_rsa;
 }
@@ -1136,8 +1132,7 @@ tlso_seed_PRNG( const char *randfile )
 
 	if (randfile == NULL) {
 		Debug( LDAP_DEBUG_ANY,
-			"TLS: Use configuration file or $RANDFILE to define seed PRNG\n",
-			0, 0, 0);
+			"TLS: Use configuration file or $RANDFILE to define seed PRNG\n");
 		return -1;
 	}
 
@@ -1145,8 +1140,7 @@ tlso_seed_PRNG( const char *randfile )
 
 	if (RAND_status() == 0) {
 		Debug( LDAP_DEBUG_ANY,
-			"TLS: PRNG not been seeded with enough data\n",
-			0, 0, 0);
+			"TLS: PRNG not been seeded with enough data\n");
 		return -1;
 	}
 

@@ -111,7 +111,7 @@ ldap_result(
 	assert( ld != NULL );
 	assert( result != NULL );
 
-	Debug( LDAP_DEBUG_TRACE, "ldap_result ld %p msgid %d\n", (void *)ld, msgid, 0 );
+	Debug( LDAP_DEBUG_TRACE, "ldap_result ld %p msgid %d\n", (void *)ld, msgid );
 
 	LDAP_MUTEX_LOCK( &ld->ld_res_mutex );
 	rc = wait4msg( ld, msgid, all, timeout, result );
@@ -152,7 +152,7 @@ chkResponseList(
 			Debug( LDAP_DEBUG_ANY,
 				"response list msg abandoned, "
 				"msgid %d message type %s\n",
-				lm->lm_msgid, ldap_int_msgtype2str( lm->lm_msgtype ), 0 );
+				lm->lm_msgid, ldap_int_msgtype2str( lm->lm_msgtype ) );
 
 			switch ( lm->lm_msgtype ) {
 			case LDAP_RES_SEARCH_ENTRY:
@@ -219,7 +219,7 @@ chkResponseList(
 #ifdef LDAP_DEBUG
 	if ( lm == NULL) {
 		Debug( LDAP_DEBUG_TRACE,
-			"ldap_chkResponseList returns ld %p NULL\n", (void *)ld, 0, 0);
+			"ldap_chkResponseList returns ld %p NULL\n", (void *)ld);
 	} else {
 		Debug( LDAP_DEBUG_TRACE,
 			"ldap_chkResponseList returns ld %p msgid %d, type 0x%02lx\n",
@@ -259,7 +259,7 @@ wait4msg(
 #ifdef LDAP_DEBUG
 	if ( timeout == NULL ) {
 		Debug( LDAP_DEBUG_TRACE, "wait4msg ld %p msgid %d (infinite timeout)\n",
-			(void *)ld, msgid, 0 );
+			(void *)ld, msgid );
 	} else {
 		Debug( LDAP_DEBUG_TRACE, "wait4msg ld %p msgid %d (timeout %ld usec)\n",
 			(void *)ld, msgid, (long)timeout->tv_sec * 1000000 + timeout->tv_usec );
@@ -315,7 +315,7 @@ wait4msg(
 #ifdef LDAP_DEBUG
 					Debug( LDAP_DEBUG_TRACE,
 						"ldap_int_select returned -1: errno %d\n",
-						err, 0, 0 );
+						err );
 #endif
 				}
 
@@ -502,7 +502,7 @@ nextresp3:
 		err = sock_errno();
 #ifdef LDAP_DEBUG
 		Debug( LDAP_DEBUG_CONNS,
-			"ber_get_next failed.\n", 0, 0, 0 );
+			"ber_get_next failed.\n" );
 #endif
 		if ( err == EWOULDBLOCK ) return LDAP_MSG_X_KEEP_LOOKING;
 		if ( err == EAGAIN ) return LDAP_MSG_X_KEEP_LOOKING;
@@ -677,7 +677,7 @@ nextresp2:
 								"read1msg:  search ref chased, "
 								"mark request chasing refs, "
 								"id = %d\n",
-								lr->lr_msgid, 0, 0 );
+								lr->lr_msgid );
 						}
 					}
 				}
@@ -725,7 +725,7 @@ nextresp2:
 							Debug( LDAP_DEBUG_TRACE,
 								"read1msg: referral decode error, "
 								"mark request completed, ld %p msgid %d\n",
-								(void *)ld, lr->lr_msgid, 0 );
+								(void *)ld, lr->lr_msgid );
 
 						} else {
 							/* Chase the referral
@@ -770,7 +770,7 @@ nextresp2:
 						Debug( LDAP_DEBUG_TRACE,
 							"read1msg:  V2 referral chased, "
 							"mark request completed, id = %d\n",
-							lr->lr_msgid, 0, 0 );
+							lr->lr_msgid );
 						break;
 					}
 				}
@@ -797,7 +797,7 @@ nextresp2:
 
 		Debug( LDAP_DEBUG_TRACE,
 			"read1msg: ld %p %d new referrals\n",
-			(void *)ld, refer_cnt, 0 );
+			(void *)ld, refer_cnt );
 
 		if ( refer_cnt != 0 ) {	/* chasing referrals */
 			ber_free( ber, 1 );
@@ -826,7 +826,7 @@ nextresp2:
 			lr->lr_status = LDAP_REQST_COMPLETED; /* declare this request done */
 			Debug( LDAP_DEBUG_TRACE,
 				"read1msg:  mark request completed, ld %p msgid %d\n",
-				(void *)ld, lr->lr_msgid, 0);
+				(void *)ld, lr->lr_msgid);
 			tmplr = lr;
 			while ( lr->lr_parent != NULL ) {
 				merge_error_info( ld, lr->lr_parent, lr );
@@ -862,7 +862,7 @@ nextresp2:
 				id = lr->lr_msgid;
 				tag = lr->lr_res_msgtype;
 				Debug( LDAP_DEBUG_TRACE, "request done: ld %p msgid %d\n",
-					(void *)ld, id, 0 );
+					(void *)ld, id );
 				Debug( LDAP_DEBUG_TRACE,
 					"res_errno: %d, res_error: <%s>, "
 					"res_matched: <%s>\n",
@@ -1220,7 +1220,7 @@ merge_error_info( LDAP *ld, LDAPRequest *parentr, LDAPRequest *lr )
 	}
 
 	Debug( LDAP_DEBUG_TRACE, "merged parent (id %d) error info:  ",
-		parentr->lr_msgid, 0, 0 );
+		parentr->lr_msgid );
 	Debug( LDAP_DEBUG_TRACE, "result errno %d, error <%s>, matched <%s>\n",
 		parentr->lr_res_errno,
 		parentr->lr_res_error ?  parentr->lr_res_error : "",
@@ -1271,7 +1271,7 @@ ldap_msgfree( LDAPMessage *lm )
 	LDAPMessage	*next;
 	int		type = 0;
 
-	Debug( LDAP_DEBUG_TRACE, "ldap_msgfree\n", 0, 0, 0 );
+	Debug( LDAP_DEBUG_TRACE, "ldap_msgfree\n" );
 
 	for ( ; lm != NULL; lm = next ) {
 		next = lm->lm_chain;
@@ -1297,7 +1297,7 @@ ldap_msgdelete( LDAP *ld, int msgid )
 	assert( ld != NULL );
 
 	Debug( LDAP_DEBUG_TRACE, "ldap_msgdelete ld=%p msgid=%d\n",
-		(void *)ld, msgid, 0 );
+		(void *)ld, msgid );
 
 	LDAP_MUTEX_LOCK( &ld->ld_res_mutex );
 	prev = NULL;

@@ -282,7 +282,7 @@ slapi_op_bind_callback( Operation *op, SlapReply *rs, int prc )
 				BER_BVISNULL( &op->o_conn->c_dn )
 					? "<empty>" : op->o_conn->c_dn.bv_val,
 				BER_BVISNULL( &op->orb_mech )
-					? "<empty>" : op->orb_mech.bv_val, 0, 0 );
+					? "<empty>" : op->orb_mech.bv_val );
 
 			return -1;
 		}

@@ -452,7 +452,7 @@ Document: RFC 4511
 		rc = ldap_url_parse_ext( ref->bv_val, &srv, LDAP_PVT_URL_PARSE_NONE );
 		if ( rc != LDAP_URL_SUCCESS ) {
 			Debug( LDAP_DEBUG_TRACE, "%s ldap_chain_op: unable to parse ref=\"%s\"\n",
-				op->o_log_prefix, ref->bv_val, 0 );
+				op->o_log_prefix, ref->bv_val );
 
 			/* try next */
 			rc = LDAP_OTHER;
@@ -531,7 +531,7 @@ Document: RFC 4511
 
 		if ( li.li_uri == NULL ) {
 			Debug( LDAP_DEBUG_TRACE, "%s ldap_chain_op: ref=\"%s\" unable to reconstruct URI\n",
-				op->o_log_prefix, ref->bv_val, 0 );
+				op->o_log_prefix, ref->bv_val );
 
 			/* try next */
 			rc = LDAP_OTHER;
@@ -724,7 +724,7 @@ ldap_chain_search(
 		rc = ldap_url_parse_ext( ref[0].bv_val, &srv, LDAP_PVT_URL_PARSE_NONE );
 		if ( rc != LDAP_URL_SUCCESS ) {
 			Debug( LDAP_DEBUG_TRACE, "%s ldap_chain_search: unable to parse ref=\"%s\"\n",
-				op->o_log_prefix, ref->bv_val, 0 );
+				op->o_log_prefix, ref->bv_val );
 
 			/* try next */
 			rs->sr_err = LDAP_OTHER;
@@ -806,7 +806,7 @@ ldap_chain_search(
 
 		if ( rc != LDAP_SUCCESS || li.li_uri == NULL ) {
 			Debug( LDAP_DEBUG_TRACE, "%s ldap_chain_search: ref=\"%s\" unable to reconstruct URI\n",
-				op->o_log_prefix, ref->bv_val, 0 );
+				op->o_log_prefix, ref->bv_val );
 
 			/* try next */
 			rc = LDAP_OTHER;
@@ -1127,7 +1127,7 @@ ldap_chain_response( Operation *op, SlapReply *rs )
 			Debug( LDAP_DEBUG_ANY,
 				"%s: ldap_chain_response: "
 				"overlay should have sent result.\n",
-				op->o_log_prefix, 0, 0 );
+				op->o_log_prefix );
 		}
 		break;
 
@@ -1326,7 +1326,7 @@ chain_ldadd( CfEntryInfo *p, Entry *e, ConfigArgs *ca )
 		Debug( LDAP_DEBUG_ANY, "slapd-chain: "
 			"first underlying database \"%s\" "
 			"cannot contain attribute \"%s\".\n",
-			e->e_name.bv_val, ad->ad_cname.bv_val, 0 );
+			e->e_name.bv_val, ad->ad_cname.bv_val );
 		rc = LDAP_CONSTRAINT_VIOLATION;
 		goto done;
 
@@ -1338,7 +1338,7 @@ chain_ldadd( CfEntryInfo *p, Entry *e, ConfigArgs *ca )
 		Debug( LDAP_DEBUG_ANY, "slapd-chain: "
 			"subsequent underlying database \"%s\" "
 			"must contain attribute \"%s\".\n",
-			e->e_name.bv_val, ad->ad_cname.bv_val, 0 );
+			e->e_name.bv_val, ad->ad_cname.bv_val );
 		rc = LDAP_CONSTRAINT_VIOLATION;
 		goto done;
 	}
@@ -1357,7 +1357,7 @@ chain_ldadd( CfEntryInfo *p, Entry *e, ConfigArgs *ca )
 fail:
 		Debug( LDAP_DEBUG_ANY, "slapd-chain: "
 			"unable to init %sunderlying database \"%s\".\n",
-			lc->lc_common_li == NULL ? "common " : "", e->e_name.bv_val, 0 );
+			lc->lc_common_li == NULL ? "common " : "", e->e_name.bv_val );
 		return LDAP_CONSTRAINT_VIOLATION;
 	}
 
@@ -1371,7 +1371,7 @@ fail:
 		{
 			Debug( LDAP_DEBUG_ANY, "slapd-chain: "
 				"database \"%s\" insert failed.\n",
-				e->e_name.bv_val, 0, 0 );
+				e->e_name.bv_val );
 			rc = LDAP_CONSTRAINT_VIOLATION;
 			goto done;
 		}
@@ -1459,12 +1459,12 @@ chain_lddel( CfEntryInfo *ce, Operation *op )
 	if ( li != lc->lc_common_li ) {
 		if (! avl_delete( &lc->lc_lai.lai_tree, li, ldap_chain_uri_cmp ) ) {
 			Debug( LDAP_DEBUG_ANY, "slapd-chain: avl_delete failed. "
-				"\"%s\" not found.\n", li->li_uri, 0, 0 );
+				"\"%s\" not found.\n", li->li_uri );
 			return -1;
 		}
 	} else if ( lc->lc_lai.lai_tree ) {
 		Debug( LDAP_DEBUG_ANY, "slapd-chain: cannot delete first underlying "
-			"LDAP database when other databases are still present.\n", 0, 0, 0 );
+			"LDAP database when other databases are still present.\n" );
 		return -1;
 	} else {
 		lc->lc_common_li = NULL;
@@ -1601,7 +1601,7 @@ chain_cf_gen( ConfigArgs *c )
 					Debug( LDAP_DEBUG_ANY, "%s: "
 						"illegal <resolve> value %s "
 						"in \"chain-chaining>\".\n",
-						c->log, argv[ 0 ], 0 );
+						c->log, argv[ 0 ] );
 					return 1;
 				}
 
@@ -1611,7 +1611,7 @@ chain_cf_gen( ConfigArgs *c )
 					Debug( LDAP_DEBUG_ANY, "%s: "
 						"illegal <continuation> value %s "
 						"in \"chain-chaining\".\n",
-						c->log, argv[ 0 ], 0 );
+						c->log, argv[ 0 ] );
 					return 1;
 				}
 
@@ -1621,7 +1621,7 @@ chain_cf_gen( ConfigArgs *c )
 			} else {
 				Debug( LDAP_DEBUG_ANY, "%s: "
 					"unknown option in \"chain-chaining\".\n",
-					c->log, 0, 0 );
+					c->log );
 				return 1;
 			}
 		}
@@ -1641,7 +1641,7 @@ chain_cf_gen( ConfigArgs *c )
 				ber_free( ber, 1 );
 				Debug( LDAP_DEBUG_ANY, "%s: "
 					"chaining behavior control encoding error!\n",
-					c->log, 0, 0 );
+					c->log );
 				return 1;
 			}
 
@@ -1651,7 +1651,7 @@ chain_cf_gen( ConfigArgs *c )
 					ber_free( ber, 1 );
 					Debug( LDAP_DEBUG_ANY, "%s: "
 						"chaining behavior control encoding error!\n",
-						c->log, 0, 0 );
+						c->log );
 					return 1;
 				}
 			}
@@ -1661,7 +1661,7 @@ chain_cf_gen( ConfigArgs *c )
 				ber_free( ber, 1 );
 				Debug( LDAP_DEBUG_ANY, "%s: "
 					"chaining behavior control encoding error!\n",
-					c->log, 0, 0 );
+					c->log );
 				return 1;
 			}
 
@@ -1693,7 +1693,7 @@ chain_cf_gen( ConfigArgs *c )
 #else /* ! LDAP_CONTROL_X_CHAINING_BEHAVIOR */
 		Debug( LDAP_DEBUG_ANY, "%s: "
 			"\"chaining\" control unsupported (ignored).\n",
-			c->log, 0, 0 );
+			c->log );
 #endif /* LDAP_CONTROL_X_CHAINING_BEHAVIOR */
 		} break;
 
@@ -1711,7 +1711,7 @@ chain_cf_gen( ConfigArgs *c )
 				"<%s> invalid max referral depth %d",
 				c->argv[0], c->value_int );
 			Debug( LDAP_DEBUG_ANY, "%s: %s.\n",
-				c->log, c->cr_msg, 0 );
+				c->log, c->cr_msg );
 			rc = 1;
 			break;
 		}
@@ -1826,7 +1826,7 @@ ldap_chain_db_config(
 			if ( rc != 0 ) {
 				Debug( LDAP_DEBUG_ANY, "%s: line %d: "
 					"underlying slapd-ldap initialization failed.\n.",
-					fname, lineno, 0 );
+					fname, lineno );
 				return 1;
 			}
 			lc->lc_cfg_li = db.be_private;
@@ -1861,7 +1861,7 @@ private_destroy:;
 				{
 					Debug( LDAP_DEBUG_ANY, "%s: line %d: "
 						"no URI list allowed in slapo-chain.\n",
-						fname, lineno, 0 );
+						fname, lineno );
 					rc = 1;
 					goto private_destroy;
 				}
@@ -1872,7 +1872,7 @@ private_destroy:;
 				{
 					Debug( LDAP_DEBUG_ANY, "%s: line %d: "
 						"duplicate URI in slapo-chain.\n",
-						fname, lineno, 0 );
+						fname, lineno );
 					rc = 1;
 					goto private_destroy;
 				}
@@ -2305,7 +2305,7 @@ chain_initialize( void )
 	if ( rc != LDAP_SUCCESS ) {
 		Debug( LDAP_DEBUG_ANY, "slapd-chain: "
 			"unable to register chaining behavior control: %d.\n",
-			rc, 0, 0 );
+			rc );
 		return rc;
 	}
 #endif /* LDAP_CONTROL_X_CHAINING_BEHAVIOR */

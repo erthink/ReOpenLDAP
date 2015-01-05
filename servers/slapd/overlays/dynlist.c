@@ -434,7 +434,7 @@ dynlist_prepare_entry( Operation *op, SlapReply *rs, dynlist_info_t *dli )
 			/* FIXME: host not allowed; reject as illegal? */
 			Debug( LDAP_DEBUG_ANY, "dynlist_prepare_entry(\"%s\"): "
 				"illegal URI \"%s\"\n",
-				e->e_name.bv_val, url->bv_val, 0 );
+				e->e_name.bv_val, url->bv_val );
 			goto cleanup;
 		}
 
@@ -836,8 +836,7 @@ dynlist_build_def_filter( dynlist_info_t *dli )
 		+ dli->dli_oc->soc_cname.bv_len;
 	dli->dli_default_filter.bv_val = ch_malloc( dli->dli_default_filter.bv_len + 1 );
 	if ( dli->dli_default_filter.bv_val == NULL ) {
-		Debug( LDAP_DEBUG_ANY, "dynlist_db_open: malloc failed.\n",
-			0, 0, 0 );
+		Debug( LDAP_DEBUG_ANY, "dynlist_db_open: malloc failed.\n" );
 		return -1;
 	}
 
@@ -1076,7 +1075,7 @@ dl_cfgen( ConfigArgs *c )
 				"unable to find ObjectClass \"%s\"",
 				c->argv[ 1 ] );
 			Debug( LDAP_DEBUG_ANY, "%s: %s.\n",
-				c->log, c->cr_msg, 0 );
+				c->log, c->cr_msg );
 			return 1;
 		}
 
@@ -1159,7 +1158,7 @@ done_uri:;
 				}
 
 				Debug( LDAP_DEBUG_ANY, "%s: %s.\n",
-					c->log, c->cr_msg, 0 );
+					c->log, c->cr_msg );
 
 				return rc;
 			}
@@ -1173,7 +1172,7 @@ done_uri:;
 				"unable to find AttributeDescription \"%s\"",
 				c->argv[ attridx ] );
 			Debug( LDAP_DEBUG_ANY, "%s: %s.\n",
-				c->log, c->cr_msg, 0 );
+				c->log, c->cr_msg );
 			return 1;
 		}
 
@@ -1183,7 +1182,7 @@ done_uri:;
 				"must be a subtype of \"labeledURI\"",
 				c->argv[ attridx ] );
 			Debug( LDAP_DEBUG_ANY, "%s: %s.\n",
-				c->log, c->cr_msg, 0 );
+				c->log, c->cr_msg );
 			return 1;
 		}
 
@@ -1212,7 +1211,7 @@ done_uri:;
 						"unable to find mapped AttributeDescription #%d \"%s\"\n",
 						i - 3, c->argv[ i ] );
 					Debug( LDAP_DEBUG_ANY, "%s: %s.\n",
-						c->log, c->cr_msg, 0 );
+						c->log, c->cr_msg );
 					return 1;
 				}
 				arg = cp + 1;
@@ -1225,7 +1224,7 @@ done_uri:;
 					"unable to find AttributeDescription #%d \"%s\"\n",
 					i - 3, c->argv[ i ] );
 				Debug( LDAP_DEBUG_ANY, "%s: %s.\n",
-					c->log, c->cr_msg, 0 );
+					c->log, c->cr_msg );
 				return 1;
 			}
 
@@ -1254,7 +1253,7 @@ done_uri:;
 						"invalid index {%d}\n",
 						c->valx );
 					Debug( LDAP_DEBUG_ANY, "%s: %s.\n",
-						c->log, c->cr_msg, 0 );
+						c->log, c->cr_msg );
 					return 1;
 				}
 				dlip = &(*dlip)->dli_next;
@@ -1287,7 +1286,7 @@ done_uri:;
 		snprintf( c->cr_msg, sizeof( c->cr_msg ),
 			"warning: \"attrpair\" only supported for limited "
 			"backward compatibility with overlay \"dyngroup\"" );
-		Debug( LDAP_DEBUG_ANY, "%s: %s.\n", c->log, c->cr_msg, 0 );
+		Debug( LDAP_DEBUG_ANY, "%s: %s.\n", c->log, c->cr_msg );
 		/* fallthru */
 
 	case DL_ATTRPAIR: {
@@ -1303,7 +1302,7 @@ done_uri:;
 				"\"dynlist-attrpair <member-ad> <URL-ad>\": "
 				"unable to find default ObjectClass \"groupOfURLs\"" );
 			Debug( LDAP_DEBUG_ANY, "%s: %s.\n",
-				c->log, c->cr_msg, 0 );
+				c->log, c->cr_msg );
 			return 1;
 		}
 
@@ -1314,7 +1313,7 @@ done_uri:;
 				"unable to find AttributeDescription \"%s\"",
 				c->argv[ 1 ] );
 			Debug( LDAP_DEBUG_ANY, "%s: %s.\n",
-				c->log, c->cr_msg, 0 );
+				c->log, c->cr_msg );
 			return 1;
 		}
 
@@ -1325,7 +1324,7 @@ done_uri:;
 				"unable to find AttributeDescription \"%s\"\n",
 				c->argv[ 2 ] );
 			Debug( LDAP_DEBUG_ANY, "%s: %s.\n",
-				c->log, c->cr_msg, 0 );
+				c->log, c->cr_msg );
 			return 1;
 		}
 
@@ -1336,7 +1335,7 @@ done_uri:;
 				"must be a subtype of \"labeledURI\"",
 				c->argv[ 2 ] );
 			Debug( LDAP_DEBUG_ANY, "%s: %s.\n",
-				c->log, c->cr_msg, 0 );
+				c->log, c->cr_msg );
 			return 1;
 		}
 
@@ -1359,7 +1358,7 @@ done_uri:;
 					"URL attributeDescription \"%s\" already mapped.\n",
 					ad->ad_cname.bv_val );
 				Debug( LDAP_DEBUG_ANY, "%s: %s.\n",
-					c->log, c->cr_msg, 0 );
+					c->log, c->cr_msg );
 #if 0
 				/* make it a warning... */
 				return 1;
@@ -1411,7 +1410,7 @@ dynlist_db_open(
 				if ( oc == NULL ) {
 					snprintf( cr->msg, sizeof( cr->msg),
 						"unable to fetch objectClass \"groupOfURLs\"" );
-					Debug( LDAP_DEBUG_ANY, "dynlist_db_open: %s.\n", cr->msg, 0, 0 );
+					Debug( LDAP_DEBUG_ANY, "dynlist_db_open: %s.\n", cr->msg );
 					return 1;
 				}
 			}
@@ -1426,7 +1425,7 @@ dynlist_db_open(
 					snprintf( cr->msg, sizeof( cr->msg),
 						"unable to fetch attributeDescription \"memberURL\": %d (%s)",
 						rc, text );
-					Debug( LDAP_DEBUG_ANY, "dynlist_db_open: %s.\n", cr->msg, 0, 0 );
+					Debug( LDAP_DEBUG_ANY, "dynlist_db_open: %s.\n", cr->msg );
 					return 1;
 				}
 			}
@@ -1448,7 +1447,7 @@ dynlist_db_open(
 			snprintf( cr->msg, sizeof( cr->msg),
 				"unable to fetch attributeDescription \"dgIdentity\": %d (%s)",
 				rc, text );
-			Debug( LDAP_DEBUG_ANY, "dynlist_db_open: %s\n", cr->msg, 0, 0 );
+			Debug( LDAP_DEBUG_ANY, "dynlist_db_open: %s\n", cr->msg );
 			/* Just a warning */
 		}
 	}
@@ -1459,7 +1458,7 @@ dynlist_db_open(
 			snprintf( cr->msg, sizeof( cr->msg),
 				"unable to fetch attributeDescription \"dgAuthz\": %d (%s)",
 				rc, text );
-			Debug( LDAP_DEBUG_ANY, "dynlist_db_open: %s\n", cr->msg, 0, 0 );
+			Debug( LDAP_DEBUG_ANY, "dynlist_db_open: %s\n", cr->msg );
 			/* Just a warning */
 		}
 	}

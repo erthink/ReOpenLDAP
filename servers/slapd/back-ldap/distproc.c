@@ -397,7 +397,7 @@ distproc_ldadd( CfEntryInfo *p, Entry *e, ConfigArgs *ca )
 		Debug( LDAP_DEBUG_ANY, "slapd-distproc: "
 			"first underlying database \"%s\" "
 			"cannot contain attribute \"%s\".\n",
-			e->e_name.bv_val, ad->ad_cname.bv_val, 0 );
+			e->e_name.bv_val, ad->ad_cname.bv_val );
 		rc = LDAP_CONSTRAINT_VIOLATION;
 		goto done;
 
@@ -407,7 +407,7 @@ distproc_ldadd( CfEntryInfo *p, Entry *e, ConfigArgs *ca )
 		Debug( LDAP_DEBUG_ANY, "slapd-distproc: "
 			"subsequent underlying database \"%s\" "
 			"must contain attribute \"%s\".\n",
-			e->e_name.bv_val, ad->ad_cname.bv_val, 0 );
+			e->e_name.bv_val, ad->ad_cname.bv_val );
 		rc = LDAP_CONSTRAINT_VIOLATION;
 		goto done;
 	}
@@ -422,7 +422,7 @@ distproc_ldadd( CfEntryInfo *p, Entry *e, ConfigArgs *ca )
 	if ( rc != 0 ) {
 		Debug( LDAP_DEBUG_ANY, "slapd-distproc: "
 			"unable to init %sunderlying database \"%s\".\n",
-			lc->lc_common_li == NULL ? "common " : "", e->e_name.bv_val, 0 );
+			lc->lc_common_li == NULL ? "common " : "", e->e_name.bv_val );
 		return LDAP_CONSTRAINT_VIOLATION;
 	}
 
@@ -436,7 +436,7 @@ distproc_ldadd( CfEntryInfo *p, Entry *e, ConfigArgs *ca )
 	{
 		Debug( LDAP_DEBUG_ANY, "slapd-distproc: "
 			"database \"%s\" insert failed.\n",
-			e->e_name.bv_val, 0, 0 );
+			e->e_name.bv_val );
 		rc = LDAP_CONSTRAINT_VIOLATION;
 		goto done;
 	}
@@ -624,7 +624,7 @@ ldap_distproc_db_config(
 			if ( rc != 0 ) {
 				Debug( LDAP_DEBUG_ANY, "%s: line %d: "
 					"underlying slapd-ldap initialization failed.\n.",
-					fname, lineno, 0 );
+					fname, lineno );
 				return 1;
 			}
 			lc->lc_cfg_li = be->be_private;
@@ -666,7 +666,7 @@ private_destroy:;
 				{
 					Debug( LDAP_DEBUG_ANY, "%s: line %d: "
 						"no URI list allowed in slapo-distproc.\n",
-						fname, lineno, 0 );
+						fname, lineno );
 					rc = 1;
 					goto private_destroy;
 				}
@@ -677,7 +677,7 @@ private_destroy:;
 				{
 					Debug( LDAP_DEBUG_ANY, "%s: line %d: "
 						"duplicate URI in slapo-distproc.\n",
-						fname, lineno, 0 );
+						fname, lineno );
 					rc = 1;
 					goto private_destroy;
 				}
@@ -925,7 +925,7 @@ ldap_exop_chained_request(
 		SlapReply	*rs )
 {
 	Statslog( LDAP_DEBUG_STATS, "%s CHAINED REQUEST\n",
-	    op->o_log_prefix, 0, 0, 0, 0 );
+	    op->o_log_prefix );
 
 	rs->sr_err = backend_check_restrictions( op, rs,
 			(struct berval *)&slap_EXOP_CHAINEDREQUEST );
@@ -954,7 +954,7 @@ distproc_initialize( void )
 	if ( rc != LDAP_SUCCESS ) {
 		Debug( LDAP_DEBUG_ANY, "slapd-distproc: "
 			"unable to register chainedRequest exop: %d.\n",
-			rc, 0, 0 );
+			rc );
 		return rc;
 	}
 
@@ -963,7 +963,7 @@ distproc_initialize( void )
 	if ( rc != LDAP_SUCCESS ) {
 		Debug( LDAP_DEBUG_ANY, "slapd-distproc: "
 			"unable to register canChainOperations supported feature: %d.\n",
-			rc, 0, 0 );
+			rc );
 		return rc;
 	}
 #endif
@@ -974,7 +974,7 @@ distproc_initialize( void )
 	if ( rc != LDAP_SUCCESS ) {
 		Debug( LDAP_DEBUG_ANY, "slapd-distproc: "
 			"unable to register returnContinuationReference control: %d.\n",
-			rc, 0, 0 );
+			rc );
 		return rc;
 	}
 

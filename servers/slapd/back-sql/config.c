@@ -379,7 +379,7 @@ sql_cf_gen( ConfigArgs *c )
 			snprintf( c->cr_msg, sizeof( c->cr_msg ),
 				"%s: unable to parse pattern \"%s\"",
 				c->log, c->argv[ 1 ] );
-			Debug( LDAP_DEBUG_ANY, "%s\n", c->cr_msg, 0, 0 );
+			Debug( LDAP_DEBUG_ANY, "%s\n", c->cr_msg );
 			return -1;
 		}
 		bi->sql_concat_patt = c->value_string;
@@ -443,7 +443,7 @@ sql_cf_gen( ConfigArgs *c )
 		if ( c->be->be_nsuffix == NULL ) {
 			snprintf( c->cr_msg, sizeof( c->cr_msg ),
 				"%s: suffix must be set", c->log );
-			Debug( LDAP_DEBUG_ANY, "%s\n", c->cr_msg, 0, 0 );
+			Debug( LDAP_DEBUG_ANY, "%s\n", c->cr_msg );
 			rc = ARG_BAD_CONF;
 			break;
 		}
@@ -451,7 +451,7 @@ sql_cf_gen( ConfigArgs *c )
 			Debug( LDAP_DEBUG_CONFIG,
 				"%s: "
 				"\"baseObject\" already provided (will be overwritten)\n",
-				c->log, 0, 0 );
+				c->log );
 			entry_free( bi->sql_baseObject );
 		}
 		if ( c->argc == 2 && !strcmp( c->argv[1], "TRUE" ))
@@ -471,7 +471,7 @@ sql_cf_gen( ConfigArgs *c )
 		default:
 			snprintf( c->cr_msg, sizeof( c->cr_msg ),
 				"%s: trailing values in directive", c->log );
-			Debug( LDAP_DEBUG_ANY, "%s\n", c->cr_msg, 0, 0 );
+			Debug( LDAP_DEBUG_ANY, "%s\n", c->cr_msg );
 			return 1;
 		}
 		break;
@@ -481,7 +481,7 @@ sql_cf_gen( ConfigArgs *c )
 			snprintf( c->cr_msg, sizeof( c->cr_msg ),
 				"%s: unable to load sql layer", c->log );
 			Debug( LDAP_DEBUG_ANY, "%s \"%s\"\n",
-				c->cr_msg, c->argv[1], 0 );
+				c->cr_msg, c->argv[1] );
 			return 1;
 		}
 		break;
@@ -550,7 +550,7 @@ read_baseObject(
 		Debug( LDAP_DEBUG_ANY,
 			"could not open back-sql baseObject "
 			"attr file \"%s\" - absolute path?\n",
-			fname, 0, 0 );
+			fname );
 		perror( fname );
 		return LDAP_OTHER;
 	}
@@ -558,7 +558,7 @@ read_baseObject(
 	bi->sql_baseObject = entry_alloc();
 	if ( bi->sql_baseObject == NULL ) {
 		Debug( LDAP_DEBUG_ANY,
-			"read_baseObject_file: entry_alloc failed", 0, 0, 0 );
+			"read_baseObject_file: entry_alloc failed" );
 		ldif_close( fp );
 		return LDAP_NO_MEMORY;
 	}
@@ -623,7 +623,7 @@ read_baseObject(
 	ldif_close( fp );
 
 	Debug( LDAP_DEBUG_CONFIG, "back-sql baseObject file \"%s\" read.\n",
-			fname, 0, 0 );
+			fname );
 
 	return rc;
 }
@@ -656,7 +656,7 @@ create_baseObject(
 		Debug( LDAP_DEBUG_TRACE,
 			"<==backsql_db_config (%s line %d): "
 			"unable to parse baseObject entry\n",
-			fname, lineno, 0 );
+			fname, lineno );
 		return 1;
 	}
 

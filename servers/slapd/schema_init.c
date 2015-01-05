@@ -452,7 +452,7 @@ certificateListValidate( Syntax *syntax, struct berval *in )
 
 		Debug( LDAP_DEBUG_ANY,
 			"certificateListValidate issuer=\"%s\", thisUpdate=%s: extra cruft past end of certificateList\n",
-			issuer_dn.bv_val, thisUpdate.bv_val, 0 );
+			issuer_dn.bv_val, thisUpdate.bv_val );
 
 done:;
 		if ( ! BER_BVISNULL( &issuer_dn ) ) {
@@ -1316,7 +1316,7 @@ nameUIDPretty(
 	assert( out != NULL );
 
 
-	Debug( LDAP_DEBUG_TRACE, ">>> nameUIDPretty: <%s>\n", val->bv_val, 0, 0 );
+	Debug( LDAP_DEBUG_TRACE, ">>> nameUIDPretty: <%s>\n", val->bv_val );
 
 	if( BER_BVISEMPTY( val ) ) {
 		ber_dupbv_x( out, val, ctx );
@@ -1372,7 +1372,7 @@ nameUIDPretty(
 		}
 	}
 
-	Debug( LDAP_DEBUG_TRACE, "<<< nameUIDPretty: <%s>\n", out->bv_val, 0, 0 );
+	Debug( LDAP_DEBUG_TRACE, "<<< nameUIDPretty: <%s>\n", out->bv_val );
 
 	return LDAP_SUCCESS;
 }
@@ -3357,7 +3357,7 @@ serialNumberAndIssuerValidate(
 	struct berval sn, i;
 
 	Debug( LDAP_DEBUG_TRACE, ">>> serialNumberAndIssuerValidate: <%s>\n",
-		in->bv_val, 0, 0 );
+		in->bv_val );
 
 	rc = serialNumberAndIssuerCheck( in, &sn, &i, NULL );
 	if ( rc ) {
@@ -3375,7 +3375,7 @@ serialNumberAndIssuerValidate(
 	}
 
 	Debug( LDAP_DEBUG_TRACE, "<<< serialNumberAndIssuerValidate: <%s> err=%d\n",
-		in->bv_val, rc, 0 );
+		in->bv_val, rc );
 
 done:;
 	return rc;
@@ -3398,7 +3398,7 @@ serialNumberAndIssuerPretty(
 	BER_BVZERO( out );
 
 	Debug( LDAP_DEBUG_TRACE, ">>> serialNumberAndIssuerPretty: <%s>\n",
-		in->bv_val, 0, 0 );
+		in->bv_val );
 
 	rc = serialNumberAndIssuerCheck( in, &sn, &i, ctx );
 	if ( rc ) {
@@ -3438,7 +3438,7 @@ serialNumberAndIssuerPretty(
 
 done:;
 	Debug( LDAP_DEBUG_TRACE, "<<< serialNumberAndIssuerPretty: <%s> => <%s>\n",
-		in->bv_val, rc == LDAP_SUCCESS ? out->bv_val : "(err)", 0 );
+		in->bv_val, rc == LDAP_SUCCESS ? out->bv_val : "(err)" );
 
 	slap_sl_free( ni.bv_val, ctx );
 
@@ -3543,7 +3543,7 @@ serialNumberAndIssuerNormalize(
 	assert( out != NULL );
 
 	Debug( LDAP_DEBUG_TRACE, ">>> serialNumberAndIssuerNormalize: <%s>\n",
-		in->bv_val, 0, 0 );
+		in->bv_val );
 
 	rc = serialNumberAndIssuerCheck( in, &sn, &i, ctx );
 	if ( rc ) {
@@ -3594,7 +3594,7 @@ serialNumberAndIssuerNormalize(
 
 func_leave:
 	Debug( LDAP_DEBUG_TRACE, "<<< serialNumberAndIssuerNormalize: <%s> => <%s>\n",
-		in->bv_val, rc == LDAP_SUCCESS ? out->bv_val : "(err)", 0 );
+		in->bv_val, rc == LDAP_SUCCESS ? out->bv_val : "(err)" );
 
 	if ( sn2.bv_val != sbuf2 ) {
 		slap_sl_free( sn2.bv_val, ctx );
@@ -3632,7 +3632,7 @@ certificateExactNormalize(
 	assert( val != NULL );
 
 	Debug( LDAP_DEBUG_TRACE, ">>> certificateExactNormalize: <%p, %lu>\n",
-		val->bv_val, val->bv_len, 0 );
+		val->bv_val, val->bv_len );
 
 	if ( BER_BVISEMPTY( val ) ) goto done;
 
@@ -3941,7 +3941,7 @@ issuerAndThisUpdateValidate(
 	struct berval i, tu;
 
 	Debug( LDAP_DEBUG_TRACE, ">>> issuerAndThisUpdateValidate: <%s>\n",
-		in->bv_val, 0, 0 );
+		in->bv_val );
 
 	rc = issuerAndThisUpdateCheck( in, &i, &tu, NULL );
 	if ( rc ) {
@@ -3962,7 +3962,7 @@ issuerAndThisUpdateValidate(
 	}
 
 	Debug( LDAP_DEBUG_TRACE, "<<< issuerAndThisUpdateValidate: <%s> err=%d\n",
-		in->bv_val, rc, 0 );
+		in->bv_val, rc );
 
 done:;
 	return rc;
@@ -3985,7 +3985,7 @@ issuerAndThisUpdatePretty(
 	BER_BVZERO( out );
 
 	Debug( LDAP_DEBUG_TRACE, ">>> issuerAndThisUpdatePretty: <%s>\n",
-		in->bv_val, 0, 0 );
+		in->bv_val );
 
 	rc = issuerAndThisUpdateCheck( in, &i, &tu, ctx );
 	if ( rc ) {
@@ -4025,7 +4025,7 @@ issuerAndThisUpdatePretty(
 
 done:;
 	Debug( LDAP_DEBUG_TRACE, "<<< issuerAndThisUpdatePretty: <%s> => <%s>\n",
-		in->bv_val, rc == LDAP_SUCCESS ? out->bv_val : "(err)", 0 );
+		in->bv_val, rc == LDAP_SUCCESS ? out->bv_val : "(err)" );
 
 	slap_sl_free( ni.bv_val, ctx );
 
@@ -4050,7 +4050,7 @@ issuerAndThisUpdateNormalize(
 	assert( out != NULL );
 
 	Debug( LDAP_DEBUG_TRACE, ">>> issuerAndThisUpdateNormalize: <%s>\n",
-		in->bv_val, 0, 0 );
+		in->bv_val );
 
 	rc = issuerAndThisUpdateCheck( in, &i, &tu, ctx );
 	if ( rc ) {
@@ -4091,7 +4091,7 @@ issuerAndThisUpdateNormalize(
 
 func_leave:
 	Debug( LDAP_DEBUG_TRACE, "<<< issuerAndThisUpdateNormalize: <%s> => <%s>\n",
-		in->bv_val, rc == LDAP_SUCCESS ? out->bv_val : "(err)", 0 );
+		in->bv_val, rc == LDAP_SUCCESS ? out->bv_val : "(err)" );
 
 	slap_sl_free( ni.bv_val, ctx );
 
@@ -4120,7 +4120,7 @@ certificateListExactNormalize(
 	assert( val != NULL );
 
 	Debug( LDAP_DEBUG_TRACE, ">>> certificateListExactNormalize: <%p, %lu>\n",
-		val->bv_val, val->bv_len, 0 );
+		val->bv_val, val->bv_len );
 
 	if ( BER_BVISEMPTY( val ) ) goto done;
 
@@ -4541,7 +4541,7 @@ serialNumberAndIssuerSerialValidate(
 	struct berval sn, i, i_sn;
 
 	Debug( LDAP_DEBUG_TRACE, ">>> serialNumberAndIssuerSerialValidate: <%s>\n",
-		in->bv_val, 0, 0 );
+		in->bv_val );
 
 	rc = serialNumberAndIssuerSerialCheck( in, &sn, &i, &i_sn, NULL );
 	if ( rc ) {
@@ -4560,7 +4560,7 @@ serialNumberAndIssuerSerialValidate(
 
 done:;
 	Debug( LDAP_DEBUG_TRACE, "<<< serialNumberAndIssuerSerialValidate: <%s> err=%d\n",
-		in->bv_val, rc, 0 );
+		in->bv_val, rc );
 
 	return rc;
 }
@@ -4581,7 +4581,7 @@ serialNumberAndIssuerSerialPretty(
 	assert( out != NULL );
 
 	Debug( LDAP_DEBUG_TRACE, ">>> serialNumberAndIssuerSerialPretty: <%s>\n",
-		in->bv_val, 0, 0 );
+		in->bv_val );
 
 	rc = serialNumberAndIssuerSerialCheck( in, &sn, &i, &i_sn, ctx );
 	if ( rc ) {
@@ -4623,7 +4623,7 @@ serialNumberAndIssuerSerialPretty(
 
 done:;
 	Debug( LDAP_DEBUG_TRACE, "<<< serialNumberAndIssuerSerialPretty: <%s> => <%s>\n",
-		in->bv_val, rc == LDAP_SUCCESS ? out->bv_val : "(err)", 0 );
+		in->bv_val, rc == LDAP_SUCCESS ? out->bv_val : "(err)" );
 
 	slap_sl_free( ni.bv_val, ctx );
 
@@ -4659,7 +4659,7 @@ serialNumberAndIssuerSerialNormalize(
 	assert( out != NULL );
 
 	Debug( LDAP_DEBUG_TRACE, ">>> serialNumberAndIssuerSerialNormalize: <%s>\n",
-		in->bv_val, 0, 0 );
+		in->bv_val );
 
 	rc = serialNumberAndIssuerSerialCheck( in, &sn, &i, &i_sn, ctx );
 	if ( rc ) {
@@ -4737,7 +4737,7 @@ serialNumberAndIssuerSerialNormalize(
 
 func_leave:
 	Debug( LDAP_DEBUG_TRACE, "<<< serialNumberAndIssuerSerialNormalize: <%s> => <%s>\n",
-		in->bv_val, rc == LDAP_SUCCESS ? out->bv_val : "(err)", 0 );
+		in->bv_val, rc == LDAP_SUCCESS ? out->bv_val : "(err)" );
 
 	if ( sn2.bv_val != sbuf2 ) {
 		slap_sl_free( sn2.bv_val, ctx );
@@ -4866,7 +4866,7 @@ attributeCertificateExactNormalize(
 	p = lutil_strcopy( p, " } } }" );
 
 	Debug( LDAP_DEBUG_TRACE, "attributeCertificateExactNormalize: %s\n",
-		normalized->bv_val, NULL, NULL );
+		normalized->bv_val );
 
 	rc = LDAP_SUCCESS;
 

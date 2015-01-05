@@ -114,7 +114,7 @@ rewrite_parse(
 		if ( info->li_max_passes <= 0 ) {
 			Debug( LDAP_DEBUG_ANY,
 					"[%s:%d] negative or null rewriteMaxPasses\n",
-					fname, lineno, 0 );
+					fname, lineno );
 			return -1;
 		}
 
@@ -129,7 +129,7 @@ rewrite_parse(
 			if ( info->li_max_passes_per_rule <= 0 ) {
 				Debug( LDAP_DEBUG_ANY,
 						"[%s:%d] negative or null rewriteMaxPassesPerRule\n",
-						fname, lineno, 0 );
+						fname, lineno );
 				return -1;
 			}
 

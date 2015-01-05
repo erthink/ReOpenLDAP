@@ -757,7 +757,7 @@ lastmod_db_init(
 			code = register_at( mat[i].schema, ad, 0 );
 			if ( code ) {
 				Debug( LDAP_DEBUG_ANY,
-					"lastmod_init: register_at failed\n", 0, 0, 0 );
+					"lastmod_init: register_at failed\n" );
 				return -1;
 			}
 			(*ad)->ad_type->sat_flags |= mat[i].flags;
@@ -771,7 +771,7 @@ lastmod_db_init(
 			code = register_oc( moc[i].schema, Oc, 0 );
 			if ( code ) {
 				Debug( LDAP_DEBUG_ANY,
-					"lastmod_init: register_oc failed\n", 0, 0, 0 );
+					"lastmod_init: register_oc failed\n" );
 				return -1;
 			}
 			(*Oc)->soc_flags |= moc[i].flags;

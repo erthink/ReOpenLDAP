@@ -249,7 +249,7 @@ mdb_cf_cleanup( ConfigArgs *c )
 			snprintf( c->cr_msg, sizeof( c->cr_msg ),
 				"failed to reopen database, rc=%d", rc );
 			Debug( LDAP_DEBUG_ANY, LDAP_XSTRING(mdb_cf_cleanup)
-				": %s\n", c->cr_msg, 0, 0 );
+				": %s\n", c->cr_msg );
 			rc = LDAP_OTHER;
 		}
 	}
@@ -408,7 +408,7 @@ mdb_cf_gen( ConfigArgs *c )
 					/* unknown keyword */
 					snprintf( c->cr_msg, sizeof( c->cr_msg ), "%s: unknown keyword \"%s\"",
 						c->argv[0], c->argv[i] );
-					Debug( LDAP_DEBUG_CONFIG, "%s %s\n", c->log, c->cr_msg, 0 );
+					Debug( LDAP_DEBUG_CONFIG, "%s %s\n", c->log, c->cr_msg );
 					rc = 1;
 				}
 			}
@@ -572,7 +572,7 @@ mdb_cf_gen( ConfigArgs *c )
 		if ( !f ) {
 			snprintf( c->cr_msg, sizeof( c->cr_msg ), "%s: invalid path: %s",
 				c->log, strerror( errno ));
-			Debug( LDAP_DEBUG_ANY, "%s\n", c->cr_msg, 0, 0 );
+			Debug( LDAP_DEBUG_ANY, "%s\n", c->cr_msg );
 			return -1;
 		}
 
@@ -613,7 +613,7 @@ mdb_cf_gen( ConfigArgs *c )
 				/* unknown keyword */
 				snprintf( c->cr_msg, sizeof( c->cr_msg ), "%s: unknown keyword \"%s\"",
 					c->argv[0], c->argv[i] );
-				Debug( LDAP_DEBUG_ANY, "%s %s\n", c->log, c->cr_msg, 0 );
+				Debug( LDAP_DEBUG_ANY, "%s %s\n", c->log, c->cr_msg );
 				return 1;
 			}
 		}

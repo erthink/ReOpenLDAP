@@ -91,7 +91,7 @@ int ldap_int_sasl_init( void )
 		Debug( LDAP_DEBUG_ANY,
 		"ldap_int_sasl_init: SASL library version mismatch:"
 		" expected " SASL_VERSION_STRING ","
-		" got %s\n", version, 0, 0 );
+		" got %s\n", version );
 		return -1;
 	}
 	}
@@ -348,7 +348,7 @@ ldap_int_sasl_open(
 	}
 
 	Debug( LDAP_DEBUG_TRACE, "ldap_int_sasl_open: host=%s\n",
-		host, 0, 0 );
+		host );
 
 	lc->lconn_sasl_authctx = ctx;
 
@@ -396,7 +396,7 @@ ldap_int_sasl_bind(
 	unsigned credlen;
 
 	Debug( LDAP_DEBUG_TRACE, "ldap_int_sasl_bind: %s\n",
-		mechs ? mechs : "<null>", 0, 0 );
+		mechs ? mechs : "<null>" );
 
 	/* do a quick !LDAPv3 check... ldap_sasl_bind will do the rest. */
 	if (ld->ld_version < LDAP_VERSION3) {
@@ -557,7 +557,7 @@ ldap_int_sasl_bind(
 				/* and server provided us with data? */
 				Debug( LDAP_DEBUG_TRACE,
 					"ldap_int_sasl_bind: rc=%d len=%ld\n",
-					rc, scred ? (long) scred->bv_len : -1L, 0 );
+					rc, scred ? (long) scred->bv_len : -1L );
 				ber_bvfree( scred );
 				scred = NULL;
 			}
@@ -575,8 +575,7 @@ ldap_int_sasl_bind(
 			if( ! scred ) {
 				/* no data! */
 				Debug( LDAP_DEBUG_TRACE,
-					"ldap_int_sasl_bind: no data in step!\n",
-					0, 0, 0 );
+					"ldap_int_sasl_bind: no data in step!\n" );
 			}
 
 			saslrc = sasl_client_step( ctx,
@@ -587,7 +586,7 @@ ldap_int_sasl_bind(
 				&credlen );
 
 			Debug( LDAP_DEBUG_TRACE, "sasl_client_step: %d\n",
-				saslrc, 0, 0 );
+				saslrc );
 
 			if( saslrc == SASL_INTERACT ) {
 				int res;

@@ -343,7 +343,7 @@ rewrite_subst_apply(
 			break;
 
 		default:
-			Debug( LDAP_DEBUG_ANY, "Not Implemented\n", 0, 0, 0 );
+			Debug( LDAP_DEBUG_ANY, "Not Implemented\n" );
 			rc = REWRITE_ERR;
 			break;
 		}

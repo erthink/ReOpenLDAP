@@ -89,7 +89,7 @@ ldap_get_dn( LDAP *ld, LDAPMessage *entry )
 	char		*dn;
 	BerElement	tmp;
 
-	Debug( LDAP_DEBUG_TRACE, "ldap_get_dn\n", 0, 0, 0 );
+	Debug( LDAP_DEBUG_TRACE, "ldap_get_dn\n" );
 
 	assert( ld != NULL );
 	assert( LDAP_VALID(ld) );
@@ -112,7 +112,7 @@ ldap_get_dn_ber( LDAP *ld, LDAPMessage *entry, BerElement **berout,
 	ber_len_t	len = 0;
 	int rc = LDAP_SUCCESS;
 
-	Debug( LDAP_DEBUG_TRACE, "ldap_get_dn_ber\n", 0, 0, 0 );
+	Debug( LDAP_DEBUG_TRACE, "ldap_get_dn_ber\n" );
 
 	assert( ld != NULL );
 	assert( LDAP_VALID(ld) );
@@ -159,7 +159,7 @@ ldap_dn2ufn( LDAP_CONST char *dn )
 {
 	char	*out = NULL;
 
-	Debug( LDAP_DEBUG_TRACE, "ldap_dn2ufn\n", 0, 0, 0 );
+	Debug( LDAP_DEBUG_TRACE, "ldap_dn2ufn\n" );
 
 	( void )ldap_dn_normalize( dn, LDAP_DN_FORMAT_LDAP,
 		&out, LDAP_DN_FORMAT_UFN );
@@ -178,7 +178,7 @@ ldap_explode_dn( LDAP_CONST char *dn, int notypes )
 	int	iRDN;
 	unsigned flag = notypes ? LDAP_DN_FORMAT_UFN : LDAP_DN_FORMAT_LDAPV3;
 
-	Debug( LDAP_DEBUG_TRACE, "ldap_explode_dn\n", 0, 0, 0 );
+	Debug( LDAP_DEBUG_TRACE, "ldap_explode_dn\n" );
 
 	if ( ldap_str2dn( dn, &tmpDN, LDAP_DN_FORMAT_LDAP )
 			!= LDAP_SUCCESS ) {
@@ -218,7 +218,7 @@ ldap_explode_rdn( LDAP_CONST char *rdn, int notypes )
 	const char 	*p;
 	int		iAVA;
 
-	Debug( LDAP_DEBUG_TRACE, "ldap_explode_rdn\n", 0, 0, 0 );
+	Debug( LDAP_DEBUG_TRACE, "ldap_explode_rdn\n" );
 
 	/*
 	 * we only parse the first rdn
@@ -299,7 +299,7 @@ ldap_dn2dcedn( LDAP_CONST char *dn )
 {
 	char	*out = NULL;
 
-	Debug( LDAP_DEBUG_TRACE, "ldap_dn2dcedn\n", 0, 0, 0 );
+	Debug( LDAP_DEBUG_TRACE, "ldap_dn2dcedn\n" );
 
 	( void )ldap_dn_normalize( dn, LDAP_DN_FORMAT_LDAP,
 				   &out, LDAP_DN_FORMAT_DCE );
@@ -312,7 +312,7 @@ ldap_dcedn2dn( LDAP_CONST char *dce )
 {
 	char	*out = NULL;
 
-	Debug( LDAP_DEBUG_TRACE, "ldap_dcedn2dn\n", 0, 0, 0 );
+	Debug( LDAP_DEBUG_TRACE, "ldap_dcedn2dn\n" );
 
 	( void )ldap_dn_normalize( dce, LDAP_DN_FORMAT_DCE, &out, LDAP_DN_FORMAT_LDAPV3 );
 
@@ -324,7 +324,7 @@ ldap_dn2ad_canonical( LDAP_CONST char *dn )
 {
 	char	*out = NULL;
 
-	Debug( LDAP_DEBUG_TRACE, "ldap_dn2ad_canonical\n", 0, 0, 0 );
+	Debug( LDAP_DEBUG_TRACE, "ldap_dn2ad_canonical\n" );
 
 	( void )ldap_dn_normalize( dn, LDAP_DN_FORMAT_LDAP,
 		       &out, LDAP_DN_FORMAT_AD_CANONICAL );
@@ -355,7 +355,7 @@ ldap_dn_normalize( LDAP_CONST char *dnin,
 	int	rc;
 	LDAPDN	tmpDN = NULL;
 
-	Debug( LDAP_DEBUG_TRACE, "ldap_dn_normalize\n", 0, 0, 0 );
+	Debug( LDAP_DEBUG_TRACE, "ldap_dn_normalize\n" );
 
 	assert( dnout != NULL );
 
@@ -707,7 +707,7 @@ ldap_bv2dn_x( struct berval *bvin, LDAPDN *dn, unsigned flags, void *ctx )
 	str = bv->bv_val;
 	end = str + bv->bv_len;
 
-	Debug( LDAP_DEBUG_ARGS, "=> ldap_bv2dn(%s,%u)\n", str, flags, 0 );
+	Debug( LDAP_DEBUG_ARGS, "=> ldap_bv2dn(%s,%u)\n", str, flags );
 
 	*dn = NULL;
 
@@ -2981,7 +2981,7 @@ int ldap_dn2bv_x( LDAPDN dn, struct berval *bv, unsigned flags, void *ctx )
 	bv->bv_len = 0;
 	bv->bv_val = NULL;
 
-	Debug( LDAP_DEBUG_ARGS, "=> ldap_dn2bv(%u)\n", flags, 0, 0 );
+	Debug( LDAP_DEBUG_ARGS, "=> ldap_dn2bv(%u)\n", flags );
 
 	/*
 	 * a null dn means an empty dn string

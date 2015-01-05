@@ -107,7 +107,7 @@ mdb_attr_dbs_open(
 				be->be_suffix[0].bv_val, mdb_strerror(rc), rc );
 			Debug( LDAP_DEBUG_ANY,
 				LDAP_XSTRING(mdb_attr_dbs) ": %s\n",
-				cr->msg, 0, 0 );
+				cr->msg );
 			return rc;
 		}
 		dbis = ch_calloc( 1, mdb->mi_nattrs * sizeof(MDB_dbi) );
@@ -132,7 +132,7 @@ mdb_attr_dbs_open(
 				mdb_strerror(rc), rc );
 			Debug( LDAP_DEBUG_ANY,
 				LDAP_XSTRING(mdb_attr_dbs) ": %s\n",
-				cr->msg, 0, 0 );
+				cr->msg );
 			break;
 		}
 		/* Remember newly opened DBI handles */
@@ -150,7 +150,7 @@ mdb_attr_dbs_open(
 					be->be_suffix[0].bv_val, mdb_strerror(rc), rc );
 				Debug( LDAP_DEBUG_ANY,
 					LDAP_XSTRING(mdb_attr_dbs) ": %s\n",
-					cr->msg, 0, 0 );
+					cr->msg );
 			}
 		} else {
 			mdb_txn_abort( txn );
@@ -369,7 +369,7 @@ mdb_attr_index_config(
 		}
 
 		Debug( LDAP_DEBUG_CONFIG, "index %s 0x%04lx\n",
-			ad->ad_cname.bv_val, mask, 0 );
+			ad->ad_cname.bv_val, mask );
 
 		a = (AttrInfo *) ch_malloc( sizeof(AttrInfo) );
 
@@ -555,7 +555,7 @@ int mdb_ad_read( struct mdb_info *mdb, MDB_txn *txn )
 	if ( rc ) {
 		Debug( LDAP_DEBUG_ANY,
 			"mdb_ad_read: cursor_open failed %s(%d)\n",
-			mdb_strerror(rc), rc, 0);
+			mdb_strerror(rc), rc);
 		return rc;
 	}
 
@@ -576,8 +576,7 @@ int mdb_ad_read( struct mdb_info *mdb, MDB_txn *txn )
 		} else {
 			if ( ad->ad_index >= MDB_MAXADS ) {
 				Debug( LDAP_DEBUG_ANY,
-					"mdb_adb_read: too many AttributeDescriptions in use\n",
-					0, 0, 0 );
+					"mdb_adb_read: too many AttributeDescriptions in use\n" );
 				return LDAP_OTHER;
 			}
 			mdb->mi_adxs[ad->ad_index] = i;
@@ -623,7 +622,7 @@ int mdb_ad_get( struct mdb_info *mdb, MDB_txn *txn, AttributeDescription *ad )
 	} else {
 		Debug( LDAP_DEBUG_ANY,
 			"mdb_ad_get: mdb_put failed %s(%d)\n",
-			mdb_strerror(rc), rc, 0);
+			mdb_strerror(rc), rc);
 	}
 
 	return rc;

@@ -364,7 +364,7 @@ ldap_pvt_put_filter( BerElement *ber, const char *str_in )
 	 * Note: tags in a CHOICE are always explicit
 	 */
 
-	Debug( LDAP_DEBUG_TRACE, "put_filter: \"%s\"\n", str_in, 0, 0 );
+	Debug( LDAP_DEBUG_TRACE, "put_filter: \"%s\"\n", str_in );
 
 	freeme = LDAP_STRDUP( str_in );
 	if( freeme == NULL ) return LDAP_NO_MEMORY;
@@ -382,8 +382,7 @@ ldap_pvt_put_filter( BerElement *ber, const char *str_in )
 
 			switch ( *str ) {
 			case '&':
-				Debug( LDAP_DEBUG_TRACE, "put_filter: AND\n",
-				    0, 0, 0 );
+				Debug( LDAP_DEBUG_TRACE, "put_filter: AND\n" );
 
 				str = put_complex_filter( ber, str,
 				    LDAP_FILTER_AND, 0 );
@@ -396,8 +395,7 @@ ldap_pvt_put_filter( BerElement *ber, const char *str_in )
 				break;
 
 			case '|':
-				Debug( LDAP_DEBUG_TRACE, "put_filter: OR\n",
-				    0, 0, 0 );
+				Debug( LDAP_DEBUG_TRACE, "put_filter: OR\n" );
 
 				str = put_complex_filter( ber, str,
 				    LDAP_FILTER_OR, 0 );
@@ -410,8 +408,7 @@ ldap_pvt_put_filter( BerElement *ber, const char *str_in )
 				break;
 
 			case '!':
-				Debug( LDAP_DEBUG_TRACE, "put_filter: NOT\n",
-				    0, 0, 0 );
+				Debug( LDAP_DEBUG_TRACE, "put_filter: NOT\n" );
 
 				str = put_complex_filter( ber, str,
 				    LDAP_FILTER_NOT, 0 );
@@ -428,8 +425,7 @@ ldap_pvt_put_filter( BerElement *ber, const char *str_in )
 				goto done;
 
 			default:
-				Debug( LDAP_DEBUG_TRACE, "put_filter: simple\n",
-				    0, 0, 0 );
+				Debug( LDAP_DEBUG_TRACE, "put_filter: simple\n" );
 
 				balance = 1;
 				escape = 0;
@@ -474,8 +470,7 @@ ldap_pvt_put_filter( BerElement *ber, const char *str_in )
 			break;
 
 		case /*'('*/ ')':
-			Debug( LDAP_DEBUG_TRACE, "put_filter: end\n",
-				0, 0, 0 );
+			Debug( LDAP_DEBUG_TRACE, "put_filter: end\n" );
 			if ( ber_printf( ber, /*"["*/ "]" ) == -1 ) {
 				rc = -1;
 				goto done;
@@ -489,8 +484,7 @@ ldap_pvt_put_filter( BerElement *ber, const char *str_in )
 			break;
 
 		default:	/* assume it's a simple type=value filter */
-			Debug( LDAP_DEBUG_TRACE, "put_filter: default\n",
-				0, 0, 0 );
+			Debug( LDAP_DEBUG_TRACE, "put_filter: default\n" );
 			next = strchr( str, '\0' );
 			if ( put_simple_filter( ber, str ) == -1 ) {
 				rc = -1;
@@ -521,7 +515,7 @@ put_filter_list( BerElement *ber, char *str, ber_tag_t tag )
 	char	save;
 
 	Debug( LDAP_DEBUG_TRACE, "put_filter_list \"%s\"\n",
-		str, 0, 0 );
+		str );
 
 	while ( *str ) {
 		while ( *str && LDAP_SPACE( (unsigned char) *str ) ) {
@@ -561,7 +555,7 @@ put_simple_filter(
 	int		rc = -1;
 
 	Debug( LDAP_DEBUG_TRACE, "put_simple_filter: \"%s\"\n",
-		str, 0, 0 );
+		str );
 
 	str = LDAP_STRDUP( str );
 	if( str == NULL ) return -1;
@@ -727,7 +721,7 @@ put_substring_filter( BerElement *ber, char *type, char *val, char *nextstar )
 	ber_tag_t	ftype = LDAP_FILTER_SUBSTRINGS;
 
 	Debug( LDAP_DEBUG_TRACE, "put_substring_filter \"%s=%s\"\n",
-		type, val, 0 );
+		type, val );
 
 	if ( ber_printf( ber, "t{s{" /*"}}"*/, ftype, type ) == -1 ) {
 		return -1;
@@ -812,7 +806,7 @@ put_vrFilter( BerElement *ber, const char *str_in )
 	 * (Source: RFC 3876)
 	 */
 
-	Debug( LDAP_DEBUG_TRACE, "put_vrFilter: \"%s\"\n", str_in, 0, 0 );
+	Debug( LDAP_DEBUG_TRACE, "put_vrFilter: \"%s\"\n", str_in );
 
 	freeme = LDAP_STRDUP( str_in );
 	if( freeme == NULL ) return LDAP_NO_MEMORY;
@@ -852,8 +846,7 @@ put_vrFilter( BerElement *ber, const char *str_in )
 
 
 			default:
-				Debug( LDAP_DEBUG_TRACE, "put_vrFilter: simple\n",
-				    0, 0, 0 );
+				Debug( LDAP_DEBUG_TRACE, "put_vrFilter: simple\n" );
 
 				balance = 1;
 				escape = 0;
@@ -898,8 +891,7 @@ put_vrFilter( BerElement *ber, const char *str_in )
 			break;
 
 		case /*'('*/ ')':
-			Debug( LDAP_DEBUG_TRACE, "put_vrFilter: end\n",
-				0, 0, 0 );
+			Debug( LDAP_DEBUG_TRACE, "put_vrFilter: end\n" );
 			if ( ber_printf( ber, /*"["*/ "]" ) == -1 ) {
 				rc = -1;
 				goto done;
@@ -913,8 +905,7 @@ put_vrFilter( BerElement *ber, const char *str_in )
 			break;
 
 		default:	/* assume it's a simple type=value filter */
-			Debug( LDAP_DEBUG_TRACE, "put_vrFilter: default\n",
-				0, 0, 0 );
+			Debug( LDAP_DEBUG_TRACE, "put_vrFilter: default\n" );
 			next = strchr( str, '\0' );
 			if ( put_simple_vrFilter( ber, str ) == -1 ) {
 				rc = -1;
@@ -957,7 +948,7 @@ put_vrFilter_list( BerElement *ber, char *str )
 	char	save;
 
 	Debug( LDAP_DEBUG_TRACE, "put_vrFilter_list \"%s\"\n",
-		str, 0, 0 );
+		str );
 
 	while ( *str ) {
 		while ( *str && LDAP_SPACE( (unsigned char) *str ) ) {
@@ -991,7 +982,7 @@ put_simple_vrFilter(
 	int		rc = -1;
 
 	Debug( LDAP_DEBUG_TRACE, "put_simple_vrFilter: \"%s\"\n",
-		str, 0, 0 );
+		str );
 
 	str = LDAP_STRDUP( str );
 	if( str == NULL ) return -1;

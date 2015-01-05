@@ -352,7 +352,7 @@ int ldap_pvt_gethostbyname_a(
 #endif
 
 		Debug( LDAP_DEBUG_TRACE, "ldap_pvt_gethostbyname_a: host=%s, r=%d\n",
-		       name, r, 0 );
+		       name, r );
 
 #ifdef NETDB_INTERNAL
 		if ((r<0) &&

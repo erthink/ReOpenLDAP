@@ -77,7 +77,7 @@ ldap_rename(
 	int rc;
 	ber_int_t id;
 
-	Debug( LDAP_DEBUG_TRACE, "ldap_rename\n", 0, 0, 0 );
+	Debug( LDAP_DEBUG_TRACE, "ldap_rename\n" );
 
 	/* check client controls */
 	rc = ldap_int_client_controls( ld, cctrls );
@@ -160,7 +160,7 @@ ldap_rename2(
 	int msgid;
 	int rc;
 
-	Debug( LDAP_DEBUG_TRACE, "ldap_rename2\n", 0, 0, 0 );
+	Debug( LDAP_DEBUG_TRACE, "ldap_rename2\n" );
 
 	rc = ldap_rename( ld, dn, newrdn, newSuperior,
 		deleteoldrdn, NULL, NULL, &msgid );

@@ -150,7 +150,7 @@ monitor_subsys_overlay_init_one(
 			"monitor_subsys_overlay_init_one: "
 			"unable to create entry "
 			"\"cn=Overlay %d,%s\"\n",
-			o, e_database->e_name.bv_val, 0 );
+			o, e_database->e_name.bv_val );
 		return( -1 );
 	}
 	ber_str2bv( on->on_bi.bi_type, 0, 0, &bv );
@@ -184,7 +184,7 @@ monitor_subsys_overlay_init_one(
 			"monitor_subsys_overlay_init_one: "
 			"unable to add entry "
 			"\"cn=Overlay %d,%s\"\n",
-			o, e_database->e_name.bv_val, 0 );
+			o, e_database->e_name.bv_val );
 		return -1;
 	}
 
@@ -228,7 +228,7 @@ monitor_subsys_database_init_one(
 		Debug( LDAP_DEBUG_ANY,
 			"monitor_subsys_database_init_one: "
 			"unable to create entry \"%s,%s\"\n",
-			rdn->bv_val, ms->mss_dn.bv_val, 0 );
+			rdn->bv_val, ms->mss_dn.bv_val );
 		return( -1 );
 	}
 
@@ -249,7 +249,7 @@ monitor_subsys_database_init_one(
 			Debug( LDAP_DEBUG_ANY,
 				"monitor_subsys_database_init_one: "
 				"missing suffix for %s\n",
-				rdnval, 0, 0 );
+				rdnval );
 		} else {
 			attr_merge( e, slap_schema.si_ad_namingContexts,
 				be->be_suffix, NULL );
@@ -263,7 +263,7 @@ monitor_subsys_database_init_one(
 				Debug( LDAP_DEBUG_ANY,
 					"monitor_subsys_database_init: "
 					"unable to get superior for %s\n",
-					be->be_suffix[ 0 ].bv_val, 0, 0 );
+					be->be_suffix[ 0 ].bv_val );
 
 			} else {
 				attr_merge( e, mi->mi_ad_monitorSuperiorDN,
@@ -350,7 +350,7 @@ monitor_subsys_database_init_one(
 		Debug( LDAP_DEBUG_ANY,
 			"monitor_subsys_database_init_one: "
 			"unable to add entry \"%s,%s\"\n",
-			rdn->bv_val, ms->mss_dn.bv_val, 0 );
+			rdn->bv_val, ms->mss_dn.bv_val );
 		return( -1 );
 	}
 
@@ -409,8 +409,7 @@ monitor_back_register_database_and_overlay(
 			"monitor_back_register_database: "
 			"unable to get "
 			"\"" SLAPD_MONITOR_BACKEND_NAME "\" "
-			"subsystem\n",
-			0, 0, 0 );
+			"subsystem\n" );
 		return -1;
 	}
 
@@ -420,8 +419,7 @@ monitor_back_register_database_and_overlay(
 			"monitor_back_register_database: "
 			"unable to get "
 			"\"" SLAPD_MONITOR_DATABASE_NAME "\" "
-			"subsystem\n",
-			0, 0, 0 );
+			"subsystem\n" );
 		return -1;
 	}
 
@@ -431,8 +429,7 @@ monitor_back_register_database_and_overlay(
 			"monitor_back_register_database: "
 			"unable to get "
 			"\"" SLAPD_MONITOR_OVERLAY_NAME "\" "
-			"subsystem\n",
-			0, 0, 0 );
+			"subsystem\n" );
 		return -1;
 	}
 
@@ -440,7 +437,7 @@ monitor_back_register_database_and_overlay(
 		Debug( LDAP_DEBUG_ANY,
 			"monitor_subsys_database_init: "
 			"unable to get entry \"%s\"\n",
-			ms_database->mss_ndn.bv_val, 0, 0 );
+			ms_database->mss_ndn.bv_val );
 		return( -1 );
 	}
 
@@ -563,8 +560,7 @@ monitor_subsys_database_init(
 			"monitor_subsys_database_init: "
 			"unable to get "
 			"\"" SLAPD_MONITOR_BACKEND_NAME "\" "
-			"subsystem\n",
-			0, 0, 0 );
+			"subsystem\n" );
 		return -1;
 	}
 
@@ -574,8 +570,7 @@ monitor_subsys_database_init(
 			"monitor_subsys_database_init: "
 			"unable to get "
 			"\"" SLAPD_MONITOR_OVERLAY_NAME "\" "
-			"subsystem\n",
-			0, 0, 0 );
+			"subsystem\n" );
 		return -1;
 	}
 
@@ -583,7 +578,7 @@ monitor_subsys_database_init(
 		Debug( LDAP_DEBUG_ANY,
 			"monitor_subsys_database_init: "
 			"unable to get entry \"%s\"\n",
-			ms->mss_ndn.bv_val, 0, 0 );
+			ms->mss_ndn.bv_val );
 		return( -1 );
 	}
 

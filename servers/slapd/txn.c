@@ -38,7 +38,7 @@ int txn_start_extop(
 	struct berval *bv;
 
 	Statslog( LDAP_DEBUG_STATS, "%s TXN START\n",
-		op->o_log_prefix, 0, 0, 0, 0 );
+		op->o_log_prefix );
 
 	if( op->ore_reqdata != NULL ) {
 		rs->sr_text = "no request data expected";
@@ -123,7 +123,7 @@ int txn_end_extop(
 	struct berval txnid;
 
 	Statslog( LDAP_DEBUG_STATS, "%s TXN END\n",
-		op->o_log_prefix, 0, 0, 0, 0 );
+		op->o_log_prefix );
 
 	if( op->ore_reqdata == NULL ) {
 		rs->sr_text = "request data expected";

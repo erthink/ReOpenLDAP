@@ -198,7 +198,7 @@ rdnval_rdn2vals(
 		Debug( LDAP_DEBUG_TRACE,
 			"%s rdnval: can't figure out "
 			"type(s)/value(s) of rdn DN=\"%s\"\n",
-			op->o_log_prefix, dn->bv_val, 0 );
+			op->o_log_prefix, dn->bv_val );
 		rs->sr_err = LDAP_INVALID_DN_SYNTAX;
 		rs->sr_text = "unknown type(s) used in RDN";
 
@@ -211,7 +211,7 @@ rdnval_rdn2vals(
 		Debug( LDAP_DEBUG_TRACE,
 			"%s rdnval: can't figure out "
 			"type(s)/value(s) of normalized rdn DN=\"%s\"\n",
-			op->o_log_prefix, ndn->bv_val, 0 );
+			op->o_log_prefix, ndn->bv_val );
 		rs->sr_err = LDAP_INVALID_DN_SYNTAX;
 		rs->sr_text = "unknown type(s) used in RDN";
 
@@ -246,7 +246,7 @@ rdnval_rdn2vals(
 			Debug( LDAP_DEBUG_TRACE,
 				"%s rdnval: syntax of naming attribute '%s' "
 				"not compatible with directoryString",
-				op->o_log_prefix, rdn[ i ]->la_attr.bv_val, 0 );
+				op->o_log_prefix, rdn[ i ]->la_attr.bv_val );
 			continue;
 		}
 
@@ -458,7 +458,7 @@ rdnval_repair_cb( Operation *op, SlapReply *rs )
 	rcb->mods = mod;
 
 	Debug( LDAP_DEBUG_TRACE, "%s: rdnval_repair_cb: scheduling entry DN=\"%s\" for repair\n",
-		op->o_log_prefix, rs->sr_entry->e_name.bv_val, 0 );
+		op->o_log_prefix, rs->sr_entry->e_name.bv_val );
 
 	return 0;
 }
@@ -552,7 +552,7 @@ rdnval_repair( BackendDB *be )
 		slap_mods_free( op->orm_modlist, 1 );
 		if ( rs2.sr_err == LDAP_SUCCESS ) {
 			Debug( LDAP_DEBUG_TRACE, "%s: rdnval_repair: entry DN=\"%s\" repaired\n",
-				op->o_log_prefix, rmod->ndn.bv_val, 0 );
+				op->o_log_prefix, rmod->ndn.bv_val );
 			nrepaired++;
 
 		} else {
@@ -617,7 +617,7 @@ rdnval_initialize(void)
 		if ( code ) {
 			Debug( LDAP_DEBUG_ANY,
 				"rdnval_initialize: register_at #%d failed\n",
-				i, 0, 0 );
+				i );
 			return code;
 		}
 
@@ -631,8 +631,7 @@ rdnval_initialize(void)
 	syn_IA5String = syn_find( "1.3.6.1.4.1.1466.115.121.1.26" );
 	if ( syn_IA5String == NULL ) {
 		Debug( LDAP_DEBUG_ANY,
-			"rdnval_initialize: unable to find syntax '1.3.6.1.4.1.1466.115.121.1.26' (IA5String)\n",
-			0, 0, 0 );
+			"rdnval_initialize: unable to find syntax '1.3.6.1.4.1.1466.115.121.1.26' (IA5String)\n" );
 		return LDAP_OTHER;
 	}
 

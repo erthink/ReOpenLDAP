@@ -265,7 +265,7 @@ pguid_repair_cb( Operation *op, SlapReply *rs )
 		pcb->mods = mod;
 
 		Debug( LDAP_DEBUG_TRACE, "%s: pguid_repair_cb: scheduling entry DN=\"%s\" for repair\n",
-			op->o_log_prefix, rs->sr_entry->e_name.bv_val, 0 );
+			op->o_log_prefix, rs->sr_entry->e_name.bv_val );
 	}
 
 	if ( e != NULL ) {
@@ -358,7 +358,7 @@ pguid_repair( BackendDB *be )
 		slap_mods_free( op->orm_modlist, 1 );
 		if ( rs2.sr_err == LDAP_SUCCESS ) {
 			Debug( LDAP_DEBUG_TRACE, "%s: pguid_repair: entry DN=\"%s\" repaired\n",
-				op->o_log_prefix, pmod->ndn.bv_val, 0 );
+				op->o_log_prefix, pmod->ndn.bv_val );
 			nrepaired++;
 
 		} else {
@@ -427,7 +427,7 @@ pguid_initialize(void)
 		if ( code ) {
 			Debug( LDAP_DEBUG_ANY,
 				"pguid_initialize: register_at #%d failed\n",
-				i, 0, 0 );
+				i );
 			return code;
 		}
 

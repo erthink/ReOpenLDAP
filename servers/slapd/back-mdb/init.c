@@ -47,8 +47,7 @@ mdb_db_init( BackendDB *be, ConfigReply *cr )
 	int rc;
 
 	Debug( LDAP_DEBUG_TRACE,
-		LDAP_XSTRING(mdb_db_init) ": Initializing mdb database\n",
-		0, 0, 0 );
+		LDAP_XSTRING(mdb_db_init) ": Initializing mdb database\n" );
 
 	/* allocate backend-database-specific stuff */
 	mdb = (struct mdb_info *) ch_calloc( 1, sizeof(struct mdb_info) );
@@ -90,14 +89,13 @@ mdb_db_open( BackendDB *be, ConfigReply *cr )
 
 	if ( be->be_suffix == NULL ) {
 		Debug( LDAP_DEBUG_ANY,
-			LDAP_XSTRING(mdb_db_open) ": need suffix.\n",
-			1, 0, 0 );
+			LDAP_XSTRING(mdb_db_open) ": need suffix.\n" );
 		return -1;
 	}
 
 	Debug( LDAP_DEBUG_ARGS,
 		LDAP_XSTRING(mdb_db_open) ": \"%s\"\n",
-		be->be_suffix[0].bv_val, 0, 0 );
+		be->be_suffix[0].bv_val );
 
 	/* Check existence of dbenv_home. Any error means trouble */
 	rc = stat( mdb->mi_dbenv_home, &stat1 );
@@ -161,7 +159,7 @@ mdb_db_open( BackendDB *be, ConfigReply *cr )
 	Debug( LDAP_DEBUG_TRACE,
 		LDAP_XSTRING(mdb_db_open) ": database \"%s\": "
 		"dbenv_open(%s).\n",
-		be->be_suffix[0].bv_val, mdb->mi_dbenv_home, 0);
+		be->be_suffix[0].bv_val, mdb->mi_dbenv_home);
 
 	flags = mdb->mi_dbenv_flags;
 
@@ -217,7 +215,7 @@ mdb_db_open( BackendDB *be, ConfigReply *cr )
 				mdb_strerror(rc), rc );
 			Debug( LDAP_DEBUG_ANY,
 				LDAP_XSTRING(mdb_db_open) ": %s\n",
-				cr->msg, 0, 0 );
+				cr->msg );
 			goto fail;
 		}
 
@@ -246,7 +244,7 @@ mdb_db_open( BackendDB *be, ConfigReply *cr )
 						be->be_suffix[0].bv_val );
 						Debug( LDAP_DEBUG_ANY,
 							LDAP_XSTRING(mdb_db_open) ": %s\n",
-							cr->msg, 0, 0 );
+							cr->msg );
 						if ( !(slapMode & SLAP_TOOL_READMAIN ))
 							rc = LDAP_OTHER;
 						mdb->mi_flags |= MDB_NEED_UPGRADE;
@@ -397,7 +395,7 @@ mdb_back_initialize(
 	/* initialize the underlying database system */
 	Debug( LDAP_DEBUG_TRACE,
 		LDAP_XSTRING(mdb_back_initialize) ": initialize "
-		MDB_UCTYPE " backend\n", 0, 0, 0 );
+		MDB_UCTYPE " backend\n" );
 
 	bi->bi_flags |=
 		SLAP_BFLAG_INCREMENT |
@@ -428,12 +426,12 @@ mdb_back_initialize(
 				LDAP_XSTRING(mdb_back_initialize) ": "
 				"MDB library version mismatch:"
 				" expected " MDB_VERSION_STRING ","
-				" got %s\n", version, 0, 0 );
+				" got %s\n", version );
 			return -1;
 		}
 
 		Debug( LDAP_DEBUG_TRACE, LDAP_XSTRING(mdb_back_initialize)
-			": %s\n", version, 0, 0 );
+			": %s\n", version );
 	}
 
 	bi->bi_open = 0;

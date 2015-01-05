@@ -111,7 +111,7 @@ static int pam_uid2dn(nssov_info *ni, Operation *op,
 
 	if (!isvalidusername(&pi->uid)) {
 		Debug(LDAP_DEBUG_ANY,"nssov_pam_uid2dn(%s): invalid user name\n",
-			pi->uid.bv_val ? pi->uid.bv_val : "NULL",0,0);
+			pi->uid.bv_val ? pi->uid.bv_val : "NULL");
 		return NSLCD_PAM_USER_UNKNOWN;
 	}
 
@@ -205,7 +205,7 @@ int pam_do_bind(nssov_info *ni,TFILE *fp,Operation *op,
 	}
 finish:
 	Debug(LDAP_DEBUG_ANY,"pam_do_bind (%s): rc (%d)\n",
-		pi->dn.bv_val ? pi->dn.bv_val : "NULL", rc, 0);
+		pi->dn.bv_val ? pi->dn.bv_val : "NULL", rc);
 	return rc;
 }
 
@@ -236,7 +236,7 @@ int pam_authc(nssov_info *ni,TFILE *fp,Operation *op)
 	pi.pwd.bv_len = tmpint32;
 
 	Debug(LDAP_DEBUG_TRACE,"nssov_pam_authc(%s)\n",
-			pi.uid.bv_val ? pi.uid.bv_val : "NULL",0,0);
+			pi.uid.bv_val ? pi.uid.bv_val : "NULL");
 
 	pi.ispwdmgr = 0;
 
@@ -246,7 +246,7 @@ int pam_authc(nssov_info *ni,TFILE *fp,Operation *op)
 		!BER_BVISEMPTY(&ni->ni_pam_password_prohibit_message)) {
 		Debug(LDAP_DEBUG_TRACE,"nssov_pam_authc(): %s (%s)\n",
 			"password_prohibit_message for passwd",
-			ni->ni_pam_password_prohibit_message.bv_val,0);
+			ni->ni_pam_password_prohibit_message.bv_val);
 		ber_str2bv(ni->ni_pam_password_prohibit_message.bv_val, 0, 0, &pi.msg);
 		pi.authz = NSLCD_PAM_PERM_DENIED;
 		rc = NSLCD_PAM_PERM_DENIED;
@@ -258,7 +258,7 @@ int pam_authc(nssov_info *ni,TFILE *fp,Operation *op)
 		if (BER_BVISEMPTY(&ni->ni_pam_pwdmgr_dn)) {
 			/* pwdmgr dn not configured */
 			Debug(LDAP_DEBUG_TRACE,"nssov_pam_authc(prelim check): %s\n",
-				"pwdmgr dn not configured", 0, 0);
+				"pwdmgr dn not configured");
 			ber_str2bv("pwdmgr dn not configured", 0, 0, &pi.msg);
 			pi.authz = NSLCD_PAM_PERM_DENIED;
 			rc = NSLCD_PAM_PERM_DENIED;
@@ -272,7 +272,7 @@ int pam_authc(nssov_info *ni,TFILE *fp,Operation *op)
 		if (BER_BVISEMPTY(&pi.pwd)) {
 			if (BER_BVISEMPTY(&ni->ni_pam_pwdmgr_pwd)) {
 				Debug(LDAP_DEBUG_TRACE,"nssov_pam_authc(prelim check): %s\n",
-					"no pwdmgr pwd", 0, 0);
+					"no pwdmgr pwd");
 				ber_str2bv("pwdmgr pwd not configured", 0, 0, &pi.msg);
 				pi.authz = NSLCD_PAM_PERM_DENIED;
 				rc = NSLCD_PAM_PERM_DENIED;
@@ -292,7 +292,7 @@ int pam_authc(nssov_info *ni,TFILE *fp,Operation *op)
 
 finish:
 	Debug(LDAP_DEBUG_TRACE,"nssov_pam_authc(%s): rc (%d)\n",
-		pi.dn.bv_val ? pi.dn.bv_val : "NULL",rc,0);
+		pi.dn.bv_val ? pi.dn.bv_val : "NULL",rc);
 	WRITE_INT32(fp,NSLCD_VERSION);
 	WRITE_INT32(fp,NSLCD_ACTION_PAM_AUTHC);
 	WRITE_INT32(fp,NSLCD_RESULT_BEGIN);
@@ -356,7 +356,7 @@ int pam_authz(nssov_info *ni,TFILE *fp,Operation *op)
 	tty.bv_len = tmpint32;
 
 	Debug(LDAP_DEBUG_TRACE,"nssov_pam_authz(%s)\n",
-			dn.bv_val ? dn.bv_val : "NULL",0,0);
+			dn.bv_val ? dn.bv_val : "NULL");
 
 	/* If we didn't do authc, we don't have a DN yet */
 	if (BER_BVISEMPTY(&dn)) {
@@ -541,16 +541,16 @@ finish:
 	}
 	switch (rc) {
 	case NSLCD_PAM_SUCCESS:
-		Debug(LDAP_DEBUG_TRACE,"nssov_pam_authz(): success\n", 0,0,0);
+		Debug(LDAP_DEBUG_TRACE,"nssov_pam_authz(): success\n");
 		break;
 	case NSLCD_PAM_PERM_DENIED:
 		Debug(LDAP_DEBUG_TRACE,"nssov_pam_authz(): %s\n",
-			authzmsg.bv_val ? authzmsg.bv_val : "NULL",0,0);
+			authzmsg.bv_val ? authzmsg.bv_val : "NULL");
 		break;
 	default:
 		Debug(LDAP_DEBUG_TRACE,
 			"nssov_pam_authz(): permission denied, rc (%d)\n",
-			rc, 0, 0);
+			rc);
 	}
 	return 0;
 }
@@ -595,11 +595,11 @@ static int pam_sess(nssov_info *ni,TFILE *fp,Operation *op,int action)
 	READ_INT32(fp,stamp);
 
 	Debug(LDAP_DEBUG_TRACE,"nssov_pam_sess_%c(%s)\n",
-		action==NSLCD_ACTION_PAM_SESS_O ? 'o' : 'c', dn.bv_val,0);
+		action==NSLCD_ACTION_PAM_SESS_O ? 'o' : 'c', dn.bv_val);
 
 	if (!dn.bv_len) {
 		Debug(LDAP_DEBUG_TRACE,"nssov_pam_sess_%c(): %s\n",
-			action==NSLCD_ACTION_PAM_SESS_O ? 'o' : 'c', "null DN",0);
+			action==NSLCD_ACTION_PAM_SESS_O ? 'o' : 'c', "null DN");
 		rc = -1;
 		goto done;
 	}
@@ -607,7 +607,7 @@ static int pam_sess(nssov_info *ni,TFILE *fp,Operation *op,int action)
 	if (!ni->ni_pam_sessions) {
 		Debug(LDAP_DEBUG_TRACE,"nssov_pam_sess_%c(): %s\n",
 			action==NSLCD_ACTION_PAM_SESS_O ? 'o' : 'c',
-			"pam session(s) not configured, ignored",0);
+			"pam session(s) not configured, ignored");
 		rc = -1;
 		goto done;
 	}
@@ -626,7 +626,7 @@ static int pam_sess(nssov_info *ni,TFILE *fp,Operation *op,int action)
 			Debug(LDAP_DEBUG_TRACE,
 				"nssov_pam_sess_%c(): service(%s) not configured, ignored\n",
 				action==NSLCD_ACTION_PAM_SESS_O ? 'o' : 'c',
-				svc.bv_val,0);
+				svc.bv_val);
 			rc = -1;
 			goto done;
 		}
@@ -646,7 +646,7 @@ static int pam_sess(nssov_info *ni,TFILE *fp,Operation *op,int action)
 		ruser.bv_val, rhost.bv_val);
 
 	Debug(LDAP_DEBUG_TRACE, "nssov_pam_sess_%c(): loginStatus (%s) \n",
-			action==NSLCD_ACTION_PAM_SESS_O ? 'o' : 'c', bv[0].bv_val,0);
+			action==NSLCD_ACTION_PAM_SESS_O ? 'o' : 'c', bv[0].bv_val);
 
 	mod.sml_numvals = 1;
 	mod.sml_values = bv;
@@ -671,8 +671,7 @@ static int pam_sess(nssov_info *ni,TFILE *fp,Operation *op,int action)
 	if (op->o_bd->be_modify( op, &rs ) != LDAP_SUCCESS) {
 		Debug(LDAP_DEBUG_TRACE,
 			"nssov_pam_sess_%c(): modify op failed\n",
-			action==NSLCD_ACTION_PAM_SESS_O ? 'o' : 'c',
-			0,0);
+			action==NSLCD_ACTION_PAM_SESS_O ? 'o' : 'c');
 		rc = -1;
 	}
 
@@ -686,8 +685,7 @@ done:;
 	if (rc == 0) {
 		Debug(LDAP_DEBUG_TRACE,
 			"nssov_pam_sess_%c(): success\n",
-			action==NSLCD_ACTION_PAM_SESS_O ? 'o' : 'c',
-			0,0);
+			action==NSLCD_ACTION_PAM_SESS_O ? 'o' : 'c');
 		sessionID = op->o_time;
 	}
 	WRITE_INT32(fp,NSLCD_VERSION);
@@ -737,7 +735,7 @@ int pam_pwmod(nssov_info *ni,TFILE *fp,Operation *op)
 
 	Debug(LDAP_DEBUG_TRACE,"nssov_pam_pwmod(%s), %s\n",
 		pi.dn.bv_val ? pi.dn.bv_val : "NULL",
-		pi.uid.bv_val ? pi.uid.bv_val : "NULL" ,0);
+		pi.uid.bv_val ? pi.uid.bv_val : "NULL" );
 
 	BER_BVZERO(&pi.msg);
 	pi.ispwdmgr = 0;
@@ -746,7 +744,7 @@ int pam_pwmod(nssov_info *ni,TFILE *fp,Operation *op)
 	if (!BER_BVISEMPTY(&ni->ni_pam_password_prohibit_message)) {
 		Debug(LDAP_DEBUG_TRACE,"nssov_pam_pwmod(): %s (%s)\n",
 			"password_prohibit_message",
-			ni->ni_pam_password_prohibit_message.bv_val,0);
+			ni->ni_pam_password_prohibit_message.bv_val);
 		ber_str2bv(ni->ni_pam_password_prohibit_message.bv_val, 0, 0, &pi.msg);
 		rc = NSLCD_PAM_PERM_DENIED;
 		goto done;
@@ -756,7 +754,7 @@ int pam_pwmod(nssov_info *ni,TFILE *fp,Operation *op)
 		/* should not be here at all, pam_authc() should have returned */
 		/* error */
 		Debug(LDAP_DEBUG_TRACE,"nssov_pam_pwmod(), %s\n",
-			"prelim checking failed", 0, 0);
+			"prelim checking failed");
 		ber_str2bv("no pwmod requesting dn", 0, 0, &pi.msg);
 		rc = NSLCD_PAM_PERM_DENIED;
 		goto done;
@@ -764,7 +762,7 @@ int pam_pwmod(nssov_info *ni,TFILE *fp,Operation *op)
 
 	if (BER_BVISEMPTY(&ni->ni_pam_pwdmgr_dn)) {
 		Debug(LDAP_DEBUG_TRACE,"nssov_pam_pwmod(), %s\n",
-			"pwdmgr not configured", 0, 0);
+			"pwdmgr not configured");
 		ber_str2bv("pwdmgr not configured", 0, 0, &pi.msg);
 		rc = NSLCD_PAM_PERM_DENIED;
 		goto done;
@@ -825,7 +823,7 @@ int pam_pwmod(nssov_info *ni,TFILE *fp,Operation *op)
 		rc = NSLCD_PAM_PERM_DENIED;
 
 done:;
-	Debug(LDAP_DEBUG_TRACE,"nssov_pam_pwmod(), rc (%d)\n", rc, 0, 0);
+	Debug(LDAP_DEBUG_TRACE,"nssov_pam_pwmod(), rc (%d)\n", rc);
 	WRITE_INT32(fp,NSLCD_VERSION);
 	WRITE_INT32(fp,NSLCD_ACTION_PAM_PWMOD);
 	WRITE_INT32(fp,NSLCD_RESULT_BEGIN);

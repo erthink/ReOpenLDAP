@@ -307,7 +307,7 @@ meta_back_init_one_conn(
 							"retry block #%d try #%d",
 							candidate, ri->ri_idx, ri->ri_count );
 						Debug( LDAP_DEBUG_ANY, "%s %s.\n",
-							op->o_log_prefix, buf, 0 );
+							op->o_log_prefix, buf );
 					}
 
 					mt->mt_isquarantined = LDAP_BACK_FQ_RETRYING;
@@ -1418,7 +1418,7 @@ retry_lock:;
 
 		Debug( LDAP_DEBUG_TRACE,
 	"==>meta_back_getconn: got target=%d for ndn=\"%s\" from cache\n",
-				i, op->o_req_ndn.bv_val, 0 );
+				i, op->o_req_ndn.bv_val );
 
 		if ( mc == NULL ) {
 			/* Retries searching for a metaconn in the avl tree
@@ -1558,7 +1558,7 @@ retry_lock2:;
 					ncandidates++;
 
 					Debug( LDAP_DEBUG_TRACE, "%s: meta_back_getconn[%d]\n",
-						op->o_log_prefix, i, 0 );
+						op->o_log_prefix, i );
 
 				} else if ( lerr == LDAP_UNAVAILABLE && !META_BACK_ONERR_STOP( mi ) ) {
 					META_CANDIDATE_SET( &candidates[ i ] );
@@ -1845,7 +1845,7 @@ meta_back_quarantine(
 
 			Debug( LDAP_DEBUG_ANY,
 				"%s meta_back_quarantine[%d]: enter.\n",
-				op->o_log_prefix, candidate, 0 );
+				op->o_log_prefix, candidate );
 
 			ri->ri_idx = 0;
 			ri->ri_count = 0;
@@ -1859,7 +1859,7 @@ meta_back_quarantine(
 					"meta_back_quarantine[%d]: block #%d try #%d failed",
 					candidate, ri->ri_idx, ri->ri_count );
 				Debug( LDAP_DEBUG_ANY, "%s %s.\n",
-					op->o_log_prefix, buf, 0 );
+					op->o_log_prefix, buf );
 			}
 
 			++ri->ri_count;
@@ -1881,7 +1881,7 @@ meta_back_quarantine(
 	} else if ( mt->mt_isquarantined == LDAP_BACK_FQ_RETRYING ) {
 		Debug( LDAP_DEBUG_ANY,
 			"%s meta_back_quarantine[%d]: exit.\n",
-			op->o_log_prefix, candidate, 0 );
+			op->o_log_prefix, candidate );
 
 		if ( mi->mi_quarantine_f ) {
 			(void)mi->mi_quarantine_f( mi, candidate,

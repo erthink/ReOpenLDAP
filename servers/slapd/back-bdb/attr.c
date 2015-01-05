@@ -272,7 +272,7 @@ bdb_attr_index_config(
 		}
 
 		Debug( LDAP_DEBUG_CONFIG, "index %s 0x%04lx\n",
-			ad->ad_cname.bv_val, mask, 0 );
+			ad->ad_cname.bv_val, mask );
 
 		a = (AttrInfo *) ch_malloc( sizeof(AttrInfo) );
 

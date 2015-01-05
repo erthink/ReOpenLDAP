@@ -319,10 +319,10 @@ int mdb_entry_get(
 	const char *at_name = at ? at->ad_cname.bv_val : "(null)";
 
 	Debug( LDAP_DEBUG_ARGS,
-		"=> mdb_entry_get: ndn: \"%s\"\n", ndn->bv_val, 0, 0 );
+		"=> mdb_entry_get: ndn: \"%s\"\n", ndn->bv_val );
 	Debug( LDAP_DEBUG_ARGS,
 		"=> mdb_entry_get: oc: \"%s\", at: \"%s\"\n",
-		oc ? oc->soc_cname.bv_val : "(null)", at_name, 0);
+		oc ? oc->soc_cname.bv_val : "(null)", at_name);
 
 	rc = mdb_opinfo_get( op, mdb, rw == 0, &moi );
 	if ( rc )
@@ -341,19 +341,19 @@ int mdb_entry_get(
 	if (e == NULL) {
 		Debug( LDAP_DEBUG_ACL,
 			"=> mdb_entry_get: cannot find entry: \"%s\"\n",
-				ndn->bv_val, 0, 0 );
+				ndn->bv_val );
 		rc = LDAP_NO_SUCH_OBJECT;
 		goto return_results;
 	}
 
 	Debug( LDAP_DEBUG_ACL,
 		"=> mdb_entry_get: found entry: \"%s\"\n",
-		ndn->bv_val, 0, 0 );
+		ndn->bv_val );
 
 	if ( oc && !is_entry_objectclass( e, oc, 0 )) {
 		Debug( LDAP_DEBUG_ACL,
 			"<= mdb_entry_get: failed to find objectClass %s\n",
-			oc->soc_cname.bv_val, 0, 0 );
+			oc->soc_cname.bv_val );
 		rc = LDAP_NO_SUCH_ATTRIBUTE;
 		goto return_results;
 	}
@@ -362,7 +362,7 @@ int mdb_entry_get(
 	if ( at && attr_find( e->e_attrs, at ) == NULL ) {
 		Debug( LDAP_DEBUG_ACL,
 			"<= mdb_entry_get: failed to find attribute %s\n",
-			at->ad_cname.bv_val, 0, 0 );
+			at->ad_cname.bv_val );
 		rc = LDAP_NO_SUCH_ATTRIBUTE;
 		goto return_results;
 	}
@@ -377,7 +377,7 @@ return_results:
 
 	Debug( LDAP_DEBUG_TRACE,
 		"mdb_entry_get: rc=%d\n",
-		rc, 0, 0 );
+		rc );
 	return(rc);
 }
 
@@ -466,7 +466,7 @@ mdb_opinfo_get( Operation *op, struct mdb_info *mdb, int rdonly, mdb_op_info **m
 				rc = mdb_txn_begin( mdb->mi_dbenv, NULL, 0, &moi->moi_txn );
 				if (rc) {
 					Debug( LDAP_DEBUG_ANY, "mdb_opinfo_get: err %s(%d)\n",
-						mdb_strerror(rc), rc, 0 );
+						mdb_strerror(rc), rc );
 				}
 				return rc;
 			}
@@ -485,7 +485,7 @@ mdb_opinfo_get( Operation *op, struct mdb_info *mdb, int rdonly, mdb_op_info **m
 			rc = mdb_txn_begin( mdb->mi_dbenv, NULL, MDB_RDONLY, &moi->moi_txn );
 			if (rc) {
 				Debug( LDAP_DEBUG_ANY, "mdb_opinfo_get: err %s(%d)\n",
-					mdb_strerror(rc), rc, 0 );
+					mdb_strerror(rc), rc );
 			}
 			return rc;
 		}
@@ -493,7 +493,7 @@ mdb_opinfo_get( Operation *op, struct mdb_info *mdb, int rdonly, mdb_op_info **m
 			rc = mdb_txn_begin( mdb->mi_dbenv, NULL, MDB_RDONLY, &moi->moi_txn );
 			if (rc) {
 				Debug( LDAP_DEBUG_ANY, "mdb_opinfo_get: err %s(%d)\n",
-					mdb_strerror(rc), rc, 0 );
+					mdb_strerror(rc), rc );
 				return rc;
 			}
 			data = moi->moi_txn;
@@ -502,7 +502,7 @@ mdb_opinfo_get( Operation *op, struct mdb_info *mdb, int rdonly, mdb_op_info **m
 				mdb_txn_abort( moi->moi_txn );
 				moi->moi_txn = NULL;
 				Debug( LDAP_DEBUG_ANY, "mdb_opinfo_get: thread_pool_setkey failed err (%d)\n",
-					rc, 0, 0 );
+					rc );
 				return rc;
 			}
 		} else {
@@ -539,8 +539,7 @@ static int mdb_entry_partsize(struct mdb_info *mdb, MDB_txn *txn, Entry *e,
 		/* For AttributeDesc, we only store the attr index */
 		nat++;
 		if (a->a_desc->ad_index >= MDB_MAXADS) {
-			Debug( LDAP_DEBUG_ANY, "mdb_entry_partsize: too many AttributeDescriptions used\n",
-				0, 0, 0 );
+			Debug( LDAP_DEBUG_ANY, "mdb_entry_partsize: too many AttributeDescriptions used\n" );
 			return LDAP_OTHER;
 		}
 		if (!mdb->mi_adxs[a->a_desc->ad_index]) {
@@ -600,7 +599,7 @@ static int mdb_entry_encode(Operation *op, Entry *e, MDB_val *data, Ecount *eh)
 	unsigned int *lp, l;
 
 	Debug( LDAP_DEBUG_TRACE, "=> mdb_entry_encode(0x%08lx): %s\n",
-		(long) e->e_id, e->e_dn, 0 );
+		(long) e->e_id, e->e_dn );
 
 	/* make sure e->e_ocflags is set */
 	if (is_entry_referral(e))
@@ -647,7 +646,7 @@ static int mdb_entry_encode(Operation *op, Entry *e, MDB_val *data, Ecount *eh)
 	}
 
 	Debug( LDAP_DEBUG_TRACE, "<= mdb_entry_encode(0x%08lx): %s\n",
-		(long) e->e_id, e->e_dn, 0 );
+		(long) e->e_id, e->e_dn );
 
 	return 0;
 }
@@ -673,8 +672,7 @@ int mdb_entry_decode(Operation *op, MDB_txn *txn, MDB_val *data, Entry **e)
 	BerVarray bptr;
 
 	Debug( LDAP_DEBUG_TRACE,
-		"=> mdb_entry_decode:\n",
-		0, 0, 0 );
+		"=> mdb_entry_decode:\n" );
 
 	nattrs = *lp++;
 	nvals = *lp++;
@@ -703,7 +701,7 @@ int mdb_entry_decode(Operation *op, MDB_txn *txn, MDB_val *data, Entry **e)
 			if (i > mdb->mi_numads) {
 				Debug( LDAP_DEBUG_ANY,
 					"mdb_entry_decode: attribute index %d not recognized\n",
-					i, 0, 0 );
+					i );
 				return LDAP_OTHER;
 			}
 		}
@@ -748,7 +746,7 @@ int mdb_entry_decode(Operation *op, MDB_txn *txn, MDB_val *data, Entry **e)
 				/* should never happen */
 				Debug( LDAP_DEBUG_ANY,
 					"mdb_entry_decode: attributeType %s value #%d provided more than once\n",
-					a->a_desc->ad_cname.bv_val, j, 0 );
+					a->a_desc->ad_cname.bv_val, j );
 				return rc;
 			}
 		}
@@ -758,8 +756,7 @@ int mdb_entry_decode(Operation *op, MDB_txn *txn, MDB_val *data, Entry **e)
 	a[-1].a_next = NULL;
 done:
 
-	Debug(LDAP_DEBUG_TRACE, "<= mdb_entry_decode\n",
-		0, 0, 0 );
+	Debug(LDAP_DEBUG_TRACE, "<= mdb_entry_decode\n" );
 	*e = x;
 	return 0;
 }

@@ -533,7 +533,7 @@ static int bdb_tool_next_id(
 				"next_id failed: %s (%d)",
 				db_strerror(rc), rc );
 		Debug( LDAP_DEBUG_ANY,
-			"=> bdb_tool_next_id: %s\n", text->bv_val, 0, 0 );
+			"=> bdb_tool_next_id: %s\n", text->bv_val );
 			return rc;
 		}
 		rc = bdb_dn2id_add( op, tid, ei, e );
@@ -542,7 +542,7 @@ static int bdb_tool_next_id(
 				"dn2id_add failed: %s (%d)",
 				db_strerror(rc), rc );
 		Debug( LDAP_DEBUG_ANY,
-			"=> bdb_tool_next_id: %s\n", text->bv_val, 0, 0 );
+			"=> bdb_tool_next_id: %s\n", text->bv_val );
 		} else if ( hole ) {
 			if ( nholes == nhmax - 1 ) {
 				if ( holes == hbuf ) {
@@ -656,7 +656,7 @@ ID bdb_tool_entry_put(
 	assert( text->bv_val[0] == '\0' );	/* overconservative? */
 
 	Debug( LDAP_DEBUG_TRACE, "=> " LDAP_XSTRING(bdb_tool_entry_put)
-		"( %ld, \"%s\" )\n", (long) e->e_id, e->e_dn, 0 );
+		"( %ld, \"%s\" )\n", (long) e->e_id, e->e_dn );
 
 	bdb = (struct bdb_info *) be->be_private;
 
@@ -669,11 +669,11 @@ ID bdb_tool_entry_put(
 			db_strerror(rc), rc );
 		Debug( LDAP_DEBUG_ANY,
 			"=> " LDAP_XSTRING(bdb_tool_entry_put) ": %s\n",
-			 text->bv_val, 0, 0 );
+			 text->bv_val );
 		return NOID;
 	}
 	Debug( LDAP_DEBUG_TRACE, LDAP_XSTRING(bdb_tool_entry_put) ": txn id: %x\n",
-		tid->id(tid), 0, 0 );
+		tid->id(tid) );
 	}
 
 	op.o_hdr = &ohdr;
@@ -702,7 +702,7 @@ ID bdb_tool_entry_put(
 				db_strerror(rc), rc );
 		Debug( LDAP_DEBUG_ANY,
 			"=> " LDAP_XSTRING(bdb_tool_entry_put) ": %s\n",
-			text->bv_val, 0, 0 );
+			text->bv_val );
 		goto done;
 	}
 
@@ -714,7 +714,7 @@ ID bdb_tool_entry_put(
 				db_strerror(rc), rc );
 		Debug( LDAP_DEBUG_ANY,
 			"=> " LDAP_XSTRING(bdb_tool_entry_put) ": %s\n",
-			text->bv_val, 0, 0 );
+			text->bv_val );
 		goto done;
 	}
 
@@ -728,7 +728,7 @@ done:
 					db_strerror(rc), rc );
 			Debug( LDAP_DEBUG_ANY,
 				"=> " LDAP_XSTRING(bdb_tool_entry_put) ": %s\n",
-				text->bv_val, 0, 0 );
+				text->bv_val );
 			e->e_id = NOID;
 		}
 		}
@@ -742,7 +742,7 @@ done:
 			db_strerror(rc), rc );
 		Debug( LDAP_DEBUG_ANY,
 			"=> " LDAP_XSTRING(bdb_tool_entry_put) ": %s\n",
-			text->bv_val, 0, 0 );
+			text->bv_val );
 		}
 		e->e_id = NOID;
 	}
@@ -764,7 +764,7 @@ int bdb_tool_entry_reindex(
 
 	Debug( LDAP_DEBUG_ARGS,
 		"=> " LDAP_XSTRING(bdb_tool_entry_reindex) "( %ld )\n",
-		(long) id, 0, 0 );
+		(long) id );
 	assert( tool_base == NULL );
 	assert( tool_filter == NULL );
 
@@ -838,11 +838,11 @@ int bdb_tool_entry_reindex(
 		Debug( LDAP_DEBUG_ANY,
 			"=> " LDAP_XSTRING(bdb_tool_entry_reindex) ": "
 			"txn_begin failed: %s (%d)\n",
-			db_strerror(rc), rc, 0 );
+			db_strerror(rc), rc );
 		goto done;
 	}
 	Debug( LDAP_DEBUG_TRACE, LDAP_XSTRING(bdb_tool_entry_reindex) ": txn id: %x\n",
-		tid->id(tid), 0, 0 );
+		tid->id(tid) );
 	}
 
 	/*
@@ -854,7 +854,7 @@ int bdb_tool_entry_reindex(
 
 	Debug( LDAP_DEBUG_TRACE,
 		"=> " LDAP_XSTRING(bdb_tool_entry_reindex) "( %ld, \"%s\" )\n",
-		(long) id, e->e_dn, 0 );
+		(long) id, e->e_dn );
 
 	op.o_hdr = &ohdr;
 	op.o_bd = be;
@@ -871,7 +871,7 @@ done:
 			Debug( LDAP_DEBUG_ANY,
 				"=> " LDAP_XSTRING(bdb_tool_entry_reindex)
 				": txn_commit failed: %s (%d)\n",
-				db_strerror(rc), rc, 0 );
+				db_strerror(rc), rc );
 			e->e_id = NOID;
 		}
 		}
@@ -882,7 +882,7 @@ done:
 		Debug( LDAP_DEBUG_ANY,
 			"=> " LDAP_XSTRING(bdb_tool_entry_reindex)
 			": txn_aborted! %s (%d)\n",
-			db_strerror(rc), rc, 0 );
+			db_strerror(rc), rc );
 		}
 		e->e_id = NOID;
 	}
@@ -913,7 +913,7 @@ ID bdb_tool_entry_modify(
 
 	Debug( LDAP_DEBUG_TRACE,
 		"=> " LDAP_XSTRING(bdb_tool_entry_modify) "( %ld, \"%s\" )\n",
-		(long) e->e_id, e->e_dn, 0 );
+		(long) e->e_id, e->e_dn );
 
 	bdb = (struct bdb_info *) be->be_private;
 
@@ -930,11 +930,11 @@ ID bdb_tool_entry_modify(
 				db_strerror(rc), rc );
 			Debug( LDAP_DEBUG_ANY,
 				"=> " LDAP_XSTRING(bdb_tool_entry_modify) ": %s\n",
-				 text->bv_val, 0, 0 );
+				 text->bv_val );
 			return NOID;
 		}
 		Debug( LDAP_DEBUG_TRACE, LDAP_XSTRING(bdb_tool_entry_modify) ": txn id: %x\n",
-			tid->id(tid), 0, 0 );
+			tid->id(tid) );
 	}
 
 	op.o_hdr = &ohdr;
@@ -950,7 +950,7 @@ ID bdb_tool_entry_modify(
 				db_strerror(rc), rc );
 		Debug( LDAP_DEBUG_ANY,
 			"=> " LDAP_XSTRING(bdb_tool_entry_modify) ": %s\n",
-			text->bv_val, 0, 0 );
+			text->bv_val );
 		goto done;
 	}
 
@@ -964,7 +964,7 @@ done:
 					db_strerror(rc), rc );
 			Debug( LDAP_DEBUG_ANY,
 				"=> " LDAP_XSTRING(bdb_tool_entry_modify) ": "
-				"%s\n", text->bv_val, 0, 0 );
+				"%s\n", text->bv_val );
 			e->e_id = NOID;
 		}
 		}
@@ -977,7 +977,7 @@ done:
 			db_strerror(rc), rc );
 		Debug( LDAP_DEBUG_ANY,
 			"=> " LDAP_XSTRING(bdb_tool_entry_modify) ": %s\n",
-			text->bv_val, 0, 0 );
+			text->bv_val );
 		}
 		e->e_id = NOID;
 	}

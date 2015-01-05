@@ -246,7 +246,7 @@ refint_cf_gen(ConfigArgs *c)
 					snprintf( c->cr_msg, sizeof( c->cr_msg ),
 						"%s <%s>: %s", c->argv[0], c->argv[i], text );
 					Debug ( LDAP_DEBUG_CONFIG|LDAP_DEBUG_NONE,
-						"%s: %s\n", c->log, c->cr_msg, 0 );
+						"%s: %s\n", c->log, c->cr_msg );
 					rc = ARG_BAD_CONF;
 				}
 			}
@@ -406,7 +406,7 @@ refint_search_cb(
 	int i;
 
 	Debug(LDAP_DEBUG_TRACE, "refint_search_cb <%s>\n",
-		rs->sr_entry ? rs->sr_entry->e_name.bv_val : "NOTHING", 0, 0);
+		rs->sr_entry ? rs->sr_entry->e_name.bv_val : "NOTHING");
 
 	if (rs->sr_type != REP_SEARCH || !rs->sr_entry) return(0);
 
@@ -545,15 +545,14 @@ refint_repair(
 	if ( rc != LDAP_SUCCESS ) {
 		Debug( LDAP_DEBUG_TRACE,
 			"refint_repair: search failed: %d\n",
-			rc, 0, 0 );
+			rc );
 		return rc;
 	}
 
 	/* safety? paranoid just in case */
 	if ( op->o_callback->sc_private == NULL ) {
 		Debug( LDAP_DEBUG_TRACE,
-			"refint_repair: callback wiped out sc_private?!\n",
-			0, 0, 0 );
+			"refint_repair: callback wiped out sc_private?!\n" );
 		return 0;
 	}
 
@@ -582,7 +581,7 @@ refint_repair(
 		if ( !op2.o_bd ) {
 			Debug( LDAP_DEBUG_TRACE,
 				"refint_repair: no backend for DN %s!\n",
-				dp->dn.bv_val, 0, 0 );
+				dp->dn.bv_val );
 			continue;
 		}
 		op2.o_tag = LDAP_REQ_MODIFY;
@@ -684,7 +683,7 @@ refint_repair(
 		if ( rc != LDAP_SUCCESS ) {
 			Debug( LDAP_DEBUG_TRACE,
 				"refint_repair: dependent modify failed: %d\n",
-				rs2.sr_err, 0, 0 );
+				rs2.sr_err );
 		}
 
 		while ( ( m = op2.orm_modlist ) ) {
@@ -896,7 +895,7 @@ refint_response(
 	for(ip = id->attrs, ac = 0; ip; ip = ip->next, ac++);
 	if(!ac) {
 		Debug( LDAP_DEBUG_TRACE,
-			"refint_response called without any attributes\n", 0, 0, 0 );
+			"refint_response called without any attributes\n" );
 		return SLAP_CB_CONTINUE;
 	}
 
@@ -912,14 +911,13 @@ refint_response(
 		if ( db ) {
 			if ( !db->be_search || !db->be_modify ) {
 				Debug( LDAP_DEBUG_TRACE,
-					"refint_response: backend missing search and/or modify\n",
-					0, 0, 0 );
+					"refint_response: backend missing search and/or modify\n" );
 				return SLAP_CB_CONTINUE;
 			}
 		} else {
 			Debug( LDAP_DEBUG_TRACE,
 				"refint_response: no backend for our baseDN %s??\n",
-				id->dn.bv_val, 0, 0 );
+				id->dn.bv_val );
 			return SLAP_CB_CONTINUE;
 		}
 	}
@@ -988,8 +986,7 @@ int refint_initialize() {
 	mr_dnSubtreeMatch = mr_find( "dnSubtreeMatch" );
 	if ( mr_dnSubtreeMatch == NULL ) {
 		Debug( LDAP_DEBUG_ANY, "refint_initialize: "
-			"unable to find MatchingRule 'dnSubtreeMatch'.\n",
-			0, 0, 0 );
+			"unable to find MatchingRule 'dnSubtreeMatch'.\n" );
 		return 1;
 	}
 

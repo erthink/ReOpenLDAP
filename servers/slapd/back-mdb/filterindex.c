@@ -110,7 +110,7 @@ mdb_filter_candidates(
 #ifdef LDAP_COMP_MATCH
 	AttributeAliasing *aa;
 #endif
-	Debug( LDAP_DEBUG_FILTER, "=> mdb_filter_candidates\n", 0, 0, 0 );
+	Debug( LDAP_DEBUG_FILTER, "=> mdb_filter_candidates\n" );
 
 	if ( f->f_choice & SLAPD_FILTER_UNDEFINED ) {
 		MDB_IDL_ZERO( ids );
@@ -137,12 +137,12 @@ mdb_filter_candidates(
 		}
 		break;
 	case LDAP_FILTER_PRESENT:
-		Debug( LDAP_DEBUG_FILTER, "\tPRESENT\n", 0, 0, 0 );
+		Debug( LDAP_DEBUG_FILTER, "\tPRESENT\n" );
 		rc = presence_candidates( op, rtxn, f->f_desc, ids );
 		break;
 
 	case LDAP_FILTER_EQUALITY:
-		Debug( LDAP_DEBUG_FILTER, "\tEQUALITY\n", 0, 0, 0 );
+		Debug( LDAP_DEBUG_FILTER, "\tEQUALITY\n" );
 #ifdef LDAP_COMP_MATCH
 		if ( is_aliased_attribute && ( aa = is_aliased_attribute ( f->f_ava->aa_desc ) ) ) {
 			rc = ava_comp_candidates ( op, rtxn, f->f_ava, aa, ids, tmp, stack );
@@ -155,18 +155,18 @@ mdb_filter_candidates(
 		break;
 
 	case LDAP_FILTER_APPROX:
-		Debug( LDAP_DEBUG_FILTER, "\tAPPROX\n", 0, 0, 0 );
+		Debug( LDAP_DEBUG_FILTER, "\tAPPROX\n" );
 		rc = approx_candidates( op, rtxn, f->f_ava, ids, tmp );
 		break;
 
 	case LDAP_FILTER_SUBSTRINGS:
-		Debug( LDAP_DEBUG_FILTER, "\tSUBSTRINGS\n", 0, 0, 0 );
+		Debug( LDAP_DEBUG_FILTER, "\tSUBSTRINGS\n" );
 		rc = substring_candidates( op, rtxn, f->f_sub, ids, tmp );
 		break;
 
 	case LDAP_FILTER_GE:
 		/* if no GE index, use pres */
-		Debug( LDAP_DEBUG_FILTER, "\tGE\n", 0, 0, 0 );
+		Debug( LDAP_DEBUG_FILTER, "\tGE\n" );
 		if( f->f_ava->aa_desc->ad_type->sat_ordering &&
 			( f->f_ava->aa_desc->ad_type->sat_ordering->smr_usage & SLAP_MR_ORDERED_INDEX ) )
 			rc = inequality_candidates( op, rtxn, f->f_ava, ids, tmp, LDAP_FILTER_GE );
@@ -176,7 +176,7 @@ mdb_filter_candidates(
 
 	case LDAP_FILTER_LE:
 		/* if no LE index, use pres */
-		Debug( LDAP_DEBUG_FILTER, "\tLE\n", 0, 0, 0 );
+		Debug( LDAP_DEBUG_FILTER, "\tLE\n" );
 		if( f->f_ava->aa_desc->ad_type->sat_ordering &&
 			( f->f_ava->aa_desc->ad_type->sat_ordering->smr_usage & SLAP_MR_ORDERED_INDEX ) )
 			rc = inequality_candidates( op, rtxn, f->f_ava, ids, tmp, LDAP_FILTER_LE );
@@ -186,28 +186,28 @@ mdb_filter_candidates(
 
 	case LDAP_FILTER_NOT:
 		/* no indexing to support NOT filters */
-		Debug( LDAP_DEBUG_FILTER, "\tNOT\n", 0, 0, 0 );
+		Debug( LDAP_DEBUG_FILTER, "\tNOT\n" );
 		MDB_IDL_ALL( ids );
 		break;
 
 	case LDAP_FILTER_AND:
-		Debug( LDAP_DEBUG_FILTER, "\tAND\n", 0, 0, 0 );
+		Debug( LDAP_DEBUG_FILTER, "\tAND\n" );
 		rc = list_candidates( op, rtxn,
 			f->f_and, LDAP_FILTER_AND, ids, tmp, stack );
 		break;
 
 	case LDAP_FILTER_OR:
-		Debug( LDAP_DEBUG_FILTER, "\tOR\n", 0, 0, 0 );
+		Debug( LDAP_DEBUG_FILTER, "\tOR\n" );
 		rc = list_candidates( op, rtxn,
 			f->f_or, LDAP_FILTER_OR, ids, tmp, stack );
 		break;
 	case LDAP_FILTER_EXT:
-                Debug( LDAP_DEBUG_FILTER, "\tEXT\n", 0, 0, 0 );
+                Debug( LDAP_DEBUG_FILTER, "\tEXT\n" );
                 rc = ext_candidates( op, rtxn, f->f_mra, ids, tmp, stack );
                 break;
 	default:
 		Debug( LDAP_DEBUG_FILTER, "\tUNKNOWN %lu\n",
-			(unsigned long) f->f_choice, 0, 0 );
+			(unsigned long) f->f_choice );
 		/* Must not return NULL, otherwise extended filters break */
 		MDB_IDL_ALL( ids );
 	}
@@ -237,7 +237,7 @@ comp_list_candidates(
 	int rc = 0;
 	ComponentFilter	*f;
 
-	Debug( LDAP_DEBUG_FILTER, "=> comp_list_candidates 0x%x\n", ftype, 0, 0 );
+	Debug( LDAP_DEBUG_FILTER, "=> comp_list_candidates 0x%x\n", ftype );
 	for ( f = flist; f != NULL; f = f->cf_next ) {
 		/* ignore precomputed scopes */
 		if ( f->cf_choice == SLAPD_FILTER_COMPUTED &&
@@ -282,7 +282,7 @@ comp_list_candidates(
 	} else {
 		Debug( LDAP_DEBUG_FILTER,
 			"<= comp_list_candidates: undefined rc=%d\n",
-			rc, 0, 0 );
+			rc );
 	}
 
 	return rc;
@@ -435,7 +435,7 @@ comp_candidates (
 
 	if ( !f ) return LDAP_PROTOCOL_ERROR;
 
-	Debug( LDAP_DEBUG_FILTER, "comp_candidates\n", 0, 0, 0 );
+	Debug( LDAP_DEBUG_FILTER, "comp_candidates\n" );
 	switch ( f->cf_choice ) {
 	case SLAPD_FILTER_COMPUTED:
 		rc = f->cf_result;
@@ -448,7 +448,7 @@ comp_candidates (
 		break;
 	case LDAP_COMP_FILTER_NOT:
 		/* No component indexing supported for NOT filter */
-		Debug( LDAP_DEBUG_FILTER, "\tComponent NOT\n", 0, 0, 0 );
+		Debug( LDAP_DEBUG_FILTER, "\tComponent NOT\n" );
 		MDB_IDL_ALL( ids );
 		rc = LDAP_PROTOCOL_ERROR;
 		break;
@@ -546,7 +546,7 @@ list_candidates(
 	int rc = 0;
 	Filter	*f;
 
-	Debug( LDAP_DEBUG_FILTER, "=> mdb_list_candidates 0x%x\n", ftype, 0, 0 );
+	Debug( LDAP_DEBUG_FILTER, "=> mdb_list_candidates 0x%x\n", ftype );
 	for ( f = flist; f != NULL; f = f->f_next ) {
 		/* ignore precomputed scopes */
 		if ( f->f_choice == SLAPD_FILTER_COMPUTED &&
@@ -593,7 +593,7 @@ list_candidates(
 	} else {
 		Debug( LDAP_DEBUG_FILTER,
 			"<= mdb_list_candidates: undefined rc=%d\n",
-			rc, 0, 0 );
+			rc );
 	}
 
 	return rc;
@@ -612,7 +612,7 @@ presence_candidates(
 	struct berval prefix = {0, NULL};
 
 	Debug( LDAP_DEBUG_TRACE, "=> mdb_presence_candidates (%s)\n",
-			desc->ad_cname.bv_val, 0, 0 );
+			desc->ad_cname.bv_val );
 
 	MDB_IDL_ALL( ids );
 
@@ -627,7 +627,7 @@ presence_candidates(
 		/* not indexed */
 		Debug( LDAP_DEBUG_TRACE,
 			"<= mdb_presence_candidates: (%s) not indexed\n",
-			desc->ad_cname.bv_val, 0, 0 );
+			desc->ad_cname.bv_val );
 		return 0;
 	}
 
@@ -635,14 +635,14 @@ presence_candidates(
 		Debug( LDAP_DEBUG_TRACE,
 			"<= mdb_presence_candidates: (%s) index_param "
 			"returned=%d\n",
-			desc->ad_cname.bv_val, rc, 0 );
+			desc->ad_cname.bv_val, rc );
 		return 0;
 	}
 
 	if( prefix.bv_val == NULL ) {
 		Debug( LDAP_DEBUG_TRACE,
 			"<= mdb_presence_candidates: (%s) no prefix\n",
-			desc->ad_cname.bv_val, 0, 0 );
+			desc->ad_cname.bv_val );
 		return -1;
 	}
 
@@ -655,7 +655,7 @@ presence_candidates(
 		Debug( LDAP_DEBUG_TRACE,
 			"<= mdb_presense_candidates: (%s) "
 			"key read failed (%d)\n",
-			desc->ad_cname.bv_val, rc, 0 );
+			desc->ad_cname.bv_val, rc );
 		goto done;
 	}
 
@@ -686,7 +686,7 @@ equality_candidates(
 	MatchingRule *mr;
 
 	Debug( LDAP_DEBUG_TRACE, "=> mdb_equality_candidates (%s)\n",
-			ava->aa_desc->ad_cname.bv_val, 0, 0 );
+			ava->aa_desc->ad_cname.bv_val );
 
 	if ( ava->aa_desc == slap_schema.si_ad_entryDN ) {
 		ID id;
@@ -711,7 +711,7 @@ equality_candidates(
 	if ( rc == LDAP_INAPPROPRIATE_MATCHING ) {
 		Debug( LDAP_DEBUG_ANY,
 			"<= mdb_equality_candidates: (%s) not indexed\n",
-			ava->aa_desc->ad_cname.bv_val, 0, 0 );
+			ava->aa_desc->ad_cname.bv_val );
 		return 0;
 	}
 
@@ -719,7 +719,7 @@ equality_candidates(
 		Debug( LDAP_DEBUG_ANY,
 			"<= mdb_equality_candidates: (%s) "
 			"index_param failed (%d)\n",
-			ava->aa_desc->ad_cname.bv_val, rc, 0 );
+			ava->aa_desc->ad_cname.bv_val, rc );
 		return 0;
 	}
 
@@ -752,7 +752,7 @@ equality_candidates(
 	if( keys == NULL ) {
 		Debug( LDAP_DEBUG_TRACE,
 			"<= mdb_equality_candidates: (%s) no keys\n",
-			ava->aa_desc->ad_cname.bv_val, 0, 0 );
+			ava->aa_desc->ad_cname.bv_val );
 		return 0;
 	}
 
@@ -767,14 +767,14 @@ equality_candidates(
 			Debug( LDAP_DEBUG_TRACE,
 				"<= mdb_equality_candidates: (%s) "
 				"key read failed (%d)\n",
-				ava->aa_desc->ad_cname.bv_val, rc, 0 );
+				ava->aa_desc->ad_cname.bv_val, rc );
 			break;
 		}
 
 		if( MDB_IDL_IS_ZERO( tmp ) ) {
 			Debug( LDAP_DEBUG_TRACE,
 				"<= mdb_equality_candidates: (%s) NULL\n",
-				ava->aa_desc->ad_cname.bv_val, 0, 0 );
+				ava->aa_desc->ad_cname.bv_val );
 			MDB_IDL_ZERO( ids );
 			break;
 		}
@@ -817,7 +817,7 @@ approx_candidates(
 	MatchingRule *mr;
 
 	Debug( LDAP_DEBUG_TRACE, "=> mdb_approx_candidates (%s)\n",
-			ava->aa_desc->ad_cname.bv_val, 0, 0 );
+			ava->aa_desc->ad_cname.bv_val );
 
 	MDB_IDL_ALL( ids );
 
@@ -827,7 +827,7 @@ approx_candidates(
 	if ( rc == LDAP_INAPPROPRIATE_MATCHING ) {
 		Debug( LDAP_DEBUG_ANY,
 			"<= mdb_approx_candidates: (%s) not indexed\n",
-			ava->aa_desc->ad_cname.bv_val, 0, 0 );
+			ava->aa_desc->ad_cname.bv_val );
 		return 0;
 	}
 
@@ -835,7 +835,7 @@ approx_candidates(
 		Debug( LDAP_DEBUG_ANY,
 			"<= mdb_approx_candidates: (%s) "
 			"index_param failed (%d)\n",
-			ava->aa_desc->ad_cname.bv_val, rc, 0 );
+			ava->aa_desc->ad_cname.bv_val, rc );
 		return 0;
 	}
 
@@ -873,7 +873,7 @@ approx_candidates(
 	if( keys == NULL ) {
 		Debug( LDAP_DEBUG_TRACE,
 			"<= mdb_approx_candidates: (%s) no keys (%s)\n",
-			prefix.bv_val, ava->aa_desc->ad_cname.bv_val, 0 );
+			prefix.bv_val, ava->aa_desc->ad_cname.bv_val );
 		return 0;
 	}
 
@@ -888,14 +888,14 @@ approx_candidates(
 			Debug( LDAP_DEBUG_TRACE,
 				"<= mdb_approx_candidates: (%s) "
 				"key read failed (%d)\n",
-				ava->aa_desc->ad_cname.bv_val, rc, 0 );
+				ava->aa_desc->ad_cname.bv_val, rc );
 			break;
 		}
 
 		if( MDB_IDL_IS_ZERO( tmp ) ) {
 			Debug( LDAP_DEBUG_TRACE,
 				"<= mdb_approx_candidates: (%s) NULL\n",
-				ava->aa_desc->ad_cname.bv_val, 0, 0 );
+				ava->aa_desc->ad_cname.bv_val );
 			MDB_IDL_ZERO( ids );
 			break;
 		}
@@ -936,7 +936,7 @@ substring_candidates(
 	MatchingRule *mr;
 
 	Debug( LDAP_DEBUG_TRACE, "=> mdb_substring_candidates (%s)\n",
-			sub->sa_desc->ad_cname.bv_val, 0, 0 );
+			sub->sa_desc->ad_cname.bv_val );
 
 	MDB_IDL_ALL( ids );
 
@@ -946,7 +946,7 @@ substring_candidates(
 	if ( rc == LDAP_INAPPROPRIATE_MATCHING ) {
 		Debug( LDAP_DEBUG_ANY,
 			"<= mdb_substring_candidates: (%s) not indexed\n",
-			sub->sa_desc->ad_cname.bv_val, 0, 0 );
+			sub->sa_desc->ad_cname.bv_val );
 		return 0;
 	}
 
@@ -954,7 +954,7 @@ substring_candidates(
 		Debug( LDAP_DEBUG_ANY,
 			"<= mdb_substring_candidates: (%s) "
 			"index_param failed (%d)\n",
-			sub->sa_desc->ad_cname.bv_val, rc, 0 );
+			sub->sa_desc->ad_cname.bv_val, rc );
 		return 0;
 	}
 
@@ -981,14 +981,14 @@ substring_candidates(
 		Debug( LDAP_DEBUG_TRACE,
 			"<= mdb_substring_candidates: (%s) "
 			"MR filter failed (%d)\n",
-			sub->sa_desc->ad_cname.bv_val, rc, 0 );
+			sub->sa_desc->ad_cname.bv_val, rc );
 		return 0;
 	}
 
 	if( keys == NULL ) {
 		Debug( LDAP_DEBUG_TRACE,
 			"<= mdb_substring_candidates: (0x%04lx) no keys (%s)\n",
-			mask, sub->sa_desc->ad_cname.bv_val, 0 );
+			mask, sub->sa_desc->ad_cname.bv_val );
 		return 0;
 	}
 
@@ -1003,14 +1003,14 @@ substring_candidates(
 			Debug( LDAP_DEBUG_TRACE,
 				"<= mdb_substring_candidates: (%s) "
 				"key read failed (%d)\n",
-				sub->sa_desc->ad_cname.bv_val, rc, 0 );
+				sub->sa_desc->ad_cname.bv_val, rc );
 			break;
 		}
 
 		if( MDB_IDL_IS_ZERO( tmp ) ) {
 			Debug( LDAP_DEBUG_TRACE,
 				"<= mdb_substring_candidates: (%s) NULL\n",
-				sub->sa_desc->ad_cname.bv_val, 0, 0 );
+				sub->sa_desc->ad_cname.bv_val );
 			MDB_IDL_ZERO( ids );
 			break;
 		}
@@ -1052,7 +1052,7 @@ inequality_candidates(
 	MDB_cursor *cursor = NULL;
 
 	Debug( LDAP_DEBUG_TRACE, "=> mdb_inequality_candidates (%s)\n",
-			ava->aa_desc->ad_cname.bv_val, 0, 0 );
+			ava->aa_desc->ad_cname.bv_val );
 
 	MDB_IDL_ALL( ids );
 
@@ -1062,7 +1062,7 @@ inequality_candidates(
 	if ( rc == LDAP_INAPPROPRIATE_MATCHING ) {
 		Debug( LDAP_DEBUG_ANY,
 			"<= mdb_inequality_candidates: (%s) not indexed\n",
-			ava->aa_desc->ad_cname.bv_val, 0, 0 );
+			ava->aa_desc->ad_cname.bv_val );
 		return 0;
 	}
 
@@ -1070,7 +1070,7 @@ inequality_candidates(
 		Debug( LDAP_DEBUG_ANY,
 			"<= mdb_inequality_candidates: (%s) "
 			"index_param failed (%d)\n",
-			ava->aa_desc->ad_cname.bv_val, rc, 0 );
+			ava->aa_desc->ad_cname.bv_val, rc );
 		return 0;
 	}
 
@@ -1103,7 +1103,7 @@ inequality_candidates(
 	if( keys == NULL ) {
 		Debug( LDAP_DEBUG_TRACE,
 			"<= mdb_inequality_candidates: (%s) no keys\n",
-			ava->aa_desc->ad_cname.bv_val, 0, 0 );
+			ava->aa_desc->ad_cname.bv_val );
 		return 0;
 	}
 
@@ -1118,14 +1118,14 @@ inequality_candidates(
 			Debug( LDAP_DEBUG_TRACE,
 			       "<= mdb_inequality_candidates: (%s) "
 			       "key read failed (%d)\n",
-			       ava->aa_desc->ad_cname.bv_val, rc, 0 );
+			       ava->aa_desc->ad_cname.bv_val, rc );
 			break;
 		}
 
 		if( MDB_IDL_IS_ZERO( tmp ) ) {
 			Debug( LDAP_DEBUG_TRACE,
 			       "<= mdb_inequality_candidates: (%s) NULL\n",
-			       ava->aa_desc->ad_cname.bv_val, 0, 0 );
+			       ava->aa_desc->ad_cname.bv_val );
 			break;
 		}
 

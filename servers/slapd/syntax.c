@@ -138,7 +138,7 @@ syn_insert(
 		sir = (struct sindexrec *)
 			SLAP_CALLOC( 1, sizeof(struct sindexrec) );
 		if( sir == NULL ) {
-			Debug( LDAP_DEBUG_ANY, "SLAP_CALLOC Error\n", 0, 0, 0 );
+			Debug( LDAP_DEBUG_ANY, "SLAP_CALLOC Error\n" );
 			return LDAP_OTHER;
 		}
 		sir->sir_name = ssyn->ssyn_oid;
@@ -184,7 +184,7 @@ syn_add(
 
 	ssyn = (Syntax *) SLAP_CALLOC( 1, sizeof(Syntax) );
 	if ( ssyn == NULL ) {
-		Debug( LDAP_DEBUG_ANY, "SLAP_CALLOC Error\n", 0, 0, 0 );
+		Debug( LDAP_DEBUG_ANY, "SLAP_CALLOC Error\n" );
 		return SLAP_SCHERR_OUTOFMEM;
 	}
 
@@ -223,14 +223,14 @@ syn_add(
 				|| (*lsei)->lsei_values[1] != '\0' )
 			{
 				Debug( LDAP_DEBUG_ANY, "syn_add(%s): exactly one substitute syntax must be present\n",
-					ssyn->ssyn_syn.syn_oid, 0, 0 );
+					ssyn->ssyn_syn.syn_oid );
 				return SLAP_SCHERR_SYN_SUBST_NOT_SPECIFIED;
 			}
 
 			subst = syn_find( (*lsei)->lsei_values[0] );
 			if ( subst == NULL ) {
 				Debug( LDAP_DEBUG_ANY, "syn_add(%s): substitute syntax %s not found\n",
-					ssyn->ssyn_syn.syn_oid, (*lsei)->lsei_values[0], 0 );
+					ssyn->ssyn_syn.syn_oid, (*lsei)->lsei_values[0] );
 				return SLAP_SCHERR_SYN_SUBST_NOT_FOUND;
 			}
 			break;
@@ -259,7 +259,7 @@ syn_add(
 		ssyn->ssyn_sups = (Syntax **)SLAP_CALLOC( cnt + 1,
 			sizeof( Syntax * ) );
 		if ( ssyn->ssyn_sups == NULL ) {
-			Debug( LDAP_DEBUG_ANY, "SLAP_CALLOC Error\n", 0, 0, 0 );
+			Debug( LDAP_DEBUG_ANY, "SLAP_CALLOC Error\n" );
 			code = SLAP_SCHERR_OUTOFMEM;
 
 		} else {
@@ -349,7 +349,7 @@ syn_schema_info( Entry *e )
 		}
 #if 0
 		Debug( LDAP_DEBUG_TRACE, "Merging syn [%ld] %s\n",
-	       (long) val.bv_len, val.bv_val, 0 );
+	       (long) val.bv_len, val.bv_val );
 #endif
 
 		nval.bv_val = syn->ssyn_oid;

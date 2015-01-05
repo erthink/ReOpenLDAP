@@ -1908,7 +1908,7 @@ dds_initialize()
 			code = register_at( s_at[ i ].desc, s_at[ i ].ad, 0 );
 			if ( code ) {
 				Debug( LDAP_DEBUG_ANY,
-					"dds_initialize: register_at failed\n", 0, 0, 0 );
+					"dds_initialize: register_at failed\n" );
 				return code;
 			}
 			(*s_at[ i ].ad)->ad_type->sat_flags |= SLAP_AT_HIDE;

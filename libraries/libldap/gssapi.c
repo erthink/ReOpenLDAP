@@ -353,8 +353,7 @@ map_gsserr2ldap(
 	char msg[256];
 
 	Debug( LDAP_DEBUG_ANY, "%s\n",
-	       gsserrstr( msg, sizeof(msg), mech, gss_rc, minor_status ),
-	       NULL, NULL );
+	       gsserrstr( msg, sizeof(msg), mech, gss_rc, minor_status ) );
 
 	if (gss_rc == GSS_S_COMPLETE) {
 		ld->ld_errno = LDAP_SUCCESS;
@@ -396,7 +395,7 @@ ldap_gssapi_get_rootdse_infos (
 	char *dnsHostName = NULL;
 	int rc;
 
-	Debug( LDAP_DEBUG_TRACE, "ldap_gssapi_get_rootdse_infos\n", 0, 0, 0 );
+	Debug( LDAP_DEBUG_TRACE, "ldap_gssapi_get_rootdse_infos\n" );
 
 	rc = ldap_search_s( ld, "", LDAP_SCOPE_BASE,
 		NULL, attrs, 0, &res );
@@ -564,7 +563,7 @@ guess_service_principal(
 	}
 
 	Debug( LDAP_DEBUG_TRACE, "principal for host[%s]: '%s'\n",
-	       host, svc_principal, 0 );
+	       host, svc_principal );
 
 	input_name.value  = svc_principal;
 	input_name.length = (size_t)ret;

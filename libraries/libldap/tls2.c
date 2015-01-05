@@ -236,8 +236,7 @@ ldap_int_tls_init_ctx( struct ldapoptions *lo, int is_server )
 	lo->ldo_tls_ctx = ti->ti_ctx_new( lo );
 	if ( lo->ldo_tls_ctx == NULL ) {
 		Debug( LDAP_DEBUG_ANY,
-		   "TLS: could not allocate default ctx.\n",
-			0,0,0);
+		   "TLS: could not allocate default ctx.\n");
 		rc = -1;
 		goto error_exit;
 	}
@@ -291,7 +290,7 @@ alloc_handle( void *ctx_arg, int is_server )
 
 	ssl = tls_imp->ti_session_new( ctx, is_server );
 	if ( ssl == NULL ) {
-		Debug( LDAP_DEBUG_ANY,"TLS: can't create ssl handle.\n",0,0,0);
+		Debug( LDAP_DEBUG_ANY,"TLS: can't create ssl handle.\n");
 		return NULL;
 	}
 	return ssl;
@@ -384,7 +383,7 @@ ldap_int_tls_connect( LDAP *ld, LDAPConn *conn )
 		}
 
 		Debug( LDAP_DEBUG_ANY,"TLS: can't connect: %s.\n",
-			ld->ld_error ? ld->ld_error : "" ,0,0);
+			ld->ld_error ? ld->ld_error : "" );
 
 		ber_sockbuf_remove_io( sb, tls_imp->ti_sbio,
 			LBER_SBIOD_LEVEL_TRANSPORT );
@@ -436,7 +435,7 @@ ldap_pvt_tls_accept( Sockbuf *sb, void *ctx_arg )
 			char buf[256], *msg;
 			msg = tls_imp->ti_session_errmsg( ssl, err, buf, sizeof(buf) );
 			Debug( LDAP_DEBUG_ANY,"TLS: can't accept: %s.\n",
-				msg ? msg : "(unknown)", 0, 0 );
+				msg ? msg : "(unknown)" );
 		}
 
 		ber_sockbuf_remove_io( sb, tls_imp->ti_sbio,
@@ -869,7 +868,7 @@ ldap_int_tls_start ( LDAP *ld, LDAPConn *conn, LDAPURLDesc *srv )
 			wr=1;
 		}
 		Debug( LDAP_DEBUG_TRACE, "ldap_int_tls_start: ldap_int_tls_connect needs %s\n",
-				wr ? "write": "read", 0, 0);
+				wr ? "write": "read");
 
 		ret = ldap_int_poll( ld, sd, &tv, wr);
 		if ( ret < 0 ) {

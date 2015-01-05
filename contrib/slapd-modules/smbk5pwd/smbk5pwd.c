@@ -460,7 +460,7 @@ static int smbk5pwd_exop_passwd(
 			/* shouldn't happen, this is a required attr */
 			Debug( LDAP_DEBUG_ANY, "%s smbk5pwd EXOP: "
 				"dn=\"%s\" missing krb5KeyVersionNumber\n",
-				op->o_log_prefix, e->e_name.bv_val, 0 );
+				op->o_log_prefix, e->e_name.bv_val );
 		}
 
 		ret = hdb_generate_key_set_password(context, ent.principal,
@@ -834,7 +834,7 @@ smbk5pwd_cf_func( ConfigArgs *c )
 		if ( c->value_int < 0 ) {
 			Debug( LDAP_DEBUG_ANY, "%s: smbk5pwd: "
 				"<%s> invalid negative value \"%d\".",
-				c->log, c->argv[ 0 ], 0 );
+				c->log, c->argv[ 0 ] );
 			return 1;
 		}
 		pi->smb_must_change = c->value_int;
@@ -842,7 +842,7 @@ smbk5pwd_cf_func( ConfigArgs *c )
 		Debug( LDAP_DEBUG_ANY, "%s: smbk5pwd: "
 			"<%s> only meaningful "
 			"when compiled with -DDO_SAMBA.\n",
-			c->log, c->argv[ 0 ], 0 );
+			c->log, c->argv[ 0 ] );
 		return 1;
 #endif /* ! DO_SAMBA */
 		break;
@@ -852,7 +852,7 @@ smbk5pwd_cf_func( ConfigArgs *c )
                 if ( c->value_int < 0 ) {
                         Debug( LDAP_DEBUG_ANY, "%s: smbk5pwd: "
                                 "<%s> invalid negative value \"%d\".",
-                                c->log, c->argv[ 0 ], 0 );
+                                c->log, c->argv[ 0 ] );
                         return 1;
                 }
                 pi->smb_can_change = c->value_int;
@@ -860,7 +860,7 @@ smbk5pwd_cf_func( ConfigArgs *c )
                 Debug( LDAP_DEBUG_ANY, "%s: smbk5pwd: "
                         "<%s> only meaningful "
                         "when compiled with -DDO_SAMBA.\n",
-                        c->log, c->argv[ 0 ], 0 );
+                        c->log, c->argv[ 0 ] );
                 return 1;
 #endif /* ! DO_SAMBA */
                 break;
@@ -981,8 +981,7 @@ smbk5pwd_modules_init( smbk5pwd_t *pi )
 		oc_krb5KDCEntry = oc_find( "krb5KDCEntry" );
 		if ( !oc_krb5KDCEntry ) {
 			Debug( LDAP_DEBUG_ANY, "smbk5pwd: "
-				"unable to find \"krb5KDCEntry\" objectClass.\n",
-				0, 0, 0 );
+				"unable to find \"krb5KDCEntry\" objectClass.\n" );
 			return -1;
 		}
 
@@ -1006,7 +1005,7 @@ smbk5pwd_modules_init( smbk5pwd_t *pi )
 		if (ret) {
 			Debug( LDAP_DEBUG_ANY, "smbk5pwd: "
 				"unable to initialize krb5 context (%d).\n",
-				ret, 0, 0 );
+				ret );
 			oc_krb5KDCEntry = NULL;
 			return -1;
 		}
@@ -1023,7 +1022,7 @@ smbk5pwd_modules_init( smbk5pwd_t *pi )
 				err_msg = (char *)krb5_get_err_text( context, ret );
 			Debug( LDAP_DEBUG_ANY, "smbk5pwd: "
 				"unable to initialize krb5 admin context: %s (%d).\n",
-				err_str ? err_str : err_msg, ret, 0 );
+				err_str ? err_str : err_msg, ret );
 			if (err_str)
 				krb5_free_error_string( context, err_str );
 			krb5_free_context( context );
@@ -1042,8 +1041,7 @@ smbk5pwd_modules_init( smbk5pwd_t *pi )
 		oc_sambaSamAccount = oc_find( "sambaSamAccount" );
 		if ( !oc_sambaSamAccount ) {
 			Debug( LDAP_DEBUG_ANY, "smbk5pwd: "
-				"unable to find \"sambaSamAccount\" objectClass.\n",
-				0, 0, 0 );
+				"unable to find \"sambaSamAccount\" objectClass.\n" );
 			return -1;
 		}
 
@@ -1071,8 +1069,7 @@ smbk5pwd_modules_init( smbk5pwd_t *pi )
 		oc_shadowAccount = oc_find( "shadowAccount" );
 		if ( !oc_shadowAccount ) {
 			Debug( LDAP_DEBUG_ANY, "smbk5pwd: "
-				"unable to find \"shadowAccount\" objectClass.\n",
-				0, 0, 0 );
+				"unable to find \"shadowAccount\" objectClass.\n" );
 			return -1;
 		}
 

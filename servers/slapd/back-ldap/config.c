@@ -683,7 +683,7 @@ slap_idassert_authzfrom_parse( ConfigArgs *c, slap_idassert_t *si )
  				"\"idassert-authzFrom <authz>\": "
  				"\"%s\" conflicts with existing authz rules",
  				c->argv[ 1 ] );
- 			Debug( LDAP_DEBUG_ANY, "%s: %s.\n", c->log, c->cr_msg, 0 );
+ 			Debug( LDAP_DEBUG_ANY, "%s: %s.\n", c->log, c->cr_msg );
  			return 1;
  		}
 
@@ -695,7 +695,7 @@ slap_idassert_authzfrom_parse( ConfigArgs *c, slap_idassert_t *si )
   		snprintf( c->cr_msg, sizeof( c->cr_msg ),
   			"\"idassert-authzFrom <authz>\": "
  			"\"<authz>\" conflicts with \"*\"" );
-  		Debug( LDAP_DEBUG_ANY, "%s: %s.\n", c->log, c->cr_msg, 0 );
+  		Debug( LDAP_DEBUG_ANY, "%s: %s.\n", c->log, c->cr_msg );
   		return 1;
   	}
 
@@ -705,7 +705,7 @@ slap_idassert_authzfrom_parse( ConfigArgs *c, slap_idassert_t *si )
  		snprintf( c->cr_msg, sizeof( c->cr_msg ),
  			"\"idassert-authzFrom <authz>\": "
  			"invalid syntax" );
- 		Debug( LDAP_DEBUG_ANY, "%s: %s.\n", c->log, c->cr_msg, 0 );
+ 		Debug( LDAP_DEBUG_ANY, "%s: %s.\n", c->log, c->cr_msg );
  		return 1;
  	}
 
@@ -752,7 +752,7 @@ slap_idassert_passthru_parse( ConfigArgs *c, slap_idassert_t *si )
  		snprintf( c->cr_msg, sizeof( c->cr_msg ),
  			"\"idassert-passThru <authz>\": "
  			"invalid syntax" );
- 		Debug( LDAP_DEBUG_ANY, "%s: %s.\n", c->log, c->cr_msg, 0 );
+ 		Debug( LDAP_DEBUG_ANY, "%s: %s.\n", c->log, c->cr_msg );
  		return 1;
  	}
 
@@ -802,7 +802,7 @@ slap_idassert_parse( ConfigArgs *c, slap_idassert_t *si )
 					"\"idassert-bind <args>\": "
 					"unknown mode \"%s\"",
 					argvi );
-				Debug( LDAP_DEBUG_ANY, "%s: %s.\n", c->log, c->cr_msg, 0 );
+				Debug( LDAP_DEBUG_ANY, "%s: %s.\n", c->log, c->cr_msg );
 				return 1;
 			}
 
@@ -817,7 +817,7 @@ slap_idassert_parse( ConfigArgs *c, slap_idassert_t *si )
 						"\"idassert-bind <args>\": "
 						"authz=\"native\" incompatible "
 						"with auth method" );
-					Debug( LDAP_DEBUG_ANY, "%s: %s.\n", c->log, c->cr_msg, 0 );
+					Debug( LDAP_DEBUG_ANY, "%s: %s.\n", c->log, c->cr_msg );
 					return 1;
 				}
 				si->si_flags |= LDAP_BACK_AUTH_NATIVE_AUTHZ;
@@ -830,7 +830,7 @@ slap_idassert_parse( ConfigArgs *c, slap_idassert_t *si )
 					"\"idassert-bind <args>\": "
 					"unknown authz \"%s\"",
 					argvi );
-				Debug( LDAP_DEBUG_ANY, "%s: %s.\n", c->log, c->cr_msg, 0 );
+				Debug( LDAP_DEBUG_ANY, "%s: %s.\n", c->log, c->cr_msg );
 				return 1;
 			}
 
@@ -844,7 +844,7 @@ slap_idassert_parse( ConfigArgs *c, slap_idassert_t *si )
 					"\"idassert-bind <args>\": "
 					"unable to parse flags \"%s\"",
 					argvi );
-				Debug( LDAP_DEBUG_ANY, "%s: %s.\n", c->log, c->cr_msg, 0 );
+				Debug( LDAP_DEBUG_ANY, "%s: %s.\n", c->log, c->cr_msg );
 				return 1;
 			}
 
@@ -865,7 +865,7 @@ slap_idassert_parse( ConfigArgs *c, slap_idassert_t *si )
                                       		 		"%s: \"obsolete-proxy-authz\" flag "
                                       		 		"in \"idassert-mode <args>\" "
                                       		 		"incompatible with previously issued \"obsolete-encoding-workaround\" flag.\n",
-                                      	 			c->log, 0, 0 );
+                                      	 			c->log );
 						err = 1;
 						break;
 
@@ -879,7 +879,7 @@ slap_idassert_parse( ConfigArgs *c, slap_idassert_t *si )
                                       	 			"%s: \"obsolete-encoding-workaround\" flag "
                                        			"in \"idassert-mode <args>\" "
                                        			"incompatible with previously issued \"obsolete-proxy-authz\" flag.\n",
-                                       			c->log, 0, 0 );
+                                       			c->log );
 						err = 1;
 						break;
 
@@ -898,7 +898,7 @@ slap_idassert_parse( ConfigArgs *c, slap_idassert_t *si )
 						"\"idassert-bind <args>\": "
 						"unknown flag \"%s\"",
 						flags[ j ] );
-					Debug( LDAP_DEBUG_ANY, "%s: %s.\n", c->log, c->cr_msg, 0 );
+					Debug( LDAP_DEBUG_ANY, "%s: %s.\n", c->log, c->cr_msg );
 					err = 1;
 					break;
 				}
@@ -914,7 +914,7 @@ slap_idassert_parse( ConfigArgs *c, slap_idassert_t *si )
 				"\"idassert-bind <args>\": "
 				"unable to parse field \"%s\"",
 				c->argv[ i ] );
-			Debug( LDAP_DEBUG_ANY, "%s: %s.\n", c->log, c->cr_msg, 0 );
+			Debug( LDAP_DEBUG_ANY, "%s: %s.\n", c->log, c->cr_msg );
 			return 1;
 		}
 	}
@@ -926,7 +926,7 @@ slap_idassert_parse( ConfigArgs *c, slap_idassert_t *si )
 			snprintf( c->cr_msg, sizeof( c->cr_msg ),
 				"\"idassert-bind <args>\": "
 				"SIMPLE needs \"binddn\" and \"credentials\"" );
-			Debug( LDAP_DEBUG_ANY, "%s: %s.\n", c->log, c->cr_msg, 0 );
+			Debug( LDAP_DEBUG_ANY, "%s: %s.\n", c->log, c->cr_msg );
 			return 1;
 		}
 	}
@@ -1628,7 +1628,7 @@ ldap_back_cf_gen( ConfigArgs *c )
 					"unable to parse uri \"%s\" "
 					"in \"uri <uri>\" line: %s",
 					c->value_string, why );
-			Debug( LDAP_DEBUG_ANY, "%s: %s.\n", c->log, c->cr_msg, 0 );
+			Debug( LDAP_DEBUG_ANY, "%s: %s.\n", c->log, c->cr_msg );
 			urlrc = 1;
 			goto done_url;
 		}
@@ -1650,7 +1650,7 @@ ldap_back_cf_gen( ConfigArgs *c )
 						"in \"uri <uri>\" statement "
 						"for uri #%d of \"%s\"",
 						i, c->argv[ 1 ] );
-				Debug( LDAP_DEBUG_ANY, "%s: %s.\n", c->log, c->cr_msg, 0 );
+				Debug( LDAP_DEBUG_ANY, "%s: %s.\n", c->log, c->cr_msg );
 			}
 		}
 
@@ -1684,7 +1684,7 @@ ldap_back_cf_gen( ConfigArgs *c )
 					"in \"uri <uri>\" statement "
 					"for \"%s\"",
 					c->argv[ 1 ] );
-				Debug( LDAP_DEBUG_ANY, "%s: %s.\n", c->log, c->cr_msg, 0 );
+				Debug( LDAP_DEBUG_ANY, "%s: %s.\n", c->log, c->cr_msg );
 				urlrc = 1;
 				goto done_url;
 			}
@@ -1744,7 +1744,7 @@ done_url:;
 				"\"acl-authcDN <DN>\" incompatible "
 				"with auth method %d",
 				li->li_acl_authmethod );
-			Debug( LDAP_DEBUG_ANY, "%s: %s.\n", c->log, c->cr_msg, 0 );
+			Debug( LDAP_DEBUG_ANY, "%s: %s.\n", c->log, c->cr_msg );
 			return 1;
 		}
 		if ( !BER_BVISNULL( &li->li_acl_authcDN ) ) {
@@ -1770,7 +1770,7 @@ done_url:;
 				"\"acl-passwd <cred>\" incompatible "
 				"with auth method %d",
 				li->li_acl_authmethod );
-			Debug( LDAP_DEBUG_ANY, "%s: %s.\n", c->log, c->cr_msg, 0 );
+			Debug( LDAP_DEBUG_ANY, "%s: %s.\n", c->log, c->cr_msg );
 			return 1;
 		}
 		if ( !BER_BVISNULL( &li->li_acl_passwd ) ) {
@@ -1847,7 +1847,7 @@ done_url:;
                                        	 		"%s: line %d: \"obsolete-proxy-authz\" flag "
                                         		"in \"idassert-mode <args>\" "
                                         		"incompatible with previously issued \"obsolete-encoding-workaround\" flag.\n",
-                                        		c->fname, c->lineno, 0 );
+                                        		c->fname, c->lineno );
                                 		return 1;
 					}
 					li->li_idassert_flags |= LDAP_BACK_AUTH_OBSOLETE_PROXY_AUTHZ;
@@ -1858,7 +1858,7 @@ done_url:;
                                        	 		"%s: line %d: \"obsolete-encoding-workaround\" flag "
                                         		"in \"idassert-mode <args>\" "
                                         		"incompatible with previously issued \"obsolete-proxy-authz\" flag.\n",
-                                        		c->fname, c->lineno, 0 );
+                                        		c->fname, c->lineno );
                                 		return 1;
 					}
 					li->li_idassert_flags |= LDAP_BACK_AUTH_OBSOLETE_ENCODING_WORKAROUND;
@@ -1889,7 +1889,7 @@ done_url:;
 				"\"idassert-authcDN <DN>\" incompatible "
 				"with auth method %d",
 				li->li_idassert_authmethod );
-			Debug( LDAP_DEBUG_ANY, "%s: %s.\n", c->log, c->cr_msg, 0 );
+			Debug( LDAP_DEBUG_ANY, "%s: %s.\n", c->log, c->cr_msg );
 			return 1;
 		}
 		if ( !BER_BVISNULL( &li->li_idassert_authcDN ) ) {
@@ -1915,7 +1915,7 @@ done_url:;
 				"\"idassert-passwd <cred>\" incompatible "
 				"with auth method %d",
 				li->li_idassert_authmethod );
-			Debug( LDAP_DEBUG_ANY, "%s: %s.\n", c->log, c->cr_msg, 0 );
+			Debug( LDAP_DEBUG_ANY, "%s: %s.\n", c->log, c->cr_msg );
 			return 1;
 		}
 		if ( !BER_BVISNULL( &li->li_idassert_passwd ) ) {
@@ -1937,7 +1937,7 @@ done_url:;
 		snprintf( c->cr_msg, sizeof( c->cr_msg ),
 			"\"idassert-method <args>\": "
 			"no longer supported; use \"idassert-bind\"" );
-		Debug( LDAP_DEBUG_ANY, "%s: %s.\n", c->log, c->cr_msg, 0 );
+		Debug( LDAP_DEBUG_ANY, "%s: %s.\n", c->log, c->cr_msg );
 		return 1;
 
 	case LDAP_BACK_CFG_IDASSERT_BIND:
@@ -1983,7 +1983,7 @@ done_url:;
 				snprintf( c->cr_msg, sizeof( c->cr_msg ),
 					"need URI to discover absolute filters support "
 					"in \"t-f-support discover\"" );
-				Debug( LDAP_DEBUG_ANY, "%s: %s.\n", c->log, c->cr_msg, 0 );
+				Debug( LDAP_DEBUG_ANY, "%s: %s.\n", c->log, c->cr_msg );
 				return 1;
 			}
 
@@ -2025,7 +2025,7 @@ done_url:;
 					snprintf( c->cr_msg, sizeof( c->cr_msg),
 						"unable to parse timeout \"%s\"",
 						c->argv[ i ] );
-					Debug( LDAP_DEBUG_ANY, "%s: %s.\n", c->log, c->cr_msg, 0 );
+					Debug( LDAP_DEBUG_ANY, "%s: %s.\n", c->log, c->cr_msg );
 					return 1;
 				}
 
@@ -2040,7 +2040,7 @@ done_url:;
 				snprintf( c->cr_msg, sizeof( c->cr_msg),
 					"unable to parse timeout \"%s\"",
 					c->argv[ i ] );
-				Debug( LDAP_DEBUG_ANY, "%s: %s.\n", c->log, c->cr_msg, 0 );
+				Debug( LDAP_DEBUG_ANY, "%s: %s.\n", c->log, c->cr_msg );
 				return 1;
 			}
 		}
@@ -2053,7 +2053,7 @@ done_url:;
 			snprintf( c->cr_msg, sizeof( c->cr_msg),
 				"unable to parse idle timeout \"%s\"",
 				c->argv[ 1 ] );
-			Debug( LDAP_DEBUG_ANY, "%s: %s.\n", c->log, c->cr_msg, 0 );
+			Debug( LDAP_DEBUG_ANY, "%s: %s.\n", c->log, c->cr_msg );
 			return 1;
 		}
 		li->li_idle_timeout = (time_t)t;
@@ -2066,7 +2066,7 @@ done_url:;
 			snprintf( c->cr_msg, sizeof( c->cr_msg),
 				"unable to parse conn ttl\"%s\"",
 				c->argv[ 1 ] );
-			Debug( LDAP_DEBUG_ANY, "%s: %s.\n", c->log, c->cr_msg, 0 );
+			Debug( LDAP_DEBUG_ANY, "%s: %s.\n", c->log, c->cr_msg );
 			return 1;
 		}
 		li->li_conn_ttl = (time_t)t;
@@ -2079,7 +2079,7 @@ done_url:;
 			snprintf( c->cr_msg, sizeof( c->cr_msg),
 				"unable to parse network timeout \"%s\"",
 				c->argv[ 1 ] );
-			Debug( LDAP_DEBUG_ANY, "%s: %s.\n", c->log, c->cr_msg, 0 );
+			Debug( LDAP_DEBUG_ANY, "%s: %s.\n", c->log, c->cr_msg );
 			return 1;
 		}
 		li->li_network_timeout = (time_t)t;
@@ -2091,7 +2091,7 @@ done_url:;
 				"unsupported version \"%s\" "
 				"in \"protocol-version <version>\"",
 				c->argv[ 1 ] );
-			Debug( LDAP_DEBUG_ANY, "%s: %s.\n", c->log, c->cr_msg, 0 );
+			Debug( LDAP_DEBUG_ANY, "%s: %s.\n", c->log, c->cr_msg );
 			return 1;
 		}
 
@@ -2128,7 +2128,7 @@ done_url:;
 				c->argv[ 1 ],
 				LDAP_BACK_CONN_PRIV_MIN,
 				LDAP_BACK_CONN_PRIV_MAX );
-			Debug( LDAP_DEBUG_ANY, "%s: %s.\n", c->log, c->cr_msg, 0 );
+			Debug( LDAP_DEBUG_ANY, "%s: %s.\n", c->log, c->cr_msg );
 			return 1;
 		}
 		li->li_conn_priv_max = c->value_int;
@@ -2155,7 +2155,7 @@ done_url:;
 				snprintf( c->cr_msg, sizeof( c->cr_msg ),
 					"need URI to discover \"cancel\" support "
 					"in \"cancel exop-discover\"" );
-				Debug( LDAP_DEBUG_ANY, "%s: %s.\n", c->log, c->cr_msg, 0 );
+				Debug( LDAP_DEBUG_ANY, "%s: %s.\n", c->log, c->cr_msg );
 				return 1;
 			}
 
@@ -2180,13 +2180,13 @@ done_url:;
 		if ( LDAP_BACK_QUARANTINE( li ) ) {
 			snprintf( c->cr_msg, sizeof( c->cr_msg ),
 				"quarantine already defined" );
-			Debug( LDAP_DEBUG_ANY, "%s: %s.\n", c->log, c->cr_msg, 0 );
+			Debug( LDAP_DEBUG_ANY, "%s: %s.\n", c->log, c->cr_msg );
 			return 1;
 		}
 		rc = slap_retry_info_parse( c->argv[1], &li->li_quarantine,
 			c->cr_msg, sizeof( c->cr_msg ) );
 		if ( rc ) {
-			Debug( LDAP_DEBUG_ANY, "%s: %s.\n", c->log, c->cr_msg, 0 );
+			Debug( LDAP_DEBUG_ANY, "%s: %s.\n", c->log, c->cr_msg );
 
 		} else {
 			ldap_pvt_thread_mutex_init( &li->li_quarantine_mutex );
@@ -2233,7 +2233,7 @@ done_url:;
 			snprintf( c->cr_msg, sizeof( c->cr_msg ),
 				"%s unknown argument \"%s\"",
 				c->argv[0], c->argv[1] );
-			Debug( LDAP_DEBUG_ANY, "%s: %s.\n", c->log, c->cr_msg, 0 );
+			Debug( LDAP_DEBUG_ANY, "%s: %s.\n", c->log, c->cr_msg );
 			return 1;
 		}
 		li->li_flags &= ~LDAP_BACK_F_ONERR_STOP;
@@ -2246,7 +2246,7 @@ done_url:;
 			"to the \"rwm\" overlay; see slapo-rwm(5) "
 			"for details (hint: add \"overlay rwm\" "
 			"and prefix all directives with \"rwm-\")" );
-		Debug( LDAP_DEBUG_ANY, "%s: %s.\n", c->log, c->cr_msg, 0 );
+		Debug( LDAP_DEBUG_ANY, "%s: %s.\n", c->log, c->cr_msg );
 		return 1;
 
 	case LDAP_BACK_CFG_KEEPALIVE:
@@ -2288,7 +2288,7 @@ ldap_back_init_cf( BackendInfo *bi )
 		Debug( LDAP_DEBUG_ANY, "config_back_initialize: "
 			"warning, unable to get \"olcDbACLPasswd\" "
 			"attribute description: %d: %s\n",
-			rc, text, 0 );
+			rc, text );
 	} else {
 		(void)ldif_must_b64_encode_register( ad->ad_cname.bv_val,
 			ad->ad_type->sat_oid );
@@ -2300,7 +2300,7 @@ ldap_back_init_cf( BackendInfo *bi )
 		Debug( LDAP_DEBUG_ANY, "config_back_initialize: "
 			"warning, unable to get \"olcDbIDAssertPasswd\" "
 			"attribute description: %d: %s\n",
-			rc, text, 0 );
+			rc, text );
 	} else {
 		(void)ldif_must_b64_encode_register( ad->ad_cname.bv_val,
 			ad->ad_type->sat_oid );
@@ -2344,7 +2344,7 @@ ldap_back_exop_whoami(
 	}
 
 	Statslog( LDAP_DEBUG_STATS, "%s WHOAMI\n",
-	    op->o_log_prefix, 0, 0, 0, 0 );
+	    op->o_log_prefix );
 
 	rs->sr_err = backend_check_restrictions( op, rs,
 			(struct berval *)&slap_EXOP_WHOAMI );

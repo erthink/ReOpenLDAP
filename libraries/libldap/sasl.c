@@ -69,7 +69,7 @@ ldap_sasl_bind(
 	int rc;
 	ber_int_t id;
 
-	Debug( LDAP_DEBUG_TRACE, "ldap_sasl_bind\n", 0, 0, 0 );
+	Debug( LDAP_DEBUG_TRACE, "ldap_sasl_bind\n" );
 
 	assert( ld != NULL );
 	assert( LDAP_VALID( ld ) );
@@ -168,7 +168,7 @@ ldap_sasl_bind_s(
 	LDAPMessage	*result;
 	struct berval	*scredp = NULL;
 
-	Debug( LDAP_DEBUG_TRACE, "ldap_sasl_bind_s\n", 0, 0, 0 );
+	Debug( LDAP_DEBUG_TRACE, "ldap_sasl_bind_s\n" );
 
 	/* do a quick !LDAPv3 check... ldap_sasl_bind will do the rest. */
 	if( servercredp != NULL ) {
@@ -250,7 +250,7 @@ ldap_parse_sasl_bind_result(
 	ber_tag_t tag;
 	BerElement	*ber;
 
-	Debug( LDAP_DEBUG_TRACE, "ldap_parse_sasl_bind_result\n", 0, 0, 0 );
+	Debug( LDAP_DEBUG_TRACE, "ldap_parse_sasl_bind_result\n" );
 
 	assert( ld != NULL );
 	assert( LDAP_VALID( ld ) );
@@ -359,7 +359,7 @@ ldap_pvt_sasl_getmechs ( LDAP *ld, char **pmechlist )
 	char **values, *mechlist;
 	int rc;
 
-	Debug( LDAP_DEBUG_TRACE, "ldap_pvt_sasl_getmech\n", 0, 0, 0 );
+	Debug( LDAP_DEBUG_TRACE, "ldap_pvt_sasl_getmech\n" );
 
 	rc = ldap_search_s( ld, "", LDAP_SCOPE_BASE,
 		NULL, attrs, 0, &res );
@@ -458,14 +458,14 @@ ldap_sasl_interactive_bind(
 
 		Debug( LDAP_DEBUG_TRACE,
 			"ldap_sasl_interactive_bind: server supports: %s\n",
-			smechs, 0, 0 );
+			smechs );
 
 		mechs = smechs;
 
 	} else {
 		Debug( LDAP_DEBUG_TRACE,
 			"ldap_sasl_interactive_bind: user selected: %s\n",
-			mechs, 0, 0 );
+			mechs );
 	}
 	}
 	rc = ldap_int_sasl_bind( ld, dn, mechs,
@@ -822,8 +822,7 @@ int ldap_pvt_sasl_generic_install(
 	Sockbuf *sb,
 	struct sb_sasl_generic_install *install_arg )
 {
-	Debug( LDAP_DEBUG_TRACE, "ldap_pvt_sasl_generic_install\n",
-		0, 0, 0 );
+	Debug( LDAP_DEBUG_TRACE, "ldap_pvt_sasl_generic_install\n" );
 
 	/* don't install the stuff unless security has been negotiated */
 

@@ -33,7 +33,7 @@ ldap_err2string( int err )
 {
 	char *m;
 
-	Debug( LDAP_DEBUG_TRACE, "ldap_err2string\n", 0, 0, 0 );
+	Debug( LDAP_DEBUG_TRACE, "ldap_err2string\n" );
 
 	switch ( err ) {
 #	define C(code, message) case code: m = message; break
@@ -248,7 +248,7 @@ ldap_parse_result(
 	ber_tag_t tag;
 	BerElement	*ber;
 
-	Debug( LDAP_DEBUG_TRACE, "ldap_parse_result\n", 0, 0, 0 );
+	Debug( LDAP_DEBUG_TRACE, "ldap_parse_result\n" );
 
 	assert( ld != NULL );
 	assert( LDAP_VALID( ld ) );
