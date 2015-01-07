@@ -53,6 +53,7 @@ OpenLDAP 2.4.41 Engineering
 		Fixed nssov compare with usergroup (ITS#8079)
 		Fixed nssov password change behavior (ITS#8080)
 		Fixed nssov update nss-pam-ldapd files to 0.9.4 (ITS#8097)
+		Fixed nssov update to protocol version 2 (ITS#8097)
 	Documentation
 		Added ldap_get_option(3) LDAP_FEATURE_INFO_VERSION information (ITS#8032)
 		Added ldap_get_option(3) LDAP_OPT_API_INFO_VERSION information (ITS#8032)
