@@ -40,8 +40,10 @@ CFLAGS="-Wall -g -Os" CPPFLAGS="-Wall -g -Os" ./configure \
 	--prefix=${PREFIX} --enable-dynacl --enable-ldap \
 	--enable-overlays --disable-bdb --disable-hdb \
 	--disable-dynamic --disable-shared --enable-static \
+	--with-gnu-ld \
 	--without-cyrus-sasl --disable-dependency-tracking \
-	--disable-spasswd --disable-lmpasswd --disable-rewrite --disable-rwm --disable-relay \
+	--disable-spasswd --disable-lmpasswd --disable-rewrite \
+	--without-tls --disable-rwm --disable-relay \
 	|| failure "configure"
 
 PACKAGE="$(grep VERSION= Makefile | cut -d ' ' -f 2).${BUILD_NUMBER}"
