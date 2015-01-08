@@ -76,15 +76,6 @@ static ConfigTable mdbcfg[] = {
 		mdb_cf_gen, "( OLcfgDbAt:12.2 NAME 'olcDbMaxSize' "
 		"DESC 'Maximum size of DB in bytes' "
 		"SYNTAX OMsInteger SINGLE-VALUE )", NULL, NULL },
-	{ "dreamcatcher", "lag> <percentage", 3, 3, 0, ARG_MAGIC|MDB_DREAMCATCHER,
-		mdb_cf_gen, "( OLcfgDbAt:12.4 NAME 'olcDbDreamcatcher' "
-			"DESC 'Dreamcatcher to avoids withhold of reclaiming' "
-			"SYNTAX OMsDirectoryString SINGLE-VALUE )",NULL, NULL },
-	{ "oom-handler", "flags", 2, 0, 0, ARG_MAGIC|MDB_OOMFLAGS,
-		mdb_cf_gen, "( OLcfgDbAt:12.5 NAME 'olcDbOomFlags' "
-			"DESC 'Database OOM-handler flags' "
-			"EQUALITY caseIgnoreMatch "
-			"SYNTAX OMsDirectoryString SINGLE-VALUE )", NULL, NULL },
 	{ "mode", "mode", 2, 2, 0, ARG_MAGIC|MDB_MODE,
 		mdb_cf_gen, "( OLcfgDbAt:0.3 NAME 'olcDbMode' "
 		"DESC 'Unix permissions of database files' "
@@ -93,6 +84,17 @@ static ConfigTable mdbcfg[] = {
 		mdb_cf_gen, "( OLcfgDbAt:1.9 NAME 'olcDbSearchStack' "
 		"DESC 'Depth of search stack in IDLs' "
 		"SYNTAX OMsInteger SINGLE-VALUE )", NULL, NULL },
+
+	{ "dreamcatcher", "lag> <percentage", 3, 3, 0, ARG_MAGIC|MDB_DREAMCATCHER,
+		mdb_cf_gen, "( OLcfgDbAt:12.42 NAME 'olcDbDreamcatcher' "
+			"DESC 'Dreamcatcher to avoids withhold of reclaiming' "
+			"SYNTAX OMsDirectoryString SINGLE-VALUE )",NULL, NULL },
+	{ "oom-handler", "flags", 2, 0, 0, ARG_MAGIC|MDB_OOMFLAGS,
+		mdb_cf_gen, "( OLcfgDbAt:12.43 NAME 'olcDbOomFlags' "
+			"DESC 'Database OOM-handler flags' "
+			"EQUALITY caseIgnoreMatch "
+			"SYNTAX OMsDirectoryString SINGLE-VALUE )", NULL, NULL },
+
 	{ NULL, NULL, 0, 0, 0, ARG_IGNORED,
 		NULL, NULL, NULL, NULL }
 };
