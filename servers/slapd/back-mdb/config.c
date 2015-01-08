@@ -50,7 +50,7 @@ static ConfigTable mdbcfg[] = {
 			"DESC 'Directory for database content' "
 			"EQUALITY caseIgnoreMatch "
 			"SYNTAX OMsDirectoryString SINGLE-VALUE )", NULL, NULL },
-	{ "checkpoint", "kbyte> <min", 3, 3, 0, ARG_MAGIC|MDB_CHKPT,
+	{ "checkpoint", "kbyte> <sec", 3, 3, 0, ARG_MAGIC|MDB_CHKPT,
 		mdb_cf_gen, "( OLcfgDbAt:1.2 NAME 'olcDbCheckpoint' "
 			"DESC 'Database checkpoint interval in kbytes and seconds' "
 			"SYNTAX OMsDirectoryString SINGLE-VALUE )",NULL, NULL },
