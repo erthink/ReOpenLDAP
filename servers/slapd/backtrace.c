@@ -519,12 +519,11 @@ int slap_limit_memory_get() {
 void slap_backtrace_set_enable( int value )
 {
 	if (value && ! is_bfd_symbols_available() && ! is_elf_symbols_available()) {
-		if (enabled != (value != 0))
-			Log0( LDAP_DEBUG_ANY, LDAP_LEVEL_NOTICE, "backtrace could not be enabled, because symbols not available.\n");
-		value = 0;
+		if (slap_backtrace_get_enable() != (value != 0))
+			Log0( LDAP_DEBUG_ANY, LDAP_LEVEL_NOTICE, "Backtrace could be UNUSEFUL, because symbols not available.\n");
 	}
 
-	if (enabled != (value != 0)) {
+	if (slap_backtrace_get_enable() != (value != 0)) {
 		struct sigaction sa;
 
 		if (value) {
