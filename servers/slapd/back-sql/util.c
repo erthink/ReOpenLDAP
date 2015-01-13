@@ -104,6 +104,7 @@ backsql_strcat_x( struct berbuf *dest, void *memctx, ... )
 			if ( tmp_dest == NULL ) {
 				Debug( LDAP_DEBUG_ANY, "backsql_strcat(): "
 					"could not reallocate string buffer.\n" );
+				va_end( strs );
 				return NULL;
 			}
 			dest->bb_val.bv_val = tmp_dest;
@@ -210,6 +211,7 @@ backsql_strfcat_x( struct berbuf *dest, void *memctx, const char *fmt, ... )
 			if ( tmp_dest == NULL ) {
 				Debug( LDAP_DEBUG_ANY, "backsql_strfcat(): "
 					"could not reallocate string buffer.\n" );
+				va_end( strs );
 				return NULL;
 			}
 			dest->bb_val.bv_val = tmp_dest;
@@ -567,4 +569,3 @@ backsql_entryUUID_decode(
 
 	return LDAP_SUCCESS;
 }
-
