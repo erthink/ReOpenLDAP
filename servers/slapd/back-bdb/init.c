@@ -403,6 +403,7 @@ shm_retry:
 			Debug( LDAP_DEBUG_ANY,
 				LDAP_XSTRING(bdb_db_open) ": %s\n",
 				cr->msg );
+			ch_free( db );
 			goto fail;
 		}
 
@@ -416,6 +417,8 @@ shm_retry:
 				Debug( LDAP_DEBUG_ANY,
 					LDAP_XSTRING(bdb_db_open) ": %s\n",
 					cr->msg );
+				db->bdi_db->close( db->bdi_db, 0 );
+				ch_free( db );
 				goto fail;
 			}
 		}
@@ -430,6 +433,8 @@ shm_retry:
 				Debug( LDAP_DEBUG_ANY,
 					LDAP_XSTRING(bdb_db_open) ": %s\n",
 					cr->msg );
+				db->bdi_db->close( db->bdi_db, 0 );
+				ch_free( db );
 				goto fail;
 			}
 		}
@@ -501,6 +506,7 @@ shm_retry:
 				LDAP_XSTRING(bdb_db_open) ": %s\n",
 				cr->msg );
 			db->bdi_db->close( db->bdi_db, 0 );
+			ch_free( db );
 			goto fail;
 		}
 
@@ -862,4 +868,3 @@ SLAP_BACKEND_INIT_MODULE( bdb )
 #endif /* !BDB_HIER */
 
 #endif /* SLAPD_[BH]DB == SLAPD_MOD_DYNAMIC */
-
