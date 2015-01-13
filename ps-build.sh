@@ -22,7 +22,7 @@ step_finish "cleanup"
 echo "======================================================================="
 step_begin "prepare"
 
-BUILD_NUMBER=${1:-build_number_as_the_first_parameter}
+BUILD_NUMBER=${1:-$(date '+%y%m%d')}
 PREFIX=${2:-$(pwd)/install_prefix_as_the_second_parameter}/openldap
 
 echo "BUILD_NUMBER: $BUILD_NUMBER"
