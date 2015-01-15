@@ -177,7 +177,7 @@ SLAPPASSWD="$TESTWD/../servers/slapd/slapd -Tpasswd"
 unset DIFF_OPTIONS
 # NOTE: -u/-c is not that portable...
 DIFF="diff -i"
-CMP="diff -i"
+CMP="diff -i -Z"
 BCMP="diff -iB"
 CMPOUT=/dev/null
 SLAPD="$TESTWD/../servers/slapd/slapd -s0"
@@ -359,4 +359,3 @@ DDSOUT=$DATADIR/dds.out
 MEMBEROFOUT=$DATADIR/memberof.out
 MEMBEROFREFINTOUT=$DATADIR/memberof-refint.out
 SHTOOL="$SRCDIR/../build/shtool"
-
