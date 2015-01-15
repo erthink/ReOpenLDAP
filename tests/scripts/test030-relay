@@ -98,7 +98,7 @@ for RELAY in $RELAYS ; do
 			echo ""
 
 			mv -f $LOG1 $tmpfile
-			rm -rf $TESTDIR
+			find -H ${TESTDIR} -maxdepth 1 -mindepth 1 | xargs rm -rf || exit $?
 		fi
 
 		mkdir -p $TESTDIR $DBDIR1

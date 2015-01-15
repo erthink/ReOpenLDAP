@@ -28,7 +28,7 @@ if test $RWM = rwmno ; then
 	exit 0
 fi
 
-rm -rf $TESTDIR
+find -H ${TESTDIR} -maxdepth 1 -mindepth 1 | xargs rm -rf || exit $?
 
 mkdir -p $TESTDIR $DBDIR1 $DBDIR2
 

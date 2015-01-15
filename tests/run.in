@@ -213,7 +213,7 @@ fi
 if test -d ${TESTDIR} ; then
 	if test $PRESERVE = no ; then
 		echo "Cleaning up test run directory leftover from previous run."
-		/bin/rm -rf ${TESTDIR}
+		find -H ${TESTDIR} -maxdepth 1 -mindepth 1 | xargs rm -rf || exit $?
 	elif test $PRESERVE = yes ; then
 		echo "Cleaning up only database directories leftover from previous run."
 		/bin/rm -rf ${TESTDIR}/db.*
@@ -236,7 +236,7 @@ if test $USERDATA = yes ; then
 		echo "User data directory (userdata) does not exist."
 		exit 1
 	fi
-	cp -R userdata/* ${TESTDIR}
+	cp -R userdata/* ${TESTDIR}/
 fi
 
 # disable LDAP initialization
@@ -252,7 +252,7 @@ while [ $COUNTER -le $LOOP ]; do
 
 	if test $CLEAN = yes ; then
 		echo "Cleaning up test run directory from this run."
-		/bin/rm -rf ${TESTDIR}
+		find -H ${TESTDIR} -maxdepth 1 -mindepth 1 | xargs rm -rf || exit $?
 		echo "Cleaning up symlinks."
 		/bin/rm -f ${DATADIR} ${SCHEMADIR}
 	fi
@@ -266,7 +266,7 @@ while [ $COUNTER -le $LOOP ]; do
 		COUNTER=`expr $COUNTER + 1`
 		if [ $COUNTER -le $LOOP ]; then
 			echo "Cleaning up test run directory from this run."
-			/bin/rm -rf ${TESTDIR}
+			find -H ${TESTDIR} -maxdepth 1 -mindepth 1 | xargs rm -rf || exit $?
 		fi
 	fi
 done

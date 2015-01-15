@@ -44,7 +44,7 @@ for CMD in $SRCDIR/scripts/test*; do
 	if test $PRESERVE = yes ; then
 		/bin/rm -rf $TESTDIR/db.*
 	else
-		/bin/rm -rf $TESTDIR
+		find -H ${TESTDIR} -maxdepth 1 -mindepth 1 | xargs rm -rf || exit $?
 	fi
 	if test $BACKEND = ndb ; then
 		mysql --user root <<EOF
