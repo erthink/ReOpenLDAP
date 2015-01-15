@@ -927,7 +927,7 @@ ldap_put_vrFilter( BerElement *ber, const char *str_in )
 	int rc =0;
 
 	if ( ber_printf( ber, "{" /*"}"*/ ) == -1 ) {
-		rc = -1;
+		return -1;
 	}
 
 	rc = put_vrFilter( ber, str_in );
