@@ -362,7 +362,8 @@ int ldap_domain2hostlist(
 		hostent_head[hostent_count].priority=priority;
 		hostent_head[hostent_count].weight=weight;
 		hostent_head[hostent_count].port=port;
-		strncpy(hostent_head[hostent_count].hostname, host, MAXHOST);
+		strncpy(hostent_head[hostent_count].hostname, host, MAXHOST-1);
+		hostent_head[hostent_count].hostname[MAXHOST-1] = '\0';
 		hostent_count++;
 	    }
 add_size:;
