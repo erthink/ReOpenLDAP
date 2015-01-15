@@ -167,7 +167,7 @@ init_component_description_table () {
 		asn_to_syn = &asn_to_syntax_mapping_tbl[ id ];
 		if ( asn_to_syn->ats_syn_oid )
 			syn = syn_find ( asn_to_syn->ats_syn_oid );
-		else 
+		else
 			syn = NULL;
 		asntype_to_compType_mapping_tbl[id].ac_comp_type.ct_syntax = syn;
 
@@ -195,7 +195,7 @@ retrieve_matching_rule( char* mr_oid, AsnTypeId type ) {
 	return (MatchingRule*)NULL;
 }
 
-void* 
+void*
 comp_convert_attr_to_comp LDAP_P (( Attribute* a, Syntax *syn, struct berval* bv ))
 {
 	char* peek_head;
@@ -205,7 +205,7 @@ comp_convert_attr_to_comp LDAP_P (( Attribute* a, Syntax *syn, struct berval* bv
         GenBuf* b = NULL;
         ExpBuf* buf = NULL;
 	OidDecoderMapping* odm;
-	
+
 	/* look for the decoder registered for the given attribute */
 	odm = RetrieveOidDecoderMappingbyOid( oid, strlen(oid) );
 
@@ -294,7 +294,7 @@ int intToAscii( int value, char* buf ) {
 		value = value*(-1);
 		buf[0] = '-';
 	}
-	
+
 	/* How many digits */
 	for ( temp = value, total_num_digits=0 ; temp ; total_num_digits++ )
 		temp = temp/10;
@@ -319,7 +319,7 @@ comp_convert_asn_to_ldap ( MatchingRule* mr, ComponentSyntaxInfo* csi, struct be
 		&asn_to_syntax_mapping_tbl[csi->csi_comp_desc->cd_type_id];
 	if ( asn_to_syn->ats_syn_oid )
 		csi->csi_syntax = syn_find ( asn_to_syn->ats_syn_oid );
-	else 
+	else
 		csi->csi_syntax = NULL;
 
 
@@ -475,7 +475,7 @@ comp_test_all_components (
 				if ( rc != LDAP_COMPARE_FALSE ) {
 					break;
 				}
-#if 0				
+#if 0
 				if ( rc == LDAP_COMPARE_TRUE ) {
 					break;
 				}
@@ -646,9 +646,9 @@ comp_test_components( void* attr_nm, void* assert_nm, ComponentSyntaxInfo* csi_a
 		}
 
 		if ( cr->cr_curr->ci_type == LDAP_COMPREF_SELECT ) {
-			/* Look up OID mapping table */	
+			/* Look up OID mapping table */
 			odm = RetrieveOidDecoderMappingbyBV( &cr->cr_curr->ci_val.ci_select_value );
-			
+
 			if ( !odm || !odm->BER_Decode )
 				return  LDAP_PROTOCOL_ERROR;
 
@@ -739,7 +739,7 @@ comp_component_encoder ( void* mem_op, ComponentSyntaxInfo* csi , struct berval*
         GenBuf* b;
         ExpBuf* buf;
 	struct berval bv;
-	
+
 	buf = ExpBufAllocBufAndData();
 	ExpBufResetInWriteRvsMode(buf);
 	ExpBuftoGenBuf( buf, &b );
@@ -763,7 +763,7 @@ comp_component_encoder ( void* mem_op, ComponentSyntaxInfo* csi , struct berval*
 		nval->bv_len = bv.bv_len;
 		/*
 		 * This free will be eliminated by making ldap_encoder
-		 * use nibble memory in it 
+		 * use nibble memory in it
 		 */
 		free ( bv.bv_val );
 		GenBufFreeBuf( b );

@@ -56,7 +56,7 @@ Abstract
 
 
 Zeilenga                 Best Current Practice                  [Page 1]
-
+
 RFC 4520              IANA Considerations for LDAP             June 2006
 
 
@@ -112,7 +112,7 @@ RFC 4520              IANA Considerations for LDAP             June 2006
 
 
 Zeilenga                 Best Current Practice                  [Page 2]
-
+
 RFC 4520              IANA Considerations for LDAP             June 2006
 
 
@@ -168,7 +168,7 @@ RFC 4520              IANA Considerations for LDAP             June 2006
 
 
 Zeilenga                 Best Current Practice                  [Page 3]
-
+
 RFC 4520              IANA Considerations for LDAP             June 2006
 
 
@@ -224,7 +224,7 @@ RFC 4520              IANA Considerations for LDAP             June 2006
 
 
 Zeilenga                 Best Current Practice                  [Page 4]
-
+
 RFC 4520              IANA Considerations for LDAP             June 2006
 
 
@@ -280,7 +280,7 @@ RFC 4520              IANA Considerations for LDAP             June 2006
 
 
 Zeilenga                 Best Current Practice                  [Page 5]
-
+
 RFC 4520              IANA Considerations for LDAP             June 2006
 
 
@@ -336,7 +336,7 @@ RFC 4520              IANA Considerations for LDAP             June 2006
 
 
 Zeilenga                 Best Current Practice                  [Page 6]
-
+
 RFC 4520              IANA Considerations for LDAP             June 2006
 
 
@@ -392,7 +392,7 @@ RFC 4520              IANA Considerations for LDAP             June 2006
 
 
 Zeilenga                 Best Current Practice                  [Page 7]
-
+
 RFC 4520              IANA Considerations for LDAP             June 2006
 
 
@@ -448,7 +448,7 @@ RFC 4520              IANA Considerations for LDAP             June 2006
 
 
 Zeilenga                 Best Current Practice                  [Page 8]
-
+
 RFC 4520              IANA Considerations for LDAP             June 2006
 
 
@@ -504,7 +504,7 @@ RFC 4520              IANA Considerations for LDAP             June 2006
 
 
 Zeilenga                 Best Current Practice                  [Page 9]
-
+
 RFC 4520              IANA Considerations for LDAP             June 2006
 
 
@@ -560,7 +560,7 @@ RFC 4520              IANA Considerations for LDAP             June 2006
 
 
 Zeilenga                 Best Current Practice                 [Page 10]
-
+
 RFC 4520              IANA Considerations for LDAP             June 2006
 
 
@@ -616,7 +616,7 @@ RFC 4520              IANA Considerations for LDAP             June 2006
 
 
 Zeilenga                 Best Current Practice                 [Page 11]
-
+
 RFC 4520              IANA Considerations for LDAP             June 2006
 
 
@@ -672,7 +672,7 @@ RFC 4520              IANA Considerations for LDAP             June 2006
 
 
 Zeilenga                 Best Current Practice                 [Page 12]
-
+
 RFC 4520              IANA Considerations for LDAP             June 2006
 
 
@@ -728,7 +728,7 @@ A.2.  LDAP Protocol Mechanism Registration Template
 
 
 Zeilenga                 Best Current Practice                 [Page 13]
-
+
 RFC 4520              IANA Considerations for LDAP             June 2006
 
 
@@ -784,7 +784,7 @@ A.4.  LDAP Descriptor Registration Template
 
 
 Zeilenga                 Best Current Practice                 [Page 14]
-
+
 RFC 4520              IANA Considerations for LDAP             June 2006
 
 
@@ -840,7 +840,7 @@ A.7.  LDAP Authentication Method Registration Template
 
 
 Zeilenga                 Best Current Practice                 [Page 15]
-
+
 RFC 4520              IANA Considerations for LDAP             June 2006
 
 
@@ -896,7 +896,7 @@ A.8.  LDAP Search Scope Registration Template
 
 
 Zeilenga                 Best Current Practice                 [Page 16]
-
+
 RFC 4520              IANA Considerations for LDAP             June 2006
 
 
@@ -952,7 +952,7 @@ Appendix B.  Changes since RFC 3383
 
 
 Zeilenga                 Best Current Practice                 [Page 17]
-
+
 RFC 4520              IANA Considerations for LDAP             June 2006
 
 
@@ -1008,7 +1008,7 @@ Author's Address
 
 
 Zeilenga                 Best Current Practice                 [Page 18]
-
+
 RFC 4520              IANA Considerations for LDAP             June 2006
 
 
@@ -1064,4 +1064,4 @@ Acknowledgement
 
 
 Zeilenga                 Best Current Practice                 [Page 19]
-
+

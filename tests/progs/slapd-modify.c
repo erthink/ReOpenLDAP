@@ -173,13 +173,13 @@ main( int argc, char **argv )
 				argv[0] );
 		exit( EXIT_FAILURE );
 	}
-	
+
 	if ( !( value = strchr( ava, ':' ))) {
 		fprintf( stderr, "%s: invalid AVA.\n",
 				argv[0] );
 		exit( EXIT_FAILURE );
 	}
-	*value++ = '\0'; 
+	*value++ = '\0';
 	while ( *value && isspace( (unsigned char) *value ))
 		value++;
 
@@ -223,7 +223,7 @@ retry:;
 		exit( EXIT_FAILURE );
 	}
 
-	(void) ldap_set_option( ld, LDAP_OPT_PROTOCOL_VERSION, &version ); 
+	(void) ldap_set_option( ld, LDAP_OPT_PROTOCOL_VERSION, &version );
 	(void) ldap_set_option( ld, LDAP_OPT_REFERRALS,
 		chaserefs ? LDAP_OPT_ON : LDAP_OPT_OFF );
 
@@ -279,7 +279,7 @@ retry:;
 				goto done;
 			}
 		}
-		
+
 		mod.mod_op = LDAP_MOD_DELETE;
 		rc = ldap_modify_ext_s( ld, entry, mods, NULL, NULL );
 		if ( rc != LDAP_SUCCESS ) {

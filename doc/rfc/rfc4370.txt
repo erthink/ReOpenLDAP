@@ -56,7 +56,7 @@ Abstract
 
 
 Weltman                     Standards Track                     [Page 1]
-
+
 RFC 4370           LDAP Proxied Authorization Control      February 2006
 
 
@@ -112,7 +112,7 @@ RFC 4370           LDAP Proxied Authorization Control      February 2006
 
 
 Weltman                     Standards Track                     [Page 2]
-
+
 RFC 4370           LDAP Proxied Authorization Control      February 2006
 
 
@@ -168,7 +168,7 @@ RFC 4370           LDAP Proxied Authorization Control      February 2006
 
 
 Weltman                     Standards Track                     [Page 3]
-
+
 RFC 4370           LDAP Proxied Authorization Control      February 2006
 
 
@@ -224,7 +224,7 @@ Author's Address
 
 
 Weltman                     Standards Track                     [Page 4]
-
+
 RFC 4370           LDAP Proxied Authorization Control      February 2006
 
 
@@ -280,4 +280,4 @@ Acknowledgement
 
 
 Weltman                     Standards Track                     [Page 5]
-
+

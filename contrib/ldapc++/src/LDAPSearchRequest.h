@@ -14,21 +14,21 @@ class LDAPSearchReference;
 class LDAPReferral;
 class LDAPUrl;
 
-class LDAPSearchRequest : public LDAPRequest{ 
+class LDAPSearchRequest : public LDAPRequest{
 
     public :
         LDAPSearchRequest(const LDAPSearchRequest& req);
 
         LDAPSearchRequest(const std::string& base, int scope, const std::string& filter,
-                          const StringList& attrs, bool attrsOnly, 
+                          const StringList& attrs, bool attrsOnly,
                           LDAPAsynConnection *connect,
                           const LDAPConstraints* cons, bool isReferral=false,
                           const LDAPRequest* parent=0);
-        virtual ~LDAPSearchRequest();        
+        virtual ~LDAPSearchRequest();
         virtual LDAPMessageQueue* sendRequest();
         virtual LDAPRequest* followReferral(LDAPMsg* ref);
         virtual bool equals(const LDAPRequest* req) const;
-    
+
     private :
         std::string m_base;
         int m_scope;

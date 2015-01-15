@@ -50,7 +50,7 @@ ldap_back_add(
 	LDAPControl		**ctrls = NULL;
 
 	rs->sr_err = LDAP_SUCCESS;
-	
+
 	Debug( LDAP_DEBUG_ARGS, "==> ldap_back_add(\"%s\")\n",
 			op->o_req_dn.bv_val, 0, 0 );
 
@@ -62,9 +62,9 @@ ldap_back_add(
 	/* Count number of attributes in entry */
 	for ( i = 1, a = op->oq_add.rs_e->e_attrs; a; i++, a = a->a_next )
 		/* just count attrs */ ;
-	
+
 	/* Create array of LDAPMods for ldap_add() */
-	attrs = (LDAPMod **)ch_malloc( sizeof( LDAPMod * )*i 
+	attrs = (LDAPMod **)ch_malloc( sizeof( LDAPMod * )*i
 			+ sizeof( LDAPMod )*( i - 1 ) );
 	attrs2 = ( LDAPMod * )&attrs[ i ];
 
@@ -81,7 +81,7 @@ ldap_back_add(
 
 		for ( j = 0; a->a_vals[ j ].bv_val; j++ )
 			/* just count vals */ ;
-		attrs[i]->mod_vals.modv_bvals = 
+		attrs[i]->mod_vals.modv_bvals =
 			ch_malloc( ( j + 1 )*sizeof( struct berval * ) );
 		for ( j = 0; a->a_vals[ j ].bv_val; j++ ) {
 			attrs[ i ]->mod_vals.modv_bvals[ j ] = &a->a_vals[ j ];

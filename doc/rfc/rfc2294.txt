@@ -56,7 +56,7 @@ Abstract
 
 
 Kille                       Standards Track                     [Page 1]
-
+
 RFC 2294               Directory Information Tree             March 1998
 
 
@@ -112,7 +112,7 @@ RFC 2294               Directory Information Tree             March 1998
 
 
 Kille                       Standards Track                     [Page 2]
-
+
 RFC 2294               Directory Information Tree             March 1998
 
 
@@ -168,7 +168,7 @@ RFC 2294               Directory Information Tree             March 1998
 
 
 Kille                       Standards Track                     [Page 3]
-
+
 RFC 2294               Directory Information Tree             March 1998
 
 
@@ -224,7 +224,7 @@ mHSOrganization OBJECT-CLASS ::= {
 
 
 Kille                       Standards Track                     [Page 4]
-
+
 RFC 2294               Directory Information Tree             March 1998
 
 
@@ -280,7 +280,7 @@ mHSNamedObject OBJECT-CLASS ::= {
 
 
 Kille                       Standards Track                     [Page 5]
-
+
 RFC 2294               Directory Information Tree             March 1998
 
 
@@ -336,7 +336,7 @@ mHSTerminalIDName ATTRIBUTE ::= {
 
 
 Kille                       Standards Track                     [Page 6]
-
+
 RFC 2294               Directory Information Tree             March 1998
 
 
@@ -392,7 +392,7 @@ mHSNumericeUserIdentifierName ATTRIBUTE ::= {
 
 
 Kille                       Standards Track                     [Page 7]
-
+
 RFC 2294               Directory Information Tree             March 1998
 
 
@@ -448,7 +448,7 @@ DDA          mHSDomainDefinedAttribute  mHSDomainDefinedAttributeType
 
 
 Kille                       Standards Track                     [Page 8]
-
+
 RFC 2294               Directory Information Tree             March 1998
 
 
@@ -504,7 +504,7 @@ RFC 2294               Directory Information Tree             March 1998
 
 
 Kille                       Standards Track                     [Page 9]
-
+
 RFC 2294               Directory Information Tree             March 1998
 
 
@@ -560,7 +560,7 @@ References
 
 
 Kille                       Standards Track                    [Page 10]
-
+
 RFC 2294               Directory Information Tree             March 1998
 
 
@@ -616,7 +616,7 @@ RFC 2294               Directory Information Tree             March 1998
 
 
 Kille                       Standards Track                    [Page 11]
-
+
 RFC 2294               Directory Information Tree             March 1998
 
 
@@ -672,7 +672,7 @@ at-mhs-generation-qualifier OBJECT IDENTIFIER ::= {at 18}
 
 
 Kille                       Standards Track                    [Page 12]
-
+
 RFC 2294               Directory Information Tree             March 1998
 
 
@@ -728,4 +728,4 @@ Full Copyright Statement
 
 
 Kille                       Standards Track                    [Page 13]
-
+

@@ -72,8 +72,8 @@ Options.  Backend-specific options are discussed in the
 manual pages.  Refer to the "OpenLDAP Administrator's Guide" for more
 details on the slapd configuration file.
 .SH GLOBAL CONFIGURATION OPTIONS
-Options described in this section apply to all backends, unless specifically 
-overridden in a backend definition. Arguments that should be replaced by 
+Options described in this section apply to all backends, unless specifically
+overridden in a backend definition. Arguments that should be replaced by
 actual text are shown in brackets <>.
 .TP
 .B access to <what> "[ by <who> <access> <control> ]+"
@@ -108,7 +108,7 @@ allows unauthenticated (anonymous) proxy authorization control to be processed
 (subject to access controls, authorization and other administrative limits).
 .TP
 .B argsfile <filename>
-The (absolute) name of a file that will hold the 
+The (absolute) name of a file that will hold the
 .B slapd
 server's command line (program name and options).
 .TP
@@ -159,7 +159,7 @@ forms as well as numeric OIDs to be used for the attribute OID and
 attribute syntax OID.
 (See the
 .B objectidentifier
-description.) 
+description.)
 .RE
 .TP
 .B authid\-rewrite<cmd> <args>
@@ -209,7 +209,7 @@ The
 flag requires both authorizations to succeed.
 .LP
 .RS
-The rules are mechanisms to specify which identities are allowed 
+The rules are mechanisms to specify which identities are allowed
 to perform proxy authorization.
 The
 .I authzFrom
@@ -229,8 +229,8 @@ The value of
 .I authzFrom
 and
 .I authzTo
-describes an 
-.B identity 
+describes an
+.B identity
 or a set of identities; it can take five forms:
 .RS
 .TP
@@ -255,7 +255,7 @@ or a set of identities; it can take five forms:
 .RE
 The first form is a valid LDAP
 .B URI
-where the 
+where the
 .IR <host>:<port> ,
 the
 .I <attrs>
@@ -263,9 +263,9 @@ and the
 .I <extensions>
 portions must be absent, so that the search occurs locally on either
 .I authzFrom
-or 
+or
 .IR authzTo .
-The second form is a 
+The second form is a
 .BR DN ,
 with the optional style modifiers
 .IR exact ,
@@ -273,7 +273,7 @@ with the optional style modifiers
 .IR children ,
 and
 .I subtree
-for exact, onelevel, children and subtree matches, which cause 
+for exact, onelevel, children and subtree matches, which cause
 .I <pattern>
 to be normalized according to the DN normalization rules, or the special
 .I regex
@@ -298,7 +298,7 @@ that allow to specify a SASL
 and eventually a SASL
 .BR realm ,
 for those mechanisms that support one.
-The need to allow the specification of a mechanism is still debated, 
+The need to allow the specification of a mechanism is still debated,
 and users are strongly discouraged to rely on this possibility.
 The fourth form is a group specification, consisting of the keyword
 .BR group ,
@@ -316,22 +316,22 @@ For backwards compatibility, if no identity type is provided, i.e. only
 .B <pattern>
 is present, an
 .I exact DN
-is assumed; as a consequence, 
+is assumed; as a consequence,
 .B <pattern>
 is subjected to DN normalization.
 Since the interpretation of
 .I authzFrom
 and
 .I authzTo
-can impact security, users are strongly encouraged 
+can impact security, users are strongly encouraged
 to explicitly set the type of identity specification that is being used.
-A subset of these rules can be used as third arg in the 
+A subset of these rules can be used as third arg in the
 .B authz\-regexp
-statement (see below); significantly, the 
+statement (see below); significantly, the
 .IR URI ,
 provided it results in exactly one entry,
 and the
-.I dn.exact:<dn> 
+.I dn.exact:<dn>
 forms.
 .RE
 .TP
@@ -342,9 +342,9 @@ in case of cert-based SASL EXTERNAL, or provided within the RFC 4370
 "proxied authorization" control, to an LDAP DN used for
 authorization purposes.  Note that the resulting DN need not refer
 to an existing entry to be considered valid.  When an authorization
-request is received from the SASL subsystem, the SASL 
+request is received from the SASL subsystem, the SASL
 .BR USERNAME ,
-.BR REALM , 
+.BR REALM ,
 and
 .B MECHANISM
 are taken, when available, and combined into a name of the form
@@ -359,9 +359,9 @@ This name is then compared against the
 POSIX (''extended'') regular expression, and if the match is successful,
 the name is replaced with the
 .B replace
-string.  If there are wildcard strings in the 
+string.  If there are wildcard strings in the
 .B match
-regular expression that are enclosed in parenthesis, e.g. 
+regular expression that are enclosed in parenthesis, e.g.
 .RS
 .TP
 .B UID=([^,]*),CN=.*
@@ -369,13 +369,13 @@ regular expression that are enclosed in parenthesis, e.g.
 .RE
 then the portion of the name that matched the wildcard will be stored
 in the numbered placeholder variable $1. If there are other wildcard strings
-in parenthesis, the matching strings will be in $2, $3, etc. up to $9. The 
-placeholders can then be used in the 
+in parenthesis, the matching strings will be in $2, $3, etc. up to $9. The
+placeholders can then be used in the
 .B replace
-string, e.g. 
+string, e.g.
 .RS
 .TP
-.B UID=$1,OU=Accounts,DC=example,DC=com 
+.B UID=$1,OU=Accounts,DC=example,DC=com
 
 .RE
 The replaced name can be either a DN, i.e. a string prefixed by "dn:",
@@ -395,10 +395,10 @@ The protocol portion of the URI must be strictly
 Note that this search is subject to access controls.  Specifically,
 the authentication identity must have "auth" access in the subject.
 
-Multiple 
-.B authz\-regexp 
-options can be given in the configuration file to allow for multiple matching 
-and replacement patterns. The matching patterns are checked in the order they 
+Multiple
+.B authz\-regexp
+options can be given in the configuration file to allow for multiple matching
+and replacement patterns. The matching patterns are checked in the order they
 appear in the file, stopping at the first successful match.
 
 .\".B Caution:
@@ -464,7 +464,7 @@ forms as well as numeric OIDs to be used for the attribute OID and
 attribute syntax OID.
 (See the
 .B objectidentifier
-description.) 
+description.)
 .RE
 .TP
 .B gentlehup { on | off }
@@ -544,7 +544,7 @@ The slapd parser extends the RFC 4512 definition by allowing string
 forms as well as numeric OIDs to be used for the syntax OID.
 (See the
 .B objectidentifier
-description.) 
+description.)
 The slapd parser also honors the
 .B X\-SUBST
 extension (an OpenLDAP-specific extension), which allows to use the
@@ -558,7 +558,7 @@ The
 must be defined.
 This allows to define attribute types that make use of non-implemented syntaxes
 using the correct syntax OID.
-Unless 
+Unless
 .B X\-SUBST
 is used, this configuration statement would result in an error,
 since no handlers would be associated to the resulting syntax structure.
@@ -573,7 +573,7 @@ The value should be set to a power of 2.
 .B localSSF <SSF>
 Specifies the Security Strength Factor (SSF) to be given local LDAP sessions,
 such as those to the ldapi:// listener.  For a description of SSF values,
-see 
+see
 .BR sasl-secprops 's
 .B minssf
 option description.  The default is 71.
@@ -584,13 +584,13 @@ only go to stderr and are not recorded anywhere else. Specifying a logfile
 copies messages to both stderr and the logfile.
 .TP
 .B loglevel <integer> [...]
-Specify the level at which debugging statements and operation 
+Specify the level at which debugging statements and operation
 statistics should be syslogged (currently logged to the
-.BR syslogd (8) 
+.BR syslogd (8)
 LOG_LOCAL4 facility).
-They must be considered subsystems rather than increasingly verbose 
+They must be considered subsystems rather than increasingly verbose
 log levels.
-Some messages with higher priority are logged regardless 
+Some messages with higher priority are logged regardless
 of the configured loglevel as soon as any logging is configured.
 Log levels are additive, and available levels are:
 .RS
@@ -662,7 +662,7 @@ LDAPSync replication
 only messages that get logged whatever log level is set
 .PD
 .RE
-The desired log level can be input as a single integer that combines 
+The desired log level can be input as a single integer that combines
 the (ORed) desired levels, both in decimal or in hexadecimal notation,
 as a list of integers (that are ORed internally),
 or as a list of the names that are shown between brackets, such that
@@ -676,15 +676,15 @@ or as a list of the names that are shown between brackets, such that
 .fi
 .LP
 are equivalent.
-The keyword 
+The keyword
 .B any
 can be used as a shortcut to enable logging at all levels (equivalent to \-1).
 The keyword
 .BR none ,
 or the equivalent integer representation, causes those messages
 that are logged regardless of the configured loglevel to be logged.
-In fact, if loglevel is set to 0, no logging occurs, 
-so at least the 
+In fact, if loglevel is set to 0, no logging occurs,
+so at least the
 .B none
 level is required to have high priority messages logged.
 
@@ -786,7 +786,7 @@ versions of crypt(3) to use an MD5 algorithm and provides
 provides 31 characters of salt.
 .TP
 .B pidfile <filename>
-The (absolute) name of a file that will hold the 
+The (absolute) name of a file that will hold the
 .B slapd
 server's process ID (see
 .BR getpid (2)).
@@ -821,8 +821,8 @@ set conditions within a particular database); it must occur first
 in the list of conditions.
 .TP
 .B reverse\-lookup on | off
-Enable/disable client name unverified reverse lookup (default is 
-.BR off 
+Enable/disable client name unverified reverse lookup (default is
+.BR off
 if compiled with \-\-enable\-rlookups).
 .TP
 .B rootDSE <file>
@@ -875,7 +875,7 @@ The
 require mechanisms which pass client credentials (and allow
 mechanisms which can pass credentials to do so).
 The
-.B minssf=<factor> 
+.B minssf=<factor>
 property specifies the minimum acceptable
 .I security strength factor
 as an integer approximate to effective key length used for
@@ -884,12 +884,12 @@ protection only, 56 allows DES or other weak ciphers, 112
 allows triple DES and other strong ciphers, 128 allows RC4,
 Blowfish and other modern strong ciphers.  The default is 0.
 The
-.B maxssf=<factor> 
+.B maxssf=<factor>
 property specifies the maximum acceptable
 .I security strength factor
 as an integer (see minssf description).  The default is INT_MAX.
 The
-.B maxbufsize=<size> 
+.B maxbufsize=<size>
 property specifies the maximum security layer receive buffer
 size allowed.  0 disables security layers.  The default is 65536.
 .TP
@@ -1053,9 +1053,9 @@ To check what ciphers a given spec selects in OpenSSL, use:
 	openssl ciphers \-v <cipher-suite-spec>
 .fi
 
-With GnuTLS the available specs can be found in the manual page of 
+With GnuTLS the available specs can be found in the manual page of
 .BR gnutls\-cli (1)
-(see the description of the 
+(see the description of the
 option
 .BR \-\-priority ).
 
@@ -1124,7 +1124,7 @@ Specifies the file that contains the
 server private key that matches the certificate stored in the
 .B TLSCertificateFile
 file.  Currently, the private key must not be protected with a password, so
-it is of critical importance that it is protected carefully. 
+it is of critical importance that it is protected carefully.
 
 When using Mozilla NSS, TLSCertificateKeyFile specifies the name of
 a file that contains the password for the key for the certificate specified with
@@ -1208,7 +1208,7 @@ setting must be chosen to enable SASL EXTERNAL authentication.
 .RE
 .TP
 .B TLSCRLCheck <level>
-Specifies if the Certificate Revocation List (CRL) of the CA should be 
+Specifies if the Certificate Revocation List (CRL) of the CA should be
 used to verify if the client certificates have not been revoked. This
 requires
 .B TLSCACertificatePath
@@ -1325,8 +1325,8 @@ with other databases. By default, hidden is off.
 .B lastmod on | off
 Controls whether
 .B slapd
-will automatically maintain the 
-modifiersName, modifyTimestamp, creatorsName, and 
+will automatically maintain the
+modifiersName, modifyTimestamp, creatorsName, and
 createTimestamp attributes for entries. It also controls
 the entryCSN and entryUUID attributes, which are needed
 by the syncrepl provider. By default, lastmod is on.
@@ -1366,15 +1366,15 @@ The term
 matches all authenticated clients;
 otherwise an
 .B exact
-dn pattern is assumed unless otherwise specified by qualifying 
+dn pattern is assumed unless otherwise specified by qualifying
 the (optional) key string
 .B dn
-with 
+with
 .B exact
 or
 .B base
 (which are synonyms), to require an exact match; with
-.BR onelevel , 
+.BR onelevel ,
 to require exactly one level of depth match; with
 .BR subtree ,
 to allow any level of depth match, including the exact match; with
@@ -1385,10 +1385,10 @@ explicitly requires the (default) match based on POSIX (''extended'')
 regular expression pattern.
 Finally,
 .B anonymous
-matches unbound operations; the 
+matches unbound operations; the
 .B pattern
 field is ignored.
-The same behavior is obtained by using the 
+The same behavior is obtained by using the
 .B anonymous
 form of the
 .B <selector>
@@ -1405,24 +1405,24 @@ sets the limits for any DN listed in the values of the
 .B at
 attribute (default
 .BR member )
-of the 
+of the
 .B oc
 group objectClass (default
 .BR groupOfNames )
 whose DN exactly matches
 .BR pattern .
 
-The currently supported limits are 
+The currently supported limits are
 .B size
-and 
+and
 .BR time .
 
-The syntax for time limits is 
+The syntax for time limits is
 .BR time[.{soft|hard}]=<integer> ,
-where 
+where
 .I integer
 is the number of seconds slapd will spend answering a search request.
-If no time limit is explicitly requested by the client, the 
+If no time limit is explicitly requested by the client, the
 .BR soft
 limit is used; if the requested time limit exceeds the
 .BR hard
@@ -1432,16 +1432,16 @@ limit is used; if the requested time limit exceeds the
 limit, the value of the limit is used instead.
 If the
 .BR hard
-limit is set to the keyword 
+limit is set to the keyword
 .IR soft ,
-the soft limit is used in either case; if it is set to the keyword 
-.IR unlimited , 
+the soft limit is used in either case; if it is set to the keyword
+.IR unlimited ,
 no hard limit is enforced.
 Explicit requests for time limits smaller or equal to the
-.BR hard 
+.BR hard
 limit are honored.
-If no limit specifier is set, the value is assigned to the 
-.BR soft 
+If no limit specifier is set, the value is assigned to the
+.BR soft
 limit, and the
 .BR hard
 limit is set to
@@ -1452,22 +1452,22 @@ The syntax for size limits is
 .BR size[.{soft|hard|unchecked}]=<integer> ,
 where
 .I integer
-is the maximum number of entries slapd will return answering a search 
+is the maximum number of entries slapd will return answering a search
 request.
 If no size limit is explicitly requested by the client, the
 .BR soft
 limit is used; if the requested size limit exceeds the
 .BR hard
-.\"limit, an 
+.\"limit, an
 .\".I "Administrative limit exceeded"
 .\"error is returned.
 limit, the value of the limit is used instead.
-If the 
+If the
 .BR hard
-limit is set to the keyword 
-.IR soft , 
+limit is set to the keyword
+.IR soft ,
 the soft limit is used in either case; if it is set to the keyword
-.IR unlimited , 
+.IR unlimited ,
 no hard limit is enforced.
 Explicit requests for size limits smaller or equal to the
 .BR hard
@@ -1477,27 +1477,27 @@ The
 specifier sets a limit on the number of candidates a search request is allowed
 to examine.
 The rationale behind it is that searches for non-properly indexed
-attributes may result in large sets of candidates, which must be 
+attributes may result in large sets of candidates, which must be
 examined by
 .BR slapd (8)
 to determine whether they match the search filter or not.
 The
 .B unchecked
-limit provides a means to drop such operations before they are even 
+limit provides a means to drop such operations before they are even
 started.
-If the selected candidates exceed the 
+If the selected candidates exceed the
 .BR unchecked
-limit, the search will abort with 
+limit, the search will abort with
 .IR "Unwilling to perform" .
-If it is set to the keyword 
-.IR unlimited , 
+If it is set to the keyword
+.IR unlimited ,
 no limit is applied (the default).
 If it is set to
 .IR disabled ,
 the search is not even performed; this can be used to disallow searches
 for a specific set of users.
 If no limit specifier is set, the value is assigned to the
-.BR soft 
+.BR soft
 limit, and the
 .BR hard
 limit is set to
@@ -1509,12 +1509,12 @@ The default values are the same as for
 .B sizelimit
 and
 .BR timelimit ;
-no limit is set on 
+no limit is set on
 .BR unchecked .
 
-If 
+If
 .B pagedResults
-control is requested, the 
+control is requested, the
 .B hard
 size limit is used by default, because the request of a specific page size
 is considered an explicit request for a limitation on the number
@@ -1537,23 +1537,23 @@ The syntax
 .B size.prtotal={<integer>|unlimited|disabled}
 allows to set a limit on the total number of entries that a pagedResults
 control allows to return.
-By default it is set to the 
+By default it is set to the
 .B hard
 limit.
-When set, 
+When set,
 .I integer
 is the max number of entries that the whole search with pagedResults control
 can return.
-Use 
+Use
 .I unlimited
 to allow unlimited number of entries to be returned, e.g. to allow
-the use of the pagedResults control as a means to circumvent size 
+the use of the pagedResults control as a means to circumvent size
 limitations on regular searches; the keyword
 .I disabled
 disables the control, i.e. no paged results can be returned.
-Note that the total number of entries returned when the pagedResults control 
-is requested cannot exceed the 
-.B hard 
+Note that the total number of entries returned when the pagedResults control
+is requested cannot exceed the
+.B hard
 size limit of regular searches unless extended by the
 .B prtotal
 switch.
@@ -1580,7 +1580,7 @@ By default, mirrormode is off.
 .TP
 .B monitoring on | off
 This option enables database-specific monitoring in the entry related
-to the current database in the "cn=Databases,cn=Monitor" subtree 
+to the current database in the "cn=Databases,cn=Monitor" subtree
 of the monitor database, if the monitor database is enabled.
 Currently, only the BDB and the HDB databases provide database-specific
 monitoring.
@@ -1599,7 +1599,7 @@ Note that all of the database's
 regular settings should be configured before any overlay settings.
 .TP
 .B readonly on | off
-This option puts the database into "read-only" mode.  Any attempts to 
+This option puts the database into "read-only" mode.  Any attempts to
 modify the database will return an "unwilling to perform" error.  By
 default, readonly is off.
 .TP
@@ -1607,7 +1607,7 @@ default, readonly is off.
 Specify a whitespace separated list of operations that are restricted.
 If defined inside a database specification, restrictions apply only
 to that database, otherwise they are global.
-Operations can be any of 
+Operations can be any of
 .BR add ,
 .BR bind ,
 .BR compare ,
@@ -1621,18 +1621,18 @@ or the special pseudo-operations
 and
 .BR write ,
 which respectively summarize read and write operations.
-The use of 
+The use of
 .I restrict write
-is equivalent to 
+is equivalent to
 .I readonly on
 (see above).
-The 
+The
 .B extended
 keyword allows to indicate the OID of the specific operation
 to be restricted.
 .TP
 .B rootdn <dn>
-Specify the distinguished name that is not subject to access control 
+Specify the distinguished name that is not subject to access control
 or administrative limit restrictions for operations on this database.
 This DN may or may not be associated with an entry.  An empty root
 DN (the default) specifies no root access is to be granted.  It is
@@ -1649,18 +1649,18 @@ Specify a password (or hash of the password) for the rootdn.  The
 password can only be set if the rootdn is within the namingContext
 (suffix) of the database.
 This option accepts all RFC 2307 userPassword formats known to
-the server (see 
+the server (see
 .B password\-hash
 description) as well as cleartext.
-.BR slappasswd (8) 
+.BR slappasswd (8)
 may be used to generate a hash of a password.  Cleartext
 and \fB{CRYPT}\fP passwords are not recommended.  If empty
 (the default), authentication of the root DN is by other means
 (e.g. SASL).  Use of SASL is encouraged.
 .TP
 .B suffix <dn suffix>
-Specify the DN suffix of queries that will be passed to this 
-backend database.  Multiple suffix lines can be given and at least one is 
+Specify the DN suffix of queries that will be passed to this
+backend database.  Multiple suffix lines can be given and at least one is
 required for each database definition.
 
 If the suffix of one database is "inside" that of another, the database
@@ -1717,7 +1717,7 @@ in order to work over all of the glued databases. E.g.
 .fi
 .RE
 .TP
-.B sync_use_subentry 
+.B sync_use_subentry
 Store the syncrepl contextCSN in a subentry instead of the context entry
 of the database. The subentry's RDN will be "cn=ldapsync". By default
 the contextCSN is stored in the context entry.
@@ -1762,7 +1762,7 @@ the contextCSN is stored in the context entry.
 .B [logfilter=<filter str>]
 .B [syncdata=default|accesslog|changelog]
 .RS
-Specify the current database as a replica which is kept up-to-date with the 
+Specify the current database as a replica which is kept up-to-date with the
 master content by establishing the current
 .BR slapd (8)
 as a replication consumer site running a
@@ -1773,7 +1773,7 @@ the LDAP Content Synchronization protocol. Refer to the
 "OpenLDAP Administrator's Guide" for detailed information on
 setting up a replicated
 .B slapd
-directory service using the 
+directory service using the
 .B syncrepl
 replication engine.
 
@@ -1800,7 +1800,7 @@ according to the search specification. The search specification includes
 .BR searchbase ", " scope ", " filter ", " attrs ", " attrsonly ", " sizelimit ", "
 and
 .B timelimit
-parameters as in the normal search specification. 
+parameters as in the normal search specification.
 The \fBscope\fP defaults to \fBsub\fP, the \fBfilter\fP defaults to
 \fB(objectclass=*)\fP, while there is no default \fBsearchbase\fP. The
 \fBattrs\fP list defaults to \fB"*,+"\fP to return all user and operational
@@ -1834,7 +1834,7 @@ The LDAP Content Synchronization protocol has two operation types.
 In the
 .B refreshOnly
 operation, the next synchronization search operation
-is periodically rescheduled at an interval time (specified by 
+is periodically rescheduled at an interval time (specified by
 .B interval
 parameter; 1 day by default)
 after each synchronization operation finishes.
@@ -1854,7 +1854,7 @@ For example, retry="60 10 300 3" lets the consumer retry every 60 seconds
 for the first 10 times and then retry every 300 seconds for the next 3
 times before stop retrying. The `+' in <# of retries> means indefinite
 number of retries until success.
-If no 
+If no
 .B retry
 was specified, by default syncrepl retries every hour forever.
 
@@ -1877,16 +1877,16 @@ established, the
 .B timeout
 parameter determines how long the consumer will wait for the initial
 Bind request to complete. The defaults for these parameters come
-from 
+from
 .BR ldap.conf (5).
 
 A
 .B bindmethod
-of 
+of
 .B simple
-requires the options 
+requires the options
 .B binddn
-and 
+and
 .B credentials
 and should only be used when adequate security services
 (e.g. TLS or IPSEC) are in place.
@@ -1910,13 +1910,13 @@ Specific security properties (as with the
 keyword above) for a SASL bind can be set with the
 .B secprops
 option. A non default SASL realm can be set with the
-.B realm 
+.B realm
 option.
 The identity used for synchronization by the consumer should be allowed
 to receive an unlimited number of entries in response to a search request.
 The provider, other than allow authentication of the syncrepl identity,
-should grant that identity appropriate access privileges to the data 
-that is being replicated (\fBaccess\fP directive), and appropriate time 
+should grant that identity appropriate access privileges to the data
+that is being replicated (\fBaccess\fP directive), and appropriate time
 and size limits.
 This can be accomplished by either allowing unlimited \fBsizelimit\fP
 and \fBtimelimit\fP, or by setting an appropriate \fBlimits\fP statement
@@ -1928,7 +1928,7 @@ The
 parameter sets the values of \fIidle\fP, \fIprobes\fP, and \fIinterval\fP
 used to check whether a socket is alive;
 .I idle
-is the number of seconds a connection needs to remain idle before TCP 
+is the number of seconds a connection needs to remain idle before TCP
 starts sending keepalive probes;
 .I probes
 is the maximum number of keepalive probes TCP should send before dropping
@@ -1982,7 +1982,7 @@ the replica.  It is only needed in certain push-mode
 replication scenarios.  Generally, this DN
 .I should not
 be the same as the
-.B rootdn 
+.B rootdn
 used at the master.
 .TP
 .B updateref <url>

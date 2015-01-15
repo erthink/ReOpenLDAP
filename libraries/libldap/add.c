@@ -42,12 +42,12 @@
  *             type       AttributeDescription,
  *             vals       SET OF value AttributeValue }
  *
- *        AttributeDescription ::= LDAPString           
+ *        AttributeDescription ::= LDAPString
  *             -- Constrained to <attributedescription> [RFC4512]
- *                                      
+ *
  *        AttributeValue ::= OCTET STRING
- *        
- *        AddResponse ::= [APPLICATION 9] LDAPResult 
+ *
+ *        AddResponse ::= [APPLICATION 9] LDAPResult
  * (Source: RFC 4511)
  */
 
@@ -62,7 +62,7 @@
  *			filled in.
  *
  * Example:
- *	LDAPMod	*attrs[] = { 
+ *	LDAPMod	*attrs[] = {
  *			{ 0, "cn", { "babs jensen", "babs", 0 } },
  *			{ 0, "sn", { "jensen", 0 } },
  *			{ 0, "objectClass", { "person", 0 } },
@@ -99,7 +99,7 @@ ldap_add( LDAP *ld, LDAP_CONST char *dn, LDAPMod **attrs )
  *	msgidp	Message ID pointer
  *
  * Example:
- *	LDAPMod	*attrs[] = { 
+ *	LDAPMod	*attrs[] = {
  *			{ 0, "cn", { "babs jensen", "babs", 0 } },
  *			{ 0, "sn", { "jensen", 0 } },
  *			{ 0, "objectClass", { "person", 0 } },

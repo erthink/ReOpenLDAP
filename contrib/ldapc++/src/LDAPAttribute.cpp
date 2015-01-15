@@ -12,7 +12,7 @@
 //  * some documentation
 
 
-#include <ldap.h> 
+#include <ldap.h>
 #include <cstdlib>
 
 #include "debug.h"
@@ -160,7 +160,7 @@ void LDAPAttribute::setName(const string& name){
     m_name=name;
 }
 
-// The bin-FLAG of the mod_op  is always set to LDAP_MOD_BVALUES (0x80) 
+// The bin-FLAG of the mod_op  is always set to LDAP_MOD_BVALUES (0x80)
 LDAPMod* LDAPAttribute::toLDAPMod() const {
     DEBUG(LDAP_DEBUG_TRACE, "LDAPAttribute::toLDAPMod()" << endl);
     LDAPMod* ret= (LDAPMod*) malloc(sizeof(LDAPMod));

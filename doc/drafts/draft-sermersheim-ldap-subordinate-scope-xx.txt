@@ -52,7 +52,7 @@ Discussion Forum
 
 
 Sermersheim            Expires December 30, 2004                [Page 1]
-
+
 Internet-Draft    Subordinate Subtree Search Scope for LDAP    July 2004
 
 
@@ -108,7 +108,7 @@ Internet-Draft    Subordinate Subtree Search Scope for LDAP    July 2004
 
 
 Sermersheim            Expires December 30, 2004                [Page 2]
-
+
 Internet-Draft    Subordinate Subtree Search Scope for LDAP    July 2004
 
 
@@ -164,7 +164,7 @@ Internet-Draft    Subordinate Subtree Search Scope for LDAP    July 2004
 
 
 Sermersheim            Expires December 30, 2004                [Page 3]
-
+
 Internet-Draft    Subordinate Subtree Search Scope for LDAP    July 2004
 
 
@@ -220,7 +220,7 @@ A.2  LDAP Protocol Mechanism Registrations
 
 
 Sermersheim            Expires December 30, 2004                [Page 4]
-
+
 Internet-Draft    Subordinate Subtree Search Scope for LDAP    July 2004
 
 
@@ -276,7 +276,7 @@ A.3  LDAP Descriptor Registrations
 
 
 Sermersheim            Expires December 30, 2004                [Page 5]
-
+
 Internet-Draft    Subordinate Subtree Search Scope for LDAP    July 2004
 
 

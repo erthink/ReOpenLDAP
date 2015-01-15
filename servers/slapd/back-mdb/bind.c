@@ -124,7 +124,7 @@ mdb_bind( Operation *op, SlapReply *rs )
 			rs->sr_err = LDAP_INVALID_CREDENTIALS;
 			goto done;
 		}
-			
+
 		rs->sr_err = 0;
 		break;
 

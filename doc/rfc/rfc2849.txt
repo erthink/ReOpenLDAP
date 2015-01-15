@@ -56,7 +56,7 @@ Background and Intended Usage
 
 
 Good                        Standards Track                     [Page 1]
-
+
 RFC 2849              LDAP Data Interchange Format             June 2000
 
 
@@ -112,7 +112,7 @@ version-spec             = "version:" FILL version-number
 
 
 Good                        Standards Track                     [Page 2]
-
+
 RFC 2849              LDAP Data Interchange Format             June 2000
 
 
@@ -168,7 +168,7 @@ options                  = option / (option ";" options)
 
 
 Good                        Standards Track                     [Page 3]
-
+
 RFC 2849              LDAP Data Interchange Format             June 2000
 
 
@@ -224,7 +224,7 @@ DIGIT                    = %x30-39
 
 
 Good                        Standards Track                     [Page 4]
-
+
 RFC 2849              LDAP Data Interchange Format             June 2000
 
 
@@ -280,7 +280,7 @@ BASE64-STRING            = [*(BASE64-CHAR)]
 
 
 Good                        Standards Track                     [Page 5]
-
+
 RFC 2849              LDAP Data Interchange Format             June 2000
 
 
@@ -336,7 +336,7 @@ RFC 2849              LDAP Data Interchange Format             June 2000
 
 
 Good                        Standards Track                     [Page 6]
-
+
 RFC 2849              LDAP Data Interchange Format             June 2000
 
 
@@ -392,7 +392,7 @@ telephonenumber: +1 408 555 1212
 
 
 Good                        Standards Track                     [Page 7]
-
+
 RFC 2849              LDAP Data Interchange Format             June 2000
 
 
@@ -448,7 +448,7 @@ ou;lang-ja;phonetic:: 44GI44GE44GO44KH44GG44G2
 
 
 Good                        Standards Track                     [Page 8]
-
+
 RFC 2849              LDAP Data Interchange Format             June 2000
 
 
@@ -504,7 +504,7 @@ title;lang-en: Sales, Director
 
 
 Good                        Standards Track                     [Page 9]
-
+
 RFC 2849              LDAP Data Interchange Format             June 2000
 
 
@@ -560,7 +560,7 @@ newsuperior: ou=Accounting, dc=airius, dc=com
 
 
 Good                        Standards Track                    [Page 10]
-
+
 RFC 2849              LDAP Data Interchange Format             June 2000
 
 
@@ -616,7 +616,7 @@ changetype: delete
 
 
 Good                        Standards Track                    [Page 11]
-
+
 RFC 2849              LDAP Data Interchange Format             June 2000
 
 
@@ -672,7 +672,7 @@ References
 
 
 Good                        Standards Track                    [Page 12]
-
+
 RFC 2849              LDAP Data Interchange Format             June 2000
 
 
@@ -728,7 +728,7 @@ Author's Address
 
 
 Good                        Standards Track                    [Page 13]
-
+
 RFC 2849              LDAP Data Interchange Format             June 2000
 
 
@@ -784,4 +784,4 @@ Acknowledgement
 
 
 Good                        Standards Track                    [Page 14]
-
+

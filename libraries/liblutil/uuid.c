@@ -306,7 +306,7 @@ lutil_uuidstr( char *buf, size_t len )
 	uuid_generate( uu );
 	uuid_unparse_lower( uu, buf );
 	return strlen( buf );
-	
+
 #elif defined( _WIN32 )
 	UUID uuid;
 	unsigned char *uuidstr;
@@ -315,7 +315,7 @@ lutil_uuidstr( char *buf, size_t len )
 	if( UuidCreate( &uuid ) != RPC_S_OK ) {
 		return 0;
 	}
- 
+
 	if( UuidToString( &uuid, &uuidstr ) !=  RPC_S_OK ) {
 		return 0;
 	}
@@ -329,7 +329,7 @@ lutil_uuidstr( char *buf, size_t len )
 	RpcStringFree( &uuidstr );
 
 	return uuidlen;
- 
+
 #else
 	struct timeval tv;
 	UI64 tl;
@@ -344,7 +344,7 @@ lutil_uuidstr( char *buf, size_t len )
 	 */
 	static int inited = 0;
 	static unsigned short seq;
-	
+
 	if (!inited) {
 		lutil_entropy( (unsigned char *) &seq, sizeof(seq) );
 		inited++;

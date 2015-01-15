@@ -53,7 +53,7 @@ typedef struct pp_info {
 	int forward_updates;	/* use frontend for policy state updates */
 } pp_info;
 
-/* Our per-connection info - note, it is not per-instance, it is 
+/* Our per-connection info - note, it is not per-instance, it is
  * used by all instances
  */
 typedef struct pw_conn {
@@ -150,7 +150,7 @@ static struct schema_info {
 		"EQUALITY generalizedTimeMatch "
 		"SYNTAX 1.3.6.1.4.1.1466.115.121.1.24 "
 		"NO-USER-MODIFICATION USAGE directoryOperation )",
-		&ad_pwdGraceUseTime }, 
+		&ad_pwdGraceUseTime },
 	{	"( 1.3.6.1.4.1.42.2.27.8.1.22 "
 		"NAME ( 'pwdReset' ) "
 		"DESC 'The indication that the password has been reset' "
@@ -175,7 +175,7 @@ static struct schema_info {
 
 /* User attributes */
 static AttributeDescription *ad_pwdMinAge, *ad_pwdMaxAge, *ad_pwdInHistory,
-	*ad_pwdCheckQuality, *ad_pwdMinLength, *ad_pwdMaxFailure, 
+	*ad_pwdCheckQuality, *ad_pwdMinLength, *ad_pwdMaxFailure,
 	*ad_pwdGraceAuthNLimit, *ad_pwdExpireWarning, *ad_pwdLockoutDuration,
 	*ad_pwdFailureCountInterval, *ad_pwdCheckModule, *ad_pwdLockout,
 	*ad_pwdMustChange, *ad_pwdAllowUserChange, *ad_pwdSafeModify,
@@ -318,7 +318,7 @@ parse_time( char *atm )
 
 static int
 account_locked( Operation *op, Entry *e,
-		PassPolicy *pp, Modifications **mod ) 
+		PassPolicy *pp, Modifications **mod )
 {
 	Attribute       *la;
 
@@ -365,7 +365,7 @@ account_locked( Operation *op, Entry *e,
 /* IMPLICIT TAGS, all context-specific */
 #define PPOLICY_WARNING 0xa0L	/* constructed + 0 */
 #define PPOLICY_ERROR 0x81L		/* primitive + 1 */
- 
+
 #define PPOLICY_EXPIRE 0x80L	/* primitive + 0 */
 #define PPOLICY_GRACE  0x81L	/* primitive + 1 */
 
@@ -415,7 +415,7 @@ create_passcontrol( Operation *op, int exptime, int grace, LDAPPasswordPolicyErr
 	cp->ldctl_value.bv_len = c.ldctl_value.bv_len;
 	AC_MEMCPY( cp->ldctl_value.bv_val, c.ldctl_value.bv_val, c.ldctl_value.bv_len );
 	(void)ber_free_buf(ber);
-	
+
 	return cp;
 }
 
@@ -540,7 +540,7 @@ ppolicy_get( Operation *op, Entry *e, PassPolicy *pp )
 	    	pp->pwdAllowUserChange = bvmatch( &a->a_nvals[0], &slap_true_bv );
 	if ((a = attr_find( pe->e_attrs, ad_pwdSafeModify )))
 	    	pp->pwdSafeModify = bvmatch( &a->a_nvals[0], &slap_true_bv );
-    
+
 	op->o_bd->bd_info = (BackendInfo *)on->on_info;
 	be_entry_release_r( op, pe );
 	op->o_bd->bd_info = (BackendInfo *)on;
@@ -557,14 +557,14 @@ static int
 password_scheme( struct berval *cred, struct berval *sch )
 {
 	int e;
-    
+
 	assert( cred != NULL );
 
 	if (sch) {
 		sch->bv_val = NULL;
 		sch->bv_len = 0;
 	}
-    
+
 	if ((cred->bv_len == 0) || (cred->bv_val == NULL) ||
 		(cred->bv_val[0] != '{')) return LDAP_OTHER;
 
@@ -628,7 +628,7 @@ check_password_quality( struct berval *cred, PassPolicy *pp, LDAPPasswordPolicyE
 			 * We can't check the syntax of the password, but it's not
 			 * mandatory (according to the policy), so we return success.
 			 */
-		    
+
 			return LDAP_SUCCESS;
 		}
 	}
@@ -639,7 +639,7 @@ check_password_quality( struct berval *cred, PassPolicy *pp, LDAPPasswordPolicyE
 #ifdef SLAPD_MODULES
 		lt_dlhandle mod;
 		const char *err;
-		
+
 		if ((mod = lt_dlopen( pp->pwdCheckModule )) == NULL) {
 			err = lt_dlerror();
 
@@ -657,7 +657,7 @@ check_password_quality( struct berval *cred, PassPolicy *pp, LDAPPasswordPolicyE
 
 			if ((prog = lt_dlsym( mod, "check_password" )) == NULL) {
 				err = lt_dlerror();
-			    
+
 				Debug(LDAP_DEBUG_ANY,
 					"check_password_quality: lt_dlsym failed: (%s) %s.\n",
 					pp->pwdCheckModule, err, 0 );
@@ -672,7 +672,7 @@ check_password_quality( struct berval *cred, PassPolicy *pp, LDAPPasswordPolicyE
 						pp->pwdCheckModule, *txt ? *txt : "", ok );
 				}
 			}
-			    
+
 			lt_dlclose( mod );
 		}
 #else
@@ -680,13 +680,13 @@ check_password_quality( struct berval *cred, PassPolicy *pp, LDAPPasswordPolicyE
 		"supported. pwdCheckModule ignored.\n", 0, 0, 0);
 #endif /* SLAPD_MODULES */
 	}
-		
-		    
+
+
 	if (ok != LDAP_SUCCESS) {
 		rc = LDAP_CONSTRAINT_VIOLATION;
 		if (err) *err = PP_insufficientPasswordQuality;
 	}
-	
+
 	return rc;
 }
 
@@ -696,7 +696,7 @@ parse_pwdhistory( struct berval *bv, char **oid, time_t *oldtime, struct berval 
 	char *ptr;
 	struct berval nv, npw;
 	ber_len_t i, j;
-	
+
 	assert (bv && (bv->bv_len > 0) && (bv->bv_val) && oldtime && oldpw );
 
 	if ( oid ) {
@@ -704,7 +704,7 @@ parse_pwdhistory( struct berval *bv, char **oid, time_t *oldtime, struct berval 
 	}
 	*oldtime = (time_t)-1;
 	BER_BVZERO( oldpw );
-	
+
 	ber_dupbv( &nv, bv );
 
 	/* first get the time field */
@@ -730,7 +730,7 @@ parse_pwdhistory( struct berval *bv, char **oid, time_t *oldtime, struct berval 
 	if ( oid ) {
 		*oid = ber_strdup( ptr );
 	}
-	
+
 	/* get the length field */
 	for ( ptr = &(nv.bv_val[i]); (i < nv.bv_len) && (nv.bv_val[i] != '#'); i++ )
 		;
@@ -754,7 +754,7 @@ parse_pwdhistory( struct berval *bv, char **oid, time_t *oldtime, struct berval 
 	npw.bv_len = oldpw->bv_len;
 	ber_dupbv( oldpw, &npw );
 	ber_memfree( nv.bv_val );
-	
+
 	return LDAP_SUCCESS;
 
 exit_failure:;
@@ -776,7 +776,7 @@ add_to_pwd_history( pw_hist **l, time_t t,
                     struct berval *oldpw, struct berval *bv )
 {
 	pw_hist *p, *p1, *p2;
-    
+
 	if (!l) return;
 
 	p = ch_malloc( sizeof( pw_hist ));
@@ -784,7 +784,7 @@ add_to_pwd_history( pw_hist **l, time_t t,
 	ber_dupbv( &p->bv, bv );
 	p->t = t;
 	p->next = NULL;
-	
+
 	if (*l == NULL) {
 		/* degenerate case */
 		*l = p;
@@ -838,7 +838,7 @@ static void
 free_pwd_history_list( pw_hist **l )
 {
 	pw_hist *p;
-    
+
 	if (!l) return;
 	p = *l;
 	while (p) {
@@ -986,7 +986,7 @@ ppolicy_bind_response( Operation *op, SlapReply *rs )
 				 */
 			}
 		}
-		
+
 		if ((ppb->pp.pwdMaxFailure > 0) &&
 			(fc >= ppb->pp.pwdMaxFailure - 1)) {
 
@@ -1066,7 +1066,7 @@ ppolicy_bind_response( Operation *op, SlapReply *rs )
 
 grace:
 		if (!pwExpired) goto check_expiring_password;
-		
+
 		if ((a = attr_find( e->e_attrs, ad_pwdGraceUseTime )) == NULL)
 			ngut = ppb->pp.pwdGraceAuthNLimit;
 		else {
@@ -1080,7 +1080,7 @@ grace:
 		Debug( LDAP_DEBUG_ANY,
 			"ppolicy_bind: Entry %s has an expired password: %d grace logins\n",
 			e->e_name.bv_val, ngut, 0);
-		
+
 		if (ngut < 1) {
 			ppb->pErr = PP_passwordExpired;
 			rs->sr_err = LDAP_INVALID_CREDENTIALS;
@@ -1117,7 +1117,7 @@ check_expiring_password:
 			goto done;
 
 		age = (int)(now - pwtime);
-		
+
 		/*
 		 * We know that there is a password Change Time attribute - if
 		 * there wasn't, then the pwdExpired value would be true, unless
@@ -1131,7 +1131,7 @@ check_expiring_password:
 			 */
 			warn = ppb->pp.pwdMaxAge - age; /* seconds left until expiry */
 			if (warn < 0) warn = 0; /* something weird here - why is pwExpired not set? */
-			
+
 			Debug( LDAP_DEBUG_ANY,
 				"ppolicy_bind: Setting warning for password expiry for %s = %d seconds\n",
 				op->o_req_dn.bv_val, warn, 0 );
@@ -1311,7 +1311,7 @@ ppolicy_restrict(
 			oldctrls = add_passcontrol( op, rs, ctrl );
 		}
 		op->o_bd->bd_info = (BackendInfo *)on->on_info;
-		send_ldap_error( op, rs, LDAP_INSUFFICIENT_ACCESS, 
+		send_ldap_error( op, rs, LDAP_INSUFFICIENT_ACCESS,
 			"Operations are restricted to bind/unbind/abandon/StartTLS/modify password" );
 		if ( send_ctrl ) {
 			ctrls_cleanup( op, rs, oldctrls );
@@ -1357,7 +1357,7 @@ ppolicy_compare(
 	/* Did we receive a password policy request control?
 	 * Are we testing the userPassword?
 	 */
-	if ( op->o_ctrlflag[ppolicy_cid] && 
+	if ( op->o_ctrlflag[ppolicy_cid] &&
 		op->orc_ava->aa_desc == slap_schema.si_ad_userPassword ) {
 		Entry *e;
 		int rc;
@@ -1704,7 +1704,7 @@ ppolicy_modify( Operation *op, SlapReply *rs )
 
 					/* FIXME: there's no easy way to ensure
 					 * that add does not cause multiple
-					 * userPassword values; one way (that 
+					 * userPassword values; one way (that
 					 * would be consistent with the single
 					 * password constraint) would be to turn
 					 * add into replace); another would be
@@ -1714,7 +1714,7 @@ ppolicy_modify( Operation *op, SlapReply *rs )
 					 * is being added
 					 */
 					if ( addmod || !BER_BVISNULL( &ml->sml_values[ 1 ] ) ) {
-						rs->sr_err = LDAP_CONSTRAINT_VIOLATION; 
+						rs->sr_err = LDAP_CONSTRAINT_VIOLATION;
 						rs->sr_text = "Password policy only allows one password value";
 						goto return_results;
 					}
@@ -1747,13 +1747,13 @@ ppolicy_modify( Operation *op, SlapReply *rs )
 				zapReset = 0;
 		}
 	}
-	
+
 	if (!BER_BVISEMPTY( &pwcons[op->o_conn->c_conn_idx].dn ) && !mod_pw_only ) {
 		if ( dn_match( &op->o_conn->c_ndn,
 				&pwcons[op->o_conn->c_conn_idx].dn )) {
 			Debug( LDAP_DEBUG_TRACE,
 				"connection restricted to password changing only\n", 0, 0, 0 );
-			rs->sr_err = LDAP_INSUFFICIENT_ACCESS; 
+			rs->sr_err = LDAP_INSUFFICIENT_ACCESS;
 			rs->sr_text = "Operations are restricted to bind/unbind/abandon/StartTLS/modify password";
 			pErr = PP_changeAfterReset;
 			goto return_results;
@@ -1818,7 +1818,7 @@ ppolicy_modify( Operation *op, SlapReply *rs )
 	}
 
 	/* This is a pwdModify exop that provided the old pw.
-	 * We need to create a Delete mod for this old pw and 
+	 * We need to create a Delete mod for this old pw and
 	 * let the matching value get found later
 	 */
 	if (pp.pwdSafeModify && oldpw.bv_val ) {
@@ -1877,7 +1877,7 @@ ppolicy_modify( Operation *op, SlapReply *rs )
 		if (rc != LDAP_SUCCESS) {
 			Debug( LDAP_DEBUG_TRACE,
 				"old password check failed: %s\n", txt, 0, 0 );
-			
+
 			rs->sr_err = LDAP_UNWILLING_TO_PERFORM;
 			rs->sr_text = "Must supply correct old password to change to new one";
 			pErr = PP_mustSupplyOldPassword;
@@ -1885,7 +1885,7 @@ ppolicy_modify( Operation *op, SlapReply *rs )
 
 		} else {
 			int i;
-			
+
 			/*
 			 * replace the delete value with the (possibly hashed)
 			 * value which is currently in the password.
@@ -1933,7 +1933,7 @@ ppolicy_modify( Operation *op, SlapReply *rs )
 			pErr = PP_passwordInHistory;
 			goto return_results;
 		}
-	
+
 		/*
 		 * Iterate through the password history, and fail on any
 		 * password matches.
@@ -1945,9 +1945,9 @@ ppolicy_modify( Operation *op, SlapReply *rs )
 			cr[0] = p->pw;
 			/* FIXME: no access checking? */
 			rc = slap_passwd_check( op, NULL, &at, bv, &txt );
-			
+
 			if (rc != LDAP_SUCCESS) continue;
-			
+
 			rs->sr_err = LDAP_CONSTRAINT_VIOLATION;
 			rs->sr_text = "Password is in history of old passwords";
 			pErr = PP_passwordInHistory;
@@ -2134,11 +2134,11 @@ do_modify:
 		 * leave it alone.
 		 */
 
-		if ((pi->hash_passwords) && (addmod) && !newpw.bv_val && 
+		if ((pi->hash_passwords) && (addmod) && !newpw.bv_val &&
 			(password_scheme( &(addmod->sml_values[0]), NULL ) != LDAP_SUCCESS))
 		{
 			struct berval hpw, bv;
-			
+
 			slap_passwd_hash( &(addmod->sml_values[0]), &hpw, &txt );
 			if (hpw.bv_val == NULL) {
 					/*
@@ -2253,7 +2253,7 @@ ppolicy_db_init(
 	if ( SLAP_ISGLOBALOVERLAY( be ) ) {
 		/* do not allow slapo-ppolicy to be global by now (ITS#5858) */
 		if ( cr ){
-			snprintf( cr->msg, sizeof(cr->msg), 
+			snprintf( cr->msg, sizeof(cr->msg),
 				"slapo-ppolicy cannot be global" );
 			Debug( LDAP_DEBUG_ANY, "%s\n", cr->msg, 0, 0 );
 		}
@@ -2269,7 +2269,7 @@ ppolicy_db_init(
 			code = slap_str2ad( pwd_UsSchema[i].def, pwd_UsSchema[i].ad, &err );
 			if ( code ) {
 				if ( cr ){
-					snprintf( cr->msg, sizeof(cr->msg), 
+					snprintf( cr->msg, sizeof(cr->msg),
 						"User Schema load failed for attribute \"%s\". Error code %d: %s",
 						pwd_UsSchema[i].def, code, err );
 					Debug( LDAP_DEBUG_ANY, "%s\n", cr->msg, 0, 0 );

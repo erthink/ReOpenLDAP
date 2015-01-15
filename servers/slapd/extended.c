@@ -155,7 +155,7 @@ do_extended(
 		Debug( LDAP_DEBUG_ANY, "%s do_extended: get_ctrls failed\n",
 			op->o_log_prefix, 0, 0 );
 		return rs->sr_err;
-	} 
+	}
 
 	Statslog( LDAP_DEBUG_STATS, "%s EXT oid=%s\n",
 	    op->o_log_prefix, op->ore_reqoid.bv_val, 0, 0, 0 );
@@ -269,13 +269,13 @@ load_extop2(
 	int			insertme = 0;
 
 	if ( !ext_main ) {
-		return -1; 
+		return -1;
 	}
 
 	if ( ext_oid == NULL || BER_BVISNULL( ext_oid ) ||
 		BER_BVISEMPTY( ext_oid ) )
 	{
-		return -1; 
+		return -1;
 	}
 
 	if ( numericoidValidate( NULL, (struct berval *)ext_oid ) !=

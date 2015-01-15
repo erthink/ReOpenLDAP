@@ -32,7 +32,7 @@
  */
 #include <ltdl.h>
 
-static int slapi_int_load_plugin( Slapi_PBlock *, const char *, const char *, int, 
+static int slapi_int_load_plugin( Slapi_PBlock *, const char *, const char *, int,
 	SLAPI_FUNC *, lt_dlhandle * );
 
 /* pointer to link list of extended objects */
@@ -53,21 +53,21 @@ static ExtendedOp *pGExtendedOps = NULL;
  *                              the arguments passed in via
  *                              the configuration file.
  *
- * Output:             
+ * Output:
  *
  * Return Values:      a pointer to a newly created Slapi_PBlock structrue or
- *                     NULL - function failed 
+ *                     NULL - function failed
  *
  * Messages:           None
  *********************************************************************/
 
 static Slapi_PBlock *
 plugin_pblock_new(
-	int type, 
-	int argc, 
-	char *argv[] ) 
+	int type,
+	int argc,
+	char *argv[] )
 {
-	Slapi_PBlock	*pPlugin = NULL; 
+	Slapi_PBlock	*pPlugin = NULL;
 	Slapi_PluginDesc *pPluginDesc = NULL;
 	lt_dlhandle	hdLoadHandle;
 	int		rc;
@@ -124,15 +124,15 @@ done:
 	}
 
 	return pPlugin;
-} 
+}
 
 /*********************************************************************
  * Function Name:      slapi_int_register_plugin
  *
  * Description:        insert the slapi_pblock structure to the end of the plugin
- *                     list 
+ *                     list
  *
- * Input:              a pointer to a plugin slapi_pblock structure to be added to 
+ * Input:              a pointer to a plugin slapi_pblock structure to be added to
  *                     the list
  *
  * Output:             none
@@ -142,11 +142,11 @@ done:
  *
  * Messages:           None
  *********************************************************************/
-int 
+int
 slapi_int_register_plugin(
-	Backend *be, 
+	Backend *be,
 	Slapi_PBlock *pPB )
-{ 
+{
 	Slapi_PBlock	*pTmpPB;
 	Slapi_PBlock	*pSavePB;
 	int   		 rc = LDAP_SUCCESS;
@@ -162,19 +162,19 @@ slapi_int_register_plugin(
 			rc = slapi_pblock_get( pTmpPB, SLAPI_IBM_PBLOCK, &pTmpPB );
 		}
 
-		if ( rc == LDAP_SUCCESS ) { 
-			rc = slapi_pblock_set( pSavePB, SLAPI_IBM_PBLOCK, (void *)pPB ); 
+		if ( rc == LDAP_SUCCESS ) {
+			rc = slapi_pblock_set( pSavePB, SLAPI_IBM_PBLOCK, (void *)pPB );
 		}
 	}
-     
+
 	return ( rc != LDAP_SUCCESS ) ? LDAP_OTHER : LDAP_SUCCESS;
 }
-       
+
 /*********************************************************************
  * Function Name:      slapi_int_get_plugins
  *
- * Description:        get the desired type of function pointers defined 
- *                     in all the plugins 
+ * Description:        get the desired type of function pointers defined
+ *                     in all the plugins
  *
  * Input:              the type of the functions to get, such as pre-operation,etc.
  *
@@ -186,14 +186,14 @@ slapi_int_register_plugin(
  *
  * Messages:           None
  *********************************************************************/
-int 
+int
 slapi_int_get_plugins(
-	Backend *be, 		
-	int functype, 
+	Backend *be,
+	int functype,
 	SLAPI_FUNC **ppFuncPtrs )
 {
- 
-	Slapi_PBlock	*pCurrentPB; 
+
+	Slapi_PBlock	*pCurrentPB;
 	SLAPI_FUNC	FuncPtr;
 	SLAPI_FUNC	*pTmpFuncPtr;
 	int		numPB = 0;
@@ -228,8 +228,8 @@ slapi_int_get_plugins(
 	 * Now, build the function pointer array of backend-specific
 	 * plugins followed by global plugins.
 	 */
-	*ppFuncPtrs = pTmpFuncPtr = 
-		(SLAPI_FUNC *)ch_malloc( ( numPB + 1 ) * sizeof(SLAPI_FUNC) ); 
+	*ppFuncPtrs = pTmpFuncPtr =
+		(SLAPI_FUNC *)ch_malloc( ( numPB + 1 ) * sizeof(SLAPI_FUNC) );
 	if ( ppFuncPtrs == NULL ) {
 		rc = LDAP_NO_MEMORY;
 		goto done;
@@ -243,7 +243,7 @@ slapi_int_get_plugins(
 			if ( FuncPtr != NULL )  {
 				*pTmpFuncPtr = FuncPtr;
 				pTmpFuncPtr++;
-			} 
+			}
 			rc = slapi_pblock_get( pCurrentPB,
 					SLAPI_IBM_PBLOCK, &pCurrentPB );
 		}
@@ -288,8 +288,8 @@ createExtendedOp()
 /*********************************************************************
  * Function Name:      slapi_int_unregister_extop
  *
- * Description:        This routine removes the ExtendedOp structures 
- *					   asscoiated with a particular extended operation 
+ * Description:        This routine removes the ExtendedOp structures
+ *					   asscoiated with a particular extended operation
  *					   plugin.
  *
  * Input:              pBE - pointer to a backend structure
@@ -305,8 +305,8 @@ createExtendedOp()
  *********************************************************************/
 void
 slapi_int_unregister_extop(
-	Backend *pBE, 
-	ExtendedOp **opList, 
+	Backend *pBE,
+	ExtendedOp **opList,
 	Slapi_PBlock *pPB )
 {
 	ExtendedOp	*pTmpExtOp, *backExtOp;
@@ -371,10 +371,10 @@ slapi_int_unregister_extop(
  *
  * Messages:           None
  *********************************************************************/
-int 
+int
 slapi_int_register_extop(
-	Backend *pBE, 	
-	ExtendedOp **opList, 
+	Backend *pBE,
+	ExtendedOp **opList,
 	Slapi_PBlock *pPB )
 {
 	ExtendedOp	*pTmpExtOp = NULL;
@@ -383,14 +383,14 @@ slapi_int_register_extop(
 	int		rc = LDAP_OTHER;
 	int		i;
 
-	if ( (*opList) == NULL ) { 
+	if ( (*opList) == NULL ) {
 		*opList = createExtendedOp();
 		if ( (*opList) == NULL ) {
 			rc = LDAP_NO_MEMORY;
 			goto error_return;
 		}
 		pTmpExtOp = *opList;
-		
+
 	} else {                        /* Find the end of the list */
 		for ( pTmpExtOp = *opList; pTmpExtOp->ext_next != NULL;
 				pTmpExtOp = pTmpExtOp->ext_next )
@@ -455,10 +455,10 @@ error_return:
  *
  * Messages:           None
  *********************************************************************/
-int 
+int
 slapi_int_get_extop_plugin(
-	struct berval *reqoid, 		
-	SLAPI_FUNC *pFuncAddr ) 
+	struct berval *reqoid,
+	SLAPI_FUNC *pFuncAddr )
 {
 	ExtendedOp	*pTmpExtOp;
 
@@ -474,7 +474,7 @@ slapi_int_get_extop_plugin(
 	pTmpExtOp = pGExtendedOps;
 	while ( pTmpExtOp != NULL ) {
 		int	rc;
-		
+
 		rc = strcasecmp( reqoid->bv_val, pTmpExtOp->ext_oid.bv_val );
 		if ( rc == 0 ) {
 			*pFuncAddr = pTmpExtOp->ext_func;
@@ -532,14 +532,14 @@ slapi_int_get_supported_extop( int index )
  * Messages:           None
  *********************************************************************/
 
-static int 
+static int
 slapi_int_load_plugin(
 	Slapi_PBlock	*pPlugin,
 	const char	*path,
-	const char	*initfunc, 
+	const char	*initfunc,
 	int		doInit,
 	SLAPI_FUNC	*pInitFunc,
-	lt_dlhandle	*pLdHandle ) 
+	lt_dlhandle	*pLdHandle )
 {
 	int		rc = LDAP_SUCCESS;
 	SLAPI_FUNC	fpInitFunc = NULL;
@@ -582,15 +582,15 @@ slapi_int_load_plugin(
 /*
  * Special support for computed attribute plugins
  */
-int 
+int
 slapi_int_call_plugins(
-	Backend		*be, 	
-	int		funcType, 
+	Backend		*be,
+	int		funcType,
 	Slapi_PBlock	*pPB )
 {
 
 	int rc = 0;
-	SLAPI_FUNC *pGetPlugin = NULL, *tmpPlugin = NULL; 
+	SLAPI_FUNC *pGetPlugin = NULL, *tmpPlugin = NULL;
 
 	if ( pPB == NULL ) {
 		return 1;
@@ -626,10 +626,10 @@ slapi_int_call_plugins(
 
 int
 slapi_int_read_config(
-	Backend		*be, 		
-	const char	*fname, 
-	int		lineno, 
-	int		argc, 
+	Backend		*be,
+	const char	*fname,
+	int		lineno,
+	int		argc,
 	char		**argv )
 {
 	int		iType = -1;
@@ -653,7 +653,7 @@ slapi_int_read_config(
 			return -1;
 		}
 	}
-	
+
 	if ( strcasecmp( argv[1], "preoperation" ) == 0 ) {
 		iType = SLAPI_PLUGIN_PREOPERATION;
 	} else if ( strcasecmp( argv[1], "postoperation" ) == 0 ) {
@@ -667,7 +667,7 @@ slapi_int_read_config(
 				fname, lineno, argv[1] );
 		return 1;
 	}
-	
+
 	numPluginArgc = argc - 4;
 
 	if ( iType == SLAPI_PLUGIN_PREOPERATION ||

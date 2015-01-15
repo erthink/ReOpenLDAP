@@ -222,26 +222,26 @@ The
 .B add
 operation does not require
 .B write (=w)
-access to the 
+access to the
 .B children
 pseudo-attribute of the parent entry.
 .LP
 The
 .B bind
-operation requires 
+operation requires
 .B auth (=x)
-access to the 
+access to the
 .B entry
 pseudo-attribute of the entry whose identity is being assessed;
 .B auth (=x)
-access to the credentials is not checked, but rather delegated 
+access to the credentials is not checked, but rather delegated
 to the underlying program.
 .LP
 The
 .B compare
-operation requires 
+operation requires
 .B compare (=c)
-access to the 
+access to the
 .B entry
 pseudo-attribute
 of the object whose value is being asserted;
@@ -252,7 +252,7 @@ The
 .B delete
 operation does not require
 .B write (=w)
-access to the 
+access to the
 .B children
 pseudo-attribute of the parent entry.
 .LP
@@ -260,8 +260,8 @@ The
 .B modify
 operation requires
 .B write (=w)
-access to the 
-.B entry 
+access to the
+.B entry
 pseudo-attribute;
 .B write (=w)
 access to the specific attributes that are modified is not checked.
@@ -270,7 +270,7 @@ The
 .B modrdn
 operation does not require
 .B write (=w)
-access to the 
+access to the
 .B children
 pseudo-attribute of the parent entry, nor to that of the new parent,
 if different;
@@ -279,10 +279,10 @@ access to the distinguished values of the naming attributes
 is not checked.
 .LP
 The
-.B search 
+.B search
 operation does not require
 .B search (=s)
-access to the 
+access to the
 .B entry
 pseudo_attribute of the searchBase;
 .B search (=s)

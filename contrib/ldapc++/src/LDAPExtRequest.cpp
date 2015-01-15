@@ -23,12 +23,12 @@ LDAPExtRequest::LDAPExtRequest(const LDAPExtRequest& req) :
     m_oid=req.m_oid;
 }
 
-LDAPExtRequest::LDAPExtRequest(const string& oid, const string& data, 
+LDAPExtRequest::LDAPExtRequest(const string& oid, const string& data,
         LDAPAsynConnection *connect, const LDAPConstraints *cons,
-        bool isReferral, const LDAPRequest* parent) 
+        bool isReferral, const LDAPRequest* parent)
         : LDAPRequest(connect, cons, isReferral, parent){
     DEBUG(LDAP_DEBUG_CONSTRUCT, "LDAPExtRequest::LDAPExtRequest()" << endl);
-    DEBUG(LDAP_DEBUG_CONSTRUCT | LDAP_DEBUG_PARAMETER, 
+    DEBUG(LDAP_DEBUG_CONSTRUCT | LDAP_DEBUG_PARAMETER,
             "   oid:" << oid << endl);
     m_oid=oid;
     m_data=data;

@@ -17,7 +17,7 @@ BDecComponentCertificateListTop( void* mem_op, GenBuf* b, void *v, AsnLen* bytes
 	if ( tag != MAKE_TAG_ID (UNIV, CONS, SEQ_TAG_CODE) ) {
 		return (-1);
 	}
-		
+
 	return BDecComponentCertificateList( mem_op, b, tag, elmtLen, ( ComponentCertificateList**)v, (AsnLen*)bytesDecoded, mode );
 }
 
@@ -372,7 +372,7 @@ ExtractingComponentTBSCertListSeqOf ( void* mem_op, ComponentReference* cr, Comp
 		count = total + count +1;
 		FOR_EACH_LIST_ELMT ( component, v ) {
 			if( --count == 0 ) {
-				if( cr->cr_curr->ci_next == NULL ) 
+				if( cr->cr_curr->ci_next == NULL )
 					return component;
 				else {
 					cr->cr_curr = cr->cr_curr->ci_next;

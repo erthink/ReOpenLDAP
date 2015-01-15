@@ -5,7 +5,7 @@
 .SH NAME
 slapd \- Stand-alone LDAP Daemon
 .SH SYNOPSIS
-.B LIBEXECDIR/slapd 
+.B LIBEXECDIR/slapd
 [\c
 .BR \-4 | \-6 ]
 [\c
@@ -52,11 +52,11 @@ the
 .B slapd
 process will print its process ID (see
 .BR getpid (2))
-to a 
+to a
 .B .pid
 file, as well as the command line options during invocation to an
 .B .args
-file (see 
+file (see
 .BR slapd.conf (5)).
 If the
 .B \-d
@@ -88,11 +88,11 @@ or
 option value to be spelled out, as \fBa\fP is reserved to
 .IR slapadd ).
 This option should be the first option specified when it is used;
-any remaining options will be interpreted by the corresponding 
+any remaining options will be interpreted by the corresponding
 slap tool program, according to the respective man pages.
 Note that these tool programs will usually be symbolic links to
 .BR slapd .
-This option is provided for situations where symbolic links 
+This option is provided for situations where symbolic links
 are not provided or not usable.
 .TP
 .BI \-d \ debug-level
@@ -106,7 +106,7 @@ operation and status messages are printed for any value of \fIdebug-level\fP.
 different kind of debugging information.  See <ldap_log.h> for details.
 Comma-separated arrays of friendly names can be specified to select
 debugging output of the corresponding debugging information.
-All the names recognized by the \fIloglevel\fP directive 
+All the names recognized by the \fIloglevel\fP directive
 described in \fBslapd.conf\fP(5) are supported.
 If \fIdebug-level\fP is \fB?\fP, a list of installed debug-levels is printed,
 and slapd exits.
@@ -123,7 +123,7 @@ at what debug-level debugging statements should be logged to the
 facility.
 The value \fIsyslog-level\fP can be set to any value or combination
 allowed by the \fB\-d\fP switch.
-Slapd logs all messages selected by \fIsyslog-leveli\fP 
+Slapd logs all messages selected by \fIsyslog-leveli\fP
 at the
 .BR syslog (3)
 severity debug-level \fBDEBUG\fP,
@@ -136,8 +136,8 @@ to basename of argv[0], i.e.: "slapd".
 .BI \-l \ syslog-local-user
 Selects the local user of the
 .BR syslog (8)
-facility. Value can be 
-.BR LOCAL0 , 
+facility. Value can be
+.BR LOCAL0 ,
 through
 .BR LOCAL7 ,
 as well as
@@ -147,7 +147,7 @@ and
 The default is
 .BR LOCAL4 .
 However, this option is only permitted on systems that support
-local users with the 
+local users with the
 .BR syslog (8)
 facility.
 Logging to syslog(8) occurs at the "DEBUG" severity debug-level.
@@ -175,30 +175,30 @@ use the config options observe this same behavior.
 .B slapd
 will by default serve
 .B ldap:///
-(LDAP over TCP on all interfaces on default LDAP port).  That is, 
+(LDAP over TCP on all interfaces on default LDAP port).  That is,
 it will bind using INADDR_ANY and port \fB389\fP.
 The
 .B \-h
 option may be used to specify LDAP (and other scheme) URLs to serve.
 For example, if slapd is given
-.BR "\-h \(dqldap://127.0.0.1:9009/ ldaps:/// ldapi:///\(dq" , 
+.BR "\-h \(dqldap://127.0.0.1:9009/ ldaps:/// ldapi:///\(dq" ,
 it will listen on 127.0.0.1:9009 for LDAP, 0.0.0.0:636 for LDAP over TLS,
 and LDAP over IPC (Unix domain sockets).  Host 0.0.0.0 represents
 INADDR_ANY (any interface).
 A space separated list of URLs is expected.  The URLs should be of
 the LDAP, LDAPS, or LDAPI schemes, and generally
 without a DN or other optional parameters (excepting as discussed below).
-Support for the latter two schemes depends on selected configuration 
+Support for the latter two schemes depends on selected configuration
 options.  Hosts may be specified by name or IPv4 and IPv6 address formats.
 Ports, if specified, must be numeric.  The default ldap:// port is \fB389\fP
 and the default ldaps:// port is \fB636\fP.
 
 For LDAP over IPC,
-.B name 
+.B name
 is the name of the socket, and no
 .B port
-is required, nor allowed; note that directory separators must be 
-URL-encoded, like any other characters that are special to URLs; 
+is required, nor allowed; note that directory separators must be
+URL-encoded, like any other characters that are special to URLs;
 so the socket
 
         /usr/local/var/ldapi
@@ -210,12 +210,12 @@ must be specified as
 The default location for the IPC socket is LOCALSTATEDIR/run/ldapi
 
 The listener permissions are indicated by
-"x\-mod=\-rwxrwxrwx", "x\-mod=0777" or "x\-mod=777", where any 
-of the "rwx" can be "\-" to suppress the related permission, while any 
+"x\-mod=\-rwxrwxrwx", "x\-mod=0777" or "x\-mod=777", where any
+of the "rwx" can be "\-" to suppress the related permission, while any
 of the "7" can be any legal octal digit, according to chmod(1).
 The listeners can take advantage of the "x\-mod"
 extension to apply rough limitations to operations, e.g. allow read operations
-("r", which applies to search and compare), write operations ("w", 
+("r", which applies to search and compare), write operations ("w",
 which applies to add, delete, modify and modrdn), and execute operations
 ("x", which means bind is required).
 "User" permissions apply to authenticated users, while "other" apply
@@ -267,7 +267,7 @@ and
 .BR csn .
 .B rid
 identifies a replication thread within the consumer server
-and is used to find the syncrepl specification in 
+and is used to find the syncrepl specification in
 .BR slapd.conf (5)
 or
 .BR slapd\-config (5)
@@ -284,7 +284,7 @@ In case of \fImirror-mode\fP or \fImulti-master\fP replication agreement,
 multiple
 .B csn
 values, semicolon separated, can appear.
-Use only the 
+Use only the
 .B rid
 part to force a full reload.
 .TP
@@ -310,7 +310,7 @@ This allows to specifically query the SLP DAs for LDAP servers holding the
 tree in case multiple trees are available.
 .RE
 .SH EXAMPLES
-To start 
+To start
 .I slapd
 and have it fork and detach from the terminal and start serving
 the LDAP databases defined in the default config file, just type:
@@ -321,7 +321,7 @@ the LDAP databases defined in the default config file, just type:
 .ft
 .fi
 .LP
-To start 
+To start
 .B slapd
 with an alternate configuration file, and turn
 on voluminous debugging which will be printed on standard error, type:

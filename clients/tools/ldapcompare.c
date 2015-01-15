@@ -187,7 +187,7 @@ main( int argc, char **argv )
 	int		rc;
 	LDAP		*ld = NULL;
 	struct berval	bvalue = { 0, NULL };
-	int		i = 0; 
+	int		i = 0;
 	LDAPControl	c[1];
 
 
@@ -239,12 +239,12 @@ main( int argc, char **argv )
 		)
 	{
 #ifdef LDAP_CONTROL_DONTUSECOPY
-		if ( dontUseCopy ) {  
+		if ( dontUseCopy ) {
 			c[i].ldctl_oid = LDAP_CONTROL_DONTUSECOPY;
 			c[i].ldctl_value.bv_val = NULL;
 			c[i].ldctl_value.bv_len = 0;
 			c[i].ldctl_iscritical = dontUseCopy > 1;
-			i++;    
+			i++;
 		}
 #endif
 	}

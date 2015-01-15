@@ -436,7 +436,7 @@ OidDecoderMapping* RetrieveOidDecoderMappingbyDesc( char* desc, int desc_len );
  * UTCTime
  */
 typedef ComponentVisibleString ComponentUTCTime;
-#define GEncComponentUTCTime GEncComponentUTF8String 
+#define GEncComponentUTCTime GEncComponentUTF8String
 #define GDecComponentUTCTime GDecComponentVisibleString
 #define BDecComponentUTCTime BDecComponentOcts
 #define MatchingComponentUTCTime MatchingComponentOcts
@@ -586,7 +586,7 @@ extern AsnTypetoCompDesc asntype_to_compdesc_mapping_tbl[];
 
 int ConvertRDN2RFC2253 ( irRelativeDistinguishedName* in, struct berval *out );
 int ConvertRDNSequence2RFC2253( irRDNSequence *in, struct berval* out );
-	
+
 void* comp_nibble_memory_allocator ( int init_mem, int inc_mem );
 
 ComponentDesc* get_ComponentDesc( int id );

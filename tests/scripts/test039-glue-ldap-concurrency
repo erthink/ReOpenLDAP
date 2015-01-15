@@ -18,15 +18,15 @@ echo "running defines.sh"
 
 echo ""
 
-if test $BACKLDAP = ldapno ; then 
+if test $BACKLDAP = ldapno ; then
 	echo "ldap backend not available, test skipped"
 	exit 0
 fi
 
-if test $RWM = rwmno ; then 
+if test $RWM = rwmno ; then
 	echo "rwm (rewrite/remap) overlay not available, test skipped"
 	exit 0
-fi 
+fi
 
 if test x$TESTLOOPS = x ; then
 	TESTLOOPS=50
@@ -159,15 +159,15 @@ for f in $DATADIR/do_* ; do
 	sed -e "s;$BASEDN;$METABASEDN;" $f > $TESTDIR/$f
 done
 
-# add a read that matches only the local database, but selects 
+# add a read that matches only the local database, but selects
 # also the remote as candidate; this should be removed to compare
 # execution times with test008...
 for f in $TESTDIR/$DATADIR/do_read.* ; do
 	echo "ou=Meta,$METABASEDN" >> $f
 done
 
-# add a read that matches a referral in the local database only, 
-# but selects also the remote as candidate; this should be removed 
+# add a read that matches a referral in the local database only,
+# but selects also the remote as candidate; this should be removed
 # to compare execution times with test008...
 for f in $TESTDIR/$DATADIR/do_read.* ; do
 	echo "cn=Somewhere,ou=Meta,$METABASEDN" >> $f
@@ -198,7 +198,7 @@ if test $RC != 0 ; then
 	echo "slapd-tester failed ($RC)!"
 	test $KILLSERVERS != no && kill -HUP $KILLPIDS
 	exit $RC
-fi 
+fi
 
 echo "Using ldapsearch to retrieve all the entries..."
 $LDAPSEARCH -S "" -b "$METABASEDN" -h $LOCALHOST -p $PORT3 \

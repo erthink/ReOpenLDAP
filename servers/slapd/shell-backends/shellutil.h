@@ -66,7 +66,7 @@ struct ldsrchparms {
 };
 
 
-struct ldop { 
+struct ldop {
     int		ldop_op;
 #define LDOP_SEARCH	0x01
     char	**ldop_suffixes;

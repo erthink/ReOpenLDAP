@@ -187,7 +187,7 @@ dnssrv_back_search(
 			bv.bv_val = domain;
 
 			p = strchr( bv.bv_val, '.' );
-					
+
 			if ( p == bv.bv_val ) {
 				bv.bv_len = 1;
 
@@ -210,7 +210,7 @@ dnssrv_back_search(
 
 		attr_merge_normalize_one( &e, ad_ref, urls, NULL );
 
-		rc = test_filter( op, &e, op->oq_search.rs_filter ); 
+		rc = test_filter( op, &e, op->oq_search.rs_filter );
 
 		if( rc == LDAP_COMPARE_TRUE ) {
 			rs->sr_entry = &e;

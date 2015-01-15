@@ -97,7 +97,7 @@ ldap_ld_free(
 		if ( ld->ld_referrals != NULL) {
 			LDAP_VFREE(ld->ld_referrals);
 			ld->ld_referrals = NULL;
-		}  
+		}
 		LDAP_MUTEX_UNLOCK( &ld->ld_ldcmutex );
 		LDAP_FREE( (char *) ld );
 		return( err );
@@ -123,7 +123,7 @@ ldap_ld_free(
 		next = lm->lm_next;
 		ldap_msgfree( lm );
 	}
-    
+
 	if ( ld->ld_abandoned != NULL ) {
 		LDAP_FREE( ld->ld_abandoned );
 		ld->ld_abandoned = NULL;
@@ -159,8 +159,8 @@ ldap_ld_free(
 	if ( ld->ld_referrals != NULL) {
 		LDAP_VFREE(ld->ld_referrals);
 		ld->ld_referrals = NULL;
-	}  
-    
+	}
+
 	if ( ld->ld_selectinfo != NULL ) {
 		ldap_free_select_info( ld->ld_selectinfo );
 		ld->ld_selectinfo = NULL;
@@ -235,7 +235,7 @@ ldap_ld_free(
 #endif
 	LDAP_FREE( (char *) ld->ldc );
 	LDAP_FREE( (char *) ld );
-   
+
 	return( err );
 }
 

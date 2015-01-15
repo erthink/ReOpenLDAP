@@ -3,8 +3,8 @@ This directory contains native slapd plugins that implement access rules.
 posixgroup.c contains a simple example that implements access control
 based on posixGroup membership, loosely inspired by ITS#3849.  It should
 be made clear that this access control policy does not reflect any
-standard track model of handling access control, and should be 
-essentially viewed as an illustration of the use of the dynamic 
+standard track model of handling access control, and should be
+essentially viewed as an illustration of the use of the dynamic
 extension of access control within slapd.
 
 To use the acl-posixgroup plugin, add:

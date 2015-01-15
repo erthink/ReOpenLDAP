@@ -21,7 +21,7 @@ class LDAPAsynConnection;
  * This class is for representing LDAP-Result-Messages.
  *
  * It represents all Messages that were returned
- * from LDAP-Operations except for Messages of the Type 
+ * from LDAP-Operations except for Messages of the Type
  * LDAPMsg::SEARCH_ENTRY, LDAPMsg::SEARCH_REFERENCE and
  * LDAPMsg::EXTENDED_RESPONSE. <BR>
  * It defines a integer constant for every possible result type that can be
@@ -39,20 +39,20 @@ class LDAPResult : public LDAPMsg{
         static const int COMPARE_TRUE                   = 6;
         static const int AUTH_METHOD_NOT_SUPPORTED      = 7;
         static const int STRONG_AUTH_REQUIRED           = 8;
-        
+
         static const int REFERRAL                       = 10;
         static const int ADMIN_LIMIT_EXCEEDED           = 11;
         static const int UNAVAILABLE_CRITICAL_EXTENSION = 12;
         static const int CONFIDENTIALITY_REQUIRED       = 13;
         static const int SASL_BIND_IN_PROGRESS          = 14;
-        
+
         static const int NO_SUCH_ATTRIBUTE              = 16;
         static const int UNDEFINED_ATTRIBUTE_TYP        = 17;
         static const int INAPPROPRIATE_MATCHING         = 18;
         static const int CONSTRAINT_VIOLATION           = 19;
         static const int ATTRIBUTE_OR_VALUE_EXISTS      = 20;
         static const int INVALID_ATTRIBUTE_SYNTAX       = 21;
-        
+
         static const int NO_SUCH_OBJECT                 = 32;
         static const int ALIAS_PROBLEM                  = 33;
         static const int INVALID_DN_SYNTAX              = 34;
@@ -75,7 +75,7 @@ class LDAPResult : public LDAPMsg{
         static const int OBJECT_CLASS_MODS_PROHIBITED   = 69;
 
         static const int AFFECTS_MULTIPLE_DSAS          = 71;
-        
+
         // some Errorcodes defined in the LDAP C API DRAFT
         static const int OTHER                          = 80;
         static const int SERVER_DOWN                    = 81;
@@ -98,14 +98,14 @@ class LDAPResult : public LDAPMsg{
 
         /**
          * This constructor is called by the LDAPMsg::create method in
-         * order to parse a LDAPResult-Message 
+         * order to parse a LDAPResult-Message
          * @param req   The request the result is associated with.
          * @param msg   The LDAPMessage-structure that contains the
          *              Message.
          */
         LDAPResult(const LDAPRequest *req, LDAPMessage *msg);
-        LDAPResult(int type, int resultCode, const std::string &msg); 
-        
+        LDAPResult(int type, int resultCode, const std::string &msg);
+
         /**
          * The destructor.
          */
@@ -150,7 +150,7 @@ class LDAPResult : public LDAPMsg{
         int m_resCode;
         std::string m_matchedDN;
         std::string m_errMsg;
-        LDAPUrlList m_referrals;    
+        LDAPUrlList m_referrals;
 
     /**
      * This method can be used to dump the data of a LDAPResult-Object.

@@ -92,7 +92,7 @@ trace_op_func( Operation *op, SlapReply *rs )
 	case LDAP_REQ_EXTENDED:
 		Log3( LDAP_DEBUG_ANY, LDAP_LEVEL_INFO,
 			"%s trace op=EXTENDED dn=\"%s\" reqoid=%s\n",
-			op->o_log_prefix, 
+			op->o_log_prefix,
 			BER_BVISNULL( &op->o_req_ndn ) ? "(null)" : op->o_req_ndn.bv_val,
 			BER_BVISNULL( &op->ore_reqoid ) ? "" : op->ore_reqoid.bv_val );
 		break;

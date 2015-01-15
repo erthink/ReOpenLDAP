@@ -18,12 +18,12 @@
 class LDAPModList{
     typedef std::list<LDAPModification> ListType;
 
-    public : 
+    public :
         /**
          * Constructs an empty list.
-         */   
+         */
         LDAPModList();
-		
+
         /**
          * Copy-constructor
          */
@@ -45,13 +45,13 @@ class LDAPModList{
          * @returns true, if the ModList contains no Operations
          */
         bool empty() const;
-        
+
         /**
          * @returns number of Modifications in the ModList
          */
         unsigned int size() const;
 
-    private : 
+    private :
         ListType m_modList;
 };
 #endif //LDAP_MOD_LIST_H

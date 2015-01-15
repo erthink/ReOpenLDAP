@@ -155,10 +155,10 @@ Slapi_Value *slapi_value_set( Slapi_Value *value, void *val, unsigned long len);
 int slapi_value_set_string(Slapi_Value *value, const char *strVal);
 int slapi_value_set_int(Slapi_Value *value, int intVal);
 const char*slapi_value_get_string(const Slapi_Value *value);
-int slapi_value_get_int(const Slapi_Value *value); 
-unsigned int slapi_value_get_uint(const Slapi_Value *value); 
-long slapi_value_get_long(const Slapi_Value *value); 
-unsigned long slapi_value_get_ulong(const Slapi_Value *value); 
+int slapi_value_get_int(const Slapi_Value *value);
+unsigned int slapi_value_get_uint(const Slapi_Value *value);
+long slapi_value_get_long(const Slapi_Value *value);
+unsigned long slapi_value_get_ulong(const Slapi_Value *value);
 size_t slapi_value_get_length(const Slapi_Value *value);
 int slapi_value_compare(const Slapi_Attr *a, const Slapi_Value *v1, const Slapi_Value *v2);
 
@@ -209,11 +209,11 @@ char * slapi_moddn_get_newdn( Slapi_DN *dn_olddn, char *newrdn, char *newsuperio
 Slapi_RDN *slapi_rdn_new( void );
 Slapi_RDN *slapi_rdn_new_dn( const char *dn );
 Slapi_RDN *slapi_rdn_new_sdn( const Slapi_DN *sdn );
-Slapi_RDN *slapi_rdn_new_rdn( const Slapi_RDN *fromrdn ); 
+Slapi_RDN *slapi_rdn_new_rdn( const Slapi_RDN *fromrdn );
 void slapi_rdn_init( Slapi_RDN *rdn );
 void slapi_rdn_init_dn( Slapi_RDN *rdn, const char *dn );
 void slapi_rdn_init_sdn( Slapi_RDN *rdn, const Slapi_DN *sdn );
-void slapi_rdn_init_rdn( Slapi_RDN *rdn, const Slapi_RDN *fromrdn ); 
+void slapi_rdn_init_rdn( Slapi_RDN *rdn, const Slapi_RDN *fromrdn );
 void slapi_rdn_set_dn( Slapi_RDN *rdn, const char *dn );
 void slapi_rdn_set_sdn( Slapi_RDN *rdn, const Slapi_DN *sdn );
 void slapi_rdn_set_rdn( Slapi_RDN *rdn, const Slapi_RDN *fromrdn );
@@ -310,7 +310,7 @@ int slapi_filter_get_choice( Slapi_Filter *f);
 int slapi_filter_get_ava( Slapi_Filter *f, char **type, struct berval **bval );
 Slapi_Filter *slapi_filter_list_first( Slapi_Filter *f );
 Slapi_Filter *slapi_filter_list_next( Slapi_Filter *f, Slapi_Filter *fprev );
-int slapi_filter_get_attribute_type( Slapi_Filter *f, char **type ); 
+int slapi_filter_get_attribute_type( Slapi_Filter *f, char **type );
 int slapi_x_filter_set_attribute_type( Slapi_Filter *f, const char *type );
 int slapi_filter_get_subfilt( Slapi_Filter *f, char **type, char **initial,
 	char ***any, char **final );
@@ -329,7 +329,7 @@ int slapi_filter_apply( Slapi_Filter *f, FILTER_APPLY_FN fn, void *arg, int *err
 #define SLAPI_FILTER_UNKNOWN_FILTER_TYPE	2 /* set by slapi_filter_apply() */
 
 /* internal add/delete/search/modify routines */
-Slapi_PBlock *slapi_search_internal( char *base, int scope, char *filter, 
+Slapi_PBlock *slapi_search_internal( char *base, int scope, char *filter,
 	LDAPControl **controls, char **attrs, int attrsonly );
 Slapi_PBlock *slapi_modify_internal( char *dn, LDAPMod **mods,
         LDAPControl **controls, int log_change );
@@ -484,7 +484,7 @@ int slapi_x_backend_get_flags( const Slapi_Backend *be, unsigned long *flags );
 #define SLAPI_ACL_SEARCH        0x02
 #define SLAPI_ACL_READ          0x04
 #define SLAPI_ACL_WRITE         0x08
-#define SLAPI_ACL_DELETE        0x10    
+#define SLAPI_ACL_DELETE        0x10
 #define SLAPI_ACL_ADD           0x20
 #define SLAPI_ACL_SELF          0x40
 #define SLAPI_ACL_PROXY         0x80
@@ -498,7 +498,7 @@ int slapi_x_backend_get_flags( const Slapi_Backend *be, unsigned long *flags );
 #define SLAPI_PLUGIN_POSTOPERATION      4
 #define SLAPI_PLUGIN_MATCHINGRULE       5
 #define SLAPI_PLUGIN_SYNTAX             6
-#define SLAPI_PLUGIN_AUDIT              7   
+#define SLAPI_PLUGIN_AUDIT              7
 
 /* misc params */
 
@@ -540,7 +540,7 @@ int slapi_x_backend_get_flags( const Slapi_Backend *be, unsigned long *flags );
 #define SLAPD_AUTH_NONE   "none"
 #define SLAPD_AUTH_SIMPLE "simple"
 #define SLAPD_AUTH_SSL    "SSL"
-#define SLAPD_AUTH_SASL   "SASL " 
+#define SLAPD_AUTH_SASL   "SASL "
 
 /* plugin configuration parmams */
 #define SLAPI_PLUGIN				3
@@ -722,7 +722,7 @@ int slapi_x_backend_get_flags( const Slapi_Backend *be, unsigned long *flags );
 #define SLAPI_PLUGIN_AUDIT_FN                  1101
 
 /* backend_group extension */
-#define SLAPI_X_PLUGIN_PRE_GROUP_FN		1202 
+#define SLAPI_X_PLUGIN_PRE_GROUP_FN		1202
 #define SLAPI_X_PLUGIN_POST_GROUP_FN		1203
 
 #define SLAPI_X_GROUP_ENTRY			1250 /* group entry */
@@ -758,7 +758,7 @@ int slapi_x_backend_get_flags( const Slapi_Backend *be, unsigned long *flags );
 /* server LDAPv3 controls  */
 #define SLAPI_REQCONTROLS			51
 #define SLAPI_RESCONTROLS			55
-#define SLAPI_ADD_RESCONTROL			56	
+#define SLAPI_ADD_RESCONTROL			56
 #define SLAPI_CONTROLS_ARG			58
 
 /* add params */
@@ -772,9 +772,9 @@ int slapi_x_backend_get_flags( const Slapi_Backend *be, unsigned long *flags );
 /* bind params */
 #define SLAPI_BIND_TARGET			SLAPI_TARGET_DN
 #define SLAPI_BIND_METHOD			70
-#define SLAPI_BIND_CREDENTIALS			71	
-#define SLAPI_BIND_SASLMECHANISM		72	
-#define SLAPI_BIND_RET_SASLCREDS		73	
+#define SLAPI_BIND_CREDENTIALS			71
+#define SLAPI_BIND_SASLMECHANISM		72
+#define SLAPI_BIND_RET_SASLCREDS		73
 
 /* compare params */
 #define SLAPI_COMPARE_TARGET			SLAPI_TARGET_DN
@@ -817,11 +817,11 @@ int slapi_x_backend_get_flags( const Slapi_Backend *be, unsigned long *flags );
 
 /* extended operation params */
 #define SLAPI_EXT_OP_REQ_OID			160
-#define SLAPI_EXT_OP_REQ_VALUE		161	
+#define SLAPI_EXT_OP_REQ_VALUE		161
 
 /* extended operation return codes */
-#define SLAPI_EXT_OP_RET_OID			162	
-#define SLAPI_EXT_OP_RET_VALUE		163	
+#define SLAPI_EXT_OP_RET_OID			162
+#define SLAPI_EXT_OP_RET_VALUE		163
 
 #define SLAPI_PLUGIN_EXTENDED_SENT_RESULT	-1
 

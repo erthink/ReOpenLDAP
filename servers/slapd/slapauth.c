@@ -47,7 +47,7 @@ do_check( Connection *c, Operation *op, struct berval *id )
 				id->bv_val, rc,
 				ldap_err2string( rc ) );
 		rc = 1;
-			
+
 	} else {
 		if ( !BER_BVISNULL( &authzID ) ) {
 			rc = slap_sasl_authorized( op, &authcdn, &authzID );
@@ -98,7 +98,7 @@ slapauth( int argc, char **argv )
 
 	if ( !BER_BVISNULL( &authzID ) ) {
 		struct berval	authzdn;
-		
+
 		rc = slap_sasl_getdn( &conn, op, &authzID, NULL, &authzdn,
 				SLAP_GETDN_AUTHZID );
 		if ( rc != LDAP_SUCCESS ) {
@@ -108,7 +108,7 @@ slapauth( int argc, char **argv )
 			rc = 1;
 			BER_BVZERO( &authzID );
 			goto destroy;
-		} 
+		}
 
 		authzID = authzdn;
 	}
@@ -122,7 +122,7 @@ slapauth( int argc, char **argv )
 
 		for ( ; argc--; argv++ ) {
 			struct berval	authzdn;
-		
+
 			ber_str2bv( argv[ 0 ], 0, 0, &authzID );
 
 			rc = slap_sasl_getdn( &conn, op, &authzID, NULL, &authzdn,

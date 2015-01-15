@@ -603,7 +603,7 @@ ldap_pvt_thread_pool_destroy ( ldap_pvt_thread_pool_t *tpool, int run_pending )
 
 /* Thread loop.  Accept and handle submitted tasks. */
 static void *
-ldap_int_thread_pool_wrapper ( 
+ldap_int_thread_pool_wrapper (
 	void *xpool )
 {
 	struct ldap_int_thread_pool_s *pool = xpool;
@@ -833,7 +833,7 @@ ldap_pvt_thread_pool_pause( ldap_pvt_thread_pool_t *tpool )
 
 /* End a pause */
 int
-ldap_pvt_thread_pool_resume ( 
+ldap_pvt_thread_pool_resume (
 	ldap_pvt_thread_pool_t *tpool )
 {
 	struct ldap_int_thread_pool_s *pool;

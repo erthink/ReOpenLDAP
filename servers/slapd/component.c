@@ -89,12 +89,12 @@ allComponentsValidate(
 }
 
 int
-componentFilterMatch ( 
-	int *matchp, 
-	slap_mask_t flags, 
-	Syntax *syntax, 
+componentFilterMatch (
+	int *matchp,
+	slap_mask_t flags,
+	Syntax *syntax,
 	MatchingRule *mr,
-	struct berval *value, 
+	struct berval *value,
 	void *assertedValue )
 {
 	ComponentSyntaxInfo *csi_attr = (ComponentSyntaxInfo*)value;
@@ -124,12 +124,12 @@ componentFilterMatch (
 }
 
 int
-directoryComponentsMatch( 
-	int *matchp, 
-	slap_mask_t flags, 
-	Syntax *syntax, 
+directoryComponentsMatch(
+	int *matchp,
+	slap_mask_t flags,
+	Syntax *syntax,
 	MatchingRule *mr,
-	struct berval *value, 
+	struct berval *value,
 	void *assertedValue )
 {
 	/* Only for registration */
@@ -138,12 +138,12 @@ directoryComponentsMatch(
 }
 
 int
-allComponentsMatch( 
-	int *matchp, 
-	slap_mask_t flags, 
-	Syntax *syntax, 
+allComponentsMatch(
+	int *matchp,
+	slap_mask_t flags,
+	Syntax *syntax,
 	MatchingRule *mr,
-	struct berval *value, 
+	struct berval *value,
 	void *assertedValue )
 {
 	/* Only for registration */
@@ -248,7 +248,7 @@ dup_comp_filter_item (
 	len = get_len_of_next_assert_value ( assert_bv, '$' );
 	if ( len <= 0 ) return SLAPD_DISCONNECT;
 	(*out_ca)->ca_ma_value.bv_len = len;
-	
+
 	return LDAP_SUCCESS;
 }
 
@@ -603,11 +603,11 @@ get_component_reference(
 	}
 
 	*cr = ca_comp_ref;
-	**cr = *ca_comp_ref;	
+	**cr = *ca_comp_ref;
 
 	(*cr)->cr_string.bv_val = start;
 	(*cr)->cr_string.bv_len = end - start + 1;
-	
+
 	return rc;
 }
 
@@ -726,7 +726,7 @@ get_matching_rule( Operation *op, ComponentAssertionValue* cav,
 		*text = "component matching rule not recognized";
 		return LDAP_INAPPROPRIATE_MATCHING;
 	}
-	
+
 	rule_text.bv_len = count;
 	rule_text.bv_val = cav->cav_ptr;
 	*mr = mr_bvfind( &rule_text );
@@ -770,7 +770,7 @@ get_GSER_value( ComponentAssertionValue* cav, struct berval* bv )
 			{
 				break;
 			}
-				
+
 			if ( ( cav->cav_ptr[count] == '"' &&
 				cav->cav_ptr[count-1] != '"') ||
 				( sequent_dquote > 2 && (sequent_dquote%2) == 1 ) )
@@ -779,7 +779,7 @@ get_GSER_value( ComponentAssertionValue* cav, struct berval* bv )
 				break;
 			}
 		}
-		
+
 		if ( !succeed || cav->cav_ptr[count] != '"' ) {
 			return LDAP_FILTER_ERROR;
 		}
@@ -810,7 +810,7 @@ get_GSER_value( ComponentAssertionValue* cav, struct berval* bv )
 
 		bv->bv_val = cav->cav_ptr + 1;/*the next to '"' */
 		bv->bv_len = count - 2;/* exclude "'H" or "'B" */
-				
+
 	} else if ( cav->cav_ptr[0] == '{' ) {
 		for( count = 1, unclosed_brace = 1 ; ; count++ ) {
 			if ( cav->cav_ptr[count] == '{' ) unclosed_brace++;
@@ -1001,7 +1001,7 @@ get_item( Operation *op, ComponentAssertionValue* cav, ComponentAssertion** ca,
 			free( _ca );
 		return LDAP_INAPPROPRIATE_MATCHING;
 	}
-	
+
 	if ( ( rc = strip_cav_str( cav,",") ) != LDAP_SUCCESS )
 		return rc;
 	if ( !(strip_cav_str( cav, "value" ) == LDAP_SUCCESS &&
@@ -1090,7 +1090,7 @@ parse_comp_filter( Operation* op, ComponentAssertionValue* cav,
 	err = LDAP_SUCCESS;
 
 	f.cf_next = NULL;
-	f.cf_choice = tag; 
+	f.cf_choice = tag;
 
 	switch ( f.cf_choice ) {
 	case LDAP_COMP_FILTER_AND:
@@ -1199,7 +1199,7 @@ test_comp_filter_and(
 			rtn = rc;
 			break;
 		}
-	
+
 		if ( rc != LDAP_COMPARE_TRUE ) {
 			rtn = rc;
 		}
@@ -1223,7 +1223,7 @@ test_comp_filter_or(
 			rtn = rc;
 			break;
 		}
-	
+
 		if ( rc != LDAP_COMPARE_FALSE ) {
 			rtn = rc;
 		}

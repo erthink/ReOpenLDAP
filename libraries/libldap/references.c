@@ -76,8 +76,8 @@ ldap_count_references( LDAP *ld, LDAPMessage *chain )
 }
 
 int
-ldap_parse_reference( 
-	LDAP            *ld,    
+ldap_parse_reference(
+	LDAP            *ld,
 	LDAPMessage     *ref,
 	char            ***referralsp,
 	LDAPControl     ***serverctrls,
@@ -97,7 +97,7 @@ ldap_parse_reference(
 
 	/* make a private copy of BerElement */
 	AC_MEMCPY(&be, ref->lm_ber, sizeof(be));
-	
+
 	if ( ber_scanf( &be, "{v" /*}*/, &refs ) == LBER_ERROR ) {
 		rc = LDAP_DECODING_ERROR;
 		goto free_and_return;

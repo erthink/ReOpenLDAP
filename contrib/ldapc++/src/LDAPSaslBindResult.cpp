@@ -16,7 +16,7 @@ using namespace std;
 
 LDAPSaslBindResult::LDAPSaslBindResult(const LDAPRequest* req, LDAPMessage* msg) :
         LDAPResult(req, msg){
-    DEBUG(LDAP_DEBUG_CONSTRUCT,"LDAPSaslBindResult::LDAPSaslBindResult()" 
+    DEBUG(LDAP_DEBUG_CONSTRUCT,"LDAPSaslBindResult::LDAPSaslBindResult()"
             << std::endl);
     BerValue* data = 0;
     LDAP* lc = req->getConnection()->getSessionHandle();

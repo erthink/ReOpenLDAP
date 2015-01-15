@@ -55,21 +55,21 @@ or
 .BR ldap_next_entry (3)
 and returns a copy of
 the entry's DN.  Space for the DN will be obtained dynamically
-and should be freed by the caller using 
+and should be freed by the caller using
 .BR ldap_memfree (3).
 .LP
 .B ldap_str2dn()
 parses a string representation of a distinguished name contained in
 .B str
 into its components,
-which are stored in 
+which are stored in
 .B dn
 as
-.B ldap_ava 
+.B ldap_ava
 structures, arranged in
 .B LDAPAVA,
 .B LDAPRDN,
-and 
+and
 .B LDAPDN
 terms.  Space for
 .B dn
@@ -116,7 +116,7 @@ can be
 	LDAP_DN_FORMAT_DCE
 
 .fi
-which defines what DN syntax is expected (according to RFC 4514, 
+which defines what DN syntax is expected (according to RFC 4514,
 RFC 1779 and DCE, respectively).
 The format can be \fIOR\fPed to the flags
 .LP
@@ -132,19 +132,19 @@ The latter is a shortcut for all the previous limitations.
 .B LDAP_DN_P_NO_SPACES
 does not allow extra spaces in the dn; the default is to silently
 eliminate spaces around AVA separators ('='), RDN component separators
-('+' for LDAPv3/LDAPv2 or ',' for DCE) and RDN separators 
+('+' for LDAPv3/LDAPv2 or ',' for DCE) and RDN separators
 (',' LDAPv3/LDAPv2 or '/' for DCE).
 .LP
 .B LDAP_DN_P_NO_SPACE_AFTER_RDN
 does not allow a single space after RDN separators.
 .LP
 .B ldap_dn2str()
-performs the inverse operation, yielding in 
+performs the inverse operation, yielding in
 .B str
-a string representation of 
+a string representation of
 .B dn.
 It allows the same values for
-.B flags 
+.B flags
 as
 .B ldap_str2dn(),
 plus
@@ -202,7 +202,7 @@ is responsible for freeing it via a call to
 .B ldap_dn2dcedn()
 is used to turn a DN as returned by
 .BR ldap_get_dn (3)
-into a DCE-style DN, e.g. a string with most-significant to least 
+into a DCE-style DN, e.g. a string with most-significant to least
 significant rdns separated by slashes ('/'); rdn components
 are separated by commas (',').
 Only printable chars (e.g. LDAPv2 printable string) are allowed,

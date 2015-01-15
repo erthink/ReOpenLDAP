@@ -16,7 +16,7 @@ cn: Must Succeed
 # at least one member must be present; thus we use the entry's DN
 member: cn=Must Succeed,ou=LDAPv3,dc=example,dc=com
 # specific DN forms
-member: 
+member:
 member: UID=jsmith,DC=example,DC=net
 member: OU=Sales+CN=J. Smith,DC=example,DC=net
 member: CN=John Smith\, III,DC=example,DC=net
@@ -180,7 +180,7 @@ description: RFC 1779 compliant DN string representation
 dn: cn=May Succeed 1,ou=LDAPv2,dc=example,dc=com
 objectClass: groupOfNames
 cn: May Succeed 1
-member:  
+member:
 description: " " // space, quote characters (") are not part of the string
 
 dn: cn=May Succeed 2,ou=LDAPv2,dc=example,dc=com

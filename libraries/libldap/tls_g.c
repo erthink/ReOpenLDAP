@@ -227,13 +227,13 @@ tlsg_ctx_init( struct ldapoptions *lo, struct ldaptls *lt, int is_server )
  	}
 
 	if (lo->ldo_tls_cacertdir != NULL) {
-		Debug( LDAP_DEBUG_ANY, 
+		Debug( LDAP_DEBUG_ANY,
 		       "TLS: warning: cacertdir not implemented for gnutls\n",
 		       NULL, NULL, NULL );
 	}
 
 	if (lo->ldo_tls_cacertfile != NULL) {
-		rc = gnutls_certificate_set_x509_trust_file( 
+		rc = gnutls_certificate_set_x509_trust_file(
 			ctx->cred,
 			lt->lt_cacertfile,
 			GNUTLS_X509_FMT_PEM );
@@ -285,20 +285,20 @@ tlsg_ctx_init( struct ldapoptions *lo, struct ldaptls *lt, int is_server )
 		rc = gnutls_certificate_set_x509_key( ctx->cred, certs, max, key );
 		if ( rc ) return -1;
 	} else if ( lo->ldo_tls_certfile || lo->ldo_tls_keyfile ) {
-		Debug( LDAP_DEBUG_ANY, 
+		Debug( LDAP_DEBUG_ANY,
 		       "TLS: only one of certfile and keyfile specified\n",
 		       NULL, NULL, NULL );
 		return -1;
 	}
 
 	if ( lo->ldo_tls_dhfile ) {
-		Debug( LDAP_DEBUG_ANY, 
-		       "TLS: warning: ignoring dhfile\n", 
+		Debug( LDAP_DEBUG_ANY,
+		       "TLS: warning: ignoring dhfile\n",
 		       NULL, NULL, NULL );
 	}
 
 	if ( lo->ldo_tls_crlfile ) {
-		rc = gnutls_certificate_set_x509_crl_file( 
+		rc = gnutls_certificate_set_x509_crl_file(
 			ctx->cred,
 			lt->lt_crlfile,
 			GNUTLS_X509_FMT_PEM );
@@ -334,7 +334,7 @@ tlsg_session_new ( tls_ctx * ctx, int is_server )
 	gnutls_priority_set( session->session, c->prios );
 	if ( c->cred )
 		gnutls_credentials_set( session->session, GNUTLS_CRD_CERTIFICATE, c->cred );
-	
+
 	if ( is_server ) {
 		int flag = 0;
 		if ( c->lo->ldo_tls_require_cert ) {
@@ -346,7 +346,7 @@ tlsg_session_new ( tls_ctx * ctx, int is_server )
 		}
 	}
 	return (tls_session *)session;
-} 
+}
 
 static int
 tlsg_session_accept( tls_session *session )
@@ -359,9 +359,9 @@ tlsg_session_accept( tls_session *session )
 		const gnutls_datum_t *peer_cert_list;
 		unsigned int list_size;
 
-		peer_cert_list = gnutls_certificate_get_peers( s->session, 
+		peer_cert_list = gnutls_certificate_get_peers( s->session,
 						&list_size );
-		if ( !peer_cert_list && s->ctx->lo->ldo_tls_require_cert == LDAP_OPT_X_TLS_TRY ) 
+		if ( !peer_cert_list && s->ctx->lo->ldo_tls_require_cert == LDAP_OPT_X_TLS_TRY )
 			rc = 0;
 		else {
 			rc = tlsg_cert_verify( s );
@@ -387,7 +387,7 @@ tlsg_session_upflags( Sockbuf *sb, tls_session *session, int rc )
 		return 0;
 
 	switch (gnutls_record_get_direction (s->session)) {
-	case 0: 
+	case 0:
 		sb->sb_trans_needs_read = 1;
 		return 1;
 	case 1:
@@ -448,7 +448,7 @@ tlsg_session_my_dn( tls_session *session, struct berval *der_dn )
 	x = gnutls_certificate_get_ours( s->session );
 
 	if (!x) return LDAP_INVALID_CREDENTIALS;
-	
+
 	bv.bv_val = (char *) x->data;
 	bv.bv_len = x->size;
 
@@ -465,7 +465,7 @@ tlsg_session_peer_dn( tls_session *session, struct berval *der_dn )
 		unsigned int list_size;
 		struct berval bv;
 
-		peer_cert_list = gnutls_certificate_get_peers( s->session, 
+		peer_cert_list = gnutls_certificate_get_peers( s->session,
 							&list_size );
 		if ( !peer_cert_list ) return LDAP_INVALID_CREDENTIALS;
 
@@ -515,7 +515,7 @@ tlsg_session_chkhost( LDAP *ld, tls_session *session, const char *name_in )
 		name = name_in;
 	}
 
-	peer_cert_list = gnutls_certificate_get_peers( s->session, 
+	peer_cert_list = gnutls_certificate_get_peers( s->session,
 						&list_size );
 	if ( !peer_cert_list ) {
 		Debug( LDAP_DEBUG_ANY,
@@ -538,12 +538,12 @@ tlsg_session_chkhost( LDAP *ld, tls_session *session, const char *name_in )
 #ifdef LDAP_PF_INET6
 	if (inet_pton(AF_INET6, name, &addr)) {
 		ntype = IS_IP6;
-	} else 
+	} else
 #endif
 	if ((ptr = strrchr(name, '.')) && isdigit((unsigned char)ptr[1])) {
 		if (inet_aton(name, (struct in_addr *)&addr)) ntype = IS_IP4;
 	}
-	
+
 	if (ntype == IS_DNS) {
 		len1 = strlen(name);
 		domain = strchr(name, '.');
@@ -554,7 +554,7 @@ tlsg_session_chkhost( LDAP *ld, tls_session *session, const char *name_in )
 
 	for ( i=0, ret=0; ret >= 0; i++ ) {
 		altnamesize = sizeof(altname);
-		ret = gnutls_x509_crt_get_subject_alt_name( cert, i, 
+		ret = gnutls_x509_crt_get_subject_alt_name( cert, i,
 			altname, &altnamesize, NULL );
 		if ( ret < 0 ) break;
 
@@ -563,7 +563,7 @@ tlsg_session_chkhost( LDAP *ld, tls_session *session, const char *name_in )
 
 		if ( ret == GNUTLS_SAN_DNSNAME ) {
 			if (ntype != IS_DNS) continue;
-	
+
 			/* Is this an exact match? */
 			if ((len1 == altnamesize) && !strncasecmp(name, altname, len1)) {
 				break;
@@ -641,7 +641,7 @@ tlsg_session_chkhost( LDAP *ld, tls_session *session, const char *name_in )
 		if( ret == LDAP_LOCAL_ERROR ) {
 			altname[altnamesize] = '\0';
 			Debug( LDAP_DEBUG_ANY, "TLS: hostname (%s) does not match "
-				"common name in certificate (%s).\n", 
+				"common name in certificate (%s).\n",
 				name, altname, 0 );
 			ret = LDAP_CONNECT_ERROR;
 			if ( ld->ld_error ) {
@@ -705,9 +705,9 @@ static ssize_t
 tlsg_send( gnutls_transport_ptr_t ptr, const void *buf, size_t len )
 {
 	struct tls_data		*p;
-	
+
 	if ( buf == NULL || len <= 0 ) return 0;
-	
+
 	p = (struct tls_data *)ptr;
 
 	if ( p == NULL || p->sbiod == NULL ) {
@@ -729,7 +729,7 @@ tlsg_sb_setup( Sockbuf_IO_Desc *sbiod, void *arg )
 	if ( p == NULL ) {
 		return -1;
 	}
-	
+
 	gnutls_transport_set_ptr( session->session, (gnutls_transport_ptr)p );
 	gnutls_transport_set_pull_function( session->session, tlsg_recv );
 	gnutls_transport_set_push_function( session->session, tlsg_send );
@@ -743,7 +743,7 @@ static int
 tlsg_sb_remove( Sockbuf_IO_Desc *sbiod )
 {
 	struct tls_data		*p;
-	
+
 	assert( sbiod != NULL );
 	assert( sbiod->sbiod_pvt != NULL );
 
@@ -759,7 +759,7 @@ static int
 tlsg_sb_close( Sockbuf_IO_Desc *sbiod )
 {
 	struct tls_data		*p;
-	
+
 	assert( sbiod != NULL );
 	assert( sbiod->sbiod_pvt != NULL );
 
@@ -772,22 +772,22 @@ static int
 tlsg_sb_ctrl( Sockbuf_IO_Desc *sbiod, int opt, void *arg )
 {
 	struct tls_data		*p;
-	
+
 	assert( sbiod != NULL );
 	assert( sbiod->sbiod_pvt != NULL );
 
 	p = (struct tls_data *)sbiod->sbiod_pvt;
-	
+
 	if ( opt == LBER_SB_OPT_GET_SSL ) {
 		*((tlsg_session **)arg) = p->session;
 		return 1;
-		
+
 	} else if ( opt == LBER_SB_OPT_DATA_READY ) {
 		if( gnutls_record_check_pending( p->session->session ) > 0 ) {
 			return 1;
 		}
 	}
-	
+
 	return LBER_SBIOD_CTRL_NEXT( sbiod, opt, arg );
 }
 

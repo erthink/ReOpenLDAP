@@ -80,7 +80,7 @@ OpenLDAP Software will not be fully LDAPv3 compliant unless OpenLDAP's
 
 H3: {{TERM[expand]SASL}}
 
-OpenLDAP clients and servers require installation of {{PRD:Cyrus SASL}} 
+OpenLDAP clients and servers require installation of {{PRD:Cyrus SASL}}
 libraries to provide {{TERM[expand]SASL}} services.  Though
 some operating systems may provide this library as part of the
 base system or as an optional software component, Cyrus SASL
@@ -130,7 +130,7 @@ install it yourself.
 
 {{PRD:Berkeley DB}} is available from {{ORG[expand]Oracle}}'s Berkeley DB
 download page
-{{URL: http://www.oracle.com/technology/software/products/berkeley-db/index.html}}.  
+{{URL: http://www.oracle.com/technology/software/products/berkeley-db/index.html}}.
 
 There are several versions available. Generally, the most recent
 release (with published patches) is recommended. This package is required

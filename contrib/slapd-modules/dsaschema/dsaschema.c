@@ -201,7 +201,7 @@ static int dsaschema_read_config(const char *fname, int depth)
 				return 1;
 			} else if (*cargv[1] == '(' /*')'*/) {
 				char *p;
-	
+
 				p = strchr(saveline, '(' /*')'*/);
 				rc = dsaschema_parse_at(fname, lineno, p, cargv);
 				if (rc != 0)
@@ -404,9 +404,9 @@ fp_getline( FILE *fp, int *lineno )
 			if( p > buf && p[-1] == '\r' ) --p;
 			*p = '\0';
 		}
-		
+
 		/* trim off trailing \ and append the next line */
-		if ( line[ 0 ] != '\0' 
+		if ( line[ 0 ] != '\0'
 				&& (p = line + strlen( line ) - 1)[ 0 ] == '\\'
 				&& p[ -1 ] != '\\' ) {
 			p[ 0 ] = '\0';

@@ -18,15 +18,15 @@ echo "running defines.sh"
 
 echo ""
 
-if test $BACKLDAP = ldapno ; then 
+if test $BACKLDAP = ldapno ; then
 	echo "ldap backend not available, test skipped"
 	exit 0
 fi
 
-if test $RWM = rwmno ; then 
+if test $RWM = rwmno ; then
 	echo "rwm (rewrite/remap) overlay not available, test skipped"
 	exit 0
-fi 
+fi
 
 rm -rf $TESTDIR
 
@@ -151,7 +151,7 @@ RC=$?
 #	test $KILLSERVERS != no && kill -HUP $KILLPIDS
 #	exit $RC
 #fi
-case $RC in 
+case $RC in
 	0)
 	;;
 	51)
@@ -178,7 +178,7 @@ RC=$?
 #	test $KILLSERVERS != no && kill -HUP $KILLPIDS
 #	exit $RC
 #fi
-case $RC in 
+case $RC in
 	0)
 	;;
 	51)
@@ -288,7 +288,7 @@ RC=$?
 #	test $KILLSERVERS != no && kill -HUP $KILLPIDS
 #	exit $RC
 #fi
-case $RC in 
+case $RC in
 	0)
 	;;
 	51)
@@ -312,7 +312,7 @@ RC=$?
 #	test $KILLSERVERS != no && kill -HUP $KILLPIDS
 #	exit $RC
 #fi
-case $RC in 
+case $RC in
 	0)
 	;;
 	51)
@@ -338,7 +338,7 @@ RC=$?
 #	test $KILLSERVERS != no && kill -HUP $KILLPIDS
 #	exit $RC
 #fi
-case $RC in 
+case $RC in
 	0)
 	;;
 	51)
@@ -369,7 +369,7 @@ RC=$?
 #	test $KILLSERVERS != no && kill -HUP $KILLPIDS
 #	exit $RC
 #fi
-case $RC in 
+case $RC in
 	0)
 	;;
 	51)
@@ -399,7 +399,7 @@ RC=$?
 #	test $KILLSERVERS != no && kill -HUP $KILLPIDS
 #	exit $RC
 #fi
-case $RC in 
+case $RC in
 	0)
 	;;
 	51)
@@ -429,7 +429,7 @@ RC=$?
 #	test $KILLSERVERS != no && kill -HUP $KILLPIDS
 #	exit $RC
 #fi
-case $RC in 
+case $RC in
 	0)
 	;;
 	51)
@@ -461,7 +461,7 @@ RC=$?
 #	test $KILLSERVERS != no && kill -HUP $KILLPIDS
 #	exit $RC
 #fi
-case $RC in 
+case $RC in
 	0)
 	;;
 	51)
@@ -530,7 +530,7 @@ echo "Filtering original ldif used to create database..."
 $LDIFFILTER < $METAOUT > $LDIFFLT
 echo "Comparing filter output..."
 $CMP $SEARCHFLT $LDIFFLT > $CMPOUT
-	
+
 if test $? != 0 ; then
 	echo "comparison failed - meta search/modification didn't succeed"
 	test $KILLSERVERS != no && kill -HUP $KILLPIDS
@@ -549,7 +549,7 @@ RC=$?
 #	test $KILLSERVERS != no && kill -HUP $KILLPIDS
 #	exit $RC
 #fi
-case $RC in 
+case $RC in
 	0)
 	;;
 #	51)
@@ -579,7 +579,7 @@ if test $RC = 0 ; then
 	#	test $KILLSERVERS != no && kill -HUP $KILLPIDS
 	#	exit $RC
 	#fi
-	case $RC in 
+	case $RC in
 		0)
 		;;
 		51)
@@ -603,7 +603,7 @@ RC=$?
 #	test $KILLSERVERS != no && kill -HUP $KILLPIDS
 #	exit $RC
 #fi
-case $RC in 
+case $RC in
 	0)
 	;;
 	51)
@@ -626,7 +626,7 @@ RC=$?
 #	test $KILLSERVERS != no && kill -HUP $KILLPIDS
 #	exit $RC
 #fi
-case $RC in 
+case $RC in
 	0)
 	;;
 #	51)
@@ -656,7 +656,7 @@ if test $RC = 0 ; then
 	#	test $KILLSERVERS != no && kill -HUP $KILLPIDS
 	#	exit $RC
 	#fi
-	case $RC in 
+	case $RC in
 		0)
 		;;
 		51)

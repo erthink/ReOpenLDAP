@@ -16,9 +16,9 @@ allows caching of LDAP search requests (queries) in a local database.
 For an incoming query, the
 proxy cache determines its corresponding \fBtemplate\fP. If the template
 was specified as cacheable using the \fBpcacheTemplate\fP directive
-and the request is contained in a cached request, it is answered from 
+and the request is contained in a cached request, it is answered from
 the proxy cache.
-Otherwise, the search is performed as usual and cacheable search results 
+Otherwise, the search is performed as usual and cacheable search results
 are saved in the cache for use in future queries.
 .LP
 
@@ -30,7 +30,7 @@ projected attributes correspond to a cacheable template.
 Examples of template strings are \fB(mail=)\fP, \fB(|(sn=)(cn=))\fP,
 \fB(&(sn=)(givenName=))\fP.
 
-.LP 
+.LP
 The config directives that are specific to the
 .B pcache
 overlay can be prefixed by
@@ -39,7 +39,7 @@ to avoid conflicts with directives specific to the underlying database
 or to other stacked overlays.  This may be particularly useful for those
 directives that refer to the backend used for local storage.
 The following cache specific directives can be used to configure the proxy
-cache: 
+cache:
 .TP
 .B overlay pcache
 This directive adds the proxy cache overlay to the current backend. The
@@ -52,18 +52,18 @@ and
 backends. Please note that the underlying backend must have a configured
 .BR rootdn.
 .TP
-.B pcache <database> <max_entries> <numattrsets> <entry_limit> <cc_period> 
+.B pcache <database> <max_entries> <numattrsets> <entry_limit> <cc_period>
 The directive enables proxy caching in the current backend and sets general
 cache parameters. A <database> backend will be used internally to maintain
 the cached entries. The chosen database will need to be configured as well,
-as shown below. Cache replacement is invoked when the cache size grows to 
+as shown below. Cache replacement is invoked when the cache size grows to
 <max_entries> entries and continues till the cache size drops below this size.
 <numattrsets> should be equal to the number of following \fBpcacheAttrset\fP
 directives. Queries are cached only if they correspond to a cacheable template
 (specified by the \fBpcacheTemplate\fP directive) and the number of entries
 returned is less than <entry_limit>. Consistency check is performed every
 <cc_period> duration (specified in secs). In each cycle queries with expired
-"time to live(\fBTTL\fP)" are removed. A sample cache configuration is: 
+"time to live(\fBTTL\fP)" are removed. A sample cache configuration is:
 .LP
 .RS
 pcache \fBbdb 10000 1 50 100\fP
@@ -73,7 +73,7 @@ pcache \fBbdb 10000 1 50 100\fP
 .B pcacheAttrset <index> <attrs...>
 Used to associate a set of attributes <attrs..> with an <index>. Each attribute
 set is associated with an integer from 0 to <numattrsets>\-1. These indices are
-used by the \fBpcacheTemplate\fP directive to define cacheable templates. 
+used by the \fBpcacheTemplate\fP directive to define cacheable templates.
 A set of attributes cannot be empty.  A set of attributes can contain the
 special attributes "*" (all user attributes), "+" (all operational attributes)
 or both; in the latter case, any other attribute is redundant and should
@@ -121,7 +121,7 @@ overlay configuration changed, this feature should not be affected.
 
 .TP
 .B pcacheTemplate <template_string> <attrset_index> <ttl> [<negttl> [<limitttl> [<ttr>]]]
-Specifies a cacheable template and "time to live" <ttl> of queries 
+Specifies a cacheable template and "time to live" <ttl> of queries
 belonging to the template. An optional <negttl> can be used to specify
 that negative results (i.e., queries that returned zero entries)
 should also be cached for the specified amount of time. Negative
@@ -162,12 +162,12 @@ By default Bind caching is not enabled.
 .B pcachePosition { head | tail }
 Specifies whether the response callback should be placed at the
 .B tail
-(the default) or at the 
+(the default) or at the
 .B head
-(actually, wherever the stacking sequence would make it appear) 
+(actually, wherever the stacking sequence would make it appear)
 of the callback list.  This affects how the overlay interacts with other
-overlays, since the proxycache overlay should be executed as early 
-as possible (and thus configured as late as possible), to get 
+overlays, since the proxycache overlay should be executed as early
+as possible (and thus configured as late as possible), to get
 a chance to return the cached results; however, if executed early
 at response, it would cache entries that may be later "massaged"
 by other databases and thus returned \fIafter\fP massaging the first
@@ -188,11 +188,11 @@ attribute sets SHOULD be defined by using the directive
 
 all attribute sets SHOULD be referenced by (at least) one
 .B pcacheTemplate
-directive; 
+directive;
 
 .LP
-The following adds a template with filter string \fB(&(sn=)(givenName=))\fP 
-and attributes mail, postaladdress, telephonenumber and a TTL of 1 hour. 
+The following adds a template with filter string \fB(&(sn=)(givenName=))\fP
+and attributes mail, postaladdress, telephonenumber and a TTL of 1 hour.
 .LP
 .RS
 .nf
@@ -258,8 +258,8 @@ for the duration of the
 These inconsistencies can be minimized by careful use of the TTR.
 
 The remote server should expose the
-.B objectClass 
-attribute because the underlying database that actually caches the entries 
+.B objectClass
+attribute because the underlying database that actually caches the entries
 may need it for optimal local processing of the queries.
 
 The proxy server should contain all the schema information required for caching.
@@ -269,26 +269,26 @@ of the objectClasses of the entries it is supposed to cache.
 It is the responsibility of the proxy administrator to keep the proxy schema
 lined up with that of the proxied server.
 
-Another potential (and subtle) inconsistency may occur when data is retrieved 
+Another potential (and subtle) inconsistency may occur when data is retrieved
 with different identities and specific per-identity access control
 is enforced by the remote server.
 If data was retrieved with an identity that collected only partial results
 because of access rules enforcement on the remote server, other users
 with different access privileges on the remote server will get different
 results from the remote server and from the cache.
-If those users have higher access privileges on the remote server, they will 
-get from the cache only a subset of the results they would get directly 
-from the remote server; but if they have lower access privileges, they will 
-get from the cache a superset of the results they would get directly 
+If those users have higher access privileges on the remote server, they will
+get from the cache only a subset of the results they would get directly
+from the remote server; but if they have lower access privileges, they will
+get from the cache a superset of the results they would get directly
 from the remote server.
 Either occurrence may or may not be acceptable, based on the security policy
 of the cache and of the remote server.
 It is important to note that in this case the proxy is violating the security
-of the remote server by disclosing to an identity data that was collected 
+of the remote server by disclosing to an identity data that was collected
 by another identity.
 For this reason, it is suggested that, when using
 .BR back-ldap ,
-proxy caching be used in conjunction with the 
+proxy caching be used in conjunction with the
 .I identity assertion
 feature of
 .BR slapd\-ldap (5)
@@ -296,7 +296,7 @@ feature of
 .B idassert\-bind
 and the
 .B idassert\-authz
-statements), so that remote server interrogation occurs with a vanilla identity 
+statements), so that remote server interrogation occurs with a vanilla identity
 that has some relatively high
 .B search
 and

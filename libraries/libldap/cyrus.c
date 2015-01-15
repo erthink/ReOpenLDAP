@@ -113,8 +113,8 @@ int ldap_int_sasl_init( void )
 	sasl_set_mutex(
 		ldap_pvt_sasl_mutex_new,
 		ldap_pvt_sasl_mutex_lock,
-		ldap_pvt_sasl_mutex_unlock,    
-		ldap_pvt_sasl_mutex_dispose );    
+		ldap_pvt_sasl_mutex_unlock,
+		ldap_pvt_sasl_mutex_dispose );
 #endif
 
 	if ( sasl_client_init( NULL ) == SASL_OK ) {
@@ -315,7 +315,7 @@ sasl_err2ldap( int saslerr )
 
 int
 ldap_int_sasl_open(
-	LDAP *ld, 
+	LDAP *ld,
 	LDAPConn *lc,
 	const char * host )
 {
@@ -457,7 +457,7 @@ ldap_int_sasl_bind(
 			 */
 			if ( nocanon )
 				saslhost = ld->ld_defconn->lconn_server->lud_host;
-			else 
+			else
 				saslhost = ldap_host_connected_to( ld->ld_defconn->lconn_sb,
 				"localhost" );
 			rc = ldap_int_sasl_open( ld, ld->ld_defconn, saslhost );
@@ -697,7 +697,7 @@ ldap_int_sasl_external(
 	if ( ctx == NULL ) {
 		return LDAP_LOCAL_ERROR;
 	}
-   
+
 #if SASL_VERSION_MAJOR >= 2
 	sc = sasl_setprop( ctx, SASL_SSF_EXTERNAL, &sasl_ssf );
 	if ( sc == SASL_OK )

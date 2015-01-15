@@ -63,7 +63,7 @@ typedef struct comp_attribute_aliasing {
 	MatchingRule*		aa_mr;
 	char*			aa_cf_str;
 } AttributeAliasing;
-                                                                                 
+
 typedef struct comp_matchingrule_aliasing {
 	MatchingRule*	mra_aliasing_attr;
 	MatchingRule*	mra_aliased_attr;

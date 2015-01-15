@@ -61,7 +61,7 @@ do_abandon( Operation *op, SlapReply *rs )
 		Debug( LDAP_DEBUG_ANY, "%s do_abandon: get_ctrls failed\n",
 			op->o_log_prefix, 0, 0 );
 		return rs->sr_err;
-	} 
+	}
 
 	Debug( LDAP_DEBUG_ARGS, "%s do_abandon: id=%ld\n",
 		op->o_log_prefix, (long) id, 0 );

@@ -1,4 +1,4 @@
--- mappings 
+-- mappings
 
 -- objectClass mappings: these may be viewed as structuralObjectClass, the ones that are used to decide how to build an entry
 --	id		a unique number identifying the objectClass
@@ -21,7 +21,7 @@ insert into ldap_oc_mappings (id,name,keytbl,keycol,create_proc,delete_proc,expe
 values (4,'referral','referrals','id',NULL,NULL,0);
 
 -- attributeType mappings: describe how an attributeType for a certain objectClass maps to the SQL data.
---	id		a unique number identifying the attribute	
+--	id		a unique number identifying the attribute
 --	oc_map_id	the value of "ldap_oc_mappings.id" that identifies the objectClass this attributeType is defined for
 --	name		the name of the attributeType; it MUST match the name of an attributeType that is loaded in slapd's schema
 --	sel_expr	the expression that is used to select this attribute (the "select <sel_expr> from ..." portion)

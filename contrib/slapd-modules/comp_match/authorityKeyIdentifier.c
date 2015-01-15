@@ -17,7 +17,7 @@ BDecComponentAuthorityKeyIdentifierTop( void* mem_op, GenBuf* b, void *v, AsnLen
 	if ( tag != MAKE_TAG_ID (UNIV, CONS, SEQ_TAG_CODE) ) {
 		return (-1);
 	}
-		
+
 	return BDecComponentAuthorityKeyIdentifier( mem_op, b, tag, elmtLen, ( ComponentAuthorityKeyIdentifier**)v, (AsnLen*)bytesDecoded, mode );
 }
 
@@ -547,7 +547,7 @@ MatchingComponentDirectoryString ( char* oid, ComponentSyntaxInfo* csi_attr, Com
 	   case DIRECTORYSTRING_BMPSTRING :
 		rc = 	MatchingComponentBMPString ( oid, (ComponentSyntaxInfo*)(v1->a.bmpString), (ComponentSyntaxInfo*)(v2->a.bmpString) );
 		break;
-	default : 
+	default :
 		 return LDAP_PROTOCOL_ERROR;
 	}
 	return rc;
@@ -1089,7 +1089,7 @@ MatchingComponentGeneralName ( char* oid, ComponentSyntaxInfo* csi_attr, Compone
 	   case GENERALNAME_REGISTEREDID :
 		rc = 	MatchingComponentOid ( oid, (ComponentSyntaxInfo*)(v1->a.registeredID), (ComponentSyntaxInfo*)(v2->a.registeredID) );
 		break;
-	default : 
+	default :
 		 return LDAP_PROTOCOL_ERROR;
 	}
 	return rc;
@@ -1601,7 +1601,7 @@ ExtractingComponentGeneralNames ( void* mem_op, ComponentReference* cr, Componen
 		count = total + count +1;
 		FOR_EACH_LIST_ELMT ( component, v ) {
 			if( --count == 0 ) {
-				if( cr->cr_curr->ci_next == NULL ) 
+				if( cr->cr_curr->ci_next == NULL )
 					return component;
 				else {
 					cr->cr_curr = cr->cr_curr->ci_next;
@@ -1879,7 +1879,7 @@ int mode)
     else
     {
         tagId1 = BDecTag (b, &totalElmtsLen1 );
-                                                                                
+
          if ((elmtLen0 == INDEFINITE_LEN) && (tagId1 == EOC_TAG_ID))
         {
             BDEC_2ND_EOC_OCTET (b, &totalElmtsLen1 )
@@ -1902,7 +1902,7 @@ int mode)
     else
     {
         tagId1 = BDecTag (b, &totalElmtsLen1 );
-                                                                                
+
          if ((elmtLen0 == INDEFINITE_LEN) && (tagId1 == EOC_TAG_ID))
         {
             BDEC_2ND_EOC_OCTET (b, &totalElmtsLen1 )
@@ -1923,7 +1923,7 @@ int mode)
             BDecEoc (b, &totalElmtsLen1 );
         else if (totalElmtsLen1 != elmtLen0)
         return -1;
-                                                                                
+
     }
 
     if (!seqDone)

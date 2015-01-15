@@ -122,7 +122,7 @@ map_ldap_parse(
 		map_ldap_free( data );
 		return NULL;
 	}
-	
+
 	if ( ldap_url_parse( uri, &data->lm_lud ) != REWRITE_SUCCESS ) {
 		Debug( LDAP_DEBUG_ANY,
 				"[%s:%d] illegal URI '%s'\n",
@@ -185,14 +185,14 @@ map_ldap_parse(
 			} else {
 				l = strlen( p );
 			}
-			
-			data->lm_binddn = strdup( p );			
+
+			data->lm_binddn = strdup( p );
 			if ( data->lm_binddn == NULL ) {
 				map_ldap_free( data );
 				return NULL;
 			}
 
-			if ( data->lm_binddn[ l ] == '\"' 
+			if ( data->lm_binddn[ l ] == '\"'
 					|| data->lm_binddn[ l ] == '\'' ) {
 				data->lm_binddn[ l ] = '\0';
 			}
@@ -217,9 +217,9 @@ map_ldap_parse(
 
 			if ( strcasecmp( p, "now" ) == 0 ) {
 				int rc;
-				
+
 				data->lm_when = MAP_LDAP_NOW;
-				
+
 				/*
 				 * Init LDAP handler ...
 				 */
@@ -296,7 +296,7 @@ map_ldap_apply(
 	int rc;
 	struct ldap_map_data *data = private;
 	LDAPURLDesc *lud = data->lm_lud;
-	
+
 	int first_try = 1, set_version = 0;
 
 	assert( private != NULL );
@@ -321,7 +321,7 @@ map_ldap_apply(
 			rc = ldap_initialize( &data->lm_ld, data->lm_url );
 			set_version = 1;
 		}
-		
+
 		ld = data->lm_ld;
 	}
 
@@ -399,7 +399,7 @@ do_bind:;
 				 * should not be acceptable according
 				 * to the current API; ignore by now */
 				if ( values[ 1 ] != NULL ) {
-					/* error */				
+					/* error */
 				}
 #endif
 				ber_dupbv( val, values[ 0 ] );
@@ -407,7 +407,7 @@ do_bind:;
 			ldap_value_free_len( values );
 		}
 	}
-	
+
 	ldap_msgfree( res );
 
 	if ( val->bv_val == NULL ) {
@@ -427,7 +427,7 @@ rc_return:;
 		ldap_pvt_thread_mutex_unlock( &data->lm_mutex );
 #endif /* USE_REWRITE_LDAP_PVT_THREADS */
 	}
-	
+
 	return rc;
 }
 
@@ -439,7 +439,7 @@ map_ldap_destroy(
 	struct ldap_map_data *data = private;
 
 	assert( private != NULL );
-	
+
 	map_ldap_free( data );
 
 	return 0;

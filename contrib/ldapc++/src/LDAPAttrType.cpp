@@ -19,7 +19,7 @@ LDAPAttrType::LDAPAttrType(){
     usage = 0;
 }
 
-LDAPAttrType::LDAPAttrType (string at_item, int flags ) { 
+LDAPAttrType::LDAPAttrType (string at_item, int flags ) {
 
     DEBUG(LDAP_DEBUG_CONSTRUCT,
             "LDAPAttrType::LDAPAttrType( )" << endl);
@@ -51,7 +51,7 @@ LDAPAttrType::~LDAPAttrType() {
 void LDAPAttrType::setSingle (int at_single) {
     single = (at_single == 1);
 }
-    
+
 void LDAPAttrType::setNames ( char **at_names ) {
     names = StringList(at_names);
 }
@@ -99,7 +99,7 @@ void LDAPAttrType::setSyntaxOid( const char *oid ){
 
 bool LDAPAttrType::isSingle() const {
     return single;
-} 
+}
 
 string LDAPAttrType::getOid() const {
     return oid;

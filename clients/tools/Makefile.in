@@ -20,7 +20,7 @@ OBJS	= ldapsearch.o ldapmodify.o ldapdelete.o ldapmodrdn.o \
 		ldappasswd.o ldapwhoami.o ldapcompare.o \
 		ldapexop.o ldapurl.o common.o
 
-LDAP_INCDIR= ../../include       
+LDAP_INCDIR= ../../include
 LDAP_LIBDIR= ../../libraries
 
 MKVOPTS = -s

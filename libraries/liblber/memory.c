@@ -69,7 +69,7 @@ static const struct ber_mem_hdr ber_int_mem_hdr = { LBER_MEM_JUNK };
 /* Note sequence and ber_int_meminuse are counters, but are not
  * thread safe.  If you want to use these values for multithreaded applications,
  * you must put mutexes around them, otherwise they will have incorrect values.
- * When debugging, if you sort the debug output, the sequence number will 
+ * When debugging, if you sort the debug output, the sequence number will
  * put allocations/frees together.  It is then a simple matter to write a script
  * to find any allocations that don't have a buffer free function.
  */
@@ -309,7 +309,7 @@ ber_memrealloc_x( void* p, ber_len_t s, void *ctx )
 	if( p == NULL ) {
 		return ber_memalloc_x( s, ctx );
 	}
-	
+
 	/* realloc(p,0) -> free(p) */
 	if( s == 0 ) {
 		ber_memfree_x( p, ctx );
@@ -624,7 +624,7 @@ ber_strdup_x( LDAP_CONST char *s, void *ctx )
 {
 	char    *p;
 	size_t	len;
-	
+
 #ifdef LDAP_MEMORY_DEBUG
 	assert(s != NULL);			/* bv damn better point to something */
 #endif
@@ -663,7 +663,7 @@ ber_strndup_x( LDAP_CONST char *s, ber_len_t l, void *ctx )
 {
 	char    *p;
 	size_t	len;
-	
+
 #ifdef LDAP_MEMORY_DEBUG
 	assert(s != NULL);			/* bv damn better point to something */
 #endif
@@ -725,7 +725,7 @@ ber_bvarray_free_x( BerVarray a, void *ctx )
 
 		/* count elements */
 		for (i=0; a[i].bv_val; i++) ;
-		
+
 		/* free in reverse order */
 		for (i--; i>=0; i--) {
 			ber_memfree_x(a[i].bv_val, ctx);

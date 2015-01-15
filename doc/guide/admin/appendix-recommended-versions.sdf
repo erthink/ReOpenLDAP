@@ -4,10 +4,10 @@
 
 H1: Recommended OpenLDAP Software Dependency Versions
 
-This appendix details the recommended versions of the software 
-that OpenLDAP depends on. 
+This appendix details the recommended versions of the software
+that OpenLDAP depends on.
 
-Please read the {{SECT:Prerequisite software}} section for more 
+Please read the {{SECT:Prerequisite software}} section for more
 information on the following software dependencies.
 
 H2: Dependency Versions

@@ -49,7 +49,7 @@
 int			nBackendInfo = 0;
 slap_bi_head backendInfo = LDAP_STAILQ_HEAD_INITIALIZER(backendInfo);
 
-int			nBackendDB = 0; 
+int			nBackendDB = 0;
 slap_be_head backendDB = LDAP_STAILQ_HEAD_INITIALIZER(backendDB);
 
 static int
@@ -103,7 +103,7 @@ int backend_init(void)
 			for( nBackendInfo--;
 				nBackendInfo >= 0 ;
 				nBackendInfo-- )
-			{ 
+			{
 				if ( slap_binfo[nBackendInfo].bi_destroy ) {
 					slap_binfo[nBackendInfo].bi_destroy(
 						&slap_binfo[nBackendInfo] );
@@ -119,7 +119,7 @@ int backend_init(void)
 		return 0;
 	}
 
-#ifdef SLAPD_MODULES	
+#ifdef SLAPD_MODULES
 	return 0;
 #else
 
@@ -173,10 +173,10 @@ backend_set_controls( BackendDB *be )
 			AC_MEMCPY( be->be_ctrls, bi->bi_ctrls,
 					sizeof( be->be_ctrls ) );
 			be->be_ctrls[ SLAP_MAX_CIDS ] = 1;
-			
+
 		} else {
 			int	i;
-			
+
 			for ( i = 0; i < SLAP_MAX_CIDS; i++ ) {
 				if ( bi->bi_ctrls[ i ] ) {
 					be->be_ctrls[ i ] = bi->bi_ctrls[ i ];
@@ -614,7 +614,7 @@ backend_db_init(
 	ldap_pvt_thread_mutex_init( &be->be_pcl_mutex );
 
  	/* assign a default depth limit for alias deref */
-	be->be_max_deref_depth = SLAPD_DEFAULT_MAXDEREFDEPTH; 
+	be->be_max_deref_depth = SLAPD_DEFAULT_MAXDEREFDEPTH;
 
 	if ( bi->bi_db_init ) {
 		rc = bi->bi_db_init( be, cr );
@@ -683,7 +683,7 @@ select_backend(
 				/* suffix is longer than DN */
 				continue;
 			}
-			
+
 			/*
 			 * input DN is normalized, so the separator check
 			 * need not look at escaping
@@ -859,7 +859,7 @@ be_rootdn_bind( Operation *op, SlapReply *rs )
 send_result:;
 		rs->sr_err = rc;
 
-		Debug( LDAP_DEBUG_TRACE, "%s: rootdn=\"%s\" bind%s\n", 
+		Debug( LDAP_DEBUG_TRACE, "%s: rootdn=\"%s\" bind%s\n",
 			op->o_log_prefix, op->o_bd->be_rootdn.bv_val,
 			rc == LDAP_SUCCESS ? " succeeded" : " failed" );
 
@@ -950,9 +950,9 @@ backend_check_controls(
 
 			switch ( slap_global_control( op, (*ctrls)->ldctl_oid, &cid ) ) {
 			case LDAP_CONTROL_NOT_FOUND:
-				/* unrecognized control */ 
+				/* unrecognized control */
 				if ( (*ctrls)->ldctl_iscritical ) {
-					/* should not be reachable */ 
+					/* should not be reachable */
 					Debug( LDAP_DEBUG_ANY, "backend_check_controls: "
 						"unrecognized critical control: %s\n",
 						(*ctrls)->ldctl_oid, 0, 0 );
@@ -1254,7 +1254,7 @@ backend_check_restrictions(
 				return rs->sr_err;
 			}
 		}
-			
+
 		if( requires & SLAP_REQUIRE_AUTHC ) {
 			if( BER_BVISEMPTY( &op->o_dn ) ) {
 				rs->sr_text = "authentication required";
@@ -1369,7 +1369,7 @@ be_entry_get_rw(
 	return LDAP_UNWILLING_TO_PERFORM;
 }
 
-int 
+int
 fe_acl_group(
 	Operation *op,
 	Entry	*target,
@@ -1444,7 +1444,7 @@ fe_acl_group(
 				if ( target && dn_match( &target->e_nname, op_ndn ) ) {
 					user = target;
 				}
-				
+
 				rc = LDAP_COMPARE_FALSE;
 				for ( i = 0; !BER_BVISNULL( &a->a_vals[i] ); i++ ) {
 					if ( ldap_url_parse( a->a_vals[i].bv_val, &ludp ) !=
@@ -1510,7 +1510,7 @@ fe_acl_group(
 
 						/* only get user if required
 						 * and not available yet */
-						if ( user == NULL ) {	
+						if ( user == NULL ) {
 							int rc2;
 
 							op->o_bd = select_backend( op_ndn, 0 );
@@ -1591,7 +1591,7 @@ done:
 	return rc;
 }
 
-int 
+int
 backend_group(
 	Operation *op,
 	Entry	*target,
@@ -1622,7 +1622,7 @@ backend_group(
 	return rc;
 }
 
-int 
+int
 fe_acl_attribute(
 	Operation *op,
 	Entry	*target,
@@ -1658,7 +1658,7 @@ fe_acl_attribute(
 		rc = be_entry_get_rw( op, edn, NULL, entry_at, 0, &e );
 		e_priv = op->o_private;
 		op->o_private = o_priv;
-	} 
+	}
 
 	if ( e ) {
 		if ( entry_at == slap_schema.si_ad_entry || entry_at == slap_schema.si_ad_children ) {
@@ -1683,7 +1683,7 @@ fe_acl_attribute(
 			anlist[ 0 ].an_desc = entry_at;
 			BER_BVZERO( &anlist[ 1 ].an_name );
 			rs.sr_attrs = anlist;
-			
+
  			/* NOTE: backend_operational() is also called
  			 * when returning results, so it's supposed
  			 * to do no harm to entries */
@@ -1717,7 +1717,7 @@ fe_acl_attribute(
 				op->o_tmpmemctx );
 			for ( i = 0, j = 0; !BER_BVISNULL( &a->a_vals[i] ); i++ )
 			{
-				if ( op->o_conn && access > ACL_NONE && 
+				if ( op->o_conn && access > ACL_NONE &&
 					access_allowed( op, e, entry_at,
 							&a->a_nvals[i],
 							access,
@@ -1756,7 +1756,7 @@ freeit:		if ( e != target ) {
 	return rc;
 }
 
-int 
+int
 backend_attribute(
 	Operation *op,
 	Entry	*target,
@@ -1783,7 +1783,7 @@ backend_attribute(
 	return rc;
 }
 
-int 
+int
 backend_access(
 	Operation		*op,
 	Entry			*target,
@@ -1819,7 +1819,7 @@ backend_access(
 		rc = be_entry_get_rw( op, edn, NULL, entry_at, 0, &e );
 		e_priv = op->o_private;
 		op->o_private = o_priv;
-	} 
+	}
 
 	if ( e ) {
 		Attribute	*a = NULL;
@@ -1850,7 +1850,7 @@ backend_access(
 				anlist[ 0 ].an_desc = entry_at;
 				BER_BVZERO( &anlist[ 1 ].an_name );
 				rs.sr_attrs = anlist;
-			
+
 				rs.sr_attr_flags = slap_attr_flags( rs.sr_attrs );
 
 				/* NOTE: backend_operational() is also called
@@ -1913,8 +1913,8 @@ fe_aux_operational(
 		/* just count them */ ;
 
 	/*
-	 * If operational attributes (allegedly) are required, 
-	 * and the backend supports specific operational attributes, 
+	 * If operational attributes (allegedly) are required,
+	 * and the backend supports specific operational attributes,
 	 * add them to the attribute list
 	 */
 	if ( !( rs->sr_flags & REP_NO_ENTRYDN )

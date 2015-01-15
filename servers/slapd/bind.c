@@ -70,7 +70,7 @@ do_bind(
 	if ( !BER_BVISNULL( &op->o_dn ) ) {
 		/* NOTE: temporarily wasting few bytes
 		 * (until bind is completed), but saving
-		 * a couple of ch_free() and ch_strdup("") */ 
+		 * a couple of ch_free() and ch_strdup("") */
 		op->o_dn.bv_val[0] = '\0';
 		op->o_dn.bv_len = 0;
 	}
@@ -122,7 +122,7 @@ do_bind(
 			ber_len_t len;
 			tag = ber_peek_tag( ber, &len );
 
-			if ( tag == LDAP_TAG_LDAPCRED ) { 
+			if ( tag == LDAP_TAG_LDAPCRED ) {
 				tag = ber_scanf( ber, "m", &op->orb_cred );
 			} else {
 				tag = LDAP_TAG_LDAPCRED;
@@ -147,7 +147,7 @@ do_bind(
 		Debug( LDAP_DEBUG_ANY, "%s do_bind: get_ctrls failed\n",
 			op->o_log_prefix, 0, 0 );
 		goto cleanup;
-	} 
+	}
 
 	/* We use the tmpmemctx here because it speeds up normalization.
 	 * However, we must dup with regular malloc when storing any

@@ -16,10 +16,10 @@
 echo "running defines.sh"
 . $SRCDIR/scripts/defines.sh
 
-if test $SYNCPROV = syncprovno; then 
+if test $SYNCPROV = syncprovno; then
 	echo "Syncrepl provider overlay not available, test skipped"
 	exit 0
-fi 
+fi
 
 CFPRO=$TESTDIR/cfpro.d
 CFCON=$TESTDIR/cfcon.d

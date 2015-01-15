@@ -17,7 +17,7 @@ LDFLAGS	=	-g
 DIRLIBS	=	$(TTCLASSES)/ttclasses.a -L $(ODBC)/lib -R $(ODBC)/lib -ltten -lpthread -lm -lrt
 XLALIB  =       -L $(ODBC)/lib -lxla
 
-DIRPROGS=	dnreverse 
+DIRPROGS=	dnreverse
 
 DNREVERSE=	dnreverse.o
 
@@ -29,7 +29,7 @@ all:		$(DIRPROGS)
 
 direct:		$(DIRPROGS)
 
-clean:          
+clean:
 		rm -rf $(DIRPROGS) *.o
 
 

@@ -20,9 +20,9 @@
  *	const char **schemes )
  *
  * Returns true if user supplied credentials (cred) matches
- * the stored password (passwd). 
+ * the stored password (passwd).
  *
- * Due to the use of the crypt(3) function 
+ * Due to the use of the crypt(3) function
  * this routine is NOT thread-safe.
  */
 
@@ -42,7 +42,7 @@ typedef des_cblock des_key;
 typedef des_cblock des_data_block;
 typedef des_key_schedule des_context;
 #define des_failed(encrypted) 0
-#define des_finish(key, schedule) 
+#define des_finish(key, schedule)
 
 #elif defined(HAVE_MOZNSS)
 /*
@@ -257,7 +257,7 @@ int lutil_passwd_scheme(
 }
 
 
-static int is_allowed_scheme( 
+static int is_allowed_scheme(
 	const char* scheme,
 	const char** schemes )
 {
@@ -360,7 +360,7 @@ int lutil_passwd_generate( struct berval *pw, ber_len_t len )
 	}
 
 	if( lutil_entropy( (unsigned char *) pw->bv_val, pw->bv_len) < 0 ) {
-		return -1; 
+		return -1;
 	}
 
 	for( len = 0; len < pw->bv_len; len++ ) {
@@ -369,7 +369,7 @@ int lutil_passwd_generate( struct berval *pw, ber_len_t len )
 	}
 
 	pw->bv_val[len] = '\0';
-	
+
 	return 0;
 }
 
@@ -469,7 +469,7 @@ int lutil_passwd_string64(
 		&b64->bv_val[sc->bv_len], b64len );
 
 	if( salt ) ber_memfree( string.bv_val );
-	
+
 	if( rc < 0 ) {
 		return LUTIL_PASSWD_ERR;
 	}
@@ -512,7 +512,7 @@ static int chk_ssha1(
 		ber_memfree(orig_pass);
 		return LUTIL_PASSWD_ERR;
 	}
- 
+
 	/* hash credentials with salt */
 	lutil_SHA1Init(&SHA1context);
 	lutil_SHA1Update(&SHA1context,
@@ -521,7 +521,7 @@ static int chk_ssha1(
 		(const unsigned char *) &orig_pass[sizeof(SHA1digest)],
 		rc - sizeof(SHA1digest));
 	lutil_SHA1Final(SHA1digest, &SHA1context);
- 
+
 	/* compare */
 	rc = memcmp((char *)orig_pass, (char *)SHA1digest, sizeof(SHA1digest));
 	ber_memfree(orig_pass);
@@ -539,7 +539,7 @@ static int chk_sha1(
 	int rc;
 	unsigned char *orig_pass = NULL;
 	size_t decode_len = LUTIL_BASE64_DECODE_LEN(passwd->bv_len);
- 
+
 	/* safety check */
 	if (decode_len < sizeof(SHA1digest)) {
 		return LUTIL_PASSWD_ERR;
@@ -556,13 +556,13 @@ static int chk_sha1(
 		ber_memfree(orig_pass);
 		return LUTIL_PASSWD_ERR;
 	}
- 
+
 	/* hash credentials with salt */
 	lutil_SHA1Init(&SHA1context);
 	lutil_SHA1Update(&SHA1context,
 		(const unsigned char *) cred->bv_val, cred->bv_len);
 	lutil_SHA1Final(SHA1digest, &SHA1context);
- 
+
 	/* compare */
 	rc = memcmp((char *)orig_pass, (char *)SHA1digest, sizeof(SHA1digest));
 	ber_memfree(orig_pass);
@@ -674,7 +674,7 @@ des_set_key_and_parity( des_key *key, unsigned char *keyData)
 #elif defined(HAVE_MOZNSS)
 
 /*
- * implement MozNSS wrappers for the openSSL calls 
+ * implement MozNSS wrappers for the openSSL calls
  */
 static void
 des_set_key_and_parity( des_key *key, unsigned char *keyData)
@@ -694,7 +694,7 @@ des_set_key_and_parity( des_key *key, unsigned char *keyData)
     /* NOTE: this will not work in FIPS mode. In order to make lmhash
      * work in fips mode we need to define a LMHASH pbe mechanism and
      * do the fulll key derivation inside the token */
-    *key = PK11_ImportSymKey(slot, CKM_DES_ECB, PK11_OriginGenerated, 
+    *key = PK11_ImportSymKey(slot, CKM_DES_ECB, PK11_OriginGenerated,
 		CKA_ENCRYPT, &keyDataItem, NULL);
 }
 
@@ -712,7 +712,7 @@ des_set_key_unchecked( des_key *key, des_context ctxt )
 }
 
 static void
-des_ecb_encrypt( des_data_block *plain, des_data_block *encrypted, 
+des_ecb_encrypt( des_data_block *plain, des_data_block *encrypted,
 			des_context ctxt, int op)
 {
     SECStatus rv;
@@ -723,7 +723,7 @@ des_ecb_encrypt( des_data_block *plain, des_data_block *encrypted,
 	memset(encrypted, 0, sizeof(des_data_block));
 	return;
     }
-    rv = PK11_CipherOp(ctxt[0], (unsigned char *)&encrypted[0], 
+    rv = PK11_CipherOp(ctxt[0], (unsigned char *)&encrypted[0],
 			&size, sizeof(des_data_block),
 			(unsigned char *)&plain[0], sizeof(des_data_block));
     if (rv != SECSuccess) {
@@ -759,24 +759,24 @@ des_finish(des_key *key, des_context ctxt)
 
 /* pseudocode from RFC2433
  * A.2 LmPasswordHash()
- * 
+ *
  *    LmPasswordHash(
  *    IN  0-to-14-oem-char Password,
  *    OUT 16-octet         PasswordHash )
  *    {
  *       Set UcasePassword to the uppercased Password
  *       Zero pad UcasePassword to 14 characters
- * 
+ *
  *       DesHash( 1st 7-octets of UcasePassword,
  *                giving 1st 8-octets of PasswordHash )
- * 
+ *
  *       DesHash( 2nd 7-octets of UcasePassword,
  *                giving 2nd 8-octets of PasswordHash )
  *    }
- * 
- * 
+ *
+ *
  * A.3 DesHash()
- * 
+ *
  *    DesHash(
  *    IN  7-octet Clear,
  *    OUT 8-octet Cypher )
@@ -788,14 +788,14 @@ des_finish(des_key *key, des_context ctxt)
  *        *
  *        *              KGS!@#$%
  *        *
- * 
+ *
  *       Set StdText to "KGS!@#$%"
  *       DesEncrypt( StdText, Clear, giving Cypher )
  *    }
- * 
- * 
+ *
+ *
  * A.4 DesEncrypt()
- * 
+ *
  *    DesEncrypt(
  *    IN  8-octet Clear,
  *    IN  7-octet Key,
@@ -831,9 +831,9 @@ static void lmPasswd_to_key(
 	k[5] = ((lpw[4] & 0x1F) << 3) | (lpw[5] >> 5);
 	k[6] = ((lpw[5] & 0x3F) << 2) | (lpw[6] >> 6);
 	k[7] = ((lpw[6] & 0x7F) << 1);
-		
+
 	des_set_key_and_parity( key, k );
-}	
+}
 
 static int chk_lanman(
 	const struct berval *scheme,
@@ -848,21 +848,21 @@ static int chk_lanman(
 	des_data_block StdText = "KGS!@#$%";
 	des_data_block PasswordHash1, PasswordHash2;
 	char PasswordHash[33], storedPasswordHash[33];
-	
+
 	for( i=0; i<cred->bv_len; i++) {
 		if(cred->bv_val[i] == '\0') {
 			return LUTIL_PASSWD_ERR;	/* NUL character in password */
 		}
 	}
-	
+
 	if( cred->bv_val[i] != '\0' ) {
 		return LUTIL_PASSWD_ERR;	/* passwd must behave like a string */
 	}
-	
+
 	strncpy( UcasePassword, cred->bv_val, 14 );
 	UcasePassword[14] = '\0';
 	ldap_pvt_str2upper( UcasePassword );
-	
+
 	lmPasswd_to_key( UcasePassword, &key );
 	des_set_key_unchecked( &key, schedule );
 	des_ecb_encrypt( &StdText, &PasswordHash1, schedule , DES_ENCRYPT );
@@ -870,7 +870,7 @@ static int chk_lanman(
 	if (des_failed(&PasswordHash1)) {
 	    return LUTIL_PASSWD_ERR;
 	}
-	
+
 	lmPasswd_to_key( &UcasePassword[7], &key );
 	des_set_key_unchecked( &key, schedule );
 	des_ecb_encrypt( &StdText, &PasswordHash2, schedule , DES_ENCRYPT );
@@ -879,18 +879,18 @@ static int chk_lanman(
 	}
 
 	des_finish( &key, schedule );
-	
-	sprintf( PasswordHash, "%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x", 
+
+	sprintf( PasswordHash, "%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x",
 		PasswordHash1[0],PasswordHash1[1],PasswordHash1[2],PasswordHash1[3],
 		PasswordHash1[4],PasswordHash1[5],PasswordHash1[6],PasswordHash1[7],
 		PasswordHash2[0],PasswordHash2[1],PasswordHash2[2],PasswordHash2[3],
 		PasswordHash2[4],PasswordHash2[5],PasswordHash2[6],PasswordHash2[7] );
-	
+
 	/* as a precaution convert stored password hash to lower case */
 	strncpy( storedPasswordHash, passwd->bv_val, 32 );
 	storedPasswordHash[32] = '\0';
 	ldap_pvt_str2lower( storedPasswordHash );
-	
+
 	return memcmp( PasswordHash, storedPasswordHash, 32) ? LUTIL_PASSWD_ERR : LUTIL_PASSWD_OK;
 }
 #endif /* SLAPD_LMHASH */
@@ -1041,7 +1041,7 @@ static int hash_ssha1(
 	salt.bv_len = sizeof(saltdata);
 
 	if( lutil_entropy( (unsigned char *) salt.bv_val, salt.bv_len) < 0 ) {
-		return LUTIL_PASSWD_ERR; 
+		return LUTIL_PASSWD_ERR;
 	}
 
 	lutil_SHA1Init( &SHA1context );
@@ -1065,12 +1065,12 @@ static int hash_sha1(
 	struct berval digest;
 	digest.bv_val = (char *) SHA1digest;
 	digest.bv_len = sizeof(SHA1digest);
-     
+
 	lutil_SHA1Init( &SHA1context );
 	lutil_SHA1Update( &SHA1context,
 		(const unsigned char *)passwd->bv_val, passwd->bv_len );
 	lutil_SHA1Final( SHA1digest, &SHA1context );
-            
+
 	return lutil_passwd_string64( scheme, &digest, hash, NULL);
 }
 #endif
@@ -1093,7 +1093,7 @@ static int hash_smd5(
 	salt.bv_len = sizeof(saltdata);
 
 	if( lutil_entropy( (unsigned char *) salt.bv_val, salt.bv_len) < 0 ) {
-		return LUTIL_PASSWD_ERR; 
+		return LUTIL_PASSWD_ERR;
 	}
 
 	lutil_MD5Init( &MD5context );
@@ -1129,7 +1129,7 @@ static int hash_md5(
 ;
 }
 
-#ifdef SLAPD_LMHASH 
+#ifdef SLAPD_LMHASH
 static int hash_lanman(
 	const struct berval *scheme,
 	const struct berval *passwd,
@@ -1144,38 +1144,38 @@ static int hash_lanman(
 	des_data_block StdText = "KGS!@#$%";
 	des_data_block PasswordHash1, PasswordHash2;
 	char PasswordHash[33];
-	
+
 	for( i=0; i<passwd->bv_len; i++) {
 		if(passwd->bv_val[i] == '\0') {
 			return LUTIL_PASSWD_ERR;	/* NUL character in password */
 		}
 	}
-	
+
 	if( passwd->bv_val[i] != '\0' ) {
 		return LUTIL_PASSWD_ERR;	/* passwd must behave like a string */
 	}
-	
+
 	strncpy( UcasePassword, passwd->bv_val, 14 );
 	UcasePassword[14] = '\0';
 	ldap_pvt_str2upper( UcasePassword );
-	
+
 	lmPasswd_to_key( UcasePassword, &key );
 	des_set_key_unchecked( &key, schedule );
 	des_ecb_encrypt( &StdText, &PasswordHash1, schedule , DES_ENCRYPT );
-	
+
 	lmPasswd_to_key( &UcasePassword[7], &key );
 	des_set_key_unchecked( &key, schedule );
 	des_ecb_encrypt( &StdText, &PasswordHash2, schedule , DES_ENCRYPT );
-	
-	sprintf( PasswordHash, "%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x", 
+
+	sprintf( PasswordHash, "%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x",
 		PasswordHash1[0],PasswordHash1[1],PasswordHash1[2],PasswordHash1[3],
 		PasswordHash1[4],PasswordHash1[5],PasswordHash1[6],PasswordHash1[7],
 		PasswordHash2[0],PasswordHash2[1],PasswordHash2[2],PasswordHash2[3],
 		PasswordHash2[4],PasswordHash2[5],PasswordHash2[6],PasswordHash2[7] );
-	
+
 	hash->bv_val = PasswordHash;
 	hash->bv_len = 32;
-	
+
 	return pw_string( scheme, hash );
 }
 #endif /* SLAPD_LMHASH */
@@ -1203,7 +1203,7 @@ static int hash_crypt(
 	}
 
 	if( lutil_entropy( salt, sizeof( salt ) ) < 0 ) {
-		return LUTIL_PASSWD_ERR; 
+		return LUTIL_PASSWD_ERR;
 	}
 
 	for( i=0; i< ( sizeof(salt) - 1 ); i++ ) {

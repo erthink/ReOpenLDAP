@@ -38,7 +38,7 @@ backsql_PrintErrors( SQLHENV henv, SQLHDBC hdbc, SQLHSTMT sth, int rc )
 	SQLCHAR	msg[SQL_MAX_MESSAGE_LENGTH];		/* msg. buffer    */
 	SQLCHAR	state[SQL_SQLSTATE_SIZE];		/* statement buf. */
 	SDWORD	iSqlCode;				/* return code    */
-	SWORD	len = SQL_MAX_MESSAGE_LENGTH - 1;	/* return length  */ 
+	SWORD	len = SQL_MAX_MESSAGE_LENGTH - 1;	/* return length  */
 
 	Debug( LDAP_DEBUG_TRACE, "Return code: %d\n", rc, 0, 0 );
 
@@ -82,18 +82,18 @@ backsql_Prepare( SQLHDBC dbh, SQLHSTMT *sth, const char *query, int timeout )
 			/*
 			 * stupid default result set in MS SQL Server
 			 * does not support multiple active statements
-			 * on the same connection -- so we are trying 
+			 * on the same connection -- so we are trying
 			 * to make it not to use default result set...
 			 */
 			Debug( LDAP_DEBUG_TRACE, "_SQLprepare(): "
 				"enabling MS SQL Server default result "
 				"set workaround\n", 0, 0, 0 );
-			rc = SQLSetStmtOption( *sth, SQL_CONCURRENCY, 
+			rc = SQLSetStmtOption( *sth, SQL_CONCURRENCY,
 					SQL_CONCUR_ROWVER );
 			if ( rc != SQL_SUCCESS && rc != SQL_SUCCESS_WITH_INFO ) {
 				Debug( LDAP_DEBUG_TRACE, "backsql_Prepare(): "
 					"SQLSetStmtOption(SQL_CONCURRENCY,"
-					"SQL_CONCUR_ROWVER) failed:\n", 
+					"SQL_CONCUR_ROWVER) failed:\n",
 					0, 0, 0 );
 				backsql_PrintErrors( SQL_NULL_HENV, dbh, *sth, rc );
 				SQLFreeStmt( *sth, SQL_DROP );
@@ -105,7 +105,7 @@ backsql_Prepare( SQLHDBC dbh, SQLHSTMT *sth, const char *query, int timeout )
 
 	if ( timeout > 0 ) {
 		Debug( LDAP_DEBUG_TRACE, "_SQLprepare(): "
-			"setting query timeout to %d sec.\n", 
+			"setting query timeout to %d sec.\n",
 			timeout, 0, 0 );
 		rc = SQLSetStmtOption( *sth, SQL_QUERY_TIMEOUT, timeout );
 		if ( rc != SQL_SUCCESS ) {
@@ -135,14 +135,14 @@ backsql_BindRowAsStrings_x( SQLHSTMT sth, BACKSQL_ROW_NTS *row, void *ctx )
 #ifdef BACKSQL_TRACE
 	Debug( LDAP_DEBUG_TRACE, "==> backsql_BindRowAsStrings()\n", 0, 0, 0 );
 #endif /* BACKSQL_TRACE */
-	
+
 	rc = SQLNumResultCols( sth, &row->ncols );
 	if ( rc != SQL_SUCCESS ) {
 #ifdef BACKSQL_TRACE
 		Debug( LDAP_DEBUG_TRACE, "backsql_BindRowAsStrings(): "
 			"SQLNumResultCols() failed:\n", 0, 0, 0 );
 #endif /* BACKSQL_TRACE */
-		
+
 		backsql_PrintErrors( SQL_NULL_HENV, SQL_NULL_HDBC, sth, rc );
 
 	} else {
@@ -156,7 +156,7 @@ backsql_BindRowAsStrings_x( SQLHSTMT sth, BACKSQL_ROW_NTS *row, void *ctx )
 			"ncols=%d\n", (int)row->ncols, 0, 0 );
 #endif /* BACKSQL_TRACE */
 
-		row->col_names = (BerVarray)ber_memcalloc_x( row->ncols + 1, 
+		row->col_names = (BerVarray)ber_memcalloc_x( row->ncols + 1,
 				sizeof( struct berval ), ctx );
 		if ( row->col_names == NULL ) {
 			goto nomem;
@@ -174,7 +174,7 @@ backsql_BindRowAsStrings_x( SQLHSTMT sth, BACKSQL_ROW_NTS *row, void *ctx )
 			goto nomem;
 		}
 
-		row->cols = (char **)ber_memcalloc_x( row->ncols + 1, 
+		row->cols = (char **)ber_memcalloc_x( row->ncols + 1,
 				sizeof( char * ), ctx );
 		if ( row->cols == NULL ) {
 			goto nomem;
@@ -342,7 +342,7 @@ backsql_init_db_env( backsql_info *bi )
 {
 	RETCODE		rc;
 	int		ret = SQL_SUCCESS;
-	
+
 	Debug( LDAP_DEBUG_TRACE, "==>backsql_init_db_env()\n", 0, 0, 0 );
 
 	rc = SQLAllocEnv( &bi->sql_db_env );
@@ -368,8 +368,8 @@ backsql_free_db_env( backsql_info *bi )
 	bi->sql_db_env = SQL_NULL_HENV;
 
 	/*
-	 * stop, if frontend waits for all threads to shutdown 
-	 * before calling this -- then what are we going to delete?? 
+	 * stop, if frontend waits for all threads to shutdown
+	 * before calling this -- then what are we going to delete??
 	 * everything is already deleted...
 	 */
 	Debug( LDAP_DEBUG_TRACE, "<==backsql_free_db_env()\n", 0, 0, 0 );
@@ -388,7 +388,7 @@ backsql_open_db_handle(
 
 	assert( dbhp != NULL );
 	*dbhp = SQL_NULL_HDBC;
- 
+
 	Debug( LDAP_DEBUG_TRACE, "==>backsql_open_db_handle()\n",
 		0, 0, 0 );
 
@@ -420,14 +420,14 @@ backsql_open_db_handle(
 		}
 	}
 
-	/* 
+	/*
 	 * TimesTen : Turn off autocommit.  We must explicitly
-	 * commit any transactions. 
+	 * commit any transactions.
 	 */
 	SQLSetConnectOption( *dbhp, SQL_AUTOCOMMIT,
 		BACKSQL_AUTOCOMMIT_ON( bi ) ?  SQL_AUTOCOMMIT_ON : SQL_AUTOCOMMIT_OFF );
 
-	/* 
+	/*
 	 * See if this connection is to TimesTen.  If it is,
 	 * remember that fact for later use.
 	 */

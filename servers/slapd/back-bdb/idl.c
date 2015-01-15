@@ -132,7 +132,7 @@ unsigned bdb_idl_search( ID *ids, ID id )
 			return cursor;
 		}
 	}
-	
+
 	if( val > 0 ) {
 		++cursor;
 	}
@@ -201,7 +201,7 @@ int bdb_idl_insert( ID *ids, ID id )
 			ids[2] = ids[ids[0]-1];
 		}
 		ids[0] = NOID;
-	
+
 	} else {
 		/* insert id */
 		AC_MEMCPY( &ids[x+1], &ids[x], (ids[0]-x) * sizeof(ID) );
@@ -545,7 +545,7 @@ bdb_idl_fetch_key(
 	char keybuf[16];
 
 	Debug( LDAP_DEBUG_ARGS,
-		"bdb_idl_fetch_key: %s\n", 
+		"bdb_idl_fetch_key: %s\n",
 		bdb_show_key( key, keybuf ), 0, 0 );
 
 	assert( ids != NULL );
@@ -583,7 +583,7 @@ bdb_idl_fetch_key(
 	} else {
 		cursor = *saved_cursor;
 	}
-	
+
 	/* If this is a LE lookup, save original key so we can determine
 	 * when to stop. If this is a GE lookup, save the key since it
 	 * will be overwritten.
@@ -707,7 +707,7 @@ bdb_idl_insert_key(
 	{
 		char buf[16];
 		Debug( LDAP_DEBUG_ARGS,
-			"bdb_idl_insert_key: %lx %s\n", 
+			"bdb_idl_insert_key: %lx %s\n",
 			(long) id, bdb_show_key( key, buf ), 0 );
 	}
 
@@ -918,7 +918,7 @@ bdb_idl_delete_key(
 	{
 		char buf[16];
 		Debug( LDAP_DEBUG_ARGS,
-			"bdb_idl_delete_key: %lx %s\n", 
+			"bdb_idl_delete_key: %lx %s\n",
 			(long) id, bdb_show_key( key, buf ), 0 );
 	}
 	assert( id != NOID );
@@ -1470,7 +1470,7 @@ bdb_idl_sort( ID *ids, ID *tmp )
 #else
 
 /* 8 bit Radix sort + insertion sort
- * 
+ *
  * based on code from http://www.cubic.org/docs/radix.htm
  * with improvements by ebackes@symas.com and hyc@symas.com
  *
@@ -1568,7 +1568,7 @@ bdb_idl_sort( ID *ids, ID *tmp )
 	/* copy back from temp if needed */
 	if ( phase ) {
 		ids++; tmp++;
-		for ( count = 0; count < size; ++count ) 
+		for ( count = 0; count < size; ++count )
 			*ids++ = *tmp++;
 	}
 }

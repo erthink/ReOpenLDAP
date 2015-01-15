@@ -22,20 +22,20 @@ echo "### note that SASL must be properly set up, and the requested"
 echo "### mechanism must be available.  Define SLAPD_USE_SASL={yes|<mech>},"
 echo "### with \"yes\" defaulting to DIGEST-MD5 to enable SASL authc[/authz]."
 
-if test $BACKLDAP = "ldapno" ; then 
+if test $BACKLDAP = "ldapno" ; then
 	echo "LDAP backend not available, test skipped"
 	exit 0
-fi 
+fi
 
-if test $RWM = "rwmno" ; then 
+if test $RWM = "rwmno" ; then
 	echo "Rewrite/remap overlay not available, test skipped"
 	exit 0
-fi 
+fi
 
 if test $THREADS = "threadsno" ; then
 	echo "Need threads support, test skipped"
 	exit 0
-fi 
+fi
 
 if test $WITH_SASL = "yes" ; then
 	if test $USE_SASL != "no" ; then
@@ -237,7 +237,7 @@ if test $USE_SASL != "no" ; then
 	$LDIFFILTER < $IDASSERTOUT > $LDIFFLT
 	echo "Comparing filter output..."
 	$CMP $SEARCHFLT $LDIFFLT > $CMPOUT
-	
+
 	if test $? != 0 ; then
 		echo "comparison failed - search with SASL bind and identity assertion didn't succeed"
 		test $KILLSERVERS != no && kill -HUP $KILLPIDS

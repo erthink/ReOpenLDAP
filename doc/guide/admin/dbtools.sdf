@@ -26,7 +26,7 @@ H2: Creating a database over LDAP
 With this method, you use the LDAP client of your choice (e.g.,
 the {{ldapadd}}(1)) to add entries, just like you would once the
 database is created.  You should be sure to set the following
-options in the configuration file before starting {{slapd}}(8). 
+options in the configuration file before starting {{slapd}}(8).
 
 >	suffix <dn>
 
@@ -189,11 +189,11 @@ the indices, what indices to create, etc.
 
 >	-F <slapdconfdirectory>
 
-Specifies a config directory.  If both {{EX:-f}} and {{EX:-F}} are specified, 
-the config file will be read and converted to config  directory format and 
-written to the specified directory.  If neither option is specified, an attempt 
-to read the default config directory will be made before trying to use the 
-default config file. If a valid config directory exists then the default 
+Specifies a config directory.  If both {{EX:-f}} and {{EX:-F}} are specified,
+the config file will be read and converted to config  directory format and
+written to the specified directory.  If neither option is specified, an attempt
+to read the default config directory will be made before trying to use the
+default config file. If a valid config directory exists then the default
 config file is ignored. If dryrun mode is also specified, no conversion will occur.
 
 >	-d <debuglevel>

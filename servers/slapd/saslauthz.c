@@ -45,22 +45,22 @@
  *
  * syntax: dn[.{exact|regex}]:<val>
  *
- * dn.exact:	the value must pass normalization and is used 
+ * dn.exact:	the value must pass normalization and is used
  *		in exact DN match.
- * dn.regex:	the value is treated as a regular expression 
+ * dn.regex:	the value is treated as a regular expression
  *		in matching DN values in authz{To|From}
  *		attributes.
- * dn:		for backwards compatibility reasons, the value 
- *		is treated as a regular expression, and thus 
+ * dn:		for backwards compatibility reasons, the value
+ *		is treated as a regular expression, and thus
  *		it is not normalized nor validated; it is used
- *		in exact or regex comparisons based on the 
+ *		in exact or regex comparisons based on the
  *		context.
  *
  * IDs in DNauthzid form can now have a type specifier, that
  * influences how they are used in related operations.
  *
  * syntax: u[.mech[/realm]]:<val>
- * 
+ *
  * where mech is a SIMPLE, AUTHZ, or a SASL mechanism name
  * and realm is mechanism specific realm (separate to those
  * which are representable as part of the principal).
@@ -130,7 +130,7 @@ int slap_parse_user( struct berval *id, struct berval *user,
 		struct berval *realm, struct berval *mech )
 {
 	char	u;
-	
+
 	assert( id != NULL );
 	assert( !BER_BVISNULL( id ) );
 	assert( user != NULL );
@@ -138,7 +138,7 @@ int slap_parse_user( struct berval *id, struct berval *user,
 	assert( mech != NULL );
 
 	u = id->bv_val[ 0 ];
-	
+
 	if ( u != 'u' && u != 'U' ) {
 		/* called with something other than u: */
 		return LDAP_PROTOCOL_ERROR;
@@ -147,7 +147,7 @@ int slap_parse_user( struct berval *id, struct berval *user,
 	/* uauthzid form:
 	 *		u[.mech[/realm]]:user
 	 */
-	
+
 	user->bv_val = ber_bvchr( id, ':' );
 	if ( BER_BVISNULL( user ) ) {
 		return LDAP_PROTOCOL_ERROR;
@@ -299,8 +299,8 @@ is_dn:		bv.bv_len = in->bv_len - ( bv.bv_val - in->bv_val );
 	 * 4) u[.mech[/realm]]:<ID>
 	 */
 	} else if ( ( in->bv_val[ 0 ] == 'u' || in->bv_val[ 0 ] == 'U' )
-			&& ( in->bv_val[ 1 ] == ':' 
-				|| in->bv_val[ 1 ] == '/' 
+			&& ( in->bv_val[ 1 ] == ':'
+				|| in->bv_val[ 1 ] == '/'
 				|| in->bv_val[ 1 ] == '.' ) )
 	{
 		char		buf[ SLAP_LDAPDN_MAXLEN ];
@@ -329,7 +329,7 @@ is_dn:		bv.bv_len = in->bv_len - ( bv.bv_val - in->bv_val );
 	 *
 	 * <groupClass> defaults to "groupOfNames"
 	 * <memberAttr> defaults to "member"
-	 * 
+	 *
 	 * <DN> must pass DN normalization
 	 */
 	} else if ( strncasecmp( in->bv_val, "group", STRLENOF( "group" ) ) == 0 )
@@ -347,7 +347,7 @@ is_dn:		bv.bv_len = in->bv_len - ( bv.bv_val - in->bv_val );
 			scope = LDAP_X_SCOPE_EXACT;
 			goto is_dn;
 		}
-		
+
 		/*
 		 * FIXME: we assume that "member" and "groupOfNames"
 		 * are present in schema...
@@ -595,7 +595,7 @@ is_dn:		bv.bv_len = val->bv_len - ( bv.bv_val - val->bv_val );
 
 		normalized->bv_len = prefix.bv_len + out.bv_len;
 		normalized->bv_val = ber_memalloc_x( normalized->bv_len + 1, ctx );
-		
+
 		ptr = lutil_strcopy( normalized->bv_val, prefix.bv_val );
 		ptr = lutil_strncopy( ptr, out.bv_val, out.bv_len );
 		ptr[ 0 ] = '\0';
@@ -607,8 +607,8 @@ is_dn:		bv.bv_len = val->bv_len - ( bv.bv_val - val->bv_val );
 	 * 4) u[.mech[/realm]]:<ID>
 	 */
 	} else if ( ( val->bv_val[ 0 ] == 'u' || val->bv_val[ 0 ] == 'U' )
-			&& ( val->bv_val[ 1 ] == ':' 
-				|| val->bv_val[ 1 ] == '/' 
+			&& ( val->bv_val[ 1 ] == ':'
+				|| val->bv_val[ 1 ] == '/'
 				|| val->bv_val[ 1 ] == '.' ) )
 	{
 		char		buf[ SLAP_LDAPDN_MAXLEN ];
@@ -639,7 +639,7 @@ is_dn:		bv.bv_len = val->bv_len - ( bv.bv_val - val->bv_val );
 	 *
 	 * <groupClass> defaults to "groupOfNames"
 	 * <memberAttr> defaults to "member"
-	 * 
+	 *
 	 * <DN> must pass DN normalization
 	 */
 	} else if ( strncasecmp( val->bv_val, "group", STRLENOF( "group" ) ) == 0 )
@@ -1036,8 +1036,8 @@ is_dn:		bv.bv_len = uri->bv_len - (bv.bv_val - uri->bv_val);
 	 * u:<uid>
 	 */
 	} else if ( ( uri->bv_val[ 0 ] == 'u' || uri->bv_val[ 0 ] == 'U' )
-			&& ( uri->bv_val[ 1 ] == ':' 
-				|| uri->bv_val[ 1 ] == '/' 
+			&& ( uri->bv_val[ 1 ] == ':'
+				|| uri->bv_val[ 1 ] == '/'
 				|| uri->bv_val[ 1 ] == '.' ) )
 	{
 		Connection	c = *op->o_conn;
@@ -1065,7 +1065,7 @@ is_dn:		bv.bv_len = uri->bv_len - (bv.bv_val - uri->bv_val);
 		} else {
 			BER_BVSTR( &c.c_sasl_bind_mech, "AUTHZ" );
 		}
-		
+
 		rc = slap_sasl_getdn( &c, op, &user,
 				realm.bv_val, nbase, SLAP_GETDN_AUTHZID );
 
@@ -1080,7 +1080,7 @@ is_dn:		bv.bv_len = uri->bv_len - (bv.bv_val - uri->bv_val);
 	 *
 	 * groupoc defaults to "groupOfNames"
 	 * groupat defaults to "member"
-	 * 
+	 *
 	 * <groupdn> must pass DN normalization
 	 */
 	} else if ( strncasecmp( uri->bv_val, "group", STRLENOF( "group" ) ) == 0 )
@@ -1099,7 +1099,7 @@ is_dn:		bv.bv_len = uri->bv_len - (bv.bv_val - uri->bv_val);
 			*scope = LDAP_X_SCOPE_EXACT;
 			goto is_dn;
 		}
-		
+
 		if ( bv.bv_val[ 0 ] == '/' ) {
 			group_oc.bv_val = &bv.bv_val[ 1 ];
 			group_oc.bv_len = group_dn.bv_val - group_oc.bv_val;
@@ -1276,7 +1276,7 @@ static int slap_sasl_rx_off(char *rep, int *off)
 #endif /* ! SLAP_AUTH_REWRITE */
 
 #ifdef SLAP_AUTH_REWRITE
-int slap_sasl_rewrite_config( 
+int slap_sasl_rewrite_config(
 		const char	*fname,
 		int		lineno,
 		int		argc,
@@ -1512,9 +1512,9 @@ static int slap_authz_regexp( struct berval *in, struct berval *out,
 		return 0;
 	}
 
-	/* FIXME: if aware of authc/authz mapping, 
+	/* FIXME: if aware of authc/authz mapping,
 	 * we could use different contexts ... */
-	switch ( rewrite_session( sasl_rwinfo, context, in->bv_val, NULL, 
+	switch ( rewrite_session( sasl_rwinfo, context, in->bv_val, NULL,
 				&out->bv_val ) )
 	{
 	case REWRITE_REGEXEC_OK:
@@ -1529,9 +1529,9 @@ static int slap_authz_regexp( struct berval *in, struct berval *out,
 		}
 		Debug( LDAP_DEBUG_ARGS,
 			"[rw] %s: \"%s\" -> \"%s\"\n",
-			context, in->bv_val, out->bv_val );		
+			context, in->bv_val, out->bv_val );
 		return 1;
- 		
+
  	case REWRITE_REGEXEC_UNWILLING:
 	case REWRITE_REGEXEC_ERR:
 	default:
@@ -1634,7 +1634,7 @@ slap_sasl_matches( Operation *op, BerVarray rules,
 			if ( rc == LDAP_SUCCESS ) break;
 		}
 	}
-	
+
 	return rc;
 }
 
@@ -1651,7 +1651,7 @@ static int
 slap_sasl_match( Operation *opx, struct berval *rule,
 	struct berval *assertDN, struct berval *authc )
 {
-	int rc; 
+	int rc;
 	regex_t reg;
 	smatch_info sm;
 	slap_callback cb = { NULL, sasl_sc_smatch, NULL, NULL };
@@ -1720,7 +1720,7 @@ exact_match:
 					dnParent( assertDN, &pdn );
 					/* the common portion of the DN
 					 * already matches, so only check
-					 * if parent DN of assertedDN 
+					 * if parent DN of assertedDN
 					 * is all the pattern */
 					if ( pdn.bv_len == op.o_req_ndn.bv_len ) {
 						rc = LDAP_SUCCESS;
@@ -1764,7 +1764,7 @@ exact_match:
 			goto CONCLUDED;
 		}
 		op.ors_filterstr.bv_val = tmp;
-		
+
 		tmp = lutil_strcopy( &tmp[op.ors_filterstr.bv_len], assertDN->bv_val );
 		tmp = lutil_strcopy( tmp, /*"(("*/ "))" );
 
@@ -2003,7 +2003,7 @@ slap_sasl2dn(
 	ber_dupbv_x( &op.o_req_dn, &op.o_req_ndn, op.o_tmpmemctx );
 
 	op.o_bd->be_search( &op, &rs );
-	
+
 FINISHED:
 	if( opx == opx->o_conn->c_sasl_bindop && !BER_BVISEMPTY( sasldn ) ) {
 		opx->o_conn->c_authz_backend = op.o_bd;

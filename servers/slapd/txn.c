@@ -101,7 +101,7 @@ int txn_spec_ctrl(
 	if ( op->o_preread ) { /* temporary limitation */
 		rs->sr_text = "cannot perform pre-read in transaction";
 		return LDAP_UNWILLING_TO_PERFORM;
-	} 
+	}
 	if ( op->o_postread ) { /* temporary limitation */
 		rs->sr_text = "cannot perform post-read in transaction";
 		return LDAP_UNWILLING_TO_PERFORM;

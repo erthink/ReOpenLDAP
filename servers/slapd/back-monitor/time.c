@@ -43,7 +43,7 @@ monitor_subsys_time_init(
 	monitor_subsys_t	*ms )
 {
 	monitor_info_t	*mi;
-	
+
 	Entry		*e, **ep, *e_time;
 	monitor_entry_t	*mp;
 	struct berval	bv, value;
@@ -79,7 +79,7 @@ monitor_subsys_time_init(
 	}
 	attr_merge_normalize_one( e, mi->mi_ad_monitorTimestamp,
 		&mi->mi_startTime, NULL );
-	
+
 	mp = monitor_entrypriv_create();
 	if ( mp == NULL ) {
 		return -1;
@@ -96,7 +96,7 @@ monitor_subsys_time_init(
 			bv.bv_val, ms->mss_ndn.bv_val, 0 );
 		return( -1 );
 	}
-	
+
 	*ep = e;
 	ep = &mp->mp_next;
 
@@ -132,7 +132,7 @@ monitor_subsys_time_init(
 			bv.bv_val, ms->mss_ndn.bv_val, 0 );
 		return( -1 );
 	}
-	
+
 	*ep = e;
 	ep = &mp->mp_next;
 
@@ -169,7 +169,7 @@ monitor_subsys_time_init(
 			bv.bv_val, ms->mss_ndn.bv_val, 0 );
 		return( -1 );
 	}
-	
+
 	*ep = e;
 	ep = &mp->mp_next;
 
@@ -193,7 +193,7 @@ monitor_subsys_time_update(
 	assert( e != NULL );
 
 	dnRdn( &e->e_nname, &rdn );
-	
+
 	if ( dn_match( &rdn, &bv_current ) ) {
 		struct tm	tm;
 		char		tmbuf[ LDAP_LUTIL_GENTIME_BUFSIZE ];

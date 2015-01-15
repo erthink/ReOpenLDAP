@@ -57,8 +57,8 @@ ldap_int_thread_destroy( void )
 	return 0;
 }
 
-int 
-ldap_pvt_thread_create( ldap_pvt_thread_t * thread, 
+int
+ldap_pvt_thread_create( ldap_pvt_thread_t * thread,
 	int detach,
 	void *(*start_routine)( void *),
 	void *arg)
@@ -69,7 +69,7 @@ ldap_pvt_thread_create( ldap_pvt_thread_t * thread,
 	return *thread == NULL ? errno : 0;
 }
 
-void 
+void
 ldap_pvt_thread_exit( void *retval )
 {
 	pth_exit( retval );
@@ -80,25 +80,25 @@ int ldap_pvt_thread_join( ldap_pvt_thread_t thread, void **thread_return )
 	return pth_join( thread, thread_return ) ? 0 : errno;
 }
 
-int 
+int
 ldap_pvt_thread_kill( ldap_pvt_thread_t thread, int signo )
 {
 	return pth_raise( thread, signo ) ? 0 : errno;
 }
-	
-int 
+
+int
 ldap_pvt_thread_yield( void )
 {
 	return pth_yield(NULL) ? 0 : errno;
 }
 
-int 
+int
 ldap_pvt_thread_cond_init( ldap_pvt_thread_cond_t *cond )
 {
 	return( pth_cond_init( cond ) ? 0 : errno );
 }
 
-int 
+int
 ldap_pvt_thread_cond_signal( ldap_pvt_thread_cond_t *cond )
 {
 	return( pth_cond_notify( cond, 0 ) ? 0 : errno );
@@ -110,8 +110,8 @@ ldap_pvt_thread_cond_broadcast( ldap_pvt_thread_cond_t *cond )
 	return( pth_cond_notify( cond, 1 ) ? 0 : errno );
 }
 
-int 
-ldap_pvt_thread_cond_wait( ldap_pvt_thread_cond_t *cond, 
+int
+ldap_pvt_thread_cond_wait( ldap_pvt_thread_cond_t *cond,
 	ldap_pvt_thread_mutex_t *mutex )
 {
 	return( pth_cond_await( cond, mutex, NULL ) ? 0 : errno );
@@ -123,25 +123,25 @@ ldap_pvt_thread_cond_destroy( ldap_pvt_thread_cond_t *cv )
 	return 0;
 }
 
-int 
+int
 ldap_pvt_thread_mutex_init( ldap_pvt_thread_mutex_t *mutex )
 {
 	return( pth_mutex_init( mutex ) ? 0 : errno );
 }
 
-int 
+int
 ldap_pvt_thread_mutex_destroy( ldap_pvt_thread_mutex_t *mutex )
 {
 	return 0;
 }
 
-int 
+int
 ldap_pvt_thread_mutex_lock( ldap_pvt_thread_mutex_t *mutex )
 {
 	return( pth_mutex_acquire( mutex, 0, NULL ) ? 0 : errno );
 }
 
-int 
+int
 ldap_pvt_thread_mutex_unlock( ldap_pvt_thread_mutex_t *mutex )
 {
 	return( pth_mutex_release( mutex ) ? 0 : errno );
@@ -185,13 +185,13 @@ ldap_pvt_thread_key_getdata( ldap_pvt_thread_key_t key, void **data )
 }
 
 #ifdef LDAP_THREAD_HAVE_RDWR
-int 
+int
 ldap_pvt_thread_rdwr_init( ldap_pvt_thread_rdwr_t *rw )
 {
 	return pth_rwlock_init( rw ) ? 0 : errno;
 }
 
-int 
+int
 ldap_pvt_thread_rdwr_destroy( ldap_pvt_thread_rdwr_t *rw )
 {
 	return 0;

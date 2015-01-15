@@ -18,11 +18,11 @@ using namespace std;
 LDAPSearchReference::LDAPSearchReference(const LDAPRequest *req,
         LDAPMessage *msg) : LDAPMsg(msg){
     DEBUG(LDAP_DEBUG_CONSTRUCT,
-            "LDAPSearchReference::LDAPSearchReference()" << endl;)    
+            "LDAPSearchReference::LDAPSearchReference()" << endl;)
     char **ref=0;
     LDAPControl** srvctrls=0;
     const LDAPAsynConnection* con=req->getConnection();
-    int err = ldap_parse_reference(con->getSessionHandle(), msg, &ref, 
+    int err = ldap_parse_reference(con->getSessionHandle(), msg, &ref,
             &srvctrls,0);
     if (err != LDAP_SUCCESS){
         ber_memvfree((void**) ref);

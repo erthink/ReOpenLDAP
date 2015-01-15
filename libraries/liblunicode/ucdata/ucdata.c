@@ -66,7 +66,7 @@ typedef struct {
     ac_uint2 cnt;
     union {
         ac_uint4 bytes;
-        ac_uint2 len[2]; 
+        ac_uint2 len[2];
     } size;
 } _ucheader_t;
 
@@ -625,7 +625,7 @@ uccomp_hangul(ac_uint4 *str, int len)
         LCount = 19, VCount = 21, TCount = 28,
         NCount = VCount * TCount,   /* 588 */
         SCount = LCount * NCount;   /* 11172 */
-    
+
     int i, rlen;
     ac_uint4 ch, last, lindex, sindex;
 
@@ -645,7 +645,7 @@ uccomp_hangul(ac_uint4 *str, int len)
                 continue;
             }
         }
-        
+
         /* check if two current characters are LV and T */
         sindex = last - SBase;
         if (sindex < (ac_uint4) SCount
@@ -678,7 +678,7 @@ uccanoncomp(ac_uint4 *str, int len)
     stpos = 0;
     copos = 1;
     prevcl = uccombining_class(st) == 0 ? 0 : 256;
-        
+
     for (i = 1; i < len; i++) {
         ch = str[i];
         cl = uccombining_class(ch);
@@ -892,7 +892,7 @@ uckdecomp(ac_uint4 code, ac_uint4 *num, ac_uint4 **decomp)
     if (code < _uckdcmp_nodes[0]) {
 	return 0;
     }
-    
+
     l = 0;
     r = _uckdcmp_nodes[_uckdcmp_size] - 1;
 

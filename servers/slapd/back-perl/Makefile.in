@@ -19,7 +19,7 @@ SRCS	= init.c search.c close.c config.c bind.c compare.c \
 OBJS	= init.lo search.lo close.lo config.lo bind.lo compare.lo \
 		modify.lo add.lo modrdn.lo delete.lo
 
-LDAP_INCDIR= ../../../include       
+LDAP_INCDIR= ../../../include
 LDAP_LIBDIR= ../../../libraries
 
 BUILD_OPT = "--enable-perl"

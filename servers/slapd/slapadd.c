@@ -140,7 +140,7 @@ again:
 				}
 
 				assert( bdtmp != NULL );
-				
+
 				fprintf( stderr, "; did you mean to use database #%d (%s)?",
 					dbidx,
 					bd->be_suffix[0].bv_val );
@@ -169,7 +169,7 @@ again:
 				}
 
 				assert( bdtmp != NULL );
-				
+
 				fprintf( stderr, "; did you mean to use database #%d (%s)?",
 					dbidx,
 					bd->be_suffix[0].bv_val );

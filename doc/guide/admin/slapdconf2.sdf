@@ -69,7 +69,7 @@ used to configure the software.
 the schema that is hard-coded in slapd).
 .. Child entries of {{EX:cn=schema,cn=config}} contain user schema as
 loaded from config files or added at runtime.
-* Backend-specific configuration 
+* Backend-specific configuration
 * Database-specific configuration
 .. Overlays are defined in children of the Database entry.
 .. Databases and Overlays may also have other miscellaneous children.
@@ -207,7 +207,7 @@ Level	Keyword		Description
 !endblock
 
 The desired log level can be input as a single integer that
-combines the (ORed) desired levels, both in decimal or in hexadecimal 
+combines the (ORed) desired levels, both in decimal or in hexadecimal
 notation, as a list of integers (that are ORed internally), or as a list of the names that are shown between brackets, such that
 
 >		olcLogLevel 129
@@ -640,7 +640,7 @@ schema conformance. The default is off.
 The {{EX:binddn}} parameter gives the DN to bind as for the
 syncrepl searches to the provider slapd. It should be a DN
 which has read access to the replication content in the
-master database. 
+master database.
 
 The {{EX:bindmethod}} is {{EX:simple}} or {{EX:sasl}},
 depending on whether simple password-based authentication or
@@ -812,7 +812,7 @@ delete transaction log files as soon as their contents have been
 checkpointed and they are no longer needed. Without this setting the
 transaction log files will continue to accumulate until some other
 cleanup procedure removes them. See the Berkeley DB documentation for the
-{{EX:db_archive}} command for details. For a complete list of Berkeley DB 
+{{EX:db_archive}} command for details. For a complete list of Berkeley DB
 flags please see - {{URL:http://www.oracle.com/technology/documentation/berkeley-db/db/api_c/env_set_flags.html}}
 
 Ideally the BDB cache must be
@@ -874,7 +874,7 @@ matches do not use an index. However, some attributes do support
 indexing for inequality matches, based on the equality index.
 
 A substring index can be more explicitly specified as {{EX:subinitial}},
-{{EX:subany}}, or {{EX:subfinal}}, corresponding to the three 
+{{EX:subany}}, or {{EX:subfinal}}, corresponding to the three
 possible components
 of a substring match filter. A subinitial index only indexes
 substrings that appear at the beginning of an attribute value.
@@ -999,7 +999,7 @@ E:  2.    dn: cn=config
 E:  3.    objectClass: olcGlobal
 E:  4.    cn: config
 E:  5.    olcReferral: ldap://root.openldap.org
-E:  6.    
+E:  6.
 
 Line 1 is a comment. Lines 2-4 identify this as the global
 configuration entry.
@@ -1013,7 +1013,7 @@ E:  7.    # internal schema
 E:  8.    dn: cn=schema,cn=config
 E:  9.    objectClass: olcSchemaConfig
 E: 10.    cn: schema
-E: 11.    
+E: 11.
 
 Line 7 is a comment. Lines 8-10 identify this as the root of
 the schema subtree. The actual schema definitions in this entry
@@ -1022,7 +1022,7 @@ Line 11 is a blank line, indicating the end of this entry.
 
 E: 12.    # include the core schema
 E: 13.    include: file:///usr/local/etc/openldap/schema/core.ldif
-E: 14.    
+E: 14.
 
 Line 12 is a comment. Line 13 is an LDIF include directive which
 accesses the {{core}} schema definitions in LDIF format. Line 14
@@ -1037,7 +1037,7 @@ E: 16.    dn: olcDatabase=frontend,cn=config
 E: 17.    objectClass: olcDatabaseConfig
 E: 18.    olcDatabase: frontend
 E: 19.    olcAccess: to * by * read
-E: 20.    
+E: 20.
 
 Line 15 is a comment. Lines 16-18 identify this entry as the global
 database entry. Line 19 is a global access control. It applies to all
@@ -1092,7 +1092,7 @@ E: 46.    olcAccess: to *
 E: 47.      by self write
 E: 48.      by dn.base="cn=Admin,dc=example,dc=com" write
 E: 49.      by * read
-E: 50.    
+E: 50.
 
 Line 29 is a comment. Lines 30-33 identify this entry as a BDB database
 configuration entry.  Line 34 specifies the DN suffix

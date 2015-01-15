@@ -196,7 +196,7 @@ int module_load(const char* file_name, int argc, char *argv[])
 
 	Debug(LDAP_DEBUG_CONFIG, "loaded module %s\n", file_name, 0, 0);
 
-   
+
 #ifdef HAVE_EBCDIC
 #pragma convlit(suspend)
 #endif
@@ -214,7 +214,7 @@ int module_load(const char* file_name, int argc, char *argv[])
 
 	/* The imported init_module() routine passes back the type of
 	 * module (i.e., which part of slapd it should be hooked into)
-	 * or -1 for error.  If it passes back 0, then you get the 
+	 * or -1 for error.  If it passes back 0, then you get the
 	 * old behavior (i.e., the library is loaded and not hooked
 	 * into anything).
 	 *
@@ -358,7 +358,7 @@ load_extop_module (
 		return(-1);
 	}
 
-	/* FIXME: this is broken, and no longer needed, 
+	/* FIXME: this is broken, and no longer needed,
 	 * as a module can call load_extop() itself... */
 	rc = load_extop( &oid, ext_main );
 	return rc;

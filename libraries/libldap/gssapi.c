@@ -778,7 +778,7 @@ ldap_int_gss_spnego_bind_s( LDAP *ld )
 	goto rc_error;
 
 gss_error:
-	rc = map_gsserr2ldap( ld, 
+	rc = map_gsserr2ldap( ld,
 			      (ret_mech != GSS_C_NO_OID ? ret_mech : req_mech ),
 			      gss_rc, minor_status );
 rc_error:

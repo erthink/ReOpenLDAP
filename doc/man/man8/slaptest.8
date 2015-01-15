@@ -31,9 +31,9 @@ is used to check the conformance of the
 configuration.
 It opens the
 .BR slapd.conf (5)
-configuration file or the 
-.BR slapd\-config (5) 
-backend, and parses it according to the general and the backend-specific 
+configuration file or the
+.BR slapd\-config (5)
+backend, and parses it according to the general and the backend-specific
 rules, checking its sanity.
 .LP
 .SH OPTIONS
@@ -66,10 +66,10 @@ no conversion will occur.
 .TP
 .BI \-n \ dbnum
 Just open and test the \fIdbnum\fR-th database listed in the
-configuration file. 
+configuration file.
 To only test the config database
 .BR slapd\-config (5),
-use 
+use
 .B \-n 0
 as it is always the first database.
 .TP
@@ -88,7 +88,7 @@ Possible generic options/values are:
 .fi
 .TP
 .BI \-Q
-Be extremely quiet: only the exit code indicates success (0) or not 
+Be extremely quiet: only the exit code indicates success (0) or not
 (any other value).
 .TP
 .B \-u
@@ -98,7 +98,7 @@ but config is fine).
 .B \-v
 enable verbose mode.
 .SH EXAMPLES
-To check a 
+To check a
 .BR slapd.conf (5)
 give the command:
 .LP

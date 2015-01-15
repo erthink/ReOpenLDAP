@@ -17,7 +17,7 @@
 class LDAPResult;
 
 /**
- * The class stores the results of a synchronous SEARCH-Operation 
+ * The class stores the results of a synchronous SEARCH-Operation
  */
 class LDAPSearchResults{
     public:

@@ -16,10 +16,10 @@
 echo "running defines.sh"
 . $SRCDIR/scripts/defines.sh
 
-if test $RETCODE = retcodeno; then 
+if test $RETCODE = retcodeno; then
 	echo "Retcode overlay not available, test skipped"
 	exit 0
-fi 
+fi
 
 mkdir -p $TESTDIR $DBDIR1
 

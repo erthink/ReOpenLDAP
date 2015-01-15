@@ -1,4 +1,4 @@
--- mappings 
+-- mappings
 
 -- objectClass mappings: these may be viewed as structuralObjectClass, the ones that are used to decide how to build an entry
 --	id		a unique number identifying the objectClass
@@ -17,7 +17,7 @@ insert into ldap_oc_mappings (id,name,keytbl,keycol,create_proc,delete_proc,expe
 insert into ldap_oc_mappings (id,name,keytbl,keycol,create_proc,delete_proc,expect_return) values (4,'referral','referrals','id','SELECT create_referral()','DELETE FROM referrals WHERE id=?',0);
 
 -- attributeType mappings: describe how an attributeType for a certain objectClass maps to the SQL data.
---	id		a unique number identifying the attribute	
+--	id		a unique number identifying the attribute
 --	oc_map_id	the value of "ldap_oc_mappings.id" that identifies the objectClass this attributeType is defined for
 --	name		the name of the attributeType; it MUST match the name of an attributeType that is loaded in slapd's schema
 --	sel_expr	the expression that is used to select this attribute (the "select <sel_expr> from ..." portion)
@@ -74,7 +74,7 @@ insert into ldap_entries (id,dn,oc_map_id,parent,keyval) values (4,'cn=Akakiy Zi
 insert into ldap_entries (id,dn,oc_map_id,parent,keyval) values (5,'documentTitle=book1,dc=example,dc=com',2,1,1);
 
 insert into ldap_entries (id,dn,oc_map_id,parent,keyval) values (6,'documentTitle=book2,dc=example,dc=com',2,1,2);
-	
+
 insert into ldap_entries (id,dn,oc_map_id,parent,keyval) values (7,'ou=Referral,dc=example,dc=com',4,1,1);
 
 -- objectClass mapping: entries that have multiple objectClass instances are listed here with the objectClass name (view them as auxiliary objectClass)
@@ -91,7 +91,7 @@ insert into ldap_entry_objclasses (entry_id,oc_name) values (7,'extensibleObject
 create function create_person () returns int
 as '
 	select setval (''persons_id_seq'', (select case when max(id) is null then 1 else max(id) end from persons));
-	insert into persons (id,name,surname) 
+	insert into persons (id,name,surname)
 		values ((select case when max(id) is null then 1 else nextval(''persons_id_seq'') end from persons),'''','''');
 	select max(id) from persons
 ' language 'sql';
@@ -99,14 +99,14 @@ as '
 create function update_person_cn (varchar, int) returns int
 as '
 	update persons set name = (
-		select case 
-			when position('' '' in $1) = 0 then $1 
+		select case
+			when position('' '' in $1) = 0 then $1
 			else substr($1, 1, position('' '' in $1) - 1)
 		end
 	),surname = (
-		select case 
+		select case
 			when position('' '' in $1) = 0 then ''''
-			else substr($1, position('' '' in $1) + 1) 
+			else substr($1, position('' '' in $1) + 1)
 		end
 	) where id = $2;
 	select $2 as return
@@ -123,7 +123,7 @@ as '
 create function create_doc () returns int
 as '
 	select setval (''documents_id_seq'', (select case when max(id) is null then 1 else max(id) end from documents));
-	insert into documents (id,title,abstract) 
+	insert into documents (id,title,abstract)
 		values ((select case when max(id) is null then 1 else nextval(''documents_id_seq'') end from documents),'''','''');
 	select max(id) from documents
 ' language 'sql';
@@ -131,7 +131,7 @@ as '
 create function create_o () returns int
 as '
 	select setval (''institutes_id_seq'', (select case when max(id) is null then 1 else max(id) end from institutes));
-	insert into institutes (id,name) 
+	insert into institutes (id,name)
 		values ((select case when max(id) is null then 1 else nextval(''institutes_id_seq'') end from institutes),'''');
 	select max(id) from institutes
 ' language 'sql';
@@ -139,7 +139,7 @@ as '
 create function create_referral () returns int
 as '
 	select setval (''referrals_id_seq'', (select case when max(id) is null then 1 else max(id) end from referrals));
-	insert into referrals (id,name,url) 
+	insert into referrals (id,name,url)
 		values ((select case when max(id) is null then 1 else nextval(''referrals_id_seq'') end from referrals),'''','''');
 	select max(id) from referrals
 ' language 'sql';

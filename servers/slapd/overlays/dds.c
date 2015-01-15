@@ -176,7 +176,7 @@ dds_expire( void *ctx, dds_info_t *di )
 		rs.sr_err = LDAP_OTHER;
 		goto done_search;
 	}
-	
+
 	op->o_callback = &sc;
 	sc.sc_response = dds_expire_cb;
 	sc.sc_private = &dc;
@@ -235,7 +235,7 @@ done_search:;
 				dep = &de->de_next;
 				de = NULL;
 				break;
-	
+
 			default:
 				Log2( LDAP_DEBUG_ANY, LDAP_LEVEL_NOTICE,
 					"DDS dn=\"%s\" err=%d; "
@@ -271,7 +271,7 @@ dds_expire_fn( void *ctx, void *arg )
 	assert( di->di_expire_task == rtask );
 
 	(void)dds_expire( ctx, di );
-	
+
 	ldap_pvt_thread_mutex_lock( &slapd_rq.rq_mutex );
 	if ( ldap_pvt_runqueue_isrunning( &slapd_rq, rtask )) {
 		ldap_pvt_runqueue_stoptask( &slapd_rq, rtask );
@@ -400,7 +400,7 @@ dds_op_add( Operation *op, SlapReply *rs )
 
 		if ( !be_isroot_dn( op->o_bd, &op->o_req_ndn ) ) {
 			ldap_pvt_thread_mutex_lock( &di->di_mutex );
-			rs->sr_err = ( di->di_max_dynamicObjects && 
+			rs->sr_err = ( di->di_max_dynamicObjects &&
 				di->di_num_dynamicObjects >= di->di_max_dynamicObjects );
 			ldap_pvt_thread_mutex_unlock( &di->di_mutex );
 			if ( rs->sr_err ) {
@@ -468,16 +468,16 @@ dds_op_delete( Operation *op, SlapReply *rs )
 		/* FIXME: couldn't the entry be added before deletion? */
 		if ( rs->sr_err == LDAP_SUCCESS && e != NULL ) {
 			slap_callback	*sc;
-	
+
 			be_entry_release_r( op, e );
 			e = NULL;
-	
+
 			sc = op->o_tmpalloc( sizeof( slap_callback ), op->o_tmpmemctx );
 			sc->sc_cleanup = dds_freeit_cb;
 			sc->sc_response = dds_counter_cb;
 			sc->sc_private = di;
 			sc->sc_next = op->o_callback;
-	
+
 			op->o_callback = sc;
 		}
 		op->o_bd->bd_info = bi;
@@ -551,7 +551,7 @@ dds_op_modify( Operation *op, SlapReply *rs )
 					is_dynamicObject = 0;
 					break;
 				}
-	
+
 				for ( i = 0; !BER_BVISNULL( &mod->sml_values[ i ] ); i++ ) {
 					oc = oc_bvfind( &mod->sml_values[ i ] );
 					if ( oc == slap_schema.si_oc_dynamicObject ) {
@@ -559,16 +559,16 @@ dds_op_modify( Operation *op, SlapReply *rs )
 						break;
 					}
 				}
-	
+
 				break;
-	
+
 			case LDAP_MOD_REPLACE:
 				if ( mod->sml_values == NULL ) {
 					is_dynamicObject = 0;
 					break;
 				}
 				/* fallthru */
-	
+
 			case LDAP_MOD_ADD:
 				for ( i = 0; !BER_BVISNULL( &mod->sml_values[ i ] ); i++ ) {
 					oc = oc_bvfind( &mod->sml_values[ i ] );
@@ -589,10 +589,10 @@ dds_op_modify( Operation *op, SlapReply *rs )
 			case LDAP_MOD_DELETE:
 			case SLAP_MOD_SOFTDEL: /* FIXME? */
 				if ( mod->sml_values != NULL ) {
-					if ( BER_BVISEMPTY( &bv_entryTtl ) 
+					if ( BER_BVISEMPTY( &bv_entryTtl )
 						|| !bvmatch( &bv_entryTtl, &mod->sml_values[ 0 ] ) )
 					{
-						rs->sr_err = backend_attribute( op, NULL, &op->o_req_ndn, 
+						rs->sr_err = backend_attribute( op, NULL, &op->o_req_ndn,
 							slap_schema.si_ad_entry, NULL, ACL_DISCLOSE );
 						if ( rs->sr_err == LDAP_INSUFFICIENT_ACCESS ) {
 							rs->sr_err = LDAP_NO_SUCH_OBJECT;
@@ -619,7 +619,7 @@ dds_op_modify( Operation *op, SlapReply *rs )
 				assert( BER_BVISNULL( &mod->sml_values[ 1 ] ) );
 
 				if ( !BER_BVISEMPTY( &bv_entryTtl ) ) {
-					rs->sr_err = backend_attribute( op, NULL, &op->o_req_ndn, 
+					rs->sr_err = backend_attribute( op, NULL, &op->o_req_ndn,
 						slap_schema.si_ad_entry, NULL, ACL_DISCLOSE );
 					if ( rs->sr_err == LDAP_INSUFFICIENT_ACCESS ) {
 						rs->sr_err = LDAP_NO_SUCH_OBJECT;
@@ -657,7 +657,7 @@ dds_op_modify( Operation *op, SlapReply *rs )
 
 			case LDAP_MOD_INCREMENT:
 				if ( BER_BVISEMPTY( &bv_entryTtl ) ) {
-					rs->sr_err = backend_attribute( op, NULL, &op->o_req_ndn, 
+					rs->sr_err = backend_attribute( op, NULL, &op->o_req_ndn,
 						slap_schema.si_ad_entry, NULL, ACL_DISCLOSE );
 					if ( rs->sr_err == LDAP_INSUFFICIENT_ACCESS ) {
 						rs->sr_err = LDAP_NO_SUCH_OBJECT;
@@ -683,7 +683,7 @@ dds_op_modify( Operation *op, SlapReply *rs )
 				}
 
 				if ( rs->sr_err != LDAP_SUCCESS ) {
-					rc = backend_attribute( op, NULL, &op->o_req_ndn, 
+					rc = backend_attribute( op, NULL, &op->o_req_ndn,
 						slap_schema.si_ad_entry, NULL, ACL_DISCLOSE );
 					if ( rc == LDAP_INSUFFICIENT_ACCESS ) {
 						rs->sr_text = NULL;
@@ -715,7 +715,7 @@ done:;
 		 * in that case:
 		 *
 		 * TODO
-		 * 
+		 *
 		 *	static => dynamic:
 		 *		entryTtl must be provided; add
 		 *		entryExpireTimestamp accordingly
@@ -724,7 +724,7 @@ done:;
 		 *		entryTtl must be removed; remove
 		 *		entryTimestamp accordingly
 		 *
-		 * ... but we need to make sure that there are no subordinate 
+		 * ... but we need to make sure that there are no subordinate
 		 * issues...
 		 */
 		rc = is_dynamicObject - was_dynamicObject;
@@ -765,7 +765,7 @@ done:;
 			}
 
 			if ( rc != LDAP_SUCCESS ) {
-				rc = backend_attribute( op, NULL, &op->o_req_ndn, 
+				rc = backend_attribute( op, NULL, &op->o_req_ndn,
 					slap_schema.si_ad_entry, NULL, ACL_DISCLOSE );
 				if ( rc == LDAP_INSUFFICIENT_ACCESS ) {
 					rs->sr_text = NULL;
@@ -780,7 +780,7 @@ done:;
 
 		for ( modp = &op->orm_modlist; *modp; modp = &(*modp)->sml_next )
 			;
-	
+
 		tmpmod = ch_calloc( 1, sizeof( Modifications ) );
 		tmpmod->sml_flags = SLAP_MOD_INTERNAL;
 		tmpmod->sml_type = ad_entryExpireTimestamp->ad_cname;
@@ -1038,7 +1038,7 @@ dds_op_extended( Operation *op, SlapReply *rs )
 		if ( !( !SLAP_SINGLE_SHADOW( op->o_bd ) || be_isupdate( op ) ) ) {
 			/* we SHOULD return a referral in this case */
 			BerVarray defref = op->o_bd->be_update_refs
-				? op->o_bd->be_update_refs : default_referral; 
+				? op->o_bd->be_update_refs : default_referral;
 
 			if ( defref != NULL ) {
 				rs->sr_ref = referral_rewrite( op->o_bd->be_update_refs,
@@ -1262,11 +1262,11 @@ dds_cfgen( ConfigArgs *c )
 		struct berval	bv;
 
 		switch( c->type ) {
-		case DDS_STATE: 
+		case DDS_STATE:
 			c->value_int = !DDS_OFF( di );
 			break;
 
-		case DDS_MAXTTL: 
+		case DDS_MAXTTL:
 			lutil_unparse_time( buf, sizeof( buf ), di->di_max_ttl );
 			ber_str2bv( buf, 0, 0, &bv );
 			value_add_one( &c->rvalue_vals, &bv );
@@ -1619,7 +1619,7 @@ dds_count( void *ctx, BackendDB *be )
 {
 	slap_overinst	*on = (slap_overinst *)be->bd_info;
 	dds_info_t	*di = (dds_info_t *)on->on_bi.bi_private;
-	
+
 	Connection	conn = { 0 };
 	OperationBuffer opbuf;
 	Operation	*op;
@@ -1660,7 +1660,7 @@ dds_count( void *ctx, BackendDB *be )
 		rs.sr_err = LDAP_OTHER;
 		goto done_search;
 	}
-	
+
 	op->o_callback = &sc;
 	sc.sc_response = dds_count_cb;
 	sc.sc_private = &di->di_num_dynamicObjects;

@@ -1335,7 +1335,7 @@ nextpass:			eqpass = 1;
 				mrule = fs->f_ava->aa_desc->ad_type->sat_ordering;
 				break;
 			default:
-				mrule = NULL; 
+				mrule = NULL;
 			}
 			if (mrule) {
 				const char *text;
@@ -1600,7 +1600,7 @@ add_query(
 	new_cached_query->scope = query->scope;
 	new_cached_query->filter = query->filter;
 	new_cached_query->first = first = filter_first( query->filter );
-	
+
 	ldap_pvt_thread_rdwr_init(&new_cached_query->rwlock);
 	if (wlock)
 		ldap_pvt_thread_rdwr_wlock(&new_cached_query->rwlock);
@@ -2187,7 +2187,7 @@ pcache_remove_query_from_cache(
 }
 
 /*
- * Call that allows to remove a set of queries related to an entry 
+ * Call that allows to remove a set of queries related to an entry
  * from the cache; if queryid is not null, the entry must belong to
  * the query indicated by queryid.
  */
@@ -2343,14 +2343,14 @@ pcache_op_cleanup( Operation *op, SlapReply *rs ) {
 	cache_manager *cm = on->on_bi.bi_private;
 	query_manager*		qm = cm->qm;
 
-	if ( rs->sr_type == REP_RESULT || 
+	if ( rs->sr_type == REP_RESULT ||
 		op->o_abandon || rs->sr_err == SLAPD_ABANDON )
 	{
 		if ( si->swap_saved_attrs ) {
 			rs->sr_attrs = si->save_attrs;
 			op->ors_attrs = si->save_attrs;
 		}
-		if ( (op->o_abandon || rs->sr_err == SLAPD_ABANDON) && 
+		if ( (op->o_abandon || rs->sr_err == SLAPD_ABANDON) &&
 				si->caching_reason == PC_IGNORE )
 		{
 			filter_free( si->query.filter );
@@ -2559,7 +2559,7 @@ pcache_chk_controls(
 			"%scritical pagedResults control "
 			"disabled with proxy cache%s.\n",
 			op->o_log_prefix, non, stripped );
-		
+
 		slap_remove_control( op, rs, slap_cids.sc_pagedResults, NULL );
 		break;
 
@@ -2801,7 +2801,7 @@ pcache_op_privdb(
 		func = &cm->db.be_bind;
 		if ( func[ type ] != NULL ) {
 			Operation	op2 = *op;
-	
+
 			op2.o_bd = &cm->db;
 
 			rc = func[ type ]( &op2, rs );
@@ -4157,7 +4157,7 @@ pc_cf_gen( ConfigArgs *c )
 			return( 1 );
 		}
 
-		if ( i < 0 || i >= cm->numattrsets || 
+		if ( i < 0 || i >= cm->numattrsets ||
 			!(qm->attr_sets[i].flags & PC_CONFIGURED )) {
 			snprintf( c->cr_msg, sizeof( c->cr_msg ), "template index %d invalid (%s%d)",
 				i, cm->numattrsets > 1 ? "0->" : "", cm->numattrsets - 1 );
@@ -4261,7 +4261,7 @@ pc_temp_fail:
 			return( 1 );
 		}
 
-		if ( i < 0 || i >= cm->numattrsets || 
+		if ( i < 0 || i >= cm->numattrsets ||
 			!(qm->attr_sets[i].flags & PC_CONFIGURED )) {
 			snprintf( c->cr_msg, sizeof( c->cr_msg ), "Bind index %d invalid (%s%d)",
 				i, cm->numattrsets > 1 ? "0->" : "", cm->numattrsets - 1 );

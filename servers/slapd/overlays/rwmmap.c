@@ -42,7 +42,7 @@ rwm_mapping_cmp( const void *c1, const void *c2 )
 	struct ldapmapping *map1 = (struct ldapmapping *)c1;
 	struct ldapmapping *map2 = (struct ldapmapping *)c2;
 	int rc = map1->m_src.bv_len - map2->m_src.bv_len;
-	
+
 	if ( rc ) {
 		return rc;
 	}
@@ -74,8 +74,8 @@ rwm_map_init( struct ldapmap *lm, struct ldapmapping **m )
 	assert( m != NULL );
 
 	*m = NULL;
-	
-	mapping = (struct ldapmapping *)ch_calloc( 2, 
+
+	mapping = (struct ldapmapping *)ch_calloc( 2,
 			sizeof( struct ldapmapping ) );
 	if ( mapping == NULL ) {
 		return LDAP_NO_MEMORY;
@@ -99,9 +99,9 @@ rwm_map_init( struct ldapmap *lm, struct ldapmapping **m )
 	mapping[1].m_src_ad = mapping[0].m_src_ad;
 	mapping[1].m_dst_ad = mapping[1].m_src_ad;
 
-	avl_insert( &lm->map, (caddr_t)&mapping[0], 
+	avl_insert( &lm->map, (caddr_t)&mapping[0],
 			rwm_mapping_cmp, rwm_mapping_dup );
-	avl_insert( &lm->remap, (caddr_t)&mapping[1], 
+	avl_insert( &lm->remap, (caddr_t)&mapping[1],
 			rwm_mapping_cmp, rwm_mapping_dup );
 
 	*m = mapping;
@@ -225,7 +225,7 @@ rwm_map_attrnames(
 				/* FIXME: better leave as is? */
 				continue;
 			}
-				
+
 			at_drop_missing = rwm_mapping( at_map, &an[i].an_name, &m, remap );
 			if ( at_drop_missing || ( m && BER_BVISNULL( &m->m_dst ) ) ) {
 				continue;
@@ -279,7 +279,7 @@ rwm_map_attrnames(
 
 		} else {
 			at_drop_missing = rwm_mapping( at_map, &an[i].an_name, &m, remap );
-		
+
 			if ( at_drop_missing || !m ) {
 				oc_drop_missing = rwm_mapping( oc_map, &an[i].an_name, &m, remap );
 
@@ -300,7 +300,7 @@ rwm_map_attrnames(
 					j++;
 					continue;
 				}
-	
+
 				if ( BER_BVISNULL( &m->m_dst ) ) {
 					continue;
 				}
@@ -384,14 +384,14 @@ rwm_map_attrs(
 
 	for ( i = j = 0; !BER_BVISNULL( &an[i].an_name ); i++ ) {
 		struct ldapmapping	*mapping;
-		
+
 		if ( rwm_mapping( at_map, &an[i].an_name, &mapping, remap ) ) {
 			continue;
 		}
 
 		if ( !mapping ) {
 			na[ j++ ] = an[ i ].an_name.bv_val;
-			
+
 		} else if ( !BER_BVISNULL( &mapping->m_dst ) ) {
 			na[ j++ ] = mapping->m_dst.bv_val;
 		}
@@ -455,7 +455,7 @@ map_attr_value(
 					freeval = 1;
 				}
 				break;
-		
+
 			case LDAP_UNWILLING_TO_PERFORM:
 			case LDAP_OTHER:
 			default:
@@ -480,7 +480,7 @@ map_attr_value(
 			if ( BER_BVISNULL( &vtmp ) || BER_BVISEMPTY( &vtmp ) ) {
 				vtmp = *value;
 			}
-		
+
 		} else {
 			vtmp = *value;
 		}
@@ -497,7 +497,7 @@ map_attr_value(
 			break;
 		}
 	}
-	
+
 	if ( mapping != NULL ) {
 		assert( mapping->m_dst_ad != NULL );
 		*adp = mapping->m_dst_ad;
@@ -720,12 +720,12 @@ rwm_int_filter_map_rewrite(
 			if ( rc != LDAP_SUCCESS ) {
 				return rc;
 			}
-			
+
 			fstr->bv_len += vtmp.bv_len;
 			fstr->bv_val = op->o_tmprealloc( fstr->bv_val, fstr->bv_len + 1,
 				op->o_tmpmemctx );
 
-			snprintf( &fstr->bv_val[len-1], vtmp.bv_len + 2, 
+			snprintf( &fstr->bv_val[len-1], vtmp.bv_len + 2,
 				/*"("*/ "%s)", vtmp.bv_len ? vtmp.bv_val : "" );
 
 			op->o_tmpfree( vtmp.bv_val, op->o_tmpmemctx );
@@ -746,7 +746,7 @@ rwm_int_filter_map_rewrite(
 			BER_BVSTR( &atmp, "" );
 			filter_escape_value_x( &f->f_mr_value, &vtmp, op->o_tmpmemctx );
 		}
-			
+
 
 		fstr->bv_len = atmp.bv_len +
 			( f->f_mr_dnattrs ? STRLENOF( ":dn" ) : 0 ) +
@@ -790,7 +790,7 @@ computed:;
 			}
 			tmp = &ber_bvtrue;
 			break;
-			
+
 		default:
 			tmp = &ber_bverror;
 			break;
@@ -798,7 +798,7 @@ computed:;
 
 		ber_dupbv_x( fstr, tmp, op->o_tmpmemctx );
 		break;
-		
+
 	default:
 		ber_dupbv_x( fstr, &ber_bvunknown, op->o_tmpmemctx );
 		break;
@@ -829,8 +829,8 @@ rwm_filter_map_rewrite(
 
 	fdc.ctx = "searchFilter";
 
-	switch ( rewrite_session( fdc.rwmap->rwm_rw, fdc.ctx, 
-				( !BER_BVISEMPTY( &ftmp ) ? ftmp.bv_val : "" ), 
+	switch ( rewrite_session( fdc.rwmap->rwm_rw, fdc.ctx,
+				( !BER_BVISEMPTY( &ftmp ) ? ftmp.bv_val : "" ),
 				fdc.conn, &fstr->bv_val ) )
 	{
 	case REWRITE_REGEXEC_OK:
@@ -843,7 +843,7 @@ rwm_filter_map_rewrite(
 
 		Debug( LDAP_DEBUG_ARGS,
 			"[rw] %s: \"%s\" -> \"%s\"\n",
-			fdc.ctx, ftmp.bv_val, fstr->bv_val );		
+			fdc.ctx, ftmp.bv_val, fstr->bv_val );
 		if ( fstr->bv_val != ftmp.bv_val ) {
 			ber_bvreplace_x( &ftmp, fstr, op->o_tmpmemctx );
 			ch_free( fstr->bv_val );
@@ -851,7 +851,7 @@ rwm_filter_map_rewrite(
 		}
 		rc = LDAP_SUCCESS;
 		break;
- 		
+
  	case REWRITE_REGEXEC_UNWILLING:
 		if ( fdc.rs ) {
 			fdc.rs->sr_err = LDAP_UNWILLING_TO_PERFORM;
@@ -860,7 +860,7 @@ rwm_filter_map_rewrite(
 		op->o_tmpfree( ftmp.bv_val, op->o_tmpmemctx );
 		rc = LDAP_UNWILLING_TO_PERFORM;
 		break;
-	       	
+
 	case REWRITE_REGEXEC_ERR:
 		if ( fdc.rs ) {
 			fdc.rs->sr_err = LDAP_OTHER;
@@ -890,7 +890,7 @@ rwm_referral_rewrite(
 	BerVarray		*pa_nvals )
 {
 	slap_overinst		*on = (slap_overinst *) op->o_bd->bd_info;
-	struct ldaprwmap	*rwmap = 
+	struct ldaprwmap	*rwmap =
 			(struct ldaprwmap *)on->on_bi.bi_private;
 
 	int			i, last;
@@ -912,7 +912,7 @@ rwm_referral_rewrite(
 	for ( last = 0; !BER_BVISNULL( &a_vals[last] ); last++ )
 		;
 	last--;
-	
+
 	if ( pa_nvals != NULL ) {
 		if ( *pa_nvals == NULL ) {
 			*pa_nvals = ch_malloc( ( last + 2 ) * sizeof(struct berval) );
@@ -937,7 +937,7 @@ rwm_referral_rewrite(
 		}
 
 		/* FIXME: URLs like "ldap:///dc=suffix" if passed
-		 * thru ldap_url_parse() and ldap_url_desc2str() 
+		 * thru ldap_url_parse() and ldap_url_desc2str()
 		 * get rewritten as "ldap:///dc=suffix??base";
 		 * we don't want this to occur... */
 		if ( ludp->lud_scope == LDAP_SCOPE_BASE ) {
@@ -958,7 +958,7 @@ rwm_referral_rewrite(
 		switch ( rc ) {
 		case LDAP_UNWILLING_TO_PERFORM:
 			/*
-			 * FIXME: need to check if it may be considered 
+			 * FIXME: need to check if it may be considered
 			 * legal to trim values when adding/modifying;
 			 * it should be when searching (e.g. ACLs).
 			 */
@@ -975,7 +975,7 @@ rwm_referral_rewrite(
 			}
 			last--;
 			break;
-		
+
 		case LDAP_SUCCESS:
 			if ( !BER_BVISNULL( &dn ) && dn.bv_val != olddn.bv_val ) {
 				char	*newurl;
@@ -1029,7 +1029,7 @@ rwm_referral_rewrite(
 		}
 		ldap_free_urldesc( ludp );
 	}
-	
+
 	return 0;
 }
 
@@ -1049,7 +1049,7 @@ rwm_dnattr_rewrite(
 	BerVarray		*pa_nvals )
 {
 	slap_overinst		*on = (slap_overinst *) op->o_bd->bd_info;
-	struct ldaprwmap	*rwmap = 
+	struct ldaprwmap	*rwmap =
 			(struct ldaprwmap *)on->on_bi.bi_private;
 
 	int			i, last;
@@ -1105,7 +1105,7 @@ rwm_dnattr_rewrite(
 		switch ( rc ) {
 		case LDAP_UNWILLING_TO_PERFORM:
 			/*
-			 * FIXME: need to check if it may be considered 
+			 * FIXME: need to check if it may be considered
 			 * legal to trim values when adding/modifying;
 			 * it should be when searching (e.g. ACLs).
 			 */
@@ -1122,7 +1122,7 @@ rwm_dnattr_rewrite(
 			}
 			last--;
 			break;
-		
+
 		case LDAP_SUCCESS:
 			if ( a_vals ) {
 				if ( !BER_BVISNULL( &dn ) && dn.bv_val != a_vals[i].bv_val ) {
@@ -1136,7 +1136,7 @@ rwm_dnattr_rewrite(
 						(*pa_nvals)[i] = ndn;
 					}
 				}
-				
+
 			} else {
 				if ( !BER_BVISNULL( &ndn ) && ndn.bv_val != (*pa_nvals)[i].bv_val ) {
 					ch_free( (*pa_nvals)[i].bv_val );
@@ -1153,7 +1153,7 @@ rwm_dnattr_rewrite(
 			break;
 		}
 	}
-	
+
 	return 0;
 }
 
@@ -1194,7 +1194,7 @@ rwm_referral_result_rewrite(
 		switch ( rc ) {
 		case LDAP_UNWILLING_TO_PERFORM:
 			/*
-			 * FIXME: need to check if it may be considered 
+			 * FIXME: need to check if it may be considered
 			 * legal to trim values when adding/modifying;
 			 * it should be when searching (e.g. ACLs).
 			 */
@@ -1249,13 +1249,13 @@ rwm_dnattr_result_rewrite(
 	for ( i = 0; !BER_BVISNULL( &a_vals[i] ); i++ ) {
 		struct berval	pdn, ndn = BER_BVNULL;
 		int		rc;
-		
+
 		pdn = a_vals[i];
 		rc = rwm_dn_massage_pretty_normalize( dc, &a_vals[i], &pdn, &ndn );
 		switch ( rc ) {
 		case LDAP_UNWILLING_TO_PERFORM:
 			/*
-			 * FIXME: need to check if it may be considered 
+			 * FIXME: need to check if it may be considered
 			 * legal to trim values when adding/modifying;
 			 * it should be when searching (e.g. ACLs).
 			 */

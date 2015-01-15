@@ -60,7 +60,7 @@ rewrite_parse(
 	assert( fname != NULL );
 	assert( argv != NULL );
 	assert( argc > 0 );
-	
+
 	/*
 	 * Switch on the rewrite engine
 	 */
@@ -92,7 +92,7 @@ rewrite_parse(
 			info->li_state = REWRITE_ON;
 		}
 		rc = REWRITE_SUCCESS;
-	
+
 	/*
 	 * Alter max passes
 	 */
@@ -137,7 +137,7 @@ rewrite_parse(
 			info->li_max_passes_per_rule = info->li_max_passes;
 		}
 		rc = REWRITE_SUCCESS;
-	
+
 	/*
 	 * Start a new rewrite context and set current context
 	 */
@@ -147,7 +147,7 @@ rewrite_parse(
 					"[%s:%d] rewriteContext needs 'name'\n%s",
 					fname, lineno, "" );
 			return -1;
-		} 
+		}
 
 		/*
 		 * Checks for existence (lots of contexts should be
@@ -156,12 +156,12 @@ rewrite_parse(
 		 rewrite_int_curr_context = rewrite_context_find( info, argv[ 1 ] );
 		 if ( rewrite_int_curr_context == NULL ) {
 			 rewrite_int_curr_context = rewrite_context_create( info,
-					 argv[ 1 ] );                       
+					 argv[ 1 ] );
 		 }
 		 if ( rewrite_int_curr_context == NULL ) {
 			 return -1;
 		 }
-						
+
 		 if ( argc > 2 ) {
 
 			 /*
@@ -173,7 +173,7 @@ rewrite_parse(
 			  */
 			 if ( strcasecmp( argv[ 2 ], "alias" ) == 0 ) {
 				 struct rewrite_context *aliased;
-				 
+
 				 if ( argc == 3 ) {
 					 Debug( LDAP_DEBUG_ANY,
 							 "[%s:%d] rewriteContext"
@@ -191,8 +191,8 @@ rewrite_parse(
 							 " discarded\n%s",
 							 fname, lineno, "" );
 				 }
-				 
-				 aliased = rewrite_context_find( info, 
+
+				 aliased = rewrite_context_find( info,
 						 argv[ 3 ] );
 				 if ( aliased == NULL ) {
 					 Debug( LDAP_DEBUG_ANY,
@@ -203,7 +203,7 @@ rewrite_parse(
 							 argv[ 3 ] );
 					 return -1;
 				 }
-				 
+
 				 rewrite_int_curr_context->lc_alias = aliased;
 				 rewrite_int_curr_context = aliased;
 
@@ -216,7 +216,7 @@ rewrite_parse(
 			 }
 		 }
 		 rc = REWRITE_SUCCESS;
-		 
+
 	/*
 	 * Compile a rule in current context
 	 */
@@ -249,10 +249,10 @@ rewrite_parse(
 			 */
 			assert( rewrite_int_curr_context != NULL );
 		}
-		
+
 		rc = rewrite_rule_compile( info, rewrite_int_curr_context, argv[ 1 ],
 				argv[ 2 ], ( argc == 4 ? argv[ 3 ] : "" ) );
-	
+
 	/*
 	 * Add a plugin map to the map tree
 	 */
@@ -281,7 +281,7 @@ rewrite_parse(
 		}
 
 		rc = rewrite_param_set( info, argv[ 1 ], argv[ 2 ] );
-		
+
 	/*
 	 * Error
 	 */
@@ -389,10 +389,10 @@ rewrite_parse_builtin_map(
 )
 {
 	struct rewrite_builtin_map *map;
-	
+
 #define MAP_TYPE	1
 #define MAP_NAME	2
-	
+
 	assert( info != NULL );
 	assert( fname != NULL );
 	assert( argc > 2 );
@@ -409,7 +409,7 @@ rewrite_parse_builtin_map(
 		free( map );
 		return REWRITE_ERR;
 	}
-	
+
 	/*
 	 * Built-in ldap map
 	 */
@@ -423,13 +423,13 @@ rewrite_parse_builtin_map(
 			return REWRITE_ERR;
 		}
 #endif /* USE_REWRITE_LDAP_PVT_THREADS */
-		
+
 		map->lb_private = map->lb_mapper->rm_config( fname, lineno,
 				argc - 3, argv + 3 );
-		
-	/* 
+
+	/*
 	 * Error
-	 */	
+	 */
 	} else {
 		free( map );
 		Debug( LDAP_DEBUG_ANY, "[%s:%d] unknown map type\n%s",

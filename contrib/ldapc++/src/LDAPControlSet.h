@@ -22,23 +22,23 @@ class LDAPControlSet {
         /**
          * Constructs an empty std::list
          */
-        LDAPControlSet();   
+        LDAPControlSet();
 
 
         /**
          * Copy-constructor
          */
         LDAPControlSet(const LDAPControlSet& cs);
-        
+
         /**
          * For internal use only
          *
          * This constructor creates a new LDAPControlSet for a
          * 0-terminiated array of LDAPControl-structures as used by the
          * C-API
-         * @param controls: pointer to a 0-terminated array of pointers to 
+         * @param controls: pointer to a 0-terminated array of pointers to
          *                  LDAPControll-structures
-         * @note: untested til now. Due to lack of server that return 
+         * @note: untested til now. Due to lack of server that return
          *          Controls
          */
         LDAPControlSet(LDAPControl** controls);
@@ -53,13 +53,13 @@ class LDAPControlSet {
          * stored in this list.
          */
         size_t size() const ;
-        
+
         /**
          * @return true if there are zero LDAPCtrl-objects currently
          * stored in this list.
          */
         bool empty() const;
-        
+
         /**
          * @return A iterator that points to the first element of the list.
          */
@@ -70,13 +70,13 @@ class LDAPControlSet {
          * element of the list.
          */
         const_iterator end() const;
-       
+
         /**
          * Adds one element to the end of the list.
          * @param ctrl The Control to add to the list.
          */
-        void add(const LDAPCtrl& ctrl); 
-        
+        void add(const LDAPCtrl& ctrl);
+
         /**
          * Translates the list to a 0-terminated array of pointers to
          * LDAPControl-structures as needed by the C-API

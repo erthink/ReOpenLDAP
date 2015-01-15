@@ -22,7 +22,7 @@ The config directives that are specific to the
 .B cloak
 overlay must be prefixed by
 .BR cloak\- ,
-to avoid potential conflicts with directives specific to the underlying 
+to avoid potential conflicts with directives specific to the underlying
 database or to other stacked overlays.
 
 .TP
@@ -35,19 +35,19 @@ for details.
 .LP
 This
 .B slapd.conf
-configuration option is defined for the cloak overlay. It may have multiple 
+configuration option is defined for the cloak overlay. It may have multiple
 occurrences, and it must appear after the
 .B overlay
 directive:
 .TP
 .B cloak-attr <attribute> [<class>]
-The value 
+The value
 .B <attribute>
 is the name of the attribute that will be cloaked.
 
 The optional
 .B <class>
-restricts cloaking only to entries of the named 
+restricts cloaking only to entries of the named
 .B <class>.
 
 .SH EXAMPLE

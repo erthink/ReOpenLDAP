@@ -148,7 +148,7 @@ retry:	/* transaction retry */
 		rs->sr_err = LDAP_NO_SUCH_OBJECT;
 		goto return_results;
 	}
-	
+
 	if ( get_assert( op ) &&
 		( test_filter( op, &e, (Filter *)get_assertion( op )) != LDAP_COMPARE_TRUE ))
 	{
@@ -228,9 +228,9 @@ retry:	/* transaction retry */
 	Debug( LDAP_DEBUG_TRACE,
 		LDAP_XSTRING(ndb_back_modrdn) ": wr to children "
 		"of entry %s OK\n", e2.e_name.bv_val, 0, 0 );
-	
+
 	if ( op->oq_modrdn.rs_newSup != NULL ) {
-		Debug( LDAP_DEBUG_TRACE, 
+		Debug( LDAP_DEBUG_TRACE,
 			LDAP_XSTRING(ndb_back_modrdn)
 			": new parent \"%s\" requested...\n",
 			op->oq_modrdn.rs_newSup->bv_val, 0, 0 );
@@ -342,11 +342,11 @@ retry:	/* transaction retry */
 
 	/* Build target dn and make sure target entry doesn't exist already. */
 	if (!new_dn.bv_val) {
-		build_new_dn( &new_dn, &e2.e_name, &op->oq_modrdn.rs_newrdn, NULL ); 
+		build_new_dn( &new_dn, &e2.e_name, &op->oq_modrdn.rs_newrdn, NULL );
 	}
 
 	if (!new_ndn.bv_val) {
-		build_new_dn( &new_ndn, &e2.e_nname, &op->oq_modrdn.rs_nnewrdn, NULL ); 
+		build_new_dn( &new_ndn, &e2.e_nname, &op->oq_modrdn.rs_nnewrdn, NULL );
 	}
 
 	Debug( LDAP_DEBUG_TRACE, LDAP_XSTRING(ndb_back_modrdn) ": new ndn=%s\n",
@@ -388,7 +388,7 @@ retry:	/* transaction retry */
 		if( slap_read_controls( op, rs, &e,
 			&slap_pre_read_bv, preread_ctrl ) )
 		{
-			Debug( LDAP_DEBUG_TRACE,        
+			Debug( LDAP_DEBUG_TRACE,
 				"<=- " LDAP_XSTRING(ndb_back_modrdn)
 				": pre-read failed!\n", 0, 0, 0 );
 			if ( op->o_preread & SLAP_CONTROL_CRITICAL ) {
@@ -396,7 +396,7 @@ retry:	/* transaction retry */
 				 * operation if control fails? */
 				goto return_results;
 			}
-		}                   
+		}
 	}
 
 	/* delete old DN */
@@ -469,7 +469,7 @@ retry:	/* transaction retry */
 		if( slap_read_controls( op, rs, &e2,
 			&slap_post_read_bv, postread_ctrl ) )
 		{
-			Debug( LDAP_DEBUG_TRACE,        
+			Debug( LDAP_DEBUG_TRACE,
 				"<=- " LDAP_XSTRING(ndb_back_modrdn)
 				": post-read failed!\n", 0, 0, 0 );
 			if ( op->o_postread & SLAP_CONTROL_CRITICAL ) {
@@ -477,7 +477,7 @@ retry:	/* transaction retry */
 				 * operation if control fails? */
 				goto return_results;
 			}
-		}                   
+		}
 	}
 
 	if( op->o_noop ) {
@@ -495,7 +495,7 @@ retry:	/* transaction retry */
 			rs->sr_err = LDAP_SUCCESS;
 		}
 	}
- 
+
 	if( rs->sr_err != LDAP_SUCCESS && rs->sr_err != LDAP_X_NO_OPERATION ) {
 		Debug( LDAP_DEBUG_TRACE,
 			LDAP_XSTRING(ndb_back_modrdn) ": txn_%s failed: %s (%d)\n",

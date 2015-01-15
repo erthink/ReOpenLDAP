@@ -57,7 +57,7 @@ test_ava_vrFilter(
 
 
 int
-filter_matched_values( 
+filter_matched_values(
 	Operation	*op,
 	Attribute	*a,
 	char		***e_flags )
@@ -144,7 +144,7 @@ test_ava_vrFilter(
 	for ( i=0; a != NULL; a = a->a_next, i++ ) {
 		MatchingRule *mr;
 		struct berval *bv;
-	
+
 		if ( !is_ad_subtype( a->a_desc, ava->aa_desc ) ) {
 			continue;
 		}
@@ -158,7 +158,7 @@ test_ava_vrFilter(
 		case LDAP_FILTER_EQUALITY:
 			mr = a->a_desc->ad_type->sat_equality;
 			break;
-		
+
 		case LDAP_FILTER_GE:
 		case LDAP_FILTER_LE:
 			mr = a->a_desc->ad_type->sat_ordering;
@@ -186,13 +186,13 @@ test_ava_vrFilter(
 					(*e_flags)[i][j] = 1;
 				}
 				break;
-	
+
 			case LDAP_FILTER_GE:
 				if ( match >= 0 ) {
 					(*e_flags)[i][j] = 1;
 				}
 				break;
-	
+
 			case LDAP_FILTER_LE:
 				if ( match <= 0 ) {
 					(*e_flags)[i][j] = 1;
@@ -306,7 +306,7 @@ test_mra_vrFilter(
 			bv = a->a_vals;
 			normalize_attribute = 1;
 		}
-					
+
 		for ( j = 0; !BER_BVISNULL( bv ); bv++, j++ ) {
 			int		rc, match;
 			const char	*text;

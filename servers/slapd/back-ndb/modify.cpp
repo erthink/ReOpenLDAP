@@ -53,7 +53,7 @@ ndb_modify_delete(
 			textbuf, textlen, idx );
 
 	/*
-	 * If permissive is set, then the non-existence of an 
+	 * If permissive is set, then the non-existence of an
 	 * attribute is not treated as an error.
 	 */
 
@@ -354,7 +354,7 @@ int ndb_modify_internal(
 
 		if ( rc != LDAP_SUCCESS ) {
 			attrs_free( old );
-			return rc; 
+			return rc;
 		}
 
 		/* If objectClass was modified, reset the flags */

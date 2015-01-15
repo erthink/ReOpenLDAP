@@ -128,7 +128,7 @@ do_add( Operation *op, SlapReply *rs )
 		Debug( LDAP_DEBUG_ANY, "%s do_add: get_ctrls failed\n",
 			op->o_log_prefix, 0, 0 );
 		goto done;
-	} 
+	}
 
 	rs->sr_err = dnPrettyNormal( NULL, &dn, &op->o_req_dn, &op->o_req_ndn,
 		op->o_tmpmemctx );
@@ -414,7 +414,7 @@ slap_mods2entry(
 			int j;
 
 			if ( !initial ) {
-				/*	
+				/*
 				 * This check allows overlays to override operational
 				 * attributes by setting them directly in the entry.
 				 * We assume slap_mods_no_user_mod_check() was called
@@ -428,7 +428,7 @@ slap_mods2entry(
 			j = mods->sml_numvals;
 			attr->a_numvals += j;
 			j++;	/* NULL */
-			
+
 			attr->a_vals = ch_realloc( attr->a_vals,
 				sizeof( struct berval ) * (i+j) );
 
@@ -452,7 +452,7 @@ slap_mods2entry(
 					for ( j = 0; mods->sml_nvalues[j].bv_val; j++ ) {
 						ber_dupbv( &attr->a_nvals[i+j], &mods->sml_nvalues[j] );
 					}
-					BER_BVZERO( &attr->a_nvals[i+j] );	
+					BER_BVZERO( &attr->a_nvals[i+j] );
 				} else {
 					AC_MEMCPY( &attr->a_nvals[i], mods->sml_nvalues,
 						sizeof( struct berval ) * j );
@@ -476,7 +476,7 @@ slap_mods2entry(
 		/* move values to attr structure */
 		i = mods->sml_numvals;
 		attr->a_numvals = mods->sml_numvals;
-		if ( dup ) { 
+		if ( dup ) {
 			attr->a_vals = (BerVarray) ch_calloc( i+1, sizeof( BerValue ));
 			for ( i = 0; mods->sml_values[i].bv_val; i++ ) {
 				ber_dupbv( &attr->a_vals[i], &mods->sml_values[i] );
@@ -529,7 +529,7 @@ slap_entry2mods(
 	while ( a_new != NULL ) {
 		a_new_desc = a_new->a_desc;
 		mod = (Modifications *) ch_malloc( sizeof( Modifications ));
-		
+
 		mod->sml_op = LDAP_MOD_REPLACE;
 		mod->sml_flags = 0;
 
@@ -553,25 +553,25 @@ slap_entry2mods(
 		}
 
 		for ( i = 0; i < count; i++ ) {
-			ber_dupbv(mod->sml_values+i, a_new->a_vals+i); 
+			ber_dupbv(mod->sml_values+i, a_new->a_vals+i);
 			if ( mod->sml_nvalues ) {
-				ber_dupbv( mod->sml_nvalues+i, a_new->a_nvals+i ); 
-			} 
+				ber_dupbv( mod->sml_nvalues+i, a_new->a_nvals+i );
+			}
 		}
 
-		mod->sml_values[count].bv_val = NULL; 
-		mod->sml_values[count].bv_len = 0; 
+		mod->sml_values[count].bv_val = NULL;
+		mod->sml_values[count].bv_len = 0;
 
 		if ( mod->sml_nvalues ) {
-			mod->sml_nvalues[count].bv_val = NULL; 
-			mod->sml_nvalues[count].bv_len = 0; 
+			mod->sml_nvalues[count].bv_val = NULL;
+			mod->sml_nvalues[count].bv_len = 0;
 		}
 
 		mod->sml_desc = a_new_desc;
 		mod->sml_next =NULL;
 		*modtail = mod;
 		modtail = &mod->sml_next;
-		a_new = a_new->a_next; 
+		a_new = a_new->a_next;
 	}
 
 	*mods = modhead;
@@ -643,7 +643,7 @@ int slap_add_opattrs(
 
 			tmp.bv_len = lutil_uuidstr( uuidbuf, sizeof( uuidbuf ) );
 			tmp.bv_val = uuidbuf;
-			
+
 			attr_merge_normalize_one( op->ora_e,
 				slap_schema.si_ad_entryUUID, &tmp, op->o_tmpmemctx );
 		}

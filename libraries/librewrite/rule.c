@@ -40,7 +40,7 @@ append_rule(
 	for ( r = context->lc_rule; r->lr_next != NULL; r = r->lr_next );
 	r->lr_next = rule;
 	rule->lr_prev = r;
-	
+
 	return REWRITE_SUCCESS;
 }
 
@@ -58,10 +58,10 @@ append_action(
 
 	assert( pbase != NULL );
 	assert( action != NULL );
-	
+
 	for ( pa = pbase; *pa != NULL; pa = &(*pa)->la_next );
 	*pa = action;
-	
+
 	return REWRITE_SUCCESS;
 }
 
@@ -92,10 +92,10 @@ destroy_action(
 	default:
 		break;
 	}
-	
+
 	free( action );
 	*paction = NULL;
-	
+
 	return 0;
 }
 
@@ -156,7 +156,7 @@ rewrite_rule_compile(
 	 */
 	for ( p = flagstring; p[ 0 ] != '\0'; p++ ) {
 		switch( p[ 0 ] ) {
-			
+
 		/*
 		 * REGEX flags
 		 */
@@ -166,16 +166,16 @@ rewrite_rule_compile(
 			 */
 			flags &= ~REWRITE_REGEX_ICASE;
 			break;
-			
+
 		case REWRITE_FLAG_BASICREGEX: 		/* 'R' */
 			/*
 			 * Use POSIX Basic Regular Expression syntax
-			 * instead of POSIX Extended Regular Expression 
+			 * instead of POSIX Extended Regular Expression
 			 * syntax (default)
 			 */
 			flags &= ~REWRITE_REGEX_EXTENDED;
 			break;
-			
+
 		/*
 		 * Execution mode flags
 		 */
@@ -186,7 +186,7 @@ rewrite_rule_compile(
 			mode &= ~REWRITE_RECURSE;
 			mode |= REWRITE_EXEC_ONCE;
 			break;
-		
+
 		/*
 		 * Special action flags
 		 */
@@ -201,7 +201,7 @@ rewrite_rule_compile(
 
 			action->la_type = REWRITE_ACTION_STOP;
 			break;
-			
+
 		case REWRITE_FLAG_UNWILLING: 		/* '#' */
 			/*
 			 * Matching objs will be marked as gone!
@@ -210,7 +210,7 @@ rewrite_rule_compile(
 			if ( action == NULL ) {
 				goto fail;
 			}
-			
+
 			mode &= ~REWRITE_RECURSE;
 			mode |= REWRITE_EXEC_ONCE;
 			action->la_type = REWRITE_ACTION_UNWILLING;
@@ -228,7 +228,7 @@ rewrite_rule_compile(
 			 */
 			char *next = NULL;
 			int *d;
-			
+
 			if ( p[ 1 ] != '{' ) {
 				goto fail;
 			}
@@ -265,7 +265,7 @@ rewrite_rule_compile(
 			action->la_args = (void *)d;
 
 			p = next;	/* p is incremented by the for ... */
-		
+
 			break;
 		}
 
@@ -274,7 +274,7 @@ rewrite_rule_compile(
 			 * Set the number of max passes per rule
 			 */
 			char *next = NULL;
-			
+
 			if ( p[ 1 ] != '{' ) {
 				goto fail;
 			}
@@ -290,7 +290,7 @@ rewrite_rule_compile(
 			}
 
 			p = next;	/* p is incremented by the for ... */
-		
+
 			break;
 		}
 
@@ -302,10 +302,10 @@ rewrite_rule_compile(
 			if ( action == NULL ) {
 				goto fail;
 			}
-			
+
 			action->la_type = REWRITE_ACTION_IGNORE_ERR;
 			break;
-			
+
 		/*
 		 * Other flags ...
 		 */
@@ -315,7 +315,7 @@ rewrite_rule_compile(
 			 */
 			break;
 		}
-		
+
 		/*
 		 * Stupid way to append to a list ...
 		 */
@@ -324,7 +324,7 @@ rewrite_rule_compile(
 			action = NULL;
 		}
 	}
-	
+
 	/*
 	 * Finally, rule allocation
 	 */
@@ -332,14 +332,14 @@ rewrite_rule_compile(
 	if ( rule == NULL ) {
 		goto fail;
 	}
-	
+
 	/*
 	 * REGEX compilation (luckily I don't need to take care of this ...)
 	 */
 	if ( regcomp( &rule->lr_regex, ( char * )pattern, flags ) != 0 ) {
 		goto fail;
 	}
-	
+
 	/*
 	 * Just to remember them ...
 	 */
@@ -352,7 +352,7 @@ rewrite_rule_compile(
 	{
 		goto fail;
 	}
-	
+
 	/*
 	 * Load compiled data into rule
 	 */
@@ -365,7 +365,7 @@ rewrite_rule_compile(
 	rule->lr_mode = mode;
 	rule->lr_max_passes = max_passes;
 	rule->lr_action = first_action;
-	
+
 	/*
 	 * Append rule at the end of the rewrite context
 	 */
@@ -418,16 +418,16 @@ rewrite_rule_apply(
 	*result = NULL;
 
 	string = (char *)arg;
-	
+
 	/*
 	 * In case recursive match is required (default)
 	 */
 recurse:;
 
 	Debug( LDAP_DEBUG_TRACE, "==> rewrite_rule_apply"
-			" rule='%s' string='%s' [%d pass(es)]\n", 
+			" rule='%s' string='%s' [%d pass(es)]\n",
 			rule->lr_pattern, string, strcnt + 1 );
-	
+
 	op->lo_num_passes++;
 
 	rc = regexec( &rule->lr_regex, string, nmatch, match, 0 );
@@ -456,7 +456,7 @@ recurse:;
 		return rc;
 	}
 
-	if ( ( rule->lr_mode & REWRITE_RECURSE ) == REWRITE_RECURSE 
+	if ( ( rule->lr_mode & REWRITE_RECURSE ) == REWRITE_RECURSE
 			&& op->lo_num_passes < info->li_max_passes
 			&& ++strcnt < rule->lr_max_passes ) {
 		string = *result;

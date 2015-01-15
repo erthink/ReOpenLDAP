@@ -31,7 +31,7 @@ creates a control with the specified
 using the contents of the
 .I value
 parameter for the control value, if any.  The content of
-.I value 
+.I value
 is duplicated if
 .I dupval
 is non-zero.  The
@@ -61,7 +61,7 @@ If the parameter
 is not NULL, on return it will point to the next control
 in the array, and can be passed to the
 .BR ldap_control_find ()
-routine for subsequent calls, to find further occurrences of the same 
+routine for subsequent calls, to find further occurrences of the same
 control type.
 The use of this function is discouraged; the recommended way of handling
 controls in responses consists in going through the array of controls,

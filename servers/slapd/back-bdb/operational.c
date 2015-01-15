@@ -40,7 +40,7 @@ bdb_hasSubordinates(
 	DB_TXN		*rtxn;
 	int		rc;
 	int		release = 0;
-	
+
 	assert( e != NULL );
 
 	/* NOTE: this should never happen, but it actually happens
@@ -100,9 +100,9 @@ retry:
 		break;
 
 	default:
-		Debug(LDAP_DEBUG_ARGS, 
+		Debug(LDAP_DEBUG_ARGS,
 			"<=- " LDAP_XSTRING(bdb_hasSubordinates)
-			": has_children failed: %s (%d)\n", 
+			": has_children failed: %s (%d)\n",
 			db_strerror(rc), rc, 0 );
 		rc = LDAP_OTHER;
 	}

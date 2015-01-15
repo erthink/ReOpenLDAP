@@ -59,7 +59,7 @@ retry:
 
 	rs->sr_err = ldap_compare_ext( lc->lc_ld, op->o_req_dn.bv_val,
 			op->orc_ava->aa_desc->ad_cname.bv_val,
-			&op->orc_ava->aa_value, 
+			&op->orc_ava->aa_value,
 			ctrls, NULL, &msgid );
 	rc = ldap_back_op_result( lc, op, rs, msgid,
 		li->li_timeout[ SLAP_OP_COMPARE ],
@@ -79,7 +79,7 @@ retry:
 
 cleanup:
 	(void)ldap_back_controls_free( op, rs, &ctrls );
-	
+
 	if ( lc != NULL ) {
 		ldap_back_release_conn( li, lc );
 	}

@@ -125,7 +125,7 @@ access-control rules.
 
 H3: Specify time limits
 
-The syntax for time limits is 
+The syntax for time limits is
 
 E:   time[.{soft|hard}]=<integer>
 
@@ -144,7 +144,7 @@ E:   limits dn.exact="cn=anyuser,dc=example,dc=org" time.hard=unlimited
 
 H3: Specifying size limits
 
-The syntax for size limit is 
+The syntax for size limit is
 
 E:   size[.{soft|hard|unchecked}]=<integer>
 

@@ -80,7 +80,7 @@ do_compare(
 		Debug( LDAP_DEBUG_ANY, "%s do_compare: get_ctrls failed\n",
 			op->o_log_prefix, 0, 0 );
 		goto cleanup;
-	} 
+	}
 
 	rs->sr_err = dnPrettyNormal( NULL, &dn, &op->o_req_dn, &op->o_req_ndn,
 		op->o_tmpmemctx );
@@ -239,9 +239,9 @@ fe_op_compare( Operation *op, SlapReply *rs )
 		if ( rc == 0 && entry ) {
 			if ( ! access_allowed( op, entry,
 				ava->aa_desc, &ava->aa_value, ACL_COMPARE, NULL ) )
-			{	
+			{
 				rc = rs->sr_err = LDAP_INSUFFICIENT_ACCESS;
-				
+
 			} else {
 				rc = rs->sr_err = op->o_bd->be_has_subordinates( op,
 						entry, &hasSubordinates );
@@ -288,12 +288,12 @@ fe_op_compare( Operation *op, SlapReply *rs )
 
 	if ( rs->sr_err == SLAP_CB_CONTINUE ) {
 		/* do our best to compare that AVA
-		 * 
+		 *
 		 * NOTE: this code is used only
-		 * if SLAP_COMPARE_IN_FRONTEND 
+		 * if SLAP_COMPARE_IN_FRONTEND
 		 * is #define'd (it's not by default)
 		 * or if op->o_bd->be_compare is NULL.
-		 * 
+		 *
 		 * FIXME: one potential issue is that
 		 * if SLAP_COMPARE_IN_FRONTEND overlays
 		 * are not executed for compare. */
@@ -336,7 +336,7 @@ fe_op_compare( Operation *op, SlapReply *rs )
 		if ( rc == 0 ) {
 			rs->sr_err = LDAP_SUCCESS;
 		}
-		
+
 		if ( vals ) {
 			ber_bvarray_free_x( vals, op->o_tmpmemctx );
 		}
@@ -357,7 +357,7 @@ int slap_compare_entry(
 
 	if ( ! access_allowed( op, e,
 		ava->aa_desc, &ava->aa_value, ACL_COMPARE, NULL ) )
-	{	
+	{
 		rc = LDAP_INSUFFICIENT_ACCESS;
 		goto done;
 	}
@@ -381,12 +381,12 @@ int slap_compare_entry(
 	{
 		if (( ava->aa_desc != a->a_desc ) && ! access_allowed( op,
 			e, a->a_desc, &ava->aa_value, ACL_COMPARE, NULL ) )
-		{	
+		{
 			rc = LDAP_INSUFFICIENT_ACCESS;
 			break;
 		}
 
-		if ( attr_valfind( a, 
+		if ( attr_valfind( a,
 			SLAP_MR_ATTRIBUTE_VALUE_NORMALIZED_MATCH |
 				SLAP_MR_ASSERTED_VALUE_NORMALIZED_MATCH,
 			&ava->aa_value, NULL, op->o_tmpmemctx ) == 0 )

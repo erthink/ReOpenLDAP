@@ -94,7 +94,7 @@ set_dup( SetCookie *cp, BerVarray set, unsigned flags )
 		for ( i = 0; !BER_BVISNULL( &set[ i ] ); i++ )
 			;
 		newset = cp->set_op->o_tmpcalloc( i + 1,
-				sizeof( struct berval ), 
+				sizeof( struct berval ),
 				cp->set_op->o_tmpmemctx );
 		if ( newset == NULL ) {
 			return NULL;
@@ -109,7 +109,7 @@ set_dup( SetCookie *cp, BerVarray set, unsigned flags )
 		} else {
 			AC_MEMCPY( newset, set, ( i + 1 ) * sizeof( struct berval ) );
 		}
-		
+
 	} else {
 		newset = set;
 	}
@@ -523,8 +523,8 @@ set_parent( SetCookie *cp, BerVarray set, int level )
 		for ( j = 0; !BER_BVISNULL( &nset[ j ] ); j++ ) {
 			if ( bvmatch( &bv, &nset[ j ] ) )
 			{
-				break;		
-			}	
+				break;
+			}
 		}
 
 		if ( BER_BVISNULL( &nset[ j ] ) ) {
@@ -629,7 +629,7 @@ slap_set_filter( SLAP_SET_GATHER gatherer,
 				}
 				SF_PUSH( set );
 				set = NULL;
-				
+
 			} else {
 				SF_ERROR( syntax );
 			}
@@ -645,7 +645,7 @@ slap_set_filter( SLAP_SET_GATHER gatherer,
 			if ( c == 0 ) {
 				SF_ERROR( syntax );
 			}
-			
+
 			set = cp->set_op->o_tmpcalloc( 2, sizeof( struct berval ),
 					cp->set_op->o_tmpmemctx );
 			if ( set == NULL ) {
@@ -740,9 +740,9 @@ slap_set_filter( SLAP_SET_GATHER gatherer,
 					SF_ERROR( memory );
 				}
 				BER_BVZERO( &set[ 1 ] );
-				
+
 			} else if ( len == 4
-				&& memcmp( "user", filter, len ) == 0 ) 
+				&& memcmp( "user", filter, len ) == 0 )
 			{
 				if ( ( SF_TOP() == (void *)'/' ) || IS_SET( SF_TOP() ) ) {
 					SF_ERROR( syntax );
@@ -757,7 +757,7 @@ slap_set_filter( SLAP_SET_GATHER gatherer,
 				}
 				ber_dupbv_x( set, user, cp->set_op->o_tmpmemctx );
 				BER_BVZERO( &set[ 1 ] );
-				
+
 			} else if ( SF_TOP() != (void *)'/' ) {
 				SF_ERROR( syntax );
 
@@ -777,7 +777,7 @@ slap_set_filter( SLAP_SET_GATHER gatherer,
 				/* NOTE: ad must have distinguishedName syntax
 				 * or expand in an LDAP URI if c == '*'
 				 */
-				
+
 				set = set_chase( gatherer,
 					cp, SF_POP(), ad, c == '*' );
 				if ( set == NULL ) {
@@ -808,7 +808,7 @@ slap_set_filter( SLAP_SET_GATHER gatherer,
 		if ( set == NULL ) {
 			SF_ERROR( memory );
 		}
-		
+
 	} else {
 		SF_ERROR( syntax );
 	}

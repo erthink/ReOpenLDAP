@@ -270,7 +270,7 @@ LDAP_LUNICODE_F (int)
 ucdecomp_hangul LDAP_P((ac_uint4 code, ac_uint4 *num,
 			ac_uint4 decomp[]));
 
-/*  
+/*
  * This routine does canonical decomposition of the string in of length
  * inlen, and returns the decomposed string in out with length outlen.
  * The memory for out is allocated by this routine. It returns the length
@@ -279,15 +279,15 @@ ucdecomp_hangul LDAP_P((ac_uint4 code, ac_uint4 *num,
 LDAP_LUNICODE_F (int)
 uccanondecomp LDAP_P((const ac_uint4 *in, int inlen,
 		     ac_uint4 **out, int *outlen, void *ctx));
-  
-/*  
+
+/*
  * Equivalent to uccanondecomp() except that it includes compatibility
  * decompositions.
  */
 LDAP_LUNICODE_F (int)
 uccompatdecomp LDAP_P((const ac_uint4 *in, int inlen,
 		     ac_uint4 **out, int *outlen, void *ctx));
-  
+
 /**************************************************************************
  *
  * Functions for getting combining classes.

@@ -16,10 +16,10 @@
 echo "running defines.sh"
 . $SRCDIR/scripts/defines.sh
 
-if test $VALSORT = valsortno; then 
+if test $VALSORT = valsortno; then
 	echo "Valsort overlay not available, test skipped"
 	exit 0
-fi 
+fi
 
 mkdir -p $TESTDIR $DBDIR1
 

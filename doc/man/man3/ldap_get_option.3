@@ -18,11 +18,11 @@ OpenLDAP LDAP (libldap, \-lldap)
 These routines provide access to options stored either in a LDAP handle
 or as global options, where applicable.
 They make use of a neutral interface, where the type of the value
-either retrieved by 
+either retrieved by
 .BR ldap_get_option (3)
 or set by
 .BR ldap_set_option (3)
-is cast to 
+is cast to
 .BR "void *" .
 The actual type is determined based on the value of the
 .B option
@@ -32,19 +32,19 @@ inherit their default settings from the global options in effect at the time
 the handle is created.
 .TP
 .B LDAP_OPT_API_FEATURE_INFO
-Fills-in a 
+Fills-in a
 .BR "LDAPAPIFeatureInfo" ;
-.BR outvalue 
-must be a 
+.BR outvalue
+must be a
 .BR "LDAPAPIFeatureInfo *" ,
 pointing to an already allocated struct.
 This is a read-only option.
 .TP
 .B LDAP_OPT_API_INFO
-Fills-in a 
+Fills-in a
 .BR "LDAPAPIInfo" ;
-.BR outvalue 
-must be a 
+.BR outvalue
+must be a
 .BR "LDAPAPIInfo *" ,
 pointing to an already allocated struct.
 This is a read-only option.
@@ -59,14 +59,14 @@ explicit arguments; see for example
 .BR ldap_modify_ext (3)
 and so on.
 .BR outvalue
-must be 
+must be
 .BR "LDAPControl ***" ,
 and the caller is responsible of freeing the returned controls, if any,
-by calling 
+by calling
 .BR ldap_controls_free (3),
 while
 .BR invalue
-must be 
+must be
 .BR "LDAPControl *const *" ;
 the library duplicates the controls passed via
 .BR invalue .
@@ -96,13 +96,13 @@ This option is OpenLDAP specific.
 .B LDAP_OPT_CONNECT_CB
 This option allows to set a connect callback.
 .B invalue
-must be a 
+must be a
 .BR "const struct ldap_conncb *" .
 Callbacks are executed in last in-first served order.
 Handle-specific callbacks are executed first, followed by global ones.
 Right before freeing the callback structure, the
 .B lc_del
-callback handler is passed a 
+callback handler is passed a
 .B NULL
 .BR Sockbuf .
 Calling
@@ -114,12 +114,12 @@ This option is OpenLDAP specific.
 .B LDAP_OPT_DEBUG_LEVEL
 Sets/gets the debug level of the client library.
 .BR invalue
-must be a 
+must be a
 .BR "const int *" ;
 .BR outvalue
 must be a
 .BR "int *" .
-Valid debug levels are 
+Valid debug levels are
 .BR LDAP_DEBUG_ANY ,
 .BR LDAP_DEBUG_ARGS ,
 .BR LDAP_DEBUG_BER ,
@@ -141,7 +141,7 @@ and the caller is responsible of freeing the returned string by calling
 .BR ldap_memfree (3),
 while
 .BR invalue
-must be a 
+must be a
 .BR "const char *" ;
 the library duplicates the corresponding string.
 This option is OpenLDAP specific.
@@ -151,11 +151,11 @@ Sets/gets the value that defines when alias dereferencing must occur.
 .BR invalue
 must be
 .BR "const int *" ;
-.BR outvalue 
+.BR outvalue
 must be
 .BR "int *" .
 They cannot be NULL.
-The value of 
+The value of
 .BR *invalue
 should be one of
 .BR LDAP_DEREF_NEVER
@@ -169,16 +169,16 @@ within search operations.
 .TP
 .B LDAP_OPT_DESC
 Returns the file descriptor associated to the socket buffer
-of the LDAP handle passed in as 
+of the LDAP handle passed in as
 .BR ld ;
 .BR outvalue
-must be a 
+must be a
 .BR "int *" .
 This is a read-only, handle-specific option.
 .TP
 .B LDAP_OPT_DIAGNOSTIC_MESSAGE
 Sets/gets a string containing the error string associated to the LDAP handle.
-This option was formerly known as 
+This option was formerly known as
 .BR LDAP_OPT_ERROR_STRING .
 .BR outvalue
 must be a
@@ -187,23 +187,23 @@ and the caller is responsible of freeing the returned string by calling
 .BR ldap_memfree (3),
 while
 .BR invalue
-must be a 
+must be a
 .BR "char *" ;
 the library duplicates the corresponding string.
 .TP
 .B LDAP_OPT_HOST_NAME
-Sets/gets a space-separated list of hosts to be contacted by the library 
+Sets/gets a space-separated list of hosts to be contacted by the library
 when trying to establish a connection.
 This is now deprecated in favor of
 .BR LDAP_OPT_URI .
 .BR outvalue
-must be a 
+must be a
 .BR "char **" ,
 and the caller is responsible of freeing the resulting string by calling
 .BR ldap_memfree (3),
 while
 .BR invalue
-must be a 
+must be a
 .BR "const char *" ;
 the library duplicates the corresponding string.
 .TP
@@ -216,24 +216,24 @@ and the caller is responsible of freeing the returned string by calling
 .BR ldap_memfree (3),
 while
 .BR invalue
-must be a 
+must be a
 .BR "const char *" ;
 the library duplicates the corresponding string.
 .TP
 .B LDAP_OPT_NETWORK_TIMEOUT
 Sets/gets the network timeout value after which
-.BR poll (2)/ select (2) 
-following a 
-.BR connect (2) 
+.BR poll (2)/ select (2)
+following a
+.BR connect (2)
 returns in case of no activity.
 .B outvalue
-must be a 
+must be a
 .BR "struct timeval **"
 (the caller has to free
 .BR *outvalue ) ,
 and
 .B invalue
-must be a 
+must be a
 .BR "const struct timeval *" .
 They cannot be NULL. Using a struct with seconds set to \-1 results
 in an infinite timeout, which is the default.
@@ -244,7 +244,7 @@ Sets/gets the protocol version.
 .BR outvalue
 and
 .BR invalue
-must be 
+must be
 .BR "int *" .
 .TP
 .B LDAP_OPT_REFERRAL_URLS
@@ -264,7 +264,7 @@ This option is OpenLDAP specific.
 .B LDAP_OPT_REFERRALS
 Determines whether the library should implicitly chase referrals or not.
 .BR invalue
-must be 
+must be
 .BR "const int *" ;
 its value should either be
 .BR LDAP_OPT_OFF
@@ -281,7 +281,7 @@ must be
 .B LDAP_OPT_RESTART
 Determines whether the library should implicitly restart connections (FIXME).
 .BR invalue
-must be 
+must be
 .BR "const int *" ;
 its value should either be
 .BR LDAP_OPT_OFF
@@ -296,7 +296,7 @@ Sets/gets the LDAP result code associated to the handle.
 This option was formerly known as
 .BR LDAP_OPT_ERROR_NUMBER .
 .BR invalue
-must be a 
+must be a
 .BR "const int *" .
 .BR outvalue
 must be a
@@ -312,14 +312,14 @@ explicit arguments; see for example
 .BR ldap_modify_ext (3)
 and so on.
 .BR outvalue
-must be 
+must be
 .BR "LDAPControl ***" ,
 and the caller is responsible of freeing the returned controls, if any,
-by calling 
+by calling
 .BR ldap_controls_free (3),
 while
 .BR invalue
-must be 
+must be
 .BR "LDAPControl *const *" ;
 the library duplicates the controls passed via
 .BR invalue .
@@ -349,7 +349,7 @@ They cannot be NULL.
 Returns a pointer to the socket buffer of the LDAP handle passed in as
 .BR ld ;
 .BR outvalue
-must be a 
+must be a
 .BR "Sockbuf **" .
 This is a read-only, handle-specific option.
 This option is OpenLDAP specific.
@@ -369,33 +369,33 @@ and they cannot be NULL.
 .B LDAP_OPT_TIMEOUT
 Sets/gets a timeout value for the synchronous API calls.
 .B outvalue
-must be a 
+must be a
 .BR "struct timeval **"
 (the caller has to free
 .BR *outvalue ) ,
 and
 .B invalue
-must be a 
+must be a
 .BR "struct timeval *" ,
 and they cannot be NULL. Using a struct with seconds set to \-1 results
 in an infinite timeout, which is the default.
 This option is OpenLDAP specific.
 .TP
 .B LDAP_OPT_URI
-Sets/gets a comma- or space-separated list of URIs to be contacted by the library 
+Sets/gets a comma- or space-separated list of URIs to be contacted by the library
 when trying to establish a connection.
 .BR outvalue
-must be a 
+must be a
 .BR "char **" ,
 and the caller is responsible of freeing the resulting string by calling
 .BR ldap_memfree (3),
 while
 .BR invalue
-must be a 
+must be a
 .BR "const char *" ;
-the library parses the string into a list of 
+the library parses the string into a list of
 .BR LDAPURLDesc
-structures, so the invocation of 
+structures, so the invocation of
 .BR ldap_set_option (3)
 may fail if URL parsing fails.
 URIs may only contain the
@@ -763,7 +763,7 @@ Occasionally, more specific errors can be returned, like
 to indicate a failure in memory allocation.
 .SH NOTES
 The LDAP libraries with the
-.B LDAP_OPT_REFERRALS 
+.B LDAP_OPT_REFERRALS
 option set to
 .B LDAP_OPT_ON
 (default value) automatically follow referrals using an anonymous bind.
@@ -778,7 +778,7 @@ which corresponds to the
 macro.
 Application developers are encouraged to explicitly set
 .B LDAP_OPT_PROTOCOL_VERSION
-to LDAPv3, using the 
+to LDAPv3, using the
 .B LDAP_VERSION3
 macro, or to allow users to select the protocol version.
 .SH SEE ALSO

@@ -20,30 +20,30 @@
  */
 /* This is an altered version */
 
-/* 
+/*
  * Copyright 1999, Howard Chu, All rights reserved. <hyc@highlandsun.com>
  * Copyright 2000, Pierangelo Masarati, All rights reserved. <ando@sys-net.it>
- * 
+ *
  * Module back-ldap, originally developed by Howard Chu
  *
  * has been modified by Pierangelo Masarati. The original copyright
  * notice has been maintained.
- * 
+ *
  * Permission is granted to anyone to use this software for any purpose
  * on any computer system, and to alter it and redistribute it, subject
  * to the following restrictions:
- * 
+ *
  * 1. The author is not responsible for the consequences of use of this
  *    software, no matter how awful, even if they arise from flaws in it.
- * 
+ *
  * 2. The origin of this software must not be misrepresented, either by
  *    explicit claim or by omission.  Since few users ever read sources,
  *    credits should appear in the documentation.
- * 
+ *
  * 3. Altered versions must be plainly marked as such, and must not be
  *    misrepresented as being the original software.  Since few users
  *    ever read sources, credits should appear in the documentation.
- * 
+ *
  * 4. This notice may not be removed or altered.
  */
 
@@ -85,7 +85,7 @@ ldap_back_dn_massage(
 			BER_BVISNULL( res ) ? "" : res->bv_val );
 		rc = LDAP_SUCCESS;
 		break;
- 		
+
  	case REWRITE_REGEXEC_UNWILLING:
 		if ( dc->rs ) {
 			dc->rs->sr_err = LDAP_UNWILLING_TO_PERFORM;
@@ -93,7 +93,7 @@ ldap_back_dn_massage(
 		}
 		rc = LDAP_UNWILLING_TO_PERFORM;
 		break;
-	       	
+
 	case REWRITE_REGEXEC_ERR:
 		if ( dc->rs ) {
 			dc->rs->sr_err = LDAP_OTHER;
@@ -103,7 +103,7 @@ ldap_back_dn_massage(
 		break;
 	}
 
-	if ( res->bv_val == dmy ) { 
+	if ( res->bv_val == dmy ) {
 		BER_BVZERO( res );
 	}
 
@@ -113,7 +113,7 @@ ldap_back_dn_massage(
 #else
 /*
  * ldap_back_dn_massage
- * 
+ *
  * Aliases the suffix; based on suffix_alias (servers/slapd/suffixalias.c).
  */
 int

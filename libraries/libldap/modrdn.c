@@ -16,7 +16,7 @@
  * All rights reserved.
  */
 /* Copyright 1999, Juan C. Gomez, All rights reserved.
- * This software is not subject to any license of Silicon Graphics 
+ * This software is not subject to any license of Silicon Graphics
  * Inc. or Purdue University.
  *
  * Redistribution and use in source and binary forms are permitted
@@ -96,13 +96,13 @@ ldap_rename(
 			ber_free( ber, 1 );
 			return( ld->ld_errno );
 		}
-		rc = ber_printf( ber, "{it{ssbtsN}", /* '}' */ 
+		rc = ber_printf( ber, "{it{ssbtsN}", /* '}' */
 			id, LDAP_REQ_MODDN,
 			dn, newrdn, (ber_int_t) deleteoldrdn,
 			LDAP_TAG_NEWSUPERIOR, newSuperior );
 
 	} else {
-		rc = ber_printf( ber, "{it{ssbN}", /* '}' */ 
+		rc = ber_printf( ber, "{it{ssbN}", /* '}' */
 			id, LDAP_REQ_MODDN,
 			dn, newrdn, (ber_int_t) deleteoldrdn );
 	}
@@ -128,7 +128,7 @@ ldap_rename(
 
 	/* send the message */
 	*msgidp = ldap_send_initial_request( ld, LDAP_REQ_MODRDN, dn, ber, id );
-	
+
 	if( *msgidp < 0 ) {
 		return( ld->ld_errno );
 	}

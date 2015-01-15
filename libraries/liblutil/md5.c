@@ -15,7 +15,7 @@
  */
 /* This work was adapted for inclusion in OpenLDAP Software by
  * Kurt D. Zeilenga based upon code developed by Colin Plumb
- * and subsequently modified by Jim Kingdon. 
+ * and subsequently modified by Jim Kingdon.
  */
 
 /*
@@ -143,7 +143,7 @@ lutil_MD5Update(
 }
 
 /*
- * Final wrapup - pad to 64-byte boundary with the bit pattern 
+ * Final wrapup - pad to 64-byte boundary with the bit pattern
  * 1 0* (64-bit count of bits processed, MSB-first)
  */
 void

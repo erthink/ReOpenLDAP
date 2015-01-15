@@ -50,7 +50,7 @@ int main( int argc, LPTSTR *argv )
 	fname_start = strrchr( filename, *LDAP_DIRSEP );
 
 	if ( argc > 1 ) {
-		if ( _stricmp( "install", argv[1] ) == 0 ) 
+		if ( _stricmp( "install", argv[1] ) == 0 )
 		{
 			char *svcName = SERVICE_NAME;
 			char *displayName = "OpenLDAP Directory Service";
@@ -66,7 +66,7 @@ int main( int argc, LPTSTR *argv )
 				auto_start = TRUE;
 
 			strcat(filename, " service");
-			if ( !lutil_srv_install(svcName, displayName, filename, auto_start) ) 
+			if ( !lutil_srv_install(svcName, displayName, filename, auto_start) )
 			{
 				fputs( "service failed installation ...\n", stderr  );
 				return EXIT_FAILURE;
@@ -75,12 +75,12 @@ int main( int argc, LPTSTR *argv )
 			return EXIT_SUCCESS;
 		}
 
-		if ( _stricmp( "remove", argv[1] ) == 0 ) 
+		if ( _stricmp( "remove", argv[1] ) == 0 )
 		{
 			char *svcName = SERVICE_NAME;
 			if ( (argc > 2) && (argv[2] != NULL) )
 				svcName = argv[2];
-			if ( !lutil_srv_remove(svcName, filename) ) 
+			if ( !lutil_srv_remove(svcName, filename) )
 			{
 				fputs( "failed to remove the service ...\n", stderr  );
 				return EXIT_FAILURE;

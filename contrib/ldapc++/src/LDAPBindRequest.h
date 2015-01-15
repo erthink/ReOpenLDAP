@@ -20,8 +20,8 @@ class LDAPBindRequest : LDAPRequest {
     public:
         LDAPBindRequest( const LDAPBindRequest& req);
         //just for simple authentication
-        LDAPBindRequest(const std::string&, const std::string& passwd, 
-                LDAPAsynConnection *connect, const LDAPConstraints *cons, 
+        LDAPBindRequest(const std::string&, const std::string& passwd,
+                LDAPAsynConnection *connect, const LDAPConstraints *cons,
                 bool isReferral=false);
         virtual ~LDAPBindRequest();
         virtual LDAPMessageQueue *sendRequest();
@@ -30,8 +30,8 @@ class LDAPBindRequest : LDAPRequest {
 class LDAPSaslBindRequest : LDAPRequest
 {
     public:
-        LDAPSaslBindRequest( const std::string& mech, const std::string& cred, 
-        LDAPAsynConnection *connect, const LDAPConstraints *cons, 
+        LDAPSaslBindRequest( const std::string& mech, const std::string& cred,
+        LDAPAsynConnection *connect, const LDAPConstraints *cons,
                 bool isReferral=false);
         virtual LDAPMessageQueue *sendRequest();
         virtual ~LDAPSaslBindRequest();
@@ -45,7 +45,7 @@ class LDAPSaslInteractiveBind : LDAPRequest
 {
     public:
         LDAPSaslInteractiveBind( const std::string& mech, int flags,
-                SaslInteractionHandler *sih, LDAPAsynConnection *connect, 
+                SaslInteractionHandler *sih, LDAPAsynConnection *connect,
                 const LDAPConstraints *cons, bool isReferral=false);
         virtual LDAPMessageQueue *sendRequest();
         virtual LDAPMsg* getNextMessage() const;

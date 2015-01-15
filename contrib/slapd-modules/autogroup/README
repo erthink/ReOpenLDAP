@@ -39,16 +39,16 @@ CONFIGURATION
         It may have multiple occurrences, and it must appear after the
         overlay directive.
 
-        The value <group-oc> is the name of the objectClass that represents 
+        The value <group-oc> is the name of the objectClass that represents
         the group.
 
-        The value <URL-ad> is the name of the attributeDescription that 
-        contains the URI that is converted to the filters. If no URI is 
+        The value <URL-ad> is the name of the attributeDescription that
+        contains the URI that is converted to the filters. If no URI is
         present, there will be no members in that group. It must be a subtype
         of labeledURI.
 
         The value <member-ad> is the name of the attributeDescription that
-        specifies the member attribute. User modification of this attribute 
+        specifies the member attribute. User modification of this attribute
         is disabled for consistency.
 
     autogroup-memberof-ad <memberof-ad>

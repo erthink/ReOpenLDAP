@@ -33,7 +33,7 @@ LDAPObjClass::LDAPObjClass (const LDAPObjClass &oc){
     sup = oc.sup;
 }
 
-LDAPObjClass::LDAPObjClass (string oc_item, int flags ) { 
+LDAPObjClass::LDAPObjClass (string oc_item, int flags ) {
 
     DEBUG(LDAP_DEBUG_CONSTRUCT,
             "LDAPObjClass::LDAPObjClass( )" << endl);
@@ -62,7 +62,7 @@ LDAPObjClass::~LDAPObjClass() {
 void LDAPObjClass::setKind (int oc_kind) {
     kind = oc_kind;
 }
-    
+
 void LDAPObjClass::setNames (char **oc_names) {
     names = StringList (oc_names);
 }

@@ -268,10 +268,10 @@ int mdb_entry_release(
 	struct mdb_info *mdb = (struct mdb_info *) op->o_bd->be_private;
 	struct mdb_op_info *moi = NULL;
 	int rc;
- 
+
 	/* slapMode : SLAP_SERVER_MODE, SLAP_TOOL_MODE,
 			SLAP_TRUNCATE_MODE, SLAP_UNDEFINED_MODE */
- 
+
 	int release = 1;
 	if ( slapMode & SLAP_SERVER_MODE ) {
 		OpExtra *oex;
@@ -297,7 +297,7 @@ int mdb_entry_release(
 
 	if (release)
 		mdb_entry_return( op, e );
- 
+
 	return 0;
 }
 
@@ -319,7 +319,7 @@ int mdb_entry_get(
 	const char *at_name = at ? at->ad_cname.bv_val : "(null)";
 
 	Debug( LDAP_DEBUG_ARGS,
-		"=> mdb_entry_get: ndn: \"%s\"\n", ndn->bv_val, 0, 0 ); 
+		"=> mdb_entry_get: ndn: \"%s\"\n", ndn->bv_val, 0, 0 );
 	Debug( LDAP_DEBUG_ARGS,
 		"=> mdb_entry_get: oc: \"%s\", at: \"%s\"\n",
 		oc ? oc->soc_cname.bv_val : "(null)", at_name, 0);
@@ -341,19 +341,19 @@ int mdb_entry_get(
 	if (e == NULL) {
 		Debug( LDAP_DEBUG_ACL,
 			"=> mdb_entry_get: cannot find entry: \"%s\"\n",
-				ndn->bv_val, 0, 0 ); 
+				ndn->bv_val, 0, 0 );
 		rc = LDAP_NO_SUCH_OBJECT;
 		goto return_results;
 	}
-	
+
 	Debug( LDAP_DEBUG_ACL,
 		"=> mdb_entry_get: found entry: \"%s\"\n",
-		ndn->bv_val, 0, 0 ); 
+		ndn->bv_val, 0, 0 );
 
 	if ( oc && !is_entry_objectclass( e, oc, 0 )) {
 		Debug( LDAP_DEBUG_ACL,
 			"<= mdb_entry_get: failed to find objectClass %s\n",
-			oc->soc_cname.bv_val, 0, 0 ); 
+			oc->soc_cname.bv_val, 0, 0 );
 		rc = LDAP_NO_SUCH_ATTRIBUTE;
 		goto return_results;
 	}
@@ -362,7 +362,7 @@ int mdb_entry_get(
 	if ( at && attr_find( e->e_attrs, at ) == NULL ) {
 		Debug( LDAP_DEBUG_ACL,
 			"<= mdb_entry_get: failed to find attribute %s\n",
-			at->ad_cname.bv_val, 0, 0 ); 
+			at->ad_cname.bv_val, 0, 0 );
 		rc = LDAP_NO_SUCH_ATTRIBUTE;
 		goto return_results;
 	}
@@ -377,7 +377,7 @@ return_results:
 
 	Debug( LDAP_DEBUG_TRACE,
 		"mdb_entry_get: rc=%d\n",
-		rc, 0, 0 ); 
+		rc, 0, 0 );
 	return(rc);
 }
 

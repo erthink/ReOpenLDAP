@@ -22,10 +22,10 @@ case $BACKEND in ldif | null)
         exit 0
 esac
 
-if test $DDS = ddsno; then 
+if test $DDS = ddsno; then
 	echo "Dynamic Directory Services overlay not available, test skipped"
 	exit 0
-fi 
+fi
 
 mkdir -p $TESTDIR $DBDIR1
 

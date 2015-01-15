@@ -35,7 +35,7 @@ perl_back_search(
 	int i;
 
 	PERL_SET_CONTEXT( PERL_INTERPRETER );
-	ldap_pvt_thread_mutex_lock( &perl_interpreter_mutex );	
+	ldap_pvt_thread_mutex_lock( &perl_interpreter_mutex );
 
 	{
 		dSP; ENTER; SAVETMPS;
@@ -64,7 +64,7 @@ perl_back_search(
 		}
 
 		if ( count > 1 ) {
-							 
+
 			for ( i = 1; i < count; i++ ) {
 
 				buf = POPp;
@@ -101,7 +101,7 @@ perl_back_search(
 
 		/*
 		 * We grab the return code last because the stack comes
-		 * from perl in reverse order. 
+		 * from perl in reverse order.
 		 *
 		 * ex perl: return ( 0, $res_1, $res_2 );
 		 *
@@ -114,7 +114,7 @@ done:;
 		PUTBACK; FREETMPS; LEAVE;
 	}
 
-	ldap_pvt_thread_mutex_unlock( &perl_interpreter_mutex );	
+	ldap_pvt_thread_mutex_unlock( &perl_interpreter_mutex );
 
 	send_ldap_result( op, rs );
 

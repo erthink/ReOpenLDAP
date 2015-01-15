@@ -28,13 +28,13 @@ enum {
 
 static ConfigTable perlcfg[] = {
 	{ "perlModule", "module", 2, 2, 0,
-		ARG_STRING|ARG_MAGIC|PERL_MODULE, perl_cf, 
+		ARG_STRING|ARG_MAGIC|PERL_MODULE, perl_cf,
 		"( OLcfgDbAt:11.1 NAME 'olcPerlModule' "
 			"DESC 'Perl module name' "
 			"EQUALITY caseExactMatch "
 			"SYNTAX OMsDirectoryString SINGLE-VALUE )", NULL, NULL },
 	{ "perlModulePath", "path", 2, 2, 0,
-		ARG_MAGIC|PERL_PATH, perl_cf, 
+		ARG_MAGIC|PERL_PATH, perl_cf,
 		"( OLcfgDbAt:11.2 NAME 'olcPerlModulePath' "
 			"DESC 'Perl module path' "
 			"EQUALITY caseExactMatch "
@@ -45,7 +45,7 @@ static ConfigTable perlcfg[] = {
 			"DESC 'Filter search results before returning to client' "
 			"SYNTAX OMsBoolean SINGLE-VALUE )", NULL, NULL },
 	{ "perlModuleConfig", "args", 2, 0, 0,
-		ARG_MAGIC|PERL_CONFIG, perl_cf, 
+		ARG_MAGIC|PERL_CONFIG, perl_cf,
 		"( OLcfgDbAt:11.4 NAME 'olcPerlModuleConfig' "
 			"DESC 'Perl module config directives' "
 			"EQUALITY caseExactMatch "

@@ -8,10 +8,10 @@ slapo-nssov \- NSS and PAM requests through a local Unix Domain socket
 ETCDIR/slapd.conf
 .SH DESCRIPTION
 The
-.B nssov 
+.B nssov
 overlay to
 .BR slapd (8)
-services NSS and PAM requests through a local Unix Domain socket. 
+services NSS and PAM requests through a local Unix Domain socket.
 It uses the same IPC protocol as Arthur de Jong's nss-pam-ldapd.
 An extract of the nss-ldapd source is included along with the
 nssov source code to allow the overlay to communicate with the
@@ -36,17 +36,17 @@ Alternatively, cache considerations can be completely eliminated by running
 a regular database with syncrepl to maintain synchronization with a remote
 LDAP database.
 .LP
-Another major benefit of nssov is that it allows all security policy to be 
-administered centrally via LDAP, instead of having fragile rules scattered 
-across multiple flat files. As such, there is no client-side configuration at 
+Another major benefit of nssov is that it allows all security policy to be
+administered centrally via LDAP, instead of having fragile rules scattered
+across multiple flat files. As such, there is no client-side configuration at
 all for the NSS/PAM stub libraries. (The stubs talk to the server via a Unix
 domain socket whose path is hardcoded to NSLCDPATH). As a side benefit,
 this can finally eliminate the perpetual confusion between OpenLDAP's
 ldap.conf file in ETCDIR/ldap.conf and the similarly named files typically
 used by pam_ldap and nss_ldap.
 .LP
-User authentication is performed by internal simple Binds. User authorization 
-leverages the slapd ACL engine, which offers much more power and flexibility 
+User authentication is performed by internal simple Binds. User authorization
+leverages the slapd ACL engine, which offers much more power and flexibility
 than the simple group/hostname checks in the old pam_ldap code.
 .LP
 To use this code, you will need the client-side stub library from
@@ -104,20 +104,20 @@ and the <url> must be of the form
 .TP
 .B ldap:///[<basedn>][??[<scope>][?<filter>]]
 .RE
-The 
-.B <basedn> 
+The
+.B <basedn>
 will default to the first suffix of the current database.
-The 
-.B <scope> 
-defaults to "subtree". The default 
-.B <filter> 
+The
+.B <scope>
+defaults to "subtree". The default
+.B <filter>
 depends on which service is being used.
 .TP
 .B nssov-map <service> <orig> <new>
 If the local database is actually a proxy to a foreign LDAP server, some
 mapping of schema may be needed. This directive allows some simple attribute
-substitutions to be performed. See the 
-.B nss-ldapd/README 
+substitutions to be performed. See the
+.B nss-ldapd/README
 for the original attribute names used in this code.
 .TP
 .B nssov-pam <option> [...]
@@ -197,7 +197,7 @@ option is set.
 .TP
 .B nssov-pam-defhost <hostname>
 Specify a default hostname to check if an ipHost entry for the current
-hostname cannot be found. This setting is only relevant if the 
+hostname cannot be found. This setting is only relevant if the
 .B hostservice
 option has been set.
 .TP
@@ -275,7 +275,7 @@ account management, and password modification requests.
 
 The overlay also supports dynamic configuration in cn=config. An example
 of the config entry is
-.LP 
+.LP
 .RS
 .nf
     dn: olcOverlay={0}nssov,ocDatabase={1}hdb,cn=config

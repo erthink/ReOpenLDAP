@@ -23,7 +23,7 @@ XSRCS = version.c
 OBJS = config.o context.o info.o ldapmap.o map.o params.o rule.o \
 	session.o subst.o var.o xmap.o
 
-LDAP_INCDIR= ../../include       
+LDAP_INCDIR= ../../include
 LDAP_LIBDIR= ../../libraries
 
 LIBRARY = librewrite.a

@@ -7,13 +7,13 @@ slapd\-monitor \- Monitor backend to slapd
 .SH SYNOPSIS
 ETCDIR/slapd.conf
 .SH DESCRIPTION
-The 
-.B monitor 
+The
+.B monitor
 backend to
 .BR slapd (8)
 is not an actual database; if enabled, it is automatically generated
-and dynamically maintained by 
-.B slapd 
+and dynamically maintained by
+.B slapd
 with information about the running status of the daemon.
 .LP
 To inspect all monitor information, issue a subtree search with base
@@ -25,20 +25,20 @@ attributes.
 .SH CONFIGURATION
 These
 .B slapd.conf
-options apply to the 
-.B monitor 
+options apply to the
+.B monitor
 backend database.
 That is, they must follow a "database monitor" line and come before any
 subsequent "backend" or "database" lines.
 .LP
-As opposed to most databases, the 
-.B monitor 
-database can be instantiated only once, i.e. only one occurrence 
-of "database monitor" can occur in the 
+As opposed to most databases, the
+.B monitor
+database can be instantiated only once, i.e. only one occurrence
+of "database monitor" can occur in the
 .BR slapd.conf (5)
 file.
 Moreover, the suffix of the database cannot be explicitly set by means
-of the 
+of the
 .B suffix
 directive.
 The suffix is automatically set
@@ -46,7 +46,7 @@ to "\fIcn=Monitor\fP".
 .LP
 The
 .B monitor
-database honors the 
+database honors the
 .B rootdn
 and the
 .B rootpw
@@ -96,21 +96,21 @@ access to dn.subtree="cn=Monitor"
 .RE
 .TP
 4) ensure that the \fBcore.schema\fP file is loaded.
-The 
-.B monitor 
+The
+.B monitor
 backend relies on some standard track attributeTypes
 that must be already defined when the backend is started.
 .SH ACCESS CONTROL
-The 
+The
 .B monitor
 backend honors access control semantics as indicated in
 .BR slapd.access (5),
-including the 
+including the
 .B disclose
 access privilege, on all currently implemented operations.
 .SH KNOWN LIMITATIONS
-The 
-.B monitor 
+The
+.B monitor
 backend does not honor size/time limits in search operations.
 .SH FILES
 .TP

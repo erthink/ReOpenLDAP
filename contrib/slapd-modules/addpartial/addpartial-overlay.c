@@ -26,10 +26,10 @@
  * the record has not changed in any way, it is ignored.  If the record does not
  * exist, the record falls through to the normal add mechanism.  This overlay is
  * useful for replicating from sources that are not LDAPs where it is easier to
- * build entire records than to determine the changes (i.e. a database). 
+ * build entire records than to determine the changes (i.e. a database).
  */
 
-#include "portable.h" 
+#include "portable.h"
 #include "slap.h"
 
 static int collect_error_msg_cb( Operation *op, SlapReply *rs);
@@ -70,7 +70,7 @@ static int addpartial_add( Operation *op, SlapReply *rs)
         return SLAP_CB_CONTINUE;
     }
     else
-    { 
+    {
         Debug(LDAP_DEBUG_TRACE, "%s: found the dn\n", addpartial.on_bi.bi_type,
               0,0);
 
@@ -86,7 +86,7 @@ static int addpartial_add( Operation *op, SlapReply *rs)
             Debug(LDAP_DEBUG_TRACE, "%s: have an entry!\n",
                   addpartial.on_bi.bi_type,0,0);
 
-           /* determine if the changes are in the found entry */ 
+           /* determine if the changes are in the found entry */
             for(attr = toAdd->e_attrs; attr; attr = attr->a_next)
             {
                 if(attr->a_desc->ad_type->sat_atype.at_usage != 0) continue;
@@ -121,12 +121,12 @@ static int addpartial_add( Operation *op, SlapReply *rs)
                           addpartial.on_bi.bi_type,
                           attr->a_desc->ad_cname.bv_val,0);
 
-                    for(bv = attr->a_vals, acount = 0; bv->bv_val != NULL; 
+                    for(bv = attr->a_vals, acount = 0; bv->bv_val != NULL;
                         bv++, acount++)
                     {
                         /* count num values for attr */
                     }
-                    for(bv = at->a_vals, bcount = 0; bv->bv_val != NULL; 
+                    for(bv = at->a_vals, bcount = 0; bv->bv_val != NULL;
                         bv++, bcount++)
                     {
                         /* count num values for attr */
@@ -151,12 +151,12 @@ static int addpartial_add( Operation *op, SlapReply *rs)
                         modtail = &mod->sml_next;
                         continue;
                     }
-                    
+
                     for(bv = attr->a_vals; bv->bv_val != NULL; bv++)
                     {
                         struct berval *v;
                         ret = -1;
-                        
+
                         for(v = at->a_vals; v->bv_val != NULL; v++)
                         {
                             int r;
@@ -251,7 +251,7 @@ static int addpartial_add( Operation *op, SlapReply *rs)
                 Modifications *m = NULL;
                 Modifications *toDel;
                 int modcount;
-                slap_callback nullcb = { NULL, collect_error_msg_cb, 
+                slap_callback nullcb = { NULL, collect_error_msg_cb,
                                          NULL, NULL };
 
                 Debug(LDAP_DEBUG_TRACE, "%s: mods to do...\n",
@@ -263,7 +263,7 @@ static int addpartial_add( Operation *op, SlapReply *rs)
                 nop.o_callback = &nullcb;
                 nop.o_bd->bd_info = (BackendInfo *) on->on_info;
 
-                for(m = mods, modcount = 0; m; m = m->sml_next, 
+                for(m = mods, modcount = 0; m; m = m->sml_next,
                     modcount++)
                 {
                     /* count number of mods */
@@ -335,7 +335,7 @@ static int collect_error_msg_cb( Operation *op, SlapReply *rs)
     return LDAP_SUCCESS;
 }
 
-int addpartial_init() 
+int addpartial_init()
 {
     addpartial.on_bi.bi_type = "addpartial";
     addpartial.on_bi.bi_op_add = addpartial_add;
@@ -343,7 +343,7 @@ int addpartial_init()
     return (overlay_register(&addpartial));
 }
 
-int init_module(int argc, char *argv[]) 
+int init_module(int argc, char *argv[])
 {
     return addpartial_init();
 }

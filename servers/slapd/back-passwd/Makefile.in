@@ -16,7 +16,7 @@
 SRCS	= search.c config.c init.c
 OBJS	= search.lo config.lo init.lo
 
-LDAP_INCDIR= ../../../include       
+LDAP_INCDIR= ../../../include
 LDAP_LIBDIR= ../../../libraries
 
 BUILD_OPT = "--enable-passwd"

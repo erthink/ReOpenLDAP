@@ -52,13 +52,13 @@
 #undef TV2MILLISEC
 #define TV2MILLISEC(tv) (((tv)->tv_sec * 1000) + ((tv)->tv_usec/1000))
 
-/* 
+/*
  * Support needed if the library is running in the kernel
  */
 #if LDAP_INT_IN_KERNEL
-	/* 
+	/*
 	 * Platform specific function to return a pointer to the
-	 * process-specific global options. 
+	 * process-specific global options.
 	 *
 	 * This function should perform the following functions:
 	 *  Allocate and initialize a global options struct on a per process basis
@@ -794,7 +794,7 @@ LDAP_F(int) ldap_int_gssapi_get_option LDAP_P(( LDAP *ld, int option, void *arg 
 LDAP_F(int) ldap_int_gssapi_set_option LDAP_P(( LDAP *ld, int option, void *arg ));
 LDAP_F(int) ldap_int_gssapi_config LDAP_P(( struct ldapoptions *lo, int option, const char *arg ));
 LDAP_F(void) ldap_int_gssapi_close LDAP_P(( LDAP *ld, LDAPConn *lc ));
-#endif 
+#endif
 
 LDAP_END_DECL
 

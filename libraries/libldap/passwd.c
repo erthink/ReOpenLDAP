@@ -128,7 +128,7 @@ ldap_passwd( LDAP *ld,
 		}
 
 	}
-	
+
 	rc = ldap_extended_operation( ld, LDAP_EXOP_MODIFY_PASSWD,
 		bv.bv_val ? &bv : NULL, sctrls, cctrls, msgidp );
 

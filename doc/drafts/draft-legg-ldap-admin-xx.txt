@@ -50,7 +50,7 @@ Abstract
 
 
 Legg                    Expires 16 December 2004                [Page 1]
-
+
 INTERNET-DRAFT       Directory Administrative Model        June 16, 2004
 
 
@@ -106,7 +106,7 @@ Table of Contents
 
 
 Legg                    Expires 16 December 2004                [Page 2]
-
+
 INTERNET-DRAFT       Directory Administrative Model        June 16, 2004
 
 
@@ -162,7 +162,7 @@ INTERNET-DRAFT       Directory Administrative Model        June 16, 2004
 
 
 Legg                    Expires 16 December 2004                [Page 3]
-
+
 INTERNET-DRAFT       Directory Administrative Model        June 16, 2004
 
 
@@ -218,7 +218,7 @@ INTERNET-DRAFT       Directory Administrative Model        June 16, 2004
 
 
 Legg                    Expires 16 December 2004                [Page 4]
-
+
 INTERNET-DRAFT       Directory Administrative Model        June 16, 2004
 
 
@@ -274,7 +274,7 @@ INTERNET-DRAFT       Directory Administrative Model        June 16, 2004
 
 
 Legg                    Expires 16 December 2004                [Page 5]
-
+
 INTERNET-DRAFT       Directory Administrative Model        June 16, 2004
 
 
@@ -330,7 +330,7 @@ Intellectual Property
 
 
 Legg                    Expires 16 December 2004                [Page 6]
-
+
 INTERNET-DRAFT       Directory Administrative Model        June 16, 2004
 
 
@@ -386,5 +386,5 @@ Changes in Draft 02
 
 
 Legg                    Expires 16 December 2004                [Page 7]
-
+
 

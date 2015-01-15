@@ -75,7 +75,7 @@ for S in 1 2 ; do
 	FILE="${ITSDIR}/mods.ldif"
 	echo "${S}) Applying `basename ${FILE}`..."
 	$LDAPMODIFY -v -D "$USER" -w $PASS -h $LOCALHOST -p $PORT1 \
-		-f "${FILE}" > $TESTOUT 2>&1 
+		-f "${FILE}" > $TESTOUT 2>&1
 	RC=$?
 	if test $RC != 0 ; then
 		echo "ldapmodify failed ($RC)!"

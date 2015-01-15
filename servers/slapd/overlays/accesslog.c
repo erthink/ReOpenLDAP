@@ -674,7 +674,7 @@ accesslog_purge( void *ctx, void *arg )
 	filter2bv_x( op, &f, &op->ors_filterstr );
 	op->ors_attrs = slap_anlist_no_attrs;
 	op->ors_attrsonly = 1;
-	
+
 	pd.csn.bv_len = sizeof( csnbuf );
 	pd.csn.bv_val = csnbuf;
 	csnbuf[0] = '\0';
@@ -1121,7 +1121,7 @@ logSchemaControlValidate(
 
 		bv.bv_len = &val.bv_val[ i ] - bv.bv_val;
 
-		if ( !bvmatch( &bv, &slap_true_bv ) && !bvmatch( &bv, &slap_false_bv ) ) 
+		if ( !bvmatch( &bv, &slap_true_bv ) && !bvmatch( &bv, &slap_false_bv ) )
 		{
 			return LDAP_INVALID_SYNTAX;
 		}
@@ -1265,7 +1265,7 @@ accesslog_ctrls(
 		if ( ctrls[ i ]->ldctl_iscritical ) {
 			ptr = lutil_strcopy( ptr, " criticality TRUE" );
 		}
-		
+
 		if ( !BER_BVISNULL( &ctrls[ i ]->ldctl_value ) ) {
 			ber_len_t	j;
 
@@ -1286,7 +1286,7 @@ accesslog_ctrls(
 	}
 
 	return rc;
-	
+
 }
 
 static Entry *accesslog_entry( Operation *op, SlapReply *rs, int logop,
@@ -1810,7 +1810,7 @@ static int accesslog_response(Operation *op, SlapReply *rs) {
 			if ( a ) {
 				pbv = &a->a_vals[0];
 			}
-		} 
+		}
 
 		if ( pbv ) {
 			attr_merge_normalize_one( e, ad_reqEntryUUID, pbv, op->o_tmpmemctx );
@@ -1938,7 +1938,7 @@ accesslog_op_mod( Operation *op, SlapReply *rs )
 				break;
 			}
 	}
-			
+
 	if ( doit ) {
 		slap_callback *cb = op->o_tmpalloc( sizeof( slap_callback ), op->o_tmpmemctx ), *cb2;
 		cb->sc_cleanup = accesslog_mod_cleanup;

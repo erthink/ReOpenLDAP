@@ -1024,7 +1024,7 @@ leave:
 }
 
 static int
-ndb_oc_del( 
+ndb_oc_del(
 	NdbTransaction *txn, Uint64 eid, NdbOcInfo *no )
 {
 	NdbIndexScanOperation *myop;

@@ -571,7 +571,7 @@ slap_retry_info_parse(
 				goto done;
 			}
 			ri->ri_num[ i ] = SLAP_RETRYNUM_FOREVER;
-			
+
 		} else if ( lutil_atoi( &ri->ri_num[ i ], sep ) ) {
 			snprintf( buf, buflen,
 				"unable to parse retry num #%d \"%s\"",
@@ -686,11 +686,11 @@ slap_idassert_authzfrom_parse( ConfigArgs *c, slap_idassert_t *si )
  			Debug( LDAP_DEBUG_ANY, "%s: %s.\n", c->log, c->cr_msg, 0 );
  			return 1;
  		}
- 
+
  		si->si_flags |= LDAP_BACK_AUTH_AUTHZ_ALL;
- 
+
  		return 0;
- 
+
  	} else if ( ( si->si_flags & LDAP_BACK_AUTH_AUTHZ_ALL ) ) {
   		snprintf( c->cr_msg, sizeof( c->cr_msg ),
   			"\"idassert-authzFrom <authz>\": "
@@ -698,7 +698,7 @@ slap_idassert_authzfrom_parse( ConfigArgs *c, slap_idassert_t *si )
   		Debug( LDAP_DEBUG_ANY, "%s: %s.\n", c->log, c->cr_msg, 0 );
   		return 1;
   	}
- 	
+
  	ber_str2bv( c->argv[ 1 ], 0, 0, &in );
  	rc = authzNormalize( 0, NULL, NULL, &in, &bv, NULL );
  	if ( rc != LDAP_SUCCESS ) {
@@ -755,7 +755,7 @@ slap_idassert_passthru_parse( ConfigArgs *c, slap_idassert_t *si )
  		Debug( LDAP_DEBUG_ANY, "%s: %s.\n", c->log, c->cr_msg, 0 );
  		return 1;
  	}
-  
+
 	if ( c->valx == -1 ) {
 		ber_bvarray_add( &si->si_passthru, &bv );
 
@@ -1109,7 +1109,7 @@ ldap_back_cf_gen( ConfigArgs *c )
 						/* there's something wrong... */
 						assert( 0 );
 						rc = 1;
-	
+
 					} else {
 						bv.bv_len = STRLENOF( "mode=" ) + mode.bv_len;
 						bv.bv_val = ch_malloc( bv.bv_len + 1 );
@@ -1207,7 +1207,7 @@ ldap_back_cf_gen( ConfigArgs *c )
 
 				bv = bc;
 			}
-			
+
 			ber_bvarray_add( &c->rvalue_vals, &bv );
 
 			break;
@@ -1413,7 +1413,7 @@ ldap_back_cf_gen( ConfigArgs *c )
 				avl_free( li->li_conninfo.lai_tree, ldap_back_conn_free );
 				li->li_conninfo.lai_tree = NULL;
 			}
-			
+
 			break;
 
 		case LDAP_BACK_CFG_TLS:
@@ -1796,7 +1796,7 @@ done_url:;
 				li->li_idassert_mode = LDAP_BACK_IDASSERT_OTHERID;
 				ber_str2bv( c->argv[1], 0, 1, &li->li_idassert_authzID );
 				li->li_idassert_authzID.bv_val[ 0 ] = 'u';
-				
+
 			} else {
 				struct berval	id, ndn;
 
@@ -2253,7 +2253,7 @@ done_url:;
 		slap_keepalive_parse( ber_bvstrdup(c->argv[1]),
 				 &li->li_tls.sb_keepalive, 0, 0, 0);
 		break;
-		
+
 	default:
 		/* FIXME: try to catch inconsistencies */
 		assert( 0 );
@@ -2280,7 +2280,7 @@ ldap_back_init_cf( BackendInfo *bi )
 		return rc;
 	}
 
-	/* setup olcDbAclPasswd and olcDbIDAssertPasswd 
+	/* setup olcDbAclPasswd and olcDbIDAssertPasswd
 	 * to be base64-encoded when written in LDIF form;
 	 * basically, we don't care if it fails */
 	rc = slap_str2ad( "olcDbACLPasswd", &ad, &text );
@@ -2346,7 +2346,7 @@ ldap_back_exop_whoami(
 	Statslog( LDAP_DEBUG_STATS, "%s WHOAMI\n",
 	    op->o_log_prefix, 0, 0, 0, 0 );
 
-	rs->sr_err = backend_check_restrictions( op, rs, 
+	rs->sr_err = backend_check_restrictions( op, rs,
 			(struct berval *)&slap_EXOP_WHOAMI );
 	if( rs->sr_err != LDAP_SUCCESS ) return rs->sr_err;
 

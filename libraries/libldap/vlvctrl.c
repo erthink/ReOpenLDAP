@@ -44,25 +44,25 @@
 
 /*---
    ldap_create_vlv_control
-   
+
    Create and encode the Virtual List View control.
 
    ld        (IN)  An LDAP session handle.
-   
-   vlvinfop  (IN)  The address of an LDAPVLVInfo structure whose contents 
+
+   vlvinfop  (IN)  The address of an LDAPVLVInfo structure whose contents
 				   are used to construct the value of the control
 				   that is created.
-   
+
    value     (OUT) A struct berval that contains the value to be assigned to the ldctl_value member
-				   of an LDAPControl structure that contains the 
+				   of an LDAPControl structure that contains the
 				   VirtualListViewRequest control.
 				   The bv_val member of the berval structure
 				   SHOULD be freed when it is no longer in use by
 				   calling ldap_memfree().
-					  
-   
+
+
    Ber encoding
-   
+
    VirtualListViewRequest ::= SEQUENCE {
 		beforeCount  INTEGER (0 .. maxInt),
 		afterCount   INTEGER (0 .. maxInt),
@@ -72,8 +72,8 @@
 				contentCount  INTEGER (0 .. maxInt) }
 				[1] greaterThanOrEqual assertionValue }
 		contextID     OCTET STRING OPTIONAL }
-	  
-   
+
+
    Note:  The first time the VLV control is created, the ldvlv_context
 		  field of the LDAPVLVInfo structure should be set to NULL.
 		  The context obtained from calling ldap_parse_vlv_control()
@@ -143,7 +143,7 @@ ldap_create_vlv_control_value(
 		}
 	}
 
-	tag = ber_printf( ber, /*{*/ "N}" ); 
+	tag = ber_printf( ber, /*{*/ "N}" );
 	if ( tag == LBER_ERROR ) {
 		goto error_return;
 	}
@@ -166,25 +166,25 @@ error_return:;
 
 /*---
    ldap_create_vlv_control
-   
+
    Create and encode the Virtual List View control.
 
    ld        (IN)  An LDAP session handle.
-   
-   vlvinfop  (IN)  The address of an LDAPVLVInfo structure whose contents 
+
+   vlvinfop  (IN)  The address of an LDAPVLVInfo structure whose contents
 				   are used to construct the value of the control
 				   that is created.
-   
+
    ctrlp     (OUT) A result parameter that will be assigned the address
-				   of an LDAPControl structure that contains the 
+				   of an LDAPControl structure that contains the
 				   VirtualListViewRequest control created by this function.
 				   The memory occupied by the LDAPControl structure
 				   SHOULD be freed when it is no longer in use by
 				   calling ldap_control_free().
-					  
-   
+
+
    Ber encoding
-   
+
    VirtualListViewRequest ::= SEQUENCE {
 		beforeCount  INTEGER (0 .. maxInt),
 		afterCount   INTEGER (0 .. maxInt),
@@ -194,8 +194,8 @@ error_return:;
 				contentCount  INTEGER (0 .. maxInt) }
 				[1] greaterThanOrEqual assertionValue }
 		contextID     OCTET STRING OPTIONAL }
-	  
-   
+
+
    Note:  The first time the VLV control is created, the ldvlv_context
 		  field of the LDAPVLVInfo structure should be set to NULL.
 		  The context obtained from calling ldap_parse_vlv_control()
@@ -233,21 +233,21 @@ ldap_create_vlv_control(
 
 /*---
    ldap_parse_vlvresponse_control
-   
+
    Decode the Virtual List View control return information.
 
    ld           (IN)   An LDAP session handle.
-   
+
    ctrl         (IN)   The address of the LDAPControl structure.
-   
+
    target_posp	(OUT)  This result parameter is filled in with the list
 					   index of the target entry.  If this parameter is
 					   NULL, the target position is not returned.
-   
+
    list_countp  (OUT)  This result parameter is filled in with the server's
 					   estimate of the size of the list.  If this parameter
 					   is NULL, the size is not returned.
-   
+
    contextp     (OUT)  This result parameter is filled in with the address
 					   of a struct berval that contains the server-
 					   generated context identifier if one was returned by
@@ -259,14 +259,14 @@ ldap_create_vlv_control(
 					   returned SHOULD be disposed of by calling ber_bvfree()
 					   when it is no longer needed.  If NULL is passed for
 					   contextp, the context identifier is not returned.
-   
+
    errcodep     (OUT)  This result parameter is filled in with the VLV
 					   result code.  If this parameter is NULL, the result
-					   code is not returned.  
-   
-   
+					   code is not returned.
+
+
    Ber encoding
-   
+
    VirtualListViewResponse ::= SEQUENCE {
 		targetPosition    INTEGER (0 .. maxInt),
 		contentCount     INTEGER (0 .. maxInt),
@@ -282,7 +282,7 @@ ldap_create_vlv_control(
 		offsetRangeError (61),
 		other (80) },
 		contextID     OCTET STRING OPTIONAL }
-   
+
 ---*/
 
 int

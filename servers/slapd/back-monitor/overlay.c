@@ -91,7 +91,7 @@ monitor_subsys_overlay_init(
 		attr_merge_normalize_one( e, mi->mi_ad_monitorRuntimeConfig,
 			on->on_bi.bi_cf_ocs ? (struct berval *)&slap_true_bv :
 				(struct berval *)&slap_false_bv, NULL );
-		
+
 		attr_merge_normalize_one( e_overlay, mi->mi_ad_monitoredInfo,
 				&bv, NULL );
 
@@ -112,7 +112,7 @@ monitor_subsys_overlay_init(
 			attr_merge_normalize_one( e, slap_schema.si_ad_seeAlso,
 					&dn, NULL );
 		}
-		
+
 		mp = monitor_entrypriv_create();
 		if ( mp == NULL ) {
 			return -1;
@@ -133,7 +133,7 @@ monitor_subsys_overlay_init(
 		*ep = e;
 		ep = &mp->mp_next;
 	}
-	
+
 	monitor_cache_release( mi, e_overlay );
 
 	return( 0 );

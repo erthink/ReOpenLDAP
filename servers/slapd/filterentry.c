@@ -193,8 +193,8 @@ static int test_mra_filter(
 
 			rc = value_match( &ret, slap_schema.si_ad_entryDN, mra->ma_rule,
 				SLAP_MR_EXT, &e->e_nname, &mra->ma_value, &text );
-	
-	
+
+
 			if( rc != LDAP_SUCCESS ) return rc;
 			if ( ret == 0 ) return LDAP_COMPARE_TRUE;
 			return LDAP_COMPARE_FALSE;
@@ -251,7 +251,7 @@ static int test_mra_filter(
 				int ret;
 				int rc;
 				const char *text;
-	
+
 #ifdef LDAP_COMP_MATCH
 				if ( mra->ma_cf &&
 					mra->ma_rule->smr_usage & SLAP_MR_COMPONENT )
@@ -269,23 +269,23 @@ static int test_mra_filter(
 						SLAP_MR_COMPONENT,
 						(struct berval*)a->a_comp_data->cd_tree[i++],
 						(void*)mra, &text );
-				} else 
+				} else
 #endif
 				{
 					struct berval	nbv = BER_BVNULL;
 
 					if ( normalize_attribute && mra->ma_rule->smr_normalize ) {
 						/*
-				
+
 				Document: RFC 4511
 
-				    4.5.1. Search Request 
+				    4.5.1. Search Request
 				        ...
-				    If the type field is present and the matchingRule is present, 
-			            the matchValue is compared against entry attributes of the 
-			            specified type. In this case, the matchingRule MUST be one 
-				    suitable for use with the specified type (see [RFC4517]), 
-				    otherwise the filter item is Undefined.  
+				    If the type field is present and the matchingRule is present,
+			            the matchValue is compared against entry attributes of the
+			            specified type. In this case, the matchingRule MUST be one
+				    suitable for use with the specified type (see [RFC4517]),
+				    otherwise the filter item is Undefined.
 
 
 				In this case, since the matchingRule requires the assertion
@@ -362,7 +362,7 @@ static int test_mra_filter(
 					SLAP_MR_COMPONENT,
 					(struct berval*)a, (void*)mra, &text );
 				if ( rc != LDAP_SUCCESS ) break;
-	
+
 				if ( ret == 0 ) {
 					rc = LDAP_COMPARE_TRUE;
 					break;
@@ -408,7 +408,7 @@ static int test_mra_filter(
 				}
 
 				if ( rc != LDAP_SUCCESS ) break;
-	
+
 				if ( ret == 0 ) {
 					rc = LDAP_COMPARE_TRUE;
 					break;
@@ -543,7 +543,7 @@ test_ava_filter(
 		return LDAP_INSUFFICIENT_ACCESS;
 	}
 
-	if ( ava->aa_desc == slap_schema.si_ad_hasSubordinates 
+	if ( ava->aa_desc == slap_schema.si_ad_hasSubordinates
 		&& op && op->o_bd && op->o_bd->be_has_subordinates )
 	{
 		int	hasSubordinates = 0;
@@ -555,7 +555,7 @@ test_ava_filter(
 			/* No other match is allowed */
 			return LDAP_INAPPROPRIATE_MATCHING;
 		}
-		
+
 		if ( op->o_bd->be_has_subordinates( op, e, &hasSubordinates ) !=
 			LDAP_SUCCESS )
 		{
@@ -679,7 +679,7 @@ test_ava_filter(
 			}
 			/* Only Equality will get here */
 			ret = attr_valfind( a, use | SLAP_MR_ASSERTED_VALUE_NORMALIZED_MATCH |
-				SLAP_MR_ATTRIBUTE_VALUE_NORMALIZED_MATCH, 
+				SLAP_MR_ATTRIBUTE_VALUE_NORMALIZED_MATCH,
 				&ava->aa_value, &slot, NULL );
 			if ( ret == LDAP_SUCCESS )
 				return LDAP_COMPARE_TRUE;
@@ -771,7 +771,7 @@ test_ava_filter(
 				if ( a_alias )
 					ava->aa_desc = a_alias->aa_aliasing_ad;
 
-			} else 
+			} else
 #endif
 			{
 				ret = ordered_value_match( &match, a->a_desc, mr, use,
@@ -826,7 +826,7 @@ test_presence_filter(
 		/*
 		 * XXX: fairly optimistic: if the function is defined,
 		 * then PRESENCE must succeed, because hasSubordinate
-		 * is boolean-valued; I think we may live with this 
+		 * is boolean-valued; I think we may live with this
 		 * simplification by now.
 		 */
 		if ( op && op->o_bd && op->o_bd->be_has_subordinates ) {

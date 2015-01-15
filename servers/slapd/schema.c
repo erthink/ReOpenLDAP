@@ -45,7 +45,7 @@ schema_info( Entry **entry, const char **text )
 	e = entry_alloc();
 	if( e == NULL ) {
 		/* Out of memory, do something about it */
-		Debug( LDAP_DEBUG_ANY, 
+		Debug( LDAP_DEBUG_ANY,
 			"schema_info: entry_alloc failed - out of memory.\n", 0, 0, 0 );
 		*text = "out of memory";
 		return LDAP_OTHER;
@@ -122,11 +122,11 @@ schema_info( Entry **entry, const char **text )
 		/*
 		 * According to RFC 4512:
 
-   Servers SHOULD maintain the 'creatorsName', 'createTimestamp',       
-   'modifiersName', and 'modifyTimestamp' attributes for all entries of 
-   the DIT. 
+   Servers SHOULD maintain the 'creatorsName', 'createTimestamp',
+   'modifiersName', and 'modifyTimestamp' attributes for all entries of
+   the DIT.
 
-		 * to be conservative, we declare schema created 
+		 * to be conservative, we declare schema created
 		 * AND modified at server startup time ...
 		 */
 
@@ -149,7 +149,7 @@ schema_info( Entry **entry, const char **text )
 		}
 	}
 
-	if ( syn_schema_info( e ) 
+	if ( syn_schema_info( e )
 		|| mr_schema_info( e )
 		|| mru_schema_info( e )
 		|| at_schema_info( e )
@@ -161,7 +161,7 @@ schema_info( Entry **entry, const char **text )
 		*text = "out of memory";
 		return LDAP_OTHER;
 	}
-	
+
 	*entry = e;
 	return LDAP_SUCCESS;
 }

@@ -63,7 +63,7 @@ limits2str( unsigned i )
 #endif /* LDAP_DEBUG */
 
 static int
-limits_get( 
+limits_get(
 	Operation		*op,
 	struct slap_limits_set 	**limit
 )
@@ -129,7 +129,7 @@ limits_get(
 		case SLAP_LIMITS_SUBTREE:
 		case SLAP_LIMITS_CHILDREN: {
 			ber_len_t d;
-			
+
 			/* ndn shorter than lm_pat */
 			if ( ndn->bv_len < lm[0]->lm_pat.bv_len ) {
 				break;
@@ -218,7 +218,7 @@ limits_add(
 	int 			i;
 	struct slap_limits	*lm;
 	unsigned		type, style;
-	
+
 	assert( be != NULL );
 	assert( limit != NULL );
 
@@ -262,10 +262,10 @@ limits_add(
 			}
 		}
 		break;
-		
+
 	case SLAP_LIMITS_REGEX:
 		ber_str2bv( pattern, 0, 1, &lm->lm_pat );
-		if ( regcomp( &lm->lm_regex, lm->lm_pat.bv_val, 
+		if ( regcomp( &lm->lm_regex, lm->lm_pat.bv_val,
 					REG_EXTENDED | REG_ICASE ) ) {
 			free( lm->lm_pat.bv_val );
 			ch_free( lm );
@@ -301,7 +301,7 @@ limits_add(
 			sizeof( struct slap_limits * ) * ( i + 2 ) );
 	be->be_limits[i] = lm;
 	be->be_limits[i+1] = NULL;
-	
+
 	return( 0 );
 }
 
@@ -339,10 +339,10 @@ limits_parse(
 	 * syntax:
 	 *
 	 * "limits" <pattern> <limit> [ ... ]
-	 * 
-	 * 
+	 *
+	 *
 	 * <pattern>:
-	 * 
+	 *
 	 * "anonymous"
 	 * "users"
 	 * [ "dn" [ "." { "this" | "self" } ] [ "." { "exact" | "base" |
@@ -355,8 +355,8 @@ limits_parse(
 	 *	"onelevel" means exactly one rdn below, NOT including pattern
 	 *	"subtree" means any rdn below, including pattern
 	 *	"children" means any rdn below, NOT including pattern
-	 *	
-	 *	"anonymous" may be deprecated in favour 
+	 *
+	 *	"anonymous" may be deprecated in favour
 	 *	of the pattern = "anonymous" form
 	 *
 	 * "group[/objectClass[/attributeType]]" "=" "<dn pattern>"
@@ -367,7 +367,7 @@ limits_parse(
 	 *
 	 * "size" [ "." { "soft" | "hard" | "unchecked" } ] "=" <integer>
 	 */
-	
+
 	pattern = argv[1];
 	if ( strcmp( pattern, "*" ) == 0) {
 		flags = SLAP_LIMITS_ANY;
@@ -377,7 +377,7 @@ limits_parse(
 
 	} else if ( strcasecmp( pattern, "users" ) == 0 ) {
 		flags = SLAP_LIMITS_USERS;
-		
+
 	} else if ( STRSTART( pattern, "dn" ) ) {
 		pattern += STRLENOF( "dn" );
 		flags = SLAP_LIMITS_TYPE_SELF;
@@ -437,7 +437,7 @@ limits_parse(
 				flags |= SLAP_LIMITS_REGEX;
 				pattern += STRLENOF( "regex" );
 
-			/* 
+			/*
 			 * this could be deprecated in favour
 			 * of the pattern = "anonymous" form
 			 */
@@ -529,7 +529,7 @@ no_oc:;
 
 		if ( group_ad == NULL ) {
 			const char	*text = NULL;
-			
+
 			rc = slap_str2ad( SLAPD_GROUP_ATTR, &group_ad, &text );
 
 			if ( rc != LDAP_SUCCESS ) {
@@ -572,21 +572,21 @@ no_ad:;
 	 *
 	 * FIXME: add warnings?
 	 */
-	if ( limit.lms_t_hard > 0 && 
-			( limit.lms_t_hard < limit.lms_t_soft 
+	if ( limit.lms_t_hard > 0 &&
+			( limit.lms_t_hard < limit.lms_t_soft
 			  || limit.lms_t_soft == -1 ) ) {
 		limit.lms_t_hard = limit.lms_t_soft;
 	}
-	
-	if ( limit.lms_s_hard > 0 && 
-			( limit.lms_s_hard < limit.lms_s_soft 
+
+	if ( limit.lms_s_hard > 0 &&
+			( limit.lms_s_hard < limit.lms_s_soft
 			  || limit.lms_s_soft == -1 ) ) {
 		limit.lms_s_hard = limit.lms_s_soft;
 	}
 
 	/*
 	 * defaults ...
-	 * 
+	 *
 	 * lms_t_hard:
 	 * 	-1	=> no limits
 	 * 	0	=> same as soft
@@ -659,7 +659,7 @@ limits_parse_one(
 
 					limit->lms_t_soft = soft;
 				}
-				
+
 			} else if ( STRSTART( arg, "hard=" ) ) {
 				arg += STRLENOF( "hard=" );
 				if ( strcasecmp( arg, "soft" ) == 0 ) {
@@ -687,11 +687,11 @@ limits_parse_one(
 
 					limit->lms_t_hard = hard;
 				}
-				
+
 			} else {
 				return( 1 );
 			}
-			
+
 		} else if ( arg[0] == '=' ) {
 			arg++;
 			if ( strcasecmp( arg, "unlimited" ) == 0
@@ -700,21 +700,21 @@ limits_parse_one(
 				limit->lms_t_soft = -1;
 
 			} else {
-				if ( lutil_atoi( &limit->lms_t_soft, arg ) != 0 
+				if ( lutil_atoi( &limit->lms_t_soft, arg ) != 0
 					|| limit->lms_t_soft < -1 )
 				{
 					return( 1 );
 				}
 			}
 			limit->lms_t_hard = 0;
-			
+
 		} else {
 			return( 1 );
 		}
 
 	} else if ( STRSTART( arg, "size" ) ) {
 		arg += STRLENOF( "size" );
-		
+
 		if ( arg[0] == '.' ) {
 			arg++;
 			if ( STRSTART( arg, "soft=" ) ) {
@@ -737,7 +737,7 @@ limits_parse_one(
 
 					limit->lms_s_soft = soft;
 				}
-				
+
 			} else if ( STRSTART( arg, "hard=" ) ) {
 				arg += STRLENOF( "hard=" );
 				if ( strcasecmp( arg, "soft" ) == 0 ) {
@@ -765,7 +765,7 @@ limits_parse_one(
 
 					limit->lms_s_hard = hard;
 				}
-				
+
 			} else if ( STRSTART( arg, "unchecked=" ) ) {
 				arg += STRLENOF( "unchecked=" );
 				if ( strcasecmp( arg, "unlimited" ) == 0
@@ -849,7 +849,7 @@ limits_parse_one(
 			} else {
 				return( 1 );
 			}
-			
+
 		} else if ( arg[0] == '=' ) {
 			arg++;
 			if ( strcasecmp( arg, "unlimited" ) == 0
@@ -865,7 +865,7 @@ limits_parse_one(
 				}
 			}
 			limit->lms_s_hard = 0;
-			
+
 		} else {
 			return( 1 );
 		}
@@ -1089,7 +1089,7 @@ limits_check( Operation *op, SlapReply *rs )
 			op->ors_slimit = SLAP_NO_LIMIT;
 		}
 
-		/* if paged results and slimit are requested */	
+		/* if paged results and slimit are requested */
 		if ( get_pagedresults( op ) > SLAP_CONTROL_IGNORED &&
 			op->ors_slimit != SLAP_NO_LIMIT ) {
 			PagedResultsState *ps = op->o_pagedresults_state;
@@ -1149,7 +1149,7 @@ limits_check( Operation *op, SlapReply *rs )
 			return -1;
 		}
 
-		/* if paged results is requested */	
+		/* if paged results is requested */
 		if ( get_pagedresults( op ) > SLAP_CONTROL_IGNORED ) {
 			int	slimit = -2;
 			int	pr_total;
@@ -1164,7 +1164,7 @@ limits_check( Operation *op, SlapReply *rs )
 				rs->sr_text = NULL;
 				return -1;
 			}
-			
+
 			if ( op->ors_limit->lms_s_pr > 0
 				&& ps->ps_size > op->ors_limit->lms_s_pr )
 			{
@@ -1204,7 +1204,7 @@ limits_check( Operation *op, SlapReply *rs )
 				rs->sr_err = LDAP_SUCCESS;
 				return -1;
 #endif /* ! ABOVE_HARD_LIMIT_IS_ERROR */
-	
+
 			} else {
 				/* if no limit is required, use soft limit */
 				int	total;
@@ -1238,9 +1238,9 @@ limits_check( Operation *op, SlapReply *rs )
 						/* use the smallest limit set by total/per page */
 						if ( total < op->ors_limit->lms_s_pr ) {
 							slimit = total;
-	
+
 						} else {
-							/* use the perpage limit if any 
+							/* use the perpage limit if any
 							 * NOTE: + 1 because given value must be legal */
 							slimit = op->ors_limit->lms_s_pr + 1;
 						}
@@ -1251,7 +1251,7 @@ limits_check( Operation *op, SlapReply *rs )
 					}
 
 				} else if ( op->ors_limit->lms_s_pr > 0 ) {
-					/* use the perpage limit if any 
+					/* use the perpage limit if any
 					 * NOTE: + 1 because the given value must be legal */
 					slimit = op->ors_limit->lms_s_pr + 1;
 
@@ -1260,7 +1260,7 @@ limits_check( Operation *op, SlapReply *rs )
 					slimit = op->ors_limit->lms_s_hard;
 				}
 			}
-		
+
 			/* if got any limit, use it */
 			if ( slimit != -2 ) {
 				if ( op->ors_slimit == 0 ) {
@@ -1325,7 +1325,7 @@ limits_check( Operation *op, SlapReply *rs )
 }
 
 void
-limits_free_one( 
+limits_free_one(
 	struct slap_limits	*lm )
 {
 	if ( ( lm->lm_flags & SLAP_LIMITS_MASK ) == SLAP_LIMITS_REGEX )
@@ -1338,7 +1338,7 @@ limits_free_one(
 }
 
 void
-limits_destroy( 
+limits_destroy(
 	struct slap_limits	**lm )
 {
 	int		i;

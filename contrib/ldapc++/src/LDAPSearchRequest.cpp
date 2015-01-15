@@ -18,7 +18,7 @@ using namespace std;
 
 LDAPSearchRequest::LDAPSearchRequest(const LDAPSearchRequest& req ) :
         LDAPRequest (req){
-    DEBUG(LDAP_DEBUG_CONSTRUCT, 
+    DEBUG(LDAP_DEBUG_CONSTRUCT,
         "LDAPSearchRequest::LDAPSearchRequest(&)" << endl);
     m_base=req.m_base;
     m_scope=req.m_scope;
@@ -26,26 +26,26 @@ LDAPSearchRequest::LDAPSearchRequest(const LDAPSearchRequest& req ) :
     m_attrs=req.m_attrs;
     m_attrsOnly=req.m_attrsOnly;
 }
-        
 
-LDAPSearchRequest::LDAPSearchRequest(const string& base, int scope, 
+
+LDAPSearchRequest::LDAPSearchRequest(const string& base, int scope,
         const string& filter, const StringList& attrs, bool attrsOnly,
         LDAPAsynConnection *connect,
-        const LDAPConstraints* cons, bool isReferral, 
-        const LDAPRequest* parent) 
+        const LDAPConstraints* cons, bool isReferral,
+        const LDAPRequest* parent)
             : LDAPRequest (connect,cons,isReferral,parent) {
-    
+
     DEBUG(LDAP_DEBUG_CONSTRUCT,
             "LDAPSearchRequest:LDAPSearchRequest()" << endl);
     DEBUG(LDAP_DEBUG_CONSTRUCT & LDAP_DEBUG_PARAMETER,
             "   base:" << base << endl << "   scope:" << scope << endl
             << "   filter:" << filter << endl);
     m_requestType=LDAPRequest::SEARCH;
-    //insert some validating and copying here  
+    //insert some validating and copying here
     m_base=base;
     m_scope=scope;
     if(filter == ""){
-        m_filter="objectClass=*";  
+        m_filter="objectClass=*";
     }else{
         m_filter=filter;
     }
@@ -58,14 +58,14 @@ LDAPSearchRequest::~LDAPSearchRequest(){
 }
 
 LDAPMessageQueue* LDAPSearchRequest::sendRequest(){
-    int msgID; 
+    int msgID;
     DEBUG(LDAP_DEBUG_TRACE, "LDAPSearchRequest::sendRequest()" << endl);
     timeval* tmptime=m_cons->getTimeoutStruct();
     char** tmpattrs=m_attrs.toCharArray();
     LDAPControl** tmpSrvCtrl=m_cons->getSrvCtrlsArray();
     LDAPControl** tmpClCtrl=m_cons->getClCtrlsArray();
     int aliasDeref = m_cons->getAliasDeref();
-    ldap_set_option(m_connection->getSessionHandle(), LDAP_OPT_DEREF, 
+    ldap_set_option(m_connection->getSessionHandle(), LDAP_OPT_DEREF,
             &aliasDeref);
     int err=ldap_search_ext(m_connection->getSessionHandle(), m_base.c_str(),
             m_scope, m_filter.c_str(), tmpattrs, m_attrsOnly, tmpSrvCtrl,
@@ -75,7 +75,7 @@ LDAPMessageQueue* LDAPSearchRequest::sendRequest(){
     LDAPControlSet::freeLDAPControlArray(tmpSrvCtrl);
     LDAPControlSet::freeLDAPControlArray(tmpClCtrl);
 
-    if (err != LDAP_SUCCESS){  
+    if (err != LDAP_SUCCESS){
         throw LDAPException(err);
     } else if (isReferral()){
         m_msgID=msgID;
@@ -100,13 +100,13 @@ LDAPRequest* LDAPSearchRequest::followReferral(LDAPMsg* ref){
     }
     con = getConnection()->referralConnect(urls,usedUrl,m_cons);
     if(con != 0){
-        if((usedUrl->getFilter() != "") && 
+        if((usedUrl->getFilter() != "") &&
             (usedUrl->getFilter() != m_filter)){
                 filter=usedUrl->getFilter();
         }else{
             filter=m_filter;
         }
-        if( (ref->getMessageType() == LDAPMsg::SEARCH_REFERENCE) && 
+        if( (ref->getMessageType() == LDAPMsg::SEARCH_REFERENCE) &&
             (m_scope == LDAPAsynConnection::SEARCH_ONE)
           ){
             scope = LDAPAsynConnection::SEARCH_BASE;
@@ -126,7 +126,7 @@ bool LDAPSearchRequest::equals(const LDAPRequest* req)const{
     if( LDAPRequest::equals(req)){
         LDAPSearchRequest* sreq = (LDAPSearchRequest*)req;
         if ( (m_base == sreq->m_base) &&
-             (m_scope == sreq->m_scope) 
+             (m_scope == sreq->m_scope)
            ){
             return true;
         }

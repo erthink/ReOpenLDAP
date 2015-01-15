@@ -9,7 +9,7 @@ Then, at top of OpenLDAP source tree, run
 "configure <other options you need> --enable-sql", then "make" -
 this should build back-sql-enabled slapd, provided that you have iODBC/unixODBC
 libraries and include files in include/library paths, "make install"...
-In other words, follow installation procedure described in OpenLDAP 
+In other words, follow installation procedure described in OpenLDAP
 Administrators Guide, adding --enable-sql option to configure, and
 having iODBC/unixODBC libraries installed an accessible by compiler.
 
@@ -27,7 +27,7 @@ RDBMS, and have installed proper ODBC driver for this RDBMS, this is as simple
 as adding a record into odbc.ini (for iODBC/unixODBC), or using ODBC wizard in
 Control Panel (for odbc32).
 Next, you need to add appropriate "database" record to your slapd.conf.
-See samples provided in "back-sql/RDBMS_DEPENDENT/" subdirectory. 
+See samples provided in "back-sql/RDBMS_DEPENDENT/" subdirectory.
 
 Several things worth noting about ODBC:
 - "dbname" directive stands for ODBC datasource name (DSN),
@@ -46,8 +46,8 @@ Several things worth noting about ODBC:
   directive is used to override value stored in datasource definition.
   Maybe you will want to use dbuser/dbpasswd to override credentials defined in datasource
 - full list of configuration directives supported is available in file "guide",
-  you may also analyze output of 'slapd -d 5' to find out some useful 
-  directives for redefining default queries 
+  you may also analyze output of 'slapd -d 5' to find out some useful
+  directives for redefining default queries
 
 3. Creating and using back-sql metatables
 Read the file "concept" to understand, what metainformation you need to add,
@@ -60,7 +60,7 @@ me scripts and notes for new RDBMSes ;).
 
 Execute "backsql_create.sql" from that subdirectory (or edited one),
 so that the tables it creates appear in the same
-context with the data you want to export through LDAP (under same DB/user, 
+context with the data you want to export through LDAP (under same DB/user,
 or whatever is needed in RDBMS you use). You can use something like
 "mysql < xxx.sql" for mySQL, Query Analyzer+Open query file for MS SQL,
 sqlplus and "@xxx.sql" for Oracle.

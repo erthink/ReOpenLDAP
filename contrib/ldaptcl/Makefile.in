@@ -80,7 +80,7 @@ TCL_BIN_DIR =       @TCL_BIN_DIR@
 
 SHLIB_LD = @SHLIB_LD@
 
-# Set to the options to include libldap.a and liblber.a 
+# Set to the options to include libldap.a and liblber.a
 # (eg. -L../tools/blah -lldap -llber)
 
 LDAP_LIBFLAGS	= @ldaplibflags@
@@ -125,7 +125,7 @@ CC =        @CC@
 CC_SWITCHES =   ${CFLAGS} @NEO_SHLIB_CFLAGS@ -I. \
 -I@prefix@/include ${AC_FLAGS} ${PROTO_FLAGS} \
 ${SECURITY_FLAGS} ${MEM_DEBUG_FLAGS} ${KEYSYM_FLAGS} \
--DNEO_LIBRARY=\"${NEO_LIBRARY}\" -DVERSION=\"${VERSION}\" 
+-DNEO_LIBRARY=\"${NEO_LIBRARY}\" -DVERSION=\"${VERSION}\"
 
 TK_SWITCHES = ${CC_SWITCHES} @TK_XINCLUDES@
 

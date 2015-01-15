@@ -16,10 +16,10 @@
 echo "running defines.sh"
 . $SRCDIR/scripts/defines.sh
 
-if test $BACKSQL = "sqlno" ; then 
+if test $BACKSQL = "sqlno" ; then
 	echo "SQL backend not available, test skipped"
 	exit 0
-fi 
+fi
 
 if test $RDBMS = "rdbmsno" ; then
 	echo "SQL test not requested, test skipped"
@@ -428,7 +428,7 @@ if test $RC != 0 ; then
 	exit $RC
 fi
 
-grep -v '^entryCSN:' $SEARCHFLT >> $SEARCHOUT 
+grep -v '^entryCSN:' $SEARCHFLT >> $SEARCHOUT
 
 SIZELIMIT=4
 echo "Testing size limit..."

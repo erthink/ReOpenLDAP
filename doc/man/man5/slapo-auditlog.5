@@ -29,16 +29,16 @@ directive.
 Specify the fully qualified path for the log file.
 .TP
 .B olcAuditlogFile <filename>
-For use with 
+For use with
 .B cn=config
 .SH EXAMPLE
 The following LDIF could be used to add this overlay to
-.B cn=config 
+.B cn=config
 (adjust to suit)
 .LP
 .RS
 .nf
-dn: olcOverlay=auditlog,olcDatabase={1}hdb,cn=config 
+dn: olcOverlay=auditlog,olcDatabase={1}hdb,cn=config
 changetype: add
 objectClass: olcOverlayConfig
 objectClass: olcAuditLogConfig

@@ -2,10 +2,10 @@
 ;// This file contains message strings for the OpenLDAP slapd service.
 ;//
 ;// This file should be compiled as follows
-;//   mc -v slapdmsg.mc  -r $(IntDir)  
+;//   mc -v slapdmsg.mc  -r $(IntDir)
 ;//   rc /v /r  $(IntDir)\slapdmsg.rc
-;// The mc (message compiler) command generates the .rc and .h files from this file. The 
-;// rc (resource compiler) takes the .rc file and produces a .res file that can be linked 
+;// The mc (message compiler) command generates the .rc and .h files from this file. The
+;// rc (resource compiler) takes the .rc file and produces a .res file that can be linked
 ;// with the final executable application. The application is then registered as a message
 ;// source with by creating the appropriate entries in the system registry.
 ;//

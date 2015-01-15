@@ -56,7 +56,7 @@ Table of Contents
 
 
 Zeilenga                    Standards Track                     [Page 1]
-
+
 RFC 4526          LDAP Absolute True and False Filters         June 2006
 
 
@@ -112,7 +112,7 @@ RFC 4526          LDAP Absolute True and False Filters         June 2006
 
 
 Zeilenga                    Standards Track                     [Page 2]
-
+
 RFC 4526          LDAP Absolute True and False Filters         June 2006
 
 
@@ -168,7 +168,7 @@ RFC 4526          LDAP Absolute True and False Filters         June 2006
 
 
 Zeilenga                    Standards Track                     [Page 3]
-
+
 RFC 4526          LDAP Absolute True and False Filters         June 2006
 
 
@@ -224,7 +224,7 @@ Author's Address
 
 
 Zeilenga                    Standards Track                     [Page 4]
-
+
 RFC 4526          LDAP Absolute True and False Filters         June 2006
 
 
@@ -280,4 +280,4 @@ Acknowledgement
 
 
 Zeilenga                    Standards Track                     [Page 5]
-
+

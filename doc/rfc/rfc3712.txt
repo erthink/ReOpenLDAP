@@ -56,7 +56,7 @@ Table of Contents
 
 
 Fleming & McDonald           Informational                      [Page 1]
-
+
 RFC 3712            LDAP Schema for Printer Services       February 2004
 
 
@@ -112,7 +112,7 @@ RFC 3712            LDAP Schema for Printer Services       February 2004
 
 
 Fleming & McDonald           Informational                      [Page 2]
-
+
 RFC 3712            LDAP Schema for Printer Services       February 2004
 
 
@@ -168,7 +168,7 @@ RFC 3712            LDAP Schema for Printer Services       February 2004
 
 
 Fleming & McDonald           Informational                      [Page 3]
-
+
 RFC 3712            LDAP Schema for Printer Services       February 2004
 
 
@@ -224,7 +224,7 @@ RFC 3712            LDAP Schema for Printer Services       February 2004
 
 
 Fleming & McDonald           Informational                      [Page 4]
-
+
 RFC 3712            LDAP Schema for Printer Services       February 2004
 
 
@@ -280,7 +280,7 @@ RFC 3712            LDAP Schema for Printer Services       February 2004
 
 
 Fleming & McDonald           Informational                      [Page 5]
-
+
 RFC 3712            LDAP Schema for Printer Services       February 2004
 
 
@@ -336,7 +336,7 @@ RFC 3712            LDAP Schema for Printer Services       February 2004
 
 
 Fleming & McDonald           Informational                      [Page 6]
-
+
 RFC 3712            LDAP Schema for Printer Services       February 2004
 
 
@@ -392,7 +392,7 @@ RFC 3712            LDAP Schema for Printer Services       February 2004
 
 
 Fleming & McDonald           Informational                      [Page 7]
-
+
 RFC 3712            LDAP Schema for Printer Services       February 2004
 
 
@@ -448,7 +448,7 @@ RFC 3712            LDAP Schema for Printer Services       February 2004
 
 
 Fleming & McDonald           Informational                      [Page 8]
-
+
 RFC 3712            LDAP Schema for Printer Services       February 2004
 
 
@@ -504,7 +504,7 @@ RFC 3712            LDAP Schema for Printer Services       February 2004
 
 
 Fleming & McDonald           Informational                      [Page 9]
-
+
 RFC 3712            LDAP Schema for Printer Services       February 2004
 
 
@@ -560,7 +560,7 @@ RFC 3712            LDAP Schema for Printer Services       February 2004
 
 
 Fleming & McDonald           Informational                     [Page 10]
-
+
 RFC 3712            LDAP Schema for Printer Services       February 2004
 
 
@@ -616,7 +616,7 @@ RFC 3712            LDAP Schema for Printer Services       February 2004
 
 
 Fleming & McDonald           Informational                     [Page 11]
-
+
 RFC 3712            LDAP Schema for Printer Services       February 2004
 
 
@@ -672,7 +672,7 @@ RFC 3712            LDAP Schema for Printer Services       February 2004
 
 
 Fleming & McDonald           Informational                     [Page 12]
-
+
 RFC 3712            LDAP Schema for Printer Services       February 2004
 
 
@@ -728,7 +728,7 @@ RFC 3712            LDAP Schema for Printer Services       February 2004
 
 
 Fleming & McDonald           Informational                     [Page 13]
-
+
 RFC 3712            LDAP Schema for Printer Services       February 2004
 
 
@@ -784,7 +784,7 @@ RFC 3712            LDAP Schema for Printer Services       February 2004
 
 
 Fleming & McDonald           Informational                     [Page 14]
-
+
 RFC 3712            LDAP Schema for Printer Services       February 2004
 
 
@@ -840,7 +840,7 @@ RFC 3712            LDAP Schema for Printer Services       February 2004
 
 
 Fleming & McDonald           Informational                     [Page 15]
-
+
 RFC 3712            LDAP Schema for Printer Services       February 2004
 
 
@@ -896,7 +896,7 @@ RFC 3712            LDAP Schema for Printer Services       February 2004
 
 
 Fleming & McDonald           Informational                     [Page 16]
-
+
 RFC 3712            LDAP Schema for Printer Services       February 2004
 
 
@@ -952,7 +952,7 @@ RFC 3712            LDAP Schema for Printer Services       February 2004
 
 
 Fleming & McDonald           Informational                     [Page 17]
-
+
 RFC 3712            LDAP Schema for Printer Services       February 2004
 
 
@@ -1008,7 +1008,7 @@ RFC 3712            LDAP Schema for Printer Services       February 2004
 
 
 Fleming & McDonald           Informational                     [Page 18]
-
+
 RFC 3712            LDAP Schema for Printer Services       February 2004
 
 
@@ -1064,7 +1064,7 @@ RFC 3712            LDAP Schema for Printer Services       February 2004
 
 
 Fleming & McDonald           Informational                     [Page 19]
-
+
 RFC 3712            LDAP Schema for Printer Services       February 2004
 
 
@@ -1120,7 +1120,7 @@ RFC 3712            LDAP Schema for Printer Services       February 2004
 
 
 Fleming & McDonald           Informational                     [Page 20]
-
+
 RFC 3712            LDAP Schema for Printer Services       February 2004
 
 
@@ -1176,7 +1176,7 @@ RFC 3712            LDAP Schema for Printer Services       February 2004
 
 
 Fleming & McDonald           Informational                     [Page 21]
-
+
 RFC 3712            LDAP Schema for Printer Services       February 2004
 
 
@@ -1232,7 +1232,7 @@ RFC 3712            LDAP Schema for Printer Services       February 2004
 
 
 Fleming & McDonald           Informational                     [Page 22]
-
+
 RFC 3712            LDAP Schema for Printer Services       February 2004
 
 
@@ -1288,7 +1288,7 @@ RFC 3712            LDAP Schema for Printer Services       February 2004
 
 
 Fleming & McDonald           Informational                     [Page 23]
-
+
 RFC 3712            LDAP Schema for Printer Services       February 2004
 
 
@@ -1344,7 +1344,7 @@ RFC 3712            LDAP Schema for Printer Services       February 2004
 
 
 Fleming & McDonald           Informational                     [Page 24]
-
+
 RFC 3712            LDAP Schema for Printer Services       February 2004
 
 
@@ -1400,7 +1400,7 @@ RFC 3712            LDAP Schema for Printer Services       February 2004
 
 
 Fleming & McDonald           Informational                     [Page 25]
-
+
 RFC 3712            LDAP Schema for Printer Services       February 2004
 
 
@@ -1456,7 +1456,7 @@ RFC 3712            LDAP Schema for Printer Services       February 2004
 
 
 Fleming & McDonald           Informational                     [Page 26]
-
+
 RFC 3712            LDAP Schema for Printer Services       February 2004
 
 
@@ -1512,7 +1512,7 @@ RFC 3712            LDAP Schema for Printer Services       February 2004
 
 
 Fleming & McDonald           Informational                     [Page 27]
-
+
 RFC 3712            LDAP Schema for Printer Services       February 2004
 
 
@@ -1568,7 +1568,7 @@ RFC 3712            LDAP Schema for Printer Services       February 2004
 
 
 Fleming & McDonald           Informational                     [Page 28]
-
+
 RFC 3712            LDAP Schema for Printer Services       February 2004
 
 
@@ -1624,7 +1624,7 @@ RFC 3712            LDAP Schema for Printer Services       February 2004
 
 
 Fleming & McDonald           Informational                     [Page 29]
-
+
 RFC 3712            LDAP Schema for Printer Services       February 2004
 
 
@@ -1680,7 +1680,7 @@ RFC 3712            LDAP Schema for Printer Services       February 2004
 
 
 Fleming & McDonald           Informational                     [Page 30]
-
+
 RFC 3712            LDAP Schema for Printer Services       February 2004
 
 
@@ -1736,7 +1736,7 @@ RFC 3712            LDAP Schema for Printer Services       February 2004
 
 
 Fleming & McDonald           Informational                     [Page 31]
-
+
 RFC 3712            LDAP Schema for Printer Services       February 2004
 
 
@@ -1792,7 +1792,7 @@ RFC 3712            LDAP Schema for Printer Services       February 2004
 
 
 Fleming & McDonald           Informational                     [Page 32]
-
+
 RFC 3712            LDAP Schema for Printer Services       February 2004
 
 
@@ -1848,4 +1848,4 @@ Acknowledgement
 
 
 Fleming & McDonald           Informational                     [Page 33]
-
+

@@ -56,7 +56,7 @@ Status of this Memo
 
 
 Zeilenga               LDAP Don't Use Copy Control              [Page 1]
-
+
 INTERNET-DRAFT     draft-zeilenga-ldap-dontusecopy-04   14 February 2007
 
 
@@ -112,7 +112,7 @@ Abstract
 
 
 Zeilenga               LDAP Don't Use Copy Control              [Page 2]
-
+
 INTERNET-DRAFT     draft-zeilenga-ldap-dontusecopy-04   14 February 2007
 
 
@@ -168,7 +168,7 @@ INTERNET-DRAFT     draft-zeilenga-ldap-dontusecopy-04   14 February 2007
 
 
 Zeilenga               LDAP Don't Use Copy Control              [Page 3]
-
+
 INTERNET-DRAFT     draft-zeilenga-ldap-dontusecopy-04   14 February 2007
 
 
@@ -224,7 +224,7 @@ INTERNET-DRAFT     draft-zeilenga-ldap-dontusecopy-04   14 February 2007
 
 
 Zeilenga               LDAP Don't Use Copy Control              [Page 4]
-
+
 INTERNET-DRAFT     draft-zeilenga-ldap-dontusecopy-04   14 February 2007
 
 
@@ -280,7 +280,7 @@ Full Copyright
 
 
 Zeilenga               LDAP Don't Use Copy Control              [Page 5]
-
+
 INTERNET-DRAFT     draft-zeilenga-ldap-dontusecopy-04   14 February 2007
 
 
@@ -336,4 +336,4 @@ INTERNET-DRAFT     draft-zeilenga-ldap-dontusecopy-04   14 February 2007
 
 
 Zeilenga               LDAP Don't Use Copy Control              [Page 6]
-
+

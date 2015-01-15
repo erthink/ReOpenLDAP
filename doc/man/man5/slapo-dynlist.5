@@ -39,7 +39,7 @@ The config directives that are specific to the
 .B dynlist
 overlay must be prefixed by
 .BR dynlist\- ,
-to avoid potential conflicts with directives specific to the underlying 
+to avoid potential conflicts with directives specific to the underlying
 database or to other stacked overlays.
 
 .TP
@@ -52,13 +52,13 @@ for details.
 .LP
 This
 .B slapd.conf
-configuration option is defined for the dynlist overlay. It may have multiple 
+configuration option is defined for the dynlist overlay. It may have multiple
 occurrences, and it must appear after the
 .B overlay
 directive.
 .TP
 .B dynlist\-attrset <group-oc> [<URI>] <URL-ad> [[<mapped-ad>:]<member-ad> ...]
-The value 
+The value
 .B group\-oc
 is the name of the objectClass that triggers the dynamic expansion of the
 data.
@@ -70,10 +70,10 @@ the \fIscope\fP and the \fIfilter\fP portions of the URI.
 
 The value
 .B URL-ad
-is the name of the attributeDescription that contains the URI that is 
+is the name of the attributeDescription that contains the URI that is
 expanded by the overlay; if none is present, no expansion occurs.
-If the intersection of the attributes requested by the search operation 
-(or the asserted attribute for compares) and the attributes listed 
+If the intersection of the attributes requested by the search operation
+(or the asserted attribute for compares) and the attributes listed
 in the URI is empty, no expansion occurs for that specific URI.
 It must be a subtype of \fIlabeledURI\fP.
 
@@ -83,30 +83,30 @@ is optional; if present, the overlay behaves as a dynamic group: this
 attribute will list the DN of the entries resulting from the internal search.
 In this case, the \fIattrs\fP portion of the URIs in the
 .B URL-ad
-attribute must be absent, and the \fIDN\fPs 
+attribute must be absent, and the \fIDN\fPs
 of all the entries resulting from the expansion of the URIs are listed
 as values of this attribute.
 Compares that assert the value of the
 .B member-ad
-attribute of entries with 
+attribute of entries with
 .B group-oc
-objectClass apply as if the DN of the entries resulting from the expansion 
-of the URI were present in the 
-.B group-oc 
+objectClass apply as if the DN of the entries resulting from the expansion
+of the URI were present in the
+.B group-oc
 entry as values of the
 .B member-ad
 attribute.
 
-Alternatively, 
+Alternatively,
 .B mapped-ad
-can be used to remap attributes obtained through expansion. 
+can be used to remap attributes obtained through expansion.
 .B member-ad
 attributes are not filled by expanded DN, but are remapped as
-.B mapped-ad 
+.B mapped-ad
 attributes.  Multiple mapping statements can be used.
 
 .LP
-The dynlist overlay may be used with any backend, but it is mainly 
+The dynlist overlay may be used with any backend, but it is mainly
 intended for use with local storage backends.
 In case the URI expansion is very resource-intensive and occurs frequently
 with well-defined patterns, one should consider adding a proxycache
@@ -131,7 +131,7 @@ attribute is also present in the group's entry, its values are used
 to determine what identities are authorized to use the
 .B dgIdentity
 to expand the group.
-Values of the 
+Values of the
 .B dgAuthz
 attribute must conform to the (experimental) \fIOpenLDAP authz\fP syntax.
 
@@ -164,7 +164,7 @@ then add to the database an entry like
 If no <attrs> are provided in the URI, all (non-operational) attributes are
 collected.
 
-This example implements the dynamic group feature on the 
+This example implements the dynamic group feature on the
 .B member
 attribute:
 

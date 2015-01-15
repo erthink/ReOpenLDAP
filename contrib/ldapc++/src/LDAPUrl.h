@@ -21,7 +21,7 @@ class LDAPUrlException;
  */
 class LDAPUrl{
 
-    public : 
+    public :
         /**
          * Create a new object from a string that contains a LDAP-Url
          * @param url The URL String
@@ -38,7 +38,7 @@ class LDAPUrl{
          * port
          */
         int getPort() const;
-        
+
         /**
          * Set the port value of the URL
          * @param dn The port value
@@ -46,7 +46,7 @@ class LDAPUrl{
         void setPort(int port);
 
         /**
-         * @return The scope part of the URL is returned. 
+         * @return The scope part of the URL is returned.
          */
         int getScope() const;
 
@@ -85,7 +85,7 @@ class LDAPUrl{
 
         /**
          * Set the Protocol Scheme of the URL
-         * @param host The Protcol scheme. Allowed values are 
+         * @param host The Protcol scheme. Allowed values are
          *       ldap,ldapi,ldaps and cldap
          */
         void setScheme( const std::string &scheme );
@@ -94,19 +94,19 @@ class LDAPUrl{
          * @return The Base-DN part of the URL
          */
         const std::string& getDN() const;
-        
+
         /**
          * Set the DN part of the URL
          * @param dn The new DN part
          */
         void setDN( const std::string &dn);
 
-        
+
         /**
          * @return The Filter part of the URL
          */
         const std::string& getFilter() const;
-        
+
         /**
          * Set the Filter part of the URL
          * @param filter The new Filter
@@ -117,7 +117,7 @@ class LDAPUrl{
          * @return The List of attributes  that was in the URL
          */
         const StringList& getAttrs() const;
-        
+
         /**
          * Set the Attributes part of the URL
          * @param attrs StringList constaining the List of Attributes
@@ -132,35 +132,35 @@ class LDAPUrl{
          * @param dest The decoded result string
          */
         void percentDecode( const std::string& src, std::string& dest );
-        
+
         /**
          * Percent-encoded a string
          * @param src The string that is to be encoded
          * @param dest The encoded result string
          * @param flags
          */
-        std::string& percentEncode( const std::string& src, 
-                    std::string& dest, 
+        std::string& percentEncode( const std::string& src,
+                    std::string& dest,
                     int flags=0 ) const;
-   
-    protected : 
+
+    protected :
         /**
          * Split the url string that is associated with this Object into
-         * it components. The compontens of the URL can be access via the 
+         * it components. The compontens of the URL can be access via the
          * get...() methods.
-         * (this function is mostly for internal use and gets called 
+         * (this function is mostly for internal use and gets called
          * automatically whenever necessary)
          */
         void parseUrl();
-        
+
         /**
          * Generate an URL string from the components that were set with
          * the various set...() methods
-         * (this function is mostly for internal use and gets called 
+         * (this function is mostly for internal use and gets called
          * automatically whenever necessary)
          */
         void components2Url() const;
-        
+
         void string2list(const std::string &src, StringList& sl,
                 bool percentDecode=false);
 
@@ -197,8 +197,8 @@ class LDAPUrlException {
         static const int INVALID_PORT        = 2;
         static const int INVALID_SCOPE       = 3;
         static const int INVALID_URL         = 4;
-        static const int URL_DECODING_ERROR  = 5; 
-        static const code2string_s code2string[]; 
+        static const int URL_DECODING_ERROR  = 5;
+        static const code2string_s code2string[];
 
     private:
         int m_code;

@@ -128,10 +128,10 @@ requested by providing a valid name and password.
 An anonymous bind results in an {{anonymous}} authorization
 association.  Anonymous bind mechanism is enabled by default, but
 can be disabled by specifying "{{EX:disallow bind_anon}}" in
-{{slapd.conf}}(5).  
+{{slapd.conf}}(5).
 
-Note: Disabling the anonymous bind mechanism does not prevent 
-anonymous access to the directory. To require authentication to 
+Note: Disabling the anonymous bind mechanism does not prevent
+anonymous access to the directory. To require authentication to
 access the directory, one should instead specify "{{EX:require authc}}".
 
 An unauthenticated bind also results in an {{anonymous}} authorization
@@ -289,7 +289,7 @@ configuration option to enable pass-through authentication.
 Note: This is not the same as using a SASL mechanism to
 authenticate the LDAP session.
 
-Pass-Through authentication works only with plaintext passwords, as 
+Pass-Through authentication works only with plaintext passwords, as
 used in the "simple bind" and "SASL PLAIN" authentication mechanisms.}}
 
 Pass-Through authentication is selective: it only affects users whose
@@ -303,8 +303,8 @@ mechanism and are used to identify the account whose password is to be
 verified. This allows arbitrary mapping between entries in OpenLDAP
 and accounts known to the backend authentication service.
 
-It would be wise to use access control to prevent users from changing 
-their passwords through LDAP where they have pass-through authentication 
+It would be wise to use access control to prevent users from changing
+their passwords through LDAP where they have pass-through authentication
 enabled.
 
 
@@ -335,10 +335,10 @@ delegate some or all authentication to another LDAP server. Here is a
 sample {{EX:saslauthd.conf}} that uses Microsoft Active Directory (AD):
 
 > ldap_servers: ldap://dc1.example.com/ ldap://dc2.example.com/
-> 
+>
 > ldap_search_base: cn=Users,DC=ad,DC=example,DC=com
 > ldap_filter: (userPrincipalName=%u)
-> 
+>
 > ldap_bind_dn: cn=saslauthd,cn=Users,DC=ad,DC=example,DC=com
 > ldap_password: secret
 

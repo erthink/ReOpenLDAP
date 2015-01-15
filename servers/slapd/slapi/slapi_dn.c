@@ -573,7 +573,7 @@ int slapi_rdn_compare( Slapi_RDN *rdn1, Slapi_RDN *rdn2 )
 
 int slapi_rdn_isempty( const Slapi_RDN *rdn )
 {
-	return ( BER_BVISEMPTY( &rdn->bv ) ); 
+	return ( BER_BVISEMPTY( &rdn->bv ) );
 }
 
 int slapi_rdn_add( Slapi_RDN *rdn, const char *type, const char *value )

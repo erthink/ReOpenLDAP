@@ -3,7 +3,7 @@
 # LDAPv3
 # base <c=US> with scope sub
 # filter: (objectClass=referral)
-# requesting: * ref 
+# requesting: * ref
 # with manageDSAit critical control
 #
 
@@ -33,7 +33,7 @@ result: 0 Success
 # LDAPv3
 # base <o=abc,c=US> with scope sub
 # filter: (objectClass=referral)
-# requesting: * ref 
+# requesting: * ref
 # with manageDSAit critical control
 #
 
@@ -56,7 +56,7 @@ result: 0 Success
 # LDAPv3
 # base <uid=xxx,o=abc,c=US> with scope sub
 # filter: (objectClass=referral)
-# requesting: * ref 
+# requesting: * ref
 # with manageDSAit critical control
 #
 
@@ -73,7 +73,7 @@ ref: ldap://hostB/uid=xxx,o=abc,c=US??sub
 # LDAPv3
 # base <c=US> with scope base
 # filter: (objectclass=*)
-# requesting: 1.1 
+# requesting: 1.1
 #
 
 # US
@@ -90,7 +90,7 @@ result: 0 Success
 # LDAPv3
 # base <c=US> with scope one
 # filter: (objectclass=*)
-# requesting: 1.1 
+# requesting: 1.1
 #
 
 # Example, Inc., US
@@ -115,7 +115,7 @@ result: 0 Success
 # LDAPv3
 # base <c=US> with scope sub
 # filter: (objectclass=*)
-# requesting: 1.1 
+# requesting: 1.1
 #
 
 # Example, Inc., US
@@ -146,7 +146,7 @@ result: 0 Success
 # LDAPv3
 # base <o=abc,c=US> with scope base
 # filter: (objectclass=*)
-# requesting: 1.1 
+# requesting: 1.1
 #
 
 # search result
@@ -162,7 +162,7 @@ ref: ldap://hostB/o=abc,c=US??base
 # LDAPv3
 # base <o=abc,c=US> with scope one
 # filter: (objectclass=*)
-# requesting: 1.1 
+# requesting: 1.1
 #
 
 # search result
@@ -178,7 +178,7 @@ ref: ldap://hostB/o=abc,c=US??one
 # LDAPv3
 # base <o=abc,c=US> with scope sub
 # filter: (objectclass=*)
-# requesting: 1.1 
+# requesting: 1.1
 #
 
 # search result
@@ -194,7 +194,7 @@ ref: ldap://hostB/o=abc,c=US??sub
 # LDAPv3
 # base <uid=xxx,o=abc,c=US> with scope base
 # filter: (objectclass=*)
-# requesting: 1.1 
+# requesting: 1.1
 #
 
 # search result
@@ -210,7 +210,7 @@ ref: ldap://hostB/uid=xxx,o=abc,c=US??base
 # LDAPv3
 # base <uid=xxx,o=abc,c=US> with scope one
 # filter: (objectclass=*)
-# requesting: 1.1 
+# requesting: 1.1
 #
 
 # search result
@@ -226,7 +226,7 @@ ref: ldap://hostB/uid=xxx,o=abc,c=US??one
 # LDAPv3
 # base <uid=xxx,o=abc,c=US> with scope sub
 # filter: (objectclass=*)
-# requesting: 1.1 
+# requesting: 1.1
 #
 
 # search result

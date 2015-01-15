@@ -285,7 +285,7 @@ vernum_repair( BackendDB *be )
 		rs.sr_err = LDAP_OTHER;
 		goto done_search;
 	}
-	
+
 	op->o_callback = &sc;
 	sc.sc_response = vernum_repair_cb;
 	sc.sc_private = &rcb;
@@ -409,7 +409,7 @@ static struct {
 		"EQUALITY integerMatch "
 		"SINGLE-VALUE "
 		"USAGE dSAOperation "
-		"NO-USER-MODIFICATION " 
+		"NO-USER-MODIFICATION "
 		")",
 		&ad_msDS_KeyVersionNumber },
 	{ NULL }

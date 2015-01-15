@@ -279,7 +279,7 @@ int bdb_modify_internal(
 			attrs_free( e->e_attrs );
 			e->e_attrs = save_attrs;
 			/* unlock entry, delete from cache */
-			return err; 
+			return err;
 		}
 
 		/* If objectClass was modified, reset the flags */
@@ -552,7 +552,7 @@ retry:	/* transaction retry */
 	}
 
 	/* begin transaction */
-	rs->sr_err = TXN_BEGIN( bdb->bi_dbenv, NULL, &ltid, 
+	rs->sr_err = TXN_BEGIN( bdb->bi_dbenv, NULL, &ltid,
 		bdb->bi_db_opflags );
 	rs->sr_text = NULL;
 	if( rs->sr_err != 0 ) {

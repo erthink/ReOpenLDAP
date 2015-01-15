@@ -178,7 +178,7 @@ cr_add_auxiliaries(
 	int naux;
 
 	if( scr->scr_oc_oids_aux == NULL ) return 0;
-	
+
 	for( naux=0; scr->scr_oc_oids_aux[naux]; naux++ ) {
 		/* count them */ ;
 	}

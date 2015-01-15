@@ -43,7 +43,7 @@ perl_back_bind(
 	}
 
 	PERL_SET_CONTEXT( PERL_INTERPRETER );
-	ldap_pvt_thread_mutex_lock( &perl_interpreter_mutex );	
+	ldap_pvt_thread_mutex_lock( &perl_interpreter_mutex );
 
 	{
 		dSP; ENTER; SAVETMPS;
@@ -63,12 +63,12 @@ perl_back_bind(
 		}
 
 		rs->sr_err = POPi;
-							 
+
 
 		PUTBACK; FREETMPS; LEAVE;
 	}
 
-	ldap_pvt_thread_mutex_unlock( &perl_interpreter_mutex );	
+	ldap_pvt_thread_mutex_unlock( &perl_interpreter_mutex );
 
 	Debug( LDAP_DEBUG_ANY, "Perl BIND returned 0x%04x\n", rs->sr_err, 0, 0 );
 

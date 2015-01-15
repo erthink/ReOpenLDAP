@@ -34,8 +34,8 @@ monitor_subsys_conn_update(
 	SlapReply		*rs,
 	Entry                   *e );
 
-static int 
-monitor_subsys_conn_create( 
+static int
+monitor_subsys_conn_create(
 	Operation		*op,
 	SlapReply		*rs,
 	struct berval		*ndn,
@@ -78,7 +78,7 @@ monitor_subsys_conn_init(
 	BER_BVSTR( &bv, "cn=Max File Descriptors" );
 	e = monitor_entry_stub( &ms->mss_dn, &ms->mss_ndn, &bv,
 		mi->mi_oc_monitorCounterObject, NULL, NULL );
-	
+
 	if ( e == NULL ) {
 		Debug( LDAP_DEBUG_ANY,
 			"monitor_subsys_conn_init: "
@@ -95,7 +95,7 @@ monitor_subsys_conn_init(
 		BER_BVSTR( &bv, "0" );
 	}
 	attr_merge_one( e, mi->mi_ad_monitorCounter, &bv, NULL );
-	
+
 	mp = monitor_entrypriv_create();
 	if ( mp == NULL ) {
 		return -1;
@@ -116,14 +116,14 @@ monitor_subsys_conn_init(
 
 	*ep = e;
 	ep = &mp->mp_next;
-	
+
 	/*
 	 * Total conns
 	 */
 	BER_BVSTR( &bv, "cn=Total" );
 	e = monitor_entry_stub( &ms->mss_dn, &ms->mss_ndn, &bv,
 		mi->mi_oc_monitorCounterObject, NULL, NULL );
-	
+
 	if ( e == NULL ) {
 		Debug( LDAP_DEBUG_ANY,
 			"monitor_subsys_conn_init: "
@@ -131,10 +131,10 @@ monitor_subsys_conn_init(
 			ms->mss_ndn.bv_val, 0, 0 );
 		return( -1 );
 	}
-	
+
 	BER_BVSTR( &bv, "-1" );
 	attr_merge_one( e, mi->mi_ad_monitorCounter, &bv, NULL );
-	
+
 	mp = monitor_entrypriv_create();
 	if ( mp == NULL ) {
 		return -1;
@@ -155,7 +155,7 @@ monitor_subsys_conn_init(
 
 	*ep = e;
 	ep = &mp->mp_next;
-	
+
 	/*
 	 * Current conns
 	 */
@@ -170,10 +170,10 @@ monitor_subsys_conn_init(
 			ms->mss_ndn.bv_val, 0, 0 );
 		return( -1 );
 	}
-	
+
 	BER_BVSTR( &bv, "0" );
 	attr_merge_one( e, mi->mi_ad_monitorCounter, &bv, NULL );
-	
+
 	mp = monitor_entrypriv_create();
 	if ( mp == NULL ) {
 		return -1;
@@ -191,7 +191,7 @@ monitor_subsys_conn_init(
 			ms->mss_ndn.bv_val, 0, 0 );
 		return( -1 );
 	}
-	
+
 	*ep = e;
 	ep = &mp->mp_next;
 
@@ -217,7 +217,7 @@ monitor_subsys_conn_update(
 	assert( e != NULL );
 
 	dnRdn( &e->e_nname, &rdn );
-	
+
 	if ( dn_match( &rdn, &total_bv ) ) {
 		n = connections_nextid();
 
@@ -291,7 +291,7 @@ conn_create(
 	bv.bv_len = snprintf( buf, sizeof( buf ),
 		"cn=Connection %ld", c->c_connid );
 	bv.bv_val = buf;
-	e = monitor_entry_stub( &ms->mss_dn, &ms->mss_ndn, &bv, 
+	e = monitor_entry_stub( &ms->mss_dn, &ms->mss_ndn, &bv,
 		mi->mi_oc_monitorConnection, &ctmbv, &mtmbv );
 
 	if ( e == NULL) {
@@ -299,7 +299,7 @@ conn_create(
 			"monitor_subsys_conn_create: "
 			"unable to create entry "
 			"\"cn=Connection %ld,%s\"\n",
-			c->c_connid, 
+			c->c_connid,
 			ms->mss_dn.bv_val, 0 );
 		return( -1 );
 	}
@@ -324,26 +324,26 @@ conn_create(
 			(long) c->c_protocol,
 			c->c_n_ops_received, c->c_n_ops_executing,
 				c->c_n_ops_pending, c->c_n_ops_completed,
-			
+
 			/* add low-level counters here */
 			c->c_n_get, c->c_n_read, c->c_n_write,
-			
+
 			c->c_currentber ? "r" : "",
 			c->c_writewaiter ? "w" : "",
 			LDAP_STAILQ_EMPTY( &c->c_ops ) ? "" : "x",
 			LDAP_STAILQ_EMPTY( &c->c_pending_ops ) ? "" : "p",
 			connection_state2str( c->c_conn_state ),
 			c->c_sasl_bind_in_progress ? "S" : "",
-			
+
 			c->c_dn.bv_len ? c->c_dn.bv_val : SLAPD_ANONYMOUS,
-			
+
 			c->c_listener_url.bv_val,
 			BER_BVISNULL( &c->c_peer_domain )
 				? "" : c->c_peer_domain.bv_val,
 			BER_BVISNULL( &c->c_peer_name )
 				? "" : c->c_peer_name.bv_val,
 			c->c_sock_name.bv_val,
-			
+
 			buf2,
 			buf3 );
 	attr_merge_normalize_one( e, mi->mi_ad_monitoredInfo, &bv, NULL );
@@ -422,8 +422,8 @@ conn_create(
 	return SLAP_CB_CONTINUE;
 }
 
-static int 
-monitor_subsys_conn_create( 
+static int
+monitor_subsys_conn_create(
 	Operation		*op,
 	SlapReply		*rs,
 	struct berval		*ndn,
@@ -487,7 +487,7 @@ monitor_subsys_conn_create(
 		static struct berval	nconn_bv = BER_BVC( "cn=connection " );
 
 		rc = LDAP_NO_SUCH_OBJECT;
-	       
+
 		/* create exactly the required entry;
 		 * the normalized DN must start with "cn=connection ",
 		 * followed by the connection id, followed by
@@ -497,7 +497,7 @@ monitor_subsys_conn_create(
 		{
 			return -1;
 		}
-		
+
 		connid = strtol( &ndn->bv_val[ nconn_bv.bv_len ], &next, 10 );
 		if ( next[ 0 ] != ',' ) {
 			return ( rs->sr_err = LDAP_OTHER );
@@ -519,7 +519,7 @@ monitor_subsys_conn_create(
 				break;
 			}
 		}
-		
+
 		connection_done( c );
 	}
 

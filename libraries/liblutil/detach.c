@@ -115,7 +115,7 @@ lutil_detach( int debug, int do_close )
 			/* close everything else */
 			for ( i = 0; i < nbits; i++ ) {
 				if( i != STDIN_FILENO &&
-					i != STDOUT_FILENO && 
+					i != STDOUT_FILENO &&
 					i != STDERR_FILENO )
 				{
 					close( i );
@@ -135,7 +135,7 @@ lutil_detach( int debug, int do_close )
 			(void) close( sd );
 		}
 #endif
-	} 
+	}
 
 #ifdef SIGPIPE
 	(void) SIGNAL( SIGPIPE, SIG_IGN );

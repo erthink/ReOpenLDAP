@@ -48,12 +48,12 @@ It is the responsibility of the proxy administrator to keep the schema
 of the proxy lined up with that of the proxied server.
 
 .LP
-Note: When looping back to the same instance of \fBslapd\fP(8), 
+Note: When looping back to the same instance of \fBslapd\fP(8),
 each connection requires a new thread; as a consequence, \fBslapd\fP(8)
-must be compiled with thread support, and the \fBthreads\fP parameter 
+must be compiled with thread support, and the \fBthreads\fP parameter
 may need some tuning; in those cases, unless the multiple target feature
-is required, one may consider using \fBslapd\-relay\fP(5) instead, 
-which performs the relayed operation internally and thus reuses 
+is required, one may consider using \fBslapd\-relay\fP(5) instead,
+which performs the relayed operation internally and thus reuses
 the same connection.
 
 .SH EXAMPLES
@@ -77,15 +77,15 @@ lastmod  off
 .fi
 .RE
 .LP
-for 
+for
 .B ldap
 and
 .B meta
 databases.
-This was required because operational attributes related to entry creation 
+This was required because operational attributes related to entry creation
 and modification should not be proxied, as they could be mistakenly written
 to the target server(s), generating an error.
-The current implementation automatically sets lastmod to \fBoff\fP, 
+The current implementation automatically sets lastmod to \fBoff\fP,
 so its use is redundant and should be omitted.
 
 .SH SPECIAL CONFIGURATION DIRECTIVES
@@ -119,7 +119,7 @@ This caches the target that holds a given DN to speed up target
 selection in case multiple targets would result from an uncached
 search; forever means cache never expires; disabled means no DN
 caching; otherwise a valid ( > 0 ) ttl is required, in the format
-illustrated for the 
+illustrated for the
 .B idle\-timeout
 directive.
 
@@ -127,10 +127,10 @@ directive.
 .B onerr {CONTINUE|report|stop}
 This directive allows to select the behavior in case an error is returned
 by one target during a search.
-The default, \fBcontinue\fP, consists in continuing the operation, 
+The default, \fBcontinue\fP, consists in continuing the operation,
 trying to return as much data as possible.
-If the value is set to \fBstop\fP, the search is terminated as soon 
-as an error is returned by one target, and the error is immediately 
+If the value is set to \fBstop\fP, the search is terminated as soon
+as an error is returned by one target, and the error is immediately
 propagated to the client.
 If the value is set to \fBreport\fP, the search is continuated to the end
 but, in case at least one target returned an error code, the first
@@ -162,16 +162,16 @@ overridden by any per-target directive.
 .B protocol\-version {0,2,3}
 This directive indicates what protocol version must be used to contact
 the remote server.
-If set to 0 (the default), the proxy uses the same protocol version 
+If set to 0 (the default), the proxy uses the same protocol version
 used by the client, otherwise the requested protocol is used.
-The proxy returns \fIunwillingToPerform\fP if an operation that is 
+The proxy returns \fIunwillingToPerform\fP if an operation that is
 incompatible with the requested protocol is attempted.
 If set before any target specification, it affects all targets, unless
 overridden by any per-target directive.
 
 .TP
 .B pseudoroot\-bind\-defer {YES|no}
-This directive, when set to 
+This directive, when set to
 .BR yes ,
 causes the authentication to the remote servers with the pseudo-root
 identity (the identity defined in each
@@ -192,7 +192,7 @@ seconds elapsed since last attempt, for exactly
 times; then use the next pattern.
 If
 .I num
-for the last pattern is "\fB+\fP", it retries forever; otherwise, 
+for the last pattern is "\fB+\fP", it retries forever; otherwise,
 no more retries occur.
 This directive must appear before any target specification;
 it affects all targets with the same pattern.
@@ -201,7 +201,7 @@ it affects all targets with the same pattern.
 .B rebind\-as\-user {NO|yes}
 If this option is given, the client's bind credentials are remembered
 for rebinds, when trying to re-establish a broken connection,
-or when chasing a referral, if 
+or when chasing a referral, if
 .B chase\-referrals
 is set to
 .IR yes .
@@ -221,7 +221,7 @@ Discards current cached connection when the client rebinds.
 
 .TP
 .B use\-temporary\-conn {NO|yes}
-when set to 
+when set to
 .BR yes ,
 create a temporary connection whenever competing with other threads
 for a shared one; otherwise, wait until the shared connection is available.
@@ -275,17 +275,17 @@ the last URI that succeeded.
 .TP
 .B acl\-authcDN "<administrative DN for access control purposes>"
 DN which is used to query the target server for acl checking,
-as in the LDAP backend; it is supposed to have read access 
+as in the LDAP backend; it is supposed to have read access
 on the target server to attributes used on the proxy for acl checking.
 There is no risk of giving away such values; they are only used to
 check permissions.
-.B The acl\-authcDN identity is by no means implicitly used by the proxy 
+.B The acl\-authcDN identity is by no means implicitly used by the proxy
 .B when the client connects anonymously.
 
 .TP
 .B acl\-passwd <password>
 Password used with the
-.B 
+.B
 acl\-authcDN
 above.
 
@@ -361,7 +361,7 @@ The string
 follows the rules defined for the
 .I authzFrom
 attribute.
-See 
+See
 .BR slapd.conf (5),
 section related to
 .BR authz\-policy ,
@@ -384,11 +384,11 @@ for details on the syntax of this field.
 .B [tls_protocol_min=<major>[.<minor>]]
 .B [tls_crlcheck=none|peer|all]
 .RS
-Allows to define the parameters of the authentication method that is 
-internally used by the proxy to authorize connections that are 
+Allows to define the parameters of the authentication method that is
+internally used by the proxy to authorize connections that are
 authenticated by other databases.
 The identity defined by this directive, according to the properties
-associated to the authentication method, is supposed to have auth access 
+associated to the authentication method, is supposed to have auth access
 on the target server to attributes used on the proxy for authentication
 and authorization, and to be allowed to authorize the users.
 This requires to have
@@ -413,11 +413,11 @@ where
 .B none
 is the default, i.e. no \fIidentity assertion\fP is performed.
 
-The authz parameter is used to instruct the SASL bind to exploit 
-.B native 
+The authz parameter is used to instruct the SASL bind to exploit
+.B native
 SASL authorization, if available; since connections are cached,
 this should only be used when authorizing with a fixed identity
-(e.g. by means of the 
+(e.g. by means of the
 .B authzDN
 or
 .B authzID
@@ -431,27 +431,27 @@ The supported modes are:
 
 \fB<mode> := {legacy|anonymous|none|self}\fP
 
-If 
+If
 .B <mode>
-is not present, and 
+is not present, and
 .B authzId
 is given, the proxy always authorizes that identity.
 .B <authorization ID>
-can be 
+can be
 
 \fBu:<user>\fP
 
 \fB[dn:]<DN>\fP
 
-The former is supposed to be expanded by the remote server according 
+The former is supposed to be expanded by the remote server according
 to the authz rules; see
 .BR slapd.conf (5)
 for details.
-In the latter case, whether or not the 
+In the latter case, whether or not the
 .B dn:
 prefix is present, the string must pass DN validation and normalization.
 
-The default mode is 
+The default mode is
 .BR legacy ,
 which implies that the proxy will either perform a simple bind as the
 .I authcDN
@@ -459,7 +459,7 @@ or a SASL bind as the
 .I authcID
 and assert the client's identity when it is not anonymous.
 Direct binds are always proxied.
-The other modes imply that the proxy will always either perform a simple bind 
+The other modes imply that the proxy will always either perform a simple bind
 as the
 .IR authcDN
 or a SASL bind as the
@@ -473,10 +473,10 @@ Other identity assertion modes are
 .BR anonymous
 and
 .BR self ,
-which respectively mean that the 
-.I empty 
-or the 
-.IR client 's 
+which respectively mean that the
+.I empty
+or the
+.IR client 's
 identity
 will be asserted;
 .BR none ,
@@ -486,19 +486,19 @@ or the
 .I authcID
 identity will be asserted.
 For all modes that require the use of the
-.I proxyAuthz 
-control, on the remote server the proxy identity must have appropriate 
+.I proxyAuthz
+control, on the remote server the proxy identity must have appropriate
 .I authzTo
 permissions, or the asserted identities must have appropriate
-.I authzFrom 
-permissions.  Note, however, that the ID assertion feature is mostly 
+.I authzFrom
+permissions.  Note, however, that the ID assertion feature is mostly
 useful when the asserted identities do not exist on the remote server.
 
 Flags can be
 
 \fBoverride,[non\-]prescriptive,proxy\-authz\-[non\-]critical\fP
 
-When the 
+When the
 .B override
 flag is used, identity assertion takes place even when the database
 is authorizing for the identity of the client, i.e. after binding
@@ -513,9 +513,9 @@ flag is used (the default), operations fail with
 for those identities whose assertion is not allowed by the
 .B idassert\-authzFrom
 patterns.
-If the 
+If the
 .B non\-prescriptive
-flag is used, operations are performed anonymously for those identities 
+flag is used, operations are performed anonymously for those identities
 whose assertion is not allowed by the
 .B idassert\-authzFrom
 patterns.
@@ -545,7 +545,7 @@ The value can be specified as
 
 [<d>d][<h>h][<m>m][<s>[s]]
 
-where <d>, <h>, <m> and <s> are respectively treated as days, hours, 
+where <d>, <h>, <m> and <s> are respectively treated as days, hours,
 minutes and seconds.
 If set before any target specification, it affects all targets, unless
 overridden by any per-target directive.
@@ -578,9 +578,9 @@ See
 .TP
 .B network\-timeout <time>
 Sets the network timeout value after which
-.BR poll (2)/ select (2) 
-following a 
-.BR connect (2) 
+.BR poll (2)/ select (2)
+following a
+.BR connect (2)
 returns in case of no activity.
 The value is in seconds, and it can be specified as for
 .BR idle\-timeout .
@@ -665,7 +665,7 @@ It has been obsoleted by the rewriting tools.
 However, both for backward compatibility and for ease of configuration
 when simple suffix massage is required, it has been preserved.
 It wraps the basic rewriting instructions that perform suffix
-massaging.  See the "REWRITING" section for a detailed list 
+massaging.  See the "REWRITING" section for a detailed list
 of the rewrite rules it implies.
 
 .TP
@@ -690,11 +690,11 @@ by the \fBtimelimit\fP parameter or by server-side enforced
 time limits (see \fBtimelimit\fP and \fBlimits\fP in
 .BR slapd.conf (5)
 for details).
-This \fBtimeout\fP parameter controls how long the target can be 
+This \fBtimeout\fP parameter controls how long the target can be
 irresponsive before the operation is aborted.
 Timeout is meaningless for the remaining operations,
 \fBunbind\fP and \fBabandon\fP, which do not imply any response,
-while it is not yet implemented in currently supported \fBextended\fP 
+while it is not yet implemented in currently supported \fBextended\fP
 operations.
 If no operation is specified, the timeout \fBval\fP affects all
 supported operations.
@@ -777,7 +777,7 @@ the database's naming context; it is rewritten back and forth when
 operations are performed towards the target servers.
 What "back and forth" means will be clarified later.
 .LP
-When a search with base "dc=foo,dc=com" is attempted, if the 
+When a search with base "dc=foo,dc=com" is attempted, if the
 scope is "base" it fails with "no such object"; in fact, the
 common root of the two targets (prior to massaging) does not
 exist.
@@ -870,7 +870,7 @@ server will possibly enforce additional restrictions to "foo".
 A string is rewritten according to a set of rules, called a `rewrite
 context'.
 The rules are based on POSIX (''extended'') regular expressions (regex)
-with substring matching; basic variable substitution and map resolution 
+with substring matching; basic variable substitution and map resolution
 of substrings is allowed by specific mechanisms detailed in the following.
 The behavior of pattern matching/substitution can be altered by a set
 of flags.
@@ -909,8 +909,8 @@ of passes, so it can only enforce a stricter limit for a specific rule.
 apply the rule once only (default is recursive)
 .TP
 .B `@'
-stop applying rules in case of match; the current rule is still applied 
-recursively; combine with `:' to apply the current rule only once 
+stop applying rules in case of match; the current rule is still applied
+recursively; combine with `:' to apply the current rule only once
 and then stop.
 .TP
 .B `#'
@@ -933,7 +933,7 @@ uses
 .B
 n
 as return code if the rule matches; the flag does not alter the recursive
-behavior of the rule, so, to have it performed only once, it must be used 
+behavior of the rule, so, to have it performed only once, it must be used
 in combination with `:', e.g.
 .B `:U{16}'
 returns the value `16' after exactly one execution of the rule, if the
@@ -1016,7 +1016,7 @@ parameter dereferencing; <name> must refer to an existing parameter;
 the idea is to make some run-time parameters set by the system
 available to the rewrite engine, as the client host name, the bind DN
 if any, constant parameters initialized at config time, and so on;
-no parameter is currently set by either 
+no parameter is currently set by either
 .B back\-ldap
 or
 .BR back\-meta ,
@@ -1025,7 +1025,7 @@ by using the
 .B rewriteParam
 directive.
 .LP
-Substitution escaping has been delegated to the `%' symbol, 
+Substitution escaping has been delegated to the `%' symbol,
 which is used instead of `\e' in string substitution patterns
 because `\e' is already escaped by slapd's low level parsing routines;
 as a consequence, regex escaping requires two `\e' symbols,
@@ -1050,7 +1050,7 @@ client \-> server:
 .LP
 .RS
 .nf
-(default)            if defined and no specific context 
+(default)            if defined and no specific context
                      is available
 bindDN               bind
 searchBase           search
@@ -1074,7 +1074,7 @@ server \-> client:
 .RS
 .nf
 searchResult         search (only if defined; no default;
-                     acts on DN and DN-syntax attributes 
+                     acts on DN and DN-syntax attributes
                      of search results)
 searchAttrDN         search AVA
 matchedDN            all ops (only if applicable)
@@ -1114,9 +1114,9 @@ command `%{$paramName}'.
 Sets the maximum number of total rewriting passes that can be
 performed in a single rewrite operation (to avoid loops).
 A safe default is set to 100; note that reaching this limit is still
-treated as a success; recursive invocation of rules is simply 
+treated as a success; recursive invocation of rules is simply
 interrupted.
-The count applies to the rewriting operation as a whole, not 
+The count applies to the rewriting operation as a whole, not
 to any single rule; an optional per-rule limit can be set.
 This limit is overridden by setting specific per-rule limits
 with the `M{n}' flag.
@@ -1170,18 +1170,18 @@ rewriteRule     ".*" "%{>addBlanks(%0)}" ":"
 .\" # /etc/passwd for gecos (I know it's nearly useless,
 .\" # but it is there just as a guideline to implementing
 .\" # custom maps).
-.\" # Note the `I' flag that leaves `uid=username' in place 
+.\" # Note the `I' flag that leaves `uid=username' in place
 .\" # if `username' does not have a valid account, and the
 .\" # `:' that forces the rule to be processed exactly once.
 .\" rewriteContext  uid2Gecos
 .\" rewriteRule     "(.*)uid=([a-z0-9]+),(.+)"
 .\"                 "%1cn=%2{xpasswd},%3"      "I:"
-.\" 
+.\"
 .\" # Finally, in a bind, if one uses a `uid=username' DN,
 .\" # it is rewritten in `cn=name surname' if possible.
 .\" rewriteContext  bindDN
 .\" rewriteRule     ".*" "%{>addBlanks(%{>uid2Gecos(%0)})}" ":"
-.\" 
+.\"
 # Rewrite the search base according to `default' rules.
 rewriteContext  searchBase alias default
 
@@ -1193,7 +1193,7 @@ rewriteRule     "(.*[^ ]?)[ ]?dc=OpenLDAP,[ ]?dc=org"
 
 # Bind with email instead of full DN: we first need
 # an ldap map that turns attributes into a DN (the
-# argument used when invoking the map is appended to 
+# argument used when invoking the map is appended to
 # the URI and acts as the filter portion)
 rewriteMap ldap attr2dn "ldap://host/dc=my,dc=org?dn?sub"
 
@@ -1220,9 +1220,9 @@ rewriteRule     ".+" "%{&&binddn(%0)}%0" ":"
 # if an appropriate DN is bound.
 # To do this, in the first rule the bound DN is
 # dereferenced, while the filter is decomposed in a
-# prefix, in the value of the `uid=<arg>' AVA, and 
-# in a suffix. A tag `<>' is appended to the DN. 
-# If the DN refers to an entry in the `ou=admin' subtree, 
+# prefix, in the value of the `uid=<arg>' AVA, and
+# in a suffix. A tag `<>' is appended to the DN.
+# If the DN refers to an entry in the `ou=admin' subtree,
 # the filter is rewritten OR-ing the `uid=<arg>' with
 # `cn=<arg>'; otherwise it is left as is. This could be
 # useful, for instance, to allow apache's auth_ldap-1.4
@@ -1285,9 +1285,9 @@ returned by the
 operation is honored, which is performed by the frontend.
 
 .SH PROXY CACHE OVERLAY
-The proxy cache overlay 
+The proxy cache overlay
 allows caching of LDAP search requests (queries) in a local database.
-See 
+See
 .BR slapo\-pcache (5)
 for details.
 

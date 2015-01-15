@@ -56,7 +56,7 @@ slap_compose_sync_cookie(
 				len += sprintf( cookiestr+len, ",sid=%03x", sid );
 			}
 		}
-		ber_str2bv_x( cookiestr, len, 1, cookie, 
+		ber_str2bv_x( cookiestr, len, 1, cookie,
 			op ? op->o_tmpmemctx : NULL );
 	} else {
 		char *ptr;

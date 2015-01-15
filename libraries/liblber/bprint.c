@@ -90,7 +90,7 @@ void ber_error_print( LDAP_CONST char *data )
 BER_LOG_PRINT_FN ber_pvt_log_print = ber_error_print;
 
 /*
- * lber log 
+ * lber log
  */
 
 int ber_pvt_log_output(
@@ -119,7 +119,7 @@ int ber_pvt_log_output(
 	va_end(vl);
 	return 1;
 }
-	
+
 int ber_pvt_log_printf( int errlvl, int loglvl, const char *fmt, ... )
 {
 	char buf[1024];
@@ -193,7 +193,7 @@ ber_bprint(
 	/* in case len is zero */
 	line[0] = '\n';
 	line[1] = '\0';
-	
+
 	for ( i = 0 ; i < len ; i++ ) {
 		int n = i % 16;
 		unsigned off;
@@ -216,7 +216,7 @@ ber_bprint(
 		off = BP_OFFSET + n*3 + ((n >= 8)?1:0);
 		line[off] = hexdig[0x0f & ( data[i] >> 4 )];
 		line[off+1] = hexdig[0x0f & data[i]];
-		
+
 		off = BP_GRAPH + n + ((n >= 8)?1:0);
 
 		if ( isprint( (unsigned char) data[i] )) {

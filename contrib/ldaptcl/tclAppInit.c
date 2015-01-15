@@ -1,4 +1,4 @@
-/* 
+/*
  * tclAppInit.c --
  *
  *	Provides a default version of the main program and Tcl_AppInit
@@ -26,7 +26,7 @@ int *tclDummyMathPtr = (int *) matherr;
 #ifdef TCL_TEST
 EXTERN int		Tcltest_Init _ANSI_ARGS_((Tcl_Interp *interp));
 #endif /* TCL_TEST */
-
+
 /*
  *----------------------------------------------------------------------
  *
@@ -56,7 +56,7 @@ main(argc, argv)
 #endif
     return 0;			/* Needed only to prevent compiler warning. */
 }
-
+
 /*
  *----------------------------------------------------------------------
  *
@@ -102,7 +102,7 @@ Tcl_AppInit(interp)
 #ifdef USE_TCLX
     if (Tclx_Init (interp) == TCL_ERROR) {
 	return TCL_ERROR;
-    }   
+    }
     Tcl_StaticPackage (interp, "Tclx", Tclx_Init, NULL);
 #endif
 

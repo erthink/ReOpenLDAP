@@ -95,16 +95,16 @@ dupent_parseCtrl (
 
 	/*
 
-   DuplicateEntryRequest ::= SEQUENCE { 
-        AttributeDescriptionList, -- from [RFC2251] 
-        PartialApplicationAllowed BOOLEAN DEFAULT TRUE } 
+   DuplicateEntryRequest ::= SEQUENCE {
+        AttributeDescriptionList, -- from [RFC2251]
+        PartialApplicationAllowed BOOLEAN DEFAULT TRUE }
 
-        AttributeDescriptionList ::= SEQUENCE OF 
-                AttributeDescription 
-    
-        AttributeDescription ::= LDAPString 
-    
-        attributeDescription = AttributeType [ ";" <options> ] 
+        AttributeDescriptionList ::= SEQUENCE OF
+                AttributeDescription
+
+        AttributeDescription ::= LDAPString
+
+        attributeDescription = AttributeType [ ";" <options> ]
 
 	 */
 
@@ -253,10 +253,10 @@ dupent_response_done( Operation *op, SlapReply *rs )
 
 	/*
 
-      DuplicateEntryResponseDone ::= SEQUENCE { 
-         resultCode,     -- From [RFC2251] 
-         errorMessage    [0] LDAPString OPTIONAL, 
-         attribute       [1] AttributeDescription OPTIONAL } 
+      DuplicateEntryResponseDone ::= SEQUENCE {
+         resultCode,     -- From [RFC2251]
+         errorMessage    [0] LDAPString OPTIONAL,
+         attribute       [1] AttributeDescription OPTIONAL }
 
 	 */
 
@@ -464,7 +464,7 @@ dupent_response( Operation *op, SlapReply *rs )
 	if ( dc->dc_skip ) {
 		return SLAP_CB_CONTINUE;
 	}
-	
+
 	switch ( rs->sr_type ) {
 	case REP_RESULT:
 		return dupent_response_done( op, rs );
@@ -517,7 +517,7 @@ dupent_op_search( Operation *op, SlapReply *rs )
 		sc->sc_next = op->o_callback->sc_next;
                 op->o_callback->sc_next = sc;
 	}
-	
+
 	return SLAP_CB_CONTINUE;
 }
 

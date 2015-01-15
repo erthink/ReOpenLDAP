@@ -41,12 +41,12 @@ class LDAPMessageQueue{
 
         /**
          * This method reads exactly one Message from the results of a
-         * Request. 
+         * Request.
          * @throws LDAPException
          * @return A pointer to an object of one of the classes that were
          *          derived from LDAPMsg. The user has to cast it to the
          *          correct type (e.g. LDAPResult or LDAPSearchResult)
-         */           
+         */
         LDAPMsg* getNext();
 
         /**
@@ -62,8 +62,8 @@ class LDAPMessageQueue{
          * The referral chasing algorithm needs this method to see the
          * currently active requests.
          */
-        LDAPRequestStack* getRequestStack(); 
-    
+        LDAPRequestStack* getRequestStack();
+
     private :
         LDAPRequestStack m_activeReq;
         LDAPRequestList m_issuedReq;

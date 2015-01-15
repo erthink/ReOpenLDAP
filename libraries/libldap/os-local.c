@@ -14,13 +14,13 @@
  * <http://www.OpenLDAP.org/license.html>.
  */
 /* Portions Copyright (c) 1995 Regents of the University of Michigan.
- * All rights reserved. 
+ * All rights reserved.
  */
 /* Portions (C) Copyright PADL Software Pty Ltd. 1999
- * Redistribution and use in source and binary forms, with or without 
+ * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that this notice is preserved
  * and that due credit is given to PADL Software Pty Ltd. This software
- * is provided ``as is'' without express or implied warranty.  
+ * is provided ``as is'' without express or implied warranty.
  */
 
 #include "portable.h"
@@ -79,7 +79,7 @@ ldap_pvt_ndelay_on(LDAP *ld, int fd)
 	oslocal_debug(ld, "ldap_ndelay_on: %d\n",fd,0,0);
 	return ber_pvt_socket_set_nonblock( fd, 1 );
 }
-   
+
 static int
 ldap_pvt_ndelay_off(LDAP *ld, int fd)
 {
@@ -247,7 +247,7 @@ sendcred:
 	}
 
 	if ( errno != EINPROGRESS && errno != EWOULDBLOCK ) return -1;
-	
+
 #ifdef notyet
 	if ( async ) return -2;
 #endif
@@ -292,7 +292,7 @@ sendcred:
 			return rc;
 		}
 #endif
-		do { 
+		do {
 			FD_ZERO(&wfds);
 			FD_SET(s, &wfds );
 			rc = select( ldap_int_tblsize, z, &wfds, z, opt_tv ? &tv : NULL );

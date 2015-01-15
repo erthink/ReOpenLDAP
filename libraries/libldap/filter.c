@@ -592,7 +592,7 @@ put_simple_filter(
 	case ':':
 		/* RFC 4515 extensible filters are off the form:
 		 *		type [:dn] [:rule] := value
-		 * or	[:dn]:rule := value		
+		 * or	[:dn]:rule := value
 		 */
 		ftype = LDAP_FILTER_EXT;
 		*s = '\0';
@@ -619,7 +619,7 @@ put_simple_filter(
 					  rule = dn;
 					  dn = NULL;
 					}
-				
+
 				} else {
 					/* two colons */
 					*rule++ = '\0';
@@ -671,7 +671,7 @@ put_simple_filter(
 					LDAP_FILTER_EXT_DNATTRS, (ber_int_t) 1 );
 			}
 
-			if( rc != -1 ) { 
+			if( rc != -1 ) {
 				rc = ber_printf( ber, /*"{"*/ "N}" );
 			}
 		}
@@ -936,17 +936,17 @@ int
 ldap_put_vrFilter( BerElement *ber, const char *str_in )
 {
 	int rc =0;
-	
+
 	if ( ber_printf( ber, "{" /*"}"*/ ) == -1 ) {
 		rc = -1;
 	}
-	
+
 	rc = put_vrFilter( ber, str_in );
 
 	if ( ber_printf( ber, /*"{"*/ "N}" ) == -1 ) {
 		rc = -1;
 	}
-	
+
 	return rc;
 }
 
@@ -1023,7 +1023,7 @@ put_simple_vrFilter(
 		/* According to ValuesReturnFilter control definition
 		 * extensible filters are off the form:
 		 *		type [:rule] := value
-		 * or	:rule := value		
+		 * or	:rule := value
 		 */
 		ftype = LDAP_FILTER_EXT;
 		*s = '\0';
@@ -1075,7 +1075,7 @@ put_simple_vrFilter(
 				}
 			}
 
-			if( rc != -1 ) { 
+			if( rc != -1 ) {
 				rc = ber_printf( ber, /*"{"*/ "N}" );
 			}
 		}

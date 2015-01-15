@@ -145,7 +145,7 @@ tlso_ca_list( char * bundle, char * dir )
 static int
 tlso_init( void )
 {
-	struct ldapoptions *lo = LDAP_INT_GLOBAL_OPT();   
+	struct ldapoptions *lo = LDAP_INT_GLOBAL_OPT();
 #ifdef HAVE_EBCDIC
 	{
 		char *file = LDAP_STRDUP( lo->ldo_tls_randfile );
@@ -173,7 +173,7 @@ tlso_init( void )
 static void
 tlso_destroy( void )
 {
-	struct ldapoptions *lo = LDAP_INT_GLOBAL_OPT();   
+	struct ldapoptions *lo = LDAP_INT_GLOBAL_OPT();
 
 	EVP_cleanup();
 	ERR_remove_state(0);
@@ -358,7 +358,7 @@ tlso_ctx_init( struct ldapoptions *lo, struct ldaptls *lt, int is_server )
 		if ( lo->ldo_tls_crlcheck == LDAP_OPT_X_TLS_CRL_PEER ) {
 			X509_STORE_set_flags( x509_s, X509_V_FLAG_CRL_CHECK );
 		} else if ( lo->ldo_tls_crlcheck == LDAP_OPT_X_TLS_CRL_ALL ) {
-			X509_STORE_set_flags( x509_s, 
+			X509_STORE_set_flags( x509_s,
 					X509_V_FLAG_CRL_CHECK | X509_V_FLAG_CRL_CHECK_ALL  );
 		}
 	}
@@ -422,12 +422,12 @@ tlso_session_errmsg( tls_session *sess, int rc, char *buf, size_t len )
 	rc = ERR_peek_error();
 	if ( rc ) {
 		ERR_error_string_n( rc, err, sizeof(err) );
-		if ( ( ERR_GET_LIB(rc) == ERR_LIB_SSL ) && 
+		if ( ( ERR_GET_LIB(rc) == ERR_LIB_SSL ) &&
 				( ERR_GET_REASON(rc) == SSL_R_CERTIFICATE_VERIFY_FAILED ) ) {
 			int certrc = SSL_get_verify_result(s);
 			certerr = (char *)X509_verify_cert_error_string(certrc);
 		}
-		snprintf(buf, len, "%s%s%s%s", err, certerr ? " (" :"", 
+		snprintf(buf, len, "%s%s%s%s", err, certerr ? " (" :"",
 				certerr ? certerr : "", certerr ?  ")" : "" );
 		return buf;
 	}
@@ -444,7 +444,7 @@ tlso_session_my_dn( tls_session *sess, struct berval *der_dn )
 	x = SSL_get_certificate( s );
 
 	if (!x) return LDAP_INVALID_CREDENTIALS;
-	
+
 	xn = X509_get_subject_name(x);
 	der_dn->bv_len = i2d_X509_NAME( xn, NULL );
 	der_dn->bv_val = xn->bytes->data;
@@ -522,12 +522,12 @@ tlso_session_chkhost( LDAP *ld, tls_session *sess, const char *name_in )
 #ifdef LDAP_PF_INET6
 	if (inet_pton(AF_INET6, name, &addr)) {
 		ntype = IS_IP6;
-	} else 
+	} else
 #endif
 	if ((ptr = strrchr(name, '.')) && isdigit((unsigned char)ptr[1])) {
 		if (inet_aton(name, (struct in_addr *)&addr)) ntype = IS_IP4;
 	}
-	
+
 	i = X509_get_ext_by_NID(x, NID_subject_alt_name, -1);
 	if (i >= 0) {
 		X509_EXTENSION *ex;
@@ -654,7 +654,7 @@ no_cn:
 
 		if( ret == LDAP_LOCAL_ERROR ) {
 			Debug( LDAP_DEBUG_ANY, "TLS: hostname (%s) does not match "
-				"common name in certificate (%.*s).\n", 
+				"common name in certificate (%.*s).\n",
 				name, cn->length, cn->data );
 			ret = LDAP_CONNECT_ERROR;
 			if ( ld->ld_error ) {
@@ -710,7 +710,7 @@ tlso_bio_read( BIO *b, char *buf, int len )
 {
 	struct tls_data		*p;
 	int			ret;
-		
+
 	if ( buf == NULL || len <= 0 ) return 0;
 
 	p = (struct tls_data *)b->ptr;
@@ -737,9 +737,9 @@ tlso_bio_write( BIO *b, const char *buf, int len )
 {
 	struct tls_data		*p;
 	int			ret;
-	
+
 	if ( buf == NULL || len <= 0 ) return 0;
-	
+
 	p = (struct tls_data *)b->ptr;
 
 	if ( p == NULL || p->sbiod == NULL ) {
@@ -780,7 +780,7 @@ tlso_bio_puts( BIO *b, const char *str )
 {
 	return tlso_bio_write( b, str, strlen( str ) );
 }
-	
+
 static BIO_METHOD tlso_bio_method =
 {
 	( 100 | 0x400 ),		/* it's a source/sink BIO */
@@ -806,7 +806,7 @@ tlso_sb_setup( Sockbuf_IO_Desc *sbiod, void *arg )
 	if ( p == NULL ) {
 		return -1;
 	}
-	
+
 	p->session = arg;
 	p->sbiod = sbiod;
 	bio = BIO_new( &tlso_bio_method );
@@ -820,7 +820,7 @@ static int
 tlso_sb_remove( Sockbuf_IO_Desc *sbiod )
 {
 	struct tls_data		*p;
-	
+
 	assert( sbiod != NULL );
 	assert( sbiod->sbiod_pvt != NULL );
 
@@ -835,7 +835,7 @@ static int
 tlso_sb_close( Sockbuf_IO_Desc *sbiod )
 {
 	struct tls_data		*p;
-	
+
 	assert( sbiod != NULL );
 	assert( sbiod->sbiod_pvt != NULL );
 
@@ -848,12 +848,12 @@ static int
 tlso_sb_ctrl( Sockbuf_IO_Desc *sbiod, int opt, void *arg )
 {
 	struct tls_data		*p;
-	
+
 	assert( sbiod != NULL );
 	assert( sbiod->sbiod_pvt != NULL );
 
 	p = (struct tls_data *)sbiod->sbiod_pvt;
-	
+
 	if ( opt == LBER_SB_OPT_GET_SSL ) {
 		*((tlso_session **)arg) = p->session;
 		return 1;
@@ -863,7 +863,7 @@ tlso_sb_ctrl( Sockbuf_IO_Desc *sbiod, int opt, void *arg )
 			return 1;
 		}
 	}
-	
+
 	return LBER_SBIOD_CTRL_NEXT( sbiod, opt, arg );
 }
 

@@ -87,12 +87,12 @@ static LDAP_SLIST_HEAD(ControlsList, slap_control) controls_list
  */
 /*
  * NOTE: initialize num_known_controls to 1 so that cid = 0 always
- * addresses an undefined control; this allows to safely test for 
- * well known controls even if they are not registered, e.g. if 
- * they get moved to modules.  An example is sc_LDAPsync, which 
- * is implemented in the syncprov overlay and thus, if configured 
- * as dynamic module, may not be registered.  One side effect is that 
- * slap_known_controls[0] == NULL, so it should always be used 
+ * addresses an undefined control; this allows to safely test for
+ * well known controls even if they are not registered, e.g. if
+ * they get moved to modules.  An example is sc_LDAPsync, which
+ * is implemented in the syncprov overlay and thus, if configured
+ * as dynamic module, may not be registered.  One side effect is that
+ * slap_known_controls[0] == NULL, so it should always be used
  * starting from 1.
  * FIXME: should we define the "undefined control" oid?
  */
@@ -536,7 +536,7 @@ slap_global_control( Operation *op, const char *oid, int *cid )
 	if ( ctrl == NULL ) {
 		/* should not be reachable */
 		Debug( LDAP_DEBUG_ANY,
-			"slap_global_control: unrecognized control: %s\n",      
+			"slap_global_control: unrecognized control: %s\n",
 			oid, 0, 0 );
 		return LDAP_CONTROL_NOT_FOUND;
 	}
@@ -552,7 +552,7 @@ slap_global_control( Operation *op, const char *oid, int *cid )
 
 #if 0
 	Debug( LDAP_DEBUG_TRACE,
-		"slap_global_control: unavailable control: %s\n",      
+		"slap_global_control: unavailable control: %s\n",
 		oid, 0, 0 );
 #endif
 
@@ -1142,14 +1142,14 @@ static int parseProxyAuthz (
 		: SLAP_CONTROL_NONCRITICAL;
 
 	Debug( LDAP_DEBUG_ARGS,
-		"parseProxyAuthz: conn %lu authzid=\"%s\"\n", 
+		"parseProxyAuthz: conn %lu authzid=\"%s\"\n",
 		op->o_connid,
 		ctrl->ldctl_value.bv_len ?  ctrl->ldctl_value.bv_val : "anonymous",
 		0 );
 
 	if ( BER_BVISEMPTY( &ctrl->ldctl_value )) {
 		Debug( LDAP_DEBUG_TRACE,
-			"parseProxyAuthz: conn=%lu anonymous\n", 
+			"parseProxyAuthz: conn=%lu anonymous\n",
 			op->o_connid, 0, 0 );
 
 		/* anonymous */
@@ -1179,7 +1179,7 @@ static int parseProxyAuthz (
 	}
 
 	Debug( LDAP_DEBUG_TRACE,
-		"parseProxyAuthz: conn=%lu \"%s\"\n", 
+		"parseProxyAuthz: conn=%lu \"%s\"\n",
 		op->o_connid,
 		dn.bv_len ? dn.bv_val : "(NULL)", 0 );
 
@@ -1299,7 +1299,7 @@ static int parsePagedResults (
     single page.
 
 	 * NOTE: this assumes that the op->ors_slimit be set
-	 * before the controls are parsed.     
+	 * before the controls are parsed.
 	 */
 
 	if ( op->ors_slimit > 0 && size >= op->ors_slimit ) {
@@ -1576,7 +1576,7 @@ static int parseValuesReturnFilter (
 		} else {
 			send_ldap_result( op, rs );
 		}
-		if( op->o_vrFilter != NULL) vrFilter_free( op, op->o_vrFilter ); 
+		if( op->o_vrFilter != NULL) vrFilter_free( op, op->o_vrFilter );
 	}
 #ifdef LDAP_DEBUG
 	else {
@@ -1739,7 +1739,7 @@ static int parseSearchOptions (
 
 		/* Ignore */
 		Debug( LDAP_DEBUG_TRACE,
-			"searchOptions: conn=%lu unrecognized flag(s) 0x%x (non-critical)\n", 
+			"searchOptions: conn=%lu unrecognized flag(s) 0x%x (non-critical)\n",
 			op->o_connid, (unsigned)search_flags, 0 );
 
 		return LDAP_SUCCESS;
@@ -2008,7 +2008,7 @@ slap_ctrl_session_tracking_add(
 
 	ber_init2( ber, NULL, LBER_USE_DER );
 
-	ber_printf( ber, "{OOOO}", ip, name, &oid, id ); 
+	ber_printf( ber, "{OOOO}", ip, name, &oid, id );
 
 	if ( ber_flatten2( ber, &ctrl->ldctl_value, 0 ) == -1 ) {
 		rs->sr_err = LDAP_OTHER;

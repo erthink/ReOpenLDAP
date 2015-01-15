@@ -7,7 +7,7 @@ slapo-lastmod \- Last Modification overlay
 ETCDIR/slapd.conf
 .SH DESCRIPTION
 .LP
-The 
+The
 .B lastmod
 overlay creates a service entry rooted at the suffix of the database
 it's stacked onto, which holds the DN, the modification type,
@@ -17,7 +17,7 @@ The lastmod overlay cannot be used when the "lastmod" feature
 is disabled, i.e. "lastmod off" is used.
 .P
 All operations targeted at the DN of the lastmod entry are rejected,
-except reads, i.e. searches with 
+except reads, i.e. searches with
 .B base
 scope.
 Regular operations are ignored, unless they result in writing; then,
@@ -25,7 +25,7 @@ in case of success, the lastmod entry is updated accordingly,
 if possible.
 
 .SH CONFIGURATION
-These 
+These
 .B slapd.conf
 configuration options apply to the lastmod overlay. They must appear
 after the
@@ -47,7 +47,7 @@ This is useful, for instance, to inhibit the overlay from keeping track
 of large bulk loads or deletions.
 
 .SH OBJECT CLASS
-The 
+The
 .B lastmod
 overlay depends on the
 .B lastmod
@@ -163,7 +163,7 @@ lastmod-rdnvalue "Last Modification"
 .LP
 
 .SH BUGS
-It is unclear whether this overlay can safely interoperate 
+It is unclear whether this overlay can safely interoperate
 with other overlays.
 If the underlying backend does not implement entry_get/entry_release
 handlers, modrdn update can become tricky.
@@ -174,7 +174,7 @@ So far, the OIDs for the schema haven't been assigned yet.
 .P
 This module was written in 2004 by Pierangelo Masarati in fulfillment
 of requirements from SysNet s.n.c.; this man page has been copied
-from 
+from
 .BR slapo-ppolicy (5),
 and most of the overlays ever written are copied from Howard Chu's
 first overlays.
@@ -182,4 +182,4 @@ first overlays.
 .B OpenLDAP
 is developed and maintained by The OpenLDAP Project (http://www.openldap.org/).
 .B OpenLDAP
-is derived from University of Michigan LDAP 3.3 Release.  
+is derived from University of Michigan LDAP 3.3 Release.

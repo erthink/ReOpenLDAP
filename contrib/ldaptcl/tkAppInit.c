@@ -1,4 +1,4 @@
-/* 
+/*
  * tkXAppInit.c --
  *
  * Provides a default version of the Tcl_AppInit procedure for use with
@@ -30,7 +30,7 @@
 EXTERN int matherr ();
 int (*tclDummyMathPtr)() = matherr;
 
-
+
 /*-----------------------------------------------------------------------------
  * main --
  *
@@ -55,7 +55,7 @@ main (argc, argv)
 #endif
     return 0;                   /* Needed only to prevent compiler warning. */
 }
-
+
 /*-----------------------------------------------------------------------------
  * Tcl_AppInit --
  *

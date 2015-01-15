@@ -54,8 +54,8 @@ ldap_int_thread_destroy( void )
 	return 0;
 }
 
-int 
-ldap_pvt_thread_create( ldap_pvt_thread_t * thread, 
+int
+ldap_pvt_thread_create( ldap_pvt_thread_t * thread,
 	int detach,
 	void *(*start_routine)( void *),
 	void *arg)
@@ -76,14 +76,14 @@ ldap_pvt_thread_create( ldap_pvt_thread_t * thread,
 	}
 	return rc;
 }
-	
-void 
+
+void
 ldap_pvt_thread_exit( void *retval )
 {
 	_endthread( );
 }
 
-int 
+int
 ldap_pvt_thread_join( ldap_pvt_thread_t thread, void **thread_return )
 {
 	DWORD status;
@@ -103,20 +103,20 @@ ldap_pvt_thread_join( ldap_pvt_thread_t thread, void **thread_return )
 	return status == WAIT_FAILED ? -1 : 0;
 }
 
-int 
+int
 ldap_pvt_thread_kill( ldap_pvt_thread_t thread, int signo )
 {
 	return 0;
 }
 
-int 
+int
 ldap_pvt_thread_yield( void )
 {
 	Sleep( 0 );
 	return 0;
 }
 
-int 
+int
 ldap_pvt_thread_cond_init( ldap_pvt_thread_cond_t *cond )
 {
 	*cond = CreateEvent( NULL, FALSE, FALSE, NULL );
@@ -130,15 +130,15 @@ ldap_pvt_thread_cond_destroy( ldap_pvt_thread_cond_t *cv )
 	return( 0 );
 }
 
-int 
+int
 ldap_pvt_thread_cond_signal( ldap_pvt_thread_cond_t *cond )
 {
 	SetEvent( *cond );
 	return( 0 );
 }
 
-int 
-ldap_pvt_thread_cond_wait( ldap_pvt_thread_cond_t *cond, 
+int
+ldap_pvt_thread_cond_wait( ldap_pvt_thread_cond_t *cond,
 	ldap_pvt_thread_mutex_t *mutex )
 {
 	SignalObjectAndWait( *mutex, *cond, INFINITE, FALSE );
@@ -154,21 +154,21 @@ ldap_pvt_thread_cond_broadcast( ldap_pvt_thread_cond_t *cond )
 	return( 0 );
 }
 
-int 
+int
 ldap_pvt_thread_mutex_init( ldap_pvt_thread_mutex_t *mutex )
 {
 	*mutex = CreateMutex( NULL, 0, NULL );
 	return ( 0 );
 }
 
-int 
+int
 ldap_pvt_thread_mutex_destroy( ldap_pvt_thread_mutex_t *mutex )
 {
 	CloseHandle( *mutex );
-	return ( 0 );	
+	return ( 0 );
 }
 
-int 
+int
 ldap_pvt_thread_mutex_lock( ldap_pvt_thread_mutex_t *mutex )
 {
 	DWORD status;
@@ -176,7 +176,7 @@ ldap_pvt_thread_mutex_lock( ldap_pvt_thread_mutex_t *mutex )
 	return status == WAIT_FAILED ? -1 : 0;
 }
 
-int 
+int
 ldap_pvt_thread_mutex_unlock( ldap_pvt_thread_mutex_t *mutex )
 {
 	ReleaseMutex( *mutex );

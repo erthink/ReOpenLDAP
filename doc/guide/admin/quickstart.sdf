@@ -57,7 +57,7 @@ name of the release.
 {{F:README}} and {{F:INSTALL}} documents provided with the distribution.
 The {{F:COPYRIGHT}} and {{F:LICENSE}} provide information on
 acceptable use, copying, and limitation of warranty of OpenLDAP
-Software. 
+Software.
 
 .{{S: }}
 . You should also review other chapters of this document.
@@ -123,7 +123,7 @@ be skipped.
 +{{B:Install the software}}.
 
 . You are now ready to install the software; this usually requires
-{{super-user}} privileges: 
+{{super-user}} privileges:
 
 ..{{EX:su root -c 'make install'}}
 
@@ -240,7 +240,7 @@ your directory.
 
 . Be sure to replace {{EX:<MY-DOMAIN>}} and {{EX:<COM>}} with the
 appropriate domain components of your domain name.  You will be
-prompted for the "{{EX:secret}}" specified in {{F:slapd.conf}}. 
+prompted for the "{{EX:secret}}" specified in {{F:slapd.conf}}.
 For example, for {{EX:example.com}}, use:
 
 ..{{EX:ldapadd -x -D "cn=Manager,dc=example,dc=com" -W -f example.ldif}}
@@ -254,7 +254,7 @@ this document.
 .{{S: }}
 +{{B:See if it works}}.
 
-. Now we're ready to verify the added entries are in your directory.  
+. Now we're ready to verify the added entries are in your directory.
 You can use any LDAP client to do this, but our example uses the
 {{ldapsearch}}(1) tool.  Remember to replace {{EX:dc=example,dc=com}}
 with the correct values for your site:

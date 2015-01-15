@@ -75,13 +75,13 @@ olcAttributeTypes: {1}( id-at-xMLPrivilegeInfo NAME 'xmlPrivilegeInfo' DESC 'X
  .509 XML privilege information attribute' SYNTAX 1.3.6.1.4.1.1466.115.121.1.1
  5 )
 olcAttributeTypes: {2}( id-at-attributeCertificate NAME 'attributeCertificateA
- ttribute' DESC 'X.509 Attribute certificate attribute, use ;binary' EQUALITY 
+ ttribute' DESC 'X.509 Attribute certificate attribute, use ;binary' EQUALITY
  attributeCertificateExactMatch SYNTAX AttributeCertificate )
 olcAttributeTypes: {3}( id-at-aACertificate NAME 'aACertificate' DESC 'X.509 A
  A certificate attribute, use ;binary' EQUALITY attributeCertificateExactMatch
   SYNTAX AttributeCertificate )
 olcAttributeTypes: {4}( id-at-attributeDescriptorCertificate NAME 'attributeDe
- scriptorCertificate' DESC 'X.509 Attribute descriptor certificate attribute, 
+ scriptorCertificate' DESC 'X.509 Attribute descriptor certificate attribute,
  use ;binary' EQUALITY attributeCertificateExactMatch SYNTAX AttributeCertific
  ate )
 olcAttributeTypes: {5}( id-at-attributeCertificateRevocationList NAME 'attribu
@@ -90,7 +90,7 @@ olcAttributeTypes: {5}( id-at-attributeCertificateRevocationList NAME 'attribu
  xactMatch, not implemented yet' )
 olcAttributeTypes: {6}( id-at-attributeAuthorityRevocationList NAME 'attribute
  AuthorityRevocationList' DESC 'X.509 AA certificate revocation list attribute
- , use ;binary' SYNTAX CertificateList X-EQUALITY 'certificateListExactMatch, 
+ , use ;binary' SYNTAX CertificateList X-EQUALITY 'certificateListExactMatch,
  not implemented yet' )
 olcAttributeTypes: {7}( id-at-delegationPath NAME 'delegationPath' DESC 'X.509
   Delegation path attribute, use ;binary' SYNTAX AttCertPath )

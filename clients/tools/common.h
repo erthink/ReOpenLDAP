@@ -16,7 +16,7 @@
 /* ACKNOWLEDGEMENTS:
  * This file was initially created by Hallvard B. Furuseth based (in
  * part) upon argument parsing code for individual tools located in
- * this directory. 
+ * this directory.
  */
 
 #ifndef _CLIENT_TOOLS_COMMON_H_

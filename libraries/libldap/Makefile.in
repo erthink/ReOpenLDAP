@@ -43,7 +43,7 @@ OBJS	= bind.lo open.lo result.lo error.lo compare.lo search.lo \
 	turn.lo ppolicy.lo dds.lo txn.lo ldap_sync.lo stctrl.lo \
 	assertion.lo deref.lo ldif.lo fetch.lo
 
-LDAP_INCDIR= ../../include       
+LDAP_INCDIR= ../../include
 LDAP_LIBDIR= ../../libraries
 
 LIB_DEFS = -DLDAP_LIBRARY

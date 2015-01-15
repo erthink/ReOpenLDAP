@@ -103,7 +103,7 @@ int uccanondecomp(const unsigned long *in, int inlen, unsigned long **out,
   contains the fully decomposed string in canonical order.
 
   If the "outlen" parameter comes back with a value > 0, then the string
-  returned in the "out" parameter needs to be deallocated by the caller. 
+  returned in the "out" parameter needs to be deallocated by the caller.
 
 -----------------------------------------------------------------------------
 

@@ -22,7 +22,7 @@ class LDAPAsynConnection;
  */
 class LDAPException : public std::runtime_error
 {
-		
+
     public :
         /**
          * Constructs a LDAPException-object from the parameters
@@ -30,9 +30,9 @@ class LDAPException : public std::runtime_error
          * @param err_string    An addional error message for the error
          *                      that happend (optional)
          */
-        LDAPException(int res_code, 
+        LDAPException(int res_code,
                 const std::string& err_string=std::string()) throw();
-		
+
         /**
          * Constructs a LDAPException-object from the error state of a
          * LDAPAsynConnection-object
@@ -56,13 +56,13 @@ class LDAPException : public std::runtime_error
          *          code .
          */
         const std::string& getResultMsg() const throw();
-        
+
         /**
          * @return The addional error message of the error (if it was set)
          */
         const std::string& getServerMsg() const throw();
 
-        
+
         virtual const char* what() const throw();
 
         /**

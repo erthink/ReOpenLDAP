@@ -26,7 +26,7 @@ LdifWriter::LdifWriter( std::ostream& output, int version ) :
             throw( std::runtime_error(err.str()) );
         }
     }
-    
+
 }
 
 void LdifWriter::writeRecord(const LDAPEntry& le)
@@ -63,14 +63,14 @@ void LdifWriter::writeIncludeRecord( const std::string& target )
 {
     DEBUG(LDAP_DEBUG_TRACE, "writeIncludeRecord: " << target << std::endl);
     std::string scheme = target.substr( 0, sizeof("file:")-1 );
-    
+
     if ( m_version == 1 )
     {
         std::ostringstream err;
         err << "\"include\" not allowed in LDIF version 1.";
         throw( std::runtime_error(err.str()) );
     }
-    
+
     if ( m_addSeparator )
     {
         m_ldifstream << std::endl;
@@ -92,7 +92,7 @@ void LdifWriter::breakline( const std::string &line, std::ostream &out )
     std::string::size_type pos = 0;
     std::string::size_type linelength = 76;
     bool first = true;
-    
+
     if ( line.length() >= linelength )
     {
         while ( pos < line.length() )

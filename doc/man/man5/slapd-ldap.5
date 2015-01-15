@@ -25,15 +25,15 @@ connections.
 The ldap database can also act as an information service, i.e. the identity
 of locally authenticated clients is asserted to the remote server, possibly
 in some modified form.
-For this purpose, the proxy binds to the remote server with some 
+For this purpose, the proxy binds to the remote server with some
 administrative identity, and, if required, authorizes the asserted identity.
-See the 
+See the
 .IR idassert\- *
 rules below.
-The administrative identity of the proxy, on the remote server, must be 
+The administrative identity of the proxy, on the remote server, must be
 allowed to authorize by means of appropriate
 .B authzTo
-rules; see 
+rules; see
 .BR slapd.conf (5)
 for details.
 
@@ -48,13 +48,13 @@ of the proxy lined up with that of the proxied server.
 
 .LP
 Note: When looping back to the same instance of
-.BR slapd (8), 
+.BR slapd (8),
 each connection requires a new thread; as a consequence,
 .BR slapd (8)
-must be compiled with thread support, and the \fBthreads\fP parameter 
-may need some tuning; in those cases, one may consider using 
+must be compiled with thread support, and the \fBthreads\fP parameter
+may need some tuning; in those cases, one may consider using
 .BR slapd\-relay (5)
-instead, which performs the relayed operation 
+instead, which performs the relayed operation
 internally and thus reuses the same connection.
 
 .SH CONFIGURATION
@@ -76,22 +76,22 @@ lastmod  off
 .fi
 .RE
 .LP
-for 
+for
 .B ldap
 and
 .B meta
 databases.
-This was required because operational attributes related to entry creation 
+This was required because operational attributes related to entry creation
 and modification should not be proxied, as they could be mistakenly written
 to the target server(s), generating an error.
-The current implementation automatically sets lastmod to \fBoff\fP, 
+The current implementation automatically sets lastmod to \fBoff\fP,
 so its use is redundant and should be omitted.
 
 .TP
 .B uri <ldapurl>
 LDAP server to use.  Multiple URIs can be set in a single
 .B ldapurl
-argument, resulting in the underlying library automatically 
+argument, resulting in the underlying library automatically
 calling the first server of the list that responds, e.g.
 
 \fBuri "ldap://host/ ldap://backup\-host/"\fP
@@ -117,18 +117,18 @@ needs to be created.
 .B [tls_protocol_min=<major>[.<minor>]]
 .B [tls_crlcheck=none|peer|all]
 .RS
-Allows to define the parameters of the authentication method that is 
+Allows to define the parameters of the authentication method that is
 internally used by the proxy to collect info related to access control,
 and whenever an operation occurs with the identity of the rootdn
 of the LDAP proxy database.
 The identity defined by this directive, according to the properties
-associated to the authentication method, is supposed to have read access 
+associated to the authentication method, is supposed to have read access
 on the target server to attributes used on the proxy for ACL checking.
 
 There is no risk of giving away such values; they are only used to
 check permissions.
 The default is to use
-.BR simple 
+.BR simple
 bind, with empty \fIbinddn\fP and \fIcredentials\fP,
 which means that the related operations will be performed anonymously.
 If not set, and if \fBidassert\-bind\fP is defined, this latter identity
@@ -174,15 +174,15 @@ If set to
 .BR exop ,
 a
 .I cancel
-operation (RFC 3909) is issued, resulting in the cancellation 
+operation (RFC 3909) is issued, resulting in the cancellation
 of the current operation; the
 .I cancel
-operation waits for remote server response, so its use 
+operation waits for remote server response, so its use
 may not be recommended.
 If set to
 .BR exop\-discover ,
 support of the
-.I cancel 
+.I cancel
 extended operation is detected by reading the remote server's root DSE.
 
 .TP
@@ -206,7 +206,7 @@ The string
 follows the rules defined for the
 .I authzFrom
 attribute.
-See 
+See
 .BR slapd.conf (5),
 section related to
 .BR authz\-policy ,
@@ -229,13 +229,13 @@ for details on the syntax of this field.
 .B [tls_protocol_min=<version>]
 .B [tls_crlcheck=none|peer|all]
 .RS
-Allows to define the parameters of the authentication method that is 
-internally used by the proxy to authorize connections that are 
+Allows to define the parameters of the authentication method that is
+internally used by the proxy to authorize connections that are
 authenticated by other databases.
 Direct binds are always proxied without any idassert handling.
 
 The identity defined by this directive, according to the properties
-associated to the authentication method, is supposed to have auth access 
+associated to the authentication method, is supposed to have auth access
 on the target server to attributes used on the proxy for authentication
 and authorization, and to be allowed to authorize the users.
 This requires to have
@@ -260,11 +260,11 @@ where
 .B none
 is the default, i.e. no \fIidentity assertion\fP is performed.
 
-The authz parameter is used to instruct the SASL bind to exploit 
-.B native 
+The authz parameter is used to instruct the SASL bind to exploit
+.B native
 SASL authorization, if available; since connections are cached,
 this should only be used when authorizing with a fixed identity
-(e.g. by means of the 
+(e.g. by means of the
 .B authzDN
 or
 .B authzID
@@ -278,34 +278,34 @@ The supported modes are:
 
 \fB<mode> := {legacy|anonymous|none|self}\fP
 
-If 
+If
 .B <mode>
-is not present, and 
+is not present, and
 .B authzId
 is given, the proxy always authorizes that identity.
 .B <authorization ID>
-can be 
+can be
 
 \fBu:<user>\fP
 
 \fB[dn:]<DN>\fP
 
-The former is supposed to be expanded by the remote server according 
+The former is supposed to be expanded by the remote server according
 to the authz rules; see
 .BR slapd.conf (5)
 for details.
-In the latter case, whether or not the 
+In the latter case, whether or not the
 .B dn:
 prefix is present, the string must pass DN validation and normalization.
 
-The default mode is 
+The default mode is
 .BR legacy ,
 which implies that the proxy will either perform a simple bind as the
 .I authcDN
 or a SASL bind as the
 .I authcID
 and assert the client's identity when it is not anonymous.
-The other modes imply that the proxy will always either perform a simple bind 
+The other modes imply that the proxy will always either perform a simple bind
 as the
 .IR authcDN
 or a SASL bind as the
@@ -319,10 +319,10 @@ Other identity assertion modes are
 .BR anonymous
 and
 .BR self ,
-which respectively mean that the 
-.I empty 
-or the 
-.IR client 's 
+which respectively mean that the
+.I empty
+or the
+.IR client 's
 identity
 will be asserted;
 .BR none ,
@@ -332,19 +332,19 @@ or the
 .I authcID
 identity will be asserted.
 For all modes that require the use of the
-.I proxyAuthz 
-control, on the remote server the proxy identity must have appropriate 
+.I proxyAuthz
+control, on the remote server the proxy identity must have appropriate
 .I authzTo
 permissions, or the asserted identities must have appropriate
-.I authzFrom 
-permissions.  Note, however, that the ID assertion feature is mostly 
+.I authzFrom
+permissions.  Note, however, that the ID assertion feature is mostly
 useful when the asserted identities do not exist on the remote server.
 
 Flags can be
 
 \fBoverride,[non\-]prescriptive,proxy\-authz\-[non\-]critical\fP
 
-When the 
+When the
 .B override
 flag is used, identity assertion takes place even when the database
 is authorizing for the identity of the client, i.e. after binding
@@ -359,9 +359,9 @@ flag is used (the default), operations fail with
 for those identities whose assertion is not allowed by the
 .B idassert\-authzFrom
 patterns.
-If the 
+If the
 .B non\-prescriptive
-flag is used, operations are performed anonymously for those identities 
+flag is used, operations are performed anonymously for those identities
 whose assertion is not allowed by the
 .B idassert\-authzFrom
 patterns.
@@ -401,7 +401,7 @@ The string
 follows the rules defined for the
 .I authzFrom
 attribute.
-See 
+See
 .BR slapd.conf (5),
 section related to
 .BR authz\-policy ,
@@ -435,9 +435,9 @@ parameter is ignored otherwise, and system-wide settings are used.
 .TP
 .B network\-timeout <time>
 Sets the network timeout value after which
-.BR poll (2)/ select (2) 
-following a 
-.BR connect (2) 
+.BR poll (2)/ select (2)
+following a
+.BR connect (2)
 returns in case of no activity.
 The value is in seconds, and it can be specified as for
 .BR idle\-timeout .
@@ -471,9 +471,9 @@ If the value is set to \fBstop\fP, the error is returned to the client.
 .B protocol\-version {0,2,3}
 This directive indicates what protocol version must be used to contact
 the remote server.
-If set to 0 (the default), the proxy uses the same protocol version 
+If set to 0 (the default), the proxy uses the same protocol version
 used by the client, otherwise the requested protocol is used.
-The proxy returns \fIunwillingToPerform\fP if an operation that is 
+The proxy returns \fIunwillingToPerform\fP if an operation that is
 incompatible with the requested protocol is attempted.
 
 .TP
@@ -498,7 +498,7 @@ seconds elapsed since last attempt, for exactly
 times; then use the next pattern.
 If
 .I num
-for the last pattern is "\fB+\fP", it retries forever; otherwise, 
+for the last pattern is "\fB+\fP", it retries forever; otherwise,
 no more retries occur.
 The process can be restarted by resetting the \fIolcDbQuarantine\fP
 attribute of the database entry in the configuration backend.
@@ -507,7 +507,7 @@ attribute of the database entry in the configuration backend.
 .B rebind\-as\-user {NO|yes}
 If this option is given, the client's bind credentials are remembered
 for rebinds, when trying to re-establish a broken connection,
-or when chasing a referral, if 
+or when chasing a referral, if
 .B chase\-referrals
 is set to
 .IR yes .
@@ -543,11 +543,11 @@ by the \fBtimelimit\fP parameter or by server-side enforced
 time limits (see \fBtimelimit\fP and \fBlimits\fP in
 .BR slapd.conf (5)
 for details).
-This \fBtimeout\fP parameter controls how long the target can be 
+This \fBtimeout\fP parameter controls how long the target can be
 irresponsive before the operation is aborted.
 Timeout is meaningless for the remaining operations,
 \fBunbind\fP and \fBabandon\fP, which do not imply any response,
-while it is not yet implemented in currently supported \fBextended\fP 
+while it is not yet implemented in currently supported \fBextended\fP
 operations.
 If no operation is specified, the timeout \fBval\fP affects all
 supported operations.
@@ -594,7 +594,7 @@ which defaults to "demand".
 
 .TP
 .B use\-temporary\-conn {NO|yes}
-when set to 
+when set to
 .BR yes ,
 create a temporary connection whenever competing with other threads
 for a shared one; otherwise, wait until the shared connection is available.
@@ -616,7 +616,7 @@ on the proxy for acl checking.
 There is no risk of giving away such values; they are only used to
 check permissions.
 
-.B The acl\-authcDN identity is by no means implicitly used by the proxy 
+.B The acl\-authcDN identity is by no means implicitly used by the proxy
 .B when the client connects anonymously.
 The
 .B idassert\-*
@@ -670,7 +670,7 @@ defines what type of
 is used.
 This directive is obsoleted by the
 .B mode
-arg of 
+arg of
 .BR idassert\-bind ,
 and will be dismissed in the future.
 
@@ -684,19 +684,19 @@ and will be dismissed in the future.
 
 .TP
 .B port <port>
-this directive is no longer supported.  Use the 
+this directive is no longer supported.  Use the
 .B uri
 directive as described above.
 
 .TP
 .B server <hostname[:port]>
-this directive is no longer supported.  Use the 
+this directive is no longer supported.  Use the
 .B uri
 directive as described above.
 
 .TP
 .B suffixmassage, map, rewrite*
-These directives are no longer supported by back-ldap; their 
+These directives are no longer supported by back-ldap; their
 functionality is now delegated to the
 .B rwm
 overlay.  Essentially, add a statement
@@ -709,7 +709,7 @@ to obtain the original behavior.
 See
 .BR slapo\-rwm (5)
 for details.
-.\" However, to ease update from existing configurations, back-ldap still 
+.\" However, to ease update from existing configurations, back-ldap still
 .\" recognizes them and automatically instantiates the
 .\" .B rwm
 .\" overlay if available and not instantiated yet.
@@ -732,7 +732,7 @@ operation is honored, which is performed by the frontend.
 
 .SH OVERLAYS
 The LDAP backend provides basic proxying functionalities to many overlays.
-The 
+The
 .B chain
 overlay, described in
 .BR slapo\-chain (5),
@@ -745,17 +745,17 @@ deserve a special mention.
 Conversely, there are many overlays that are best used in conjunction
 with the LDAP backend.
 The
-.B proxycache 
-overlay allows caching of LDAP search requests (queries) 
+.B proxycache
+overlay allows caching of LDAP search requests (queries)
 in a local database.
-See 
+See
 .BR slapo\-pcache (5)
 for details.
 The
 .B rwm
 overlay provides DN rewrite and attribute/objectClass mapping
 capabilities to the underlying database.
-See 
+See
 .BR slapo\-rwm (5)
 for details.
 
@@ -774,4 +774,4 @@ default slapd configuration file
 .BR slapd (8),
 .BR ldap (3).
 .SH AUTHOR
-Howard Chu, with enhancements by Pierangelo Masarati 
+Howard Chu, with enhancements by Pierangelo Masarati

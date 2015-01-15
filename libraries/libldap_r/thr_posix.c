@@ -129,7 +129,7 @@ ldap_pvt_thread_get_concurrency(void)
 #define	PTHREAD_CREATE_DETACHED	1
 #endif
 
-int 
+int
 ldap_pvt_thread_create( ldap_pvt_thread_t * thread,
 	int detach,
 	void *(*start_routine)( void * ),
@@ -180,13 +180,13 @@ ldap_pvt_thread_create( ldap_pvt_thread_t * thread,
 	return rtn;
 }
 
-void 
+void
 ldap_pvt_thread_exit( void *retval )
 {
 	pthread_exit( retval );
 }
 
-int 
+int
 ldap_pvt_thread_join( ldap_pvt_thread_t thread, void **thread_return )
 {
 #if HAVE_PTHREADS < 7
@@ -197,7 +197,7 @@ ldap_pvt_thread_join( ldap_pvt_thread_t thread, void **thread_return )
 	return ERRVAL( pthread_join( thread, thread_return ) );
 }
 
-int 
+int
 ldap_pvt_thread_kill( ldap_pvt_thread_t thread, int signo )
 {
 #if defined(HAVE_PTHREAD_KILL) && HAVE_PTHREADS > 4
@@ -211,7 +211,7 @@ ldap_pvt_thread_kill( ldap_pvt_thread_t thread, int signo )
 #endif
 }
 
-int 
+int
 ldap_pvt_thread_yield( void )
 {
 #ifdef REPLACE_BROKEN_YIELD
@@ -245,20 +245,20 @@ ldap_pvt_thread_yield( void )
 #endif
 }
 
-int 
+int
 ldap_pvt_thread_cond_init( ldap_pvt_thread_cond_t *cond )
 {
 	return ERRVAL( pthread_cond_init(
 		cond, LDAP_INT_THREAD_CONDATTR_DEFAULT ) );
 }
 
-int 
+int
 ldap_pvt_thread_cond_destroy( ldap_pvt_thread_cond_t *cond )
 {
 	return ERRVAL( pthread_cond_destroy( cond ) );
 }
-	
-int 
+
+int
 ldap_pvt_thread_cond_signal( ldap_pvt_thread_cond_t *cond )
 {
 	return ERRVAL( pthread_cond_signal( cond ) );
@@ -270,39 +270,39 @@ ldap_pvt_thread_cond_broadcast( ldap_pvt_thread_cond_t *cond )
 	return ERRVAL( pthread_cond_broadcast( cond ) );
 }
 
-int 
-ldap_pvt_thread_cond_wait( ldap_pvt_thread_cond_t *cond, 
+int
+ldap_pvt_thread_cond_wait( ldap_pvt_thread_cond_t *cond,
 		      ldap_pvt_thread_mutex_t *mutex )
 {
 	return ERRVAL( pthread_cond_wait( cond, mutex ) );
 }
 
-int 
+int
 ldap_pvt_thread_mutex_init( ldap_pvt_thread_mutex_t *mutex )
 {
 	return ERRVAL( pthread_mutex_init(
 		mutex, LDAP_INT_THREAD_MUTEXATTR_DEFAULT ) );
 }
 
-int 
+int
 ldap_pvt_thread_mutex_destroy( ldap_pvt_thread_mutex_t *mutex )
 {
 	return ERRVAL( pthread_mutex_destroy( mutex ) );
 }
 
-int 
+int
 ldap_pvt_thread_mutex_lock( ldap_pvt_thread_mutex_t *mutex )
 {
 	return ERRVAL( pthread_mutex_lock( mutex ) );
 }
 
-int 
+int
 ldap_pvt_thread_mutex_trylock( ldap_pvt_thread_mutex_t *mutex )
 {
 	return ERRVAL( pthread_mutex_trylock( mutex ) );
 }
 
-int 
+int
 ldap_pvt_thread_mutex_unlock( ldap_pvt_thread_mutex_t *mutex )
 {
 	return ERRVAL( pthread_mutex_unlock( mutex ) );
@@ -340,13 +340,13 @@ ldap_pvt_thread_key_getdata( ldap_pvt_thread_key_t key, void **data )
 
 #ifdef LDAP_THREAD_HAVE_RDWR
 #ifdef HAVE_PTHREAD_RWLOCK_DESTROY
-int 
+int
 ldap_pvt_thread_rdwr_init( ldap_pvt_thread_rdwr_t *rw )
 {
 	return ERRVAL( pthread_rwlock_init( rw, NULL ) );
 }
 
-int 
+int
 ldap_pvt_thread_rdwr_destroy( ldap_pvt_thread_rdwr_t *rw )
 {
 	return ERRVAL( pthread_rwlock_destroy( rw ) );

@@ -31,7 +31,7 @@ OBJS = init.lo tools.lo config.lo \
 	dn2entry.lo dn2id.lo error.lo id2entry.lo idl.lo nextid.lo cache.lo \
 	monitor.lo
 
-LDAP_INCDIR= ../../../include       
+LDAP_INCDIR= ../../../include
 LDAP_LIBDIR= ../../../libraries
 
 BUILD_OPT = "--enable-hdb"

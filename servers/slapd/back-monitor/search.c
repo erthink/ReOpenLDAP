@@ -85,7 +85,7 @@ monitor_send_children(
 			do {
 				mp = ( monitor_entry_t * )e_tmp->e_private;
 				e_tmp = mp->mp_next;
-	
+
 				if ( e_tmp == NULL ) {
 					mp->mp_next = e;
 					break;
@@ -146,7 +146,7 @@ freeout:
 						e_tmp = mp->mp_next;
 						monitor_cache_lock( e );
 						monitor_cache_release( mi, e );
-	
+
 						if ( e_tmp == e_nonvolatile ) {
 							break;
 						}
@@ -157,7 +157,7 @@ freeout:
 			}
 		}
 	}
-	
+
 	return LDAP_SUCCESS;
 }
 

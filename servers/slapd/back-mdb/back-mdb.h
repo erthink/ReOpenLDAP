@@ -159,7 +159,7 @@ typedef struct mdb_attrinfo {
 #define	MDB_INDEX_UPDATE_OP	0x03	/* performing an index update */
 
 /* For slapindex to record which attrs in an entry belong to which
- * index database 
+ * index database
  */
 typedef struct AttrList {
 	struct AttrList *next;

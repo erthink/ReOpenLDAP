@@ -29,7 +29,7 @@ LDAPMessageQueue::LDAPMessageQueue(LDAPRequest *req){
 
 LDAPMessageQueue::~LDAPMessageQueue(){
     DEBUG(LDAP_DEBUG_DESTROY, "LDAPMessageQueue::~LDAPMessageQueue()" << endl);
-    for(LDAPRequestList::iterator i=m_issuedReq.begin(); 
+    for(LDAPRequestList::iterator i=m_issuedReq.begin();
             i != m_issuedReq.end(); i++){
         delete *i;
     }
@@ -52,12 +52,12 @@ LDAPMsg *LDAPMessageQueue::getNext(){
     }catch(LDAPException e){
         //do some clean up
         m_activeReq.pop();
-        throw;   
+        throw;
     }
 
     const LDAPConstraints *constr=req->getConstraints();
     switch (ret->getMessageType()) {
-        case LDAPMsg::SEARCH_REFERENCE : 
+        case LDAPMsg::SEARCH_REFERENCE :
             if (constr->getReferralChase() ){
                 //throws Exception (limit Exceeded)
                 LDAPRequest *refReq=chaseReferral(ret);
@@ -89,7 +89,7 @@ LDAPMsg *LDAPMessageQueue::getNext(){
                             delete ret;
                             return getNext();
                         }
-                    }    
+                    }
                     return ret;
                 break;
                 case LDAPResult::SUCCESS :
@@ -126,7 +126,7 @@ LDAPMsg *LDAPMessageQueue::getNext(){
                             delete ret;
                             return getNext();
                         }
-                    }    
+                    }
                     return ret;
                 break;
                 default:
@@ -159,7 +159,7 @@ LDAPRequest* LDAPMessageQueue::chaseReferral(LDAPMsg* ref){
             DEBUG(LDAP_DEBUG_TRACE,"   caught exception" << endl);
             return 0;
         }
-    }else{ 
+    }else{
         return 0;
     }
 }

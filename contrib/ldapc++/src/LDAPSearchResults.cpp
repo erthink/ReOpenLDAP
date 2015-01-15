@@ -25,7 +25,7 @@ LDAPResult* LDAPSearchResults::readMessageQueue(LDAPMessageQueue* msg){
             }catch (LDAPException e){
                 throw;
             }
-            switch(res->getMessageType()){ 
+            switch(res->getMessageType()){
                 case LDAPMsg::SEARCH_ENTRY :
                     entryList.addEntry(*((LDAPSearchResult*)res)->getEntry());
                 break;

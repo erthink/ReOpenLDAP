@@ -22,10 +22,10 @@ echo "### note that SASL must be properly set up, and the requested"
 echo "### mechanism must be available.  Define SLAPD_USE_SASL={yes|<mech>},"
 echo "### with \"yes\" defaulting to DIGEST-MD5 to enable SASL authc[/authz]."
 
-if test $BACKLDAP = "ldapno" ; then 
+if test $BACKLDAP = "ldapno" ; then
 	echo "LDAP backend not available, test skipped"
 	exit 0
-fi 
+fi
 
 if test $WITH_SASL = "yes" ; then
 	if test $USE_SASL != "no" ; then
@@ -154,7 +154,7 @@ echo "Filtering original ldif used to create database..."
 $LDIFFILTER -s ldif=e < $LDAPGLUEOUT > $LDIFFLT
 echo "Comparing filter output..."
 $CMP $SEARCHFLT $LDIFFLT > $CMPOUT
-	
+
 if test $? != 0 ; then
 	echo "comparison failed - glued search with identity assertion didn't succeed"
 	test $KILLSERVERS != no && kill -HUP $KILLPIDS
@@ -179,7 +179,7 @@ echo "Filtering original ldif used to create database..."
 $LDIFFILTER < $LDAPGLUEANONYMOUSOUT > $LDIFFLT
 echo "Comparing filter output..."
 $CMP $SEARCHFLT $LDIFFLT > $CMPOUT
-	
+
 if test $? != 0 ; then
 	echo "comparison failed - anonymous glued search with identity assertion didn't succeed"
 	test $KILLSERVERS != no && kill -HUP $KILLPIDS
@@ -207,7 +207,7 @@ if test $USE_SASL != "no" ; then
 	$LDIFFILTER < $LDAPGLUEOUT > $LDIFFLT
 	echo "Comparing filter output..."
 	$CMP $SEARCHFLT $LDIFFLT > $CMPOUT
-	
+
 	if test $? != 0 ; then
 		echo "comparison failed - glued search with SASL bind and identity assertion didn't succeed"
 		test $KILLSERVERS != no && kill -HUP $KILLPIDS

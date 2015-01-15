@@ -16,7 +16,7 @@
 SRCS = null.c
 OBJS = null.lo
 
-LDAP_INCDIR= ../../../include       
+LDAP_INCDIR= ../../../include
 LDAP_LIBDIR= ../../../libraries
 
 BUILD_OPT = "--enable-null"

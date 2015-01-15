@@ -16,10 +16,10 @@
 echo "running defines.sh"
 . $SRCDIR/scripts/defines.sh
 
-if test $SYNCPROV = syncprovno; then 
+if test $SYNCPROV = syncprovno; then
 	echo "Syncrepl provider overlay not available, test skipped"
 	exit 0
-fi 
+fi
 
 mkdir -p $TESTDIR $DBDIR1 $DBDIR2 $DBDIR3 $DBDIR4 $DBDIR5 $DBDIR6
 
@@ -349,15 +349,15 @@ description: Example, Inc. itsdomain2 test domain
 
 EOMODS
 
-RC=$?   
+RC=$?
 if test $RC != 0 ; then
         echo "ldapmodify failed ($RC)!"
         test $KILLSERVERS != no && kill -HUP $KILLPIDS
         exit $RC
-fi      
+fi
 
 echo "Waiting $SLEEP2 seconds for syncrepl to receive changes..."
-sleep $SLEEP2 
+sleep $SLEEP2
 
 echo "Using ldapsearch to read all the entries from the master..."
 $LDAPSEARCH -S "" -b "$BASEDN" -h $LOCALHOST -p $PORT1 \

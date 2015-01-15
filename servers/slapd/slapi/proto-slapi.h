@@ -56,13 +56,13 @@ LDAP_SLAPI_F (int) slapi_int_pblock_get_next LDAP_P(( Slapi_PBlock **pb ));
 		if ( _tag != 0 ) \
 			assert( (_pb)->pb_op->o_tag == (_tag)); \
 	} while (0)
-	
+
 #define PBLOCK_ASSERT_INTOP( _pb, _tag ) do { \
 		PBLOCK_ASSERT_OP( _pb, _tag ); \
 		assert( (_pb)->pb_intop ); \
 		assert( (_pb)->pb_op == (Operation *)pb->pb_conn->c_pending_ops.stqh_first ); \
 	} while (0)
-	
+
 /* plugin.c */
 LDAP_SLAPI_F (int) slapi_int_register_plugin LDAP_P((Backend *be, Slapi_PBlock *pPB));
 LDAP_SLAPI_F (int) slapi_int_call_plugins LDAP_P((Backend *be, int funcType, Slapi_PBlock * pPB));

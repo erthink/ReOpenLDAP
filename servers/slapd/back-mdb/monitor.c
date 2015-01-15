@@ -45,7 +45,7 @@ static AttributeDescription	*ad_olmDbNotIndexed;
 /*
  * NOTE: there's some confusion in monitor OID arc;
  * by now, let's consider:
- * 
+ *
  * Subsystems monitor attributes	1.3.6.1.4.1.4203.666.1.55.0
  * Databases monitor attributes		1.3.6.1.4.1.4203.666.1.55.0.1
  * MDB database monitor attributes	1.3.6.1.4.1.4203.666.1.55.0.1.3
@@ -176,7 +176,7 @@ mdb_monitor_free(
 			textbuf, sizeof( textbuf ) );
 		/* don't care too much about return code... */
 	}
-	
+
 	return SLAP_CB_CONTINUE;
 }
 
@@ -355,7 +355,7 @@ mdb_monitor_db_open( BackendDB *be )
 			ptr++;
 		}
 		ptr[ 0 ] = '\0';
-		
+
 		attr_normalize_one( ad_olmDbDirectory, &bv, &nbv, NULL );
 
 		next->a_desc = ad_olmDbDirectory;
@@ -546,7 +546,7 @@ mdb_monitor_idx_add(
 		idx->idx_ad = desc;
 		idx->idx_count[ key ] = 1;
 
-		switch ( avl_insert( &mdb->mi_idx, (caddr_t)idx, 
+		switch ( avl_insert( &mdb->mi_idx, (caddr_t)idx,
 			monitor_idx_cmp, monitor_idx_dup ) )
 		{
 		case 0:

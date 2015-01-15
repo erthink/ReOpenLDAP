@@ -266,7 +266,7 @@ avl_delete( Avlnode **root, void* data, AVL_CMP fcmp )
 
 	top = NULL;
 	shorter = 1;
-  
+
 	while ( shorter ) {
 		p = pptr[depth];
 		side = pdir[depth];
@@ -278,7 +278,7 @@ avl_delete( Avlnode **root, void* data, AVL_CMP fcmp )
 			/* Tree is now heavier on opposite side */
 			p->avl_bf = avl_bfs[nside];
 			shorter = 0;
-		  
+
 		} else if ( p->avl_bf == side_bf ) {
 		/* case 2: taller subtree shortened, height reduced */
 			p->avl_bf = EH;
@@ -356,7 +356,7 @@ avl_inapply( Avlnode *root, AVL_APPLY fn, void* arg, int stopflag )
 		return( AVL_NOMORE );
 
 	if ( root->avl_left != 0 )
-		if ( avl_inapply( root->avl_left, fn, arg, stopflag ) 
+		if ( avl_inapply( root->avl_left, fn, arg, stopflag )
 		    == stopflag )
 			return( stopflag );
 
@@ -376,12 +376,12 @@ avl_postapply( Avlnode *root, AVL_APPLY fn, void* arg, int stopflag )
 		return( AVL_NOMORE );
 
 	if ( root->avl_left != 0 )
-		if ( avl_postapply( root->avl_left, fn, arg, stopflag ) 
+		if ( avl_postapply( root->avl_left, fn, arg, stopflag )
 		    == stopflag )
 			return( stopflag );
 
 	if ( root->avl_right != 0 )
-		if ( avl_postapply( root->avl_right, fn, arg, stopflag ) 
+		if ( avl_postapply( root->avl_right, fn, arg, stopflag )
 		    == stopflag )
 			return( stopflag );
 
@@ -398,7 +398,7 @@ avl_preapply( Avlnode *root, AVL_APPLY fn, void* arg, int stopflag )
 		return( stopflag );
 
 	if ( root->avl_left != 0 )
-		if ( avl_preapply( root->avl_left, fn, arg, stopflag ) 
+		if ( avl_preapply( root->avl_left, fn, arg, stopflag )
 		    == stopflag )
 			return( stopflag );
 
@@ -520,7 +520,7 @@ avl_free( Avlnode *root, AVL_FREE dfree )
 
 /*
  * avl_find -- search avltree root for a node with data data.  the function
- * cmp is used to compare things.  it is called with data as its first arg 
+ * cmp is used to compare things.  it is called with data as its first arg
  * and the current node data as its second.  it should return 0 if they match,
  * < 0 if arg1 is less than arg2 and > 0 if arg1 is greater than arg2.
  */
@@ -551,7 +551,7 @@ avl_find( Avlnode *root, const void* data, AVL_CMP fcmp )
 }
 
 /*
- * avl_find_lin -- search avltree root linearly for a node with data data. 
+ * avl_find_lin -- search avltree root linearly for a node with data data.
  * the function cmp is used to compare things.  it is called with data as its
  * first arg and the current node data as its second.  it should return 0 if
  * they match, non-zero otherwise.

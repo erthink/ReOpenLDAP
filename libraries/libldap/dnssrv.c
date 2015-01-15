@@ -105,7 +105,7 @@ int ldap_dn2domain(
 			} else {
 				domain.bv_len = 0;
 			}
-		} 
+		}
 	}
 
 

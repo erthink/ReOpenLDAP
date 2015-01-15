@@ -29,11 +29,11 @@ perl_back_modify(
 	int i;
 
 	PERL_SET_CONTEXT( PERL_INTERPRETER );
-	ldap_pvt_thread_mutex_lock( &perl_interpreter_mutex );	
+	ldap_pvt_thread_mutex_lock( &perl_interpreter_mutex );
 
 	{
 		dSP; ENTER; SAVETMPS;
-		
+
 		PUSHMARK(sp);
 		XPUSHs( perl_back->pb_obj_ref );
 		XPUSHs(sv_2mortal(newSVpv( op->o_req_dn.bv_val , 0)));
@@ -45,17 +45,17 @@ perl_back_modify(
 			case LDAP_MOD_ADD:
 				XPUSHs(sv_2mortal(newSVpv("ADD", STRLENOF("ADD") )));
 				break;
-				
+
 			case LDAP_MOD_DELETE:
 				XPUSHs(sv_2mortal(newSVpv("DELETE", STRLENOF("DELETE") )));
 				break;
-				
+
 			case LDAP_MOD_REPLACE:
 				XPUSHs(sv_2mortal(newSVpv("REPLACE", STRLENOF("REPLACE") )));
 				break;
 			}
 
-			
+
 			XPUSHs(sv_2mortal(newSVpv( mods->sm_desc->ad_cname.bv_val,
 				mods->sm_desc->ad_cname.bv_len )));
 
@@ -81,7 +81,7 @@ perl_back_modify(
 		if (count != 1) {
 			croak("Big trouble in back_modify\n");
 		}
-							 
+
 		rs->sr_err = POPi;
 
 		PUTBACK; FREETMPS; LEAVE;

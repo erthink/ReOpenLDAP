@@ -35,10 +35,10 @@ class LDAPSearchResult : public LDAPMsg{
         virtual ~LDAPSearchResult();
 
         /**
-         * @returns The entry that has been sent with this result message. 
+         * @returns The entry that has been sent with this result message.
          */
         const LDAPEntry* getEntry() const;
-    
+
     private:
         LDAPEntry *entry;
 };

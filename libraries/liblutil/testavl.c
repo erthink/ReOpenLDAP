@@ -36,7 +36,7 @@
 #include <ac/string.h>
 
 #define AVL_INTERNAL
-#define AVL_NONREENTRANT 
+#define AVL_NONREENTRANT
 #include "avl.h"
 
 static void ravl_print LDAP_P(( Avlnode *root, int depth ));
@@ -89,7 +89,7 @@ main( int argc, char **argv )
 			if ( fgets( name, sizeof( name ), stdin ) == NULL )
 				exit( EXIT_SUCCESS );
 			name[ strlen( name ) - 1 ] = '\0';
-			if ( avl_insert( &tree, strdup( name ), avl_strcmp, 
+			if ( avl_insert( &tree, strdup( name ), avl_strcmp,
 			    avl_dup_error ) != 0 )
 				printf( "\nNot inserted!\n" );
 			break;

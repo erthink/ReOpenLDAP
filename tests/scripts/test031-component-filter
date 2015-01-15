@@ -26,7 +26,7 @@ fi
 
 mkdir -p $TESTDIR $DBDIR1
 
-## Make sure that you set a proper path to component matching 
+## Make sure that you set a proper path to component matching
 ## module directory in $COMPCONF
 ## moduleload path/to/component/library/compmatch.la
 ## otherwise it fails to execute slapd

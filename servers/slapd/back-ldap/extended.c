@@ -16,7 +16,7 @@
 /* ACKNOWLEDGEMENTS:
  * This work was initially developed by the Howard Chu for inclusion
  * in OpenLDAP Software and subsequently enhanced by Pierangelo
- * Masarati. 
+ * Masarati.
  */
 
 #include "portable.h"
@@ -51,7 +51,7 @@ ldap_back_extended_one( Operation *op, SlapReply *rs, ldap_back_exop_f exop )
 	int		rc;
 
 	/* FIXME: this needs to be called here, so it is
-	 * called twice; maybe we could avoid the 
+	 * called twice; maybe we could avoid the
 	 * ldap_back_dobind() call inside each extended()
 	 * call ... */
 	if ( !ldap_back_dobind( &lc, op, rs, LDAP_BACK_SENDERR ) ) {
@@ -79,7 +79,7 @@ done:;
 	if ( lc != NULL ) {
 		ldap_back_release_conn( li, lc );
 	}
-			
+
 	return rc;
 }
 
@@ -217,8 +217,8 @@ retry:
 				if ( rs->sr_err == LDAP_SUCCESS ) {
 					struct berval	newpw;
 
-					/* this never happens because 
-					 * the frontend	is generating 
+					/* this never happens because
+					 * the frontend	is generating
 					 * the new password, so when
 					 * the passwd exop is proxied,
 					 * it never delegates password

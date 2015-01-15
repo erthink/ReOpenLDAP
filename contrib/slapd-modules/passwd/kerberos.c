@@ -121,7 +121,7 @@ static int chk_kerberos(
    		krb5_get_init_creds_opt_init( &get_options );
 
 		krb5_verify_init_creds_opt_init( &verify_options );
-	
+
 		ret = krb5_parse_name( context, passwd->bv_val, &client );
 
 		if (ret) {

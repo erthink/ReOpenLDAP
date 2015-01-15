@@ -29,7 +29,7 @@ class LDAPAttrType{
 
         /**
          * Constructor
-         */   
+         */
         LDAPAttrType();
 
         /**
@@ -39,21 +39,21 @@ class LDAPAttrType{
 	 *  by the search command. It is in the form:
 	 * "( SuSE.YaST.Attr:19 NAME ( 'skelDir' ) DESC ''
 	 *    EQUALITY caseExactIA5Match SYNTAX 1.3.6.1.4.1.1466.115.121.1.26 )"
-         */   
-        LDAPAttrType (string at_item, int flags = LDAP_SCHEMA_ALLOW_NO_OID | 
+         */
+        LDAPAttrType (string at_item, int flags = LDAP_SCHEMA_ALLOW_NO_OID |
                       LDAP_SCHEMA_ALLOW_QUOTED );
 
         /**
          * Destructor
          */
         virtual ~LDAPAttrType();
-	
-	
+
+
 	/**
 	 * Returns attribute description
 	 */
 	string getDesc() const;
-	
+
 	/**
 	 * Returns attribute oid
 	 */
@@ -68,15 +68,15 @@ class LDAPAttrType{
 	 * Returns all attribute names
 	 */
 	StringList getNames() const;
-	
+
 	/**
 	 * Returns true if attribute type allows only single value
 	 */
 	bool isSingle() const;
-	
+
 	/**
  	 * Return the 'usage' value:
- 	 * (0=userApplications, 1=directoryOperation, 2=distributedOperation, 
+ 	 * (0=userApplications, 1=directoryOperation, 2=distributedOperation,
 	 *  3=dSAOperation)
  	 */
  	int getUsage () const;

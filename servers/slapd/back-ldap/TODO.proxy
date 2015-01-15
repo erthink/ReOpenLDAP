@@ -16,9 +16,9 @@ and it wants to propose to the outer world as a unique URI
 It could do some rewriting to map everything that comes in with a base DN
 of "o=Branch 1, dc=company, dc=net" as the URI of the Branch 1, and
 everything that comes in with a base DN of "o=Branch 2, dc=company, dc=net"
-as the URI of Branch 2, and by rewriting all the DNs back to the new, uniform 
-base. Everything that comes in with a base DN of "dc=company, dc=net" should 
-be handled locally and propagated to the two branch URIs if a subtree 
+as the URI of Branch 2, and by rewriting all the DNs back to the new, uniform
+base. Everything that comes in with a base DN of "dc=company, dc=net" should
+be handled locally and propagated to the two branch URIs if a subtree
 (or at least onelevel) search is required.
 
 Operations:
@@ -65,7 +65,7 @@ common suffix) to the pool of URIs that are expected to contain a subset
 of its children.
 
 The second layer is provided by a fetching function that spawns a search for
-each URI in the pool determined by the cache if the correct URI has not been 
+each URI in the pool determined by the cache if the correct URI has not been
 directly determined.
 
 Note that, as the remote servers may have been updated by some direct
@@ -75,7 +75,7 @@ the exaustive search of all the URIs unless some hint mechanism is provided
 to the backend (e.g. a server is read-only).
 
 Again, the lag between the fetching of the required DN and the actual
-read/write may result in a failure; however, this applies to any LDAP 
+read/write may result in a failure; however, this applies to any LDAP
 operation AFAIK.
 
 - bind
@@ -89,7 +89,7 @@ nothing to say; all the open handles related to the connection are reset.
 - search
 if updates are to be strictly honored, a search operation is performed agaist
 each URI. Note that this needs be performed also when the backend suffix
-is used as base. In case the base is stricter, the URI pool may be restricted 
+is used as base. In case the base is stricter, the URI pool may be restricted
 by performing a cache DN fetch of the base first.
 
 - compare

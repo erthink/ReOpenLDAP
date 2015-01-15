@@ -70,7 +70,7 @@ the module.
 2) using eSNACC, compile your ASN.1 specifications and
 copy the generated .c and .h files to this directory
 Ex)
-$ esnacc -E BER_COMP -E GSER -t -d -f example.asn 
+$ esnacc -E BER_COMP -E GSER -t -d -f example.asn
 For Component Matching, set BOTH BER_COMP and GSER on.
 After compiling, you will get example.c and example.h
 3) modify example.c accordingly, seeing certificate.c
@@ -81,7 +81,7 @@ into init_module() in init.c.
 accordingly
 - in the generated .c file, you need to write
 "DecComponentxxxTop(...)" function for yourself.
-You can copy BDecComponentCertificateTop in the 
+You can copy BDecComponentCertificateTop in the
 generated .c file and modify it accordingly.
 4) register a new attribute syntax with a new OID
 in a schema file

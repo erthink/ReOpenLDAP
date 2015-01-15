@@ -30,7 +30,7 @@ OpenLDAP 2.x Projects
 
 Large projects
 --------------
-Implement character string localization 
+Implement character string localization
 Implement X.500 administrative models (e.g. subentries (RFC 3672), etc.)
 Implement LDAP sorted search results control (RFC 2891)
 

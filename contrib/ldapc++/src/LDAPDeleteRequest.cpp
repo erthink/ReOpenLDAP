@@ -17,14 +17,14 @@ using namespace std;
 
 LDAPDeleteRequest::LDAPDeleteRequest( const LDAPDeleteRequest& req) :
         LDAPRequest(req){
-	DEBUG(LDAP_DEBUG_CONSTRUCT, 
+	DEBUG(LDAP_DEBUG_CONSTRUCT,
 		"LDAPDeleteRequest::LDAPDeleteRequest(&)" << endl);
     m_dn = req.m_dn;
 }
 
-LDAPDeleteRequest::LDAPDeleteRequest(const string& dn, 
+LDAPDeleteRequest::LDAPDeleteRequest(const string& dn,
         LDAPAsynConnection *connect, const LDAPConstraints *cons,
-        bool isReferral, const LDAPRequest* parent) 
+        bool isReferral, const LDAPRequest* parent)
         : LDAPRequest(connect, cons, isReferral, parent) {
 	DEBUG(LDAP_DEBUG_CONSTRUCT,
             "LDAPDeleteRequest::LDAPDeleteRequest()" << endl);
@@ -43,7 +43,7 @@ LDAPMessageQueue* LDAPDeleteRequest::sendRequest(){
     int msgID=0;
     LDAPControl** tmpSrvCtrls=m_cons->getSrvCtrlsArray();
     LDAPControl** tmpClCtrls=m_cons->getClCtrlsArray();
-    int err=ldap_delete_ext(m_connection->getSessionHandle(),m_dn.c_str(), 
+    int err=ldap_delete_ext(m_connection->getSessionHandle(),m_dn.c_str(),
             tmpSrvCtrls, tmpClCtrls ,&msgID);
     LDAPControlSet::freeLDAPControlArray(tmpSrvCtrls);
     LDAPControlSet::freeLDAPControlArray(tmpClCtrls);

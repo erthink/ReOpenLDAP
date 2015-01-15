@@ -178,7 +178,7 @@ monitor_subsys_overlay_init_one(
 	e_overlay->e_private = ( void * )mp_overlay;
 	mp_overlay->mp_info = ms;
 	mp_overlay->mp_flags = ms->mss_flags | MONITOR_F_SUB;
-	
+
 	if ( monitor_cache_add( mi, e_overlay ) ) {
 		Debug( LDAP_DEBUG_ANY,
 			"monitor_subsys_overlay_init_one: "
@@ -296,7 +296,7 @@ monitor_subsys_database_init_one(
 			if ( on2 != on ) {
 				break;
 			}
-			
+
 			ber_str2bv( on->on_bi.bi_type, 0, 0, &bv );
 			attr_merge_normalize_one( e, mi->mi_ad_monitorOverlay,
 					&bv, NULL );
@@ -309,8 +309,8 @@ monitor_subsys_database_init_one(
 			}
 			assert( on2 != NULL );
 
-			snprintf( buf, sizeof( buf ), 
-				"cn=Overlay %d,%s", 
+			snprintf( buf, sizeof( buf ),
+				"cn=Overlay %d,%s",
 				j, ms_overlay->mss_dn.bv_val );
 			ber_str2bv( buf, 0, 0, &bv );
 			attr_merge_normalize_one( e,
@@ -323,8 +323,8 @@ monitor_subsys_database_init_one(
 	LDAP_STAILQ_FOREACH( bi2, &backendInfo, bi_next ) {
 		j++;
 		if ( bi2->bi_type == bi->bi_type ) {
-			snprintf( buf, sizeof( buf ), 
-				"cn=Backend %d,%s", 
+			snprintf( buf, sizeof( buf ),
+				"cn=Backend %d,%s",
 				j, ms_backend->mss_dn.bv_val );
 			bv.bv_val = buf;
 			bv.bv_len = strlen( buf );
@@ -480,7 +480,7 @@ monitor_back_register_database_and_overlay(
 		rc = -1;
 		goto done;
 	}
-	
+
 	rc = monitor_subsys_database_init_one( mi, be,
 		ms_database, ms_backend, ms_overlay, &bv, e_database, &ep );
 	if ( rc != 0 ) {
@@ -512,7 +512,7 @@ done:;
 				mp = ( monitor_entry_t * ) e_ov->e_private;
 				e_ov = mp->mp_next;
 			}
-			
+
 		} else {
 			*ndn_out = (*ep)->e_nname;
 		}
@@ -610,14 +610,14 @@ monitor_subsys_database_init(
 		if ( bv.bv_len >= sizeof( buf ) ) {
 			return -1;
 		}
-		
+
 		rc = monitor_subsys_database_init_one( mi, be,
 			ms, ms_backend, ms_overlay, &bv, e_database, &ep );
 		if ( rc != 0 ) {
 			return rc;
 		}
 	}
-	
+
 	monitor_cache_release( mi, e_database );
 
 	return( 0 );
@@ -683,7 +683,7 @@ monitor_subsys_database_modify(
 	int		ro_gotval = 1, i, n;
 	slap_mask_t	rp_add = 0, rp_delete = 0, rp_cur;
 	struct berval	*tf;
-	
+
 	i = sscanf( e->e_nname.bv_val, "cn=database %d,", &n );
 	if ( i != 1 ) {
 		return SLAP_CB_CONTINUE;
@@ -705,7 +705,7 @@ monitor_subsys_database_modify(
 		rs->sr_text = "no modifications allowed to monitor database entry";
 		return ( rs->sr_err = LDAP_UNWILLING_TO_PERFORM );
 	}
-		
+
 	rp_cur = be->be_restrictops;
 
 	save_attrs = e->e_attrs;
@@ -749,12 +749,12 @@ monitor_subsys_database_modify(
 					rc = rs->sr_err = LDAP_NO_SUCH_ATTRIBUTE;
 					goto done;
 				}
-				
+
 				if ( val == 1 && ( rp_cur & SLAP_RESTRICT_OP_WRITES ) != SLAP_RESTRICT_OP_WRITES ) {
 					rc = rs->sr_err = LDAP_NO_SUCH_ATTRIBUTE;
 					goto done;
 				}
-				
+
 				break;
 
 			case LDAP_MOD_REPLACE:
@@ -772,7 +772,7 @@ monitor_subsys_database_modify(
 					rp_add |= (~rp_cur) & SLAP_RESTRICT_OP_WRITES;
 					rp_cur |= SLAP_RESTRICT_OP_WRITES;
 					rp_delete &= ~SLAP_RESTRICT_OP_WRITES;
-					
+
 				} else if ( val == 0 ) {
 					rp_delete |= rp_cur & SLAP_RESTRICT_OP_WRITES;
 					rp_cur &= ~SLAP_RESTRICT_OP_WRITES;
@@ -900,7 +900,7 @@ monitor_subsys_database_modify(
 				for ( i = 0; !BER_BVISNULL( &restricted_ops[ i ].op ); i++ ) {
 					if ( rp_delete & restricted_ops[ i ].tag ) {
 						int	j;
-					
+
 						for ( j = 0; !BER_BVISNULL( &a->a_nvals[ j ] ); j++ ) {
 							int		k;
 
@@ -915,18 +915,18 @@ monitor_subsys_database_modify(
 								a->a_vals[ k - 1 ] = a->a_vals[ k ];
 								a->a_nvals[ k - 1 ] = a->a_nvals[ k ];
 							}
-	
+
 							BER_BVZERO( &a->a_vals[ k - 1 ] );
 							BER_BVZERO( &a->a_nvals[ k - 1 ] );
 							a->a_numvals--;
 						}
 					}
 				}
-				
+
 				for ( i = 0; !BER_BVISNULL( &restricted_exops[ i ].op ); i++ ) {
 					if ( rp_delete & restricted_exops[ i ].tag ) {
 						int	j;
-					
+
 						for ( j = 0; !BER_BVISNULL( &a->a_nvals[ j ] ); j++ ) {
 							int		k;
 
@@ -941,7 +941,7 @@ monitor_subsys_database_modify(
 								a->a_vals[ k - 1 ] = a->a_vals[ k ];
 								a->a_nvals[ k - 1 ] = a->a_nvals[ k ];
 							}
-	
+
 							BER_BVZERO( &a->a_vals[ k - 1 ] );
 							BER_BVZERO( &a->a_nvals[ k - 1 ] );
 							a->a_numvals--;
@@ -995,7 +995,7 @@ done:;
 static int
 monitor_back_add_plugin( monitor_info_t *mi, Backend *be, Entry *e_database )
 {
-	Slapi_PBlock	*pCurrentPB; 
+	Slapi_PBlock	*pCurrentPB;
 	int		i, rc = LDAP_SUCCESS;
 
 	if ( slapi_int_pblock_get_first( be, &pCurrentPB ) != LDAP_SUCCESS ) {
@@ -1022,7 +1022,7 @@ monitor_back_add_plugin( monitor_info_t *mi, Backend *be, Entry *e_database )
 					"plugin %d name: %s; "
 					"vendor: %s; "
 					"version: %s; "
-					"description: %s", 
+					"description: %s",
 					i,
 					srchdesc->spd_id,
 					srchdesc->spd_vendor,

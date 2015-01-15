@@ -31,7 +31,7 @@ lutil_sigaction(int sig, lutil_sig_t func)
 #ifdef SA_RESTART
 	action.sa_flags |= SA_RESTART;
 #endif
-	
+
 	if( sigaction( sig, &action, &oaction ) != 0 ) {
 		return NULL;
 	}

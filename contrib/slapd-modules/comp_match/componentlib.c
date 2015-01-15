@@ -40,7 +40,7 @@ MatchingComponentBits ( char* oid, ComponentSyntaxInfo *csi_attr,
 	int rc;
         MatchingRule* mr;
         ComponentBits *a, *b;
-                                                                          
+
         if ( oid ) {
                 mr = retrieve_matching_rule(oid, (AsnTypeId)csi_attr->csi_comp_desc->cd_type_id );
                 if ( mr )
@@ -48,7 +48,7 @@ MatchingComponentBits ( char* oid, ComponentSyntaxInfo *csi_attr,
         }
         a = ((ComponentBits*)csi_attr);
         b = ((ComponentBits*)csi_assert);
-	rc = ( a->value.bitLen == b->value.bitLen && 
+	rc = ( a->value.bitLen == b->value.bitLen &&
 		strncmp( a->value.bits,b->value.bits,a->value.bitLen ) == 0 );
         return rc ? LDAP_COMPARE_TRUE:LDAP_COMPARE_FALSE;
 }
@@ -89,14 +89,14 @@ GDecComponentBits ( void* mem_op, GenBuf *b, void *v, AsnLen *bytesDecoded, int 
 	GAsnBits result;
 
         k = (ComponentBits*) v;
-                                                                          
+
         if ( mode & DEC_ALLOC_MODE_0 ) {
                 k2 = (ComponentBits**) v;
                 *k2 = (ComponentBits*) CompAlloc( mem_op, sizeof( ComponentBits ) );
 		if ( !*k2 ) return LDAP_DECODING_ERROR;
                 k = *k2;
         }
-        
+
 	if ( GDecAsnBitsContent ( mem_op, b, &result, bytesDecoded ) < 0 ) {
 		if ( k ) CompFree( mem_op,  k );
 		return LDAP_DECODING_ERROR;
@@ -124,16 +124,16 @@ BDecComponentBits ( void* mem_op, GenBuf *b, AsnTag tagId, AsnLen len, void *v,
         void* component_values;
         ComponentBits* k, **k2;
 	AsnBits result;
-                                                                          
+
         k = (ComponentBits*) v;
-                                                                          
+
         if ( mode & DEC_ALLOC_MODE_0 ) {
                 k2 = (ComponentBits**) v;
                 *k2 = (ComponentBits*) CompAlloc( mem_op, sizeof( ComponentBits ) );
 		if ( !*k2 ) return LDAP_DECODING_ERROR;
                 k = *k2;
         }
-        
+
 	if ( mode & CALL_TAG_DECODER ){
 		mode = mode & CALL_CONTENT_DECODER;
 		rc = BDecAsnBits ( mem_op, b, &result, bytesDecoded );
@@ -148,7 +148,7 @@ BDecComponentBits ( void* mem_op, GenBuf *b, AsnTag tagId, AsnLen len, void *v,
 
 	k->value = result;
 	k->comp_desc = get_component_description (BASICTYPE_BITSTRING);
- 
+
 	return LDAP_SUCCESS;
 }
 
@@ -177,9 +177,9 @@ GDecComponentBMPString ( void* mem_op, GenBuf *b, void *v, AsnLen *bytesDecoded,
         void* component_values;
         ComponentBMPString* k, **k2;
 	GBMPString result;
-                                                                          
+
         k = (ComponentBMPString*) v;
-                                                                          
+
         if ( mode & DEC_ALLOC_MODE_0 ) {
                 k2 = (ComponentBMPString**) v;
                 *k2 = (ComponentBMPString*) CompAlloc( mem_op, sizeof( ComponentBMPString ) );
@@ -196,7 +196,7 @@ GDecComponentBMPString ( void* mem_op, GenBuf *b, void *v, AsnLen *bytesDecoded,
 
 	k->value = result.value;
 	k->comp_desc = get_component_description (BASICTYPE_BMP_STR);
- 
+
 	return LDAP_SUCCESS;
 
 }
@@ -218,9 +218,9 @@ BDecComponentBMPString ( void* mem_op, GenBuf *b, AsnTag tagId, AsnLen len, void
         void* component_values;
         ComponentBMPString* k, **k2;
 	BMPString result;
-                                                                          
+
         k = (ComponentBMPString*) v;
-                                                                          
+
         if ( mode & DEC_ALLOC_MODE_0 ) {
                 k2 = (ComponentBMPString**) v;
                 *k2 = (ComponentBMPString*) CompAlloc( mem_op, sizeof( ComponentBMPString ) );
@@ -242,7 +242,7 @@ BDecComponentBMPString ( void* mem_op, GenBuf *b, AsnTag tagId, AsnLen len, void
 
 	k->value = result;
 	k->comp_desc = get_component_description (BASICTYPE_BMP_STR);
- 
+
 	return LDAP_SUCCESS;
 
 }
@@ -271,9 +271,9 @@ GDecComponentUTF8String ( void* mem_op, GenBuf *b, void *v,
         void* component_values;
         ComponentUTF8String* k, **k2;
 	GUTF8String result;
-                                                                          
+
         k = (ComponentUTF8String*) v;
-                                                                          
+
         if ( mode & DEC_ALLOC_MODE_0 ) {
                 k2 = (ComponentUTF8String**) v;
                 *k2 = (ComponentUTF8String*)CompAlloc( mem_op, sizeof( ComponentUTF8String ) );
@@ -287,10 +287,10 @@ GDecComponentUTF8String ( void* mem_op, GenBuf *b, void *v,
 		if ( k ) CompFree( mem_op,  k );
 		return LDAP_DECODING_ERROR;
 	}
-	
+
 	k->value = result.value;
 	k->comp_desc = get_component_description (BASICTYPE_UTF8_STR);
- 
+
 	return LDAP_SUCCESS;
 }
 
@@ -311,16 +311,16 @@ BDecComponentUTF8String ( void* mem_op, GenBuf *b, AsnTag tagId, AsnLen len,
         void* component_values;
         ComponentUTF8String* k, **k2;
 	UTF8String result;
-                                                                          
+
         k = (ComponentUTF8String*) v;
-                                                                          
+
         if ( mode & DEC_ALLOC_MODE_0 ) {
                 k2 = (ComponentUTF8String**) v;
                 *k2 = (ComponentUTF8String*) CompAlloc( mem_op, sizeof( ComponentUTF8String ) );
 		if ( !*k2 ) return LDAP_DECODING_ERROR;
                 k = *k2;
         }
-	
+
 	if ( mode & CALL_TAG_DECODER ){
 		mode = mode & CALL_CONTENT_DECODER;
 		rc = BDecUTF8String ( mem_op, b, &result, bytesDecoded );
@@ -363,9 +363,9 @@ GDecComponentTeletexString  ( void* mem_op, GenBuf *b, void *v,
         void* component_values;
         ComponentTeletexString* k, **k2;
 	GTeletexString result;
-                                                                          
+
         k = (ComponentTeletexString*) v;
-                                                                          
+
         if ( mode & DEC_ALLOC_MODE_0 ) {
                 k2 = (ComponentTeletexString**) v;
                 *k2 = (ComponentTeletexString*)CompAlloc( mem_op, sizeof( ComponentTeletexString ) );
@@ -382,7 +382,7 @@ GDecComponentTeletexString  ( void* mem_op, GenBuf *b, void *v,
 
 	k->value = result.value;
 	k->comp_desc = get_component_description (BASICTYPE_VIDEOTEX_STR);
- 
+
 	return LDAP_SUCCESS;
 }
 
@@ -396,7 +396,7 @@ MatchingComponentBool(char* oid, ComponentSyntaxInfo* csi_attr,
 {
         MatchingRule* mr;
         ComponentBool *a, *b;
-                                                                          
+
         if( oid ) {
                 mr = retrieve_matching_rule(oid, csi_attr->csi_comp_desc->cd_type_id );
                 if ( mr )
@@ -433,9 +433,9 @@ GDecComponentBool ( void* mem_op, GenBuf *b, void *v, AsnLen *bytesDecoded, int 
         int i, strLen;
         ComponentBool* k, **k2;
 	GAsnBool result;
-                                                                          
+
         k = (ComponentBool*) v;
-                                                                          
+
         if ( mode & DEC_ALLOC_MODE_0 ) {
                 k2 = (ComponentBool**) v;
                 *k2 = (ComponentBool*) CompAlloc( mem_op, sizeof( ComponentBool ) );
@@ -450,7 +450,7 @@ GDecComponentBool ( void* mem_op, GenBuf *b, void *v, AsnLen *bytesDecoded, int 
 
 	k->value = result.value;
 	k->comp_desc = get_component_description (BASICTYPE_BOOLEAN);
- 
+
         return LDAP_SUCCESS;
 }
 
@@ -470,9 +470,9 @@ BDecComponentBool ( void* mem_op, GenBuf *b, AsnTag tagId, AsnLen len, void *v,
         int i, strLen, rc;
         ComponentBool* k, **k2;
 	AsnBool result;
-                                                                          
+
         k = (ComponentBool*) v;
-                                                                          
+
         if ( mode & DEC_ALLOC_MODE_0 ) {
                 k2 = (ComponentBool**) v;
                 *k2 = (ComponentBool*) CompAlloc( mem_op, sizeof( ComponentBool ) );
@@ -507,7 +507,7 @@ MatchingComponentEnum ( char* oid, ComponentSyntaxInfo *csi_attr,
         int rc;
         MatchingRule* mr;
         ComponentEnum *a, *b;
-                                                                          
+
         if( oid ) {
                 mr = retrieve_matching_rule(oid, csi_attr->csi_comp_desc->cd_type_id );
                 if ( mr )
@@ -516,7 +516,7 @@ MatchingComponentEnum ( char* oid, ComponentSyntaxInfo *csi_attr,
         a = ((ComponentEnum*)csi_attr);
         b = ((ComponentEnum*)csi_assert);
         rc = (a->value == b->value);
-                                                                          
+
         return rc ? LDAP_COMPARE_TRUE:LDAP_COMPARE_FALSE;
 }
 
@@ -545,9 +545,9 @@ GDecComponentEnum ( void* mem_op, GenBuf *b, void *v, AsnLen *bytesDecoded, int 
         void* component_values;
         ComponentEnum* k, **k2;
 	GAsnEnum result;
-                                                                          
+
         k = (ComponentEnum*) v;
-                                                                          
+
         if ( mode & DEC_ALLOC_MODE_0 ) {
                 k2 = (ComponentEnum**) v;
                 *k2 = (ComponentEnum*) CompAlloc( mem_op, sizeof( ComponentEnum ) );
@@ -597,9 +597,9 @@ BDecComponentEnum ( void* mem_op, GenBuf *b, AsnTag tagId, AsnLen len, void *v,
         void* component_values;
         ComponentEnum* k, **k2;
 	AsnEnum result;
-                                                                          
+
         k = (ComponentEnum*) v;
-                                                                          
+
         if ( mode & DEC_ALLOC_MODE_0 ) {
                 k2 = (ComponentEnum**) v;
                 *k2 = (ComponentEnum*) CompAlloc( mem_op, sizeof( ComponentEnum ) );
@@ -666,9 +666,9 @@ BDecComponentIA5String ( void* mem_op, GenBuf *b, AsnTag tagId, AsnLen len, void
         void* component_values;
         ComponentIA5String* k, **k2;
 	IA5String result;
-                                                                          
+
         k = (ComponentIA5String*) v;
-                                                                          
+
         if ( mode & DEC_ALLOC_MODE_0 ) {
                 k2 = (ComponentIA5String**) v;
                 *k2 = (ComponentIA5String*) CompAlloc( mem_op, sizeof( ComponentIA5String ) );
@@ -715,7 +715,7 @@ MatchingComponentInt(char* oid, ComponentSyntaxInfo* csi_attr,
 {
         MatchingRule* mr;
         ComponentInt *a, *b;
-                                                                          
+
         if( oid ) {
                 /* check if this ASN type's matching rule is overrided */
                 mr = retrieve_matching_rule(oid, csi_attr->csi_comp_desc->cd_type_id );
@@ -726,7 +726,7 @@ function*/
         }
         a = ((ComponentInt*)csi_attr);
         b = ((ComponentInt*)csi_assert);
-                                                                          
+
         return ( a->value == b->value ) ? LDAP_COMPARE_TRUE:LDAP_COMPARE_FALSE;
 }
 
@@ -745,7 +745,7 @@ GEncComponentInt ( GenBuf *b, ComponentInt* in )
 }
 
 /*
- * GSER Decoder : INTEGER 
+ * GSER Decoder : INTEGER
  */
 int
 GDecComponentInt( void* mem_op, GenBuf * b, void *v, AsnLen *bytesDecoded, int mode)
@@ -755,9 +755,9 @@ GDecComponentInt( void* mem_op, GenBuf * b, void *v, AsnLen *bytesDecoded, int m
         void* component_values;
         ComponentInt* k, **k2;
 	GAsnInt result;
-                                                                          
+
         k = (ComponentInt*) v;
-                                                                          
+
         if ( mode & DEC_ALLOC_MODE_0 ) {
                 k2 = (ComponentInt**) v;
                 *k2 = (ComponentInt*) CompAlloc( mem_op, sizeof( ComponentInt ) );
@@ -776,7 +776,7 @@ GDecComponentInt( void* mem_op, GenBuf * b, void *v, AsnLen *bytesDecoded, int m
 }
 
 /*
- * Component BER Decoder : INTEGER 
+ * Component BER Decoder : INTEGER
  */
 int
 BDecComponentIntTag ( void* mem_op, GenBuf *b, void *v, AsnLen *bytesDecoded, int mode ) {
@@ -792,9 +792,9 @@ BDecComponentInt ( void* mem_op, GenBuf *b, AsnTag tagId, AsnLen len, void *v,
         void* component_values;
         ComponentInt* k, **k2;
 	AsnInt result;
-                                                                          
+
         k = (ComponentInt*) v;
-                                                                          
+
         if ( mode & DEC_ALLOC_MODE_0 ) {
                 k2 = (ComponentInt**) v;
                 *k2 = (ComponentInt*) CompAlloc( mem_op, sizeof( ComponentInt ) );
@@ -811,7 +811,7 @@ BDecComponentInt ( void* mem_op, GenBuf *b, AsnTag tagId, AsnLen len, void *v,
 	k->value = result;
 
 	k->comp_desc = get_component_description (BASICTYPE_INTEGER );
-        
+
         return LDAP_SUCCESS;
 }
 
@@ -824,7 +824,7 @@ MatchingComponentNull ( char *oid, ComponentSyntaxInfo *csi_attr,
 {
         MatchingRule* mr;
         ComponentNull *a, *b;
-                                                                          
+
         if( oid ) {
                 mr = retrieve_matching_rule(oid, csi_attr->csi_comp_desc->cd_type_id );
                 if ( mr )
@@ -832,7 +832,7 @@ MatchingComponentNull ( char *oid, ComponentSyntaxInfo *csi_attr,
         }
         a = ((ComponentNull*)csi_attr);
         b = ((ComponentNull*)csi_assert);
-                                                                          
+
         return (a->value == b->value) ? LDAP_COMPARE_TRUE:LDAP_COMPARE_FALSE;
 }
 
@@ -861,9 +861,9 @@ GDecComponentNull ( void* mem_op, GenBuf *b, void *v, AsnLen *bytesDecoded, int 
         void* component_values;
         ComponentNull* k, **k2;
 	GAsnNull result;
-                                                                          
+
         k = (ComponentNull*) v;
-                                                                          
+
         if ( mode & DEC_ALLOC_MODE_0 ) {
                 k2 = (ComponentNull**) v;
                 *k2 = (ComponentNull*) CompAlloc( mem_op, sizeof( ComponentNull ) );
@@ -914,7 +914,7 @@ BDecComponentNull ( void* mem_op, GenBuf *b, AsnTag tagId, AsnLen len, void *v,
 	AsnNull result;
 
         k = (ComponentNull*) v;
-                                                                         
+
         if ( mode & DEC_ALLOC_MODE_0 ) {
                 k2 = (ComponentNull**) v;
                 *k2 = (ComponentNull*) CompAlloc( mem_op, sizeof( ComponentNull ) );
@@ -969,7 +969,7 @@ BDecComponentNumericString ( void* mem_op, GenBuf *b, AsnTag tagId, AsnLen len, 
 	NumericString result;
 
         k = (ComponentNumericString*) v;
-                                                                          
+
         if ( mode & DEC_ALLOC_MODE_0 ) {
                 k2 = (ComponentNumericString**) v;
                 *k2 = (ComponentNumericString*) CompAlloc( mem_op, sizeof( ComponentNumericString ) );
@@ -1025,7 +1025,7 @@ MatchingComponentOcts ( char* oid, ComponentSyntaxInfo* csi_attr,
         int rc;
         MatchingRule* mr;
         ComponentOcts *a, *b;
-                                                                          
+
         if( oid ) {
                 mr = retrieve_matching_rule(oid, csi_attr->csi_comp_desc->cd_type_id );
                 if ( mr )
@@ -1066,9 +1066,9 @@ GDecComponentOcts ( void* mem_op, GenBuf *b, void *v, AsnLen *bytesDecoded, int 
         void* component_values;
         ComponentOcts* k, **k2;
 	GAsnOcts result;
-                                                                          
+
         k = (ComponentOcts*) v;
-                                                                          
+
         if ( mode & DEC_ALLOC_MODE_0 ) {
                 k2 = (ComponentOcts**) v;
                 *k2 = (ComponentOcts*) CompAlloc( mem_op, sizeof( ComponentOcts ) );
@@ -1116,9 +1116,9 @@ BDecComponentOcts ( void* mem_op, GenBuf *b, AsnTag tagId, AsnLen len, void *v,
         void* component_values;
         ComponentOcts* k, **k2;
 	AsnOcts result;
-                                                                          
+
         k = (ComponentOcts*) v;
-                                                                          
+
         if ( mode & DEC_ALLOC_MODE_0 ) {
                 k2 = (ComponentOcts**) v;
                 *k2 = (ComponentOcts*) CompAlloc( mem_op, sizeof( ComponentOcts ) );
@@ -1164,7 +1164,7 @@ MatchingComponentOid ( char *oid, ComponentSyntaxInfo *csi_attr ,
         int rc;
         MatchingRule* mr;
         ComponentOid *a, *b;
-                                                                          
+
         if( oid ) {
                 mr = retrieve_matching_rule(oid, csi_attr->csi_comp_desc->cd_type_id );
                 if ( mr )
@@ -1176,7 +1176,7 @@ MatchingComponentOid ( char *oid, ComponentSyntaxInfo *csi_attr ,
 	if ( a->value.octetLen != b->value.octetLen )
 		return LDAP_COMPARE_FALSE;
         rc = ( strncmp( a->value.octs, b->value.octs, a->value.octetLen ) == 0 );
-                                                                          
+
         return rc ? LDAP_COMPARE_TRUE:LDAP_COMPARE_FALSE;
 }
 
@@ -1243,9 +1243,9 @@ GDecComponentOid ( void* mem_op, GenBuf *b, void *v, AsnLen *bytesDecoded, int m
         void* component_values;
         ComponentOid* k, **k2;
 	GAsnOid result;
-                                                                          
+
         k = (ComponentOid*) v;
-                                                                          
+
         if ( mode & DEC_ALLOC_MODE_0 ) {
                 k2 = (ComponentOid**) v;
                 *k2 = (ComponentOid*) CompAlloc( mem_op, sizeof( ComponentOid ) );
@@ -1291,16 +1291,16 @@ BDecComponentOid ( void* mem_op, GenBuf *b, AsnTag tagId, AsnLen len, void *v,
         void* component_values;
         ComponentOid* k, **k2;
 	AsnOid result;
-                                                                          
+
         k = (ComponentOid*) v;
-                                                                          
+
         if ( mode & DEC_ALLOC_MODE_0 ) {
                 k2 = (ComponentOid**) v;
                 *k2 = (ComponentOid*) CompAlloc( mem_op, sizeof( ComponentOid ) );
 		if ( !*k2 ) return LDAP_DECODING_ERROR;
                 k = *k2;
         }
-	
+
 	if ( mode & CALL_TAG_DECODER ){
 		mode = mode & CALL_CONTENT_DECODER;
 		rc = BDecAsnOid ( mem_op, b, &result, bytesDecoded );
@@ -1336,9 +1336,9 @@ BDecComponentPrintableString( void* mem_op, GenBuf *b, AsnTag tagId, AsnLen len,
         void* component_values;
         ComponentPrintableString* k, **k2;
 	AsnOid result;
-                                                                          
+
         k = (ComponentPrintableString*) v;
-                                                                          
+
         if ( mode & DEC_ALLOC_MODE_0 ) {
                 k2 = (ComponentPrintableString**) v;
                 *k2 = (ComponentPrintableString*) CompAlloc( mem_op, sizeof( ComponentPrintableString ) );
@@ -1381,9 +1381,9 @@ BDecComponentTeletexString( void* mem_op, GenBuf *b, AsnTag tagId, AsnLen len, v
         void* component_values;
         ComponentTeletexString* k, **k2;
 	AsnOid result;
-                                                                          
+
         k = (ComponentTeletexString*) v;
-                                                                          
+
         if ( mode & DEC_ALLOC_MODE_0 ) {
                 k2 = (ComponentTeletexString**) v;
                 *k2 = (ComponentTeletexString*) CompAlloc( mem_op, sizeof( ComponentTeletexString ) );
@@ -1419,7 +1419,7 @@ MatchingComponentReal (char* oid, ComponentSyntaxInfo *csi_attr,
         int rc;
         MatchingRule* mr;
         ComponentReal *a, *b;
-                                                                          
+
         if( oid ) {
                 mr = retrieve_matching_rule(oid, csi_attr->csi_comp_desc->cd_type_id );
                 if ( mr )
@@ -1428,7 +1428,7 @@ MatchingComponentReal (char* oid, ComponentSyntaxInfo *csi_attr,
         a = (ComponentReal*)csi_attr;
         b = (ComponentReal*)csi_assert;
         rc = (a->value == b->value);
-                                                                          
+
         return rc ? LDAP_COMPARE_TRUE:LDAP_COMPARE_FALSE;
 }
 
@@ -1456,9 +1456,9 @@ GDecComponentReal ( void* mem_op, GenBuf *b, void *v, AsnLen *bytesDecoded, int 
         void* component_values;
         ComponentReal* k, **k2;
 	GAsnReal result;
-                                                                          
+
         k = (ComponentReal*) v;
-                                                                          
+
         if ( mode & DEC_ALLOC_MODE_0 ) {
                 k2 = (ComponentReal**) v;
                 *k2 = (ComponentReal*) CompAlloc( mem_op, sizeof( ComponentReal ) );
@@ -1492,9 +1492,9 @@ BDecComponentReal ( void* mem_op, GenBuf *b, AsnTag tagId, AsnLen len, void *v, 
         void* component_values;
         ComponentReal* k, **k2;
 	AsnReal result;
-                                                                          
+
         k = (ComponentReal*) v;
-                                                                          
+
         if ( mode & DEC_ALLOC_MODE_0 ) {
                 k2 = (ComponentReal**) v;
                 *k2 = (ComponentReal*) CompAlloc( mem_op, sizeof( ComponentReal ) );
@@ -1528,7 +1528,7 @@ MatchingComponentRelativeOid ( char* oid, ComponentSyntaxInfo *csi_attr,
         int rc;
         MatchingRule* mr;
         ComponentRelativeOid *a, *b;
-                                                                          
+
         if( oid ) {
                 mr = retrieve_matching_rule(oid, csi_attr->csi_comp_desc->cd_type_id );
                 if ( mr )
@@ -1541,7 +1541,7 @@ MatchingComponentRelativeOid ( char* oid, ComponentSyntaxInfo *csi_attr,
 	if ( a->value.octetLen != b->value.octetLen )
 		return LDAP_COMPARE_FALSE;
         rc = ( strncmp( a->value.octs, b->value.octs, a->value.octetLen ) == 0 );
-                                                                          
+
         return rc ? LDAP_COMPARE_TRUE:LDAP_COMPARE_FALSE;
 }
 
@@ -1570,16 +1570,16 @@ GDecComponentRelativeOid ( void* mem_op, GenBuf *b,void *v, AsnLen *bytesDecoded
         void* component_values;
         ComponentRelativeOid* k, **k2;
 	GAsnRelativeOid result;
-                                                                          
+
         k = (ComponentRelativeOid*) v;
-                                                                          
+
         if ( mode & DEC_ALLOC_MODE_0 ) {
                 k2 = (ComponentRelativeOid**) v;
                 *k2 = (ComponentRelativeOid*) CompAlloc( mem_op, sizeof( ComponentRelativeOid ) );
 		if ( !*k2 ) return LDAP_DECODING_ERROR;
                 k = *k2;
         }
-	
+
 	if ( GDecAsnRelativeOidContent ( mem_op, b, &result, bytesDecoded ) < 0 ) {
 		if ( k ) CompFree ( mem_op, k );
 		return LDAP_DECODING_ERROR;
@@ -1606,16 +1606,16 @@ BDecComponentRelativeOid ( void* mem_op, GenBuf *b, AsnTag tagId, AsnLen len, vo
         void* component_values;
         ComponentRelativeOid* k, **k2;
 	AsnRelativeOid result;
-                                                                          
+
         k = (ComponentRelativeOid*) v;
-                                                                          
+
         if ( mode & DEC_ALLOC_MODE_0 ) {
                 k2 = (ComponentRelativeOid**) v;
                 *k2 = (ComponentRelativeOid*) CompAlloc( mem_op, sizeof( ComponentRelativeOid ) );
 		if ( !*k2 ) return LDAP_DECODING_ERROR;
                 k = *k2;
         }
-	
+
 	if ( mode & CALL_TAG_DECODER ){
 		mode = mode & CALL_CONTENT_DECODER;
 		rc = BDecAsnRelativeOid ( mem_op, b, &result, bytesDecoded );
@@ -1687,7 +1687,7 @@ BDecComponentUniversalString ( void* mem_op, GenBuf *b, AsnTag tagId, AsnLen len
 		if ( !*k2 ) return LDAP_DECODING_ERROR;
                 k = *k2;
         }
-	
+
 	if ( mode & CALL_TAG_DECODER ){
 		mode = mode & CALL_CONTENT_DECODER;
 		rc = BDecUniversalString ( mem_op, b, &result, bytesDecoded );
@@ -1720,16 +1720,16 @@ BDecComponentVisibleString ( void* mem_op, GenBuf *b, AsnTag tagId, AsnLen len, 
         void* component_values;
         ComponentVisibleString* k, **k2;
 	VisibleString result;
-                                                                          
+
         k = (ComponentVisibleString*) v;
-                                                                          
+
         if ( mode & DEC_ALLOC_MODE_0 ) {
                 k2 = (ComponentVisibleString**) v;
                 *k2 = (ComponentVisibleString*) CompAlloc( mem_op, sizeof( ComponentVisibleString ) );
 		if ( !*k2 ) return LDAP_DECODING_ERROR;
                 k = *k2;
         }
-	
+
 	if ( mode & CALL_TAG_DECODER ){
 		mode = mode & CALL_CONTENT_DECODER;
 		rc = BDecVisibleString ( mem_op, b, &result, bytesDecoded );
@@ -1822,18 +1822,18 @@ int
 BEncComponentAny ( void* mem_op, GenBuf *b, ComponentAny *result, AsnLen *bytesDecoded, int mode)
 {
         ComponentAny *k, **k2;
-                                                                          
+
         k = (ComponentAny*) result;
 
 	if ( !k ) return (-1);
-                                                                          
+
         if ( mode & DEC_ALLOC_MODE_0 ) {
                 k2 = (ComponentAny**) result;
                 *k2 = (ComponentAny*) CompAlloc( mem_op, sizeof( ComponentAny ) );
 		if ( !*k2 ) return LDAP_DECODING_ERROR;
                 k = *k2;
         }
-	
+
 	if ((result->cai != NULL) && (result->cai->BER_Decode != NULL)) {
 		result->value = (void*) CompAlloc ( mem_op, result->cai->size );
 		if ( !result->value ) return 0;
@@ -1864,18 +1864,18 @@ int
 BDecComponentAny ( void* mem_op, GenBuf *b, ComponentAny *result, AsnLen *bytesDecoded, int mode) {
 	int rc;
         ComponentAny *k, **k2;
-                                                                          
+
         k = (ComponentAny*) result;
 
 	if ( !k ) return (-1);
-                                                                          
+
         if ( mode & DEC_ALLOC_MODE_0 ) {
                 k2 = (ComponentAny**) result;
                 *k2 = (ComponentAny*) CompAlloc( mem_op, sizeof( ComponentAny ) );
 		if ( !*k2 ) return LDAP_DECODING_ERROR;
                 k = *k2;
         }
-	
+
 	if ((result->cai != NULL) && (result->cai->BER_Decode != NULL)) {
 		result->cai->BER_Decode ( mem_op, b, (ComponentSyntaxInfo*)&result->value, (int*)bytesDecoded, DEC_ALLOC_MODE_0 );
 
@@ -1903,9 +1903,9 @@ BDecComponentAny ( void* mem_op, GenBuf *b, ComponentAny *result, AsnLen *bytesD
 int
 GDecComponentAny ( void* mem_op, GenBuf *b, ComponentAny *result, AsnLen *bytesDecoded, int mode) {
         ComponentAny *k, **k2;
-                                                                          
+
         k = (ComponentAny*) result;
-                                                                          
+
         if ( mode & DEC_ALLOC_MODE_0 ) {
                 k2 = (ComponentAny**) result;
                 *k2 = (ComponentAny*) CompAlloc( mem_op, sizeof( ComponentAny ) );
@@ -1950,13 +1950,13 @@ MatchingComponentAny (char* oid, ComponentAny *result, ComponentAny *result2) {
 		comp2 = result2->value;
 	else
 		comp2 = result2;
-		
+
 	if ((result->cai != NULL) && (result->cai->Match != NULL)) {
 		if ( result->comp_desc->cd_type_id == BASICTYPE_ANY )
 			return result->cai->Match(oid, comp1, comp2 );
 		else if ( result2->comp_desc->cd_type_id == BASICTYPE_ANY )
 			return result2->cai->Match(oid, comp1, comp2);
-		else 
+		else
 			return LDAP_INVALID_SYNTAX;
 	}
 	else {
@@ -2039,7 +2039,7 @@ InstallOidDecoderMapping ( char* ch_oid, EncodeFcn encode, gser_decoder_func* G_
 	oid.octs = EncodeComponentOid ( mem_op, ch_oid, &strLen );
 	oid.octetLen = strLen;
 	if( strLen <= 0 ) return;
-	
+
 
 	InstallAnyByComponentOid ( 0, &oid, 0, encode, G_decode, B_decode,
 						extract, match, NULL, NULL);
@@ -2076,7 +2076,7 @@ RetrieveOidDecoderMappingbyOid( char* ch_oid, int oid_len ) {
 		comp_nibble_memory_free( mem_op );
 		return NULL;
 	}
-	
+
 	/* use encoded oid as hash string */
 	hash = MakeHash ( oid.octs, oid.octetLen);
 	comp_nibble_memory_free( mem_op );
@@ -2116,7 +2116,7 @@ RetrieveOidDecoderMappingbyDesc( char* desc, int desc_len ) {
 		comp_nibble_memory_free( mem_op );
 		return (OidDecoderMapping*) NULL;
 	}
-	
+
 	/* use encoded oid as hash string */
 	hash = MakeHash ( oid.octs, oid.octetLen);
 	comp_nibble_memory_free( mem_op );
@@ -2176,7 +2176,7 @@ int mode) {
 	if ( tag != MAKE_TAG_ID (UNIV, CONS, SEQ_TAG_CODE) ) {
 		return (-1);
 	}
-		
+
 	return (*decoder)( mem_op, b, tag, elmtLen, (ComponentSyntaxInfo*)v,(int*)bytesDecoded, mode );
 }
 
@@ -2201,7 +2201,7 @@ int mode) {
  * Example)
  * IR : ComponentRDNSequence
  * GSER : { { type cn, value sang },{ type o, value ibm}, {type c, value us} }
- * LDAP Encodings : cn=sang,o=ibm,c=us 
+ * LDAP Encodings : cn=sang,o=ibm,c=us
  */
 
 increment_bv_mem_by_size ( struct berval* in, int size ) {
@@ -2229,7 +2229,7 @@ ConvertBER2Desc( char* in, int size, struct berval* out, int* pos ) {
 	firstArcNum = (unsigned short)(arcNum/40);
 	if ( firstArcNum > 2 )
 		firstArcNum = 2;
-	
+
 	arcNum = arcNum - (firstArcNum * 40 );
 
 	rc = intToAscii ( arcNum, buf );
@@ -2299,13 +2299,13 @@ ConvertComponentAttributeTypeAndValue2RFC2253 ( irAttributeTypeAndValue* in, str
 	out->bv_val[*pos] = '=';
 	(*pos)++;
 
-	/*Assume it is string*/		
+	/*Assume it is string*/
 	if ( out->bv_len < *pos + value_size )
 		increment_bv_mem_by_size ( out, INCREMENT_SIZE );
 	memcpy( out->bv_val + *pos, value_ptr, value_size );
 	out->bv_len += value_size;
 	*pos += value_size;
-	
+
 	return LDAP_SUCCESS;
 }
 
@@ -2329,7 +2329,7 @@ ConvertRelativeDistinguishedName2RFC2253 ( irRelativeDistinguishedName* in, stru
 	return LDAP_SUCCESS;
 }
 
-int 
+int
 ConvertRDN2RFC2253 ( irRelativeDistinguishedName* in, struct berval *out ) {
 	int rc, pos = 0;
 	out->bv_val = (char*)malloc( INITIAL_DN_SIZE );

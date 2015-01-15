@@ -87,9 +87,9 @@ to subsequent calls to
 .BR ldap_bind() ,
 .BR ldap_search() ,
 etc. Certain fields in the LDAP structure can be set to indicate size limit,
-time limit, and how aliases are handled during operations; read and write access 
+time limit, and how aliases are handled during operations; read and write access
 to those fields must occur by calling
-.BR ldap_get_option (3) 
+.BR ldap_get_option (3)
 and
 .BR ldap_set_option (3)
 respectively, whenever possible.
@@ -134,7 +134,7 @@ If other fields are present, the behavior is undefined.
 .LP
 At this time,
 .B ldap_open()
-and 
+and
 .B ldap_init()
 are deprecated in favor of
 .BR ldap_initialize() ,
@@ -178,7 +178,7 @@ is null,
 is set as a global parameter that is inherited by all handlers
 within the process that are created after the call to
 .BR ldap_set_urllist_proc() .
-By default, no 
+By default, no
 .I LDAP_URLLIST_PROC
 is set.
 In a multithreaded environment,
@@ -201,7 +201,7 @@ If an error occurs,
 .B ldap_open()
 and
 .B ldap_init()
-will return NULL and 
+will return NULL and
 .I errno
 should be set appropriately.
 .B ldap_initialize()

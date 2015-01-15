@@ -16,7 +16,7 @@
  * This work was initially developed by Kurt Spanier for inclusion
  * in OpenLDAP Software.
  */
- 
+
 #include "portable.h"
 
 #include <stdio.h>
@@ -97,7 +97,7 @@ main( int argc, char **argv )
 		case 'F':
 			friendly++;
 			break;
-			
+
 		case 'H':		/* the server's URI */
 			uri = strdup( optarg );
 			break;
@@ -295,7 +295,7 @@ get_add_entry( char *filename, LDAPMod ***mods )
 			if ( *line == '\0' ) break;
 			if ( !( value = strchr( line, ':' ))) break;
 
-			*value++ = '\0'; 
+			*value++ = '\0';
 			while ( *value && isspace( (unsigned char) *value ))
 				value++;
 

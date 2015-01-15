@@ -3,7 +3,7 @@
 '\"
 '\" See the file "license.terms" for information on usage and redistribution
 '\" of this file, and for a DISCLAIMER OF ALL WARRANTIES.
-'\" 
+'\"
 .so man.macros
 .TH ldap n "" Ldap "Ldap Tcl Extension"
 .BS
@@ -42,7 +42,7 @@ X.500 directory services and/or to a stand-alone LDAP server.
 This code provides a Tcl interface to the
 Lightweight Directory Access Protocol package using the Netscape
 Software Development Kit.  It can also be used with the freely
-redistributable University of 
+redistributable University of
 Michigan (http://www.umich.edu/~rsug/ldap) version by defining the
 UMICH_LDAP macro during compilation.
 
@@ -58,7 +58,7 @@ and make queries to the remote LDAP server.
 
     ldap init foo foo.bar.com
 
-Same as above, foo is created, but for "init", opening the connection is 
+Same as above, foo is created, but for "init", opening the connection is
 deferred until we actually try to do something.
 
 The init command also allows some optional values to be set for the connection.
@@ -81,7 +81,7 @@ hence by this interface package.
 
 Currently simple and kerberos-based authentication, are supported.
 
-To use LDAP and still have reasonable security in a networked, 
+To use LDAP and still have reasonable security in a networked,
 Internet/Intranet environment, secure shell can be used to setup
 secure, encrypted connections between client machines and the LDAP
 server, and between the LDAP server and any replica or slave servers
@@ -252,12 +252,12 @@ version.
 Interface to the ldap_compare_s() command.
 Compares the value of \fIattribute\fR in the object at \fIdn\fR to the
 \fIvalue\fR given in the command line.  Returns an error if \fIdn\fR
-does not exist.  Otherwise, a 
+does not exist.  Otherwise, a
 
 .SH CACHING (Note: Netscape clients do not have caching interfaces).
 
 The UMich and OpenLDAP client libraries offers the client application fairly
-fine-grained control of caching of results retrieved from searches, 
+fine-grained control of caching of results retrieved from searches,
 offering significant performance improvement and reduced
 network traffic.
 
@@ -290,11 +290,11 @@ To enable caching of data received from an LDAP connection,
 
     foo cache uncache dn
 
-	...removes from the cache all request results that make reference 
+	...removes from the cache all request results that make reference
 	to the specified DN.
 
 	This should be used, for example, after doing an add_attributes,
-	delete_attributes, or replace_attributes (ldap_modify(3)) 
+	delete_attributes, or replace_attributes (ldap_modify(3))
 	involving the requested DN.  Generally this should not be needed,
 	as the Tcl interface automatically performs this operation on
 	any dn that is modified (add,replace,delete) while caching is
@@ -307,7 +307,7 @@ To enable caching of data received from an LDAP connection,
     foo cache size_errors
 
 	...suppresses caching of any requests that result in an error,
-	except for requests resulting in "sizelimit exceeded", which 
+	except for requests resulting in "sizelimit exceeded", which
 	are cached.  This is the default.
 
     foo cache all_errors
@@ -325,8 +325,8 @@ package, version 3.3, and OpenLDAP version 1.2, both of which are
 implementations of version 2 of the LDAP protocol.
 
 Although an LDAP client (or server) could be written in native Tcl 8.0,
-as Tcl 8.0 and above can do binary I/O, and Tcl 8 and above have strings 
-that are fully eight-bit clean, for a first implementation, to minimize 
+as Tcl 8.0 and above can do binary I/O, and Tcl 8 and above have strings
+that are fully eight-bit clean, for a first implementation, to minimize
 compatibility problems, we created a C interface to the UMich LDAP library.
 
 A native Tcl implementation would be cool because we could bring the receiving
@@ -344,13 +344,13 @@ Another advantage of coding in high-level Tcl, of course, is that the
 client would immediately be cross-platform to Windows and the Mac, as
 well as Unix.
 
-Binary data is not currently supported.  It will probably be trivial to 
+Binary data is not currently supported.  It will probably be trivial to
 add, we just haven't dug into it yet.
 
 
 .SH FOR MORE INFORMATION
 
-This document principally describes how to use our Tcl interface to the 
+This document principally describes how to use our Tcl interface to the
 LDAP library works.
 
 For more information on LDAP and the University of Michigan LDAP package,

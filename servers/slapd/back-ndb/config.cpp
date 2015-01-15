@@ -244,7 +244,7 @@ ndb_cf_gen( ConfigArgs *c )
 		for ( l2 = &ni->ni_attrlens; *l2; l2 = &(*l2)->ln_next );
 		*l2 = ln;
 		break;
-		
+
 	case NDB_INDEX:
 		ber_str2bv( c->argv[1], 0, 0, &bv );
 		ai = ndb_ai_get( ni, &bv );

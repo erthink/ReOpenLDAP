@@ -26,7 +26,7 @@ XLIB = $(LIBRARY)
 XLIBS = $(LDAP_LIBLUTIL_A) $(LDAP_LIBLBER_LA)
 #PROGRAMS = ucgendat
 
-LDAP_INCDIR= ../../include       
+LDAP_INCDIR= ../../include
 LDAP_LIBDIR= ../../libraries
 
 uctable.h: $(XXDIR)/uctable.h

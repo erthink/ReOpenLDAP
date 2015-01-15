@@ -27,18 +27,18 @@
 ##   in the DUAConfigProfile objectClass definition
 ## - Credit goes to the original Authors
 
-# 
+#
 # Application Working Group                                      M. Ansari
 # INTERNET-DRAFT                                    Sun Microsystems, Inc.
 # Expires Febuary 2003                                           L. Howard
 #                                                  PADL Software Pty. Ltd.
 #                                                          B. Joslin [ed.]
 #                                                  Hewlett-Packard Company
-# 
+#
 #                                                     September 15th, 2003
 # Intended Category: Informational
-# 
-# 
+#
+#
 #                  A Configuration Schema for LDAP Based
 #                          Directory User Agents
 #                   <draft-joslin-config-schema-07.txt>
@@ -48,32 +48,32 @@
 #    This memo provides information for the Internet community.  This
 #    memo does not specify an Internet standard of any kind.  Distribu-
 #    tion of this memo is unlimited.
-#         
+#
 #    This document is an Internet-Draft and is in full conformance with
 #    all provisions of Section 10 of RFC2026.
-#    
-#    This document is an Internet-Draft. Internet-Drafts are working  
+#
+#    This document is an Internet-Draft. Internet-Drafts are working
 #    documents of the Internet Engineering Task Force (IETF), its areas,
 #    and its working groups. Note that other groups may also distribute
 #    working documents as Internet-Drafts.
-#    
+#
 #    Internet-Drafts are draft documents valid for a maximum of six
 #    months.  Internet-Drafts may be updated, replaced, or made obsolete
-#    by other documents at any time. It is not appropriate to use 
+#    by other documents at any time. It is not appropriate to use
 #    Internet-Drafts as reference material or to cite them other than as
-#    a "working draft" or "work in progress".                
-#         
+#    a "working draft" or "work in progress".
+#
 #    To learn the current status of any Internet-Draft, please check the
-#    1id-abstracts.txt listing contained in the Internet-Drafts Shadow 
-#    Directories on ds.internic.net (US East Coast), nic.nordu.net      
+#    1id-abstracts.txt listing contained in the Internet-Drafts Shadow
+#    Directories on ds.internic.net (US East Coast), nic.nordu.net
 #    (Europe), ftp.isi.edu (US West Coast), or munnari.oz.au (Pacific
 #    Rim).
-#    
+#
 #    Distribution of this document is unlimited.
-# 
-# 
+#
+#
 # Abstract
-# 
+#
 #      This document describes a mechanism for global configuration of
 #      similar directory user agents.  This document defines a schema for
 #      configuration of these DUAs that may be discovered using the Light-
@@ -86,13 +86,13 @@
 #      objectclass mapping.  This document is intended to be a skeleton
 #      for future documents that describe configuration of specific DUA
 #      services.
-# 
-# 
+#
+#
 # [trimmed]
-# 
-# 
+#
+#
 # 2.  General Issues
-# 
+#
 #      The schema defined by this document is defined under the "DUA Con-
 #      figuration Schema."  This schema is derived from the OID: iso (1)
 #      org (3) dod (6) internet (1) private (4) enterprises (1) Hewlett-
@@ -101,14 +101,14 @@
 #      document by the keystring "DUAConfSchemaOID"
 #      (1.3.6.1.4.1.11.1.3.1).
 objectidentifier DUAConfSchemaOID 1.3.6.1.4.1.11.1.3.1
-# 
+#
 # 2.2 Attributes
-# 
+#
 #      The attributes and classes defined in this document are summarized
 #      below.
-# 
+#
 #      The following attributes are defined in this document:
-# 
+#
 #           preferredServerList
 #           defaultServerList
 #           defaultSearchBase
@@ -116,13 +116,13 @@ objectidentifier DUAConfSchemaOID 1.3.6.1.4.1.11.1.3.1
 #           authenticationMethod
 #           credentialLevel
 #           serviceSearchDescriptor
-# 
-# 
-# 
+#
+#
+#
 # Joslin                                                         [Page 3]
 # Internet-Draft          DUA Configuration Schema            October 2002
-# 
-# 
+#
+#
 #           serviceCredentialLevel
 #           serviceAuthenticationMethod
 #           attributeMap
@@ -132,14 +132,14 @@ objectidentifier DUAConfSchemaOID 1.3.6.1.4.1.11.1.3.1
 #           followReferrals
 #           dereferenceAliases
 #           profileTTL
-# 
+#
 # 2.3 Object Classes
-# 
+#
 #      The following object class is defined in this document:
-# 
+#
 #           DUAConfigProfile
-# 
-# 
+#
+#
 attributeType ( DUAConfSchemaOID:1.0 NAME 'defaultServerList'
             DESC 'Default LDAP server host address used by a DUA'
             EQUALITY caseIgnoreMatch
@@ -239,14 +239,14 @@ attributeType ( DUAConfSchemaOID:1.15 NAME 'serviceAuthenticationMethod'
             DESC 'Authentication method used by a service of the DUA'
             EQUALITY caseIgnoreMatch
             SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 )
-# 
+#
 # 4.  Class Definition
-# 
+#
 #      The objectclass below is constructed from the attributes defined in
 #      3, with the exception of the cn attribute, which is defined in RFC
 #      2256 [8].  cn is used to represent the name of the DUA configura-
 #      tion profile.
-# 
+#
 objectClass ( DUAConfSchemaOID:2.5 NAME 'DUAConfigProfile'
           SUP top STRUCTURAL
           DESC 'Abstraction of a base configuration for a DUA'

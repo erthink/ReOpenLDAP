@@ -40,7 +40,7 @@ AsnTypetoMatchingRuleTable directory_component_matching_table[] = {
         { ASNTYPE_END , NULL , NULL, NULL }
 },
 	NULL
-}; 
+};
 
 AsnTypetoSyntax asn_to_syntax_mapping_tbl[] = {
 { BASICTYPE_BOOLEAN,"Boolean","1.3.6.1.4.1.1466.115.121.1.7", NULL },
@@ -77,7 +77,7 @@ AsnTypetoSyntax asn_to_syntax_mapping_tbl[] = {
 { DirectoryString, "Directory String" ,"1.3.6.1.4.1.1466.115.121.1.15", NULL },
 { ASN_COMP_CERTIFICATE, "componentCertificate", "1.2.36.79672281.1.5.2" , NULL },
 { ASNTYPE_END , NULL , NULL, NULL }
-}; 
+};
 
 /*
  * This table describes relationship between an ASN.1 type and its
@@ -155,7 +155,7 @@ AsnTypetoCompType asntype_to_compType_mapping_tbl[] = {
 { BASICTYPE_ANY, {}},
 { COMPOSITE_ASN1_TYPE, {}},
 { RDNSequence, {}},
-{ RelativeDistinguishedName, {}}, 
+{ RelativeDistinguishedName, {}},
 { TelephoneNumber, {}},
 { FacsimileTelephoneNumber__telephoneNumber, {}},
 { DirectoryString, {}},
@@ -273,7 +273,7 @@ AsnTypetoCompDesc asntype_to_compdesc_mapping_tbl[] = {
 { RelativeDistinguishedName, { -1, NULL, {},{},0,ASN_COMPOSITE,RDNSequence,
 	(encoder_func*)ConvertRDNSequence2RFC2253,(encoder_func*)NULL,(encoder_func*)NULL,
 	(gser_decoder_func*)GDecComponentRDNSequence,(ber_decoder_func*)BDecComponentRDNSequence,
-	(comp_free_func*)NULL,(extract_component_from_id_func*)NULL,MatchingComponentRDNSequence}}, 
+	(comp_free_func*)NULL,(extract_component_from_id_func*)NULL,MatchingComponentRDNSequence}},
 { TelephoneNumber, {}},
 { FacsimileTelephoneNumber__telephoneNumber, {}},
 { DirectoryString, {}},

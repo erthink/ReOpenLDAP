@@ -20,7 +20,7 @@ OBJS	= init.lo config.lo search.lo bind.lo unbind.lo add.lo compare.lo \
 		delete.lo modify.lo modrdn.lo suffixmassage.lo map.lo \
 		conn.lo candidates.lo dncache.lo
 
-LDAP_INCDIR= ../../../include       
+LDAP_INCDIR= ../../../include
 LDAP_LIBDIR= ../../../libraries
 
 BUILD_OPT = "--enable-meta"

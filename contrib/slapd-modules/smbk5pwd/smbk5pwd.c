@@ -478,7 +478,7 @@ static int smbk5pwd_exop_passwd(
 			ASN1_MALLOC_ENCODE(Key, buf, len, &ent.keys.val[i], &len, ret);
 			if (ret != 0)
 				break;
-			
+
 			keys[i].bv_val = (char *)buf;
 			keys[i].bv_len = len;
 		}
@@ -504,11 +504,11 @@ static int smbk5pwd_exop_passwd(
 		ml->sml_numvals = i;
 		ml->sml_values = keys;
 		ml->sml_nvalues = NULL;
-		
+
 		ml = ch_malloc(sizeof(Modifications));
 		ml->sml_next = qpw->rs_mods;
 		qpw->rs_mods = ml;
-		
+
 		ml->sml_desc = ad_krb5KeyVersionNumber;
 		ml->sml_op = LDAP_MOD_REPLACE;
 #ifdef SLAP_MOD_INTERNAL
@@ -532,13 +532,13 @@ static int smbk5pwd_exop_passwd(
 		wchar_t *wcs, wc;
 		char *c, *d;
 		struct berval pwd;
-		
+
 		/* Expand incoming UTF8 string to UCS4 */
 		l = ldap_utf8_chars(qpw->rs_new.bv_val);
 		wcs = ch_malloc((l+1) * sizeof(wchar_t));
 
 		ldap_x_utf8s_to_wcs( wcs, qpw->rs_new.bv_val, l );
-		
+
 		/* Truncate UCS4 to UCS2 */
 		c = (char *)wcs;
 		for (j=0; j<l; j++) {
@@ -558,7 +558,7 @@ static int smbk5pwd_exop_passwd(
 		keys = ch_malloc( 2 * sizeof(struct berval) );
 		BER_BVZERO( &keys[1] );
 		nthash( &pwd, keys );
-		
+
 		ml->sml_desc = ad_sambaNTPassword;
 		ml->sml_op = LDAP_MOD_REPLACE;
 #ifdef SLAP_MOD_INTERNAL
@@ -585,7 +585,7 @@ static int smbk5pwd_exop_passwd(
 		keys = ch_malloc( 2 * sizeof(struct berval) );
 		BER_BVZERO( &keys[1] );
 		lmhash( &pwd, keys );
-		
+
 		ml->sml_desc = ad_sambaLMPassword;
 		ml->sml_op = LDAP_MOD_REPLACE;
 #ifdef SLAP_MOD_INTERNAL
@@ -607,7 +607,7 @@ static int smbk5pwd_exop_passwd(
 			LDAP_PVT_INTTYPE_CHARS(long),
 			"%ld", slap_get_time());
 		BER_BVZERO( &keys[1] );
-		
+
 		ml->sml_desc = ad_sambaPwdLastSet;
 		ml->sml_op = LDAP_MOD_REPLACE;
 #ifdef SLAP_MOD_INTERNAL
@@ -1156,7 +1156,7 @@ smbk5pwd_initialize(void)
 	smbk5pwd.on_bi.bi_db_destroy = smbk5pwd_db_destroy;
 
 	smbk5pwd.on_bi.bi_extended = smbk5pwd_exop_passwd;
-    
+
 #ifdef DO_KRB5
 	smbk5pwd.on_bi.bi_op_bind = smbk5pwd_op_bind;
 

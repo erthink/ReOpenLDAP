@@ -61,7 +61,7 @@ monitor_subsys_rww_init(
 	monitor_subsys_t	*ms )
 {
 	monitor_info_t	*mi;
-	
+
 	Entry		**ep, *e_conn;
 	monitor_entry_t	*mp;
 	int			i;
@@ -88,7 +88,7 @@ monitor_subsys_rww_init(
 	for ( i = 0; i < MONITOR_RWW_LAST; i++ ) {
 		struct berval		nrdn, bv;
 		Entry			*e;
-		
+
 		e = monitor_entry_stub( &ms->mss_dn, &ms->mss_ndn, &monitor_rww[i].rdn,
 			mi->mi_oc_monitorCounterObject, NULL, NULL );
 		if ( e == NULL ) {
@@ -102,10 +102,10 @@ monitor_subsys_rww_init(
 		/* steal normalized RDN */
 		dnRdn( &e->e_nname, &nrdn );
 		ber_dupbv( &monitor_rww[ i ].nrdn, &nrdn );
-	
+
 		BER_BVSTR( &bv, "0" );
 		attr_merge_one( e, mi->mi_ad_monitorCounter, &bv, NULL );
-	
+
 		mp = monitor_entrypriv_create();
 		if ( mp == NULL ) {
 			return -1;
@@ -123,7 +123,7 @@ monitor_subsys_rww_init(
 				ms->mss_ndn.bv_val, 0 );
 			return( -1 );
 		}
-	
+
 		*ep = e;
 		ep = &mp->mp_next;
 	}

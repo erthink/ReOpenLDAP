@@ -20,10 +20,10 @@
 #include "SaslInteraction.h"
 #include "debug.h"
 
-void DefaultSaslInteractionHandler::handleInteractions( 
-        const std::list<SaslInteraction*> &cb ) 
+void DefaultSaslInteractionHandler::handleInteractions(
+        const std::list<SaslInteraction*> &cb )
 {
-    DEBUG(LDAP_DEBUG_TRACE, "DefaultSaslInteractionHandler::handleCallbacks()" 
+    DEBUG(LDAP_DEBUG_TRACE, "DefaultSaslInteractionHandler::handleCallbacks()"
             << std::endl );
     std::list<SaslInteraction*>::const_iterator i;
 

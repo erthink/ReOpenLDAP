@@ -5,7 +5,7 @@ objectclass: top
 
 dn: cn=sys, o=SGI, c=US
 cn: sys
-userPassword: 
+userPassword:
 gidNumber: 0
 memberUid: root
 memberUid: bin
@@ -16,7 +16,7 @@ objectclass: top
 
 dn: cn=root, o=SGI, c=US
 cn: root
-userPassword: 
+userPassword:
 gidNumber: 0
 memberUid: root
 objectclass: posixGroup
@@ -24,7 +24,7 @@ objectclass: top
 
 dn: cn=daemon, o=SGI, c=US
 cn: daemon
-userPassword: 
+userPassword:
 gidNumber: 1
 memberUid: root
 memberUid: daemon
@@ -33,7 +33,7 @@ objectclass: top
 
 dn: cn=bin, o=SGI, c=US
 cn: bin
-userPassword: 
+userPassword:
 gidNumber: 2
 memberUid: root
 memberUid: bin
@@ -43,7 +43,7 @@ objectclass: top
 
 dn: cn=adm, o=SGI, c=US
 cn: adm
-userPassword: 
+userPassword:
 gidNumber: 3
 memberUid: root
 memberUid: adm
@@ -53,7 +53,7 @@ objectclass: top
 
 dn: cn=mail, o=SGI, c=US
 cn: mail
-userPassword: 
+userPassword:
 gidNumber: 4
 memberUid: root
 objectclass: posixGroup
@@ -61,7 +61,7 @@ objectclass: top
 
 dn: cn=uucp, o=SGI, c=US
 cn: uucp
-userPassword: 
+userPassword:
 gidNumber: 5
 memberUid: uucp
 objectclass: posixGroup
@@ -69,7 +69,7 @@ objectclass: top
 
 dn: cn=rje, o=SGI, c=US
 cn: rje
-userPassword: 
+userPassword:
 gidNumber: 8
 objectclass: posixGroup
 objectclass: top
@@ -83,7 +83,7 @@ objectclass: top
 
 dn: cn=nuucp, o=SGI, c=US
 cn: nuucp
-userPassword: 
+userPassword:
 gidNumber: 10
 memberUid: nuucp
 objectclass: posixGroup
@@ -91,21 +91,21 @@ objectclass: top
 
 dn: cn=user, o=SGI, c=US
 cn: user
-userPassword: 
+userPassword:
 gidNumber: 20
 objectclass: posixGroup
 objectclass: top
 
 dn: cn=CMWlogin, o=SGI, c=US
 cn: CMWlogin
-userPassword: 
+userPassword:
 gidNumber: 994
 objectclass: posixGroup
 objectclass: top
 
 dn: cn=other, o=SGI, c=US
 cn: other
-userPassword: 
+userPassword:
 gidNumber: 995
 objectclass: posixGroup
 objectclass: top
@@ -6523,7 +6523,7 @@ objectclass: top
 
 dn: uid=lp, o=SGI, c=US
 uid: lp
-userPassword: 
+userPassword:
 uidNumber: 9
 gidNumber: 9
 gecos: Print Spooler Owner
@@ -6535,7 +6535,7 @@ objectclass: top
 
 dn: uid=nuucp, o=SGI, c=US
 uid: nuucp
-userPassword: 
+userPassword:
 uidNumber: 10
 gidNumber: 10
 gecos: Remote UUCP User
@@ -6595,7 +6595,7 @@ objectclass: top
 
 dn: uid=EZsetup, o=SGI, c=US
 uid: EZsetup
-userPassword: 
+userPassword:
 uidNumber: 992
 gidNumber: 998
 gecos: System Setup
@@ -6607,7 +6607,7 @@ objectclass: top
 
 dn: uid=demos, o=SGI, c=US
 uid: demos
-userPassword: 
+userPassword:
 uidNumber: 993
 gidNumber: 997
 gecos: Demonstration User
@@ -6619,7 +6619,7 @@ objectclass: top
 
 dn: uid=OutOfBox, o=SGI, c=US
 uid: OutOfBox
-userPassword: 
+userPassword:
 uidNumber: 995
 gidNumber: 997
 gecos: Out of Box Experience
@@ -6631,7 +6631,7 @@ objectclass: top
 
 dn: uid=guest, o=SGI, c=US
 uid: guest
-userPassword: 
+userPassword:
 uidNumber: 998
 gidNumber: 998
 gecos: Guest Account
@@ -6703,7 +6703,7 @@ objectclass: top
 
 dn: uid=jcgomez, o=SGI, c=US
 uid: jcgomez
-userPassword: 
+userPassword:
 uidNumber: 14427
 gidNumber: 20
 gecos: Juan Carlos Gomez

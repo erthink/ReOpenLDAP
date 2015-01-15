@@ -38,7 +38,7 @@ mdb_hasSubordinates(
 	MDB_txn		*rtxn;
 	mdb_op_info	opinfo = {{{0}}}, *moi = &opinfo;
 	int		rc;
-	
+
 	assert( e != NULL );
 
 	rc = mdb_opinfo_get(op, mdb, 1, &moi);
@@ -65,9 +65,9 @@ mdb_hasSubordinates(
 		break;
 
 	default:
-		Debug(LDAP_DEBUG_ARGS, 
+		Debug(LDAP_DEBUG_ARGS,
 			"<=- " LDAP_XSTRING(mdb_hasSubordinates)
-			": has_children failed: %s (%d)\n", 
+			": has_children failed: %s (%d)\n",
 			mdb_strerror(rc), rc, 0 );
 		rc = LDAP_OTHER;
 	}

@@ -14,12 +14,12 @@ class LDAPDeleteRequest : public LDAPRequest{
     public :
         LDAPDeleteRequest(const LDAPDeleteRequest& req);
         LDAPDeleteRequest(const std::string& dn, LDAPAsynConnection *connect,
-                const LDAPConstraints *cons, bool isReferral=false, 
+                const LDAPConstraints *cons, bool isReferral=false,
                 const LDAPRequest* parent=0);
         virtual ~LDAPDeleteRequest();
         virtual LDAPMessageQueue* sendRequest();
-        virtual LDAPRequest* followReferral(LDAPMsg* refs); 
-	
+        virtual LDAPRequest* followReferral(LDAPMsg* refs);
+
     private :
 		std::string m_dn;
 };

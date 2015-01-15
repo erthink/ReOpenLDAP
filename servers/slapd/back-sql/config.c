@@ -533,7 +533,7 @@ sql_cf_gen( ConfigArgs *c )
  * error message and return.
  */
 static int
-read_baseObject( 
+read_baseObject(
 	BackendDB	*be,
 	const char	*fname )
 {
@@ -700,7 +700,7 @@ create_baseObject(
 				fname, lineno, buf );
 			return 1;
 		}
-		
+
 		transf = ad->ad_type->sat_syntax->ssyn_pretty;
 		if ( transf ) {
 			/*
@@ -712,7 +712,7 @@ create_baseObject(
 					? &ava->la_value
 					: (struct berval *) &slap_empty_bv,
 				&bv, NULL );
-	
+
 			if ( rc != LDAP_SUCCESS ) {
 				snprintf( buf, sizeof(buf),
 					"prettying of attribute #%d "

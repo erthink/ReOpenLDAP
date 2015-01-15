@@ -105,7 +105,7 @@
  */
 struct rewrite_action {
 	struct rewrite_action          *la_next;
-	
+
 #define REWRITE_ACTION_STOP		0x0001
 #define REWRITE_ACTION_UNWILLING	0x0002
 #define REWRITE_ACTION_GOTO		0x0003
@@ -131,7 +131,7 @@ struct rewrite_map {
 	 * Maps with args
 	 */
 #define REWRITE_MAP_SUBCONTEXT		0x0101
-	
+
 #define REWRITE_MAP_SET_OP_VAR		0x0102
 #define REWRITE_MAP_SETW_OP_VAR		0x0103
 #define REWRITE_MAP_GET_OP_VAR		0x0104
@@ -149,7 +149,7 @@ struct rewrite_map {
 	 * Old maps store private data in _lm_args;
 	 * new maps store the substitution pattern in _lm_subst
 	 */
-	union {		
+	union {
 	        void                   *_lm_args;
 		struct rewrite_subst   *_lm_subst;
 	} lm_union;
@@ -200,7 +200,7 @@ struct rewrite_submatch {
 struct rewrite_subst {
 	size_t                          lt_subs_len;
 	struct berval                  *lt_subs;
-	
+
 	int                             lt_num_submatch;
 	struct rewrite_submatch        *lt_submatch;
 };
@@ -224,9 +224,9 @@ struct rewrite_rule {
 	 */
 
 	struct rewrite_subst           *lr_subst;
-	
+
 #define REWRITE_REGEX_ICASE		REG_ICASE
-#define REWRITE_REGEX_EXTENDED		REG_EXTENDED	
+#define REWRITE_REGEX_EXTENDED		REG_EXTENDED
 	int                             lr_flags;
 
 #define REWRITE_RECURSE			0x0001
@@ -294,7 +294,7 @@ struct rewrite_info {
 	Avlnode                        *li_context;
 	Avlnode                        *li_maps;
 	/*
-	 * No global mutex because maps are read only at 
+	 * No global mutex because maps are read only at
 	 * config time
 	 */
 	Avlnode                        *li_params;

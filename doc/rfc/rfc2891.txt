@@ -56,7 +56,7 @@ Abstract
 
 
 Howes, et al.               Standards Track                     [Page 1]
-
+
 RFC 2891     LDAP Control Extension for Server Side Sorting  August 2000
 
 
@@ -112,7 +112,7 @@ RFC 2891     LDAP Control Extension for Server Side Sorting  August 2000
 
 
 Howes, et al.               Standards Track                     [Page 2]
-
+
 RFC 2891     LDAP Control Extension for Server Side Sorting  August 2000
 
 
@@ -168,7 +168,7 @@ RFC 2891     LDAP Control Extension for Server Side Sorting  August 2000
 
 
 Howes, et al.               Standards Track                     [Page 3]
-
+
 RFC 2891     LDAP Control Extension for Server Side Sorting  August 2000
 
 
@@ -224,7 +224,7 @@ RFC 2891     LDAP Control Extension for Server Side Sorting  August 2000
 
 
 Howes, et al.               Standards Track                     [Page 4]
-
+
 RFC 2891     LDAP Control Extension for Server Side Sorting  August 2000
 
 
@@ -280,7 +280,7 @@ RFC 2891     LDAP Control Extension for Server Side Sorting  August 2000
 
 
 Howes, et al.               Standards Track                     [Page 5]
-
+
 RFC 2891     LDAP Control Extension for Server Side Sorting  August 2000
 
 
@@ -336,7 +336,7 @@ RFC 2891     LDAP Control Extension for Server Side Sorting  August 2000
 
 
 Howes, et al.               Standards Track                     [Page 6]
-
+
 RFC 2891     LDAP Control Extension for Server Side Sorting  August 2000
 
 
@@ -392,7 +392,7 @@ RFC 2891     LDAP Control Extension for Server Side Sorting  August 2000
 
 
 Howes, et al.               Standards Track                     [Page 7]
-
+
 RFC 2891     LDAP Control Extension for Server Side Sorting  August 2000
 
 
@@ -448,4 +448,4 @@ Acknowledgement
 
 
 Howes, et al.               Standards Track                     [Page 8]
-
+

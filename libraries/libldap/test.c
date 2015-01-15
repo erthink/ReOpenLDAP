@@ -36,7 +36,7 @@
 
 #include <fcntl.h>
 
-/* including the "internal" defs is legit and nec. since this test routine has 
+/* including the "internal" defs is legit and nec. since this test routine has
  * a-priori knowledge of libldap internal workings.
  * hodges@stanford.edu 5-Feb-96
  */
@@ -343,7 +343,7 @@ main( int argc, char **argv )
 		fprintf( stderr, usage, argv[ 0 ] );
 		exit( EXIT_FAILURE );
 	}
-	
+
 	printf( "ldap_init( %s, %d )\n",
 		host == NULL ? "(null)" : host, port );
 

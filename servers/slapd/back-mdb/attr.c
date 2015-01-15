@@ -35,7 +35,7 @@ mdb_attr_slot( struct mdb_info *mdb, AttributeDescription *ad, int *ins )
 	unsigned base = 0, cursor = 0;
 	unsigned n = mdb->mi_nattrs;
 	int val = 0;
-	
+
 	while ( 0 < n ) {
 		unsigned pivot = n >> 1;
 		cursor = base + pivot;
@@ -68,7 +68,7 @@ ainfo_insert( struct mdb_info *mdb, AttrInfo *a )
 	if ( i >= 0 )
 		return -1;
 
-	mdb->mi_attrs = ch_realloc( mdb->mi_attrs, ( mdb->mi_nattrs+1 ) * 
+	mdb->mi_attrs = ch_realloc( mdb->mi_attrs, ( mdb->mi_nattrs+1 ) *
 		sizeof( AttrInfo * ));
 	if ( x < mdb->mi_nattrs )
 		AC_MEMCPY( &mdb->mi_attrs[x+1], &mdb->mi_attrs[x],
@@ -369,7 +369,7 @@ mdb_attr_index_config(
 		}
 
 		Debug( LDAP_DEBUG_CONFIG, "index %s 0x%04lx\n",
-			ad->ad_cname.bv_val, mask, 0 ); 
+			ad->ad_cname.bv_val, mask, 0 );
 
 		a = (AttrInfo *) ch_malloc( sizeof(AttrInfo) );
 
@@ -422,7 +422,7 @@ mdb_attr_index_config(
 			if ( mdb->mi_flags & MDB_IS_OPEN ) {
 				AttrInfo *b = mdb_attr_mask( mdb, ad );
 				/* If there is already an index defined for this attribute
-				 * it must be replaced. Otherwise we end up with multiple 
+				 * it must be replaced. Otherwise we end up with multiple
 				 * olcIndex values for the same attribute */
 				if ( b->ai_indexmask & MDB_INDEX_DELETING ) {
 					/* If we were editing this attr, reset it */
@@ -507,7 +507,7 @@ mdb_attr_index_destroy( struct mdb_info *mdb )
 {
 	int i;
 
-	for ( i=0; i<mdb->mi_nattrs; i++ ) 
+	for ( i=0; i<mdb->mi_nattrs; i++ )
 		mdb_attr_info_free( mdb->mi_attrs[i] );
 
 	free( mdb->mi_attrs );

@@ -78,7 +78,7 @@ main( int argc, char *argv[] )
 			if( passwd == NULL )
 #endif
 			{
-				printf("%s generate fail: %s (%d)\n", 
+				printf("%s generate fail: %s (%d)\n",
 					hash[i], pw[j].bv_val, pw[j].bv_len );
 				continue;
 			}

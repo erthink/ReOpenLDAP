@@ -67,7 +67,7 @@ const string& LDAPException::getServerMsg() const throw()
 
 const char* LDAPException::what() const throw()
 {
-    return this->m_res_string.c_str(); 
+    return this->m_res_string.c_str();
 }
 
 ostream& operator << (ostream& s, LDAPException e) throw()
@@ -80,7 +80,7 @@ ostream& operator << (ostream& s, LDAPException e) throw()
 }
 
 
-LDAPReferralException::LDAPReferralException(const LDAPUrlList& urls) throw() 
+LDAPReferralException::LDAPReferralException(const LDAPUrlList& urls) throw()
         : LDAPException(LDAPResult::REFERRAL) , m_urlList(urls)
 {
 }

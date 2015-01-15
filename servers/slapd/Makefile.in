@@ -95,7 +95,7 @@ SLAPD_OBJECTS = $(@PLAT@_SLAPD_OBJECTS)
 # slapd.exe must export all of its global symbols, just like a DLL.
 # The purpose of this is to allow dynamic modules (dynamic backends
 # or external dynamic modules) to bind with the symbols at run-time.
-# 
+#
 # Exporting symbols from an .EXE is a bit tricky and involves multiple
 # steps. First a .DEF file must be generated. The .DEF file indicates
 # the set of symbols that are to be exported. Many times, it's possible
@@ -328,7 +328,7 @@ version.c: Makefile
 	@-$(RM) $@
 	$(MKVERSION) -s -n Versionstr slapd > $@
 
-version.o: version.c $(OBJS) $(SLAPD_LIBDEPEND) 
+version.o: version.c $(OBJS) $(SLAPD_LIBDEPEND)
 
 backends.o: backends.c $(srcdir)/slap.h
 

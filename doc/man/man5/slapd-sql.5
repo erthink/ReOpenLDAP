@@ -22,7 +22,7 @@ It is NOT designed as a general-purpose backend that uses RDBMS instead
 of BerkeleyDB (as the standard BDB backend does), though it can be
 used as such with several limitations.
 You can take a look at
-.B http://www.openldap.org/faq/index.cgi?file=378 
+.B http://www.openldap.org/faq/index.cgi?file=378
 (OpenLDAP FAQ\-O\-Matic/General LDAP FAQ/Directories vs. conventional
 databases) to find out more on this point.
 .LP
@@ -45,10 +45,10 @@ This backend is \fIexperimental\fP.
 .SH CONFIGURATION
 These
 .B slapd.conf
-options apply to the SQL backend database, which means that 
+options apply to the SQL backend database, which means that
 they must follow a "database sql" line and come before any
 subsequent "backend" or "database" lines.
-Other database options not specific to this backend are described 
+Other database options not specific to this backend are described
 in the
 .BR slapd.conf (5)
 manual page.
@@ -191,9 +191,9 @@ uppercased, so matches may be case sensitive.
 
 .TP
 .B upper_needs_cast { NO | yes }
-Set this directive to 
+Set this directive to
 .B yes
-if 
+if
 .B upper_func
 needs an explicit cast when applied to literal strings.
 A cast in the form
@@ -218,13 +218,13 @@ This is \fIexperimental\fP and may change in future releases.
 .TP
 .B concat_pattern <pattern>
 This statement defines the
-.B pattern 
+.B pattern
 that is used to concatenate strings.  The
 .B pattern
-MUST contain two question marks, '?', that will be replaced 
+MUST contain two question marks, '?', that will be replaced
 by the two strings that must be concatenated.  The default value is
 .BR "CONCAT(?,?)";
-a form that is known to be highly portable (IBM db2, PostgreSQL) is 
+a form that is known to be highly portable (IBM db2, PostgreSQL) is
 .BR "?||?",
 but an explicit cast may be required when operating on literal strings:
 .BR "CAST(?||? AS VARCHAR(<length>))".
@@ -242,8 +242,8 @@ Define the aliasing keyword.  Some RDBMSes use the word "\fIAS\fP"
 
 .TP
 .B aliasing_quote <string>
-Define the quoting char of the aliasing keyword.  Some RDBMSes 
-don't require any (the default), others may require single 
+Define the quoting char of the aliasing keyword.  Some RDBMSes
+don't require any (the default), others may require single
 or double quotes.
 
 .TP
@@ -263,8 +263,8 @@ mapping between LDAP attributes and SQL data is available.
 The default behavior is to ignore those changes that cannot be mapped.
 It has no impact on objectClass mapping, i.e. if the
 .I structuralObjectClass
-of an entry cannot be mapped to SQL by looking up its name 
-in ldap_oc_mappings, an 
+of an entry cannot be mapped to SQL by looking up its name
+in ldap_oc_mappings, an
 .I add
 operation will fail regardless of the
 .B fail_if_no_mapping
@@ -273,10 +273,10 @@ This is \fIexperimental\fP and may change in future releases.
 
 .TP
 .B allow_orphans { NO | yes }
-When set to 
+When set to
 .B yes
 orphaned entries (i.e. without the parent entry in the database)
-can be added.  This option should be used with care, possibly 
+can be added.  This option should be used with care, possibly
 in conjunction with some special rule on the RDBMS side that
 dynamically creates the missing parent.
 
@@ -284,14 +284,14 @@ dynamically creates the missing parent.
 .B baseObject [ <filename> ]
 Instructs the database to create and manage an in-memory baseObject
 entry instead of looking for one in the RDBMS.
-If the (optional) 
+If the (optional)
 .B <filename>
 argument is given, the entry is read from that file in
 .BR LDIF (5)
 format; otherwise, an entry with objectClass \fBextensibleObject\fP
 is created based on the contents of the RDN of the \fIbaseObject\fP.
 This is particularly useful when \fIldap_entries\fP
-information is stored in a view rather than in a table, and 
+information is stored in a view rather than in a table, and
 .B union
 is not supported for views, so that the view can only specify
 one rule to compute the entry structure for one objectClass.
@@ -301,8 +301,8 @@ This is \fIexperimental\fP and may change in future releases.
 .TP
 .B create_needs_select { NO | yes }
 Instructs the database whether or not entry creation
-in table \fIldap_entries\fP needs a subsequent select to collect 
-the automatically assigned ID, instead of being returned 
+in table \fIldap_entries\fP needs a subsequent select to collect
+the automatically assigned ID, instead of being returned
 by a stored procedure.
 
 .LP
@@ -314,7 +314,7 @@ The first statement allows to provide a list of attributes that
 must always be fetched in addition to those requested by any specific
 operation, because they are required for the proper usage of the
 backend.  For instance, all attributes used in ACLs should be listed
-here.  The second statement is a shortcut to require all attributes 
+here.  The second statement is a shortcut to require all attributes
 to be always loaded.  Note that the dynamically generated attributes,
 e.g. \fIhasSubordinates\fP, \fIentryDN\fP and other implementation
 dependent attributes are \fBNOT\fP generated at this point, for
@@ -325,12 +325,12 @@ consistency with the rest of slapd.  This may change in the future.
 .B check_schema { YES | no }
 Instructs the database to check schema adherence of entries after
 modifications, and structural objectClass chain when entries are built.
-By default it is set to 
+By default it is set to
 .BR yes .
 
 .TP
 .B sqllayer <name> [...]
-Loads the layer \fB<name>\fP onto a stack of helpers that are used 
+Loads the layer \fB<name>\fP onto a stack of helpers that are used
 to map DNs from LDAP to SQL representation and vice-versa.
 Subsequent args are passed to the layer configuration routine.
 This is \fIhighly experimental\fP and should be used with extreme care.
@@ -369,7 +369,7 @@ LDAP operation requests to (a series of) SQL queries.
 Let us deal with the SEARCH operation.
 .LP
 Example:
-Let's suppose that we store information about persons working in our 
+Let's suppose that we store information about persons working in our
 organization in two tables:
 .LP
 .nf
@@ -423,7 +423,7 @@ If we wanted to service LDAP requests with filters like
 .LP
 (note how the telephoneNumber match is expanded in multiple wildcards
 to account for interspersed ininfluential chars like spaces, dashes
-and so; this occurs by design because telephoneNumber is defined after 
+and so; this occurs by design because telephoneNumber is defined after
 a specially recognized syntax).
 So, if we had information about what tables contain values for each
 attribute, how to join these tables and arrange these values, we could
@@ -550,7 +550,7 @@ If your RDBMS does not support
 .B unions
 in views, only one objectClass can be mapped in
 .BR ldap_entries ,
-and the baseObject cannot be created; in this case, see the 
+and the baseObject cannot be created; in this case, see the
 .B baseObject
 directive for a possible workaround.
 
@@ -562,7 +562,7 @@ scope and filter).
 It tries to do it for each objectclass registered in ldap_objclasses.
 .LP
 Example:
-for our query with filter (telephoneNumber=123*) we would get the following 
+for our query with filter (telephoneNumber=123*) we would get the following
 query generated (which loads candidate IDs)
 .LP
 .nf
@@ -599,7 +599,7 @@ ADD, DELETE, MODIFY and MODRDN operations are also performed on per-attribute
 meta-information (add_proc etc.).
 In those fields one can specify an SQL statement or stored procedure
 call which can add, or delete given values of a given attribute, using
-the given entry keyval (see examples -- mostly PostgreSQL, ORACLE and MSSQL 
+the given entry keyval (see examples -- mostly PostgreSQL, ORACLE and MSSQL
 - since as of this writing there are no stored procs in MySQL).
 .LP
 We just add more columns to ldap_oc_mappings and ldap_attr_mappings, holding
@@ -634,7 +634,7 @@ holding a naming attribute, e.g. "ou" or "cn", a "ref" attribute,
 containing the url; in case multiple referrals per entry are needed,
 a separate table for urls can be created, where urls are mapped
 to the respective entries.
-The use of the naming attribute usually requires to add 
+The use of the naming attribute usually requires to add
 an "extensibleObject" value to ldap_entry_objclasses.
 
 .LP
@@ -658,14 +658,14 @@ A directoryString value of the form "__First___Last_"
 (where underscores mean spaces, ASCII 0x20 char) corresponds
 to its prettified counterpart "First_Last"; this is not currently
 honored by back-sql if non-prettified data is written via RDBMS;
-when non-prettified data is written through back-sql, the prettified 
+when non-prettified data is written through back-sql, the prettified
 values are actually used instead.
 
 .LP
 .SH BUGS
 When the
 .B ldap_entry_objclasses
-table is empty, filters on the 
+table is empty, filters on the
 .B objectClass
 attribute erroneously result in no candidates.
 A workaround consists in adding at least one row to that table,
@@ -673,20 +673,20 @@ no matter if valid or not.
 
 .LP
 .SH PROXY CACHE OVERLAY
-The proxy cache overlay 
+The proxy cache overlay
 allows caching of LDAP search requests (queries) in a local database.
-See 
+See
 .BR slapo\-pcache (5)
 for details.
 .SH EXAMPLES
 There are example SQL modules in the slapd/back\-sql/rdbms_depend/
 directory in the OpenLDAP source tree.
 .SH ACCESS CONTROL
-The 
+The
 .B sql
 backend honors access control semantics as indicated in
 .BR slapd.access (5)
-(including the 
+(including the
 .B disclose
 access privilege when enabled at compile time).
 .SH FILES

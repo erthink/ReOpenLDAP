@@ -28,11 +28,11 @@ int main(){
     std::cout << "----------------------doing bind...." << std::endl;
     try{
         lc->bind("cn=Manager,o=Organisation,c=DE" , "secret",cons);
-        std::cout << lc->getHost() << std::endl;    
-        bool result = lc->compare("cn=Manager,o=Organisation,c=DE", 
+        std::cout << lc->getHost() << std::endl;
+        bool result = lc->compare("cn=Manager,o=Organisation,c=DE",
                 LDAPAttribute("cn","Manaer"));
         std::cout << "Compare: " << result << std::endl;
-    
+
         LDAPAttributeList* attrs=new LDAPAttributeList();
         StringList values;
         StringList s2;
@@ -42,9 +42,9 @@ int main(){
         attrs->addAttribute(LDAPAttribute("cn","Peter"));
         attrs->addAttribute(LDAPAttribute("sn","Peter,hallo"));
         LDAPEntry* entry=new LDAPEntry(
-                "cn=Peter , o=Organisation, c=DE", attrs);    
+                "cn=Peter , o=Organisation, c=DE", attrs);
 //        lc->add(entry);
-        
+
 //        lc->del("ou=Groups,o=Organisation,c=DE");
 
         LDAPSearchResults* entries = lc->search("o=Organisation,c=DE",
@@ -66,7 +66,7 @@ int main(){
                 }
             }
         }
-        
+
         lc->unbind();
         delete lc;
    }catch (LDAPException &e){
@@ -83,7 +83,7 @@ int main(){
     attrs->addAttribute(LDAPAttribute("objectClass",values));
     attrs->addAttribute(LDAPAttribute("ou","Groups"));
     LDAPEntry* entry=new LDAPEntry(
-            "ou=Groups, o=Organisation, c=DE", attrs);    
+            "ou=Groups, o=Organisation, c=DE", attrs);
 
     LDAPAttribute newattr("description");
     LDAPModification::mod_op op = LDAPModification::OP_DELETE;
@@ -105,7 +105,7 @@ int main(){
                 case LDAP_RES_SEARCH_ENTRY :
                     res2= (LDAPSearchResult*)res;
                     entry=  res2->getEntry();
-                    std::cout << "Entry:            " << *entry << std::endl; 
+                    std::cout << "Entry:            " << *entry << std::endl;
                     delete res;
                     res=q->getNext();
                 break;

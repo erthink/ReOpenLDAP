@@ -29,18 +29,18 @@ slapauth \- Check a list of string-represented IDs for LDAP authc/authz
 .SH DESCRIPTION
 .LP
 .B Slapauth
-is used to check the behavior of the slapd in mapping identities 
-for authentication and authorization purposes, as specified in 
+is used to check the behavior of the slapd in mapping identities
+for authentication and authorization purposes, as specified in
 .BR slapd.conf (5).
 It opens the
 .BR slapd.conf (5)
-configuration file or the 
-.BR slapd\-config (5) 
-backend, reads in the 
+configuration file or the
+.BR slapd\-config (5)
+backend, reads in the
 .BR authz\-policy / olcAuthzPolicy
 and
 .BR authz\-regexp / olcAuthzRegexp
-directives, and then parses the 
+directives, and then parses the
 .I ID
 list given on the command-line.
 .LP
@@ -92,24 +92,24 @@ Possible generic options/values are:
 specify a realm.
 .TP
 .BI \-U \ authcID
-specify an ID to be used as 
+specify an ID to be used as
 .I authcID
 throughout the test session.
 If present, and if no
 .I authzID
-is given, the IDs in the ID list are treated as 
+is given, the IDs in the ID list are treated as
 .IR authzID .
 .TP
 .BI \-X \ authzID
-specify an ID to be used as 
+specify an ID to be used as
 .I authzID
 throughout the test session.
 If present, and if no
 .I authcID
-is given, the IDs in the ID list are treated as 
+is given, the IDs in the ID list are treated as
 .IR authcID .
 If both
-.I authcID 
+.I authcID
 and
 .I authzID
 are given via command line switch, the ID list cannot be present.
@@ -128,7 +128,7 @@ The command
 .fi
 tests whether the user
 .I bjorn
-can assume the identity of the user 
+can assume the identity of the user
 .I bjensen
 provided the directives
 .LP

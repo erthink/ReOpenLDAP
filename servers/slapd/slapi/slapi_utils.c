@@ -72,7 +72,7 @@ static int checkBVString(const struct berval *bv)
 
 int
 bvptr2obj(
-	struct berval	**bvptr, 
+	struct berval	**bvptr,
 	BerVarray	*bvobj,
 	unsigned *num )
 {
@@ -93,7 +93,7 @@ bvptr2obj(
 	tmpberval = (BerVarray)slapi_ch_malloc( (i + 1)*sizeof(struct berval));
 	if ( tmpberval == NULL ) {
 		return LDAP_NO_MEMORY;
-	} 
+	}
 
 	for ( i = 0; bvptr[i] != NULL; i++ ) {
 		tmpberval[i].bv_val = bvptr[i]->bv_val;
@@ -111,7 +111,7 @@ bvptr2obj(
 
 Slapi_Entry *
 slapi_str2entry(
-	char		*s, 
+	char		*s,
 	int		flags )
 {
 	return str2entry( s );
@@ -119,8 +119,8 @@ slapi_str2entry(
 
 char *
 slapi_entry2str(
-	Slapi_Entry	*e, 
-	int		*len ) 
+	Slapi_Entry	*e,
+	int		*len )
 {
 	char		*ret = NULL;
 	char		*s;
@@ -135,7 +135,7 @@ slapi_entry2str(
 }
 
 char *
-slapi_entry_get_dn( Slapi_Entry *e ) 
+slapi_entry_get_dn( Slapi_Entry *e )
 {
 	return e->e_name.bv_val;
 }
@@ -167,9 +167,9 @@ slapi_int_dn_normalize( struct berval *in, struct berval *out )
 	return (mr->smr_normalize)( 0, syntax, mr, in, out, NULL );
 }
 
-void 
+void
 slapi_entry_set_dn(
-	Slapi_Entry	*e, 
+	Slapi_Entry	*e,
 	char		*ldn )
 {
 	struct berval	dn = BER_BVNULL;
@@ -182,15 +182,15 @@ slapi_entry_set_dn(
 }
 
 Slapi_Entry *
-slapi_entry_dup( Slapi_Entry *e ) 
+slapi_entry_dup( Slapi_Entry *e )
 {
 	return entry_dup( e );
 }
 
-int 
+int
 slapi_entry_attr_delete(
-	Slapi_Entry	*e, 		
-	char		*type ) 
+	Slapi_Entry	*e,
+	char		*type )
 {
 	AttributeDescription	*ad = NULL;
 	const char		*text;
@@ -207,23 +207,23 @@ slapi_entry_attr_delete(
 }
 
 Slapi_Entry *
-slapi_entry_alloc( void ) 
+slapi_entry_alloc( void )
 {
 	return (Slapi_Entry *)entry_alloc();
 }
 
-void 
-slapi_entry_free( Slapi_Entry *e ) 
+void
+slapi_entry_free( Slapi_Entry *e )
 {
 	if ( e != NULL )
 		entry_free( e );
 }
 
-int 
+int
 slapi_entry_attr_merge(
-	Slapi_Entry	*e, 
-	char		*type, 
-	struct berval	**vals ) 
+	Slapi_Entry	*e,
+	char		*type,
+	struct berval	**vals )
 {
 	AttributeDescription	*ad = NULL;
 	const char		*text;
@@ -234,12 +234,12 @@ slapi_entry_attr_merge(
 	if ( rc != LDAP_SUCCESS ) {
 		return -1;
 	}
-	
+
 	rc = bvptr2obj( vals, &bv, NULL );
 	if ( rc != LDAP_SUCCESS ) {
 		return -1;
 	}
-	
+
 	rc = attr_merge_normalize( e, ad, bv, NULL );
 	ch_free( bv );
 
@@ -248,9 +248,9 @@ slapi_entry_attr_merge(
 
 int
 slapi_entry_attr_find(
-	Slapi_Entry	*e, 
-	char		*type, 
-	Slapi_Attr	**attr ) 
+	Slapi_Entry	*e,
+	char		*type,
+	Slapi_Attr	**attr )
 {
 	AttributeDescription	*ad = NULL;
 	const char		*text;
@@ -391,7 +391,7 @@ slapi_entry_attr_hasvalue( Slapi_Entry *e, const char *type, const char *value )
 	const char *text;
 	int rc;
 	Attribute *attr;
-	
+
 	rc = slap_str2ad( type, &ad, &text );
 	if ( rc != LDAP_SUCCESS ) {
 		return 0;
@@ -415,12 +415,12 @@ slapi_entry_attr_set_charptr(Slapi_Entry* e, const char *type, const char *value
 	const char		*text;
 	int			rc;
 	struct berval		bv;
-	
+
 	rc = slap_str2ad( type, &ad, &text );
 	if ( rc != LDAP_SUCCESS ) {
 		return;
 	}
-	
+
 	attr_delete ( &e->e_attrs, ad );
 	if ( value != NULL ) {
 		bv.bv_val = (char *)value;
@@ -587,7 +587,7 @@ slapi_entry_add_valueset(Slapi_Entry *e, const char *type, Slapi_ValueSet *vs)
 	AttributeDescription	*ad = NULL;
 	const char		*text;
 	int			rc;
-	
+
 	rc = slap_str2ad( type, &ad, &text );
 	if ( rc != LDAP_SUCCESS ) {
 		return -1;
@@ -614,7 +614,7 @@ slapi_entry_delete_values( Slapi_Entry *e, const char *type, struct berval **val
 		/* If vals is NULL, this is a NOOP. */
 		return LDAP_SUCCESS;
 	}
-	
+
 	rc = slap_str2ad( type, &mod.sm_desc, &text );
 	if ( rc != LDAP_SUCCESS ) {
 		return rc;
@@ -692,7 +692,7 @@ slapi_entry_delete_string(Slapi_Entry *e, const char *type, const char *value)
 	vals[0] = &val;
 	vals[1] = NULL;
 
-	return slapi_entry_delete_values_sv( e, type, vals );	
+	return slapi_entry_delete_values_sv( e, type, vals );
 }
 
 int
@@ -736,7 +736,7 @@ slapi_entry_attr_replace_sv( Slapi_Entry *e, const char *type, Slapi_Value **val
 	const char *text;
 	int rc;
 	BerVarray bv;
-	
+
 	rc = slap_str2ad( type, &ad, &text );
 	if ( rc != LDAP_SUCCESS ) {
 		return 0;
@@ -748,24 +748,24 @@ slapi_entry_attr_replace_sv( Slapi_Entry *e, const char *type, Slapi_Value **val
 	if ( rc != LDAP_SUCCESS ) {
 		return -1;
 	}
-	
+
 	rc = attr_merge_normalize( e, ad, bv, NULL );
 	slapi_ch_free( (void **)&bv );
 	if ( rc != LDAP_SUCCESS ) {
 		return -1;
 	}
-	
+
 	return 0;
 }
 
-/* 
- * FIXME -- The caller must free the allocated memory. 
+/*
+ * FIXME -- The caller must free the allocated memory.
  * In Netscape they do not have to.
  */
-int 
+int
 slapi_attr_get_values(
-	Slapi_Attr	*attr, 
-	struct berval	***vals ) 
+	Slapi_Attr	*attr,
+	struct berval	***vals )
 {
 	int		i, j;
 	struct berval	**bv;
@@ -783,20 +783,20 @@ slapi_attr_get_values(
 		bv[j] = ber_dupbv( NULL, &attr->a_vals[j] );
 	}
 	bv[j] = NULL;
-	
+
 	*vals = (struct berval **)bv;
 
 	return 0;
 }
 
 char *
-slapi_dn_normalize( char *dn ) 
+slapi_dn_normalize( char *dn )
 {
 	struct berval	bdn;
 	struct berval	pdn;
 
 	assert( dn != NULL );
-	
+
 	bdn.bv_val = dn;
 	bdn.bv_len = strlen( dn );
 
@@ -808,13 +808,13 @@ slapi_dn_normalize( char *dn )
 }
 
 char *
-slapi_dn_normalize_case( char *dn ) 
+slapi_dn_normalize_case( char *dn )
 {
 	struct berval	bdn;
 	struct berval	ndn;
 
 	assert( dn != NULL );
-	
+
 	bdn.bv_val = dn;
 	bdn.bv_len = strlen( dn );
 
@@ -825,9 +825,9 @@ slapi_dn_normalize_case( char *dn )
 	return ndn.bv_val;
 }
 
-int 
+int
 slapi_dn_issuffix(
-	char		*dn, 
+	char		*dn,
 	char		*suffix )
 {
 	struct berval	bdn, ndn;
@@ -1014,18 +1014,18 @@ char *slapi_dn_beparent( Slapi_PBlock *pb, const char *ldn )
 
 char *
 slapi_dn_ignore_case( char *dn )
-{       
+{
 	return slapi_dn_normalize_case( dn );
 }
 
 char *
-slapi_ch_malloc( unsigned long size ) 
+slapi_ch_malloc( unsigned long size )
 {
-	return ch_malloc( size );	
+	return ch_malloc( size );
 }
 
-void 
-slapi_ch_free( void **ptr ) 
+void
+slapi_ch_free( void **ptr )
 {
 	if ( ptr == NULL || *ptr == NULL )
 		return;
@@ -1033,8 +1033,8 @@ slapi_ch_free( void **ptr )
 	*ptr = NULL;
 }
 
-void 
-slapi_ch_free_string( char **ptr ) 
+void
+slapi_ch_free_string( char **ptr )
 {
 	slapi_ch_free( (void **)ptr );
 }
@@ -1083,38 +1083,38 @@ slapi_ch_bvecdup(const struct berval **v)
 
 char *
 slapi_ch_calloc(
-	unsigned long nelem, 
-	unsigned long size ) 
+	unsigned long nelem,
+	unsigned long size )
 {
 	return ch_calloc( nelem, size );
 }
 
 char *
 slapi_ch_realloc(
-	char *block, 
-	unsigned long size ) 
+	char *block,
+	unsigned long size )
 {
 	return ch_realloc( block, size );
 }
 
 char *
-slapi_ch_strdup( const char *s ) 
+slapi_ch_strdup( const char *s )
 {
 	return ch_strdup( s );
 }
 
 size_t
-slapi_ch_stlen( const char *s ) 
+slapi_ch_stlen( const char *s )
 {
 	return strlen( s );
 }
 
-int 
+int
 slapi_control_present(
-	LDAPControl	**controls, 
-	char		*oid, 
-	struct berval	**val, 
-	int		*iscritical ) 
+	LDAPControl	**controls,
+	char		*oid,
+	struct berval	**val,
+	int		*iscritical )
 {
 	int		i;
 	int		rc = 0;
@@ -1122,11 +1122,11 @@ slapi_control_present(
 	if ( val ) {
 		*val = NULL;
 	}
-	
+
 	if ( iscritical ) {
 		*iscritical = 0;
 	}
-	
+
 	for ( i = 0; controls != NULL && controls[i] != NULL; i++ ) {
 		if ( strcmp( controls[i]->ldctl_oid, oid ) != 0 ) {
 			continue;
@@ -1155,7 +1155,7 @@ slapControlMask2SlapiControlOp(slap_mask_t slap_mask,
 {
 	*slapi_mask = SLAPI_OPERATION_NONE;
 
-	if ( slap_mask & SLAP_CTRL_ABANDON ) 
+	if ( slap_mask & SLAP_CTRL_ABANDON )
 		*slapi_mask |= SLAPI_OPERATION_ABANDON;
 
 	if ( slap_mask & SLAP_CTRL_ADD )
@@ -1230,9 +1230,9 @@ slapi_int_parse_control(
 	return LDAP_SUCCESS;
 }
 
-void 
+void
 slapi_register_supported_control(
-	char		*controloid, 
+	char		*controloid,
 	unsigned long	controlops )
 {
 	slap_mask_t controlmask;
@@ -1242,10 +1242,10 @@ slapi_register_supported_control(
 	register_supported_control( controloid, controlmask, NULL, slapi_int_parse_control, NULL );
 }
 
-int 
+int
 slapi_get_supported_controls(
-	char		***ctrloidsp, 
-	unsigned long	**ctrlopsp ) 
+	char		***ctrloidsp,
+	unsigned long	**ctrlopsp )
 {
 	int i, rc;
 
@@ -1275,7 +1275,7 @@ slapi_dup_control( LDAPControl *ctrl )
 	return ret;
 }
 
-void 
+void
 slapi_register_supported_saslmechanism( char *mechanism )
 {
 	/* FIXME -- can not add saslmechanism to OpenLDAP dynamically */
@@ -1303,7 +1303,7 @@ slapi_get_supported_extended_ops( void )
 	for ( i = 0; get_supported_extop( i ) != NULL; i++ ) {
 		;
 	}
-	
+
 	for ( j = 0; slapi_int_get_supported_extop( j ) != NULL; j++ ) {
 		;
 	}
@@ -1322,7 +1322,7 @@ slapi_get_supported_extended_ops( void )
 
 		ppExtOpOID[ k ] = bv->bv_val;
 	}
-	
+
 	for ( ; k < j; k++ ) {
 		struct berval	*bv;
 
@@ -1336,14 +1336,14 @@ slapi_get_supported_extended_ops( void )
 	return ppExtOpOID;
 }
 
-void 
+void
 slapi_send_ldap_result(
-	Slapi_PBlock	*pb, 
-	int		err, 
-	char		*matched, 
-	char		*text, 
-	int		nentries, 
-	struct berval	**urls ) 
+	Slapi_PBlock	*pb,
+	int		err,
+	char		*matched,
+	char		*text,
+	int		nentries,
+	struct berval	**urls )
 {
 	SlapReply	*rs;
 
@@ -1373,12 +1373,12 @@ slapi_send_ldap_result(
 	}
 }
 
-int 
+int
 slapi_send_ldap_search_entry(
-	Slapi_PBlock	*pb, 
-	Slapi_Entry	*e, 
-	LDAPControl	**ectrls, 
-	char		**attrs, 
+	Slapi_PBlock	*pb,
+	Slapi_Entry	*e,
+	LDAPControl	**ectrls,
+	char		**attrs,
 	int		attrsonly )
 {
 	SlapReply		rs = { REP_SEARCH };
@@ -1427,12 +1427,12 @@ slapi_send_ldap_search_entry(
 	return rc;
 }
 
-int 
+int
 slapi_send_ldap_search_reference(
 	Slapi_PBlock	*pb,
 	Slapi_Entry	*e,
 	struct berval	**references,
-	LDAPControl	**ectrls, 
+	LDAPControl	**ectrls,
 	struct berval	**v2refs
 	)
 {
@@ -1472,15 +1472,15 @@ slapi_send_ldap_search_reference(
 }
 
 Slapi_Filter *
-slapi_str2filter( char *str ) 
+slapi_str2filter( char *str )
 {
 	return str2filter( str );
 }
 
-void 
+void
 slapi_filter_free(
-	Slapi_Filter	*f, 
-	int		recurse ) 
+	Slapi_Filter	*f,
+	int		recurse )
 {
 	filter_free( f );
 }
@@ -1491,7 +1491,7 @@ slapi_filter_dup( Slapi_Filter *filter )
 	return filter_dup( filter, NULL );
 }
 
-int 
+int
 slapi_filter_get_choice( Slapi_Filter *f )
 {
 	int		rc;
@@ -1505,10 +1505,10 @@ slapi_filter_get_choice( Slapi_Filter *f )
 	return rc;
 }
 
-int 
+int
 slapi_filter_get_ava(
-	Slapi_Filter	*f, 
-	char		**type, 
+	Slapi_Filter	*f,
+	char		**type,
 	struct berval	**bval )
 {
 	int		ftype;
@@ -1521,9 +1521,9 @@ slapi_filter_get_ava(
 	*bval = NULL;
 
 	ftype = f->f_choice;
-	if ( ftype == LDAP_FILTER_EQUALITY 
-			|| ftype ==  LDAP_FILTER_GE 
-			|| ftype == LDAP_FILTER_LE 
+	if ( ftype == LDAP_FILTER_EQUALITY
+			|| ftype ==  LDAP_FILTER_GE
+			|| ftype == LDAP_FILTER_LE
 			|| ftype == LDAP_FILTER_APPROX ) {
 		/*
 		 * According to the SLAPI Reference Manual these are
@@ -1559,7 +1559,7 @@ slapi_filter_list_first( Slapi_Filter *f )
 
 Slapi_Filter *
 slapi_filter_list_next(
-	Slapi_Filter	*f, 
+	Slapi_Filter	*f,
 	Slapi_Filter	*fprev )
 {
 	int		ftype;
@@ -1825,10 +1825,10 @@ slapi_filter_apply( Slapi_Filter *f, FILTER_APPLY_FN fn, void *arg, int *error_c
 	return -1;
 }
 
-int 
+int
 slapi_pw_find(
-	struct berval	**vals, 
-	struct berval	*v ) 
+	struct berval	**vals,
+	struct berval	*v )
 {
 	int i;
 
@@ -1882,10 +1882,10 @@ slapi_free_client_ip(char **clientIP)
 #define MAX_HOSTNAME 512
 
 char *
-slapi_get_hostname( void ) 
+slapi_get_hostname( void )
 {
 	char		*hn = NULL;
-	static int	been_here = 0;   
+	static int	been_here = 0;
 	static char	*static_hn = NULL;
 
 	ldap_pvt_thread_mutex_lock( &slapi_hn_mutex );
@@ -1898,8 +1898,8 @@ slapi_get_hostname( void )
 			ldap_pvt_thread_mutex_unlock( &slapi_hn_mutex );
 
 			return hn;
-			
-		} else { 
+
+		} else {
 			if ( gethostname( static_hn, MAX_HOSTNAME ) != 0 ) {
 				slapi_log_error( SLAPI_LOG_FATAL,
 						"SLAPI",
@@ -1916,7 +1916,7 @@ slapi_get_hostname( void )
 		}
 	}
 	ldap_pvt_thread_mutex_unlock( &slapi_hn_mutex );
-	
+
 	hn = ch_strdup( static_hn );
 
 	return hn;
@@ -1927,12 +1927,12 @@ slapi_get_hostname( void )
  */
 extern int slapi_int_log_error( int level, char *subsystem, char *fmt, va_list arglist );
 
-int 
+int
 slapi_log_error(
-	int		severity, 
-	char		*subsystem, 
-	char		*fmt, 
-	... ) 
+	int		severity,
+	char		*subsystem,
+	char		*fmt,
+	... )
 {
 	int		rc = LDAP_SUCCESS;
 	va_list		arglist;
@@ -1946,7 +1946,7 @@ slapi_log_error(
 
 
 unsigned long
-slapi_timer_current_time( void ) 
+slapi_timer_current_time( void )
 {
 	static int	first_time = 1;
 #if !defined (_WIN32)
@@ -1959,7 +1959,7 @@ slapi_timer_current_time( void )
 		gettimeofday( &base_time, NULL );
 	}
 	gettimeofday( &now, NULL );
-	ret = ( now.tv_sec  - base_time.tv_sec ) * 1000000 + 
+	ret = ( now.tv_sec  - base_time.tv_sec ) * 1000000 +
 			(now.tv_usec - base_time.tv_usec);
 	ldap_pvt_thread_mutex_unlock( &slapi_time_mutex );
 
@@ -1990,7 +1990,7 @@ slapi_timer_current_time( void )
  * FIXME ?
  */
 unsigned long
-slapi_timer_get_time( char *label ) 
+slapi_timer_get_time( char *label )
 {
 	unsigned long start = slapi_timer_current_time();
 	printf("%10ld %10d usec %s\n", start, 0, label);
@@ -2003,14 +2003,14 @@ slapi_timer_get_time( char *label )
 void
 slapi_timer_elapsed_time(
 	char *label,
-	unsigned long start ) 
+	unsigned long start )
 {
 	unsigned long stop = slapi_timer_current_time();
 	printf ("%10ld %10ld usec %s\n", stop, stop - start, label);
 }
 
 void
-slapi_free_search_results_internal( Slapi_PBlock *pb ) 
+slapi_free_search_results_internal( Slapi_PBlock *pb )
 {
 	Slapi_Entry	**entries;
 	int		k = 0, nEnt = 0;
@@ -2025,7 +2025,7 @@ slapi_free_search_results_internal( Slapi_PBlock *pb )
 		slapi_entry_free( entries[k] );
 		entries[k] = NULL;
 	}
-	
+
 	slapi_ch_free( (void **)&entries );
 }
 
@@ -2192,7 +2192,7 @@ int slapi_attr_value_cmp( const Slapi_Attr *a, const struct berval *v1, const st
 	rc = value_match( &ret, a->a_desc, mr,
 			SLAP_MR_VALUE_OF_ASSERTION_SYNTAX,
 		(struct berval *)v1, (void *)v2, &text );
-	if ( rc != LDAP_SUCCESS ) 
+	if ( rc != LDAP_SUCCESS )
 		return -1;
 
 	return ( ret == 0 ) ? 0 : -1;
@@ -2805,7 +2805,7 @@ Modifications *slapi_int_ldapmods2modifications ( Operation *op, LDAPMod **mods 
  * "evaluator" is responsible for adding computed attributes;
  * the nomenclature is somewhat confusing).
  *
- * As such slapi_compute_add_evaluator() registers the 
+ * As such slapi_compute_add_evaluator() registers the
  * function directly.
  */
 int slapi_compute_add_evaluator(slapi_compute_callback_t function)

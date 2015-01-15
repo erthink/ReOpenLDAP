@@ -28,12 +28,12 @@
  * TOP-LEVEL DIRECTORY OF THE DISTRIBUTION. ANY USE OR EXPLOITATION OF THIS
  * WORK OTHER THAN AS AUTHORIZED IN VERSION 2.0.1 OF THE OPENLDAP PUBLIC
  * LICENSE, OR OTHER PRIOR WRITTEN CONSENT FROM NOVELL, COULD SUBJECT THE
- * PERPETRATOR TO CRIMINAL AND CIVIL LIABILITY. 
+ * PERPETRATOR TO CRIMINAL AND CIVIL LIABILITY.
  *---
  * Modification to OpenLDAP source by Novell, Inc.
  * April 2000 sfs Add code to process V3 referrals and search results
  *---
- * Note: A verbatim copy of version 2.0.1 of the OpenLDAP Public License 
+ * Note: A verbatim copy of version 2.0.1 of the OpenLDAP Public License
  * can be found in the file "build/LICENSE-2.0.1" in this distribution
  * of OpenLDAP Software.
  */
@@ -92,7 +92,7 @@ static LDAPMessage * chkResponseList LDAP_P(( LDAP *ld, int msgid, int all));
  * search references, followed by an ldap result).  An extension to
  * LDAPv3 allows partial extended responses to be returned in response
  * to any request.  The type of the first message received is returned.
- * When waiting, any messages that have been abandoned/discarded are 
+ * When waiting, any messages that have been abandoned/discarded are
  * discarded.
  *
  * Example:
@@ -277,7 +277,7 @@ wait4msg(
 		start_time_tv.tv_usec = 0;
 #endif /* ! HAVE_GETTIMEOFDAY */
 	}
-		    
+
 	rc = LDAP_MSG_X_KEEP_LOOKING;
 	while ( rc == LDAP_MSG_X_KEEP_LOOKING ) {
 #ifdef LDAP_DEBUG
@@ -458,7 +458,7 @@ try_read1msg(
 
 	assert( ld != NULL );
 	assert( lc != NULL );
-	
+
 	LDAP_ASSERT_MUTEX_OWNER( &ld->ld_res_mutex );
 	LDAP_ASSERT_MUTEX_OWNER( &ld->ld_conn_mutex );
 	LDAP_ASSERT_MUTEX_OWNER( &ld->ld_req_mutex );
@@ -500,10 +500,10 @@ nextresp3:
 
 	case LBER_DEFAULT:
 		err = sock_errno();
-#ifdef LDAP_DEBUG		   
+#ifdef LDAP_DEBUG
 		Debug( LDAP_DEBUG_CONNS,
 			"ber_get_next failed.\n", 0, 0, 0 );
-#endif		   
+#endif
 		if ( err == EWOULDBLOCK ) return LDAP_MSG_X_KEEP_LOOKING;
 		if ( err == EAGAIN ) return LDAP_MSG_X_KEEP_LOOKING;
 		ld->ld_errno = LDAP_SERVER_DOWN;
@@ -529,7 +529,7 @@ nextresp3:
 	if ( id < 0 ) {
 		goto retry_ber;
 	}
-	
+
 	/* if it's been abandoned, toss it */
 	if ( id > 0 ) {
 		if ( ldap_abandoned( ld, id ) ) {
@@ -728,7 +728,7 @@ nextresp2:
 								(void *)ld, lr->lr_msgid, 0 );
 
 						} else {
-							/* Chase the referral 
+							/* Chase the referral
 							 * refs array is freed by ldap_chase_v3referrals
 							 */
 							refer_cnt = ldap_chase_v3referrals( ld, lr, refs,
@@ -760,7 +760,7 @@ nextresp2:
 						if ( lr->lr_res_error[ 0 ] == '\0' ) {
 							LDAP_FREE( lr->lr_res_error );
 							lr->lr_res_error = NULL;
-							break;	
+							break;
 						}
 
 						/* V2 referrals are in error string */
@@ -1080,7 +1080,7 @@ nextresp2:
 		}
 	}
 
-	/* 
+	/*
 	 * if not, we must add it to the list of responses.  if
 	 * the msgid is already there, it must be part of an existing
 	 * search response.

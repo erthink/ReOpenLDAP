@@ -56,7 +56,7 @@ Copyright Notice
 
 
 Weider, et al.               Informational                      [Page 1]
-
+
 RFC 2696       LDAP Control Ext. for Simple Paged Results September 1999
 
 
@@ -112,7 +112,7 @@ realSearchControlValue ::= SEQUENCE {
 
 
 Weider, et al.               Informational                      [Page 2]
-
+
 RFC 2696       LDAP Control Ext. for Simple Paged Results September 1999
 
 
@@ -168,7 +168,7 @@ RFC 2696       LDAP Control Ext. for Simple Paged Results September 1999
 
 
 Weider, et al.               Informational                      [Page 3]
-
+
 RFC 2696       LDAP Control Ext. for Simple Paged Results September 1999
 
 
@@ -224,7 +224,7 @@ RFC 2696       LDAP Control Ext. for Simple Paged Results September 1999
 
 
 Weider, et al.               Informational                      [Page 4]
-
+
 RFC 2696       LDAP Control Ext. for Simple Paged Results September 1999
 
 
@@ -280,7 +280,7 @@ RFC 2696       LDAP Control Ext. for Simple Paged Results September 1999
 
 
 Weider, et al.               Informational                      [Page 5]
-
+
 RFC 2696       LDAP Control Ext. for Simple Paged Results September 1999
 
 
@@ -336,7 +336,7 @@ RFC 2696       LDAP Control Ext. for Simple Paged Results September 1999
 
 
 Weider, et al.               Informational                      [Page 6]
-
+
 RFC 2696       LDAP Control Ext. for Simple Paged Results September 1999
 
 
@@ -392,4 +392,4 @@ Acknowledgement
 
 
 Weider, et al.               Informational                      [Page 7]
-
+

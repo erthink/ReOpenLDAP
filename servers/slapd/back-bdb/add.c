@@ -148,7 +148,7 @@ retry:	/* transaction retry */
 	}
 
 	/* begin transaction */
-	rs->sr_err = TXN_BEGIN( bdb->bi_dbenv, NULL, &ltid, 
+	rs->sr_err = TXN_BEGIN( bdb->bi_dbenv, NULL, &ltid,
 		bdb->bi_db_opflags );
 	rs->sr_text = NULL;
 	if( rs->sr_err != 0 ) {
@@ -303,7 +303,7 @@ retry:	/* transaction retry */
 
 				dnRdn( &op->ora_e->e_name, &rdn );
 
-				build_new_dn( &newdn, &p->e_name, &rdn, NULL ); 
+				build_new_dn( &newdn, &p->e_name, &rdn, NULL );
 				if ( op->ora_e->e_name.bv_val != op->o_req_dn.bv_val )
 					ber_memfree( op->ora_e->e_name.bv_val );
 				op->ora_e->e_name = newdn;
@@ -335,7 +335,7 @@ retry:	/* transaction retry */
 		goto return_results;;
 	}
 
-	/* 
+	/*
 	 * Check ACL for attribute write access
 	 */
 	if (!acl_check_modlist(op, oe, op->ora_modlist)) {
@@ -367,7 +367,7 @@ retry:	/* transaction retry */
 	}
 
 	/* nested transaction */
-	rs->sr_err = TXN_BEGIN( bdb->bi_dbenv, ltid, &lt2, 
+	rs->sr_err = TXN_BEGIN( bdb->bi_dbenv, ltid, &lt2,
 		bdb->bi_db_opflags );
 	rs->sr_text = NULL;
 	if( rs->sr_err != 0 ) {

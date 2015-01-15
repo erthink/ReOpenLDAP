@@ -2,7 +2,7 @@
 # Copyright 1999-2014 The OpenLDAP Foundation, All Rights Reserved.
 # COPYING RESTRICTIONS APPLY, see COPYRIGHT.
 #
-# index.sdf 
+# index.sdf
 #
 
 !include "master.sdf"

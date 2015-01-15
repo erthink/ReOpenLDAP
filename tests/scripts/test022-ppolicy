@@ -16,10 +16,10 @@
 echo "running defines.sh"
 . $SRCDIR/scripts/defines.sh
 
-if test $PPOLICY = ppolicyno; then 
+if test $PPOLICY = ppolicyno; then
 	echo "Password policy overlay not available, test skipped"
 	exit 0
-fi 
+fi
 
 mkdir -p $TESTDIR $DBDIR1
 
@@ -405,7 +405,7 @@ if test $RC = 0 ; then
 	exit 1
 fi
 
-if test "$BACKLDAP" != "ldapno" && test "$SYNCPROV" != "syncprovno"  ; then 
+if test "$BACKLDAP" != "ldapno" && test "$SYNCPROV" != "syncprovno"  ; then
 echo ""
 echo "Setting up policy state forwarding test..."
 

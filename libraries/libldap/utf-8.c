@@ -95,7 +95,7 @@ int ldap_utf8_charlen( const char * p )
 
 /*
  * Make sure the UTF-8 char used the shortest possible encoding
- * returns charlen if valid, 0 if not. 
+ * returns charlen if valid, 0 if not.
  *
  * Here are the valid UTF-8 encodings, taken from RFC 2279 page 4.
  * The table is slightly modified from that of the RFC.
@@ -247,7 +247,7 @@ ldap_ucs_to_utf8s( struct berval *ucs, int csize, struct berval *utf8s )
 
 	/* Make sure we stop at an even multiple of csize */
 	end = in + ( ucs->bv_len & ~(csize-1) );
-	
+
 	for (; in < end; ) {
 		u = *in++;
 		if (csize > 1) {
@@ -363,7 +363,7 @@ int ldap_utf8_copy( char* dst, const char *src )
 
 	for( i=1; i<6; i++ ) {
 		if ( ( u[i] & 0xc0 ) != 0x80 ) {
-			return i; 
+			return i;
 		}
 		dst[i] = src[i];
 	}
@@ -472,7 +472,7 @@ char * (ldap_utf8_strchr)( const char *str, const char *chr )
 	for( ; *str != '\0'; LDAP_UTF8_INCR(str) ) {
 		if( ldap_x_utf8_to_ucs4( str ) == ldap_x_utf8_to_ucs4( chr ) ) {
 			return (char *) str;
-		} 
+		}
 	}
 
 	return NULL;
@@ -488,7 +488,7 @@ ber_len_t (ldap_utf8_strcspn)( const char *str, const char *set )
 		for( cset = set; *cset != '\0'; LDAP_UTF8_INCR(cset) ) {
 			if( ldap_x_utf8_to_ucs4( cstr ) == ldap_x_utf8_to_ucs4( cset ) ) {
 				return cstr - str;
-			} 
+			}
 		}
 	}
 
@@ -509,7 +509,7 @@ ber_len_t (ldap_utf8_strspn)( const char *str, const char *set )
 
 			if( ldap_x_utf8_to_ucs4( cstr ) == ldap_x_utf8_to_ucs4( cset ) ) {
 				break;
-			} 
+			}
 		}
 	}
 
@@ -525,7 +525,7 @@ char *(ldap_utf8_strpbrk)( const char *str, const char *set )
 		for( cset = set; *cset != '\0'; LDAP_UTF8_INCR(cset) ) {
 			if( ldap_x_utf8_to_ucs4( str ) == ldap_x_utf8_to_ucs4( cset ) ) {
 				return (char *) str;
-			} 
+			}
 		}
 	}
 

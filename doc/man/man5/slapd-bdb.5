@@ -42,7 +42,7 @@ Other database options are described in the
 manual page.
 .TP
 .BI cachesize \ <integer>
-Specify the size in entries of the in-memory entry cache maintained 
+Specify the size in entries of the in-memory entry cache maintained
 by the \fBbdb\fP or \fBhdb\fP backend database instance.
 The default is 1000 entries.
 .TP
@@ -58,7 +58,7 @@ a checkpoint record in the log.
 The checkpoint will occur if either \fI<kbyte>\fP data has been written or
 \fI<min>\fP minutes have passed since the last checkpoint.
 Both arguments default to zero, in which case they are ignored. When
-the \fI<min>\fP argument is non-zero, an internal task will run every 
+the \fI<min>\fP argument is non-zero, an internal task will run every
 \fI<min>\fP minutes to perform the checkpoint.
 See the Berkeley DB reference guide for more details.
 .TP
@@ -94,14 +94,14 @@ directive is just a convenience
 to allow all necessary configuration to be set in the
 .B slapd.conf
 file.
-The options set using this directive will only be written to the 
+The options set using this directive will only be written to the
 .B DB_CONFIG
 file if no such file existed at server startup time, otherwise
 they are completely ignored. This allows one
-to set initial values without overwriting/destroying a 
-.B DB_CONFIG 
-file that was already customized through other means. 
-This directive may be specified multiple times, as needed. 
+to set initial values without overwriting/destroying a
+.B DB_CONFIG
+file that was already customized through other means.
+This directive may be specified multiple times, as needed.
 For example:
 .RS
 .nf
@@ -155,17 +155,17 @@ increased to equal the \fBcachesize\fP. The default value is 0 which
 means unlimited, i.e. the DN cache will grow without bound.
 
 It should be noted that the \fBDN cache\fP is allowed to temporarily
-grow beyond the configured size. It does this if many entries are 
+grow beyond the configured size. It does this if many entries are
 locked when it tries to do a purge, because that means they're
 legitimately in use. Also, the \fBDN cache\fP never purges entries
-that have cached children, so depending on the shape of the DIT, it 
+that have cached children, so depending on the shape of the DIT, it
 could have lots of cached DNs over the defined limit.
 .TP
 .BI idlcachesize \ <integer>
 Specify the size of the in-memory index cache, in index slots. The
 default is zero. A larger value will speed up frequent searches of
 indexed entries. An \fBhdb\fP database needs a large \fBidlcachesize\fP
-for good search performance, typically three times the 
+for good search performance, typically three times the
 .B cachesize
 (entry cache size)
 or larger.
@@ -197,7 +197,7 @@ may be specified to disallow use of this index by language subtypes.
 The special type
 .B nosubtypes
 may be specified to disallow use of this index by named subtypes.
-Note: changing \fBindex\fP settings in 
+Note: changing \fBindex\fP settings in
 .BR slapd.conf (5)
 requires rebuilding indices, see
 .BR slapindex (8);
@@ -206,23 +206,23 @@ dynamically by LDAPModifying "cn=config" automatically causes rebuilding
 of the indices online in a background task.
 .TP
 .B linearindex
-Tell 
-.B slapindex 
+Tell
+.B slapindex
 to index one attribute at a time. By default, all indexed
 attributes in an entry are processed at the same time. With this option,
 each indexed attribute is processed individually, using multiple passes
-through the entire database. This option improves 
-.B slapindex 
+through the entire database. This option improves
+.B slapindex
 performance
 when the database size exceeds the \fBdbcache\fP size. When the \fBdbcache\fP is
 large enough, this option is not needed and will decrease performance.
-Also by default, 
-.B slapadd 
-performs full indexing and so a separate 
+Also by default,
+.B slapadd
+performs full indexing and so a separate
 .B slapindex
-run is not needed. With this option, 
-.B slapadd 
-does no indexing and 
+run is not needed. With this option,
+.B slapadd
+does no indexing and
 .B slapindex
 must be used.
 .TP
@@ -232,7 +232,7 @@ The default is
 .BR random .
 .TP
 .BI mode \ <integer>
-Specify the file protection mode that newly created database 
+Specify the file protection mode that newly created database
 index files should have.
 The default is 0600.
 .TP
@@ -255,7 +255,7 @@ BDB environment uses memory mapped files. If a non-zero value is
 specified, it will be used as the key to identify a shared memory
 region that will house the environment.
 .SH ACCESS CONTROL
-The 
+The
 .B bdb
 and
 .B hdb
@@ -264,8 +264,8 @@ backends honor access control semantics as indicated in
 .SH FILES
 .TP
 .B ETCDIR/slapd.conf
-default 
-.B slapd 
+default
+.B slapd
 configuration file
 .TP
 .B DB_CONFIG

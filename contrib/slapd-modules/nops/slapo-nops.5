@@ -9,7 +9,7 @@ ETCDIR/slapd.conf
 .SH DESCRIPTION
 Some broken client tend to implement modifications as replace operations
 where all attributes are replaced, most of the time by the same values
-they had before. This can cause undesirable load on logs, ACL evaluation, 
+they had before. This can cause undesirable load on logs, ACL evaluation,
 or replication trafic.
 
 This overlay detects idempotent replace operations and filter them out.

@@ -14,7 +14,7 @@
  */
 
 /*
- * lber_pvt.h - Header for ber_pvt_ functions. 
+ * lber_pvt.h - Header for ber_pvt_ functions.
  * These are meant to be internal to OpenLDAP Software.
  */
 

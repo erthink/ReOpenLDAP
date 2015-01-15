@@ -67,8 +67,8 @@ static int chk_ns_mta_md5(
 	lutil_MD5Final(MD5digest, &MD5context);
 
 	for( i=0; i < sizeof( MD5digest ); i++ ) {
-		buffer[i+i]   = "0123456789abcdef"[(MD5digest[i]>>4) & 0x0F]; 
-		buffer[i+i+1] = "0123456789abcdef"[ MD5digest[i] & 0x0F]; 
+		buffer[i+i]   = "0123456789abcdef"[(MD5digest[i]>>4) & 0x0F];
+		buffer[i+i+1] = "0123456789abcdef"[ MD5digest[i] & 0x0F];
 	}
 
 	/* compare */

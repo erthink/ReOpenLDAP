@@ -26,7 +26,7 @@ perl_back_delete(
 	int count;
 
 	PERL_SET_CONTEXT( PERL_INTERPRETER );
-	ldap_pvt_thread_mutex_lock( &perl_interpreter_mutex );	
+	ldap_pvt_thread_mutex_lock( &perl_interpreter_mutex );
 
 	{
 		dSP; ENTER; SAVETMPS;
@@ -50,7 +50,7 @@ perl_back_delete(
 		PUTBACK; FREETMPS; LEAVE;
 	}
 
-	ldap_pvt_thread_mutex_unlock( &perl_interpreter_mutex );	
+	ldap_pvt_thread_mutex_unlock( &perl_interpreter_mutex );
 
 	send_ldap_result( op, rs );
 

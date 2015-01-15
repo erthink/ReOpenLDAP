@@ -16,7 +16,7 @@
 SRCS = ldif.c
 OBJS = ldif.lo
 
-LDAP_INCDIR= ../../../include       
+LDAP_INCDIR= ../../../include
 LDAP_LIBDIR= ../../../libraries
 
 BUILD_OPT = "--enable-ldif"

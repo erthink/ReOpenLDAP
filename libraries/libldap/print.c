@@ -25,7 +25,7 @@
 #include "ldap-int.h"
 
 /*
- * ldap log 
+ * ldap log
  */
 
 static int ldap_log_check( LDAP *ld, int loglvl )

@@ -192,7 +192,7 @@ mdb_filter_candidates(
 
 	case LDAP_FILTER_AND:
 		Debug( LDAP_DEBUG_FILTER, "\tAND\n", 0, 0, 0 );
-		rc = list_candidates( op, rtxn, 
+		rc = list_candidates( op, rtxn,
 			f->f_and, LDAP_FILTER_AND, ids, tmp, stack );
 		break;
 
@@ -254,7 +254,7 @@ comp_list_candidates(
 			}
 			break;
 		}
-		
+
 		if ( ftype == LDAP_COMP_FILTER_AND ) {
 			if ( f == flist ) {
 				MDB_IDL_CPY( ids, save );
@@ -328,7 +328,7 @@ comp_equality_candidates (
 			strncmp( cr->cr_string.bv_val, ca->ca_comp_ref->cr_string.bv_val,cr->cr_string.bv_len ) == 0 )
 			break;
 	}
-	
+
 	if ( !cr )
 		return 0;
 
@@ -409,7 +409,7 @@ ava_comp_candidates (
 	ID *stack )
 {
 	MatchingRuleAssertion mra;
-	
+
 	mra.ma_rule = ava->aa_desc->ad_type->sat_equality;
 	if ( !mra.ma_rule ) {
 		MDB_IDL_ALL( ids );
@@ -417,7 +417,7 @@ ava_comp_candidates (
 	}
 	mra.ma_desc = aa->aa_aliased_ad;
 	mra.ma_rule = ava->aa_desc->ad_type->sat_equality;
-	
+
 	return comp_candidates ( op, rtxn, &mra, ava->aa_cf, ids, tmp, stack );
 }
 
@@ -565,7 +565,7 @@ list_candidates(
 			break;
 		}
 
-		
+
 		if ( ftype == LDAP_FILTER_AND ) {
 			if ( f == flist ) {
 				MDB_IDL_CPY( ids, save );
@@ -710,7 +710,7 @@ equality_candidates(
 
 	if ( rc == LDAP_INAPPROPRIATE_MATCHING ) {
 		Debug( LDAP_DEBUG_ANY,
-			"<= mdb_equality_candidates: (%s) not indexed\n", 
+			"<= mdb_equality_candidates: (%s) not indexed\n",
 			ava->aa_desc->ad_cname.bv_val, 0, 0 );
 		return 0;
 	}
@@ -773,7 +773,7 @@ equality_candidates(
 
 		if( MDB_IDL_IS_ZERO( tmp ) ) {
 			Debug( LDAP_DEBUG_TRACE,
-				"<= mdb_equality_candidates: (%s) NULL\n", 
+				"<= mdb_equality_candidates: (%s) NULL\n",
 				ava->aa_desc->ad_cname.bv_val, 0, 0 );
 			MDB_IDL_ZERO( ids );
 			break;
@@ -1061,7 +1061,7 @@ inequality_candidates(
 
 	if ( rc == LDAP_INAPPROPRIATE_MATCHING ) {
 		Debug( LDAP_DEBUG_ANY,
-			"<= mdb_inequality_candidates: (%s) not indexed\n", 
+			"<= mdb_inequality_candidates: (%s) not indexed\n",
 			ava->aa_desc->ad_cname.bv_val, 0, 0 );
 		return 0;
 	}
@@ -1124,7 +1124,7 @@ inequality_candidates(
 
 		if( MDB_IDL_IS_ZERO( tmp ) ) {
 			Debug( LDAP_DEBUG_TRACE,
-			       "<= mdb_inequality_candidates: (%s) NULL\n", 
+			       "<= mdb_inequality_candidates: (%s) NULL\n",
 			       ava->aa_desc->ad_cname.bv_val, 0, 0 );
 			break;
 		}

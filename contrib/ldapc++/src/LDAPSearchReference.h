@@ -6,7 +6,7 @@
 
 
 #ifndef LDAP_SEARCH_REFERENCE_H
-#define LDAP_SEARCH_REFERENCE_H 
+#define LDAP_SEARCH_REFERENCE_H
 
 #include <LDAPMessage.h>
 #include <LDAPUrlList.h>

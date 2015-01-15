@@ -452,7 +452,7 @@ slap_sl_realloc(void *ptr, ber_len_t size, void *ctx)
 		if (size <= oldsize) {
 			return ptr;
 		}
-	
+
 		oldsize &= -2;
 		nextp = (ber_len_t *) ((char *) p + oldsize);
 

@@ -43,7 +43,7 @@ OpenLDAP LBER (liblber, \-llber)
 These routines provide a subroutine interface to a simplified
 implementation of the Basic Encoding Rules of ASN.1.  The version
 of BER these routines support is the one defined for the LDAP
-protocol.  The encoding rules are the same as BER, except that 
+protocol.  The encoding rules are the same as BER, except that
 only definite form lengths are used, and bitstrings and octet strings
 are always encoded in primitive form.  This man page
 describes the decoding routines in the lber library.  See
@@ -72,7 +72,7 @@ The
 routine is used to read the next BER element from the given Sockbuf,
 \fIsb\fP.  It strips off and returns the leading tag, strips off and
 returns the length of the entire element in \fIlen\fP, and sets up
-\fIber\fP for subsequent calls to 
+\fIber\fP for subsequent calls to
 .BR ber_scanf ()
 et al to decode the element. See
 .BR lber-sockbuf (3)
@@ -102,7 +102,7 @@ string using
 .TP
 .B A
 Octet string.  A variant of "\fBa\fP".  A char ** should be supplied.
-Memory is allocated, filled with the contents of the octet string, 
+Memory is allocated, filled with the contents of the octet string,
 null-terminated, and returned in the parameter, unless a zero-length
 string would result; in that case, the arg is set to NULL.
 The caller should free the returned string using
@@ -165,7 +165,7 @@ A struct berval *** should be supplied, which upon
 return points to a dynamically allocated null-terminated array of
 struct berval *'s
 containing the octet strings and their lengths.
-NULL is returned if the sequence is empty.  
+NULL is returned if the sequence is empty.
 The caller should free the returned structures using
 .BR ber_bvecfree ().
 .TP
@@ -176,7 +176,7 @@ return points to a dynamically allocated array of
 struct berval's
 containing the octet strings and their lengths. The array is terminated
 by a struct berval with a NULL bv_val string pointer.
-NULL is returned if the sequence is empty.  
+NULL is returned if the sequence is empty.
 The caller should free the returned structures using
 .BR ber_bvarray_free ().
 .TP
@@ -253,7 +253,7 @@ The caller should free the returned structure using
 .LP
 The
 .BR ber_get_stringbv ()
-routine is used to read an octet string and its length into the 
+routine is used to read an octet string and its length into the
 provided struct berval *. If the \fIalloc\fP parameter is zero, the string
 will reside in memory assigned to the BerElement, and must not be freed
 by the caller. If the \fIalloc\fP parameter is non-zero, the string will be

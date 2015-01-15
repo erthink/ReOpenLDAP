@@ -203,7 +203,7 @@ do_modrdn( char *uri, char *manager,
 
 	for (i = p1 - entry;p2 >= p1;)
 		DNs[1][i++] = *p2--;
-	
+
 	DNs[1][i] = '\0';
 	rdns[0] = strdup( DNs[1] );
 	DNs[1][i] = ',';
@@ -217,7 +217,7 @@ retry:;
 		exit( EXIT_FAILURE );
 	}
 
-	(void) ldap_set_option( ld, LDAP_OPT_PROTOCOL_VERSION, &version ); 
+	(void) ldap_set_option( ld, LDAP_OPT_PROTOCOL_VERSION, &version );
 	(void) ldap_set_option( ld, LDAP_OPT_REFERRALS,
 		chaserefs ? LDAP_OPT_ON : LDAP_OPT_OFF );
 

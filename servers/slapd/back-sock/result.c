@@ -60,7 +60,7 @@ sock_read_and_send_results(
 			if ( errno == EINTR ) continue;
 
 			Debug( LDAP_DEBUG_ANY, "sock: fgets failed: %s (%d)\n",
-				AC_STRERROR_R(errno, ebuf, sizeof ebuf), errno, 0 ); 
+				AC_STRERROR_R(errno, ebuf, sizeof ebuf), errno, 0 );
 			break;
 		}
 

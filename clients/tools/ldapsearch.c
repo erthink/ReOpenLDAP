@@ -74,7 +74,7 @@
 #if !LDAP_DEPRECATED
 /*
  * NOTE: we use this deprecated function only because
- * we want ldapsearch to provide some client-side sorting 
+ * we want ldapsearch to provide some client-side sorting
  * capability.
  */
 /* from ldap.h */
@@ -532,7 +532,7 @@ handle_private_option( int i )
 				ldapsync = LDAP_SYNC_REFRESH_AND_PERSIST;
 				cookiep = strchr( cvalue, '/' );
 				if ( cookiep != NULL ) {
-					*cookiep++ = '\0';	
+					*cookiep++ = '\0';
 					cvalue = cookiep;
 				}
 				slimitp = strchr( cvalue, '/' );
@@ -661,7 +661,7 @@ handle_private_option( int i )
 			} else {
 				fprintf( stderr, "unable to parse %s control value\n", control );
 				exit( EXIT_FAILURE );
-				
+
 			}
 
 			/* criticality */
@@ -837,7 +837,7 @@ main( int argc, char **argv )
 
 	if ( infile != NULL ) {
 		int percent = 0;
-	
+
 		if ( infile[0] == '-' && infile[1] == '\0' ) {
 			fp = stdin;
 		} else if (( fp = fopen( infile, "r" )) == NULL ) {
@@ -1043,7 +1043,7 @@ getNextPage:
 				pr_cookie.bv_val = NULL;
 				pr_cookie.bv_len = 0;
 			}
-			
+
 			c[i].ldctl_oid = LDAP_CONTROL_PAGEDRESULTS;
 			c[i].ldctl_iscritical = pagedResults > 1;
 			i++;
@@ -1116,7 +1116,7 @@ getNextPage:
 	if ( seber ) ber_free( seber, 1 );
 	if ( vrber ) ber_free( vrber, 1 );
 
-	/* step back to the original number of controls, so that 
+	/* step back to the original number of controls, so that
 	 * those set while parsing args are preserved */
 	nctrls = save_nctrls;
 
@@ -1147,7 +1147,7 @@ getNextPage:
 		if ( realbase == NULL ) {
 			ldap_get_option( ld, LDAP_OPT_DEFBASE, (void **)(char *)&realbase );
 		}
-		
+
 		printf( "#\n" );
 		printf(_("# LDAPv%d\n"), protocol);
 		printf(_("# base <%s>%s with scope %s\n"),
@@ -1188,7 +1188,7 @@ getNextPage:
 		}
 		if ( pagedResults ) {
 			printf(_("\n# with pagedResults %scontrol: size=%d"),
-				(pagedResults > 1) ? _("critical ") : "", 
+				(pagedResults > 1) ? _("critical ") : "",
 				pageSize );
 		}
 		if ( sss ) {
@@ -1225,7 +1225,7 @@ getNextPage:
 	} else {
 		rc = 0;
 		first = 1;
-		while ( fgets( line, sizeof( line ), fp ) != NULL ) { 
+		while ( fgets( line, sizeof( line ), fp ) != NULL ) {
 			line[ strlen( line ) - 1 ] = '\0';
 			if ( !first ) {
 				putchar( '\n' );
@@ -1251,7 +1251,7 @@ getNextPage:
 		char	buf[12];
 		int	i, moreEntries, tmpSize;
 
-		/* Loop to get the next pages when 
+		/* Loop to get the next pages when
 		 * enter is pressed on the terminal.
 		 */
 		if ( pagePrompt != 0 ) {
@@ -1262,7 +1262,7 @@ getNextPage:
 				(int)pageSize );
 			i = 0;
 			moreEntries = getchar();
-			while ( moreEntries != EOF && moreEntries != '\n' ) { 
+			while ( moreEntries != EOF && moreEntries != '\n' ) {
 				if ( i < (int)sizeof(buf) - 1 ) {
 					buf[i] = moreEntries;
 					i++;
@@ -1277,7 +1277,7 @@ getNextPage:
 					fprintf( stderr,
 						_("Invalid value for PagedResultsControl, %s.\n"), buf);
 					tool_exit( ld, EXIT_FAILURE );
-	
+
 				}
 				pageSize = (ber_int_t)tmpSize;
 			}
@@ -1290,13 +1290,13 @@ getNextPage:
 		char	buf[BUFSIZ];
 		int	i, moreEntries;
 
-		/* Loop to get the next window when 
+		/* Loop to get the next window when
 		 * enter is pressed on the terminal.
 		 */
 		printf( _("Press [before/after(/offset/count|:value)] Enter for the next window.\n"));
 		i = 0;
 		moreEntries = getchar();
-		while ( moreEntries != EOF && moreEntries != '\n' ) { 
+		while ( moreEntries != EOF && moreEntries != '\n' ) {
 			if ( i < (int)sizeof(buf) - 1 ) {
 				buf[i] = moreEntries;
 				i++;
@@ -1461,7 +1461,7 @@ static int dosearch(
 			msg = ldap_next_message( ld, msg ) )
 		{
 			if ( nresponses++ ) putchar('\n');
-			if ( nresponses_psearch >= 0 ) 
+			if ( nresponses_psearch >= 0 )
 				nresponses_psearch++;
 
 			switch( ldap_msgtype( msg ) ) {
@@ -1546,7 +1546,7 @@ done:
 
 	ldap_msgfree( res );
 
-	if ( pagedResults ) { 
+	if ( pagedResults ) {
 		npagedresponses += nresponses;
 		npagedentries += nentries;
 		npagedextended += nextended;

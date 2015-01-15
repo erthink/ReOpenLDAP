@@ -37,14 +37,14 @@ AC_ARG_ENABLE(debug,[  --enable-debug],[
 )
 
 AC_ARG_WITH(libldap,[  --with-libldap=DIR          Path to the libldap library [/usr/local/lib]],[
-	LIBS="-L$with_libldap $LIBS "	
+	LIBS="-L$with_libldap $LIBS "
 	],[
-	LIBS="-L/usr/local/lib $LIBS "	
+	LIBS="-L/usr/local/lib $LIBS "
 	]
 )
 
 AC_ARG_WITH(ldap-includes,[  --with-ldap-includes=DIR    Path to the libldap include files [/usr/local/include]],[
-	CPPFLAGS="-I$with_ldap_includes $CPPFLAGS "	
+	CPPFLAGS="-I$with_ldap_includes $CPPFLAGS "
 	],[
 	CPPFLAGS="-I/usr/local/include $CPPFLAGS "
 	]

@@ -404,7 +404,7 @@ H3: Direct Mapping
 Where possible, direct mapping of the authentication request DN to
 the user's DN is generally recommended.  Aside from avoiding the
 expense of searching for the user's DN, it allows mapping to
-DNs which refer to entries not held by this server. 
+DNs which refer to entries not held by this server.
 
 Suppose the authentication request DN is written as:
 
@@ -417,14 +417,14 @@ and the user's actual LDAP entry is:
 then the following {{EX:authz-regexp}} directive in {{slapd.conf}}(5)
 would provide for direct mapping.
 
->	authz-regexp 
+>	authz-regexp
 >	  uid=([^,]*),cn=example.com,cn=gssapi,cn=auth
 >	  uid=$1,ou=people,dc=example,dc=com
 
 An even more lenient rule could be written as
 
 >	authz-regexp
->	  uid=([^,]*),cn=[^,]*,cn=auth 
+>	  uid=([^,]*),cn=[^,]*,cn=auth
 >	  uid=$1,ou=people,dc=example,dc=com
 
 Be careful about setting the search pattern too leniently, however,
@@ -483,8 +483,8 @@ an authentication username of "adamson" and that information was
 kept in the attribute "uid" in their LDAP entry. The {{EX:authz-regexp}}
 directive might be written as
 
->	authz-regexp 
->	  uid=([^,]*),cn=example.com,cn=gssapi,cn=auth  
+>	authz-regexp
+>	  uid=([^,]*),cn=example.com,cn=gssapi,cn=auth
 >	  ldap:///ou=people,dc=example,dc=com??one?(uid=$1)
 
 This will initiate an internal search of the LDAP database inside

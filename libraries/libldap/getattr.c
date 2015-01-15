@@ -52,7 +52,7 @@ ldap_first_attribute( LDAP *ld, LDAPMessage *entry, BerElement **berout )
 
 	*ber = *entry->lm_ber;
 
-	/* 
+	/*
 	 * Skip past the sequence, dn, sequence of sequence leaving
 	 * us at the first attribute.
 	 */
@@ -110,7 +110,7 @@ ldap_next_attribute( LDAP *ld, LDAPMessage *entry, BerElement *ber )
 	}
 
 	/* skip sequence, snarf attribute type, skip values */
-	tag = ber_scanf( ber, "{ax}", &attr ); 
+	tag = ber_scanf( ber, "{ax}", &attr );
 	if( tag == LBER_ERROR ) {
 		ld->ld_errno = LDAP_DECODING_ERROR;
 		return NULL;
@@ -147,7 +147,7 @@ ldap_get_attribute_ber( LDAP *ld, LDAPMessage *entry, BerElement *ber,
 
 		/* skip sequence, snarf attribute type */
 		tag = ber_scanf( ber, vals ? "{mM}" : "{mx}", attr, vals,
-			&siz, 0 ); 
+			&siz, 0 );
 		if( tag == LBER_ERROR ) {
 			rc = ld->ld_errno = LDAP_DECODING_ERROR;
 		}

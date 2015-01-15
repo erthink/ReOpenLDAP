@@ -203,7 +203,7 @@ int ber_pvt_vsprintf( char *str, const char *fmt, va_list ap )
 }
 
 /* The fixed buffer size here is a problem, we don't know how
- * to flush the buffer and keep printing if the msg is too big. 
+ * to flush the buffer and keep printing if the msg is too big.
  * Hopefully we never try to write something bigger than this
  * in a log msg...
  */

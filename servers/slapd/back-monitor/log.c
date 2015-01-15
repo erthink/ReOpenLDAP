@@ -31,13 +31,13 @@
 #include "ldif.h"
 #include "back-monitor.h"
 
-static int 
-monitor_subsys_log_open( 
+static int
+monitor_subsys_log_open(
 	BackendDB		*be,
 	monitor_subsys_t	*ms );
 
-static int 
-monitor_subsys_log_modify( 
+static int
+monitor_subsys_log_modify(
 	Operation		*op,
 	SlapReply		*rs,
 	Entry 			*e );
@@ -101,8 +101,8 @@ monitor_subsys_log_open(
 	return( 0 );
 }
 
-static int 
-monitor_subsys_log_modify( 
+static int
+monitor_subsys_log_modify(
 	Operation		*op,
 	SlapReply		*rs,
 	Entry 			*e )
@@ -148,7 +148,7 @@ monitor_subsys_log_modify(
 		case LDAP_MOD_ADD:
 			rc = add_values( op, e, mod, &newlevel );
 			break;
-			
+
 		case LDAP_MOD_DELETE:
 			rc = delete_values( op, e, mod, &newlevel );
 			break;
@@ -210,7 +210,7 @@ cleanup:;
 		attrs_free( e->e_attrs );
 		e->e_attrs = save_attrs;
 	}
-	
+
 	ldap_pvt_thread_mutex_unlock( &monitor_log_mutex );
 
 	if ( rc == LDAP_SUCCESS ) {
@@ -241,9 +241,9 @@ check_constraints( Modification *mod, int *newlevel )
 		if ( loglevel2bv( l, &bv ) ) {
 			return LDAP_CONSTRAINT_VIOLATION;
 		}
-		
+
 		assert( bv.bv_len == mod->sm_values[ i ].bv_len );
-		
+
 		AC_MEMCPY( mod->sm_values[ i ].bv_val,
 				bv.bv_val, bv.bv_len );
 
@@ -251,9 +251,9 @@ check_constraints( Modification *mod, int *newlevel )
 	}
 
 	return LDAP_SUCCESS;
-}	
+}
 
-static int 
+static int
 add_values( Operation *op, Entry *e, Modification *mod, int *newlevel )
 {
 	Attribute	*a;
@@ -414,7 +414,7 @@ delete_values( Operation *op, Entry *e, Modification *mod, int *newlevel )
 
 		/* should already be zero */
 		*newlevel = 0;
-		
+
 		if ( attr_delete( &e->e_attrs, mod->sm_desc ) ) {
 			return LDAP_NO_SUCH_ATTRIBUTE;
 		}

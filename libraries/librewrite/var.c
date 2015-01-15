@@ -34,7 +34,7 @@ rewrite_var_cmp(
 
 	v1 = ( const struct rewrite_var * )c1;
 	v2 = ( const struct rewrite_var * )c2;
-	
+
 	assert( v1 != NULL );
 	assert( v2 != NULL );
 	assert( v1->lv_name != NULL );
@@ -68,7 +68,7 @@ rewrite_var_dup(
 /*
  * Frees a var
  */
-static void 
+static void
 rewrite_var_free(
 		void *v_var
 )
@@ -112,7 +112,7 @@ rewrite_var_find(
 	assert( name != NULL );
 
 	var.lv_name = ( char * )name;
-	return ( struct rewrite_var * )avl_find( tree, 
+	return ( struct rewrite_var * )avl_find( tree,
 			( caddr_t )&var, rewrite_var_cmp );
 }
 
@@ -181,7 +181,7 @@ rewrite_var_insert_f(
 	assert( tree != NULL );
 	assert( name != NULL );
 	assert( value != NULL );
-	
+
 	var = rewrite_var_find( *tree, name );
 	if ( var != NULL ) {
 		if ( flags & REWRITE_VAR_UPDATE ) {
@@ -218,7 +218,7 @@ rewrite_var_insert_f(
 			goto cleanup;
 		}
 		var->lv_flags |= REWRITE_VAR_COPY_VALUE;
-		
+
 	} else {
 		var->lv_value.bv_val = (char *)value;
 	}
@@ -252,7 +252,7 @@ rewrite_var_set_f(
 	assert( tree != NULL );
 	assert( name != NULL );
 	assert( value != NULL );
-	
+
 	var = rewrite_var_find( *tree, name );
 	if ( var == NULL ) {
 		if ( flags & REWRITE_VAR_INSERT ) {

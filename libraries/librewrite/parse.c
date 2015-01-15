@@ -27,20 +27,20 @@ static int
 parse_line(
 		char **argv,
 		int *argc,
-		int maxargs, 
+		int maxargs,
 		char *buf
 )
 {
 	char *p, *begin;
 	int in_quoted_field = 0, cnt = 0;
 	char quote = '\0';
-	
+
 	for ( p = buf; isspace( (unsigned char) p[ 0 ] ); p++ );
-	
+
 	if ( p[ 0 ] == '#' ) {
 		return 0;
 	}
-	
+
 	for ( begin = p;  p[ 0 ] != '\0'; p++ ) {
 		if ( p[ 0 ] == '\\' && p[ 1 ] != '\0' ) {
 			p++;
@@ -57,7 +57,7 @@ parse_line(
 				for ( p++; isspace( (unsigned char) p[ 0 ] ); p++ );
 				begin = p;
 				p--;
-				
+
 			} else if ( !in_quoted_field ) {
 				if ( p != begin ) {
 					return -1;
@@ -80,14 +80,14 @@ parse_line(
 			p--;
 		}
 	}
-	
+
 	*argc = cnt;
 
 	return 1;
 }
 
 int
-rewrite_read( 
+rewrite_read(
 		FILE *fin,
 		struct rewrite_info *info
 )
@@ -96,7 +96,7 @@ rewrite_read(
 	char *argv[11];
 	int argc, lineno;
 
-	/* 
+	/*
 	 * Empty rule at the beginning of the context
 	 */
 
@@ -109,7 +109,7 @@ rewrite_read(
 		case 1:
 			if ( strncasecmp( argv[ 0 ], "rewrite", 7 ) == 0 ) {
 				int rc;
-				rc = rewrite_parse( info, "file", lineno, 
+				rc = rewrite_parse( info, "file", lineno,
 						argc, argv );
 				if ( rc != REWRITE_SUCCESS ) {
 					return rc;

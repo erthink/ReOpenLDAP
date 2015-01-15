@@ -84,7 +84,7 @@ backsql_compare( Operation *op, SlapReply *rs )
 
 	default:
 		Debug( LDAP_DEBUG_TRACE, "backsql_compare(): "
-			"could not retrieve compareDN ID - no such entry\n", 
+			"could not retrieve compareDN ID - no such entry\n",
 			0, 0, 0 );
 		goto return_results;
 	}
@@ -113,7 +113,7 @@ backsql_compare( Operation *op, SlapReply *rs )
 		if ( rs->sr_err != LDAP_SUCCESS ) {
 			goto return_results;
 		}
-		
+
 		*ap = nrs.sr_operational_attrs;
 	}
 
@@ -193,4 +193,4 @@ return_results:;
 		return rs->sr_err;
 	}
 }
- 
+

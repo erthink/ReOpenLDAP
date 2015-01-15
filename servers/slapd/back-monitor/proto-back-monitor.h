@@ -92,7 +92,7 @@ monitor_subsys_conn_init LDAP_P((
 	monitor_subsys_t	*ms ));
 
 /*
- * databases 
+ * databases
  */
 extern int
 monitor_subsys_database_init LDAP_P((

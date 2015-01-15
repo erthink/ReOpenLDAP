@@ -60,7 +60,7 @@ typedef struct bdb_tool_idl_cache_entry {
 	struct bdb_tool_idl_cache_entry *next;
 	ID ids[IDBLOCK];
 } bdb_tool_idl_cache_entry;
- 
+
 typedef struct bdb_tool_idl_cache {
 	struct berval kstr;
 	bdb_tool_idl_cache_entry *head, *tail;
@@ -229,7 +229,7 @@ int bdb_tool_entry_close(
 		}
 		return -1;
 	}
-			
+
 	return 0;
 }
 
@@ -243,7 +243,7 @@ bdb_tool_entry_first_x(
 	tool_base = base;
 	tool_scope = scope;
 	tool_filter = f;
-	
+
 	return bdb_tool_entry_next( be );
 }
 
@@ -353,7 +353,7 @@ ID bdb_tool_dn2id_get(
 	if ( ei ) bdb_cache_entryinfo_unlock( ei );
 	if ( rc == DB_NOTFOUND )
 		return NOID;
-	
+
 	return ei->bei_id;
 }
 
@@ -538,7 +538,7 @@ static int bdb_tool_next_id(
 		}
 		rc = bdb_dn2id_add( op, tid, ei, e );
 		if ( rc ) {
-			snprintf( text->bv_val, text->bv_len, 
+			snprintf( text->bv_val, text->bv_len,
 				"dn2id_add failed: %s (%d)",
 				db_strerror(rc), rc );
 		Debug( LDAP_DEBUG_ANY,
@@ -591,12 +591,12 @@ bdb_tool_index_add(
 		IndexRec *ir;
 		int i, rc;
 		Attribute *a;
-		
+
 		ir = bdb_tool_index_rec;
 		memset(ir, 0, bdb->bi_nattrs * sizeof( IndexRec ));
 
 		for ( a = e->e_attrs; a != NULL; a = a->a_next ) {
-			rc = bdb_index_recset( bdb, a, a->a_desc->ad_type, 
+			rc = bdb_index_recset( bdb, a, a->a_desc->ad_type,
 				&a->a_desc->ad_tags, ir );
 			if ( rc )
 				return rc;
@@ -606,7 +606,7 @@ bdb_tool_index_add(
 		ldap_pvt_thread_mutex_lock( &bdb_tool_index_mutex );
 		/* Wait for all threads to be ready */
 		while ( bdb_tool_index_tcount > 0 ) {
-			ldap_pvt_thread_cond_wait( &bdb_tool_index_cond_main, 
+			ldap_pvt_thread_cond_wait( &bdb_tool_index_cond_main,
 				&bdb_tool_index_mutex );
 		}
 		for ( i=1; i<bdb_tool_threads; i++ )
@@ -620,7 +620,7 @@ bdb_tool_index_add(
 		ldap_pvt_thread_mutex_lock( &bdb_tool_index_mutex );
 		for ( i=1; i<bdb_tool_threads; i++ ) {
 			if ( bdb_tool_index_threads[i] == LDAP_BUSY ) {
-				ldap_pvt_thread_cond_wait( &bdb_tool_index_cond_main, 
+				ldap_pvt_thread_cond_wait( &bdb_tool_index_cond_main,
 					&bdb_tool_index_mutex );
 				i--;
 				continue;
@@ -661,7 +661,7 @@ ID bdb_tool_entry_put(
 	bdb = (struct bdb_info *) be->be_private;
 
 	if (! (slapMode & SLAP_TOOL_QUICK)) {
-	rc = TXN_BEGIN( bdb->bi_dbenv, NULL, &tid, 
+	rc = TXN_BEGIN( bdb->bi_dbenv, NULL, &tid,
 		bdb->bi_db_opflags );
 	if( rc != 0 ) {
 		snprintf( text->bv_val, text->bv_len,
@@ -844,7 +844,7 @@ int bdb_tool_entry_reindex(
 	Debug( LDAP_DEBUG_TRACE, LDAP_XSTRING(bdb_tool_entry_reindex) ": txn id: %x\n",
 		tid->id(tid), 0, 0 );
 	}
- 	
+
 	/*
 	 * just (re)add them for now
 	 * assume that some other routine (not yet implemented)
@@ -922,7 +922,7 @@ ID bdb_tool_entry_modify(
 			cursor->c_close( cursor );
 			cursor = NULL;
 		}
-		rc = TXN_BEGIN( bdb->bi_dbenv, NULL, &tid, 
+		rc = TXN_BEGIN( bdb->bi_dbenv, NULL, &tid,
 			bdb->bi_db_opflags );
 		if( rc != 0 ) {
 			snprintf( text->bv_val, text->bv_len,
@@ -1039,7 +1039,7 @@ bdb_tool_idl_flush_one( void *v1, void *arg )
 			/* Store range marker */
 			curs->c_put( curs, &key, &data, DB_KEYFIRST );
 		} else {
-			
+
 			/* Skip lo */
 			rc = curs->c_get( curs, &key, &data, DB_NEXT_DUP );
 

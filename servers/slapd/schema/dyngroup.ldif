@@ -57,7 +57,7 @@ olcObjectIdentifier: {5}DynGroupBase OpenLDAPExp11:8
 olcObjectIdentifier: {6}DynGroupAttr DynGroupBase:1
 olcObjectIdentifier: {7}DynGroupOC DynGroupBase:2
 olcAttributeTypes: {0}( NetscapeLDAPattributeType:198 NAME 'memberURL' DESC 'I
- dentifies an URL associated with each member of a group. Any type of labeled 
+ dentifies an URL associated with each member of a group. Any type of labeled
  URL can be used.' SUP labeledURI )
 olcAttributeTypes: {1}( DynGroupAttr:1 NAME 'dgIdentity' DESC 'Identity to use
   when processing the memberURL' SUP distinguishedName SINGLE-VALUE )

@@ -64,7 +64,7 @@
  *		  generic entries.
  *
  *	- modify:
- *		- if the entry being modified is a GROUP_OC and the 
+ *		- if the entry being modified is a GROUP_OC and the
  *		  MEMBER_AT attribute is modified, the MEMBER_OF value
  *		  of the (existing) MEMBER_AT entries that are affected
  *		  is modified according to the request:
@@ -108,12 +108,12 @@
  *		- if the entry being renamed has the MEMBER_OF attribute,
  *		  the corresponding MEMBER value must be modified in the
  *		  respective group entries.
- *		
+ *
  *
  *	- delete:
  *		- if the entry being deleted is a GROUP, the (existing)
- *		  MEMBER objects are modified accordingly; a copy of the 
- *		  values of the MEMBER_AT is saved and, if the delete 
+ *		  MEMBER objects are modified accordingly; a copy of the
+ *		  values of the MEMBER_AT is saved and, if the delete
  *		  succeeds, the MEMBER_OF value of the (existing) MEMBER
  *		  objects is deleted.
  *
@@ -139,7 +139,7 @@ typedef struct memberof_t {
 	ObjectClass		*mo_oc_group;
 	AttributeDescription	*mo_ad_member;
 	AttributeDescription	*mo_ad_memberof;
-	
+
 	struct berval		mo_groupFilterstr;
 	AttributeAssertion	mo_groupAVA;
 	Filter			mo_groupFilter;
@@ -598,12 +598,12 @@ memberof_op_add( Operation *op, SlapReply *rs )
 
 				if ( MEMBEROF_DANGLING_DROP( mo ) ) {
 					int	j;
-	
+
 					Debug( LDAP_DEBUG_ANY, "%s: memberof_op_add(\"%s\"): "
 						"member=\"%s\" does not exist (stripping...)\n",
 						op->o_log_prefix, op->ora_e->e_name.bv_val,
 						a->a_vals[ i ].bv_val );
-	
+
 					for ( j = i + 1; !BER_BVISNULL( &a->a_nvals[ j ] ); j++ );
 					ber_memfree( a->a_vals[ i ].bv_val );
 					BER_BVZERO( &a->a_vals[ i ] );
@@ -615,7 +615,7 @@ memberof_op_add( Operation *op, SlapReply *rs )
 					if ( j - i == 1 ) {
 						break;
 					}
-		
+
 					AC_MEMCPY( &a->a_vals[ i ], &a->a_vals[ i + 1 ],
 						sizeof( struct berval ) * ( j - i ) );
 					if ( a->a_nvals != a->a_vals ) {
@@ -631,7 +631,7 @@ memberof_op_add( Operation *op, SlapReply *rs )
 			if ( BER_BVISNULL( &a->a_nvals[ 0 ] ) ) {
 				*ap = a->a_next;
 				attr_free( a );
-	
+
 			} else {
 				ap = &a->a_next;
 			}
@@ -681,12 +681,12 @@ memberof_op_add( Operation *op, SlapReply *rs )
 
 				if ( MEMBEROF_DANGLING_DROP( mo ) ) {
 					int	j;
-	
+
 					Debug( LDAP_DEBUG_ANY, "%s: memberof_op_add(\"%s\"): "
 						"memberof=\"%s\" does not exist (stripping...)\n",
 						op->o_log_prefix, op->ora_e->e_name.bv_val,
 						a->a_nvals[ i ].bv_val );
-	
+
 					for ( j = i + 1; !BER_BVISNULL( &a->a_nvals[ j ] ); j++ );
 					ber_memfree( a->a_vals[ i ].bv_val );
 					BER_BVZERO( &a->a_vals[ i ] );
@@ -697,7 +697,7 @@ memberof_op_add( Operation *op, SlapReply *rs )
 					if ( j - i == 1 ) {
 						break;
 					}
-		
+
 					AC_MEMCPY( &a->a_vals[ i ], &a->a_vals[ i + 1 ],
 						sizeof( struct berval ) * ( j - i ) );
 					if ( a->a_nvals != a->a_vals ) {
@@ -706,7 +706,7 @@ memberof_op_add( Operation *op, SlapReply *rs )
 					}
 					i--;
 				}
-				
+
 				continue;
 			}
 
@@ -846,18 +846,18 @@ memberof_op_modify( Operation *op, SlapReply *rs )
 			op->o_dn = op->o_bd->be_rootdn;
 			op->o_ndn = op->o_bd->be_rootndn;
 			op->o_bd->bd_info = (BackendInfo *)on->on_info;
-		
+
 			assert( op->orm_modlist != NULL );
-		
+
 			for ( mlp = &op->orm_modlist; *mlp; ) {
 				Modifications	*ml = *mlp;
 				int		i;
-		
+
 				if ( !is_ad_subtype( ml->sml_desc, mo->mo_ad_member ) ) {
 					mlp = &ml->sml_next;
 					continue;
 				}
-		
+
 				switch ( ml->sml_op ) {
 				case LDAP_MOD_DELETE:
 				case SLAP_MOD_SOFTDEL: /* ITS#7487: can be used by syncrepl (in mirror mode?) */
@@ -866,25 +866,25 @@ memberof_op_modify( Operation *op, SlapReply *rs )
 					 * database fail as appropriate; */
 					mlp = &ml->sml_next;
 					break;
-		
+
 				case LDAP_MOD_REPLACE:
  					/* Handle this just like a delete (see above) */
  					if ( !ml->sml_values ) {
  						mlp = &ml->sml_next;
  						break;
  					}
- 
+
 				case LDAP_MOD_ADD:
 				case SLAP_MOD_SOFTADD: /* ITS#7487 */
 				case SLAP_MOD_ADD_IF_NOT_PRESENT: /* ITS#7487 */
 					/* NOTE: right now, the attributeType we use
 					 * for member must have a normalized value */
 					assert( ml->sml_nvalues != NULL );
-		
+
 					for ( i = 0; !BER_BVISNULL( &ml->sml_nvalues[ i ] ); i++ ) {
 						int		rc;
 						Entry		*e;
-		
+
 						/* ITS#6670 Ignore member pointing to this entry */
 						if ( dn_match( &ml->sml_nvalues[i], &save_ndn ))
 							continue;
@@ -895,7 +895,7 @@ memberof_op_modify( Operation *op, SlapReply *rs )
 							be_entry_release_r( op, e );
 							continue;
 						}
-		
+
 						if ( MEMBEROF_DANGLING_ERROR( mo ) ) {
 							rc = rs->sr_err = mo->mo_dangling_err;
 							rs->sr_text = "adding non-existing object "
@@ -903,15 +903,15 @@ memberof_op_modify( Operation *op, SlapReply *rs )
 							send_ldap_result( op, rs );
 							goto done;
 						}
-		
+
 						if ( MEMBEROF_DANGLING_DROP( mo ) ) {
 							int	j;
-		
+
 							Debug( LDAP_DEBUG_ANY, "%s: memberof_op_modify(\"%s\"): "
 								"member=\"%s\" does not exist (stripping...)\n",
 								op->o_log_prefix, op->o_req_dn.bv_val,
 								ml->sml_nvalues[ i ].bv_val );
-		
+
 							for ( j = i + 1; !BER_BVISNULL( &ml->sml_nvalues[ j ] ); j++ );
 							ber_memfree( ml->sml_values[ i ].bv_val );
 							BER_BVZERO( &ml->sml_values[ i ] );
@@ -921,7 +921,7 @@ memberof_op_modify( Operation *op, SlapReply *rs )
 							if ( j - i == 1 ) {
 								break;
 							}
-		
+
 							AC_MEMCPY( &ml->sml_values[ i ], &ml->sml_values[ i + 1 ],
 								sizeof( struct berval ) * ( j - i ) );
 							AC_MEMCPY( &ml->sml_nvalues[ i ], &ml->sml_nvalues[ i + 1 ],
@@ -929,25 +929,25 @@ memberof_op_modify( Operation *op, SlapReply *rs )
 							i--;
 						}
 					}
-		
+
 					if ( BER_BVISNULL( &ml->sml_nvalues[ 0 ] ) ) {
 						*mlp = ml->sml_next;
 						slap_mod_free( &ml->sml_mod, 0 );
 						free( ml );
-		
+
 					} else {
 						mlp = &ml->sml_next;
 					}
-		
+
 					break;
-		
+
 				default:
 					assert( 0 );
 				}
 			}
 		}
 	}
-	
+
 	if ( mmlp != NULL ) {
 		Modifications	*ml = *mmlp;
 		int		i;
@@ -1004,12 +1004,12 @@ memberof_op_modify( Operation *op, SlapReply *rs )
 
 						if ( MEMBEROF_DANGLING_DROP( mo ) ) {
 							int	j;
-	
+
 							Debug( LDAP_DEBUG_ANY, "%s: memberof_op_modify(\"%s\"): "
 								"memberof=\"%s\" does not exist (stripping...)\n",
 								op->o_log_prefix, op->o_req_ndn.bv_val,
 								ml->sml_nvalues[ i ].bv_val );
-	
+
 							for ( j = i + 1; !BER_BVISNULL( &ml->sml_nvalues[ j ] ); j++ );
 							ber_memfree( ml->sml_values[ i ].bv_val );
 							BER_BVZERO( &ml->sml_values[ i ] );
@@ -1021,7 +1021,7 @@ memberof_op_modify( Operation *op, SlapReply *rs )
 							if ( j - i == 1 ) {
 								break;
 							}
-		
+
 							AC_MEMCPY( &ml->sml_values[ i ], &ml->sml_values[ i + 1 ],
 								sizeof( struct berval ) * ( j - i ) );
 							if ( ml->sml_nvalues != ml->sml_values ) {
@@ -1139,7 +1139,7 @@ memberof_op_modify( Operation *op, SlapReply *rs )
 						if ( j - i == 1 ) {
 							break;
 						}
-	
+
 						AC_MEMCPY( &ml->sml_values[ i ], &ml->sml_values[ i + 1 ],
 							sizeof( struct berval ) * ( j - i ) );
 						if ( ml->sml_nvalues != ml->sml_values ) {
@@ -1272,7 +1272,7 @@ memberof_res_add( Operation *op, SlapReply *rs )
 			op->o_relax = SLAP_CONTROL_CRITICAL;
 
 			for ( i = 0; !BER_BVISNULL( &ma->a_nvals[ i ] ); i++ ) {
-		
+
 				/* ITS#6670 Ignore member pointing to this entry */
 				if ( dn_match( &ma->a_nvals[i], &op->o_req_ndn ))
 					continue;
@@ -1458,7 +1458,7 @@ memberof_res_modify( Operation *op, SlapReply *rs )
 					break;
 				}
 				/* fall thru */
-	
+
 			case LDAP_MOD_REPLACE:
 				vals = mci->member;
 
@@ -1471,12 +1471,12 @@ memberof_res_modify( Operation *op, SlapReply *rs )
 								NULL, NULL );
 					}
 				}
-	
+
 				if ( ml->sml_op == LDAP_MOD_DELETE || ml->sml_op == SLAP_MOD_SOFTDEL || !ml->sml_values ) {
 					break;
 				}
 				/* fall thru */
-	
+
 			case LDAP_MOD_ADD:
 			case SLAP_MOD_SOFTADD: /* ITS#7487 */
 			case SLAP_MOD_ADD_IF_NOT_PRESENT : /* ITS#7487 */
@@ -1489,7 +1489,7 @@ memberof_res_modify( Operation *op, SlapReply *rs )
 							&op->o_req_dn, &op->o_req_ndn );
 				}
 				break;
-	
+
 			default:
 				assert( 0 );
 			}
@@ -1532,7 +1532,7 @@ memberof_res_modrdn( Operation *op, SlapReply *rs )
 		dnParent( &op->o_req_ndn, &newPNDN );
 	}
 
-	build_new_dn( &newNDN, &newPNDN, &op->orr_nnewrdn, op->o_tmpmemctx ); 
+	build_new_dn( &newNDN, &newPNDN, &op->orr_nnewrdn, op->o_tmpmemctx );
 
 	save_dn = op->o_req_dn;
 	save_ndn = op->o_req_ndn;
@@ -1554,7 +1554,7 @@ memberof_res_modrdn( Operation *op, SlapReply *rs )
 		dnParent( &op->o_req_dn, &newPDN );
 	}
 
-	build_new_dn( &newDN, &newPDN, &op->orr_newrdn, op->o_tmpmemctx ); 
+	build_new_dn( &newDN, &newPDN, &op->orr_newrdn, op->o_tmpmemctx );
 
 	if ( mci->what & MEMBEROF_IS_GROUP ) {
 		op->o_bd->bd_info = (BackendInfo *)on->on_info;
@@ -1747,7 +1747,7 @@ memberof_make_group_filter( memberof_t *mo )
 
 	mo->mo_groupFilter.f_choice = LDAP_FILTER_EQUALITY;
 	mo->mo_groupFilter.f_ava = &mo->mo_groupAVA;
-	
+
 	mo->mo_groupFilter.f_av_desc = slap_schema.si_ad_objectClass;
 	mo->mo_groupFilter.f_av_value = mo->mo_oc_group->soc_cname;
 
@@ -2019,7 +2019,7 @@ memberof_db_open(
 {
 	slap_overinst	*on = (slap_overinst *)be->bd_info;
 	memberof_t	*mo = (memberof_t *)on->on_bi.bi_private;
-	
+
 	int		rc;
 	const char	*text = NULL;
 

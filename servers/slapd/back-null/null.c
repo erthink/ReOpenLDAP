@@ -194,12 +194,12 @@ null_back_respond( Operation *op, SlapReply *rs, int rc )
 		ber_init2( ps_ber, NULL, LBER_USE_DER );
 
 		/* return size of 0 -- no estimate */
-		ber_printf( ps_ber, "{iO}", 0, &cookie ); 
+		ber_printf( ps_ber, "{iO}", 0, &cookie );
 
 		if ( ber_flatten2( ps_ber, &ctrl[c].ldctl_value, 0 ) == -1 ) {
 			goto done;
 		}
-		
+
 		ctrls[c] = &ctrl[c];
 		c++;
 	}

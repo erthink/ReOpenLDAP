@@ -75,7 +75,7 @@ sdf-img: \
 	refint.png \
 	set-following-references.png \
 	set-memberUid.png \
-	set-recursivegroup.png 
+	set-recursivegroup.png
 
 guide.html: guide.sdf sdf-src sdf-img
 	sdf -2html guide.sdf
@@ -92,5 +92,5 @@ guide.pdf: admin.html guide.book
 OpenLDAP-Admin-Guide.pdf: admin.html guide.book
 	htmldoc --batch guide.book -f OpenLDAP-Admin-Guide.pdf
 
-clean: 
+clean:
 	rm -f *.pdf *.html *~ *.bak

@@ -21,7 +21,7 @@
 SRCS	= init.c bind.c search.c config.c referral.c
 OBJS	= init.lo bind.lo search.lo config.lo referral.lo
 
-LDAP_INCDIR= ../../../include       
+LDAP_INCDIR= ../../../include
 LDAP_LIBDIR= ../../../libraries
 
 BUILD_OPT = "--enable-dnssrv"

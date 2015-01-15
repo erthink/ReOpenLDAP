@@ -37,20 +37,20 @@
 
 #define BACKSQL_STR_GROW 256
 
-const char backsql_def_oc_query[] = 
+const char backsql_def_oc_query[] =
 	"SELECT id,name,keytbl,keycol,create_proc,delete_proc,expect_return "
 	"FROM ldap_oc_mappings";
-const char backsql_def_needs_select_oc_query[] = 
+const char backsql_def_needs_select_oc_query[] =
 	"SELECT id,name,keytbl,keycol,create_proc,create_keyval,delete_proc,"
 	"expect_return FROM ldap_oc_mappings";
-const char backsql_def_at_query[] = 
+const char backsql_def_at_query[] =
 	"SELECT name,sel_expr,from_tbls,join_where,add_proc,delete_proc,"
 	"param_order,expect_return,sel_expr_u FROM ldap_attr_mappings "
 	"WHERE oc_map_id=?";
 const char backsql_def_delentry_stmt[] = "DELETE FROM ldap_entries WHERE id=?";
 const char backsql_def_renentry_stmt[] =
 	"UPDATE ldap_entries SET dn=?,parent=?,keyval=? WHERE id=?";
-const char backsql_def_insentry_stmt[] = 
+const char backsql_def_insentry_stmt[] =
 	"INSERT INTO ldap_entries (dn,oc_map_id,parent,keyval) "
 	"VALUES (?,?,?,?)";
 const char backsql_def_delobjclasses_stmt[] = "DELETE FROM ldap_entry_objclasses "
@@ -58,7 +58,7 @@ const char backsql_def_delobjclasses_stmt[] = "DELETE FROM ldap_entry_objclasses
 const char backsql_def_subtree_cond[] = "ldap_entries.dn LIKE CONCAT('%',?)";
 const char backsql_def_upper_subtree_cond[] = "(ldap_entries.dn) LIKE CONCAT('%',?)";
 const char backsql_id_query[] = "SELECT id,keyval,oc_map_id,dn FROM ldap_entries WHERE ";
-/* better ?||? or cast(?||? as varchar) */ 
+/* better ?||? or cast(?||? as varchar) */
 const char backsql_def_concat_func[] = "CONCAT(?,?)";
 
 /* TimesTen */
@@ -72,9 +72,9 @@ backsql_strcat_x( struct berbuf *dest, void *memctx, ... )
 	char		*cstr;
 
 	assert( dest != NULL );
-	assert( dest->bb_val.bv_val == NULL 
+	assert( dest->bb_val.bv_val == NULL
 			|| dest->bb_val.bv_len == strlen( dest->bb_val.bv_val ) );
- 
+
 #ifdef BACKSQL_TRACE
 	Debug( LDAP_DEBUG_TRACE, "==>backsql_strcat()\n", 0, 0, 0 );
 #endif /* BACKSQL_TRACE */
@@ -122,14 +122,14 @@ backsql_strcat_x( struct berbuf *dest, void *memctx, ... )
 	va_end( strs );
 
 #ifdef BACKSQL_TRACE
-	Debug( LDAP_DEBUG_TRACE, "<==backsql_strcat() (dest=\"%s\")\n", 
+	Debug( LDAP_DEBUG_TRACE, "<==backsql_strcat() (dest=\"%s\")\n",
 			dest->bb_val.bv_val, 0, 0 );
 #endif /* BACKSQL_TRACE */
 
 	dest->bb_val.bv_len = cdlen;
 
 	return dest;
-} 
+}
 
 struct berbuf *
 backsql_strfcat_x( struct berbuf *dest, void *memctx, const char *fmt, ... )
@@ -140,9 +140,9 @@ backsql_strfcat_x( struct berbuf *dest, void *memctx, const char *fmt, ... )
 	assert( dest != NULL );
 	assert( fmt != NULL );
 	assert( dest->bb_len == 0 || dest->bb_len > dest->bb_val.bv_len );
-	assert( dest->bb_val.bv_val == NULL 
+	assert( dest->bb_val.bv_val == NULL
 			|| dest->bb_val.bv_len == strlen( dest->bb_val.bv_val ) );
- 
+
 #ifdef BACKSQL_TRACE
 	Debug( LDAP_DEBUG_TRACE, "==>backsql_strfcat()\n", 0, 0, 0 );
 #endif /* BACKSQL_TRACE */
@@ -183,7 +183,7 @@ backsql_strfcat_x( struct berbuf *dest, void *memctx, const char *fmt, ... )
 
 		/* char */
 		case 'c':
-			/* 
+			/*
 			 * `char' is promoted to `int' when passed through `...'
 			 */
 			cc[0] = va_arg( strs, int );
@@ -224,7 +224,7 @@ backsql_strfcat_x( struct berbuf *dest, void *memctx, const char *fmt, ... )
 		}
 
 		assert( cstr != NULL );
-		
+
 		AC_MEMCPY( dest->bb_val.bv_val + cdlen, cstr, cslen + 1 );
 		cdlen += cslen;
 	}
@@ -232,14 +232,14 @@ backsql_strfcat_x( struct berbuf *dest, void *memctx, const char *fmt, ... )
 	va_end( strs );
 
 #ifdef BACKSQL_TRACE
-	Debug( LDAP_DEBUG_TRACE, "<==backsql_strfcat() (dest=\"%s\")\n", 
+	Debug( LDAP_DEBUG_TRACE, "<==backsql_strfcat() (dest=\"%s\")\n",
 			dest->bb_val.bv_val, 0, 0 );
 #endif /* BACKSQL_TRACE */
 
 	dest->bb_val.bv_len = cdlen;
 
 	return dest;
-} 
+}
 
 int
 backsql_entry_addattr(
@@ -251,7 +251,7 @@ backsql_entry_addattr(
 	int			rc;
 
 #ifdef BACKSQL_TRACE
-	Debug( LDAP_DEBUG_TRACE, "backsql_entry_addattr(\"%s\"): %s=%s\n", 
+	Debug( LDAP_DEBUG_TRACE, "backsql_entry_addattr(\"%s\"): %s=%s\n",
 		e->e_name.bv_val, ad->ad_cname.bv_val, val->bv_val );
 #endif /* BACKSQL_TRACE */
 
@@ -289,7 +289,7 @@ backsql_get_table_spec( backsql_info *bi, char **p )
 	if ( **p ) {
 		*(*p)++ = '\0';
 	}
-	
+
 #define BACKSQL_NEXT_WORD { \
 		while ( *s && isspace( (unsigned char)*s ) ) s++; \
 		if ( !*s ) return res.bb_val.bv_val; \
@@ -321,7 +321,7 @@ backsql_get_table_spec( backsql_info *bi, char **p )
 }
 
 int
-backsql_merge_from_clause( 
+backsql_merge_from_clause(
 	backsql_info	*bi,
 	struct berbuf	*dest_from,
 	struct berval	*src_from )
@@ -342,7 +342,7 @@ backsql_merge_from_clause(
 	if ( dest_from != NULL ) {
 		res = *dest_from;
 	}
-	
+
 	while ( *p ) {
 		s = backsql_get_table_spec( bi, &p );
 
@@ -360,7 +360,7 @@ backsql_merge_from_clause(
 				backsql_strfcat_x( &res, NULL, "cs", ',', s );
 			}
 		}
-		
+
 		if ( s ) {
 			ch_free( s );
 		}
@@ -394,7 +394,7 @@ backsql_split_pattern(
 	int		rc = 0;
 
 #define SPLIT_CHAR	'?'
-	
+
 	assert( _pattern != NULL );
 	assert( split_pattern != NULL );
 
@@ -405,7 +405,7 @@ backsql_split_pattern(
 	for ( ; start; expected-- ) {
 		char		*real_end = end;
 		ber_len_t	real_len;
-		
+
 		if ( real_end == NULL ) {
 			real_end = start + strlen( start );
 

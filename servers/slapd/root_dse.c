@@ -141,7 +141,7 @@ supported_feature_destroy( void )
 	if ( supportedFeatures == NULL ) {
 		return 0;
 	}
-	
+
 	for ( i = 0; !BER_BVISNULL( &supportedFeatures[ i ] ); i++ ) {
 		ch_free( supportedFeatures[ i ].bv_val );
 	}

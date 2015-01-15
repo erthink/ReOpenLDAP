@@ -227,7 +227,7 @@ $LDAPWHOAMI -h $LOCALHOST -p $PORT1 -D "$BINDDN" -w $BINDPW \
 	-e \!authzid="$AUTHZID"
 
 RC=$?
-case $RC in 
+case $RC in
 1)
 	;;
 0)
@@ -250,7 +250,7 @@ $LDAPWHOAMI -h $LOCALHOST -p $PORT1 -D "$BINDDN" -w $BINDPW \
 	-e \!authzid="$AUTHZID"
 
 RC=$?
-case $RC in 
+case $RC in
 1)
 	;;
 0)
@@ -388,7 +388,7 @@ $LDAPWHOAMI -h $LOCALHOST -p $PORT1 -D "$BINDDN" -w $BINDPW \
 	-e \!authzid="$AUTHZID"
 
 RC=$?
-case $RC in 
+case $RC in
 1)
 	;;
 0)
@@ -411,7 +411,7 @@ $LDAPWHOAMI -h $LOCALHOST -p $PORT1 -D "$BINDDN" -w $BINDPW \
 	-e \!authzid="$AUTHZID"
 
 RC=$?
-case $RC in 
+case $RC in
 1)
 	;;
 0)

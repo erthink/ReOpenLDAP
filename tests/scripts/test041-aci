@@ -157,7 +157,7 @@ if test $RC != 0 ; then
 	exit $RC
 fi
 
-# Search must succeed 
+# Search must succeed
 BINDDN="cn=Bjorn Jensen,ou=Information Technology Division,ou=People,dc=example,dc=com"
 BINDPW=bjorn
 BASEDN="dc=example,dc=com"
@@ -173,7 +173,7 @@ if test $RC != 0 ; then
 	exit $RC
 fi
 
-# Passwd must succeed 
+# Passwd must succeed
 BINDDN="cn=Bjorn Jensen,ou=Information Technology Division,ou=People,dc=example,dc=com"
 BINDPW=bjorn
 TGT="cn=John Doe,ou=Information Technology Division,ou=People,dc=example,dc=com"

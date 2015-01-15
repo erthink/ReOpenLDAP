@@ -41,7 +41,7 @@ BerMemoryFunctions ch_mfuncs = {
 	(BER_MEMALLOC_FN *)ch_malloc,
 	(BER_MEMCALLOC_FN *)ch_calloc,
 	(BER_MEMREALLOC_FN *)ch_realloc,
-	(BER_MEMFREE_FN *)ch_free 
+	(BER_MEMFREE_FN *)ch_free
 };
 
 void *

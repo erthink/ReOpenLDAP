@@ -4,10 +4,10 @@ ldapdelete       *CDE**HI** MNOPQR  UVWXYZ  cdef*h*** *nop*    vwxyz
 ldapexop         * D **HI**  NO QR  UVWXYZ   de *h*** *nop     vwxy
 ldapmodify       *CDE**HI** MNOPQRS UVWXYZabcde *h*** *nop*r t vwxy
 ldapmodrdn       *CDE**HI** MNOPQR  UVWXYZ  cdef*h*** *nop*rs  vwxy
-ldappasswd      A*CDE**HI**  NO QRS UVWXYZa  def*h*** * o * s  vwxy  
+ldappasswd      A*CDE**HI**  NO QRS UVWXYZa  def*h*** * o * s  vwxy
 ldapsearch      A*CDE**HI**LMNOPQRSTUVWXYZab def*h***l*nop* stuvwxyz
 ldapurl          *  E**H **       S       ab   f*h*** *  p* s
-ldapwhoami       * DE**HI**  NO QR  UVWXYZ   def*h*** *nop*    vwxy 
+ldapwhoami       * DE**HI**  NO QR  UVWXYZ   def*h*** *nop*    vwxy
 
 
 * reserved
@@ -40,7 +40,7 @@ Not used
 	-6 IPv6 only
 
 
-* LDAPv3 Only 
+* LDAPv3 Only
 	-M ManageDSAIT
 	-Z StartTLS
 

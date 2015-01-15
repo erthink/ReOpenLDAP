@@ -64,7 +64,7 @@ monitor_subsys_sent_init(
 	monitor_subsys_t	*ms )
 {
 	monitor_info_t	*mi;
-	
+
 	Entry		**ep, *e_sent;
 	monitor_entry_t	*mp;
 	int			i;
@@ -95,7 +95,7 @@ monitor_subsys_sent_init(
 		e = monitor_entry_stub( &ms->mss_dn, &ms->mss_ndn,
 			&monitor_sent[i].rdn, mi->mi_oc_monitorCounterObject,
 			NULL, NULL );
-			
+
 		if ( e == NULL ) {
 			Debug( LDAP_DEBUG_ANY,
 				"monitor_subsys_sent_init: "
@@ -108,10 +108,10 @@ monitor_subsys_sent_init(
 		/* steal normalized RDN */
 		dnRdn( &e->e_nname, &nrdn );
 		ber_dupbv( &monitor_sent[ i ].nrdn, &nrdn );
-	
+
 		BER_BVSTR( &bv, "0" );
 		attr_merge_one( e, mi->mi_ad_monitorCounter, &bv, NULL );
-	
+
 		mp = monitor_entrypriv_create();
 		if ( mp == NULL ) {
 			return -1;
@@ -129,7 +129,7 @@ monitor_subsys_sent_init(
 				ms->mss_ndn.bv_val, 0 );
 			return( -1 );
 		}
-	
+
 		*ep = e;
 		ep = &mp->mp_next;
 	}
@@ -162,7 +162,7 @@ monitor_subsys_sent_update(
 	Entry                   *e )
 {
 	monitor_info_t	*mi = ( monitor_info_t *)op->o_bd->be_private;
-	
+
 	struct berval		nrdn;
 	ldap_pvt_mp_t		n;
 	Attribute		*a;
@@ -226,7 +226,7 @@ monitor_subsys_sent_update(
 		assert(0);
 	}
 	ldap_pvt_thread_mutex_unlock(&slap_counters.sc_mutex);
-	
+
 	a = attr_find( e->e_attrs, mi->mi_ad_monitorCounter );
 	assert( a != NULL );
 

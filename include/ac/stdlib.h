@@ -39,7 +39,7 @@
 #include <limits.h>
 #endif
 
-#if defined(LINE_MAX) 
+#if defined(LINE_MAX)
 #	define AC_LINE_MAX LINE_MAX
 #else
 #	define AC_LINE_MAX 2048 /* POSIX MIN */

@@ -39,7 +39,7 @@
 #include "slap.h"
 
 int
-value_add( 
+value_add(
     BerVarray	*vals,
     BerVarray	addvals )
 {
@@ -85,7 +85,7 @@ value_add(
 }
 
 int
-value_add_one( 
+value_add_one(
     BerVarray		*vals,
     struct berval	*addval )
 {
@@ -123,7 +123,7 @@ value_add_one(
 	return LDAP_SUCCESS;
 }
 
-int asserted_value_validate_normalize( 
+int asserted_value_validate_normalize(
 	AttributeDescription *ad,
 	MatchingRule *mr,
 	unsigned usage,
@@ -209,7 +209,7 @@ value_match(
 
 	rc = (mr->smr_match)( match, flags,
 		ad->ad_type->sat_syntax, mr, v1, v2 );
-	
+
 	return rc;
 }
 
@@ -367,7 +367,7 @@ ordered_value_sort( Attribute *a, int do_renumber )
 			}
 		}
 #endif
-				
+
 		indexes = ch_malloc( vals * sizeof(int) );
 		for ( i=0; i<vals; i++) {
 			char *ptr;
@@ -515,7 +515,7 @@ ordered_value_pretty(
 
 		out->bv_len = idx.bv_len + bv.bv_len;
 		out->bv_val = ber_memalloc_x( out->bv_len + 1, ctx );
-		
+
 		AC_MEMCPY( out->bv_val, idx.bv_val, idx.bv_len );
 		AC_MEMCPY( &out->bv_val[ idx.bv_len ], bv.bv_val, bv.bv_len + 1 );
 
@@ -592,7 +592,7 @@ ordered_value_normalize(
 
 		normalized->bv_len = idx.bv_len + bv.bv_len;
 		normalized->bv_val = ber_memalloc_x( normalized->bv_len + 1, ctx );
-		
+
 		AC_MEMCPY( normalized->bv_val, idx.bv_val, idx.bv_len );
 		AC_MEMCPY( &normalized->bv_val[ idx.bv_len ], bv.bv_val, bv.bv_len + 1 );
 
@@ -625,7 +625,7 @@ ordered_value_match(
 	 *
 	 * If (SLAP_MR_IS_VALUE_OF_ASSERTION_SYNTAX) then we are comparing
 	 * an assertion against an attribute value.
-	 *    If the assertion has no index, the index of the value is ignored. 
+	 *    If the assertion has no index, the index of the value is ignored.
 	 *    If the assertion has only an index, the remainder of the value is
 	 *      ignored.
 	 *    If the assertion has index and value, both are compared.

@@ -20,10 +20,10 @@ PERSONAL="(objectClass=inetOrgPerson)"
 NOWHERE="/dev/null"
 FAILURE="additional info:"
 
-if test $TRANSLUCENT = translucentno ; then 
+if test $TRANSLUCENT = translucentno ; then
 	echo "Translucent Proxy overlay not available, test skipped"
 	exit 0
-fi 
+fi
 
 if test $AC_ldap = ldapno ; then
 	echo "Translucent Proxy overlay requires back-ldap backend, test skipped"

@@ -15,7 +15,7 @@
 
 using namespace std;
 
-LDAPResult::LDAPResult(const LDAPRequest *req, LDAPMessage *msg) : 
+LDAPResult::LDAPResult(const LDAPRequest *req, LDAPMessage *msg) :
         LDAPMsg(msg){
     if(msg != 0){
         DEBUG(LDAP_DEBUG_CONSTRUCT,"LDAPResult::LDAPResult()" << endl);
@@ -54,7 +54,7 @@ LDAPResult::LDAPResult(const LDAPRequest *req, LDAPMessage *msg) :
     }
 }
 
-LDAPResult::LDAPResult(int type, int resultCode, const std::string &msg) : 
+LDAPResult::LDAPResult(int type, int resultCode, const std::string &msg) :
         LDAPMsg(type,0), m_resCode(resultCode), m_errMsg(msg)
 {}
 
@@ -89,8 +89,8 @@ const LDAPUrlList& LDAPResult::getReferralUrls() const{
 }
 
 ostream& operator<<(ostream &s,LDAPResult &l){
-    return s << "Result: " << l.m_resCode << ": "  
-        << ldap_err2string(l.m_resCode) << endl 
+    return s << "Result: " << l.m_resCode << ": "
+        << ldap_err2string(l.m_resCode) << endl
         << "Matched: " << l.m_matchedDN << endl << "ErrMsg: " << l.m_errMsg;
 }
 

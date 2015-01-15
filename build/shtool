@@ -1384,7 +1384,7 @@ subst )
                 fi
             fi
 
-            #   optionally check whether any content change actually occurred 
+            #   optionally check whether any content change actually occurred
             if [ ".$opt_q" = .no ]; then
                 if cmp $file$orig $file >/dev/null 2>&1; then
                     if [ ".$opt_w" = .yes ]; then

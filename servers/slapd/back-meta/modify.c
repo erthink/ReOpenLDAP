@@ -97,7 +97,7 @@ meta_back_modify( Operation *op, SlapReply *rs )
 			continue;
 		}
 
-		if ( ml->sml_desc == slap_schema.si_ad_objectClass 
+		if ( ml->sml_desc == slap_schema.si_ad_objectClass
 				|| ml->sml_desc == slap_schema.si_ad_structuralObjectClass )
 		{
 			is_oc = 1;

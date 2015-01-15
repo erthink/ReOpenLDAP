@@ -22,7 +22,7 @@
  */
 /*
  * The following changes have been addressed:
- *	 
+ *
  * Enhancements:
  *   - re-styled code for better readability
  *   - upgraded backend API to reflect recent changes
@@ -56,7 +56,7 @@
  *   - added values return filter control
  *   - hasSubordinate can be used in search filters (with limitations)
  *   - eliminated oc->name; use oc->oc->soc_cname instead
- * 
+ *
  * Todo:
  *   - add security checks for SQL statements that can be injected (?)
  *   - re-test with previously supported RDBMs
@@ -105,12 +105,12 @@ can be slow in an RDBM. This shortcut option says that if the
 searchbase of the LDAP search is the root DN of the SQL backend,
 and thus all objects will match the LIKE operator, do not include
 the "LIKE %<searchbase>" clause in the SQL query (it is replaced
-instead by the always true "1=1" clause to keep the "AND"'s 
+instead by the always true "1=1" clause to keep the "AND"'s
 working correctly).  This option is off by default, and should be
 turned on only if all objects to be found in the RDBM are under the
 same root DN. Multiple backends working within the same RDBM table
 space would encounter problems. LDAP searches whose searchbase are
-not at the root DN will bypass this shortcut and employ the LIKE 
+not at the root DN will bypass this shortcut and employ the LIKE
 clause.
 
 3. Added a "create_hint" column to ldap_oc_mappings table. Allows
@@ -155,17 +155,17 @@ requires SASL to perform an LDAP search to convert the SASL ID to an
 LDAP DN), so each RDBM connection now has a refcount that must reach
 zero before the connection is returned to the free pool.
 
-7. Added ability to change the objectClass of an object. Required 
+7. Added ability to change the objectClass of an object. Required
 considerable work to copy all attributes out of old object and into
 new object.  Does a schema check before proceeding.  Creates a new
-object, fills it in, deletes the old object, then changes the 
+object, fills it in, deletes the old object, then changes the
 oc_map_id and keyval of the entry in the "ldap_entries" table.
 
 8.  Generic fixes. Includes initializing pointers before they
 get used in error branch cases, pointer checks before dereferencing,
 resetting a return code to success after a COMPARE op, sealing
 memory leaks, and in search.c, changing some of the "1=1" tests to
-"2=2", "3=3", etc so that when reading slapd trace output, the 
+"2=2", "3=3", etc so that when reading slapd trace output, the
 location in the source code where the x=x test was added to the SQL
 can be easily distinguished.
  */
@@ -293,7 +293,7 @@ typedef struct backsql_oc_map_rec {
 	 */
 	ObjectClass		*bom_oc;
 #define BACKSQL_OC_NAME(ocmap)	((ocmap)->bom_oc->soc_cname.bv_val)
-	
+
 	struct berval		bom_keytbl;
 	struct berval		bom_keycol;
 	/* expected to return keyval of newly created entry */
@@ -301,10 +301,10 @@ typedef struct backsql_oc_map_rec {
 	/* in case create_proc does not return the keyval of the newly
 	 * created row */
 	char			*bom_create_keyval;
-	/* supposed to expect keyval as parameter and delete 
+	/* supposed to expect keyval as parameter and delete
 	 * all the attributes as well */
 	char			*bom_delete_proc;
-	/* flags whether delete_proc is a function (whether back-sql 
+	/* flags whether delete_proc is a function (whether back-sql
 	 * should bind first parameter as output for return code) */
 	int			bom_expect_return;
 	backsql_key_t		bom_id;
@@ -330,25 +330,25 @@ typedef struct backsql_at_map_rec {
 	 * an uppercased version of bam_sel_expr */
 	struct berval	bam_sel_expr_u;
 
-	/* supposed to expect 2 binded values: entry keyval 
+	/* supposed to expect 2 binded values: entry keyval
 	 * and attr. value to add, like "add_name(?,?,?)" */
 	char		*bam_add_proc;
-	/* supposed to expect 2 binded values: entry keyval 
+	/* supposed to expect 2 binded values: entry keyval
 	 * and attr. value to delete */
 	char		*bam_delete_proc;
-	/* for optimization purposes attribute load query 
+	/* for optimization purposes attribute load query
 	 * is preconstructed from parts on schemamap load time */
 	char		*bam_query;
 #ifdef BACKSQL_COUNTQUERY
 	char		*bam_countquery;
 #endif /* BACKSQL_COUNTQUERY */
-	/* following flags are bitmasks (first bit used for add_proc, 
+	/* following flags are bitmasks (first bit used for add_proc,
 	 * second - for delete_proc) */
-	/* order of parameters for procedures above; 
+	/* order of parameters for procedures above;
 	 * 1 means "data then keyval", 0 means "keyval then data" */
 	int 		bam_param_order;
-	/* flags whether one or more of procedures is a function 
-	 * (whether back-sql should bind first parameter as output 
+	/* flags whether one or more of procedures is a function
+	 * (whether back-sql should bind first parameter as output
 	 * for return code) */
 	int 		bam_expect_return;
 
@@ -491,7 +491,7 @@ typedef struct backsql_info {
  	/*
 	 * SQL condition for subtree searches differs in syntax:
 	 * "LIKE CONCAT('%',?)" or "LIKE '%'+?" or "LIKE '%'||?"
-	 * or smtg else 
+	 * or smtg else
 	 */
 	struct berval	sql_subtree_cond;
 	struct berval	sql_children_cond;
@@ -585,7 +585,7 @@ typedef struct backsql_info {
 #define	BACKSQL_IS_BASEOBJECT_ID(id)	(*(id) == BACKSQL_BASEOBJECT_ID)
 #endif /* ! BACKSQL_ARBITRARY_KEY */
 #define BACKSQL_BASEOBJECT_OC		0
-	
+
 	Avlnode		*sql_db_conns;
 	SQLHDBC		sql_dbh;
 	ldap_pvt_thread_mutex_t		sql_dbconn_mutex;

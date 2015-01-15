@@ -59,7 +59,7 @@ ldap_back_munge_filter(
 	Debug( LDAP_DEBUG_ARGS, "=> ldap_back_munge_filter \"%s\"\n",
 			filter->bv_val, 0, 0 );
 
-	for ( ptr = strchr( filter->bv_val, '(' ); 
+	for ( ptr = strchr( filter->bv_val, '(' );
 			ptr;
 			ptr = strchr( ptr, '(' ) )
 	{
@@ -110,7 +110,7 @@ ldap_back_munge_filter(
 		ptr = filter->bv_val + ( ptr - oldfilter.bv_val );
 
 		AC_MEMCPY( &ptr[ newbv->bv_len ],
-				&ptr[ oldbv->bv_len ], 
+				&ptr[ oldbv->bv_len ],
 				oldfilter.bv_len - ( ptr - filter->bv_val ) - oldbv->bv_len + 1 );
 		AC_MEMCPY( ptr, newbv->bv_val, newbv->bv_len );
 
@@ -138,7 +138,7 @@ ldap_back_search(
 	LDAPMessage	*res,
 			*e;
 	int		rc = 0,
-			msgid; 
+			msgid;
 	struct berval	match = BER_BVNULL,
 			filter = BER_BVNULL;
 	int		i, x;
@@ -192,7 +192,7 @@ ldap_back_search(
 			goto finish;
 		}
 
-		if ( i > 0 ) {	
+		if ( i > 0 ) {
 			for ( i = 0; !BER_BVISNULL( &op->ors_attrs[i].an_name ); i++, j++ ) {
 				attrs[ j ] = op->ors_attrs[i].an_name.bv_val;
 			}
@@ -257,7 +257,7 @@ retry:
 			} else {
 				rc = ldap_back_op_result( lc, op, rs, msgid, 0, LDAP_BACK_DONTSEND );
 			}
-				
+
 			goto finish;
 
 		case LDAP_FILTER_ERROR:
@@ -276,7 +276,7 @@ retry:
 			rs->sr_err = LDAP_SUCCESS;
 			rs->sr_text = NULL;
 			goto finish;
-		
+
 		default:
 			rs->sr_err = slap_map_api2result( rs );
 			rs->sr_text = NULL;
@@ -499,7 +499,7 @@ retry:
 
 			/* RFC 4511: referrals can only appear
 			 * if result code is LDAP_REFERRAL */
-			if ( references 
+			if ( references
 				&& references[ 0 ]
 				&& references[ 0 ][ 0 ] )
 			{
@@ -515,7 +515,7 @@ retry:
 
 					for ( cnt = 0; references[ cnt ]; cnt++ )
 						/* NO OP */ ;
-				
+
 					rs->sr_ref = op->o_tmpalloc( ( cnt + 1 ) * sizeof( struct berval ),
 						op->o_tmpmemctx );
 
@@ -675,7 +675,7 @@ ldap_build_entry(
 	 * Note: this may fail if the target host(s) schema differs
 	 * from the one known to the meta, and a DN with unknown
 	 * attributes is returned.
-	 * 
+	 *
 	 * FIXME: should we log anything, or delegate to dnNormalize?
 	 */
 	/* Note: if the distinguished values or the naming attributes
@@ -703,13 +703,13 @@ ldap_build_entry(
 		if ( attr == NULL ) {
 			return LDAP_OTHER;
 		}
-		if ( slap_bv2ad( &a, &attr->a_desc, &text ) 
+		if ( slap_bv2ad( &a, &attr->a_desc, &text )
 				!= LDAP_SUCCESS )
 		{
 			if ( slap_bv2undef_ad( &a, &attr->a_desc, &text,
 				SLAP_AD_PROXIED ) != LDAP_SUCCESS )
 			{
-				Debug( LDAP_DEBUG_ANY, 
+				Debug( LDAP_DEBUG_ANY,
 					"%s ldap_build_entry: "
 					"slap_bv2undef_ad(%s): %s\n",
 					op->o_log_prefix, a.bv_val, text );
@@ -725,7 +725,7 @@ ldap_build_entry(
 			|| attr->a_desc == slap_schema.si_ad_entryDN )
 		{
 
-			/* 
+			/*
 			 * We eat target's subschemaSubentry because
 			 * a search for this value is likely not
 			 * to resolve to the appropriate backend;
@@ -740,7 +740,7 @@ ldap_build_entry(
 			attr_free( attr );
 			continue;
 		}
-		
+
 		if ( ber_scanf( &ber, "[W]", &attr->a_vals ) == LBER_ERROR
 				|| attr->a_vals == NULL )
 		{
@@ -945,7 +945,7 @@ ldap_back_entry_get(
 	if ( oc ) {
 		char	*ptr;
 
-		filter = op->o_tmpalloc( STRLENOF( "(objectClass=" ")" ) 
+		filter = op->o_tmpalloc( STRLENOF( "(objectClass=" ")" )
 				+ oc->soc_cname.bv_len + 1, op->o_tmpmemctx );
 		ptr = lutil_strcopy( filter, "(objectClass=" );
 		ptr = lutil_strcopy( ptr, oc->soc_cname.bv_val );

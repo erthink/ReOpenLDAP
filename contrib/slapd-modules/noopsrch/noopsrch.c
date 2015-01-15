@@ -81,7 +81,7 @@ noopsrch_response( Operation *op, SlapReply *rs )
 	noopsrch_cb_t		*nc = (noopsrch_cb_t *)op->o_callback->sc_private;
 
 	/* if the control is global, limits are not computed yet  */
-	if ( nc->nc_pdummy == &dummy ) {	
+	if ( nc->nc_pdummy == &dummy ) {
 		nc->nc_save_slimit = op->ors_slimit;
 		op->ors_slimit = SLAP_NO_LIMIT;
 		nc->nc_pdummy = NULL;
@@ -185,7 +185,7 @@ noopsrch_op_search( Operation *op, SlapReply *rs )
 		sc->sc_next = op->o_callback->sc_next;
                 op->o_callback->sc_next = sc;
 	}
-	
+
 	return SLAP_CB_CONTINUE;
 }
 

@@ -90,7 +90,7 @@ static struct {
 /*
  * NOTE: there's some confusion in monitor OID arc;
  * by now, let's consider:
- * 
+ *
  * Subsystems monitor attributes	1.3.6.1.4.1.4203.666.1.55.0
  * Databases monitor attributes		1.3.6.1.4.1.4203.666.1.55.0.1
  * LDAP database monitor attributes	1.3.6.1.4.1.4203.666.1.55.0.1.2
@@ -236,7 +236,7 @@ ldap_back_monitor_modify(
 	void		*priv )
 {
 	ldapinfo_t		*li = (ldapinfo_t *) priv;
-	
+
 	Attribute		*save_attrs = NULL;
 	Modifications		*ml,
 				*ml_olmDbURIList = NULL;
@@ -306,7 +306,7 @@ ldap_back_monitor_modify(
 			goto done;
 		}
 		ul.bv_len = strlen( ul.bv_val );
-		
+
 		a = attr_find( e->e_attrs, ad_olmDbURIList );
 		if ( a != NULL ) {
 			if ( a->a_nvals == a->a_vals ) {
@@ -861,7 +861,7 @@ ldap_back_monitor_initialize( void )
 	c.argc = 3;
 	c.fname = argv[0];
 	for ( i = 0; s_oid[ i ].name; i++ ) {
-	
+
 		argv[ 1 ] = s_oid[ i ].name;
 		argv[ 2 ] = s_oid[ i ].oid;
 

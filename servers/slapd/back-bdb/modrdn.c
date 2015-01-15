@@ -151,7 +151,7 @@ retry:	/* transaction retry */
 	}
 
 	/* begin transaction */
-	rs->sr_err = TXN_BEGIN( bdb->bi_dbenv, NULL, &ltid, 
+	rs->sr_err = TXN_BEGIN( bdb->bi_dbenv, NULL, &ltid,
 		bdb->bi_db_opflags );
 	rs->sr_text = NULL;
 	if( rs->sr_err != 0 ) {
@@ -304,7 +304,7 @@ retry:	/* transaction retry */
 	np_ndn = &p_ndn;
 	eip = ei->bei_parent;
 	if ( eip && eip->bei_id ) {
-		/* Make sure parent entry exist and we can write its 
+		/* Make sure parent entry exist and we can write its
 		 * children.
 		 */
 		rs->sr_err = bdb_cache_find_id( op, ltid,
@@ -365,7 +365,7 @@ retry:	/* transaction retry */
 	Debug( LDAP_DEBUG_TRACE,
 		LDAP_XSTRING(bdb_modrdn) ": wr to children "
 		"of entry %s OK\n", p_ndn.bv_val, 0, 0 );
-	
+
 	if ( p_ndn.bv_val == slap_empty_bv.bv_val ) {
 		p_dn = slap_empty_bv;
 	} else {
@@ -379,7 +379,7 @@ retry:	/* transaction retry */
 	new_parent_dn = &p_dn;	/* New Parent unless newSuperior given */
 
 	if ( op->oq_modrdn.rs_newSup != NULL ) {
-		Debug( LDAP_DEBUG_TRACE, 
+		Debug( LDAP_DEBUG_TRACE,
 			LDAP_XSTRING(bdb_modrdn)
 			": new parent \"%s\" requested...\n",
 			op->oq_modrdn.rs_newSup->bv_val, 0, 0 );
@@ -514,8 +514,8 @@ retry:	/* transaction retry */
 					}
 
 					rs->sr_err = LDAP_INSUFFICIENT_ACCESS;
-					Debug( LDAP_DEBUG_TRACE, 
-						"no access to new superior\n", 
+					Debug( LDAP_DEBUG_TRACE,
+						"no access to new superior\n",
 						0, 0, 0 );
 					rs->sr_text =
 						"no write access to new superior's children";
@@ -534,7 +534,7 @@ retry:	/* transaction retry */
 
 	/* Build target dn and make sure target entry doesn't exist already. */
 	if (!new_dn.bv_val) {
-		build_new_dn( &new_dn, new_parent_dn, &op->oq_modrdn.rs_newrdn, NULL ); 
+		build_new_dn( &new_dn, new_parent_dn, &op->oq_modrdn.rs_newrdn, NULL );
 	}
 
 	if (!new_ndn.bv_val) {
@@ -580,7 +580,7 @@ retry:	/* transaction retry */
 		if( slap_read_controls( op, rs, e,
 			&slap_pre_read_bv, preread_ctrl ) )
 		{
-			Debug( LDAP_DEBUG_TRACE,        
+			Debug( LDAP_DEBUG_TRACE,
 				"<=- " LDAP_XSTRING(bdb_modrdn)
 				": pre-read failed!\n", 0, 0, 0 );
 			if ( op->o_preread & SLAP_CONTROL_CRITICAL ) {
@@ -588,7 +588,7 @@ retry:	/* transaction retry */
 				 * operation if control fails? */
 				goto return_results;
 			}
-		}                   
+		}
 	}
 
 	/* nested transaction */
@@ -724,7 +724,7 @@ retry:	/* transaction retry */
 		if( slap_read_controls( op, rs, &dummy,
 			&slap_post_read_bv, postread_ctrl ) )
 		{
-			Debug( LDAP_DEBUG_TRACE,        
+			Debug( LDAP_DEBUG_TRACE,
 				"<=- " LDAP_XSTRING(bdb_modrdn)
 				": post-read failed!\n", 0, 0, 0 );
 			if ( op->o_postread & SLAP_CONTROL_CRITICAL ) {
@@ -732,7 +732,7 @@ retry:	/* transaction retry */
 				 * operation if control fails? */
 				goto return_results;
 			}
-		}                   
+		}
 	}
 
 	if( op->o_noop ) {
@@ -764,11 +764,11 @@ retry:	/* transaction retry */
 			rs->sr_err = LDAP_SUCCESS;
 		}
 	}
- 
+
 	ltid = NULL;
 	LDAP_SLIST_REMOVE( &op->o_extra, &opinfo.boi_oe, OpExtra, oe_next );
 	opinfo.boi_oe.oe_key = NULL;
- 
+
 	if( rs->sr_err != LDAP_SUCCESS ) {
 		Debug( LDAP_DEBUG_TRACE,
 			LDAP_XSTRING(bdb_modrdn) ": %s : %s (%d)\n",
@@ -796,7 +796,7 @@ return_results:
 		TXN_CHECKPOINT( bdb->bi_dbenv,
 			bdb->bi_txn_cp_kbyte, bdb->bi_txn_cp_min, 0 );
 	}
-	
+
 	if ( rs->sr_err == LDAP_SUCCESS && parent_is_glue && parent_is_leaf ) {
 		op->o_delete_glue_parent = 1;
 	}

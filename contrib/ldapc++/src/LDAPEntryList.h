@@ -11,10 +11,10 @@
 #include <list>
 
 class LDAPEntry;
-   
+
 /**
  * For internal use only.
- * 
+ *
  * This class is used by LDAPSearchResults to store a std::list of
  * LDAPEntry-Objects
  */

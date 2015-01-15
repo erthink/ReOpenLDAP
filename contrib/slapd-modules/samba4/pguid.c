@@ -71,13 +71,13 @@ pguid_op_add( Operation *op, SlapReply *rs )
 	if ( a == NULL ) {
 		Debug( LDAP_DEBUG_ANY, "%s: pguid_op_add: unable to find entryUUID of parent entry DN=\"%s\" (%d)\n",
 			op->o_log_prefix, pdn.bv_val, rc );
-		
+
 	} else {
 		assert( a->a_numvals == 1 );
 
 		if ( op->ora_e != NULL ) {
 			attr_merge_one( op->ora_e, ad_parentUUID, &a->a_vals[0], a->a_nvals == a->a_vals ? NULL : &a->a_nvals[0] );
-		
+
 		} else {
 			Modifications *ml;
 			Modifications *mod;
@@ -142,7 +142,7 @@ pguid_op_rename( Operation *op, SlapReply *rs )
 	if ( a == NULL ) {
 		Debug( LDAP_DEBUG_ANY, "%s: pguid_op_rename: unable to find entryUUID of newSuperior entry DN=\"%s\" (%d)\n",
 			op->o_log_prefix, op->orr_newSup->bv_val, rc );
-		
+
 	} else {
 		Modifications *mod;
 
@@ -245,7 +245,7 @@ pguid_repair_cb( Operation *op, SlapReply *rs )
 	if ( a == NULL ) {
 		Debug( LDAP_DEBUG_ANY, "%s: pguid_repair_cb: unable to find entryUUID of parent entry DN=\"%s\" (%d)\n",
 			op->o_log_prefix, pdn.bv_val, rc );
-		
+
 	} else {
 		ber_len_t len;
 		pguid_mod_t *mod;
@@ -318,7 +318,7 @@ pguid_repair( BackendDB *be )
 		rs.sr_err = LDAP_OTHER;
 		goto done_search;
 	}
-	
+
 	op->o_callback = &sc;
 	sc.sc_response = pguid_repair_cb;
 	sc.sc_private = &pcb;
@@ -411,7 +411,7 @@ static struct {
 		"SYNTAX 1.3.6.1.1.16.1 "
 		"USAGE dSAOperation "
 		"SINGLE-VALUE "
-		"NO-USER-MODIFICATION " 
+		"NO-USER-MODIFICATION "
 		")",
 		&ad_parentUUID },
 	{ NULL }

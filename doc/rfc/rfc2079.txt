@@ -56,7 +56,7 @@ Background and Intended Usage
 
 
 Smith                       Standards Track                     [Page 1]
-
+
 RFC 2079          URI Attribute Type and Object Class       January 1997
 
 
@@ -112,7 +112,7 @@ Examples of labeledURI Attribute Values
 
 
 Smith                       Standards Track                     [Page 2]
-
+
 RFC 2079          URI Attribute Type and Object Class       January 1997
 
 
@@ -168,7 +168,7 @@ Acknowledgments
 
 
 Smith                       Standards Track                     [Page 3]
-
+
 RFC 2079          URI Attribute Type and Object Class       January 1997
 
 
@@ -224,7 +224,7 @@ References
 
 
 Smith                       Standards Track                     [Page 4]
-
+
 RFC 2079          URI Attribute Type and Object Class       January 1997
 
 
@@ -280,4 +280,4 @@ Author's Address
 
 
 Smith                       Standards Track                     [Page 5]
-
+

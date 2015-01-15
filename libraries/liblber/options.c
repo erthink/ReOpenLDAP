@@ -105,7 +105,7 @@ ber_get_option(
 		assert( LBER_VALID( ber ) );
 		*((void **) outvalue) = ber->ber_memctx;
 		return LBER_OPT_SUCCESS;
-	
+
 	default:
 		/* bad param */
 		ber_errno = LBER_ERROR_PARAM;

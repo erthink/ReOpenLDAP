@@ -1,6 +1,6 @@
 /* pam.c - pam processing routines */
 /* $OpenLDAP$ */
-/* This work is part of OpenLDAP Software <http://www.openldap.org/>. 
+/* This work is part of OpenLDAP Software <http://www.openldap.org/>.
  *
  * Copyright 2008-2014 The OpenLDAP Foundation.
  * Portions Copyright 2008 by Howard Chu, Symas Corp.
@@ -647,7 +647,7 @@ static int pam_sess(nssov_info *ni,TFILE *fp,Operation *op,int action)
 
 	Debug(LDAP_DEBUG_TRACE, "nssov_pam_sess_%c(): loginStatus (%s) \n",
 			action==NSLCD_ACTION_PAM_SESS_O ? 'o' : 'c', bv[0].bv_val,0);
-	
+
 	mod.sml_numvals = 1;
 	mod.sml_values = bv;
 	BER_BVZERO(&bv[1]);

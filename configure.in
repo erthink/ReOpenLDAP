@@ -167,7 +167,7 @@ AH_BOTTOM([
 #	include <stddef.h>
 #endif
 
-#ifdef HAVE_EBCDIC 
+#ifdef HAVE_EBCDIC
 /* ASCII/EBCDIC converting replacements for stdio funcs
  * vsnprintf and snprintf are used too, but they are already
  * checked by the configure script
@@ -277,7 +277,7 @@ OL_ARG_ENABLE(modules,[    --enable-modules	  enable dynamic module support], no
 OL_ARG_ENABLE(rewrite,[    --enable-rewrite	  enable DN rewriting in back-ldap and rwm overlay], auto)dnl
 OL_ARG_ENABLE(rlookups,[    --enable-rlookups	  enable reverse lookups of client hostnames], no)dnl
 OL_ARG_ENABLE(slapi,[    --enable-slapi        enable SLAPI support (experimental)], no)dnl
-OL_ARG_ENABLE(slp,[    --enable-slp          enable SLPv2 support], no)dnl     
+OL_ARG_ENABLE(slp,[    --enable-slp          enable SLPv2 support], no)dnl
 OL_ARG_ENABLE(wrappers,[    --enable-wrappers	  enable tcp wrapper support], no)dnl
 
 dnl ----------------------------------------------------------------
@@ -936,7 +936,7 @@ dnl Likely combinations:
 dnl		-lsocket [ -lnsl_s | -lnsl ]
 dnl		-linet
 
-AC_CHECK_FUNC(socket, :, [	
+AC_CHECK_FUNC(socket, :, [
 dnl hopefully we won't include too many libraries
 	AC_CHECK_LIB(socket, main)
 	AC_CHECK_LIB(net, socket)
@@ -952,7 +952,7 @@ AC_CHECK_FUNC(select, :, AC_MSG_ERROR([select() required.]))
 if test "${ac_cv_header_winsock_h}" != yes; then
 	dnl Select arg types
 	dnl (if this detection becomes permenent, it and the select() detection
-	dnl should be done before the yielding select test) 
+	dnl should be done before the yielding select test)
 	AC_FUNC_SELECT_ARGTYPES
 fi
 
@@ -1155,7 +1155,7 @@ fi
 
 dnl ----------------------------------------------------------------
 dnl TLS/SSL
-	
+
 if test $ol_with_tls = yes ; then
 	ol_with_tls=auto
 fi
@@ -1171,7 +1171,7 @@ if test $ol_with_tls = openssl || test $ol_with_tls = auto ; then
 			[-lcrypto])
 
 		if test $have_openssl = no ; then
-			AC_CHECK_LIB(ssl, ssl3_accept, 
+			AC_CHECK_LIB(ssl, ssl3_accept,
 				[have_openssl=yes
 				need_rsaref=yes], [have_openssl=no],
 				[-lcrypto -lRSAglue -lrsaref])
@@ -1181,11 +1181,11 @@ if test $ol_with_tls = openssl || test $ol_with_tls = auto ; then
 			ol_with_tls=openssl
 			ol_link_tls=yes
 
-			AC_DEFINE(HAVE_OPENSSL, 1, 
+			AC_DEFINE(HAVE_OPENSSL, 1,
 				[define if you have OpenSSL])
 
 			if test $need_rsaref = yes; then
-				AC_DEFINE(HAVE_RSAREF, 1, 
+				AC_DEFINE(HAVE_RSAREF, 1,
 					[define if OpenSSL needs RSAref])
 
 				TLS_LIBS="-lssl -lcrypto -lRSAglue -lrsaref"
@@ -1195,7 +1195,7 @@ if test $ol_with_tls = openssl || test $ol_with_tls = auto ; then
 
 			OL_SSL_COMPAT
 			if test $ol_cv_ssl_crl_compat = yes ; then
-				AC_DEFINE(HAVE_OPENSSL_CRL, 1, 
+				AC_DEFINE(HAVE_OPENSSL_CRL, 1,
 					[define if you have OpenSSL with CRL checking capability])
 			fi
 		fi
@@ -1223,7 +1223,7 @@ if test $ol_link_tls = no ; then
 
 				TLS_LIBS="-lgnutls"
 
-				AC_DEFINE(HAVE_GNUTLS, 1, 
+				AC_DEFINE(HAVE_GNUTLS, 1,
 					[define if you have GNUtls])
 			fi
 		fi
@@ -1245,7 +1245,7 @@ if test $ol_link_tls = no ; then
 		if test "$have_moznss" = yes ; then
 			ol_with_tls=moznss
 			ol_link_tls=yes
-			AC_DEFINE(HAVE_MOZNSS, 1, 
+			AC_DEFINE(HAVE_MOZNSS, 1,
 					  [define if you have MozNSS])
 			TLS_LIBS="-lssl3 -lsmime3 -lnss3 -lnssutil3 -lplds4 -lplc4 -lnspr4"
 		else
@@ -1330,7 +1330,7 @@ case $ol_with_threads in auto | yes | posix)
 		dnl
 		dnl currently supported checks:
 		dnl
-		dnl Check for no flags 
+		dnl Check for no flags
 		dnl 	pthread_create() in $LIBS
 		dnl
 		dnl Check special pthread (final) flags
@@ -1373,7 +1373,7 @@ case $ol_with_threads in auto | yes | posix)
 			ol_link_threads=posix
 			ol_link_pthreads=""
 		fi
-		
+
 dnl		OL_PTHREAD_TRY([-mt],		[ol_cv_pthread_mt])
 		OL_PTHREAD_TRY([-kthread],	[ol_cv_pthread_kthread])
 		OL_PTHREAD_TRY([-pthread],	[ol_cv_pthread_pthread])
@@ -1502,7 +1502,7 @@ pthread_rwlock_t rwlock;
 
 			ol_replace_broken_yield=no
 dnl			case "$target" in
-dnl			*-*-linux*) 
+dnl			*-*-linux*)
 dnl				AC_CHECK_FUNCS(nanosleep)
 dnl				ol_replace_broken_yield=yes
 dnl			;;
@@ -1652,7 +1652,7 @@ case $ol_with_threads in auto | yes | mach)
 		dnl uses <cthreads.h> and -lthreads
 
 		ol_with_threads=found
- 
+
 		dnl save the flags
 		save_LIBS="$LIBS"
 		LIBS="$LIBS -lthreads"
@@ -1779,15 +1779,15 @@ if test $ol_link_threads != no && test $ol_link_threads != nt ; then
 		LTHREAD_LIBS=""
 	fi
 
-dnl When in thread environment, use 
+dnl When in thread environment, use
 dnl		#if defined( HAVE_REENTRANT_FUNCTIONS ) || defined( HAVE_FUNC_R )
 dnl			func_r(...);
 dnl		#else
-dnl		#	if defined( HAVE_THREADS ) 
+dnl		#	if defined( HAVE_THREADS )
 dnl				/* lock */
 dnl		#	endif
 dnl				func(...);
-dnl		#	if defined( HAVE_THREADS ) 
+dnl		#	if defined( HAVE_THREADS )
 dnl				/* unlock */
 dnl		#	endif
 dnl		#endif
@@ -1800,7 +1800,7 @@ dnl
 dnl		and is currently defined in <ldap_pvt_thread.h>
 dnl
 dnl HAVE_THREADS is defined by <ldap_pvt_thread.h> iff -UNO_THREADS
-dnl 
+dnl
 dnl libldap/*.c should only include <ldap_pvt_thread.h> iff
 dnl LDAP_R_COMPILE is defined.  ie:
 dnl		#ifdef LDAP_R_COMPILE
@@ -1810,7 +1810,7 @@ dnl
 dnl LDAP_R_COMPILE is defined by libldap_r/Makefile.in
 dnl specifically for compiling the threadsafe version of
 dnl	the ldap library (-lldap_r).
-dnl		
+dnl
 dnl	dnl check for reentrant/threadsafe functions
 dnl	dnl
 dnl	dnl note: these should only be used when linking
@@ -1828,7 +1828,7 @@ dnl		flockfile ftrylockfile \
 dnl	)
 dnl	CPPFLAGS="$save_CPPFLAGS"
 dnl	LIBS="$save_LIBS"
-fi  
+fi
 
 if test $ol_link_threads = no ; then
 	if test $ol_with_threads = yes ; then
@@ -1873,7 +1873,7 @@ if test "$ac_cv_func_gethostbyname_r" = yes ; then
 else
  	ol_cv_func_gethostbyname_r_nargs=0
 fi
- 
+
 if test "$ac_cv_func_gethostbyaddr_r" = yes ; then
  	OL_FUNC_GETHOSTBYADDR_R_NARGS
 else
@@ -1881,7 +1881,7 @@ else
 fi
 
 dnl ----------------------------------------------------------------
-ol_link_bdb=no 
+ol_link_bdb=no
 
 if test $ol_enable_bdb/$ol_enable_hdb != no/no; then
 	OL_BERKELEY_DB
@@ -1901,7 +1901,7 @@ if test $ol_enable_bdb/$ol_enable_hdb != no/no; then
 
 	SLAPD_LIBS="$SLAPD_LIBS \$(BDB_LIBS)"
 
-	ol_link_bdb=yes 
+	ol_link_bdb=yes
 fi
 
 dnl ----------------------------------------------------------------
@@ -2004,7 +2004,7 @@ if test $ol_enable_sql != no ; then
 
 			odbc32)
 				AC_CHECK_LIB(odbc32, SQLDriverConnect, [have_odbc32=yes], [have_odbc32=no])
-				
+
 				dnl The windows API uses __stdcall which cannot be detected by AC_CHECK_LIB
 				if test $have_odbc32 = no ; then
 					AC_MSG_CHECKING([for SQLDriverConnect in -lodbc32 with windows.h])
@@ -2018,7 +2018,7 @@ if test $ol_enable_sql != no ; then
 					LIBS="$save_LIBS"
 					AC_MSG_RESULT($have_odbc32)
 				fi
-				
+
 				if test $have_odbc32 = yes ; then
 					ol_link_sql="-lodbc32"
 				fi
@@ -2183,7 +2183,7 @@ if test $ol_with_fetch != no ; then
 
 	elif test $ol_with_fetch != auto ; then
 		AC_MSG_ERROR(no suitable API for --with-fetch=$ol_with_fetch)
-	fi 
+	fi
 fi
 
 dnl ----------------------------------------------------------------
@@ -2326,8 +2326,8 @@ else
 	AC_C_BIGENDIAN
 fi
 
-AC_CHECK_SIZEOF(short) 
-AC_CHECK_SIZEOF(int) 
+AC_CHECK_SIZEOF(short)
+AC_CHECK_SIZEOF(int)
 AC_CHECK_SIZEOF(long)
 AC_CHECK_SIZEOF(long long)
 AC_CHECK_SIZEOF(wchar_t)
@@ -2590,7 +2590,7 @@ if test "$ol_enable_aci" != no ; then
 		MFLAG=SLAPD_MOD_DYNAMIC
 		dnl remove this after moving servers/slapd/aci.c in contrib/slapd-modules/acl
 		AC_MSG_ERROR([ACI build as dynamic module not supported (yet)])
-	else 
+	else
 		MFLAG=SLAPD_MOD_STATIC
 	fi
 	WITH_ACI_ENABLED=$ol_enable_aci

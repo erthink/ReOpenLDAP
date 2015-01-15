@@ -167,7 +167,7 @@ struct berval * UTF8bvnormalize(
 			if ( i == len ) {
 				return ber_str2bv_x( s, len, 1, newbv, ctx );
 			}
-				
+
 			outsize = len + 7;
 			out = (char *) ber_memalloc_x( outsize, ctx );
 			if ( out == NULL ) {
@@ -261,7 +261,7 @@ struct berval * UTF8bvnormalize(
 
 		ber_memfree_x( ucsout, ctx );
 		ucsout = NULL;
-		
+
 		if ( i == len ) {
 			break;
 		}
@@ -344,7 +344,7 @@ int UTF8bvnormcmp(
 			res = c1 - c2;
 		} else {
 			res = *s1 - *s2;
-		}			
+		}
 		s1++;
 		s2++;
 		if (res) {
@@ -381,7 +381,7 @@ int UTF8bvnormcmp(
 		l1 -= i - 1;
 		l2 -= i - 1;
 	}
-			
+
 	/* Should first check to see if strings are already in
 	 * proper normalized form.
 	 */
@@ -389,12 +389,12 @@ int UTF8bvnormcmp(
 	if ( ucs == NULL ) {
 		return l1 > l2 ? 1 : -1; /* what to do??? */
 	}
-	
+
 	/*
 	 * XXYYZ: we convert to ucs4 even though -llunicode
 	 * expects ucs2 in an ac_uint4
 	 */
-	
+
 	/* convert and normalize 1st string */
 	for ( i = 0, ulen = 0; i < l1; i += len, ulen++ ) {
 		ucs[ulen] = ldap_x_utf8_to_ucs4( s1 + i );
@@ -437,7 +437,7 @@ int UTF8bvnormcmp(
 		l2 = uccanoncomp( ucsout2, l2 );
 		free( ucs );
 	}
-	
+
 	res = casefold
 		? ucstrncasecmp( ucsout1, ucsout2, l1 < l2 ? l1 : l2 )
 		: ucstrncmp( ucsout1, ucsout2, l1 < l2 ? l1 : l2 );

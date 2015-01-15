@@ -22,7 +22,7 @@ class LDAPSchema{
 	 * map of object classes: index is name, value is LDAPObjClass object
 	 */
 	map <string, LDAPObjClass> object_classes;
-	
+
 	/**
 	 * map of attribute types: index is name, value is LDAPAttrType object
 	 */
@@ -32,14 +32,14 @@ class LDAPSchema{
 
         /**
          * Constructs an empty object
-         */   
+         */
         LDAPSchema();
 
         /**
          * Destructor
          */
         virtual ~LDAPSchema();
-	
+
         /**
          * Fill the object_classes map
 	 * @param oc description of one objectclass (string returned by search
@@ -62,7 +62,7 @@ class LDAPSchema{
 	 * Returns object class object with given name
 	 */
 	LDAPObjClass getObjectClassByName (std::string name);
-	
+
 	/**
 	 * Returns attribute type object with given name
 	 */

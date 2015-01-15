@@ -24,7 +24,7 @@ The config directives that are specific to the
 .B lastbind
 overlay must be prefixed by
 .BR lastbind\- ,
-to avoid potential conflicts with directives specific to the underlying 
+to avoid potential conflicts with directives specific to the underlying
 database or to other stacked overlays.
 
 .TP
@@ -44,15 +44,15 @@ appear after the
 directive:
 .TP
 .B lastbind-precision <seconds>
-The value 
+The value
 .B <seconds>
 is the number of seconds after which to update the
 .B authTimestamp
 attribute in an entry. If the existing value of
 .B authTimestamp
-is less than 
+is less than
 .B <seconds>
-old, it will not be changed. 
+old, it will not be changed.
 If this configuration option is omitted, the
 .B authTimestamp
 attribute is updated on each successful bind operation.

@@ -13,7 +13,7 @@
 
 class LDAPRequest;
 /**
- * This class represents any type of LDAP- Message returned 
+ * This class represents any type of LDAP- Message returned
  * from the server.
  *
  * This class is never not instantiated directly. Only
@@ -44,7 +44,7 @@ class LDAPMsg{
         static const int COMPARE_REQUEST=LDAP_REQ_COMPARE;
         static const int ABANDON_REQUEST=LDAP_REQ_ABANDON;
         static const int EXTENDED_REQUEST=LDAP_REQ_EXTENDED;
-       
+
         /**
          * The destructor has no implemenation, because this is an abstract
          * class.
@@ -67,27 +67,27 @@ class LDAPMsg{
          * @return An Object of one of the subtypes of this class. It
          *          contains the parsed LDAP-message.
          */
-        static LDAPMsg* create(const LDAPRequest *req, LDAPMessage *msg);   
-        
+        static LDAPMsg* create(const LDAPRequest *req, LDAPMessage *msg);
+
         /**
          * @returns The Type of message that this object contains. Possible
          *          values are: <BR>
          *          BIND_RESPONSE <BR>
-         *          SEARCH_ENTRY  <BR>       
-         *          SEARCH_DONE   <BR>      
-         *          SEARCH_REFERENCE   <BR>      
-         *          MODIFY_RESPONSE     <BR>    
-         *          ADD_RESPONSE       <BR>  
-         *          DEL_RESPONSE       <BR>  
-         *          MODDN_RESPONSE     <BR>    
+         *          SEARCH_ENTRY  <BR>
+         *          SEARCH_DONE   <BR>
+         *          SEARCH_REFERENCE   <BR>
+         *          MODIFY_RESPONSE     <BR>
+         *          ADD_RESPONSE       <BR>
+         *          DEL_RESPONSE       <BR>
+         *          MODDN_RESPONSE     <BR>
          *          COMPARE_RESPONSE   <BR>
-         *          EXTENDED_REPONSE   <BR>      
+         *          EXTENDED_REPONSE   <BR>
          */
         int getMessageType();
-        
+
         /**
          * @returns The message-ID that the C-API return for the
-         *      Result-message. 
+         *      Result-message.
          */
         int getMsgID();
 
@@ -102,7 +102,7 @@ class LDAPMsg{
          * @note This feature is not test well yet.
          */
         const LDAPControlSet& getSrvControls() const;
-    
+
     protected:
         /**
          * This constructor make a copy of a LDAPMsg-pointer. The object
@@ -111,13 +111,13 @@ class LDAPMsg{
          */
         LDAPMsg(LDAPMessage *msg);
         LDAPMsg(int msgType, int msgID);
-       
+
         /**
          * This attribute stores Server-Control that were returned with the
          * message.
          */
         LDAPControlSet m_srvControls;
-        
+
         bool m_hasControls;
 
     private:

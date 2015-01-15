@@ -1,10 +1,10 @@
 insert into institutes (id,name) values (1,'sql');
 
-insert into persons (id,name, title, title_U, organization) values 
+insert into persons (id,name, title, title_U, organization) values
 (1,'Mitya Kovalev', 'Engineer', 'ENGINEER', 'Development');
-insert into persons (id,name, title, title_U, organization) values 
+insert into persons (id,name, title, title_U, organization) values
 (2,'Torvlobnor Puzdoy', 'Engineer', 'ENGINEER', 'Sales');
-insert into persons (id,name, title, title_U, organization) values 
+insert into persons (id,name, title, title_U, organization) values
 (3,'Akakiy Zinberstein', 'Engineer', 'ENGINEER', 'Marketing');
 update persons set name_u = upper(name);
 

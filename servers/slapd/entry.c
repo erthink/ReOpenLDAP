@@ -247,7 +247,7 @@ str2entry2( char *s, int checkvals )
 			if ( !ad || ( i<lines && !bvcasematch( type+i, &ad->ad_cname ))) {
 				ad = NULL;
 				rc = slap_bv2ad( type+i, &ad, &text );
-	
+
 				if( rc != LDAP_SUCCESS ) {
 					int wtool = ( slapMode & (SLAP_TOOL_MODE|SLAP_TOOL_READONLY) ) == SLAP_TOOL_MODE;
 					Debug( wtool ? LDAP_DEBUG_ANY : LDAP_DEBUG_TRACE,
@@ -255,7 +255,7 @@ str2entry2( char *s, int checkvals )
 					if( wtool ) {
 						goto fail;
 					}
-	
+
 					rc = slap_bv2undef_ad( type+i, &ad, &text, 0 );
 					if( rc != LDAP_SUCCESS ) {
 						Debug( LDAP_DEBUG_ANY,
@@ -264,18 +264,18 @@ str2entry2( char *s, int checkvals )
 						goto fail;
 					}
 				}
-	
+
 				/* require ';binary' when appropriate (ITS#5071) */
 				if ( slap_syntax_is_binary( ad->ad_type->sat_syntax ) && !slap_ad_is_binary( ad ) ) {
 					Debug( LDAP_DEBUG_ANY,
 						"str2entry: attributeType %s #%d: "
-						"needs ';binary' transfer as per syntax %s\n", 
+						"needs ';binary' transfer as per syntax %s\n",
 						ad->ad_cname.bv_val, 0,
 						ad->ad_type->sat_syntax->ssyn_oid );
 					goto fail;
 				}
 			}
-	
+
 			if (( ad_prev && ad != ad_prev ) || ( i == lines )) {
 				int j, k;
 				atail->a_next = attr_alloc( NULL );
@@ -323,15 +323,15 @@ str2entry2( char *s, int checkvals )
 				}
 				if ( i == lines ) break;
 			}
-	
+
 			if ( BER_BVISNULL( &vals[i] ) ) {
 				Debug( LDAP_DEBUG_ANY,
 					"str2entry: attributeType %s #%d: "
-					"no value\n", 
+					"no value\n",
 					ad->ad_cname.bv_val, attr_cnt, 0 );
 				goto fail;
 			}
-	
+
 			if ( ad->ad_type->sat_equality &&
 				ad->ad_type->sat_equality->smr_normalize )
 			{
@@ -340,14 +340,14 @@ str2entry2( char *s, int checkvals )
 					ad,
 					ad->ad_type->sat_equality,
 					&vals[i], &nvals[i], NULL );
-	
+
 				if ( rc ) {
 					Debug( LDAP_DEBUG_ANY,
 				   		"<= str2entry NULL (smr_normalize %s %d)\n", ad->ad_cname.bv_val, rc, 0 );
 					goto fail;
 				}
 			}
-	
+
 			attr_cnt++;
 		}
 	}

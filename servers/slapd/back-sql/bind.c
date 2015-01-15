@@ -28,7 +28,7 @@
 #include "slap.h"
 #include "proto-sql.h"
 
-int 
+int
 backsql_bind( Operation *op, SlapReply *rs )
 {
 	SQLHDBC			dbh = SQL_NULL_HDBC;
@@ -37,7 +37,7 @@ backsql_bind( Operation *op, SlapReply *rs )
 	backsql_srch_info	bsi = { 0 };
 	AttributeName		anlist[2];
 	int			rc;
- 
+
  	Debug( LDAP_DEBUG_TRACE, "==>backsql_bind()\n", 0, 0, 0 );
 
 	switch ( be_rootdn_bind( op, rs ) ) {
@@ -68,12 +68,12 @@ backsql_bind( Operation *op, SlapReply *rs )
 	anlist[1].an_name.bv_val = NULL;
 
 	bsi.bsi_e = &e;
-	rc = backsql_init_search( &bsi, &op->o_req_ndn, LDAP_SCOPE_BASE, 
+	rc = backsql_init_search( &bsi, &op->o_req_ndn, LDAP_SCOPE_BASE,
 			(time_t)(-1), NULL, dbh, op, rs, anlist,
 			BACKSQL_ISF_GET_ENTRY );
 	if ( rc != LDAP_SUCCESS ) {
 		Debug( LDAP_DEBUG_TRACE, "backsql_bind(): "
-			"could not retrieve bindDN ID - no such entry\n", 
+			"could not retrieve bindDN ID - no such entry\n",
 			0, 0, 0 );
 		rs->sr_err = LDAP_INVALID_CREDENTIALS;
 		goto error_return;
@@ -108,9 +108,9 @@ error_return:;
 	if ( rs->sr_err != LDAP_SUCCESS ) {
 		send_ldap_result( op, rs );
 	}
-	
+
 	Debug( LDAP_DEBUG_TRACE,"<==backsql_bind()\n", 0, 0, 0 );
 
 	return rs->sr_err;
 }
- 
+

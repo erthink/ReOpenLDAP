@@ -279,7 +279,7 @@ int mdb_modify_internal(
 			attrs_free( e->e_attrs );
 			e->e_attrs = save_attrs;
 			/* unlock entry, delete from cache */
-			return err; 
+			return err;
 		}
 
 		/* If objectClass was modified, reset the flags */

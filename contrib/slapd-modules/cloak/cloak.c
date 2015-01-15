@@ -35,7 +35,7 @@
 enum { CLOAK_ATTR = 1 };
 
 typedef struct cloak_info_t {
-	ObjectClass 		*ci_oc;	
+	ObjectClass 		*ci_oc;
 	AttributeDescription	*ci_ad;
 	struct cloak_info_t	*ci_next;
 } cloak_info_t;
@@ -60,13 +60,13 @@ cloak_cfgen( ConfigArgs *c )
 				assert( ci->ci_ad != NULL );
 
 				if ( ci->ci_oc != NULL )
-					len = snprintf( c->cr_msg, 
+					len = snprintf( c->cr_msg,
 					sizeof( c->cr_msg ),
 					SLAP_X_ORDERED_FMT "%s %s", i,
 					ci->ci_ad->ad_cname.bv_val,
 					ci->ci_oc->soc_cname.bv_val );
 				else
-					len = snprintf( c->cr_msg, 
+					len = snprintf( c->cr_msg,
 					sizeof( c->cr_msg ),
 					SLAP_X_ORDERED_FMT "%s", i,
 					ci->ci_ad->ad_cname.bv_val );
@@ -89,8 +89,8 @@ cloak_cfgen( ConfigArgs *c )
 
 		switch( c->type ) {
 		case CLOAK_ATTR:
-			for ( ci_next = ci, i = 0; 
-			      ci_next, c->valx < 0 || i < c->valx; 
+			for ( ci_next = ci, i = 0;
+			      ci_next, c->valx < 0 || i < c->valx;
 			      ci = ci_next, i++ ){
 
 				ci_next = ci->ci_next;
@@ -123,8 +123,8 @@ cloak_cfgen( ConfigArgs *c )
 		if ( c->argc == 3 ) {
 			oc = oc_find( c->argv[ 2 ] );
 			if ( oc == NULL ) {
-				snprintf( c->cr_msg, 
-					  sizeof( c->cr_msg ), 
+				snprintf( c->cr_msg,
+					  sizeof( c->cr_msg ),
 					  CLOAK_USAGE
 					  "unable to find ObjectClass \"%s\"",
 					  c->argv[ 2 ] );
@@ -193,7 +193,7 @@ cloak_search_response_cb( Operation *op, SlapReply *rs )
 	sc = op->o_callback;
 	e = rs->sr_entry;
 
-	/* 
+	/*
 	 * First perform a quick scan for an attribute to cloak
 	 */
 	for ( ci = (cloak_info_t *)sc->sc_private; ci; ci = ci->ci_next ) {
@@ -222,23 +222,23 @@ cloak_search_response_cb( Operation *op, SlapReply *rs )
 	 */
 	rs_entry2modifiable( op, rs, (slap_overinst *) op->o_bd->bd_info );
 	me = rs->sr_entry;
-		
+
 	for ( ci = (cloak_info_t *)sc->sc_private; ci; ci = ci->ci_next ) {
 		Attribute *a;
 		Attribute *pa;
 
 		for ( pa = NULL, a = me->e_attrs;
-		      a; 
+		      a;
 		      pa = a, a = a->a_next ) {
 
 			if ( a->a_desc != ci->ci_ad )
 				continue;
 
-			Debug( LDAP_DEBUG_TRACE, "cloak_search_response_cb: cloak %s\n", 
+			Debug( LDAP_DEBUG_TRACE, "cloak_search_response_cb: cloak %s\n",
 			       a->a_desc->ad_cname.bv_val,
 			       0, 0 );
 
-			if ( pa != NULL ) 
+			if ( pa != NULL )
 				pa->a_next = a->a_next;
 			else
 				me->e_attrs = a->a_next;
@@ -265,7 +265,7 @@ static int
 cloak_search( Operation *op, SlapReply *rs )
 {
 	slap_overinst   *on = (slap_overinst *)op->o_bd->bd_info;
-	cloak_info_t    *ci = (cloak_info_t *)on->on_bi.bi_private; 
+	cloak_info_t    *ci = (cloak_info_t *)on->on_bi.bi_private;
 	slap_callback	*sc;
 
 	if ( op->ors_attrsonly ||
@@ -321,7 +321,7 @@ static ConfigOCs cloakocs[] = {
 	  "NAME 'olcCloakConfig' "
 	  "DESC 'Attribute cloak configuration' "
 	  "SUP olcOverlayConfig "
-	  "MAY ( olcCloakAttribute ) )", 
+	  "MAY ( olcCloakAttribute ) )",
 	  Cft_Overlay, cloakcfg },
 	{ NULL, 0, NULL }
 };
@@ -338,7 +338,7 @@ cloak_initialize( void ) {
         cloak_ovl.on_bi.bi_cf_ocs = cloakocs;
 
 	rc = config_register_schema ( cloakcfg, cloakocs );
-	if ( rc ) 
+	if ( rc )
 		return rc;
 
 	return overlay_register( &cloak_ovl );

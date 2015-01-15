@@ -41,7 +41,7 @@ LDAPUrl::~LDAPUrl()
     m_Attrs.clear();
 }
 
-int LDAPUrl::getPort() const 
+int LDAPUrl::getPort() const
 {
     return m_Port;
 }
@@ -52,7 +52,7 @@ void LDAPUrl::setPort(int port)
     regenerate = true;
 }
 
-int LDAPUrl::getScope() const 
+int LDAPUrl::getScope() const
 {
     return m_Scope;
 }
@@ -66,8 +66,8 @@ void LDAPUrl::setScope( const std::string &scope )
     } else if (scope == "sub" ) {
         m_Scope = 2;
     } else {
-        throw LDAPUrlException(LDAPUrlException::INVALID_SCOPE, 
-                "Scope was:" + scope); 
+        throw LDAPUrlException(LDAPUrlException::INVALID_SCOPE,
+                "Scope was:" + scope);
     }
     regenerate = true;
 }
@@ -90,7 +90,7 @@ void LDAPUrl::setURLString( const std::string &url )
     regenerate = false;
 }
 
-const string& LDAPUrl::getHost() const 
+const string& LDAPUrl::getHost() const
 {
     return m_Host;
 }
@@ -101,7 +101,7 @@ void LDAPUrl::setHost( const std::string &host )
     regenerate = true;
 }
 
-const string& LDAPUrl::getDN() const 
+const string& LDAPUrl::getDN() const
 {
     return m_DN;
 }
@@ -111,7 +111,7 @@ void LDAPUrl::setDN( const std::string &dn )
     regenerate = true;
 }
 
-const string& LDAPUrl::getFilter() const 
+const string& LDAPUrl::getFilter() const
 {
     return m_Filter;
 }
@@ -121,7 +121,7 @@ void LDAPUrl::setFilter( const std::string &filter )
     regenerate = true;
 }
 
-const StringList& LDAPUrl::getAttrs() const 
+const StringList& LDAPUrl::getAttrs() const
 {
     return m_Attrs;
 }
@@ -131,7 +131,7 @@ void LDAPUrl::setAttrs( const StringList &attrs )
     regenerate = true;
 }
 
-const StringList& LDAPUrl::getExtensions() const 
+const StringList& LDAPUrl::getExtensions() const
 {
     return m_Extensions;
 }
@@ -149,8 +149,8 @@ const std::string& LDAPUrl::getScheme() const
 
 void LDAPUrl::setScheme( const std::string &scheme )
 {
-    if (scheme == "ldap" || scheme == "ldaps" || 
-            scheme == "ldapi" || scheme == "cldap" ) 
+    if (scheme == "ldap" || scheme == "ldaps" ||
+            scheme == "ldapi" || scheme == "cldap" )
     {
         m_Scheme = scheme;
         regenerate = true;
@@ -160,7 +160,7 @@ void LDAPUrl::setScheme( const std::string &scheme )
     }
 }
 
-void LDAPUrl::parseUrl() 
+void LDAPUrl::parseUrl()
 {
     DEBUG(LDAP_DEBUG_TRACE, "LDAPUrl::parseUrl()" << std::endl);
     // reading Scheme
@@ -225,7 +225,7 @@ void LDAPUrl::parseUrl()
                 m_Port = LDAPS_DEFAULT_PORT;
             }
         } else {
-            std::string port = m_urlString.substr(portstart+1, 
+            std::string port = m_urlString.substr(portstart+1,
                     (pos == std::string::npos ? pos : pos-portstart-1) );
             if ( port.length() > 0 ) {
                 std::istringstream i(port);
@@ -234,7 +234,7 @@ void LDAPUrl::parseUrl()
                     throw LDAPUrlException(LDAPUrlException::INVALID_PORT);
                 }
             }
-            DEBUG(LDAP_DEBUG_TRACE, "    Port: <" << m_Port << ">" 
+            DEBUG(LDAP_DEBUG_TRACE, "    Port: <" << m_Port << ">"
                     << std::endl);
         }
         startpos = pos + 1;
@@ -242,17 +242,17 @@ void LDAPUrl::parseUrl()
     int parserMode = base;
     while ( pos != std::string::npos ) {
         pos = m_urlString.find('?', startpos);
-        std::string actComponent = m_urlString.substr(startpos, 
+        std::string actComponent = m_urlString.substr(startpos,
                 pos - startpos);
         DEBUG(LDAP_DEBUG_TRACE, "    ParserMode:" << parserMode << std::endl);
-        DEBUG(LDAP_DEBUG_TRACE, "    ActComponent: <" << actComponent << ">" 
+        DEBUG(LDAP_DEBUG_TRACE, "    ActComponent: <" << actComponent << ">"
                 << std::endl);
         std::string s_scope = "";
         std::string s_ext = "";
         switch(parserMode) {
             case base :
                 percentDecode(actComponent, m_DN);
-                DEBUG(LDAP_DEBUG_TRACE, "    BaseDN:" << m_DN << std::endl); 
+                DEBUG(LDAP_DEBUG_TRACE, "    BaseDN:" << m_DN << std::endl);
                 break;
             case attrs :
                 DEBUG(LDAP_DEBUG_TRACE, "    reading Attributes" << std::endl);
@@ -280,11 +280,11 @@ void LDAPUrl::parseUrl()
                         << std::endl);
                 break;
             case extensions :
-                DEBUG(LDAP_DEBUG_TRACE, "    reading Extensions" << std::endl); 
+                DEBUG(LDAP_DEBUG_TRACE, "    reading Extensions" << std::endl);
                 string2list(actComponent, m_Extensions, true);
                 break;
-            default : 
-                DEBUG(LDAP_DEBUG_TRACE, "    unknown state" << std::endl); 
+            default :
+                DEBUG(LDAP_DEBUG_TRACE, "    unknown state" << std::endl);
                 break;
         }
         startpos = pos + 1;
@@ -294,7 +294,7 @@ void LDAPUrl::parseUrl()
 
 void LDAPUrl::percentDecode(const std::string& src, std::string &out)
 {
-    DEBUG(LDAP_DEBUG_TRACE, "LDAPUrl::percentDecode()" << std::endl); 
+    DEBUG(LDAP_DEBUG_TRACE, "LDAPUrl::percentDecode()" << std::endl);
     std::string::size_type pos = 0;
     std::string::size_type startpos = 0;
     pos = src.find('%', startpos);
@@ -307,18 +307,18 @@ void LDAPUrl::percentDecode(const std::string& src, std::string &out)
         int hex;
         i >> hex;
         if ( i.fail() ){
-            throw LDAPUrlException(LDAPUrlException::URL_DECODING_ERROR, 
+            throw LDAPUrlException(LDAPUrlException::URL_DECODING_ERROR,
                     "Invalid percent encoding");
         }
         char j = hex;
         out.push_back(j);
         startpos = pos+3;
         pos = src.find('%', startpos);
-    } 
+    }
     out += src.substr(startpos, pos - startpos);
 }
 
-void LDAPUrl::string2list(const std::string &src, StringList& sl, 
+void LDAPUrl::string2list(const std::string &src, StringList& sl,
             bool percentDecode)
 {
     std::string::size_type comma_startpos = 0;
@@ -340,9 +340,9 @@ void LDAPUrl::string2list(const std::string &src, StringList& sl,
 
 void LDAPUrl::components2Url() const
 {
-    std::ostringstream url; 
+    std::ostringstream url;
     std::string encoded = "";
-    
+
     url << m_Scheme << "://";
     // IPv6 ?
     if ( m_Host.find( ':', 0 ) != std::string::npos ) {
@@ -366,7 +366,7 @@ void LDAPUrl::components2Url() const
         url << "?";
         bool first = true;
         for ( StringList::const_iterator i = m_Attrs.begin();
-                i != m_Attrs.end(); i++) 
+                i != m_Attrs.end(); i++)
         {
             this->percentEncode( *i, encoded );
             if ( ! first ) {
@@ -400,7 +400,7 @@ void LDAPUrl::components2Url() const
         url << qm << "?";
         bool first = true;
         for ( StringList::const_iterator i = m_Extensions.begin();
-                i != m_Extensions.end(); i++) 
+                i != m_Extensions.end(); i++)
         {
             this->percentEncode( *i, encoded, 1);
             if ( ! first ) {
@@ -411,12 +411,12 @@ void LDAPUrl::components2Url() const
             url << encoded;
         }
     }
-    m_urlString=url.str();  
+    m_urlString=url.str();
 }
 
 
-std::string& LDAPUrl::percentEncode( const std::string &src, 
-        std::string &dest, 
+std::string& LDAPUrl::percentEncode( const std::string &src,
+        std::string &dest,
         int flags) const
 {
     std::ostringstream o;

@@ -92,7 +92,7 @@ monitor_subsys_backend_init(
 				i, ms->mss_ndn.bv_val, 0 );
 			return( -1 );
 		}
-		
+
 		ber_str2bv( bi->bi_type, 0, 0, &bv );
 		attr_merge_normalize_one( e, mi->mi_ad_monitoredInfo,
 				&bv, NULL );
@@ -117,7 +117,7 @@ monitor_subsys_backend_init(
 		LDAP_STAILQ_FOREACH( be, &backendDB, be_next ) {
 			char		buf[ SLAP_LDAPDN_MAXLEN ];
 			struct berval	dn;
-			
+
 			j++;
 
 			if ( be->bd_info != bi ) {
@@ -131,7 +131,7 @@ monitor_subsys_backend_init(
 			attr_merge_normalize_one( e, slap_schema.si_ad_seeAlso,
 					&dn, NULL );
 		}
-		
+
 		mp = monitor_entrypriv_create();
 		if ( mp == NULL ) {
 			return -1;
@@ -152,7 +152,7 @@ monitor_subsys_backend_init(
 		*ep = e;
 		ep = &mp->mp_next;
 	}
-	
+
 	monitor_cache_release( mi, e_backend );
 
 	return( 0 );

@@ -21,7 +21,7 @@ class LDAPUrlList{
 
         /**
          * Constructs an empty list.
-         */   
+         */
         LDAPUrlList();
 
         /**
@@ -59,7 +59,7 @@ class LDAPUrlList{
          * @return A iterator that points to the first element of the list.
          */
         const_iterator begin() const;
-        
+
         /**
          * @return A iterator that points to the element after the last
          * element of the list.

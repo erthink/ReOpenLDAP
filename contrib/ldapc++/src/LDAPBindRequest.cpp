@@ -26,7 +26,7 @@ LDAPBindRequest::LDAPBindRequest(const LDAPBindRequest& req) :
     m_mech=req.m_mech;
 }
 
-LDAPBindRequest::LDAPBindRequest(const string& dn,const string& passwd, 
+LDAPBindRequest::LDAPBindRequest(const string& dn,const string& passwd,
         LDAPAsynConnection *connect, const LDAPConstraints *cons,
         bool isReferral) : LDAPRequest(connect, cons, isReferral){
    DEBUG(LDAP_DEBUG_CONSTRUCT,"LDAPBindRequest::LDAPBindRequest()" << endl);
@@ -44,7 +44,7 @@ LDAPBindRequest::~LDAPBindRequest(){
 LDAPMessageQueue* LDAPBindRequest::sendRequest(){
     DEBUG(LDAP_DEBUG_TRACE,"LDAPBindRequest::sendRequest()" << endl);
     int msgID=0;
-    
+
     const char* mech = (m_mech == "" ? 0 : m_mech.c_str());
     BerValue* tmpcred=0;
     if(m_cred != ""){
@@ -63,7 +63,7 @@ LDAPMessageQueue* LDAPBindRequest::sendRequest(){
     }
     LDAPControl** tmpSrvCtrls=m_cons->getSrvCtrlsArray();
     LDAPControl** tmpClCtrls=m_cons->getClCtrlsArray();
-    int err=ldap_sasl_bind(m_connection->getSessionHandle(),dn, 
+    int err=ldap_sasl_bind(m_connection->getSessionHandle(),dn,
             mech, tmpcred, tmpSrvCtrls, tmpClCtrls, &msgID);
     LDAPControlSet::freeLDAPControlArray(tmpSrvCtrls);
     LDAPControlSet::freeLDAPControlArray(tmpClCtrls);
@@ -78,24 +78,24 @@ LDAPMessageQueue* LDAPBindRequest::sendRequest(){
 }
 
 LDAPSaslBindRequest::LDAPSaslBindRequest(const std::string& mech,
-        const std::string& cred, 
+        const std::string& cred,
         LDAPAsynConnection *connect,
-        const LDAPConstraints *cons, 
+        const LDAPConstraints *cons,
         bool isReferral) : LDAPRequest(connect, cons, isReferral),m_mech(mech), m_cred(cred) {}
 
 LDAPMessageQueue* LDAPSaslBindRequest::sendRequest()
 {
     DEBUG(LDAP_DEBUG_TRACE,"LDAPSaslBindRequest::sendRequest()" << endl);
     int msgID=0;
-    
+
     BerValue tmpcred;
     tmpcred.bv_val = (char*) malloc( m_cred.size() * sizeof(char));
     m_cred.copy(tmpcred.bv_val,string::npos);
     tmpcred.bv_len = m_cred.size();
-    
+
     LDAPControl** tmpSrvCtrls=m_cons->getSrvCtrlsArray();
     LDAPControl** tmpClCtrls=m_cons->getClCtrlsArray();
-    int err=ldap_sasl_bind(m_connection->getSessionHandle(), "", m_mech.c_str(), 
+    int err=ldap_sasl_bind(m_connection->getSessionHandle(), "", m_mech.c_str(),
             &tmpcred, tmpSrvCtrls, tmpClCtrls, &msgID);
     LDAPControlSet::freeLDAPControlArray(tmpSrvCtrls);
     LDAPControlSet::freeLDAPControlArray(tmpClCtrls);
@@ -114,9 +114,9 @@ LDAPSaslBindRequest::~LDAPSaslBindRequest()
     DEBUG(LDAP_DEBUG_DESTROY,"LDAPSaslBindRequest::~LDAPSaslBindRequest()" << endl);
 }
 
-LDAPSaslInteractiveBind::LDAPSaslInteractiveBind( const std::string& mech, 
+LDAPSaslInteractiveBind::LDAPSaslInteractiveBind( const std::string& mech,
         int flags, SaslInteractionHandler *sih, LDAPAsynConnection *connect,
-        const LDAPConstraints *cons, bool isReferral) : 
+        const LDAPConstraints *cons, bool isReferral) :
             LDAPRequest(connect, cons, isReferral),
             m_mech(mech), m_flags(flags), m_sih(sih), m_res(0)
 {
@@ -124,7 +124,7 @@ LDAPSaslInteractiveBind::LDAPSaslInteractiveBind( const std::string& mech,
 
 static int my_sasl_interact(LDAP *l, unsigned flags, void *cbh, void *interact)
 {
-    DEBUG(LDAP_DEBUG_TRACE, "LDAPSaslInteractiveBind::my_sasl_interact()" 
+    DEBUG(LDAP_DEBUG_TRACE, "LDAPSaslInteractiveBind::my_sasl_interact()"
             << std::endl );
     std::list<SaslInteraction*> interactions;
 
@@ -148,20 +148,20 @@ LDAPMessageQueue *LDAPSaslInteractiveBind::sendRequest()
     LDAPControl** tmpSrvCtrls=m_cons->getSrvCtrlsArray();
     LDAPControl** tmpClCtrls=m_cons->getClCtrlsArray();
     int res = ldap_sasl_interactive_bind_s( m_connection->getSessionHandle(),
-            "", m_mech.c_str(), tmpSrvCtrls, tmpClCtrls, m_flags, 
+            "", m_mech.c_str(), tmpSrvCtrls, tmpClCtrls, m_flags,
             my_sasl_interact, m_sih );
 
-    DEBUG(LDAP_DEBUG_TRACE, "ldap_sasl_interactive_bind_s returned: " 
+    DEBUG(LDAP_DEBUG_TRACE, "ldap_sasl_interactive_bind_s returned: "
             << res << std::endl);
     if(res != LDAP_SUCCESS){
         throw LDAPException(res);
     } else {
-        m_res = new LDAPResult(LDAPMsg::BIND_RESPONSE, res, ""); 
+        m_res = new LDAPResult(LDAPMsg::BIND_RESPONSE, res, "");
     }
     return new LDAPMessageQueue(this);
 }
 
-LDAPMsg* LDAPSaslInteractiveBind::getNextMessage() const 
+LDAPMsg* LDAPSaslInteractiveBind::getNextMessage() const
 {
     return m_res;
 }

@@ -141,7 +141,7 @@ ldap_refresh_s(
 
 	rc = ldap_refresh( ld, dn, ttl, sctrls, cctrls, &msgid );
 	if ( rc != LDAP_SUCCESS ) return rc;
-	
+
 	rc = ldap_result( ld, msgid, LDAP_MSG_ALL, (struct timeval *)NULL, &res );
 	if( rc == -1 || !res ) return ld->ld_errno;
 

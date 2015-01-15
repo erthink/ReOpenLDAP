@@ -23,11 +23,11 @@ The default is normally {{F:/usr/local/etc/openldap/slapd.conf}}.
 
 Specifies the slapd configuration directory. The default is {{F:/usr/local/etc/openldap/slapd.d}}.
 
-If both {{EX:-f}} and {{EX:-F}} are specified, the config file will be read and converted 
-to config directory format and written to the specified directory.  
-If neither option is specified, slapd will attempt to read the default config 
-directory before trying to use the default config file. If a valid config 
-directory exists then the default config file is ignored. All of the slap tools 
+If both {{EX:-f}} and {{EX:-F}} are specified, the config file will be read and converted
+to config directory format and written to the specified directory.
+If neither option is specified, slapd will attempt to read the default config
+directory before trying to use the default config file. If a valid config
+directory exists then the default config file is ignored. All of the slap tools
 that use the config options observe this same behavior.
 
 >	-h <URLs>
@@ -55,7 +55,7 @@ on port 666.  Hosts may be specified using using hostnames or
 numeric.
 
 For LDAP over IPC, the pathname of the Unix-domain socket can be encoded
-in the URL. Note that directory separators must be 
+in the URL. Note that directory separators must be
 URL-encoded, like any other characters that are special to URLs.
 Thus the socket {{EX:/usr/local/var/ldapi}} must be encoded as
 

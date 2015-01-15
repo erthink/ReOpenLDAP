@@ -3,7 +3,7 @@
 ## This work is part of OpenLDAP Software <http://www.openldap.org/>.
 ##
 ## Copyright 1998-2014 The OpenLDAP Foundation.
-## Portions Copyright 2008 Red Hat, Inc. 
+## Portions Copyright 2008 Red Hat, Inc.
 ## All rights reserved.
 ##
 ## Redistribution and use in source and binary forms, with or without
@@ -17,15 +17,15 @@
 echo "running defines.sh"
 . $SRCDIR/scripts/defines.sh
 
-if test $MEMBEROF = memberofno; then 
+if test $MEMBEROF = memberofno; then
 	echo "Memberof overlay not available, test skipped"
 	exit 0
-fi 
+fi
 
-if test $REFINT = refintno; then 
+if test $REFINT = refintno; then
 	echo "Referential Integrity overlay not available, test skipped"
 	exit 0
-fi 
+fi
 
 if test $BACKEND = bdb; then
 	echo "$BACKEND backend does not support subtree rename, test skipped"

@@ -23,15 +23,15 @@ PCACHEBTTR=${PCACHEBTTR-"5"}
 
 . $SRCDIR/scripts/defines.sh
 
-if test $PROXYCACHE = pcacheno; then 
+if test $PROXYCACHE = pcacheno; then
 	echo "Proxy cache overlay not available, test skipped"
 	exit 0
-fi 
+fi
 
-if test $BACKLDAP = "ldapno" ; then 
+if test $BACKLDAP = "ldapno" ; then
 	echo "LDAP backend not available, test skipped"
 	exit 0
-fi 
+fi
 
 if test $BACKEND = ldif ; then
 	# The (mail=example.com*) queries hit a sizelimit, so which
@@ -45,10 +45,10 @@ mkdir -p $TESTDIR $DBDIR1 $DBDIR2
 # Test proxy caching:
 # - start master
 # - start proxy cache
-# - populate master 
+# - populate master
 # - perform first set of searches at the proxy
 # - verify cacheability
-# - perform second set of searches at the proxy 
+# - perform second set of searches at the proxy
 # - verify answerability
 
 echo "Starting master slapd on TCP/IP port $PORT1..."
@@ -132,12 +132,12 @@ fi
 
 cat /dev/null > $SEARCHOUT
 
-echo "Making queries on the proxy cache..." 
+echo "Making queries on the proxy cache..."
 CNT=0
 
 CNT=`expr $CNT + 1`
 FILTER="(sn=Jon)"
-echo "Query $CNT: filter:$FILTER attrs:all (expect nothing)" 
+echo "Query $CNT: filter:$FILTER attrs:all (expect nothing)"
 echo "# Query $CNT: filter:$FILTER attrs:all (expect nothing)" >> $SEARCHOUT
 $LDAPSEARCH -x -S "" -b "$BASEDN" -h $LOCALHOST -p $PORT2 \
 	"$FILTER" >> $SEARCHOUT 2>> $TESTOUT
@@ -160,7 +160,7 @@ fi
 CNT=`expr $CNT + 1`
 FILTER="(|(cn=*Jon*)(sn=Jon*))"
 ATTRS="cn sn title uid"
-echo "Query $CNT: filter:$FILTER attrs:$ATTRS"  
+echo "Query $CNT: filter:$FILTER attrs:$ATTRS"
 echo "# Query $CNT: filter:$FILTER attrs:$ATTRS" >> $SEARCHOUT
 $LDAPSEARCH -x -S "" -b "$BASEDN" -h $LOCALHOST -p $PORT2 \
 	"$FILTER" $ATTRS >> $SEARCHOUT 2>> $TESTOUT
@@ -174,7 +174,7 @@ fi
 CNT=`expr $CNT + 1`
 FILTER="(sn=Smith*)"
 ATTRS="cn sn uid"
-echo "Query $CNT: filter:$FILTER attrs:$ATTRS"  
+echo "Query $CNT: filter:$FILTER attrs:$ATTRS"
 echo "# Query $CNT: filter:$FILTER attrs:$ATTRS" >> $SEARCHOUT
 $LDAPSEARCH -S "" -b "$BASEDN" -h $LOCALHOST -p $PORT2 \
 	"$FILTER" $ATTRS >> $SEARCHOUT 2>> $TESTOUT
@@ -188,7 +188,7 @@ fi
 CNT=`expr $CNT + 1`
 FILTER="(sn=Doe*)"
 ATTRS="cn sn title uid"
-echo "Query $CNT: filter:$FILTER attrs:$ATTRS"  
+echo "Query $CNT: filter:$FILTER attrs:$ATTRS"
 echo "# Query $CNT: filter:$FILTER attrs:$ATTRS" >> $SEARCHOUT
 $LDAPSEARCH -S "" -b "$BASEDN" -h $LOCALHOST -p $PORT2 \
 	"$FILTER" $ATTRS >> $SEARCHOUT 2>> $TESTOUT
@@ -202,7 +202,7 @@ fi
 CNT=`expr $CNT + 1`
 FILTER="(uid=johnd)"
 ATTRS="mail postaladdress telephonenumber cn uid"
-echo "Query $CNT: filter:$FILTER attrs:$ATTRS"  
+echo "Query $CNT: filter:$FILTER attrs:$ATTRS"
 echo "# Query $CNT: filter:$FILTER attrs:$ATTRS" >> $SEARCHOUT
 $LDAPSEARCH -S "" -b "$BASEDN" -h $LOCALHOST -p $PORT2 \
 	"$FILTER" $ATTRS >> $SEARCHOUT 2>> $TESTOUT
@@ -216,7 +216,7 @@ fi
 CNT=`expr $CNT + 1`
 FILTER="(mail=*@mail.alumni.example.com)"
 ATTRS="cn sn title uid"
-echo "Query $CNT: filter:$FILTER attrs:$ATTRS"  
+echo "Query $CNT: filter:$FILTER attrs:$ATTRS"
 echo "# Query $CNT: filter:$FILTER attrs:$ATTRS" >> $SEARCHOUT
 $LDAPSEARCH -S "" -b "$BASEDN" -h $LOCALHOST -p $PORT2 \
 	"$FILTER" $ATTRS >> $SEARCHOUT 2>> $TESTOUT
@@ -230,7 +230,7 @@ fi
 CNT=`expr $CNT + 1`
 FILTER="(mail=*)"
 ATTRS="cn sn title uid"
-echo "Query $CNT: filter:$FILTER attrs:$ATTRS"  
+echo "Query $CNT: filter:$FILTER attrs:$ATTRS"
 echo "# Query $CNT: filter:$FILTER attrs:$ATTRS" >> $SEARCHOUT
 $LDAPSEARCH -S "" -b "$BASEDN" -h $LOCALHOST -p $PORT2 \
 	"$FILTER" $ATTRS >> $SEARCHOUT 2>> $TESTOUT
@@ -246,7 +246,7 @@ FILTER="(mail=*example.com)"
 ATTRS="cn sn title uid"
 USERDN="cn=Bjorn Jensen,ou=Information Technology Division,ou=People,dc=example,dc=com"
 UPASSWD="bjorn"
-echo "Query $CNT: filter:$FILTER attrs:$ATTRS"  
+echo "Query $CNT: filter:$FILTER attrs:$ATTRS"
 echo "# Query $CNT: filter:$FILTER attrs:$ATTRS" >> $SEARCHOUT
 $LDAPSEARCH -S "" -b "$BASEDN" -h $LOCALHOST -p $PORT2 \
 	-D "$USERDN" -w "$UPASSWD" \
@@ -273,7 +273,7 @@ FILTER="(uid=b*)"
 ATTRS="mail"
 USERDN="cn=Bjorn Jensen,ou=Information Technology Division,ou=People,dc=example,dc=com"
 UPASSWD="bjorn"
-echo "Query $CNT: filter:$FILTER attrs:$ATTRS"  
+echo "Query $CNT: filter:$FILTER attrs:$ATTRS"
 echo "# Query $CNT: filter:$FILTER attrs:$ATTRS" >> $SEARCHOUT
 $LDAPSEARCH -S "" -b "$BASEDN" -h $LOCALHOST -p $PORT2 \
 	-D "$USERDN" -w "$UPASSWD" \
@@ -298,7 +298,7 @@ esac
 CNT=`expr $CNT + 1`
 FILTER="(|(cn=All Staff)(sn=All Staff))"
 ATTRS="sn cn title uid undefinedAttr"
-echo "Query $CNT: filter:$FILTER attrs:$ATTRS"  
+echo "Query $CNT: filter:$FILTER attrs:$ATTRS"
 echo "# Query $CNT: filter:$FILTER attrs:$ATTRS" >> $SEARCHOUT
 $LDAPSEARCH -S "" -b "$BASEDN" -h $LOCALHOST -p $PORT2 \
 	"$FILTER" $ATTRS >> $SEARCHOUT 2>> $TESTOUT
@@ -313,22 +313,22 @@ FIRST=$CNT
 
 # queries 2-6,8-10 are cacheable
 CACHEABILITY=0111110111
-grep CACHEABLE $LOG2 | awk '{ 
-		if ($3 == "NOT") 
+grep CACHEABLE $LOG2 | awk '{
+		if ($3 == "NOT")
 			printf "Query %d not cacheable\n",NR
-		else 
+		else
 			printf "Query %d cacheable\n",NR
-	}' 
-CACHED=`grep CACHEABLE $LOG2 | awk '{ 
-		if ($3 == "NOT") 
-			printf "0" 
-		else 
-			printf "1" 
+	}'
+CACHED=`grep CACHEABLE $LOG2 | awk '{
+		if ($3 == "NOT")
+			printf "0"
+		else
+			printf "1"
 	}'`
 
 if test "$CACHEABILITY" = "$CACHED" ; then
 	echo "Successfully verified cacheability"
-else 
+else
 	echo "Error in verifying cacheability"
 	echo "$CACHED"
 	echo "$CACHEABILITY"
@@ -339,7 +339,7 @@ fi
 CNT=`expr $CNT + 1`
 FILTER="(|(cn=*Jones)(sn=Jones))"
 ATTRS="cn sn title uid"
-echo "Query $CNT: filter:$FILTER attrs:$ATTRS"  
+echo "Query $CNT: filter:$FILTER attrs:$ATTRS"
 echo "# Query $CNT: filter:$FILTER attrs:$ATTRS" >> $SEARCHOUT
 $LDAPSEARCH -x -S "" -b "$BASEDN" -h $LOCALHOST -p $PORT2 \
 	"$FILTER" $ATTRS >> $SEARCHOUT 2>> $TESTOUT
@@ -353,7 +353,7 @@ fi
 CNT=`expr $CNT + 1`
 FILTER="(sn=Smith)"
 ATTRS="cn sn title uid"
-echo "Query $CNT: filter:$FILTER attrs:$ATTRS"  
+echo "Query $CNT: filter:$FILTER attrs:$ATTRS"
 echo "# Query $CNT: filter:$FILTER attrs:$ATTRS" >> $SEARCHOUT
 $LDAPSEARCH -S "" -b "$BASEDN" -h $LOCALHOST -p $PORT2 \
 	"$FILTER" $ATTRS >> $SEARCHOUT 2>> $TESTOUT
@@ -367,7 +367,7 @@ fi
 CNT=`expr $CNT + 1`
 FILTER="(uid=bjorn)"
 ATTRS="mail postaladdress telephonenumber cn uid"
-echo "Query $CNT: filter:$FILTER attrs:$ATTRS"  
+echo "Query $CNT: filter:$FILTER attrs:$ATTRS"
 echo "# Query $CNT: filter:$FILTER attrs:$ATTRS" >> $SEARCHOUT
 $LDAPSEARCH -S "" -b "$BASEDN" -h $LOCALHOST -p $PORT2 \
 	"$FILTER" $ATTRS >> $SEARCHOUT 2>> $TESTOUT
@@ -381,7 +381,7 @@ fi
 CNT=`expr $CNT + 1`
 FILTER="(mail=jaj@mail.alumni.example.com)"
 ATTRS="cn sn title uid"
-echo "Query $CNT: filter:$FILTER attrs:$ATTRS"  
+echo "Query $CNT: filter:$FILTER attrs:$ATTRS"
 echo "# Query $CNT: filter:$FILTER attrs:$ATTRS" >> $SEARCHOUT
 $LDAPSEARCH -S "" -b "$BASEDN" -h $LOCALHOST -p $PORT2 \
 	"$FILTER" $ATTRS >> $SEARCHOUT 2>> $TESTOUT
@@ -398,7 +398,7 @@ FILTER="(mail=*example.com)"
 ATTRS="cn sn title uid"
 USERDN="cn=Bjorn Jensen,ou=Information Technology Division,ou=People,dc=example,dc=com"
 UPASSWD="bjorn"
-echo "Query $CNT: filter:$FILTER attrs:$ATTRS"  
+echo "Query $CNT: filter:$FILTER attrs:$ATTRS"
 echo "# Query $CNT: filter:$FILTER attrs:$ATTRS" >> $SEARCHOUT
 $LDAPSEARCH -S "" -b "$BASEDN" -h $LOCALHOST -p $PORT2 \
 	-D "$USERDN" -w "$UPASSWD" \
@@ -425,7 +425,7 @@ FILTER="(uid=b*)"
 ATTRS="mail"
 USERDN="cn=Bjorn Jensen,ou=Information Technology Division,ou=People,dc=example,dc=com"
 UPASSWD="bjorn"
-echo "Query $CNT: filter:$FILTER attrs:$ATTRS"  
+echo "Query $CNT: filter:$FILTER attrs:$ATTRS"
 echo "# Query $CNT: filter:$FILTER attrs:$ATTRS" >> $SEARCHOUT
 $LDAPSEARCH -S "" -b "$BASEDN" -h $LOCALHOST -p $PORT2 \
 	-D "$USERDN" -w "$UPASSWD" \
@@ -450,7 +450,7 @@ esac
 CNT=`expr $CNT + 1`
 FILTER="(|(cn=All Staff)(sn=All Staff))"
 ATTRS="sn cn title uid undefinedAttr"
-echo "Query $CNT: filter:$FILTER attrs:$ATTRS"  
+echo "Query $CNT: filter:$FILTER attrs:$ATTRS"
 echo "# Query $CNT: filter:$FILTER attrs:$ATTRS" >> $SEARCHOUT
 $LDAPSEARCH -S "" -b "$BASEDN" -h $LOCALHOST -p $PORT2 \
 	"$FILTER" $ATTRS >> $SEARCHOUT 2>> $TESTOUT
@@ -466,26 +466,26 @@ fi
 #not answerable because of sizelimit, queries contained in it are no longer
 #answerable as well
 ANSWERABILITY=1110011
-grep ANSWERABLE $LOG2 | awk "BEGIN {FIRST=$FIRST}"'{ 
-		if (NR > FIRST) { 
-			if ($3 == "NOT") 
+grep ANSWERABLE $LOG2 | awk "BEGIN {FIRST=$FIRST}"'{
+		if (NR > FIRST) {
+			if ($3 == "NOT")
 				printf "Query %d not answerable\n",NR
-			else 
-				printf "Query %d answerable\n",NR 
+			else
+				printf "Query %d answerable\n",NR
 		}
-	}' 
-ANSWERED=`grep ANSWERABLE $LOG2 | awk "BEGIN {FIRST=$FIRST}"'{ 
-		if (NR > FIRST) { 
-			if ($3 == "NOT") 
-				printf "0" 
-			else 
+	}'
+ANSWERED=`grep ANSWERABLE $LOG2 | awk "BEGIN {FIRST=$FIRST}"'{
+		if (NR > FIRST) {
+			if ($3 == "NOT")
+				printf "0"
+			else
 				printf "1"
-		} 
+		}
 	}'`
 
 if test "$ANSWERABILITY" = "$ANSWERED" ; then
 	echo "Successfully verified answerability"
-else 
+else
 	echo "Error in verifying answerability"
 	test $KILLSERVERS != no && kill -HUP $KILLPIDS
 	exit 1
@@ -510,7 +510,7 @@ echo "Testing cache refresh"
 CNT=`expr $CNT + 1`
 FILTER="(&(objectclass=person)(uid=dots))"
 ATTRS="cn mail telephonenumber"
-echo "Query $CNT: filter:$FILTER attrs:$ATTRS" 
+echo "Query $CNT: filter:$FILTER attrs:$ATTRS"
 echo "# Query $CNT: filter:$FILTER attrs:$ATTRS" >> $SEARCHOUT
 $LDAPSEARCH -x -S "" -b "$BASEDN" -h $LOCALHOST -p $PORT2 \
 	"$FILTER" $ATTRS >> $SEARCHOUT 2>> $TESTOUT

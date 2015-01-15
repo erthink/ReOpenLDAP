@@ -1,6 +1,6 @@
 /* $OpenLDAP$ */
 /* This work is part of OpenLDAP Software <http://www.openldap.org/>.
- * 
+ *
  * Copyright 1998-2014 The OpenLDAP Foundation.
  * All rights reserved.
  *
@@ -203,13 +203,13 @@ ldap_charray2str LDAP_P((
 LDAP_F( void ) ldap_rdnfree_x LDAP_P(( LDAPRDN rdn, void *ctx ));
 LDAP_F( void ) ldap_dnfree_x LDAP_P(( LDAPDN dn, void *ctx ));
 
-LDAP_F( int ) ldap_bv2dn_x LDAP_P(( 
+LDAP_F( int ) ldap_bv2dn_x LDAP_P((
 	struct berval *bv, LDAPDN *dn, unsigned flags, void *ctx ));
-LDAP_F( int ) ldap_dn2bv_x LDAP_P(( 
+LDAP_F( int ) ldap_dn2bv_x LDAP_P((
 	LDAPDN dn, struct berval *bv, unsigned flags, void *ctx ));
-LDAP_F( int ) ldap_bv2rdn_x LDAP_P(( 
+LDAP_F( int ) ldap_bv2rdn_x LDAP_P((
 	struct berval *, LDAPRDN *, char **, unsigned flags, void *ctx ));
-LDAP_F( int ) ldap_rdn2bv_x LDAP_P(( 
+LDAP_F( int ) ldap_rdn2bv_x LDAP_P((
 	LDAPRDN rdn, struct berval *bv, unsigned flags, void *ctx ));
 #endif /* LDAP_AVA_NULL */
 
@@ -306,7 +306,7 @@ struct sb_sasl_generic_data {
 	unsigned int				flags;
 #define LDAP_PVT_SASL_PARTIAL_WRITE	1
 };
- 
+
 #ifndef LDAP_PVT_SASL_LOCAL_SSF
 #define LDAP_PVT_SASL_LOCAL_SSF	71	/* SSF for Unix Domain Sockets */
 #endif /* ! LDAP_PVT_SASL_LOCAL_SSF */
@@ -424,7 +424,7 @@ LDAP_END_DECL
 
 /*
  * Multiple precision stuff
- * 
+ *
  * May use OpenSSL's BIGNUM if built with TLS,
  * or GNU's multiple precision library. But if
  * long long is available, that's big enough

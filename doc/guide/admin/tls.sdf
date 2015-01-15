@@ -7,7 +7,7 @@ H1: Using TLS
 OpenLDAP clients and servers are capable of using the
 {{TERM[expand]TLS}} ({{TERM:TLS}}) framework to provide
 integrity and confidentiality protections and to support
-LDAP authentication using the {{TERM:SASL}} {{TERM:EXTERNAL}} mechanism. 
+LDAP authentication using the {{TERM:SASL}} {{TERM:EXTERNAL}} mechanism.
 TLS is defined in {{REF:RFC4346}}.
 
 Note: For generating certifcates, please reference {{URL:http://www.openldap.org/faq/data/cache/185.html}}
@@ -40,7 +40,7 @@ is also based on X.500, both use the same DN formats and
 generally the DN in a user's X.509 certificate should be
 identical to the DN of their LDAP entry. However, sometimes
 the DNs may not be exactly the same, and so the mapping
-facility described in 
+facility described in
 {{SECT:Mapping Authentication Identities}}
 can be applied to these DNs as well.
 
@@ -65,7 +65,7 @@ many different trusted CAs in its configuration.
 H3: Server Configuration
 
 The configuration directives for slapd belong in the global directives
-section of {{slapd.conf}}(5). 
+section of {{slapd.conf}}(5).
 
 H4: TLSCACertificateFile <filename>
 

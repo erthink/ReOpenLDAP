@@ -156,7 +156,7 @@ int lutil_tm2time( struct lutil_tm *tm, struct lutil_timet *tt )
 	static int moffset[12] = {
 		0, 31, 59, 90, 120,
 		151, 181, 212, 243,
-		273, 304, 334 }; 
+		273, 304, 334 };
 	int sec;
 
 	tt->tt_usec = tm->tm_usec;
@@ -170,23 +170,23 @@ int lutil_tm2time( struct lutil_tm *tm, struct lutil_timet *tt )
 	}
 
 	/* tm->tm_year is years since 1900 */
-	/* calculate days from years since 1970 (epoch) */ 
-	tt->tt_sec = tm->tm_year - 70; 
-	tt->tt_sec *= 365L; 
+	/* calculate days from years since 1970 (epoch) */
+	tt->tt_sec = tm->tm_year - 70;
+	tt->tt_sec *= 365L;
 
-	/* count leap days in preceding years */ 
-	tt->tt_sec += ((tm->tm_year -69) >> 2); 
+	/* count leap days in preceding years */
+	tt->tt_sec += ((tm->tm_year -69) >> 2);
 
-	/* calculate days from months */ 
-	tt->tt_sec += moffset[tm->tm_mon]; 
+	/* calculate days from months */
+	tt->tt_sec += moffset[tm->tm_mon];
 
-	/* add in this year's leap day, if any */ 
-	if (((tm->tm_year & 3) == 0) && (tm->tm_mon > 1)) { 
-		tt->tt_sec ++; 
-	} 
+	/* add in this year's leap day, if any */
+	if (((tm->tm_year & 3) == 0) && (tm->tm_mon > 1)) {
+		tt->tt_sec ++;
+	}
 
-	/* add in days in this month */ 
-	tt->tt_sec += (tm->tm_mday - 1); 
+	/* add in days in this month */
+	tt->tt_sec += (tm->tm_mday - 1);
 
 	/* this function can handle a range of about 17408 years... */
 	/* 86400 seconds in a day, divided by 128 = 675 */
@@ -196,23 +196,23 @@ int lutil_tm2time( struct lutil_tm *tm, struct lutil_timet *tt )
 	tt->tt_gsec = tt->tt_sec >> 25;
 	tt->tt_sec -= tt->tt_gsec << 25;
 
-	/* get hours */ 
-	sec = tm->tm_hour; 
+	/* get hours */
+	sec = tm->tm_hour;
 
-	/* convert to minutes */ 
-	sec *= 60L; 
-	sec += tm->tm_min; 
+	/* convert to minutes */
+	sec *= 60L;
+	sec += tm->tm_min;
 
-	/* convert to seconds */ 
-	sec *= 60L; 
-	sec += tm->tm_sec; 
-	
+	/* convert to seconds */
+	sec *= 60L;
+	sec += tm->tm_sec;
+
 	/* add remaining seconds */
 	tt->tt_sec <<= 7;
 	tt->tt_sec += sec;
 
 	/* return success */
-	return 0; 
+	return 0;
 }
 
 int lutil_parsetime( char *atm, struct lutil_tm *tm )
@@ -295,7 +295,7 @@ lutil_strcopy(
 {
 	if (!a || !b)
 		return a;
-	
+
 	while ((*a++ = *b++)) ;
 	return a-1;
 }
@@ -313,7 +313,7 @@ lutil_strncopy(
 {
 	if (!a || !b || n == 0)
 		return a;
-	
+
 	while ((*a++ = *b++) && n-- > 0) ;
 	return a-1;
 }
@@ -350,7 +350,7 @@ int mkstemp( char * template )
  */
 static errno_t win2errno(DWORD lastError)
 {
-	const struct { 
+	const struct {
 		DWORD   windows_code;
 		errno_t errno_code;
 	} WIN2ERRNO_TABLE[] = {
@@ -395,7 +395,7 @@ DIR *opendir( char *path )
 	DIR *d;
 	HANDLE h;
 	WIN32_FIND_DATA data;
-	
+
 	if (len+3 >= sizeof(tmp)) {
 		errno = ENAMETOOLONG;
 		return NULL;
@@ -946,7 +946,7 @@ lutil_unparse_time(
  *
  * - if return code == 0, the buffer was long enough;
  *	- if next is not NULL, *next will point to the end of the string printed so far
- *	- if len is not NULL, *len will contain the length of the string printed so far 
+ *	- if len is not NULL, *len will contain the length of the string printed so far
  */
 int
 lutil_snprintf( char *buf, ber_len_t bufsize, char **next, ber_len_t *len, LDAP_CONST char *fmt, ... )

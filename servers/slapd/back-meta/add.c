@@ -77,7 +77,7 @@ meta_back_add( Operation *op, SlapReply *rs )
 
 	/* Count number of attributes in entry ( +1 ) */
 	for ( i = 1, a = op->ora_e->e_attrs; a; i++, a = a->a_next );
-	
+
 	/* Create array of LDAPMods for ldap_add() */
 	attrs = ch_malloc( sizeof( LDAPMod * )*i );
 
@@ -91,7 +91,7 @@ meta_back_add( Operation *op, SlapReply *rs )
 			continue;
 		}
 
-		if ( a->a_desc == slap_schema.si_ad_objectClass 
+		if ( a->a_desc == slap_schema.si_ad_objectClass
 				|| a->a_desc == slap_schema.si_ad_structuralObjectClass )
 		{
 			is_oc = 1;
@@ -156,7 +156,7 @@ meta_back_add( Operation *op, SlapReply *rs )
 
 			for ( j = 0; !BER_BVISNULL( &a->a_vals[ j ] ); j++ )
 				;
-			
+
 			attrs[ i ]->mod_bvalues = ch_malloc( ( j + 1 ) * sizeof( struct berval * ) );
 			for ( j = 0; !BER_BVISNULL( &a->a_vals[ j ] ); j++ ) {
 				attrs[ i ]->mod_bvalues[ j ] = &a->a_vals[ j ];

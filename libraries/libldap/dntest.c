@@ -100,7 +100,7 @@ main( int argc, char *argv[] )
 					e[ 0 ] = '\0';
 					e++;
 				}
-	
+
 				if ( !strcasecmp( s, "V3" ) ) {
 					flags[ i ] |= LDAP_DN_FORMAT_LDAPV3;
 				} else if ( !strcasecmp( s, "V2" ) ) {
@@ -157,10 +157,10 @@ main( int argc, char *argv[] )
 	{
 		char	**values, *tmp, *tmp2, *str2 = NULL;
 		int	n;
-		
+
 		fprintf( stdout, "\nldap_dn2str(ldap_str2dn(\"%s\"))\n"
 				"\t= \"%s\"\n", strin, str );
-			
+
 		switch ( flags[ f2 ] & LDAP_DN_FORMAT_MASK ) {
 		case LDAP_DN_FORMAT_UFN:
 		case LDAP_DN_FORMAT_AD_CANONICAL:
@@ -202,14 +202,14 @@ main( int argc, char *argv[] )
 			for ( n = 0; values && values[ n ]; n++ ) {
 				char	**vv;
 				int	nn;
-				
+
 				fprintf( stdout, "\t\"%s\"\n", values[ n ] );
 
 				fprintf( stdout, "\tldap_explode_rdn(\"%s\")\n",
 						values[ n ] );
 				vv = ldap_explode_rdn( values[ n ], 0 );
 				for ( nn = 0; vv && vv[ nn ]; nn++ ) {
-					fprintf( stdout, "\t\t'%s'\n", 
+					fprintf( stdout, "\t\t'%s'\n",
 							vv[ nn ] );
 				}
 				LDAP_VFREE( vv );
@@ -218,11 +218,11 @@ main( int argc, char *argv[] )
 					       " (no types)\n", values[ n ] );
 				vv = ldap_explode_rdn( values[ n ], 1 );
 				for ( nn = 0; vv && vv[ nn ]; nn++ ) {
-					fprintf( stdout, "\t\t\t\"%s\"\n", 
+					fprintf( stdout, "\t\t\t\"%s\"\n",
 							vv[ nn ] );
 				}
 				LDAP_VFREE( vv );
-				
+
 			}
 			LDAP_VFREE( values );
 
@@ -237,16 +237,16 @@ main( int argc, char *argv[] )
 			break;
 		}
 
-		dn2 = NULL;	
+		dn2 = NULL;
 		rc = ldap_str2dn( str, &dn2, flags[ f2 ] );
 		str2 = NULL;
-		if ( rc == LDAP_SUCCESS && 
+		if ( rc == LDAP_SUCCESS &&
 				ldap_dn2str( dn2, &str2, flags[ f2 ] )
 				== LDAP_SUCCESS ) {
 			int 	iRDN;
-			
-			fprintf( stdout, "\n\"%s\"\n\t == \"%s\" ? %s\n", 
-				str, str2, 
+
+			fprintf( stdout, "\n\"%s\"\n\t == \"%s\" ? %s\n",
+				str, str2,
 				strcmp( str, str2 ) == 0 ? "yes" : "no" );
 
 			if( dn != NULL && dn2 == NULL ) {
@@ -257,32 +257,32 @@ main( int argc, char *argv[] )
 				LDAPRDN 	r = dn[ iRDN ];
 				LDAPRDN 	r2 = dn2[ iRDN ];
 				int 		iAVA;
-				
+
 				for ( iAVA = 0; r[ iAVA ] && r2[ iAVA ]; iAVA++ ) {
 					LDAPAVA		*a = r[ iAVA ];
 					LDAPAVA		*a2 = r2[ iAVA ];
 
 					if ( a->la_attr.bv_len != a2->la_attr.bv_len ) {
-						fprintf( stdout, "ava(%d), rdn(%d) attr len mismatch (%ld->%ld)\n", 
+						fprintf( stdout, "ava(%d), rdn(%d) attr len mismatch (%ld->%ld)\n",
 								iAVA + 1, iRDN + 1,
 								a->la_attr.bv_len, a2->la_attr.bv_len );
 					} else if ( memcmp( a->la_attr.bv_val, a2->la_attr.bv_val, a->la_attr.bv_len ) ) {
-						fprintf( stdout, "ava(%d), rdn(%d) attr mismatch\n", 
+						fprintf( stdout, "ava(%d), rdn(%d) attr mismatch\n",
 								iAVA + 1, iRDN + 1 );
 					} else if ( a->la_flags != a2->la_flags ) {
-						fprintf( stdout, "ava(%d), rdn(%d) flag mismatch (%x->%x)\n", 
+						fprintf( stdout, "ava(%d), rdn(%d) flag mismatch (%x->%x)\n",
 								iAVA + 1, iRDN + 1, a->la_flags, a2->la_flags );
 					} else if ( a->la_value.bv_len != a2->la_value.bv_len ) {
-						fprintf( stdout, "ava(%d), rdn(%d) value len mismatch (%ld->%ld)\n", 
-								iAVA + 1, iRDN + 1, 
+						fprintf( stdout, "ava(%d), rdn(%d) value len mismatch (%ld->%ld)\n",
+								iAVA + 1, iRDN + 1,
 								a->la_value.bv_len, a2->la_value.bv_len );
 					} else if ( memcmp( a->la_value.bv_val, a2->la_value.bv_val, a->la_value.bv_len ) ) {
-						fprintf( stdout, "ava(%d), rdn(%d) value mismatch\n", 
+						fprintf( stdout, "ava(%d), rdn(%d) value mismatch\n",
 								iAVA + 1, iRDN + 1 );
 					}
 				}
 			}
-			
+
 			ldap_dnfree( dn2 );
 			ldap_memfree( str2 );
 		}

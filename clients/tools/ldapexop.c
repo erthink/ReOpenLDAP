@@ -99,7 +99,7 @@ main( int argc, char *argv[] )
 	if ( strcasecmp( argv[ 0 ], "whoami" ) == 0 ) {
 		tool_server_controls( ld, NULL, 0 );
 
-		rc = ldap_whoami( ld, NULL, NULL, &id ); 
+		rc = ldap_whoami( ld, NULL, NULL, &id );
 		if ( rc != LDAP_SUCCESS ) {
 			tool_perror( "ldap_extended_operation", rc, NULL, NULL, NULL, NULL );
 			rc = EXIT_FAILURE;
@@ -151,10 +151,10 @@ main( int argc, char *argv[] )
 			fprintf( stderr, _("need DN [ttl]\n\n") );
 			usage();
 		}
-		
+
 		tool_server_controls( ld, NULL, 0 );
 
-		rc = ldap_refresh( ld, &dn, ttl, NULL, NULL, &id ); 
+		rc = ldap_refresh( ld, &dn, ttl, NULL, NULL, &id );
 		if ( rc != LDAP_SUCCESS ) {
 			tool_perror( "ldap_extended_operation", rc, NULL, NULL, NULL, NULL );
 			rc = EXIT_FAILURE;

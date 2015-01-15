@@ -5,7 +5,7 @@ CREATE TABLE persons (
  	title varchar(255),
 	title_U varchar(255),
         organization varchar(255)
-) 
+)
 unique hash on (id) pages=100;
 create index personsx1 on persons(title_U);
 create index personsx2 on persons(name_u);
@@ -26,7 +26,7 @@ unique hash on (id) pages=100;
 CREATE TABLE authors_docs (
 	pers_id int NOT NULL,
 	doc_id int NOT NULL,
-	PRIMARY KEY  
+	PRIMARY KEY
 	(
 		pers_id,
 		doc_id
@@ -36,7 +36,7 @@ CREATE TABLE authors_docs (
 CREATE TABLE phones (
 	id int NOT NULL primary key,
 	phone varchar(255) NOT NULL ,
-	pers_id int NOT NULL 
+	pers_id int NOT NULL
 )
 unique hash on (id) pages=100;
 

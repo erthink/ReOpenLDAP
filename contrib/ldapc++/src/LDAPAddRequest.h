@@ -15,9 +15,9 @@ class LDAPMessageQueue;
 class LDAPAddRequest : LDAPRequest {
     public:
         LDAPAddRequest(const LDAPAddRequest& req);
-        LDAPAddRequest(const LDAPEntry* entry, 
+        LDAPAddRequest(const LDAPEntry* entry,
                 LDAPAsynConnection *connect,
-                const LDAPConstraints *cons, bool isReferral=false, 
+                const LDAPConstraints *cons, bool isReferral=false,
                 const LDAPRequest* parent=0);
         virtual ~LDAPAddRequest();
         virtual LDAPMessageQueue* sendRequest();

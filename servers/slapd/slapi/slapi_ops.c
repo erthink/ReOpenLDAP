@@ -61,7 +61,7 @@ slapi_int_dup_controls( LDAPControl **controls )
 
 static int
 slapi_int_result(
-	Operation	*op, 
+	Operation	*op,
 	SlapReply	*rs )
 {
 	Slapi_PBlock		*pb = SLAPI_OPERATION_PBLOCK( op );
@@ -69,7 +69,7 @@ slapi_int_result(
 	void			*callback_data = NULL;
 	LDAPControl		**ctrls = NULL;
 
-	assert( pb != NULL );	
+	assert( pb != NULL );
 
 	slapi_pblock_get( pb, SLAPI_X_INTOP_RESULT_CALLBACK, (void **)&prc );
 	slapi_pblock_get( pb, SLAPI_X_INTOP_CALLBACK_DATA,   &callback_data );
@@ -109,7 +109,7 @@ slapi_int_search_entry(
 
 static int
 slapi_int_search_reference(
-	Operation	*op,	
+	Operation	*op,
 	SlapReply	*rs )
 {
 	int				i, rc = LDAP_SUCCESS;
@@ -240,7 +240,7 @@ slapi_int_connection_init_pb( Slapi_PBlock *pb, ber_tag_t tag )
 	conn->c_n_read = 0;
 	conn->c_n_write = 0;
 
-	conn->c_protocol = LDAP_VERSION3; 
+	conn->c_protocol = LDAP_VERSION3;
 
 	conn->c_activitytime = conn->c_starttime = slap_get_time();
 
@@ -267,7 +267,7 @@ slapi_int_connection_init_pb( Slapi_PBlock *pb, ber_tag_t tag )
 
 	/* operation object */
 	op->o_tag = tag;
-	op->o_protocol = LDAP_VERSION3; 
+	op->o_protocol = LDAP_VERSION3;
 	BER_BVZERO( &op->o_authmech );
 	op->o_time = slap_get_time();
 	op->o_do_not_cache = 1;
@@ -587,7 +587,7 @@ slapi_int_search_entry_callback( Slapi_Entry *entry, void *callback_data )
 
 	slapi_pblock_get( pb, SLAPI_NENTRIES, &nentries );
 	slapi_pblock_get( pb, SLAPI_PLUGIN_INTOP_SEARCH_ENTRIES, &head );
-	
+
 	i = nentries + 1;
 	if ( nentries == 0 ) {
 		tp = (Slapi_Entry **)slapi_ch_malloc( 2 * sizeof(Slapi_Entry *) );
@@ -607,7 +607,7 @@ slapi_int_search_entry_callback( Slapi_Entry *entry, void *callback_data )
 		tp[i - 1] = entry;
 	}
 	tp[i] = NULL;
-	          
+
 	slapi_pblock_set( pb, SLAPI_PLUGIN_INTOP_SEARCH_ENTRIES, (void *)tp );
 	slapi_pblock_set( pb, SLAPI_NENTRIES, (void *)&i );
 
@@ -716,12 +716,12 @@ slapi_search_internal_set_pb( Slapi_PBlock *pb,
 
 Slapi_PBlock *
 slapi_search_internal(
-	char *ldn, 
-	int scope, 
-	char *filStr, 
-	LDAPControl **controls, 
-	char **attrs, 
-	int attrsonly ) 
+	char *ldn,
+	int scope,
+	char *filStr,
+	LDAPControl **controls,
+	char **attrs,
+	int attrsonly )
 {
 	Slapi_PBlock *pb;
 
@@ -757,7 +757,7 @@ slapi_modify_internal_set_pb( Slapi_PBlock *pb,
 
 /* Function : slapi_modify_internal
  *
- * Description:	Plugin functions call this routine to modify an entry 
+ * Description:	Plugin functions call this routine to modify an entry
  *				in the backend directly
  * Return values : LDAP_SUCCESS
  *                 LDAP_PARAM_ERROR
@@ -767,9 +767,9 @@ slapi_modify_internal_set_pb( Slapi_PBlock *pb,
 */
 Slapi_PBlock *
 slapi_modify_internal(
-	char *ldn, 	
-	LDAPMod **mods, 
-	LDAPControl **controls, 
+	char *ldn,
+	LDAPMod **mods,
+	LDAPControl **controls,
 	int log_change )
 {
 	Slapi_PBlock *pb;
@@ -835,10 +835,10 @@ slapi_add_entry_internal_set_pb( Slapi_PBlock *pb,
 	slapi_int_set_operation_dn( pb );
 }
 
-Slapi_PBlock * 
+Slapi_PBlock *
 slapi_add_entry_internal(
-	Slapi_Entry *e, 
-	LDAPControl **controls, 
+	Slapi_Entry *e,
+	LDAPControl **controls,
 	int log_change )
 {
 	Slapi_PBlock *pb;
@@ -878,7 +878,7 @@ slapi_rename_internal_set_pb( Slapi_PBlock *pb,
 
 /* Function : slapi_modrdn_internal
  *
- * Description : Plugin functions call this routine to modify the rdn 
+ * Description : Plugin functions call this routine to modify the rdn
  *				 of an entry in the backend directly
  * Return values : LDAP_SUCCESS
  *                 LDAP_PARAM_ERROR
@@ -890,10 +890,10 @@ slapi_rename_internal_set_pb( Slapi_PBlock *pb,
  */
 Slapi_PBlock *
 slapi_modrdn_internal(
-	char *olddn, 
-	char *lnewrdn, 
-	int deloldrdn, 
-	LDAPControl **controls, 
+	char *olddn,
+	char *lnewrdn,
+	int deloldrdn,
+	LDAPControl **controls,
 	int log_change )
 {
 	Slapi_PBlock *pb;
@@ -927,7 +927,7 @@ slapi_delete_internal_set_pb( Slapi_PBlock *pb,
 
 /* Function : slapi_delete_internal
  *
- * Description : Plugin functions call this routine to delete an entry 
+ * Description : Plugin functions call this routine to delete an entry
  *               in the backend directly
  * Return values : LDAP_SUCCESS
  *                 LDAP_PARAM_ERROR
@@ -937,8 +937,8 @@ slapi_delete_internal_set_pb( Slapi_PBlock *pb,
 */
 Slapi_PBlock *
 slapi_delete_internal(
-	char *ldn, 
-	LDAPControl **controls, 
+	char *ldn,
+	LDAPControl **controls,
 	int log_change )
 {
 	Slapi_PBlock *pb;

@@ -19,7 +19,7 @@ SRCS = passwd-shell.c shellutil.c
 XSRCS = pwd-version.c
 OBJS = passwd-shell.o shellutil.o
 
-LDAP_INCDIR= ../../../include       
+LDAP_INCDIR= ../../../include
 LDAP_LIBDIR= ../../../libraries
 
 BUILD_OPT = "--enable-shell"

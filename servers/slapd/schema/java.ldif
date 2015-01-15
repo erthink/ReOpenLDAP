@@ -26,9 +26,9 @@ olcAttributeTypes: {0}( 1.3.6.1.4.1.42.2.27.4.1.6 NAME 'javaClassName' DESC 'F
  ully qualified name of distinguished Java class or interface' EQUALITY caseEx
  actMatch SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 SINGLE-VALUE )
 olcAttributeTypes: {1}( 1.3.6.1.4.1.42.2.27.4.1.7 NAME 'javaCodebase' DESC 'UR
- L(s) specifying the location of class definition' EQUALITY caseExactIA5Match 
+ L(s) specifying the location of class definition' EQUALITY caseExactIA5Match
  SYNTAX 1.3.6.1.4.1.1466.115.121.1.26 )
-olcAttributeTypes: {2}( 1.3.6.1.4.1.42.2.27.4.1.13 NAME 'javaClassNames' DESC 
+olcAttributeTypes: {2}( 1.3.6.1.4.1.42.2.27.4.1.13 NAME 'javaClassNames' DESC
  'Fully qualified Java class or interface name' EQUALITY caseExactMatch SYNTAX
   1.3.6.1.4.1.1466.115.121.1.15 )
 olcAttributeTypes: {3}( 1.3.6.1.4.1.42.2.27.4.1.8 NAME 'javaSerializedData' DE
@@ -45,7 +45,7 @@ olcAttributeTypes: {6}( 1.3.6.1.4.1.42.2.27.4.1.12 NAME 'javaDoc' DESC 'The Ja
  .1466.115.121.1.26 )
 olcObjectClasses: {0}( 1.3.6.1.4.1.42.2.27.4.2.1 NAME 'javaContainer' DESC 'Co
  ntainer for a Java object' SUP top STRUCTURAL MUST cn )
-olcObjectClasses: {1}( 1.3.6.1.4.1.42.2.27.4.2.4 NAME 'javaObject' DESC 'Java 
+olcObjectClasses: {1}( 1.3.6.1.4.1.42.2.27.4.2.4 NAME 'javaObject' DESC 'Java
  object representation' SUP top ABSTRACT MUST javaClassName MAY ( javaClassNam
  es $ javaCodebase $ javaDoc $ description ) )
 olcObjectClasses: {2}( 1.3.6.1.4.1.42.2.27.4.2.5 NAME 'javaSerializedObject' D

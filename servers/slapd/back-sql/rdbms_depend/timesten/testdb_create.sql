@@ -1,7 +1,7 @@
 CREATE TABLE persons (
 	id int NOT NULL primary key,
 	name varchar(255) NOT NULL
-) 
+)
 unique hash on (id) pages=100;
 
 CREATE TABLE institutes (
@@ -20,7 +20,7 @@ unique hash on (id) pages=100;
 CREATE TABLE authors_docs (
 	pers_id int NOT NULL,
 	doc_id int NOT NULL,
-	PRIMARY KEY  
+	PRIMARY KEY
 	(
 		pers_id,
 		doc_id
@@ -30,7 +30,7 @@ CREATE TABLE authors_docs (
 CREATE TABLE phones (
 	id int NOT NULL primary key,
 	phone varchar(255) NOT NULL ,
-	pers_id int NOT NULL 
+	pers_id int NOT NULL
 )
 unique hash on (id) pages=100;
 

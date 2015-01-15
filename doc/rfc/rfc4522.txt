@@ -56,7 +56,7 @@ Table of Contents
 
 
 Legg                        Standards Track                     [Page 1]
-
+
 RFC 4522            LDAP: The Binary Encoding Option           June 2006
 
 
@@ -112,7 +112,7 @@ RFC 4522            LDAP: The Binary Encoding Option           June 2006
 
 
 Legg                        Standards Track                     [Page 2]
-
+
 RFC 4522            LDAP: The Binary Encoding Option           June 2006
 
 
@@ -168,7 +168,7 @@ RFC 4522            LDAP: The Binary Encoding Option           June 2006
 
 
 Legg                        Standards Track                     [Page 3]
-
+
 RFC 4522            LDAP: The Binary Encoding Option           June 2006
 
 
@@ -224,7 +224,7 @@ RFC 4522            LDAP: The Binary Encoding Option           June 2006
 
 
 Legg                        Standards Track                     [Page 4]
-
+
 RFC 4522            LDAP: The Binary Encoding Option           June 2006
 
 
@@ -280,7 +280,7 @@ RFC 4522            LDAP: The Binary Encoding Option           June 2006
 
 
 Legg                        Standards Track                     [Page 5]
-
+
 RFC 4522            LDAP: The Binary Encoding Option           June 2006
 
 
@@ -336,7 +336,7 @@ RFC 4522            LDAP: The Binary Encoding Option           June 2006
 
 
 Legg                        Standards Track                     [Page 6]
-
+
 RFC 4522            LDAP: The Binary Encoding Option           June 2006
 
 
@@ -392,7 +392,7 @@ Author's Address
 
 
 Legg                        Standards Track                     [Page 7]
-
+
 RFC 4522            LDAP: The Binary Encoding Option           June 2006
 
 
@@ -448,4 +448,4 @@ Acknowledgement
 
 
 Legg                        Standards Track                     [Page 8]
-
+

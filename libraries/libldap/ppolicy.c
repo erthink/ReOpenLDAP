@@ -40,20 +40,20 @@
 
 /*---
    ldap_create_passwordpolicy_control
-   
+
    Create and encode the Password Policy Request
 
    ld        (IN)  An LDAP session handle, as obtained from a call to
 				   ldap_init().
-   
+
    ctrlp     (OUT) A result parameter that will be assigned the address
-				   of an LDAPControl structure that contains the 
+				   of an LDAPControl structure that contains the
 				   passwordPolicyRequest control created by this function.
 				   The memory occupied by the LDAPControl structure
 				   SHOULD be freed when it is no longer in use by
 				   calling ldap_control_free().
-					  
-   
+
+
    There is no control value for a password policy request
  ---*/
 
@@ -74,13 +74,13 @@ ldap_create_passwordpolicy_control( LDAP *ld,
 
 /*---
    ldap_parse_passwordpolicy_control
-   
+
    Decode the passwordPolicyResponse control and return information.
 
    ld           (IN)   An LDAP session handle.
-   
+
    ctrl         (IN)   The address of an
-					   LDAPControl structure, either obtained 
+					   LDAPControl structure, either obtained
 					   by running thorugh the list of response controls or
 					   by a call to ldap_control_find().
 
@@ -95,9 +95,9 @@ ldap_create_passwordpolicy_control( LDAP *ld,
 
    errorcodep   (OUT)  This result parameter is filled in with the error code of the password operation
                                            If no error was detected, this error is set to PP_noError.
-   
+
    Ber encoding
-   
+
    PasswordPolicyResponseValue ::= SEQUENCE {
        warning [0] CHOICE {
            timeBeforeExpiration [0] INTEGER (0 .. maxInt),
@@ -112,7 +112,7 @@ ldap_create_passwordpolicy_control( LDAP *ld,
            passwordTooShort       (6),
            passwordTooYoung       (7),
            passwordInHistory      (8) } OPTIONAL }
-           
+
 ---*/
 
 int
@@ -129,7 +129,7 @@ ldap_parse_passwordpolicy_control(
 	ber_len_t berLen;
         char *last;
 	int err = PP_noError;
-        
+
 	assert( ld != NULL );
 	assert( LDAP_VALID( ld ) );
 	assert( ctrl != NULL );
@@ -183,7 +183,7 @@ ldap_parse_passwordpolicy_control(
 	if (expirep) *expirep = exp;
 	if (gracep) *gracep = grace;
 	if (errorp) *errorp = err;
-        
+
 	ld->ld_errno = LDAP_SUCCESS;
 	return(ld->ld_errno);
 

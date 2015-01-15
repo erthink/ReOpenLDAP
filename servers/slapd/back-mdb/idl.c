@@ -101,7 +101,7 @@ unsigned mdb_idl_search( ID *ids, ID id )
 			return cursor;
 		}
 	}
-	
+
 	if( val > 0 ) {
 		++cursor;
 	}
@@ -170,7 +170,7 @@ int mdb_idl_insert( ID *ids, ID id )
 			ids[2] = ids[ids[0]-1];
 		}
 		ids[0] = NOID;
-	
+
 	} else {
 		/* insert id */
 		AC_MEMCPY( &ids[x+1], &ids[x], (ids[0]-x) * sizeof(ID) );
@@ -278,7 +278,7 @@ mdb_idl_fetch_key(
 	char keybuf[16];
 
 	Debug( LDAP_DEBUG_ARGS,
-		"mdb_idl_fetch_key: %s\n", 
+		"mdb_idl_fetch_key: %s\n",
 		mdb_show_key( keybuf, key->mv_data, key->mv_size ), 0, 0 );
 
 	assert( ids != NULL );
@@ -304,7 +304,7 @@ mdb_idl_fetch_key(
 	} else {
 		cursor = *saved_cursor;
 	}
-	
+
 	/* If this is a LE lookup, save original key so we can determine
 	 * when to stop. If this is a GE lookup, save the key since it
 	 * will be overwritten.
@@ -409,7 +409,7 @@ mdb_idl_insert_keys(
 	{
 		char buf[16];
 		Debug( LDAP_DEBUG_ARGS,
-			"mdb_idl_insert_keys: %lx %s\n", 
+			"mdb_idl_insert_keys: %lx %s\n",
 			(long) id, mdb_show_key( buf, keys->bv_val, keys->bv_len ), 0 );
 	}
 
@@ -568,7 +568,7 @@ mdb_idl_delete_keys(
 	{
 		char buf[16];
 		Debug( LDAP_DEBUG_ARGS,
-			"mdb_idl_delete_keys: %lx %s\n", 
+			"mdb_idl_delete_keys: %lx %s\n",
 			(long) id, mdb_show_key( buf, keys->bv_val, keys->bv_len ), 0 );
 	}
 	assert( id != NOID );
@@ -1090,7 +1090,7 @@ mdb_idl_sort( ID *ids, ID *tmp )
 #else
 
 /* 8 bit Radix sort + insertion sort
- * 
+ *
  * based on code from http://www.cubic.org/docs/radix.htm
  * with improvements by ebackes@symas.com and hyc@symas.com
  *
@@ -1188,7 +1188,7 @@ mdb_idl_sort( ID *ids, ID *tmp )
 	/* copy back from temp if needed */
 	if ( phase ) {
 		ids++; tmp++;
-		for ( count = 0; count < size; ++count ) 
+		for ( count = 0; count < size; ++count )
 			*ids++ = *tmp++;
 	}
 }

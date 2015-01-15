@@ -49,7 +49,7 @@ rwm_dn_massage_normalize(
 {
 	int		rc;
 	struct berval	mdn = BER_BVNULL;
-	
+
 	/* massage and normalize a DN */
 	rc = rwm_dn_massage( dc, in, &mdn );
 	if ( rc != LDAP_SUCCESS ) {
@@ -82,7 +82,7 @@ rwm_dn_massage_pretty(
 {
 	int		rc;
 	struct berval	mdn = BER_BVNULL;
-	
+
 	/* massage and pretty a DN */
 	rc = rwm_dn_massage( dc, in, &mdn );
 	if ( rc != LDAP_SUCCESS ) {
@@ -119,7 +119,7 @@ rwm_dn_massage_pretty_normalize(
 {
 	int		rc;
 	struct berval	mdn = BER_BVNULL;
-	
+
 	/* massage, pretty and normalize a DN */
 	rc = rwm_dn_massage( dc, in, &mdn );
 	if ( rc != LDAP_SUCCESS ) {
@@ -144,7 +144,7 @@ rwm_dn_massage_pretty_normalize(
 
 /*
  * massages "in" into "dn"
- * 
+ *
  * "dn" may contain the value of "in" if no massage occurred
  */
 int
@@ -183,7 +183,7 @@ rwm_dn_massage(
 			"[rw] %s: \"%s\" -> \"%s\"\n",
 			dc->ctx, in_val, dn->bv_val );
 		break;
- 		
+
  	case REWRITE_REGEXEC_UNWILLING:
 		if ( dc->rs ) {
 			dc->rs->sr_err = LDAP_UNWILLING_TO_PERFORM;
@@ -191,7 +191,7 @@ rwm_dn_massage(
 		}
 		rc = LDAP_UNWILLING_TO_PERFORM;
 		break;
-	       	
+
 	case REWRITE_REGEXEC_ERR:
 		if ( dc->rs ) {
 			dc->rs->sr_err = LDAP_OTHER;

@@ -37,7 +37,7 @@ mdb_extended( Operation *op, SlapReply *rs )
 	struct berval	**rspdata,
 	LDAPControl *** rspctrls,
 	const char**	text,
-	BerVarray	*refs 
+	BerVarray	*refs
 ) */
 {
 	int i;

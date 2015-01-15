@@ -90,7 +90,7 @@ passwd_back_search(
 			/* Use the first attribute of the DN
 		 	* as an attribute within the entry itself.
 		 	*/
-			if( ldap_bv2rdn( &op->o_req_dn, &rdn, &next, 
+			if( ldap_bv2rdn( &op->o_req_dn, &rdn, &next,
 				LDAP_DN_FORMAT_LDAP ) )
 			{
 				rs->sr_err = LDAP_INVALID_DN_SYNTAX;
@@ -117,7 +117,7 @@ passwd_back_search(
 			 */
 			BER_BVSTR( &val, "organizationalUnit" );
 			attr_merge_one( &e, ad_objectClass, &val, NULL );
-	
+
 			if ( test_filter( op, &e, op->ors_filter ) == LDAP_COMPARE_TRUE ) {
 				rs->sr_entry = &e;
 				rs->sr_attrs = op->ors_attrs;
@@ -215,7 +215,7 @@ passwd_back_search(
 
 		if ( ldap_bv2rdn( &op->o_req_dn, &rdn, &next,
 			LDAP_DN_FORMAT_LDAP ))
-		{ 
+		{
 			rs->sr_err = LDAP_OTHER;
 			goto done;
 		}

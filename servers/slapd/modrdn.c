@@ -13,7 +13,7 @@
  * <http://www.OpenLDAP.org/license.html>.
  */
 /* Portions Copyright 1999, Juan C. Gomez, All rights reserved.
- * This software is not subject to any license of Silicon Graphics 
+ * This software is not subject to any license of Silicon Graphics
  * Inc. or Purdue University.
  *
  * Redistribution and use in source and binary forms are permitted
@@ -83,7 +83,7 @@ do_modrdn(
 
 	if ( ber_peek_tag( op->o_ber, &length ) == LDAP_TAG_NEWSUPERIOR ) {
 		if ( op->o_protocol < LDAP_VERSION3 ) {
-			/* Connection record indicates v2 but field 
+			/* Connection record indicates v2 but field
 			 * newSuperior is present: report error.
 			 */
 			Debug( LDAP_DEBUG_ANY,
@@ -96,7 +96,7 @@ do_modrdn(
 			goto cleanup;
 		}
 
-		if ( ber_scanf( op->o_ber, "m", &newSuperior ) 
+		if ( ber_scanf( op->o_ber, "m", &newSuperior )
 		     == LBER_ERROR ) {
 
 			Debug( LDAP_DEBUG_ANY, "%s do_modrdn: ber_scanf(\"m\") failed\n",
@@ -130,7 +130,7 @@ do_modrdn(
 			op->o_log_prefix, 0, 0 );
 		/* get_ctrls has sent results.	Now clean up. */
 		goto cleanup;
-	} 
+	}
 
 	rs->sr_err = dnPrettyNormal( NULL, &dn, &op->o_req_dn, &op->o_req_ndn, op->o_tmpmemctx );
 	if( rs->sr_err != LDAP_SUCCESS ) {
@@ -195,8 +195,8 @@ cleanup:
 	op->o_tmpfree( op->o_req_dn.bv_val, op->o_tmpmemctx );
 	op->o_tmpfree( op->o_req_ndn.bv_val, op->o_tmpmemctx );
 
-	op->o_tmpfree( op->orr_newrdn.bv_val, op->o_tmpmemctx );	
-	op->o_tmpfree( op->orr_nnewrdn.bv_val, op->o_tmpmemctx );	
+	op->o_tmpfree( op->orr_newrdn.bv_val, op->o_tmpmemctx );
+	op->o_tmpfree( op->orr_nnewrdn.bv_val, op->o_tmpmemctx );
 
 	if ( op->orr_modlist != NULL )
 		slap_mods_free( op->orr_modlist, 1 );
@@ -217,7 +217,7 @@ fe_op_modrdn( Operation *op, SlapReply *rs )
 	struct berval	dest_ndn = BER_BVNULL, dest_pndn, pdn = BER_BVNULL;
 	BackendDB	*op_be, *bd = op->o_bd;
 	ber_slen_t	diff;
-	
+
 	if( op->o_req_ndn.bv_len == 0 ) {
 		Debug( LDAP_DEBUG_ANY, "%s do_modrdn: root dse!\n",
 			op->o_log_prefix, 0, 0 );
@@ -434,7 +434,7 @@ slap_modrdn2mods(
 				op->o_log_prefix,
 				rs->sr_text,
 				new_rdn[ a_cnt ]->la_attr.bv_val );
-			goto done;		
+			goto done;
 		}
 
 		if ( !desc->ad_type->sat_equality ) {
@@ -492,9 +492,9 @@ slap_modrdn2mods(
 				Debug( LDAP_DEBUG_TRACE,
 					"%s slap_modrdn2mods: %s: %s (old)\n",
 					op->o_log_prefix,
-					rs->sr_text, 
+					rs->sr_text,
 					old_rdn[d_cnt]->la_attr.bv_val );
-				goto done;		
+				goto done;
 			}
 
 			/* Apply modification */
@@ -523,7 +523,7 @@ slap_modrdn2mods(
 			op->orr_modlist = mod_tmp;
 		}
 	}
-	
+
 done:
 
 	/* LDAP v2 supporting correct attribute handling. */

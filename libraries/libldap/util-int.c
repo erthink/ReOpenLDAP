@@ -21,7 +21,7 @@
 /*
  * util-int.c	Various functions to replace missing threadsafe ones.
  *				Without the real *_r funcs, things will
- *				work, but might not be threadsafe. 
+ *				work, but might not be threadsafe.
  */
 
 #include "portable.h"
@@ -105,7 +105,7 @@ char *ldap_pvt_ctime( const time_t *tp, char *buf )
 	return ctime_r(tp,buf,26);
 # else
 	return ctime_r(tp,buf);
-# endif	  
+# endif
 
 #else
 
@@ -114,7 +114,7 @@ char *ldap_pvt_ctime( const time_t *tp, char *buf )
 	LDAP_MUTEX_UNLOCK( &ldap_int_ctime_mutex );
 
 	return buf;
-#endif	
+#endif
 }
 
 #if !defined( USE_GMTIME_R ) || !defined( USE_LOCALTIME_R )
@@ -327,7 +327,7 @@ static int copy_hostent( struct hostent *res,
 #endif
 
 int ldap_pvt_gethostbyname_a(
-	const char *name, 
+	const char *name,
 	struct hostent *resbuf,
 	char **buf,
 	struct hostent **result,
@@ -335,7 +335,7 @@ int ldap_pvt_gethostbyname_a(
 {
 #if defined( HAVE_GETHOSTBYNAME_R )
 
-# define NEED_SAFE_REALLOC 1   
+# define NEED_SAFE_REALLOC 1
 	int r=-1;
 	int buflen=BUFSTART;
 	*buf = NULL;
@@ -367,15 +367,15 @@ int ldap_pvt_gethostbyname_a(
 	}
 	return -1;
 #elif defined( LDAP_R_COMPILE )
-# define NEED_COPY_HOSTENT   
+# define NEED_COPY_HOSTENT
 	struct hostent *he;
 	int	retval;
 	*buf = NULL;
-	
+
 	LDAP_MUTEX_LOCK( &ldap_int_resolv_mutex );
-	
+
 	he = gethostbyname( name );
-	
+
 	if (he==NULL) {
 		*herrno_ptr = h_errno;
 		retval = -1;
@@ -386,11 +386,11 @@ int ldap_pvt_gethostbyname_a(
 		*result = resbuf;
 		retval = 0;
 	}
-	
+
 	LDAP_MUTEX_UNLOCK( &ldap_int_resolv_mutex );
-	
+
 	return retval;
-#else	
+#else
 	*buf = NULL;
 	*result = gethostbyname( name );
 
@@ -399,9 +399,9 @@ int ldap_pvt_gethostbyname_a(
 	}
 
 	*herrno_ptr = h_errno;
-	
+
 	return -1;
-#endif	
+#endif
 }
 
 #if !defined( HAVE_GETNAMEINFO ) && !defined( HAVE_HSTRERROR )
@@ -475,7 +475,7 @@ int ldap_pvt_get_hname(
 		rc = (hp == NULL) ? -1 : 0;
 #else
 		rc = gethostbyaddr_r( addr, alen, sa->sa_family,
-			&hb, buf, buflen, 
+			&hb, buf, buflen,
 			&hp, &h_errno );
 #endif
 #ifdef NETDB_INTERNAL
@@ -525,10 +525,10 @@ int ldap_pvt_gethostbyaddr_a(
 #if defined( HAVE_GETHOSTBYADDR_R )
 
 # undef NEED_SAFE_REALLOC
-# define NEED_SAFE_REALLOC   
+# define NEED_SAFE_REALLOC
 	int r=-1;
 	int buflen=BUFSTART;
-	*buf = NULL;   
+	*buf = NULL;
 	for(;buflen<BUFMAX;) {
 		if (safe_realloc( buf, buflen )==NULL)
 			return r;
@@ -538,7 +538,7 @@ int ldap_pvt_gethostbyaddr_a(
 		r = (*result == NULL) ? -1 : 0;
 #else
 		r = gethostbyaddr_r( addr, len, type,
-			resbuf, *buf, buflen, 
+			resbuf, *buf, buflen,
 			result, herrno_ptr );
 #endif
 
@@ -556,14 +556,14 @@ int ldap_pvt_gethostbyaddr_a(
 	return -1;
 #elif defined( LDAP_R_COMPILE )
 # undef NEED_COPY_HOSTENT
-# define NEED_COPY_HOSTENT   
+# define NEED_COPY_HOSTENT
 	struct hostent *he;
 	int	retval;
-	*buf = NULL;   
-	
+	*buf = NULL;
+
 	LDAP_MUTEX_LOCK( &ldap_int_resolv_mutex );
 	he = gethostbyaddr( addr, len, type );
-	
+
 	if (he==NULL) {
 		*herrno_ptr = h_errno;
 		retval = -1;
@@ -575,20 +575,20 @@ int ldap_pvt_gethostbyaddr_a(
 		retval = 0;
 	}
 	LDAP_MUTEX_UNLOCK( &ldap_int_resolv_mutex );
-	
+
 	return retval;
 
 #else /* gethostbyaddr() */
-	*buf = NULL;   
+	*buf = NULL;
 	*result = gethostbyaddr( addr, len, type );
 
 	if (*result!=NULL) {
 		return 0;
 	}
 	return -1;
-#endif	
+#endif
 }
-/* 
+/*
  * ldap_int_utils_init() should be called before any other function.
  */
 
@@ -637,7 +637,7 @@ static char *cpy_aliases(
 		*tgt++=buf;
 		buf+=len;
 	}
-	*tgtio=tgt;   
+	*tgtio=tgt;
 	return buf;
 }
 
@@ -653,7 +653,7 @@ static char *cpy_addresses(
 		*tgt++=buf;
 		buf+=len;
 	}
-	*tgtio=tgt;      
+	*tgtio=tgt;
 	return buf;
 }
 
@@ -671,14 +671,14 @@ static int copy_hostent(
 	int	n_addr=0;
 	int	total_addr_len=0;
 	int	total_len;
-	  
+
 	/* calculate the size needed for the buffer */
 	name_len = strlen( src->h_name ) + 1;
-	
+
 	if( src->h_aliases != NULL ) {
 		for( p = src->h_aliases; (*p) != NULL; p++ ) {
 			total_alias_len += strlen( *p ) + 1;
-			n_alias++; 
+			n_alias++;
 		}
 	}
 
@@ -688,11 +688,11 @@ static int copy_hostent(
 		}
 		total_addr_len = n_addr * src->h_length;
 	}
-	
+
 	total_len = (n_alias + n_addr + 2) * sizeof( char * ) +
 		total_addr_len + total_alias_len + name_len;
-	
-	if (safe_realloc( buf, total_len )) {			 
+
+	if (safe_realloc( buf, total_len )) {
 		tp = (char **) *buf;
 		tbuf = *buf + (n_alias + n_addr + 2) * sizeof( char * );
 		AC_MEMCPY( res, src, sizeof( struct hostent ) );
@@ -724,7 +724,7 @@ static char *safe_realloc( char **buf, int len )
 	tmpbuf = LDAP_REALLOC( *buf, len );
 	if (tmpbuf) {
 		*buf=tmpbuf;
-	} 
+	}
 	return tmpbuf;
 }
 #endif
@@ -775,7 +775,7 @@ char *ldap_pvt_gai_strerror (int code) {
 		{ EAI_MEMORY, N_("Memory allocation failure") },
 #ifdef EAI_NODATA
 		{ EAI_NODATA, N_("No address associated with hostname") },
-#endif    
+#endif
 		{ EAI_NONAME, N_("Name or service not known") },
 		{ EAI_SERVICE, N_("Servname not supported for ai_socktype") },
 		{ EAI_SOCKTYPE, N_("ai_socktype not supported") },
@@ -792,7 +792,7 @@ char *ldap_pvt_gai_strerror (int code) {
 			return (char *) _(values[i].msg);
 		}
 	}
-	
+
 	return _("Unknown error");
 }
 #endif

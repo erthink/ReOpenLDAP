@@ -23,7 +23,7 @@ LDAPMod* LDAPModification::toLDAPMod() const  {
     LDAPMod* ret=m_attr.toLDAPMod();
 
     //The mod_op value of the LDAPMod-struct needs to be ORed with the right
-    // LDAP_MOD_* constant to preserve the BIN-flag (see CAPI-draft for 
+    // LDAP_MOD_* constant to preserve the BIN-flag (see CAPI-draft for
     // explanation of the LDAPMod struct)
     switch (m_mod_op){
 	case OP_ADD :

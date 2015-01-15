@@ -85,7 +85,7 @@ main( int argc, char **argv )
 			if ( fgets( name, sizeof( name ), stdin ) == NULL )
 				exit( EXIT_SUCCESS );
 			name[ strlen( name ) - 1 ] = '\0';
-			if ( tavl_insert( &tree, strdup( name ), avl_strcmp, 
+			if ( tavl_insert( &tree, strdup( name ), avl_strcmp,
 			    avl_dup_error ) != 0 )
 				printf( "\nNot inserted!\n" );
 			break;

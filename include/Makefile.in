@@ -26,7 +26,7 @@ install-local: FORCE
 		$(INSTALL) $(INSTALLFLAGS) -m 644 $$header $(DESTDIR)$(includedir); \
 	done
 
-clean-local: FORCE 
+clean-local: FORCE
 	$(RM) ldap_config.h
 
 veryclean-local: clean-local FORCE

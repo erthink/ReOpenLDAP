@@ -17,27 +17,27 @@ using namespace std;
 
 LDAPModifyRequest::LDAPModifyRequest(const LDAPModifyRequest& req) :
         LDAPRequest(req){
-    DEBUG(LDAP_DEBUG_CONSTRUCT, 
+    DEBUG(LDAP_DEBUG_CONSTRUCT,
             "LDAPModifyRequest::LDAPModifyRequest(&)" << endl);
     m_modList = new LDAPModList(*(req.m_modList));
     m_dn = req.m_dn;
 }
 
-LDAPModifyRequest::LDAPModifyRequest(const string& dn, 
+LDAPModifyRequest::LDAPModifyRequest(const string& dn,
         const LDAPModList *modList, LDAPAsynConnection *connect,
         const LDAPConstraints *cons, bool isReferral,
         const LDAPRequest* parent) :
         LDAPRequest(connect, cons, isReferral, parent){
-    DEBUG(LDAP_DEBUG_CONSTRUCT, 
-            "LDAPModifyRequest::LDAPModifyRequest(&)" << endl);            
-    DEBUG(LDAP_DEBUG_CONSTRUCT | LDAP_DEBUG_PARAMETER, 
+    DEBUG(LDAP_DEBUG_CONSTRUCT,
+            "LDAPModifyRequest::LDAPModifyRequest(&)" << endl);
+    DEBUG(LDAP_DEBUG_CONSTRUCT | LDAP_DEBUG_PARAMETER,
             "   dn:" << dn << endl);
     m_dn = dn;
     m_modList = new LDAPModList(*modList);
 }
 
 LDAPModifyRequest::~LDAPModifyRequest(){
-    DEBUG(LDAP_DEBUG_DESTROY, 
+    DEBUG(LDAP_DEBUG_DESTROY,
             "LDAPModifyRequest::~LDAPModifyRequest()" << endl);
     delete m_modList;
 }

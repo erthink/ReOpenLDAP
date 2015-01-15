@@ -43,7 +43,7 @@ int lutil_pair( ber_socket_t sds[2] )
 	if ( sd == AC_SOCKET_INVALID ) {
 		return sd;
 	}
-	
+
 	(void) memset( (void*) &si, '\0', len );
 	si.sin_family = AF_INET;
 	si.sin_port = 0;

@@ -34,7 +34,7 @@ class LDAPAttributeList{
          * Copy-constructor
          */
         LDAPAttributeList(const LDAPAttributeList& al);
-        
+
         /**
          * For internal use only
          *
@@ -46,7 +46,7 @@ class LDAPAttributeList{
 
         /**
          * Constructs an empty list.
-         */   
+         */
         LDAPAttributeList();
 
         /**
@@ -70,7 +70,7 @@ class LDAPAttributeList{
          * @return A iterator that points to the first element of the list.
          */
         const_iterator begin() const;
-        
+
         /**
          * @return A iterator that points to the element after the last
          * element of the list.
@@ -80,7 +80,7 @@ class LDAPAttributeList{
 	/**
 	 * Get an Attribute by its AttributeType
 	 * @param name The name of the Attribute to look for
-	 * @return a pointer to the LDAPAttribute with the AttributeType 
+	 * @return a pointer to the LDAPAttribute with the AttributeType
 	 *	"name" or 0, if there is no Attribute of that Type
 	 */
 	const LDAPAttribute* getAttributeByName(const std::string& name) const;
@@ -90,7 +90,7 @@ class LDAPAttributeList{
          * @param attr The attribute to add to the list.
          */
         void addAttribute(const LDAPAttribute& attr);
-        
+
         /**
          * Deletes all values of an Attribute for the list
          * @param type The attribute type to be deleted.
@@ -108,12 +108,12 @@ class LDAPAttributeList{
          * LDAPMod-structures as needed by the C-API
          */
         LDAPMod** toLDAPModArray() const;
-        
+
         /**
          * This method can be used to dump the data of a LDAPResult-Object.
          * It is only useful for debugging purposes at the moment
          */
-        friend std::ostream& operator << (std::ostream& s, 
+        friend std::ostream& operator << (std::ostream& s,
 					  const LDAPAttributeList& al);
 };
 

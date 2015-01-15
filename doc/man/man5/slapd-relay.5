@@ -9,8 +9,8 @@ ETCDIR/slapd.conf
 .SH DESCRIPTION
 The primary purpose of this
 .BR slapd (8)
-backend is to map a naming context defined in a database 
-running in the same 
+backend is to map a naming context defined in a database
+running in the same
 .BR slapd (8)
 instance into a virtual naming context, with attributeType
 and objectClass manipulation, if required.
@@ -29,12 +29,12 @@ Other database options are described in the
 .BR slapd.conf (5)
 manual page; only the
 .B suffix
-directive is allowed by the 
+directive is allowed by the
 .I relay
 backend.
 .TP
 .B relay <real naming context>
-The naming context of the database that is presented 
+The naming context of the database that is presented
 under a virtual naming context.
 The presence of this directive implies that one specific database,
 i.e. the one serving the
@@ -78,7 +78,7 @@ Examples are reported in the EXAMPLES section.
 .LP
 If no
 .B relay
-directive is given, the 
+directive is given, the
 .I relay
 database does not refer to any specific database, but the most
 appropriate one is looked-up after rewriting the request DN
@@ -86,11 +86,11 @@ for the operation that is being handled.
 .LP
 This allows to write carefully crafted rewrite rules that
 cause some of the requests to be directed to one database, and
-some to another; e.g., authentication can be mapped to one 
+some to another; e.g., authentication can be mapped to one
 database, and searches to another, or different target databases
 can be selected based on the DN of the request, and so.
 .LP
-Another possibility is to map the same operation to different 
+Another possibility is to map the same operation to different
 databases based on details of the virtual naming context,
 e.g. groups on one database and persons on another.
 .LP
@@ -139,7 +139,7 @@ back from the real to the virtual naming context, use
   rwm\-rewriteContext      matchedDN
 .fi
 .LP
-Note that the 
+Note that the
 .BR slapo\-rwm (5)
 overlay is instantiated, but the rewrite rules are written explicitly,
 rather than automatically as with the
@@ -169,14 +169,14 @@ Access rules:
           by * read
 .fi
 .LP
-Note that, in both databases, the identities (the 
-.B <who> 
+Note that, in both databases, the identities (the
+.B <who>
 clause) are in the
 .BR "real naming context" ,
 i.e.
 .BR "`dc=example,dc=com'" ,
-while the targets (the 
-.B <what> 
+while the targets (the
+.B <what>
 clause) are in the
 .B real
 and in the

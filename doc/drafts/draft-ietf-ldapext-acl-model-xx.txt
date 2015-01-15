@@ -60,7 +60,7 @@ protocol.  The current LDAP APIs are sufficient for most
 
 
 Stokes, et al      Expires 14 January 2001          [Page 1]
-
+
 
 
 
@@ -124,7 +124,7 @@ requests should be granted or denied.  In order to make a
 
 
 Stokes, et al      Expires 14 January 2001          [Page 2]
-
+
 
 
 
@@ -188,7 +188,7 @@ The access control model defines
 
 
 Stokes, et al      Expires 14 January 2001          [Page 3]
-
+
 
 
 
@@ -252,7 +252,7 @@ in either the same subtree or separate subtrees.  If two
 
 
 Stokes, et al      Expires 14 January 2001          [Page 4]
-
+
 
 
 
@@ -316,7 +316,7 @@ discloseOnError.  The default for discloseOnError is false
 
 
 Stokes, et al      Expires 14 January 2001          [Page 5]
-
+
 
 
 
@@ -380,7 +380,7 @@ scope of that subentry.
 
 
 Stokes, et al      Expires 14 January 2001          [Page 6]
-
+
 
 
 
@@ -444,7 +444,7 @@ The attribute is defined so access control information (ACI)
 
 
 Stokes, et al      Expires 14 January 2001          [Page 7]
-
+
 
 
 
@@ -508,7 +508,7 @@ given below.
 
 
 Stokes, et al      Expires 14 January 2001          [Page 8]
-
+
 
 
 
@@ -572,7 +572,7 @@ representation.
 
 
 Stokes, et al      Expires 14 January 2001          [Page 9]
-
+
 
 
 
@@ -636,7 +636,7 @@ Internet-Draft      Access Control Model        14 July 2000
 
 
 Stokes, et al      Expires 14 January 2001         [Page 10]
-
+
 
 
 
@@ -700,7 +700,7 @@ Permissions which apply to attributes:
 
 
 Stokes, et al      Expires 14 January 2001         [Page 11]
-
+
 
 
 
@@ -764,7 +764,7 @@ Permissions that apply to an entire entry:
 
 
 Stokes, et al      Expires 14 January 2001         [Page 12]
-
+
 
 
 
@@ -828,7 +828,7 @@ Internet-Draft      Access Control Model        14 July 2000
 
 
 Stokes, et al      Expires 14 January 2001         [Page 13]
-
+
 
 
 
@@ -892,7 +892,7 @@ schema, the server SHOULD report an error. "[entry]" means
 
 
 Stokes, et al      Expires 14 January 2001         [Page 14]
-
+
 
 
 
@@ -956,7 +956,7 @@ particular piece of information is based on several pieces
 
 
 Stokes, et al      Expires 14 January 2001         [Page 15]
-
+
 
 
 
@@ -1020,7 +1020,7 @@ Access Decision algorithm:
 
 
 Stokes, et al      Expires 14 January 2001         [Page 16]
-
+
 
 
 
@@ -1084,7 +1084,7 @@ attributes within entries.
 
 
 Stokes, et al      Expires 14 January 2001         [Page 17]
-
+
 
 
 
@@ -1148,7 +1148,7 @@ with dn candidateDN to decide if it may be returned or not.
 
 
 Stokes, et al      Expires 14 January 2001         [Page 18]
-
+
 
 
 
@@ -1212,7 +1212,7 @@ evaluated are as follows:
 
 
 Stokes, et al      Expires 14 January 2001         [Page 19]
-
+
 
 
 
@@ -1276,7 +1276,7 @@ Internet-Draft      Access Control Model        14 July 2000
 
 
 Stokes, et al      Expires 14 January 2001         [Page 20]
-
+
 
 
 
@@ -1340,7 +1340,7 @@ evaluated are as follows:
 
 
 Stokes, et al      Expires 14 January 2001         [Page 21]
-
+
 
 
 
@@ -1404,7 +1404,7 @@ would prevent even admins deleting the entry and general
 
 
 Stokes, et al      Expires 14 January 2001         [Page 22]
-
+
 
 
 
@@ -1468,7 +1468,7 @@ evaluated are as follows:
 
 
 Stokes, et al      Expires 14 January 2001         [Page 23]
-
+
 
 
 
@@ -1532,7 +1532,7 @@ If they are all granted then the operation MAY proceed.
 
 
 Stokes, et al      Expires 14 January 2001         [Page 24]
-
+
 
 
 
@@ -1596,7 +1596,7 @@ distribution via referrals is treated in the "Referrals"
 
 
 Stokes, et al      Expires 14 January 2001         [Page 25]
-
+
 
 
 
@@ -1660,7 +1660,7 @@ is public.
 
 
 Stokes, et al      Expires 14 January 2001         [Page 26]
-
+
 
 
 
@@ -1724,7 +1724,7 @@ Authentication of a specified type is not required.
 
 
 Stokes, et al      Expires 14 January 2001         [Page 27]
-
+
 
 
 
@@ -1788,7 +1788,7 @@ ldapACI: subtree#grant:r,w#[all]#group:cn=Dept XYZ
 
 
 Stokes, et al      Expires 14 January 2001         [Page 28]
-
+
 
 
 
@@ -1852,7 +1852,7 @@ implementation's inheritance model.
 
 
 Stokes, et al      Expires 14 January 2001         [Page 29]
-
+
 
 
 
@@ -1916,7 +1916,7 @@ cn=jsmith is a member of group cn=G2.
 
 
 Stokes, et al      Expires 14 January 2001         [Page 30]
-
+
 
 
 
@@ -1980,7 +1980,7 @@ A history is a sequence of actions (x1, x2, ..., xN).
 
 
 Stokes, et al      Expires 14 January 2001         [Page 31]
-
+
 
 
 
@@ -2044,7 +2044,7 @@ The semantics of histories are defined as follows:
 
 
 Stokes, et al      Expires 14 January 2001         [Page 32]
-
+
 
 
 
@@ -2108,7 +2108,7 @@ Internet-Draft      Access Control Model        14 July 2000
 
 
 Stokes, et al      Expires 14 January 2001         [Page 33]
-
+
 
 
 
@@ -2172,7 +2172,7 @@ Internet-Draft      Access Control Model        14 July 2000
 
 
 Stokes, et al      Expires 14 January 2001         [Page 34]
-
+
 
 
 
@@ -2236,7 +2236,7 @@ LDAPMessage, as  defined in  Section  4.1.12 of [LDAPv3].
 
 
 Stokes, et al      Expires 14 January 2001         [Page 35]
-
+
 
 
 
@@ -2300,7 +2300,7 @@ encoding of a value of the following SEQUENCE:
 
 
 Stokes, et al      Expires 14 January 2001         [Page 36]
-
+
 
 
 
@@ -2364,7 +2364,7 @@ search request:
 
 
 Stokes, et al      Expires 14 January 2001         [Page 37]
-
+
 
 
 
@@ -2428,7 +2428,7 @@ manipulating other directory information.
 
 
 Stokes, et al      Expires 14 January 2001         [Page 38]
-
+
 
 
 
@@ -2492,7 +2492,7 @@ return only the response fields from LDAPResult, containing
 
 
 Stokes, et al      Expires 14 January 2001         [Page 39]
-
+
 
 
 
@@ -2556,7 +2556,7 @@ Specifications: ABNF", RFC 2234, November 1997.
 
 
 Stokes, et al      Expires 14 January 2001         [Page 40]
-
+
 
 
 
@@ -2620,7 +2620,7 @@ AUTHOR(S) ADDRESS
 
 
 Stokes, et al      Expires 14 January 2001         [Page 41]
-
+
 
 
 
@@ -2684,7 +2684,7 @@ Internet-Draft      Access Control Model        14 July 2000
 
 
 Stokes, et al      Expires 14 January 2001         [Page 42]
-
+
 
 
 

@@ -32,7 +32,7 @@ class LDAPExtResult : public LDAPResult {
 
         /**
          * @returns The OID of the Extended Operation that has returned
-         *          this result. 
+         *          this result.
          */
         const std::string& getResponseOid() const;
 

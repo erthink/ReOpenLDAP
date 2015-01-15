@@ -1,25 +1,25 @@
 /*
  * NeoSoft Tcl client extensions to Lightweight Directory Access Protocol.
- * 
- * Copyright (c) 1998-1999 NeoSoft, Inc.  
+ *
+ * Copyright (c) 1998-1999 NeoSoft, Inc.
  * All Rights Reserved.
- * 
+ *
  * This software may be used, modified, copied, distributed, and sold,
  * in both source and binary form provided that these copyrights are
  * retained and their terms are followed.
- * 
+ *
  * Under no circumstances are the authors or NeoSoft Inc. responsible
  * for the proper functioning of this software, nor do the authors
  * assume any liability for damages incurred with its use.
- * 
+ *
  * Redistribution and use in source and binary forms are permitted
  * provided that this notice is preserved and that due credit is given
  * to NeoSoft, Inc.
- * 
+ *
  * NeoSoft, Inc. may not be used to endorse or promote products derived
  * from this software without specific prior written permission. This
  * software is provided ``as is'' without express or implied warranty.
- * 
+ *
  * Requests for permission may be sent to NeoSoft Inc, 1770 St. James Place,
  * Suite 500, Houston, TX, 77056.
  *
@@ -167,7 +167,7 @@ LDAP_ErrorStringToCode(Tcl_Interp *interp, char *s)
 
 /*-----------------------------------------------------------------------------
  * LDAP_ProcessOneSearchResult --
- * 
+ *
  *   Process one result return from an LDAP search.
  *
  * Paramaters:
@@ -192,8 +192,8 @@ LDAP_ProcessOneSearchResult (interp, ldap, entry, destArrayNameObj, evalCodeObj)
     char           *attributeName;
     Tcl_Obj        *attributeNameObj;
     Tcl_Obj        *attributeDataObj;
-    int             i; 
-    BerElement     *ber; 
+    int             i;
+    BerElement     *ber;
     struct berval **bvals;
     char	   *dn;
     int		    lderrno;
@@ -217,7 +217,7 @@ LDAP_ProcessOneSearchResult (interp, ldap, entry, destArrayNameObj, evalCodeObj)
        must be freed with ldap_memfree().  Test below is admittedly a hack.
     */
 
-    for (attributeName = ldap_first_attribute (ldap, entry, &ber); 
+    for (attributeName = ldap_first_attribute (ldap, entry, &ber);
       attributeName != NULL;
       attributeName = ldap_next_attribute(ldap, entry, ber)) {
 
@@ -239,9 +239,9 @@ LDAP_ProcessOneSearchResult (interp, ldap, entry, destArrayNameObj, evalCodeObj)
 		Tcl_Obj *singleAttributeValueObj;
 
 		singleAttributeValueObj = Tcl_NewStringObj(bvals[i]->bv_val, bvals[i]->bv_len);
-		if (Tcl_ListObjAppendElement (interp, 
-					      attributeDataObj, 
-					      singleAttributeValueObj) 
+		if (Tcl_ListObjAppendElement (interp,
+					      attributeDataObj,
+					      singleAttributeValueObj)
 		  == TCL_ERROR) {
 		    ber_free(ber, 0);
 		    return TCL_ERROR;
@@ -250,7 +250,7 @@ LDAP_ProcessOneSearchResult (interp, ldap, entry, destArrayNameObj, evalCodeObj)
 
 	    ldap_value_free_len(bvals);
 
-	    if (Tcl_ObjSetVar2 (interp, 
+	    if (Tcl_ObjSetVar2 (interp,
 				destArrayNameObj,
 				attributeNameObj,
 				attributeDataObj,
@@ -265,7 +265,7 @@ LDAP_ProcessOneSearchResult (interp, ldap, entry, destArrayNameObj, evalCodeObj)
 
 /*-----------------------------------------------------------------------------
  * LDAP_PerformSearch --
- * 
+ *
  *   Perform an LDAP search.
  *
  * Paramaters:
@@ -285,7 +285,7 @@ LDAP_ProcessOneSearchResult (interp, ldap, entry, destArrayNameObj, evalCodeObj)
  *   o TCL_ERROR if an error occured, with error message in interp.
  *-----------------------------------------------------------------------------
  */
-int 
+int
 LDAP_PerformSearch (interp, ldaptcl, base, scope, attrs, filtpatt, value,
 	destArrayNameObj, evalCodeObj, timeout_p, all, sortattr)
     Tcl_Interp     *interp;
@@ -343,8 +343,8 @@ LDAP_PerformSearch (interp, ldaptcl, base, scope, attrs, filtpatt, value,
 	entryMessage = ldap_first_entry(ldap, resultMessage);
 
 	while (entryMessage) {
-	    tclResult = LDAP_ProcessOneSearchResult  (interp, 
-				    ldap, 
+	    tclResult = LDAP_ProcessOneSearchResult  (interp,
+				    ldap,
 				    entryMessage,
 				    destArrayNameObj,
 				    evalCodeObj);
@@ -411,16 +411,16 @@ LDAP_PerformSearch (interp, ldaptcl, base, scope, attrs, filtpatt, value,
 
 /*-----------------------------------------------------------------------------
  * NeoX_LdapTargetObjCmd --
- *  
+ *
  * Implements the body of commands created by Neo_LdapObjCmd.
- *  
+ *
  * Results:
  *      A standard Tcl result.
- *      
+ *
  * Side effects:
  *      See the user documentation.
  *-----------------------------------------------------------------------------
- */     
+ */
 int
 NeoX_LdapTargetObjCmd (clientData, interp, objc, objv)
     ClientData    clientData;
@@ -483,7 +483,7 @@ NeoX_LdapTargetObjCmd (clientData, interp, objc, objv)
 				    "\"",
 				    command,
 				    " ",
-				    subCommand, 
+				    subCommand,
 #ifdef UMICH_LDAP
 				    "\" authtype must be one of \"simple\", ",
 				    "\"kerberos_ldap\", \"kerberos_dsa\" ",
@@ -512,9 +512,9 @@ NeoX_LdapTargetObjCmd (clientData, interp, objc, objv)
 #define LDAP_BIND(ldap, dn, pw, method) \
   ldap_simple_bind_s(ldap, dn, pw)
 #endif
-	if ((errcode = LDAP_BIND (ldap, 
-			 binddn, 
-			 passwd, 
+	if ((errcode = LDAP_BIND (ldap,
+			 binddn,
+			 passwd,
 			 ldap_authInt)) != LDAP_SUCCESS) {
 
 	    Tcl_AppendStringsToObj (resultObj,
@@ -687,9 +687,9 @@ NeoX_LdapTargetObjCmd (clientData, interp, objc, objv)
 		valPtrs [j] = Tcl_GetStringFromObj (valuesObjv[j], NULL);
 
 		/* If it's "delete" and value is an empty string, make
-		 * value be NULL to indicate entire attribute is to be 
+		 * value be NULL to indicate entire attribute is to be
 		 * deleted */
-		if ((*valPtrs [j] == '\0') 
+		if ((*valPtrs [j] == '\0')
 		    && (mod->mod_op == LDAP_MOD_DELETE || mod->mod_op == LDAP_MOD_REPLACE)) {
 			valPtrs [j] = NULL;
 		}
@@ -798,8 +798,8 @@ badop:
 
 	evalCodeObj = objv [4];
 
-	baseString = Tcl_GetVar2 (interp, 
-				  controlArrayName, 
+	baseString = Tcl_GetVar2 (interp,
+				  controlArrayName,
 				  "base",
 				  0);
 
@@ -828,7 +828,7 @@ badop:
 	if (scopeString == NULL) {
 	    scope = LDAP_SCOPE_SUBTREE;
 	} else {
-	    if (STREQU(scopeString, "base")) 
+	    if (STREQU(scopeString, "base"))
 		scope = LDAP_SCOPE_BASE;
 	    else if (STRNEQU(scopeString, "one", 3))
 		scope = LDAP_SCOPE_ONELEVEL;
@@ -846,7 +846,7 @@ badop:
 	    }
 	}
 
-#ifdef LDAP_OPT_DEREF				      
+#ifdef LDAP_OPT_DEREF
 	/* Fetch dereference control setting from control array.
 	 * If it doesn't exist, default to never dereference. */
 	derefString = Tcl_GetVar2 (interp,
@@ -882,14 +882,14 @@ badop:
 	 */
 	attributesString = Tcl_GetVar2 (interp,
 				        controlArrayName,
-				        "attributes", 
+				        "attributes",
 				        0);
 	if (attributesString == (char *)NULL) {
 	    attributesArray = NULL;
 	} else {
-	    if ((Tcl_SplitList (interp, 
+	    if ((Tcl_SplitList (interp,
 				attributesString,
-				&attributesArgc, 
+				&attributesArgc,
 				&attributesArray)) != TCL_OK) {
 		return TCL_ERROR;
 	    }
@@ -899,7 +899,7 @@ badop:
 	 */
 	timeoutString = Tcl_GetVar2 (interp,
 				        controlArrayName,
-				        "timeout", 
+				        "timeout",
 				        0);
 	timeout.tv_usec = 0;
 	if (timeoutString == (char *)NULL) {
@@ -928,9 +928,9 @@ badop:
 	sortattr = Tcl_GetVar2 (interp, controlArrayName, "sort", 0);
 
 #ifdef UMICH_LDAP
-	ldap->ld_deref = deref; 
+	ldap->ld_deref = deref;
 	ldap->ld_timelimit = 0;
-	ldap->ld_sizelimit = 0; 
+	ldap->ld_sizelimit = 0;
 	ldap->ld_options = 0;
 #endif
 
@@ -955,12 +955,12 @@ badop:
 	ldap_set_option(ldap, LDAP_OPT_DEREF, &deref);
 #endif
 
-	tclResult = LDAP_PerformSearch (interp, 
-			            ldaptcl, 
-			            baseString, 
-			            scope, 
-			            attributesArray, 
-			            filterPatternString, 
+	tclResult = LDAP_PerformSearch (interp,
+			            ldaptcl,
+			            baseString,
+			            scope,
+			            attributesArray,
+			            filterPatternString,
 			            "",
 			            destArrayNameObj,
 			            evalCodeObj,
@@ -993,7 +993,7 @@ badop:
 	int	     lderrno;
 
 	if (objc != 5) {
-	    Tcl_WrongNumArgs (interp, 
+	    Tcl_WrongNumArgs (interp,
 				   2, objv,
 				   "dn attribute value");
 	    return TCL_ERROR;
@@ -1002,7 +1002,7 @@ badop:
 	dn = Tcl_GetStringFromObj (objv[2], NULL);
 	attr = Tcl_GetStringFromObj (objv[3], NULL);
 	value = Tcl_GetStringFromObj (objv[4], NULL);
-	
+
 	result = ldap_compare_s (ldap, dn, attr, value);
 	if (result == LDAP_COMPARE_TRUE || result == LDAP_COMPARE_FALSE) {
 	    Tcl_SetBooleanObj(resultObj, result == LDAP_COMPARE_TRUE);
@@ -1032,7 +1032,7 @@ badop:
 	    char *dn;
 
 	    if (objc != 4) {
-		Tcl_WrongNumArgs (interp, 
+		Tcl_WrongNumArgs (interp,
 				       3, objv,
 				       "dn");
 		return TCL_ERROR;
@@ -1058,7 +1058,7 @@ badop:
 	    }
 	    if (timeout == 0) {
 		Tcl_SetStringObj(resultObj,
-		    objc > 3 ? "timeouts must be greater than 0" : 
+		    objc > 3 ? "timeouts must be greater than 0" :
 		    "no previous timeout to reference", -1);
 		return TCL_ERROR;
 	    }
@@ -1118,8 +1118,8 @@ badop:
 				"\"",
 				command,
 				" ",
-				subCommand, 
-				"\" subcommand", 
+				subCommand,
+				"\" subcommand",
 				" must be one of \"enable\", ",
 				"\"disable\", ",
 				"\"destroy\", \"flush\", \"uncache\", ",
@@ -1148,7 +1148,7 @@ badop:
 	    if (ldaptcl->traplist) {
 		listObj = Tcl_NewObj();
 		for (p = ldaptcl->traplist; *p; p++) {
-		    Tcl_ListObjAppendElement(interp, listObj, 
+		    Tcl_ListObjAppendElement(interp, listObj,
 			Tcl_NewStringObj(ldaptclerrorcode[*p], -1));
 		}
 		Tcl_ListObjAppendElement(interp, resultObj, listObj);
@@ -1215,8 +1215,8 @@ badop:
 
     /* FIX: this needs to enumerate all the possibilities */
     Tcl_AppendStringsToObj (resultObj,
-	                    "subcommand \"", 
-			    subCommand, 
+	                    "subcommand \"",
+			    subCommand,
 			    "\" must be one of \"add\", ",
 			    "\"add_attributes\", ",
 			    "\"bind\", \"cache\", \"delete\", ",
@@ -1228,7 +1228,7 @@ badop:
     return TCL_ERROR;
 }
 
-/* 
+/*
  * Delete and LDAP command object
  *
  */
@@ -1249,18 +1249,18 @@ NeoX_LdapObjDeleteCmd(clientData)
 
 /*-----------------------------------------------------------------------------
  * NeoX_LdapObjCmd --
- *  
+ *
  * Implements the `ldap' command:
  *    ldap open newObjName host [port]
  *    ldap init newObjName host [port]
- *  
+ *
  * Results:
  *      A standard Tcl result.
- *      
+ *
  * Side effects:
  *      See the user documentation.
  *-----------------------------------------------------------------------------
- */     
+ */
 static int
 NeoX_LdapObjCmd (clientData, interp, objc, objv)
     ClientData    clientData;
@@ -1413,15 +1413,15 @@ NeoX_LdapObjCmd (clientData, interp, objc, objv)
 	    ldap_set_option(ldap, LDAP_OPT_PROTOCOL_VERSION, &version);
 #endif
     } else {
-	Tcl_AppendStringsToObj (resultObj, 
+	Tcl_AppendStringsToObj (resultObj,
 				"option was not \"open\" or \"init\"");
 	return TCL_ERROR;
     }
 
     if (ldap == (LDAP *)NULL) {
 	Tcl_SetErrno(errno);
-	Tcl_AppendStringsToObj (resultObj, 
-				Tcl_PosixError (interp), 
+	Tcl_AppendStringsToObj (resultObj,
+				Tcl_PosixError (interp),
 				(char *)NULL);
 	return TCL_ERROR;
     }
@@ -1451,7 +1451,7 @@ NeoX_LdapObjCmd (clientData, interp, objc, objv)
  * Neo_initLDAP --
  *     Initialize the LDAP interface.
  *-----------------------------------------------------------------------------
- */     
+ */
 int
 Ldaptcl_Init (interp)
 Tcl_Interp   *interp;

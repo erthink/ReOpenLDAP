@@ -8,17 +8,17 @@ create table ldap_oc_mappings (
 	expect_return number not null
 );
 
-alter table ldap_oc_mappings add 
+alter table ldap_oc_mappings add
 	constraint PK_ldap_oc_mappings primary key
 	(
 		id
-	); 
+	);
 
-alter table ldap_oc_mappings add 
+alter table ldap_oc_mappings add
 	constraint unq_ldap_oc_mappings unique
 	(
 		name
-	);  
+	);
 
 create table ldap_attr_mappings (
 	id number not null,
@@ -34,11 +34,11 @@ create table ldap_attr_mappings (
 	expect_return number not null
 );
 
-alter table ldap_attr_mappings add 
+alter table ldap_attr_mappings add
 	constraint pk_ldap_attr_mappings primary key
 	(
 		id
-	); 
+	);
 
 
 create table ldap_entries (
@@ -47,27 +47,27 @@ create table ldap_entries (
 	dn_ru varchar2(255),
 	oc_map_id number not null references ldap_oc_mappings(id),
 	parent number not null ,
-	keyval number not null 
+	keyval number not null
 );
 
-alter table ldap_entries add 
+alter table ldap_entries add
 	constraint PK_ldap_entries primary key
 	(
 		id
-	); 
+	);
 
-alter table ldap_entries add 
+alter table ldap_entries add
 	constraint unq1_ldap_entries unique
 	(
 		oc_map_id,
 		keyval
-	);  
+	);
 
-alter table ldap_entries add 
+alter table ldap_entries add
 	constraint unq2_ldap_entries unique
 	(
 		dn
-	);  
+	);
 
 create sequence ldap_objclass_ids start with 1 increment by 1;
 

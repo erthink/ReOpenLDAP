@@ -133,7 +133,7 @@ syn_insert(
 	struct sindexrec	*sir;
 
 	LDAP_STAILQ_NEXT( ssyn, ssyn_next ) = NULL;
- 
+
 	if ( ssyn->ssyn_oid ) {
 		sir = (struct sindexrec *)
 			SLAP_CALLOC( 1, sizeof(struct sindexrec) );
@@ -255,7 +255,7 @@ syn_add(
 
 		for ( cnt = 0; def->sd_sups[cnt] != NULL; cnt++ )
 			;
-		
+
 		ssyn->ssyn_sups = (Syntax **)SLAP_CALLOC( cnt + 1,
 			sizeof( Syntax * ) );
 		if ( ssyn->ssyn_sups == NULL ) {

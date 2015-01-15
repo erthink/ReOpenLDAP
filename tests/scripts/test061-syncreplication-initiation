@@ -548,7 +548,7 @@ EOF
 				break
 			fi
 			i=`expr $i + 1`
-		done	
+		done
 		if test $ERROR != 0; then break; fi
 	done
 	if test $ERROR != 0; then break; fi
@@ -614,7 +614,7 @@ EOF
 				break
 			fi
 			i=`expr $i + 1`
-		done	
+		done
 		if test $ERROR != 0; then break; fi
 	done
 	if test $ERROR != 0; then break; fi

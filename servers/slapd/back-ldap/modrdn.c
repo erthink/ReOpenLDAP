@@ -69,7 +69,7 @@ ldap_back_modrdn(
 			send_ldap_result( op, rs );
 			goto cleanup;
 		}
-		
+
 		newSup = op->orr_newSup->bv_val;
 	}
 

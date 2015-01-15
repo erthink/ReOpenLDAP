@@ -43,7 +43,7 @@ static tls_optmap_t optmap[] = {
         static const int TLS_SSL_CTX  /* OpenSSL SSL* */
         static const int TLS_CONNECT_CB
         static const int TLS_CONNECT_ARG
-#endif 
+#endif
 
 static void checkOpt( TlsOptions::tls_option opt, opttype type ) {
     if ( opt < TlsOptions::CACERTFILE || opt >= TlsOptions::LASTOPT ){

@@ -27,7 +27,7 @@ OBJS = init.lo tools.lo config.lo \
 	dn2entry.lo dn2id.lo id2entry.lo idl.lo \
 	nextid.lo monitor.lo mdb.lo midl.lo
 
-LDAP_INCDIR= ../../../include       
+LDAP_INCDIR= ../../../include
 LDAP_LIBDIR= ../../../libraries
 MDB_SUBDIR = $(srcdir)/$(LDAP_LIBDIR)/liblmdb
 

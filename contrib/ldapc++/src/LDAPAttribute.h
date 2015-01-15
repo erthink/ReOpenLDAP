@@ -11,16 +11,16 @@
 #include<iostream>
 #include<string>
 #include<ldap.h>
-#include<lber.h> 
+#include<lber.h>
 
 #include <StringList.h>
 
 /**
- * Represents the name an value(s) of an Attribute 
+ * Represents the name an value(s) of an Attribute
  */
 class LDAPAttribute{
     public :
-        /** 
+        /**
          * Default constructor.
          * initializes an empty object.
          */
@@ -37,24 +37,24 @@ class LDAPAttribute{
          * Construct an Attribute with a single string value
          * @param name      The attribute's name (type)
          * @param value     The string value of the attribute, if "" the
-         *                  attribute will have no values, for LDAPv3 
+         *                  attribute will have no values, for LDAPv3
          *                  this values must be UTF-8 encoded
          */
         LDAPAttribute(const std::string& name, const std::string& value="");
 
-        /** 
+        /**
          * Construct an attribute with multiple string values
          * @param name      The attribute's name (type)
          * @param values    A 0-terminated array of char*. Each char* specifies
          *                  one value of the attribute (UTF-8 encoded)
          */
         LDAPAttribute(const char* name, char **values);
-        
-        /** 
+
+        /**
          * Construct an attribute with multiple string values
          * @param name      The attribute's name (type)
          * @param values    A list of strings. Each element specifies
-         *                  one value of the attribute (UTF-8 or binary 
+         *                  one value of the attribute (UTF-8 or binary
          *                  encoded)
          */
         LDAPAttribute(const std::string& name, const StringList& values);
@@ -68,9 +68,9 @@ class LDAPAttribute{
          *                      unsigned long bv_len;
          *                      char *bv_val;
          *                  } BerValue;
-         */         
+         */
         LDAPAttribute(const char* name, BerValue **values);
-        
+
         /**
          * Destructor
          */
@@ -95,9 +95,9 @@ class LDAPAttribute{
         /**
          * Set the values of the attribute. If the object contains some values
          * already, they are deleted
-         * @param values    0-terminated array of char*, each char* 
+         * @param values    0-terminated array of char*, each char*
          *                  representing a string value to add to the entry
-         * 
+         *
          * @return  0  no problem <BR>
          *          -1 failure (mem. allocation problem)
          */
@@ -108,7 +108,7 @@ class LDAPAttribute{
          * some values, they will be deleted
          * @param values    0-terminated array of BerValue*, each BerValue
          *                  representing a binary value to add to the entry
-         * 
+         *
          * @return  0  no problem <BR>
          *          -1 failure (mem. allocation problem)
          */
@@ -117,18 +117,18 @@ class LDAPAttribute{
         /**
          * Set the values of the attribute. If the object does already contain
          * some values, they will be deleted
-         * @param values    A list of string-Objects. Each string is 
+         * @param values    A list of string-Objects. Each string is
          *                  representing a string or binary value to add to
          *                  the entry
          */
-        void setValues(const StringList& values); 
+        void setValues(const StringList& values);
 
         /**
          * For interal use only.
          * This method is used to translate the values of the Attribute to
          * 0-terminated Array of BerValue-structs as used by the C-API
-         * @return  The Values of the Attribute as an 0-terminated Array of 
-         *          BerValue* (is dynamically allocated, delete it after usage) 
+         * @return  The Values of the Attribute as an 0-terminated Array of
+         *          BerValue* (is dynamically allocated, delete it after usage)
          *          <BR>
          *          0-pointer in case of error
          */
@@ -138,7 +138,7 @@ class LDAPAttribute{
          * @return The values of the array as a list of strings
          */
         const StringList& getValues() const;
-        
+
         /**
          * @return The number of values of the attribute
          */
@@ -150,8 +150,8 @@ class LDAPAttribute{
         const std::string& getName() const ;
 
         /**
-         * Sets the Attribute's name (type) 
-         * @param the new name of the object  
+         * Sets the Attribute's name (type)
+         * @param the new name of the object
          */
         void setName(const std::string& name);
 

@@ -186,7 +186,7 @@ static int indexer(
 	assert( mask != 0 );
 
 	rc = bdb_db_cache( op->o_bd, atname, &db );
-	
+
 	if ( rc != LDAP_SUCCESS ) {
 		Debug( LDAP_DEBUG_ANY,
 			"bdb_index_read: Could not open DB %s\n",

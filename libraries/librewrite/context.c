@@ -32,15 +32,15 @@ rewrite_context_cmp(
 )
 {
 	const struct rewrite_context *lc1, *lc2;
-	
+
 	lc1 = (const struct rewrite_context *)c1;
 	lc2 = (const struct rewrite_context *)c2;
-	
+
 	assert( c1 != NULL );
 	assert( c2 != NULL );
 	assert( lc1->lc_name != NULL );
 	assert( lc2->lc_name != NULL );
-	
+
 	return strcasecmp( lc1->lc_name, lc2->lc_name );
 }
 
@@ -55,15 +55,15 @@ rewrite_context_dup(
 		)
 {
 	struct rewrite_context *lc1, *lc2;
-	
+
 	lc1 = (struct rewrite_context *)c1;
 	lc2 = (struct rewrite_context *)c2;
-	
+
 	assert( c1 != NULL );
 	assert( c2 != NULL );
 	assert( lc1->lc_name != NULL );
 	assert( lc2->lc_name != NULL );
-	
+
 	return( strcasecmp( lc1->lc_name, lc2->lc_name) == 0 ? -1 : 0 );
 }
 
@@ -85,7 +85,7 @@ rewrite_context_find(
 	 * Fetches the required rewrite context
 	 */
 	c.lc_name = (char *)rewriteContext;
-	context = (struct rewrite_context *)avl_find( info->li_context, 
+	context = (struct rewrite_context *)avl_find( info->li_context,
 			(caddr_t)&c, rewrite_context_cmp );
 	if ( context == NULL ) {
 		return NULL;
@@ -115,12 +115,12 @@ rewrite_context_create(
 
 	assert( info != NULL );
 	assert( rewriteContext != NULL );
-	
+
 	context = calloc( sizeof( struct rewrite_context ), 1 );
 	if ( context == NULL ) {
 		return NULL;
 	}
-	
+
 	/*
 	 * Context name
 	 */
@@ -140,7 +140,7 @@ rewrite_context_create(
 		return NULL;
 	}
 	memset( context->lc_rule, 0, sizeof( struct rewrite_rule ) );
-	
+
 	/*
 	 * Add context to tree
 	 */
@@ -168,13 +168,13 @@ rewrite_action_goto(
 )
 {
 	int n;
-	
+
 	assert( action != NULL );
 	assert( action->la_args != NULL );
 	assert( rule != NULL );
-	
+
 	n = ((int *)action->la_args)[ 0 ];
-	
+
 	if ( n > 0 ) {
 		for ( ; n > 1 && rule != NULL ; n-- ) {
 			rule = rule->lr_next;
@@ -206,7 +206,7 @@ rewrite_context_apply(
 	struct rewrite_rule *rule;
 	char *s, *res = NULL;
 	int return_code = REWRITE_REGEXEC_OK;
-	
+
 	assert( info != NULL );
 	assert( op != NULL );
 	assert( context != NULL );
@@ -220,19 +220,19 @@ rewrite_context_apply(
 			" [depth=%d] string='%s'\n",
 			op->lo_depth, string, 0 );
 	assert( op->lo_depth > 0 );
-	
+
 	s = (char *)string;
-	
+
 	for ( rule = context->lc_rule->lr_next;
 			rule != NULL && op->lo_num_passes < info->li_max_passes;
 			rule = rule->lr_next, op->lo_num_passes++ ) {
 		int rc;
-		
+
 		/*
 		 * Apply a single rule
 		 */
 		rc = rewrite_rule_apply( info, op, rule, s, &res );
-		
+
 		/*
 		 * A rule may return:
 		 * 	OK 		with result != NULL if matched
@@ -243,7 +243,7 @@ rewrite_context_apply(
 		 * place.
 		 */
 		switch ( rc ) {
-			
+
 		case REWRITE_REGEXEC_ERR:
 			Debug( LDAP_DEBUG_ANY, "==> rewrite_context_apply"
 					" error ...\n", 0, 0, 0);
@@ -255,12 +255,12 @@ rewrite_context_apply(
 			if ( rule->lr_action != NULL ) {
 				struct rewrite_action *action;
 				int do_continue = 0;
-				
+
 				for ( action = rule->lr_action;
 						action != NULL;
 						action = action->la_next ) {
 					switch ( action->la_type ) {
-					
+
 					/*
 					 * This action takes precedence
 					 * over the others in case of failure
@@ -302,12 +302,12 @@ rewrite_context_apply(
 				}
 			}
 
-			/* 
+			/*
 			 * Default behavior is to bail out ...
 			 */
 			return_code = REWRITE_REGEXEC_ERR;
 			goto rc_end_of_context;
-		
+
 		/*
 		 * OK means there were no errors or special return codes;
 		 * if res is defined, it means the rule matched and we
@@ -320,7 +320,7 @@ rewrite_context_apply(
 			 */
 			if ( res != NULL ) {
 				struct rewrite_action *action;
-				
+
 				if ( s != string && s != res ) {
 					free( s );
 				}
@@ -338,7 +338,7 @@ rewrite_context_apply(
 					 */
 					case REWRITE_ACTION_STOP:
 						goto rc_end_of_context;
-					
+
 					/*
 					 * This instructs the server to return
 					 * an `unwilling to perform' error
@@ -347,7 +347,7 @@ rewrite_context_apply(
 					case REWRITE_ACTION_UNWILLING:
 						return_code = REWRITE_REGEXEC_UNWILLING;
 						goto rc_end_of_context;
-					
+
 					/*
 					 * This causes the processing to
 					 * jump n rules back and forth
@@ -368,7 +368,7 @@ rewrite_context_apply(
 					case REWRITE_ACTION_USER:
 						return_code = ((int *)action->la_args)[ 0 ];
 						goto rc_end_of_context;
-					
+
 					default:
 						/* ... */
 						break;
@@ -383,7 +383,7 @@ rewrite_context_apply(
 			} else if ( rule->lr_next == NULL ) {
 				res = s;
 			}
-			
+
 			break;
 
 		/*
@@ -408,7 +408,7 @@ rewrite_context_apply(
 			goto rc_end_of_context;
 
 		}
-		
+
 rc_continue:;	/* sent here by actions that require to continue */
 
 	}
@@ -469,6 +469,6 @@ rewrite_context_destroy(
 
 	free( context );
 	*pcontext = NULL;
-	
+
 	return 0;
 }

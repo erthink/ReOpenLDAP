@@ -436,7 +436,7 @@ bdb_cache_find_ndn(
 		}
 		eip = &bdb->bi_cache.c_dntree;
 	}
-	
+
 	for ( bdb_cache_entryinfo_lock( eip ); eip; ) {
 		eip->bei_state |= CACHE_ENTRY_REFERENCED;
 		ei.bei_parent = eip;
@@ -444,7 +444,7 @@ bdb_cache_find_ndn(
 		if ( !ei2 ) {
 			DBC *cursor;
 			int len = ei.bei_nrdn.bv_len;
-				
+
 			if ( BER_BVISEMPTY( ndn )) {
 				*res = eip;
 				return LDAP_SUCCESS;
@@ -554,7 +554,7 @@ hdb_cache_find_parent(
 #endif
 		ei.bei_ckids = 0;
 		add = 1;
-		
+
 		/* This node is not fully connected yet */
 		ein->bei_state |= CACHE_ENTRY_NOT_LINKED;
 
@@ -812,7 +812,7 @@ bdb_cache_lru_purge( struct bdb_info *bdb )
 			}
 			bdb_cache_entry_db_unlock( bdb, lockp );
 
-			/* 
+			/*
 			 * If it is a leaf node, and we're over the limit, free it.
 			 */
 			if ( elru->bei_kids ) {
@@ -1235,7 +1235,7 @@ bdb_cache_modify(
 	 */
 	if ( ! rc ) {
 		if ( (void *)e->e_attrs != (void *)(e+1) ) {
-			attrs_free( e->e_attrs ); 
+			attrs_free( e->e_attrs );
 		}
 		e->e_attrs = newAttrs;
 	}
@@ -1347,7 +1347,7 @@ bdb_cache_modrdn(
 	return rc;
 }
 /*
- * cache_delete - delete the entry e from the cache. 
+ * cache_delete - delete the entry e from the cache.
  *
  * returns:	0	e was deleted ok
  *		1	e was not in the cache

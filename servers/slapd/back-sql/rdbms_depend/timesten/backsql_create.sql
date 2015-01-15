@@ -43,12 +43,12 @@ create unique index unq1_ldap_entries on ldap_entries
 	(
 		oc_map_id,
 		keyval
-	);  
+	);
 
 create unique index unq2_ldap_entries on ldap_entries
 	(
 		dn
-	);  
+	);
 
 create table ldap_referrals
  (

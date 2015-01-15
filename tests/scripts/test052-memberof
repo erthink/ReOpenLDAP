@@ -16,10 +16,10 @@
 echo "running defines.sh"
 . $SRCDIR/scripts/defines.sh
 
-if test $MEMBEROF = memberofno; then 
+if test $MEMBEROF = memberofno; then
 	echo "Memberof overlay not available, test skipped"
 	exit 0
-fi 
+fi
 
 mkdir -p $TESTDIR $DBDIR1 $TESTDIR/confdir
 
@@ -86,21 +86,21 @@ $LDAPADD -h $LOCALHOST -p $PORT1 -D 'cn=config' -w `cat $CONFIGPWF` \
 dn: cn=symas group example,cn=schema,cn=config
 objectClass: olcSchemaConfig
 cn: symas group example
-olcAttributeTypes: ( 1.3.6.1.4.1.4754.31.1.1 
+olcAttributeTypes: ( 1.3.6.1.4.1.4754.31.1.1
  NAME 'memberA' SUP distinguishedName )
 olcAttributeTypes: ( 1.3.6.1.4.1.4754.31.1.2
  NAME 'memberOfA' SUP distinguishedName )
-olcAttributeTypes: ( 1.3.6.1.4.1.4754.31.1.3 
+olcAttributeTypes: ( 1.3.6.1.4.1.4754.31.1.3
  NAME 'memberB' SUP distinguishedName )
-olcAttributeTypes: ( 1.3.6.1.4.1.4754.31.1.4 
+olcAttributeTypes: ( 1.3.6.1.4.1.4754.31.1.4
  NAME 'memberOfB' SUP distinguishedName )
-olcObjectClasses: ( 1.3.6.1.4.1.4754.31.2.1 
+olcObjectClasses: ( 1.3.6.1.4.1.4754.31.2.1
  NAME 'groupA' SUP top STRUCTURAL MUST cn MAY memberA )
-olcObjectClasses: ( 1.3.6.1.4.1.4754.31.2.2 
+olcObjectClasses: ( 1.3.6.1.4.1.4754.31.2.2
  NAME 'groupMemberA' SUP top AUXILIARY MAY memberOfA )
-olcObjectClasses: ( 1.3.6.1.4.1.4754.31.2.3 
+olcObjectClasses: ( 1.3.6.1.4.1.4754.31.2.3
  NAME 'groupB' SUP top STRUCTURAL MUST cn MAY memberB )
-olcObjectClasses: ( 1.3.6.1.4.1.4754.31.2.4 
+olcObjectClasses: ( 1.3.6.1.4.1.4754.31.2.4
  NAME 'groupMemberB' SUP top AUXILIARY MAY memberOfB )
 
 dn: olcDatabase={1}$BACKEND,cn=config

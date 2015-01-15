@@ -83,13 +83,13 @@ bdb_dn2id_add(
 			e->e_id, ptr.bv_val, rc );
 			goto done;
 		}
-		
+
 #ifdef BDB_MULTIPLE_SUFFIXES
 	if( !be_issuffix( op->o_bd, &ptr ))
 #endif
 	{
 		dnParent( &ptr, &pdn );
-	
+
 		key.size = pdn.bv_len + 2;
 		key.ulen = key.size;
 		pdn.bv_val[-1] = DN_ONE_PREFIX;
@@ -420,7 +420,7 @@ typedef struct diskNode {
  */
 int
 hdb_dup_compare(
-	DB *db, 
+	DB *db,
 	const DBT *usrkey,
 	const DBT *curkey
 )
@@ -1154,7 +1154,7 @@ hdb_dn2idl(
 		ndn->bv_val, 0, 0 );
 
 #ifndef BDB_MULTIPLE_SUFFIXES
-	if ( op->ors_scope != LDAP_SCOPE_ONELEVEL && 
+	if ( op->ors_scope != LDAP_SCOPE_ONELEVEL &&
 		( ei->bei_id == 0 ||
 		( ei->bei_parent->bei_id == 0 && op->o_bd->be_suffix[0].bv_len )))
 	{
@@ -1197,7 +1197,7 @@ hdb_dn2idl(
 	hdb_dn2idl_internal(&cx);
 	if ( cx.need_sort ) {
 		char *ptr = ((char *)&cx.id)-1;
-		if ( !BDB_IDL_IS_RANGE( cx.ids ) && cx.ids[0] > 3 ) 
+		if ( !BDB_IDL_IS_RANGE( cx.ids ) && cx.ids[0] > 3 )
 			bdb_idl_sort( cx.ids, cx.tmp );
 		cx.key.data = ptr;
 		cx.key.size = sizeof(ID)+1;

@@ -103,7 +103,7 @@ values (4,'ldap://localhost:9012/');
 
 -- support procedures
 
-SET QUOTED_IDENTIFIER  OFF    SET ANSI_NULLS  ON 
+SET QUOTED_IDENTIFIER  OFF    SET ANSI_NULLS  ON
 GO
 
 
@@ -167,7 +167,7 @@ GO
 
 CREATE PROCEDURE make_author_link @keyval int, @author_dn varchar(255)  AS
 DECLARE @per_id int;
-SET @per_id=(SELECT keyval FROM example.ldap_entries 
+SET @per_id=(SELECT keyval FROM example.ldap_entries
 	   WHERE oc_map_id=1 AND dn=@author_dn);
 IF NOT (@per_id IS NULL)
  INSERT INTO example.authors_docs (doc_id,pers_id) VALUES (@keyval,@per_id);
@@ -175,7 +175,7 @@ GO
 
 CREATE PROCEDURE make_doc_link @keyval int, @doc_dn varchar(255)  AS
 DECLARE @doc_id int;
-SET @doc_id=(SELECT keyval FROM example.ldap_entries 
+SET @doc_id=(SELECT keyval FROM example.ldap_entries
 	   WHERE oc_map_id=2 AND dn=@doc_dn);
 IF NOT (@doc_id IS NULL)
  INSERT INTO example.authors_docs (pers_id,doc_id) VALUES (@keyval,@doc_id);
@@ -183,7 +183,7 @@ GO
 
 CREATE PROCEDURE del_doc_link @keyval int, @doc_dn varchar(255)  AS
 DECLARE @doc_id int;
-SET @doc_id=(SELECT keyval FROM example.ldap_entries 
+SET @doc_id=(SELECT keyval FROM example.ldap_entries
 	   WHERE oc_map_id=2 AND dn=@doc_dn);
 IF NOT (@doc_id IS NULL)
 DELETE FROM example.authors_docs WHERE pers_id=@keyval AND doc_id=@doc_id;
@@ -191,7 +191,7 @@ GO
 
 CREATE PROCEDURE del_author_link @keyval int, @author_dn varchar(255)  AS
 DECLARE @per_id int;
-SET @per_id=(SELECT keyval FROM example.ldap_entries 
+SET @per_id=(SELECT keyval FROM example.ldap_entries
 	   WHERE oc_map_id=1 AND dn=@author_dn);
 IF NOT (@per_id IS NULL)
  DELETE FROM example.authors_docs WHERE doc_id=@keyval AND pers_id=@per_id;

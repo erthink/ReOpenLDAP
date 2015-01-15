@@ -47,7 +47,7 @@
  *
  * Even though '#' and '$' are present in the 7-bit US-ASCII space,
  * (x23 and x24, resp.) in T.61 they are mapped to 8-bit characters
- * xA6 and xA4. 
+ * xA6 and xA4.
  *
  * Also T.61 lacks
  *	backslash 	\	(x5C)
@@ -128,7 +128,7 @@ static const wvec32 c1_vec2 = {
 	/* Lower case */
 	0, 0xe0, 0, 0, 0, 0xe8, 0, 0, 0, 0xec, 0, 0, 0, 0, 0x1f9, 0xf2,
 	0, 0, 0, 0, 0, 0xf9, 0, 0x1e81, 0, 0x1ef3, 0, 0, 0, 0, 0, 0};
-	
+
 static const wvec32 *c1_grave[] = {
 	NULL, NULL, &c1_vec1, &c1_vec2, NULL, NULL, NULL, NULL
 };
@@ -343,7 +343,7 @@ int ldap_t61s_to_utf8s( struct berval *src, struct berval *dst )
 	/* Just count the length of the UTF-8 result first */
 	for (i=0,c=(unsigned char *)src->bv_val; i < src->bv_len; c++,i++) {
 		/* Invalid T.61 characters? */
-		if (!t61_tab[*c]) 
+		if (!t61_tab[*c])
 			return LDAP_INVALID_SYNTAX;
 		if ((*c & 0xf0) == 0xc0) {
 			int j = *c & 0x0f;
@@ -392,7 +392,7 @@ int ldap_t61s_to_utf8s( struct berval *src, struct berval *dst )
 			} else if (cx_tab[j] && cx_tab[j][c[1]>>5] &&
 			/* We have a composite mapping for this pair */
 				(*cx_tab[j][c[1]>>5])[c[1]&0x1f]) {
-				d += ldap_x_wc_to_utf8(d, 
+				d += ldap_x_wc_to_utf8(d,
 				(*cx_tab[j][c[1]>>5])[c[1]&0x1f], 6);
 			} else {
 			/* No mapping, just swap it around so the base
@@ -500,7 +500,7 @@ static const wvec64 u011 = {
 static const wvec64 u013 = {
 	0x003f, 0x003f, 0x003f, 0x003f, 0x003f, 0x003f, 0x003f, 0x003f,
 	0x003f, 0x003f, 0x003f, 0x003f, 0x003f, 0xcf41, 0xcf61, 0xcf49,
-	0xcf69, 0xcf4f, 0xcf6f, 0xcf55, 0xcf75, 0x003f, 0x003f, 0x003f, 
+	0xcf69, 0xcf4f, 0xcf6f, 0xcf55, 0xcf75, 0x003f, 0x003f, 0x003f,
 	0x003f, 0x003f, 0x003f, 0x003f, 0x003f, 0x003f, 0x003f, 0x003f,
 	0x003f, 0x003f, 0xc5e1, 0xc5f1, 0x003f, 0x003f, 0xcf47, 0xcf67,
 	0xcf4b, 0xcf6b, 0xce4f, 0xce6f, 0x003f, 0x003f, 0x003f, 0x003f,
@@ -545,7 +545,7 @@ static const wvec64 u030 = {
 /* None of the following blocks are defined in T.61.
  */
 static const wvec64 u1e0 = {
-	0x003f, 0x003f, 0xc742, 0xc762, 0x003f, 0x003f, 0x003f, 0x003f, 
+	0x003f, 0x003f, 0xc742, 0xc762, 0x003f, 0x003f, 0x003f, 0x003f,
 	0x003f, 0x003f, 0xc744, 0xc764, 0x003f, 0x003f, 0x003f, 0x003f,
 	0xcb44, 0xcb64, 0x003f, 0x003f, 0x003f, 0x003f, 0x003f, 0x003f,
 	0x003f, 0x003f, 0x003f, 0x003f, 0x003f, 0x003f, 0xc746, 0xc766,
@@ -636,7 +636,7 @@ int ldap_utf8s_to_t61s( struct berval *src, struct berval *dst )
 	dst->bv_val = LDAP_MALLOC( tlen+1 );
 	if (!dst->bv_val)
 		return LDAP_NO_MEMORY;
-	
+
 	d = dst->bv_val;
 	for (i=0,c=src->bv_val; i < src->bv_len;) {
 		j = ldap_x_utf8_to_wc( &tmp, c );

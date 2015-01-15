@@ -116,7 +116,7 @@ ldif_parse_line2(
 	int		*freeval
 )
 {
-	char	*s, *p, *d; 
+	char	*s, *p, *d;
 	char	nib;
 	int	b64, url;
 
@@ -377,10 +377,10 @@ static must_b64_encode_s	default_must_b64_encode[] = {
 static must_b64_encode_s	*must_b64_encode = default_must_b64_encode;
 
 /*
- * register name and OID of attributeTypes that must always be base64 
+ * register name and OID of attributeTypes that must always be base64
  * encoded
  *
- * NOTE: this routine mallocs memory in a static struct which must 
+ * NOTE: this routine mallocs memory in a static struct which must
  * be explicitly freed when no longer required
  */
 int
@@ -461,7 +461,7 @@ ldif_must_b64_encode_release( void )
 }
 
 /*
- * returns 1 iff the string corresponds to the name or the OID of any 
+ * returns 1 iff the string corresponds to the name or the OID of any
  * of the attributeTypes listed in must_b64_encode
  */
 static int

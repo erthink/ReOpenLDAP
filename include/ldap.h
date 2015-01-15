@@ -1,6 +1,6 @@
 /* $OpenLDAP$ */
 /* This work is part of OpenLDAP Software <http://www.openldap.org/>.
- * 
+ *
  * Copyright 1998-2014 The OpenLDAP Foundation.
  * All rights reserved.
  *
@@ -645,10 +645,10 @@ typedef struct ldapcontrol {
 #define LDAP_TOO_LATE				0x78
 #define LDAP_CANNOT_CANCEL			0x79
 
-/* Assertion control (122) */ 
+/* Assertion control (122) */
 #define LDAP_ASSERTION_FAILED		0x7A
 
-/* Proxied Authorization Denied (123) */ 
+/* Proxied Authorization Denied (123) */
 #define LDAP_PROXIED_AUTHORIZATION_DENIED		0x7B
 
 /* Experimental result codes */
@@ -837,7 +837,7 @@ typedef int (*ldap_sync_search_entry_f) LDAP_P((
 	ldap_sync_refresh_t		phase ));
 
 /*
- * Called when a reference is returned; the client should know 
+ * Called when a reference is returned; the client should know
  * what to do with it.
  */
 typedef int (*ldap_sync_search_reference_f) LDAP_P((
@@ -853,7 +853,7 @@ typedef int (*ldap_sync_search_reference_f) LDAP_P((
  * that the refresh phase of a refreshAndPersist is complete.
  * In the above cases, syncUUIDs is NULL.
  *
- * If phase is LDAP_SYNC_CAPI_PRESENTS_IDSET or 
+ * If phase is LDAP_SYNC_CAPI_PRESENTS_IDSET or
  * LDAP_SYNC_CAPI_DELETES_IDSET, syncUUIDs is an array of UUIDs
  * that are either present or have been deleted.
  */
@@ -991,7 +991,7 @@ ldap_set_nextref_proc LDAP_P((
 
 /* V3 URLLIST Function Callback Prototype */
 typedef int (LDAP_URLLIST_PROC) LDAP_P((
-	LDAP *ld, 
+	LDAP *ld,
 	LDAPURLDesc **urllist,
 	LDAPURLDesc **url,
 	void *params ));
@@ -1005,7 +1005,7 @@ ldap_set_urllist_proc LDAP_P((
 /*
  * in controls.c:
  */
-#if LDAP_DEPRECATED	
+#if LDAP_DEPRECATED
 LDAP_F( int )
 ldap_create_control LDAP_P((	/* deprecated, use ldap_control_create */
 	LDAP_CONST char *requestOID,
@@ -1117,7 +1117,7 @@ ldap_abandon_ext LDAP_P((
 	LDAPControl		**serverctrls,
 	LDAPControl		**clientctrls ));
 
-#if LDAP_DEPRECATED	
+#if LDAP_DEPRECATED
 LDAP_F( int )
 ldap_abandon LDAP_P((	/* deprecated, use ldap_abandon_ext */
 	LDAP *ld,
@@ -1201,7 +1201,7 @@ ldap_sasl_interactive_bind LDAP_P((
 	unsigned flags,
 	LDAP_SASL_INTERACT_PROC *proc,
 	void *defaults,
-	
+
 	/* as obtained from ldap_result() */
 	LDAPMessage *result,
 
@@ -1681,9 +1681,9 @@ LDAP_F( void ) ldap_rdnfree LDAP_P(( LDAPRDN rdn ));
 LDAP_F( void ) ldap_dnfree LDAP_P(( LDAPDN dn ));
 
 LDAP_F( int )
-ldap_bv2dn LDAP_P(( 
-	struct berval *bv, 
-	LDAPDN *dn, 
+ldap_bv2dn LDAP_P((
+	struct berval *bv,
+	LDAPDN *dn,
 	unsigned flags ));
 
 LDAP_F( int )
@@ -1859,8 +1859,8 @@ ldap_msgdelete LDAP_P((
  * in search.c:
  */
 LDAP_F( int )
-ldap_bv2escaped_filter_value LDAP_P(( 
-	struct berval *in, 
+ldap_bv2escaped_filter_value LDAP_P((
+	struct berval *in,
 	struct berval *out ));
 
 LDAP_F( int )

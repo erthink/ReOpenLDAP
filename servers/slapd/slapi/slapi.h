@@ -161,7 +161,7 @@ struct slapi_pblock {
 #define SLAPI_SEQ_ATTRNAME			151
 #define SLAPI_SEQ_VAL				152
 
-#define SLAPI_MR_FILTER_ENTRY			170	
+#define SLAPI_MR_FILTER_ENTRY			170
 #define SLAPI_MR_FILTER_TYPE			171
 #define SLAPI_MR_FILTER_VALUE			172
 #define SLAPI_MR_FILTER_OID			173
@@ -194,7 +194,7 @@ struct slapi_pblock {
 
 LDAP_SLAPI_V (ldap_pvt_thread_mutex_t)	slapi_hn_mutex;
 LDAP_SLAPI_V (ldap_pvt_thread_mutex_t)	slapi_time_mutex;
-LDAP_SLAPI_V (ldap_pvt_thread_mutex_t)	slapi_printmessage_mutex; 
+LDAP_SLAPI_V (ldap_pvt_thread_mutex_t)	slapi_printmessage_mutex;
 LDAP_SLAPI_V (char *)			slapi_log_file;
 LDAP_SLAPI_V (int)			slapi_log_level;
 

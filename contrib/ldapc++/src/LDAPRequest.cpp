@@ -24,7 +24,7 @@ LDAPRequest::LDAPRequest(const LDAPRequest& req){
     m_msgID = req.m_msgID;
 }
 
-LDAPRequest::LDAPRequest(LDAPAsynConnection* con, 
+LDAPRequest::LDAPRequest(LDAPAsynConnection* con,
        const LDAPConstraints* cons,bool isReferral, const LDAPRequest* parent){
     DEBUG(LDAP_DEBUG_CONSTRUCT,"LDAPRequest::LDAPRequest()" << endl);
     m_connection=con;
@@ -33,7 +33,7 @@ LDAPRequest::LDAPRequest(LDAPAsynConnection* con,
     }else{
         m_cons=new LDAPConstraints( *cons);
     }
-    m_isReferral=isReferral; 
+    m_isReferral=isReferral;
     if(m_isReferral){
         m_hopCount = (parent->getHopCount()+1);
         m_parent= parent;
@@ -48,7 +48,7 @@ LDAPRequest::~LDAPRequest(){
     delete m_cons;
 }
 
-LDAPMsg* LDAPRequest::getNextMessage() const 
+LDAPMsg* LDAPRequest::getNextMessage() const
 {
     DEBUG(LDAP_DEBUG_DESTROY,"LDAPRequest::getNextMessage()" << endl);
     int res;
@@ -62,7 +62,7 @@ LDAPMsg* LDAPRequest::getNextMessage() const
             ldap_msgfree(msg);
         }
         throw  LDAPException(this->m_connection);
-    }else{	
+    }else{
         LDAPMsg *ret=0;
         //this can  throw an exception (Decoding Error)
         ret = LDAPMsg::create(this,msg);
@@ -115,12 +115,12 @@ bool LDAPRequest::isReferral() const {
 
 bool LDAPRequest::equals(const LDAPRequest* req) const{
     DEBUG(LDAP_DEBUG_TRACE,"LDAPRequest::equals()" << endl);
-    if( (this->m_requestType == req->getType()) && 
-        (this->m_connection->getHost() == req->m_connection->getHost()) && 
+    if( (this->m_requestType == req->getType()) &&
+        (this->m_connection->getHost() == req->m_connection->getHost()) &&
         (this->m_connection->getPort() == req->m_connection->getPort())
       ){
         return true;
-    }return false;        
+    }return false;
 }
 
 bool LDAPRequest::isCycle() const{

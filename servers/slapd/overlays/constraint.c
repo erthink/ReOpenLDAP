@@ -1,6 +1,6 @@
 /* $OpenLDAP$ */
 /* constraint.c - Overlay to constrain attributes to certain values */
-/* 
+/*
  * Copyright 2003-2004 Hewlett-Packard Company
  * Copyright 2007 Emmanuel Dreyfus
  * All rights reserved.
@@ -141,7 +141,7 @@ constraint_cf_gen( ConfigArgs *c )
 	int i, rc = 0;
 	constraint ap = { NULL };
 	const char *text = NULL;
-	
+
 	switch ( c->op ) {
 	case SLAP_CONFIG_EMIT:
 		switch (c->type) {
@@ -245,7 +245,7 @@ constraint_cf_gen( ConfigArgs *c )
 		switch (c->type) {
 		case CONSTRAINT_ATTRIBUTE:
 			if (!cn) break; /* nothing to do */
-					
+
 			if (c->valx < 0) {
 				/* zap all constraints */
 				while (cn) {
@@ -253,11 +253,11 @@ constraint_cf_gen( ConfigArgs *c )
 					constraint_free( cn, 1 );
 					cn = cp;
 				}
-						
+
 				on->on_bi.bi_private = NULL;
 			} else {
 				constraint **cpp;
-						
+
 				/* zap constraint numbered 'valx' */
 				for(i=0, cp = cn, cpp = &cn;
 					(cp) && (i<c->valx);
@@ -298,13 +298,13 @@ constraint_cf_gen( ConfigArgs *c )
 
 			if ( strcasecmp( c->argv[2], REGEX_STR ) == 0) {
 				int err;
-			
+
 				ap.type = CONSTRAINT_REGEX;
 				ap.re = ch_malloc( sizeof(regex_t) );
 				if ((err = regcomp( ap.re,
 					c->argv[3], REG_EXTENDED )) != 0) {
 					char errmsg[1024];
-							
+
 					regerror( err, ap.re, errmsg, sizeof(errmsg) );
 					ch_free(ap.re);
 					snprintf( c->cr_msg, sizeof( c->cr_msg ),
@@ -333,7 +333,7 @@ constraint_cf_gen( ConfigArgs *c )
 					rc = ARG_BAD_CONF;
 			} else if ( strcasecmp( c->argv[2], URI_STR ) == 0 ) {
 				int err;
-			
+
 				ap.type = CONSTRAINT_URI;
 				err = ldap_url_parse(c->argv[3], &ap.lud);
 				if ( err != LDAP_URL_SUCCESS ) {
@@ -571,7 +571,7 @@ done:;
 }
 
 static int
-constraint_uri_cb( Operation *op, SlapReply *rs ) 
+constraint_uri_cb( Operation *op, SlapReply *rs )
 {
 	if(rs->sr_type == REP_SEARCH) {
 		int *foundp = op->o_callback->sc_private;
@@ -588,7 +588,7 @@ static int
 constraint_violation( constraint *c, struct berval *bv, Operation *op )
 {
 	if ((!c) || (!bv)) return LDAP_SUCCESS;
-	
+
 	switch (c->type) {
 		case CONSTRAINT_SIZE:
 			if (bv->bv_len > c->size)
@@ -717,7 +717,7 @@ print_message( struct berval *errtext, AttributeDescription *a )
 {
 	char *ret;
 	int sz;
-	
+
 	sz = errtext->bv_len + sizeof(" on ") + a->ad_cname.bv_len;
 	ret = ch_malloc(sz);
 	snprintf( ret, sz, "%s on %s", errtext->bv_val, a->ad_cname.bv_val );
@@ -828,7 +828,7 @@ constraint_add( Operation *op, SlapReply *rs )
 				continue;
 			}
 
-			Debug(LDAP_DEBUG_TRACE, 
+			Debug(LDAP_DEBUG_TRACE,
 				"==> constraint_add, "
 				"a->a_numvals = %u, cp->count = %lu\n",
 				a->a_numvals, (unsigned long) cp->count, 0);
@@ -960,7 +960,7 @@ constraint_update( Operation *op, SlapReply *rs )
 		/* impossible! assert? */
 		return LDAP_OTHER;
 	}
-	
+
 	Debug( LDAP_DEBUG_CONFIG|LDAP_DEBUG_NONE, "constraint_update()\n", 0,0,0);
 	if ((m = modlist) == NULL) {
 		op->o_bd->bd_info = (BackendInfo *)(on->on_info);
@@ -981,11 +981,11 @@ constraint_update( Operation *op, SlapReply *rs )
 	for(cp = c; cp; cp = cp->ap_next) {
 		if (cp->type == CONSTRAINT_COUNT) {
 			if (rc != 0 || target_entry == NULL) {
-				Debug(LDAP_DEBUG_TRACE, 
+				Debug(LDAP_DEBUG_TRACE,
 					"==> constraint_update rc = %d DN=\"%s\"%s\n",
 					rc, op->o_req_ndn.bv_val,
 					target_entry ? "" : " not found" );
-				if ( rc == 0 ) 
+				if ( rc == 0 )
 					rc = LDAP_CONSTRAINT_VIOLATION;
 				goto mod_violation;
 			}
@@ -1063,7 +1063,7 @@ constraint_update( Operation *op, SlapReply *rs )
 							dnParent( &target_entry_copy->e_nname, &pdn );
 						}
 
-						build_new_dn( &ndn, &pdn, &op->orr_nnewrdn, NULL ); 
+						build_new_dn( &ndn, &pdn, &op->orr_nnewrdn, NULL );
 
 						ber_memfree( target_entry_copy->e_nname.bv_val );
 						target_entry_copy->e_nname = ndn;
@@ -1225,11 +1225,11 @@ constraint_initialize( void ) {
 	constraint_ovl.on_bi.bi_op_modrdn = constraint_update;
 
 	constraint_ovl.on_bi.bi_private = NULL;
-	
+
 	constraint_ovl.on_bi.bi_cf_ocs = constraintocs;
 	rc = config_register_schema( constraintcfg, constraintocs );
 	if (rc) return rc;
-	
+
 	return overlay_register( &constraint_ovl );
 }
 

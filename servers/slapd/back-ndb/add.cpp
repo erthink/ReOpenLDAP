@@ -224,7 +224,7 @@ is_ref:			p.e_attrs = NULL;
 		goto return_results;;
 	}
 
-	/* 
+	/*
 	 * Check ACL for attribute write access
 	 */
 	if (!acl_check_modlist(op, op->ora_e, op->ora_modlist)) {

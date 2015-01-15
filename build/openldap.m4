@@ -565,7 +565,7 @@ AC_DEFUN([OL_BDB_COMPAT],
 
 dnl
 dnl ====================================================================
-dnl Check POSIX Thread version 
+dnl Check POSIX Thread version
 dnl
 dnl defines ol_cv_pthread_version to 4, 5, 6, 7, 8, 10, depending on the
 dnl	version of the POSIX.4a Draft that is implemented.
@@ -721,7 +721,7 @@ dnl defines ol_cv_header linux_threads to 'yes' or 'no'
 dnl		'no' implies pthreads.h is not LinuxThreads or pthreads.h
 dnl		doesn't exists.  Existance of pthread.h should separately
 dnl		checked.
-dnl 
+dnl
 AC_DEFUN([OL_HEADER_GNU_PTH_PTHREAD_H], [
 	AC_CACHE_CHECK([for GNU Pth pthread.h],
 		[ol_cv_header_gnu_pth_pthread_h],
@@ -752,7 +752,7 @@ dnl defines ol_cv_header linux_threads to 'yes' or 'no'
 dnl		'no' implies pthreads.h is not LinuxThreads or pthreads.h
 dnl		doesn't exists.  Existance of pthread.h should separately
 dnl		checked.
-dnl 
+dnl
 AC_DEFUN([OL_HEADER_LINUX_THREADS], [
 	AC_CACHE_CHECK([for LinuxThreads pthread.h],
 		[ol_cv_header_linux_threads],
@@ -770,7 +770,7 @@ dnl	Check LinuxThreads Implementation
 dnl
 dnl	defines ol_cv_sys_linux_threads to 'yes' or 'no'
 dnl	'no' implies pthreads implementation is not LinuxThreads.
-dnl 
+dnl
 AC_DEFUN([OL_SYS_LINUX_THREADS], [
 	AC_CHECK_FUNCS(pthread_kill_other_threads_np)
 	AC_CACHE_CHECK([for LinuxThreads implementation],
@@ -814,9 +814,9 @@ main()
 	if(regcomp(&re, pattern, 0)) {
 		return -1;
 	}
-	
+
 	string = "ALL MATCH";
-	
+
 	rc = regexec(&re, string, 0, (void*)0, 0);
 
 	regfree(&re);
@@ -921,7 +921,7 @@ AC_DEFUN([OL_C_VOLATILE],
       /* Older MIPS compilers (eg., in Ultrix 4.2) don't like *b = 0 */
       *b = 0;]])],[ol_cv_c_volatile=yes],[ol_cv_c_volatile=no])])
   if test $ol_cv_c_volatile = yes; then
-    : 
+    :
   else
     AC_DEFINE(volatile,,[define as empty if volatile is not supported])
   fi
@@ -1065,7 +1065,7 @@ AC_DEFUN([OL_FUNC_GETHOSTBYADDR_R_NARGS],
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <netdb.h>
-#define BUFSIZE (sizeof(struct hostent)+10)]], [[struct hostent hent; char buffer[BUFSIZE]; 
+#define BUFSIZE (sizeof(struct hostent)+10)]], [[struct hostent hent; char buffer[BUFSIZE];
 	    struct in_addr add;
 	    size_t alen=sizeof(struct in_addr);
 	    int bufsize=BUFSIZE;int h_errno;
@@ -1077,12 +1077,12 @@ AC_DEFUN([OL_FUNC_GETHOSTBYADDR_R_NARGS],
 #include <netinet/in.h>
 #include <netdb.h>
 #define BUFSIZE (sizeof(struct hostent)+10)]], [[struct hostent hent;
-		struct hostent *rhent; char buffer[BUFSIZE]; 
+		struct hostent *rhent; char buffer[BUFSIZE];
 		struct in_addr add;
 		size_t alen=sizeof(struct in_addr);
 		int bufsize=BUFSIZE;int h_errno;
 		(void)gethostbyaddr_r( (void *)&(add.s_addr),
-			alen, AF_INET, &hent, buffer, bufsize, 
+			alen, AF_INET, &hent, buffer, bufsize,
 			&rhent, &h_errno);]])],[ol_cv_func_gethostbyaddr_r_nargs8=yes],[ol_cv_func_gethostbyaddr_r_nargs8=no])
 
 	if test $ol_cv_func_gethostbyaddr_r_nargs7 = yes &&

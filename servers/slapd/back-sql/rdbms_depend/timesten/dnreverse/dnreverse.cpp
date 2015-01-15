@@ -26,7 +26,7 @@ TTCmd            getNullDNs;
 // This class contains all the logic to be implemented whenever
 // the SCOTT.MYDATA table is changed.  This is the table that is
 // created by "sample.cpp", one of the other TTClasses demos.
-// That application should be executed before this one in order to 
+// That application should be executed before this one in order to
 // create and populate the table.
 //----------------------------------------------------------------------
 
@@ -124,13 +124,13 @@ void LDAPEntriesHandler::ReverseAndUpper(char* dnP, int id, bool commit)
     assignDn_ru.Execute(stat);
   }
   catch (TTStatus stat) {
-    cerr << "Error updating id " << id << " ('" << dnP << "' to '" 
+    cerr << "Error updating id " << id << " ('" << dnP << "' to '"
 	 << dn_rn << "'): " << stat;
     exit(1);
   }
 
   // Commit the transaction
-  
+
   if (commit) {
     try {
       conn2.Commit(stat);
@@ -147,7 +147,7 @@ void LDAPEntriesHandler::ReverseAndUpper(char* dnP, int id, bool commit)
 
 void LDAPEntriesHandler::HandleInsert(ttXlaUpdateDesc_t* p)
 {
-  char* dnP; 
+  char* dnP;
   int   id;
 
   row.Get(Dn, &dnP);
@@ -159,8 +159,8 @@ void LDAPEntriesHandler::HandleInsert(ttXlaUpdateDesc_t* p)
 }
 
 void LDAPEntriesHandler::HandleUpdate(ttXlaUpdateDesc_t* p)
-{    
-  char* newDnP; 
+{
+  char* newDnP;
   char* oldDnP;
   char  oDn[512];
   int   id;
@@ -170,10 +170,10 @@ void LDAPEntriesHandler::HandleUpdate(ttXlaUpdateDesc_t* p)
   strcpy(oDn, oldDnP);
   row.Get(Id, &id);
   row2.Get(Dn, &newDnP);
-  
+
   cerr << "old DN '" << oDn << "' / new DN '" << newDnP << "' : Updated ";
 
-  if (strcmp(oDn, newDnP) != 0) {	
+  if (strcmp(oDn, newDnP) != 0) {
     // The DN field changed, update it
     cerr << "(new DN: '" << newDnP << "')";
     ReverseAndUpper(newDnP, id);
@@ -187,8 +187,8 @@ void LDAPEntriesHandler::HandleUpdate(ttXlaUpdateDesc_t* p)
 }
 
 void LDAPEntriesHandler::HandleDelete(ttXlaUpdateDesc_t* p)
-{    
-  char* dnP; 
+{
+  char* dnP;
 
   row.Get(Dn, &dnP);
   cerr << "DN '" << dnP << "': Deleted ";
@@ -212,7 +212,7 @@ extern "C" {
 
 //----------------------------------------------------------------------
 
-int 
+int
 main(int argc, char* argv[])
 {
 
@@ -263,12 +263,12 @@ main(int argc, char* argv[])
 
   try {
     assignDn_ru.Prepare(&conn2,
-			"update ldap_entries set dn_ru=? where id=?", 
+			"update ldap_entries set dn_ru=? where id=?",
 			"", stat);
     getNullDNs.Prepare(&conn2,
 		       "select dn, id from ldap_entries "
 			"where dn_ru is null "
-			"for update", 
+			"for update",
 		       "", stat);
     conn2.Commit(stat);
   }
@@ -277,7 +277,7 @@ main(int argc, char* argv[])
     exit(1);
   }
 
-  // If there are any entries with a NULL reversed/upper cased DN, 
+  // If there are any entries with a NULL reversed/upper cased DN,
   // fix them now.
 
   try {
@@ -292,7 +292,7 @@ main(int argc, char* argv[])
       getNullDNs.getColumn(2, &id);
       // cerr << "Id " << id << ", Dn '" << dnP << "'" << endl;
       LDAPEntriesHandler::ReverseAndUpper(dnP, id, false);
-      if (k % 1000 == 0) 
+      if (k % 1000 == 0)
         cerr << ".";
     }
     getNullDNs.Close(stat);
@@ -332,7 +332,7 @@ main(int argc, char* argv[])
   }
   list.add(sampP);
 
-  // Enable transaction logging for the table we're interested in 
+  // Enable transaction logging for the table we're interested in
 
   sampP->EnableTracking(stat);
 
@@ -356,7 +356,7 @@ main(int argc, char* argv[])
       list.HandleChange(p, stat);
 
     } // end for each record fetched
-    
+
     if (records) {
       cerr << "Processed " << records << " records\n";
     }
@@ -372,11 +372,11 @@ main(int argc, char* argv[])
 #endif
     }
   } // end while pleasestop == 0
-  
+
 
   // When we get to here, the program is exiting.
 
-  list.del(sampP);		// Take the table out of the list 
+  list.del(sampP);		// Take the table out of the list
   delete sampP;
 
   conn.setXlaBufferSize(oldsize, NULL, stat);

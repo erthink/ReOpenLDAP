@@ -1,6 +1,6 @@
 /* group.c - group lookup routines */
 /* $OpenLDAP$ */
-/* This work is part of OpenLDAP Software <http://www.openldap.org/>. 
+/* This work is part of OpenLDAP Software <http://www.openldap.org/>.
  *
  * Copyright 2008-2014 The OpenLDAP Foundation.
  * Portions Copyright 2008-2009 by Howard Chu, Symas Corp.
@@ -199,7 +199,7 @@ static int write_group(nssov_group_cbp *cbp,Entry *entry)
 			i += b->a_numvals;
 		if ( i ) {
 			members = cbp->op->o_tmpalloc( (i+1) * sizeof(struct berval), cbp->op->o_tmpmemctx );
-			
+
 			if ( a ) {
 				for (i=0; i<a->a_numvals; i++) {
 					if (isvalidusername(&a->a_vals[i])) {

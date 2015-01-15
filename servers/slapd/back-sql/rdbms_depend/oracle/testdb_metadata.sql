@@ -1,4 +1,4 @@
--- mappings 
+-- mappings
 
 -- objectClass mappings: these may be viewed as structuralObjectClass, the ones that are used to decide how to build an entry
 --	id		a unique number identifying the objectClass
@@ -18,7 +18,7 @@ insert into ldap_oc_mappings (id,name,keytbl,keycol,create_proc,delete_proc,expe
 values (3,'organization','institutes','id','call create_org(?)','call delete_org(?)',0);
 
 -- attributeType mappings: describe how an attributeType for a certain objectClass maps to the SQL data.
---	id		a unique number identifying the attribute	
+--	id		a unique number identifying the attribute
 --	oc_map_id	the value of "ldap_oc_mappings.id" that identifies the objectClass this attributeType is defined for
 --	name		the name of the attributeType; it MUST match the name of an attributeType that is loaded in slapd's schema
 --	sel_expr	the expression that is used to select this attribute (the "select <sel_expr> from ..." portion)
@@ -201,7 +201,7 @@ END;
 CREATE OR REPLACE FUNCTION make_author_link (keyval IN NUMBER, author_dn IN varchar2) RETURN NUMBER AS
 per_id NUMBER;
 BEGIN
-SELECT keyval INTO per_id FROM ldap_entries 
+SELECT keyval INTO per_id FROM ldap_entries
 	   				WHERE oc_map_id=1 AND dn=author_dn;
 IF NOT (per_id IS NULL) THEN
  INSERT INTO authors_docs (doc_id,pers_id) VALUES (keyval,per_id);
@@ -214,7 +214,7 @@ END;
 CREATE OR REPLACE FUNCTION make_doc_link (keyval IN NUMBER, doc_dn IN varchar2) RETURN NUMBER AS
 docid NUMBER;
 BEGIN
-SELECT keyval INTO docid FROM ldap_entries 
+SELECT keyval INTO docid FROM ldap_entries
 		   WHERE oc_map_id=2 AND dn=doc_dn;
 IF NOT (docid IS NULL) THEN
  INSERT INTO authors_docs (pers_id,doc_id) VALUES (keyval,docid);
@@ -227,7 +227,7 @@ END;
 CREATE OR REPLACE FUNCTION del_doc_link (keyval IN NUMBER, doc_dn IN varchar2) RETURN NUMBER AS
 docid NUMBER;
 BEGIN
-SELECT keyval INTO docid FROM ldap_entries 
+SELECT keyval INTO docid FROM ldap_entries
 	   	WHERE oc_map_id=2 AND dn=doc_dn;
 IF NOT (docid IS NULL) THEN
  DELETE FROM authors_docs WHERE pers_id=keyval AND doc_id=docid;

@@ -94,7 +94,7 @@ insert_ordered( slap_overinst *on, collect_info *ci ) {
 				ci->ci_next = NULL;
 			}
 			found = 1;
-		} else if (find->ci_dn.bv_len < ci->ci_dn.bv_len) { 
+		} else if (find->ci_dn.bv_len < ci->ci_dn.bv_len) {
 			/* insert into list here */
 			if (prev == NULL) {
 				/* entry is head of list */
@@ -133,14 +133,14 @@ collect_cf( ConfigArgs *c )
 			bv.bv_len = ci->ci_dn.bv_len + STRLENOF("\"\" ");
 			for (idx=0; idx<ci->ci_ad_num; idx++) {
 				bv.bv_len += ci->ci_ad[idx]->ad_cname.bv_len;
-				if (idx<(ci->ci_ad_num-1)) { 
+				if (idx<(ci->ci_ad_num-1)) {
 					bv.bv_len++;
 				}
 			}
 			bv.bv_val = ch_malloc( bv.bv_len + 1 );
 
 			/* copy the value and update len */
-			len = snprintf( bv.bv_val, bv.bv_len + 1, "\"%s\" ", 
+			len = snprintf( bv.bv_val, bv.bv_len + 1, "\"%s\" ",
 				ci->ci_dn.bv_val);
 			ptr = bv.bv_val + len;
 			for (idx=0; idx<ci->ci_ad_num; idx++) {
@@ -240,7 +240,7 @@ collect_cf( ConfigArgs *c )
 			ci->ci_ad[idx] = NULL;
 
 			if ( slap_str2ad( arg, &ci->ci_ad[idx], &text ) ) {
-				snprintf( c->cr_msg, sizeof( c->cr_msg ), 
+				snprintf( c->cr_msg, sizeof( c->cr_msg ),
 					"%s attribute description unknown: \"%s\"",
 					c->argv[0], arg);
 				Debug( LDAP_DEBUG_CONFIG|LDAP_DEBUG_NONE,
@@ -263,7 +263,7 @@ collect_cf( ConfigArgs *c )
 		ci->ci_ad_num = count;
 		ci->ci_dn = dn;
 
-		/* creates list of ci's ordered by dn length */ 
+		/* creates list of ci's ordered by dn length */
 		insert_ordered ( on, ci );
 
 		/* New ci wasn't simply appended to end, adjust its
@@ -338,7 +338,7 @@ collect_modify( Operation *op, SlapReply *rs)
 			for(idx=0; idx<ci->ci_ad_num; idx++) {
 				if (ml->sml_desc == ci->ci_ad[idx]) {
 					rs->sr_err = LDAP_UNWILLING_TO_PERFORM;
-					snprintf( errMsg, sizeof( errMsg ), 
+					snprintf( errMsg, sizeof( errMsg ),
 						"cannot change virtual attribute '%s'",
 						ci->ci_ad[idx]->ad_cname.bv_val);
 					rs->sr_text = errMsg;
@@ -394,7 +394,7 @@ collect_response( Operation *op, SlapReply *rs )
 
 				/* Extract the values of the desired attribute from
 			 	 * the ancestor entry */
-				rc = backend_attribute( op, NULL, &ci->ci_dn, 
+				rc = backend_attribute( op, NULL, &ci->ci_dn,
 					ci->ci_ad[idx], &vals, ACL_READ );
 
 				/* If there are any values, merge them into the

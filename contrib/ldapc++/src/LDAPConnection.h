@@ -9,7 +9,7 @@
 
 #include <LDAPSearchResults.h>
 #include <LDAPExtResult.h>
-#include <LDAPAsynConnection.h> 
+#include <LDAPAsynConnection.h>
 
 /** Main class for synchronous LDAP-Communication
  *
@@ -21,64 +21,64 @@
 class LDAPConnection : private LDAPAsynConnection {
 
     public :
-        /** 
+        /**
          * Constant for the Search-Operation to indicate a Base-Level
          * Search
          */
         static const int SEARCH_BASE;
 
-        /** 
+        /**
          * Constant for the Search-Operation to indicate a One-Level
          * Search
          */
         static const int SEARCH_ONE;
-        
-        /** 
-         * Constant for the Search-Operation to indicate a Subtree 
+
+        /**
+         * Constant for the Search-Operation to indicate a Subtree
          * Search
          */
         static const int SEARCH_SUB;
-        
-        /** This Constructor initializes synchronous LDAP-Connection 
-         * 
+
+        /** This Constructor initializes synchronous LDAP-Connection
+         *
          * During execution of this constructor no network communication
          * is performed. Just some internal data structure are initialized
          * @param hostname Name (or IP-Adress) of the destination host
          * @param port Port the LDAP server is running on
-         * @param cons Default constraints to use with operations over 
+         * @param cons Default constraints to use with operations over
          *      this connection
          */
         LDAPConnection(const std::string& hostname="localhost", int port=389,
                 LDAPConstraints* cons=new LDAPConstraints());
-        
+
         /**
          * Destructor
          */
         ~LDAPConnection();
-        
-        /** 
-         * Initzializes a synchronous connection to a server. 
-         * 
+
+        /**
+         * Initzializes a synchronous connection to a server.
+         *
          * There is actually no
          * communication to the server. Just the object is initialized
-         * (e.g. this method is called within the 
+         * (e.g. this method is called within the
          * LDAPConnection(char*,int,LDAPConstraints) constructor.)
          * @param hostname  The Name or IP-Address of the destination
          *             LDAP-Server
          * @param port      The Network Port the server is running on
          */
         void init(const std::string& hostname, int port);
-        
+
         /**
          * Start TLS on this connection.  This isn't in the constructor,
          * because it could fail (i.e. server doesn't have SSL cert, client
-         * api wasn't compiled against OpenSSL, etc.). 
-         * @throws LDAPException if the TLS Layer could not be setup 
+         * api wasn't compiled against OpenSSL, etc.).
+         * @throws LDAPException if the TLS Layer could not be setup
          * correctly
          */
         void start_tls();
 
-        /** 
+        /**
          * Performs a simple authentication with the server
          *
          * @throws LDAPReferralException if a referral is received
@@ -93,16 +93,16 @@ class LDAPConnection : private LDAPAsynConnection {
                 int flags=0,
                 SaslInteractionHandler *sih=0,
                 const LDAPConstraints *cons=0);
-        
+
         /**
          * Performs the UNBIND-operation on the destination server
-         * 
+         *
          * @throws LDAPException in any case of an error
          */
         void unbind();
-        
+
         /**
-         * Performs a COMPARE-operation on an entery of the destination 
+         * Performs a COMPARE-operation on an entery of the destination
          * server.
          *
          * @throws LDAPReferralException if a referral is received
@@ -120,7 +120,7 @@ class LDAPConnection : private LDAPAsynConnection {
          */
         bool compare(const std::string& dn, const LDAPAttribute& attr,
                 LDAPConstraints* cons=0);
-       
+
         /**
          * Deletes an entry from the directory
          *
@@ -133,7 +133,7 @@ class LDAPConnection : private LDAPAsynConnection {
          *              request
          */
         void del(const std::string& dn, const LDAPConstraints* cons=0);
-        
+
         /**
          * Use this method to perform the ADD-operation
          *
@@ -145,7 +145,7 @@ class LDAPConnection : private LDAPAsynConnection {
          *              request
          */
         void add(const LDAPEntry* le, const LDAPConstraints* cons=0);
-        
+
         /**
          * To modify the attributes of an entry, this method can be used
          *
@@ -157,8 +157,8 @@ class LDAPConnection : private LDAPAsynConnection {
          * @param cons  A set of constraints that should be used with this
          *              request
          */
-        void modify(const std::string& dn, const LDAPModList* mods, 
-                const LDAPConstraints* cons=0); 
+        void modify(const std::string& dn, const LDAPModList* mods,
+                const LDAPConstraints* cons=0);
 
         /**
          * This method performs the ModDN-operation.
@@ -180,10 +180,10 @@ class LDAPConnection : private LDAPAsynConnection {
          * @param cons  A set of constraints that should be used with this
          *              request
          */
-        void rename(const std::string& dn, const std::string& newRDN, 
+        void rename(const std::string& dn, const std::string& newRDN,
                 bool delOldRDN=false, const std::string& newParentDN="",
                 const LDAPConstraints* cons=0);
-        
+
         /**
          * This method can be used for the sync. SEARCH-operation.
          *
@@ -192,24 +192,24 @@ class LDAPConnection : private LDAPAsynConnection {
          *              operation
          * @param base The distinguished name of the starting point for the
          *      search
-         * @param scope The scope of the search. Possible values: <BR> 
-         *      LDAPAsynConnection::SEARCH_BASE, <BR> 
+         * @param scope The scope of the search. Possible values: <BR>
+         *      LDAPAsynConnection::SEARCH_BASE, <BR>
          *      LDAPAsynConnection::SEARCH_ONE, <BR>
          *      LDAPAsynConnection::SEARCH_SUB
          * @param filter The std::string representation of a search filter to
          *      use with this operation
-         * @param attrsOnly true if only the attributes names (no values) 
+         * @param attrsOnly true if only the attributes names (no values)
          *      should be returned
          * @param cons A set of constraints that should be used with this
          *      request
          * @returns A pointer to a LDAPSearchResults-object that can be
          *      used to read the results of the search.
          */
-        LDAPSearchResults* search(const std::string& base, int scope=0, 
-                const std::string& filter="objectClass=*", 
+        LDAPSearchResults* search(const std::string& base, int scope=0,
+                const std::string& filter="objectClass=*",
                 const StringList& attrs=StringList(), bool attrsOnly=false,
                 const LDAPConstraints* cons=0);
-       
+
         /**
          * This method is for extended LDAP-Operations.
          *
@@ -227,13 +227,13 @@ class LDAPConnection : private LDAPAsynConnection {
          */
         LDAPExtResult* extOperation(const std::string& oid, const std::string&
                 value="", const LDAPConstraints *const = 0);
-        
+
         const std::string& getHost() const;
 
         int getPort() const;
-        
+
         void setConstraints(LDAPConstraints *cons);
-        
+
         const LDAPConstraints* getConstraints() const ;
         TlsOptions getTlsOptions() const;
 };

@@ -16,28 +16,28 @@
 using namespace std;
 
 LDAPCompareRequest::LDAPCompareRequest(const LDAPCompareRequest& req){
-    DEBUG(LDAP_DEBUG_CONSTRUCT, 
+    DEBUG(LDAP_DEBUG_CONSTRUCT,
             "LDAPCompareRequest::LDAPCompareRequest(&)" << endl);
     m_dn=req.m_dn;
     m_attr=req.m_attr;
 }
 
-LDAPCompareRequest::LDAPCompareRequest(const string& dn, 
-        const LDAPAttribute& attr, LDAPAsynConnection *connect, 
-        const LDAPConstraints *cons, bool isReferral, 
+LDAPCompareRequest::LDAPCompareRequest(const string& dn,
+        const LDAPAttribute& attr, LDAPAsynConnection *connect,
+        const LDAPConstraints *cons, bool isReferral,
         const LDAPRequest* parent) :
         LDAPRequest(connect, cons, isReferral,parent){
-    DEBUG(LDAP_DEBUG_CONSTRUCT, "LDAPCompareRequest::LDAPCompareRequest()" 
+    DEBUG(LDAP_DEBUG_CONSTRUCT, "LDAPCompareRequest::LDAPCompareRequest()"
             << endl);
-    DEBUG(LDAP_DEBUG_CONSTRUCT | LDAP_DEBUG_PARAMETER, "   dn:" << dn << endl 
+    DEBUG(LDAP_DEBUG_CONSTRUCT | LDAP_DEBUG_PARAMETER, "   dn:" << dn << endl
             << "   attr:" << attr << endl);
     m_requestType=LDAPRequest::COMPARE;
     m_dn=dn;
     m_attr=attr;
-} 
-    
+}
+
 LDAPCompareRequest::~LDAPCompareRequest(){
-    DEBUG(LDAP_DEBUG_DESTROY, "LDAPCompareRequest::~LDAPCompareRequest()" 
+    DEBUG(LDAP_DEBUG_DESTROY, "LDAPCompareRequest::~LDAPCompareRequest()"
             << endl);
 }
 
@@ -45,10 +45,10 @@ LDAPMessageQueue* LDAPCompareRequest::sendRequest(){
     DEBUG(LDAP_DEBUG_TRACE, "LDAPCompareRequest::sendRequest()" << endl);
     int msgID=0;
     BerValue **val=m_attr.getBerValues();
-    LDAPControl** tmpSrvCtrls=m_cons->getSrvCtrlsArray(); 
-    LDAPControl** tmpClCtrls=m_cons->getClCtrlsArray(); 
+    LDAPControl** tmpSrvCtrls=m_cons->getSrvCtrlsArray();
+    LDAPControl** tmpClCtrls=m_cons->getClCtrlsArray();
     int err=ldap_compare_ext(m_connection->getSessionHandle(),m_dn.c_str(),
-            m_attr.getName().c_str(), val[0], tmpSrvCtrls, 
+            m_attr.getName().c_str(), val[0], tmpSrvCtrls,
             tmpClCtrls, &msgID);
     ber_bvecfree(val);
     LDAPControlSet::freeLDAPControlArray(tmpSrvCtrls);

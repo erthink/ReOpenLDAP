@@ -82,7 +82,7 @@ typedef int (LUTIL_PASSWD_CHK_FUNC)(
 typedef int (LUTIL_PASSWD_HASH_FUNC) (
 	const struct berval *scheme,
 	const struct berval *passwd,
-	struct berval *hash, 
+	struct berval *hash,
 	const char **text );
 
 LDAP_LUTIL_F( int )

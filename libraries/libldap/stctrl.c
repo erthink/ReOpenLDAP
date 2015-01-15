@@ -171,8 +171,8 @@ ldap_parse_session_tracking_control(
 	ber_tag_t	tag;
 	ber_len_t	len;
 
-	if ( ld == NULL || 
-		ctrl == NULL || 
+	if ( ld == NULL ||
+		ctrl == NULL ||
 		ip == NULL ||
 		name == NULL ||
 		oid == NULL ||

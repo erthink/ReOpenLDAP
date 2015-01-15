@@ -228,7 +228,7 @@ pg_dynacl_mask(
 			/* did not expand to a valid dn */
 			goto cleanup;
 		}
-		
+
 	} else {
 		group_ndn = pg->pg_pat;
 	}

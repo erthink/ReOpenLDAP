@@ -97,7 +97,7 @@ printableStringOid2 OBJECT-TYPE
 	SYNTAX PrintableString
 	ACCESS read-write
 	STATUS mandatory
-	::= { 2 5 4 6 }    
+	::= { 2 5 4 6 }
 
 printableStringOid3 OBJECT-TYPE
 	SYNTAX PrintableString
@@ -109,13 +109,13 @@ printableStringOid4 OBJECT-TYPE
 	SYNTAX PrintableString
 	ACCESS read-write
 	STATUS mandatory
-	::= { 2 5 4 8 }    
+	::= { 2 5 4 8 }
 
 printableStringOid5 OBJECT-TYPE
 	SYNTAX PrintableString
 	ACCESS read-write
 	STATUS mandatory
-	::= { 2 5 4 10 }    
+	::= { 2 5 4 10 }
 
 printableStringOid6 OBJECT-TYPE
 	SYNTAX PrintableString

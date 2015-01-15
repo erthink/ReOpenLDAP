@@ -368,7 +368,7 @@ static int find_session_by_context(
 	int sess_id;
 	for(sess_id = 0; sess_id < svi_max_percon; sess_id++) {
 		if( sort_conns[conn_id] && sort_conns[conn_id][sess_id] &&
-		    ( sort_conns[conn_id][sess_id]->so_vcontext == vc_context || 
+		    ( sort_conns[conn_id][sess_id]->so_vcontext == vc_context ||
                       (PagedResultsCookie) sort_conns[conn_id][sess_id]->so_tree == ps_cookie ) )
 			return sess_id;
 	}
@@ -392,7 +392,7 @@ static int find_next_session(
 		return sess_id;
 	}
 }
-	
+
 static void free_sort_op( Connection *conn, sort_op *so )
 {
 	int sess_id;
@@ -435,7 +435,7 @@ static void free_sort_ops( Connection *conn, sort_op **sos, int svi_max_percon )
 		}
 	}
 }
-	
+
 static void send_list(
 	Operation		*op,
 	SlapReply		*rs,
@@ -1325,7 +1325,7 @@ static int sssvlv_db_init(
 			return rc;
 		}
 	}
-	
+
 	si = (sssvlv_info *)ch_malloc(sizeof(sssvlv_info));
 	on->on_bi.bi_private = si;
 

@@ -17,7 +17,7 @@
  * <http://www.OpenLDAP.org/license.html>.
  */
 /* Portions Copyright 1999, Juan C. Gomez, All rights reserved.
- * This software is not subject to any license of Silicon Graphics 
+ * This software is not subject to any license of Silicon Graphics
  * Inc. or Purdue University.
  *
  * Redistribution and use in source and binary forms are permitted

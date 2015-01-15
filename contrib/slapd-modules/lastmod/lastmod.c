@@ -208,7 +208,7 @@ lastmod_exop( Operation *op, SlapReply *rs )
 	rs->sr_text = "not allowed within namingContext";
 	send_ldap_result( op, rs );
 	rs->sr_text = NULL;
-	
+
 	return -1;
 }
 
@@ -238,7 +238,7 @@ lastmod_modify( Operation *op, SlapReply *rs )
 			rs->sr_err = LDAP_UNWILLING_TO_PERFORM;
 			goto cleanup;
 		}
-		
+
 		a = attr_find( lmi->lmi_e->e_attrs, ml->sml_desc );
 
 		if ( a == NULL ) {
@@ -369,7 +369,7 @@ best_guess( Operation *op,
 	if ( bv_entryCSN ) {
 		char		csnbuf[ LDAP_PVT_CSNSTR_BUFSIZE ];
 		struct berval	entryCSN;
-	
+
 		entryCSN.bv_val = csnbuf;
 		entryCSN.bv_len = sizeof( csnbuf );
 		slap_get_csn( NULL, &entryCSN, 0 );
@@ -472,7 +472,7 @@ lastmod_update( Operation *op, SlapReply *rs )
 	case LDAP_REQ_EXTENDED:
 		lmt = LASTMOD_EXOP;
 
-		/* actually, password change is wrapped around a backend 
+		/* actually, password change is wrapped around a backend
 		 * call to modify, so it never shows up as an exop... */
 		best_guess( op, &bv_entryCSN, &bv_nentryCSN,
 				&bv_modifyTimestamp, &bv_nmodifyTimestamp,
@@ -612,7 +612,7 @@ lastmod_update( Operation *op, SlapReply *rs )
 	default:
 		return -1;
 	}
-	
+
 	ldap_pvt_thread_mutex_lock( &lmi->lmi_entry_mutex );
 
 #if 0
@@ -635,7 +635,7 @@ lastmod_update( Operation *op, SlapReply *rs )
 	a = attr_find( lmi->lmi_e->e_attrs, lastmod_schema.lms_ad_lastmodType );
 	if ( a == NULL ) {
 		goto error_return;
-	} 
+	}
 	ch_free( a->a_vals[0].bv_val );
 	ber_dupbv( &a->a_vals[0], &lastmodType[ lmt ] );
 	ch_free( a->a_nvals[0].bv_val );
@@ -648,7 +648,7 @@ lastmod_update( Operation *op, SlapReply *rs )
 	a = attr_find( lmi->lmi_e->e_attrs, slap_schema.si_ad_modifiersName );
 	if ( a == NULL ) {
 		goto error_return;
-	} 
+	}
 	ch_free( a->a_vals[0].bv_val );
 	a->a_vals[0] = bv_modifiersName;
 	ch_free( a->a_nvals[0].bv_val );
@@ -661,7 +661,7 @@ lastmod_update( Operation *op, SlapReply *rs )
 	a = attr_find( lmi->lmi_e->e_attrs, slap_schema.si_ad_modifyTimestamp );
 	if ( a == NULL ) {
 		goto error_return;
-	} 
+	}
 	ch_free( a->a_vals[0].bv_val );
 	a->a_vals[0] = bv_modifyTimestamp;
 	ch_free( a->a_nvals[0].bv_val );
@@ -674,7 +674,7 @@ lastmod_update( Operation *op, SlapReply *rs )
 	a = attr_find( lmi->lmi_e->e_attrs, slap_schema.si_ad_entryCSN );
 	if ( a == NULL ) {
 		goto error_return;
-	} 
+	}
 	ch_free( a->a_vals[0].bv_val );
 	a->a_vals[0] = bv_entryCSN;
 	ch_free( a->a_nvals[0].bv_val );
@@ -684,7 +684,7 @@ lastmod_update( Operation *op, SlapReply *rs )
 
 error_return:;
 	ldap_pvt_thread_mutex_unlock( &lmi->lmi_entry_mutex );
-	
+
 	return rc;
 }
 
@@ -767,7 +767,7 @@ lastmod_db_init(
 			int			code;
 			ObjectClass		**Oc =
 				((ObjectClass **)&(((char *)&lastmod_schema)[moc[i].offset]));
-	
+
 			code = register_oc( moc[i].schema, Oc, 0 );
 			if ( code ) {
 				Debug( LDAP_DEBUG_ANY,
@@ -782,7 +782,7 @@ lastmod_db_init(
 
 	memset( lmi, 0, sizeof( lastmod_info_t ) );
 	lmi->lmi_enabled = 1;
-	
+
 	on->on_bi.bi_private = lmi;
 
 	return 0;

@@ -65,15 +65,15 @@ int lutil_srv_install(LPCTSTR lpszServiceName, LPCTSTR lpszDisplayName,
 	if ( sp ) *sp = ' ';
 	if ((schSCManager = OpenSCManager( NULL, NULL, SC_MANAGER_CONNECT|SC_MANAGER_CREATE_SERVICE ) ) != NULL )
 	{
-	 	if ((schService = CreateService( 
-							schSCManager, 
-							lpszServiceName, 
-							lpszDisplayName, 
-							SERVICE_ALL_ACCESS, 
-							SERVICE_WIN32_OWN_PROCESS, 
-							auto_start ? SERVICE_AUTO_START : SERVICE_DEMAND_START, 
-							SERVICE_ERROR_NORMAL, 
-							lpszBinaryPathName, 
+	 	if ((schService = CreateService(
+							schSCManager,
+							lpszServiceName,
+							lpszDisplayName,
+							SERVICE_ALL_ACCESS,
+							SERVICE_WIN32_OWN_PROCESS,
+							auto_start ? SERVICE_AUTO_START : SERVICE_DEMAND_START,
+							SERVICE_ERROR_NORMAL,
+							lpszBinaryPathName,
 							NULL, NULL, NULL, NULL, NULL)) != NULL)
 		{
 			char regpath[132];
@@ -84,9 +84,9 @@ int lutil_srv_install(LPCTSTR lpszServiceName, LPCTSTR lpszDisplayName,
 				"SYSTEM\\CurrentControlSet\\Services\\EventLog\\Application\\%s",
 				lpszServiceName );
 			/* Create the registry key for event logging to the Windows NT event log. */
-			if ( RegCreateKeyEx(HKEY_LOCAL_MACHINE, 
-				regpath, 0, 
-				"REG_SZ", REG_OPTION_NON_VOLATILE, KEY_ALL_ACCESS, NULL, &hKey, 
+			if ( RegCreateKeyEx(HKEY_LOCAL_MACHINE,
+				regpath, 0,
+				"REG_SZ", REG_OPTION_NON_VOLATILE, KEY_ALL_ACCESS, NULL, &hKey,
 				&dwDisposition) != ERROR_SUCCESS)
 			{
 				fprintf( stderr, "RegCreateKeyEx() failed. GetLastError=%lu (%s)\n", GetLastError(), GetLastErrorString() );
@@ -102,7 +102,7 @@ int lutil_srv_install(LPCTSTR lpszServiceName, LPCTSTR lpszDisplayName,
 			}
 
 			dwValue = EVENTLOG_ERROR_TYPE | EVENTLOG_WARNING_TYPE | EVENTLOG_INFORMATION_TYPE;
-			if ( RegSetValueEx(hKey, "TypesSupported", 0, REG_DWORD, (LPBYTE) &dwValue, sizeof(DWORD)) != ERROR_SUCCESS) 
+			if ( RegSetValueEx(hKey, "TypesSupported", 0, REG_DWORD, (LPBYTE) &dwValue, sizeof(DWORD)) != ERROR_SUCCESS)
 			{
 				fprintf( stderr, "RegCreateKeyEx(TypesSupported) failed. GetLastError=%lu (%s)\n", GetLastError(), GetLastErrorString() );
 				RegCloseKey(hKey);
@@ -129,11 +129,11 @@ int lutil_srv_remove(LPCTSTR lpszServiceName, LPCTSTR lpszBinaryPathName)
 	SC_HANDLE schSCManager, schService;
 
 	fprintf( stderr, "The installed path is %s.\n", lpszBinaryPathName );
-	if ((schSCManager = OpenSCManager(NULL, NULL, SC_MANAGER_CONNECT|SC_MANAGER_CREATE_SERVICE)) != NULL ) 
+	if ((schSCManager = OpenSCManager(NULL, NULL, SC_MANAGER_CONNECT|SC_MANAGER_CREATE_SERVICE)) != NULL )
 	{
-	 	if ((schService = OpenService(schSCManager, lpszServiceName, DELETE)) != NULL) 
+	 	if ((schService = OpenService(schSCManager, lpszServiceName, DELETE)) != NULL)
 		{
-			if ( DeleteService(schService) == TRUE) 
+			if ( DeleteService(schService) == TRUE)
 			{
 				CloseServiceHandle(schService);
 				CloseServiceHandle(schSCManager);
@@ -233,7 +233,7 @@ static void *start_status_routine( void *ptr )
 				done = 1;
 				break;
 			case WAIT_TIMEOUT:
-				/* We've waited for the required time, so send an update to the Service Control 
+				/* We've waited for the required time, so send an update to the Service Control
 				 * Manager saying to wait again. */
 				lutil_ServiceStatus.dwCheckPoint++;
 				lutil_ServiceStatus.dwWaitHint = SCM_NOTIFICATION_INTERVAL * 2;
@@ -241,7 +241,7 @@ static void *start_status_routine( void *ptr )
 				break;
 			case WAIT_FAILED:
 				/* theres been some problem with WaitForSingleObject so tell the Service
-				 * Control Manager to wait 30 seconds before deploying its assasin and 
+				 * Control Manager to wait 30 seconds before deploying its assasin and
 				 * then leave the thread. */
 				lutil_ServiceStatus.dwCheckPoint++;
 				lutil_ServiceStatus.dwWaitHint = THIRTY_SECONDS;
@@ -269,13 +269,13 @@ static void *stop_status_routine( void *ptr )
 			case WAIT_ABANDONED:
 			case WAIT_OBJECT_0:
 				/* the object that we were waiting for has been destroyed (ABANDONED) or
-				 * signalled (TIMEOUT_0). The shutting down process is therefore complete 
+				 * signalled (TIMEOUT_0). The shutting down process is therefore complete
 				 * and the final SERVICE_STOPPED message will be sent to the service control
 				 * manager prior to the process terminating. */
 				done = 1;
 				break;
 			case WAIT_TIMEOUT:
-				/* We've waited for the required time, so send an update to the Service Control 
+				/* We've waited for the required time, so send an update to the Service Control
 				 * Manager saying to wait again. */
 				lutil_ServiceStatus.dwCheckPoint++;
 				lutil_ServiceStatus.dwWaitHint = SCM_NOTIFICATION_INTERVAL * 2;
@@ -283,7 +283,7 @@ static void *stop_status_routine( void *ptr )
 				break;
 			case WAIT_FAILED:
 				/* theres been some problem with WaitForSingleObject so tell the Service
-				 * Control Manager to wait 30 seconds before deploying its assasin and 
+				 * Control Manager to wait 30 seconds before deploying its assasin and
 				 * then leave the thread. */
 				lutil_ServiceStatus.dwCheckPoint++;
 				lutil_ServiceStatus.dwWaitHint = THIRTY_SECONDS;
@@ -321,15 +321,15 @@ static void WINAPI lutil_ServiceCtrlHandler( IN DWORD Opcode)
 		}
 		else
 		{
-			/* start a thread to report the progress to the service control manager 
+			/* start a thread to report the progress to the service control manager
 			 * until the stopped_event is fired. */
 			if ( ldap_pvt_thread_create( &stop_status_tid, 0, stop_status_routine, NULL ) == 0 )
 			{
-				
+
 			}
 			else {
 				/* failed to create the thread that tells the Service Control Manager that the
-				 * service stopping is proceeding. 
+				 * service stopping is proceeding.
 				 * tell the Service Control Manager to wait another 30 seconds before deploying its
 				 * assasin.  */
 				lutil_ServiceStatus.dwCheckPoint++;
@@ -359,7 +359,7 @@ void *lutil_getRegParam( char *svc, char *value )
 		snprintf ( path, sizeof path, "SOFTWARE\\%s", svc );
 	else
 		snprintf ( path, sizeof path, "SOFTWARE\\OpenLDAP\\Parameters" );
-	
+
 	if ( RegOpenKeyEx( HKEY_LOCAL_MACHINE, path, 0, KEY_READ, &hkey ) != ERROR_SUCCESS )
 	{
 		return NULL;
@@ -371,7 +371,7 @@ void *lutil_getRegParam( char *svc, char *value )
 		return NULL;
 	}
 	RegCloseKey( hkey );
-	
+
 	switch ( vType )
 	{
 	case REG_BINARY:
@@ -388,7 +388,7 @@ void lutil_LogStartedEvent( char *svc, int slap_debug, char *configfile, char *u
 	char *Inserts[5];
 	WORD i = 0, j;
 	HANDLE hEventLog;
-	
+
 	hEventLog = RegisterEventSource( NULL, svc );
 
 	Inserts[i] = (char *)malloc( 20 );
@@ -409,7 +409,7 @@ void lutil_LogStartedEvent( char *svc, int slap_debug, char *configfile, char *u
 void lutil_LogStoppedEvent( char *svc )
 {
 	HANDLE hEventLog;
-	
+
 	hEventLog = RegisterEventSource( NULL, svc );
 	ReportEvent( hEventLog, EVENTLOG_INFORMATION_TYPE, 0,
 		MSG_SVC_STOPPED, NULL, 0, 0, NULL, NULL );
@@ -436,7 +436,7 @@ void lutil_CommenceStartupProcessing( char *lpszServiceName,
 	SetServiceStatus(hlutil_ServiceStatus, &lutil_ServiceStatus);
 
 	/* start up a thread to keep sending SERVICE_START_PENDING to the Service Control Manager
-	 * until the slapd listener is completed and listening. Only then should we send 
+	 * until the slapd listener is completed and listening. Only then should we send
 	 * SERVICE_RUNNING to the Service Control Manager. */
 	ldap_pvt_thread_cond_init( &started_event );
 	if ( started_event == NULL)
@@ -450,15 +450,15 @@ void lutil_CommenceStartupProcessing( char *lpszServiceName,
 	}
 	else
 	{
-		/* start a thread to report the progress to the service control manager 
+		/* start a thread to report the progress to the service control manager
 		 * until the started_event is fired.  */
 		if ( ldap_pvt_thread_create( &start_status_tid, 0, start_status_routine, NULL ) == 0 )
 		{
-			
+
 		}
 		else {
 			/* failed to create the thread that tells the Service Control Manager that the
-			 * service startup is proceeding. 
+			 * service startup is proceeding.
 			 * tell the Service Control Manager to wait another 30 seconds before deploying its
 			 * assasin.  */
 			lutil_ServiceStatus.dwCheckPoint++;

@@ -17,7 +17,7 @@ BDecComponentCertificateTop( void* mem_op, GenBuf* b, void **v, AsnLen* bytesDec
 	if ( tag != MAKE_TAG_ID (UNIV, CONS, SEQ_TAG_CODE) ) {
 		return (-1);
 	}
-		
+
 	return BDecComponentCertificate( mem_op, b, tag, elmtLen, (ComponentCertificate**)v,(AsnLen*)bytesDecoded, mode );
 }
 
@@ -338,7 +338,7 @@ MatchingComponentTime ( char* oid, ComponentSyntaxInfo* csi_attr, ComponentSynta
 	   case TIME_GENERALIZEDTIME :
 		rc = 	MatchingComponentGeneralizedTime ( oid, (ComponentSyntaxInfo*)(v1->a.generalizedTime), (ComponentSyntaxInfo*)(v2->a.generalizedTime) );
 		break;
-	default : 
+	default :
 		 return LDAP_PROTOCOL_ERROR;
 	}
 	return rc;
@@ -1513,7 +1513,7 @@ ExtractingComponentExtensions ( void* mem_op, ComponentReference* cr, ComponentE
 		count = total + count +1;
 		FOR_EACH_LIST_ELMT ( component, v ) {
 			if( --count == 0 ) {
-				if( cr->cr_curr->ci_next == NULL ) 
+				if( cr->cr_curr->ci_next == NULL )
 					return component;
 				else {
 					cr->cr_curr = cr->cr_curr->ci_next;
@@ -1994,7 +1994,7 @@ ExtractingComponentRDNSequence ( void* mem_op, ComponentReference* cr, Component
 		count = total + count +1;
 		FOR_EACH_LIST_ELMT ( component, v ) {
 			if( --count == 0 ) {
-				if( cr->cr_curr->ci_next == NULL ) 
+				if( cr->cr_curr->ci_next == NULL )
 					return component;
 				else {
 					cr->cr_curr = cr->cr_curr->ci_next;
@@ -2196,7 +2196,7 @@ MatchingComponentName ( char* oid, ComponentSyntaxInfo* csi_attr, ComponentSynta
 	   case NAME_RDNSEQUENCE :
 		rc = 	MatchingComponentRDNSequence ( oid, (ComponentSyntaxInfo*)(v1->a.rdnSequence), (ComponentSyntaxInfo*)(v2->a.rdnSequence) );
 		break;
-	default : 
+	default :
 		 return LDAP_PROTOCOL_ERROR;
 	}
 	return rc;

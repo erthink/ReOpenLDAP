@@ -89,7 +89,7 @@ different session handle, may require to complete.
 .LP
 When
 .B ldap_unbind()
-is called on a session handle with siblings, all the 
+is called on a session handle with siblings, all the
 siblings become invalid.
 .LP
 Siblings must be destroyed using
@@ -102,7 +102,7 @@ is called, if no other session handles currently exist.
 .SH ERRORS
 If an error occurs,
 .B ldap_dup()
-will return NULL and 
+will return NULL and
 .I errno
 should be set appropriately.
 .B ldap_destroy()

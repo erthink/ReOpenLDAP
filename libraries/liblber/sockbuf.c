@@ -94,7 +94,7 @@ ber_sockbuf_ctrl( Sockbuf *sb, int opt, void *arg )
 			while ( p && p->sbiod_io != (Sockbuf_IO *)arg ) {
 				p = p->sbiod_next;
 			}
-   
+
 			if ( p ) {
 				ret = 1;
 			}
@@ -176,26 +176,26 @@ int
 ber_sockbuf_add_io( Sockbuf *sb, Sockbuf_IO *sbio, int layer, void *arg )
 {
 	Sockbuf_IO_Desc		*d, *p, **q;
-   
+
 	assert( sb != NULL );
 	assert( SOCKBUF_VALID( sb ) );
-   
+
 	if ( sbio == NULL ) {
 		return -1;
 	}
-   
+
 	q = &sb->sb_iod;
 	p = *q;
 	while ( p && p->sbiod_level > layer ) {
 		q = &p->sbiod_next;
 		p = *q;
 	}
-   
+
 	d = LBER_MALLOC( sizeof( *d ) );
 	if ( d == NULL ) {
 		return -1;
 	}
-   
+
 	d->sbiod_level = layer;
 	d->sbiod_sb = sb;
 	d->sbiod_io = sbio;
@@ -209,7 +209,7 @@ ber_sockbuf_add_io( Sockbuf *sb, Sockbuf_IO *sbio, int layer, void *arg )
 
 	return 0;
 }
-   
+
 int
 ber_sockbuf_remove_io( Sockbuf *sb, Sockbuf_IO *sbio, int layer )
 {
@@ -217,11 +217,11 @@ ber_sockbuf_remove_io( Sockbuf *sb, Sockbuf_IO *sbio, int layer )
 
 	assert( sb != NULL );
 	assert( SOCKBUF_VALID( sb ) );
-   
+
 	if ( sb->sb_iod == NULL ) {
 		return -1;
 	}
-   
+
 	q = &sb->sb_iod;
 	while ( *q != NULL ) {
 		p = *q;
@@ -266,7 +266,7 @@ ber_pvt_sb_grow_buffer( Sockbuf_Buf *buf, ber_len_t minsize )
 {
 	ber_len_t		pw;
 	char			*p;
-   
+
 	assert( buf != NULL );
 
 	for ( pw = LBER_MIN_BUFF_SIZE; pw < minsize; pw <<= 1 ) {
@@ -316,7 +316,7 @@ ber_pvt_sb_do_write( Sockbuf_IO_Desc *sbiod, Sockbuf_Buf *buf_out )
 
 	to_go = buf_out->buf_end - buf_out->buf_ptr;
 	assert( to_go > 0 );
-   
+
 	for(;;) {
 		ret = LBER_SBIOD_WRITE_NEXT( sbiod, buf_out->buf_base +
 			buf_out->buf_ptr, to_go );
@@ -327,7 +327,7 @@ ber_pvt_sb_do_write( Sockbuf_IO_Desc *sbiod, Sockbuf_Buf *buf_out )
 	}
 
 	if ( ret <= 0 ) return ret;
-   
+
 	buf_out->buf_ptr += ret;
 	if (buf_out->buf_ptr == buf_out->buf_end) {
 		buf_out->buf_end = buf_out->buf_ptr = 0;
@@ -347,7 +347,7 @@ ber_pvt_socket_set_nonblock( ber_socket_t sd, int nb )
 		flags &= ~O_NONBLOCK;
 	}
 	return fcntl( sd, F_SETFL, flags );
-		
+
 #elif defined( FIONBIO )
 	ioctl_t status = nb ? 1 : 0;
 	return ioctl( sd, FIONBIO, &status );
@@ -366,18 +366,18 @@ ber_int_sb_init( Sockbuf *sb )
 	sb->sb_iod = NULL;
 	sb->sb_trans_needs_read = 0;
 	sb->sb_trans_needs_write = 0;
-   
+
 	assert( SOCKBUF_VALID( sb ) );
 	return 0;
 }
-   
+
 int
 ber_int_sb_close( Sockbuf *sb )
 {
 	Sockbuf_IO_Desc		*p;
 
 	assert( sb != NULL);
-   
+
 	p = sb->sb_iod;
 	while ( p ) {
 		if ( p->sbiod_io->sbi_close && p->sbiod_io->sbi_close( p ) < 0 ) {
@@ -385,9 +385,9 @@ ber_int_sb_close( Sockbuf *sb )
 		}
 		p = p->sbiod_next;
 	}
-   
+
 	sb->sb_fd = AC_SOCKET_INVALID;
-   
+
 	return 0;
 }
 
@@ -398,7 +398,7 @@ ber_int_sb_destroy( Sockbuf *sb )
 
 	assert( sb != NULL);
 	assert( SOCKBUF_VALID( sb ) );
-   
+
 	while ( sb->sb_iod ) {
 		p = sb->sb_iod->sbiod_next;
 		ber_sockbuf_remove_io( sb, sb->sb_iod->sbiod_io,
@@ -422,7 +422,7 @@ ber_int_sb_read( Sockbuf *sb, void *buf, ber_len_t len )
 	for (;;) {
 		ret = sb->sb_iod->sbiod_io->sbi_read( sb->sb_iod, buf, len );
 
-#ifdef EINTR	
+#ifdef EINTR
 		if ( ( ret < 0 ) && ( errno == EINTR ) ) continue;
 #endif
 		break;
@@ -444,7 +444,7 @@ ber_int_sb_write( Sockbuf *sb, void *buf, ber_len_t len )
 	for (;;) {
 		ret = sb->sb_iod->sbiod_io->sbi_write( sb->sb_iod, buf, len );
 
-#ifdef EINTR	
+#ifdef EINTR
 		if ( ( ret < 0 ) && ( errno == EINTR ) ) continue;
 #endif
 		break;
@@ -500,7 +500,7 @@ sb_stream_write( Sockbuf_IO_Desc *sbiod, void *buf, ber_len_t len )
 	assert( sbiod != NULL);
 	assert( SOCKBUF_VALID( sbiod->sbiod_sb ) );
 
-#if defined(MACOS) 
+#if defined(MACOS)
 /*
  * MacTCP/OpenTransport
  */
@@ -533,10 +533,10 @@ sb_stream_write( Sockbuf_IO_Desc *sbiod, void *buf, ber_len_t len )
 		(len<MAX_WRITE) ? len : MAX_WRITE);
 #else
 	return write( sbiod->sbiod_sb->sb_fd, buf, len );
-#endif   
-}   
-   
-static int 
+#endif
+}
+
+static int
 sb_stream_close( Sockbuf_IO_Desc *sbiod )
 {
 	assert( sbiod != NULL );
@@ -643,7 +643,7 @@ sb_rdahead_read( Sockbuf_IO_Desc *sbiod, void *buf, ber_len_t len )
 	while ( max > 0 ) {
 		ret = LBER_SBIOD_READ_NEXT( sbiod, p->buf_base + p->buf_end,
 			max );
-#ifdef EINTR	
+#ifdef EINTR
 		if ( ( ret < 0 ) && ( errno == EINTR ) ) continue;
 #endif
 		break;
@@ -749,9 +749,9 @@ sb_fd_write( Sockbuf_IO_Desc *sbiod, void *buf, ber_len_t len )
 	return write( sbiod->sbiod_sb->sb_fd, buf, len );
 }
 
-static int 
+static int
 sb_fd_close( Sockbuf_IO_Desc *sbiod )
-{   
+{
 	assert( sbiod != NULL );
 	assert( SOCKBUF_VALID( sbiod->sbiod_sb ) );
 
@@ -793,7 +793,7 @@ static int
 sb_debug_setup( Sockbuf_IO_Desc *sbiod, void *arg )
 {
 	assert( sbiod != NULL );
-	
+
 	if ( arg == NULL ) arg = "sockbuf_";
 
 	sbiod->sbiod_pvt = LBER_MALLOC( strlen( arg ) + 1 );
@@ -893,7 +893,7 @@ Sockbuf_IO ber_sockbuf_io_debug = {
  * operations on LDAP messages.
  */
 
-static int 
+static int
 sb_dgram_setup( Sockbuf_IO_Desc *sbiod, void *arg )
 {
 	assert( sbiod != NULL);
@@ -909,7 +909,7 @@ sb_dgram_read( Sockbuf_IO_Desc *sbiod, void *buf, ber_len_t len )
 	ber_slen_t rc;
 	ber_socklen_t addrlen;
 	struct sockaddr *src;
-   
+
 	assert( sbiod != NULL );
 	assert( SOCKBUF_VALID( sbiod->sbiod_sb ) );
 	assert( buf != NULL );
@@ -923,12 +923,12 @@ sb_dgram_read( Sockbuf_IO_Desc *sbiod, void *buf, ber_len_t len )
 	return rc > 0 ? rc+sizeof(struct sockaddr_storage) : rc;
 }
 
-static ber_slen_t 
+static ber_slen_t
 sb_dgram_write( Sockbuf_IO_Desc *sbiod, void *buf, ber_len_t len )
 {
 	ber_slen_t rc;
 	struct sockaddr *dst;
-   
+
 	assert( sbiod != NULL );
 	assert( SOCKBUF_VALID( sbiod->sbiod_sb ) );
 	assert( buf != NULL );
@@ -936,12 +936,12 @@ sb_dgram_write( Sockbuf_IO_Desc *sbiod, void *buf, ber_len_t len )
 	dst = buf;
 	buf = (char *) buf + sizeof( struct sockaddr_storage );
 	len -= sizeof( struct sockaddr_storage );
-   
+
 	rc = sendto( sbiod->sbiod_sb->sb_fd, buf, len, 0, dst,
 		sizeof( struct sockaddr_storage ) );
 
 	if ( rc < 0 ) return -1;
-   
+
 	/* fake error if write was not atomic */
 	if (rc < len) {
 # ifdef EMSGSIZE
@@ -953,12 +953,12 @@ sb_dgram_write( Sockbuf_IO_Desc *sbiod, void *buf, ber_len_t len )
 	return rc;
 }
 
-static int 
+static int
 sb_dgram_close( Sockbuf_IO_Desc *sbiod )
 {
 	assert( sbiod != NULL );
 	assert( SOCKBUF_VALID( sbiod->sbiod_sb ) );
-  
+
 	if ( sbiod->sbiod_sb->sb_fd != AC_SOCKET_INVALID )
 		tcp_close( sbiod->sbiod_sb->sb_fd );
 	return 0;

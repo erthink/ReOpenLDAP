@@ -301,7 +301,7 @@ func_infer_tag ()
 	      eval "tag_compilers=\$tag_compilers_${z}"
 	      if test -n "$tag_compilers"; then
 		for zp in $tag_compilers; do
-		  case $base_compiler in   
+		  case $base_compiler in
 		    $zp) tagname=$z; break;;
 		  esac
 		done
@@ -392,7 +392,7 @@ func_extract_archives ()
 	  darwin_curdir=`pwd`
 	  darwin_base_archive=`$echo "X$darwin_archive" | $Xsed -e 's%^.*/%%'`
 	  darwin_arches=`lipo -info "$darwin_archive" 2>/dev/null | $EGREP Architectures 2>/dev/null`
-	  if test -n "$darwin_arches"; then 
+	  if test -n "$darwin_arches"; then
 	    darwin_arches=`echo "$darwin_arches" | $SED -e 's/.*are://'`
 	    darwin_arch=
 	    $show "$darwin_base_archive has multiple architectures $darwin_arches"
@@ -589,7 +589,7 @@ if test -n "$prevopt"; then
 fi
 
 case $disable_libs in
-no) 
+no)
   ;;
 shared)
   build_libtool_libs=no
@@ -760,7 +760,7 @@ if test -z "$show_help"; then
       # Many Bourne shells cannot handle close brackets correctly
       # in scan sets, and some SunOS ksh mistreat backslash-escaping
       # in scan sets (worked around with variable expansion),
-      # and furthermore cannot handle '|' '&' '(' ')' in scan sets 
+      # and furthermore cannot handle '|' '&' '(' ')' in scan sets
       # at all, so we specify them separately.
       *[\[\~\#\^\&\*\(\)\{\}\|\;\<\>\?\'\ \	]*|*]*|"")
 	lastarg="\"$lastarg\""
@@ -1528,7 +1528,7 @@ EOF
 
       -framework|-arch|-isysroot)
 	case " $CC " in
-	  *" ${arg} ${1} "* | *" ${arg}	${1} "*) 
+	  *" ${arg} ${1} "* | *" ${arg}	${1} "*)
 		prev=darwin_framework_skip ;;
 	  *) compiler_flags="$compiler_flags $arg"
 	     prev=darwin_framework ;;
@@ -4058,7 +4058,7 @@ EOF
 	    libobjs="$libobjs $func_extract_archives_result"
 	  fi
 	fi
-	
+
 	if test "$thread_safe" = yes && test -n "$thread_safe_flag_spec"; then
 	  eval flag=\"$thread_safe_flag_spec\"
 	  linker_flags="$linker_flags $flag"
@@ -5835,7 +5835,7 @@ relink_command=\"$relink_command\""
 
       case $arg in
       -d) isdir=yes ;;
-      -f) 
+      -f)
       	case " $install_prog " in
 	*[\\\ /]cp\ *) ;;
 	*) prev=$arg ;;
@@ -6228,7 +6228,7 @@ relink_command=\"$relink_command\""
 	fi
 
 	# remove .exe since cygwin /usr/bin/install will append another
-	# one anyway 
+	# one anyway
 	case $install_prog,$host in
 	*/usr/bin/install*,*cygwin*)
 	  case $file:$destfile in

@@ -1,68 +1,68 @@
 
-insert into ldap_oc_mappings 
+insert into ldap_oc_mappings
 (id,name,          keytbl,   keycol, create_proc,
 delete_proc,expect_return)
-values 
+values
 (1,'inetOrgPerson','persons','id',   'insert into persons (name) values ('');\n select last_insert_id();',
 NULL,0);
 
-insert into ldap_oc_mappings 
+insert into ldap_oc_mappings
 (id, name,      keytbl,     keycol,create_proc,delete_proc,expect_return)
-values 
+values
 (2,  'document','documents','id',  NULL,       NULL,       0);
 
-insert into ldap_oc_mappings 
+insert into ldap_oc_mappings
 (id,name,         keytbl,      keycol,create_proc,delete_proc,expect_return)
-values 
+values
 (3,'organization','institutes','id',  NULL,       NULL,       0);
 
 
-insert into ldap_attr_mappings 
+insert into ldap_attr_mappings
 (id, oc_map_id, name,  sel_expr,       sel_expr_u,      from_tbls,
 join_where,add_proc, delete_proc,param_order,expect_return)
-values 
+values
 (1,  1,         'cn',  'persons.name', 'persons.name_u','persons',
 NULL,      NULL,     NULL,       3,          0);
 
-insert into ldap_attr_mappings 
+insert into ldap_attr_mappings
 (id, oc_map_id, name,     sel_expr,        sel_expr_u, from_tbls,join_where,
 add_proc, delete_proc,param_order,expect_return)
-values 
-(10, 1,         'title',  'persons.title', 'persons.title_u', 'persons',NULL,      NULL,     
+values
+(10, 1,         'title',  'persons.title', 'persons.title_u', 'persons',NULL,      NULL,
 NULL,       3,          0);
 
-insert into ldap_attr_mappings 
+insert into ldap_attr_mappings
 (id, oc_map_id,name,             sel_expr,      from_tbls,
 join_where,                  add_proc,delete_proc,param_order,expect_return)
-values 
+values
 (2,  1,        'telephoneNumber','phones.phone','persons,phones',
 'phones.pers_id=persons.id', NULL,    NULL,       3,          0);
 
-insert into ldap_attr_mappings 
+insert into ldap_attr_mappings
 (id,oc_map_id, name, sel_expr,      from_tbls, join_where,add_proc,
 delete_proc,param_order,expect_return)
-values 
-(3, 1,         'sn', 'persons.name','persons', NULL,      NULL, 
+values
+(3, 1,         'sn', 'persons.name','persons', NULL,      NULL,
 NULL,       3,          0);
 
-insert into ldap_attr_mappings 
+insert into ldap_attr_mappings
 (id, oc_map_id, name, sel_expr,              from_tbls, join_where,add_proc,
 delete_proc,param_order,expect_return)
-values 
-(30, 1,         'ou', 'persons.organization','persons', NULL,      NULL, 
+values
+(30, 1,         'ou', 'persons.organization','persons', NULL,      NULL,
 NULL,       3,          0);
 
-insert into ldap_attr_mappings 
+insert into ldap_attr_mappings
 (id, oc_map_id, name,          sel_expr,            from_tbls,  join_where,
 add_proc,delete_proc,param_order,expect_return)
-values 
+values
 (4,  2,         'description', 'documents.abstract','documents', NULL,
 NULL,    NULL,       3,          0);
 
-insert into ldap_attr_mappings 
+insert into ldap_attr_mappings
 (id, oc_map_id, name,           sel_expr,         from_tbls,  join_where,
 add_proc,delete_proc,param_order,expect_return)
-values 
+values
 (5,  2,         'documentTitle','documents.title','documents',NULL,
 NULL,    NULL,       3,          0);
 
@@ -71,11 +71,11 @@ NULL,    NULL,       3,          0);
 --         'persons.id=authors_docs.pers_id AND documents.id=authors_docs.doc_id',
 -- 	NULL,NULL,3,0);
 
-insert into ldap_attr_mappings 
+insert into ldap_attr_mappings
 (id, oc_map_id, name, sel_expr,          from_tbls,    join_where,add_proc,
 delete_proc,param_order,expect_return)
-values 
-(7,  3,         'o',  'institutes.name', 'institutes', NULL,      NULL,    
+values
+(7,  3,         'o',  'institutes.name', 'institutes', NULL,      NULL,
 NULL,       3,          0);
 
 insert into ldap_attr_mappings (id,oc_map_id,name,sel_expr,from_tbls,join_where,add_proc,delete_proc,param_order,expect_return)
@@ -87,17 +87,17 @@ insert into ldap_attr_mappings (id,oc_map_id,name,sel_expr,from_tbls,join_where,
 values (9,2,'documentAuthor','ldap_entries.dn','ldap_entries,documents,authors_docs,persons',
         'ldap_entries.keyval=persons.id AND ldap_entries.oc_map_id=1 AND authors_docs.doc_id=documents.id AND authors_docs.pers_id=persons.id',
 	NULL,NULL,3,0);
-	
+
 -- entries
-	
-insert into ldap_entries 
+
+insert into ldap_entries
 (id, dn,           oc_map_id, parent, keyval)
-values 
+values
 (1,  'o=sql,c=RU', 3,         0,      1);
 
-insert into ldap_entries 
+insert into ldap_entries
 (id, dn,                            oc_map_id, parent, keyval)
-values 
+values
 (2,  'cn=Mitya Kovalev,o=sql,c=RU', 1,         1,      1);
 
 insert into ldap_entries (id,dn,oc_map_id,parent,keyval)
@@ -111,8 +111,8 @@ values (5,'documentTitle=book1,o=sql,c=RU',2,1,1);
 
 insert into ldap_entries (id,dn,oc_map_id,parent,keyval)
 values (6,'documentTitle=book2,o=sql,c=RU',2,1,2);
-	
-	
+
+
 -- referrals
 
 insert into ldap_entry_objclasses (entry_id,oc_name)

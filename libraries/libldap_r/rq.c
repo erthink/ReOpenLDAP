@@ -147,7 +147,7 @@ ldap_pvt_runqueue_isrunning(
 	return 0;
 }
 
-void 
+void
 ldap_pvt_runqueue_resched(
 	struct runqueue_s* rq,
 	struct re_s* entry,

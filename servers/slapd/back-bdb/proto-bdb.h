@@ -419,7 +419,7 @@ bdb_key_change(
     struct berval *k,
     ID id,
     int	op );
-	
+
 /*
  * nextid.c
  */

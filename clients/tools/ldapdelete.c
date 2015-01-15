@@ -299,7 +299,7 @@ retry:;
 
 	if( code != LDAP_SUCCESS ) {
 		tool_perror( "ldap_delete", code, NULL, matcheddn, text, refs );
-	} else if ( verbose && 
+	} else if ( verbose &&
 		((matcheddn && *matcheddn) || (text && *text) || (refs && *refs) ))
 	{
 		printf( _("Delete Result: %s (%d)\n"),
@@ -424,7 +424,7 @@ more:;
 				return rc;
 
 			}
-			
+
 			if ( verbose ) {
 				printf( _("\t%s removed\n"), dn );
 			}

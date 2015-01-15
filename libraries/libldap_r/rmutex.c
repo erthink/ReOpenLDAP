@@ -43,7 +43,7 @@ struct ldap_int_thread_rmutex_s {
 
 static const ldap_pvt_thread_t tid_zero;
 
-int 
+int
 ldap_pvt_thread_rmutex_init( ldap_pvt_thread_rmutex_t *rmutex )
 {
 	struct ldap_int_thread_rmutex_s *rm;
@@ -65,7 +65,7 @@ ldap_pvt_thread_rmutex_init( ldap_pvt_thread_rmutex_t *rmutex )
 	return 0;
 }
 
-int 
+int
 ldap_pvt_thread_rmutex_destroy( ldap_pvt_thread_rmutex_t *rmutex )
 {
 	struct ldap_int_thread_rmutex_s *rm;

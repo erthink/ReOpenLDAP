@@ -31,11 +31,11 @@ OBJS=  plugin.lo slapi_pblock.lo slapi_utils.lo printmsg.lo slapi_ops.lo slapi_d
 
 XSRCS= version.c
 
-LDAP_INCDIR= ../../../include -I.. -I.       
-LDAP_LIBDIR= ../../../libraries       
+LDAP_INCDIR= ../../../include -I.. -I.
+LDAP_LIBDIR= ../../../libraries
 
 XLIBS = $(LIBRARY)
-XXLIBS = 
+XXLIBS =
 NT_LINK_LIBS = $(AC_LIBS)
 
 XINCPATH = -I$(srcdir)/.. -I$(srcdir)

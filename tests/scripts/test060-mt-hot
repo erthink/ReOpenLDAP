@@ -22,10 +22,10 @@ esac
 echo "running defines.sh"
 . $SRCDIR/scripts/defines.sh
 
-if test $MONITORDB = "no" ; then 
+if test $MONITORDB = "no" ; then
 	echo "Monitor backend not available, test skipped"
 	exit 0
-fi 
+fi
 
 if test x$TESTLOOPS = x ; then
 	TESTLOOPS=50

@@ -1152,7 +1152,7 @@
 #	include <stddef.h>
 #endif
 
-#ifdef HAVE_EBCDIC 
+#ifdef HAVE_EBCDIC
 /* ASCII/EBCDIC converting replacements for stdio funcs
  * vsnprintf and snprintf are used too, but they are already
  * checked by the configure script

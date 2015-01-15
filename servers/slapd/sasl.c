@@ -90,7 +90,7 @@ int
 slap_sasl_log(
 	void *context,
 	int priority,
-	const char *message) 
+	const char *message)
 {
 	Connection *conn = context;
 	int level;
@@ -209,7 +209,7 @@ sasl_ap_lookup( Operation *op, SlapReply *rs )
 		/* If it's the rootdn and a rootpw was present, we already set
 		 * it so don't override it here.
 		 */
-		if ( ad == slap_schema.si_ad_userPassword && sl->list[i].values && 
+		if ( ad == slap_schema.si_ad_userPassword && sl->list[i].values &&
 			be_isroot_dn( op->o_bd, &op->o_req_ndn ))
 			continue;
 
@@ -469,7 +469,7 @@ slap_auxprop_store(
 	op.o_bd = select_backend( &op.o_req_ndn, 1 );
 
 	if ( !op.o_bd || !op.o_bd->be_modify ) return SASL_FAIL;
-		
+
 	pr = sparams->utils->prop_get( prctx );
 	if (!pr) return SASL_BADPARAM;
 
@@ -621,7 +621,7 @@ slap_sasl_canonicalize(
 		names[1] = NULL;
 		prop_set( props, names[0], (char *)&conn, sizeof( conn ) );
 	}
-		
+
 	/* Already been here? */
 	if ( auxvals[which].values )
 		goto done;
@@ -719,7 +719,7 @@ slap_sasl_authorize(
 
 	/* Skip SLAP_SASL_PROP_CONN */
 	prop_getnames( props, slap_propnames+1, auxvals );
-	
+
 	/* Should not happen */
 	if ( !auxvals[0].values ) {
 		sasl_seterror( sconn, 0, "invalid authcid" );
@@ -734,7 +734,7 @@ slap_sasl_authorize(
 	if ( !auxvals[2].name || !auxvals[2].values ) {
 		goto ok;
 	}
-	
+
 	AC_MEMCPY( &authzDN.bv_len, auxvals[2].values[0], sizeof(authzDN.bv_len) );
 	authzDN.bv_val = auxvals[3].values ? (char *)auxvals[3].values[0] : NULL;
 
@@ -756,16 +756,16 @@ ok:
 	if (conn->c_sasl_bindop) {
 		Statslog( LDAP_DEBUG_STATS,
 			"%s BIND authcid=\"%s\" authzid=\"%s\"\n",
-			conn->c_sasl_bindop->o_log_prefix, 
+			conn->c_sasl_bindop->o_log_prefix,
 			auth_identity, requested_user, 0, 0 );
 	}
 
 	Debug( LDAP_DEBUG_TRACE, "SASL Authorize [conn=%ld]: "
 		" proxy authorization allowed authzDN=\"%s\"\n",
-		conn ? (long) conn->c_connid : -1L, 
+		conn ? (long) conn->c_connid : -1L,
 		authzDN.bv_val ? authzDN.bv_val : "", 0 );
 	return SASL_OK;
-} 
+}
 
 static int
 slap_sasl_err2ldap( int saslerr )
@@ -1246,7 +1246,7 @@ int slap_sasl_open( Connection *conn, int reopen )
 		session_callbacks =
 			SLAP_CALLOC( 5, sizeof(sasl_callback_t));
 		if( session_callbacks == NULL ) {
-			Debug( LDAP_DEBUG_ANY, 
+			Debug( LDAP_DEBUG_ANY,
 				"slap_sasl_open: SLAP_MALLOC failed", 0, 0, 0 );
 			return -1;
 		}
@@ -1467,7 +1467,7 @@ int slap_sasl_bind( Operation *op, SlapReply *rs )
 	Debug(LDAP_DEBUG_ARGS,
 		"==> sasl_bind: dn=\"%s\" mech=%s datalen=%ld\n",
 		op->o_req_dn.bv_len ? op->o_req_dn.bv_val : "",
-		op->o_conn->c_sasl_bind_in_progress ? "<continuing>" : 
+		op->o_conn->c_sasl_bind_in_progress ? "<continuing>" :
 		op->o_conn->c_sasl_bind_mech.bv_val,
 		op->orb_cred.bv_len );
 
@@ -1494,7 +1494,7 @@ int slap_sasl_bind( Operation *op, SlapReply *rs )
 				sasl_dispose( &ctx );
 			}
 			op->o_conn->c_sasl_authctx = NULL;
-				
+
 			slap_sasl_open( op->o_conn, 1 );
 			ctx = op->o_conn->c_sasl_authctx;
 			if ( authid ) {
@@ -1552,7 +1552,7 @@ int slap_sasl_bind( Operation *op, SlapReply *rs )
 		/* Must send response using old security layer */
 		rs->sr_sasldata = (response.bv_len ? &response : NULL);
 		send_ldap_sasl( op, rs );
-		
+
 		/* Now dispose of the old security layer.
 		 */
 		if ( ctx ) {
@@ -1667,7 +1667,7 @@ slap_sasl_setpass( Operation *op, SlapReply *rs )
 			rs->sr_err = LDAP_OTHER;
 			goto done;
 		}
-		
+
 		rs->sr_rspdata = slap_passwd_return( &new );
 	}
 
@@ -1697,7 +1697,7 @@ done:
 #endif /* HAVE_CYRUS_SASL */
 
 /* Take any sort of identity string and return a DN with the "dn:" prefix. The
- * string returned in *dn is in its own allocated memory, and must be free'd 
+ * string returned in *dn is in its own allocated memory, and must be free'd
  * by the calling process.  -Mark Adamson, Carnegie Mellon
  *
  * The "dn:" prefix is no longer used anywhere inside slapd. It is only used
@@ -1717,7 +1717,7 @@ int slap_sasl_getdn( Connection *conn, Operation *op, struct berval *id,
 	assert( conn != NULL );
 	assert( id != NULL );
 
-	Debug( LDAP_DEBUG_ARGS, "slap_sasl_getdn: conn %lu id=%s [len=%lu]\n", 
+	Debug( LDAP_DEBUG_ARGS, "slap_sasl_getdn: conn %lu id=%s [len=%lu]\n",
 		conn->c_connid,
 		BER_BVISNULL( id ) ? "NULL" : ( BER_BVISEMPTY( id ) ? "<empty>" : id->bv_val ),
 		BER_BVISNULL( id ) ? 0 : ( BER_BVISEMPTY( id ) ? 0 :
@@ -1852,8 +1852,8 @@ int slap_sasl_getdn( Connection *conn, Operation *op, struct berval *id,
 			dn->bv_val, 0, 0 );
 
 	} else {
-		
-		/* Dup the DN in any case, so we don't risk 
+
+		/* Dup the DN in any case, so we don't risk
 		 * leaks or dangling pointers later,
 		 * and the DN value is '\0' terminated */
 		ber_dupbv_x( &dn2, dn, op->o_tmpmemctx );

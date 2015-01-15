@@ -21,7 +21,7 @@ The config directives that are specific to the
 .B memberof
 overlay must be prefixed by
 .BR memberof\- ,
-to avoid potential conflicts with directives specific to the underlying 
+to avoid potential conflicts with directives specific to the underlying
 database or to other stacked overlays.
 
 .TP
@@ -37,40 +37,40 @@ configuration options are defined for the memberof overlay.
 
 .TP
 .BI memberof\-group\-oc \ <group-oc>
-The value 
-.I <group-oc> 
+The value
+.I <group-oc>
 is the name of the objectClass that triggers the reverse group membership
 update.
 It defaults to \fIgroupOfNames\fP.
 
 .TP
 .BI memberof\-member\-ad \ <member-ad>
-The value 
-.I <member-ad> 
+The value
+.I <member-ad>
 is the name of the attribute that contains the names of the members
 in the group objects; it must be DN-valued.
 It defaults to \fImember\fP.
 
 .TP
 .BI memberof\-memberof\-ad \ <memberof-ad>
-The value 
-.I <memberof-ad> 
+The value
+.I <memberof-ad>
 is the name of the attribute that contains the names of the groups
-an entry is member of; it must be DN-valued.  Its contents are 
+an entry is member of; it must be DN-valued.  Its contents are
 automatically updated by the overlay.
 It defaults to \fImemberOf\fP.
 
 .TP
 .BI memberof\-dn \ <dn>
-The value 
-.I <dn> 
-contains the DN that is used as \fImodifiersName\fP for internal 
+The value
+.I <dn>
+contains the DN that is used as \fImodifiersName\fP for internal
 modifications performed to update the reverse group membership.
 It defaults to the \fIrootdn\fP of the underlying database.
 
 .TP
 .BI "memberof\-dangling {" ignore ", " drop ", " error "}"
-This option determines the behavior of the overlay when, during 
+This option determines the behavior of the overlay when, during
 a modification, it encounters dangling references.
 The default is
 .IR ignore ,
@@ -103,8 +103,8 @@ when an entry containing values of the "is member of" attribute is modified,
 the corresponding groups are modified as well.
 
 .LP
-The memberof overlay may be used with any backend that provides full 
-read-write functionality, but it is mainly intended for use 
+The memberof overlay may be used with any backend that provides full
+read-write functionality, but it is mainly intended for use
 with local storage backends. The maintenance operations it performs
 are internal to the server on which the overlay is configured and
 are never replicated. Replica servers should be configured with their

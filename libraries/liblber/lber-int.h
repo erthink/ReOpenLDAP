@@ -197,7 +197,7 @@ LBER_F (char *)	ber_strndup_x( LDAP_CONST char *, ber_len_t, void *ctx );
 #define LBER_MALLOC(s)		ber_memalloc((s))
 #define LBER_CALLOC(n,s)	ber_memcalloc((n),(s))
 #define LBER_REALLOC(p,s)	ber_memrealloc((p),(s))
-#define LBER_FREE(p)		ber_memfree((p))	
+#define LBER_FREE(p)		ber_memfree((p))
 #define LBER_VFREE(v)		ber_memvfree((void**)(v))
 #define LBER_STRDUP(s)		ber_strdup((s))
 #define LBER_STRNDUP(s,l)	ber_strndup((s),(l))

@@ -27,25 +27,25 @@
 #include "ldap-int.h"
 
 /* A modify request/response looks like this:
- *        ModifyRequest ::= [APPLICATION 6] SEQUENCE {              
+ *        ModifyRequest ::= [APPLICATION 6] SEQUENCE {
  *             object          LDAPDN,
  *             changes         SEQUENCE OF change SEQUENCE {
- *                  operation       ENUMERATED {      
- *                       add     (0),                
- *                       delete  (1),                 
+ *                  operation       ENUMERATED {
+ *                       add     (0),
+ *                       delete  (1),
  *                       replace (2),
  *                       ...  },
- *                  modification    PartialAttribute } }                  
+ *                  modification    PartialAttribute } }
  *
  *        PartialAttribute ::= SEQUENCE {
  *             type       AttributeDescription,
  *             vals       SET OF value AttributeValue }
  *
- *        AttributeDescription ::= LDAPString           
+ *        AttributeDescription ::= LDAPString
  *              -- Constrained to <attributedescription> [RFC4512]
- *                                      
+ *
  *        AttributeValue ::= OCTET STRING
- *		
+ *
  *        ModifyResponse ::= [APPLICATION 7] LDAPResult
  *
  * (Source: RFC 4511)
@@ -67,7 +67,7 @@
  *	msgidp	Message ID pointer
  *
  * Example:
- *	LDAPMod	*mods[] = { 
+ *	LDAPMod	*mods[] = {
  *			{ LDAP_MOD_ADD, "cn", { "babs jensen", "babs", 0 } },
  *			{ LDAP_MOD_REPLACE, "sn", { "babs jensen", "babs", 0 } },
  *			{ LDAP_MOD_DELETE, "ou", 0 },
@@ -164,7 +164,7 @@ ldap_modify_ext( LDAP *ld,
  *			to perform.
  *
  * Example:
- *	LDAPMod	*mods[] = { 
+ *	LDAPMod	*mods[] = {
  *			{ LDAP_MOD_ADD, "cn", { "babs jensen", "babs", 0 } },
  *			{ LDAP_MOD_REPLACE, "sn", { "babs jensen", "babs", 0 } },
  *			{ LDAP_MOD_DELETE, "ou", 0 },

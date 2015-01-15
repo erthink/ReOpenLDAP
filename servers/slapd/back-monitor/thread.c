@@ -51,19 +51,19 @@ static struct {
 	{ BER_BVC( "cn=Max Pending" ),
 		BER_BVC("Maximum number of pending threads"),
 		BER_BVNULL,	LDAP_PVT_THREAD_POOL_PARAM_MAX_PENDING,	MT_UNKNOWN },
-	{ BER_BVC( "cn=Open" ),		
+	{ BER_BVC( "cn=Open" ),
 		BER_BVC("Number of open threads"),
 		BER_BVNULL,	LDAP_PVT_THREAD_POOL_PARAM_OPEN,	MT_UNKNOWN },
-	{ BER_BVC( "cn=Starting" ),	
+	{ BER_BVC( "cn=Starting" ),
 		BER_BVC("Number of threads being started"),
 		BER_BVNULL,	LDAP_PVT_THREAD_POOL_PARAM_STARTING,	MT_UNKNOWN },
-	{ BER_BVC( "cn=Active" ),	
+	{ BER_BVC( "cn=Active" ),
 		BER_BVC("Number of active threads"),
 		BER_BVNULL,	LDAP_PVT_THREAD_POOL_PARAM_ACTIVE,	MT_UNKNOWN },
-	{ BER_BVC( "cn=Pending" ),	
+	{ BER_BVC( "cn=Pending" ),
 		BER_BVC("Number of pending threads"),
 		BER_BVNULL,	LDAP_PVT_THREAD_POOL_PARAM_PENDING,	MT_UNKNOWN },
-	{ BER_BVC( "cn=Backload" ),	
+	{ BER_BVC( "cn=Backload" ),
 		BER_BVC("Number of active plus pending threads"),
 		BER_BVNULL,	LDAP_PVT_THREAD_POOL_PARAM_BACKLOAD,	MT_UNKNOWN },
 #if 0	/* not meaningful right now */
@@ -91,8 +91,8 @@ static struct {
 	{ BER_BVNULL }
 };
 
-static int 
-monitor_subsys_thread_update( 
+static int
+monitor_subsys_thread_update(
 	Operation		*op,
 	SlapReply		*rs,
 	Entry 			*e );
@@ -119,7 +119,7 @@ monitor_subsys_thread_init(
 	if ( monitor_cache_get( mi, &ms->mss_ndn, &e_thread ) ) {
 		Debug( LDAP_DEBUG_ANY,
 			"monitor_subsys_thread_init: unable to get entry \"%s\"\n",
-			ms->mss_dn.bv_val, 
+			ms->mss_dn.bv_val,
 			0, 0 );
 		return( -1 );
 	}
@@ -186,7 +186,7 @@ monitor_subsys_thread_init(
 				slap_schema.si_ad_description,
 				&mt[ i ].desc, NULL );
 		}
-	
+
 		mp = monitor_entrypriv_create();
 		if ( mp == NULL ) {
 			return -1;
@@ -204,7 +204,7 @@ monitor_subsys_thread_init(
 				ms->mss_dn.bv_val, 0 );
 			return( -1 );
 		}
-	
+
 		*ep = e;
 		ep = &mp->mp_next;
 	}
@@ -216,8 +216,8 @@ monitor_subsys_thread_init(
 }
 
 #ifndef NO_THREADS
-static int 
-monitor_subsys_thread_update( 
+static int
+monitor_subsys_thread_update(
 	Operation		*op,
 	SlapReply		*rs,
 	Entry 			*e )
@@ -275,7 +275,7 @@ monitor_subsys_thread_update(
 				i++;
 			}
 			ldap_pvt_thread_mutex_unlock( &slapd_rq.rq_mutex );
-	
+
 			if ( vals ) {
 				attr_merge_normalize( e, mi->mi_ad_monitoredInfo, vals, NULL );
 				ber_bvarray_free( vals );
@@ -295,7 +295,7 @@ monitor_subsys_thread_update(
 				a->a_nvals = NULL;
 				a->a_numvals = 0;
 			}
-	
+
 			i = 0;
 			bv.bv_val = buf;
 			ldap_pvt_thread_mutex_lock( &slapd_rq.rq_mutex );
@@ -308,7 +308,7 @@ monitor_subsys_thread_update(
 				i++;
 			}
 			ldap_pvt_thread_mutex_unlock( &slapd_rq.rq_mutex );
-	
+
 			if ( vals ) {
 				attr_merge_normalize( e, mi->mi_ad_monitoredInfo, vals, NULL );
 				ber_bvarray_free( vals );

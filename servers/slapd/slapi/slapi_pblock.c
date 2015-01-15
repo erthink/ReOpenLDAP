@@ -38,8 +38,8 @@
 /* some parameters are only settable for internal operations */
 #define PBLOCK_VALIDATE_IS_INTOP( _pb )	do { if ( (_pb)->pb_intop == 0 ) break; } while ( 0 )
 
-static slapi_pblock_class_t 
-pblock_get_param_class( int param ) 
+static slapi_pblock_class_t
+pblock_get_param_class( int param )
 {
 	switch ( param ) {
 	case SLAPI_PLUGIN_TYPE:
@@ -314,9 +314,9 @@ pblock_unlock( Slapi_PBlock *pb )
 	ldap_pvt_thread_mutex_unlock( &pb->pb_mutex );
 }
 
-static int 
-pblock_get_default( Slapi_PBlock *pb, int param, void **value ) 
-{	
+static int
+pblock_get_default( Slapi_PBlock *pb, int param, void **value )
+{
 	int i;
 	slapi_pblock_class_t pbClass;
 
@@ -324,7 +324,7 @@ pblock_get_default( Slapi_PBlock *pb, int param, void **value )
 	if ( pbClass == PBLOCK_CLASS_INVALID ) {
 		return PBLOCK_ERROR;
 	}
-	
+
 	switch ( pbClass ) {
 	case PBLOCK_CLASS_INTEGER:
 		*((int *)value) = 0;
@@ -392,8 +392,8 @@ pblock_get_authtype( AuthorizationInformation *authz, int is_tls )
 	return authType;
 }
 
-static int 
-pblock_set_default( Slapi_PBlock *pb, int param, void *value ) 
+static int
+pblock_set_default( Slapi_PBlock *pb, int param, void *value )
 {
 	slapi_pblock_class_t pbClass;
 	int i;
@@ -454,8 +454,8 @@ pblock_be_call( Slapi_PBlock *pb, int (*bep)(Operation *) )
 	return rc;
 }
 
-static int 
-pblock_get( Slapi_PBlock *pb, int param, void **value ) 
+static int
+pblock_get( Slapi_PBlock *pb, int param, void **value )
 {
 	int rc = PBLOCK_SUCCESS;
 
@@ -859,12 +859,12 @@ pblock_set_dn( void *value, struct berval *dn, struct berval *ndn, void *memctx 
 	return dnPrettyNormal( NULL, &bv, dn, ndn, memctx );
 }
 
-static int 
-pblock_set( Slapi_PBlock *pb, int param, void *value ) 
+static int
+pblock_set( Slapi_PBlock *pb, int param, void *value )
 {
 	int rc = PBLOCK_SUCCESS;
 
-	pblock_lock( pb );	
+	pblock_lock( pb );
 
 	switch ( param ) {
 	case SLAPI_OPERATION:
@@ -1161,7 +1161,7 @@ pblock_set( Slapi_PBlock *pb, int param, void *value )
 			}
 			an[j].an_name.bv_val = NULL;
 			an[j].an_name.bv_len = 0;
-		}	
+		}
 		pb->pb_op->ors_attrs = an;
 		break;
 	}
@@ -1286,24 +1286,24 @@ pblock_set( Slapi_PBlock *pb, int param, void *value )
 }
 
 static void
-pblock_clear( Slapi_PBlock *pb ) 
+pblock_clear( Slapi_PBlock *pb )
 {
 	pb->pb_nParams = 1;
 }
 
 static int
-pblock_delete_param( Slapi_PBlock *p, int param ) 
+pblock_delete_param( Slapi_PBlock *p, int param )
 {
 	int i;
 
 	pblock_lock(p);
 
-	for ( i = 0; i < p->pb_nParams; i++ ) { 
+	for ( i = 0; i < p->pb_nParams; i++ ) {
 		if ( p->pb_params[i] == param ) {
 			break;
 		}
 	}
-    
+
 	if (i >= p->pb_nParams ) {
 		pblock_unlock( p );
 		return PBLOCK_ERROR;
@@ -1316,13 +1316,13 @@ pblock_delete_param( Slapi_PBlock *p, int param )
 	}
 	p->pb_nParams--;
 
-	pblock_unlock( p );	
+	pblock_unlock( p );
 
 	return PBLOCK_SUCCESS;
 }
 
 Slapi_PBlock *
-slapi_pblock_new(void) 
+slapi_pblock_new(void)
 {
 	Slapi_PBlock *pb;
 
@@ -1367,37 +1367,37 @@ pblock_destroy( Slapi_PBlock *pb )
 	}
 
 	ldap_pvt_thread_mutex_destroy( &pb->pb_mutex );
-	slapi_ch_free( (void **)&pb ); 
+	slapi_ch_free( (void **)&pb );
 }
 
-void 
-slapi_pblock_destroy( Slapi_PBlock *pb ) 
+void
+slapi_pblock_destroy( Slapi_PBlock *pb )
 {
 	if ( pb != NULL ) {
 		pblock_destroy( pb );
 	}
 }
 
-int 
-slapi_pblock_get( Slapi_PBlock *pb, int arg, void *value ) 
+int
+slapi_pblock_get( Slapi_PBlock *pb, int arg, void *value )
 {
 	return pblock_get( pb, arg, (void **)value );
 }
 
-int 
-slapi_pblock_set( Slapi_PBlock *pb, int arg, void *value ) 
+int
+slapi_pblock_set( Slapi_PBlock *pb, int arg, void *value )
 {
 	return pblock_set( pb, arg, value );
 }
 
 void
-slapi_pblock_clear( Slapi_PBlock *pb ) 
+slapi_pblock_clear( Slapi_PBlock *pb )
 {
 	pblock_clear( pb );
 }
 
-int 
-slapi_pblock_delete_param( Slapi_PBlock *p, int param ) 
+int
+slapi_pblock_delete_param( Slapi_PBlock *p, int param )
 {
 	return pblock_delete_param( p, param );
 }

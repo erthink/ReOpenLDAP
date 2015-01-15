@@ -62,7 +62,7 @@ monitor_subsys_ops_init(
 	monitor_subsys_t	*ms )
 {
 	monitor_info_t	*mi;
-	
+
 	Entry		*e_op, **ep;
 	monitor_entry_t	*mp;
 	int 		i;
@@ -81,7 +81,7 @@ monitor_subsys_ops_init(
 		Debug( LDAP_DEBUG_ANY,
 			"monitor_subsys_ops_init: "
 			"unable to get entry \"%s\"\n",
-			ms->mss_ndn.bv_val, 
+			ms->mss_ndn.bv_val,
 			0, 0 );
 		return( -1 );
 	}
@@ -120,7 +120,7 @@ monitor_subsys_ops_init(
 		/* steal normalized RDN */
 		dnRdn( &e->e_nname, &rdn );
 		ber_dupbv( &monitor_op[ i ].nrdn, &rdn );
-	
+
 		mp = monitor_entrypriv_create();
 		if ( mp == NULL ) {
 			return -1;
@@ -203,7 +203,7 @@ monitor_subsys_ops_update(
 			ldap_pvt_thread_mutex_unlock( &sc->sc_mutex );
 		}
 		ldap_pvt_thread_mutex_unlock( &slap_counters.sc_mutex );
-		
+
 	} else {
 		for ( i = 0; i < SLAP_OP_LAST; i++ ) {
 			if ( dn_match( &rdn, &monitor_op[ i ].nrdn ) )
@@ -234,7 +234,7 @@ monitor_subsys_ops_update(
 	/* NOTE: no minus sign is allowed in the counters... */
 	UI2BV( &a->a_vals[ 0 ], nInitiated );
 	ldap_pvt_mp_clear( nInitiated );
-	
+
 	a = attr_find( e->e_attrs, mi->mi_ad_monitorOpCompleted );
 	assert ( a != NULL );
 

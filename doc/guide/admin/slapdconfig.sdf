@@ -90,7 +90,7 @@ H4: access to <what> [ by <who> [<accesslevel>] [<control>] ]+
 
 This directive grants access (specified by <accesslevel>) to a set
 of entries and/or attributes (specified by <what>) by one or more
-requestors (specified by <who>).  See the {{SECT:Access Control}} section of 
+requestors (specified by <who>).  See the {{SECT:Access Control}} section of
 this guide for basic usage.
 
 !if 0
@@ -162,7 +162,7 @@ Level	Keyword		Description
 !endblock
 
 The desired log level can be input as a single integer that
-combines the (ORed) desired levels, both in decimal or in hexadecimal 
+combines the (ORed) desired levels, both in decimal or in hexadecimal
 notation, as a list of integers (that are ORed internally), or as a list of the names that are shown between brackets, such that
 
 >		loglevel 129
@@ -491,7 +491,7 @@ schema conformance. The default is off.
 The {{EX:binddn}} parameter gives the DN to bind as for the
 syncrepl searches to the provider slapd. It should be a DN
 which has read access to the replication content in the
-master database. 
+master database.
 
 The {{EX:bindmethod}} is {{EX:simple}} or {{EX:sasl}},
 depending on whether simple password-based authentication or
@@ -587,7 +587,7 @@ E:  1.    # example config file - global configuration section
 E:  2.    include /usr/local/etc/schema/core.schema
 E:  3.    referral ldap://root.openldap.org
 E:  4.    access to * by * read
- 
+
 Line 1 is a comment. Line 2 includes another config file
 which contains {{core}} schema definitions.
 The {{EX:referral}} directive on line 3

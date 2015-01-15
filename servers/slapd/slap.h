@@ -252,7 +252,7 @@ typedef struct slap_ssf_set {
 
 #define SLAP_INDEX_SUBSTR_TYPE    0x0F00UL
 
-#define SLAP_INDEX_SUBSTR_INITIAL ( SLAP_INDEX_SUBSTR | 0x0100UL ) 
+#define SLAP_INDEX_SUBSTR_INITIAL ( SLAP_INDEX_SUBSTR | 0x0100UL )
 #define SLAP_INDEX_SUBSTR_ANY     ( SLAP_INDEX_SUBSTR | 0x0200UL )
 #define SLAP_INDEX_SUBSTR_FINAL   ( SLAP_INDEX_SUBSTR | 0x0400UL )
 #define SLAP_INDEX_SUBSTR_DEFAULT \
@@ -1344,7 +1344,7 @@ typedef struct slap_dynacl_t {
 	slap_dynacl_unparse	*da_unparse;
 	slap_dynacl_mask	*da_mask;
 	slap_dynacl_destroy	*da_destroy;
-	
+
 	void			*da_private;
 	struct slap_dynacl_t	*da_next;
 } slap_dynacl_t;
@@ -1570,7 +1570,7 @@ typedef struct AccessControlState {
 } AccessControlState;
 #define ACL_STATE_INIT { NULL, ACL_NONE, NULL, 0, 0, ACL_PRIV_NONE, -1, 0 }
 
-typedef struct AclRegexMatches {        
+typedef struct AclRegexMatches {
 	int dn_count;
         regmatch_t dn_data[MAXREMATCHES];
 	int val_count;
@@ -1579,7 +1579,7 @@ typedef struct AclRegexMatches {
 
 /*
  * Backend-info
- * represents a backend 
+ * represents a backend
  */
 
 typedef LDAP_STAILQ_HEAD(BeI, BackendInfo) slap_bi_head;
@@ -1591,7 +1591,7 @@ LDAP_SLAPD_V (slap_bi_head) backendInfo;
 LDAP_SLAPD_V (slap_be_head) backendDB;
 LDAP_SLAPD_V (BackendDB *) frontendDB;
 
-LDAP_SLAPD_V (int) slapMode;	
+LDAP_SLAPD_V (int) slapMode;
 #define SLAP_UNDEFINED_MODE	0x0000
 #define SLAP_SERVER_MODE	0x0001
 #define SLAP_TOOL_MODE		0x0002
@@ -1661,7 +1661,7 @@ typedef struct slap_cf_aux_table {
 	void *aux;
 } slap_cf_aux_table;
 
-typedef int 
+typedef int
 slap_cf_aux_table_parse_x LDAP_P((
 	struct berval *val,
 	void *bc,
@@ -2192,12 +2192,12 @@ typedef ID (BI_tool_entry_first) LDAP_P(( BackendDB *be ));
 typedef ID (BI_tool_entry_first_x) LDAP_P(( BackendDB *be, struct berval *base, int scope, Filter *f ));
 typedef ID (BI_tool_entry_next) LDAP_P(( BackendDB *be ));
 typedef Entry* (BI_tool_entry_get) LDAP_P(( BackendDB *be, ID id ));
-typedef ID (BI_tool_entry_put) LDAP_P(( BackendDB *be, Entry *e, 
+typedef ID (BI_tool_entry_put) LDAP_P(( BackendDB *be, Entry *e,
 	struct berval *text ));
 typedef int (BI_tool_entry_reindex) LDAP_P(( BackendDB *be, ID id, AttributeDescription **adv ));
 typedef int (BI_tool_sync) LDAP_P(( BackendDB *be ));
 typedef ID (BI_tool_dn2id_get) LDAP_P(( BackendDB *be, struct berval *dn ));
-typedef ID (BI_tool_entry_modify) LDAP_P(( BackendDB *be, Entry *e, 
+typedef ID (BI_tool_entry_modify) LDAP_P(( BackendDB *be, Entry *e,
 	struct berval *text ));
 
 struct BackendInfo {
@@ -2232,7 +2232,7 @@ struct BackendInfo {
 	/*
 	 * per database routines:
 	 * bi_db_init: called to initialize each database,
-	 *	called upon reading 'database <type>' 
+	 *	called upon reading 'database <type>'
 	 *	called only from backend_db_init()
 	 * bi_db_config: called to configure each database,
 	 *  called per database to handle per database options
@@ -3155,7 +3155,7 @@ struct ComponentFilter {
 #define cf_or		cf_un.cf_un_complex
 #define cf_not		cf_un.cf_un_complex
 #define cf_any		cf_un.cf_un_complex
-	
+
 	ComponentFilter	*cf_next;
 };
 
@@ -3219,7 +3219,7 @@ typedef void convert_assert_to_comp_func LDAP_P ((
         ComponentSyntaxInfo** csi,
         int* len,
         int mode ));
-                                                                          
+
 typedef int convert_asn_to_ldap_func LDAP_P ((
         ComponentSyntaxInfo* csi,
         struct berval *bv ));
@@ -3243,7 +3243,7 @@ typedef int component_encoder_func LDAP_P ((
 	void* mem_op,
 	ComponentSyntaxInfo* csi,
 	struct berval* nvals ));
-	
+
 typedef int allcomponent_matching_func LDAP_P((
 	char* oid,
 	ComponentSyntaxInfo* comp1,

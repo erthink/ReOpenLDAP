@@ -56,16 +56,16 @@ the delete can be obtained by a subsequent call to
 .LP
 The
 .B ldap_delete_ext()
-routine  allows  server  and client controls to be 
-specified to extend the delete request. This routine is asynchronous like 
-ldap_delete(), but its return value is an LDAP error code. It stores the 
+routine  allows  server  and client controls to be
+specified to extend the delete request. This routine is asynchronous like
+ldap_delete(), but its return value is an LDAP error code. It stores the
 message id of the request in the integer pointed to by msgidp.
 .LP
 The
 .B ldap_delete_ext_s()
 routine is the synchronous version of
 .BR ldap_delete_ext().
-It also returns an LDAP error code indicating success 
+It also returns an LDAP error code indicating success
 or failure of the operation.
 .SH ERRORS
 .B ldap_delete_s()

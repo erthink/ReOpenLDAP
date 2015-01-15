@@ -20,10 +20,10 @@ class StringList{
 
     public:
 	typedef ListType::const_iterator const_iterator;
-   
+
         /**
          * Constructs an empty list.
-         */   
+         */
         StringList();
 
         /**
@@ -44,13 +44,13 @@ class StringList{
          * Destructor
          */
         ~StringList();
-    
+
         /**
          * The methods converts the list to a 0-terminated array of
          * c-Strings.
          */
         char** toCharArray() const;
-  
+
         /**
          * Adds one element to the end of the list.
          * @param attr The attribute to add to the list.
@@ -83,6 +83,6 @@ class StringList{
         /**
          * removes all elements from the list
          */
-        void clear(); 
+        void clear();
 };
 #endif //STRING_LIST_H

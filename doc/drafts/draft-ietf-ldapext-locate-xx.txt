@@ -44,7 +44,7 @@ Abstract
    A Lightweight Directory Access Protocol (LDAP) request must be
    directed to an appropriate server for processing.  This document
    specifies a method for discovering such servers using information in
-   the Domain Name System. 
+   the Domain Name System.
 
 
 
@@ -121,7 +121,7 @@ INTERNET-DRAFT   Discovering LDAP Services with DNS         June 5, 2002
 
    This section defines a method of converting a DN into a DNS domain
    name for use in the server location method described below.  Some
-   DNs cannot be converted into a domain name.  Converted DNs result 
+   DNs cannot be converted into a domain name.  Converted DNs result
    in a fully qualified domain name.
 
 
@@ -141,12 +141,12 @@ INTERNET-DRAFT   Discovering LDAP Services with DNS         June 5, 2002
 
    cn=John Doe,ou=accounting,dc=example,dc=net
 
-   The client would convert the DC components as defined above into 
+   The client would convert the DC components as defined above into
    DNS name:
 
    example.net
 
-   The determined DNS name will be submitted as a DNS query using the 
+   The determined DNS name will be submitted as a DNS query using the
    algorithm defined in section 3.
 
 
@@ -194,9 +194,9 @@ INTERNET-DRAFT   Discovering LDAP Services with DNS         June 5, 2002
       _ldap._tcp.example.net.   IN   SRV  0 0 389 phoenix.example.net.
 
    The set of returned records may contain multiple records in the case
-   where multiple LDAP servers serve the same domain.  If there are no 
-   matching SRV records available for the converted DN the client SHOULD 
-   NOT attempt to 'walk the tree' by removing the least significant 
+   where multiple LDAP servers serve the same domain.  If there are no
+   matching SRV records available for the converted DN the client SHOULD
+   NOT attempt to 'walk the tree' by removing the least significant
    portion of the constructed fully qualified domain name.
 
 
@@ -223,9 +223,9 @@ INTERNET-DRAFT   Discovering LDAP Services with DNS         June 5, 2002
    Doe,ou=accounting,dc=example,dc=net" is converted to the DNS name
    "example.net", the server's name MUST match "example.net".
 
-   This document describes a method that uses DNS SRV records to 
+   This document describes a method that uses DNS SRV records to
    discover LDAP servers.  All security considerations related to DNS
-   SRV records are inherited by this document.  See the security 
+   SRV records are inherited by this document.  See the security
    considerations section in [5] for more details.
 
 Armijo, Esibov, Leach and Morgan                                [Page 4]
@@ -356,7 +356,7 @@ WARRANTIES OF MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE."
 
 10.  Expiration Date
 
-   This document is filed as <draft-ietf-ldapext-locate-08.txt>, and 
+   This document is filed as <draft-ietf-ldapext-locate-08.txt>, and
    expires December 5, 2002.
 
 Armijo, Esibov, Leach and Morgan                                [Page 7]

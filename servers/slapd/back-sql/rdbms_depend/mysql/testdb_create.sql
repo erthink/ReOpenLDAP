@@ -29,53 +29,53 @@ drop table if exists phones;
 CREATE TABLE phones (
 	id int NOT NULL ,
 	phone varchar(255) NOT NULL ,
-	pers_id int NOT NULL 
+	pers_id int NOT NULL
 );
 
 drop table if exists certs;
 CREATE TABLE certs (
 	id int NOT NULL ,
 	cert LONGBLOB NOT NULL,
-	pers_id int NOT NULL 
+	pers_id int NOT NULL
 );
 
-ALTER TABLE authors_docs  ADD 
-	CONSTRAINT PK_authors_docs PRIMARY KEY  
+ALTER TABLE authors_docs  ADD
+	CONSTRAINT PK_authors_docs PRIMARY KEY
 	(
 		pers_id,
 		doc_id
 	);
 
-ALTER TABLE documents  ADD 
-	CONSTRAINT PK_documents PRIMARY KEY  
+ALTER TABLE documents  ADD
+	CONSTRAINT PK_documents PRIMARY KEY
 	(
 		id
-	); 
+	);
 
-ALTER TABLE institutes  ADD 
-	CONSTRAINT PK_institutes PRIMARY KEY  
+ALTER TABLE institutes  ADD
+	CONSTRAINT PK_institutes PRIMARY KEY
 	(
 		id
-	);  
+	);
 
 
-ALTER TABLE persons  ADD 
-	CONSTRAINT PK_persons PRIMARY KEY  
+ALTER TABLE persons  ADD
+	CONSTRAINT PK_persons PRIMARY KEY
 	(
 		id
-	); 
+	);
 
-ALTER TABLE phones  ADD 
-	CONSTRAINT PK_phones PRIMARY KEY  
+ALTER TABLE phones  ADD
+	CONSTRAINT PK_phones PRIMARY KEY
 	(
 		id
-	); 
+	);
 
-ALTER TABLE certs  ADD 
-	CONSTRAINT PK_certs PRIMARY KEY  
+ALTER TABLE certs  ADD
+	CONSTRAINT PK_certs PRIMARY KEY
 	(
 		id
-	); 
+	);
 
 drop table if exists referrals;
 CREATE TABLE referrals (

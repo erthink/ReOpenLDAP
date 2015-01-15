@@ -35,7 +35,7 @@ perl_back_close(
 	PERL_SYS_TERM();
 #endif
 
-	ldap_pvt_thread_mutex_destroy( &perl_interpreter_mutex );	
+	ldap_pvt_thread_mutex_destroy( &perl_interpreter_mutex );
 
 	return 0;
 }

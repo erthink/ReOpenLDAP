@@ -136,7 +136,7 @@ do_search(
 		goto return_results;
 	}
 	filter2bv_x( op, op->ors_filter, &op->ors_filterstr );
-	
+
 	Debug( LDAP_DEBUG_ARGS, "    filter: %s\n",
 		!BER_BVISEMPTY( &op->ors_filterstr ) ? op->ors_filterstr.bv_val : "empty", 0, 0 );
 
@@ -316,7 +316,7 @@ fe_op_search( Operation *op, SlapReply *rs )
 				/* note: we set no limits because either
 				 * no limit is specified, or at least 1
 				 * is specified, and we're going to return
-				 * at most one entry */			
+				 * at most one entry */
 				op->ors_slimit = SLAP_NO_LIMIT;
 				op->ors_tlimit = SLAP_NO_LIMIT;
 

@@ -43,7 +43,7 @@ lutil_time_string (
 	int term_count = 0;
 	char *buf = dest;
 	int time_quot;
-	
+
 	assert ( max_terms >= 2 ); /* room for "none" message */
 
 	if ( duration < 0 ) {
@@ -97,7 +97,7 @@ lutil_get_now (double *now)
 int
 lutil_meter_open (
 	lutil_meter_t *meter,
-	const lutil_meter_display_t *display, 
+	const lutil_meter_display_t *display,
 	const lutil_meter_estimator_t *estimator,
 	size_t goal_value)
 {
@@ -119,13 +119,13 @@ lutil_meter_open (
 
 	rc = meter->display->display_open( &meter->display_data );
 	if( rc != 0 ) return rc;
-	
+
 	rc = meter->estimator->estimator_open( &meter->estimator_data );
 	if( rc != 0 ) {
 		meter->display->display_close( &meter->display_data );
 		return rc;
 	}
-	
+
 	return 0;
 }
 
@@ -157,15 +157,15 @@ lutil_meter_update (
 			(time_t) elapsed,
 			((double)position) / elapsed);
 	} else {
-		rc = meter->estimator->estimator_update( 
-			&meter->estimator_data, 
+		rc = meter->estimator->estimator_update(
+			&meter->estimator_data,
 			meter->start_time,
 			frac,
 			&remaining_time );
 		if ( rc == 0 ) {
 			cycle_length = now - meter->last_update;
 			speed = cycle_length > 0.0 ?
-				((double)(position - meter->last_position)) 
+				((double)(position - meter->last_position))
 				/ cycle_length :
 				0.0;
 			rc = meter->display->display_update(
@@ -220,7 +220,7 @@ text_open (void ** display_datap)
 }
 
 static int
-text_update ( 
+text_update (
 	void **display_datap,
 	double frac,
 	time_t remaining_time,
@@ -256,7 +256,7 @@ text_update (
 		static const char fill_char = '#';
 		static const char blank_char = ' ';
 		char *bar_end = buf + bar_length;
-		char *bar_pos = frac < 0.0 ? 
+		char *bar_pos = frac < 0.0 ?
 			buf :
 			frac < 1.0 ?
 			buf + (int) (bar_lengthd * frac) :
@@ -286,7 +286,7 @@ text_update (
 		buf += 5+6;
 		rc = lutil_time_string( time_buffer, elapsed, 5);
 		if (rc == 0)
-			snprintf( buf, buf_end-buf, " elapsed %15s", 
+			snprintf( buf, buf_end-buf, " elapsed %15s",
 				  time_buffer );
 		buf += 9+15;
 	}
@@ -312,7 +312,7 @@ text_update (
 	}
 
 	(void) fprintf( data->output,
-			"\r%-79s", 
+			"\r%-79s",
 			data->buffer );
 	data->need_eol = 1;
 	return 0;
@@ -326,7 +326,7 @@ text_close (void ** display_datap)
 	if (display_datap) {
 		if (*display_datap) {
 			data = (text_display_state_t*) *display_datap;
-			if (data->output && data->need_eol) 
+			if (data->output && data->need_eol)
 				fputs ("\n", data->output);
 			if (data->buffer)
 				free( data->buffer );
@@ -347,14 +347,14 @@ null_open_close (void **datap)
 
 static int
 linear_update (
-	void **estimator_datap, 
-	double start, 
-	double frac, 
+	void **estimator_datap,
+	double start,
+	double frac,
 	time_t *remaining)
 {
 	double now;
 	double elapsed;
-	
+
 	assert( estimator_datap != NULL );
 	assert( *estimator_datap == NULL );
 	assert( start > 0.0 );

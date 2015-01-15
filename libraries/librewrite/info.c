@@ -27,7 +27,7 @@
 
 /*
  * This becomes the running context for subsequent calls to
- * rewrite_parse; it can be altered only by a 
+ * rewrite_parse; it can be altered only by a
  * rewriteContext config line or by a change in info.
  */
 struct rewrite_context *rewrite_int_curr_context = NULL;
@@ -92,7 +92,7 @@ rewrite_info_init(
 		return NULL;
 	}
 #endif /* USE_REWRITE_LDAP_PVT_THREADS */
-	
+
 	return info;
 }
 
@@ -110,7 +110,7 @@ rewrite_info_delete(
 	assert( *pinfo != NULL );
 
 	info = *pinfo;
-	
+
 	if ( info->li_context ) {
 		avl_free( info->li_context, rewrite_context_free );
 	}
@@ -128,7 +128,7 @@ rewrite_info_delete(
 #endif /* USE_REWRITE_LDAP_PVT_THREADS */
 
 	rewrite_param_destroy( info );
-	
+
 #ifdef USE_REWRITE_LDAP_PVT_THREADS
 	ldap_pvt_thread_rdwr_destroy( &info->li_params_mutex );
 #endif /* USE_REWRITE_LDAP_PVT_THREADS */
@@ -146,11 +146,11 @@ rewrite_info_delete(
  * return string will also be null. The same in case of error.
  * Otherwise, OK is returned, and result will hold a newly allocated string
  * with the rewriting.
- * 
+ *
  * What to do in case of non-existing rewrite context is still an issue.
  * Four possibilities:
- * 	- error, 
- * 	- ok with NULL result, 
+ * 	- error,
+ * 	- ok with NULL result,
  * 	- ok with copy of string as result,
  * 	- use the default rewrite context.
  */
@@ -162,7 +162,7 @@ rewrite(
 		char **result
 )
 {
-	return rewrite_session( info, rewriteContext, 
+	return rewrite_session( info, rewriteContext,
 			string, NULL, result );
 }
 
@@ -178,7 +178,7 @@ rewrite_session(
 	struct rewrite_context *context;
 	struct rewrite_op op = { 0, 0, NULL, NULL, NULL };
 	int rc;
-	
+
 	assert( info != NULL );
 	assert( rewriteContext != NULL );
 	assert( string != NULL );
@@ -190,7 +190,7 @@ rewrite_session(
 
 	*result = NULL;
 	op.lo_cookie = cookie;
-	
+
 	/*
 	 * Engine not on means no failure, but explicit no rewriting
 	 */
@@ -198,7 +198,7 @@ rewrite_session(
 		rc = REWRITE_REGEXEC_OK;
 		goto rc_return;
 	}
-	
+
 	/*
 	 * Undefined context means no rewriting also
 	 * (conservative, are we sure it's what we want?)
@@ -209,7 +209,7 @@ rewrite_session(
 		case REWRITE_MODE_ERR:
 			rc = REWRITE_REGEXEC_ERR;
 			goto rc_return;
-			
+
 		case REWRITE_MODE_OK:
 			rc = REWRITE_REGEXEC_OK;
 			goto rc_return;
@@ -233,17 +233,17 @@ rewrite_session(
 		goto rc_return;
 	}
 #endif
-	
+
 	/*
 	 * Applies rewrite context
 	 */
 	rc = rewrite_context_apply( info, &op, context, string, result );
 	assert( op.lo_depth == 0 );
 
-#if 0 /* FIXME: not used anywhere! (debug? then, why strdup?) */	
+#if 0 /* FIXME: not used anywhere! (debug? then, why strdup?) */
 	free( op.lo_string );
 #endif
-	
+
 	switch ( rc ) {
 	/*
 	 * Success
@@ -256,8 +256,8 @@ rewrite_session(
 		 */
 		rc = REWRITE_REGEXEC_OK;
 		break;
-		
-	
+
+
 	/*
 	 * Internal or forced error, return = NULL; rc already OK.
 	 */
@@ -278,7 +278,7 @@ rc_return:;
 	if ( op.lo_vars ) {
 		rewrite_var_delete( op.lo_vars );
 	}
-	
+
 	return rc;
 }
 

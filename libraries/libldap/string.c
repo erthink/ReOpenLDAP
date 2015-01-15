@@ -137,7 +137,7 @@ ldap_pvt_str2upperbv( char *str, struct berval *bv )
 
 	bv->bv_val = str;
 	bv->bv_len = (ber_len_t)(s - str);
-	
+
 	return( bv );
 }
 

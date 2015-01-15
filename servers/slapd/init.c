@@ -229,7 +229,7 @@ int slap_shutdown( Backend *be )
 		slap_name, 0, 0 );
 
 	/* let backends do whatever cleanup they need to do */
-	return backend_shutdown( be ); 
+	return backend_shutdown( be );
 }
 
 int slap_destroy(void)

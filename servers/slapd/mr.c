@@ -404,7 +404,7 @@ matching_rule_use_init( void )
 		}
 
 		/*
-		 * Note: we're using the same values of the corresponding 
+		 * Note: we're using the same values of the corresponding
 		 * MatchingRule structure; maybe we'd copy them ...
 		 */
 		mru->smru_mr = mr;
@@ -415,8 +415,8 @@ matching_rule_use_init( void )
 		mru->smru_names = mr->smr_names;
 		mru->smru_desc = mr->smr_desc;
 
-		Debug( LDAP_DEBUG_TRACE, "    %s (%s): ", 
-				mru->smru_oid, 
+		Debug( LDAP_DEBUG_TRACE, "    %s (%s): ",
+				mru->smru_oid,
 				mru->smru_names ? mru->smru_names[ 0 ] : "", 0 );
 
 		at = NULL;
@@ -519,7 +519,7 @@ int mr_schema_info( Entry *e )
 
 int mru_schema_info( Entry *e )
 {
-	AttributeDescription *ad_matchingRuleUse 
+	AttributeDescription *ad_matchingRuleUse
 		= slap_schema.si_ad_matchingRuleUse;
 	MatchingRuleUse	*mru;
 	struct berval nval;

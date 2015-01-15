@@ -34,21 +34,21 @@ create table ldap_entries
 	dn varchar(255) not null,
 	oc_map_id integer not null references ldap_oc_mappings(id),
 	parent int NOT NULL ,
-	keyval int NOT NULL 
+	keyval int NOT NULL
 );
 
-alter table ldap_entries add 
+alter table ldap_entries add
 	constraint unq1_ldap_entries unique
 	(
 		oc_map_id,
 		keyval
-	);  
+	);
 
 alter table ldap_entries add
 	constraint unq2_ldap_entries unique
 	(
 		dn
-	);  
+	);
 
 drop table ldap_entry_objclasses;
 create table ldap_entry_objclasses

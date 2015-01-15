@@ -116,7 +116,7 @@ ldap_delete_ext_s(
 	LDAPMessage	*res;
 
 	rc = ldap_delete_ext( ld, dn, sctrls, cctrls, &msgid );
-	
+
 	if( rc != LDAP_SUCCESS )
 		return( ld->ld_errno );
 

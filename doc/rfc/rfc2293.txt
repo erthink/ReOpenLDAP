@@ -56,7 +56,7 @@ Abstract
 
 
 Kille                       Standards Track                     [Page 1]
-
+
 RFC 2293            Table and Subtrees in the X.500           March 1998
 
 
@@ -112,7 +112,7 @@ RFC 2293            Table and Subtrees in the X.500           March 1998
 
 
 Kille                       Standards Track                     [Page 2]
-
+
 RFC 2293            Table and Subtrees in the X.500           March 1998
 
 
@@ -168,7 +168,7 @@ distinguishedNameTableKey ATTRIBUTE ::= {
 
 
 Kille                       Standards Track                     [Page 3]
-
+
 RFC 2293            Table and Subtrees in the X.500           March 1998
 
 
@@ -224,7 +224,7 @@ RFC 2293            Table and Subtrees in the X.500           March 1998
 
 
 Kille                       Standards Track                     [Page 4]
-
+
 RFC 2293            Table and Subtrees in the X.500           March 1998
 
 
@@ -280,7 +280,7 @@ RFC 2293            Table and Subtrees in the X.500           March 1998
 
 
 Kille                       Standards Track                     [Page 5]
-
+
 RFC 2293            Table and Subtrees in the X.500           March 1998
 
 
@@ -336,7 +336,7 @@ References
 
 
 Kille                       Standards Track                     [Page 6]
-
+
 RFC 2293            Table and Subtrees in the X.500           March 1998
 
 
@@ -392,7 +392,7 @@ at-distinguished-name-table-key OBJECT IDENTIFIER ::= {at 3}
 
 
 Kille                       Standards Track                     [Page 7]
-
+
 RFC 2293            Table and Subtrees in the X.500           March 1998
 
 
@@ -448,4 +448,4 @@ Full Copyright Statement
 
 
 Kille                       Standards Track                     [Page 8]
-
+

@@ -295,7 +295,7 @@ static int ndb_oc_search( Operation *op, SlapReply *rs, Ndb *ndb, NdbTransaction
 	manageDSAit = get_manageDSAit( op );
 
 	myTable = myDict->getTable( oci->no_table.bv_val );
-	if ( indexed ) { 
+	if ( indexed ) {
 		scan = txn->getNdbIndexScanOperation( INDEX_NAME, DN2ID_TABLE );
 		if ( !scan )
 			return LDAP_OTHER;
@@ -334,7 +334,7 @@ static int ndb_oc_search( Operation *op, SlapReply *rs, Ndb *ndb, NdbTransaction
 	if ( rc )
 		goto leave;
 	if ( sf ) sf->end();
-	
+
 	scanID = scan->getValue( EID_COLUMN, idbuf );
 	if ( indexed ) {
 		scanOC = scan->getValue( OCS_COLUMN, ocbuf );

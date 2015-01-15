@@ -73,7 +73,7 @@ ldap_get_values( LDAP *ld, LDAPMessage *entry, LDAP_CONST char *target )
 	LDAP_FREE(attr);
 	attr = NULL;
 
-	/* 
+	/*
 	 * if we get this far, we've found the attribute and are sitting
 	 * just before the set of values.
 	 */
@@ -129,7 +129,7 @@ ldap_get_values_len( LDAP *ld, LDAPMessage *entry, LDAP_CONST char *target )
 	LDAP_FREE( attr );
 	attr = NULL;
 
-	/* 
+	/*
 	 * if we get this far, we've found the attribute and are sitting
 	 * just before the set of values.
 	 */

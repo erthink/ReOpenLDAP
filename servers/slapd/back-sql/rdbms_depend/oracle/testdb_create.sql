@@ -24,40 +24,40 @@ CREATE TABLE authors_docs (
 CREATE TABLE phones (
 	id NUMBER NOT NULL ,
 	phone varchar2(255) NOT NULL ,
-	pers_id NUMBER NOT NULL 
+	pers_id NUMBER NOT NULL
 );
 
 
-ALTER TABLE authors_docs  ADD 
-	CONSTRAINT PK_authors_docs PRIMARY KEY  
+ALTER TABLE authors_docs  ADD
+	CONSTRAINT PK_authors_docs PRIMARY KEY
 	(
 		pers_id,
 		doc_id
-	);  
+	);
 
-ALTER TABLE documents  ADD 
-	CONSTRAINT PK_documents PRIMARY KEY  
+ALTER TABLE documents  ADD
+	CONSTRAINT PK_documents PRIMARY KEY
 	(
 		id
-	);  
+	);
 
-ALTER TABLE institutes  ADD 
-	CONSTRAINT PK_institutes PRIMARY KEY  
+ALTER TABLE institutes  ADD
+	CONSTRAINT PK_institutes PRIMARY KEY
 	(
 		id
-	);  
+	);
 
-ALTER TABLE persons  ADD 
-	CONSTRAINT PK_persons PRIMARY KEY  
+ALTER TABLE persons  ADD
+	CONSTRAINT PK_persons PRIMARY KEY
 	(
 		id
-	);  
+	);
 
-ALTER TABLE phones  ADD 
-	CONSTRAINT PK_phones PRIMARY KEY  
+ALTER TABLE phones  ADD
+	CONSTRAINT PK_phones PRIMARY KEY
 	(
 		id
-	);  
+	);
 
 CREATE SEQUENCE person_ids START WITH 1 INCREMENT BY 1;
 

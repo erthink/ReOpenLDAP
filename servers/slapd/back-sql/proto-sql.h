@@ -22,7 +22,7 @@
 
 /*
  * The following changes have been addressed:
- *	 
+ *
  * Enhancements:
  *   - re-styled code for better readability
  *   - upgraded backend API to reflect recent changes
@@ -56,7 +56,7 @@
  *   - added values return filter control
  *   - hasSubordinate can be used in search filters (with limitations)
  *   - eliminated oc->name; use oc->oc->soc_cname instead
- * 
+ *
  * Todo:
  *   - add security checks for SQL statements that can be injected (?)
  *   - re-test with previously supported RDBMs
@@ -82,14 +82,14 @@
 int backsql_modify_delete_all_values(
 	Operation 		*op,
 	SlapReply		*rs,
-	SQLHDBC			dbh, 
+	SQLHDBC			dbh,
 	backsql_entryID		*e_id,
 	backsql_at_map_rec	*at );
 
 int backsql_modify_internal(
 	Operation 		*op,
 	SlapReply		*rs,
-	SQLHDBC			dbh, 
+	SQLHDBC			dbh,
 	backsql_oc_map_rec	*oc,
 	backsql_entryID		*e_id,
 	Modifications		*modlist );
@@ -172,7 +172,7 @@ int backsql_destroy_schema_map( backsql_info *si );
  * search.c
  */
 
-int backsql_init_search( backsql_srch_info *bsi, 
+int backsql_init_search( backsql_srch_info *bsi,
 		struct berval *nbase, int scope,
 		time_t stoptime, Filter *filter, SQLHDBC dbh,
 		Operation *op, SlapReply *rs, AttributeName *attrs,
@@ -241,7 +241,7 @@ int backsql_free_db_conn( Operation *op, SQLHDBC dbh );
  * util.c
  */
 
-extern const char 
+extern const char
 	backsql_def_oc_query[],
 	backsql_def_needs_select_oc_query[],
 	backsql_def_at_query[],
@@ -258,10 +258,10 @@ extern const char
 struct berbuf * backsql_strcat_x( struct berbuf *dest, void *memctx, ... );
 struct berbuf * backsql_strfcat_x( struct berbuf *dest, void *memctx, const char *fmt, ... );
 
-int backsql_entry_addattr( Entry *e, AttributeDescription *ad, 
+int backsql_entry_addattr( Entry *e, AttributeDescription *ad,
 		struct berval *at_val, void *memctx );
 
-int backsql_merge_from_clause( backsql_info *bi, struct berbuf *dest_from, 
+int backsql_merge_from_clause( backsql_info *bi, struct berbuf *dest_from,
 		struct berval *src_from );
 
 int backsql_split_pattern( const char *pattern, BerVarray *split_pattern,

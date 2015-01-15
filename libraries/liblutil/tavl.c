@@ -294,7 +294,7 @@ tavl_delete( Avlnode **root, void* data, AVL_CMP fcmp )
 			q = q->avl_link[nside] ) ;
 		q->avl_link[nside] = r;
 	}
-	
+
 	if ( !depth ) {
 		*root = q;
 		return data;
@@ -313,7 +313,7 @@ tavl_delete( Avlnode **root, void* data, AVL_CMP fcmp )
 
 	top = NULL;
 	shorter = 1;
-  
+
 	while ( shorter ) {
 		p = pptr[depth];
 		side = pdir[depth];
@@ -325,7 +325,7 @@ tavl_delete( Avlnode **root, void* data, AVL_CMP fcmp )
 			/* Tree is now heavier on opposite side */
 			p->avl_bf = avl_bfs[nside];
 			shorter = 0;
-		  
+
 		} else if ( p->avl_bf == side_bf ) {
 		/* case 2: taller subtree shortened, height reduced */
 			p->avl_bf = EH;
@@ -444,7 +444,7 @@ tavl_free( Avlnode *root, AVL_FREE dfree )
 
 /*
  * tavl_find -- search avltree root for a node with data data.  the function
- * cmp is used to compare things.  it is called with data as its first arg 
+ * cmp is used to compare things.  it is called with data as its first arg
  * and the current node data as its second.  it should return 0 if they match,
  * < 0 if arg1 is less than arg2 and > 0 if arg1 is greater than arg2.
  */

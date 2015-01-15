@@ -17,7 +17,7 @@ using namespace std;
 
 LDAPModDNRequest::LDAPModDNRequest(const LDAPModDNRequest& req) :
         LDAPRequest(req){
-    DEBUG(LDAP_DEBUG_CONSTRUCT, 
+    DEBUG(LDAP_DEBUG_CONSTRUCT,
             "LDAPModDNRequest::LDAPModDNRequest(&)" << endl);
     m_dn = req.m_dn;
     m_newRDN = req.m_newRDN;
@@ -25,17 +25,17 @@ LDAPModDNRequest::LDAPModDNRequest(const LDAPModDNRequest& req) :
     m_deleteOld = req.m_deleteOld;
 }
 
-LDAPModDNRequest::LDAPModDNRequest(const string& dn, const string& newRDN, 
-        bool deleteOld, const string& newParentDN, 
-        LDAPAsynConnection *connect, 
-        const LDAPConstraints *cons, bool isReferral, 
+LDAPModDNRequest::LDAPModDNRequest(const string& dn, const string& newRDN,
+        bool deleteOld, const string& newParentDN,
+        LDAPAsynConnection *connect,
+        const LDAPConstraints *cons, bool isReferral,
         const LDAPRequest* parent):
         LDAPRequest(connect, cons, isReferral, parent){
-    DEBUG(LDAP_DEBUG_CONSTRUCT, 
+    DEBUG(LDAP_DEBUG_CONSTRUCT,
             "LDAPModDNRequest::LDAPModDNRequest(&)" << endl);
-    DEBUG(LDAP_DEBUG_CONSTRUCT | LDAP_DEBUG_PARAMETER, 
+    DEBUG(LDAP_DEBUG_CONSTRUCT | LDAP_DEBUG_PARAMETER,
             "   dn:" << dn << endl << "   newRDN:" << newRDN << endl
-            << "   deleteOld:" << deleteOld << endl 
+            << "   deleteOld:" << deleteOld << endl
             << "   newParent:" << newParentDN << endl);
     m_dn = dn;
     m_newRDN = newRDN;
@@ -51,7 +51,7 @@ LDAPMessageQueue* LDAPModDNRequest::sendRequest(){
     DEBUG(LDAP_DEBUG_TRACE, "LDAPModDNRequest::sendRequest()" << endl);
     int msg_id;
     const char* newRDN = (m_newRDN == "" ? 0 :m_newRDN.c_str());
-    const char* newParentDN = (m_newParentDN == "" ? 
+    const char* newParentDN = (m_newParentDN == "" ?
             0 :
             m_newParentDN.c_str());
     LDAPControl** tmpSrvCtrls=m_cons->getSrvCtrlsArray();

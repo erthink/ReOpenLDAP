@@ -158,7 +158,7 @@ dyngroup_response( Operation *op, SlapReply *rs )
 				 * evaluator to get the answer we want.
 				 */
 				int cache = op->o_do_not_cache;
-				
+
 				op->o_do_not_cache = 1;
 				rs->sr_err = backend_group( op, NULL, &op->o_req_ndn,
 					&op->oq_compare.rs_ava->aa_value, NULL, ap->ap_uri );

@@ -252,16 +252,16 @@ clean-noinstPROGRAMS:
 	list=`for p in $$list; do echo "$$p"; done | sed 's/$(EXEEXT)$$//'`; \
 	echo " rm -f" $$list; \
 	rm -f $$list
-main$(EXEEXT): $(main_OBJECTS) $(main_DEPENDENCIES) 
+main$(EXEEXT): $(main_OBJECTS) $(main_DEPENDENCIES)
 	@rm -f main$(EXEEXT)
 	$(CXXLINK) $(main_OBJECTS) $(main_LDADD) $(LIBS)
-readSchema$(EXEEXT): $(readSchema_OBJECTS) $(readSchema_DEPENDENCIES) 
+readSchema$(EXEEXT): $(readSchema_OBJECTS) $(readSchema_DEPENDENCIES)
 	@rm -f readSchema$(EXEEXT)
 	$(CXXLINK) $(readSchema_OBJECTS) $(readSchema_LDADD) $(LIBS)
-startTls$(EXEEXT): $(startTls_OBJECTS) $(startTls_DEPENDENCIES) 
+startTls$(EXEEXT): $(startTls_OBJECTS) $(startTls_DEPENDENCIES)
 	@rm -f startTls$(EXEEXT)
 	$(CXXLINK) $(startTls_OBJECTS) $(startTls_LDADD) $(LIBS)
-urlTest$(EXEEXT): $(urlTest_OBJECTS) $(urlTest_DEPENDENCIES) 
+urlTest$(EXEEXT): $(urlTest_OBJECTS) $(urlTest_DEPENDENCIES)
 	@rm -f urlTest$(EXEEXT)
 	$(CXXLINK) $(urlTest_OBJECTS) $(urlTest_LDADD) $(LIBS)
 

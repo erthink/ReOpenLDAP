@@ -43,7 +43,7 @@ OBJS = statover.o \
 OBJDEP=rwm.o rwmconf.o rwmdn.o rwmmap.o
 
 LTONLY_MOD = $(LTONLY_mod)
-LDAP_INCDIR= ../../../include       
+LDAP_INCDIR= ../../../include
 LDAP_LIBDIR= ../../../libraries
 
 MOD_DEFS = -DSLAPD_IMPORT

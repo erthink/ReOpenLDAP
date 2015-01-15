@@ -298,7 +298,7 @@ main( int argc, char *argv[] )
 	tool_server_controls( ld, NULL, 0);
 
 	rc = ldap_extended_operation( ld,
-		LDAP_EXOP_MODIFY_PASSWD, bv.bv_val ? &bv : NULL, 
+		LDAP_EXOP_MODIFY_PASSWD, bv.bv_val ? &bv : NULL,
 		NULL, NULL, &id );
 
 	ber_free( ber, 1 );
@@ -409,5 +409,5 @@ main( int argc, char *argv[] )
 
 done:
 	/* disconnect from server */
-	tool_exit( ld, rc ); 
+	tool_exit( ld, rc );
 }

@@ -59,7 +59,7 @@ void LDAPAsynConnection::init(const string& hostname, int port){
     m_uri.setScheme("ldap");
     m_uri.setHost(hostname);
     m_uri.setPort(port);
-    
+
     const char *ldapuri = m_uri.getURLString().c_str();
     int ret = ldap_initialize(&cur_session, ldapuri);
     if ( ret != LDAP_SUCCESS ) {
@@ -127,9 +127,9 @@ LDAPMessageQueue* LDAPAsynConnection::saslInteractiveBind(
                         SaslInteractionHandler *sih,
                         const LDAPConstraints *cons)
 {
-    DEBUG(LDAP_DEBUG_TRACE, "LDAPAsynConnection::saslInteractiveBind" 
+    DEBUG(LDAP_DEBUG_TRACE, "LDAPAsynConnection::saslInteractiveBind"
             << std::endl);
-    LDAPSaslInteractiveBind *req = 
+    LDAPSaslInteractiveBind *req =
             new LDAPSaslInteractiveBind(mech, flags, sih, this, cons);
     try {
         LDAPMessageQueue *ret = req->sendRequest();
@@ -137,19 +137,19 @@ LDAPMessageQueue* LDAPAsynConnection::saslInteractiveBind(
     }catch(LDAPException e){
         delete req;
         throw;
-    } 
+    }
 }
 
-LDAPMessageQueue* LDAPAsynConnection::search(const string& base,int scope, 
-                                         const string& filter, 
-                                         const StringList& attrs, 
+LDAPMessageQueue* LDAPAsynConnection::search(const string& base,int scope,
+                                         const string& filter,
+                                         const StringList& attrs,
                                          bool attrsOnly,
                                          const LDAPConstraints *cons){
     DEBUG(LDAP_DEBUG_TRACE, "LDAPAsynConnection::search()" <<  endl);
     DEBUG(LDAP_DEBUG_TRACE | LDAP_DEBUG_PARAMETER, "   base:" << base << endl
                << "   scope:" << scope << endl
                << "   filter:" << filter << endl );
-    LDAPSearchRequest *req = new LDAPSearchRequest(base, scope,filter, attrs, 
+    LDAPSearchRequest *req = new LDAPSearchRequest(base, scope,filter, attrs,
             attrsOnly, this, cons);
     try{
         LDAPMessageQueue *ret = req->sendRequest();
@@ -160,7 +160,7 @@ LDAPMessageQueue* LDAPAsynConnection::search(const string& base,int scope,
     }
 }
 
-LDAPMessageQueue* LDAPAsynConnection::del(const string& dn, 
+LDAPMessageQueue* LDAPAsynConnection::del(const string& dn,
         const LDAPConstraints *cons){
     DEBUG(LDAP_DEBUG_TRACE,"LDAPAsynConnection::del()" << endl);
     DEBUG(LDAP_DEBUG_TRACE | LDAP_DEBUG_PARAMETER,"   dn:" << dn << endl);
@@ -174,7 +174,7 @@ LDAPMessageQueue* LDAPAsynConnection::del(const string& dn,
     }
 }
 
-LDAPMessageQueue* LDAPAsynConnection::compare(const string& dn, 
+LDAPMessageQueue* LDAPAsynConnection::compare(const string& dn,
         const LDAPAttribute& attr, const LDAPConstraints *cons){
     DEBUG(LDAP_DEBUG_TRACE,"LDAPAsynConnection::compare()" << endl);
     DEBUG(LDAP_DEBUG_TRACE | LDAP_DEBUG_PARAMETER,"   dn:" << dn << endl
@@ -189,7 +189,7 @@ LDAPMessageQueue* LDAPAsynConnection::compare(const string& dn,
     }
 }
 
-LDAPMessageQueue* LDAPAsynConnection::add( const LDAPEntry* le, 
+LDAPMessageQueue* LDAPAsynConnection::add( const LDAPEntry* le,
         const LDAPConstraints *cons){
     DEBUG(LDAP_DEBUG_TRACE,"LDAPAsynConnection::add()" << endl);
     DEBUG(LDAP_DEBUG_TRACE | LDAP_DEBUG_PARAMETER,"   entry:" << *le << endl);
@@ -217,7 +217,7 @@ LDAPMessageQueue* LDAPAsynConnection::modify(const string& dn,
     }
 }
 
-LDAPMessageQueue* LDAPAsynConnection::rename(const string& dn, 
+LDAPMessageQueue* LDAPAsynConnection::rename(const string& dn,
         const string& newRDN, bool delOldRDN, const string& newParentDN,
         const LDAPConstraints *cons ){
     DEBUG(LDAP_DEBUG_TRACE,"LDAPAsynConnection::rename()" << endl);
@@ -225,7 +225,7 @@ LDAPMessageQueue* LDAPAsynConnection::rename(const string& dn,
             << "   newRDN:" << newRDN << endl
             << "   newParentDN:" << newParentDN << endl
             << "   delOldRDN:" << delOldRDN << endl);
-    LDAPModDNRequest *req = new  LDAPModDNRequest(dn, newRDN, delOldRDN, 
+    LDAPModDNRequest *req = new  LDAPModDNRequest(dn, newRDN, delOldRDN,
             newParentDN, this, cons );
     try{
         LDAPMessageQueue *ret = req->sendRequest();
@@ -237,7 +237,7 @@ LDAPMessageQueue* LDAPAsynConnection::rename(const string& dn,
 }
 
 
-LDAPMessageQueue* LDAPAsynConnection::extOperation(const string& oid, 
+LDAPMessageQueue* LDAPAsynConnection::extOperation(const string& oid,
         const string& value, const LDAPConstraints *cons ){
     DEBUG(LDAP_DEBUG_TRACE,"LDAPAsynConnection::extOperation()" << endl);
     DEBUG(LDAP_DEBUG_TRACE | LDAP_DEBUG_PARAMETER,"   oid:" << oid << endl);
@@ -258,7 +258,7 @@ void LDAPAsynConnection::abandon(LDAPMessageQueue *q){
     LDAPRequest *req;
     while(! reqStack->empty()){
         req=reqStack->top();
-        if (ldap_abandon_ext(cur_session, req->getMsgID(), 0, 0) 
+        if (ldap_abandon_ext(cur_session, req->getMsgID(), 0, 0)
                 != LDAP_SUCCESS){
             throw LDAPException(this);
         }
@@ -292,12 +292,12 @@ const LDAPConstraints* LDAPAsynConnection::getConstraints() const {
     DEBUG(LDAP_DEBUG_TRACE,"LDAPAsynConnection::getConstraints()" << endl);
     return m_constr;
 }
- 
+
 TlsOptions LDAPAsynConnection::getTlsOptions() const {
     return TlsOptions( cur_session );
 }
 
-LDAP* LDAPAsynConnection::getSessionHandle() const{ 
+LDAP* LDAPAsynConnection::getSessionHandle() const{
     DEBUG(LDAP_DEBUG_TRACE,"LDAPAsynConnection::getSessionHandle()" << endl);
     return cur_session;
 }
@@ -330,7 +330,7 @@ LDAPAsynConnection* LDAPAsynConnection::referralConnect(
         tmpConn=new LDAPAsynConnection(host.c_str(),port);
         int err=0;
 
-        if(rebind){ 
+        if(rebind){
             auth=rebind->getRebindAuth(host, port);
         }
         if(auth){
@@ -347,7 +347,7 @@ LDAPAsynConnection* LDAPAsynConnection::referralConnect(
             }
             err = ldap_sasl_bind_s(tmpConn->getSessionHandle(), c_dn,
                     LDAP_SASL_SIMPLE, &c_passwd, NULL, NULL, NULL);
-        } else {   
+        } else {
             // Do anonymous bind
             err = ldap_sasl_bind_s(tmpConn->getSessionHandle(),NULL,
                     LDAP_SASL_SIMPLE, NULL, NULL, NULL, NULL);

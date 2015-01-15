@@ -57,7 +57,7 @@ rewrite_subst_compile(
 		 */
 		if (  !IS_REWRITE_SUBMATCH_ESCAPE( p[ 0 ] ) ) {
 			continue;
-		} 
+		}
 
 		if (  IS_REWRITE_SUBMATCH_ESCAPE( p[ 1 ] ) ) {
 			/* Pull &p[1] over p, including the trailing '\0' */
@@ -71,7 +71,7 @@ rewrite_subst_compile(
 			goto cleanup;
 		}
 		subs = tmps;
-		
+
 		/*
 		 * I think an `if l > 0' at runtime is better outside than
 		 * inside a function call ...
@@ -90,7 +90,7 @@ rewrite_subst_compile(
 			subs[ nsub ].bv_val = NULL;
 			subs[ nsub ].bv_len = 0;
 		}
-		
+
 		/*
 		 * Substitution pattern
 		 */
@@ -115,7 +115,7 @@ rewrite_subst_compile(
 			 * (substitute substring as is)
 			 */
 			if ( p[ 2 ] != '{' ) {
-				submatch[ nsub ].ls_type = 
+				submatch[ nsub ].ls_type =
 					REWRITE_SUBMATCH_ASIS;
 				submatch[ nsub ].ls_map = NULL;
 				begin = ++p + 1;
@@ -175,7 +175,7 @@ rewrite_subst_compile(
 
 		nsub++;
 	}
-	
+
 	/*
 	 * Last part of string
 	 */
@@ -242,20 +242,20 @@ submatch_copy(
 	assert( match != NULL );
 	assert( val != NULL );
 	assert( val->bv_val == NULL );
-	
+
 	c = submatch->ls_submatch;
 	s = string + match[ c ].rm_so;
 	l = match[ c ].rm_eo - match[ c ].rm_so;
-	
+
 	val->bv_len = l;
 	val->bv_val = malloc( l + 1 );
 	if ( val->bv_val == NULL ) {
 		return REWRITE_ERR;
 	}
-	
+
 	AC_MEMCPY( val->bv_val, s, l );
 	val->bv_val[ l ] = '\0';
-	
+
 	return REWRITE_SUCCESS;
 }
 
@@ -300,7 +300,7 @@ rewrite_subst_apply(
 			return REWRITE_REGEXEC_ERR;
 		}
 	}
-	
+
 	/*
 	 * Resolve submatches (simple subst, map expansion and so).
 	 */
@@ -308,7 +308,7 @@ rewrite_subst_apply(
 		struct berval	key = { 0, NULL };
 
 		submatch[ n ].bv_val = NULL;
-		
+
 		/*
 		 * Get key
 		 */
@@ -322,7 +322,7 @@ rewrite_subst_apply(
 				goto cleanup;
 			}
 			break;
-			
+
 		case REWRITE_SUBMATCH_MAP_W_ARG:
 			switch ( subst->lt_submatch[ n ].ls_map->lm_type ) {
 			case REWRITE_MAP_GET_OP_VAR:
@@ -332,11 +332,11 @@ rewrite_subst_apply(
 				break;
 
 			default:
-				rc = rewrite_subst_apply( info, op, 
+				rc = rewrite_subst_apply( info, op,
 					subst->lt_submatch[ n ].ls_map->lm_subst,
 					string, match, &key);
 			}
-			
+
 			if ( rc != REWRITE_SUCCESS ) {
 				goto cleanup;
 			}
@@ -347,7 +347,7 @@ rewrite_subst_apply(
 			rc = REWRITE_ERR;
 			break;
 		}
-		
+
 		if ( rc != REWRITE_SUCCESS ) {
 			rc = REWRITE_REGEXEC_ERR;
 			goto cleanup;
@@ -361,7 +361,7 @@ rewrite_subst_apply(
 			submatch[ n ] = key;
 			rc = REWRITE_SUCCESS;
 			break;
-			
+
 		case REWRITE_SUBMATCH_XMAP:
 			rc = rewrite_xmap_apply( info, op,
 					subst->lt_submatch[ n ].ls_map,
@@ -369,7 +369,7 @@ rewrite_subst_apply(
 			free( key.bv_val );
 			key.bv_val = NULL;
 			break;
-			
+
 		case REWRITE_SUBMATCH_MAP_W_ARG:
 			rc = rewrite_map_apply( info, op,
 					subst->lt_submatch[ n ].ls_map,
@@ -393,13 +393,13 @@ rewrite_subst_apply(
 			rc = REWRITE_REGEXEC_ERR;
 			goto cleanup;
 		}
-		
+
 		/*
                  * Increment the length of the resulting string
                  */
 		l += submatch[ n ].bv_len;
 	}
-	
+
 	/*
          * Alloc result buffer
          */
@@ -419,7 +419,7 @@ rewrite_subst_apply(
 					subst->lt_subs[ n ].bv_len );
 			cl += subst->lt_subs[ n ].bv_len;
 		}
-		AC_MEMCPY( res + cl, submatch[ n ].bv_val, 
+		AC_MEMCPY( res + cl, submatch[ n ].bv_val,
 				submatch[ n ].bv_len );
 		cl += submatch[ n ].bv_len;
 	}

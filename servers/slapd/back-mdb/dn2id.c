@@ -396,7 +396,7 @@ mdb_dn2id(
 			break;
 		}
 	}
-	*id = nid; 
+	*id = nid;
 	/* return subtree count if requested */
 	if ( !rc && nsubs ) {
 		ptr = (char *)data.mv_data + data.mv_size - sizeof(ID);

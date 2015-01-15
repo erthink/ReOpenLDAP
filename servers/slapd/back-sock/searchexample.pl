@@ -46,7 +46,7 @@ sub process_request {
     alarm($timeout);
 
     my $request = <STDIN>;
-    
+
     if ($request eq "SEARCH\n") {
       my %req = ();
       while (my $line = <STDIN>) {
@@ -63,7 +63,7 @@ sub process_request {
       print "\n";
       print "RESULT\n";
       print "code: 0\n";
-      print "info: answered by process $$\n";      
+      print "info: answered by process $$\n";
     }
     else {
       print "RESULT\n";

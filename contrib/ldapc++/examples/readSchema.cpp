@@ -27,7 +27,7 @@ int main(){
         std::cout << lc->getHost() << std::endl;
         StringList tmp;
         tmp.add("subschemasubentry");
-        LDAPSearchResults* entries = lc->search("", 
+        LDAPSearchResults* entries = lc->search("",
                         LDAPConnection::SEARCH_BASE,
                         "(objectClass=*)",
                         tmp );
@@ -36,7 +36,7 @@ int main(){
 
         if(rootDse){
             const LDAPAttribute* schemaAttr = rootDse->getAttributes()->getAttributeByName("subschemaSubentry");
-            schemabase = *(schemaAttr->getValues().begin());   
+            schemabase = *(schemaAttr->getValues().begin());
         }
         StringList attrs;
         attrs.add("objectClasses");
@@ -61,7 +61,7 @@ int main(){
                 }
             }
         }
-        
+
         lc->unbind();
         delete lc;
    }catch (LDAPException e){

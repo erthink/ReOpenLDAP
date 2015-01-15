@@ -93,7 +93,7 @@ monitor_entry_create(
 	if ( rc == SLAP_CB_CONTINUE ) {
 		rc = LDAP_SUCCESS;
 	}
-	
+
 	return rc;
 }
 

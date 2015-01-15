@@ -264,7 +264,7 @@ ldap_back_conn_free( void *v_lc )
 {
 	ldapconn_t	*lc = v_lc;
 
-	if ( lc->lc_ld != NULL ) {	
+	if ( lc->lc_ld != NULL ) {
 		ldap_unbind_ext( lc->lc_ld, NULL, NULL );
 	}
 	if ( !BER_BVISNULL( &lc->lc_bound_ndn ) ) {

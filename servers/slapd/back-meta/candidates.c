@@ -90,7 +90,7 @@ meta_subtree_match( metatarget_t *mt, struct berval *ndn, int scope )
  *
  * Note: this function should never be called if dn is the <suffix>.
  */
-int 
+int
 meta_back_is_candidate(
 	metatarget_t	*mt,
 	struct berval	*ndn,
@@ -114,7 +114,7 @@ meta_back_is_candidate(
 		 * |    F    |    F    | not candidate     |
 		 * +---------+---------+-------------------+
 		 */
-			
+
 		if ( mt->mt_subtree ) {
 			int match = ( meta_subtree_match( mt, ndn, scope ) != NULL );
 
@@ -227,7 +227,7 @@ meta_clear_unused_candidates(
 	metainfo_t	*mi = ( metainfo_t * )op->o_bd->be_private;
 	int		i;
 	SlapReply	*candidates = meta_back_candidates_get( op );
-	
+
 	for ( i = 0; i < mi->mi_ntargets; ++i ) {
 		if ( i == candidate ) {
 			continue;

@@ -68,7 +68,7 @@
  *
  *  If vals is empty, partialAttribute is omitted.
  *  If all vals in attrVals are empty, attrVals is omitted.
- *      
+ *
  * 2. Examples
  *
  * 2.1. Example

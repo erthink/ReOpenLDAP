@@ -56,7 +56,7 @@ Abstract
 
 
 Zeilenga & Legg             Standards Track                     [Page 1]
-
+
 RFC 3672                   Subentries in LDAP              December 2003
 
 
@@ -112,7 +112,7 @@ RFC 3672                   Subentries in LDAP              December 2003
 
 
 Zeilenga & Legg             Standards Track                     [Page 2]
-
+
 RFC 3672                   Subentries in LDAP              December 2003
 
 
@@ -168,7 +168,7 @@ RFC 3672                   Subentries in LDAP              December 2003
 
 
 Zeilenga & Legg             Standards Track                     [Page 3]
-
+
 RFC 3672                   Subentries in LDAP              December 2003
 
 
@@ -224,7 +224,7 @@ RFC 3672                   Subentries in LDAP              December 2003
 
 
 Zeilenga & Legg             Standards Track                     [Page 4]
-
+
 RFC 3672                   Subentries in LDAP              December 2003
 
 
@@ -280,7 +280,7 @@ RFC 3672                   Subentries in LDAP              December 2003
 
 
 Zeilenga & Legg             Standards Track                     [Page 5]
-
+
 RFC 3672                   Subentries in LDAP              December 2003
 
 
@@ -336,7 +336,7 @@ RFC 3672                   Subentries in LDAP              December 2003
 
 
 Zeilenga & Legg             Standards Track                     [Page 6]
-
+
 RFC 3672                   Subentries in LDAP              December 2003
 
 
@@ -392,7 +392,7 @@ RFC 3672                   Subentries in LDAP              December 2003
 
 
 Zeilenga & Legg             Standards Track                     [Page 7]
-
+
 RFC 3672                   Subentries in LDAP              December 2003
 
 
@@ -448,7 +448,7 @@ RFC 3672                   Subentries in LDAP              December 2003
 
 
 Zeilenga & Legg             Standards Track                     [Page 8]
-
+
 RFC 3672                   Subentries in LDAP              December 2003
 
 
@@ -504,7 +504,7 @@ A.  Subtree Specification ABNF
 
 
 Zeilenga & Legg             Standards Track                     [Page 9]
-
+
 RFC 3672                   Subentries in LDAP              December 2003
 
 
@@ -560,7 +560,7 @@ Normative References
 
 
 Zeilenga & Legg             Standards Track                    [Page 10]
-
+
 RFC 3672                   Subentries in LDAP              December 2003
 
 
@@ -616,7 +616,7 @@ Authors' Addresses
 
 
 Zeilenga & Legg             Standards Track                    [Page 11]
-
+
 RFC 3672                   Subentries in LDAP              December 2003
 
 
@@ -672,4 +672,4 @@ Acknowledgement
 
 
 Zeilenga & Legg             Standards Track                    [Page 12]
-
+

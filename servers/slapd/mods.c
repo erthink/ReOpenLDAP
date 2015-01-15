@@ -94,7 +94,7 @@ modify_add_values(
 		}
 
 		/* no normalization is done in this routine nor
-		 * in the matching routines called by this routine. 
+		 * in the matching routines called by this routine.
 		 * values are now normalized once on input to the
 		 * server (whether from LDAP or from the underlying
 		 * database).
@@ -207,7 +207,7 @@ modify_delete_vindex(
 	char		dummy = '\0';
 
 	/*
-	 * If permissive is set, then the non-existence of an 
+	 * If permissive is set, then the non-existence of an
 	 * attribute is not treated as an error.
 	 */
 

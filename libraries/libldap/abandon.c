@@ -356,24 +356,24 @@ ldap_int_bisect_find( ber_int_t *v, ber_len_t n, ber_int_t id, int *idxp )
 		} else {
 			int		pos;
 			ber_int_t	curid;
-	
+
 			do {
 				pos = (begin + end)/2;
 				curid = v[ pos ];
-	
+
 				if ( id < curid ) {
 					end = pos - 1;
-	
+
 				} else if ( id > curid ) {
 					begin = ++pos;
-	
+
 				} else {
 					/* already abandoned? */
 					rc = 1;
 					break;
 				}
 			} while ( end >= begin );
-	
+
 			*idxp = pos;
 		}
 

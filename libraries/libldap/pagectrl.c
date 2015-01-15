@@ -35,7 +35,7 @@
                      first call.
     value      (OUT) Control value, SHOULD be freed by calling
 					 ldap_memfree() when done.
- 
+
     pagedResultsControl ::= SEQUENCE {
             controlType     1.2.840.113556.1.4.319,
             criticality     BOOLEAN DEFAULT FALSE,
@@ -118,7 +118,7 @@ done:;
     iscritical  (IN) Criticality
     ctrlp      (OUT) LDAP control, SHOULD be freed by calling
 					 ldap_control_free() when done.
- 
+
     pagedResultsControl ::= SEQUENCE {
             controlType     1.2.840.113556.1.4.319,
             criticality     BOOLEAN DEFAULT FALSE,

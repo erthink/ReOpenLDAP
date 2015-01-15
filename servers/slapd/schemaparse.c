@@ -26,7 +26,7 @@
 #include "ldap_schema.h"
 #include "config.h"
 
-static void		oc_usage(void); 
+static void		oc_usage(void);
 static void		at_usage(void);
 
 static char *const err2text[] = {

@@ -17,7 +17,7 @@ const int LDAPConnection::SEARCH_SUB = LDAPAsynConnection::SEARCH_SUB;
 
 using namespace std;
 
-LDAPConnection::LDAPConnection(const string& hostname, int port, 
+LDAPConnection::LDAPConnection(const string& hostname, int port,
         LDAPConstraints* cons) :
         LDAPAsynConnection(hostname, port, cons){
 }
@@ -28,7 +28,7 @@ LDAPConnection::~LDAPConnection(){
 void LDAPConnection::start_tls(){
     LDAPAsynConnection::start_tls();
 }
-   
+
 void LDAPConnection::bind(const string& dn, const string& passwd,
         LDAPConstraints* cons){
     DEBUG(LDAP_DEBUG_TRACE,"LDAPConnection::bind" << endl);
@@ -114,7 +114,7 @@ bool LDAPConnection::compare(const string& dn, const LDAPAttribute& attr,
     int resCode=res->getResultCode();
     switch (resCode){
         case LDAPResult::COMPARE_TRUE :
-            delete res; 
+            delete res;
             delete msg;
             return true;
         break;
@@ -154,7 +154,7 @@ void LDAPConnection::del(const string& dn, const LDAPConstraints* cons){
     int resCode=res->getResultCode();
     switch (resCode){
         case LDAPResult::SUCCESS :
-            delete res; 
+            delete res;
             delete msg;
         break;
         case LDAPResult::REFERRAL :
@@ -189,7 +189,7 @@ void LDAPConnection::add(const LDAPEntry* le, const LDAPConstraints* cons){
     int resCode=res->getResultCode();
     switch (resCode){
         case LDAPResult::SUCCESS :
-            delete res; 
+            delete res;
             delete msg;
         break;
         case LDAPResult::REFERRAL :
@@ -224,7 +224,7 @@ void LDAPConnection::modify(const string& dn, const LDAPModList* mods,
     int resCode=res->getResultCode();
     switch (resCode){
         case LDAPResult::SUCCESS :
-            delete res; 
+            delete res;
             delete msg;
         break;
         case LDAPResult::REFERRAL :
@@ -241,11 +241,11 @@ void LDAPConnection::modify(const string& dn, const LDAPModList* mods,
             delete msg;
             throw LDAPException(resCode, srvMsg);
     }
-    
+
 }
 
 void LDAPConnection::rename(const string& dn, const string& newRDN,
-        bool delOldRDN, const string& newParentDN, 
+        bool delOldRDN, const string& newParentDN,
         const LDAPConstraints* cons){
     DEBUG(LDAP_DEBUG_TRACE,"LDAPConnection::rename" << endl);
     LDAPMessageQueue* msg=0;
@@ -262,7 +262,7 @@ void LDAPConnection::rename(const string& dn, const string& newRDN,
     int resCode=res->getResultCode();
     switch (resCode){
         case LDAPResult::SUCCESS :
-            delete res; 
+            delete res;
             delete msg;
         break;
         case LDAPResult::REFERRAL :
@@ -282,13 +282,13 @@ void LDAPConnection::rename(const string& dn, const string& newRDN,
 }
 
 LDAPSearchResults* LDAPConnection::search(const string& base, int scope,
-        const string& filter, const StringList& attrs, bool attrsOnly, 
+        const string& filter, const StringList& attrs, bool attrsOnly,
         const LDAPConstraints* cons){
     DEBUG(LDAP_DEBUG_TRACE,"LDAPConnection::search" << endl);
     LDAPMessageQueue* msgq=0;
     LDAPResult* res=0;
     LDAPSearchResults* results= 0;
-    
+
     try{
         results = new LDAPSearchResults();
         msgq = LDAPAsynConnection::search(base,scope, filter, attrs, attrsOnly,
@@ -303,7 +303,7 @@ LDAPSearchResults* LDAPConnection::search(const string& base, int scope,
         int resCode=res->getResultCode();
         switch (resCode){
             case LDAPResult::SUCCESS :
-                delete res; 
+                delete res;
                 delete msgq;
                 return results;
             break;
@@ -323,11 +323,11 @@ LDAPSearchResults* LDAPConnection::search(const string& base, int scope,
                 delete msgq;
                 throw LDAPException(resCode, srvMsg);
         }
-    }        
+    }
     return 0;
 }
 
-LDAPExtResult* LDAPConnection::extOperation(const string& oid, 
+LDAPExtResult* LDAPConnection::extOperation(const string& oid,
         const string& value, const LDAPConstraints *cons){
     DEBUG(LDAP_DEBUG_TRACE,"LDAPConnection::extOperation" << endl);
     LDAPMessageQueue* msg=0;

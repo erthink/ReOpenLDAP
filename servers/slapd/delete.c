@@ -60,7 +60,7 @@ do_delete(
 		Debug( LDAP_DEBUG_ANY, "%s do_delete: get_ctrls failed\n",
 			op->o_log_prefix, 0, 0 );
 		goto cleanup;
-	} 
+	}
 
 	rs->sr_err = dnPrettyNormal( NULL, &dn, &op->o_req_dn, &op->o_req_ndn,
 		op->o_tmpmemctx );
@@ -112,7 +112,7 @@ fe_op_delete( Operation *op, SlapReply *rs )
 {
 	struct berval	pdn = BER_BVNULL;
 	BackendDB	*op_be, *bd = op->o_bd;
-	
+
 	/*
 	 * We could be serving multiple database backends.  Select the
 	 * appropriate one, or send a referral to our "referral server"

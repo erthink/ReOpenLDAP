@@ -18,7 +18,7 @@ LDAP_INC = -I$(LDAP_BUILD)/include -I$(LDAP_SRC)/include -I$(LDAP_SRC)/servers/s
 LDAP_LIB = $(LDAP_BUILD)/libraries/libldap_r/libldap_r.la \
 	$(LDAP_BUILD)/libraries/liblber/liblber.la
 
-SSL_INC = 
+SSL_INC =
 SSL_LIB = -lcrypto
 
 HEIMDAL_INC = -I/usr/heimdal/include

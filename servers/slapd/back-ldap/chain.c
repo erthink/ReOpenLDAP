@@ -70,13 +70,13 @@ typedef struct ldap_chain_t {
 	/*
 	 * A "template" ldapinfo_t gets all common configuration items;
 	 * then, for each configured URI, an entry is created in the tree;
-	 * all the specific configuration items get in the current URI 
+	 * all the specific configuration items get in the current URI
 	 * structure.
 	 *
  	 * Then, for each referral, extract the URI and lookup the
 	 * related structure.  If configured to do so, allow URIs
 	 * not found in the structure to create a temporary one
-	 * that chains anonymously; maybe it can also be added to 
+	 * that chains anonymously; maybe it can also be added to
 	 * the tree?  Should be all configurable.
 	 */
 
@@ -143,7 +143,7 @@ static slap_overinst ldapchain;
 static int
 chaining_control_add(
 		ldap_chain_t	*lc,
-		Operation 	*op, 
+		Operation 	*op,
 		LDAPControl	***oldctrlsp )
 {
 	LDAPControl	**ctrls = NULL;
@@ -187,13 +187,13 @@ chaining_control_add(
 
 static int
 chaining_control_remove(
-		Operation 	*op, 
+		Operation 	*op,
 		LDAPControl	***oldctrlsp )
 {
 	LDAPControl	**oldctrls = *oldctrlsp;
 
 	/* we assume that the first control is the chaining control
-	 * added by the chain overlay, so it's the only one we explicitly 
+	 * added by the chain overlay, so it's the only one we explicitly
 	 * free */
 	if ( op->o_ctrls != oldctrls ) {
 		if ( op->o_ctrls != NULL ) {
@@ -204,7 +204,7 @@ chaining_control_remove(
 			op->o_chaining = 0;
 		}
 		op->o_ctrls = oldctrls;
-	} 
+	}
 
 	*oldctrlsp = NULL;
 
@@ -287,7 +287,7 @@ ldap_chain_cb_search_response( Operation *op, SlapReply *rs )
 		/* tell the frontend not to add generated
 		 * operational attributes */
 		rs->sr_flags |= REP_NO_OPERATIONALS;
-		
+
 		return SLAP_CB_CONTINUE;
 
 	} else if ( rs->sr_type == REP_SEARCHREF ) {
@@ -331,7 +331,7 @@ ldap_chain_cb_search_response( Operation *op, SlapReply *rs )
 }
 
 /*
- * Dummy response that simply traces if back-ldap tried to send 
+ * Dummy response that simply traces if back-ldap tried to send
  * anything to the client
  */
 static int
@@ -413,7 +413,7 @@ ldap_chain_op(
 
 #ifdef LDAP_CONTROL_X_CHAINING_BEHAVIOR
 	LDAPControl	**ctrls = NULL;
-	
+
 	(void)chaining_control_add( lc, op, &ctrls );
 #endif /* LDAP_CONTROL_X_CHAINING_BEHAVIOR */
 
@@ -430,24 +430,24 @@ ldap_chain_op(
 		char		*filter = NULL;
 		int		temporary = 0;
 		int		free_dn = 0;
-			
+
 		/* We're setting the URI of the first referral;
 		 * what if there are more?
 
 Document: RFC 4511
 
-4.1.10. Referral 
+4.1.10. Referral
    ...
-   If the client wishes to progress the operation, it MUST follow the 
-   referral by contacting one of the supported services. If multiple 
-   URIs are present, the client assumes that any supported URI may be 
-   used to progress the operation. 
+   If the client wishes to progress the operation, it MUST follow the
+   referral by contacting one of the supported services. If multiple
+   URIs are present, the client assumes that any supported URI may be
+   used to progress the operation.
 
 		 * so we actually need to follow exactly one,
 		 * and we can assume any is fine.
 		 */
-	
-		/* parse reference and use 
+
+		/* parse reference and use
 		 * proto://[host][:port]/ only */
 		rc = ldap_url_parse_ext( ref->bv_val, &srv, LDAP_PVT_URL_PARSE_NONE );
 		if ( rc != LDAP_URL_SUCCESS ) {
@@ -485,8 +485,8 @@ Document: RFC 4511
 			ber_str2bv( srv->lud_dn, 0, 0, &dn );
 			rc = dnPrettyNormal( NULL, &dn, &pdn, &ndn, op->o_tmpmemctx );
 			if ( rc == LDAP_SUCCESS ) {
-				/* remove DN essentially because later on 
-				 * ldap_initialize() will parse the URL 
+				/* remove DN essentially because later on
+				 * ldap_initialize() will parse the URL
 				 * as a comma-separated URL list */
 				srv->lud_dn = "";
 				free_dn = 1;
@@ -556,7 +556,7 @@ Document: RFC 4511
 
 		/* Searches for a ldapinfo in the avl tree */
 		ldap_pvt_thread_mutex_lock( &lc->lc_lai.lai_mutex );
-		lip = (ldapinfo_t *)avl_find( lc->lc_lai.lai_tree, 
+		lip = (ldapinfo_t *)avl_find( lc->lc_lai.lai_tree,
 			(caddr_t)&li, ldap_chain_uri_cmp );
 		ldap_pvt_thread_mutex_unlock( &lc->lc_lai.lai_mutex );
 
@@ -637,8 +637,8 @@ further_cleanup:;
 			op->o_tmpfree( pdn.bv_val, op->o_tmpmemctx );
 			op->o_tmpfree( ndn.bv_val, op->o_tmpmemctx );
 		}
-	
-		if ( op->o_tag == LDAP_REQ_SEARCH ) {	
+
+		if ( op->o_tag == LDAP_REQ_SEARCH ) {
 			if ( tmp_oq_search.rs_filter != NULL ) {
 				filter_free_x( op, tmp_oq_search.rs_filter, 1 );
 			}
@@ -693,7 +693,7 @@ ldap_chain_search(
 
 #ifdef LDAP_CONTROL_X_CHAINING_BEHAVIOR
 	LDAPControl	**ctrls = NULL;
-	
+
 	(void)chaining_control_add( lc, op, &ctrls );
 #endif /* LDAP_CONTROL_X_CHAINING_BEHAVIOR */
 
@@ -701,8 +701,8 @@ ldap_chain_search(
 
 	rs->sr_type = REP_SEARCH;
 
-	/* if we parse the URI then by no means 
-	 * we can cache stuff or reuse connections, 
+	/* if we parse the URI then by no means
+	 * we can cache stuff or reuse connections,
 	 * because in back-ldap there's no caching
 	 * based on the URI value, which is supposed
 	 * to be set once for all (correct?) */
@@ -760,14 +760,14 @@ ldap_chain_search(
 				pdn = save_entry->e_name;
 				ndn = save_entry->e_nname;
 			} /* else leave the original req DN in place, if any RFC 4511 */
-			
+
 		} else {
 			/* RFC 4511: if DN is present, use it */
 			ber_str2bv( srv->lud_dn, 0, 0, &dn );
 			rc = dnPrettyNormal( NULL, &dn, &pdn, &ndn, op->o_tmpmemctx );
 			if ( rc == LDAP_SUCCESS ) {
-				/* remove DN essentially because later on 
-				 * ldap_initialize() will parse the URL 
+				/* remove DN essentially because later on
+				 * ldap_initialize() will parse the URL
 				 * as a comma-separated URL list */
 				srv->lud_dn = "";
 				free_dn = 1;
@@ -828,7 +828,7 @@ ldap_chain_search(
 
 		/* Searches for a ldapinfo in the avl tree */
 		ldap_pvt_thread_mutex_lock( &lc->lc_lai.lai_mutex );
-		lip = (ldapinfo_t *)avl_find( lc->lc_lai.lai_tree, 
+		lip = (ldapinfo_t *)avl_find( lc->lc_lai.lai_tree,
 			(caddr_t)&li, ldap_chain_uri_cmp );
 		ldap_pvt_thread_mutex_unlock( &lc->lc_lai.lai_mutex );
 
@@ -899,7 +899,7 @@ cleanup:;
 			(void)ldap_chain_db_close_one( op->o_bd );
 			(void)ldap_chain_db_destroy_one( op->o_bd, NULL );
 		}
-		
+
 further_cleanup:;
 		if ( op->o_req_dn.bv_val == pdn.bv_val ) {
 			op->o_req_dn = odn;
@@ -920,7 +920,7 @@ further_cleanup:;
 		}
 
 		op->oq_search = save_oq_search;
-		
+
 		if ( rc == LDAP_SUCCESS && rs2.sr_err == LDAP_SUCCESS ) {
 			*rs = rs2;
 			break;
@@ -1080,9 +1080,9 @@ ldap_chain_response( Operation *op, SlapReply *rs )
 		if ( rs->sr_type == REP_SEARCHREF ) {
 			sc2.sc_response = ldap_chain_cb_search_response;
 			rc = ldap_chain_search( op, rs, ref, 0 );
-			
+
 		} else {
-			/* we might get here before any database actually 
+			/* we might get here before any database actually
 			 * performed a search; in those cases, we need
 			 * to check limits, to make sure safe defaults
 			 * are in place */
@@ -1097,7 +1097,7 @@ ldap_chain_response( Operation *op, SlapReply *rs )
 
 	case LDAP_REQ_EXTENDED:
 		rc = ldap_chain_op( op, rs, lback->bi_extended, ref, 0 );
-		/* FIXME: ldap_back_extended() by design 
+		/* FIXME: ldap_back_extended() by design
 		 * doesn't send result; frontend is expected
 		 * to send it... */
 		/* FIXME: what about chaining? */
@@ -1197,13 +1197,13 @@ str2chain( const char *s )
 {
 	if ( strcasecmp( s, "chainingPreferred" ) == 0 ) {
 		return LDAP_CHAINING_PREFERRED;
-		
+
 	} else if ( strcasecmp( s, "chainingRequired" ) == 0 ) {
 		return LDAP_CHAINING_REQUIRED;
 
 	} else if ( strcasecmp( s, "referralsPreferred" ) == 0 ) {
 		return LDAP_REFERRALS_PREFERRED;
-		
+
 	} else if ( strcasecmp( s, "referralsRequired" ) == 0 ) {
 		return LDAP_REFERRALS_REQUIRED;
 	}
@@ -2191,15 +2191,15 @@ ldap_chain_parse_ctrl(
 		ber_len_t	len;
 
 		/* Parse the control value
-		 *      ChainingBehavior ::= SEQUENCE { 
-		 *           resolveBehavior         Behavior OPTIONAL, 
-		 *           continuationBehavior    Behavior OPTIONAL } 
-		 *                             
-		 *      Behavior :: = ENUMERATED { 
-		 *           chainingPreferred       (0), 
-		 *           chainingRequired        (1), 
-		 *           referralsPreferred      (2), 
-		 *           referralsRequired       (3) } 
+		 *      ChainingBehavior ::= SEQUENCE {
+		 *           resolveBehavior         Behavior OPTIONAL,
+		 *           continuationBehavior    Behavior OPTIONAL }
+		 *
+		 *      Behavior :: = ENUMERATED {
+		 *           chainingPreferred       (0),
+		 *           chainingRequired        (1),
+		 *           referralsPreferred      (2),
+		 *           referralsRequired       (3) }
 		 */
 
 		ber = ber_init( &ctrl->ldctl_value );

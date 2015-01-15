@@ -141,8 +141,8 @@ bdb_db_open( BackendDB *be, ConfigReply *cr )
 		quick = 1;
 	}
 
-	rc = alock_open( &bdb->bi_alock_info, 
-				"slapd", 
+	rc = alock_open( &bdb->bi_alock_info,
+				"slapd",
 				bdb->bi_dbenv_home, alockt );
 
 	/* alockt is TRUE if the existing environment was created in Quick mode */
@@ -152,20 +152,20 @@ bdb_db_open( BackendDB *be, ConfigReply *cr )
 	if( rc == ALOCK_RECOVER ) {
 		Debug( LDAP_DEBUG_ANY,
 			LDAP_XSTRING(bdb_db_open) ": database \"%s\": "
-			"unclean shutdown detected; attempting recovery.\n", 
+			"unclean shutdown detected; attempting recovery.\n",
 			be->be_suffix[0].bv_val, 0, 0 );
 		do_alock_recover = 1;
 		do_recover = DB_RECOVER;
 	} else if( rc == ALOCK_BUSY ) {
 		Debug( LDAP_DEBUG_ANY,
 			LDAP_XSTRING(bdb_db_open) ": database \"%s\": "
-			"database already in use.\n", 
+			"database already in use.\n",
 			be->be_suffix[0].bv_val, 0, 0 );
 		return -1;
 	} else if( rc != ALOCK_CLEAN ) {
 		Debug( LDAP_DEBUG_ANY,
 			LDAP_XSTRING(bdb_db_open) ": database \"%s\": "
-			"alock package is unstable.\n", 
+			"alock package is unstable.\n",
 			be->be_suffix[0].bv_val, 0, 0 );
 		return -1;
 	}
@@ -231,7 +231,7 @@ bdb_db_open( BackendDB *be, ConfigReply *cr )
 	if ( alockt && do_recover ) {
 		Debug( LDAP_DEBUG_ANY,
 			LDAP_XSTRING(bdb_db_open) ": database \"%s\": "
-			"cannot recover, database must be reinitialized.\n", 
+			"cannot recover, database must be reinitialized.\n",
 			be->be_suffix[0].bv_val, 0, 0 );
 		rc = -1;
 		goto fail;
@@ -401,7 +401,7 @@ shm_retry:
 		if( rc != 0 ) {
 			snprintf(cr->msg, sizeof(cr->msg),
 				"database \"%s\": db_create(%s) failed: %s (%d).",
-				be->be_suffix[0].bv_val, 
+				be->be_suffix[0].bv_val,
 				bdb->bi_dbenv_home, db_strerror(rc), rc );
 			Debug( LDAP_DEBUG_ANY,
 				LDAP_XSTRING(bdb_db_open) ": %s\n",
@@ -414,7 +414,7 @@ shm_retry:
 			if ( rc ) {
 				snprintf(cr->msg, sizeof(cr->msg),
 					"database \"%s\": db set_flags(DB_ENCRYPT)(%s) failed: %s (%d).",
-					be->be_suffix[0].bv_val, 
+					be->be_suffix[0].bv_val,
 					bdb->bi_dbenv_home, db_strerror(rc), rc );
 				Debug( LDAP_DEBUG_ANY,
 					LDAP_XSTRING(bdb_db_open) ": %s\n",
@@ -428,7 +428,7 @@ shm_retry:
 			if ( rc ) {
 				snprintf(cr->msg, sizeof(cr->msg),
 					"database \"%s\": db set_flags(DB_CHKSUM)(%s) failed: %s (%d).",
-					be->be_suffix[0].bv_val, 
+					be->be_suffix[0].bv_val,
 					bdb->bi_dbenv_home, db_strerror(rc), rc );
 				Debug( LDAP_DEBUG_ANY,
 					LDAP_XSTRING(bdb_db_open) ": %s\n",
@@ -457,7 +457,7 @@ shm_retry:
 			if ( rc )
 				rc = db->bdi_db->set_pagesize( db->bdi_db, rc );
 
-			rc = db->bdi_db->set_flags( db->bdi_db, 
+			rc = db->bdi_db->set_flags( db->bdi_db,
 				DB_DUP | DB_DUPSORT );
 #ifndef BDB_HIER
 			if ( slapMode & SLAP_TOOL_READONLY ) {
@@ -496,8 +496,8 @@ shm_retry:
 
 		if ( rc != 0 ) {
 			snprintf( cr->msg, sizeof(cr->msg), "database \"%s\": "
-				"db_open(%s/%s) failed: %s (%d).", 
-				be->be_suffix[0].bv_val, 
+				"db_open(%s/%s) failed: %s (%d).",
+				be->be_suffix[0].bv_val,
 				bdb->bi_dbenv_home, bdbi_databases[i].file,
 				db_strerror(rc), rc );
 			Debug( LDAP_DEBUG_ANY,
@@ -750,7 +750,7 @@ bdb_back_initialize(
 
 	/* initialize the underlying database system */
 	Debug( LDAP_DEBUG_TRACE,
-		LDAP_XSTRING(bdb_back_initialize) ": initialize " 
+		LDAP_XSTRING(bdb_back_initialize) ": initialize "
 		BDB_UCTYPE " backend\n", 0, 0, 0 );
 
 	bi->bi_flags |=

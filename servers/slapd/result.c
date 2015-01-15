@@ -66,7 +66,7 @@ static char *v2ref( BerVarray ref, const char *text )
 			return NULL;
 		}
 	}
-	
+
 	if ( text != NULL ) {
 		len = strlen( text );
 		if (text[len-1] != '\n') {
@@ -412,7 +412,7 @@ send_ldap_control( BerElement *ber, LDAPControl *c )
 	}
 
 	if( c->ldctl_value.bv_val != NULL ) {
-		rc = ber_printf( ber, "O", &c->ldctl_value ); 
+		rc = ber_printf( ber, "O", &c->ldctl_value );
 		if( rc == -1 ) return rc;
 	}
 
@@ -624,7 +624,7 @@ send_ldap_response(
 			rs->sr_tag, rc,
 		rs->sr_matched == NULL ? "" : rs->sr_matched,
 		rs->sr_text == NULL ? "" : rs->sr_text );
-	} else 
+	} else
 #endif
 	if ( rs->sr_type == REP_INTERMEDIATE ) {
 	    rc = ber_printf( ber, "{it{" /*"}}"*/,
@@ -688,7 +688,7 @@ send_ldap_response(
 		rc = ber_printf( ber, /*"{"*/ "N}" );
 	}
 #endif
-		
+
 	if ( rc == -1 ) {
 		Debug( LDAP_DEBUG_ANY, "ber_printf failed\n", 0, 0, 0 );
 
@@ -1023,7 +1023,7 @@ slap_send_search_entry( Operation *op, SlapReply *rs )
 
 	if ( !access_allowed( op, rs->sr_entry, ad_entry, NULL, ACL_READ, NULL )) {
 		Debug( LDAP_DEBUG_ACL,
-			"send_search_entry: conn %lu access to entry (%s) not allowed\n", 
+			"send_search_entry: conn %lu access to entry (%s) not allowed\n",
 			op->o_connid, rs->sr_entry->e_name.bv_val, 0 );
 
 		rc = LDAP_INSUFFICIENT_ACCESS;
@@ -1065,8 +1065,8 @@ slap_send_search_entry( Operation *op, SlapReply *rs )
 	}
 
 	if ( rc == -1 ) {
-		Debug( LDAP_DEBUG_ANY, 
-			"send_search_entry: conn %lu  ber_printf failed\n", 
+		Debug( LDAP_DEBUG_ANY,
+			"send_search_entry: conn %lu  ber_printf failed\n",
 			op->o_connid, 0, 0 );
 
 		if ( op->o_res_ber == NULL ) ber_free_buf( ber );
@@ -1081,7 +1081,7 @@ slap_send_search_entry( Operation *op, SlapReply *rs )
 	/* create an array of arrays of flags. Each flag corresponds
 	 * to particular value of attribute and equals 1 if value matches
 	 * to ValuesReturnFilter or 0 if not
-	 */	
+	 */
 	if ( op->o_vrFilter != NULL ) {
 		int	k = 0;
 		size_t	size;
@@ -1095,11 +1095,11 @@ slap_send_search_entry( Operation *op, SlapReply *rs )
 			char	*a_flags;
 			e_flags = slap_sl_calloc ( 1, i * sizeof(char *) + k, op->o_tmpmemctx );
 			if( e_flags == NULL ) {
-		    	Debug( LDAP_DEBUG_ANY, 
+		    	Debug( LDAP_DEBUG_ANY,
 					"send_search_entry: conn %lu slap_sl_calloc failed\n",
 					op->o_connid, 0, 0 );
 				ber_free( ber, 1 );
-	
+
 				set_ldap_error( rs, LDAP_OTHER, "out of memory" );
 				goto error_return;
 			}
@@ -1110,8 +1110,8 @@ slap_send_search_entry( Operation *op, SlapReply *rs )
 				e_flags[i] = a_flags;
 				a_flags += j;
 			}
-	
-			rc = filter_matched_values(op, rs->sr_entry->e_attrs, &e_flags) ; 
+
+			rc = filter_matched_values(op, rs->sr_entry->e_attrs, &e_flags) ;
 			if ( rc == -1 ) {
 			    	Debug( LDAP_DEBUG_ANY, "send_search_entry: "
 					"conn %lu matched values filtering failed\n",
@@ -1166,8 +1166,8 @@ slap_send_search_entry( Operation *op, SlapReply *rs )
 			}
 
 			if (( rc = ber_printf( ber, "{O[" /*]}*/ , &desc->ad_cname )) == -1 ) {
-				Debug( LDAP_DEBUG_ANY, 
-					"send_search_entry: conn %lu  ber_printf failed\n", 
+				Debug( LDAP_DEBUG_ANY,
+					"send_search_entry: conn %lu  ber_printf failed\n",
 					op->o_connid, 0, 0 );
 
 				if ( op->o_res_ber == NULL ) ber_free_buf( ber );
@@ -1201,7 +1201,7 @@ slap_send_search_entry( Operation *op, SlapReply *rs )
 					finish = 1;
 					if (( rc = ber_printf( ber, "{O[" /*]}*/ , &desc->ad_cname )) == -1 ) {
 						Debug( LDAP_DEBUG_ANY,
-							"send_search_entry: conn %lu  ber_printf failed\n", 
+							"send_search_entry: conn %lu  ber_printf failed\n",
 							op->o_connid, 0, 0 );
 
 						if ( op->o_res_ber == NULL ) ber_free_buf( ber );
@@ -1227,7 +1227,7 @@ slap_send_search_entry( Operation *op, SlapReply *rs )
 
 		if ( finish && ( rc = ber_printf( ber, /*{[*/ "]N}" )) == -1 ) {
 			Debug( LDAP_DEBUG_ANY,
-				"send_search_entry: conn %lu ber_printf failed\n", 
+				"send_search_entry: conn %lu ber_printf failed\n",
 				op->o_connid, 0, 0 );
 
 			if ( op->o_res_ber == NULL ) ber_free_buf( ber );
@@ -1250,7 +1250,7 @@ slap_send_search_entry( Operation *op, SlapReply *rs )
 		size = i * sizeof(char *) + k;
 		if ( size > 0 ) {
 			char	*a_flags, **tmp;
-		
+
 			/*
 			 * Reuse previous memory - we likely need less space
 			 * for operational attributes
@@ -1276,12 +1276,12 @@ slap_send_search_entry( Operation *op, SlapReply *rs )
 				e_flags[i] = a_flags;
 				a_flags += j;
 			}
-			rc = filter_matched_values(op, rs->sr_operational_attrs, &e_flags) ; 
-		    
+			rc = filter_matched_values(op, rs->sr_operational_attrs, &e_flags) ;
+
 			if ( rc == -1 ) {
 			    	Debug( LDAP_DEBUG_ANY,
 					"send_search_entry: conn %lu "
-					"matched values filtering failed\n", 
+					"matched values filtering failed\n",
 					op->o_connid, 0, 0);
 				if ( op->o_res_ber == NULL ) ber_free_buf( ber );
 				set_ldap_error( rs, LDAP_OTHER,
@@ -1304,7 +1304,7 @@ slap_send_search_entry( Operation *op, SlapReply *rs )
 		} else {
 			/* specific attrs requested */
 			if( is_at_operational( desc->ad_type ) ) {
-				if ( !SLAP_OPATTRS( rs->sr_attr_flags ) && 
+				if ( !SLAP_OPATTRS( rs->sr_attr_flags ) &&
 					!ad_inlist( desc, rs->sr_attrs ) )
 				{
 					continue;
@@ -1363,7 +1363,7 @@ slap_send_search_entry( Operation *op, SlapReply *rs )
 
 				if (( rc = ber_printf( ber, "O", &a->a_vals[i] )) == -1 ) {
 					Debug( LDAP_DEBUG_ANY,
-						"send_search_entry: conn %lu  ber_printf failed\n", 
+						"send_search_entry: conn %lu  ber_printf failed\n",
 						op->o_connid, 0, 0 );
 
 					if ( op->o_res_ber == NULL ) ber_free_buf( ber );
@@ -1432,7 +1432,7 @@ slap_send_search_entry( Operation *op, SlapReply *rs )
 
 		if ( bytes < 0 ) {
 			Debug( LDAP_DEBUG_ANY,
-				"send_search_entry: conn %lu  ber write failed.\n", 
+				"send_search_entry: conn %lu  ber write failed.\n",
 				op->o_connid, 0, 0 );
 
 			rc = LDAP_UNAVAILABLE;
@@ -1532,7 +1532,7 @@ slap_send_search_reference( Operation *op, SlapReply *rs )
 
 	if( op->o_domain_scope ) {
 		Debug( LDAP_DEBUG_ANY,
-			"send_search_reference: domainScope control in (%s)\n", 
+			"send_search_reference: domainScope control in (%s)\n",
 			edn, 0, 0 );
 		rc = 0;
 		goto rel;
@@ -1540,7 +1540,7 @@ slap_send_search_reference( Operation *op, SlapReply *rs )
 
 	if( rs->sr_ref == NULL ) {
 		Debug( LDAP_DEBUG_ANY,
-			"send_search_reference: null ref in (%s)\n", 
+			"send_search_reference: null ref in (%s)\n",
 			edn, 0, 0 );
 		rc = 1;
 		goto rel;
@@ -1754,7 +1754,7 @@ int slap_read_controls(
 
 	rs->sr_entry = e;
 	rs->sr_attrs = ( oid == &slap_pre_read_bv ) ?
-		op->o_preread_attrs : op->o_postread_attrs; 
+		op->o_preread_attrs : op->o_postread_attrs;
 
 	bv.bv_len = entry_flatsize( rs->sr_entry, 0 );
 	bv.bv_val = op->o_tmpalloc( bv.bv_len, op->o_tmpmemctx );

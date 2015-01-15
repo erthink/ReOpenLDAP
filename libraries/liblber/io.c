@@ -251,7 +251,7 @@ ber_flush2( Sockbuf *sb, BerElement *ber, int freeit )
 		}
 		towrite -= rc;
 		ber->ber_rwptr += rc;
-	} 
+	}
 
 	if ( freeit & LBER_FLUSH_FREE_ON_SUCCESS ) ber_free( ber, 1 );
 
@@ -427,7 +427,7 @@ int ber_flatten(
 {
 	struct berval *bv;
 	int rc;
- 
+
 	assert( bvPtr != NULL );
 
 	if(bvPtr == NULL) {
@@ -465,7 +465,7 @@ ber_reset( BerElement *ber, int was_writing )
 }
 
 /*
- * A rewrite of ber_get_next that can safely be called multiple times 
+ * A rewrite of ber_get_next that can safely be called multiple times
  * for the same packet. It will simply continue where it stopped until
  * a full packet is read.
  */
@@ -654,15 +654,15 @@ ber_get_next(
 	if ((ber->ber_rwptr>=ber->ber_buf) && (ber->ber_rwptr<ber->ber_end)) {
 		ber_slen_t res;
 		ber_slen_t to_go;
-		
+
 		to_go = ber->ber_end - ber->ber_rwptr;
 		assert( to_go > 0 );
-		
+
 		sock_errset(0);
 		res = ber_int_sb_read( sb, ber->ber_rwptr, to_go );
 		if (res<=0) return LBER_DEFAULT;
 		ber->ber_rwptr+=res;
-		
+
 		if (res<to_go) {
 			sock_errset(EWOULDBLOCK);
 			return LBER_DEFAULT;

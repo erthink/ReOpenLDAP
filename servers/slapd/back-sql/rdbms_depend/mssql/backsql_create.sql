@@ -9,19 +9,19 @@ create table ldap_oc_mappings (
 )
 GO
 
-alter table ldap_oc_mappings add 
-	constraint pk_ldap_oc_mappings primary key  
+alter table ldap_oc_mappings add
+	constraint pk_ldap_oc_mappings primary key
 	(
 		id
-	)  
+	)
 GO
 
 
-alter table ldap_oc_mappings add 
+alter table ldap_oc_mappings add
 	constraint unq1_ldap_oc_mappings unique
 	(
 		name
-	)  
+	)
 GO
 
 
@@ -40,11 +40,11 @@ create table ldap_attr_mappings (
 )
 GO
 
-alter table ldap_attr_mappings  add 
-	constraint pk_ldap_attr_mappings primary key  
+alter table ldap_attr_mappings  add
+	constraint pk_ldap_attr_mappings primary key
 	(
 		id
-	)  
+	)
 GO
 
 
@@ -53,31 +53,31 @@ create table ldap_entries (
 	dn varchar (255) not null ,
 	oc_map_id int not null references ldap_oc_mappings(id),
 	parent int not null ,
-	keyval int not null 
+	keyval int not null
 )
 GO
 
 
-alter table ldap_entries add 
-	constraint pk_ldap_entries primary key  
+alter table ldap_entries add
+	constraint pk_ldap_entries primary key
 	(
 		id
-	)  
+	)
 GO
 
-alter table ldap_entries add 
+alter table ldap_entries add
 	constraint unq1_ldap_entries unique
 	(
 		oc_map_id,
 		keyval
-	)  
+	)
 GO
 
-alter table ldap_entries add 
+alter table ldap_entries add
 	constraint unq2_ldap_entries unique
 	(
 		dn
-	)  
+	)
 GO
 
 

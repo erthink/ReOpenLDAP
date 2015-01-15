@@ -1021,7 +1021,7 @@ syncprov_qstart( syncops *so )
 {
 	so->s_flags |= PS_TASK_QUEUED;
 	so->s_inuse++;
-	ldap_pvt_thread_pool_submit( &connection_pool, 
+	ldap_pvt_thread_pool_submit( &connection_pool,
 		syncprov_qtask, so );
 }
 
@@ -1520,7 +1520,7 @@ syncprov_add_slog( Operation *op )
 		}
 
 		/* Allocate a record. UUIDs are not NUL-terminated. */
-		se = ch_malloc( sizeof( slog_entry ) + opc->suuid.bv_len + 
+		se = ch_malloc( sizeof( slog_entry ) + opc->suuid.bv_len +
 			op->o_csn.bv_len + 1 );
 		se->se_next = NULL;
 		se->se_tag = op->o_tag;
@@ -2512,7 +2512,7 @@ syncprov_op_search( Operation *op, SlapReply *rs )
 	}
 	dirty = si->si_dirty;
 	ldap_pvt_thread_rdwr_runlock( &si->si_csn_rwlock );
-	
+
 	/* If we have a cookie, handle the PRESENT lookups */
 	if ( srs->sr_state.ctxcsn ) {
 		sessionlog *sl;

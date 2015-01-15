@@ -43,7 +43,7 @@ perl_back_compare(
 		op->orc_ava->aa_value.bv_val );
 
 	PERL_SET_CONTEXT( PERL_INTERPRETER );
-	ldap_pvt_thread_mutex_lock( &perl_interpreter_mutex );	
+	ldap_pvt_thread_mutex_lock( &perl_interpreter_mutex );
 
 	{
 		dSP; ENTER; SAVETMPS;
@@ -67,7 +67,7 @@ perl_back_compare(
 		PUTBACK; FREETMPS; LEAVE;
 	}
 
-	ldap_pvt_thread_mutex_unlock( &perl_interpreter_mutex );	
+	ldap_pvt_thread_mutex_unlock( &perl_interpreter_mutex );
 
 	ch_free( avastr );
 

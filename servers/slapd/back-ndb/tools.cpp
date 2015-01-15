@@ -222,7 +222,7 @@ ID ndb_tool_dn2id_get(
 	NA.txn->close();
 	if ( rc )
 		return NOID;
-	
+
 	myDn = *dn;
 
 	return e.e_id;
@@ -349,7 +349,7 @@ static int ndb_tool_next_id(
 			NA->e->e_attrs = a;
 		}
 		if ( rc ) {
-			snprintf( text->bv_val, text->bv_len, 
+			snprintf( text->bv_val, text->bv_len,
 				"ndb_entry_put_info failed: %s (%d)",
 				myNdb->getNdbError().message, myNdb->getNdbError().code );
 		Debug( LDAP_DEBUG_ANY,

@@ -65,13 +65,13 @@ Blank lines are ignored.
 Lines beginning with a hash mark (`#') are comments, and ignored.
 .LP
 Valid lines are made of an option's name (a sequence of non-blanks,
-conventionally written in uppercase, although not required), 
+conventionally written in uppercase, although not required),
 followed by a value.
-The value starts with the first non-blank character after 
-the option's name, and terminates at the end of the line, 
+The value starts with the first non-blank character after
+the option's name, and terminates at the end of the line,
 or at the last sequence of blanks before the end of the line.
 The tokenization of the value, if any, is delegated to the handler(s)
-for that option, if any.  Quoting values that contain blanks 
+for that option, if any.  Quoting values that contain blanks
 may be incorrect, as the quotes would become part of the value.
 For example,
 
@@ -100,10 +100,10 @@ The different configuration options are:
 .TP
 .B URI <ldap[si]://[name[:port]] ...>
 Specifies the URI(s) of an LDAP server(s) to which the
-.I LDAP 
+.I LDAP
 library should connect.  The URI scheme may be any of
 .BR ldap ,
-.B ldaps 
+.B ldaps
 or
 .BR ldapi ,
 which refer to LDAP over TCP, LDAP over SSL (TLS) and LDAP
@@ -114,11 +114,11 @@ server's name can followed by a ':' and the port number the LDAP
 server is listening on.  If no port number is provided, the default
 port for the scheme is used (389 for ldap://, 636 for ldaps://).
 For LDAP over IPC,
-.B name 
+.B name
 is the name of the socket, and no
 .B port
-is required, nor allowed; note that directory separators must be 
-URL-encoded, like any other characters that are special to URLs; 
+is required, nor allowed; note that directory separators must be
+URL-encoded, like any other characters that are special to URLs;
 so the socket
 
 	/usr/local/var/ldapi
@@ -162,7 +162,7 @@ of the search.
 .TP
 .B HOST <name[:port] ...>
 Specifies the name(s) of an LDAP server(s) to which the
-.I LDAP 
+.I LDAP
 library should connect.  Each server's name can be specified as a
 domain-style name or an IP address and optionally followed by a ':' and
 the port number the ldap server is listening on.  A space separated
@@ -198,7 +198,7 @@ Note that the command line tools
 Specifies a size limit (number of entries) to use when performing searches.
 The number should be a non-negative integer.  \fISIZELIMIT\fP of zero (0)
 specifies a request for unlimited search size.  Please note that the server
-may still apply any server-side limit on the amount of entries that can be 
+may still apply any server-side limit on the amount of entries that can be
 returned by a search operation.
 .TP
 .B TIMELIMIT <integer>
@@ -235,7 +235,7 @@ Specifies the proxy authorization identity.
 .B This is a user-only option.
 .TP
 .B SASL_SECPROPS <properties>
-Specifies Cyrus SASL security properties. The 
+Specifies Cyrus SASL security properties. The
 .B <properties>
 can be specified as a comma-separated list of the following:
 .RS
@@ -263,7 +263,7 @@ requires forward secrecy between sessions.
 requires mechanisms which pass client credentials (and allows
 mechanisms which can pass credentials to do so).
 .TP
-.B minssf=<factor> 
+.B minssf=<factor>
 specifies the minimum acceptable
 .I security strength factor
 as an integer approximating the effective key length used for
@@ -272,7 +272,7 @@ protection only, 56 allows DES or other weak ciphers, 112
 allows triple DES and other strong ciphers, 128 allows RC4,
 Blowfish and other modern strong ciphers.  The default is 0.
 .TP
-.B maxssf=<factor> 
+.B maxssf=<factor>
 specifies the maximum acceptable
 .I security strength factor
 as an integer (see
@@ -280,7 +280,7 @@ as an integer (see
 description).  The default is
 .BR INT_MAX .
 .TP
-.B maxbufsize=<factor> 
+.B maxbufsize=<factor>
 specifies the maximum security layer receive buffer
 size allowed.  0 disables security layers.  The default is 65536.
 .RE
@@ -366,7 +366,7 @@ browser.  Press 'Enter' for the new password.
 .TP
 .B TLS_CIPHER_SUITE <cipher-suite-spec>
 Specifies acceptable cipher suite and preference order.
-<cipher-suite-spec> should be a cipher specification for 
+<cipher-suite-spec> should be a cipher specification for
 the TLS library in use (OpenSSL, GnuTLS, or Mozilla NSS).
 Example:
 .RS
@@ -385,9 +385,9 @@ To check what ciphers a given spec selects in OpenSSL, use:
 	openssl ciphers \-v <cipher-suite-spec>
 .fi
 
-With GnuTLS the available specs can be found in the manual page of 
+With GnuTLS the available specs can be found in the manual page of
 .BR gnutls\-cli (1)
-(see the description of the 
+(see the description of the
 option
 .BR \-\-priority ).
 
@@ -457,7 +457,7 @@ is immediately terminated. This is the default setting.
 .RE
 .TP
 .B TLS_CRLCHECK <level>
-Specifies if the Certificate Revocation List (CRL) of the CA should be 
+Specifies if the Certificate Revocation List (CRL) of the CA should be
 used to verify if the server certificates have not been revoked. This
 requires
 .B TLS_CACERTDIR

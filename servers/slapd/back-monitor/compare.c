@@ -65,7 +65,7 @@ monitor_back_compare( Operation *op, SlapReply *rs )
 		rc = LDAP_SUCCESS;
 		break;
 	}
-		
+
 	send_ldap_result( op, rs );
 	rs->sr_err = rc;
 

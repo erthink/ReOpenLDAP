@@ -1,7 +1,7 @@
 # Makefile for -llutil
 # $OpenLDAP$
 ## This work is part of OpenLDAP Software <http://www.openldap.org/>.
-## 
+##
 ## Copyright 1998-2014 The OpenLDAP Foundation.
 ## All rights reserved.
 ##
@@ -16,7 +16,7 @@
 LIBRARY	= liblutil.a
 PROGRAM = testavl
 
-LDAP_INCDIR= ../../include       
+LDAP_INCDIR= ../../include
 LDAP_LIBDIR= ../../libraries
 
 NT_SRCS = ntservice.c

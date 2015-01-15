@@ -24,7 +24,7 @@
  * TOP-LEVEL DIRECTORY OF THE DISTRIBUTION. ANY USE OR EXPLOITATION OF THIS
  * WORK OTHER THAN AS AUTHORIZED IN VERSION 2.0.1 OF THE OPENLDAP PUBLIC
  * LICENSE, OR OTHER PRIOR WRITTEN CONSENT FROM NOVELL, COULD SUBJECT THE
- * PERPETRATOR TO CRIMINAL AND CIVIL LIABILITY. 
+ * PERPETRATOR TO CRIMINAL AND CIVIL LIABILITY.
  *---
  * Note: A verbatim copy of version 2.0.1 of the OpenLDAP Public License
  * can be found in the file "build/LICENSE-2.0.1" in this distribution
@@ -42,9 +42,9 @@
 
 /* LDAPv3 Controls (RFC 4511)
  *
- *	Controls ::= SEQUENCE OF control Control  
+ *	Controls ::= SEQUENCE OF control Control
  *
- *	Control ::= SEQUENCE { 
+ *	Control ::= SEQUENCE {
  *		controlType		LDAPOID,
  *		criticality		BOOLEAN DEFAULT FALSE,
  *		controlValue	OCTET STRING OPTIONAL
@@ -242,7 +242,7 @@ int ldap_pvt_get_controls(
 
 		*ctrls = tctrls;
 	}
-		
+
 	return LDAP_SUCCESS;
 }
 
@@ -365,10 +365,10 @@ ldap_control_dup( const LDAPControl *c )
 			LDAP_FREE( new );
 			return NULL;
 		}
-		
+
 		new->ldctl_value.bv_len = c->ldctl_value.bv_len;
 
-		AC_MEMCPY( new->ldctl_value.bv_val, c->ldctl_value.bv_val, 
+		AC_MEMCPY( new->ldctl_value.bv_val, c->ldctl_value.bv_val,
 			c->ldctl_value.bv_len );
 
 		new->ldctl_value.bv_val[new->ldctl_value.bv_len] = '\0';

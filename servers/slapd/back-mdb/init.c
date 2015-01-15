@@ -211,8 +211,8 @@ mdb_db_open( BackendDB *be, ConfigReply *cr )
 
 		if ( rc != 0 ) {
 			snprintf( cr->msg, sizeof(cr->msg), "database \"%s\": "
-				"mdb_dbi_open(%s/%s) failed: %s (%d).", 
-				be->be_suffix[0].bv_val, 
+				"mdb_dbi_open(%s/%s) failed: %s (%d).",
+				be->be_suffix[0].bv_val,
 				mdb->mi_dbenv_home, mdmi_databases[i].bv_val,
 				mdb_strerror(rc), rc );
 			Debug( LDAP_DEBUG_ANY,
@@ -396,7 +396,7 @@ mdb_back_initialize(
 
 	/* initialize the underlying database system */
 	Debug( LDAP_DEBUG_TRACE,
-		LDAP_XSTRING(mdb_back_initialize) ": initialize " 
+		LDAP_XSTRING(mdb_back_initialize) ": initialize "
 		MDB_UCTYPE " backend\n", 0, 0, 0 );
 
 	bi->bi_flags |=

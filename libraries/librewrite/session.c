@@ -57,14 +57,14 @@ rewrite_cookie_dup(
 
 	s1 = ( struct rewrite_session * )c1;
 	s2 = ( struct rewrite_session * )c2;
-	
+
 	assert( s1 != NULL );
 	assert( s2 != NULL );
 	assert( s1->ls_cookie != NULL );
 	assert( s2->ls_cookie != NULL );
-	
+
 	assert( s1->ls_cookie != s2->ls_cookie );
-	
+
         return ( ( s1->ls_cookie == s2->ls_cookie ) ? -1 : 0 );
 }
 
@@ -88,7 +88,7 @@ rewrite_session_init(
 #endif /* USE_REWRITE_LDAP_PVT_THREADS */
 
 	tmp.ls_cookie = ( void * )cookie;
-	session = ( struct rewrite_session * )avl_find( info->li_cookies, 
+	session = ( struct rewrite_session * )avl_find( info->li_cookies,
 			( caddr_t )&tmp, rewrite_cookie_cmp );
 	if ( session ) {
 		session->ls_count++;
@@ -97,14 +97,14 @@ rewrite_session_init(
 #endif /* USE_REWRITE_LDAP_PVT_THREADS */
 		return session;
 	}
-		
+
 	session = calloc( sizeof( struct rewrite_session ), 1 );
 	if ( session == NULL ) {
 		return NULL;
 	}
 	session->ls_cookie = ( void * )cookie;
 	session->ls_count = 1;
-	
+
 #ifdef USE_REWRITE_LDAP_PVT_THREADS
 	if ( ldap_pvt_thread_mutex_init( &session->ls_mutex ) ) {
 		free( session );
@@ -124,7 +124,7 @@ rewrite_session_init(
 #ifdef USE_REWRITE_LDAP_PVT_THREADS
         ldap_pvt_thread_rdwr_wunlock( &info->li_cookies_mutex );
 #endif /* USE_REWRITE_LDAP_PVT_THREADS */
-	
+
 	if ( rc != 0 ) {
 #ifdef USE_REWRITE_LDAP_PVT_THREADS
 		ldap_pvt_thread_rdwr_destroy( &session->ls_vars_mutex );
@@ -134,7 +134,7 @@ rewrite_session_init(
 		free( session );
 		return NULL;
 	}
-	
+
 	return session;
 }
 
@@ -151,7 +151,7 @@ rewrite_session_find(
 
 	assert( info != NULL );
 	assert( cookie != NULL );
-	
+
 	tmp.ls_cookie = ( void * )cookie;
 #ifdef USE_REWRITE_LDAP_PVT_THREADS
 	ldap_pvt_thread_rdwr_rlock( &info->li_cookies_mutex );
@@ -234,8 +234,8 @@ rewrite_session_var_set_f(
 			rewrite_session_return( info, session );
 			return REWRITE_ERR;
 		}
-	}	
-	
+	}
+
 #ifdef USE_REWRITE_LDAP_PVT_THREADS
 	ldap_pvt_thread_rdwr_wunlock( &session->ls_vars_mutex );
 #endif /* USE_REWRITE_LDAP_PVT_THREADS */
@@ -267,7 +267,7 @@ rewrite_session_var_get(
 
 	value->bv_val = NULL;
 	value->bv_len = 0;
-	
+
 	if ( cookie == NULL ) {
 		return REWRITE_ERR;
 	}
@@ -280,7 +280,7 @@ rewrite_session_var_get(
 #ifdef USE_REWRITE_LDAP_PVT_THREADS
 	ldap_pvt_thread_rdwr_rlock( &session->ls_vars_mutex );
 #endif /* USE_REWRITE_LDAP_PVT_THREADS */
-	
+
 	var = rewrite_var_find( session->ls_vars, name );
 	if ( var != NULL ) {
 		value->bv_val = strdup( var->lv_value.bv_val );
@@ -362,7 +362,7 @@ rewrite_session_delete(
 
 	assert( info->li_num_cookies > 0 );
 	info->li_num_cookies--;
-	
+
 	/*
 	 * There is nothing to delete in the return value
 	 */
@@ -389,7 +389,7 @@ rewrite_session_destroy(
 	int count;
 
 	assert( info != NULL );
-	
+
 #ifdef USE_REWRITE_LDAP_PVT_THREADS
 	ldap_pvt_thread_rdwr_wlock( &info->li_cookies_mutex );
 #endif /* USE_REWRITE_LDAP_PVT_THREADS */
@@ -397,15 +397,15 @@ rewrite_session_destroy(
 	/*
 	 * Should call per-session destruction routine ...
 	 */
-	
+
 	count = avl_free( info->li_cookies, rewrite_session_free );
 	info->li_cookies = NULL;
 
 #if 0
-	fprintf( stderr, "count = %d; num_cookies = %d\n", 
+	fprintf( stderr, "count = %d; num_cookies = %d\n",
 			count, info->li_num_cookies );
 #endif
-	
+
 	assert( count == info->li_num_cookies );
 	info->li_num_cookies = 0;
 

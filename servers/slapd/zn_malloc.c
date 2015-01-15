@@ -352,7 +352,7 @@ retry:
 				zh->zh_maps[i][j] = (unsigned char *)ch_malloc(nummaps);
 				memset(zh->zh_maps[i][j], 0, nummaps);
 			}
-	
+
 			if (LDAP_LIST_EMPTY(&zh->zh_zopool)) {
 				slap_replenish_zopool(zh);
 			}
@@ -362,7 +362,7 @@ retry:
 			zo->zo_idx = i;
 			LDAP_LIST_INSERT_HEAD(&zh->
 						zh_free[zh->zh_zoneorder-order_start],zo,zo_link);
-	
+
 			if (LDAP_LIST_EMPTY(&zh->zh_zopool)) {
 				slap_replenish_zopool(zh);
 			}
@@ -433,7 +433,7 @@ slap_zn_realloc(void *ptr, ber_len_t size, void *ctx)
 		exit( EXIT_FAILURE );
 	}
 
-	assert(zoo->zo_idx != -1);	
+	assert(zoo->zo_idx != -1);
 
 	zone = zh->zh_zones[zoo->zo_idx];
 
@@ -904,7 +904,7 @@ slap_timediff(struct timeval *tv_begin, struct timeval *tv_end)
 	t_begin = T_SEC_IN_USEC * tv_begin->tv_sec + tv_begin->tv_usec;
 	t_end  = T_SEC_IN_USEC * tv_end->tv_sec  + tv_end->tv_usec;
 	t_diff  = t_end - t_begin;
-	
+
 	if ( t_diff < 0 )
 		t_diff = 0;
 

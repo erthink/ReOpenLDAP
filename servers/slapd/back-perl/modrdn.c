@@ -26,11 +26,11 @@ perl_back_modrdn(
 	int count;
 
 	PERL_SET_CONTEXT( PERL_INTERPRETER );
-	ldap_pvt_thread_mutex_lock( &perl_interpreter_mutex );	
+	ldap_pvt_thread_mutex_lock( &perl_interpreter_mutex );
 
 	{
 		dSP; ENTER; SAVETMPS;
-		
+
 		PUSHMARK(sp) ;
 		XPUSHs( perl_back->pb_obj_ref );
 		XPUSHs(sv_2mortal(newSVpv( op->o_req_dn.bv_val , op->o_req_dn.bv_len )));
@@ -48,14 +48,14 @@ perl_back_modrdn(
 		if (count != 1) {
 			croak("Big trouble in back_modrdn\n") ;
 		}
-							 
+
 		rs->sr_err = POPi;
 
 		PUTBACK; FREETMPS; LEAVE ;
 	}
 
 	ldap_pvt_thread_mutex_unlock( &perl_interpreter_mutex );
-	
+
 	send_ldap_result( op, rs );
 
 	Debug( LDAP_DEBUG_ANY, "Perl MODRDN\n", 0, 0, 0 );

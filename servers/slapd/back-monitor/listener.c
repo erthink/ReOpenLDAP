@@ -130,7 +130,7 @@ monitor_subsys_listener_init(
 		*ep = e;
 		ep = &mp->mp_next;
 	}
-	
+
 	monitor_cache_release( mi, e_listener );
 
 	return( 0 );

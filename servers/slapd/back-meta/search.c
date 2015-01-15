@@ -165,7 +165,7 @@ meta_search_dobind_init(
 			case LDAP_UNAVAILABLE:
 				ldap_pvt_thread_mutex_unlock( &mi->mi_conninfo.lai_mutex );
 				goto down;
-	
+
 			default:
 				ldap_pvt_thread_mutex_unlock( &mi->mi_conninfo.lai_mutex );
 				goto other;
@@ -245,7 +245,7 @@ retry:;
 			"non-empty dn with empty cred; binding anonymously\n",
 			op->o_log_prefix, candidate, (void *)mc );
 		cred = slap_empty_bv;
-		
+
 	} else if ( BER_BVISEMPTY( &binddn ) && !BER_BVISEMPTY( &cred ) ) {
 		/* error */
 		Debug( LDAP_DEBUG_ANY, "%s meta_search_dobind_init[%d] mc=%p: "
@@ -455,7 +455,7 @@ meta_back_search_start(
 	metasingleconn_t	*msc = &(*mcp)->mc_conns[ candidate ];
 	struct berval		realbase = op->o_req_dn;
 	int			realscope = op->ors_scope;
-	struct berval		mbase = BER_BVNULL; 
+	struct berval		mbase = BER_BVNULL;
 	struct berval		mfilter = BER_BVNULL;
 	char			**mapped_attrs = NULL;
 	int			rc;
@@ -665,7 +665,7 @@ meta_back_search_start(
 				if ( prcookie == NULL ) prcookie = &nullcookie;
 
 				ber_init2( ber, NULL, LBER_USE_DER );
-				tag = ber_printf( ber, "{iO}", prsize, prcookie ); 
+				tag = ber_printf( ber, "{iO}", prsize, prcookie );
 				if ( tag == LBER_ERROR ) {
 					/* error */
 					(void) ber_free_buf( ber );
@@ -730,12 +730,12 @@ retry:;
 			mbase.bv_val, realscope, mfilter.bv_val,
 			mapped_attrs, op->ors_attrsonly,
 			ctrls, NULL, tvp, op->ors_slimit, op->ors_deref,
-			&candidates[ candidate ].sr_msgid ); 
+			&candidates[ candidate ].sr_msgid );
 	switch ( rc ) {
 	case LDAP_SUCCESS:
 		retcode = META_SEARCH_CANDIDATE;
 		break;
-	
+
 	case LDAP_SERVER_DOWN:
 		if ( nretries && meta_back_retry( op, rs, mcp, candidate, LDAP_BACK_DONTSEND ) ) {
 			nretries = 0;
@@ -809,7 +809,7 @@ meta_back_search( Operation *op, SlapReply *rs )
 
 	/*
 	 * controls are set in ldap_back_dobind()
-	 * 
+	 *
 	 * FIXME: in case of values return filter, we might want
 	 * to map attrs and maybe rewrite value
 	 */
@@ -835,7 +835,7 @@ getconn:;
 		 * if for any reason (an error, it's over or so) it is
 		 * no longer active, sr_msgid is set to META_MSGID_IGNORE
 		 * but it remains candidate, which means it has been active
-		 * at some point during the operation.  This allows to 
+		 * at some point during the operation.  This allows to
 		 * use its response code and more to compute the final
 		 * response */
 		if ( !META_IS_CANDIDATE( &candidates[ i ] ) ) {
@@ -992,7 +992,7 @@ getconn:;
 	/*
 	 * In case there are no candidates, no cycle takes place...
 	 *
-	 * FIXME: we might use a queue, to better balance the load 
+	 * FIXME: we might use a queue, to better balance the load
 	 * among the candidates
 	 */
 	for ( rc = 0; ncandidates > 0; ) {
@@ -1138,14 +1138,14 @@ getconn:;
 					LDAP_BACK_CONN_BINDING( &mc->mc_conns[ i ] ) ? " connbinding" : "",
 					META_BACK_CONN_CREATING( &mc->mc_conns[ i ] ) ? " conncreating" : "" );
 				ldap_pvt_thread_mutex_unlock( &mi->mi_conninfo.lai_mutex );
-					
+
 				Debug( LDAP_DEBUG_ANY, "!!! %s\n", buf, 0, 0 );
 			}
 #endif /* DEBUG_205 */
-			
+
 			/*
 			 * FIXME: handle time limit as well?
-			 * Note that target servers are likely 
+			 * Note that target servers are likely
 			 * to handle it, so at some time we'll
 			 * get a LDAP_TIMELIMIT_EXCEEDED from
 			 * one of them ...
@@ -1293,16 +1293,16 @@ really_bad:;
 						/* don't retry any more... */
 						candidates[ i ].sr_type = REP_RESULT;
 					}
-	
+
 					is_ok++;
-	
+
 					rc = ldap_parse_reference( msc->msc_ld, msg,
 							&references, &rs->sr_ctrls, 0 );
-	
+
 					if ( rc != LDAP_SUCCESS ) {
 						continue;
 					}
-	
+
 					if ( references == NULL ) {
 						continue;
 					}
@@ -1315,19 +1315,19 @@ really_bad:;
 #endif /* ! ENABLE_REWRITE */
 
 					/* FIXME: merge all and return at the end */
-	
+
 					for ( cnt = 0; references[ cnt ]; cnt++ )
 						;
-	
+
 					rs->sr_ref = ber_memalloc_x( sizeof( struct berval ) * ( cnt + 1 ),
 						op->o_tmpmemctx );
-	
+
 					for ( cnt = 0; references[ cnt ]; cnt++ ) {
 						ber_str2bv_x( references[ cnt ], 0, 1, &rs->sr_ref[ cnt ],
 						op->o_tmpmemctx );
 					}
 					BER_BVZERO( &rs->sr_ref[ cnt ] );
-	
+
 					( void )ldap_back_referral_result_rewrite( &dc, rs->sr_ref,
 						op->o_tmpmemctx );
 
@@ -1337,7 +1337,7 @@ really_bad:;
 						op->o_private = (void *)i;
 						( void )send_search_reference( op, rs );
 						op->o_private = savepriv;
-	
+
 						ber_bvarray_free_x( rs->sr_ref, op->o_tmpmemctx );
 						rs->sr_ref = NULL;
 					}
@@ -1357,7 +1357,7 @@ really_bad:;
 						/* don't retry any more... */
 						candidates[ i ].sr_type = REP_RESULT;
 					}
-	
+
 					/* FIXME: response controls
 					 * are passed without checks */
 					rs->sr_err = ldap_parse_intermediate( msc->msc_ld,
@@ -1399,7 +1399,7 @@ really_bad:;
 						/* don't retry any more... */
 						candidates[ i ].sr_type = REP_RESULT;
 					}
-	
+
 					candidates[ i ].sr_msgid = META_MSGID_IGNORE;
 
 					/* NOTE: ignores response controls
@@ -1450,7 +1450,7 @@ really_bad:;
 							}
 
 							candidate_match++;
-						} 
+						}
 						ldap_memfree( match.bv_val );
 					}
 
@@ -1471,22 +1471,22 @@ really_bad:;
 						} else {
 							BerVarray	sr_ref;
 							int		cnt;
-	
+
 							for ( cnt = 0; references[ cnt ]; cnt++ )
 								;
-	
+
 							sr_ref = ber_memalloc_x( sizeof( struct berval ) * ( cnt + 1 ),
 								op->o_tmpmemctx );
-	
+
 							for ( cnt = 0; references[ cnt ]; cnt++ ) {
 								ber_str2bv_x( references[ cnt ], 0, 1, &sr_ref[ cnt ],
 									op->o_tmpmemctx );
 							}
 							BER_BVZERO( &sr_ref[ cnt ] );
-	
+
 							( void )ldap_back_referral_result_rewrite( &dc, sr_ref,
 								op->o_tmpmemctx );
-					
+
 							if ( rs->sr_v2ref == NULL ) {
 								rs->sr_v2ref = sr_ref;
 
@@ -1514,7 +1514,7 @@ really_bad:;
 					ber_memvfree( (void **)references );
 
 					sres = slap_map_api2result( rs );
-	
+
 					if ( LogTest( LDAP_DEBUG_TRACE | LDAP_DEBUG_ANY ) ) {
 						snprintf( buf, sizeof( buf ),
 							"%s meta_back_search[%ld] "
@@ -1524,13 +1524,13 @@ really_bad:;
 							(long) candidates[ i ].sr_err );
 						if ( candidates[ i ].sr_err == LDAP_SUCCESS ) {
 							Debug( LDAP_DEBUG_TRACE, "%s.\n", buf, 0, 0 );
-	
+
 						} else {
 							Debug( LDAP_DEBUG_ANY, "%s (%s).\n",
 								buf, ldap_err2string( candidates[ i ].sr_err ), 0 );
 						}
 					}
-	
+
 					switch ( sres ) {
 					case LDAP_NO_SUCH_OBJECT:
 						/* is_ok is touched any time a valid
@@ -1543,7 +1543,7 @@ really_bad:;
 							sres = LDAP_SUCCESS;
 						}
 						break;
-	
+
 					case LDAP_SUCCESS:
 						if ( ctrls != NULL && ctrls[0] != NULL ) {
 #ifdef SLAPD_META_CLIENT_PR
@@ -1585,7 +1585,7 @@ really_bad:;
 									candidates[ i ].sr_nentries = 0;
 									candidates[ i ].sr_msgid = META_MSGID_IGNORE;
 									candidates[ i ].sr_type = REP_INTERMEDIATE;
-								
+
 									assert( candidates[ i ].sr_matched == NULL );
 									assert( candidates[ i ].sr_text == NULL );
 									assert( candidates[ i ].sr_ref == NULL );
@@ -1635,7 +1635,7 @@ err_pr:;
 					case LDAP_REFERRAL:
 						is_ok++;
 						break;
-	
+
 					case LDAP_SIZELIMIT_EXCEEDED:
 						/* if a target returned sizelimitExceeded
 						 * and the entry count is equal to the
@@ -1661,7 +1661,7 @@ err_pr:;
 							goto finish;
 						}
 						break;
-	
+
 					default:
 						candidates[ i ].sr_err = rs->sr_err;
 						if ( META_BACK_ONERR_STOP( mi ) ) {
@@ -1678,10 +1678,10 @@ err_pr:;
 						}
 						break;
 					}
-	
+
 					last = i;
 					rc = 0;
-	
+
 					/*
 					 * When no candidates are left,
 					 * the outer cycle finishes
@@ -1691,24 +1691,24 @@ err_pr:;
 
 				} else if ( rc == LDAP_RES_BIND ) {
 					meta_search_candidate_t	retcode;
-	
+
 					retcode = meta_search_dobind_result( op, rs, &mc, i, candidates, msg );
 					if ( retcode == META_SEARCH_CANDIDATE ) {
 						candidates[ i ].sr_msgid = META_MSGID_IGNORE;
 						retcode = meta_back_search_start( op, rs, &dc, &mc, i, candidates, NULL, 0 );
 					}
-	
+
 					switch ( retcode ) {
 					case META_SEARCH_CANDIDATE:
 						break;
-	
+
 						/* means that failed but onerr == continue */
 					case META_SEARCH_NOT_CANDIDATE:
 					case META_SEARCH_ERR:
 						candidates[ i ].sr_msgid = META_MSGID_IGNORE;
 						assert( ncandidates > 0 );
 						--ncandidates;
-	
+
 						candidates[ i ].sr_err = rs->sr_err;
 						if ( META_BACK_ONERR_STOP( mi ) ) {
 							savepriv = op->o_private;
@@ -1720,19 +1720,19 @@ err_pr:;
 							goto finish;
 						}
 						goto free_message;
-	
+
 					default:
 						assert( 0 );
 						break;
 					}
-	
+
 				} else {
 					Debug( LDAP_DEBUG_ANY,
 						"%s meta_back_search[%ld]: "
 						"unrecognized response message tag=%d\n",
 						op->o_log_prefix,
 						i, rc );
-				
+
 					ldap_msgfree( res );
 					res = NULL;
 					goto really_bad;
@@ -1774,7 +1774,7 @@ free_message:;
 						}
 						ldap_pvt_thread_mutex_unlock( &mi->mi_conninfo.lai_mutex );
 						META_BINDING_CLEAR( &candidates[ i ] );
-						
+
 					} else {
 						(void)meta_back_cancel( mc, op, rs,
 							candidates[ i ].sr_msgid, i,
@@ -1835,7 +1835,7 @@ free_message:;
 
 	/*
 	 * Rewrite the matched portion of the search base, if required
-	 * 
+	 *
 	 * FIXME: only the last one gets caught!
 	 */
 	savepriv = op->o_private;
@@ -1870,7 +1870,7 @@ free_message:;
 				if ( rc == LDAP_SUCCESS ) {
 
 					/* NOTE: if they all are superiors
-					 * of the baseDN, the shorter is also 
+					 * of the baseDN, the shorter is also
 					 * superior of the longer... */
 					if ( pbv.bv_len > pmatched.bv_len ) {
 						if ( !BER_BVISNULL( &pmatched ) ) {
@@ -1913,7 +1913,7 @@ free_message:;
 			/*
 			 * Report errors, if any
 			 *
-			 * FIXME: we should handle error codes and return the more 
+			 * FIXME: we should handle error codes and return the more
 			 * important/reasonable
 			 */
 			for ( i = 0; i < mi->mi_ntargets; i++ ) {
@@ -2085,7 +2085,7 @@ meta_send_entry(
 	 * Note: this may fail if the target host(s) schema differs
 	 * from the one known to the meta, and a DN with unknown
 	 * attributes is returned.
-	 * 
+	 *
 	 * FIXME: should we log anything, or delegate to dnNormalize?
 	 */
 	rc = dnPrettyNormal( NULL, &dn, &ent.e_name, &ent.e_nname,
@@ -2125,7 +2125,7 @@ meta_send_entry(
 				"%s meta_send_entry(\"%s\"): "
 				"unable to parse attr \"%s\".\n",
 				op->o_log_prefix, ent.e_name.bv_val, a.bv_val );
-				
+
 			rc = LDAP_OTHER;
 			goto done;
 		}
@@ -2134,7 +2134,7 @@ meta_send_entry(
 			break;
 		}
 
-		ldap_back_map( &mi->mi_targets[ target ]->mt_rwmap.rwm_at, 
+		ldap_back_map( &mi->mi_targets[ target ]->mt_rwmap.rwm_at,
 				&a, &mapped, BACKLDAP_REMAP );
 		if ( BER_BVISNULL( &mapped ) || mapped.bv_val[0] == '\0' ) {
 			( void )ber_scanf( &ber, "x" /* [W] */ );
@@ -2177,7 +2177,7 @@ meta_send_entry(
 			|| attr->a_desc == slap_schema.si_ad_entryDN )
 		{
 
-			/* 
+			/*
 			 * We eat target's subschemaSubentry because
 			 * a search for this value is likely not
 			 * to resolve to the appropriate backend;
@@ -2193,7 +2193,7 @@ meta_send_entry(
 			continue;
 		}
 
-		if ( ber_scanf( &ber, "[W]", &attr->a_vals ) == LBER_ERROR 
+		if ( ber_scanf( &ber, "[W]", &attr->a_vals ) == LBER_ERROR
 				|| attr->a_vals == NULL )
 		{
 			attr->a_vals = (struct berval *)&slap_dummy_bv;

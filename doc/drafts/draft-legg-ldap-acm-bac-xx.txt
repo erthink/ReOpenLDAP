@@ -51,7 +51,7 @@ Abstract
 
 
 Legg                    Expires 16 December 2004                [Page 1]
-
+
 INTERNET-DRAFT     Basic and Simplified Access Control     June 16, 2004
 
 
@@ -107,7 +107,7 @@ Table of Contents
 
 
 Legg                    Expires 16 December 2004                [Page 2]
-
+
 INTERNET-DRAFT     Basic and Simplified Access Control     June 16, 2004
 
 
@@ -163,7 +163,7 @@ INTERNET-DRAFT     Basic and Simplified Access Control     June 16, 2004
 
 
 Legg                    Expires 16 December 2004                [Page 3]
-
+
 INTERNET-DRAFT     Basic and Simplified Access Control     June 16, 2004
 
 
@@ -219,7 +219,7 @@ INTERNET-DRAFT     Basic and Simplified Access Control     June 16, 2004
 
 
 Legg                    Expires 16 December 2004                [Page 4]
-
+
 INTERNET-DRAFT     Basic and Simplified Access Control     June 16, 2004
 
 
@@ -275,7 +275,7 @@ INTERNET-DRAFT     Basic and Simplified Access Control     June 16, 2004
 
 
 Legg                    Expires 16 December 2004                [Page 5]
-
+
 INTERNET-DRAFT     Basic and Simplified Access Control     June 16, 2004
 
 
@@ -331,7 +331,7 @@ INTERNET-DRAFT     Basic and Simplified Access Control     June 16, 2004
 
 
 Legg                    Expires 16 December 2004                [Page 6]
-
+
 INTERNET-DRAFT     Basic and Simplified Access Control     June 16, 2004
 
 
@@ -387,7 +387,7 @@ INTERNET-DRAFT     Basic and Simplified Access Control     June 16, 2004
 
 
 Legg                    Expires 16 December 2004                [Page 7]
-
+
 INTERNET-DRAFT     Basic and Simplified Access Control     June 16, 2004
 
 
@@ -443,7 +443,7 @@ INTERNET-DRAFT     Basic and Simplified Access Control     June 16, 2004
 
 
 Legg                    Expires 16 December 2004                [Page 8]
-
+
 INTERNET-DRAFT     Basic and Simplified Access Control     June 16, 2004
 
 
@@ -499,7 +499,7 @@ INTERNET-DRAFT     Basic and Simplified Access Control     June 16, 2004
 
 
 Legg                    Expires 16 December 2004                [Page 9]
-
+
 INTERNET-DRAFT     Basic and Simplified Access Control     June 16, 2004
 
 
@@ -555,7 +555,7 @@ INTERNET-DRAFT     Basic and Simplified Access Control     June 16, 2004
 
 
 Legg                    Expires 16 December 2004               [Page 10]
-
+
 INTERNET-DRAFT     Basic and Simplified Access Control     June 16, 2004
 
 
@@ -611,7 +611,7 @@ INTERNET-DRAFT     Basic and Simplified Access Control     June 16, 2004
 
 
 Legg                    Expires 16 December 2004               [Page 11]
-
+
 INTERNET-DRAFT     Basic and Simplified Access Control     June 16, 2004
 
 
@@ -667,7 +667,7 @@ INTERNET-DRAFT     Basic and Simplified Access Control     June 16, 2004
 
 
 Legg                    Expires 16 December 2004               [Page 12]
-
+
 INTERNET-DRAFT     Basic and Simplified Access Control     June 16, 2004
 
 
@@ -723,7 +723,7 @@ INTERNET-DRAFT     Basic and Simplified Access Control     June 16, 2004
 
 
 Legg                    Expires 16 December 2004               [Page 13]
-
+
 INTERNET-DRAFT     Basic and Simplified Access Control     June 16, 2004
 
 
@@ -779,7 +779,7 @@ INTERNET-DRAFT     Basic and Simplified Access Control     June 16, 2004
 
 
 Legg                    Expires 16 December 2004               [Page 14]
-
+
 INTERNET-DRAFT     Basic and Simplified Access Control     June 16, 2004
 
 
@@ -835,7 +835,7 @@ INTERNET-DRAFT     Basic and Simplified Access Control     June 16, 2004
 
 
 Legg                    Expires 16 December 2004               [Page 15]
-
+
 INTERNET-DRAFT     Basic and Simplified Access Control     June 16, 2004
 
 
@@ -891,7 +891,7 @@ INTERNET-DRAFT     Basic and Simplified Access Control     June 16, 2004
 
 
 Legg                    Expires 16 December 2004               [Page 16]
-
+
 INTERNET-DRAFT     Basic and Simplified Access Control     June 16, 2004
 
 
@@ -947,7 +947,7 @@ INTERNET-DRAFT     Basic and Simplified Access Control     June 16, 2004
 
 
 Legg                    Expires 16 December 2004               [Page 17]
-
+
 INTERNET-DRAFT     Basic and Simplified Access Control     June 16, 2004
 
 
@@ -1003,7 +1003,7 @@ INTERNET-DRAFT     Basic and Simplified Access Control     June 16, 2004
 
 
 Legg                    Expires 16 December 2004               [Page 18]
-
+
 INTERNET-DRAFT     Basic and Simplified Access Control     June 16, 2004
 
 
@@ -1059,7 +1059,7 @@ INTERNET-DRAFT     Basic and Simplified Access Control     June 16, 2004
 
 
 Legg                    Expires 16 December 2004               [Page 19]
-
+
 INTERNET-DRAFT     Basic and Simplified Access Control     June 16, 2004
 
 
@@ -1115,7 +1115,7 @@ INTERNET-DRAFT     Basic and Simplified Access Control     June 16, 2004
 
 
 Legg                    Expires 16 December 2004               [Page 20]
-
+
 INTERNET-DRAFT     Basic and Simplified Access Control     June 16, 2004
 
 
@@ -1171,7 +1171,7 @@ INTERNET-DRAFT     Basic and Simplified Access Control     June 16, 2004
 
 
 Legg                    Expires 16 December 2004               [Page 21]
-
+
 INTERNET-DRAFT     Basic and Simplified Access Control     June 16, 2004
 
 
@@ -1227,7 +1227,7 @@ INTERNET-DRAFT     Basic and Simplified Access Control     June 16, 2004
 
 
 Legg                    Expires 16 December 2004               [Page 22]
-
+
 INTERNET-DRAFT     Basic and Simplified Access Control     June 16, 2004
 
 
@@ -1283,7 +1283,7 @@ INTERNET-DRAFT     Basic and Simplified Access Control     June 16, 2004
 
 
 Legg                    Expires 16 December 2004               [Page 23]
-
+
 INTERNET-DRAFT     Basic and Simplified Access Control     June 16, 2004
 
 
@@ -1339,7 +1339,7 @@ INTERNET-DRAFT     Basic and Simplified Access Control     June 16, 2004
 
 
 Legg                    Expires 16 December 2004               [Page 24]
-
+
 INTERNET-DRAFT     Basic and Simplified Access Control     June 16, 2004
 
 
@@ -1395,7 +1395,7 @@ INTERNET-DRAFT     Basic and Simplified Access Control     June 16, 2004
 
 
 Legg                    Expires 16 December 2004               [Page 25]
-
+
 INTERNET-DRAFT     Basic and Simplified Access Control     June 16, 2004
 
 
@@ -1451,7 +1451,7 @@ INTERNET-DRAFT     Basic and Simplified Access Control     June 16, 2004
 
 
 Legg                    Expires 16 December 2004               [Page 26]
-
+
 INTERNET-DRAFT     Basic and Simplified Access Control     June 16, 2004
 
 
@@ -1507,7 +1507,7 @@ INTERNET-DRAFT     Basic and Simplified Access Control     June 16, 2004
 
 
 Legg                    Expires 16 December 2004               [Page 27]
-
+
 INTERNET-DRAFT     Basic and Simplified Access Control     June 16, 2004
 
 
@@ -1563,7 +1563,7 @@ INTERNET-DRAFT     Basic and Simplified Access Control     June 16, 2004
 
 
 Legg                    Expires 16 December 2004               [Page 28]
-
+
 INTERNET-DRAFT     Basic and Simplified Access Control     June 16, 2004
 
 
@@ -1619,7 +1619,7 @@ INTERNET-DRAFT     Basic and Simplified Access Control     June 16, 2004
 
 
 Legg                    Expires 16 December 2004               [Page 29]
-
+
 INTERNET-DRAFT     Basic and Simplified Access Control     June 16, 2004
 
 
@@ -1675,7 +1675,7 @@ Appendix A. LDAP Specific Encoding for the ACI Item Syntax
 
 
 Legg                    Expires 16 December 2004               [Page 30]
-
+
 INTERNET-DRAFT     Basic and Simplified Access Control     June 16, 2004
 
 
@@ -1731,7 +1731,7 @@ INTERNET-DRAFT     Basic and Simplified Access Control     June 16, 2004
 
 
 Legg                    Expires 16 December 2004               [Page 31]
-
+
 INTERNET-DRAFT     Basic and Simplified Access Control     June 16, 2004
 
 
@@ -1787,7 +1787,7 @@ INTERNET-DRAFT     Basic and Simplified Access Control     June 16, 2004
 
 
 Legg                    Expires 16 December 2004               [Page 32]
-
+
 INTERNET-DRAFT     Basic and Simplified Access Control     June 16, 2004
 
 
@@ -1843,7 +1843,7 @@ INTERNET-DRAFT     Basic and Simplified Access Control     June 16, 2004
 
 
 Legg                    Expires 16 December 2004               [Page 33]
-
+
 INTERNET-DRAFT     Basic and Simplified Access Control     June 16, 2004
 
 
@@ -1899,7 +1899,7 @@ INTERNET-DRAFT     Basic and Simplified Access Control     June 16, 2004
 
 
 Legg                    Expires 16 December 2004               [Page 34]
-
+
 INTERNET-DRAFT     Basic and Simplified Access Control     June 16, 2004
 
 
@@ -1955,7 +1955,7 @@ INTERNET-DRAFT     Basic and Simplified Access Control     June 16, 2004
 
 
 Legg                    Expires 16 December 2004               [Page 35]
-
+
 INTERNET-DRAFT     Basic and Simplified Access Control     June 16, 2004
 
 
@@ -2011,7 +2011,7 @@ INTERNET-DRAFT     Basic and Simplified Access Control     June 16, 2004
 
 
 Legg                    Expires 16 December 2004               [Page 36]
-
+
 INTERNET-DRAFT     Basic and Simplified Access Control     June 16, 2004
 
 
@@ -2067,7 +2067,7 @@ INTERNET-DRAFT     Basic and Simplified Access Control     June 16, 2004
 
 
 Legg                    Expires 16 December 2004               [Page 37]
-
+
 INTERNET-DRAFT     Basic and Simplified Access Control     June 16, 2004
 
 
@@ -2123,7 +2123,7 @@ INTERNET-DRAFT     Basic and Simplified Access Control     June 16, 2004
 
 
 Legg                    Expires 16 December 2004               [Page 38]
-
+
 INTERNET-DRAFT     Basic and Simplified Access Control     June 16, 2004
 
 
@@ -2179,7 +2179,7 @@ Normative References
 
 
 Legg                    Expires 16 December 2004               [Page 39]
-
+
 INTERNET-DRAFT     Basic and Simplified Access Control     June 16, 2004
 
 
@@ -2235,7 +2235,7 @@ Full Copyright Statement
 
 
 Legg                    Expires 16 December 2004               [Page 40]
-
+
 INTERNET-DRAFT     Basic and Simplified Access Control     June 16, 2004
 
 
@@ -2291,7 +2291,7 @@ Changes in Draft 01
 
 
 Legg                    Expires 16 December 2004               [Page 41]
-
+
 INTERNET-DRAFT     Basic and Simplified Access Control     June 16, 2004
 
 
@@ -2347,5 +2347,5 @@ Changes in Draft 03
 
 
 Legg                    Expires 16 December 2004               [Page 42]
-
+
 

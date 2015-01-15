@@ -13,18 +13,18 @@
 #define LDAP_DEBUG_CONSTRUCT    0x0002
 #define LDAP_DEBUG_DESTROY      0x0004
 #define LDAP_DEBUG_PARAMETER    0x0008
-#define LDAP_DEBUG_ANY          0xffff 
+#define LDAP_DEBUG_ANY          0xffff
 
 #define DEBUGLEVEL LDAP_DEBUG_ANY
 
 #define PRINT_FILE	\
-	std::cerr << "file: " __FILE__  << " line: " << __LINE__ 
+	std::cerr << "file: " __FILE__  << " line: " << __LINE__
 
 #ifdef WITH_DEBUG
 #define DEBUG(level, arg)       \
     if((level) & DEBUGLEVEL){     \
         std::cerr  << arg ;          \
-    } 
+    }
 #else
 #undef DEBUG
 #define DEBUG(level,arg)

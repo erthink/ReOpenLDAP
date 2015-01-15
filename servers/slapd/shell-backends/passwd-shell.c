@@ -144,7 +144,7 @@ pw2entry( struct ldop *op, struct passwd *pw )
     struct ldattr	*attr;
     int			i;
 
-    /* 
+    /*
      * construct the DN from pw_name
      */
     if ( strchr( op->ldop_suffixes[ 0 ], '=' ) != NULL ) {

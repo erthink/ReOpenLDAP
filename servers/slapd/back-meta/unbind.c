@@ -47,9 +47,9 @@ meta_back_conn_destroy(
 		"=>meta_back_conn_destroy: fetching conn=%ld DN=\"%s\"\n",
 		conn->c_connid,
 		BER_BVISNULL( &conn->c_ndn ) ? "" : conn->c_ndn.bv_val, 0 );
-	
+
 	mc_curr.mc_conn = conn;
-	
+
 	ldap_pvt_thread_mutex_lock( &mi->mi_conninfo.lai_mutex );
 #if META_BACK_PRINT_CONNTREE > 0
 	meta_back_print_conntree( mi, ">>> meta_back_conn_destroy" );
@@ -61,7 +61,7 @@ meta_back_conn_destroy(
 			"=>meta_back_conn_destroy: destroying conn %lu "
 			"refcnt=%d flags=0x%08x\n",
 			mc->mc_conn->c_connid, mc->mc_refcnt, mc->msc_mscflags );
-		
+
 		if ( mc->mc_refcnt > 0 ) {
 			/* someone else might be accessing the connection;
 			 * mark for deletion */

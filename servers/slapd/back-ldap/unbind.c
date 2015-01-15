@@ -46,7 +46,7 @@ ldap_back_conn_destroy(
 		conn->c_connid, 0, 0 );
 
 	lc_curr.lc_conn = conn;
-	
+
 	ldap_pvt_thread_mutex_lock( &li->li_conninfo.lai_mutex );
 #if LDAP_BACK_PRINT_CONNTREE > 0
 	ldap_back_print_conntree( li, ">>> ldap_back_conn_destroy" );

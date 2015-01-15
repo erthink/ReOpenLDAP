@@ -197,7 +197,7 @@ fe_op_modify( Operation *op, SlapReply *rs )
 	BackendDB	*op_be, *bd = op->o_bd;
 	char		textbuf[ SLAP_TEXT_BUFLEN ];
 	size_t		textlen = sizeof( textbuf );
-	
+
 	if ( BER_BVISEMPTY( &op->o_req_ndn ) ) {
 		Debug( LDAP_DEBUG_ANY, "%s do_modify: root dse!\n",
 			op->o_log_prefix, 0, 0 );
@@ -553,7 +553,7 @@ int slap_mods_check(
 				ad->ad_type->sat_syntax->ssyn_validate;
 			slap_syntax_transform_func *pretty =
 				ad->ad_type->sat_syntax->ssyn_pretty;
- 
+
 			if( !pretty && !validate ) {
 				*text = "no validator for syntax";
 				snprintf( textbuf, textlen,

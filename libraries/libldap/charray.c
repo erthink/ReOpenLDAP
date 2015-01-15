@@ -255,7 +255,7 @@ char * ldap_charray2str( char **a, const char *sep )
 	s = LDAP_MALLOC ( len + 1 );
 
 	if ( s == NULL ) {
-		return NULL;	
+		return NULL;
 	}
 
 	p = s;

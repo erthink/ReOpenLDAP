@@ -61,7 +61,7 @@ meta_back_modrdn( Operation *op, SlapReply *rs )
 	if ( op->orr_newSup ) {
 
 		/*
-		 * NOTE: the newParent, if defined, must be on the 
+		 * NOTE: the newParent, if defined, must be on the
 		 * same target as the entry to be renamed.  This check
 		 * has been anticipated in meta_back_getconn()
 		 */
@@ -97,7 +97,7 @@ meta_back_modrdn( Operation *op, SlapReply *rs )
 			send_ldap_result( op, rs );
 			goto cleanup;
 		}
-		
+
 		/*
 		 * Rewrite the new superior, if defined and required
 	 	 */
@@ -156,7 +156,7 @@ cleanup:;
 		free( mdn.bv_val );
 		BER_BVZERO( &mdn );
 	}
-	
+
 	if ( !BER_BVISNULL( &mnewSuperior )
 			&& mnewSuperior.bv_val != op->orr_newSup->bv_val )
 	{

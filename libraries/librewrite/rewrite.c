@@ -38,8 +38,8 @@ int ldap_syslog;
 int ldap_syslog_level;
 
 static void
-apply( 
-		FILE *fin, 
+apply(
+		FILE *fin,
 		const char *rewriteContext,
 		const char *arg
 )
@@ -74,7 +74,7 @@ apply(
 		/* rc = rewrite( info, rewriteContext, string, &result ); */
 		rc = rewrite_session( info, rewriteContext, string,
 				cookie, &result );
-		
+
 		switch ( rc ) {
 		case REWRITE_REGEXEC_OK:
 			errmsg = "ok";
@@ -100,8 +100,8 @@ apply(
 			}
 			break;
 		}
-		
-		fprintf( stdout, "%s -> %s [%d:%s]\n", string, 
+
+		fprintf( stdout, "%s -> %s [%d:%s]\n", string,
 				( result ? result : "(null)" ),
 				rc, errmsg );
 		if ( result == NULL ) {
@@ -153,9 +153,9 @@ main( int argc, char *argv[] )
 				exit( EXIT_FAILURE );
 			}
 			break;
-			
+
 		case 'h':
-			fprintf( stderr, 
+			fprintf( stderr,
 	"usage: rewrite [options] string\n"
 	"\n"
 	"\t\t-f file\t\tconfiguration file\n"
@@ -165,21 +165,21 @@ main( int argc, char *argv[] )
 	"\t\trewriteEngine\t{on|off}\n"
 	"\t\trewriteContext\tcontextName [alias aliasedContextName]\n"
 	"\t\trewriteRule\tpattern subst [flags]\n"
-	"\n" 
+	"\n"
 				);
 			exit( EXIT_SUCCESS );
-			
+
 		case 'r':
 			rewriteContext = optarg;
 			break;
 		}
 	}
-	
+
 	if ( debug != 0 ) {
 		ber_set_option(NULL, LBER_OPT_DEBUG_LEVEL, &debug);
 		ldap_set_option(NULL, LDAP_OPT_DEBUG_LEVEL, &debug);
 	}
-	
+
 	if ( optind >= argc ) {
 		return -1;
 	}

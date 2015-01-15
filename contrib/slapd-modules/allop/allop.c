@@ -20,7 +20,7 @@
 
 /*
  * The intended usage is as a global overlay for use with those clients
- * that do not make use of the RFC3673 allOp ("+") in the requested 
+ * that do not make use of the RFC3673 allOp ("+") in the requested
  * attribute list, but expect all operational attributes to be returned.
  * Usage: add
  *

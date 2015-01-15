@@ -166,7 +166,7 @@ int passwd_extop(
 	if(!( !SLAP_SINGLE_SHADOW( op->o_bd ) || be_isupdate( op ))) {
 		/* we SHOULD return a referral in this case */
 		BerVarray defref = op->o_bd->be_update_refs
-			? op->o_bd->be_update_refs : default_referral; 
+			? op->o_bd->be_update_refs : default_referral;
 
 		if( defref != NULL ) {
 			rs->sr_ref = referral_rewrite( op->o_bd->be_update_refs,
@@ -287,7 +287,7 @@ old_good:
 		op->o_callback = &cb;
 		op->orm_modlist = qpw->rs_mods;
 		op->orm_no_opattrs = 0;
-		
+
 		cb.sc_private = qpw;	/* let Modify know this was pwdMod,
 					 * if it cares... */
 
@@ -478,7 +478,7 @@ struct berval * slap_passwd_return(
 
 	Debug( LDAP_DEBUG_TRACE, "slap_passwd_return: %ld\n",
 		(long) cred->bv_len, 0, 0 );
-	
+
 	ber_init_w_nullc( ber, LBER_USE_DER );
 
 	rc = ber_printf( ber, "{tON}",
@@ -525,7 +525,7 @@ slap_passwd_check(
 		{
 			continue;
 		}
-		
+
 		if ( !lutil_passwd( bv, cred, NULL, text ) ) {
 			result = 0;
 			break;

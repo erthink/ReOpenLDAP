@@ -80,7 +80,7 @@ ldap_count_entries( LDAP *ld, LDAPMessage *chain )
 int
 ldap_get_entry_controls(
 	LDAP *ld,
-	LDAPMessage *entry, 
+	LDAPMessage *entry,
 	LDAPControl ***sctrls )
 {
 	int rc;

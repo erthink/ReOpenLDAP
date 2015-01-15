@@ -27,13 +27,13 @@
  * TOP-LEVEL DIRECTORY OF THE DISTRIBUTION. ANY USE OR EXPLOITATION OF THIS
  * WORK OTHER THAN AS AUTHORIZED IN VERSION 2.0.1 OF THE OPENLDAP PUBLIC
  * LICENSE, OR OTHER PRIOR WRITTEN CONSENT FROM NOVELL, COULD SUBJECT THE
- * PERPETRATOR TO CRIMINAL AND CIVIL LIABILITY. 
+ * PERPETRATOR TO CRIMINAL AND CIVIL LIABILITY.
  *---
  * Modification to OpenLDAP source by Novell, Inc.
  * April 2000 sfs  Added code to chase V3 referrals
  *  request.c - sending of ldap requests; handling of referrals
  *---
- * Note: A verbatim copy of version 2.0.1 of the OpenLDAP Public License 
+ * Note: A verbatim copy of version 2.0.1 of the OpenLDAP Public License
  * can be found in the file "build/LICENSE-2.0.1" in this distribution
  * of OpenLDAP Software.
  */
@@ -294,7 +294,7 @@ ldap_send_server_request(
 		ber_free( ber, 1 );
 		if ( incparent ) {
 			/* Forget about the bind */
-			--parentreq->lr_outrefcnt; 
+			--parentreq->lr_outrefcnt;
 		}
 		LDAP_CONN_UNLOCK_IF(m_noconn);
 		return( -1 );
@@ -342,18 +342,18 @@ ldap_send_server_request(
 		ber_free( ber, 1 );
 		if ( incparent ) {
 			/* Forget about the bind */
-			--parentreq->lr_outrefcnt; 
+			--parentreq->lr_outrefcnt;
 		}
 		LDAP_CONN_UNLOCK_IF(m_noconn);
 		return( -1 );
-	} 
+	}
 	lr->lr_msgid = msgid;
 	lr->lr_status = LDAP_REQST_INPROGRESS;
 	lr->lr_res_errno = LDAP_SUCCESS;	/* optimistic */
 	lr->lr_ber = ber;
 	lr->lr_conn = lc;
 	if ( parentreq != NULL ) {	/* sub-request */
-		if ( !incparent ) { 
+		if ( !incparent ) {
 			/* Increment if we didn't do it before the bind */
 			++parentreq->lr_outrefcnt;
 		}
@@ -459,7 +459,7 @@ ldap_new_connection( LDAP *ld, LDAPURLDesc **srvlist, int use_ldsb,
 		ld->ld_errno = LDAP_NO_MEMORY;
 		return( NULL );
 	}
-	
+
 	if ( use_ldsb ) {
 		assert( ld->ld_sb != NULL );
 		lc->lconn_sb = ld->ld_sb;
@@ -938,7 +938,7 @@ static void
 ldap_free_request_int( LDAP *ld, LDAPRequest *lr )
 {
 	LDAP_ASSERT_MUTEX_OWNER( &ld->ld_req_mutex );
-	/* if lr_refcnt > 0, the request has been looked up 
+	/* if lr_refcnt > 0, the request has been looked up
 	 * by ldap_find_request_by_msgid(); if in the meanwhile
 	 * the request is free()'d by someone else, just decrease
 	 * the reference count and extract it from the request
@@ -1228,7 +1228,7 @@ ldap_chase_v3referrals( LDAP *ld, LDAPRequest *lr, char **refs, int sref, char *
 				count = 1; /* Pretend we already followed referral */
 				goto done;
 			}
-		} 
+		}
 		/* Re-encode the request with the new starting point of the search.
 		 * Note: In the future we also need to replace the filter if one
 		 * was provided with the search reference
@@ -1260,7 +1260,7 @@ ldap_chase_v3referrals( LDAP *ld, LDAPRequest *lr, char **refs, int sref, char *
 			origreq, &srv, NULL, &rinfo, 0, 1 );
 		if ( rc < 0 ) {
 			/* Failure, try next referral in the list */
-			Debug( LDAP_DEBUG_ANY, "Unable to chase referral \"%s\" (%d: %s)\n", 
+			Debug( LDAP_DEBUG_ANY, "Unable to chase referral \"%s\" (%d: %s)\n",
 				refarray[i], ld->ld_errno, ldap_err2string( ld->ld_errno ) );
 			unfollowedcnt += ldap_append_referral( ld, &unfollowed, refarray[i] );
 			ldap_free_urllist( srv );
@@ -1311,7 +1311,7 @@ done:
 	LDAP_VFREE( refarray );
 	ldap_free_urllist( srv );
 	LDAP_FREE( *errstrp );
-	
+
 	if( rc == 0 ) {
 		*errstrp = NULL;
 		LDAP_FREE( unfollowed );
@@ -1450,7 +1450,7 @@ ldap_chase_referrals( LDAP *ld,
 			++count;
 		} else {
 			Debug( LDAP_DEBUG_ANY,
-				"Unable to chase referral \"%s\" (%d: %s)\n", 
+				"Unable to chase referral \"%s\" (%d: %s)\n",
 				ref, ld->ld_errno, ldap_err2string( ld->ld_errno ) );
 			rc = ldap_append_referral( ld, &unfollowed, ref );
 		}

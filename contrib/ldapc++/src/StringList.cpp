@@ -70,7 +70,7 @@ StringList::const_iterator StringList::end() const{
     return m_data.end();
 }
 
-    
+
 void StringList::clear(){
     m_data.clear();
 }

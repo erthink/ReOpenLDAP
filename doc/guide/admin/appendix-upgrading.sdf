@@ -4,15 +4,15 @@
 
 H1: Upgrading from 2.3.x
 
-The following sections attempt to document the steps you will need to take in order 
+The following sections attempt to document the steps you will need to take in order
 to upgrade from the latest 2.3.x OpenLDAP version.
 
-The normal upgrade procedure, as discussed in the {{SECT:Maintenance}} section, should 
+The normal upgrade procedure, as discussed in the {{SECT:Maintenance}} section, should
 of course still be followed prior to doing any of this.
 
 H2: {{B:cn=config}} olc* attributes
 
-Quite a few {{olc*}} attributes have now become obsolete, if you see in your logs 
+Quite a few {{olc*}} attributes have now become obsolete, if you see in your logs
 entries like below, just remove them from the relevant ldif file.
 
 >           olcReplicationInterval: value #0: <olcReplicationInterval> keyword is obsolete (ignored)

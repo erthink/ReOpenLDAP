@@ -23,13 +23,13 @@ LDAPAddRequest::LDAPAddRequest(const LDAPAddRequest& req) :
     m_entry=new LDAPEntry(*(req.m_entry));
 }
 
-LDAPAddRequest::LDAPAddRequest(const LDAPEntry* entry, 
+LDAPAddRequest::LDAPAddRequest(const LDAPEntry* entry,
         LDAPAsynConnection *connect, const LDAPConstraints *cons,
-        bool isReferral, const LDAPRequest* parent) 
+        bool isReferral, const LDAPRequest* parent)
         : LDAPRequest(connect, cons, isReferral,parent){
     DEBUG(LDAP_DEBUG_CONSTRUCT, "LDAPAddRequest::LDAPAddRequest()" << endl);
-    DEBUG(LDAP_DEBUG_CONSTRUCT | LDAP_DEBUG_PARAMETER, 
-            "   entry:" << entry << endl 
+    DEBUG(LDAP_DEBUG_CONSTRUCT | LDAP_DEBUG_PARAMETER,
+            "   entry:" << entry << endl
             << "   isReferral:" << isReferral << endl);
     m_requestType = LDAPRequest::ADD;
     m_entry = new LDAPEntry(*entry);

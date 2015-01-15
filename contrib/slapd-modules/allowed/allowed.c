@@ -31,9 +31,9 @@
  *   the search request should be analyzed, and if allowedAttributes or
  *   allowedAttributesEffective are requested, add objectClass to the
  *   requested attributes
- * - it assumes that there is no difference between write-add and 
+ * - it assumes that there is no difference between write-add and
  *   write-delete
- * - it assumes that access rules do not depend on the values of the 
+ * - it assumes that access rules do not depend on the values of the
  *   attributes or on the contents of the entry (attr/val, filter, ...)
  *   allowedAttributes and allowedAttributesEffective cannot be used
  *   in filters or in compare
@@ -127,7 +127,7 @@ aa_add_at( AttributeType *at, AttributeType ***atpp )
 				break;
 			}
 		}
-	
+
 		if ( (*atpp)[ i ] != NULL ) {
 			return 0;
 		}
@@ -275,7 +275,7 @@ aa_operational( Operation *op, SlapReply *rs )
 
 		for ( i = 0; atp[ i ] != NULL; i++ )
 			/* just count */ ;
-	
+
 		if ( got & GOT_A ) {
 			bv_allowed = ber_memalloc( sizeof( struct berval ) * ( i + 1 ) );
 		}
@@ -292,7 +292,7 @@ aa_operational( Operation *op, SlapReply *rs )
 			if ( got & GOT_AE ) {
 				AttributeDescription	*ad = NULL;
 				const char		*text = NULL;
-	
+
 				if ( slap_bv2ad( &atp[ i ]->sat_cname, &ad, &text ) ) {
 					/* log? */
 					continue;
@@ -377,7 +377,7 @@ do_oc:;
 					for ( i = 0; oc->soc_required[ i ] != NULL; i++ ) {
 						AttributeDescription	*ad = NULL;
 						const char		*text = NULL;
-	
+
 						if ( slap_bv2ad( &oc->soc_required[ i ]->sat_cname, &ad, &text ) ) {
 							/* log? */
 							continue;

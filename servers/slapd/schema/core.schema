@@ -26,14 +26,14 @@
 ## the copyright notice or references to the Internet Society or other
 ## Internet organizations, except as needed for the purpose of
 ## developing Internet standards in which case the procedures for
-## copyrights defined in the Internet Standards process must be         
+## copyrights defined in the Internet Standards process must be
 ## followed, or as required to translate it into languages other than
 ## English.
-##                                                                      
-## The limited permissions granted above are perpetual and will not be  
-## revoked by the Internet Society or its successors or assigns.        
-## 
-## This document and the information contained herein is provided on an 
+##
+## The limited permissions granted above are perpetual and will not be
+## revoked by the Internet Society or its successors or assigns.
+##
+## This document and the information contained herein is provided on an
 ## "AS IS" basis and THE INTERNET SOCIETY AND THE INTERNET ENGINEERING
 ## TASK FORCE DISCLAIMS ALL WARRANTIES, EXPRESS OR IMPLIED, INCLUDING
 ## BUT NOT LIMITED TO ANY WARRANTY THAT THE USE OF THE INFORMATION
@@ -385,7 +385,7 @@ objectclass ( 2.5.6.4 NAME 'organization'
 	MAY ( userPassword $ searchGuide $ seeAlso $ businessCategory $
 		x121Address $ registeredAddress $ destinationIndicator $
 		preferredDeliveryMethod $ telexNumber $ teletexTerminalIdentifier $
-		telephoneNumber $ internationaliSDNNumber $ 
+		telephoneNumber $ internationaliSDNNumber $
 		facsimileTelephoneNumber $ street $ postOfficeBox $ postalCode $
 		postalAddress $ physicalDeliveryOfficeName $ st $ l $ description ) )
 
@@ -411,7 +411,7 @@ objectclass ( 2.5.6.7 NAME 'organizationalPerson'
 	SUP person STRUCTURAL
 	MAY ( title $ x121Address $ registeredAddress $ destinationIndicator $
 		preferredDeliveryMethod $ telexNumber $ teletexTerminalIdentifier $
-		telephoneNumber $ internationaliSDNNumber $ 
+		telephoneNumber $ internationaliSDNNumber $
 		facsimileTelephoneNumber $ street $ postOfficeBox $ postalCode $
 		postalAddress $ physicalDeliveryOfficeName $ ou $ st $ l ) )
 

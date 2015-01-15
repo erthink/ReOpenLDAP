@@ -38,7 +38,7 @@ mdb_referrals( Operation *op, SlapReply *rs )
 	if( get_manageDSAit( op ) ) {
 		/* let op take care of DSA management */
 		return rc;
-	} 
+	}
 
 	rc = mdb_opinfo_get(op, mdb, 1, &moi);
 	switch(rc) {

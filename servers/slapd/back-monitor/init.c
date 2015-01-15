@@ -70,7 +70,7 @@ static const monitor_extra_t monitor_extra = {
 	monitor_back_entrypriv_create,
 	monitor_back_register_subsys_late
 };
-	
+
 
 /*
  * subsystem data
@@ -82,8 +82,8 @@ static const monitor_extra_t monitor_extra = {
  * or by overlays or modules).
  */
 static struct monitor_subsys_t known_monitor_subsys[] = {
-	{ 
-		SLAPD_MONITOR_BACKEND_NAME, 
+	{
+		SLAPD_MONITOR_BACKEND_NAME,
 		BER_BVNULL, BER_BVNULL, BER_BVNULL,
 		{ BER_BVC( "This subsystem contains information about available backends." ),
 			BER_BVNULL },
@@ -93,7 +93,7 @@ static struct monitor_subsys_t known_monitor_subsys[] = {
 		NULL,   /* update */
 		NULL,   /* create */
 		NULL	/* modify */
-       	}, { 
+       	}, {
 		SLAPD_MONITOR_CONN_NAME,
 		BER_BVNULL, BER_BVNULL, BER_BVNULL,
 		{ BER_BVC( "This subsystem contains information about connections." ),
@@ -104,8 +104,8 @@ static struct monitor_subsys_t known_monitor_subsys[] = {
 		NULL,   /* update */
 		NULL,   /* create */
 		NULL	/* modify */
-       	}, { 
-		SLAPD_MONITOR_DATABASE_NAME, 	
+       	}, {
+		SLAPD_MONITOR_DATABASE_NAME,
 		BER_BVNULL, BER_BVNULL, BER_BVNULL,
 		{ BER_BVC( "This subsystem contains information about configured databases." ),
 			BER_BVNULL },
@@ -115,8 +115,8 @@ static struct monitor_subsys_t known_monitor_subsys[] = {
 		NULL,   /* update */
 		NULL,   /* create */
 		NULL	/* modify */
-       	}, { 
-		SLAPD_MONITOR_LISTENER_NAME, 	
+       	}, {
+		SLAPD_MONITOR_LISTENER_NAME,
 		BER_BVNULL, BER_BVNULL, BER_BVNULL,
 		{ BER_BVC( "This subsystem contains information about active listeners." ),
 			BER_BVNULL },
@@ -126,7 +126,7 @@ static struct monitor_subsys_t known_monitor_subsys[] = {
 		NULL,	/* update */
 		NULL,	/* create */
 		NULL	/* modify */
-       	}, { 
+       	}, {
 		SLAPD_MONITOR_LOG_NAME,
 		BER_BVNULL, BER_BVNULL, BER_BVNULL,
 		{ BER_BVC( "This subsystem contains information about logging." ),
@@ -138,7 +138,7 @@ static struct monitor_subsys_t known_monitor_subsys[] = {
 		NULL,	/* update */
 		NULL,   /* create */
 		NULL,	/* modify */
-       	}, { 
+       	}, {
 		SLAPD_MONITOR_OPS_NAME,
 		BER_BVNULL, BER_BVNULL, BER_BVNULL,
 		{ BER_BVC( "This subsystem contains information about performed operations." ),
@@ -149,7 +149,7 @@ static struct monitor_subsys_t known_monitor_subsys[] = {
 		NULL,	/* update */
 		NULL,   /* create */
 		NULL,	/* modify */
-       	}, { 
+       	}, {
 		SLAPD_MONITOR_OVERLAY_NAME,
 		BER_BVNULL, BER_BVNULL, BER_BVNULL,
 		{ BER_BVC( "This subsystem contains information about available overlays." ),
@@ -160,8 +160,8 @@ static struct monitor_subsys_t known_monitor_subsys[] = {
 		NULL,	/* update */
 		NULL,   /* create */
 		NULL,	/* modify */
-	}, { 
-		SLAPD_MONITOR_SASL_NAME, 	
+	}, {
+		SLAPD_MONITOR_SASL_NAME,
 		BER_BVNULL, BER_BVNULL, BER_BVNULL,
 		{ BER_BVC( "This subsystem contains information about SASL." ),
 			BER_BVNULL },
@@ -171,7 +171,7 @@ static struct monitor_subsys_t known_monitor_subsys[] = {
 		NULL,   /* update */
 		NULL,   /* create */
 		NULL	/* modify */
-       	}, { 
+       	}, {
 		SLAPD_MONITOR_SENT_NAME,
 		BER_BVNULL, BER_BVNULL, BER_BVNULL,
 		{ BER_BVC( "This subsystem contains statistics." ),
@@ -182,8 +182,8 @@ static struct monitor_subsys_t known_monitor_subsys[] = {
 		NULL,   /* update */
 		NULL,   /* create */
 		NULL,	/* modify */
-       	}, { 
-		SLAPD_MONITOR_THREAD_NAME, 	
+       	}, {
+		SLAPD_MONITOR_THREAD_NAME,
 		BER_BVNULL, BER_BVNULL, BER_BVNULL,
 		{ BER_BVC( "This subsystem contains information about threads." ),
 			BER_BVNULL },
@@ -193,7 +193,7 @@ static struct monitor_subsys_t known_monitor_subsys[] = {
 		NULL,   /* update */
 		NULL,   /* create */
 		NULL	/* modify */
-       	}, { 
+       	}, {
 		SLAPD_MONITOR_TIME_NAME,
 		BER_BVNULL, BER_BVNULL, BER_BVNULL,
 		{ BER_BVC( "This subsystem contains information about time." ),
@@ -204,7 +204,7 @@ static struct monitor_subsys_t known_monitor_subsys[] = {
 		NULL,   /* update */
 		NULL,   /* create */
 		NULL,	/* modify */
-       	}, { 
+       	}, {
 		SLAPD_MONITOR_TLS_NAME,
 		BER_BVNULL, BER_BVNULL, BER_BVNULL,
 		{ BER_BVC( "This subsystem contains information about TLS." ),
@@ -215,7 +215,7 @@ static struct monitor_subsys_t known_monitor_subsys[] = {
 		NULL,   /* update */
 		NULL,   /* create */
 		NULL	/* modify */
-       	}, { 
+       	}, {
 		SLAPD_MONITOR_RWW_NAME,
 		BER_BVNULL, BER_BVNULL, BER_BVNULL,
 		{ BER_BVC( "This subsystem contains information about read/write waiters." ),
@@ -256,7 +256,7 @@ monitor_back_register_subsys(
 	monitor_subsys[ i ] = ms;
 	monitor_subsys[ i + 1 ] = NULL;
 
-	/* if a subsystem is registered __AFTER__ subsystem 
+	/* if a subsystem is registered __AFTER__ subsystem
 	 * initialization (depending on the sequence the databases
 	 * are listed in slapd.conf), init it */
 	if ( monitor_subsys_is_opened() ) {
@@ -396,7 +396,7 @@ monitor_back_register_database_limbo(
 
 	el.el_be = be->bd_self;
 	el.el_ndn = ndn_out;
-	
+
 	for ( elpp = &mi->mi_entry_limbo;
 			*elpp;
 			elpp = &(*elpp)->el_next )
@@ -442,7 +442,7 @@ monitor_back_register_overlay_limbo(
 	el.el_be = be->bd_self;
 	el.el_on = on;
 	el.el_ndn = ndn_out;
-	
+
 	for ( elpp = &mi->mi_entry_limbo;
 			*elpp;
 			elpp = &(*elpp)->el_next )
@@ -478,7 +478,7 @@ monitor_back_register_entry(
 	assert( mi != NULL );
 	assert( e != NULL );
 	assert( e->e_private == NULL );
-	
+
 	if ( monitor_subsys_is_opened() ) {
 		Entry		*e_parent = NULL,
 				*e_new = NULL,
@@ -540,7 +540,7 @@ monitor_back_register_entry(
 			rc = -1;
 			goto done;
 		}
-		
+
 		e_new->e_private = ( void * )mp;
 		if ( mss != NULL ) {
 			mp->mp_info = mss;
@@ -596,7 +596,7 @@ done:;
 				e->e_name.bv_val, 0, 0 );
 			return -1;
 		}
-		
+
 		el.el_cb = cb;
 		el.el_mss = mss;
 		el.el_flags = flags;
@@ -741,7 +741,7 @@ monitor_back_register_entry_parent(
 		ch_free( e_new->e_nname.bv_val );
 		e_new->e_name = e_name;
 		e_new->e_nname = e_nname;
-		
+
 		e_new->e_private = ( void * )mp;
 		if ( mss != NULL ) {
 			mp->mp_info = mss;
@@ -801,7 +801,7 @@ done:;
 				e->e_name.bv_val, 0, 0 );
 			goto done_limbo;
 		}
-		
+
 		if ( !BER_BVISNULL( nbase ) ) {
 			ber_dupbv( &el.el_nbase, nbase );
 		}
@@ -857,7 +857,7 @@ monitor_search2ndn_cb( Operation *op, SlapReply *rs )
 			BER_BVZERO( ndn );
 			return rs->sr_err;
 		}
-		
+
 		ber_dupbv( ndn, &rs->sr_entry->e_nname );
 	}
 
@@ -960,7 +960,7 @@ cleanup:;
 			rc = -1;
 		}
 		break;
-			
+
 	case LDAP_SIZELIMIT_EXCEEDED:
 	default:
 		if ( !BER_BVISNULL( ndn ) ) {
@@ -1112,7 +1112,7 @@ monitor_back_register_entry_attrs(
 		if ( cb ) {
 			for ( mcp = &mp->mp_cb; *mcp; mcp = &(*mcp)->mc_next )
 				/* go to tail */ ;
-		
+
 			/* NOTE: we do not clear cb->mc_next, so this function
 			 * can be used to append a list of callbacks */
 			(*mcp) = cb;
@@ -1190,7 +1190,7 @@ monitor_back_register_entry_callback(
 
 /*
  * TODO: add corresponding calls to remove installed callbacks, entries
- * and so, in case the entity that installed them is removed (e.g. a 
+ * and so, in case the entity that installed them is removed (e.g. a
  * database, via back-config)
  */
 int
@@ -1638,7 +1638,7 @@ monitor_back_get_subsys( const char *name )
 {
 	if ( monitor_subsys != NULL ) {
 		int	i;
-		
+
 		for ( i = 0; monitor_subsys[ i ] != NULL; i++ ) {
 			if ( strcasecmp( monitor_subsys[ i ]->mss_name, name ) == 0 ) {
 				return monitor_subsys[ i ];
@@ -2284,7 +2284,7 @@ monitor_back_db_open(
 	}
 
 	/*
-	 * creates the "cn=Monitor" entry 
+	 * creates the "cn=Monitor" entry
 	 */
 	e = monitor_entry_stub( NULL, NULL, &rdn, mi->mi_oc_monitorServer,
 		NULL, NULL );
@@ -2345,7 +2345,7 @@ monitor_back_db_open(
 	}
 	root = e;
 
-	/*	
+	/*
 	 * Create all the subsystem specific entries
 	 */
 	for ( i = 0; monitor_subsys[ i ] != NULL; i++ ) {
@@ -2361,7 +2361,7 @@ monitor_back_db_open(
 		free( dn.bv_val );
 		if ( rc != LDAP_SUCCESS ) {
 			Debug( LDAP_DEBUG_ANY,
-				"monitor RDN \"%s\" is invalid\n", 
+				"monitor RDN \"%s\" is invalid\n",
 				dn.bv_val, 0, 0 );
 			return( -1 );
 		}
@@ -2372,7 +2372,7 @@ monitor_back_db_open(
 
 		if ( e == NULL) {
 			Debug( LDAP_DEBUG_ANY,
-				"unable to create \"%s\" entry\n", 
+				"unable to create \"%s\" entry\n",
 				monitor_subsys[ i ]->mss_dn.bv_val, 0, 0 );
 			return( -1 );
 		}
@@ -2406,7 +2406,7 @@ monitor_back_db_open(
 	assert( be != NULL );
 
 	be->be_private = mi;
-	
+
 	/*
 	 * opens the monitor backend subsystems
 	 */
@@ -2445,7 +2445,7 @@ monitor_back_db_open(
 						el->el_scope,
 						&el->el_filter );
 				break;
-				
+
 
 			case LIMBO_ATTRS:
 				rc = monitor_back_register_entry_attrs(
@@ -2553,7 +2553,7 @@ monitor_back_db_destroy(
 	 * FIXME: destroys all the data
 	 */
 	/* NOTE: mi points to static storage; don't free it */
-	
+
 	(void)monitor_cache_destroy( mi );
 
 	if ( monitor_subsys ) {
@@ -2581,7 +2581,7 @@ monitor_back_db_destroy(
 			monitor_back_destroy_limbo_entry( tmp, 1 );
 		}
 	}
-	
+
 	ldap_pvt_thread_mutex_destroy( &monitor_info.mi_cache_mutex );
 
 	be->be_private = NULL;

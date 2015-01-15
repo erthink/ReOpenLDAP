@@ -89,7 +89,7 @@ oidm_destroy()
 		ber_bvarray_free(om->som_subs);
 		free(om->som_oid.bv_val);
 		free(om);
-		
+
 	}
 }
 

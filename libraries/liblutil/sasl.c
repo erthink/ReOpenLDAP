@@ -51,7 +51,7 @@ lutil_sasl_freedefs(
 	lutilSASLdefaults *defs = defaults;
 
 	assert( defs != NULL );
-	
+
 	if (defs->mech) ber_memfree(defs->mech);
 	if (defs->realm) ber_memfree(defs->realm);
 	if (defs->authcid) ber_memfree(defs->authcid);
@@ -72,7 +72,7 @@ lutil_sasl_defaults(
 	char *authzid )
 {
 	lutilSASLdefaults *defaults;
-	
+
 	defaults = ber_memalloc( sizeof( lutilSASLdefaults ) );
 
 	if( defaults == NULL ) return NULL;
@@ -179,7 +179,7 @@ static int interaction(
 		}
 
 		/* len of input */
-		interact->len = strlen(input); 
+		interact->len = strlen(input);
 
 		if( interact->len > 0 && input[interact->len - 1] == '\n' ) {
 			/* input includes '\n', trim it */
@@ -228,7 +228,7 @@ int lutil_sasl_interact(
 		if( rc )  return rc;
 		interact++;
 	}
-	
+
 	return LDAP_SUCCESS;
 }
 #endif

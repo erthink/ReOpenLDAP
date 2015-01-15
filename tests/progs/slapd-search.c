@@ -285,7 +285,7 @@ do_random( char *uri, char *manager, struct berval *passwd,
 		exit( EXIT_FAILURE );
 	}
 
-	(void) ldap_set_option( ld, LDAP_OPT_PROTOCOL_VERSION, &version ); 
+	(void) ldap_set_option( ld, LDAP_OPT_PROTOCOL_VERSION, &version );
 	(void) ldap_set_option( ld, LDAP_OPT_REFERRALS,
 		chaserefs ? LDAP_OPT_ON : LDAP_OPT_OFF );
 
@@ -407,7 +407,7 @@ retry:;
 			exit( EXIT_FAILURE );
 		}
 
-		(void) ldap_set_option( ld, LDAP_OPT_PROTOCOL_VERSION, &version ); 
+		(void) ldap_set_option( ld, LDAP_OPT_PROTOCOL_VERSION, &version );
 		(void) ldap_set_option( ld, LDAP_OPT_REFERRALS,
 			chaserefs ? LDAP_OPT_ON : LDAP_OPT_OFF );
 
@@ -478,7 +478,7 @@ retry:;
 						}
 						continue;
 					}
-		
+
 					/* busy needs special handling */
 					snprintf( buf, sizeof( buf ),
 						"base=\"%s\" filter=\"%s\"\n",
@@ -503,16 +503,16 @@ retry:;
 			case -1:
 				/* gone really bad */
 				goto cleanup;
-	
+
 			case 0:
 				/* timeout (impossible) */
 				break;
-	
+
 			case LDAP_RES_SEARCH_ENTRY:
 			case LDAP_RES_SEARCH_REFERENCE:
 				/* ignore */
 				break;
-	
+
 			case LDAP_RES_SEARCH_RESULT:
 				/* just remove, no error checking (TODO?) */
 				msgid = ldap_msgid( res );
@@ -565,14 +565,14 @@ retry:;
 				if ( rc == LDAP_SUCCESS ) continue;
 				else break;
 			}
-	
+
 			rc = ldap_search_ext_s( ld, sbase, scope,
 					filter, attrs, noattrs, NULL, NULL,
 					NULL, LDAP_NO_LIMIT, &res );
 			if ( res != NULL ) {
 				ldap_msgfree( res );
 			}
-	
+
 			if ( rc ) {
 				int first = tester_ignore_err( rc );
 				/* if ignore.. */
@@ -583,7 +583,7 @@ retry:;
 					}
 					continue;
 				}
-	
+
 				/* busy needs special handling */
 				snprintf( buf, sizeof( buf ),
 					"base=\"%s\" filter=\"%s\"\n",

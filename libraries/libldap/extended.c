@@ -133,11 +133,11 @@ ldap_extended_operation_s(
 
     rc = ldap_extended_operation( ld, reqoid, reqdata,
 		sctrls, cctrls, &msgid );
-        
+
     if ( rc != LDAP_SUCCESS ) {
         return( rc );
 	}
- 
+
     if ( ldap_result( ld, msgid, LDAP_MSG_ALL, (struct timeval *) NULL, &res ) == -1 || !res ) {
         return( ld->ld_errno );
 	}

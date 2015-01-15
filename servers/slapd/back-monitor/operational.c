@@ -66,7 +66,7 @@ monitor_back_operational(
 		assert( *ap != NULL );
 		ap = &(*ap)->a_next;
 	}
-	
+
 	return LDAP_SUCCESS;
 }
 

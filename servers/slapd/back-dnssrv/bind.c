@@ -36,7 +36,7 @@ dnssrv_back_bind(
 	SlapReply	*rs )
 {
 	Debug( LDAP_DEBUG_TRACE, "DNSSRV: bind dn=\"%s\" (%d)\n",
-		BER_BVISNULL( &op->o_req_dn ) ? "" : op->o_req_dn.bv_val, 
+		BER_BVISNULL( &op->o_req_dn ) ? "" : op->o_req_dn.bv_val,
 		op->orb_method, 0 );
 
 	/* allow rootdn as a means to auth without the need to actually

@@ -16,10 +16,10 @@
 echo "running defines.sh"
 . $SRCDIR/scripts/defines.sh
 
-if test $BACKLDAP = "ldapno" ; then 
+if test $BACKLDAP = "ldapno" ; then
 	echo "LDAP backend not available, test skipped"
 	exit 0
-fi 
+fi
 
 rm -rf $TESTDIR
 
@@ -121,7 +121,7 @@ for P in $PORT1 $PORT2 ; do
 	$LDIFFILTER < $CHAINOUT > $LDIFFLT
 	echo "Comparing filter output..."
 	$CMP $SEARCHFLT $LDIFFLT > $CMPOUT
-	
+
 	if test $? != 0 ; then
 		echo "comparison failed - chained search didn't succeed"
 		test $KILLSERVERS != no && kill -HUP $KILLPIDS
@@ -145,7 +145,7 @@ for P in $PORT1 $PORT2 ; do
 	$LDIFFILTER < $CHAINREFOUT > $LDIFFLT
 	echo "Comparing filter output..."
 	$CMP $SEARCHFLT $LDIFFLT > $CMPOUT
-		
+
 	if test $? != 0 ; then
 		echo "comparison failed - chained search didn't succeed"
 		test $KILLSERVERS != no && kill -HUP $KILLPIDS
@@ -274,7 +274,7 @@ for P in $PORT1 $PORT2 ; do
 	$LDIFFILTER < $CHAINMODOUT > $LDIFFLT
 	echo "Comparing filter output..."
 	$CMP $SEARCHFLT $LDIFFLT > $CMPOUT
-	
+
 	if test $? != 0 ; then
 		echo "comparison failed - chained search didn't succeed"
 		test $KILLSERVERS != no && kill -HUP $KILLPIDS

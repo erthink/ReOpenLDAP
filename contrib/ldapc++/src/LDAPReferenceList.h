@@ -25,7 +25,7 @@ class LDAPReferenceList{
 
         /**
          * Constructs an empty list.
-         */   
+         */
         LDAPReferenceList();
 
         /**
@@ -39,7 +39,7 @@ class LDAPReferenceList{
         ~LDAPReferenceList();
 
         /**
-         * @return The number of LDAPSearchReference-objects that are 
+         * @return The number of LDAPSearchReference-objects that are
          * currently stored in this list.
          */
         size_t size() const;

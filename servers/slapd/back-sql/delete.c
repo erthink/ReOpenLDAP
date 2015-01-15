@@ -32,7 +32,7 @@
 typedef struct backsql_delete_attr_t {
 	Operation 		*op;
 	SlapReply		*rs;
-	SQLHDBC			dbh; 
+	SQLHDBC			dbh;
 	backsql_entryID		*e_id;
 } backsql_delete_attr_t;
 
@@ -57,7 +57,7 @@ static int
 backsql_delete_all_attrs(
 	Operation 		*op,
 	SlapReply		*rs,
-	SQLHDBC			dbh, 
+	SQLHDBC			dbh,
 	backsql_entryID		*eid )
 {
 	backsql_delete_attr_t	bda;
@@ -67,7 +67,7 @@ backsql_delete_all_attrs(
 	bda.rs = rs;
 	bda.dbh = dbh;
 	bda.e_id = eid;
-	
+
 	rc = avl_apply( eid->eid_oc->bom_attrs, backsql_delete_attr_f, &bda,
 			BACKSQL_AVL_STOP, AVL_INORDER );
 	if ( rc == BACKSQL_AVL_STOP ) {
@@ -105,7 +105,7 @@ backsql_delete_int(
 	if ( rc != SQL_SUCCESS ) {
 		Debug( LDAP_DEBUG_TRACE,
 			"   backsql_delete(): "
-			"error preparing delete query\n", 
+			"error preparing delete query\n",
 			0, 0, 0 );
 		backsql_PrintErrors( bi->sql_db_env, dbh, sth, rc );
 
@@ -123,7 +123,7 @@ backsql_delete_int(
 				"   backsql_delete(): "
 				"error binding output parameter for objectClass %s\n",
 				eid->eid_oc->bom_oc->soc_cname.bv_val, 0, 0 );
-			backsql_PrintErrors( bi->sql_db_env, dbh, 
+			backsql_PrintErrors( bi->sql_db_env, dbh,
 				sth, rc );
 			SQLFreeStmt( sth, SQL_DROP );
 
@@ -140,7 +140,7 @@ backsql_delete_int(
 			"   backsql_delete(): "
 			"error binding keyval parameter for objectClass %s\n",
 			eid->eid_oc->bom_oc->soc_cname.bv_val, 0, 0 );
-		backsql_PrintErrors( bi->sql_db_env, dbh, 
+		backsql_PrintErrors( bi->sql_db_env, dbh,
 			sth, rc );
 		SQLFreeStmt( sth, SQL_DROP );
 
@@ -161,7 +161,7 @@ backsql_delete_int(
 
 
 		if ( prc != LDAP_SUCCESS ) {
-			/* SQL procedure executed fine 
+			/* SQL procedure executed fine
 			 * but returned an error */
 			rs->sr_err = BACKSQL_SANITIZE_ERROR( prc );
 
@@ -180,7 +180,7 @@ backsql_delete_int(
 	if ( rc != SQL_SUCCESS ) {
 		Debug( LDAP_DEBUG_TRACE,
 			"   backsql_delete(): "
-			"error preparing ldap_entry_objclasses delete query\n", 
+			"error preparing ldap_entry_objclasses delete query\n",
 			0, 0, 0 );
 		backsql_PrintErrors( bi->sql_db_env, dbh, sth, rc );
 
@@ -197,7 +197,7 @@ backsql_delete_int(
 			"error binding auxiliary objectClasses "
 			"entry ID parameter for objectClass %s\n",
 			eid->eid_oc->bom_oc->soc_cname.bv_val, 0, 0 );
-		backsql_PrintErrors( bi->sql_db_env, dbh, 
+		backsql_PrintErrors( bi->sql_db_env, dbh,
 			sth, rc );
 		SQLFreeStmt( sth, SQL_DROP );
 
@@ -217,7 +217,7 @@ backsql_delete_int(
 
 	default:
 		Debug( LDAP_DEBUG_TRACE, "   backsql_delete(): "
-			"failed to delete record from ldap_entry_objclasses\n", 
+			"failed to delete record from ldap_entry_objclasses\n",
 			0, 0, 0 );
 		backsql_PrintErrors( bi->sql_db_env, dbh, sth, rc );
 		SQLFreeStmt( sth, SQL_DROP );
@@ -233,7 +233,7 @@ backsql_delete_int(
 	if ( rc != SQL_SUCCESS ) {
 		Debug( LDAP_DEBUG_TRACE,
 			"   backsql_delete(): "
-			"error preparing ldap_entries delete query\n", 
+			"error preparing ldap_entries delete query\n",
 			0, 0, 0 );
 		backsql_PrintErrors( bi->sql_db_env, dbh, sth, rc );
 
@@ -250,7 +250,7 @@ backsql_delete_int(
 			"error binding entry ID parameter "
 			"for objectClass %s\n",
 			eid->eid_oc->bom_oc->soc_cname.bv_val, 0, 0 );
-		backsql_PrintErrors( bi->sql_db_env, dbh, 
+		backsql_PrintErrors( bi->sql_db_env, dbh,
 			sth, rc );
 		SQLFreeStmt( sth, SQL_DROP );
 
@@ -263,7 +263,7 @@ backsql_delete_int(
 	rc = SQLExecute( sth );
 	if ( rc != SQL_SUCCESS ) {
 		Debug( LDAP_DEBUG_TRACE, "   backsql_delete(): "
-			"failed to delete record from ldap_entries\n", 
+			"failed to delete record from ldap_entries\n",
 			0, 0, 0 );
 		backsql_PrintErrors( bi->sql_db_env, dbh, sth, rc );
 		SQLFreeStmt( sth, SQL_DROP );
@@ -417,7 +417,7 @@ backsql_delete( Operation *op, SlapReply *rs )
 	rs->sr_err = backsql_get_db_conn( op, &dbh );
 	if ( rs->sr_err != LDAP_SUCCESS ) {
 		Debug( LDAP_DEBUG_TRACE, "   backsql_delete(): "
-			"could not get connection handle - exiting\n", 
+			"could not get connection handle - exiting\n",
 			0, 0, 0 );
 		rs->sr_text = ( rs->sr_err == LDAP_OTHER )
 			? "SQL-backend error" : NULL;
@@ -430,7 +430,7 @@ backsql_delete( Operation *op, SlapReply *rs )
 	 */
 	bsi.bsi_e = &d;
 	rs->sr_err = backsql_init_search( &bsi, &op->o_req_ndn,
-			LDAP_SCOPE_BASE, 
+			LDAP_SCOPE_BASE,
 			(time_t)(-1), NULL, dbh, op, rs, slap_anlist_no_attrs,
 			( BACKSQL_ISF_MATCHED | BACKSQL_ISF_GET_ENTRY | BACKSQL_ISF_GET_OC ) );
 	switch ( rs->sr_err ) {
@@ -455,7 +455,7 @@ backsql_delete( Operation *op, SlapReply *rs )
 
 	default:
 		Debug( LDAP_DEBUG_TRACE, "backsql_delete(): "
-			"could not retrieve deleteDN ID - no such entry\n", 
+			"could not retrieve deleteDN ID - no such entry\n",
 			0, 0, 0 );
 		if ( !BER_BVISNULL( &d.e_nname ) ) {
 			/* FIXME: should always be true! */
@@ -476,11 +476,11 @@ backsql_delete( Operation *op, SlapReply *rs )
 		goto done;
 	}
 
-	if ( !access_allowed( op, &d, slap_schema.si_ad_entry, 
+	if ( !access_allowed( op, &d, slap_schema.si_ad_entry,
 			NULL, ACL_WDEL, NULL ) )
 	{
 		Debug( LDAP_DEBUG_TRACE, "   backsql_delete(): "
-			"no write access to entry\n", 
+			"no write access to entry\n",
 			0, 0, 0 );
 		rs->sr_err = LDAP_INSUFFICIENT_ACCESS;
 		e = &d;
@@ -534,14 +534,14 @@ backsql_delete( Operation *op, SlapReply *rs )
 		dnParent( &op->o_req_ndn, &pdn );
 		bsi.bsi_e = &p;
 		rs->sr_err = backsql_init_search( &bsi, &pdn,
-				LDAP_SCOPE_BASE, 
+				LDAP_SCOPE_BASE,
 				(time_t)(-1), NULL, dbh, op, rs,
 				slap_anlist_no_attrs,
 				BACKSQL_ISF_GET_ENTRY );
 		if ( rs->sr_err != LDAP_SUCCESS ) {
 			Debug( LDAP_DEBUG_TRACE, "backsql_delete(): "
 				"could not retrieve deleteDN ID "
-				"- no such entry\n", 
+				"- no such entry\n",
 				0, 0, 0 );
 			e = &p;
 			goto done;
@@ -550,11 +550,11 @@ backsql_delete( Operation *op, SlapReply *rs )
 		(void)backsql_free_entryID( &bsi.bsi_base_id, 0, op->o_tmpmemctx );
 
 		/* check parent for "children" acl */
-		if ( !access_allowed( op, &p, slap_schema.si_ad_children, 
+		if ( !access_allowed( op, &p, slap_schema.si_ad_children,
 				NULL, ACL_WDEL, NULL ) )
 		{
 			Debug( LDAP_DEBUG_TRACE, "   backsql_delete(): "
-				"no write access to parent\n", 
+				"no write access to parent\n",
 				0, 0, 0 );
 			rs->sr_err = LDAP_INSUFFICIENT_ACCESS;
 			e = &p;
@@ -583,7 +583,7 @@ backsql_delete( Operation *op, SlapReply *rs )
 	 */
 	if ( sth != SQL_NULL_HSTMT ) {
 		SQLUSMALLINT	CompletionType = SQL_ROLLBACK;
-	
+
 		if ( rs->sr_err == LDAP_SUCCESS && !op->o_noop ) {
 			assert( e == NULL );
 			CompletionType = SQL_COMMIT;

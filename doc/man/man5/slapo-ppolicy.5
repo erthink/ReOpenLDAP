@@ -8,7 +8,7 @@ slapo\-ppolicy \- Password Policy overlay to slapd
 ETCDIR/slapd.conf
 .SH DESCRIPTION
 .LP
-The 
+The
 .B ppolicy
 overlay
 is an implementation of the most recent IETF Password
@@ -31,13 +31,13 @@ identity; all the operations, when performed with any other identity,
 may be subjected to constraints, like access control.
 .P
 Note that the IETF Password Policy proposal for LDAP makes sense
-when considering a single-valued password attribute, while 
+when considering a single-valued password attribute, while
 the userPassword attribute allows multiple values.  This implementation
 enforces a single value for the userPassword attribute, despite
 its specification.
 
 .SH CONFIGURATION
-These 
+These
 .B slapd.conf
 configuration options apply to the ppolicy overlay. They should appear
 after the
@@ -66,7 +66,7 @@ be hashed before being stored in the database. This violates the X.500/LDAP
 information model, but may be needed to compensate for LDAP clients that
 don't use the Password Modify extended operation to manage passwords.  It
 is recommended that when this option is used that compare, search, and
-read access be denied to all directory users. 
+read access be denied to all directory users.
 .TP
 .B ppolicy_use_lockout
 A client will always receive an LDAP
@@ -85,7 +85,7 @@ to an attacker; sites that are sensitive to security issues should not
 enable this option.
 
 .SH OBJECT CLASS
-The 
+The
 .B ppolicy
 overlay depends on the
 .B pwdPolicy
@@ -350,7 +350,7 @@ If
 .B pwdMaxFailure
 is not present, or its value is zero (0), then a user will
 be allowed to continue to attempt to authenticate to
-the directory, no matter how many consecutive failed 
+the directory, no matter how many consecutive failed
 bind attempts have occurred with that user's DN.
 (See also
 .B pwdLockout
@@ -484,7 +484,7 @@ parameter, if non-NULL, carries a pointer to the
 entry whose password is being checked.
 If
 .B ppErrStr
-is NULL, then 
+is NULL, then
 .I funcName
 must NOT attempt to use it/them.
 A return value of LDAP_SUCCESS from the called
@@ -504,9 +504,9 @@ be free()'d by slapd.
    SINGLE\-VALUE )
 .RE
 .P
-Note: 
+Note:
 The user-defined loadable module named by
-.B pwdCheckModule     
+.B pwdCheckModule
 must be in
 .B slapd's
 standard executable search PATH.
@@ -537,7 +537,7 @@ on that slave and will not affect any attributes for
 a user's entry on the master server. Operational attribute changes
 resulting from authentication attempts on a master server
 will usually replicate to the slaves (and also overwrite
-any changes that originated on the slave). 
+any changes that originated on the slave).
 These behaviors are not guaranteed and are subject to change
 when a formal specification emerges.
 
@@ -605,7 +605,7 @@ does not exist, the user's password will not expire.
 This attribute contains the time that the user's account was locked.
 If the account has been locked, the password may no longer be used to
 authenticate the user to the directory.  If
-.B pwdAccountLockedTime   
+.B pwdAccountLockedTime
 is set to 000001010000Z, the user's account has been permanently locked
 and may only be unlocked by an administrator. Note that account locking
 only takes effect when the
@@ -643,7 +643,7 @@ Excess timestamps beyond those allowed by
 .B pwdMaxFailure
 may also be purged.  If a successful authentication is made to this
 DN (i.e. to this user account), then
-.B pwdFailureTime   
+.B pwdFailureTime
 will be cleansed of entries.
 .LP
 .RS 4
@@ -741,7 +741,7 @@ attribute.
 This attribute indicates whether the user's password has been reset
 by the administrator and thus must be changed upon first use of this
 DN for authentication to the directory.  If
-.B pwdReset   
+.B pwdReset
 is set to "TRUE", then the password was reset and the user must change
 it upon first authentication.  If the attribute does not exist, or
 is set to "FALSE", the user need not change their password due to

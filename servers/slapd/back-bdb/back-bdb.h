@@ -108,10 +108,10 @@ typedef struct bdb_entry_info {
 	Avlnode	*bei_kids;
 #ifdef SLAP_ZONE_ALLOC
 	struct bdb_info *bei_bdb;
-	int bei_zseq;	
+	int bei_zseq;
 #endif
 	ldap_pvt_thread_mutex_t	bei_kids_mutex;
-	
+
 	struct bdb_entry_info	*bei_lrunext;	/* for cache lru list */
 	struct bdb_entry_info	*bei_lruprev;
 } EntryInfo;
@@ -141,10 +141,10 @@ typedef struct bdb_cache {
 	void *c_zctx;
 #endif
 } Cache;
- 
+
 #define CACHE_READ_LOCK                0
 #define CACHE_WRITE_LOCK       1
- 
+
 #define BDB_INDICES		128
 
 struct bdb_db_info {
@@ -360,7 +360,7 @@ typedef struct bdb_attrinfo {
 #define	BDB_INDEX_UPDATE_OP	0x03	/* performing an index update */
 
 /* For slapindex to record which attrs in an entry belong to which
- * index database 
+ * index database
  */
 typedef struct AttrList {
 	struct AttrList *next;

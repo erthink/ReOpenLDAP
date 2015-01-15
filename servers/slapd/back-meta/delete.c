@@ -93,7 +93,7 @@ cleanup:;
 		free( mdn.bv_val );
 		BER_BVZERO( &mdn );
 	}
-	
+
 	if ( mc ) {
 		meta_back_release_conn( mi, mc );
 	}

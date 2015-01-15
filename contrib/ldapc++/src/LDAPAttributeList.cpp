@@ -32,7 +32,7 @@ LDAPAttributeList::LDAPAttributeList(const LDAPAttributeList& al){
     m_attrs=al.m_attrs;
 }
 
-LDAPAttributeList::LDAPAttributeList(const LDAPAsynConnection *ld, 
+LDAPAttributeList::LDAPAttributeList(const LDAPAsynConnection *ld,
         LDAPMessage *msg){
     DEBUG(LDAP_DEBUG_CONSTRUCT,
             "LDAPAttributeList::LDAPAttributList()" << endl);
@@ -127,7 +127,7 @@ void LDAPAttributeList::addAttribute(const LDAPAttribute& attr){
 		for(j = values.begin(); j != values.end(); j++){
 		    i->addValue(*j);
 		}
-		DEBUG(LDAP_DEBUG_TRACE,"Attribute" << i->getName() 
+		DEBUG(LDAP_DEBUG_TRACE,"Attribute" << i->getName()
 			<< "already present" << endl);
 		done=true;
 		break; // The AttributeType was already present,
@@ -161,7 +161,7 @@ void LDAPAttributeList::replaceAttribute(const LDAPAttribute& attr)
     DEBUG(LDAP_DEBUG_TRACE,"LDAPAttribute::replaceAttribute()" << endl);
     DEBUG(LDAP_DEBUG_TRACE | LDAP_DEBUG_PARAMETER,
             "   attr:" << attr << endl);
-    
+
     LDAPAttributeList::iterator i;
     this->delAttribute( attr.getName() );
     m_attrs.push_back(attr);

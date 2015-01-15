@@ -23,7 +23,7 @@
  * PUBLIC LICENSE, OR OTHER PRIOR WRITTEN CONSENT FROM NOVELL, COULD SUBJECT
  * THE PERPETRATOR TO CRIMINAL AND CIVIL LIABILITY.
  */
-/* Note: A verbatim copy of version 2.0.1 of the OpenLDAP Public License 
+/* Note: A verbatim copy of version 2.0.1 of the OpenLDAP Public License
  * can be found in the file "build/LICENSE-2.0.1" in this distribution
  * of OpenLDAP Software.
  */
@@ -45,9 +45,9 @@
 
 /* ---------------------------------------------------------------------------
    countKeys
-   
+
    Internal function to determine the number of keys in the string.
-   
+
    keyString  (IN) String of items separated by whitespace.
    ---------------------------------------------------------------------------*/
 
@@ -75,7 +75,7 @@ static int countKeys(char *keyString)
 
 /* ---------------------------------------------------------------------------
    readNextKey
-   
+
    Internal function to parse the next sort key in the string.
    Allocate an LDAPSortKey structure and initialize it with
    attribute name, reverse flag, and matching rule OID.
@@ -86,10 +86,10 @@ static int countKeys(char *keyString)
    pNextKey    (IN/OUT) Points to the next key in the sortkey string to parse.
 						The pointer is updated to point to the next character
 						after the sortkey being parsed.
-						
+
    key         (OUT)    Points to the address of an LDAPSortKey stucture
 						which has been allocated by this routine and
-						initialized with information from the next sortkey.                        
+						initialized with information from the next sortkey.
    ---------------------------------------------------------------------------*/
 
 static int readNextKey( char **pNextKey, LDAPSortKey **key)
@@ -167,18 +167,18 @@ static int readNextKey( char **pNextKey, LDAPSortKey **key)
 
 /* ---------------------------------------------------------------------------
    ldap_create_sort_keylist
-   
+
    Create an array of pointers to LDAPSortKey structures, containing the
    information specified by the string representation of one or more
    sort keys.
-   
+
    sortKeyList    (OUT) Points to a null-terminated array of pointers to
 						LDAPSortKey structures allocated by this routine.
 						This memory SHOULD be freed by the calling program
 						using ldap_free_sort_keylist().
-						
-   keyString      (IN)  Points to a string of one or more sort keys.                      
-   
+
+   keyString      (IN)  Points to a string of one or more sort keys.
+
    ---------------------------------------------------------------------------*/
 
 int
@@ -222,12 +222,12 @@ ldap_create_sort_keylist ( LDAPSortKey ***sortKeyList, char *keyString )
 
 /* ---------------------------------------------------------------------------
    ldap_free_sort_keylist
-   
+
    Frees the sort key structures created by ldap_create_sort_keylist().
    Frees the memory referenced by the LDAPSortKey structures,
    the LDAPSortKey structures themselves, and the array of pointers
    to the structures.
-   
+
    keyList     (IN) Points to an array of pointers to LDAPSortKey structures.
    ---------------------------------------------------------------------------*/
 
@@ -258,9 +258,9 @@ ldap_free_sort_keylist ( LDAPSortKey **keyList )
 
 /* ---------------------------------------------------------------------------
    ldap_create_sort_control_value
-   
+
    Create and encode the value of the server-side sort control.
-   
+
    ld          (IN) An LDAP session handle, as obtained from a call to
 					ldap_init().
 
@@ -269,18 +269,18 @@ ldap_free_sort_keylist ( LDAPSortKey **keyList )
 					each of the sort keys to be used.  The description
 					consists of an attribute name, ascending/descending flag,
 					and an optional matching rule (OID) to use.
-			   
+
    value      (OUT) Contains the control value; the bv_val member of the berval structure
 					SHOULD be freed by calling ldap_memfree() when done.
-   
-   
+
+
    Ber encoding
-   
+
    SortKeyList ::= SEQUENCE OF SEQUENCE {
 		   attributeType   AttributeDescription,
 		   orderingRule    [0] MatchingRuleId OPTIONAL,
 		   reverseOrder    [1] BOOLEAN DEFAULT FALSE }
-   
+
    ---------------------------------------------------------------------------*/
 
 int
@@ -373,9 +373,9 @@ error_return:;
 
 /* ---------------------------------------------------------------------------
    ldap_create_sort_control
-   
+
    Create and encode the server-side sort control.
-   
+
    ld          (IN) An LDAP session handle, as obtained from a call to
 					ldap_init().
 
@@ -384,21 +384,21 @@ error_return:;
 					each of the sort keys to be used.  The description
 					consists of an attribute name, ascending/descending flag,
 					and an optional matching rule (OID) to use.
-			   
+
    isCritical  (IN) 0 - Indicates the control is not critical to the operation.
 					non-zero - The control is critical to the operation.
-					 
+
    ctrlp      (OUT) Returns a pointer to the LDAPControl created.  This control
 					SHOULD be freed by calling ldap_control_free() when done.
-   
-   
+
+
    Ber encoding
-   
+
    SortKeyList ::= SEQUENCE OF SEQUENCE {
 		   attributeType   AttributeDescription,
 		   orderingRule    [0] MatchingRuleId OPTIONAL,
 		   reverseOrder    [1] BOOLEAN DEFAULT FALSE }
-   
+
    ---------------------------------------------------------------------------*/
 
 int
@@ -437,26 +437,26 @@ ldap_create_sort_control(
 
 /* ---------------------------------------------------------------------------
    ldap_parse_sortedresult_control
-   
+
    Decode the server-side sort control return information.
 
    ld          (IN) An LDAP session handle, as obtained from a call to
 					ldap_init().
 
    ctrl        (IN) The address of the LDAP Control Structure.
-				  
+
    returnCode (OUT) This result parameter is filled in with the sort control
 					result code.  This parameter MUST not be NULL.
-				  
+
    attribute  (OUT) If an error occured the server may return a string
 					indicating the first attribute in the sortkey list
 					that was in error.  If a string is returned, the memory
 					should be freed with ldap_memfree.  If this parameter is
 					NULL, no string is returned.
-   
-			   
+
+
    Ber encoding for sort control
-	 
+
 	 SortResult ::= SEQUENCE {
 		sortResult  ENUMERATED {
 			success                   (0), -- results are sorted

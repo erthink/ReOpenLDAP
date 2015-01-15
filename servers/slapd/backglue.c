@@ -340,7 +340,7 @@ glue_chk_controls ( Operation *op, SlapReply *rs )
 		rc = ( *op->o_bd->bd_info->bi_chk_controls )( op, rs );
 	}
 
-	
+
 	if ( rc == SLAP_CB_CONTINUE ) {
 		rc = backend_check_controls( op, rs );
 	}
@@ -462,7 +462,7 @@ glue_op_search ( Operation *op, SlapReply *rs )
 		b1 = op->o_bd;
 
 		/*
-		 * Execute in reverse order, most specific first 
+		 * Execute in reverse order, most specific first
 		 */
 		for (i = gi->gi_nodes; i >= 0; i--) {
 			if ( i == gi->gi_nodes ) {
@@ -496,7 +496,7 @@ glue_op_search ( Operation *op, SlapReply *rs )
 			}
 			rs->sr_err = 0;
 			/*
-			 * check for abandon 
+			 * check for abandon
 			 */
 			if (op->o_abandon) {
 				goto end_of_loop;
@@ -505,8 +505,8 @@ glue_op_search ( Operation *op, SlapReply *rs )
 
 			assert( op->o_bd->be_suffix != NULL );
 			assert( op->o_bd->be_nsuffix != NULL );
-			
-			if (scope0 == LDAP_SCOPE_ONELEVEL && 
+
+			if (scope0 == LDAP_SCOPE_ONELEVEL &&
 				dn_match(pdn, &ndn))
 			{
 				struct berval mdn, mndn;
@@ -575,7 +575,7 @@ glue_op_search ( Operation *op, SlapReply *rs )
 					 */
 					if ( rs->sr_nentries >= ps->ps_size ) {
 						PagedResultsState *cps = &op->o_conn->c_pagedresults_state;
-						
+
 						/* Don't bother to remember the first backend.
 						 * Only remember the last one if there's more state left.
 						 */
@@ -605,7 +605,7 @@ glue_op_search ( Operation *op, SlapReply *rs )
 								ber_tag_t	tag;
 								ber_int_t	size;
 								struct berval	cookie, value;
-							
+
 								ber_init2( ber, &gs.ctrls[c]->ldctl_value, LBER_USE_DER );
 
 								tag = ber_scanf( ber, "{im}", &size, &cookie );
@@ -690,7 +690,7 @@ glue_op_search ( Operation *op, SlapReply *rs )
 						ber_free_buf( ber );
 					}
 				}
-				
+
 			default:
 				break;
 			}
@@ -758,27 +758,27 @@ glue_tool_entry_open (
 		for (i = 0; i < gi->gi_nodes; i++) {
 			BackendDB *bd;
 			struct berval pdn;
-	
+
 			dnParent( &gi->gi_n[i].gn_be->be_nsuffix[0], &pdn );
 			bd = select_backend( &pdn, 0 );
 			if ( bd ) {
 				ID id;
 				BackendDB db;
-	
+
 				if ( overlay_is_over( bd ) ) {
 					slap_overinfo *oi = (slap_overinfo *)bd->bd_info;
 					db = *bd;
 					db.bd_info = oi->oi_orig;
 					bd = &db;
 				}
-	
+
 				if ( !bd->bd_info->bi_tool_dn2id_get
 					|| !bd->bd_info->bi_tool_entry_open
 					|| !bd->bd_info->bi_tool_entry_close )
 				{
 					continue;
 				}
-	
+
 				bd->bd_info->bi_tool_entry_open( bd, 0 );
 				id = bd->bd_info->bi_tool_dn2id_get( bd, &gi->gi_n[i].gn_be->be_nsuffix[0] );
 				bd->bd_info->bi_tool_entry_close( bd );
@@ -791,7 +791,7 @@ glue_tool_entry_open (
 			}
 		}
 	}
-	
+
 	return 0;
 }
 
@@ -1334,7 +1334,7 @@ glue_db_destroy (
 }
 
 static int
-glue_db_close( 
+glue_db_close(
 	BackendDB *be,
 	ConfigReply *cr
 )

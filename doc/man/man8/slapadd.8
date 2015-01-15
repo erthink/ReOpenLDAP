@@ -69,11 +69,11 @@ or change file ownership before running
 .BR slapd (8).
 
 Note: slapadd will also perform the relevant indexing whilst adding the database if
-any are configured. For specfic details, please see 
+any are configured. For specfic details, please see
 .BR slapindex (8).
 .SH OPTIONS
 .TP
-.BI \-b \ suffix 
+.BI \-b \ suffix
 Use the specified \fIsuffix\fR to determine which database to
 add entries to.  The \fB\-b\fP cannot be used in conjunction
 with the
@@ -130,7 +130,7 @@ cannot be used in conjunction with the
 option.
 To populate the config database
 .BR slapd\-config (5),
-use 
+use
 .B \-n 0
 as it is always the first database. It must physically exist
 on the filesystem prior to this, however.
@@ -184,10 +184,10 @@ will be updated with the greatest CSN in the database.
 .SH LIMITATIONS
 Your
 .BR slapd (8)
-should not be running 
+should not be running
 when you do this to ensure consistency of the database.
 .LP
-.B slapadd 
+.B slapadd
 may not provide naming or schema checks.  It is advisable to
 use
 .BR ldapadd (1)

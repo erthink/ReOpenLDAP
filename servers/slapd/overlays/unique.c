@@ -14,7 +14,7 @@
  * top-level directory of the distribution or, alternatively, at
  * <http://www.OpenLDAP.org/license.html>.
  */
-/* ACKNOWLEDGEMENTS: 
+/* ACKNOWLEDGEMENTS:
  * This work was initially developed by Symas Corporation for
  * inclusion in OpenLDAP Software, with subsequent enhancements by
  * Emily Backes at Symas Corporation.  This work was sponsored by

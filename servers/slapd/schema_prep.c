@@ -238,7 +238,7 @@ objectSubClassMatch(
 	return LDAP_SUCCESS;
 }
 
-static int objectSubClassIndexer( 
+static int objectSubClassIndexer(
 	slap_mask_t use,
 	slap_mask_t mask,
 	Syntax *syntax,
@@ -251,7 +251,7 @@ static int objectSubClassIndexer(
 	int rc, noc, i;
 	BerVarray ocvalues;
 	ObjectClass **socs;
-	
+
 	for( noc=0; values[noc].bv_val != NULL; noc++ ) {
 		/* just count em */;
 	}
@@ -269,7 +269,7 @@ static int objectSubClassIndexer(
 		int j;
 		ObjectClass *oc = socs[i];
 		if( oc == NULL || oc->soc_sups == NULL ) continue;
-		
+
 		for( j=0; oc->soc_sups[j] != NULL; j++ ) {
 			int found = 0;
 			ObjectClass *sup = oc->soc_sups[j];
@@ -532,7 +532,7 @@ static struct slap_schema_ad_map {
 		offsetof(struct slap_internal_schema, si_ad_collectiveExclusions) },
 #endif
 
-	{ "entryDN", "( 1.3.6.1.1.20 NAME 'entryDN' "   
+	{ "entryDN", "( 1.3.6.1.1.20 NAME 'entryDN' "
 			"DESC 'DN of the entry' "
 			"EQUALITY distinguishedNameMatch "
 			"SYNTAX 1.3.6.1.4.1.1466.115.121.1.12 "
@@ -541,7 +541,7 @@ static struct slap_schema_ad_map {
 		NULL, NULL,
 		NULL, NULL, NULL, NULL, NULL,
 		offsetof(struct slap_internal_schema, si_ad_entryDN) },
-	{ "entryUUID", "( 1.3.6.1.1.16.4 NAME 'entryUUID' "   
+	{ "entryUUID", "( 1.3.6.1.1.16.4 NAME 'entryUUID' "
 			"DESC 'UUID of the entry' "
 			"EQUALITY UUIDMatch "
 			"ORDERING UUIDOrderingMatch "
@@ -573,7 +573,7 @@ static struct slap_schema_ad_map {
 		offsetof(struct slap_internal_schema, si_ad_namingCSN) },
 
 #ifdef LDAP_SUPERIOR_UUID
-	{ "superiorUUID", "( 1.3.6.1.4.1.4203.666.1.11 NAME 'superiorUUID' "   
+	{ "superiorUUID", "( 1.3.6.1.4.1.4203.666.1.11 NAME 'superiorUUID' "
 			"DESC 'UUID of the superior entry' "
 			"EQUALITY UUIDMatch "
 			"ORDERING UUIDOrderingMatch "

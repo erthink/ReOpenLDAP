@@ -63,10 +63,10 @@ typedef struct monitor_entry_t {
 #define	MONITOR_F_NONE		0x0000U
 #define MONITOR_F_SUB		0x0001U		/* subentry of subsystem */
 #define MONITOR_F_PERSISTENT	0x0010U		/* persistent entry */
-#define MONITOR_F_PERSISTENT_CH	0x0020U		/* subsystem generates 
+#define MONITOR_F_PERSISTENT_CH	0x0020U		/* subsystem generates
 						   persistent entries */
 #define MONITOR_F_VOLATILE	0x0040U		/* volatile entry */
-#define MONITOR_F_VOLATILE_CH	0x0080U		/* subsystem generates 
+#define MONITOR_F_VOLATILE_CH	0x0080U		/* subsystem generates
 						   volatile entries */
 #define MONITOR_F_EXTERNAL	0x0100U		/* externally added - don't free */
 /* NOTE: flags with 0xF0000000U mask are reserved for subsystem internals */

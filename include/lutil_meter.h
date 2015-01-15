@@ -58,7 +58,7 @@ extern const lutil_meter_estimator_t lutil_meter_linear_estimator;
 
 extern int lutil_meter_open (
 	lutil_meter_t *lutil_meter,
-	const lutil_meter_display_t *display, 
+	const lutil_meter_display_t *display,
 	const lutil_meter_estimator_t *estimator,
 	size_t goal_value);
 extern int lutil_meter_update (

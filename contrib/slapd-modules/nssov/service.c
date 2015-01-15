@@ -1,6 +1,6 @@
 /* service.c - service lookup routines */
 /* $OpenLDAP$ */
-/* This work is part of OpenLDAP Software <http://www.openldap.org/>. 
+/* This work is part of OpenLDAP Software <http://www.openldap.org/>.
  *
  * Copyright 2008-2014 The OpenLDAP Foundation.
  * Portions Copyright 2008 by Howard Chu, Symas Corp.

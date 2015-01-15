@@ -56,15 +56,15 @@ void LDAPConstraints::setAliasDeref(int deref){
     DEBUG(LDAP_DEBUG_TRACE,"LDAPConstraints::setAliasDeref()" << endl);
     DEBUG(LDAP_DEBUG_TRACE | LDAP_DEBUG_PARAMETER,
             "   deref:" << deref << endl);
-    if( (deref == LDAPConstraints::DEREF_NEVER) || 
+    if( (deref == LDAPConstraints::DEREF_NEVER) ||
             (deref == LDAPConstraints::DEREF_SEARCHING) ||
             (deref == LDAPConstraints::DEREF_FINDING) ||
-            (deref == LDAPConstraints::DEREF_ALWAYS) 
+            (deref == LDAPConstraints::DEREF_ALWAYS)
         ){
         m_aliasDeref=deref;
     }
 }
-        
+
 
 void LDAPConstraints::setMaxTime(int t){
     DEBUG(LDAP_DEBUG_TRACE,"LDAPConstraints::setMaxTime()" << endl);
@@ -148,7 +148,7 @@ LDAPControl** LDAPConstraints::getSrvCtrlsArray() const {
 LDAPControl** LDAPConstraints::getClCtrlsArray() const {
     DEBUG(LDAP_DEBUG_TRACE,"LDAPContstraints::getClCtrlsArray()" << endl);
     if(m_clientControls){
-        return m_clientControls->toLDAPControlArray(); 
+        return m_clientControls->toLDAPControlArray();
     }else{
         return 0;
     }

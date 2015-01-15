@@ -90,7 +90,7 @@ PB:
 !include "troubleshooting.sdf"; chapter
 PB:
 
-# Appendices 
+# Appendices
 !include "appendix-changes.sdf"; appendix
 PB:
 
@@ -102,7 +102,7 @@ PB:
 !include "appendix-common-errors.sdf"; appendix
 PB:
 
-# What versions we recommend 
+# What versions we recommend
 !include "appendix-recommended-versions.sdf"; appendix
 PB:
 
@@ -127,7 +127,7 @@ PB:
 !include "glossary.sdf"; appendix
 PB:
 
-# Autoconf 
+# Autoconf
 !include "../release/autoconf.sdf"; appendix
 PB:
 

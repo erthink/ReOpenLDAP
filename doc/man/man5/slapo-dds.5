@@ -12,7 +12,7 @@ The
 overlay to
 .BR slapd (8)
 implements dynamic objects as per RFC 2589.
-The name 
+The name
 .B dds
 stands for
 Dynamic Directory Services.
@@ -27,7 +27,7 @@ extended operation.
 This operation allows to set the Client Refresh Period (CRP),
 namely the period between refreshes that is required to preserve the
 dynamic object from expiration.
-The expiration time is computed by adding the requested TTL to the 
+The expiration time is computed by adding the requested TTL to the
 current time.
 When dynamic objects reach the end of their lifetime without being
 further refreshed, they are automatically deleted.
@@ -43,9 +43,9 @@ In this implementation, the lifetime of dynamic objects with subordinates
 is prolonged until all the dynamic subordinates expire.
 
 
-This 
+This
 .BR slapd.conf (5)
-directive adds the 
+directive adds the
 .B dds
 overlay to the current database:
 
@@ -57,9 +57,9 @@ The database must have a
 .B rootdn
 specified, otherwise, the
 .B dds
-overlay will not be able to delete expired objects. The 
+overlay will not be able to delete expired objects. The
 .B dds
-overlay may be used with any backend that implements the 
+overlay may be used with any backend that implements the
 .BR add ,
 .BR modify ,
 .BR search ,
@@ -70,12 +70,12 @@ Since its use may result in many internal entry lookups, adds
 and deletes, it should be best used in conjunction with backends
 that have reasonably good write performances.
 
-.LP 
+.LP
 The config directives that are specific to the
 .B dds
 overlay are prefixed by
 .BR dds\- ,
-to avoid potential conflicts with directives specific to the underlying 
+to avoid potential conflicts with directives specific to the underlying
 database or to other stacked overlays.
 
 .TP
@@ -118,7 +118,7 @@ attribute, but its lifetime will actually be
 Note that there is no guarantee that the lifetime of a dynamic object
 will be
 .I exactly
-the requested TTL; due to implementation details, it may be longer, which 
+the requested TTL; due to implementation details, it may be longer, which
 is allowed by RFC 2589.
 By default, tolerance is 0.
 
@@ -140,20 +140,20 @@ dynamic objects is available.
 .SH ACCESS CONTROL
 The
 .B dds
-overlay restricts the refresh operation by requiring 
+overlay restricts the refresh operation by requiring
 .B manage
-access to the 
+access to the
 .B entryTtl
 attribute (see
 .BR slapd.access (5)
-for details about the 
+for details about the
 .B manage
 access privilege).
 Since the
 .B entryTtl
 is an operational, NO-USER-MODIFICATION attribute, no direct write access
 to it is possible.
-So the 
+So the
 .B dds
 overlay turns refresh extended operation into an internal modification to
 the value of the
@@ -164,7 +164,7 @@ control set.
 
 RFC 2589 recommends that anonymous clients should not be allowed to refresh
 a dynamic object.
-This can be implemented by appropriately crafting access control to obtain 
+This can be implemented by appropriately crafting access control to obtain
 the desired effect.
 
 Example: restrict refresh to authenticated clients
@@ -188,12 +188,12 @@ access to attrs=entryTtl
 .fi
 .RE
 Another suggested usage of dynamic objects is to implement dynamic meetings;
-in this case, all the participants to the meeting are allowed to refresh 
+in this case, all the participants to the meeting are allowed to refresh
 the meeting object, but only the creator can delete it (otherwise it will
 be deleted when the TTL expires)
 
-Example: assuming \fIparticipant\fP is a valid DN-valued attribute, 
-allow users to start a meeting and to join it; restrict refresh 
+Example: assuming \fIparticipant\fP is a valid DN-valued attribute,
+allow users to start a meeting and to join it; restrict refresh
 to the participants; restrict delete to the creator
 
 .RS
@@ -227,17 +227,17 @@ dynamic objects replicate.  Only the master takes care of handling dynamic
 object expiration, while replicas simply see the dynamic object as a plain
 object.
 
-When replicating these objects, one needs to explicitly exclude the 
+When replicating these objects, one needs to explicitly exclude the
 .B dynamicObject
 class and the
 .B entryTtl
 attribute.
 This implementation of RFC 2589 introduces a new operational attribute,
 .BR entryExpireTimestamp ,
-that contains the expiration timestamp.  This must be excluded from 
+that contains the expiration timestamp.  This must be excluded from
 replication as well.
 
-The quick and dirty solution is to set 
+The quick and dirty solution is to set
 .B schemacheck=off
 in the syncrepl configuration
 and, optionally, exclude the operational attributes from replication, using
@@ -249,12 +249,12 @@ syncrepl ...
 .fi
 .RE
 
-In any case the overlay must be either statically built in or run-time loaded 
-by the consumer, so that it is aware of the 
+In any case the overlay must be either statically built in or run-time loaded
+by the consumer, so that it is aware of the
 .B entryExpireTimestamp
-operational attribute; however, it must not be configured in the shadow 
+operational attribute; however, it must not be configured in the shadow
 database.
-Currently, there is no means to remove the 
+Currently, there is no means to remove the
 .B dynamicObject
 class from the entry; this may be seen as a feature, since it allows to see
 the dynamic properties of the object.

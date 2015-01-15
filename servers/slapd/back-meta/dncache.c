@@ -74,7 +74,7 @@ meta_dncache_dup(
 {
 	metadncacheentry_t	*cc1 = ( metadncacheentry_t * )c1;
 	metadncacheentry_t	*cc2 = ( metadncacheentry_t * )c2;
-	
+
 	/*
 	 * case sensitive, because the dn MUST be normalized
 	 */
@@ -105,13 +105,13 @@ meta_dncache_get_target(
 			( caddr_t )&tmp_entry, meta_dncache_cmp );
 
 	if ( entry != NULL ) {
-		
+
 		/*
 		 * if cache->ttl < 0, cache never expires;
 		 * if cache->ttl = 0 no cache is used; shouldn't get here
 		 * else, cache is used with ttl
 		 */
-		if ( cache->ttl < 0 ) { 
+		if ( cache->ttl < 0 ) {
 			target = entry->target;
 
 		} else {
@@ -224,7 +224,7 @@ meta_dncache_delete_entry(
  * meta_dncache_free
  *
  * frees an entry
- * 
+ *
  */
 void
 meta_dncache_free(

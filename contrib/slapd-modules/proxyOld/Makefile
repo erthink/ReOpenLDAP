@@ -21,7 +21,7 @@ LDAP_LIB = $(LDAP_BUILD)/libraries/libldap_r/libldap_r.la \
 LIBTOOL = $(LDAP_BUILD)/libtool
 CC = gcc
 OPT = -g -O2 -Wall
-DEFS = 
+DEFS =
 INCS = $(LDAP_INC)
 LIBS = $(LDAP_LIB)
 

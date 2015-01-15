@@ -192,7 +192,7 @@ slapacl( int argc, char **argv )
 	if ( !BER_BVISNULL( &authzDN ) ) {
 		op->o_dn = authzDN;
 		op->o_ndn = authzDN;
-		
+
 		if ( !BER_BVISNULL( &authcDN ) ) {
 			op->o_conn->c_dn = authcDN;
 			op->o_conn->c_ndn = authcDN;

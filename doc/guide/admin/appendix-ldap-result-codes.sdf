@@ -4,11 +4,11 @@
 
 H1:  LDAP Result Codes
 
-For the purposes of this guide, we have incorporated the standard LDAP result 
-codes from {{Appendix A.  LDAP Result Codes}} of {{REF:RFC4511}}, a copy of which can 
+For the purposes of this guide, we have incorporated the standard LDAP result
+codes from {{Appendix A.  LDAP Result Codes}} of {{REF:RFC4511}}, a copy of which can
 be found in {{F:doc/rfc}} of the OpenLDAP source code.
 
-We have expanded the description of each error in relation to the OpenLDAP 
+We have expanded the description of each error in relation to the OpenLDAP
 toolsets.
 LDAP extensions may introduce extension-specific result codes, which are not part
 of RFC4511.
@@ -39,9 +39,9 @@ Existing LDAP result codes are described as follows:
 
 H2: success (0)
 
-Indicates the successful completion of an operation.  
+Indicates the successful completion of an operation.
 
-Note: this code is not used with the Compare operation.  See {{SECT:compareFalse (5)}} 
+Note: this code is not used with the Compare operation.  See {{SECT:compareFalse (5)}}
 and {{SECT:compareTrue (6)}}.
 
 H2: operationsError (1)

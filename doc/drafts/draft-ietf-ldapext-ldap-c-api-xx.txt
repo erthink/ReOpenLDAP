@@ -52,7 +52,7 @@ information.
 
 
 Expires: May 2001                                               [Page 1]
-
+
 C LDAP API        C LDAP Application Program Interface  17 November 2000
 
 
@@ -108,7 +108,7 @@ list of changes made since the last revision of this document.
 
 
 Expires: May 2001                                               [Page 2]
-
+
 C LDAP API        C LDAP Application Program Interface  17 November 2000
 
 
@@ -164,7 +164,7 @@ C LDAP API        C LDAP Application Program Interface  17 November 2000
 
 
 Expires: May 2001                                               [Page 3]
-
+
 C LDAP API        C LDAP Application Program Interface  17 November 2000
 
 
@@ -220,7 +220,7 @@ An application generally uses the C LDAP API in four simple steps.
 
 
 Expires: May 2001                                               [Page 4]
-
+
 C LDAP API        C LDAP Application Program Interface  17 November 2000
 
 
@@ -276,7 +276,7 @@ sets.
 
 
 Expires: May 2001                                               [Page 5]
-
+
 C LDAP API        C LDAP Application Program Interface  17 November 2000
 
 
@@ -332,7 +332,7 @@ Idempotence
 
 
 Expires: May 2001                                               [Page 6]
-
+
 C LDAP API        C LDAP Application Program Interface  17 November 2000
 
 
@@ -388,7 +388,7 @@ are defined here:
 
 
 Expires: May 2001                                               [Page 7]
-
+
 C LDAP API        C LDAP Application Program Interface  17 November 2000
 
 
@@ -444,7 +444,7 @@ fields have the following meanings:
 
 
 Expires: May 2001                                               [Page 8]
-
+
 C LDAP API        C LDAP Application Program Interface  17 November 2000
 
 
@@ -500,7 +500,7 @@ both at compile time and during execution.
 
 
 Expires: May 2001                                               [Page 9]
-
+
 C LDAP API        C LDAP Application Program Interface  17 November 2000
 
 
@@ -556,7 +556,7 @@ construct such as this one:
 
 
 Expires: May 2001                                              [Page 10]
-
+
 C LDAP API        C LDAP Application Program Interface  17 November 2000
 
 
@@ -612,7 +612,7 @@ LDAPAPIInfo structure which is defined as follows:
 
 
 Expires: May 2001                                              [Page 11]
-
+
 C LDAP API        C LDAP Application Program Interface  17 November 2000
 
 
@@ -668,7 +668,7 @@ ldapai_vendor_name
 
 
 Expires: May 2001                                              [Page 12]
-
+
 C LDAP API        C LDAP Application Program Interface  17 November 2000
 
 
@@ -724,7 +724,7 @@ ldapai_extensions
 
 
 Expires: May 2001                                              [Page 13]
-
+
 C LDAP API        C LDAP Application Program Interface  17 November 2000
 
 
@@ -780,7 +780,7 @@ parentheses after the constant):
 
 
 Expires: May 2001                                              [Page 14]
-
+
 C LDAP API        C LDAP Application Program Interface  17 November 2000
 
 
@@ -836,7 +836,7 @@ C LDAP API        C LDAP Application Program Interface  17 November 2000
 
 
 Expires: May 2001                                              [Page 15]
-
+
 C LDAP API        C LDAP Application Program Interface  17 November 2000
 
 
@@ -892,7 +892,7 @@ portno   Contains the TCP port number to connect to. The default LDAP
 
 
 Expires: May 2001                                              [Page 16]
-
+
 C LDAP API        C LDAP Application Program Interface  17 November 2000
 
 
@@ -948,7 +948,7 @@ request that caused the referrals to be returned.
 
 
 Expires: May 2001                                              [Page 17]
-
+
 C LDAP API        C LDAP Application Program Interface  17 November 2000
 
 
@@ -1004,7 +1004,7 @@ option The name of the option being accessed or set. This parameter
 
 
 Expires: May 2001                                              [Page 18]
-
+
 C LDAP API        C LDAP Application Program Interface  17 November 2000
 
 
@@ -1060,7 +1060,7 @@ C LDAP API        C LDAP Application Program Interface  17 November 2000
 
 
 Expires: May 2001                                              [Page 19]
-
+
 C LDAP API        C LDAP Application Program Interface  17 November 2000
 
 
@@ -1116,7 +1116,7 @@ C LDAP API        C LDAP Application Program Interface  17 November 2000
 
 
 Expires: May 2001                                              [Page 20]
-
+
 C LDAP API        C LDAP Application Program Interface  17 November 2000
 
 
@@ -1172,7 +1172,7 @@ C LDAP API        C LDAP Application Program Interface  17 November 2000
 
 
 Expires: May 2001                                              [Page 21]
-
+
 C LDAP API        C LDAP Application Program Interface  17 November 2000
 
 
@@ -1228,7 +1228,7 @@ ment are reserved and SHOULD NOT be used.  The following macro MUST be
 
 
 Expires: May 2001                                              [Page 22]
-
+
 C LDAP API        C LDAP Application Program Interface  17 November 2000
 
 
@@ -1284,7 +1284,7 @@ If the ctrl or ctrls parameter is NULL, these calls do nothing.
 
 
 Expires: May 2001                                              [Page 23]
-
+
 C LDAP API        C LDAP Application Program Interface  17 November 2000
 
 
@@ -1340,7 +1340,7 @@ the two flag values (0x00000060U) to indicate that both referrals and
 
 
 Expires: May 2001                                              [Page 24]
-
+
 C LDAP API        C LDAP Application Program Interface  17 November 2000
 
 
@@ -1396,7 +1396,7 @@ ldap_simple_bind() or ldap_simple_bind_s() can be used.
 
 
 Expires: May 2001                                              [Page 25]
-
+
 C LDAP API        C LDAP Application Program Interface  17 November 2000
 
 
@@ -1452,7 +1452,7 @@ msgidp       This result parameter will be set to the message id of the
 
 
 Expires: May 2001                                              [Page 26]
-
+
 C LDAP API        C LDAP Application Program Interface  17 November 2000
 
 
@@ -1508,7 +1508,7 @@ open connections, and dispose of the session handle.
 
 
 Expires: May 2001                                              [Page 27]
-
+
 C LDAP API        C LDAP Application Program Interface  17 November 2000
 
 
@@ -1564,7 +1564,7 @@ variations.
 
 
 Expires: May 2001                                              [Page 28]
-
+
 C LDAP API        C LDAP Application Program Interface  17 November 2000
 
 
@@ -1620,7 +1620,7 @@ C LDAP API        C LDAP Application Program Interface  17 November 2000
 
 
 Expires: May 2001                                              [Page 29]
-
+
 C LDAP API        C LDAP Application Program Interface  17 November 2000
 
 
@@ -1676,7 +1676,7 @@ timeout      For the ldap_search_st() function, this specifies the local
 
 
 Expires: May 2001                                              [Page 30]
-
+
 C LDAP API        C LDAP Application Program Interface  17 November 2000
 
 
@@ -1732,7 +1732,7 @@ of the request in *msgidp. A subsequent call to ldap_result(), described
 
 
 Expires: May 2001                                              [Page 31]
-
+
 C LDAP API        C LDAP Application Program Interface  17 November 2000
 
 
@@ -1788,7 +1788,7 @@ entry.
 
 
 Expires: May 2001                                              [Page 32]
-
+
 C LDAP API        C LDAP Application Program Interface  17 November 2000
 
 
@@ -1844,7 +1844,7 @@ bvalue       The attribute value to compare against those found in the
 
 
 Expires: May 2001                                              [Page 33]
-
+
 C LDAP API        C LDAP Application Program Interface  17 November 2000
 
 
@@ -1900,7 +1900,7 @@ server controls and client controls.
 
 
 Expires: May 2001                                              [Page 34]
-
+
 C LDAP API        C LDAP Application Program Interface  17 November 2000
 
 
@@ -1956,7 +1956,7 @@ Parameters are:
 
 
 Expires: May 2001                                              [Page 35]
-
+
 C LDAP API        C LDAP Application Program Interface  17 November 2000
 
 
@@ -2012,7 +2012,7 @@ removed if the mod_vals field is NULL. All modifications are performed
 
 
 Expires: May 2001                                              [Page 36]
-
+
 C LDAP API        C LDAP Application Program Interface  17 November 2000
 
 
@@ -2068,7 +2068,7 @@ cated.
 
 
 Expires: May 2001                                              [Page 37]
-
+
 C LDAP API        C LDAP Application Program Interface  17 November 2000
 
 
@@ -2124,7 +2124,7 @@ newparent    The new parent, or superior entry.  If this parameter is
 
 
 Expires: May 2001                                              [Page 38]
-
+
 C LDAP API        C LDAP Application Program Interface  17 November 2000
 
 
@@ -2180,7 +2180,7 @@ There are four variations:
 
 
 Expires: May 2001                                              [Page 39]
-
+
 C LDAP API        C LDAP Application Program Interface  17 November 2000
 
 
@@ -2236,7 +2236,7 @@ msgidp       This result parameter will be set to the message id of the
 
 
 Expires: May 2001                                              [Page 40]
-
+
 C LDAP API        C LDAP Application Program Interface  17 November 2000
 
 
@@ -2292,7 +2292,7 @@ directory.  There are four variations:
 
 
 Expires: May 2001                                              [Page 41]
-
+
 C LDAP API        C LDAP Application Program Interface  17 November 2000
 
 
@@ -2348,7 +2348,7 @@ sion error parameters in the LDAP structure appropriately.
 
 
 Expires: May 2001                                              [Page 42]
-
+
 C LDAP API        C LDAP Application Program Interface  17 November 2000
 
 
@@ -2404,7 +2404,7 @@ clientctrls  List of client controls, or NULL if no client controls are
 
 
 Expires: May 2001                                              [Page 43]
-
+
 C LDAP API        C LDAP Application Program Interface  17 November 2000
 
 
@@ -2460,7 +2460,7 @@ The following calls are used to abandon an operation in progress:
 
 
 Expires: May 2001                                              [Page 44]
-
+
 C LDAP API        C LDAP Application Program Interface  17 November 2000
 
 
@@ -2516,7 +2516,7 @@ nous search routine will never be affected by subsequent LDAP API calls
 
 
 Expires: May 2001                                              [Page 45]
-
+
 C LDAP API        C LDAP Application Program Interface  17 November 2000
 
 
@@ -2572,7 +2572,7 @@ timeout  A timeout specifying how long to wait for results to be
 
 
 Expires: May 2001                                              [Page 46]
-
+
 C LDAP API        C LDAP Application Program Interface  17 November 2000
 
 
@@ -2628,7 +2628,7 @@ result information from SASL Bind and Extended Operations respectively.
 
 
 Expires: May 2001                                              [Page 47]
-
+
 C LDAP API        C LDAP Application Program Interface  17 November 2000
 
 
@@ -2684,7 +2684,7 @@ res          The result of an LDAP operation as returned by
 
 
 Expires: May 2001                                              [Page 48]
-
+
 C LDAP API        C LDAP Application Program Interface  17 November 2000
 
 
@@ -2740,7 +2740,7 @@ servercredp  For SASL bind results, this result parameter will be filled
 
 
 Expires: May 2001                                              [Page 49]
-
+
 C LDAP API        C LDAP Application Program Interface  17 November 2000
 
 
@@ -2796,7 +2796,7 @@ NOT return NULL; the value returned is always a valid null-terminated
 
 
 Expires: May 2001                                              [Page 50]
-
+
 C LDAP API        C LDAP Application Program Interface  17 November 2000
 
 
@@ -2852,7 +2852,7 @@ returned, step through the attributes of an entry, retrieve the name of
 
 
 Expires: May 2001                                              [Page 51]
-
+
 C LDAP API        C LDAP Application Program Interface  17 November 2000
 
 
@@ -2908,7 +2908,7 @@ of entries; if an error occurs such as the res parameter being invalid,
 
 
 Expires: May 2001                                              [Page 52]
-
+
 C LDAP API        C LDAP Application Program Interface  17 November 2000
 
 
@@ -2964,7 +2964,7 @@ mem    A pointer to memory allocated by the LDAP library, such as the
 
 
 Expires: May 2001                                              [Page 53]
-
+
 C LDAP API        C LDAP Application Program Interface  17 November 2000
 
 
@@ -3020,7 +3020,7 @@ ldap_value_free() and ldap_value_free_len() are used to free the values.
 
 
 Expires: May 2001                                              [Page 54]
-
+
 C LDAP API        C LDAP Application Program Interface  17 November 2000
 
 
@@ -3076,7 +3076,7 @@ a more "user friendly" format.
 
 
 Expires: May 2001                                              [Page 55]
-
+
 C LDAP API        C LDAP Application Program Interface  17 November 2000
 
 
@@ -3132,7 +3132,7 @@ entry.
 
 
 Expires: May 2001                                              [Page 56]
-
+
 C LDAP API        C LDAP Application Program Interface  17 November 2000
 
 
@@ -3188,7 +3188,7 @@ ref          The reference to parse, as returned by ldap_result(),
 
 
 Expires: May 2001                                              [Page 57]
-
+
 C LDAP API        C LDAP Application Program Interface  17 November 2000
 
 
@@ -3244,7 +3244,7 @@ tion of BER encoded ASN.1 values:
 
 
 Expires: May 2001                                              [Page 58]
-
+
 C LDAP API        C LDAP Application Program Interface  17 November 2000
 
 
@@ -3300,7 +3300,7 @@ ment structure is an opaque structure:
 
 
 Expires: May 2001                                              [Page 59]
-
+
 C LDAP API        C LDAP Application Program Interface  17 November 2000
 
 
@@ -3356,7 +3356,7 @@ One option is defined and SHOULD always be supplied:
 
 
 Expires: May 2001                                              [Page 60]
-
+
 C LDAP API        C LDAP Application Program Interface  17 November 2000
 
 
@@ -3412,7 +3412,7 @@ The format string can contain the following format characters:
 
 
 Expires: May 2001                                              [Page 61]
-
+
 C LDAP API        C LDAP Application Program Interface  17 November 2000
 
 
@@ -3468,7 +3468,7 @@ C LDAP API        C LDAP Application Program Interface  17 November 2000
 
 
 Expires: May 2001                                              [Page 62]
-
+
 C LDAP API        C LDAP Application Program Interface  17 November 2000
 
 
@@ -3524,7 +3524,7 @@ The following is an example of encoding the following ASN.1 data type:
 
 
 Expires: May 2001                                              [Page 63]
-
+
 C LDAP API        C LDAP Application Program Interface  17 November 2000
 
 
@@ -3580,7 +3580,7 @@ the NULL pointer on error.
 
 
 Expires: May 2001                                              [Page 64]
-
+
 C LDAP API        C LDAP Application Program Interface  17 November 2000
 
 
@@ -3636,7 +3636,7 @@ contain the following characters:
 
 
 Expires: May 2001                                              [Page 65]
-
+
 C LDAP API        C LDAP Application Program Interface  17 November 2000
 
 
@@ -3692,7 +3692,7 @@ C LDAP API        C LDAP Application Program Interface  17 November 2000
 
 
 Expires: May 2001                                              [Page 66]
-
+
 C LDAP API        C LDAP Application Program Interface  17 November 2000
 
 
@@ -3748,7 +3748,7 @@ The following is an example of decoding an ASN.1 data type:
 
 
 Expires: May 2001                                              [Page 67]
-
+
 C LDAP API        C LDAP Application Program Interface  17 November 2000
 
 
@@ -3804,7 +3804,7 @@ C LDAP API        C LDAP Application Program Interface  17 November 2000
 
 
 Expires: May 2001                                              [Page 68]
-
+
 C LDAP API        C LDAP Application Program Interface  17 November 2000
 
 
@@ -3860,7 +3860,7 @@ C LDAP API        C LDAP Application Program Interface  17 November 2000
 
 
 Expires: May 2001                                              [Page 69]
-
+
 C LDAP API        C LDAP Application Program Interface  17 November 2000
 
 
@@ -3916,7 +3916,7 @@ dards process must be followed, or as required to translate it into
 
 
 Expires: May 2001                                              [Page 70]
-
+
 C LDAP API        C LDAP Application Program Interface  17 November 2000
 
 
@@ -3972,7 +3972,7 @@ NESS FOR A PARTICULAR PURPOSE.
 
 
 Expires: May 2001                                              [Page 71]
-
+
 C LDAP API        C LDAP Application Program Interface  17 November 2000
 
 
@@ -4028,7 +4028,7 @@ C LDAP API        C LDAP Application Program Interface  17 November 2000
 
 
 Expires: May 2001                                              [Page 72]
-
+
 C LDAP API        C LDAP Application Program Interface  17 November 2000
 
 
@@ -4084,7 +4084,7 @@ C LDAP API        C LDAP Application Program Interface  17 November 2000
 
 
 Expires: May 2001                                              [Page 73]
-
+
 C LDAP API        C LDAP Application Program Interface  17 November 2000
 
 
@@ -4140,7 +4140,7 @@ tures, unions, and typedefs:
 
 
 Expires: May 2001                                              [Page 74]
-
+
 C LDAP API        C LDAP Application Program Interface  17 November 2000
 
 
@@ -4196,7 +4196,7 @@ tion, or types defined in the extension document itself.
 
 
 Expires: May 2001                                              [Page 75]
-
+
 C LDAP API        C LDAP Application Program Interface  17 November 2000
 
 
@@ -4252,7 +4252,7 @@ opaque.  The new ldap_set_option() and ldap_get_option() calls can be
 
 
 Expires: May 2001                                              [Page 76]
-
+
 C LDAP API        C LDAP Application Program Interface  17 November 2000
 
 
@@ -4308,7 +4308,7 @@ the value set in the ptr parameter SHOULD be freed by calling ber_free(
 
 
 Expires: May 2001                                              [Page 77]
-
+
 C LDAP API        C LDAP Application Program Interface  17 November 2000
 
 
@@ -4364,7 +4364,7 @@ are:
 
 
 Expires: May 2001                                              [Page 78]
-
+
 C LDAP API        C LDAP Application Program Interface  17 November 2000
 
 
@@ -4420,7 +4420,7 @@ structure while preserving existing ILP32 source -- all without
 
 
 Expires: May 2001                                              [Page 79]
-
+
 C LDAP API        C LDAP Application Program Interface  17 November 2000
 
 
@@ -4476,7 +4476,7 @@ changes made to that document to produce this one.
 
 
 Expires: May 2001                                              [Page 80]
-
+
 C LDAP API        C LDAP Application Program Interface  17 November 2000
 
 
@@ -4532,7 +4532,7 @@ C LDAP API        C LDAP Application Program Interface  17 November 2000
 
 
 Expires: May 2001                                              [Page 81]
-
+
 C LDAP API        C LDAP Application Program Interface  17 November 2000
 
 
@@ -4588,7 +4588,7 @@ C LDAP API        C LDAP Application Program Interface  17 November 2000
 
 
 Expires: May 2001                                              [Page 82]
-
+
 C LDAP API        C LDAP Application Program Interface  17 November 2000
 
 
@@ -4644,4 +4644,4 @@ C LDAP API        C LDAP Application Program Interface  17 November 2000
 
 
 Expires: May 2001                                              [Page 83]
-
+

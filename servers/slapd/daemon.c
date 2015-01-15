@@ -396,7 +396,7 @@ static slap_daemon_st slap_daemon[SLAPD_MAX_DAEMON_THREADS];
 # define SLAP_EVENT_MAX(t)			slap_daemon[t].sd_nfds
 
 /* If a Listener address is provided, store that in the sd_l array.
- * If we can't do this add, the system is out of resources and we 
+ * If we can't do this add, the system is out of resources and we
  * need to shutdown.
  */
 # define SLAP_SOCK_ADD(t, s, l)		do { \
@@ -746,7 +746,7 @@ slapd_slp_regreport(
 	void		*cookie )
 {
 	/* return the error code in the cookie */
-	*(SLPError*)cookie = errcode; 
+	*(SLPError*)cookie = errcode;
 }
 
 static void
@@ -776,7 +776,7 @@ slapd_slp_reg()
 				Debug( LDAP_DEBUG_CONNS,
 					"daemon: SLPReg(%s) failed with %ld, cookie = %ld\n",
 					slapd_srvurls[i], (long)err, (long)slapd_slp_cookie );
-			}	
+			}
 		}
 	}
 }
@@ -794,7 +794,7 @@ slapd_slp_dereg( void )
 			slapd_srvurls[i],
 			slapd_slp_regreport,
 			&slapd_slp_cookie );
-		
+
 		if ( err != SLP_OK || slapd_slp_cookie != SLP_OK ) {
 			Debug( LDAP_DEBUG_CONNS,
 				"daemon: SLPDereg(%s) failed with %ld, cookie = %ld\n",
@@ -1100,16 +1100,16 @@ get_url_perms(
 
 			case 10:
 				for ( j = 1; j < 10; j++ ) {
-					static mode_t	m[] = { 0, 
+					static mode_t	m[] = { 0,
 						S_IRUSR, S_IWUSR, S_IXUSR,
 						S_IRGRP, S_IWGRP, S_IXGRP,
 						S_IROTH, S_IWOTH, S_IXOTH
 					};
-					static const char	c[] = "-rwxrwxrwx"; 
+					static const char	c[] = "-rwxrwxrwx";
 
 					if ( value[ j ] == c[ j ] ) {
 						p |= m[ j ];
-	
+
 					} else if ( value[ j ] != '-' ) {
 						return LDAP_OTHER;
 					}
@@ -1118,7 +1118,7 @@ get_url_perms(
 
 			default:
 				return LDAP_OTHER;
-			} 
+			}
 
 			*crit = c;
 			*perms = p;
@@ -1497,7 +1497,7 @@ slap_open_listener(
 		 * that honor permissions on sockets (e.g. Linux); typically,
 		 * only write is required.  To exploit filesystem permissions,
 		 * place the socket in a directory and use directory's
-		 * permissions.  Need write perms to the directory to 
+		 * permissions.  Need write perms to the directory to
 		 * create/unlink the socket; likely need exec perms to access
 		 * the socket (ITS#4709) */
 		{
@@ -1530,7 +1530,7 @@ slap_open_listener(
 			char *path = ((struct sockaddr_un *)*sal)->sun_path;
 			l.sl_name.bv_len = strlen(path) + STRLENOF("PATH=");
 			l.sl_name.bv_val = ber_memalloc( l.sl_name.bv_len + 1 );
-			snprintf( l.sl_name.bv_val, l.sl_name.bv_len + 1, 
+			snprintf( l.sl_name.bv_val, l.sl_name.bv_len + 1,
 				"PATH=%s", path );
 		} break;
 #endif /* LDAP_PF_LOCAL */
@@ -1563,7 +1563,7 @@ slap_open_listener(
 			port = ntohs( ((struct sockaddr_in6 *)*sal)->sin6_port );
 			l.sl_name.bv_len = strlen(s) + sizeof("IP=[]:65535");
 			l.sl_name.bv_val = ber_memalloc( l.sl_name.bv_len );
-			snprintf( l.sl_name.bv_val, l.sl_name.bv_len, "IP=[%s]:%d", 
+			snprintf( l.sl_name.bv_val, l.sl_name.bv_len, "IP=[%s]:%d",
 				s, port );
 			l.sl_name.bv_len = strlen( l.sl_name.bv_val );
 		} break;
@@ -2208,7 +2208,7 @@ slapd_daemon_task(
 				}
 
 				snprintf( buf, sizeof( buf ),
-					"url=%s (#%d) RCVBUF original size=%d requested size=%d real size=%d", 
+					"url=%s (#%d) RCVBUF original size=%d requested size=%d real size=%d",
 					slap_listeners[l]->sl_url.bv_val, l, origsize, size, realsize );
 				Debug( LDAP_DEBUG_ANY,
 					"slapd_daemon_task: %s\n",
@@ -2266,7 +2266,7 @@ slapd_daemon_task(
 				}
 
 				snprintf( buf, sizeof( buf ),
-					"url=%s (#%d) SNDBUF original size=%d requested size=%d real size=%d", 
+					"url=%s (#%d) SNDBUF original size=%d requested size=%d real size=%d",
 					slap_listeners[l]->sl_url.bv_val, l, origsize, size, realsize );
 				Debug( LDAP_DEBUG_ANY,
 					"slapd_daemon_task: %s\n",
@@ -2287,7 +2287,7 @@ slapd_daemon_task(
 				int i;
 				struct sockaddr_in sa = slap_listeners[l]->sl_sa.sa_in_addr;
 				struct sockaddr_in6 sa6;
-				
+
 				if ( sa.sin_family == AF_INET &&
 				     sa.sin_addr.s_addr == htonl(INADDR_ANY) ) {
 					for ( i = 0 ; i < l; i++ ) {
@@ -2457,7 +2457,7 @@ loop:
 
 		ldap_pvt_thread_mutex_unlock( &slap_daemon[tid].sd_mutex );
 
-		if ( at 
+		if ( at
 #if defined(HAVE_YIELDING_SELECT) || defined(NO_THREADS)
 			&&  ( tv.tv_sec || tv.tv_usec )
 #endif /* HAVE_YIELDING_SELECT || NO_THREADS */
@@ -2603,7 +2603,7 @@ loop:
 			if ( slap_listeners[l]->sl_is_udp ) continue;
 #endif /* LDAP_CONNECTIONLESS */
 			if ( !SLAP_EVENT_IS_READ( slap_listeners[l]->sl_sd ) ) continue;
-			
+
 			/* clear events */
 			SLAP_EVENT_CLR_READ( slap_listeners[l]->sl_sd );
 			SLAP_EVENT_CLR_WRITE( slap_listeners[l]->sl_sd );

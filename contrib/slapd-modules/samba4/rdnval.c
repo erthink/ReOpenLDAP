@@ -237,7 +237,7 @@ rdnval_rdn2vals(
 			Debug( LDAP_DEBUG_TRACE,
 				"%s rdnval: %s: %s\n",
 				op->o_log_prefix,
-				rs->sr_text, 
+				rs->sr_text,
 				rdn[ i ]->la_attr.bv_val );
 			goto done;
 		}
@@ -511,7 +511,7 @@ rdnval_repair( BackendDB *be )
 		rs.sr_err = LDAP_OTHER;
 		goto done_search;
 	}
-	
+
 	op->o_callback = &sc;
 	sc.sc_response = rdnval_repair_cb;
 	sc.sc_private = &rcb;
@@ -601,7 +601,7 @@ static struct {
 		"SYNTAX '1.3.6.1.4.1.1466.115.121.1.15' "
 		"EQUALITY caseIgnoreMatch "
 		"USAGE dSAOperation "
-		"NO-USER-MODIFICATION " 
+		"NO-USER-MODIFICATION "
 		")",
 		&ad_rdnValue },
 	{ NULL }

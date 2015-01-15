@@ -136,7 +136,7 @@ monitor_cache_trylock(
 }
 
 /*
- * gets an entry from the cache based on the normalized dn 
+ * gets an entry from the cache based on the normalized dn
  * with mutex locked
  */
 int
@@ -175,7 +175,7 @@ retry:;
 }
 
 /*
- * gets an entry from the cache based on the normalized dn 
+ * gets an entry from the cache based on the normalized dn
  * with mutex locked
  */
 int
@@ -282,7 +282,7 @@ retry:;
 
 /*
  * If the entry exists in cache, it is returned in locked status;
- * otherwise, if the parent exists, if it may generate volatile 
+ * otherwise, if the parent exists, if it may generate volatile
  * descendants an attempt to generate the required entry is
  * performed and, if successful, the entry is returned
  */
@@ -299,7 +299,7 @@ monitor_cache_dn2entry(
 	struct berval		p_ndn = BER_BVNULL;
 	Entry 			*e_parent;
 	monitor_entry_t 	*mp;
-		
+
 	assert( mi != NULL );
 	assert( ndn != NULL );
 	assert( ep != NULL );
@@ -343,7 +343,7 @@ monitor_cache_dn2entry(
 	} else {
 		*matched = e_parent;
 	}
-	
+
 	return( rc );
 }
 
@@ -361,7 +361,7 @@ monitor_cache_release(
 	assert( mi != NULL );
 	assert( e != NULL );
 	assert( e->e_private != NULL );
-	
+
 	mp = ( monitor_entry_t * )e->e_private;
 
 	if ( mp->mp_flags & MONITOR_F_VOLATILE ) {
@@ -376,7 +376,7 @@ monitor_cache_release(
 		if ( mc != NULL ) {
 			ch_free( mc );
 		}
-		
+
 		ldap_pvt_thread_mutex_unlock( &mp->mp_mutex );
 		ldap_pvt_thread_mutex_destroy( &mp->mp_mutex );
 		ch_free( mp );
@@ -385,7 +385,7 @@ monitor_cache_release(
 
 		return( 0 );
 	}
-	
+
 	ldap_pvt_thread_mutex_unlock( &mp->mp_mutex );
 
 	return( 0 );
@@ -400,7 +400,7 @@ monitor_entry_destroy( void *v_mc )
 		monitor_entry_t *mp;
 
 		assert( mc->mc_e->e_private != NULL );
-	
+
 		mp = ( monitor_entry_t * )mc->mc_e->e_private;
 
 		if ( mp->mp_cb ) {

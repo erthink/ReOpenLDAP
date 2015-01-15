@@ -30,7 +30,7 @@ class LDAPEntry{
          * @param dn    The Distinguished Name for the new entry.
          * @param attrs The attributes for the new entry.
          */
-        LDAPEntry(const std::string& dn=std::string(), 
+        LDAPEntry(const std::string& dn=std::string(),
                 const LDAPAttributeList *attrs=0);
 
         /**
@@ -38,7 +38,7 @@ class LDAPEntry{
          *
          * The constructor is used internally to create a LDAPEntry from
          * the C-API's data structurs.
-         */ 
+         */
         LDAPEntry(const LDAPAsynConnection *ld, LDAPMessage *msg);
 
         /**
@@ -67,7 +67,7 @@ class LDAPEntry{
 	 * Get an Attribute by its AttributeType (simple wrapper around
          * LDAPAttributeList::getAttributeByName() )
 	 * @param name The name of the Attribute to look for
-	 * @return a pointer to the LDAPAttribute with the AttributeType 
+	 * @return a pointer to the LDAPAttribute with the AttributeType
 	 *	"name" or 0, if there is no Attribute of that Type
 	 */
 	const LDAPAttribute* getAttributeByName(const std::string& name) const;
@@ -78,9 +78,9 @@ class LDAPEntry{
          * @param attr The attribute to add to the list.
          */
         void addAttribute(const LDAPAttribute& attr);
-        
+
         /**
-         * Deletes all values of an Attribute from the list of Attributes 
+         * Deletes all values of an Attribute from the list of Attributes
          * (simple wrapper around LDAPAttributeList::delAttribute() ).
          * @param type The attribute to delete.
          */
@@ -99,7 +99,7 @@ class LDAPEntry{
         const std::string& getDN() const ;
 
         /**
-         * @returns A const pointer to the attributes of the entry.  
+         * @returns A const pointer to the attributes of the entry.
          */
         const LDAPAttributeList* getAttributes() const;
 
@@ -108,7 +108,7 @@ class LDAPEntry{
          * It is only useful for debugging purposes at the moment
          */
         friend std::ostream& operator << (std::ostream& s, const LDAPEntry& le);
-	
+
     private :
         LDAPAttributeList *m_attrs;
         std::string m_dn;

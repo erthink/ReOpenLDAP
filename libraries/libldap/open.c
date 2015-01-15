@@ -115,7 +115,7 @@ ldap_create( LDAP **ldp )
 	if ( (ld = (LDAP *) LDAP_CALLOC( 1, sizeof(LDAP) )) == NULL ) {
 		return( LDAP_NO_MEMORY );
 	}
-   
+
 	if ( (ld->ldc = (struct ldap_common *) LDAP_CALLOC( 1,
 			sizeof(struct ldap_common) )) == NULL ) {
 		LDAP_FREE( (char *)ld );
@@ -356,7 +356,7 @@ ldap_init_fd(
 
 	/* Add the connection to the *LDAP's select pool */
 	ldap_mark_select_read( ld, conn->lconn_sb );
-	
+
 	*ldp = ld;
 	return LDAP_SUCCESS;
 }
@@ -538,7 +538,7 @@ ldap_dup( LDAP *old )
 	if ( (ld = (LDAP *) LDAP_CALLOC( 1, sizeof(LDAP) )) == NULL ) {
 		return( NULL );
 	}
-   
+
 	LDAP_MUTEX_LOCK( &old->ld_ldcmutex );
 	ld->ldc = old->ldc;
 	old->ld_ldcrefcnt++;

@@ -139,7 +139,7 @@ main( int argc, char *argv[] )
 
 	tool_server_controls( ld, NULL, 0 );
 
-	rc = ldap_whoami( ld, NULL, NULL, &id ); 
+	rc = ldap_whoami( ld, NULL, NULL, &id );
 
 	if( rc != LDAP_SUCCESS ) {
 		tool_perror( "ldap_whoami", rc, NULL, NULL, NULL, NULL );

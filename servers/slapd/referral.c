@@ -218,7 +218,7 @@ BerVarray referral_rewrite(
 		LDAPURLDesc	*url;
 		char		*dn;
 		int		rc;
-		
+
 		rc = ldap_url_parse_ext( iv->bv_val, &url, LDAP_PVT_URL_PARSE_NONE );
 		if ( rc == LDAP_URL_ERR_BADSCHEME ) {
 			ber_dupbv( jv++, iv );
@@ -322,7 +322,7 @@ int get_alias_dn(
 	struct berval *ndn,
 	int *err,
 	const char **text )
-{	
+{
 	Attribute *a;
 	AttributeDescription *aliasedObjectName
 		= slap_schema.si_ad_aliasedObjectName;
@@ -338,9 +338,9 @@ int get_alias_dn(
 		return -1;
 	}
 
-	/* 
-	 * aliasedObjectName should be SINGLE-VALUED with a single value. 
-	 */			
+	/*
+	 * aliasedObjectName should be SINGLE-VALUED with a single value.
+	 */
 	if ( a->a_vals[0].bv_val == NULL ) {
 		/*
 		 * there was an aliasedobjectname defined but no data.

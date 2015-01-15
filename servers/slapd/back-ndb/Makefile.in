@@ -23,7 +23,7 @@ SRCS = init.cpp tools.cpp config.cpp ndbio.cpp \
 OBJS = init.lo tools.lo config.lo ndbio.lo \
 	add.lo bind.lo compare.lo delete.lo modify.lo modrdn.lo search.lo
 
-LDAP_INCDIR= ../../../include       
+LDAP_INCDIR= ../../../include
 LDAP_LIBDIR= ../../../libraries
 
 BUILD_OPT = "--enable-ndb"

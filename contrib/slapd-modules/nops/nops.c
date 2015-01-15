@@ -1,6 +1,6 @@
 /* nops.c - Overlay to filter idempotent operations */
 /* $OpenLDAP$ */
-/* This work is part of OpenLDAP Software <http://www.openldap.org/>. 
+/* This work is part of OpenLDAP Software <http://www.openldap.org/>.
  *
  * Copyright 2008-2014 The OpenLDAP Foundation.
  * Copyright 2008 Emmanuel Dreyfus.
@@ -67,7 +67,7 @@ nops_modify( Operation *op, SlapReply *rs )
 	Entry *target_entry = NULL;
 	Modifications *m;
 	int rc;
-	
+
 	if ((m = op->orm_modlist) == NULL) {
 		op->o_bd->bd_info = (BackendInfo *)(on->on_info);
 		send_ldap_error(op, rs, LDAP_INVALID_SYNTAX,
@@ -81,9 +81,9 @@ nops_modify( Operation *op, SlapReply *rs )
 
 	if (rc != 0 || target_entry == NULL)
 		return 0;
-        
-	/* 
-	 * For each attribute modification, check if the 
+
+	/*
+	 * For each attribute modification, check if the
 	 * modification and the old entry are the same.
 	 */
 	while (m) {

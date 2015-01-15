@@ -98,7 +98,7 @@ valsort_cf_func(ConfigArgs *c) {
 			struct berval bv2 = BER_BVNULL, bvret;
 			char *ptr;
 			int len;
-			
+
 			len = vi->vi_ad->ad_cname.bv_len + 1 + vi->vi_dn.bv_len + 2;
 			i = vi->vi_sort;
 			if ( i & VALSORT_WEIGHTED ) {
@@ -279,7 +279,7 @@ valsort_response( Operation *op, SlapReply *rs )
 		( _SCM(op->o_sync) > SLAP_CONTROL_IGNORED ) ||
 		( op->o_ctrlflag[valsort_cid] & SLAP_CONTROL_DATA0))
 		return SLAP_CB_CONTINUE;
-		
+
 	on = (slap_overinst *) op->o_bd->bd_info;
 	vi = on->on_bi.bi_private;
 
@@ -320,7 +320,7 @@ valsort_response( Operation *op, SlapReply *rs )
 				index[i] = strtol( ptr+1, &end, 0 );
 				if ( *end != '}' ) {
 					Debug(LDAP_DEBUG_TRACE, "weights misformatted "
-						"in entry %s\n", 
+						"in entry %s\n",
 						rs->sr_entry->e_name.bv_val, 0, 0 );
 					break;
 				}

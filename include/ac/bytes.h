@@ -47,7 +47,7 @@ typedef unsigned AC_INT4_TYPE ac_uint4;
 #	error "AC_INT2_TYPE?"
 #	endif
 #endif
- 
+
 #if defined( AC_INT2_TYPE )
 typedef AC_INT2_TYPE ac_int2;
 typedef signed AC_INT2_TYPE ac_sint2;
