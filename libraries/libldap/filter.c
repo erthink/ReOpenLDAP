@@ -77,7 +77,6 @@ static int ldap_is_oid ( const char *str )
 				dot=0;
 
 			} else if ( str[i] == '.' ) {
-				if( dot ) return 0;
 				if( ++dot > 1 ) return 0;
 
 			} else {
@@ -120,7 +119,6 @@ static int ldap_is_desc ( const char *str )
 				dot=0;
 
 			} else if ( str[i] == '.' ) {
-				if( dot ) return 0;
 				if( ++dot > 1 ) return 0;
 
 			} else {
