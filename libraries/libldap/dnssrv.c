@@ -369,6 +369,7 @@ int ldap_domain2hostlist(
 add_size:;
 	    p += size;
 	}
+	if (!hostent_head) goto out;
     qsort(hostent_head, hostent_count, sizeof(srv_record), srv_cmp);
 
 	if (!srv_seed)
