@@ -788,7 +788,7 @@ static int translucent_search_cb(Operation *op, SlapReply *rs) {
 	if ( rs->sr_type == REP_RESULT && ( tc->step & USE_LIST ))
 		return 0;
 
-	if(!op || !rs || rs->sr_type != REP_SEARCH || !rs->sr_entry)
+	if(rs->sr_type != REP_SEARCH || !rs->sr_entry)
 		return(SLAP_CB_CONTINUE);
 
 	Debug(LDAP_DEBUG_TRACE, "==> translucent_search_cb: %s\n",
