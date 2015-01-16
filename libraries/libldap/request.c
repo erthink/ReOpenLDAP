@@ -409,6 +409,7 @@ ldap_send_server_request(
 	return( msgid );
 }
 
+#ifdef HAVE_TLS
 /* return 0 if no StartTLS ext, 1 if present, 2 if critical */
 static int
 find_tls_ext( LDAPURLDesc *srv )
@@ -434,6 +435,7 @@ find_tls_ext( LDAPURLDesc *srv )
 	}
 	return 0;
 }
+#endif /* HAVE_TLS */
 
 /*
  * always protected by conn_mutex
