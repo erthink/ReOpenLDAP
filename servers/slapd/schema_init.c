@@ -1721,7 +1721,7 @@ UTF8StringValidate(
 	struct berval *in )
 {
 	int len;
-	unsigned char *u = (unsigned char *)in->bv_val, *end = in->bv_val + in->bv_len;
+	unsigned char *u = (unsigned char *)in->bv_val, *end = (unsigned char *) in->bv_val + in->bv_len;
 
 	if( BER_BVISEMPTY( in ) && syntax == slap_schema.si_syn_directoryString ) {
 		/* directory strings cannot be empty */
