@@ -109,7 +109,9 @@
  *	  The transaction becomes "long-lived" as above until a check
  *	  for stale readers is performed or the lockfile is reset,
  *	  since the process may not remove it from the lockfile.
- *	  Except write-transactions on Unix with MDB_ROBUST or on Windows.
+ *
+ *	  This does not apply to write transactions if the system clears
+ *	  stale writers, see above.
  *
  *	- If you do that anyway, do a periodic check for stale readers. Or
  *	  close the environment once in a while, so the lockfile can get reset.
@@ -526,8 +528,8 @@ int  mdb_env_create(MDB_env **env);
 	 *		and uses fewer mallocs, but loses protection from application bugs
 	 *		like wild pointer writes and other bad updates into the database.
 	 *		Incompatible with nested transactions.
-	 *		Processes with and without MDB_WRITEMAP on the same environment do
-	 *		not cooperate well.
+	 *		Do not mix processes with and without MDB_WRITEMAP on the same
+	 *		environment.  This can defeat durability (#mdb_env_sync etc).
 	 *	<li>#MDB_NOMETASYNC
 	 *		Flush system buffers to disk only once per transaction, omit the
 	 *		metadata flush. Defer that until the system flushes files to disk,
@@ -745,7 +747,6 @@ void mdb_env_close(MDB_env *env);
 	 * This may be used to set some flags in addition to those from
 	 * #mdb_env_open(), or to unset these flags.  If several threads
 	 * change the flags at the same time, the result is undefined.
-	 * Most flags cannot be changed after #mdb_env_open().
 	 * @param[in] env An environment handle returned by #mdb_env_create()
 	 * @param[in] flags The flags to change, bitwise OR'ed together
 	 * @param[in] onoff A non-zero value sets the flags, zero clears them.

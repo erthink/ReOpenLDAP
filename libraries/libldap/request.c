@@ -484,6 +484,10 @@ ldap_new_connection( LDAP *ld, LDAPURLDesc **srvlist, int use_ldsb,
 			if ( rc != -1 ) {
 				srv = *srvp;
 
+				/* If we fully connected, async is moot */
+				if ( rc == 0 )
+					async = 0;
+
 				if ( ld->ld_urllist_proc && ( !async || rc != -2 ) ) {
 					ld->ld_urllist_proc( ld, srvlist, srvp, ld->ld_urllist_params );
 				}
@@ -1431,6 +1435,7 @@ ldap_chase_referrals( LDAP *ld,
 		    id, sref, srv, &rinfo.ri_request );
 
 		if ( ber == NULL ) {
+			ldap_free_urllist( srv );
 			return -1 ;
 		}
 

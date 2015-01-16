@@ -1353,9 +1353,8 @@ slap_keepalive_parse(
 			s = ++next;
 		}
 
-		if ( s == '\0' ) {
+		if ( *s == '\0' ) {
 			sk2.sk_interval = 0;
-			s++;
 
 		} else {
 			sk2.sk_interval = strtol( s, &next, 10 );
@@ -2011,7 +2010,7 @@ slap_client_connect( LDAP **ldp, slap_bindconf *sb )
 			"slap_client_connect: "
 			"URI=%s TLS context initialization failed (%d)\n",
 			sb->sb_uri.bv_val, rc );
-		return rc;
+		goto done;
 	}
 #endif
 

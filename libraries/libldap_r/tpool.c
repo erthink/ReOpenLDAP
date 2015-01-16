@@ -214,14 +214,17 @@ ldap_pvt_thread_pool_init (
 	if (pool == NULL) return(-1);
 
 	rc = ldap_pvt_thread_mutex_init(&pool->ltp_mutex);
-	if (rc != 0)
+	if (rc != 0) {
+bailout:
+		LDAP_FREE(pool);
 		return(rc);
+	}
 	rc = ldap_pvt_thread_cond_init(&pool->ltp_cond);
 	if (rc != 0)
-		return(rc);
+		goto bailout;
 	rc = ldap_pvt_thread_cond_init(&pool->ltp_pcond);
 	if (rc != 0)
-		return(rc);
+		goto bailout;
 
 	ldap_int_has_thread_pool = 1;
 

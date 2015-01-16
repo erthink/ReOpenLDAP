@@ -3006,9 +3006,9 @@ config_suffix(ConfigArgs *c)
 	if(tbe == c->be) {
 		Debug( LDAP_DEBUG_ANY, "%s: suffix already served by this backend!.\n",
 			c->log);
-		return 1;
 		free(pdn.bv_val);
 		free(ndn.bv_val);
+		return 1;
 	} else if(tbe) {
 		BackendDB *b2 = tbe;
 

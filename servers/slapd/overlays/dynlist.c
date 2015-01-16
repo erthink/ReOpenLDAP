@@ -1157,6 +1157,12 @@ done_uri:;
 					filter_free( filter );
 				}
 
+				while ( dlm != NULL ) {
+					dlml = dlm;
+					dlm = dlm->dlm_next;
+					ch_free( dlml );
+				}
+
 				Debug( LDAP_DEBUG_ANY, "%s: %s.\n",
 					c->log, c->cr_msg );
 
@@ -1173,7 +1179,8 @@ done_uri:;
 				c->argv[ attridx ] );
 			Debug( LDAP_DEBUG_ANY, "%s: %s.\n",
 				c->log, c->cr_msg );
-			return 1;
+			rc = 1;
+			goto done_uri;
 		}
 
 		if ( !is_at_subtype( ad->ad_type, slap_schema.si_ad_labeledURI->ad_type ) ) {
@@ -1183,7 +1190,8 @@ done_uri:;
 				c->argv[ attridx ] );
 			Debug( LDAP_DEBUG_ANY, "%s: %s.\n",
 				c->log, c->cr_msg );
-			return 1;
+			rc = 1;
+			goto done_uri;
 		}
 
 		attridx++;
@@ -1212,7 +1220,8 @@ done_uri:;
 						i - 3, c->argv[ i ] );
 					Debug( LDAP_DEBUG_ANY, "%s: %s.\n",
 						c->log, c->cr_msg );
-					return 1;
+					rc = 1;
+					goto done_uri;
 				}
 				arg = cp + 1;
 			}
@@ -1225,7 +1234,8 @@ done_uri:;
 					i - 3, c->argv[ i ] );
 				Debug( LDAP_DEBUG_ANY, "%s: %s.\n",
 					c->log, c->cr_msg );
-				return 1;
+				rc = 1;
+				goto done_uri;
 			}
 
 			dlmp = (dynlist_map_t *)ch_calloc( 1, sizeof( dynlist_map_t ) );
@@ -1254,7 +1264,8 @@ done_uri:;
 						c->valx );
 					Debug( LDAP_DEBUG_ANY, "%s: %s.\n",
 						c->log, c->cr_msg );
-					return 1;
+					rc = 1;
+					goto done_uri;
 				}
 				dlip = &(*dlip)->dli_next;
 			}

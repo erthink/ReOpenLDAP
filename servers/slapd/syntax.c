@@ -224,6 +224,7 @@ syn_add(
 			{
 				Debug( LDAP_DEBUG_ANY, "syn_add(%s): exactly one substitute syntax must be present\n",
 					ssyn->ssyn_syn.syn_oid );
+				SLAP_FREE( ssyn );
 				return SLAP_SCHERR_SYN_SUBST_NOT_SPECIFIED;
 			}
 
@@ -231,6 +232,7 @@ syn_add(
 			if ( subst == NULL ) {
 				Debug( LDAP_DEBUG_ANY, "syn_add(%s): substitute syntax %s not found\n",
 					ssyn->ssyn_syn.syn_oid, (*lsei)->lsei_values[0] );
+				SLAP_FREE( ssyn );
 				return SLAP_SCHERR_SYN_SUBST_NOT_FOUND;
 			}
 			break;
@@ -452,4 +454,3 @@ syn_unparse( BerVarray *res, Syntax *start, Syntax *end, int sys )
 	}
 	*res = bva;
 }
-

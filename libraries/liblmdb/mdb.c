@@ -70,14 +70,151 @@
 #include <fcntl.h>
 #endif
 
+/*****************************************************************************
+ * Properly compiler/memory/coherence barriers
+ * in the most portable way for ReOpenLDAP project.
+ *
+ * Feedback and comments are welcome.
+ * https://gist.github.com/leo-yuriev/ba186a6bf5cf3a27bae7                   */
+
 #if defined(__mips) && defined(__linux)
-/* MIPS has cache coherency issues, requires explicit cache control */
-#include <asm/cachectl.h>
-extern int cacheflush(char *addr, int nbytes, int cache);
-#define CACHEFLUSH(addr, bytes, cache)	cacheflush(addr, bytes, cache)
-#else
-#define CACHEFLUSH(addr, bytes, cache)
+	/* Only MIPS has explicit cache control */
+#	include <asm/cachectl.h>
 #endif
+
+#if defined(__GNUC__) || defined(__clang__)
+	/* LY: noting needed */
+#elif defined(_MSC_VER) || defined(_WIN32) || defined(_WIN64)
+#	include <winnt.h>
+#	include <intrin.h>
+#	pragma intrinsic(_ReadWriteBarrier)
+#elif defined(__INTEL_COMPILER) /* LY: Intel Compiler may mimic GCC and MSC */
+#	include <intrin.h>
+#	if defined(__ia64__) || defined(__ia64) || defined(_M_IA64)
+#		pragma intrinsic(__mf)
+#	elif defined(__i386__) || defined(__x86_64__)
+#		pragma intrinsic(_mm_mfence)
+#	endif
+#elif defined(__SUNPRO_C) || defined(__sun) || defined(sun)
+#	include <mbarrier.h>
+#	define __inline inline
+#elif (defined(_HPUX_SOURCE) || defined(__hpux) || defined(__HP_aCC)) \
+	&& (defined(HP_IA64) || defined(__ia64))
+#	include <machine/sys/inline.h>
+#	define __inline
+#elif defined(__IBMC__) && defined(__powerpc)
+#	include <atomic.h>
+#	define __inline
+#elif defined(_AIX)
+#	include <builtins.h>
+#	include <sys/atomic_op.h>
+#	define __inline
+#elif (defined(__osf__) && defined(__DECC)) || defined(__alpha)
+#	include <machine/builtins.h>
+#	include <c_asm.h>
+#	define __inline
+#elif defined(__MWERKS__)
+	/* CodeWarrior - troubles ? */
+#	pragma gcc_extensions
+#	define __inline
+#elif defined(__SNC__)
+	/* Sony PS3 - troubles ? */
+#	define __inline
+#else
+#	define __inline
+#endif
+
+#if defined(__i386__) || defined(__x86_64__) \
+	|| defined(_M_AMD64) || defined(_M_IX86) \
+	|| defined(__i386) || defined(__amd64) \
+	|| defined(i386) || defined(__x86_64) \
+	|| defined(_AMD64_) || defined(_M_X64)
+#	define MDB_CACHE_IS_COHERENT 1
+#elif defined(__hppa) || defined(__hppa__)
+#	define MDB_CACHE_IS_COHERENT 1
+#endif
+
+#ifndef MDB_CACHE_IS_COHERENT
+#	define MDB_CACHE_IS_COHERENT 0
+#endif
+
+#define MDB_BARRIER_COMPILER 0
+#define MDB_BARRIER_MEMORY 1
+
+static __inline void mdb_barrier(int type) {
+#if defined(__clang__)
+	__asm__ __volatile__ ("" ::: "memory");
+	if (type > MDB_BARRIER_COMPILER)
+#	if __has_extension(c_atomic) || __has_extension(cxx_atomic)
+		__c11_atomic_thread_fence(__ATOMIC_SEQ_CST);
+#	else
+		__sync_synchronize();
+#	endif
+#elif defined(__GNUC__)
+	__asm__ __volatile__ ("" ::: "memory");
+	if (type > MDB_BARRIER_COMPILER)
+#	if defined(__ATOMIC_SEQ_CST)
+		__atomic_thread_fence(__ATOMIC_SEQ_CST);
+#	else
+		__sync_synchronize();
+#	endif
+#elif defined(_MSC_VER) || defined(_WIN32) || defined(_WIN64)
+	_ReadWriteBarrier();
+	if (type > MDB_BARRIER_COMPILER)
+		MemoryBarrier();
+#elif defined(__INTEL_COMPILER) /* LY: Intel Compiler may mimic GCC and MSC */
+	__memory_barrier();
+	if (type > MDB_BARRIER_COMPILER)
+#	if defined(__ia64__) || defined(__ia64) || defined(_M_IA64)
+		__mf();
+#	elif defined(__i386__) || defined(__x86_64__)
+		_mm_mfence();
+#	else
+#		error "Unknown target for Intel Compiler, please report to us."
+#	endif
+#elif defined(__SUNPRO_C) || defined(__sun) || defined(sun)
+	__compiler_barrier();
+	if (type > MDB_BARRIER_COMPILER)
+		__machine_rw_barrier();
+#elif (defined(_HPUX_SOURCE) || defined(__hpux) || defined(__HP_aCC)) \
+	&& (defined(HP_IA64) || defined(__ia64))
+	_Asm_sched_fence(/* LY: no-arg meaning 'all expect ALU', e.g. 0x3D3D */);
+	if (type > MDB_BARRIER_COMPILER)
+		_Asm_mf();
+#elif defined(_AIX) || defined(__ppc__) || defined(__powerpc__) \
+	|| defined(__ppc64__) || defined(__powerpc64__)
+	__fence();
+	if (type > MDB_BARRIER_COMPILER)
+		__lwsync();
+#elif (defined(__osf__) && defined(__DECC)) || defined(__alpha)
+	__PAL_DRAINA(); /* LY: excessive ? */
+	__MB();
+#else
+#	error "Could not guess the kind of compiler, please report to us."
+#endif
+}
+
+#define mdb_compiler_barrier() \
+	mdb_barrier(MDB_BARRIER_COMPILER)
+#define mdb_memory_barrier() \
+	mdb_barrier(MDB_BARRIER_MEMORY)
+#define mdb_coherent_barrier() \
+	mdb_barrier(MDB_CACHE_IS_COHERENT ? MDB_BARRIER_COMPILER : MDB_BARRIER_MEMORY)
+
+static __inline void mdb_invalidate_cache(void *addr, int nbytes) {
+	mdb_coherent_barrier();
+#if defined(__mips) && defined(__linux)
+	/* MIPS has cache coherency issues.
+	 * Note: for any nbytes >= on-chip cache size, entire is flushed. */
+	cacheflush(addr, nbytes, DCACHE);
+#elif defined(_M_MRX000) || defined(_MIPS_)
+#	error "Sorry, cacheflush() for MIPS not implemented"
+#else
+	/* LY: assume no mmap/dcache issues. */
+#endif
+}
+
+/*****************************************************************************/
 
 #if defined(__linux) && !defined(MDB_FDATASYNC_WORKS)
 /** fdatasync is broken on ext3/ext4fs on older kernels, see
@@ -208,7 +345,7 @@ union semun {
 #define MDB_DEVEL 0
 #endif
 
-#if defined(_WIN32) || (defined(EOWNERDEAD) && !defined(MDB_USE_SYSV_SEM))
+#if defined(_WIN32) || defined(MDB_USE_SYSV_SEM) || defined(EOWNERDEAD)
 #define MDB_ROBUST_SUPPORTED	1
 #endif
 
@@ -220,6 +357,16 @@ union semun {
 #else
 /* If a debug message says <mdb_unknown>(), update the #if statements above */
 # define mdb_func_	"<mdb_unknown>"
+#endif
+
+/* Internal error codes, not exposed outside liblmdb */
+#define	MDB_NO_ROOT		(MDB_LAST_ERRCODE + 10)
+#ifdef _WIN32
+#define MDB_OWNERDEAD	((int) WAIT_ABANDONED)
+#elif defined MDB_USE_SYSV_SEM
+#define MDB_OWNERDEAD	(MDB_LAST_ERRCODE + 11)
+#else
+#define MDB_OWNERDEAD	EOWNERDEAD
 #endif
 
 #ifdef _WIN32
@@ -237,7 +384,6 @@ typedef HANDLE mdb_mutex_t;
 #define pthread_key_delete(x)	TlsFree(x)
 #define pthread_getspecific(x)	TlsGetValue(x)
 #define pthread_setspecific(x,y)	(TlsSetValue(x,y) ? 0 : ErrCode())
-#define pthread_mutex_consistent(mutex) 0
 #define pthread_mutex_unlock(x)	ReleaseMutex(*x)
 #define pthread_mutex_lock(x)	WaitForSingleObject(*x, INFINITE)
 #define pthread_cond_signal(x)	SetEvent(*x)
@@ -247,6 +393,7 @@ typedef HANDLE mdb_mutex_t;
 #define MDB_MUTEX(env, rw)		((env)->me_##rw##mutex)
 #define LOCK_MUTEX0(mutex)		WaitForSingleObject(mutex, INFINITE)
 #define UNLOCK_MUTEX(mutex)		ReleaseMutex(mutex)
+#define mdb_mutex_consistent(mutex)	0
 #define getpid()	GetCurrentProcessId()
 #define	MDB_FDATASYNC(fd)	(!FlushFileBuffers(fd))
 #define	MDB_MSYNC(addr,len,flags)	(!FlushViewOfFile(addr,len))
@@ -274,6 +421,7 @@ typedef HANDLE mdb_mutex_t;
 typedef struct mdb_mutex {
 	int semid;
 	int semnum;
+	int *locked;
 } mdb_mutex_t;
 
 #define MDB_MUTEX(env, rw)		(&(env)->me_##rw##mutex)
@@ -281,18 +429,27 @@ typedef struct mdb_mutex {
 #define UNLOCK_MUTEX(mutex)		do { \
 	struct sembuf sb = { 0, 1, SEM_UNDO }; \
 	sb.sem_num = (mutex)->semnum; \
+	*(mutex)->locked = 0; \
 	semop((mutex)->semid, &sb, 1); \
 } while(0)
 
 static int
 mdb_sem_wait(mdb_mutex_t *sem)
 {
-   int rc;
-   struct sembuf sb = { 0, -1, SEM_UNDO };
-   sb.sem_num = sem->semnum;
-   while ((rc = semop(sem->semid, &sb, 1)) && (rc = errno) == EINTR) ;
-   return rc;
+	int rc, *locked = sem->locked;
+	struct sembuf sb = { 0, -1, SEM_UNDO };
+	sb.sem_num = sem->semnum;
+	do {
+		if (!semop(sem->semid, &sb, 1)) {
+			rc = *locked ? MDB_OWNERDEAD : MDB_SUCCESS;
+			*locked = 1;
+			break;
+		}
+	} while ((rc = errno) == EINTR);
+	return rc;
 }
+
+#define mdb_mutex_consistent(mutex)	0
 
 #else
 	/** Pointer/HANDLE type of shared mutex/semaphore.
@@ -308,6 +465,9 @@ typedef pthread_mutex_t mdb_mutex_t;
 	/** Unlock the reader or writer mutex.
 	 */
 #define UNLOCK_MUTEX(mutex)	pthread_mutex_unlock(mutex)
+	/** Mark mutex-protected data as repaired, after death of previous owner.
+	 */
+#define mdb_mutex_consistent(mutex)	pthread_mutex_consistent(mutex)
 #endif	/* MDB_USE_SYSV_SEM */
 
 	/** Get the error code for the last failed system function.
@@ -336,9 +496,15 @@ typedef pthread_mutex_t mdb_mutex_t;
 #if defined(_WIN32)
 #define MNAME_LEN	32
 #elif defined(MDB_USE_SYSV_SEM)
-#define MNAME_LEN	0
+#define MNAME_LEN	(sizeof(int))
 #else
 #define MNAME_LEN	(sizeof(pthread_mutex_t))
+#endif
+
+#ifdef MDB_USE_SYSV_SEM
+#define SYSV_SEM_FLAG	1		/**< SysV sems in lockfile format */
+#else
+#define SYSV_SEM_FLAG	0
 #endif
 
 /** @} */
@@ -667,6 +833,7 @@ typedef struct MDB_txbody {
 	char	mtb_rmname[MNAME_LEN];
 #elif defined(MDB_USE_SYSV_SEM)
 	int 	mtb_semid;
+	int		mtb_rlocked;
 #else
 		/** Mutex protecting access to this table.
 		 *	This is the #MDB_MUTEX(env,r) reader table lock.
@@ -695,22 +862,25 @@ typedef struct MDB_txninfo {
 #define mti_rmname	mt1.mtb.mtb_rmname
 #define mti_txnid	mt1.mtb.mtb_txnid
 #define mti_numreaders	mt1.mtb.mtb_numreaders
-		char pad[(sizeof(MDB_txbody)+CACHELINE-1) & ~(CACHELINE-1)];
-	} mt1;
 #ifdef MDB_USE_SYSV_SEM
 #define	mti_semid	mt1.mtb.mtb_semid
-#else
+#define	mti_rlocked	mt1.mtb.mtb_rlocked
+#endif
+		char pad[(sizeof(MDB_txbody)+CACHELINE-1) & ~(CACHELINE-1)];
+	} mt1;
 	union {
 #if defined(_WIN32)
 		char mt2_wmname[MNAME_LEN];
 #define	mti_wmname	mt2.mt2_wmname
+#elif defined MDB_USE_SYSV_SEM
+		int mt2_wlocked;
+#define mti_wlocked	mt2.mt2_wlocked
 #else
 		pthread_mutex_t	mt2_wmutex;
 #define mti_wmutex	mt2.mt2_wmutex
 #endif
 		char pad[(MNAME_LEN+CACHELINE-1) & ~(CACHELINE-1)];
 	} mt2;
-#endif
 	MDB_reader	mti_readers[1];
 } MDB_txninfo;
 
@@ -719,7 +889,7 @@ typedef struct MDB_txninfo {
 	((uint32_t) \
 	 ((MDB_LOCK_VERSION) \
 	  /* Flags which describe functionality */ \
-	  + (((MNAME_LEN) == 0)   << 18) /* MDB_USE_SYSV_SEM */ \
+	  + (SYSV_SEM_FLAG << 18) \
 	  + (((MDB_PIDLOCK) != 0) << 16)))
 /** @} */
 
@@ -2801,6 +2971,7 @@ mdb_txn_renew0(MDB_txn *txn)
 				r->mr_txnid = (txnid_t)-1;
 				r->mr_tid = tid;
 				r->mr_pid = pid; /* should be written last, see ITS#7971. */
+				mdb_coherent_barrier();
 				if (i == nr)
 					ti->mti_numreaders = ++nr;
 				/* Save numreaders for un-mutexed mdb_env_close() */
@@ -2813,9 +2984,10 @@ mdb_txn_renew0(MDB_txn *txn)
 					return rc;
 				}
 			}
-			do /* LY: Retry on a race, ITS#7970. */
+			do { /* LY: Retry on a race, ITS#7970. */
 				r->mr_txnid = ti->mti_txnid;
-			while(r->mr_txnid != ti->mti_txnid);
+				mdb_coherent_barrier();
+			} while(r->mr_txnid != ti->mti_txnid);
 			txn->mt_txnid = r->mr_txnid;
 			txn->mt_u.reader = r;
 			meta = env->me_metas[txn->mt_txnid & 1];
@@ -2824,17 +2996,8 @@ mdb_txn_renew0(MDB_txn *txn)
 		if (ti) {
 			if (LOCK_MUTEX(rc, env, MDB_MUTEX(env, w)))
 				return rc;
-#ifdef MDB_USE_SYSV_SEM
-			meta = env->me_metas[ mdb_env_pick_meta(env) ];
-			txn->mt_txnid = meta->mm_txnid;
-			/* Update mti_txnid like mdb_mutex_failed() would,
-			 * in case last writer crashed before updating it.
-			 */
-			ti->mti_txnid = txn->mt_txnid;
-#else
 			txn->mt_txnid = ti->mti_txnid;
 			meta = env->me_metas[txn->mt_txnid & 1];
-#endif
 		} else {
 			meta = env->me_metas[ mdb_env_pick_meta(env) ];
 			txn->mt_txnid = meta->mm_txnid;
@@ -3079,7 +3242,8 @@ mdb_txn_straggler(MDB_txn *txn, int *percent)
 	meta = env->me_metas[ mdb_env_pick_meta(env) ];
 	if (percent) {
 		long cent = env->me_maxpg / 100;
-		*percent = (meta->mm_last_pg + cent / 2 + 1) / (cent ? cent : 1);
+		long last = env->me_txn ? env->me_txn0->mt_next_pgno : meta->mm_last_pg;
+		*percent = (last + cent / 2) / (cent ? cent : 1);
 	}
 	lag = meta->mm_txnid - txn->mt_u.reader->mr_txnid;
 	return (0 > (long) lag) ? ~0u >> 1: lag;
@@ -3629,11 +3793,7 @@ mdb_page_flush(MDB_txn *txn, int keep)
 #endif	/* _WIN32 */
 	}
 
-	/* MIPS has cache coherency issues, this is a no-op everywhere else
-	 * Note: for any size >= on-chip cache size, entire on-chip cache is
-	 * flushed.
-	 */
-	CACHEFLUSH(env->me_map, txn->mt_next_pgno * env->me_psize, DCACHE);
+	mdb_invalidate_cache(env->me_map, txn->mt_next_pgno * env->me_psize);
 
 	for (i = keep; ++i <= pagecount; ) {
 		dp = dl[i].mptr;
@@ -4058,10 +4218,8 @@ mdb_env_write_meta(MDB_txn *txn, int force)
 		mp->mm_dbs[0] = txn->mt_dbs[0];
 		mp->mm_dbs[1] = txn->mt_dbs[1];
 		mp->mm_last_pg = txn->mt_next_pgno - 1;
-#if !(defined(_MSC_VER) || defined(__i386__) || defined(__x86_64__))
-		/* LY: issue a memory barrier, if not x86. ITS#7969 */
-		__sync_synchronize();
-#endif
+		/* (LY) ITS#7969: issue a memory barrier, it is noop for x86. */
+		mdb_coherent_barrier();
 		mp->mm_txnid = txn->mt_txnid;
 		if (force || !(env->me_flags & (MDB_NOMETASYNC|MDB_NOSYNC))) {
 			unsigned meta_size = env->me_psize;
@@ -4138,8 +4296,7 @@ fail:
 		env->me_flags |= MDB_FATAL_ERROR;
 		return rc;
 	}
-	/* MIPS has cache coherency issues, this is a no-op everywhere else */
-	CACHEFLUSH(env->me_map + off, len, DCACHE);
+	mdb_invalidate_cache(env->me_map + off, len);
 done:
 	/* Memory ordering issues are irrelevant; since the entire writer
 	 * is wrapped by wmutex, all of these changes will become visible
@@ -4790,6 +4947,10 @@ mdb_env_setup_locks(MDB_env *env, char *lpath, int mode, int *excl)
 #	define MDB_CLOEXEC		0
 #endif
 #endif
+#ifdef MDB_USE_SYSV_SEM
+	int semid;
+	union semun semu;
+#endif
 	int rc;
 	off_t size, rsize;
 
@@ -4903,17 +5064,10 @@ mdb_env_setup_locks(MDB_env *env, char *lpath, int mode, int *excl)
 		env->me_wmutex = CreateMutex(&mdb_all_sa, FALSE, env->me_txns->mti_wmname);
 		if (!env->me_wmutex) goto fail_errno;
 #elif defined(MDB_USE_SYSV_SEM)
-		union semun semu;
 		unsigned short vals[2] = {1, 1};
-		int semid = semget(IPC_PRIVATE, 2, mode);
+		semid = semget(IPC_PRIVATE, 2, mode);
 		if (semid < 0)
 			goto fail_errno;
-
-		env->me_rmutex.semid = semid;
-		env->me_wmutex.semid = semid;
-		env->me_rmutex.semnum = 0;
-		env->me_wmutex.semnum = 1;
-
 		semu.array = vals;
 		if (semctl(semid, 0, SETALL, semu) < 0)
 			goto fail_errno;
@@ -4940,8 +5094,6 @@ mdb_env_setup_locks(MDB_env *env, char *lpath, int mode, int *excl)
 	} else {
 #ifdef MDB_USE_SYSV_SEM
 		struct semid_ds buf;
-		union semun semu;
-		int semid;
 #endif
 		if (env->me_txns->mti_magic != MDB_MAGIC) {
 			DPUTS("lock region has invalid magic");
@@ -4966,20 +5118,23 @@ mdb_env_setup_locks(MDB_env *env, char *lpath, int mode, int *excl)
 #elif defined(MDB_USE_SYSV_SEM)
 		semid = env->me_txns->mti_semid;
 		semu.buf = &buf;
-
 		/* check for read access */
 		if (semctl(semid, 0, IPC_STAT, semu) < 0)
 			goto fail_errno;
 		/* check for write access */
 		if (semctl(semid, 0, IPC_SET, semu) < 0)
 			goto fail_errno;
-
-		env->me_rmutex.semid = semid;
-		env->me_wmutex.semid = semid;
-		env->me_rmutex.semnum = 0;
-		env->me_wmutex.semnum = 1;
 #endif
 	}
+#ifdef MDB_USE_SYSV_SEM
+	env->me_rmutex.semid = semid;
+	env->me_wmutex.semid = semid;
+	env->me_rmutex.semnum = 0;
+	env->me_wmutex.semnum = 1;
+	env->me_rmutex.locked = &env->me_txns->mti_rlocked;
+	env->me_wmutex.locked = &env->me_txns->mti_wlocked;
+#endif
+
 	return MDB_SUCCESS;
 
 fail_errno:
@@ -5162,13 +5317,15 @@ mdb_env_close0(MDB_env *env, int excl)
 		return;
 
 	/* Doing this here since me_dbxs may not exist during mdb_env_close */
-	for (i = env->me_maxdbs; --i > MAIN_DBI; )
-		free(env->me_dbxs[i].md_name.mv_data);
+	if (env->me_dbxs) {
+		for (i = env->me_maxdbs; --i > MAIN_DBI; )
+			free(env->me_dbxs[i].md_name.mv_data);
+		free(env->me_dbxs);
+	}
 
 	free(env->me_pbuf);
 	free(env->me_dbiseqs);
 	free(env->me_dbflags);
-	free(env->me_dbxs);
 	free(env->me_path);
 	free(env->me_dirty_list);
 	if (env->me_txn0)
@@ -6574,7 +6731,6 @@ int
 mdb_cursor_put(MDB_cursor *mc, MDB_val *key, MDB_val *data,
     unsigned int flags)
 {
-	enum { MDB_NO_ROOT = MDB_LAST_ERRCODE+10 }; /* internal code */
 	MDB_env		*env;
 	MDB_node	*leaf = NULL;
 	MDB_page	*fp, *mp;
@@ -7968,7 +8124,7 @@ mdb_node_move(MDB_cursor *csrc, MDB_cursor *cdst)
 			cdst->mc_ki[cdst->mc_top] = 0;
 			rc = mdb_update_key(cdst, &nullkey);
 			cdst->mc_ki[cdst->mc_top] = ix;
-			mdb_cassert(csrc, rc == MDB_SUCCESS);
+			mdb_cassert(cdst, rc == MDB_SUCCESS);
 		}
 	}
 
@@ -9413,7 +9569,7 @@ mdb_env_copy(MDB_env *env, const char *path)
 int ESECT
 mdb_env_set_flags(MDB_env *env, unsigned int flag, int onoff)
 {
-	if (flag & (env->me_map ? ~CHANGEABLE : ~(CHANGEABLE|CHANGELESS)))
+	if ((flag & CHANGEABLE) != flag)
 		return EINVAL;
 	if (onoff)
 		env->me_flags |= flag;
@@ -10043,7 +10199,7 @@ static int mdb_reader_check0(MDB_env *env, int rlocked, int *dead)
 
 #ifdef MDB_ROBUST_SUPPORTED
 /** Handle #LOCK_MUTEX0() failure.
- * With #MDB_ROBUST, try to repair the lock file if the mutex owner died.
+ * Try to repair the lock file if the mutex owner died.
  * @param[in] env	the environment handle
  * @param[in] mutex	LOCK_MUTEX0() mutex
  * @param[in] rc	LOCK_MUTEX0() error (nonzero)
@@ -10052,11 +10208,8 @@ static int mdb_reader_check0(MDB_env *env, int rlocked, int *dead)
 static int mdb_mutex_failed(MDB_env *env, mdb_mutex_t *mutex, int rc)
 {
 	int toggle, rlocked, rc2;
-#ifndef _WIN32
-	enum { WAIT_ABANDONED = EOWNERDEAD };
-#endif
 
-	if (rc == (int) WAIT_ABANDONED) {
+	if (rc == MDB_OWNERDEAD) {
 		/* We own the mutex. Clean up after dead previous owner. */
 		rc = MDB_SUCCESS;
 		rlocked = (mutex == MDB_MUTEX(env, r));
@@ -10077,7 +10230,7 @@ static int mdb_mutex_failed(MDB_env *env, mdb_mutex_t *mutex, int rc)
 			(rc ? "this process' env is hosed" : "recovering")));
 		rc2 = mdb_reader_check0(env, rlocked, NULL);
 		if (rc2 == 0)
-			rc2 = pthread_mutex_consistent(mutex);
+			rc2 = mdb_mutex_consistent(mutex);
 		if (rc || (rc = rc2)) {
 			DPRINTF(("LOCK_MUTEX recovery failed, %s", mdb_strerror(rc)));
 			UNLOCK_MUTEX(mutex);
