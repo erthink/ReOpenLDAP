@@ -169,10 +169,12 @@ CONFFILTER=$SRCDIR/scripts/conf.sh
 
 MONITORDATA=$SRCDIR/scripts/monitor_data.sh
 
-SLAPADD="$TESTWD/../servers/slapd/slapd -Ta -d 0 $LDAP_VERBOSE"
-SLAPCAT="$TESTWD/../servers/slapd/slapd -Tc -d 0 $LDAP_VERBOSE"
-SLAPINDEX="$TESTWD/../servers/slapd/slapd -Ti -d 0 $LDAP_VERBOSE"
-SLAPPASSWD="$TESTWD/../servers/slapd/slapd -Tpasswd"
+#VALGRIND="valgrind --fair-sched=yes --log-socket=127.0.0.1:55555 --leak-check=full --track-origins=yes --trace-children=yes --suppressions=$SRCDIR/scripts/valgrind.supp"
+# --gen-suppressions=yes
+SLAPADD="$VALGRIND $TESTWD/../servers/slapd/slapd -Ta -d 0 $LDAP_VERBOSE"
+SLAPCAT="$VALGRIND $TESTWD/../servers/slapd/slapd -Tc -d 0 $LDAP_VERBOSE"
+SLAPINDEX="$VALGRIND $TESTWD/../servers/slapd/slapd -Ti -d 0 $LDAP_VERBOSE"
+SLAPPASSWD="$VALGRIND $TESTWD/../servers/slapd/slapd -Tpasswd"
 
 unset DIFF_OPTIONS
 # NOTE: -u/-c is not that portable...
