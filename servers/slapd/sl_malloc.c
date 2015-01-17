@@ -609,7 +609,8 @@ slap_sl_free(void *ptr, void *ctx)
 					if (so) {
 						if (i < sh->sh_maxorder) {
 							inserted = 1;
-							LDAP_LIST_INSERT_HEAD(&sh->sh_free[i-order_start+1],									so, so_link);
+							LDAP_LIST_INSERT_HEAD(&sh->sh_free[i-order_start+1],
+									so, so_link);
 							continue;
 						}
 					} else {
