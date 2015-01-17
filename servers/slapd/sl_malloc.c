@@ -20,22 +20,7 @@
 #include <ac/string.h>
 
 #include "slap.h"
-
-#ifdef USE_VALGRIND
-/* Get debugging help from Valgrind */
-#include <valgrind/memcheck.h>
-#define	VGMEMP_MARK(m,s)	VALGRIND_MAKE_MEM_NOACCESS(m,s)
-#define VGMEMP_CREATE(h,r,z)	VALGRIND_CREATE_MEMPOOL(h,r,z)
-#define VGMEMP_TRIM(h,a,s)	VALGRIND_MEMPOOL_TRIM(h,a,s)
-#define VGMEMP_ALLOC(h,a,s)	VALGRIND_MEMPOOL_ALLOC(h,a,s)
-#define VGMEMP_CHANGE(h,a,b,s)	VALGRIND_MEMPOOL_CHANGE(h,a,b,s)
-#else
-#define	VGMEMP_MARK(m,s)
-#define VGMEMP_CREATE(h,r,z)
-#define VGMEMP_TRIM(h,a,s)
-#define VGMEMP_ALLOC(h,a,s)
-#define VGMEMP_CHANGE(h,a,b,s)
-#endif
+#include "valgrind.h"
 
 /*
  * This allocator returns temporary memory from a slab in a given memory
@@ -211,18 +196,18 @@ slap_sl_mem_create(
 		sh = ch_malloc(sizeof(struct slab_heap));
 		base = ch_malloc(size);
 		SET_MEMCTX(thrctx, sh, slap_sl_mem_destroy);
-		VGMEMP_MARK(base, size);
-		VGMEMP_CREATE(sh, 0, 0);
+		VALGRIND_MAKE_MEM_NOACCESS(base, size);
+		VALGRIND_CREATE_MEMPOOL(sh, 0, 0);
 	} else {
 		slap_sl_mem_destroy(NULL, sh);
 		base = sh->sh_base;
 		if (size > (ber_len_t) ((char *) sh->sh_end - base)) {
 			newptr = ch_realloc(base, size);
 			if ( newptr == NULL ) return NULL;
-			VGMEMP_CHANGE(sh, base, newptr, size);
+			VALGRIND_MEMPOOL_CHANGE(sh, base, newptr, size);
 			base = newptr;
 		}
-		VGMEMP_TRIM(sh, base, 0);
+		VALGRIND_MEMPOOL_TRIM(sh, base, 0);
 	}
 	sh->sh_base = base;
 	sh->sh_end = base + size;
@@ -291,24 +276,9 @@ slap_sl_mem_detach(
 	SET_MEMCTX(thrctx, NULL, 0);
 }
 
-void *
-slap_sl_malloc(
-    ber_len_t	size,
-    void *ctx
-)
+static void * __slap_sl_malloc( struct slab_heap *sh, ber_len_t size )
 {
-	struct slab_heap *sh = ctx;
 	ber_len_t *ptr, *newptr;
-
-	/* ber_set_option calls us like this */
-	if (No_sl_malloc || !ctx) {
-		newptr = ber_memalloc_x( size, NULL );
-		if ( newptr ) return newptr;
-		Debug(LDAP_DEBUG_ANY, "slap_sl_malloc of %lu bytes failed\n",
-			(unsigned long) size);
-		assert( 0 );
-		exit( EXIT_FAILURE );
-	}
 
 	/* Add room for head, ensure room for tail when freed, and
 	 * round up to doubleword boundary. */
@@ -318,8 +288,9 @@ slap_sl_malloc(
 		if (size < (ber_len_t) ((char *) sh->sh_end - (char *) sh->sh_last)) {
 			newptr = sh->sh_last;
 			sh->sh_last = (char *) sh->sh_last + size;
-			VGMEMP_ALLOC(sh, newptr, size);
+			VALGRIND_MAKE_MEM_UNDEFINED(newptr, sizeof(*newptr));
 			*newptr++ = size;
+			VALGRIND_MAKE_MEM_NOACCESS(newptr, sizeof(*newptr));
 			return( (void *)newptr );
 		}
 
@@ -383,9 +354,45 @@ slap_sl_malloc(
 		/* FIXME: missing return; guessing we failed... */
 	}
 
-	Debug(LDAP_DEBUG_TRACE,
-		"sl_malloc %lu: ch_malloc\n",
+	return NULL;
+}
+
+static void* sl_malloc_fallback(ber_len_t size)
+{
+	void *ptr = ber_memalloc_x( size, NULL );
+	if ( ptr )
+		return ptr;
+
+	Debug(LDAP_DEBUG_ANY, "slap_sl_malloc of %lu bytes failed\n",
 		(unsigned long) size);
+	assert( 0 );
+	exit( EXIT_FAILURE );
+}
+
+void *
+slap_sl_malloc(
+	ber_len_t	size,
+	void *ctx
+)
+{
+	struct slab_heap *sh = ctx;
+	ber_len_t *ptr;
+
+	/* ber_set_option calls us like this */
+	if (No_sl_malloc || !sh)
+		return sl_malloc_fallback(size);
+
+	ptr = __slap_sl_malloc(sh, size);
+	if (ptr) {
+#ifdef LDAP_MEMORY_DEBUG
+		memset(ptr, 42, size);
+#endif
+		VALGRIND_MEMPOOL_ALLOC(sh, ptr, size);
+		return ptr;
+	}
+
+	Debug(LDAP_DEBUG_TRACE,
+		"sl_malloc %lu: fallback to ch_malloc\n", (unsigned long) size);
 	return ch_malloc(size);
 }
 
@@ -413,29 +420,29 @@ slap_sl_calloc( ber_len_t n, ber_len_t size, void *ctx )
 }
 
 void *
-slap_sl_realloc(void *ptr, ber_len_t size, void *ctx)
+slap_sl_realloc(void *ptr, ber_len_t csize, void *ctx)
 {
 	struct slab_heap *sh = ctx;
 	ber_len_t oldsize, *p = (ber_len_t *) ptr, *nextp;
 	void *newptr;
 
 	if (ptr == NULL)
-		return slap_sl_malloc(size, ctx);
+		return slap_sl_malloc(csize, ctx);
 
 	/* Not our memory? */
 	if (No_sl_malloc || !sh || ptr < sh->sh_base || ptr >= sh->sh_end) {
 		/* Like ch_realloc(), except not trying a new context */
-		newptr = ber_memrealloc_x(ptr, size, NULL);
+		newptr = ber_memrealloc_x(ptr, csize, NULL);
 		if (newptr) {
 			return newptr;
 		}
 		Debug(LDAP_DEBUG_ANY, "slap_sl_realloc of %lu bytes failed\n",
-			(unsigned long) size);
+			(unsigned long) csize);
 		assert(0);
 		exit( EXIT_FAILURE );
 	}
 
-	if (size == 0) {
+	if (csize == 0) {
 		slap_sl_free(ptr, ctx);
 		return NULL;
 	}
@@ -444,12 +451,13 @@ slap_sl_realloc(void *ptr, ber_len_t size, void *ctx)
 
 	if (sh->sh_stack) {
 		/* Add room for head, round up to doubleword boundary */
-		size = (size + sizeof(ber_len_t) + Align-1) & -Align;
+		ber_len_t size = (csize + sizeof(ber_len_t) + Align-1) & -Align;
 
 		p--;
 
 		/* Never shrink blocks */
 		if (size <= oldsize) {
+			VALGRIND_MEMPOOL_CHANGE(sh, ptr, ptr, csize);
 			return ptr;
 		}
 
@@ -461,14 +469,26 @@ slap_sl_realloc(void *ptr, ber_len_t size, void *ctx)
 			if (size < (ber_len_t) ((char *) sh->sh_end - (char *) p)) {
 				sh->sh_last = (char *) p + size;
 				p[0] = (p[0] & 1) | size;
+				VALGRIND_MEMPOOL_CHANGE(sh, ptr, ptr, csize);
 				return ptr;
 			}
 
 		/* Nowhere to grow, need to alloc and copy */
 		} else {
+			ber_len_t old_payload_size = oldsize-sizeof(ber_len_t);
 			/* Slight optimization of the final realloc variant */
-			newptr = slap_sl_malloc(size-sizeof(ber_len_t), ctx);
-			AC_MEMCPY(newptr, ptr, oldsize-sizeof(ber_len_t));
+			newptr = __slap_sl_malloc(sh, csize);
+			VALGRIND_DISABLE_ADDR_ERROR_REPORTING_IN_RANGE(ptr, old_payload_size);
+			if (newptr) {
+				VALGRIND_MAKE_MEM_UNDEFINED(newptr, csize);
+				memmove(newptr, ptr, old_payload_size);
+				VALGRIND_MEMPOOL_CHANGE(sh, ptr, newptr, csize);
+			} else {
+				newptr = sl_malloc_fallback(csize);
+				memmove(newptr, ptr, old_payload_size);
+				VALGRIND_MEMPOOL_FREE(sh, ptr);
+			}
+			VALGRIND_ENABLE_ADDR_ERROR_REPORTING_IN_RANGE(ptr, old_payload_size);
 			/* Not last block, can just mark old region as free */
 			nextp[-1] = oldsize;
 			nextp[0] |= 1;
@@ -478,13 +498,16 @@ slap_sl_realloc(void *ptr, ber_len_t size, void *ctx)
 		size -= sizeof(ber_len_t);
 		oldsize -= sizeof(ber_len_t);
 
-	} else if (oldsize > size) {
-		oldsize = size;
+	} else if (oldsize > csize) {
+		oldsize = csize;
 	}
 
-	newptr = slap_sl_malloc(size, ctx);
-	AC_MEMCPY(newptr, ptr, oldsize);
+	newptr = slap_sl_malloc(csize, ctx);
+	VALGRIND_DISABLE_ADDR_ERROR_REPORTING_IN_RANGE(ptr, oldsize);
+	memmove(newptr, ptr, oldsize);
+	VALGRIND_ENABLE_ADDR_ERROR_REPORTING_IN_RANGE(ptr, oldsize);
 	slap_sl_free(ptr, ctx);
+	VALGRIND_MEMPOOL_FREE(sh, ptr);
 	return newptr;
 }
 
@@ -503,29 +526,42 @@ slap_sl_free(void *ptr, void *ctx)
 		return;
 	}
 
+	VALGRIND_MEMPOOL_FREE(sh, ptr);
+	VALGRIND_MAKE_MEM_DEFINED(p - 1, sizeof(*p));
 	size = *(--p);
+	VALGRIND_MAKE_MEM_NOACCESS(p, sizeof(*p));
+#ifdef LDAP_MEMORY_DEBUG
+	memset(ptr, -1, size);
+#endif
 
 	if (sh->sh_stack) {
 		size &= -2;
 		nextp = (ber_len_t *) ((char *) p + size);
 		if (sh->sh_last != nextp) {
 			/* Mark it free: tail = size, head of next block |= 1 */
+			VALGRIND_MAKE_MEM_DEFINED(nextp-1, sizeof(ber_len_t) * 2);
 			nextp[-1] = size;
 			nextp[0] |= 1;
+			VALGRIND_MAKE_MEM_NOACCESS(nextp-1, sizeof(ber_len_t) * 2);
 			/* We can't tell Valgrind about it yet, because we
 			 * still need read/write access to this block for
 			 * when we eventually get to reclaim it.
 			 */
 		} else {
 			/* Reclaim freed block(s) off tail */
-			while (*p & 1) {
-				p = (ber_len_t *) ((char *) p - p[-1]);
+			for (;;) {
+				VALGRIND_MAKE_MEM_DEFINED(p-1, sizeof(ber_len_t) * 2);
+				ber_len_t p_flag = p[0];
+				ber_len_t p_size = p[-1];
+				VALGRIND_MAKE_MEM_NOACCESS(p-1, sizeof(ber_len_t) * 2);
+				if (!(p_flag & 1))
+					break;
+				p = (ber_len_t *) ((char *) p - p_size);
 			}
 			sh->sh_last = p;
-			VGMEMP_TRIM(sh, sh->sh_base,
+			VALGRIND_MEMPOOL_TRIM(sh, sh->sh_base,
 				(char *) sh->sh_last - (char *) sh->sh_base);
 		}
-
 	} else {
 		int size_shift, order_size;
 		struct slab_object *so;
