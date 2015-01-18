@@ -26,10 +26,15 @@ fi
 
 for n in $(seq 1 $N); do
 	echo "##teamcity[blockOpened name='Round $n of $N']"
-	if ! make test; then
+	make test 2>&1 | $filter $n
+	if [ ${PIPESTATUS[0]} -ne 0 ]; then
 		killall -9 slapd 2>/dev/null
+		echo "##teamcity[buildProblem description='Test failed']"
 		exit 1
-	fi | $filter $n
+	fi
 	echo "##teamcity[blockClosed name='Round $n of $N']"
 	sleep 1
 done
+
+echo "##teamcity[buildStatus text='Tests passed']"
+exit 0
