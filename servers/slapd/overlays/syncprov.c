@@ -2284,7 +2284,10 @@ syncprov_detach_op( Operation *op, syncops *so, slap_overinst *on )
 static int
 syncprov_search_cleanup( Operation *op, SlapReply *rs )
 {
-	if (rs->sr_err != LDAP_SUCCESS) {
+	if (rs->sr_err == LDAP_SUCCESS)
+		return SLAP_CB_CONTINUE;
+
+	if ( rs->sr_type == REP_RESULT || op->o_abandon || rs->sr_err == SLAPD_ABANDON ) {
 		slap_callback *cb = op->o_callback;
 		searchstate *ss = cb->sc_private;
 		slap_overinst *on = ss->ss_on;
@@ -2292,8 +2295,10 @@ syncprov_search_cleanup( Operation *op, SlapReply *rs )
 		syncops *so, **pso;
 
 		Debug( LDAP_DEBUG_ANY | LDAP_DEBUG_SYNC,
-			"syncprov: search_cleanup (%d, '%s').\n",
-			   rs->sr_err, rs->sr_text ? rs->sr_text : "NULL" );
+			"syncprov: search_cleanup (%d/%d/%d, '%s') - do-cleanup.\n",
+			   rs->sr_err, rs->sr_type, op->o_abandon,
+			   rs->sr_text ? rs->sr_text : "NULL" );
+
 		op->o_callback = cb->sc_next;
 		op->o_tmpfree( ss->ss_sids, op->o_tmpmemctx );
 		ber_bvarray_free_x( ss->ss_ctxcsn, op->o_tmpmemctx );
@@ -2312,6 +2317,11 @@ syncprov_search_cleanup( Operation *op, SlapReply *rs )
 		ldap_pvt_thread_mutex_unlock( &si->si_ops_mutex );
 		if ( so )
 			syncprov_drop_psearch( so, 0 );
+	} else {
+		Debug( LDAP_DEBUG_ANY | LDAP_DEBUG_SYNC,
+			"syncprov: search_cleanup (%d/%d/%d, '%s') - do-nothing.\n",
+			   rs->sr_err, rs->sr_type, op->o_abandon,
+			   rs->sr_text ? rs->sr_text : "NULL" );
 	}
 
 	return SLAP_CB_CONTINUE;
