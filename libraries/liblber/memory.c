@@ -146,7 +146,7 @@ ber_memfree_x( void *p, void *ctx )
 			ber_int_meminuse);
 #endif
 		/* Fill the free space with poison */
-		memset( mh, 0xff, mh->bm_length + sizeof(struct ber_mem_hdr) + sizeof(ber_int_t));
+		memset( mh, 0xFF, mh->bm_length + sizeof(struct ber_mem_hdr) + sizeof(ber_int_t));
 		free( mh );
 #else
 		free( p );
@@ -219,7 +219,7 @@ ber_memalloc_x( ber_len_t s, void *ctx )
 			ber_int_meminuse);
 #endif
 		/* poison new memory */
-		memset( (char *)&mh[1], 0xff, s);
+		memset( (char *)&mh[1], 0xCC, s);
 
 		BER_MEM_VALID( &mh[1] );
 		new = &mh[1];
@@ -334,12 +334,12 @@ ber_memrealloc_x( void* p, ber_len_t s, void *ctx )
 			return NULL;
 		}
 
-			mh = p;
+		mh = p;
 		mh->bm_length = s;
 		setend( (char *)&mh[1] + mh->bm_length );
 		if( s > oldlen ) {
 			/* poison any new memory */
-			memset( (char *)&mh[1] + oldlen, 0xff, s - oldlen);
+			memset( (char *)&mh[1] + oldlen, 0xCC, s - oldlen);
 		}
 
 		assert( mh->bm_top == LBER_MEM_JUNK);
