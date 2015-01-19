@@ -43,6 +43,15 @@
 #include "slapi/slapi.h"
 #endif
 
+#ifdef __linux__
+#include <malloc.h>
+#include <sys/prctl.h>
+#ifndef PR_SET_PTRACER
+#	define PR_SET_PTRACER 0x59616d61
+#	define PR_SET_PTRACER_ANY ((unsigned long)-1)
+#endif
+#endif /* __linux__ */
+
 #ifdef LDAP_SIGCHLD
 static RETSIGTYPE wait4child( int sig );
 #endif
@@ -308,6 +317,9 @@ usage( char *name )
 	fprintf( stderr,
 		"usage: %s options\n", name );
 	fprintf( stderr,
+#ifdef __linux__
+		"\t-D\t\tTurns MALLOC_CHECK_=7 and enables attach a debugger\n"
+#endif
 		"\t-4\t\tIPv4 only\n"
 		"\t-6\t\tIPv6 only\n"
 		"\t-T {acl|add|auth|cat|dn|index|passwd|test}\n"
@@ -345,7 +357,8 @@ usage( char *name )
 #endif
 		"\t-V\t\tprint version info (-VV exit afterwards, -VVV print\n"
 		"\t\t\tinfo about static overlays and backends)\n"
-    );
+		"\t-?\t\tThis help.\n"
+	);
 }
 
 #ifdef HAVE_NT_SERVICE_MANAGER
@@ -459,7 +472,11 @@ int main( int argc, char **argv )
 #endif
 
 	while ( (i = getopt( argc, argv,
-			     "c:d:f:F:h:n:o:s:tT:V"
+				 "?c:d:f:F:h:n:o:s:tT:V"
+#ifdef __linux__
+				"D"
+#endif /* __linux__ */
+
 #ifdef LDAP_PF_INET6
 				"46"
 #endif
@@ -477,6 +494,14 @@ int main( int argc, char **argv )
 #endif
 			     )) != EOF ) {
 		switch ( i ) {
+#ifdef __linux__
+		case 'D':
+			mallopt(M_CHECK_ACTION, 7);
+			mallopt(M_PERTURB, 111);
+			prctl(PR_SET_PTRACER, PR_SET_PTRACER_ANY, 0, 0, 0);
+			break;
+#endif /* __linux__ */
+
 #ifdef LDAP_PF_INET6
 		case '4':
 			slap_inet4or6 = AF_INET;
@@ -671,6 +696,7 @@ int main( int argc, char **argv )
 			fprintf( stderr, "program name \"%s%s\" unrecognized; "
 					"aborting...\n", serverNamePrefix, serverName );
 			/* FALLTHRU */
+		case '?':
 		default:
 unhandled_option:;
 			usage( argv[0] );

@@ -53,6 +53,11 @@ int slap_limit_memory_get() {return 0;}
 #include "config.h"
 #include "ac/errno.h"
 
+/* LY: avoid collision with slapd memory checking. */
+#ifdef free
+#	undef free
+#endif
+
 /* Include for BFD processing */
 #include "bfd.h"
 
@@ -163,7 +168,7 @@ static void trap_sigaction(int signum, siginfo_t *info, void* ptr) {
 	is_debugger_active = 0;
 }
 
-#if HAVE_VALGRIND
+#if defined(HAVE_VALGRIND) || defined(USE_VALGRIND)
 #	include <valgrind/valgrind.h>
 #endif
 
@@ -469,8 +474,8 @@ int slap_backtrace_get_enable() {
 }
 
 void slap_backtrace_set_dir( const char* path ) {
-	free(homedir);
-	homedir = path ? strdup(path) : NULL;
+	ch_free(homedir);
+	homedir = path ? ch_strdup(path) : NULL;
 }
 
 int slap_limit_coredump_set(int mbytes) {

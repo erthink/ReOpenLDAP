@@ -34,8 +34,8 @@
 #include "slap.h"
 
 #ifdef SLAP_ZONE_ALLOC
-
 #include <sys/mman.h>
+#include "valgrind.h"
 
 static int slap_zone_cmp(const void *v1, const void *v2);
 void * slap_replenish_zopool(void *ctx);
@@ -56,6 +56,8 @@ slap_zn_mem_destroy(
 	int pad = 2*sizeof(int)-1, pad_shift;
 	int order_start = -1, i, j;
 	struct zone_object *zo;
+
+	VALGRIND_DESTROY_MEMPOOL(zh);
 
 	pad_shift = pad - 1;
 	do {
@@ -225,16 +227,18 @@ slap_zn_mem_create(
 	ldap_pvt_thread_mutex_init(&zh->zh_mutex);
 	ldap_pvt_thread_rdwr_init(&zh->zh_lock);
 
+	VALGRIND_CREATE_MEMPOOL(zh, 0, 0);
 	return zh;
 }
 
 void *
 slap_zn_malloc(
-    ber_len_t	size,
+	ber_len_t	osize,
 	void *ctx
 )
 {
 	struct zone_heap *zh = ctx;
+	ber_len_t	size = osize;
 	ber_len_t size_shift;
 	int pad = 2*sizeof(int)-1, pad_shift;
 	int order = -1, order_start = -1;
@@ -285,6 +289,7 @@ retry:
 		ldap_pvt_thread_mutex_unlock( &zh->zh_mutex );
 		Debug(LDAP_DEBUG_NONE, "slap_zn_malloc: returning 0x%x, 0x%x\n",
 				ptr, (int)ptr>>(zh->zh_zoneorder+1));
+		VALGRIND_MEMPOOL_ALLOC(zh, ptr, osize);
 		return((void*)ptr);
 	} else if (i <= zh->zh_zoneorder) {
 		for (j = i; j > order; j--) {
@@ -315,6 +320,7 @@ retry:
 				Debug(LDAP_DEBUG_NONE,
 					"slap_zn_malloc: returning 0x%x, 0x%x\n",
 					ptr, (int)ptr>>(zh->zh_zoneorder+1));
+				VALGRIND_MEMPOOL_ALLOC(zh, ptr, osize);
 				return((void*)ptr);
 			} else {
 				LDAP_LIST_INSERT_HEAD(
@@ -443,11 +449,9 @@ slap_zn_realloc(void *ptr, ber_len_t size, void *ctx)
 	}
 
 	newptr = slap_zn_malloc(size, zh);
-	if (size < p[-1]) {
-		AC_MEMCPY(newptr, ptr, size);
-	} else {
-		AC_MEMCPY(newptr, ptr, p[-1]);
-	}
+	VALGRIND_DISABLE_ADDR_ERROR_REPORTING_IN_RANGE(ptr, p[-1]);
+	memmove(newptr, ptr, (size < p[-1]) ? size : p[-1]);
+	VALGRIND_ENABLE_ADDR_ERROR_REPORTING_IN_RANGE(ptr, p[-1]);
 	slap_zn_free(ptr, zh);
 	return newptr;
 }
@@ -483,7 +487,12 @@ slap_zn_free(void *ptr, void *ctx)
 		assert(idx != -1);
 		zone = zh->zh_zones[idx];
 
+		VALGRIND_MEMPOOL_FREE(zh, ptr);
 		size = *(--p);
+#ifdef LDAP_MEMORY_DEBUG
+		memset(ptr, -1, size);
+#endif
+
 		size_shift = size + 2*sizeof(ber_len_t) - 1;
 		do {
 			order++;
