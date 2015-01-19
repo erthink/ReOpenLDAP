@@ -11,7 +11,7 @@ git clean -x -f -d -e .ccache/ -e tests/testrun/ -e times.log || failure "cleanu
 
 CFLAGS="-Wall -g -Os -DLDAP_MEMORY_DEBUG -DSLAP_NO_SL_MALLOC -DUSE_VALGRIND" CPPFLAGS="$CFLAGS" \
 	./configure \
-		--enable-backends --enable-overlays \
+		--enable-backends --disable-ndb --enable-overlays \
 		--enable-rewrite --enable-dynacl --enable-aci --enable-slapi \
 		--disable-dependency-tracking \
 	|| failure "configure"
