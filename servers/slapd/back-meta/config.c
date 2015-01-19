@@ -2659,6 +2659,7 @@ idassert-authzFrom	"dn:<rootdn>"
 
 			/* re-parse all rewrite rules, up to the one
 			 * that needs to be added */
+			ca.be = c->be;
 			ca.fname = c->fname;
 			ca.lineno = c->lineno;
 			for ( i = 0; i < ix; i++ ) {
