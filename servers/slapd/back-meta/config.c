@@ -1792,7 +1792,7 @@ meta_back_cf_gen( ConfigArgs *c )
 		case LDAP_BACK_CFG_IDASSERT_AUTHZFROM: {
 			BerVarray *bvp;
 
-			bvp = &mt->mt_idassert_authz; break;
+			bvp = &mt->mt_idassert_authz;
 			if ( c->valx < 0 ) {
 				if ( *bvp != NULL ) {
 					ber_bvarray_free( *bvp );
