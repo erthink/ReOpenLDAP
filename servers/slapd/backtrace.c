@@ -24,6 +24,9 @@ int slap_limit_coredump_get() {return 0;}
 int slap_limit_memory_get() {return 0;}
 #else /* __linux__ */
 
+/* TODO: add libelf detection to configure. */
+#define HAVE_LIBELF 1
+
 #ifndef _GNU_SOURCE
 #	define _GNU_SOURCE
 #endif
@@ -58,12 +61,16 @@ int slap_limit_memory_get() {return 0;}
 #	undef free
 #endif
 
+#ifdef HAVE_LIBBFD
 /* Include for BFD processing */
-#include "bfd.h"
+#	include "bfd.h"
+#endif /* HAVE_LIBBFD */
 
+#ifdef HAVE_LIBELF
 /* Include for ELF processing */
-#include <libelf.h>
-#include <gelf.h>
+#	include <libelf.h>
+#	include <gelf.h>
+#endif /* HAVE_LIBELF */
 
 #ifndef PR_SET_PTRACER
 #	define PR_SET_PTRACER 0x59616d61
@@ -72,6 +79,7 @@ int slap_limit_memory_get() {return 0;}
 
 static char* homedir;
 
+#ifdef HAVE_LIBBFD
 static int is_bfd_symbols_available(void) {
 	char name_buf[PATH_MAX];
 	int n = readlink("/proc/self/exe", name_buf, sizeof(name_buf) - 1);
@@ -94,7 +102,11 @@ static int is_bfd_symbols_available(void) {
 	bfd_close(abfd);
 	return n;
 }
+#else
+#	define is_bfd_symbols_available() (0)
+#endif /* HAVE_LIBBFD */
 
+#ifdef HAVE_LIBELF
 static int is_elf_symbols_available(void) {
 	if (elf_version(EV_CURRENT) == EV_NONE)
 		return 0;
@@ -143,6 +155,9 @@ static int is_elf_symbols_available(void) {
 	close(fd);
 	return n;
 }
+#else
+#	define is_elf_symbols_available() (0)
+#endif /* HAVE_LIBELF */
 
 static int is_debugger_present(void) {
 	int fd = open("/proc/self/status", O_RDONLY);
@@ -523,10 +538,12 @@ int slap_limit_memory_get() {
 
 void slap_backtrace_set_enable( int value )
 {
+#if defined(HAVE_LIBBFD) || defined(HAVE_LIBELF)
 	if (value && ! is_bfd_symbols_available() && ! is_elf_symbols_available()) {
 		if (slap_backtrace_get_enable() != (value != 0))
 			Log0( LDAP_DEBUG_ANY, LDAP_LEVEL_NOTICE, "Backtrace could be UNUSEFUL, because symbols not available.\n");
 	}
+#endif
 
 	if (slap_backtrace_get_enable() != (value != 0)) {
 		struct sigaction sa;
