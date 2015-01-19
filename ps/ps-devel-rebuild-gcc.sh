@@ -7,7 +7,7 @@ failure() {
         exit 1
 }
 
-git clean -x -f -d -e .ccache/ -e tests/testrun/ -e times.log || failure "cleanup"
+git clean -x -f -d -e ./ps -e .ccache/ -e tests/testrun/ -e times.log || failure "cleanup"
 
 CFLAGS="-Wall -g -Og -DLDAP_MEMORY_DEBUG -DSLAP_NO_SL_MALLOC -DUSE_VALGRIND" CPPFLAGS="$CFLAGS" \
 	./configure \

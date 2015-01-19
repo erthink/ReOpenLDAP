@@ -1,4 +1,4 @@
-#!/bin/bash
+!/bin/bash
 
 function probe() {
 	echo "****************************************************************************************** "
@@ -17,7 +17,7 @@ function probe() {
 N=${1:-3}
 shift
 
-git clean -f -x -d -e tests/testrun || exit 125
+git clean -f -x -d -e ./ps -e tests/testrun || exit 125
 [ -f ./configure ] && ./configure "$@" && make depend && make -j4 || exit 125
 
 last=unknown

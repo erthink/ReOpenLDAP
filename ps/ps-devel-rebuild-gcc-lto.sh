@@ -7,7 +7,7 @@ failure() {
         exit 1
 }
 
-git clean -x -f -d -e .ccache/ -e tests/testrun/ -e times.log || failure "cleanup"
+git clean -x -f -d -e ./ps -e .ccache/ -e tests/testrun/ -e times.log || failure "cleanup"
 
 CC=gcc AR=gcc-ar NM=gcc-nm RANLIB=gcc-ranlib CFLAGS="-Wall -g -Os -flto" CPPFLAGS="$CFLAGS" \
 	./configure \
