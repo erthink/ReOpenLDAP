@@ -1,4 +1,4 @@
-#! /bin/sh
+#!/bin/bash
 # $OpenLDAP$
 ## This work is part of OpenLDAP Software <http://www.openldap.org/>.
 ##
@@ -25,6 +25,7 @@ FAILCOUNT=0
 SKIPCOUNT=0
 SLEEPTIME=10
 
+teamcity_msg "testSuiteStarted name='all LDAP tests for $BACKEND'"
 echo ">>>>> Executing all LDAP tests for $BACKEND"
 
 if [ -n "$NOEXIT" ]; then
@@ -59,6 +60,7 @@ EOF
 
 	if [ -x "$CMD" ]; then
 		BCMD=`basename $CMD`
+		teamcity_msg "testStarted name='$BCMD for $BACKEND' captureStandardOutput='true'"
 		echo ">>>>> Starting ${TB}$BCMD${TN} for $BACKEND..."
 		$CMD
 		RC=$?
@@ -66,6 +68,7 @@ EOF
 			echo ">>>>> $BCMD completed ${TB}OK${TN} for $BACKEND."
 		else
 			echo ">>>>> $BCMD ${TB}failed${TN} for $BACKEND"
+			teamcity_msg "testFailed name='$BCMD for $BACKEND'"
 			FAILCOUNT=`expr $FAILCOUNT + 1`
 
 			if [ -n "$NOEXIT" ]; then
@@ -75,10 +78,12 @@ EOF
 				exit $RC
 			fi
 		fi
+		teamcity_msg "testFinished name='$BCMD for $BACKEND'"
 	else
 		echo ">>>>> Skipping ${TB}$BCMD${TN} for $BACKEND."
 		SKIPCOUNT=`expr $SKIPCOUNT + 1`
 		RC="-"
+		teamcity_msg t"testIgnored name='$BCMD for $BACKEND'"
 	fi
 
 	if [ -n "$NOEXIT" ]; then
@@ -100,3 +105,4 @@ if [ -n "$NOEXIT" ]; then
 fi
 
 echo "$SKIPCOUNT tests for $BACKEND were ${TB}skipped${TN}."
+teamcity_msg "testSuiteFinished name='all LDAP tests for $BACKEND'"

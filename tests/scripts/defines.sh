@@ -1,4 +1,4 @@
-#! /bin/sh
+#!/bin/bash
 # $OpenLDAP$
 ## This work is part of OpenLDAP Software <http://www.openldap.org/>.
 ##
@@ -361,3 +361,9 @@ DDSOUT=$DATADIR/dds.out
 MEMBEROFOUT=$DATADIR/memberof.out
 MEMBEROFREFINTOUT=$DATADIR/memberof-refint.out
 SHTOOL="$SRCDIR/../build/shtool"
+
+function teamcity_msg {
+	if [ -n "${TEAMCITY_PROCESS_FLOW_ID}" ]; then
+		echo "##teamcity[$@]"
+	fi
+}
