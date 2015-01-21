@@ -2497,9 +2497,9 @@ syncprov_op_search( Operation *op, SlapReply *rs )
 	/* If this is a persistent search, set it up right away */
 	if ( op->o_sync_mode & SLAP_SYNC_PERSIST ) {
 		syncops so = {0};
-		fbase_cookie fc;
-		opcookie opc;
-		slap_callback sc;
+		fbase_cookie fc = {0};
+		opcookie opc = {0};
+		slap_callback sc = {0};
 
 		fc.fss = &so;
 		fc.fbase = 0;
