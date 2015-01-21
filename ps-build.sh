@@ -42,7 +42,7 @@ CFLAGS="-Wall -g -Os" CPPFLAGS="-Wall -g -Os" ./configure \
 	--disable-dynamic --disable-shared --enable-static \
 	--with-gnu-ld \
 	--without-cyrus-sasl --disable-dependency-tracking \
-	--disable-spasswd --disable-lmpasswd --disable-rewrite \
+	--disable-spasswd --disable-lmpasswd \
 	--without-tls --disable-rwm --disable-relay \
 	|| failure "configure"
 
