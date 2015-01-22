@@ -351,7 +351,6 @@ bdb_search( Operation *op, SlapReply *rs )
 	Entry		*e = NULL, base, *e_root;
 	Entry		*matched = NULL;
 	EntryInfo	*ei;
-	AttributeName	*attrs;
 	struct berval	realbase = BER_BVNULL;
 	slap_mask_t	mask;
 	time_t		stoptime;
@@ -366,7 +365,6 @@ bdb_search( Operation *op, SlapReply *rs )
 	OpExtra *oex;
 
 	Debug( LDAP_DEBUG_TRACE, "=> " LDAP_XSTRING(bdb_search) "\n");
-	attrs = op->oq_search.rs_attrs;
 
 	LDAP_SLIST_FOREACH( oex, &op->o_extra, oe_next ) {
 		if ( oex->oe_key == bdb )

@@ -917,7 +917,7 @@ meta_back_get_candidate(
 		Operation	op2 = *op;
 		SlapReply	rs2 = { REP_RESULT };
 		slap_callback	cb2 = { 0 };
-		int		rc;
+		int		rc ALLOW_UNUSED;
 
 		/* try to get a unique match for the request ndn
 		 * among the multiple candidates available */
@@ -1366,8 +1366,8 @@ retry_lock:;
 	}
 
 	if ( op_type == META_OP_REQUIRE_SINGLE ) {
-		metatarget_t		*mt = NULL;
-		metasingleconn_t	*msc = NULL;
+		metatarget_t		*mt ALLOW_UNUSED = NULL;
+		metasingleconn_t	*msc ALLOW_UNUSED = NULL;
 
 		int			j;
 

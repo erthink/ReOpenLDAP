@@ -64,6 +64,7 @@ static ConfigOCs perlocs[] = {
 	{ NULL }
 };
 
+#if 0 /* unused */
 static ConfigOCs ovperlocs[] = {
 	{ "( OLcfgDbOc:11.2 "
 		"NAME 'olcovPerlConfig' "
@@ -74,6 +75,7 @@ static ConfigOCs ovperlocs[] = {
 			Cft_Overlay, perlcfg, NULL, NULL },
 	{ NULL }
 };
+#endif /* #if 0, unused */
 
 /**********************************************************
  *
@@ -112,7 +114,7 @@ perl_cf(
 )
 {
 	PerlBackend *pb = (PerlBackend *) c->be->be_private;
-	SV* loc_sv;
+	SV* loc_sv ALLOW_UNUSED;
 	int count ;
 	int args;
 	int rc = 0;

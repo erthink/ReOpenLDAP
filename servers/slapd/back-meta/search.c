@@ -793,7 +793,7 @@ meta_back_search( Operation *op, SlapReply *rs )
 			timeout = 0;
 	int		rc = 0, sres = LDAP_SUCCESS;
 	char		*matched = NULL;
-	int		last = 0, ncandidates = 0,
+	int		last ALLOW_UNUSED = 0, ncandidates = 0,
 			initial_candidates = 0, candidate_match = 0,
 			needbind = 0;
 	ldap_back_send_t	sendok = LDAP_BACK_SENDERR;
@@ -997,14 +997,12 @@ getconn:;
 	 */
 	for ( rc = 0; ncandidates > 0; ) {
 		int	gotit = 0,
-			doabandon = 0,
 			alreadybound = ncandidates;
 
 		/* check timeout */
 		if ( timeout && lastres_time > 0
 			&& ( slap_get_time() - lastres_time ) > timeout )
 		{
-			doabandon = 1;
 			rs->sr_text = "Operation timed out";
 			rc = rs->sr_err = op->o_protocol >= LDAP_VERSION3 ?
 				LDAP_ADMINLIMIT_EXCEEDED : LDAP_OTHER;
@@ -1019,7 +1017,6 @@ getconn:;
 		if ( op->ors_tlimit != SLAP_NO_LIMIT
 				&& slap_get_time() > stoptime )
 		{
-			doabandon = 1;
 			rc = rs->sr_err = LDAP_TIMELIMIT_EXCEEDED;
 			savepriv = op->o_private;
 			op->o_private = (void *)i;

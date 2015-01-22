@@ -240,7 +240,7 @@ meta_back_db_open(
 	metainfo_t	*mi = (metainfo_t *)be->be_private;
 	char msg[SLAP_TEXT_BUFLEN];
 
-	int		i, rc;
+	int		i;
 
 	if ( mi->mi_ntargets == 0 ) {
 		/* Dynamically added, nothing to check here until

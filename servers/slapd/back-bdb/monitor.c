@@ -201,7 +201,7 @@ bdb_monitor_free(
 	const char	*text;
 	char		textbuf[ SLAP_TEXT_BUFLEN ];
 
-	int		i, rc;
+	int		i, rc ALLOW_UNUSED;
 
 	/* NOTE: if slap_shutdown != 0, priv might have already been freed */
 	*priv = NULL;
@@ -312,7 +312,9 @@ bdb_monitor_initialize( void )
 int
 bdb_monitor_db_init( BackendDB *be )
 {
+#ifdef BDB_MONITOR_IDX
 	struct bdb_info		*bdb = (struct bdb_info *) be->be_private;
+#endif /* BDB_MONITOR_IDX */
 
 	if ( bdb_monitor_initialize() == LDAP_SUCCESS ) {
 		/* monitoring in back-bdb is on by default */
@@ -401,7 +403,8 @@ bdb_monitor_db_open( BackendDB *be )
 		len = strlen( fname );
 		if ( fname[ 0 ] != '/' ) {
 			/* get full path name */
-			getcwd( path, sizeof( path ) );
+			rc = getcwd( path, sizeof( path ) ) ? 0 : -1;
+			assert(rc == 0);
 			pathlen = strlen( path );
 
 			if ( fname[ 0 ] == '.' && fname[ 1 ] == '/' ) {
