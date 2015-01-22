@@ -1,0 +1,5 @@
+.\" Shared Project Acknowledgement Text
+.B "Программное обеспечение OpenLDAP"
+разработано и поддерживается проектом OpenLDAP <http://www.openldap.org/>.
+.B "Программное обеспечение OpenLDAP"
+является производным от релиза 3.3 LDAP Мичиганского Университета.
