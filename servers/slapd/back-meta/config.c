@@ -3061,8 +3061,8 @@ ldap_back_map_config(
 		if ( src[ 0 ] != '\0' ) {
 			if ( oc_bvfind( &mapping[ 0 ].src ) == NULL ) {
 				Debug( LDAP_DEBUG_ANY,
-	"warning, source objectClass '%s' should be defined in schema\n",
-					c->log, src );
+						"%s: warning, source objectClass "
+						"'%s' should be defined in schema\n", c->log, src );
 
 				/*
 				 * FIXME: this should become an err
@@ -3073,8 +3073,8 @@ ldap_back_map_config(
 
 		if ( oc_bvfind( &mapping[ 0 ].dst ) == NULL ) {
 			Debug( LDAP_DEBUG_ANY,
-	"warning, destination objectClass '%s' is not defined in schema\n",
-				c->log, dst );
+				   "%s: warning, destination objectClass "
+					"'%s' is not defined in schema\n", c->log, dst );
 		}
 	} else {
 		int			rc;
@@ -3085,8 +3085,8 @@ ldap_back_map_config(
 			rc = slap_bv2ad( &mapping[ 0 ].src, &ad, &text );
 			if ( rc != LDAP_SUCCESS ) {
 				Debug( LDAP_DEBUG_ANY,
-	"warning, source attributeType '%s' should be defined in schema\n",
-					c->log, src );
+					   "%s: warning, source attributeType "
+					   "'%s' should be defined in schema\n", c->log, src );
 
 				/*
 				 * FIXME: this should become an err
@@ -3113,8 +3113,8 @@ ldap_back_map_config(
 		rc = slap_bv2ad( &mapping[ 0 ].dst, &ad, &text );
 		if ( rc != LDAP_SUCCESS ) {
 			Debug( LDAP_DEBUG_ANY,
-	"warning, destination attributeType '%s' is not defined in schema\n",
-				c->log, dst );
+				   "%s: warning, destination attributeType "
+				   "'%s' is not defined in schema\n", c->log, dst );
 
 			/*
 			 * we create a fake "proxied" ad
