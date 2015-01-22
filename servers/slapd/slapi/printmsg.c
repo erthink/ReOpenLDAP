@@ -85,7 +85,7 @@ slapi_int_log_error(
 		}
 		fflush( fp );
 
-		lockf( fileno( fp ), F_ULOCK, 0 );
+		rc = lockf( fileno( fp ), F_ULOCK, 0 );
 
 		fclose( fp );
 
