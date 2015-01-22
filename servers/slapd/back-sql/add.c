@@ -1268,7 +1268,7 @@ backsql_add( Operation *op, SlapReply *rs )
 		{
 			SQLCHAR		colname[ 64 ];
 			SQLSMALLINT	name_len, col_type, col_scale, col_null;
-			UDWORD		col_prec;
+			SQLULEN		col_prec;
 
 			/*
 			 * FIXME: check whether col_type is compatible,
