@@ -9,7 +9,8 @@ failure() {
 
 git clean -x -f -d -e ./ps -e .ccache/ -e tests/testrun/ -e times.log || failure "cleanup"
 
-CFLAGS="-Wall -g -Os -DLDAP_MEMORY_DEBUG -DUSE_VALGRIND" CPPFLAGS="$CFLAGS" \
+IODBC=$([ -d /usr/include/iodbc ] && echo "-I/usr/include/iodbc")
+CFLAGS="-Wall -g -Os -DLDAP_MEMORY_DEBUG -DUSE_VALGRIND $IODBC" CPPFLAGS="$CFLAGS" \
 	./configure \
 		--enable-backends --disable-ndb --enable-overlays \
 		--enable-rewrite --enable-dynacl --enable-aci --enable-slapi \
