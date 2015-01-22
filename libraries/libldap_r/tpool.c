@@ -211,22 +211,18 @@ ldap_pvt_thread_pool_init (
 	pool = (ldap_pvt_thread_pool_t) LDAP_CALLOC(1,
 		sizeof(struct ldap_int_thread_pool_s));
 
-	if (pool == NULL) return(-1);
+	if (pool == NULL)
+		return -1;
 
 	rc = ldap_pvt_thread_mutex_init(&pool->ltp_mutex);
-	if (rc != 0) {
-bailout:
-		LDAP_FREE(pool);
-		return(rc);
-	}
+	if (rc != 0)
+		goto cleanup1;
 	rc = ldap_pvt_thread_cond_init(&pool->ltp_cond);
 	if (rc != 0)
-		goto bailout;
+		goto cleanup2;
 	rc = ldap_pvt_thread_cond_init(&pool->ltp_pcond);
 	if (rc != 0)
-		goto bailout;
-
-	ldap_int_has_thread_pool = 1;
+		goto cleanup3;
 
 	pool->ltp_max_count = max_threads;
 	SET_VARY_OPEN_COUNT(pool);
@@ -248,7 +244,16 @@ bailout:
 	 */
 
 	*tpool = pool;
-	return(0);
+	ldap_int_has_thread_pool = 1;
+	return 0;
+
+cleanup3:
+	ldap_pvt_thread_cond_destroy(&pool->ltp_cond);
+cleanup2:
+	ldap_pvt_thread_mutex_destroy(&pool->ltp_mutex);
+cleanup1:
+	LDAP_FREE(pool);
+	return rc;
 }
 
 

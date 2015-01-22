@@ -1,4 +1,4 @@
-#! /bin/sh
+#!/bin/bash
 # $OpenLDAP$
 ## This work is part of OpenLDAP Software <http://www.openldap.org/>.
 ##
@@ -13,13 +13,15 @@
 ## top-level directory of the distribution or, alternatively, at
 ## <http://www.OpenLDAP.org/license.html>.
 
-SHTOOL="$SRCDIR/../build/shtool"
+. $SRCDIR/scripts/defines.sh
 
 TB="" TN=""
 if test -t 1 ; then
 	TB=`$SHTOOL echo -e "%B" 2>/dev/null`
 	TN=`$SHTOOL echo -e "%b" 2>/dev/null`
 fi
+
+teamcity_msg "testSuiteStarted name='all LDAP ITS regression tests'"
 
 echo "#######################################################################"
 echo "###                                                                 ###"
@@ -38,6 +40,7 @@ for CMD in $SRCDIR/data/regressions/its*/its*; do
 		/bin/rm -rf testrun
 	fi
 
+	teamcity_msg "testStarted name='`basename $CMD`' captureStandardOutput='true'"
 	echo ">>>>> Starting ${TB}`basename $CMD`${TN} ..."
 	$CMD
 	RC=$?
@@ -45,8 +48,12 @@ for CMD in $SRCDIR/data/regressions/its*/its*; do
 		echo ">>>>> $CMD completed ${TB}OK${TN}."
 	else
 		echo ">>>>> $CMD ${TB}failed${TN} (exit $RC)"
+		teamcity_msg "testFailed name='`basename $CMD`'"
 		exit $RC
 	fi
 
 	echo ""
+	teamcity_msg "testFinished name='`basename $CMD`'"
 done
+
+teamcity_msg "testSuiteFinished name='all LDAP ITS regression tests'"

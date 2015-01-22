@@ -21,104 +21,37 @@
 #include "lber-int.h"
 
 #ifdef LDAP_MEMORY_TRACE
-#include <stdio.h>
+#	include <stdio.h>
+#	ifndef LDAP_MEMORY_DEBUG
+#		define LDAP_MEMORY_DEBUG 1
+#	endif
 #endif
 
-#ifdef LDAP_MEMORY_DEBUG
-/*
- * LDAP_MEMORY_DEBUG should only be enabled for the purposes of
- * debugging memory management within OpenLDAP libraries and slapd.
- *
- * It should only be enabled by an experienced developer as it causes
- * the inclusion of numerous assert()'s, many of which may be triggered
- * by a prefectly valid program.  If LDAP_MEMORY_DEBUG & 2 is true,
- * that includes asserts known to break both slapd and current clients.
- *
- * The code behind this macro is subject to change as needed to
- * support this testing.
- */
-
-struct ber_mem_hdr {
-	ber_int_t	bm_top;	/* Pattern to detect buf overrun from prev buffer */
-	ber_int_t	bm_length; /* Length of user allocated area */
-#ifdef LDAP_MEMORY_TRACE
-	ber_int_t	bm_sequence; /* Allocation sequence number */
-#endif
-	union bmu_align_u {	/* Force alignment, pattern to detect back clobber */
-		ber_len_t	bmu_len_t;
-		ber_tag_t	bmu_tag_t;
-		ber_int_t	bmu_int_t;
-
-		size_t	bmu_size_t;
-		void *	bmu_voidp;
-		double	bmu_double;
-		long	bmu_long;
-		long	(*bmu_funcp)( double );
-		unsigned char	bmu_char[4];
-	} ber_align;
-#define bm_junk	ber_align.bmu_len_t
-#define bm_data	ber_align.bmu_char[1]
-#define bm_char	ber_align.bmu_char
-};
-
-/* Pattern at top of allocated space */
-#define LBER_MEM_JUNK ((ber_int_t) 0xdeaddada)
-
-static const struct ber_mem_hdr ber_int_mem_hdr = { LBER_MEM_JUNK };
-
-/* Note sequence and ber_int_meminuse are counters, but are not
- * thread safe.  If you want to use these values for multithreaded applications,
- * you must put mutexes around them, otherwise they will have incorrect values.
- * When debugging, if you sort the debug output, the sequence number will
- * put allocations/frees together.  It is then a simple matter to write a script
- * to find any allocations that don't have a buffer free function.
- */
-long ber_int_meminuse = 0;
-#ifdef LDAP_MEMORY_TRACE
-static ber_int_t sequence = 0;
+#if defined(LDAP_MEMORY_DEBUG) && defined(LDAP_DISABLE_MEMORY_CHECK)
+#	undef LDAP_DISABLE_MEMORY_CHECK
 #endif
 
-/* Pattern placed just before user data */
-static unsigned char toppattern[4] = { 0xde, 0xad, 0xba, 0xde };
-/* Pattern placed just after user data */
-static unsigned char endpattern[4] = { 0xd1, 0xed, 0xde, 0xca };
-
-#define mbu_len sizeof(ber_int_mem_hdr.ber_align)
-
-/* Test if pattern placed just before user data is good */
-#define testdatatop(val) ( \
-	*(val->bm_char+mbu_len-4)==toppattern[0] && \
-	*(val->bm_char+mbu_len-3)==toppattern[1] && \
-	*(val->bm_char+mbu_len-2)==toppattern[2] && \
-	*(val->bm_char+mbu_len-1)==toppattern[3] )
-
-/* Place pattern just before user data */
-#define setdatatop(val)	*(val->bm_char+mbu_len-4)=toppattern[0]; \
-	*(val->bm_char+mbu_len-3)=toppattern[1]; \
-	*(val->bm_char+mbu_len-2)=toppattern[2]; \
-	*(val->bm_char+mbu_len-1)=toppattern[3];
-
-/* Test if pattern placed just after user data is good */
-#define testend(val) ( 	*((unsigned char *)val+0)==endpattern[0] && \
-	*((unsigned char *)val+1)==endpattern[1] && \
-	*((unsigned char *)val+2)==endpattern[2] && \
-	*((unsigned char *)val+3)==endpattern[3] )
-
-/* Place pattern just after user data */
-#define setend(val)  	*((unsigned char *)val+0)=endpattern[0]; \
-	*((unsigned char *)val+1)=endpattern[1]; \
-	*((unsigned char *)val+2)=endpattern[2]; \
-	*((unsigned char *)val+3)=endpattern[3];
-
-#define BER_MEM_BADADDR	((void *) &ber_int_mem_hdr.bm_data)
-#define BER_MEM_VALID(p)	do { \
-		assert( (p) != BER_MEM_BADADDR );	\
-		assert( (p) != (void *) &ber_int_mem_hdr );	\
-	} while(0)
-
+/* LY: With respect to http://en.wikipedia.org/wiki/Fail-fast */
+#ifdef LDAP_DISABLE_MEMORY_CHECK
+#	define BER_MEM_VALID(p) do {} while(0)
 #else
-#define BER_MEM_VALID(p)	/* no-op */
-#endif
+/*
+ * LDAP_MEMORY_DEBUG should be enabled for properly memory handling,
+ * durability and data consistency.
+ *
+ * It can't trigger assertion failure in a prefectly valid program!
+ *
+ * But it should be enabled by an experienced developer as it causes
+ * the inclusion of numerous assert()'s due overall poor code quality
+ * in the LDAP's world.
+ *
+ * If LDAP_MEMORY_DEBUG & 2 is true, that includes
+ * asserts known to break both slapd and current clients.
+ *
+ */
+#	include <lber_hipagut.h>
+#	define BER_MEM_VALID(p) lber_hug_memchk_ensure(p)
+#endif /* LDAP_DISABLE_MEMORY_CHECK */
 
 BerMemoryFunctions *ber_int_memory_fns = NULL;
 
@@ -132,31 +65,21 @@ ber_memfree_x( void *p, void *ctx )
 	BER_MEM_VALID( p );
 
 	if( ber_int_memory_fns == NULL || ctx == NULL ) {
-#ifdef LDAP_MEMORY_DEBUG
-		struct ber_mem_hdr *mh = (struct ber_mem_hdr *)
-			((char *)p - sizeof(struct ber_mem_hdr));
-		assert( mh->bm_top == LBER_MEM_JUNK);
-		assert( testdatatop( mh));
-		assert( testend( (char *)&mh[1] + mh->bm_length) );
-		ber_int_meminuse -= mh->bm_length;
-
+#ifndef LDAP_DISABLE_MEMORY_CHECK
+		p = lber_hug_memchk_drown(p);
 #ifdef LDAP_MEMORY_TRACE
-		fprintf(stderr, "0x%08lx 0x%08lx -f- %ld ber_memfree %ld\n",
-			(long)mh->bm_sequence, (long)mh, (long)mh->bm_length,
-			ber_int_meminuse);
+		struct lber_hug_memchk *mh = p;
+		fprintf(stderr, "%p.%zu -f- %zu ber_memfree %zu\n",
+			mh, mh->hm_sequence, mh->hm_length,
+			lber_hug_memchk_info.mi_inuse_bytes);
 #endif
-		/* Fill the free space with poison */
-		memset( mh, 0xFF, mh->bm_length + sizeof(struct ber_mem_hdr) + sizeof(ber_int_t));
-		free( mh );
-#else
+#endif /* LDAP_DISABLE_MEMORY_CHECK */
+
 		free( p );
-#endif
-		return;
+	} else {
+		assert( ber_int_memory_fns->bmf_free != 0 );
+		(*ber_int_memory_fns->bmf_free)( p, ctx );
 	}
-
-	assert( ber_int_memory_fns->bmf_free != 0 );
-
-	(*ber_int_memory_fns->bmf_free)( p, ctx );
 }
 
 void
@@ -174,8 +97,6 @@ ber_memvfree_x( void **vec, void *ctx )
 		return;
 	}
 
-	BER_MEM_VALID( vec );
-
 	for ( i = 0; vec[i] != NULL; i++ ) {
 		ber_memfree_x( vec[i], ctx );
 	}
@@ -192,7 +113,7 @@ ber_memvfree( void **vec )
 void *
 ber_memalloc_x( ber_len_t s, void *ctx )
 {
-	void *new;
+	void *p;
 
 	if( s == 0 ) {
 		LDAP_MEMORY_DEBUG_ASSERT( s != 0 );
@@ -200,42 +121,40 @@ ber_memalloc_x( ber_len_t s, void *ctx )
 	}
 
 	if( ber_int_memory_fns == NULL || ctx == NULL ) {
-#ifdef LDAP_MEMORY_DEBUG
-		new = malloc(s + sizeof(struct ber_mem_hdr) + sizeof( ber_int_t));
-		if( new )
-		{
-		struct ber_mem_hdr *mh = new;
-		mh->bm_top = LBER_MEM_JUNK;
-		mh->bm_length = s;
-		setdatatop( mh);
-		setend( (char *)&mh[1] + mh->bm_length );
-
-		ber_int_meminuse += mh->bm_length;	/* Count mem inuse */
-
-#ifdef LDAP_MEMORY_TRACE
-		mh->bm_sequence = sequence++;
-		fprintf(stderr, "0x%08lx 0x%08lx -a- %ld ber_memalloc %ld\n",
-			(long)mh->bm_sequence, (long)mh, (long)mh->bm_length,
-			ber_int_meminuse);
-#endif
-		/* poison new memory */
-		memset( (char *)&mh[1], 0xCC, s);
-
-		BER_MEM_VALID( &mh[1] );
-		new = &mh[1];
+		size_t bytes = s;
+#ifndef LDAP_DISABLE_MEMORY_CHECK
+		bytes += LBER_HUG_MEMCHK_OVERHEAD;
+		if (unlikely(bytes < s)) {
+			ber_errno = LBER_ERROR_MEMORY;
+			return NULL;
 		}
-#else
-		new = malloc( s );
+#endif /* LDAP_DISABLE_MEMORY_CHECK */
+
+		p = malloc( bytes );
+
+#ifndef LDAP_DISABLE_MEMORY_CHECK
+		if (p) {
+			p = lber_hug_memchk_setup(p, s, LBER_HUG_POISON_DEFAULT);
+#ifdef LDAP_MEMORY_TRACE
+			struct lber_hug_memchk *mh = LBER_HUG_CHUNK(p);
+			fprintf(stderr, "%p.%zu -a- %zu ber_memalloc %zu\n",
+				mh, mh->hm_sequence, mh->hm_length,
+				lber_hug_memchk_info.mi_inuse_bytes);
 #endif
+		}
+#endif /* LDAP_DISABLE_MEMORY_CHECK */
+
 	} else {
-		new = (*ber_int_memory_fns->bmf_malloc)( s, ctx );
+		p = (*ber_int_memory_fns->bmf_malloc)( s, ctx );
 	}
 
-	if( new == NULL ) {
+	if( p == NULL ) {
 		ber_errno = LBER_ERROR_MEMORY;
+		return p;
 	}
 
-	return new;
+	BER_MEM_VALID( p );
+	return p;
 }
 
 void *
@@ -244,10 +163,14 @@ ber_memalloc( ber_len_t s )
 	return ber_memalloc_x( s, NULL );
 }
 
+#define LIM_SQRT(t) /* some value < sqrt(max value of unsigned type t) */ \
+	((0UL|(t)-1) >>31>>31 > 1 ? ((t)1 <<32) - 1 : \
+	 (0UL|(t)-1) >>31 ? 65535U : (0UL|(t)-1) >>15 ? 255U : 15U)
+
 void *
 ber_memcalloc_x( ber_len_t n, ber_len_t s, void *ctx )
 {
-	void *new;
+	void *p;
 
 	if( n == 0 || s == 0 ) {
 		LDAP_MEMORY_DEBUG_ASSERT( n != 0 && s != 0);
@@ -255,43 +178,49 @@ ber_memcalloc_x( ber_len_t n, ber_len_t s, void *ctx )
 	}
 
 	if( ber_int_memory_fns == NULL || ctx == NULL ) {
-#ifdef LDAP_MEMORY_DEBUG
-		new = n < (-sizeof(struct ber_mem_hdr) - sizeof(ber_int_t)) / s
-			? calloc(1, n*s + sizeof(struct ber_mem_hdr) + sizeof(ber_int_t))
-			: NULL;
-		if( new )
-		{
-		struct ber_mem_hdr *mh = new;
-
-		mh->bm_top = LBER_MEM_JUNK;
-		mh->bm_length = n*s;
-		setdatatop( mh);
-		setend( (char *)&mh[1] + mh->bm_length );
-
-		ber_int_meminuse += mh->bm_length;
-
-#ifdef LDAP_MEMORY_TRACE
-		mh->bm_sequence = sequence++;
-		fprintf(stderr, "0x%08lx 0x%08lx -a- %ld ber_memcalloc %ld\n",
-			(long)mh->bm_sequence, (long)mh, (long)mh->bm_length,
-			ber_int_meminuse);
-#endif
-		BER_MEM_VALID( &mh[1] );
-		new = &mh[1];
+#ifndef LDAP_DISABLE_MEMORY_CHECK
+		/* The sqrt test is a slight optimization: often avoids the division */
+		if (unlikely((n | s) > LIM_SQRT(size_t) && (size_t)-1/n > s)) {
+			ber_errno = LBER_ERROR_MEMORY;
+			return NULL;
 		}
-#else
-		new = calloc( n, s );
+
+		size_t payload_bytes = (size_t) s * (size_t) n;
+		size_t total_bytes = payload_bytes + LBER_HUG_MEMCHK_OVERHEAD;
+		if (unlikely(total_bytes < payload_bytes)) {
+			ber_errno = LBER_ERROR_MEMORY;
+			return NULL;
+		}
+
+		n = total_bytes;
+		s = 1;
+#endif /* LDAP_DISABLE_MEMORY_CHECK */
+
+		p = calloc( n, s );
+
+#ifndef LDAP_DISABLE_MEMORY_CHECK
+		if (p) {
+			p = lber_hug_memchk_setup(p, payload_bytes, LBER_HUG_POISON_DISABLED);
+#ifdef LDAP_MEMORY_TRACE
+			struct lber_hug_memchk *mh = LBER_HUG_CHUNK(p);
+			fprintf(stderr, "%p.%zu -a- %zu ber_memcalloc %zu\n",
+				mh, mh->hm_sequence, mh->hm_length,
+				lber_hug_memchk_info.mi_inuse_bytes);
 #endif
+		}
+#endif /* LDAP_DISABLE_MEMORY_CHECK */
 
 	} else {
-		new = (*ber_int_memory_fns->bmf_calloc)( n, s, ctx );
+		p = (*ber_int_memory_fns->bmf_calloc)( n, s, ctx );
 	}
 
-	if( new == NULL ) {
+	if( p == NULL ) {
 		ber_errno = LBER_ERROR_MEMORY;
+		return p;
 	}
 
-	return new;
+	BER_MEM_VALID( p );
+	return p;
 }
 
 void *
@@ -303,8 +232,6 @@ ber_memcalloc( ber_len_t n, ber_len_t s )
 void *
 ber_memrealloc_x( void* p, ber_len_t s, void *ctx )
 {
-	void *new = NULL;
-
 	/* realloc(NULL,s) -> malloc(s) */
 	if( p == NULL ) {
 		return ber_memalloc_x( s, ctx );
@@ -319,52 +246,48 @@ ber_memrealloc_x( void* p, ber_len_t s, void *ctx )
 	BER_MEM_VALID( p );
 
 	if( ber_int_memory_fns == NULL || ctx == NULL ) {
-#ifdef LDAP_MEMORY_DEBUG
-		ber_int_t oldlen;
-		struct ber_mem_hdr *mh = (struct ber_mem_hdr *)
-			((char *)p - sizeof(struct ber_mem_hdr));
-		assert( mh->bm_top == LBER_MEM_JUNK);
-		assert( testdatatop( mh));
-		assert( testend( (char *)&mh[1] + mh->bm_length) );
-		oldlen = mh->bm_length;
+		size_t bytes = s;
 
-		p = realloc( mh, s + sizeof(struct ber_mem_hdr) + sizeof(ber_int_t) );
-		if( p == NULL ) {
+#ifndef LDAP_DISABLE_MEMORY_CHECK
+		size_t old_size;
+		unsigned undo_key;
+
+		bytes += LBER_HUG_MEMCHK_OVERHEAD;
+		if(unlikely(bytes < s)) {
 			ber_errno = LBER_ERROR_MEMORY;
 			return NULL;
 		}
+		undo_key = lber_hug_realloc_begin(p, &old_size);
+		p = LBER_HUG_CHUNK(p);
+#endif /* LDAP_DISABLE_MEMORY_CHECK */
 
-		mh = p;
-		mh->bm_length = s;
-		setend( (char *)&mh[1] + mh->bm_length );
-		if( s > oldlen ) {
-			/* poison any new memory */
-			memset( (char *)&mh[1] + oldlen, 0xCC, s - oldlen);
-		}
+		p = realloc( p, bytes );
 
-		assert( mh->bm_top == LBER_MEM_JUNK);
-		assert( testdatatop( mh));
-
-		ber_int_meminuse += s - oldlen;
+#ifndef LDAP_DISABLE_MEMORY_CHECK
+		if (p) {
+			p = lber_hug_realloc_commit(old_size, p, s);
 #ifdef LDAP_MEMORY_TRACE
-		fprintf(stderr, "0x%08lx 0x%08lx -a- %ld ber_memrealloc %ld\n",
-			(long)mh->bm_sequence, (long)mh, (long)mh->bm_length,
-			ber_int_meminuse);
+			struct lber_hug_memchk *mh = LBER_HUG_CHUNK(p);
+			fprintf(stderr, "%p.%zu -a- %zu ber_memrealloc %zu\n",
+				mh, mh->hm_sequence, mh->hm_length,
+				lber_hug_memchk_info.mi_inuse_bytes);
 #endif
-			BER_MEM_VALID( &mh[1] );
-		return &mh[1];
-#else
-		new = realloc( p, s );
-#endif
+		} else {
+			lber_hug_realloc_undo(p, undo_key);
+		}
+#endif /* LDAP_DISABLE_MEMORY_CHECK */
+
 	} else {
-		new = (*ber_int_memory_fns->bmf_realloc)( p, s, ctx );
+		p = (*ber_int_memory_fns->bmf_realloc)( p, s, ctx );
 	}
 
-	if( new == NULL ) {
+	if( p == NULL ) {
 		ber_errno = LBER_ERROR_MEMORY;
+		return p;
 	}
 
-	return new;
+	BER_MEM_VALID( p );
+	return p;
 }
 
 void *
@@ -625,7 +548,7 @@ ber_strdup_x( LDAP_CONST char *s, void *ctx )
 	char    *p;
 	size_t	len;
 
-#ifdef LDAP_MEMORY_DEBUG
+#ifndef LDAP_DISABLE_MEMORY_CHECK
 	assert(s != NULL);			/* bv damn better point to something */
 #endif
 
@@ -664,7 +587,7 @@ ber_strndup_x( LDAP_CONST char *s, ber_len_t l, void *ctx )
 	char    *p;
 	size_t	len;
 
-#ifdef LDAP_MEMORY_DEBUG
+#ifndef LDAP_DISABLE_MEMORY_CHECK
 	assert(s != NULL);			/* bv damn better point to something */
 #endif
 
@@ -786,7 +709,6 @@ ber_bvarray_add_x( BerVarray *a, BerValue *bv, void *ctx )
 
 	} else {
 		BerVarray atmp;
-		BER_MEM_VALID( a );
 
 		for ( n = 0; *a != NULL && (*a)[n].bv_val != NULL; n++ ) {
 			;	/* just count them */

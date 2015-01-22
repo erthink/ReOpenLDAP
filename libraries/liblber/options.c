@@ -20,6 +20,10 @@
 #include <ac/stdarg.h>
 #include "lber-int.h"
 
+#if defined(LDAP_MEMORY_DEBUG) || !defined(LDAP_DISABLE_MEMORY_CHECK)
+#	include "lber_hipagut.h"
+#endif
+
 char ber_pvt_opt_on;	/* used to get a non-NULL address for *_OPT_ON */
 
 struct lber_options ber_int_options = {
@@ -55,8 +59,8 @@ ber_get_option(
 			 * using the lber_set_option() function during startup.
 			 * The counter is not accurate for multithreaded ldap applications.
 			 */
-#ifdef LDAP_MEMORY_DEBUG
-			* (int *) outvalue = ber_int_meminuse;
+#if defined(LDAP_MEMORY_DEBUG) || !defined(LDAP_DISABLE_MEMORY_CHECK)
+			* (int *) outvalue = lber_hug_memchk_info.mi_inuse_bytes;
 			return LBER_OPT_SUCCESS;
 #else
 			return LBER_OPT_ERROR;
@@ -142,19 +146,11 @@ ber_set_option(
 			return LBER_OPT_SUCCESS;
 
 		case LBER_OPT_MEMORY_INUSE:
-			/* The memory inuse is a global variable on kernal implementations.
-			 * This means that memory debug is shared by all LDAP processes
-			 * so for this variable to have much meaning, only one LDAP process
-			 * should be running and memory inuse should be initialized to zero
-			 * using the lber_set_option() function during startup.
-			 * The counter is not accurate for multithreaded applications.
-			 */
-#ifdef LDAP_MEMORY_DEBUG
-			ber_int_meminuse = * (int *) invalue;
-			return LBER_OPT_SUCCESS;
-#else
+			/* The memory inuse is a global variable on "kernel" implementations.
+			 * This means that memory debug is shared by all LDAP threads.
+			 * In ReOpenLDAP this counter IS accurate for thread safe.
+			 * Therefore, no one should reset it. */
 			return LBER_OPT_ERROR;
-#endif
 		case LBER_OPT_MEMORY_FNS:
 			if ( ber_int_memory_fns == NULL )
 			{

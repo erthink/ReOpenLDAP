@@ -1,4 +1,4 @@
-#! /bin/sh
+#!/bin/bash
 # $OpenLDAP$
 ## This work is part of OpenLDAP Software <http://www.openldap.org/>.
 ##
@@ -13,7 +13,7 @@
 ## top-level directory of the distribution or, alternatively, at
 ## <http://www.OpenLDAP.org/license.html>.
 
-SHTOOL="$SRCDIR/../build/shtool"
+. $SRCDIR/scripts/defines.sh
 
 TB="" TN=""
 if test -t 1 ; then
@@ -22,6 +22,8 @@ if test -t 1 ; then
 fi
 
 SLEEPTIME=10
+
+teamcity_msg "testSuiteStarted name='all LDAP tests for $BACKEND'"
 
 echo "#######################################################################"
 echo "###                                                                 ###"
@@ -54,6 +56,7 @@ for CMD in $SRCDIR/scripts/sql-test*; do
 		/bin/rm -rf testrun
 	fi
 
+	teamcity_msg "testStarted name='`basename $CMD` for $BACKEND' captureStandardOutput='true'"
 	echo ">>>>> Starting ${TB}`basename $CMD`${TN} ..."
 	$CMD
 	RC=$?
@@ -61,10 +64,14 @@ for CMD in $SRCDIR/scripts/sql-test*; do
 		echo ">>>>> $CMD completed ${TB}OK${TN}."
 	else
 		echo ">>>>> $CMD ${TB}failed${TN} (exit $RC)"
+		teamcity_msg "testFailed name='`basename $CMD`'"
 		exit $RC
 	fi
 
 	echo ">>>>> waiting $SLEEPTIME seconds for things to exit"
 	sleep $SLEEPTIME
 	echo ""
+	teamcity_msg "testFinished name='`basename $CMD`'"
 done
+
+teamcity_msg "testSuiteFinished name='all LDAP tests for $BACKEND'"

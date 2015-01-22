@@ -1,4 +1,4 @@
-#! /bin/sh
+#!/bin/bash
 # $OpenLDAP$
 ## This work is part of OpenLDAP Software <http://www.openldap.org/>.
 ##
@@ -1204,7 +1204,7 @@ fi
 # Create a script that will check the contextCSN values of all servers,
 # and restart them to re-synchronize if it finds any errors:
 cat > $TESTDIR/checkcsn.sh <<'EOF'
-#!/bin/sh
+#!/bin/bash
 
 CSN_ERRORS=0
 
