@@ -1,0 +1,156 @@
+.lf 1 stdin
+.TH SLAPAUTH 8C "2014/09/20" "OpenLDAP 2.4.40"
+.\" Copyright 2004-2014 The OpenLDAP Foundation All Rights Reserved.
+.\" Copying restrictions apply.  See COPYRIGHT/LICENSE.
+.\" $OpenLDAP$
+.SH НАЗВАНИЕ
+slapauth \- проверка списка представленных в виде строк
+идентификаторов для аутентификации/авторизации LDAP
+.SH СИНТАКСИС
+.B /usr/local/sbin/slapauth
+[\c
+.BI \-d \ debug-level\fR]
+[\c
+.BI \-f \ slapd.conf\fR]
+[\c
+.BI \-F \ confdir\fR]
+[\c
+.BI \-M \ mech\fR]
+[\c
+.BI \-o \ option\fR[ = value\fR]]
+[\c
+.BI \-R \ realm\fR]
+[\c
+.BI \-U \ authcID\fR]
+[\c
+.BR \-v ]
+[\c
+.BI \-X \ authzID\fR]
+.IR ID \ [ ... ]
+.LP
+.SH ОПИСАНИЕ
+.LP
+.B slapauth
+используется для проверки поведения slapd при отображении идентификационных
+сущностей в целях аутентификации и авторизации, как указано в
+.BR slapd.conf (5).
+Утилита открывает конфигурационный файл
+.BR slapd.conf (5)
+или базу данных
+.BR slapd\-config (5),
+считывает директивы
+.BR authz\-policy / olcAuthzPolicy
+и
+.BR authz\-regexp / olcAuthzRegexp ,
+после чего оценивает данный в командной строке список идентификаторов
+.IR ID .
+.LP
+.SH ПАРАМЕТРЫ
+.TP
+.BI \-d \ debug-level
+Включает вывод отладочных сообщений в соответствии с указанным уровнем
+.IR debug-level ;
+подробнее смотрите в
+.BR slapd (8).
+.TP
+.BI \-f \ slapd.conf
+Определяет альтернативный файл
+.BR slapd.conf (5).
+.TP
+.BI \-F \ confdir
+Определяет конфигурационную директорию.
+Если указаны сразу и
+.B \-f
+и
+.BR \-F ,
+конфигурационный файл будет прочтён, переконвертирован в формат
+конфигурационной директории и записан в указанную директорию.
+Если не указан ни один из этих параметров, будет предпринята
+попытка прочитать конфигурационную директорию по умолчанию,
+а затем использовать конфигурационный файл по умолчанию.
+Если существует конфигурационная директория в правильном формате,
+то конфигурационный файл игнорируется.
+.TP
+.BI \-M \ mech
+Определяет механизм.
+.TP
+.BI \-o \ option\fR[ = value\fR]
+Определяет опцию
+.IR option
+с необязательным значением
+.IR value .
+Возможные опции/значения общего назначения:
+.LP
+.nf
+              syslog=<subsystems>  (смотрите `\-s' в slapd(8))
+              syslog\-level=<level> (смотрите `\-S' в slapd(8))
+              syslog\-user=<user>   (смотрите `\-l' в slapd(8))
+
+.fi
+.TP
+.BI \-R \ realm
+Определяет область realm.
+.TP
+.BI \-U \ authcID
+Определяет идентификатор, который будет использоваться в качестве
+.I authcID
+в рамках тестовой сессии. Если этот параметр присутствует и не задан
+.IR authzID ,
+идентификаторы из списка идентификаторов ID интерпретируются как
+.IR authzID .
+.TP
+.BI \-X \ authzID
+Определяет идентификатор, который будет использоваться в качестве
+.I authzID
+в рамках тестовой сессии. Если этот параметр присутствует и не задан
+.IR authcID ,
+идентификаторы из списка идентификаторов ID интерпретируются как
+.IR authcID .
+Если параметрами командной строки заданы сразу
+.I authcID 
+и
+.IR authzID ,
+не должен присутствовать список идентификаторов ID.
+.TP
+.B \-v
+Включает режим подробного вывода.
+.SH ПРИМЕРЫ
+Команда
+.LP
+.nf
+.ft tt
+	/usr/local/sbin/slapauth \-f //usr/local/etc/openldap/slapd.conf \-v \\
+            \-U bjorn \-X u:bjensen
+
+.ft
+.fi
+проверяет, сможет ли пользователь
+.I bjorn
+получить идентификационную сущность пользователя
+.I bjensen
+в соответствии с определёнными в
+.BR slapd.conf (5)
+директивами
+.LP
+.nf
+.ft tt
+	authz\-policy from
+	authz\-regexp "^uid=([^,]+).*,cn=auth$"
+		"ldap:///dc=example,dc=net??sub?uid=$1"
+
+.ft
+.fi
+.SH "СМОТРИТЕ ТАКЖЕ"
+.BR ldap (3),
+.BR slapd (8),
+.BR slaptest (8)
+.LP
+"Руководство администратора OpenLDAP" (http://www.OpenLDAP.org/doc/admin/, http://pro-ldap.ru/tr/admin24/).
+.SH "ПРИЗНАНИЕ ЗАСЛУГ"
+.lf 1 ./../Project
+.\" Shared Project Acknowledgement Text
+.B "Программное обеспечение OpenLDAP"
+разработано и поддерживается проектом OpenLDAP <http://www.openldap.org/>.
+.B "Программное обеспечение OpenLDAP"
+является производным от релиза 3.3 LDAP Мичиганского Университета.
+.lf 153 stdin
