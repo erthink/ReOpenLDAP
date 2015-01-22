@@ -148,7 +148,7 @@ slapi_int_register_plugin(
 	Slapi_PBlock *pPB )
 {
 	Slapi_PBlock	*pTmpPB;
-	Slapi_PBlock	*pSavePB;
+	Slapi_PBlock	*pSavePB = NULL;
 	int   		 rc = LDAP_SUCCESS;
 
 	assert( be != NULL );
