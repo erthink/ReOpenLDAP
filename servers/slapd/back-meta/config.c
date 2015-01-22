@@ -2277,7 +2277,7 @@ meta_back_cf_gen( ConfigArgs *c )
 			Debug( LDAP_DEBUG_ANY, "%s: "
 				"\"binddn\" statement is deprecated; "
 				"use \"acl-authcDN\" instead\n",
-				c->log, 0, 0 );
+				c->log );
 			/* FIXME: some day we'll need to throw an error */
 		}
 
@@ -2293,7 +2293,7 @@ meta_back_cf_gen( ConfigArgs *c )
 			Debug( LDAP_DEBUG_ANY, "%s "
 				"\"bindpw\" statement is deprecated; "
 				"use \"acl-passwd\" instead\n",
-				c->log, 0, 0 );
+				c->log );
 			/* FIXME: some day we'll need to throw an error */
 		}
 

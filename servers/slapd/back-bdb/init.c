@@ -114,8 +114,7 @@ bdb_db_open( BackendDB *be, ConfigReply *cr )
 
 	if ( be->be_suffix == NULL ) {
 		Debug( LDAP_DEBUG_ANY,
-			LDAP_XSTRING(bdb_db_open) ": need suffix.\n",
-			1 );
+			LDAP_XSTRING(bdb_db_open) ": need suffix.\n" );
 		return -1;
 	}
 
@@ -152,7 +151,7 @@ bdb_db_open( BackendDB *be, ConfigReply *cr )
 		Debug( LDAP_DEBUG_ANY,
 			LDAP_XSTRING(bdb_db_open) ": database \"%s\": "
 			"unclean shutdown detected; attempting recovery.\n",
-			be->be_suffix[0].bv_val, 0, 0 );
+			be->be_suffix[0].bv_val );
 		do_alock_recover = 1;
 		do_recover = DB_RECOVER;
 	} else if( rc == ALOCK_BUSY ) {
@@ -338,7 +337,7 @@ shm_retry:
 				Debug( LDAP_DEBUG_ANY, LDAP_XSTRING(bdb_db_open)
 					": database \"%s\": "
 					"shared memory env open failed, assuming stale env.\n",
-					be->be_suffix[0].bv_val, 0, 0 );
+					be->be_suffix[0].bv_val );
 				do_retry = 0;
 				goto shm_retry;
 			}
@@ -791,7 +790,7 @@ bdb_back_initialize(
 		}
 
 		Debug( LDAP_DEBUG_TRACE, LDAP_XSTRING(bdb_back_initialize)
-			": %s\n", version, 0, 0 );
+			": %s\n", version );
 	}
 
 	db_env_set_func_free( ber_memfree );

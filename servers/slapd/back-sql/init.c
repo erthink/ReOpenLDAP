@@ -328,8 +328,7 @@ backsql_db_open(
 		Debug( LDAP_DEBUG_TRACE, "backsql_db_open(): "
 			"subtree search SQL condition not specified "
 			"(use \"subtree_cond\" directive in slapd.conf); "
-			"preparing default\n",
-			0, 0, 0);
+			"preparing default\n" );
 
 		if ( backsql_prepare_pattern( bi->sql_concat_func, values,
 				&concat ) ) {
@@ -388,8 +387,7 @@ backsql_db_open(
 		Debug( LDAP_DEBUG_TRACE, "backsql_db_open(): "
 			"children search SQL condition not specified "
 			"(use \"children_cond\" directive in slapd.conf); "
-			"preparing default\n",
-			0, 0, 0);
+			"preparing default\n" );
 
 		if ( backsql_prepare_pattern( bi->sql_concat_func, values,
 				&concat ) ) {
@@ -442,8 +440,7 @@ backsql_db_open(
 		Debug( LDAP_DEBUG_TRACE, "backsql_db_open(): "
 			"DN match search SQL condition not specified "
 			"(use \"dn_match_cond\" directive in slapd.conf); "
-			"preparing default\n",
-			0, 0, 0);
+			"preparing default\n" );
 
 		if ( bi->sql_upper_func.bv_val ) {
 

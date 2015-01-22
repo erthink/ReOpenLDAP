@@ -808,7 +808,7 @@ int bdb_tool_entry_reindex(
 					Debug( LDAP_DEBUG_ANY,
 						LDAP_XSTRING(bdb_tool_entry_reindex)
 						": no index configured for %s\n",
-						adv[i]->ad_cname.bv_val, 0, 0 );
+						adv[i]->ad_cname.bv_val );
 					return -1;
 				}
 			}
@@ -828,7 +828,7 @@ int bdb_tool_entry_reindex(
 		Debug( LDAP_DEBUG_ANY,
 			LDAP_XSTRING(bdb_tool_entry_reindex)
 			": could not locate id=%ld\n",
-			(long) id, 0, 0 );
+			(long) id );
 		return -1;
 	}
 

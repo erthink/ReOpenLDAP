@@ -673,8 +673,7 @@ cand_retry:
 		if ( id == NOID ) {
 			Debug( LDAP_DEBUG_TRACE,
 				LDAP_XSTRING(bdb_search)
-				": no paged results candidates\n",
-				0, 0, 0 );
+				": no paged results candidates\n" );
 			send_paged_response( op, rs, &lastid, 0 );
 
 			rs->sr_err = LDAP_OTHER;
@@ -771,7 +770,7 @@ txnfail:
 				Debug( LDAP_DEBUG_TRACE,
 					LDAP_XSTRING(bdb_search)
 					": candidate %ld not found\n",
-					(long) id, 0, 0 );
+					(long) id );
 			} else {
 				/* get the next ID from the DB */
 id_retry:
@@ -891,7 +890,7 @@ id_retry:
 			Debug( LDAP_DEBUG_TRACE,
 				LDAP_XSTRING(bdb_search)
 				": %ld scope not okay\n",
-				(long) id, 0, 0 );
+				(long) id );
 			goto loop_continue;
 		}
 
@@ -1057,7 +1056,7 @@ id_retry:
 			Debug( LDAP_DEBUG_TRACE,
 				LDAP_XSTRING(bdb_search)
 				": %ld does not match filter\n",
-				(long) id, 0, 0 );
+				(long) id );
 		}
 
 loop_continue:

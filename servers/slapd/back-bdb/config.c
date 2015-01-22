@@ -363,7 +363,7 @@ bdb_cf_cleanup( ConfigArgs *c )
 			snprintf( c->cr_msg, sizeof( c->cr_msg ),
 				"failed to reopen database, rc=%d", rc );
 			Debug( LDAP_DEBUG_ANY, LDAP_XSTRING(bdb_cf_cleanup)
-				": %s\n", c->cr_msg, 0, 0 );
+				": %s\n", c->cr_msg );
 			rc = LDAP_OTHER;
 		}
 	}
