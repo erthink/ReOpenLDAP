@@ -512,15 +512,14 @@ bdb_cf_gen( ConfigArgs *c )
 				struct bdb_db_pgsize *ps;
 				char buf[SLAP_TEXT_BUFLEN];
 				struct berval bv;
-				int rc = 1;
 
+				rc = 1;
 				bv.bv_val = buf;
 				for ( ps = bdb->bi_pagesizes; ps; ps = ps->bdp_next ) {
 					bv.bv_len = sprintf( buf, "%s %d", ps->bdp_name.bv_val,
 						ps->bdp_size / 1024 );
 					value_add_one( &c->rvalue_vals, &bv );
 					rc = 0;
-
 				}
 				break;
 			}
