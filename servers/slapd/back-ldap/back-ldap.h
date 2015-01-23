@@ -32,6 +32,9 @@ struct ldapinfo_t;
 
 /* stuff required for monitoring */
 typedef struct ldap_monitor_info_t {
+	/* FIXME: ldap-backend frees this context before than
+	 * monitor_back_db_destroy() would be called,
+	 * therefore SIGSEGV should be in monitor_back_db_destroy(). */
 	monitor_subsys_t	lmi_mss[2];
 
 	struct berval		lmi_ndn;

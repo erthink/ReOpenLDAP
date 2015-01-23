@@ -240,19 +240,21 @@ monitor_back_register_subsys(
 	monitor_subsys_t	*ms )
 {
 	int	i = 0;
+	struct monitor_subsys_t	**mss;
 
 	if ( monitor_subsys ) {
 		for ( ; monitor_subsys[ i ] != NULL; i++ )
 			/* just count'em */ ;
 	}
 
-	monitor_subsys = ch_realloc( monitor_subsys,
+	mss = ch_realloc( monitor_subsys,
 			( 2 + i ) * sizeof( monitor_subsys_t * ) );
 
-	if ( monitor_subsys == NULL ) {
+	if ( mss == NULL ) {
 		return -1;
 	}
 
+	monitor_subsys = mss;
 	monitor_subsys[ i ] = ms;
 	monitor_subsys[ i + 1 ] = NULL;
 
@@ -2541,6 +2543,7 @@ monitor_back_db_destroy(
 	monitor_info_t	*mi = ( monitor_info_t * )be->be_private;
 
 	if ( mi == NULL ) {
+		assert(monitor_subsys == NULL);
 		return -1;
 	}
 
@@ -2552,19 +2555,25 @@ monitor_back_db_destroy(
 	(void)monitor_cache_destroy( mi );
 
 	if ( monitor_subsys ) {
+		struct monitor_subsys_t	**mss;
 		int	i;
 
-		for ( i = 0; monitor_subsys[ i ] != NULL; i++ ) {
-			if ( monitor_subsys[ i ]->mss_destroy ) {
-				monitor_subsys[ i ]->mss_destroy( be, monitor_subsys[ i ] );
+		mss = monitor_subsys;
+		monitor_subsys = NULL;
+		for ( i = 0; mss[ i ] != NULL; i++ ) {
+			/* FIXME: ldap-backend frees its own registered context before than
+			 * monitor_back_db_destroy() would be called,
+			 * therefore SIGSEGV should be here... */
+			if ( mss[ i ]->mss_destroy ) {
+				mss[ i ]->mss_destroy( be, mss[ i ] );
 			}
 
-			if ( !BER_BVISNULL( &monitor_subsys[ i ]->mss_rdn ) ) {
-				ch_free( monitor_subsys[ i ]->mss_rdn.bv_val );
+			if ( !BER_BVISNULL( &mss[ i ]->mss_rdn ) ) {
+				ch_free( mss[ i ]->mss_rdn.bv_val );
 			}
 		}
 
-		ch_free( monitor_subsys );
+		ch_free( mss );
 	}
 
 	if ( mi->mi_entry_limbo ) {
