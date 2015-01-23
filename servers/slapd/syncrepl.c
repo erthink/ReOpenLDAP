@@ -3379,9 +3379,9 @@ syncrepl_del_nonpresent(
 		op->ors_filter = filter_dup( si->si_filter, op->o_tmpmemctx );
 		/* In multimaster, updates can continue to arrive while
 		 * we're searching. Limit the search result to entries
-		 * older than our newest cookie CSN.
+		 * older than our oldest cookie CSN.
 		 */
-		if ( SLAP_MULTIMASTER( op->o_bd )) {
+		if ( SLAP_MULTIMASTER( op->o_bd ) && sc->numcsns) {
 			Filter *f;
 			int i;
 
@@ -3395,9 +3395,9 @@ syncrepl_del_nonpresent(
 			f->f_ava = &mmaa;
 			f->f_av_desc = slap_schema.si_ad_entryCSN;
 			f->f_next = NULL;
-			BER_BVZERO( &f->f_av_value );
-			for ( i=0; i<sc->numcsns; i++ ) {
-				if ( ber_bvcmp( &sc->ctxcsn[i], &f->f_av_value ) > 0 )
+			f->f_av_value = sc->ctxcsn[0];
+			for ( i=1; i<sc->numcsns; i++ ) {
+				if ( ber_bvcmp( &sc->ctxcsn[i], &f->f_av_value ) < 0 )
 					f->f_av_value = sc->ctxcsn[i];
 			}
 			of = op->ors_filter;
