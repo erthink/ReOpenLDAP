@@ -580,12 +580,12 @@ findpres_cb( Operation *op, SlapReply *rs )
 	case REP_SEARCH:
 		a = attr_find( rs->sr_entry->e_attrs, slap_schema.si_ad_entryUUID );
 		if ( a ) {
+			assert(a->a_nvals[0].bv_len == UUID_LEN);
 			pc->uuids[pc->num].bv_val = pc->last;
-			AC_MEMCPY( pc->uuids[pc->num].bv_val, a->a_nvals[0].bv_val,
-				pc->uuids[pc->num].bv_len );
+			pc->uuids[pc->num].bv_len = UUID_LEN;
+			memcpy( pc->last, a->a_nvals[0].bv_val, UUID_LEN );
+			pc->last += UUID_LEN;
 			pc->num++;
-			pc->last = pc->uuids[pc->num].bv_val;
-			pc->uuids[pc->num].bv_val = NULL;
 		}
 		ret = LDAP_SUCCESS;
 		if ( pc->num != SLAP_SYNCUUID_SET_SIZE )
@@ -594,11 +594,12 @@ findpres_cb( Operation *op, SlapReply *rs )
 	case REP_RESULT:
 		ret = rs->sr_err;
 		if ( pc->num ) {
+			pc->uuids[pc->num].bv_val = NULL;
+			pc->uuids[pc->num].bv_len = 0;
 			ret = syncprov_sendinfo( op, rs, LDAP_TAG_SYNC_ID_SET, NULL,
 				0, pc->uuids, 0 );
-			pc->uuids[pc->num].bv_val = pc->last;
 			pc->num = 0;
-			pc->last = pc->uuids[0].bv_val;
+			pc->last = (char *)(pc->uuids + SLAP_SYNCUUID_SET_SIZE+1);
 		}
 		break;
 	default:
@@ -725,12 +726,6 @@ again:
 			sizeof(struct berval) + SLAP_SYNCUUID_SET_SIZE * UUID_LEN,
 			op->o_tmpmemctx );
 		pcookie.last = (char *)(pcookie.uuids + SLAP_SYNCUUID_SET_SIZE+1);
-		pcookie.uuids[0].bv_val = pcookie.last;
-		pcookie.uuids[0].bv_len = UUID_LEN;
-		for (i=1; i<SLAP_SYNCUUID_SET_SIZE; i++) {
-			pcookie.uuids[i].bv_val = pcookie.uuids[i-1].bv_val + UUID_LEN;
-			pcookie.uuids[i].bv_len = UUID_LEN;
-		}
 		break;
 	}
 
