@@ -3297,6 +3297,7 @@ syncrepl_del_nonpresent(
 
 	struct berval pdn = BER_BVNULL;
 	struct berval csn;
+	size_t evo_chk ALLOW_UNUSED = slap_biglock_acquire(op->o_bd);
 
 #ifdef ENABLE_REWRITE
 	if ( si->si_rewrite ) {
@@ -3318,7 +3319,6 @@ syncrepl_del_nonpresent(
 	op->ors_deref = LDAP_DEREF_NEVER;
 	op->o_time = slap_get_time();
 	op->ors_tlimit = SLAP_NO_LIMIT;
-
 
 	if ( uuids ) {
 		Filter uf;
@@ -3401,9 +3401,9 @@ syncrepl_del_nonpresent(
 		if ( op->ors_filterstr.bv_val != si->si_filterstr.bv_val ) {
 			op->o_tmpfree( op->ors_filterstr.bv_val, op->o_tmpmemctx );
 		}
-
 	}
 
+	assert(evo_chk == slap_biglock_evo(op->o_bd));
 	op->o_nocaching = 0;
 
 	if ( !LDAP_LIST_EMPTY( &si->si_nonpresentlist ) ) {
@@ -3499,7 +3499,7 @@ syncrepl_del_nonpresent(
 		BER_BVZERO( &op->o_csn );
 	}
 
-	return;
+	slap_biglock_release(op->o_bd);
 }
 
 static int
