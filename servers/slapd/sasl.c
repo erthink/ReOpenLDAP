@@ -468,7 +468,7 @@ slap_auxprop_store(
 
 	op.o_bd = select_backend( &op.o_req_ndn, 1 );
 
-	if ( !op.o_bd || !op.o_bd->be_modify ) return SASL_FAIL;
+	if ( !op.o_bd || !op.o_bd->bd_info->bi_op_modify ) return SASL_FAIL;
 
 	pr = sparams->utils->prop_get( prctx );
 	if (!pr) return SASL_BADPARAM;
@@ -518,12 +518,13 @@ slap_auxprop_store(
 			op.o_req_dn = op.o_req_ndn;
 			op.orm_modlist = modlist;
 
-			rc = op.o_bd->be_modify( &op, &rs );
+			rc = slap_biglock_call_be( op_modify, &op, &rs );
 		}
 	}
 	slap_mods_free( modlist, 1 );
 	return rc != LDAP_SUCCESS ? SASL_FAIL : SASL_OK;
 }
+
 #endif /* SASL_VERSION_FULL >= 2.1.16 */
 
 static sasl_auxprop_plug_t slap_auxprop_plugin = {

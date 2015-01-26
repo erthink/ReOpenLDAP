@@ -209,6 +209,7 @@ mdb_online_index( void *ctx, void *arg )
 		if ( slapd_shutdown )
 			break;
 
+		assert(slap_biglock_owned(op->o_bd));
 		rc = mdb_txn_begin( mdb->mi_dbenv, NULL, 0, &txn );
 		if ( rc )
 			break;

@@ -1798,11 +1798,7 @@ struct BackendDB {
 
 #define		be_bind		bd_info->bi_op_bind
 #define		be_unbind	bd_info->bi_op_unbind
-#define		be_add		bd_info->bi_op_add
 #define		be_compare	bd_info->bi_op_compare
-#define		be_delete	bd_info->bi_op_delete
-#define		be_modify	bd_info->bi_op_modify
-#define		be_modrdn	bd_info->bi_op_modrdn
 #define		be_search	bd_info->bi_op_search
 #define		be_abandon	bd_info->bi_op_abandon
 

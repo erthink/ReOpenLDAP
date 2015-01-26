@@ -2525,7 +2525,7 @@ send_results:;
 
 		cb.sc_response = slap_null_cb;
 
-		op2.o_bd->be_add( &op2, &rs2 );
+		slap_biglock_call_be( op_add, &op2, &rs2 );
 
 		if ( op2.ora_e == e )
 			entry_free( e );

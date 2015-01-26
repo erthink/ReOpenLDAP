@@ -1443,6 +1443,7 @@ syncprov_checkpoint( Operation *op, slap_overinst *on )
 	BackendDB be;
 	BackendInfo *bi;
 
+	slap_biglock_acquire(op->o_bd);
 #ifdef CHECK_CSN
 	Syntax *syn = slap_schema.si_ad_contextCSN->ad_type->sat_syntax;
 
@@ -1475,7 +1476,7 @@ syncprov_checkpoint( Operation *op, slap_overinst *on )
 	opm.o_bd->bd_info = on->on_info->oi_orig;
 	opm.o_managedsait = SLAP_CONTROL_NONCRITICAL;
 	opm.o_no_schema_check = 1;
-	opm.o_bd->be_modify( &opm, &rsm );
+	opm.o_bd->bd_info->bi_op_modify( &opm, &rsm );
 
 	if ( rsm.sr_err == LDAP_NO_SUCH_OBJECT &&
 		SLAP_SYNC_SUBENTRY( opm.o_bd )) {
@@ -1486,7 +1487,7 @@ syncprov_checkpoint( Operation *op, slap_overinst *on )
 		rs_reinit( &rsm, REP_RESULT );
 		slap_mods2entry( &mod, &e, 0, 1, &text, txtbuf, textlen);
 		opm.ora_e = e;
-		opm.o_bd->be_add( &opm, &rsm );
+		opm.o_bd->bd_info->bi_op_add( &opm, &rsm );
 		if ( e == opm.ora_e )
 			be_entry_release_w( &opm, opm.ora_e );
 	}
@@ -1500,6 +1501,7 @@ syncprov_checkpoint( Operation *op, slap_overinst *on )
 		assert( !syn->ssyn_validate( syn, si->si_ctxcsn+i ));
 	}
 #endif
+	slap_biglock_release(op->o_bd);
 }
 
 static void
@@ -1848,56 +1850,56 @@ syncprov_op_response( Operation *op, SlapReply *rs )
 			if ( op->o_tag == LDAP_REQ_MODIFY &&
 				op->orm_modlist->sml_op == LDAP_MOD_REPLACE &&
 				op->orm_modlist->sml_desc == slap_schema.si_ad_contextCSN ) {
-			/* Catch contextCSN updates from syncrepl. We have to look at
-			 * all the attribute values, as there may be more than one csn
-			 * that changed, and only one can be passed in the csn queue.
-			 */
-			Modifications *mod = op->orm_modlist;
-			unsigned i;
-			int j, sid;
+				/* Catch contextCSN updates from syncrepl. We have to look at
+				 * all the attribute values, as there may be more than one csn
+				 * that changed, and only one can be passed in the csn queue.
+				 */
+				Modifications *mod = op->orm_modlist;
+				unsigned i;
+				int j, sid;
 
-			for ( i=0; i<mod->sml_numvals; i++ ) {
-				sid = slap_parse_csn_sid( &mod->sml_values[i] );
-				for ( j=0; j<si->si_numcsns; j++ ) {
-					if ( sid < si->si_sids[j] )
-						break;
-					if ( sid == si->si_sids[j] ) {
-						if ( ber_bvcmp( &mod->sml_values[i], &si->si_ctxcsn[j] ) > 0 ) {
-							ber_bvreplace( &si->si_ctxcsn[j], &mod->sml_values[i] );
-							csn_changed = 1;
+				for ( i=0; i<mod->sml_numvals; i++ ) {
+					sid = slap_parse_csn_sid( &mod->sml_values[i] );
+					for ( j=0; j<si->si_numcsns; j++ ) {
+						if ( sid < si->si_sids[j] )
+							break;
+						if ( sid == si->si_sids[j] ) {
+							if ( ber_bvcmp( &mod->sml_values[i], &si->si_ctxcsn[j] ) > 0 ) {
+								ber_bvreplace( &si->si_ctxcsn[j], &mod->sml_values[i] );
+								csn_changed = 1;
+							}
+							break;
 						}
-						break;
+					}
+
+					if ( j == si->si_numcsns || sid != si->si_sids[j] ) {
+						slap_insert_csn_sids( (struct sync_cookie *)&si->si_ctxcsn,
+							j, sid, &mod->sml_values[i] );
+						csn_changed = 1;
 					}
 				}
+				if ( csn_changed )
+					si->si_dirty = 0;
+				ldap_pvt_thread_rdwr_wunlock( &si->si_csn_rwlock );
 
-				if ( j == si->si_numcsns || sid != si->si_sids[j] ) {
-					slap_insert_csn_sids( (struct sync_cookie *)&si->si_ctxcsn,
-						j, sid, &mod->sml_values[i] );
-					csn_changed = 1;
+				if ( csn_changed ) {
+					syncops *ss;
+					ldap_pvt_thread_mutex_lock( &si->si_ops_mutex );
+					for ( ss = si->si_ops; ss; ss = ss->s_next ) {
+						if ( is_syncops_abandoned(ss) )
+							continue;
+						/* Send the updated csn to all syncrepl consumers,
+						 * including the server from which it originated.
+						 * The syncrepl consumer and syncprov provider on
+						 * the originating server may be configured to store
+						 * their csn values in different entries.
+						 */
+						syncprov_qresp( opc, ss, LDAP_SYNC_NEW_COOKIE );
+					}
+					ldap_pvt_thread_mutex_unlock( &si->si_ops_mutex );
 				}
-			}
-			if ( csn_changed )
-				si->si_dirty = 0;
-			ldap_pvt_thread_rdwr_wunlock( &si->si_csn_rwlock );
-
-			if ( csn_changed ) {
-				syncops *ss;
-				ldap_pvt_thread_mutex_lock( &si->si_ops_mutex );
-				for ( ss = si->si_ops; ss; ss = ss->s_next ) {
-					if ( is_syncops_abandoned(ss) )
-						continue;
-					/* Send the updated csn to all syncrepl consumers,
-					 * including the server from which it originated.
-					 * The syncrepl consumer and syncprov provider on
-					 * the originating server may be configured to store
-					 * their csn values in different entries.
-					 */
-					syncprov_qresp( opc, ss, LDAP_SYNC_NEW_COOKIE );
-				}
-				ldap_pvt_thread_mutex_unlock( &si->si_ops_mutex );
-			}
 			} else {
-			ldap_pvt_thread_rdwr_wunlock( &si->si_csn_rwlock );
+				ldap_pvt_thread_rdwr_wunlock( &si->si_csn_rwlock );
 			}
 			goto leave;
 		}
@@ -2121,7 +2123,7 @@ syncprov_op_mod( Operation *op, SlapReply *rs )
 				if ( slapd_shutdown )
 					return SLAPD_ABANDON;
 
-				if ( !ldap_pvt_thread_pool_pausecheck( &connection_pool ))
+				if ( ! slap_biglock_pool_pausecheck(op->o_bd) )
 					ldap_pvt_thread_yield();
 				ldap_pvt_thread_mutex_lock( &mt->mt_mutex );
 
@@ -2546,7 +2548,7 @@ syncprov_op_search( Operation *op, SlapReply *rs )
 				ch_free( sop );
 				return SLAPD_ABANDON;
 			}
-			if ( !ldap_pvt_thread_pool_pausecheck( &connection_pool ))
+			if ( ! slap_biglock_pool_pausecheck(op->o_bd) )
 				ldap_pvt_thread_yield();
 			ldap_pvt_thread_mutex_lock( &si->si_ops_mutex );
 		}

@@ -43,7 +43,7 @@ static const char *defhash[] = {
 	NULL
 };
 
-int passwd_extop(
+static int nolock_passwd_extop(
 	Operation *op,
 	SlapReply *rs )
 {
@@ -218,7 +218,7 @@ int passwd_extop(
 	}
 
 	/* The backend didn't handle it, so try it here */
-	if( op->o_bd && !op->o_bd->be_modify ) {
+	if( op->o_bd && !op->o_bd->bd_info->bi_op_modify ) {
 		rs->sr_text = "operation not supported for current user";
 		rc = LDAP_UNWILLING_TO_PERFORM;
 		goto error_return;
@@ -291,7 +291,7 @@ old_good:
 		cb.sc_private = qpw;	/* let Modify know this was pwdMod,
 					 * if it cares... */
 
-		rs->sr_err = op->o_bd->be_modify( op, rs );
+		rs->sr_err = op->o_bd->bd_info->bi_op_modify( op, rs );
 
 		/* be_modify() might have shuffled modifications */
 		qpw->rs_mods = op->orm_modlist;
@@ -326,6 +326,18 @@ error_return:;
 		BER_BVZERO( &op->o_req_ndn );
 	}
 
+	return rc;
+}
+
+int passwd_extop(
+	Operation *op,
+	SlapReply *rs )
+{
+	int rc;
+
+	slap_biglock_acquire(op->o_bd);
+	rc = nolock_passwd_extop(op, rs);
+	slap_biglock_release(op->o_bd);
 	return rc;
 }
 
@@ -561,6 +573,7 @@ slap_passwd_hash_type(
 
 	lutil_passwd_hash( cred , hash, new, text );
 }
+
 void
 slap_passwd_hash(
 	struct berval * cred,

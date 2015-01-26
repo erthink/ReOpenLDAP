@@ -100,6 +100,7 @@ mdb_attr_dbs_open(
 
 	txn = tx0;
 	if ( txn == NULL ) {
+		assert(slap_biglock_owned(be));
 		rc = mdb_txn_begin( mdb->mi_dbenv, NULL, 0, &txn );
 		if ( rc ) {
 			snprintf( cr->msg, sizeof(cr->msg), "database \"%s\": "

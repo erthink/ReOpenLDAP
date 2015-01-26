@@ -4282,12 +4282,12 @@ config_setup_ldif( BackendDB *be, const char *dir, int readit ) {
 		if ( rc == LDAP_SUCCESS && sc.frontend ) {
 			rs_reinit( &rs, REP_RESULT );
 			op->ora_e = sc.frontend;
-			rc = op->o_bd->be_add( op, &rs );
+			rc = op->o_bd->bd_info->bi_op_add( op, &rs );
 		}
 		if ( rc == LDAP_SUCCESS && sc.config ) {
 			rs_reinit( &rs, REP_RESULT );
 			op->ora_e = sc.config;
-			rc = op->o_bd->be_add( op, &rs );
+			rc = op->o_bd->bd_info->bi_op_add( op, &rs );
 		}
 		slap_biglock_release(op->o_bd);
 		ldap_pvt_thread_pool_context_reset( thrctx );
@@ -5612,7 +5612,7 @@ config_back_add( Operation *op, SlapReply *rs )
 
 		scp = op->o_callback;
 		op->o_callback = &sc;
-		op->o_bd->be_add( op, rs );
+		slap_biglock_call_be( op_add, op, rs );
 		op->o_bd = be;
 		op->o_callback = scp;
 		op->o_dn = dn;
@@ -6082,7 +6082,7 @@ config_back_modify( Operation *op, SlapReply *rs )
 
 		scp = op->o_callback;
 		op->o_callback = &sc;
-		op->o_bd->be_modify( op, rs );
+		slap_biglock_call_be( op_modify, op, rs );
 		op->o_bd = be;
 		op->o_callback = scp;
 		op->o_dn = dn;
@@ -6688,7 +6688,7 @@ fail:
 		slap_add_opattrs( op, NULL, NULL, 0, 0 );
 		if ( !op->o_noop ) {
 			SlapReply rs2 = {REP_RESULT};
-			op->o_bd->be_add( op, &rs2 );
+			slap_biglock_call_be( op_add, op, &rs2 );
 			rs->sr_err = rs2.sr_err;
 			rs_assert_done( &rs2 );
 			if ( ( rs2.sr_err != LDAP_SUCCESS )

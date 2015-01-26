@@ -686,6 +686,8 @@ accesslog_purge( void *ctx, void *arg )
 	if ( pd.used ) {
 		int i;
 
+		slap_biglock_acquire(op->o_bd);
+
 		/* delete the expired entries */
 		op->o_tag = LDAP_REQ_DELETE;
 		op->o_callback = &nullsc;
@@ -697,7 +699,7 @@ accesslog_purge( void *ctx, void *arg )
 			op->o_req_ndn = pd.ndn[i];
 			if ( !slapd_shutdown ) {
 				rs_reinit( &rs, REP_RESULT );
-				op->o_bd->be_delete( op, &rs );
+				op->o_bd->bd_info->bi_op_delete( op, &rs );
 			}
 			ch_free( pd.ndn[i].bv_val );
 			ch_free( pd.dn[i].bv_val );
@@ -727,11 +729,12 @@ accesslog_purge( void *ctx, void *arg )
 			op->o_req_ndn = li->li_db->be_nsuffix[0];
 			op->o_no_schema_check = 1;
 			op->o_managedsait = SLAP_CONTROL_NONCRITICAL;
-			op->o_bd->be_modify( op, &rs );
+			op->o_bd->bd_info->bi_op_modify( op, &rs );
 			if ( mod.sml_next ) {
 				slap_mods_free( mod.sml_next, 1 );
 			}
 		}
+		slap_biglock_release(op->o_bd);
 	}
 
 	ldap_pvt_thread_mutex_lock( &slapd_rq.rq_mutex );
@@ -1837,7 +1840,7 @@ static int accesslog_response(Operation *op, SlapReply *rs) {
 		do_graduate = 1;
 	}
 
-	op2.o_bd->be_add( &op2, &rs2 );
+	slap_biglock_call_be( op_add, &op2, &rs2 );
 	if ( e == op2.ora_e ) entry_free( e );
 	e = NULL;
 	if ( do_graduate ) {
@@ -2024,7 +2027,7 @@ accesslog_unbind( Operation *op, SlapReply *rs )
 		op2.o_controls = cids;
 		memset(cids, 0, sizeof( cids ));
 
-		op2.o_bd->be_add( &op2, &rs2 );
+		slap_biglock_call_be( op_add, &op2, &rs2 );
 		if ( e == op2.ora_e )
 			entry_free( e );
 	}
@@ -2078,7 +2081,7 @@ accesslog_abandon( Operation *op, SlapReply *rs )
 	op2.o_controls = cids;
 	memset(cids, 0, sizeof( cids ));
 
-	op2.o_bd->be_add( &op2, &rs2 );
+	slap_biglock_call_be( op_add, &op2, &rs2 );
 	if ( e == op2.ora_e )
 		entry_free( e );
 
@@ -2241,7 +2244,7 @@ accesslog_db_root(
 		op->o_req_ndn = e->e_nname;
 		op->o_callback = &nullsc;
 		SLAP_DBFLAGS( op->o_bd ) |= SLAP_DBFLAG_NOLASTMOD;
-		rc = op->o_bd->be_add( op, &rs );
+		rc = slap_biglock_call_be( op_add, op, &rs );
 		if ( e == op->ora_e )
 			entry_free( e );
 	}

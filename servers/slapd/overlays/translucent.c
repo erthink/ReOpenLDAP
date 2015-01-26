@@ -233,7 +233,7 @@ static slap_overinst translucent;
 
 static struct berval glue[] = { BER_BVC("top"), BER_BVC("glue"), BER_BVNULL };
 
-void glue_parent(Operation *op) {
+static void glue_parent(Operation *op) {
 	Operation nop = *op;
 	slap_overinst *on = (slap_overinst *) op->o_bd->bd_info;
 	struct berval ndn = BER_BVNULL;
@@ -416,6 +416,7 @@ static int translucent_modify(Operation *op, SlapReply *rs) {
 **
 */
 
+	assert(slap_biglock_owned(op->o_bd));
 	db = op->o_bd;
 	op->o_bd = &ov->db;
 	ov->db.be_acl = op->o_bd->be_acl;
@@ -574,6 +575,7 @@ release:
 
 	cb.sc_next = op->o_callback;
 	op->o_callback = &cb;
+	/* LY: mix 'oi_orig' and 'op' for call. */
 	rc = on->on_info->oi_orig->bi_op_add(op, &nrs);
 	if ( op->ora_e == e )
 		entry_free( e );
@@ -646,6 +648,7 @@ static int translucent_pwmod(Operation *op, SlapReply *rs) {
 ** release it, if captive backend supports this;
 **
 */
+	assert(slap_biglock_owned(op->o_bd));
 	db = op->o_bd;
 	op->o_bd = &ov->db;
 	ov->db.be_acl = op->o_bd->be_acl;
@@ -710,6 +713,7 @@ static int translucent_pwmod(Operation *op, SlapReply *rs) {
 	glue_parent(&nop);
 
 	nop.o_callback = &cb;
+	/* LY: mix 'oi_orig' and 'nop' for call. */
 	rc = on->on_info->oi_orig->bi_op_add(&nop, &nrs);
 	if ( nop.ora_e == e ) {
 		entry_free( e );

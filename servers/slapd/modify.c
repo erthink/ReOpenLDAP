@@ -174,7 +174,7 @@ do_modify(
 	}
 
 	op->o_bd = frontendDB;
-	rs->sr_err = frontendDB->be_modify( op, rs );
+	rs->sr_err = slap_biglock_call_be( op_modify, op, rs );
 
 #ifdef LDAP_X_TXN
 	if( rs->sr_err == LDAP_X_TXN_SPECIFY_OKAY ) {
@@ -279,7 +279,7 @@ fe_op_modify( Operation *op, SlapReply *rs )
 	 * 2) this backend is master for what it holds;
 	 * 3) it's a replica and the dn supplied is the update_ndn.
 	 */
-	if ( op->o_bd->be_modify ) {
+	if ( op->o_bd->bd_info->bi_op_modify ) {
 		/* do the update here */
 		int repl_user = be_isupdate( op );
 
@@ -300,7 +300,7 @@ fe_op_modify( Operation *op, SlapReply *rs )
 					goto cleanup;
 				}
 			}
-			op->o_bd->be_modify( op, rs );
+			slap_biglock_call_be( op_modify, op, rs );
 
 		} else { /* send a referral */
 			BerVarray defref = op->o_bd->be_update_refs

@@ -954,7 +954,7 @@ do_syncrep2(
 								rc = -2;
 								goto done;
 							}
-							if ( !ldap_pvt_thread_pool_pausecheck( &connection_pool ))
+							if ( !slap_biglock_pool_pausecheck(op->o_bd) )
 								ldap_pvt_thread_yield();
 						}
 
@@ -2328,7 +2328,7 @@ syncrepl_message_to_op(
 				"mods2entry (%s)\n",
 					si->si_ridtxt, text );
 			} else {
-				rc = op->o_bd->be_add( op, &rs );
+				rc = slap_biglock_call_be( op_add, op, &rs );
 				Debug( LDAP_DEBUG_SYNC,
 					"syncrepl_message_to_op: %s be_add %s (%d)\n",
 					si->si_ridtxt, op->o_req_dn.bv_val, rc );
@@ -2346,7 +2346,7 @@ syncrepl_message_to_op(
 				oes.oe_si = si;
 				LDAP_SLIST_INSERT_HEAD( &op->o_extra, &oes.oe, oe_next );
 			}
-			rc = op->o_bd->be_modify( op, &rs );
+			rc = slap_biglock_call_be( op_modify, op, &rs );
 			if ( SLAP_MULTIMASTER( op->o_bd )) {
 				LDAP_SLIST_REMOVE( &op->o_extra, &oes.oe, OpExtra, oe_next );
 				BER_BVZERO( &op->o_csn );
@@ -2395,7 +2395,7 @@ syncrepl_message_to_op(
 			m->sml_next = modlist;
 			modlist = NULL;
 		}
-		rc = op->o_bd->be_modrdn( op, &rs );
+		rc = slap_biglock_call_be( op_modrdn, op, &rs );
 		slap_mods_free( op->orr_modlist, 1 );
 		Debug( rc ? LDAP_DEBUG_ANY : LDAP_DEBUG_SYNC,
 			"syncrepl_message_to_op: %s be_modrdn %s (%d)\n",
@@ -2403,7 +2403,7 @@ syncrepl_message_to_op(
 		do_graduate = 0;
 		break;
 	case LDAP_REQ_DELETE:
-		rc = op->o_bd->be_delete( op, &rs );
+		rc = slap_biglock_call_be( op_delete, op, &rs );
 		Debug( rc ? LDAP_DEBUG_ANY : LDAP_DEBUG_SYNC,
 			"syncrepl_message_to_op: %s be_delete %s (%d)\n",
 			si->si_ridtxt, op->o_req_dn.bv_val, rc );
@@ -2872,7 +2872,7 @@ retry_add:;
 			op->ora_e = entry;
 			op->o_bd = si->si_wbe;
 
-			rc = op->o_bd->be_add( op, &rs_add );
+			rc = slap_biglock_call_be( op_add, op, &rs_add );
 			Debug( LDAP_DEBUG_SYNC,
 					"syncrepl_entry: %s be_add %s (%d)\n",
 					si->si_ridtxt, op->o_req_dn.bv_val, rc );
@@ -3147,7 +3147,7 @@ retry_add:;
 			op->o_bd = si->si_wbe;
 retry_modrdn:;
 			rs_reinit( &rs_modify, REP_RESULT );
-			rc = op->o_bd->be_modrdn( op, &rs_modify );
+			rc = slap_biglock_call_be( op_modrdn, op, &rs_modify );
 
 			/* NOTE: noSuchObject should result because the new superior
 			 * has not been added yet (ITS#6472) */
@@ -3184,7 +3184,7 @@ retry_modrdn:;
 			op->orm_no_opattrs = 1;
 			op->o_bd = si->si_wbe;
 
-			rc = op->o_bd->be_modify( op, &rs_modify );
+			rc = slap_biglock_call_be( op_modify, op, &rs_modify );
 			slap_mods_free( op->orm_modlist, 1 );
 			op->orm_no_opattrs = 0;
 			Debug( LDAP_DEBUG_SYNC,
@@ -3217,7 +3217,7 @@ retry_modrdn:;
 			if ( !syncCSN ) {
 				slap_queue_csn( op, si->si_syncCookie.ctxcsn );
 			}
-			rc = op->o_bd->be_delete( op, &rs_delete );
+			rc = slap_biglock_call_be( op_delete, op, &rs_delete );
 			Debug( LDAP_DEBUG_SYNC,
 					"syncrepl_entry: %s be_delete %s (%d)\n",
 					si->si_ridtxt, op->o_req_dn.bv_val, rc );
@@ -3235,7 +3235,7 @@ retry_modrdn:;
 					op->o_req_ndn = pdn;
 					op->o_callback = &cb;
 					rs_reinit( &rs_delete, REP_RESULT );
-					op->o_bd->be_delete( op, &rs_delete );
+					slap_biglock_call_be( op_delete, op, &rs_delete );
 				} else {
 					break;
 				}
@@ -3430,7 +3430,7 @@ syncrepl_del_nonpresent(
 			cb.sc_private = si;
 			op->o_req_dn = *np_prev->npe_name;
 			op->o_req_ndn = *np_prev->npe_nname;
-			rc = op->o_bd->be_delete( op, &rs_delete );
+			rc = slap_biglock_call_be( op_delete, op, &rs_delete );
 			Debug( LDAP_DEBUG_SYNC,
 				"syncrepl_del_nonpresent: %s be_delete %s (%d)\n",
 				si->si_ridtxt, op->o_req_dn.bv_val, rc );
@@ -3459,7 +3459,7 @@ syncrepl_del_nonpresent(
 				op->o_tag = LDAP_REQ_MODIFY;
 				op->orm_modlist = &mod1;
 
-				rc = op->o_bd->be_modify( op, &rs_modify );
+				rc = slap_biglock_call_be( op_modify, op, &rs_modify );
 				if ( mod2.sml_next ) slap_mods_free( mod2.sml_next, 1 );
 			}
 
@@ -3475,7 +3475,7 @@ syncrepl_del_nonpresent(
 					op->o_callback = &cb;
 					rs_reinit( &rs_delete, REP_RESULT );
 					/* give it a root privil ? */
-					op->o_bd->be_delete( op, &rs_delete );
+					slap_biglock_call_be( op_delete, op, &rs_delete );
 				} else {
 					break;
 				}
@@ -3607,7 +3607,7 @@ syncrepl_add_glue_ancestors(
 		op->o_req_dn = glue->e_name;
 		op->o_req_ndn = glue->e_nname;
 		op->ora_e = glue;
-		rc = be->be_add ( op, &rs_add );
+		rc = slap_biglock_call_be( op_add, op, &rs_add );
 		if ( rs_add.sr_err == LDAP_SUCCESS ) {
 			if ( op->ora_e == glue )
 				be_entry_release_w( op, glue );
@@ -3648,7 +3648,6 @@ syncrepl_add_glue(
 {
 	slap_callback cb = { NULL };
 	int	rc;
-	Backend *be = op->o_bd;
 	SlapReply	rs_add = {REP_RESULT};
 
 	rc = syncrepl_add_glue_ancestors( op, e );
@@ -3669,7 +3668,7 @@ syncrepl_add_glue(
 	op->o_req_dn = e->e_name;
 	op->o_req_ndn = e->e_nname;
 	op->ora_e = e;
-	rc = be->be_add ( op, &rs_add );
+	rc = slap_biglock_call_be( op_add, op, &rs_add );
 	if ( rs_add.sr_err == LDAP_SUCCESS ) {
 		if ( op->ora_e == e )
 			be_entry_release_w( op, e );
@@ -3790,7 +3789,7 @@ syncrepl_updateCookie(
 
 	op->orm_modlist = &mod;
 	op->orm_no_opattrs = 1;
-	rc = op->o_bd->be_modify( op, &rs_modify );
+	rc = slap_biglock_call_be( op_modify, op, &rs_modify );
 
 	if ( rs_modify.sr_err == LDAP_NO_SUCH_OBJECT &&
 		SLAP_SYNC_SUBENTRY( op->o_bd )) {
@@ -3801,7 +3800,7 @@ syncrepl_updateCookie(
 		rs_reinit( &rs_modify, REP_RESULT );
 		rc = slap_mods2entry( &mod, &e, 0, 1, &text, txtbuf, textlen);
 		op->ora_e = e;
-		rc = op->o_bd->be_add( op, &rs_modify );
+		rc = slap_biglock_call_be( op_add, op, &rs_modify );
 		if ( e == op->ora_e )
 			be_entry_release_w( op, op->ora_e );
 	}
@@ -5169,7 +5168,9 @@ add_syncrepl(
 	syncinfo_t *si;
 	int	rc = 0;
 
-	if ( !( c->be->be_search && c->be->be_add && c->be->be_modify && c->be->be_delete ) ) {
+	if ( !( c->be->be_search && c->be->bd_info->bi_op_add
+			&& c->be->bd_info->bi_op_modify
+			&& c->be->bd_info->bi_op_delete ) ) {
 		snprintf( c->cr_msg, sizeof(c->cr_msg), "database %s does not support "
 			"operations required for syncrepl", c->be->be_type );
 		Debug( LDAP_DEBUG_ANY, "%s: %s\n", c->log, c->cr_msg );

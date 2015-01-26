@@ -1192,7 +1192,7 @@ locked:
 			}
 			op2.o_bd->bd_info = (BackendInfo *)on->on_info;
 		}
-		rc = op2.o_bd->be_modify( &op2, &r2 );
+		rc = slap_biglock_call_be( op_modify, &op2, &r2 );
 		slap_mods_free( mod, 1 );
 	}
 

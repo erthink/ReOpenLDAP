@@ -1799,6 +1799,7 @@ ldap_back_op_result(
 retry:;
 		/* if result parsing fails, note the failure reason */
 		rc = ldap_result( lc->lc_ld, msgid, LDAP_MSG_ALL, &tv, &res );
+
 		switch ( rc ) {
 		case 0:
 			if ( timeout && slap_get_time() > stoptime ) {
