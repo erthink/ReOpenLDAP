@@ -1,17 +1,17 @@
 /*
-	Imported from 1Hippeus project at 2015-01-19.
+    Imported from 1Hippeus project at 2015-01-19.
 
-	Copyright (c) 2013 Leonid Yuriev <leo@yuriev.ru>.
-	Copyright (c) 2014 Peter-Service R&D LLC.
+    Copyright (c) 2015 Leonid Yuriev <leo@yuriev.ru>.
+    Copyright (c) 2015 Peter-Service R&D LLC.
 
-    This file is part of 1Hippeus.
+    This file is part of ReOpenLDAP.
 
-    1Hippeus is free software; you can redistribute it and/or modify it under
+    ReOpenLDAP is free software; you can redistribute it and/or modify it under
     the terms of the GNU Affero General Public License as published by
     the Free Software Foundation; either version 3 of the License, or
     (at your option) any later version.
 
-    1Hippeus is distributed in the hope that it will be useful,
+    ReOpenLDAP is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU Affero General Public License for more details.
