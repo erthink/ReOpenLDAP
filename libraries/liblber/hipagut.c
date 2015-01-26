@@ -20,73 +20,19 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include "portable.h"
+
 #include <time.h>
 #include <unistd.h>
 #include <string.h>
 #include <stdint.h>
 
 #include "lber_hipagut.h"
-#include "portable.h"
 
 /* LY: only for self debugging
 #include <stdio.h> */
 
 /* -------------------------------------------------------------------------- */
-
-#ifndef __forceinline
-#	if defined(__GNU_C) || defined(__clang__)
-#		define __forceinline __inline __attribute__((always_inline))
-#	elif ! defined(_MSC_VER)
-#		define __forceinline
-#	endif
-#endif /* __forceinline */
-
-#ifndef __must_check_result
-#	if defined(__GNU_C) || defined(__clang__)
-#		define __must_check_result __attribute__((warn_unused_result))
-#	else
-#		define __must_check_result
-#	endif
-#endif /* __must_check_result */
-
-#ifndef __hot
-#	if defined(__GNU_C) || defined(__clang__)
-#		define __hot __attribute__((hot, optimize("O3")))
-#	else
-#		define __hot
-#	endif
-#endif /* __hot */
-
-#ifndef __flatten
-#	if defined(__GNU_C) || defined(__clang__)
-#		define __flatten __attribute__((flatten))
-#	else
-#		define __flatten
-#	endif
-#endif /* __flatten */
-
-#ifdef USE_VALGRIND
-		/* Get debugging help from Valgrind */
-#       include <valgrind/memcheck.h>
-#else
-#       define VALGRIND_CREATE_MEMPOOL(h,r,z)
-#       define VALGRIND_DESTROY_MEMPOOL(h)
-#       define VALGRIND_MEMPOOL_TRIM(h,a,s)
-#       define VALGRIND_MEMPOOL_ALLOC(h,a,s)
-#       define VALGRIND_MEMPOOL_FREE(h,a)
-#       define VALGRIND_MEMPOOL_CHANGE(h,a,b,s)
-#       define VALGRIND_MAKE_MEM_NOACCESS(a,s)
-#       define VALGRIND_MAKE_MEM_DEFINED(a,s)
-#       define VALGRIND_MAKE_MEM_UNDEFINED(a,s)
-#       define VALGRIND_DISABLE_ADDR_ERROR_REPORTING_IN_RANGE(a,s)
-#       define VALGRIND_ENABLE_ADDR_ERROR_REPORTING_IN_RANGE(a,s)
-#endif
-
-/* -------------------------------------------------------------------------- */
-
-#ifndef CACHELINE_SIZE
-#	define CACHELINE_SIZE 64
-#endif
 
 static __forceinline uint64_t unaligned_load(const volatile void* ptr) {
 #if defined(__x86_64__) || defined(__i386__)
@@ -114,14 +60,7 @@ static __forceinline void unaligned_store(volatile void* ptr, uint64_t value) {
 #endif /* arch selector */
 }
 
-#if defined(__MSC_VER)
-	__declspec(align(CACHELINE_SIZE))
-#endif /* _MSC_VER */
-struct _lber_hug_memchk_info
-#if defined(__GNU_C) || defined(__clang__)
-		__attribute__((aligned(CACHELINE_SIZE)))
-#endif /* __GNUC__ || __clang__ */
-	lber_hug_memchk_info;
+struct _lber_hug_memchk_info lber_hug_memchk_info __cache_aligned;
 
 #if defined(__GNUC__) || defined(__clang__)
 	/* LY: noting needed */
