@@ -21,12 +21,15 @@ if [ -n "${MYSQL_CONFIG}" ]; then
 	MYSQL_NDB_API="$(${MYSQL_CONFIG} --include | sed 's|-I/|/|g')/storage/ndb/ndbapi/NdbApi.hpp"
 	if [ -s "${MYSQL_NDB_API}" ]; then
 		echo "MYSQL_NDB_API	= ${MYSQL_NDB_API}"
+		MYSQL_NDB_RPATH="$(${MYSQL_CONFIG} --libs_r | sed -n 's|-L\(/\S\+\)\s.*$|\1|p')"
+		echo "MYSQL_NDB_RPATH	= ${MYSQL_NDB_RPATH}"
+		LDFLAGS="-Xlinker -rpath=${MYSQL_NDB_RPATH}"
 		NBD="--enable-ndb"
 	fi
 fi
 
 IODBC=$([ -d /usr/include/iodbc ] && echo "-I/usr/include/iodbc")
-CFLAGS="-Wall -g -Os -DLDAP_MEMORY_DEBUG -DUSE_VALGRIND $IODBC" CPPFLAGS="$CFLAGS" \
+CFLAGS="-Wall -g -Os -DLDAP_MEMORY_DEBUG -DUSE_VALGRIND $IODBC" CPPFLAGS="$CFLAGS" LDFLAGS="$LDFLAGS"\
 	./configure \
 		--enable-backends --enable-overlays $NBD \
 		--enable-rewrite --enable-dynacl --enable-aci --enable-slapi \
