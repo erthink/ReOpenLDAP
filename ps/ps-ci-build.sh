@@ -17,6 +17,6 @@ CFLAGS="-Wall -g -Os -DLDAP_MEMORY_DEBUG -DUSE_VALGRIND $IODBC" CPPFLAGS="$CFLAG
 		--disable-dependency-tracking \
 	|| failure "configure"
 
-make -j4 && make -j4 -C libraries/liblmdb || failure "build"
+make depend && make -j4 && make -j4 -C libraries/liblmdb || failure "build"
 
 echo "DONE"
