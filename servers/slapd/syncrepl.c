@@ -1362,6 +1362,10 @@ do_syncrep_process(
 					{
 						rc = syncrepl_updateCookie( si, op, &syncCookie);
 					}
+					if ( si->si_presentlist ) {
+						avl_free( si->si_presentlist, ch_free );
+						si->si_presentlist = NULL;
+					}
 				}
 
 				ldap_memfree( retoid );
