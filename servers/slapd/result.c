@@ -36,6 +36,19 @@
 #include <ac/unistd.h>
 
 #include "slap.h"
+#include "ldap_log.h"
+
+/* BSD seems to guarantee that this will be a macro, so... */
+#ifndef timersub
+#  define timersub(a,b,res) do {										\
+		(res)->tv_sec = (a)->tv_sec - (b)->tv_sec;						\
+		(res)->tv_usec = (a)->tv_usec - (b)->tv_usec;					\
+		if ((res)->tv_usec < 0) {										\
+			--(res)->tv_sec;											\
+			(res)->tv_usec += 1000000;									\
+		}																\
+	} while (0)
+#endif
 
 const struct berval slap_dummy_bv = BER_BVNULL;
 
@@ -817,10 +830,27 @@ send_ldap_disconnect( Operation	*op, SlapReply *rs )
 	}
 
 	if ( send_ldap_response( op, rs ) == SLAP_CB_CONTINUE ) {
+#ifdef HAVE_GETTIMEOFDAY
+		struct timeval now;
+		struct timeval duration;
+		time_t msec;
+
+		(void) gettimeofday( &now, NULL );
+		timersub( &now, &op->o_hr_time, &duration );
+		msec = duration.tv_usec / 1000 + duration.tv_sec * 1000;
+
+		Statslog( LDAP_DEBUG_STATS,
+			"%s DISCONNECT tag=%lu err=%d duration=%d.%03dms text=%s\n",
+			op->o_log_prefix, rs->sr_tag, rs->sr_err,
+			(int) msec,
+			(int) (duration.tv_usec % 1000),
+			rs->sr_text ? rs->sr_text : "" );
+#else
 		Statslog( LDAP_DEBUG_STATS,
 			"%s DISCONNECT tag=%lu err=%d text=%s\n",
 			op->o_log_prefix, rs->sr_tag, rs->sr_err,
 			rs->sr_text ? rs->sr_text : "" );
+#endif
 	}
 }
 
@@ -881,6 +911,37 @@ abandon:
 	}
 
 	if ( send_ldap_response( op, rs ) == SLAP_CB_CONTINUE ) {
+
+#ifdef HAVE_GETTIMEOFDAY
+		struct timeval now;
+		struct timeval duration;
+		time_t msec;
+
+		(void) gettimeofday( &now, NULL );
+		timersub( &now, &op->o_hr_time, &duration );
+		msec = duration.tv_usec / 1000 + duration.tv_sec * 1000;
+
+		if ( op->o_tag == LDAP_REQ_SEARCH ) {
+			Statslog( LDAP_DEBUG_STATS,
+				"%s SEARCH RESULT tag=%lu err=%d duration=%d.%03dms nentries=%d text=%s\n",
+				op->o_log_prefix,
+				rs->sr_tag,
+				rs->sr_err,
+				(int) msec,
+				(int) (duration.tv_usec % 1000),
+				rs->sr_nentries,
+				rs->sr_text ? rs->sr_text : "");
+		} else {
+			Statslog( LDAP_DEBUG_STATS,
+				"%s RESULT tag=%lu err=%d duration=%d.%03dms text=%s\n",
+				op->o_log_prefix,
+				rs->sr_tag,
+				rs->sr_err,
+				(int) msec,
+				(int) (duration.tv_usec % 1000),
+				rs->sr_text ? rs->sr_text : "");
+		}
+#else
 		if ( op->o_tag == LDAP_REQ_SEARCH ) {
 			Statslog( LDAP_DEBUG_STATS,
 				"%s SEARCH RESULT tag=%lu err=%d nentries=%d text=%s\n",
@@ -892,6 +953,7 @@ abandon:
 				op->o_log_prefix, rs->sr_tag, rs->sr_err,
 				rs->sr_text ? rs->sr_text : "" );
 		}
+#endif
 	}
 
 	if( tmp != NULL ) ch_free(tmp);
@@ -914,10 +976,27 @@ send_ldap_sasl( Operation *op, SlapReply *rs )
 	rs->sr_msgid = (rs->sr_tag != LBER_SEQUENCE) ? op->o_msgid : 0;
 
 	if ( send_ldap_response( op, rs ) == SLAP_CB_CONTINUE ) {
+#ifdef HAVE_GETTIMEOFDAY
+		struct timeval now;
+		struct timeval duration;
+		time_t msec;
+
+		(void) gettimeofday( &now, NULL );
+		timersub( &now, &op->o_hr_time, &duration );
+		msec = duration.tv_usec / 1000 + duration.tv_sec * 1000;
+
+		Statslog( LDAP_DEBUG_STATS,
+			"%s RESULT tag=%lu err=%d duration=%d.%03dms text=%s\n",
+			op->o_log_prefix, rs->sr_tag, rs->sr_err,
+			(int) msec,
+			(int) (duration.tv_usec % 1000),
+			rs->sr_text ? rs->sr_text : "" );
+#else
 		Statslog( LDAP_DEBUG_STATS,
 			"%s RESULT tag=%lu err=%d text=%s\n",
 			op->o_log_prefix, rs->sr_tag, rs->sr_err,
 			rs->sr_text ? rs->sr_text : "" );
+#endif
 	}
 }
 
@@ -938,10 +1017,29 @@ slap_send_ldap_extended( Operation *op, SlapReply *rs )
 	rs->sr_msgid = (rs->sr_tag != LBER_SEQUENCE) ? op->o_msgid : 0;
 
 	if ( send_ldap_response( op, rs ) == SLAP_CB_CONTINUE ) {
+#ifdef HAVE_GETTIMEOFDAY
+		struct timeval now;
+		struct timeval duration;
+		time_t msec;
+
+		(void) gettimeofday( &now, NULL );
+		timersub( &now, &op->o_hr_time, &duration );
+		msec = duration.tv_usec / 1000 + duration.tv_sec * 1000;
+
+		Statslog( LDAP_DEBUG_STATS,
+			"%s RESULT oid=%s err=%d duration=%d.%03dms text=%s\n",
+			op->o_log_prefix,
+			rs->sr_rspoid ? rs->sr_rspoid : "",
+			rs->sr_err,
+			(int) msec,
+			(int) (duration.tv_usec % 1000),
+			rs->sr_text ? rs->sr_text : "" );
+#else
 		Statslog( LDAP_DEBUG_STATS,
 			"%s RESULT oid=%s err=%d text=%s\n",
 			op->o_log_prefix, rs->sr_rspoid ? rs->sr_rspoid : "",
 			rs->sr_err, rs->sr_text ? rs->sr_text : "" );
+#endif
 	}
 }
 

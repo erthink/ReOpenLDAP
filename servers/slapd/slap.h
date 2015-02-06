@@ -2642,6 +2642,9 @@ struct Operation {
 #define o_log_prefix o_hdr->oh_log_prefix
 
 	ber_tag_t	o_tag;		/* tag of the request */
+#ifdef HAVE_GETTIMEOFDAY
+	struct timeval o_hr_time;	/* high-resolution time of op start*/
+#endif
 	time_t		o_time;		/* time op was initiated */
 	int			o_tincr;	/* counter for multiple ops with same o_time */
 

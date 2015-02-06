@@ -200,7 +200,6 @@ extern void eb_syslog(int pri, const char *fmt, ...);
 #define Debug( level, ... )	\
 	Log( (level), ldap_syslog_level, __VA_ARGS__ )
 
-
 /* Actually now in liblber/debug.c */
 LDAP_LUTIL_F(int) lutil_debug_file LDAP_P(( FILE *file ));
 
