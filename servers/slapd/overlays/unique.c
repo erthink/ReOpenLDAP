@@ -1038,7 +1038,10 @@ unique_add(
 
 	/* skip the checks if the operation has manageDsaIt control in it
 	 * (for replication) */
-	if ( op->o_managedsait > SLAP_CONTROL_IGNORED ) {
+	if ( op->o_managedsait > SLAP_CONTROL_IGNORED
+	     && access_allowed ( op, op->ora_e,
+				 slap_schema.si_ad_entry, NULL,
+				 ACL_MANAGE, NULL ) ) {
 		Debug(LDAP_DEBUG_TRACE, "unique_add: administrative bypass, skipping\n");
 		return rc;
 	}
@@ -1166,7 +1169,10 @@ unique_modify(
 
 	/* skip the checks if the operation has manageDsaIt control in it
 	 * (for replication) */
-	if ( op->o_managedsait > SLAP_CONTROL_IGNORED ) {
+	if ( op->o_managedsait > SLAP_CONTROL_IGNORED
+	     && access_allowed ( op, op->ora_e,
+				 slap_schema.si_ad_entry, NULL,
+				 ACL_MANAGE, NULL ) ) {
 		Debug(LDAP_DEBUG_TRACE, "unique_modify: administrative bypass, skipping\n");
 		return rc;
 	}
@@ -1287,7 +1293,10 @@ unique_modrdn(
 
 	/* skip the checks if the operation has manageDsaIt control in it
 	 * (for replication) */
-	if ( op->o_managedsait > SLAP_CONTROL_IGNORED ) {
+	if ( op->o_managedsait > SLAP_CONTROL_IGNORED
+	     && access_allowed ( op, op->ora_e,
+				 slap_schema.si_ad_entry, NULL,
+				 ACL_MANAGE, NULL ) ) {
 		Debug(LDAP_DEBUG_TRACE, "unique_modrdn: administrative bypass, skipping\n");
 		return rc;
 	}
