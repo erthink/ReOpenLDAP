@@ -122,6 +122,7 @@ static ConfigDriver config_timelimit;
 static ConfigDriver config_overlay;
 static ConfigDriver config_subordinate;
 static ConfigDriver config_suffix;
+static ConfigDriver config_biglock;
 #ifdef LDAP_TCP_BUFFER
 static ConfigDriver config_tcp_buffer;
 #endif /* LDAP_TCP_BUFFER */
@@ -197,6 +198,7 @@ enum {
 	CFG_BACKTRACE,
 	CFG_MEMORY,
 	CFG_COREDUMP,
+	CFG_BIGLOCK,
 
 	CFG_LAST
 };
@@ -777,6 +779,10 @@ static ConfigTable config_back_cf_table[] = {
 		&config_generic, "( OLcfgGlAt:0.44 NAME 'olcCoredumpLimit' "
 			"DESC 'Limit coredump size' "
 			"SYNTAX OMsInteger SINGLE-VALUE )", NULL, NULL },
+	{ "biglock", "mode", 2, 2, 0, ARG_DB|ARG_MAGIC|CFG_BIGLOCK,
+		&config_biglock, "( OLcfgDbAt:0.45 NAME 'olcBiglock' "
+			"DESC 'Synchronuzation mode for suffix/database' "
+			"SYNTAX OMsDirectoryString SINGLE-VALUE )", NULL, NULL },
 
 	{ NULL,	NULL, 0, 0, 0, ARG_IGNORED,
 		NULL, NULL, NULL, NULL }
@@ -3041,6 +3047,107 @@ config_suffix(ConfigArgs *c)
 	ber_bvarray_add(&c->be->be_suffix, &pdn);
 	ber_bvarray_add(&c->be->be_nsuffix, &ndn);
 	return(0);
+}
+
+static int
+config_biglock(ConfigArgs *c)
+{
+	int mode;
+	char	*notallowed = NULL;
+
+	if ( notallowed != NULL ) {
+		char	buf[ SLAP_TEXT_BUFLEN ] = { '\0' };
+
+		switch ( c->op ) {
+		case LDAP_MOD_ADD:
+		case LDAP_MOD_DELETE:
+		case LDAP_MOD_REPLACE:
+		case LDAP_MOD_INCREMENT:
+		case SLAP_CONFIG_ADD:
+			if ( !BER_BVISNULL( &c->value_dn ) ) {
+				snprintf( buf, sizeof( buf ), "mode <%s> ",
+						c->value_dn.bv_val );
+			}
+
+			Debug(LDAP_DEBUG_ANY,
+				"%s: biglock %snot allowed in %s database.\n",
+				c->log, buf, notallowed );
+			break;
+
+		case SLAP_CONFIG_EMIT:
+		default:
+			/* don't complain when emitting... */
+			break;
+		}
+
+		return 1;
+	}
+
+	if (c->op == SLAP_CONFIG_EMIT) {
+		const char* str;
+		switch (c->be->bd_biglock_mode) {
+		case SLAPD_BIGLOCK_NONE:
+			str = "none";
+			break;
+		case SLAPD_BIGLOCK_LOCAL:
+			str = "local";
+			break;
+#ifdef SLAPD_BIGLOCK_ENGINE
+		case SLAPD_BIGLOCK_ENGINE:
+			str = "engine";
+			break;
+#endif
+		case SLAPD_BIGLOCK_COMMON:
+			str = "common";
+			break;
+		default:
+			return 1;
+		}
+		c->value_string = ch_strdup( str );
+		return 0;
+	} else if ( c->op == LDAP_MOD_DELETE ) {
+		c->be->bd_biglock_mode = SLAPD_BIGLOCK_NONE;
+		return 0;
+	}
+
+	if (strcasecmp(c->argv[1], "none") == 0) {
+		mode = SLAPD_BIGLOCK_NONE;
+	} else if (strcasecmp(c->argv[1], "local") == 0) {
+		mode = SLAPD_BIGLOCK_LOCAL;
+#ifdef SLAPD_BIGLOCK_ENGINE
+	} else if (strcasecmp(c->argv[1], "engine") == 0) {
+		mode = SLAPD_BIGLOCK_ENGINE;
+#endif
+	} else if (strcasecmp(c->argv[1], "common") == 0) {
+		mode = SLAPD_BIGLOCK_COMMON;
+	} else {
+		snprintf( c->cr_msg, sizeof( c->cr_msg ), "Invalid 'biglock'' mode <%s>", c->argv[1] );
+		Debug(LDAP_DEBUG_ANY, "%s: %s\n", c->log, c->cr_msg);
+		return 1;
+	}
+
+	if ( c->be == frontendDB ) {
+		if (mode != SLAPD_BIGLOCK_NONE && mode != SLAPD_BIGLOCK_COMMON) {
+			snprintf( c->cr_msg, sizeof( c->cr_msg ), "Only 'none' and 'common' biglock-modes are valid for frontendDB" );
+			Debug(LDAP_DEBUG_ANY, "%s: %s\n", c->log, c->cr_msg);
+			return 1;
+		}
+	} else if ( SLAP_MONITOR(c->be) ) {
+		if (mode != SLAPD_BIGLOCK_NONE) {
+			snprintf( c->cr_msg, sizeof( c->cr_msg ), "Only 'none' biglock-mode is valid for monitor" );
+			Debug(LDAP_DEBUG_ANY, "%s: %s\n", c->log, c->cr_msg);
+			return 1;
+		}
+	} else if ( SLAP_CONFIG(c->be) ) {
+		if (mode != SLAPD_BIGLOCK_LOCAL) {
+			snprintf( c->cr_msg, sizeof( c->cr_msg ), "Only 'local' biglock-mode is valid for config" );
+			Debug(LDAP_DEBUG_ANY, "%s: %s\n", c->log, c->cr_msg);
+			return 1;
+		}
+	}
+
+	c->be->bd_biglock_mode = mode;
+	return 0;
 }
 
 static int
