@@ -598,7 +598,7 @@ check_syncprov(
 }
 
 static int
-do_syncrep1(
+do_syncrep_search(
 	Operation *op,
 	syncinfo_t *si )
 {
@@ -733,7 +733,7 @@ do_syncrep1(
 	rc = ldap_sync_search( si, op->o_tmpmemctx );
 
 	if( rc != LDAP_SUCCESS ) {
-		Debug( LDAP_DEBUG_ANY, "do_syncrep1: %s "
+		Debug( LDAP_DEBUG_ANY, "do_syncrep_search: %s "
 			"ldap_search_ext: %s (%d)\n",
 			si->si_ridtxt, ldap_err2string( rc ), rc );
 	}
@@ -788,7 +788,7 @@ compare_csns( struct sync_cookie *sc1, struct sync_cookie *sc2, int *which )
 #define	SYNC_PAUSED	-3
 
 static int
-do_syncrep2(
+do_syncrep_process(
 	Operation *op,
 	syncinfo_t *si )
 {
@@ -821,7 +821,7 @@ do_syncrep2(
 	ber_init2( ber, NULL, LBER_USE_DER );
 	ber_set_option( ber, LBER_OPT_BER_MEMCTX, &op->o_tmpmemctx );
 
-	Debug( LDAP_DEBUG_TRACE, "=>do_syncrep2 %s\n", si->si_ridtxt );
+	Debug( LDAP_DEBUG_TRACE, "=>do_syncrep_process %s\n", si->si_ridtxt );
 
 	slap_dup_sync_cookie( &syncCookie_req, &si->si_syncCookie );
 
@@ -870,7 +870,7 @@ do_syncrep2(
 				if ( next && ldap_control_find( LDAP_CONTROL_SYNC_STATE, next, NULL ) )
 				{
 					bdn.bv_val[bdn.bv_len] = '\0';
-					Debug( LDAP_DEBUG_ANY, "do_syncrep2: %s "
+					Debug( LDAP_DEBUG_ANY, "do_syncrep_process: %s "
 						"got search entry with multiple "
 						"Sync State control (%s)\n", si->si_ridtxt, bdn.bv_val );
 					ldap_controls_free( rctrls );
@@ -880,7 +880,7 @@ do_syncrep2(
 			}
 			if ( rctrlp == NULL ) {
 				bdn.bv_val[bdn.bv_len] = '\0';
-				Debug( LDAP_DEBUG_ANY, "do_syncrep2: %s "
+				Debug( LDAP_DEBUG_ANY, "do_syncrep_process: %s "
 					"got search entry without "
 					"Sync State control (%s)\n", si->si_ridtxt, bdn.bv_val );
 				rc = -1;
@@ -890,7 +890,7 @@ do_syncrep2(
 			if ( ber_scanf( ber, "{em" /*"}"*/, &syncstate, &syncUUID[0] )
 					== LBER_ERROR ) {
 				bdn.bv_val[bdn.bv_len] = '\0';
-				Debug( LDAP_DEBUG_ANY, "do_syncrep2: %s malformed message (%s)\n",
+				Debug( LDAP_DEBUG_ANY, "do_syncrep_process: %s malformed message (%s)\n",
 					si->si_ridtxt, bdn.bv_val );
 				ldap_controls_free( rctrls );
 				rc = -1;
@@ -900,7 +900,7 @@ do_syncrep2(
 			 * (happens with back-sql...) */
 			if ( BER_BVISEMPTY( &syncUUID[0] ) ) {
 				bdn.bv_val[bdn.bv_len] = '\0';
-				Debug( LDAP_DEBUG_ANY, "do_syncrep2: %s "
+				Debug( LDAP_DEBUG_ANY, "do_syncrep_process: %s "
 					"got empty syncUUID with LDAP_SYNC_%s (%s)\n",
 					si->si_ridtxt,
 					syncrepl_state2str( syncstate ), bdn.bv_val );
@@ -912,7 +912,7 @@ do_syncrep2(
 			if ( ber_peek_tag( ber, &len ) == LDAP_TAG_SYNC_COOKIE ) {
 				if ( ber_scanf( ber, /*"{"*/ "m}", &cookie ) != LBER_ERROR ) {
 
-				Debug( LDAP_DEBUG_SYNC, "do_syncrep2: %s cookie=%s\n",
+				Debug( LDAP_DEBUG_SYNC, "do_syncrep_process: %s cookie=%s\n",
 					si->si_ridtxt,
 					BER_BVISNULL( &cookie ) ? "" : cookie.bv_val );
 
@@ -934,7 +934,7 @@ do_syncrep2(
 							if ( si->si_cookieState->cs_sids[i] == sid ) {
 								if ( ber_bvcmp( syncCookie.ctxcsn, &si->si_cookieState->cs_vals[i] ) <= 0 ) {
 									bdn.bv_val[bdn.bv_len] = '\0';
-									Debug( LDAP_DEBUG_SYNC, "do_syncrep2: %s CSN too old, ignoring %s (%s)\n",
+									Debug( LDAP_DEBUG_SYNC, "do_syncrep_process: %s CSN too old, ignoring %s (%s)\n",
 										si->si_ridtxt, syncCookie.ctxcsn->bv_val, bdn.bv_val );
 									si->si_too_old = 1;
 									ldap_pvt_thread_mutex_unlock( &si->si_cookieState->cs_mutex );
@@ -965,7 +965,7 @@ do_syncrep2(
 								if ( ber_bvcmp( syncCookie.ctxcsn, &si->si_cookieState->cs_pvals[i] ) <= 0 ) {
 									ldap_pvt_thread_mutex_unlock( &si->si_cookieState->cs_pmutex );
 									bdn.bv_val[bdn.bv_len] = '\0';
-									Debug( LDAP_DEBUG_SYNC, "do_syncrep2: %s CSN pending, ignoring %s (%s)\n",
+									Debug( LDAP_DEBUG_SYNC, "do_syncrep_process: %s CSN pending, ignoring %s (%s)\n",
 										si->si_ridtxt, syncCookie.ctxcsn->bv_val, bdn.bv_val );
 									ldap_controls_free( rctrls );
 									rc = 0;
@@ -987,7 +987,7 @@ do_syncrep2(
 						punlock = i;
 					} else if (si->si_too_old) {
 						bdn.bv_val[bdn.bv_len] = '\0';
-						Debug( LDAP_DEBUG_SYNC, "do_syncrep2: %s CSN too old, ignoring (%s)\n",
+						Debug( LDAP_DEBUG_SYNC, "do_syncrep_process: %s CSN too old, ignoring (%s)\n",
 							si->si_ridtxt, bdn.bv_val );
 						ldap_controls_free( rctrls );
 						rc = 0;
@@ -1014,7 +1014,7 @@ do_syncrep2(
 						si->si_logstate = SYNCLOG_FALLBACK;
 						ldap_abandon_ext( si->si_ld, si->si_msgid, NULL, NULL );
 						bdn.bv_val[bdn.bv_len] = '\0';
-						Debug( LDAP_DEBUG_SYNC, "do_syncrep2: %s delta-sync lost sync on (%s), switching to REFRESH\n",
+						Debug( LDAP_DEBUG_SYNC, "do_syncrep_process: %s delta-sync lost sync on (%s), switching to REFRESH\n",
 							si->si_ridtxt, bdn.bv_val );
 						if (si->si_strict_refresh) {
 							slap_suspend_listeners();
@@ -1062,13 +1062,13 @@ do_syncrep2(
 
 		case LDAP_RES_SEARCH_REFERENCE:
 			Debug( LDAP_DEBUG_ANY,
-				"do_syncrep2: %s reference received error\n",
+				"do_syncrep_process: %s reference received error\n",
 				si->si_ridtxt );
 			break;
 
 		case LDAP_RES_SEARCH_RESULT:
 			Debug( LDAP_DEBUG_SYNC,
-				"do_syncrep2: %s LDAP_RES_SEARCH_RESULT\n",
+				"do_syncrep_process: %s LDAP_RES_SEARCH_RESULT\n",
 				si->si_ridtxt );
 			err = LDAP_OTHER; /* FIXME check parse result properly */
 			ldap_parse_result( si->si_ld, msg, &err, NULL, NULL, NULL,
@@ -1082,7 +1082,7 @@ do_syncrep2(
 			if ( err == LDAP_SYNC_REFRESH_REQUIRED ) {
 				if ( si->si_logstate == SYNCLOG_LOGGING ) {
 					si->si_logstate = SYNCLOG_FALLBACK;
-					Debug( LDAP_DEBUG_SYNC, "do_syncrep2: %s delta-sync lost sync, switching to REFRESH\n",
+					Debug( LDAP_DEBUG_SYNC, "do_syncrep_process: %s delta-sync lost sync, switching to REFRESH\n",
 						si->si_ridtxt );
 					if (si->si_strict_refresh) {
 						slap_suspend_listeners();
@@ -1094,7 +1094,7 @@ do_syncrep2(
 			}
 			if ( err ) {
 				Debug( LDAP_DEBUG_ANY,
-					"do_syncrep2: %s LDAP_RES_SEARCH_RESULT (%d) %s\n",
+					"do_syncrep_process: %s LDAP_RES_SEARCH_RESULT (%d) %s\n",
 					si->si_ridtxt, err, ldap_err2string( err ) );
 			}
 			if ( rctrls ) {
@@ -1109,7 +1109,7 @@ do_syncrep2(
 				rctrlp = ldap_control_find( LDAP_CONTROL_SYNC_DONE, rctrls, &next );
 				if ( next && ldap_control_find( LDAP_CONTROL_SYNC_DONE, next, NULL ) )
 				{
-					Debug( LDAP_DEBUG_ANY, "do_syncrep2: %s "
+					Debug( LDAP_DEBUG_ANY, "do_syncrep_process: %s "
 						"got search result with multiple "
 						"Sync State control\n", si->si_ridtxt );
 					ldap_controls_free( rctrls );
@@ -1124,7 +1124,7 @@ do_syncrep2(
 				if ( ber_peek_tag( ber, &len ) == LDAP_TAG_SYNC_COOKIE ) {
 					ber_scanf( ber, "m", &cookie );
 
-					Debug( LDAP_DEBUG_SYNC, "do_syncrep2: %s cookie=%s\n",
+					Debug( LDAP_DEBUG_SYNC, "do_syncrep_process: %s cookie=%s\n",
 						si->si_ridtxt,
 						BER_BVISNULL( &cookie ) ? "" : cookie.bv_val );
 
@@ -1201,13 +1201,13 @@ do_syncrep2(
 				ber_tag_t tag;
 				case LDAP_TAG_SYNC_NEW_COOKIE:
 					Debug( LDAP_DEBUG_SYNC,
-						"do_syncrep2: %s %s - %s\n",
+						"do_syncrep_process: %s %s - %s\n",
 						si->si_ridtxt,
 						"LDAP_RES_INTERMEDIATE",
 						"NEW_COOKIE" );
 					ber_scanf( ber, "tm", &tag, &cookie );
 					Debug( LDAP_DEBUG_SYNC,
-						"do_syncrep2: %s NEW_COOKIE: %s\n",
+						"do_syncrep_process: %s NEW_COOKIE: %s\n",
 						si->si_ridtxt,
 						cookie.bv_val);
 					if ( !BER_BVISNULL( &cookie ) ) {
@@ -1222,7 +1222,7 @@ do_syncrep2(
 				case LDAP_TAG_SYNC_REFRESH_DELETE:
 				case LDAP_TAG_SYNC_REFRESH_PRESENT:
 					Debug( LDAP_DEBUG_SYNC,
-						"do_syncrep2: %s %s - %s\n",
+						"do_syncrep_process: %s %s - %s\n",
 						si->si_ridtxt,
 						"LDAP_RES_INTERMEDIATE",
 						si_tag == LDAP_TAG_SYNC_REFRESH_PRESENT ?
@@ -1237,7 +1237,7 @@ do_syncrep2(
 					{
 						ber_scanf( ber, "m", &cookie );
 
-						Debug( LDAP_DEBUG_SYNC, "do_syncrep2: %s cookie=%s\n",
+						Debug( LDAP_DEBUG_SYNC, "do_syncrep_process: %s cookie=%s\n",
 							si->si_ridtxt,
 							BER_BVISNULL( &cookie ) ? "" : cookie.bv_val );
 
@@ -1267,7 +1267,7 @@ do_syncrep2(
 					break;
 				case LDAP_TAG_SYNC_ID_SET:
 					Debug( LDAP_DEBUG_SYNC,
-						"do_syncrep2: %s %s - %s\n",
+						"do_syncrep_process: %s %s - %s\n",
 						si->si_ridtxt,
 						"LDAP_RES_INTERMEDIATE",
 						"SYNC_ID_SET" );
@@ -1277,7 +1277,7 @@ do_syncrep2(
 					{
 						ber_scanf( ber, "m", &cookie );
 
-						Debug( LDAP_DEBUG_SYNC, "do_syncrep2: %s cookie=%s\n",
+						Debug( LDAP_DEBUG_SYNC, "do_syncrep_process: %s cookie=%s\n",
 							si->si_ridtxt,
 							BER_BVISNULL( &cookie ) ? "" : cookie.bv_val );
 
@@ -1319,7 +1319,7 @@ do_syncrep2(
 					break;
 				default:
 					Debug( LDAP_DEBUG_ANY,
-						"do_syncrep2: %s unknown syncinfo tag (%ld)\n",
+						"do_syncrep_process: %s unknown syncinfo tag (%ld)\n",
 						si->si_ridtxt, (long) si_tag );
 					ldap_memfree( retoid );
 					ber_bvfree( retdata );
@@ -1360,7 +1360,7 @@ do_syncrep2(
 					goto done;
 
 			} else {
-				Debug( LDAP_DEBUG_ANY, "do_syncrep2: %s "
+				Debug( LDAP_DEBUG_ANY, "do_syncrep_process: %s "
 					"unknown intermediate response (%d)\n",
 					si->si_ridtxt, rc );
 				ldap_memfree( retoid );
@@ -1369,7 +1369,7 @@ do_syncrep2(
 			break;
 
 		default:
-			Debug( LDAP_DEBUG_ANY, "do_syncrep2: %s "
+			Debug( LDAP_DEBUG_ANY, "do_syncrep_process: %s "
 				"unknown message (0x%02lx)\n",
 				si->si_ridtxt,
 				(unsigned long)ldap_msgtype( msg ) );
@@ -1399,7 +1399,7 @@ do_syncrep2(
 done:
 	if ( err != LDAP_SUCCESS ) {
 		Debug( LDAP_DEBUG_ANY,
-			"do_syncrep2: %s (%d) %s\n",
+			"do_syncrep_process: %s (%d) %s\n",
 			si->si_ridtxt, err, ldap_err2string( err ) );
 	}
 
@@ -1535,7 +1535,7 @@ do_syncrepl(
 		op->o_bd = si->si_wbe;
 		op->o_dn = op->o_bd->be_rootdn;
 		op->o_ndn = op->o_bd->be_rootndn;
-		rc = do_syncrep1( op, si );
+		rc = do_syncrep_search( op, si );
 	}
 
 reload:
@@ -1547,7 +1547,7 @@ reload:
 		op->o_bd = be;
 		op->o_dn = op->o_bd->be_rootdn;
 		op->o_ndn = op->o_bd->be_rootndn;
-		rc = do_syncrep2( op, si );
+		rc = do_syncrep_process( op, si );
 		if ( rc == LDAP_SYNC_REFRESH_REQUIRED )	{
 			if ( BER_BVISNULL( &si->si_syncCookie.octet_str ))
 				slap_compose_sync_cookie( NULL, &si->si_syncCookie.octet_str,
