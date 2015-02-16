@@ -35,6 +35,39 @@ struct config_args_s;	/* config.h */
 struct config_reply_s;	/* config.h */
 
 /*
+ * biglock.c
+ */
+LDAP_SLAPD_F (void) slap_biglock_init LDAP_P(( BackendDB *be ));
+LDAP_SLAPD_F (void) slap_biglock_destroy LDAP_P(( BackendDB *be ));
+LDAP_SLAPD_F (size_t) slap_biglock_acquire LDAP_P(( BackendDB *be ));
+LDAP_SLAPD_F (size_t) slap_biglock_release LDAP_P(( BackendDB *be ));
+LDAP_SLAPD_F (int) slap_biglock_call_be LDAP_P((
+   slap_operation_t which,
+   Operation *op,
+   SlapReply *rs ));
+LDAP_SLAPD_F (size_t) slap_biglock_age LDAP_P(( BackendDB *be ));
+LDAP_SLAPD_F (size_t) slap_biglock_evo LDAP_P(( BackendDB *be ));
+LDAP_SLAPD_F (int) slap_biglock_deep LDAP_P(( BackendDB *be ));
+LDAP_SLAPD_F (int) slap_biglock_owned LDAP_P(( BackendDB *be ));
+LDAP_SLAPD_F (void) slap_biglock_pool_pause LDAP_P(( BackendDB *be ));
+LDAP_SLAPD_F (int) slap_biglock_pool_pausecheck LDAP_P(( BackendDB *be ));
+
+#define slap_biglock_acquire_ex(be, flag_locked) \
+	do { \
+		assert(!flag_locked); \
+		slap_biglock_acquire(be); \
+		flag_locked = 1; \
+	} while(0)
+
+#define slap_biglock_release_ex(be, flag_locked) \
+	do { \
+		if (flag_locked) { \
+			flag_locked = 0; \
+			slap_biglock_release(be); \
+		} \
+	} while(0)
+
+/*
  * aci.c
  */
 #ifdef SLAP_DYNACL

@@ -1771,6 +1771,20 @@ LDAP_TAILQ_HEAD( be_pcl, slap_csn_entry );
 
 struct ConfigOCs;	/* config.h */
 
+typedef struct slap_biglock slap_biglock_t;
+
+/* LY: zero or less indicates than biglock was not initialized. */
+#define SLAPD_BIGLOCK_NONE	1
+#define SLAPD_BIGLOCK_LOCAL	2
+#define SLAPD_BIGLOCK_COMMON	3
+
+struct slap_biglock {
+	ldap_pvt_thread_mutex_t bl_mutex;
+	volatile ldap_pvt_thread_t bl_owner;
+	volatile size_t bl_age, bl_evo;
+	volatile int bl_recursion;
+};
+
 struct BackendDB {
 	BackendInfo	*bd_info;	/* pointer to shared backend info */
 	BackendDB	*bd_self;	/* pointer to this struct */
@@ -1957,6 +1971,9 @@ struct BackendDB {
 	AccessControl *be_acl;	/* access control list for this backend	   */
 	slap_access_t	be_dfltaccess;	/* access given if no acl matches	   */
 	AttributeName	*be_extra_anlist;	/* attributes that need to be added to search requests (ITS#6513) */
+
+	int	bd_biglock_mode;	/* synchronization mode for database/suffix */
+	slap_biglock_t *bd_biglock; /* mutex for synchronization, etc */
 
 	/* Replica Information */
 	struct berval be_update_ndn;	/* allowed to make changes (in replicas) */
@@ -2344,7 +2361,10 @@ struct BackendInfo {
 	char	**bi_obsolete_names;
 	void	*bi_extra;		/* backend type-specific APIs */
 	void	*bi_private;	/* backend type-specific config data */
-	LDAP_STAILQ_ENTRY(BackendInfo) bi_next ;
+#ifdef SLAPD_BIGLOCK_ENGINE
+	slap_biglock_t* bi_biglock;
+#endif
+	LDAP_STAILQ_ENTRY(BackendInfo) bi_next;
 };
 
 #define c_authtype	c_authz.sai_method

@@ -95,6 +95,9 @@ frontend_init( void )
 	frontendDB = &slap_frontendDB;
 	frontendDB->bd_self = frontendDB;
 
+	/* biglock */
+	slap_biglock_init(frontendDB);
+
 	/* ACLs */
 	frontendDB->be_dfltaccess = ACL_READ;
 
