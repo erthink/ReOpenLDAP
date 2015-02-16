@@ -4087,6 +4087,8 @@ typedef struct setup_cookie {
 static int
 config_ldif_resp( Operation *op, SlapReply *rs )
 {
+	assert(slap_biglock_owned(op->o_bd));
+
 	if ( rs->sr_type == REP_SEARCH ) {
 		setup_cookie *sc = op->o_callback->sc_private;
 		struct berval pdn;
@@ -4270,6 +4272,7 @@ config_setup_ldif( BackendDB *be, const char *dir, int readit ) {
 		prev_DN_strict = slap_DN_strict;
 		slap_DN_strict = 0;
 
+		slap_biglock_acquire(op->o_bd);
 		rc = op->o_bd->be_search( op, &rs );
 
 		/* Restore normal DN validation */
@@ -4286,6 +4289,7 @@ config_setup_ldif( BackendDB *be, const char *dir, int readit ) {
 			op->ora_e = sc.config;
 			rc = op->o_bd->be_add( op, &rs );
 		}
+		slap_biglock_release(op->o_bd);
 		ldap_pvt_thread_pool_context_reset( thrctx );
 	}
 
@@ -4679,7 +4683,7 @@ config_rename_one( Operation *op, SlapReply *rs, Entry *e,
 		op->orr_modlist = NULL;
 		slap_modrdn2mods( op, rs );
 		slap_mods_opattrs( op, &op->orr_modlist, 1 );
-		rc = op->o_bd->be_modrdn( op, rs );
+		rc = slap_biglock_call_be( op_modrdn, op, rs );
 		slap_mods_free( op->orr_modlist, 1 );
 
 		op->o_bd = be;
@@ -5566,7 +5570,7 @@ config_back_add( Operation *op, SlapReply *rs )
 		rs->sr_err = SLAPD_ABANDON;
 		goto out;
 	}
-	ldap_pvt_thread_pool_pause( &connection_pool );
+	slap_biglock_pool_pause(op->o_bd);
 
 	/* Strategy:
 	 * 1) check for existence of entry
@@ -6052,7 +6056,7 @@ config_back_modify( Operation *op, SlapReply *rs )
 			rs->sr_err = SLAPD_ABANDON;
 			goto out;
 		}
-		ldap_pvt_thread_pool_pause( &connection_pool );
+		slap_biglock_pool_pause(op->o_bd);
 	}
 
 	/* Strategy:
@@ -6221,7 +6225,7 @@ config_back_modrdn( Operation *op, SlapReply *rs )
 		rs->sr_err = SLAPD_ABANDON;
 		goto out;
 	}
-	ldap_pvt_thread_pool_pause( &connection_pool );
+	slap_biglock_pool_pause(op->o_bd);
 
 	if ( ce->ce_type == Cft_Schema ) {
 		req_modrdn_s modr = op->oq_modrdn;
@@ -6318,7 +6322,7 @@ config_back_delete( Operation *op, SlapReply *rs )
 		char *iptr;
 		int count, ixold;
 
-		ldap_pvt_thread_pool_pause( &connection_pool );
+		slap_biglock_pool_pause( op->o_bd );
 
 		if ( ce->ce_type == Cft_Overlay ){
 			overlay_remove( ce->ce_be, (slap_overinst *)ce->ce_bi, op );
@@ -6406,7 +6410,7 @@ config_back_delete( Operation *op, SlapReply *rs )
 
 			scp = op->o_callback;
 			op->o_callback = &sc;
-			op->o_bd->be_delete( op, rs );
+			slap_biglock_call_be( op_delete, op, rs );
 			op->o_bd = be;
 			op->o_callback = scp;
 			op->o_dn = dn;
@@ -7317,7 +7321,7 @@ config_tool_entry_get( BackendDB *be, ID id )
 static int entry_put_got_frontend=0;
 static int entry_put_got_config=0;
 static ID
-config_tool_entry_put( BackendDB *be, Entry *e, struct berval *text )
+nolock_config_tool_entry_put( BackendDB *be, Entry *e, struct berval *text )
 {
 	CfBackInfo *cfb = be->be_private;
 	BackendInfo *bi = cfb->cb_db.bd_info;
@@ -7478,6 +7482,16 @@ config_tool_entry_put( BackendDB *be, Entry *e, struct berval *text )
 		return bi->bi_tool_entry_put( &cfb->cb_db, e, text );
 	else
 		return NOID;
+}
+
+static ID
+config_tool_entry_put( BackendDB *be, Entry *e, struct berval *text )
+{
+	ID res;
+	slap_biglock_acquire(be);
+	res = nolock_config_tool_entry_put(be, e, text);
+	slap_biglock_release(be);
+	return res;
 }
 
 static struct {
