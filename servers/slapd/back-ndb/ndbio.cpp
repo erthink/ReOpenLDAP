@@ -248,7 +248,8 @@ ndb_oc_read( struct ndb_info *ni, const NdbDictionary::Dictionary *myDict )
 	ObjectClass *oc;
 	NdbDictionary::Dictionary::List myList;
 	struct berval bv;
-	int i, j, rc, col;
+	unsigned i;
+	int j, rc, col;
 
 	rc = myDict->listObjects( myList, NdbDictionary::Object::UserTable );
 	if (rc)
@@ -549,7 +550,8 @@ ndb_oc_attrs(
 	char buf[65538], *ptr;
 	Attribute **an, **ao, *a;
 	NdbOperation *myop;
-	int i, j, max = 0;
+	int j;
+	unsigned i, max = 0;
 	int changed, rc;
 	Uint64 eid = e->e_id;
 
@@ -560,7 +562,7 @@ ndb_oc_attrs(
 	ao = an + nattrs;
 
 	/* Turn lists of attrs into arrays for easier access */
-	for ( i=0; i<nattrs; i++ ) {
+	for ( i=0; (int) i < nattrs; i++ ) {
 		if ( attrs[i]->na_oi != no ) {
 			an[i] = NULL;
 			ao[i] = NULL;
@@ -658,7 +660,7 @@ ndb_oc_attrs(
 					}
 				} else {
 					if ( changed & V_INS ) {
-						if ( an[j]->a_vals[i].bv_len > attrs[j]->na_len ) {
+						if ( an[j]->a_vals[i].bv_len > (ber_len_t) attrs[j]->na_len ) {
 							Debug( LDAP_DEBUG_ANY, "ndb_oc_attrs: attribute %s too long for column\n",
 								attrs[j]->na_name.bv_val );
 							rc = LDAP_CONSTRAINT_VIOLATION;

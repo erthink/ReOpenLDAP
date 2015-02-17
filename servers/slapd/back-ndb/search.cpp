@@ -34,7 +34,7 @@ ndb_dn2bound(
 	NdbRdns *rdns
 )
 {
-	unsigned int i;
+	int i;
 
 	/* Walk thru RDNs */
 	for ( i=0; i<rdns->nr_num; i++ ) {

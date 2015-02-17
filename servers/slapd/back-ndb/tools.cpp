@@ -366,7 +366,7 @@ static int ndb_tool_next_id(
 
 		for ( i=0; i<nholes; i++) {
 			if ( holes[i].id == NA->e->e_id ) {
-				int j;
+				unsigned j;
 				free(holes[i].dn.bv_val);
 				for (j=i;j<nholes;j++) holes[j] = holes[j+1];
 				holes[j].id = 0;

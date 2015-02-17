@@ -163,7 +163,7 @@ ndb_cf_gen( ConfigArgs *c )
 					ptr = lutil_strcopy( buf, oci->no_name.bv_val );
 					*ptr++ = ' ';
 					for ( i=0; i<oci->no_nattrs; i++ ) {
-						if ( end - ptr < oci->no_attrs[i]->na_name.bv_len+1 )
+						if ( end - ptr < (ptrdiff_t) oci->no_attrs[i]->na_name.bv_len+1 )
 							break;
 						if ( i )
 							*ptr++ = ',';

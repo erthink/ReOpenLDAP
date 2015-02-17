@@ -43,8 +43,8 @@ ndb_modify_delete(
 	MatchingRule 	*mr = mod->sm_desc->ad_type->sat_equality;
 	struct berval *cvals;
 	int		*id2 = NULL;
-	int		i, rc = 0, num;
-	unsigned flags;
+	int		rc = 0;
+	unsigned num, i, flags;
 	char		dummy = '\0';
 
 	/* For ordered vals, we have no choice but to preserve order */
