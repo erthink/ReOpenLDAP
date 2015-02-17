@@ -70,7 +70,7 @@ struct slap_control {
 	slap_mask_t sc_mask;
 
 	/* Extended operations supported by control */
-	char **sc_extendedops;		/* input */
+	const char **sc_extendedops;		/* input */
 	BerVarray sc_extendedopsbv;	/* run-time use */
 
 	/* Control parsing callback */
@@ -96,23 +96,23 @@ static LDAP_SLIST_HEAD(ControlsList, slap_control) controls_list
  * starting from 1.
  * FIXME: should we define the "undefined control" oid?
  */
-char *slap_known_controls[SLAP_MAX_CIDS+1];
+const char * slap_known_controls[SLAP_MAX_CIDS+1];
 static int num_known_controls = 1;
 
-static char *proxy_authz_extops[] = {
+static const char *proxy_authz_extops[] = {
 	LDAP_EXOP_MODIFY_PASSWD,
 	LDAP_EXOP_WHO_AM_I,
 	LDAP_EXOP_REFRESH,
 	NULL
 };
 
-static char *manageDSAit_extops[] = {
+static const char *manageDSAit_extops[] = {
 	LDAP_EXOP_REFRESH,
 	NULL
 };
 
 #ifdef SLAP_CONTROL_X_SESSION_TRACKING
-static char *session_tracking_extops[] = {
+static const char *session_tracking_extops[] = {
 	LDAP_EXOP_MODIFY_PASSWD,
 	LDAP_EXOP_WHO_AM_I,
 	LDAP_EXOP_REFRESH,
@@ -245,7 +245,7 @@ find_ctrl( const char *oid );
 int
 register_supported_control2(const char *controloid,
 	slap_mask_t controlmask,
-	char **controlexops,
+	const char* const *controlexops,
 	SLAP_CTRL_PARSE_FN *controlparsefn,
 	unsigned flags,
 	int *controlcid)

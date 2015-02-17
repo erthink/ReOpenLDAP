@@ -347,7 +347,7 @@ extern "C" int
 ndb_back_initialize(
 	BackendInfo	*bi )
 {
-	static char *controls[] = {
+	static const char * const controls[] = {
 		LDAP_CONTROL_ASSERT,
 		LDAP_CONTROL_MANAGEDSAIT,
 		LDAP_CONTROL_NOOP,

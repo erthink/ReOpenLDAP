@@ -1677,7 +1677,7 @@ int
 monitor_back_initialize(
 	BackendInfo	*bi )
 {
-	static char		*controls[] = {
+	static const char * const controls[] = {
 		LDAP_CONTROL_MANAGEDSAIT,
 		NULL
 	};

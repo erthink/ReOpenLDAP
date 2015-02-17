@@ -2360,7 +2360,7 @@ ppolicy_db_destroy(
 	return 0;
 }
 
-static char *extops[] = {
+static const char * const extops[] = {
 	LDAP_EXOP_MODIFY_PASSWD,
 	NULL
 };

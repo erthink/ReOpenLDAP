@@ -694,7 +694,7 @@ LDAP_SLAPD_F (int) get_ctrls LDAP_P((
 LDAP_SLAPD_F (int) register_supported_control2 LDAP_P((
 	const char *controloid,
 	slap_mask_t controlmask,
-	char **controlexops,
+	const char* const *controlexops,
 	SLAP_CTRL_PARSE_FN *controlparsefn,
 	unsigned flags,
 	int *controlcid ));
@@ -1198,7 +1198,7 @@ LDAP_SLAPD_F (int)	slap_destroy LDAP_P((void));
 LDAP_SLAPD_F (void) slap_counters_init LDAP_P((slap_counters_t *sc));
 LDAP_SLAPD_F (void) slap_counters_destroy LDAP_P((slap_counters_t *sc));
 
-LDAP_SLAPD_V (char *)	slap_known_controls[];
+LDAP_SLAPD_V (const char *)	slap_known_controls[];
 
 /*
  * ldapsync.c

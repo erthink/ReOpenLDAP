@@ -735,7 +735,7 @@ bdb_back_initialize(
 {
 	int rc;
 
-	static char *controls[] = {
+	static const char * const controls[] = {
 		LDAP_CONTROL_ASSERT,
 		LDAP_CONTROL_MANAGEDSAIT,
 		LDAP_CONTROL_NOOP,
