@@ -274,7 +274,7 @@ static int ndb_oc_search( Operation *op, SlapReply *rs, Ndb *ndb, NdbTransaction
 	struct ndb_info *ni = (struct ndb_info *) op->o_bd->be_private;
 	const NdbDictionary::Dictionary *myDict = ndb->getDictionary();
 	const NdbDictionary::Table *myTable;
-	const NdbDictionary::Index *myIndex;
+	const NdbDictionary::Index *myIndex = NULL;
 	NdbIndexScanOperation *scan;
 	NdbIndexOperation *ixop;
 	NdbScanFilter *sf = NULL;

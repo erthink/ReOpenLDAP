@@ -340,7 +340,7 @@ ndb_oc_list( struct ndb_info *ni, const NdbDictionary::Dictionary *myDict,
 	struct berval *oname, int implied, NdbOcs *out )
 {
 	const NdbDictionary::Table *myTable;
-	NdbOcInfo *oci, octmp;
+	NdbOcInfo *oci = NULL, octmp;
 	ObjectClass *oc;
 	int i, rc;
 
