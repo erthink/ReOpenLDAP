@@ -251,6 +251,9 @@ ndb_oc_read( struct ndb_info *ni, const NdbDictionary::Dictionary *myDict )
 	int i, j, rc, col;
 
 	rc = myDict->listObjects( myList, NdbDictionary::Object::UserTable );
+	if (rc)
+		return LDAP_OTHER;
+
 	/* Populate our objectClass structures */
 	for ( i=0; i<myList.count; i++ ) {
 		/* Ignore other DBs */
