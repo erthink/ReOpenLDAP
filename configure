@@ -24647,7 +24647,7 @@ if test "$ol_enable_rwm" != no ; then
 		SLAPD_DYNAMIC_OVERLAYS="$SLAPD_DYNAMIC_OVERLAYS rwm.la"
 	else
 		MFLAG=SLAPD_MOD_STATIC
-		SLAPD_STATIC_OVERLAYS="$SLAPD_STATIC_OVERLAYS rwm_x.o"
+		SLAPD_STATIC_OVERLAYS="$SLAPD_STATIC_OVERLAYS rwm.o rwmconf.o rwmdn.o rwmmap.o"
 	fi
 
 cat >>confdefs.h <<_ACEOF
@@ -26306,7 +26306,8 @@ cat > $OVERLAYSC << ENDX
 ENDX
 if test "${STATIC_OVERLAYS}"; then
 	for o in ${STATIC_OVERLAYS}; do
-		oo=`echo "${o}" | sed -e 's/.o$//' -e 's/_x$//'`
+		oo=`echo "${o}" | sed -e '/rwm[^.]/d' -e 's/.o$//'`
+		if [ -z "${oo}" ]; then continue; fi
 		cat >> $OVERLAYSC << ENDX
 extern OV_init ${oo}_initialize;
 ENDX
@@ -26320,7 +26321,8 @@ ENDX
 
 if test "${STATIC_OVERLAYS}"; then
 	for o in ${STATIC_OVERLAYS}; do
-		oo=`echo "${o}" | sed -e 's/.o$//' -e 's/_x$//'`
+		oo=`echo "${o}" | sed -e '/rwm[^.]/d' -e 's/.o$//'`
+		if [ -z "${oo}" ]; then continue; fi
 		echo "    Add ${oo} ..."
 		cat >> $OVERLAYSC << ENDX
 	{ "${oo}", ${oo}_initialize },
