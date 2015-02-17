@@ -29,7 +29,6 @@
 extern "C" int
 ndb_back_bind( Operation *op, SlapReply *rs )
 {
-	struct ndb_info *ni = (struct ndb_info *) op->o_bd->be_private;
 	Entry		e = {0};
 	Attribute	*a;
 
@@ -58,7 +57,9 @@ ndb_back_bind( Operation *op, SlapReply *rs )
 	e.e_nname = op->o_req_ndn;
 	NA.e = &e;
 
+#ifdef NDB_RETRY
 dn2entry_retry:
+#endif
 	NA.txn = NA.ndb->startTransaction();
 	rs->sr_text = NULL;
 	if( !NA.txn ) {
@@ -87,7 +88,7 @@ dn2entry_retry:
 	case LDAP_BUSY:
 		rs->sr_text = "ldap_server_busy";
 		goto done;
-#if 0
+#ifdef NDB_RETRY
 	case DB_LOCK_DEADLOCK:
 	case DB_LOCK_NOTGRANTED:
 		goto dn2entry_retry;

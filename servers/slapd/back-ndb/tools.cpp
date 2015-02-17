@@ -102,7 +102,6 @@ extern "C"
 ID ndb_tool_entry_next(
 	BackendDB *be )
 {
-	struct ndb_info *ni = (struct ndb_info *) be->be_private;
 	char *ptr;
 	ID id;
 	int i;
@@ -149,7 +148,6 @@ extern "C"
 ID ndb_tool_entry_first(
 	BackendDB *be )
 {
-	struct ndb_info *ni = (struct ndb_info *) be->be_private;
 	int i;
 
 	myScanTxn = myNdb->startTransaction();
@@ -180,7 +178,6 @@ ID ndb_tool_dn2id_get(
 	struct berval *dn
 )
 {
-	struct ndb_info *ni = (struct ndb_info *) be->be_private;
 	NdbArgs NA;
 	NdbRdns rdns;
 	Entry e;
@@ -390,7 +387,6 @@ ID ndb_tool_entry_put(
 	Entry *e,
 	struct berval *text )
 {
-	struct ndb_info *ni = (struct ndb_info *) be->be_private;
 	struct dn_id dtmp, *dptr;
 	NdbArgs NA;
 	NdbRdns rdns;
@@ -509,8 +505,6 @@ int ndb_tool_entry_reindex(
 	ID id,
 	AttributeDescription **adv )
 {
-	struct ndb_info *ni = (struct ndb_info *) be->be_private;
-
 	Debug( LDAP_DEBUG_ARGS,
 		"=> " LDAP_XSTRING(ndb_tool_entry_reindex) "( %ld )\n", (long) id );
 
@@ -523,14 +517,10 @@ ID ndb_tool_entry_modify(
 	Entry *e,
 	struct berval *text )
 {
-	struct ndb_info *ni = (struct ndb_info *) be->be_private;
-	int rc;
-
 	Debug( LDAP_DEBUG_TRACE,
 		"=> " LDAP_XSTRING(ndb_tool_entry_modify) "( %ld, \"%s\" )\n",
 		(long) e->e_id, e->e_dn );
 
-done:
 	return e->e_id;
 }
 

@@ -31,7 +31,6 @@ static struct berval glue_bv = BER_BVC("glue");
 int
 ndb_back_delete( Operation *op, SlapReply *rs )
 {
-	struct ndb_info *ni = (struct ndb_info *) op->o_bd->be_private;
 	Entry	e = {0};
 	Entry	p = {0};
 	int		manageDSAit = get_manageDSAit( op );
@@ -42,7 +41,9 @@ ndb_back_delete( Operation *op, SlapReply *rs )
 	NdbRdns rdns;
 	struct berval matched;
 
+#ifdef NDB_RETRY
 	int	num_retries = 0;
+#endif
 
 	int     rc;
 
@@ -79,6 +80,7 @@ ndb_back_delete( Operation *op, SlapReply *rs )
 	e.e_name = op->o_req_dn;
 	e.e_nname = op->o_req_ndn;
 
+#ifdef NDB_RETRY
 	if( 0 ) {
 retry:	/* transaction retry */
 		NA.txn->close();
@@ -95,7 +97,7 @@ retry:	/* transaction retry */
 		}
 		ndb_trans_backoff( ++num_retries );
 	}
-
+#endif
 	/* begin transaction */
 	NA.txn = NA.ndb->startTransaction();
 	rs->sr_text = NULL;
@@ -114,7 +116,7 @@ retry:	/* transaction retry */
 	case 0:
 	case LDAP_NO_SUCH_OBJECT:
 		break;
-#if 0
+#ifdef NDB_RETRY
 	case DB_LOCK_DEADLOCK:
 	case DB_LOCK_NOTGRANTED:
 		goto retry;

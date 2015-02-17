@@ -28,7 +28,6 @@
 int
 ndb_back_modrdn( Operation *op, SlapReply *rs )
 {
-	struct ndb_info *ni = (struct ndb_info *) op->o_bd->be_private;
 	AttributeDescription *children = slap_schema.si_ad_children;
 	AttributeDescription *entry = slap_schema.si_ad_entry;
 	struct berval	new_dn = BER_BVNULL, new_ndn = BER_BVNULL;
@@ -41,7 +40,9 @@ ndb_back_modrdn( Operation *op, SlapReply *rs )
 	struct berval	*np_ndn = NULL;			/* newSuperior ndn */
 
 	int		manageDSAit = get_manageDSAit( op );
+#ifdef NDB_RETRY
 	int		num_retries = 0;
+#endif
 
 	NdbArgs NA, NA2;
 	NdbRdns rdns, rdn2;
@@ -74,6 +75,7 @@ ndb_back_modrdn( Operation *op, SlapReply *rs )
 	NA2.e = &e2;
 	NA2.rdns = &rdn2;
 
+#ifdef NDB_RETRY
 	if( 0 ) {
 retry:	/* transaction retry */
 		NA.txn->close();
@@ -96,6 +98,8 @@ retry:	/* transaction retry */
 		}
 		ndb_trans_backoff( ++num_retries );
 	}
+#endif
+
 	NA.ocs = NULL;
 	NA2.ocs = NULL;
 
@@ -124,7 +128,7 @@ retry:	/* transaction retry */
 		if ( NA.ocs )
 			ndb_check_referral( op, rs, &NA );
 		goto return_results;
-#if 0
+#ifdef NDB_RETRY
 	case DB_LOCK_DEADLOCK:
 	case DB_LOCK_NOTGRANTED:
 		goto retry;

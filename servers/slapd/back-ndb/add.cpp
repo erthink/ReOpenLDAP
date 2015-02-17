@@ -28,7 +28,6 @@
 extern "C" int
 ndb_back_add(Operation *op, SlapReply *rs )
 {
-	struct ndb_info *ni = (struct ndb_info *) op->o_bd->be_private;
 	Entry		p = {0};
 	Attribute	poc;
 	char textbuf[SLAP_TEXT_BUFLEN];
@@ -40,8 +39,10 @@ ndb_back_add(Operation *op, SlapReply *rs )
 	struct berval matched;
 	struct berval pdn, pndn;
 
+#ifdef NDB_RETRY
 	int		num_retries = 0;
-	int		success;
+#endif
+	int		success ALLOW_UNUSED;
 
 	LDAPControl **postread_ctrl = NULL;
 	LDAPControl *ctrls[SLAP_MAX_RESPONSE_CONTROLS];
@@ -93,6 +94,7 @@ ndb_back_add(Operation *op, SlapReply *rs )
 	rdns.nr_num = 0;
 	NA.rdns = &rdns;
 
+#ifdef NDB_RETRY
 	if( 0 ) {
 retry:	/* transaction retry */
 		NA.txn->close();
@@ -103,6 +105,7 @@ retry:	/* transaction retry */
 		}
 		ndb_trans_backoff( ++num_retries );
 	}
+#endif
 
 	NA.txn = NA.ndb->startTransaction();
 	rs->sr_text = NULL;
@@ -125,7 +128,7 @@ retry:	/* transaction retry */
 		goto return_results;
 	case LDAP_NO_SUCH_OBJECT:
 		break;
-#if 0
+#ifdef NDB_RETRY
 	case DB_LOCK_DEADLOCK:
 	case DB_LOCK_NOTGRANTED:
 		goto retry;

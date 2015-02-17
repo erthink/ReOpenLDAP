@@ -43,7 +43,7 @@ ndb_modify_delete(
 	MatchingRule 	*mr = mod->sm_desc->ad_type->sat_equality;
 	struct berval *cvals;
 	int		*id2 = NULL;
-	int		i, j, rc = 0, num;
+	int		i, rc = 0, num;
 	unsigned flags;
 	char		dummy = '\0';
 
@@ -462,13 +462,14 @@ int ndb_modify_internal(
 int
 ndb_back_modify( Operation *op, SlapReply *rs )
 {
-	struct ndb_info *ni = (struct ndb_info *) op->o_bd->be_private;
 	Entry		e = {0};
 	int		manageDSAit = get_manageDSAit( op );
 	char textbuf[SLAP_TEXT_BUFLEN];
 	size_t textlen = sizeof textbuf;
 
+#ifdef NDB_RETRY
 	int		num_retries = 0;
+#endif
 
 	NdbArgs NA;
 	NdbRdns rdns;
@@ -495,6 +496,7 @@ ndb_back_modify( Operation *op, SlapReply *rs )
 	NA.rdns = &rdns;
 	NA.e = &e;
 
+#ifdef NDB_RETRY
 	if( 0 ) {
 retry:	/* transaction retry */
 		NA.txn->close();
@@ -514,6 +516,7 @@ retry:	/* transaction retry */
 		}
 		ndb_trans_backoff( ++num_retries );
 	}
+#endif
 	NA.ocs = NULL;
 
 	/* begin transaction */
@@ -540,7 +543,7 @@ retry:	/* transaction retry */
 		if (NA.ocs )
 			ndb_check_referral( op, rs, &NA );
 		goto return_results;
-#if 0
+#ifdef NDB_RETRY
 	case DB_LOCK_DEADLOCK:
 	case DB_LOCK_NOTGRANTED:
 		goto retry;
