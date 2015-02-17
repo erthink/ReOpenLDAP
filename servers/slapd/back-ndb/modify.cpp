@@ -216,7 +216,7 @@ int ndb_modify_internal(
 	Attribute *old = NULL;
 
 	Debug( LDAP_DEBUG_TRACE, "ndb_modify_internal: 0x%08lx: %s\n",
-		NA->e->e_id, NA->e->e_dn, 0);
+		NA->e->e_id, NA->e->e_dn );
 
 	if ( !acl_check_modlist( op, NA->e, modlist )) {
 		return LDAP_INSUFFICIENT_ACCESS;
@@ -232,57 +232,57 @@ int ndb_modify_internal(
 		case LDAP_MOD_ADD:
 			Debug(LDAP_DEBUG_ARGS,
 				"ndb_modify_internal: add %s\n",
-				mod->sm_desc->ad_cname.bv_val, 0, 0);
+				mod->sm_desc->ad_cname.bv_val);
 			rc = modify_add_values( NA->e, mod, get_permissiveModify(op),
 				text, textbuf, textlen );
 			if( rc != LDAP_SUCCESS ) {
 				Debug(LDAP_DEBUG_ARGS, "ndb_modify_internal: %d %s\n",
-					rc, *text, 0);
+					rc, *text);
 			}
 			break;
 
 		case LDAP_MOD_DELETE:
 			Debug(LDAP_DEBUG_ARGS,
 				"ndb_modify_internal: delete %s\n",
-				mod->sm_desc->ad_cname.bv_val, 0, 0);
+				mod->sm_desc->ad_cname.bv_val);
 			rc = ndb_modify_delete( NA->e, mod, get_permissiveModify(op),
 				text, textbuf, textlen, NULL );
 			assert( rc != LDAP_TYPE_OR_VALUE_EXISTS );
 			if( rc != LDAP_SUCCESS ) {
 				Debug(LDAP_DEBUG_ARGS, "ndb_modify_internal: %d %s\n",
-					rc, *text, 0);
+					rc, *text);
 			}
 			break;
 
 		case LDAP_MOD_REPLACE:
 			Debug(LDAP_DEBUG_ARGS,
 				"ndb_modify_internal: replace %s\n",
-				mod->sm_desc->ad_cname.bv_val, 0, 0);
+				mod->sm_desc->ad_cname.bv_val);
 			rc = modify_replace_values( NA->e, mod, get_permissiveModify(op),
 				text, textbuf, textlen );
 			if( rc != LDAP_SUCCESS ) {
 				Debug(LDAP_DEBUG_ARGS, "ndb_modify_internal: %d %s\n",
-					rc, *text, 0);
+					rc, *text);
 			}
 			break;
 
 		case LDAP_MOD_INCREMENT:
 			Debug(LDAP_DEBUG_ARGS,
 				"ndb_modify_internal: increment %s\n",
-				mod->sm_desc->ad_cname.bv_val, 0, 0);
+				mod->sm_desc->ad_cname.bv_val);
 			rc = modify_increment_values( NA->e, mod, get_permissiveModify(op),
 				text, textbuf, textlen );
 			if( rc != LDAP_SUCCESS ) {
 				Debug(LDAP_DEBUG_ARGS,
 					"ndb_modify_internal: %d %s\n",
-					rc, *text, 0);
+					rc, *text);
 			}
 			break;
 
 		case SLAP_MOD_SOFTADD:
 			Debug(LDAP_DEBUG_ARGS,
 				"ndb_modify_internal: softadd %s\n",
-				mod->sm_desc->ad_cname.bv_val, 0, 0);
+				mod->sm_desc->ad_cname.bv_val);
  			mod->sm_op = LDAP_MOD_ADD;
 
 			rc = modify_add_values( NA->e, mod, get_permissiveModify(op),
@@ -296,14 +296,14 @@ int ndb_modify_internal(
 
 			if( rc != LDAP_SUCCESS ) {
 				Debug(LDAP_DEBUG_ARGS, "ndb_modify_internal: %d %s\n",
-					rc, *text, 0);
+					rc, *text);
 			}
  			break;
 
 		case SLAP_MOD_SOFTDEL:
 			Debug(LDAP_DEBUG_ARGS,
 				"ndb_modify_internal: softdel %s\n",
-				mod->sm_desc->ad_cname.bv_val, 0, 0);
+				mod->sm_desc->ad_cname.bv_val);
  			mod->sm_op = LDAP_MOD_DELETE;
 
 			rc = modify_delete_values( NA->e, mod, get_permissiveModify(op),
@@ -317,14 +317,14 @@ int ndb_modify_internal(
 
 			if( rc != LDAP_SUCCESS ) {
 				Debug(LDAP_DEBUG_ARGS, "ndb_modify_internal: %d %s\n",
-					rc, *text, 0);
+					rc, *text);
 			}
  			break;
 
 		case SLAP_MOD_ADD_IF_NOT_PRESENT:
 			Debug(LDAP_DEBUG_ARGS,
 				"ndb_modify_internal: add_if_not_present %s\n",
-				mod->sm_desc->ad_cname.bv_val, 0, 0);
+				mod->sm_desc->ad_cname.bv_val);
 			if ( attr_find( NA->e->e_attrs, mod->sm_desc ) ) {
 				rc = LDAP_SUCCESS;
 				break;
@@ -339,17 +339,17 @@ int ndb_modify_internal(
 
 			if( rc != LDAP_SUCCESS ) {
 				Debug(LDAP_DEBUG_ARGS, "ndb_modify_internal: %d %s\n",
-					rc, *text, 0);
+					rc, *text);
 			}
  			break;
 
 		default:
 			Debug(LDAP_DEBUG_ANY, "ndb_modify_internal: invalid op %d\n",
-				mod->sm_op, 0, 0);
+				mod->sm_op);
 			*text = "Invalid modify operation";
 			rc = LDAP_OTHER;
 			Debug(LDAP_DEBUG_ARGS, "ndb_modify_internal: %d %s\n",
-				rc, *text, 0);
+				rc, *text);
 		}
 
 		if ( rc != LDAP_SUCCESS ) {
@@ -370,8 +370,7 @@ int ndb_modify_internal(
 	if ( rc != LDAP_SUCCESS || op->o_noop ) {
 		if ( rc != LDAP_SUCCESS ) {
 			Debug( LDAP_DEBUG_ANY,
-				"entry failed schema check: %s\n",
-				*text, 0, 0 );
+				"entry failed schema check: %s\n", *text );
 		}
 		attrs_free( old );
 		return rc;
@@ -481,7 +480,7 @@ ndb_back_modify( Operation *op, SlapReply *rs )
 	int num_ctrls = 0;
 
 	Debug( LDAP_DEBUG_ARGS, LDAP_XSTRING(ndb_back_modify) ": %s\n",
-		op->o_req_dn.bv_val, 0, 0 );
+		op->o_req_dn.bv_val );
 
 	ctrls[num_ctrls] = NULL;
 
@@ -505,7 +504,7 @@ retry:	/* transaction retry */
 			e.e_attrs = NULL;
 		}
 		Debug(LDAP_DEBUG_TRACE,
-			LDAP_XSTRING(ndb_back_modify) ": retrying...\n", 0, 0, 0);
+			LDAP_XSTRING(ndb_back_modify) ": retrying...\n");
 		if ( op->o_abandon ) {
 			rs->sr_err = SLAPD_ABANDON;
 			goto return_results;
@@ -523,7 +522,7 @@ retry:	/* transaction retry */
 	if( !NA.txn ) {
 		Debug( LDAP_DEBUG_TRACE,
 			LDAP_XSTRING(ndb_back_modify) ": startTransaction failed: %s (%d)\n",
-			NA.ndb->getNdbError().message, NA.ndb->getNdbError().code, 0 );
+			NA.ndb->getNdbError().message, NA.ndb->getNdbError().code );
 		rs->sr_err = LDAP_OTHER;
 		rs->sr_text = "internal error";
 		goto return_results;
@@ -536,8 +535,7 @@ retry:	/* transaction retry */
 		break;
 	case LDAP_NO_SUCH_OBJECT:
 		Debug( LDAP_DEBUG_ARGS,
-			"<=- ndb_back_modify: no such object %s\n",
-			op->o_req_dn.bv_val, 0, 0 );
+			"<=- ndb_back_modify: no such object %s\n", op->o_req_dn.bv_val );
 		rs->sr_matched = matched.bv_val;
 		if (NA.ocs )
 			ndb_check_referral( op, rs, &NA );
@@ -564,8 +562,7 @@ retry:	/* transaction retry */
 		rs->sr_ref = get_entry_referrals( op, &e );
 
 		Debug( LDAP_DEBUG_TRACE,
-			LDAP_XSTRING(ndb_back_modify) ": entry is referral\n",
-			0, 0, 0 );
+			LDAP_XSTRING(ndb_back_modify) ": entry is referral\n" );
 
 		rs->sr_err = LDAP_REFERRAL;
 		rs->sr_matched = e.e_name.bv_val;
@@ -589,8 +586,7 @@ retry:	/* transaction retry */
 			&slap_pre_read_bv, preread_ctrl ) )
 		{
 			Debug( LDAP_DEBUG_TRACE,
-				"<=- " LDAP_XSTRING(ndb_back_modify) ": pre-read "
-				"failed!\n", 0, 0, 0 );
+				"<=- " LDAP_XSTRING(ndb_back_modify) ": pre-read failed!\n" );
 			if ( op->o_preread & SLAP_CONTROL_CRITICAL ) {
 				/* FIXME: is it correct to abort
 				 * operation if control fails? */
@@ -604,8 +600,7 @@ retry:	/* transaction retry */
 
 	if( rs->sr_err != LDAP_SUCCESS ) {
 		Debug( LDAP_DEBUG_TRACE,
-			LDAP_XSTRING(ndb_back_modify) ": modify failed (%d)\n",
-			rs->sr_err, 0, 0 );
+			LDAP_XSTRING(ndb_back_modify) ": modify failed (%d)\n", rs->sr_err );
 #if 0
 		switch( rs->sr_err ) {
 		case DB_LOCK_DEADLOCK:
@@ -625,8 +620,7 @@ retry:	/* transaction retry */
 			&slap_post_read_bv, postread_ctrl ) )
 		{
 			Debug( LDAP_DEBUG_TRACE,
-				"<=- " LDAP_XSTRING(ndb_back_modify)
-				": post-read failed!\n", 0, 0, 0 );
+				"<=- " LDAP_XSTRING(ndb_back_modify) ": post-read failed!\n" );
 			if ( op->o_postread & SLAP_CONTROL_CRITICAL ) {
 				/* FIXME: is it correct to abort
 				 * operation if control fails? */

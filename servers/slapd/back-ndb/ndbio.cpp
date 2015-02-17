@@ -635,7 +635,7 @@ ndb_oc_attrs(
 					rc = LDAP_OTHER;
 					if ( !myBlob ) {
 						Debug( LDAP_DEBUG_TRACE, "ndb_oc_attrs: getBlobHandle failed %s (%d)\n",
-							myop->getNdbError().message, myop->getNdbError().code, 0 );
+							myop->getNdbError().message, myop->getNdbError().code );
 						goto done;
 					}
 					if ( slapMode & SLAP_TOOL_MODE )
@@ -643,13 +643,13 @@ ndb_oc_attrs(
 					if ( changed & V_INS ) {
 						if ( myBlob->setValue( an[j]->a_vals[i].bv_val, an[j]->a_vals[i].bv_len )) {
 							Debug( LDAP_DEBUG_TRACE, "ndb_oc_attrs: blob->setValue failed %s (%d)\n",
-								myBlob->getNdbError().message, myBlob->getNdbError().code, 0 );
+								myBlob->getNdbError().message, myBlob->getNdbError().code );
 							goto done;
 						}
 					} else {
 						if ( myBlob->setValue( NULL, 0 )) {
 							Debug( LDAP_DEBUG_TRACE, "ndb_oc_attrs: blob->setValue failed %s (%d)\n",
-								myBlob->getNdbError().message, myBlob->getNdbError().code, 0 );
+								myBlob->getNdbError().message, myBlob->getNdbError().code );
 							goto done;
 						}
 					}
@@ -657,7 +657,7 @@ ndb_oc_attrs(
 					if ( changed & V_INS ) {
 						if ( an[j]->a_vals[i].bv_len > attrs[j]->na_len ) {
 							Debug( LDAP_DEBUG_ANY, "ndb_oc_attrs: attribute %s too long for column\n",
-								attrs[j]->na_name.bv_val, 0, 0 );
+								attrs[j]->na_name.bv_val );
 							rc = LDAP_CONSTRAINT_VIOLATION;
 							goto done;
 						}
@@ -685,7 +685,7 @@ done:
 	ch_free( an );
 	if ( rc ) {
 		Debug( LDAP_DEBUG_TRACE, "ndb_oc_attrs: failed %s (%d)\n",
-			myop->getNdbError().message, myop->getNdbError().code, 0 );
+			myop->getNdbError().message, myop->getNdbError().code );
 	}
 	return rc;
 }
@@ -1488,8 +1488,7 @@ ndb_next_id(
 	int rc;
 
 	if ( !myTable ) {
-		Debug( LDAP_DEBUG_ANY, "ndb_next_id: " NEXTID_TABLE " table is missing\n",
-			0, 0, 0 );
+		Debug( LDAP_DEBUG_ANY, "ndb_next_id: " NEXTID_TABLE " table is missing\n" );
 		return LDAP_OTHER;
 	}
 
@@ -1529,16 +1528,14 @@ ndb_thread_handle(
 		rc = myNdb->init(1024);
 		if ( rc ) {
 			delete myNdb;
-			Debug( LDAP_DEBUG_ANY, "ndb_thread_handle: err %d\n",
-				rc, 0, 0 );
+			Debug( LDAP_DEBUG_ANY, "ndb_thread_handle: err %d\n", rc );
 			return rc;
 		}
 		data = (void *)myNdb;
 		if (( rc = ldap_pvt_thread_pool_setkey( op->o_threadctx, ni,
 			data, ndb_thread_hfree, NULL, NULL ))) {
 			delete myNdb;
-			Debug( LDAP_DEBUG_ANY, "ndb_thread_handle: err %d\n",
-				rc, 0, 0 );
+			Debug( LDAP_DEBUG_ANY, "ndb_thread_handle: err %d\n", rc );
 			return rc;
 		}
 	}
@@ -1567,7 +1564,7 @@ ndb_entry_get(
 	if( !NA.txn ) {
 		Debug( LDAP_DEBUG_TRACE,
 			LDAP_XSTRING(ndb_entry_get) ": startTransaction failed: %s (%d)\n",
-			NA.ndb->getNdbError().message, NA.ndb->getNdbError().code, 0 );
+			NA.ndb->getNdbError().message, NA.ndb->getNdbError().code );
 		return 1;
 	}
 
@@ -1629,7 +1626,7 @@ ndb_trans_backoff( int num_retries )
 	delay = 16384 * (key * (double) pow_retries / (double) max_key);
 	delay = delay ? delay : 1;
 
-	Debug( LDAP_DEBUG_TRACE,  "delay = %d, num_retries = %d\n", delay, num_retries, 0 );
+	Debug( LDAP_DEBUG_TRACE,  "delay = %d, num_retries = %d\n", delay, num_retries );
 
 	timeout.tv_sec = delay / 1000000;
 	timeout.tv_usec = delay % 1000000;

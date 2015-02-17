@@ -48,7 +48,7 @@ ndb_back_add(Operation *op, SlapReply *rs )
 	int num_ctrls = 0;
 
 	Debug(LDAP_DEBUG_ARGS, "==> " LDAP_XSTRING(ndb_back_add) ": %s\n",
-		op->oq_add.rs_e->e_name.bv_val, 0, 0);
+		op->oq_add.rs_e->e_name.bv_val);
 
 	ctrls[num_ctrls] = 0;
 	NA.txn = NULL;
@@ -59,7 +59,7 @@ ndb_back_add(Operation *op, SlapReply *rs )
 	if ( rs->sr_err != LDAP_SUCCESS ) {
 		Debug( LDAP_DEBUG_TRACE,
 			LDAP_XSTRING(ndb_back_add) ": entry failed schema check: "
-			"%s (%d)\n", rs->sr_text, rs->sr_err, 0 );
+			"%s (%d)\n", rs->sr_text, rs->sr_err );
 		goto return_results;
 	}
 
@@ -69,7 +69,7 @@ ndb_back_add(Operation *op, SlapReply *rs )
 	if ( rs->sr_err != LDAP_SUCCESS ) {
 		Debug( LDAP_DEBUG_TRACE,
 			LDAP_XSTRING(ndb_back_add) ": entry failed op attrs add: "
-			"%s (%d)\n", rs->sr_text, rs->sr_err, 0 );
+			"%s (%d)\n", rs->sr_text, rs->sr_err );
 		goto return_results;
 	}
 
@@ -109,7 +109,7 @@ retry:	/* transaction retry */
 	if( !NA.txn ) {
 		Debug( LDAP_DEBUG_TRACE,
 			LDAP_XSTRING(ndb_back_add) ": startTransaction failed: %s (%d)\n",
-			NA.ndb->getNdbError().message, NA.ndb->getNdbError().code, 0 );
+			NA.ndb->getNdbError().message, NA.ndb->getNdbError().code );
 		rs->sr_err = LDAP_OTHER;
 		rs->sr_text = "internal error";
 		goto return_results;
@@ -153,8 +153,7 @@ retry:	/* transaction retry */
 	if ( ber_bvstrcasecmp( &pndn, &matched ) ) {
 		rs->sr_matched = matched.bv_val;
 		Debug( LDAP_DEBUG_TRACE,
-			LDAP_XSTRING(ndb_back_add) ": parent "
-			"does not exist\n", 0, 0, 0 );
+			LDAP_XSTRING(ndb_back_add) ": parent does not exist\n" );
 
 		rs->sr_text = "parent does not exist";
 		rs->sr_err = LDAP_NO_SUCH_OBJECT;
@@ -177,8 +176,7 @@ is_ref:			p.e_attrs = NULL;
 
 	if ( ! rs->sr_err ) {
 		Debug( LDAP_DEBUG_TRACE,
-			LDAP_XSTRING(ndb_back_add) ": no write access to parent\n",
-			0, 0, 0 );
+			LDAP_XSTRING(ndb_back_add) ": no write access to parent\n" );
 		rs->sr_err = LDAP_INSUFFICIENT_ACCESS;
 		rs->sr_text = "no write access to parent";
 		goto return_results;
@@ -188,8 +186,7 @@ is_ref:			p.e_attrs = NULL;
 		if ( is_entry_subentry( &p )) {
 			/* parent is a subentry, don't allow add */
 			Debug( LDAP_DEBUG_TRACE,
-				LDAP_XSTRING(ndb_back_add) ": parent is subentry\n",
-				0, 0, 0 );
+				LDAP_XSTRING(ndb_back_add) ": parent is subentry\n" );
 			rs->sr_err = LDAP_OBJECT_CLASS_VIOLATION;
 			rs->sr_text = "parent is a subentry";
 			goto return_results;
@@ -198,8 +195,7 @@ is_ref:			p.e_attrs = NULL;
 		if ( is_entry_alias( &p ) ) {
 			/* parent is an alias, don't allow add */
 			Debug( LDAP_DEBUG_TRACE,
-				LDAP_XSTRING(ndb_back_add) ": parent is alias\n",
-				0, 0, 0 );
+				LDAP_XSTRING(ndb_back_add) ": parent is alias\n" );
 			rs->sr_err = LDAP_ALIAS_PROBLEM;
 			rs->sr_text = "parent is an alias";
 			goto return_results;
@@ -217,8 +213,7 @@ is_ref:			p.e_attrs = NULL;
 
 	if ( ! rs->sr_err ) {
 		Debug( LDAP_DEBUG_TRACE,
-			LDAP_XSTRING(ndb_back_add) ": no write access to entry\n",
-			0, 0, 0 );
+			LDAP_XSTRING(ndb_back_add) ": no write access to entry\n" );
 		rs->sr_err = LDAP_INSUFFICIENT_ACCESS;
 		rs->sr_text = "no write access to entry";
 		goto return_results;;
@@ -229,8 +224,7 @@ is_ref:			p.e_attrs = NULL;
 	 */
 	if (!acl_check_modlist(op, op->ora_e, op->ora_modlist)) {
 		Debug( LDAP_DEBUG_TRACE,
-			LDAP_XSTRING(bdb_add) ": no write access to attribute\n",
-			0, 0, 0 );
+			LDAP_XSTRING(bdb_add) ": no write access to attribute\n" );
 		rs->sr_err = LDAP_INSUFFICIENT_ACCESS;
 		rs->sr_text = "no write access to attribute";
 		goto return_results;;
@@ -243,7 +237,7 @@ is_ref:			p.e_attrs = NULL;
 		if( rs->sr_err != 0 ) {
 			Debug( LDAP_DEBUG_TRACE,
 				LDAP_XSTRING(ndb_back_add) ": next_id failed (%d)\n",
-				rs->sr_err, 0, 0 );
+				rs->sr_err );
 			rs->sr_err = LDAP_OTHER;
 			rs->sr_text = "internal error";
 			goto return_results;
@@ -258,7 +252,7 @@ is_ref:			p.e_attrs = NULL;
 	if ( rs->sr_err ) {
 		Debug( LDAP_DEBUG_TRACE,
 			LDAP_XSTRING(ndb_back_add) ": ndb_entry_put_info failed (%d)\n",
-			rs->sr_err, 0, 0 );
+			rs->sr_err );
 		rs->sr_text = "internal error";
 		goto return_results;
 	}
@@ -283,8 +277,7 @@ is_ref:			p.e_attrs = NULL;
 			&slap_post_read_bv, postread_ctrl ) )
 		{
 			Debug( LDAP_DEBUG_TRACE,
-				"<=- " LDAP_XSTRING(ndb_back_add) ": post-read "
-				"failed!\n", 0, 0, 0 );
+				"<=- " LDAP_XSTRING(ndb_back_add) ": post-read failed!\n" );
 			if ( op->o_postread & SLAP_CONTROL_CRITICAL ) {
 				/* FIXME: is it correct to abort
 				 * operation if control fails? */

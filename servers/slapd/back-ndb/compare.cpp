@@ -52,7 +52,7 @@ dn2entry_retry:
 	if( !NA.txn ) {
 		Debug( LDAP_DEBUG_TRACE,
 			LDAP_XSTRING(ndb_compare) ": startTransaction failed: %s (%d)\n",
-			NA.ndb->getNdbError().message, NA.ndb->getNdbError().code, 0 );
+			NA.ndb->getNdbError().message, NA.ndb->getNdbError().code );
 		rs->sr_err = LDAP_OTHER;
 		rs->sr_text = "internal error";
 		goto return_results;
@@ -99,7 +99,7 @@ dn2entry_retry:
 			rs->sr_flags |= REP_REF_MUSTBEFREED;
 		}
 
-		Debug( LDAP_DEBUG_TRACE, "entry is referral\n", 0, 0, 0 );
+		Debug( LDAP_DEBUG_TRACE, "entry is referral\n" );
 		goto return_results;
 	}
 

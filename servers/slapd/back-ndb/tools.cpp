@@ -78,8 +78,7 @@ int ndb_tool_entry_close(
 					"txn_commit failed: %s (%d)",
 					myPutTxn->getNdbError().message, myPutTxn->getNdbError().code );
 			Debug( LDAP_DEBUG_ANY,
-				"=> " LDAP_XSTRING(ndb_tool_entry_put) ": %s\n",
-				text, 0, 0 );
+				"=> " LDAP_XSTRING(ndb_tool_entry_put) ": %s\n", text );
 		}
 		myPutTxn->close();
 		myPutTxn = NULL;
@@ -200,8 +199,7 @@ ID ndb_tool_dn2id_get(
 			"startTransaction failed: %s (%d)",
 			myNdb->getNdbError().message, myNdb->getNdbError().code );
 		Debug( LDAP_DEBUG_ANY,
-			"=> " LDAP_XSTRING(ndb_tool_dn2id_get) ": %s\n",
-			 text, 0, 0 );
+			"=> " LDAP_XSTRING(ndb_tool_dn2id_get) ": %s\n", text );
 		return NOID;
 	}
 	if ( myOcList ) {
@@ -246,8 +244,7 @@ Entry* ndb_tool_entry_get( BackendDB *be, ID id )
 			"start_transaction failed: %s (%d)",
 			myNdb->getNdbError().message, myNdb->getNdbError().code );
 		Debug( LDAP_DEBUG_ANY,
-			"=> " LDAP_XSTRING(ndb_tool_entry_get) ": %s\n",
-			 text, 0, 0 );
+			"=> " LDAP_XSTRING(ndb_tool_entry_get) ": %s\n", text );
 		return NULL;
 	}
 
@@ -333,7 +330,7 @@ static int ndb_tool_next_id(
 				"next_id failed: %s (%d)",
 				myNdb->getNdbError().message, myNdb->getNdbError().code );
 			Debug( LDAP_DEBUG_ANY,
-				"=> ndb_tool_next_id: %s\n", text->bv_val, 0, 0 );
+				"=> ndb_tool_next_id: %s\n", text->bv_val );
 			return rc;
 		}
 		if ( hole ) {
@@ -353,7 +350,7 @@ static int ndb_tool_next_id(
 				"ndb_entry_put_info failed: %s (%d)",
 				myNdb->getNdbError().message, myNdb->getNdbError().code );
 		Debug( LDAP_DEBUG_ANY,
-			"=> ndb_tool_next_id: %s\n", text->bv_val, 0, 0 );
+			"=> ndb_tool_next_id: %s\n", text->bv_val );
 		} else if ( hole ) {
 			if ( nholes == nhmax - 1 ) {
 				if ( holes == hbuf ) {
@@ -409,7 +406,7 @@ ID ndb_tool_entry_put(
 	assert( text->bv_val[0] == '\0' );	/* overconservative? */
 
 	Debug( LDAP_DEBUG_TRACE, "=> " LDAP_XSTRING(ndb_tool_entry_put)
-		"( %ld, \"%s\" )\n", (long) e->e_id, e->e_dn, 0 );
+		"( %ld, \"%s\" )\n", (long) e->e_id, e->e_dn );
 
 	if ( !be_issuffix( be, &e->e_nname )) {
 		dnParent( &e->e_nname, &dtmp.dn );
@@ -432,7 +429,7 @@ ID ndb_tool_entry_put(
 				"next_id failed: %s (%d)",
 				myNdb->getNdbError().message, myNdb->getNdbError().code );
 			Debug( LDAP_DEBUG_ANY,
-				"=> ndb_tool_next_id: %s\n", text->bv_val, 0, 0 );
+				"=> ndb_tool_next_id: %s\n", text->bv_val );
 			return rc;
 		}
 	}
@@ -444,8 +441,7 @@ ID ndb_tool_entry_put(
 			"start_transaction failed: %s (%d)",
 			myNdb->getNdbError().message, myNdb->getNdbError().code );
 		Debug( LDAP_DEBUG_ANY,
-			"=> " LDAP_XSTRING(ndb_tool_entry_put) ": %s\n",
-			 text->bv_val, 0, 0 );
+			"=> " LDAP_XSTRING(ndb_tool_entry_put) ": %s\n", text->bv_val );
 		return NOID;
 	}
 
@@ -474,8 +470,7 @@ ID ndb_tool_entry_put(
 				"ndb_entry_put_data failed: %s (%d)",
 				myNdb->getNdbError().message, myNdb->getNdbError().code );
 		Debug( LDAP_DEBUG_ANY,
-			"=> " LDAP_XSTRING(ndb_tool_entry_put) ": %s\n",
-			text->bv_val, 0, 0 );
+			"=> " LDAP_XSTRING(ndb_tool_entry_put) ": %s\n", text->bv_val );
 		goto done;
 	}
 
@@ -489,8 +484,7 @@ done:
 					"txn_commit failed: %s (%d)",
 					myPutTxn->getNdbError().message, myPutTxn->getNdbError().code );
 				Debug( LDAP_DEBUG_ANY,
-					"=> " LDAP_XSTRING(ndb_tool_entry_put) ": %s\n",
-					text->bv_val, 0, 0 );
+					"=> " LDAP_XSTRING(ndb_tool_entry_put) ": %s\n", text->bv_val );
 				e->e_id = NOID;
 			}
 			myPutTxn->close();
@@ -501,8 +495,7 @@ done:
 			"txn_aborted! %s (%d)",
 			myPutTxn->getNdbError().message, myPutTxn->getNdbError().code );
 		Debug( LDAP_DEBUG_ANY,
-			"=> " LDAP_XSTRING(ndb_tool_entry_put) ": %s\n",
-			text->bv_val, 0, 0 );
+			"=> " LDAP_XSTRING(ndb_tool_entry_put) ": %s\n", text->bv_val );
 		e->e_id = NOID;
 		myPutTxn->close();
 	}
@@ -519,8 +512,7 @@ int ndb_tool_entry_reindex(
 	struct ndb_info *ni = (struct ndb_info *) be->be_private;
 
 	Debug( LDAP_DEBUG_ARGS,
-		"=> " LDAP_XSTRING(ndb_tool_entry_reindex) "( %ld )\n",
-		(long) id, 0, 0 );
+		"=> " LDAP_XSTRING(ndb_tool_entry_reindex) "( %ld )\n", (long) id );
 
 	return 0;
 }
@@ -536,7 +528,7 @@ ID ndb_tool_entry_modify(
 
 	Debug( LDAP_DEBUG_TRACE,
 		"=> " LDAP_XSTRING(ndb_tool_entry_modify) "( %ld, \"%s\" )\n",
-		(long) e->e_id, e->e_dn, 0 );
+		(long) e->e_id, e->e_dn );
 
 done:
 	return e->e_id;

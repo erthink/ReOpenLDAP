@@ -303,7 +303,7 @@ static int ndb_oc_search( Operation *op, SlapReply *rs, Ndb *ndb, NdbTransaction
 	} else {
 		myIndex = myDict->getIndex( "eid$unique", DN2ID_TABLE );
 		if ( !myIndex ) {
-			Debug( LDAP_DEBUG_ANY, DN2ID_TABLE " eid index is missing!\n", 0, 0, 0 );
+			Debug( LDAP_DEBUG_ANY, DN2ID_TABLE " eid index is missing!\n" );
 			rs->sr_err = LDAP_OTHER;
 			goto leave;
 		}
@@ -528,7 +528,7 @@ int ndb_back_search( Operation *op, SlapReply *rs )
 	if ( !txn ) {
 		Debug( LDAP_DEBUG_TRACE,
 			LDAP_XSTRING(ndb_back_search) ": startTransaction failed: %s (%d)\n",
-			NA.ndb->getNdbError().message, NA.ndb->getNdbError().code, 0 );
+			NA.ndb->getNdbError().message, NA.ndb->getNdbError().code );
 		rs->sr_err = LDAP_OTHER;
 		rs->sr_text = "internal error";
 		goto leave;
@@ -627,8 +627,7 @@ int ndb_back_search( Operation *op, SlapReply *rs )
 	rc = ndb_filter_check( ni, op->ors_filter, &oci, &indexed, &ocfilter );
 	if ( rc ) {
 		Debug( LDAP_DEBUG_TRACE, "ndb_back_search: "
-			"filter attributes from multiple tables, indexing ignored\n",
-			0, 0, 0 );
+			"filter attributes from multiple tables, indexing ignored\n" );
 	} else if ( oci ) {
 		rc = ndb_oc_search( op, rs, NA.ndb, txn, &rdns, oci, indexed );
 		goto leave;

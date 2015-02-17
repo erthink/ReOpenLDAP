@@ -225,14 +225,14 @@ ndb_cf_gen( ConfigArgs *c )
 		if ( !ai ) {
 			snprintf( c->cr_msg, sizeof( c->cr_msg ), "%s: invalid attr %s",
 				c->log, c->argv[1] );
-			Debug( LDAP_DEBUG_ANY, "%s\n", c->cr_msg, 0, 0 );
+			Debug( LDAP_DEBUG_ANY, "%s\n", c->cr_msg );
 			return -1;
 		}
 		for ( ln = ni->ni_attrlens; ln; ln = ln->ln_next ) {
 			if ( ln->ln_data == (void *)ai ) {
 				snprintf( c->cr_msg, sizeof( c->cr_msg ), "%s: attr len already set for %s",
 					c->log, c->argv[1] );
-				Debug( LDAP_DEBUG_ANY, "%s\n", c->cr_msg, 0, 0 );
+				Debug( LDAP_DEBUG_ANY, "%s\n", c->cr_msg );
 				return -1;
 			}
 		}
@@ -251,14 +251,14 @@ ndb_cf_gen( ConfigArgs *c )
 		if ( !ai ) {
 			snprintf( c->cr_msg, sizeof( c->cr_msg ), "%s: invalid attr %s",
 				c->log, c->argv[1] );
-			Debug( LDAP_DEBUG_ANY, "%s\n", c->cr_msg, 0, 0 );
+			Debug( LDAP_DEBUG_ANY, "%s\n", c->cr_msg );
 			return -1;
 		}
 		for ( ln = ni->ni_attridxs; ln; ln = ln->ln_next ) {
 			if ( ln->ln_data == (void *)ai ) {
 				snprintf( c->cr_msg, sizeof( c->cr_msg ), "%s: attr index already set for %s",
 					c->log, c->argv[1] );
-				Debug( LDAP_DEBUG_ANY, "%s\n", c->cr_msg, 0, 0 );
+				Debug( LDAP_DEBUG_ANY, "%s\n", c->cr_msg );
 				return -1;
 			}
 		}
@@ -285,7 +285,7 @@ ndb_cf_gen( ConfigArgs *c )
 					"%s: invalid attrset %s (%d)",
 					c->log, c->argv[1], rc );
 			}
-			Debug( LDAP_DEBUG_ANY, "%s\n", c->cr_msg, 0, 0 );
+			Debug( LDAP_DEBUG_ANY, "%s\n", c->cr_msg );
 			return -1;
 		}
 		ln = (ListNode *)ch_malloc( sizeof(ListNode));
@@ -301,14 +301,14 @@ ndb_cf_gen( ConfigArgs *c )
 		if ( !ai ) {
 			snprintf( c->cr_msg, sizeof( c->cr_msg ), "%s: invalid attr %s",
 				c->log, c->argv[1] );
-			Debug( LDAP_DEBUG_ANY, "%s\n", c->cr_msg, 0, 0 );
+			Debug( LDAP_DEBUG_ANY, "%s\n", c->cr_msg );
 			return -1;
 		}
 		for ( ln = ni->ni_attrblobs; ln; ln = ln->ln_next ) {
 			if ( ln->ln_data == (void *)ai ) {
 				snprintf( c->cr_msg, sizeof( c->cr_msg ), "%s: attr blob already set for %s",
 					c->log, c->argv[1] );
-				Debug( LDAP_DEBUG_ANY, "%s\n", c->cr_msg, 0, 0 );
+				Debug( LDAP_DEBUG_ANY, "%s\n", c->cr_msg );
 				return -1;
 			}
 		}

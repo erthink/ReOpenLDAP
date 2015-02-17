@@ -51,7 +51,7 @@ ndb_back_delete( Operation *op, SlapReply *rs )
 	int num_ctrls = 0;
 
 	Debug( LDAP_DEBUG_ARGS, "==> " LDAP_XSTRING(ndb_back_delete) ": %s\n",
-		op->o_req_dn.bv_val, 0, 0 );
+		op->o_req_dn.bv_val );
 
 	ctrls[num_ctrls] = 0;
 
@@ -84,8 +84,7 @@ retry:	/* transaction retry */
 		NA.txn->close();
 		NA.txn = NULL;
 		Debug( LDAP_DEBUG_TRACE,
-			"==> " LDAP_XSTRING(ndb_back_delete) ": retrying...\n",
-			0, 0, 0 );
+			"==> " LDAP_XSTRING(ndb_back_delete) ": retrying...\n" );
 		if ( op->o_abandon ) {
 			rs->sr_err = SLAPD_ABANDON;
 			goto return_results;
@@ -103,7 +102,7 @@ retry:	/* transaction retry */
 	if( !NA.txn ) {
 		Debug( LDAP_DEBUG_TRACE,
 			LDAP_XSTRING(ndb_back_delete) ": startTransaction failed: %s (%d)\n",
-			NA.ndb->getNdbError().message, NA.ndb->getNdbError().code, 0 );
+			NA.ndb->getNdbError().message, NA.ndb->getNdbError().code );
 		rs->sr_err = LDAP_OTHER;
 		rs->sr_text = "internal error";
 		goto return_results;
@@ -133,7 +132,7 @@ retry:	/* transaction retry */
 		( !manageDSAit && bvmatch( NA.ocs, &glue_bv ))) {
 		Debug( LDAP_DEBUG_ARGS,
 			"<=- " LDAP_XSTRING(ndb_back_delete) ": no such object %s\n",
-			op->o_req_dn.bv_val, 0, 0);
+			op->o_req_dn.bv_val );
 
 		if ( rs->sr_err == LDAP_NO_SUCH_OBJECT ) {
 			rs->sr_matched = matched.bv_val;
@@ -153,7 +152,7 @@ retry:	/* transaction retry */
 	if ( !rs->sr_err  ) {
 		Debug( LDAP_DEBUG_TRACE,
 			"<=- " LDAP_XSTRING(ndb_back_delete) ": no write "
-			"access to parent\n", 0, 0, 0 );
+			"access to parent\n" );
 		rs->sr_err = LDAP_INSUFFICIENT_ACCESS;
 		rs->sr_text = "no write access to parent";
 		goto return_results;
@@ -167,7 +166,7 @@ retry:	/* transaction retry */
 	if ( !rs->sr_err  ) {
 		Debug( LDAP_DEBUG_TRACE,
 			"<=- " LDAP_XSTRING(ndb_back_delete) ": no write access "
-			"to entry\n", 0, 0, 0 );
+			"to entry\n" );
 		rs->sr_err = LDAP_INSUFFICIENT_ACCESS;
 		rs->sr_text = "no write access to entry";
 		goto return_results;
@@ -178,8 +177,7 @@ retry:	/* transaction retry */
 		rs->sr_ref = get_entry_referrals( op, &e );
 
 		Debug( LDAP_DEBUG_TRACE,
-			LDAP_XSTRING(ndb_back_delete) ": entry is referral\n",
-			0, 0, 0 );
+			LDAP_XSTRING(ndb_back_delete) ": entry is referral\n" );
 
 		rs->sr_err = LDAP_REFERRAL;
 		rs->sr_matched = e.e_name.bv_val;
@@ -204,8 +202,7 @@ retry:	/* transaction retry */
 			&slap_pre_read_bv, preread_ctrl ) )
 		{
 			Debug( LDAP_DEBUG_TRACE,
-				"<=- " LDAP_XSTRING(ndb_back_delete) ": pre-read "
-				"failed!\n", 0, 0, 0 );
+				"<=- " LDAP_XSTRING(ndb_back_delete) ": pre-read failed!\n" );
 			if ( op->o_preread & SLAP_CONTROL_CRITICAL ) {
 				/* FIXME: is it correct to abort
 				 * operation if control fails? */
@@ -220,7 +217,7 @@ retry:	/* transaction retry */
 		Debug(LDAP_DEBUG_ARGS,
 			"<=- " LDAP_XSTRING(ndb_back_delete)
 			": has_children failed: %s (%d)\n",
-			NA.txn->getNdbError().message, NA.txn->getNdbError().code, 0 );
+			NA.txn->getNdbError().message, NA.txn->getNdbError().code );
 		rs->sr_err = LDAP_OTHER;
 		rs->sr_text = "internal error";
 		goto return_results;
@@ -229,7 +226,7 @@ retry:	/* transaction retry */
 		Debug(LDAP_DEBUG_ARGS,
 			"<=- " LDAP_XSTRING(ndb_back_delete)
 			": non-leaf %s\n",
-			op->o_req_dn.bv_val, 0, 0);
+			op->o_req_dn.bv_val);
 		rs->sr_err = LDAP_NOT_ALLOWED_ON_NONLEAF;
 		rs->sr_text = "subordinate objects must be deleted first";
 		goto return_results;
@@ -240,7 +237,7 @@ retry:	/* transaction retry */
 	if ( rs->sr_err != 0 ) {
 		Debug(LDAP_DEBUG_TRACE,
 			"<=- " LDAP_XSTRING(ndb_back_delete) ": del_info failed: %s (%d)\n",
-			NA.txn->getNdbError().message, NA.txn->getNdbError().code, 0 );
+			NA.txn->getNdbError().message, NA.txn->getNdbError().code);
 		rs->sr_text = "DN index delete failed";
 		rs->sr_err = LDAP_OTHER;
 		goto return_results;
@@ -251,7 +248,7 @@ retry:	/* transaction retry */
 	if ( rs->sr_err != 0 ) {
 		Debug( LDAP_DEBUG_TRACE,
 			"<=- " LDAP_XSTRING(ndb_back_delete) ": del_data failed: %s (%d)\n",
-			NA.txn->getNdbError().message, NA.txn->getNdbError().code, 0 );
+			NA.txn->getNdbError().message, NA.txn->getNdbError().code );
 		rs->sr_text = "entry delete failed";
 		rs->sr_err = LDAP_OTHER;
 		goto return_results;
