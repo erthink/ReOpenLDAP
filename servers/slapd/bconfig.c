@@ -123,6 +123,7 @@ static ConfigDriver config_overlay;
 static ConfigDriver config_subordinate;
 static ConfigDriver config_suffix;
 static ConfigDriver config_biglock;
+static ConfigDriver config_reopenldap;
 #ifdef LDAP_TCP_BUFFER
 static ConfigDriver config_tcp_buffer;
 #endif /* LDAP_TCP_BUFFER */
@@ -198,7 +199,7 @@ enum {
 	CFG_BACKTRACE,
 	CFG_MEMORY,
 	CFG_COREDUMP,
-	CFG_BIGLOCK,
+	CFG_REOPENLDAP,
 
 	CFG_LAST
 };
@@ -779,11 +780,15 @@ static ConfigTable config_back_cf_table[] = {
 		&config_generic, "( OLcfgGlAt:0.44 NAME 'olcCoredumpLimit' "
 			"DESC 'Limit coredump size' "
 			"SYNTAX OMsInteger SINGLE-VALUE )", NULL, NULL },
-	{ "biglock", "mode", 2, 2, 0, ARG_DB|ARG_MAGIC|CFG_BIGLOCK,
+	{ "biglock", "mode", 2, 2, 0, ARG_DB|ARG_MAGIC|CFG_REOPENLDAP,
 		&config_biglock, "( OLcfgDbAt:0.45 NAME 'olcBiglock' "
 			"DESC 'Synchronuzation mode for suffix/database' "
 			"SYNTAX OMsDirectoryString SINGLE-VALUE )", NULL, NULL },
-
+	{ "reopenldap", "[iddqd] [idkfa]", 0, 2, 0, ARG_MAGIC|CFG_REOPENLDAP,
+		&config_reopenldap, "( OLcfgGlAt:0.46 NAME 'olcReOpenLDAP' "
+			"DESC 'ReOpenLDAP mode cheating flags' "
+			"EQUALITY caseIgnoreMatch "
+			"SYNTAX OMsDirectoryString X-ORDERED 'VALUES' )", NULL, NULL },
 	{ NULL,	NULL, 0, 0, 0, ARG_IGNORED,
 		NULL, NULL, NULL, NULL }
 };
@@ -3148,6 +3153,38 @@ config_biglock(ConfigArgs *c)
 
 	c->be->bd_biglock_mode = mode;
 	return 0;
+}
+
+static int
+config_reopenldap(ConfigArgs *c)
+{
+	slap_mask_t flags = 0;
+	int i = INT_MAX;
+	static const slap_verbmasks reopenldap_ops[] = {
+		{ BER_BVC("iddqd"),		REOPENLDAP_FLAG_IDDQD },
+		{ BER_BVC("idkfa"),		REOPENLDAP_FLAG_IDKFA },
+		{ BER_BVNULL,	0 }
+	};
+
+	if (c->op == SLAP_CONFIG_EMIT) {
+		return mask_to_verbs( reopenldap_ops, reopenldap_flags, &c->rvalue_vals );
+	} else if ( c->op == LDAP_MOD_DELETE ) {
+		if ( !c->line ) {
+			reopenldap_flags_setup( 0 );
+		} else {
+			i = verb_to_mask( c->line, reopenldap_ops );
+			reopenldap_flags_setup( reopenldap_flags & ~reopenldap_ops[i].mask );
+		}
+		return 0;
+	}
+	i = verbs_to_mask( c->argc, c->argv, reopenldap_ops, &flags );
+	if ( i ) {
+		snprintf( c->cr_msg, sizeof( c->cr_msg ), "<%s> unknown ReOpenLDAP's flag", c->argv[0] );
+		Debug(LDAP_DEBUG_ANY, "%s: %s %s\n", c->log, c->cr_msg, c->argv[i]);
+		return 1 ;
+	}
+	reopenldap_flags_setup( reopenldap_flags | flags );
+	return 0 ;
 }
 
 static int
