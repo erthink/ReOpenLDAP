@@ -4,13 +4,22 @@ OpenLDAP 2.4.41 Engineering
 	Fixed libldap double free of request during abandon (ITS#7967)
 	Fixed libldap segfault in ldap_sync_initialize (ITS#8001)
 	Fixed libldap ldif-wrap off by one error (ITS#8003)
+	Fixed libldap handling of TLS in async mode (ITS#8022)
+	Fixed libldap null pointer dereference (ITS#8028)
+	Fixed slapd slapadd onetime leak with -w (ITS#8014)
 	Fixed slapd syncrepl delta-mmr issue with overlays and slapd.conf (ITS#7976)
 	Fixed slapd syncrepl mutex for cookie state (ITS#7968)
 	Fixed slapd-mdb one-level search (ITS#7975)
 	Fixed slapd-mdb heap corruption (ITS#7965)
 	Fixed slapd-mdb crash after deleting in-use schema (ITS#7995)
+	Fixed slapd-mdb minor code cleanup (ITS#8011)
+	Fixed slapd-mdb to return errors when using incorrect env flags (ITS#8016)
+	Fixed slapd-meta TLS initialization with ldaps URIs (ITS#8022)
 	Fixed slapo-collect segfault (ITS#7797)
 	Fixed slapo-constraint with 0 count constraint (ITS#7780,ITS#7781)
+	Fixed slapo-deref with empty attribute list (ITS#8027)
+	Fixed slapo-syncprov synprov_matchops usage of test_filter (ITS#8013)
+	Fixed slapo-syncprov segfault on disconnect/abandon (ITS#5452,ITS#8012)
 	Build Environment
 		Enhanced contrib modules build paths (ITS#7782)
 		Fixed contrib/autogroup internal operation identity (ITS#8006)
@@ -19,6 +28,9 @@ OpenLDAP 2.4.41 Engineering
 		Fixed contrib/dupent compiler warnings (ITS#7997)
 	Contrib
 		Added pbkdf2 sha256 and sha512 schemes (ITS#7977)
+	Documentation
+		Added ldap_get_option(3) LDAP_FEATURE_INFO_VERSION information (ITS#8032)
+		Added ldap_get_option(3) LDAP_OPT_API_INFO_VERSION information (ITS#8032)
 
 OpenLDAP 2.4.40 Release (2014/09/20)
 	Fixed libldap DNS SRV priority handling (ITS#7027)
