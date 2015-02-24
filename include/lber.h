@@ -622,7 +622,7 @@ ber_bvecadd LDAP_P((
 
 LBER_F( struct berval * )
 ber_dupbv LDAP_P((
-	struct berval *dst, struct berval *src ));
+	struct berval *dst, const struct berval *src ));
 
 LBER_F( struct berval * )
 ber_bvdup LDAP_P((

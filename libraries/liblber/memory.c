@@ -403,7 +403,7 @@ ber_bvecadd( struct berval ***bvec, struct berval *bv )
 
 struct berval *
 ber_dupbv_x(
-	struct berval *dst, struct berval *src, void *ctx )
+	struct berval *dst, const struct berval *src, void *ctx )
 {
 	struct berval *new;
 
@@ -441,7 +441,7 @@ ber_dupbv_x(
 
 struct berval *
 ber_dupbv(
-	struct berval *dst, struct berval *src )
+	struct berval *dst, const struct berval *src )
 {
 	return ber_dupbv_x( dst, src, NULL );
 }
