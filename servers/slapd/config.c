@@ -906,7 +906,7 @@ done:
 /* restrictops, allows, disallows, requires, loglevel */
 
 int
-bverb_to_mask(struct berval *bword, slap_verbmasks *v) {
+bverb_to_mask(struct berval *bword, const slap_verbmasks *v) {
 	int i;
 	for(i = 0; !BER_BVISNULL(&v[i].word); i++) {
 		if(!ber_bvstrcasecmp(bword, &v[i].word)) break;
@@ -915,14 +915,14 @@ bverb_to_mask(struct berval *bword, slap_verbmasks *v) {
 }
 
 int
-verb_to_mask(const char *word, slap_verbmasks *v) {
+verb_to_mask(const char *word, const slap_verbmasks *v) {
 	struct berval	bword;
 	ber_str2bv( word, 0, 0, &bword );
 	return bverb_to_mask( &bword, v );
 }
 
 int
-verbs_to_mask(int argc, char *argv[], slap_verbmasks *v, slap_mask_t *m) {
+verbs_to_mask(int argc, char *argv[], const slap_verbmasks *v, slap_mask_t *m) {
 	int i, j;
 	for(i = 1; i < argc; i++) {
 		j = verb_to_mask(argv[i], v);
@@ -937,7 +937,7 @@ verbs_to_mask(int argc, char *argv[], slap_verbmasks *v, slap_mask_t *m) {
  * bit keywords in the verbmasks array.
  */
 int
-mask_to_verbs(slap_verbmasks *v, slap_mask_t m, BerVarray *bva) {
+mask_to_verbs(const slap_verbmasks *v, slap_mask_t m, BerVarray *bva) {
 	int i, rc = 1;
 
 	if (m) {
@@ -956,7 +956,7 @@ mask_to_verbs(slap_verbmasks *v, slap_mask_t m, BerVarray *bva) {
 
 /* Return the verbs as a single string, separated by delim */
 int
-mask_to_verbstring(slap_verbmasks *v, slap_mask_t m0, char delim, struct berval *bv)
+mask_to_verbstring(const slap_verbmasks *v, slap_mask_t m0, char delim, struct berval *bv)
 {
 	int i, rc = 1;
 
@@ -993,7 +993,7 @@ mask_to_verbstring(slap_verbmasks *v, slap_mask_t m0, char delim, struct berval 
 
 /* Parse a verbstring */
 int
-verbstring_to_mask(slap_verbmasks *v, char *str, char delim, slap_mask_t *m) {
+verbstring_to_mask(const slap_verbmasks *v, char *str, char delim, slap_mask_t *m) {
 	int j;
 	char *d;
 	struct berval bv;
@@ -1015,7 +1015,7 @@ verbstring_to_mask(slap_verbmasks *v, char *str, char delim, slap_mask_t *m) {
 }
 
 int
-slap_verbmasks_init( slap_verbmasks **vp, slap_verbmasks *v )
+slap_verbmasks_init( slap_verbmasks **vp, const slap_verbmasks *v )
 {
 	int		i;
 
@@ -1102,7 +1102,7 @@ check_next:;
 }
 
 int
-enum_to_verb(slap_verbmasks *v, slap_mask_t m, struct berval *bv) {
+enum_to_verb(const slap_verbmasks *v, slap_mask_t m, struct berval *bv) {
 	int i;
 
 	for (i=0; !BER_BVISNULL(&v[i].word); i++) {

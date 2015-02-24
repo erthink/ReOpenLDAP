@@ -87,7 +87,7 @@ value_add(
 int
 value_add_one(
     BerVarray		*vals,
-    struct berval	*addval )
+    const struct berval	*addval )
 {
 	int		n;
 	BerVarray	v2;
