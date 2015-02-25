@@ -199,7 +199,6 @@ enum {
 	CFG_BACKTRACE,
 	CFG_MEMORY,
 	CFG_COREDUMP,
-	CFG_REOPENLDAP,
 
 	CFG_LAST
 };
@@ -780,13 +779,13 @@ static ConfigTable config_back_cf_table[] = {
 		&config_generic, "( OLcfgGlAt:0.44 NAME 'olcCoredumpLimit' "
 			"DESC 'Limit coredump size' "
 			"SYNTAX OMsInteger SINGLE-VALUE )", NULL, NULL },
-	{ "biglock", "mode", 2, 2, 0, ARG_DB|ARG_MAGIC|CFG_REOPENLDAP,
+	{ "biglock", "mode", 2, 2, 0, ARG_DB|ARG_MAGIC,
 		&config_biglock, "( OLcfgDbAt:0.45 NAME 'olcBiglock' "
 			"DESC 'Synchronuzation mode for suffix/database' "
 			"SYNTAX OMsDirectoryString SINGLE-VALUE )", NULL, NULL },
-	{ "reopenldap", "[iddqd] [idkfa]", 0, 2, 0, ARG_MAGIC|CFG_REOPENLDAP,
+	{ "reopenldap", "[iddqd] [idkfa]", 0, 0, 0, ARG_MAGIC,
 		&config_reopenldap, "( OLcfgGlAt:0.46 NAME 'olcReOpenLDAP' "
-			"DESC 'ReOpenLDAP mode cheating flags' "
+			"DESC 'ReOpenLDAP cheating flags' "
 			"EQUALITY caseIgnoreMatch "
 			"SYNTAX OMsDirectoryString X-ORDERED 'VALUES' )", NULL, NULL },
 	{ NULL,	NULL, 0, 0, 0, ARG_IGNORED,

@@ -24,7 +24,11 @@
 #include "proto-slap.h"
 #include "lber_hipagut.h"
 
-int reopenldap_flags = REOPENLDAP_FLAG_IDKFA;
+int reopenldap_flags
+#if defined(LDAP_MEMORY_DEBUG) || !defined(LDAP_DISABLE_MEMORY_CHECK)
+		= REOPENLDAP_FLAG_IDKFA
+#endif
+		;
 
 void reopenldap_flags_setup(int flags) {
 	reopenldap_flags = flags & (REOPENLDAP_FLAG_IDDQD | REOPENLDAP_FLAG_IDKFA);
