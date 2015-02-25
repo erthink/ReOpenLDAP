@@ -163,6 +163,17 @@ mdb_db_open( BackendDB *be, ConfigReply *cr )
 
 	mdb_env_set_oomfunc( mdb->mi_dbenv, mdb->mi_oom_flags ? mdb_oom_handler : NULL);
 
+	if (SLAP_MULTIMASTER(be) && (MDB_OOM_YIELD & mdb->mi_oom_flags) == 0) {
+		snprintf( cr->msg, sizeof(cr->msg), "database \"%s\": "
+			"for properly operation in multi-master mode"
+			" at least 'oom-handler yield' is required,"
+			" and 'dreamcatcher' is recommended",
+			be->be_suffix[0].bv_val );
+		Debug( LDAP_DEBUG_ANY, LDAP_XSTRING(mdb_db_open) ": %s\n", cr->msg );
+		if (reopenldap_mode_iddqd())
+			goto fail;
+	}
+
 #ifdef HAVE_EBCDIC
 	strcpy( path, mdb->mi_dbenv_home );
 	__atoe( path );
