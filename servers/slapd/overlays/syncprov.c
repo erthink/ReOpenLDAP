@@ -775,16 +775,16 @@ again:
 static void free_resinfo( syncres *sr )
 {
 	syncres **st;
-	int freeit = 0;
+	int freeit = -1;
 	ldap_pvt_thread_mutex_lock( &sr->s_info->ri_mutex );
 	for (st = &sr->s_info->ri_list; *st; st = &(*st)->s_rilist) {
 		if (*st == sr) {
 			*st = sr->s_rilist;
+			freeit = sr->s_info->ri_list ? 0 : 1;
 			break;
 		}
 	}
-	if ( !sr->s_info->ri_list )
-		freeit = 1;
+	assert(freeit >= 0);
 	ldap_pvt_thread_mutex_unlock( &sr->s_info->ri_mutex );
 	if ( freeit ) {
 		ldap_pvt_thread_mutex_destroy( &sr->s_info->ri_mutex );
@@ -793,11 +793,12 @@ static void free_resinfo( syncres *sr )
 		if ( !BER_BVISNULL( &sr->s_info->ri_cookie ))
 			ch_free( sr->s_info->ri_cookie.bv_val );
 		ch_free( sr->s_info );
+		sr->s_info = NULL;
 	}
 }
 
 static int
-syncprov_free_syncop( syncops *so, int unlink )
+syncprov_free_syncop( syncops *so )
 {
 	syncres *sr, *srnext;
 	GroupAssertion *ga, *gnext;
@@ -806,23 +807,25 @@ syncprov_free_syncop( syncops *so, int unlink )
 	ldap_pvt_thread_mutex_lock( &so->s_mutex );
 	/* already being freed, or still in use */
 	assert(so->s_inuse > 0);
-	if (--so->s_inuse > 0 ) {
+	if (--so->s_inuse > 0) {
 		ldap_pvt_thread_mutex_unlock( &so->s_mutex );
 		return 0;
 	}
 	op = so->s_op;
 	ldap_pvt_thread_mutex_unlock( &so->s_mutex );
 
-	if ( unlink ) {
+	if (so != so->s_next) {
 		syncops **sop;
 		ldap_pvt_thread_mutex_lock( &so->s_si->si_ops_mutex );
 		for ( sop = &so->s_si->si_ops; *sop; sop = &(*sop)->s_next ) {
 			if ( *sop == so ) {
 				*sop = so->s_next;
 				so->s_next = so; /* LY: safely mark it as abandoned */
+				so->s_op->o_abandon = 1;
 				break;
 			}
 		}
+		assert(so == so->s_next);
 		ldap_pvt_thread_mutex_unlock( &so->s_si->si_ops_mutex );
 	}
 
@@ -1003,7 +1006,7 @@ syncprov_qtask( void *ctx, void *arg )
 	/* ignore result */
 
 	/* decrement use count... */
-	syncprov_free_syncop( so, 1 );
+	syncprov_free_syncop( so );
 
 	return NULL;
 }
@@ -1134,11 +1137,11 @@ syncprov_drop_psearch( syncops *so, int lock )
 		assert(so->s_next == so);
 		so->s_op = NULL;
 	}
-	return syncprov_free_syncop( so, 0 );
+	return syncprov_free_syncop( so );
 }
 
 static int
-syncprov_ab_cleanup( Operation *op, SlapReply *rs )
+syncprov_abandon_cleanup( Operation *op, SlapReply *rs )
 {
 	slap_callback *sc = op->o_callback;
 	op->o_callback = sc->sc_next;
@@ -1174,7 +1177,7 @@ syncprov_op_abandon( Operation *op, SlapReply *rs )
 			if ( so->s_flags & PS_IS_DETACHED ) {
 				slap_callback *cb;
 				cb = op->o_tmpcalloc( 1, sizeof(slap_callback), op->o_tmpmemctx );
-				cb->sc_cleanup = syncprov_ab_cleanup;
+				cb->sc_cleanup = syncprov_abandon_cleanup;
 				cb->sc_next = op->o_callback;
 				cb->sc_private = so;
 				op->o_callback = cb;
@@ -1370,8 +1373,8 @@ syncprov_matchops( Operation *op, opcookie *opc, int saveit )
 			 * with saveit == TRUE
 			 */
 			snext = ss->s_next;
-			if ( syncprov_free_syncop( ss, 0 ) ) {
-				*pss = snext;
+			if ( syncprov_free_syncop( ss ) ) {
+				assert( *pss == snext );
 				gonext = 0;
 			}
 		}
@@ -1415,7 +1418,7 @@ syncprov_op_cleanup( Operation *op, SlapReply *rs )
 
 	for (sm = opc->smatches; sm; sm=snext) {
 		snext = sm->sm_next;
-		syncprov_free_syncop( sm->sm_op, 1 );
+		syncprov_free_syncop( sm->sm_op );
 		op->o_tmpfree( sm, op->o_tmpmemctx );
 	}
 
@@ -2479,7 +2482,7 @@ syncprov_search_response( Operation *op, SlapReply *rs )
 			/* But not if this connection was closed along the way */
 			if ( op->o_abandon ) {
 				ldap_pvt_thread_mutex_unlock( &op->o_conn->c_mutex );
-				/* syncprov_ab_cleanup will free this syncop */
+				/* syncprov_abandon_cleanup will free this syncop */
 				return SLAPD_ABANDON;
 			} else {
 				ldap_pvt_thread_mutex_lock( &ss->ss_so->s_mutex );
