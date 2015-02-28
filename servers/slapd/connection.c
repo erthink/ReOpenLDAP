@@ -175,13 +175,26 @@ int connections_destroy(void)
 /*
  * shutdown all connections
  */
-int connections_shutdown(void)
+int connections_shutdown(int gentle_shutdown_only)
 {
 	ber_socket_t i;
+	int locked = 0;
 
 	for ( i = 0; i < dtblsize; i++ ) {
-		if( connections[i].c_struct_state != SLAP_C_UNINITIALIZED ) {
-			ldap_pvt_thread_mutex_lock( &connections[i].c_mutex );
+		if (! locked) {
+			ldap_pvt_thread_mutex_lock( &connections_mutex );
+			locked = 1;
+		}
+		if( connections[i].c_struct_state != SLAP_C_UNINITIALIZED
+				&& (! gentle_shutdown_only || connections[i].c_gentle_kick) ) {
+
+			if ( ldap_pvt_thread_mutex_trylock( &connections[i].c_mutex )) {
+				/* avoid deadlock */
+				ldap_pvt_thread_mutex_unlock( &connections_mutex );
+				ldap_pvt_thread_mutex_lock( &connections[i].c_mutex );
+				ldap_pvt_thread_mutex_lock( &connections_mutex );
+			}
+
 			if( connections[i].c_struct_state == SLAP_C_USED ) {
 
 				/* give persistent clients a chance to cleanup */
@@ -191,12 +204,16 @@ int connections_shutdown(void)
 				} else {
 					/* c_mutex is locked */
 					connection_closing( &connections[i], "slapd shutdown" );
+					ldap_pvt_thread_mutex_unlock( &connections_mutex );
+					locked = 0;
 					connection_close( &connections[i] );
 				}
 			}
 			ldap_pvt_thread_mutex_unlock( &connections[i].c_mutex );
 		}
 	}
+	if (locked)
+		ldap_pvt_thread_mutex_unlock( &connections_mutex );
 
 	return 0;
 }
@@ -457,6 +474,7 @@ Connection * connection_init(
 	c->c_sd = s;
 
 	if ( flags & CONN_IS_CLIENT ) {
+		c->c_gentle_kick = 1;
 		c->c_connid = 0;
 		ldap_pvt_thread_mutex_lock( &connections_mutex );
 		c->c_conn_state = SLAP_C_CLIENT;
@@ -1227,7 +1245,6 @@ Connection *connection_client_setup(
 	if ( c ) {
 		c->c_clientfunc = func;
 		c->c_clientarg = arg;
-
 		slapd_add_internal( sfd, 0 );
 	}
 	return c;

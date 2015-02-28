@@ -793,6 +793,8 @@ error_return:;
 		if ( li->li_conn_ttl > 0 ) {
 			lc->lc_create_time = op->o_time;
 		}
+		if ( lc->lc_conn )
+			lc->lc_conn->c_gentle_kick = 1;
 	}
 
 	return rs->sr_err;

@@ -483,6 +483,8 @@ struct ldap {
 	char			*ld_error;
 	char			*ld_matched;
 	char			**ld_referrals;
+
+	ldap_gentle_shutdown_f ld_gentle_shutdown;
 };
 
 #define LDAP_VALID(ld)		( (ld)->ld_valid == LDAP_VALID_SESSION )

@@ -751,6 +751,13 @@ typedef struct ldapmod {
  */
 typedef struct ldap LDAP;
 
+typedef int (*ldap_gentle_shutdown_f) LDAP_P(( LDAP	*ld ));
+
+LDAP_F( ldap_gentle_shutdown_f )
+ldap_set_gentle_shutdown LDAP_P((
+	LDAP	*ld,
+	ldap_gentle_shutdown_f gentle_shutdown ));
+
 #define LDAP_DEREF_NEVER		0x00
 #define LDAP_DEREF_SEARCHING	0x01
 #define LDAP_DEREF_FINDING		0x02

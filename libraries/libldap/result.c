@@ -380,9 +380,14 @@ wait4msg(
 			LDAP_MUTEX_UNLOCK( &ld->ld_conn_mutex );
 		}
 
-		if ( rc == LDAP_MSG_X_KEEP_LOOKING && tvp != NULL ) {
+		if ( rc == LDAP_MSG_X_KEEP_LOOKING ) {
 			struct timeval	curr_time_tv = { 0 },
 					delta_time_tv = { 0 };
+
+			if ( ld->ld_gentle_shutdown && ld->ld_gentle_shutdown( ld ) )
+				return LDAP_SERVER_DOWN;
+			if ( tvp == NULL )
+				continue;
 
 #ifdef HAVE_GETTIMEOFDAY
 			gettimeofday( &curr_time_tv, NULL );
@@ -428,6 +433,17 @@ wait4msg(
 	}
 
 	return( rc );
+}
+
+
+ldap_gentle_shutdown_f
+ldap_set_gentle_shutdown (
+	LDAP	*ld,
+	ldap_gentle_shutdown_f new )
+{
+	ldap_gentle_shutdown_f old = ld->ld_gentle_shutdown;
+	ld->ld_gentle_shutdown = new;
+	return old;
 }
 
 

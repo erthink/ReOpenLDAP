@@ -803,7 +803,7 @@ LDAP_SLAPD_V (int) slapi_plugins_used;
  * connection.c
  */
 LDAP_SLAPD_F (int) connections_init LDAP_P((void));
-LDAP_SLAPD_F (int) connections_shutdown LDAP_P((void));
+LDAP_SLAPD_F (int) connections_shutdown LDAP_P((int gentle_shutdown_only));
 LDAP_SLAPD_F (int) connections_destroy LDAP_P((void));
 LDAP_SLAPD_F (int) connections_timeout_idle LDAP_P((time_t));
 LDAP_SLAPD_F (void) connections_drop LDAP_P((void));
@@ -925,6 +925,7 @@ LDAP_SLAPD_F (void) slapd_clr_writetime LDAP_P((time_t old));
 LDAP_SLAPD_F (time_t) slapd_get_writetime LDAP_P((void));
 
 LDAP_SLAPD_V (volatile sig_atomic_t) slapd_abrupt_shutdown;
+LDAP_SLAPD_V (volatile sig_atomic_t) slapd_gentle_shutdown;
 LDAP_SLAPD_V (volatile sig_atomic_t) slapd_shutdown;
 LDAP_SLAPD_V (int) slapd_register_slp;
 LDAP_SLAPD_V (const char *) slapd_slp_attrs;
