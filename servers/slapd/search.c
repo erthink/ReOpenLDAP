@@ -249,18 +249,23 @@ do_search(
 return_results:;
 	if ( !BER_BVISNULL( &op->o_req_dn ) ) {
 		slap_sl_free( op->o_req_dn.bv_val, op->o_tmpmemctx );
+		op->o_req_dn.bv_val = NULL;
 	}
 	if ( !BER_BVISNULL( &op->o_req_ndn ) ) {
 		slap_sl_free( op->o_req_ndn.bv_val, op->o_tmpmemctx );
+		op->o_req_ndn.bv_val = NULL;
 	}
 	if ( !BER_BVISNULL( &op->ors_filterstr ) ) {
 		op->o_tmpfree( op->ors_filterstr.bv_val, op->o_tmpmemctx );
+		op->ors_filterstr.bv_val = NULL;
 	}
 	if ( op->ors_filter != NULL) {
 		filter_free_x( op, op->ors_filter, 1 );
+		op->ors_filter = NULL;
 	}
 	if ( op->ors_attrs != NULL ) {
 		op->o_tmpfree( op->ors_attrs, op->o_tmpmemctx );
+		op->ors_attrs = NULL;
 	}
 
 	return rs->sr_err;
