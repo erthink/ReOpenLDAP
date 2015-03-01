@@ -2031,7 +2031,7 @@ sortval_reject:
 					snprintf( c->cr_msg, sizeof( c->cr_msg ),
 					  "for properly operation in multi-master mode"
 					  " at least 'biglock local' is required for a database." );
-					Debug(LDAP_DEBUG_ANY | LDAP_DEBUG_SYNC, "%s: %s\n",
+					Debug(LDAP_DEBUG_ANY, "%s: %s\n",
 						c->log, c->cr_msg );
 					if (reopenldap_mode_iddqd())
 						return 1;
@@ -3896,7 +3896,7 @@ config_shadow( ConfigArgs *c, slap_mask_t flag )
 	}
 
 	if (SLAP_MULTIMASTER(c->be) && SLAPD_BIGLOCK_NONE == c->be->bd_biglock_mode) {
-		Debug( LDAP_DEBUG_ANY | LDAP_DEBUG_SYNC,
+		Debug( LDAP_DEBUG_ANY,
 			"%s: for properly operation in multi-master mode"
 			" at least 'biglock local' is required for a database.\n", c->log );
 		if (reopenldap_mode_iddqd())

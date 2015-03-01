@@ -429,7 +429,7 @@ findbase_cb( Operation *op, SlapReply *rs )
 		}
 	}
 	if ( rs->sr_err != LDAP_SUCCESS ) {
-		Debug( LDAP_DEBUG_ANY | LDAP_DEBUG_SYNC, "findbase failed! %d\n", rs->sr_err );
+		Debug( LDAP_DEBUG_SYNC, "findbase failed! %d\n", rs->sr_err );
 	}
 	return LDAP_SUCCESS;
 }
@@ -2434,7 +2434,7 @@ syncprov_search_response( Operation *op, SlapReply *rs )
 		 * control.
 		 */
 		if ( !rs->sr_entry ) {
-			Debug( LDAP_DEBUG_ANY | LDAP_DEBUG_SYNC, "bogus referral in context\n" );
+			Debug( LDAP_DEBUG_ANY, "bogus referral in context\n" );
 			assert( rs->sr_entry != NULL );
 			return SLAP_CB_CONTINUE;
 		}
@@ -2907,8 +2907,8 @@ shortcut:
 			sop->s_scb = cb;
 		} else {
 			/* LY: race with async abandon - is this enough ? */
-			Debug( LDAP_DEBUG_ANY | LDAP_DEBUG_SYNC,
-				"syncprov: rare race op_search with abandon!\n");
+			Debug( LDAP_DEBUG_SYNC,
+				"syncprov: rare-case race op_search with abandon.\n");
 			assert(sop->s_next == sop);
 			cb->sc_cleanup = NULL;
 			op->o_callback = NULL;
@@ -3210,7 +3210,7 @@ syncprov_db_open(
 	void *thrctx = NULL;
 
 	if ( !SLAP_LASTMOD( be )) {
-		Debug( LDAP_DEBUG_ANY | LDAP_DEBUG_SYNC,
+		Debug( LDAP_DEBUG_ANY,
 			"syncprov_db_open: invalid config, lastmod must be enabled\n" );
 		return -1;
 	}
@@ -3363,7 +3363,7 @@ syncprov_db_init(
 	syncprov_info_t	*si;
 
 	if ( SLAP_ISGLOBALOVERLAY( be ) ) {
-		Debug( LDAP_DEBUG_ANY | LDAP_DEBUG_SYNC,
+		Debug( LDAP_DEBUG_ANY,
 			"syncprov must be instantiated within a database.\n" );
 		return 1;
 	}
@@ -3553,7 +3553,7 @@ syncprov_initialize()
 		SLAP_CTRL_SEARCH, NULL,
 		syncprov_parseCtrl, &slap_cids.sc_LDAPsync );
 	if ( rc != LDAP_SUCCESS ) {
-		Debug( LDAP_DEBUG_ANY | LDAP_DEBUG_SYNC,
+		Debug( LDAP_DEBUG_ANY,
 			"syncprov_init: Failed to register control %d\n", rc );
 		return rc;
 	}
