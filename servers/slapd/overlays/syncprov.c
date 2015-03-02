@@ -2387,29 +2387,30 @@ syncprov_search_cleanup( Operation *op, SlapReply *rs )
 		goto skip;
 
 	/* LY - TODO: what about LDAP_BUSY ? */
-	if ( rs->sr_err == LDAP_SUCCESS && ! op->o_abandon && ! op->o_cancel
-		 && ! (slapd_shutdown || slapd_gentle_shutdown) )
-		goto skip;
+	if ( (rs->sr_err != LDAP_SUCCESS && rs->sr_type == REP_RESULT)
+		 || op->o_abandon || op->o_cancel
+		 || slapd_shutdown || slapd_gentle_shutdown ) {
 
-	op->o_callback = cb->sc_next;
-	assert(so->s_scb == cb);
-	syncprov_info_t *si = syncprov_search_cleanup_leaks( so, op, cb );
-	so->s_scb = NULL;
+		op->o_callback = cb->sc_next;
+		assert(so->s_scb == cb);
+		syncprov_info_t *si = syncprov_search_cleanup_leaks( so, op, cb );
+		so->s_scb = NULL;
 
-	if (so->s_next != so) {
-		syncops **pso;
-		ldap_pvt_thread_mutex_lock( &si->si_ops_mutex );
-		for (pso = &si->si_ops; (so = *pso) != NULL; pso = &so->s_next) {
-			if ( so->s_op->o_connid == op->o_connid &&
-				so->s_op->o_msgid == op->orn_msgid ) {
-					*pso = so->s_next;
-					so->s_next = so; /* LY: safely mark it as abandoned */
-					break;
+		if (so->s_next != so) {
+			syncops **pso;
+			ldap_pvt_thread_mutex_lock( &si->si_ops_mutex );
+			for (pso = &si->si_ops; (so = *pso) != NULL; pso = &so->s_next) {
+				if ( so->s_op->o_connid == op->o_connid &&
+					so->s_op->o_msgid == op->orn_msgid ) {
+						*pso = so->s_next;
+						so->s_next = so; /* LY: safely mark it as abandoned */
+						break;
+				}
 			}
-		}
-		ldap_pvt_thread_mutex_unlock( &si->si_ops_mutex );
-		if ( so ) {
-			syncprov_drop_psearch( so, 0 );
+			ldap_pvt_thread_mutex_unlock( &si->si_ops_mutex );
+			if ( so ) {
+				syncprov_drop_psearch( so, 0 );
+			}
 		}
 	}
 
