@@ -334,7 +334,7 @@ do_oc:;
 	if ( ( got & GOT_C ) || ( got & GOT_CE ) ) {
 		BerVarray	bv_allowed = NULL,
 				bv_effective = NULL;
-		int		i, ja = 0, je = 0;
+		int		i = 0, ja = 0, je = 0;
 
 		ObjectClass	*oc;
 
