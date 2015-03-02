@@ -73,11 +73,11 @@ fi
 
 echo "Testing account lockout..."
 $LDAPSEARCH -h $LOCALHOST -p $PORT1 -D "$USER" -w wrongpw >$SEARCHOUT 2>&1
-sleep 2
+sleep 1
 $LDAPSEARCH -h $LOCALHOST -p $PORT1 -D "$USER" -w wrongpw >>$SEARCHOUT 2>&1
-sleep 2
+sleep 1
 $LDAPSEARCH -h $LOCALHOST -p $PORT1 -D "$USER" -w wrongpw >>$SEARCHOUT 2>&1
-sleep 2
+sleep 1
 $LDAPSEARCH -e ppolicy -h $LOCALHOST -p $PORT1 -D "$USER" -w wrongpw >> $SEARCHOUT 2>&1
 $LDAPSEARCH -e ppolicy -h $LOCALHOST -p $PORT1 -D "$USER" -w $PASS >> $SEARCHOUT 2>&1
 COUNT=`grep "Account locked" $SEARCHOUT | wc -l`
