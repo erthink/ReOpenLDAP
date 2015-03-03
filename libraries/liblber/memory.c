@@ -200,7 +200,7 @@ ber_memcalloc_x( ber_len_t n, ber_len_t s, void *ctx )
 
 #ifndef LDAP_DISABLE_MEMORY_CHECK
 		if (p) {
-			p = lber_hug_memchk_setup(p, payload_bytes, LBER_HUG_POISON_DISABLED);
+			p = lber_hug_memchk_setup(p, payload_bytes, LBER_HUG_POISON_CALLOC_ALREADY);
 #ifdef LDAP_MEMORY_TRACE
 			struct lber_hug_memchk *mh = LBER_HUG_CHUNK(p);
 			fprintf(stderr, "%p.%zu -a- %zu ber_memcalloc %zu\n",

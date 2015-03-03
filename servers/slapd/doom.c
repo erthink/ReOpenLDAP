@@ -43,7 +43,7 @@ void reopenldap_flags_setup(int flags) {
 	} else {
 		lber_hug_nasty_disabled = LBER_HUG_DISABLED;
 		lber_hug_memchk_trace_disabled = LBER_HUG_DISABLED;
-		lber_hug_memchk_poison_alloc = LBER_HUG_DISABLED;
-		lber_hug_memchk_poison_free = LBER_HUG_DISABLED;
+		lber_hug_memchk_poison_alloc = 0;
+		lber_hug_memchk_poison_free = 0;
 	}
 }

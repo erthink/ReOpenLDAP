@@ -347,10 +347,17 @@ __hot __flatten void* lber_hug_memchk_setup(
 
 	if (poison_mode == LBER_HUG_POISON_DEFAULT)
 		poison_mode = lber_hug_memchk_poison_alloc;
-	if (poison_mode != LBER_HUG_DISABLED) {
+	switch(poison_mode) {
+	default:
 		memset(payload, (char) poison_mode, payload_size);
-		if (poison_mode != LBER_HUG_POISON_CALLOC)
-			VALGRIND_MAKE_MEM_UNDEFINED(payload, payload_size);
+	case LBER_HUG_POISON_DISABLED:
+		VALGRIND_MAKE_MEM_UNDEFINED(payload, payload_size);
+		break;
+	case LBER_HUG_POISON_CALLOC_SETUP:
+		memset(payload, 0, payload_size);
+	case LBER_HUG_POISON_CALLOC_ALREADY:
+		VALGRIND_MAKE_MEM_DEFINED(payload, payload_size);
+		break;
 	}
 	return payload;
 }
@@ -374,7 +381,7 @@ __hot __flatten void* lber_hug_memchk_drown(void* payload) {
 		__sync_fetch_and_sub(&lber_hug_memchk_info.mi_inuse_bytes, payload_size);
 	}
 
-	if (lber_hug_memchk_poison_free != LBER_HUG_DISABLED)
+	if (lber_hug_memchk_poison_free != LBER_HUG_POISON_DISABLED)
 		memset(payload, (char) lber_hug_memchk_poison_free, payload_size);
 
 	VALGRIND_MAKE_MEM_NOACCESS(payload, payload_size);
@@ -454,12 +461,11 @@ void* lber_hug_realloc_commit ( size_t old_size,
 	VALGRIND_CLOSE(new_memchunk);
 
 	if (new_size > old_size) {
-		if (lber_hug_memchk_poison_alloc != LBER_HUG_POISON_DEFAULT)
+		if (lber_hug_memchk_poison_alloc != LBER_HUG_POISON_DISABLED)
 			memset((char *) new_payload + old_size,
 			   (char) lber_hug_memchk_poison_alloc, new_size - old_size);
-		if (lber_hug_memchk_poison_alloc != LBER_HUG_POISON_CALLOC)
-			VALGRIND_MAKE_MEM_UNDEFINED(
-						(char *) new_payload + old_size, new_size - old_size);
+		VALGRIND_MAKE_MEM_UNDEFINED(
+			(char *) new_payload + old_size, new_size - old_size);
 	}
 
 	return new_payload;
