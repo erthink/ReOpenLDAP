@@ -25,7 +25,7 @@
 #include "lber_hipagut.h"
 
 int reopenldap_flags
-#if defined(LDAP_MEMORY_DEBUG) || !defined(LDAP_DISABLE_MEMORY_CHECK)
+#if !defined(LDAP_DISABLE_MEMORY_CHECK) && defined(LDAP_MEMORY_DEBUG)
 		= REOPENLDAP_FLAG_IDKFA
 #endif
 		;

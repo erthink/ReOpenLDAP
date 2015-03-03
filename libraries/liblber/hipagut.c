@@ -315,14 +315,13 @@ __hot __flatten void lber_hug_memchk_ensure(const void* payload) {
 }
 
 unsigned lber_hug_nasty_disabled;
-unsigned lber_hug_memchk_poison_alloc	= 0xCC;
-unsigned lber_hug_memchk_poison_free	= 0xDD;
+unsigned lber_hug_memchk_poison_alloc;
+unsigned lber_hug_memchk_poison_free;
 unsigned lber_hug_memchk_trace_disabled
-#ifdef LDAP_MEMORY_TRACE
-	;
-#else
-	= LBER_HUG_DISABLED;
+#ifndef LDAP_MEMORY_TRACE
+	= LBER_HUG_DISABLED
 #endif
+	;
 
 __hot __flatten void* lber_hug_memchk_setup(
 		struct lber_hug_memchk* memchunk,
