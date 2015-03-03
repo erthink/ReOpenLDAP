@@ -87,7 +87,9 @@ typedef struct syncops {
 #define	PS_TASK_QUEUED		0x20
 
 	int		s_inuse;	/* reference count */
+#ifdef SLAP_NO_SL_MALLOC
 	slap_callback *s_scb;
+#endif /* SLAP_NO_SL_MALLOC */
 	struct reslink *s_rl;
 	struct reslink *s_rltail;
 	ldap_pvt_thread_mutex_t	s_mutex;
@@ -1169,11 +1171,10 @@ typedef struct searchstate {
 static int
 syncprov_search_cleanup( Operation *op, SlapReply *rs );
 
-static syncprov_info_t*
+#ifdef SLAP_NO_SL_MALLOC
+static void
 syncprov_search_cleanup_leaks( syncops *so, Operation *op, slap_callback *cb ) {
 	searchstate *ss = cb->sc_private;
-	slap_overinst *on = ss->ss_on;
-	syncprov_info_t *si = (syncprov_info_t *)on->on_bi.bi_private;
 
 	if (! (so->s_flags & PS_IS_DETACHED)) {
 		if ( !BER_BVISNULL( &op->ors_filterstr ) ) {
@@ -1190,8 +1191,8 @@ syncprov_search_cleanup_leaks( syncops *so, Operation *op, slap_callback *cb ) {
 	op->o_tmpfree( ss->ss_sids, op->o_tmpmemctx );
 	ber_bvarray_free_x( ss->ss_ctxcsn, op->o_tmpmemctx );
 	op->o_tmpfree(cb, op->o_tmpmemctx);
-	return si;
 }
+#endif /* SLAP_NO_SL_MALLOC */
 
 static int
 syncprov_op_abandon( Operation *op, SlapReply *rs )
@@ -1213,20 +1214,20 @@ syncprov_op_abandon( Operation *op, SlapReply *rs )
 	ldap_pvt_thread_mutex_unlock( &si->si_ops_mutex );
 
 	if ( so ) {
-		if (so->s_op) {
+#ifdef SLAP_NO_SL_MALLOC
+		if (so->s_op && so->s_scb) {
 			slap_callback *cb, **pcb;
 			for (pcb = &so->s_op->o_callback; (cb = *pcb) != NULL; pcb = &cb->sc_next ) {
-				if (cb->sc_cleanup == syncprov_search_cleanup) {
+				if (cb == so->s_scb) {
 					*pcb = cb->sc_next;
-					cb->sc_next = cb; /* LY: just a marker */
+					cb->sc_next = cb;
 					break;
 				}
 			}
-			if (so->s_scb) {
-				syncprov_search_cleanup_leaks( so, so->s_op, so->s_scb );
-				so->s_scb = NULL;
-			}
+			syncprov_search_cleanup_leaks( so, so->s_op, so->s_scb );
+			so->s_scb = NULL;
 		}
+#endif /* SLAP_NO_SL_MALLOC */
 
 		/* Is this really a Cancel exop? */
 		if ( op->o_tag != LDAP_REQ_ABANDON ) {
@@ -2281,7 +2282,9 @@ syncprov_detach_op( Operation *op, syncops *so, slap_overinst *on )
 	size_t size;
 	char *ptr;
 	GroupAssertion *g1, *g2;
+#ifdef SLAP_NO_SL_MALLOC
 	sync_control *sr;
+#endif /* SLAP_NO_SL_MALLOC */
 
 	/* count the search attrs */
 	for (i=0; op->ors_attrs && !BER_BVISNULL( &op->ors_attrs[i].an_name ); i++) {
@@ -2361,6 +2364,7 @@ syncprov_detach_op( Operation *op, syncops *so, slap_overinst *on )
 	so->s_flags |= PS_IS_DETACHED;
 	op->o_abandon = 1;
 
+#ifdef SLAP_NO_SL_MALLOC
 	if (so->s_filterstr.bv_val != op->ors_filterstr.bv_val) {
 		op->o_tmpfree( so->s_filterstr.bv_val, op->o_tmpmemctx );
 		so->s_filterstr.bv_val = op2->ors_filterstr.bv_val;
@@ -2369,6 +2373,7 @@ syncprov_detach_op( Operation *op, syncops *so, slap_overinst *on )
 	op->o_controls[slap_cids.sc_LDAPsync] = NULL;
 	slap_sync_cookie_free( &sr->sr_state, 0 );
 	op->o_tmpfree( sr, op->o_tmpmemctx );
+#endif /* SLAP_NO_SL_MALLOC */
 
 	/* Add op2 to conn so abandon will find us */
 	op->o_conn->c_n_ops_executing++;
@@ -2391,10 +2396,13 @@ syncprov_search_cleanup( Operation *op, SlapReply *rs )
 		 || op->o_abandon || op->o_cancel
 		 || slapd_shutdown || slapd_gentle_shutdown ) {
 
-		op->o_callback = cb->sc_next;
+		syncprov_info_t *si = (syncprov_info_t *)ss->ss_on->on_bi.bi_private;
+#ifdef SLAP_NO_SL_MALLOC
 		assert(so->s_scb == cb);
-		syncprov_info_t *si = syncprov_search_cleanup_leaks( so, op, cb );
 		so->s_scb = NULL;
+		op->o_callback = cb->sc_next;
+		syncprov_search_cleanup_leaks( so, op, cb );
+#endif /* SLAP_NO_SL_MALLOC */
 
 		if (so->s_next != so) {
 			syncops **pso;
@@ -2415,7 +2423,7 @@ syncprov_search_cleanup( Operation *op, SlapReply *rs )
 	}
 
 skip:
-	return op->o_abandon ? SLAPD_ABANDON : SLAP_CB_CONTINUE;
+	return SLAP_CB_CONTINUE;
 }
 
 static int
@@ -2905,7 +2913,9 @@ shortcut:
 			/* correct the refcount that was set to 2 before */
 			--sop->s_inuse;
 			ss->ss_so = sop;
+#ifdef SLAP_NO_SL_MALLOC
 			sop->s_scb = cb;
+#endif /* SLAP_NO_SL_MALLOC */
 		} else {
 			/* LY: race with async abandon - is this enough ? */
 			Debug( LDAP_DEBUG_SYNC,
@@ -2913,7 +2923,9 @@ shortcut:
 			assert(sop->s_next == sop);
 			cb->sc_cleanup = NULL;
 			op->o_callback = NULL;
+#ifdef SLAP_NO_SL_MALLOC
 			syncprov_search_cleanup_leaks( sop, op, cb );
+#endif /* SLAP_NO_SL_MALLOC */
 			syncprov_free_syncop( sop );
 			return rs->sr_err = SLAPD_ABANDON;
 		}
