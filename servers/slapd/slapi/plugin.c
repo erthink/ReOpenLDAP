@@ -1,7 +1,7 @@
 /* $OpenLDAP$ */
 /* This work is part of OpenLDAP Software <http://www.openldap.org/>.
  *
- * Copyright 2002-2014 The OpenLDAP Foundation.
+ * Copyright 2002-2015 The OpenLDAP Foundation.
  * Portions Copyright 1997,2002-2003 IBM Corporation.
  * All rights reserved.
  *
@@ -148,7 +148,7 @@ slapi_int_register_plugin(
 	Slapi_PBlock *pPB )
 {
 	Slapi_PBlock	*pTmpPB;
-	Slapi_PBlock	*pSavePB;
+	Slapi_PBlock	*pSavePB = NULL;
 	int   		 rc = LDAP_SUCCESS;
 
 	assert( be != NULL );

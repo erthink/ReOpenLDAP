@@ -2,7 +2,7 @@
 /* $OpenLDAP$ */
 /* This work is part of OpenLDAP Software <http://www.openldap.org/>.
  *
- * Copyright 1998-2014 The OpenLDAP Foundation.
+ * Copyright 1998-2015 The OpenLDAP Foundation.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -1160,12 +1160,12 @@ get_vrFilter( Operation *op, BerElement *ber,
 void
 vrFilter_free( Operation *op, ValuesReturnFilter *vrf )
 {
-	ValuesReturnFilter	*p, *next;
+	ValuesReturnFilter	*next;
 
-	for ( p = vrf; p != NULL; p = next ) {
-		next = p->vrf_next;
+	for ( ; vrf != NULL; vrf = next ) {
+		next = vrf->vrf_next;
 
-		switch ( p->vrf_choice & SLAPD_FILTER_MASK ) {
+		switch ( vrf->vrf_choice & SLAPD_FILTER_MASK ) {
 		case LDAP_FILTER_PRESENT:
 			break;
 
@@ -1173,22 +1173,22 @@ vrFilter_free( Operation *op, ValuesReturnFilter *vrf )
 		case LDAP_FILTER_GE:
 		case LDAP_FILTER_LE:
 		case LDAP_FILTER_APPROX:
-			ava_free( op, p->vrf_ava, 1 );
+			ava_free( op, vrf->vrf_ava, 1 );
 			break;
 
 		case LDAP_FILTER_SUBSTRINGS:
-			if ( p->vrf_sub_initial.bv_val != NULL ) {
-				op->o_tmpfree( p->vrf_sub_initial.bv_val, op->o_tmpmemctx );
+			if ( vrf->vrf_sub_initial.bv_val != NULL ) {
+				op->o_tmpfree( vrf->vrf_sub_initial.bv_val, op->o_tmpmemctx );
 			}
-			ber_bvarray_free_x( p->vrf_sub_any, op->o_tmpmemctx );
-			if ( p->vrf_sub_final.bv_val != NULL ) {
-				op->o_tmpfree( p->vrf_sub_final.bv_val, op->o_tmpmemctx );
+			ber_bvarray_free_x( vrf->vrf_sub_any, op->o_tmpmemctx );
+			if ( vrf->vrf_sub_final.bv_val != NULL ) {
+				op->o_tmpfree( vrf->vrf_sub_final.bv_val, op->o_tmpmemctx );
 			}
-			op->o_tmpfree( p->vrf_sub, op->o_tmpmemctx );
+			op->o_tmpfree( vrf->vrf_sub, op->o_tmpmemctx );
 			break;
 
 		case LDAP_FILTER_EXT:
-			mra_free( op, p->vrf_mra, 1 );
+			mra_free( op, vrf->vrf_mra, 1 );
 			break;
 
 		case SLAPD_FILTER_COMPUTED:
@@ -1196,11 +1196,11 @@ vrFilter_free( Operation *op, ValuesReturnFilter *vrf )
 
 		default:
 			Debug( LDAP_DEBUG_ANY, "filter_free: unknown filter type=%lu\n",
-				p->vrf_choice );
+				vrf->vrf_choice );
 			break;
 		}
 
-		op->o_tmpfree( p, op->o_tmpmemctx );
+		op->o_tmpfree( vrf, op->o_tmpmemctx );
 	}
 }
 

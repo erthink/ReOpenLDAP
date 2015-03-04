@@ -1,7 +1,7 @@
 /* $OpenLDAP$ */
 /* This work is part of OpenLDAP Software <http://www.openldap.org/>.
  *
- * Copyright 2005-2014 The OpenLDAP Foundation.
+ * Copyright 2005-2015 The OpenLDAP Foundation.
  * Portions Copyright 2005-2006 SysNet s.n.c.
  * All rights reserved.
  *
@@ -210,6 +210,7 @@ done_search:;
 	sc.sc_response = slap_null_cb;
 	sc.sc_private = NULL;
 
+	slap_biglock_acquire(op->o_bd);
 	for ( ntotdeletes = 0, ndeletes = 1; dc.dc_ndnlist != NULL  && ndeletes > 0; ) {
 		ndeletes = 0;
 
@@ -252,6 +253,7 @@ done_search:;
 
 		ntotdeletes += ndeletes;
 	}
+	slap_biglock_release(op->o_bd);
 
 	rs.sr_err = LDAP_SUCCESS;
 
@@ -1113,7 +1115,7 @@ dds_op_extended( Operation *op, SlapReply *rs )
 		BER_BVZERO( &ttlvalues[ 1 ] );
 
 		/* the entryExpireTimestamp is added by modify */
-		rs->sr_err = op2.o_bd->be_modify( &op2, &rs2 );
+		rs->sr_err = slap_biglock_call_be( op_modify, &op2, &rs2 );
 
 		if ( ttlmod.sml_next != NULL ) {
 			slap_mods_free( ttlmod.sml_next, 1 );

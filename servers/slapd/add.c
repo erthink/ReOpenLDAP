@@ -1,7 +1,7 @@
 /* $OpenLDAP$ */
 /* This work is part of OpenLDAP Software <http://www.openldap.org/>.
  *
- * Copyright 1998-2014 The OpenLDAP Foundation.
+ * Copyright 1998-2015 The OpenLDAP Foundation.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -191,7 +191,7 @@ do_add( Operation *op, SlapReply *rs )
 	LDAP_SLIST_INSERT_HEAD(&op->o_extra, &oex.oe, oe_next);
 
 	op->o_bd = frontendDB;
-	rc = frontendDB->be_add( op, rs );
+	rc = slap_biglock_call_be( op_add, op, rs );
 	LDAP_SLIST_REMOVE(&op->o_extra, &oex.oe, OpExtra, oe_next);
 
 #ifdef LDAP_X_TXN
@@ -293,7 +293,7 @@ fe_op_add( Operation *op, SlapReply *rs )
 	 * 2) this backend is master for what it holds;
 	 * 3) it's a replica and the dn supplied is the updatedn.
 	 */
-	if ( op->o_bd->be_add ) {
+	if ( op->o_bd->bd_info->bi_op_add ) {
 		/* do the update here */
 		int repl_user = be_isupdate( op );
 		if ( !SLAP_SINGLE_SHADOW(op->o_bd) || repl_user ) {
@@ -331,7 +331,7 @@ fe_op_add( Operation *op, SlapReply *rs )
 				}
 			}
 
-			rc = op->o_bd->be_add( op, rs );
+			rc = slap_biglock_call_be( op_add, op, rs );
 			if ( rc == LDAP_SUCCESS ) {
 				OpExtra *oex;
 				/* NOTE: be_entry_release_w() is

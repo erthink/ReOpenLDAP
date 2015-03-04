@@ -2,7 +2,7 @@
 /* $OpenLDAP$ */
 /* This work is part of OpenLDAP Software <http://www.openldap.org/>.
  *
- * Copyright 1999-2014 The OpenLDAP Foundation.
+ * Copyright 1999-2015 The OpenLDAP Foundation.
  * Portions Copyright 2000-2003 Pierangelo Masarati.
  * Portions Copyright 1999-2003 Howard Chu.
  * All rights reserved.
@@ -793,6 +793,8 @@ error_return:;
 		if ( li->li_conn_ttl > 0 ) {
 			lc->lc_create_time = op->o_time;
 		}
+		if ( lc->lc_conn )
+			lc->lc_conn->c_gentle_kick = 1;
 	}
 
 	return rs->sr_err;
@@ -1799,6 +1801,7 @@ ldap_back_op_result(
 retry:;
 		/* if result parsing fails, note the failure reason */
 		rc = ldap_result( lc->lc_ld, msgid, LDAP_MSG_ALL, &tv, &res );
+
 		switch ( rc ) {
 		case 0:
 			if ( timeout && slap_get_time() > stoptime ) {

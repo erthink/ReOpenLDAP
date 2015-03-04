@@ -2,7 +2,7 @@
 /* $OpenLDAP$ */
 /* This work is part of OpenLDAP Software <http://www.openldap.org/>.
  *
- * Copyright 2008-2014 The OpenLDAP Foundation.
+ * Copyright 2008-2015 The OpenLDAP Foundation.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -71,8 +71,7 @@ ndb_db_init( BackendDB *be, ConfigReply *cr )
 	int rc = 0;
 
 	Debug( LDAP_DEBUG_TRACE,
-		LDAP_XSTRING(ndb_db_init) ": Initializing ndb database\n",
-		0, 0, 0 );
+		LDAP_XSTRING(ndb_db_init) ": Initializing ndb database\n");
 
 	/* allocate backend-database-specific stuff */
 	ni = (struct ndb_info *) ch_calloc( 1, sizeof(struct ndb_info) );
@@ -106,14 +105,13 @@ ndb_db_open( BackendDB *be, ConfigReply *cr )
 	if ( be->be_suffix == NULL ) {
 		snprintf( cr->msg, sizeof( cr->msg ),
 			"ndb_db_open: need suffix" );
-		Debug( LDAP_DEBUG_ANY, "%s\n",
-			cr->msg, 0, 0 );
+		Debug( LDAP_DEBUG_ANY, "%s\n", cr->msg );
 		return -1;
 	}
 
 	Debug( LDAP_DEBUG_ARGS,
 		LDAP_XSTRING(ndb_db_open) ": \"%s\"\n",
-		be->be_suffix[0].bv_val, 0, 0 );
+		be->be_suffix[0].bv_val );
 
 	if ( ni->ni_nconns < 1 )
 		ni->ni_nconns = 1;
@@ -294,8 +292,7 @@ ndb_db_open( BackendDB *be, ConfigReply *cr )
 	return 0;
 
 fail:
-	Debug( LDAP_DEBUG_ANY, "%s\n",
-		cr->msg, 0, 0 );
+	Debug( LDAP_DEBUG_ANY, "%s\n", cr->msg );
 	ndb_db_close( be, NULL );
 	return rc;
 }
@@ -350,7 +347,7 @@ extern "C" int
 ndb_back_initialize(
 	BackendInfo	*bi )
 {
-	static char *controls[] = {
+	static const char * const controls[] = {
 		LDAP_CONTROL_ASSERT,
 		LDAP_CONTROL_MANAGEDSAIT,
 		LDAP_CONTROL_NOOP,
@@ -369,7 +366,7 @@ ndb_back_initialize(
 
 	/* initialize the underlying database system */
 	Debug( LDAP_DEBUG_TRACE,
-		LDAP_XSTRING(ndb_back_initialize) ": initialize ndb backend\n", 0, 0, 0 );
+		LDAP_XSTRING(ndb_back_initialize) ": initialize ndb backend\n" );
 
 	ndb_init();
 

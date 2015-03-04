@@ -1,7 +1,7 @@
 /* $OpenLDAP$ */
 /* This work is part of OpenLDAP Software <http://www.openldap.org/>.
  *
- * Copyright 1999-2014 The OpenLDAP Foundation.
+ * Copyright 1999-2015 The OpenLDAP Foundation.
  * Portions Copyright 2001-2003 Pierangelo Masarati.
  * Portions Copyright 1999-2003 Howard Chu.
  * All rights reserved.
@@ -240,7 +240,7 @@ meta_back_db_open(
 	metainfo_t	*mi = (metainfo_t *)be->be_private;
 	char msg[SLAP_TEXT_BUFLEN];
 
-	int		i, rc;
+	int		i;
 
 	if ( mi->mi_ntargets == 0 ) {
 		/* Dynamically added, nothing to check here until

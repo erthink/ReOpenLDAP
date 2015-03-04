@@ -2,7 +2,7 @@
 /* $OpenLDAP$ */
 /* This work is part of OpenLDAP Software <http://www.openldap.org/>.
  *
- * Copyright 2000-2014 The OpenLDAP Foundation.
+ * Copyright 2000-2015 The OpenLDAP Foundation.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -79,7 +79,7 @@ struct mdb_info {
 	int			mi_readers;
 
 	int			mi_txn_cp;
-	uint32_t	mi_txn_cp_sec;
+	uint32_t	mi_txn_cp_period;
 	uint32_t	mi_txn_cp_kbyte;
 	struct re_s		*mi_txn_cp_task;
 	struct re_s		*mi_index_task;

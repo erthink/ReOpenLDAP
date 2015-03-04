@@ -1,0 +1,269 @@
+.TH LDIF 5 "RELEASEDATE" "OpenLDAP LDVERSION"
+.\" $OpenLDAP$
+.\" Copyright 1998-2014 The OpenLDAP Foundation All Rights Reserved.
+.\" Copying restrictions apply.  See COPYRIGHT/LICENSE.
+.SH НАЗВАНИЕ
+ldif \- Формат обмена данными LDAP.
+.SH ОПИСАНИЕ
+Формат обмена данными LDAP (LDAP Data Interchange Format, LDIF) используется для представления
+сведений о записях LDAP и сведений об изменениях каталога LDAP в текстовой форме.
+С LDIF работают инструменты LDAP:
+.BR ldapadd (1)
+принимает на вход, а
+.B ldapsearch (1)
+выводит LDIF-сведения о записях,
+.BR ldapmodify (1)
+принимает на вход LDIF-сведения об изменениях.
+.LP
+В этой man-странице приведено описание основных моментов LDIF.
+Формальная спецификация LDIF дана в RFC 2849.
+.SH СВЕДЕНИЯ О ЗАПИСЯХ
+.LP
+LDIF-сведения о записях используются для представления записей каталога.
+Общая форма сведений о записи:
+.LP
+.nf
+.ft tt
+	dn: <distinguished name>
+	<attrdesc>: <attrvalue>
+	<attrdesc>: <attrvalue>
+	<attrdesc>:: <base64-encoded-value>
+	<attrdesc>:< <URL>
+	...
+.ft
+.fi
+.LP
+Значение атрибута может быть указано как текст UTF-8, либо как данные, закодированные в base64,
+либо для указания места расположения значения атрибута может быть предоставлен URI.
+.LP
+Строка может быть продолжена путём помещения в начало следующей строки
+одного символа пробела или табуляции, например:
+.LP
+.nf
+.ft tt
+	dn: cn=Barbara J Jensen,dc=exam
+	 ple,dc=com
+.ft
+.fi
+.LP
+Строки, начинающиеся с символа решётки ('#'), игнорируются.
+.LP
+Несколько значений одного атрибута указываются в отдельных строках, например:
+.LP
+.nf
+.ft tt
+	cn: Barbara J Jensen
+	cn: Babs Jensen
+.ft
+.fi
+.LP
+Если значение атрибута содержит непечатный символ, или начинается с пробела или двоеточия ':',
+за полем <attrtype> следуют двойное двоеточие и значение, закодированное в нотации base64.
+Например, значение " begins with a space" будет закодировано так:
+.LP
+.nf
+.ft tt
+	cn:: IGJlZ2lucyB3aXRoIGEgc3BhY2U=
+.ft
+.fi
+.LP
+Если значение атрибута располагается в файле, за полем <attrtype> следуют знаки ':<'
+и URI со схемой file:. Например, значение, содержащееся в файле /tmp/value, будет указано так:
+.LP
+.nf
+.ft tt
+	cn:< file:///tmp/value
+.ft
+.fi
+Могут также поддерживаться другие схемы URI (ftp, http).
+.LP
+Несколько записей в одном файле LDIF отделяются друг от друга пустыми строками.
+.SH ПРИМЕР СВЕДЕНИЙ О ЗАПИСИ
+Вот пример LDIF-файла, содержащего три записи:
+.LP
+.nf
+.ft tt
+	dn: cn=Barbara J Jensen,dc=example,dc=com
+	cn: Barbara J Jensen
+	cn: Babs Jensen
+	objectclass: person
+	description:< file:///tmp/babs
+	sn: Jensen
+
+	dn: cn=Bjorn J Jensen,dc=example,dc=com
+	cn: Bjorn J Jensen
+	cn: Bjorn Jensen
+	objectclass: person
+	sn: Jensen
+
+	dn: cn=Jennifer J Jensen,dc=example,dc=com
+	cn: Jennifer J Jensen
+	cn: Jennifer Jensen
+	objectclass: person
+	sn: Jensen
+	jpegPhoto:: /9j/4AAQSkZJRgABAAAAAQABAAD/2wBDABALD
+	 A4MChAODQ4SERATGCgaGBYWGDEjJR0oOjM9PDkzODdASFxOQ
+	 ERXRTc4UG1RV19iZ2hnPk1xeXBkeFxlZ2P/2wBDARESEhgVG
+	...
+.ft
+.fi
+.LP
+Обратите внимание, что значение атрибута description записи Barbara Jensen
+считывается из file:///tmp/babs, а значение атрибута jpegPhoto записи Jennifer Jensen
+закодировано с использованием base64.
+.SH СВЕДЕНИЯ ОБ ИЗМЕНЕНИЯХ
+LDIF-сведения об изменениях используются для представления запросов на изменение
+каталога. Каждое сведение об изменении начинается со строки, указывающей
+уникальное имя изменяемой записи:
+.LP
+.nf
+	dn: <distinguishedname>
+.fi
+.LP
+.nf
+	changetype: <[modify|add|delete|modrdn]>
+.fi
+.LP
+Наконец, даётся собственно информация об изменении, формат которой зависит от того,
+какого рода изменение указано выше. Для \fIchangetype\fP \fImodify\fP
+форматом будет один или несколько из приведённых далее фрагментов:
+.LP
+.nf
+	add: <attributetype>
+	<attrdesc>: <value1>
+	<attrdesc>: <value2>
+	...
+	\-
+.fi
+.LP
+Либо, для модификации replace:
+.LP
+.nf
+	replace: <attributetype>
+	<attrdesc>: <value1>
+	<attrdesc>: <value2>
+	...
+	\-
+.fi
+.LP
+Если строки со значениями атрибута для замещения не заданы, будут удалены все значения
+атрибута \fIattributetype\fP (при его наличии в записи).
+.LP
+Либо, для модификации delete:
+.LP
+.nf
+	delete: <attributetype>
+	<attrdesc>: <value1>
+	<attrdesc>: <value2>
+	...
+	\-
+.fi
+.LP
+Если строки со значениями атрибута для удаления не заданы, будут удалены все значения
+атрибута \fIattributetype\fP.
+.LP
+Фомат для \fIchangetype\fP \fIadd\fP:
+.LP
+.nf
+	<attrdesc1>: <value1>
+	<attrdesc1>: <value2>
+	...
+	<attrdescN>: <value1>
+	<attrdescN>: <value2>
+.fi
+.LP
+Формат для \fIchangetype\fP \fImodrdn\fP или \fImoddn\fP:
+.LP
+.nf
+	newrdn: <newrdn>
+	deleteoldrdn: 0 | 1
+	newsuperior: <DN>
+.fi
+.LP
+Здесь значение 1 в строке deleteoldrdn указывает, что значения атрибутов, формировавшие
+прежний rdn, должны быть удалены из записи, а значение 0 - что эти значения должны быть
+оставлены в записи в качестве неотличительных значений атрибутов. Строка newsuperior
+является опциональной. Если она задана, в ней указывается новая вышестоящая запись,
+к которой будет перемещена изменяемая запись.
+.LP
+Для \fIchangetype\fP \fIdelete\fP никакой дополнительной информации указывать не требуется.
+.LP
+Имейте ввиду, что значения атрибутов могут быть представлены в закодированном в base64 виде,
+либо взяты из файлов, так же, как и в сведениях о записях. Строки в сведениях об изменениях
+могут быть разбиты на несколько по тем же правилам, что и в сведениях о записях.
+.SH ПРИМЕР СВЕДЕНИЙ ОБ ИЗМЕНЕНИЯХ
+В следующем LDIF-файле присутствуют сведения об изменениях каждого типа:
+.LP
+.nf
+	dn: cn=Babs Jensen,dc=example,dc=com
+	changetype: add
+	objectclass: person
+	objectclass: extensibleObject
+	cn: babs
+	cn: babs jensen
+	sn: jensen
+
+	dn: cn=Babs Jensen,dc=example,dc=com
+	changetype: modify
+	add: givenName
+	givenName: Barbara
+	givenName: babs
+	\-
+	replace: description
+	description: the fabulous babs
+	\-
+	delete: sn
+	sn: jensen
+	\-
+
+	dn: cn=Babs Jensen,dc=example,dc=com
+	changetype: modrdn
+	newrdn: cn=Barbara J Jensen
+	deleteoldrdn: 0
+	newsuperior: ou=People,dc=example,dc=com
+
+	dn: cn=Barbara J Jensen,ou=People,dc=example,dc=com
+	changetype: delete
+.fi
+
+.SH ВЫРАЖЕНИЕ INCLUDE
+Разборщик LDIF был расширен: добавлена поддержка выражения
+.B include
+для ссылки на другие файлы LDIF. Выражение
+.B include
+должно отделяться от других сведений пустой строкой. Файл, на который делается ссылка,
+указывается с использованием URI со схемой file:. Всё содержимое данного файла
+встраивается в оригинальный файл, как если бы оно было его составной частью.
+Также могут поддерживаться URI с другими схемами. Пример:
+.LP
+.nf
+	dn: dc=example,dc=com
+	objectclass: domain
+	dc: example
+
+	include: file:///tmp/example.com.ldif
+
+	dn: dc=example,dc=org
+	objectclass: domain
+	dc: example
+.fi
+Данный функционал не является составной частью спецификации LDIF, данной в RFC 2849,
+однако ожидается, что он появится в будущих версиях этой спецификации.
+Он поддерживается командами
+.BR ldapadd (1),
+.BR ldapmodify (1)
+и
+.BR slapadd (8).
+
+.SH СМОТРИТЕ ТАКЖЕ
+.BR ldap (3),
+.BR ldapsearch (1),
+.BR ldapadd (1),
+.BR ldapmodify (1),
+.BR slapadd (8),
+.BR slapcat (8),
+.BR slapd\-ldif (5).
+.LP
+"Формат обмена данными LDAP", Good, G., RFC 2849.
+.SH "ПРИЗНАНИЕ ЗАСЛУГ"
+.so ../Project

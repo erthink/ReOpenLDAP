@@ -2,7 +2,7 @@
 /* $OpenLDAP$ */
 /* This work is part of OpenLDAP Software <http://www.openldap.org/>.
  *
- * Copyright 2000-2014 The OpenLDAP Foundation.
+ * Copyright 2000-2015 The OpenLDAP Foundation.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -351,7 +351,6 @@ bdb_search( Operation *op, SlapReply *rs )
 	Entry		*e = NULL, base, *e_root;
 	Entry		*matched = NULL;
 	EntryInfo	*ei;
-	AttributeName	*attrs;
 	struct berval	realbase = BER_BVNULL;
 	slap_mask_t	mask;
 	time_t		stoptime;
@@ -366,7 +365,6 @@ bdb_search( Operation *op, SlapReply *rs )
 	OpExtra *oex;
 
 	Debug( LDAP_DEBUG_TRACE, "=> " LDAP_XSTRING(bdb_search) "\n");
-	attrs = op->oq_search.rs_attrs;
 
 	LDAP_SLIST_FOREACH( oex, &op->o_extra, oe_next ) {
 		if ( oex->oe_key == bdb )
@@ -673,8 +671,7 @@ cand_retry:
 		if ( id == NOID ) {
 			Debug( LDAP_DEBUG_TRACE,
 				LDAP_XSTRING(bdb_search)
-				": no paged results candidates\n",
-				0, 0, 0 );
+				": no paged results candidates\n" );
 			send_paged_response( op, rs, &lastid, 0 );
 
 			rs->sr_err = LDAP_OTHER;
@@ -771,7 +768,7 @@ txnfail:
 				Debug( LDAP_DEBUG_TRACE,
 					LDAP_XSTRING(bdb_search)
 					": candidate %ld not found\n",
-					(long) id, 0, 0 );
+					(long) id );
 			} else {
 				/* get the next ID from the DB */
 id_retry:
@@ -891,7 +888,7 @@ id_retry:
 			Debug( LDAP_DEBUG_TRACE,
 				LDAP_XSTRING(bdb_search)
 				": %ld scope not okay\n",
-				(long) id, 0, 0 );
+				(long) id );
 			goto loop_continue;
 		}
 
@@ -1057,7 +1054,7 @@ id_retry:
 			Debug( LDAP_DEBUG_TRACE,
 				LDAP_XSTRING(bdb_search)
 				": %ld does not match filter\n",
-				(long) id, 0, 0 );
+				(long) id );
 		}
 
 loop_continue:

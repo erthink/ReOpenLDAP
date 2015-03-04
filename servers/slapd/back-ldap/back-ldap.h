@@ -2,7 +2,7 @@
 /* $OpenLDAP$ */
 /* This work is part of OpenLDAP Software <http://www.openldap.org/>.
  *
- * Copyright 1999-2014 The OpenLDAP Foundation.
+ * Copyright 1999-2015 The OpenLDAP Foundation.
  * Portions Copyright 2000-2003 Pierangelo Masarati.
  * Portions Copyright 1999-2003 Howard Chu.
  * All rights reserved.
@@ -32,6 +32,9 @@ struct ldapinfo_t;
 
 /* stuff required for monitoring */
 typedef struct ldap_monitor_info_t {
+	/* FIXME: ldap-backend frees this context before than
+	 * monitor_back_db_destroy() would be called,
+	 * therefore SIGSEGV should be in monitor_back_db_destroy(). */
 	monitor_subsys_t	lmi_mss[2];
 
 	struct berval		lmi_ndn;

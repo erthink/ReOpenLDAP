@@ -2,7 +2,7 @@
 /* $OpenLDAP$ */
 /* This work is part of OpenLDAP Software <http://www.openldap.org/>.
  *
- * Copyright 2003-2014 The OpenLDAP Foundation.
+ * Copyright 2003-2015 The OpenLDAP Foundation.
  * Portions Copyright 2003 Howard Chu.
  * All rights reserved.
  *
@@ -1054,18 +1054,22 @@ ldap_chain_response( Operation *op, SlapReply *rs )
 		break;
 
 	case LDAP_REQ_ADD:
+		assert(slap_biglock_owned(op->o_bd));
 		rc = ldap_chain_op( op, rs, lback->bi_op_add, ref, 0 );
 		break;
 
 	case LDAP_REQ_DELETE:
+		assert(slap_biglock_owned(op->o_bd));
 		rc = ldap_chain_op( op, rs, lback->bi_op_delete, ref, 0 );
 		break;
 
 	case LDAP_REQ_MODRDN:
+		assert(slap_biglock_owned(op->o_bd));
 		rc = ldap_chain_op( op, rs, lback->bi_op_modrdn, ref, 0 );
-	    	break;
+		break;
 
 	case LDAP_REQ_MODIFY:
+		assert(slap_biglock_owned(op->o_bd));
 		rc = ldap_chain_op( op, rs, lback->bi_op_modify, ref, 0 );
 		break;
 

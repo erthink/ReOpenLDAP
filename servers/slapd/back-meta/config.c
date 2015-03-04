@@ -1,7 +1,7 @@
 /* $OpenLDAP$ */
 /* This work is part of OpenLDAP Software <http://www.openldap.org/>.
  *
- * Copyright 1999-2014 The OpenLDAP Foundation.
+ * Copyright 1999-2015 The OpenLDAP Foundation.
  * Portions Copyright 2001-2003 Pierangelo Masarati.
  * Portions Copyright 1999-2003 Howard Chu.
  * All rights reserved.
@@ -1131,8 +1131,8 @@ static int
 meta_back_cf_gen( ConfigArgs *c )
 {
 	metainfo_t	*mi = ( metainfo_t * )c->be->be_private;
-	metatarget_t	*mt;
-	metacommon_t	*mc;
+	metatarget_t	*mt = NULL;
+	metacommon_t	*mc = NULL;
 
 	int i, rc = 0;
 
@@ -1432,7 +1432,6 @@ meta_back_cf_gen( ConfigArgs *c )
 
 		case LDAP_BACK_CFG_IDASSERT_AUTHZFROM: {
 			BerVarray	*bvp;
-			int		i;
 			struct berval	bv = BER_BVNULL;
 			char		buf[SLAP_TEXT_BUFLEN];
 
@@ -1466,7 +1465,6 @@ meta_back_cf_gen( ConfigArgs *c )
 		}
 
 		case LDAP_BACK_CFG_IDASSERT_BIND: {
-			int		i;
 			struct berval	bc = BER_BVNULL;
 			char		*ptr;
 
@@ -2277,7 +2275,7 @@ meta_back_cf_gen( ConfigArgs *c )
 			Debug( LDAP_DEBUG_ANY, "%s: "
 				"\"binddn\" statement is deprecated; "
 				"use \"acl-authcDN\" instead\n",
-				c->log, 0, 0 );
+				c->log );
 			/* FIXME: some day we'll need to throw an error */
 		}
 
@@ -2293,7 +2291,7 @@ meta_back_cf_gen( ConfigArgs *c )
 			Debug( LDAP_DEBUG_ANY, "%s "
 				"\"bindpw\" statement is deprecated; "
 				"use \"acl-passwd\" instead\n",
-				c->log, 0, 0 );
+				c->log );
 			/* FIXME: some day we'll need to throw an error */
 		}
 
@@ -2649,6 +2647,7 @@ idassert-authzFrom	"dn:<rootdn>"
 				/* count */ ;
 		}
 
+		i = 0;
 		if ( ix >= cnt || ix < 0 ) {
 			ix = cnt;
 		} else {
@@ -2752,6 +2751,7 @@ idassert-authzFrom	"dn:<rootdn>"
 				/* count */ ;
 		}
 
+		i = 0;
 		if ( ix >= cnt || ix < 0 ) {
 			ix = cnt;
 		} else {
@@ -3061,8 +3061,8 @@ ldap_back_map_config(
 		if ( src[ 0 ] != '\0' ) {
 			if ( oc_bvfind( &mapping[ 0 ].src ) == NULL ) {
 				Debug( LDAP_DEBUG_ANY,
-	"warning, source objectClass '%s' should be defined in schema\n",
-					c->log, src );
+						"%s: warning, source objectClass "
+						"'%s' should be defined in schema\n", c->log, src );
 
 				/*
 				 * FIXME: this should become an err
@@ -3073,8 +3073,8 @@ ldap_back_map_config(
 
 		if ( oc_bvfind( &mapping[ 0 ].dst ) == NULL ) {
 			Debug( LDAP_DEBUG_ANY,
-	"warning, destination objectClass '%s' is not defined in schema\n",
-				c->log, dst );
+				   "%s: warning, destination objectClass "
+					"'%s' is not defined in schema\n", c->log, dst );
 		}
 	} else {
 		int			rc;
@@ -3085,8 +3085,8 @@ ldap_back_map_config(
 			rc = slap_bv2ad( &mapping[ 0 ].src, &ad, &text );
 			if ( rc != LDAP_SUCCESS ) {
 				Debug( LDAP_DEBUG_ANY,
-	"warning, source attributeType '%s' should be defined in schema\n",
-					c->log, src );
+					   "%s: warning, source attributeType "
+					   "'%s' should be defined in schema\n", c->log, src );
 
 				/*
 				 * FIXME: this should become an err
@@ -3113,8 +3113,8 @@ ldap_back_map_config(
 		rc = slap_bv2ad( &mapping[ 0 ].dst, &ad, &text );
 		if ( rc != LDAP_SUCCESS ) {
 			Debug( LDAP_DEBUG_ANY,
-	"warning, destination attributeType '%s' is not defined in schema\n",
-				c->log, dst );
+				   "%s: warning, destination attributeType "
+				   "'%s' is not defined in schema\n", c->log, dst );
 
 			/*
 			 * we create a fake "proxied" ad

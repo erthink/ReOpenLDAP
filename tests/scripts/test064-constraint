@@ -117,15 +117,34 @@ if test $WAIT != 0 ; then
 fi
 sleep 1
 
+echo "Using ldapsearch to check that provider slapd is running..."
+for i in 1 2 3 4 5; do
+	$LDAPSEARCH -s base -b "" -H $URI1 \
+		'objectclass=*' > /dev/null 2>&1
+	RC=$?
+	if test $RC = 0 ; then
+		break
+	fi
+	echo "Waiting $i seconds for slapd to start..."
+	sleep $i
+done
+
+if test $RC != 0 ; then
+	echo "ldapsearch failed ($RC)!"
+	test $KILLSERVERS != no && kill -HUP $PID
+	exit $RC
+fi
+
+
 echo "Adding basic structure..."
-$LDAPADD -D "$MANAGERDN" -H $URI1 -w $PASSWD -f $ROOTLDIF &>/dev/null
+$LDAPADD -D "$MANAGERDN" -H $URI1 -w $PASSWD -f $ROOTLDIF > $LOG2 2>&1
 RC=$?
 if test $RC != 0 ; then
 	echo "ldapadd failed ($RC)!"
 	test $KILLSERVERS != no && kill -HUP $PID
 	exit $RC
 fi
-$LDAPADD -D "$MANAGERDN" -H $URI1 -w $PASSWD -f $USERLDIF &>/dev/null
+$LDAPADD -D "$MANAGERDN" -H $URI1 -w $PASSWD -f $USERLDIF > $LOG2 2>&1
 RC=$?
 if test $RC != 0 ; then
 	echo "ldapadd failed ($RC)!"
@@ -136,14 +155,14 @@ fi
 echo "Running constraint tests..."
 for ldif in $SRCDIR/data/constraint/{*ok*,*fail*}.ldif; do
 	### reload
-	$LDAPDELETE -D "$MANAGERDN" -H $URI1 -w $PASSWD "$USERDN" &>/dev/null
+	$LDAPDELETE -D "$MANAGERDN" -H $URI1 -w $PASSWD "$USERDN" > $LOG2 2>&1
 	RC=$?
 	if test $RC != 0 ; then
 		echo "ldapdelete failed ($RC)!"
 		test $KILLSERVERS != no && kill -HUP $PID
 		exit $RC
 	fi
-	$LDAPADD -D "$MANAGERDN" -H $URI1 -w $PASSWD -f $USERLDIF &>/dev/null
+	$LDAPADD -D "$MANAGERDN" -H $URI1 -w $PASSWD -f $USERLDIF > $LOG2 2>&1
 	RC=$?
 	if test $RC != 0 ; then
 		echo "ldapadd failed ($RC)!"
@@ -155,7 +174,7 @@ for ldif in $SRCDIR/data/constraint/{*ok*,*fail*}.ldif; do
 	echo -n "  [$ldif]: "
 
 	### modify
-	$LDAPMODIFY -H $URI1 -x -D "$MANAGERDN" -f $ldif -w $PASSWD &>/dev/null
+	$LDAPMODIFY -H $URI1 -x -D "$MANAGERDN" -f $ldif -w $PASSWD > $LOG2 2>&1
 	RC=$?
 	if test $RC == 0 ; then
 		echo "OK" | tee -a $SCRIPTOUT

@@ -2,7 +2,7 @@
 /* $OpenLDAP$ */
 /* This work is part of OpenLDAP Software <http://www.openldap.org/>.
  *
- * Copyright 2000-2014 The OpenLDAP Foundation.
+ * Copyright 2000-2015 The OpenLDAP Foundation.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -100,6 +100,7 @@ mdb_attr_dbs_open(
 
 	txn = tx0;
 	if ( txn == NULL ) {
+		assert(slap_biglock_owned(be));
 		rc = mdb_txn_begin( mdb->mi_dbenv, NULL, 0, &txn );
 		if ( rc ) {
 			snprintf( cr->msg, sizeof(cr->msg), "database \"%s\": "

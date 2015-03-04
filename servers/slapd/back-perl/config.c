@@ -1,7 +1,7 @@
 /* $OpenLDAP$ */
 /* This work is part of OpenLDAP Software <http://www.openldap.org/>.
  *
- * Copyright 1999-2014 The OpenLDAP Foundation.
+ * Copyright 1999-2015 The OpenLDAP Foundation.
  * Portions Copyright 1999 John C. Quillan.
  * Portions Copyright 2002 myinternet Limited.
  * All rights reserved.
@@ -64,6 +64,7 @@ static ConfigOCs perlocs[] = {
 	{ NULL }
 };
 
+#if 0 /* unused */
 static ConfigOCs ovperlocs[] = {
 	{ "( OLcfgDbOc:11.2 "
 		"NAME 'olcovPerlConfig' "
@@ -74,6 +75,7 @@ static ConfigOCs ovperlocs[] = {
 			Cft_Overlay, perlcfg, NULL, NULL },
 	{ NULL }
 };
+#endif /* #if 0, unused */
 
 /**********************************************************
  *
@@ -112,7 +114,7 @@ perl_cf(
 )
 {
 	PerlBackend *pb = (PerlBackend *) c->be->be_private;
-	SV* loc_sv;
+	SV* loc_sv ALLOW_UNUSED;
 	int count ;
 	int args;
 	int rc = 0;

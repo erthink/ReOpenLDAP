@@ -1,7 +1,7 @@
 /* $OpenLDAP$ */
 /* This work is part of OpenLDAP Software <http://www.openldap.org/>.
  *
- * Copyright 2004-2014 The OpenLDAP Foundation.
+ * Copyright 2004-2015 The OpenLDAP Foundation.
  * Portions Copyright 2004-2005 Howard Chu, Symas Corporation.
  * Portions Copyright 2004 Hewlett-Packard Company.
  * All rights reserved.
@@ -1192,7 +1192,7 @@ locked:
 			}
 			op2.o_bd->bd_info = (BackendInfo *)on->on_info;
 		}
-		rc = op2.o_bd->be_modify( &op2, &r2 );
+		rc = slap_biglock_call_be( op_modify, &op2, &r2 );
 		slap_mods_free( mod, 1 );
 	}
 
@@ -2360,7 +2360,7 @@ ppolicy_db_destroy(
 	return 0;
 }
 
-static char *extops[] = {
+static const char * const extops[] = {
 	LDAP_EXOP_MODIFY_PASSWD,
 	NULL
 };

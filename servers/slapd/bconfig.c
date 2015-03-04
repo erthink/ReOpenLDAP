@@ -2,7 +2,7 @@
 /* $OpenLDAP$ */
 /* This work is part of OpenLDAP Software <http://www.openldap.org/>.
  *
- * Copyright 2005-2014 The OpenLDAP Foundation.
+ * Copyright 2005-2015 The OpenLDAP Foundation.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -122,6 +122,8 @@ static ConfigDriver config_timelimit;
 static ConfigDriver config_overlay;
 static ConfigDriver config_subordinate;
 static ConfigDriver config_suffix;
+static ConfigDriver config_biglock;
+static ConfigDriver config_reopenldap;
 #ifdef LDAP_TCP_BUFFER
 static ConfigDriver config_tcp_buffer;
 #endif /* LDAP_TCP_BUFFER */
@@ -777,7 +779,15 @@ static ConfigTable config_back_cf_table[] = {
 		&config_generic, "( OLcfgGlAt:0.44 NAME 'olcCoredumpLimit' "
 			"DESC 'Limit coredump size' "
 			"SYNTAX OMsInteger SINGLE-VALUE )", NULL, NULL },
-
+	{ "biglock", "mode", 2, 2, 0, ARG_DB|ARG_MAGIC,
+		&config_biglock, "( OLcfgDbAt:0.45 NAME 'olcBiglock' "
+			"DESC 'Synchronuzation mode for suffix/database' "
+			"SYNTAX OMsDirectoryString SINGLE-VALUE )", NULL, NULL },
+	{ "reopenldap", "[iddqd] [idkfa]", 0, 0, 0, ARG_MAGIC,
+		&config_reopenldap, "( OLcfgGlAt:0.46 NAME 'olcReOpenLDAP' "
+			"DESC 'ReOpenLDAP cheating flags' "
+			"EQUALITY caseIgnoreMatch "
+			"SYNTAX OMsDirectoryString X-ORDERED 'VALUES' )", NULL, NULL },
 	{ NULL,	NULL, 0, 0, 0, ARG_IGNORED,
 		NULL, NULL, NULL, NULL }
 };
@@ -2017,6 +2027,15 @@ sortval_reject:
 			if(c->value_int) {
 				SLAP_DBFLAGS(c->be) &= ~SLAP_DBFLAG_SINGLE_SHADOW;
 				SLAP_DBFLAGS(c->be) |= SLAP_DBFLAG_MULTI_SHADOW;
+				if (SLAPD_BIGLOCK_NONE == c->be->bd_biglock_mode) {
+					snprintf( c->cr_msg, sizeof( c->cr_msg ),
+					  "for properly operation in multi-master mode"
+					  " at least 'biglock local' is required for a database." );
+					Debug(LDAP_DEBUG_ANY, "%s: %s\n",
+						c->log, c->cr_msg );
+					if (reopenldap_mode_iddqd())
+						return 1;
+				}
 			} else {
 				SLAP_DBFLAGS(c->be) |= SLAP_DBFLAG_SINGLE_SHADOW;
 				SLAP_DBFLAGS(c->be) &= ~SLAP_DBFLAG_MULTI_SHADOW;
@@ -3044,6 +3063,139 @@ config_suffix(ConfigArgs *c)
 }
 
 static int
+config_biglock(ConfigArgs *c)
+{
+	int mode;
+	char	*notallowed = NULL;
+
+	if ( notallowed != NULL ) {
+		char	buf[ SLAP_TEXT_BUFLEN ] = { '\0' };
+
+		switch ( c->op ) {
+		case LDAP_MOD_ADD:
+		case LDAP_MOD_DELETE:
+		case LDAP_MOD_REPLACE:
+		case LDAP_MOD_INCREMENT:
+		case SLAP_CONFIG_ADD:
+			if ( !BER_BVISNULL( &c->value_dn ) ) {
+				snprintf( buf, sizeof( buf ), "mode <%s> ",
+						c->value_dn.bv_val );
+			}
+
+			Debug(LDAP_DEBUG_ANY,
+				"%s: biglock %snot allowed in %s database.\n",
+				c->log, buf, notallowed );
+			break;
+
+		case SLAP_CONFIG_EMIT:
+		default:
+			/* don't complain when emitting... */
+			break;
+		}
+
+		return 1;
+	}
+
+	if (c->op == SLAP_CONFIG_EMIT) {
+		const char* str;
+		switch (c->be->bd_biglock_mode) {
+		case SLAPD_BIGLOCK_NONE:
+			str = "none";
+			break;
+		case SLAPD_BIGLOCK_LOCAL:
+			str = "local";
+			break;
+#ifdef SLAPD_BIGLOCK_ENGINE
+		case SLAPD_BIGLOCK_ENGINE:
+			str = "engine";
+			break;
+#endif
+		case SLAPD_BIGLOCK_COMMON:
+			str = "common";
+			break;
+		default:
+			return 1;
+		}
+		c->value_string = ch_strdup( str );
+		return 0;
+	} else if ( c->op == LDAP_MOD_DELETE ) {
+		c->be->bd_biglock_mode = SLAPD_BIGLOCK_NONE;
+		return 0;
+	}
+
+	if (strcasecmp(c->argv[1], "none") == 0) {
+		mode = SLAPD_BIGLOCK_NONE;
+	} else if (strcasecmp(c->argv[1], "local") == 0) {
+		mode = SLAPD_BIGLOCK_LOCAL;
+#ifdef SLAPD_BIGLOCK_ENGINE
+	} else if (strcasecmp(c->argv[1], "engine") == 0) {
+		mode = SLAPD_BIGLOCK_ENGINE;
+#endif
+	} else if (strcasecmp(c->argv[1], "common") == 0) {
+		mode = SLAPD_BIGLOCK_COMMON;
+	} else {
+		snprintf( c->cr_msg, sizeof( c->cr_msg ), "Invalid 'biglock'' mode <%s>", c->argv[1] );
+		Debug(LDAP_DEBUG_ANY, "%s: %s\n", c->log, c->cr_msg);
+		return 1;
+	}
+
+	if ( c->be == frontendDB ) {
+		if (mode != SLAPD_BIGLOCK_NONE && mode != SLAPD_BIGLOCK_COMMON) {
+			snprintf( c->cr_msg, sizeof( c->cr_msg ), "Only 'none' and 'common' biglock-modes are valid for frontendDB" );
+			Debug(LDAP_DEBUG_ANY, "%s: %s\n", c->log, c->cr_msg);
+			return 1;
+		}
+	} else if ( SLAP_MONITOR(c->be) ) {
+		if (mode != SLAPD_BIGLOCK_NONE) {
+			snprintf( c->cr_msg, sizeof( c->cr_msg ), "Only 'none' biglock-mode is valid for monitor" );
+			Debug(LDAP_DEBUG_ANY, "%s: %s\n", c->log, c->cr_msg);
+			return 1;
+		}
+	} else if ( SLAP_CONFIG(c->be) ) {
+		if (mode != SLAPD_BIGLOCK_LOCAL) {
+			snprintf( c->cr_msg, sizeof( c->cr_msg ), "Only 'local' biglock-mode is valid for config" );
+			Debug(LDAP_DEBUG_ANY, "%s: %s\n", c->log, c->cr_msg);
+			return 1;
+		}
+	}
+
+	c->be->bd_biglock_mode = mode;
+	return 0;
+}
+
+static int
+config_reopenldap(ConfigArgs *c)
+{
+	slap_mask_t flags = 0;
+	int i = INT_MAX;
+	static const slap_verbmasks reopenldap_ops[] = {
+		{ BER_BVC("iddqd"),		REOPENLDAP_FLAG_IDDQD },
+		{ BER_BVC("idkfa"),		REOPENLDAP_FLAG_IDKFA },
+		{ BER_BVNULL,	0 }
+	};
+
+	if (c->op == SLAP_CONFIG_EMIT) {
+		return mask_to_verbs( reopenldap_ops, reopenldap_flags, &c->rvalue_vals );
+	} else if ( c->op == LDAP_MOD_DELETE ) {
+		if ( !c->line ) {
+			reopenldap_flags_setup( 0 );
+		} else {
+			i = verb_to_mask( c->line, reopenldap_ops );
+			reopenldap_flags_setup( reopenldap_flags & ~reopenldap_ops[i].mask );
+		}
+		return 0;
+	}
+	i = verbs_to_mask( c->argc, c->argv, reopenldap_ops, &flags );
+	if ( i ) {
+		snprintf( c->cr_msg, sizeof( c->cr_msg ), "<%s> unknown ReOpenLDAP's flag", c->argv[0] );
+		Debug(LDAP_DEBUG_ANY, "%s: %s %s\n", c->log, c->cr_msg, c->argv[i]);
+		return 1 ;
+	}
+	reopenldap_flags_setup( reopenldap_flags | flags );
+	return 0 ;
+}
+
+static int
 config_rootdn(ConfigArgs *c) {
 	if (c->op == SLAP_CONFIG_EMIT) {
 		if ( !BER_BVISNULL( &c->be->be_rootdn )) {
@@ -3743,6 +3895,14 @@ config_shadow( ConfigArgs *c, slap_mask_t flag )
 			SLAP_DBFLAGS(c->be) |= SLAP_DBFLAG_SINGLE_SHADOW;
 	}
 
+	if (SLAP_MULTIMASTER(c->be) && SLAPD_BIGLOCK_NONE == c->be->bd_biglock_mode) {
+		Debug( LDAP_DEBUG_ANY,
+			"%s: for properly operation in multi-master mode"
+			" at least 'biglock local' is required for a database.\n", c->log );
+		if (reopenldap_mode_iddqd())
+			return 1;
+	}
+
 	return 0;
 }
 
@@ -3980,6 +4140,8 @@ typedef struct setup_cookie {
 static int
 config_ldif_resp( Operation *op, SlapReply *rs )
 {
+	assert(slap_biglock_owned(op->o_bd));
+
 	if ( rs->sr_type == REP_SEARCH ) {
 		setup_cookie *sc = op->o_callback->sc_private;
 		struct berval pdn;
@@ -4163,6 +4325,7 @@ config_setup_ldif( BackendDB *be, const char *dir, int readit ) {
 		prev_DN_strict = slap_DN_strict;
 		slap_DN_strict = 0;
 
+		slap_biglock_acquire(op->o_bd);
 		rc = op->o_bd->be_search( op, &rs );
 
 		/* Restore normal DN validation */
@@ -4172,13 +4335,14 @@ config_setup_ldif( BackendDB *be, const char *dir, int readit ) {
 		if ( rc == LDAP_SUCCESS && sc.frontend ) {
 			rs_reinit( &rs, REP_RESULT );
 			op->ora_e = sc.frontend;
-			rc = op->o_bd->be_add( op, &rs );
+			rc = op->o_bd->bd_info->bi_op_add( op, &rs );
 		}
 		if ( rc == LDAP_SUCCESS && sc.config ) {
 			rs_reinit( &rs, REP_RESULT );
 			op->ora_e = sc.config;
-			rc = op->o_bd->be_add( op, &rs );
+			rc = op->o_bd->bd_info->bi_op_add( op, &rs );
 		}
+		slap_biglock_release(op->o_bd);
 		ldap_pvt_thread_pool_context_reset( thrctx );
 	}
 
@@ -4572,7 +4736,7 @@ config_rename_one( Operation *op, SlapReply *rs, Entry *e,
 		op->orr_modlist = NULL;
 		slap_modrdn2mods( op, rs );
 		slap_mods_opattrs( op, &op->orr_modlist, 1 );
-		rc = op->o_bd->be_modrdn( op, rs );
+		rc = slap_biglock_call_be( op_modrdn, op, rs );
 		slap_mods_free( op->orr_modlist, 1 );
 
 		op->o_bd = be;
@@ -5459,7 +5623,7 @@ config_back_add( Operation *op, SlapReply *rs )
 		rs->sr_err = SLAPD_ABANDON;
 		goto out;
 	}
-	ldap_pvt_thread_pool_pause( &connection_pool );
+	slap_biglock_pool_pause(op->o_bd);
 
 	/* Strategy:
 	 * 1) check for existence of entry
@@ -5501,7 +5665,7 @@ config_back_add( Operation *op, SlapReply *rs )
 
 		scp = op->o_callback;
 		op->o_callback = &sc;
-		op->o_bd->be_add( op, rs );
+		slap_biglock_call_be( op_add, op, rs );
 		op->o_bd = be;
 		op->o_callback = scp;
 		op->o_dn = dn;
@@ -5945,7 +6109,7 @@ config_back_modify( Operation *op, SlapReply *rs )
 			rs->sr_err = SLAPD_ABANDON;
 			goto out;
 		}
-		ldap_pvt_thread_pool_pause( &connection_pool );
+		slap_biglock_pool_pause(op->o_bd);
 	}
 
 	/* Strategy:
@@ -5971,7 +6135,7 @@ config_back_modify( Operation *op, SlapReply *rs )
 
 		scp = op->o_callback;
 		op->o_callback = &sc;
-		op->o_bd->be_modify( op, rs );
+		slap_biglock_call_be( op_modify, op, rs );
 		op->o_bd = be;
 		op->o_callback = scp;
 		op->o_dn = dn;
@@ -6114,7 +6278,7 @@ config_back_modrdn( Operation *op, SlapReply *rs )
 		rs->sr_err = SLAPD_ABANDON;
 		goto out;
 	}
-	ldap_pvt_thread_pool_pause( &connection_pool );
+	slap_biglock_pool_pause(op->o_bd);
 
 	if ( ce->ce_type == Cft_Schema ) {
 		req_modrdn_s modr = op->oq_modrdn;
@@ -6211,7 +6375,7 @@ config_back_delete( Operation *op, SlapReply *rs )
 		char *iptr;
 		int count, ixold;
 
-		ldap_pvt_thread_pool_pause( &connection_pool );
+		slap_biglock_pool_pause( op->o_bd );
 
 		if ( ce->ce_type == Cft_Overlay ){
 			overlay_remove( ce->ce_be, (slap_overinst *)ce->ce_bi, op );
@@ -6299,7 +6463,7 @@ config_back_delete( Operation *op, SlapReply *rs )
 
 			scp = op->o_callback;
 			op->o_callback = &sc;
-			op->o_bd->be_delete( op, rs );
+			slap_biglock_call_be( op_delete, op, rs );
 			op->o_bd = be;
 			op->o_callback = scp;
 			op->o_dn = dn;
@@ -6577,7 +6741,7 @@ fail:
 		slap_add_opattrs( op, NULL, NULL, 0, 0 );
 		if ( !op->o_noop ) {
 			SlapReply rs2 = {REP_RESULT};
-			op->o_bd->be_add( op, &rs2 );
+			slap_biglock_call_be( op_add, op, &rs2 );
 			rs->sr_err = rs2.sr_err;
 			rs_assert_done( &rs2 );
 			if ( ( rs2.sr_err != LDAP_SUCCESS )
@@ -7101,6 +7265,7 @@ config_back_db_init( BackendDB *be, ConfigReply* cr )
 	cfb->cb_config = ch_calloc( 1, sizeof(ConfigFile));
 	cfn = cfb->cb_config;
 	be->be_private = cfb;
+	slap_biglock_init(&cfb->cb_db);
 
 	ber_dupbv( &be->be_rootdn, &config_rdn );
 	ber_dupbv( &be->be_rootndn, &be->be_rootdn );
@@ -7209,7 +7374,7 @@ config_tool_entry_get( BackendDB *be, ID id )
 static int entry_put_got_frontend=0;
 static int entry_put_got_config=0;
 static ID
-config_tool_entry_put( BackendDB *be, Entry *e, struct berval *text )
+nolock_config_tool_entry_put( BackendDB *be, Entry *e, struct berval *text )
 {
 	CfBackInfo *cfb = be->be_private;
 	BackendInfo *bi = cfb->cb_db.bd_info;
@@ -7372,6 +7537,16 @@ config_tool_entry_put( BackendDB *be, Entry *e, struct berval *text )
 		return NOID;
 }
 
+static ID
+config_tool_entry_put( BackendDB *be, Entry *e, struct berval *text )
+{
+	ID res;
+	slap_biglock_acquire(be);
+	res = nolock_config_tool_entry_put(be, e, text);
+	slap_biglock_release(be);
+	return res;
+}
+
 static struct {
 	char *name;
 	AttributeDescription **desc;
@@ -7419,7 +7594,7 @@ config_back_initialize( BackendInfo *bi )
 	int			i;
 	AttributeDescription	*ad = NULL;
 	const char		*text;
-	static char		*controls[] = {
+	static const char * const controls[] = {
 		LDAP_CONTROL_MANAGEDSAIT,
 		NULL
 	};

@@ -2,7 +2,7 @@
 /* $OpenLDAP$ */
 /* This work is part of OpenLDAP Software <http://www.openldap.org/>.
  *
- * Copyright 2000-2014 The OpenLDAP Foundation.
+ * Copyright 2000-2015 The OpenLDAP Foundation.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -275,7 +275,7 @@ retry:	/* transaction retry */
 		rs->sr_ref = get_entry_referrals( op, e );
 
 		Debug( LDAP_DEBUG_TRACE, LDAP_XSTRING(bdb_modrdn)
-			": entry %s is referral\n", e->e_dn, 0, 0 );
+			": entry %s is referral\n", e->e_dn );
 
 		rs->sr_err = LDAP_REFERRAL,
 		rs->sr_matched = e->e_name.bv_val;
@@ -328,7 +328,7 @@ retry:	/* transaction retry */
 		p = eip->bei_e;
 		if( p == NULL) {
 			Debug( LDAP_DEBUG_TRACE, LDAP_XSTRING(bdb_modrdn)
-				": parent does not exist\n", 0, 0, 0);
+				": parent does not exist\n" );
 			rs->sr_err = LDAP_OTHER;
 			rs->sr_text = "old entry's parent does not exist";
 			goto return_results;
@@ -380,7 +380,7 @@ retry:	/* transaction retry */
 		Debug( LDAP_DEBUG_TRACE,
 			LDAP_XSTRING(bdb_modrdn)
 			": new parent \"%s\" requested...\n",
-			op->oq_modrdn.rs_newSup->bv_val, 0, 0 );
+			op->oq_modrdn.rs_newSup->bv_val );
 
 		/*  newSuperior == oldParent? */
 		if( dn_match( &p_ndn, op->oq_modrdn.rs_nnewSup ) ) {
@@ -437,7 +437,7 @@ retry:	/* transaction retry */
 				Debug( LDAP_DEBUG_TRACE,
 					LDAP_XSTRING(bdb_modrdn)
 					": newSup(ndn=%s) not here!\n",
-					np_ndn->bv_val, 0, 0);
+					np_ndn->bv_val );
 				rs->sr_text = "new superior not found";
 				rs->sr_err = LDAP_NO_SUCH_OBJECT;
 				goto return_results;
@@ -446,7 +446,7 @@ retry:	/* transaction retry */
 			Debug( LDAP_DEBUG_TRACE,
 				LDAP_XSTRING(bdb_modrdn)
 				": wr to new parent OK np=%p, id=%ld\n",
-				(void *) np, (long) np->e_id, 0 );
+				(void *) np, (long) np->e_id );
 
 			/* check newSuperior for "children" acl */
 			rs->sr_err = access_allowed( op, np, children,
@@ -461,8 +461,7 @@ retry:	/* transaction retry */
 
 				Debug( LDAP_DEBUG_TRACE,
 					LDAP_XSTRING(bdb_modrdn)
-					": no wr to newSup children\n",
-					0, 0, 0 );
+					": no wr to newSup children\n" );
 				rs->sr_text = "no write access to new superior's children";
 				rs->sr_err = LDAP_INSUFFICIENT_ACCESS;
 				goto return_results;
@@ -472,8 +471,7 @@ retry:	/* transaction retry */
 				/* parent is an alias, don't allow add */
 				Debug( LDAP_DEBUG_TRACE,
 					LDAP_XSTRING(bdb_modrdn)
-					": entry is alias\n",
-					0, 0, 0 );
+					": entry is alias\n" );
 				rs->sr_text = "new superior is an alias";
 				rs->sr_err = LDAP_ALIAS_PROBLEM;
 				goto return_results;
@@ -483,8 +481,7 @@ retry:	/* transaction retry */
 				/* parent is a referral, don't allow add */
 				Debug( LDAP_DEBUG_TRACE,
 					LDAP_XSTRING(bdb_modrdn)
-					": entry is referral\n",
-					0, 0, 0 );
+					": entry is referral\n" );
 				rs->sr_text = "new superior is a referral";
 				rs->sr_err = LDAP_OTHER;
 				goto return_results;
@@ -523,8 +520,7 @@ retry:	/* transaction retry */
 
 		Debug( LDAP_DEBUG_TRACE,
 			LDAP_XSTRING(bdb_modrdn)
-			": wr to new parent's children OK\n",
-			0, 0, 0 );
+			": wr to new parent's children OK\n" );
 
 		new_parent_dn = np_dn;
 	}
@@ -595,7 +591,7 @@ retry:	/* transaction retry */
 		Debug( LDAP_DEBUG_TRACE,
 			LDAP_XSTRING(bdb_modrdn)
 			": txn_begin(2) failed: %s (%d)\n",
-			db_strerror(rs->sr_err), rs->sr_err, 0 );
+			db_strerror(rs->sr_err), rs->sr_err );
 		rs->sr_err = LDAP_OTHER;
 		rs->sr_text = "internal error";
 		goto return_results;

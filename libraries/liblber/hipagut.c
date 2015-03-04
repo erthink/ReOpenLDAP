@@ -1,17 +1,17 @@
 /*
-	Imported from 1Hippeus project at 2015-01-19.
+    Imported from 1Hippeus project at 2015-01-19.
 
-	Copyright (c) 2013 Leonid Yuriev <leo@yuriev.ru>.
-	Copyright (c) 2014 Peter-Service R&D LLC.
+    Copyright (c) 2015 Leonid Yuriev <leo@yuriev.ru>.
+    Copyright (c) 2015 Peter-Service R&D LLC.
 
-    This file is part of 1Hippeus.
+    This file is part of ReOpenLDAP.
 
-    1Hippeus is free software; you can redistribute it and/or modify it under
+    ReOpenLDAP is free software; you can redistribute it and/or modify it under
     the terms of the GNU Affero General Public License as published by
     the Free Software Foundation; either version 3 of the License, or
     (at your option) any later version.
 
-    1Hippeus is distributed in the hope that it will be useful,
+    ReOpenLDAP is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU Affero General Public License for more details.
@@ -20,73 +20,19 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include "portable.h"
+
 #include <time.h>
 #include <unistd.h>
 #include <string.h>
 #include <stdint.h>
 
 #include "lber_hipagut.h"
-#include "portable.h"
 
 /* LY: only for self debugging
 #include <stdio.h> */
 
 /* -------------------------------------------------------------------------- */
-
-#ifndef __forceinline
-#	if defined(__GNU_C) || defined(__clang__)
-#		define __forceinline __inline __attribute__((always_inline))
-#	elif ! defined(_MSC_VER)
-#		define __forceinline
-#	endif
-#endif /* __forceinline */
-
-#ifndef __must_check_result
-#	if defined(__GNU_C) || defined(__clang__)
-#		define __must_check_result __attribute__((warn_unused_result))
-#	else
-#		define __must_check_result
-#	endif
-#endif /* __must_check_result */
-
-#ifndef __hot
-#	if defined(__GNU_C) || defined(__clang__)
-#		define __hot __attribute__((hot, optimize("O3")))
-#	else
-#		define __hot
-#	endif
-#endif /* __hot */
-
-#ifndef __flatten
-#	if defined(__GNU_C) || defined(__clang__)
-#		define __flatten __attribute__((flatten))
-#	else
-#		define __flatten
-#	endif
-#endif /* __flatten */
-
-#ifdef USE_VALGRIND
-		/* Get debugging help from Valgrind */
-#       include <valgrind/memcheck.h>
-#else
-#       define VALGRIND_CREATE_MEMPOOL(h,r,z)
-#       define VALGRIND_DESTROY_MEMPOOL(h)
-#       define VALGRIND_MEMPOOL_TRIM(h,a,s)
-#       define VALGRIND_MEMPOOL_ALLOC(h,a,s)
-#       define VALGRIND_MEMPOOL_FREE(h,a)
-#       define VALGRIND_MEMPOOL_CHANGE(h,a,b,s)
-#       define VALGRIND_MAKE_MEM_NOACCESS(a,s)
-#       define VALGRIND_MAKE_MEM_DEFINED(a,s)
-#       define VALGRIND_MAKE_MEM_UNDEFINED(a,s)
-#       define VALGRIND_DISABLE_ADDR_ERROR_REPORTING_IN_RANGE(a,s)
-#       define VALGRIND_ENABLE_ADDR_ERROR_REPORTING_IN_RANGE(a,s)
-#endif
-
-/* -------------------------------------------------------------------------- */
-
-#ifndef CACHELINE_SIZE
-#	define CACHELINE_SIZE 64
-#endif
 
 static __forceinline uint64_t unaligned_load(const volatile void* ptr) {
 #if defined(__x86_64__) || defined(__i386__)
@@ -114,14 +60,7 @@ static __forceinline void unaligned_store(volatile void* ptr, uint64_t value) {
 #endif /* arch selector */
 }
 
-#if defined(__MSC_VER)
-	__declspec(align(CACHELINE_SIZE))
-#endif /* _MSC_VER */
-struct _lber_hug_memchk_info
-#if defined(__GNU_C) || defined(__clang__)
-		__attribute__((aligned(CACHELINE_SIZE)))
-#endif /* __GNUC__ || __clang__ */
-	lber_hug_memchk_info;
+struct _lber_hug_memchk_info lber_hug_memchk_info __cache_aligned;
 
 #if defined(__GNUC__) || defined(__clang__)
 	/* LY: noting needed */
@@ -408,10 +347,17 @@ __hot __flatten void* lber_hug_memchk_setup(
 
 	if (poison_mode == LBER_HUG_POISON_DEFAULT)
 		poison_mode = lber_hug_memchk_poison_alloc;
-	if (poison_mode != LBER_HUG_DISABLED) {
+	switch(poison_mode) {
+	default:
 		memset(payload, (char) poison_mode, payload_size);
-		if (poison_mode != LBER_HUG_POISON_CALLOC)
-			VALGRIND_MAKE_MEM_UNDEFINED(payload, payload_size);
+	case LBER_HUG_POISON_DISABLED:
+		VALGRIND_MAKE_MEM_UNDEFINED(payload, payload_size);
+		break;
+	case LBER_HUG_POISON_CALLOC_SETUP:
+		memset(payload, 0, payload_size);
+	case LBER_HUG_POISON_CALLOC_ALREADY:
+		VALGRIND_MAKE_MEM_DEFINED(payload, payload_size);
+		break;
 	}
 	return payload;
 }
@@ -435,7 +381,7 @@ __hot __flatten void* lber_hug_memchk_drown(void* payload) {
 		__sync_fetch_and_sub(&lber_hug_memchk_info.mi_inuse_bytes, payload_size);
 	}
 
-	if (lber_hug_memchk_poison_free != LBER_HUG_DISABLED)
+	if (lber_hug_memchk_poison_free != LBER_HUG_POISON_DISABLED)
 		memset(payload, (char) lber_hug_memchk_poison_free, payload_size);
 
 	VALGRIND_MAKE_MEM_NOACCESS(payload, payload_size);
@@ -515,12 +461,11 @@ void* lber_hug_realloc_commit ( size_t old_size,
 	VALGRIND_CLOSE(new_memchunk);
 
 	if (new_size > old_size) {
-		if (lber_hug_memchk_poison_alloc != LBER_HUG_POISON_DEFAULT)
+		if (lber_hug_memchk_poison_alloc != LBER_HUG_POISON_DISABLED)
 			memset((char *) new_payload + old_size,
 			   (char) lber_hug_memchk_poison_alloc, new_size - old_size);
-		if (lber_hug_memchk_poison_alloc != LBER_HUG_POISON_CALLOC)
-			VALGRIND_MAKE_MEM_UNDEFINED(
-						(char *) new_payload + old_size, new_size - old_size);
+		VALGRIND_MAKE_MEM_UNDEFINED(
+			(char *) new_payload + old_size, new_size - old_size);
 	}
 
 	return new_payload;

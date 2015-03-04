@@ -1,7 +1,7 @@
 /* $OpenLDAP$ */
 /* This work is part of OpenLDAP Software <http://www.openldap.org/>.
  *
- * Copyright 1999-2014 The OpenLDAP Foundation.
+ * Copyright 1999-2015 The OpenLDAP Foundation.
  * Portions Copyright 1999 Dmitry Kovalev.
  * Portions Copyright 2002 Pierangelo Masarati.
  * Portions Copyright 2004 Mark Adamson.
@@ -719,7 +719,7 @@ backsql_load_schema_map( backsql_info *bi, SQLHDBC dbh )
 		Debug( LDAP_DEBUG_TRACE, "    expect_return: "
 			"add=%d, del=%d; attributes:\n",
 			BACKSQL_IS_ADD( oc_map->bom_expect_return ),
-			BACKSQL_IS_DEL( oc_map->bom_expect_return ), 0 );
+			BACKSQL_IS_DEL( oc_map->bom_expect_return ) );
 	}
 
 	backsql_FreeRow( &oc_row );

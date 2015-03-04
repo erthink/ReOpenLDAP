@@ -1,7 +1,7 @@
 /* $OpenLDAP$ */
 /* This work is part of OpenLDAP Software <http://www.openldap.org/>.
  *
- * Copyright 1998-2014 The OpenLDAP Foundation.
+ * Copyright 1998-2015 The OpenLDAP Foundation.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -200,7 +200,7 @@ ber_memcalloc_x( ber_len_t n, ber_len_t s, void *ctx )
 
 #ifndef LDAP_DISABLE_MEMORY_CHECK
 		if (p) {
-			p = lber_hug_memchk_setup(p, payload_bytes, LBER_HUG_POISON_DISABLED);
+			p = lber_hug_memchk_setup(p, payload_bytes, LBER_HUG_POISON_CALLOC_ALREADY);
 #ifdef LDAP_MEMORY_TRACE
 			struct lber_hug_memchk *mh = LBER_HUG_CHUNK(p);
 			fprintf(stderr, "%p.%zu -a- %zu ber_memcalloc %zu\n",
@@ -403,7 +403,7 @@ ber_bvecadd( struct berval ***bvec, struct berval *bv )
 
 struct berval *
 ber_dupbv_x(
-	struct berval *dst, struct berval *src, void *ctx )
+	struct berval *dst, const struct berval *src, void *ctx )
 {
 	struct berval *new;
 
@@ -441,7 +441,7 @@ ber_dupbv_x(
 
 struct berval *
 ber_dupbv(
-	struct berval *dst, struct berval *src )
+	struct berval *dst, const struct berval *src )
 {
 	return ber_dupbv_x( dst, src, NULL );
 }

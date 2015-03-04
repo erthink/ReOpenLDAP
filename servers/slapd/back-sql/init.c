@@ -1,7 +1,7 @@
 /* $OpenLDAP$ */
 /* This work is part of OpenLDAP Software <http://www.openldap.org/>.
  *
- * Copyright 1999-2014 The OpenLDAP Foundation.
+ * Copyright 1999-2015 The OpenLDAP Foundation.
  * Portions Copyright 1999 Dmitry Kovalev.
  * Portions Copyright 2002 Pierangelo Masarati.
  * All rights reserved.
@@ -34,7 +34,7 @@ int
 sql_back_initialize(
 	BackendInfo	*bi )
 {
-	static char *controls[] = {
+	static const char * const controls[] = {
 		LDAP_CONTROL_ASSERT,
 		LDAP_CONTROL_MANAGEDSAIT,
 		LDAP_CONTROL_NOOP,
@@ -328,8 +328,7 @@ backsql_db_open(
 		Debug( LDAP_DEBUG_TRACE, "backsql_db_open(): "
 			"subtree search SQL condition not specified "
 			"(use \"subtree_cond\" directive in slapd.conf); "
-			"preparing default\n",
-			0, 0, 0);
+			"preparing default\n" );
 
 		if ( backsql_prepare_pattern( bi->sql_concat_func, values,
 				&concat ) ) {
@@ -388,8 +387,7 @@ backsql_db_open(
 		Debug( LDAP_DEBUG_TRACE, "backsql_db_open(): "
 			"children search SQL condition not specified "
 			"(use \"children_cond\" directive in slapd.conf); "
-			"preparing default\n",
-			0, 0, 0);
+			"preparing default\n" );
 
 		if ( backsql_prepare_pattern( bi->sql_concat_func, values,
 				&concat ) ) {
@@ -442,8 +440,7 @@ backsql_db_open(
 		Debug( LDAP_DEBUG_TRACE, "backsql_db_open(): "
 			"DN match search SQL condition not specified "
 			"(use \"dn_match_cond\" directive in slapd.conf); "
-			"preparing default\n",
-			0, 0, 0);
+			"preparing default\n" );
 
 		if ( bi->sql_upper_func.bv_val ) {
 

@@ -2,7 +2,7 @@
 /* $OpenLDAP$ */
 /* This work is part of OpenLDAP Software <http://www.openldap.org/>.
  *
- * Copyright 2000-2014 The OpenLDAP Foundation.
+ * Copyright 2000-2015 The OpenLDAP Foundation.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -162,6 +162,17 @@ mdb_db_open( BackendDB *be, ConfigReply *cr )
 	}
 
 	mdb_env_set_oomfunc( mdb->mi_dbenv, mdb->mi_oom_flags ? mdb_oom_handler : NULL);
+
+	if (SLAP_MULTIMASTER(be) && (MDB_OOM_YIELD & mdb->mi_oom_flags) == 0) {
+		snprintf( cr->msg, sizeof(cr->msg), "database \"%s\": "
+			"for properly operation in multi-master mode"
+			" at least 'oom-handler yield' is required,"
+			" and 'dreamcatcher' is recommended",
+			be->be_suffix[0].bv_val );
+		Debug( LDAP_DEBUG_ANY, LDAP_XSTRING(mdb_db_open) ": %s\n", cr->msg );
+		if (reopenldap_mode_iddqd())
+			goto fail;
+	}
 
 #ifdef HAVE_EBCDIC
 	strcpy( path, mdb->mi_dbenv_home );
@@ -391,7 +402,7 @@ mdb_back_initialize(
 {
 	int rc;
 
-	static char *controls[] = {
+	static const char * const controls[] = {
 		LDAP_CONTROL_ASSERT,
 		LDAP_CONTROL_MANAGEDSAIT,
 		LDAP_CONTROL_NOOP,

@@ -1,7 +1,7 @@
 /* $OpenLDAP$ */
 /* This work is part of OpenLDAP Software <http://www.openldap.org/>.
  *
- * Copyright 1999-2014 The OpenLDAP Foundation.
+ * Copyright 1999-2015 The OpenLDAP Foundation.
  * Portions Copyright 1999 Dmitry Kovalev.
  * Portions Copyright 2002 Pierangelo Masarati.
  * Portions Copyright 2004 Mark Adamson.
@@ -37,7 +37,7 @@ backsql_PrintErrors( SQLHENV henv, SQLHDBC hdbc, SQLHSTMT sth, int rc )
 {
 	SQLCHAR	msg[SQL_MAX_MESSAGE_LENGTH];		/* msg. buffer    */
 	SQLCHAR	state[SQL_SQLSTATE_SIZE];		/* statement buf. */
-	SDWORD	iSqlCode;				/* return code    */
+	SQLINTEGER	iSqlCode;				/* return code    */
 	SWORD	len = SQL_MAX_MESSAGE_LENGTH - 1;	/* return length  */
 
 	Debug( LDAP_DEBUG_TRACE, "Return code: %d\n", rc );
@@ -146,7 +146,7 @@ backsql_BindRowAsStrings_x( SQLHSTMT sth, BACKSQL_ROW_NTS *row, void *ctx )
 	} else {
 		SQLCHAR		colname[ 64 ];
 		SQLSMALLINT	name_len, col_type, col_scale, col_null;
-		SQLLEN		col_prec;
+		SQLULEN		col_prec;
 		int		i;
 
 #ifdef BACKSQL_TRACE

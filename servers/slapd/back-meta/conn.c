@@ -1,7 +1,7 @@
 /* $OpenLDAP$ */
 /* This work is part of OpenLDAP Software <http://www.openldap.org/>.
  *
- * Copyright 1999-2014 The OpenLDAP Foundation.
+ * Copyright 1999-2015 The OpenLDAP Foundation.
  * Portions Copyright 2001-2003 Pierangelo Masarati.
  * Portions Copyright 1999-2003 Howard Chu.
  * All rights reserved.
@@ -917,7 +917,7 @@ meta_back_get_candidate(
 		Operation	op2 = *op;
 		SlapReply	rs2 = { REP_RESULT };
 		slap_callback	cb2 = { 0 };
-		int		rc;
+		int		rc ALLOW_UNUSED;
 
 		/* try to get a unique match for the request ndn
 		 * among the multiple candidates available */
@@ -1366,8 +1366,8 @@ retry_lock:;
 	}
 
 	if ( op_type == META_OP_REQUIRE_SINGLE ) {
-		metatarget_t		*mt = NULL;
-		metasingleconn_t	*msc = NULL;
+		metatarget_t		*mt ALLOW_UNUSED = NULL;
+		metasingleconn_t	*msc ALLOW_UNUSED = NULL;
 
 		int			j;
 

@@ -4,7 +4,7 @@
 /* begin of portable.h.pre */
 /* This work is part of OpenLDAP Software <http://www.openldap.org/>.
  *
- * Copyright 1998-2014 The OpenLDAP Foundation
+ * Copyright 1998-2015 The OpenLDAP Foundation
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -21,28 +21,28 @@
 
 /* define this if needed to get reentrant functions */
 #ifndef REENTRANT
-#undef REENTRANT
+#	undef REENTRANT
 #endif
 #ifndef _REENTRANT
-#undef _REENTRANT
+#	undef _REENTRANT
 #endif
 
 /* define this if needed to get threadsafe functions */
 #ifndef THREADSAFE
-#undef THREADSAFE
+#	undef THREADSAFE
 #endif
 #ifndef _THREADSAFE
-#undef _THREADSAFE
+#	undef _THREADSAFE
 #endif
 #ifndef THREAD_SAFE
-#undef THREAD_SAFE
+#	undef THREAD_SAFE
 #endif
 #ifndef _THREAD_SAFE
-#undef _THREAD_SAFE
+#	undef _THREAD_SAFE
 #endif
 
 #ifndef _SGI_MP_SOURCE
-#undef _SGI_MP_SOURCE
+#	undef _SGI_MP_SOURCE
 #endif
 
 /* end of portable.h.pre */
@@ -1129,70 +1129,43 @@
 
 /* begin of portable.h.post */
 
+#include "reopenldap.h"
+
 #ifdef _WIN32
 	/* don't suck in all of the win32 api */
 #	define WIN32_LEAN_AND_MEAN 1
 #endif
 
 #ifndef LDAP_NEEDS_PROTOTYPES
-/* force LDAP_P to always include prototypes */
-#define LDAP_NEEDS_PROTOTYPES 1
+	/* force LDAP_P to always include prototypes */
+#	define LDAP_NEEDS_PROTOTYPES 1
 #endif
 
+/* TODO: (LY): refine this */
 #ifndef LDAP_REL_ENG
-#if (LDAP_VENDOR_VERSION == 000000) && !defined(LDAP_DEVEL)
-#define LDAP_DEVEL
-#endif
-#if defined(LDAP_DEVEL) && !defined(LDAP_TEST)
-#define LDAP_TEST
-#endif
+#	if (LDAP_VENDOR_VERSION == 000000) && !defined(LDAP_DEVEL)
+#		define LDAP_DEVEL
+#	endif
+#	if defined(LDAP_DEVEL) && !defined(LDAP_TEST)
+#		define LDAP_TEST
+#	endif
 #endif
 
 #ifdef HAVE_STDDEF_H
 #	include <stddef.h>
 #endif
 
-#ifdef HAVE_ANSIDECL_H
-#	include <ansidecl.h>
-#endif
-
-#ifndef __has_attribute
-#	define __has_attribute(x) 0
-#endif
-
-#if !defined(GCC_VERSION) && defined(__GNUC__)
-#	define GCC_VERSION (__GNUC__ * 1000 + __GNUC_MINOR__)
-#endif /* GCC_VERSION */
-
-#ifndef ALLOW_UNUSED
-#	ifdef ATTRIBUTE_UNUSED
-#		define ALLOW_UNUSED ATTRIBUTE_UNUSED
-#	elif defined(GCC_VERSION) && (GCC_VERSION >= 3004)
-#		define ALLOW_UNUSED __attribute__((__unused__))
-#	elif __has_attribute(__unused__)
-#		define ALLOW_UNUSED __attribute__((__unused__))
-#	elif __has_attribute(unused)
-#		define ALLOW_UNUSED __attribute__((unused))
-#	else
-#		define ALLOW_UNUSED
-#	endif
-#endif /* ALLOW_UNUSED */
-
-#if !defined(__thread) && (defined(_MSC_VER) || defined(__DMC__))
-#	define __thread __declspec(thread)
-#endif
-
 #ifdef HAVE_EBCDIC
-/* ASCII/EBCDIC converting replacements for stdio funcs
- * vsnprintf and snprintf are used too, but they are already
- * checked by the configure script
- */
-#define fputs ber_pvt_fputs
-#define fgets ber_pvt_fgets
-#define printf ber_pvt_printf
-#define fprintf ber_pvt_fprintf
-#define vfprintf ber_pvt_vfprintf
-#define vsprintf ber_pvt_vsprintf
+	/* ASCII/EBCDIC converting replacements for stdio funcs
+	 * vsnprintf and snprintf are used too, but they are already
+	 * checked by the configure script
+	 */
+#	define fputs ber_pvt_fputs
+#	define fgets ber_pvt_fgets
+#	define printf ber_pvt_printf
+#	define fprintf ber_pvt_fprintf
+#	define vfprintf ber_pvt_vfprintf
+#	define vsprintf ber_pvt_vsprintf
 #endif
 
 #include "ac/fdset.h"
@@ -1205,4 +1178,3 @@
 
 #endif /* _LDAP_PORTABLE_H */
 /* end of portable.h.post */
-

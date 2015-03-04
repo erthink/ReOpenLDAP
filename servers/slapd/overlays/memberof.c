@@ -421,7 +421,8 @@ memberof_value_modify(
 		oex.oe_key = (void *)&memberof;
 		LDAP_SLIST_INSERT_HEAD(&op2.o_extra, &oex, oe_next);
 		memberof_set_backend( &op2, op, on );
-		(void)op->o_bd->be_modify( &op2, &rs2 );
+		/* LY: mixing 'op2' and 'op' for call. */
+		op->o_bd->bd_info->bi_op_modify( &op2, &rs2 );
 		op2.o_bd->bd_info = bi;
 		LDAP_SLIST_REMOVE(&op2.o_extra, &oex, OpExtra, oe_next);
 		if ( rs2.sr_err != LDAP_SUCCESS ) {
@@ -463,7 +464,9 @@ memberof_value_modify(
 		oex.oe_key = (void *)&memberof;
 		LDAP_SLIST_INSERT_HEAD(&op2.o_extra, &oex, oe_next);
 		memberof_set_backend( &op2, op, on );
-		(void)op->o_bd->be_modify( &op2, &rs2 );
+		/* LY: mixing 'op2' and 'op' for call. */
+		op->o_bd->bd_info->bi_op_modify( &op2, &rs2 );
+
 		op2.o_bd->bd_info = bi;
 		LDAP_SLIST_REMOVE(&op2.o_extra, &oex, OpExtra, oe_next);
 		if ( rs2.sr_err != LDAP_SUCCESS ) {
@@ -1261,6 +1264,7 @@ memberof_res_add( Operation *op, SlapReply *rs )
 		return SLAP_CB_CONTINUE;
 	}
 
+	assert(slap_biglock_owned(op->o_bd));
 	if ( MEMBEROF_REVERSE( mo ) ) {
 		Attribute	*ma;
 
@@ -1327,6 +1331,7 @@ memberof_res_delete( Operation *op, SlapReply *rs )
 		return SLAP_CB_CONTINUE;
 	}
 
+	assert(slap_biglock_owned(op->o_bd));
 	vals = mci->member;
 	if ( vals != NULL ) {
 		for ( i = 0; !BER_BVISNULL( &vals[ i ] ); i++ ) {
@@ -1371,6 +1376,7 @@ memberof_res_modify( Operation *op, SlapReply *rs )
 		return SLAP_CB_CONTINUE;
 	}
 
+	assert(slap_biglock_owned(op->o_bd));
 	if ( MEMBEROF_REVERSE( mo ) ) {
 		for ( ml = op->orm_modlist; ml; ml = ml->sml_next ) {
 			if ( ml->sml_desc == mo->mo_ad_memberof ) {
@@ -1519,6 +1525,7 @@ memberof_res_modrdn( Operation *op, SlapReply *rs )
 		return SLAP_CB_CONTINUE;
 	}
 
+	assert(slap_biglock_owned(op->o_bd));
 	mci->what = MEMBEROF_IS_GROUP;
 	if ( MEMBEROF_REFINT( mo ) ) {
 		mci->what |= MEMBEROF_IS_MEMBER;

@@ -2,7 +2,7 @@
 /* $OpenLDAP$ */
 /* This work is part of OpenLDAP Software <http://www.openldap.org/>.
  *
- * Copyright 2000-2014 The OpenLDAP Foundation.
+ * Copyright 2000-2015 The OpenLDAP Foundation.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,13 +34,10 @@
 static void bdb_cache_lru_purge( struct bdb_info *bdb );
 
 static int	bdb_cache_delete_internal(Cache *cache, EntryInfo *e, int decr);
-#ifdef LDAP_DEBUG
-#define SLAPD_UNUSED
-#ifdef SLAPD_UNUSED
+#if 0 /* unused */
 static void	bdb_lru_print(Cache *cache);
 static void	bdb_idtree_print(Cache *cache);
-#endif
-#endif
+#endif /* #if 0, unused */
 
 /* For concurrency experiments only! */
 #if 0
@@ -370,7 +367,7 @@ bdb_entryinfo_add_internal(
 		ei->bei_rdn.bv_val = NULL;
 #endif
 	} else {
-		int rc;
+		int rc ALLOW_UNUSED;
 
 		bdb->bi_cache.c_eiused++;
 		ber_dupbv( &ei2->bei_nrdn, &ei->bei_nrdn );
@@ -1551,7 +1548,7 @@ bdb_cache_release_all( Cache *cache )
 	ldap_pvt_thread_rdwr_wunlock( &cache->c_rwlock );
 }
 
-#ifdef LDAP_DEBUG
+#if 0 /* unused */
 static void
 bdb_lru_count( Cache *cache )
 {
@@ -1582,7 +1579,6 @@ bdb_lru_count( Cache *cache )
 	fprintf( stderr, "counted %d entryInfos (on lruprev)\n", ei );
 }
 
-#ifdef SLAPD_UNUSED
 static void
 bdb_lru_print( Cache *cache )
 {
@@ -1621,8 +1617,7 @@ bdb_idtree_print(Cache *cache)
 {
 	avl_apply( cache->c_idtree, bdb_entryinfo_print, NULL, -1, AVL_INORDER );
 }
-#endif
-#endif
+#endif /* if 0, unused */
 
 static void
 bdb_reader_free( void *key, void *data )

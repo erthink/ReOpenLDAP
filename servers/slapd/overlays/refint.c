@@ -2,7 +2,7 @@
 /* $OpenLDAP$ */
 /* This work is part of OpenLDAP Software <http://www.openldap.org/>.
  *
- * Copyright 2004-2014 The OpenLDAP Foundation.
+ * Copyright 2004-2015 The OpenLDAP Foundation.
  * Portions Copyright 2004 Symas Corporation.
  * All rights reserved.
  *
@@ -530,6 +530,7 @@ refint_repair(
 	int		rc;
 	int	cache;
 
+	slap_biglock_acquire(op->o_bd);
 	op->o_callback->sc_response = refint_search_cb;
 	op->o_req_dn = op->o_bd->be_suffix[ 0 ];
 	op->o_req_ndn = op->o_bd->be_nsuffix[ 0 ];
@@ -546,6 +547,7 @@ refint_repair(
 		Debug( LDAP_DEBUG_TRACE,
 			"refint_repair: search failed: %d\n",
 			rc );
+		slap_biglock_release(op->o_bd);
 		return rc;
 	}
 
@@ -553,6 +555,7 @@ refint_repair(
 	if ( op->o_callback->sc_private == NULL ) {
 		Debug( LDAP_DEBUG_TRACE,
 			"refint_repair: callback wiped out sc_private?!\n" );
+		slap_biglock_release(op->o_bd);
 		return 0;
 	}
 
@@ -679,7 +682,7 @@ refint_repair(
 
 		op2.o_dn = op2.o_bd->be_rootdn;
 		op2.o_ndn = op2.o_bd->be_rootndn;
-		rc = op2.o_bd->be_modify( &op2, &rs2 );
+		rc = op2.o_bd->bd_info->bi_op_modify( &op2, &rs2 );
 		if ( rc != LDAP_SUCCESS ) {
 			Debug( LDAP_DEBUG_TRACE,
 				"refint_repair: dependent modify failed: %d\n",
@@ -693,6 +696,7 @@ refint_repair(
 	}
 	op2.o_opid = opid;
 
+	slap_biglock_release(op->o_bd);
 	return 0;
 }
 
@@ -797,7 +801,7 @@ refint_qtask( void *ctx, void *arg )
 					continue;
 				}
 
-				if ( be->be_search && be->be_modify ) {
+				if ( be->be_search && be->bd_info->bi_op_modify ) {
 					op->o_bd = be;
 					rc = refint_repair( op, id, rq );
 				}
@@ -909,7 +913,7 @@ refint_response(
 		db = select_backend(&id->dn, 1);
 
 		if ( db ) {
-			if ( !db->be_search || !db->be_modify ) {
+			if ( !db->be_search || !db->bd_info->bi_op_modify ) {
 				Debug( LDAP_DEBUG_TRACE,
 					"refint_response: backend missing search and/or modify\n" );
 				return SLAP_CB_CONTINUE;

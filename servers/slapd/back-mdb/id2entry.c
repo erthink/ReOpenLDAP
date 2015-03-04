@@ -2,7 +2,7 @@
 /* $OpenLDAP$ */
 /* This work is part of OpenLDAP Software <http://www.openldap.org/>.
  *
- * Copyright 2000-2014 The OpenLDAP Foundation.
+ * Copyright 2000-2015 The OpenLDAP Foundation.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -462,6 +462,7 @@ mdb_opinfo_get( Operation *op, struct mdb_info *mdb, int rdonly, mdb_op_info **m
 			if (( slapMode & SLAP_TOOL_MODE ) && mdb_tool_txn ) {
 				moi->moi_txn = mdb_tool_txn;
 			} else {
+				assert(slap_biglock_owned(op->o_bd));
 				rc = mdb_txn_begin( mdb->mi_dbenv, NULL, 0, &moi->moi_txn );
 				if (rc) {
 					Debug( LDAP_DEBUG_ANY, "mdb_opinfo_get: err %s(%d)\n",

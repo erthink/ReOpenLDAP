@@ -2,7 +2,7 @@
 # $OpenLDAP$
 ## This work is part of OpenLDAP Software <http://www.openldap.org/>.
 ##
-## Copyright 1998-2014 The OpenLDAP Foundation.
+## Copyright 1998-2015 The OpenLDAP Foundation.
 ## All rights reserved.
 ##
 ## Redistribution and use in source and binary forms, with or without
@@ -169,7 +169,7 @@ CONFFILTER=$SRCDIR/scripts/conf.sh
 
 MONITORDATA=$SRCDIR/scripts/monitor_data.sh
 
-#VALGRIND="valgrind --fair-sched=yes --log-socket=127.0.0.1:55555 --leak-check=full --track-origins=yes --trace-children=yes --suppressions=$SRCDIR/scripts/valgrind.supp"
+#VALGRIND="valgrind --fair-sched=yes --log-socket=127.0.0.1:55555 --leak-check=full --track-origins=yes --trace-children=yes --suppressions=$TESTWD/scripts/valgrind.supp"
 # --gen-suppressions=yes
 SLAPADD="$VALGRIND $TESTWD/../servers/slapd/slapd -Ta -d 0 $LDAP_VERBOSE"
 SLAPCAT="$VALGRIND $TESTWD/../servers/slapd/slapd -Tc -d 0 $LDAP_VERBOSE"

@@ -1,7 +1,7 @@
 /* $OpenLDAP$ */
 /* This work is part of OpenLDAP Software <http://www.openldap.org/>.
  *
- * Copyright 1998-2014 The OpenLDAP Foundation.
+ * Copyright 1998-2015 The OpenLDAP Foundation.
  * Portions Copyright 2007 by Howard Chu, Symas Corporation.
  * All rights reserved.
  *
@@ -933,7 +933,7 @@ slapd_remove(
 		if ( slap_listeners[i] == NULL ) emfile = 0;
 	}
 	ldap_pvt_thread_mutex_unlock( &slap_daemon[id].sd_mutex );
-	WAKE_LISTENER(id, wake || slapd_gentle_shutdown == 2);
+	WAKE_LISTENER(id, wake || slapd_gentle_shutdown);
 }
 
 void
@@ -2397,7 +2397,6 @@ loop:
 			tv.tv_usec = 0;
 		}
 
-#ifdef SIGHUP
 		if ( slapd_gentle_shutdown ) {
 			ber_socket_t active;
 
@@ -2408,6 +2407,11 @@ loop:
 				frontendDB->be_restrictops |= SLAP_RESTRICT_OP_WRITES;
 				LDAP_STAILQ_FOREACH(be, &backendDB, be_next) {
 					be->be_restrictops |= SLAP_RESTRICT_OP_WRITES;
+				}
+				connections_shutdown( 1 );
+				if (reopenldap_mode_iddqd() && ! global_gentlehup) {
+					global_idletimeout = 5;
+					global_writetimeout = 5;
 				}
 				slapd_gentle_shutdown = 2;
 			}
@@ -2430,7 +2434,6 @@ loop:
 					break;
 			}
 		}
-#endif /* SIGHUP */
 		at = 0;
 
 		ldap_pvt_thread_mutex_lock( &slap_daemon[tid].sd_mutex );
@@ -2835,7 +2838,7 @@ loop:
 
 	if ( !slapd_gentle_shutdown ) {
 		slapd_abrupt_shutdown = 1;
-		connections_shutdown();
+		connections_shutdown( 0 );
 	}
 
 	if ( LogTest( LDAP_DEBUG_ANY )) {
@@ -3006,11 +3009,13 @@ slap_sig_shutdown( int sig )
 		/* empty */;
 	} else
 #endif /* HAVE_NT_SERVICE_MANAGER && SIGBREAK */
+	if ( ( reopenldap_mode_iddqd() ||
 #ifdef SIGHUP
-	if (sig == SIGHUP && global_gentlehup && slapd_gentle_shutdown == 0) {
+			sig == SIGHUP
+#endif /* SIGHUP */
+		 ) && global_gentlehup && slapd_gentle_shutdown == 0 ) {
 		slapd_gentle_shutdown = 1;
 	} else
-#endif /* SIGHUP */
 	{
 		slapd_shutdown = 1;
 	}

@@ -2,7 +2,7 @@
 /* $OpenLDAP$ */
 /* This work is part of OpenLDAP Software <http://www.openldap.org/>.
  *
- * Copyright 1998-2014 The OpenLDAP Foundation.
+ * Copyright 1998-2015 The OpenLDAP Foundation.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -87,7 +87,7 @@ value_add(
 int
 value_add_one(
     BerVarray		*vals,
-    struct berval	*addval )
+    const struct berval	*addval )
 {
 	int		n;
 	BerVarray	v2;

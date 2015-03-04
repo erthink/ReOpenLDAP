@@ -2,7 +2,7 @@
 /* $OpenLDAP$ */
 /* This work is part of OpenLDAP Software <http://www.openldap.org/>.
  *
- * Copyright 2003-2014 The OpenLDAP Foundation.
+ * Copyright 2003-2015 The OpenLDAP Foundation.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -442,7 +442,7 @@ slap_sl_calloc( ber_len_t n, ber_len_t s, void *ctx )
 		if (likely(ptr)) {
 			VALGRIND_MEMPOOL_ALLOC(sh, ptr, gross_size);
 #ifndef LDAP_DISABLE_MEMORY_CHECK
-			ptr = lber_hug_memchk_setup(ptr, nett_size, LBER_HUG_POISON_CALLOC);
+			ptr = lber_hug_memchk_setup(ptr, nett_size, LBER_HUG_POISON_CALLOC_SETUP);
 #else
 			memset(ptr, 0, nett_size);
 #endif /* LDAP_DISABLE_MEMORY_CHECK */
@@ -502,7 +502,7 @@ slap_sl_realloc(void *oldptr, ber_len_t new_nett_size, void *ctx)
 	p = (ber_len_t *) oldptr;
 	old_sl_size = *--p & -2;
 #ifdef LDAP_DISABLE_MEMORY_CHECK
-	old_nett_size = old_sl_size;
+	old_nett_size = old_sl_size - sizeof(ber_len_t);
 #endif
 
 	if (sh->sh_stack) {
@@ -511,10 +511,10 @@ slap_sl_realloc(void *oldptr, ber_len_t new_nett_size, void *ctx)
 
 		/* Never shrink blocks */
 		if (new_sl_size <= old_sl_size) {
-			VALGRIND_MEMPOOL_CHANGE(sh, oldptr, oldptr, new_gross_size);
 #ifndef LDAP_DISABLE_MEMORY_CHECK
 			oldptr = lber_hug_realloc_commit(old_nett_size, oldptr, new_nett_size);
 #endif /* LDAP_DISABLE_MEMORY_CHECK */
+			VALGRIND_MEMPOOL_CHANGE(sh, oldptr, oldptr, new_gross_size);
 			return oldptr;
 		}
 

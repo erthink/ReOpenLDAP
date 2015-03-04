@@ -2,7 +2,7 @@
 /* $OpenLDAP$ */
 /* This work is part of OpenLDAP Software <http://www.openldap.org/>.
  *
- * Copyright 2000-2014 The OpenLDAP Foundation.
+ * Copyright 2000-2015 The OpenLDAP Foundation.
  * Portions Copyright 2000-2003 Kurt D. Zeilenga.
  * All rights reserved.
  *
@@ -35,7 +35,7 @@ int
 dnssrv_back_initialize(
     BackendInfo	*bi )
 {
-	static char *controls[] = {
+	static const char * const controls[] = {
 		LDAP_CONTROL_MANAGEDSAIT,
 		NULL
 	};

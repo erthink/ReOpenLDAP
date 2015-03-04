@@ -2,7 +2,7 @@
 /* $OpenLDAP$ */
 /* This work is part of OpenLDAP Software <http://www.openldap.org/>.
  *
- * Copyright 2000-2014 The OpenLDAP Foundation.
+ * Copyright 2000-2015 The OpenLDAP Foundation.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -363,7 +363,7 @@ bdb_cf_cleanup( ConfigArgs *c )
 			snprintf( c->cr_msg, sizeof( c->cr_msg ),
 				"failed to reopen database, rc=%d", rc );
 			Debug( LDAP_DEBUG_ANY, LDAP_XSTRING(bdb_cf_cleanup)
-				": %s\n", c->cr_msg, 0, 0 );
+				": %s\n", c->cr_msg );
 			rc = LDAP_OTHER;
 		}
 	}
@@ -512,15 +512,14 @@ bdb_cf_gen( ConfigArgs *c )
 				struct bdb_db_pgsize *ps;
 				char buf[SLAP_TEXT_BUFLEN];
 				struct berval bv;
-				int rc = 1;
 
+				rc = 1;
 				bv.bv_val = buf;
 				for ( ps = bdb->bi_pagesizes; ps; ps = ps->bdp_next ) {
 					bv.bv_len = sprintf( buf, "%s %d", ps->bdp_name.bv_val,
 						ps->bdp_size / 1024 );
 					value_add_one( &c->rvalue_vals, &bv );
 					rc = 0;
-
 				}
 				break;
 			}

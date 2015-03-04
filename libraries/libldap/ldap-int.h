@@ -2,7 +2,7 @@
 /* $OpenLDAP$ */
 /* This work is part of OpenLDAP Software <http://www.openldap.org/>.
  *
- * Copyright 1998-2014 The OpenLDAP Foundation.
+ * Copyright 1998-2015 The OpenLDAP Foundation.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -483,6 +483,8 @@ struct ldap {
 	char			*ld_error;
 	char			*ld_matched;
 	char			**ld_referrals;
+
+	ldap_gentle_shutdown_f ld_gentle_shutdown;
 };
 
 #define LDAP_VALID(ld)		( (ld)->ld_valid == LDAP_VALID_SESSION )

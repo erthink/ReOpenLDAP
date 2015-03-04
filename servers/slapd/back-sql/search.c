@@ -1,7 +1,7 @@
 /* $OpenLDAP$ */
 /* This work is part of OpenLDAP Software <http://www.openldap.org/>.
  *
- * Copyright 1999-2014 The OpenLDAP Foundation.
+ * Copyright 1999-2015 The OpenLDAP Foundation.
  * Portions Copyright 1999 Dmitry Kovalev.
  * Portions Copyright 2002 Pierangelo Masarati.
  * Portions Copyright 2004 Mark Adamson.
@@ -2525,7 +2525,7 @@ send_results:;
 
 		cb.sc_response = slap_null_cb;
 
-		op2.o_bd->be_add( &op2, &rs2 );
+		slap_biglock_call_be( op_add, &op2, &rs2 );
 
 		if ( op2.ora_e == e )
 			entry_free( e );

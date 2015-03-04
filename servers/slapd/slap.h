@@ -2,7 +2,7 @@
 /* $OpenLDAP$ */
 /* This work is part of OpenLDAP Software <http://www.openldap.org/>.
  *
- * Copyright 1998-2014 The OpenLDAP Foundation.
+ * Copyright 1998-2015 The OpenLDAP Foundation.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -1771,6 +1771,20 @@ LDAP_TAILQ_HEAD( be_pcl, slap_csn_entry );
 
 struct ConfigOCs;	/* config.h */
 
+typedef struct slap_biglock slap_biglock_t;
+
+/* LY: zero or less indicates than biglock was not initialized. */
+#define SLAPD_BIGLOCK_NONE	1
+#define SLAPD_BIGLOCK_LOCAL	2
+#define SLAPD_BIGLOCK_COMMON	3
+
+struct slap_biglock {
+	ldap_pvt_thread_mutex_t bl_mutex;
+	volatile ldap_pvt_thread_t bl_owner;
+	volatile size_t bl_age, bl_evo;
+	volatile int bl_recursion;
+};
+
 struct BackendDB {
 	BackendInfo	*bd_info;	/* pointer to shared backend info */
 	BackendDB	*bd_self;	/* pointer to this struct */
@@ -1784,11 +1798,7 @@ struct BackendDB {
 
 #define		be_bind		bd_info->bi_op_bind
 #define		be_unbind	bd_info->bi_op_unbind
-#define		be_add		bd_info->bi_op_add
 #define		be_compare	bd_info->bi_op_compare
-#define		be_delete	bd_info->bi_op_delete
-#define		be_modify	bd_info->bi_op_modify
-#define		be_modrdn	bd_info->bi_op_modrdn
 #define		be_search	bd_info->bi_op_search
 #define		be_abandon	bd_info->bi_op_abandon
 
@@ -1957,6 +1967,9 @@ struct BackendDB {
 	AccessControl *be_acl;	/* access control list for this backend	   */
 	slap_access_t	be_dfltaccess;	/* access given if no acl matches	   */
 	AttributeName	*be_extra_anlist;	/* attributes that need to be added to search requests (ITS#6513) */
+
+	int	bd_biglock_mode;	/* synchronization mode for database/suffix */
+	slap_biglock_t *bd_biglock; /* mutex for synchronization, etc */
 
 	/* Replica Information */
 	struct berval be_update_ndn;	/* allowed to make changes (in replicas) */
@@ -2336,7 +2349,7 @@ struct BackendInfo {
 #define SLAPO_DBONLY(be)	(SLAP_BFLAGS(be) & SLAPO_BFLAG_DBONLY)
 #define SLAPO_GLOBONLY(be)	(SLAP_BFLAGS(be) & SLAPO_BFLAG_GLOBONLY)
 
-	char	**bi_controls;		/* supported controls */
+	const char* const *bi_controls;		/* supported controls */
 	char	bi_ctrls[SLAP_MAX_CIDS + 1];
 
 	unsigned int bi_nDB;	/* number of databases of this type */
@@ -2344,7 +2357,10 @@ struct BackendInfo {
 	char	**bi_obsolete_names;
 	void	*bi_extra;		/* backend type-specific APIs */
 	void	*bi_private;	/* backend type-specific config data */
-	LDAP_STAILQ_ENTRY(BackendInfo) bi_next ;
+#ifdef SLAPD_BIGLOCK_ENGINE
+	slap_biglock_t* bi_biglock;
+#endif
+	LDAP_STAILQ_ENTRY(BackendInfo) bi_next;
 };
 
 #define c_authtype	c_authz.sai_method
@@ -2890,6 +2906,8 @@ struct Connection {
 
 	char		c_sasl_bind_in_progress;	/* multi-op bind in progress */
 	char		c_writewaiter;	/* true if blocked on write */
+	char		c_gentle_kick;	/* connection is internal (e.g. syncrepl)
+								 * and should be kicked/closed on gentle-shutdown. */
 
 
 #define	CONN_IS_TLS	1
@@ -3324,6 +3342,10 @@ typedef struct slap_oinit_t {
 	const char	*ov_type;
 	OV_init		*ov_init;
 } OverlayInit;
+
+/* LY: ReOpenLDAP operation mode global flags */
+#define REOPENLDAP_FLAG_IDDQD	1
+#define REOPENLDAP_FLAG_IDKFA	2
 
 LDAP_END_DECL
 

@@ -1,7 +1,7 @@
 /* $OpenLDAP$ */
 /* This work is part of OpenLDAP Software <http://www.openldap.org/>.
  *
- * Copyright 2003-2014 The OpenLDAP Foundation.
+ * Copyright 2003-2015 The OpenLDAP Foundation.
  * Portions Copyright 2003 IBM Corporation.
  * Portions Copyright 2003-2009 Symas Corporation.
  * All rights reserved.
@@ -860,6 +860,8 @@ merge_entry(
 	/* append the attribute list from the fetched entry */
 	e->e_attrs->a_next = attr;
 
+	slap_biglock_acquire(op->o_bd);
+
 	op->o_tag = LDAP_REQ_ADD;
 	op->o_protocol = LDAP_VERSION3;
 	op->o_callback = &cb;
@@ -869,7 +871,7 @@ merge_entry(
 	op->ora_e = e;
 	op->o_req_dn = e->e_name;
 	op->o_req_ndn = e->e_nname;
-	rc = op->o_bd->be_add( op, &sreply );
+	rc = op->o_bd->bd_info->bi_op_add( op, &sreply );
 
 	if ( rc != LDAP_SUCCESS ) {
 		if ( rc == LDAP_ALREADY_EXISTS ) {
@@ -879,7 +881,7 @@ merge_entry(
 			op->o_tag = LDAP_REQ_MODIFY;
 			op->orm_modlist = modlist;
 			op->o_managedsait = SLAP_CONTROL_CRITICAL;
-			op->o_bd->be_modify( op, &sreply );
+			op->o_bd->bd_info->bi_op_modify( op, &sreply );
 			slap_mods_free( modlist, 1 );
 		} else if ( rc == LDAP_REFERRAL ||
 					rc == LDAP_NO_SUCH_OBJECT ) {
@@ -897,6 +899,7 @@ merge_entry(
 		rc = 1;
 	}
 
+	slap_biglock_release(op->o_bd);
 	return rc;
 }
 
@@ -1808,6 +1811,8 @@ remove_query_data(
 	filter.f_av_desc = ad_queryId;
 	filter.f_av_value = *query_uuid;
 
+	slap_biglock_acquire(op->o_bd);
+
 	op->o_tag = LDAP_REQ_SEARCH;
 	op->o_protocol = LDAP_VERSION3;
 	op->o_callback = &cb;
@@ -1842,7 +1847,7 @@ remove_query_data(
 
 			op->o_tag = LDAP_REQ_DELETE;
 
-			if (op->o_bd->be_delete(op, &sreply) == LDAP_SUCCESS) {
+			if (op->o_bd->bd_info->bi_op_delete( op, &sreply) == LDAP_SUCCESS) {
 				deleted++;
 			}
 
@@ -1867,11 +1872,13 @@ remove_query_data(
 
 			op->orm_modlist = &mod;
 
-			op->o_bd->be_modify( op, &sreply );
+			op->o_bd->bd_info->bi_op_modify( op, &sreply );
 		}
 		op->o_tmpfree( qi->xdn.bv_val, op->o_tmpmemctx );
 		op->o_tmpfree( qi, op->o_tmpmemctx );
 	}
+
+	slap_biglock_release(op->o_bd);
 	return deleted;
 }
 
@@ -2619,7 +2626,7 @@ pc_setpw( Operation *op, struct berval *pwd, cache_manager *cm )
 		op->o_callback = &cb;
 		Debug( pcache_debug, "pc_setpw: CACHING BIND for %s\n",
 			op->o_req_dn.bv_val );
-		rc = op->o_bd->be_modify( op, &sr );
+		rc = slap_biglock_call_be( op_modify, op, &sr );
 		ch_free( vals[0].bv_val );
 		return rc;
 	}
@@ -3342,7 +3349,7 @@ refresh_merge( Operation *op, SlapReply *rs )
 				op->o_req_dn = rs->sr_entry->e_name;
 				op->o_req_ndn = rs->sr_entry->e_nname;
 				op->o_callback = &cb;
-				op->o_bd->be_modify( op, &rs2 );
+				slap_biglock_call_be( op_modify, op, &rs2 );
 				rs->sr_err = rs2.sr_err;
 				rs_assert_done( &rs2 );
 				slap_mods_free( mods, 1 );
@@ -3410,6 +3417,8 @@ refresh_query( Operation *op, CachedQuery *query, slap_overinst *on )
 	dnlist *dn;
 	int rc;
 
+	slap_biglock_acquire(op->o_bd);
+
 	ldap_pvt_thread_mutex_lock( &query->answerable_cnt_mutex );
 	query->refcnt = 0;
 	ldap_pvt_thread_mutex_unlock( &query->answerable_cnt_mutex );
@@ -3472,7 +3481,7 @@ refresh_query( Operation *op, CachedQuery *query, slap_overinst *on )
 		rs_reinit( &rs, REP_RESULT );
 		if ( dn->delete ) {
 			op->o_tag = LDAP_REQ_DELETE;
-			op->o_bd->be_delete( op, &rs );
+			op->o_bd->bd_info->bi_op_delete( op, &rs );
 		} else {
 			Modifications mod;
 			struct berval vals[2];
@@ -3490,7 +3499,7 @@ refresh_query( Operation *op, CachedQuery *query, slap_overinst *on )
 
 			op->o_tag = LDAP_REQ_MODIFY;
 			op->orm_modlist = &mod;
-			op->o_bd->be_modify( op, &rs );
+			op->o_bd->bd_info->bi_op_modify( op, &rs );
 		}
 		ri.ri_dels = dn->next;
 		op->o_tmpfree( dn, op->o_tmpmemctx );
@@ -3499,6 +3508,8 @@ refresh_query( Operation *op, CachedQuery *query, slap_overinst *on )
 leave:
 	/* reset our local heap, we're done with it */
 	slap_sl_mem_create(SLAP_SLAB_SIZE, SLAP_SLAB_STACK, op->o_threadctx, 1 );
+	slap_biglock_release(op->o_bd);
+
 	return rc;
 }
 
@@ -4820,7 +4831,7 @@ pcache_db_close(
 		connection_fake_init2( &conn, &opbuf, thrctx, 0 );
 		op = &opbuf.ob_op;
 
-                mod.sml_numvals = 0;
+		mod.sml_numvals = 0;
 		if ( qm->templates != NULL ) {
 			for ( tm = qm->templates; tm != NULL; tm = tm->qmnext ) {
 				for ( qc = tm->query; qc; qc = qc->next ) {
@@ -4862,7 +4873,7 @@ pcache_db_close(
 
 		op->orm_modlist = &mod;
 
-		op->o_bd->be_modify( op, &rs );
+		slap_biglock_call_be( op_modify, op, &rs );
 
 		ber_bvarray_free_x( vals, op->o_tmpmemctx );
 	}
@@ -4986,7 +4997,7 @@ parse_privdb_ctrl(
 	return LDAP_SUCCESS;
 }
 
-static char *extops[] = {
+static const char * const extops[] = {
 	LDAP_EXOP_MODIFY_PASSWD,
 	NULL
 };

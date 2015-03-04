@@ -2,7 +2,7 @@
 /* $OpenLDAP$ */
 /* This work is part of OpenLDAP Software <http://www.openldap.org/>.
  *
- * Copyright 2005-2014 The OpenLDAP Foundation.
+ * Copyright 2005-2015 The OpenLDAP Foundation.
  * Portions Copyright 2004-2005 Symas Corporation.
  * All rights reserved.
  *
@@ -134,28 +134,32 @@ alock_share_lock ( int fd, int slot )
 	lock_info.l_len = (off_t) ALOCK_SLOT_SIZE;
 
 	res = fcntl (fd, F_SETLK, &lock_info);
-	if (res == -1) return -1;
 #elif defined( _WIN32 )
-	OVERLAPPED ov;
 	HANDLE hh = _get_osfhandle ( fd );
-
-	/* Windows locks are mandatory, not advisory.
-	 * We must downgrade the lock to allow future
-	 * callers to read the slot data.
-	 *
-	 * First acquire a shared lock. Unlock will
-	 * release the existing exclusive lock.
-	 */
-	ov.hEvent = 0;
-	ov.Offset = ALOCK_SLOT_SIZE*slot;
-	ov.OffsetHigh = 0;
-	LockFileEx (hh, 0, 0, ALOCK_SLOT_SIZE, 0, &ov);
-	UnlockFile (hh, ALOCK_SLOT_SIZE*slot, 0, ALOCK_SLOT_SIZE, 0);
+	if (hh == INVALID_HANDLE_VALUE)
+		res = -1;
+	else {
+		OVERLAPPED ov;
+		/* Windows locks are mandatory, not advisory.
+		 * We must downgrade the lock to allow future
+		 * callers to read the slot data.
+		 *
+		 * First acquire a shared lock. Unlock will
+		 * release the existing exclusive lock.
+		 */
+		ov.hEvent = 0;
+		ov.Offset = ALOCK_SLOT_SIZE*slot;
+		ov.OffsetHigh = 0;
+		if (! LockFileEx (hh, 0, 0, ALOCK_SLOT_SIZE, 0, &ov))
+			res = -1;
+		if (! UnlockFile (hh, ALOCK_SLOT_SIZE*slot, 0, ALOCK_SLOT_SIZE, 0))
+			res = -1;
+	}
 #else
 #   error alock needs lockf, fcntl, or LockFile[Ex]
 #endif
 
-	return 0;
+	return res;
 }
 
 static int

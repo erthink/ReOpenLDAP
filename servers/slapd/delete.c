@@ -1,7 +1,7 @@
 /* $OpenLDAP$ */
 /* This work is part of OpenLDAP Software <http://www.openldap.org/>.
  *
- * Copyright 1998-2014 The OpenLDAP Foundation.
+ * Copyright 1998-2015 The OpenLDAP Foundation.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -92,7 +92,7 @@ do_delete(
 	}
 
 	op->o_bd = frontendDB;
-	rs->sr_err = frontendDB->be_delete( op, rs );
+	rs->sr_err = slap_biglock_call_be( op_delete, op, rs );
 
 #ifdef LDAP_X_TXN
 	if( rs->sr_err == LDAP_X_TXN_SPECIFY_OKAY ) {
@@ -160,7 +160,7 @@ fe_op_delete( Operation *op, SlapReply *rs )
 	 * 2) this backend is master for what it holds;
 	 * 3) it's a replica and the dn supplied is the update_ndn.
 	 */
-	if ( op->o_bd->be_delete ) {
+	if ( op->o_bd->bd_info->bi_op_delete ) {
 		/* do the update here */
 		int repl_user = be_isupdate( op );
 		if ( !SLAP_SINGLE_SHADOW(op->o_bd) || repl_user ) {
@@ -171,7 +171,7 @@ fe_op_delete( Operation *op, SlapReply *rs )
 			int		org_managedsait;
 
 			op->o_bd = op_be;
-			op->o_bd->be_delete( op, rs );
+			slap_biglock_call_be( op_delete, op, rs );
 
 			org_req_dn = op->o_req_dn;
 			org_req_ndn = op->o_req_ndn;
@@ -193,7 +193,7 @@ fe_op_delete( Operation *op, SlapReply *rs )
 					op->o_req_dn = pdn;
 					op->o_req_ndn = pdn;
 					op->o_callback = &cb;
-					op->o_bd->be_delete( op, rs );
+					slap_biglock_call_be( op_delete, op, rs );
 				} else {
 					break;
 				}

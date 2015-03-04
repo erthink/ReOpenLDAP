@@ -2,7 +2,7 @@
 /* $OpenLDAP$ */
 /* This work is part of OpenLDAP Software <http://www.openldap.org/>.
  *
- * Copyright 2000-2014 The OpenLDAP Foundation.
+ * Copyright 2000-2015 The OpenLDAP Foundation.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -107,7 +107,7 @@ static ConfigOCs mdbocs[] = {
 		"SUP olcDatabaseConfig "
 		"MUST olcDbDirectory "
 		"MAY ( olcDbCheckpoint $ olcDbEnvFlags $ "
-		"olcDbNoSync $ olcDbIndex $ olcDbMaxReaders $ olcDbMaxsize $ "
+		"olcDbNoSync $ olcDbIndex $ olcDbMaxReaders $ olcDbMaxSize $ "
 		"olcDbMode $ olcDbSearchStack ) )",
 		 	Cft_Database, mdbcfg },
 	{ NULL, 0, NULL }
@@ -209,6 +209,7 @@ mdb_online_index( void *ctx, void *arg )
 		if ( slapd_shutdown )
 			break;
 
+		assert(slap_biglock_owned(op->o_bd));
 		rc = mdb_txn_begin( mdb->mi_dbenv, NULL, 0, &txn );
 		if ( rc )
 			break;
@@ -342,7 +343,7 @@ mdb_cf_gen( ConfigArgs *c )
 				char buf[64];
 				struct berval bv;
 				bv.bv_len = snprintf( buf, sizeof(buf), "%ld %ld",
-					(long) mdb->mi_txn_cp_kbyte, (long) mdb->mi_txn_cp_sec );
+					(long) mdb->mi_txn_cp_kbyte, (long) mdb->mi_txn_cp_period );
 				if ( bv.bv_len > 0 && bv.bv_len < sizeof(buf) ) {
 					bv.bv_val = buf;
 					value_add_one( &c->rvalue_vals, &bv );
@@ -612,18 +613,24 @@ mdb_cf_gen( ConfigArgs *c )
 			mdb_env_set_syncbytes( mdb->mi_dbenv, mdb->mi_txn_cp_kbyte * 1024ull);
 		if ( lutil_atolx( &l, c->argv[2], 0 ) != 0 ) {
 			fprintf( stderr, "%s: "
-				"invalid seconds \"%s\" in \"checkpoint\".\n",
-				c->log, c->argv[2] );
+				"invalid %s \"%s\" in \"checkpoint\".\n",
+				c->log, reopenldap_mode_iddqd() ? "seconds" : "minutes", c->argv[2] );
 			return 1;
 		}
-		mdb->mi_txn_cp_sec = l;
+		mdb->mi_txn_cp_period = l;
 		/* If we're in server mode and time-based checkpointing is enabled,
 		 * submit a task to perform periodic checkpoints.
 		 */
-		if ((slapMode & SLAP_SERVER_MODE) && mdb->mi_txn_cp_sec ) {
+		if ((slapMode & SLAP_SERVER_MODE) && mdb->mi_txn_cp_period ) {
 			struct re_s *re = mdb->mi_txn_cp_task;
+			unsigned interval_sec = reopenldap_mode_iddqd() ?
+						/* LY: ReOpenLDAP mode, interval in seconds */
+						mdb->mi_txn_cp_period
+					  :
+						/* LY: compatible mode, interval in minutes */
+						mdb->mi_txn_cp_period * 60;
 			if ( re ) {
-				re->interval.tv_sec = mdb->mi_txn_cp_sec;
+				re->interval.tv_sec = interval_sec;
 			} else {
 				if ( c->be->be_suffix == NULL || BER_BVISNULL( &c->be->be_suffix[0] ) ) {
 					fprintf( stderr, "%s: "
@@ -633,7 +640,7 @@ mdb_cf_gen( ConfigArgs *c )
 				}
 				ldap_pvt_thread_mutex_lock( &slapd_rq.rq_mutex );
 				mdb->mi_txn_cp_task = ldap_pvt_runqueue_insert( &slapd_rq,
-					mdb->mi_txn_cp_sec, mdb_checkpoint, mdb,
+					interval_sec, mdb_checkpoint, mdb,
 					LDAP_XSTRING(mdb_checkpoint), c->be->be_suffix[0].bv_val );
 				ldap_pvt_thread_mutex_unlock( &slapd_rq.rq_mutex );
 			}

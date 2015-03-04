@@ -2,7 +2,7 @@
 /* $OpenLDAP$ */
 /* This work is part of OpenLDAP Software <http://www.openldap.org/>.
  *
- * Copyright 2005-2014 The OpenLDAP Foundation.
+ * Copyright 2005-2015 The OpenLDAP Foundation.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -1869,7 +1869,7 @@ ldif_back_db_open( Backend *be, ConfigReply *cr )
 int
 ldif_back_initialize( BackendInfo *bi )
 {
-	static char *controls[] = {
+	static const char * const controls[] = {
 		LDAP_CONTROL_MANAGEDSAIT,
 		NULL
 	};

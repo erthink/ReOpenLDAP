@@ -233,7 +233,8 @@ struct lber_hug_memchk {
 
 /* Defines for 'poison_mode' of lber_hug_memchk_setup() */
 #define LBER_HUG_POISON_DEFAULT		0xDEFA0178u
-#define LBER_HUG_POISON_CALLOC		0xCA110C00u
+#define LBER_HUG_POISON_CALLOC_SETUP	0xCA110C00u
+#define LBER_HUG_POISON_CALLOC_ALREADY	(LBER_HUG_POISON_CALLOC_SETUP | 0xFFu)
 #define LBER_HUG_POISON_DISABLED	LBER_HUG_DISABLED
 
 LBER_F(void*) lber_hug_memchk_setup LDAP_P((

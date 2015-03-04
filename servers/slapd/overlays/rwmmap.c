@@ -2,7 +2,7 @@
 /* $OpenLDAP$ */
 /* This work is part of OpenLDAP Software <http://www.openldap.org/>.
  *
- * Copyright 1999-2014 The OpenLDAP Foundation.
+ * Copyright 1999-2015 The OpenLDAP Foundation.
  * Portions Copyright 1999-2003 Howard Chu.
  * Portions Copyright 2000-2003 Pierangelo Masarati.
  * All rights reserved.
@@ -33,8 +33,14 @@
 #include "slap.h"
 #include "rwm.h"
 
-#undef ldap_debug	/* silence a warning in ldap-int.h */
-#include "../../../libraries/libldap/ldap-int.h"
+#if 0 /* LY: I can't guess wherefore is that in original OpenLDAP, but:
+	   *     - seems completely unneeded, e.g. 'rebus codestyle';
+	   *     - generates LTO-warning, because we get a two
+	   *       types of 'struct ldapoptions' with different size.
+	   */
+#	undef ldap_debug	/* silence a warning in ldap-int.h */
+#	include "../../../libraries/libldap/ldap-int.h"
+#endif /* OpenLDAP's rebus codestyle */
 
 int
 rwm_mapping_cmp( const void *c1, const void *c2 )

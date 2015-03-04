@@ -2,7 +2,7 @@
 /* $OpenLDAP$ */
 /* This work is part of OpenLDAP Software <http://www.openldap.org/>.
  *
- * Copyright 2008-2014 The OpenLDAP Foundation.
+ * Copyright 2008-2015 The OpenLDAP Foundation.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -248,9 +248,13 @@ ndb_oc_read( struct ndb_info *ni, const NdbDictionary::Dictionary *myDict )
 	ObjectClass *oc;
 	NdbDictionary::Dictionary::List myList;
 	struct berval bv;
-	int i, j, rc, col;
+	unsigned i;
+	int j, rc, col;
 
 	rc = myDict->listObjects( myList, NdbDictionary::Object::UserTable );
+	if (rc)
+		return LDAP_OTHER;
+
 	/* Populate our objectClass structures */
 	for ( i=0; i<myList.count; i++ ) {
 		/* Ignore other DBs */
@@ -340,7 +344,7 @@ ndb_oc_list( struct ndb_info *ni, const NdbDictionary::Dictionary *myDict,
 	struct berval *oname, int implied, NdbOcs *out )
 {
 	const NdbDictionary::Table *myTable;
-	NdbOcInfo *oci, octmp;
+	NdbOcInfo *oci = NULL, octmp;
 	ObjectClass *oc;
 	int i, rc;
 
@@ -546,7 +550,8 @@ ndb_oc_attrs(
 	char buf[65538], *ptr;
 	Attribute **an, **ao, *a;
 	NdbOperation *myop;
-	int i, j, max = 0;
+	int j;
+	unsigned i, max = 0;
 	int changed, rc;
 	Uint64 eid = e->e_id;
 
@@ -557,7 +562,7 @@ ndb_oc_attrs(
 	ao = an + nattrs;
 
 	/* Turn lists of attrs into arrays for easier access */
-	for ( i=0; i<nattrs; i++ ) {
+	for ( i=0; (int) i < nattrs; i++ ) {
 		if ( attrs[i]->na_oi != no ) {
 			an[i] = NULL;
 			ao[i] = NULL;
@@ -635,7 +640,7 @@ ndb_oc_attrs(
 					rc = LDAP_OTHER;
 					if ( !myBlob ) {
 						Debug( LDAP_DEBUG_TRACE, "ndb_oc_attrs: getBlobHandle failed %s (%d)\n",
-							myop->getNdbError().message, myop->getNdbError().code, 0 );
+							myop->getNdbError().message, myop->getNdbError().code );
 						goto done;
 					}
 					if ( slapMode & SLAP_TOOL_MODE )
@@ -643,21 +648,21 @@ ndb_oc_attrs(
 					if ( changed & V_INS ) {
 						if ( myBlob->setValue( an[j]->a_vals[i].bv_val, an[j]->a_vals[i].bv_len )) {
 							Debug( LDAP_DEBUG_TRACE, "ndb_oc_attrs: blob->setValue failed %s (%d)\n",
-								myBlob->getNdbError().message, myBlob->getNdbError().code, 0 );
+								myBlob->getNdbError().message, myBlob->getNdbError().code );
 							goto done;
 						}
 					} else {
 						if ( myBlob->setValue( NULL, 0 )) {
 							Debug( LDAP_DEBUG_TRACE, "ndb_oc_attrs: blob->setValue failed %s (%d)\n",
-								myBlob->getNdbError().message, myBlob->getNdbError().code, 0 );
+								myBlob->getNdbError().message, myBlob->getNdbError().code );
 							goto done;
 						}
 					}
 				} else {
 					if ( changed & V_INS ) {
-						if ( an[j]->a_vals[i].bv_len > attrs[j]->na_len ) {
+						if ( an[j]->a_vals[i].bv_len > (ber_len_t) attrs[j]->na_len ) {
 							Debug( LDAP_DEBUG_ANY, "ndb_oc_attrs: attribute %s too long for column\n",
-								attrs[j]->na_name.bv_val, 0, 0 );
+								attrs[j]->na_name.bv_val );
 							rc = LDAP_CONSTRAINT_VIOLATION;
 							goto done;
 						}
@@ -685,7 +690,7 @@ done:
 	ch_free( an );
 	if ( rc ) {
 		Debug( LDAP_DEBUG_TRACE, "ndb_oc_attrs: failed %s (%d)\n",
-			myop->getNdbError().message, myop->getNdbError().code, 0 );
+			myop->getNdbError().message, myop->getNdbError().code );
 	}
 	return rc;
 }
@@ -784,8 +789,6 @@ ndb_entry_get_data(
 )
 {
 	struct ndb_info *ni = (struct ndb_info *) op->o_bd->be_private;
-	const NdbDictionary::Dictionary *myDict = NA->ndb->getDictionary();
-	const NdbDictionary::Table *myTable;
 	NdbIndexScanOperation **myop = NULL;
 	Uint64 eid;
 
@@ -1326,7 +1329,6 @@ ndb_entry_get_info(
 	struct berval *matched
 )
 {
-	struct ndb_info *ni = (struct ndb_info *) op->o_bd->be_private;
 	const NdbDictionary::Dictionary *myDict = NA->ndb->getDictionary();
 	const NdbDictionary::Table *myTable = myDict->getTable( DN2ID_TABLE );
 	NdbOperation *myop[NDB_MAX_RDNS];
@@ -1457,7 +1459,7 @@ ndb_entry_del_info(
 	NdbArgs *NA
 )
 {
-	struct ndb_info *ni = (struct ndb_info *) be->be_private;
+	struct ndb_info *ni ALLOW_UNUSED = (struct ndb_info *) be->be_private;
 	const NdbDictionary::Dictionary *myDict = NA->ndb->getDictionary();
 	const NdbDictionary::Table *myTable = myDict->getTable( DN2ID_TABLE );
 	NdbOperation *myop;
@@ -1481,15 +1483,14 @@ ndb_next_id(
 	ID *id
 )
 {
-	struct ndb_info *ni = (struct ndb_info *) be->be_private;
+	struct ndb_info *ni ALLOW_UNUSED = (struct ndb_info *) be->be_private;
 	const NdbDictionary::Dictionary *myDict = ndb->getDictionary();
 	const NdbDictionary::Table *myTable = myDict->getTable( NEXTID_TABLE );
 	Uint64 nid = 0;
 	int rc;
 
 	if ( !myTable ) {
-		Debug( LDAP_DEBUG_ANY, "ndb_next_id: " NEXTID_TABLE " table is missing\n",
-			0, 0, 0 );
+		Debug( LDAP_DEBUG_ANY, "ndb_next_id: " NEXTID_TABLE " table is missing\n" );
 		return LDAP_OTHER;
 	}
 
@@ -1529,16 +1530,14 @@ ndb_thread_handle(
 		rc = myNdb->init(1024);
 		if ( rc ) {
 			delete myNdb;
-			Debug( LDAP_DEBUG_ANY, "ndb_thread_handle: err %d\n",
-				rc, 0, 0 );
+			Debug( LDAP_DEBUG_ANY, "ndb_thread_handle: err %d\n", rc );
 			return rc;
 		}
 		data = (void *)myNdb;
 		if (( rc = ldap_pvt_thread_pool_setkey( op->o_threadctx, ni,
 			data, ndb_thread_hfree, NULL, NULL ))) {
 			delete myNdb;
-			Debug( LDAP_DEBUG_ANY, "ndb_thread_handle: err %d\n",
-				rc, 0, 0 );
+			Debug( LDAP_DEBUG_ANY, "ndb_thread_handle: err %d\n", rc );
 			return rc;
 		}
 	}
@@ -1555,7 +1554,7 @@ ndb_entry_get(
 	int rw,
 	Entry **ent )
 {
-	struct ndb_info *ni = (struct ndb_info *) op->o_bd->be_private;
+	struct ndb_info *ni ALLOW_UNUSED = (struct ndb_info *) op->o_bd->be_private;
 	NdbArgs NA;
 	Entry e = {0};
 	int rc;
@@ -1567,7 +1566,7 @@ ndb_entry_get(
 	if( !NA.txn ) {
 		Debug( LDAP_DEBUG_TRACE,
 			LDAP_XSTRING(ndb_entry_get) ": startTransaction failed: %s (%d)\n",
-			NA.ndb->getNdbError().message, NA.ndb->getNdbError().code, 0 );
+			NA.ndb->getNdbError().message, NA.ndb->getNdbError().code );
 		return 1;
 	}
 
@@ -1629,7 +1628,7 @@ ndb_trans_backoff( int num_retries )
 	delay = 16384 * (key * (double) pow_retries / (double) max_key);
 	delay = delay ? delay : 1;
 
-	Debug( LDAP_DEBUG_TRACE,  "delay = %d, num_retries = %d\n", delay, num_retries, 0 );
+	Debug( LDAP_DEBUG_TRACE,  "delay = %d, num_retries = %d\n", delay, num_retries );
 
 	timeout.tv_sec = delay / 1000000;
 	timeout.tv_usec = delay % 1000000;
