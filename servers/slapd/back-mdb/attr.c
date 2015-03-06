@@ -61,7 +61,7 @@ mdb_attr_slot( struct mdb_info *mdb, AttributeDescription *ad, int *ins )
 static int
 ainfo_insert( struct mdb_info *mdb, AttrInfo *a )
 {
-	int x;
+	int x = 0;
 	int i = mdb_attr_slot( mdb, a->ai_desc, &x );
 
 	/* Is it a dup? */

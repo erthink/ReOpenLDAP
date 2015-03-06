@@ -121,9 +121,9 @@ ldap_extended_operation_s(
 	char			**retoidp,
 	struct berval	**retdatap )
 {
-    int     rc;
-    int     msgid;
-    LDAPMessage *res;
+	int     rc;
+	int     msgid = 0;
+	LDAPMessage *res;
 
 	Debug( LDAP_DEBUG_TRACE, "ldap_extended_operation_s\n" );
 
@@ -131,15 +131,15 @@ ldap_extended_operation_s(
 	assert( LDAP_VALID( ld ) );
 	assert( reqoid != NULL && *reqoid != '\0' );
 
-    rc = ldap_extended_operation( ld, reqoid, reqdata,
+	rc = ldap_extended_operation( ld, reqoid, reqdata,
 		sctrls, cctrls, &msgid );
 
-    if ( rc != LDAP_SUCCESS ) {
-        return( rc );
+	if ( rc != LDAP_SUCCESS ) {
+		return( rc );
 	}
 
-    if ( ldap_result( ld, msgid, LDAP_MSG_ALL, (struct timeval *) NULL, &res ) == -1 || !res ) {
-        return( ld->ld_errno );
+	if ( ldap_result( ld, msgid, LDAP_MSG_ALL, (struct timeval *) NULL, &res ) == -1 || !res ) {
+		return( ld->ld_errno );
 	}
 
 	if ( retoidp != NULL ) *retoidp = NULL;
@@ -152,7 +152,7 @@ ldap_extended_operation_s(
 		return rc;
 	}
 
-    return( ldap_result2error( ld, res, 1 ) );
+	return( ldap_result2error( ld, res, 1 ) );
 }
 
 /* Parse an extended result */
@@ -398,4 +398,3 @@ free_and_return:
 
 	return ld->ld_errno;
 }
-
