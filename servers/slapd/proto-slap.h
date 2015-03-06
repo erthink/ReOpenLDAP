@@ -2044,14 +2044,14 @@ LDAP_SLAPD_F (void *) slap_zn_mem_create LDAP_P((
 LDAP_SLAPD_F (void) slap_zn_mem_destroy LDAP_P((void *));
 LDAP_SLAPD_F (int) slap_zn_validate LDAP_P((void *, void *, int));
 LDAP_SLAPD_F (int) slap_zn_invalidate LDAP_P((void *, void *));
-LDAP_SLAPD_F (int) slap_zh_rlock LDAP_P((void*));
-LDAP_SLAPD_F (int) slap_zh_runlock LDAP_P((void*));
-LDAP_SLAPD_F (int) slap_zh_wlock LDAP_P((void*));
-LDAP_SLAPD_F (int) slap_zh_wunlock LDAP_P((void*));
-LDAP_SLAPD_F (int) slap_zn_rlock LDAP_P((void*, void*));
-LDAP_SLAPD_F (int) slap_zn_runlock LDAP_P((void*, void*));
-LDAP_SLAPD_F (int) slap_zn_wlock LDAP_P((void*, void*));
-LDAP_SLAPD_F (int) slap_zn_wunlock LDAP_P((void*, void*));
+LDAP_SLAPD_F (void) slap_zh_rlock LDAP_P((void*));
+LDAP_SLAPD_F (void) slap_zh_runlock LDAP_P((void*));
+LDAP_SLAPD_F (void) slap_zh_wlock LDAP_P((void*));
+LDAP_SLAPD_F (void) slap_zh_wunlock LDAP_P((void*));
+LDAP_SLAPD_F (void) slap_zn_rlock LDAP_P((void*, void*));
+LDAP_SLAPD_F (void) slap_zn_runlock LDAP_P((void*, void*));
+LDAP_SLAPD_F (void) slap_zn_wlock LDAP_P((void*, void*));
+LDAP_SLAPD_F (void) slap_zn_wunlock LDAP_P((void*, void*));
 #endif
 
 /*
