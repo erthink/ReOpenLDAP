@@ -1485,15 +1485,27 @@ syncprov_op_cleanup( Operation *op, SlapReply *rs )
 	/* Remove op from lock table */
 	mt = opc->smt;
 	if ( mt ) {
+		modinst *mi = (modinst *)(opc+1), **pmi;
 		ldap_pvt_thread_mutex_lock( &mt->mt_mutex );
-		mt->mt_mods = mt->mt_mods->mi_next;
+		for (pmi = &mt->mt_mods; /* *pmi != NULL */; pmi = &(*pmi)->mi_next ) {
+			if (*pmi == mi) {
+				*pmi = mi->mi_next;
+				if ( mt->mt_tail == mi )
+					mt->mt_tail = (pmi != &mt->mt_mods) ? (modinst *) pmi : NULL;
+				break;
+			}
+		}
+
 		/* If there are more, promote the next one */
 		if ( mt->mt_mods ) {
 			ldap_pvt_thread_mutex_unlock( &mt->mt_mutex );
 		} else {
+			void* removed;
 			ldap_pvt_thread_mutex_unlock( &mt->mt_mutex );
 			ldap_pvt_thread_mutex_lock( &si->si_mods_mutex );
-			avl_delete( &si->si_mods, mt, sp_avl_cmp );
+			removed = avl_delete( &si->si_mods, mt, sp_avl_cmp );
+			if (reopenldap_mode_idkfa())
+				assert(removed == mt);
 			ldap_pvt_thread_mutex_unlock( &si->si_mods_mutex );
 			ldap_pvt_thread_mutex_destroy( &mt->mt_mutex );
 			ch_free( mt->mt_dn.bv_val );
@@ -1508,8 +1520,10 @@ syncprov_op_cleanup( Operation *op, SlapReply *rs )
 		op->o_tmpfree( opc->sdn.bv_val, op->o_tmpmemctx );
 	if ( opc->srl.rl_info )
 		reslink_detach( &opc->srl );
+#ifdef SLAP_NO_SL_MALLOC
 	if ( opc->se && ! opc->se->e_private )
 		entry_free( opc->se );
+#endif
 	op->o_callback = cb->sc_next;
 	op->o_tmpfree(cb, op->o_tmpmemctx);
 
@@ -2141,7 +2155,7 @@ syncprov_op_mod( Operation *op, SlapReply *rs )
 	ldap_pvt_thread_mutex_unlock( &si->si_ops_mutex );
 
 	cbsize = sizeof(slap_callback) + sizeof(opcookie) +
-		(have_psearches ? sizeof(modinst) : 0 );
+		( have_psearches ? sizeof(modinst) : 0 );
 
 	cb = op->o_tmpcalloc(1, cbsize, op->o_tmpmemctx);
 	opc = (opcookie *)(cb+1);
@@ -2179,6 +2193,7 @@ syncprov_op_mod( Operation *op, SlapReply *rs )
 
 		/* See if we're already modifying this entry... */
 		mtdummy.mt_dn = op->o_req_ndn;
+retry:
 		ldap_pvt_thread_mutex_lock( &si->si_mods_mutex );
 		mt = avl_find( si->si_mods, &mtdummy, sp_avl_cmp );
 		if ( mt ) {
@@ -2188,25 +2203,25 @@ syncprov_op_mod( Operation *op, SlapReply *rs )
 				 * to release it in syncprov_op_cleanup.
 				 */
 				ldap_pvt_thread_mutex_unlock( &mt->mt_mutex );
-				mt = NULL;
+				/* LY: try again, otherwise could be a failure by dup-insertion into the avl-tree. */
+				ldap_pvt_thread_mutex_unlock( &si->si_mods_mutex );
+				ldap_pvt_thread_yield();
+				goto retry;
 			}
 		}
 		if ( mt ) {
-			ldap_pvt_thread_mutex_unlock( &si->si_mods_mutex );
 			mt->mt_tail->mi_next = mi;
 			mt->mt_tail = mi;
+			ldap_pvt_thread_mutex_unlock( &si->si_mods_mutex );
 			/* wait for this op to get to head of list */
 			while ( mt->mt_mods != mi ) {
 				modinst *m2;
-				int same = 0;
 				/* don't wait on other mods from the same thread */
 				for ( m2 = mt->mt_mods; m2; m2 = m2->mi_next ) {
-					if ( m2->mi_op->o_threadctx == op->o_threadctx ) {
-						same = 1;
+					if ( m2->mi_op->o_threadctx == op->o_threadctx )
 						break;
-					}
 				}
-				if ( same )
+				if ( m2 )
 					break;
 
 				ldap_pvt_thread_mutex_unlock( &mt->mt_mutex );
@@ -2224,12 +2239,21 @@ syncprov_op_mod( Operation *op, SlapReply *rs )
 
 				/* clean up if the caller is giving up */
 				if ( op->o_abandon ) {
-					modinst *m2;
-					for ( m2 = mt->mt_mods; m2 && m2->mi_next != mi;
-						m2 = m2->mi_next );
-					if ( m2 ) {
-						m2->mi_next = mi->mi_next;
-						if ( mt->mt_tail == mi ) mt->mt_tail = m2;
+					slap_callback **pcb;
+					modinst **pmi;
+					for (pmi = &mt->mt_mods; /* *pmi != NULL */; pmi = &(*pmi)->mi_next ) {
+						if (*pmi == mi) {
+							*pmi = mi->mi_next;
+							if ( mt->mt_tail == mi )
+								mt->mt_tail = (pmi != &mt->mt_mods) ? (modinst *) pmi : NULL;
+							break;
+						}
+					}
+					for (pcb = &op->o_callback; /* *pcb != NULL */; pcb = &(*pcb)->sc_next ) {
+						if (*pcb == cb) {
+							*pcb = cb->sc_next;
+							break;
+						}
 					}
 					op->o_tmpfree( cb, op->o_tmpmemctx );
 					ldap_pvt_thread_mutex_unlock( &mt->mt_mutex );
@@ -2238,13 +2262,16 @@ syncprov_op_mod( Operation *op, SlapReply *rs )
 			}
 			ldap_pvt_thread_mutex_unlock( &mt->mt_mutex );
 		} else {
+			int avl_err;
 			/* Record that we're modifying this entry now */
 			mt = ch_malloc( sizeof(modtarget) );
 			mt->mt_mods = mi;
 			mt->mt_tail = mi;
 			ber_dupbv( &mt->mt_dn, &mi->mi_op->o_req_ndn );
 			ldap_pvt_thread_mutex_init( &mt->mt_mutex );
-			avl_insert( &si->si_mods, mt, sp_avl_cmp, avl_dup_error );
+			avl_err = avl_insert( &si->si_mods, mt, sp_avl_cmp, avl_dup_error );
+			if (reopenldap_mode_idkfa())
+				assert(avl_err == 0);
 			ldap_pvt_thread_mutex_unlock( &si->si_mods_mutex );
 		}
 		opc->smt = mt;
