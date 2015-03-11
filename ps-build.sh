@@ -36,7 +36,15 @@ step_finish "prepare"
 echo "======================================================================="
 step_begin "configure"
 
-CFLAGS="-Wall -g -Os" CPPFLAGS="-Wall -g -Os" ./configure \
+export CFLAGS="-Wall -O -g"
+if [ -n "$(which gcc)" ] && gcc -v 2>&1 | grep -q -i lto \
+	&& [ -n "$(which gcc-ar)" -a -n "$(which gcc-nm)" -a -n "$(which gcc-ranlib)" ]
+then
+	export CC=gcc AR=gcc-ar NM=gcc-nm RANLIB=gcc-ranlib CFLAGS="$CFLAGS -flto"
+	echo "*** Link-Time Optimization (LTO) will be used" >&2
+fi
+
+CPPFLAGS="$CFLAGS" ./configure \
 	--prefix=${PREFIX} --enable-dynacl --enable-ldap \
 	--enable-overlays --disable-bdb --disable-hdb \
 	--disable-dynamic --disable-shared --enable-static \
