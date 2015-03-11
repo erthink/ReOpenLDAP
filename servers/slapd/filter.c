@@ -869,7 +869,7 @@ filter2bv_undef( Filter *f, int noundef, struct berval *fstr )
 Filter *
 filter_dup( Filter *f, void *memctx )
 {
-	BerMemoryFunctions *mf = &slap_sl_mfuncs;
+	const BerMemoryFunctions *mf = &slap_sl_mfuncs;
 	Filter *n;
 
 	if ( !f )

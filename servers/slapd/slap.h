@@ -2550,7 +2550,7 @@ typedef struct Opheader {
 
 	void	*oh_threadctx;		/* thread pool thread context */
 	void	*oh_tmpmemctx;		/* slab malloc context */
-	BerMemoryFunctions *oh_tmpmfuncs;
+	const BerMemoryFunctions *oh_tmpmfuncs;
 
 	slap_counters_t	*oh_counters;
 

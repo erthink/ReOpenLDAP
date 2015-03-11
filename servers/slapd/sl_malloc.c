@@ -164,7 +164,7 @@ slap_sl_mem_destroy(
 	}
 }
 
-BerMemoryFunctions slap_sl_mfuncs =
+const BerMemoryFunctions slap_sl_mfuncs =
 	{ slap_sl_malloc, slap_sl_calloc, slap_sl_realloc, slap_sl_free };
 
 void
