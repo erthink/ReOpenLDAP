@@ -35,7 +35,6 @@
 
 #ifdef SLAP_ZONE_ALLOC
 #include <sys/mman.h>
-#include "valgrind.h"
 
 static int slap_zone_cmp(const void *v1, const void *v2);
 void * slap_replenish_zopool(void *ctx);

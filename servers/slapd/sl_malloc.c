@@ -20,7 +20,6 @@
 #include <ac/string.h>
 
 #include "slap.h"
-#include "valgrind.h"
 
 /* LY: With respect to http://en.wikipedia.org/wiki/Fail-fast */
 #ifndef LDAP_DISABLE_MEMORY_CHECK
