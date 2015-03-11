@@ -267,17 +267,17 @@ __hot __flatten size_t lber_hug_memchk_size(const void* payload) {
 }
 
 #define VALGRIND_CLOSE(memchunk) { \
-		VALGRIND_MAKE_MEM_NOACCESS((char *) memchunk \
-			+ memchunk->hm_length + sizeof(*memchunk), \
-				sizeof(*memchunk)); \
+		VALGRIND_MAKE_MEM_NOACCESS( \
+			(char *) memchunk + sizeof(*memchunk) + memchunk->hm_length, \
+			sizeof(struct lber_hipagut)); \
 		VALGRIND_MAKE_MEM_NOACCESS(memchunk, sizeof(*memchunk)); \
 	}
 
 #define VALGRIND_OPEN(memchunk) { \
 		VALGRIND_MAKE_MEM_DEFINED(memchunk, sizeof(*memchunk)); \
-		VALGRIND_MAKE_MEM_DEFINED((char *) memchunk \
-			+ memchunk->hm_length + sizeof(*memchunk), \
-				sizeof(*memchunk)); \
+		VALGRIND_MAKE_MEM_DEFINED( \
+			(char *) memchunk + sizeof(*memchunk) + memchunk->hm_length, \
+			sizeof(struct lber_hipagut)); \
 	}
 
 __hot __flatten int lber_hug_memchk_probe(
@@ -301,6 +301,9 @@ __hot __flatten int lber_hug_memchk_probe(
 			if (unlikely(LBER_HUG_PROBE_ASIDE(memchunk, MEMCHK_TAG_COVER,
 					memchunk->hm_length + sizeof(struct lber_hug_memchk))))
 				bits |= 4;
+			else
+				assert(VALGRIND_CHECK_MEM_IS_ADDRESSABLE(memchunk,
+						memchunk->hm_length + LBER_HUG_MEMCHK_OVERHEAD) == 0);
 		}
 	}
 	VALGRIND_CLOSE(memchunk);
@@ -383,7 +386,7 @@ __hot __flatten void* lber_hug_memchk_drown(void* payload) {
 	if (lber_hug_memchk_poison_free != LBER_HUG_POISON_DISABLED)
 		memset(payload, (char) lber_hug_memchk_poison_free, payload_size);
 
-	VALGRIND_MAKE_MEM_NOACCESS(payload, payload_size);
+	VALGRIND_MAKE_MEM_NOACCESS(memchunk, LBER_HUG_MEMCHK_OVERHEAD + payload_size);
 	return memchunk;
 }
 
@@ -402,6 +405,9 @@ static int lber_hug_memchk_probe_realloc(
 					memchunk->hm_length + sizeof(struct lber_hug_memchk)),
 					key + 2)))
 				bits |= 4;
+			else
+				assert(VALGRIND_CHECK_MEM_IS_ADDRESSABLE(memchunk,
+						memchunk->hm_length + LBER_HUG_MEMCHK_OVERHEAD) == 0);
 		}
 	}
 	return bits;
@@ -446,6 +452,10 @@ void* lber_hug_realloc_commit ( size_t old_size,
 		size_t new_size ) {
 	void* new_payload = LBER_HUG_PAYLOAD(new_memchunk);
 	size_t sequence = LBER_HUG_DISABLED;
+
+	assert(VALGRIND_CHECK_MEM_IS_ADDRESSABLE(new_memchunk,
+			new_size + LBER_HUG_MEMCHK_OVERHEAD) == 0);
+
 	if (unlikely(lber_hug_memchk_trace_disabled != LBER_HUG_DISABLED)) {
 		sequence = __sync_fetch_and_add(&lber_hug_memchk_info.mi_sequence, 1);
 		__sync_fetch_and_add(&lber_hug_memchk_info.mi_inuse_bytes, new_size - old_size);
