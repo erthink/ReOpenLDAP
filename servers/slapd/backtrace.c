@@ -189,10 +189,6 @@ static void trap_sigaction(int signum, siginfo_t *info, void* ptr) {
 	is_debugger_active = 0;
 }
 
-#if defined(HAVE_VALGRIND) || defined(USE_VALGRIND)
-#	include <valgrind/valgrind.h>
-#endif
-
 static int is_valgrind_present() {
 #ifdef RUNNING_ON_VALGRIND
 	if (RUNNING_ON_VALGRIND)

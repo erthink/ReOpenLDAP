@@ -1884,7 +1884,7 @@ LDAP_SLAPD_F (void *) slap_sl_calloc LDAP_P((
 LDAP_SLAPD_F (void) slap_sl_free LDAP_P((
 	void *, void *ctx ));
 
-LDAP_SLAPD_V (BerMemoryFunctions) slap_sl_mfuncs;
+LDAP_SLAPD_V (const BerMemoryFunctions) slap_sl_mfuncs;
 
 LDAP_SLAPD_F (void) slap_sl_mem_init LDAP_P(( void ));
 LDAP_SLAPD_F (void *) slap_sl_mem_create LDAP_P((
