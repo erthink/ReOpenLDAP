@@ -36,11 +36,11 @@ step_finish "prepare"
 echo "======================================================================="
 step_begin "configure"
 
-export CFLAGS="-Wall -O -g"
+export CFLAGS="-Wall -O2 -g"
 if [ -n "$(which gcc)" ] && gcc -v 2>&1 | grep -q -i lto \
 	&& [ -n "$(which gcc-ar)" -a -n "$(which gcc-nm)" -a -n "$(which gcc-ranlib)" ]
 then
-	export CC=gcc AR=gcc-ar NM=gcc-nm RANLIB=gcc-ranlib CFLAGS="$CFLAGS -flto"
+	export CC=gcc AR=gcc-ar NM=gcc-nm RANLIB=gcc-ranlib CFLAGS="$CFLAGS -flto=jobserver -fno-fat-lto-objects -fuse-linker-plugin -fwhole-program"
 	echo "*** Link-Time Optimization (LTO) will be used" >&2
 fi
 
