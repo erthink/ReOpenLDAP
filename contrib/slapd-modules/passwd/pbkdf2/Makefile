@@ -7,8 +7,8 @@ LDAP_LIB = $(LDAP_BUILD)/libraries/libldap_r/libldap_r.la \
 	$(LDAP_BUILD)/libraries/liblber/liblber.la
 
 LIBTOOL = $(LDAP_BUILD)/libtool
-CC = gcc
-OPT = -g -O2 -Wall
+CC ?= gcc
+OPT ?= -g -O2 -Wall -Werror
 #DEFS = -DSLAPD_PBKDF2_DEBUG
 
 INCS = $(LDAP_INC)
