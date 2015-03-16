@@ -28,7 +28,7 @@ PREFIX=${2:-$(pwd)/install_prefix_as_the_second_parameter}/openldap
 echo "BUILD_NUMBER: $BUILD_NUMBER"
 echo "PREFIX: $PREFIX"
 
-git fetch https://binbug.bigbrother-matrix.ru/gerrit/ReOpenLDAP --prune --tags || failure "git fetch"
+git fetch origin --prune --tags || failure "git fetch"
 BUILD_ID=$(git describe --abbrev=15 --always --long --tags | sed "s/^.\+-\([0-9]\+-g[0-9a-f]\+\)\$/.${BUILD_NUMBER}-\1/")
 echo "BUILD_ID: $BUILD_ID"
 
