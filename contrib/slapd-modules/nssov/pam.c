@@ -212,7 +212,7 @@ finish:
 	return rc;
 }
 
-int pam_authc(nssov_info *ni,TFILE *fp,Operation *op)
+int pam_authc(nssov_info *ni,TFILE *fp,Operation *op,uid_t calleruid)
 {
 	int32_t tmpint32;
 	int rc;
@@ -261,6 +261,13 @@ int pam_authc(nssov_info *ni,TFILE *fp,Operation *op)
 			Debug(LDAP_DEBUG_TRACE,"nssov_pam_authc(prelim check): %s\n",
 				"pwdmgr dn not configured");
 			ber_str2bv("pwdmgr dn not configured", 0, 0, &pi.msg);
+			pi.authz = NSLCD_PAM_PERM_DENIED;
+			rc = NSLCD_PAM_PERM_DENIED;
+			goto finish;
+		} else if (calleruid != 0) {
+			Debug(LDAP_DEBUG_TRACE,"nssov_pam_authc(prelim check): %s\n",
+				"caller is not root", 0, 0);
+			ber_str2bv("only root may do that", 0, 0, &pi.msg);
 			pi.authz = NSLCD_PAM_PERM_DENIED;
 			rc = NSLCD_PAM_PERM_DENIED;
 			goto finish;
@@ -707,7 +714,7 @@ int pam_sess_c(nssov_info *ni,TFILE *fp,Operation *op)
 	return pam_sess(ni,fp,op,NSLCD_ACTION_PAM_SESS_C);
 }
 
-int pam_pwmod(nssov_info *ni,TFILE *fp,Operation *op)
+int pam_pwmod(nssov_info *ni,TFILE *fp,Operation *op,uid_t calleruid)
 {
 	struct berval npw;
 	int32_t tmpint32;
@@ -769,6 +776,13 @@ int pam_pwmod(nssov_info *ni,TFILE *fp,Operation *op)
 		rc = NSLCD_PAM_PERM_DENIED;
 		goto done;
 	} else if (!ber_bvcmp(&pi.dn, &ni->ni_pam_pwdmgr_dn)) {
+		if (calleruid != 0) {
+			Debug(LDAP_DEBUG_TRACE,"nssov_pam_pwmod(): %s\n",
+				"caller is not root", 0, 0);
+			ber_str2bv("only root may do that", 0, 0, &pi.msg);
+			rc = NSLCD_PAM_PERM_DENIED;
+			goto done;
+		}
 		/* root user requesting pwmod, convert uid to dn */
 		pi.ispwdmgr = 1;
 		rc = pam_uid2dn(ni, op, &pi);
