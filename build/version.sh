@@ -16,21 +16,24 @@
 DIR=`dirname $0`
 . $DIR/version.var
 
-if test $ol_patch != X ; then
-	ol_version=${ol_major}.${ol_minor}.${ol_patch}
-	ol_api_lib_release=${ol_major}.${ol_minor}
+case "$ol_suffix" in
+"")
 	ol_type=Release
-elif test $ol_minor != X ; then
-	ol_version=${ol_major}.${ol_minor}.${ol_patch}
-	ol_api_lib_release=${ol_major}.${ol_minor}-releng
+	;;
+RC*|rc*)
+	ol_type=ReleaseCandidate
+	;;
+X|x)
 	ol_type=Engineering
-else
-	ol_version=${ol_major}.${ol_minor}
-	ol_api_lib_release=${ol_major}-devel
+	;;
+*)
 	ol_type=Devel
-fi
+	;;
+esac
 
+ol_version=${ol_major}.${ol_minor}.${ol_patch}
 ol_string="${ol_package} ${ol_version}-${ol_type}"
+ol_api_lib_release=${ol_major}.${ol_minor}
 ol_api_lib_version="${ol_api_current}:${ol_api_revision}:${ol_api_age}"
 
 echo OL_PACKAGE=\"${ol_package}\"
