@@ -20,7 +20,7 @@
 
 #include "componentlib.h"
 #include "asn.h"
-#include <asn-gser.h>
+#include <snacc/c/snacc.h>
 #include <stdlib.h>
 
 #include <string.h>
