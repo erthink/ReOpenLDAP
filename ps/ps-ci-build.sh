@@ -29,8 +29,17 @@ if [ -n "${MYSQL_CONFIG}" ]; then
 fi
 
 IODBC=$([ -d /usr/include/iodbc ] && echo "-I/usr/include/iodbc")
-CFLAGS="-Wall -g -Os -DLDAP_MEMORY_DEBUG -DUSE_VALGRIND $IODBC" CPPFLAGS="$CFLAGS" LDFLAGS="$LDFLAGS"\
-	./configure \
+
+export CFLAGS="-Wall -g -O2 -DLDAP_MEMORY_DEBUG -DUSE_VALGRIND $IODBC"
+if [ -n "$(which gcc)" ] && gcc -v 2>&1 | grep -q -i lto \
+	&& [ -n "$(which gcc-ar)" -a -n "$(which gcc-nm)" -a -n "$(which gcc-ranlib)" ]
+then
+	export CC=gcc AR=gcc-ar NM=gcc-nm RANLIB=gcc-ranlib CFLAGS="$CFLAGS -flto=jobserver -fno-fat-lto-objects -fuse-linker-plugin -fwhole-program"
+	echo "*** Link-Time Optimization (LTO) will be used" >&2
+fi
+export CPPFLAGS="$CFLAGS" LDFLAGS="$LDFLAGS"
+
+./configure \
 		--enable-backends --enable-overlays $NBD \
 		--enable-rewrite --enable-dynacl --enable-aci --enable-slapi \
 		--disable-dependency-tracking \
