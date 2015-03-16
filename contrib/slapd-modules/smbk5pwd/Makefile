@@ -26,7 +26,7 @@ HEIMDAL_LIB = -L/usr/heimdal/lib -lkrb5 -lkadm5srv
 
 LIBTOOL = $(LDAP_BUILD)/libtool
 CC ?= gcc
-OPT ?= -g -O2 -Wall -Werror
+CFLAGS ?= -g -O2 -Wall -Werror
 # Omit DO_KRB5, DO_SAMBA or DO_SHADOW if you don't want to support it.
 DEFS = -DDO_KRB5 -DDO_SAMBA -DDO_SHADOW
 INCS = $(LDAP_INC) $(HEIMDAL_INC) $(SSL_INC)
@@ -46,12 +46,12 @@ moduledir = $(libexecdir)$(ldap_subdir)
 .SUFFIXES: .c .o .lo
 
 .c.lo:
-	$(LIBTOOL) --mode=compile $(CC) $(OPT) $(DEFS) $(INCS) -c $<
+	$(LIBTOOL) --mode=compile $(CC) $(CFLAGS) $(DEFS) $(INCS) -c $<
 
 all: $(PROGRAMS)
 
 smbk5pwd.la:	smbk5pwd.lo
-	$(LIBTOOL) --mode=link $(CC) $(OPT) -version-info $(LTVER) \
+	$(LIBTOOL) --mode=link $(CC) $(CFLAGS) -version-info $(LTVER) \
 	-rpath $(moduledir) -module -o $@ $? $(LIBS)
 
 clean:

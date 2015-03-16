@@ -27,8 +27,8 @@ NLDAPD_INC=-Inss-pam-ldapd
 
 LIBTOOL = $(LDAP_BUILD)/libtool
 CC ?= gcc
-OPT ?= -g -O2 -Wall -Werror
-OPT += -Wno-error=address -Wno-error=unused-but-set-variable
+CFLAGS ?= -g -O2 -Wall -Werror
+CFLAGS += -Wno-error=address -Wno-error=unused-but-set-variable
 DEFS =
 INCS = $(LDAP_INC) $(NLDAPD_INC)
 LIBS = $(LDAP_LIB)
@@ -53,15 +53,15 @@ OBJS = alias.lo ether.lo group.lo host.lo netgroup.lo network.lo \
 .SUFFIXES: .c .o .lo
 
 .c.lo:
-	$(LIBTOOL) --mode=compile $(CC) $(OPT) $(DEFS) $(INCS) -c $<
+	$(LIBTOOL) --mode=compile $(CC) $(CFLAGS) $(DEFS) $(INCS) -c $<
 
 tio.lo:	nss-pam-ldapd/tio.c
-	$(LIBTOOL) --mode=compile $(CC) $(OPT) $(DEFS) $(INCS) -c $?
+	$(LIBTOOL) --mode=compile $(CC) $(CFLAGS) $(DEFS) $(INCS) -c $?
 
 $(OBJS):	nssov.h
 
 nssov.la:	$(OBJS) $(XOBJS)
-	$(LIBTOOL) --mode=link $(CC) $(OPT) -version-info 0:0:0 \
+	$(LIBTOOL) --mode=link $(CC) $(CFLAGS) -version-info 0:0:0 \
 	-rpath $(moduledir) -module -o $@ $(OBJS) $(XOBJS) $(LIBS)
 
 install: nssov.la
