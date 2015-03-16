@@ -25,8 +25,8 @@ HEIMDAL_INC = -I/usr/heimdal/include
 HEIMDAL_LIB = -L/usr/heimdal/lib -lkrb5 -lkadm5srv
 
 LIBTOOL = $(LDAP_BUILD)/libtool
-CC = gcc
-OPT = -g -O2 -Wall
+CC ?= gcc
+OPT ?= -g -O2 -Wall -Werror
 # Omit DO_KRB5, DO_SAMBA or DO_SHADOW if you don't want to support it.
 DEFS = -DDO_KRB5 -DDO_SAMBA -DDO_SHADOW
 INCS = $(LDAP_INC) $(HEIMDAL_INC) $(SSL_INC)
@@ -62,4 +62,3 @@ install: $(PROGRAMS)
 	for p in $(PROGRAMS) ; do \
 		$(LIBTOOL) --mode=install cp $$p $(DESTDIR)$(moduledir) ; \
 	done
-
