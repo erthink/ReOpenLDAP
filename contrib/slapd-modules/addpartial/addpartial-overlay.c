@@ -158,7 +158,7 @@ static int addpartial_add( Operation *op, SlapReply *rs)
 
                         for(v = at->a_vals; v->bv_val != NULL; v++)
                         {
-                            int r;
+							int r = ret;
                             if(mr && ((r = value_match(&ret, attr->a_desc, mr,
                                            SLAP_MR_VALUE_OF_ASSERTION_SYNTAX,
                                            bv, v, &text)) == 0))
@@ -170,8 +170,7 @@ static int addpartial_add( Operation *op, SlapReply *rs)
                             {
                                 Debug(LDAP_DEBUG_TRACE,
                                       "%s: \tvalue DNE, r: %d \n",
-                                      addpartial.on_bi.bi_type,
-                                      r);
+									  addpartial.on_bi.bi_type, r);
                                 ret = strcmp(bv->bv_val, v->bv_val);
                                 if(ret == 0)
                                     break;

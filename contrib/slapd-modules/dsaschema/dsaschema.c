@@ -155,7 +155,7 @@ static int dsaschema_read_config(const char *fname, int depth)
 {
 	FILE *fp;
 	char *line, *savefname, *saveline;
-	int savelineno, lineno;
+	int savelineno = 0, lineno;
 	int rc;
 
 	if (depth == 0) {

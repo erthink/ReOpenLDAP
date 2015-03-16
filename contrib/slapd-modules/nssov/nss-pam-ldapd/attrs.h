@@ -22,6 +22,7 @@
 #ifndef COMPAT__ATTRS_H
 #define COMPAT__ATTRS_H 1
 
+#undef GCC_VERSION
 /* macro for testing the version of GCC */
 #define GCC_VERSION(major,minor) \
   ((__GNUC__ > (major)) || (__GNUC__ == (major) && __GNUC_MINOR__ >= (minor)))

@@ -69,6 +69,7 @@ int nssov_find_rdnval(struct berval *dn, AttributeDescription *ad, struct berval
 		rdn.bv_len -= next - rdn.bv_val;
 		rdn.bv_val = next;
 	} while (1);
+	return 0;
 }
 
 /* create a search filter using a name that requires escaping */
@@ -255,8 +256,8 @@ int nssov_config(nssov_info *ni,TFILE *fp,Operation *op)
 {
 	int opt;
 	int32_t tmpint32;
-	struct berval *msg = BER_BVC("");
-	int rc = NSLCD_PAM_SUCCESS;
+	struct berval *msg = NULL;
+	/* int rc = NSLCD_PAM_SUCCESS; */
 
 	READ_INT32(fp,opt);
 
@@ -271,14 +272,14 @@ int nssov_config(nssov_info *ni,TFILE *fp,Operation *op)
 				"password_prohibit_message",
 				ni->ni_pam_password_prohibit_message.bv_val);
 			msg = &ni->ni_pam_password_prohibit_message;
-			rc = NSLCD_PAM_PERM_DENIED;
+			/* rc = NSLCD_PAM_PERM_DENIED; */
 		}
 		/* fall through */
 	default:
 		break;
 	}
 
-done:;
+/* done:; */
 	WRITE_INT32(fp,NSLCD_VERSION);
 	WRITE_INT32(fp,NSLCD_ACTION_CONFIG_GET);
 	WRITE_INT32(fp,NSLCD_RESULT_BEGIN);
@@ -298,8 +299,10 @@ static void handleconnection(nssov_info *ni,int sock,Operation *op)
   uid_t uid;
   gid_t gid;
   char authid[sizeof("gidNumber=4294967295+uidNumber=424967295,cn=peercred,cn=external,cn=auth")];
+#ifdef LDAP_PF_LOCAL_SENDMSG
   char peerbuf[8];
   struct berval peerbv = { sizeof(peerbuf), peerbuf };
+#endif
 
   /* log connection */
   if (LUTIL_GETPEEREID(sock,&uid,&gid,&peerbv))
@@ -410,10 +413,10 @@ static void *acceptconn(void *ctx, void *arg)
 			if ((errno==EINTR)||(errno==EAGAIN)||(errno==EWOULDBLOCK))
 			{
 				Debug( LDAP_DEBUG_TRACE,"nssov: accept() failed (ignored): %s",strerror(errno));
-				return;
+				return NULL;
 			}
 			Debug( LDAP_DEBUG_ANY,"nssov: accept() failed: %s",strerror(errno));
-			return;
+			return NULL;
 		}
 		/* make sure O_NONBLOCK is not inherited */
 		if ((j=fcntl(csock,F_GETFL,0))<0)
@@ -421,14 +424,14 @@ static void *acceptconn(void *ctx, void *arg)
 			Debug( LDAP_DEBUG_ANY,"nssov: fcntl(F_GETFL) failed: %s",strerror(errno));
 			if (close(csock))
 				Debug( LDAP_DEBUG_ANY,"nssov: problem closing socket: %s",strerror(errno));
-			return;
+			return NULL;
 		}
 		if (fcntl(csock,F_SETFL,j&~O_NONBLOCK)<0)
 		{
 			Debug( LDAP_DEBUG_ANY,"nssov: fcntl(F_SETFL,~O_NONBLOCK) failed: %s",strerror(errno));
 			if (close(csock))
 				Debug( LDAP_DEBUG_ANY,"nssov: problem closing socket: %s",strerror(errno));
-			return;
+			return NULL;
 		}
 	}
 	connection_fake_init( &conn, &opbuf, ctx );
@@ -439,6 +442,7 @@ static void *acceptconn(void *ctx, void *arg)
 
 	/* handle the connection */
 	handleconnection(ni,csock,op);
+	return NULL;
 }
 
 static slap_verbmasks nss_svcs[] = {
@@ -773,7 +777,6 @@ nssov_db_init(
 {
 	slap_overinst *on = (slap_overinst *)be->bd_info;
 	nssov_info *ni;
-	nssov_mapinfo *mi;
 	int rc;
 
 	rc = nssov_pam_init();
@@ -806,6 +809,7 @@ nssov_db_destroy(
 	BackendDB *be,
 	ConfigReply *cr )
 {
+	return 0;
 }
 
 static int
@@ -962,6 +966,7 @@ nssov_db_close(
 				strerror(errno));
 		}
 	}
+	return 0;
 }
 
 static slap_overinst nssov;

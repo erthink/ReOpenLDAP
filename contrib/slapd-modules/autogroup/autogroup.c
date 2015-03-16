@@ -960,7 +960,7 @@ autogroup_delete_entry( Operation *op, SlapReply *rs)
 {
 	slap_overinst		*on = (slap_overinst *)op->o_bd->bd_info;
 	autogroup_info_t	*agi = (autogroup_info_t *)on->on_bi.bi_private;
-	autogroup_entry_t	*age, *age_prev, *age_next;
+	autogroup_entry_t	*age, *age_next;
 	autogroup_filter_t	*agf;
 	Entry			*e;
 	int			matched_group = 0, rc = 0;
@@ -984,8 +984,7 @@ autogroup_delete_entry( Operation *op, SlapReply *rs)
 	}
 
 	/* Check if the entry to be deleted is one of our groups. */
-	for ( age_next = agi->agi_entry ; age_next ; age_prev = age ) {
-		age = age_next;
+	for ( age_next = agi->agi_entry ; (age = age_next) != NULL ; ) {
 		ldap_pvt_thread_mutex_lock( &age->age_mutex );
 		age_next = age->age_next;
 
@@ -1935,7 +1934,7 @@ ag_cfgen( ConfigArgs *c )
 		if( !is_at_subtype( member_url_ad->ad_type, slap_schema.si_ad_labeledURI->ad_type ) ) {
 			snprintf( c->cr_msg, sizeof( c->cr_msg ),
 				"\"autogroup-attrset <oc> <URL-ad> <member-ad>\": "
-				"AttributeDescription \"%s\" ",
+				"AttributeDescription \"%s\" "
 				"must be of a subtype \"labeledURI\"",
 				c->argv[ 2 ] );
 			Debug( LDAP_DEBUG_ANY, "%s: %s.\n",

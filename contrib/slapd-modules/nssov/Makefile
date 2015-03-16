@@ -26,8 +26,9 @@ LDAP_LIB = $(LDAP_BUILD)/libraries/libldap_r/libldap_r.la \
 NLDAPD_INC=-Inss-pam-ldapd
 
 LIBTOOL = $(LDAP_BUILD)/libtool
-OPT = -g -O2 -Wall
-CC = gcc
+CC ?= gcc
+OPT ?= -g -O2 -Wall -Werror
+OPT += -Wno-error=address -Wno-error=unused-but-set-variable
 DEFS =
 INCS = $(LDAP_INC) $(NLDAPD_INC)
 LIBS = $(LDAP_LIB)

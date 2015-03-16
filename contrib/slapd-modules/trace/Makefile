@@ -7,8 +7,8 @@ LDAP_LIB = $(LDAP_BUILD)/libraries/libldap_r/libldap_r.la \
 	$(LDAP_BUILD)/libraries/liblber/liblber.la
 
 LIBTOOL = $(LDAP_BUILD)/libtool
-CC = gcc
-OPT = -g -O2 -Wall
+CC ?= gcc
+OPT ?= -g -O2 -Wall -Werror
 DEFS = -DSLAPD_OVER_TRACE=SLAPD_MOD_DYNAMIC
 INCS = $(LDAP_INC)
 LIBS = $(LDAP_LIB)
@@ -43,4 +43,3 @@ install: $(PROGRAMS)
 	for p in $(PROGRAMS) ; do \
 		$(LIBTOOL) --mode=install cp $$p $(DESTDIR)$(moduledir) ; \
 	done
-

@@ -19,6 +19,8 @@
 #include "nssov.h"
 #include "lutil.h"
 
+#include "../../../libraries/libldap/ldap-int.h"
+
 static int ppolicy_cid;
 static AttributeDescription *ad_loginStatus;
 
@@ -93,6 +95,7 @@ static int pam_bindcb(
 						/* fallthru */
 					case PP_changeAfterReset:
 						pi->authz = NSLCD_PAM_NEW_AUTHTOK_REQD;
+					default:;
 					}
 				}
 			}
@@ -213,12 +216,10 @@ int pam_authc(nssov_info *ni,TFILE *fp,Operation *op)
 {
 	int32_t tmpint32;
 	int rc;
-	slap_callback cb = {0};
 	char dnc[1024];
 	char uidc[32];
 	char svcc[256];
 	char pwdc[256];
-	struct berval sdn, dn;
 	struct paminfo pi;
 
 

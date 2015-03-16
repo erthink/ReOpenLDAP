@@ -737,7 +737,8 @@ lastmod_response( Operation *op, SlapReply *rs )
 
 static int
 lastmod_db_init(
-	BackendDB *be
+	BackendDB *be,
+	ConfigReply *cr
 )
 {
 	slap_overinst		*on = (slap_overinst *)be->bd_info;
@@ -745,7 +746,6 @@ lastmod_db_init(
 
 	if ( lastmod_schema.lms_oc_lastmod == NULL ) {
 		int		i;
-		const char 	*text;
 
 		/* schema integration */
 		for ( i = 0; mat[i].schema; i++ ) {
@@ -828,7 +828,8 @@ lastmod_db_config(
 
 static int
 lastmod_db_open(
-	BackendDB *be
+	BackendDB *be,
+	ConfigReply *cr
 )
 {
 	slap_overinst	*on = (slap_overinst *) be->bd_info;
@@ -905,7 +906,8 @@ lastmod_db_open(
 
 static int
 lastmod_db_destroy(
-	BackendDB *be
+	BackendDB *be,
+	ConfigReply *cr
 )
 {
 	slap_overinst	*on = (slap_overinst *)be->bd_info;

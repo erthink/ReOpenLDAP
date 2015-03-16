@@ -31,13 +31,12 @@
 #include "slap.h"
 #include "config.h"
 
-static ConfigDriver nops_cf_gen;
-
-static int nops_cf_gen( ConfigArgs *c ) { return 0; }
+/* static ConfigDriver nops_cf_gen;
+ static int nops_cf_gen( ConfigArgs *c ) { return 0; } */
 
 static void
 nops_rm_mod( Modifications **mods, Modifications *mod ) {
-	Modifications *next, *m;
+	Modifications *next;
 
 	next = mod->sml_next;
 	if (*mods == mod) {
