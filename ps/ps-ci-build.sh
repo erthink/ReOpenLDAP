@@ -47,4 +47,10 @@ export CPPFLAGS="$CFLAGS" LDFLAGS="$LDFLAGS"
 
 make depend && make -j4 && make -j4 -C libraries/liblmdb || failure "build"
 
+for m in contrib/slapd-modules/*; do
+	if [ -d $m -a ! -e $m/BROKEN ]; then
+		make -C $m || failure "contrib-module '$m'"
+	fi
+done
+
 echo "DONE"
