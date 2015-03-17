@@ -6,7 +6,7 @@
 slapauth \- проверка списка представленных в виде строк
 идентификаторов для аутентификации/авторизации LDAP
 .SH СИНТАКСИС
-.B /usr/local/sbin/slapauth
+.B SBINDIR/slapauth
 [\c
 .BI \-d \ debug-level\fR]
 [\c
@@ -118,7 +118,7 @@ slapauth \- проверка списка представленных в вид
 .LP
 .nf
 .ft tt
-	/usr/local/sbin/slapauth \-f //usr/local/etc/openldap/slapd.conf \-v \\
+	SBINDIR/slapauth \-f /ETCDIR/slapd.conf \-v \\
             \-U bjorn \-X u:bjensen
 
 .ft

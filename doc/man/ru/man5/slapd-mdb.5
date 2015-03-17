@@ -5,7 +5,7 @@
 .SH НАЗВАНИЕ
 slapd\-mdb \- механизм манипуляции данными для slapd Memory-Mapped DB (отображаемая в памяти база данных)
 .SH СИНТАКСИС
-.B /usr/local/etc/openldap/slapd.conf
+.B ETCDIR/slapd.conf
 .SH ОПИСАНИЕ
 Механизм манипуляции данными для
 .BR slapd (8)
@@ -44,7 +44,7 @@ slapd\-mdb \- механизм манипуляции данными для slap
 .BI directory \ <directory>
 Указывает директорию, где находятся LMDB-файлы, содержащие эту базу данных и ассоциированные с ней индексы.
 Для каждой базы данных должна быть определена отдельная директория. По умолчанию -
-.BR /usr/local/var/openldap\-data .
+.BR LOCALSTATEDIR/openldap\-data .
 .TP
 \fBenvflags \fR{\fBnosync\fR,\fBnometasync\fR,\fBwritemap\fR,\fBmapasync\fR,\fBnordahead\fR}
 Указывает флаги для более детального контроля работы библиотеки LMDB.
@@ -158,7 +158,7 @@ slapd\-mdb \- механизм манипуляции данными для slap
 семантики контроля доступа.
 .SH ФАЙЛЫ
 .TP
-.B /usr/local/etc/openldap/slapd.conf
+.B ETCDIR/slapd.conf
 конфигурационный файл
 .B slapd
 по умолчанию.

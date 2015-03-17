@@ -5,7 +5,7 @@
 .SH НАЗВАНИЕ
 ldap.conf, .ldaprc \- конфигурационный файл/переменные окружения для LDAP-клиентов
 .SH ОБЗОР
-/usr/local/etc/openldap/ldap.conf, ldaprc, .ldaprc, $LDAP<option-name>
+ETCDIR/ldap.conf, ldaprc, .ldaprc, $LDAP<option-name>
 .SH ОПИСАНИЕ
 Если определена переменная окружения \fBLDAPNOINIT\fP,
 все заданные значения по умолчанию не применяются.
@@ -48,7 +48,7 @@ ldap.conf, .ldaprc \- конфигурационный файл/переменн
 Итак, файлы и переменные будут прочитаны в следующем порядке:
 .nf
     переменная              $LDAPNOINIT, и, если она не задана, то:
-    системный файл          /usr/local/etc/openldap/ldap.conf,
+    системный файл          ETCDIR/ldap.conf,
     пользовательские файлы  $HOME/ldaprc,  $HOME/.ldaprc,  ./ldaprc,
     системный файл          $LDAPCONF,
     пользовательские файлы  $HOME/$LDAPRC, $HOME/.$LDAPRC, ./$LDAPRC,
@@ -480,7 +480,7 @@ LDAP<option-name>
 задать (переопределить) опцию <option-name> как в файле ldap.conf.
 .SH ФАЙЛЫ
 .TP
-.I  /usr/local/etc/openldap/ldap.conf
+.I  ETCDIR/ldap.conf
 общесистемный файл конфигурации ldap
 .TP
 .I  $HOME/ldaprc, $HOME/.ldaprc

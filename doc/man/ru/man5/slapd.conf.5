@@ -5,10 +5,10 @@
 .SH НАЗВАНИЕ
 slapd.conf \- конфигурационный файл для slapd, автономного демона LDAP.
 .SH СИНТАКСИС
-/usr/local/etc/openldap/slapd.conf
+ETCDIR/slapd.conf
 .SH ОПИСАНИЕ
 Файл
-.B /usr/local/etc/openldap/slapd.conf
+.B ETCDIR/slapd.conf
 содержит информацию по настройке демона
 .BR slapd (8).
 Этот конфигурационный файл также используется инструментами SLAPD:
@@ -647,7 +647,7 @@ stderr и больше никуда не записываются. При ука
 .B modulepath <pathspec>
 Определяет список директорий, в которых будет производиться поиск подгружаемых модулей.
 Обычно пути в списке разделяются двоеточиями, но это зависит от операционной системы.
-Значение по умолчанию \- /usr/local/libexec/openldap, куда при стандартной установке OpenLDAP помещаются модули.
+Значение по умолчанию \- LIBEXECDIR/openldap, куда при стандартной установке OpenLDAP помещаются модули.
 .HP
 .hy 0
 .B objectclass "(\ <oid>\
@@ -922,7 +922,7 @@ TCP-буферов чтения и записи, которые связываю
 .\".TP
 .\".B ucdata-path <path>
 .\"Specify the path to the directory containing the Unicode character
-.\"tables. The default path is /usr/local/share/openldap/ucdata.
+.\"tables. The default path is DATADIR/ucdata.
 .TP
 .B writetimeout <integer>
 Указывает количество секунд ожидания перед принудительным закрытием соединения, в котором выполняется
@@ -1824,8 +1824,8 @@ retry="60 10 300 3" позволяет потребителю выполнять
 .LP
 .RS
 .nf
-include   /usr/local/etc/openldap/schema/core.schema
-pidfile   /usr/local/var/run/slapd.pid
+include   SYSCONFDIR/schema/core.schema
+pidfile   LOCALSTATEDIR/run/slapd.pid
 
 # Подтипы от типа атрибута "name" (например, "cn" и "ou")
 # с опцией ";x\-hidden" могут быть использованы в поиске/сравнении,
@@ -1843,7 +1843,7 @@ suffix    "dc=our\-domain,dc=com"
 # Директория для файлов базы данных ДОЛЖНА существовать до запуска slapd.
 # Доступ к ней должны иметь только slapd и его инструменты.
 # Рекомендуемый режим доступа - 0700.
-directory /usr/local/var/openldap\-data
+directory LOCALSTATEDIR/openldap\-data
 # Обслуживаемые индексы
 index     objectClass  eq
 index     cn,sn,mail   pres,eq,approx,sub
@@ -1858,10 +1858,10 @@ lastmod   off
 .RE
 .LP
 Более полный пример конфигурационного файла с аннотациями приведён в "Руководстве администратора
-OpenLDAP". Ещё один пример - оригинальный файл /usr/local/etc/openldap/slapd.conf.
+OpenLDAP". Ещё один пример - оригинальный файл ETCDIR/slapd.conf.
 .SH Файлы
 .TP
-/usr/local/etc/openldap/slapd.conf
+ETCDIR/slapd.conf
 конфигурационный файл slapd по умолчанию
 .SH СМОТРИТЕ ТАКЖЕ
 .BR ldap (3),

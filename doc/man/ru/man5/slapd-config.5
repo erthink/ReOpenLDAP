@@ -5,7 +5,7 @@
 .SH НАЗВАНИЕ
 slapd\-config \- динамическая конфигурация slapd.
 .SH ОБЗОР
-/usr/local/etc/openldap/slapd.d
+ETCDIR/slapd.d
 .SH ОПИСАНИЕ
 Механизм манипуляции данными
 .B config
@@ -933,7 +933,7 @@ SASL EXTERNAL требуется, чтобы у клиента был дейст
 .B olcModulePath: <pathspec>
 Определяет список директорий, в которых будет производиться поиск подгружаемых модулей.
 Обычно пути в списке разделяются двоеточиями, но это зависит от операционной системы.
-Значение по умолчанию \- /usr/local/libexec/openldap, куда при стандартной установке OpenLDAP помещаются модули.
+Значение по умолчанию \- LIBEXECDIR/openldap, куда при стандартной установке OpenLDAP помещаются модули.
 .SH ПАРАМЕТРЫ СХЕМЫ ДАННЫХ
 Определения схемы данных создаются в записях поддерева
 .BR cn=schema,cn=config .
@@ -1825,14 +1825,14 @@ RDN записи наложения должно иметь форму
 dn: cn=config
 objectClass: olcGlobal
 cn: config
-olcPidFile: /usr/local/var/run/slapd.pid
+olcPidFile: LOCALSTATEDIR/run/slapd.pid
 olcAttributeOptions: x\-hidden lang\-
 
 dn: cn=schema,cn=config
 objectClass: olcSchemaConfig
 cn: schema
 
-include: file:///usr/local/etc/openldap/schema/core.ldif
+include: file://SYSCONFDIR/schema/core.ldif
 
 dn: olcDatabase=frontend,cn=config
 objectClass: olcDatabaseConfig
@@ -1863,7 +1863,7 @@ olcSuffix: "dc=our\-domain,dc=com"
 # Директория для файлов базы данных ДОЛЖНА существовать до запуска slapd.
 # Доступ к ней должны иметь только slapd и его инструменты.
 # Рекомендуемый режим доступа \- 0700.
-olcDbDirectory: /usr/local/var/openldap\-data
+olcDbDirectory: LOCALSTATEDIR/openldap\-data
 # Обслуживаемые индексы
 olcDbIndex:     objectClass  eq
 olcDbIndex:     cn,sn,mail   pres,eq,approx,sub
@@ -1880,10 +1880,10 @@ olcDbUri: ldap://ldap.some\-server.com/
 .RE
 .LP
 Предположим, этот фрагмент LDIF сохранён в файле "config.ldif" и была создана директория
-/usr/local/etc/openldap/slapd.d. Тогда можно проинициализировать конфигурацию такой командой:
+ETCDIR/slapd.d. Тогда можно проинициализировать конфигурацию такой командой:
 .RS
 .nf
-slapadd \-F /usr/local/etc/openldap/slapd.d \-n 0 \-l config.ldif
+slapadd \-F ETCDIR/slapd.d \-n 0 \-l config.ldif
 .fi
 .RE
 
@@ -1894,16 +1894,16 @@ slapadd \-F /usr/local/etc/openldap/slapd.d \-n 0 \-l config.ldif
 с помощью slapd или любого slap-инструмента:
 .RS
 .nf
-slaptest \-f /usr/local/etc/openldap/slapd.conf \-F /usr/local/etc/openldap/slapd.d
+slaptest \-f ETCDIR/slapd.conf \-F ETCDIR/slapd.d
 .fi
 .RE
 
 .SH ФАЙЛЫ
 .TP
-/usr/local/etc/openldap/slapd.conf
+ETCDIR/slapd.conf
 конфигурационный файл slapd по умолчанию
 .TP
-/usr/local/etc/openldap/slapd.d
+ETCDIR/slapd.d
 конфигурационная директория slapd по умолчанию
 .SH СМОТРИТЕ ТАКЖЕ
 .BR ldap (3),
