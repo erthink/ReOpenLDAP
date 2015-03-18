@@ -3477,7 +3477,8 @@ syncrepl_del_nonpresent(
 		op->ors_filter = filter_dup( si->si_filter, op->o_tmpmemctx );
 		/* In multimaster, updates can continue to arrive while
 		 * we're searching. Limit the search result to entries
-		 * older than our oldest cookie CSN.
+		 * older than our newest/oldest cookie CSN,
+		 * depends on iddqd-mode.
 		 */
 		if ( SLAP_MULTIMASTER( op->o_bd ) && sc->numcsns) {
 			Filter *f;
@@ -3495,7 +3496,8 @@ syncrepl_del_nonpresent(
 			f->f_next = NULL;
 			f->f_av_value = sc->ctxcsn[0];
 			for ( i=1; i<sc->numcsns; i++ ) {
-				if ( ber_bvcmp( &sc->ctxcsn[i], &f->f_av_value ) < 0 )
+				int csncmp = ber_bvcmp( &sc->ctxcsn[i], &f->f_av_value );
+				if ( reopenldap_mode_iddqd() ? csncmp < 0 : csncmp > 0 )
 					f->f_av_value = sc->ctxcsn[i];
 			}
 			of = op->ors_filter;
