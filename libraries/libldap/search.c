@@ -167,9 +167,9 @@ ldap_pvt_search_s(
 	LDAPMessage **res )
 {
 	int rc;
-	int	msgid;
+	int	msgid = 0;
 
-    *res = NULL;
+	*res = NULL;
 
 	rc = ldap_pvt_search( ld, base, scope, filter, attrs, attrsonly,
 		sctrls, cctrls, timeout, sizelimit, deref, &msgid );
@@ -542,4 +542,3 @@ ldap_bv2escaped_filter_value_x( struct berval *in, struct berval *out, int inpla
 
 	return 0;
 }
-

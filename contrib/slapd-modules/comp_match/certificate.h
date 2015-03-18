@@ -1,5 +1,5 @@
 
-#include "asn-incl.h"
+#include <snacc/c-lib/asn-incl.h>
 /*
  *    certificate.h
  *    "AuthenticationFramework" ASN.1 module encode/decode/extracting/matching/free C src.

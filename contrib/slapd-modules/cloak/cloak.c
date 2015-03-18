@@ -90,7 +90,7 @@ cloak_cfgen( ConfigArgs *c )
 		switch( c->type ) {
 		case CLOAK_ATTR:
 			for ( ci_next = ci, i = 0;
-			      ci_next, c->valx < 0 || i < c->valx;
+				  ci_next && (c->valx < 0 || i < c->valx);
 			      ci = ci_next, i++ ){
 
 				ci_next = ci->ci_next;
@@ -145,7 +145,7 @@ cloak_cfgen( ConfigArgs *c )
 		}
 
 		for ( i = 0, cip = (cloak_info_t **)&on->on_bi.bi_private;
-		      c->valx < 0 || i < c->valx, *cip;
+			  (c->valx < 0 || i < c->valx) && *cip;
 		      i++, cip = &(*cip)->ci_next ) {
 			if ( c->valx >= 0 && *cip == NULL ) {
 				snprintf( c->cr_msg, sizeof( c->cr_msg ),

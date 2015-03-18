@@ -164,7 +164,7 @@ ldap_sasl_bind_s(
 	LDAPControl		**cctrls,
 	struct berval	**servercredp )
 {
-	int	rc, msgid;
+	int	rc, msgid = 0;
 	LDAPMessage	*result;
 	struct berval	*scredp = NULL;
 

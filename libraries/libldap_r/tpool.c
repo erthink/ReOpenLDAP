@@ -536,7 +536,7 @@ ldap_pvt_thread_pool_pausing( ldap_pvt_thread_pool_t *tpool )
 int
 ldap_pvt_thread_pool_backload ( ldap_pvt_thread_pool_t *tpool )
 {
-	int	rc, count;
+	int	rc, count = 0;
 
 	rc = ldap_pvt_thread_pool_query( tpool,
 		LDAP_PVT_THREAD_POOL_PARAM_BACKLOAD, (void *)&count );

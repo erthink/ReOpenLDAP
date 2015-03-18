@@ -7,8 +7,8 @@ LDAP_LIB = $(LDAP_BUILD)/libraries/libldap_r/libldap_r.la \
 	$(LDAP_BUILD)/libraries/liblber/liblber.la
 
 LIBTOOL = $(LDAP_BUILD)/libtool
-CC = gcc
-OPT = -g -O2 -Wall
+CC ?= gcc
+CFLAGS ?= -g -O2 -Wall -Werror
 DEFS =
 INCS = $(LDAP_INC)
 LIBS = $(LDAP_LIB)
@@ -27,24 +27,24 @@ moduledir = $(libexecdir)$(ldap_subdir)
 .SUFFIXES: .c .o .lo
 
 .c.lo:
-	$(LIBTOOL) --mode=compile $(CC) $(OPT) $(DEFS) $(INCS) -c $<
+	$(LIBTOOL) --mode=compile $(CC) $(CFLAGS) $(DEFS) $(INCS) -c $<
 
 all: $(PROGRAMS)
 
 pw-kerberos.la:	kerberos.lo
-	$(LIBTOOL) --mode=link $(CC) $(OPT) -version-info $(LTVER) \
+	$(LIBTOOL) --mode=link $(CC) $(CFLAGS) -version-info $(LTVER) \
 	-rpath $(moduledir) -module -o $@ $? -lkrb5
 
 pw-netscape.la:	netscape.lo
-	$(LIBTOOL) --mode=link $(CC) $(OPT) -version-info $(LTVER) \
+	$(LIBTOOL) --mode=link $(CC) $(CFLAGS) -version-info $(LTVER) \
 	-rpath $(moduledir) -module -o $@ $?
 
 pw-radius.la:	radius.lo
-	$(LIBTOOL) --mode=link $(CC) $(OPT) -version-info $(LTVER) \
+	$(LIBTOOL) --mode=link $(CC) $(CFLAGS) -version-info $(LTVER) \
 	-rpath $(moduledir) -module -o $@ $? -lradius
 
 pw-apr1.la:	apr1.lo
-	$(LIBTOOL) --mode=link $(CC) $(OPT) -version-info $(LTVER) \
+	$(LIBTOOL) --mode=link $(CC) $(CFLAGS) -version-info $(LTVER) \
 	-rpath $(moduledir) -module -o $@ $?
 
 clean:
@@ -55,4 +55,3 @@ install: $(PROGRAMS)
 	for p in $(PROGRAMS) ; do \
 		$(LIBTOOL) --mode=install cp $$p $(DESTDIR)$(moduledir) ; \
 	done
-

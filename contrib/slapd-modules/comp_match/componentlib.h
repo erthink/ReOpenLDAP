@@ -21,9 +21,8 @@
 #include <slap.h>
 #include <component.h>
 
-#include <asn-incl.h>
+#include <snacc/c/snacc.h>
 #include "asn.h"
-#include <asn-gser.h>
 #include <string.h>
 
 #define MAX_IDENTIFIER_LEN	32

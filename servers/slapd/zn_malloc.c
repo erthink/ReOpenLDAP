@@ -128,10 +128,10 @@ slap_zn_mem_create(
 
 	Debug(LDAP_DEBUG_NONE,
 		"--> slap_zn_mem_create: initsize=%d, maxsize=%d\n",
-		initsize, maxsize);
+		(int)initsize, (int)maxsize);
 	Debug(LDAP_DEBUG_NONE,
 		"++> slap_zn_mem_create: deltasize=%d, zonesize=%d\n",
-		deltasize, zonesize);
+		(int)deltasize, (int)zonesize);
 
 	zh = (struct zone_heap *)ch_calloc(1, sizeof(struct zone_heap));
 
@@ -179,8 +179,8 @@ slap_zn_mem_create(
 	zh->zh_zoneorder = order_end;
 	zh->zh_free = (struct zh_freelist *)
 					ch_malloc(order * sizeof(struct zh_freelist));
-	zh->zh_seqno = (unsigned long *)ch_calloc(zh->zh_maxzones,
-											sizeof(unsigned long));
+	zh->zh_seqno = (int *)ch_calloc(zh->zh_maxzones,
+											sizeof(zh->zh_seqno[0]));
 	for (i = 0; i < order; i++) {
 		LDAP_LIST_INIT(&zh->zh_free[i]);
 	}
@@ -242,13 +242,13 @@ slap_zn_malloc(
 	int pad = 2*sizeof(int)-1, pad_shift;
 	int order = -1, order_start = -1;
 	struct zone_object *zo, *zo_new, *zo_left, *zo_right;
-	ber_len_t *ptr, *new;
+	ber_len_t *ptr;
 	int idx;
 	unsigned long diff;
-	int i, j, k;
+	int i, j;
 
 	Debug(LDAP_DEBUG_NONE,
-		"--> slap_zn_malloc: size=%d\n", size);
+		"--> slap_zn_malloc: size=%d\n", (int)size);
 
 	if (!zh) return ber_memalloc_x(size, NULL);
 
@@ -286,8 +286,8 @@ retry:
 		zo_new->zo_idx = -1;
 		LDAP_LIST_INSERT_HEAD(&zh->zh_zopool, zo_new, zo_link);
 		ldap_pvt_thread_mutex_unlock( &zh->zh_mutex );
-		Debug(LDAP_DEBUG_NONE, "slap_zn_malloc: returning 0x%x, 0x%x\n",
-				ptr, (int)ptr>>(zh->zh_zoneorder+1));
+		Debug(LDAP_DEBUG_NONE, "slap_zn_malloc: returning 0x%p, 0x%zx\n",
+				ptr, (size_t)ptr>>(zh->zh_zoneorder+1));
 		VALGRIND_MEMPOOL_ALLOC(zh, ptr, osize);
 		return((void*)ptr);
 	} else if (i <= zh->zh_zoneorder) {
@@ -302,7 +302,7 @@ retry:
 			zo_right->zo_ptr = zo_left->zo_ptr + (1 << j);
 			zo_right->zo_idx = zo_left->zo_idx;
 			Debug(LDAP_DEBUG_NONE,
-				"slap_zn_malloc: split (left=0x%x, right=0x%x)\n",
+				"slap_zn_malloc: split (left=0x%p, right=0x%p)\n",
 				zo_left->zo_ptr, zo_right->zo_ptr);
 			if (j == order + 1) {
 				ptr = zo_left->zo_ptr;
@@ -317,8 +317,8 @@ retry:
 				LDAP_LIST_INSERT_HEAD(&zh->zh_zopool, zo_left, zo_link);
 				ldap_pvt_thread_mutex_unlock( &zh->zh_mutex );
 				Debug(LDAP_DEBUG_NONE,
-					"slap_zn_malloc: returning 0x%x, 0x%x\n",
-					ptr, (int)ptr>>(zh->zh_zoneorder+1));
+					"slap_zn_malloc: returning 0x%p, 0x%zx\n",
+					ptr, (size_t)ptr>>(zh->zh_zoneorder+1));
 				VALGRIND_MEMPOOL_ALLOC(zh, ptr, osize);
 				return((void*)ptr);
 			} else {
@@ -334,11 +334,8 @@ retry:
 		if ( zh->zh_maxzones < zh->zh_numzones + zh->zh_deltazones ) {
 			ldap_pvt_thread_mutex_unlock( &zh->zh_mutex );
 			Debug( LDAP_DEBUG_TRACE,
-				"zn_malloc %lu: ch_malloc\n",
+				"zn_malloc %lu: fallback to ch_malloc\n",
 				(long)size);
-			Debug(LDAP_DEBUG_NONE,
-				"slap_zn_malloc: returning 0x%x, 0x%x\n",
-				ptr, (int)ptr>>(zh->zh_zoneorder+1));
 			return (void*)ch_malloc(size);
 		}
 
@@ -401,17 +398,13 @@ void *
 slap_zn_realloc(void *ptr, ber_len_t size, void *ctx)
 {
 	struct zone_heap *zh = ctx;
-	int pad = 2*sizeof(int)-1, pad_shift;
-	int order_start = -1, order = -1;
-	struct zone_object zoi, *zoo;
+	struct zone_object zoi, *zoo = NULL;
 	ber_len_t *p = (ber_len_t *)ptr, *new;
-	unsigned long diff;
-	int i;
 	void *newptr = NULL;
-	struct zone_heap *zone = NULL;
+	struct zone_heap *zone ALLOW_UNUSED = NULL;
 
 	Debug(LDAP_DEBUG_NONE,
-		"--> slap_zn_realloc: ptr=0x%x, size=%d\n", ptr, size);
+		"--> slap_zn_realloc: ptr=0x%p, size=%ld\n", ptr, (long)size);
 
 	if (ptr == NULL)
 		return slap_zn_malloc(size, zh);
@@ -463,15 +456,15 @@ slap_zn_free(void *ptr, void *ctx)
 	int pad = 2*sizeof(int)-1, pad_shift;
 	ber_len_t *p = (ber_len_t *)ptr, *tmpp;
 	int order_start = -1, order = -1;
-	struct zone_object zoi, *zoo, *zo;
+	struct zone_object zoi, *zoo = NULL, *zo;
 	unsigned long diff;
-	int i, k, inserted = 0, idx;
+	int i, inserted = 0, idx;
 	struct zone_heap *zone = NULL;
 
 	zoi.zo_ptr = p;
 	zoi.zo_idx = -1;
 
-	Debug(LDAP_DEBUG_NONE, "--> slap_zn_free: ptr=0x%x\n", ptr);
+	Debug(LDAP_DEBUG_NONE, "--> slap_zn_free: ptr=0x%p\n", ptr);
 
 	if (zh) {
 		ldap_pvt_thread_mutex_lock( &zh->zh_mutex );
@@ -526,7 +519,7 @@ slap_zn_free(void *ptr, void *ctx)
 							inserted = 1;
 							zo->zo_ptr = tmpp;
 							Debug(LDAP_DEBUG_NONE,
-								"slap_zn_free: merging 0x%x\n",
+								"slap_zn_free: merging 0x%p\n",
 								zo->zo_ptr);
 							LDAP_LIST_INSERT_HEAD(&zh->zh_free[i-order_start+1],
 									zo, zo_link);
@@ -541,7 +534,7 @@ slap_zn_free(void *ptr, void *ctx)
 						zo->zo_ptr = tmpp;
 						zo->zo_idx = idx;
 						Debug(LDAP_DEBUG_NONE,
-							"slap_zn_free: merging 0x%x\n",
+							"slap_zn_free: merging 0x%p\n",
 							zo->zo_ptr);
 						LDAP_LIST_INSERT_HEAD(&zh->zh_free[i-order_start],
 								zo, zo_link);
@@ -562,7 +555,7 @@ slap_zn_free(void *ptr, void *ctx)
 						zo->zo_ptr = tmpp;
 						zo->zo_idx = idx;
 						Debug(LDAP_DEBUG_NONE,
-							"slap_zn_free: merging 0x%x\n",
+							"slap_zn_free: merging 0x%p\n",
 							zo->zo_ptr);
 						LDAP_LIST_INSERT_HEAD(&zh->zh_free[i-order_start],
 								zo, zo_link);
@@ -587,7 +580,7 @@ slap_zn_free(void *ptr, void *ctx)
 						if (i < zh->zh_zoneorder) {
 							inserted = 1;
 							Debug(LDAP_DEBUG_NONE,
-								"slap_zn_free: merging 0x%x\n",
+								"slap_zn_free: merging 0x%p\n",
 								zo->zo_ptr);
 							LDAP_LIST_INSERT_HEAD(&zh->zh_free[i-order_start+1],
 									zo, zo_link);
@@ -602,7 +595,7 @@ slap_zn_free(void *ptr, void *ctx)
 						zo->zo_ptr = tmpp;
 						zo->zo_idx = idx;
 						Debug(LDAP_DEBUG_NONE,
-							"slap_zn_free: merging 0x%x\n",
+							"slap_zn_free: merging 0x%p\n",
 							zo->zo_ptr);
 						LDAP_LIST_INSERT_HEAD(&zh->zh_free[i-order_start],
 								zo, zo_link);
@@ -623,7 +616,7 @@ slap_zn_free(void *ptr, void *ctx)
 						zo->zo_ptr = tmpp;
 						zo->zo_idx = idx;
 						Debug(LDAP_DEBUG_NONE,
-							"slap_zn_free: merging 0x%x\n",
+							"slap_zn_free: merging 0x%p\n",
 							zo->zo_ptr);
 						LDAP_LIST_INSERT_HEAD(&zh->zh_free[i-order_start],
 								zo, zo_link);
@@ -686,8 +679,6 @@ slap_zn_invalidate(
 {
 	struct zone_heap* zh = ctx;
 	struct zone_object zoi, *zoo;
-	struct zone_heap *zone = NULL;
-	int seqno = *((ber_len_t*)ptr - 2);
 	int idx = -1, rc = 0;
 	int pad = 2*sizeof(int)-1, pad_shift;
 	int order_start = -1, i;
@@ -736,7 +727,7 @@ slap_zn_invalidate(
 								zo, zo_link);
 		zh->zh_seqno[idx]++;
 	} else {
-		Debug(LDAP_DEBUG_NONE, "zone not found for (ctx=0x%x, ptr=0x%x) !\n",
+		Debug(LDAP_DEBUG_NONE, "zone not found for (ctx=0x%p, ptr=0x%p) !\n",
 				ctx, ptr);
 	}
 
@@ -754,7 +745,6 @@ slap_zn_validate(
 {
 	struct zone_heap* zh = ctx;
 	struct zone_object zoi, *zoo;
-	struct zone_heap *zone = NULL;
 	int idx, rc = 0;
 
 	zoi.zo_ptr = ptr;
@@ -772,7 +762,7 @@ slap_zn_validate(
 	return rc;
 }
 
-int slap_zh_rlock(
+void slap_zh_rlock(
 	void *ctx
 )
 {
@@ -780,7 +770,7 @@ int slap_zh_rlock(
 	ldap_pvt_thread_rdwr_rlock(&zh->zh_lock);
 }
 
-int slap_zh_runlock(
+void slap_zh_runlock(
 	void *ctx
 )
 {
@@ -788,7 +778,7 @@ int slap_zh_runlock(
 	ldap_pvt_thread_rdwr_runlock(&zh->zh_lock);
 }
 
-int slap_zh_wlock(
+void slap_zh_wlock(
 	void *ctx
 )
 {
@@ -796,7 +786,7 @@ int slap_zh_wlock(
 	ldap_pvt_thread_rdwr_wlock(&zh->zh_lock);
 }
 
-int slap_zh_wunlock(
+void slap_zh_wunlock(
 	void *ctx
 )
 {
@@ -804,14 +794,13 @@ int slap_zh_wunlock(
 	ldap_pvt_thread_rdwr_wunlock(&zh->zh_lock);
 }
 
-int slap_zn_rlock(
+void slap_zn_rlock(
 	void *ctx,
 	void *ptr
 )
 {
 	struct zone_heap* zh = ctx;
 	struct zone_object zoi, *zoo;
-	struct zone_heap *zone = NULL;
 	int idx;
 
 	zoi.zo_ptr = ptr;
@@ -828,14 +817,13 @@ int slap_zn_rlock(
 	}
 }
 
-int slap_zn_runlock(
+void slap_zn_runlock(
 	void *ctx,
 	void *ptr
 )
 {
 	struct zone_heap* zh = ctx;
 	struct zone_object zoi, *zoo;
-	struct zone_heap *zone = NULL;
 	int idx;
 
 	zoi.zo_ptr = ptr;
@@ -852,14 +840,13 @@ int slap_zn_runlock(
 	}
 }
 
-int slap_zn_wlock(
+void slap_zn_wlock(
 	void *ctx,
 	void *ptr
 )
 {
 	struct zone_heap* zh = ctx;
 	struct zone_object zoi, *zoo;
-	struct zone_heap *zone = NULL;
 	int idx;
 
 	zoi.zo_ptr = ptr;
@@ -876,14 +863,13 @@ int slap_zn_wlock(
 	}
 }
 
-int slap_zn_wunlock(
+void slap_zn_wunlock(
 	void *ctx,
 	void *ptr
 )
 {
 	struct zone_heap* zh = ctx;
 	struct zone_object zoi, *zoo;
-	struct zone_heap *zone = NULL;
 	int idx;
 
 	zoi.zo_ptr = ptr;

@@ -129,15 +129,15 @@ void nssov_cfg_init(nssov_info *ni,const char *fname);
 
 #define WRITE_BERVAL(fp,bv) \
   DEBUG_PRINT("WRITE_STRING: var="__STRING(bv)" string=\"%s\"",(bv)->bv_val); \
-  if ((bv)==NULL) \
+  if (bv) \
   { \
-    WRITE_INT32(fp,0); \
+	WRITE_INT32(fp,(bv)->bv_len); \
+	if (tmpint32>0) \
+	  { WRITE(fp,(bv)->bv_val,tmpint32); } \
   } \
   else \
   { \
-    WRITE_INT32(fp,(bv)->bv_len); \
-    if (tmpint32>0) \
-      { WRITE(fp,(bv)->bv_val,tmpint32); } \
+	WRITE_INT32(fp,0); \
   }
 
 #define WRITE_BVARRAY(fp,arr) \
@@ -244,6 +244,7 @@ int pam_authz(nssov_info *ni,TFILE *fp,Operation *op);
 int pam_sess_o(nssov_info *ni,TFILE *fp,Operation *op);
 int pam_sess_c(nssov_info *ni,TFILE *fp,Operation *op);
 int pam_pwmod(nssov_info *ni,TFILE *fp,Operation *op);
+int nssov_find_rdnval(struct berval *dn, AttributeDescription *ad, struct berval *value);
 
 /* config initialization */
 #define NSSOV_INIT(db) \
@@ -292,7 +293,6 @@ int pam_pwmod(nssov_info *ni,TFILE *fp,Operation *op);
   { \
     /* define common variables */ \
     int32_t tmpint32; \
-    int rc; \
 	nssov_##db##_cbp cbp; \
 	slap_callback cb = {0}; \
 	SlapReply rs = {REP_RESULT}; \

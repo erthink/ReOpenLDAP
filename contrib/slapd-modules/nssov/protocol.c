@@ -14,7 +14,6 @@
  * top-level directory of the distribution or, alternatively, at
  * <http://www.OpenLDAP.org/license.html>.
  */
-/*
 /* ACKNOWLEDGEMENTS:
  * This code references portions of the nss-ldapd package
  * written by Arthur de Jong. The nss-ldapd code was forked
@@ -50,7 +49,7 @@ NSSOV_CBPRIV(protocol,
 
 static int write_protocol(nssov_protocol_cbp *cbp,Entry *entry)
 {
-	int32_t tmpint32,tmp2int32,tmp3int32;
+	int32_t tmpint32;
 	int i,numname,dupname,proto;
 	struct berval name,*names;
 	Attribute *a;

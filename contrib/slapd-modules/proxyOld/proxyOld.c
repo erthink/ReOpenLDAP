@@ -36,7 +36,7 @@
  */
 #define LDAP_CONTROL_PROXY_AUTHZ05	"2.16.840.1.113730.3.4.12"
 
-static char *proxyOld_extops[] = {
+static const char* const proxyOld_extops[] = {
 	LDAP_EXOP_MODIFY_PASSWD,
 	LDAP_EXOP_X_WHO_AM_I,
 	NULL

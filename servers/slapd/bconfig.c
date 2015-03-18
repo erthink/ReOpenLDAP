@@ -2030,11 +2030,9 @@ sortval_reject:
 				if (SLAPD_BIGLOCK_NONE == c->be->bd_biglock_mode) {
 					snprintf( c->cr_msg, sizeof( c->cr_msg ),
 					  "for properly operation in multi-master mode"
-					  " at least 'biglock local' is required for a database." );
+					  " at least 'biglock local' is recommended." );
 					Debug(LDAP_DEBUG_ANY, "%s: %s\n",
 						c->log, c->cr_msg );
-					if (reopenldap_mode_iddqd())
-						return 1;
 				}
 			} else {
 				SLAP_DBFLAGS(c->be) |= SLAP_DBFLAG_SINGLE_SHADOW;
@@ -3898,9 +3896,7 @@ config_shadow( ConfigArgs *c, slap_mask_t flag )
 	if (SLAP_MULTIMASTER(c->be) && SLAPD_BIGLOCK_NONE == c->be->bd_biglock_mode) {
 		Debug( LDAP_DEBUG_ANY,
 			"%s: for properly operation in multi-master mode"
-			" at least 'biglock local' is required for a database.\n", c->log );
-		if (reopenldap_mode_iddqd())
-			return 1;
+			" at least 'biglock local' is recommended.\n", c->log );
 	}
 
 	return 0;

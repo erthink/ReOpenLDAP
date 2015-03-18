@@ -123,7 +123,7 @@ ldap_compare(
 	LDAP_CONST char *attr,
 	LDAP_CONST char *value )
 {
-	int msgid;
+	int msgid = 0;
 	struct berval bvalue;
 
 	assert( value != NULL );
@@ -145,7 +145,7 @@ ldap_compare_ext_s(
 	LDAPControl **cctrl )
 {
 	int		rc;
-	int		msgid;
+	int		msgid = 0;
 	LDAPMessage	*res;
 
 	rc = ldap_compare_ext( ld, dn, attr, bvalue, sctrl, cctrl, &msgid );

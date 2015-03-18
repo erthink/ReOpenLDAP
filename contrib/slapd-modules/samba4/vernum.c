@@ -55,7 +55,6 @@ vernum_op_add( Operation *op, SlapReply *rs )
 	vernum_t	*vn = (vernum_t *)on->on_bi.bi_private;
 
 	Attribute *a, **ap;
-	int rc;
 
 	/* NOTE: should we accept an entry still in mods format? */
 	assert( op->ora_e != NULL );
@@ -96,7 +95,6 @@ vernum_op_modify( Operation *op, SlapReply *rs )
 
 	Modifications *ml, **mlp;
 	struct berval val = BER_BVC( "1" );
-	int rc;
 	unsigned got = 0;
 
 	for ( ml = op->orm_modlist; ml != NULL; ml = ml->sml_next ) {
@@ -197,11 +195,9 @@ typedef struct {
 static int
 vernum_repair_cb( Operation *op, SlapReply *rs )
 {
-	int rc;
 	vernum_repair_cb_t *rcb = op->o_callback->sc_private;
 	vernum_mod_t *mod;
 	ber_len_t len;
-	BackendDB *save_bd = op->o_bd;
 
 	switch ( rs->sr_type ) {
 	case REP_SEARCH:
