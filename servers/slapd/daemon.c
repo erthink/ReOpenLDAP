@@ -2410,8 +2410,10 @@ loop:
 				}
 				connections_shutdown( 1 );
 				if (reopenldap_mode_iddqd() && ! global_gentlehup) {
-					global_idletimeout = 5;
-					global_writetimeout = 5;
+					if (! global_idletimeout)
+						global_idletimeout = 5;
+					if (! global_writetimeout)
+						global_writetimeout = 5;
 				}
 				slapd_gentle_shutdown = 2;
 			}
