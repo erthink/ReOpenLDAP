@@ -1,12 +1,12 @@
 .TH SLAPAUTH 8C "RELEASEDATE" "OpenLDAP LDVERSION"
-.\" Copyright 2004-2014 The OpenLDAP Foundation All Rights Reserved.
+.\" Copyright 2004-2015 The OpenLDAP Foundation All Rights Reserved.
 .\" Copying restrictions apply.  See COPYRIGHT/LICENSE.
 .\" $OpenLDAP$
 .SH НАЗВАНИЕ
 slapauth \- проверка списка представленных в виде строк
 идентификаторов для аутентификации/авторизации LDAP
 .SH СИНТАКСИС
-.B /usr/local/sbin/slapauth
+.B SBINDIR/slapauth
 [\c
 .BI \-d \ debug-level\fR]
 [\c
@@ -118,7 +118,7 @@ slapauth \- проверка списка представленных в вид
 .LP
 .nf
 .ft tt
-	/usr/local/sbin/slapauth \-f //usr/local/etc/openldap/slapd.conf \-v \\
+	SBINDIR/slapauth \-f /ETCDIR/slapd.conf \-v \\
             \-U bjorn \-X u:bjensen
 
 .ft
