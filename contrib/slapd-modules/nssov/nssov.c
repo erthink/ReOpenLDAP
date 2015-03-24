@@ -46,7 +46,7 @@ AttributeDescription *nssov_pam_svc_ad;
 #define WRITEBUFFER_MAXSIZE 64*1024
 
 /* Find the given attribute's value in the RDN of the DN */
-int nssov_find_rdnval(struct berval *dn, AttributeDescription *ad, struct berval *value)
+void nssov_find_rdnval(struct berval *dn, AttributeDescription *ad, struct berval *value)
 {
 	struct berval rdn;
 	char *next;
@@ -69,7 +69,6 @@ int nssov_find_rdnval(struct berval *dn, AttributeDescription *ad, struct berval
 		rdn.bv_len -= next - rdn.bv_val;
 		rdn.bv_val = next;
 	} while (1);
-	return 0;
 }
 
 /* create a search filter using a name that requires escaping */
