@@ -45,6 +45,8 @@ export CPPFLAGS="$CFLAGS" LDFLAGS="$LDFLAGS"
 		--disable-dependency-tracking \
 	|| failure "configure"
 
+export CFLAGS="-Werror $CFLAGS" CPPFLAGS="-Werror $CFLAGS"
+
 make depend && make -j4 && make -j4 -C libraries/liblmdb || failure "build"
 
 for m in contrib/slapd-modules/*; do
