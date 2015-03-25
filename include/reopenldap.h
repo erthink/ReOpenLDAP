@@ -56,7 +56,7 @@
 #endif
 
 #ifndef __forceinline
-#	if defined(__GNU_C) || defined(__clang__)
+#	if defined(__GNUC__) || defined(__clang__)
 #		define __forceinline __inline __attribute__((always_inline))
 #	elif ! defined(_MSC_VER)
 #		define __forceinline
@@ -64,7 +64,7 @@
 #endif /* __forceinline */
 
 #ifndef __must_check_result
-#	if defined(__GNU_C) || defined(__clang__)
+#	if defined(__GNUC__) || defined(__clang__)
 #		define __must_check_result __attribute__((warn_unused_result))
 #	else
 #		define __must_check_result
@@ -72,7 +72,7 @@
 #endif /* __must_check_result */
 
 #ifndef __hot
-#	if defined(__GNU_C) || defined(__clang__)
+#	if defined(__GNUC__) || defined(__clang__)
 #		define __hot __attribute__((hot, optimize("O3")))
 #	else
 #		define __hot
@@ -80,7 +80,7 @@
 #endif /* __hot */
 
 #ifndef __flatten
-#	if defined(__GNU_C) || defined(__clang__)
+#	if defined(__GNUC__) || defined(__clang__)
 #		define __flatten __attribute__((flatten))
 #	else
 #		define __flatten
@@ -88,7 +88,7 @@
 #endif /* __flatten */
 
 #ifndef __aligned
-#	if defined(__GNU_C) || defined(__clang__)
+#	if defined(__GNUC__) || defined(__clang__)
 #		define __aligned(N) __attribute__((aligned(N)))
 #	elif defined(__MSC_VER)
 #		define __aligned(N) __declspec(align(N))
@@ -98,7 +98,7 @@
 #endif /* __align */
 
 #ifndef __noreturn
-#	if defined(__GNU_C) || defined(__clang__)
+#	if defined(__GNUC__) || defined(__clang__)
 #		define __noreturn __attribute__((noreturn))
 #	else
 #		define __noreturn
@@ -106,7 +106,7 @@
 #endif
 
 #ifndef __nothrow
-#	if defined(__GNU_C) || defined(__clang__)
+#	if defined(__GNUC__) || defined(__clang__)
 #		define __nothrow __attribute__((nothrow))
 #	else
 #		define __nothrow
@@ -122,7 +122,7 @@
 #endif
 
 #ifndef likely
-#	if defined(__GNU_C) || defined(__clang__)
+#	if defined(__GNUC__) || defined(__clang__)
 #		ifdef __cplusplus
 			/* LY: workaround for "pretty" boost */
 			static __inline __attribute__((always_inline))
@@ -136,7 +136,7 @@
 #endif /* likely */
 
 #ifndef unlikely
-#	if defined(__GNU_C) || defined(__clang__)
+#	if defined(__GNUC__) || defined(__clang__)
 #		ifdef __cplusplus
 			/* LY: workaround for "pretty" boost */
 			static __inline __attribute__((always_inline))
