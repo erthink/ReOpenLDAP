@@ -57,7 +57,6 @@ bdb_idl_entry_cmp( const void *v_idl1, const void *v_idl2 )
 	return ( memcmp ( idl1->kstr.bv_val, idl2->kstr.bv_val , idl1->kstr.bv_len ) );
 }
 
-#if IDL_DEBUG > 0
 static void idl_check( ID *ids )
 {
 	if( BDB_IDL_IS_RANGE( ids ) ) {
@@ -70,7 +69,7 @@ static void idl_check( ID *ids )
 	}
 }
 
-#if IDL_DEBUG > 1
+#if IDL_DEBUG
 static void idl_dump( ID *ids )
 {
 	if( BDB_IDL_IS_RANGE( ids ) ) {
@@ -95,8 +94,7 @@ static void idl_dump( ID *ids )
 
 	idl_check( ids );
 }
-#endif /* IDL_DEBUG > 1 */
-#endif /* IDL_DEBUG > 0 */
+#endif /* IDL_DEBUG */
 
 unsigned bdb_idl_search( ID *ids, ID id )
 {
@@ -112,9 +110,8 @@ unsigned bdb_idl_search( ID *ids, ID id )
 	int val = 0;
 	unsigned n = ids[0];
 
-#if IDL_DEBUG > 0
-	idl_check( ids );
-#endif
+	if (reopenldap_mode_idkfa())
+		idl_check( ids );
 
 	while( 0 < n ) {
 		unsigned pivot = n >> 1;
@@ -142,9 +139,8 @@ unsigned bdb_idl_search( ID *ids, ID id )
 	/* (reverse) linear search */
 	int i;
 
-#if IDL_DEBUG > 0
-	idl_check( ids );
-#endif
+	if (reopenldap_mode_idkfa())
+		idl_check( ids );
 
 	for( i=ids[0]; i; i-- ) {
 		if( id > ids[i] ) {
@@ -153,19 +149,20 @@ unsigned bdb_idl_search( ID *ids, ID id )
 	}
 
 	return i+1;
-#endif
+#endif /* IDL_BINARY_SEARCH */
 }
 
 int bdb_idl_insert( ID *ids, ID id )
 {
 	unsigned x;
 
-#if IDL_DEBUG > 1
+#if IDL_DEBUG
 	Debug( LDAP_DEBUG_ANY, "insert: %04lx at %d\n", (long) id, x );
 	idl_dump( ids );
-#elif IDL_DEBUG > 0
-	idl_check( ids );
-#endif
+#else
+	if (reopenldap_mode_idkfa())
+		idl_check( ids );
+#endif /* IDL_DEBUG */
 
 	if (BDB_IDL_IS_RANGE( ids )) {
 		/* if already in range, treat as a dup */
@@ -208,11 +205,12 @@ int bdb_idl_insert( ID *ids, ID id )
 		ids[x] = id;
 	}
 
-#if IDL_DEBUG > 1
+#if IDL_DEBUG
 	idl_dump( ids );
-#elif IDL_DEBUG > 0
-	idl_check( ids );
-#endif
+#else
+	if (reopenldap_mode_idkfa())
+		idl_check( ids );
+#endif /* IDL_DEBUG */
 
 	return 0;
 }
@@ -221,12 +219,13 @@ int bdb_idl_delete( ID *ids, ID id )
 {
 	unsigned x;
 
-#if IDL_DEBUG > 1
+#if IDL_DEBUG
 	Debug( LDAP_DEBUG_ANY, "delete: %04lx at %d\n", (long) id, x );
 	idl_dump( ids );
-#elif IDL_DEBUG > 0
-	idl_check( ids );
-#endif
+#else
+	if (reopenldap_mode_idkfa())
+		idl_check( ids );
+#endif /* IDL_DEBUG */
 
 	if (BDB_IDL_IS_RANGE( ids )) {
 		/* If deleting a range boundary, adjust */
@@ -265,11 +264,12 @@ int bdb_idl_delete( ID *ids, ID id )
 		memmove( &ids[x], &ids[x+1], (1+ids[0]-x) * sizeof(ID) );
 	}
 
-#if IDL_DEBUG > 1
+#if IDL_DEBUG
 	idl_dump( ids );
-#elif IDL_DEBUG > 0
-	idl_check( ids );
-#endif
+#else
+	if (reopenldap_mode_idkfa())
+		idl_check( ids );
+#endif /* IDL_DEBUG */
 
 	return 0;
 }
@@ -1197,7 +1197,7 @@ over:		ida = IDL_MIN( BDB_IDL_FIRST(a), BDB_IDL_FIRST(b) );
 }
 
 
-#if 0
+#if 0 /* LY: unused */
 /*
  * bdb_idl_notin - return a intersection ~b (or a minus b)
  */
