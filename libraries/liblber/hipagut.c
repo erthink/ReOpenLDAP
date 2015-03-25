@@ -302,7 +302,7 @@ __hot __flatten int lber_hug_memchk_probe(
 					memchunk->hm_length + sizeof(struct lber_hug_memchk))))
 				bits |= 4;
 			else
-				assert(VALGRIND_CHECK_MEM_IS_ADDRESSABLE(memchunk,
+				LDAP_ENSURE(VALGRIND_CHECK_MEM_IS_ADDRESSABLE(memchunk,
 						memchunk->hm_length + LBER_HUG_MEMCHK_OVERHEAD) == 0);
 		}
 	}
@@ -406,7 +406,7 @@ static int lber_hug_memchk_probe_realloc(
 					key + 2)))
 				bits |= 4;
 			else
-				assert(VALGRIND_CHECK_MEM_IS_ADDRESSABLE(memchunk,
+				LDAP_ENSURE(VALGRIND_CHECK_MEM_IS_ADDRESSABLE(memchunk,
 						memchunk->hm_length + LBER_HUG_MEMCHK_OVERHEAD) == 0);
 		}
 	}
@@ -453,7 +453,7 @@ void* lber_hug_realloc_commit ( size_t old_size,
 	void* new_payload = LBER_HUG_PAYLOAD(new_memchunk);
 	size_t sequence = LBER_HUG_DISABLED;
 
-	assert(VALGRIND_CHECK_MEM_IS_ADDRESSABLE(new_memchunk,
+	LDAP_ENSURE(VALGRIND_CHECK_MEM_IS_ADDRESSABLE(new_memchunk,
 			new_size + LBER_HUG_MEMCHK_OVERHEAD) == 0);
 
 	if (unlikely(lber_hug_memchk_trace_disabled != LBER_HUG_DISABLED)) {

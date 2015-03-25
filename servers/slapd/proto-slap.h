@@ -67,14 +67,6 @@ LDAP_SLAPD_F (int) slap_biglock_pool_pausecheck LDAP_P(( BackendDB *be ));
 		} \
 	} while(0)
 
-LDAP_SLAPD_F (void) reopenldap_flags_setup LDAP_P((int flags));
-LDAP_SLAPD_V (int) reopenldap_flags;
-
-#define reopenldap_mode_iddqd() \
-	likely((reopenldap_flags & REOPENLDAP_FLAG_IDDQD) != 0)
-#define reopenldap_mode_idkfa() \
-	unlikely((reopenldap_flags & REOPENLDAP_FLAG_IDKFA) != 0)
-
 /*
  * aci.c
  */

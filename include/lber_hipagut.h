@@ -119,13 +119,6 @@ LBER_F(int) lber_hug_probe_link LDAP_P((
 
 /* -------------------------------------------------------------------------- */
 
-/* Prototype should match libc runtime. ISO POSIX (2003) & LSB 3.1 */
-void __assert_fail LDAP_P((
-	const char* assertion,
-	const char* file,
-	unsigned line,
-	const char* function ));
-
 #define lber_hug_throw(info) \
 	__assert_fail("hipagut: guard " info, __FILE__, __LINE__, __FUNCTION__)
 

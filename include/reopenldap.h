@@ -97,6 +97,22 @@
 #	endif
 #endif /* __align */
 
+#ifndef __noreturn
+#	if defined(__GNU_C) || defined(__clang__)
+#		define __noreturn __attribute__((noreturn))
+#	else
+#		define __noreturn
+#	endif
+#endif
+
+#ifndef __nothrow
+#	if defined(__GNU_C) || defined(__clang__)
+#		define __nothrow __attribute__((nothrow))
+#	else
+#		define __nothrow
+#	endif
+#endif
+
 #ifndef CACHELINE_SIZE
 #	define CACHELINE_SIZE 64
 #endif
@@ -132,6 +148,70 @@
 #		define unlikely(x) (x)
 #	endif
 #endif /* unlikely */
+
+#ifndef __extern_C
+#    ifdef __cplusplus
+#        define __extern_C extern "C"
+#    else
+#        define __extern_C
+#    endif
+#endif
+
+#ifndef __noop
+#    define __noop() do {} while (0)
+#endif
+
+/* -------------------------------------------------------------------------- */
+
+/* Prototype should match libc runtime. ISO POSIX (2003) & LSB 3.1 */
+__extern_C void __assert_fail(
+		const char* assertion,
+		const char* file,
+		unsigned line,
+		const char* function) __nothrow __noreturn;
+
+#ifndef LDAP_ASSERT_CHECK
+#	if defined(LDAP_DEBUG)
+#		define LDAP_ASSERT_CHECK LDAP_DEBUG
+#	elif defined(NDEBUG)
+#		define LDAP_ASSERT_CHECK 0
+#	else
+#		define LDAP_ASSERT_CHECK 1
+#	endif
+#endif
+
+/* LY: ReOpenLDAP operation mode global flags */
+#define REOPENLDAP_FLAG_IDDQD	1
+#define REOPENLDAP_FLAG_IDKFA	2
+
+__extern_C void reopenldap_flags_setup (int flags);
+__extern_C int reopenldap_flags;
+
+#define reopenldap_mode_iddqd() \
+	likely((reopenldap_flags & REOPENLDAP_FLAG_IDDQD) != 0)
+#define reopenldap_mode_idkfa() \
+	unlikely((reopenldap_flags & REOPENLDAP_FLAG_IDKFA) != 0)
+
+#define LDAP_ENSURE(condition) do \
+		if (unlikely(!(condition))) \
+			__assert_fail("ldap: " #condition, __FILE__, __LINE__, __FUNCTION__); \
+	while (0)
+
+#if ! LDAP_ASSERT_CHECK
+#	define LDAP_ASSERT(condition) __noop()
+#elif LDAP_ASSERT_CHECK > 1
+#	define LDAP_ASSERT(condition) LDAP_ENSURE(condition)
+#else
+#	define LDAP_ASSERT(condition) do \
+		if (reopenldap_mode_idkfa()) \
+			LDAP_ENSURE(condition); \
+	while (0)
+#endif /* LDAP_ASSERT_CHECK */
+
+#define LDAP_BUG() LDAP_ENSURE(0)
+
+#undef assert
+#define assert(expr) LDAP_ASSERT(expr)
 
 /* -------------------------------------------------------------------------- */
 

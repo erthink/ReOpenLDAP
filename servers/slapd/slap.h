@@ -3348,10 +3348,6 @@ typedef struct slap_oinit_t {
 	OV_init		*ov_init;
 } OverlayInit;
 
-/* LY: ReOpenLDAP operation mode global flags */
-#define REOPENLDAP_FLAG_IDDQD	1
-#define REOPENLDAP_FLAG_IDKFA	2
-
 LDAP_END_DECL
 
 #include "proto-slap.h"

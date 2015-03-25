@@ -21,7 +21,6 @@
 #include "portable.h"
 #include "lutil_meter.h"
 
-#include <ac/assert.h>
 #include <ac/string.h>
 
 int
