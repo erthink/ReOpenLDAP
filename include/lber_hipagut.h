@@ -164,6 +164,8 @@ LBER_F(int) lber_hug_probe_link LDAP_P((
 
 /* -------------------------------------------------------------------------- */
 
+#if LDAP_MEMORY_DEBUG > 0
+
 #define LBER_HUG_DISABLED 0xfea51b1eu /* feasible */
 LBER_V(unsigned) lber_hug_nasty_disabled;
 LBER_V(unsigned) lber_hug_memchk_poison_alloc;
@@ -228,6 +230,8 @@ LBER_F(int) lber_hug_memchk_probe LDAP_P((
 	const void* payload,
 	size_t *length,
 	size_t *sequence ));
+
+#endif /* LDAP_MEMORY_DEBUG > 0 */
 
 LDAP_END_DECL
 

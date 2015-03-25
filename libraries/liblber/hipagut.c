@@ -223,6 +223,17 @@ int lber_hug_probe_link(const lber_hug_t* slave, const lber_hug_t* master) {
 
 /* -------------------------------------------------------------------------- */
 
+#if LDAP_MEMORY_DEBUG > 0
+
+unsigned lber_hug_nasty_disabled;
+unsigned lber_hug_memchk_poison_alloc;
+unsigned lber_hug_memchk_poison_free;
+unsigned lber_hug_memchk_trace_disabled
+#ifndef LDAP_MEMORY_TRACE
+	= LBER_HUG_DISABLED
+#endif
+	;
+
 #define MEMCHK_TAG_HEADER	header
 #define MEMCHK_TAG_BOTTOM	bottom
 #define MEMCHK_TAG_COVER	cover
@@ -316,15 +327,6 @@ __hot __flatten void lber_hug_memchk_ensure(const void* payload) {
 	if (unlikely (bits != 0))
 		lber_hug_memchk_throw(payload, bits);
 }
-
-unsigned lber_hug_nasty_disabled;
-unsigned lber_hug_memchk_poison_alloc;
-unsigned lber_hug_memchk_poison_free;
-unsigned lber_hug_memchk_trace_disabled
-#ifndef LDAP_MEMORY_TRACE
-	= LBER_HUG_DISABLED
-#endif
-	;
 
 __hot __flatten void* lber_hug_memchk_setup(
 		struct lber_hug_memchk* memchunk,
@@ -479,3 +481,5 @@ void* lber_hug_realloc_commit ( size_t old_size,
 
 	return new_payload;
 }
+
+#endif /* LDAP_MEMORY_DEBUG */

@@ -20,7 +20,7 @@
 #include <ac/stdarg.h>
 #include "lber-int.h"
 
-#if defined(LDAP_MEMORY_DEBUG) || !defined(LDAP_DISABLE_MEMORY_CHECK)
+#if LDAP_MEMORY_DEBUG > 0
 #	include "lber_hipagut.h"
 #endif
 
@@ -59,7 +59,7 @@ ber_get_option(
 			 * using the lber_set_option() function during startup.
 			 * The counter is not accurate for multithreaded ldap applications.
 			 */
-#if defined(LDAP_MEMORY_DEBUG) || !defined(LDAP_DISABLE_MEMORY_CHECK)
+#if LDAP_MEMORY_DEBUG > 0
 			* (int *) outvalue = lber_hug_memchk_info.mi_inuse_bytes;
 			return LBER_OPT_SUCCESS;
 #else

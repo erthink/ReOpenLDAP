@@ -25,7 +25,7 @@
 #include "lber_hipagut.h"
 
 int reopenldap_flags
-#if !defined(LDAP_DISABLE_MEMORY_CHECK) && defined(LDAP_MEMORY_DEBUG)
+#if defined(LDAP_DEBUG) || LDAP_MEMORY_DEBUG > 0
 		= REOPENLDAP_FLAG_IDKFA
 #endif
 		;
@@ -33,11 +33,12 @@ int reopenldap_flags
 void reopenldap_flags_setup(int flags) {
 	reopenldap_flags = flags & (REOPENLDAP_FLAG_IDDQD | REOPENLDAP_FLAG_IDKFA);
 
+#if LDAP_MEMORY_DEBUG > 0
 	if (reopenldap_mode_idkfa()) {
 		lber_hug_nasty_disabled = 0;
 #ifdef LDAP_MEMORY_TRACE
 		lber_hug_memchk_trace_disabled = 0;
-#endif
+#endif /* LDAP_MEMORY_TRACE */
 		lber_hug_memchk_poison_alloc = 0xCC;
 		lber_hug_memchk_poison_free = 0xDD;
 	} else {
@@ -46,4 +47,5 @@ void reopenldap_flags_setup(int flags) {
 		lber_hug_memchk_poison_alloc = 0;
 		lber_hug_memchk_poison_free = 0;
 	}
+#endif /* LDAP_MEMORY_DEBUG */
 }

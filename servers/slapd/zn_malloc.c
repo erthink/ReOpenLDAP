@@ -481,7 +481,7 @@ slap_zn_free(void *ptr, void *ctx)
 
 		VALGRIND_MEMPOOL_FREE(zh, ptr);
 		size = *(--p);
-#ifdef LDAP_MEMORY_DEBUG
+#if LDAP_MEMORY_DEBUG > 0
 		memset(ptr, -1, size);
 #endif
 

@@ -22,10 +22,10 @@
 #include "slap.h"
 
 /* LY: With respect to http://en.wikipedia.org/wiki/Fail-fast */
-#ifndef LDAP_DISABLE_MEMORY_CHECK
+#if LDAP_MEMORY_DEBUG > 0
 #	include <lber_hipagut.h>
 #	define SL_MEM_VALID(p) lber_hug_memchk_ensure(p)
-#endif /* LDAP_DISABLE_MEMORY_CHECK */
+#endif /* LDAP_MEMORY_DEBUG */
 
 /*
  * This allocator returns temporary memory from a slab in a given memory
@@ -390,7 +390,7 @@ slap_sl_malloc(
 
 	if (!No_sl_malloc && sh) {
 		size_t gross_size = nett_size;
-#ifndef LDAP_DISABLE_MEMORY_CHECK
+#if LDAP_MEMORY_DEBUG > 0
 		gross_size += LBER_HUG_MEMCHK_OVERHEAD;
 		if (unlikely(gross_size < nett_size)) {
 			Debug(LDAP_DEBUG_ANY,
@@ -398,14 +398,14 @@ slap_sl_malloc(
 			assert(0);
 			exit(EXIT_FAILURE);
 		}
-#endif /* LDAP_DISABLE_MEMORY_CHECK */
+#endif /* LDAP_MEMORY_DEBUG */
 
 		ptr = __slap_sl_malloc(sh, gross_size);
 
 		if (likely(ptr)) {
-#ifndef LDAP_DISABLE_MEMORY_CHECK
+#if LDAP_MEMORY_DEBUG > 0
 			ptr = lber_hug_memchk_setup(ptr, nett_size, LBER_HUG_POISON_DEFAULT);
-#endif /* LDAP_DISABLE_MEMORY_CHECK */
+#endif /* LDAP_MEMORY_DEBUG */
 			return ptr;
 		}
 
@@ -441,7 +441,7 @@ slap_sl_calloc( ber_len_t n, ber_len_t s, void *ctx )
 	nett_size = n * s;
 	if (!No_sl_malloc && sh) {
 		size_t gross_size = nett_size;
-#ifndef LDAP_DISABLE_MEMORY_CHECK
+#if LDAP_MEMORY_DEBUG > 0
 		gross_size += LBER_HUG_MEMCHK_OVERHEAD;
 		if (unlikely(gross_size < nett_size)) {
 			Debug(LDAP_DEBUG_ANY,
@@ -449,16 +449,16 @@ slap_sl_calloc( ber_len_t n, ber_len_t s, void *ctx )
 			assert(0);
 			exit(EXIT_FAILURE);
 		}
-#endif /* LDAP_DISABLE_MEMORY_CHECK */
+#endif /* LDAP_MEMORY_DEBUG */
 
 		ptr = __slap_sl_malloc(sh, gross_size);
 
 		if (likely(ptr)) {
-#ifndef LDAP_DISABLE_MEMORY_CHECK
+#if LDAP_MEMORY_DEBUG > 0
 			ptr = lber_hug_memchk_setup(ptr, nett_size, LBER_HUG_POISON_CALLOC_SETUP);
 #else
 			memset(ptr, 0, nett_size);
-#endif /* LDAP_DISABLE_MEMORY_CHECK */
+#endif /* LDAP_MEMORY_DEBUG */
 			return ptr;
 		}
 
@@ -499,7 +499,7 @@ slap_sl_realloc(void *ptr, ber_len_t new_nett_size, void *ctx)
 	}
 
 	size_t old_nett_size, new_gross_size = new_nett_size;
-#ifndef LDAP_DISABLE_MEMORY_CHECK
+#if LDAP_MEMORY_DEBUG > 0
 	new_gross_size += LBER_HUG_MEMCHK_OVERHEAD;
 	if(unlikely(new_gross_size < new_nett_size)) {
 		Debug(LDAP_DEBUG_ANY,
@@ -512,13 +512,13 @@ slap_sl_realloc(void *ptr, ber_len_t new_nett_size, void *ctx)
 	oldptr = LBER_HUG_CHUNK(ptr);
 #else
 	oldptr = ptr;
-#endif /* LDAP_DISABLE_MEMORY_CHECK */
+#endif /* LDAP_MEMORY_DEBUG */
 
 	p = ((ber_len_t *) oldptr) - 1;
 	VALGRIND_MAKE_MEM_DEFINED(p, sizeof(*p));
 	old_sl_size = *p & -2;
 	assert(old_sl_size >= old_nett_size + LBER_HUG_MEMCHK_OVERHEAD + sizeof(ber_len_t));
-#ifdef LDAP_DISABLE_MEMORY_CHECK
+#if ! LDAP_MEMORY_DEBUG
 	old_nett_size = old_sl_size - sizeof(ber_len_t);
 #endif
 
@@ -535,13 +535,13 @@ slap_sl_realloc(void *ptr, ber_len_t new_nett_size, void *ctx)
 		/* Never shrink blocks */
 		if (new_sl_size <= old_sl_size) {
 			VALGRIND_MAKE_MEM_NOACCESS(p, sizeof(*p));
-#ifndef LDAP_DISABLE_MEMORY_CHECK
+#if LDAP_MEMORY_DEBUG > 0
 			if (old_nett_size < new_nett_size + LBER_HUG_MEMCHK_OVERHEAD) {
 				VALGRIND_MAKE_MEM_UNDEFINED((char *) ptr + old_nett_size,
 					new_nett_size - old_nett_size + LBER_HUG_MEMCHK_OVERHEAD);
 			}
 			lber_hug_realloc_commit(old_nett_size, oldptr, new_nett_size);
-#endif /* LDAP_DISABLE_MEMORY_CHECK */
+#endif /* LDAP_MEMORY_DEBUG */
 			VALGRIND_MEMPOOL_CHANGE(sh, oldptr, oldptr, new_gross_size);
 			if (old_nett_size > new_nett_size) {
 				VALGRIND_MAKE_MEM_NOACCESS((char *) ptr + new_nett_size,
@@ -559,14 +559,14 @@ slap_sl_realloc(void *ptr, ber_len_t new_nett_size, void *ctx)
 				p[0] = (p[0] & 1) | new_sl_size;
 				VALGRIND_MAKE_MEM_NOACCESS(p, sizeof(*p));
 				VALGRIND_MEMPOOL_CHANGE(sh, oldptr, oldptr, new_gross_size);
-#ifndef LDAP_DISABLE_MEMORY_CHECK
+#if LDAP_MEMORY_DEBUG > 0
 				VALGRIND_MAKE_MEM_UNDEFINED((char *) ptr + old_nett_size,
 					new_nett_size - old_nett_size + LBER_HUG_MEMCHK_OVERHEAD);
 				lber_hug_realloc_commit(old_nett_size, oldptr, new_nett_size);
 #else
 				VALGRIND_MAKE_MEM_UNDEFINED((char *) ptr + old_nett_size,
 					new_nett_size - old_nett_size);
-#endif /* LDAP_DISABLE_MEMORY_CHECK */
+#endif /* LDAP_MEMORY_DEBUG */
 				return ptr;
 			}
 		/* Nowhere to grow, need to alloc and copy */
@@ -575,9 +575,9 @@ slap_sl_realloc(void *ptr, ber_len_t new_nett_size, void *ctx)
 			/* Slight optimization of the final realloc variant */
 			newptr = __slap_sl_malloc(sh, new_gross_size);
 			if (newptr) {
-#ifndef LDAP_DISABLE_MEMORY_CHECK
+#if LDAP_MEMORY_DEBUG > 0
 				newptr = lber_hug_realloc_commit(old_nett_size, newptr, new_nett_size);
-#endif /* LDAP_DISABLE_MEMORY_CHECK */
+#endif /* LDAP_MEMORY_DEBUG */
 			} else {
 				Debug(LDAP_DEBUG_TRACE,
 					  "sl_malloc %zu: fallback to ch_malloc\n", new_sl_size);
@@ -598,9 +598,9 @@ slap_sl_realloc(void *ptr, ber_len_t new_nett_size, void *ctx)
 	}
 
 	VALGRIND_MAKE_MEM_NOACCESS(p, sizeof(*p));
-#ifndef LDAP_DISABLE_MEMORY_CHECK
+#if LDAP_MEMORY_DEBUG > 0
 	lber_hug_realloc_undo(oldptr, undo_key);
-#endif /* LDAP_DISABLE_MEMORY_CHECK */
+#endif /* LDAP_MEMORY_DEBUG */
 	newptr = slap_sl_malloc(new_nett_size, ctx);
 	VALGRIND_DISABLE_ADDR_ERROR_REPORTING_IN_RANGE(ptr, old_nett_size);
 	memmove(newptr, ptr,
@@ -625,9 +625,9 @@ slap_sl_free(void *ptr, void *ctx)
 		return;
 	}
 
-#ifndef LDAP_DISABLE_MEMORY_CHECK
+#if LDAP_MEMORY_DEBUG > 0
 	ptr = lber_hug_memchk_drown(ptr);
-#endif /* LDAP_DISABLE_MEMORY_CHECK */
+#endif /* LDAP_MEMORY_DEBUG */
 
 	VALGRIND_MEMPOOL_FREE(sh, ptr);
 	p = ((ber_len_t*) ptr) - 1;
