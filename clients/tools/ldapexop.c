@@ -268,7 +268,7 @@ main( int argc, char *argv[] )
 
 	} else if ( strcasecmp( argv[ 0 ], "cancel" ) == 0 ) {
 		/* no extended response; returns specific errors */
-		assert( 0 );
+		LDAP_BUG();
 
 	} else if ( strcasecmp( argv[ 0 ], "passwd" ) == 0 ) {
 		/* TODO */

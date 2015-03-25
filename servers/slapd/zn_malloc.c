@@ -328,7 +328,7 @@ retry:
 						&zh->zh_free[j-1-order_start], zo_left, zo_link);
 			}
 		}
-		assert(0);
+		LDAP_BUG();
 	} else {
 
 		if ( zh->zh_maxzones < zh->zh_numzones + zh->zh_deltazones ) {
@@ -427,8 +427,7 @@ slap_zn_realloc(void *ptr, ber_len_t size, void *ctx)
 		}
 		Debug(LDAP_DEBUG_ANY, "ch_realloc of %lu bytes failed\n",
 				(long) size);
-		assert(0);
-		exit( EXIT_FAILURE );
+		LDAP_BUG();
 	}
 
 	assert(zoo->zo_idx != -1);

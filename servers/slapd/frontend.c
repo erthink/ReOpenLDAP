@@ -141,7 +141,7 @@ frontend_init( void )
 			if ( slap_find_control_id( slap_known_controls[ i ], &cid )
 					== LDAP_CONTROL_NOT_FOUND )
 			{
-				assert( 0 );
+				LDAP_BUG();
 				return -1;
 			}
 

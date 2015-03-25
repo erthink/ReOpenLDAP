@@ -244,7 +244,7 @@ glue_op_func ( Operation *op, SlapReply *rs )
 	case LDAP_REQ_MODIFY: which = op_modify; break;
 	case LDAP_REQ_MODRDN: which = op_modrdn; break;
 	case LDAP_REQ_EXTENDED: which = op_extended; break;
-	default: assert( 0 ); break;
+	default: LDAP_BUG(); break;
 	}
 
 	func = &op->o_bd->bd_info->bi_op_bind;

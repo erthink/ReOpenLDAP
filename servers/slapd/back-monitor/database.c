@@ -727,7 +727,7 @@ monitor_subsys_database_modify(
 					val = 0;
 
 				} else {
-					assert( 0 );
+					LDAP_BUG();
 					rc = rs->sr_err = LDAP_INVALID_SYNTAX;
 					goto done;
 				}

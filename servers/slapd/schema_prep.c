@@ -1375,7 +1375,7 @@ static int rootDseObjectClass (
 	}
 
 	/* we should not be called for the root DSE */
-	assert( 0 );
+	LDAP_BUG();
 	return LDAP_SUCCESS;
 }
 
@@ -1481,7 +1481,7 @@ static int rootDseAttribute (
 	}
 
 	/* we should not be called for the root DSE */
-	assert( 0 );
+	LDAP_BUG();
 	return LDAP_SUCCESS;
 }
 

@@ -32,7 +32,7 @@ void slap_biglock_init ( BackendDB *bd ) {
 	rc = ldap_pvt_thread_mutex_init(&bl->bl_mutex);
 	if (rc) {
 		Debug( LDAP_DEBUG_ANY, "mutex_init failed for biglock, rc = %d\n", rc );
-		assert( 0 );
+		LDAP_BUG();
 		exit( EXIT_FAILURE );
 	}
 	bd->bd_biglock = bl;
@@ -55,7 +55,7 @@ static slap_biglock_t* slap_biglock_get( BackendDB *bd ) {
 	default:
 		/* LY: zero-value indicates than mode was not initialized,
 		 * for instance in overlay's code. */
-		assert(0);
+		LDAP_BUG();
 	case SLAPD_BIGLOCK_NONE:
 		return NULL;
 

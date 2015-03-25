@@ -37,7 +37,7 @@ at_syntax(
 		}
 	}
 
-	assert( 0 );
+	LDAP_BUG();
 
 	return NULL;
 }

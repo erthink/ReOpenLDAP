@@ -2045,7 +2045,7 @@ acl_check_modlist(
 			break;
 
 		default:
-			assert( 0 );
+			LDAP_BUG();
 			/* not reached */
 			ret = 0;
 			break;
@@ -2588,7 +2588,7 @@ acl_string_expand(
 					data = val_matches ? val_matches->bv_val : NULL;
 					break;
 				default:
-					assert( 0 );
+					LDAP_BUG();
 				}
 				if ( n >= nm ) {
 					/* FIXME: error */

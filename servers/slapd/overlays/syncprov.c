@@ -924,7 +924,7 @@ syncprov_sendresp( Operation *op, resinfo *ri, syncops *so, int mode )
 		}
 		break;
 	default:
-		assert(0);
+		LDAP_BUG();
 	}
 	return rs.sr_err;
 }

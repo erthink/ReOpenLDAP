@@ -2507,7 +2507,7 @@ config_overlay(ConfigArgs *c) {
 	if (c->op == SLAP_CONFIG_EMIT) {
 		return 1;
 	} else if ( c->op == LDAP_MOD_DELETE ) {
-		assert(0);
+		LDAP_BUG();
 	}
 	if(c->argv[1][0] == '-' && overlay_config(c->be, &c->argv[1][1],
 		c->valx, &c->bi, &c->reply)) {
@@ -2958,7 +2958,7 @@ config_suffix(ConfigArgs *c)
 			/* FIXME: don't know what values may be valid;
 			 * please remove assertion, or add legal values
 			 * to either block */
-			assert( 0 );
+			LDAP_BUG();
 			break;
 		}
 
@@ -4459,7 +4459,7 @@ done:
 				"unable to normalize default schema DN \"%s\"\n",
 				frontendDB->be_schemadn.bv_val );
 			/* must not happen */
-			assert( 0 );
+			LDAP_BUG();
 		}
 	}
 	if ( rc == 0 && ( slapMode & SLAP_SERVER_MODE ) && sid_list ) {

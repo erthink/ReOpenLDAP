@@ -1653,7 +1653,7 @@ slap_cf_aux_table_unparse( void *src, struct berval *bv, slap_cf_aux_table *tab0
 			break;
 
 		default:
-			assert( 0 );
+			LDAP_BUG();
 		}
 	}
 	tmp.bv_val = buf;
@@ -2093,7 +2093,6 @@ slap_client_connect( LDAP **ldp, slap_bindconf *sb )
 		}
 #else /* HAVE_CYRUS_SASL */
 		/* Should never get here, we trapped this at config time */
-		assert(0);
 		Debug( LDAP_DEBUG_SYNC, "not compiled with SASL support\n" );
 		rc = LDAP_OTHER;
 		goto done;

@@ -291,8 +291,7 @@ static void * __slap_sl_malloc( struct slab_heap *sh, ber_len_t size )
 	if (unlikely(sl_size < size)) {
 		Debug(LDAP_DEBUG_ANY,
 			  "__slap_sl_malloc(%zu) out of range\n", (size_t) size);
-		assert(0);
-		exit(EXIT_FAILURE);
+		LDAP_BUG();
 	}
 
 	if (sh->sh_stack) {
@@ -395,8 +394,7 @@ slap_sl_malloc(
 		if (unlikely(gross_size < nett_size)) {
 			Debug(LDAP_DEBUG_ANY,
 				  "slap_sl_malloc(%zu) out of range\n", (size_t) nett_size);
-			assert(0);
-			exit(EXIT_FAILURE);
+			LDAP_BUG();
 		}
 #endif /* LDAP_MEMORY_DEBUG */
 
@@ -434,8 +432,7 @@ slap_sl_calloc( ber_len_t n, ber_len_t s, void *ctx )
 	if (unlikely((n | s) > LIM_SQRT(ber_len_t) && (ber_len_t)-1/n > s)) {
 		Debug(LDAP_DEBUG_ANY,
 			"slap_sl_calloc(%zu,%zu) out of range\n", (size_t) n, (size_t) s);
-		assert(0);
-		exit(EXIT_FAILURE);
+		LDAP_BUG();
 	}
 
 	nett_size = n * s;
@@ -446,8 +443,7 @@ slap_sl_calloc( ber_len_t n, ber_len_t s, void *ctx )
 		if (unlikely(gross_size < nett_size)) {
 			Debug(LDAP_DEBUG_ANY,
 				"slap_sl_calloc(%zu,%zu) out of range\n", (size_t) n, (size_t) s);
-			assert(0);
-			exit(EXIT_FAILURE);
+			LDAP_BUG();
 		}
 #endif /* LDAP_MEMORY_DEBUG */
 
@@ -487,8 +483,7 @@ slap_sl_realloc(void *ptr, ber_len_t new_nett_size, void *ctx)
 		if (unlikely(! newptr)) {
 			Debug(LDAP_DEBUG_ANY,
 				  "slap_sl_realloc of %zu bytes failed\n", (size_t) new_nett_size);
-			assert(0);
-			exit( EXIT_FAILURE );
+			LDAP_BUG();
 		}
 		return newptr;
 	}
@@ -504,8 +499,7 @@ slap_sl_realloc(void *ptr, ber_len_t new_nett_size, void *ctx)
 	if(unlikely(new_gross_size < new_nett_size)) {
 		Debug(LDAP_DEBUG_ANY,
 			  "slap_sl_realloc of %zu bytes failed\n", (size_t) new_nett_size);
-		assert(0);
-		exit( EXIT_FAILURE );
+		LDAP_BUG();
 	}
 
 	unsigned undo_key = lber_hug_realloc_begin(ptr, &old_nett_size);
@@ -528,8 +522,7 @@ slap_sl_realloc(void *ptr, ber_len_t new_nett_size, void *ctx)
 		if (unlikely(new_sl_size < new_gross_size)) {
 			Debug(LDAP_DEBUG_ANY,
 				  "slap_sl_realloc(%zu) out of range\n", (size_t) new_nett_size);
-			assert(0);
-			exit(EXIT_FAILURE);
+			LDAP_BUG();
 		}
 
 		/* Never shrink blocks */

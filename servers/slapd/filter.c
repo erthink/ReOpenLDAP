@@ -479,7 +479,7 @@ get_ssa(
 			break;
 
 		default:
-			assert( 0 );
+			LDAP_BUG();
 			slap_sl_free( nvalue.bv_val, op->o_tmpmemctx );
 			rc = LDAP_PROTOCOL_ERROR;
 

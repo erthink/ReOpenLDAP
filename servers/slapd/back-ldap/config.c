@@ -1052,7 +1052,7 @@ ldap_back_cf_gen( ConfigArgs *c )
 			switch ( c->type ) {
 			case LDAP_BACK_CFG_IDASSERT_AUTHZFROM: bvp = &li->li_idassert_authz; break;
 			case LDAP_BACK_CFG_IDASSERT_PASSTHRU: bvp = &li->li_idassert_passthru; break;
-			default: assert( 0 ); break;
+			default: LDAP_BUG(); break;
 			}
 
 			if ( *bvp == NULL ) {
@@ -1107,7 +1107,7 @@ ldap_back_cf_gen( ConfigArgs *c )
 					enum_to_verb( idassert_mode, li->li_idassert_mode, &mode );
 					if ( BER_BVISNULL( &mode ) ) {
 						/* there's something wrong... */
-						assert( 0 );
+						LDAP_BUG();
 						rc = 1;
 
 					} else {
@@ -1225,7 +1225,7 @@ ldap_back_cf_gen( ConfigArgs *c )
 			enum_to_verb( t_f_mode, (li->li_flags & LDAP_BACK_F_T_F_MASK2), &bv );
 			if ( BER_BVISNULL( &bv ) ) {
 				/* there's something wrong... */
-				assert( 0 );
+				LDAP_BUG();
 				rc = 1;
 
 			} else {
@@ -1334,7 +1334,7 @@ ldap_back_cf_gen( ConfigArgs *c )
 			enum_to_verb( cancel_mode, (li->li_flags & mask), &bv );
 			if ( BER_BVISNULL( &bv ) ) {
 				/* there's something wrong... */
-				assert( 0 );
+				LDAP_BUG();
 				rc = 1;
 
 			} else {
@@ -1389,7 +1389,7 @@ ldap_back_cf_gen( ConfigArgs *c )
 
 		default:
 			/* FIXME: we need to handle all... */
-			assert( 0 );
+			LDAP_BUG();
 			break;
 		}
 		return rc;
@@ -1446,7 +1446,7 @@ ldap_back_cf_gen( ConfigArgs *c )
 			switch ( c->type ) {
 			case LDAP_BACK_CFG_IDASSERT_AUTHZFROM: bvp = &li->li_idassert_authz; break;
 			case LDAP_BACK_CFG_IDASSERT_PASSTHRU: bvp = &li->li_idassert_passthru; break;
-			default: assert( 0 ); break;
+			default: LDAP_BUG(); break;
 			}
 
 			if ( c->valx < 0 ) {
@@ -1562,7 +1562,7 @@ ldap_back_cf_gen( ConfigArgs *c )
 
 		default:
 			/* FIXME: we need to handle all... */
-			assert( 0 );
+			LDAP_BUG();
 			break;
 		}
 		return rc;
@@ -2256,7 +2256,7 @@ done_url:;
 
 	default:
 		/* FIXME: try to catch inconsistencies */
-		assert( 0 );
+		LDAP_BUG();
 		break;
 	}
 

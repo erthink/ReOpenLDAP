@@ -208,7 +208,7 @@ __extern_C int reopenldap_flags;
 	while (0)
 #endif /* LDAP_ASSERT_CHECK */
 
-#define LDAP_BUG() LDAP_ENSURE(0)
+#define LDAP_BUG() __assert_fail("ldap-BUG", __FILE__, __LINE__, __FUNCTION__)
 
 #undef assert
 #define assert(expr) LDAP_ASSERT(expr)

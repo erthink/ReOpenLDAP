@@ -990,7 +990,7 @@ ber_scanf ( BerElement *ber,
 
 		default:
 			/* format should be good */
-			assert( 0 );
+			LDAP_BUG();
 		}
 		}
 

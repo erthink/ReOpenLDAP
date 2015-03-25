@@ -298,7 +298,7 @@ regex_done:;
 			break;
 
 		default:
-			assert( 0 );
+			LDAP_BUG();
 			break;
 		}
 

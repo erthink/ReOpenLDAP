@@ -1213,7 +1213,7 @@ res2str( int res ) {
 	case LDAP_RES_MODRDN:
 		return "ldap_rename";
 	default:
-		assert( 0 );
+		LDAP_BUG();
 	}
 
 	return "ldap_unknown";

@@ -1261,7 +1261,7 @@ ldap_bv2rdn_x( struct berval *bv, LDAPRDN *rdn,
 				break;
 
 			default:
-				assert( 0 );
+				LDAP_BUG();
 			}
 
 			state = GOTAVA;
@@ -1385,7 +1385,7 @@ ldap_bv2rdn_x( struct berval *bv, LDAPRDN *rdn,
 		}
 
 		default:
-			assert( 0 );
+			LDAP_BUG();
 			goto parsing_error;
 		}
 	}
@@ -1551,7 +1551,7 @@ str2strval( const char *str, ber_len_t stoplen, struct berval *val, const char *
 
 				} else {
 					/* we should never get here */
-					assert( 0 );
+					LDAP_BUG();
 				}
 
 			} else {

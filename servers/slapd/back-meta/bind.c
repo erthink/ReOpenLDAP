@@ -951,7 +951,7 @@ meta_back_cancel(
 		rc = ldap_cancel_s( msc->msc_ld, msgid, NULL, NULL );
 
 	} else {
-		assert( 0 );
+		LDAP_BUG();
 	}
 
 	Debug( LDAP_DEBUG_TRACE, "<<< %s meta_back_cancel[%d] err=%d\n",
@@ -1625,7 +1625,7 @@ meta_back_proxy_authz_bind(
 			break;
 
 		default:
-			assert( 0 );
+			LDAP_BUG();
 			break;
 		}
 	}

@@ -944,7 +944,7 @@ memberof_op_modify( Operation *op, SlapReply *rs )
 					break;
 
 				default:
-					assert( 0 );
+					LDAP_BUG();
 				}
 			}
 		}
@@ -1179,7 +1179,7 @@ memberof_op_modify( Operation *op, SlapReply *rs )
 			} break;
 
 		default:
-			assert( 0 );
+			LDAP_BUG();
 		}
 
 done2:;
@@ -1438,7 +1438,7 @@ memberof_res_modify( Operation *op, SlapReply *rs )
 			break;
 
 		default:
-			assert( 0 );
+			LDAP_BUG();
 		}
 	}
 
@@ -1496,7 +1496,7 @@ memberof_res_modify( Operation *op, SlapReply *rs )
 				break;
 
 			default:
-				assert( 0 );
+				LDAP_BUG();
 			}
 		}
 	}
@@ -1816,7 +1816,7 @@ mo_cf_gen( ConfigArgs *c )
 			enum_to_verb( dangling_mode, (mo->mo_flags & MEMBEROF_FDANGLING_MASK), &bv );
 			if ( BER_BVISNULL( &bv ) ) {
 				/* there's something wrong... */
-				assert( 0 );
+				LDAP_BUG();
 				rc = 1;
 
 			} else {
@@ -1872,7 +1872,7 @@ mo_cf_gen( ConfigArgs *c )
 			break;
 
 		default:
-			assert( 0 );
+			LDAP_BUG();
 			return 1;
 		}
 
@@ -2010,7 +2010,7 @@ mo_cf_gen( ConfigArgs *c )
 			} break;
 
 		default:
-			assert( 0 );
+			LDAP_BUG();
 			return 1;
 		}
 	}

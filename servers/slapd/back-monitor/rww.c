@@ -207,7 +207,7 @@ monitor_subsys_rww_update(
 		break;
 
 	default:
-		assert( 0 );
+		LDAP_BUG();
 	}
 
 	snprintf( buf, sizeof( buf ), "%ld", num );

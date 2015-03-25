@@ -318,7 +318,7 @@ monitor_subsys_thread_update(
 			break;
 
 		default:
-			assert( 0 );
+			LDAP_BUG();
 		}
 		break;
 

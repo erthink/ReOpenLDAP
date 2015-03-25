@@ -1384,7 +1384,7 @@ equality_match:;
 
 	default:
 		/* unhandled filter type; should not happen */
-		assert( 0 );
+		LDAP_BUG();
 		backsql_strfcat_x( &bsi->bsi_flt_where,
 				bsi->bsi_op->o_tmpmemctx,
 				"l",
@@ -1569,7 +1569,7 @@ backsql_srch_query( backsql_srch_info *bsi, struct berval *query )
 		break;
 
 	default:
-		assert( 0 );
+		LDAP_BUG();
 	}
 
 #ifndef BACKSQL_ARBITRARY_KEY
@@ -1691,7 +1691,7 @@ backsql_oc_get_candidates( void *v_oc, void *v_bsi )
 		Debug( LDAP_DEBUG_TRACE, "backsql_oc_get_candidates(): "
 			"unchecked limit has been overcome\n" );
 		/* should never get here */
-		assert( 0 );
+		LDAP_BUG();
 		bsi->bsi_status = LDAP_ADMINLIMIT_EXCEEDED;
 		return BACKSQL_AVL_STOP;
 	}
