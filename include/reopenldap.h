@@ -105,6 +105,34 @@
 #	define __cache_aligned __aligned(CACHELINE_SIZE)
 #endif
 
+#ifndef likely
+#	if defined(__GNU_C) || defined(__clang__)
+#		ifdef __cplusplus
+			/* LY: workaround for "pretty" boost */
+			static __inline __attribute__((always_inline))
+				bool likely(bool cond) { return __builtin_expect(cond, 1); }
+#		else
+#			define likely(cond) __builtin_expect(!!(cond), 1)
+#		endif
+#	else
+#		define likely(x) (x)
+#	endif
+#endif /* likely */
+
+#ifndef unlikely
+#	if defined(__GNU_C) || defined(__clang__)
+#		ifdef __cplusplus
+			/* LY: workaround for "pretty" boost */
+			static __inline __attribute__((always_inline))
+				bool unlikely(bool cond) { return __builtin_expect(cond, 0); }
+#		else
+#			define unlikely(cond) __builtin_expect(!!(cond), 0)
+#		endif
+#	else
+#		define unlikely(x) (x)
+#	endif
+#endif /* unlikely */
+
 /* -------------------------------------------------------------------------- */
 
 #if defined(HAVE_VALGRIND) || defined(USE_VALGRIND)

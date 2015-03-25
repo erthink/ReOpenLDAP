@@ -119,34 +119,6 @@ LBER_F(int) lber_hug_probe_link LDAP_P((
 
 /* -------------------------------------------------------------------------- */
 
-#ifndef likely
-#	if defined(__GNU_C) || defined(__clang__)
-#		ifdef __cplusplus
-			/* LY: workaround for "pretty" boost */
-			static __inline __attribute__((always_inline))
-				bool likely(bool cond) { return __builtin_expect(cond, 1); }
-#		else
-#			define likely(cond) __builtin_expect(!!(cond), 1)
-#		endif
-#	else
-#		define likely(x) (x)
-#	endif
-#endif /* likely */
-
-#ifndef unlikely
-#	if defined(__GNU_C) || defined(__clang__)
-#		ifdef __cplusplus
-			/* LY: workaround for "pretty" boost */
-			static __inline __attribute__((always_inline))
-				bool unlikely(bool cond) { return __builtin_expect(cond, 0); }
-#		else
-#			define unlikely(cond) __builtin_expect(!!(cond), 0)
-#		endif
-#	else
-#		define unlikely(x) (x)
-#	endif
-#endif /* unlikely */
-
 /* Prototype should match libc runtime. ISO POSIX (2003) & LSB 3.1 */
 void __assert_fail LDAP_P((
 	const char* assertion,
