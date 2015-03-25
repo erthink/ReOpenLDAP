@@ -38,14 +38,10 @@
 LBER_F (void) ber_pvt_assert LDAP_P(( const char *file, int line,
 	const char *test ));
 
-/* Can't use LDAP_STRING(test), that'd expand to "test" */
-#if defined(__STDC__) || defined(__cplusplus)
-#define assert(test) \
-	((test) ? (void)0 : ber_pvt_assert( __FILE__, __LINE__, #test ) )
-#else
-#define assert(test) \
-	((test) ? (void)0 : ber_pvt_assert( __FILE__, __LINE__, "test" ) )
-#endif
+#define assert(test) do \
+		if (unlikely(!(test))) \
+			ber_pvt_assert( __FILE__, __LINE__, #test ); \
+	while (0)
 
 #endif /* (HAVE_ASSERT_H || STDC_HEADERS) */
 
