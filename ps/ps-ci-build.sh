@@ -37,7 +37,7 @@ then
 	export CC=gcc AR=gcc-ar NM=gcc-nm RANLIB=gcc-ranlib CFLAGS="$CFLAGS -flto=jobserver -fno-fat-lto-objects -fuse-linker-plugin -fwhole-program"
 	echo "*** Link-Time Optimization (LTO) will be used" >&2
 fi
-export CPPFLAGS="$CFLAGS" LDFLAGS="$LDFLAGS"
+export CXXFLAGS="$CFLAGS" LDFLAGS="$LDFLAGS"
 
 ./configure \
 		--enable-backends --enable-overlays $NBD \
@@ -45,7 +45,7 @@ export CPPFLAGS="$CFLAGS" LDFLAGS="$LDFLAGS"
 		--disable-dependency-tracking \
 	|| failure "configure"
 
-export CFLAGS="-Werror $CFLAGS" CPPFLAGS="-Werror $CFLAGS"
+export CFLAGS="-Werror $CFLAGS" CXXFLAGS="-Werror $CFLAGS"
 
 make depend && make -j4 && make -j4 -C libraries/liblmdb || failure "build"
 

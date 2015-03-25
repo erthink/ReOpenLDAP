@@ -9,7 +9,7 @@ failure() {
 
 git clean -x -f -d -e ./ps -e .ccache/ -e tests/testrun/ -e times.log || failure "cleanup"
 
-CC=gcc AR=gcc-ar NM=gcc-nm RANLIB=gcc-ranlib CFLAGS="-Wall -g -Os -flto" CPPFLAGS="$CFLAGS" \
+CC=gcc AR=gcc-ar NM=gcc-nm RANLIB=gcc-ranlib CFLAGS="-Wall -g -Os -flto" CXXFLAGS="$CFLAGS" \
 	./configure \
         --prefix=/opt/openldap.devel --enable-dynacl --enable-ldap \
         --enable-overlays --disable-bdb --disable-hdb \

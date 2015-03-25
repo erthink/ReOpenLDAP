@@ -44,7 +44,7 @@ then
 	echo "*** Link-Time Optimization (LTO) will be used" >&2
 fi
 
-CPPFLAGS="$CFLAGS" ./configure \
+CXXFLAGS="$CFLAGS" ./configure \
 	--prefix=${PREFIX} --enable-dynacl --enable-ldap \
 	--enable-overlays --disable-bdb --disable-hdb \
 	--disable-dynamic --disable-shared --enable-static \
