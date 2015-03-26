@@ -511,8 +511,10 @@ slap_sl_realloc(void *ptr, ber_len_t new_nett_size, void *ctx)
 	p = ((ber_len_t *) oldptr) - 1;
 	VALGRIND_MAKE_MEM_DEFINED(p, sizeof(*p));
 	old_sl_size = *p & -2;
+#if LDAP_MEMORY_DEBUG
 	assert(old_sl_size >= old_nett_size + LBER_HUG_MEMCHK_OVERHEAD + sizeof(ber_len_t));
-#if ! LDAP_MEMORY_DEBUG
+#else
+	assert(old_sl_size > sizeof(ber_len_t));
 	old_nett_size = old_sl_size - sizeof(ber_len_t);
 #endif
 

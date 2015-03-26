@@ -189,6 +189,8 @@ __hot __flatten void lber_hug_setup(lber_hug_t* self, const unsigned n42) {
 	}
 }
 
+unsigned lber_hug_nasty_disabled;
+
 __hot __flatten int lber_hug_probe(const lber_hug_t* self, const unsigned n42) {
 	if (unlikely(lber_hug_nasty_disabled == LBER_HUG_DISABLED))
 		return 0;
@@ -225,7 +227,6 @@ int lber_hug_probe_link(const lber_hug_t* slave, const lber_hug_t* master) {
 
 #if LDAP_MEMORY_DEBUG > 0
 
-unsigned lber_hug_nasty_disabled;
 unsigned lber_hug_memchk_poison_alloc;
 unsigned lber_hug_memchk_poison_free;
 unsigned lber_hug_memchk_trace_disabled

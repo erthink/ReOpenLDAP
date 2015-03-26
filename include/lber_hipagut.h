@@ -27,6 +27,18 @@
 #include <stddef.h>
 #include <ldap_cdefs.h>
 
+#if defined(LDAP_MEMORY_TRACE) && !defined(LDAP_MEMORY_DEBUG)
+#	define LDAP_MEMORY_DEBUG 1
+#endif
+
+#ifndef LDAP_MEMORY_DEBUG
+#	ifdef LDAP_DEBUG
+#		define LDAP_MEMORY_DEBUG 1
+#	else
+#		define LDAP_MEMORY_DEBUG 0
+#	endif
+#endif
+
 /* ----------------------------------------------------------------------------
  * LY: Originally calles "Hipagut" = sister in law, nurse
  * (Tagalog language, Philippines). */
@@ -162,12 +174,13 @@ LBER_F(int) lber_hug_probe_link LDAP_P((
 		do {} while (0)
 #endif /* HIPAGUT_ASSERT_CHECK */
 
+#define LBER_HUG_DISABLED 0xfea51b1eu /* feasible */
+LBER_V(unsigned) lber_hug_nasty_disabled;
+
 /* -------------------------------------------------------------------------- */
 
 #if LDAP_MEMORY_DEBUG > 0
 
-#define LBER_HUG_DISABLED 0xfea51b1eu /* feasible */
-LBER_V(unsigned) lber_hug_nasty_disabled;
 LBER_V(unsigned) lber_hug_memchk_poison_alloc;
 LBER_V(unsigned) lber_hug_memchk_poison_free;
 LBER_V(unsigned) lber_hug_memchk_trace_disabled;
