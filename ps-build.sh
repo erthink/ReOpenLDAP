@@ -48,7 +48,7 @@ CXXFLAGS="$CFLAGS" ./configure \
 	--prefix=${PREFIX} --enable-dynacl --enable-ldap \
 	--enable-overlays --disable-bdb --disable-hdb \
 	--disable-dynamic --disable-shared --enable-static \
-	--with-gnu-ld \
+	--enable-debug --with-gnu-ld \
 	--without-cyrus-sasl --disable-dependency-tracking \
 	--disable-spasswd --disable-lmpasswd \
 	--without-tls --disable-rwm --disable-relay \
