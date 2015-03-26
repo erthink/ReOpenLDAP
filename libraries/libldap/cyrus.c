@@ -1150,7 +1150,7 @@ void *ldap_pvt_sasl_mutex_new(void)
 	}
 	LDAP_FREE( mutex );
 #ifndef LDAP_DEBUG_R_SASL
-	assert( 0 );
+	LDAP_BUG();
 #endif /* !LDAP_DEBUG_R_SASL */
 	return NULL;
 }

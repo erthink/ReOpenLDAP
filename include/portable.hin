@@ -90,9 +90,6 @@
 /* Define to 1 if you have the <arpa/nameser.h> header file. */
 #undef HAVE_ARPA_NAMESER_H
 
-/* Define to 1 if you have the <assert.h> header file. */
-#undef HAVE_ASSERT_H
-
 /* Define to 1 if you have the `bcopy' function. */
 #undef HAVE_BCOPY
 
@@ -1173,7 +1170,6 @@
 #include "ldap_cdefs.h"
 #include "ldap_features.h"
 
-#include "ac/assert.h"
 #include "ac/localize.h"
 
 #endif /* _LDAP_PORTABLE_H */

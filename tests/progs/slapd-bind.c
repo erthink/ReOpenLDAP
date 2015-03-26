@@ -168,7 +168,7 @@ main( int argc, char **argv )
 				break;
 
 			default:
-				assert( 0 );
+				LDAP_BUG();
 			}
 
 			} break;

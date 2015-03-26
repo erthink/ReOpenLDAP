@@ -127,7 +127,7 @@ mdb_bind( Operation *op, SlapReply *rs )
 		break;
 
 	default:
-		assert( 0 ); /* should not be reachable */
+		LDAP_BUG(); /* should not be reachable */
 		rs->sr_err = LDAP_STRONG_AUTH_NOT_SUPPORTED;
 		rs->sr_text = "authentication method not supported";
 	}

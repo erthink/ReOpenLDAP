@@ -874,7 +874,7 @@ rc_cf_gen( ConfigArgs *c )
 			} break;
 
 		default:
-			assert( 0 );
+			LDAP_BUG();
 			break;
 		}
 
@@ -919,7 +919,7 @@ rc_cf_gen( ConfigArgs *c )
 			break;
 
 		default:
-			assert( 0 );
+			LDAP_BUG();
 			break;
 		}
 		return rc;	/* FIXME */

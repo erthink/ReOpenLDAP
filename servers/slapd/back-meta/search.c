@@ -228,7 +228,7 @@ meta_search_dobind_init(
 			break;
 
 		default:
-			assert( 0 );
+			LDAP_BUG();
 			break;
 		}
 	}
@@ -889,7 +889,7 @@ getconn:;
 			goto finish;
 
 		default:
-			assert( 0 );
+			LDAP_BUG();
 			break;
 		}
 	}
@@ -1104,14 +1104,14 @@ getconn:;
 
 					default:
 						/* impossible */
-						assert( 0 );
+						LDAP_BUG();
 						break;
 					}
 					break;
 
 				default:
 					/* impossible */
-					assert( 0 );
+					LDAP_BUG();
 					break;
 				}
 				continue;
@@ -1191,7 +1191,7 @@ really_bad:;
 						case META_SEARCH_CONNECTING:
 						case META_SEARCH_NEED_BIND:
 						case META_SEARCH_UNDEFINED:
-							assert( 0 );
+							LDAP_BUG();
 
 						default:
 							/* unrecoverable error */
@@ -1617,7 +1617,7 @@ err_pr:;
 
 									default:
 										/* impossible */
-										assert( 0 );
+										LDAP_BUG();
 										break;
 									}
 									break;
@@ -1711,7 +1711,7 @@ got_err:
 						goto free_message;
 
 					default:
-						assert( 0 );
+						LDAP_BUG();
 						break;
 					}
 

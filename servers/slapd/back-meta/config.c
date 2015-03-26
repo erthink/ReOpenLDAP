@@ -1239,7 +1239,7 @@ meta_back_cf_gen( ConfigArgs *c )
 			enum_to_verb( cancel_mode, (mc->mc_flags & mask), &bv );
 			if ( BER_BVISNULL( &bv ) ) {
 				/* there's something wrong... */
-				assert( 0 );
+				LDAP_BUG();
 				rc = 1;
 
 			} else {
@@ -1365,7 +1365,7 @@ meta_back_cf_gen( ConfigArgs *c )
 			enum_to_verb( t_f_mode, (mc->mc_flags & LDAP_BACK_F_T_F_MASK2), &bv );
 			if ( BER_BVISNULL( &bv ) ) {
 				/* there's something wrong... */
-				assert( 0 );
+				LDAP_BUG();
 				rc = 1;
 
 			} else {
@@ -1484,7 +1484,7 @@ meta_back_cf_gen( ConfigArgs *c )
 					enum_to_verb( idassert_mode, mt->mt_idassert_mode, &mode );
 					if ( BER_BVISNULL( &mode ) ) {
 						/* there's something wrong... */
-						assert( 0 );
+						LDAP_BUG();
 						rc = 1;
 
 					} else {

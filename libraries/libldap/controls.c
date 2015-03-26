@@ -252,7 +252,7 @@ int ldap_pvt_get_controls(
 void
 ldap_control_free( LDAPControl *c )
 {
-	LDAP_MEMORY_DEBUG_ASSERT( c != NULL );
+	LDAP_MEMORY_ASSERT( c != NULL );
 
 	if ( c != NULL ) {
 		if( c->ldctl_oid != NULL) {
@@ -273,7 +273,7 @@ ldap_control_free( LDAPControl *c )
 void
 ldap_controls_free( LDAPControl **controls )
 {
-	LDAP_MEMORY_DEBUG_ASSERT( controls != NULL );
+	LDAP_MEMORY_ASSERT( controls != NULL );
 
 	if ( controls != NULL ) {
 		int i;

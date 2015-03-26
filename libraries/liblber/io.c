@@ -195,8 +195,8 @@ ber_free_buf( BerElement *ber )
 void
 ber_free( BerElement *ber, int freebuf )
 {
-	if( ber == NULL ) {
-		LDAP_MEMORY_DEBUG_ASSERT( ber != NULL );
+	if(unlikely( ber == NULL )) {
+		LDAP_MEMORY_ASSERT( ber != NULL );
 		return;
 	}
 
@@ -679,7 +679,7 @@ done:
 		return (ber->ber_tag);
 	}
 
-	assert( 0 ); /* ber structure is messed up ?*/
+	LDAP_BUG(); /* ber structure is messed up ?*/
 	return LBER_DEFAULT;
 }
 

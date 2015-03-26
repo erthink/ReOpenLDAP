@@ -27,6 +27,18 @@
 #include <stddef.h>
 #include <ldap_cdefs.h>
 
+#if defined(LDAP_MEMORY_TRACE) && !defined(LDAP_MEMORY_DEBUG)
+#	define LDAP_MEMORY_DEBUG 1
+#endif
+
+#ifndef LDAP_MEMORY_DEBUG
+#	ifdef LDAP_DEBUG
+#		define LDAP_MEMORY_DEBUG 1
+#	else
+#		define LDAP_MEMORY_DEBUG 0
+#	endif
+#endif
+
 /* ----------------------------------------------------------------------------
  * LY: Originally calles "Hipagut" = sister in law, nurse
  * (Tagalog language, Philippines). */
@@ -119,41 +131,6 @@ LBER_F(int) lber_hug_probe_link LDAP_P((
 
 /* -------------------------------------------------------------------------- */
 
-#ifndef likely
-#	if defined(__GNU_C) || defined(__clang__)
-#		ifdef __cplusplus
-			/* LY: workaround for "pretty" boost */
-			static __inline __attribute__((always_inline))
-				bool likely(bool cond) { return __builtin_expect(cond, 1); }
-#		else
-#			define likely(cond) __builtin_expect(!!(cond), 1)
-#		endif
-#	else
-#		define likely(x) (x)
-#	endif
-#endif /* likely */
-
-#ifndef unlikely
-#	if defined(__GNU_C) || defined(__clang__)
-#		ifdef __cplusplus
-			/* LY: workaround for "pretty" boost */
-			static __inline __attribute__((always_inline))
-				bool unlikely(bool cond) { return __builtin_expect(cond, 0); }
-#		else
-#			define unlikely(cond) __builtin_expect(!!(cond), 0)
-#		endif
-#	else
-#		define unlikely(x) (x)
-#	endif
-#endif /* unlikely */
-
-/* Prototype should match libc runtime. ISO POSIX (2003) & LSB 3.1 */
-void __assert_fail LDAP_P((
-	const char* assertion,
-	const char* file,
-	unsigned line,
-	const char* function ));
-
 #define lber_hug_throw(info) \
 	__assert_fail("hipagut: guard " info, __FILE__, __LINE__, __FUNCTION__)
 
@@ -197,10 +174,13 @@ void __assert_fail LDAP_P((
 		do {} while (0)
 #endif /* HIPAGUT_ASSERT_CHECK */
 
-/* -------------------------------------------------------------------------- */
-
 #define LBER_HUG_DISABLED 0xfea51b1eu /* feasible */
 LBER_V(unsigned) lber_hug_nasty_disabled;
+
+/* -------------------------------------------------------------------------- */
+
+#if LDAP_MEMORY_DEBUG > 0
+
 LBER_V(unsigned) lber_hug_memchk_poison_alloc;
 LBER_V(unsigned) lber_hug_memchk_poison_free;
 LBER_V(unsigned) lber_hug_memchk_trace_disabled;
@@ -263,6 +243,8 @@ LBER_F(int) lber_hug_memchk_probe LDAP_P((
 	const void* payload,
 	size_t *length,
 	size_t *sequence ));
+
+#endif /* LDAP_MEMORY_DEBUG > 0 */
 
 LDAP_END_DECL
 

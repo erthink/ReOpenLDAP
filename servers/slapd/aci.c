@@ -516,7 +516,7 @@ aci_mask(
 
 	/* get the list of permissions clauses, bail if empty */
 	if ( acl_get_part( aci, 2, '#', &perms ) <= 0 ) {
-		assert( 0 );
+		LDAP_BUG();
 		return 0;
 	}
 
@@ -527,7 +527,7 @@ aci_mask(
 
 	/* see if we have a DN match */
 	if ( acl_get_part( aci, 3, '#', &type ) < 0 ) {
-		assert( 0 );
+		LDAP_BUG();
 		return 0;
 	}
 
@@ -622,7 +622,7 @@ aci_mask(
 
 		} else {
 			if ( acl_get_part( &opts, 0, '/', &oc ) < 0 ) {
-				assert( 0 );
+				LDAP_BUG();
 			}
 
 			if ( acl_get_part( &opts, 1, '/', &at ) < 0 ) {
@@ -645,7 +645,7 @@ aci_mask(
 
 		} else {
 			if ( acl_get_part( &opts, 0, '/', &oc ) < 0 ) {
-				assert( 0 );
+				LDAP_BUG();
 			}
 
 			if ( acl_get_part( &opts, 1, '/', &at ) < 0 ) {
@@ -670,7 +670,7 @@ aci_mask(
 
 	} else {
 		/* it passed normalization! */
-		assert( 0 );
+		LDAP_BUG();
 	}
 
 	return 0;

@@ -119,7 +119,7 @@ gssattr_dynacl_unparse(
 		ptr = lutil_strcopy( ptr, ".expand=" );
 		break;
 	default:
-		assert( 0 );
+		LDAP_BUG();
 		break;
 	}
 
@@ -214,7 +214,7 @@ gssattr_dynacl_mask(
 				granted = ( ber_bvstrcmp( &gssattr->gssattr_value, &bv_value ) == 0 );
 				break;
 			default:
-				assert(0);
+				LDAP_BUG();
 				break;
 			}
 		} else {

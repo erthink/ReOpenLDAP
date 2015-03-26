@@ -111,7 +111,7 @@ dds_expire_cb( Operation *op, SlapReply *rs )
 		break;
 
 	default:
-		assert( 0 );
+		LDAP_BUG();
 	}
 
 	return rc;
@@ -316,7 +316,7 @@ dds_counter_cb( Operation *op, SlapReply *rs )
 			break;
 
 		default:
-			assert( 0 );
+			LDAP_BUG();
 		}
 		ldap_pvt_thread_mutex_unlock( &di->di_mutex );
 	}
@@ -699,7 +699,7 @@ dds_op_modify( Operation *op, SlapReply *rs )
 				break;
 
 			default:
-				assert( 0 );
+				LDAP_BUG();
 				break;
 			}
 
@@ -1609,7 +1609,7 @@ dds_count_cb( Operation *op, SlapReply *rs )
 		break;
 
 	default:
-		assert( 0 );
+		LDAP_BUG();
 	}
 
 	return 0;

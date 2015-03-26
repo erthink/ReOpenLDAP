@@ -908,7 +908,7 @@ dnRelativeMatch(
 	}
 
 	/* should not be reachable */
-	assert( 0 );
+	LDAP_BUG();
 	return LDAP_OTHER;
 }
 

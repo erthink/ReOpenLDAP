@@ -924,7 +924,7 @@ syncprov_sendresp( Operation *op, resinfo *ri, syncops *so, int mode )
 		}
 		break;
 	default:
-		assert(0);
+		LDAP_BUG();
 	}
 	return rs.sr_err;
 }
@@ -1495,7 +1495,6 @@ syncprov_op_cleanup( Operation *op, SlapReply *rs )
 				break;
 			}
 		}
-
 		/* If there are more, promote the next one */
 		if ( mt->mt_mods ) {
 			ldap_pvt_thread_mutex_unlock( &mt->mt_mutex );
@@ -2200,10 +2199,13 @@ retry:
 			ldap_pvt_thread_mutex_lock( &mt->mt_mutex );
 			if ( mt->mt_mods == NULL ) {
 				/* Cannot reuse this mt, as another thread is about
-				 * to release it in syncprov_op_cleanup.
+				 * to release it in syncprov_op_cleanup. Wait for them
+				 * to finish; our own insert is required to succeed.
 				 */
 				ldap_pvt_thread_mutex_unlock( &mt->mt_mutex );
-				/* LY: try again, otherwise could be a failure by dup-insertion into the avl-tree. */
+				/* LY: Try again, otherwise could be a failure by dup-insertion into the avl-tree.
+				 *     This was fixed before ITS#8081 and bug was present before ITS#8063.
+				 */
 				ldap_pvt_thread_mutex_unlock( &si->si_mods_mutex );
 				ldap_pvt_thread_yield();
 				goto retry;

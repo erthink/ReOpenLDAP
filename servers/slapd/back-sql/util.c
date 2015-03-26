@@ -192,7 +192,7 @@ backsql_strfcat_x( struct berbuf *dest, void *memctx, const char *fmt, ... )
 			break;
 
 		default:
-			assert( 0 );
+			LDAP_BUG();
 		}
 
 		grow = BACKSQL_MAX( BACKSQL_STR_GROW, cslen );

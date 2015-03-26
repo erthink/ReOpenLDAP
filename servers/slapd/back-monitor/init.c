@@ -2484,7 +2484,7 @@ monitor_back_db_open(
 				break;
 
 			default:
-				assert( 0 );
+				LDAP_BUG();
 			}
 
 			tmp = el;

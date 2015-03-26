@@ -65,7 +65,7 @@ backend_init_controls( BackendInfo *bi )
 					== LDAP_CONTROL_NOT_FOUND )
 			{
 				if ( !( slapMode & SLAP_TOOL_MODE ) ) {
-					assert( 0 );
+					LDAP_BUG();
 				}
 
 				return -1;
@@ -959,7 +959,7 @@ backend_check_controls(
 					Debug( LDAP_DEBUG_ANY, "backend_check_controls: "
 						"unrecognized critical control: %s\n",
 						(*ctrls)->ldctl_oid );
-					assert( 0 );
+					LDAP_BUG();
 				} else {
 					Debug( LDAP_DEBUG_TRACE, "backend_check_controls: "
 						"unrecognized non-critical control: %s\n",
@@ -996,7 +996,7 @@ backend_check_controls(
 				Debug( LDAP_DEBUG_ANY,
 					"backend_check_controls: unable to check control: %s\n",
 					(*ctrls)->ldctl_oid );
-				assert( 0 );
+				LDAP_BUG();
 
 				rs->sr_text = "unable to check control";
 				rs->sr_err = LDAP_OTHER;

@@ -589,7 +589,7 @@ is_dn:		bv.bv_len = val->bv_len - ( bv.bv_val - val->bv_val );
 			break;
 
 		default:
-			assert( 0 );
+			LDAP_BUG();
 			break;
 		}
 
@@ -1729,7 +1729,7 @@ exact_match:
 				}
 				default:
 					/* at present, impossible */
-					assert( 0 );
+					LDAP_BUG();
 				}
 			}
 		}
@@ -1965,7 +1965,7 @@ slap_sasl2dn(
 
 	default:
 		/* catch unhandled cases (there shouldn't be) */
-		assert( 0 );
+		LDAP_BUG();
 	}
 
 	Debug( LDAP_DEBUG_TRACE,

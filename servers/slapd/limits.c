@@ -197,7 +197,7 @@ limits_get(
 			return( 0 );
 
 		default:
-			assert( 0 );	/* unreachable */
+			LDAP_BUG();	/* unreachable */
 			return( -1 );
 		}
 	}

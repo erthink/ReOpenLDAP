@@ -2110,7 +2110,7 @@ rwm_cf_gen( ConfigArgs *c )
 			enum_to_verb( t_f_mode, (rwmap->rwm_flags & RWM_F_SUPPORT_T_F_MASK2), &bv );
 			if ( BER_BVISNULL( &bv ) ) {
 				/* there's something wrong... */
-				assert( 0 );
+				LDAP_BUG();
 				rc = 1;
 
 			} else {
@@ -2139,7 +2139,7 @@ rwm_cf_gen( ConfigArgs *c )
 			break;
 
 		default:
-			assert( 0 );
+			LDAP_BUG();
 			rc = 1;
 		}
 
@@ -2617,7 +2617,7 @@ rwmmap_fail:;
 		break;
 
 	default:
-		assert( 0 );
+		LDAP_BUG();
 		return 1;
 	}
 

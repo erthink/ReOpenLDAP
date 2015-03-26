@@ -53,7 +53,7 @@ modify_add_values(
 		break;
 	default:
 		op = "?";
-		assert( 0 );
+		LDAP_BUG();
 	}
 
 	/* FIXME: Catch old code that doesn't set sm_numvals.

@@ -1589,7 +1589,7 @@ add_query(
 		break;
 
 	default:
-		assert( 0 );
+		LDAP_BUG();
 		break;
 	}
 	new_cached_query->expiry_time = now + ttl;
@@ -2400,7 +2400,7 @@ pcache_op_cleanup( Operation *op, SlapReply *rs ) {
 					break;
 
 				default:
-					assert( 0 );
+					LDAP_BUG();
 					break;
 				}
 				ldap_pvt_thread_rdwr_wunlock(&qc->rwlock);

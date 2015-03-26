@@ -259,7 +259,7 @@ rewrite_rule_compile(
 				break;
 
 			default:
-				assert(0);
+				LDAP_BUG();
 			}
 
 			action->la_args = (void *)d;

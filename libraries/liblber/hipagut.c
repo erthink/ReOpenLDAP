@@ -189,6 +189,8 @@ __hot __flatten void lber_hug_setup(lber_hug_t* self, const unsigned n42) {
 	}
 }
 
+unsigned lber_hug_nasty_disabled;
+
 __hot __flatten int lber_hug_probe(const lber_hug_t* self, const unsigned n42) {
 	if (unlikely(lber_hug_nasty_disabled == LBER_HUG_DISABLED))
 		return 0;
@@ -222,6 +224,16 @@ int lber_hug_probe_link(const lber_hug_t* slave, const lber_hug_t* master) {
 }
 
 /* -------------------------------------------------------------------------- */
+
+#if LDAP_MEMORY_DEBUG > 0
+
+unsigned lber_hug_memchk_poison_alloc;
+unsigned lber_hug_memchk_poison_free;
+unsigned lber_hug_memchk_trace_disabled
+#ifndef LDAP_MEMORY_TRACE
+	= LBER_HUG_DISABLED
+#endif
+	;
 
 #define MEMCHK_TAG_HEADER	header
 #define MEMCHK_TAG_BOTTOM	bottom
@@ -302,7 +314,7 @@ __hot __flatten int lber_hug_memchk_probe(
 					memchunk->hm_length + sizeof(struct lber_hug_memchk))))
 				bits |= 4;
 			else
-				assert(VALGRIND_CHECK_MEM_IS_ADDRESSABLE(memchunk,
+				LDAP_ENSURE(VALGRIND_CHECK_MEM_IS_ADDRESSABLE(memchunk,
 						memchunk->hm_length + LBER_HUG_MEMCHK_OVERHEAD) == 0);
 		}
 	}
@@ -316,15 +328,6 @@ __hot __flatten void lber_hug_memchk_ensure(const void* payload) {
 	if (unlikely (bits != 0))
 		lber_hug_memchk_throw(payload, bits);
 }
-
-unsigned lber_hug_nasty_disabled;
-unsigned lber_hug_memchk_poison_alloc;
-unsigned lber_hug_memchk_poison_free;
-unsigned lber_hug_memchk_trace_disabled
-#ifndef LDAP_MEMORY_TRACE
-	= LBER_HUG_DISABLED
-#endif
-	;
 
 __hot __flatten void* lber_hug_memchk_setup(
 		struct lber_hug_memchk* memchunk,
@@ -406,7 +409,7 @@ static int lber_hug_memchk_probe_realloc(
 					key + 2)))
 				bits |= 4;
 			else
-				assert(VALGRIND_CHECK_MEM_IS_ADDRESSABLE(memchunk,
+				LDAP_ENSURE(VALGRIND_CHECK_MEM_IS_ADDRESSABLE(memchunk,
 						memchunk->hm_length + LBER_HUG_MEMCHK_OVERHEAD) == 0);
 		}
 	}
@@ -453,7 +456,7 @@ void* lber_hug_realloc_commit ( size_t old_size,
 	void* new_payload = LBER_HUG_PAYLOAD(new_memchunk);
 	size_t sequence = LBER_HUG_DISABLED;
 
-	assert(VALGRIND_CHECK_MEM_IS_ADDRESSABLE(new_memchunk,
+	LDAP_ENSURE(VALGRIND_CHECK_MEM_IS_ADDRESSABLE(new_memchunk,
 			new_size + LBER_HUG_MEMCHK_OVERHEAD) == 0);
 
 	if (unlikely(lber_hug_memchk_trace_disabled != LBER_HUG_DISABLED)) {
@@ -479,3 +482,5 @@ void* lber_hug_realloc_commit ( size_t old_size,
 
 	return new_payload;
 }
+
+#endif /* LDAP_MEMORY_DEBUG */

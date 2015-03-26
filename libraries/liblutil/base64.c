@@ -37,7 +37,6 @@
 
 #include "portable.h"
 
-#include <ac/assert.h>
 #include <ac/stdlib.h>
 #include <ac/ctype.h>
 #include <ac/string.h>

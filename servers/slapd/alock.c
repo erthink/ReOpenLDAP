@@ -31,7 +31,6 @@
 #include <ac/string.h>
 #include <ac/unistd.h>
 #include <ac/errno.h>
-#include <ac/assert.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #ifdef HAVE_SYS_FILE_H

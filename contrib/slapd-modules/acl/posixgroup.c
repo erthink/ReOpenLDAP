@@ -150,7 +150,7 @@ pg_dynacl_unparse(
 		break;
 
 	default:
-		assert( 0 );
+		LDAP_BUG();
 	}
 
 	ptr = lutil_strncopy( ptr, pg->pg_pat.bv_val, pg->pg_pat.bv_len );

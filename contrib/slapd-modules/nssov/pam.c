@@ -212,7 +212,7 @@ finish:
 	return rc;
 }
 
-int pam_authc(nssov_info *ni,TFILE *fp,Operation *op)
+int pam_authc(nssov_info *ni,TFILE *fp,Operation *op,uid_t calleruid)
 {
 	int32_t tmpint32;
 	int rc;
@@ -261,6 +261,13 @@ int pam_authc(nssov_info *ni,TFILE *fp,Operation *op)
 			Debug(LDAP_DEBUG_TRACE,"nssov_pam_authc(prelim check): %s\n",
 				"pwdmgr dn not configured");
 			ber_str2bv("pwdmgr dn not configured", 0, 0, &pi.msg);
+			pi.authz = NSLCD_PAM_PERM_DENIED;
+			rc = NSLCD_PAM_PERM_DENIED;
+			goto finish;
+		} else if (calleruid != 0) {
+			Debug(LDAP_DEBUG_TRACE,"nssov_pam_authc(prelim check): %s\n",
+				"caller is not root");
+			ber_str2bv("only root may do that", 0, 0, &pi.msg);
 			pi.authz = NSLCD_PAM_PERM_DENIED;
 			rc = NSLCD_PAM_PERM_DENIED;
 			goto finish;
@@ -323,7 +330,8 @@ static int pam_compare_cb(Operation *op, SlapReply *rs)
 
 int pam_authz(nssov_info *ni,TFILE *fp,Operation *op)
 {
-	struct berval dn, uid, svc, ruser, rhost, tty;
+	struct berval dn, uid, svc;
+	struct berval ALLOW_UNUSED tty, rhost, ruser;
 	struct berval authzmsg = BER_BVNULL;
 	int32_t tmpint32;
 	char dnc[1024];
@@ -559,7 +567,7 @@ finish:
 
 static int pam_sess(nssov_info *ni,TFILE *fp,Operation *op,int action)
 {
-	struct berval dn, uid, svc, tty, rhost, ruser;
+	struct berval dn, uid ALLOW_UNUSED, svc, tty, rhost, ruser;
 	int32_t tmpint32;
 	char dnc[1024];
 	char svcc[256];
@@ -707,7 +715,7 @@ int pam_sess_c(nssov_info *ni,TFILE *fp,Operation *op)
 	return pam_sess(ni,fp,op,NSLCD_ACTION_PAM_SESS_C);
 }
 
-int pam_pwmod(nssov_info *ni,TFILE *fp,Operation *op)
+int pam_pwmod(nssov_info *ni,TFILE *fp,Operation *op,uid_t calleruid)
 {
 	struct berval npw;
 	int32_t tmpint32;
@@ -762,13 +770,15 @@ int pam_pwmod(nssov_info *ni,TFILE *fp,Operation *op)
 		goto done;
 	}
 
-	if (BER_BVISEMPTY(&ni->ni_pam_pwdmgr_dn)) {
-		Debug(LDAP_DEBUG_TRACE,"nssov_pam_pwmod(), %s\n",
-			"pwdmgr not configured");
-		ber_str2bv("pwdmgr not configured", 0, 0, &pi.msg);
-		rc = NSLCD_PAM_PERM_DENIED;
-		goto done;
-	} else if (!ber_bvcmp(&pi.dn, &ni->ni_pam_pwdmgr_dn)) {
+	if (!BER_BVISEMPTY(&ni->ni_pam_pwdmgr_dn) &&
+		!ber_bvcmp(&pi.dn, &ni->ni_pam_pwdmgr_dn)) {
+		if (calleruid != 0) {
+			Debug(LDAP_DEBUG_TRACE,"nssov_pam_pwmod(): %s\n",
+				"caller is not root");
+			ber_str2bv("only root may do that", 0, 0, &pi.msg);
+			rc = NSLCD_PAM_PERM_DENIED;
+			goto done;
+		}
 		/* root user requesting pwmod, convert uid to dn */
 		pi.ispwdmgr = 1;
 		rc = pam_uid2dn(ni, op, &pi);
@@ -777,6 +787,14 @@ int pam_pwmod(nssov_info *ni,TFILE *fp,Operation *op)
 			rc = NSLCD_PAM_PERM_DENIED;
 			goto done;
 		}
+	}
+
+	if (!pi.ispwdmgr && BER_BVISEMPTY(&pi.pwd)) {
+		Debug(LDAP_DEBUG_TRACE,"nssov_pam_pwmod(), %s\n",
+			"not pwdmgr and old pwd empty");
+		ber_str2bv("must provide old password", 0, 0, &pi.msg);
+		rc = NSLCD_PAM_PERM_DENIED;
+		goto done;
 	}
 
 	BerElementBuffer berbuf;
@@ -790,8 +808,8 @@ int pam_pwmod(nssov_info *ni,TFILE *fp,Operation *op)
 	if (!BER_BVISEMPTY(&pi.dn))
 		ber_printf(ber, "tO", LDAP_TAG_EXOP_MODIFY_PASSWD_ID,
 			&pi.dn);
-	/* supply old pwd only when end-user changing pwd */
-	if (!BER_BVISEMPTY(&pi.pwd) && pi.ispwdmgr == 0)
+	/* supply old pwd whenever it's given */
+	if (!BER_BVISEMPTY(&pi.pwd))
 		ber_printf(ber, "tO", LDAP_TAG_EXOP_MODIFY_PASSWD_OLD,
 			&pi.pwd);
 	if (!BER_BVISEMPTY(&npw))

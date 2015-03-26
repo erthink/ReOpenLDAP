@@ -223,7 +223,7 @@ monitor_subsys_sent_update(
 		break;
 
 	default:
-		assert(0);
+		LDAP_BUG();
 	}
 	ldap_pvt_thread_mutex_unlock(&slap_counters.sc_mutex);
 
