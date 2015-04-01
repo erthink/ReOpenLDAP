@@ -33,6 +33,7 @@ OpenLDAP 2.4.41 Engineering
 	Fixed slapo-syncprov memory leak (ITS#8039)
 	Fixed slapo-syncprov segfault on disconnect/abandon (ITS#8043)
 	Fixed slapo-unique enforcement of uniqueness with manageDSAit control (ITS#8057)
+	Fixed slapd-sasl connection no-op if there's no context (ITS#8092)
 	Build Environment
 		Fixed libdb detection with gcc 5.x (ITS#8056)
 		Enhanced contrib modules build paths (ITS#7782)
