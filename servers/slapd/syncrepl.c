@@ -762,6 +762,37 @@ done:
 }
 
 static int
+dnp_acceptable_sids( struct sync_cookie *req, struct sync_cookie *cookie )
+{
+	int i, j;
+
+	if (req->numcsns != cookie->numcsns)
+		return 0;
+
+	if (reopenldap_mode_iddqd()) {
+		/* LY: check for all SIDs from req is exists in cookie. */
+		for(i = req->numcsns; --i >= 0; ) {
+			for(j = cookie->numcsns; --j >= 0; )
+				if (req->sids[i] == cookie->sids[j])
+					break;
+			if (j < 0)
+				return 0;
+		}
+
+		/* LY: check of self SID is present in cookie. */
+		if (slap_serverID > 0) {
+			for(j = cookie->numcsns; --j >= 0; )
+				if (slap_serverID == cookie->sids[j])
+					return 1;
+
+			return 0;
+		}
+	}
+
+	return 1;
+}
+
+static int
 compare_csns( struct sync_cookie *sc1, struct sync_cookie *sc2, int *which )
 {
 	int i, j, match = 0;
@@ -1186,7 +1217,7 @@ do_syncrep_process(
 				 */
 				if ( refreshDeletes == 0 && match < 0 &&
 					err == LDAP_SUCCESS &&
-					syncCookie_req.numcsns == syncCookie.numcsns )
+					dnp_acceptable_sids( &syncCookie_req, &syncCookie ) )
 				{
 					syncrepl_del_nonpresent( op, si, NULL,
 						&syncCookie, m );
@@ -1364,7 +1395,7 @@ do_syncrep_process(
 				if ( match < 0 ) {
 					if ( si->si_refreshPresent == 1 &&
 						si_tag != LDAP_TAG_SYNC_NEW_COOKIE &&
-						syncCookie_req.numcsns == syncCookie.numcsns ) {
+						dnp_acceptable_sids( &syncCookie_req, &syncCookie ) ) {
 						syncrepl_del_nonpresent( op, si, NULL,
 							&syncCookie, m );
 					}
