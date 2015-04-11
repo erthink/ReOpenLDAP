@@ -1227,6 +1227,8 @@ LDAP_SLAPD_F (struct sync_cookie *) slap_dup_sync_cookie LDAP_P((
 				struct sync_cookie *, struct sync_cookie * ));
 LDAP_SLAPD_F (int) slap_build_syncUUID_set LDAP_P((
 				Operation *, BerVarray *, Entry * ));
+LDAP_SLAPD_F (int) slap_csn_stub_self LDAP_P((
+				BerVarray *ctxcsn, int **sids, int *numcsns));
 
 /*
  * limits.c

@@ -504,6 +504,7 @@ check_syncprov(
 	Entry e = {0};
 	SlapReply rs = {REP_SEARCH};
 	int i, j, changed = 0;
+	int rc;
 
 	/* Look for contextCSN from syncprov overlay. If
 	 * there's no overlay, this will be a no-op. That means
@@ -553,6 +554,10 @@ check_syncprov(
 		}
 		ber_bvarray_free( a.a_vals );
 	}
+
+	rc = slap_csn_stub_self( &si->si_cookieState->cs_vals, &si->si_cookieState->cs_sids, &si->si_cookieState->cs_num );
+	assert(rc == 0);
+
 	/* See if the cookieState has changed due to anything outside
 	 * this particular consumer. That includes other consumers in
 	 * the same context, or local changes detected above.
@@ -704,8 +709,13 @@ do_syncrep_search(
 					for (i=0; !BER_BVISNULL( &csn[i] ); i++);
 					si->si_cookieState->cs_num = i;
 					si->si_cookieState->cs_sids = slap_parse_csn_sids( csn, i, NULL );
-					slap_sort_csn_sids( csn, si->si_cookieState->cs_sids, i, NULL );
+					rc = slap_sort_csn_sids( csn, si->si_cookieState->cs_sids, i, NULL );
+					if (rc)
+						goto done;
 				}
+				rc = slap_csn_stub_self( &si->si_cookieState->cs_vals, &si->si_cookieState->cs_sids, &si->si_cookieState->cs_num );
+				if (rc)
+					goto done;
 			}
 			if ( si->si_cookieState->cs_num ) {
 				ber_bvarray_free( si->si_syncCookie.ctxcsn );
