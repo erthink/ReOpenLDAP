@@ -37,6 +37,7 @@ OpenLDAP 2.4.41 Engineering
 	Fixed slapo-syncprov potential loss of changes when under load (ITS#8081)
 	Fixed slapo-unique enforcement of uniqueness with manageDSAit control (ITS#8057)
 	Fixed slapd-mdb segfault if more than 65535 aliases in a scope (ITS#8103)
+	Fixed slapd-perl perlModuleConfig lines are not converted (ITS#8105)
 	Build Environment
 		Fixed libdb detection with gcc 5.x (ITS#8056)
 		Enhanced contrib modules build paths (ITS#7782)
