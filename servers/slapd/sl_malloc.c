@@ -643,13 +643,10 @@ slap_sl_free(void *ptr, void *ctx)
 			 */
 		} else {
 			/* Reclaim freed block(s) off tail */
-			for (;;) {
-				VALGRIND_MAKE_MEM_DEFINED(p-1, sizeof(ber_len_t) * 2);
-				ber_len_t p_flag = p[0];
-				ber_len_t p_size = p[-1];
-				if (!(p_flag & 1))
-					break;
-				p = (ber_len_t *) ((char *) p - p_size);
+			while (*p & 1) {
+				VALGRIND_MAKE_MEM_DEFINED(p-1, sizeof(ber_len_t));
+				p = (ber_len_t *) ((char *) p - p[-1]);
+				VALGRIND_MAKE_MEM_DEFINED(p, sizeof(ber_len_t));
 			}
 			sh->sh_last = p;
 			VALGRIND_MEMPOOL_TRIM(sh, sh->sh_base,
