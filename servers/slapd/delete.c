@@ -43,6 +43,7 @@ do_delete(
 
 	Debug( LDAP_DEBUG_TRACE, "%s do_delete\n",
 		op->o_log_prefix );
+
 	/*
 	 * Parse the delete request.  It looks like this:
 	 *

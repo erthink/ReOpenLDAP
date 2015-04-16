@@ -893,6 +893,16 @@ LDAP_SLAPD_F (int) slap_get_csn LDAP_P(( Operation *, struct berval *, int ));
 LDAP_SLAPD_F (void) slap_queue_csn LDAP_P(( Operation *, struct berval * ));
 
 /*
+ * quorum.c
+ */
+
+void quorum_init();
+void quorum_destroy();
+void __quorum_notify(int rid, int sid, int status, const char *from, int line);
+#define quorum_notify(rid, sid, status) __quorum_notify(rid, sid, status, __FUNCTION__, __LINE__)
+int quorum_query(BackendDB *bd);
+
+/*
  * daemon.c
  */
 LDAP_SLAPD_F (void) slapd_add_internal(ber_socket_t s, int isactive);

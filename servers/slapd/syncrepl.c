@@ -77,6 +77,7 @@ typedef struct syncinfo_s {
 	BackendDB		*si_wbe;
 	struct re_s		*si_re;
 	int			si_rid;
+	int			si_remote_sid;
 	char			si_ridtxt[ STRLENOF("rid=999") + 1 ];
 	slap_bindconf		si_bindconf;
 	struct berval		si_base;
@@ -390,6 +391,20 @@ init_syncrepl(syncinfo_t *si)
 	}
 
 	si->si_exattrs = exattrs;
+}
+
+static void
+peek_remote_sid(
+		syncinfo_t *si,
+		struct sync_cookie *cookie )
+{
+	if (si->si_remote_sid != cookie->sid ) {
+		if (si->si_remote_sid >= 0)
+			quorum_notify(-1, si->si_remote_sid, -1);
+		si->si_remote_sid = cookie->sid;
+		if (si->si_remote_sid >= 0)
+			quorum_notify(si->si_rid, si->si_remote_sid, si->si_refreshDone);
+	}
 }
 
 static int
@@ -979,9 +994,10 @@ do_syncrep_process(
 					ch_free( syncCookie.octet_str.bv_val );
 					ber_dupbv( &syncCookie.octet_str, &cookie );
 				}
-				if ( !BER_BVISNULL( &syncCookie.octet_str ) )
+				if ( !BER_BVISNULL( &syncCookie.octet_str )
+					 && slap_parse_sync_cookie( &syncCookie, NULL ) == 0 )
 				{
-					slap_parse_sync_cookie( &syncCookie, NULL );
+					peek_remote_sid( si, &syncCookie );
 					if ( syncCookie.ctxcsn ) {
 						int i, sid = slap_parse_csn_sid( syncCookie.ctxcsn );
 						check_syncprov( op, si );
@@ -1193,9 +1209,10 @@ do_syncrep_process(
 						ch_free( syncCookie.octet_str.bv_val );
 						ber_dupbv( &syncCookie.octet_str, &cookie);
 					}
-					if ( !BER_BVISNULL( &syncCookie.octet_str ) )
+					if ( !BER_BVISNULL( &syncCookie.octet_str )
+						 && slap_parse_sync_cookie( &syncCookie, NULL ) == 0 )
 					{
-						slap_parse_sync_cookie( &syncCookie, NULL );
+						peek_remote_sid( si, &syncCookie );
 						op->o_controls[slap_cids.sc_LDAPsync] = &syncCookie;
 					}
 				}
@@ -1276,8 +1293,10 @@ do_syncrep_process(
 						ch_free( syncCookie.octet_str.bv_val );
 						ber_dupbv( &syncCookie.octet_str, &cookie );
 					}
-					if (!BER_BVISNULL( &syncCookie.octet_str ) ) {
-						slap_parse_sync_cookie( &syncCookie, NULL );
+					if ( !BER_BVISNULL( &syncCookie.octet_str )
+						 && slap_parse_sync_cookie( &syncCookie, NULL ) == 0 )
+					{
+						peek_remote_sid( si, &syncCookie );
 						op->o_controls[slap_cids.sc_LDAPsync] = &syncCookie;
 					}
 					break;
@@ -1307,15 +1326,15 @@ do_syncrep_process(
 							ch_free( syncCookie.octet_str.bv_val );
 							ber_dupbv( &syncCookie.octet_str, &cookie );
 						}
-						if ( !BER_BVISNULL( &syncCookie.octet_str ) )
+						if ( !BER_BVISNULL( &syncCookie.octet_str )
+							 && slap_parse_sync_cookie( &syncCookie, NULL ) == 0 )
 						{
-							slap_parse_sync_cookie( &syncCookie, NULL );
+							peek_remote_sid( si, &syncCookie );
 							op->o_controls[slap_cids.sc_LDAPsync] = &syncCookie;
 						}
 					}
 					/* Defaults to TRUE */
-					if ( ber_peek_tag( ber, &len ) ==
-						LDAP_TAG_REFRESHDONE )
+					if ( ber_peek_tag( ber, &len ) == LDAP_TAG_REFRESHDONE )
 					{
 						ber_scanf( ber, "b", &si->si_refreshDone );
 					} else
@@ -1326,6 +1345,7 @@ do_syncrep_process(
 					if ( abs(si->si_type) == LDAP_SYNC_REFRESH_AND_PERSIST &&
 						si->si_refreshDone )
 						tout_p = &tout;
+					quorum_notify(si->si_rid, si->si_remote_sid, si->si_refreshDone);
 					break;
 				case LDAP_TAG_SYNC_ID_SET:
 					Debug( LDAP_DEBUG_SYNC,
@@ -1347,9 +1367,10 @@ do_syncrep_process(
 							ch_free( syncCookie.octet_str.bv_val );
 							ber_dupbv( &syncCookie.octet_str, &cookie );
 						}
-						if ( !BER_BVISNULL( &syncCookie.octet_str ) )
+						if ( !BER_BVISNULL( &syncCookie.octet_str )
+							 && slap_parse_sync_cookie( &syncCookie, NULL ) == 0 )
 						{
-							slap_parse_sync_cookie( &syncCookie, NULL );
+							peek_remote_sid( si, &syncCookie );
 							op->o_controls[slap_cids.sc_LDAPsync] = &syncCookie;
 							compare_csns( &syncCookie_req, &syncCookie, &m );
 						}
@@ -1472,6 +1493,9 @@ done:
 			si->si_ridtxt, err, ldap_err2string( err ) );
 	}
 
+	if (rc)
+		quorum_notify(si->si_rid, si->si_remote_sid, -1);
+
 	slap_sync_cookie_free( &syncCookie, 0 );
 	slap_sync_cookie_free( &syncCookie_req, 0 );
 
@@ -1511,6 +1535,7 @@ do_syncrepl(
 		return NULL;
 
 	Debug( LDAP_DEBUG_TRACE, "=>do_syncrepl %s\n", si->si_ridtxt );
+
 
 	for (;;) {
 		if ( slapd_shutdown ) {
@@ -1597,6 +1622,8 @@ do_syncrepl(
 
 	/* Establish session, do search */
 	if ( !si->si_ld ) {
+		quorum_notify(si->si_rid, -1, -1);
+		si->si_remote_sid = -1;
 		si->si_refreshDelete = 0;
 		si->si_refreshPresent = 0;
 
@@ -1681,6 +1708,8 @@ deleted:
 			"do_syncrep: %s client-stop\n", si->si_ridtxt);
 		connection_client_stop( si->si_conn );
 		si->si_conn = NULL;
+		quorum_notify(si->si_rid, si->si_remote_sid, -1);
+		si->si_remote_sid = -1;
 	}
 
 	if ( rc == SYNC_PAUSED ) {
@@ -5365,6 +5394,7 @@ add_syncrepl(
 	si->si_manageDSAit = 0;
 	si->si_tlimit = 0;
 	si->si_slimit = 0;
+	si->si_remote_sid = -1;
 
 	si->si_presentlist = NULL;
 	LDAP_LIST_INIT( &si->si_nonpresentlist );

@@ -146,6 +146,7 @@ static ConfigDriver config_tls_option;
 static ConfigDriver config_tls_config;
 #endif
 extern ConfigDriver syncrepl_config;
+extern ConfigDriver quorum_config;
 
 enum {
 	CFG_ACL = 1,
@@ -788,6 +789,10 @@ static ConfigTable config_back_cf_table[] = {
 			"DESC 'ReOpenLDAP cheating flags' "
 			"EQUALITY caseIgnoreMatch "
 			"SYNTAX OMsDirectoryString X-ORDERED 'VALUES' )", NULL, NULL },
+	{ "quorum", "rid-list", 2, 0, 0, ARG_MAGIC,
+		&quorum_config, "( OLcfgGlAt:0.47 NAME 'olcQuorum' "
+			"EQUALITY caseIgnoreMatch "
+			"SYNTAX OMsDirectoryString )", NULL, NULL },
 	{ NULL,	NULL, 0, 0, 0, ARG_IGNORED,
 		NULL, NULL, NULL, NULL }
 };
@@ -1961,7 +1966,9 @@ sortval_reject:
 					}
 					si = ch_malloc( sizeof(ServerID) );
 					BER_BVZERO( &si->si_url );
+					quorum_notify( -1, slap_serverID, -1 );
 					slap_serverID = num;
+					quorum_notify( -1, slap_serverID, 1 );
 					Debug( LDAP_DEBUG_CONFIG,
 						"%s: SID=0x%03x\n",
 						c->log, slap_serverID );
@@ -1983,7 +1990,9 @@ sortval_reject:
 								c->log, c->cr_msg, c->argv[1] );
 							return 1;
 						}
+						quorum_notify( -1, slap_serverID, -1 );
 						slap_serverID = si->si_num;
+						quorum_notify( -1, slap_serverID, 1 );
 						Debug( LDAP_DEBUG_CONFIG,
 							"%s: SID=0x%03x (listener=%s)\n",
 							c->log, slap_serverID,

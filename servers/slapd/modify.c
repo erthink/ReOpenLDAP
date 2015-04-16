@@ -49,6 +49,7 @@ do_modify(
 
 	Debug( LDAP_DEBUG_TRACE, "%s do_modify\n",
 		op->o_log_prefix );
+
 	/*
 	 * Parse the modify request.  It looks like this:
 	 *

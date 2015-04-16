@@ -1232,6 +1232,12 @@ backend_check_restrictions(
 				return rs->sr_err;
 			}
 #endif /* SLAP_X_LISTENER_MOD */
+
+			if ( ! quorum_query( op->o_bd ) ) {
+				rs->sr_text = "readonly mode, lack replication quorum";
+				rs->sr_err = LDAP_UNWILLING_TO_PERFORM;
+				return rs->sr_err;
+			}
 		}
 	}
 

@@ -300,14 +300,14 @@ slap_parse_sync_cookie(
 	if ( cookie == NULL )
 		return -1;
 
-	if ( cookie->octet_str.bv_len <= STRLENOF( "rid=" ) )
-		return -1;
-
 	cookie->rid = -1;
 	cookie->sid = -1;
 	cookie->ctxcsn = NULL;
 	cookie->sids = NULL;
 	cookie->numcsns = 0;
+
+	if ( cookie->octet_str.bv_len <= STRLENOF( "rid=" ) )
+		return -1;
 
 	end = cookie->octet_str.bv_val + cookie->octet_str.bv_len;
 
