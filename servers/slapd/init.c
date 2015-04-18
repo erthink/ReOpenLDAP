@@ -106,7 +106,7 @@ slap_init( int mode, const char *name )
 		return 1;
 	}
 
-	quorum_init();
+	quorum_global_init();
 
 	if ( filter_init() != 0 ) {
 		slap_debug |= LDAP_DEBUG_NONE;

@@ -896,10 +896,14 @@ LDAP_SLAPD_F (void) slap_queue_csn LDAP_P(( Operation *, struct berval * ));
  * quorum.c
  */
 
-void quorum_init();
-void quorum_destroy();
-void __quorum_notify(int rid, int sid, int status, const char *from, int line);
-#define quorum_notify(rid, sid, status) __quorum_notify(rid, sid, status, __FUNCTION__, __LINE__)
+void quorum_global_init();
+void quorum_global_destroy();
+void quorum_be_destroy(BackendDB *bd);
+void quorum_notify_self_sid();
+void quorum_add_rid(BackendDB *bd, int rid);
+void quorum_remove_rid(BackendDB *bd, int rid);
+void quorum_notify_sid(BackendDB *bd, int rid, int sid);
+void quorum_notify_ready(BackendDB *bd, int rid, int ready);
 int quorum_query(BackendDB *bd);
 
 /*
@@ -2031,6 +2035,9 @@ LDAP_SLAPD_F (int) value_add LDAP_P((
 LDAP_SLAPD_F (int) value_add_one LDAP_P((
 	BerVarray *vals,
 	const struct berval *addval ));
+LDAP_SLAPD_F (int) value_add_one_str LDAP_P((
+	BerVarray *vals,
+	const char* str ));
 
 /* assumes (x) > (y) returns 1 if true, 0 otherwise */
 #define SLAP_PTRCMP(x, y) ((x) < (y) ? -1 : (x) > (y))

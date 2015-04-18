@@ -941,7 +941,7 @@ int slap_tool_destroy( void )
 	}
 	module_kill();
 #endif
-	quorum_destroy();
+	quorum_global_destroy();
 	schema_destroy();
 #ifdef HAVE_TLS
 	ldap_pvt_tls_destroy();

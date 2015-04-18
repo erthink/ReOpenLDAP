@@ -1089,7 +1089,7 @@ stop:
 
 	filter_destroy();
 
-	quorum_destroy();
+	quorum_global_destroy();
 
 	schema_destroy();
 

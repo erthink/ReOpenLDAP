@@ -450,6 +450,7 @@ void backend_destroy_one( BackendDB *bd, int dynamic )
 
 	backend_stopdown_one( bd );
 	slap_biglock_destroy( bd );
+	quorum_be_destroy ( bd );
 
 	ber_bvarray_free( bd->be_suffix );
 	ber_bvarray_free( bd->be_nsuffix );
@@ -508,6 +509,7 @@ int backend_destroy(void)
 			bd->bd_info->bi_db_destroy( bd, NULL );
 		}
 		slap_biglock_destroy( bd );
+		quorum_be_destroy ( bd );
 		ber_bvarray_free( bd->be_suffix );
 		ber_bvarray_free( bd->be_nsuffix );
 		if ( !BER_BVISNULL( &bd->be_rootdn ) ) {
