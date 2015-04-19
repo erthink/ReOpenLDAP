@@ -64,6 +64,9 @@ EOF
 		echo ">>>>> Starting ${TB}$BCMD${TN} for $BACKEND..."
 		$CMD
 		RC=$?
+		if ! teamcity_checkcore $BCMD-$BACKEND; then
+			RC=134
+		fi
 		if test $RC -eq 0 ; then
 			echo ">>>>> $BCMD completed ${TB}OK${TN} for $BACKEND."
 		else
@@ -106,3 +109,4 @@ fi
 
 echo "$SKIPCOUNT tests for $BACKEND were ${TB}skipped${TN}."
 teamcity_msg "testSuiteFinished name='all LDAP tests for $BACKEND'"
+exit 0
