@@ -1330,7 +1330,7 @@ do_syncrep_process(
 					if ( abs(si->si_type) == LDAP_SYNC_REFRESH_AND_PERSIST &&
 						si->si_refreshDone )
 						tout_p = &tout;
-					quorum_notify_ready( si->si_be, si->si_rid, si->si_refreshDone );
+					quorum_notify_status( si->si_be, si->si_rid, si->si_refreshDone );
 					break;
 				case LDAP_TAG_SYNC_ID_SET:
 					Debug( LDAP_DEBUG_SYNC,
@@ -1479,7 +1479,7 @@ done:
 	}
 
 	if (rc)
-		quorum_notify_ready( si->si_be, si->si_rid, 0 );
+		quorum_notify_status( si->si_be, si->si_rid, 0 );
 
 	slap_sync_cookie_free( &syncCookie, 0 );
 	slap_sync_cookie_free( &syncCookie_req, 0 );
@@ -1607,7 +1607,7 @@ do_syncrepl(
 
 	/* Establish session, do search */
 	if ( !si->si_ld ) {
-		quorum_notify_ready( si->si_be, si->si_rid, 0 );
+		quorum_notify_status( si->si_be, si->si_rid, 0 );
 		si->si_refreshDelete = 0;
 		si->si_refreshPresent = 0;
 
@@ -1692,7 +1692,7 @@ deleted:
 			"do_syncrep: %s client-stop\n", si->si_ridtxt);
 		connection_client_stop( si->si_conn );
 		si->si_conn = NULL;
-		quorum_notify_ready( si->si_be, si->si_rid, 0 );
+		quorum_notify_status( si->si_be, si->si_rid, 0 );
 	}
 
 	if ( rc == SYNC_PAUSED ) {

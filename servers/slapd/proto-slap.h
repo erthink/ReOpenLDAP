@@ -903,7 +903,7 @@ void quorum_notify_self_sid();
 void quorum_add_rid(BackendDB *bd, int rid);
 void quorum_remove_rid(BackendDB *bd, int rid);
 void quorum_notify_sid(BackendDB *bd, int rid, int sid);
-void quorum_notify_ready(BackendDB *bd, int rid, int ready);
+void quorum_notify_status(BackendDB *bd, int rid, int ready);
 int quorum_query(BackendDB *bd);
 
 /*
