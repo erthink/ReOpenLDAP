@@ -569,9 +569,9 @@ int quorum_config(ConfigArgs *c) {
 			type = QR_DEMAND_RID;
 		else if (type < 0) {
 			snprintf( c->cr_msg, sizeof( c->cr_msg ),
-				"<%s> mode-key must precede an ID for quorum-requirements", c->argv[i] );
-			Debug(LDAP_DEBUG_ANY, "%s: %s %s\n",
-				c->log, c->cr_msg, c->argv[1] );
+				"<%s> mode-key must precede an ID for %s quorum-requirements",
+				c->argv[i], c->be->bd_quorum->qr_cluster );
+			Debug(LDAP_DEBUG_ANY, "%s: %s\n", c->log, c->cr_msg );
 			return 1;
 		} else if (( lutil_atoi( &id, c->argv[i] ) &&
 				   lutil_atoix( &id, c->argv[i], 16 ))
@@ -579,18 +579,18 @@ int quorum_config(ConfigArgs *c) {
 			|| id > (QR_IS_SID(type) ? SLAP_SYNC_SID_MAX : SLAP_SYNC_RID_MAX) )
 		{
 			snprintf( c->cr_msg, sizeof( c->cr_msg ),
-				"<%s> illegal %s-ID or mode-key for quorum-requirements", c->argv[i],
-					QR_IS_SID(type) ? "server" : "repl" );
-			Debug(LDAP_DEBUG_ANY, "%s: %s %s\n",
-				c->log, c->cr_msg, c->argv[1] );
+				"<%s> illegal %s-ID or mode-key for %s quorum-requirements",
+				c->argv[i], QR_IS_SID(type) ? "server" : "repl",
+				c->be->bd_quorum->qr_cluster );
+			Debug(LDAP_DEBUG_ANY, "%s: %s\n", c->log, c->cr_msg );
 			return 1;
 		} else {
 			if (require_append( c->be->bd_quorum, type, id )) {
 				snprintf( c->cr_msg, sizeof( c->cr_msg ),
-					"<%s> %s-ID already present in quorum-requirements", c->argv[i],
-						QR_IS_SID(type) ? "server" : "repl" );
-				Debug(LDAP_DEBUG_ANY, "%s: %s %s\n",
-					c->log, c->cr_msg, c->argv[1] );
+					"<%s> %s-ID already present in %s quorum-requirements",
+					c->argv[i], QR_IS_SID(type) ? "server" : "repl",
+					c->be->bd_quorum->qr_cluster );
+				Debug(LDAP_DEBUG_ANY, "%s: %s\n", c->log, c->cr_msg );
 				return 1;
 			}
 			quorum_invalidate(c->be);
