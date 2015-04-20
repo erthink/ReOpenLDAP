@@ -35,19 +35,17 @@ struct requirment {
 #	define QR_FLAG_RID    2
 #	define QR_FLAG_AUTO   4
 
-#	define QR_QUORUM_SID 0
-#	define QR_DEMAND_SID (QR_QUORUM_SID | QR_FLAG_DEMAND)
-#	define QR_QUORUM_RID QR_FLAG_RID
-#	define QR_DEMAND_RID (QR_QUORUM_RID | QR_FLAG_AUTO)
+#	define QR_VOTED_SID  0
+#	define QR_VOTED_RID  QR_FLAG_RID
+
+#	define QR_DEMAND_RID (QR_VOTED_RID | QR_FLAG_AUTO)
+#	define QR_DEMAND_SID (QR_VOTED_SID | QR_FLAG_DEMAND)
 
 #	define QR_IS_RID(type) ((type) & QR_FLAG_RID)
 #	define QR_IS_SID(type) (!QR_IS_RID(type))
 
 #	define QR_IS_DEMAND(type) ((type) & QR_FLAG_DEMAND)
-#	define QR_IS_QUORUM(type) (!QR_IS_DEMAND(type))
-
 #	define QR_IS_AUTO(type) ((type) & QR_FLAG_AUTO)
-
 	short type, id;
 };
 
@@ -55,15 +53,13 @@ struct slap_quorum {
 	slap_quorum_t* qr_next;
 	struct present* qr_present;
 	struct requirment* qr_requirements;
-	BackendDB *qr_bd;
 #	define qr_cluster qr_bd->be_rootndn.bv_val
-	int flags;
+	BackendDB *qr_bd;
 #	define QR_AUTO_RIDS	1
 #	define QR_AUTO_SIDS	2
 #	define QR_ALL_LINKS	4
+	int flags;
 };
-
-#define QR_AUTO_SIDS_CSN_ONLY
 
 static ldap_pvt_thread_mutex_t quorum_mutex;
 #define QR_POISON ((void*) (intptr_t) -1)
@@ -342,7 +338,7 @@ static int require_auto_rids(slap_quorum_t *q) {
 		if (q->qr_present) {
 			struct present* p;
 			for (p = q->qr_present; p->ready > -1; ++p)
-				changed |= require_append(q, QR_QUORUM_RID | QR_FLAG_AUTO, p->rid);
+				changed |= require_append(q, QR_VOTED_RID | QR_FLAG_AUTO, p->rid);
 		}
 	}
 	return changed;
@@ -353,14 +349,12 @@ static int require_auto_sids(slap_quorum_t *q) {
 
 	if (! (q->flags & QR_AUTO_SIDS)) {
 		q->flags |= QR_AUTO_SIDS;
-#ifndef QR_AUTO_SIDS_CSN_ONLY
 		if (q->qr_present) {
 			struct present* p;
 			for (p = q->qr_present; p->ready > -1; ++p)
 				if (p->sid > -1)
-					changed |= require_append(q, QR_QUORUM_SID | QR_FLAG_AUTO, p->sid);
+					changed |= require_append(q, QR_VOTED_SID | QR_FLAG_AUTO, p->sid);
 		}
-#endif /* QR_AUTO_SIDS_CSN_ONLY */
 	}
 	return changed;
 }
@@ -375,15 +369,13 @@ static int notify_sid(slap_quorum_t *q, int rid, int sid) {
 				if (p->sid != sid) {
 					Debug( LDAP_DEBUG_SYNC, "syncrep_quorum: notify-sid %s, rid %d, sid %d->%d\n",
 						   q->qr_cluster, p->rid, p->sid, sid );
-#ifndef QR_AUTO_SIDS_CSN_ONLY
 					if (q->flags & QR_AUTO_SIDS) {
 						/* if (p->sid > -1)
-							require_remove(q, QR_QUORUM_SID | QR_FLAG_AUTO,
+							require_remove(q, QR_VOTED_SID | QR_FLAG_AUTO,
 										   ~QR_FLAG_DEMAND, p->sid); */
 						if (sid > -1)
-							require_append(q, QR_QUORUM_SID | QR_FLAG_AUTO, sid);
+							require_append(q, QR_VOTED_SID | QR_FLAG_AUTO, sid);
 					}
-#endif /* QR_AUTO_SIDS_CSN_ONLY */
 					p->sid = sid;
 					return 1;
 				}
@@ -449,7 +441,7 @@ void quorum_add_rid(BackendDB *bd, int rid) {
 	p[1].ready = -1;
 
 	if ((bd->bd_quorum->flags & QR_AUTO_RIDS)
-	&& require_append(bd->bd_quorum, QR_QUORUM_RID | QR_FLAG_AUTO, rid))
+	&& require_append(bd->bd_quorum, QR_VOTED_RID | QR_FLAG_AUTO, rid))
 		quorum_invalidate(bd);
 
 bailout:
@@ -473,10 +465,10 @@ void quorum_remove_rid(BackendDB *bd, int rid) {
 		if (p->rid == rid) {
 			/* if (p->sid > -1 && (bd->bd_quorum->flags & QR_AUTO_SIDS))
 				require_remove(bd->bd_quorum,
-							   QR_QUORUM_SID | QR_FLAG_AUTO, ~QR_FLAG_DEMAND, p->sid); */
+							   QR_VOTED_SID | QR_FLAG_AUTO, ~QR_FLAG_DEMAND, p->sid); */
 			if (bd->bd_quorum->flags & QR_AUTO_RIDS)
 				require_remove(bd->bd_quorum,
-							   QR_QUORUM_RID | QR_FLAG_AUTO, ~QR_FLAG_DEMAND, rid);
+							   QR_VOTED_RID | QR_FLAG_AUTO, ~QR_FLAG_DEMAND, rid);
 
 			for (;;) {
 				p[0] = p[1];
@@ -529,7 +521,7 @@ void quorum_notify_csn(BackendDB *bd, int csnsid) {
 
 	if (bd->bd_quorum && (bd->bd_quorum->flags & QR_AUTO_SIDS))  {
 		lock();
-		if (require_append(bd->bd_quorum, QR_QUORUM_SID | QR_FLAG_AUTO, csnsid))
+		if (require_append(bd->bd_quorum, QR_VOTED_SID | QR_FLAG_AUTO, csnsid))
 			quorum_invalidate(bd);
 		unlock();
 	}
@@ -576,8 +568,8 @@ int quorum_config(ConfigArgs *c) {
 			if (c->be->bd_quorum->qr_requirements
 			&& (unparse(&c->rvalue_vals, c->be->bd_quorum, QR_DEMAND_RID, "require-rids")
 			 || unparse(&c->rvalue_vals, c->be->bd_quorum, QR_DEMAND_SID, "require-sids")
-			 || unparse(&c->rvalue_vals, c->be->bd_quorum, QR_QUORUM_RID, "vote-rids")
-			 || unparse(&c->rvalue_vals, c->be->bd_quorum, QR_QUORUM_SID, "vote-sids")))
+			 || unparse(&c->rvalue_vals, c->be->bd_quorum, QR_VOTED_RID, "vote-rids")
+			 || unparse(&c->rvalue_vals, c->be->bd_quorum, QR_VOTED_SID, "vote-sids")))
 				return 1;
 		}
 		return 0;
@@ -617,9 +609,9 @@ int quorum_config(ConfigArgs *c) {
 			if (require_auto_rids(c->be->bd_quorum))
 				quorum_invalidate(c->be);
 		} else if (strcasecmp(c->argv[i], "vote-sids") == 0)
-			type = QR_QUORUM_SID;
+			type = QR_VOTED_SID;
 		else if (strcasecmp(c->argv[i], "vote-rids") == 0)
-			type = QR_QUORUM_RID;
+			type = QR_VOTED_RID;
 		else if (strcasecmp(c->argv[i], "require-sids") == 0)
 			type = QR_DEMAND_SID;
 		else if (strcasecmp(c->argv[i], "require-rids") == 0)
