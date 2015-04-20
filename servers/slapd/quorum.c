@@ -59,6 +59,7 @@ struct slap_quorum {
 #	define qr_cluster qr_bd->be_rootndn.bv_val
 	int flags;
 #	define QR_AUTO_RIDS	1
+#	define QR_AUTO_SIDS	2
 };
 
 static ldap_pvt_thread_mutex_t quorum_mutex;
@@ -96,9 +97,10 @@ void quorum_global_destroy() {
 
 static void quorum_be_init(BackendDB *bd) {
 	slap_quorum_t *q;
-	assert(quorum_list != POISON);
 
+	assert(quorum_list != POISON);
 	q = ch_calloc(1, sizeof(slap_quorum_t));
+
 	q->qr_bd = bd;
 	q->qr_next = quorum_list;
 	bd->bd_quorum = q;
@@ -126,10 +128,12 @@ void quorum_be_destroy(BackendDB *bd) {
 					*pq = q->qr_next;
 					break;
 				}
+		}
 
-			rc = ldap_pvt_thread_mutex_unlock(&quorum_mutex);
-			assert(rc == 0);
+		rc = ldap_pvt_thread_mutex_unlock(&quorum_mutex);
+		assert(rc == 0);
 
+		if (q) {
 			ch_free(q->qr_present);
 			ch_free(q->qr_requirements);
 			ch_free(q);
@@ -194,7 +198,7 @@ static int lazy_update(slap_quorum_t *q) {
 	}
 
 	Debug( LDAP_DEBUG_SYNC, "syncrep_quorum: %s %s (links %d, "
-							"rids/sids: wanna %d/%d, ready %d/%d)\n",
+							"vote-rids/sids: wanna %d/%d, ready %d/%d)\n",
 		   q->qr_cluster, (state > 0) ? "HAVE" : "LACK",
 		   links, wanna_rids, wanna_sids, ready_rids, ready_sids );
 	return state;
@@ -330,6 +334,22 @@ static int require_auto_rids(slap_quorum_t *q) {
 	return changed;
 }
 
+static int require_auto_sids(slap_quorum_t *q) {
+	int changed = 0;
+
+	if (! (q->flags & QR_AUTO_SIDS)) {
+		q->flags |= QR_AUTO_SIDS;
+		if (q->qr_present) {
+			struct present* p;
+			for (p = q->qr_present; p->ready > -1; ++p)
+				if (p->sid > -1
+				&& require_append(q, QR_QUORUM_SID | QR_FLAG_AUTO, p->sid) == 0)
+					changed = 1;
+		}
+	}
+	return changed;
+}
+
 static int notify_sid(slap_quorum_t *q, int rid, int sid) {
 	struct present* p;
 	int n = 0;
@@ -338,9 +358,16 @@ static int notify_sid(slap_quorum_t *q, int rid, int sid) {
 		for(p = q->qr_present; p->ready > -1; ++p, ++n) {
 			if (p->rid == rid) {
 				if (p->sid != sid) {
+					Debug( LDAP_DEBUG_SYNC, "syncrep_quorum: notify-sid %s, rid %d, sid %d->%d\n",
+						   q->qr_cluster, p->rid, p->sid, sid );
+					if (q->flags & QR_AUTO_SIDS) {
+						/* if (p->sid > -1)
+							require_remove(q, QR_QUORUM_SID | QR_FLAG_AUTO,
+										   ~QR_FLAG_DEMAND, p->sid); */
+						if (sid > -1)
+							require_append(q, QR_QUORUM_SID | QR_FLAG_AUTO, rid);
+					}
 					p->sid = sid;
-					Debug( LDAP_DEBUG_SYNC, "syncrep_quorum: notify-sid %s, rid %d, sid %d\n",
-						   q->qr_cluster, p->rid, p->sid );
 					return 1;
 				}
 				return 0;
@@ -358,9 +385,11 @@ static int notify_ready(slap_quorum_t *q, int rid, int ready) {
 		for(p = q->qr_present; p->ready > -1; ++p, ++n) {
 			if (p->rid == rid) {
 				if (p->ready != ready) {
+					Debug( LDAP_DEBUG_SYNC, "syncrep_quorum: notify-status %s, rid %d, sid %d, %s->%s\n",
+						   q->qr_cluster, p->rid, p->sid,
+						   p->ready ? "ready" : "loser",
+						   ready ? "ready" : "loser" );
 					p->ready = ready;
-					Debug( LDAP_DEBUG_SYNC, "syncrep_quorum: notify-status %s, rid %d, sid %d, %s\n",
-						   q->qr_cluster, p->rid, p->sid, p->ready ? "ready" : "loser" );
 					return 1;
 				}
 				return 0;
@@ -427,9 +456,12 @@ void quorum_remove_rid(BackendDB *bd, int rid) {
 	assert(bd->bd_quorum->qr_present != NULL);
 	for(n = 0, p = bd->bd_quorum->qr_present; p->ready > -1; ++p, ++n) {
 		if (p->rid == rid) {
+			/* if (p->sid > -1 && (bd->bd_quorum->flags & QR_AUTO_SIDS))
+				require_remove(bd->bd_quorum,
+							   QR_QUORUM_SID | QR_FLAG_AUTO, ~QR_FLAG_DEMAND, p->sid); */
 			if (bd->bd_quorum->flags & QR_AUTO_RIDS)
 				require_remove(bd->bd_quorum,
-							   QR_FLAG_RID | QR_FLAG_AUTO, ~QR_FLAG_DEMAND, rid);
+							   QR_QUORUM_RID | QR_FLAG_AUTO, ~QR_FLAG_DEMAND, rid);
 
 			for (;;) {
 				p[0] = p[1];
@@ -489,6 +521,24 @@ void quorum_notify_status(BackendDB *bd, int rid, int ready) {
 	}
 }
 
+void quorum_notify_csn(BackendDB *bd, int csnsid) {
+	assert(quorum_list != POISON);
+	assert(csnsid > -1 && csnsid <= SLAP_SYNC_RID_MAX);
+
+	if (bd->bd_quorum && (bd->bd_quorum->flags & QR_AUTO_SIDS))  {
+		int rc;
+
+		rc = ldap_pvt_thread_mutex_lock(&quorum_mutex);
+		assert(rc == 0);
+
+		if (require_append(bd->bd_quorum, QR_QUORUM_SID | QR_FLAG_AUTO, csnsid))
+			quorum_invalidate(bd);
+
+		rc = ldap_pvt_thread_mutex_unlock(&quorum_mutex);
+		assert(rc == 0);
+	}
+}
+
 static int unparse(BerVarray *vals, slap_quorum_t *q, int type, const char* verb) {
 	struct requirment* r;
 	int i;
@@ -518,6 +568,9 @@ int quorum_config(ConfigArgs *c) {
 	assert(quorum_list != POISON);
 	if (c->op == SLAP_CONFIG_EMIT) {
 		if (c->be->bd_quorum) {
+			if ((c->be->bd_quorum->flags & QR_AUTO_SIDS) != 0
+			&& value_add_one_str(&c->rvalue_vals, "auto-sids"))
+				return 1;
 			if ((c->be->bd_quorum->flags & QR_AUTO_RIDS) != 0
 			&& value_add_one_str(&c->rvalue_vals, "auto-rids"))
 				return 1;
@@ -555,7 +608,11 @@ int quorum_config(ConfigArgs *c) {
 	type = -1;
 	for( i = 1; i < c->argc; i++ ) {
 		int	id;
-		if (strcasecmp(c->argv[i], "auto-rids") == 0) {
+		if (strcasecmp(c->argv[i], "auto-sids") == 0) {
+			type = -1;
+			if (require_auto_sids(c->be->bd_quorum))
+				quorum_invalidate(c->be);
+		} else if (strcasecmp(c->argv[i], "auto-rids") == 0) {
 			type = -1;
 			if (require_auto_rids(c->be->bd_quorum))
 				quorum_invalidate(c->be);

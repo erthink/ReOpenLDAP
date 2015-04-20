@@ -905,6 +905,7 @@ void quorum_remove_rid(BackendDB *bd, int rid);
 void quorum_notify_sid(BackendDB *bd, int rid, int sid);
 void quorum_notify_status(BackendDB *bd, int rid, int ready);
 int quorum_query(BackendDB *bd);
+void quorum_notify_csn(BackendDB *bd, int csnsid);
 
 /*
  * daemon.c

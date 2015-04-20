@@ -602,6 +602,9 @@ check_syncprov(
 			si->si_syncCookie.sid );
 		ch_free( si->si_syncCookie.sids );
 		slap_reparse_sync_cookie( &si->si_syncCookie, op->o_tmpmemctx );
+
+		for(i = 0; i < si->si_syncCookie.numcsns; ++i)
+			quorum_notify_csn( si->si_be, si->si_syncCookie.sids[i] );
 	}
 	ldap_pvt_thread_mutex_unlock( &si->si_cookieState->cs_mutex );
 	return changed;
@@ -987,7 +990,7 @@ do_syncrep_process(
 						int i, sid = slap_parse_csn_sid( syncCookie.ctxcsn );
 						check_syncprov( op, si );
 						ldap_pvt_thread_mutex_lock( &si->si_cookieState->cs_mutex );
-						for ( i =0; i<si->si_cookieState->cs_num; i++ ) {
+						for ( i = 0; i<si->si_cookieState->cs_num; i++ ) {
 							/* new SID */
 							if ( sid < si->si_cookieState->cs_sids[i] )
 								break;
@@ -1042,6 +1045,7 @@ do_syncrep_process(
 							slap_insert_csn_sids(
 								(struct sync_cookie *)&si->si_cookieState->cs_pvals,
 								i, sid, syncCookie.ctxcsn );
+							quorum_notify_csn( si->si_be, sid );
 						}
 						assert( punlock < 0 );
 						punlock = i;
@@ -3922,6 +3926,7 @@ syncrepl_updateCookie(
 			syncCookie->sids[i] != sc.sids[j] ) {
 			slap_insert_csn_sids( &sc, j, syncCookie->sids[i],
 				&syncCookie->ctxcsn[i] );
+			quorum_notify_csn( si->si_be, syncCookie->sids[i] );
 			if ( BER_BVISNULL( &first ) ||
 				memcmp( syncCookie->ctxcsn[i].bv_val, first.bv_val, first.bv_len ) > 0 ) {
 				first = syncCookie->ctxcsn[i];
