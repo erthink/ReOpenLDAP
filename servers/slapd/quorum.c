@@ -60,6 +60,7 @@ struct slap_quorum {
 	int flags;
 #	define QR_AUTO_RIDS	1
 #	define QR_AUTO_SIDS	2
+#	define QR_ALL_LINKS	4
 };
 
 #define QR_AUTO_SIDS_CSN_ONLY
@@ -159,7 +160,7 @@ static int lazy_update(slap_quorum_t *q) {
 	unsigned ready_rids, ready_sids, wanna_rids, wanna_sids;
 	struct present* p;
 	struct requirment* r;
-	int state;
+	int state = 1;
 
 	ready_rids = ready_sids = 0;
 	wanna_rids = wanna_sids = 0;
@@ -171,8 +172,12 @@ static int lazy_update(slap_quorum_t *q) {
 		}
 	}
 
-	state = 1;
-	if (q->qr_requirements) {
+	if ((q->flags & QR_ALL_LINKS) && ready_links < total_links) {
+		Debug( LDAP_DEBUG_SYNC, "syncrep_quorum: %s FORCE-LACK"
+				" (all-links, not ready)\n",
+			   q->qr_cluster );
+		state = -1;
+	} else if (q->qr_requirements) {
 		for(r = q->qr_requirements; r->type > -1; ++r) {
 			if (QR_IS_SID(r->type)) {
 				if (r->id == slap_serverID)
@@ -212,7 +217,7 @@ static int lazy_update(slap_quorum_t *q) {
 	if ((q->flags & QR_AUTO_SIDS) && state > 0 && total_links
 	&& ! quorum (total_links, total_links, wanna_sids)) {
 		Debug( LDAP_DEBUG_SYNC, "syncrep_quorum: %s FORCE-LACK"
-				" (not enough sid for voting)\n",
+				" (auto-sids, not enough for voting)\n",
 			   q->qr_cluster );
 		state = -1;
 	}
@@ -559,6 +564,9 @@ int quorum_config(ConfigArgs *c) {
 	assert(quorum_list != QR_POISON);
 	if (c->op == SLAP_CONFIG_EMIT) {
 		if (c->be->bd_quorum) {
+			if ((c->be->bd_quorum->flags & QR_ALL_LINKS) != 0
+			&& value_add_one_str(&c->rvalue_vals, "all-links"))
+				return 1;
 			if ((c->be->bd_quorum->flags & QR_AUTO_SIDS) != 0
 			&& value_add_one_str(&c->rvalue_vals, "auto-sids"))
 				return 1;
@@ -594,7 +602,13 @@ int quorum_config(ConfigArgs *c) {
 	type = -1;
 	for( i = 1; i < c->argc; i++ ) {
 		int	id;
-		if (strcasecmp(c->argv[i], "auto-sids") == 0) {
+		if (strcasecmp(c->argv[i], "all-links") == 0) {
+			type = -1;
+			if (! (c->be->bd_quorum->flags & QR_ALL_LINKS)) {
+				c->be->bd_quorum->flags |= QR_ALL_LINKS;
+				quorum_invalidate(c->be);
+			}
+		} else if (strcasecmp(c->argv[i], "auto-sids") == 0) {
 			type = -1;
 			if (require_auto_sids(c->be->bd_quorum))
 				quorum_invalidate(c->be);
