@@ -27,7 +27,7 @@
 #include "config.h"
 
 struct present {
-	short sid, rid, ready;
+	short rid, sid, ready;
 };
 
 struct requirment {
@@ -62,14 +62,16 @@ struct slap_quorum {
 #	define QR_AUTO_SIDS	2
 };
 
+#define QR_AUTO_SIDS_CSN_ONLY
+
 static ldap_pvt_thread_mutex_t quorum_mutex;
-#define POISON ((void*) (intptr_t) -1)
-slap_quorum_t *quorum_list = POISON;
+#define QR_POISON ((void*) (intptr_t) -1)
+slap_quorum_t *quorum_list = QR_POISON;
 
 void quorum_global_init() {
 	int rc;
 
-	assert(quorum_list == POISON);
+	assert(quorum_list == QR_POISON);
 	rc = ldap_pvt_thread_mutex_init(&quorum_mutex);
 	if (rc) {
 		Debug( LDAP_DEBUG_ANY, "mutex_init failed for quorum_mutex, rc = %d\n", rc );
@@ -79,18 +81,28 @@ void quorum_global_init() {
 	quorum_list = NULL;
 }
 
+static void lock() {
+	int rc = ldap_pvt_thread_mutex_lock(&quorum_mutex);
+	assert(rc == 0);
+}
+
+static void unlock() {
+	int rc = ldap_pvt_thread_mutex_unlock(&quorum_mutex);
+	assert(rc == 0);
+}
+
 void quorum_global_destroy() {
-	int rc;
-
-	if (quorum_list != POISON) {
-		rc = ldap_pvt_thread_mutex_lock(&quorum_mutex);
-		assert(rc == 0);
-
-		ch_free( quorum_list );
-		quorum_list = POISON;
-
-		rc = ldap_pvt_thread_mutex_unlock(&quorum_mutex);
-		assert(rc == 0);
+	if (quorum_list != QR_POISON) {
+		lock();
+		while (quorum_list) {
+			slap_quorum_t *next = quorum_list;
+			ch_free(quorum_list->qr_present);
+			ch_free(quorum_list->qr_requirements);
+			ch_free(quorum_list);
+			quorum_list = next;
+		}
+		quorum_list = QR_POISON;
+		unlock();
 		ldap_pvt_thread_mutex_destroy(&quorum_mutex);
 	}
 }
@@ -98,7 +110,7 @@ void quorum_global_destroy() {
 static void quorum_be_init(BackendDB *bd) {
 	slap_quorum_t *q;
 
-	assert(quorum_list != POISON);
+	assert(quorum_list != QR_POISON);
 	q = ch_calloc(1, sizeof(slap_quorum_t));
 
 	q->qr_bd = bd;
@@ -109,15 +121,12 @@ static void quorum_be_init(BackendDB *bd) {
 }
 
 void quorum_be_destroy(BackendDB *bd) {
-	assert(quorum_list != POISON);
+	assert(quorum_list != QR_POISON);
 
 	if (bd->bd_quorum) {
-		int rc;
 		slap_quorum_t *q, **pq;
 
-		rc = ldap_pvt_thread_mutex_lock(&quorum_mutex);
-		assert(rc == 0);
-
+		lock();
 		q = bd->bd_quorum;
 		if (q) {
 			bd->bd_quorum_cache = 1;
@@ -129,9 +138,7 @@ void quorum_be_destroy(BackendDB *bd) {
 					break;
 				}
 		}
-
-		rc = ldap_pvt_thread_mutex_unlock(&quorum_mutex);
-		assert(rc == 0);
+		unlock();
 
 		if (q) {
 			ch_free(q->qr_present);
@@ -144,21 +151,25 @@ void quorum_be_destroy(BackendDB *bd) {
 static int quorum(unsigned total, unsigned wanna, unsigned ready) {
 	if (wanna > total)
 		wanna = total;
-	return (ready < (wanna + 2 - (wanna & 1)) / 2) ? 0 : 1;
+	return (wanna == 0 || ready < (wanna + 2 - (wanna & 1)) / 2) ? 0 : 1;
 }
 
 static int lazy_update(slap_quorum_t *q) {
-	unsigned links, ready_rids, ready_sids, wanna_rids, wanna_sids;
+	unsigned total_links, ready_links;
+	unsigned ready_rids, ready_sids, wanna_rids, wanna_sids;
 	struct present* p;
 	struct requirment* r;
 	int state;
 
 	ready_rids = ready_sids = 0;
 	wanna_rids = wanna_sids = 0;
-	links = 0;
-	if (q->qr_present)
-		for(p = q->qr_present; p->ready > -1; ++p)
-			++links;
+	total_links = ready_links = 0;
+	if (q->qr_present) {
+		for(p = q->qr_present; p->ready > -1; ++p) {
+			++total_links;
+			ready_links += p->ready;
+		}
+	}
 
 	state = 1;
 	if (q->qr_requirements) {
@@ -183,24 +194,33 @@ static int lazy_update(slap_quorum_t *q) {
 				}
 			}
 			if (QR_IS_DEMAND(r->type) && p->ready < 1) {
-				Debug( LDAP_DEBUG_SYNC, "syncrep_quorum: %s LACK"
+				Debug( LDAP_DEBUG_SYNC, "syncrep_quorum: %s FORCE-LACK"
 						" (required %s%s %d not ready)\n",
 					   q->qr_cluster,
 					   QR_IS_AUTO(r->type) ? "auto-" : "",
 					   QR_IS_SID(r->type) ? "sid" : "rid",
 					   r->id );
-				return -1;
+				state = -1;
 			}
 		}
 
-		state = (quorum(links, wanna_sids, ready_sids)
-				|| quorum(links, wanna_rids, ready_rids)) ? 1 : -1;
+		if (state > 0 && (wanna_sids || wanna_rids))
+			state = (quorum(total_links, wanna_sids, ready_sids)
+					|| quorum(total_links, wanna_rids, ready_rids)) ? 1 : -1;
 	}
 
-	Debug( LDAP_DEBUG_SYNC, "syncrep_quorum: %s %s (links %d, "
-							"vote-rids/sids: wanna %d/%d, ready %d/%d)\n",
+	if ((q->flags & QR_AUTO_SIDS) && state > 0 && total_links
+	&& ! quorum (total_links, total_links, wanna_sids)) {
+		Debug( LDAP_DEBUG_SYNC, "syncrep_quorum: %s FORCE-LACK"
+				" (not enough sid for voting)\n",
+			   q->qr_cluster );
+		state = -1;
+	}
+
+	Debug( LDAP_DEBUG_SYNC, "syncrep_quorum: %s %s (wanna/ready: "
+							"link %d/%d, rid %d/%d, sid %d/%d)\n",
 		   q->qr_cluster, (state > 0) ? "HAVE" : "LACK",
-		   links, wanna_rids, wanna_sids, ready_rids, ready_sids );
+		   total_links, ready_links, wanna_rids, ready_rids, wanna_sids, ready_sids );
 	return state;
 }
 
@@ -209,38 +229,28 @@ static void quorum_invalidate(BackendDB *bd) {
 }
 
 void quorum_notify_self_sid() {
-	int rc;
 	slap_quorum_t *q;
-	assert(quorum_list != POISON);
+	assert(quorum_list != QR_POISON);
 
-	rc = ldap_pvt_thread_mutex_lock(&quorum_mutex);
-	assert(rc == 0);
-
+	lock();
 	for(q = quorum_list; q; q = q->qr_next)
 		quorum_invalidate(q->qr_bd);
-
-	rc = ldap_pvt_thread_mutex_unlock(&quorum_mutex);
-	assert(rc == 0);
+	unlock();
 }
 
 int quorum_query(BackendDB *bd) {
 	int snap = bd->bd_quorum_cache;
 	if (unlikely(snap == 0)) {
-		int rc;
-		assert(quorum_list != POISON);
+		assert(quorum_list != QR_POISON);
 
-		rc = ldap_pvt_thread_mutex_lock(&quorum_mutex);
-		assert(rc == 0);
-
+		lock();
 		snap = bd->bd_quorum_cache;
 		if (snap == 0) {
 			snap = bd->bd_quorum ? lazy_update(bd->bd_quorum) : 1;
 			assert(snap != 0);
 			bd->bd_quorum_cache = snap;
 		}
-
-		rc = ldap_pvt_thread_mutex_unlock(&quorum_mutex);
-		assert(rc == 0);
+		unlock();
 	}
 	return snap > 0;
 }
@@ -263,7 +273,7 @@ static int require_append(slap_quorum_t *q, int type, int id) {
 				r->type = type;
 				goto ok;
 			}
-			return 1;
+			return 0;
 		}
 	}
 
@@ -276,10 +286,10 @@ static int require_append(slap_quorum_t *q, int type, int id) {
 
 ok:
 	Debug( LDAP_DEBUG_SYNC, "syncrep_quorum: added %s%s-%s %d to %s requirements as #%d\n",
-		   QR_IS_AUTO(type) ? "auto-" : "", QR_IS_DEMAND(type) ? "demand" : "quorum",
+		   QR_IS_AUTO(type) ? "auto-" : "", QR_IS_DEMAND(type) ? "demand" : "vote",
 		   QR_IS_SID(type) ? "sid" : "rid", id, q->qr_cluster, n );
 
-	return 0;
+	return 1;
 }
 
 static int require_remove(slap_quorum_t *q, int type, int type_mask, int id) {
@@ -297,7 +307,7 @@ static int require_remove(slap_quorum_t *q, int type, int type_mask, int id) {
 	for(n = 0, r = q->qr_requirements; r && r->type > -1; ++r, ++n ) {
 		if (r->id == id && (r->type & type_mask) == type) {
 			Debug( LDAP_DEBUG_SYNC, "syncrep_quorum: %s%s-%s %d removed from %s requirements as #%d\n",
-				   QR_IS_AUTO(r->type) ? "auto-" : "", QR_IS_DEMAND(type) ? "demand" : "quorum",
+				   QR_IS_AUTO(r->type) ? "auto-" : "", QR_IS_DEMAND(type) ? "demand" : "vote",
 				   QR_IS_SID(r->type) ? "sid" : "rid", id, q->qr_cluster, n );
 
 			for (;;) {
@@ -327,8 +337,7 @@ static int require_auto_rids(slap_quorum_t *q) {
 		if (q->qr_present) {
 			struct present* p;
 			for (p = q->qr_present; p->ready > -1; ++p)
-				if (require_append(q, QR_QUORUM_RID | QR_FLAG_AUTO, p->rid) == 0)
-					changed = 1;
+				changed |= require_append(q, QR_QUORUM_RID | QR_FLAG_AUTO, p->rid);
 		}
 	}
 	return changed;
@@ -339,13 +348,14 @@ static int require_auto_sids(slap_quorum_t *q) {
 
 	if (! (q->flags & QR_AUTO_SIDS)) {
 		q->flags |= QR_AUTO_SIDS;
+#ifndef QR_AUTO_SIDS_CSN_ONLY
 		if (q->qr_present) {
 			struct present* p;
 			for (p = q->qr_present; p->ready > -1; ++p)
-				if (p->sid > -1
-				&& require_append(q, QR_QUORUM_SID | QR_FLAG_AUTO, p->sid) == 0)
-					changed = 1;
+				if (p->sid > -1)
+					changed |= require_append(q, QR_QUORUM_SID | QR_FLAG_AUTO, p->sid);
 		}
+#endif /* QR_AUTO_SIDS_CSN_ONLY */
 	}
 	return changed;
 }
@@ -360,13 +370,15 @@ static int notify_sid(slap_quorum_t *q, int rid, int sid) {
 				if (p->sid != sid) {
 					Debug( LDAP_DEBUG_SYNC, "syncrep_quorum: notify-sid %s, rid %d, sid %d->%d\n",
 						   q->qr_cluster, p->rid, p->sid, sid );
+#ifndef QR_AUTO_SIDS_CSN_ONLY
 					if (q->flags & QR_AUTO_SIDS) {
 						/* if (p->sid > -1)
 							require_remove(q, QR_QUORUM_SID | QR_FLAG_AUTO,
 										   ~QR_FLAG_DEMAND, p->sid); */
 						if (sid > -1)
-							require_append(q, QR_QUORUM_SID | QR_FLAG_AUTO, rid);
+							require_append(q, QR_QUORUM_SID | QR_FLAG_AUTO, sid);
 					}
+#endif /* QR_AUTO_SIDS_CSN_ONLY */
 					p->sid = sid;
 					return 1;
 				}
@@ -400,18 +412,17 @@ static int notify_ready(slap_quorum_t *q, int rid, int ready) {
 }
 
 void quorum_add_rid(BackendDB *bd, int rid) {
-	int n, rc;
+	int n;
 	struct present* p;
 	assert(rid > -1 || rid <= SLAP_SYNC_RID_MAX);
-	assert(quorum_list != POISON);
+	assert(quorum_list != QR_POISON);
 
-	rc = ldap_pvt_thread_mutex_lock(&quorum_mutex);
-	assert(rc == 0);
+	lock();
 
 	if (! bd->bd_quorum)
 		quorum_be_init(bd);
 
-	Debug( LDAP_DEBUG_SYNC, "syncrep_quorum: add rid %d to %s\n",
+	Debug( LDAP_DEBUG_SYNC, "syncrep_quorum: add link-rid %d to %s\n",
 		   rid, bd->bd_quorum->qr_cluster );
 
 	n = 0;
@@ -419,7 +430,7 @@ void quorum_add_rid(BackendDB *bd, int rid) {
 		for(n = 0, p = bd->bd_quorum->qr_present; p->ready > -1; ++p, ++n ) {
 			if (p->rid == rid) {
 				assert(0);
-				return;
+				goto bailout;
 			}
 		}
 	}
@@ -433,23 +444,22 @@ void quorum_add_rid(BackendDB *bd, int rid) {
 	p[1].ready = -1;
 
 	if ((bd->bd_quorum->flags & QR_AUTO_RIDS)
-	&& require_append(bd->bd_quorum, QR_QUORUM_RID | QR_FLAG_AUTO, rid) == 0)
+	&& require_append(bd->bd_quorum, QR_QUORUM_RID | QR_FLAG_AUTO, rid))
 		quorum_invalidate(bd);
 
-	rc = ldap_pvt_thread_mutex_unlock(&quorum_mutex);
-	assert(rc == 0);
+bailout:
+	unlock();
 }
 
 void quorum_remove_rid(BackendDB *bd, int rid) {
-	int n, rc;
+	int n;
 	struct present* p;
 	assert(rid > -1 || rid <= SLAP_SYNC_RID_MAX);
-	assert(quorum_list != POISON);
+	assert(quorum_list != QR_POISON);
 
-	rc = ldap_pvt_thread_mutex_lock(&quorum_mutex);
-	assert(rc == 0);
+	lock();
 
-	Debug( LDAP_DEBUG_SYNC, "syncrep_quorum: remove rid %d from %s\n",
+	Debug( LDAP_DEBUG_SYNC, "syncrep_quorum: remove link-rid %d from %s\n",
 		   rid, bd->bd_quorum->qr_cluster );
 
 	assert(bd->bd_quorum != NULL);
@@ -480,62 +490,43 @@ void quorum_remove_rid(BackendDB *bd, int rid) {
 		}
 	}
 
-	rc = ldap_pvt_thread_mutex_unlock(&quorum_mutex);
-	assert(rc == 0);
+	unlock();
 }
 
 void quorum_notify_sid(BackendDB *bd, int rid, int sid) {
 	assert(rid > -1 || rid <= SLAP_SYNC_RID_MAX);
 	assert(sid < 0 || sid <= SLAP_SYNC_SID_MAX);
-	assert(quorum_list != POISON);
+	assert(quorum_list != QR_POISON);
 
 	if (bd->bd_quorum) {
-		int rc;
-
-		rc = ldap_pvt_thread_mutex_lock(&quorum_mutex);
-		assert(rc == 0);
-
+		lock();
 		if (bd->bd_quorum && notify_sid(bd->bd_quorum, rid, sid))
 			quorum_invalidate(bd);
-
-		rc = ldap_pvt_thread_mutex_unlock(&quorum_mutex);
-		assert(rc == 0);
+		unlock();
 	}
 }
 
 void quorum_notify_status(BackendDB *bd, int rid, int ready) {
 	assert(rid > -1 || rid <= SLAP_SYNC_RID_MAX);
-	assert(quorum_list != POISON);
+	assert(quorum_list != QR_POISON);
 
 	if (bd->bd_quorum) {
-		int rc;
-
-		rc = ldap_pvt_thread_mutex_lock(&quorum_mutex);
-		assert(rc == 0);
-
+		lock();
 		if (bd->bd_quorum && notify_ready(bd->bd_quorum, rid, ready > 0))
 			quorum_invalidate(bd);
-
-		rc = ldap_pvt_thread_mutex_unlock(&quorum_mutex);
-		assert(rc == 0);
+		unlock();
 	}
 }
 
 void quorum_notify_csn(BackendDB *bd, int csnsid) {
-	assert(quorum_list != POISON);
+	assert(quorum_list != QR_POISON);
 	assert(csnsid > -1 && csnsid <= SLAP_SYNC_RID_MAX);
 
 	if (bd->bd_quorum && (bd->bd_quorum->flags & QR_AUTO_SIDS))  {
-		int rc;
-
-		rc = ldap_pvt_thread_mutex_lock(&quorum_mutex);
-		assert(rc == 0);
-
+		lock();
 		if (require_append(bd->bd_quorum, QR_QUORUM_SID | QR_FLAG_AUTO, csnsid))
 			quorum_invalidate(bd);
-
-		rc = ldap_pvt_thread_mutex_unlock(&quorum_mutex);
-		assert(rc == 0);
+		unlock();
 	}
 }
 
@@ -563,9 +554,9 @@ static int unparse(BerVarray *vals, slap_quorum_t *q, int type, const char* verb
 }
 
 int quorum_config(ConfigArgs *c) {
-	int i, rc, type;
+	int i, type;
 
-	assert(quorum_list != POISON);
+	assert(quorum_list != QR_POISON);
 	if (c->op == SLAP_CONFIG_EMIT) {
 		if (c->be->bd_quorum) {
 			if ((c->be->bd_quorum->flags & QR_AUTO_SIDS) != 0
@@ -583,9 +574,7 @@ int quorum_config(ConfigArgs *c) {
 		}
 		return 0;
 	} else if ( c->op == LDAP_MOD_DELETE ) {
-		rc = ldap_pvt_thread_mutex_lock(&quorum_mutex);
-		assert(rc == 0);
-
+		lock();
 		if (c->be->bd_quorum && c->be->bd_quorum->qr_requirements) {
 			ch_free(c->be->bd_quorum->qr_requirements);
 			c->be->bd_quorum->qr_requirements = NULL;
@@ -593,14 +582,11 @@ int quorum_config(ConfigArgs *c) {
 			Debug( LDAP_DEBUG_SYNC, "syncrep_quorum: %s requirements-list cleared\n",
 				   c->be->bd_quorum->qr_cluster );
 		}
-
-		rc = ldap_pvt_thread_mutex_unlock(&quorum_mutex);
-		assert(rc == 0);
+		unlock();
 		return 0;
 	}
 
-	rc = ldap_pvt_thread_mutex_lock(&quorum_mutex);
-	assert(rc == 0);
+	lock();
 
 	if (! c->be->bd_quorum)
 		quorum_be_init(c->be);
@@ -628,6 +614,7 @@ int quorum_config(ConfigArgs *c) {
 			snprintf( c->cr_msg, sizeof( c->cr_msg ),
 				"<%s> mode-key must precede an ID for %s quorum-requirements",
 				c->argv[i], c->be->bd_quorum->qr_cluster );
+			unlock();
 			Debug(LDAP_DEBUG_ANY, "%s: %s\n", c->log, c->cr_msg );
 			return 1;
 		} else if (( lutil_atoi( &id, c->argv[i] ) &&
@@ -637,16 +624,18 @@ int quorum_config(ConfigArgs *c) {
 		{
 			snprintf( c->cr_msg, sizeof( c->cr_msg ),
 				"<%s> illegal %s-ID or mode-key for %s quorum-requirements",
-				c->argv[i], QR_IS_SID(type) ? "server" : "repl",
+				c->argv[i], QR_IS_SID(type) ? "Server" : "Repl",
 				c->be->bd_quorum->qr_cluster );
+			unlock();
 			Debug(LDAP_DEBUG_ANY, "%s: %s\n", c->log, c->cr_msg );
 			return 1;
 		} else {
-			if (require_append( c->be->bd_quorum, type, id )) {
+			if (! require_append( c->be->bd_quorum, type, id )) {
 				snprintf( c->cr_msg, sizeof( c->cr_msg ),
 					"<%s> %s-ID already present in %s quorum-requirements",
-					c->argv[i], QR_IS_SID(type) ? "server" : "repl",
+					c->argv[i], QR_IS_SID(type) ? "Server" : "Repl",
 					c->be->bd_quorum->qr_cluster );
+				unlock();
 				Debug(LDAP_DEBUG_ANY, "%s: %s\n", c->log, c->cr_msg );
 				return 1;
 			}
@@ -654,7 +643,6 @@ int quorum_config(ConfigArgs *c) {
 		}
 	}
 
-	rc = ldap_pvt_thread_mutex_unlock(&quorum_mutex);
-	assert(rc == 0);
+	unlock();
 	return 0;
 }

@@ -789,7 +789,7 @@ static ConfigTable config_back_cf_table[] = {
 			"DESC 'ReOpenLDAP cheating flags' "
 			"EQUALITY caseIgnoreMatch "
 			"SYNTAX OMsDirectoryString SINGLE-VALUE )", NULL, NULL },
-	{ "quorum", "rid-list", 2, 0, 0, ARG_DB|ARG_MAGIC,
+	{ "quorum", "requirements-list", 2, 0, 0, ARG_DB|ARG_MAGIC,
 		&quorum_config, "( OLcfgDbAt:0.47 NAME 'olcQuorum' "
 			"EQUALITY caseIgnoreMatch "
 			"SYNTAX OMsDirectoryString SINGLE-VALUE )", NULL, NULL },
