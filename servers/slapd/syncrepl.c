@@ -665,9 +665,14 @@ do_syncrep_search(
 
 	si->si_syncCookie.rid = si->si_rid;
 
-	/* whenever there are multiple data sources possible, advertise sid */
-	si->si_syncCookie.sid = ( SLAP_MULTIMASTER( si->si_be ) || si->si_be != si->si_wbe ) ?
-		slap_serverID : -1;
+	if (reopenldap_mode_iddqd()) {
+		si->si_syncCookie.sid = (slap_serverID > 0) ? slap_serverID : -1;
+	} else {
+		/* whenever there are multiple data sources possible, advertise sid */
+		si->si_syncCookie.sid = ( SLAP_MULTIMASTER( si->si_be )
+								  || si->si_be != si->si_wbe ) ?
+			slap_serverID : -1;
+	}
 
 	/* We've just started up, or the remote server hasn't sent us
 	 * any meaningful state.
