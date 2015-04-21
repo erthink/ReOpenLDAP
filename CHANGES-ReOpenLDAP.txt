@@ -1,15 +1,17 @@
-﻿ReOpenLDAP change log.
+ReOpenLDAP change log.
 
 This file contain list of changes from point-of-view of ReOpenLDAP project.
-For description of new features please see slapd.conf man page.
+For description of the new features please see man-page for slapd.conf.
+For a changes merged from OpenLDAP project please see the `CHANGES` file.
 
 Features (major):
 	ITS#7958 lmdb: lifo & coalesce
 	ITS#7974 lmdb: dreamcatcher, oom-handler (kill, yield)
+	quorum { [vote-sids ...] [vote-rids ...] [auto-sids] [auto-rids] [require-sids ...] [require-rids ...] [all-links] }
 	biglock { none | local | common }
+	reopenldap [iddqd] [idkfa]
 
 Features (minor):
-	reopenldap [iddqd] [idkfa]
 	crash-backtrace on|off
 	coredump-limit <mbytes>
 	memory-limit <mbytes>
