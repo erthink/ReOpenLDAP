@@ -36,6 +36,8 @@ OpenLDAP 2.4.41 Engineering
 	Fixed slapo-syncprov deadlock when autogroup is in use (ITS#8063)
 	Fixed slapo-syncprov potential loss of changes when under load (ITS#8081)
 	Fixed slapo-unique enforcement of uniqueness with manageDSAit control (ITS#8057)
+	Fixed slapd-mdb segfault if more than 65535 aliases in a scope (ITS#8103)
+	Fixed slapd-perl perlModuleConfig lines are not converted (ITS#8105)
 	Build Environment
 		Fixed libdb detection with gcc 5.x (ITS#8056)
 		Enhanced contrib modules build paths (ITS#7782)
@@ -50,9 +52,13 @@ OpenLDAP 2.4.41 Engineering
 		Fixed autogroup modification callback responses (ITS#6970)
 		Fixed nssov compare with usergroup (ITS#8079)
 		Fixed nssov password change behavior (ITS#8080)
+		Fixed nssov update nss-pam-ldapd files to 0.9.4 (ITS#8097)
+		Fixed nssov update to protocol version 2 (ITS#8097)
 	Documentation
 		Added ldap_get_option(3) LDAP_FEATURE_INFO_VERSION information (ITS#8032)
 		Added ldap_get_option(3) LDAP_OPT_API_INFO_VERSION information (ITS#8032)
+		Fixed slapd-config(5), slapd.conf(5) tls_cipher_suite option (ITS#8099)
+		Fixed slapd-meta(5), slapd-ldap(5) tls_cipher_suite option (ITS#8099)
 
 OpenLDAP 2.4.40 Release (2014/09/20)
 	Fixed libldap DNS SRV priority handling (ITS#7027)

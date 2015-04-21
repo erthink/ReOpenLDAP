@@ -201,6 +201,41 @@ sidsort_cmp(
 	return LDAP_SUCCESS;
 }
 
+int
+slap_csn_stub_self( BerVarray *ctxcsn, int **sids, int *numcsns )
+{
+	int i, rc;
+	struct berval csn;
+	int *new_sids;
+	char buf[ LDAP_PVT_CSNSTR_BUFSIZE ];
+
+	if (slap_serverID < 1 || ! reopenldap_mode_iddqd())
+		return 0;
+
+	for (i = *numcsns; --i >= 0; )
+		if (slap_serverID == (*sids)[i])
+			return 0;
+
+	new_sids = ch_realloc( *sids, (*numcsns + 1) * sizeof(**sids) );
+	if (! new_sids)
+		return LDAP_NO_MEMORY;
+
+	csn.bv_val = buf;
+	csn.bv_len = snprintf( buf, sizeof( buf ),
+		"%4d%02d%02d%02d%02d%02d.%06dZ#%06x#%03x#%06x",
+		1900, 1, 1, 0, 0, 0, 0, 0, slap_serverID, 0 );
+
+	rc = value_add_one( ctxcsn, &csn );
+	if (rc)
+		return rc;
+
+	*sids = new_sids;
+	(*sids)[*numcsns] = slap_serverID;
+	*numcsns += 1;
+
+	return slap_sort_csn_sids( *ctxcsn, *sids, *numcsns, NULL );
+}
+
 /* sort CSNs by SID. Use a fake Attribute with our own
  * syntax and matching rule, which sorts the nvals by
  * bv_len order. Stuff our sids into the bv_len.
@@ -265,14 +300,14 @@ slap_parse_sync_cookie(
 	if ( cookie == NULL )
 		return -1;
 
-	if ( cookie->octet_str.bv_len <= STRLENOF( "rid=" ) )
-		return -1;
-
 	cookie->rid = -1;
 	cookie->sid = -1;
 	cookie->ctxcsn = NULL;
 	cookie->sids = NULL;
 	cookie->numcsns = 0;
+
+	if ( cookie->octet_str.bv_len <= STRLENOF( "rid=" ) )
+		return -1;
 
 	end = cookie->octet_str.bv_val + cookie->octet_str.bv_len;
 

@@ -146,6 +146,7 @@ static ConfigDriver config_tls_option;
 static ConfigDriver config_tls_config;
 #endif
 extern ConfigDriver syncrepl_config;
+extern ConfigDriver quorum_config;
 
 enum {
 	CFG_ACL = 1,
@@ -787,7 +788,11 @@ static ConfigTable config_back_cf_table[] = {
 		&config_reopenldap, "( OLcfgGlAt:0.46 NAME 'olcReOpenLDAP' "
 			"DESC 'ReOpenLDAP cheating flags' "
 			"EQUALITY caseIgnoreMatch "
-			"SYNTAX OMsDirectoryString X-ORDERED 'VALUES' )", NULL, NULL },
+			"SYNTAX OMsDirectoryString SINGLE-VALUE )", NULL, NULL },
+	{ "quorum", "requirements-list", 2, 0, 0, ARG_DB|ARG_MAGIC,
+		&quorum_config, "( OLcfgDbAt:0.47 NAME 'olcQuorum' "
+			"EQUALITY caseIgnoreMatch "
+			"SYNTAX OMsDirectoryString SINGLE-VALUE )", NULL, NULL },
 	{ NULL,	NULL, 0, 0, 0, ARG_IGNORED,
 		NULL, NULL, NULL, NULL }
 };
@@ -1962,6 +1967,7 @@ sortval_reject:
 					si = ch_malloc( sizeof(ServerID) );
 					BER_BVZERO( &si->si_url );
 					slap_serverID = num;
+					quorum_notify_self_sid();
 					Debug( LDAP_DEBUG_CONFIG,
 						"%s: SID=0x%03x\n",
 						c->log, slap_serverID );
@@ -1984,6 +1990,7 @@ sortval_reject:
 							return 1;
 						}
 						slap_serverID = si->si_num;
+						quorum_notify_self_sid();
 						Debug( LDAP_DEBUG_CONFIG,
 							"%s: SID=0x%03x (listener=%s)\n",
 							c->log, slap_serverID,
@@ -3064,10 +3071,10 @@ static int
 config_biglock(ConfigArgs *c)
 {
 	int mode;
-	char	*notallowed = NULL;
+	char *notallowed = NULL;
 
 	if ( notallowed != NULL ) {
-		char	buf[ SLAP_TEXT_BUFLEN ] = { '\0' };
+		char buf[ SLAP_TEXT_BUFLEN ] = { '\0' };
 
 		switch ( c->op ) {
 		case LDAP_MOD_ADD:

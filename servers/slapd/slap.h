@@ -1772,6 +1772,7 @@ LDAP_TAILQ_HEAD( be_pcl, slap_csn_entry );
 struct ConfigOCs;	/* config.h */
 
 typedef struct slap_biglock slap_biglock_t;
+typedef struct slap_quorum slap_quorum_t;
 
 /* LY: zero or less indicates than biglock was not initialized. */
 #define SLAPD_BIGLOCK_NONE	1
@@ -1975,6 +1976,8 @@ struct BackendDB {
 
 	int	bd_biglock_mode;	/* synchronization mode for database/suffix */
 	slap_biglock_t *bd_biglock; /* mutex for synchronization, etc */
+	volatile int bd_quorum_cache;	/* support for syncrepl quorum */
+	slap_quorum_t *bd_quorum;
 
 	/* Replica Information */
 	struct berval be_update_ndn;	/* allowed to make changes (in replicas) */

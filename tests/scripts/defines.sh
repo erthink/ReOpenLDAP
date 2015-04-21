@@ -367,3 +367,26 @@ function teamcity_msg {
 		echo "##teamcity[$@]"
 	fi
 }
+
+function teamcity_checkcore {
+	local cores="$(find ../${SRCDIR} -name core -type f)"
+	if [ -n "${cores}" ]; then
+		local target dir n c
+		for (( n=0; ; n++)); do
+			target="coredumps/${1:-$(date '+%F.%H%M%S.%N')}.$n"
+			dir="../${SRCDIR}/${target}"
+			if [ ! -d "${dir}" ]; then break; fi
+		done;
+
+		echo "Found some COREDUMP(S): '$cores', try publish as '$target'" >&2
+		mkdir -p "${dir}" && (n=1; for c in ${cores}; do
+			mv $c "${dir}/$n.core"
+			n=$((n+1))
+		done)
+		if [ -n "${TEAMCITY_PROCESS_FLOW_ID}" ]; then
+			echo "##teamcity[publishArtifacts '${dir}/** => $target.zip']"
+		fi
+		return 1
+	fi
+	return 0
+}

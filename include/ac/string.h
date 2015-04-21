@@ -61,17 +61,6 @@ LDAP_F(char *) ldap_pvt_strtok LDAP_P(( char *str,
 	LDAP_LIBC_F(char *) (strdup)();
 #endif
 
-/*
- * some systems fail to declare strcasecmp() and strncasecmp()
- * we need them declared so we can obtain pointers to them
- */
-
-/* we don't want these declared for Windows or Mingw */
-#ifndef _WIN32
-int (strcasecmp)();
-int (strncasecmp)();
-#endif
-
 #ifndef SAFEMEMCPY
 #	if defined( HAVE_MEMMOVE )
 #		define SAFEMEMCPY( d, s, n ) 	memmove((d), (s), (n))

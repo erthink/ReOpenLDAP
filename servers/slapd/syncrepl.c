@@ -504,6 +504,7 @@ check_syncprov(
 	Entry e = {0};
 	SlapReply rs = {REP_SEARCH};
 	int i, j, changed = 0;
+	int rc;
 
 	/* Look for contextCSN from syncprov overlay. If
 	 * there's no overlay, this will be a no-op. That means
@@ -553,6 +554,10 @@ check_syncprov(
 		}
 		ber_bvarray_free( a.a_vals );
 	}
+
+	rc = slap_csn_stub_self( &si->si_cookieState->cs_vals, &si->si_cookieState->cs_sids, &si->si_cookieState->cs_num );
+	assert(rc == 0);
+
 	/* See if the cookieState has changed due to anything outside
 	 * this particular consumer. That includes other consumers in
 	 * the same context, or local changes detected above.
@@ -597,6 +602,9 @@ check_syncprov(
 			si->si_syncCookie.sid );
 		ch_free( si->si_syncCookie.sids );
 		slap_reparse_sync_cookie( &si->si_syncCookie, op->o_tmpmemctx );
+
+		for(i = 0; i < si->si_syncCookie.numcsns; ++i)
+			quorum_notify_csn( si->si_be, si->si_syncCookie.sids[i] );
 	}
 	ldap_pvt_thread_mutex_unlock( &si->si_cookieState->cs_mutex );
 	return changed;
@@ -657,9 +665,14 @@ do_syncrep_search(
 
 	si->si_syncCookie.rid = si->si_rid;
 
-	/* whenever there are multiple data sources possible, advertise sid */
-	si->si_syncCookie.sid = ( SLAP_MULTIMASTER( si->si_be ) || si->si_be != si->si_wbe ) ?
-		slap_serverID : -1;
+	if (reopenldap_mode_iddqd()) {
+		si->si_syncCookie.sid = (slap_serverID > 0) ? slap_serverID : -1;
+	} else {
+		/* whenever there are multiple data sources possible, advertise sid */
+		si->si_syncCookie.sid = ( SLAP_MULTIMASTER( si->si_be )
+								  || si->si_be != si->si_wbe ) ?
+			slap_serverID : -1;
+	}
 
 	/* We've just started up, or the remote server hasn't sent us
 	 * any meaningful state.
@@ -704,8 +717,13 @@ do_syncrep_search(
 					for (i=0; !BER_BVISNULL( &csn[i] ); i++);
 					si->si_cookieState->cs_num = i;
 					si->si_cookieState->cs_sids = slap_parse_csn_sids( csn, i, NULL );
-					slap_sort_csn_sids( csn, si->si_cookieState->cs_sids, i, NULL );
+					rc = slap_sort_csn_sids( csn, si->si_cookieState->cs_sids, i, NULL );
+					if (rc)
+						goto done;
 				}
+				rc = slap_csn_stub_self( &si->si_cookieState->cs_vals, &si->si_cookieState->cs_sids, &si->si_cookieState->cs_num );
+				if (rc)
+					goto done;
 			}
 			if ( si->si_cookieState->cs_num ) {
 				ber_bvarray_free( si->si_syncCookie.ctxcsn );
@@ -759,6 +777,37 @@ done:
 	}
 
 	return rc;
+}
+
+static int
+dnp_acceptable_sids( struct sync_cookie *req, struct sync_cookie *cookie )
+{
+	int i, j;
+
+	if (req->numcsns != cookie->numcsns)
+		return 0;
+
+	if (reopenldap_mode_iddqd()) {
+		/* LY: check for all SIDs from req is exists in cookie. */
+		for(i = req->numcsns; --i >= 0; ) {
+			for(j = cookie->numcsns; --j >= 0; )
+				if (req->sids[i] == cookie->sids[j])
+					break;
+			if (j < 0)
+				return 0;
+		}
+
+		/* LY: check of self SID is present in cookie. */
+		if (slap_serverID > 0) {
+			for(j = cookie->numcsns; --j >= 0; )
+				if (slap_serverID == cookie->sids[j])
+					return 1;
+
+			return 0;
+		}
+	}
+
+	return 1;
 }
 
 static int
@@ -938,14 +987,15 @@ do_syncrep_process(
 					ch_free( syncCookie.octet_str.bv_val );
 					ber_dupbv( &syncCookie.octet_str, &cookie );
 				}
-				if ( !BER_BVISNULL( &syncCookie.octet_str ) )
+				if ( !BER_BVISNULL( &syncCookie.octet_str )
+					 && slap_parse_sync_cookie( &syncCookie, NULL ) == 0 )
 				{
-					slap_parse_sync_cookie( &syncCookie, NULL );
+					quorum_notify_sid( si->si_be, si->si_rid, syncCookie.sid );
 					if ( syncCookie.ctxcsn ) {
 						int i, sid = slap_parse_csn_sid( syncCookie.ctxcsn );
 						check_syncprov( op, si );
 						ldap_pvt_thread_mutex_lock( &si->si_cookieState->cs_mutex );
-						for ( i =0; i<si->si_cookieState->cs_num; i++ ) {
+						for ( i = 0; i<si->si_cookieState->cs_num; i++ ) {
 							/* new SID */
 							if ( sid < si->si_cookieState->cs_sids[i] )
 								break;
@@ -1000,6 +1050,7 @@ do_syncrep_process(
 							slap_insert_csn_sids(
 								(struct sync_cookie *)&si->si_cookieState->cs_pvals,
 								i, sid, syncCookie.ctxcsn );
+							quorum_notify_csn( si->si_be, sid );
 						}
 						assert( punlock < 0 );
 						punlock = i;
@@ -1152,9 +1203,10 @@ do_syncrep_process(
 						ch_free( syncCookie.octet_str.bv_val );
 						ber_dupbv( &syncCookie.octet_str, &cookie);
 					}
-					if ( !BER_BVISNULL( &syncCookie.octet_str ) )
+					if ( !BER_BVISNULL( &syncCookie.octet_str )
+						 && slap_parse_sync_cookie( &syncCookie, NULL ) == 0 )
 					{
-						slap_parse_sync_cookie( &syncCookie, NULL );
+						quorum_notify_sid( si->si_be, si->si_rid, syncCookie.sid );
 						op->o_controls[slap_cids.sc_LDAPsync] = &syncCookie;
 					}
 				}
@@ -1186,7 +1238,7 @@ do_syncrep_process(
 				 */
 				if ( refreshDeletes == 0 && match < 0 &&
 					err == LDAP_SUCCESS &&
-					syncCookie_req.numcsns == syncCookie.numcsns )
+					dnp_acceptable_sids( &syncCookie_req, &syncCookie ) )
 				{
 					syncrepl_del_nonpresent( op, si, NULL,
 						&syncCookie, m );
@@ -1235,8 +1287,10 @@ do_syncrep_process(
 						ch_free( syncCookie.octet_str.bv_val );
 						ber_dupbv( &syncCookie.octet_str, &cookie );
 					}
-					if (!BER_BVISNULL( &syncCookie.octet_str ) ) {
-						slap_parse_sync_cookie( &syncCookie, NULL );
+					if ( !BER_BVISNULL( &syncCookie.octet_str )
+						 && slap_parse_sync_cookie( &syncCookie, NULL ) == 0 )
+					{
+						quorum_notify_sid( si->si_be, si->si_rid, syncCookie.sid );
 						op->o_controls[slap_cids.sc_LDAPsync] = &syncCookie;
 					}
 					break;
@@ -1266,15 +1320,15 @@ do_syncrep_process(
 							ch_free( syncCookie.octet_str.bv_val );
 							ber_dupbv( &syncCookie.octet_str, &cookie );
 						}
-						if ( !BER_BVISNULL( &syncCookie.octet_str ) )
+						if ( !BER_BVISNULL( &syncCookie.octet_str )
+							 && slap_parse_sync_cookie( &syncCookie, NULL ) == 0 )
 						{
-							slap_parse_sync_cookie( &syncCookie, NULL );
+							quorum_notify_sid( si->si_be, si->si_rid, syncCookie.sid );
 							op->o_controls[slap_cids.sc_LDAPsync] = &syncCookie;
 						}
 					}
 					/* Defaults to TRUE */
-					if ( ber_peek_tag( ber, &len ) ==
-						LDAP_TAG_REFRESHDONE )
+					if ( ber_peek_tag( ber, &len ) == LDAP_TAG_REFRESHDONE )
 					{
 						ber_scanf( ber, "b", &si->si_refreshDone );
 					} else
@@ -1285,6 +1339,7 @@ do_syncrep_process(
 					if ( abs(si->si_type) == LDAP_SYNC_REFRESH_AND_PERSIST &&
 						si->si_refreshDone )
 						tout_p = &tout;
+					quorum_notify_status( si->si_be, si->si_rid, si->si_refreshDone );
 					break;
 				case LDAP_TAG_SYNC_ID_SET:
 					Debug( LDAP_DEBUG_SYNC,
@@ -1306,9 +1361,10 @@ do_syncrep_process(
 							ch_free( syncCookie.octet_str.bv_val );
 							ber_dupbv( &syncCookie.octet_str, &cookie );
 						}
-						if ( !BER_BVISNULL( &syncCookie.octet_str ) )
+						if ( !BER_BVISNULL( &syncCookie.octet_str )
+							 && slap_parse_sync_cookie( &syncCookie, NULL ) == 0 )
 						{
-							slap_parse_sync_cookie( &syncCookie, NULL );
+							quorum_notify_sid( si->si_be, si->si_rid, syncCookie.sid );
 							op->o_controls[slap_cids.sc_LDAPsync] = &syncCookie;
 							compare_csns( &syncCookie_req, &syncCookie, &m );
 						}
@@ -1364,7 +1420,7 @@ do_syncrep_process(
 				if ( match < 0 ) {
 					if ( si->si_refreshPresent == 1 &&
 						si_tag != LDAP_TAG_SYNC_NEW_COOKIE &&
-						syncCookie_req.numcsns == syncCookie.numcsns ) {
+						dnp_acceptable_sids( &syncCookie_req, &syncCookie ) ) {
 						syncrepl_del_nonpresent( op, si, NULL,
 							&syncCookie, m );
 					}
@@ -1431,6 +1487,9 @@ done:
 			si->si_ridtxt, err, ldap_err2string( err ) );
 	}
 
+	if (rc)
+		quorum_notify_status( si->si_be, si->si_rid, 0 );
+
 	slap_sync_cookie_free( &syncCookie, 0 );
 	slap_sync_cookie_free( &syncCookie_req, 0 );
 
@@ -1470,6 +1529,7 @@ do_syncrepl(
 		return NULL;
 
 	Debug( LDAP_DEBUG_TRACE, "=>do_syncrepl %s\n", si->si_ridtxt );
+
 
 	for (;;) {
 		if ( slapd_shutdown ) {
@@ -1556,6 +1616,7 @@ do_syncrepl(
 
 	/* Establish session, do search */
 	if ( !si->si_ld ) {
+		quorum_notify_status( si->si_be, si->si_rid, 0 );
 		si->si_refreshDelete = 0;
 		si->si_refreshPresent = 0;
 
@@ -1640,6 +1701,7 @@ deleted:
 			"do_syncrep: %s client-stop\n", si->si_ridtxt);
 		connection_client_stop( si->si_conn );
 		si->si_conn = NULL;
+		quorum_notify_status( si->si_be, si->si_rid, 0 );
 	}
 
 	if ( rc == SYNC_PAUSED ) {
@@ -3869,6 +3931,7 @@ syncrepl_updateCookie(
 			syncCookie->sids[i] != sc.sids[j] ) {
 			slap_insert_csn_sids( &sc, j, syncCookie->sids[i],
 				&syncCookie->ctxcsn[i] );
+			quorum_notify_csn( si->si_be, syncCookie->sids[i] );
 			if ( BER_BVISNULL( &first ) ||
 				memcmp( syncCookie->ctxcsn[i].bv_val, first.bv_val, first.bv_len ) > 0 ) {
 				first = syncCookie->ctxcsn[i];
@@ -4521,6 +4584,8 @@ syncinfo_free( syncinfo_t *sie, int free_all )
 
 	do {
 		si_next = sie->si_next;
+
+		quorum_remove_rid( sie->si_be, sie->si_rid );
 
 		if ( sie->si_ld ) {
 			if ( sie->si_conn ) {
@@ -5433,6 +5498,7 @@ add_syncrepl(
 		si->si_cookieState->cs_ref++;
 
 		si->si_next = NULL;
+		quorum_add_rid( si->si_be, si->si_rid );
 
 		return 0;
 	}

@@ -3290,7 +3290,9 @@ syncprov_db_open(
 			ber_bvarray_dup_x( &si->si_ctxcsn, a->a_vals, NULL );
 			si->si_numcsns = a->a_numvals;
 			si->si_sids = slap_parse_csn_sids( si->si_ctxcsn, a->a_numvals, NULL );
-			slap_sort_csn_sids( si->si_ctxcsn, si->si_sids, si->si_numcsns, NULL );
+			rc = slap_sort_csn_sids( si->si_ctxcsn, si->si_sids, si->si_numcsns, NULL );
+			if (rc)
+				goto out;
 		}
 		overlay_entry_release_ov( op, e, 0, on );
 		if ( si->si_ctxcsn && !SLAP_DBCLEAN( be )) {
@@ -3302,6 +3304,10 @@ syncprov_db_open(
 			ldap_pvt_thread_join( tid, NULL );
 		}
 	}
+
+	rc = slap_csn_stub_self( &si->si_ctxcsn, &si->si_sids, &si->si_numcsns );
+	if (rc)
+		goto out;
 
 	/* Didn't find a contextCSN, should we generate one? */
 	if ( !si->si_ctxcsn ) {
@@ -3340,7 +3346,7 @@ syncprov_db_open(
 
 out:
 	op->o_bd->bd_info = (BackendInfo *)on;
-	return 0;
+	return rc;
 }
 
 /* Write the current contextCSN into the underlying db.

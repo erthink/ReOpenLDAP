@@ -28,7 +28,7 @@ NLDAPD_INC=-Inss-pam-ldapd
 LIBTOOL = $(LDAP_BUILD)/libtool
 CC ?= gcc
 CFLAGS ?= -g -O2 -Wall -Werror
-CFLAGS += -Wno-error=address -Wno-error=unused-but-set-variable
+CFLAGS += -Wno-error=address
 DEFS =
 INCS = $(LDAP_INC) $(NLDAPD_INC)
 LIBS = $(LDAP_LIB)

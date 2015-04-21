@@ -893,6 +893,21 @@ LDAP_SLAPD_F (int) slap_get_csn LDAP_P(( Operation *, struct berval *, int ));
 LDAP_SLAPD_F (void) slap_queue_csn LDAP_P(( Operation *, struct berval * ));
 
 /*
+ * quorum.c
+ */
+
+void quorum_global_init();
+void quorum_global_destroy();
+void quorum_be_destroy(BackendDB *bd);
+void quorum_notify_self_sid();
+void quorum_add_rid(BackendDB *bd, int rid);
+void quorum_remove_rid(BackendDB *bd, int rid);
+void quorum_notify_sid(BackendDB *bd, int rid, int sid);
+void quorum_notify_status(BackendDB *bd, int rid, int ready);
+int quorum_query(BackendDB *bd);
+void quorum_notify_csn(BackendDB *bd, int csnsid);
+
+/*
  * daemon.c
  */
 LDAP_SLAPD_F (void) slapd_add_internal(ber_socket_t s, int isactive);
@@ -1227,6 +1242,8 @@ LDAP_SLAPD_F (struct sync_cookie *) slap_dup_sync_cookie LDAP_P((
 				struct sync_cookie *, struct sync_cookie * ));
 LDAP_SLAPD_F (int) slap_build_syncUUID_set LDAP_P((
 				Operation *, BerVarray *, Entry * ));
+LDAP_SLAPD_F (int) slap_csn_stub_self LDAP_P((
+				BerVarray *ctxcsn, int **sids, int *numcsns));
 
 /*
  * limits.c
@@ -2019,6 +2036,9 @@ LDAP_SLAPD_F (int) value_add LDAP_P((
 LDAP_SLAPD_F (int) value_add_one LDAP_P((
 	BerVarray *vals,
 	const struct berval *addval ));
+LDAP_SLAPD_F (int) value_add_one_str LDAP_P((
+	BerVarray *vals,
+	const char* str ));
 
 /* assumes (x) > (y) returns 1 if true, 0 otherwise */
 #define SLAP_PTRCMP(x, y) ((x) < (y) ? -1 : (x) > (y))

@@ -59,6 +59,7 @@ do_modrdn(
 
 	Debug( LDAP_DEBUG_TRACE, "%s do_modrdn\n",
 			op->o_log_prefix );
+
 	/*
 	 * Parse the modrdn request.  It looks like this:
 	 *

@@ -123,6 +123,18 @@ value_add_one(
 	return LDAP_SUCCESS;
 }
 
+int
+value_add_one_str(
+	BerVarray		*vals,
+	const char* str )
+{
+	struct berval	one;
+
+	one.bv_len = str ? strlen(str) : 0;
+	one.bv_val = (char *) str;
+	return value_add_one( vals, &one);
+}
+
 int asserted_value_validate_normalize(
 	AttributeDescription *ad,
 	MatchingRule *mr,

@@ -23,14 +23,11 @@ BUILD_SQL=@BUILD_SQL@
 
 # test primary backends (default)
 test tests:
-	@$(MAKE) bdb
-	@$(MAKE) hdb
-	@$(MAKE) mdb
+	@$(MAKE) mdb bdb hdb
 
 # test all backends
 alltests: tests
-	@$(MAKE) sql
-	@$(MAKE) ldif
+	@$(MAKE) ldif sql
 
 bdb test-bdb:	bdb-$(BUILD_BDB)
 bdb-no:
@@ -79,4 +76,3 @@ clean-local:	FORCE
 
 veryclean-local: FORCE
 	@-$(RM) run testdata schema ucdata
-
