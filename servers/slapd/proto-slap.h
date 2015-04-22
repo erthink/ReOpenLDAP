@@ -1244,6 +1244,8 @@ LDAP_SLAPD_F (int) slap_build_syncUUID_set LDAP_P((
 				Operation *, BerVarray *, Entry * ));
 LDAP_SLAPD_F (int) slap_csn_stub_self LDAP_P((
 				BerVarray *ctxcsn, int **sids, int *numcsns));
+LDAP_SLAPD_F (int) slap_check_same_server LDAP_P((
+				BackendDB *bd, int sid));
 
 /*
  * limits.c

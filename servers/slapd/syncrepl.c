@@ -991,6 +991,19 @@ do_syncrep_process(
 				if ( !BER_BVISNULL( &syncCookie.octet_str )
 					 && slap_parse_sync_cookie( &syncCookie, NULL ) == 0 )
 				{
+					if (slap_check_same_server(si->si_be, syncCookie.sid) < 0) {
+					same_sid:
+						Debug( LDAP_DEBUG_SYNC, "do_syncrep_process:"
+							"%s provider has the same ServerID, cookie=%s\n",
+							si->si_ridtxt,
+							BER_BVISNULL( &cookie ) ? "" : cookie.bv_val );
+						if (rctrls) {
+							ldap_controls_free( rctrls );
+							rctrls = NULL;
+						}
+						rc = LDAP_ASSERTION_FAILED;
+						goto done;
+					}
 					quorum_notify_sid( si->si_be, si->si_rid, syncCookie.sid );
 					if ( syncCookie.ctxcsn ) {
 						int i, sid = slap_parse_csn_sid( syncCookie.ctxcsn );
@@ -1207,6 +1220,9 @@ do_syncrep_process(
 					if ( !BER_BVISNULL( &syncCookie.octet_str )
 						 && slap_parse_sync_cookie( &syncCookie, NULL ) == 0 )
 					{
+						if (slap_check_same_server(si->si_be, syncCookie.sid) < 0) {
+							goto same_sid;
+						}
 						quorum_notify_sid( si->si_be, si->si_rid, syncCookie.sid );
 						op->o_controls[slap_cids.sc_LDAPsync] = &syncCookie;
 					}
@@ -1291,6 +1307,11 @@ do_syncrep_process(
 					if ( !BER_BVISNULL( &syncCookie.octet_str )
 						 && slap_parse_sync_cookie( &syncCookie, NULL ) == 0 )
 					{
+						if (slap_check_same_server(si->si_be, syncCookie.sid) < 0) {
+							ldap_memfree( retoid );
+							ber_bvfree( retdata );
+							goto same_sid;
+						}
 						quorum_notify_sid( si->si_be, si->si_rid, syncCookie.sid );
 						op->o_controls[slap_cids.sc_LDAPsync] = &syncCookie;
 					}
@@ -1324,6 +1345,11 @@ do_syncrep_process(
 						if ( !BER_BVISNULL( &syncCookie.octet_str )
 							 && slap_parse_sync_cookie( &syncCookie, NULL ) == 0 )
 						{
+							if (slap_check_same_server(si->si_be, syncCookie.sid) < 0) {
+								ldap_memfree( retoid );
+								ber_bvfree( retdata );
+								goto same_sid;
+							}
 							quorum_notify_sid( si->si_be, si->si_rid, syncCookie.sid );
 							op->o_controls[slap_cids.sc_LDAPsync] = &syncCookie;
 						}
@@ -1365,6 +1391,11 @@ do_syncrep_process(
 						if ( !BER_BVISNULL( &syncCookie.octet_str )
 							 && slap_parse_sync_cookie( &syncCookie, NULL ) == 0 )
 						{
+							if (slap_check_same_server(si->si_be, syncCookie.sid) < 0) {
+								ldap_memfree( retoid );
+								ber_bvfree( retdata );
+								goto same_sid;
+							}
 							quorum_notify_sid( si->si_be, si->si_rid, syncCookie.sid );
 							op->o_controls[slap_cids.sc_LDAPsync] = &syncCookie;
 							compare_csns( &syncCookie_req, &syncCookie, &m );

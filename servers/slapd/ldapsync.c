@@ -201,6 +201,11 @@ sidsort_cmp(
 	return LDAP_SUCCESS;
 }
 
+int slap_check_same_server(BackendDB *bd, int sid) {
+	return ( sid == slap_serverID
+			&& reopenldap_mode_iddqd() && SLAP_MULTIMASTER(bd) ) ? -1 : 0;
+}
+
 int
 slap_csn_stub_self( BerVarray *ctxcsn, int **sids, int *numcsns )
 {

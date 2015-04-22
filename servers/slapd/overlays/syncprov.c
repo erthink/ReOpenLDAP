@@ -2702,6 +2702,12 @@ syncprov_op_search( Operation *op, SlapReply *rs )
 		sessionlog *sl;
 		int i, j;
 
+		if (slap_check_same_server(op->o_bd, srs->sr_state.sid) < 0) {
+			rs->sr_err = LDAP_ASSERTION_FAILED;
+			rs->sr_text = "consumer has the same ServeID!";
+			goto bailout;
+		}
+
 		/* If we don't have any CSN of our own yet, pretend nothing
 		 * has changed.
 		 */
