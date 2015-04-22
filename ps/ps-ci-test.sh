@@ -32,6 +32,13 @@ for n in $(seq 1 $N); do
 		if (($m & 2)); then export REOPENLDAP_FORCE_IDKFA=' idkfa'; fi
 		mode=$(if (($m)); then echo "$REOPENLDAP_FORCE_IDDQD$REOPENLDAP_FORCE_IDKFA"; else echo "free"; fi)
 		echo "##teamcity[blockOpened name='$mode']"
+
+		echo "##teamcity[testStarted name='lmdb' captureStandardOutput='true']"
+		if ! make -C libraries/liblmdb test; then
+			echo "##teamcity[testFailed name='lmdb']"
+		fi
+		echo "##teamcity[testFinished name='lmdb']"
+
 		NOEXIT="${TEAMCITY_PROCESS_FLOW_ID}" make test 2>&1 | tee ci-test-$n.log | $filter
 		if [ ${PIPESTATUS[0]} -ne 0 ]; then
 			killall -9 slapd 2>/dev/null
