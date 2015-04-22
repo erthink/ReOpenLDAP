@@ -40,7 +40,7 @@ fi
 export CXXFLAGS="$CFLAGS" LDFLAGS="$LDFLAGS"
 
 ./configure \
-		--enable-backends --enable-overlays $NBD \
+		--enable-debug --enable-backends --enable-overlays $NBD \
 		--enable-rewrite --enable-dynacl --enable-aci --enable-slapi \
 	|| failure "configure"
 
