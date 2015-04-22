@@ -7,6 +7,37 @@ function msg() {
 	sed "s/>>>>>\s\+\(.*\)\$/##teamcity[progressMessage 'Round $n of $N, $mode: \1']/g"
 }
 
+function find_free_port {
+	local begin=$(cut -f 1 /proc/sys/net/ipv4/ip_local_port_range)
+	local end=$(cut -f 2 /proc/sys/net/ipv4/ip_local_port_range)
+	local n=${1:-1}
+
+	while true; do
+		local l=$([ -x /usr/bin/rand ] && rand -M 65535 -s $(date +%N) || od -vAn -N2 -tu2 < /dev/urandom)
+		if [ $l -le 1024 ]; then continue; fi
+		if [ $l -ge $begin -a $l -lt $end ]; then continue; fi
+		local h=$((l+n-1))
+		if [ $h -gt 65535 ]; then continue; fi
+		if [ $h -ge $begin -a $h -lt $end ]; then continue; fi
+		local r=$l
+		for p in $(seq $l $h); do
+			if netstat -ant | sed -e '/^tcp/ !d' -e 's/^[^ ]* *[^ ]* *[^ ]* *.*[\.:]\([0-9]*\) .*$/\1/' | grep -q -w $p; then
+				r=0;
+				break;
+			fi
+		done
+		if [ $r -ne 0 ]; then
+			echo $r;
+			return 0;
+		fi
+	done
+}
+
+if [ -z ${SLAPD_BASEPORT} ]; then
+	export SLAPD_BASEPORT=$(find_free_port 8)
+fi
+echo "Using TCP-ports ${SLAPD_BASEPORT}-$((SLAPD_BASEPORT + 8))"
+
 if [ -n "${TEAMCITY_PROCESS_FLOW_ID}" ]; then
 	filter=msg
 	rm -rf tests/testrun || exit $?
