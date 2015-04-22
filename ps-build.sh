@@ -109,8 +109,8 @@ step_begin "packaging"
 
 FILE="openldap.$PACKAGE.tar.xz"
 tar -caf $FILE --owner=root -C ${PREFIX}/.. openldap \
+	&& sleep 1 && cat ${PREFIX}/changelog.txt >&2 && sleep 1 \
 	&& echo "##teamcity[publishArtifacts '$FILE']" \
-	&& cat ${PREFIX}/changelog.txt >&2 \
 	|| failure "tar"
 
 step_finish "packaging"
