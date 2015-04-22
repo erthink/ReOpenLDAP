@@ -48,8 +48,7 @@ CXXFLAGS="$CFLAGS" ./configure \
 	--prefix=${PREFIX} --enable-dynacl --enable-ldap \
 	--enable-overlays --disable-bdb --disable-hdb \
 	--disable-dynamic --disable-shared --enable-static \
-	--enable-debug --with-gnu-ld \
-	--without-cyrus-sasl --disable-dependency-tracking \
+	--enable-debug --with-gnu-ld --without-cyrus-sasl \
 	--disable-spasswd --disable-lmpasswd \
 	--without-tls --disable-rwm --disable-relay \
 	|| failure "configure"
@@ -77,6 +76,11 @@ step_begin "build mdb-tools"
 step_finish "build mdb-tools"
 echo "======================================================================="
 step_begin "build openldap"
+
+if [ -z "${TEAMCITY_PROCESS_FLOW_ID}" ]; then
+	make depend \
+		|| failure "make-deps"
+fi
 
 make -k -j4 \
 	|| failure "build-2"

@@ -42,12 +42,16 @@ export CXXFLAGS="$CFLAGS" LDFLAGS="$LDFLAGS"
 ./configure \
 		--enable-backends --enable-overlays $NBD \
 		--enable-rewrite --enable-dynacl --enable-aci --enable-slapi \
-		--disable-dependency-tracking \
 	|| failure "configure"
 
 export CFLAGS="-Werror $CFLAGS" CXXFLAGS="-Werror $CFLAGS"
 
-make depend && make -j4 && make -j4 -C libraries/liblmdb || failure "build"
+if [ -z "${TEAMCITY_PROCESS_FLOW_ID}" ]; then
+        make depend \
+                || failure "depends"
+fi
+
+make -j4 && make -j4 -C libraries/liblmdb || failure "build"
 
 for m in contrib/slapd-modules/*; do
 	if [ -d $m -a ! -e $m/BROKEN ]; then
