@@ -4585,8 +4585,6 @@ syncinfo_free( syncinfo_t *sie, int free_all )
 	do {
 		si_next = sie->si_next;
 
-		quorum_remove_rid( sie->si_be, sie->si_rid );
-
 		if ( sie->si_ld ) {
 			if ( sie->si_conn ) {
 				Debug( LDAP_DEBUG_ANY,
@@ -5711,6 +5709,8 @@ syncrepl_config( ConfigArgs *c )
 					*sip = si->si_next;
 					si->si_ctype = -1;
 					si->si_next = NULL;
+					quorum_remove_rid( si->si_be, si->si_rid );
+
 					/* If the task is currently active, we have to leave
 					 * it running. It will exit on its own. This will only
 					 * happen when running on the cn=config DB.

@@ -383,7 +383,9 @@ static int notify_sid(slap_quorum_t *q, int rid, int sid) {
 			}
 		}
 	}
-	LDAP_BUG();
+	/* LY: this may occur when 'syncrepl' removed by syncrepl_config()
+	 * while do_syncrepl() is running. */
+	return 0;
 }
 
 static int notify_ready(slap_quorum_t *q, int rid, int ready) {
@@ -405,7 +407,9 @@ static int notify_ready(slap_quorum_t *q, int rid, int ready) {
 			}
 		}
 	}
-	LDAP_BUG();
+	/* LY: this may occur when 'syncrepl' removed by syncrepl_config()
+	 * while do_syncrepl() is running. */
+	return 0;
 }
 
 void quorum_add_rid(BackendDB *bd, int rid) {
