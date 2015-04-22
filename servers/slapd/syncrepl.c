@@ -504,7 +504,6 @@ check_syncprov(
 	Entry e = {0};
 	SlapReply rs = {REP_SEARCH};
 	int i, j, changed = 0;
-	int rc;
 
 	/* Look for contextCSN from syncprov overlay. If
 	 * there's no overlay, this will be a no-op. That means
@@ -554,9 +553,6 @@ check_syncprov(
 		}
 		ber_bvarray_free( a.a_vals );
 	}
-
-	rc = slap_csn_stub_self( &si->si_cookieState->cs_vals, &si->si_cookieState->cs_sids, &si->si_cookieState->cs_num );
-	assert(rc == 0);
 
 	/* See if the cookieState has changed due to anything outside
 	 * this particular consumer. That includes other consumers in
@@ -665,14 +661,11 @@ do_syncrep_search(
 
 	si->si_syncCookie.rid = si->si_rid;
 
-	if (reopenldap_mode_iddqd()) {
-		si->si_syncCookie.sid = (slap_serverID > 0) ? slap_serverID : -1;
-	} else {
-		/* whenever there are multiple data sources possible, advertise sid */
-		si->si_syncCookie.sid = ( SLAP_MULTIMASTER( si->si_be )
-								  || si->si_be != si->si_wbe ) ?
-			slap_serverID : -1;
-	}
+	/* whenever there are multiple data sources possible, advertise sid */
+	si->si_syncCookie.sid = ( SLAP_MULTIMASTER( si->si_be )
+			|| si->si_be != si->si_wbe
+			|| (reopenldap_mode_iddqd() && slap_serverID) )
+			? slap_serverID : -1;
 
 	/* We've just started up, or the remote server hasn't sent us
 	 * any meaningful state.
@@ -721,9 +714,6 @@ do_syncrep_search(
 					if (rc)
 						goto done;
 				}
-				rc = slap_csn_stub_self( &si->si_cookieState->cs_vals, &si->si_cookieState->cs_sids, &si->si_cookieState->cs_num );
-				if (rc)
-					goto done;
 			}
 			if ( si->si_cookieState->cs_num ) {
 				ber_bvarray_free( si->si_syncCookie.ctxcsn );
@@ -1257,8 +1247,7 @@ do_syncrep_process(
 					err == LDAP_SUCCESS &&
 					syncrepl_enough_sids( si, syncCookie_req.numcsns, &syncCookie ) )
 				{
-					syncrepl_del_nonpresent( op, si, NULL,
-						&syncCookie, m );
+					syncrepl_del_nonpresent( op, si, NULL, &syncCookie, m );
 				} else if ( si->si_presentlist ) {
 					presentlist_free( si->si_presentlist );
 					si->si_presentlist = NULL;

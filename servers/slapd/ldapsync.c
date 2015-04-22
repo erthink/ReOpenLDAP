@@ -214,9 +214,6 @@ slap_csn_stub_self( BerVarray *ctxcsn, int **sids, int *numcsns )
 	int *new_sids;
 	char buf[ LDAP_PVT_CSNSTR_BUFSIZE ];
 
-	if (slap_serverID < 1 || ! reopenldap_mode_iddqd())
-		return 0;
-
 	for (i = *numcsns; --i >= 0; )
 		if (slap_serverID == (*sids)[i])
 			return 0;
@@ -231,14 +228,18 @@ slap_csn_stub_self( BerVarray *ctxcsn, int **sids, int *numcsns )
 		1900, 1, 1, 0, 0, 0, 0, 0, slap_serverID, 0 );
 
 	rc = value_add_one( ctxcsn, &csn );
-	if (rc)
+	if (rc < 0)
 		return rc;
 
 	*sids = new_sids;
 	(*sids)[*numcsns] = slap_serverID;
 	*numcsns += 1;
 
-	return slap_sort_csn_sids( *ctxcsn, *sids, *numcsns, NULL );
+	rc = slap_sort_csn_sids( *ctxcsn, *sids, *numcsns, NULL );
+	if (rc < 0)
+		return rc;
+
+	return 1;
 }
 
 /* sort CSNs by SID. Use a fake Attribute with our own
