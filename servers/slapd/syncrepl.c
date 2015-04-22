@@ -780,30 +780,31 @@ done:
 }
 
 static int
-dnp_acceptable_sids( struct sync_cookie *req, struct sync_cookie *cookie )
+syncrepl_enough_sids( syncinfo_t *si, int req_numcsns, struct sync_cookie *cookie )
 {
 	int i, j;
 
-	if (req->numcsns != cookie->numcsns)
+	if (req_numcsns != cookie->numcsns)
 		return 0;
 
-	if (reopenldap_mode_iddqd()) {
-		/* LY: check for all SIDs from req is exists in cookie. */
-		for(i = req->numcsns; --i >= 0; ) {
-			for(j = cookie->numcsns; --j >= 0; )
-				if (req->sids[i] == cookie->sids[j])
-					break;
-			if (j < 0)
-				return 0;
-		}
+	if (reopenldap_mode_iddqd()
+			&& (SLAP_MULTIMASTER( si->si_be ) || si->si_be != si->si_wbe )) {
+		struct sync_cookie *current = &si->si_syncCookie;
 
-		/* LY: check of self SID is present in cookie. */
-		if (slap_serverID > 0) {
-			for(j = cookie->numcsns; --j >= 0; )
-				if (slap_serverID == cookie->sids[j])
-					return 1;
-
-			return 0;
+		/* LY: check for all SIDs from current is exists in cookie,
+		 * include for local sid if exists. */
+		for(i = current->numcsns; --i >= 0; ) {
+			if (current->sids[i] > -1) {
+				for(j = cookie->numcsns; --j >= 0; )
+					if (current->sids[i] == cookie->sids[j]
+							|| current->sids[i] == cookie->sid)
+						break;
+				if (j < 0) {
+					Debug( LDAP_DEBUG_SYNC, "syncrepl_enough_sids: %s sid %d is apsent\n",
+						   si->si_ridtxt, current->sids[i] );
+					return 0;
+				}
+			}
 		}
 	}
 
@@ -1238,7 +1239,7 @@ do_syncrep_process(
 				 */
 				if ( refreshDeletes == 0 && match < 0 &&
 					err == LDAP_SUCCESS &&
-					dnp_acceptable_sids( &syncCookie_req, &syncCookie ) )
+					syncrepl_enough_sids( si, syncCookie_req.numcsns, &syncCookie ) )
 				{
 					syncrepl_del_nonpresent( op, si, NULL,
 						&syncCookie, m );
@@ -1420,7 +1421,7 @@ do_syncrep_process(
 				if ( match < 0 ) {
 					if ( si->si_refreshPresent == 1 &&
 						si_tag != LDAP_TAG_SYNC_NEW_COOKIE &&
-						dnp_acceptable_sids( &syncCookie_req, &syncCookie ) ) {
+						syncrepl_enough_sids( si, syncCookie_req.numcsns, &syncCookie ) ) {
 						syncrepl_del_nonpresent( op, si, NULL,
 							&syncCookie, m );
 					}
