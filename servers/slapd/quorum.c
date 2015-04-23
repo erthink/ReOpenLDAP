@@ -53,7 +53,7 @@ struct slap_quorum {
 	slap_quorum_t* qr_next;
 	struct present* qr_present;
 	struct requirment* qr_requirements;
-#	define qr_cluster qr_bd->be_rootndn.bv_val
+#	define qr_cluster qr_bd->be_nsuffix->bv_val
 	BackendDB *qr_bd;
 #	define QR_AUTO_RIDS	1
 #	define QR_AUTO_SIDS	2
