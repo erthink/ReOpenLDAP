@@ -398,3 +398,34 @@ function collect_coredumps {
 	fi
 	return 0
 }
+
+function collect_test {
+	local id=${1:-xxx-$(date '+%F.%H%M%S.%N')}
+	local publish=${2:-no}
+	local from="../${SRCDIR}/tests/testrun"
+	if [ -n "$(ls $from)" ]; then
+		echo "Collect result(s) from $id..." >&2
+
+		local dir n target
+		if [ -n "${TEST_NOOK}" ]; then
+			dir="../${SRCDIR}/${TEST_NOOK}/$id.dump"
+		else
+			dir="../${SRCDIR}/$id.dump"
+		fi
+
+		n=
+		while true; do
+			target="${dir}/${n}"
+				if [ ! -e "${target}" ]; then break; fi
+			n=$((n+1))
+		done
+
+		mkdir -p "$target" || (echo "failed: mkdir -p '$target'" >&2; exit 1)
+		mv -t "${target}" $from/* || (echo "failed: mv -t '${target}' '$from/*'" >&2; exit 1)
+
+		if [ "${publish}" == "yes" ]; then
+			teamcity_msg "publishArtifacts '${target}/** => $id-dump.tar.gz'"
+			sleep 1
+		fi
+	fi
+}

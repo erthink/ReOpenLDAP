@@ -24,12 +24,13 @@ fi
 FAILCOUNT=0
 SKIPCOUNT=0
 SLEEPTIME=10
+RESULTS=$TESTWD/results
 
 teamcity_msg "testSuiteStarted name='all LDAP tests for $BACKEND'"
 echo ">>>>> Executing all LDAP tests for $BACKEND"
 
 if [ -n "$NOEXIT" ]; then
-	echo "Result	Test" > $TESTWD/results
+	echo "Result	Test" > $RESULTS
 fi
 
 for CMD in $SRCDIR/scripts/test*; do
@@ -58,18 +59,22 @@ for CMD in $SRCDIR/scripts/test*; do
 EOF
 	fi
 
+	BCMD=`basename $CMD`
+	TEST_ID="$BCMD-$BACKEND"
 	if [ -x "$CMD" ]; then
-		BCMD=`basename $CMD`
 		teamcity_msg "testStarted name='$BCMD for $BACKEND' captureStandardOutput='true'"
 		echo ">>>>> Starting ${TB}$BCMD${TN} for $BACKEND..."
-		$CMD
-		RC=$?
-		if ! collect_coredumps $BCMD-$BACKEND; then
+		$CMD 2>&1 | tee $TESTDIR/main.log
+		RC=${PIPESTATUS[0]}
+
+		if ! collect_coredumps $TEST_ID; then
 			RC=134
 		fi
 		if test $RC -eq 0 ; then
+			collect_test $TEST_ID no
 			echo ">>>>> $BCMD completed ${TB}OK${TN} for $BACKEND."
 		else
+			collect_test $TEST_ID yes
 			echo ">>>>> $BCMD ${TB}failed${TN} for $BACKEND"
 			teamcity_msg "testFailed name='$BCMD for $BACKEND'"
 			FAILCOUNT=`expr $FAILCOUNT + 1`
@@ -90,7 +95,7 @@ EOF
 	fi
 
 	if [ -n "$NOEXIT" ]; then
-		echo "$RC	$BCMD" >> $TESTWD/results
+		echo "$RC	$TEST_ID" >> $RESULTS
 	fi
 
 #	echo ">>>>> waiting $SLEEPTIME seconds for things to exit"
@@ -100,7 +105,7 @@ done
 
 if [ -n "$NOEXIT" ]; then
 	if [ "$FAILCOUNT" -gt 0 ]; then
-		cat $TESTWD/results
+		cat $RESULTS
 		echo "$FAILCOUNT tests for $BACKEND ${TB}failed${TN}. Please review the test log."
 	else
 		echo "All executed tests for $BACKEND ${TB}succeeded${TN}."
