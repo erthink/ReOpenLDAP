@@ -55,8 +55,8 @@ else
 		|| exit $?
 fi
 
-for TEST_ITER in $(seq 1 $N); do
-	echo "##teamcity[blockOpened name='Round $TEST_ITER of $N']"
+for n in $(seq 1 $N); do
+	echo "##teamcity[blockOpened name='Round $n of $N']"
 	for m in 3 2 1 0; do
 		unset REOPENLDAP_FORCE_IDDQD REOPENLDAP_FORCE_IDKFA
 		case $m in
@@ -82,8 +82,19 @@ for TEST_ITER in $(seq 1 $N); do
 		fi
 		echo "##teamcity[testFinished name='lmdb']"
 
-		NOEXIT="${NOEXIT:-${TEAMCITY_PROCESS_FLOW_ID}}" make test 2>&1 | tee ci-test-${TEST_ITER}.${REOPENLDAP_MODE}.log | $filter
-		if [ ${PIPESTATUS[0]} -ne 0 ]; then
+		export TEST_NOOK="ci-test-${n}.${REOPENLDAP_MODE}"
+		NOEXIT="${NOEXIT:-${TEAMCITY_PROCESS_FLOW_ID}}" make test 2>&1 | tee ${TEST_NOOK}.log | $filter
+		RC=${PIPESTATUS[0]}
+		sleep 1
+
+		if [ -n "${TEAMCITY_PROCESS_FLOW_ID}" ]; then
+			echo "##teamcity[publishArtifacts '${TEST_NOOK}* => ${TEST_NOOK}.tar.gz']"
+			sleep 1
+		fi
+
+		#cat tests/results* | sort -n -r | uniq -c
+
+		if [ $RC -ne 0 ]; then
 			killall -9 slapd 2>/dev/null
 			echo "##teamcity[buildProblem description='Test(s) failed']"
 			exit 1
@@ -91,7 +102,7 @@ for TEST_ITER in $(seq 1 $N); do
 		echo "##teamcity[blockClosed name='$REOPENLDAP_MODE']"
 		sleep 1
 	done
-	echo "##teamcity[blockClosed name='Round $TEST_ITER of $N']"
+	echo "##teamcity[blockClosed name='Round $n of $N']"
 done
 
 echo "##teamcity[buildStatus text='Tests passed']"
