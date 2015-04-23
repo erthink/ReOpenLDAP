@@ -368,24 +368,32 @@ function teamcity_msg {
 	fi
 }
 
-function teamcity_checkcore {
-	local cores="$(find ../${SRCDIR} -name core -type f)"
+function collect_coredumps {
+	local id=${1:-xxx-$(date '+%F.%H%M%S.%N')}
+	local cores="$(find -L ../${SRCDIR}/tests ../${SRCDIR}/libraries/liblmdb -name core -type f)"
 	if [ -n "${cores}" ]; then
-		local target dir n c
-		for (( n=0; ; n++)); do
-			target="coredumps/${1:-$(date '+%F.%H%M%S.%N')}.$n"
-			dir="../${SRCDIR}/${target}"
-			if [ ! -d "${dir}" ]; then break; fi
-		done;
+		echo "Found some CORE(s): '$cores', collect it..." >&2
 
-		echo "Found some COREDUMP(S): '$cores', try publish as '$target'" >&2
-		mkdir -p "${dir}" && (n=1; for c in ${cores}; do
-			mv $c "${dir}/$n.core"
-			n=$((n+1))
-		done)
-		if [ -n "${TEAMCITY_PROCESS_FLOW_ID}" ]; then
-			echo "##teamcity[publishArtifacts '${dir}/** => $target.zip']"
+		local dir n c target
+		if [ -n "${TEST_NOOK}" ]; then
+			dir="../${SRCDIR}/${TEST_NOOK}/cores"
+		else
+			dir="../${SRCDIR}/cores"
 		fi
+
+		mkdir -p "$dir" || (echo "failed: mkdir -p '$dir'" >&2; exit 1)
+		n=
+		for c in ${cores}; do
+			while true; do
+				target="${dir}/${id}${n}.core"
+				if [ ! -e "${target}" ]; then break; fi
+				n=$((n-1))
+			done
+			mv "$c" "${target}" || (echo "failed: mv '$c' '${target}'" >&2; exit 1)
+		done
+
+		teamcity_msg "publishArtifacts '${dir} => ${target}-cores.tar.gz'"
+		sleep 1
 		return 1
 	fi
 	return 0

@@ -64,7 +64,7 @@ EOF
 		echo ">>>>> Starting ${TB}$BCMD${TN} for $BACKEND..."
 		$CMD
 		RC=$?
-		if ! teamcity_checkcore $BCMD-$BACKEND; then
+		if ! collect_coredumps $BCMD-$BACKEND; then
 			RC=134
 		fi
 		if test $RC -eq 0 ; then
