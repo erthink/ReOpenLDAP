@@ -4,7 +4,7 @@ N=${1:-42}
 HERE=$(readlink -f $(pwd))
 
 function msg() {
-	sed "s/>>>>>\s\+\(.*\)\$/##teamcity[progressMessage 'Round $n of $N, $mode: \1']/g"
+	sed "s/>>>>>\s\+\(.*\)\$/##teamcity[progressMessage 'Round $n of $N, $REOPENLDAP_MODE: \1']/g"
 }
 
 function find_free_port {
@@ -55,31 +55,43 @@ else
 		|| exit $?
 fi
 
-for n in $(seq 1 $N); do
-	echo "##teamcity[blockOpened name='Round $n of $N']"
+for TEST_ITER in $(seq 1 $N); do
+	echo "##teamcity[blockOpened name='Round $TEST_ITER of $N']"
 	for m in 3 2 1 0; do
 		unset REOPENLDAP_FORCE_IDDQD REOPENLDAP_FORCE_IDKFA
-		if (($m & 1)); then export REOPENLDAP_FORCE_IDDQD=' iddqd'; fi
-		if (($m & 2)); then export REOPENLDAP_FORCE_IDKFA=' idkfa'; fi
-		mode=$(if (($m)); then echo "$REOPENLDAP_FORCE_IDDQD$REOPENLDAP_FORCE_IDKFA"; else echo "free"; fi)
-		echo "##teamcity[blockOpened name='$mode']"
+		case $m in
+		0)
+			export REOPENLDAP_MODE='free'
+			;;
+		1)
+			export REOPENLDAP_FORCE_IDDQD=1 REOPENLDAP_MODE='DQD'
+			;;
+		2)
+			export REOPENLDAP_FORCE_IDKFA=1 REOPENLDAP_MODE='KFA'
+			;;
+		3)
+			export REOPENLDAP_FORCE_IDDQD=1 REOPENLDAP_FORCE_IDKFA=1 REOPENLDAP_MODE='DQD-KFA'
+			;;
+		esac
+		echo "##teamcity[blockOpened name='$REOPENLDAP_MODE']"
 
+		export TEST_ITER
 		echo "##teamcity[testStarted name='lmdb' captureStandardOutput='true']"
 		if ! make -C libraries/liblmdb test; then
 			echo "##teamcity[testFailed name='lmdb']"
 		fi
 		echo "##teamcity[testFinished name='lmdb']"
 
-		NOEXIT="${TEAMCITY_PROCESS_FLOW_ID}" make test 2>&1 | tee ci-test-$n.log | $filter
+		NOEXIT="${NOEXIT:-${TEAMCITY_PROCESS_FLOW_ID}}" make test 2>&1 | tee ci-test-${TEST_ITER}.${REOPENLDAP_MODE}.log | $filter
 		if [ ${PIPESTATUS[0]} -ne 0 ]; then
 			killall -9 slapd 2>/dev/null
-			echo "##teamcity[buildProblem description='Test failed']"
+			echo "##teamcity[buildProblem description='Test(s) failed']"
 			exit 1
 		fi
-		echo "##teamcity[blockClosed name='$mode']"
+		echo "##teamcity[blockClosed name='$REOPENLDAP_MODE']"
 		sleep 1
 	done
-	echo "##teamcity[blockClosed name='Round $n of $N']"
+	echo "##teamcity[blockClosed name='Round $TEST_ITER of $N']"
 done
 
 echo "##teamcity[buildStatus text='Tests passed']"
