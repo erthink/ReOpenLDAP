@@ -58,7 +58,6 @@ echo "PACKAGE: $PACKAGE"
 
 mkdir -p ${PREFIX}/bin \
 	&& (git log --no-merges --date=short --pretty=format:"%ad %s" $(git describe --always --abbrev=0 --tags).. \
-		| sed 's/lmdb-backend/slapd/g;s/EXTENSION/[+]/g;s/BUGFIX/[-] /g;s/FEATURE/[+]/g;s/CHANGE/[!]/g;s/TRIVIA/[*]/g;s/ - / /g' \
 		| tr -s ' ' ' ' | grep -v ' ITS#[0-9]\{4\}$' | sort -r | uniq -u \
 	&& /bin/echo -e "\nPackage version: $PACKAGE\nSource code tag: $(git describe --abbrev=15 --long --always --tags)" ) > ${PREFIX}/changelog.txt \
 	|| failure "fix-1"
