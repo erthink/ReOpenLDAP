@@ -26,8 +26,13 @@ SKIPCOUNT=0
 SLEEPTIME=10
 RESULTS=$TESTWD/results
 
-teamcity_msg "testSuiteStarted name='all LDAP tests for $BACKEND'"
-echo ">>>>> Executing all LDAP tests for $BACKEND"
+BACKEND_MODE=$BACKEND
+if [ -n "$REOPENLDAP_MODE" ]; then
+	BACKEND_MODE="$BACKEND/$REOPENLDAP_MODE"
+fi
+
+teamcity_msg "testSuiteStarted name='all LDAP tests for $BACKEND_MODE'"
+echo ">>>>> Executing all LDAP tests for $BACKEND_MODE"
 
 if [ -n "$NOEXIT" ]; then
 	echo "Result	Test" > $RESULTS
@@ -61,9 +66,13 @@ EOF
 
 	BCMD=`basename $CMD`
 	TEST_ID="$BCMD-$BACKEND"
+	if [ -n "$REOPENLDAP_MODE" ]; then
+		TEST_ID="$BCMD-$BACKEND-$REOPENLDAP_MODE"
+	fi
+
 	if [ -x "$CMD" ]; then
-		teamcity_msg "testStarted name='$BCMD for $BACKEND' captureStandardOutput='true'"
-		echo ">>>>> Starting ${TB}$BCMD${TN} for $BACKEND..."
+		teamcity_msg "testStarted name='$BCMD for $BACKEND_MODE' captureStandardOutput='true'"
+		echo ">>>>> Starting ${TB}$BCMD${TN} for $BACKEND_MODE..."
 		$CMD 2>&1 | tee $TESTDIR/main.log
 		RC=${PIPESTATUS[0]}
 
@@ -72,11 +81,11 @@ EOF
 		fi
 		if test $RC -eq 0 ; then
 			collect_test $TEST_ID no
-			echo ">>>>> $BCMD completed ${TB}OK${TN} for $BACKEND."
+			echo ">>>>> $BCMD completed ${TB}OK${TN} for $BACKEND_MODE."
 		else
 			collect_test $TEST_ID yes
-			echo ">>>>> $BCMD ${TB}failed${TN} for $BACKEND"
-			teamcity_msg "testFailed name='$BCMD for $BACKEND'"
+			echo ">>>>> $BCMD ${TB}failed${TN} for $BACKEND_MODE"
+			teamcity_msg "testFailed name='$BCMD for $BACKEND_MODE'"
 			FAILCOUNT=`expr $FAILCOUNT + 1`
 
 			if [ -n "$NOEXIT" ]; then
@@ -86,12 +95,12 @@ EOF
 				exit $RC
 			fi
 		fi
-		teamcity_msg "testFinished name='$BCMD for $BACKEND'"
+		teamcity_msg "testFinished name='$BCMD for $BACKEND_MODE'"
 	else
-		echo ">>>>> Skipping ${TB}$BCMD${TN} for $BACKEND."
+		echo ">>>>> Skipping ${TB}$BCMD${TN} for $BACKEND_MODE."
 		SKIPCOUNT=`expr $SKIPCOUNT + 1`
 		RC="-"
-		teamcity_msg t"testIgnored name='$BCMD for $BACKEND'"
+		teamcity_msg t"testIgnored name='$BCMD for $BACKEND_MODE'"
 	fi
 
 	if [ -n "$NOEXIT" ]; then
@@ -106,12 +115,12 @@ done
 if [ -n "$NOEXIT" ]; then
 	if [ "$FAILCOUNT" -gt 0 ]; then
 		cat $RESULTS
-		echo "$FAILCOUNT tests for $BACKEND ${TB}failed${TN}. Please review the test log."
+		echo "$FAILCOUNT tests for $BACKEND_MODE ${TB}failed${TN}. Please review the test log."
 	else
-		echo "All executed tests for $BACKEND ${TB}succeeded${TN}."
+		echo "All executed tests for $BACKEND_MODE ${TB}succeeded${TN}."
 	fi
 fi
 
-echo "$SKIPCOUNT tests for $BACKEND were ${TB}skipped${TN}."
-teamcity_msg "testSuiteFinished name='all LDAP tests for $BACKEND'"
+echo "$SKIPCOUNT tests for $BACKEND_MODE were ${TB}skipped${TN}."
+teamcity_msg "testSuiteFinished name='all LDAP tests for $BACKEND_MODE'"
 exit 0
