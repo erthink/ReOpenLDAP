@@ -368,20 +368,31 @@ function teamcity_msg {
 	fi
 }
 
+function safepath {
+	local r=$(realpath --relative-to ../${SRCDIR} $@ 2>/dev/null)
+	# LY: realpath from RHEL6 don't support '--relative-to' option,
+	#     this is workaround/crutch.
+	if [ -n "$r" ]; then
+		echo $r
+	else
+		readlink -f $@ | sed -e 's|^/sandbox|.|g'
+	fi
+}
+
 function collect_coredumps {
 	local id=${1:-xxx-$(date '+%F.%H%M%S.%N')}
 	local cores="$(find -L ../${SRCDIR}/tests ../${SRCDIR}/libraries/liblmdb -name core -type f)"
 	if [ -n "${cores}" ]; then
-		echo "Found some CORE(s): '$cores', collect it..." >&2
+		echo "Found some CORE(s): '$(safepath $cores)', collect it..." >&2
 
 		local dir n c target
 		if [ -n "${TEST_NOOK}" ]; then
-			dir="../${SRCDIR}/${TEST_NOOK}/cores"
+			dir="../${SRCDIR}/${TEST_NOOK}"
 		else
-			dir="../${SRCDIR}/cores"
+			dir="../${SRCDIR}/@cores"
 		fi
 
-		mkdir -p "$dir" || (echo "failed: mkdir -p '$dir'" >&2; exit 1)
+		mkdir -p "$dir" || echo "failed: mkdir -p '$dir'" >&2
 		n=
 		for c in ${cores}; do
 			while true; do
@@ -389,10 +400,10 @@ function collect_coredumps {
 				if [ ! -e "${target}" ]; then break; fi
 				n=$((n-1))
 			done
-			mv "$c" "${target}" || (echo "failed: mv '$c' '${target}'" >&2; exit 1)
+			mv "$c" "${target}" || echo "failed: mv '$c' '${target}'" >&2
 		done
 
-		teamcity_msg "publishArtifacts '${dir} => ${target}-cores.tar.gz'"
+		teamcity_msg "publishArtifacts '$(safepath ${dir})/${id}*.core => ${id}-cores.tar.gz'"
 		sleep 1
 		return 1
 	fi
@@ -410,21 +421,21 @@ function collect_test {
 		if [ -n "${TEST_NOOK}" ]; then
 			dir="../${SRCDIR}/${TEST_NOOK}/$id.dump"
 		else
-			dir="../${SRCDIR}/$id.dump"
+			dir="../${SRCDIR}/@dumps/$id.dump"
 		fi
 
 		n=
 		while true; do
 			target="${dir}/${n}"
-				if [ ! -e "${target}" ]; then break; fi
+			if [ ! -e "${target}" ]; then break; fi
 			n=$((n+1))
 		done
 
-		mkdir -p "$target" || (echo "failed: mkdir -p '$target'" >&2; exit 1)
-		mv -t "${target}" $from/* || (echo "failed: mv -t '${target}' '$from/*'" >&2; exit 1)
+		mkdir -p "$target" || echo "failed: mkdir -p '$target'" >&2
+		mv -t "${target}" $from/* || echo "failed: mv -t '${target}' '$from/*'" >&2
 
 		if [ "${publish}" == "yes" ]; then
-			teamcity_msg "publishArtifacts '${target}/** => $id-dump.tar.gz'"
+			teamcity_msg "publishArtifacts '$(safepath ${target}) => ${id}-dump.tar.gz'"
 			sleep 1
 		fi
 	fi
