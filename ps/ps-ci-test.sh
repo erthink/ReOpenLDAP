@@ -82,13 +82,15 @@ for n in $(seq 1 $N); do
 		fi
 		echo "##teamcity[testFinished name='lmdb']"
 
-		export TEST_NOOK="ci-test-${n}.${REOPENLDAP_MODE}"
-		NOEXIT="${NOEXIT:-${TEAMCITY_PROCESS_FLOW_ID}}" make test 2>&1 | tee ${TEST_NOOK}.log | $filter
+		export TEST_NOOK="@ci-test-${n}.${REOPENLDAP_MODE}"
+		(rm -rf ${TEST_NOOK} && mkdir -p ${TEST_NOOK}) || (echo "failed: mkdir -p '${TEST_NOOK}'" >&2; exit 1)
+
+		NOEXIT="${NOEXIT:-${TEAMCITY_PROCESS_FLOW_ID}}" make test 2>&1 | tee ${TEST_NOOK}/all.log | $filter
 		RC=${PIPESTATUS[0]}
 		sleep 1
 
 		if [ -n "${TEAMCITY_PROCESS_FLOW_ID}" ]; then
-			echo "##teamcity[publishArtifacts '${TEST_NOOK}* => ${TEST_NOOK}.tar.gz']"
+			echo "##teamcity[publishArtifacts '${TEST_NOOK} => ${TEST_NOOK}.tar.gz']"
 			sleep 1
 		fi
 
