@@ -83,10 +83,11 @@ for n in $(seq 1 $N); do
 		echo "##teamcity[testFinished name='lmdb']"
 
 		export TEST_NOOK="@ci-test-${n}.${REOPENLDAP_MODE}"
-		(rm -rf ${TEST_NOOK} && mkdir -p ${TEST_NOOK}) || (echo "failed: mkdir -p '${TEST_NOOK}'" >&2; exit 1)
+		(rm -rf ${TEST_NOOK} && mkdir -p ${TEST_NOOK}) || echo "failed: mkdir -p '${TEST_NOOK}'" >&2
 
 		NOEXIT="${NOEXIT:-${TEAMCITY_PROCESS_FLOW_ID}}" make test 2>&1 | tee ${TEST_NOOK}/all.log | $filter
 		RC=${PIPESTATUS[0]}
+		grep ' failed for ' ${TEST_NOOK}/all.log >&2
 		sleep 1
 
 		if [ -n "${TEAMCITY_PROCESS_FLOW_ID}" ]; then
@@ -94,11 +95,11 @@ for n in $(seq 1 $N); do
 			sleep 1
 		fi
 
-		#cat tests/results* | sort -n -r | uniq -c
-
 		if [ $RC -ne 0 ]; then
 			killall -9 slapd 2>/dev/null
 			echo "##teamcity[buildProblem description='Test(s) failed']"
+			find ./@ci-test-* -name all.log | xargs -r grep ' completed OK for '
+			find ./@ci-test-* -name all.log | xargs -r grep ' failed for ' >&2
 			exit 1
 		fi
 		echo "##teamcity[blockClosed name='$REOPENLDAP_MODE']"
@@ -108,4 +109,6 @@ for n in $(seq 1 $N); do
 done
 
 echo "##teamcity[buildStatus text='Tests passed']"
+find ./@ci-test-* -name all.log | xargs -r grep ' completed OK for '
+find ./@ci-test-* -name all.log | xargs -r grep ' failed for ' >&2
 exit 0
