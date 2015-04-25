@@ -48,8 +48,7 @@ CXXFLAGS="$CFLAGS" ./configure \
 	--prefix=${PREFIX} --enable-dynacl --enable-ldap \
 	--enable-overlays --disable-bdb --disable-hdb \
 	--disable-dynamic --disable-shared --enable-static \
-	--enable-debug --with-gnu-ld \
-	--without-cyrus-sasl --disable-dependency-tracking \
+	--enable-debug --with-gnu-ld --without-cyrus-sasl \
 	--disable-spasswd --disable-lmpasswd \
 	--without-tls --disable-rwm --disable-relay \
 	|| failure "configure"
@@ -59,7 +58,6 @@ echo "PACKAGE: $PACKAGE"
 
 mkdir -p ${PREFIX}/bin \
 	&& (git log --no-merges --date=short --pretty=format:"%ad %s" $(git describe --always --abbrev=0 --tags).. \
-		| sed 's/lmdb-backend/slapd/g;s/EXTENSION/[+]/g;s/BUGFIX/[-] /g;s/FEATURE/[+]/g;s/CHANGE/[!]/g;s/TRIVIA/[*]/g;s/ - / /g' \
 		| tr -s ' ' ' ' | grep -v ' ITS#[0-9]\{4\}$' | sort -r | uniq -u \
 	&& /bin/echo -e "\nPackage version: $PACKAGE\nSource code tag: $(git describe --abbrev=15 --long --always --tags)" ) > ${PREFIX}/changelog.txt \
 	|| failure "fix-1"
@@ -77,6 +75,11 @@ step_begin "build mdb-tools"
 step_finish "build mdb-tools"
 echo "======================================================================="
 step_begin "build openldap"
+
+if [ -z "${TEAMCITY_PROCESS_FLOW_ID}" ]; then
+	make depend \
+		|| failure "make-deps"
+fi
 
 make -k -j4 \
 	|| failure "build-2"
@@ -105,8 +108,8 @@ step_begin "packaging"
 
 FILE="openldap.$PACKAGE.tar.xz"
 tar -caf $FILE --owner=root -C ${PREFIX}/.. openldap \
+	&& sleep 1 && cat ${PREFIX}/changelog.txt >&2 && sleep 1 \
 	&& echo "##teamcity[publishArtifacts '$FILE']" \
-	&& cat ${PREFIX}/changelog.txt >&2 \
 	|| failure "tar"
 
 step_finish "packaging"
