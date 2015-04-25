@@ -368,25 +368,75 @@ function teamcity_msg {
 	fi
 }
 
-function teamcity_checkcore {
-	local cores="$(find ../${SRCDIR} -name core -type f)"
-	if [ -n "${cores}" ]; then
-		local target dir n c
-		for (( n=0; ; n++)); do
-			target="coredumps/${1:-$(date '+%F.%H%M%S.%N')}.$n"
-			dir="../${SRCDIR}/${target}"
-			if [ ! -d "${dir}" ]; then break; fi
-		done;
+function safepath {
+	local r=$(realpath --relative-to ../${SRCDIR} $@ 2>/dev/null)
+	# LY: realpath from RHEL6 don't support '--relative-to' option,
+	#     this is workaround/crutch.
+	if [ -n "$r" ]; then
+		echo $r
+	else
+		readlink -f $@ | sed -e 's|^/sandbox|.|g'
+	fi
+}
 
-		echo "Found some COREDUMP(S): '$cores', try publish as '$target'" >&2
-		mkdir -p "${dir}" && (n=1; for c in ${cores}; do
-			mv $c "${dir}/$n.core"
-			n=$((n+1))
-		done)
-		if [ -n "${TEAMCITY_PROCESS_FLOW_ID}" ]; then
-			echo "##teamcity[publishArtifacts '${dir}/** => $target.zip']"
+function collect_coredumps {
+	local id=${1:-xxx-$(date '+%F.%H%M%S.%N')}
+	local cores="$(find -L ../${SRCDIR}/tests ../${SRCDIR}/libraries/liblmdb -name core -type f)"
+	if [ -n "${cores}" ]; then
+		echo "Found some CORE(s): '$(safepath $cores)', collect it..." >&2
+
+		local dir n c target
+		if [ -n "${TEST_NOOK}" ]; then
+			dir="../${SRCDIR}/${TEST_NOOK}"
+		else
+			dir="../${SRCDIR}/@cores"
 		fi
+
+		mkdir -p "$dir" || echo "failed: mkdir -p '$dir'" >&2
+		n=
+		for c in ${cores}; do
+			while true; do
+				target="${dir}/${id}${n}.core"
+				if [ ! -e "${target}" ]; then break; fi
+				n=$((n-1))
+			done
+			mv "$c" "${target}" || echo "failed: mv '$c' '${target}'" >&2
+		done
+
+		teamcity_msg "publishArtifacts '$(safepath ${dir})/${id}*.core => ${id}-cores.tar.gz'"
+		sleep 1
 		return 1
 	fi
 	return 0
+}
+
+function collect_test {
+	local id=${1:-xxx-$(date '+%F.%H%M%S.%N')}
+	local publish=${2:-no}
+	local from="../${SRCDIR}/tests/testrun"
+	if [ -n "$(ls $from)" ]; then
+		echo "Collect result(s) from $id..." >&2
+
+		local dir n target
+		if [ -n "${TEST_NOOK}" ]; then
+			dir="../${SRCDIR}/${TEST_NOOK}/$id.dump"
+		else
+			dir="../${SRCDIR}/@dumps/$id.dump"
+		fi
+
+		n=
+		while true; do
+			target="${dir}/${n}"
+			if [ ! -e "${target}" ]; then break; fi
+			n=$((n+1))
+		done
+
+		mkdir -p "$target" || echo "failed: mkdir -p '$target'" >&2
+		mv -t "${target}" $from/* || echo "failed: mv -t '${target}' '$from/*'" >&2
+
+		if [ "${publish}" == "yes" ]; then
+			teamcity_msg "publishArtifacts '$(safepath ${target}) => ${id}-dump.tar.gz'"
+			sleep 1
+		fi
+	fi
 }

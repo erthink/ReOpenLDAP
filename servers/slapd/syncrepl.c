@@ -504,7 +504,6 @@ check_syncprov(
 	Entry e = {0};
 	SlapReply rs = {REP_SEARCH};
 	int i, j, changed = 0;
-	int rc;
 
 	/* Look for contextCSN from syncprov overlay. If
 	 * there's no overlay, this will be a no-op. That means
@@ -554,9 +553,6 @@ check_syncprov(
 		}
 		ber_bvarray_free( a.a_vals );
 	}
-
-	rc = slap_csn_stub_self( &si->si_cookieState->cs_vals, &si->si_cookieState->cs_sids, &si->si_cookieState->cs_num );
-	assert(rc == 0);
 
 	/* See if the cookieState has changed due to anything outside
 	 * this particular consumer. That includes other consumers in
@@ -665,14 +661,11 @@ do_syncrep_search(
 
 	si->si_syncCookie.rid = si->si_rid;
 
-	if (reopenldap_mode_iddqd()) {
-		si->si_syncCookie.sid = (slap_serverID > 0) ? slap_serverID : -1;
-	} else {
-		/* whenever there are multiple data sources possible, advertise sid */
-		si->si_syncCookie.sid = ( SLAP_MULTIMASTER( si->si_be )
-								  || si->si_be != si->si_wbe ) ?
-			slap_serverID : -1;
-	}
+	/* whenever there are multiple data sources possible, advertise sid */
+	si->si_syncCookie.sid = ( SLAP_MULTIMASTER( si->si_be )
+			|| si->si_be != si->si_wbe
+			|| (reopenldap_mode_iddqd() && slap_serverID) )
+			? slap_serverID : -1;
 
 	/* We've just started up, or the remote server hasn't sent us
 	 * any meaningful state.
@@ -721,9 +714,6 @@ do_syncrep_search(
 					if (rc)
 						goto done;
 				}
-				rc = slap_csn_stub_self( &si->si_cookieState->cs_vals, &si->si_cookieState->cs_sids, &si->si_cookieState->cs_num );
-				if (rc)
-					goto done;
 			}
 			if ( si->si_cookieState->cs_num ) {
 				ber_bvarray_free( si->si_syncCookie.ctxcsn );
@@ -780,30 +770,31 @@ done:
 }
 
 static int
-dnp_acceptable_sids( struct sync_cookie *req, struct sync_cookie *cookie )
+syncrepl_enough_sids( syncinfo_t *si, int req_numcsns, struct sync_cookie *cookie )
 {
 	int i, j;
 
-	if (req->numcsns != cookie->numcsns)
+	if (req_numcsns != cookie->numcsns)
 		return 0;
 
-	if (reopenldap_mode_iddqd()) {
-		/* LY: check for all SIDs from req is exists in cookie. */
-		for(i = req->numcsns; --i >= 0; ) {
-			for(j = cookie->numcsns; --j >= 0; )
-				if (req->sids[i] == cookie->sids[j])
-					break;
-			if (j < 0)
-				return 0;
-		}
+	if (reopenldap_mode_iddqd()
+			&& (SLAP_MULTIMASTER( si->si_be ) || si->si_be != si->si_wbe )) {
+		struct sync_cookie *current = &si->si_syncCookie;
 
-		/* LY: check of self SID is present in cookie. */
-		if (slap_serverID > 0) {
-			for(j = cookie->numcsns; --j >= 0; )
-				if (slap_serverID == cookie->sids[j])
-					return 1;
-
-			return 0;
+		/* LY: check for all SIDs from current is exists in cookie,
+		 * include for local sid if exists. */
+		for(i = current->numcsns; --i >= 0; ) {
+			if (current->sids[i] > -1) {
+				for(j = cookie->numcsns; --j >= 0; )
+					if (current->sids[i] == cookie->sids[j]
+							|| current->sids[i] == cookie->sid)
+						break;
+				if (j < 0) {
+					Debug( LDAP_DEBUG_SYNC, "syncrepl_enough_sids: %s sid %d is apsent\n",
+						   si->si_ridtxt, current->sids[i] );
+					return 0;
+				}
+			}
 		}
 	}
 
@@ -990,6 +981,19 @@ do_syncrep_process(
 				if ( !BER_BVISNULL( &syncCookie.octet_str )
 					 && slap_parse_sync_cookie( &syncCookie, NULL ) == 0 )
 				{
+					if (slap_check_same_server(si->si_be, syncCookie.sid) < 0) {
+					same_sid:
+						Debug( LDAP_DEBUG_SYNC, "do_syncrep_process:"
+							"%s provider has the same ServerID, cookie=%s\n",
+							si->si_ridtxt,
+							BER_BVISNULL( &cookie ) ? "" : cookie.bv_val );
+						if (rctrls) {
+							ldap_controls_free( rctrls );
+							rctrls = NULL;
+						}
+						rc = LDAP_ASSERTION_FAILED;
+						goto done;
+					}
 					quorum_notify_sid( si->si_be, si->si_rid, syncCookie.sid );
 					if ( syncCookie.ctxcsn ) {
 						int i, sid = slap_parse_csn_sid( syncCookie.ctxcsn );
@@ -1206,6 +1210,9 @@ do_syncrep_process(
 					if ( !BER_BVISNULL( &syncCookie.octet_str )
 						 && slap_parse_sync_cookie( &syncCookie, NULL ) == 0 )
 					{
+						if (slap_check_same_server(si->si_be, syncCookie.sid) < 0) {
+							goto same_sid;
+						}
 						quorum_notify_sid( si->si_be, si->si_rid, syncCookie.sid );
 						op->o_controls[slap_cids.sc_LDAPsync] = &syncCookie;
 					}
@@ -1238,10 +1245,9 @@ do_syncrep_process(
 				 */
 				if ( refreshDeletes == 0 && match < 0 &&
 					err == LDAP_SUCCESS &&
-					dnp_acceptable_sids( &syncCookie_req, &syncCookie ) )
+					syncrepl_enough_sids( si, syncCookie_req.numcsns, &syncCookie ) )
 				{
-					syncrepl_del_nonpresent( op, si, NULL,
-						&syncCookie, m );
+					syncrepl_del_nonpresent( op, si, NULL, &syncCookie, m );
 				} else if ( si->si_presentlist ) {
 					presentlist_free( si->si_presentlist );
 					si->si_presentlist = NULL;
@@ -1290,6 +1296,11 @@ do_syncrep_process(
 					if ( !BER_BVISNULL( &syncCookie.octet_str )
 						 && slap_parse_sync_cookie( &syncCookie, NULL ) == 0 )
 					{
+						if (slap_check_same_server(si->si_be, syncCookie.sid) < 0) {
+							ldap_memfree( retoid );
+							ber_bvfree( retdata );
+							goto same_sid;
+						}
 						quorum_notify_sid( si->si_be, si->si_rid, syncCookie.sid );
 						op->o_controls[slap_cids.sc_LDAPsync] = &syncCookie;
 					}
@@ -1323,6 +1334,11 @@ do_syncrep_process(
 						if ( !BER_BVISNULL( &syncCookie.octet_str )
 							 && slap_parse_sync_cookie( &syncCookie, NULL ) == 0 )
 						{
+							if (slap_check_same_server(si->si_be, syncCookie.sid) < 0) {
+								ldap_memfree( retoid );
+								ber_bvfree( retdata );
+								goto same_sid;
+							}
 							quorum_notify_sid( si->si_be, si->si_rid, syncCookie.sid );
 							op->o_controls[slap_cids.sc_LDAPsync] = &syncCookie;
 						}
@@ -1364,6 +1380,11 @@ do_syncrep_process(
 						if ( !BER_BVISNULL( &syncCookie.octet_str )
 							 && slap_parse_sync_cookie( &syncCookie, NULL ) == 0 )
 						{
+							if (slap_check_same_server(si->si_be, syncCookie.sid) < 0) {
+								ldap_memfree( retoid );
+								ber_bvfree( retdata );
+								goto same_sid;
+							}
 							quorum_notify_sid( si->si_be, si->si_rid, syncCookie.sid );
 							op->o_controls[slap_cids.sc_LDAPsync] = &syncCookie;
 							compare_csns( &syncCookie_req, &syncCookie, &m );
@@ -1420,7 +1441,7 @@ do_syncrep_process(
 				if ( match < 0 ) {
 					if ( si->si_refreshPresent == 1 &&
 						si_tag != LDAP_TAG_SYNC_NEW_COOKIE &&
-						dnp_acceptable_sids( &syncCookie_req, &syncCookie ) ) {
+						syncrepl_enough_sids( si, syncCookie_req.numcsns, &syncCookie ) ) {
 						syncrepl_del_nonpresent( op, si, NULL,
 							&syncCookie, m );
 					}
@@ -4585,8 +4606,6 @@ syncinfo_free( syncinfo_t *sie, int free_all )
 	do {
 		si_next = sie->si_next;
 
-		quorum_remove_rid( sie->si_be, sie->si_rid );
-
 		if ( sie->si_ld ) {
 			if ( sie->si_conn ) {
 				Debug( LDAP_DEBUG_ANY,
@@ -5711,6 +5730,8 @@ syncrepl_config( ConfigArgs *c )
 					*sip = si->si_next;
 					si->si_ctype = -1;
 					si->si_next = NULL;
+					quorum_remove_rid( si->si_be, si->si_rid );
+
 					/* If the task is currently active, we have to leave
 					 * it running. It will exit on its own. This will only
 					 * happen when running on the cn=config DB.

@@ -25,10 +25,19 @@
 #include "lber_hipagut.h"
 
 int reopenldap_flags
-#if defined(LDAP_DEBUG) || LDAP_MEMORY_DEBUG > 0
+#if LDAP_MEMORY_DEBUG > 1
 		= REOPENLDAP_FLAG_IDKFA
 #endif
 		;
+
+#ifdef LDAP_DEBUG
+void __attribute__((constructor)) reopenldap_flags_init() {
+	if (getenv("REOPENLDAP_FORCE_IDKFA"))
+		reopenldap_flags |= REOPENLDAP_FLAG_IDKFA;
+	if (getenv("REOPENLDAP_FORCE_IDDQD"))
+		reopenldap_flags |= REOPENLDAP_FLAG_IDDQD;
+}
+#endif /* LDAP_DEBUG */
 
 void reopenldap_flags_setup(int flags) {
 	reopenldap_flags = flags & (REOPENLDAP_FLAG_IDDQD | REOPENLDAP_FLAG_IDKFA);
