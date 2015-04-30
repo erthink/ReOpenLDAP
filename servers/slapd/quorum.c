@@ -173,28 +173,30 @@ static int lazy_update(slap_quorum_t *q) {
 				" (all-links, not ready)\n",
 			   q->qr_cluster );
 		state = -1;
-	} else if (q->qr_requirements) {
+	}
+
+	if (q->qr_requirements) {
 		for(r = q->qr_requirements; r->type > -1; ++r) {
 			if (QR_IS_SID(r->type)) {
 				if (r->id == slap_serverID)
 					continue;
-				for(p = q->qr_present; p->ready > -1; ++p) {
+				++wanna_sids;
+				for(p = q->qr_present; p && p->ready > -1; ++p) {
 					if (p->sid == r->id) {
-						wanna_sids += 1;
 						ready_sids += p->ready;
 						break;
 					}
 				}
 			} else {
-				for(p = q->qr_present; p->ready > -1; ++p) {
+				++wanna_rids;
+				for(p = q->qr_present; p && p->ready > -1; ++p) {
 					if (p->rid == r->id) {
-						wanna_rids += 1;
 						ready_rids += p->ready;
 						break;
 					}
 				}
 			}
-			if (QR_IS_DEMAND(r->type) && p->ready < 1) {
+			if (QR_IS_DEMAND(r->type) && (!p || p->ready < 1)) {
 				Debug( LDAP_DEBUG_SYNC, "syncrep_quorum: %s FORCE-LACK"
 						" (required %s%s %d not ready)\n",
 					   q->qr_cluster,
