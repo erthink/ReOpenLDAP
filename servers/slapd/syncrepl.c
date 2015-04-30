@@ -726,8 +726,10 @@ do_syncrep_search(
 				si->si_syncCookie.numcsns = si->si_cookieState->cs_num;
 				si->si_syncCookie.sids = ch_malloc( si->si_cookieState->cs_num *
 					sizeof(int) );
-				for ( i=0; i<si->si_syncCookie.numcsns; i++ )
+				for ( i=0; i<si->si_syncCookie.numcsns; i++ ) {
 					si->si_syncCookie.sids[i] = si->si_cookieState->cs_sids[i];
+					quorum_notify_csn( si->si_be, si->si_syncCookie.sids[i] );
+				}
 			}
 			ldap_pvt_thread_mutex_unlock( &si->si_cookieState->cs_mutex );
 		}
@@ -737,6 +739,7 @@ do_syncrep_search(
 			si->si_syncCookie.ctxcsn, si->si_syncCookie.rid,
 			si->si_syncCookie.sid );
 	} else {
+		int i;
 		/* ITS#6367: recreate the cookie so it has our SID, not our peer's */
 		ch_free( si->si_syncCookie.octet_str.bv_val );
 		BER_BVZERO( &si->si_syncCookie.octet_str );
@@ -746,6 +749,10 @@ do_syncrep_search(
 			slap_compose_sync_cookie( NULL, &si->si_syncCookie.octet_str,
 				si->si_syncCookie.ctxcsn, si->si_syncCookie.rid,
 				si->si_syncCookie.sid );
+		/* LY: Seems that in some cases quorum_notify_csn()
+		 *     could be not called from check_syncprov(). */
+		for ( i=0; i<si->si_syncCookie.numcsns; i++ )
+			quorum_notify_csn( si->si_be, si->si_syncCookie.sids[i] );
 	}
 
 	si->si_refreshDone = 0;
