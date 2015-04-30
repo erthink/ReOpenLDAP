@@ -265,7 +265,6 @@ syncprov_done_ctrl(
 	SlapReply	*rs,
 	LDAPControl	**ctrls,
 	int			num_ctrls,
-	int			send_cookie,
 	struct berval *cookie,
 	int			refreshDeletes )
 {
@@ -279,7 +278,7 @@ syncprov_done_ctrl(
 	ber_set_option( ber, LBER_OPT_BER_MEMCTX, &op->o_tmpmemctx );
 
 	ber_printf( ber, "{" );
-	if ( send_cookie && cookie ) {
+	if ( cookie ) {
 		ber_printf( ber, "O", cookie );
 	}
 	if ( refreshDeletes == LDAP_SYNC_REFRESH_DELETES ) {
@@ -2548,8 +2547,9 @@ syncprov_search_response( Operation *op, SlapReply *rs )
 	} else if ( rs->sr_type == REP_RESULT && rs->sr_err == LDAP_SUCCESS ) {
 		struct berval cookie = BER_BVNULL;
 
-		if ( ( ss->ss_flags & SS_CHANGED ) &&
-			ss->ss_ctxcsn && !BER_BVISNULL( &ss->ss_ctxcsn[0] )) {
+		if ( reopenldap_mode_iddqd() /* LY: cookie for quorum's auto-sids */
+			|| (( ss->ss_flags & SS_CHANGED )
+				&& ss->ss_ctxcsn && !BER_BVISNULL( &ss->ss_ctxcsn[0] )) ) {
 			syncprov_compose_sync_cookie( op, &cookie, ss->ss_ctxcsn, srs->sr_state.rid );
 			Debug( LDAP_DEBUG_SYNC, "syncprov_search_response: cookie=%s\n", cookie.bv_val );
 		}
@@ -2563,14 +2563,13 @@ syncprov_search_response( Operation *op, SlapReply *rs )
 			rs->sr_ctrls[1] = NULL;
 			rs->sr_flags |= REP_CTRLS_MUSTBEFREED;
 			rs->sr_err = syncprov_done_ctrl( op, rs, rs->sr_ctrls,
-				0, 1, &cookie, ( ss->ss_flags & SS_PRESENT ) ?  LDAP_SYNC_REFRESH_PRESENTS :
+				0, &cookie, ( ss->ss_flags & SS_PRESENT ) ?  LDAP_SYNC_REFRESH_PRESENTS :
 					LDAP_SYNC_REFRESH_DELETES );
-			op->o_tmpfree( cookie.bv_val, op->o_tmpmemctx );
 		} else {
 			/* It's RefreshAndPersist, transition to Persist phase */
 			syncprov_sendinfo( op, rs, ( ss->ss_flags & SS_PRESENT ) ?
-	 			LDAP_TAG_SYNC_REFRESH_PRESENT : LDAP_TAG_SYNC_REFRESH_DELETE,
-				( ss->ss_flags & SS_CHANGED ) ? &cookie : NULL,
+				LDAP_TAG_SYNC_REFRESH_PRESENT : LDAP_TAG_SYNC_REFRESH_DELETE,
+				BER_BVISNULL(&cookie) ? NULL : &cookie,
 				1, NULL, 0 );
 			if ( !BER_BVISNULL( &cookie ))
 				op->o_tmpfree( cookie.bv_val, op->o_tmpmemctx );
@@ -2817,13 +2816,22 @@ bailout:
 no_change:
 			if ( !(op->o_sync_mode & SLAP_SYNC_PERSIST) ) {
 				LDAPControl	*ctrls[2];
+				struct berval cookie = BER_BVNULL;
+
+				/* LY: cookie for quorum's auto-sids */
+				if ( reopenldap_mode_iddqd() ) {
+					syncprov_compose_sync_cookie( op, &cookie, srs->sr_state.ctxcsn, srs->sr_state.rid );
+					Debug( LDAP_DEBUG_SYNC, "syncprov_op_search: cookie=%s\n", cookie.bv_val );
+				}
 
 				ctrls[0] = NULL;
 				ctrls[1] = NULL;
-				syncprov_done_ctrl( op, rs, ctrls, 0, 0,
-					NULL, LDAP_SYNC_REFRESH_DELETES );
+				rs->sr_err = syncprov_done_ctrl( op, rs, ctrls, 0,
+					BER_BVISNULL( &cookie ) ? NULL : &cookie,
+					LDAP_SYNC_REFRESH_DELETES );
+				if ( !BER_BVISNULL( &cookie ))
+					op->o_tmpfree( cookie.bv_val, op->o_tmpmemctx );
 				rs->sr_ctrls = ctrls;
-				rs->sr_err = LDAP_SUCCESS;
 				send_ldap_result( op, rs );
 				rs->sr_ctrls = NULL;
 				assert(sop == NULL);
