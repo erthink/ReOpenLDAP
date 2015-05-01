@@ -5167,7 +5167,6 @@ parse_syncrepl_line(
 						STRLENOF("refreshAndPersist") ) )
 			{
 				si->si_type = si->si_ctype = LDAP_SYNC_REFRESH_AND_PERSIST;
-				si->si_interval = 60;
 			} else {
 				snprintf( c->cr_msg, sizeof( c->cr_msg ),
 					"Error: parse_syncrepl_line: "
@@ -5180,9 +5179,7 @@ parse_syncrepl_line(
 					STRLENOF( INTERVALSTR "=" ) ) )
 		{
 			val = c->argv[ i ] + STRLENOF( INTERVALSTR "=" );
-			if ( si->si_type == LDAP_SYNC_REFRESH_AND_PERSIST ) {
-				si->si_interval = 0;
-			} else if ( strchr( val, ':' ) != NULL ) {
+			if ( strchr( val, ':' ) != NULL ) {
 				char *next, *ptr = val;
 				int dd, hh, mm, ss;
 
@@ -5314,6 +5311,10 @@ parse_syncrepl_line(
 		}
 	}
 
+	if (! (si->si_got & GOT_INTERVAL))
+		si->si_interval = (si->si_type == LDAP_SYNC_REFRESH_AND_PERSIST)
+				? 60 : 24 * 60 * 60;
+
 	if ( ( si->si_got & GOT_REQUIRED ) != GOT_REQUIRED ) {
 		snprintf( c->cr_msg, sizeof( c->cr_msg ),
 			"Error: Malformed \"syncrepl\" line in slapd config file, missing%s%s%s",
@@ -5409,7 +5410,6 @@ add_syncrepl(
 	si->si_allopattrs = 0;
 	si->si_exattrs = NULL;
 	si->si_type = si->si_ctype = LDAP_SYNC_REFRESH_ONLY;
-	si->si_interval = 86400;
 	si->si_retryinterval = NULL;
 	si->si_retrynum_init = NULL;
 	si->si_retrynum = NULL;
