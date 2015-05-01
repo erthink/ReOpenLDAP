@@ -149,6 +149,8 @@ static struct berval * slap_uuidstr_from_normalized(
 					struct berval *, struct berval *, void * );
 static int syncrepl_add_glue_ancestors(
 	Operation* op, Entry *e );
+static int syncrepl_refresh_begin( syncinfo_t *si );
+static void syncrepl_refresh_end( syncinfo_t *si, int rc );
 
 /* delta-mmr overlay handler */
 static int syncrepl_op_modify( Operation *op, SlapReply *rs );
@@ -407,6 +409,10 @@ ldap_sync_search(
 	char *filter;
 	int attrsonly;
 	int scope;
+
+	rc = syncrepl_refresh_begin(si);
+	if (rc)
+		return rc;
 
 	/* setup LDAP SYNC control */
 	ber_init2( ber, NULL, LBER_USE_DER );
@@ -755,8 +761,6 @@ do_syncrep_search(
 			quorum_notify_csn( si->si_be, si->si_syncCookie.sids[i] );
 	}
 
-	si->si_refreshDone = 0;
-
 	rc = ldap_sync_search( si, op->o_tmpmemctx );
 
 	if( rc != LDAP_SUCCESS ) {
@@ -845,6 +849,30 @@ compare_csns( struct sync_cookie *sc1, struct sync_cookie *sc2, int *which )
 }
 
 #define	SYNC_PAUSED	-3
+
+static int syncrepl_refresh_begin( syncinfo_t *si ) {
+	si->si_refreshDone = 0;
+	quorum_notify_status( si->si_be, si->si_rid, 0 );
+	if (quorum_syncrepl_gate(si->si_be, si, 1)) {
+		Debug( LDAP_DEBUG_SYNC, "syncrepl_refresh_begin: %s, "
+								"yield %ld while busy\n",
+			   si->si_ridtxt, (long) si->si_interval );
+		return SYNC_PAUSED;
+	}
+	Debug( LDAP_DEBUG_SYNC, "syncrepl_refresh_begin: %s, success\n",
+		   si->si_ridtxt );
+	return LDAP_SUCCESS;
+}
+
+static void syncrepl_refresh_end( syncinfo_t *si, int rc ) {
+	if (rc == LDAP_SUCCESS)
+		si->si_refreshDone = 1;
+	Debug( LDAP_DEBUG_SYNC, "syncrepl_refresh_end: %s, rc %d\n",
+		   si->si_ridtxt, rc );
+	quorum_notify_status( si->si_be, si->si_rid, rc == 0 );
+	rc = quorum_syncrepl_gate(si->si_be, si, 0);
+	assert(rc == 0);
+}
 
 static int
 do_syncrep_process(
@@ -1353,16 +1381,16 @@ do_syncrep_process(
 					/* Defaults to TRUE */
 					if ( ber_peek_tag( ber, &len ) == LDAP_TAG_REFRESHDONE )
 					{
-						ber_scanf( ber, "b", &si->si_refreshDone );
+						int value = 0;
+						ber_scanf( ber, "b", &value );
+						if (value)
+							syncrepl_refresh_end(si, LDAP_SUCCESS);
 					} else
-					{
-						si->si_refreshDone = 1;
-					}
+						syncrepl_refresh_end(si, LDAP_SUCCESS);
 					ber_scanf( ber, /*"{"*/ "}" );
 					if ( abs(si->si_type) == LDAP_SYNC_REFRESH_AND_PERSIST &&
 						si->si_refreshDone )
 						tout_p = &tout;
-					quorum_notify_status( si->si_be, si->si_rid, si->si_refreshDone );
 					break;
 				case LDAP_TAG_SYNC_ID_SET:
 					Debug( LDAP_DEBUG_SYNC,
@@ -1515,9 +1543,6 @@ done:
 			si->si_ridtxt, err, ldap_err2string( err ) );
 	}
 
-	if (rc)
-		quorum_notify_status( si->si_be, si->si_rid, 0 );
-
 	slap_sync_cookie_free( &syncCookie, 0 );
 	slap_sync_cookie_free( &syncCookie_req, 0 );
 
@@ -1557,7 +1582,6 @@ do_syncrepl(
 		return NULL;
 
 	Debug( LDAP_DEBUG_TRACE, "=>do_syncrepl %s\n", si->si_ridtxt );
-
 
 	for (;;) {
 		if ( slapd_shutdown ) {
@@ -1644,7 +1668,6 @@ do_syncrepl(
 
 	/* Establish session, do search */
 	if ( !si->si_ld ) {
-		quorum_notify_status( si->si_be, si->si_rid, 0 );
 		si->si_refreshDelete = 0;
 		si->si_refreshPresent = 0;
 
@@ -1671,6 +1694,7 @@ reload:
 		op->o_ndn = op->o_bd->be_rootndn;
 		rc = do_syncrep_process( op, si );
 		if ( rc == LDAP_SYNC_REFRESH_REQUIRED )	{
+			syncrepl_refresh_end(si, rc);
 			if ( BER_BVISNULL( &si->si_syncCookie.octet_str ))
 				slap_compose_sync_cookie( NULL, &si->si_syncCookie.octet_str,
 					si->si_syncCookie.ctxcsn, si->si_syncCookie.rid,
@@ -1678,6 +1702,7 @@ reload:
 			rc = ldap_sync_search( si, op->o_tmpmemctx );
 			goto reload;
 		}
+		syncrepl_refresh_end(si, rc);
 
 deleted:
 		/* We got deleted while running on cn=config */
@@ -1690,6 +1715,8 @@ deleted:
 				dostop = 1;
 			rc = -1;
 		}
+
+		Debug( LDAP_DEBUG_TRACE, "<=do_syncrepl %s, rc %d\n", si->si_ridtxt, rc );
 
 		if ( rc != SYNC_PAUSED ) {
 			if ( abs(si->si_type) == LDAP_SYNC_REFRESH_AND_PERSIST ) {
@@ -1729,7 +1756,6 @@ deleted:
 			"do_syncrep: %s client-stop\n", si->si_ridtxt);
 		connection_client_stop( si->si_conn );
 		si->si_conn = NULL;
-		quorum_notify_status( si->si_be, si->si_rid, 0 );
 	}
 
 	if ( rc == SYNC_PAUSED ) {
@@ -4614,6 +4640,7 @@ syncinfo_free( syncinfo_t *sie, int free_all )
 	do {
 		si_next = sie->si_next;
 
+		syncrepl_refresh_end(sie, LDAP_OTHER);
 		if ( sie->si_ld ) {
 			if ( sie->si_conn ) {
 				Debug( LDAP_DEBUG_ANY,

@@ -135,6 +135,22 @@ value_add_one_str(
 	return value_add_one( vals, &one);
 }
 
+int
+value_add_one_int(
+	BerVarray		*vals,
+	int x )
+{
+	char buf[16];
+	struct berval v;
+
+	x = snprintf(buf, sizeof(buf), "%d", x);
+	if (x < 1 || x >= sizeof(buf))
+		return LDAP_OTHER;
+	v.bv_val = buf;
+	v.bv_len = x;
+	return value_add_one(vals, &v);
+}
+
 int asserted_value_validate_normalize(
 	AttributeDescription *ad,
 	MatchingRule *mr,
