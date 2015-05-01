@@ -1058,6 +1058,7 @@ do_syncrep_process(
 						/* check pending CSNs too */
 						while ( ldap_pvt_thread_mutex_trylock( &si->si_cookieState->cs_pmutex )) {
 							if ( slapd_shutdown ) {
+								ldap_controls_free( rctrls );
 								rc = -2;
 								goto done;
 							}
