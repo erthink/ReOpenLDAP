@@ -18,6 +18,12 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+/* LY: Please do not ask us for Windows support, just never!
+ * But you can make a fork for Windows, or become maintainer for FreeBSD... */
+#ifndef __gnu_linux__
+#	error "ReOpenLDAP branch support only GNU Linux"
+#endif
+
 #ifndef _LDAP_REOPEN_H
 #define _LDAP_REOPEN_H
 
@@ -114,7 +120,11 @@
 #endif
 
 #ifndef CACHELINE_SIZE
-#	define CACHELINE_SIZE 64
+#	if defined(__ia64__) || defined(__ia64) || defined(_M_IA64)
+#		define CACHELINE_SIZE 128
+#	else
+#		define CACHELINE_SIZE 64
+#	endif
 #endif
 
 #ifndef __cache_aligned
