@@ -59,6 +59,10 @@ struct slap_quorum {
 #	define QR_AUTO_SIDS	2
 #	define QR_ALL_LINKS	4
 	int flags;
+
+#define QR_SYNCREPL_MAX 8
+	int qr_syncrepl_limit;
+	void *qr_syncrepl_current[QR_SYNCREPL_MAX];
 };
 
 static ldap_pvt_thread_mutex_t quorum_mutex;
@@ -421,7 +425,6 @@ void quorum_add_rid(BackendDB *bd, int rid) {
 	assert(quorum_list != QR_POISON);
 
 	lock();
-
 	if (! bd->bd_quorum)
 		quorum_be_init(bd);
 
@@ -539,17 +542,10 @@ static int unparse(BerVarray *vals, slap_quorum_t *q, int type, const char* verb
 
 	for(i = 0, r = q->qr_requirements; r->type > -1; ++r) {
 		if (r->type == type) {
-			char buf[16];
-			struct berval v;
-
 			if (i == 0 && value_add_one_str(vals, verb))
 				return 1;
-
-			v.bv_val = buf;
-			v.bv_len = snprintf(buf, sizeof(buf), "%d", r->id);
-			if (value_add_one(vals, &v))
+			if (value_add_one_int(vals, r->id))
 				return 1;
-
 			++i;
 		}
 	}
@@ -558,61 +554,75 @@ static int unparse(BerVarray *vals, slap_quorum_t *q, int type, const char* verb
 
 int quorum_config(ConfigArgs *c) {
 	int i, type;
+	slap_quorum_t *q = c->be->bd_quorum;
 
 	assert(quorum_list != QR_POISON);
 	if (c->op == SLAP_CONFIG_EMIT) {
-		if (c->be->bd_quorum) {
-			if ((c->be->bd_quorum->flags & QR_ALL_LINKS) != 0
+		if (q) {
+			if ((q->flags & QR_ALL_LINKS) != 0
 			&& value_add_one_str(&c->rvalue_vals, "all-links"))
 				return 1;
-			if ((c->be->bd_quorum->flags & QR_AUTO_SIDS) != 0
+			if ((q->flags & QR_AUTO_SIDS) != 0
 			&& value_add_one_str(&c->rvalue_vals, "auto-sids"))
 				return 1;
-			if ((c->be->bd_quorum->flags & QR_AUTO_RIDS) != 0
+			if ((q->flags & QR_AUTO_RIDS) != 0
 			&& value_add_one_str(&c->rvalue_vals, "auto-rids"))
 				return 1;
-			if (c->be->bd_quorum->qr_requirements
-			&& (unparse(&c->rvalue_vals, c->be->bd_quorum, QR_DEMAND_RID, "require-rids")
-			 || unparse(&c->rvalue_vals, c->be->bd_quorum, QR_DEMAND_SID, "require-sids")
-			 || unparse(&c->rvalue_vals, c->be->bd_quorum, QR_VOTED_RID, "vote-rids")
-			 || unparse(&c->rvalue_vals, c->be->bd_quorum, QR_VOTED_SID, "vote-sids")))
+			if (q->qr_requirements
+			&& (unparse(&c->rvalue_vals, q, QR_DEMAND_RID, "require-rids")
+			 || unparse(&c->rvalue_vals, q, QR_DEMAND_SID, "require-sids")
+			 || unparse(&c->rvalue_vals, q, QR_VOTED_RID, "vote-rids")
+			 || unparse(&c->rvalue_vals, q, QR_VOTED_SID, "vote-sids")))
+				return 1;
+			if (q->qr_syncrepl_limit > 0
+			&& (value_add_one_str(&c->rvalue_vals, "limit-concurrent-refresh")
+			 || value_add_one_int(&c->rvalue_vals, q->qr_syncrepl_limit)))
 				return 1;
 		}
 		return 0;
 	} else if ( c->op == LDAP_MOD_DELETE ) {
 		lock();
-		if (c->be->bd_quorum && c->be->bd_quorum->qr_requirements) {
-			ch_free(c->be->bd_quorum->qr_requirements);
-			c->be->bd_quorum->qr_requirements = NULL;
-			c->be->bd_quorum_cache = 1;
-			Debug( LDAP_DEBUG_SYNC, "syncrep_quorum: %s requirements-list cleared\n",
-				   c->be->bd_quorum->qr_cluster );
+		if (q) {
+			q->flags = 0;
+			if(q->qr_requirements) {
+				ch_free(q->qr_requirements);
+				q->qr_requirements = NULL;
+				c->be->bd_quorum_cache = 1;
+				Debug( LDAP_DEBUG_SYNC, "syncrep_quorum: %s requirements-list cleared\n",
+					   q->qr_cluster );
+			}
+			if (q->qr_syncrepl_limit) {
+				Debug( LDAP_DEBUG_SYNC, "syncrep_quorum: %s limit-concurrent-refresh cleared\n",
+					   q->qr_cluster );
+				q->qr_syncrepl_limit = 0;
+			}
 		}
 		unlock();
 		return 0;
 	}
 
 	lock();
-
-	if (! c->be->bd_quorum)
+	if (! q) {
 		quorum_be_init(c->be);
+		q = c->be->bd_quorum;
+	}
 
 	type = -1;
 	for( i = 1; i < c->argc; i++ ) {
 		int	id;
 		if (strcasecmp(c->argv[i], "all-links") == 0) {
 			type = -1;
-			if (! (c->be->bd_quorum->flags & QR_ALL_LINKS)) {
-				c->be->bd_quorum->flags |= QR_ALL_LINKS;
+			if (! (q->flags & QR_ALL_LINKS)) {
+				q->flags |= QR_ALL_LINKS;
 				quorum_invalidate(c->be);
 			}
 		} else if (strcasecmp(c->argv[i], "auto-sids") == 0) {
 			type = -1;
-			if (require_auto_sids(c->be->bd_quorum))
+			if (require_auto_sids(q))
 				quorum_invalidate(c->be);
 		} else if (strcasecmp(c->argv[i], "auto-rids") == 0) {
 			type = -1;
-			if (require_auto_rids(c->be->bd_quorum))
+			if (require_auto_rids(q))
 				quorum_invalidate(c->be);
 		} else if (strcasecmp(c->argv[i], "vote-sids") == 0)
 			type = QR_VOTED_SID;
@@ -622,10 +632,36 @@ int quorum_config(ConfigArgs *c) {
 			type = QR_DEMAND_SID;
 		else if (strcasecmp(c->argv[i], "require-rids") == 0)
 			type = QR_DEMAND_RID;
-		else if (type < 0) {
+		else if (strcasecmp(c->argv[i], "limit-concurrent-refresh") == 0) {
+			if (q->qr_syncrepl_limit) {
+				snprintf( c->cr_msg, sizeof( c->cr_msg ),
+					"<%s> limit-concurrent-refresh was already defined for %s as %d",
+					c->argv[i], q->qr_cluster,
+					q->qr_syncrepl_limit );
+				unlock();
+				Debug(LDAP_DEBUG_ANY, "%s: %s\n", c->log, c->cr_msg );
+				return 1;
+			}
+#define QR_FAKETYPE_max_concurrent_refresh -2
+			type = QR_FAKETYPE_max_concurrent_refresh;
+			q->qr_syncrepl_limit = 1;
+		} else if (type == QR_FAKETYPE_max_concurrent_refresh) {
+			int n;
+			if ( lutil_atoi( &n, c->argv[i]) || n < 1 || n > QR_SYNCREPL_MAX ) {
+				snprintf( c->cr_msg, sizeof( c->cr_msg ),
+					"<%s> illegal limit-concurrent-refresh for %s (maximum is %d)",
+					c->argv[i], q->qr_cluster,
+					QR_SYNCREPL_MAX );
+				unlock();
+				Debug(LDAP_DEBUG_ANY, "%s: %s\n", c->log, c->cr_msg );
+				return 1;
+			}
+			q->qr_syncrepl_limit = n;
+			type = -1;
+		} else if (type < 0) {
 			snprintf( c->cr_msg, sizeof( c->cr_msg ),
 				"<%s> mode-key must precede an ID for %s quorum-requirements",
-				c->argv[i], c->be->bd_quorum->qr_cluster );
+				c->argv[i], q->qr_cluster );
 			unlock();
 			Debug(LDAP_DEBUG_ANY, "%s: %s\n", c->log, c->cr_msg );
 			return 1;
@@ -637,16 +673,16 @@ int quorum_config(ConfigArgs *c) {
 			snprintf( c->cr_msg, sizeof( c->cr_msg ),
 				"<%s> illegal %s-ID or mode-key for %s quorum-requirements",
 				c->argv[i], QR_IS_SID(type) ? "Server" : "Repl",
-				c->be->bd_quorum->qr_cluster );
+				q->qr_cluster );
 			unlock();
 			Debug(LDAP_DEBUG_ANY, "%s: %s\n", c->log, c->cr_msg );
 			return 1;
 		} else {
-			if (! require_append( c->be->bd_quorum, type, id )) {
+			if (! require_append( q, type, id )) {
 				snprintf( c->cr_msg, sizeof( c->cr_msg ),
 					"<%s> %s-ID already present in %s quorum-requirements",
 					c->argv[i], QR_IS_SID(type) ? "Server" : "Repl",
-					c->be->bd_quorum->qr_cluster );
+					q->qr_cluster );
 				unlock();
 				Debug(LDAP_DEBUG_ANY, "%s: %s\n", c->log, c->cr_msg );
 				return 1;
@@ -657,4 +693,67 @@ int quorum_config(ConfigArgs *c) {
 
 	unlock();
 	return 0;
+}
+
+//-----------------------------------------------------------------------------
+
+int quorum_syncrepl_gate(BackendDB *bd, void *instance_key, int in)
+{
+	slap_quorum_t *q;
+	int i, slot, rc, turn;
+
+	assert(instance_key != NULL);
+	if (! instance_key)
+		return LDAP_ASSERTION_FAILED;
+
+	lock();
+	q = bd->bd_quorum;
+	if (! q) {
+		quorum_be_init(bd);
+		q = bd->bd_quorum;
+	}
+
+	rc = LDAP_SUCCESS;
+	turn = 0;
+	slot = -1;
+	assert(q->qr_syncrepl_limit <= QR_SYNCREPL_MAX);
+
+	/* LY: Firstly find and release slot if any,
+	 *     even when limit-concurrent-refresh disabled.
+	 *     This is necessary for consistency in case
+	 *     it has been disabled at runtime. */
+	for(i = 0; i < QR_SYNCREPL_MAX; ++i) {
+		if (q->qr_syncrepl_current[i] == instance_key) {
+			q->qr_syncrepl_current[i] = NULL;
+			slot = i;
+			turn = 1;
+			if (in && q->qr_syncrepl_limit)
+				/* LY: If was already acquired and limit-concurrent-refresh enabled,
+				 *     then indicate that syncrepl should yield. */
+				rc = LDAP_SYNC_REFRESH_REQUIRED;
+		}
+	}
+
+	if (in && rc == LDAP_SUCCESS && q->qr_syncrepl_limit) {
+		turn = 1;
+		rc = LDAP_BUSY;
+		for(i = 0; i < q->qr_syncrepl_limit; ++i) {
+			if (q->qr_syncrepl_current[i] == NULL) {
+				q->qr_syncrepl_current[i] = instance_key;
+				slot = i;
+				rc = LDAP_SUCCESS;
+				break;
+			}
+		}
+	}
+
+	if (turn) {
+		Debug( LDAP_DEBUG_SYNC, "quorum_syncrepl_gate: %s, "
+								"limit %d, %p %s, slot %d, rc %d\n",
+			q->qr_cluster, q->qr_syncrepl_limit,
+			instance_key, in ? "in" : "out", slot, rc );
+	}
+
+	unlock();
+	return rc;
 }

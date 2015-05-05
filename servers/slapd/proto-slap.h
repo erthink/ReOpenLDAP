@@ -906,6 +906,7 @@ void quorum_notify_sid(BackendDB *bd, int rid, int sid);
 void quorum_notify_status(BackendDB *bd, int rid, int ready);
 int quorum_query(BackendDB *bd);
 void quorum_notify_csn(BackendDB *bd, int csnsid);
+int quorum_syncrepl_gate(BackendDB *bd, void *instance_key, int in);
 
 /*
  * daemon.c
@@ -2041,6 +2042,9 @@ LDAP_SLAPD_F (int) value_add_one LDAP_P((
 LDAP_SLAPD_F (int) value_add_one_str LDAP_P((
 	BerVarray *vals,
 	const char* str ));
+LDAP_SLAPD_F (int) value_add_one_int LDAP_P((
+	BerVarray *vals,
+	int x ));
 
 /* assumes (x) > (y) returns 1 if true, 0 otherwise */
 #define SLAP_PTRCMP(x, y) ((x) < (y) ? -1 : (x) > (y))
