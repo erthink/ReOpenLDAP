@@ -1523,8 +1523,9 @@ really_bad:;
 							Debug( LDAP_DEBUG_TRACE, "%s.\n", buf );
 
 						} else {
-							Debug( LDAP_DEBUG_ANY, "%s (%s).\n",
-								buf, ldap_err2string( candidates[ i ].sr_err ) );
+							Debug( LDAP_DEBUG_ANY, "%s (%s) text=\"%s\".\n",
+								buf, ldap_err2string( candidates[ i ].sr_err ),
+								candidates[ i ].sr_text ? candidates[i].sr_text : "" );
 						}
 					}
 
