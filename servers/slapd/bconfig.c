@@ -3197,7 +3197,7 @@ config_reopenldap(ConfigArgs *c)
 		return 1 ;
 	}
 	reopenldap_flags_setup( reopenldap_flags | flags );
-	return 0 ;
+	return 0;
 }
 
 static int
