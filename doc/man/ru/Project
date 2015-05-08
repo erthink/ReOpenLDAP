@@ -1,4 +1,10 @@
 .\" Shared Project Acknowledgement Text
+
+.B "Программное обеспечение ReOpenLDAP"
+разработано и поддерживается проектом ReOpenLDAP <https://github.com/ReOpen/ReOpenLDAP>.
+.B "Программное обеспечение ReOpenLDAP"
+является производным от релиза 2.4.40 OpenLDAP.
+
 .B "Программное обеспечение OpenLDAP"
 разработано и поддерживается проектом OpenLDAP <http://www.openldap.org/>.
 .B "Программное обеспечение OpenLDAP"
