@@ -55,6 +55,9 @@ else
 		|| exit $?
 fi
 
+echo "libraries/liblmdb/testdb -> tests/testrun"
+rm -rf libraries/liblmdb/testdb && ln -s ../../tests/testrun libraries/liblmdb/testdb || exit $?
+
 for n in $(seq 1 $N); do
 	echo "##teamcity[blockOpened name='Round $n of $N']"
 	for m in 3 2 1 0; do
