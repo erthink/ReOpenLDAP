@@ -69,7 +69,7 @@ step_finish "configure"
 echo "======================================================================="
 step_begin "build mdb-tools"
 
-(cd libraries/liblmdb && make -j4 -k && cp mdb_copy mdb_stat ${PREFIX}/bin/) \
+(cd libraries/liblmdb && make -j4 -k && cp mdb_chk mdb_copy mdb_stat ${PREFIX}/bin/) \
 	|| failure "build-1"
 
 step_finish "build mdb-tools"
