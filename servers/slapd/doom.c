@@ -24,20 +24,24 @@
 #include "proto-slap.h"
 #include "lber_hipagut.h"
 
+#if SLAPD_MDB == SLAPD_MOD_STATIC
+#	include "../../libraries/liblmdb/lmdb.h"
+#endif /* SLAPD_MDB */
+
 int reopenldap_flags
-#if LDAP_MEMORY_DEBUG > 1
+#if (LDAP_MEMORY_DEBUG > 1) || (LDAP_DEBUG > 1)
 		= REOPENLDAP_FLAG_IDKFA
 #endif
 		;
 
-#ifdef LDAP_DEBUG
 void __attribute__((constructor)) reopenldap_flags_init() {
+	int flags = reopenldap_flags;
 	if (getenv("REOPENLDAP_FORCE_IDKFA"))
-		reopenldap_flags |= REOPENLDAP_FLAG_IDKFA;
+		flags |= REOPENLDAP_FLAG_IDKFA;
 	if (getenv("REOPENLDAP_FORCE_IDDQD"))
-		reopenldap_flags |= REOPENLDAP_FLAG_IDDQD;
+		flags |= REOPENLDAP_FLAG_IDDQD;
+	reopenldap_flags_setup(flags);
 }
-#endif /* LDAP_DEBUG */
 
 void reopenldap_flags_setup(int flags) {
 	reopenldap_flags = flags & (REOPENLDAP_FLAG_IDDQD | REOPENLDAP_FLAG_IDKFA);
@@ -57,4 +61,17 @@ void reopenldap_flags_setup(int flags) {
 		lber_hug_memchk_poison_free = 0;
 	}
 #endif /* LDAP_MEMORY_DEBUG */
+
+#if SLAPD_MDB == SLAPD_MOD_STATIC
+	flags = mdb_setup_debug(MDB_DBG_DNT, (MDB_debug_func*) MDB_DBG_DNT, MDB_DBG_DNT);
+	flags &= ~(MDB_DBG_TRACE | MDB_DBG_EXTRA | MDB_DBG_ASSERT);
+	if (reopenldap_mode_idkfa())
+		flags |=
+#	if LDAP_DEBUG > 2
+				MDB_DBG_TRACE | MDB_DBG_EXTRA |
+#	endif /* LDAP_DEBUG > 2 */
+				MDB_DBG_ASSERT;
+
+	mdb_setup_debug(flags, (MDB_debug_func*) MDB_DBG_DNT, MDB_DBG_DNT);
+#endif /* SLAPD_MDB */
 }

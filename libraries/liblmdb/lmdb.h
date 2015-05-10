@@ -51,7 +51,6 @@
  *	  Fix: Check for stale readers periodically, using the
  *	  #mdb_reader_check function or the \ref mdb_stat_1 "mdb_stat" tool.
  *	  Stale writers will be cleared automatically on most systems:
- *	  - Windows - automatic
  *	  - BSD, systems using SysV semaphores - automatic
  *	  - Linux, systems using POSIX mutexes with Robust option - automatic
  *	  Otherwise just make all programs using the database close it;
@@ -157,27 +156,17 @@
 #define _LMDB_H_
 
 #include <sys/types.h>
+#include <stdarg.h>
+#include <stdint.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-/** Unix permissions for creating files, or dummy definition for Windows */
-#ifdef _MSC_VER
-typedef	int	mdb_mode_t;
-#else
-typedef	mode_t	mdb_mode_t;
-#endif
-
 /** An abstraction for a file handle.
- *	On POSIX systems file handles are small integers. On Windows
- *	they're opaque pointers.
+ *	On POSIX systems file handles are small integers.
  */
-#ifdef _WIN32
-typedef	void *mdb_filehandle_t;
-#else
 typedef int mdb_filehandle_t;
-#endif
 
 /** @defgroup mdb LMDB API
  *	@{
@@ -191,7 +180,7 @@ typedef int mdb_filehandle_t;
 /** Library minor version */
 #define MDB_VERSION_MINOR	9
 /** Library patch version */
-#define MDB_VERSION_PATCH	14
+#define MDB_VERSION_PATCH	15
 
 /** Combine args a,b,c into a single integer for easy version comparisons */
 #define MDB_VERINT(a,b,c)	(((a) << 24) | ((b) << 16) | (c))
@@ -201,7 +190,7 @@ typedef int mdb_filehandle_t;
 	MDB_VERINT(MDB_VERSION_MAJOR,MDB_VERSION_MINOR,MDB_VERSION_PATCH)
 
 /** The release date of this library version */
-#define MDB_VERSION_DATE	"September 20, 2014"
+#define MDB_VERSION_DATE	"https://github.com/ReOpen/ReOpenLDAP"
 
 /** A stringifier for the version info */
 #define MDB_VERSTR(a,b,c,d)	"LMDB " #a "." #b "." #c ": (" d ")"
@@ -290,7 +279,7 @@ typedef void (MDB_rel_func)(MDB_val *item, void *oldptr, void *newptr, void *rel
 #define MDB_NOTLS		0x200000
 	/** don't do any locking, caller must manage their own locks */
 #define MDB_NOLOCK		0x400000
-	/** don't do readahead (no effect on Windows) */
+	/** don't do readahead */
 #define MDB_NORDAHEAD	0x800000
 	/** don't initialize malloc'd memory before writing to datafile */
 #define MDB_NOMEMINIT	0x1000000
@@ -414,8 +403,6 @@ typedef enum MDB_cursor_op {
 #define MDB_DBS_FULL	(-30791)
 	/** Environment maxreaders reached */
 #define MDB_READERS_FULL	(-30790)
-	/** Too many TLS keys in use - Windows only */
-#define MDB_TLS_FULL	(-30789)
 	/** Txn has too many dirty pages */
 #define MDB_TXN_FULL	(-30788)
 	/** Cursor stack too deep - internal error */
@@ -579,7 +566,6 @@ int  mdb_env_create(MDB_env **env);
 	 *		read requests by default. This option turns it off if the OS
 	 *		supports it. Turning it off may help random read performance
 	 *		when the DB is larger than RAM and system RAM is full.
-	 *		The option is not implemented on Windows.
 	 *	<li>#MDB_NOMEMINIT
 	 *		Don't initialize malloc'd memory before writing to unused spaces
 	 *		in the data file. By default, memory for pages written to the data
@@ -606,8 +592,7 @@ int  mdb_env_create(MDB_env **env);
 	 *		LIFO policy for reclaiming FreeDB records. This significantly reduce
 	 *		write IPOS in case MDB_NOSYNC with periodically checkpoints.
 	 * </ul>
-	 * @param[in] mode The UNIX permissions to set on created files. This parameter
-	 * is ignored on Windows.
+	 * @param[in] mode The UNIX permissions to set on created files.
 	 * @return A non-zero error value on failure and 0 on success. Some possible
 	 * errors are:
 	 * <ul>
@@ -619,7 +604,7 @@ int  mdb_env_create(MDB_env **env);
 	 *	<li>EAGAIN - the environment was locked by another process.
 	 * </ul>
 	 */
-int  mdb_env_open(MDB_env *env, const char *path, unsigned int flags, mdb_mode_t mode);
+int  mdb_env_open(MDB_env *env, const char *path, unsigned int flags, mode_t mode);
 
 	/** @brief Copy an LMDB environment to the specified path.
 	 *
@@ -911,10 +896,11 @@ void *mdb_env_get_userctx(MDB_env *env);
 	 * @param[in] env An environment handle returned by #mdb_env_create().
 	 * @param[in] msg The assertion message, not including newline.
 	 */
-typedef void MDB_assert_func(MDB_env *env, const char *msg);
+typedef void MDB_assert_func(MDB_env *env, const char *msg,
+							 const char *function, unsigned line);
 
 	/** Set or reset the assert() callback of the environment.
-	 * Disabled if liblmdb is buillt with NDEBUG.
+	 * Disabled if liblmdb is buillt with MDB_DEBUG=0.
 	 * @note This hack should become obsolete as lmdb's error handling matures.
 	 * @param[in] env An environment handle returned by #mdb_env_create().
 	 * @param[in] func An #MDB_assert_func function, or 0.
@@ -1634,6 +1620,24 @@ void mdb_env_set_oomfunc(MDB_env *env, MDB_oom_func *oom_func);
 	 */
 MDB_oom_func* mdb_env_get_oomfunc(MDB_env *env);
 /**	@} */
+
+#define MDB_DBG_ASSERT	1
+#define MDB_DBG_PRINT	2
+#define MDB_DBG_TRACE	4
+#define MDB_DBG_EXTRA	8
+#define MDB_DBG_AUDIT	16
+#define MDB_DBG_EDGE	32
+
+/* LY: a "don't touch" value */
+#define MDB_DBG_DNT		(-1L)
+
+typedef void MDB_debug_func(int type, const char *function, int line,
+								  const char *msg, va_list args);
+
+int mdb_setup_debug(int flags, MDB_debug_func* logger, long edge_txn);
+
+typedef int MDB_pgwalk_func(size_t pgno, unsigned pgnumber, void* ctx, const char* dbi, char type);
+int mdb_env_pgwalk(MDB_txn *txn, MDB_pgwalk_func* visitor, void* ctx);
 
 #ifdef __cplusplus
 }

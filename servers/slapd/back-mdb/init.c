@@ -49,6 +49,12 @@ mdb_db_init( BackendDB *be, ConfigReply *cr )
 	Debug( LDAP_DEBUG_TRACE,
 		LDAP_XSTRING(mdb_db_init) ": Initializing mdb database\n" );
 
+#if SLAPD_MDB == SLAPD_MOD_DYNAMIC
+	mdb_setup_debug(reopenldap_mode_idkfa() ? MDB_DBG_ASSERT | MDB_DBG_AUDIT : 0,
+					(MDB_debug_func*) MDB_DBG_DNT, MDB_DBG_DNT);
+
+#endif /* SLAPD_MDB */
+
 	/* allocate backend-database-specific stuff */
 	mdb = (struct mdb_info *) ch_calloc( 1, sizeof(struct mdb_info) );
 
