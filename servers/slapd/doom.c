@@ -63,12 +63,15 @@ void reopenldap_flags_setup(int flags) {
 #endif /* LDAP_MEMORY_DEBUG */
 
 #if SLAPD_MDB == SLAPD_MOD_STATIC
-	mdb_setup_debug(reopenldap_mode_idkfa() ?
-#if LDAP_DEBUG > 2
-						MDB_DBG_TRACE | MDB_DBG_EXTRA |
-#endif
-						MDB_DBG_ASSERT | MDB_DBG_AUDIT : 0,
-					(MDB_debug_func*) MDB_DBG_DNT, MDB_DBG_DNT);
+	flags = mdb_setup_debug(MDB_DBG_DNT, (MDB_debug_func*) MDB_DBG_DNT, MDB_DBG_DNT);
+	flags &= ~(MDB_DBG_TRACE | MDB_DBG_EXTRA | MDB_DBG_ASSERT);
+	if (reopenldap_mode_idkfa())
+		flags |=
+#	if LDAP_DEBUG > 2
+				MDB_DBG_TRACE | MDB_DBG_EXTRA |
+#	endif /* LDAP_DEBUG > 2 */
+				MDB_DBG_ASSERT;
 
+	mdb_setup_debug(flags, (MDB_debug_func*) MDB_DBG_DNT, MDB_DBG_DNT);
 #endif /* SLAPD_MDB */
 }
