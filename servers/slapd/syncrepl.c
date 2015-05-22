@@ -3919,9 +3919,6 @@ syncrepl_updateCookie(
 	Modifications mod;
 	struct berval first = BER_BVNULL;
 	struct sync_cookie sc;
-#ifdef CHECK_CSN
-	Syntax *syn = slap_schema.si_ad_contextCSN->ad_type->sat_syntax;
-#endif
 
 	int rc, i, j, changed = 0;
 	ber_len_t len;
@@ -3939,14 +3936,16 @@ syncrepl_updateCookie(
 	ldap_pvt_thread_mutex_lock( &si->si_cookieState->cs_mutex );
 	assert(slap_biglock_owned(op->o_bd));
 
-#ifdef CHECK_CSN
-	for ( i=0; i<syncCookie->numcsns; i++ ) {
-		assert( !syn->ssyn_validate( syn, syncCookie->ctxcsn+i ));
+	if (reopenldap_mode_idkfa()) {
+		Syntax *syn = slap_schema.si_ad_contextCSN->ad_type->sat_syntax;
+		int i;
+		for ( i=0; i<syncCookie->numcsns; i++ ) {
+			assert( !syn->ssyn_validate( syn, syncCookie->ctxcsn+i ));
+		}
+		for ( i=0; i<si->si_cookieState->cs_num; i++ ) {
+			assert( !syn->ssyn_validate( syn, si->si_cookieState->cs_vals+i ));
+		}
 	}
-	for ( i=0; i<si->si_cookieState->cs_num; i++ ) {
-		assert( !syn->ssyn_validate( syn, si->si_cookieState->cs_vals+i ));
-	}
-#endif
 
 	/* clone the cookieState CSNs so we can Replace the whole thing */
 	sc.numcsns = si->si_cookieState->cs_num;
@@ -4065,11 +4064,13 @@ syncrepl_updateCookie(
 		ber_bvarray_free( sc.ctxcsn );
 	}
 
-#ifdef CHECK_CSN
-	for ( i=0; i<si->si_cookieState->cs_num; i++ ) {
-		assert( !syn->ssyn_validate( syn, si->si_cookieState->cs_vals+i ));
+	if (reopenldap_mode_idkfa()) {
+		Syntax *syn = slap_schema.si_ad_contextCSN->ad_type->sat_syntax;
+		int i;
+		for ( i=0; i<si->si_cookieState->cs_num; i++ ) {
+			assert( !syn->ssyn_validate( syn, si->si_cookieState->cs_vals+i ));
+		}
 	}
-#endif
 
 	ldap_pvt_thread_mutex_unlock( &si->si_cookieState->cs_mutex );
 
