@@ -1362,8 +1362,8 @@ if test $CSN_ERRORS != 0 ; then
 		exit $RC
 	fi
 
-	echo "Sleeping 5 seconds to allow contextCSN to synchronize..."
-	sleep 5
+	#echo "Sleeping 5 seconds to allow contextCSN to synchronize..."
+	wait_syncrepl $PORT1 $PORT2
 
 	echo "Stopping site1 and site2 master..."
 	kill -HUP  $SM1_PID $SM2_PID
@@ -1422,8 +1422,8 @@ if test $CSN_ERRORS != 0 ; then
 		exit $RC
 	fi
 
-	echo "Sleeping 5 seconds to allow contextCSN to synchronize..."
-	sleep 5
+	#echo "Sleeping 5 seconds to allow contextCSN to synchronize..."
+	wait_syncrepl $PORT1 $PORT3
 
 	echo "Restarting central search slapd on TCP/IP port $PORT4..."
 	cd $SSC_DIR
@@ -1503,8 +1503,8 @@ if test $CSN_ERRORS != 0 ; then
 		exit $RC
 	fi
 
-	echo "Sleeping 5 seconds to allow contextCSN to synchronize..."
-	sleep 5
+	#echo "Sleeping 5 seconds to allow contextCSN to synchronize..."
+	wait_syncrepl $PORT1 $PORT6
 
 	echo "Checking contextCSN after restart..."
 	CSN1=`$LDAPSEARCH -H $URI1 -b $BASEDN -s base contextCSN | grep contextCSN | sort`
@@ -1604,7 +1604,7 @@ sleep 0.1
 
 echo "Using ldapsearch to check replication to central search..."
 RC=32
-for i in 1 2 3 4 5; do
+for i in 0.5 1 2 3 4 5; do
 	RESULT=`$LDAPSEARCH -H $URI4 \
 		-s base -b "ou=ou1,$BASEDN" \
 		"(description=Modify$MNUM)" 2>&1 | awk '/^dn:/ {print "OK"}'`
@@ -1623,7 +1623,7 @@ fi
 
 echo "Using ldapsearch to check replication to site1 search..."
 RC=32
-for i in 1 2 3 4 5; do
+for i in 0.5 1 2 3 4 5; do
 	RESULT=`$LDAPSEARCH -H $URI5 \
 		-s base -b "ou=ou1,$BASEDN" \
 		"(description=Modify$MNUM)" 2>&1 | awk '/^dn:/ {print "OK"}'`
@@ -1642,7 +1642,7 @@ fi
 
 echo "Using ldapsearch to check replication to site2 search..."
 RC=32
-for i in 1 2 3 4 5; do
+for i in 0.5 1 2 3 4 5; do
 	RESULT=`$LDAPSEARCH -H $URI6 \
 		-s base -b "ou=ou1,$BASEDN" \
 		"(description=Modify$MNUM)" 2>&1 | awk '/^dn:/ {print "OK"}'`
@@ -1685,7 +1685,7 @@ sleep 0.1
 
 echo "Using ldapsearch to check replication to site2 search..."
 RC=32
-for i in 1 2 3 4 5; do
+for i in 0.5 1 2 3 4 5; do
 	RESULT=`$LDAPSEARCH -H $URI6 \
 		-s base -b "ou=ou2,$BASEDN" \
 		"(description=Modify$MNUM)" 2>&1 | awk '/^dn:/ {print "OK"}'`
@@ -1702,8 +1702,8 @@ if test $RC != 0 ; then
 	exit $RC
 fi
 
-echo "Using ldapsearch to check no replication to site1 master..."
-for i in 1 2 3 4 5; do
+echo "Using ldapsearch to check NO replication to site1 master..."
+for i in 1 2 3; do
 	RESULT=`$LDAPSEARCH -H $URI2 \
 		-s base -b "ou=ou2,$BASEDN" \
 		"(description=Modify$NMUM)" 2>&1 | awk '/^dn:/ {print "NOK"}'`
@@ -1712,11 +1712,11 @@ for i in 1 2 3 4 5; do
 		test $KILLSERVERS != no && kill -HUP $KILLPIDS
 		exit 1
 	fi
-	sleep $i
+	sleep 1
 done
 
-echo "Using ldapsearch to check no replication to central search..."
-for i in 1 2 3 4 5; do
+echo "Using ldapsearch to check NO replication to central search..."
+for i in 1 2 3; do
 	RESULT=`$LDAPSEARCH -H $URI4 \
 		-s base -b "ou=ou2,$BASEDN" \
 		"(description=Modify$MNUM)" 2>&1 | awk '/^dn:/ {print "NOK"}'`
@@ -1725,7 +1725,7 @@ for i in 1 2 3 4 5; do
 		test $KILLSERVERS != no && kill -HUP $KILLPIDS
 		exit 1
 	fi
-	sleep $i
+	sleep 1
 done
 
 echo "Checking contextCSN after modify of second backend on central master..."
@@ -1754,7 +1754,7 @@ sleep 0.1
 
 echo "Using ldapsearch to check replication to site1 search..."
 RC=32
-for i in 1 2 3 4 5; do
+for i in 0.5 1 2 3 4 5; do
 	RESULT=`$LDAPSEARCH -H $URI5 \
 		-s base -b "ou=sm1ou1,$BASEDN" \
 		"(description=Modify$MNUM)" 2>&1 | awk '/^dn:/ {print "OK"}'`
@@ -1773,7 +1773,7 @@ fi
 
 echo "Using ldapsearch to check replication to site2 master..."
 RC=32
-for i in 1 2 3 4 5; do
+for i in 0.5 1 2 3 4 5; do
 	RESULT=`$LDAPSEARCH -H $URI3 \
 		-s base -b "ou=sm1ou1,$BASEDN" \
 		"(description=Modify$MNUM)" 2>&1 | awk '/^dn:/ {print "OK"}'`
@@ -1790,8 +1790,8 @@ if test $RC != 0 ; then
 	exit $RC
 fi
 
-echo "Using ldapsearch to check no replication to site2 search..."
-for i in 1 2 3 4 5; do
+echo "Using ldapsearch to check NO replication to site2 search..."
+for i in 1 2 3; do
 	RESULT=`$LDAPSEARCH -H $URI6 \
 		-s base -b "ou=sm1ou2,$BASEDN" \
 		"(description=Modify$MNUM)" 2>&1 | awk '/^dn:/ {print "NOK"}'`
@@ -1800,11 +1800,11 @@ for i in 1 2 3 4 5; do
 		test $KILLSERVERS != no && kill -HUP $KILLPIDS
 		exit 1
 	fi
-	sleep $i
+	sleep 1
 done
 
-echo "Using ldapsearch to check no replication to central search..."
-for i in 1 2 3 4 5; do
+echo "Using ldapsearch to check NO replication to central search..."
+for i in 1 2 3; do
 	RESULT=`$LDAPSEARCH -H $URI4 \
 		-s base -b "ou=sm1ou2,$BASEDN" \
 		"(description=Modify$MNUM)" 2>&1 | awk '/^dn:/ {print "NOK"}'`
@@ -1813,7 +1813,7 @@ for i in 1 2 3 4 5; do
 		test $KILLSERVERS != no && kill -HUP $KILLPIDS
 		exit 1
 	fi
-	sleep $i
+	sleep 1
 done
 
 echo "Checking contextCSN after modify of first backend on site1 master..."
@@ -1842,7 +1842,7 @@ sleep 0.1
 
 echo "Using ldapsearch to check replication to site1 search..."
 RC=32
-for i in 1 2 3 4 5; do
+for i in 0.5 1 2 3 4 5; do
 	RESULT=`$LDAPSEARCH -H $URI5 \
 		-s base -b "ou=sm1ou2,$BASEDN" \
 		"(description=Modify$MNUM)" 2>&1 | awk '/^dn:/ {print "OK"}'`
@@ -1859,8 +1859,8 @@ if test $RC != 0 ; then
 	exit $RC
 fi
 
-echo "Using ldapsearch to check no replication to central master..."
-for i in 1 2 3 4 5; do
+echo "Using ldapsearch to check NO replication to central master..."
+for i in 1 2 3; do
 	RESULT=`$LDAPSEARCH -H $URI1 \
 		-s base -b "ou=sm1ou2,$BASEDN" \
 		"(description=Modify$NMUM)" 2>&1 | awk '/^dn:/ {print "NOK"}'`
@@ -1869,7 +1869,7 @@ for i in 1 2 3 4 5; do
 		test $KILLSERVERS != no && kill -HUP $KILLPIDS
 		exit 1
 	fi
-	sleep $i
+	sleep 1
 done
 
 echo "Checking contextCSN after modify of second backend on site1 master..."
@@ -1899,7 +1899,7 @@ sleep 0.1
 
 echo "Using ldapsearch to check replication to central master..."
 RC=32
-for i in 1 2 3 4 5; do
+for i in 0.5 1 2 3 4 5; do
 	RESULT=`$LDAPSEARCH -H $URI1 \
 		-s base -b "ou=sm2ou1,$BASEDN" \
 		"(description=Modify$MNUM)" 2>&1 | awk '/^dn:/ {print "OK"}'`
@@ -1918,7 +1918,7 @@ fi
 
 echo "Using ldapsearch to check replication to site2 search..."
 RC=32
-for i in 1 2 3 4 5; do
+for i in 0.5 1 2 3 4 5; do
 	RESULT=`$LDAPSEARCH -H $URI6 \
 		-s base -b "ou=sm2ou1,$BASEDN" \
 		"(description=Modify$MNUM)" 2>&1 | awk '/^dn:/ {print "OK"}'`
@@ -1935,8 +1935,8 @@ if test $RC != 0 ; then
 	exit $RC
 fi
 
-echo "Using ldapsearch to check no replication to site1 master..."
-for i in 1 2 3 4 5; do
+echo "Using ldapsearch to check NO replication to site1 master..."
+for i in 1 2 3; do
 	RESULT=`$LDAPSEARCH -H $URI2 \
 		-s base -b "ou=sm2ou1,$BASEDN" \
 		"(description=Modify$MNUM)" 2>&1 | awk '/^dn:/ {print "NOK"}'`
@@ -1945,11 +1945,11 @@ for i in 1 2 3 4 5; do
 		test $KILLSERVERS != no && kill -HUP $KILLPIDS
 		exit 1
 	fi
-	sleep $i
+	sleep 1
 done
 
-echo "Using ldapsearch to check no replication to central search..."
-for i in 1 2 3 4 5; do
+echo "Using ldapsearch to check NO replication to central search..."
+for i in 1 2 3; do
 	RESULT=`$LDAPSEARCH -H $URI4 \
 		-s base -b "ou=sm2ou1,$BASEDN" \
 		"(description=Modify$MNUM)" 2>&1 | awk '/^dn:/ {print "NOK"}'`
@@ -1958,7 +1958,7 @@ for i in 1 2 3 4 5; do
 		test $KILLSERVERS != no && kill -HUP $KILLPIDS
 		exit 1
 	fi
-	sleep $i
+	sleep 1
 done
 
 echo "Checking contextCSN after modify of first backend on site2 master..."
@@ -1988,7 +1988,7 @@ sleep 0.1
 
 echo "Using ldapsearch to check replication to site2 search..."
 RC=32
-for i in 1 2 3 4 5; do
+for i in 0.5 1 2 3 4 5; do
 	RESULT=`$LDAPSEARCH -H $URI6 \
 		-s base -b "ou=sm2ou2,$BASEDN" \
 		"(description=Modify$MNUM)" 2>&1 | awk '/^dn:/ {print "OK"}'`
@@ -2005,8 +2005,8 @@ if test $RC != 0 ; then
 	exit $RC
 fi
 
-echo "Using ldapsearch to check no replication to central master..."
-for i in 1 2 3 4 5; do
+echo "Using ldapsearch to check NO replication to central master..."
+for i in 1 2 3; do
 	RESULT=`$LDAPSEARCH -H $URI4 \
 		-s base -b "ou=sm2ou2,$BASEDN" \
 		"(description=Modify$MNUM)" 2>&1 | awk '/^dn:/ {print "NOK"}'`
@@ -2015,7 +2015,7 @@ for i in 1 2 3 4 5; do
 		test $KILLSERVERS != no && kill -HUP $KILLPIDS
 		exit 1
 	fi
-	sleep $i
+	sleep 1
 done
 
 echo "Checking contextCSN after modify of second backend on site2 master..."
@@ -2154,8 +2154,6 @@ if test $RC != 0 ; then
 	exit $RC
 fi
 
-sleep $SLEEP1
-
 echo "Checking contextCSN after site2 servers repopulated..."
 . $TESTDIR/checkcsn.sh
 
@@ -2197,8 +2195,8 @@ for i in 1 2 3 4 5; do
 		RC=0
 		break
 	fi
-	echo "Waiting $i seconds for syncrepl to receive changes..."
-	sleep $i
+	echo "Waiting 1 seconds for syncrepl to receive changes..."
+	sleep 1
 done
 if test $RC != 0 ; then
 	echo "ERROR: Second site1 backend not replicated to central master"
@@ -2255,7 +2253,7 @@ fi
 
 echo "Using ldapsearch to check that central search received second site1 backend..."
 RC=32
-for i in 1 2 3 4 5; do
+for i in 1 2 3; do
 	RESULT=`$LDAPSEARCH -H $URI4 \
 		-s base -b "ou=sm1ou2,$BASEDN" \
 		'(objectClass=*)' 2>&1 | awk '/^dn:/ {print "OK"}'`
@@ -2301,7 +2299,7 @@ if test $RC != 0 ; then
 
 	echo "Using ldapsearch to check that central search received second site1 backend..."
 	RC=32
-	for i in 1 2 3 4 5; do
+	for i in 1 2 3 ; do
 		RESULT=`$LDAPSEARCH -H $URI4 \
 			-s base -b "ou=sm1ou2,$BASEDN" \
 			'(objectClass=*)' 2>&1 | awk '/^dn:/ {print "OK"}'`

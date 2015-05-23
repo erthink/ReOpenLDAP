@@ -113,8 +113,7 @@ if test $RC != 0 ; then
 	exit $RC
 fi
 
-echo "Waiting $SLEEP1 seconds for syncrepl to receive changes..."
-sleep $SLEEP1
+wait_syncrepl $PORT1 $PORT4
 
 echo "Using ldapsearch to read all the entries from the provider..."
 $LDAPSEARCH -S "" -b "$BASEDN" -h $LOCALHOST -p $PORT1 \
@@ -152,10 +151,10 @@ if test $? != 0 ; then
 	exit 1
 fi
 
-echo "Stopping the provider, sleeping 10 seconds and restarting it..."
+echo "Stopping the provider, sleeping 3 seconds and restarting it..."
 kill -HUP "$PID"
 wait $PID
-sleep 10
+sleep 3
 echo "RESTART" >> $LOG1
 $SLAPD -f $CONF1 -h $URI1 -d $LVL $TIMING >> $LOG1 2>&1 &
 PID=$!
@@ -178,14 +177,16 @@ for i in 1 2 3 4 5; do
 	sleep $i
 done
 
-echo "Waiting $SLEEP1 seconds for consumer to reconnect..."
-sleep $SLEEP1
 
 if test $RC != 0 ; then
 	echo "ldapsearch failed ($RC)!"
 	test $KILLSERVERS != no && kill -HUP $KILLPIDS
 	exit $RC
 fi
+
+#echo "Waiting $SLEEP1 seconds for consumer to reconnect..."
+#sleep $SLEEP1
+wait_syncrepl $PORT1 $PORT4
 
 echo "Using ldapmodify to modify provider directory..."
 
@@ -321,8 +322,7 @@ if test $RC != 0 ; then
 	exit $RC
 fi
 
-echo "Waiting $SLEEP1 seconds for syncrepl to receive changes..."
-sleep $SLEEP1
+wait_syncrepl $PORT1 $PORT4
 
 echo "Using ldapsearch to read all the entries from the provider..."
 $LDAPSEARCH -S "" -b "$BASEDN" -h $LOCALHOST -p $PORT1 \
@@ -418,8 +418,7 @@ if test $WAIT != 0 ; then
 fi
 KILLPIDS="$PID $SLAVEPID"
 
-echo "Waiting $SLEEP1 seconds for syncrepl to receive changes..."
-sleep $SLEEP1
+wait_syncrepl $PORT1 $PORT4
 
 echo "Using ldapsearch to read all the entries from the provider..."
 $LDAPSEARCH -S "" -b "$BASEDN" -h $LOCALHOST -p $PORT1 \
@@ -488,8 +487,7 @@ EOMODS
 		exit $RC
 	fi
 
-	echo "Waiting $SLEEP1 seconds for syncrepl to receive changes..."
-	sleep $SLEEP1
+	wait_syncrepl $PORT1 $PORT4
 fi
 
 echo "Using ldapsearch to read all the entries from the provider..."

@@ -227,12 +227,10 @@ add: olcUpdateRef
 olcUpdateRef: $URI1
 EOF
 
-echo "Waiting $SLEEP1 seconds for syncrepl to receive changes..."
-sleep $SLEEP1
-
+sleep 0.1
 echo "Using ldapsearch to check that syncrepl received config changes..."
 RC=32
-for i in 1 2 3 4 5; do
+for i in 0.5 0.5 0.75 0.75 1 1 1.5 2 3 4 5; do
 	RESULT=`$LDAPSEARCH -H $URI2 -D cn=config -y $CONFIGPWF \
 		-s base -b "olcDatabase={0}config,cn=config" \
 		'(olcUpdateRef=*)' 2>&1 | awk '/^dn:/ {print "OK"}'`
@@ -240,8 +238,8 @@ for i in 1 2 3 4 5; do
 		RC=0
 		break
 	fi
-	echo "Waiting $SLEEP1 seconds for syncrepl to receive changes..."
-	sleep $SLEEP1
+	echo "Waiting $i seconds for syncrepl to receive changes..."
+	sleep $i
 done
 
 if test $RC != 0 ; then
@@ -361,12 +359,10 @@ if test $RC != 0 ; then
 	exit $RC
 fi
 
-echo "Waiting $SLEEP1 seconds for syncrepl to receive changes..."
-sleep $SLEEP1
-
+sleep 0.1
 echo "Using ldapsearch to check that syncrepl received database changes..."
 RC=32
-for i in 1 2 3 4 5; do
+for i in 0.5 0.5 0.75 0.75 1 1 1.5 2 3 4 5; do
 	RESULT=`$LDAPSEARCH -H $URI2 \
 		-s base -b "cn=Ursula Hampster,ou=Alumni Association,ou=People,dc=example,dc=com" \
 		'(objectClass=*)' 2>&1 | awk '/^dn:/ {print "OK"}'`
@@ -374,8 +370,8 @@ for i in 1 2 3 4 5; do
 		RC=0
 		break
 	fi
-	echo "Waiting $SLEEP1 seconds for syncrepl to receive changes..."
-	sleep $SLEEP1
+	echo "Waiting $i seconds for syncrepl to receive changes..."
+	sleep $i
 done
 
 if test $RC != 0 ; then

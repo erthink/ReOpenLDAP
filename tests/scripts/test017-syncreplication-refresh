@@ -111,9 +111,7 @@ if test $RC != 0 ; then
 	exit $RC
 fi
 
-echo "Waiting $SLEEP1 seconds for syncrepl to receive changes..."
-sleep $SLEEP1
-
+wait_syncrepl $PORT1 $PORT2
 echo "Using ldapmodify to modify provider directory..."
 
 #
@@ -210,9 +208,7 @@ if test $RC != 0 ; then
 	exit $RC
 fi
 
-echo "Waiting $SLEEP1 seconds for syncrepl to receive changes..."
-sleep $SLEEP1
-
+wait_syncrepl $PORT1 $PORT2
 echo "Performing modrdn alone on the provider..."
 $LDAPMODIFY -v -D "$MANAGERDN" -h $LOCALHOST -p $PORT1 -w $PASSWD > \
 	$TESTOUT 2>&1 << EOMODS
@@ -230,9 +226,7 @@ if test $RC != 0 ; then
 	exit $RC
 fi
 
-echo "Waiting $SLEEP1 seconds for syncrepl to receive changes..."
-sleep $SLEEP1
-
+wait_syncrepl $PORT1 $PORT2
 echo "Performing modify alone on the provider..."
 $LDAPMODIFY -v -D "$MANAGERDN" -h $LOCALHOST -p $PORT1 -w $PASSWD > \
 	$TESTOUT 2>&1 << EOMODS
@@ -250,9 +244,7 @@ if test $RC != 0 ; then
 	exit $RC
 fi
 
-echo "Waiting $SLEEP1 seconds for syncrepl to receive changes..."
-sleep $SLEEP1
-
+wait_syncrepl $PORT1 $PORT2
 echo "Performing larger modify on the provider..."
 $LDAPMODIFY -v -D "$MANAGERDN" -h $LOCALHOST -p $PORT1 -w $PASSWD > \
 	$TESTOUT 2>&1 << EOMODS
@@ -285,9 +277,7 @@ if test $RC != 0 ; then
 	exit $RC
 fi
 
-echo "Waiting $SLEEP1 seconds for syncrepl to receive changes..."
-sleep $SLEEP1
-
+wait_syncrepl $PORT1 $PORT2
 echo "Try updating the consumer slapd..."
 $LDAPMODIFY -v -D "$MANAGERDN" -h $LOCALHOST -p $PORT2 -w $PASSWD > \
 	$TESTOUT 2>&1 << EOMODS

@@ -537,7 +537,6 @@ fi
 
 SLEEP=`expr $PCACHETTR + $PCACHE_CCPERIOD + 1`
 echo "Waiting $SLEEP seconds for cache to refresh"
-
 sleep $SLEEP
 
 echo "Checking entry again"

@@ -118,13 +118,13 @@ $LDAPADD -D "$MANAGERDN" -h $LOCALHOST -p $PORT1 -w $PASSWD < \
 C2PID=$!
 wait $C1PID $C2PID
 
-echo "Waiting $SLEEP1 seconds for syncrepl to receive changes..."
-sleep $SLEEP1
+#echo "Waiting $SLEEP1 seconds for syncrepl to receive changes..."
+wait_syncrepl $PORT1 $PORT4
 
-echo "Stopping the provider, sleeping 10 seconds and restarting it..."
+echo "Stopping the provider, sleeping 3 seconds and restarting it..."
 kill -HUP "$PID"
 wait $PID
-sleep 10
+sleep 3
 echo "RESTART" >> $LOG1
 $SLAPD -f $CONF1 -h $URI1 -d $LVL $TIMING >> $LOG1 2>&1 &
 PID=$!
@@ -153,8 +153,8 @@ if test $RC != 0 ; then
 	exit $RC
 fi
 
-echo "Waiting 10 seconds to let the system catch up"
-sleep 10
+#echo "Waiting 10 seconds to let the system catch up"
+#sleep 10
 
 echo "Using ldapmodify to modify provider directory..."
 
@@ -253,8 +253,8 @@ if test $RC != 0 ; then
 	exit $RC
 fi
 
-echo "Waiting $SLEEP1 seconds for syncrepl to receive changes..."
-sleep $SLEEP1
+#echo "Waiting $SLEEP1 seconds for syncrepl to receive changes..."
+wait_syncrepl $PORT1 $PORT4
 
 echo "Stopping consumer to test recovery..."
 kill -HUP $SLAVEPID
@@ -290,8 +290,8 @@ if test $WAIT != 0 ; then
 fi
 KILLPIDS="$PID $SLAVEPID"
 
-echo "Waiting $SLEEP1 seconds for syncrepl to receive changes..."
-sleep $SLEEP1
+#echo "Waiting $SLEEP1 seconds for syncrepl to receive changes..."
+wait_syncrepl $PORT1 $PORT4
 
 if test ! $BACKLDAP = "ldapno" ; then
 	echo "Try updating the consumer slapd..."
@@ -324,8 +324,8 @@ EOMODS
 		exit $RC
 	fi
 
-	echo "Waiting $SLEEP1 seconds for syncrepl to receive changes..."
-	sleep $SLEEP1
+	#echo "Waiting $SLEEP1 seconds for syncrepl to receive changes..."
+	wait_syncrepl $PORT4 $PORT1
 fi
 
 OPATTRS="entryUUID creatorsName createTimestamp modifiersName modifyTimestamp"

@@ -126,8 +126,8 @@ case $RC in
 	;;
 esac
 
-echo "Waiting $SLEEP1 seconds for shadow subtrees to sync..."
-sleep $SLEEP1
+#echo "Waiting $SLEEP1 seconds for shadow subtrees to sync..."
+wait_syncrepl $PORT1 $PORT2 sub
 
 echo "Filtering original ldif used to create database..."
 $LDIFFILTER < $GLUESYNCOUT > $LDIFFLT
@@ -167,7 +167,7 @@ if test $RC != 0 ; then
 fi
 
 # This usually propagates immediately
-sleep 1
+wait_syncrepl $PORT1 $PORT2 sub
 
 $LDAPSEARCH -H $URI2 -b "$BABSDN" > $TESTOUT 2>&1
 RC=$?

@@ -226,8 +226,11 @@ if test $RC != 0 ; then
 	exit $RC
 fi
 
-echo "Waiting $SLEEP2 seconds for syncrepl to receive changes..."
-sleep $SLEEP2
+wait_syncrepl $PORT1 $PORT2
+wait_syncrepl $PORT1 $PORT3
+wait_syncrepl $PORT1 $PORT4
+wait_syncrepl $PORT1 $PORT5
+wait_syncrepl $PORT1 $PORT6
 
 echo "Using ldapmodify to modify master directory..."
 
@@ -330,8 +333,11 @@ if test $RC != 0 ; then
 	exit $RC
 fi
 
-echo "Waiting $SLEEP2 seconds for syncrepl to receive changes..."
-sleep $SLEEP2
+wait_syncrepl $PORT1 $PORT2
+wait_syncrepl $PORT1 $PORT3
+wait_syncrepl $PORT1 $PORT4
+wait_syncrepl $PORT1 $PORT5
+wait_syncrepl $PORT1 $PORT6
 
 echo "Performing modify alone on provider..."
 $LDAPMODIFY -v -D "$MANAGERDN" -h $LOCALHOST -p $PORT1 -w $PASSWD > \
@@ -350,8 +356,11 @@ if test $RC != 0 ; then
         exit $RC
 fi
 
-echo "Waiting $SLEEP2 seconds for syncrepl to receive changes..."
-sleep $SLEEP2
+wait_syncrepl $PORT1 $PORT2
+wait_syncrepl $PORT1 $PORT3
+wait_syncrepl $PORT1 $PORT4
+wait_syncrepl $PORT1 $PORT5
+wait_syncrepl $PORT1 $PORT6
 
 echo "Using ldapsearch to read all the entries from the master..."
 $LDAPSEARCH -S "" -b "$BASEDN" -h $LOCALHOST -p $PORT1 \
