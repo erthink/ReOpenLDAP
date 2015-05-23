@@ -59,19 +59,18 @@ if test $WAIT != 0 ; then
     read foo
 fi
 KILLPIDS="$MASTERPID"
-
-sleep 1
+sleep 0.1
 
 echo "Using ldapsearch to check that master slapd is running..."
-for i in 0 1 2 3 4 5; do
+for i in 1 2 3 4 5; do
 	$LDAPSEARCH -s base -b "$MONITOR" -h $LOCALHOST -p $PORT1 \
 		'(objectClass=*)' > /dev/null 2>&1
 	RC=$?
 	if test $RC = 0 ; then
 		break
 	fi
-	echo "Waiting 5 seconds for slapd to start..."
-	sleep 5
+	echo "Waiting $i seconds for slapd to start..."
+	sleep $i
 done
 
 if test $RC != 0 ; then
@@ -99,19 +98,18 @@ if test $WAIT != 0 ; then
     read foo
 fi
 KILLPIDS="$MASTERPID $SLAVEPID"
-
-sleep 1
+sleep 0.1
 
 echo "Using ldapsearch to check that slave slapd is running..."
-for i in 0 1 2 3 4 5; do
+for i in 1 2 3 4 5; do
 	$LDAPSEARCH -s base -b "$MONITOR" -h $LOCALHOST -p $PORT2 \
 		'(objectClass=*)' > /dev/null 2>&1
 	RC=$?
 	if test $RC = 0 ; then
 		break
 	fi
-	echo "Waiting 5 seconds for slapd to start..."
-	sleep 5
+	echo "Waiting $i seconds for slapd to start..."
+	sleep $i
 done
 
 if test $RC != 0 ; then
@@ -129,19 +127,18 @@ if test $WAIT != 0 ; then
     read foo
 fi
 KILLPIDS="$MASTERPID $SLAVEPID $PROXYPID"
-
-sleep 1
+sleep 0.1
 
 echo "Using ldapsearch to check that proxy slapd is running..."
-for i in 0 1 2 3 4 5; do
+for i in 1 2 3 4 5; do
 	$LDAPSEARCH -s base -b "$MONITOR" -h $LOCALHOST -p $PORT3 \
 		'(objectClass=*)' > /dev/null 2>&1
 	RC=$?
 	if test $RC = 0 || test $RC = 53 ; then
 		break
 	fi
-	echo "Waiting 5 seconds for slapd to start..."
-	sleep 5
+	echo "Waiting $i seconds for slapd to start..."
+	sleep $i
 done
 
 case $RC in
@@ -181,8 +178,8 @@ if test $RC != 0 ; then
 fi
 
 # check slave contextCSN
-sleep 1
-for i in 1 2 3; do
+sleep 0.1
+for i in 1 2 3 4 5; do
 	$LDAPSEARCH -S "" -b "$BASEDN" -h $LOCALHOST -p $PORT2 \
 		-s base '(objectClass=*)' contextCSN > "${SLAVEOUT}.$CHECK" 2>&1
 	RC=$?
@@ -253,19 +250,18 @@ if test $WAIT != 0 ; then
     read foo
 fi
 KILLPIDS="$MASTERPID $SLAVEPID $PROXYPID"
-
-sleep 1
+sleep 0.1
 
 echo "Using ldapsearch to check that master slapd is running..."
-for i in 0 1 2 3 4 5; do
+for i in 1 2 3 4 5; do
 	$LDAPSEARCH -s base -b "$MONITOR" -h $LOCALHOST -p $PORT1 \
 		'(objectClass=*)' > /dev/null 2>&1
 	RC=$?
 	if test $RC = 0 ; then
 		break
 	fi
-	echo "Waiting 5 seconds for slapd to start..."
-	sleep 5
+	echo "Waiting $i seconds for slapd to start..."
+	sleep $i
 done
 
 if test $RC != 0 ; then
@@ -372,10 +368,8 @@ if test $RC != 0 ; then
 fi
 
 # check slave contextCSN
-for i in 1 2 3; do
-	echo "Waiting $SLEEP1 seconds for syncrepl to receive changes..."
-	sleep $SLEEP1
-
+sleep 0.1
+for i in 1 2 3 4 5; do
 	$LDAPSEARCH -S "" -b "$BASEDN" -h $LOCALHOST -p $PORT2 \
 		-s base '(objectClass=*)' contextCSN > "${SLAVEOUT}.$CHECK" 2>&1
 	RC=$?
@@ -387,10 +381,12 @@ for i in 1 2 3; do
 	fi
 
 	$CMP ${MASTEROUT}.$CHECK ${SLAVEOUT}.$CHECK > $CMPOUT
-
 	if test $? = 0 ; then
 		break
 	fi
+
+	echo "Waiting $SLEEP1 seconds for syncrepl to receive changes..."
+	sleep $SLEEP1
 done
 
 #echo "Using ldapsearch to read all the entries from the master..."
@@ -566,8 +562,7 @@ if test $RC != 0 ; then
 fi
 
 # check slave contextCSN
-sleep 1
-
+sleep 0.1
 for i in 1 2 3; do
 	$LDAPSEARCH -S "" -b "$BASEDN" -h $LOCALHOST -p $PORT2 \
 		-s base '(objectClass=*)' contextCSN > "${SLAVEOUT}.$CHECK" 2>&1
@@ -580,7 +575,6 @@ for i in 1 2 3; do
 	fi
 
 	$CMP ${MASTEROUT}.$CHECK ${SLAVEOUT}.$CHECK > $CMPOUT
-
 	if test $? = 0 ; then
 		break
 	fi
@@ -804,7 +798,7 @@ if test $RC != 0 ; then
 fi
 
 # check slave contextCSN
-sleep 1
+sleep 0.1
 for i in 1 2 3; do
 	$LDAPSEARCH -S "" -b "$BASEDN" -h $LOCALHOST -p $PORT2 \
 		-s base '(objectClass=*)' contextCSN > "${SLAVEOUT}.$CHECK" 2>&1

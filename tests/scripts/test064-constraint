@@ -115,7 +115,7 @@ if test $WAIT != 0 ; then
 	echo PID $PID
 	read foo
 fi
-sleep 1
+sleep 0.1
 
 echo "Using ldapsearch to check that provider slapd is running..."
 for i in 1 2 3 4 5; do

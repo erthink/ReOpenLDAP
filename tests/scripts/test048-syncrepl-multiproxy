@@ -57,19 +57,18 @@ if test $WAIT != 0 ; then
     read foo
 fi
 KILLPIDS="$MASTERPID"
-
-sleep 1
+sleep 0.1
 
 echo "Using ldapsearch to check that master slapd is running..."
-for i in 0 1 2 3 4 5; do
+for i in 1 2 3 4 5; do
 	$LDAPSEARCH -s base -b "$MONITOR" -h $LOCALHOST -p $PORT1 \
 		'(objectClass=*)' > /dev/null 2>&1
 	RC=$?
 	if test $RC = 0 ; then
 		break
 	fi
-	echo "Waiting 5 seconds for slapd to start..."
-	sleep 5
+	echo "Waiting $i seconds for slapd to start..."
+	sleep $i
 done
 
 if test $RC != 0 ; then
@@ -97,19 +96,18 @@ if test $WAIT != 0 ; then
     read foo
 fi
 KILLPIDS="$MASTERPID $P1SLAVEPID"
-
-sleep 1
+sleep 0.1
 
 echo "Using ldapsearch to check that P1 slave slapd is running..."
-for i in 0 1 2 3 4 5; do
+for i in 1 2 3 4 5; do
 	$LDAPSEARCH -s base -b "$MONITOR" -h $LOCALHOST -p $PORT2 \
 		'(objectClass=*)' > /dev/null 2>&1
 	RC=$?
 	if test $RC = 0 ; then
 		break
 	fi
-	echo "Waiting 5 seconds for slapd to start..."
-	sleep 5
+	echo "Waiting $i seconds for slapd to start..."
+	sleep $i
 done
 
 if test $RC != 0 ; then
@@ -127,19 +125,18 @@ if test $WAIT != 0 ; then
     read foo
 fi
 KILLPIDS="$MASTERPID $P1SLAVEPID $R1SLAVEPID"
-
-sleep 1
+sleep 0.1
 
 echo "Using ldapsearch to check that R1 slave slapd is running..."
-for i in 0 1 2 3 4 5; do
+for i in 1 2 3 4 5; do
 	$LDAPSEARCH -s base -b "$MONITOR" -h $LOCALHOST -p $PORT3 \
 		'(objectClass=*)' > /dev/null 2>&1
 	RC=$?
 	if test $RC = 0; then
 		break
 	fi
-	echo "Waiting 5 seconds for slapd to start..."
-	sleep 5
+	echo "Waiting $i seconds for slapd to start..."
+	sleep $i
 done
 
 if test $RC != 0 ; then
@@ -235,19 +232,18 @@ if test $WAIT != 0 ; then
     read foo
 fi
 KILLPIDS="$MASTERPID $P1SLAVEPID $R1SLAVEPID"
-
-sleep 1
+sleep 0.1
 
 echo "Using ldapsearch to check that master slapd is running..."
-for i in 0 1 2 3 4 5; do
+for i in 1 2 3 4 5; do
 	$LDAPSEARCH -s base -b "$MONITOR" -h $LOCALHOST -p $PORT1 \
 		'(objectClass=*)' > /dev/null 2>&1
 	RC=$?
 	if test $RC = 0 ; then
 		break
 	fi
-	echo "Waiting 5 seconds for slapd to start..."
-	sleep 5
+	echo "Waiting $i seconds for slapd to start..."
+	sleep $i
 done
 
 if test $RC != 0 ; then

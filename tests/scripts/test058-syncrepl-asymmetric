@@ -203,7 +203,7 @@ if test $WAIT != 0 ; then
 fi
 KILLPIDS="$KILLPIDS $SMC_PID"
 cd $TESTWD
-sleep 1
+sleep 0.1
 echo "Using ldapsearch to check that central master slapd is running..."
 for i in 1 2 3 4 5; do
 	$LDAPSEARCH -s base -b "" -H $URI1 \
@@ -229,7 +229,7 @@ if test $WAIT != 0 ; then
 fi
 KILLPIDS="$KILLPIDS $SM1_PID"
 cd $TESTWD
-sleep 1
+sleep 0.1
 echo "Using ldapsearch to check that site1 master is running..."
 for i in 1 2 3 4 5; do
 	$LDAPSEARCH -s base -b "" -H $URI2 \
@@ -255,7 +255,7 @@ if test $WAIT != 0 ; then
 fi
 KILLPIDS="$KILLPIDS $SM2_PID"
 cd $TESTWD
-sleep 1
+sleep 0.1
 echo "Using ldapsearch to check that site2 master is running..."
 for i in 1 2 3 4 5; do
 	$LDAPSEARCH -s base -b "" -H $URI3 \
@@ -281,7 +281,7 @@ if test $WAIT != 0 ; then
 fi
 KILLPIDS="$KILLPIDS $SSC_PID"
 cd $TESTWD
-sleep 1
+sleep 0.1
 echo "Using ldapsearch to check that central search slapd is running..."
 for i in 1 2 3 4 5; do
 	$LDAPSEARCH -s base -b "" -H $URI4 \
@@ -308,7 +308,7 @@ if test $WAIT != 0 ; then
 fi
 KILLPIDS="$KILLPIDS $SS1_PID"
 cd $TESTWD
-sleep 1
+sleep 0.1
 echo "Using ldapsearch to check that site1 search slapd is running..."
 for i in 1 2 3 4 5; do
 	$LDAPSEARCH -s base -b "" -H $URI5 \
@@ -335,7 +335,7 @@ if test $WAIT != 0 ; then
 fi
 KILLPIDS="$KILLPIDS $SS2_PID"
 cd $TESTWD
-sleep 1
+sleep 0.1
 echo "Using ldapsearch to check that site2 search slapd is running..."
 for i in 1 2 3 4 5; do
 	$LDAPSEARCH -s base -b "" -H $URI6 \
@@ -840,7 +840,7 @@ if test $RC != 0 ; then
 	test $KILLSERVERS != no && kill -HUP $KILLPIDS
 	exit $RC
 fi
-sleep 1
+sleep 0.1
 
 echo "Using ldapsearch to check that site1 master received changes..."
 RC=32
@@ -880,7 +880,7 @@ if test $RC != 0 ; then
 	exit $RC
 fi
 
-sleep 1
+sleep 0.1
 
 echo "Populating site1 master..."
 $LDAPADD -D "ou=sm1ou1,$BASEDN" -H $URI2 -w $PASSWD <<EOF >> $TESTOUT 2>&1
@@ -902,7 +902,7 @@ if test $RC != 0 ; then
 	exit $RC
 fi
 
-sleep 1
+sleep 0.1
 
 echo "Populating site2 master..."
 $LDAPADD -D "ou=sm2ou1,$BASEDN" -H $URI3 -w $PASSWD <<EOF >> $TESTOUT 2>&1
@@ -961,7 +961,7 @@ if test $RC != 0 ; then
 	test $KILLSERVERS != no && kill -HUP $KILLPIDS
 	exit $RC
 fi
-sleep 1
+sleep 0.1
 echo "Using ldapsearch to check that central master received site2 entries..."
 RC=32
 for i in 1 2 3 4 5; do
@@ -1015,9 +1015,9 @@ if test -z "$SM1_PID" ; then
 	fi
 	KILLPIDS="$KILLPIDS $SM1_PID"
 	cd $TESTWD
-	sleep 1
 fi
-sleep 1
+
+sleep 0.1
 echo "Using ldapsearch to check that site1 master is running..."
 for i in 1 2 3 4 5; do
 	$LDAPSEARCH -s base -b "" -H $URI2 \
@@ -1142,7 +1142,7 @@ if test $RC != 0 ; then
 	test $KILLSERVERS != no && kill -HUP $KILLPIDS
 	exit $RC
 fi
-sleep 1
+sleep 0.1
 
 echo "Using ldapsearch to check that central search received changes..."
 RC=32
@@ -1294,7 +1294,7 @@ if test $CSN_ERRORS != 0 ; then
 	fi
 	KILLPIDS="$KILLPIDS $SM1_PID"
 	cd $TESTWD
-	sleep 1
+	sleep 0.1
 	echo "Using ldapsearch to check that site1 master is running..."
 	for i in 1 2 3 4 5; do
 		$LDAPSEARCH -s base -b "" -H $URI2 \
@@ -1320,7 +1320,7 @@ if test $CSN_ERRORS != 0 ; then
 	fi
 	KILLPIDS="$KILLPIDS $SM2_PID "
 	cd $TESTWD
-	sleep 1
+	sleep 0.1
 	echo "Using ldapsearch to check that site2 master is running..."
 	for i in 1 2 3 4 5; do
 		$LDAPSEARCH -s base -b "" -H $URI3 \
@@ -1346,7 +1346,7 @@ if test $CSN_ERRORS != 0 ; then
 	fi
 	KILLPIDS="$KILLPIDS $SMC_PID"
 	cd $TESTWD
-	sleep 1
+	sleep 0.1
 	echo "Using ldapsearch to check that central master slapd is running..."
 	for i in 1 2 3 4 5; do
 		$LDAPSEARCH -s base -b "" -H $URI1 \
@@ -1380,7 +1380,7 @@ if test $CSN_ERRORS != 0 ; then
 	fi
 	KILLPIDS="$KILLPIDS $SM1_PID"
 	cd $TESTWD
-	sleep 1
+	sleep 0.1
 	echo "Using ldapsearch to check that site1 master is running..."
 	for i in 1 2 3 4 5; do
 		$LDAPSEARCH -s base -b "" -H $URI2 \
@@ -1406,7 +1406,7 @@ if test $CSN_ERRORS != 0 ; then
 	fi
 	KILLPIDS="$KILLPIDS $SM2_PID"
 	cd $TESTWD
-	sleep 1
+	sleep 0.1
 	echo "Using ldapsearch to check that site2 master is running..."
 	for i in 1 2 3 4 5; do
 		$LDAPSEARCH -s base -b "" -H $URI3 \
@@ -1435,7 +1435,7 @@ if test $CSN_ERRORS != 0 ; then
 	fi
 	KILLPIDS="$KILLPIDS $SSC_PID"
 	cd $TESTWD
-	sleep 1
+	sleep 0.1
 	echo "Using ldapsearch to check that central search slapd is running..."
 	for i in 1 2 3 4 5; do
 		$LDAPSEARCH -s base -b "" -H $URI4 \
@@ -1461,7 +1461,7 @@ if test $CSN_ERRORS != 0 ; then
 	fi
 	KILLPIDS="$KILLPIDS $SS1_PID"
 	cd $TESTWD
-	sleep 1
+	sleep 0.1
 	echo "Using ldapsearch to check that site1 search slapd is running..."
 	for i in 1 2 3 4 5; do
 		$LDAPSEARCH -s base -b "" -H $URI5 \
@@ -1487,7 +1487,7 @@ if test $CSN_ERRORS != 0 ; then
 	fi
 	KILLPIDS="$KILLPIDS $SS2_PID"
 	cd $TESTWD
-	sleep 1
+	sleep 0.1
 	echo "Using ldapsearch to check that site2 search slapd is running..."
 	for i in 1 2 3 4 5; do
 		$LDAPSEARCH -s base -b "" -H $URI6 \
@@ -1600,7 +1600,7 @@ if test $RC != 0 ; then
 	test $KILLSERVERS != no && kill -HUP $KILLPIDS
 	exit $RC
 fi
-sleep 1
+sleep 0.1
 
 echo "Using ldapsearch to check replication to central search..."
 RC=32
@@ -1681,7 +1681,7 @@ if test $RC != 0 ; then
 	test $KILLSERVERS != no && kill -HUP $KILLPIDS
 	exit $RC
 fi
-sleep 1
+sleep 0.1
 
 echo "Using ldapsearch to check replication to site2 search..."
 RC=32
@@ -1712,7 +1712,7 @@ for i in 1 2 3 4 5; do
 		test $KILLSERVERS != no && kill -HUP $KILLPIDS
 		exit 1
 	fi
-	sleep 1
+	sleep $i
 done
 
 echo "Using ldapsearch to check no replication to central search..."
@@ -1725,7 +1725,7 @@ for i in 1 2 3 4 5; do
 		test $KILLSERVERS != no && kill -HUP $KILLPIDS
 		exit 1
 	fi
-	sleep 1
+	sleep $i
 done
 
 echo "Checking contextCSN after modify of second backend on central master..."
@@ -1750,7 +1750,7 @@ if test $RC != 0 ; then
 	test $KILLSERVERS != no && kill -HUP $KILLPIDS
 	exit $RC
 fi
-sleep 1
+sleep 0.1
 
 echo "Using ldapsearch to check replication to site1 search..."
 RC=32
@@ -1800,7 +1800,7 @@ for i in 1 2 3 4 5; do
 		test $KILLSERVERS != no && kill -HUP $KILLPIDS
 		exit 1
 	fi
-	sleep 1
+	sleep $i
 done
 
 echo "Using ldapsearch to check no replication to central search..."
@@ -1813,7 +1813,7 @@ for i in 1 2 3 4 5; do
 		test $KILLSERVERS != no && kill -HUP $KILLPIDS
 		exit 1
 	fi
-	sleep 1
+	sleep $i
 done
 
 echo "Checking contextCSN after modify of first backend on site1 master..."
@@ -1838,8 +1838,7 @@ if test $RC != 0 ; then
 	test $KILLSERVERS != no && kill -HUP $KILLPIDS
 	exit $RC
 fi
-sleep 1
-
+sleep 0.1
 
 echo "Using ldapsearch to check replication to site1 search..."
 RC=32
@@ -1870,7 +1869,7 @@ for i in 1 2 3 4 5; do
 		test $KILLSERVERS != no && kill -HUP $KILLPIDS
 		exit 1
 	fi
-	sleep 1
+	sleep $i
 done
 
 echo "Checking contextCSN after modify of second backend on site1 master..."
@@ -1896,7 +1895,7 @@ if test $RC != 0 ; then
 	test $KILLSERVERS != no && kill -HUP $KILLPIDS
 	exit $RC
 fi
-sleep 1
+sleep 0.1
 
 echo "Using ldapsearch to check replication to central master..."
 RC=32
@@ -1946,7 +1945,7 @@ for i in 1 2 3 4 5; do
 		test $KILLSERVERS != no && kill -HUP $KILLPIDS
 		exit 1
 	fi
-	sleep 1
+	sleep $i
 done
 
 echo "Using ldapsearch to check no replication to central search..."
@@ -1959,7 +1958,7 @@ for i in 1 2 3 4 5; do
 		test $KILLSERVERS != no && kill -HUP $KILLPIDS
 		exit 1
 	fi
-	sleep 1
+	sleep $i
 done
 
 echo "Checking contextCSN after modify of first backend on site2 master..."
@@ -1985,7 +1984,7 @@ if test $RC != 0 ; then
 	test $KILLSERVERS != no && kill -HUP $KILLPIDS
 	exit $RC
 fi
-sleep 1
+sleep 0.1
 
 echo "Using ldapsearch to check replication to site2 search..."
 RC=32
@@ -2016,7 +2015,7 @@ for i in 1 2 3 4 5; do
 		test $KILLSERVERS != no && kill -HUP $KILLPIDS
 		exit 1
 	fi
-	sleep 1
+	sleep $i
 done
 
 echo "Checking contextCSN after modify of second backend on site2 master..."
@@ -2049,7 +2048,7 @@ if test $WAIT != 0 ; then
 fi
 KILLPIDS="$KILLPIDS $SM2_PID"
 cd $TESTWD
-sleep 1
+sleep 0.1
 echo "Using ldapsearch to check that site2 master slapd is running..."
 for i in 1 2 3 4 5; do
 	$LDAPSEARCH -s base -b "" -H $URI3 \
@@ -2075,7 +2074,7 @@ if test $WAIT != 0 ; then
 fi
 KILLPIDS="$KILLPIDS $SS2_PID"
 cd $TESTWD
-sleep 1
+sleep 0.1
 echo "Using ldapsearch to check that site2 search slapd is running..."
 for i in 1 2 3 4 5; do
 	$LDAPSEARCH -s base -b "" -H $URI6 \
@@ -2101,7 +2100,7 @@ if test $WAIT != 0 ; then
 fi
 KILLPIDS="$KILLPIDS $SMC_PID"
 cd $TESTWD
-sleep 1
+sleep 0.1
 echo "Using ldapsearch to check that central master slapd is running..."
 for i in 1 2 3 4 5; do
 	$LDAPSEARCH -s base -b "" -H $URI1 \
@@ -2186,7 +2185,7 @@ if test $RC != 0 ; then
 	test $KILLSERVERS != no && kill -HUP $KILLPIDS
 	exit $RC
 fi
-sleep 1
+sleep 0.1
 
 echo "Using ldapsearch to check that central master received second site1 backend..."
 RC=32

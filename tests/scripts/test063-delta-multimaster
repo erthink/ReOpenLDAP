@@ -199,17 +199,18 @@ if test $WAIT != 0 ; then
 fi
 KILLPIDS="$PID $KILLPIDS"
 cd $TESTWD
+sleep 0.1
 
 echo "Using ldapsearch to check that server $n is running..."
-for i in 0 1 2 3 4 5; do
+for i in 1 2 3 4 5; do
 	$LDAPSEARCH -s base -b "" -H $MYURI \
 		'objectclass=*' > /dev/null 2>&1
 	RC=$?
 	if test $RC = 0 ; then
 		break
 	fi
-	echo "Waiting 5 seconds for slapd to start..."
-	sleep 5
+	echo "Waiting $i seconds for slapd to start..."
+	sleep $i
 done
 
 if test $RC != 0 ; then
@@ -289,7 +290,7 @@ if test $RC != 0 ; then
 fi
 
 THEDN="cn=James A Jones 2,ou=Alumni Association,ou=People,dc=example,dc=com"
-sleep 1
+sleep 0.1
 for i in 1 2 3; do
 	$LDAPSEARCH -S "" -b "$THEDN" -H $URI1 \
 		-s base '(objectClass=*)' entryCSN > "${MASTEROUT}.$i" 2>&1

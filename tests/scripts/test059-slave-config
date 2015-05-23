@@ -64,19 +64,18 @@ if test $WAIT != 0 ; then
     read foo
 fi
 KILLPIDS="$PID"
-
-sleep 1
+sleep 0.1
 
 echo "Using ldapsearch to check that provider slapd is running..."
-for i in 0 1 2 3 4 5; do
+for i in 1 2 3 4 5; do
 	$LDAPSEARCH -s base -b "" -H $URI1 \
 		'objectclass=*' > /dev/null 2>&1
 	RC=$?
 	if test $RC = 0 ; then
 		break
 	fi
-	echo "Waiting 5 seconds for slapd to start..."
-	sleep 5
+	echo "Waiting $i seconds for slapd to start..."
+	sleep $i
 done
 
 if test $RC != 0 ; then
@@ -194,19 +193,18 @@ if test $WAIT != 0 ; then
     read foo
 fi
 KILLPIDS="$KILLPIDS $SLAVEPID"
-
-sleep 1
+sleep 0.1
 
 echo "Using ldapsearch to check that consumer slapd is running..."
-for i in 0 1 2 3 4 5; do
+for i in 1 2 3 4 5; do
 	$LDAPSEARCH -s base -b "" -H $URI2 \
 		'objectclass=*' > /dev/null 2>&1
 	RC=$?
 	if test $RC = 0 ; then
 		break
 	fi
-	echo "Waiting 5 seconds for slapd to start..."
-	sleep 5
+	echo "Waiting $i seconds for slapd to start..."
+	sleep $i
 done
 
 if test $RC != 0 ; then
@@ -234,7 +232,7 @@ sleep $SLEEP1
 
 echo "Using ldapsearch to check that syncrepl received config changes..."
 RC=32
-for i in 0 1 2 3 4 5; do
+for i in 1 2 3 4 5; do
 	RESULT=`$LDAPSEARCH -H $URI2 -D cn=config -y $CONFIGPWF \
 		-s base -b "olcDatabase={0}config,cn=config" \
 		'(olcUpdateRef=*)' 2>&1 | awk '/^dn:/ {print "OK"}'`
@@ -368,7 +366,7 @@ sleep $SLEEP1
 
 echo "Using ldapsearch to check that syncrepl received database changes..."
 RC=32
-for i in 0 1 2 3 4 5; do
+for i in 1 2 3 4 5; do
 	RESULT=`$LDAPSEARCH -H $URI2 \
 		-s base -b "cn=Ursula Hampster,ou=Alumni Association,ou=People,dc=example,dc=com" \
 		'(objectClass=*)' 2>&1 | awk '/^dn:/ {print "OK"}'`
