@@ -145,7 +145,7 @@ slap_access_allowed(
 	int				count;
 	AccessControl			*a, *prev;
 
-#ifdef LDAP_DEBUG
+#if defined(LDAP_DEBUG) || defined(LDAP_SYSLOG)
 	char				accessmaskbuf[ACCESSMASK_MAXLEN];
 #endif
 	slap_mask_t			mask;
@@ -368,7 +368,7 @@ access_allowed_mask(
 	int				ret = 1;
 	int				be_null = 0;
 
-#ifdef LDAP_DEBUG
+#if defined(LDAP_DEBUG) || defined(LDAP_SYSLOG)
 	char				accessmaskbuf[ACCESSMASK_MAXLEN];
 #endif
 	slap_mask_t			mask;
@@ -1123,7 +1123,7 @@ slap_acl_mask(
 {
 	int		i;
 	Access		*b;
-#ifdef LDAP_DEBUG
+#if defined(LDAP_DEBUG) || defined(LDAP_SYSLOG)
 	char		accessmaskbuf[ACCESSMASK_MAXLEN];
 #endif /* DEBUG */
 	const char	*attr;
@@ -2684,4 +2684,3 @@ regex_matches(
 		rc, !rc ? "matches" : "no matches" );
 	return( !rc );
 }
-

@@ -60,8 +60,6 @@ static __forceinline void unaligned_store(volatile void* ptr, uint64_t value) {
 #endif /* arch selector */
 }
 
-struct _lber_hug_memchk_info lber_hug_memchk_info __cache_aligned;
-
 #if defined(__GNUC__) || defined(__clang__)
 	/* LY: noting needed */
 #elif defined(_MSC_VER)
@@ -226,6 +224,8 @@ int lber_hug_probe_link(const lber_hug_t* slave, const lber_hug_t* master) {
 /* -------------------------------------------------------------------------- */
 
 #if LDAP_MEMORY_DEBUG > 0
+
+struct _lber_hug_memchk_info lber_hug_memchk_info __cache_aligned;
 
 unsigned lber_hug_memchk_poison_alloc;
 unsigned lber_hug_memchk_poison_free;
