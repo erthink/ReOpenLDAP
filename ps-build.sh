@@ -29,7 +29,7 @@ echo "BUILD_NUMBER: $BUILD_NUMBER"
 echo "PREFIX: $PREFIX"
 
 git fetch origin --prune --tags || failure "git fetch"
-BUILD_ID=$(git describe --abbrev=15 --always --long --tags | sed "s/^.\+-\([0-9]\+-g[0-9a-f]\+\)\$/.${BUILD_NUMBER}-\1/")
+BUILD_ID=$(git describe --abbrev=15 --always --long --tags | sed -e "s/^.\+-\([0-9]\+-g[0-9a-f]\+\)\$/.${BUILD_NUMBER}-\1/" -e "s/^\([0-9a-f]\+\)\$/.${BUILD_NUMBER}-g\1/")$(git show --abbrev=15 --format=-t%t | head -n 1)
 echo "BUILD_ID: $BUILD_ID"
 
 step_finish "prepare"
