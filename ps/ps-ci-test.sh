@@ -19,6 +19,8 @@ function find_free_port {
 		local h=$((l+n-1))
 		if [ $h -gt 65535 ]; then continue; fi
 		if [ $h -ge $begin -a $h -lt $end ]; then continue; fi
+		# LY: skip default ports to avoid conflicts with local 'make test'
+		if [ $l -ge 9010 -a $h -lt 9017 ]; then continue; fi
 		local r=$l
 		for p in $(seq $l $h); do
 			if netstat -ant | sed -e '/^tcp/ !d' -e 's/^[^ ]* *[^ ]* *[^ ]* *.*[\.:]\([0-9]*\) .*$/\1/' | grep -q -w $p; then
