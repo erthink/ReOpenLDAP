@@ -38,6 +38,11 @@
 
 #define	UUIDLEN	16
 
+/* LY: This should be different from any error-code in ldap.h,
+ *	   the -42 seems good... */
+#define	SYNC_PAUSED         -42
+#define	SYNC_REFRESH_YIELD  -421
+
 struct nonpresent_entry {
 	struct berval *npe_name;
 	struct berval *npe_nname;
@@ -763,7 +768,7 @@ do_syncrep_search(
 
 	rc = ldap_sync_search( si, op->o_tmpmemctx );
 
-	if( rc != LDAP_SUCCESS ) {
+	if ( rc != LDAP_SUCCESS && rc != SYNC_REFRESH_YIELD ) {
 		Debug( LDAP_DEBUG_ANY, "do_syncrep_search: %s "
 			"ldap_search_ext: %s (%d)\n",
 			si->si_ridtxt, ldap_err2string( rc ), rc );
@@ -848,27 +853,26 @@ compare_csns( struct sync_cookie *sc1, struct sync_cookie *sc2, int *which )
 	return match;
 }
 
-#define	SYNC_PAUSED	-3
-
 static int syncrepl_refresh_begin( syncinfo_t *si ) {
 	si->si_refreshDone = 0;
 	quorum_notify_status( si->si_be, si->si_rid, 0 );
 	if (quorum_syncrepl_gate(si->si_be, si, 1)) {
-		Debug( LDAP_DEBUG_SYNC, "syncrepl_refresh_begin: %s, "
-								"yield %ld while busy\n",
-			   si->si_ridtxt, (long) si->si_interval );
-		return SYNC_PAUSED;
+		Debug( LDAP_DEBUG_ANY, "syncrepl_refresh_begin: %s, "
+								"yield while busy\n",
+			   si->si_ridtxt );
+		return SYNC_REFRESH_YIELD;
 	}
-	Debug( LDAP_DEBUG_SYNC, "syncrepl_refresh_begin: %s, success\n",
+	Debug( LDAP_DEBUG_ANY, "syncrepl_refresh_begin: %s, success\n",
 		   si->si_ridtxt );
 	return LDAP_SUCCESS;
 }
 
 static void syncrepl_refresh_end( syncinfo_t *si, int rc ) {
+	if (! si->si_refreshDone )
+		Debug( LDAP_DEBUG_ANY, "syncrepl_refresh_end: %s, rc %d\n",
+			   si->si_ridtxt, rc );
 	if (rc == LDAP_SUCCESS)
 		si->si_refreshDone = 1;
-	Debug( LDAP_DEBUG_SYNC, "syncrepl_refresh_end: %s, rc %d\n",
-		   si->si_ridtxt, rc );
 	quorum_notify_status( si->si_be, si->si_rid, rc == 0 );
 	rc = quorum_syncrepl_gate(si->si_be, si, 0);
 	assert(rc == 0);
@@ -1719,7 +1723,7 @@ deleted:
 
 		Debug( LDAP_DEBUG_TRACE, "<=do_syncrepl %s, rc %d\n", si->si_ridtxt, rc );
 
-		if ( rc != SYNC_PAUSED ) {
+		if ( rc != SYNC_PAUSED && rc != SYNC_REFRESH_YIELD ) {
 			if ( abs(si->si_type) == LDAP_SYNC_REFRESH_AND_PERSIST ) {
 				/* If we succeeded, enable the connection for further listening.
 				 * If we failed, tear down the connection and reschedule.
@@ -1763,6 +1767,13 @@ deleted:
 		rtask->interval.tv_sec = 0;
 		ldap_pvt_runqueue_resched( &slapd_rq, rtask, 0 );
 		rtask->interval.tv_sec = si->si_interval;
+		rc = 0;
+	} else if ( rc == SYNC_REFRESH_YIELD ) {
+		rtask->interval.tv_sec = 0;
+		rtask->interval.tv_usec = 1000000/10;
+		ldap_pvt_runqueue_resched( &slapd_rq, rtask, 0 );
+		rtask->interval.tv_sec = si->si_interval;
+		rtask->interval.tv_usec = 0;
 		rc = 0;
 	} else if ( rc == LDAP_SUCCESS ) {
 		if ( si->si_type == LDAP_SYNC_REFRESH_ONLY ) {
