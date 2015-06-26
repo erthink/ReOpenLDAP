@@ -14,6 +14,7 @@
 ## <http://www.OpenLDAP.org/license.html>.
 
 umask 077
+killall slapd 2>/dev/null
 
 TESTWD=`pwd`
 
@@ -47,9 +48,6 @@ WITH_SASL=${AC_WITH_SASL-no}
 USE_SASL=${SLAPD_USE_SASL-no}
 ACI=${AC_ACI_ENABLED-acino}
 THREADS=${AC_THREADS-threadsno}
-SLEEP0=${SLEEP0-1}
-SLEEP1=${SLEEP1-7}
-SLEEP2=${SLEEP2-15}
 
 # dirs
 PROGDIR=./progs
@@ -171,10 +169,25 @@ MONITORDATA=$SRCDIR/scripts/monitor_data.sh
 
 #VALGRIND="valgrind --fair-sched=yes --log-socket=127.0.0.1:55555 --leak-check=full --track-origins=yes --trace-children=yes --suppressions=$TESTWD/scripts/valgrind.supp"
 # --gen-suppressions=yes
-SLAPADD="$VALGRIND $TESTWD/../servers/slapd/slapd -Ta -d 0 $LDAP_VERBOSE"
-SLAPCAT="$VALGRIND $TESTWD/../servers/slapd/slapd -Tc -d 0 $LDAP_VERBOSE"
-SLAPINDEX="$VALGRIND $TESTWD/../servers/slapd/slapd -Ti -d 0 $LDAP_VERBOSE"
-SLAPPASSWD="$VALGRIND $TESTWD/../servers/slapd/slapd -Tpasswd"
+if [ -z "$VALGRIND" ]; then
+	TIMEOUT_S="timeout -s SIGXCPU 15s"
+	TIMEOUT_L="timeout -s SIGXCPU 5m"
+	SLEEP0=${SLEEP0-0.2}
+	SLEEP1=${SLEEP1-1}
+	SLEEP2=${SLEEP2-3}
+else
+	TIMEOUT_S="timeout -s SIGXCPU 1m"
+	TIMEOUT_L="timeout -s SIGXCPU 30m"
+	SLEEP0=${SLEEP0-1}
+	SLEEP1=${SLEEP1-7}
+	SLEEP2=${SLEEP2-15}
+fi
+
+SLAPADD="$TIMEOUT_S $VALGRIND $TESTWD/../servers/slapd/slapd -Ta -d 0 $LDAP_VERBOSE"
+SLAPCAT="$TIMEOUT_S $VALGRIND $TESTWD/../servers/slapd/slapd -Tc -d 0 $LDAP_VERBOSE"
+SLAPINDEX="$TIMEOUT_S $VALGRIND $TESTWD/../servers/slapd/slapd -Ti -d 0 $LDAP_VERBOSE"
+SLAPMODIFY="$TIMEOUT_S $VALGRIND $TESTWD/../servers/slapd/slapd -Tm -d 0 $LDAP_VERBOSE"
+SLAPPASSWD="$TIMEOUT_S $VALGRIND $TESTWD/../servers/slapd/slapd -Tpasswd"
 
 unset DIFF_OPTIONS
 # NOTE: -u/-c is not that portable...
@@ -182,18 +195,18 @@ DIFF="diff -i"
 CMP="diff -i -Z"
 BCMP="diff -iB"
 CMPOUT=/dev/null
-SLAPD="$VALGRIND $TESTWD/../servers/slapd/slapd -s0"
-LDAPPASSWD="$VALGRIND $CLIENTDIR/ldappasswd $TOOLARGS"
-LDAPSASLSEARCH="$VALGRIND $CLIENTDIR/ldapsearch $TOOLPROTO $LDAP_TOOLARGS -LLL"
-LDAPSEARCH="$VALGRIND $CLIENTDIR/ldapsearch $TOOLPROTO $TOOLARGS -LLL"
-LDAPRSEARCH="$VALGRIND $CLIENTDIR/ldapsearch $TOOLPROTO $TOOLARGS"
-LDAPDELETE="$VALGRIND $CLIENTDIR/ldapdelete $TOOLPROTO $TOOLARGS"
-LDAPMODIFY="$VALGRIND $CLIENTDIR/ldapmodify $TOOLPROTO $TOOLARGS"
-LDAPADD="$VALGRIND $CLIENTDIR/ldapmodify -a $TOOLPROTO $TOOLARGS"
-LDAPMODRDN="$VALGRIND $CLIENTDIR/ldapmodrdn $TOOLPROTO $TOOLARGS"
-LDAPWHOAMI="$VALGRIND $CLIENTDIR/ldapwhoami $TOOLARGS"
-LDAPCOMPARE="$VALGRIND $CLIENTDIR/ldapcompare $TOOLARGS"
-LDAPEXOP="$VALGRIND $CLIENTDIR/ldapexop $TOOLARGS"
+SLAPD="$TIMEOUT_L $VALGRIND $TESTWD/../servers/slapd/slapd -s0"
+LDAPPASSWD="$TIMEOUT_S $VALGRIND $CLIENTDIR/ldappasswd $TOOLARGS"
+LDAPSASLSEARCH="$TIMEOUT_S $VALGRIND $CLIENTDIR/ldapsearch $TOOLPROTO $LDAP_TOOLARGS -LLL"
+LDAPSEARCH="$TIMEOUT_S $VALGRIND $CLIENTDIR/ldapsearch $TOOLPROTO $TOOLARGS -LLL"
+LDAPRSEARCH="$TIMEOUT_S $VALGRIND $CLIENTDIR/ldapsearch $TOOLPROTO $TOOLARGS"
+LDAPDELETE="$TIMEOUT_S $VALGRIND $CLIENTDIR/ldapdelete $TOOLPROTO $TOOLARGS"
+LDAPMODIFY="$TIMEOUT_S $VALGRIND $CLIENTDIR/ldapmodify $TOOLPROTO $TOOLARGS"
+LDAPADD="$TIMEOUT_S $VALGRIND $CLIENTDIR/ldapmodify -a $TOOLPROTO $TOOLARGS"
+LDAPMODRDN="$TIMEOUT_S $VALGRIND $CLIENTDIR/ldapmodrdn $TOOLPROTO $TOOLARGS"
+LDAPWHOAMI="$TIMEOUT_S $VALGRIND $CLIENTDIR/ldapwhoami $TOOLARGS"
+LDAPCOMPARE="$TIMEOUT_S $VALGRIND $CLIENTDIR/ldapcompare $TOOLARGS"
+LDAPEXOP="$TIMEOUT_S $VALGRIND $CLIENTDIR/ldapexop $TOOLARGS"
 SLAPDTESTER=$PROGDIR/slapd-tester
 LDIFFILTER=$PROGDIR/ldif-filter
 SLAPDMTREAD=$PROGDIR/slapd-mtread
@@ -439,4 +452,43 @@ function collect_test {
 			sleep 1
 		fi
 	fi
+}
+
+function wait_syncrepl {
+	local scope=${3:-base}
+	echo -n "Waiting for syncrepl to receive changes (from $1 to $2)..."
+	sleep 0.1
+
+	for i in $(seq 1 150); do
+		#echo "  Using ldapsearch to read contextCSN from the provider:$1..."
+		provider_csn=$($LDAPSEARCH -s $scope -b "$BASEDN" -h $LOCALHOST -p $1 contextCSN 2>&1)
+		RC=${PIPESTATUS[0]}
+		if test $RC != 0 ; then
+			echo "ldapsearch failed at provider ($RC, $provider_csn)!"
+			test $KILLSERVERS != no && kill -HUP $KILLPIDS
+			exit $RC
+		fi
+
+		#echo "  Using ldapsearch to read contextCSN from the consumer:$2..."
+		consumer_csn=$($LDAPSEARCH -s $scope -b "$BASEDN" -h $LOCALHOST -p $2 contextCSN 2>&1)
+		RC=${PIPESTATUS[0]}
+		if test $RC != 0 -a $RC != 32; then
+			echo "ldapsearch failed at consumer ($RC, $consumer_csn)!"
+			test $KILLSERVERS != no && kill -HUP $KILLPIDS
+			exit $RC
+		fi
+
+		if [ "$provider_csn" == "$consumer_csn" ]; then
+			echo " Done in $(expr $i / 10).$(expr $i % 10) seconds"
+			return
+		fi
+
+		#echo "  Waiting +0.1 seconds for syncrepl to receive changes (from $1 to $2)..."
+		sleep 0.1
+	done
+	echo " Timeout $(expr $i / 10) seconds"
+	echo -n "Provider: "
+	$LDAPSEARCH -s $scope -b "$BASEDN" -h $LOCALHOST -p $1 contextCSN
+	echo -n "Consumer: "
+	$LDAPSEARCH -s $scope -b "$BASEDN" -h $LOCALHOST -p $2 contextCSN
 }

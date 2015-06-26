@@ -40,7 +40,7 @@ static const struct berval lmpats[] = {
 	BER_BVC( "*" )
 };
 
-#ifdef LDAP_DEBUG
+#if defined(LDAP_DEBUG) || defined(LDAP_SYSLOG)
 static const char *const dn_source[2] = { "DN", "DN.THIS" };
 static const char *const lmpats_out[] = {
 	"UNDEFINED",
@@ -60,7 +60,7 @@ limits2str( unsigned i )
 	return i < (sizeof( lmpats_out ) / sizeof( lmpats_out[0] ))
 		? lmpats_out[i] : "UNKNOWN";
 }
-#endif /* LDAP_DEBUG */
+#endif /* LDAP_DEBUG || LDAP_SYSLOG */
 
 static int
 limits_get(

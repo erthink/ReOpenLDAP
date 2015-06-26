@@ -64,20 +64,19 @@ if test $WAIT != 0 ; then
     read foo
 fi
 KILLPIDS="$PID"
-
-sleep 1
+sleep 0.1
 
 # Perform a basic search, make sure of a functional setup
 echo "Testing basic monitor search..."
-for i in 0 1 2 3 4 5; do
+for i in 1 2 3 4 5; do
 	$LDAPSEARCH -s base -b "$MONITORDN" -H $URI1 \
 		'(objectclass=*)' > /dev/null 2>&1
 	RC=$?
 	if test $RC = 0 ; then
 		break
 	fi
-	echo "Waiting 5 seconds for slapd to start..."
-	sleep 5
+	echo "Waiting $i seconds for slapd to start..."
+	sleep $i
 done
 
 if test $RC != 0 ; then

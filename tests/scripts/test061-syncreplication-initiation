@@ -95,7 +95,7 @@ if test $WAIT != 0 ; then
 fi
 KILLPIDS="$KILLPIDS $PROV_PID"
 cd $TESTWD
-sleep 1
+sleep 0.1
 for i in 1 2 3 4 5; do
 	$LDAPSEARCH -s base -b "" -H $PROV_URI \
 		'objectclass=*' > /dev/null 2>&1
@@ -120,7 +120,7 @@ if test $WAIT != 0 ; then
 fi
 KILLPIDS="$KILLPIDS $FWD1_PID"
 cd $TESTWD
-sleep 1
+sleep 0.1
 for i in 1 2 3 4 5; do
 	$LDAPSEARCH -s base -b "" -H $FWD1_URI \
 		'objectclass=*' > /dev/null 2>&1
@@ -145,7 +145,7 @@ if test $WAIT != 0 ; then
 fi
 KILLPIDS="$KILLPIDS $CONS_PID"
 cd $TESTWD
-sleep 1
+sleep 0.1
 for i in 1 2 3 4 5; do
 	$LDAPSEARCH -s base -b "" -H $CONS_URI \
 		'objectclass=*' > /dev/null 2>&1

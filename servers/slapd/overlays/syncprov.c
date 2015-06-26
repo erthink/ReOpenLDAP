@@ -28,10 +28,6 @@
 #include "config.h"
 #include "ldap_rq.h"
 
-#ifdef LDAP_DEVEL
-#	define	CHECK_CSN	1
-#endif
-
 /* A modify request on a particular entry */
 typedef struct modinst {
 	struct modinst *mi_next;
@@ -746,10 +742,10 @@ again:
 	switch( mode ) {
 	case FIND_MAXCSN:
 		if ( ber_bvcmp( &si->si_ctxcsn[maxid], &maxcsn )) {
-#ifdef CHECK_CSN
-			Syntax *syn = slap_schema.si_ad_contextCSN->ad_type->sat_syntax;
-			assert( !syn->ssyn_validate( syn, &maxcsn ));
-#endif
+			if (reopenldap_mode_idkfa()) {
+				Syntax *syn = slap_schema.si_ad_contextCSN->ad_type->sat_syntax;
+				assert( !syn->ssyn_validate( syn, &maxcsn ));
+			}
 			ber_bvreplace( &si->si_ctxcsn[maxid], &maxcsn );
 			si->si_numops++;	/* ensure a checkpoint */
 		}
@@ -1548,14 +1544,14 @@ syncprov_checkpoint( Operation *op, slap_overinst *on )
 	BackendInfo *bi;
 
 	slap_biglock_acquire(op->o_bd);
-#ifdef CHECK_CSN
-	Syntax *syn = slap_schema.si_ad_contextCSN->ad_type->sat_syntax;
-
-	int i;
-	for ( i=0; i<si->si_numcsns; i++ ) {
-		assert( !syn->ssyn_validate( syn, si->si_ctxcsn+i ));
+	if (reopenldap_mode_idkfa()) {
+		Syntax *syn = slap_schema.si_ad_contextCSN->ad_type->sat_syntax;
+		int i;
+		for ( i=0; i<si->si_numcsns; i++ ) {
+			assert( !syn->ssyn_validate( syn, si->si_ctxcsn+i ));
+		}
 	}
-#endif
+
 	mod.sml_numvals = si->si_numcsns;
 	mod.sml_values = si->si_ctxcsn;
 	mod.sml_nvalues = NULL;
@@ -1600,11 +1596,13 @@ syncprov_checkpoint( Operation *op, slap_overinst *on )
 	if ( mod.sml_next != NULL ) {
 		slap_mods_free( mod.sml_next, 1 );
 	}
-#ifdef CHECK_CSN
-	for ( i=0; i<si->si_numcsns; i++ ) {
-		assert( !syn->ssyn_validate( syn, si->si_ctxcsn+i ));
+	if (reopenldap_mode_idkfa()) {
+		Syntax *syn = slap_schema.si_ad_contextCSN->ad_type->sat_syntax;
+		int i;
+		for ( i=0; i<si->si_numcsns; i++ ) {
+			assert( !syn->ssyn_validate( syn, si->si_ctxcsn+i ));
+		}
 	}
-#endif
 	slap_biglock_release(op->o_bd);
 }
 
@@ -1922,10 +1920,10 @@ syncprov_op_response( Operation *op, SlapReply *rs )
 		}
 		if ( !BER_BVISEMPTY( &maxcsn ) ) {
 			int i, sid;
-#ifdef CHECK_CSN
-			Syntax *syn = slap_schema.si_ad_contextCSN->ad_type->sat_syntax;
-			assert( !syn->ssyn_validate( syn, &maxcsn ));
-#endif
+			if (reopenldap_mode_idkfa()) {
+				Syntax *syn = slap_schema.si_ad_contextCSN->ad_type->sat_syntax;
+				assert( !syn->ssyn_validate( syn, &maxcsn ));
+			}
 			sid = slap_parse_csn_sid( &maxcsn );
 			for ( i=0; i<si->si_numcsns; i++ ) {
 				if ( sid < si->si_sids[i] )

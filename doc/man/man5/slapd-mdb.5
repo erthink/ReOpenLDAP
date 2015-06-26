@@ -19,6 +19,44 @@ it uses a hierarchical database layout which
 supports subtree renames. It is both more space-efficient and more
 execution-efficient than the \fBbdb\fP backend, while being overall
 much simpler to manage.
+.SH BENEFITS AND DRAWBACKS
+When providing concurrent access, \fBmdb\fP behaves in full accord with
+the MVCC (MultiVersion Concurrency Control) model. Therefore, \fBmdb\fP
+ensures the best possible performance and can be easily scaled over
+CPU cores upon read operations. But, with a lot of changes being made
+over a short span of time, it may suffer from some weaknesses that
+have to be addressed in corresponding usecases.
+.LP
+For instance, following by the MVCC, for every completed write
+operation (transaction), \fBmdb\fP creates a separate logical
+copy of all the internal structures and indexes. In doing so,
+it puts all updates, including the tiniest one, into new database
+blocks (pages), copy ones by demand. But the existing
+pages that are not being changed will be shared with previous transactions.
+For a large LDAP-database with multiple indexes, even one modify
+operation can lead to tens, if not hundreds, of changed and copied pages.
+So, compared with other backends and databases, \fBmdb\fP may generate
+a considerably greater disk write traffic.
+.LP
+Blocks (pages) occupied by data are always associated with a certain
+range of database versions resulting from completed write transactions.
+Such occupied blocks (pages) can be freed and reused
+only if there are no pending read operations that are using the
+database version snapshots in question. Hence, long-lasting read operations
+suspend the release and reuse of blocks (pages)
+occupied by old data. So, a combination of slow reading and a rapid
+flow of changes may lead to consumption of all available database space,
+making it temporarily impossible to change any data.
+.LP
+The problem of a \fBmdb\fP overflow is especially relevant
+for a scenario in which a large amount of data is retrieved
+and then transferred over a slow network. To address that,
+a special mechanism was implemented in version 2.4.41 of the
+original OpenLDAP project that restarted read operations
+while waiting for network operations to complete. However,
+it proved to be insufficient for high-load commercial applications.
+So, some additional mechanisms were implemented in ReOpenLDAP
+to overcome this and the above mentioned drawbacks.
 .SH CONFIGURATION
 These
 .B slapd.conf
@@ -31,12 +69,38 @@ manual page.
 .TP
 .BI checkpoint \ <kbyte>\ <sec>
 Specify the frequency for flushing the database disk buffers.
-This setting is only needed if the \fBdbnosync\fP option is used.
+This setting is helpful when using the \fBdbnosync\fP option
+or the \fBnosync\fR, \fBnometasync\fR and \fBmapasync\fR flags
+in the \fBenvflags\fR option. Otherwise, flushing
+is done every time a write operation (transaction) is completed;
+generating any additional checkpoints makes no sense.
 The checkpoint will occur if either \fI<kbyte>\fP data has been written or
-\fI<sec>\fP seconds have passed since the last checkpoint.
+\fI<min>\fP minutes have passed since the last checkpoint.
 Both arguments default to zero, in which case they are ignored. When
-the \fI<sec>\fP argument is non-zero, an internal task will run every
-\fI<sec>\fP seconds to perform the checkpoint.
+the \fI<min>\fP argument is non-zero, an internal task will run every
+\fI<min>\fP minutes to perform the checkpoint.
+.RS
+.LP
+Note1:
+ReOpenLDAP ensures that the data on the disk is consistent,
+regardless of which mode is enabled by the \fBnosync\fR option's flags.
+With the original OpenLDAP project, there is a chance that the database
+may be corrupted in some scenarios when \fBwritemap\fR is combined
+with \fBnosync\fR, \fBnometasync\fR and \fBmapasync\fR.
+.LP
+Note2:
+ReOpenLDAP implements support for the \fI<kbyte>\fP setting. The data
+amount in this case is the total size of pages that have been changed within \fBmdb\fP.
+However, the original OpenLDAP project still doesn't handle this setting at the moment.
+.LP
+Note3:
+ReOpenLDAP interprets the \fI<min>\fP value in different ways depending on the mode defined
+by the \fBreopenldap\fR option's flags. If the \fIiddqd\fP flag is set,
+the specified value is interpreted as an interval in seconds, not in minutes.
+With a lot of changes made shortly one after another, a second-based interval
+helps make the load on the storage subsystem even and reduce the amount of loss
+in case of a system-wide failure.
+.RE
 .TP
 .B dbnosync
 Specify that on-disk database contents should not be immediately
@@ -54,13 +118,72 @@ A separate directory must be specified for each database.
 The default is
 .BR LOCALSTATEDIR/openldap\-data .
 .TP
-\fBenvflags \fR{\fBnosync\fR,\fBnometasync\fR,\fBwritemap\fR,\fBmapasync\fR,\fBnordahead\fR}
+.BI dreamcatcher \ <lag>\ <percentage>
+Manage restarts of long-lasting read operations that
+make it impossible to free and reuse pages used
+in older database version snapshots (results of past write transactions) in the LMDB.
+With a lot of changes being made in a short span of time, such operations
+can lead to consumption of all available space in the database and a failure.
+The first parameter called \fI<lag>\fP specifies a transaction lag threshold which,
+when reached, triggers a read operation restart; if it is zero,
+dreamcatcher is off. Another parameter called \fI<percentage>\fP specifies
+a database space consumption threshold as a percentage which, when reached,
+activates dreamcatcher; if it is zero, dreamcatcher is always on.
+.RS
+.LP
+Note1:
+\fBdreamcatcher\fR cannot ensure full protection against
+database overflows due to the way queries are handled in
+\fBslapd\fR; \fBoom\-handler\fR \fIyield\fP should be used instead.
+.LP
+Note2:
+\fBdreamcatcher\fR is available only in ReOpenLDAP and is not available in the original OpenLDAP.
+.RE
+.TP
+.BI oom\-handler \ [kill]\ [yield]
+Manage behavior where executing a data change query leads to
+consuming all the available pages,
+but there are pages which cannot be freed and reused because of
+concurrent read operations.
+.RS
+.TP
+.B kill
+Turn on kill mode. If a read operation is being executed by another process (not by
+\fBslapd\fR itself), SIGKILL is sent to such a locking process.
+The mdb_copy utility started to copy a large database is an example of such
+external locking process.
+This mode does not affect the operations within \fBslapd\fR.
+.RE
+.TP
+.RS
+.TP
+.B yield
+Turn on yield mode. Rather than terminating, \fBmdb\fP will wait for concurrent operations
+that make it impossible to free and
+reuse old data pages (results of past write transactions)
+to finish.
+.RE
+.RS
+.LP
+Note1:
+\fBoom\-handler\fR \fIyield\fP should be used together
+with \fBdreamcatcher\fR, which ensures protection against quick database overflows
+and minimizes pauses caused by waiting.
+.LP
+Note2:
+\fBoom\-handler\fR is available only in ReOpenLDAP and is not available in the original OpenLDAP.
+.RE
+.TP
+.TP
+.BI envflags \ [nosync]\ [nometasync]\ [writemap]\ [mapasync]\ [nordahead]\ [lifo]\ [coalesce]
 Specify flags for finer-grained control of the LMDB library's operation.
+Note: The above flags for \fBenvflags\fR should be defined in slapd.conf without
+any brackets or commas, using spaces or tabs as separators.
 .RS
 .TP
 .B nosync
 This is exactly the same as the
-.I dbnosync
+.IR dbnosync .
 directive.
 .RE
 .RS
@@ -91,7 +214,7 @@ asynchronous flush instead of a synchronous flush (the default). This option
 has no effect if
 .I writemap
 has not been set. It also has no effect if
-.I nosync
+.IR nosync
 is set.
 .RE
 .RS
@@ -102,17 +225,41 @@ request. This usually boosts read performance but can be harmful to
 random access read performance if the system's memory is full and the DB
 is larger than RAM. This option is not implemented on Windows.
 .RE
-
+.RS
+.TP
+.B lifo
+Turn on LIFO (reverse) internal reclaiming within \fBmdb\fP of FreeDB entries
+which specify the pages being freed when re-processing old database
+versions (results of past write transactions). Consequently, it is most likely
+that the set of pages in use recurs from transaction to transaction.
+This, in turn, makes it possible for the storage subsystem
+to use the internal caching and writeback mechanisms efficiently,
+putting such recurring operations together. As a result,
+the overall performance may improve, with the actual load on
+the storage subsystem (disks) being reduced.
+The \fIlifo\fP mode is available only in ReOpenLDAP and
+is not available in the original OpenLDAP.
+.RE
+.RS
+.TP
+.B coalesce
+Turn on coagulation of FreeDB entries within \fBmdb\fP (merging the lists of
+free pages), which reduces the amount of internal indexes and the number of pages
+updated upon any changes. As a result, the load on the storage subsystem
+diminishes slightly in most scenarios.
+The \fIcoalesce\fP mode is available only in ReOpenLDAP and
+is not available in the original OpenLDAP.
+.RE
 .TP
 \fBindex \fR{\fI<attrlist>\fR|\fBdefault\fR} [\fBpres\fR,\fBeq\fR,\fBapprox\fR,\fBsub\fR,\fI<special>\fR]
 Specify the indexes to maintain for the given attribute (or
 list of attributes).
 Some attributes only support a subset of indexes.
-If only an \fI<attr>\fP is given, the indices specified for \fBdefault\fR
+If only an \fI<attrlist>\fP is given, the indices specified for \fBdefault\fR
 are maintained.
 Note that setting a default does not imply that all attributes will be
 indexed. Also, for best performance, an
-.B eq
+.BR eq
 index should always be configured for the
 .B objectClass
 attribute.
@@ -122,14 +269,14 @@ The index type
 .B sub
 can be decomposed into
 .BR subinitial ,
-.BR subany ,\ and
-.B subfinal
+.B subany ,\ and
+.BR subfinal
 indices.
 The special type
-.B nolang
+.BR nolang
 may be specified to disallow use of this index by language subtypes.
 The special type
-.B nosubtypes
+.BR nosubtypes
 may be specified to disallow use of this index by named subtypes.
 Note: changing \fBindex\fP settings in
 .BR slapd.conf (5)
@@ -195,3 +342,4 @@ OpenLDAP LMDB documentation.
 .SH ACKNOWLEDGEMENTS
 .so ../Project
 Written by Howard Chu.
+ReOpenLDAP portion written (in Russian) by Leonid Yuriev and translated by Sergey Chernin.

@@ -60,18 +60,17 @@ if test $WAIT != 0 ; then
 fi
 REMOTEPID="$PID"
 KILLPIDS="$PID"
+sleep 0.1
 
-sleep 1
-
-for i in 0 1 2 3 4 5; do
+for i in 1 2 3 4 5; do
 	$LDAPSEARCH -s base -b "$MONITOR" -H $URI1 \
 		'objectclass=*' > /dev/null 2>&1
 	RC=$?
 	if test $RC = 0 ; then
 		break
 	fi
-	echo "Waiting 5 seconds for remote slapd to start..."
-	sleep 5
+	echo "Waiting $i seconds for remote slapd to start..."
+	sleep $i
 done
 
 if test $RC != 0 ; then
@@ -94,18 +93,17 @@ if test $WAIT != 0 ; then
 fi
 LOCALPID="$PID"
 KILLPIDS="$LOCALPID $REMOTEPID"
+sleep 0.1
 
-sleep 1
-
-for i in 0 1 2 3 4 5; do
+for i in 1 2 3 4 5; do
 	$LDAPSEARCH -s base -b "$MONITOR" -H $URI2 \
 		'objectclass=*' > /dev/null 2>&1
 	RC=$?
 	if test $RC = 0 ; then
 		break
 	fi
-	echo "Waiting 5 seconds for local slapd to start..."
-	sleep 5
+	echo "Waiting $i seconds for local slapd to start..."
+	sleep $i
 done
 
 if test $RC != 0 ; then

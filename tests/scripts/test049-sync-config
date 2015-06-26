@@ -70,19 +70,18 @@ if test $WAIT != 0 ; then
 fi
 KILLPIDS="$PID"
 cd $TESTWD
-
-sleep 1
+sleep 0.1
 
 echo "Using ldapsearch to check that provider slapd is running..."
-for i in 0 1 2 3 4 5; do
+for i in 1 2 3 4 5; do
 	$LDAPSEARCH -s base -b "" -H $URI1 \
 		'objectclass=*' > /dev/null 2>&1
 	RC=$?
 	if test $RC = 0 ; then
 		break
 	fi
-	echo "Waiting 5 seconds for slapd to start..."
-	sleep 5
+	echo "Waiting $i seconds for slapd to start..."
+	sleep $i
 done
 
 if test $RC != 0 ; then
@@ -143,19 +142,18 @@ if test $WAIT != 0 ; then
 fi
 KILLPIDS="$KILLPIDS $SLAVEPID"
 cd $TESTWD
-
-sleep 1
+sleep 0.1
 
 echo "Using ldapsearch to check that consumer slapd is running..."
-for i in 0 1 2 3 4 5; do
+for i in 1 2 3 4 5; do
 	$LDAPSEARCH -s base -b "" -H $URI2 \
 		'objectclass=*' > /dev/null 2>&1
 	RC=$?
 	if test $RC = 0 ; then
 		break
 	fi
-	echo "Waiting 5 seconds for slapd to start..."
-	sleep 5
+	echo "Waiting $i seconds for slapd to start..."
+	sleep $i
 done
 
 if test $RC != 0 ; then
@@ -177,12 +175,10 @@ add: olcUpdateRef
 olcUpdateRef: $URI1
 EOF
 
-echo "Waiting $SLEEP1 seconds for syncrepl to receive changes..."
-sleep $SLEEP1
-
 echo "Using ldapsearch to check that syncrepl received config changes..."
+sleep 0.1
 RC=32
-for i in 0 1 2 3 4 5; do
+for i in 0.5 0.5 0.75 0.75 1 1 1.5 2 3 4 5; do
 	RESULT=`$LDAPSEARCH -H $URI2 -D cn=config -y $CONFIGPWF \
 		-s base -b "olcDatabase={0}config,cn=config" \
 		'(olcUpdateRef=*)' 2>&1 | awk '/^dn:/ {print "OK"}'`
@@ -190,8 +186,8 @@ for i in 0 1 2 3 4 5; do
 		RC=0
 		break
 	fi
-	echo "Waiting $SLEEP1 seconds for syncrepl to receive changes..."
-	sleep $SLEEP1
+	echo "Waiting $i seconds for syncrepl to receive changes..."
+	sleep $i
 done
 
 if test $RC != 0 ; then
@@ -291,22 +287,16 @@ if test $RC != 0 ; then
 	exit $RC
 fi
 
-echo "Waiting $SLEEP1 seconds for syncrepl to receive changes..."
-sleep $SLEEP1
+wait_syncrepl $PORT1 $PORT2
 
 echo "Using ldapsearch to check that syncrepl received database changes..."
 RC=32
-for i in 0 1 2 3 4 5; do
-	RESULT=`$LDAPSEARCH -H $URI2 \
-		-s base -b "cn=Ursula Hampster,ou=Alumni Association,ou=People,dc=example,dc=com" \
-		'(objectClass=*)' 2>&1 | awk '/^dn:/ {print "OK"}'`
-	if test "x$RESULT$nullOK" = "xOK" ; then
-		RC=0
-		break
-	fi
-	echo "Waiting $SLEEP1 seconds for syncrepl to receive changes..."
-	sleep $SLEEP1
-done
+RESULT=`$LDAPSEARCH -H $URI2 \
+	-s base -b "cn=Ursula Hampster,ou=Alumni Association,ou=People,dc=example,dc=com" \
+	'(objectClass=*)' 2>&1 | awk '/^dn:/ {print "OK"}'`
+if test "x$RESULT$nullOK" = "xOK" ; then
+	RC=0
+fi
 
 if test $RC != 0 ; then
 	echo "ldapsearch failed ($RC)!"
@@ -323,8 +313,8 @@ olcSyncRepl: rid=002 provider=$URI1 binddn="cn=config" bindmethod=simple
   credentials=$CONFIGPW searchbase="cn=config" type=refreshAndPersist
   retry="3 5 300 5" timeout=3
 EOF
-echo "Waiting $SLEEP1 seconds for syncrepl to receive changes..."
-sleep $SLEEP1
+
+wait_syncrepl $PORT1 $PORT2
 
 echo "Using ldapsearch to read config from the provider..."
 $LDAPSEARCH -b cn=config -D cn=config -H $URI1 -y $CONFIGPWF  \

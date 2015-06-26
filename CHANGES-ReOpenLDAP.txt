@@ -8,8 +8,10 @@ Features (major):
 	ITS#7958 lmdb: lifo & coalesce
 	ITS#7974 lmdb: dreamcatcher, oom-handler (kill, yield)
 	quorum { [vote-sids ...] [vote-rids ...] [auto-sids] [auto-rids] [require-sids ...] [require-rids ...] [all-links] }
+	quorum limit-concurrent-refresh
 	biglock { none | local | common }
 	reopenldap [iddqd] [idkfa]
+	steady & weak meta-pages in LMDB
 
 Features (minor):
 	crash-backtrace on|off

@@ -51,19 +51,18 @@ if test $WAIT != 0 ; then
     read foo
 fi
 KILLPIDS="$PID"
-
-sleep 1
+sleep 0.1
 
 echo "Using ldapsearch to check that provider slapd is running..."
-for i in 0 1 2 3 4 5; do
+for i in 1 2 3 4 5; do
 	$LDAPSEARCH -s base -b "$MONITOR" -h $LOCALHOST -p $PORT1 \
 		'objectclass=*' > /dev/null 2>&1
 	RC=$?
 	if test $RC = 0 ; then
 		break
 	fi
-	echo "Waiting 5 seconds for slapd to start..."
-	sleep 5
+	echo "Waiting $i seconds for slapd to start..."
+	sleep $i
 done
 
 if test $RC != 0 ; then
@@ -91,19 +90,18 @@ if test $WAIT != 0 ; then
     read foo
 fi
 KILLPIDS="$KILLPIDS $SLAVEPID"
-
-sleep 1
+sleep 0.1
 
 echo "Using ldapsearch to check that consumer slapd is running..."
-for i in 0 1 2 3 4 5; do
+for i in 1 2 3 4 5; do
 	$LDAPSEARCH -s base -b "$MONITOR" -h $LOCALHOST -p $PORT2 \
 		'objectclass=*' > /dev/null 2>&1
 	RC=$?
 	if test $RC = 0 ; then
 		break
 	fi
-	echo "Waiting 5 seconds for slapd to start..."
-	sleep 5
+	echo "Waiting $i seconds for slapd to start..."
+	sleep $i
 done
 
 if test $RC != 0 ; then
@@ -122,12 +120,13 @@ if test $RC != 0 ; then
 	exit $RC
 fi
 
-echo "Waiting $SLEEP1 seconds for syncrepl to receive changes..."
+#echo "Waiting $SLEEP1 seconds for syncrepl to receive changes..."
+wait_syncrepl $PORT1 $PORT2
+
+echo -n "Stopping the provider ($PID), sleeping $SLEEP1 seconds and restarting it..."
+kill -HUP "$PID" && wait $PID && echo " Done" || echo " Failure ($?) !!!"
 sleep $SLEEP1
 
-echo "Stopping the provider, sleeping 10 seconds and restarting it..."
-kill -HUP "$PID"
-sleep 10
 echo "RESTART" >> $LOG1
 $SLAPD -f $CONF1 -h $URI1 -d $LVL $TIMING >> $LOG1 2>&1 &
 PID=$!
@@ -136,19 +135,18 @@ if test $WAIT != 0 ; then
     read foo
 fi
 KILLPIDS="$PID $SLAVEPID"
-
-sleep 1
+sleep 0.1
 
 echo "Using ldapsearch to check that provider slapd is running..."
-for i in 0 1 2 3 4 5; do
+for i in 1 2 3 4 5; do
 	$LDAPSEARCH -s base -b "$MONITOR" -h $LOCALHOST -p $PORT1 \
 		'objectclass=*' > /dev/null 2>&1
 	RC=$?
 	if test $RC = 0 ; then
 		break
 	fi
-	echo "Waiting 5 seconds for slapd to start..."
-	sleep 5
+	echo "Waiting $i seconds for slapd to start..."
+	sleep $i
 done
 
 if test $RC != 0 ; then
@@ -242,8 +240,8 @@ if test $RC != 0 ; then
 	exit $RC
 fi
 
-echo "Waiting $SLEEP1 seconds for syncrepl to receive changes..."
-sleep $SLEEP1
+#echo "Waiting $SLEEP1 seconds for syncrepl to receive changes..."
+wait_syncrepl $PORT1 $PORT2
 
 echo "Using ldapsearch to read all the entries from the provider..."
 $LDAPSEARCH -S "" -b "$BASEDN" -h $LOCALHOST -p $PORT1 \
@@ -281,9 +279,8 @@ if test $? != 0 ; then
 	exit 1
 fi
 
-echo "Stopping consumer to test recovery..."
-kill -HUP $SLAVEPID
-sleep 10
+echo -n "Stopping consumer ($SLAVEPID) to test recovery..."
+kill -HUP $SLAVEPID && wait $SLAVEPID && echo " Done" || echo " Failure ($?) !!!"
 
 echo "Modifying more entries on the provider..."
 $LDAPMODIFY -v -D "$BJORNSDN" -h $LOCALHOST -p $PORT1 -w bjorn >> \
@@ -324,8 +321,8 @@ if test $WAIT != 0 ; then
 fi
 KILLPIDS="$PID $SLAVEPID"
 
-echo "Waiting $SLEEP1 seconds for syncrepl to receive changes..."
-sleep $SLEEP1
+#echo "Waiting $SLEEP1 seconds for syncrepl to receive changes..."
+wait_syncrepl $PORT1 $PORT2
 
 if test ! $BACKLDAP = "ldapno" ; then
 	echo "Try updating the consumer slapd..."
@@ -346,8 +343,8 @@ EOMODS
 		exit $RC
 	fi
 
-	echo "Waiting $SLEEP1 seconds for syncrepl to receive changes..."
-	sleep $SLEEP1
+	#echo "Waiting $SLEEP1 seconds for syncrepl to receive changes..."
+	wait_syncrepl $PORT1 $PORT2
 fi
 
 echo "Using ldapsearch to read all the entries from the provider..."

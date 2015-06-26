@@ -59,19 +59,18 @@ if test $WAIT != 0 ; then
     read foo
 fi
 KILLPIDS="$MASTERPID"
-
-sleep 1
+sleep 0.1
 
 echo "Using ldapsearch to check that master slapd is running..."
-for i in 0 1 2 3 4 5; do
+for i in 1 2 3 4 5; do
 	$LDAPSEARCH -s base -b "$MONITOR" -h $LOCALHOST -p $PORT1 \
 		'(objectClass=*)' > /dev/null 2>&1
 	RC=$?
 	if test $RC = 0 ; then
 		break
 	fi
-	echo "Waiting 5 seconds for slapd to start..."
-	sleep 5
+	echo "Waiting $i seconds for slapd to start..."
+	sleep $i
 done
 
 if test $RC != 0 ; then
@@ -99,19 +98,18 @@ if test $WAIT != 0 ; then
     read foo
 fi
 KILLPIDS="$MASTERPID $SLAVEPID"
-
-sleep 1
+sleep 0.1
 
 echo "Using ldapsearch to check that slave slapd is running..."
-for i in 0 1 2 3 4 5; do
+for i in 1 2 3 4 5; do
 	$LDAPSEARCH -s base -b "$MONITOR" -h $LOCALHOST -p $PORT2 \
 		'(objectClass=*)' > /dev/null 2>&1
 	RC=$?
 	if test $RC = 0 ; then
 		break
 	fi
-	echo "Waiting 5 seconds for slapd to start..."
-	sleep 5
+	echo "Waiting $i seconds for slapd to start..."
+	sleep $i
 done
 
 if test $RC != 0 ; then
@@ -129,19 +127,18 @@ if test $WAIT != 0 ; then
     read foo
 fi
 KILLPIDS="$MASTERPID $SLAVEPID $PROXYPID"
-
-sleep 1
+sleep 0.1
 
 echo "Using ldapsearch to check that proxy slapd is running..."
-for i in 0 1 2 3 4 5; do
+for i in 1 2 3 4 5; do
 	$LDAPSEARCH -s base -b "$MONITOR" -h $LOCALHOST -p $PORT3 \
 		'(objectClass=*)' > /dev/null 2>&1
 	RC=$?
 	if test $RC = 0 || test $RC = 53 ; then
 		break
 	fi
-	echo "Waiting 5 seconds for slapd to start..."
-	sleep 5
+	echo "Waiting $i seconds for slapd to start..."
+	sleep $i
 done
 
 case $RC in
@@ -181,27 +178,7 @@ if test $RC != 0 ; then
 fi
 
 # check slave contextCSN
-sleep 1
-for i in 1 2 3; do
-	$LDAPSEARCH -S "" -b "$BASEDN" -h $LOCALHOST -p $PORT2 \
-		-s base '(objectClass=*)' contextCSN > "${SLAVEOUT}.$CHECK" 2>&1
-	RC=$?
-
-	if test $RC != 0 ; then
-		echo "ldapsearch failed at slave ($RC)!"
-		test $KILLSERVERS != no && kill -HUP $KILLPIDS
-		exit $RC
-	fi
-
-	$CMP ${MASTEROUT}.$CHECK ${SLAVEOUT}.$CHECK > $CMPOUT
-
-	if test $? = 0 ; then
-		break
-	fi
-
-	echo "Waiting $SLEEP1 seconds for syncrepl to receive changes..."
-	sleep $SLEEP1
-done
+wait_syncrepl $PORT1 $PORT2
 
 #echo "Using ldapsearch to read all the entries from the master..."
 $LDAPSEARCH -S "" -b "$BASEDN" -h $LOCALHOST -p $PORT1 \
@@ -240,10 +217,9 @@ if test $? != 0 ; then
 fi
 
 CHECK=`expr $CHECK + 1`
-echo "$CHECK > Stopping the provider, sleeping $SLEEP2 seconds and restarting it..."
-kill -HUP "$MASTERPID"
-wait $MASTERPID
-sleep $SLEEP2
+echo -n "$CHECK > Stopping the provider ($MASTERPID), sleeping $SLEEP1 seconds and restarting it..."
+kill -HUP $MASTERPID && wait $MASTERPID && echo " Done" || echo " Failure ($?) !!!"
+sleep $SLEEP1
 
 echo "======================= RESTART =======================" >> $LOG1
 $SLAPD -f $CONF1 -h $URI1 -d $LVL $TIMING >> $LOG1 2>&1 &
@@ -253,19 +229,18 @@ if test $WAIT != 0 ; then
     read foo
 fi
 KILLPIDS="$MASTERPID $SLAVEPID $PROXYPID"
-
-sleep 1
+sleep 0.1
 
 echo "Using ldapsearch to check that master slapd is running..."
-for i in 0 1 2 3 4 5; do
+for i in 1 2 3 4 5; do
 	$LDAPSEARCH -s base -b "$MONITOR" -h $LOCALHOST -p $PORT1 \
 		'(objectClass=*)' > /dev/null 2>&1
 	RC=$?
 	if test $RC = 0 ; then
 		break
 	fi
-	echo "Waiting 5 seconds for slapd to start..."
-	sleep 5
+	echo "Waiting $i seconds for slapd to start..."
+	sleep $i
 done
 
 if test $RC != 0 ; then
@@ -372,26 +347,7 @@ if test $RC != 0 ; then
 fi
 
 # check slave contextCSN
-for i in 1 2 3; do
-	echo "Waiting $SLEEP1 seconds for syncrepl to receive changes..."
-	sleep $SLEEP1
-
-	$LDAPSEARCH -S "" -b "$BASEDN" -h $LOCALHOST -p $PORT2 \
-		-s base '(objectClass=*)' contextCSN > "${SLAVEOUT}.$CHECK" 2>&1
-	RC=$?
-
-	if test $RC != 0 ; then
-		echo "ldapsearch failed at slave ($RC)!"
-		test $KILLSERVERS != no && kill -HUP $KILLPIDS
-		exit $RC
-	fi
-
-	$CMP ${MASTEROUT}.$CHECK ${SLAVEOUT}.$CHECK > $CMPOUT
-
-	if test $? = 0 ; then
-		break
-	fi
-done
+wait_syncrepl $PORT1 $PORT2
 
 #echo "Using ldapsearch to read all the entries from the master..."
 $LDAPSEARCH -S "" -b "$BASEDN" -h $LOCALHOST -p $PORT1 \
@@ -430,9 +386,8 @@ if test $? != 0 ; then
 fi
 
 CHECK=`expr $CHECK + 1`
-echo "$CHECK > Stopping proxy to test recovery..."
-kill -HUP $PROXYPID
-wait $PROXYPID
+echo -n "$CHECK > Stopping proxy ($PROXYPID) to test recovery..."
+kill -HUP $PROXYPID && wait $PROXYPID && echo " Done" || echo " Failure ($?) !!!"
 
 echo "Modifying more entries on the master..."
 $LDAPMODIFY -v -D "$MANAGERDN" -h $LOCALHOST -p $PORT1 -w $PASSWD >> \
@@ -479,26 +434,7 @@ if test $RC != 0 ; then
 fi
 
 # check slave contextCSN
-for i in 1 2 3 4 5; do
-	echo "Waiting $SLEEP1 seconds for syncrepl to receive changes..."
-	sleep $SLEEP1
-
-	$LDAPSEARCH -S "" -b "$BASEDN" -h $LOCALHOST -p $PORT2 \
-		-s base '(objectClass=*)' contextCSN > "${SLAVEOUT}.$CHECK" 2>&1
-	RC=$?
-
-	if test $RC != 0 ; then
-		echo "ldapsearch failed at slave ($RC)!"
-		test $KILLSERVERS != no && kill -HUP $KILLPIDS
-		exit $RC
-	fi
-
-	$CMP ${MASTEROUT}.$CHECK ${SLAVEOUT}.$CHECK > $CMPOUT
-
-	if test $? = 0 ; then
-		break
-	fi
-done
+wait_syncrepl $PORT1 $PORT2
 
 #echo "Using ldapsearch to read all the entries from the master..."
 $LDAPSEARCH -S "" -b "$BASEDN" -h $LOCALHOST -p $PORT1 \
@@ -566,28 +502,7 @@ if test $RC != 0 ; then
 fi
 
 # check slave contextCSN
-sleep 1
-
-for i in 1 2 3; do
-	$LDAPSEARCH -S "" -b "$BASEDN" -h $LOCALHOST -p $PORT2 \
-		-s base '(objectClass=*)' contextCSN > "${SLAVEOUT}.$CHECK" 2>&1
-	RC=$?
-
-	if test $RC != 0 ; then
-		echo "ldapsearch failed at slave ($RC)!"
-		test $KILLSERVERS != no && kill -HUP $KILLPIDS
-		exit $RC
-	fi
-
-	$CMP ${MASTEROUT}.$CHECK ${SLAVEOUT}.$CHECK > $CMPOUT
-
-	if test $? = 0 ; then
-		break
-	fi
-
-	echo "Waiting $SLEEP1 seconds for syncrepl to receive changes..."
-	sleep $SLEEP1
-done
+wait_syncrepl $PORT1 $PORT2
 
 #echo "Using ldapsearch to read all the entries from the master..."
 $LDAPSEARCH -S "" -b "$BASEDN" -h $LOCALHOST -p $PORT1 \
@@ -626,9 +541,8 @@ if test $? != 0 ; then
 fi
 
 CHECK=`expr $CHECK + 1`
-echo "$CHECK > Stopping consumer to test recovery..."
-kill -HUP $SLAVEPID
-wait $SLAVEPID
+echo -n "$CHECK > Stopping consumer ($SLAVEPID) to test recovery..."
+kill -HUP $SLAVEPID && wait $SLAVEPID && echo " Done" || echo " Failure ($?) !!!"
 
 echo "Modifying more entries on the master..."
 $LDAPMODIFY -v -D "$MANAGERDN" -h $LOCALHOST -p $PORT1 -w $PASSWD >> \
@@ -640,8 +554,8 @@ drink: Mad Dog 20/20
 
 EOMODS
 
-echo "Waiting $SLEEP2 seconds for syncrepl to retry..."
-sleep $SLEEP2
+echo "Waiting 3 seconds for syncrepl to retry..."
+sleep 3
 
 echo "Restarting consumer..."
 echo "======================= RESTART =======================" >> $LOG2
@@ -664,27 +578,7 @@ if test $RC != 0 ; then
 fi
 
 # check slave contextCSN
-
-for i in 1 2 3 4 5; do
-	echo "Waiting $SLEEP1 seconds for syncrepl to receive changes..."
-	sleep $SLEEP1
-
-	$LDAPSEARCH -S "" -b "$BASEDN" -h $LOCALHOST -p $PORT2 \
-		-s base '(objectClass=*)' contextCSN > "${SLAVEOUT}.$CHECK" 2>&1
-	RC=$?
-
-	if test $RC != 0 ; then
-		echo "ldapsearch failed at slave ($RC)!"
-		test $KILLSERVERS != no && kill -HUP $KILLPIDS
-		exit $RC
-	fi
-
-	$CMP ${MASTEROUT}.$CHECK ${SLAVEOUT}.$CHECK > $CMPOUT
-
-	if test $? = 0 ; then
-		break
-	fi
-done
+wait_syncrepl $PORT1 $PORT2
 
 #echo "Using ldapsearch to read all the entries from the master..."
 $LDAPSEARCH -S "" -b "$BASEDN" -h $LOCALHOST -p $PORT1 \
@@ -725,9 +619,8 @@ if test $? != 0 ; then
 	fi
 
 	echo "	test failed - master and slave databases differ (ignored by now)"
-	echo "	Stopping proxy to see if it auto-recovers..."
-	kill -HUP $PROXYPID
-	wait $PROXYPID
+	echo -n "	Stopping proxy ($PROXYPID) to see if it auto-recovers..."
+	kill -HUP $PROXYPID && wait $PROXYPID && echo " Done" || echo " Failure ($?) !!!"
 
 	echo "	${CHECK}.1 > Restarting proxy..."
 	echo "======================= RESTART =======================" >> $LOG3
@@ -739,8 +632,8 @@ if test $? != 0 ; then
 	fi
 	KILLPIDS="$MASTERPID $SLAVEPID $PROXYPID"
 
-	echo "	Waiting $SLEEP2 seconds for syncrepl to receive changes..."
-	sleep $SLEEP2
+	#echo "	Waiting $SLEEP2 seconds for syncrepl to receive changes..."
+	wait_syncrepl $PORT1 $PORT2
 
 	#echo "Using ldapsearch to read all the entries from the slave..."
 	$LDAPSEARCH -S "" -b "$BASEDN" -h $LOCALHOST -p $PORT2 \
@@ -804,27 +697,7 @@ if test $RC != 0 ; then
 fi
 
 # check slave contextCSN
-sleep 1
-for i in 1 2 3; do
-	$LDAPSEARCH -S "" -b "$BASEDN" -h $LOCALHOST -p $PORT2 \
-		-s base '(objectClass=*)' contextCSN > "${SLAVEOUT}.$CHECK" 2>&1
-	RC=$?
-
-	if test $RC != 0 ; then
-		echo "ldapsearch failed at slave ($RC)!"
-		test $KILLSERVERS != no && kill -HUP $KILLPIDS
-		exit $RC
-	fi
-
-	$CMP ${MASTEROUT}.$CHECK ${SLAVEOUT}.$CHECK > $CMPOUT
-
-	if test $? = 0 ; then
-		break
-	fi
-
-	echo "Waiting $SLEEP1 seconds for syncrepl to receive changes..."
-	sleep $SLEEP1
-done
+wait_syncrepl $PORT1 $PORT2
 
 #echo "Using ldapsearch to read all the entries from the master..."
 $LDAPSEARCH -S "" -b "$BASEDN" -h $LOCALHOST -p $PORT1 \
