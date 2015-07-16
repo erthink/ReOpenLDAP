@@ -6,6 +6,7 @@ OpenLDAP 2.4.42 Engineering
 	Fixed slapd cn=config when updating olcAttributeTypes (ITS#8199)
 	Fixed slapo-ppolicy with redundant mod ops on glued trees (ITS#8184)
 	Added libldap LDAPSTACKGUARD feature (ITS#8201)
+	Fixed slapd-ldap segfault after failed retry (ITS#8173)
 	Build Environment
 		Fixed libdb detection with gcc 5.x (ITS#8056)
 
