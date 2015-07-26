@@ -1,0 +1,111 @@
+.\" $ReOpenLDAP$
+.\" Copyright 1992-2017 ReOpenLDAP AUTHORS: please see AUTHORS file.
+.\" All rights reserved.
+.\"
+.\" This file is part of ReOpenLDAP.
+.\"
+.\" Redistribution and use in source and binary forms, with or without
+.\" modification, are permitted only as authorized by the OpenLDAP
+.\" Public License.
+.\"
+.\" A copy of this license is available in the file LICENSE in the
+.\" top-level directory of the distribution or, alternatively, at
+.\" <http://www.OpenLDAP.org/license.html>.
+
+.TH SLAPO-PW-TOTP 5 "@RELEASE_DATE@" "ReOpenLDAP @VERSION@"
+
+.SH NAME
+pw-totp \- TOTP Password handling module
+
+.SH SYNOPSIS
+@SYSCONFDIR@/slapd.conf
+.RS
+.LP
+.B moduleload
+.I contrib-pw-totp.la
+.RE
+.SH DESCRIPTION
+.LP
+The
+.B pw-totp
+module allows time-based one-time password, AKA "authenticator-style",
+authentication to be added to applications that use LDAP for
+authentication. In most cases no changes to the applications are needed to switch
+to this type of authentication.
+
+With this module, the password needed for a user to authenticate is calculated
+based on the current time and a key that is stored in the user's LDAP entry. Since
+the password is based on the time, it changes periodically. Once used, it cannot be
+used again so keyloggers and shoulder-surfers are thwarted. A mobile
+phone application, such as the Google Authenticator (a 'prover'), can be used
+to calculate the user's current password, which is expressed as a six-digit
+number.
+Alternatively, the value can be calculated by some other application with access
+to the user's key and delivered to the user through SMS or some other channel.
+When prompted to authenticate, the user merely enters the six-digit code provided by
+the prover.
+
+This implementation complies with
+.B RFC 6238 TOTP Time-based One Time Passwords
+and includes support for the SHA-1, SHA-256, and SHA-512 HMAC
+algorithms.
+
+The HMAC key used in the TOTP computation is stored in the userPassword attribute
+of the user's LDAP entry and the LDAP Password Modify Extended Operation is used to
+set and change the value. The
+value should correspond to that used by the the prover (authenticator).
+
+.SH CONFIGURATION
+Once the module is loaded with the moduleload command from the synopsis,
+the {TOTP1}, {TOTP256}, and {TOTP512}
+password schemes will be recognized.
+
+On the databases where your users reside you must configure the
+totp overlay:
+
+.nf
+	database mdb
+	\...
+	overlay totp
+	\...
+.fi
+
+You can tell OpenLDAP to use one of these new schemes when processing LDAP
+Password Modify Extended Operations, thanks to the password-hash option in
+slapd.conf. For example:
+
+.nf
+	password-hash   {TOTP256}
+.fi
+
+.SH NOTES
+This module includes functionality implemented by the slapo-lastbind overlay
+and cannot coexist with it in the same database. Also note
+that since the time that the last bind occurred
+is needed to properly implement TOTP, provisions need to be made to propagate
+the authTimestamp attribute to other servers that are providing authentication
+services.
+
+.SH BUGS
+The time step is hard-coded to thirty seconds. This should be OK for many use cases,
+but it would be nice if the value
+could be changed with a configuration keyword or in an attribute value.
+
+The authenticator code that is generated is hard-coded to a length of six digits.
+While in most cases
+this is probably better than the alternative length of four digits, there may be
+cases where a four-digit value is preferred.
+
+There is currently no way to require a separate PIN code with the authenticator
+code.
+
+In cases where password-hash lists multiple mechanisms, the TOTP key will also
+be changed at the same time. This is likely to be undesirable behavior.
+
+.SH "SEE ALSO"
+.BR slapd.conf (5) ldappasswd (1)
+
+.SH AUTHOR
+This work was developed by Howard Chu of Symas Corporation for inclusion in
+OpenLDAP Software.
+.so ../../man.subdir-footer
