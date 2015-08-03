@@ -53,9 +53,13 @@ fi
 
 make -j4 && make -j4 -C libraries/liblmdb || failure "build"
 
-for m in contrib/slapd-modules/*; do
+for m in $(find ./contrib/slapd-modules -name Makefile -printf '%h\n'); do
+	make -C $m clean || failure "contrib-module CLEAN '$m'"
 	if [ -d $m -a ! -e $m/BROKEN ]; then
+		echo "----------- TRY MODULE: $m"
 		make -C $m || failure "contrib-module '$m'"
+	else
+		echo "----------- MODULE: $m IS BROKEN"
 	fi
 done
 
