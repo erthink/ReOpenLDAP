@@ -34,10 +34,10 @@ static const struct berval mdmi_databases[] = {
 	BER_BVNULL
 };
 
-static int
+static long
 mdb_id_compare( const MDB_val *a, const MDB_val *b )
 {
-	return *(ID *)a->mv_data < *(ID *)b->mv_data ? -1 : *(ID *)a->mv_data > *(ID *)b->mv_data;
+	return *(ID *)a->mv_data - *(ID *)b->mv_data;
 }
 
 static int

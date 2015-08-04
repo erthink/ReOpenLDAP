@@ -53,23 +53,23 @@ typedef struct diskNode {
 /* Sort function for the sorted duplicate data items of a dn2id key.
  * Sorts based on normalized RDN, in length order.
  */
-int
+long
 mdb_dup_compare(
 	const MDB_val *usrkey,
 	const MDB_val *curkey
 )
 {
 	diskNode *un, *cn;
-	int rc, nrlen;
+	long diff, nrlen;
 
 	un = (diskNode *)usrkey->mv_data;
 	cn = (diskNode *)curkey->mv_data;
 
 	/* data is not aligned, cannot compare directly */
-	rc = un->nrdnlen[0] - cn->nrdnlen[0];
-	if ( rc ) return rc;
-	rc = un->nrdnlen[1] - cn->nrdnlen[1];
-	if ( rc ) return rc;
+	diff = un->nrdnlen[0] - cn->nrdnlen[0];
+	if ( diff ) return diff;
+	diff = un->nrdnlen[1] - cn->nrdnlen[1];
+	if ( diff ) return diff;
 
 	nrlen = ((un->nrdnlen[0] & 0x7f) << 8) | un->nrdnlen[1];
 	return strncmp( un->nrdn, cn->nrdn, nrlen );
