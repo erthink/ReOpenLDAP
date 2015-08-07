@@ -7,6 +7,7 @@ OpenLDAP 2.4.42 Engineering
 	Fixed slapo-ppolicy with redundant mod ops on glued trees (ITS#8184)
 	Added libldap LDAPSTACKGUARD feature (ITS#8201)
 	Fixed slapd-ldap segfault after failed retry (ITS#8173)
+	Fixed slapo-rwm crash when deleting rewrite rules (ITS#8213)
 	Build Environment
 		Fixed libdb detection with gcc 5.x (ITS#8056)
 
