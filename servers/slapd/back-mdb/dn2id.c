@@ -211,8 +211,7 @@ mdb_dn2id_delete(
 	char *ptr;
 	int rc;
 
-	Debug( LDAP_DEBUG_TRACE, "=> mdb_dn2id_delete 0x%lx\n",
-		id );
+	Debug( LDAP_DEBUG_TRACE, "=> mdb_dn2id_delete 0x%lx\n", id );
 
 	/* Delete our ID from the parent's list */
 	rc = mdb_cursor_del( mc, 0 );
@@ -430,8 +429,7 @@ done:
 		Debug( LDAP_DEBUG_TRACE, "<= mdb_dn2id: get failed: %s (%d)\n",
 			mdb_strerror( rc ), rc );
 	} else {
-		Debug( LDAP_DEBUG_TRACE, "<= mdb_dn2id: got id=0x%lx\n",
-			nid );
+		Debug( LDAP_DEBUG_TRACE, "<= mdb_dn2id: got id=0x%lx\n", nid );
 	}
 
 	return rc;
@@ -845,18 +843,12 @@ mdb_dn2id_walk(
 	int rc, n;
 	ID nsubs;
 
-	isc->scopes[0].mid = 0;
 	if ( !isc->numrdns ) {
 		key.mv_data = &isc->id;
 		key.mv_size = sizeof(ID);
 		rc = mdb_cursor_get( isc->mc, &key, &data, MDB_SET );
-		isc->scopes[0 + 1].mid = isc->id;
-
-		isc->nrdns[0].bv_val = NULL;
-		isc->nrdns[0].bv_len = 0;
-		isc->rdns[0] = isc->nrdns[0];
-		isc->numrdns = 1;
-
+		isc->scopes[0].mid = isc->id;
+		isc->numrdns++;
 		isc->nscope = 0;
 		/* skip base if not a subtree walk */
 		if ( isc->oscope == LDAP_SCOPE_SUBTREE ||
@@ -883,7 +875,7 @@ mdb_dn2id_walk(
 					continue;
 			}
 			n = isc->numrdns;
-			isc->scopes[n + 1].mid = isc->id;
+			isc->scopes[n].mid = isc->id;
 			n--;
 			isc->nrdns[n].bv_len = ((d->nrdnlen[0] & 0x7f) << 8) | d->nrdnlen[1];
 			isc->nrdns[n].bv_val = d->nrdn;
@@ -914,7 +906,7 @@ mdb_dn2id_walk(
 					break;
 				/* pop up to prev node */
 				n = isc->numrdns - 1;
-				key.mv_data = &isc->scopes[n + 1].mid;
+				key.mv_data = &isc->scopes[n].mid;
 				key.mv_size = sizeof(ID);
 				data.mv_data = isc->nrdns[n].bv_val - 2;
 				data.mv_size = 1;	/* just needs to be non-zero, mdb_dup_compare doesn't care */
@@ -926,4 +918,47 @@ mdb_dn2id_walk(
 		}
 	}
 	return rc;
+}
+
+/* restore the nrdn/rdn pointers after a txn reset */
+void mdb_dn2id_wrestore (
+	Operation *op,
+	IdScopes *isc
+)
+{
+	MDB_val key, data;
+	diskNode *d;
+	int rc, n, nrlen;
+	char *ptr;
+
+	/* We only need to restore up to the n-1th element,
+	 * the nth element will be replaced anyway
+	 */
+	key.mv_size = sizeof(ID);
+	for ( n=0; n<isc->numrdns-1; n++ ) {
+		key.mv_data = &isc->scopes[n+1].mid;
+		rc = mdb_cursor_get( isc->mc, &key, &data, MDB_SET );
+		if ( rc )
+			continue;
+		/* we can't use this data directly since its nrlen
+		 * is missing the high bit setting, so copy it and
+		 * set it properly. we just copy enough to satisfy
+		 * mdb_dup_compare.
+		 */
+		d = data.mv_data;
+		nrlen = ((d->nrdnlen[0] & 0x7f) << 8) | d->nrdnlen[1];
+		ptr = op->o_tmpalloc( nrlen+2, op->o_tmpmemctx );
+		memcpy( ptr, data.mv_data, nrlen+2 );
+		key.mv_data = &isc->scopes[n].mid;
+		data.mv_data = ptr;
+		data.mv_size = 1;
+		*ptr |= 0x80;
+		mdb_cursor_get( isc->mc, &key, &data, MDB_GET_BOTH );
+		op->o_tmpfree( ptr, op->o_tmpmemctx );
+
+		/* now we're back to where we wanted to be */
+		d = data.mv_data;
+		isc->nrdns[n].bv_val = d->nrdn;
+		isc->rdns[n].bv_val = d->nrdn+isc->nrdns[n].bv_len+1;
+	}
 }
