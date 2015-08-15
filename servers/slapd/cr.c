@@ -362,7 +362,7 @@ cr_add(
 	}
 
 	scr = (ContentRule *) ch_calloc( 1, sizeof(ContentRule) );
-	AC_MEMCPY( &scr->scr_crule, cr, sizeof(LDAPContentRule) );
+	memcpy( &scr->scr_crule, cr, sizeof(LDAPContentRule) );
 
 	scr->scr_oidmacro = oidm;
 	scr->scr_sclass = oc_find(cr->cr_oid);

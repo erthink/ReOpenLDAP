@@ -173,7 +173,7 @@ meta_dncache_update_entry(
 
 		entry->dn.bv_len = ndn->bv_len;
 		entry->dn.bv_val = (char *)&entry[ 1 ];
-		AC_MEMCPY( entry->dn.bv_val, ndn->bv_val, ndn->bv_len );
+		memcpy( entry->dn.bv_val, ndn->bv_val, ndn->bv_len );
 		entry->dn.bv_val[ ndn->bv_len ] = '\0';
 
 		entry->target = target;

@@ -473,7 +473,7 @@ static int passwd_string32(
 	int rc;
 	hash->bv_len = scheme->bv_len + b32len;
 	hash->bv_val = ber_memalloc(hash->bv_len + 1);
-	AC_MEMCPY(hash->bv_val, scheme->bv_val, scheme->bv_len);
+	memcpy(hash->bv_val, scheme->bv_val, scheme->bv_len);
 	rc = totp_b32_ntop((unsigned char *)passwd->bv_val, passwd->bv_len,
 		hash->bv_val + scheme->bv_len, b32len+1);
 	if (rc < 0) {

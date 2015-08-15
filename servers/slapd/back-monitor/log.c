@@ -244,7 +244,7 @@ check_constraints( Modification *mod, int *newlevel )
 
 		assert( bv.bv_len == mod->sm_values[ i ].bv_len );
 
-		AC_MEMCPY( mod->sm_values[ i ].bv_val,
+		memcpy( mod->sm_values[ i ].bv_val,
 				bv.bv_val, bv.bv_len );
 
 		*newlevel |= l;

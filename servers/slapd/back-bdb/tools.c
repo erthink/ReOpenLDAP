@@ -547,7 +547,7 @@ static int bdb_tool_next_id(
 			if ( nholes == nhmax - 1 ) {
 				if ( holes == hbuf ) {
 					holes = ch_malloc( nhmax * sizeof(dn_id) * 2 );
-					AC_MEMCPY( holes, hbuf, sizeof(hbuf) );
+					memcpy( holes, hbuf, sizeof(hbuf) );
 				} else {
 					holes = ch_realloc( holes, nhmax * sizeof(dn_id) * 2 );
 				}
@@ -1183,7 +1183,7 @@ int bdb_tool_idl_add(
 		ic = ch_malloc( sizeof( bdb_tool_idl_cache ) + itmp.kstr.bv_len );
 		ic->kstr.bv_len = itmp.kstr.bv_len;
 		ic->kstr.bv_val = (char *)(ic+1);
-		AC_MEMCPY( ic->kstr.bv_val, itmp.kstr.bv_val, ic->kstr.bv_len );
+		memcpy( ic->kstr.bv_val, itmp.kstr.bv_val, ic->kstr.bv_len );
 		ic->head = ic->tail = NULL;
 		ic->last = 0;
 		ic->count = 0;

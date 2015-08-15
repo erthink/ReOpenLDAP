@@ -919,7 +919,7 @@ void slap_mods_opattrs(
 		ptr = ber_bvchr( &csn, '#' );
 		if ( ptr ) {
 			timestamp.bv_len = STRLENOF("YYYYMMDDHHMMSSZ");
-			AC_MEMCPY( timebuf, csn.bv_val, timestamp.bv_len );
+			memcpy( timebuf, csn.bv_val, timestamp.bv_len );
 			timebuf[timestamp.bv_len-1] = 'Z';
 			timebuf[timestamp.bv_len] = '\0';
 

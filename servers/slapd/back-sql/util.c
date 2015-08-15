@@ -116,7 +116,7 @@ backsql_strcat_x( struct berbuf *dest, void *memctx, ... )
 				dest->bb_len, dest );
 #endif /* BACKSQL_TRACE */
 		}
-		AC_MEMCPY( dest->bb_val.bv_val + cdlen, cstr, cslen + 1 );
+		memcpy( dest->bb_val.bv_val + cdlen, cstr, cslen + 1 );
 		cdlen += cslen;
 	}
 	va_end( strs );
@@ -225,7 +225,7 @@ backsql_strfcat_x( struct berbuf *dest, void *memctx, const char *fmt, ... )
 
 		assert( cstr != NULL );
 
-		AC_MEMCPY( dest->bb_val.bv_val + cdlen, cstr, cslen + 1 );
+		memcpy( dest->bb_val.bv_val + cdlen, cstr, cslen + 1 );
 		cdlen += cslen;
 	}
 

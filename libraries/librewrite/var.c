@@ -132,7 +132,7 @@ rewrite_var_replace(
 	if ( var->lv_flags & REWRITE_VAR_COPY_VALUE ) {
 		if ( flags & REWRITE_VAR_COPY_VALUE ) {
 			if ( len <= var->lv_value.bv_len ) {
-				AC_MEMCPY(var->lv_value.bv_val, value, len + 1);
+				memcpy(var->lv_value.bv_val, value, len + 1);
 
 			} else {
 				free( var->lv_value.bv_val );

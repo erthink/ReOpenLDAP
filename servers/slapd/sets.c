@@ -107,7 +107,7 @@ set_dup( SetCookie *cp, BerVarray set, unsigned flags )
 			}
 
 		} else {
-			AC_MEMCPY( newset, set, ( i + 1 ) * sizeof( struct berval ) );
+			memcpy( newset, set, ( i + 1 ) * sizeof( struct berval ) );
 		}
 
 	} else {
@@ -328,8 +328,8 @@ slap_set_join(
 						set = NULL;
 						goto done;
 					}
-					AC_MEMCPY( bv.bv_val, lset[ i ].bv_val, lset[ i ].bv_len );
-					AC_MEMCPY( &bv.bv_val[ lset[ i ].bv_len ], rset[ j ].bv_val, rset[ j ].bv_len );
+					memcpy( bv.bv_val, lset[ i ].bv_val, lset[ i ].bv_len );
+					memcpy( &bv.bv_val[ lset[ i ].bv_len ], rset[ j ].bv_val, rset[ j ].bv_len );
 					bv.bv_val[ bv.bv_len ] = '\0';
 				}
 
@@ -655,7 +655,7 @@ slap_set_filter( SLAP_SET_GATHER gatherer,
 			if ( BER_BVISNULL( set ) ) {
 				SF_ERROR( memory );
 			}
-			AC_MEMCPY( set->bv_val, &filter[ - len - 1 ], len );
+			memcpy( set->bv_val, &filter[ - len - 1 ], len );
 			set->bv_len = len;
 			SF_PUSH( set );
 			set = NULL;

@@ -962,7 +962,7 @@ uccanoncompatdecomp(const ac_uint4 *in, int inlen,
                     for (l = i; l > 0; l--)
                         if (class >= uccombining_class((*out)[l-1]))
                             break;
-                    AC_MEMCPY(*out + l + 1, *out + l, (i - l) * sizeof(**out));
+					memmove(*out + l + 1, *out + l, (i - l) * sizeof(**out));
                     (*out)[l] = decomp[k];
                 }
                 i++;
@@ -992,7 +992,7 @@ uccanoncompatdecomp(const ac_uint4 *in, int inlen,
                 for (l = i; l > 0; l--)
                     if (class >= uccombining_class((*out)[l-1]))
                         break;
-                AC_MEMCPY(*out + l + 1, *out + l, (i - l) * sizeof(**out));
+				memmove(*out + l + 1, *out + l, (i - l) * sizeof(**out));
                 (*out)[l] = in[j];
             }
             i++;

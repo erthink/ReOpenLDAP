@@ -84,7 +84,7 @@ ber_read(
 	nleft = ber_pvt_ber_remaining( ber );
 	actuallen = nleft < len ? nleft : len;
 
-	AC_MEMCPY( buf, ber->ber_ptr, actuallen );
+	memcpy( buf, ber->ber_ptr, actuallen );
 
 	ber->ber_ptr += actuallen;
 
@@ -118,7 +118,7 @@ ber_write(
 	if ( len > (ber_len_t) (ber->ber_end - *p) ) {
 		if ( ber_realloc( ber, len ) != 0 ) return( -1 );
 	}
-	AC_MEMCPY( *p, buf, len );
+	memcpy( *p, buf, len );
 	*p += len;
 
 	return( (ber_slen_t) len );
@@ -408,7 +408,7 @@ int ber_flatten2(
 			if ( bv->bv_val == NULL ) {
 				return -1;
 			}
-			AC_MEMCPY( bv->bv_val, ber->ber_buf, len );
+			memcpy( bv->bv_val, ber->ber_buf, len );
 			bv->bv_val[len] = '\0';
 		} else if ( ber->ber_buf != NULL ) {
 			bv->bv_val = ber->ber_buf;
@@ -596,7 +596,7 @@ ber_get_next(
 			} else {
 				sblen = (char *)&ber->ber_usertag - ber->ber_ptr;
 			}
-			AC_MEMCPY(buf, ber->ber_ptr, sblen);
+			memcpy(buf, ber->ber_ptr, sblen);
 			ber->ber_ptr += sblen;
 		} else {
 			sblen = 0;
@@ -635,10 +635,10 @@ ber_get_next(
 			}
 			ber->ber_end = ber->ber_buf + ber->ber_len;
 			if (sblen) {
-				AC_MEMCPY(ber->ber_buf, buf, sblen);
+				memcpy(ber->ber_buf, buf, sblen);
 			}
 			if (l > 0) {
-				AC_MEMCPY(ber->ber_buf + sblen, ber->ber_ptr, l);
+				memcpy(ber->ber_buf + sblen, ber->ber_ptr, l);
 				sblen += l;
 			}
 			*ber->ber_end = '\0';

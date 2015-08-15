@@ -159,7 +159,7 @@ int lutil_entropy( unsigned char *buf, ber_len_t nbytes )
 
 			lutil_MD5Final( digest, &ctx );
 
-			AC_MEMCPY( &buf[n], digest,
+			memcpy( &buf[n], digest,
 				nbytes - n >= 16 ? 16 : nbytes - n );
 		}
 

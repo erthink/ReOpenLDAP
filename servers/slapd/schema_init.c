@@ -1424,7 +1424,7 @@ uniqueMemberNormalize(
 			normalized->bv_val[normalized->bv_len++] = '#';
 
 			/* append the UID */
-			AC_MEMCPY( &normalized->bv_val[normalized->bv_len],
+			memcpy( &normalized->bv_val[normalized->bv_len],
 				uid.bv_val, uid.bv_len );
 			normalized->bv_len += uid.bv_len;
 
@@ -2133,7 +2133,7 @@ approxIndexer(
 		/* Allocate/increase storage to account for new keys */
 		newkeys = (struct berval *)ch_malloc( (keycount + wordcount + 1)
 			* sizeof(struct berval) );
-		AC_MEMCPY( newkeys, keys, keycount * sizeof(struct berval) );
+		memcpy( newkeys, keys, keycount * sizeof(struct berval) );
 		if( keys ) ch_free( keys );
 		keys = newkeys;
 
@@ -2791,7 +2791,7 @@ IA5StringNormalize(
 
 	normalized->bv_len = val->bv_len - ( p - val->bv_val );
 	normalized->bv_val = slap_sl_malloc( normalized->bv_len + 1, ctx );
-	AC_MEMCPY( normalized->bv_val, p, normalized->bv_len );
+	memcpy( normalized->bv_val, p, normalized->bv_len );
 	normalized->bv_val[normalized->bv_len] = '\0';
 
 	p = q = normalized->bv_val;

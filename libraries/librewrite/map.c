@@ -91,7 +91,7 @@ rewrite_map_parse(
 	if ( s == NULL ) {
 		return NULL;
 	}
-	AC_MEMCPY( s, string, l );
+	memcpy( s, string, l );
 	s[ l ] = 0;
 
 	/*

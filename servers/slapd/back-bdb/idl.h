@@ -56,7 +56,7 @@
 #define BDB_IDL_IS_ALL( range, ids ) ( (ids)[0] == NOID \
 	&& (ids)[1] <= (range)[1] && (range)[2] <= (ids)[2] )
 
-#define BDB_IDL_CPY( dst, src ) (AC_MEMCPY( dst, src, BDB_IDL_SIZEOF( src ) ))
+#define BDB_IDL_CPY( dst, src ) (memcpy( dst, src, BDB_IDL_SIZEOF( src ) ))
 
 #define BDB_IDL_ID( bdb, ids, id ) BDB_IDL_RANGE( ids, id, ((bdb)->bi_lastid) )
 #define BDB_IDL_ALL( bdb, ids ) BDB_IDL_RANGE( ids, 1, ((bdb)->bi_lastid) )

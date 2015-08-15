@@ -1533,7 +1533,7 @@ chain_cf_gen( ConfigArgs *c )
 			if ( lc->lc_chaining_ctrl.ldctl_iscritical ) {
 				c->value_bv.bv_val = ch_realloc( c->value_bv.bv_val,
 					c->value_bv.bv_len + STRLENOF( " critical" ) + 1 );
-				AC_MEMCPY( &c->value_bv.bv_val[ c->value_bv.bv_len ],
+				memcpy( &c->value_bv.bv_val[ c->value_bv.bv_len ],
 					" critical", STRLENOF( " critical" ) + 1 );
 				c->value_bv.bv_len += STRLENOF( " critical" );
 			}

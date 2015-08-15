@@ -762,7 +762,7 @@ is_dn:		bv.bv_len = val->bv_len - ( bv.bv_val - val->bv_val );
 			goto done;
 		}
 
-		AC_MEMCPY( ludp->lud_scheme, "ldap", STRLENOF( "ldap" ) );
+		memcpy( ludp->lud_scheme, "ldap", STRLENOF( "ldap" ) );
 		break;
 
 	case LDAP_URL_ERR_BADSCHEME:

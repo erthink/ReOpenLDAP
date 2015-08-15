@@ -75,7 +75,7 @@ slap_get_commit_csn(
 		if ( committed_csne ) {
 			if ( committed_csne->ce_csn.bv_len < maxcsn->bv_len )
 				maxcsn->bv_len = committed_csne->ce_csn.bv_len;
-			AC_MEMCPY( maxcsn->bv_val, committed_csne->ce_csn.bv_val,
+			memcpy( maxcsn->bv_val, committed_csne->ce_csn.bv_val,
 				maxcsn->bv_len+1 );
 		} else {
 			maxcsn->bv_len = 0;

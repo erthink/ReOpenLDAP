@@ -239,7 +239,7 @@ syncprov_state_ctrl(
 		cp->ldctl_iscritical = (op->o_sync == SLAP_CONTROL_CRITICAL);
 		cp->ldctl_value.bv_val = (char *)&cp[1];
 		cp->ldctl_value.bv_len = bv.bv_len;
-		AC_MEMCPY( cp->ldctl_value.bv_val, bv.bv_val, bv.bv_len );
+		memcpy( cp->ldctl_value.bv_val, bv.bv_val, bv.bv_len );
 		ctrls[num_ctrls] = cp;
 	}
 	ber_free_buf( ber );
@@ -290,7 +290,7 @@ syncprov_done_ctrl(
 		cp->ldctl_iscritical = (op->o_sync == SLAP_CONTROL_CRITICAL);
 		cp->ldctl_value.bv_val = (char *)&cp[1];
 		cp->ldctl_value.bv_len = bv.bv_len;
-		AC_MEMCPY( cp->ldctl_value.bv_val, bv.bv_val, bv.bv_len );
+		memcpy( cp->ldctl_value.bv_val, bv.bv_val, bv.bv_len );
 		ctrls[num_ctrls] = cp;
 	}
 
@@ -1090,7 +1090,7 @@ syncprov_qresp( opcookie *opc, syncops *so, int mode )
 			ri->ri_uuid.bv_val = lutil_strcopy( ri->ri_ndn.bv_val,
 				opc->sndn.bv_val ) + 1;
 			ri->ri_uuid.bv_len = opc->suuid.bv_len;
-			AC_MEMCPY( ri->ri_uuid.bv_val, opc->suuid.bv_val, opc->suuid.bv_len );
+			memcpy( ri->ri_uuid.bv_val, opc->suuid.bv_val, opc->suuid.bv_len );
 			if ( csn.bv_len ) {
 				ri->ri_csn.bv_val = ri->ri_uuid.bv_val + ri->ri_uuid.bv_len;
 				memcpy( ri->ri_csn.bv_val, csn.bv_val, csn.bv_len );
@@ -1657,11 +1657,11 @@ syncprov_add_slog( Operation *op )
 		se->se_tag = op->o_tag;
 
 		se->se_uuid.bv_val = (char *)(&se[1]);
-		AC_MEMCPY( se->se_uuid.bv_val, opc->suuid.bv_val, opc->suuid.bv_len );
+		memcpy( se->se_uuid.bv_val, opc->suuid.bv_val, opc->suuid.bv_len );
 		se->se_uuid.bv_len = opc->suuid.bv_len;
 
 		se->se_csn.bv_val = se->se_uuid.bv_val + opc->suuid.bv_len;
-		AC_MEMCPY( se->se_csn.bv_val, op->o_csn.bv_val, op->o_csn.bv_len );
+		memcpy( se->se_csn.bv_val, op->o_csn.bv_val, op->o_csn.bv_len );
 		se->se_csn.bv_val[op->o_csn.bv_len] = '\0';
 		se->se_csn.bv_len = op->o_csn.bv_len;
 		se->se_sid = slap_parse_csn_sid( &se->se_csn );
@@ -1789,7 +1789,7 @@ syncprov_playlog( Operation *op, SlapReply *rs, sessionlog *sl,
 		if ( se->se_tag == LDAP_REQ_DELETE ) {
 			j = i;
 			i++;
-			AC_MEMCPY( cbuf, se->se_csn.bv_val, se->se_csn.bv_len );
+			memcpy( cbuf, se->se_csn.bv_val, se->se_csn.bv_len );
 			delcsn[0].bv_len = se->se_csn.bv_len;
 			delcsn[0].bv_val[delcsn[0].bv_len] = '\0';
 		} else {
@@ -1799,7 +1799,7 @@ syncprov_playlog( Operation *op, SlapReply *rs, sessionlog *sl,
 			j = num - nmods;
 		}
 		uuids[j].bv_val = uuids[0].bv_val + (j * UUID_LEN);
-		AC_MEMCPY(uuids[j].bv_val, se->se_uuid.bv_val, UUID_LEN);
+		memcpy(uuids[j].bv_val, se->se_uuid.bv_val, UUID_LEN);
 		uuids[j].bv_len = UUID_LEN;
 	}
 	ldap_pvt_thread_mutex_unlock( &sl->sl_mutex );

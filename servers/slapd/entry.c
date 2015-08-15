@@ -711,17 +711,17 @@ int entry_encode(Entry *e, struct berval *bv)
 	entry_putlen(&ptr, nattrs);
 	entry_putlen(&ptr, nvals);
 	entry_putlen(&ptr, dnlen);
-	AC_MEMCPY(ptr, e->e_dn, dnlen);
+	memcpy(ptr, e->e_dn, dnlen);
 	ptr += dnlen;
 	*ptr++ = '\0';
 	entry_putlen(&ptr, ndnlen);
-	AC_MEMCPY(ptr, e->e_ndn, ndnlen);
+	memcpy(ptr, e->e_ndn, ndnlen);
 	ptr += ndnlen;
 	*ptr++ = '\0';
 
 	for (a=e->e_attrs; a; a=a->a_next) {
 		entry_putlen(&ptr, a->a_desc->ad_cname.bv_len);
-		AC_MEMCPY(ptr, a->a_desc->ad_cname.bv_val,
+		memcpy(ptr, a->a_desc->ad_cname.bv_val,
 			a->a_desc->ad_cname.bv_len);
 		ptr += a->a_desc->ad_cname.bv_len;
 		*ptr++ = '\0';
@@ -731,7 +731,7 @@ int entry_encode(Entry *e, struct berval *bv)
 			entry_putlen(&ptr, i);
 			for (i=0; a->a_vals[i].bv_val; i++) {
 				entry_putlen(&ptr, a->a_vals[i].bv_len);
-				AC_MEMCPY(ptr, a->a_vals[i].bv_val,
+				memcpy(ptr, a->a_vals[i].bv_val,
 					a->a_vals[i].bv_len);
 				ptr += a->a_vals[i].bv_len;
 				*ptr++ = '\0';
@@ -740,7 +740,7 @@ int entry_encode(Entry *e, struct berval *bv)
 				entry_putlen(&ptr, i);
 				for (i=0; a->a_nvals[i].bv_val; i++) {
 					entry_putlen(&ptr, a->a_nvals[i].bv_len);
-					AC_MEMCPY(ptr, a->a_nvals[i].bv_val,
+					memcpy(ptr, a->a_nvals[i].bv_val,
 					a->a_nvals[i].bv_len);
 					ptr += a->a_nvals[i].bv_len;
 					*ptr++ = '\0';
@@ -978,13 +978,13 @@ Entry *entry_dup_bv( Entry *e )
 
 	ret->e_name.bv_len = e->e_name.bv_len;
 	ret->e_name.bv_val = ptr;
-	AC_MEMCPY( ptr, e->e_name.bv_val, e->e_name.bv_len );
+	memcpy( ptr, e->e_name.bv_val, e->e_name.bv_len );
 	ptr += e->e_name.bv_len;
 	*ptr++ = '\0';
 
 	ret->e_nname.bv_len = e->e_nname.bv_len;
 	ret->e_nname.bv_val = ptr;
-	AC_MEMCPY( ptr, e->e_nname.bv_val, e->e_nname.bv_len );
+	memcpy( ptr, e->e_nname.bv_val, e->e_nname.bv_len );
 	ptr += e->e_name.bv_len;
 	*ptr++ = '\0';
 
@@ -998,7 +998,7 @@ Entry *entry_dup_bv( Entry *e )
 		for ( i=0; src->a_vals[i].bv_val; i++ ) {
 			bvl->bv_len = src->a_vals[i].bv_len;
 			bvl->bv_val = ptr;
-			AC_MEMCPY( ptr, src->a_vals[i].bv_val, bvl->bv_len );
+			memcpy( ptr, src->a_vals[i].bv_val, bvl->bv_len );
 			ptr += bvl->bv_len;
 			*ptr++ = '\0';
 			bvl++;
@@ -1010,7 +1010,7 @@ Entry *entry_dup_bv( Entry *e )
 			for ( i=0; src->a_nvals[i].bv_val; i++ ) {
 				bvl->bv_len = src->a_nvals[i].bv_len;
 				bvl->bv_val = ptr;
-				AC_MEMCPY( ptr, src->a_nvals[i].bv_val, bvl->bv_len );
+				memcpy( ptr, src->a_nvals[i].bv_val, bvl->bv_len );
 				ptr += bvl->bv_len;
 				*ptr++ = '\0';
 				bvl++;

@@ -81,7 +81,7 @@ int ldap_dn2domain(
 
 					domain.bv_val = ndomain;
 
-					AC_MEMCPY( domain.bv_val, ava->la_value.bv_val,
+					memcpy( domain.bv_val, ava->la_value.bv_val,
 						ava->la_value.bv_len );
 
 					domain.bv_len = ava->la_value.bv_len;
@@ -97,7 +97,7 @@ int ldap_dn2domain(
 
 					domain.bv_val = ndomain;
 					domain.bv_val[domain.bv_len++] = '.';
-					AC_MEMCPY( &domain.bv_val[domain.bv_len],
+					memcpy( &domain.bv_val[domain.bv_len],
 						ava->la_value.bv_val, ava->la_value.bv_len );
 					domain.bv_len += ava->la_value.bv_len;
 					domain.bv_val[domain.bv_len] = '\0';

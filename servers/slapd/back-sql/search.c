@@ -1769,7 +1769,7 @@ backsql_oc_get_candidates( void *v_oc, void *v_bsi )
 			return BACKSQL_AVL_CONTINUE;
 		}
 
-		AC_MEMCPY( tmp_base_ndn, bsi->bsi_base_ndn->bv_val,
+		memcpy( tmp_base_ndn, bsi->bsi_base_ndn->bv_val,
 				bsi->bsi_base_ndn->bv_len + 1 );
 
 		/* uppercase DN only if the stored DN can be uppercased
@@ -1848,7 +1848,7 @@ backsql_oc_get_candidates( void *v_oc, void *v_bsi )
 				tmp_base_ndn[ i++ ] = ',';
 			}
 
-			AC_MEMCPY( &tmp_base_ndn[ i ], bsi->bsi_base_ndn->bv_val,
+			memcpy( &tmp_base_ndn[ i ], bsi->bsi_base_ndn->bv_val,
 				bsi->bsi_base_ndn->bv_len + 1 );
 		}
 
@@ -2702,7 +2702,7 @@ parse_paged_cookie( Operation *op, SlapReply *rs )
 			goto done;
 		}
 
-		AC_MEMCPY( &reqcookie, ps->ps_cookieval.bv_val, sizeof( reqcookie ));
+		memcpy( &reqcookie, ps->ps_cookieval.bv_val, sizeof( reqcookie ));
 
 		if ( reqcookie > ps->ps_cookie ) {
 			/* bad cookie */

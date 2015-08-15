@@ -402,7 +402,7 @@ aci_group_member (
 		AclRegexMatches amatches = { 0 };
 
 		amatches.dn_count = nmatch;
-		AC_MEMCPY( amatches.dn_data, matches, sizeof( amatches.dn_data ) );
+		memcpy( amatches.dn_data, matches, sizeof( amatches.dn_data ) );
 
 		bv.bv_len = sizeof( buf ) - 1;
 		bv.bv_val = (char *)&buf;
@@ -1350,7 +1350,7 @@ OpenLDAPaciNormalizeRights(
 				+ nbv.bv_len + 1,
 				ctx );
 			nactions->bv_val[ nactions->bv_len ] = '$';
-			AC_MEMCPY( &nactions->bv_val[ nactions->bv_len + 1 ],
+			memcpy( &nactions->bv_val[ nactions->bv_len + 1 ],
 				nbv.bv_val, nbv.bv_len + 1 );
 			ber_memfree_x( nbv.bv_val, ctx );
 			nactions->bv_len += STRLENOF( "$" ) + nbv.bv_len;

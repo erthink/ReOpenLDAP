@@ -300,7 +300,7 @@ load_extop2(
 		}
 
 		ext->oid.bv_val = (char *)(ext + 1);
-		AC_MEMCPY( ext->oid.bv_val, ext_oid->bv_val, ext_oid->bv_len );
+		memcpy( ext->oid.bv_val, ext_oid->bv_val, ext_oid->bv_len );
 		ext->oid.bv_len = ext_oid->bv_len;
 		ext->oid.bv_val[ext->oid.bv_len] = '\0';
 
@@ -386,8 +386,8 @@ whoami_extop (
 	if( op->o_dn.bv_len ) {
 		bv->bv_len = op->o_dn.bv_len + STRLENOF( "dn:" );
 		bv->bv_val = ch_malloc( bv->bv_len + 1 );
-		AC_MEMCPY( bv->bv_val, "dn:", STRLENOF( "dn:" ) );
-		AC_MEMCPY( &bv->bv_val[STRLENOF( "dn:" )], op->o_dn.bv_val,
+		memcpy( bv->bv_val, "dn:", STRLENOF( "dn:" ) );
+		memcpy( &bv->bv_val[STRLENOF( "dn:" )], op->o_dn.bv_val,
 			op->o_dn.bv_len );
 		bv->bv_val[bv->bv_len] = '\0';
 

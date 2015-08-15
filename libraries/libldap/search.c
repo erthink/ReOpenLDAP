@@ -361,7 +361,7 @@ ldap_build_search_req(
 			}
 
 			if ( rest <= 0 ) {
-				AC_MEMCPY( &buf[ sizeof( buf ) - STRLENOF( "...(truncated)" ) - 1 ],
+				memcpy( &buf[ sizeof( buf ) - STRLENOF( "...(truncated)" ) - 1 ],
 					"...(truncated)", STRLENOF( "...(truncated)" ) + 1 );
 			}
 			ptr = buf;

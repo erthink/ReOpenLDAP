@@ -591,7 +591,7 @@ bdb_idl_fetch_key(
 		key2.ulen = sizeof(keybuf);
 		key2.data = keybuf;
 		key2.size = key->size;
-		AC_MEMCPY( keybuf, key->data, key->size );
+		memcpy( keybuf, key->data, key->size );
 		kptr = &key2;
 	} else {
 		kptr = key;
@@ -1385,7 +1385,7 @@ int bdb_idl_append( ID *a, ID *b )
 
 	{
 		int i = b[0] - 1;
-		AC_MEMCPY(a+a[0]+1, b+2, i * sizeof(ID));
+		memcpy(a+a[0]+1, b+2, i * sizeof(ID));
 		a[0] += i;
 	}
 	if ( swap ) {

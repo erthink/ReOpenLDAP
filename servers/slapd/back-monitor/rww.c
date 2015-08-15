@@ -222,7 +222,7 @@ monitor_subsys_rww_update(
 			return SLAP_CB_CONTINUE;
 		}
 	}
-	AC_MEMCPY( a->a_vals[ 0 ].bv_val, buf, len + 1 );
+	memcpy( a->a_vals[ 0 ].bv_val, buf, len + 1 );
 	a->a_vals[ 0 ].bv_len = len;
 
 	/* FIXME: touch modifyTimestamp? */

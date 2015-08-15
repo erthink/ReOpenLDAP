@@ -441,7 +441,7 @@ slap_mods2entry(
 				BER_BVZERO( &attr->a_vals[i+j] );
 				j++;
 			} else {
-				AC_MEMCPY( &attr->a_vals[i], mods->sml_values,
+				memcpy( &attr->a_vals[i], mods->sml_values,
 					sizeof( struct berval ) * j );
 			}
 
@@ -454,7 +454,7 @@ slap_mods2entry(
 					}
 					BER_BVZERO( &attr->a_nvals[i+j] );
 				} else {
-					AC_MEMCPY( &attr->a_nvals[i], mods->sml_nvalues,
+					memcpy( &attr->a_nvals[i], mods->sml_nvalues,
 						sizeof( struct berval ) * j );
 				}
 			} else {
@@ -617,7 +617,7 @@ int slap_add_opattrs(
 		ptr = ber_bvchr( &csn, '#' );
 		if ( ptr ) {
 			timestamp.bv_len = STRLENOF("YYYYMMDDHHMMSSZ");
-			AC_MEMCPY( timebuf, csn.bv_val, timestamp.bv_len );
+			memcpy( timebuf, csn.bv_val, timestamp.bv_len );
 			timebuf[timestamp.bv_len-1] = 'Z';
 			timebuf[timestamp.bv_len] = '\0';
 		} else {

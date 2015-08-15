@@ -439,7 +439,7 @@ modify_increment_values(
 			a->a_nvals[i].bv_val = tmp;
 			a->a_nvals[i].bv_len = strln;
 
-			AC_MEMCPY( a->a_nvals[i].bv_val, str, strln+1 );
+			memcpy( a->a_nvals[i].bv_val, str, strln+1 );
 		}
 
 	} else {

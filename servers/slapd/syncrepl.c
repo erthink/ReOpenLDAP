@@ -2908,7 +2908,7 @@ presentlist_insert(
 #else
 	val = ch_malloc(UUIDLEN);
 
-	AC_MEMCPY( val, syncUUID->bv_val, UUIDLEN );
+	memcpy( val, syncUUID->bv_val, UUIDLEN );
 
 	if ( avl_insert( &si->si_presentlist, val,
 		syncuuid_cmp, avl_dup_error ) )
@@ -3051,8 +3051,8 @@ syncrepl_entry(
 	op->ors_filterstr.bv_len = STRLENOF( "(entryUUID=)" ) + syncUUID[1].bv_len;
 	op->ors_filterstr.bv_val = (char *) slap_sl_malloc(
 		op->ors_filterstr.bv_len + 1, op->o_tmpmemctx );
-	AC_MEMCPY( op->ors_filterstr.bv_val, "(entryUUID=", STRLENOF( "(entryUUID=" ) );
-	AC_MEMCPY( &op->ors_filterstr.bv_val[STRLENOF( "(entryUUID=" )],
+	memcpy( op->ors_filterstr.bv_val, "(entryUUID=", STRLENOF( "(entryUUID=" ) );
+	memcpy( &op->ors_filterstr.bv_val[STRLENOF( "(entryUUID=" )],
 		syncUUID[1].bv_val, syncUUID[1].bv_len );
 	op->ors_filterstr.bv_val[op->ors_filterstr.bv_len - 1] = ')';
 	op->ors_filterstr.bv_val[op->ors_filterstr.bv_len] = '\0';

@@ -56,7 +56,7 @@
 #define MDB_IDL_IS_ALL( range, ids ) ( (ids)[0] == NOID \
 	&& (ids)[1] <= (range)[1] && (range)[2] <= (ids)[2] )
 
-#define MDB_IDL_CPY( dst, src ) (AC_MEMCPY( dst, src, MDB_IDL_SIZEOF( src ) ))
+#define MDB_IDL_CPY( dst, src ) (memcpy( dst, src, MDB_IDL_SIZEOF( src ) ))
 
 #define MDB_IDL_ID( mdb, ids, id ) MDB_IDL_RANGE( ids, id, NOID )
 #define MDB_IDL_ALL( ids ) MDB_IDL_RANGE( ids, 1, NOID )

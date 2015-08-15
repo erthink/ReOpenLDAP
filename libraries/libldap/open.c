@@ -123,7 +123,7 @@ ldap_create( LDAP **ldp )
 	}
 	/* copy the global options */
 	LDAP_MUTEX_LOCK( &gopts->ldo_mutex );
-	AC_MEMCPY(&ld->ld_options, gopts, sizeof(ld->ld_options));
+	memcpy(&ld->ld_options, gopts, sizeof(ld->ld_options));
 #ifdef LDAP_R_COMPILE
 	/* Properly initialize the structs mutex */
 	ldap_pvt_thread_mutex_init( &(ld->ld_ldopts_mutex) );

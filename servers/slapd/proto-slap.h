@@ -2207,7 +2207,7 @@ LDAP_SLAPD_F (int) fe_access_allowed LDAP_P((
 			if ( len > (bv)->bv_len ) { \
 				(bv)->bv_val = ber_memrealloc_x( (bv)->bv_val, len + 1, (ctx) ); \
 			} \
-			AC_MEMCPY((bv)->bv_val, val, len + 1); \
+			memcpy((bv)->bv_val, val, len + 1); \
 			(bv)->bv_len = len; \
 			OPENSSL_free(val); \
 		} else { \
@@ -2254,7 +2254,7 @@ LDAP_SLAPD_F (int) fe_access_allowed LDAP_P((
 			(bv)->bv_val = ber_memrealloc_x( (bv)->bv_val, len + 1, (ctx) ); \
 		} \
 		(bv)->bv_len = len; \
-		AC_MEMCPY( (bv)->bv_val, buf, len + 1 ); \
+		memcpy( (bv)->bv_val, buf, len + 1 ); \
 	} while ( 0 )
 #endif
 

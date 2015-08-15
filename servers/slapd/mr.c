@@ -239,7 +239,7 @@ mr_add(
 	}
 
 	smr = (MatchingRule *) ch_calloc( 1, sizeof(MatchingRule) );
-	AC_MEMCPY( &smr->smr_mrule, mr, sizeof(LDAPMatchingRule));
+	memcpy( &smr->smr_mrule, mr, sizeof(LDAPMatchingRule));
 
 	/*
 	 * note: smr_bvoid uses the same memory of smr_mrule.mr_oid;

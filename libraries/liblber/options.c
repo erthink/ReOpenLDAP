@@ -166,8 +166,7 @@ ber_set_option(
 
 				ber_int_memory_fns = &ber_int_memory_fns_datum;
 
-				AC_MEMCPY(ber_int_memory_fns, f,
-					 sizeof(BerMemoryFunctions));
+				memcpy(ber_int_memory_fns, f, sizeof(BerMemoryFunctions));
 
 				return LBER_OPT_SUCCESS;
 			}

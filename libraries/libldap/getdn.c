@@ -257,7 +257,7 @@ ldap_explode_rdn( LDAP_CONST char *rdn, int notypes )
 			l = vl + ava->la_attr.bv_len + 1;
 
 			str = LDAP_MALLOC( l + 1 );
-			AC_MEMCPY( str, ava->la_attr.bv_val,
+			memcpy( str, ava->la_attr.bv_val,
 					ava->la_attr.bv_len );
 			str[ al++ ] = '=';
 
@@ -570,7 +570,7 @@ ldapava_new( const struct berval *attr, const struct berval *val,
 	if ( ava ) {
 		ava->la_attr.bv_len = attr->bv_len;
 		ava->la_attr.bv_val = (char *)(ava+1);
-		AC_MEMCPY( ava->la_attr.bv_val, attr->bv_val, attr->bv_len );
+		memcpy( ava->la_attr.bv_val, attr->bv_val, attr->bv_len );
 		ava->la_attr.bv_val[attr->bv_len] = '\0';
 
 		ava->la_value = *val;
@@ -834,7 +834,7 @@ ldap_bv2dn_x( struct berval *bvin, LDAPDN *dn, unsigned flags, void *ctx )
 					rc = LDAP_NO_MEMORY;
 					goto parsing_error;
 				}
-				AC_MEMCPY( tmp, tmpDN, num_slots * sizeof( LDAPRDN * ) );
+				memcpy( tmp, tmpDN, num_slots * sizeof( LDAPRDN * ) );
 
 			} else {
 				tmp = LDAP_REALLOCX( tmpDN, num_slots * 2 * sizeof( LDAPRDN * ), ctx );
@@ -1318,7 +1318,7 @@ ldap_bv2rdn_x( struct berval *bv, LDAPRDN *rdn,
 							rc = LDAP_NO_MEMORY;
 							goto parsing_error;
 						}
-						AC_MEMCPY( tmp, tmpRDN, num_slots * sizeof( LDAPAVA * ) );
+						memcpy( tmp, tmpRDN, num_slots * sizeof( LDAPAVA * ) );
 
 					} else {
 						tmp = LDAP_REALLOCX( tmpRDN, num_slots * 2 * sizeof( LDAPAVA * ), ctx );
@@ -1366,7 +1366,7 @@ ldap_bv2rdn_x( struct berval *bv, LDAPRDN *rdn,
 						rc = LDAP_NO_MEMORY;
 						goto parsing_error;
 					} else {
-						AC_MEMCPY( newRDN, tmpRDN, sizeof(LDAPAVA *) * navas);
+						memcpy( newRDN, tmpRDN, sizeof(LDAPAVA *) * navas);
 						newRDN[navas] = NULL;
 					}
 
@@ -1525,7 +1525,7 @@ str2strval( const char *str, ber_len_t stoplen, struct berval *val, const char *
 	if ( escapes == 0 ) {
 		if ( *retFlags & LDAP_AVA_NONPRINTABLE ) {
 			val->bv_val = LDAP_MALLOCX( len + 1, ctx );
-			AC_MEMCPY( val->bv_val, startPos, len );
+			memcpy( val->bv_val, startPos, len );
 			val->bv_val[ len ] = '\0';
 		} else {
 			val->bv_val = LDAP_STRNDUPX( startPos, len, ctx );
@@ -2482,13 +2482,13 @@ dn2domain( LDAPDN dn, struct berval *bv, int pos, int *iRDN )
 
 		if ( first ) {
 			first = 0;
-			AC_MEMCPY( str, ava->la_value.bv_val,
+			memcpy( str, ava->la_value.bv_val,
 					ava->la_value.bv_len + 1);
 			l += ava->la_value.bv_len;
 
 		} else {
-			AC_MEMCPY( str + ava->la_value.bv_len + 1, bv->bv_val + pos, l);
-			AC_MEMCPY( str, ava->la_value.bv_val,
+			memcpy( str + ava->la_value.bv_len + 1, bv->bv_val + pos, l);
+			memcpy( str, ava->la_value.bv_val,
 					ava->la_value.bv_len );
 			str[ ava->la_value.bv_len ] = '.';
 			l += ava->la_value.bv_len + 1;
@@ -2546,7 +2546,7 @@ rdn2str( LDAPRDN rdn, char *str, unsigned flags, ber_len_t *len,
 	for ( iAVA = 0; rdn[ iAVA ]; iAVA++ ) {
 		LDAPAVA		*ava = rdn[ iAVA ];
 
-		AC_MEMCPY( &str[ l ], ava->la_attr.bv_val,
+		memcpy( &str[ l ], ava->la_attr.bv_val,
 				ava->la_attr.bv_len );
 		l += ava->la_attr.bv_len;
 
@@ -2624,7 +2624,7 @@ rdn2DCEstr( LDAPRDN rdn, char *str, unsigned flags, ber_len_t *len, int first )
 			str[ l++ ] = ( iAVA ? ',' : '/' );
 		}
 
-		AC_MEMCPY( &str[ l ], ava->la_attr.bv_val,
+		memcpy( &str[ l ], ava->la_attr.bv_val,
 				ava->la_attr.bv_len );
 		l += ava->la_attr.bv_len;
 
@@ -2717,11 +2717,11 @@ rdn2UFNstr( LDAPRDN rdn, char *str, unsigned flags, ber_len_t *len )
 		}
 
 		if ( rdn[ iAVA + 1 ] ) {
-			AC_MEMCPY( &str[ l ], " + ", 3 );
+			memcpy( &str[ l ], " + ", 3 );
 			l += 3;
 
 		} else {
-			AC_MEMCPY( &str[ l ], ", ", 2 );
+			memcpy( &str[ l ], ", ", 2 );
 			l += 2;
 		}
 	}

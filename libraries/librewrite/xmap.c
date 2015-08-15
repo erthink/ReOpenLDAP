@@ -131,7 +131,7 @@ rewrite_xmap_parse(
 			free( map );
 			return NULL;
 		}
-		AC_MEMCPY( filename, s + c, l );
+		memcpy( filename, s + c, l );
 		filename[ l ] = '\0';
 
 		map->lm_args = ( void * )fopen( filename, "r" );
@@ -189,7 +189,7 @@ rewrite_xmap_parse(
 			free( map );
 			return NULL;
 		}
-		AC_MEMCPY( url, s + c, l );
+		memcpy( url, s + c, l );
 		url[ l ] = '\0';
 
 		/*
@@ -197,7 +197,7 @@ rewrite_xmap_parse(
 		 */
 		p = strchr( url, '%' );
 		if ( p != NULL ) {
-			AC_MEMCPY( p + 3, p + 1, strlen( p + 1 ) + 1 );
+			memmove( p + 3, p + 1, strlen( p + 1 ) + 1 );
 			p[ 1 ] = '2';
 			p[ 2 ] = '5';
 		}

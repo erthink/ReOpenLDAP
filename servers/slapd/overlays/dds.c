@@ -100,7 +100,7 @@ dds_expire_cb( Operation *op, SlapReply *rs )
 
 		de->de_ndn.bv_len = rs->sr_entry->e_nname.bv_len;
 		de->de_ndn.bv_val = (char *)&de[ 1 ];
-		AC_MEMCPY( de->de_ndn.bv_val, rs->sr_entry->e_nname.bv_val,
+		memcpy( de->de_ndn.bv_val, rs->sr_entry->e_nname.bv_val,
 			rs->sr_entry->e_nname.bv_len + 1 );
 		rc = 0;
 		break;
@@ -528,7 +528,7 @@ dds_op_modify( Operation *op, SlapReply *rs )
 			int		rc;
 
 			bv_entryTtl.bv_len = a->a_nvals[ 0 ].bv_len;
-			AC_MEMCPY( bv_entryTtl.bv_val, a->a_nvals[ 0 ].bv_val, bv_entryTtl.bv_len );
+			memcpy( bv_entryTtl.bv_val, a->a_nvals[ 0 ].bv_val, bv_entryTtl.bv_len );
 			bv_entryTtl.bv_val[ bv_entryTtl.bv_len ] = '\0';
 			rc = lutil_atoul( &ttl, bv_entryTtl.bv_val );
 			assert( rc == 0 );
@@ -653,7 +653,7 @@ dds_op_modify( Operation *op, SlapReply *rs )
 
 				entryTtl = ttl;
 				bv_entryTtl.bv_len = mod->sml_values[ 0 ].bv_len;
-				AC_MEMCPY( bv_entryTtl.bv_val, mod->sml_values[ 0 ].bv_val, bv_entryTtl.bv_len );
+				memcpy( bv_entryTtl.bv_val, mod->sml_values[ 0 ].bv_val, bv_entryTtl.bv_len );
 				bv_entryTtl.bv_val[ bv_entryTtl.bv_len ] = '\0';
 				break;
 

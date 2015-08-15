@@ -191,7 +191,7 @@ st_value( LDAP *ld, struct berval *value )
 
 		h = gethostbyname( name );
 		if ( h != NULL ) {
-			AC_MEMCPY( &addr, h->h_addr, sizeof( addr ) );
+			memcpy( &addr, h->h_addr, sizeof( addr ) );
 			ip = inet_ntoa( addr );
 		}
 	}

@@ -110,7 +110,7 @@ ldif_fetch_url(
 			return -1;
 		}
 		p = newp;
-		AC_MEMCPY( &p[total], buffer, bytes );
+		memcpy( &p[total], buffer, bytes );
 		total += bytes;
 	}
 

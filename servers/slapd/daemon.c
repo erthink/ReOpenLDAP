@@ -614,9 +614,9 @@ static slap_daemon_st slap_daemon[SLAPD_MAX_DAEMON_THREADS];
 # define SLAP_EVENT_DECL		fd_set readfds, writefds
 
 # define SLAP_EVENT_INIT(t)		do { \
-	AC_MEMCPY( &readfds, &slap_daemon[t].sd_readers, sizeof(fd_set) );	\
+	memcpy( &readfds, &slap_daemon[t].sd_readers, sizeof(fd_set) );	\
 	if ( nwriters )	{ \
-		AC_MEMCPY( &writefds, &slap_daemon[t].sd_writers, sizeof(fd_set) ); \
+		memcpy( &writefds, &slap_daemon[t].sd_writers, sizeof(fd_set) ); \
 	} else { \
 		FD_ZERO( &writefds ); \
 	} \
@@ -1270,7 +1270,7 @@ slap_get_listener_addresses(
 			(void)memset( (void *)sap[i], '\0', sizeof(struct sockaddr_in) );
 			sap[i]->sa_family = AF_INET;
 			((struct sockaddr_in *)sap[i])->sin_port = htons(port);
-			AC_MEMCPY( &((struct sockaddr_in *)sap[i])->sin_addr,
+			memcpy( &((struct sockaddr_in *)sap[i])->sin_addr,
 				he ? (struct in_addr *)he->h_addr_list[i] : &in,
 				sizeof(struct in_addr) );
 		}
@@ -1584,7 +1584,7 @@ slap_open_listener(
 			break;
 		}
 
-		AC_MEMCPY(&l.sl_sa, *sal, addrlen);
+		memcpy(&l.sl_sa, *sal, addrlen);
 		ber_str2bv( url, 0, 1, &l.sl_url);
 		li = ch_malloc( sizeof( Listener ) );
 		*li = l;
@@ -1951,7 +1951,7 @@ slap_listener(
 		/* FIXME: apparently accept doesn't fill
 		 * the sun_path sun_path member */
 		if ( from.sa_un_addr.sun_path[0] == '\0' ) {
-			AC_MEMCPY( from.sa_un_addr.sun_path,
+			memcpy( from.sa_un_addr.sun_path,
 					sl->sl_sa.sa_un_addr.sun_path,
 					sizeof( from.sa_un_addr.sun_path ) );
 		}

@@ -292,13 +292,13 @@ slap_auxprop_lookup(
 		if ( sl.list[i].name[0] == '*' ) {
 			if ( !strcmp( sl.list[i].name, slap_propnames[SLAP_SASL_PROP_CONN] ) ) {
 				if ( sl.list[i].values && sl.list[i].values[0] )
-					AC_MEMCPY( &conn, sl.list[i].values[0], sizeof( conn ) );
+					memcpy( &conn, sl.list[i].values[0], sizeof( conn ) );
 				continue;
 			}
 			if ( flags & SASL_AUXPROP_AUTHZID ) {
 				if ( !strcmp( sl.list[i].name, slap_propnames[SLAP_SASL_PROP_AUTHZLEN] )) {
 					if ( sl.list[i].values && sl.list[i].values[0] )
-						AC_MEMCPY( &op->o_req_ndn.bv_len, sl.list[i].values[0],
+						memcpy( &op->o_req_ndn.bv_len, sl.list[i].values[0],
 							sizeof( op->o_req_ndn.bv_len ) );
 				} else if ( !strcmp( sl.list[i].name, slap_propnames[SLAP_SASL_PROP_AUTHZ] )) {
 					if ( sl.list[i].values )
@@ -309,7 +309,7 @@ slap_auxprop_lookup(
 
 			if ( !strcmp( sl.list[i].name, slap_propnames[SLAP_SASL_PROP_AUTHCLEN] )) {
 				if ( sl.list[i].values && sl.list[i].values[0] )
-					AC_MEMCPY( &op->o_req_ndn.bv_len, sl.list[i].values[0],
+					memcpy( &op->o_req_ndn.bv_len, sl.list[i].values[0],
 						sizeof( op->o_req_ndn.bv_len ) );
 			} else if ( !strcmp( sl.list[i].name, slap_propnames[SLAP_SASL_PROP_AUTHC] ) ) {
 				if ( sl.list[i].values ) {
@@ -464,12 +464,12 @@ slap_auxprop_store(
 		if ( pr[i].name[0] == '*' ) {
 			if ( !strcmp( pr[i].name, slap_propnames[SLAP_SASL_PROP_CONN] ) ) {
 				if ( pr[i].values && pr[i].values[0] )
-					AC_MEMCPY( &conn, pr[i].values[0], sizeof( conn ) );
+					memcpy( &conn, pr[i].values[0], sizeof( conn ) );
 				continue;
 			}
 			if ( !strcmp( pr[i].name, slap_propnames[SLAP_SASL_PROP_AUTHCLEN] )) {
 				if ( pr[i].values && pr[i].values[0] )
-					AC_MEMCPY( &op.o_req_ndn.bv_len, pr[i].values[0],
+					memcpy( &op.o_req_ndn.bv_len, pr[i].values[0],
 						sizeof( op.o_req_ndn.bv_len ) );
 			} else if ( !strcmp( pr[i].name, slap_propnames[SLAP_SASL_PROP_AUTHC] ) ) {
 				if ( pr[i].values )
@@ -691,7 +691,7 @@ slap_sasl_canonicalize(
 		conn->c_sasl_bindop->o_tmpfree( dn.bv_val, conn->c_sasl_bindop->o_tmpmemctx );
 
 done:
-	AC_MEMCPY( out, in, inlen );
+	memcpy( out, in, inlen );
 	out[inlen] = '\0';
 
 	*out_len = inlen;
@@ -740,7 +740,7 @@ slap_sasl_authorize(
 		return SASL_NOAUTHZ;
 	}
 
-	AC_MEMCPY( &authcDN.bv_len, auxvals[0].values[0], sizeof(authcDN.bv_len) );
+	memcpy( &authcDN.bv_len, auxvals[0].values[0], sizeof(authcDN.bv_len) );
 	authcDN.bv_val = auxvals[1].values ? (char *)auxvals[1].values[0] : NULL;
 	conn->c_sasl_dn = authcDN;
 
@@ -749,7 +749,7 @@ slap_sasl_authorize(
 		goto ok;
 	}
 
-	AC_MEMCPY( &authzDN.bv_len, auxvals[2].values[0], sizeof(authzDN.bv_len) );
+	memcpy( &authzDN.bv_len, auxvals[2].values[0], sizeof(authzDN.bv_len) );
 	authzDN.bv_val = auxvals[3].values ? (char *)auxvals[3].values[0] : NULL;
 
 	rc = slap_sasl_authorized( conn->c_sasl_bindop, &authcDN, &authzDN );
