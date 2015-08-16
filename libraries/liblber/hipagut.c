@@ -541,7 +541,7 @@ void reopenldap_flags_setup(int flags) {
 #endif /* LDAP_MEMORY_DEBUG */
 }
 
-void reopenldap_jitter(int probability_percent) {
+__hot void reopenldap_jitter(int probability_percent) {
 	LDAP_ASSERT(probability_percent < 113);
 #if defined(__x86_64__) || defined(__i386__)
 	__asm __volatile("pause");
@@ -554,4 +554,18 @@ void reopenldap_jitter(int probability_percent) {
 			break;
 		sched_yield();
 	}
+}
+
+__hot void* ber_memcpy_safe(void* dest, const void* src, size_t n) {
+	long diff = (char*) dest - (char*) src;
+
+	if (unlikely(n > (size_t) __builtin_labs(diff))) {
+		if (reopenldap_mode_idkfa())
+			__assert_fail("source and destination MUST NOT overlap",
+				__FILE__, __LINE__, __FUNCTION__);
+		return memmove(dest, src, n);
+	}
+
+#undef memcpy
+	return memcpy(dest, src, n);
 }

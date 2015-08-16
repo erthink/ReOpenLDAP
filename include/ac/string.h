@@ -19,6 +19,12 @@
 
 #include <string.h>
 
+#if LDAP_SAFEMEMCPY
+#	undef memcpy
+	__extern_C void* ber_memcpy_safe(void* dest, const void* src, size_t n);
+#	define memcpy ber_memcpy_safe
+#endif
+
 /* use ldap_pvt_strtok instead of strtok or strtok_r! */
 LDAP_F(char *) ldap_pvt_strtok LDAP_P(( char *str,
 	const char *delim, char **pos ));

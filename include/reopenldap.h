@@ -243,6 +243,17 @@ __extern_C void reopenldap_jitter(int probability_percent);
 
 /* -------------------------------------------------------------------------- */
 
+/* LY: engaging overlap checking for memcpy */
+#ifndef LDAP_SAFEMEMCPY
+#	if LDAP_ASSERT_CHECK || LDAP_DEBUG || ! defined(NDEBUG)
+#		define LDAP_SAFEMEMCPY 1
+#	else
+#		define LDAP_SAFEMEMCPY 0
+#	endif
+#endif
+
+/* -------------------------------------------------------------------------- */
+
 #if defined(HAVE_VALGRIND) || defined(USE_VALGRIND)
 	/* Get debugging help from Valgrind */
 #	include <valgrind/memcheck.h>
