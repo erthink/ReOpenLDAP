@@ -115,6 +115,9 @@ typedef struct syncinfo_s {
 	int			si_refreshDelete;
 	int			si_refreshPresent;
 	int			si_refreshDone;
+	time_t		si_refreshBeg;
+	time_t		si_refreshEnd;
+	int			si_syncflood_workaround;
 	int			si_syncdata;
 	int			si_logstate;
 	int			si_got;
@@ -415,10 +418,6 @@ ldap_sync_search(
 	int attrsonly;
 	int scope;
 
-	rc = syncrepl_refresh_begin(si);
-	if (rc)
-		return rc;
-
 	/* setup LDAP SYNC control */
 	ber_init2( ber, NULL, LBER_USE_DER );
 	ber_set_option( ber, LBER_OPT_BER_MEMCTX, &ctx );
@@ -623,7 +622,7 @@ static int syncrep_gentle_shutdown(LDAP	*ld)
 }
 
 static int
-do_syncrep_search(
+syncrep_start(
 	Operation *op,
 	syncinfo_t *si )
 {
@@ -635,12 +634,30 @@ do_syncrep_search(
 	void	*ssl;
 #endif
 
+	if (si->si_syncflood_workaround > 2) {
+		/* LY: workaround for SYNC-flood, when connection to syncprov
+		 * re-establish too often because of limit-concurrent-refresh is reached. */
+		rc = syncrepl_refresh_begin(si);
+		if ( rc != LDAP_SUCCESS ) {
+			goto done;
+		}
+	}
+
 	rc = slap_client_connect( &si->si_ld, &si->si_bindconf );
 	if ( rc != LDAP_SUCCESS ) {
+		si->si_syncflood_workaround = 0;
 		goto done;
 	}
 	op->o_protocol = LDAP_VERSION3;
 	ldap_set_gentle_shutdown( si->si_ld, syncrep_gentle_shutdown );
+
+	if (! si->si_syncflood_workaround) {
+		rc = syncrepl_refresh_begin(si);
+		if ( rc != LDAP_SUCCESS ) {
+			si->si_syncflood_workaround++;
+			goto done;
+		}
+	}
 
 	/* Set SSF to strongest of TLS, SASL SSFs */
 	op->o_sasl_ssf = 0;
@@ -768,14 +785,14 @@ do_syncrep_search(
 
 	rc = ldap_sync_search( si, op->o_tmpmemctx );
 
-	if ( rc != LDAP_SUCCESS && rc != SYNC_REFRESH_YIELD ) {
-		Debug( LDAP_DEBUG_ANY, "do_syncrep_search: %s "
+	if ( rc != LDAP_SUCCESS ) {
+		Debug( LDAP_DEBUG_ANY, "syncrep_start: %s "
 			"ldap_search_ext: %s (%d)\n",
 			si->si_ridtxt, ldap_err2string( rc ), rc );
 	}
 
 done:
-	if ( rc ) {
+	if ( rc != LDAP_SUCCESS ) {
 		if ( si->si_ld ) {
 			ldap_unbind_ext( si->si_ld, NULL, NULL );
 			si->si_ld = NULL;
@@ -855,6 +872,7 @@ compare_csns( struct sync_cookie *sc1, struct sync_cookie *sc2, int *which )
 
 static int syncrepl_refresh_begin( syncinfo_t *si ) {
 	si->si_refreshDone = 0;
+	si->si_refreshBeg = 0;
 	quorum_notify_status( si->si_be, si->si_rid, 0 );
 	if (quorum_syncrepl_gate(si->si_be, si, 1)) {
 		Debug( LDAP_DEBUG_ANY, "syncrepl_refresh_begin: %s, "
@@ -862,18 +880,23 @@ static int syncrepl_refresh_begin( syncinfo_t *si ) {
 			   si->si_ridtxt );
 		return SYNC_REFRESH_YIELD;
 	}
+	si->si_refreshBeg = slap_get_time();
 	Debug( LDAP_DEBUG_ANY, "syncrepl_refresh_begin: %s, success\n",
 		   si->si_ridtxt );
 	return LDAP_SUCCESS;
 }
 
 static void syncrepl_refresh_end( syncinfo_t *si, int rc ) {
-	if (! si->si_refreshDone )
-		Debug( LDAP_DEBUG_ANY, "syncrepl_refresh_end: %s, rc %d\n",
-			   si->si_ridtxt, rc );
-	if (rc == LDAP_SUCCESS)
-		si->si_refreshDone = 1;
-	quorum_notify_status( si->si_be, si->si_rid, rc == 0 );
+	if (! si->si_refreshDone ) {
+		if (rc == LDAP_SUCCESS)
+			si->si_refreshDone = 1;
+		if (si->si_refreshBeg) {
+			si->si_refreshEnd = slap_get_time();
+			Debug( LDAP_DEBUG_ANY, "syncrepl_refresh_end: %s, rc %d, take %d seconds\n",
+				   si->si_ridtxt, rc, (int) (si->si_refreshEnd - si->si_refreshBeg) );
+		}
+	}
+	quorum_notify_status( si->si_be, si->si_rid, si->si_refreshDone );
 	rc = quorum_syncrepl_gate(si->si_be, si, 0);
 	assert(rc == 0);
 }
@@ -1685,7 +1708,7 @@ do_syncrepl(
 		op->o_bd = si->si_wbe;
 		op->o_dn = op->o_bd->be_rootdn;
 		op->o_ndn = op->o_bd->be_rootndn;
-		rc = do_syncrep_search( op, si );
+		rc = syncrep_start( op, si );
 	}
 
 reload:
@@ -1741,6 +1764,8 @@ deleted:
 				if ( rc == -2 ) rc = 0;
 			}
 		}
+	} else {
+		syncrepl_refresh_end(si, rc);
 	}
 
 	/* At this point, we have 5 cases:

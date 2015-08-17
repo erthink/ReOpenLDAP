@@ -257,7 +257,12 @@ static slap_daemon_st slap_daemon[SLAPD_MAX_DAEMON_THREADS];
 	if ( index < 0 ) break; \
 	rc = epoll_ctl(slap_daemon[t].sd_epfd, EPOLL_CTL_DEL, \
 		(s), &SLAP_EPOLL_SOCK_EP(t,(s))); \
-	assert(rc == 0); \
+	if ( rc )  { \
+		Debug( LDAP_DEBUG_ANY, \
+			"daemon: epoll_ctl(epfd=%d,DEL,fd=%d) failed, errno=%d, shutting down\n", \
+			slap_daemon[t].sd_epfd, s, errno ); \
+		slapd_shutdown = 2; \
+	} \
 	slap_daemon[t].sd_epolls[index] = \
 		slap_daemon[t].sd_epolls[slap_daemon[t].sd_nfds-1]; \
 	fd = SLAP_EPOLL_EV_PTRFD(t,slap_daemon[t].sd_epolls[index].data.ptr); \
