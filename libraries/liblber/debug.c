@@ -32,6 +32,9 @@
 #include "lber.h"
 #include "ldap_pvt.h"
 
+#include <unistd.h>
+#include <sys/syscall.h>
+
 static FILE *log_file = NULL;
 static int debug_lastc = '\n';
 
@@ -47,7 +50,7 @@ void (lutil_debug)( int debug, int level, const char *fmt, ... )
 {
 	char buffer[4096];
 	va_list vl;
-	int len, off;
+	int len, off = 0;
 
 	if ( !(level & debug ) ) return;
 
@@ -65,10 +68,22 @@ void (lutil_debug)( int debug, int level, const char *fmt, ... )
 #endif
 
 	if (debug_lastc == '\n') {
-		sprintf(buffer, "%08x ", (unsigned) time(0L));
-		off = 9;
-	} else {
-		off = 0;
+		struct timeval now;
+		struct tm tm;
+		long rc;
+
+		rc = gettimeofday(&now, NULL);
+		assert(rc == 0);
+		rc = syscall(SYS_gettid, NULL, NULL, NULL);
+		assert(rc > 0);
+		/* LY: it is important to don't use extra spaces here, to avoid break a test(s). */
+		off += snprintf(buffer+off, sizeof(buffer)-off, "%05ld_", rc);
+		assert(off > 0);
+		localtime_r(&now.tv_sec, &tm);
+		off += strftime(buffer+off, sizeof(buffer)-off, "%y%m%d-%H(%z)%M%S", &tm);
+		assert(off > 0);
+		off += snprintf(buffer+off, sizeof(buffer)-off, ".%06ld ", now.tv_usec);
+		assert(off > 0);
 	}
 	va_start( vl, fmt );
 	len = vsnprintf( buffer+off, sizeof(buffer)-off, fmt, vl );
