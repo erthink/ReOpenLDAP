@@ -170,7 +170,10 @@ mdb_oom_handler(MDB_env *env, int pid, void* thread_id, size_t txnid, unsigned g
 	if ( (mdb->mi_oom_flags & MDB_OOM_YIELD) && ! slapd_shutdown ) {
 		Debug( LDAP_DEBUG_ANY, "oom-handler: txnid %zu gap %u, retry %d, YIELD\n",
 			   txnid, gap, retry );
-		ldap_pvt_thread_yield();
+		if (retry < 42)
+			ldap_pvt_thread_yield();
+		else
+			usleep(retry);
 		return 0;
 	}
 
