@@ -46,13 +46,30 @@ int lutil_debug_file( FILE *file )
 	return 0;
 }
 
-void (lutil_debug)( int debug, int level, const char *fmt, ... )
+void lutil_debug_print( const char *fmt, ... )
+{
+	va_list vl;
+
+	va_start( vl, fmt );
+	lutil_debug_va( fmt, vl);
+	va_end( vl );
+}
+
+void lutil_debug( int debug, int level, const char *fmt, ... )
+{
+	if ( level & debug ) {
+		va_list vl;
+
+		va_start( vl, fmt );
+		lutil_debug_va( fmt, vl);
+		va_end( vl );
+	}
+}
+
+void lutil_debug_va( const char* fmt, va_list vl )
 {
 	char buffer[4096];
-	va_list vl;
 	int len, off = 0;
-
-	if ( !(level & debug ) ) return;
 
 #ifdef HAVE_WINSOCK
 	if( log_file == NULL ) {
@@ -85,7 +102,6 @@ void (lutil_debug)( int debug, int level, const char *fmt, ... )
 		off += snprintf(buffer+off, sizeof(buffer)-off, ".%06ld ", now.tv_usec);
 		assert(off > 0);
 	}
-	va_start( vl, fmt );
 	len = vsnprintf( buffer+off, sizeof(buffer)-off, fmt, vl );
 	if (len > sizeof(buffer)-off)
 		len = sizeof(buffer)-off;
@@ -96,7 +112,6 @@ void (lutil_debug)( int debug, int level, const char *fmt, ... )
 		fflush( log_file );
 	}
 	fputs( buffer, stderr );
-	va_end( vl );
 }
 
 #if defined(HAVE_EBCDIC) && defined(LDAP_SYSLOG)
