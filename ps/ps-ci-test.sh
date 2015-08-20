@@ -2,6 +2,18 @@
 
 N=${1:-42}
 HERE=$(readlink -f $(pwd))
+TMP=
+
+cleanup() {
+	wait
+	[ -n "${TMP}" ] && rm -rf ${TMP}
+}
+
+failure() {
+	echo "Oops, $* failed ;(" >&2
+	cleanup
+	exit 1
+}
 
 function msg() {
 	sed "s/>>>>>\s\+\(.*\)\$/##teamcity[progressMessage 'Round $n of $N, $REOPENLDAP_MODE: \1']/g"
@@ -35,6 +47,7 @@ function find_free_port {
 	done
 }
 
+trap cleanup TERM INT QUIT HUP
 if [ -z ${SLAPD_BASEPORT} ]; then
 	export SLAPD_BASEPORT=$(find_free_port 8)
 fi
@@ -42,23 +55,35 @@ echo "Using TCP-ports ${SLAPD_BASEPORT}-$((SLAPD_BASEPORT + 8))"
 
 if [ -n "${TEAMCITY_PROCESS_FLOW_ID}" ]; then
 	filter=msg
-	rm -rf tests/testrun || exit $?
+	rm -rf tests/testrun || failure "rm tests/testrun"
+	leaf="reopenldap-ci-test"
 	if [ -d /ramfs ]; then
-		echo "tests/testrun -> /ramfs"
-		ln -s /ramfs tests/testrun || exit $?
+		TMP="/ramfs/${leaf}"
+	elif [ -d /run/user/${EUID} ]; then
+		TMP="/run/user/${EUID}/${leaf}"
+	elif [ -d /dev/shm ]; then
+		TMP="/dev/shm/${EUID}/${leaf}"
 	else
-		echo "tests/testrun -> /tmp"
-		ln -s /tmp tests/testrun || exit $?
+		TMP="/tmp/${leaf}"
 	fi
+
+	echo "tests/testrun -> ${TMP}"
+	if [ -d ${TMP} ]; then
+		rm -rf ${TMP}/*
+	else
+		[ ! -e ${TMP} ] || rm -rf ${TMP} || failure "clean ${TMP}"
+		mkdir ${TMP} || failure "mkdir ${TMP}"
+	fi
+	ln -s ${TMP} tests/testrun || failure "link tests/testrun"
 else
 	filter=cat
 	(mount | grep ${HERE}/tests/testrun \
 		|| (mkdir -p ${HERE}/tests/testrun && sudo mount -t tmpfs RAM ${HERE}/tests/testrun)) \
-		|| exit $?
+		|| failure "mount tests/testrun"
 fi
 
 echo "libraries/liblmdb/testdb -> tests/testrun"
-rm -rf libraries/liblmdb/testdb && ln -s ../../tests/testrun libraries/liblmdb/testdb || exit $?
+rm -rf libraries/liblmdb/testdb && ln -s ../../tests/testrun libraries/liblmdb/testdb || failure "cleanup liblmdb/testdb"
 
 for n in $(seq 1 $N); do
 	echo "##teamcity[blockOpened name='Round $n of $N']"
@@ -105,6 +130,7 @@ for n in $(seq 1 $N); do
 			echo "##teamcity[buildProblem description='Test(s) failed']"
 			find ./@ci-test-* -name all.log | xargs -r grep ' completed OK for '
 			find ./@ci-test-* -name all.log | xargs -r grep ' failed for ' >&2
+			cleanup
 			exit 1
 		fi
 		echo "##teamcity[blockClosed name='$REOPENLDAP_MODE']"
@@ -116,4 +142,5 @@ done
 echo "##teamcity[buildStatus text='Tests passed']"
 find ./@ci-test-* -name all.log | xargs -r grep ' completed OK for '
 find ./@ci-test-* -name all.log | xargs -r grep ' failed for ' >&2
+cleanup
 exit 0
