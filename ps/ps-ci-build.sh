@@ -45,6 +45,7 @@ export CXXFLAGS="$CFLAGS" LDFLAGS="$LDFLAGS"
 	|| failure "configure"
 
 export CFLAGS="-Werror $CFLAGS" CXXFLAGS="-Werror $CFLAGS"
+find ./ -name Makefile | xargs -r sed -i 's/-Wall -g/-Wall -Werror -g/g' || failure "prepare"
 
 if [ -z "${TEAMCITY_PROCESS_FLOW_ID}" ]; then
         make depend \
