@@ -628,15 +628,18 @@ syncrep_start(
 {
 	int	rc;
 	int cmdline_cookie_found = 0;
-
 	struct sync_cookie	*sc = NULL;
 #ifdef HAVE_TLS
 	void	*ssl;
 #endif
 
-	if (si->si_syncflood_workaround > 2) {
-		/* LY: workaround for SYNC-flood, when connection to syncprov
-		 * re-establish too often because of limit-concurrent-refresh is reached. */
+	/* LY: workaround for SYNC-flood, when connection to syncprov
+	 * re-establish too often because of limit-concurrent-refresh is reached. */
+	int early_reconnect_limit = 2;
+	assert(si->si_ld == NULL);
+	si->si_ld = NULL;
+
+	if (si->si_syncflood_workaround >= early_reconnect_limit) {
 		rc = syncrepl_refresh_begin(si);
 		if ( rc != LDAP_SUCCESS ) {
 			goto done;
@@ -651,7 +654,7 @@ syncrep_start(
 	op->o_protocol = LDAP_VERSION3;
 	ldap_set_gentle_shutdown( si->si_ld, syncrep_gentle_shutdown );
 
-	if (! si->si_syncflood_workaround) {
+	if (si->si_syncflood_workaround < early_reconnect_limit) {
 		rc = syncrepl_refresh_begin(si);
 		if ( rc != LDAP_SUCCESS ) {
 			si->si_syncflood_workaround++;
