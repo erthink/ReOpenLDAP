@@ -1,7 +1,8 @@
-!/bin/bash
+#!/bin/bash
 
 function probe() {
 	echo "****************************************************************************************** "
+	rm -rf @dumps
 	patch -p1 < .git/test-select.patch || exit 125
 	if make test; then
 		echo "*** OK"
@@ -14,11 +15,15 @@ function probe() {
 	echo "****************************************************************************************** "
 }
 
-N=${1:-3}
+N=${1:-42}
 shift
 
-git clean -f -x -d -e ./ps -e tests/testrun || exit 125
-[ -f ./configure ] && ./configure "$@" && make depend && make -j4 || exit 125
+if [ $# -eq 0 ]; then
+	.git/ps-ci-build.sh || exit 125
+else
+	git clean -f -x -d -e ./ps -e tests/testrun || exit 125
+	[ -f ./configure ] && ./configure "$@" && make depend && make -j4 || exit 125
+fi
 
 last=unknown
 counter=0

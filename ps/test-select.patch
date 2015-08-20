@@ -1,13 +1,14 @@
 diff --git a/tests/scripts/all b/tests/scripts/all
-index 2d44e32..43d3ada 100755
+index 69fc4e0..282a071 100755
 --- a/tests/scripts/all
 +++ b/tests/scripts/all
-@@ -31,7 +31,7 @@ if [ -n "$NOEXIT" ]; then
- 	echo "Result	Test" > $TESTWD/results
+@@ -38,7 +38,8 @@ if [ -n "$NOEXIT" ]; then
+ 	echo "Result	Test" > $RESULTS
  fi
  
 -for CMD in $SRCDIR/scripts/test*; do
-+for CMD in $SRCDIR/scripts/test062*; do
++shopt -s extglob
++for CMD in $SRCDIR/scripts/test0@(19|30)*; do
  	case "$CMD" in
  		*~)		continue;;
  		*.bak)	continue;;
