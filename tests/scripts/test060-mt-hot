@@ -81,7 +81,7 @@ done
 
 if test $RC != 0 ; then
 	echo "mt-hot read failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -102,7 +102,7 @@ $SLAPDMTREAD -H $URI1 -D "$MANAGERDN" -w $PASSWD \
 RC=$?
 if test $RC != 0 ; then
 	echo "slapd-mtread failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -120,7 +120,7 @@ $SLAPDMTREAD -H $URI1 -D "$MANAGERDN" -w $PASSWD \
 RC=$?
 if test $RC != 0 ; then
 	echo "slapd-mtread failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -138,7 +138,7 @@ $SLAPDMTREAD -H $URI1 -D "$MANAGERDN" -w $PASSWD \
 RC=$?
 if test $RC != 0 ; then
 	echo "slapd-mtread failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -157,7 +157,7 @@ $SLAPDMTREAD -H $URI1 -D "$MANAGERDN" -w $PASSWD \
 RC=$?
 if test $RC != 0 ; then
 	echo "slapd-mtread failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -175,7 +175,7 @@ $SLAPDMTREAD -H $URI1 -D "$MANAGERDN" -w $PASSWD \
 RC=$?
 if test $RC != 0 ; then
 	echo "slapd-mtread failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -193,7 +193,7 @@ $SLAPDMTREAD -H $URI1 -D "$MANAGERDN" -w $PASSWD \
 RC=$?
 if test $RC != 0 ; then
 	echo "slapd-mtread failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -213,7 +213,7 @@ $SLAPDMTREAD -H $URI1 -D "$MANAGERDN" -w $PASSWD \
 RC=$?
 if test $RC != 0 ; then
 	echo "slapd-mtread failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -232,7 +232,7 @@ $SLAPDMTREAD -H $URI1 -D "$MANAGERDN" -w $PASSWD \
 RC=$?
 if test $RC != 0 ; then
 	echo "slapd-mtread failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -251,7 +251,7 @@ $SLAPDMTREAD -H $URI1 -D "$MANAGERDN" -w $PASSWD \
 RC=$?
 if test $RC != 0 ; then
 	echo "slapd-mtread failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -271,7 +271,7 @@ $SLAPDMTREAD -H $URI1 -D "$MANAGERDN" -w $PASSWD \
 RC=$?
 if test $RC != 0 ; then
 	echo "slapd-mtread failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -291,12 +291,12 @@ $SLAPDMTREAD -H $URI1 -D "$MANAGERDN" -w $PASSWD \
 RC=$?
 if test $RC != 0 ; then
 	echo "slapd-mtread failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
 
-test $KILLSERVERS != no && kill -HUP $KILLPIDS
+killservers
 
 echo ">>>>> Test succeeded"
 

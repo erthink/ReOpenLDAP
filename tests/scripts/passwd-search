@@ -55,7 +55,7 @@ done
 
 if test $RC != 0 ; then
 	echo "ldapsearch failed!"
-	test "$KILLSERVERS" != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -67,7 +67,7 @@ $LDAPSEARCH -L -S "" -b "$BASEDN" -s base -h $LOCALHOST -p $PORT1 \
 RC=$?
 if test $RC != 0 ; then
 	echo "ldapsearch failed!"
-	test "$KILLSERVERS" != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -79,7 +79,7 @@ $LDAPSEARCH -L -S "" -b "uid=root,$BASEDN" -s base -h $LOCALHOST -p $PORT1 \
 RC=$?
 if test $RC != 0 ; then
 	echo "ldapsearch failed!"
-	test "$KILLSERVERS" != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -91,7 +91,7 @@ $LDAPSEARCH -L -S "" -b "$BASEDN" -h $LOCALHOST -p $PORT1 \
 RC=$?
 if test $RC != 0 ; then
 	echo "ldapsearch failed!"
-	test "$KILLSERVERS" != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -103,7 +103,7 @@ $LDAPSEARCH -L -S "" -b "$BASEDN" -h $LOCALHOST -p $PORT1 \
 RC=$?
 if test $RC != 0 ; then
 	echo "ldapsearch failed!"
-	test "$KILLSERVERS" != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -115,13 +115,13 @@ $LDAPSEARCH -L -S "" -b "$BASEDN" -h $LOCALHOST -p $PORT1 \
 RC=$?
 if test $RC != 0 ; then
 	echo "ldapsearch failed!"
-	test "$KILLSERVERS" != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
-test "$KILLSERVERS" != no && kill -HUP $KILLPIDS
+killservers
 
-echo "Assuming everything is fine."
+echo "Assuming everything is fine (o-o ;)."
 #echo "Comparing results"
 #$CMP $TESTOUT $SEARCHOUTMASTER
 #if test $? != 0 ; then
@@ -130,5 +130,4 @@ echo "Assuming everything is fine."
 #fi
 
 echo ">>>>> Test succeeded"
-
 exit 0

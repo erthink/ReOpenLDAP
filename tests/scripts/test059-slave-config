@@ -80,7 +80,7 @@ done
 
 if test $RC != 0 ; then
 	echo "ldapsearch failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -96,7 +96,7 @@ EOF
 	RC=$?
 	if test $RC != 0 ; then
 		echo "ldapadd failed for moduleLoad ($RC)!"
-		test $KILLSERVERS != no && kill -HUP $KILLPIDS
+		killservers
 		exit $RC
 	fi
 fi
@@ -111,7 +111,7 @@ EOF
 RC=$?
 if test $RC != 0 ; then
 	echo "ldapmodify failed for syncprov config ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -180,7 +180,7 @@ EOF
 RC=$?
 if test $RC != 0 ; then
 	echo "ldapmodify failed for slave DB config ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -209,7 +209,7 @@ done
 
 if test $RC != 0 ; then
 	echo "ldapsearch failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -244,7 +244,7 @@ done
 
 if test $RC != 0 ; then
 	echo "ldapsearch failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -263,7 +263,7 @@ EOF
 RC=$?
 if test $RC != 0 ; then
 	echo "ldapadd failed for schema config ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -287,7 +287,7 @@ EOF
 	RC=$?
 	if test $RC != 0 ; then
 		echo "ldapadd failed for backend config ($RC)!"
-		test $KILLSERVERS != no && kill -HUP $KILLPIDS
+		killservers
 		exit $RC
 	fi
 fi
@@ -329,7 +329,7 @@ EOF
 RC=$?
 if test $RC != 0 ; then
 	echo "ldapadd failed for database config ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -344,7 +344,7 @@ EOF
 	RC=$?
 	if test $RC != 0 ; then
 		echo "ldapadd modify for database config ($RC)!"
-		test $KILLSERVERS != no && kill -HUP $KILLPIDS
+		killservers
 		exit $RC
 	fi
 fi
@@ -355,7 +355,7 @@ $LDAPADD -D "$MANAGERDN" -H $URI1 -w $PASSWD -f $LDIFORDERED \
 RC=$?
 if test $RC != 0 ; then
 	echo "ldapadd failed for database config ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -376,7 +376,7 @@ done
 
 if test $RC != 0 ; then
 	echo "ldapsearch failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -387,7 +387,7 @@ RC=$?
 
 if test $RC != 0 ; then
 	echo "ldapsearch failed at provider ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -398,11 +398,11 @@ RC=$?
 
 if test $RC != 0 ; then
 	echo "ldapsearch failed at consumer ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
-test $KILLSERVERS != no && kill -HUP $KILLPIDS
+killservers
 
 echo "Filtering provider results..."
 $LDIFFILTER < $MASTEROUT > $MASTERFLT
@@ -418,7 +418,4 @@ if test $? != 0 ; then
 fi
 
 echo ">>>>> Test succeeded"
-
-test $KILLSERVERS != no && wait
-
 exit 0

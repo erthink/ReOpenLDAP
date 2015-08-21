@@ -54,7 +54,7 @@ for i in 1 2 3 4 5; do
 done
 if test $RC != 0 ; then
 	echo "ldapsearch failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -64,7 +64,7 @@ $LDAPADD -D "$MANAGERDN" -h $LOCALHOST -p $PORT1 -w $PASSWD < \
 RC=$?
 if test $RC != 0 ; then
 	echo "ldapadd failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -92,7 +92,7 @@ for i in 1 2 3 4 5; do
 done
 if test $RC != 0 ; then
 	echo "ldapsearch failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -102,7 +102,7 @@ $LDAPADD -D "$METAMANAGERDN" -h $LOCALHOST -p $PORT2 -w $PASSWD < \
 RC=$?
 if test $RC != 0 ; then
 	echo "ldapadd failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -130,7 +130,7 @@ for i in 1 2 3 4 5; do
 done
 if test $RC != 0 ; then
 	echo "ldapsearch failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -143,7 +143,7 @@ $LDAPSEARCH -S "" -h $LOCALHOST -p $PORT3 -b "$BASEDN" >> $SEARCHOUT 2>&1
 RC=$?
 #if test $RC != 0 ; then
 #	echo "Search failed ($RC)!"
-#	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+#	killservers
 #	exit $RC
 #fi
 case $RC in
@@ -151,12 +151,12 @@ case $RC in
 	;;
 	51)
 		echo "### Hit LDAP_BUSY problem; you may want to re-run the test"
-		test $KILLSERVERS != no && kill -HUP $KILLPIDS
+		killservers
 		exit 0
 	;;
 	*)
 		echo "Search failed ($RC)!"
-		test $KILLSERVERS != no && kill -HUP $KILLPIDS
+		killservers
 		exit $RC
 	;;
 esac
@@ -170,7 +170,7 @@ $LDAPSEARCH -S "" -h $LOCALHOST -p $PORT3 -b "$BASEDN" >> $SEARCHOUT 2>&1
 RC=$?
 #if test $RC != 0 ; then
 #	echo "Search failed ($RC)!"
-#	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+#	killservers
 #	exit $RC
 #fi
 case $RC in
@@ -178,12 +178,12 @@ case $RC in
 	;;
 	51)
 		echo "### Hit LDAP_BUSY problem; you may want to re-run the test"
-		test $KILLSERVERS != no && kill -HUP $KILLPIDS
+		killservers
 		exit 0
 	;;
 	*)
 		echo "Search failed ($RC)!"
-		test $KILLSERVERS != no && kill -HUP $KILLPIDS
+		killservers
 		exit $RC
 	;;
 esac
@@ -280,7 +280,7 @@ EOMODS
 RC=$?
 #if test $RC != 0 ; then
 #	echo "Modify failed ($RC)!"
-#	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+#	killservers
 #	exit $RC
 #fi
 case $RC in
@@ -288,12 +288,12 @@ case $RC in
 	;;
 	51)
 		echo "### Hit LDAP_BUSY problem; you may want to re-run the test"
-		test $KILLSERVERS != no && kill -HUP $KILLPIDS
+		killservers
 		exit 0
 	;;
 	*)
 		echo "Modify failed ($RC)!"
-		test $KILLSERVERS != no && kill -HUP $KILLPIDS
+		killservers
 		exit $RC
 	;;
 esac
@@ -304,7 +304,7 @@ $LDAPSEARCH -S "" -h $LOCALHOST -p $PORT3 -b "$BASEDN" >> $SEARCHOUT 2>&1
 RC=$?
 #if test $RC != 0 ; then
 #	echo "Search failed ($RC)!"
-#	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+#	killservers
 #	exit $RC
 #fi
 case $RC in
@@ -312,12 +312,12 @@ case $RC in
 	;;
 	51)
 		echo "### Hit LDAP_BUSY problem; you may want to re-run the test"
-		test $KILLSERVERS != no && kill -HUP $KILLPIDS
+		killservers
 		exit 0
 	;;
 	*)
 		echo "Search failed ($RC)!"
-		test $KILLSERVERS != no && kill -HUP $KILLPIDS
+		killservers
 		exit $RC
 	;;
 esac
@@ -330,7 +330,7 @@ $LDAPSEARCH -S "" -h $LOCALHOST -p $PORT3 -b "$BASEDN" -M "$FILTER" '*' ref \
 RC=$?
 #if test $RC != 0 ; then
 #	echo "Search failed ($RC)!"
-#	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+#	killservers
 #	exit $RC
 #fi
 case $RC in
@@ -338,12 +338,12 @@ case $RC in
 	;;
 	51)
 		echo "### Hit LDAP_BUSY problem; you may want to re-run the test"
-		test $KILLSERVERS != no && kill -HUP $KILLPIDS
+		killservers
 		exit 0
 	;;
 	*)
 		echo "Search failed ($RC)!"
-		test $KILLSERVERS != no && kill -HUP $KILLPIDS
+		killservers
 		exit $RC
 	;;
 esac
@@ -361,7 +361,7 @@ $LDAPSEARCH -S "" -h $LOCALHOST -p $PORT3 -b "$BASEDN" "$FILTER" seeAlso \
 RC=$?
 #if test $RC != 0 ; then
 #	echo "Search failed ($RC)!"
-#	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+#	killservers
 #	exit $RC
 #fi
 case $RC in
@@ -369,12 +369,12 @@ case $RC in
 	;;
 	51)
 		echo "### Hit LDAP_BUSY problem; you may want to re-run the test"
-		test $KILLSERVERS != no && kill -HUP $KILLPIDS
+		killservers
 		exit 0
 	;;
 	*)
 		echo "Search failed ($RC)!"
-		test $KILLSERVERS != no && kill -HUP $KILLPIDS
+		killservers
 		exit $RC
 	;;
 esac
@@ -391,7 +391,7 @@ $LDAPSEARCH -S "" -h $LOCALHOST -p $PORT3 -b "$BASEDN" "$FILTER" uid \
 RC=$?
 #if test $RC != 0 ; then
 #	echo "Search failed ($RC)!"
-#	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+#	killservers
 #	exit $RC
 #fi
 case $RC in
@@ -399,12 +399,12 @@ case $RC in
 	;;
 	51)
 		echo "### Hit LDAP_BUSY problem; you may want to re-run the test"
-		test $KILLSERVERS != no && kill -HUP $KILLPIDS
+		killservers
 		exit 0
 	;;
 	*)
 		echo "Search failed ($RC)!"
-		test $KILLSERVERS != no && kill -HUP $KILLPIDS
+		killservers
 		exit $RC
 	;;
 esac
@@ -421,7 +421,7 @@ $LDAPSEARCH -S "" -h $LOCALHOST -p $PORT3 -b "$BASEDN" "$FILTER" member \
 RC=$?
 #if test $RC != 0 ; then
 #	echo "Search failed ($RC)!"
-#	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+#	killservers
 #	exit $RC
 #fi
 case $RC in
@@ -429,12 +429,12 @@ case $RC in
 	;;
 	51)
 		echo "### Hit LDAP_BUSY problem; you may want to re-run the test"
-		test $KILLSERVERS != no && kill -HUP $KILLPIDS
+		killservers
 		exit 0
 	;;
 	*)
 		echo "Search failed ($RC)!"
-		test $KILLSERVERS != no && kill -HUP $KILLPIDS
+		killservers
 		exit $RC
 	;;
 esac
@@ -453,7 +453,7 @@ $LDAPSEARCH -S "" -h $LOCALHOST -p $PORT3 -D "cn=Manager,$BASEDN" -w $PASSWD \
 RC=$?
 #if test $RC != 0 ; then
 #	echo "Search failed ($RC)!"
-#	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+#	killservers
 #	exit $RC
 #fi
 case $RC in
@@ -461,12 +461,12 @@ case $RC in
 	;;
 	51)
 		echo "### Hit LDAP_BUSY problem; you may want to re-run the test"
-		test $KILLSERVERS != no && kill -HUP $KILLPIDS
+		killservers
 		exit 0
 	;;
 	*)
 		echo "Search failed ($RC)!"
-		test $KILLSERVERS != no && kill -HUP $KILLPIDS
+		killservers
 		exit $RC
 	;;
 esac
@@ -485,12 +485,12 @@ case $RC,$BACKEND in
 	;;
 	0,*)
 		echo "Search should have failed ($RC)!"
-		test $KILLSERVERS != no && kill -HUP $KILLPIDS
+		killservers
 		exit -1
 	;;
 	*)
 		echo "Search failed ($RC)!"
-		test $KILLSERVERS != no && kill -HUP $KILLPIDS
+		killservers
 		exit $RC
 	;;
 esac
@@ -509,12 +509,12 @@ case $RC,$BACKEND in
 	;;
 	0,*)
 		echo "Search should have failed ($RC)!"
-		test $KILLSERVERS != no && kill -HUP $KILLPIDS
+		killservers
 		exit -1
 	;;
 	*)
 		echo "Search failed ($RC)!"
-		test $KILLSERVERS != no && kill -HUP $KILLPIDS
+		killservers
 		exit $RC
 	;;
 esac
@@ -528,7 +528,7 @@ $CMP $SEARCHFLT $LDIFFLT > $CMPOUT
 
 if test $? != 0 ; then
 	echo "comparison failed - meta search/modification didn't succeed"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit 1
 fi
 
@@ -541,7 +541,7 @@ $LDAPPASSWD -h $LOCALHOST -p $PORT3 -D "cn=Manager,$BASEDN" -w $PASSWD \
 RC=$?
 #if test $RC != 0 ; then
 #	echo "Passwd ExOp failed ($RC)!"
-#	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+#	killservers
 #	exit $RC
 #fi
 case $RC in
@@ -549,7 +549,7 @@ case $RC in
 	;;
 #	51)
 #		echo "### Hit LDAP_BUSY problem; you may want to re-run the test"
-#		test $KILLSERVERS != no && kill -HUP $KILLPIDS
+#		killservers
 #		exit 0
 #	;;
 #	80)
@@ -558,7 +558,7 @@ case $RC in
 		;;
 	*)
 		echo "Passwd ExOp failed ($RC)!"
-		test $KILLSERVERS != no && kill -HUP $KILLPIDS
+		killservers
 		exit $RC
 	;;
 esac
@@ -571,7 +571,7 @@ if test $RC = 0 ; then
 	RC=$?
 	#if test $RC != 0 ; then
 	#	echo "WhoAmI failed ($RC)!"
-	#	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	#	killservers
 	#	exit $RC
 	#fi
 	case $RC in
@@ -582,7 +582,7 @@ if test $RC = 0 ; then
 		;;
 		*)
 			echo "WhoAmI failed ($RC)!"
-			test $KILLSERVERS != no && kill -HUP $KILLPIDS
+			killservers
 			exit $RC
 		;;
 	esac
@@ -595,7 +595,7 @@ $LDAPWHOAMI -h $LOCALHOST -p $PORT3 \
 RC=$?
 #if test $RC != 0 ; then
 #	echo "WhoAmI failed ($RC)!"
-#	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+#	killservers
 #	exit $RC
 #fi
 case $RC in
@@ -606,7 +606,7 @@ case $RC in
 	;;
 	*)
 		echo "WhoAmI failed ($RC)!"
-		test $KILLSERVERS != no && kill -HUP $KILLPIDS
+		killservers
 		exit $RC
 	;;
 esac
@@ -618,7 +618,7 @@ $LDAPPASSWD -h $LOCALHOST -p $PORT3 -D "cn=Manager,$BASEDN" -w $PASSWD \
 RC=$?
 #if test $RC != 0 ; then
 #	echo "Passwd ExOp failed ($RC)!"
-#	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+#	killservers
 #	exit $RC
 #fi
 case $RC in
@@ -626,7 +626,7 @@ case $RC in
 	;;
 #	51)
 #		echo "### Hit LDAP_BUSY problem; you may want to re-run the test"
-#		test $KILLSERVERS != no && kill -HUP $KILLPIDS
+#		killservers
 #		exit 0
 #	;;
 #	80)
@@ -635,7 +635,7 @@ case $RC in
 		;;
 	*)
 		echo "Passwd ExOp failed ($RC)!"
-		test $KILLSERVERS != no && kill -HUP $KILLPIDS
+		killservers
 		exit $RC
 	;;
 esac
@@ -648,7 +648,7 @@ if test $RC = 0 ; then
 	RC=$?
 	#if test $RC != 0 ; then
 	#	echo "WhoAmI failed ($RC)!"
-	#	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	#	killservers
 	#	exit $RC
 	#fi
 	case $RC in
@@ -659,7 +659,7 @@ if test $RC = 0 ; then
 		;;
 		*)
 			echo "WhoAmI failed ($RC)!"
-			test $KILLSERVERS != no && kill -HUP $KILLPIDS
+			killservers
 			exit $RC
 		;;
 	esac
@@ -672,7 +672,7 @@ $LDAPWHOAMI -h $LOCALHOST -p $PORT3 \
 RC=$?
 #if test $RC != 0 ; then
 #	echo "WhoAmI failed ($RC)!"
-#	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+#	killservers
 #	exit $RC
 #fi
 case $RC,$BACKEND in
@@ -680,7 +680,7 @@ case $RC,$BACKEND in
 	;;
 	0,*)
 		echo "WhoAmI should have failed ($RC)!"
-		test $KILLSERVERS != no && kill -HUP $KILLPIDS
+		killservers
 		exit -1
 	;;
 	51,*)
@@ -697,7 +697,7 @@ $LDAPWHOAMI -h $LOCALHOST -p $PORT3 \
 RC=$?
 #if test $RC != 0 ; then
 #	echo "WhoAmI failed ($RC)!"
-#	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+#	killservers
 #	exit $RC
 #fi
 case $RC,$BACKEND in
@@ -705,7 +705,7 @@ case $RC,$BACKEND in
 	;;
 	0,*)
 		echo "WhoAmI should have failed ($RC)!"
-		test $KILLSERVERS != no && kill -HUP $KILLPIDS
+		killservers
 		exit -1
 	;;
 	51,*)
@@ -722,7 +722,7 @@ $LDAPCOMPARE -h $LOCALHOST -p $PORT3 \
 RC=$?
 #if test $RC != 6 ; then
 #	echo "Compare failed ($RC)!"
-#	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+#	killservers
 #	exit -1
 #fi
 case $RC,$BACKEND in
@@ -735,15 +735,11 @@ case $RC,$BACKEND in
 	;;
 	*)
 		echo "Compare failed ($RC)!"
-		test $KILLSERVERS != no && kill -HUP $KILLPIDS
+		killservers
 		exit 1
 	;;
 esac
 
-test $KILLSERVERS != no && kill -HUP $KILLPIDS
-
+killservers
 echo ">>>>> Test succeeded"
-
-test $KILLSERVERS != no && wait
-
 exit 0

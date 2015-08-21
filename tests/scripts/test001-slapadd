@@ -51,7 +51,7 @@ done
 
 if test $RC != 0 ; then
 	echo "ldapsearch failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -66,7 +66,7 @@ if test $? != 0 ; then
 	echo "comparison failed - database was not created correctly"
 	echo $SEARCHFLT $LDIFFLT
 	$DIFF $SEARCHFLT $LDIFFLT
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit 1
 fi
 
@@ -74,8 +74,7 @@ if test $BACKEND = ldif ; then
 	echo "Skipping test of unordered slapadd (unsupported in ldif backend)"
 else
 
-kill -HUP $KILLPIDS
-
+killservers
 rm -f $DBDIR1/*
 
 BASE2="ou=test,dc=example,dc=com"
@@ -114,7 +113,7 @@ done
 
 if test $RC != 0 ; then
 	echo "ldapsearch failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -129,16 +128,12 @@ if test $? != 0 ; then
 	echo "comparison failed - database was not created correctly"
 	echo $SEARCHFLT $LDIFFLT
 	$DIFF $SEARCHFLT $LDIFFLT
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit 1
 fi
 
 fi
 
-test $KILLSERVERS != no && kill -HUP $KILLPIDS
-
+killservers
 echo ">>>>> Test succeeded"
-
-test $KILLSERVERS != no && wait
-
 exit 0

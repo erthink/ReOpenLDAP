@@ -72,7 +72,7 @@ done
 
 if test $RC != 0 ; then
 	echo "ldapsearch failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -100,7 +100,7 @@ $LDAPSEARCH -S "" -b "$LISTDN" -h $LOCALHOST -p $PORT1 \
 RC=$?
 if test $RC != 0 ; then
 	echo "ldapsearch failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -112,7 +112,7 @@ $LDAPSEARCH -S "" -b "$LISTDN" -h $LOCALHOST -p $PORT1 \
 RC=$?
 if test $RC != 0 ; then
 	echo "ldapsearch failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -124,7 +124,7 @@ $LDAPSEARCH -S "" -b "$LISTDN" -h $LOCALHOST -p $PORT1 \
 RC=$?
 if test $RC != 0 ; then
 	echo "ldapsearch failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -136,7 +136,7 @@ $LDAPSEARCH -S "" -b "$LISTDN" -h $LOCALHOST -p $PORT1 -MM \
 RC=$?
 if test $RC != 0 ; then
 	echo "ldapsearch failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -149,7 +149,7 @@ RC=$?
 case $RC in
 5)
 	echo "ldapcompare returned FALSE ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 	;;
 6)
@@ -157,12 +157,12 @@ case $RC in
 	;;
 0)
 	echo "ldapcompare returned success ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit -1
 	;;
 *)
 	echo "ldapcompare failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 	;;
 esac
@@ -180,17 +180,17 @@ case $RC in
 	;;
 6)
 	echo "ldapcompare returned TRUE ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 	;;
 0)
 	echo "ldapcompare returned success ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit -1
 	;;
 *)
 	echo "ldapcompare failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 	;;
 esac
@@ -205,12 +205,12 @@ RC=$?
 case $RC in
 5)
 	echo "ldapcompare returned FALSE ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 	;;
 6)
 	echo "ldapcompare returned TRUE ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 	;;
 16|32)
@@ -218,7 +218,7 @@ case $RC in
 	;;
 0)
 	echo "ldapcompare returned success ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit -1
 	;;
 *)
@@ -239,17 +239,17 @@ case $RC in
 	;;
 6)
 	echo "ldapcompare returned TRUE ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 	;;
 0)
 	echo "ldapcompare returned success ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit -1
 	;;
 *)
 	echo "ldapcompare failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 	;;
 esac
@@ -281,7 +281,7 @@ $LDAPSEARCH -S "" -b "$LISTDN" -h $LOCALHOST -p $PORT1 \
 RC=$?
 if test $RC != 0 ; then
 	echo "ldapsearch failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -293,7 +293,7 @@ $LDAPSEARCH -S "" -b "$LISTDN" -h $LOCALHOST -p $PORT1 \
 RC=$?
 if test $RC != 0 ; then
 	echo "ldapsearch failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -305,7 +305,7 @@ $LDAPSEARCH -S "" -b "$LISTDN" -h $LOCALHOST -p $PORT1 \
 RC=$?
 if test $RC != 0 ; then
 	echo "ldapsearch failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -318,7 +318,7 @@ RC=$?
 case $RC in
 5)
 	echo "ldapcompare returned FALSE ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 	;;
 6)
@@ -326,12 +326,12 @@ case $RC in
 	;;
 0)
 	echo "ldapcompare returned success ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit -1
 	;;
 *)
 	echo "ldapcompare failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 	;;
 esac
@@ -349,17 +349,17 @@ case $RC in
 	;;
 6)
 	echo "ldapcompare returned TRUE ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 	;;
 0)
 	echo "ldapcompare returned success ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit -1
 	;;
 *)
 	echo "ldapcompare failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 	;;
 esac
@@ -398,7 +398,7 @@ $LDAPSEARCH -S "" -b "$LISTDN" -h $LOCALHOST -p $PORT1 \
 RC=$?
 if test $RC != 0 ; then
 	echo "ldapsearch failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -410,7 +410,7 @@ $LDAPSEARCH -S "" -b "$LISTDN" -h $LOCALHOST -p $PORT1 \
 RC=$?
 if test $RC != 0 ; then
 	echo "ldapsearch failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -422,7 +422,7 @@ $LDAPSEARCH -S "" -b "$LISTDN" -h $LOCALHOST -p $PORT1 \
 RC=$?
 if test $RC != 0 ; then
 	echo "ldapsearch failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -434,7 +434,7 @@ $LDAPSEARCH -S "" -b "$LISTDN" -h $LOCALHOST -p $PORT1 -MM \
 RC=$?
 if test $RC != 0 ; then
 	echo "ldapsearch failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -448,7 +448,7 @@ RC=$?
 case $RC in
 5)
 	echo "ldapcompare returned FALSE ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 	;;
 6)
@@ -456,12 +456,12 @@ case $RC in
 	;;
 0)
 	echo "ldapcompare returned success ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit -1
 	;;
 *)
 	echo "ldapcompare failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 	;;
 esac
@@ -479,17 +479,17 @@ case $RC in
 	;;
 6)
 	echo "ldapcompare returned TRUE ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 	;;
 0)
 	echo "ldapcompare returned success ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit -1
 	;;
 *)
 	echo "ldapcompare failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 	;;
 esac
@@ -507,17 +507,17 @@ case $RC in
 	;;
 6)
 	echo "ldapcompare returned TRUE ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 	;;
 0)
 	echo "ldapcompare returned success ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit -1
 	;;
 *)
 	echo "ldapcompare failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 	;;
 esac
@@ -546,7 +546,7 @@ $LDAPSEARCH -S "" -b "$LISTDN" -h $LOCALHOST -p $PORT1 \
 RC=$?
 if test $RC != 0 ; then
 	echo "ldapsearch failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -569,7 +569,7 @@ $LDAPSEARCH -S "" -b "$LISTDN" -h $LOCALHOST -p $PORT1 \
 RC=$?
 if test $RC != 0 ; then
 	echo "ldapsearch failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -592,7 +592,7 @@ $LDAPSEARCH -S "" -b "$LISTDN" -h $LOCALHOST -p $PORT1 \
 RC=$?
 if test $RC != 0 ; then
 	echo "ldapsearch failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -605,11 +605,11 @@ $LDAPSEARCH -S "" -b "$LISTDN" -h $LOCALHOST -p $PORT1 \
 RC=$?
 if test $RC != 0 ; then
 	echo "ldapsearch failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
-test $KILLSERVERS != no && kill -HUP $KILLPIDS
+killservers
 
 LDIF=$DYNLISTOUT
 
@@ -626,7 +626,4 @@ if test $? != 0 ; then
 fi
 
 echo ">>>>> Test succeeded"
-
-test $KILLSERVERS != no && wait
-
 exit 0

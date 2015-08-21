@@ -78,7 +78,7 @@ done
 
 if test $RC != 0 ; then
 	echo "ldapsearch failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -96,7 +96,7 @@ done
 
 if test $RC != 0 ; then
 	echo "ldapsearch failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -108,7 +108,7 @@ for P in $PORT1 $PORT2 ; do
 	RC=$?
 	if test $RC != 0 ; then
 		echo "ldapsearch failed ($RC)!"
-		test $KILLSERVERS != no && kill -HUP $KILLPIDS
+		killservers
 		exit $RC
 	fi
 
@@ -121,7 +121,7 @@ for P in $PORT1 $PORT2 ; do
 
 	if test $? != 0 ; then
 		echo "comparison failed - chained search didn't succeed"
-		test $KILLSERVERS != no && kill -HUP $KILLPIDS
+		killservers
 		exit 1
 	fi
 
@@ -132,7 +132,7 @@ for P in $PORT1 $PORT2 ; do
 	RC=$?
 	if test $RC != 0 ; then
 		echo "ldapsearch failed ($RC)!"
-		test $KILLSERVERS != no && kill -HUP $KILLPIDS
+		killservers
 		exit $RC
 	fi
 
@@ -145,7 +145,7 @@ for P in $PORT1 $PORT2 ; do
 
 	if test $? != 0 ; then
 		echo "comparison failed - chained search didn't succeed"
-		test $KILLSERVERS != no && kill -HUP $KILLPIDS
+		killservers
 		exit 1
 	fi
 
@@ -157,7 +157,7 @@ for P in $PORT1 $PORT2 ; do
 	RC=$?
 	if test $RC != 6 && test $RC,$BACKEND != 5,null ; then
 		echo "ldapcompare failed ($RC)!"
-		test $KILLSERVERS != no && kill -HUP $KILLPIDS
+		killservers
 		exit 1
 	fi
 
@@ -169,7 +169,7 @@ for P in $PORT1 $PORT2 ; do
 	RC=$?
 	if test $RC != 6 && test $RC,$BACKEND != 5,null ; then
 		echo "ldapcompare failed ($RC)!"
-		test $KILLSERVERS != no && kill -HUP $KILLPIDS
+		killservers
 		exit 1
 	fi
 done
@@ -211,7 +211,7 @@ EOMODS
 RC=$?
 if test $RC != 0 ; then
 	echo "ldapmodify failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -249,7 +249,7 @@ EOMODS
 RC=$?
 if test $RC != 0 ; then
 	echo "ldapmodify failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -261,7 +261,7 @@ for P in $PORT1 $PORT2 ; do
 	RC=$?
 	if test $RC != 0 ; then
 		echo "ldapsearch failed ($RC)!"
-		test $KILLSERVERS != no && kill -HUP $KILLPIDS
+		killservers
 		exit $RC
 	fi
 
@@ -274,7 +274,7 @@ for P in $PORT1 $PORT2 ; do
 
 	if test $? != 0 ; then
 		echo "comparison failed - chained search didn't succeed"
-		test $KILLSERVERS != no && kill -HUP $KILLPIDS
+		killservers
 		exit 1
 	fi
 done
@@ -287,7 +287,7 @@ $LDAPPASSWD -h $LOCALHOST -p $PORT2 \
 RC=$?
 if test $RC != 0 ; then
 	echo "ldappasswd failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -297,7 +297,7 @@ $LDAPWHOAMI -h $LOCALHOST -p $PORT1 \
 RC=$?
 if test $RC != 0 ; then
 	echo "ldapwhoami failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -322,14 +322,11 @@ $LDAPSEARCH -h $LOCALHOST -p $PORT1 -b "$BASEDN" -S "" "(cn=Can't Contact)" \
 RC=$?
 if test $RC != 0 ; then
 	echo "ldapsearch failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
-test $KILLSERVERS != no && kill -HUP $KILLPIDS
+killservers
 
 echo ">>>>> Test succeeded"
-
-test $KILLSERVERS != no && wait
-
 exit 0

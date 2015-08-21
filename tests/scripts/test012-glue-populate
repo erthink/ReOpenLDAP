@@ -47,7 +47,7 @@ $LDAPADD -D "$MANAGERDN" -h $LOCALHOST -p $PORT1 -w $PASSWD < \
 RC=$?
 if test $RC != 0 ; then
 	echo "ldapadd failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -56,7 +56,7 @@ $LDAPSEARCH -b "$BASEDN" -h $LOCALHOST -p $PORT1 \
 	'objectclass=*' > $SEARCHOUT 2>&1
 RC=$?
 
-test $KILLSERVERS != no && kill -HUP $KILLPIDS
+killservers
 
 if test $RC != 0 ; then
 	echo "ldapsearch failed ($RC)!"
@@ -76,7 +76,4 @@ if test $? != 0 ; then
 fi
 
 echo ">>>>> Test succeeded"
-
-test $KILLSERVERS != no && wait
-
 exit 0

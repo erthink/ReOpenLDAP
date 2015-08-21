@@ -54,7 +54,7 @@ done
 
 if test $RC != 0 ; then
 	echo "ldapsearch failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -66,7 +66,7 @@ $LDAPRSEARCH -S "" -MM -b "$REFDN" -h $LOCALHOST -p $PORT1 \
 RC=$?
 if test $RC != 0 ; then
 	echo "ldapsearch failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -76,7 +76,7 @@ $LDAPRSEARCH -S "" -MM -b "o=abc,$REFDN" -h $LOCALHOST -p $PORT1 \
 RC=$?
 if test $RC != 0 ; then
 	echo "ldapsearch failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -86,7 +86,7 @@ $LDAPRSEARCH -S "" -MM -b "uid=xxx,o=abc,$REFDN" -h $LOCALHOST -p $PORT1 \
 RC=$?
 if test $RC != $RCODE ; then
 	echo "ldapsearch: unexpected result ($RC)! (referral expected)"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit 1
 fi
 
@@ -96,7 +96,7 @@ $LDAPRSEARCH -S "" -s base -b "$XREFDN" -h $LOCALHOST -p $PORT1 1.1 >> $SEARCHOU
 RC=$?
 if test $RC != 0 ; then
 	echo "ldapsearch failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -105,7 +105,7 @@ $LDAPRSEARCH -S "" -s one -b "$XREFDN" -h $LOCALHOST -p $PORT1 1.1 >> $SEARCHOUT
 RC=$?
 if test $RC != 0 ; then
 	echo "ldapsearch failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -114,7 +114,7 @@ $LDAPRSEARCH -S "" -s sub -b "$XREFDN" -h $LOCALHOST -p $PORT1 1.1 >> $SEARCHOUT
 RC=$?
 if test $RC != 0 ; then
 	echo "ldapsearch failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -124,7 +124,7 @@ $LDAPRSEARCH -S "" -s base -b "$XREFDN" -h $LOCALHOST -p $PORT1 1.1 >> $SEARCHOU
 RC=$?
 if test $RC != $RCODE ; then
 	echo "ldapsearch: unexpected result ($RC)! (referral expected)"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit 1
 fi
 
@@ -133,7 +133,7 @@ $LDAPRSEARCH -S "" -s one -b "$XREFDN" -h $LOCALHOST -p $PORT1 1.1 >> $SEARCHOUT
 RC=$?
 if test $RC != $RCODE ; then
 	echo "ldapsearch: unexpected result ($RC)! (referral expected)"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit 1
 fi
 
@@ -142,7 +142,7 @@ $LDAPRSEARCH -S "" -s sub -b "$XREFDN" -h $LOCALHOST -p $PORT1 1.1 >> $SEARCHOUT
 RC=$?
 if test $RC != $RCODE ; then
 	echo "ldapsearch: unexpected result ($RC)! (referral expected)"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit 1
 fi
 
@@ -152,7 +152,7 @@ $LDAPRSEARCH -S "" -s base -b "$XREFDN" -h $LOCALHOST -p $PORT1 1.1 >> $SEARCHOU
 RC=$?
 if test $RC != $RCODE ; then
 	echo "ldapsearch: unexpected result ($RC)! (referral expected)"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit 1
 fi
 
@@ -161,7 +161,7 @@ $LDAPRSEARCH -S "" -s one -b "$XREFDN" -h $LOCALHOST -p $PORT1 1.1 >> $SEARCHOUT
 RC=$?
 if test $RC != $RCODE ; then
 	echo "ldapsearch: unexpected result ($RC)! (referral expected)"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit 1
 fi
 
@@ -170,11 +170,11 @@ $LDAPRSEARCH -S "" -s sub -b "$XREFDN" -h $LOCALHOST -p $PORT1 1.1 >> $SEARCHOUT
 RC=$?
 if test $RC != $RCODE ; then
 	echo "ldapsearch: unexpected result ($RC)! (referral expected)"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit 1
 fi
 
-test $KILLSERVERS != no && kill -HUP $KILLPIDS
+killservers
 
 LDIF=$SEARCHOUTMASTER
 echo "Filtering ldapsearch results..."
@@ -190,7 +190,4 @@ if test $? != 0 ; then
 fi
 
 echo ">>>>> Test succeeded"
-
-test $KILLSERVERS != no && wait
-
 exit 0

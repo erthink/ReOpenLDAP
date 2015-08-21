@@ -51,7 +51,7 @@ done
 
 if test $RC != 0 ; then
 	echo "ldapsearch failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -173,7 +173,7 @@ EOMODS
 RC=$?
 if test $RC != 0 ; then
 	echo "ldapmodify failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -192,12 +192,12 @@ case $RC in
 	;;
 0)
 	echo "	ldapmodify should have failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit -1
 	;;
 *)
 	echo "	ldapmodify failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 	;;
 esac
@@ -206,7 +206,7 @@ echo "Using ldapsearch to retrieve all the entries..."
 $LDAPSEARCH -S "" -b "$BASEDN" -h $LOCALHOST -p $PORT1 \
 	    'objectClass=*' > $SEARCHOUT 2>&1
 RC=$?
-test $KILLSERVERS != no && kill -HUP $KILLPIDS
+killservers
 if test $RC != 0 ; then
 	echo "ldapsearch failed ($RC)!"
 	exit $RC
@@ -227,7 +227,4 @@ if test $? != 0 ; then
 fi
 
 echo ">>>>> Test succeeded"
-
-test $KILLSERVERS != no && wait
-
 exit 0

@@ -215,7 +215,7 @@ done
 
 if test $RC != 0 ; then
 	echo "ldapsearch failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -226,7 +226,7 @@ $LDAPADD -D "$MANAGERDN" -H $URI1 -w $PASSWD -f $LDIFORDEREDCP \
 RC=$?
 if test $RC != 0 ; then
 	echo "ldapadd failed for server $n database ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 fi
@@ -240,7 +240,7 @@ $LDAPADD -D "$MANAGERDN" -H $URI1 -w $PASSWD -f $LDIFORDEREDNOCP \
 RC=$?
 if test $RC != 0 ; then
 	echo "ldapadd failed for server $n database ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -259,7 +259,7 @@ RC=$?
 
 if test $RC != 0 ; then
 	echo "ldapsearch failed at server $n ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 $LDIFFILTER < $TESTDIR/server$n.out > $TESTDIR/server$n.flt
@@ -273,7 +273,7 @@ $CMP $MASTERFLT $TESTDIR/server$n.flt > $CMPOUT
 
 if test $? != 0 ; then
 	echo "test failed - server 1 and server $n databases differ"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit 1
 fi
 n=`expr $n + 1`
@@ -285,7 +285,7 @@ $LDAPADD -D "$MANAGERDN" -H $URI2 -w $PASSWD -f $LDIFADD1 \
 RC=$?
 if test $RC != 0 ; then
 	echo "ldapadd failed for server 2 database ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -302,7 +302,7 @@ for i in 1 2 3; do
 
 	if test $RC != 32 ; then
 		echo "ldapsearch failed at slave ($RC)!"
-		test $KILLSERVERS != no && kill -HUP $KILLPIDS
+		killservers
 		exit $RC
 	fi
 
@@ -322,7 +322,7 @@ RC=$?
 
 if test $RC != 0 ; then
 	echo "ldapsearch failed at server $n ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 $LDIFFILTER < $TESTDIR/server$n.out > $TESTDIR/server$n.flt
@@ -336,7 +336,7 @@ $CMP $MASTERFLT $TESTDIR/server$n.flt > $CMPOUT
 
 if test $? != 0 ; then
 	echo "test failed - server 1 and server $n databases differ"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit 1
 fi
 n=`expr $n + 1`
@@ -365,7 +365,7 @@ EOF
 RC=$?
 if test $RC != 0 ; then
 	echo "ldapmodify failed for server $n config ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 n=`expr $n + 1`
@@ -383,7 +383,7 @@ EOF
 RC=$?
 if test $RC != 0 ; then
 	echo "ldapmodify failed for server 1 database ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -398,7 +398,7 @@ EOF
 RC=$?
 if test $RC != 0 ; then
 	echo "ldapmodify failed for server 2 database ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -416,7 +416,7 @@ EOF
 RC=$?
 if test $RC != 0 ; then
 	echo "ldapmodify failed for server 1 database ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -434,7 +434,7 @@ EOF
 RC=$?
 if test $RC != 0 ; then
 	echo "ldapmodify failed for server 2 database ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -452,7 +452,7 @@ EOF
 RC=$?
 if test $RC != 0 ; then
 	echo "ldapmodify failed for server 1 database ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -470,7 +470,7 @@ EOF
 RC=$?
 if test $RC != 0 ; then
 	echo "ldapmodify failed for server 2 database ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -497,7 +497,7 @@ EOF
 RC=$?
 if test $RC != 0 ; then
 	echo "ldapmodify failed for server $n config ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 n=`expr $n + 1`
@@ -518,7 +518,7 @@ RC=$?
 
 if test $RC != 0 ; then
 	echo "ldapsearch failed at server $n ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 $LDIFFILTER -s $BACKEND=a < $TESTDIR/server$n.out > $TESTDIR/server$n.flt
@@ -532,16 +532,12 @@ $CMP $MASTERFLT $TESTDIR/server$n.flt > $CMPOUT
 
 if test $? != 0 ; then
 	echo "test failed - server 1 and server $n databases differ"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit 1
 fi
 n=`expr $n + 1`
 done
 
-test $KILLSERVERS != no && kill -HUP $KILLPIDS
-
+killservers
 echo ">>>>> Test succeeded"
-
-test $KILLSERVERS != no && wait
-
 exit 0

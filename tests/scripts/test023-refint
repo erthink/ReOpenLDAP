@@ -56,7 +56,7 @@ done
 
 if test $RC != 0 ; then
 	echo "ldapsearch failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -66,7 +66,7 @@ $LDAPSEARCH -S "" -b "o=refint" -h $LOCALHOST -p $PORT1 > $SEARCHOUT 2>&1
 RC=$?
 if test $RC != 0 ; then
 	echo "ldapsearch failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -82,7 +82,7 @@ $LDAPMODRDN -D "$REFINTDN" -r -h $LOCALHOST -p $PORT1 -w $PASSWD > \
 RC=$?
 if test $RC != 0 ; then
 	echo "ldapmodrdn failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -94,7 +94,7 @@ $LDAPSEARCH -S "" -b "o=refint" -h $LOCALHOST -p $PORT1 > $SEARCHOUT 2>&1
 RC=$?
 	if test $RC != 0 ; then
 	echo "ldapsearch failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -105,7 +105,7 @@ $CMP $TESTOUT $SEARCHFLT > $CMPOUT
 
 if test $? != 0 ; then
 	echo "comparison failed - modify operations did not complete correctly"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit 1
 fi
 
@@ -120,7 +120,7 @@ EDEL
 RC=$?
 if test $RC != 0 ; then
 	echo "ldapmodify failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -131,7 +131,7 @@ $LDAPSEARCH -S "" -b "o=refint" -h $LOCALHOST -p $PORT1 > $SEARCHOUT 2>&1
 RC=$?
 if test $RC != 0 ; then
 	echo "ldapsearch failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -140,7 +140,7 @@ $EGREP_CMD "(manager|secretary):" $SEARCHOUT > $SEARCHFLT 2>&1
 RC=`grep -c foster $SEARCHFLT`
 if test $RC != 0 ; then
 	echo "dependent modify failed - dependents were not deleted"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit 1
 fi
 
@@ -167,7 +167,7 @@ ETEST
 RC=$?
 if test $RC != 0 ; then
 	echo "ldapadd failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -182,7 +182,7 @@ EDEL
 RC=$?
 if test $RC != 0 ; then
 	echo "ldapmodify failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -205,7 +205,7 @@ EDEL
 	RC=$?
 	if test $RC != 0 ; then
 		echo "ldapmodify failed ($RC)!"
-		test $KILLSERVERS != no && kill -HUP $KILLPIDS
+		killservers
 		exit $RC
 	fi
 
@@ -215,7 +215,7 @@ EDEL
 	RC=$?
 	if test $RC != 0 ; then
 		echo "ldapsearch failed ($RC)!"
-		test $KILLSERVERS != no && kill -HUP $KILLPIDS
+		killservers
 		exit $RC
 	fi
 
@@ -229,7 +229,7 @@ EDEL
 	RC=$?
 	if test $RC != 0 ; then
 		echo "ldapmodrdn failed ($RC)!"
-		test $KILLSERVERS != no && kill -HUP $KILLPIDS
+		killservers
 		exit $RC
 	fi
 
@@ -242,7 +242,7 @@ EDEL
 	RC=$?
 	if test $RC != 0 ; then
 		echo "ldapsearch failed ($RC)!"
-		test $KILLSERVERS != no && kill -HUP $KILLPIDS
+		killservers
 		exit $RC
 	fi
 
@@ -254,15 +254,11 @@ EDEL
 
 	if test $? != 0 ; then
 		echo "comparison failed - subtree rename operations did not complete correctly"
-		test $KILLSERVERS != no && kill -HUP $KILLPIDS
+		killservers
 		exit 1
 	fi
 fi
 
-test $KILLSERVERS != no && kill -HUP $KILLPIDS
-
+killservers
 echo ">>>>> Test succeeded"
-
-test $KILLSERVERS != no && wait
-
 exit 0

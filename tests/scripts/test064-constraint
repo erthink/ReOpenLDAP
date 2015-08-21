@@ -110,7 +110,7 @@ $SLAPADD -F $CONFDIR -n 0 -l $TESTDIR/config.ldif
 
 echo "Starting slapd on TCP/IP port $PORT1..."
 $SLAPD -F $CONFDIR -h $URI1 -d $LVL $TIMING > $LOG1 2>&1 &
-PID=$!
+KILLPIDS=$!
 if test $WAIT != 0 ; then
 	echo PID $PID
 	read foo
@@ -131,7 +131,7 @@ done
 
 if test $RC != 0 ; then
 	echo "ldapsearch failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $PID
+	killservers
 	exit $RC
 fi
 
@@ -141,14 +141,14 @@ $LDAPADD -D "$MANAGERDN" -H $URI1 -w $PASSWD -f $ROOTLDIF > $LOG2 2>&1
 RC=$?
 if test $RC != 0 ; then
 	echo "ldapadd failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $PID
+	killservers
 	exit $RC
 fi
 $LDAPADD -D "$MANAGERDN" -H $URI1 -w $PASSWD -f $USERLDIF > $LOG2 2>&1
 RC=$?
 if test $RC != 0 ; then
 	echo "ldapadd failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $PID
+	killservers
 	exit $RC
 fi
 
@@ -159,14 +159,14 @@ for ldif in $SRCDIR/data/constraint/{*ok*,*fail*}.ldif; do
 	RC=$?
 	if test $RC != 0 ; then
 		echo "ldapdelete failed ($RC)!"
-		test $KILLSERVERS != no && kill -HUP $PID
+		killservers
 		exit $RC
 	fi
 	$LDAPADD -D "$MANAGERDN" -H $URI1 -w $PASSWD -f $USERLDIF > $LOG2 2>&1
 	RC=$?
 	if test $RC != 0 ; then
 		echo "ldapadd failed ($RC)!"
-		test $KILLSERVERS != no && kill -HUP $PID
+		killservers
 		exit $RC
 	fi
 
@@ -190,14 +190,10 @@ $DIFF $SCRIPTOUT $RESULTOUT > $CMPOUT
 RC=$?
 if test $RC != 0 ; then
 	echo "Comparison failed"
-	test $KILLSERVERS != no && kill -HUP $PID
+	killservers
 	exit $RC
 fi
 
-test $KILLSERVERS != no && kill -HUP $PID
-
+killservers
 echo ">>>>> Test succeeded"
-
-test $KILLSERVERS != no && wait
-
 exit 0

@@ -73,7 +73,6 @@ fi
 echo "Testing virtual naming context mapping with $RELAYS backend(s)..."
 echo ""
 
-order=1
 for RELAY in $RELAYS ; do
 	update_TESTDIR $BASE_TESTDIR/$RELAY
 	RUNIT=yes
@@ -88,19 +87,9 @@ for RELAY in $RELAYS ; do
 
 	if test $RUNIT = yes ; then
 		mkdir -p $TESTDIR $DBDIR1
-		if [ $order -ne 1 ] ; then
-			echo ">>>>> waiting for things to exit"
-			test $KILLSERVERS != no && wait
-			echo ""
-		fi
-		order=$((order+1))
-
 		. $SRCDIR/scripts/relay
 	fi
 done
 
 echo ">>>>> Test succeeded"
-
-test $KILLSERVERS != no && wait
-
 exit 0

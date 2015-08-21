@@ -61,7 +61,7 @@ RC=$?
 
 if test $RC != 0 ; then
         echo "ldapsearch failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
         exit $RC
 fi
 
@@ -76,7 +76,7 @@ $CMP $SEARCHFLT $LDIFFLT > $CMPOUT
 
 if test $? != 0 ; then
         echo "comparison failed - connection monitor output is not correct"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
         exit 1
 fi
 
@@ -91,7 +91,7 @@ RC=$?
 
 if test $RC != 0 ; then
         echo "ldapsearch failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
         exit $RC
 fi
 
@@ -113,7 +113,7 @@ $CMP $SEARCHFLT $TMPMONITOROUT2 > $CMPOUT
 
 if test $? != 0 ; then
         echo "comparison failed - database monitor output is not correct"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
         exit 1
 fi
 
@@ -126,7 +126,7 @@ RC=$?
 
 if test $RC != 0 ; then
         echo "ldapsearch failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
         exit $RC
 fi
 
@@ -138,7 +138,7 @@ $CMP $SEARCHFLT $MONITOROUT3 > $CMPOUT
 
 if test $? != 0 ; then
         echo "comparison failed - statistics monitor output is not correct"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
         exit 1
 fi
 
@@ -151,7 +151,7 @@ RC=$?
 
 if test $RC != 0 ; then
         echo "ldapsearch failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
         exit $RC
 fi
 
@@ -163,14 +163,10 @@ $CMP $SEARCHFLT $MONITOROUT4 > $CMPOUT
 
 if test $? != 0 ; then
         echo "comparison failed - operations monitor output is not correct"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
         exit 1
 fi
 
-test $KILLSERVERS != no && kill -HUP $KILLPIDS
-
+killservers
 echo ">>>>> Test succeeded"
-
-test $KILLSERVERS != no && wait
-
 exit 0

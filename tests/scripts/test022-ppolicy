@@ -53,7 +53,7 @@ for i in 1 2 3 4 5; do
 done
 if test $RC != 0 ; then
 	echo "ldapsearch failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -66,7 +66,7 @@ $LDAPADD -D "$MANAGERDN" -h $LOCALHOST -p $PORT1 -w $PASSWD < \
 RC=$?
 if test $RC != 0 ; then
 	echo "ldapadd failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -82,7 +82,7 @@ $LDAPSEARCH -e ppolicy -h $LOCALHOST -p $PORT1 -D "$USER" -w $PASS >> $SEARCHOUT
 COUNT=`grep "Account locked" $SEARCHOUT | wc -l`
 if test $COUNT != 2 ; then
 	echo "Account lockout test failed"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit 1
 fi
 
@@ -94,7 +94,7 @@ $LDAPSEARCH -e ppolicy -h $LOCALHOST -p $PORT1 -D "$USER" -w $PASS \
 RC=$?
 if test $RC != 0 ; then
 	echo "ldapsearch failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -116,14 +116,14 @@ $LDAPSEARCH -e ppolicy -h $LOCALHOST -p $PORT1 -D "$USER" -w $PASS \
 RC=$?
 if test $RC = 0 ; then
 	echo "Password expiration failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit 1
 fi
 
 COUNT=`grep "grace logins" $SEARCHOUT | wc -l`
 if test $COUNT != 3 ; then
 	echo "Password expiration test failed"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit 1
 fi
 
@@ -134,7 +134,7 @@ $LDAPPASSWD -h $LOCALHOST -p $PORT1 \
 RC=$?
 if test $RC != 0 ; then
 	echo "ldappasswd failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -193,7 +193,7 @@ EOMODS
 RC=$?
 if test $RC != 0 ; then
 	echo "ldapmodify failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 echo "Testing password history..."
@@ -211,7 +211,7 @@ EOMODS
 RC=$?
 if test $RC = 0 ; then
 	echo "ldapmodify failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit 1
 fi
 
@@ -231,7 +231,7 @@ EOMODS
 RC=$?
 if test $RC != 0 ; then
 	echo "ldapmodify failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -240,14 +240,14 @@ $LDAPSEARCH -e ppolicy -h $LOCALHOST -p $PORT1 -D "$USER" -w $PASS \
 RC=$?
 if test $RC = 0 ; then
 	echo "Forced reset failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit 1
 fi
 
 COUNT=`grep "Operations are restricted" $SEARCHOUT | wc -l`
 if test $COUNT != 1 ; then
 	echo "Forced reset test failed"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit 1
 fi
 
@@ -263,7 +263,7 @@ EOMODS
 RC=$?
 if test $RC != 0 ; then
 	echo "ldapmodify failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -272,7 +272,7 @@ $LDAPSEARCH -e ppolicy -h $LOCALHOST -p $PORT1 -D "$USER" -w $PASS \
 RC=$?
 if test $RC != 0 ; then
 	echo "Clearing forced reset failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -284,7 +284,7 @@ $LDAPPASSWD -h $LOCALHOST -p $PORT1 \
 RC=$?
 if test $RC = 0 ; then
 	echo "Safe modify test 1 failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit 1
 fi
 
@@ -299,7 +299,7 @@ $LDAPPASSWD -h $LOCALHOST -p $PORT1 \
 RC=$?
 if test $RC != 0 ; then
 	echo "Safe modify test 2 failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -312,19 +312,19 @@ RC=$?
 cat ${TESTOUT}.2 >> $TESTOUT
 if test $RC = 0 ; then
 	echo "Length requirement test failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit 1
 fi
 COUNT=`grep "Password fails quality" ${TESTOUT}.2 | wc -l`
 if test $COUNT != 1 ; then
 	echo "Length requirement test failed"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit 1
 fi
 COUNT=`grep "Password is too short for policy" ${TESTOUT}.2 | wc -l`
 if test $COUNT != 1 ; then
 	echo "Control not returned in response"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit 1
 fi
 
@@ -345,13 +345,13 @@ RC=$?
 cat ${TESTOUT}.2 >> $TESTOUT
 if test $RC = 0 ; then
 	echo "Hashed length requirement test failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit 1
 fi
 COUNT=`grep "Password fails quality" ${TESTOUT}.2 | wc -l`
 if test $COUNT != 1 ; then
 	echo "Hashed length requirement test failed"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit 1
 fi
 
@@ -370,7 +370,7 @@ EOMODS
 RC=$?
 if test $RC = 0 ; then
 	echo "Multiple password add test failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit 1
 fi
 
@@ -385,7 +385,7 @@ EOMODS
 RC=$?
 if test $RC = 0 ; then
 	echo "Multiple password modify add test failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit 1
 fi
 
@@ -400,7 +400,7 @@ EOMODS
 RC=$?
 if test $RC = 0 ; then
 	echo "Multiple password modify replace test failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit 1
 fi
 
@@ -433,7 +433,7 @@ EOF
 	RC=$?
 	if test $RC != 0 ; then
 		echo "ldapadd failed for moduleLoad ($RC)!"
-		test $KILLSERVERS != no && kill -HUP $KILLPIDS
+		killservers
 		exit $RC
 	fi
 fi
@@ -448,7 +448,7 @@ EOF
 RC=$?
 if test $RC != 0 ; then
     echo "ldapadd failed for provider database config ($RC)!"
-    test $KILLSERVERS != no && kill -HUP $KILLPIDS
+    killservers
     exit $RC
 fi
 
@@ -465,7 +465,7 @@ for i in 1 2 3 4 5; do
 done
 if test $RC != 0 ; then
 	echo "ldapsearch failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -482,7 +482,7 @@ EOF
 	RC=$?
 	if test $RC != 0 ; then
 		echo "ldapadd failed for moduleLoad ($RC)!"
-		test $KILLSERVERS != no && kill -HUP $KILLPIDS
+		killservers
 		exit $RC
 	fi
 fi
@@ -529,7 +529,7 @@ EOF
 RC=$?
 if test $RC != 0 ; then
 	echo "ldapmodify failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -541,7 +541,7 @@ $LDAPSEARCH -H $URI2 -D "$USER" -w wrongpw >$SEARCHOUT 2>&1
 RC=$?
 if test $RC != 49 ; then
 	echo "ldapsearch should have failed with 49, got ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit 1
 fi
 
@@ -549,7 +549,7 @@ $LDAPSEARCH -H $URI1 -D "$MANAGERDN" -w $PASSWD -b "$USER" \* \+ >> $SEARCHOUT 2
 COUNT=`grep "pwdFailureTime" $SEARCHOUT | wc -l`
 if test $COUNT != 1 ; then
 	echo "Policy state forwarding failed"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit 1
 fi
 
@@ -557,10 +557,6 @@ fi
 
 fi
 
-test $KILLSERVERS != no && kill -HUP $KILLPIDS
-
+killservers
 echo ">>>>> Test succeeded"
-
-test $KILLSERVERS != no && wait
-
 exit 0

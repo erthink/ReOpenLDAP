@@ -109,7 +109,7 @@ done
 
 if test $RC != 0 ; then
 	echo "ldapsearch failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -174,7 +174,7 @@ $LDAPMODIFY -D cn=config -H $URI1 -y $CONFIGPWF < $TMP >> $TESTOUT 2>&1
 RC=$?
 if test $RC != 0 ; then
 	echo "ldapmodify failed for syncrepl config ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -209,7 +209,7 @@ done
 
 if test $RC != 0 ; then
 	echo "ldapsearch failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -252,7 +252,7 @@ EOF
 RC=$?
 if test $RC != 0 ; then
 	echo "ldapadd failed for schema config ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -305,7 +305,7 @@ $LDAPADD -D cn=config -H $URI1 -y $CONFIGPWF < $TMP >>$TESTOUT 2>&1
 RC=$?
 if test $RC != 0 ; then
 	echo "ldapadd failed for database config ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -320,7 +320,7 @@ EOF
 	RC=$?
 	if test $RC != 0 ; then
 		echo "ldapadd modify for database config ($RC)!"
-		test $KILLSERVERS != no && kill -HUP $KILLPIDS
+		killservers
 		exit $RC
 	fi
 fi
@@ -331,7 +331,7 @@ $LDAPADD -D "$MANAGERDN" -H $URI1 -w $PASSWD -f $LDIFORDERED \
 RC=$?
 if test $RC != 0 ; then
 	echo "ldapadd failed for server 1 database ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -352,7 +352,7 @@ RC=$?
 
 if test $RC != 0 ; then
 	echo "ldapsearch failed at server $n ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -368,7 +368,7 @@ $CMP $MASTERFLT $TESTDIR/server$n.flt > $CMPOUT
 
 if test $? != 0 ; then
 	echo "test failed - server 1 and server $n configs differ"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit 1
 fi
 n=`expr $n + 1`
@@ -386,7 +386,7 @@ RC=$?
 
 if test $RC != 0 ; then
 	echo "ldapsearch failed at server $n ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 $LDIFFILTER < $TESTDIR/server$n.out > $TESTDIR/server$n.flt
@@ -400,7 +400,7 @@ $CMP $MASTERFLT $TESTDIR/server$n.flt > $CMPOUT
 
 if test $? != 0 ; then
 	echo "test failed - server 1 and server $n databases differ"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit 1
 fi
 n=`expr $n + 1`
@@ -412,7 +412,7 @@ $LDAPADD -D "$MANAGERDN" -H $URI2 -w $PASSWD -f $LDIFADD1 \
 RC=$?
 if test $RC != 0 ; then
 	echo "ldapadd failed for server 2 database ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -433,7 +433,7 @@ RC=$?
 
 if test $RC != 0 ; then
 	echo "ldapsearch failed at server $n ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 $LDIFFILTER < $TESTDIR/server$n.out > $TESTDIR/server$n.flt
@@ -447,7 +447,7 @@ $CMP $MASTERFLT $TESTDIR/server$n.flt > $CMPOUT
 
 if test $? != 0 ; then
 	echo "test failed - server 1 and server $n databases differ"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit 1
 fi
 n=`expr $n + 1`
@@ -464,7 +464,7 @@ EOMODS
 RC=$?
 if test $RC != 0 ; then
 	echo "ldapadd failed for server 3 database ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -485,7 +485,7 @@ RC=$?
 
 if test $RC != 0 ; then
 	echo "ldapsearch failed at server $n ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 $LDIFFILTER < $TESTDIR/server$n.out > $TESTDIR/server$n.flt
@@ -499,7 +499,7 @@ $CMP $MASTERFLT $TESTDIR/server$n.flt > $CMPOUT
 
 if test $? != 0 ; then
 	echo "test failed - server 1 and server $n databases differ"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit 1
 fi
 n=`expr $n + 1`
@@ -529,7 +529,7 @@ EOADDS
 RC=$?
 if test $RC != 0 ; then
 	echo "ldapmodify failed for server 1 database ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -550,7 +550,7 @@ RC=$?
 
 if test $RC != 0 ; then
 	echo "ldapsearch failed at server $n ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 $LDIFFILTER < $TESTDIR/server$n.out > $TESTDIR/server$n.flt
@@ -564,7 +564,7 @@ $CMP $MASTERFLT $TESTDIR/server$n.flt > $CMPOUT
 
 if test $? != 0 ; then
 	echo "test failed - server 1 and server $n databases differ"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit 1
 fi
 n=`expr $n + 1`
@@ -579,7 +579,7 @@ EOADDS
 RC=$?
 if test $RC != 0 ; then
 	echo "ldapmodify failed for server 2 database ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -597,7 +597,7 @@ EOADDS
 RC=$?
 if test $RC != 0 ; then
 	echo "ldapmodify failed for server 3 database ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -618,7 +618,7 @@ RC=$?
 
 if test $RC != 0 ; then
 	echo "ldapsearch failed at server $n ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 $LDIFFILTER < $TESTDIR/server$n.out > $TESTDIR/server$n.flt
@@ -632,22 +632,14 @@ $CMP $MASTERFLT $TESTDIR/server$n.flt > $CMPOUT
 
 if test $? != 0 ; then
 	echo "test failed - server 1 and server $n databases differ"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit 1
 fi
 n=`expr $n + 1`
 done
 
-# kill!
-# test $KILLSERVERS != no && kill -HUP $KILLPIDS
-kill -HUP $KILLPIDS
-
-# kill!
-# test $KILLSERVERS != no && wait
-wait
-
+killservers
 echo "Restarting servers..."
-KILLPIDS=""
 
 echo "Starting server 1 on TCP/IP port $PORT1..."
 echo "======================= RESTART =======================" >> $LOG1
@@ -676,7 +668,7 @@ done
 
 if test $RC != 0 ; then
 	echo "ldapsearch failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -718,7 +710,7 @@ done
 
 if test $RC != 0 ; then
 	echo "ldapsearch failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 n=`expr $n + 1`
@@ -752,7 +744,7 @@ EOMODS
 RC=$?
 if test $RC != 0 ; then
 	echo "ldapmodify failed for server 1 database ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 done
@@ -774,7 +766,7 @@ RC=$?
 
 if test $RC != 0 ; then
 	echo "ldapsearch failed at server $n ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 $LDIFFILTER < $TESTDIR/server$n.out > $TESTDIR/server$n.flt
@@ -788,16 +780,12 @@ $CMP $MASTERFLT $TESTDIR/server$n.flt > $CMPOUT
 
 if test $? != 0 ; then
 	echo "test failed - server 1 and server $n databases differ"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit 1
 fi
 n=`expr $n + 1`
 done
 
-test $KILLSERVERS != no && kill -HUP $KILLPIDS
-
+killservers
 echo ">>>>> Test succeeded"
-
-test $KILLSERVERS != no && wait
-
 exit 0

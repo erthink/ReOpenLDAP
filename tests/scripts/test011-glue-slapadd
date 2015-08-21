@@ -50,7 +50,7 @@ done
 
 if test $RC != 0 ; then
 	echo "ldapsearch failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -65,7 +65,7 @@ if test $? != 0 ; then
 	echo "comparison failed - database was not created correctly"
 	echo $SEARCHFLT $LDIFFLT
 	$DIFF $SEARCHFLT $LDIFFLT
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit 1
 fi
 
@@ -75,7 +75,7 @@ $LDAPSEARCH -b "$BASEDN" -h $LOCALHOST -p $PORT1 -s one -z 2 > $SEARCHOUT 2>&1
 RC=$?
 if test $RC = 0 ; then
 	echo "sizelimit not detected at end of search."
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit 1
 fi
 
@@ -83,15 +83,11 @@ $LDAPSEARCH -b "$BASEDN" -h $LOCALHOST -p $PORT1 -z 9 objectclass=OpenLDAPPerson
 RC=$?
 if test $RC = 0 ; then
 	echo "sizelimit not detected at middle of search."
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit 1
 fi
 fi
 
-test $KILLSERVERS != no && kill -HUP $KILLPIDS
-
+killservers
 echo ">>>>> Test succeeded"
-
-test $KILLSERVERS != no && wait
-
 exit 0

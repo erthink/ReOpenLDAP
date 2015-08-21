@@ -388,8 +388,25 @@ function teamcity_msg {
 	fi
 }
 
+function killpids {
+	if [ $# != 0 ]; then
+		echo -n ">>>>> waiting for things ($@) to exit..."
+		kill -HUP "$@"
+		wait "$@"
+		echo " done"
+	fi
+}
+
+function killservers {
+	if [ "$KILLSERVERS" != no -o -z "$KILLPIDS" ]; then
+		killpids $KILLPIDS
+		KILLPIDS=
+	fi
+}
+
 function failure {
 	echo "$@" >&2
+	killservers
 	exit 125
 }
 
@@ -479,7 +496,7 @@ function wait_syncrepl {
 		RC=${PIPESTATUS[0]}
 		if test $RC != 0 ; then
 			echo "ldapsearch failed at provider ($RC, $provider_csn)!"
-			test $KILLSERVERS != no && kill -HUP $KILLPIDS
+			killservers
 			exit $RC
 		fi
 
@@ -488,7 +505,7 @@ function wait_syncrepl {
 		RC=${PIPESTATUS[0]}
 		if test $RC != 0 -a $RC != 32; then
 			echo "ldapsearch failed at consumer ($RC, $consumer_csn)!"
-			test $KILLSERVERS != no && kill -HUP $KILLPIDS
+			killservers
 			exit $RC
 		fi
 

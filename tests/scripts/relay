@@ -41,7 +41,7 @@ for i in 1 2 3 4 5; do
 done
 if test $RC != 0 ; then
 	echo "ldapsearch failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -51,7 +51,7 @@ $LDAPADD -D "$MANAGERDN" -h $LOCALHOST -p $PORT1 -w $PASSWD < \
 RC=$?
 if test $RC != 0 ; then
 	echo "ldapadd failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -64,7 +64,7 @@ $LDAPSEARCH -S '' -h $LOCALHOST -p $PORT1 -b "$BASEDN" >> $SEARCHOUT 2>&1
 RC=$?
 if test $RC != 0 ; then
 	echo "Search failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -75,7 +75,7 @@ $LDAPSEARCH -S '' -h $LOCALHOST -p $PORT1 -b "$BASEDN" >> $SEARCHOUT 2>&1
 RC=$?
 if test $RC != 0 ; then
 	echo "Search failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -86,7 +86,7 @@ $LDAPSEARCH -S '' -h $LOCALHOST -p $PORT1 -b "$BASEDN" >> $SEARCHOUT 2>&1
 RC=$?
 if test $RC != 0 ; then
 	echo "Search failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -97,7 +97,7 @@ $LDAPSEARCH -S '' -h $LOCALHOST -p $PORT1 -b "$BASEDN" >> $SEARCHOUT 2>&1
 RC=$?
 if test $RC != 0 ; then
 	echo "Search failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -181,7 +181,7 @@ EOMODS
 RC=$?
 if test $RC != 0 ; then
 	echo "Modify failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -226,7 +226,7 @@ EOMODS
 RC=$?
 if test $RC != 0 ; then
 	echo "Modify failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -236,7 +236,7 @@ $LDAPSEARCH -S '' -h $LOCALHOST -p $PORT1 -b "$BASEDN" >> $SEARCHOUT 2>&1
 RC=$?
 if test $RC != 0 ; then
 	echo "Search failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -247,7 +247,7 @@ $LDAPSEARCH -S '' -h $LOCALHOST -p $PORT1 -b "$BASEDN" >> $SEARCHOUT 2>&1
 RC=$?
 if test $RC != 0 ; then
 	echo "Search failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -265,7 +265,7 @@ $LDAPSEARCH -S '' -h $LOCALHOST -p $PORT1 -b "$BASEDN" -M "$FILTER" '*' ref \
 RC=$?
 if test $RC != 0 ; then
 	echo "Search failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -277,7 +277,7 @@ $LDAPSEARCH -S '' -h $LOCALHOST -p $PORT1 -b "$BASEDN" -M "$FILTER" '*' ref \
 RC=$?
 if test $RC != 0 ; then
 	echo "Search failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -289,7 +289,7 @@ $LDAPSEARCH -S '' -h $LOCALHOST -p $PORT1 -b "$BASEDN" -M "$FILTER" '*' ref \
 RC=$?
 if test $RC != 0 ; then
 	echo "Search failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -306,7 +306,7 @@ $LDAPSEARCH -S '' -h $LOCALHOST -p $PORT1 -b "$BASEDN" "$FILTER" seeAlso \
 RC=$?
 if test $RC != 0 ; then
 	echo "Search failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -322,7 +322,7 @@ $LDAPSEARCH -S '' -h $LOCALHOST -p $PORT1 -b "$BASEDN" "$FILTER" uid \
 RC=$?
 if test $RC != 0 ; then
 	echo "Search failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -338,7 +338,7 @@ $LDAPSEARCH -S '' -h $LOCALHOST -p $PORT1 -b "$BASEDN" "$FILTER" member \
 RC=$?
 if test $RC != 0 ; then
 	echo "Search failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -351,7 +351,7 @@ $CMP $SEARCHFLT $LDIFFLT > $CMPOUT
 
 if test $? != 0 ; then
 	echo "comparison failed - relay search/modification didn't succeed"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit 1
 fi
 
@@ -363,7 +363,7 @@ $LDAPPASSWD -h $LOCALHOST -p $PORT1 -D "cn=Manager,$BASEDN" -w $PASSWD \
 RC=$?
 if test $RC != 0 ; then
 	echo "Passwd ExOp failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -375,7 +375,7 @@ $LDAPWHOAMI -h $LOCALHOST -p $PORT1 \
 RC=$?
 if test $RC != 0 ; then
 	echo "WhoAmI failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -387,8 +387,8 @@ $LDAPCOMPARE -h $LOCALHOST -p $PORT1 \
 RC=$?
 if test $RC != 6 && test $RC,$BACKEND != 5,null ; then
 	echo "Compare failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit 1
 fi
 
-test $KILLSERVERS != no && kill -HUP $KILLPIDS
+killservers

@@ -62,7 +62,7 @@ if test $RC = 0 ; then
 	esac
 fi
 
-test $KILLSERVERS != no && kill -HUP $KILLPIDS
+killservers
 
 cat $SEARCHOUT
 
@@ -79,7 +79,5 @@ else
 		RC=0
 	fi
 fi
-
-test $KILLSERVERS != no && wait
 
 exit $RC
