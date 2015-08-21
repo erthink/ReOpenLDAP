@@ -28,8 +28,6 @@ if test $BACKLDAP = ldapno ; then
 	exit 0
 fi
 
-find -H ${TESTDIR} -maxdepth 1 -mindepth 1 | xargs rm -rf || exit $?
-
 mkdir -p $TESTDIR $DBDIR1 $DBDIR2
 
 echo "Starting slapd on TCP/IP port $PORT1..."

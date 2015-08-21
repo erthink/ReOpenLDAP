@@ -75,6 +75,10 @@ EOF
 		echo ">>>>> Starting ${TB}$BCMD${TN} for $BACKEND_MODE..."
 		$CMD 2>&1 | tee $TESTDIR/main.log
 		RC=${PIPESTATUS[0]}
+		if [ ! -f $TESTDIR/main.log ]; then
+			echo "!!!!! Script deleted files, please fix it" >&2
+			exit 125
+		fi
 
 		if ! collect_coredumps $TEST_ID; then
 			RC=134

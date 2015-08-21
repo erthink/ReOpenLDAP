@@ -36,8 +36,6 @@ if test x$TESTCHILDREN = x ; then
 	TESTCHILDREN=20
 fi
 
-find -H ${TESTDIR} -maxdepth 1 -mindepth 1 | xargs rm -rf || exit $?
-
 mkdir -p $TESTDIR $DBDIR1 $DBDIR2
 
 # NOTE: this could be added to all tests...
