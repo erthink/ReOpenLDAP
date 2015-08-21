@@ -388,6 +388,11 @@ function teamcity_msg {
 	fi
 }
 
+function failure {
+	echo "$@" >&2
+	exit 125
+}
+
 function safepath {
 	local r=$(realpath --relative-to ../${SRCDIR} $@ 2>/dev/null)
 	# LY: realpath from RHEL6 don't support '--relative-to' option,
@@ -401,6 +406,7 @@ function safepath {
 
 function collect_coredumps {
 	local id=${1:-xxx-$(date '+%F.%H%M%S.%N')}
+	wait
 	local cores="$(find -L ../${SRCDIR}/tests ../${SRCDIR}/libraries/liblmdb -name core -type f)"
 	if [ -n "${cores}" ]; then
 		echo "Found some CORE(s): '$(safepath $cores)', collect it..." >&2
@@ -412,7 +418,7 @@ function collect_coredumps {
 			dir="../${SRCDIR}/@cores"
 		fi
 
-		mkdir -p "$dir" || echo "failed: mkdir -p '$dir'" >&2
+		mkdir -p "$dir" || failure "failed: mkdir -p '$dir'"
 		n=
 		for c in ${cores}; do
 			while true; do
@@ -420,7 +426,7 @@ function collect_coredumps {
 				if [ ! -e "${target}" ]; then break; fi
 				n=$((n-1))
 			done
-			mv "$c" "${target}" || echo "failed: mv '$c' '${target}'" >&2
+			mv "$c" "${target}" || failure "failed: mv '$c' '${target}'"
 		done
 
 		teamcity_msg "publishArtifacts '$(safepath ${dir})/${id}*.core => ${id}-cores.tar.gz'"
@@ -434,6 +440,7 @@ function collect_test {
 	local id=${1:-xxx-$(date '+%F.%H%M%S.%N')}
 	local publish=${2:-no}
 	local from="../${SRCDIR}/tests/testrun"
+	wait
 	if [ -n "$(ls $from)" ]; then
 		echo "Collect result(s) from $id..." >&2
 
@@ -451,8 +458,8 @@ function collect_test {
 			n=$((n+1))
 		done
 
-		mkdir -p "$target" || echo "failed: mkdir -p '$target'" >&2
-		mv -t "${target}" $from/* || echo "failed: mv -t '${target}' '$from/*'" >&2
+		mkdir -p "$target" || failure "failed: mkdir -p '$target'"
+		mv -t "${target}" $from/* || failure "failed: mv -t '${target}' '$from/*'"
 
 		if [ "${publish}" == "yes" ]; then
 			teamcity_msg "publishArtifacts '$(safepath ${target}) => ${id}-dump.tar.gz'"
