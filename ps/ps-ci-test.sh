@@ -82,9 +82,6 @@ else
 		|| failure "mount tests/testrun"
 fi
 
-echo "libraries/liblmdb/testdb -> tests/testrun"
-rm -rf libraries/liblmdb/testdb && ln -s ../../tests/testrun libraries/liblmdb/testdb || failure "cleanup liblmdb/testdb"
-
 for n in $(seq 1 $N); do
 	echo "##teamcity[blockOpened name='Round $n of $N']"
 	for m in 3 2 1 0; do
@@ -105,14 +102,7 @@ for n in $(seq 1 $N); do
 		esac
 		echo "##teamcity[blockOpened name='$REOPENLDAP_MODE']"
 
-		export TEST_ITER
-		echo "##teamcity[testStarted name='lmdb' captureStandardOutput='true']"
-		if ! make -C libraries/liblmdb test; then
-			echo "##teamcity[testFailed name='lmdb']"
-		fi
-		echo "##teamcity[testFinished name='lmdb']"
-
-		export TEST_NOOK="@ci-test-${n}.${REOPENLDAP_MODE}"
+		export TEST_ITER=$(($n*4+$m)) TEST_NOOK="@ci-test-${n}.${REOPENLDAP_MODE}"
 		(rm -rf ${TEST_NOOK} && mkdir -p ${TEST_NOOK}) || echo "failed: mkdir -p '${TEST_NOOK}'" >&2
 
 		NOEXIT="${NOEXIT:-${TEAMCITY_PROCESS_FLOW_ID}}" make test 2>&1 | tee ${TEST_NOOK}/all.log | $filter
