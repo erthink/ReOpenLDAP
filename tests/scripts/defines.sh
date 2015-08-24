@@ -14,7 +14,7 @@
 ## <http://www.OpenLDAP.org/license.html>.
 
 umask 077
-killall slapd 2>/dev/null
+pkill -SIGKILL -s 0 -u $EUID slapd
 
 TESTWD=`pwd`
 
