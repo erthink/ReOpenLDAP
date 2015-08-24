@@ -388,11 +388,21 @@ function teamcity_msg {
 	fi
 }
 
+function safewait {
+	wait "$@"
+	local RC=$?
+	if [ $RC -gt 128 ]; then
+		echo " coredump/signal-$(($RC - 128))"
+		sleep 5
+		exit $RC
+	fi
+}
+
 function killpids {
 	if [ $# != 0 ]; then
 		echo -n ">>>>> waiting for things ($@) to exit..."
 		kill -HUP "$@"
-		wait "$@"
+		safewait "$@"
 		echo " done"
 	fi
 }
@@ -422,8 +432,8 @@ function safepath {
 }
 
 function collect_coredumps {
-	local id=${1:-xxx-$(date '+%F.%H%M%S.%N')}
 	wait
+	local id=${1:-xxx-$(date '+%F.%H%M%S.%N')}
 	local cores="$(find -L ../${SRCDIR}/tests ../${SRCDIR}/libraries/liblmdb -name core -type f)"
 	if [ -n "${cores}" ]; then
 		echo "Found some CORE(s): '$(safepath $cores)', collect it..." >&2
@@ -454,10 +464,10 @@ function collect_coredumps {
 }
 
 function collect_test {
+	wait
 	local id=${1:-xxx-$(date '+%F.%H%M%S.%N')}
 	local publish=${2:-no}
 	local from="../${SRCDIR}/tests/testrun"
-	wait
 	if [ -n "$(ls $from)" ]; then
 		echo "Collect result(s) from $id..." >&2
 

@@ -116,14 +116,14 @@ C1PID=$!
 $LDAPADD -D "$MANAGERDN" -h $LOCALHOST -p $PORT1 -w $PASSWD < \
 	$MORELDIF > $TESTOUT2 2>&1 &
 C2PID=$!
-wait $C1PID $C2PID
+safewait $C1PID $C2PID
 
 #echo "Waiting $SLEEP1 seconds for syncrepl to receive changes..."
 wait_syncrepl $PORT1 $PORT4
 
 echo "Stopping the provider, sleeping 3 seconds and restarting it..."
 kill -HUP "$PID"
-wait $PID
+safewait $PID
 sleep 3
 echo "RESTART" >> $LOG1
 $SLAPD -f $CONF1 -h $URI1 -d $LVL $TIMING >> $LOG1 2>&1 &
@@ -258,7 +258,7 @@ wait_syncrepl $PORT1 $PORT4
 
 echo "Stopping consumer to test recovery..."
 kill -HUP $SLAVEPID
-wait $SLAVEPID
+safewait $SLAVEPID
 
 echo "Modifying more entries on the provider..."
 $LDAPMODIFY -v -D "$MANAGERDN" -h $LOCALHOST -p $PORT1 -w $PASSWD >> \

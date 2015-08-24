@@ -934,7 +934,7 @@ ERRORS=0
 # values unless the bug in ITS#5597 have been fixed.
 echo "Stopping site1 master..."
 kill -HUP "$SM1_PID"
-wait "$SM1_PID"
+safewait "$SM1_PID"
 KILLPIDS=`echo "$KILLPIDS " | sed -e "s/ $SM1_PID / /"`;
 SM1_PID=
 

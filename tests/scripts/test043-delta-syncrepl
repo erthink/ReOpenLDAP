@@ -124,7 +124,7 @@ fi
 wait_syncrepl $PORT1 $PORT2
 
 echo -n "Stopping the provider ($PID), sleeping $SLEEP1 seconds and restarting it..."
-kill -HUP "$PID" && wait $PID && echo " Done" || echo " Failure ($?) !!!"
+kill -HUP "$PID" && safewait $PID && echo " Done" || echo " Failure ($?) !!!"
 sleep $SLEEP1
 
 echo "RESTART" >> $LOG1
@@ -280,7 +280,7 @@ if test $? != 0 ; then
 fi
 
 echo -n "Stopping consumer ($SLAVEPID) to test recovery..."
-kill -HUP $SLAVEPID && wait $SLAVEPID && echo " Done" || echo " Failure ($?) !!!"
+kill -HUP $SLAVEPID && safewait $SLAVEPID && echo " Done" || echo " Failure ($?) !!!"
 
 echo "Modifying more entries on the provider..."
 $LDAPMODIFY -v -D "$BJORNSDN" -h $LOCALHOST -p $PORT1 -w bjorn >> \
