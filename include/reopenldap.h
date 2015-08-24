@@ -228,6 +228,11 @@ __extern_C int reopenldap_flags;
 #if defined(HAVE_VALGRIND) || defined(USE_VALGRIND)
 	/* Get debugging help from Valgrind */
 #	include <valgrind/memcheck.h>
+#	ifndef VALGRIND_DISABLE_ADDR_ERROR_REPORTING_IN_RANGE
+		/* LY: available since Valgrind 3.10 */
+#		define VALGRIND_DISABLE_ADDR_ERROR_REPORTING_IN_RANGE(a,s)
+#		define VALGRIND_ENABLE_ADDR_ERROR_REPORTING_IN_RANGE(a,s)
+#	endif
 #else
 #	define VALGRIND_CREATE_MEMPOOL(h,r,z)
 #	define VALGRIND_DESTROY_MEMPOOL(h)
