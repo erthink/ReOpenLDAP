@@ -96,7 +96,6 @@ static ConfigOCs adremapocs[] = {
 static int
 adremap_cf_case(ConfigArgs *c)
 {
-	BackendDB *be = (BackendDB *)c->be;
 	slap_overinst *on = (slap_overinst *)c->bi;
 	adremap_info *ai = on->on_bi.bi_private;
 	adremap_case *ac, **a2;
@@ -144,7 +143,6 @@ adremap_cf_case(ConfigArgs *c)
 static int
 adremap_cf_dnv(ConfigArgs *c)
 {
-	BackendDB *be = (BackendDB *)c->be;
 	slap_overinst *on = (slap_overinst *)c->bi;
 	adremap_info *ai = on->on_bi.bi_private;
 	adremap_dnv *ad, **a2;
@@ -306,7 +304,7 @@ adremap_search_resp(
 				a = attr_find(e->e_attrs, ac->ac_attr);
 			}
 			for (i=0; i<a->a_numvals; i++) {
-				unsigned char *c = a->a_vals[i].bv_val;
+				char *c = a->a_vals[i].bv_val;
 				for (j=0; j<a->a_vals[i].bv_len; j++)
 					if (isupper(c[j]))
 						c[j] = tolower(c[j]);
@@ -387,7 +385,6 @@ static adremap_dnv *adremap_filter(
 	slap_overinst *on = (slap_overinst *)op->o_bd->bd_info;
 	Filter *f = op->ors_filter, *fn = NULL;
 	adremap_dnv *ad = NULL;
-	struct berval bv;
 	int fextra = 0;
 
 	/* Do we need to munge the filter? First see if it's of
@@ -415,7 +412,7 @@ static adremap_dnv *adremap_filter(
 				if (fn && fn->f_choice == LDAP_FILTER_EQUALITY &&
 					fn->f_av_desc == ad->ad_newattr) {
 					Filter fr[3];
-					AttributeAssertion aa[2] = {0};
+					AttributeAssertion aa[2] = {{0}};
 					Operation op2;
 					slap_callback cb = {0};
 					SlapReply rs = {REP_RESULT};
@@ -625,7 +622,7 @@ static slap_overinst adremap;
 
 int adremap_initialize()
 {
-	int i, code;
+	int code;
 
 	adremap.on_bi.bi_type = "adremap";
 	adremap.on_bi.bi_db_init = adremap_db_init;
