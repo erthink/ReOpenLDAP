@@ -103,7 +103,7 @@ totp_b32_ntop(
 		for (i=0; i<8; i++)
 			target[datalength++] = Base32[output[i]];
 	}
-    
+
 	/* Now we worry about padding. */
 	if (0 != srclength) {
 		static const int outlen[] = { 2,4,5,7 };
@@ -140,7 +140,7 @@ totp_b32_ntop(
 static int
 totp_b32_pton(
 	char const *src,
-	u_char *target, 
+	u_char *target,
 	size_t targsize)
 {
 	int tarindex, state, ch;
@@ -615,7 +615,7 @@ totp_bind_response( Operation *op, SlapReply *rs )
 		}
 	}
 
-done:
+/* done: */
 	be_entry_release_r( op, e );
 
 	/* perform the update */
@@ -688,7 +688,7 @@ static int totp_db_open(
 			if (rc) {
 				snprintf(cr->msg, sizeof(cr->msg), "unable to find or register authTimestamp attribute: %s (%d)",
 					text, rc);
-				Debug(LDAP_DEBUG_ANY, "totp: %s.\n", cr->msg, 0, 0);
+				Debug(LDAP_DEBUG_ANY, "totp: %s.\n", cr->msg);
 			}
 			ad_authTimestamp->ad_type->sat_flags |= SLAP_AT_MANAGEABLE;
 		}
