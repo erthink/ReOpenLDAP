@@ -3,6 +3,7 @@
 N=${1:-42}
 HERE=$(readlink -f $(pwd))
 TMP=
+ulimit -c unlimited
 
 cleanup() {
 	wait
