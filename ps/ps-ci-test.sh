@@ -117,7 +117,7 @@ for n in $(seq 1 $N); do
 		fi
 
 		if [ $RC -ne 0 ]; then
-			killall -9 slapd 2>/dev/null
+			pkill -SIGKILL -s 0 -u $EUID slapd
 			echo "##teamcity[buildProblem description='Test(s) failed']"
 			find ./@ci-test-* -name all.log | xargs -r grep ' completed OK for '
 			find ./@ci-test-* -name all.log | xargs -r grep ' failed for ' >&2
