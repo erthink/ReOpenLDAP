@@ -193,7 +193,7 @@ mdb_db_open( BackendDB *be, ConfigReply *cr )
 
 	mdb_env_set_oomfunc( mdb->mi_dbenv, mdb->mi_oom_flags ? mdb_oom_handler : NULL);
 
-	if (SLAP_MULTIMASTER(be) &&
+	if ( (slapMode & SLAP_SERVER_MODE) && SLAP_MULTIMASTER(be) &&
 			((MDB_OOM_YIELD & mdb->mi_oom_flags) == 0 || mdb->mi_renew_lag == 0)) {
 		snprintf( cr->msg, sizeof(cr->msg), "database \"%s\": "
 			"for properly operation in multi-master mode"
