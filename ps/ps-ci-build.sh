@@ -7,8 +7,6 @@ failure() {
         exit 1
 }
 
-git clean -x -f -d -e ./ps -e .ccache/ -e tests/testrun/ -e times.log || failure "cleanup"
-
 NBD="--disable-ndb"
 MYSQL_CLUSTER="$(find -L /opt /usr/local -maxdepth 2 -name 'mysql-cluster*' -type d | sort -r | head -1)"
 if [ -n "${MYSQL_CLUSTER}" -a -x ${MYSQL_CLUSTER}/bin/mysql_config ]; then
@@ -39,28 +37,36 @@ then
 fi
 export CXXFLAGS="$CFLAGS" LDFLAGS="$LDFLAGS"
 
-./configure \
-		--enable-debug --enable-backends --enable-overlays $NBD \
-		--enable-rewrite --enable-dynacl --enable-aci --enable-slapi \
-	|| failure "configure"
+#======================================================================
 
-export CFLAGS="-Werror $CFLAGS" CXXFLAGS="-Werror $CFLAGS"
-find ./ -name Makefile | xargs -r sed -i 's/-Wall -g/-Wall -Werror -g/g' || failure "prepare"
+if [ "$1" != "--do-not-clean" ]; then
+	git clean -x -f -d -e ./ps -e .ccache/ -e tests/testrun/ -e times.log || failure "cleanup"
+fi
 
-if [ -z "${TEAMCITY_PROCESS_FLOW_ID}" ]; then
-        make depend \
-                || failure "depends"
+if [ ! -s Makefile ]; then
+	./configure \
+			--enable-debug --enable-backends --enable-overlays $NBD \
+			--enable-rewrite --enable-dynacl --enable-aci --enable-slapi \
+		|| failure "configure"
+
+	export CFLAGS="-Werror $CFLAGS" CXXFLAGS="-Werror $CFLAGS"
+	find ./ -name Makefile | xargs -r sed -i 's/-Wall -g/-Wall -Werror -g/g' || failure "prepare"
+
+	if [ -z "${TEAMCITY_PROCESS_FLOW_ID}" ]; then
+		make depend \
+			|| failure "depends"
+	fi
 fi
 
 make -j4 && make -j4 -C libraries/liblmdb || failure "build"
 
-for m in $(find ./contrib/slapd-modules -name Makefile -printf '%h\n'); do
-	make -C $m clean || failure "contrib-module CLEAN '$m'"
-	if [ -d $m -a ! -e $m/BROKEN ]; then
-		echo "----------- TRY MODULE: $m"
-		make -C $m || failure "contrib-module '$m'"
+for m in $(find contrib/slapd-modules -name Makefile -printf '%h\n'); do
+	if [ -e $m/BROKEN ]; then
+		echo "----------- EXTENTIONS: $m - expecting is BROKEN"
+		make -C $m &>$m/build.log && failure "contrib-module '$m' is NOT broken as expected"
 	else
-		echo "----------- MODULE: $m IS BROKEN"
+		echo "----------- EXTENTIONS: $m - expecting is NOT broken"
+		make -C $m || failure "contrib-module '$m' is BROKEN"
 	fi
 done
 
