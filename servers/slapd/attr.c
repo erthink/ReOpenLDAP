@@ -461,7 +461,7 @@ attr_merge(
 	BerVarray	vals,
 	BerVarray	nvals )
 {
-	int i = 0;
+	int i = 0, j;
 
 	Attribute	**a;
 
@@ -471,6 +471,10 @@ attr_merge(
 		}
 	}
 
+	if ( vals != NULL ) {
+		for ( ; !BER_BVISNULL( &vals[i] ); i++ ) ;
+	}
+
 	if ( *a == NULL ) {
 		*a = attr_alloc( desc );
 	} else {
@@ -478,15 +482,23 @@ attr_merge(
 		 * FIXME: if the attribute already exists, the presence
 		 * of nvals and the value of (*a)->a_nvals must be consistent
 		 */
+
+		if (reopenldap_mode_iddqd() && nvals
+				&& (*a)->a_vals && (*a)->a_nvals == (*a)->a_vals) {
+			for(j = 0; j < i; j++)
+				if (! bvmatch(&vals[j], &nvals[j]))
+					goto dont_skip_dups;
+
+			nvals = NULL;
+		}
+
+dont_skip_dups:
 		assert( ( nvals == NULL && (*a)->a_nvals == (*a)->a_vals )
 				|| ( nvals != NULL && (
 					( (*a)->a_vals == NULL && (*a)->a_nvals == NULL )
 					|| ( (*a)->a_nvals != (*a)->a_vals ) ) ) );
 	}
 
-	if ( vals != NULL ) {
-		for ( ; !BER_BVISNULL( &vals[i] ); i++ ) ;
-	}
 	return attr_valadd( *a, vals, nvals, i );
 }
 
