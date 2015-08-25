@@ -2963,7 +2963,6 @@ shortcut:
 	op->o_callback = cb;
 
 	if ( sop ) {
-		ldap_pvt_thread_mutex_unlock( &sop->s_mutex );
 		if (sop->s_inuse > 1) {
 			/* correct the refcount that was set to 2 before */
 			--sop->s_inuse;
@@ -2971,6 +2970,7 @@ shortcut:
 #ifdef SLAP_NO_SL_MALLOC
 			sop->s_scb = cb;
 #endif /* SLAP_NO_SL_MALLOC */
+			ldap_pvt_thread_mutex_unlock( &sop->s_mutex );
 		} else {
 			/* LY: race with async abandon - is this enough ? */
 			Debug( LDAP_DEBUG_SYNC,
@@ -2981,6 +2981,8 @@ shortcut:
 #ifdef SLAP_NO_SL_MALLOC
 			syncprov_search_cleanup_leaks( sop, op, cb );
 #endif /* SLAP_NO_SL_MALLOC */
+			ldap_pvt_thread_mutex_unlock( &sop->s_mutex );
+			assert((sop->s_flags & PS_IS_DETACHED) == 0);
 			syncprov_free_syncop( sop );
 			return rs->sr_err = SLAPD_ABANDON;
 		}
