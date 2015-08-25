@@ -7,6 +7,51 @@ failure() {
         exit 1
 }
 
+flag_debug=0
+flag_check=1
+flag_clean=1
+flag_lto=1
+flag_O=-O2
+for arg in "$@"; do
+	case "$arg" in
+	--debug)
+		flag_debug=1
+		;;
+	--no-debug)
+		flag_debug=0
+		;;
+	--check)
+		flag_check=1
+		;;
+	--no-check)
+		flag_check=0
+		;;
+	--lto)
+		flag_lto=1
+		;;
+	--no-lto)
+		flag_lto=0
+		;;
+	--do-clean)
+		flag_clean=1
+		;;
+	--do-not-clean)
+		flag_clean=0
+		;;
+	--size)
+		flag_O=-Os
+		;;
+	--speed)
+		flag_O=-Ofast
+		;;
+	*)
+		failure "unknown option '$arg'"
+		;;
+	esac
+done
+
+#======================================================================
+
 NBD="--disable-ndb"
 MYSQL_CLUSTER="$(find -L /opt /usr/local -maxdepth 2 -name 'mysql-cluster*' -type d | sort -r | head -1)"
 if [ -n "${MYSQL_CLUSTER}" -a -x ${MYSQL_CLUSTER}/bin/mysql_config ]; then
@@ -28,18 +73,37 @@ fi
 
 IODBC=$([ -d /usr/include/iodbc ] && echo "-I/usr/include/iodbc")
 
-export CFLAGS="-Wall -g -O2 -DLDAP_MEMORY_DEBUG -DUSE_VALGRIND $IODBC"
-if [ -n "$(which gcc)" ] && gcc -v 2>&1 | grep -q -i lto \
+#======================================================================
+
+CFLAGS="-Wall -g"
+if [ $flag_debug -ne 0 ]; then
+	CFLAGS+=" -Og"
+else
+	CFLAGS+=" ${flag_O}"
+fi
+
+if [ $flag_check -ne 0 ]; then
+	CFLAGS+=" -DLDAP_MEMORY_CHECK -DLDAP_MEMORY_DEBUG -DUSE_VALGRIND"
+fi
+
+if [ $flag_lto -ne 0 -a -n "$(which gcc)" ] && gcc -v 2>&1 | grep -q -i lto \
 	&& [ -n "$(which gcc-ar)" -a -n "$(which gcc-nm)" -a -n "$(which gcc-ranlib)" ]
 then
-	export CC=gcc AR=gcc-ar NM=gcc-nm RANLIB=gcc-ranlib CFLAGS="$CFLAGS -flto=jobserver -fno-fat-lto-objects -fuse-linker-plugin -fwhole-program"
 	echo "*** Link-Time Optimization (LTO) will be used" >&2
+	CFLAGS+=" -flto=jobserver -fno-fat-lto-objects -fuse-linker-plugin -fwhole-program"
+	export CC=gcc AR=gcc-ar NM=gcc-nm RANLIB=gcc-ranlib
 fi
-export CXXFLAGS="$CFLAGS" LDFLAGS="$LDFLAGS"
+
+if [ -n "$IODBC" ]; then
+	CFLAGS+=" $IODBC"
+fi
+
+export CFLAGS LDFLAGS CXXFLAGS="$CFLAGS"
+echo "CFLAGS		= ${CFLAGS}"
 
 #======================================================================
 
-if [ "$1" != "--do-not-clean" ]; then
+if [ $flag_clean -ne 0 ]; then
 	git clean -x -f -d -e ./ps -e .ccache/ -e tests/testrun/ -e times.log || failure "cleanup"
 fi
 
@@ -49,7 +113,6 @@ if [ ! -s Makefile ]; then
 			--enable-rewrite --enable-dynacl --enable-aci --enable-slapi \
 		|| failure "configure"
 
-	export CFLAGS="-Werror $CFLAGS" CXXFLAGS="-Werror $CFLAGS"
 	find ./ -name Makefile | xargs -r sed -i 's/-Wall -g/-Wall -Werror -g/g' || failure "prepare"
 
 	if [ -z "${TEAMCITY_PROCESS_FLOW_ID}" ]; then
@@ -58,6 +121,7 @@ if [ ! -s Makefile ]; then
 	fi
 fi
 
+export CFLAGS="-Werror $CFLAGS" CXXFLAGS="-Werror $CXXFLAGS"
 make -j4 && make -j4 -C libraries/liblmdb || failure "build"
 
 for m in $(find contrib/slapd-modules -name Makefile -printf '%h\n'); do
