@@ -933,6 +933,37 @@ ldap_back_monitor_db_init( BackendDB *be )
 	return 0;
 }
 
+static int
+ldap_back_monitor_conn_reject(
+		BackendDB		*be,
+		monitor_subsys_t	*ms )
+{
+	return LDAP_NO_SUCH_OBJECT;
+}
+
+static int
+ldap_back_monitor_destroy(
+	BackendDB		*be,
+	monitor_subsys_t	*ms )
+{
+	ldapinfo_t	*li = (ldapinfo_t *) ms->mss_private;
+
+	assert(li->li_monitor_info.lmi_mss && ms->mss_private);
+	ms->mss_private = NULL;
+	ms->mss_destroy = NULL;
+
+	ms = li->li_monitor_info.lmi_mss;
+	if (! ms[0].mss_destroy && ! ms[1].mss_destroy) {
+		if (ms->mss_open != ldap_back_monitor_conn_reject) {
+			assert(ms->mss_open == ldap_back_monitor_conn_init);
+			assert(li->li_monitor_info.lmi_mss != NULL);
+			li->li_monitor_info.lmi_mss = NULL;
+		}
+		ch_free(ms);
+	}
+	return LDAP_SUCCESS;
+}
+
 /*
  * call from within ldap_back_db_open()
  */
@@ -940,7 +971,7 @@ int
 ldap_back_monitor_db_open( BackendDB *be )
 {
 	ldapinfo_t		*li = (ldapinfo_t *) be->be_private;
-	monitor_subsys_t	*mss = li->li_monitor_info.lmi_mss;
+	monitor_subsys_t	*mss;
 	int			rc = 0;
 	BackendInfo		*mi;
 	monitor_extra_t		*mbe;
@@ -990,10 +1021,17 @@ ldap_back_monitor_db_open( BackendDB *be )
 
 	/* set up the subsystems used to create the operation and
 	 * volatile connection entries */
+	if (! li->li_monitor_info.lmi_mss) {
+		li->li_monitor_info.lmi_mss = ch_calloc(2, sizeof(monitor_subsys_t));
+		if (! li->li_monitor_info.lmi_mss)
+			return ENOMEM;
+	}
 
+	mss = li->li_monitor_info.lmi_mss;
 	mss->mss_name = "back-ldap connections";
 	mss->mss_flags = MONITOR_F_VOLATILE_CH;
 	mss->mss_open = ldap_back_monitor_conn_init;
+	mss->mss_destroy = ldap_back_monitor_destroy;
 	mss->mss_private = li;
 
 	if ( mbe->register_subsys_late( mss ) )
@@ -1029,10 +1067,21 @@ int
 ldap_back_monitor_db_close( BackendDB *be )
 {
 	ldapinfo_t		*li = (ldapinfo_t *) be->be_private;
+	int paused;
 
+	paused = slap_biglock_pool_pause(be);
 	if ( li && !BER_BVISNULL( &li->li_monitor_info.lmi_ndn ) ) {
 		BackendInfo		*mi;
 		monitor_extra_t		*mbe ALLOW_UNUSED;
+		monitor_subsys_t	*mss = li->li_monitor_info.lmi_mss;
+
+		if (mss) {
+			/* LY: Disallow opening from monitor-backend side,
+			 * untils ldap_back_monitor_destroy() will be called.
+			 * Workaround for https://github.com/ReOpen/ReOpenLDAP/issues/15 */
+			mss[0].mss_open = ldap_back_monitor_conn_reject;
+			mss[1].mss_open = ldap_back_monitor_conn_reject;
+		}
 
 		/* check if monitor is configured and usable */
 		mi = backend_info( "monitor" );
@@ -1048,6 +1097,8 @@ ldap_back_monitor_db_close( BackendDB *be )
 			 */
 		}
 	}
+	if (paused == LDAP_SUCCESS)
+		slap_biglock_pool_resume(be);
 
 	return 0;
 }
