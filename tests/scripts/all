@@ -84,7 +84,7 @@ EOF
 			RC=134
 		fi
 		if test $RC -eq 0 ; then
-			collect_test $TEST_ID no
+			[ -n "$NOEXIT" ] && collect_test $TEST_ID no
 			echo ">>>>> $BCMD completed ${TB}OK${TN} for $BACKEND_MODE."
 		else
 			collect_test $TEST_ID yes
