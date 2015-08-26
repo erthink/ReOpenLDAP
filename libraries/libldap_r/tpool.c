@@ -749,6 +749,15 @@ handle_pause( ldap_pvt_thread_pool_t *tpool, int pause_type )
 	if (pause_type == CHECK_PAUSE && !pool->ltp_pause)
 		return(0);
 
+#if 0
+	{
+		ldap_int_thread_userctx_t *ctx = ldap_pvt_thread_pool_context();
+		pq = ctx->ltu_pq;
+		if (! pq)
+			return -1;
+	}
+#endif
+
 	/* Let pool_unidle() ignore requests for new pauses */
 	max_ltp_pause = pause_type==PAUSE_ARG(GO_UNIDLE) ? WANT_PAUSE : NOT_PAUSED;
 

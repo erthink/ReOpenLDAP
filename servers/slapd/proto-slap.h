@@ -49,8 +49,9 @@ LDAP_SLAPD_F (size_t) slap_biglock_age LDAP_P(( BackendDB *be ));
 LDAP_SLAPD_F (size_t) slap_biglock_evo LDAP_P(( BackendDB *be ));
 LDAP_SLAPD_F (int) slap_biglock_deep LDAP_P(( BackendDB *be ));
 LDAP_SLAPD_F (int) slap_biglock_owned LDAP_P(( BackendDB *be ));
-LDAP_SLAPD_F (void) slap_biglock_pool_pause LDAP_P(( BackendDB *be ));
+LDAP_SLAPD_F (int) slap_biglock_pool_pause LDAP_P(( BackendDB *be ));
 LDAP_SLAPD_F (int) slap_biglock_pool_pausecheck LDAP_P(( BackendDB *be ));
+LDAP_SLAPD_F (void) slap_biglock_pool_resume LDAP_P(( BackendDB *be ));
 
 #define slap_biglock_acquire_ex(be, flag_locked) \
 	do { \
