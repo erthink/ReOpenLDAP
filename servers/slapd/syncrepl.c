@@ -2927,6 +2927,8 @@ presentlist_find(
 	struct berval *val )
 {
 #ifdef HASHUUID
+	if (unlikely(! av))
+		return NULL;
 	Avlnode **a2 = (Avlnode **)av;
 	unsigned short s;
 
