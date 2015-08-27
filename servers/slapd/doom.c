@@ -23,6 +23,7 @@
 #include "slap.h"
 #include "proto-slap.h"
 #include "lber_hipagut.h"
+#include <time.h>
 
 #if SLAPD_MDB == SLAPD_MOD_STATIC
 #	include "../../libraries/liblmdb/lmdb.h"
@@ -44,7 +45,9 @@ void __attribute__((constructor)) reopenldap_flags_init() {
 }
 
 void reopenldap_flags_setup(int flags) {
-	reopenldap_flags = flags & (REOPENLDAP_FLAG_IDDQD | REOPENLDAP_FLAG_IDKFA);
+	reopenldap_flags = flags & (REOPENLDAP_FLAG_IDDQD
+								| REOPENLDAP_FLAG_IDKFA
+								| REOPENLDAP_FLAG_JITTER);
 
 #if LDAP_MEMORY_DEBUG > 0
 	if (reopenldap_mode_idkfa()) {
@@ -74,4 +77,67 @@ void reopenldap_flags_setup(int flags) {
 
 	mdb_setup_debug(flags, (MDB_debug_func*) MDB_DBG_DNT, MDB_DBG_DNT);
 #endif /* SLAPD_MDB */
+}
+
+static __inline unsigned cpu_ticks() {
+#if defined(__ia64__)
+	uint64_t ticks;
+	__asm("mov %0=ar.itc" : "=r" (ticks));
+	return ticks;
+#elif defined(__hppa__)
+	uint64_t ticks;
+	__asm("mfctl 16, %0" : "=r" (ticks));
+	return ticks;
+#elif defined(__s390__)
+	uint64_t ticks;
+	__asm("stck 0(%0)" : : "a" (&(ticks)) : "memory", "cc");
+	return ticks;
+#elif defined(__alpha__)
+	uint64_t ticks;
+	__asm("rpcc %0" : "=r" (ticks));
+	return (uint32_t) ticks;
+#elif defined(__sparc_v9__)
+	uint64_t ticks;
+	__asm("rd %%tick, %0" : "=r" (ticks));
+	return ticks;
+#elif defined(__powerpc64__) || defined(__ppc64__)
+	uint64_t ticks;
+	__asm("mfspr %0, 268" : "=r" (ticks));
+	return ticks;
+#elif defined(__ppc__) || defined(__powerpc__)
+	unsigned ticks;
+	__asm("mftb %0" : "=r" (ticks));
+	return ticks;
+#elif defined(__mips__)
+	return hippeus_mips_rdtsc();
+#elif defined(__x86_64__) || defined(__i386__)
+	unsigned low, high;
+	__asm("rdtsc" : "=a" (low), "=d" (high));
+	return low;
+#else
+	struct timespec ts;
+#	if defined(CLOCK_MONOTONIC_COARSE)
+		clockid_t clock = CLOCK_MONOTONIC_COARSE;
+#	elif defined(CLOCK_MONOTONIC_RAW)
+		clockid_t clock = CLOCK_MONOTONIC_RAW;
+#	else
+		clockid_t clock = CLOCK_MONOTONIC;
+#	endif
+	LDAP_ENSURE(clock_gettime(clock, &ts) == 0);
+	return ts.tv_nsec;
+#endif
+}
+
+void reopenldap_jitter(int probability) {
+#if defined(__x86_64__) || defined(__i386__)
+	__asm __volatile("pause");
+#endif
+	for (;;) {
+		unsigned counter = cpu_ticks();
+		unsigned salt = (counter << 12) | (counter >> 19);
+		unsigned twister = (3023231633 * counter) ^ salt;
+		if ((int)(twister % 101) > --probability)
+			break;
+		sched_yield();
+	}
 }
