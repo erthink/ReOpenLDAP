@@ -57,25 +57,7 @@ if test $WAIT != 0 ; then
     read foo
 fi
 KILLPIDS="$MASTERPID"
-sleep 0.1
-
-echo "Using ldapsearch to check that master slapd is running..."
-for i in 1 2 3 4 5; do
-	$LDAPSEARCH -s base -b "$MONITOR" -h $LOCALHOST -p $PORT1 \
-		'(objectClass=*)' > /dev/null 2>&1
-	RC=$?
-	if test $RC = 0 ; then
-		break
-	fi
-	echo "Waiting $i seconds for slapd to start..."
-	sleep $i
-done
-
-if test $RC != 0 ; then
-	echo "ldapsearch failed ($RC)!"
-	killservers
-	exit $RC
-fi
+check_running 1 master
 
 echo "Using ldapadd to create the context prefix entry in the master..."
 $LDAPADD -D "$MANAGERDN" -h $LOCALHOST -p $PORT1 -w $PASSWD < \
@@ -87,7 +69,7 @@ if test $RC != 0 ; then
 	exit $RC
 fi
 
-echo "Starting P1 slave slapd on TCP/IP port $PORT2..."
+echo "Starting P1-slave slapd on TCP/IP port $PORT2..."
 . $CONFFILTER $BACKEND $MONITORDB < $RSLAVECONF > $CONF2
 $SLAPD -f $CONF2 -h $URI2 -d $LVL $TIMING > $LOG2 2>&1 &
 P1SLAVEPID=$!
@@ -96,27 +78,9 @@ if test $WAIT != 0 ; then
     read foo
 fi
 KILLPIDS="$MASTERPID $P1SLAVEPID"
-sleep 0.1
+check_running 2 P1-slave
 
-echo "Using ldapsearch to check that P1 slave slapd is running..."
-for i in 1 2 3 4 5; do
-	$LDAPSEARCH -s base -b "$MONITOR" -h $LOCALHOST -p $PORT2 \
-		'(objectClass=*)' > /dev/null 2>&1
-	RC=$?
-	if test $RC = 0 ; then
-		break
-	fi
-	echo "Waiting $i seconds for slapd to start..."
-	sleep $i
-done
-
-if test $RC != 0 ; then
-	echo "ldapsearch failed ($RC)!"
-	killservers
-	exit $RC
-fi
-
-echo "Starting R1 slave slapd on TCP/IP port $PORT3..."
+echo "Starting R1-slave slapd on TCP/IP port $PORT3..."
 . $CONFFILTER $BACKEND $MONITORDB < $RSLAVECONF | sed -e 's;\.2\.\([^/]*\)$;.3.\1;' > $CONF3
 $SLAPD -f $CONF3 -h $URI3 -d $LVL $TIMING > $LOG3 2>&1 &
 R1SLAVEPID=$!
@@ -125,25 +89,7 @@ if test $WAIT != 0 ; then
     read foo
 fi
 KILLPIDS="$MASTERPID $P1SLAVEPID $R1SLAVEPID"
-sleep 0.1
-
-echo "Using ldapsearch to check that R1 slave slapd is running..."
-for i in 1 2 3 4 5; do
-	$LDAPSEARCH -s base -b "$MONITOR" -h $LOCALHOST -p $PORT3 \
-		'(objectClass=*)' > /dev/null 2>&1
-	RC=$?
-	if test $RC = 0; then
-		break
-	fi
-	echo "Waiting $i seconds for slapd to start..."
-	sleep $i
-done
-
-if test $RC != 0 ; then
-	echo "ldapsearch failed ($RC)!"
-	killservers
-	exit $RC
-fi
+check_running 3 R1-slave
 
 CHECK=1
 echo "$CHECK > Using ldapadd to populate the master directory..."
@@ -170,13 +116,13 @@ if test $RC != 0 ; then
 	exit $RC
 fi
 
-#echo "Using ldapsearch to read all the entries from the P1 slave..."
+#echo "Using ldapsearch to read all the entries from the P1-slave..."
 $LDAPSEARCH -S "" -b "$BASEDN" -h $LOCALHOST -p $PORT2 \
 	'(objectClass=*)' > "${SLAVEOUT}.1" 2>&1
 RC=$?
 
 if test $RC != 0 ; then
-	echo "ldapsearch failed at P1 slave ($RC)!"
+	echo "ldapsearch failed at P1-slave ($RC)!"
 	killservers
 	exit $RC
 fi
@@ -186,11 +132,11 @@ $LDIFFILTER < "${MASTEROUT}.1" > $MASTERFLT
 #echo "Filtering slave results..."
 $LDIFFILTER < "${SLAVEOUT}.1" > $SLAVEFLT
 
-echo "$CHECK < Comparing retrieved entries from master and P1 slave..."
+echo "$CHECK < Comparing retrieved entries from master and P1-slave..."
 $CMP $MASTERFLT $SLAVEFLT > $CMPOUT
 
 if test $? != 0 ; then
-	echo "test failed - master and P1 slave databases differ"
+	echo "test failed - master and P1-slave databases differ"
 	killservers
 	exit 1
 fi
@@ -198,13 +144,13 @@ fi
 #echo "Waiting $SLEEP1 seconds for syncrepl to receive changes..."
 wait_syncrepl $PORT1 $PORT3
 
-#echo "Using ldapsearch to read all the entries from the R1 slave..."
+#echo "Using ldapsearch to read all the entries from the R1-slave..."
 $LDAPSEARCH -S "" -b "$BASEDN" -h $LOCALHOST -p $PORT3 \
 	'(objectClass=*)' > "${SLAVEOUT}.1" 2>&1
 RC=$?
 
 if test $RC != 0 ; then
-	echo "ldapsearch failed at R1 slave ($RC)!"
+	echo "ldapsearch failed at R1-slave ($RC)!"
 	killservers
 	exit $RC
 fi
@@ -212,11 +158,11 @@ fi
 #echo "Filtering slave results..."
 $LDIFFILTER < "${SLAVEOUT}.1" > $SLAVEFLT
 
-echo "$CHECK < Comparing retrieved entries from master and R1 slave..."
+echo "$CHECK < Comparing retrieved entries from master and R1-slave..."
 $CMP $MASTERFLT $SLAVEFLT > $CMPOUT
 
 if test $? != 0 ; then
-	echo "test failed - master and R1 slave databases differ"
+	echo "test failed - master and R1-slave databases differ"
 	killservers
 	exit 1
 fi
@@ -234,25 +180,7 @@ if test $WAIT != 0 ; then
     read foo
 fi
 KILLPIDS="$MASTERPID $P1SLAVEPID $R1SLAVEPID"
-sleep 0.1
-
-echo "Using ldapsearch to check that master slapd is running..."
-for i in 1 2 3 4 5; do
-	$LDAPSEARCH -s base -b "$MONITOR" -h $LOCALHOST -p $PORT1 \
-		'(objectClass=*)' > /dev/null 2>&1
-	RC=$?
-	if test $RC = 0 ; then
-		break
-	fi
-	echo "Waiting $i seconds for slapd to start..."
-	sleep $i
-done
-
-if test $RC != 0 ; then
-	echo "ldapsearch failed ($RC)!"
-	killservers
-	exit $RC
-fi
+check_running 1 master
 
 echo "Using ldapmodify to modify master directory..."
 
@@ -355,7 +283,7 @@ if test $RC != 0 ; then
 	exit $RC
 fi
 
-#echo "Using ldapsearch to read all the entries from the P1 slave..."
+#echo "Using ldapsearch to read all the entries from the P1-slave..."
 $LDAPSEARCH -S "" -b "$BASEDN" -h $LOCALHOST -p $PORT2 \
 	'(objectClass=*)' > "${SLAVEOUT}.2" 2>&1
 RC=$?
@@ -368,14 +296,14 @@ fi
 
 #echo "Filtering master results..."
 $LDIFFILTER < "${MASTEROUT}.2" > $MASTERFLT
-#echo "Filtering P1 slave results..."
+#echo "Filtering P1-slave results..."
 $LDIFFILTER < "${SLAVEOUT}.2" > $SLAVEFLT
 
-echo "$CHECK < Comparing retrieved entries from master and P1 slave..."
+echo "$CHECK < Comparing retrieved entries from master and P1-slave..."
 $CMP $MASTERFLT $SLAVEFLT > $CMPOUT
 
 if test $? != 0 ; then
-	echo "test failed - master and P1 slave databases differ"
+	echo "test failed - master and P1-slave databases differ"
 	killservers
 	exit 1
 fi
@@ -383,7 +311,7 @@ fi
 #echo "Waiting $SLEEP1 seconds for syncrepl to receive changes..."
 wait_syncrepl $PORT1 $PORT3
 
-#echo "Using ldapsearch to read all the entries from the R1 slave..."
+#echo "Using ldapsearch to read all the entries from the R1-slave..."
 $LDAPSEARCH -S "" -b "$BASEDN" -h $LOCALHOST -p $PORT3 \
 	'(objectClass=*)' > "${SLAVEOUT}.2" 2>&1
 RC=$?
@@ -397,11 +325,11 @@ fi
 #echo "Filtering slave results..."
 $LDIFFILTER < "${SLAVEOUT}.2" > $SLAVEFLT
 
-echo "$CHECK < Comparing retrieved entries from master and R1 slave..."
+echo "$CHECK < Comparing retrieved entries from master and R1-slave..."
 $CMP $MASTERFLT $SLAVEFLT > $CMPOUT
 
 if test $? != 0 ; then
-	echo "test failed - master and R1 slave databases differ"
+	echo "test failed - master and R1-slave databases differ"
 	killservers
 	exit 1
 fi
@@ -434,7 +362,7 @@ cn: Tiberius J. Hooker
 
 EOMODS
 
-echo "Restarting P1 slave..."
+echo "Restarting P1-slave..."
 echo "======================= RESTART =======================" >> $LOG3
 $SLAPD -f $CONF2 -h $URI2 -d $LVL $TIMING >> $LOG2 2>&1 &
 P1SLAVEPID=$!
@@ -443,7 +371,7 @@ if test $WAIT != 0 ; then
     read foo
 fi
 
-echo "Restarting R1 slave..."
+echo "Restarting R1-slave..."
 echo "======================= RESTART =======================" >> $LOG3
 $SLAPD -f $CONF3 -h $URI3 -d $LVL $TIMING >> $LOG3 2>&1 &
 R1SLAVEPID=$!
@@ -452,37 +380,9 @@ if test $WAIT != 0 ; then
     read foo
 fi
 KILLPIDS="$MASTERPID $P1SLAVEPID $R1SLAVEPID"
-sleep 0.1
 
-echo "Using ldapsearch to check that P1 slave slapd is running..."
-for i in 1 2 3 4 5; do
-	$LDAPSEARCH -s base -b "$MONITOR" -h $LOCALHOST -p $PORT2 \
-		'(objectClass=*)' > /dev/null 2>&1
-	RC=$?
-	if test $RC = 0 ; then
-		break
-	fi
-	echo "Waiting $i seconds for slapd to start..."
-	sleep $i
-done
-
-if test $RC != 0 ; then
-	echo "ldapsearch failed ($RC)!"
-	killservers
-	exit $RC
-fi
-
-echo "Using ldapsearch to check that R1 slave slapd is running..."
-for i in 1 2 3 4 5; do
-	$LDAPSEARCH -s base -b "$MONITOR" -h $LOCALHOST -p $PORT3 \
-		'(objectClass=*)' > /dev/null 2>&1
-	RC=$?
-	if test $RC = 0; then
-		break
-	fi
-	echo "Waiting $i seconds for slapd to start..."
-	sleep $i
-done
+check_running 2 P1-slave
+check_running 3 R1-slave
 
 #echo "Waiting $SLEEP2 seconds for syncrepl to receive changes..."
 wait_syncrepl $PORT1 $PORT2
@@ -498,13 +398,13 @@ if test $RC != 0 ; then
 	exit $RC
 fi
 
-#echo "Using ldapsearch to read all the entries from the P1 slave..."
+#echo "Using ldapsearch to read all the entries from the P1-slave..."
 $LDAPSEARCH -S "" -b "$BASEDN" -h $LOCALHOST -p $PORT2 \
 	'(objectClass=*)' > "${SLAVEOUT}.3" 2>&1
 RC=$?
 
 if test $RC != 0 ; then
-	echo "ldapsearch failed at slave ($RC)!"
+	echo "ldapsearch failed at P1-slave ($RC)!"
 	killservers
 	exit $RC
 fi
@@ -514,11 +414,11 @@ $LDIFFILTER < "${MASTEROUT}.3" > $MASTERFLT
 #echo "Filtering slave results..."
 $LDIFFILTER < "${SLAVEOUT}.3" > $SLAVEFLT
 
-echo "$CHECK < Comparing retrieved entries from master and P1 slave..."
+echo "$CHECK < Comparing retrieved entries from master and P1-slave..."
 $CMP $MASTERFLT $SLAVEFLT > $CMPOUT
 
 if test $? != 0 ; then
-	echo "test failed - master and slave databases differ"
+	echo "test failed - master and P1-slave databases differ"
 	killservers
 	exit 1
 fi
@@ -526,13 +426,13 @@ fi
 #echo "Waiting $SLEEP1 seconds for syncrepl to receive changes..."
 wait_syncrepl $PORT1 $PORT3
 
-#echo "Using ldapsearch to read all the entries from the R1 slave..."
+#echo "Using ldapsearch to read all the entries from the R1-slave..."
 $LDAPSEARCH -S "" -b "$BASEDN" -h $LOCALHOST -p $PORT3 \
 	'(objectClass=*)' > "${SLAVEOUT}.3" 2>&1
 RC=$?
 
 if test $RC != 0 ; then
-	echo "ldapsearch failed at slave ($RC)!"
+	echo "ldapsearch failed at R1-slave ($RC)!"
 	killservers
 	exit $RC
 fi
@@ -540,17 +440,17 @@ fi
 #echo "Filtering slave results..."
 $LDIFFILTER < "${SLAVEOUT}.3" > $SLAVEFLT
 
-echo "$CHECK < Comparing retrieved entries from master and R1 slave..."
+echo "$CHECK < Comparing retrieved entries from master and R1-slave..."
 $CMP $MASTERFLT $SLAVEFLT > $CMPOUT
 
 if test $? != 0 ; then
-	echo "test failed - master and slave databases differ"
+	echo "test failed - master and R1-slave databases differ"
 	killservers
 	exit 1
 fi
 
 CHECK=`expr $CHECK + 1`
-echo "$CHECK > Try updating the P1 slave slapd..."
+echo "$CHECK > Try updating the P1-slave slapd..."
 $LDAPMODIFY -v -D "$MANAGERDN" -h $LOCALHOST -p $PORT2 -w $PASSWD > \
 	$TESTOUT 2>&1 << EOMODS
 dn: cn=James A Jones 1, ou=Alumni Association, ou=People, dc=example, dc=com
@@ -582,13 +482,13 @@ if test $RC != 0 ; then
 	exit $RC
 fi
 
-#echo "Using ldapsearch to read all the entries from the P1 slave..."
+#echo "Using ldapsearch to read all the entries from the P1-slave..."
 $LDAPSEARCH -S "" -b "$BASEDN" -h $LOCALHOST -p $PORT2 \
 '(objectClass=*)' > "${SLAVEOUT}.4" 2>&1
 RC=$?
 
 if test $RC != 0 ; then
-	echo "ldapsearch failed at slave ($RC)!"
+	echo "ldapsearch failed at P1-slave ($RC)!"
 	killservers
 	exit $RC
 fi
@@ -598,11 +498,11 @@ $LDIFFILTER < "${MASTEROUT}.4" > $MASTERFLT
 #echo "Filtering slave results..."
 $LDIFFILTER < "${SLAVEOUT}.4" > $SLAVEFLT
 
-echo "$CHECK < Comparing retrieved entries from master and P1 slave..."
+echo "$CHECK < Comparing retrieved entries from master and P1-slave..."
 $CMP $MASTERFLT $SLAVEFLT > $CMPOUT
 
 if test $? != 0 ; then
-	echo "test failed - master and P1 slave databases differ"
+	echo "test failed - master and P1-slave databases differ"
 	killservers
 	exit 1
 fi
@@ -610,13 +510,13 @@ fi
 #echo "Waiting $SLEEP1 seconds for syncrepl to receive changes..."
 wait_syncrepl $PORT1 $PORT3
 
-#echo "Using ldapsearch to read all the entries from the R1 slave..."
+#echo "Using ldapsearch to read all the entries from the R1-slave..."
 $LDAPSEARCH -S "" -b "$BASEDN" -h $LOCALHOST -p $PORT3 \
 '(objectClass=*)' > "${SLAVEOUT}.4" 2>&1
 RC=$?
 
 if test $RC != 0 ; then
-	echo "ldapsearch failed at slave ($RC)!"
+	echo "ldapsearch failed at R1-slave ($RC)!"
 	killservers
 	exit $RC
 fi
@@ -624,11 +524,11 @@ fi
 #echo "Filtering slave results..."
 $LDIFFILTER < "${SLAVEOUT}.4" > $SLAVEFLT
 
-echo "$CHECK < Comparing retrieved entries from master and R1 slave..."
+echo "$CHECK < Comparing retrieved entries from master and R1-slave..."
 $CMP $MASTERFLT $SLAVEFLT > $CMPOUT
 
 if test $? != 0 ; then
-	echo "test failed - master and R1 slave databases differ"
+	echo "test failed - master and R1-slave databases differ"
 	killservers
 	exit 1
 fi

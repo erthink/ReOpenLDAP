@@ -93,25 +93,7 @@ if test $WAIT != 0 ; then
 fi
 KILLPIDS="$PID"
 cd $TESTWD
-sleep 0.1
-
-echo "Using ldapsearch to check that server 1 is running..."
-for i in 1 2 3 4 5; do
-	$LDAPSEARCH -s base -b "" -H $URI1 \
-		'objectclass=*' > /dev/null 2>&1
-	RC=$?
-	if test $RC = 0 ; then
-		break
-	fi
-	echo "Waiting $i seconds for slapd to start..."
-	sleep $i
-done
-
-if test $RC != 0 ; then
-	echo "ldapsearch failed ($RC)!"
-	killservers
-	exit $RC
-fi
+check_running 1 1
 
 echo "Inserting syncprov overlay on server 1..."
 echo "" > $TMP
@@ -193,25 +175,7 @@ if test $WAIT != 0 ; then
 fi
 KILLPIDS="$KILLPIDS $SLAVEPID"
 cd $TESTWD
-sleep 0.1
-
-echo "Using ldapsearch to check that server $n is running..."
-for i in 1 2 3 4 5; do
-	$LDAPSEARCH -s base -b "" -H $URI \
-		'objectclass=*' > /dev/null 2>&1
-	RC=$?
-	if test $RC = 0 ; then
-		break
-	fi
-	echo "Waiting $i seconds for slapd to start..."
-	sleep $i
-done
-
-if test $RC != 0 ; then
-	echo "ldapsearch failed ($RC)!"
-	killservers
-	exit $RC
-fi
+check_running $n $n
 
 echo "Configuring syncrepl on server $n..."
 cat <<EOF > $TMP
@@ -652,25 +616,7 @@ if test $WAIT != 0 ; then
 fi
 KILLPIDS="$PID"
 cd $TESTWD
-sleep 0.1
-
-echo "Using ldapsearch to check that server 1 is running..."
-for i in 1 2 3 4 5; do
-	$LDAPSEARCH -s base -b "" -H $URI1 \
-		'objectclass=*' > /dev/null 2>&1
-	RC=$?
-	if test $RC = 0 ; then
-		break
-	fi
-	echo "Waiting $i seconds for slapd to start..."
-	sleep $i
-done
-
-if test $RC != 0 ; then
-	echo "ldapsearch failed ($RC)!"
-	killservers
-	exit $RC
-fi
+check_running 1 1
 
 n=2
 while [ $n -le $MMR ]; do
@@ -696,23 +642,7 @@ n=2
 while [ $n -le $MMR ]; do
 PORT=`expr $BASEPORT + $n`
 URI="ldap://${LOCALHOST}:$PORT/"
-echo "Using ldapsearch to check that server $n is running..."
-for i in 1 2 3 4 5; do
-	$LDAPSEARCH -s base -b "" -H $URI \
-		'objectclass=*' > /dev/null 2>&1
-	RC=$?
-	if test $RC = 0 ; then
-		break
-	fi
-	echo "Waiting $i seconds for slapd to start..."
-	sleep $i
-done
-
-if test $RC != 0 ; then
-	echo "ldapsearch failed ($RC)!"
-	killservers
-	exit $RC
-fi
+check_running $n $n
 n=`expr $n + 1`
 done
 

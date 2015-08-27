@@ -44,19 +44,7 @@ if test $WAIT != 0 ; then
     read foo
 fi
 KILLPIDS="$PID"
-sleep 0.1
-
-echo "Using ldapsearch to check that slapd 1 is running..."
-for i in 1 2 3 4 5; do
-	$LDAPSEARCH -s base -b "$MONITOR" -h $LOCALHOST -p $PORT1 \
-		'(objectclass=*)' > /dev/null 2>&1
-	RC=$?
-	if test $RC = 0 ; then
-		break
-	fi
-	echo "Waiting $i seconds for slapd to start..."
-	sleep $i
-done
+check_running 1 first
 
 echo "Starting slapd 2 on TCP/IP port $PORT2..."
 . $CONFFILTER $BACKEND $MONITORDB < $GLUESYNCCONF2 > $CONF2
@@ -67,19 +55,7 @@ if test $WAIT != 0 ; then
     read foo
 fi
 KILLPIDS="$KILLPIDS $PID"
-sleep 0.1
-
-echo "Using ldapsearch to check that slapd 2 is running..."
-for i in 1 2 3 4 5; do
-	$LDAPSEARCH -s base -b "$MONITOR" -h $LOCALHOST -p $PORT2 \
-		'(objectclass=*)' > /dev/null 2>&1
-	RC=$?
-	if test $RC = 0 ; then
-		break
-	fi
-	echo "Waiting $i seconds for slapd to start..."
-	sleep $i
-done
+check_running 2 second
 
 SUBTREE1="ou=Information Technology Division,ou=People,dc=example,dc=com"
 SUBTREE2="ou=Groups,dc=example,dc=com"

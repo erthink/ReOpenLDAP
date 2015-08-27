@@ -35,27 +35,10 @@ if test $WAIT != 0 ; then
     read foo
 fi
 KILLPIDS="$PID"
+check_running 1
 
 USER="uid=nd, ou=People, dc=example, dc=com"
 PASS=testpassword
-sleep 0.1
-
-echo "Using ldapsearch to check that slapd is running..."
-for i in 1 2 3 4 5; do
-	$LDAPSEARCH -s base -b "$MONITOR" -h $LOCALHOST -p $PORT1 \
-		'objectclass=*' > /dev/null 2>&1
-	RC=$?
-	if test $RC = 0 ; then
-		break
-	fi
-	echo "Waiting $i seconds for slapd to start..."
-	sleep $i
-done
-if test $RC != 0 ; then
-	echo "ldapsearch failed ($RC)!"
-	killservers
-	exit $RC
-fi
 
 echo /dev/null > $TESTOUT
 
@@ -418,7 +401,7 @@ if test $WAIT != 0 ; then
     read foo
 fi
 KILLPIDS="$KILLPIDS $PID"
-sleep 0.1
+check_running 2 consumer
 
 echo "Configuring syncprov on provider..."
 if [ "$SYNCPROV" = syncprovmod ]; then
@@ -450,23 +433,6 @@ if test $RC != 0 ; then
     echo "ldapadd failed for provider database config ($RC)!"
     killservers
     exit $RC
-fi
-
-echo "Using ldapsearch to check that slapd is running..."
-for i in 1 2 3 4 5; do
-	$LDAPSEARCH -s base -b "$MONITOR" -H $URI2 \
-		'objectclass=*' > /dev/null 2>&1
-	RC=$?
-	if test $RC = 0 ; then
-		break
-	fi
-	echo "Waiting $i seconds for slapd to start..."
-	sleep $i
-done
-if test $RC != 0 ; then
-	echo "ldapsearch failed ($RC)!"
-	killservers
-	exit $RC
 fi
 
 echo "Configuring syncrepl on consumer..."

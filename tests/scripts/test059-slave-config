@@ -64,25 +64,7 @@ if test $WAIT != 0 ; then
     read foo
 fi
 KILLPIDS="$PID"
-sleep 0.1
-
-echo "Using ldapsearch to check that provider slapd is running..."
-for i in 1 2 3 4 5; do
-	$LDAPSEARCH -s base -b "" -H $URI1 \
-		'objectclass=*' > /dev/null 2>&1
-	RC=$?
-	if test $RC = 0 ; then
-		break
-	fi
-	echo "Waiting $i seconds for slapd to start..."
-	sleep $i
-done
-
-if test $RC != 0 ; then
-	echo "ldapsearch failed ($RC)!"
-	killservers
-	exit $RC
-fi
+check_running 1 provider
 
 echo "Inserting syncprov overlay on provider..."
 if [ "$SYNCPROV" = syncprovmod ]; then
@@ -193,25 +175,7 @@ if test $WAIT != 0 ; then
     read foo
 fi
 KILLPIDS="$KILLPIDS $SLAVEPID"
-sleep 0.1
-
-echo "Using ldapsearch to check that consumer slapd is running..."
-for i in 1 2 3 4 5; do
-	$LDAPSEARCH -s base -b "" -H $URI2 \
-		'objectclass=*' > /dev/null 2>&1
-	RC=$?
-	if test $RC = 0 ; then
-		break
-	fi
-	echo "Waiting $i seconds for slapd to start..."
-	sleep $i
-done
-
-if test $RC != 0 ; then
-	echo "ldapsearch failed ($RC)!"
-	killservers
-	exit $RC
-fi
+check_running 2 consumer
 
 echo "Configuring syncrepl on consumer..."
 $LDAPMODIFY -D cn=config -H $URI2 -y $CONFIGPWF <<EOF >>$TESTOUT 2>&1
@@ -227,8 +191,8 @@ add: olcUpdateRef
 olcUpdateRef: $URI1
 EOF
 
-sleep 0.1
 echo "Using ldapsearch to check that syncrepl received config changes..."
+sleep 0.1
 RC=32
 for i in 0.5 0.5 0.75 0.75 1 1 1.5 2 3 4 5; do
 	RESULT=`$LDAPSEARCH -H $URI2 -D cn=config -y $CONFIGPWF \

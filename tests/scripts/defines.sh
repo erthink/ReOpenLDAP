@@ -533,3 +533,27 @@ function wait_syncrepl {
 	echo -n "Consumer: "
 	$LDAPSEARCH -s $scope -b "$BASEDN" -h $LOCALHOST -p $2 contextCSN
 }
+
+function check_running {
+	local port=$(($BASEPORT + $1))
+	local caption=$2
+	local i
+	if [ -n "$caption" ]; then caption+=" "; fi
+	echo "Using ldapsearch to check that ${caption}slapd is running (port $port)..."
+	for i in 0.1 0.5 1 2 3 4 5; do
+		$LDAPSEARCH -s base -b "$MONITOR" -h $LOCALHOST -p $port \
+			'(objectClass=*)' > /dev/null 2>&1
+		RC=$?
+		if test $RC = 0 ; then
+			break
+		fi
+		echo "Waiting $i seconds for ${caption}slapd to start..."
+		sleep $i
+	done
+
+	if test $RC != 0 ; then
+		echo "ldapsearch failed ($RC)!"
+		killservers
+		exit $RC
+	fi
+}

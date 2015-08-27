@@ -193,7 +193,7 @@ olcRootPW:< file://$CONFIGPWF
 EOF
 done
 
-echo "Starting central master slapd on TCP/IP port $PORT1..."
+echo "Starting central-master slapd on TCP/IP port $PORT1..."
 cd $SMC_DIR
 $SLAPD -F slapd.d -h $URI1 -d $LVL $TIMING > $LOG1 2>&1 &
 SMC_PID=$!
@@ -203,23 +203,9 @@ if test $WAIT != 0 ; then
 fi
 KILLPIDS="$KILLPIDS $SMC_PID"
 cd $TESTWD
-sleep 0.1
-echo "Using ldapsearch to check that central master slapd is running..."
-for i in 1 2 3 4 5; do
-	$LDAPSEARCH -s base -b "" -H $URI1 \
-		'objectclass=*' > /dev/null 2>&1
-	RC=$?
-	test $RC = 0 && break
-	echo "Waiting $i seconds for slapd to start..."
-	sleep $i
-done
-if test $RC != 0 ; then
-	echo "ldapsearch failed ($RC)!"
-	killservers
-	exit $RC
-fi
+check_running 1 central-master
 
-echo "Starting site1 master slapd on TCP/IP port $PORT2..."
+echo "Starting site1-master slapd on TCP/IP port $PORT2..."
 cd $SM1_DIR
 $SLAPD -F slapd.d -h $URI2 -d $LVL $TIMING > $LOG2 2>&1 &
 SM1_PID=$!
@@ -229,23 +215,9 @@ if test $WAIT != 0 ; then
 fi
 KILLPIDS="$KILLPIDS $SM1_PID"
 cd $TESTWD
-sleep 0.1
-echo "Using ldapsearch to check that site1 master is running..."
-for i in 1 2 3 4 5; do
-	$LDAPSEARCH -s base -b "" -H $URI2 \
-		'objectclass=*' > /dev/null 2>&1
-	RC=$?
-	test $RC = 0 && break
-	echo "Waiting $i seconds for slapd to start..."
-	sleep $i
-done
-if test $RC != 0 ; then
-	echo "ldapsearch failed ($RC)!"
-	killservers
-	exit $RC
-fi
+check_running 2 site1-master
 
-echo "Starting site2 master slapd on TCP/IP port $PORT3..."
+echo "Starting site2-master slapd on TCP/IP port $PORT3..."
 cd $SM2_DIR
 $SLAPD -F slapd.d -h $URI3 -d $LVL $TIMING > $LOG3 2>&1 &
 SM2_PID=$!
@@ -255,23 +227,9 @@ if test $WAIT != 0 ; then
 fi
 KILLPIDS="$KILLPIDS $SM2_PID"
 cd $TESTWD
-sleep 0.1
-echo "Using ldapsearch to check that site2 master is running..."
-for i in 1 2 3 4 5; do
-	$LDAPSEARCH -s base -b "" -H $URI3 \
-		'objectclass=*' > /dev/null 2>&1
-	RC=$?
-	test $RC = 0 && break
-	echo "Waiting $i seconds for slapd to start..."
-	sleep $i
-done
-if test $RC != 0 ; then
-	echo "ldapsearch failed ($RC)!"
-	killservers
-	exit $RC
-fi
+check_running 3 site2-master
 
-echo "Starting central search slapd on TCP/IP port $PORT4..."
+echo "Starting central-search slapd on TCP/IP port $PORT4..."
 cd $SSC_DIR
 $SLAPD -F slapd.d -h $URI4 -d $LVL $TIMING > $LOG4 2>&1 &
 SSC_PID=$!
@@ -281,24 +239,9 @@ if test $WAIT != 0 ; then
 fi
 KILLPIDS="$KILLPIDS $SSC_PID"
 cd $TESTWD
-sleep 0.1
-echo "Using ldapsearch to check that central search slapd is running..."
-for i in 1 2 3 4 5; do
-	$LDAPSEARCH -s base -b "" -H $URI4 \
-		'objectclass=*' > /dev/null 2>&1
-	RC=$?
-	test $RC = 0 && break
-	echo "Waiting $i seconds for slapd to start..."
-	sleep $i
-done
-if test $RC != 0 ; then
-	echo "ldapsearch failed ($RC)!"
-	killservers
-	exit $RC
-fi
+check_running 4 central-search
 
-
-echo "Starting site1 search slapd on TCP/IP port $PORT5..."
+echo "Starting site1-search slapd on TCP/IP port $PORT5..."
 cd $SS1_DIR
 $SLAPD -F slapd.d -h $URI5 -d $LVL $TIMING > $LOG5 2>&1 &
 SS1_PID=$!
@@ -308,24 +251,9 @@ if test $WAIT != 0 ; then
 fi
 KILLPIDS="$KILLPIDS $SS1_PID"
 cd $TESTWD
-sleep 0.1
-echo "Using ldapsearch to check that site1 search slapd is running..."
-for i in 1 2 3 4 5; do
-	$LDAPSEARCH -s base -b "" -H $URI5 \
-		'objectclass=*' > /dev/null 2>&1
-	RC=$?
-	test $RC = 0 && break
-	echo "Waiting $i seconds for slapd to start..."
-	sleep $i
-done
-if test $RC != 0 ; then
-	echo "ldapsearch failed ($RC)!"
-	killservers
-	exit $RC
-fi
+check_running 5 site1-search
 
-
-echo "Starting site2 search slapd on TCP/IP port $PORT6..."
+echo "Starting site2-search slapd on TCP/IP port $PORT6..."
 cd $SS2_DIR
 $SLAPD -F slapd.d -h $URI6 -d $LVL $TIMING > $LOG6 2>&1 &
 SS2_PID=$!
@@ -335,21 +263,7 @@ if test $WAIT != 0 ; then
 fi
 KILLPIDS="$KILLPIDS $SS2_PID"
 cd $TESTWD
-sleep 0.1
-echo "Using ldapsearch to check that site2 search slapd is running..."
-for i in 1 2 3 4 5; do
-	$LDAPSEARCH -s base -b "" -H $URI6 \
-		'objectclass=*' > /dev/null 2>&1
-	RC=$?
-	test $RC = 0 && break
-	echo "Waiting $i seconds for slapd to start..."
-	sleep $i
-done
-if test $RC != 0 ; then
-	echo "ldapsearch failed ($RC)!"
-	killservers
-	exit $RC
-fi
+check_running 6 site2-search
 
 for uri in $URI1 $URI2 $URI3 $URI4 $URI5 $URI6; do
 	echo "Adding schema on $uri..."
@@ -389,7 +303,7 @@ EOF
 	fi
 done
 
-echo "Adding database config on central master..."
+echo "Adding database config on central-master..."
 if [ "$SYNCPROV" = syncprovmod ]; then
 	$LDAPADD -D cn=config -H $URI1 -y $CONFIGPWF <<EOF >> $TESTOUT 2>&1
 dn: cn=module,cn=config
@@ -478,12 +392,12 @@ olcRootDN: $UPDATEDN
 EOF
 RC=$?
 if test $RC != 0 ; then
-	echo "ldapadd failed for central master database config ($RC)!"
+	echo "ldapadd failed for central-master database config ($RC)!"
 	killservers
 	exit $RC
 fi
 
-echo "Adding database config on site1 master..."
+echo "Adding database config on site1-master..."
 if [ "$SYNCPROV" = syncprovmod ]; then
 	$LDAPADD -D cn=config -H $URI2 -y $CONFIGPWF <<EOF >> $TESTOUT 2>&1
 dn: cn=module,cn=config
@@ -551,12 +465,12 @@ EOF
 
 RC=$?
 if test $RC != 0 ; then
-	echo "ldapadd failed for site1 master database config ($RC)!"
+	echo "ldapadd failed for site1-master database config ($RC)!"
 	killservers
 	exit $RC
 fi
 
-echo "Adding database config on site2 master..."
+echo "Adding database config on site2-master..."
 if [ "$SYNCPROV" = syncprovmod ]; then
 	$LDAPADD -D cn=config -H $URI3 -y $CONFIGPWF <<EOF >> $TESTOUT 2>&1
 dn: cn=module,cn=config
@@ -634,12 +548,12 @@ EOF
 
 RC=$?
 if test $RC != 0 ; then
-	echo "ldapadd failed for site2 master database config ($RC)!"
+	echo "ldapadd failed for site2-master database config ($RC)!"
 	killservers
 	exit $RC
 fi
 
-echo "Adding access rules on central master..."
+echo "Adding access rules on central-master..."
 $LDAPMODIFY -D cn=config -H $URI1 -y $CONFIGPWF <<EOF >> $TESTOUT 2>&1
 dn: olcDatabase={-1}frontend,cn=config
 changetype: modify
@@ -673,12 +587,12 @@ olcAccess: to * by * read
 EOF
 RC=$?
 if test $RC != 0 ; then
-	echo "ldapmodify failed for central master access config ($RC)!"
+	echo "ldapmodify failed for central-master access config ($RC)!"
 	killservers
 	exit $RC
 fi
 
-echo "Adding access rules on site1 master..."
+echo "Adding access rules on site1-master..."
 $LDAPMODIFY -D cn=config -H $URI2 -y $CONFIGPWF <<EOF >> $TESTOUT 2>&1
 dn: olcDatabase={-1}frontend,cn=config
 changetype: modify
@@ -690,12 +604,12 @@ olcAccess: to * by * read
 EOF
 RC=$?
 if test $RC != 0 ; then
-	echo "ldapmodify failed for site1 master access config ($RC)!"
+	echo "ldapmodify failed for site1-master access config ($RC)!"
 	killservers
 	exit $RC
 fi
 
-echo "Adding access rules on site2 master..."
+echo "Adding access rules on site2-master..."
 $LDAPMODIFY -D cn=config -H $URI3 -y $CONFIGPWF <<EOF >> $TESTOUT 2>&1
 dn: olcDatabase={-1}frontend,cn=config
 changetype: modify
@@ -718,12 +632,12 @@ olcAccess: to * by * read
 EOF
 RC=$?
 if test $RC != 0 ; then
-	echo "ldapmodify failed for site2 master access config ($RC)!"
+	echo "ldapmodify failed for site2-master access config ($RC)!"
 	killservers
 	exit $RC
 fi
 
-echo "Adding database config on central search..."
+echo "Adding database config on central-search..."
 $LDAPADD -D cn=config -H $URI4 -y $CONFIGPWF <<EOF >> $TESTOUT 2>&1
 dn: olcDatabase={1}$BACKEND,cn=config
 objectClass: olcDatabaseConfig
@@ -736,12 +650,12 @@ olcRootDN: $UPDATEDN
 EOF
 RC=$?
 if test $RC != 0 ; then
-	echo "ldapadd failed for central search database config ($RC)!"
+	echo "ldapadd failed for central-search database config ($RC)!"
 	killservers
 	exit $RC
 fi
 
-echo "Adding database config on site1 search..."
+echo "Adding database config on site1-search..."
 $LDAPADD -D cn=config -H $URI5 -y $CONFIGPWF <<EOF >> $TESTOUT 2>&1
 dn: olcDatabase={1}$BACKEND,cn=config
 objectClass: olcDatabaseConfig
@@ -754,12 +668,12 @@ olcRootDN: $UPDATEDN
 EOF
 RC=$?
 if test $RC != 0 ; then
-	echo "ldapadd failed for site1 search database config ($RC)!"
+	echo "ldapadd failed for site1-search database config ($RC)!"
 	killservers
 	exit $RC
 fi
 
-echo "Adding database config on site2 search..."
+echo "Adding database config on site2-search..."
 $LDAPADD -D cn=config -H $URI6 -y $CONFIGPWF <<EOF >> $TESTOUT 2>&1
 dn: olcDatabase={1}$BACKEND,cn=config
 objectClass: olcDatabaseConfig
@@ -772,12 +686,12 @@ olcRootDN: $UPDATEDN
 EOF
 RC=$?
 if test $RC != 0 ; then
-	echo "ldapadd failed for site2 search database config ($RC)!"
+	echo "ldapadd failed for site2-search database config ($RC)!"
 	killservers
 	exit $RC
 fi
 
-echo "Populating central master..."
+echo "Populating central-master..."
 $LDAPADD -D "$MANAGERDN" -H $URI1 -w $PASSWD <<EOF >> $TESTOUT 2>&1
 dn: dc=example,dc=com
 objectClass: top
@@ -802,12 +716,12 @@ userPassword: $PASSWD
 EOF
 RC=$?
 if test $RC != 0 ; then
-	echo "ldapadd failed to populate central master entry ($RC)!"
+	echo "ldapadd failed to populate central-master entry ($RC)!"
 	killservers
 	exit $RC
 fi
 
-echo "Adding syncrepl on site1 master..."
+echo "Adding syncrepl on site1-master..."
 $LDAPMODIFY -D cn=config -H $URI2 -y $CONFIGPWF <<EOF >> $TESTOUT 2>&1
 dn: olcDatabase={4}$BACKEND,cn=config
 changetype: modify
@@ -819,12 +733,12 @@ olcSyncRepl: rid=1 provider=$URI1 searchbase="$BASEDN"
 EOF
 RC=$?
 if test $RC != 0 ; then
-	echo "ldapmodify failed to add syncrepl on site1 master ($RC)!"
+	echo "ldapmodify failed to add syncrepl on site1-master ($RC)!"
 	killservers
 	exit $RC
 fi
 
-echo "Adding syncrepl on site2 master..."
+echo "Adding syncrepl on site2-master..."
 $LDAPMODIFY -D cn=config -H $URI3 -y $CONFIGPWF <<EOF >> $TESTOUT 2>&1
 dn: olcDatabase={5}$BACKEND,cn=config
 changetype: modify
@@ -836,15 +750,14 @@ olcSyncRepl: rid=1 provider=$URI1 searchbase="$BASEDN"
 EOF
 RC=$?
 if test $RC != 0 ; then
-	echo "ldapmodify failed to add syncrepl on site2 master ($RC)!"
+	echo "ldapmodify failed to add syncrepl on site2-master ($RC)!"
 	killservers
 	exit $RC
 fi
-sleep 0.1
 
-echo "Using ldapsearch to check that site1 master received changes..."
+echo "Using ldapsearch to check that site1-master received changes..."
 RC=32
-for i in 1 2 3 4 5; do
+for i in 0.1 1 0.5 2 3 4 5; do
 	RESULT=`$LDAPSEARCH -H $URI2 \
 		-s base -b "ou=ou1,$BASEDN" \
 		'(objectClass=*)' 2>&1 | awk '/^dn:/ {print "OK"}'`
@@ -861,9 +774,9 @@ if test $RC != 0 ; then
 	exit $RC
 fi
 
-echo "Using ldapsearch to check that site2 master received changes..."
+echo "Using ldapsearch to check that site2-master received changes..."
 RC=32
-for i in 1 2 3 4 5; do
+for i in 0.1 1 0.5 2 3 4 5; do
 	RESULT=`$LDAPSEARCH -H $URI3 \
 		-s base -b "ou=ou1,$BASEDN" \
 		'(objectClass=*)' 2>&1 | awk '/^dn:/ {print "OK"}'`
@@ -882,7 +795,7 @@ fi
 
 sleep 0.1
 
-echo "Populating site1 master..."
+echo "Populating site1-master..."
 $LDAPADD -D "ou=sm1ou1,$BASEDN" -H $URI2 -w $PASSWD <<EOF >> $TESTOUT 2>&1
 dn: ou=sm1ou1,dc=example,dc=com
 objectClass: top
@@ -897,14 +810,14 @@ ou: sm1ou2
 EOF
 RC=$?
 if test $RC != 0 ; then
-	echo "ldapadd failed to populate site1 master ($RC)!"
+	echo "ldapadd failed to populate site1-master ($RC)!"
 	killservers
 	exit $RC
 fi
 
 sleep 0.1
 
-echo "Populating site2 master..."
+echo "Populating site2-master..."
 $LDAPADD -D "ou=sm2ou1,$BASEDN" -H $URI3 -w $PASSWD <<EOF >> $TESTOUT 2>&1
 dn: ou=sm2ou1,dc=example,dc=com
 objectClass: top
@@ -919,7 +832,7 @@ ou: sm2ou2
 EOF
 RC=$?
 if test $RC != 0 ; then
-	echo "ldapadd failed to populate site2 master ($RC)!"
+	echo "ldapadd failed to populate site2-master ($RC)!"
 	killservers
 	exit $RC
 fi
@@ -927,18 +840,18 @@ fi
 ERRORS=0
 
 # TEST:
-# Stop site1 master when adding syncrepl to the central master.  When
-# site1 master is started again both it and the central master will have
-# the same number of contextCSN values, but the ones on central master
-# will be the newest.  The central master will not update its contextCSN
+# Stop site1-master when adding syncrepl to the central-master.  When
+# site1-master is started again both it and the central-master will have
+# the same number of contextCSN values, but the ones on central-master
+# will be the newest.  The central-master will not update its contextCSN
 # values unless the bug in ITS#5597 have been fixed.
-echo "Stopping site1 master..."
+echo "Stopping site1-master..."
 kill -HUP "$SM1_PID"
 safewait "$SM1_PID"
 KILLPIDS=`echo "$KILLPIDS " | sed -e "s/ $SM1_PID / /"`;
 SM1_PID=
 
-echo "Adding syncrepl on central master..."
+echo "Adding syncrepl on central-master..."
 $LDAPMODIFY -D cn=config -H $URI1 -y $CONFIGPWF <<EOF >> $TESTOUT 2>&1
 dn: olcDatabase={3}$BACKEND,cn=config
 changetype: modify
@@ -957,14 +870,14 @@ olcSyncRepl: rid=5 provider=$URI3 searchbase="ou=sm2ou1,$BASEDN"
 EOF
 RC=$?
 if test $RC != 0 ; then
-	echo "ldapmodify failed to add syncrepl on central master ($RC)!"
+	echo "ldapmodify failed to add syncrepl on central-master ($RC)!"
 	killservers
 	exit $RC
 fi
-sleep 0.1
-echo "Using ldapsearch to check that central master received site2 entries..."
+
+echo "Using ldapsearch to check that central master received site2-entries..."
 RC=32
-for i in 1 2 3 4 5; do
+for i in 0.1 1 0.5 2 3 4 5; do
 	RESULT=`$LDAPSEARCH -H $URI1 \
 		-s base -b "ou=sm2ou1,$BASEDN" \
 		'(objectClass=*)' 2>&1 | awk '/^dn:/ {print "OK"}'`
@@ -981,15 +894,15 @@ if test $RC != 0 ; then
 	exit $RC
 fi
 
-# Test for ITS#6716, modify on central master to ensure that the CSN
-# order is "sid2 < sid3 < sid1".  When site1 master starts it is likely
-# to sync with central master before it syncs with site1 master. When
-# central master syncs with site1 master they will share the sid1 and
-# sid3 CSNs, the additonal sid2 CSN hold by site1 master will be the
-# oldest. Central master will not receive the changes made on site1
+# Test for ITS#6716, modify on central-master to ensure that the CSN
+# order is "sid2 < sid3 < sid1".  When site1-master starts it is likely
+# to sync with central-master before it syncs with site1-master. When
+# central-master syncs with site1-master they will share the sid1 and
+# sid3 CSNs, the additonal sid2 CSN hold by site1-master will be the
+# oldest. Central-master will not receive the changes made on site1
 # master unless it completely ignores the CSNs presented by central
 # master.
-echo "Using ldapmodify to modify central master..."
+echo "Using ldapmodify to modify central-master..."
 $LDAPMODIFY -D "$MANAGERDN" -H $URI1 -w $PASSWD <<EOF >> $TESTOUT 2>&1
 dn: dc=example,dc=com
 changetype: modify
@@ -1005,7 +918,7 @@ if test $RC != 0 ; then
 fi
 
 if test -z "$SM1_PID" ; then
-	echo "Restarting site1 master slapd on TCP/IP port $PORT2..."
+	echo "Restarting site1-master slapd on TCP/IP port $PORT2..."
 	cd $SM1_DIR
 	$SLAPD -F slapd.d -h $URI2 -d $LVL $TIMING >> $LOG2 2>&1 &
 	SM1_PID=$!
@@ -1015,27 +928,12 @@ if test -z "$SM1_PID" ; then
 	fi
 	KILLPIDS="$KILLPIDS $SM1_PID"
 	cd $TESTWD
+	check_running 2 site1-master
 fi
 
-sleep 0.1
-echo "Using ldapsearch to check that site1 master is running..."
-for i in 1 2 3 4 5; do
-	$LDAPSEARCH -s base -b "" -H $URI2 \
-		'objectclass=*' > /dev/null 2>&1
-	RC=$?
-	test $RC = 0 && break
-	echo "Waiting $i seconds for slapd to start..."
-	sleep $i
-done
-if test $RC != 0 ; then
-	echo "ldapsearch failed ($RC)!"
-	killservers
-	exit $RC
-fi
-
-echo "Using ldapsearch to check that central master received site1 entries..."
+echo "Using ldapsearch to check that central-master received site1 entries..."
 RC=32
-for i in 1 2 3 4 5; do
+for i in 0.1 0.5 1 2 3 4 5; do
 	RESULT=`$LDAPSEARCH -H $URI1 \
 		-s base -b "ou=sm1ou1,$BASEDN" \
 		'(objectClass=*)' 2>&1 | awk '/^dn:/ {print "OK"}'`
@@ -1052,9 +950,9 @@ if test $RC != 0 ; then
 	exit $RC
 fi
 
-echo "Using ldapsearch to check that site1 master received central master update..."
+echo "Using ldapsearch to check that site1-master received central-master update..."
 RC=32
-for i in 1 2 3 4 5; do
+for i in 0.1 0.5 1 2 3 4 5; do
 	RESULT=`$LDAPSEARCH -H $URI2 \
 		-s base -b "$BASEDN" \
 		"(description=Modify$MNUM)" 2>&1 | awk '/^dn:/ {print "OK"}'`
@@ -1071,9 +969,9 @@ if test $RC != 0 ; then
 	exit $RC
 fi
 
-echo "Using ldapsearch to check that site2 master received central master update..."
+echo "Using ldapsearch to check that site2-master received central-master update..."
 RC=32
-for i in 1 2 3 4 5; do
+for i in 0.1 0.5 1 2 3 4 5; do
 	RESULT=`$LDAPSEARCH -H $URI3 \
 		-s base -b "$BASEDN" \
 		"(description=Modify$MNUM)" 2>&1 | awk '/^dn:/ {print "OK"}'`
@@ -1092,7 +990,7 @@ fi
 
 # Test done, now some more intialization...
 
-echo "Adding syncrepl consumer on central search..."
+echo "Adding syncrepl consumer on central-search..."
 $LDAPMODIFY -D cn=config -H $URI4 -y $CONFIGPWF <<EOF >> $TESTOUT 2>&1
 dn: olcDatabase={1}$BACKEND,cn=config
 changetype: modify
@@ -1104,12 +1002,12 @@ olcSyncRepl: rid=1 provider=$URI1 searchbase="$BASEDN"
 EOF
 RC=$?
 if test $RC != 0 ; then
-	echo "ldapmodify failed to add syncrepl on site1 search ($RC)!"
+	echo "ldapmodify failed to add syncrepl on central-search ($RC)!"
 	killservers
 	exit $RC
 fi
 
-echo "Adding syncrepl consumer on site1 search..."
+echo "Adding syncrepl consumer on site1-search..."
 $LDAPMODIFY -D cn=config -H $URI5 -y $CONFIGPWF <<EOF >> $TESTOUT 2>&1
 dn: olcDatabase={1}$BACKEND,cn=config
 changetype: modify
@@ -1121,12 +1019,12 @@ olcSyncRepl: rid=1 provider=$URI2 searchbase="$BASEDN"
 EOF
 RC=$?
 if test $RC != 0 ; then
-	echo "ldapmodify failed to add syncrepl on site1 search ($RC)!"
+	echo "ldapmodify failed to add syncrepl on site1-search ($RC)!"
 	killservers
 	exit $RC
 fi
 
-echo "Adding syncrepl consumer on site2 search..."
+echo "Adding syncrepl consumer on site2-search..."
 $LDAPMODIFY -D cn=config -H $URI6 -y $CONFIGPWF <<EOF >> $TESTOUT 2>&1
 dn: olcDatabase={1}$BACKEND,cn=config
 changetype: modify
@@ -1138,15 +1036,14 @@ olcSyncRepl: rid=1 provider=$URI3 searchbase="$BASEDN"
 EOF
 RC=$?
 if test $RC != 0 ; then
-	echo "ldapmodify failed to add syncrepl on site2 search ($RC)!"
+	echo "ldapmodify failed to add syncrepl on site2-search ($RC)!"
 	killservers
 	exit $RC
 fi
-sleep 0.1
 
-echo "Using ldapsearch to check that central search received changes..."
+echo "Using ldapsearch to check that central-search received changes..."
 RC=32
-for i in 1 2 3 4 5; do
+for i in 0.1 0.5 1 2 3 4 5; do
 	RESULT=`$LDAPSEARCH -H $URI4 \
 		-s base -b "$BASEDN" \
 		'(objectClass=*)' 2>&1 | awk '/^dn:/ {print "OK"}'`
@@ -1163,9 +1060,9 @@ if test $RC != 0 ; then
 	exit $RC
 fi
 
-echo "Using ldapsearch to check that site1 search received changes..."
+echo "Using ldapsearch to check that site1-search received changes..."
 RC=32
-for i in 1 2 3 4 5; do
+for i in 0.1 0.5 1 2 3 4 5; do
 	RESULT=`$LDAPSEARCH -H $URI5 \
 		-s base -b "$BASEDN" \
 		'(objectClass=*)' 2>&1 | awk '/^dn:/ {print "OK"}'`
@@ -1182,9 +1079,9 @@ if test $RC != 0 ; then
 	exit $RC
 fi
 
-echo "Using ldapsearch to check that site2 search received changes..."
+echo "Using ldapsearch to check that site2-search received changes..."
 RC=32
-for i in 1 2 3 4 5; do
+for i in 0.1 0.5 1 2 3 4 5; do
 	RESULT=`$LDAPSEARCH -H $URI6 \
 		-s base -b "$BASEDN" \
 		'(objectClass=*)' 2>&1 | awk '/^dn:/ {print "OK"}'`
@@ -1216,64 +1113,64 @@ CSN5=`$LDAPSEARCH -H $URI5 -b $BASEDN -s base contextCSN | grep contextCSN | sor
 CSN6=`$LDAPSEARCH -H $URI6 -b $BASEDN -s base contextCSN | grep contextCSN | sort`
 
 if test -z "$CSN1" ; then
-	echo "ERROR: contextCSN empty on central master"
+	echo "ERROR: contextCSN empty on central-master"
 	CSN_ERRORS=`expr $CSN_ERRORS + 1`
 fi
 nCSN=`echo "$CSN1" | wc -l`
 if test "$nCSN" -ne 3 ; then
-	echo "ERROR: Wrong contextCSN count on central master, should be 3"
+	echo "ERROR: Wrong contextCSN count on central-master, should be 3"
 	CSN_ERRORS=`expr $CSN_ERRORS + 1`
 	if test -n "$CSN_VERBOSE"; then
 		echo "$CSN1"
 	fi
 fi
 if  test -z "$CSN2" -o "$CSN1" != "$CSN2" ; then
-	echo "ERROR: contextCSN mismatch between central master and site1 master"
+	echo "ERROR: contextCSN mismatch between central-master and site1-master"
 	CSN_ERRORS=`expr $CSN_ERRORS + 1`;
 	if test -n "$CSN_VERBOSE"; then
-		echo "contextCSN on central master:"
+		echo "contextCSN on central-master:"
 		echo "$CSN1"
-		echo "contextCSN on site1 master:"
+		echo "contextCSN on site1-master:"
 		echo "$CSN2"
 	fi
 fi
 if  test -z "$CSN3" -o "$CSN1" != "$CSN3" ; then
-	echo "ERROR: contextCSN mismatch between central master and site2 master"
+	echo "ERROR: contextCSN mismatch between central-master and site2-master"
 	CSN_ERRORS=`expr $CSN_ERRORS + 1`;
 	if test -n "$CSN_VERBOSE"; then
-		echo "contextCSN on central master:"
+		echo "contextCSN on central-master:"
 		echo "$CSN1"
-		echo "contextCSN on site2 master:"
+		echo "contextCSN on site2-master:"
 		echo "$CSN3"
 	fi
 fi
 if  test -z "$CSN4" -o "$CSN1" != "$CSN4" ; then
-	echo "ERROR: contextCSN mismatch between central master and central search"
+	echo "ERROR: contextCSN mismatch between central-master and central-search"
 	CSN_ERRORS=`expr $CSN_ERRORS + 1`;
 	if test -n "$CSN_VERBOSE"; then
-		echo "contextCSN on central master:"
+		echo "contextCSN on central-master:"
 		echo "$CSN1"
-		echo "contextCSN on central search:"
+		echo "contextCSN on central-search:"
 		echo "$CSN4"
 	fi
 fi
 if  test -z "$CSN5" -o "$CSN2" != "$CSN5" ; then
-	echo "ERROR: contextCSN mismatch between site1 master and site1 search"
+	echo "ERROR: contextCSN mismatch between site1-master and site1-search"
 	CSN_ERRORS=`expr $CSN_ERRORS + 1`;
 	if test -n "$CSN_VERBOSE"; then
-		echo "contextCSN on site1 master:"
+		echo "contextCSN on site1-master:"
 		echo "$CSN2"
-		echo "contextCSN on site1 search:"
+		echo "contextCSN on site1-search:"
 		echo "$CSN5"
 	fi
 fi
 if  test -z "$CSN6" -o "$CSN3" != "$CSN6" ; then
-	echo "ERROR: contextCSN mismatch between site2 master and site2 search:"
+	echo "ERROR: contextCSN mismatch between site2-master and site2-search:"
 	CSN_ERRORS=`expr $CSN_ERRORS + 1`;
 	if test -n "$CSN_VERBOSE"; then
-		echo "contextCSN on site2 master:"
+		echo "contextCSN on site2-master:"
 		echo "$CSN3"
-		echo "contextCSN on site2 search:"
+		echo "contextCSN on site2-search:"
 		echo "$CSN6"
 	fi
 fi
@@ -1282,7 +1179,7 @@ if test $CSN_ERRORS != 0 ; then
 	echo "Stopping all servers to synchronize contextCSN..."
 	killservers
 
-	echo "Restarting site1 master slapd on TCP/IP port $PORT2..."
+	echo "Restarting site1-master slapd on TCP/IP port $PORT2..."
 	cd $SM1_DIR
 	$SLAPD -F slapd.d -h $URI2 -d $LVL $TIMING >> $LOG2 2>&1 &
 	SM1_PID=$!
@@ -1292,108 +1189,9 @@ if test $CSN_ERRORS != 0 ; then
 	fi
 	KILLPIDS="$KILLPIDS $SM1_PID"
 	cd $TESTWD
-	sleep 0.1
-	echo "Using ldapsearch to check that site1 master is running..."
-	for i in 1 2 3 4 5; do
-		$LDAPSEARCH -s base -b "" -H $URI2 \
-			'objectclass=*' > /dev/null 2>&1
-		RC=$?
-		test $RC = 0 && break
-		echo "Waiting $i seconds for slapd to start..."
-		sleep $i
-	done
-	if test $RC != 0 ; then
-		echo "ldapsearch failed ($RC)!"
-		killservers
-		exit $RC
-	fi
+	check_running 2 site1-master
 
-	echo "Restarting site2 master slapd on TCP/IP port $PORT3..."
-	cd $SM2_DIR
-	$SLAPD -F slapd.d -h $URI3 -d $LVL $TIMING >> $LOG3 2>&1 &
-	SM2_PID=$!
-	if test $WAIT != 0 ; then
-		echo PID $SM2_PID
-		read foo
-	fi
-	KILLPIDS="$KILLPIDS $SM2_PID "
-	cd $TESTWD
-	sleep 0.1
-	echo "Using ldapsearch to check that site2 master is running..."
-	for i in 1 2 3 4 5; do
-		$LDAPSEARCH -s base -b "" -H $URI3 \
-			'objectclass=*' > /dev/null 2>&1
-		RC=$?
-		test $RC = 0 && break
-		echo "Waiting $i seconds for slapd to start..."
-		sleep $i
-	done
-	if test $RC != 0 ; then
-		echo "ldapsearch failed ($RC)!"
-		killservers
-		exit $RC
-	fi
-
-	echo "Restarting central master slapd on TCP/IP port $PORT1..."
-	cd $SMC_DIR
-	$SLAPD -F slapd.d -h $URI1 -d $LVL $TIMING >> $LOG1 2>&1 &
-	SMC_PID=$!
-	if test $WAIT != 0 ; then
-		echo PID $SMC_PID
-		read foo
-	fi
-	KILLPIDS="$KILLPIDS $SMC_PID"
-	cd $TESTWD
-	sleep 0.1
-	echo "Using ldapsearch to check that central master slapd is running..."
-	for i in 1 2 3 4 5; do
-		$LDAPSEARCH -s base -b "" -H $URI1 \
-			'objectclass=*' > /dev/null 2>&1
-		RC=$?
-		test $RC = 0 && break
-		echo "Waiting $i seconds for slapd to start..."
-		sleep $i
-	done
-	if test $RC != 0 ; then
-		echo "ldapsearch failed ($RC)!"
-		killservers
-		exit $RC
-	fi
-
-	#echo "Sleeping 5 seconds to allow contextCSN to synchronize..."
-	wait_syncrepl $PORT1 $PORT2
-
-	echo "Stopping site1 and site2 master..."
-	killpids $SM1_PID $SM2_PID
-	KILLPIDS=" $SMC_PID"
-
-	echo "Restarting site1 master slapd on TCP/IP port $PORT2..."
-	cd $SM1_DIR
-	$SLAPD -F slapd.d -h $URI2 -d $LVL $TIMING >> $LOG2 2>&1 &
-	SM1_PID=$!
-	if test $WAIT != 0 ; then
-		echo PID $SM1_PID
-		read foo
-	fi
-	KILLPIDS="$KILLPIDS $SM1_PID"
-	cd $TESTWD
-	sleep 0.1
-	echo "Using ldapsearch to check that site1 master is running..."
-	for i in 1 2 3 4 5; do
-		$LDAPSEARCH -s base -b "" -H $URI2 \
-			'objectclass=*' > /dev/null 2>&1
-		RC=$?
-		test $RC = 0 && break
-		echo "Waiting $i seconds for slapd to start..."
-		sleep $i
-	done
-	if test $RC != 0 ; then
-		echo "ldapsearch failed ($RC)!"
-		killservers
-		exit $RC
-	fi
-
-	echo "Restarting site2 master slapd on TCP/IP port $PORT3..."
+	echo "Restarting site2-master slapd on TCP/IP port $PORT3..."
 	cd $SM2_DIR
 	$SLAPD -F slapd.d -h $URI3 -d $LVL $TIMING >> $LOG3 2>&1 &
 	SM2_PID=$!
@@ -1403,26 +1201,55 @@ if test $CSN_ERRORS != 0 ; then
 	fi
 	KILLPIDS="$KILLPIDS $SM2_PID"
 	cd $TESTWD
-	sleep 0.1
-	echo "Using ldapsearch to check that site2 master is running..."
-	for i in 1 2 3 4 5; do
-		$LDAPSEARCH -s base -b "" -H $URI3 \
-			'objectclass=*' > /dev/null 2>&1
-		RC=$?
-		test $RC = 0 && break
-		echo "Waiting $i seconds for slapd to start..."
-		sleep $i
-	done
-	if test $RC != 0 ; then
-		echo "ldapsearch failed ($RC)!"
-		killservers
-		exit $RC
+	check_running 3 site2-master
+
+	echo "Restarting central-master slapd on TCP/IP port $PORT1..."
+	cd $SMC_DIR
+	$SLAPD -F slapd.d -h $URI1 -d $LVL $TIMING >> $LOG1 2>&1 &
+	SMC_PID=$!
+	if test $WAIT != 0 ; then
+		echo PID $SMC_PID
+		read foo
 	fi
+	KILLPIDS="$KILLPIDS $SMC_PID"
+	cd $TESTWD
+	check_running 1 central-master
+
+	#echo "Sleeping 5 seconds to allow contextCSN to synchronize..."
+	wait_syncrepl $PORT1 $PORT2
+
+	echo "Stopping site1 and site2 master..."
+	killpids $SM1_PID $SM2_PID
+	KILLPIDS=" $SMC_PID"
+
+	echo "Restarting site1-master slapd on TCP/IP port $PORT2..."
+	cd $SM1_DIR
+	$SLAPD -F slapd.d -h $URI2 -d $LVL $TIMING >> $LOG2 2>&1 &
+	SM1_PID=$!
+	if test $WAIT != 0 ; then
+		echo PID $SM1_PID
+		read foo
+	fi
+	KILLPIDS="$KILLPIDS $SM1_PID"
+	cd $TESTWD
+	check_running 2 site1-master
+
+	echo "Restarting site2-master slapd on TCP/IP port $PORT3..."
+	cd $SM2_DIR
+	$SLAPD -F slapd.d -h $URI3 -d $LVL $TIMING >> $LOG3 2>&1 &
+	SM2_PID=$!
+	if test $WAIT != 0 ; then
+		echo PID $SM2_PID
+		read foo
+	fi
+	KILLPIDS="$KILLPIDS $SM2_PID"
+	cd $TESTWD
+	check_running 3 site2-master
 
 	#echo "Sleeping 5 seconds to allow contextCSN to synchronize..."
 	wait_syncrepl $PORT1 $PORT3
 
-	echo "Restarting central search slapd on TCP/IP port $PORT4..."
+	echo "Restarting central-search slapd on TCP/IP port $PORT4..."
 	cd $SSC_DIR
 	$SLAPD -F slapd.d -h $URI4 -d $LVL $TIMING >> $LOG4 2>&1 &
 	SSC_PID=$!
@@ -1432,23 +1259,9 @@ if test $CSN_ERRORS != 0 ; then
 	fi
 	KILLPIDS="$KILLPIDS $SSC_PID"
 	cd $TESTWD
-	sleep 0.1
-	echo "Using ldapsearch to check that central search slapd is running..."
-	for i in 1 2 3 4 5; do
-		$LDAPSEARCH -s base -b "" -H $URI4 \
-			'objectclass=*' > /dev/null 2>&1
-		RC=$?
-		test $RC = 0 && break
-		echo "Waiting $i seconds for slapd to start..."
-		sleep $i
-	done
-	if test $RC != 0 ; then
-		echo "ldapsearch failed ($RC)!"
-		killservers
-		exit $RC
-	fi
+	check_running 4 central-search
 
-	echo "Restarting site1 search slapd on TCP/IP port $PORT5..."
+	echo "Restarting site1-search slapd on TCP/IP port $PORT5..."
 	cd $SS1_DIR
 	$SLAPD -F slapd.d -h $URI5 -d $LVL $TIMING >> $LOG5 2>&1 &
 	SS1_PID=$!
@@ -1458,23 +1271,9 @@ if test $CSN_ERRORS != 0 ; then
 	fi
 	KILLPIDS="$KILLPIDS $SS1_PID"
 	cd $TESTWD
-	sleep 0.1
-	echo "Using ldapsearch to check that site1 search slapd is running..."
-	for i in 1 2 3 4 5; do
-		$LDAPSEARCH -s base -b "" -H $URI5 \
-			'objectclass=*' > /dev/null 2>&1
-		RC=$?
-		test $RC = 0 && break
-		echo "Waiting $i seconds for slapd to start..."
-		sleep $i
-	done
-	if test $RC != 0 ; then
-		echo "ldapsearch failed ($RC)!"
-		killservers
-		exit $RC
-	fi
+	check_running 5 site1-search
 
-	echo "Restarting site2 search slapd on TCP/IP port $PORT6..."
+	echo "Restarting site2-search slapd on TCP/IP port $PORT6..."
 	cd $SS2_DIR
 	$SLAPD -F slapd.d -h $URI6 -d $LVL $TIMING >> $LOG6 2>&1 &
 	SS2_PID=$!
@@ -1484,21 +1283,7 @@ if test $CSN_ERRORS != 0 ; then
 	fi
 	KILLPIDS="$KILLPIDS $SS2_PID"
 	cd $TESTWD
-	sleep 0.1
-	echo "Using ldapsearch to check that site2 search slapd is running..."
-	for i in 1 2 3 4 5; do
-		$LDAPSEARCH -s base -b "" -H $URI6 \
-			'objectclass=*' > /dev/null 2>&1
-		RC=$?
-		test $RC = 0 && break
-		echo "Waiting $i seconds for slapd to start..."
-		sleep $i
-	done
-	if test $RC != 0 ; then
-		echo "ldapsearch failed ($RC)!"
-		killservers
-		exit $RC
-	fi
+	check_running 6 site2-search
 
 	#echo "Sleeping 5 seconds to allow contextCSN to synchronize..."
 	wait_syncrepl $PORT1 $PORT6
@@ -1511,57 +1296,57 @@ if test $CSN_ERRORS != 0 ; then
 	CSN5=`$LDAPSEARCH -H $URI5 -b $BASEDN -s base contextCSN | grep contextCSN | sort`
 	CSN6=`$LDAPSEARCH -H $URI6 -b $BASEDN -s base contextCSN | grep contextCSN | sort`
 	if test -z "$CSN1" ; then
-		echo "ERROR: contextCSN empty on central master"
+		echo "ERROR: contextCSN empty on central-master"
 		CSN_ERRORS=`expr $CSN_ERRORS + 1`
 	fi
 
 	if  test -z "$CSN2" -o "$CSN1" != "$CSN2" ; then
-		echo "ERROR: contextCSN mismatch between central master and site1 master"
+		echo "ERROR: contextCSN mismatch between central-master and site1-master"
 		CSN_ERRORS=`expr $CSN_ERRORS + 1`;
 		if test -n "$CSN_VERBOSE"; then
-			echo "contextCSN on central master:"
+			echo "contextCSN on central-master:"
 			echo "$CSN1"
-			echo "contextCSN on site1 master:"
+			echo "contextCSN on site1-master:"
 			echo "$CSN2"
 		fi
 	fi
 	if  test -z "$CSN3" -o "$CSN1" != "$CSN3" ; then
-		echo "ERROR: contextCSN mismatch between central master and site2 master"
+		echo "ERROR: contextCSN mismatch between central-master and site2-master"
 		CSN_ERRORS=`expr $CSN_ERRORS + 1`;
 		if test -n "$CSN_VERBOSE"; then
-			echo "contextCSN on central master:"
+			echo "contextCSN on central-master:"
 			echo "$CSN1"
-			echo "contextCSN on site2 master:"
+			echo "contextCSN on site2-master:"
 			echo "$CSN3"
 		fi
 	fi
 	if  test -z "$CSN4" -o "$CSN1" != "$CSN4" ; then
-		echo "ERROR: contextCSN mismatch between central master and central search"
+		echo "ERROR: contextCSN mismatch between central-master and central-search"
 		CSN_ERRORS=`expr $CSN_ERRORS + 1`;
 		if test -n "$CSN_VERBOSE"; then
-			echo "contextCSN on central master:"
+			echo "contextCSN on central-master:"
 			echo "$CSN1"
-			echo "contextCSN on central search:"
+			echo "contextCSN on central-search:"
 			echo "$CSN4"
 		fi
 	fi
 	if  test -z "$CSN5" -o "$CSN2" != "$CSN5" ; then
-		echo "ERROR: contextCSN mismatch between site1 master and site1 search"
+		echo "ERROR: contextCSN mismatch between site1-master and site1-search"
 		CSN_ERRORS=`expr $CSN_ERRORS + 1`;
 		if test -n "$CSN_VERBOSE"; then
-			echo "contextCSN on site1 master:"
+			echo "contextCSN on site1-master:"
 			echo "$CSN2"
-			echo "contextCSN on site1 search:"
+			echo "contextCSN on site1-search:"
 			echo "$CSN5"
 		fi
 	fi
 	if  test -z "$CSN6" -o "$CSN3" != "$CSN6" ; then
-		echo "ERROR: contextCSN mismatch between site2 master and site2 search:"
+		echo "ERROR: contextCSN mismatch between site2-master and site2-search:"
 		CSN_ERRORS=`expr $CSN_ERRORS + 1`;
 		if test -n "$CSN_VERBOSE"; then
-			echo "contextCSN on site2 master:"
+			echo "contextCSN on site2-master:"
 			echo "$CSN3"
-			echo "contextCSN on site2 search:"
+			echo "contextCSN on site2-search:"
 			echo "$CSN6"
 		fi
 	fi
@@ -1580,10 +1365,10 @@ echo "Checking contextCSN after initial replication..."
 . $TESTDIR/checkcsn.sh
 
 # TEST:
-# Test that updates to the first backend on central master, which should
+# Test that updates to the first backend on central-master, which should
 # be replicated to all servers actually is so, and that the contextCSN is
 # updated everywhere:
-echo "Using ldapmodify to modify first backend on central master..."
+echo "Using ldapmodify to modify first backend on central-master..."
 $LDAPMODIFY -D "$MANAGERDN" -H $URI1 -w $PASSWD <<EOF >> $TESTOUT 2>&1
 dn: ou=ou1,dc=example,dc=com
 changetype: modify
@@ -1597,11 +1382,10 @@ if test $RC != 0 ; then
 	killservers
 	exit $RC
 fi
-sleep 0.1
 
-echo "Using ldapsearch to check replication to central search..."
+echo "Using ldapsearch to check replication to central-search..."
 RC=32
-for i in 0.5 1 2 3 4 5; do
+for i in 0.1 0.5 1 2 3 4 5; do
 	RESULT=`$LDAPSEARCH -H $URI4 \
 		-s base -b "ou=ou1,$BASEDN" \
 		"(description=Modify$MNUM)" 2>&1 | awk '/^dn:/ {print "OK"}'`
@@ -1618,9 +1402,9 @@ if test $RC != 0 ; then
 	exit $RC
 fi
 
-echo "Using ldapsearch to check replication to site1 search..."
+echo "Using ldapsearch to check replication to site1-search..."
 RC=32
-for i in 0.5 1 2 3 4 5; do
+for i in 0.1 0.5 1 2 3 4 5; do
 	RESULT=`$LDAPSEARCH -H $URI5 \
 		-s base -b "ou=ou1,$BASEDN" \
 		"(description=Modify$MNUM)" 2>&1 | awk '/^dn:/ {print "OK"}'`
@@ -1637,9 +1421,9 @@ if test $RC != 0 ; then
 	exit $RC
 fi
 
-echo "Using ldapsearch to check replication to site2 search..."
+echo "Using ldapsearch to check replication to site2-search..."
 RC=32
-for i in 0.5 1 2 3 4 5; do
+for i in 0.1 0.5 1 2 3 4 5; do
 	RESULT=`$LDAPSEARCH -H $URI6 \
 		-s base -b "ou=ou1,$BASEDN" \
 		"(description=Modify$MNUM)" 2>&1 | awk '/^dn:/ {print "OK"}'`
@@ -1656,15 +1440,15 @@ if test $RC != 0 ; then
 	exit $RC
 fi
 
-echo "Checking contextCSN after modify of first backend on central master..."
+echo "Checking contextCSN after modify of first backend on central-master..."
 . $TESTDIR/checkcsn.sh
 
 # TEST:
-# Test that updates to the second backend on central master is only
+# Test that updates to the second backend on central-master is only
 # replicated to those search servers that should receive that backend.
 # The contextCSN should still be updated everywhere:
 MNUM=`expr $MNUM + 1`
-echo "Using ldapmodify to modify second backend on central master..."
+echo "Using ldapmodify to modify second-backend on central-master..."
 $LDAPMODIFY -D "$MANAGERDN" -H $URI1 -w $PASSWD <<EOF >> $TESTOUT 2>&1
 dn: ou=ou2,dc=example,dc=com
 changetype: modify
@@ -1678,11 +1462,10 @@ if test $RC != 0 ; then
 	killservers
 	exit $RC
 fi
-sleep 0.1
 
-echo "Using ldapsearch to check replication to site2 search..."
+echo "Using ldapsearch to check replication to site2-search..."
 RC=32
-for i in 0.5 1 2 3 4 5; do
+for i in 0.1 0.5 1 2 3 4 5; do
 	RESULT=`$LDAPSEARCH -H $URI6 \
 		-s base -b "ou=ou2,$BASEDN" \
 		"(description=Modify$MNUM)" 2>&1 | awk '/^dn:/ {print "OK"}'`
@@ -1699,41 +1482,41 @@ if test $RC != 0 ; then
 	exit $RC
 fi
 
-echo "Using ldapsearch to check NO replication to site1 master..."
-for i in 1 2 3; do
+echo "Using ldapsearch to check NO replication to site1-master..."
+for i in 0.5 1 2 3; do
 	RESULT=`$LDAPSEARCH -H $URI2 \
 		-s base -b "ou=ou2,$BASEDN" \
 		"(description=Modify$NMUM)" 2>&1 | awk '/^dn:/ {print "NOK"}'`
 	if test "x$RESULT" = "xNOK" ; then
-		echo "Change was replicated to site1 search!"
+		echo "Change was replicated to site1-search!"
 		killservers
 		exit 1
 	fi
-	sleep 1
+	sleep $i
 done
 
-echo "Using ldapsearch to check NO replication to central search..."
-for i in 1 2 3; do
+echo "Using ldapsearch to check NO replication to central-search..."
+for i in 0.5 1 2 3; do
 	RESULT=`$LDAPSEARCH -H $URI4 \
 		-s base -b "ou=ou2,$BASEDN" \
 		"(description=Modify$MNUM)" 2>&1 | awk '/^dn:/ {print "NOK"}'`
 	if test "x$RESULT" = "xNOK" ; then
-		echo "Change was replicated to central search!"
+		echo "Change was replicated to central-search!"
 		killservers
 		exit 1
 	fi
-	sleep 1
+	sleep $i
 done
 
-echo "Checking contextCSN after modify of second backend on central master..."
+echo "Checking contextCSN after modify of second-backend on central-master..."
 . $TESTDIR/checkcsn.sh
 
 # TEST:
-# Test that updates to the first backend on site1 master, which should be
+# Test that updates to the first backend on site1-master, which should be
 # replicated everywhere except to central and site2 search.  The contextCSN
 # should be updated on all servers:
 MNUM=`expr $MNUM + 1`
-echo "Using ldapmodify to modify first backend on site1 master..."
+echo "Using ldapmodify to modify first backend on site1-master..."
 $LDAPMODIFY -D "ou=sm1ou1,$BASEDN" -H $URI2 -w $PASSWD <<EOF >> $TESTOUT 2>&1
 dn: ou=sm1ou1,dc=example,dc=com
 changetype: modify
@@ -1747,11 +1530,10 @@ if test $RC != 0 ; then
 	killservers
 	exit $RC
 fi
-sleep 0.1
 
-echo "Using ldapsearch to check replication to site1 search..."
+echo "Using ldapsearch to check replication to site1-search..."
 RC=32
-for i in 0.5 1 2 3 4 5; do
+for i in 0.1 0.5 1 2 3 4 5; do
 	RESULT=`$LDAPSEARCH -H $URI5 \
 		-s base -b "ou=sm1ou1,$BASEDN" \
 		"(description=Modify$MNUM)" 2>&1 | awk '/^dn:/ {print "OK"}'`
@@ -1768,9 +1550,9 @@ if test $RC != 0 ; then
 	exit $RC
 fi
 
-echo "Using ldapsearch to check replication to site2 master..."
+echo "Using ldapsearch to check replication to site2-master..."
 RC=32
-for i in 0.5 1 2 3 4 5; do
+for i in 0.1 0.5 1 2 3 4 5; do
 	RESULT=`$LDAPSEARCH -H $URI3 \
 		-s base -b "ou=sm1ou1,$BASEDN" \
 		"(description=Modify$MNUM)" 2>&1 | awk '/^dn:/ {print "OK"}'`
@@ -1787,41 +1569,41 @@ if test $RC != 0 ; then
 	exit $RC
 fi
 
-echo "Using ldapsearch to check NO replication to site2 search..."
-for i in 1 2 3; do
+echo "Using ldapsearch to check NO replication to site2-search..."
+for i in 0.5 1 2 3; do
 	RESULT=`$LDAPSEARCH -H $URI6 \
 		-s base -b "ou=sm1ou2,$BASEDN" \
 		"(description=Modify$MNUM)" 2>&1 | awk '/^dn:/ {print "NOK"}'`
 	if test "x$RESULT" = "xNOK" ; then
-		echo "Change was replicated to central search!"
+		echo "Change was replicated to central-search!"
 		killservers
 		exit 1
 	fi
-	sleep 1
+	sleep $i
 done
 
-echo "Using ldapsearch to check NO replication to central search..."
-for i in 1 2 3; do
+echo "Using ldapsearch to check NO replication to central-search..."
+for i in 0.5 1 2 3; do
 	RESULT=`$LDAPSEARCH -H $URI4 \
 		-s base -b "ou=sm1ou2,$BASEDN" \
 		"(description=Modify$MNUM)" 2>&1 | awk '/^dn:/ {print "NOK"}'`
 	if test "x$RESULT" = "xNOK" ; then
-		echo "Change was replicated to central search!"
+		echo "Change was replicated to central-search!"
 		killservers
 		exit 1
 	fi
-	sleep 1
+	sleep $i
 done
 
-echo "Checking contextCSN after modify of first backend on site1 master..."
+echo "Checking contextCSN after modify of first-backend on site1-master..."
 . $TESTDIR/checkcsn.sh
 
 
 # TEST:
-# Test updates to the second backend on site1 master, which should only be
-# replicated to site1 search.  The contextCSN should be updated everywhere.
+# Test updates to the second-backend on site1-master, which should only be
+# replicated to site1-search.  The contextCSN should be updated everywhere.
 MNUM=`expr $MNUM + 1`
-echo "Using ldapmodify to modify second backend on site1 master..."
+echo "Using ldapmodify to modify second-backend on site1-master..."
 $LDAPMODIFY -D "ou=sm1ou1,$BASEDN" -H $URI2 -w $PASSWD <<EOF >> $TESTOUT 2>&1
 dn: ou=sm1ou2,dc=example,dc=com
 changetype: modify
@@ -1835,11 +1617,10 @@ if test $RC != 0 ; then
 	killservers
 	exit $RC
 fi
-sleep 0.1
 
-echo "Using ldapsearch to check replication to site1 search..."
+echo "Using ldapsearch to check replication to site1-search..."
 RC=32
-for i in 0.5 1 2 3 4 5; do
+for i in 0.1 0.5 1 2 3 4 5; do
 	RESULT=`$LDAPSEARCH -H $URI5 \
 		-s base -b "ou=sm1ou2,$BASEDN" \
 		"(description=Modify$MNUM)" 2>&1 | awk '/^dn:/ {print "OK"}'`
@@ -1856,29 +1637,29 @@ if test $RC != 0 ; then
 	exit $RC
 fi
 
-echo "Using ldapsearch to check NO replication to central master..."
-for i in 1 2 3; do
+echo "Using ldapsearch to check NO replication to central-master..."
+for i in 0.5 1 2 3; do
 	RESULT=`$LDAPSEARCH -H $URI1 \
 		-s base -b "ou=sm1ou2,$BASEDN" \
 		"(description=Modify$NMUM)" 2>&1 | awk '/^dn:/ {print "NOK"}'`
 	if test "x$RESULT" = "xNOK" ; then
-		echo "Change was replicated to site2 search!"
+		echo "Change was replicated to site2-search!"
 		killservers
 		exit 1
 	fi
-	sleep 1
+	sleep $i
 done
 
-echo "Checking contextCSN after modify of second backend on site1 master..."
+echo "Checking contextCSN after modify of second-backend on site1-master..."
 . $TESTDIR/checkcsn.sh
 
 
 # TEST:
-# Test updates to first backend on site2 master, which should be
+# Test updates to first-backend on site2-master, which should be
 # replicated to the central servers, but not site1.  The contextCSN
 # should be updated everywhere:
 MNUM=`expr $MNUM + 1`
-echo "Using ldapmodify to modify first backend on site2 master..."
+echo "Using ldapmodify to modify first-backend on site2-master..."
 $LDAPMODIFY -D "ou=sm2ou1,$BASEDN" -H $URI3 -w $PASSWD <<EOF >> $TESTOUT 2>&1
 dn: ou=sm2ou1,dc=example,dc=com
 changetype: modify
@@ -1892,11 +1673,10 @@ if test $RC != 0 ; then
 	killservers
 	exit $RC
 fi
-sleep 0.1
 
-echo "Using ldapsearch to check replication to central master..."
+echo "Using ldapsearch to check replication to central-master..."
 RC=32
-for i in 0.5 1 2 3 4 5; do
+for i in 0.1 0.5 1 2 3 4 5; do
 	RESULT=`$LDAPSEARCH -H $URI1 \
 		-s base -b "ou=sm2ou1,$BASEDN" \
 		"(description=Modify$MNUM)" 2>&1 | awk '/^dn:/ {print "OK"}'`
@@ -1913,9 +1693,9 @@ if test $RC != 0 ; then
 	exit $RC
 fi
 
-echo "Using ldapsearch to check replication to site2 search..."
+echo "Using ldapsearch to check replication to site2-search..."
 RC=32
-for i in 0.5 1 2 3 4 5; do
+for i in 0.1 0.5 1 2 3 4 5; do
 	RESULT=`$LDAPSEARCH -H $URI6 \
 		-s base -b "ou=sm2ou1,$BASEDN" \
 		"(description=Modify$MNUM)" 2>&1 | awk '/^dn:/ {print "OK"}'`
@@ -1932,42 +1712,42 @@ if test $RC != 0 ; then
 	exit $RC
 fi
 
-echo "Using ldapsearch to check NO replication to site1 master..."
-for i in 1 2 3; do
+echo "Using ldapsearch to check NO replication to site1-master..."
+for i in 0.5 1 2 3; do
 	RESULT=`$LDAPSEARCH -H $URI2 \
 		-s base -b "ou=sm2ou1,$BASEDN" \
 		"(description=Modify$MNUM)" 2>&1 | awk '/^dn:/ {print "NOK"}'`
 	if test "x$RESULT" = "xNOK" ; then
-		echo "Change was replicated to site2 search!"
+		echo "Change was replicated to site2-master!"
 		killservers
 		exit 1
 	fi
-	sleep 1
+	sleep $i
 done
 
-echo "Using ldapsearch to check NO replication to central search..."
-for i in 1 2 3; do
+echo "Using ldapsearch to check NO replication to central-search..."
+for i in 0.5 1 2 3; do
 	RESULT=`$LDAPSEARCH -H $URI4 \
 		-s base -b "ou=sm2ou1,$BASEDN" \
 		"(description=Modify$MNUM)" 2>&1 | awk '/^dn:/ {print "NOK"}'`
 	if test "x$RESULT" = "xNOK" ; then
-		echo "Change was replicated to site2 search!"
+		echo "Change was replicated to central-search!"
 		killservers
 		exit 1
 	fi
 	sleep 1
 done
 
-echo "Checking contextCSN after modify of first backend on site2 master..."
+echo "Checking contextCSN after modify of first-backend on site2-master..."
 . $TESTDIR/checkcsn.sh
 
 
 # TEST:
-# Test updates to the second backend on site2 master, which should only be
-# replicated to site2 search.  As always, contextCSN should be updated
+# Test updates to the second-backend on site2-master, which should only be
+# replicated to site2-search.  As always, contextCSN should be updated
 # everywhere:
 MNUM=`expr $MNUM + 1`
-echo "Using ldapmodify to modify second backend on site2 master..."
+echo "Using ldapmodify to modify second-backend on site2-master..."
 $LDAPMODIFY -D "ou=sm2ou1,$BASEDN" -H $URI3 -w $PASSWD <<EOF >> $TESTOUT 2>&1
 dn: ou=sm2ou2,dc=example,dc=com
 changetype: modify
@@ -1981,11 +1761,10 @@ if test $RC != 0 ; then
 	killservers
 	exit $RC
 fi
-sleep 0.1
 
-echo "Using ldapsearch to check replication to site2 search..."
+echo "Using ldapsearch to check replication to site2-search..."
 RC=32
-for i in 0.5 1 2 3 4 5; do
+for i in 0.1 0.5 1 2 3 4 5; do
 	RESULT=`$LDAPSEARCH -H $URI6 \
 		-s base -b "ou=sm2ou2,$BASEDN" \
 		"(description=Modify$MNUM)" 2>&1 | awk '/^dn:/ {print "OK"}'`
@@ -2002,20 +1781,20 @@ if test $RC != 0 ; then
 	exit $RC
 fi
 
-echo "Using ldapsearch to check NO replication to central master..."
-for i in 1 2 3; do
+echo "Using ldapsearch to check NO replication to central-master..."
+for i in 0.5 1 2 3; do
 	RESULT=`$LDAPSEARCH -H $URI4 \
 		-s base -b "ou=sm2ou2,$BASEDN" \
 		"(description=Modify$MNUM)" 2>&1 | awk '/^dn:/ {print "NOK"}'`
 	if test "x$RESULT" = "xNOK" ; then
-		echo "Change was replicated to central search!"
+		echo "Change was replicated to central-search!"
 		killservers
 		exit 1
 	fi
-	sleep 1
+	sleep $i
 done
 
-echo "Checking contextCSN after modify of second backend on site2 master..."
+echo "Checking contextCSN after modify of second-backend on site2-master..."
 . $TESTDIR/checkcsn.sh
 
 # TEST:
@@ -2023,7 +1802,7 @@ echo "Checking contextCSN after modify of second backend on site2 master..."
 # starts with an empty database.  Start site2 master first, then site2
 # search and finally central master so that the site2 search's syncrepl
 # connection has been set up when site2 master receives the database:
-echo "Stopping central master and site2 servers to test start with emtpy db..."
+echo "Stopping central-master and site2-servers to test start with emtpy db..."
 killpids $SMC_PID $SM2_PID $SS2_PID
 KILLPIDS=`echo "$KILLPIDS " | sed -e "s/ $SMC_PID / /"`;
 KILLPIDS=`echo "$KILLPIDS " | sed -e "s/ $SM2_PID / /"`;
@@ -2034,7 +1813,7 @@ SS2_PID=
 rm -rf $SM2_DIR/db/*
 rm -rf $SS2_DIR/db/*
 
-echo "Starting site2 master slapd on TCP/IP port $PORT3..."
+echo "Starting site2-master slapd on TCP/IP port $PORT3..."
 cd $SM2_DIR
 $SLAPD -F slapd.d -h $URI3 -d $LVL $TIMING >> $LOG3 2>&1 &
 SM2_PID=$!
@@ -2044,23 +1823,9 @@ if test $WAIT != 0 ; then
 fi
 KILLPIDS="$KILLPIDS $SM2_PID"
 cd $TESTWD
-sleep 0.1
-echo "Using ldapsearch to check that site2 master slapd is running..."
-for i in 1 2 3 4 5; do
-	$LDAPSEARCH -s base -b "" -H $URI3 \
-		'objectclass=*' > /dev/null 2>&1
-	RC=$?
-	test $RC = 0 && break
-	echo "Waiting $i seconds for slapd to start..."
-	sleep $i
-done
-if test $RC != 0 ; then
-	echo "ldapsearch failed ($RC)!"
-	killservers
-	exit $RC
-fi
+check_running 3 site2-master
 
-echo "Starting site2 search slapd on TCP/IP port $PORT6..."
+echo "Starting site2-search slapd on TCP/IP port $PORT6..."
 cd $SS2_DIR
 $SLAPD -F slapd.d -h $URI6 -d $LVL $TIMING >> $LOG6 2>&1 &
 SS2_PID=$!
@@ -2070,23 +1835,9 @@ if test $WAIT != 0 ; then
 fi
 KILLPIDS="$KILLPIDS $SS2_PID"
 cd $TESTWD
-sleep 0.1
-echo "Using ldapsearch to check that site2 search slapd is running..."
-for i in 1 2 3 4 5; do
-	$LDAPSEARCH -s base -b "" -H $URI6 \
-		'objectclass=*' > /dev/null 2>&1
-	RC=$?
-	test $RC = 0 && break
-	echo "Waiting $i seconds for slapd to start..."
-	sleep $i
-done
-if test $RC != 0 ; then
-	echo "ldapsearch failed ($RC)!"
-	killservers
-	exit $RC
-fi
+check_running 6 site2-search
 
-echo "Starting central master slapd on TCP/IP port $PORT1..."
+echo "Starting central-master slapd on TCP/IP port $PORT1..."
 cd $SMC_DIR
 $SLAPD -F slapd.d -h $URI1 -d $LVL $TIMING >> $LOG1 2>&1 &
 SMC_PID=$!
@@ -2096,25 +1847,11 @@ if test $WAIT != 0 ; then
 fi
 KILLPIDS="$KILLPIDS $SMC_PID"
 cd $TESTWD
-sleep 0.1
-echo "Using ldapsearch to check that central master slapd is running..."
-for i in 1 2 3 4 5; do
-	$LDAPSEARCH -s base -b "" -H $URI1 \
-		'objectclass=*' > /dev/null 2>&1
-	RC=$?
-	test $RC = 0 && break
-	echo "Waiting $i seconds for slapd to start..."
-	sleep $i
-done
-if test $RC != 0 ; then
-	echo "ldapsearch failed ($RC)!"
-	killservers
-	exit $RC
-fi
+check_running 1 central-master
 
-echo "Using ldapsearch to check that site2 master received base..."
+echo "Using ldapsearch to check that site2-master received base..."
 RC=32
-for i in 1 2 3 4 5; do
+for i in 0.1 0.5 1 2 3 4 5; do
 	RESULT=`$LDAPSEARCH -H $URI3 \
 		-s base -b "$BASEDN" \
 		'(objectClass=*)' 2>&1 | awk '/^dn:/ {print "OK"}'`
@@ -2131,9 +1868,9 @@ if test $RC != 0 ; then
 	exit $RC
 fi
 
-echo "Using ldapsearch to check that site2 search received base..."
+echo "Using ldapsearch to check that site2-search received base..."
 RC=32
-for i in 1 2 3 4 5; do
+for i in 0.1 0.5 1 2 3 4 5; do
 	RESULT=`$LDAPSEARCH -H $URI6 \
 		-s base -b "$BASEDN" \
 		'(objectClass=*)' 2>&1 | awk '/^dn:/ {print "OK"}'`
@@ -2150,7 +1887,7 @@ if test $RC != 0 ; then
 	exit $RC
 fi
 
-echo "Checking contextCSN after site2 servers repopulated..."
+echo "Checking contextCSN after site2-servers repopulated..."
 . $TESTDIR/checkcsn.sh
 
 if test $ERRORS -ne 0; then
@@ -2160,11 +1897,11 @@ if test $ERRORS -ne 0; then
 fi
 
 # TEST:
-# Adding syncrepl of the second site1 master backend on central master
+# Adding syncrepl of the second site1-master backend on central-master
 # will not initialize the database unless the contextCSN attribute is
 # stored in the suffix of the database and not the suffix of the glue
 # database:
-echo "Adding syncrepl of second site1 master backend on central master..."
+echo "Adding syncrepl of second site1-master backend on central-master..."
 $LDAPMODIFY -D cn=config -H $URI1 -y $CONFIGPWF <<EOF >> $TESTOUT 2>&1
 dn: olcDatabase={4}$BACKEND,cn=config
 changetype: modify
@@ -2175,15 +1912,14 @@ olcSyncRepl: rid=4 provider=$URI2 searchbase="ou=sm1ou2,$BASEDN"
 EOF
 RC=$?
 if test $RC != 0 ; then
-	echo "ldapmodify failed to add syncrepl on central master ($RC)!"
+	echo "ldapmodify failed to add syncrepl on central-master ($RC)!"
 	killservers
 	exit $RC
 fi
-sleep 0.1
 
-echo "Using ldapsearch to check that central master received second site1 backend..."
+echo "Using ldapsearch to check that central-master received second site1-backend..."
 RC=32
-for i in 1 2 3 4 5; do
+for i in 0.1 0.5 1 2 3 4 5; do
 	RESULT=`$LDAPSEARCH -H $URI1 \
 		-s base -b "ou=sm1ou2,$BASEDN" \
 		'(objectClass=*)' 2>&1 | awk '/^dn:/ {print "OK"}'`
@@ -2195,10 +1931,10 @@ for i in 1 2 3 4 5; do
 	sleep 1
 done
 if test $RC != 0 ; then
-	echo "ERROR: Second site1 backend not replicated to central master"
+	echo "ERROR: Second site1-backend not replicated to central-master"
 	ERRORS=`expr $ERRORS + 1`
 
-	echo "Restarting central master slapd on TCP/IP port $PORT1..."
+	echo "Restarting central-master slapd on TCP/IP port $PORT1..."
 	killpids $SMC_PID
 	KILLPIDS=`echo "$KILLPIDS " | sed -e "s/ $SMC_PID / /"`;
 
@@ -2211,24 +1947,11 @@ if test $RC != 0 ; then
 	fi
 	KILLPIDS="$KILLPIDS $SMC_PID"
 	cd $TESTWD
-	echo "Using ldapsearch to check that central master slapd is running..."
-	for i in 1 2 3 4 5; do
-		$LDAPSEARCH -s base -b "" -H $URI1 \
-			'objectclass=*' > /dev/null 2>&1
-		RC=$?
-		test $RC = 0 && break
-		echo "Waiting $i seconds for slapd to start..."
-		sleep $i
-	done
-	if test $RC != 0 ; then
-		echo "ldapsearch failed ($RC)!"
-		killservers
-		exit $RC
-	fi
+	check_running 1 central-master
 
-	echo "Using ldapsearch to check that central master received second site1 backend..."
+	echo "Using ldapsearch to check that central-master received second site1-backend..."
 	RC=32
-	for i in 1 2 3 4 5; do
+	for i in 0.1 0.5 1 2 3 4 5; do
 		RESULT=`$LDAPSEARCH -H $URI1 \
 			-s base -b "ou=sm1ou2,$BASEDN" \
 			'(objectClass=*)' 2>&1 | awk '/^dn:/ {print "OK"}'`
@@ -2246,9 +1969,9 @@ if test $RC != 0 ; then
 	fi
 fi
 
-echo "Using ldapsearch to check that central search received second site1 backend..."
+echo "Using ldapsearch to check that central-search received second site1-backend..."
 RC=32
-for i in 1 2 3; do
+for i in 0.1 0.5 1 2 3; do
 	RESULT=`$LDAPSEARCH -H $URI4 \
 		-s base -b "ou=sm1ou2,$BASEDN" \
 		'(objectClass=*)' 2>&1 | awk '/^dn:/ {print "OK"}'`
@@ -2260,10 +1983,10 @@ for i in 1 2 3; do
 	sleep $i
 done
 if test $RC != 0 ; then
-	echo "ERROR: Second site1 backend not replicated to central search"
+	echo "ERROR: Second site1-backend not replicated to central-search"
 	ERRORS=`expr $ERRORS + 1`
 
-	echo "Restarting central search slapd on TCP/IP port $PORT4..."
+	echo "Restarting central-search slapd on TCP/IP port $PORT4..."
 	killpids $SSC_PID
 	KILLPIDS=`echo "$KILLPIDS " | sed -e "s/ $SSC_PID / /"`;
 
@@ -2276,22 +1999,9 @@ if test $RC != 0 ; then
 	fi
 	KILLPIDS="$KILLPIDS $SSC_PID"
 	cd $TESTWD
-	echo "Using ldapsearch to check that central search slapd is running..."
-	for i in 1 2 3 4 5; do
-		$LDAPSEARCH -s base -b "" -H $URI4 \
-			'objectclass=*' > /dev/null 2>&1
-		RC=$?
-		test $RC = 0 && break
-		echo "Waiting $i seconds for slapd to start..."
-		sleep $i
-	done
-	if test $RC != 0 ; then
-		echo "ldapsearch failed ($RC)!"
-		killservers
-		exit $RC
-	fi
+	check_running 4 central-search
 
-	echo "Using ldapsearch to check that central search received second site1 backend..."
+	echo "Using ldapsearch to check that central-search received second site1-backend..."
 	RC=32
 	for i in 1 2 3 ; do
 		RESULT=`$LDAPSEARCH -H $URI4 \
@@ -2332,12 +2042,12 @@ while test $RACE_ERROR -eq 0 -a $RACE_NUM -lt $RACE_TESTS ; do
 	RACE_NUM=`expr $RACE_NUM + 1`
 	echo "Running $RACE_NUM of $RACE_TESTS syncrepl race tests..."
 
-	echo "Stopping central master..."
+	echo "Stopping central-master..."
 	killpids $SMC_PID
 	KILLPIDS=`echo "$KILLPIDS " | sed -e "s/ $SMC_PID / /"`;
 
 	MNUM=`expr $MNUM + 1`
-	echo "Using ldapadd to add entry on site1 master..."
+	echo "Using ldapadd to add entry on site1-master..."
 	$LDAPADD -D "ou=sm1ou1,$BASEDN" -H $URI2 -w $PASSWD <<EOF >> $TESTOUT 2>&1
 dn: $SUB_DN
 objectClass: top
@@ -2352,43 +2062,45 @@ EOF
 		exit $RC
 	fi
 
-	echo "Starting central master again..."
+	echo "Starting central-master again..."
 	cd $SMC_DIR
 	$SLAPD -F slapd.d -h $URI1 -d $LVL $TIMING >> $LOG1 2>&1 &
 	SMC_PID=$!
 	KILLPIDS="$KILLPIDS $SMC_PID"
 	cd $TESTWD
-	echo "Using ldapsearch to check that central master received entry..."
-	for i in 1 2 3 4 5; do
+	check_running 1 central-master
+
+	echo "Using ldapsearch to check that central-master received entry..."
+	for i in 0.1 0.5 1 2 3 4 5; do
 		$LDAPSEARCH -s base -b "$SUB_DN"  -H $URI1 > /dev/null 2>&1
 		RC=$?
 		test $RC = 0 && break
 		sleep $i
 	done
 	if test $RC != 0 ; then
-		echo "ERROR: entry not replicated to central master!"
+		echo "ERROR: entry not replicated to central-master!"
 		RACE_ERROR=1
 		break
 	fi
 
-	echo "Using ldapsearch to check that central search received entry..."
-	for i in 1 2 3 4 5; do
+	echo "Using ldapsearch to check that central-search received entry..."
+	for i in 0.1 0.5 1 2 3 4 5; do
 		$LDAPSEARCH -s base -b "$SUB_DN"  -H $URI4 > /dev/null 2>&1
 		RC=$?
 		test $RC = 0 && break
 		sleep $i
 	done
 	if test $RC != 0 ; then
-		echo "ERROR: entry not replicated to central master!"
+		echo "ERROR: entry not replicated to central-master!"
 		RACE_ERROR=1
 		break
 	fi
 
-	echo "Stopping central master..."
+	echo "Stopping central-master..."
 	killpids $SMC_PID
 	KILLPIDS=`echo "$KILLPIDS " | sed -e "s/ $SMC_PID / /"`;
 
-	echo "Using ldapdelete to delete entry on site1 master..."
+	echo "Using ldapdelete to delete entry on site1-master..."
 	$LDAPDELETE -D "ou=sm1ou1,$BASEDN" -H $URI2 -w $PASSWD "$SUB_DN"
 	RC=$?
 	if test $RC != 0 ; then
@@ -2397,16 +2109,17 @@ EOF
 		exit $RC
 	fi
 
-	echo "Starting central master again..."
+	echo "Starting central-master again..."
 	cd $SMC_DIR
 	$SLAPD -F slapd.d -h $URI1 -d $LVL $TIMING >> $LOG1 2>&1 &
 	SMC_PID=$!
 	KILLPIDS="$KILLPIDS $SMC_PID"
 	cd $TESTWD
+	check_running 1 central-master
 
-	echo "Using ldapsearch to check that entry was deleted on central master..."
+	echo "Using ldapsearch to check that entry was deleted on central-master..."
 	RC=0
-	for i in 1 2 3 4 5; do
+	for i in 0.1 0.5 1 2 3 4 5; do
 		$LDAPSEARCH -s base -b "$SUB_DN" -H $URI1 > /dev/null 2>&1
 		RC=$?
 		if test $RC = $wantNoObj; then break; fi
@@ -2419,14 +2132,14 @@ EOF
 			killservers
 			exit $RC
 		fi
-		echo "ERROR: Entry not removed on central master!"
+		echo "ERROR: Entry not removed on central-master!"
 		RACE_ERROR=1
 		break
 	fi
 
-	echo "Using ldapsearch to check that entry was deleted on central search..."
+	echo "Using ldapsearch to check that entry was deleted on central-search..."
 	RC=0
-	for i in 1 2 3 4 5; do
+	for i in 0.1 0.5 1 2 3 4 5; do
 		$LDAPSEARCH -s base -b "$SUB_DN" -H $URI4 > /dev/null 2>&1
 		RC=$?
 		if test $RC != 0; then break; fi
