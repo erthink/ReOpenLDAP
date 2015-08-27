@@ -2377,9 +2377,11 @@ syncprov_detach_op( Operation *op, syncops *so, slap_overinst *on )
 	op2->o_req_ndn.bv_len = op->o_req_ndn.bv_len;
 	op2->o_req_ndn.bv_val = ptr;
 	ptr = lutil_strcopy(ptr, op->o_req_ndn.bv_val) + 1;
-	op2->ors_filterstr.bv_val = ptr;
-	strcpy( ptr, so->s_filterstr.bv_val );
-	op2->ors_filterstr.bv_len = so->s_filterstr.bv_len;
+	if (so->s_filterstr.bv_val) {
+		op2->ors_filterstr.bv_val = ptr;
+		strcpy( ptr, so->s_filterstr.bv_val );
+		op2->ors_filterstr.bv_len = so->s_filterstr.bv_len;
+	}
 
 	/* Skip the AND/GE clause that we stuck on in front */
 	if ( so->s_flags & PS_FIX_FILTER ) {
