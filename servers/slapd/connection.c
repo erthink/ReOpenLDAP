@@ -756,18 +756,26 @@ static void connection_abandon( Connection *c )
 	for ( o = LDAP_STAILQ_FIRST( &c->c_ops ); o; o=next ) {
 		SlapReply rs = {REP_RESULT};
 
+		LDAP_ASSERT(o->o_conn == c);
 		next = LDAP_STAILQ_NEXT( o, o_next );
+		if (next)
+			LDAP_ASSERT(next->o_conn == c);
+
 		op.orn_msgid = o->o_msgid;
 		o->o_abandon = 1;
 		op.o_bd = frontendDB;
 		frontendDB->be_abandon( &op, &rs );
+
+		if (next)
+			LDAP_ASSERT(next->o_conn == c);
 	}
 
 #ifdef LDAP_X_TXN
 	/* remove operations in pending transaction */
 	while ( (o = LDAP_STAILQ_FIRST( &c->c_txn_ops )) != NULL) {
+		LDAP_ASSERT(o->o_conn == c);
 		LDAP_STAILQ_REMOVE_HEAD( &c->c_txn_ops, o_next );
-		LDAP_STAILQ_NEXT(o, o_next) = NULL;
+		o->o_conn = NULL;
 		slap_op_free( o, NULL );
 	}
 
@@ -778,8 +786,9 @@ static void connection_abandon( Connection *c )
 
 	/* remove pending operations */
 	while ( (o = LDAP_STAILQ_FIRST( &c->c_pending_ops )) != NULL) {
+		LDAP_ASSERT(o->o_conn == c);
 		LDAP_STAILQ_REMOVE_HEAD( &c->c_pending_ops, o_next );
-		LDAP_STAILQ_NEXT(o, o_next) = NULL;
+		o->o_conn = NULL;
 		slap_op_free( o, NULL );
 	}
 }
@@ -1209,8 +1218,9 @@ operations_error:
 
 	ber_set_option( op->o_ber, LBER_OPT_BER_MEMCTX, &memctx_null );
 
+	LDAP_ASSERT(conn == op->o_conn);
 	LDAP_STAILQ_REMOVE( &conn->c_ops, op, Operation, o_next);
-	LDAP_STAILQ_NEXT(op, o_next) = NULL;
+	op->o_conn = NULL;
 	conn->c_n_ops_executing--;
 	conn->c_n_ops_completed++;
 
@@ -1725,6 +1735,7 @@ connection_input( Connection *conn , conn_readinfo *cri )
 		Debug( LDAP_DEBUG_ANY,
 			"connection_input: conn=%lu deferring operation: %s\n",
 			conn->c_connid, defer );
+		LDAP_ASSERT(op->o_conn == conn);
 		conn->c_n_ops_pending++;
 		LDAP_STAILQ_INSERT_TAIL( &conn->c_pending_ops, op, o_next );
 		rc = ( conn->c_n_ops_pending > max ) ? -1 : 0;
@@ -1785,10 +1796,10 @@ connection_resched( Connection *conn )
 	}
 
 	while ((op = LDAP_STAILQ_FIRST( &conn->c_pending_ops )) != NULL) {
+		LDAP_ASSERT(conn == op->o_conn);
 		if ( conn->c_n_ops_executing > connection_pool_max/2 ) break;
 
 		LDAP_STAILQ_REMOVE_HEAD( &conn->c_pending_ops, o_next );
-		LDAP_STAILQ_NEXT(op, o_next) = NULL;
 
 		/* pending operations should not be marked for abandonment */
 		assert(!op->o_abandon);
@@ -1994,11 +2005,12 @@ int connection_write(ber_socket_t s)
 	 * start one up.
 	 */
 	while ((op = LDAP_STAILQ_FIRST( &c->c_pending_ops )) != NULL) {
+		LDAP_ASSERT(c == op->o_conn);
 		if ( !c->c_writewaiter ) break;
 		if ( c->c_n_ops_executing > connection_pool_max/2 ) break;
 
 		LDAP_STAILQ_REMOVE_HEAD( &c->c_pending_ops, o_next );
-		LDAP_STAILQ_NEXT(op, o_next) = NULL;
+		op->o_conn = NULL;
 
 		/* pending operations should not be marked for abandonment */
 		assert(!op->o_abandon);

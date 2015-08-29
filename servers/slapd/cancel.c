@@ -89,6 +89,7 @@ int cancel_extop( Operation *op, SlapReply *rs )
 	}
 
 	LDAP_STAILQ_FOREACH( o, &op->o_conn->c_ops, o_next ) {
+		LDAP_ASSERT(o->o_conn == op->o_conn);
 		if ( o->o_msgid == opid ) {
 			break;
 		}
