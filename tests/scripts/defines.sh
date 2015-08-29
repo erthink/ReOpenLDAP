@@ -300,6 +300,7 @@ LDIFVALSORT=$DATADIR/test-valsort.ldif
 SQLADD=$DATADIR/sql-add.ldif
 LDIFUNORDERED=$DATADIR/test-unordered.ldif
 LDIFREORDERED=$DATADIR/test-reordered.ldif
+LDIFMODIFY=$DATADIR/test-modify.ldif
 
 # strings
 MONITOR=""
