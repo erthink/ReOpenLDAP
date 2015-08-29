@@ -3452,6 +3452,7 @@ syncprov_db_close(
 
 #ifdef SLAP_CONFIG_DELETE
 	if ( !slapd_shutdown ) {
+		int paused = slap_biglock_pool_pause(be);
 		ldap_pvt_thread_mutex_lock( &si->si_ops_mutex );
 		for ( so=si->si_ops, sonext=so;  so; so=sonext  ) {
 			SlapReply rs = {REP_RESULT};
@@ -3463,6 +3464,8 @@ syncprov_db_close(
 		}
 		si->si_ops=NULL;
 		ldap_pvt_thread_mutex_unlock( &si->si_ops_mutex );
+		if (paused == LDAP_SUCCESS)
+			slap_biglock_pool_resume(be);
 	}
 	overlay_unregister_control( be, LDAP_CONTROL_SYNC );
 #endif /* SLAP_CONFIG_DELETE */
