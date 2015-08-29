@@ -467,9 +467,12 @@ function collect_coredumps {
 function collect_test {
 	wait
 	local id=${1:-xxx-$(date '+%F.%H%M%S.%N')}
-	local publish=${2:-no}
+	local failed=${2:-yes}
 	local from="../${SRCDIR}/tests/testrun"
-	if [ -n "$(ls $from)" ]; then
+	local status="../${SRCDIR}/@successful.log"
+	if [ -n "$1" -a "$failed" = "no" ] && grep -q -- "$id" $status; then
+		echo "Skipping a result(s) collecting of already successful $id" >&2
+	elif [ -n "$(ls $from)" ]; then
 		echo "Collect result(s) from $id..." >&2
 
 		local dir n target
@@ -489,9 +492,11 @@ function collect_test {
 		mkdir -p "$target" || failure "failed: mkdir -p '$target'"
 		mv -t "${target}" $from/* || failure "failed: mv -t '${target}' '$from/*'"
 
-		if [ "${publish}" == "yes" ]; then
+		if [ "${failed}" == "yes" ]; then
 			teamcity_msg "publishArtifacts '$(safepath ${target}) => ${id}-dump.tar.gz'"
 			sleep 1
+		else
+			echo "$id	$(date '+%F.%H%M%S.%N')" >> $status
 		fi
 	fi
 }
