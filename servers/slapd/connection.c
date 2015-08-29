@@ -761,6 +761,9 @@ static void connection_abandon( Connection *c )
 		if (next)
 			LDAP_ASSERT(next->o_conn == c);
 
+		/* don't abandon an op twice */
+		if ( o->o_abandon )
+			continue;
 		op.orn_msgid = o->o_msgid;
 		o->o_abandon = 1;
 		op.o_bd = frontendDB;

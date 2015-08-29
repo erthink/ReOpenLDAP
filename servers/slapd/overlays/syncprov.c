@@ -829,7 +829,6 @@ syncprov_free_syncop( syncops *so, int lockflags )
 		for ( sop = &so->s_si->si_ops; *sop; sop = &(*sop)->s_next ) {
 			if ( *sop == so ) {
 				*sop = so->s_next;
-				op->o_abandon = 1;
 				break;
 			}
 		}
