@@ -2408,6 +2408,9 @@ syncprov_detach_op( Operation *op, syncops *so, slap_overinst *on )
 	/* Prevent anyone else from trying to send a result for this op */
 	so->s_flags |= PS_IS_DETACHED;
 	op->o_abandon = 1;
+	/* LY: Icing on the cake - this is a crutch/workaround
+	 * for https://github.com/ReOpen/ReOpenLDAP/issues/47 */
+	op->o_msgid += ~((~0u) >> 1);
 
 #ifdef SLAP_NO_SL_MALLOC
 	if (so->s_filterstr.bv_val != op->ors_filterstr.bv_val) {
