@@ -70,8 +70,10 @@ function verify_ports {
 
 trap cleanup TERM INT QUIT HUP
 
-if [ -n "${TEAMCITY_PROCESS_FLOW_ID}" ]; then
-	filter=msg
+if [ -n "${TEST_TEMP_DIR}" ]; then
+	rm -rf tests/testrun || failure "rm tests/testrun"
+	([ -d $TEST_TEMP_DIR ] || mkdir -p ${TEST_TEMP_DIR}) && ln -s ${TEST_TEMP_DIR} tests/testrun || failure "mkdir-link tests/testrun"
+elif [ -n "${TEAMCITY_PROCESS_FLOW_ID}" ]; then
 	rm -rf tests/testrun || failure "rm tests/testrun"
 	leaf="reopenldap-ci-test"
 	if [ -d /ramfs ]; then
@@ -93,28 +95,33 @@ if [ -n "${TEAMCITY_PROCESS_FLOW_ID}" ]; then
 	fi
 	ln -s ${TMP} tests/testrun || failure "link tests/testrun"
 else
-	filter=cat
 	(mount | grep ${HERE}/tests/testrun \
 		|| (mkdir -p ${HERE}/tests/testrun && sudo mount -t tmpfs RAM ${HERE}/tests/testrun)) \
 		|| failure "mount tests/testrun"
 fi
 
+if [ -n "${TEAMCITY_PROCESS_FLOW_ID}" ]; then
+	filter=msg
+else
+	filter=cat
+fi
+
 for n in $(seq 1 $N); do
 	echo "##teamcity[blockOpened name='Round $n of $N']"
-	for m in 3 2 1 0; do
+	for m in 0 1 2 3; do
 		unset REOPENLDAP_FORCE_IDDQD REOPENLDAP_FORCE_IDKFA
 		case $m in
 		0)
-			export REOPENLDAP_MODE='free'
+			export REOPENLDAP_FORCE_IDDQD=1 REOPENLDAP_FORCE_IDKFA=1 REOPENLDAP_MODE='DQD-KFA'
 			;;
 		1)
-			export REOPENLDAP_FORCE_IDDQD=1 REOPENLDAP_MODE='DQD'
-			;;
-		2)
 			export REOPENLDAP_FORCE_IDKFA=1 REOPENLDAP_MODE='KFA'
 			;;
+		2)
+			export REOPENLDAP_FORCE_IDDQD=1 REOPENLDAP_MODE='DQD'
+			;;
 		3)
-			export REOPENLDAP_FORCE_IDDQD=1 REOPENLDAP_FORCE_IDKFA=1 REOPENLDAP_MODE='DQD-KFA'
+			export REOPENLDAP_MODE='free'
 			;;
 		esac
 		echo "##teamcity[blockOpened name='$REOPENLDAP_MODE']"
