@@ -73,6 +73,7 @@ EOF
 	if [ -x "$CMD" ]; then
 		teamcity_msg "testStarted name='$BCMD for $BACKEND_MODE' captureStandardOutput='true'"
 		echo ">>>>> Starting ${TB}$BCMD${TN} for $BACKEND_MODE..."
+		echo "$(date --rfc-3339=seconds) >>> ${TEST_ITER}--${TEST_ID}" > $SRCDIR/../.git/@ci-step.log
 		$CMD 2>&1 | tee $TESTDIR/main.log
 		RC=${PIPESTATUS[0]}
 		if [ ! -f $TESTDIR/main.log ]; then
@@ -83,6 +84,7 @@ EOF
 		if ! collect_coredumps $TEST_ID; then
 			RC=134
 		fi
+		echo "$(date --rfc-3339=seconds) <<< ${TEST_ITER}--${TEST_ID} = $RC" > $SRCDIR/../.git/@ci-step.log
 		if test $RC -eq 0 ; then
 			collect_test $TEST_ID no
 			echo ">>>>> $BCMD completed ${TB}OK${TN} for $BACKEND_MODE."
