@@ -4,6 +4,7 @@ N=${1:-42}
 HERE=$(readlink -f $(pwd))
 TMP=
 ulimit -c unlimited
+NPORTS=8
 
 cleanup() {
 	wait
@@ -48,11 +49,26 @@ function find_free_port {
 	done
 }
 
+function verify_ports {
+	RANDOM=$$
+	if [ -n "$(which nc)" ]; then
+		for port in "$@"; do
+			token="${RANDOM}-${RANDOM}-${RANDOM}-${RANDOM}-$$"
+			(echo $token | timeout 1s nc -l 127.0.0.1 $port) &
+			feed=$(sleep 0.1 && timeout 1s nc 127.0.0.1 $port)
+			if [ "$feed" != "$token" ]; then
+				echo "TCP-post $port is busy, try find again" >&2
+				return 1
+			fi
+		done
+	else
+		echo "nc (netcat) not available, skip verification"
+	fi
+	echo "Using TCP-ports $@" >&2
+	return 0
+}
+
 trap cleanup TERM INT QUIT HUP
-if [ -z ${SLAPD_BASEPORT} ]; then
-	export SLAPD_BASEPORT=$(find_free_port 8)
-fi
-echo "Using TCP-ports ${SLAPD_BASEPORT}-$((SLAPD_BASEPORT + 8))"
 
 if [ -n "${TEAMCITY_PROCESS_FLOW_ID}" ]; then
 	filter=msg
@@ -105,6 +121,10 @@ for n in $(seq 1 $N); do
 
 		export TEST_ITER=$(($n*4+$m)) TEST_NOOK="@ci-test-${n}.${REOPENLDAP_MODE}"
 		(rm -rf ${TEST_NOOK} && mkdir -p ${TEST_NOOK}) || echo "failed: mkdir -p '${TEST_NOOK}'" >&2
+
+		while [ -z ${SLAPD_BASEPORT} ] || ! verify_ports $(seq ${SLAPD_BASEPORT} $((SLAPD_BASEPORT + NPORTS - 1))); do
+			export SLAPD_BASEPORT=$(find_free_port ${NPORTS})
+		done
 
 		NOEXIT="${NOEXIT:-${TEAMCITY_PROCESS_FLOW_ID}}" make test 2>&1 | tee ${TEST_NOOK}/all.log | $filter
 		RC=${PIPESTATUS[0]}
