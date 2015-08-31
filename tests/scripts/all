@@ -86,7 +86,7 @@ EOF
 		fi
 		echo "$(date --rfc-3339=seconds) <<< ${TEST_ITER}--${TEST_ID} = $RC" > $SRCDIR/../.git/@ci-step.log
 		if test $RC -eq 0 ; then
-			collect_test $TEST_ID no
+			[ -z "$NO_COLLECT_SUCCESS" ] && collect_test $TEST_ID no
 			echo ">>>>> $BCMD completed ${TB}OK${TN} for $BACKEND_MODE."
 		else
 			collect_test $TEST_ID yes
