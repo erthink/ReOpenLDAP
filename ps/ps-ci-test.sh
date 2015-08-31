@@ -126,14 +126,14 @@ for n in $(seq 1 $N); do
 		esac
 		echo "##teamcity[blockOpened name='$REOPENLDAP_MODE']"
 
-		export TEST_ITER=$(($n*4+$m)) TEST_NOOK="@ci-test-${n}.${REOPENLDAP_MODE}"
+		export TEST_ITER=$(($n*4 - 4 + $m)) TEST_NOOK="@ci-test-${n}.${REOPENLDAP_MODE}"
 		(rm -rf ${TEST_NOOK} && mkdir -p ${TEST_NOOK}) || echo "failed: mkdir -p '${TEST_NOOK}'" >&2
 
 		while [ -z ${SLAPD_BASEPORT} ] || ! verify_ports $(seq ${SLAPD_BASEPORT} $((SLAPD_BASEPORT + NPORTS - 1))); do
 			export SLAPD_BASEPORT=$(find_free_port ${NPORTS})
 		done
 
-		NOEXIT="${NOEXIT:-${TEAMCITY_PROCESS_FLOW_ID}}" make test 2>&1 | tee ${TEST_NOOK}/all.log | $filter
+		NOEXIT="${NOEXIT:-${TEAMCITY_PROCESS_FLOW_ID}}" ionice -c 3 make test 2>&1 | tee ${TEST_NOOK}/all.log | $filter
 		RC=${PIPESTATUS[0]}
 		grep ' failed for ' ${TEST_NOOK}/all.log >&2
 		sleep 1
