@@ -19,7 +19,9 @@ build_args="--size --do-not-clean"
 test_args="111"
 
 TOP=$(pwd)/@ci-buzz-pid.dbg
-rm -rf $TOP && mkdir -p $TOP || failure "mkdir -p $TOP"
+mkdir -p $TOP || failure "mkdir -p $TOP"
+rm -rf $TOP/@* || failure  "rm -rf $TOP/@*"
+[ ! -d $TOP/ramfs ] || rm -rf $TOP/ramfs/* || failure "$TOP/ramfs/*"
 
 function doit {
 	branch=$1
@@ -51,6 +53,7 @@ TEMPFS=${TOP}/ramfs
 nice=5
 for ((n=0; n < N; n++)); do
 	for branch in $branch_list; do
+		echo "launching $n of $branch, with nice $nice..."
 		dir="$TOP/@$n.$branch"
 		tmp=$(readlink -f ${TEMPFS}/$n.$branch)
 		mkdir -p "$dir" || failure "mkdir -p $dir"
@@ -75,6 +78,9 @@ while true; do
 			fi
 		done
 	done
+
+	echo "==="
+	df -h $TOP $TOP/ramfs
 
 	if [ -z "$(jobs -r)" ]; then
 		break;
