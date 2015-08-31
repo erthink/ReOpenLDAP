@@ -39,8 +39,8 @@ function doit {
 	echo "==============================================================================="
 	echo "$(date --rfc-3339=seconds) Testing..." > .git/@ci-step.log
 	rm -rf @* || failure "rm -rf @*"
-	#echo TEST_TEMP_DIR=$(readlink -f ${here}/tmp) $test $test_args
-	TEST_TEMP_DIR=$(readlink -f ${here}/tmp) setsid -w nice -n $nice $test $test_args
+	NO_COLLECT_SUCCESS=yes TEST_TEMP_DIR=$(readlink -f ${here}/tmp) \
+		setsid -w nice -n $nice $test $test_args
 }
 
 TEMPFS=${TOP}/ramfs
