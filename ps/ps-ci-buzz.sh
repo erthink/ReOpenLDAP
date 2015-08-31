@@ -61,7 +61,7 @@ for ((n=0; n < N; n++)); do
 		echo "lanching..." >$dir/status
 		rm -rf $tmp $dir/tmp && mkdir -p $tmp && ln -s $tmp $dir/tmp || failure "mkdir -p $tmp"
 		((cd $dir && msg_frefix="#$n of $branch | " doit $branch $nice >out.log 2>err.log) </dev/null; \
-			 echo "#$n of $branch:	code $?, $(date '+%F.%H%M%S.%N')" >$dir/status) &
+			 echo "$(date '+%F.%H%M%S.%N') *** exit with rc $?" >$dir/status) &
 		nice=$((nice + 1))
 		sleep 1
 	done
@@ -79,6 +79,12 @@ while true; do
 
 	echo "==="
 	df -h $TOP $TOP/ramfs
+	echo "==="
+	vmstat -w
+	echo "==="
+	uptime
+	echo "==="
+	vmstat -w -a
 
 	if [ -z "$(jobs -r)" ]; then
 		break;
