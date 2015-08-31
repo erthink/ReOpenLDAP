@@ -129,6 +129,7 @@ EOF
 	if [ -n "$NOEXIT" ]; then
 		echo "$RC	$TEST_ID" >> $RESULTS
 	fi
+	rm -rf $TESTDIR/* || failure "failed: cleanup $$TESTDIR/*"
 
 #	echo ">>>>> waiting $SLEEPTIME seconds for things to exit"
 #	sleep $SLEEPTIME
