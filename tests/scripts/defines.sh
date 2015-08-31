@@ -415,7 +415,18 @@ function killservers {
 	fi
 }
 
+function get_df_mb {
+	echo $(($(df -k --output=avail $(readlink -f $1) | tail -1) / 1024))
+}
+
+function cibuzz_report {
+	if [ -n "$CIBUZZ_STATUS" ]; then
+		echo "$(date --rfc-3339=seconds) $@" > $CIBUZZ_STATUS
+	fi
+}
+
 function failure {
+	cibuzz_report "failure: $@"
 	echo "$@" >&2
 	killservers
 	exit 125
@@ -470,9 +481,13 @@ function collect_test {
 	local failed=${2:-yes}
 	local from="../${SRCDIR}/tests/testrun"
 	local status="../${SRCDIR}/@successful.log"
+
 	if [ -n "$1" -a "$failed" = "no" ] && grep -q -- "$id" $status; then
-		echo "Skipping a result(s) collecting of already successful $id" >&2
-	elif [ -n "$(ls $from)" ]; then
+		echo "Skipping a result(s) collecting of successful $id (already have)" >&2
+		return
+	fi
+
+	if [ -n "$(ls $from)" ]; then
 		echo "Collect result(s) from $id..." >&2
 
 		local dir n target
@@ -480,6 +495,12 @@ function collect_test {
 			dir="../${SRCDIR}/${TEST_NOOK}/$id.dump"
 		else
 			dir="../${SRCDIR}/@dumps/$id.dump"
+		fi
+
+		wanna_free=1000
+		if [ "$failed" = "no" -a $(get_df_mb $(dirname $dir)) -lt $wanna_free ]; then
+			echo "Skipping a result(s) collecting of successful $id (less than ${wanna_free}Mb space available)" >&2
+			return
 		fi
 
 		n=

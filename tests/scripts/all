@@ -71,9 +71,24 @@ EOF
 	fi
 
 	if [ -x "$CMD" ]; then
+		wanna_free=1000
+		if [ $(get_df_mb $TESTDIR) -lt $wanna_free ]; then
+			echo "***** Less than ${wanna_free}Mb space available in the $TESTDIR"
+			if [ -n "$NOEXIT" ]; then
+				RC=2
+				echo "(exit $RC)"
+				exit $RC
+			fi
+			cibuzz_report "=== waiting for space in $TESTDIR"
+			while [ $(get_df_mb $TESTDIR) -lt $wanna_free ]; do
+				sleep 5
+			done
+		fi
+
 		teamcity_msg "testStarted name='$BCMD for $BACKEND_MODE' captureStandardOutput='true'"
 		echo ">>>>> Starting ${TB}$BCMD${TN} for $BACKEND_MODE..."
-		echo "$(date --rfc-3339=seconds) >>> ${TEST_ITER}--${TEST_ID}" > $SRCDIR/../.git/@ci-step.log
+		cibuzz_report ">>> ${TEST_ITER}--${TEST_ID}"
+
 		$CMD 2>&1 | tee $TESTDIR/main.log
 		RC=${PIPESTATUS[0]}
 		if [ ! -f $TESTDIR/main.log ]; then
@@ -84,11 +99,13 @@ EOF
 		if ! collect_coredumps $TEST_ID; then
 			RC=134
 		fi
-		echo "$(date --rfc-3339=seconds) <<< ${TEST_ITER}--${TEST_ID} = $RC" > $SRCDIR/../.git/@ci-step.log
+
 		if test $RC -eq 0 ; then
+			cibuzz_report "<<< ${TEST_ITER}--${TEST_ID}"
 			[ -z "$NO_COLLECT_SUCCESS" ] && collect_test $TEST_ID no
 			echo ">>>>> $BCMD completed ${TB}OK${TN} for $BACKEND_MODE."
 		else
+			cibuzz_report "=== ${TEST_ITER}--${TEST_ID} = $RC"
 			collect_test $TEST_ID yes
 			echo ">>>>> $BCMD ${TB}failed${TN} for $BACKEND_MODE"
 			teamcity_msg "testFailed name='$BCMD for $BACKEND_MODE'"
