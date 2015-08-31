@@ -27,19 +27,20 @@ function doit {
 	branch=$1
 	nice=$2
 	here=$(pwd)
+	export CIBUZZ_STATUS=$here/status
 	echo "branch $branch"
 	echo "==============================================================================="
-	echo "$(date --rfc-3339=seconds) Preparing..." >&2
+	echo "$(date --rfc-3339=seconds) Preparing..." >$CIBUZZ_STATUS
 	root=$(git rev-parse --show-toplevel)
 	([ -d src/.git ] || (rm -rf src && git clone --local --share -b $branch $root src)) \
 		&& cd src || failure git-clone
 	git fetch && git checkout -f $branch && git pull && git checkout origin/ps-build -- . \
 		|| failure git-checkout
 	echo "==============================================================================="
-	echo "$(date --rfc-3339=seconds) Building..." > .git/@ci-step.log
+	echo "$(date --rfc-3339=seconds) Building..." > $CIBUZZ_STATUS
 	nice -n $nice $build $build_args || failure "$here/$build $build_args"
 	echo "==============================================================================="
-	echo "$(date --rfc-3339=seconds) Testing..." > .git/@ci-step.log
+	echo "$(date --rfc-3339=seconds) Testing..." > $CIBUZZ_STATUS
 	rm -rf @* || failure "rm -rf @*"
 	NO_COLLECT_SUCCESS=yes TEST_TEMP_DIR=$(readlink -f ${here}/tmp) \
 		setsid -w nice -n $nice $test $test_args
@@ -57,9 +58,10 @@ for ((n=0; n < N; n++)); do
 		dir="$TOP/@$n.$branch"
 		tmp=$(readlink -f ${TEMPFS}/$n.$branch)
 		mkdir -p "$dir" || failure "mkdir -p $dir"
+		echo "lanching..." >$dir/status
 		rm -rf $tmp $dir/tmp && mkdir -p $tmp && ln -s $tmp $dir/tmp || failure "mkdir -p $tmp"
 		((cd $dir && msg_frefix="#$n of $branch | " doit $branch $nice >out.log 2>err.log) </dev/null; \
-			 echo "#$n of $branch:	code $?, $(date '+%F.%H%M%S.%N')") &
+			 echo "#$n of $branch:	code $?, $(date '+%F.%H%M%S.%N')" >$dir/status) &
 		nice=$((nice + 1))
 		sleep 1
 	done
@@ -71,11 +73,7 @@ while true; do
 	for branch in $branch_list; do
 		for ((n=0; n < N; n++)); do
 			dir="$TOP/@$n.$branch"
-			if [ -s $dir/src/.git/@ci-step.log ]; then
-				echo "$branch/$n:	$(tail -n 1 $dir/src/.git/@ci-step.log)"
-			elif [ -s $dir/err.log ]; then
-				echo "$branch/$n:	$(tail -n 1 $dir/err.log)"
-			fi
+			echo "$branch/$n:	$(tail -n 1 $dir/status) | $(tail -n 1 $dir/err.log)"
 		done
 	done
 
