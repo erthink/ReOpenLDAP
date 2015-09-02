@@ -11,6 +11,7 @@ OpenLDAP 2.4.43 Engineering
 	Fixed slapo-ppolicy to allow purging of stale pwdFailureTime attributes (ITS#8185)
 	Fixed slapo-refint with subtree renames (ITS#8220)
 	Fixed slapo-ppolicy entry memleak on failure (ITS#7537)
+	Fixed slapo-ppolicy revert to default policy on failure (ITS#8234)
 	Contrib
 		Added libnettle support to pw-pbkdf2 (ITS#8198)
 
