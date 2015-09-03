@@ -12,6 +12,7 @@ flag_check=1
 flag_clean=1
 flag_lto=1
 flag_O=-O2
+flag_clang=0
 for arg in "$@"; do
 	case "$arg" in
 	--debug)
@@ -43,6 +44,9 @@ for arg in "$@"; do
 		;;
 	--speed)
 		flag_O=-Ofast
+		;;
+	--clang)
+		flag_clang=1
 		;;
 	*)
 		failure "unknown option '$arg'"
@@ -76,8 +80,22 @@ IODBC=$([ -d /usr/include/iodbc ] && echo "-I/usr/include/iodbc")
 #======================================================================
 
 CFLAGS="-Wall -g"
+
+if [ $flag_clang -ne 0 ]; then
+	CC=clang
+	CFLAGS+=" -Wno-pointer-bool-conversion"
+elif [ -n "$(which gcc)" ]; then
+	CC=gcc
+else
+	CC=cc
+fi
+
 if [ $flag_debug -ne 0 ]; then
-	CFLAGS+=" -Og"
+	if [ "$CC" = "gcc" ]; then
+		CFLAGS+=" -Og"
+	else
+		CFLAGS+=" -O0"
+	fi
 else
 	CFLAGS+=" ${flag_O}"
 fi
@@ -86,19 +104,22 @@ if [ $flag_check -ne 0 ]; then
 	CFLAGS+=" -DLDAP_MEMORY_CHECK -DLDAP_MEMORY_DEBUG -DUSE_VALGRIND"
 fi
 
-if [ $flag_lto -ne 0 -a -n "$(which gcc)" ] && gcc -v 2>&1 | grep -q -i lto \
-	&& [ -n "$(which gcc-ar)" -a -n "$(which gcc-nm)" -a -n "$(which gcc-ranlib)" ]
-then
-	echo "*** Link-Time Optimization (LTO) will be used" >&2
-	CFLAGS+=" -flto=jobserver -fno-fat-lto-objects -fuse-linker-plugin -fwhole-program"
-	export CC=gcc AR=gcc-ar NM=gcc-nm RANLIB=gcc-ranlib
+if [ $flag_lto -ne 0 ]; then
+	if [ "$CC" = "gcc" ] && gcc -v 2>&1 | grep -q -i lto \
+	&& [ -n "$(which gcc-ar)" -a -n "$(which gcc-nm)" -a -n "$(which gcc-ranlib)" ]; then
+		echo "*** Link-Time Optimization (LTO) will be used" >&2
+		CFLAGS+=" -flto=jobserver -fno-fat-lto-objects -fuse-linker-plugin -fwhole-program"
+		export AR=gcc-ar NM=gcc-nm RANLIB=gcc-ranlib
+#	elif [ "$CC" = "clang" ]; then
+#		CFLAGS+=" -flto"
+	fi
 fi
 
 if [ -n "$IODBC" ]; then
 	CFLAGS+=" $IODBC"
 fi
 
-export CFLAGS LDFLAGS CXXFLAGS="$CFLAGS"
+export CC CFLAGS LDFLAGS CXXFLAGS="$CFLAGS"
 echo "CFLAGS		= ${CFLAGS}"
 
 #======================================================================
