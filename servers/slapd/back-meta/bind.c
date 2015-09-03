@@ -335,7 +335,7 @@ meta_back_bind_op_result(
 
 		/* since timeout is not specified, compute and use
 		 * the one specific to the ongoing operation */
-		if ( opidx == LDAP_REQ_SEARCH ) {
+		if ( opidx == (slap_op_t) LDAP_REQ_SEARCH ) {
 			if ( op->ors_tlimit <= 0 ) {
 				timeout = 0;
 

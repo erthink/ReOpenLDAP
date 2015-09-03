@@ -78,12 +78,20 @@
 #endif /* __must_check_result */
 
 #ifndef __hot
-#	if defined(__GNUC__) || defined(__clang__)
+#	if defined(__GNUC__) && !defined(__clang__)
 #		define __hot __attribute__((hot, optimize("O3")))
 #	else
 #		define __hot
 #	endif
 #endif /* __hot */
+
+#ifndef __cold
+#	if defined(__GNUC__) && !defined(__clang__)
+#		define __cold __attribute__((cold, optimize("Os")))
+#	else
+#		define __cold
+#	endif
+#endif /* __cold */
 
 #ifndef __flatten
 #	if defined(__GNUC__) || defined(__clang__)

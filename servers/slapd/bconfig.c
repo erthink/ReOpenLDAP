@@ -3633,11 +3633,14 @@ loglevel_print( FILE *out )
 
 	fprintf( out, "Installed log subsystems:\n\n" );
 	for ( i = 0; !BER_BVISNULL( &loglevel_ops[ i ].word ); i++ ) {
-		unsigned mask = loglevel_ops[ i ].mask & 0xffffffffUL;
-		fprintf( out,
-			(mask == ((slap_mask_t) -1 & 0xffffffffUL)
-			 ? "\t%-30s (-1, 0xffffffff)\n" : "\t%-30s (%u, 0x%x)\n"),
-			loglevel_ops[ i ].word.bv_val, mask, mask );
+		int32_t mask = loglevel_ops[ i ].mask;
+		int32_t all = (int32_t) ((slap_mask_t) -1l);
+		if (mask == all)
+			fprintf( out, "\t%-30s (-1, 0xffffffff)\n",
+				loglevel_ops[ i ].word.bv_val );
+		else
+			fprintf( out, "\t%-30s (%u, 0x%x)\n",
+				loglevel_ops[ i ].word.bv_val, mask, mask );
 	}
 
 	fprintf( out, "\nNOTE: custom log subsystems may be later installed "
