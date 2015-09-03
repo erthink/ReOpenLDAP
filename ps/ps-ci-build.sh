@@ -83,6 +83,10 @@ CFLAGS="-Wall -g"
 
 if [ $flag_clang -ne 0 ]; then
 	CC=clang
+	LLVM_VERSION="$($CC --version | sed -n 's/.\+LLVM \([0-9]\.[0-9]\)\.[0-9].*/\1/p')"
+	echo "LLVM_VERSION	= $LLVM_VERSION"
+	LTO_PLUGIN="/usr/lib/llvm-${LLVM_VERSION}/lib/LLVMgold.so"
+	echo "LTO_PLUGIN	= $LTO_PLUGIN"
 	CFLAGS+=" -Wno-pointer-bool-conversion"
 elif [ -n "$(which gcc)" ]; then
 	CC=gcc
@@ -100,19 +104,42 @@ else
 	CFLAGS+=" ${flag_O}"
 fi
 
-if [ $flag_check -ne 0 ]; then
-	CFLAGS+=" -DLDAP_MEMORY_CHECK -DLDAP_MEMORY_DEBUG -DUSE_VALGRIND"
-fi
-
 if [ $flag_lto -ne 0 ]; then
 	if [ "$CC" = "gcc" ] && gcc -v 2>&1 | grep -q -i lto \
 	&& [ -n "$(which gcc-ar)" -a -n "$(which gcc-nm)" -a -n "$(which gcc-ranlib)" ]; then
-		echo "*** Link-Time Optimization (LTO) will be used" >&2
+		echo "*** GCC Link-Time Optimization (LTO) will be used" >&2
 		CFLAGS+=" -flto=jobserver -fno-fat-lto-objects -fuse-linker-plugin -fwhole-program"
 		export AR=gcc-ar NM=gcc-nm RANLIB=gcc-ranlib
-#	elif [ "$CC" = "clang" ]; then
-#		CFLAGS+=" -flto"
+	elif [ "$CC" = "clang" -a -n "$LLVM_VERSION" -a -e "$LTO_PLUGIN" -a -n "$(which ld.gold)" ]; then
+		echo "*** CLANG Link-Time Optimization (LTO) will be used" >&2
+		HERE=$(readlink -f $(dirname $0))
+
+		(echo "#!/bin/bash" \
+		&& echo "firstarg=\${1};shift;exec /usr/bin/ar \"\${firstarg}\" --plugin $LTO_PLUGIN \"\${@}\"") > ${HERE}/ar \
+		&& chmod a+x ${HERE}/ar || failure "create thunk-ar"
+
+		(echo "#!/bin/bash" \
+		&& echo "exec $(which clang) -flto -fuse-ld=gold \"\${@}\"") > ${HERE}/clang \
+		&& chmod a+x ${HERE}/clang || failure "create thunk-clang"
+
+		(echo "#!/bin/bash" \
+		&& echo "exec $(which ld.gold) --plugin $LTO_PLUGIN \"\${@}\"") > ${HERE}/ld \
+		&& chmod a+x ${HERE}/ld || failure "create thunk-ld"
+
+		(echo "#!/bin/bash" \
+		&& echo "exec $(which nm) --plugin $LTO_PLUGIN \"\${@}\"") > ${HERE}/nm \
+		&& chmod a+x ${HERE}/nm || failure "create thunk-nm"
+
+		(echo "#!/bin/bash" \
+		&& echo "exec $(which ranlib) --plugin $LTO_PLUGIN \"\${@}\"") > ${HERE}/ranlib \
+		&& chmod a+x ${HERE}/ranlib || failure "create thunk-ranlib"
+
+		export PATH="$HERE:$PATH"
 	fi
+fi
+
+if [ $flag_check -ne 0 ]; then
+	CFLAGS+=" -DLDAP_MEMORY_CHECK -DLDAP_MEMORY_DEBUG -DUSE_VALGRIND"
 fi
 
 if [ -n "$IODBC" ]; then
@@ -121,6 +148,8 @@ fi
 
 export CC CFLAGS LDFLAGS CXXFLAGS="$CFLAGS"
 echo "CFLAGS		= ${CFLAGS}"
+echo "PATH		= ${PATH}"
+echo "LD		= $(readlink -f $(which ld)) ${LDFLAGS}"
 
 #======================================================================
 
