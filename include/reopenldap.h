@@ -21,7 +21,7 @@
 /* LY: Please do not ask us for Windows support, just never!
  * But you can make a fork for Windows, or become maintainer for FreeBSD... */
 #ifndef __gnu_linux__
-#	error "ReOpenLDAP branch support only GNU Linux"
+#	error "ReOpenLDAP branch supports only GNU Linux"
 #endif
 
 #ifndef _LDAP_REOPEN_H
@@ -213,11 +213,11 @@ __extern_C int reopenldap_flags;
 #define reopenldap_mode_jitter() \
 	unlikely((reopenldap_flags & REOPENLDAP_FLAG_JITTER) != 0)
 
-__extern_C void reopenldap_jitter(int probability);
+__extern_C void reopenldap_jitter(int probability_percent);
 
-#define LDAP_JITTER() do \
+#define LDAP_JITTER(prob) do \
 		if (reopenldap_mode_jitter()) \
-			reopenldap_jitter(50); \
+			reopenldap_jitter(prob); \
 	while (0)
 
 #define LDAP_ENSURE(condition) do \

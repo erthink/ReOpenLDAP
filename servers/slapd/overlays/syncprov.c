@@ -809,7 +809,7 @@ syncprov_free_syncop( syncops *so, int lockflags )
 	reslink *rl, *rlnext;
 	Operation	*op;
 
-	LDAP_JITTER();
+	LDAP_JITTER(50);
 	assert(so->s_si->si_leftover > 0);
 	ldap_pvt_thread_mutex_lock( &so->s_mutex );
 	assert(so->s_inuse > 0);
@@ -2384,7 +2384,7 @@ syncprov_detach_op( Operation *op, syncops *so, slap_overinst *on )
 	op2->o_req_ndn.bv_val = ptr;
 	ptr = lutil_strcopy(ptr, op->o_req_ndn.bv_val) + 1;
 	if (so->s_filterstr.bv_val) {
-		LDAP_JITTER();
+		LDAP_JITTER(50);
 		op2->ors_filterstr.bv_val = ptr;
 		strcpy( ptr, so->s_filterstr.bv_val );
 		op2->ors_filterstr.bv_len = so->s_filterstr.bv_len;
@@ -2594,7 +2594,7 @@ syncprov_search_response( Operation *op, SlapReply *rs )
 				1, NULL, 0 );
 			if ( !BER_BVISNULL( &cookie ))
 				op->o_tmpfree( cookie.bv_val, op->o_tmpmemctx );
-			LDAP_JITTER();
+			LDAP_JITTER(50);
 
 			/* Detach this Op from frontend control */
 			ldap_pvt_thread_mutex_lock( &op->o_conn->c_mutex );
@@ -2606,7 +2606,7 @@ syncprov_search_response( Operation *op, SlapReply *rs )
 				return SLAPD_ABANDON;
 			}
 
-			LDAP_JITTER();
+			LDAP_JITTER(50);
 			ldap_pvt_thread_mutex_lock( &ss->ss_so->s_mutex );
 			/* Turn off the refreshing flag */
 			ss->ss_so->s_flags ^= PS_IS_REFRESHING;
@@ -2992,7 +2992,7 @@ shortcut:
 	op->o_callback = cb;
 
 	if ( sop ) {
-		LDAP_JITTER();
+		LDAP_JITTER(50);
 		if (sop->s_inuse > 1) {
 			/* correct the refcount that was set to 2 before */
 			--sop->s_inuse;
@@ -3012,7 +3012,7 @@ shortcut:
 			syncprov_search_cleanup_leaks( sop, op, cb );
 #endif /* SLAP_NO_SL_MALLOC */
 			ldap_pvt_thread_mutex_unlock( &sop->s_mutex );
-			LDAP_JITTER();
+			LDAP_JITTER(50);
 			assert((sop->s_flags & PS_IS_DETACHED) == 0);
 			syncprov_free_syncop( sop, LOCK_SI_OPS );
 			return rs->sr_err = SLAPD_ABANDON;
