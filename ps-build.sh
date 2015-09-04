@@ -36,7 +36,7 @@ step_finish "prepare"
 echo "======================================================================="
 step_begin "configure"
 
-export CFLAGS="-Wall -O2 -g"
+export CFLAGS="-Wall -O2 -g -Wl,--as-needed,-Bsymbolic,--gc-sections,-O,-zignore"
 if [ -n "$(which gcc)" ] && gcc -v 2>&1 | grep -q -i lto \
 	&& [ -n "$(which gcc-ar)" -a -n "$(which gcc-nm)" -a -n "$(which gcc-ranlib)" ]
 then
@@ -69,7 +69,7 @@ step_finish "configure"
 echo "======================================================================="
 step_begin "build mdb-tools"
 
-(cd libraries/liblmdb && make -j4 -k && cp mdb_chk mdb_copy mdb_stat ${PREFIX}/bin/) \
+(cd libraries/liblmdb && make -k && cp mdb_chk mdb_copy mdb_stat ${PREFIX}/bin/) \
 	|| failure "build-1"
 
 step_finish "build mdb-tools"
