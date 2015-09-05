@@ -482,7 +482,7 @@ function collect_test {
 	local from="../${SRCDIR}/tests/testrun"
 	local status="../${SRCDIR}/@successful.log"
 
-	if [ -n "$1" -a "$failed" = "no" ] && grep -q -- "$id" $status; then
+	if [ -n "$1" -a "$failed" = "no" -a -s $status ] && grep -q -- "$id" $status; then
 		echo "Skipping a result(s) collecting of successful $id (already have)" >&2
 		return
 	fi
