@@ -23,7 +23,7 @@ echo "======================================================================="
 step_begin "prepare"
 
 BUILD_NUMBER=${1:-$(date '+%y%m%d')}
-PREFIX=${2:-$(pwd)/install_prefix_as_the_second_parameter}/openldap
+PREFIX=$(readlink -m ${2:-$(pwd)/install_prefix_as_the_second_parameter}/openldap)
 
 echo "BUILD_NUMBER: $BUILD_NUMBER"
 echo "PREFIX: $PREFIX"
@@ -77,7 +77,7 @@ step_finish "configure"
 echo "======================================================================="
 step_begin "build mdb-tools"
 
-(cd libraries/liblmdb && make -k && cp mdb_chk mdb_copy mdb_stat ${PREFIX}/bin/) \
+(cd libraries/liblmdb && make -k && cp mdb_chk mdb_copy mdb_stat -t ${PREFIX}/bin/) \
 	|| failure "build-1"
 
 step_finish "build mdb-tools"
@@ -117,7 +117,8 @@ step_begin "packaging"
 FILE="openldap.$PACKAGE.tar.xz"
 tar -caf $FILE --owner=root -C ${PREFIX}/.. openldap \
 	&& sleep 1 && cat ${PREFIX}/changelog.txt >&2 && sleep 1 \
-	&& echo "##teamcity[publishArtifacts '$FILE']" \
+	&& ([ -n "$2" ] && echo "##teamcity[publishArtifacts '$FILE']" \
+		|| echo "Skip publishing of artifact ($(ls -hs $FILE))" >&2) \
 	|| failure "tar"
 
 step_finish "packaging"
