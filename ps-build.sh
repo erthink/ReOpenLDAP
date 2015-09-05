@@ -23,7 +23,7 @@ echo "======================================================================="
 step_begin "prepare"
 
 BUILD_NUMBER=${1:-$(date '+%y%m%d')}
-PREFIX=${2:-$(pwd)/install_prefix_as_the_second_parameter}/openldap
+PREFIX=$(readlink -m ${2:-$(pwd)/install_prefix_as_the_second_parameter}/openldap)
 
 echo "BUILD_NUMBER: $BUILD_NUMBER"
 echo "PREFIX: $PREFIX"
@@ -36,15 +36,23 @@ step_finish "prepare"
 echo "======================================================================="
 step_begin "configure"
 
-export CFLAGS="-Wall -O2 -g"
+LDFLAGS="-Wl,--as-needed,-Bsymbolic,--gc-sections,-O,-zignore"
+CFLAGS="-Wall -Os -free -g -include $(readlink -f $(dirname $0)/ps/glibc-225.h)"
+
 if [ -n "$(which gcc)" ] && gcc -v 2>&1 | grep -q -i lto \
 	&& [ -n "$(which gcc-ar)" -a -n "$(which gcc-nm)" -a -n "$(which gcc-ranlib)" ]
 then
-	export CC=gcc AR=gcc-ar NM=gcc-nm RANLIB=gcc-ranlib CFLAGS="$CFLAGS -flto=jobserver -fno-fat-lto-objects -fuse-linker-plugin -fwhole-program"
+#	gcc -fpic -O3 -c ps/glibc-225.c -o ps/glibc-225.o
+#	CFLAGS+=" -D_LTO_BUG_WORKAROUND -save-temps"
+#	LDFLAGS+=",$(readlink -f ps/glibc-225.o)"
 	echo "*** Link-Time Optimization (LTO) will be used" >&2
+	CFLAGS+=" -flto -fno-fat-lto-objects -flto-partition=none"
+	export CC=gcc AR=gcc-ar NM=gcc-nm RANLIB=gcc-ranlib
 fi
 
-CXXFLAGS="$CFLAGS" ./configure \
+export CFLAGS LDFLAGS CXXFLAGS="$CFLAGS"
+
+./configure \
 	--prefix=${PREFIX} --enable-dynacl --enable-ldap \
 	--enable-overlays --disable-bdb --disable-hdb \
 	--disable-dynamic --disable-shared --enable-static \
@@ -69,7 +77,7 @@ step_finish "configure"
 echo "======================================================================="
 step_begin "build mdb-tools"
 
-(cd libraries/liblmdb && make -j4 -k && cp mdb_chk mdb_copy mdb_stat ${PREFIX}/bin/) \
+(cd libraries/liblmdb && make -k && cp mdb_chk mdb_copy mdb_stat -t ${PREFIX}/bin/) \
 	|| failure "build-1"
 
 step_finish "build mdb-tools"
@@ -81,14 +89,14 @@ if [ -z "${TEAMCITY_PROCESS_FLOW_ID}" ]; then
 		|| failure "make-deps"
 fi
 
-make -k -j4 \
+make -k \
 	|| failure "build-2"
 
 step_finish "build openldap"
 echo "======================================================================="
 step_begin "install"
 
-make -k -j4 install \
+make -k install \
 	|| failure "install"
 
 step_finish "install"
@@ -109,7 +117,8 @@ step_begin "packaging"
 FILE="openldap.$PACKAGE.tar.xz"
 tar -caf $FILE --owner=root -C ${PREFIX}/.. openldap \
 	&& sleep 1 && cat ${PREFIX}/changelog.txt >&2 && sleep 1 \
-	&& echo "##teamcity[publishArtifacts '$FILE']" \
+	&& ([ -n "$2" ] && echo "##teamcity[publishArtifacts '$FILE']" \
+		|| echo "Skip publishing of artifact ($(ls -hs $FILE))" >&2) \
 	|| failure "tar"
 
 step_finish "packaging"
