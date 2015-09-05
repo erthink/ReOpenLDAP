@@ -416,7 +416,7 @@ function killservers {
 }
 
 function get_df_mb {
-	echo $(($(df -k --output=avail $(readlink -f $1) | tail -1) / 1024))
+	echo $(($(df -k -P $(readlink -f $1) | tail -1 | tr -s '\t ' ' ' | cut -d ' ' -f 4) / 1024))
 }
 
 function cibuzz_report {
