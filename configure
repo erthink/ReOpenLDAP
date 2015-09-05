@@ -5067,7 +5067,7 @@ SLAPD_NDB_INCS=
 LTHREAD_LIBS=
 LUTIL_LIBS=
 
-SLAPD_LIBS=
+SLAPD_LIBS=-lelf
 
 BUILD_SLAPD=no
 
@@ -24205,7 +24205,7 @@ fi
 if test "$ol_enable_mdb" != no ; then
 	BUILD_SLAPD=yes
 	BUILD_MDB=$ol_enable_mdb
-	LIBS="-lbfd -lelf $LIBS"
+	LIBS="$LIBS"
 	if test "$ol_enable_mdb" = mod ; then
 		SLAPD_DYNAMIC_BACKENDS="$SLAPD_DYNAMIC_BACKENDS back-mdb"
 		MFLAG=SLAPD_MOD_DYNAMIC
