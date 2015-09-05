@@ -546,7 +546,7 @@ ldif_sput_wrap(
 	if( name != NULL ) {
 		/* put the name + ":" */
 		namelen = strlen(name);
-		strcpy(*out, name);
+		memcpy(*out, name, namelen);
 		*out += namelen;
 		len += namelen;
 
