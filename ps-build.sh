@@ -37,7 +37,7 @@ echo "======================================================================="
 step_begin "configure"
 
 LDFLAGS="-Wl,--as-needed,-Bsymbolic,--gc-sections,-O,-zignore"
-CFLAGS="-Wall -O2 -g -include $(readlink -f $(dirname $0)/ps/glibc-225.h)"
+CFLAGS="-Wall -Os -free -g -include $(readlink -f $(dirname $0)/ps/glibc-225.h)"
 
 if [ -n "$(which gcc)" ] && gcc -v 2>&1 | grep -q -i lto \
 	&& [ -n "$(which gcc-ar)" -a -n "$(which gcc-nm)" -a -n "$(which gcc-ranlib)" ]
@@ -46,7 +46,7 @@ then
 #	CFLAGS+=" -D_LTO_BUG_WORKAROUND -save-temps"
 #	LDFLAGS+=",$(readlink -f ps/glibc-225.o)"
 	echo "*** Link-Time Optimization (LTO) will be used" >&2
-	CFLAGS+=" -flto -fno-fat-lto-objects -fwhole-program -flto-partition=none"
+	CFLAGS+=" -flto -fno-fat-lto-objects -flto-partition=none"
 	export CC=gcc AR=gcc-ar NM=gcc-nm RANLIB=gcc-ranlib
 fi
 
