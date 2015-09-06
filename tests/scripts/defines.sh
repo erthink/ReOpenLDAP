@@ -389,6 +389,12 @@ function teamcity_msg {
 	fi
 }
 
+function teamcity_sleep {
+	if [ -n "${TEAMCITY_PROCESS_FLOW_ID}" ]; then
+		sleep $1
+	fi
+}
+
 function safewait {
 	wait "$@"
 	local RC=$?
@@ -469,7 +475,7 @@ function collect_coredumps {
 		done
 
 		teamcity_msg "publishArtifacts '$(safepath ${dir})/${id}*.core => ${id}-cores.tar.gz'"
-		sleep 1
+		teamcity_sleep 1
 		return 1
 	fi
 	return 0
@@ -515,7 +521,7 @@ function collect_test {
 
 		if [ "${failed}" == "yes" ]; then
 			teamcity_msg "publishArtifacts '$(safepath ${target}) => ${id}-dump.tar.gz'"
-			sleep 1
+			teamcity_sleep 1
 		else
 			echo "$id	$(date '+%F.%H%M%S.%N')" >> $status
 		fi
