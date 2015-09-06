@@ -1,6 +1,33 @@
 OpenLDAP 2.4 Change Log
 
-OpenLDAP 2.4.41 Engineering
+OpenLDAP 2.4.43 Engineering
+	Fixed slap tools minor one time memory leak (ITS#8082)
+	Fixed slapd to avoid redundant processing of abandon ops (ITS#8232)
+	Fixed slapd syncrepl segv when present list is NULL (ITS#8231, ITS#8042)
+	Fixed slapd segfault with invalid SASL URI (ITS#8218)
+	Fixed slapd must reject lines with unbalanced quotes (ITS#8233)
+	Fixed slapd-ldap SEGV after failed retry (ITS#8173)
+	Fixed slapo-dds segfault when using slapo-memberof (ITS#8133)
+	Fixed slapo-ppolicy to allow purging of stale pwdFailureTime attributes (ITS#8185)
+	Fixed slapo-refint with subtree renames (ITS#8220)
+	Fixed slapo-ppolicy entry memleak on failure (ITS#7537)
+	Fixed slapo-ppolicy revert to default policy on failure (ITS#8234)
+	Contrib
+		Added libnettle support to pw-pbkdf2 (ITS#8198)
+
+OpenLDAP 2.4.42 Release (2015/08/14)
+	Fixed liblber address length for CLDAP (ITS#8158)
+	Fixed libldap dnssrv potential overflow with port number (ITS#7027,ITS#8195)
+	Fixed slapd cn=config when updating olcAttributeTypes (ITS#8199)
+	Fixed slapd-mdb to correctly update search candidates for scoped searches (ITS#8203)
+	Fixed slapo-ppolicy with redundant mod ops on glued trees (ITS#8184)
+	Added libldap LDAPSTACKGUARD feature (ITS#8201)
+	Fixed slapd-ldap segfault after failed retry (ITS#8173)
+	Fixed slapo-rwm crash when deleting rewrite rules (ITS#8213)
+	Build Environment
+		Fixed libdb detection with gcc 5.x (ITS#8056)
+
+OpenLDAP 2.4.41 Release (2015/06/21)
 	Fixed ldapsearch to explicitly flush its buffer (ITS#8118)
 	Fixed libldap async connections (ITS#8090)
 	Fixed libldap double free of request during abandon (ITS#7967)
@@ -48,7 +75,6 @@ OpenLDAP 2.4.41 Engineering
 	Fixed slapo-syncprov potential loss of changes when under load (ITS#8081)
 	Fixed slapo-unique enforcement of uniqueness with manageDSAit control (ITS#8057)
 	Build Environment
-		Fixed libdb detection with gcc 5.x (ITS#8056)
 		Fixed ftello reference for Win32 (ITS#8127)
 		Enhanced contrib modules build paths (ITS#7782)
 		Fixed contrib/autogroup internal operation identity (ITS#8006)

@@ -11,7 +11,7 @@ Features (major):
 	quorum limit-concurrent-refresh
 	biglock { none | local | common }
 	reopenldap [iddqd] [idkfa]
-	steady & weak meta-pages in LMDB
+	steady & weak datasync in LMDB
 
 Features (minor):
 	crash-backtrace on|off
@@ -40,3 +40,11 @@ Fixes:
 	ITS#8014 slapadd: memleak
 	ITS#8016 lmdb: errmsg for unknown envflag
 !	ITS#8018 about of 5K warnings while compiling OpenLDAP (~20 is a really bugs)
+	slapd-sasl: fix 'statement with no effect' in prev fix of ITS#8092 fix ;)
+
+More from origin/master:
+	ITS#8185 add pwdMaxRecordedFailure
+	ITS#8133 avoid mods during dds_db_open
+	contrib-modules, adremap
+	contrib-modules, passwd/totp
+	syslog() replacement, but not used by default.

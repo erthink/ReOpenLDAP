@@ -297,24 +297,30 @@ static int ndb_oc_search( Operation *op, SlapReply *rs, Ndb *ndb, NdbTransaction
 	myTable = myDict->getTable( oci->no_table.bv_val );
 	if ( indexed ) {
 		scan = txn->getNdbIndexScanOperation( INDEX_NAME, DN2ID_TABLE );
-		if ( !scan )
-			return LDAP_OTHER;
+		if ( !scan ) {
+			rc = rs->sr_err = LDAP_OTHER;
+			goto leave;
+		}
 		scan->readTuples( NdbOperation::LM_CommittedRead );
 	} else {
 		myIndex = myDict->getIndex( "eid$unique", DN2ID_TABLE );
 		if ( !myIndex ) {
 			Debug( LDAP_DEBUG_ANY, DN2ID_TABLE " eid index is missing!\n" );
-			rs->sr_err = LDAP_OTHER;
+			rc = rs->sr_err = LDAP_OTHER;
 			goto leave;
 		}
 		scan = (NdbIndexScanOperation *)txn->getNdbScanOperation( myTable );
-		if ( !scan )
-			return LDAP_OTHER;
+		if ( !scan ) {
+			rc = rs->sr_err = LDAP_OTHER;
+			goto leave;
+		}
 		scan->readTuples( NdbOperation::LM_CommittedRead );
 #if 1
 		sf = new NdbScanFilter(scan);
-		if ( !sf )
+		if ( !sf ) {
+			rc = rs->sr_err = LDAP_OTHER;
 			return LDAP_OTHER;
+		}
 		switch ( op->ors_filter->f_choice ) {
 		case LDAP_FILTER_AND:
 		case LDAP_FILTER_OR:
@@ -322,7 +328,7 @@ static int ndb_oc_search( Operation *op, SlapReply *rs, Ndb *ndb, NdbTransaction
 			break;
 		default:
 			if ( sf->begin() < 0 ) {
-				rc = LDAP_OTHER;
+				rc = rs->sr_err = LDAP_OTHER;
 				goto leave;
 			}
 		}
@@ -331,8 +337,10 @@ static int ndb_oc_search( Operation *op, SlapReply *rs, Ndb *ndb, NdbTransaction
 
 	bounds = 0;
 	rc = ndb_filter_set( op, ni, op->ors_filter, indexed, scan, sf, &bounds );
-	if ( rc )
+	if ( rc ) {
+		rs->sr_err = rc;
 		goto leave;
+	}
 	if ( sf ) sf->end();
 
 	scanID = scan->getValue( EID_COLUMN, idbuf );
@@ -345,7 +353,7 @@ static int ndb_oc_search( Operation *op, SlapReply *rs, Ndb *ndb, NdbTransaction
 	}
 
 	if ( txn->execute( NdbTransaction::NoCommit, NdbOperation::AbortOnError, 1 )) {
-		rs->sr_err = LDAP_OTHER;
+		rc = rs->sr_err = LDAP_OTHER;
 		goto leave;
 	}
 
@@ -355,16 +363,16 @@ static int ndb_oc_search( Operation *op, SlapReply *rs, Ndb *ndb, NdbTransaction
 	while ( scan->nextResult( true, true ) == 0 ) {
 		NdbTransaction *tx2;
 		if ( op->o_abandon ) {
-			rs->sr_err = SLAPD_ABANDON;
+			rc = rs->sr_err = SLAPD_ABANDON;
 			break;
 		}
 		if ( slapd_shutdown ) {
-			rs->sr_err = LDAP_UNAVAILABLE;
+			rc = rs->sr_err = LDAP_UNAVAILABLE;
 			break;
 		}
 		if ( op->ors_tlimit != SLAP_NO_LIMIT &&
 			slap_get_time() > stoptime ) {
-			rs->sr_err = LDAP_TIMELIMIT_EXCEEDED;
+			rc = rs->sr_err = LDAP_TIMELIMIT_EXCEEDED;
 			break;
 		}
 
@@ -373,14 +381,14 @@ static int ndb_oc_search( Operation *op, SlapReply *rs, Ndb *ndb, NdbTransaction
 		if ( !indexed ) {
 			tx2 = ndb->startTransaction( myTable );
 			if ( !tx2 ) {
-				rs->sr_err = LDAP_OTHER;
+				rc = rs->sr_err = LDAP_OTHER;
 				goto leave;
 			}
 
 			ixop = tx2->getNdbIndexOperation( myIndex );
 			if ( !ixop ) {
 				tx2->close();
-				rs->sr_err = LDAP_OTHER;
+				rc = rs->sr_err = LDAP_OTHER;
 				goto leave;
 			}
 			ixop->readTuple( NdbOperation::LM_CommittedRead );
@@ -394,7 +402,7 @@ static int ndb_oc_search( Operation *op, SlapReply *rs, Ndb *ndb, NdbTransaction
 			rc = tx2->execute( NdbTransaction::Commit, NdbOperation::AbortOnError, 1 );
 			tx2->close();
 			if ( rc ) {
-				rs->sr_err = LDAP_OTHER;
+				rc = rs->sr_err = LDAP_OTHER;
 				goto leave;
 			}
 		}
@@ -457,7 +465,7 @@ static int ndb_oc_search( Operation *op, SlapReply *rs, Ndb *ndb, NdbTransaction
 			tx2 = ndb->startTransaction( myTable );
 #endif
 			if ( !tx2 ) {
-				rs->sr_err = LDAP_OTHER;
+				rc = rs->sr_err = LDAP_OTHER;
 				goto leave;
 			}
 			NA.txn = tx2;

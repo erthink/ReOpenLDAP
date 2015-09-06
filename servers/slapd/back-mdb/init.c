@@ -34,10 +34,28 @@ static const struct berval mdmi_databases[] = {
 	BER_BVNULL
 };
 
-static int
+static long
 mdb_id_compare( const MDB_val *a, const MDB_val *b )
 {
-	return *(ID *)a->mv_data < *(ID *)b->mv_data ? -1 : *(ID *)a->mv_data > *(ID *)b->mv_data;
+	return *(ID *)a->mv_data - *(ID *)b->mv_data;
+}
+
+static void
+mdb_debug(int type, const char *function, int line, const char *msg, va_list args)
+{
+	int level = 0;
+
+	if (type & MDB_DBG_ASSERT)
+		level |= LDAP_DEBUG_ANY;
+
+	if (type & MDB_DBG_PRINT)
+		level |= LDAP_DEBUG_NONE;
+
+	if (type & MDB_DBG_TRACE)
+		level |= LDAP_DEBUG_TRACE;
+
+	if (LogTest(level))
+		lutil_debug_va(msg, args);
 }
 
 static int
@@ -45,12 +63,12 @@ mdb_db_init( BackendDB *be, ConfigReply *cr )
 {
 	struct mdb_info	*mdb;
 	int rc;
+	unsigned flags;
 
 	Debug( LDAP_DEBUG_TRACE,
 		LDAP_XSTRING(mdb_db_init) ": Initializing mdb database\n" );
 
-#if SLAPD_MDB == SLAPD_MOD_DYNAMIC
-	unsigned flags = mdb_setup_debug(MDB_DBG_DNT, (MDB_debug_func*) MDB_DBG_DNT, MDB_DBG_DNT);
+	flags = mdb_setup_debug(MDB_DBG_DNT, mdb_debug, MDB_DBG_DNT);
 	flags &= ~(MDB_DBG_TRACE | MDB_DBG_EXTRA | MDB_DBG_ASSERT);
 	if (reopenldap_mode_idkfa())
 		flags |=
@@ -60,7 +78,6 @@ mdb_db_init( BackendDB *be, ConfigReply *cr )
 				MDB_DBG_ASSERT;
 
 	mdb_setup_debug(flags, (MDB_debug_func*) MDB_DBG_DNT, MDB_DBG_DNT);
-#endif /* SLAPD_MDB */
 
 	/* allocate backend-database-specific stuff */
 	mdb = (struct mdb_info *) ch_calloc( 1, sizeof(struct mdb_info) );
@@ -176,7 +193,7 @@ mdb_db_open( BackendDB *be, ConfigReply *cr )
 
 	mdb_env_set_oomfunc( mdb->mi_dbenv, mdb->mi_oom_flags ? mdb_oom_handler : NULL);
 
-	if (SLAP_MULTIMASTER(be) &&
+	if ( (slapMode & SLAP_SERVER_MODE) && SLAP_MULTIMASTER(be) &&
 			((MDB_OOM_YIELD & mdb->mi_oom_flags) == 0 || mdb->mi_renew_lag == 0)) {
 		snprintf( cr->msg, sizeof(cr->msg), "database \"%s\": "
 			"for properly operation in multi-master mode"

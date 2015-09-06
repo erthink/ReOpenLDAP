@@ -40,24 +40,7 @@ if test ${WAIT-0} != 0 ; then
     read foo
 fi
 KILLPIDS="$PID"
-sleep 0.1
-
-echo "Testing slapd searching..."
-for i in 1 2 3 4 5; do
-	$LDAPSEARCH -L -b "$BASEDN" -h $LOCALHOST -p $PORT1 \
-		'objectclass=*' > /dev/null 2>&1
-	RC=$?
-	if test $RC = 1 ; then
-		echo "Waiting $i seconds for slapd to start..."
-		sleep $i
-	fi
-done
-
-if test $RC != 0 ; then
-	echo "ldapsearch failed!"
-	test "$KILLSERVERS" != no && kill -HUP $KILLPIDS
-	exit $RC
-fi
+check_running 1
 
 cat /dev/null > $TESTOUT
 
@@ -67,7 +50,7 @@ $LDAPSEARCH -L -S "" -b "$BASEDN" -s base -h $LOCALHOST -p $PORT1 \
 RC=$?
 if test $RC != 0 ; then
 	echo "ldapsearch failed!"
-	test "$KILLSERVERS" != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -79,7 +62,7 @@ $LDAPSEARCH -L -S "" -b "uid=root,$BASEDN" -s base -h $LOCALHOST -p $PORT1 \
 RC=$?
 if test $RC != 0 ; then
 	echo "ldapsearch failed!"
-	test "$KILLSERVERS" != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -91,7 +74,7 @@ $LDAPSEARCH -L -S "" -b "$BASEDN" -h $LOCALHOST -p $PORT1 \
 RC=$?
 if test $RC != 0 ; then
 	echo "ldapsearch failed!"
-	test "$KILLSERVERS" != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -103,7 +86,7 @@ $LDAPSEARCH -L -S "" -b "$BASEDN" -h $LOCALHOST -p $PORT1 \
 RC=$?
 if test $RC != 0 ; then
 	echo "ldapsearch failed!"
-	test "$KILLSERVERS" != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -115,13 +98,13 @@ $LDAPSEARCH -L -S "" -b "$BASEDN" -h $LOCALHOST -p $PORT1 \
 RC=$?
 if test $RC != 0 ; then
 	echo "ldapsearch failed!"
-	test "$KILLSERVERS" != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
-test "$KILLSERVERS" != no && kill -HUP $KILLPIDS
+killservers
 
-echo "Assuming everything is fine."
+echo "Assuming everything is fine (o-o ;)."
 #echo "Comparing results"
 #$CMP $TESTOUT $SEARCHOUTMASTER
 #if test $? != 0 ; then
@@ -130,5 +113,4 @@ echo "Assuming everything is fine."
 #fi
 
 echo ">>>>> Test succeeded"
-
 exit 0

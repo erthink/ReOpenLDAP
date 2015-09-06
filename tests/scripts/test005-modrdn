@@ -35,25 +35,15 @@ if test $WAIT != 0 ; then
     read foo
 fi
 KILLPIDS="$PID"
-sleep 0.1
+check_running 1
 
 echo "Testing slapd modrdn operations..."
-
-# Make sure we can search the database
-for i in 1 2 3 4 5; do
-	$LDAPSEARCH -S "" -b "$BASEDN" -h $LOCALHOST -p $PORT1 \
-	    'objectClass=*' > $INITOUT 2>&1
-	RC=$?
-	if test $RC = 0 ; then
-		break
-	fi
-	echo "Waiting $i seconds for slapd to start..."
-	sleep $i
-done
-
+$LDAPSEARCH -S "" -b "$BASEDN" -h $LOCALHOST -p $PORT1 \
+    'objectClass=*' > $INITOUT 2>&1
+RC=$?
 if test $RC != 0 ; then
 	echo "ldapsearch failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -66,7 +56,7 @@ $LDAPMODRDN -D "$MANAGERDN" -h $LOCALHOST -p $PORT1 -w $PASSWD > \
 RC=$?
 if test $RC != 0 ; then
 	echo "ldapmodrdn failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -77,7 +67,7 @@ $LDAPMODRDN -D "$MANAGERDN" -r -h $LOCALHOST -p $PORT1 -w $PASSWD >> \
 RC=$?
 if test $RC != 0 ; then
 	echo "ldapmodrdn failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -89,7 +79,7 @@ $LDAPSEARCH -S "" -b "$BASEDN" -h $LOCALHOST -p $PORT1 \
 RC=$?
 if test $RC != 0 ; then
 	echo "ldapsearch failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -105,7 +95,7 @@ $CMP $SEARCHFLT $LDIFFLT > $CMPOUT
 
 if test $? != 0 ; then
 	echo "comparison failed - modrdn operations did not complete correctly"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit -1
 fi
 
@@ -116,7 +106,7 @@ $LDAPSEARCH -S "" -b "$BASEDN" -h $LOCALHOST -p $PORT1 \
 RC=$?
 if test $RC != 0 ; then
 	echo "ldapsearch failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -132,7 +122,7 @@ $CMP $SEARCHFLT $LDIFFLT > $CMPOUT
 
 if test $? != 0 ; then
 	echo "comparison failed - modrdn operations did not complete correctly"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit -1
 fi
 
@@ -144,14 +134,14 @@ $LDAPSEARCH -S "" -b "$BASEDN" -h $LOCALHOST -p $PORT1 \
 	    'cn=James A Jones 2' > $SEARCHOUT 2>&1
 RC=$?
 if test $RC != 0 ; then
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	echo "ldapsearch failed ($RC)!"
 	exit $RC
 fi
 $CMP $SEARCHOUT - < /dev/null > $CMPOUT
 if test $? != 0 ; then
 	echo "failure: ldapsearch found attribute that was to be removed!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit -1
 fi
 
@@ -160,7 +150,7 @@ $LDAPSEARCH -S "" -b "$BASEDN" -h $LOCALHOST -p $PORT1 \
 	    'objectClass=*' > $SEARCHOUT 2>&1
 RC=$?
 if test $RC != 0 ; then
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	echo "ldapsearch failed ($RC)!"
 	exit $RC
 fi
@@ -176,7 +166,7 @@ $CMP $SEARCHFLT $LDIFFLT > $CMPOUT
 
 if test $? != 0 ; then
 	echo "comparison failed - modrdn operations did not complete correctly"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit -1
 fi
 
@@ -190,7 +180,7 @@ $LDAPMODRDN -D "$MANAGERDN" -r -h $LOCALHOST -p $PORT1 -w $PASSWD > \
 RC=$?
 if test $RC != 0 ; then
 	echo "ldapmodrdn failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -201,7 +191,7 @@ RC=$?
 
 if test $RC != 0 ; then
 	echo "ldapsearch failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -216,7 +206,7 @@ $CMP $SEARCHFLT $LDIFFLT > $CMPOUT
 
 if test $? != 0 ; then
 	echo "comparison failed - modrdn operations did not complete correctly"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit -1
 fi
 
@@ -227,14 +217,14 @@ RC=$?
 case $RC in
 0)
 	echo "ldapmodrdn succeeded, should have failed!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit -1
 	;;
 71)
 	;;
 *)
 	echo "ldapmodrdn failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 	;;
 esac
@@ -248,14 +238,14 @@ RC=$?
 case $RC in
 0)
 	echo "ldapmodrdn succeeded, should have failed!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit -1
 	;;
 53)
 	;;
 *)
 	echo "ldapmodrdn failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 	;;
 esac
@@ -270,7 +260,7 @@ case $RC in
 	;;
 *)
 	echo "ldapmodrdn failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 	;;
 esac
@@ -285,15 +275,11 @@ case $RC in
 	;;
 *)
 	echo "ldapmodrdn failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 	;;
 esac
 
-test $KILLSERVERS != no && kill -HUP $KILLPIDS
-
+killservers
 echo ">>>>> Test succeeded"
-
-test $KILLSERVERS != no && wait
-
 exit 0

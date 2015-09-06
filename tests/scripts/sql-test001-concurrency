@@ -63,7 +63,7 @@ done
 
 if test $RC != 0 ; then
 	echo "ldapsearch failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -74,7 +74,7 @@ RC=$?
 
 if test $RC != 0 ; then
 	echo "ldapsearch failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -107,7 +107,7 @@ RC=$?
 
 if test $RC != 0 ; then
 	echo "slapd-tester failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -116,7 +116,7 @@ $LDAPSEARCH -S "" -b "$BASEDN" -h $LOCALHOST -p $PORT1 \
 			'(objectClass=*)' > $SEARCHOUT 2>&1
 RC=$?
 
-test $KILLSERVERS != no && kill -HUP $KILLPIDS
+killservers
 
 if test $RC != 0 ; then
 	echo "ldapsearch failed ($RC)!"

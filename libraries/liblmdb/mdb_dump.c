@@ -120,9 +120,6 @@ static int dumpit(MDB_txn *txn, MDB_dbi dbi, char *name)
 		printf("mapaddr=%p\n", info.me_mapaddr);
 	printf("maxreaders=%u\n", info.me_maxreaders);
 
-	if (flags & MDB_DUPSORT)
-		printf("duplicates=1\n");
-
 	for (i=0; dbflags[i].bit; i++)
 		if (flags & dbflags[i].bit)
 			printf("%s=1\n", dbflags[i].name);
@@ -298,7 +295,8 @@ int main(int argc, char *argv[])
 		if (!count) {
 			fprintf(stderr, "%s: %s does not contain multiple databases\n", prog, envname);
 			rc = MDB_NOTFOUND;
-		} else if (rc == MDB_BAD_DBI) {
+		} else if (rc == MDB_INCOMPATIBLE) {
+			/* LY: the record it not a named sub-db. */
 			rc = MDB_SUCCESS;
 		}
 	} else {

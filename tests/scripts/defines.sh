@@ -14,7 +14,7 @@
 ## <http://www.OpenLDAP.org/license.html>.
 
 umask 077
-killall slapd 2>/dev/null
+pkill -SIGKILL -s 0 -u $EUID slapd
 
 TESTWD=`pwd`
 
@@ -49,32 +49,88 @@ USE_SASL=${SLAPD_USE_SASL-no}
 ACI=${AC_ACI_ENABLED-acino}
 THREADS=${AC_THREADS-threadsno}
 
+function update_TESTDIR {
+	TESTDIR=$1
+	DBDIR1A=$TESTDIR/db.1.a
+	DBDIR1B=$TESTDIR/db.1.b
+	DBDIR1C=$TESTDIR/db.1.c
+	DBDIR1=$DBDIR1A
+	DBDIR2A=$TESTDIR/db.2.a
+	DBDIR2B=$TESTDIR/db.2.b
+	DBDIR2C=$TESTDIR/db.2.c
+	DBDIR2=$DBDIR2A
+	DBDIR3=$TESTDIR/db.3.a
+	DBDIR4=$TESTDIR/db.4.a
+	DBDIR5=$TESTDIR/db.5.a
+	DBDIR6=$TESTDIR/db.6.a
+
+	# generated files
+	CONF1=$TESTDIR/slapd.1.conf
+	CONF2=$TESTDIR/slapd.2.conf
+	CONF3=$TESTDIR/slapd.3.conf
+	CONF4=$TESTDIR/slapd.4.conf
+	CONF5=$TESTDIR/slapd.5.conf
+	CONF6=$TESTDIR/slapd.6.conf
+	ADDCONF=$TESTDIR/slapadd.conf
+	CONFLDIF=$TESTDIR/slapd-dynamic.ldif
+
+	LOG1=$TESTDIR/slapd.1.log
+	LOG2=$TESTDIR/slapd.2.log
+	LOG3=$TESTDIR/slapd.3.log
+	LOG4=$TESTDIR/slapd.4.log
+	LOG5=$TESTDIR/slapd.5.log
+	LOG6=$TESTDIR/slapd.6.log
+	SLAPADDLOG1=$TESTDIR/slapadd.1.log
+	SLURPLOG=$TESTDIR/slurp.log
+
+	CONFIGPWF=$TESTDIR/configpw
+
+	# generated outputs
+	SEARCHOUT=$TESTDIR/ldapsearch.out
+	SEARCHOUT2=$TESTDIR/ldapsearch2.out
+	SEARCHFLT=$TESTDIR/ldapsearch.flt
+	SEARCHFLT2=$TESTDIR/ldapsearch2.flt
+	LDIFFLT=$TESTDIR/ldif.flt
+	TESTOUT=$TESTDIR/test.out
+	INITOUT=$TESTDIR/init.out
+	SERVER1OUT=$TESTDIR/server1.out
+	SERVER1FLT=$TESTDIR/server1.flt
+	SERVER2OUT=$TESTDIR/server2.out
+	SERVER2FLT=$TESTDIR/server2.flt
+	SERVER3OUT=$TESTDIR/server3.out
+	SERVER3FLT=$TESTDIR/server3.flt
+	SERVER4OUT=$TESTDIR/server4.out
+	SERVER4FLT=$TESTDIR/server4.flt
+	SERVER5OUT=$TESTDIR/server5.out
+	SERVER5FLT=$TESTDIR/server5.flt
+	SERVER6OUT=$TESTDIR/server6.out
+	SERVER6FLT=$TESTDIR/server6.flt
+
+	MASTEROUT=$SERVER1OUT
+	MASTERFLT=$SERVER1FLT
+	SLAVEOUT=$SERVER2OUT
+	SLAVE2OUT=$SERVER3OUT
+	SLAVEFLT=$SERVER2FLT
+	SLAVE2FLT=$SERVER3FLT
+
+	MTREADOUT=$TESTDIR/mtread.out
+}
+
 # dirs
 PROGDIR=./progs
 DATADIR=${USER_DATADIR-./testdata}
-TESTDIR=${USER_TESTDIR-$TESTWD/testrun}
+BASE_TESTDIR=${USER_TESTDIR-$TESTWD/testrun}
+update_TESTDIR $BASE_TESTDIR
+
 SCHEMADIR=${USER_SCHEMADIR-./schema}
 case "$SCHEMADIR" in
 .*)	ABS_SCHEMADIR="$TESTWD/$SCHEMADIR" ;;
 *)  ABS_SCHEMADIR="$SCHEMADIR" ;;
 esac
 
-DBDIR1A=$TESTDIR/db.1.a
-DBDIR1B=$TESTDIR/db.1.b
-DBDIR1C=$TESTDIR/db.1.c
-DBDIR1=$DBDIR1A
-DBDIR2A=$TESTDIR/db.2.a
-DBDIR2B=$TESTDIR/db.2.b
-DBDIR2C=$TESTDIR/db.2.c
-DBDIR2=$DBDIR2A
-DBDIR3=$TESTDIR/db.3.a
-DBDIR4=$TESTDIR/db.4.a
-DBDIR5=$TESTDIR/db.5.a
-DBDIR6=$TESTDIR/db.6.a
-SQLCONCURRENCYDIR=$DATADIR/sql-concurrency
-
 CLIENTDIR=../clients/tools
 #CLIENTDIR=/usr/local/bin
+SQLCONCURRENCYDIR=$DATADIR/sql-concurrency
 
 # conf
 CONF=$DATADIR/slapd.conf
@@ -137,26 +193,6 @@ VALREGEXCONF=$DATADIR/slapd-valregex.conf
 
 DYNAMICCONF=$DATADIR/slapd-dynamic.ldif
 
-# generated files
-CONF1=$TESTDIR/slapd.1.conf
-CONF2=$TESTDIR/slapd.2.conf
-CONF3=$TESTDIR/slapd.3.conf
-CONF4=$TESTDIR/slapd.4.conf
-CONF5=$TESTDIR/slapd.5.conf
-CONF6=$TESTDIR/slapd.6.conf
-ADDCONF=$TESTDIR/slapadd.conf
-CONFLDIF=$TESTDIR/slapd-dynamic.ldif
-
-LOG1=$TESTDIR/slapd.1.log
-LOG2=$TESTDIR/slapd.2.log
-LOG3=$TESTDIR/slapd.3.log
-LOG4=$TESTDIR/slapd.4.log
-LOG5=$TESTDIR/slapd.5.log
-LOG6=$TESTDIR/slapd.6.log
-SLAPADDLOG1=$TESTDIR/slapadd.1.log
-SLURPLOG=$TESTDIR/slurp.log
-
-CONFIGPWF=$TESTDIR/configpw
 
 # args
 TOOLARGS="-x $LDAP_TOOLARGS"
@@ -264,6 +300,7 @@ LDIFVALSORT=$DATADIR/test-valsort.ldif
 SQLADD=$DATADIR/sql-add.ldif
 LDIFUNORDERED=$DATADIR/test-unordered.ldif
 LDIFREORDERED=$DATADIR/test-reordered.ldif
+LDIFMODIFY=$DATADIR/test-modify.ldif
 
 # strings
 MONITOR=""
@@ -295,14 +332,6 @@ CONNECTIONSMONITORDN="cn=Connections,$MONITORDN"
 DATABASESMONITORDN="cn=Databases,$MONITORDN"
 STATISTICSMONITORDN="cn=Statistics,$MONITORDN"
 
-# generated outputs
-SEARCHOUT=$TESTDIR/ldapsearch.out
-SEARCHOUT2=$TESTDIR/ldapsearch2.out
-SEARCHFLT=$TESTDIR/ldapsearch.flt
-SEARCHFLT2=$TESTDIR/ldapsearch2.flt
-LDIFFLT=$TESTDIR/ldif.flt
-TESTOUT=$TESTDIR/test.out
-INITOUT=$TESTDIR/init.out
 VALSORTOUT1=$DATADIR/valsort1.out
 VALSORTOUT2=$DATADIR/valsort2.out
 VALSORTOUT3=$DATADIR/valsort3.out
@@ -311,27 +340,6 @@ MONITOROUT2=$DATADIR/monitor2.out
 MONITOROUT3=$DATADIR/monitor3.out
 MONITOROUT4=$DATADIR/monitor4.out
 
-SERVER1OUT=$TESTDIR/server1.out
-SERVER1FLT=$TESTDIR/server1.flt
-SERVER2OUT=$TESTDIR/server2.out
-SERVER2FLT=$TESTDIR/server2.flt
-SERVER3OUT=$TESTDIR/server3.out
-SERVER3FLT=$TESTDIR/server3.flt
-SERVER4OUT=$TESTDIR/server4.out
-SERVER4FLT=$TESTDIR/server4.flt
-SERVER5OUT=$TESTDIR/server5.out
-SERVER5FLT=$TESTDIR/server5.flt
-SERVER6OUT=$TESTDIR/server6.out
-SERVER6FLT=$TESTDIR/server6.flt
-
-MASTEROUT=$SERVER1OUT
-MASTERFLT=$SERVER1FLT
-SLAVEOUT=$SERVER2OUT
-SLAVE2OUT=$SERVER3OUT
-SLAVEFLT=$SERVER2FLT
-SLAVE2FLT=$SERVER3FLT
-
-MTREADOUT=$TESTDIR/mtread.out
 
 # original outputs for cmp
 PROXYCACHEOUT=$DATADIR/proxycache.out
@@ -381,6 +389,49 @@ function teamcity_msg {
 	fi
 }
 
+function safewait {
+	wait "$@"
+	local RC=$?
+	if [ $RC -gt 128 ]; then
+		echo " coredump/signal-$(($RC - 128))"
+		sleep 5
+		exit $RC
+	fi
+}
+
+function killpids {
+	if [ $# != 0 ]; then
+		echo -n ">>>>> waiting for things ($@) to exit..."
+		kill -HUP "$@"
+		safewait "$@"
+		echo " done"
+	fi
+}
+
+function killservers {
+	if [ "$KILLSERVERS" != no -o -z "$KILLPIDS" ]; then
+		killpids $KILLPIDS
+		KILLPIDS=
+	fi
+}
+
+function get_df_mb {
+	echo $(($(df -k -P $(readlink -f $1) | tail -1 | tr -s '\t ' ' ' | cut -d ' ' -f 4) / 1024))
+}
+
+function cibuzz_report {
+	if [ -n "$CIBUZZ_STATUS" ]; then
+		echo "$(date --rfc-3339=seconds) $@" > $CIBUZZ_STATUS
+	fi
+}
+
+function failure {
+	cibuzz_report "failure: $@"
+	echo "$@" >&2
+	killservers
+	exit 125
+}
+
 function safepath {
 	local r=$(realpath --relative-to ../${SRCDIR} $@ 2>/dev/null)
 	# LY: realpath from RHEL6 don't support '--relative-to' option,
@@ -393,6 +444,7 @@ function safepath {
 }
 
 function collect_coredumps {
+	wait
 	local id=${1:-xxx-$(date '+%F.%H%M%S.%N')}
 	local cores="$(find -L ../${SRCDIR}/tests ../${SRCDIR}/libraries/liblmdb -name core -type f)"
 	if [ -n "${cores}" ]; then
@@ -405,7 +457,7 @@ function collect_coredumps {
 			dir="../${SRCDIR}/@cores"
 		fi
 
-		mkdir -p "$dir" || echo "failed: mkdir -p '$dir'" >&2
+		mkdir -p "$dir" || failure "failed: mkdir -p '$dir'"
 		n=
 		for c in ${cores}; do
 			while true; do
@@ -413,7 +465,7 @@ function collect_coredumps {
 				if [ ! -e "${target}" ]; then break; fi
 				n=$((n-1))
 			done
-			mv "$c" "${target}" || echo "failed: mv '$c' '${target}'" >&2
+			mv "$c" "${target}" || failure "failed: mv '$c' '${target}'"
 		done
 
 		teamcity_msg "publishArtifacts '$(safepath ${dir})/${id}*.core => ${id}-cores.tar.gz'"
@@ -424,9 +476,17 @@ function collect_coredumps {
 }
 
 function collect_test {
+	wait
 	local id=${1:-xxx-$(date '+%F.%H%M%S.%N')}
-	local publish=${2:-no}
+	local failed=${2:-yes}
 	local from="../${SRCDIR}/tests/testrun"
+	local status="../${SRCDIR}/@successful.log"
+
+	if [ -n "$1" -a "$failed" = "no" -a -s $status ] && grep -q -- "$id" $status; then
+		echo "Skipping a result(s) collecting of successful $id (already have)" >&2
+		return
+	fi
+
 	if [ -n "$(ls $from)" ]; then
 		echo "Collect result(s) from $id..." >&2
 
@@ -437,6 +497,12 @@ function collect_test {
 			dir="../${SRCDIR}/@dumps/$id.dump"
 		fi
 
+		wanna_free=1000
+		if [ "$failed" = "no" -a $(get_df_mb $(dirname $dir)) -lt $wanna_free ]; then
+			echo "Skipping a result(s) collecting of successful $id (less than ${wanna_free}Mb space available)" >&2
+			return
+		fi
+
 		n=
 		while true; do
 			target="${dir}/${n}"
@@ -444,12 +510,14 @@ function collect_test {
 			n=$((n+1))
 		done
 
-		mkdir -p "$target" || echo "failed: mkdir -p '$target'" >&2
-		mv -t "${target}" $from/* || echo "failed: mv -t '${target}' '$from/*'" >&2
+		mkdir -p "$target" || failure "failed: mkdir -p '$target'"
+		mv -t "${target}" $from/* || failure "failed: mv -t '${target}' '$from/*'"
 
-		if [ "${publish}" == "yes" ]; then
+		if [ "${failed}" == "yes" ]; then
 			teamcity_msg "publishArtifacts '$(safepath ${target}) => ${id}-dump.tar.gz'"
 			sleep 1
+		else
+			echo "$id	$(date '+%F.%H%M%S.%N')" >> $status
 		fi
 	fi
 }
@@ -465,7 +533,7 @@ function wait_syncrepl {
 		RC=${PIPESTATUS[0]}
 		if test $RC != 0 ; then
 			echo "ldapsearch failed at provider ($RC, $provider_csn)!"
-			test $KILLSERVERS != no && kill -HUP $KILLPIDS
+			killservers
 			exit $RC
 		fi
 
@@ -474,7 +542,7 @@ function wait_syncrepl {
 		RC=${PIPESTATUS[0]}
 		if test $RC != 0 -a $RC != 32; then
 			echo "ldapsearch failed at consumer ($RC, $consumer_csn)!"
-			test $KILLSERVERS != no && kill -HUP $KILLPIDS
+			killservers
 			exit $RC
 		fi
 
@@ -491,4 +559,28 @@ function wait_syncrepl {
 	$LDAPSEARCH -s $scope -b "$BASEDN" -h $LOCALHOST -p $1 contextCSN
 	echo -n "Consumer: "
 	$LDAPSEARCH -s $scope -b "$BASEDN" -h $LOCALHOST -p $2 contextCSN
+}
+
+function check_running {
+	local port=$(($BASEPORT + $1))
+	local caption=$2
+	local i
+	if [ -n "$caption" ]; then caption+=" "; fi
+	echo "Using ldapsearch to check that ${caption}slapd is running (port $port)..."
+	for i in 0.1 0.5 1 2 3 4 5; do
+		$LDAPSEARCH -s base -b "$MONITOR" -h $LOCALHOST -p $port \
+			'(objectClass=*)' > /dev/null 2>&1
+		RC=$?
+		if test $RC = 0 ; then
+			break
+		fi
+		echo "Waiting $i seconds for ${caption}slapd to start..."
+		sleep $i
+	done
+
+	if test $RC != 0 ; then
+		echo "ldapsearch failed ($RC)!"
+		killservers
+		exit $RC
+	fi
 }

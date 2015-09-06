@@ -59,25 +59,7 @@ if test $WAIT != 0 ; then
     read foo
 fi
 KILLPIDS="$MASTERPID"
-sleep 0.1
-
-echo "Using ldapsearch to check that master slapd is running..."
-for i in 1 2 3 4 5; do
-	$LDAPSEARCH -s base -b "$MONITOR" -h $LOCALHOST -p $PORT1 \
-		'(objectClass=*)' > /dev/null 2>&1
-	RC=$?
-	if test $RC = 0 ; then
-		break
-	fi
-	echo "Waiting $i seconds for slapd to start..."
-	sleep $i
-done
-
-if test $RC != 0 ; then
-	echo "ldapsearch failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
-	exit $RC
-fi
+check_running 1 master
 
 echo "Using ldapadd to create the context prefix entry in the master..."
 $LDAPADD -D "$MANAGERDN" -h $LOCALHOST -p $PORT1 -w $PASSWD < \
@@ -85,7 +67,7 @@ $LDAPADD -D "$MANAGERDN" -h $LOCALHOST -p $PORT1 -w $PASSWD < \
 RC=$?
 if test $RC != 0 ; then
 	echo "ldapadd failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -98,25 +80,7 @@ if test $WAIT != 0 ; then
     read foo
 fi
 KILLPIDS="$MASTERPID $SLAVEPID"
-sleep 0.1
-
-echo "Using ldapsearch to check that slave slapd is running..."
-for i in 1 2 3 4 5; do
-	$LDAPSEARCH -s base -b "$MONITOR" -h $LOCALHOST -p $PORT2 \
-		'(objectClass=*)' > /dev/null 2>&1
-	RC=$?
-	if test $RC = 0 ; then
-		break
-	fi
-	echo "Waiting $i seconds for slapd to start..."
-	sleep $i
-done
-
-if test $RC != 0 ; then
-	echo "ldapsearch failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
-	exit $RC
-fi
+check_running 2 slave
 
 echo "Starting proxy slapd on TCP/IP port $PORT3..."
 . $CONFFILTER $BACKEND $MONITORDB < $PLSRSLAVECONF > $CONF3
@@ -127,10 +91,9 @@ if test $WAIT != 0 ; then
     read foo
 fi
 KILLPIDS="$MASTERPID $SLAVEPID $PROXYPID"
-sleep 0.1
 
 echo "Using ldapsearch to check that proxy slapd is running..."
-for i in 1 2 3 4 5; do
+for i in 0.1 0.5 1 2 3 4 5; do
 	$LDAPSEARCH -s base -b "$MONITOR" -h $LOCALHOST -p $PORT3 \
 		'(objectClass=*)' > /dev/null 2>&1
 	RC=$?
@@ -144,14 +107,14 @@ done
 case $RC in
 0 )
 	echo "ldapsearch should have failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit -1
 	;;
 53)
 	;;
 *)
 	echo "ldapsearch failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 	;;
 esac
@@ -163,7 +126,7 @@ $LDAPADD -D "$MANAGERDN" -h $LOCALHOST -p $PORT1 -w $PASSWD < \
 RC=$?
 if test $RC != 0 ; then
 	echo "ldapadd failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -173,7 +136,7 @@ $LDAPSEARCH -S "" -b "$BASEDN" -h $LOCALHOST -p $PORT1 \
 RC=$?
 if test $RC != 0 ; then
 	echo "ldapsearch failed at master ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -187,7 +150,7 @@ RC=$?
 
 if test $RC != 0 ; then
 	echo "ldapsearch failed at master ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -198,7 +161,7 @@ RC=$?
 
 if test $RC != 0 ; then
 	echo "ldapsearch failed at slave ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -212,13 +175,13 @@ $CMP $MASTERFLT $SLAVEFLT > $CMPOUT
 
 if test $? != 0 ; then
 	echo "test failed - master and slave databases differ"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit 1
 fi
 
 CHECK=`expr $CHECK + 1`
 echo -n "$CHECK > Stopping the provider ($MASTERPID), sleeping $SLEEP1 seconds and restarting it..."
-kill -HUP $MASTERPID && wait $MASTERPID && echo " Done" || echo " Failure ($?) !!!"
+kill -HUP $MASTERPID && safewait $MASTERPID && echo " Done" || echo " Failure ($?) !!!"
 sleep $SLEEP1
 
 echo "======================= RESTART =======================" >> $LOG1
@@ -229,25 +192,7 @@ if test $WAIT != 0 ; then
     read foo
 fi
 KILLPIDS="$MASTERPID $SLAVEPID $PROXYPID"
-sleep 0.1
-
-echo "Using ldapsearch to check that master slapd is running..."
-for i in 1 2 3 4 5; do
-	$LDAPSEARCH -s base -b "$MONITOR" -h $LOCALHOST -p $PORT1 \
-		'(objectClass=*)' > /dev/null 2>&1
-	RC=$?
-	if test $RC = 0 ; then
-		break
-	fi
-	echo "Waiting $i seconds for slapd to start..."
-	sleep $i
-done
-
-if test $RC != 0 ; then
-	echo "ldapsearch failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
-	exit $RC
-fi
+check_running 1 master
 
 echo "Using ldapmodify to modify master directory..."
 
@@ -332,7 +277,7 @@ EOMODS
 RC=$?
 if test $RC != 0 ; then
 	echo "ldapmodify failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -342,7 +287,7 @@ $LDAPSEARCH -S "" -b "$BASEDN" -h $LOCALHOST -p $PORT1 \
 RC=$?
 if test $RC != 0 ; then
 	echo "ldapsearch failed at master ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -356,7 +301,7 @@ RC=$?
 
 if test $RC != 0 ; then
 	echo "ldapsearch failed at master ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -367,7 +312,7 @@ RC=$?
 
 if test $RC != 0 ; then
 	echo "ldapsearch failed at slave ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -381,13 +326,13 @@ $CMP $MASTERFLT $SLAVEFLT > $CMPOUT
 
 if test $? != 0 ; then
 	echo "test failed - master and slave databases differ"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit 1
 fi
 
 CHECK=`expr $CHECK + 1`
 echo -n "$CHECK > Stopping proxy ($PROXYPID) to test recovery..."
-kill -HUP $PROXYPID && wait $PROXYPID && echo " Done" || echo " Failure ($?) !!!"
+kill -HUP $PROXYPID && safewait $PROXYPID && echo " Done" || echo " Failure ($?) !!!"
 
 echo "Modifying more entries on the master..."
 $LDAPMODIFY -v -D "$MANAGERDN" -h $LOCALHOST -p $PORT1 -w $PASSWD >> \
@@ -429,7 +374,7 @@ $LDAPSEARCH -S "" -b "$BASEDN" -h $LOCALHOST -p $PORT1 \
 RC=$?
 if test $RC != 0 ; then
 	echo "ldapsearch failed at master ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -443,7 +388,7 @@ RC=$?
 
 if test $RC != 0 ; then
 	echo "ldapsearch failed at master ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -454,7 +399,7 @@ RC=$?
 
 if test $RC != 0 ; then
 	echo "ldapsearch failed at slave ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -468,7 +413,7 @@ $CMP $MASTERFLT $SLAVEFLT > $CMPOUT
 
 if test $? != 0 ; then
 	echo "test failed - master and slave databases differ"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit 1
 fi
 
@@ -487,7 +432,7 @@ EOMODS
 RC=$?
 if test $RC != 0 ; then
 	echo "ldapmodify failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -497,7 +442,7 @@ $LDAPSEARCH -S "" -b "$BASEDN" -h $LOCALHOST -p $PORT1 \
 RC=$?
 if test $RC != 0 ; then
 	echo "ldapsearch failed at master ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -511,7 +456,7 @@ RC=$?
 
 if test $RC != 0 ; then
 	echo "ldapsearch failed at master ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -522,7 +467,7 @@ RC=$?
 
 if test $RC != 0 ; then
 	echo "ldapsearch failed at slave ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -536,13 +481,13 @@ $CMP $MASTERFLT $SLAVEFLT > $CMPOUT
 
 if test $? != 0 ; then
 	echo "test failed - master and slave databases differ"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit 1
 fi
 
 CHECK=`expr $CHECK + 1`
 echo -n "$CHECK > Stopping consumer ($SLAVEPID) to test recovery..."
-kill -HUP $SLAVEPID && wait $SLAVEPID && echo " Done" || echo " Failure ($?) !!!"
+kill -HUP $SLAVEPID && safewait $SLAVEPID && echo " Done" || echo " Failure ($?) !!!"
 
 echo "Modifying more entries on the master..."
 $LDAPMODIFY -v -D "$MANAGERDN" -h $LOCALHOST -p $PORT1 -w $PASSWD >> \
@@ -566,6 +511,7 @@ if test $WAIT != 0 ; then
     read foo
 fi
 KILLPIDS="$MASTERPID $SLAVEPID $PROXYPID"
+check_running 2 consumer
 
 # get master contextCSN
 $LDAPSEARCH -S "" -b "$BASEDN" -h $LOCALHOST -p $PORT1 \
@@ -573,7 +519,7 @@ $LDAPSEARCH -S "" -b "$BASEDN" -h $LOCALHOST -p $PORT1 \
 RC=$?
 if test $RC != 0 ; then
 	echo "ldapsearch failed at master ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -587,7 +533,7 @@ RC=$?
 
 if test $RC != 0 ; then
 	echo "ldapsearch failed at master ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -598,7 +544,7 @@ RC=$?
 
 if test $RC != 0 ; then
 	echo "ldapsearch failed at slave ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -614,13 +560,13 @@ if test $? != 0 ; then
 	# FIXME: keep the original workaround in place, in case we needed again
 	if test 1 = 1 ; then
 		echo "test failed - master and slave databases differ"
-		test $KILLSERVERS != no && kill -HUP $KILLPIDS
+		killservers
 		exit 1
 	fi
 
 	echo "	test failed - master and slave databases differ (ignored by now)"
 	echo -n "	Stopping proxy ($PROXYPID) to see if it auto-recovers..."
-	kill -HUP $PROXYPID && wait $PROXYPID && echo " Done" || echo " Failure ($?) !!!"
+	kill -HUP $PROXYPID && safewait $PROXYPID && echo " Done" || echo " Failure ($?) !!!"
 
 	echo "	${CHECK}.1 > Restarting proxy..."
 	echo "======================= RESTART =======================" >> $LOG3
@@ -642,7 +588,7 @@ if test $? != 0 ; then
 
 	if test $RC != 0 ; then
 		echo "	ldapsearch failed at slave ($RC)!"
-		test $KILLSERVERS != no && kill -HUP $KILLPIDS
+		killservers
 		exit $RC
 	fi
 
@@ -654,7 +600,7 @@ if test $? != 0 ; then
 
 	if test $? != 0 ; then
 		echo "	test failed - master and slave databases differ"
-		test $KILLSERVERS != no && kill -HUP $KILLPIDS
+		killservers
 		exit 1
 	fi
 fi
@@ -682,7 +628,7 @@ EOMODS
 RC=$?
 if test $RC != 0 ; then
 	echo "ldapmodify failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -692,7 +638,7 @@ $LDAPSEARCH -S "" -b "$BASEDN" -h $LOCALHOST -p $PORT1 \
 RC=$?
 if test $RC != 0 ; then
 	echo "ldapsearch failed at master ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -706,7 +652,7 @@ RC=$?
 
 if test $RC != 0 ; then
 	echo "ldapsearch failed at master ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -717,7 +663,7 @@ RC=$?
 
 if test $RC != 0 ; then
 	echo "ldapsearch failed at slave ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -732,14 +678,10 @@ $CMP $MASTERFLT $SLAVEFLT > $CMPOUT
 if test $? != 0 ; then
 	echo "test failed - master and slave databases differ (ignored by now)"
 	#echo "test failed - master and slave databases differ"
-	#test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	#killservers
 	#exit 1
 fi
 
-test $KILLSERVERS != no && kill -HUP $KILLPIDS
-
+killservers
 echo ">>>>> Test succeeded"
-
-test $KILLSERVERS != no && wait
-
 exit 0

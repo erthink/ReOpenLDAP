@@ -60,25 +60,7 @@ if test $WAIT != 0 ; then
 	read foo
 fi
 KILLPIDS="$PID"
-sleep 0.1
-
-echo "Using ldapsearch to check that master slapd is running..."
-for i in 1 2 3 4 5; do
-	$LDAPSEARCH -s base -b "$MONITOR" -h $LOCALHOST -p $PORT1 \
-		'objectclass=*' > /dev/null 2>&1
-	RC=$?
-	if test $RC = 0 ; then
-		break
-	fi
-	echo "Waiting $i seconds for slapd to start..."
-	sleep $i
-done
-
-if test $RC != 0 ; then
-	echo "ldapsearch failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
-	exit $RC
-fi
+check_running 1 master
 
 echo "Using ldapadd to populate the master directory..."
 $LDAPADD -x -D "$MANAGERDN" -h $LOCALHOST -p $PORT1 -w $PASSWD < \
@@ -86,7 +68,7 @@ $LDAPADD -x -D "$MANAGERDN" -h $LOCALHOST -p $PORT1 -w $PASSWD < \
 RC=$?
 if test $RC != 0 ; then
 	echo "ldapadd failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -108,25 +90,7 @@ if test $WAIT != 0 ; then
 	read foo
 fi
 KILLPIDS="$KILLPIDS $CACHEPID"
-sleep 0.1
-
-echo "Using ldapsearch to check that proxy slapd is running..."
-for i in 1 2 3 4 5; do
-	$LDAPSEARCH -s base -b "$MONITOR" -h $LOCALHOST -p $PORT2 \
-		'objectclass=*' > /dev/null 2>&1
-	RC=$?
-	if test $RC = 0 ; then
-		break
-	fi
-	echo "Waiting $i seconds for slapd to start..."
-	sleep $i
-done
-
-if test $RC != 0 ; then
-	echo "ldapsearch failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
-	exit $RC
-fi
+check_running 2 proxy
 
 cat /dev/null > $SEARCHOUT
 
@@ -142,7 +106,7 @@ $LDAPSEARCH -x -S "" -b "$BASEDN" -h $LOCALHOST -p $PORT2 \
 RC=$?
 if test $RC != 0 ; then
 	echo "ldapsearch failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -151,7 +115,7 @@ grep "query template" $LOG2 > /dev/null
 RC=$?
 if test $RC != 0 ; then
 	echo "Debug messages unavailable, remaining test skipped..."
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS && wait
+	killservers
 	exit 0
 fi
 
@@ -165,7 +129,7 @@ $LDAPSEARCH -x -S "" -b "$BASEDN" -h $LOCALHOST -p $PORT2 \
 RC=$?
 if test $RC != 0 ; then
 	echo "ldapsearch failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -179,7 +143,7 @@ $LDAPSEARCH -S "" -b "$BASEDN" -h $LOCALHOST -p $PORT2 \
 RC=$?
 if test $RC != 0 ; then
 	echo "ldapsearch failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -193,7 +157,7 @@ $LDAPSEARCH -S "" -b "$BASEDN" -h $LOCALHOST -p $PORT2 \
 RC=$?
 if test $RC != 0 ; then
 	echo "ldapsearch failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -207,7 +171,7 @@ $LDAPSEARCH -S "" -b "$BASEDN" -h $LOCALHOST -p $PORT2 \
 RC=$?
 if test $RC != 0 ; then
 	echo "ldapsearch failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -221,7 +185,7 @@ $LDAPSEARCH -S "" -b "$BASEDN" -h $LOCALHOST -p $PORT2 \
 RC=$?
 if test $RC != 0 ; then
 	echo "ldapsearch failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -235,7 +199,7 @@ $LDAPSEARCH -S "" -b "$BASEDN" -h $LOCALHOST -p $PORT2 \
 RC=$?
 if test $RC != 0 ; then
 	echo "ldapsearch failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -253,7 +217,7 @@ RC=$?
 case $RC in
 0)
 	echo "ldapsearch should have failed!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit 1
 	;;
 4)
@@ -261,7 +225,7 @@ case $RC in
 	;;
 *)
 	echo "ldapsearch failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 	;;
 esac
@@ -280,7 +244,7 @@ RC=$?
 case $RC in
 0)
 	echo "ldapsearch should have failed!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit 1
 	;;
 4)
@@ -288,7 +252,7 @@ case $RC in
 	;;
 *)
 	echo "ldapsearch failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 	;;
 esac
@@ -303,7 +267,7 @@ $LDAPSEARCH -S "" -b "$BASEDN" -h $LOCALHOST -p $PORT2 \
 RC=$?
 if test $RC != 0 ; then
 	echo "ldapsearch failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -330,7 +294,7 @@ else
 	echo "Error in verifying cacheability"
 	echo "$CACHED"
 	echo "$CACHEABILITY"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit 1
 fi
 
@@ -344,7 +308,7 @@ $LDAPSEARCH -x -S "" -b "$BASEDN" -h $LOCALHOST -p $PORT2 \
 RC=$?
 if test $RC != 0 ; then
 	echo "ldapsearch failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -358,7 +322,7 @@ $LDAPSEARCH -S "" -b "$BASEDN" -h $LOCALHOST -p $PORT2 \
 RC=$?
 if test $RC != 0 ; then
 	echo "ldapsearch failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -372,7 +336,7 @@ $LDAPSEARCH -S "" -b "$BASEDN" -h $LOCALHOST -p $PORT2 \
 RC=$?
 if test $RC != 0 ; then
 	echo "ldapsearch failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -387,7 +351,7 @@ RC=$?
 
 if test $RC != 0 ; then
 	echo "ldapsearch failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -405,7 +369,7 @@ RC=$?
 case $RC in
 0)
 	echo "ldapsearch should have failed!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit 1
 	;;
 4)
@@ -413,7 +377,7 @@ case $RC in
 	;;
 *)
 	echo "ldapsearch failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 	;;
 esac
@@ -432,7 +396,7 @@ RC=$?
 case $RC in
 0)
 	echo "ldapsearch should have failed!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit 1
 	;;
 4)
@@ -440,7 +404,7 @@ case $RC in
 	;;
 *)
 	echo "ldapsearch failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 	;;
 esac
@@ -455,7 +419,7 @@ $LDAPSEARCH -S "" -b "$BASEDN" -h $LOCALHOST -p $PORT2 \
 RC=$?
 if test $RC != 0 ; then
 	echo "ldapsearch failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -485,7 +449,7 @@ if test "$ANSWERABILITY" = "$ANSWERED" ; then
 	echo "Successfully verified answerability"
 else
 	echo "Error in verifying answerability"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit 1
 fi
 
@@ -498,7 +462,7 @@ $CMP $SEARCHFLT $LDIFFLT > $CMPOUT
 
 if test $? != 0 ; then
 	echo "Comparison failed"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit 1
 fi
 
@@ -515,7 +479,7 @@ $LDAPSEARCH -x -S "" -b "$BASEDN" -h $LOCALHOST -p $PORT2 \
 RC=$?
 if test $RC != 0 ; then
 	echo "ldapsearch failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -531,7 +495,7 @@ EOF
 RC=$?
 if test $RC != 0 ; then
 	echo "ldapmodify failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -545,7 +509,7 @@ $LDAPSEARCH -x -S "" -b "$BASEDN" -h $LOCALHOST -p $PORT2 \
 RC=$?
 if test $RC != 0 ; then
 	echo "ldapsearch failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -553,7 +517,7 @@ grep "^mail: dots@admin" $SEARCHOUT > /dev/null
 RC=$?
 if test $RC != 0 ; then
 	echo "Refresh failed"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS && wait
+	killservers
 	exit 1
 fi
 
@@ -570,7 +534,7 @@ $LDAPSEARCH -S "" -b "" -s base -h $LOCALHOST -p $PORT2 \
 RC=$?
 if test $RC != 0 ; then
 	echo "ldapsearch failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -578,7 +542,7 @@ grep "CACHING BIND" $LOG2 > /dev/null
 RC=$?
 if test $RC != 0 ; then
 	echo "Refresh failed"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS && wait
+	killservers
 	exit 1
 fi
 
@@ -592,7 +556,7 @@ $LDAPSEARCH -S "" -b "" -s base -h $LOCALHOST -p $PORT2 \
 RC=$?
 if test $RC != 0 ; then
 	echo "ldapsearch failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -600,7 +564,7 @@ grep "CACHED BIND" $LOG2 > /dev/null
 RC=$?
 if test $RC != 0 ; then
 	echo "Refresh failed"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS && wait
+	killservers
 	exit 1
 fi
 
@@ -611,14 +575,14 @@ $LDAPPASSWD -h $LOCALHOST -p $PORT2 \
 RC=$?
 if test $RC != 0 ; then
 	echo "ldappasswd failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
 RC=`grep "CACH.* BIND" $LOG2 | wc -l`
 if test $RC != 3 ; then
 	echo "ldappasswd didn't update the cache"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS && wait
+	killservers
 	exit 1
 fi
 
@@ -632,20 +596,17 @@ $LDAPSEARCH -S "" -b "" -s base -h $LOCALHOST -p $PORT2 \
 RC=$?
 if test $RC != 0 ; then
 	echo "ldapsearch failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
 RC=`grep "CACH.* BIND" $LOG2 | wc -l`
 if test $RC != 4 ; then
 	echo "Bind wasn't answered from cache"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS && wait
+	killservers
 	exit 1
 fi
-test $KILLSERVERS != no && kill -HUP $KILLPIDS
 
+killservers
 echo ">>>>> Test succeeded"
-
-test $KILLSERVERS != no && wait
-
 exit 0

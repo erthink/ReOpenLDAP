@@ -73,12 +73,8 @@ fi
 echo "Testing virtual naming context mapping with $RELAYS backend(s)..."
 echo ""
 
-tmpfile=savelog.log
-if test -f $tmpfile ; then
-	rm -f $tmpfile
-fi
-first=1
 for RELAY in $RELAYS ; do
+	update_TESTDIR $BASE_TESTDIR/$RELAY
 	RUNIT=yes
 	if test $THREADS = "threadsno" ; then
 		case $RELAY in
@@ -90,29 +86,10 @@ for RELAY in $RELAYS ; do
 	fi
 
 	if test $RUNIT = yes ; then
-		if test $first = 1 ; then
-			first=0
-		else
-			echo ">>>>> waiting for things to exit"
-			test $KILLSERVERS != no && wait
-			echo ""
-
-			mv -f $LOG1 $tmpfile
-			find -H ${TESTDIR} -maxdepth 1 -mindepth 1 | xargs rm -rf || exit $?
-		fi
-
 		mkdir -p $TESTDIR $DBDIR1
-
-		if test -f $tmpfile ; then
-			mv $tmpfile $LOG1
-		fi
-
 		. $SRCDIR/scripts/relay
 	fi
 done
 
 echo ">>>>> Test succeeded"
-
-test $KILLSERVERS != no && wait
-
 exit 0

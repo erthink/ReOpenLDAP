@@ -2561,15 +2561,13 @@ monitor_back_db_destroy(
 		mss = monitor_subsys;
 		monitor_subsys = NULL;
 		for ( i = 0; mss[ i ] != NULL; i++ ) {
-			/* FIXME: ldap-backend frees its own registered context before than
-			 * monitor_back_db_destroy() would be called,
-			 * therefore SIGSEGV should be here... */
-			if ( mss[ i ]->mss_destroy ) {
-				mss[ i ]->mss_destroy( be, mss[ i ] );
-			}
-
+			/* LY: we should free this before calling mss_destroy(),
+			 * because mss[i] may be freed inside mss_destroy(). */
 			if ( !BER_BVISNULL( &mss[ i ]->mss_rdn ) ) {
 				ch_free( mss[ i ]->mss_rdn.bv_val );
+			}
+			if ( mss[ i ]->mss_destroy ) {
+				mss[ i ]->mss_destroy( be, mss[ i ] );
 			}
 		}
 

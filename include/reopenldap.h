@@ -21,7 +21,7 @@
 /* LY: Please do not ask us for Windows support, just never!
  * But you can make a fork for Windows, or become maintainer for FreeBSD... */
 #ifndef __gnu_linux__
-#	error "ReOpenLDAP branch support only GNU Linux"
+#	error "ReOpenLDAP branch supports only GNU Linux"
 #endif
 
 #ifndef _LDAP_REOPEN_H
@@ -78,12 +78,20 @@
 #endif /* __must_check_result */
 
 #ifndef __hot
-#	if defined(__GNUC__) || defined(__clang__)
+#	if defined(__GNUC__) && !defined(__clang__)
 #		define __hot __attribute__((hot, optimize("O3")))
 #	else
 #		define __hot
 #	endif
 #endif /* __hot */
+
+#ifndef __cold
+#	if defined(__GNUC__) && !defined(__clang__)
+#		define __cold __attribute__((cold, optimize("Os")))
+#	else
+#		define __cold
+#	endif
+#endif /* __cold */
 
 #ifndef __flatten
 #	if defined(__GNUC__) || defined(__clang__)
@@ -193,6 +201,7 @@ __extern_C void __assert_fail(
 /* LY: ReOpenLDAP operation mode global flags */
 #define REOPENLDAP_FLAG_IDDQD	1
 #define REOPENLDAP_FLAG_IDKFA	2
+#define REOPENLDAP_FLAG_JITTER	4
 
 __extern_C void reopenldap_flags_setup (int flags);
 __extern_C int reopenldap_flags;
@@ -201,6 +210,15 @@ __extern_C int reopenldap_flags;
 	likely((reopenldap_flags & REOPENLDAP_FLAG_IDDQD) != 0)
 #define reopenldap_mode_idkfa() \
 	unlikely((reopenldap_flags & REOPENLDAP_FLAG_IDKFA) != 0)
+#define reopenldap_mode_jitter() \
+	unlikely((reopenldap_flags & REOPENLDAP_FLAG_JITTER) != 0)
+
+__extern_C void reopenldap_jitter(int probability_percent);
+
+#define LDAP_JITTER(prob) do \
+		if (reopenldap_mode_jitter()) \
+			reopenldap_jitter(prob); \
+	while (0)
 
 #define LDAP_ENSURE(condition) do \
 		if (unlikely(!(condition))) \
@@ -228,6 +246,11 @@ __extern_C int reopenldap_flags;
 #if defined(HAVE_VALGRIND) || defined(USE_VALGRIND)
 	/* Get debugging help from Valgrind */
 #	include <valgrind/memcheck.h>
+#	ifndef VALGRIND_DISABLE_ADDR_ERROR_REPORTING_IN_RANGE
+		/* LY: available since Valgrind 3.10 */
+#		define VALGRIND_DISABLE_ADDR_ERROR_REPORTING_IN_RANGE(a,s)
+#		define VALGRIND_ENABLE_ADDR_ERROR_REPORTING_IN_RANGE(a,s)
+#	endif
 #else
 #	define VALGRIND_CREATE_MEMPOOL(h,r,z)
 #	define VALGRIND_DESTROY_MEMPOOL(h)

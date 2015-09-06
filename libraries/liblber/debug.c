@@ -32,7 +32,11 @@
 #include "lber.h"
 #include "ldap_pvt.h"
 
+#include <unistd.h>
+#include <sys/syscall.h>
+
 static FILE *log_file = NULL;
+static int debug_lastc = '\n';
 
 int lutil_debug_file( FILE *file )
 {
@@ -42,12 +46,30 @@ int lutil_debug_file( FILE *file )
 	return 0;
 }
 
-void (lutil_debug)( int debug, int level, const char *fmt, ... )
+void lutil_debug_print( const char *fmt, ... )
 {
-	char buffer[4096];
 	va_list vl;
 
-	if ( !(level & debug ) ) return;
+	va_start( vl, fmt );
+	lutil_debug_va( fmt, vl);
+	va_end( vl );
+}
+
+void lutil_debug( int debug, int level, const char *fmt, ... )
+{
+	if ( level & debug ) {
+		va_list vl;
+
+		va_start( vl, fmt );
+		lutil_debug_va( fmt, vl);
+		va_end( vl );
+	}
+}
+
+void lutil_debug_va( const char* fmt, va_list vl )
+{
+	char buffer[4096];
+	int len, off = 0;
 
 #ifdef HAVE_WINSOCK
 	if( log_file == NULL ) {
@@ -62,16 +84,34 @@ void (lutil_debug)( int debug, int level, const char *fmt, ... )
 	}
 #endif
 
-	sprintf(buffer, "%08x ", (unsigned) time(0L));
-	va_start( vl, fmt );
-	vsnprintf( buffer+9, sizeof(buffer)-9, fmt, vl );
+	if (debug_lastc == '\n') {
+		struct timeval now;
+		struct tm tm;
+		long rc;
+
+		rc = gettimeofday(&now, NULL);
+		assert(rc == 0);
+		rc = syscall(SYS_gettid, NULL, NULL, NULL);
+		assert(rc > 0);
+		/* LY: it is important to don't use extra spaces here, to avoid break a test(s). */
+		off += snprintf(buffer+off, sizeof(buffer)-off, "%05ld_", rc);
+		assert(off > 0);
+		localtime_r(&now.tv_sec, &tm);
+		off += strftime(buffer+off, sizeof(buffer)-off, "%y%m%d-%H(%z)%M%S", &tm);
+		assert(off > 0);
+		off += snprintf(buffer+off, sizeof(buffer)-off, ".%06ld ", now.tv_usec);
+		assert(off > 0);
+	}
+	len = vsnprintf( buffer+off, sizeof(buffer)-off, fmt, vl );
+	if (len > sizeof(buffer)-off)
+		len = sizeof(buffer)-off;
+	debug_lastc = buffer[len+off-1];
 	buffer[sizeof(buffer)-1] = '\0';
 	if( log_file != NULL ) {
 		fputs( buffer, log_file );
 		fflush( log_file );
 	}
 	fputs( buffer, stderr );
-	va_end( vl );
 }
 
 #if defined(HAVE_EBCDIC) && defined(LDAP_SYSLOG)

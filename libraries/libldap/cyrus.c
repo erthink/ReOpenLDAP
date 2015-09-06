@@ -409,7 +409,9 @@ ldap_int_sasl_bind(
 		const char *pmech = NULL;
 		sasl_conn_t	*oldctx;
 		ber_socket_t		sd;
+#ifdef HAVE_TLS
 		void	*ssl;
+#endif /* HAVE_TLS */
 
 		rc = 0;
 		LDAP_MUTEX_LOCK( &ld->ld_conn_mutex );
@@ -483,7 +485,7 @@ ldap_int_sasl_bind(
 			(void) ldap_int_sasl_external( ld, ld->ld_defconn, authid.bv_val, fac );
 			LDAP_FREE( authid.bv_val );
 		}
-#endif
+#endif /* HAVE_TLS */
 
 #if !defined(_WIN32)
 		/* Check for local */

@@ -553,15 +553,24 @@ static int mdb_entry_partsize(struct mdb_info *mdb, MDB_txn *txn, Entry *e,
 			len += a->a_vals[i].bv_len + 1 + sizeof(int);	/* len */
 		}
 		if (a->a_nvals != a->a_vals) {
-			nval += a->a_numvals + 1;
-			nnval++;
+			if (! reopenldap_mode_iddqd())
+				goto dont_skip_dups;
 			for (i=0; i<a->a_numvals; i++) {
-				len += a->a_nvals[i].bv_len + 1 + sizeof(int);;
+				if (! bvmatch(&a->a_vals[i], &a->a_nvals[i])) {
+		dont_skip_dups:
+					nval += a->a_numvals + 1;
+					nnval++;
+					for (i=0; i<a->a_numvals; i++)
+						len += a->a_nvals[i].bv_len + 1 + sizeof(int);
+					break;
+				}
 			}
 		}
 	}
-	/* padding */
-	len = (len + sizeof(ID)-1) & ~(sizeof(ID)-1);
+	if (! reopenldap_mode_iddqd()) {
+		/* padding */
+		len = (len + sizeof(ID)-1) & ~(sizeof(ID)-1);
+	}
 	eh->len = len;
 	eh->nattrs = nat;
 	eh->nvals = nval;
@@ -618,13 +627,27 @@ static int mdb_entry_encode(Operation *op, Entry *e, MDB_val *data, Ecount *eh)
 		if (a->a_flags & SLAP_ATTR_SORTED_VALS)
 			l |= HIGH_BIT;
 		*lp++ = l;
+
+		i = 0;
+		if (a->a_vals)
+			for (; a->a_vals[i].bv_val; i++);
+		assert( i == a->a_numvals );
+
 		l = a->a_numvals;
-		if (a->a_nvals != a->a_vals)
-			l |= HIGH_BIT;
+		if (a->a_nvals != a->a_vals) {
+			if (reopenldap_mode_iddqd()) {
+				for (i=0; i<a->a_numvals; i++) {
+					if (! bvmatch(&a->a_vals[i], &a->a_nvals[i])) {
+						l |= HIGH_BIT;
+						break;
+					}
+				}
+			} else {
+				l |= HIGH_BIT;
+			}
+		}
 		*lp++ = l;
-		if (a->a_vals) {
-			for (i=0; a->a_vals[i].bv_val; i++);
-			assert( i == a->a_numvals );
+		if (l) {
 			for (i=0; i<a->a_numvals; i++) {
 				*lp++ = a->a_vals[i].bv_len;
 				memcpy(ptr, a->a_vals[i].bv_val,
@@ -632,7 +655,7 @@ static int mdb_entry_encode(Operation *op, Entry *e, MDB_val *data, Ecount *eh)
 				ptr += a->a_vals[i].bv_len;
 				*ptr++ = '\0';
 			}
-			if (a->a_nvals != a->a_vals) {
+			if (l & HIGH_BIT) {
 				for (i=0; i<a->a_numvals; i++) {
 					*lp++ = a->a_nvals[i].bv_len;
 					memcpy(ptr, a->a_nvals[i].bv_val,

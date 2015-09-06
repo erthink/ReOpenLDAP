@@ -180,7 +180,7 @@ typedef int mdb_filehandle_t;
 /** Library minor version */
 #define MDB_VERSION_MINOR	9
 /** Library patch version */
-#define MDB_VERSION_PATCH	15
+#define MDB_VERSION_PATCH	16
 
 /** Combine args a,b,c into a single integer for easy version comparisons */
 #define MDB_VERINT(a,b,c)	(((a) << 24) | ((b) << 16) | (c))
@@ -190,7 +190,7 @@ typedef int mdb_filehandle_t;
 	MDB_VERINT(MDB_VERSION_MAJOR,MDB_VERSION_MINOR,MDB_VERSION_PATCH)
 
 /** The release date of this library version */
-#define MDB_VERSION_DATE	"https://github.com/ReOpen/ReOpenLDAP"
+#define MDB_VERSION_DATE	"August 14, 2015, https://github.com/ReOpen/ReOpenLDAP"
 
 /** A stringifier for the version info */
 #define MDB_VERSTR(a,b,c,d)	"LMDB " #a "." #b "." #c ": (" d ")"
@@ -240,7 +240,7 @@ typedef struct MDB_val {
 } MDB_val;
 
 /** @brief A callback function used to compare two keys in a database */
-typedef int  (MDB_cmp_func)(const MDB_val *a, const MDB_val *b);
+typedef long (MDB_cmp_func)(const MDB_val *a, const MDB_val *b);
 
 /** @brief A callback function used to relocate a position-dependent data item
  * in a fixed-address database.
@@ -288,6 +288,8 @@ typedef void (MDB_rel_func)(MDB_val *item, void *oldptr, void *newptr, void *rel
 #define MDB_COALESCE	0x2000000
 	/** LIFO policy for reclaiming FreeDB records */
 #define MDB_LIFORECLAIM	0x4000000
+	/** make a steady-sync only on close and explicit env-sync */
+#define MDB_UTTERLY_NOSYNC (MDB_NOSYNC|MDB_MAPASYNC)
 /** @} */
 
 /**	@defgroup	mdb_dbi_open	Database Flags
@@ -412,11 +414,18 @@ typedef enum MDB_cursor_op {
 #define MDB_PAGE_FULL	(-30786)
 	/** Database contents grew beyond environment mapsize */
 #define MDB_MAP_RESIZED	(-30785)
-	/** MDB_INCOMPATIBLE: Operation and DB incompatible, or DB flags changed */
+	/** Operation and DB incompatible, or DB type changed. This can mean:
+	 *	<ul>
+	 *	<li>The operation expects an #MDB_DUPSORT / #MDB_DUPFIXED database.
+	 *	<li>Opening a named DB when the unnamed DB has #MDB_DUPSORT / #MDB_INTEGERKEY.
+	 *	<li>Accessing a data record as a database, or vice versa.
+	 *	<li>The database was dropped and recreated with different flags.
+	 *	</ul>
+	 */
 #define MDB_INCOMPATIBLE	(-30784)
 	/** Invalid reuse of reader locktable slot */
 #define MDB_BAD_RSLOT		(-30783)
-	/** Transaction cannot recover - it must be aborted */
+	/** Transaction must abort, has a child, or is invalid */
 #define MDB_BAD_TXN			(-30782)
 	/** Unsupported size of key/DB name/data, or wrong DUPFIXED size */
 #define MDB_BAD_VALSIZE		(-30781)
@@ -609,7 +618,7 @@ int  mdb_env_create(MDB_env **env);
 	 * </ul>
 	 */
 int  mdb_env_open(MDB_env *env, const char *path, unsigned flags, mode_t mode);
-
+int  mdb_env_open_ex(MDB_env *env, const char *path, unsigned flags, mode_t mode, int *exclusive);
 	/** @brief Copy an LMDB environment to the specified path.
 	 *
 	 * This function may be used to make a backup of an existing environment.
@@ -1078,8 +1087,9 @@ int  mdb_txn_renew(MDB_txn *txn);
 	 * any other transaction in the process may use this function.
 	 *
 	 * To use named databases (with name != NULL), #mdb_env_set_maxdbs()
-	 * must be called before opening the environment.  Database names
-	 * are kept as keys in the unnamed database.
+	 * must be called before opening the environment.  Database names are
+	 * keys in the unnamed database, and may be read but not written.
+	 *
 	 * @param[in] txn A transaction handle returned by #mdb_txn_begin()
 	 * @param[in] name The name of the database to open. If only a single
 	 * 	database is needed in the environment, this value may be NULL.
@@ -1316,7 +1326,8 @@ int  mdb_get(MDB_txn *txn, MDB_dbi dbi, MDB_val *key, MDB_val *data);
 	 *		the next update operation or the transaction ends. This saves
 	 *		an extra memcpy if the data is being generated later.
 	 *		LMDB does nothing else with this memory, the caller is expected
-	 *		to modify all of the space requested.
+	 *		to modify all of the space requested. This flag must not be
+	 *		specified if the database was opened with #MDB_DUPSORT.
 	 *	<li>#MDB_APPEND - append the given key/data pair to the end of the
 	 *		database. This option allows fast bulk loading when keys are
 	 *		already known to be in the correct order. Loading unsorted keys
@@ -1473,12 +1484,13 @@ int  mdb_cursor_get(MDB_cursor *cursor, MDB_val *key, MDB_val *data,
 	 *	<li>#MDB_RESERVE - reserve space for data of the given size, but
 	 *		don't copy the given data. Instead, return a pointer to the
 	 *		reserved space, which the caller can fill in later. This saves
-	 *		an extra memcpy if the data is being generated later.
+	 *		an extra memcpy if the data is being generated later. This flag
+	 *		must not be specified if the database was opened with #MDB_DUPSORT.
 	 *	<li>#MDB_APPEND - append the given key/data pair to the end of the
 	 *		database. No key comparisons are performed. This option allows
 	 *		fast bulk loading when keys are already known to be in the
 	 *		correct order. Loading unsorted keys with this flag will cause
-	 *		data corruption.
+	 *		a #MDB_KEYEXIST error.
 	 *	<li>#MDB_APPENDDUP - as above, but for sorted dup data.
 	 *	<li>#MDB_MULTIPLE - store multiple contiguous data elements in a
 	 *		single request. This flag may only be specified if the database
@@ -1646,8 +1658,10 @@ typedef void MDB_debug_func(int type, const char *function, int line,
 
 int mdb_setup_debug(int flags, MDB_debug_func* logger, long edge_txn);
 
-typedef int MDB_pgwalk_func(size_t pgno, unsigned pgnumber, void* ctx, const char* dbi, char type);
-int mdb_env_pgwalk(MDB_txn *txn, MDB_pgwalk_func* visitor, void* ctx);
+typedef int MDB_pgvisitor_func(size_t pgno, unsigned pgnumber, void* ctx,
+					const char* dbi, const char *type, int nentries,
+					int payload_bytes, int header_bytes, int unused_bytes);
+int mdb_env_pgwalk(MDB_txn *txn, MDB_pgvisitor_func* visitor, void* ctx);
 
 char* mdb_dkey(MDB_val *key, char *buf);
 

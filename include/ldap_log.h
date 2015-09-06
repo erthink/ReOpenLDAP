@@ -155,7 +155,7 @@ extern void eb_syslog(int pri, const char *fmt, ...);
 #		define Log( level, severity, ... )	\
 			do { \
 				if ( ldap_debug & (level) ) \
-					lutil_debug( ldap_debug, (level), __VA_ARGS__ ); \
+					lutil_debug_print( __VA_ARGS__ ); \
 				if ( ldap_syslog & (level) ) \
 					syslog( LDAP_LEVEL_MASK((severity)), __VA_ARGS__ ); \
 			} while ( 0 )
@@ -174,7 +174,7 @@ extern void eb_syslog(int pri, const char *fmt, ...);
 #		define Log( level, severity, ... )	\
 			do { \
 				if ( ldap_debug & (level) ) \
-					lutil_debug( ldap_debug, (level), __VA_ARGS__ ); \
+					lutil_debug_print( __VA_ARGS__ ); \
 			} while ( 0 )
 #		define LogTest(level) ( ldap_debug & (level) )
 #	else /* ! LDAP_DEBUG */
@@ -206,6 +206,12 @@ LDAP_LUTIL_F(int) lutil_debug_file LDAP_P(( FILE *file ));
 LDAP_LUTIL_F(void) lutil_debug LDAP_P((
 	int debug, int level,
 	const char* fmt, ... )) LDAP_GCCATTR((format(printf, 3, 4)));
+
+LDAP_LUTIL_F(void) lutil_debug_print LDAP_P((
+	const char* fmt, ... )) LDAP_GCCATTR((format(printf, 1, 2)));
+
+LDAP_LUTIL_F(void) lutil_debug_va LDAP_P((
+	const char* fmt, va_list args ));
 
 #ifdef LDAP_DEFINE_LDAP_DEBUG
 /* This struct matches the head of ldapoptions in <ldap-int.h> */

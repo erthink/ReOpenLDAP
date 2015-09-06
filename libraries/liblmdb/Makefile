@@ -17,14 +17,10 @@
 # There may be other macros in mdb.c of interest. You should
 # read mdb.c before changing any of them.
 #
-CC	= gcc
-W	= -Wall -Werror -Wno-unused-parameter
-THREADS = -pthread
-XCFLAGS ?= $(CFLAGS)
-OPT	= -O2 -g
-CFLAGS	:= $(THREADS) $(OPT) $(W) $(XCFLAGS)
-LDLIBS	=
-SOLIBS	=
+CC	?= gcc
+CFLAGS	?= -O2 -g -Wall -Werror -Wno-unused-parameter
+CFLAGS	+= -pthread
+LDLIBS	= -Wl,--no-as-needed -lrt
 prefix	?= /usr/local
 
 ########################################################################
@@ -33,7 +29,7 @@ IHDRS	= lmdb.h
 ILIBS	= liblmdb.a liblmdb.so
 IPROGS	= mdb_stat mdb_copy mdb_dump mdb_load mdb_chk
 IDOCS	= mdb_stat.1 mdb_copy.1 mdb_dump.1 mdb_load.1
-PROGS	= $(IPROGS) mtest0 mtest1 mtest2 mtest3 mtest4 mtest5 mtest6
+PROGS	= $(IPROGS) mtest0 mtest1 mtest2 mtest3 mtest4 mtest5 mtest6 wbench
 all:	$(ILIBS) $(PROGS)
 
 install: $(ILIBS) $(IPROGS) $(IHDRS)
@@ -47,13 +43,13 @@ clean:
 
 test:	all
 	[ -d testdb ] || mkdir testdb && rm -f testdb/* \
-		&& echo "*** LMDB-TEST-0" && ./mtest0 && ./mdb_chk testdb \
-		&& echo "*** LMDB-TEST-1" && ./mtest1 && ./mdb_chk testdb \
-		&& echo "*** LMDB-TEST-2" && ./mtest2 && ./mdb_chk testdb \
-		&& echo "*** LMDB-TEST-3" && ./mtest3 && ./mdb_chk testdb \
-		&& echo "*** LMDB-TEST-4" && ./mtest4 && ./mdb_chk testdb \
-		&& echo "*** LMDB-TEST-5" && ./mtest5 && ./mdb_chk testdb \
-		&& echo "*** LMDB-TEST-6" && ./mtest6 && ./mdb_chk testdb \
+		&& echo "*** LMDB-TEST-0" && ./mtest0 && ./mdb_chk -v testdb \
+		&& echo "*** LMDB-TEST-1" && ./mtest1 && ./mdb_chk -v testdb \
+		&& echo "*** LMDB-TEST-2" && ./mtest2 && ./mdb_chk -v testdb \
+		&& echo "*** LMDB-TEST-3" && ./mtest3 && ./mdb_chk -v testdb \
+		&& echo "*** LMDB-TEST-4" && ./mtest4 && ./mdb_chk -v testdb \
+		&& echo "*** LMDB-TEST-5" && ./mtest5 && ./mdb_chk -v testdb \
+		&& echo "*** LMDB-TEST-6" && ./mtest6 && ./mdb_chk -v testdb \
 		&& echo "*** LMDB-TESTs - all done"
 
 liblmdb.a:	mdb.o midl.o
@@ -75,6 +71,7 @@ mtest3:	mtest3.o liblmdb.a
 mtest4:	mtest4.o liblmdb.a
 mtest5:	mtest5.o liblmdb.a
 mtest6:	mtest6.o liblmdb.a
+wbench:	wbench.o liblmdb.a
 
 mdb.o: mdb.c lmdb.h midl.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c mdb.c

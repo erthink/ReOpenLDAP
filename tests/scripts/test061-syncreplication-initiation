@@ -95,20 +95,7 @@ if test $WAIT != 0 ; then
 fi
 KILLPIDS="$KILLPIDS $PROV_PID"
 cd $TESTWD
-sleep 0.1
-for i in 1 2 3 4 5; do
-	$LDAPSEARCH -s base -b "" -H $PROV_URI \
-		'objectclass=*' > /dev/null 2>&1
-	RC=$?
-	test $RC = 0 && break
-	echo "Waiting $i seconds for slapd to start..."
-	sleep $i
-done
-if test $RC != 0 ; then
-	echo "ldapsearch failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
-	exit $RC
-fi
+check_running 1 provider
 
 echo "Starting forward1 slapd on $FWD1_URI"
 cd $FWD1_DIR
@@ -120,20 +107,7 @@ if test $WAIT != 0 ; then
 fi
 KILLPIDS="$KILLPIDS $FWD1_PID"
 cd $TESTWD
-sleep 0.1
-for i in 1 2 3 4 5; do
-	$LDAPSEARCH -s base -b "" -H $FWD1_URI \
-		'objectclass=*' > /dev/null 2>&1
-	RC=$?
-	test $RC = 0 && break
-	echo "Waiting $i seconds for slapd to start..."
-	sleep $i
-done
-if test $RC != 0 ; then
-	echo "ldapsearch failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
-	exit $RC
-fi
+check_running 3 forward1
 
 echo "Starting consumer slapd on $CONS_URI"
 cd $CONS_DIR
@@ -145,20 +119,7 @@ if test $WAIT != 0 ; then
 fi
 KILLPIDS="$KILLPIDS $CONS_PID"
 cd $TESTWD
-sleep 0.1
-for i in 1 2 3 4 5; do
-	$LDAPSEARCH -s base -b "" -H $CONS_URI \
-		'objectclass=*' > /dev/null 2>&1
-	RC=$?
-	test $RC = 0 && break
-	echo "Waiting $i seconds for slapd to start..."
-	sleep $i
-done
-if test $RC != 0 ; then
-	echo "ldapsearch failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
-	exit $RC
-fi
+check_running 2 consumer
 
 for uri in $URIS; do
 	echo "Adding schema on $uri"
@@ -177,7 +138,7 @@ EOF
 	RC=$?
 	if test $RC != 0 ; then
 		echo "ldapadd failed ($RC)!"
-		test $KILLSERVERS != no && kill -HUP $KILLPIDS
+		killservers
 		exit $RC
 	fi
 
@@ -195,7 +156,7 @@ EOF
 	RC=$?
 	if test $RC != 0 ; then
 		echo "ldapadd failed for backend module ($RC)!"
-		test $KILLSERVERS != no && kill -HUP $KILLPIDS
+		killservers
 		exit $RC
 	fi
 done
@@ -233,7 +194,7 @@ EOF
 	RC=$?
 	if test $RC != 0 ; then
 		echo "ldapadd failed ($RC)!"
-		test $KILLSERVERS != no && kill -HUP $KILLPIDS
+		killservers
 		exit $RC
 	fi
 
@@ -250,7 +211,7 @@ EOF
 	RC=$?
 	if test $RC != 0 ; then
 		echo "ldapadd failed ($RC)!"
-		test $KILLSERVERS != no && kill -HUP $KILLPIDS
+		killservers
 		exit $RC
 	fi
 done
@@ -283,7 +244,7 @@ EOF
 	RC=$?
 	if test $RC != 0 ; then
 		echo "ldapadd failed ($RC)!"
-		test $KILLSERVERS != no && kill -HUP $KILLPIDS
+		killservers
 		exit $RC
 	fi
 done
@@ -308,7 +269,7 @@ EOF
 	RC=$?
 	if test $RC != 0 ; then
 		echo "ldapadd failed ($RC)!"
-		test $KILLSERVERS != no && kill -HUP $KILLPIDS
+		killservers
 		exit $RC
 	fi
 done
@@ -325,7 +286,7 @@ for uri in $FWD1_URI $CONS_URI; do
 	done
 	if test $RC != 0 ; then
 		echo "ldapsearch failed ($RC)!"
-		test $KILLSERVERS != no && kill -HUP $KILLPIDS
+		killservers
 		exit $RC
 	fi
 done
@@ -346,9 +307,8 @@ while test $ERROR -eq 0 -a $RACE_NUM -lt $INITIATION_RACE_TESTS ; do
 	echo "Running $RACE_NUM of $INITIATION_RACE_TESTS syncrepl initiation race tests..."
 
 	echo "Stopping forwarders for add test"
+	killpids $FWD1_PID
 	for pid in $FWD1_PID; do
-		kill -HUP $pid
-		wait $pid
 		KILLPIDS=`echo "$KILLPIDS " | sed -e "s/ $pid / /"`;
 	done
 
@@ -367,7 +327,7 @@ EOF
 		RC=$?
 		if test $RC != 0 ; then
 			echo "ldapadd failed for entry $addIdx ($RC)!"
-			test $KILLSERVERS != no && kill -HUP $KILLPIDS
+			killservers
 			exit $RC
 		fi
 		addIdx=`expr $addIdx + 1`
@@ -394,7 +354,7 @@ EOF
 		RC=$?
 		if test $RC != 0 ; then
 			echo "ldapadd failed for entry $addIdx ($RC)!"
-			test $KILLSERVERS != no && kill -HUP $KILLPIDS
+			killservers
 			exit $RC
 		fi
 		addIdx=`expr $addIdx + 1`
@@ -405,7 +365,7 @@ EOF
 		RC=32
 		i=$addStart
 		while test $i -lt $addEnd; do
-			for j in 1 2 3 4 5; do
+			for j in 0.1 0.5 1 2 3 4 5; do
 				RESULT=`$LDAPSEARCH -H $uri -s base -b "ou=$i,$BASEDN" 2>&1 \
 					| awk '/^dn:/ {print "OK"}'`
 				if test "x$RESULT$nullOK" = "xOK" ; then
@@ -427,9 +387,8 @@ EOF
 	if test $ERROR != 0; then break; fi
 
 	echo "Stopping forwarders for add/delete test"
+	killpids $FWD1_PID
 	for pid in $FWD1_PID; do
-		kill -HUP $pid
-		wait $pid
 		KILLPIDS=`echo "$KILLPIDS " | sed -e "s/ $pid / /"`;
 	done
 
@@ -448,7 +407,7 @@ EOF
 		RC=$?
 		if test $RC != 0 ; then
 			echo "ldapadd failed for entry $addIdx ($RC)!"
-			test $KILLSERVERS != no && kill -HUP $KILLPIDS
+			killservers
 			exit $RC
 		fi
 		addIdx=`expr $addIdx + 1`
@@ -463,7 +422,7 @@ EOF
 		RC=$?
 		if test $RC != 0 ; then
 			echo "ldapdelete failed ($RC)!"
-			test $KILLSERVERS != no && kill -HUP $KILLPIDS
+			killservers
 			exit 1
 		fi
 		delIdx=`expr $delIdx + 1`
@@ -491,7 +450,7 @@ EOF
 		RC=$?
 		if test $RC != 0 ; then
 			echo "ldapadd failed for entry $addIdx ($RC)!"
-			test $KILLSERVERS != no && kill -HUP $KILLPIDS
+			killservers
 			exit $RC
 		fi
 		addIdx=`expr $addIdx + 1`
@@ -503,7 +462,7 @@ EOF
 		RC=$?
 		if test $RC != 0 ; then
 			echo "ldapdelete failed ($RC)!"
-			test $KILLSERVERS != no && kill -HUP $KILLPIDS
+			killservers
 			exit 1
 		fi
 		delIdx=`expr $delIdx + 1`
@@ -514,7 +473,7 @@ EOF
 		RC=32
 		i=$addStart
 		while test $i -lt $addEnd; do
-			for j in 1 2 3 4 5; do
+			for j in 0.1 0.5 1 2 3 4 5; do
 				RESULT=`$LDAPSEARCH -H $uri -s base -b "ou=$i,$BASEDN" 2>&1 \
 					| awk '/^dn:/ {print "OK"}'`
 				if test "x$RESULT$nullOK" = "xOK" ; then
@@ -535,7 +494,7 @@ EOF
 
 		i=$delStart
 		while test $i -lt $delEnd; do
-			for j in 1 2 3 4 5; do
+			for j in 0.1 0.5 1 2 3 4 5; do
 				$LDAPSEARCH -s base -b "ou=$i,$BASEDN" -H $uri > /dev/null 2>&1
 				RC=$?
 				if test $RC = $noObj; then break; fi
@@ -554,9 +513,8 @@ EOF
 	if test $ERROR != 0; then break; fi
 
 	echo "Stopping forwarders for delete test"
+	killpids $FWD1_PID
 	for pid in $FWD1_PID; do
-		kill -HUP $pid
-		wait $pid
 		KILLPIDS=`echo "$KILLPIDS " | sed -e "s/ $pid / /"`;
 	done
 
@@ -569,7 +527,7 @@ EOF
 		RC=$?
 		if test $RC != 0 ; then
 			echo "ldapdelete failed ($RC)!"
-			test $KILLSERVERS != no && kill -HUP $KILLPIDS
+			killservers
 			exit 1
 		fi
 		delIdx=`expr $delIdx + 1`
@@ -590,7 +548,7 @@ EOF
 		RC=$?
 		if test $RC != 0 ; then
 			echo "ldapdelete failed ($RC)!"
-			test $KILLSERVERS != no && kill -HUP $KILLPIDS
+			killservers
 			exit 1
 		fi
 		delIdx=`expr $delIdx + 1`
@@ -601,7 +559,7 @@ EOF
 		RC=0
 		i=$delStart
 		while test $i -lt $delEnd; do
-			for j in 1 2 3 4 5; do
+			for j in 0.1 0.5 1 2 3 4 5; do
 				$LDAPSEARCH -s base -b "ou=$i,$BASEDN" -H $uri > /dev/null 2>&1
 				RC=$?
 				if test $RC = $noObj; then break; fi
@@ -635,7 +593,7 @@ EOF
 	if test "$nCSN" -ne 1 ; then
 		echo "ERROR: Wrong contextCSN count on provder, should be 1"
 		echo "$CSN1"
-		test $KILLSERVERS != no && kill -HUP $KILLPIDS
+		killservers
 		exit 1
 	fi
 	if  test -z "$CSN2" -o "$CSN1" != "$CSN2" ; then
@@ -654,7 +612,7 @@ EOF
 	fi
 done
 
-test $KILLSERVERS != no && kill -HUP $KILLPIDS
+killservers
 
 if test $ERROR != 0; then
 	echo "Error found after $RACE_NUM of $INITIATION_RACE_TESTS iterations"
@@ -664,5 +622,4 @@ else
 fi
 
 echo ">>>>> Test succeeded"
-
 exit 0

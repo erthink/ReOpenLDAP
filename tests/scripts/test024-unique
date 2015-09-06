@@ -47,25 +47,9 @@ if test $WAIT != 0 ; then
     read foo
 fi
 KILLPIDS="$PID"
-sleep 0.1
+check_running 1
 
 echo "Testing slapd attribute uniqueness operations..."
-for i in 1 2 3 4 5; do
-	$LDAPSEARCH -s base -b "$MONITOR" -h $LOCALHOST -p $PORT1 \
-		'objectclass=*' > /dev/null 2>&1
-	RC=$?
-	if test $RC = 0 ; then
-		break
-	fi
-	echo "Waiting $i seconds for slapd to start..."
-	sleep $i
-done
-
-if test $RC != 0 ; then
-	echo "ldapsearch failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
-	exit $RC
-fi
 
 echo "Adding a unique record..."
 $LDAPADD -D "$UNIQUEDN" -h $LOCALHOST -p $PORT1 -w $PASSWD \
@@ -90,7 +74,7 @@ EOTUNIQ1
 RC=$?
 if test $RC != 0 ; then
 	echo "ldapadd failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -113,7 +97,7 @@ EOTUNIQ2
 RC=$?
 if test $RC != $RCODEconstraint ; then
 	echo "unique check failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit -1
 fi
 
@@ -137,7 +121,7 @@ EOTUNIQ2
 RC=$?
 if test $RC != $RCODEconstraint ; then
 	echo "unique check failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit -1
 fi
 
@@ -161,7 +145,7 @@ EOTUNIQ2
 RC=$?
 if test $RC != 0 ; then
 	echo "spurious unique error ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -171,7 +155,7 @@ $LDAPDELETE -D "$UNIQUEDN" -h $LOCALHOST -p $PORT1 -w $PASSWD \
 RC=$?
 if test $RC != 0; then
 	echo "ldapdelete failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -191,7 +175,7 @@ diff $TESTDIR/initial-config.ldif $TESTDIR/initial-reference.ldif > /dev/null 2>
 RC=$?
 if test $RC != 0 ; then
     echo "Initial configuration is not reported correctly."
-    test $KILLSERVERS != no && kill -HUP $KILLPIDS
+    killservers
     exit -1
 fi
 
@@ -206,7 +190,7 @@ EOF
 RC=$?
 if test $RC != 80 ; then
 	echo "legacy and unique_uri allowed together"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit -1
 fi
 
@@ -221,7 +205,7 @@ EOF
 RC=$?
 if test $RC != 80 ; then
 	echo "legacy attrs and legacy ignore attrs allowed together"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit -1
 fi
 
@@ -231,7 +215,7 @@ diff $TESTDIR/initial-config-recheck.ldif $TESTDIR/initial-reference.ldif > /dev
 RC=$?
 if test $RC != 0 ; then
     echo "Initial configuration damaged by unsuccessful modifies."
-    test $KILLSERVERS != no && kill -HUP $KILLPIDS
+    killservers
     exit -1
 fi
 
@@ -245,7 +229,7 @@ EOF
 RC=$?
 if test $RC != 0 ; then
 	echo "base removal failed"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit -1
 fi
 
@@ -264,7 +248,7 @@ diff $TESTDIR/baseremoval-config.ldif $TESTDIR/baseremoval-reference.ldif > /dev
 RC=$?
 if test $RC != 0 ; then
     echo "Configuration damaged by base removal"
-    test $KILLSERVERS != no && kill -HUP $KILLPIDS
+    killservers
     exit -1
 fi
 
@@ -287,7 +271,7 @@ EOTUNIQ2
 RC=$?
 if test $RC != $RCODEconstraint ; then
 	echo "unique check failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit -1
 fi
 
@@ -302,7 +286,7 @@ EOF
 RC=$?
 if test $RC != 80 ; then
 	echo "out of backend scope base allowed"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit -1
 fi
 
@@ -321,7 +305,7 @@ EOF
 RC=$?
 if test $RC != 0 ; then
 	echo "Unable to remove an attribute"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit -1
 fi
 
@@ -344,7 +328,7 @@ EOTUNIQ2
 RC=$?
 if test $RC != $RCODEconstraint ; then
 	echo "olcUniqueAttribtue single deletion hit the wrong value"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit -1
 fi
 
@@ -362,7 +346,7 @@ EOF
 RC=$?
 if test $RC != 0 ; then
 	echo "Reconfiguration to URIs failed"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit -1
 fi
 
@@ -381,7 +365,7 @@ diff $TESTDIR/second-config.ldif $TESTDIR/second-reference.ldif > /dev/null 2>&1
 RC=$?
 if test $RC != 0 ; then
     echo "Second configuration is not reported correctly."
-    test $KILLSERVERS != no && kill -HUP $KILLPIDS
+    killservers
     exit -1
 fi
 
@@ -404,7 +388,7 @@ EOTUNIQ2
 RC=$?
 if test $RC != $RCODEconstraint ; then
 	echo "unique check failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit -1
 fi
 
@@ -419,7 +403,7 @@ EOF
 RC=$?
 if test $RC != 80 ; then
 	echo "legacy base allowed with URIs"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit -1
 fi
 
@@ -434,7 +418,7 @@ EOF
 RC=$?
 if test $RC != 80 ; then
 	echo "legacy attributes allowed with URIs"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit -1
 fi
 
@@ -449,7 +433,7 @@ EOF
 RC=$?
 if test $RC != 80 ; then
 	echo "legacy strictness allowed with URIs"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit -1
 fi
 
@@ -465,7 +449,7 @@ EOF
 RC=$?
 if test $RC != 80 ; then
 	echo "bad filter allowed"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit -1
 fi
 
@@ -475,7 +459,7 @@ diff $TESTDIR/second-config-recheck.ldif $TESTDIR/second-reference.ldif > /dev/n
 RC=$?
 if test $RC != 0 ; then
     echo "Second configuration damaged by rejected modifies."
-    test $KILLSERVERS != no && kill -HUP $KILLPIDS
+    killservers
     exit -1
 fi
 
@@ -495,7 +479,7 @@ EOF
 RC=$?
 if test $RC != 0 ; then
 	echo "unable to reconfigure"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit -1
 fi
 
@@ -515,7 +499,7 @@ diff $TESTDIR/third-config.ldif $TESTDIR/third-reference.ldif > /dev/null 2>&1
 RC=$?
 if test $RC != 0 ; then
     echo "Third configuration is not reported correctly."
-    test $KILLSERVERS != no && kill -HUP $KILLPIDS
+    killservers
     exit -1
 fi
 
@@ -533,7 +517,7 @@ EOF
 RC=$?
 if test $RC != 0 ; then
 	echo "unique check failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit -1
 fi
 
@@ -550,7 +534,7 @@ EOF
 RC=$?
 if test $RC != 0 ; then
 	echo "spurious unique error ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit -1
 fi
 
@@ -566,7 +550,7 @@ EOF
 RC=$?
 if test $RC != $RCODEconstraint ; then
 	echo "unique check failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit -1
 fi
 
@@ -583,7 +567,7 @@ EOF
 RC=$?
 if test $RC != $RCODEconstraint ; then
 	echo "unique check failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit -1
 fi
 
@@ -600,7 +584,7 @@ EOF
 RC=$?
 if test $RC != 0 ; then
 	echo "spurious unique error ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -616,7 +600,7 @@ EOF
 RC=$?
 if test $RC != 0; then
 	echo "ldapmodify failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -633,7 +617,7 @@ EOF
 RC=$?
 if test $RC != 0 ; then
 	echo "unique check failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit -1
 fi
 
@@ -644,7 +628,7 @@ $LDAPMODRDN -D "uid=dave,ou=users,o=unique" -h $LOCALHOST -p $PORT1 -w $PASSWD \
 RC=$?
 if test $RC != $RCODEconstraint ; then
 	echo "unique check failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit -1
 fi
 
@@ -656,7 +640,7 @@ $LDAPMODRDN -M -D "uid=dave,ou=users,o=unique" -h $LOCALHOST -p $PORT1 -w $PASSW
 RC=$?
 if test $RC != $RCODEconstraint ; then
 	echo "unique check failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit -1
 fi
 
@@ -668,7 +652,7 @@ $LDAPMODRDN -M -D "$UNIQUEDN" -h $LOCALHOST -p $PORT1 -w $PASSWD \
 RC=$?
 if test $RC != 0 ; then
 	echo "spurious unique error ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -678,7 +662,7 @@ $LDAPDELETE -D "$UNIQUEDN" -h $LOCALHOST -p $PORT1 -w $PASSWD \
 RC=$?
 if test $RC != 0; then
 	echo "ldapdelete failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -696,7 +680,7 @@ EOF
 RC=$?
 if test $RC != $RCODEconstraint ; then
 	echo "unique check failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit -1
 fi
 
@@ -712,7 +696,7 @@ EOF
 RC=$?
 if test $RC != 0 ; then
 	echo "unable to reconfigure"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit -1
 fi
 
@@ -730,7 +714,7 @@ diff $TESTDIR/fourth-config.ldif $TESTDIR/fourth-reference.ldif > /dev/null 2>&1
 RC=$?
 if test $RC != 0 ; then
     echo "Fourth configuration is not reported correctly."
-    test $KILLSERVERS != no && kill -HUP $KILLPIDS
+    killservers
     exit -1
 fi
 
@@ -749,7 +733,7 @@ EOF
 RC=$?
 if test $RC != 0 ; then
 	echo "unique check failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit -1
 fi
 
@@ -768,14 +752,10 @@ EOF
 RC=$?
 if test $RC != $RCODEconstraint ; then
 	echo "unique check failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit -1
 fi
 
-test $KILLSERVERS != no && kill -HUP $KILLPIDS
-
+killservers
 echo ">>>>> Test succeeded"
-
-test $KILLSERVERS != no && wait
-
 exit 0

@@ -352,7 +352,10 @@ checkTime( struct berval *in, struct berval *out );
 static int
 certificateListValidate( Syntax *syntax, struct berval *in )
 {
-	BerElementBuffer berbuf;
+	union {
+		BerElementBuffer buf;
+		BerElement elem;
+	} berbuf;
 	BerElement *ber = (BerElement *)&berbuf;
 	ber_tag_t tag;
 	ber_len_t len, wrapper_len;
@@ -3609,7 +3612,10 @@ certificateExactNormalize(
 	struct berval *normalized,
 	void *ctx )
 {
-	BerElementBuffer berbuf;
+	union {
+		BerElementBuffer buf;
+		BerElement elem;
+	} berbuf;
 	BerElement *ber = (BerElement *)&berbuf;
 	ber_tag_t tag;
 	ber_len_t len;
@@ -4099,7 +4105,10 @@ certificateListExactNormalize(
 	struct berval *normalized,
 	void *ctx )
 {
-	BerElementBuffer berbuf;
+	union {
+		BerElementBuffer buf;
+		BerElement elem;
+	} berbuf;
 	BerElement *ber = (BerElement *)&berbuf;
 	ber_tag_t tag;
 	ber_len_t len;
@@ -4763,7 +4772,10 @@ attributeCertificateExactNormalize(
 	struct berval *normalized,
 	void *ctx )
 {
-	BerElementBuffer berbuf;
+	union {
+		BerElementBuffer buf;
+		BerElement elem;
+	} berbuf;
 	BerElement *ber = (BerElement *)&berbuf;
 	ber_tag_t tag;
 	ber_len_t len;

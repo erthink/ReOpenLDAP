@@ -157,11 +157,12 @@ int slap_biglock_call_be ( slap_operation_t which,
 	return rc;
 }
 
-void slap_biglock_pool_pause ( BackendDB *bd ) {
+int slap_biglock_pool_pause ( BackendDB *bd ) {
 	slap_biglock_t* bl = slap_biglock_get( bd );
+	int res;
 
 	if ( bl == NULL || ldap_pvt_thread_self() != bl->bl_owner) {
-		ldap_pvt_thread_pool_pause( &connection_pool );
+		res = ldap_pvt_thread_pool_pause( &connection_pool );
 	} else {
 		int rc, deep = bl->bl_recursion;
 		assert(bl->bl_recursion > 0);
@@ -171,7 +172,7 @@ void slap_biglock_pool_pause ( BackendDB *bd ) {
 		rc = ldap_pvt_thread_mutex_unlock(&bl->bl_mutex);
 		assert(rc == 0);
 
-		ldap_pvt_thread_pool_pause( &connection_pool );
+		res = ldap_pvt_thread_pool_pause( &connection_pool );
 
 		rc = ldap_pvt_thread_mutex_lock(&bl->bl_mutex);
 		assert(rc == 0);
@@ -181,6 +182,11 @@ void slap_biglock_pool_pause ( BackendDB *bd ) {
 		bl->bl_recursion = deep;
 		bl->bl_age += 1;
 	}
+	return res;
+}
+
+void slap_biglock_pool_resume ( BackendDB *bd ) {
+	ldap_pvt_thread_pool_resume( &connection_pool );
 }
 
 int slap_biglock_pool_pausecheck ( BackendDB *bd ) {

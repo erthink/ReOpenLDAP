@@ -752,16 +752,17 @@ char *
 ldap_host_connected_to( Sockbuf *sb, const char *host )
 {
 	ber_socklen_t	len;
+	union {
 #ifdef LDAP_PF_INET6
-	struct sockaddr_storage sabuf;
-#else
-	struct sockaddr sabuf;
+		struct sockaddr_storage inet6;
 #endif
+		struct sockaddr inet4;
+	} sabuf;
 	struct sockaddr	*sa = (struct sockaddr *) &sabuf;
 	ber_socket_t	sd;
 
-	(void)memset( (char *)sa, '\0', sizeof sabuf );
 	len = sizeof sabuf;
+	(void)memset( (char *)sa, '\0', len );
 
 	ber_sockbuf_ctrl( sb, LBER_SB_OPT_GET_FD, &sd );
 	if ( getpeername( sd, sa, &len ) == -1 ) {

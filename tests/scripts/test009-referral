@@ -49,38 +49,8 @@ if test $WAIT != 0 ; then
 fi
 
 KILLPIDS="$PID $SLAVEPID"
-sleep 0.1
-
-echo "Testing for master slapd..."
-for i in 1 2 3 4 5; do
-	$LDAPSEARCH -s base -b "$MONITOR" -h $LOCALHOST -p $PORT1 \
-		'objectclass=*' > /dev/null 2>&1
-	RC=$?
-	if test $RC = 0 ; then
-		break
-	fi
-	echo "Waiting $i seconds for master slapd to start..."
-	sleep $i
-done
-
-if test $RC != 0 ; then
-	echo "ldapsearch failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
-	exit $RC
-fi
-
-echo "Testing for slave slapd..."
-for i in 1 2 3; do
-	$LDAPSEARCH -s base -b "$MONITOR" -h $LOCALHOST -p $PORT2 \
-		'objectclass=*' > /dev/null 2>&1
-	RC=$?
-	if test $RC = 0 ; then
-		break
-	fi
-	echo "Waiting $i seconds for slave slapd to start..."
-	sleep $i
-done
-
+check_running 1 master
+check_running 2 slave
 cat /dev/null > $SEARCHOUT
 
 echo "Testing exact searching..."
@@ -89,7 +59,7 @@ $LDAPSEARCH -C -S "" -b "$BASEDN" -h $LOCALHOST -p $PORT2 \
 RC=$?
 if test $RC != 0 ; then
 	echo "ldapsearch failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -99,7 +69,7 @@ $LDAPSEARCH -C -S "" -b "$BASEDN" -h $LOCALHOST -p $PORT2 \
 RC=$?
 if test $RC != 0 ; then
 	echo "ldapsearch failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -109,7 +79,7 @@ $LDAPSEARCH -C -S "" -b "$BASEDN" -h $LOCALHOST -p $PORT2 \
 RC=$?
 if test $RC != 0 ; then
 	echo "ldapsearch failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -119,7 +89,7 @@ $LDAPSEARCH -C -S "" -b "ou=groups,$BASEDN" -s one -h $LOCALHOST -p $PORT2 \
 RC=$?
 if test $RC != 0 ; then
 	echo "ldapsearch failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -129,7 +99,7 @@ $LDAPSEARCH -C -S "" -b "$BASEDN" -h $LOCALHOST -p $PORT2 \
 RC=$?
 if test $RC != 0 ; then
 	echo "ldapsearch failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -140,7 +110,7 @@ $LDAPSEARCH -M -a never -S "" -b "$BASEDN" -h $LOCALHOST -p $PORT1 \
 RC=$?
 if test $RC != 0 ; then
 	echo "ldapsearch failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -153,11 +123,11 @@ if test $RC = 10 ; then
 	echo "ldapsearch failed as expected ($RC)"
 else
 	echo "ldapsearch did not error as expected ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
-test $KILLSERVERS != no && kill -HUP $KILLPIDS
+killservers
 
 LDIF=$SEARCHOUTMASTER
 
@@ -174,7 +144,4 @@ if test $? != 0 ; then
 fi
 
 echo ">>>>> Test succeeded"
-
-test $KILLSERVERS != no && wait
-
 exit 0

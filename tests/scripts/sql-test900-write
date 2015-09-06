@@ -57,7 +57,7 @@ done
 
 if test $RC != 0 ; then
 	echo "ldapsearch failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -73,7 +73,7 @@ $LDAPSEARCH -S "" -h $LOCALHOST -p $PORT1 -b "$BASEDN" \
 RC=$?
 if test $RC != 0 ; then
 	echo "ldapsearch failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -152,7 +152,7 @@ EOMODS
 	RC=$?
 	if test $RC != 0 ; then
 		echo "ldapmodify failed ($RC)!"
-		test $KILLSERVERS != no && kill -HUP $KILLPIDS
+		killservers
 		exit $RC
 	fi
 
@@ -164,7 +164,7 @@ EOMODS
 	RC=$?
 	if test $RC != 0 ; then
 		echo "ldapsearch failed ($RC)!"
-		test $KILLSERVERS != no && kill -HUP $KILLPIDS
+		killservers
 		exit $RC
 	fi
 
@@ -234,7 +234,7 @@ EOMODS
 	RC=$?
 	if test $RC != 0 ; then
 		echo "ldapmodify failed ($RC)!"
-		test $KILLSERVERS != no && kill -HUP $KILLPIDS
+		killservers
 		exit $RC
 	fi
 
@@ -246,7 +246,7 @@ EOMODS
 	RC=$?
 	if test $RC != 0 ; then
 		echo "ldapsearch failed ($RC)!"
-		test $KILLSERVERS != no && kill -HUP $KILLPIDS
+		killservers
 		exit $RC
 	fi
 
@@ -271,7 +271,7 @@ EOMODS
 	RC=$?
 	if test $RC != 0 ; then
 		echo "ldapmodify failed ($RC)!"
-		test $KILLSERVERS != no && kill -HUP $KILLPIDS
+		killservers
 		exit $RC
 	fi
 
@@ -283,7 +283,7 @@ EOMODS
 	RC=$?
 	if test $RC != 0 ; then
 		echo "ldapsearch failed ($RC)!"
-		test $KILLSERVERS != no && kill -HUP $KILLPIDS
+		killservers
 		exit $RC
 	fi
 
@@ -315,7 +315,7 @@ EOMODS
 	RC=$?
 	if test $RC != 0 ; then
 		echo "ldapmodify failed ($RC)!"
-		test $KILLSERVERS != no && kill -HUP $KILLPIDS
+		killservers
 		exit $RC
 	fi
 
@@ -327,7 +327,7 @@ EOMODS
 	RC=$?
 	if test $RC != 0 ; then
 		echo "ldapsearch failed ($RC)!"
-		test $KILLSERVERS != no && kill -HUP $KILLPIDS
+		killservers
 		exit $RC
 	fi
 
@@ -347,7 +347,7 @@ EOMODS
 	RC=$?
 	if test $RC = 0 ; then
 		echo "ldapmodify should have failed ($RC)!"
-		test $KILLSERVERS != no && kill -HUP $KILLPIDS
+		killservers
 		exit 1
 	fi
 
@@ -366,7 +366,7 @@ EOMODS
 	RC=$?
 	if test $RC = 0 ; then
 		echo "ldapmodify should have failed ($RC)!"
-		test $KILLSERVERS != no && kill -HUP $KILLPIDS
+		killservers
 		exit 1
 	fi
 
@@ -384,7 +384,7 @@ EOMODS
 	RC=$?
 	if test $RC = 0 ; then
 		echo "ldapmodify should have failed ($RC)!"
-		test $KILLSERVERS != no && kill -HUP $KILLPIDS
+		killservers
 		exit 1
 	fi
 
@@ -400,7 +400,7 @@ EOMODS
 	RC=$?
 	if test $RC = 0 ; then
 		echo "ldapmodify should have failed ($RC)!"
-		test $KILLSERVERS != no && kill -HUP $KILLPIDS
+		killservers
 		exit 1
 	fi
 
@@ -420,7 +420,7 @@ EOMODS
 	RC=$?
 	if test $RC != 0 ; then
 		echo "ldapmodify failed ($RC)!"
-		test $KILLSERVERS != no && kill -HUP $KILLPIDS
+		killservers
 		exit $RC
 	fi
 
@@ -439,7 +439,7 @@ EOMODS
 	RC=$?
 	if test $RC != 0 ; then
 		echo "ldapmodify failed ($RC)!"
-		test $KILLSERVERS != no && kill -HUP $KILLPIDS
+		killservers
 		exit $RC
 	fi
 
@@ -451,7 +451,7 @@ EOMODS
 	RC=$?
 	if test $RC != 0 ; then
 		echo "ldapsearch failed ($RC)!"
-		test $KILLSERVERS != no && kill -HUP $KILLPIDS
+		killservers
 		exit $RC
 	fi
 
@@ -469,7 +469,7 @@ EOMODS
 	RC=$?
 	if test $RC != 0 ; then
 		echo "ldapmodify failed ($RC)!"
-		test $KILLSERVERS != no && kill -HUP $KILLPIDS
+		killservers
 		exit $RC
 	fi
 
@@ -481,7 +481,7 @@ EOMODS
 	RC=$?
 	if test $RC != 0 ; then
 		echo "ldapsearch failed ($RC)!"
-		test $KILLSERVERS != no && kill -HUP $KILLPIDS
+		killservers
 		exit $RC
 	fi
 
@@ -497,7 +497,7 @@ EOMODS
 	RC=$?
 	if test $RC != 0 ; then
 		echo "ldapmodify failed ($RC)!"
-		test $KILLSERVERS != no && kill -HUP $KILLPIDS
+		killservers
 		exit $RC
 	fi
 
@@ -512,7 +512,7 @@ EOMODS
 	RC=$?
 	if test $RC != 0 ; then
 		echo "ldappasswd failed ($RC)!"
-		test $KILLSERVERS != no && kill -HUP $KILLPIDS
+		killservers
 		exit $RC
 	fi
 
@@ -521,7 +521,7 @@ EOMODS
 	RC=$?
 	if test $RC != 0 ; then
 		echo "ldapwhoami failed ($RC)!"
-		test $KILLSERVERS != no && kill -HUP $KILLPIDS
+		killservers
 		exit $RC
 	fi
 
@@ -532,7 +532,7 @@ EOMODS
 	RC=$?
 	if test $RC != 0 ; then
 		echo "ldapwhoami failed ($RC)!"
-		test $KILLSERVERS != no && kill -HUP $KILLPIDS
+		killservers
 		exit $RC
 	fi
 
@@ -544,7 +544,7 @@ EOMODS
 	RC=$?
 	if test $RC != 0 ; then
 		echo "ldapsearch failed ($RC)!"
-		test $KILLSERVERS != no && kill -HUP $KILLPIDS
+		killservers
 		exit $RC
 	fi
 
@@ -557,7 +557,7 @@ EOMODS
 
 	if test $? != 0 ; then
 		echo "comparison failed - SQL mods search didn't succeed"
-		test $KILLSERVERS != no && kill -HUP $KILLPIDS
+		killservers
 		exit 1
 	fi
 	;;
@@ -567,7 +567,7 @@ EOMODS
 	;;
 esac
 
-test $KILLSERVERS != no && kill -HUP $KILLPIDS
+killservers
 
 echo ">>>>> Test succeeded"
 exit 0

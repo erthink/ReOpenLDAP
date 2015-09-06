@@ -52,7 +52,7 @@ done
 
 if test $RC != 0 ; then
 	echo "ldapsearch failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -64,7 +64,7 @@ $LDAPWHOAMI -h $LOCALHOST -p $PORT1 -D "$BINDDN" -w $BINDPW
 RC=$?
 if test $RC != 0 ; then
 	echo "ldapwhoami failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -73,7 +73,7 @@ $LDAPWHOAMI -h $LOCALHOST -p $PORT1 -D "$BINDDN" -w "XXX"
 RC=$?
 if test $RC = 0 ; then
 	echo "ldapwhoami should have failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit 1
 fi
 
@@ -85,7 +85,7 @@ $LDAPSEARCH -h $LOCALHOST -p $PORT1 -b "$BASEDN" -s base -S "" \
 RC=$?
 if test $RC != 0 ; then
 	echo "ldapsearch failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -97,7 +97,7 @@ $LDAPSEARCH -h $LOCALHOST -p $PORT1 -b "$BASEDN" -s one -S "" \
 RC=$?
 if test $RC != 0 ; then
 	echo "ldapsearch failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -109,7 +109,7 @@ $LDAPSEARCH -h $LOCALHOST -p $PORT1 -b "$BASEDN" -S "" \
 RC=$?
 if test $RC != 0 ; then
 	echo "ldapsearch failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -121,7 +121,7 @@ $LDAPSEARCH -h $LOCALHOST -p $PORT1 -b "$BASEDN" -M -S "" '*' ref \
 RC=$?
 if test $RC != 0 ; then
 	echo "ldapsearch failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -133,7 +133,7 @@ $LDAPSEARCH -h $LOCALHOST -p $PORT1 -b "$BASEDN" -S "" "(foo=)" \
 RC=$?
 if test $RC != 0 ; then
 	echo "ldapsearch failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -145,7 +145,7 @@ $LDAPSEARCH -h $LOCALHOST -p $PORT1 -b "$BASEDN" -S "" "(sn=Kovalev)" \
 RC=$?
 if test $RC != 0 ; then
 	echo "ldapsearch failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -157,7 +157,7 @@ $LDAPSEARCH -h $LOCALHOST -p $PORT1 -b "$BASEDN" -S "" "(cn=m*)" \
 RC=$?
 if test $RC != 0 ; then
 	echo "ldapsearch failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -169,7 +169,7 @@ $LDAPSEARCH -h $LOCALHOST -p $PORT1 -b "$BASEDN" -S "" "(cn=*m*)" \
 RC=$?
 if test $RC != 0 ; then
 	echo "ldapsearch failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -181,7 +181,7 @@ $LDAPSEARCH -h $LOCALHOST -p $PORT1 -b "$BASEDN" -S "" "(cn=*v)" \
 RC=$?
 if test $RC != 0 ; then
 	echo "ldapsearch failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -193,7 +193,7 @@ $LDAPSEARCH -h $LOCALHOST -p $PORT1 -b "$BASEDN" -S "" "(sn~=kovalev)" \
 RC=$?
 if test $RC != 0 ; then
 	echo "ldapsearch failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -205,7 +205,7 @@ $LDAPSEARCH -h $LOCALHOST -p $PORT1 -b "$BASEDN" -S "" \
 RC=$?
 if test $RC != 0 ; then
 	echo "ldapsearch failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -217,7 +217,7 @@ $LDAPSEARCH -h $LOCALHOST -p $PORT1 -b "$BASEDN" -S "" \
 RC=$?
 if test $RC != 0 ; then
 	echo "ldapsearch failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -229,7 +229,7 @@ $LDAPSEARCH -h $LOCALHOST -p $PORT1 -b "$BASEDN" -S "" \
 RC=$?
 if test $RC != 0 ; then
 	echo "ldapsearch failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -241,7 +241,7 @@ $LDAPSEARCH -h $LOCALHOST -p $PORT1 -b "$BASEDN" -S "" \
 RC=$?
 if test $RC != 0 ; then
 	echo "ldapsearch failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -253,7 +253,7 @@ $LDAPSEARCH -h $LOCALHOST -p $PORT1 -b "$BASEDN" -S "" \
 RC=$?
 if test $RC != 0 ; then
 	echo "ldapsearch failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -266,7 +266,7 @@ $LDAPSEARCH -h $LOCALHOST -p $PORT1 -b "$BASEDN" -S "" \
 RC=$?
 if test $RC != 0 ; then
 	echo "ldapsearch failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -278,7 +278,7 @@ $LDAPSEARCH -h $LOCALHOST -p $PORT1 -b "$BASEDN" -S "" \
 RC=$?
 if test $RC != 0 ; then
 	echo "ldapsearch failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -290,7 +290,7 @@ $LDAPSEARCH -h $LOCALHOST -p $PORT1 -b "$BASEDN" -S "" \
 RC=$?
 if test $RC != 0 ; then
 	echo "ldapsearch failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -302,7 +302,7 @@ $LDAPSEARCH -h $LOCALHOST -p $PORT1 -b "$BASEDN" -S "" \
 RC=$?
 if test $RC != 0 ; then
 	echo "ldapsearch failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -315,7 +315,7 @@ echo "Testing NOT presence search... (disabled)"
 ###RC=$?
 ###if test $RC != 0 ; then
 ###	echo "ldapsearch failed ($RC)!"
-###	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+###	killservers
 ###	exit $RC
 ###fi
 
@@ -327,7 +327,7 @@ $LDAPSEARCH -h $LOCALHOST -p $PORT1 -b "$BASEDN" -S "" \
 RC=$?
 if test $RC != 0 ; then
 	echo "ldapsearch failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -340,7 +340,7 @@ $LDAPSEARCH -h $LOCALHOST -p $PORT1 -b "$BASEDN" -S "" \
 RC=$?
 if test $RC != 0 ; then
 	echo "ldapsearch failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -352,7 +352,7 @@ $LDAPSEARCH -h $LOCALHOST -p $PORT1 -b "$BASEDN" -S "" \
 RC=$?
 if test $RC != 0 ; then
 	echo "ldapsearch failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -364,7 +364,7 @@ $LDAPSEARCH -h $LOCALHOST -p $PORT1 -b "$BASEDN" -S "" \
 RC=$?
 if test $RC != 0 ; then
 	echo "ldapsearch failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -376,7 +376,7 @@ $LDAPSEARCH -h $LOCALHOST -p $PORT1 -b "$BASEDN" -S "" \
 RC=$?
 if test $RC != 0 ; then
 	echo "ldapsearch failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -388,7 +388,7 @@ $LDAPSEARCH -h $LOCALHOST -p $PORT1 -b "$BASEDN" -S "" \
 RC=$?
 if test $RC != 0 ; then
 	echo "ldapsearch failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -400,7 +400,7 @@ $LDAPSEARCH -h $LOCALHOST -p $PORT1 -b "$BASEDN" -S "" \
 RC=$?
 if test $RC != 0 ; then
 	echo "ldapsearch failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -412,7 +412,7 @@ $LDAPSEARCH -h $LOCALHOST -p $PORT1 -b "$BASEDN" -S "" \
 RC=$?
 if test $RC != 0 ; then
 	echo "ldapsearch failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -424,7 +424,7 @@ $LDAPSEARCH -h $LOCALHOST -p $PORT1 -b "$BASEDN" -S "" \
 RC=$?
 if test $RC != 0 ; then
 	echo "ldapsearch failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -441,13 +441,13 @@ case $RC in
 		if test x"$COUNT" != x ; then
 			if test "$COUNT" -gt "$SIZELIMIT" ; then
 				echo "...error: got $COUNT entries instead of the requested $SIZELIMIT"
-				test $KILLSERVERS != no && kill -HUP $KILLPIDS
+				killservers
 				exit 1
 			fi
 			echo "...didn't bump into the requested size limit ($SIZELIMIT; got $COUNT entries)"
 		else
 			echo "...error: did not expect ldapsearch success ($RC)!"
-			test $KILLSERVERS != no && kill -HUP $KILLPIDS
+			killservers
 			exit 1
 		fi
 	;;
@@ -457,18 +457,18 @@ case $RC in
 				echo "...bumped into requested size limit ($SIZELIMIT)"
 			else
 				echo "...error: got $COUNT entries with a requested sizelimit of $SIZELIMIT"
-				test $KILLSERVERS != no && kill -HUP $KILLPIDS
+				killservers
 				exit $RC
 			fi
 		else
 			echo "...error: bumped into server-side size limit, but got no entries!"
-                        test $KILLSERVERS != no && kill -HUP $KILLPIDS
+                        killservers
                         exit $RC
 		fi
 	;;
 	*)
 		echo "ldapsearch failed ($RC)!"
-		test $KILLSERVERS != no && kill -HUP $KILLPIDS
+		killservers
 		exit $RC
 	;;
 esac
@@ -483,11 +483,11 @@ case $RC in
 	echo "TRUE"
 	;;
 5)	echo "FALSE!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 	;;
 *)	echo "failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit 1
 	;;
 esac
@@ -500,13 +500,13 @@ RC=$?
 case $RC in
 6)
 	echo "TRUE!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 	;;
 5)	echo "FALSE"
 	;;
 *)	echo "failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit 1
 	;;
 esac
@@ -519,11 +519,11 @@ RC=$?
 case $RC in
 6)
 	echo "TRUE!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 	;;
 5)	echo "FALSE!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 	;;
 *)	echo "failed ($RC)"
@@ -540,11 +540,11 @@ case $RC in
 	echo "TRUE"
 	;;
 5)	echo "FALSE!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 	;;
 *)	echo "failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit 1
 	;;
 esac
@@ -558,11 +558,11 @@ $CMP $SEARCHFLT $LDIFFLT > $CMPOUT
 
 if test $? != 0 ; then
 	echo "comparison failed - SQL search didn't succeed"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit 1
 fi
 
-test $KILLSERVERS != no && kill -HUP $KILLPIDS
+killservers
 
 echo ">>>>> Test succeeded"
 exit 0

@@ -96,43 +96,9 @@ if test $WAIT != 0 ; then
     read foo
 fi
 KILLPIDS="$PID1 $PID2 $PID3"
-sleep 0.1
-
-echo "Using ldapsearch to check that slapd is running..."
-for i in 1 2 3 4 5; do
-	$LDAPSEARCH -s base -b "$MONITOR" -h $LOCALHOST -p $PORT1 \
-		'objectclass=*' > /dev/null 2>&1
-	RC=$?
-	if test $RC = 0 ; then
-		break
-	fi
-	echo "Waiting $i seconds for slapd to start..."
-	sleep $i
-done
-
-echo "Using ldapsearch to check that slapd is running..."
-for i in 1 2 3 4; do
-	$LDAPSEARCH -s base -b "$MONITOR" -h $LOCALHOST -p $PORT2 \
-		'objectclass=*' > /dev/null 2>&1
-	RC=$?
-	if test $RC = 0 ; then
-		break
-	fi
-	echo "Waiting $i seconds for slapd to start..."
-	sleep $i
-done
-
-echo "Using ldapsearch to check that slapd is running..."
-for i in 1 2 3; do
-	$LDAPSEARCH -s base -b "$MONITOR" -h $LOCALHOST -p $PORT3 \
-		'objectclass=*' > /dev/null 2>&1
-	RC=$?
-	if test $RC = 0 ; then
-		break
-	fi
-	echo "Waiting $i seconds for slapd to start..."
-	sleep $i
-done
+check_running 1
+check_running 2
+check_running 3
 
 ID="uid=bjorn,ou=People,dc=example,dc=com"
 BASE="dc=example,dc=com"
@@ -143,7 +109,7 @@ $LDAPSEARCH -h $LOCALHOST -p $PORT1 -b "$BASE" \
 RC=$?
 if test $RC != 0 ; then
 	echo "ldapsearch failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -156,7 +122,7 @@ $CMP $SEARCHFLT $LDIFFLT > $CMPOUT
 
 if test $? != 0 ; then
 	echo "comparison failed - glued search with identity assertion didn't succeed"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit 1
 fi
 
@@ -168,7 +134,7 @@ $LDAPSEARCH -h $LOCALHOST -p $PORT1 -b "$BASE" \
 RC=$?
 if test $RC != 0 ; then
 	echo "ldapsearch failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -181,7 +147,7 @@ $CMP $SEARCHFLT $LDIFFLT > $CMPOUT
 
 if test $? != 0 ; then
 	echo "comparison failed - anonymous glued search with identity assertion didn't succeed"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit 1
 fi
 
@@ -196,7 +162,7 @@ if test $USE_SASL != "no" ; then
 	RC=$?
 	if test $RC != 0 ; then
 		echo "ldapsearch failed ($RC)!"
-		test $KILLSERVERS != no && kill -HUP $KILLPIDS
+		killservers
 		exit $RC
 	fi
 
@@ -209,15 +175,11 @@ if test $USE_SASL != "no" ; then
 
 	if test $? != 0 ; then
 		echo "comparison failed - glued search with SASL bind and identity assertion didn't succeed"
-		test $KILLSERVERS != no && kill -HUP $KILLPIDS
+		killservers
 		exit 1
 	fi
 fi
 
-test $KILLSERVERS != no && kill -HUP $KILLPIDS
-
+killservers
 echo ">>>>> Test succeeded"
-
-test $KILLSERVERS != no && wait
-
 exit 0

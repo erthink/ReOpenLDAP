@@ -41,25 +41,7 @@ if test $WAIT != 0 ; then
     read foo
 fi
 KILLPIDS="$PID"
-sleep 0.1
-
-echo "Using ldapsearch to check that master slapd (pid=$PID) is running..."
-for i in 1 2 3 4 5; do
-	$LDAPSEARCH -s base -b "$MONITOR" -h $LOCALHOST -p $PORT1 \
-		'objectclass=*' > /dev/null 2>&1
-	RC=$?
-	if test $RC = 0 ; then
-		break
-	fi
-	echo "Waiting $i seconds for slapd to start..."
-	sleep $i
-done
-
-if test $RC != 0 ; then
-	echo "ldapsearch failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
-	exit $RC
-fi
+check_running 1 master
 
 echo "Using ldapadd to create the context prefix entry in the master..."
 $LDAPADD -D "$MANAGERDN" -h $LOCALHOST -p $PORT1 -w $PASSWD < \
@@ -67,11 +49,11 @@ $LDAPADD -D "$MANAGERDN" -h $LOCALHOST -p $PORT1 -w $PASSWD < \
 RC=$?
 if test $RC != 0 ; then
 	echo "ldapadd failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
-echo "Starting R1 slave slapd on TCP/IP port $PORT2..."
+echo "Starting R1-slave slapd on TCP/IP port $PORT2..."
 . $CONFFILTER $BACKEND $MONITORDB < $R1SRSLAVECONF > $CONF2
 $SLAPD -f $CONF2 -h $URI2 -d $LVL $TIMING > $LOG2 2>&1 &
 SLAVEPID=$!
@@ -80,27 +62,9 @@ if test $WAIT != 0 ; then
     read foo
 fi
 KILLPIDS="$KILLPIDS $SLAVEPID"
-sleep 0.1
+check_running 2 R1-slave
 
-echo "Using ldapsearch to check that R1 slave slapd (pid=$SLAVEPID) is running..."
-for i in 1 2 3 4 5; do
-	$LDAPSEARCH -s base -b "$MONITOR" -h $LOCALHOST -p $PORT2 \
-		'objectclass=*' > /dev/null 2>&1
-	RC=$?
-	if test $RC = 0 ; then
-		break
-	fi
-	echo "Waiting $i seconds for R1 slapd to start..."
-	sleep $i
-done
-
-if test $RC != 0 ; then
-	echo "ldapsearch failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
-	exit $RC
-fi
-
-echo "Starting R2 slave slapd on TCP/IP port $PORT3..."
+echo "Starting R2-slave slapd on TCP/IP port $PORT3..."
 . $CONFFILTER $BACKEND $MONITORDB < $R2SRSLAVECONF > $CONF3
 $SLAPD -f $CONF3 -h $URI3 -d $LVL $TIMING > $LOG3 2>&1 &
 SLAVEPID=$!
@@ -109,27 +73,9 @@ if test $WAIT != 0 ; then
     read foo
 fi
 KILLPIDS="$KILLPIDS $SLAVEPID"
-sleep 0.1
+check_running 3 R2-slave
 
-echo "Using ldapsearch to check that R2 slave slapd (pid=$SLAVEPID) is running..."
-for i in 1 2 3 4 5; do
-	$LDAPSEARCH -s base -b "$MONITOR" -h $LOCALHOST -p $PORT3 \
-		'objectclass=*' > /dev/null 2>&1
-	RC=$?
-	if test $RC = 0 ; then
-		break
-	fi
-	echo "Waiting $i seconds for R2 slave slapd to start..."
-	sleep $i
-done
-
-if test $RC != 0 ; then
-	echo "ldapsearch failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
-	exit $RC
-fi
-
-echo "Starting P1 slave slapd on TCP/IP port $PORT4..."
+echo "Starting P1-slave slapd on TCP/IP port $PORT4..."
 . $CONFFILTER $BACKEND $MONITORDB < $P1SRSLAVECONF > $CONF4
 $SLAPD -f $CONF4 -h $URI4 -d $LVL $TIMING > $LOG4 2>&1 &
 SLAVEPID=$!
@@ -138,25 +84,7 @@ if test $WAIT != 0 ; then
     read foo
 fi
 KILLPIDS="$KILLPIDS $SLAVEPID"
-sleep 0.1
-
-echo "Using ldapsearch to check that P1 slave slapd (pid=$SLAVEPID) is running..."
-for i in 1 2 3 4 5; do
-	$LDAPSEARCH -s base -b "$MONITOR" -h $LOCALHOST -p $PORT4 \
-		'objectclass=*' > /dev/null 2>&1
-	RC=$?
-	if test $RC = 0 ; then
-		break
-	fi
-	echo "Waiting $i seconds for P1 slave slapd to start..."
-	sleep $i
-done
-
-if test $RC != 0 ; then
-	echo "ldapsearch failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
-	exit $RC
-fi
+check_running 4 P1-slave
 
 echo "Starting P2 slave slapd on TCP/IP port $PORT5..."
 . $CONFFILTER $BACKEND $MONITORDB < $P2SRSLAVECONF > $CONF5
@@ -167,25 +95,7 @@ if test $WAIT != 0 ; then
     read foo
 fi
 KILLPIDS="$KILLPIDS $SLAVEPID"
-sleep 0.1
-
-echo "Using ldapsearch to check that P2 slave slapd (pid=$SLAVEPID) is running..."
-for i in 1 2 3 4 5; do
-	$LDAPSEARCH -s base -b "$MONITOR" -h $LOCALHOST -p $PORT5 \
-		'objectclass=*' > /dev/null 2>&1
-	RC=$?
-	if test $RC = 0 ; then
-		break
-	fi
-	echo "Waiting $i seconds for P2 slave slapd to start..."
-	sleep $i
-done
-
-if test $RC != 0 ; then
-	echo "ldapsearch failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
-	exit $RC
-fi
+check_running 5 P2-slave
 
 echo "Starting P3 slave slapd on TCP/IP port $PORT6..."
 . $CONFFILTER $BACKEND $MONITORDB < $P3SRSLAVECONF > $CONF6
@@ -196,25 +106,7 @@ if test $WAIT != 0 ; then
     read foo
 fi
 KILLPIDS="$KILLPIDS $SLAVEPID"
-sleep 0.1
-
-echo "Using ldapsearch to check that P3 slave slapd (pid=$SLAVEPID) is running..."
-for i in 1 2 3 4 5; do
-	$LDAPSEARCH -s base -b "$MONITOR" -h $LOCALHOST -p $PORT6 \
-		'objectclass=*' > /dev/null 2>&1
-	RC=$?
-	if test $RC = 0 ; then
-		break
-	fi
-	echo "Waiting $i seconds for P3 slave slapd to start..."
-	sleep $i
-done
-
-if test $RC != 0 ; then
-	echo "ldapsearch failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
-	exit $RC
-fi
+check_running 6 P3-slave
 
 echo "Using ldapadd to populate the master directory..."
 $LDAPADD -D "$MANAGERDN" -h $LOCALHOST -p $PORT1 -w $PASSWD < \
@@ -222,7 +114,7 @@ $LDAPADD -D "$MANAGERDN" -h $LOCALHOST -p $PORT1 -w $PASSWD < \
 RC=$?
 if test $RC != 0 ; then
 	echo "ldapadd failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -329,7 +221,7 @@ EOMODS
 RC=$?
 if test $RC != 0 ; then
 	echo "ldapmodify failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -352,7 +244,7 @@ EOMODS
 RC=$?
 if test $RC != 0 ; then
         echo "ldapmodify failed ($RC)!"
-        test $KILLSERVERS != no && kill -HUP $KILLPIDS
+        killservers
         exit $RC
 fi
 
@@ -369,7 +261,7 @@ RC=$?
 
 if test $RC != 0 ; then
 	echo "ldapsearch failed at master ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -380,7 +272,7 @@ RC=$?
 
 if test $RC != 0 ; then
 	echo "ldapsearch failed at R1 slave ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -391,7 +283,7 @@ RC=$?
 
 if test $RC != 0 ; then
 	echo "ldapsearch failed at R2 slave ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -402,7 +294,7 @@ RC=$?
 
 if test $RC != 0 ; then
 	echo "ldapsearch failed at P1 slave ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -413,7 +305,7 @@ RC=$?
 
 if test $RC != 0 ; then
 	echo "ldapsearch failed at P2 slave ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -424,11 +316,11 @@ RC=$?
 
 if test $RC != 0 ; then
 	echo "ldapsearch failed at P3 slave ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
-test $KILLSERVERS != no && kill -HUP $KILLPIDS
+killservers
 
 echo "Filtering master ldapsearch results..."
 $LDIFFILTER < $MASTEROUT > $MASTERFLT
@@ -484,7 +376,4 @@ if test $? != 0 ; then
 fi
 
 echo ">>>>> Test succeeded"
-
-test $KILLSERVERS != no && wait
-
 exit 0

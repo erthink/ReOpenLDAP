@@ -45,6 +45,10 @@
 #define MODULE_NAME_SZ 256
 #endif
 
+#ifndef PPOLICY_DEFAULT_MAXRECORDED_FAILURE
+#define PPOLICY_DEFAULT_MAXRECORDED_FAILURE	5
+#endif
+
 /* Per-instance configuration information */
 typedef struct pp_info {
 	struct berval def_policy;	/* DN of default policy subentry */
@@ -79,6 +83,7 @@ typedef struct pass_policy {
 	int pwdLockout; /* 0 = do not lockout passwords, 1 = lock them out */
 	int pwdLockoutDuration; /* time in seconds a password is locked out for */
 	int pwdMaxFailure; /* number of failed binds allowed before lockout */
+	int pwdMaxRecordedFailure;	/* number of failed binds to store */
 	int pwdFailureCountInterval; /* number of seconds before failure
 									counts are zeroed */
 	int pwdMustChange; /* 0 = users can use admin set password
@@ -179,7 +184,7 @@ static AttributeDescription *ad_pwdMinAge, *ad_pwdMaxAge, *ad_pwdInHistory,
 	*ad_pwdGraceAuthNLimit, *ad_pwdExpireWarning, *ad_pwdLockoutDuration,
 	*ad_pwdFailureCountInterval, *ad_pwdCheckModule, *ad_pwdLockout,
 	*ad_pwdMustChange, *ad_pwdAllowUserChange, *ad_pwdSafeModify,
-	*ad_pwdAttribute;
+	*ad_pwdAttribute, *ad_pwdMaxRecordedFailure;
 
 #define TAB(name)	{ #name, &ad_##name }
 
@@ -191,6 +196,7 @@ static struct schema_info pwd_UsSchema[] = {
 	TAB(pwdCheckQuality),
 	TAB(pwdMinLength),
 	TAB(pwdMaxFailure),
+	TAB(pwdMaxRecordedFailure),
 	TAB(pwdGraceAuthNLimit),
 	TAB(pwdExpireWarning),
 	TAB(pwdLockout),
@@ -459,6 +465,18 @@ add_passcontrol( Operation *op, SlapReply *rs, LDAPControl *ctrl )
 }
 
 static void
+ppolicy_get_default( PassPolicy *pp )
+{
+	memset( pp, 0, sizeof(PassPolicy) );
+
+	pp->ad = slap_schema.si_ad_userPassword;
+
+	/* Users can change their own password by default */
+	pp->pwdAllowUserChange = 1;
+}
+
+
+static void
 ppolicy_get( Operation *op, Entry *e, PassPolicy *pp )
 {
 	slap_overinst *on = (slap_overinst *)op->o_bd->bd_info;
@@ -471,12 +489,7 @@ ppolicy_get( Operation *op, Entry *e, PassPolicy *pp )
 	const char *text;
 #endif
 
-	memset( pp, 0, sizeof(PassPolicy) );
-
-	pp->ad = slap_schema.si_ad_userPassword;
-
-	/* Users can change their own password by default */
-    	pp->pwdAllowUserChange = 1;
+	ppolicy_get_default( pp );
 
 	if ((a = attr_find( e->e_attrs, ad_pwdPolicySubentry )) == NULL) {
 		/*
@@ -523,6 +536,9 @@ ppolicy_get( Operation *op, Entry *e, PassPolicy *pp )
 	if ( ( a = attr_find( pe->e_attrs, ad_pwdMaxFailure ) )
 			&& lutil_atoi( &pp->pwdMaxFailure, a->a_vals[0].bv_val ) != 0 )
 		goto defaultpol;
+	if ( ( a = attr_find( pe->e_attrs, ad_pwdMaxRecordedFailure ) )
+			&& lutil_atoi( &pp->pwdMaxRecordedFailure, a->a_vals[0].bv_val ) != 0 )
+		goto defaultpol;
 	if ( ( a = attr_find( pe->e_attrs, ad_pwdGraceAuthNLimit ) )
 			&& lutil_atoi( &pp->pwdGraceAuthNLimit, a->a_vals[0].bv_val ) != 0 )
 		goto defaultpol;
@@ -551,6 +567,11 @@ ppolicy_get( Operation *op, Entry *e, PassPolicy *pp )
 	if ((a = attr_find( pe->e_attrs, ad_pwdSafeModify )))
 	    	pp->pwdSafeModify = bvmatch( &a->a_nvals[0], &slap_true_bv );
 
+	if ( pp->pwdMaxRecordedFailure < pp->pwdMaxFailure )
+		pp->pwdMaxRecordedFailure = pp->pwdMaxFailure;
+	if ( !pp->pwdMaxRecordedFailure )
+		pp->pwdMaxRecordedFailure = PPOLICY_DEFAULT_MAXRECORDED_FAILURE;
+
 	op->o_bd->bd_info = (BackendInfo *)on->on_info;
 	be_entry_release_r( op, pe );
 	op->o_bd->bd_info = (BackendInfo *)on;
@@ -558,8 +579,17 @@ ppolicy_get( Operation *op, Entry *e, PassPolicy *pp )
 	return;
 
 defaultpol:
+	if ( pe ) {
+		op->o_bd->bd_info = (BackendInfo *)on->on_info;
+		be_entry_release_r( op, pe );
+		op->o_bd->bd_info = (BackendInfo *)on;
+	}
+
 	Debug( LDAP_DEBUG_TRACE,
 		"ppolicy_get: using default policy\n" );
+
+	ppolicy_get_default( pp );
+
 	return;
 }
 
@@ -994,6 +1024,50 @@ ppolicy_bind_response( Operation *op, SlapReply *rs )
 				 * We only count those failures
 				 * which are not due to expire.
 				 */
+			}
+			/* Do we have too many timestamps? If so, delete some values.
+			 * We don't bother to sort the values here. OpenLDAP keeps the
+			 * values in order by default. Fundamentally, relying on the
+			 * information here is wrong anyway; monitoring systems should
+			 * be tracking Bind failures in syslog, not here.
+			 */
+			if (a->a_numvals >= ppb->pp.pwdMaxRecordedFailure) {
+				int j = ppb->pp.pwdMaxRecordedFailure-1;
+				/* If more than 2x, cheaper to perform a Replace */
+				if (a->a_numvals >= 2 * ppb->pp.pwdMaxRecordedFailure) {
+					struct berval v, nv;
+
+					/* Change the mod we constructed above */
+					m->sml_op = LDAP_MOD_REPLACE;
+					m->sml_numvals = ppb->pp.pwdMaxRecordedFailure;
+					v = m->sml_values[0];
+					nv = m->sml_nvalues[0];
+					ch_free(m->sml_values);
+					ch_free(m->sml_nvalues);
+					m->sml_values = ch_calloc( sizeof(struct berval), ppb->pp.pwdMaxRecordedFailure+1 );
+					m->sml_nvalues = ch_calloc( sizeof(struct berval), ppb->pp.pwdMaxRecordedFailure+1 );
+					for (i=0; i<j; i++) {
+						ber_dupbv(&m->sml_values[i], &a->a_vals[a->a_numvals-j+i]);
+						ber_dupbv(&m->sml_nvalues[i], &a->a_nvals[a->a_numvals-j+i]);
+					}
+					m->sml_values[i] = v;
+					m->sml_nvalues[i] = nv;
+				} else {
+				/* else just delete some */
+					m = ch_calloc( sizeof(Modifications), 1 );
+					m->sml_op = LDAP_MOD_DELETE;
+					m->sml_type = ad_pwdFailureTime->ad_cname;
+					m->sml_desc = ad_pwdFailureTime;
+					m->sml_numvals = a->a_numvals - j;
+					m->sml_values = ch_calloc( sizeof(struct berval), m->sml_numvals+1 );
+					m->sml_nvalues = ch_calloc( sizeof(struct berval), m->sml_numvals+1 );
+					for (i=0; i<m->sml_numvals; i++) {
+						ber_dupbv(&m->sml_values[i], &a->a_vals[i]);
+						ber_dupbv(&m->sml_nvalues[i], &a->a_nvals[i]);
+					}
+					m->sml_next = mod;
+					mod = m;
+				}
 			}
 		}
 
@@ -1561,6 +1635,8 @@ ppolicy_modify( Operation *op, SlapReply *rs )
 	LDAPControl		*ctrl = NULL;
 	LDAPControl 		**oldctrls = NULL;
 	int			is_pwdexop = 0;
+	int got_del_grace = 0, got_del_lock = 0, got_pw = 0, got_del_fail = 0;
+	int got_changed = 0, got_history = 0;
 
 	op->o_bd->bd_info = (BackendInfo *)on->on_info;
 	rc = be_entry_get_rw( op, &op->o_req_ndn, NULL, NULL, 0, &e );
@@ -1573,7 +1649,6 @@ ppolicy_modify( Operation *op, SlapReply *rs )
 	 */
 	if ( be_shadow_update( op )) {
 		Modifications **prev;
-		int got_del_grace = 0, got_del_lock = 0, got_pw = 0, got_del_fail = 0;
 		Attribute *a_grace, *a_lock, *a_fail;
 
 		a_grace = attr_find( e->e_attrs, ad_pwdGraceUseTime );
@@ -1592,19 +1667,25 @@ ppolicy_modify( Operation *op, SlapReply *rs )
 				int drop = 0;
 
 				if ( ml->sml_desc == ad_pwdGraceUseTime ) {
-					got_del_grace = 1;
-					if ( !a_grace )
+					if ( !a_grace || got_del_grace ) {
 						drop = 1;
+					} else {
+						got_del_grace = 1;
+					}
 				} else
 				if ( ml->sml_desc == ad_pwdAccountLockedTime ) {
-					got_del_lock = 1;
-					if ( !a_lock )
+					if ( !a_lock || got_del_lock ) {
 						drop = 1;
+					} else {
+						got_del_lock = 1;
+					}
 				} else
 				if ( ml->sml_desc == ad_pwdFailureTime ) {
-					got_del_fail = 1;
-					if ( !a_fail )
+					if ( !a_fail || got_del_fail ) {
 						drop = 1;
+					} else {
+						got_del_fail = 1;
+					}
 				}
 				if ( drop ) {
 					*prev = ml->sml_next;
@@ -1755,6 +1836,20 @@ ppolicy_modify( Operation *op, SlapReply *rs )
 			if ((ml->sml_op == LDAP_MOD_ADD) ||
 				(ml->sml_op == LDAP_MOD_REPLACE))
 				zapReset = 0;
+		}
+		if ( ml->sml_op == LDAP_MOD_DELETE ) {
+			if ( ml->sml_desc == ad_pwdGraceUseTime ) {
+				got_del_grace = 1;
+			} else if ( ml->sml_desc == ad_pwdAccountLockedTime ) {
+				got_del_lock = 1;
+			} else if ( ml->sml_desc == ad_pwdFailureTime ) {
+				got_del_fail = 1;
+			}
+		}
+		if ( ml->sml_desc == ad_pwdChangedTime ) {
+			got_changed = 1;
+		} else if (ml->sml_desc == ad_pwdHistory ) {
+			got_history = 1;
 		}
 	}
 
@@ -1991,32 +2086,34 @@ do_modify:
 		 * up to date.
 		 */
 
-		timestamp.bv_val = timebuf;
-		timestamp.bv_len = sizeof(timebuf);
-		slap_timestamp( &now, &timestamp );
+		if (!got_changed) {
+			timestamp.bv_val = timebuf;
+			timestamp.bv_len = sizeof(timebuf);
+			slap_timestamp( &now, &timestamp );
 
-		mods = NULL;
-		if (pwmop != LDAP_MOD_DELETE) {
-			mods = (Modifications *) ch_calloc( sizeof( Modifications ), 1 );
-			mods->sml_op = LDAP_MOD_REPLACE;
-			mods->sml_numvals = 1;
-			mods->sml_values = (BerVarray) ch_malloc( 2 * sizeof( struct berval ) );
-			ber_dupbv( &mods->sml_values[0], &timestamp );
-			BER_BVZERO( &mods->sml_values[1] );
-			assert( !BER_BVISNULL( &mods->sml_values[0] ) );
-		} else if (attr_find(e->e_attrs, ad_pwdChangedTime )) {
-			mods = (Modifications *) ch_calloc( sizeof( Modifications ), 1 );
-			mods->sml_op = LDAP_MOD_DELETE;
-		}
-		if (mods) {
-			mods->sml_desc = ad_pwdChangedTime;
-			mods->sml_flags = SLAP_MOD_INTERNAL;
-			mods->sml_next = NULL;
-			modtail->sml_next = mods;
-			modtail = mods;
+			mods = NULL;
+			if (pwmop != LDAP_MOD_DELETE) {
+				mods = (Modifications *) ch_calloc( sizeof( Modifications ), 1 );
+				mods->sml_op = LDAP_MOD_REPLACE;
+				mods->sml_numvals = 1;
+				mods->sml_values = (BerVarray) ch_malloc( 2 * sizeof( struct berval ) );
+				ber_dupbv( &mods->sml_values[0], &timestamp );
+				BER_BVZERO( &mods->sml_values[1] );
+				assert( !BER_BVISNULL( &mods->sml_values[0] ) );
+			} else if (attr_find(e->e_attrs, ad_pwdChangedTime )) {
+				mods = (Modifications *) ch_calloc( sizeof( Modifications ), 1 );
+				mods->sml_op = LDAP_MOD_DELETE;
+			}
+			if (mods) {
+				mods->sml_desc = ad_pwdChangedTime;
+				mods->sml_flags = SLAP_MOD_INTERNAL;
+				mods->sml_next = NULL;
+				modtail->sml_next = mods;
+				modtail = mods;
+			}
 		}
 
-		if (attr_find(e->e_attrs, ad_pwdGraceUseTime )) {
+		if (!got_del_grace && attr_find(e->e_attrs, ad_pwdGraceUseTime )) {
 			mods = (Modifications *) ch_calloc( sizeof( Modifications ), 1 );
 			mods->sml_op = LDAP_MOD_DELETE;
 			mods->sml_desc = ad_pwdGraceUseTime;
@@ -2026,7 +2123,7 @@ do_modify:
 			modtail = mods;
 		}
 
-		if (attr_find(e->e_attrs, ad_pwdAccountLockedTime )) {
+		if (!got_del_lock && attr_find(e->e_attrs, ad_pwdAccountLockedTime )) {
 			mods = (Modifications *) ch_calloc( sizeof( Modifications ), 1 );
 			mods->sml_op = LDAP_MOD_DELETE;
 			mods->sml_desc = ad_pwdAccountLockedTime;
@@ -2036,7 +2133,7 @@ do_modify:
 			modtail = mods;
 		}
 
-		if (attr_find(e->e_attrs, ad_pwdFailureTime )) {
+		if (!got_del_fail && attr_find(e->e_attrs, ad_pwdFailureTime )) {
 			mods = (Modifications *) ch_calloc( sizeof( Modifications ), 1 );
 			mods->sml_op = LDAP_MOD_DELETE;
 			mods->sml_desc = ad_pwdFailureTime;
@@ -2057,7 +2154,7 @@ do_modify:
 			modtail = mods;
 		}
 
-		if (pp.pwdInHistory > 0) {
+		if (!got_history && pp.pwdInHistory > 0) {
 			if (hsize >= pp.pwdInHistory) {
 				/*
 				 * We use the >= operator, since we are going to add

@@ -1,6 +1,14 @@
 LMDB 0.9 Change Log
 
-LMDB 0.9.15 Release Engineering
+LMDB 0.9.17 Release Engineering
+
+LMDB 0.9.16 Release (2015/08/14)
+	Fix cursor EOF bug (ITS#8190)
+	Fix handling of subDB records (ITS#8181)
+	Fix mdb_midl_shrink() usage (ITS#8200)
+	not affected - fix reference to EINTR on WIN32 from ITS#8106 (ITS#8192)
+
+LMDB 0.9.15 Release (2015/06/19)
 	Fix txn init (ITS#7961,#7987)
 	Fix MDB_PREV_DUP (ITS#7955,#7671)
 	Fix compact of empty env (ITS#7956)

@@ -877,7 +877,7 @@ dynacl_aci_mask(
 			 * is considered an internal search.  If this is not
 			 * acceptable, then the same check needs be performed
 			 * when accessing the entry's attribute. */
-			struct berval	save_o_dn, save_o_ndn;
+			struct berval	save_o_dn = {0}, save_o_ndn = {0};
 
 			if ( !BER_BVISNULL( &op->o_bd->be_rootndn ) ) {
 				save_o_dn = op->o_dn;

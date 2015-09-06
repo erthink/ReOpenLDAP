@@ -76,6 +76,7 @@ do_abandon( Operation *op, SlapReply *rs )
 
 	/* Find the operation being abandoned. */
 	LDAP_STAILQ_FOREACH( o, &op->o_conn->c_ops, o_next ) {
+		LDAP_ASSERT(o->o_conn == op->o_conn);
 		if ( o->o_msgid == id ) {
 			break;
 		}
@@ -90,8 +91,8 @@ do_abandon( Operation *op, SlapReply *rs )
 				/* FIXME: This traverses c_pending_ops yet again. */
 				LDAP_STAILQ_REMOVE( &op->o_conn->c_pending_ops,
 					o, Operation, o_next );
-				LDAP_STAILQ_NEXT(o, o_next) = NULL;
 				op->o_conn->c_n_ops_pending--;
+				op->o_conn = NULL;
 				slap_op_free( o, NULL );
 				break;
 			}

@@ -60,24 +60,7 @@ if test $WAIT != 0 ; then
 fi
 REMOTEPID="$PID"
 KILLPIDS="$PID"
-sleep 0.1
-
-for i in 1 2 3 4 5; do
-	$LDAPSEARCH -s base -b "$MONITOR" -H $URI1 \
-		'objectclass=*' > /dev/null 2>&1
-	RC=$?
-	if test $RC = 0 ; then
-		break
-	fi
-	echo "Waiting $i seconds for remote slapd to start..."
-	sleep $i
-done
-
-if test $RC != 0 ; then
-	echo "ldapsearch failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
-	exit $RC
-fi
+check_running 1 remote
 
 # configure frontside
 mkdir -p $DBDIR2
@@ -93,24 +76,7 @@ if test $WAIT != 0 ; then
 fi
 LOCALPID="$PID"
 KILLPIDS="$LOCALPID $REMOTEPID"
-sleep 0.1
-
-for i in 1 2 3 4 5; do
-	$LDAPSEARCH -s base -b "$MONITOR" -H $URI2 \
-		'objectclass=*' > /dev/null 2>&1
-	RC=$?
-	if test $RC = 0 ; then
-		break
-	fi
-	echo "Waiting $i seconds for local slapd to start..."
-	sleep $i
-done
-
-if test $RC != 0 ; then
-	echo "ldapsearch failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
-	exit $RC
-fi
+check_running 2 local
 
 echo "Testing slapd Translucent Proxy operations..."
 
@@ -121,13 +87,13 @@ $LDAPSEARCH -H $URI2 -b "$TRANSLUCENTUSER" "$PERSONAL" >$SEARCHOUT 2>&1
 RC=$?
 if test $RC != 0 ; then
 	echo "ldapsearch failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
 if test -s $SEARCHOUT; then
 	echo "ldapsearch should have returned no records!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit 1
 fi
 
@@ -139,7 +105,7 @@ $LDAPADD -D "$TRANSLUCENTROOT" -H $URI1 \
 RC=$?
 if test $RC != 0 ; then
 	echo "ldapadd failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -150,7 +116,7 @@ $LDAPSEARCH -H $URI2 -b "$TRANSLUCENTUSER" "$PERSONAL" > $SEARCHOUT 2>&1
 RC=$?
 if test $RC != 0 ; then
 	echo "ldapsearch failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -160,7 +126,7 @@ $CMP $SEARCHFLT $LDIFFLT > $CMPOUT
 
 if test $? != 0 ; then
 	echo "Comparison failed -- corruption from remote to local!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit 1
 fi
 
@@ -173,7 +139,7 @@ RC=$?
 if test $RC != 50 ; then
 	echo "ldapadd failed ($RC), expected INSUFFICIENT ACCESS!"
 	grep "$FAILURE" $TESTOUT
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit 1
 fi
 
@@ -186,7 +152,7 @@ RC=$?
 if test $RC != 32 && test $RC,$BACKEND != 0,null ; then
 	echo "ldapadd failed ($RC), expected NO SUCH OBJECT!"
 	grep "$FAILURE" $TESTOUT
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit 1
 fi
 
@@ -199,7 +165,7 @@ RC=$?
 if test $RC != 32 && test $RC,$BACKEND != 0,null ; then
 	echo "ldapmodrdn failed ($RC), expected NO SUCH OBJECT!"
 	grep "$FAILURE" $TESTOUT
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit 1
 fi
 
@@ -214,7 +180,7 @@ EOF
 RC=$?
 if test $RC != 0 ; then
     echo "ldapmodify of dynamic config failed ($RC)"
-    test $KILLSERVERS != no && kill -HUP $KILLPIDS
+    killservers
     exit 1
 fi
 
@@ -227,7 +193,7 @@ RC=$?
 if test $RC != 0 ; then
 	echo "ldapadd failed ($RC)!"
 	grep "$FAILURE" $TESTOUT
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -238,7 +204,7 @@ $LDAPSEARCH -H $URI2 -b "$TRANSLUCENTUSER" "$PERSONAL" > $SEARCHOUT 2>&1
 RC=$?
 if test $RC != 0 ; then
 	echo "ldapsearch failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -248,7 +214,7 @@ $CMP $SEARCHFLT $LDIFFLT > $CMPOUT
 
 if test $? != 0 ; then
 	echo "Comparison failed -- local data failed to merge with remote!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit 1
 fi
 
@@ -260,7 +226,7 @@ $LDAPCOMPARE -z -H $URI2 -w $TRANSLUCENTPASSWD -D $TRANSLUCENTDN \
 RC=$?
 if test $RC != 6 ; then
 	echo "ldapcompare failed ($RC), expected TRUE!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit 1
 fi
 
@@ -272,7 +238,7 @@ $LDAPCOMPARE -z -x -H $URI2 -w $TRANSLUCENTPASSWD -D $TRANSLUCENTDN \
 RC=$?
 if test $RC != 6 ; then
 	echo "ldapcompare failed ($RC), expected TRUE!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit 1
 fi
 
@@ -284,7 +250,7 @@ $LDAPCOMPARE -z -x -H $URI2 -w $TRANSLUCENTPASSWD -D $TRANSLUCENTDN \
 RC=$?
 if test $RC != 5 ; then
 	echo "ldapcompare failed ($RC), expected FALSE!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit 1
 fi
 
@@ -296,7 +262,7 @@ $LDAPCOMPARE -z -x -H $URI2 -w $TRANSLUCENTPASSWD -D $TRANSLUCENTDN \
 RC=$?
 if test $RC != 5 ; then
 	echo "ldapcompare failed ($RC), expected FALSE!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit 1
 fi
 
@@ -315,7 +281,7 @@ RC=$?
 if test $RC != 32 ; then
 	echo "ldapmodify failed ($RC), expected NO SUCH OBJECT!"
 	grep "$FAILURE" $TESTOUT
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit 1
 fi
 
@@ -334,7 +300,7 @@ RC=$?
 if test $RC != 0 ; then
 	echo "ldapmodify failed ($RC)!"
 	grep "$FAILURE" $TESTOUT
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -343,14 +309,14 @@ $LDAPSEARCH -H $URI2 -b "uid=danger,ou=users,o=translucent" > $SEARCHOUT 2>&1
 RC=$?
 if test $RC != 0 ; then
 	echo "ldapsearch failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
 ATTR=`grep roomNumber $SEARCHOUT` > $NOWHERE 2>&1
 if test "$ATTR" != "roomNumber: 9N-21" ; then
 	echo "modification failed!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit 1
 fi
 
@@ -361,7 +327,7 @@ $LDAPSEARCH -H $URI2 -b "uid=danger,ou=users,o=translucent" roomNumber > $SEARCH
 RC=$?
 if test $RC != 0 ; then
 	echo "ldapsearch failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -380,7 +346,7 @@ RC=$?
 if test $RC != 0 ; then
 	echo "ldapmodify failed ($RC)!"
 	grep "$FAILURE" $TESTOUT
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -389,14 +355,14 @@ $LDAPSEARCH -H $URI2 -b "uid=fred,ou=users,o=translucent" > $SEARCHOUT 2>&1
 RC=$?
 if test $RC != 0 ; then
 	echo "ldapsearch failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
 ATTR=`grep roomNumber $SEARCHOUT` > $NOWHERE 2>&1
 if test "$ATTR" != "roomNumber: 31J-2112" ; then
 	echo "modification failed!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit 1
 fi
 
@@ -414,7 +380,7 @@ RC=$?
 if test $RC != 16 ; then
 	echo "ldapmodify failed ($RC), expected NO SUCH ATTRIBUTE!"
 	grep "$FAILURE" $TESTOUT
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit 1
 fi
 
@@ -432,7 +398,7 @@ RC=$?
 if test $RC != 0 ; then
 	echo "ldapmodify failed ($RC)!"
 	grep "$FAILURE" $TESTOUT
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -445,7 +411,7 @@ RC=$?
 if test $RC != 50 ; then
 	echo "ldapmodrdn failed ($RC), expected INSUFFICIENT ACCESS!"
 	grep "$FAILURE" $TESTOUT
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit 1
 fi
 
@@ -458,7 +424,7 @@ RC=$?
 if test $RC != 0 ; then
 	echo "ldapmodrdn failed ($RC)!"
 	grep "$FAILURE" $TESTOUT
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -475,7 +441,7 @@ RC=$?
 if test $RC != 50 ; then
 	echo "ldapadd failed ($RC), expected INSUFFICIENT ACCESS!"
 	grep "$FAILURE" $TESTOUT
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit 1
 fi
 
@@ -492,7 +458,7 @@ RC=$?
 if test $RC != 0 ; then
 	echo "ldapmodify failed ($RC)!"
 	grep "$FAILURE" $TESTOUT
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -509,7 +475,7 @@ RC=$?
 if test $RC != 32 ; then
 	echo "ldapmodify failed ($RC), expected NO SUCH OBJECT!"
 	grep "$FAILURE" $TESTOUT
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit 1
 fi
 
@@ -527,7 +493,7 @@ RC=$?
 if test $RC != 0 ; then
 	echo "ldapmodify failed ($RC)!"
 	grep "$FAILURE" $TESTOUT
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -536,7 +502,7 @@ $LDAPSEARCH -H $URI2 -b "uid=fred,ou=users,o=translucent" > $SEARCHOUT 2>&1
 RC=$?
 if test $RC != 0 ; then
 	echo "ldapsearch failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -554,7 +520,7 @@ RC=$?
 if test $RC != 16 ; then
 	echo "ldapmodify failed ($RC), expected NO SUCH ATTRIBUTE!"
 	grep "$FAILURE" $TESTOUT
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit 1
 fi
 
@@ -572,7 +538,7 @@ RC=$?
 if test $RC != 0 ; then
 	echo "ldapmodify failed ($RC)"
 	grep "$FAILURE" $TESTOUT
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit 1
 fi
 
@@ -596,7 +562,7 @@ RC=$?
 if test $RC != 0 ; then
 	echo "ldapmodify failed ($RC)!"
 	grep "$FAILURE" $TESTOUT
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -605,21 +571,21 @@ $LDAPSEARCH -H $URI2 -b "uid=fred,ou=users,o=translucent" > $SEARCHOUT 2>&1
 RC=$?
 if test $RC != 0 ; then
 	echo "ldapsearch failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
 ATTR=`grep employeeType $SEARCHOUT` > $NOWHERE 2>&1
 if test "$ATTR" != "employeeType: consultant" ; then
 	echo "modification failed!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit 1
 fi
 
 ATTR=`grep preferredLanguage $SEARCHOUT` > $NOWHERE 2>&1
 if test "$ATTR" != "preferredLanguage: ISO8859-1" ; then
 	echo "modification failed!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit 1
 fi
 
@@ -637,7 +603,7 @@ EOF
 RC=$?
 if test $RC != 0 ; then
     echo "ldapmodify of dynamic config failed ($RC)"
-    test $KILLSERVERS != no && kill -HUP $KILLPIDS
+    killservers
     exit 1
 fi
 
@@ -655,7 +621,7 @@ RC=$?
 if test $RC != 19 ; then
 	echo "ldapmodify failed ($RC), expected CONSTRAINT VIOLATION!"
 	grep "$FAILURE" $TESTOUT
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit 1
 fi
 
@@ -673,7 +639,7 @@ RC=$?
 if test $RC != 19 ; then
 	echo "ldapmodify failed ($RC), expected CONSTRAINT VIOLATION!"
 	grep "$FAILURE" $TESTOUT
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit 1
 fi
 
@@ -697,7 +663,7 @@ RC=$?
 if test $RC != 19 ; then
 	echo "ldapmodify failed ($RC), expected CONSTRAINT VIOLATION!"
 	grep "$FAILURE" $TESTOUT
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit 1
 fi
 
@@ -708,7 +674,7 @@ RC=$?
 if test $RC != 49 ; then
 	echo "ldapwhoami failed ($RC), expected INVALID CREDENTIALS!"
 	grep "$FAILURE" $TESTOUT
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit 1
 fi
 
@@ -718,7 +684,7 @@ RC=$?
 if test $RC != 0 ; then
 	echo "ldapwhoami failed ($RC), expected SUCCESS!"
 	grep "$FAILURE" $TESTOUT
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit 1
 fi
 
@@ -728,7 +694,7 @@ $LDAPSEARCH -H $URI2 -b "o=translucent" "(employeeType=consultant)" > $SEARCHOUT
 ATTR=`grep dn: $SEARCHOUT` > $NOWHERE 2>&1
 if test -n "$ATTR" ; then
 	echo "got result $ATTR, should have been no result"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit 1
 fi
 
@@ -743,7 +709,7 @@ EOF
 RC=$?
 if test $RC != 0 ; then
     echo "ldapmodify of dynamic config failed ($RC)"
-    test $KILLSERVERS != no && kill -HUP $KILLPIDS
+    killservers
     exit 1
 fi
 
@@ -753,7 +719,7 @@ $LDAPSEARCH -H $URI2 -b "o=translucent" "(employeeType=consultant)" > $SEARCHOUT
 ATTR=`grep dn: $SEARCHOUT` > $NOWHERE 2>&1
 if test -z "$ATTR" ; then
 	echo "got no result, should have found entry"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit 1
 fi
 
@@ -763,7 +729,7 @@ $LDAPSEARCH -H $URI2 -b "o=translucent" "(|(employeeType=foo)(carlicense=right))
 ATTR=`grep dn: $SEARCHOUT` > $NOWHERE 2>&1
 if test -n "$ATTR" ; then
 	echo "got result $ATTR, should have been no result"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit 1
 fi
 
@@ -778,7 +744,7 @@ EOF
 RC=$?
 if test $RC != 0 ; then
     echo "ldapmodify of dynamic config failed ($RC)"
-    test $KILLSERVERS != no && kill -HUP $KILLPIDS
+    killservers
     exit 1
 fi
 
@@ -788,14 +754,10 @@ $LDAPSEARCH -H $URI2 -b "o=translucent" "(|(employeeType=foo)(carlicense=right))
 ATTR=`grep dn: $SEARCHOUT` > $NOWHERE 2>&1
 if test -z "$ATTR" ; then
 	echo "got no result, should have found entry"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit 1
 fi
 
-test $KILLSERVERS != no && kill -HUP $KILLPIDS
-
+killservers
 echo ">>>>> Test succeeded"
-
-test $KILLSERVERS != no && wait
-
 exit 0

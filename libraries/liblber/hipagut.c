@@ -26,6 +26,8 @@
 #include <unistd.h>
 #include <string.h>
 #include <stdint.h>
+#include <sched.h>
+#include <stdlib.h>
 
 #include "lber_hipagut.h"
 
@@ -85,6 +87,8 @@ static __forceinline void unaligned_store(volatile void* ptr, uint64_t value) {
 #	define __sync_fetch_and_sub(p,v) __sync_fetch_and_add(p,-(v))
 #endif
 
+/* -------------------------------------------------------------------------- */
+
 static __forceinline uint64_t entropy_ticks() {
 #if defined(__GNUC__) || defined(__clang__)
 #if defined(__ia64__)
@@ -107,16 +111,21 @@ static __forceinline uint64_t entropy_ticks() {
 	uint64_t ticks;
 	__asm("rd %%tick, %0" : "=r" (ticks));
 	return ticks;
+#elif defined(__powerpc64__) || defined(__ppc64__)
+	uint64_t ticks;
+	__asm("mfspr %0, 268" : "=r" (ticks));
+	return ticks;
 #elif defined(__ppc__) || defined(__powerpc__)
-	unsigned tbl, tbu0, tbu1;
+	unsigned tbl, tbu;
 
-	do {
-		__asm("mftbu %0" : "=r" (tbu0));
-		__asm("mftb %0" : "=r" (tbl));
-		__asm("mftbu %0" : "=r" (tbu1));
-	} while (unlikely(tbu0 != tbu1));
+	/* LY: Here not a problem if a high-part (tbu)
+	 * would been updated during reading. */
+	__asm("mftb %0" : "=r" (tbl));
+	__asm("mftbu %0" : "=r" (tbu));
 
 	return (((uin64_t) tbu0) << 32) | tbl;
+/* #elif defined(__mips__)
+	return hippeus_mips_rdtsc(); */
 #elif defined(__x86_64__) || defined(__i386__)
 	unsigned lo, hi;
 
@@ -127,9 +136,17 @@ static __forceinline uint64_t entropy_ticks() {
 #endif /* arch selector */
 #endif /* __GNUC__ || __clang__ */
 
-	static volatile size_t sequence;
-	uint64_t salt = __sync_fetch_and_add(&sequence, 798021487u);
-	return ((salt << 17) ^ (salt >> 5)) * 3681268039ul;
+	struct timespec ts;
+#	if defined(CLOCK_MONOTONIC_COARSE)
+		clockid_t clock = CLOCK_MONOTONIC_COARSE;
+#	elif defined(CLOCK_MONOTONIC_RAW)
+		clockid_t clock = CLOCK_MONOTONIC_RAW;
+#	else
+		clockid_t clock = CLOCK_MONOTONIC;
+#	endif
+	LDAP_ENSURE(clock_gettime(clock, &ts) == 0);
+
+	return (((uint64_t)ts.tv_sec) << 32) + ts.tv_nsec;
 }
 
 /* -------------------------------------------------------------------------- */
@@ -484,3 +501,57 @@ void* lber_hug_realloc_commit ( size_t old_size,
 }
 
 #endif /* LDAP_MEMORY_DEBUG */
+
+int reopenldap_flags
+#if (LDAP_MEMORY_DEBUG > 1) || (LDAP_DEBUG > 1)
+		= REOPENLDAP_FLAG_IDKFA
+#endif
+		;
+
+void __attribute__((constructor)) reopenldap_flags_init() {
+	int flags = reopenldap_flags;
+	if (getenv("REOPENLDAP_FORCE_IDDQD"))
+		flags |= REOPENLDAP_FLAG_IDDQD;
+	if (getenv("REOPENLDAP_FORCE_IDKFA"))
+		flags |= REOPENLDAP_FLAG_IDKFA;
+	if (getenv("REOPENLDAP_FORCE_JITTER"))
+		flags |= REOPENLDAP_FLAG_JITTER;
+	reopenldap_flags_setup(flags);
+}
+
+void reopenldap_flags_setup(int flags) {
+	reopenldap_flags = flags & (REOPENLDAP_FLAG_IDDQD
+								| REOPENLDAP_FLAG_IDKFA
+								| REOPENLDAP_FLAG_JITTER);
+
+#if LDAP_MEMORY_DEBUG > 0
+	if (reopenldap_mode_idkfa()) {
+		lber_hug_nasty_disabled = 0;
+#ifdef LDAP_MEMORY_TRACE
+		lber_hug_memchk_trace_disabled = 0;
+#endif /* LDAP_MEMORY_TRACE */
+		lber_hug_memchk_poison_alloc = 0xCC;
+		lber_hug_memchk_poison_free = 0xDD;
+	} else {
+		lber_hug_nasty_disabled = LBER_HUG_DISABLED;
+		lber_hug_memchk_trace_disabled = LBER_HUG_DISABLED;
+		lber_hug_memchk_poison_alloc = 0;
+		lber_hug_memchk_poison_free = 0;
+	}
+#endif /* LDAP_MEMORY_DEBUG */
+}
+
+void reopenldap_jitter(int probability_percent) {
+	LDAP_ASSERT(probability_percent < 113);
+#if defined(__x86_64__) || defined(__i386__)
+	__asm __volatile("pause");
+#endif
+	for (;;) {
+		unsigned randomness = canary();
+		unsigned salt = (randomness << 13) | (randomness >> 19);
+		unsigned twister = (3023231633u * randomness) ^ salt;
+		if ((int)(twister % 101u) > --probability_percent)
+			break;
+		sched_yield();
+	}
+}

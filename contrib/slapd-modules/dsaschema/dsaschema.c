@@ -264,7 +264,7 @@ static int dsaschema_read_config(const char *fname, int depth)
 int init_module(int argc, char *argv[])
 {
 	int i;
-	int rc;
+	int rc = 0;
 
 	for (i = 0; i < argc; i++) {
 		rc = dsaschema_read_config(argv[i], 0);
@@ -435,4 +435,3 @@ fp_getline_init( int *lineno )
 	*lineno = -1;
 	buf[0] = '\0';
 }
-

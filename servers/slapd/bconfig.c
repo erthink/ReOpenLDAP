@@ -784,7 +784,7 @@ static ConfigTable config_back_cf_table[] = {
 		&config_biglock, "( OLcfgDbAt:0.45 NAME 'olcBiglock' "
 			"DESC 'Synchronuzation mode for suffix/database' "
 			"SYNTAX OMsDirectoryString SINGLE-VALUE )", NULL, NULL },
-	{ "reopenldap", "[iddqd] [idkfa]", 0, 0, 0, ARG_MAGIC,
+	{ "reopenldap", "[iddqd] [idkfa] [jitter]", 0, 0, 0, ARG_MAGIC,
 		&config_reopenldap, "( OLcfgGlAt:0.46 NAME 'olcReOpenLDAP' "
 			"DESC 'ReOpenLDAP cheating flags' "
 			"EQUALITY caseIgnoreMatch "
@@ -3169,6 +3169,7 @@ config_reopenldap(ConfigArgs *c)
 	static const slap_verbmasks reopenldap_ops[] = {
 		{ BER_BVC("iddqd"),		REOPENLDAP_FLAG_IDDQD },
 		{ BER_BVC("idkfa"),		REOPENLDAP_FLAG_IDKFA },
+		{ BER_BVC("jitter"),	REOPENLDAP_FLAG_JITTER },
 		{ BER_BVNULL,	0 }
 	};
 
@@ -3632,11 +3633,14 @@ loglevel_print( FILE *out )
 
 	fprintf( out, "Installed log subsystems:\n\n" );
 	for ( i = 0; !BER_BVISNULL( &loglevel_ops[ i ].word ); i++ ) {
-		unsigned mask = loglevel_ops[ i ].mask & 0xffffffffUL;
-		fprintf( out,
-			(mask == ((slap_mask_t) -1 & 0xffffffffUL)
-			 ? "\t%-30s (-1, 0xffffffff)\n" : "\t%-30s (%u, 0x%x)\n"),
-			loglevel_ops[ i ].word.bv_val, mask, mask );
+		int32_t mask = loglevel_ops[ i ].mask;
+		int32_t all = (int32_t) ((slap_mask_t) -1l);
+		if (mask == all)
+			fprintf( out, "\t%-30s (-1, 0xffffffff)\n",
+				loglevel_ops[ i ].word.bv_val );
+		else
+			fprintf( out, "\t%-30s (%u, 0x%x)\n",
+				loglevel_ops[ i ].word.bv_val, mask, mask );
 	}
 
 	fprintf( out, "\nNOTE: custom log subsystems may be later installed "
