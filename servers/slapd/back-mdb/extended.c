@@ -48,7 +48,7 @@ mdb_extended( Operation *op, SlapReply *rs )
 		}
 	}
 
-	rs->sr_text = "not supported within naming context";
+	rs->sr_text = "not supported within naming context (mdb)";
 	return rs->sr_err = LDAP_UNWILLING_TO_PERFORM;
 }
 
