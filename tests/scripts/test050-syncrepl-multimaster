@@ -381,9 +381,9 @@ if test $RC != 0 ; then
 fi
 
 #echo "Waiting $SLEEP1 seconds for syncrepl to receive changes..."
-wait_syncrepl $PORT1 $PORT2
-wait_syncrepl $PORT1 $PORT3
-wait_syncrepl $PORT1 $PORT4
+wait_syncrepl $PORT2 $PORT1
+wait_syncrepl $PORT2 $PORT3
+wait_syncrepl $PORT2 $PORT4
 
 n=1
 while [ $n -le $MMR ]; do
@@ -433,9 +433,9 @@ if test $RC != 0 ; then
 fi
 
 #echo "Waiting $SLEEP1 seconds for syncrepl to receive changes..."
-wait_syncrepl $PORT1 $PORT2
-wait_syncrepl $PORT1 $PORT3
-wait_syncrepl $PORT1 $PORT4
+wait_syncrepl $PORT3 $PORT1
+wait_syncrepl $PORT3 $PORT2
+wait_syncrepl $PORT3 $PORT4
 
 n=1
 while [ $n -le $MMR ]; do
@@ -548,9 +548,9 @@ if test $RC != 0 ; then
 fi
 
 #echo "Waiting $SLEEP1 seconds for syncrepl to receive changes..."
-wait_syncrepl $PORT1 $PORT2
-wait_syncrepl $PORT1 $PORT3
-wait_syncrepl $PORT1 $PORT4
+wait_syncrepl $PORT2 $PORT1
+wait_syncrepl $PORT2 $PORT3
+wait_syncrepl $PORT2 $PORT4
 
 echo "Using ldapmodify to delete entries from server 3..."
 $LDAPMODIFY -D "$MANAGERDN" -H $URI3 -w $PASSWD \
@@ -566,9 +566,9 @@ if test $RC != 0 ; then
 fi
 
 #echo "Waiting $SLEEP1 seconds for syncrepl to receive changes..."
-wait_syncrepl $PORT1 $PORT2
-wait_syncrepl $PORT1 $PORT3
-wait_syncrepl $PORT1 $PORT4
+wait_syncrepl $PORT3 $PORT1
+wait_syncrepl $PORT3 $PORT2
+wait_syncrepl $PORT3 $PORT4
 
 n=1
 while [ $n -le $MMR ]; do
@@ -648,9 +648,6 @@ done
 
 # Insert modifications and more tests here.
 #echo "Waiting $SLEEP1 seconds for servers to resync..."
-wait_syncrepl $PORT1 $PORT2
-wait_syncrepl $PORT1 $PORT3
-wait_syncrepl $PORT1 $PORT4
 
 echo "Using ldapmodify to add/modify/delete entries from server 1..."
 for i in 1 2 3 4 5 6 7 8 9 10; do

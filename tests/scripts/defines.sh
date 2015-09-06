@@ -524,7 +524,7 @@ function collect_test {
 
 function wait_syncrepl {
 	local scope=${3:-base}
-	echo -n "Waiting for syncrepl to receive changes (from $1 to $2)..."
+	echo -n "Waiting while syncrepl replicates a changes (between $1 and $2)..."
 	sleep 0.1
 
 	for i in $(seq 1 150); do
