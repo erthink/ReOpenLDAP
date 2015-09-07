@@ -42,7 +42,6 @@ function doit {
 	nice -n $nice $build $build_args || failure "$here/$build $build_args"
 	echo "==============================================================================="
 	echo "$(date --rfc-3339=seconds) Testing..." > $CIBUZZ_STATUS
-	rm -rf @* || failure "rm -rf @*"
 	NO_COLLECT_SUCCESS=yes TEST_TEMP_DIR=$(readlink -f ${here}/tmp) \
 		setsid -w nice -n $nice $test $test_args
 }
@@ -51,19 +50,22 @@ function doit {
 	|| (mkdir -p ${RAM} && sudo mount -t tmpfs RAM ${RAM})) \
 	|| failure "mount ${RAM}"
 
-nice=5
+order=0
 for ((n=0; n < N; n++)); do
 	for branch in $branch_list; do
 		echo "launching $n of $branch, with nice $nice..."
-		dir="$TOP/@$n.$branch"
+		dir=$TOP/@$n.$branch
 		tmp=$(readlink -f ${RAM}/$n.$branch)
-		mkdir -p "$dir" || failure "mkdir -p $dir"
-		echo "lanching..." >$dir/status
+		mkdir -p $dir || failure "mkdir -p $dir"
+		echo "launching..." >$dir/status
 		rm -rf $tmp $dir/tmp && mkdir -p $tmp && ln -s $tmp $dir/tmp || failure "mkdir -p $tmp"
-		((cd $dir && msg_frefix="#$n of $branch | " doit $branch $nice >out.log 2>err.log) </dev/null; \
-			wait; echo "$(date '+%F.%H%M%S') *** exited" >$dir/status) &
-		nice=$((nice + 1))
-		sleep 1
+		( \
+			(sleep $((order * 11)) && cd $dir \
+				&& msg_frefix="#$n of $branch | " doit $branch $((5 + order * 2))) \
+				>$dir/out.log 2>$dir/err.log </dev/null; \
+			wait; echo "$(date --rfc-3339=seconds) *** exited" >$dir/status \
+		) &
+		order=$((order + 1))
 	done
 done
 
