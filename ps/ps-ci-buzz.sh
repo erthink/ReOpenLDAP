@@ -11,7 +11,7 @@ shift
 branch_list="$@"
 
 if [ -z "$N" ]; then N=4; fi
-if [ -z "$branch_list" ]; then branch_list="devel-2.4 devel-2.5 master"; fi
+if [ -z "$branch_list" ]; then branch_list="devel-2.4 devel-2.5"; fi
 
 build="ps/ps-ci-build.sh"
 test="ps/ps-ci-test.sh"
