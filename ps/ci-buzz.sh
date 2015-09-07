@@ -1,8 +1,16 @@
 #!/bin/bash
 
-msb_frefix=
-failure() {
-	echo "${msb_frefix}Oops, $* failed ;(" >&2
+function cleanup {
+	pkill -P $$ && sleep 1
+	pkill -9 -P $$
+}
+
+trap cleanup TERM INT QUIT HUP
+
+
+function failure {
+	echo "Oops, $* failed ;(" >&2
+	cleanup
 	exit 1
 }
 
@@ -60,9 +68,9 @@ for ((n=0; n < N; n++)); do
 		echo "launching..." >$dir/status
 		rm -rf $tmp $dir/tmp && mkdir -p $tmp && ln -s $tmp $dir/tmp || failure "mkdir -p $tmp"
 		( \
-			(sleep $((order * 11)) && cd $dir \
-				&& msg_frefix="#$n of $branch | " doit $branch $((5 + order * 2))) \
-				>$dir/out.log 2>$dir/err.log </dev/null; \
+			( sleep $((order * 11)) && cd $dir \
+				&& doit $branch $((5 + order * 2)) \
+			) >$dir/out.log 2>$dir/err.log </dev/null; \
 			wait; echo "$(date --rfc-3339=seconds) *** exited" >$dir/status \
 		) &
 		order=$((order + 1))
