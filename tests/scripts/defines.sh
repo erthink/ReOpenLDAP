@@ -422,7 +422,20 @@ function killservers {
 }
 
 function get_df_mb {
-	echo $(($(df -k -P $(readlink -f $1) | tail -1 | tr -s '\t ' ' ' | cut -d ' ' -f 4) / 1024))
+	local path=$1
+	while [ -n "$path" ]; do
+		local npath=$(readlink -q -f $path)
+		if [ -n "$npath" ]; then
+			local df_avail_k=$(df -k -P $npath | tail -1 | tr -s '\t ' ' ' | cut -d ' ' -f 4)
+			if [ -n "$df_avail_k" ]; then
+				echo $((df_avail_k / 1024))
+				return
+			fi
+			break
+		fi
+		path=$(dirname $path)
+	done
+	echo 0
 }
 
 function cibuzz_report {
