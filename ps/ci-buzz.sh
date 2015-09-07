@@ -13,8 +13,8 @@ branch_list="$@"
 if [ -z "$N" ]; then N=4; fi
 if [ -z "$branch_list" ]; then branch_list="devel-2.4 devel-2.5"; fi
 
-build="ps/ps-ci-build.sh"
-test="ps/ps-ci-test.sh"
+build="ps/ci-build.sh"
+test="ps/ci-test.sh"
 build_args="--size --do-not-clean"
 test_args="111"
 
