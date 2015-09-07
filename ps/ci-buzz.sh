@@ -19,9 +19,10 @@ build_args="--size --do-not-clean"
 test_args="111"
 
 TOP=$(pwd)/@ci-buzz-pid.dbg
+RAM=$TOP/ramfs
 mkdir -p $TOP || failure "mkdir -p $TOP"
 rm -rf $TOP/@* || failure  "rm -rf $TOP/@*"
-[ ! -d $TOP/ramfs ] || rm -rf $TOP/ramfs/* || failure "$TOP/ramfs/*"
+[ ! -d $RAM ] || rm -rf $RAM/* || failure "$RAM/*"
 
 function doit {
 	branch=$1
@@ -46,22 +47,21 @@ function doit {
 		setsid -w nice -n $nice $test $test_args
 }
 
-TEMPFS=${TOP}/ramfs
-(mount | grep ${TEMPFS} \
-	|| (mkdir -p ${TEMPFS} && sudo mount -t tmpfs RAM ${TEMPFS})) \
-	|| failure "mount ${TEMPFS}"
+(mount | grep ${RAM} \
+	|| (mkdir -p ${RAM} && sudo mount -t tmpfs RAM ${RAM})) \
+	|| failure "mount ${RAM}"
 
 nice=5
 for ((n=0; n < N; n++)); do
 	for branch in $branch_list; do
 		echo "launching $n of $branch, with nice $nice..."
 		dir="$TOP/@$n.$branch"
-		tmp=$(readlink -f ${TEMPFS}/$n.$branch)
+		tmp=$(readlink -f ${RAM}/$n.$branch)
 		mkdir -p "$dir" || failure "mkdir -p $dir"
 		echo "lanching..." >$dir/status
 		rm -rf $tmp $dir/tmp && mkdir -p $tmp && ln -s $tmp $dir/tmp || failure "mkdir -p $tmp"
 		((cd $dir && msg_frefix="#$n of $branch | " doit $branch $nice >out.log 2>err.log) </dev/null; \
-			 echo "$(date '+%F.%H%M%S.%N') *** exit with rc $?" >$dir/status) &
+			wait; echo "$(date '+%F.%H%M%S') *** exited" >$dir/status) &
 		nice=$((nice + 1))
 		sleep 1
 	done
@@ -73,18 +73,16 @@ while true; do
 	for branch in $branch_list; do
 		for ((n=0; n < N; n++)); do
 			dir="$TOP/@$n.$branch"
-			echo "$branch/$n:	$(tail -n 1 $dir/status) | $(tail -n 1 $dir/err.log)"
+			echo "$branch/$n: $(tail -n 1 $dir/status) | $(tail -n 1 $dir/err.log)"
 		done
 	done
 
 	echo "==="
 	df -h $TOP $TOP/ramfs
 	echo "==="
-	vmstat -w
+	vmstat -w; vmstat -w -a
 	echo "==="
 	uptime
-	echo "==="
-	vmstat -w -a
 
 	if [ -z "$(jobs -r)" ]; then
 		break;

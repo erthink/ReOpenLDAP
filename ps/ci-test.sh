@@ -52,19 +52,20 @@ function find_free_port {
 function verify_ports {
 	RANDOM=$$
 	if [ -n "$(which nc)" ]; then
+		echo "verify ports $@..."
 		for port in "$@"; do
 			token="${RANDOM}-${RANDOM}-${RANDOM}-${RANDOM}-$$"
 			(echo $token | timeout 1s nc -l 127.0.0.1 $port) &
 			feed=$(sleep 0.1 && timeout 1s nc 127.0.0.1 $port)
 			if [ "$feed" != "$token" ]; then
-				echo "TCP-post $port is busy, try find again" >&2
+				echo "TCP-port $port is busy, try find again" >&2
 				return 1
 			fi
 		done
 	else
 		echo "nc (netcat) not available, skip verification"
 	fi
-	echo "Using TCP-ports $@" >&2
+	echo "ports $@" >&2
 	return 0
 }
 
