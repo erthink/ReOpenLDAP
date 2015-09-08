@@ -13,6 +13,7 @@ flag_clean=1
 flag_lto=1
 flag_O=-O2
 flag_clang=0
+flag_bdb=1
 for arg in "$@"; do
 	case "$arg" in
 	--debug)
@@ -47,6 +48,12 @@ for arg in "$@"; do
 		;;
 	--clang)
 		flag_clang=1
+		;;
+	--with-bdb)
+		flag_bdb=1
+		;;
+	--without-bdb)
+		flag_bdb=0
 		;;
 	*)
 		failure "unknown option '$arg'"
@@ -161,6 +168,7 @@ if [ ! -s Makefile ]; then
 	./configure \
 			--enable-debug --enable-backends --enable-overlays $NBD \
 			--enable-rewrite --enable-dynacl --enable-aci --enable-slapi \
+			$([ $flag_bdb -eq 0 ] && echo "--disable-bdb --disable-hdb") \
 		|| failure "configure"
 
 	find ./ -name Makefile | xargs -r sed -i 's/-Wall -g/-Wall -Werror -g/g' || failure "prepare"
