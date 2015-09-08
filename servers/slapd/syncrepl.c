@@ -5815,6 +5815,7 @@ syncrepl_config( ConfigArgs *c )
 					 * happen when running on the cn=config DB.
 					 */
 					if ( si->si_re ) {
+						ldap_pvt_thread_mutex_lock( &slapd_rq.rq_mutex );
 						if ( ldap_pvt_thread_mutex_trylock( &si->si_mutex )) {
 							isrunning = 1;
 						} else {
@@ -5832,7 +5833,6 @@ syncrepl_config( ConfigArgs *c )
 								si->si_conn = NULL;
 							}
 
-							ldap_pvt_thread_mutex_lock( &slapd_rq.rq_mutex );
 							if ( ldap_pvt_runqueue_isrunning( &slapd_rq, re ) ) {
 								ldap_pvt_runqueue_stoptask( &slapd_rq, re );
 								isrunning = 1;
@@ -5842,10 +5842,10 @@ syncrepl_config( ConfigArgs *c )
 								isrunning = 0;
 
 							ldap_pvt_runqueue_remove( &slapd_rq, re );
-							ldap_pvt_thread_mutex_unlock( &slapd_rq.rq_mutex );
 
 							ldap_pvt_thread_mutex_unlock( &si->si_mutex );
 						}
+						ldap_pvt_thread_mutex_unlock( &slapd_rq.rq_mutex );
 					}
 					if ( !isrunning ) {
 						syncinfo_free( si, 0 );
