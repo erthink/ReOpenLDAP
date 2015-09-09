@@ -1,19 +1,5 @@
 #!/bin/bash
 
-function cleanup {
-	pkill -P $$ && sleep 1
-	pkill -9 -P $$
-}
-
-trap cleanup TERM INT QUIT HUP
-
-
-function failure {
-	echo "Oops, $* failed ;(" >&2
-	cleanup
-	exit 1
-}
-
 N=$1
 shift
 branch_list="$@"
@@ -26,8 +12,37 @@ test="ps/ci-test.sh"
 build_args="--size --without-bdb --do-not-clean"
 test_args="111"
 
-TOP=$(pwd)/@ci-buzz-pid.dbg
+TOP=$(pwd)/@ci-buzz.pool
 RAM=$TOP/ramfs
+MAIN=$$
+
+function cleanup {
+	if [ $$ = $MAIN ]; then
+		for ((n=0; n < N; n++)); do
+			for branch in $branch_list; do
+				echo "launching $n of $branch, with nice $nice..."
+				dir=$TOP/@$n.$branch
+				pid=$([ -s $TOP/@$n.$branch/pid ] && echo $TOP/@$n.$branch/pid)
+				if [ -n "$pid" ]; then
+					echo "terminating pid $pid ($n of $branch)..."
+					pkill -P $pid && wait $pid
+				fi
+			done
+		done
+
+		pkill -P $$ && sleep 1
+		pkill -9 -P $$
+	fi
+}
+
+trap cleanup TERM INT QUIT HUP
+
+function failure {
+	echo "Oops, $* failed ;(" >&2
+	cleanup
+	exit 1
+}
+
 mkdir -p $TOP || failure "mkdir -p $TOP"
 rm -rf $TOP/@* || failure  "rm -rf $TOP/@*"
 [ ! -d $RAM ] || rm -rf $RAM/* || failure "$RAM/*"
@@ -36,7 +51,7 @@ function doit {
 	branch=$1
 	nice=$2
 	here=$(pwd)
-	export CIBUZZ_STATUS=$here/status
+	export CIBUZZ_STATUS=$here/status CIBUZZ_PID4=$here/pid
 	echo "branch $branch"
 	echo "==============================================================================="
 	echo "$(date --rfc-3339=seconds) Preparing..." >$CIBUZZ_STATUS

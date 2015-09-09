@@ -7,10 +7,12 @@ ulimit -c unlimited
 NPORTS=8
 
 function cleanup {
+	[ -n "$CIBUZZ_PID4" ] && rm -rf $CIBUZZ_PID4
 	pkill -P $$ && wait
-	[ -n "${TMP}" ] && rm -rf ${TMP}
+	[ -n "$TMP" ] && rm -rf $TMP
 }
 
+[ -n "$CIBUZZ_PID4" ] && echo $$ > $CIBUZZ_PID4
 trap cleanup TERM INT QUIT HUP
 
 function failure {
