@@ -68,7 +68,7 @@ for ((n=0; n < N; n++)); do
 		echo "launching..." >$dir/status
 		rm -rf $tmp $dir/tmp && mkdir -p $tmp && ln -s $tmp $dir/tmp || failure "mkdir -p $tmp"
 		( \
-			( sleep $((order * 11)) && cd $dir \
+			( sleep $((order * 41)) && cd $dir \
 				&& doit $branch $((5 + order * 2)) \
 			) >$dir/out.log 2>$dir/err.log </dev/null; \
 			wait; echo "$(date --rfc-3339=seconds) *** exited" >$dir/status \
