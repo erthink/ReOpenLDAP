@@ -679,7 +679,7 @@ done:
 		return (ber->ber_tag);
 	}
 
-	LDAP_BUG(); /* ber structure is messed up ?*/
+	/* invalid input */
 	return LBER_DEFAULT;
 }
 
