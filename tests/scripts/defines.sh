@@ -424,7 +424,7 @@ function killservers {
 function get_df_mb {
 	local path=$1
 	while [ -n "$path" ]; do
-		local npath=$(readlink -q -f $path)
+		local npath=$(readlink -q -e $path)
 		if [ -n "$npath" ]; then
 			local df_avail_k=$(df -k -P $npath | tail -1 | tr -s '\t ' ' ' | cut -d ' ' -f 4)
 			if [ -n "$df_avail_k" ]; then
