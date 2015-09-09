@@ -398,7 +398,7 @@ function teamcity_sleep {
 function safewait {
 	wait "$@"
 	local RC=$?
-	if [ $RC -gt 128 ]; then
+	if [ $RC -gt 132 ]; then
 		echo " coredump/signal-$(($RC - 128))"
 		sleep 5
 		exit $RC
@@ -408,8 +408,7 @@ function safewait {
 function killpids {
 	if [ $# != 0 ]; then
 		echo -n ">>>>> waiting for things ($@) to exit..."
-		kill -HUP "$@"
-		safewait "$@"
+		kill -HUP "$@" && safewait "$@"
 		echo " done"
 	fi
 }
