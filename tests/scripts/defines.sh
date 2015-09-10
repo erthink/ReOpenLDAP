@@ -205,14 +205,14 @@ MONITORDATA=$SRCDIR/scripts/monitor_data.sh
 
 #VALGRIND="valgrind --fair-sched=yes --log-socket=127.0.0.1:55555 --leak-check=full --track-origins=yes --trace-children=yes --suppressions=$TESTWD/scripts/valgrind.supp"
 # --gen-suppressions=yes
-if [ -z "$VALGRIND" ]; then
-	TIMEOUT_S="timeout -s SIGXCPU 15s"
+if [ -z "$VALGRIND" -a -z "$CIBUZZ_PID4" ]; then
+	TIMEOUT_S="timeout -s SIGXCPU 30s"
 	TIMEOUT_L="timeout -s SIGXCPU 5m"
 	SLEEP0=${SLEEP0-0.2}
 	SLEEP1=${SLEEP1-1}
 	SLEEP2=${SLEEP2-3}
 else
-	TIMEOUT_S="timeout -s SIGXCPU 1m"
+	TIMEOUT_S="timeout -s SIGXCPU 3m"
 	TIMEOUT_L="timeout -s SIGXCPU 30m"
 	SLEEP0=${SLEEP0-1}
 	SLEEP1=${SLEEP1-7}
