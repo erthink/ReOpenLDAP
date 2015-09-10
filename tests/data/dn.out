@@ -109,7 +109,7 @@ cn: Unescaped Equals
 member: cn=Unescaped Equals,ou=LDAPv3,dc=example,dc=com
 member: cn=A*x\3Db is a linear algebra problem,ou=LDAPv3,dc=example,dc=com
 description: cn=A*x=b is a linear algebra problem,ou=LDAPv3,dc=example,dc=com
- // unescaped EQUALS
+  // unescaped EQUALS
 
 # Searching database for DN="OU=Sales+CN=J. Smith,DC=example,DC=net"...
 dn: cn=Must Succeed,ou=LDAPv3,dc=example,dc=com

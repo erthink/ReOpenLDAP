@@ -244,7 +244,12 @@ LDAPWHOAMI="$TIMEOUT_S $VALGRIND $CLIENTDIR/ldapwhoami $TOOLARGS"
 LDAPCOMPARE="$TIMEOUT_S $VALGRIND $CLIENTDIR/ldapcompare $TOOLARGS"
 LDAPEXOP="$TIMEOUT_S $VALGRIND $CLIENTDIR/ldapexop $TOOLARGS"
 SLAPDTESTER=$PROGDIR/slapd-tester
-LDIFFILTER=$PROGDIR/ldif-filter
+
+function ldif-filter-unwrap {
+	$PROGDIR/ldif-filter "$@" | sed -n -e 'H; ${ x; s/\n//; s/\n //g; p}'
+}
+
+LDIFFILTER=ldif-filter-unwrap
 SLAPDMTREAD=$PROGDIR/slapd-mtread
 LVL=${SLAPD_DEBUG-0x4105}
 LOCALHOST=localhost

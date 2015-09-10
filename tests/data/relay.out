@@ -1,3 +1,4 @@
+cat << EOMODS
 # searching base="dc=example,dc=com"...
 dn: cn=All Staff,ou=Groups,dc=example,dc=com
 member: cn=Manager,dc=example,dc=com
@@ -2065,7 +2066,7 @@ telephoneNumber: +1 313 555 5331
 description: Just added self to seeAlso in o=Beispiel,c=DE virtual naming cont
  ext
 
-# refldap://localhost:9012/ou=Referrals,o=Beispiel,c=DE??sub
+# refldap://${LOCALHOST}:${PORT2}/ou=Referrals,o=Beispiel,c=DE??sub
 
 # searching base="o=Esempio,c=IT"...
 dn: cn=Added Group,ou=Groups,o=Esempio,c=IT
@@ -2490,7 +2491,7 @@ telephoneNumber: +1 313 555 5331
 description: Just added self to seeAlso in o=Beispiel,c=DE virtual naming cont
  ext
 
-# refldap://localhost:9012/ou=Referrals,o=Beispiel,c=DE??sub
+# refldap://${LOCALHOST}:${PORT2}/ou=Referrals,o=Beispiel,c=DE??sub
 
 # searching filter="(objectClass=referral)"
 # 	attrs="'*' ref"
@@ -2499,33 +2500,33 @@ dn: ou=Referrals,dc=example,dc=com
 objectClass: referral
 objectClass: extensibleObject
 ou: Referrals
-description: Just added as ldap://localhost.localdomain:389/ou=Referrals,o=Bei
+description: Just added as ldap://localhost.localdomain/ou=Referrals,o=Bei
  spiel,c=DE
-description: ...and modified as ldap://localhost:9012/ou=Referrals,o=Beispiel,
+description: ...and modified as ldap://${LOCALHOST}:${PORT2}/ou=Referrals,o=Beispiel,
  c=DE
-ref: ldap://localhost:9012/ou=Referrals,o=Beispiel,c=DE
+ref: ldap://${LOCALHOST}:${PORT2}/ou=Referrals,o=Beispiel,c=DE
 
 # 	base="o=Example,c=US"...
 dn: ou=Referrals,o=Example,c=US
 objectClass: referral
 objectClass: extensibleObject
 ou: Referrals
-description: Just added as ldap://localhost.localdomain:389/ou=Referrals,o=Bei
+description: Just added as ldap://localhost.localdomain/ou=Referrals,o=Bei
  spiel,c=DE
-description: ...and modified as ldap://localhost:9012/ou=Referrals,o=Beispiel,
+description: ...and modified as ldap://${LOCALHOST}:${PORT2}/ou=Referrals,o=Beispiel,
  c=DE
-ref: ldap://localhost:9012/ou=Referrals,o=Beispiel,c=DE
+ref: ldap://${LOCALHOST}:${PORT2}/ou=Referrals,o=Beispiel,c=DE
 
 # 	base="o=Esempio,c=IT"...
 dn: ou=Referrals,o=Esempio,c=IT
 objectClass: referral
 objectClass: extensibleObject
 ou: Referrals
-description: Just added as ldap://localhost.localdomain:389/ou=Referrals,o=Bei
+description: Just added as ldap://localhost.localdomain/ou=Referrals,o=Bei
  spiel,c=DE
-description: ...and modified as ldap://localhost:9012/ou=Referrals,o=Beispiel,
+description: ...and modified as ldap://${LOCALHOST}:${PORT2}/ou=Referrals,o=Beispiel,
  c=DE
-ref: ldap://localhost:9012/ou=Referrals,o=Beispiel,c=DE
+ref: ldap://${LOCALHOST}:${PORT2}/ou=Referrals,o=Beispiel,c=DE
 
 # searching filter="(seeAlso=cn=all staff,ou=Groups,o=Example,c=US)"
 # 	attrs="seeAlso"
@@ -2564,7 +2565,7 @@ dn: cn=Ursula Hampster,ou=Alumni Association,ou=People,o=Example,c=US
 seeAlso: cn=All Staff,ou=Groups,o=Example,c=US
 seeAlso: cn=Ursula Hampster,ou=Alumni Association,ou=People,o=Example,c=US
 
-# refldap://localhost:9012/ou=Referrals,o=Beispiel,c=DE??sub
+# refldap://${LOCALHOST}:${PORT2}/ou=Referrals,o=Beispiel,c=DE??sub
 
 # searching filter="(uid=example)"
 # 	attrs="uid"
@@ -2572,7 +2573,7 @@ seeAlso: cn=Ursula Hampster,ou=Alumni Association,ou=People,o=Example,c=US
 dn: o=Example,c=US
 uid: example
 
-# refldap://localhost:9012/ou=Referrals,o=Beispiel,c=DE??sub
+# refldap://${LOCALHOST}:${PORT2}/ou=Referrals,o=Beispiel,c=DE??sub
 
 # searching filter="(member=cn=Another Added Group,ou=Groups,o=Example,c=US)"
 # 	attrs="member"
@@ -2581,5 +2582,6 @@ dn: cn=Another Added Group,ou=Groups,o=Example,c=US
 member: cn=Added Group,ou=Groups,o=Example,c=US
 member: cn=Another Added Group,ou=Groups,o=Example,c=US
 
-# refldap://localhost:9012/ou=Referrals,o=Beispiel,c=DE??sub
+# refldap://${LOCALHOST}:${PORT2}/ou=Referrals,o=Beispiel,c=DE??sub
 
+EOMODS
