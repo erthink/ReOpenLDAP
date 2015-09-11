@@ -28,6 +28,7 @@
 #include <stdint.h>
 #include <sched.h>
 #include <stdlib.h>
+#include <pthread.h>
 
 #include "lber_hipagut.h"
 
@@ -568,4 +569,36 @@ __hot void* ber_memcpy_safe(void* dest, const void* src, size_t n) {
 
 #undef memcpy
 	return memcpy(dest, src, n);
+}
+
+static uint64_t clock_past;
+static pthread_mutex_t clock_mutex = PTHREAD_MUTEX_INITIALIZER;
+
+__hot void ldap_timespec(struct timespec *ts) {
+	if (! reopenldap_mode_idkfa()) {
+		LDAP_ENSURE(clock_gettime(CLOCK_REALTIME, ts) == 0);
+	} else {
+		uint64_t clock_now;
+		LDAP_ENSURE(pthread_mutex_lock(&clock_mutex) == 0);
+		LDAP_ENSURE(clock_gettime(CLOCK_REALTIME, ts) == 0);
+		clock_now = ts->tv_sec * 1000000000ull + ts->tv_nsec;
+		LDAP_ENSURE(clock_past < clock_now);
+		clock_past = clock_now;
+		LDAP_ENSURE(pthread_mutex_unlock(&clock_mutex) == 0);
+	}
+}
+
+__hot void ldap_timeval(struct timeval *tv) {
+	struct timespec ts;
+	ldap_timespec(&ts);
+	tv->tv_sec = ts.tv_sec;
+	tv->tv_usec = ts.tv_nsec / 1000u;
+}
+
+__hot time_t ldap_time(time_t *p) {
+	struct timespec t;
+	ldap_timespec(&t);
+	if (p)
+		*p = t.tv_sec;
+	return t.tv_sec;
 }

@@ -89,8 +89,7 @@ void lutil_debug_va( const char* fmt, va_list vl )
 		struct tm tm;
 		long rc;
 
-		rc = gettimeofday(&now, NULL);
-		assert(rc == 0);
+		ldap_timeval(&now);
 		rc = syscall(SYS_gettid, NULL, NULL, NULL);
 		assert(rc > 0);
 		/* LY: it is important to don't use extra spaces here, to avoid break a test(s). */

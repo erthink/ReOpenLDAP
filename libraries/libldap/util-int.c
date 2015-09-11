@@ -181,85 +181,6 @@ ldap_pvt_localtime( const time_t *timep, struct tm *result )
 
 /* return a broken out time, with microseconds
  */
-#ifdef _WIN32
-/* Windows SYSTEMTIME only has 10 millisecond resolution, so we
- * also need to use a high resolution timer to get microseconds.
- * This is pretty clunky.
- */
-void
-ldap_pvt_gettime( struct lutil_tm *tm )
-{
-	static LARGE_INTEGER cFreq;
-	static LARGE_INTEGER prevCount;
-	static int subs;
-	static int offset;
-	LARGE_INTEGER count;
-	SYSTEMTIME st;
-
-	GetSystemTime( &st );
-	QueryPerformanceCounter( &count );
-
-	/* It shouldn't ever go backwards, but multiple CPUs might
-	 * be able to hit in the same tick.
-	 */
-	LDAP_MUTEX_LOCK( &ldap_int_gettime_mutex );
-	if ( count.QuadPart <= prevCount.QuadPart ) {
-		subs++;
-	} else {
-		subs = 0;
-		prevCount = count;
-	}
-	LDAP_MUTEX_UNLOCK( &ldap_int_gettime_mutex );
-
-	/* We assume Windows has at least a vague idea of
-	 * when a second begins. So we align our microsecond count
-	 * with the Windows millisecond count using this offset.
-	 * We retain the submillisecond portion of our own count.
-	 *
-	 * Note - this also assumes that the relationship between
-	 * the PerformanceCouunter and SystemTime stays constant;
-	 * that assumption breaks if the SystemTime is adjusted by
-	 * an external action.
-	 */
-	if ( !cFreq.QuadPart ) {
-		long long t;
-		int usec;
-		QueryPerformanceFrequency( &cFreq );
-
-		/* just get sub-second portion of counter */
-		t = count.QuadPart % cFreq.QuadPart;
-
-		/* convert to microseconds */
-		t *= 1000000;
-		usec = t / cFreq.QuadPart;
-
-		offset = usec - st.wMilliseconds * 1000;
-	}
-
-	tm->tm_usub = subs;
-
-	/* convert to microseconds */
-	count.QuadPart %= cFreq.QuadPart;
-	count.QuadPart *= 1000000;
-	count.QuadPart /= cFreq.QuadPart;
-	count.QuadPart -= offset;
-
-	tm->tm_usec = count.QuadPart % 1000000;
-	if ( tm->tm_usec < 0 )
-		tm->tm_usec += 1000000;
-
-	/* any difference larger than microseconds is
-	 * already reflected in st
-	 */
-
-	tm->tm_sec = st.wSecond;
-	tm->tm_min = st.wMinute;
-	tm->tm_hour = st.wHour;
-	tm->tm_mday = st.wDay;
-	tm->tm_mon = st.wMonth - 1;
-	tm->tm_year = st.wYear - 1900;
-}
-#else
 void
 ldap_pvt_gettime( struct lutil_tm *ltm )
 {
@@ -270,7 +191,7 @@ ldap_pvt_gettime( struct lutil_tm *ltm )
 	struct tm tm;
 	time_t t;
 
-	gettimeofday( &tv, NULL );
+	ldap_timeval( &tv );
 	t = tv.tv_sec;
 
 	LDAP_MUTEX_LOCK( &ldap_int_gettime_mutex );
@@ -295,7 +216,6 @@ ldap_pvt_gettime( struct lutil_tm *ltm )
 	ltm->tm_year = tm.tm_year;
 	ltm->tm_usec = tv.tv_usec;
 }
-#endif
 
 size_t
 ldap_pvt_csnstr(char *buf, size_t len, unsigned int replica, unsigned int mod)
