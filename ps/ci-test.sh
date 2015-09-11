@@ -6,18 +6,28 @@ TMP=
 ulimit -c unlimited
 NPORTS=8
 
-cleanup() {
-	wait
-	[ -n "${TMP}" ] && rm -rf ${TMP}
+function cleanup {
+	[ -n "$CIBUZZ_PID4" ] && rm -rf $CIBUZZ_PID4
+	pkill -P $$ && wait
+	[ -n "$TMP" ] && rm -rf $TMP
 }
 
-failure() {
+[ -n "$CIBUZZ_PID4" ] && echo $BASHPID > $CIBUZZ_PID4
+trap cleanup TERM INT QUIT HUP
+
+function failure {
 	echo "Oops, $* failed ;(" >&2
 	cleanup
 	exit 1
 }
 
-function msg() {
+function teamcity_sleep {
+	if [ -n "${TEAMCITY_PROCESS_FLOW_ID}" ]; then
+		sleep $1
+	fi
+}
+
+function msg2teamcity {
 	sed "s/>>>>>\s\+\(.*\)\$/##teamcity[progressMessage 'Round $n of $N, $REOPENLDAP_MODE: \1']/g"
 }
 
@@ -52,23 +62,22 @@ function find_free_port {
 function verify_ports {
 	RANDOM=$$
 	if [ -n "$(which nc)" ]; then
+		echo "verify ports $@..."
 		for port in "$@"; do
 			token="${RANDOM}-${RANDOM}-${RANDOM}-${RANDOM}-$$"
 			(echo $token | timeout 1s nc -l 127.0.0.1 $port) &
 			feed=$(sleep 0.1 && timeout 1s nc 127.0.0.1 $port)
 			if [ "$feed" != "$token" ]; then
-				echo "TCP-post $port is busy, try find again" >&2
+				echo "TCP-port $port is busy, try find again" >&2
 				return 1
 			fi
 		done
 	else
 		echo "nc (netcat) not available, skip verification"
 	fi
-	echo "Using TCP-ports $@" >&2
+	echo "ports $@" >&2
 	return 0
 }
-
-trap cleanup TERM INT QUIT HUP
 
 if [ -n "${TEST_TEMP_DIR}" ]; then
 	rm -rf tests/testrun || failure "rm tests/testrun"
@@ -101,7 +110,7 @@ else
 fi
 
 if [ -n "${TEAMCITY_PROCESS_FLOW_ID}" ]; then
-	filter=msg
+	filter=msg2teamcity
 else
 	filter=cat
 fi
@@ -136,7 +145,7 @@ for n in $(seq 1 $N); do
 		NOEXIT="${NOEXIT:-${TEAMCITY_PROCESS_FLOW_ID}}" ionice -c 3 make test 2>&1 | tee ${TEST_NOOK}/all.log | $filter
 		RC=${PIPESTATUS[0]}
 		grep ' failed for ' ${TEST_NOOK}/all.log >&2
-		sleep 1
+		teamcity_sleep 1
 
 		if [ -n "${TEAMCITY_PROCESS_FLOW_ID}" ]; then
 			echo "##teamcity[publishArtifacts '${TEST_NOOK} => ${TEST_NOOK}.tar.gz']"
@@ -152,7 +161,7 @@ for n in $(seq 1 $N); do
 			exit 1
 		fi
 		echo "##teamcity[blockClosed name='$REOPENLDAP_MODE']"
-		sleep 1
+		teamcity_sleep 1
 	done
 	echo "##teamcity[blockClosed name='Round $n of $N']"
 done
