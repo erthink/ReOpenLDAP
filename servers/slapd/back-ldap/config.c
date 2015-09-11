@@ -1817,8 +1817,8 @@ done_url:;
 
                                 li->li_idassert_authzID.bv_len = STRLENOF( "dn:" ) + ndn.bv_len;
                                 li->li_idassert_authzID.bv_val = ch_malloc( li->li_idassert_authzID.bv_len + 1 );
-                                AC_MEMCPY( li->li_idassert_authzID.bv_val, "dn:", STRLENOF( "dn:" ) );
-                                AC_MEMCPY( &li->li_idassert_authzID.bv_val[ STRLENOF( "dn:" ) ], ndn.bv_val, ndn.bv_len + 1 );
+								memcpy( li->li_idassert_authzID.bv_val, "dn:", STRLENOF( "dn:" ) );
+								memcpy( &li->li_idassert_authzID.bv_val[ STRLENOF( "dn:" ) ], ndn.bv_val, ndn.bv_len + 1 );
                                 ch_free( ndn.bv_val );
 
                                 li->li_idassert_mode = LDAP_BACK_IDASSERT_OTHERDN;
@@ -2416,8 +2416,8 @@ retry:
 		if ( !BER_BVISEMPTY( &op->o_dn ) ) {
 			bv->bv_len = op->o_dn.bv_len + STRLENOF( "dn:" );
 			bv->bv_val = ch_malloc( bv->bv_len + 1 );
-			AC_MEMCPY( bv->bv_val, "dn:", STRLENOF( "dn:" ) );
-			AC_MEMCPY( &bv->bv_val[ STRLENOF( "dn:" ) ], op->o_dn.bv_val,
+			memcpy( bv->bv_val, "dn:", STRLENOF( "dn:" ) );
+			memcpy( &bv->bv_val[ STRLENOF( "dn:" ) ], op->o_dn.bv_val,
 				op->o_dn.bv_len );
 			bv->bv_val[ bv->bv_len ] = '\0';
 

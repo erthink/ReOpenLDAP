@@ -2556,8 +2556,8 @@ idassert-authzFrom	"dn:<rootdn>"
 
 				bv.bv_len = STRLENOF( "dn:" ) + c->be->be_rootndn.bv_len;
 				bv.bv_val = ber_memalloc( bv.bv_len + 1 );
-				AC_MEMCPY( bv.bv_val, "dn:", STRLENOF( "dn:" ) );
-				AC_MEMCPY( &bv.bv_val[ STRLENOF( "dn:" ) ], c->be->be_rootndn.bv_val, c->be->be_rootndn.bv_len + 1 );
+				memcpy( bv.bv_val, "dn:", STRLENOF( "dn:" ) );
+				memcpy( &bv.bv_val[ STRLENOF( "dn:" ) ], c->be->be_rootndn.bv_val, c->be->be_rootndn.bv_len + 1 );
 
 				ber_bvarray_add( &mt->mt_idassert_authz, &bv );
 			}

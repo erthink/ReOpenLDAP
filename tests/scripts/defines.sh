@@ -205,14 +205,14 @@ MONITORDATA=$SRCDIR/scripts/monitor_data.sh
 
 #VALGRIND="valgrind --fair-sched=yes --log-socket=127.0.0.1:55555 --leak-check=full --track-origins=yes --trace-children=yes --suppressions=$TESTWD/scripts/valgrind.supp"
 # --gen-suppressions=yes
-if [ -z "$VALGRIND" ]; then
-	TIMEOUT_S="timeout -s SIGXCPU 15s"
+if [ -z "$VALGRIND" -a -z "$CIBUZZ_PID4" ]; then
+	TIMEOUT_S="timeout -s SIGXCPU 30s"
 	TIMEOUT_L="timeout -s SIGXCPU 5m"
 	SLEEP0=${SLEEP0-0.2}
 	SLEEP1=${SLEEP1-1}
 	SLEEP2=${SLEEP2-3}
 else
-	TIMEOUT_S="timeout -s SIGXCPU 1m"
+	TIMEOUT_S="timeout -s SIGXCPU 3m"
 	TIMEOUT_L="timeout -s SIGXCPU 30m"
 	SLEEP0=${SLEEP0-1}
 	SLEEP1=${SLEEP1-7}
@@ -244,7 +244,12 @@ LDAPWHOAMI="$TIMEOUT_S $VALGRIND $CLIENTDIR/ldapwhoami $TOOLARGS"
 LDAPCOMPARE="$TIMEOUT_S $VALGRIND $CLIENTDIR/ldapcompare $TOOLARGS"
 LDAPEXOP="$TIMEOUT_S $VALGRIND $CLIENTDIR/ldapexop $TOOLARGS"
 SLAPDTESTER=$PROGDIR/slapd-tester
-LDIFFILTER=$PROGDIR/ldif-filter
+
+function ldif-filter-unwrap {
+	$PROGDIR/ldif-filter "$@" | sed -n -e 'H; ${ x; s/\n//; s/\n //g; p}'
+}
+
+LDIFFILTER=ldif-filter-unwrap
 SLAPDMTREAD=$PROGDIR/slapd-mtread
 LVL=${SLAPD_DEBUG-0x4105}
 LOCALHOST=localhost
@@ -389,10 +394,16 @@ function teamcity_msg {
 	fi
 }
 
+function teamcity_sleep {
+	if [ -n "${TEAMCITY_PROCESS_FLOW_ID}" ]; then
+		sleep $1
+	fi
+}
+
 function safewait {
 	wait "$@"
 	local RC=$?
-	if [ $RC -gt 128 ]; then
+	if [ $RC -gt 132 ]; then
 		echo " coredump/signal-$(($RC - 128))"
 		sleep 5
 		exit $RC
@@ -402,8 +413,7 @@ function safewait {
 function killpids {
 	if [ $# != 0 ]; then
 		echo -n ">>>>> waiting for things ($@) to exit..."
-		kill -HUP "$@"
-		safewait "$@"
+		kill -HUP "$@" && safewait "$@"
 		echo " done"
 	fi
 }
@@ -416,7 +426,20 @@ function killservers {
 }
 
 function get_df_mb {
-	echo $(($(df -k -P $(readlink -f $1) | tail -1 | tr -s '\t ' ' ' | cut -d ' ' -f 4) / 1024))
+	local path=$1
+	while [ -n "$path" ]; do
+		local npath=$(readlink -q -e $path)
+		if [ -n "$npath" ]; then
+			local df_avail_k=$(df -k -P $npath | tail -1 | tr -s '\t ' ' ' | cut -d ' ' -f 4)
+			if [ -n "$df_avail_k" ]; then
+				echo $((df_avail_k / 1024))
+				return
+			fi
+			break
+		fi
+		path=$(dirname $path)
+	done
+	echo 0
 }
 
 function cibuzz_report {
@@ -469,7 +492,7 @@ function collect_coredumps {
 		done
 
 		teamcity_msg "publishArtifacts '$(safepath ${dir})/${id}*.core => ${id}-cores.tar.gz'"
-		sleep 1
+		teamcity_sleep 1
 		return 1
 	fi
 	return 0
@@ -515,7 +538,7 @@ function collect_test {
 
 		if [ "${failed}" == "yes" ]; then
 			teamcity_msg "publishArtifacts '$(safepath ${target}) => ${id}-dump.tar.gz'"
-			sleep 1
+			teamcity_sleep 1
 		else
 			echo "$id	$(date '+%F.%H%M%S.%N')" >> $status
 		fi
@@ -524,7 +547,7 @@ function collect_test {
 
 function wait_syncrepl {
 	local scope=${3:-base}
-	echo -n "Waiting for syncrepl to receive changes (from $1 to $2)..."
+	echo -n "Waiting while syncrepl replicates a changes (between $1 and $2)..."
 	sleep 0.1
 
 	for i in $(seq 1 150); do

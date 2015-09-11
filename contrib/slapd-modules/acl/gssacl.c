@@ -188,7 +188,7 @@ gssattr_dynacl_mask(
 		if ( !ber_bvccmp( &gssattr->gssattr_value, '*' ) ) {
 			if ( gssattr->gssattr_style != ACL_STYLE_BASE ) {
 				amatches.dn_count = nmatch;
-				AC_MEMCPY( amatches.dn_data, matches, sizeof( amatches.dn_data ) );
+				memcpy( amatches.dn_data, matches, sizeof( amatches.dn_data ) );
 			}
 
 			switch ( gssattr->gssattr_style ) {

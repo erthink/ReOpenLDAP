@@ -611,7 +611,7 @@ log_old_lookup( Operation *op, SlapReply *rs )
 		if ( len > LDAP_PVT_CSNSTR_BUFSIZE )
 			len = LDAP_PVT_CSNSTR_BUFSIZE;
 		if ( memcmp( a->a_nvals[0].bv_val, pd->csn.bv_val, len ) > 0 ) {
-			AC_MEMCPY( pd->csn.bv_val, a->a_nvals[0].bv_val, len );
+			memcpy( pd->csn.bv_val, a->a_nvals[0].bv_val, len );
 			pd->csn.bv_len = len;
 		}
 	}
@@ -1347,9 +1347,9 @@ static Entry *accesslog_entry( Operation *op, SlapReply *rs, int logop,
 	if ( logop == LOG_EN_EXTENDED ) {
 		bv.bv_len = lo->word.bv_len + op->ore_reqoid.bv_len + 2;
 		bv.bv_val = ch_malloc( bv.bv_len + 1 );
-		AC_MEMCPY( bv.bv_val, lo->word.bv_val, lo->word.bv_len );
+		memcpy( bv.bv_val, lo->word.bv_val, lo->word.bv_len );
 		bv.bv_val[lo->word.bv_len] = '{';
-		AC_MEMCPY( bv.bv_val+lo->word.bv_len+1, op->ore_reqoid.bv_val,
+		memcpy( bv.bv_val+lo->word.bv_len+1, op->ore_reqoid.bv_val,
 			op->ore_reqoid.bv_len );
 		bv.bv_val[bv.bv_len-1] = '}';
 		bv.bv_val[bv.bv_len] = '\0';
@@ -1431,7 +1431,7 @@ static void accesslog_val2val(AttributeDescription *ad, struct berval *val,
 	if ( c_op )
 		*ptr++ = c_op;
 	*ptr++ = ' ';
-	AC_MEMCPY( ptr, val->bv_val, val->bv_len );
+	memcpy( ptr, val->bv_val, val->bv_len );
 	dst->bv_val[dst->bv_len] = '\0';
 }
 
@@ -1722,7 +1722,7 @@ static int accesslog_response(Operation *op, SlapReply *rs) {
 		bv.bv_val = op->o_tmpalloc( bv.bv_len+1, op->o_tmpmemctx );
 		ptr = lutil_strcopy( bv.bv_val, op->orc_ava->aa_desc->ad_cname.bv_val );
 		*ptr++ = '=';
-		AC_MEMCPY( ptr, op->orc_ava->aa_value.bv_val, op->orc_ava->aa_value.bv_len );
+		memcpy( ptr, op->orc_ava->aa_value.bv_val, op->orc_ava->aa_value.bv_len );
 		bv.bv_val[bv.bv_len] = '\0';
 		attr_merge_one( e, ad_reqAssertion, &bv, NULL );
 		op->o_tmpfree( bv.bv_val, op->o_tmpmemctx );

@@ -2396,7 +2396,7 @@ Slapi_Value *slapi_value_set( Slapi_Value *value, void *val, unsigned long len)
 	}
 	value->bv_val = slapi_ch_malloc( len );
 	value->bv_len = len;
-	AC_MEMCPY( value->bv_val, val, len );
+	memcpy( value->bv_val, val, len );
 
 	return value;
 }

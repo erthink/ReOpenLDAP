@@ -229,7 +229,7 @@ oc_bvfind_undef( struct berval *ocname )
 
 	oc->soc_cname.bv_len = ocname->bv_len;
 	oc->soc_cname.bv_val = (char *)&oc[ 1 ];
-	AC_MEMCPY( oc->soc_cname.bv_val, ocname->bv_val, ocname->bv_len );
+	memcpy( oc->soc_cname.bv_val, ocname->bv_val, ocname->bv_len );
 	oc->soc_cname.bv_val[ oc->soc_cname.bv_len ] = '\0';
 
 	/* canonical to upper case */
@@ -745,7 +745,7 @@ oc_add(
 	}
 
 	soc = (ObjectClass *) ch_calloc( 1, sizeof(ObjectClass) );
-	AC_MEMCPY( &soc->soc_oclass, oc, sizeof(LDAPObjectClass) );
+	memcpy( &soc->soc_oclass, oc, sizeof(LDAPObjectClass) );
 
 	soc->soc_oidmacro = oidm;
 	if( oc->oc_names != NULL ) {

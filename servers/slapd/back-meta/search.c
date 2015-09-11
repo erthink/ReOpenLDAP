@@ -699,7 +699,7 @@ meta_back_search_start(
 				op->o_ctrls[ dst ]->ldctl_iscritical = 1;
 
 				op->o_ctrls[ dst ]->ldctl_value.bv_val = (char *)&op->o_ctrls[ dst ][ 1 ];
-				AC_MEMCPY( op->o_ctrls[ dst ]->ldctl_value.bv_val, val.bv_val, val.bv_len + 1 );
+				memcpy( op->o_ctrls[ dst ]->ldctl_value.bv_val, val.bv_val, val.bv_len + 1 );
 				op->o_ctrls[ dst ]->ldctl_value.bv_len = val.bv_len;
 				dst++;
 

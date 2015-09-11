@@ -628,7 +628,7 @@ strtok_quote_ldif( char **line )
 	return beg;
 }
 
-static void
+void
 config_parse_ldif( ConfigArgs *c )
 {
 	char *next;
@@ -1392,7 +1392,7 @@ slap_sb_uri(
 		if ( bc->sb_uri.bv_len >= val->bv_len )
 			return -1;
 		val->bv_len = bc->sb_uri.bv_len;
-		AC_MEMCPY( val->bv_val, bc->sb_uri.bv_val, val->bv_len );
+		memcpy( val->bv_val, bc->sb_uri.bv_val, val->bv_len );
 	} else {
 		bc->sb_uri = *val;
 #ifdef HAVE_TLS

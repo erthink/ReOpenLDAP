@@ -314,7 +314,7 @@ done:;
 		tagslen = 0;
 
 		for( i=0; i<ntags; i++ ) {
-			AC_MEMCPY( &desc.ad_tags.bv_val[tagslen],
+			memcpy( &desc.ad_tags.bv_val[tagslen],
 				tags[i].bv_val, tags[i].bv_len );
 
 			tagslen += tags[i].bv_len;

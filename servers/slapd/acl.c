@@ -1404,7 +1404,7 @@ slap_acl_mask(
 						if ( ip.bv_len >= sizeof(buf) )
 							continue;
 
-						AC_MEMCPY( buf, ip.bv_val, ip.bv_len );
+						memcpy( buf, ip.bv_val, ip.bv_len );
 						buf[ ip.bv_len ] = '\0';
 
 						addr = inet_addr( buf );
@@ -1449,7 +1449,7 @@ slap_acl_mask(
 						if ( ip.bv_len >= sizeof(buf) )
 							continue;
 
-						AC_MEMCPY( buf, ip.bv_val, ip.bv_len );
+						memcpy( buf, ip.bv_val, ip.bv_len );
 						buf[ ip.bv_len ] = '\0';
 
 						if ( inet_pton( AF_INET6, buf, &addr ) != 1 )

@@ -1052,7 +1052,7 @@ slap_tool_update_ctxcsn(
 					if ( match > 0 ) {
 						change = 1;
 					} else {
-						AC_MEMCPY( maxcsn[ sid ].bv_val,
+						memcpy( maxcsn[ sid ].bv_val,
 							attr->a_nvals[ i ].bv_val,
 							attr->a_nvals[ i ].bv_len );
 						maxcsn[ sid ].bv_val[ attr->a_nvals[ i ].bv_len ] = '\0';

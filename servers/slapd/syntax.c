@@ -188,7 +188,7 @@ syn_add(
 		return SLAP_SCHERR_OUTOFMEM;
 	}
 
-	AC_MEMCPY( &ssyn->ssyn_syn, syn, sizeof(LDAPSyntax) );
+	memcpy( &ssyn->ssyn_syn, syn, sizeof(LDAPSyntax) );
 
 	LDAP_STAILQ_NEXT(ssyn,ssyn_next) = NULL;
 

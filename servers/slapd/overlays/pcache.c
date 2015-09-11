@@ -465,7 +465,7 @@ ftemp_attrs( struct berval *ftemp, struct berval *template,
 			break;
 		}
 		i = p2 - p1;
-		AC_MEMCPY( t1, p1, i );
+		memcpy( t1, p1, i );
 		t1 += i;
 		*t1++ = '=';
 
@@ -2692,7 +2692,7 @@ pc_bind_attrs( Operation *op, Entry *e, QueryTemplate *temp,
 	while ( *p1 ) {
 		*p2++ = *p1;
 		if ( p1[0] == '=' && p1[1] == ')' ) {
-			AC_MEMCPY( p2, vals[i].bv_val, vals[i].bv_len );
+			memcpy( p2, vals[i].bv_val, vals[i].bv_len );
 			p2 += vals[i].bv_len;
 			i++;
 		}
@@ -3285,7 +3285,7 @@ static dnlist *dnl_alloc( Operation *op, struct berval *bvdn )
 			op->o_tmpmemctx );
 	dn->dn.bv_len = bvdn->bv_len;
 	dn->dn.bv_val = (char *)(dn+1);
-	AC_MEMCPY( dn->dn.bv_val, bvdn->bv_val, dn->dn.bv_len );
+	memcpy( dn->dn.bv_val, bvdn->bv_val, dn->dn.bv_len );
 	dn->dn.bv_val[dn->dn.bv_len] = '\0';
 	return dn;
 }

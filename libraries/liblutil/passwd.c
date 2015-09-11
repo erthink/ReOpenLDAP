@@ -414,8 +414,8 @@ static int pw_string(
 		return LUTIL_PASSWD_ERR;
 	}
 
-	AC_MEMCPY( pw.bv_val, sc->bv_val, sc->bv_len );
-	AC_MEMCPY( &pw.bv_val[sc->bv_len], passwd->bv_val, passwd->bv_len );
+	memcpy( pw.bv_val, sc->bv_val, sc->bv_len );
+	memcpy( &pw.bv_val[sc->bv_len], passwd->bv_val, passwd->bv_len );
 
 	pw.bv_val[pw.bv_len] = '\0';
 	*passwd = pw;
@@ -443,9 +443,9 @@ int lutil_passwd_string64(
 			return LUTIL_PASSWD_ERR;
 		}
 
-		AC_MEMCPY( string.bv_val, hash->bv_val,
+		memcpy( string.bv_val, hash->bv_val,
 			hash->bv_len );
-		AC_MEMCPY( &string.bv_val[hash->bv_len], salt->bv_val,
+		memcpy( &string.bv_val[hash->bv_len], salt->bv_val,
 			salt->bv_len );
 		string.bv_val[string.bv_len] = '\0';
 
@@ -462,7 +462,7 @@ int lutil_passwd_string64(
 		return LUTIL_PASSWD_ERR;
 	}
 
-	AC_MEMCPY(b64->bv_val, sc->bv_val, sc->bv_len);
+	memcpy(b64->bv_val, sc->bv_val, sc->bv_len);
 
 	rc = lutil_b64_ntop(
 		(unsigned char *) string.bv_val, string.bv_len,

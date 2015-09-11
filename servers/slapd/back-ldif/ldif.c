@@ -304,7 +304,7 @@ get_parent_path( struct berval *dnpath, struct berval *res )
 		res->bv_val = SLAP_MALLOC( i + 1 + STRLENOF(LDIF) );
 		if ( res->bv_val == NULL )
 			return LDAP_OTHER;
-		AC_MEMCPY( res->bv_val, dnpath->bv_val, i );
+		memcpy( res->bv_val, dnpath->bv_val, i );
 	}
 	res->bv_len = i;
 	strcpy( res->bv_val + i, LDIF );
@@ -321,7 +321,7 @@ ldif_tempname( const struct berval *dnpath )
 	char *name = SLAP_MALLOC( len + sizeof( suffix ) );
 
 	if ( name != NULL ) {
-		AC_MEMCPY( name, dnpath->bv_val, len );
+		memcpy( name, dnpath->bv_val, len );
 		strcpy( name + len, suffix );
 	}
 	return name;

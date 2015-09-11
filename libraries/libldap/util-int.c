@@ -110,7 +110,7 @@ char *ldap_pvt_ctime( const time_t *tp, char *buf )
 #else
 
 	LDAP_MUTEX_LOCK( &ldap_int_ctime_mutex );
-	AC_MEMCPY( buf, ctime(tp), 26 );
+	memcpy( buf, ctime(tp), 26 );
 	LDAP_MUTEX_UNLOCK( &ldap_int_ctime_mutex );
 
 	return buf;
@@ -633,7 +633,7 @@ static char *cpy_aliases(
 	char **tgt=*tgtio;
 	for( ; (*src) ; src++ ) {
 		len = strlen( *src ) + 1;
-		AC_MEMCPY( buf, *src, len );
+		memcpy( buf, *src, len );
 		*tgt++=buf;
 		buf+=len;
 	}
@@ -649,7 +649,7 @@ static char *cpy_addresses(
 {
    	char **tgt=*tgtio;
 	for( ; (*src) ; src++ ) {
-		AC_MEMCPY( buf, *src, len );
+		memcpy( buf, *src, len );
 		*tgt++=buf;
 		buf+=len;
 	}
@@ -695,9 +695,9 @@ static int copy_hostent(
 	if (safe_realloc( buf, total_len )) {
 		tp = (char **) *buf;
 		tbuf = *buf + (n_alias + n_addr + 2) * sizeof( char * );
-		AC_MEMCPY( res, src, sizeof( struct hostent ) );
+		memcpy( res, src, sizeof( struct hostent ) );
 		/* first the name... */
-		AC_MEMCPY( tbuf, src->h_name, name_len );
+		memcpy( tbuf, src->h_name, name_len );
 		res->h_name = tbuf; tbuf+=name_len;
 		/* now the aliases */
 		res->h_aliases = tp;

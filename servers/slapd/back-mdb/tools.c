@@ -481,7 +481,7 @@ static int mdb_tool_next_id(
 			if ( nholes == nhmax - 1 ) {
 				if ( holes == hbuf ) {
 					holes = ch_malloc( nhmax * sizeof(dn_id) * 2 );
-					AC_MEMCPY( holes, hbuf, sizeof(hbuf) );
+					memcpy( holes, hbuf, sizeof(hbuf) );
 				} else {
 					holes = ch_realloc( holes, nhmax * sizeof(dn_id) * 2 );
 				}

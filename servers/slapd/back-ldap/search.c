@@ -99,7 +99,7 @@ ldap_back_munge_filter(
 			filter->bv_val = op->o_tmpalloc( filter->bv_len + 1,
 					op->o_tmpmemctx );
 
-			AC_MEMCPY( filter->bv_val, op->ors_filterstr.bv_val,
+			memcpy( filter->bv_val, op->ors_filterstr.bv_val,
 					ptr - oldfilter.bv_val );
 
 		} else {
@@ -112,7 +112,7 @@ ldap_back_munge_filter(
 		memmove( &ptr[ newbv->bv_len ],
 				&ptr[ oldbv->bv_len ],
 				oldfilter.bv_len - ( ptr - filter->bv_val ) - oldbv->bv_len + 1 );
-		AC_MEMCPY( ptr, newbv->bv_val, newbv->bv_len );
+		memcpy( ptr, newbv->bv_val, newbv->bv_len );
 
 		ptr += newbv->bv_len;
 

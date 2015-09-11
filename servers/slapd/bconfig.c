@@ -1102,7 +1102,7 @@ config_generic(ConfigArgs *c) {
 				}
 				acl_unparse( a, &bv );
 				abv.bv_val = ch_malloc( abv.bv_len + bv.bv_len + 1 );
-				AC_MEMCPY( abv.bv_val, ibuf, abv.bv_len );
+				memcpy( abv.bv_val, ibuf, abv.bv_len );
 				/* Turn TAB / EOL into plain space */
 				for (src=bv.bv_val,dst=abv.bv_val+abv.bv_len; *src; src++) {
 					if (isspace((unsigned char)*src)) *dst++ = ' ';
@@ -1248,8 +1248,8 @@ config_generic(ConfigArgs *c) {
 					}
 					bv.bv_len = idx.bv_len + authz_rewrites[i].bv_len;
 					bv.bv_val = ch_malloc( bv.bv_len + 1 );
-					AC_MEMCPY( bv.bv_val, idx.bv_val, idx.bv_len );
-					AC_MEMCPY( &bv.bv_val[ idx.bv_len ],
+					memcpy( bv.bv_val, idx.bv_val, idx.bv_len );
+					memcpy( &bv.bv_val[ idx.bv_len ],
 						authz_rewrites[i].bv_val,
 						authz_rewrites[i].bv_len + 1 );
 					ber_bvarray_add( &c->rvalue_vals, &bv );

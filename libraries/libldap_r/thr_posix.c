@@ -45,32 +45,25 @@ extern int ldap_int_stackguard;
 #  define LDAP_INT_THREAD_MUTEXATTR_DEFAULT NULL
 #endif
 
-#ifdef LDAP_THREAD_DEBUG
-#  if defined LDAP_INT_THREAD_MUTEXATTR	/* May be defined in CPPFLAGS */
-#  elif defined HAVE_PTHREAD_KILL_OTHER_THREADS_NP
-	 /* LinuxThreads hack */
-#    define LDAP_INT_THREAD_MUTEXATTR	PTHREAD_MUTEX_ERRORCHECK_NP
-#  else
-#    define LDAP_INT_THREAD_MUTEXATTR	PTHREAD_MUTEX_ERRORCHECK
-#  endif
-static pthread_mutexattr_t mutex_attr;
-#  undef  LDAP_INT_THREAD_MUTEXATTR_DEFAULT
-#  define LDAP_INT_THREAD_MUTEXATTR_DEFAULT &mutex_attr
-#endif
-
 #if HAVE_PTHREADS < 7
 #define ERRVAL(val)	((val) < 0 ? errno : 0)
 #else
 #define ERRVAL(val)	(val)
 #endif
 
+static pthread_mutexattr_t mutex_attr_errorcheck;
+
+static pthread_mutexattr_t* ldap_mutex_attr() {
+	if (reopenldap_mode_idkfa())
+		return &mutex_attr_errorcheck;
+	return LDAP_INT_THREAD_MUTEXATTR_DEFAULT;
+}
+
 int
 ldap_int_thread_initialize( void )
 {
-#ifdef LDAP_INT_THREAD_MUTEXATTR
-	pthread_mutexattr_init( &mutex_attr );
-	pthread_mutexattr_settype( &mutex_attr, LDAP_INT_THREAD_MUTEXATTR );
-#endif
+	LDAP_ENSURE( pthread_mutexattr_init( &mutex_attr_errorcheck ) == 0 );
+	LDAP_ENSURE( pthread_mutexattr_settype( &mutex_attr_errorcheck, PTHREAD_MUTEX_ERRORCHECK ) == 0);
 	return 0;
 }
 
@@ -81,9 +74,7 @@ ldap_int_thread_destroy( void )
 	/* LinuxThreads: kill clones */
 	pthread_kill_other_threads_np();
 #endif
-#ifdef LDAP_INT_THREAD_MUTEXATTR
-	pthread_mutexattr_destroy( &mutex_attr );
-#endif
+	LDAP_ENSURE( pthread_mutexattr_destroy( &mutex_attr_errorcheck ) == 0);
 	return 0;
 }
 
@@ -181,18 +172,21 @@ ldap_pvt_thread_create( ldap_pvt_thread_t * thread,
 #if HAVE_PTHREADS < 7
 	if ( rtn < 0 ) rtn = errno;
 #endif
+	LDAP_JITTER(33);
 	return rtn;
 }
 
 void
 ldap_pvt_thread_exit( void *retval )
 {
+	LDAP_JITTER(33);
 	pthread_exit( retval );
 }
 
 int
 ldap_pvt_thread_join( ldap_pvt_thread_t thread, void **thread_return )
 {
+	LDAP_JITTER(33);
 #if HAVE_PTHREADS < 7
 	void *dummy;
 	if (thread_return==NULL)
@@ -204,6 +198,7 @@ ldap_pvt_thread_join( ldap_pvt_thread_t thread, void **thread_return )
 int
 ldap_pvt_thread_kill( ldap_pvt_thread_t thread, int signo )
 {
+	LDAP_JITTER(33);
 #if defined(HAVE_PTHREAD_KILL) && HAVE_PTHREADS > 4
 	/* MacOS 10.1 is detected as v10 but has no pthread_kill() */
 	return ERRVAL( pthread_kill( thread, signo ) );
@@ -252,64 +247,112 @@ ldap_pvt_thread_yield( void )
 int
 ldap_pvt_thread_cond_init( ldap_pvt_thread_cond_t *cond )
 {
-	return ERRVAL( pthread_cond_init(
-		cond, LDAP_INT_THREAD_CONDATTR_DEFAULT ) );
+	int rc;
+	LDAP_JITTER(25);
+	rc = ERRVAL( pthread_cond_init( cond, LDAP_INT_THREAD_CONDATTR_DEFAULT ) );
+	LDAP_ENSURE(rc == 0);
+	LDAP_JITTER(25);
+	return rc;
 }
 
 int
 ldap_pvt_thread_cond_destroy( ldap_pvt_thread_cond_t *cond )
 {
-	return ERRVAL( pthread_cond_destroy( cond ) );
+	int rc;
+	LDAP_JITTER(25);
+	rc =  ERRVAL( pthread_cond_destroy( cond ) );
+	LDAP_ENSURE(rc == 0);
+	LDAP_JITTER(25);
+	return rc;
 }
 
 int
 ldap_pvt_thread_cond_signal( ldap_pvt_thread_cond_t *cond )
 {
-	return ERRVAL( pthread_cond_signal( cond ) );
+	int rc;
+	LDAP_JITTER(25);
+	rc = ERRVAL( pthread_cond_signal( cond ) );
+	LDAP_ENSURE(rc == 0);
+	LDAP_JITTER(25);
+	return rc;
 }
 
 int
 ldap_pvt_thread_cond_broadcast( ldap_pvt_thread_cond_t *cond )
 {
-	return ERRVAL( pthread_cond_broadcast( cond ) );
+	int rc;
+	LDAP_JITTER(25);
+	rc = ERRVAL( pthread_cond_broadcast( cond ) );
+	LDAP_ENSURE(rc == 0);
+	LDAP_JITTER(25);
+	return rc;
 }
 
 int
 ldap_pvt_thread_cond_wait( ldap_pvt_thread_cond_t *cond,
 		      ldap_pvt_thread_mutex_t *mutex )
 {
-	return ERRVAL( pthread_cond_wait( cond, mutex ) );
+	int rc;
+	LDAP_JITTER(25);
+	rc = ERRVAL( pthread_cond_wait( cond, mutex ) );
+	LDAP_ENSURE(rc == 0);
+	LDAP_JITTER(25);
+	return rc;
 }
 
 int
 ldap_pvt_thread_mutex_init( ldap_pvt_thread_mutex_t *mutex )
 {
-	return ERRVAL( pthread_mutex_init(
-		mutex, LDAP_INT_THREAD_MUTEXATTR_DEFAULT ) );
+	int rc;
+	LDAP_JITTER(25);
+	rc = ERRVAL( pthread_mutex_init( mutex, ldap_mutex_attr() ) );
+	LDAP_ENSURE(rc == 0);
+	LDAP_JITTER(25);
+	return rc;
 }
 
 int
 ldap_pvt_thread_mutex_destroy( ldap_pvt_thread_mutex_t *mutex )
 {
-	return ERRVAL( pthread_mutex_destroy( mutex ) );
+	int rc;
+	LDAP_JITTER(25);
+	rc = ERRVAL( pthread_mutex_destroy( mutex ) );
+	LDAP_ENSURE(rc == 0);
+	LDAP_JITTER(25);
+	return rc;
 }
 
 int
 ldap_pvt_thread_mutex_lock( ldap_pvt_thread_mutex_t *mutex )
 {
-	return ERRVAL( pthread_mutex_lock( mutex ) );
+	int rc;
+	LDAP_JITTER(25);
+	rc = ERRVAL( pthread_mutex_lock( mutex ) );
+	LDAP_ENSURE(rc == 0);
+	LDAP_JITTER(25);
+	return rc;
 }
 
 int
 ldap_pvt_thread_mutex_trylock( ldap_pvt_thread_mutex_t *mutex )
 {
-	return ERRVAL( pthread_mutex_trylock( mutex ) );
+	int rc;
+	LDAP_JITTER(25);
+	rc = ERRVAL( pthread_mutex_trylock( mutex ) );
+	LDAP_ENSURE(rc == 0 || rc == EBUSY);
+	LDAP_JITTER(25);
+	return rc;
 }
 
 int
 ldap_pvt_thread_mutex_unlock( ldap_pvt_thread_mutex_t *mutex )
 {
-	return ERRVAL( pthread_mutex_unlock( mutex ) );
+	int rc;
+	LDAP_JITTER(25);
+	rc = ERRVAL( pthread_mutex_unlock( mutex ) );
+	LDAP_ENSURE(rc == 0);
+	LDAP_JITTER(25);
+	return rc;
 }
 
 ldap_pvt_thread_t ldap_pvt_thread_self( void )
@@ -320,25 +363,42 @@ ldap_pvt_thread_t ldap_pvt_thread_self( void )
 int
 ldap_pvt_thread_key_create( ldap_pvt_thread_key_t *key )
 {
-	return pthread_key_create( key, NULL );
+	int rc;
+	LDAP_JITTER(25);
+	rc = pthread_key_create( key, NULL );
+	LDAP_ENSURE(rc == 0);
+	LDAP_JITTER(25);
+	return rc;
 }
 
 int
 ldap_pvt_thread_key_destroy( ldap_pvt_thread_key_t key )
 {
-	return pthread_key_delete( key );
+	int rc;
+	LDAP_JITTER(25);
+	rc = pthread_key_delete( key );
+	LDAP_ENSURE(rc == 0);
+	LDAP_JITTER(25);
+	return rc;
 }
 
 int
 ldap_pvt_thread_key_setdata( ldap_pvt_thread_key_t key, void *data )
 {
-	return pthread_setspecific( key, data );
+	int rc;
+	LDAP_JITTER(25);
+	rc = pthread_setspecific( key, data );
+	LDAP_ENSURE(rc == 0);
+	LDAP_JITTER(25);
+	return rc;
 }
 
 int
 ldap_pvt_thread_key_getdata( ldap_pvt_thread_key_t key, void **data )
 {
+	LDAP_JITTER(25);
 	*data = pthread_getspecific( key );
+	LDAP_JITTER(25);
 	return 0;
 }
 
@@ -347,43 +407,83 @@ ldap_pvt_thread_key_getdata( ldap_pvt_thread_key_t key, void **data )
 int
 ldap_pvt_thread_rdwr_init( ldap_pvt_thread_rdwr_t *rw )
 {
-	return ERRVAL( pthread_rwlock_init( rw, NULL ) );
+	int rc;
+	LDAP_JITTER(25);
+	rc = ERRVAL( pthread_rwlock_init( rw, NULL ) );
+	LDAP_ENSURE(rc == 0);
+	LDAP_JITTER(25);
+	return rc;
 }
 
 int
 ldap_pvt_thread_rdwr_destroy( ldap_pvt_thread_rdwr_t *rw )
 {
-	return ERRVAL( pthread_rwlock_destroy( rw ) );
+	int rc;
+	LDAP_JITTER(25);
+	rc = ERRVAL( pthread_rwlock_destroy( rw ) );
+	LDAP_ENSURE(rc == 0);
+	LDAP_JITTER(25);
+	return rc;
 }
 
 int ldap_pvt_thread_rdwr_rlock( ldap_pvt_thread_rdwr_t *rw )
 {
-	return ERRVAL( pthread_rwlock_rdlock( rw ) );
+	int rc;
+	LDAP_JITTER(25);
+	rc = ERRVAL( pthread_rwlock_rdlock( rw ) );
+	LDAP_ENSURE(rc == 0);
+	LDAP_JITTER(25);
+	return rc;
 }
 
 int ldap_pvt_thread_rdwr_rtrylock( ldap_pvt_thread_rdwr_t *rw )
 {
-	return ERRVAL( pthread_rwlock_tryrdlock( rw ) );
+	int rc;
+	LDAP_JITTER(25);
+	rc = ERRVAL( pthread_rwlock_tryrdlock( rw ) );
+	LDAP_ENSURE(rc == 0 || rc == EBUSY);
+	LDAP_JITTER(25);
+	return rc;
 }
 
 int ldap_pvt_thread_rdwr_runlock( ldap_pvt_thread_rdwr_t *rw )
 {
-	return ERRVAL( pthread_rwlock_unlock( rw ) );
+	int rc;
+	LDAP_JITTER(25);
+	rc = ERRVAL( pthread_rwlock_unlock( rw ) );
+	LDAP_ENSURE(rc == 0);
+	LDAP_JITTER(25);
+	return rc;
 }
 
 int ldap_pvt_thread_rdwr_wlock( ldap_pvt_thread_rdwr_t *rw )
 {
-	return ERRVAL( pthread_rwlock_wrlock( rw ) );
+	int rc;
+	LDAP_JITTER(25);
+	rc = ERRVAL( pthread_rwlock_wrlock( rw ) );
+	LDAP_ENSURE(rc == 0);
+	LDAP_JITTER(25);
+	return rc;
 }
 
 int ldap_pvt_thread_rdwr_wtrylock( ldap_pvt_thread_rdwr_t *rw )
 {
-	return ERRVAL( pthread_rwlock_trywrlock( rw ) );
+	int rc;
+	LDAP_JITTER(25);
+	rc = ERRVAL( pthread_rwlock_trywrlock( rw ) );
+	LDAP_ENSURE(rc == 0 || rc == EBUSY);
+	LDAP_JITTER(25);
+	return rc;
 }
 
 int ldap_pvt_thread_rdwr_wunlock( ldap_pvt_thread_rdwr_t *rw )
 {
-	return ERRVAL( pthread_rwlock_unlock( rw ) );
+	int rc;
+	LDAP_JITTER(25);
+	rc = ERRVAL( pthread_rwlock_unlock( rw ) );
+	LDAP_ENSURE(rc == 0);
+	LDAP_JITTER(25);
+	return rc;
 }
 
 #endif /* HAVE_PTHREAD_RWLOCK_DESTROY */

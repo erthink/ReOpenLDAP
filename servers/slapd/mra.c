@@ -223,7 +223,7 @@ get_mra(
 	if (rule_text.bv_val) {
 		f->f_mra->ma_rule_text.bv_len = rule_text.bv_len;
 		f->f_mra->ma_rule_text.bv_val = (char *)(f->f_mra+1);
-		AC_MEMCPY(f->f_mra->ma_rule_text.bv_val, rule_text.bv_val,
+		memcpy(f->f_mra->ma_rule_text.bv_val, rule_text.bv_val,
 			rule_text.bv_len+1);
 	}
 

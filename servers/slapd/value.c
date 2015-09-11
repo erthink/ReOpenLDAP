@@ -312,7 +312,7 @@ ordered_value_renumber( Attribute *a )
 		tmp.bv_len = ibv.bv_len + vtmp.bv_len;
 		tmp.bv_val = ch_malloc( tmp.bv_len + 1 );
 		strcpy( tmp.bv_val, ibv.bv_val );
-		AC_MEMCPY( tmp.bv_val + ibv.bv_len, vtmp.bv_val, vtmp.bv_len );
+		memcpy( tmp.bv_val + ibv.bv_len, vtmp.bv_val, vtmp.bv_len );
 		tmp.bv_val[tmp.bv_len] = '\0';
 		ch_free( a->a_vals[i].bv_val );
 		a->a_vals[i] = tmp;
@@ -329,7 +329,7 @@ ordered_value_renumber( Attribute *a )
 			tmp.bv_len = ibv.bv_len + vtmp.bv_len;
 			tmp.bv_val = ch_malloc( tmp.bv_len + 1 );
 			strcpy( tmp.bv_val, ibv.bv_val );
-			AC_MEMCPY( tmp.bv_val + ibv.bv_len, vtmp.bv_val, vtmp.bv_len );
+			memcpy( tmp.bv_val + ibv.bv_len, vtmp.bv_val, vtmp.bv_len );
 			tmp.bv_val[tmp.bv_len] = '\0';
 			ch_free( a->a_nvals[i].bv_val );
 			a->a_nvals[i] = tmp;
@@ -544,8 +544,8 @@ ordered_value_pretty(
 		out->bv_len = idx.bv_len + bv.bv_len;
 		out->bv_val = ber_memalloc_x( out->bv_len + 1, ctx );
 
-		AC_MEMCPY( out->bv_val, idx.bv_val, idx.bv_len );
-		AC_MEMCPY( &out->bv_val[ idx.bv_len ], bv.bv_val, bv.bv_len + 1 );
+		memcpy( out->bv_val, idx.bv_val, idx.bv_len );
+		memcpy( &out->bv_val[ idx.bv_len ], bv.bv_val, bv.bv_len + 1 );
 
 		ber_memfree_x( bv.bv_val, ctx );
 	}
@@ -621,8 +621,8 @@ ordered_value_normalize(
 		normalized->bv_len = idx.bv_len + bv.bv_len;
 		normalized->bv_val = ber_memalloc_x( normalized->bv_len + 1, ctx );
 
-		AC_MEMCPY( normalized->bv_val, idx.bv_val, idx.bv_len );
-		AC_MEMCPY( &normalized->bv_val[ idx.bv_len ], bv.bv_val, bv.bv_len + 1 );
+		memcpy( normalized->bv_val, idx.bv_val, idx.bv_len );
+		memcpy( &normalized->bv_val[ idx.bv_len ], bv.bv_val, bv.bv_len + 1 );
 
 		ber_memfree_x( bv.bv_val, ctx );
 	}
@@ -768,9 +768,9 @@ ordered_value_add(
 		if ( !nvals ) nvals = vals;
 	}
 	if ( anum ) {
-		AC_MEMCPY( new, a->a_vals, anum * sizeof(struct berval));
+		memcpy( new, a->a_vals, anum * sizeof(struct berval));
 		if ( nnew && a->a_nvals )
-			AC_MEMCPY( nnew, a->a_nvals, anum * sizeof(struct berval));
+			memcpy( nnew, a->a_nvals, anum * sizeof(struct berval));
 	}
 
 	for (i=0; i<vnum; i++) {

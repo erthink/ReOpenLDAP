@@ -218,7 +218,7 @@ check_scope( BackendDB *be, AccessControl *a )
 
 			/* add trailing '$' to database suffix to form
 			 * a simple trial regex pattern "<suffix>$" */
-			AC_MEMCPY( dnbuf, be->be_nsuffix[0].bv_val,
+			memcpy( dnbuf, be->be_nsuffix[0].bv_val,
 				be->be_nsuffix[0].bv_len );
 			dnbuf[be->be_nsuffix[0].bv_len] = '$';
 			dnbuf[be->be_nsuffix[0].bv_len + 1] = '\0';
@@ -230,7 +230,7 @@ check_scope( BackendDB *be, AccessControl *a )
 			/* remove trailing ')$', if any, from original
 			 * regex pattern */
 			rebuflen = a->acl_dn_pat.bv_len;
-			AC_MEMCPY( rebuf, a->acl_dn_pat.bv_val, rebuflen + 1 );
+			memcpy( rebuf, a->acl_dn_pat.bv_val, rebuflen + 1 );
 			if ( rebuf[rebuflen - 1] == '$' ) {
 				rebuf[--rebuflen] = '\0';
 			}

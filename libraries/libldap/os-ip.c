@@ -88,7 +88,7 @@ ldap_int_timeval_dup( struct timeval **dest, const struct timeval *src )
 		return 1;
 	}
 
-	AC_MEMCPY( (char *) new, (const char *) src, sizeof(struct timeval));
+	memcpy( (char *) new, (const char *) src, sizeof(struct timeval));
 
 	*dest = new;
 	return 0;
@@ -420,7 +420,7 @@ ldap_pvt_connect(LDAP *ld, ber_socket_t s,
 		if (ld->ld_options.ldo_peer)
 			ldap_memfree(ld->ld_options.ldo_peer);
 		ld->ld_options.ldo_peer=ldap_memcalloc(1, sizeof(struct sockaddr_storage));
-		AC_MEMCPY(ld->ld_options.ldo_peer,sin,addrlen);
+		memcpy(ld->ld_options.ldo_peer,sin,addrlen);
 		return ( 0 );
 	}
 #endif
@@ -705,10 +705,10 @@ ldap_connect_to_host(LDAP *ld, Sockbuf *sb,
 		sin.sin_port = htons((unsigned short) port);
 
 		if( use_hp ) {
-			AC_MEMCPY( &sin.sin_addr, hp->h_addr_list[i],
+			memcpy( &sin.sin_addr, hp->h_addr_list[i],
 				sizeof(sin.sin_addr) );
 		} else {
-			AC_MEMCPY( &sin.sin_addr, &in.s_addr,
+			memcpy( &sin.sin_addr, &in.s_addr,
 				sizeof(sin.sin_addr) );
 		}
 

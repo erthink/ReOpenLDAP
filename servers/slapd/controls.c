@@ -2131,7 +2131,7 @@ slap_ctrl_whatFailed_add(
 	ctrls[ i ]->ldctl_oid = LDAP_CONTROL_X_WHATFAILED;
 	ctrls[ i ]->ldctl_iscritical = 0;
 	ctrls[ i ]->ldctl_value.bv_val = (char *)&ctrls[ i ][ 1 ];
-	AC_MEMCPY( ctrls[ i ]->ldctl_value.bv_val, ctrlval.bv_val, ctrlval.bv_len + 1 );
+	memcpy( ctrls[ i ]->ldctl_value.bv_val, ctrlval.bv_val, ctrlval.bv_len + 1 );
 	ctrls[ i ]->ldctl_value.bv_len = ctrlval.bv_len;
 
 	ber_free_buf( ber );

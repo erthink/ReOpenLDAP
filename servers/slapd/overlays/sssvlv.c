@@ -235,7 +235,7 @@ static int pack_vlv_response_control(
 		ctrl->ldctl_iscritical	= 0;
 		ctrl->ldctl_value.bv_val = (char *)(ctrl+1);
 		ctrl->ldctl_value.bv_len = bv.bv_len;
-		AC_MEMCPY( ctrl->ldctl_value.bv_val, bv.bv_val, bv.bv_len );
+		memcpy( ctrl->ldctl_value.bv_val, bv.bv_val, bv.bv_len );
 		ctrlsp[0] = ctrl;
 	} else {
 		ctrlsp[0] = NULL;
@@ -289,7 +289,7 @@ static int pack_pagedresult_response_control(
 		ctrl->ldctl_iscritical	= 0;
 		ctrl->ldctl_value.bv_val = (char *)(ctrl+1);
 		ctrl->ldctl_value.bv_len = bv.bv_len;
-		AC_MEMCPY( ctrl->ldctl_value.bv_val, bv.bv_val, bv.bv_len );
+		memcpy( ctrl->ldctl_value.bv_val, bv.bv_val, bv.bv_len );
 		ctrlsp[0] = ctrl;
 	} else {
 		ctrlsp[0] = NULL;
@@ -328,7 +328,7 @@ static int pack_sss_response_control(
 		ctrl->ldctl_iscritical	= 0;
 		ctrl->ldctl_value.bv_val = (char *)(ctrl+1);
 		ctrl->ldctl_value.bv_len = bv.bv_len;
-		AC_MEMCPY( ctrl->ldctl_value.bv_val, bv.bv_val, bv.bv_len );
+		memcpy( ctrl->ldctl_value.bv_val, bv.bv_val, bv.bv_len );
 		ctrlsp[0] = ctrl;
 	} else {
 		ctrlsp[0] = NULL;
@@ -745,19 +745,19 @@ static int sssvlv_op_response(
 		/* Now dup into regular memory */
 		sn2 = ch_malloc( len );
 		sn2->sn_vals = (struct berval *)(sn2+1);
-		AC_MEMCPY( sn2->sn_vals, sn->sn_vals,
+		memcpy( sn2->sn_vals, sn->sn_vals,
 				sc->sc_nkeys * sizeof(struct berval));
 
 		ptr = (char *)(sn2->sn_vals + sc->sc_nkeys);
 		sn2->sn_dn.bv_val = ptr;
 		sn2->sn_dn.bv_len = rs->sr_entry->e_nname.bv_len;
-		AC_MEMCPY( ptr, rs->sr_entry->e_nname.bv_val,
+		memcpy( ptr, rs->sr_entry->e_nname.bv_val,
 			rs->sr_entry->e_nname.bv_len );
 		ptr += rs->sr_entry->e_nname.bv_len;
 		*ptr++ = '\0';
 		for ( i=0; i<sc->sc_nkeys; i++ ) {
 			if ( !BER_BVISNULL( &sn2->sn_vals[i] )) {
-				AC_MEMCPY(ptr, sn2->sn_vals[i].bv_val, sn2->sn_vals[i].bv_len);
+				memcpy(ptr, sn2->sn_vals[i].bv_val, sn2->sn_vals[i].bv_len);
 				sn2->sn_vals[i].bv_val = ptr;
 				ptr += sn2->sn_vals[i].bv_len;
 				*ptr++ = '\0';
@@ -1200,7 +1200,7 @@ static int vlv_parseCtrl(
 		tag = ber_scanf( ber, "m", &bv );
 		if ( tag == LBER_ERROR || bv.bv_len != sizeof(vc2.vc_context))
 			return rs->sr_err;
-		AC_MEMCPY( &vc2.vc_context, bv.bv_val, bv.bv_len );
+		memcpy( &vc2.vc_context, bv.bv_val, bv.bv_len );
 	} else {
 		vc2.vc_context = 0;
 	}

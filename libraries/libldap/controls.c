@@ -368,7 +368,7 @@ ldap_control_dup( const LDAPControl *c )
 
 		new->ldctl_value.bv_len = c->ldctl_value.bv_len;
 
-		AC_MEMCPY( new->ldctl_value.bv_val, c->ldctl_value.bv_val,
+		memcpy( new->ldctl_value.bv_val, c->ldctl_value.bv_val,
 			c->ldctl_value.bv_len );
 
 		new->ldctl_value.bv_val[new->ldctl_value.bv_len] = '\0';

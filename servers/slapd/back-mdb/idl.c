@@ -314,7 +314,7 @@ mdb_idl_fetch_key(
 	if ( get_flag == LDAP_FILTER_LE || get_flag == LDAP_FILTER_GE ) {
 		key2.mv_data = keybuf;
 		key2.mv_size = key->mv_size;
-		AC_MEMCPY( keybuf, key->mv_data, key->mv_size );
+		memcpy( keybuf, key->mv_data, key->mv_size );
 		kptr = &key2;
 	} else {
 		kptr = key;
@@ -1010,7 +1010,7 @@ int mdb_idl_append( ID *a, ID *b )
 
 	if ( b[0] > 1 ) {
 		int i = b[0] - 1;
-		AC_MEMCPY(a+a[0]+1, b+2, i * sizeof(ID));
+		memcpy(a+a[0]+1, b+2, i * sizeof(ID));
 		a[0] += i;
 	}
 	if ( swap ) {

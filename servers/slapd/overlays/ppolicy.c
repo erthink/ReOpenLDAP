@@ -428,7 +428,7 @@ create_passcontrol( Operation *op, int exptime, int grace, LDAPPasswordPolicyErr
 	cp->ldctl_iscritical = 0;
 	cp->ldctl_value.bv_val = (char *)&cp[1];
 	cp->ldctl_value.bv_len = c.ldctl_value.bv_len;
-	AC_MEMCPY( cp->ldctl_value.bv_val, c.ldctl_value.bv_val, c.ldctl_value.bv_len );
+	memcpy( cp->ldctl_value.bv_val, c.ldctl_value.bv_val, c.ldctl_value.bv_len );
 fail:
 	(void)ber_free_buf(ber);
 
@@ -866,10 +866,10 @@ make_pwd_history_value( char *timebuf, struct berval *bv, Attribute *pa )
          * length), the remaining octets of the actual password
          * are deemed to be binary data.
          */
-	AC_MEMCPY( str + nlen, pa->a_nvals[0].bv_val, pa->a_nvals[0].bv_len );
+	memcpy( str + nlen, pa->a_nvals[0].bv_val, pa->a_nvals[0].bv_len );
 	nlen += pa->a_nvals[0].bv_len;
 	bv->bv_val = ch_malloc( nlen + 1 );
-	AC_MEMCPY( bv->bv_val, str, nlen );
+	memcpy( bv->bv_val, str, nlen );
 	bv->bv_val[nlen] = '\0';
 	bv->bv_len = nlen;
 }

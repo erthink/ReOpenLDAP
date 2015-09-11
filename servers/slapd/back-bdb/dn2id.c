@@ -52,7 +52,7 @@ bdb_dn2id_add(
 	buf[0] = DN_BASE_PREFIX;
 	ptr.bv_val = buf + 1;
 	ptr.bv_len = e->e_nname.bv_len;
-	AC_MEMCPY( ptr.bv_val, e->e_nname.bv_val, e->e_nname.bv_len );
+	memcpy( ptr.bv_val, e->e_nname.bv_val, e->e_nname.bv_len );
 	ptr.bv_val[ptr.bv_len] = '\0';
 
 	DBTzero( &data );
@@ -165,7 +165,7 @@ bdb_dn2id_delete(
 	buf[0] = DN_BASE_PREFIX;
 	ptr.bv_val = buf+1;
 	ptr.bv_len = e->e_nname.bv_len;
-	AC_MEMCPY( ptr.bv_val, e->e_nname.bv_val, e->e_nname.bv_len );
+	memcpy( ptr.bv_val, e->e_nname.bv_val, e->e_nname.bv_len );
 	ptr.bv_val[ptr.bv_len] = '\0';
 
 	/* delete it */
@@ -264,7 +264,7 @@ bdb_dn2id(
 	key.size = dn->bv_len + 2;
 	key.data = op->o_tmpalloc( key.size, op->o_tmpmemctx );
 	((char *)key.data)[0] = DN_BASE_PREFIX;
-	AC_MEMCPY( &((char *)key.data)[1], dn->bv_val, key.size - 1 );
+	memcpy( &((char *)key.data)[1], dn->bv_val, key.size - 1 );
 
 	/* store the ID */
 	DBTzero( &data );
@@ -308,7 +308,7 @@ bdb_dn2id_children(
 	key.size = e->e_nname.bv_len + 2;
 	key.data = op->o_tmpalloc( key.size, op->o_tmpmemctx );
 	((char *)key.data)[0] = DN_ONE_PREFIX;
-	AC_MEMCPY( &((char *)key.data)[1], e->e_nname.bv_val, key.size - 1 );
+	memcpy( &((char *)key.data)[1], e->e_nname.bv_val, key.size - 1 );
 
 	if ( bdb->bi_idl_cache_size ) {
 		rc = bdb_idl_cache_get( bdb, db, &key, NULL );
@@ -370,7 +370,7 @@ bdb_dn2idl(
 	key.flags = DB_DBT_USERMEM;
 	key.data = op->o_tmpalloc( key.size, op->o_tmpmemctx );
 	((char *)key.data)[0] = prefix;
-	AC_MEMCPY( &((char *)key.data)[1], ndn->bv_val, key.size - 1 );
+	memcpy( &((char *)key.data)[1], ndn->bv_val, key.size - 1 );
 
 	BDB_IDL_ZERO( ids );
 	rc = bdb_idl_fetch_key( op->o_bd, db, txn, &key, ids, NULL, 0 );

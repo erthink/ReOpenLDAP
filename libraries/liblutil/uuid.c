@@ -101,7 +101,7 @@ lutil_eaddr( void )
 		sdl = (struct sockaddr_dl *)(ifm + 1);
 
 		if ( sdl->sdl_family != AF_LINK || sdl->sdl_alen == 6 ) {
-			AC_MEMCPY(eaddr,
+			memcpy(eaddr,
 				(unsigned char *)sdl->sdl_data + sdl->sdl_nlen,
 				sizeof(eaddr));
 			free(buf);
@@ -158,7 +158,7 @@ lutil_eaddr( void )
 		sdl = (struct sockaddr_dl *)sa;
 
 		if ( sdl->sdl_alen == 6 ) {
-			AC_MEMCPY(eaddr,
+			memcpy(eaddr,
 				(unsigned char *)sdl->sdl_data + sdl->sdl_nlen,
 				sizeof(eaddr));
 			return eaddr;

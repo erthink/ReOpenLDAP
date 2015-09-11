@@ -210,7 +210,7 @@ pg_dynacl_mask(
 		AclRegexMatches amatches = { 0 };
 
 		amatches.dn_count = nmatch;
-		AC_MEMCPY( amatches.dn_data, matches, sizeof( amatches.dn_data ) );
+		memcpy( amatches.dn_data, matches, sizeof( amatches.dn_data ) );
 
 		bv.bv_len = sizeof( buf ) - 1;
 		bv.bv_val = buf;

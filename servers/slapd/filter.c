@@ -934,7 +934,7 @@ filter_dup( Filter *f, void *memctx )
 		ber_dupbv_x( &n->f_mr_value, &f->f_mr_value, memctx );
 		if ( !BER_BVISNULL( &f->f_mr_rule_text )) {
 			n->f_mr_rule_text.bv_val = (char *)(n->f_mra+1);
-			AC_MEMCPY(n->f_mr_rule_text.bv_val,
+			memcpy(n->f_mr_rule_text.bv_val,
 				f->f_mr_rule_text.bv_val, f->f_mr_rule_text.bv_len );
 		}
 		} break;

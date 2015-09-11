@@ -425,7 +425,7 @@ ber_dupbv_x(
 		return NULL;
 	}
 
-	AC_MEMCPY( new->bv_val, src->bv_val, src->bv_len );
+	memcpy( new->bv_val, src->bv_val, src->bv_len );
 	new->bv_val[src->bv_len] = '\0';
 	new->bv_len = src->bv_len;
 
@@ -474,7 +474,7 @@ ber_str2bv_x(
 			return NULL;
 		}
 
-		AC_MEMCPY( new->bv_val, s, new->bv_len );
+		memcpy( new->bv_val, s, new->bv_len );
 		new->bv_val[new->bv_len] = '\0';
 	} else {
 		new->bv_val = (char *) s;
@@ -519,7 +519,7 @@ ber_mem2bv_x(
 			return NULL;
 		}
 
-		AC_MEMCPY( new->bv_val, s, new->bv_len );
+		memcpy( new->bv_val, s, new->bv_len );
 		new->bv_val[new->bv_len] = '\0';
 	} else {
 		new->bv_val = (char *) s;
@@ -550,7 +550,7 @@ ber_strdup_x( LDAP_CONST char *s, void *ctx )
 
 	len = strlen( s ) + 1;
 	if ( (p = ber_memalloc_x( len, ctx )) != NULL ) {
-		AC_MEMCPY( p, s, len );
+		memcpy( p, s, len );
 	}
 
 	return p;
@@ -587,7 +587,7 @@ ber_strndup_x( LDAP_CONST char *s, ber_len_t l, void *ctx )
 
 	len = ber_strnlen( s, l );
 	if ( (p = ber_memalloc_x( len + 1, ctx )) != NULL ) {
-		AC_MEMCPY( p, s, len );
+		memcpy( p, s, len );
 		p[len] = '\0';
 	}
 
@@ -615,7 +615,7 @@ ber_bvreplace_x( struct berval *dst, LDAP_CONST struct berval *src, void *ctx )
 		dst->bv_val = ber_memrealloc_x( dst->bv_val, src->bv_len + 1, ctx );
 	}
 
-	AC_MEMCPY( dst->bv_val, src->bv_val, src->bv_len + 1 );
+	memcpy( dst->bv_val, src->bv_val, src->bv_len + 1 );
 	dst->bv_len = src->bv_len;
 
 	return dst;

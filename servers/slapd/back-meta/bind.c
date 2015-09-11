@@ -1467,8 +1467,8 @@ meta_back_proxy_authz_cred(
 				}
 				authzID.bv_len = STRLENOF( "dn:" ) + ndn.bv_len;
 				authzID.bv_val = slap_sl_malloc( authzID.bv_len + 1, op->o_tmpmemctx );
-				AC_MEMCPY( authzID.bv_val, "dn:", STRLENOF( "dn:" ) );
-				AC_MEMCPY( authzID.bv_val + STRLENOF( "dn:" ),
+				memcpy( authzID.bv_val, "dn:", STRLENOF( "dn:" ) );
+				memcpy( authzID.bv_val + STRLENOF( "dn:" ),
 						ndn.bv_val, ndn.bv_len + 1 );
 				freeauthz = 1;
 				break;

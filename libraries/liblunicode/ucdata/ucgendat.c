@@ -491,7 +491,7 @@ add_decomp(ac_uint4 code, short compat)
          * Shift the decomps up by one if the codes don't match.
          */
         for (j = *pdecomps_used; j > i; j--)
-          (void) AC_MEMCPY((char *) &(*pdecomps)[j], (char *) &(*pdecomps)[j - 1],
+		  (void) memcpy((char *) &(*pdecomps)[j], (char *) &(*pdecomps)[j - 1],
                         sizeof(_decomp_t));
     }
 
@@ -515,7 +515,7 @@ add_decomp(ac_uint4 code, short compat)
 
     (*pdecomps)[i].code = code;
     (*pdecomps)[i].used = dectmp_size;
-    (void) AC_MEMCPY((char *) (*pdecomps)[i].decomp, (char *) dectmp,
+	(void) memcpy((char *) (*pdecomps)[i].decomp, (char *) dectmp,
                   sizeof(ac_uint4) * dectmp_size);
 
     /*
@@ -555,7 +555,7 @@ add_title(ac_uint4 code)
          * Shift the array up by one.
          */
         for (j = title_used; j > i; j--)
-          (void) AC_MEMCPY((char *) &title[j], (char *) &title[j - 1],
+		  (void) memcpy((char *) &title[j], (char *) &title[j - 1],
                         sizeof(_case_t));
     }
 
@@ -602,7 +602,7 @@ add_upper(ac_uint4 code)
          * Shift the array up by one.
          */
         for (j = upper_used; j > i; j--)
-          (void) AC_MEMCPY((char *) &upper[j], (char *) &upper[j - 1],
+		  (void) memcpy((char *) &upper[j], (char *) &upper[j - 1],
                         sizeof(_case_t));
     }
 
@@ -649,7 +649,7 @@ add_lower(ac_uint4 code)
          * Shift the array up by one.
          */
         for (j = lower_used; j > i; j--)
-          (void) AC_MEMCPY((char *) &lower[j], (char *) &lower[j - 1],
+		  (void) memcpy((char *) &lower[j], (char *) &lower[j - 1],
                         sizeof(_case_t));
     }
 

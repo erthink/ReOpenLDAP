@@ -13,11 +13,11 @@
 ## top-level directory of the distribution or, alternatively, at
 ## <http://www.OpenLDAP.org/license.html>.
 
-echo "Using $RELAY backend..."
 echo ""
+echo "Using $RELAY backend..."
 
 echo "Starting slapd on TCP/IP port $PORT1..."
-echo "======== Starting slapd with $RELAY backend ========" >> $LOG1
+echo "======== Starting slapd with $RELAY backend ========" > $LOG1
 . $CONFFILTER $BACKEND $MONITORDB < $RELAYCONF > $CONF1
 $SLAPD -f $CONF1 -h $URI1 -d $LVL $TIMING >> $LOG1 2>&1 &
 PID=$!
@@ -38,11 +38,9 @@ if test $RC != 0 ; then
 	exit $RC
 fi
 
-cat /dev/null > $SEARCHOUT
-
 BASEDN="dc=example,dc=com"
 echo "Searching base=\"$BASEDN\"..."
-echo "# searching base=\"$BASEDN\"..." >> $SEARCHOUT
+echo "# searching base=\"$BASEDN\"..." > $SEARCHOUT
 $LDAPSEARCH -S '' -h $LOCALHOST -p $PORT1 -b "$BASEDN" >> $SEARCHOUT 2>&1
 RC=$?
 if test $RC != 0 ; then
@@ -149,15 +147,15 @@ objectclass: referral
 objectclass: extensibleObject
 ou: Referrals
 ref: ldap://localhost.localdomain/ou=Referrals,$BASEDN
-description: Just added as ldap://localhost.localdomain:389/ou=Referrals,$BASEDN
+description: Just added as ldap://localhost.localdomain/ou=Referrals,$BASEDN
 
 dn: ou=Referrals,$BASEDN
 changetype: modify
 replace: ref
-ref: ldap://localhost:9012/ou=Referrals,$BASEDN
+ref: ldap://${LOCALHOST}:${PORT2}/ou=Referrals,$BASEDN
 -
 add: description
-description: ...and modified as ldap://localhost:9012/ou=Referrals,$BASEDN
+description: ...and modified as ldap://${LOCALHOST}:${PORT2}/ou=Referrals,$BASEDN
 -
 EOMODS
 
@@ -328,7 +326,7 @@ fi
 echo "Filtering ldapsearch results..."
 $LDIFFILTER < $SEARCHOUT > $SEARCHFLT
 echo "Filtering original ldif used to create database..."
-$LDIFFILTER < $RELAYOUT > $LDIFFLT
+. $RELAYOUT | $LDIFFILTER > $LDIFFLT
 echo "Comparing filter output..."
 $CMP $SEARCHFLT $LDIFFLT > $CMPOUT
 

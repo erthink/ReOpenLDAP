@@ -171,7 +171,7 @@ backend_set_controls( BackendDB *be )
 
 	if ( bi->bi_controls ) {
 		if ( be->be_ctrls[ SLAP_MAX_CIDS ] == 0 ) {
-			AC_MEMCPY( be->be_ctrls, bi->bi_ctrls,
+			memcpy( be->be_ctrls, bi->bi_ctrls,
 					sizeof( be->be_ctrls ) );
 			be->be_ctrls[ SLAP_MAX_CIDS ] = 1;
 

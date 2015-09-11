@@ -155,7 +155,7 @@ safe_strdup(safe_string * ss)
 	char *ret = LDAP_MALLOC(ss->pos+1);
 	if (!ret)
 		return NULL;
-	AC_MEMCPY(ret, ss->val, ss->pos);
+	memcpy(ret, ss->val, ss->pos);
 	ret[ss->pos] = '\0';
 	return ret;
 }

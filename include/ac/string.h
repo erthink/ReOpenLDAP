@@ -17,34 +17,12 @@
 #ifndef _AC_STRING_H
 #define _AC_STRING_H
 
-#ifdef STDC_HEADERS
-#	include <string.h>
+#include <string.h>
 
-#else
-#	ifdef HAVE_STRING_H
-#		include <string.h>
-#	endif
-#	if defined(HAVE_STRINGS_H) && (!defined(HAVE_STRING_H) || defined(BOTH_STRINGS_H))
-#		include <strings.h>
-#	endif
-
-#	ifdef HAVE_MEMORY_H
-#		include <memory.h>
-#	endif
-
-#	ifndef HAVE_STRRCHR
-#		undef strchr
-#		define strchr index
-#		undef strrchr
-#		define strrchr rindex
-#	endif
-
-#	ifndef HAVE_MEMCPY
-#		undef memcpy
-#		define memcpy(d, s, n)		((void) bcopy ((s), (d), (n)))
-#		undef memmove
-#		define memmove(d, s, n)		((void) bcopy ((s), (d), (n)))
-#	endif
+#if LDAP_SAFEMEMCPY
+#	undef memcpy
+	__extern_C void* ber_memcpy_safe(void* dest, const void* src, size_t n);
+#	define memcpy ber_memcpy_safe
 #endif
 
 /* use ldap_pvt_strtok instead of strtok or strtok_r! */
@@ -60,23 +38,6 @@ LDAP_F(char *) ldap_pvt_strtok LDAP_P(( char *str,
 	/* Windows does not require this declaration */
 	LDAP_LIBC_F(char *) (strdup)();
 #endif
-
-#ifndef SAFEMEMCPY
-#	if defined( HAVE_MEMMOVE )
-#		define SAFEMEMCPY( d, s, n ) 	memmove((d), (s), (n))
-#	elif defined( HAVE_BCOPY )
-#		define SAFEMEMCPY( d, s, n ) 	bcopy((s), (d), (n))
-#	else
-		/* nothing left but memcpy() */
-#		define SAFEMEMCPY( d, s, n )	memcpy((d), (s), (n))
-#	endif
-#endif
-
-#define AC_MEMCPY( d, s, n ) (SAFEMEMCPY((d),(s),(n)))
-#define AC_FMEMCPY( d, s, n ) do { \
-		if((n) == 1) *((char*)(d)) = *((char*)(s)); \
-		else AC_MEMCPY( (d), (s), (n) ); \
-	} while(0)
 
 #ifdef NEED_MEMCMP_REPLACEMENT
 	int (lutil_memcmp)(const void *b1, const void *b2, size_t len);

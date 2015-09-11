@@ -2291,8 +2291,8 @@ ldap_back_proxy_authz_bind(
 				}
 				authzID.bv_len = STRLENOF( "dn:" ) + ndn.bv_len;
 				authzID.bv_val = slap_sl_malloc( authzID.bv_len + 1, op->o_tmpmemctx );
-				AC_MEMCPY( authzID.bv_val, "dn:", STRLENOF( "dn:" ) );
-				AC_MEMCPY( authzID.bv_val + STRLENOF( "dn:" ),
+				memcpy( authzID.bv_val, "dn:", STRLENOF( "dn:" ) );
+				memcpy( authzID.bv_val + STRLENOF( "dn:" ),
 						ndn.bv_val, ndn.bv_len + 1 );
 				freeauthz = 1;
 				break;
@@ -2725,8 +2725,8 @@ ldap_back_proxy_authz_ctrl(
 		ctrl->ldctl_value.bv_len = assertedID.bv_len + STRLENOF( "dn:" );
 		ctrl->ldctl_value.bv_val = op->o_tmpalloc( ctrl->ldctl_value.bv_len + 1,
 				op->o_tmpmemctx );
-		AC_MEMCPY( ctrl->ldctl_value.bv_val, "dn:", STRLENOF( "dn:" ) );
-		AC_MEMCPY( &ctrl->ldctl_value.bv_val[ STRLENOF( "dn:" ) ],
+		memcpy( ctrl->ldctl_value.bv_val, "dn:", STRLENOF( "dn:" ) );
+		memcpy( &ctrl->ldctl_value.bv_val[ STRLENOF( "dn:" ) ],
 				assertedID.bv_val, assertedID.bv_len + 1 );
 		rs->sr_err = LDAP_SUCCESS;
 		break;

@@ -227,7 +227,7 @@ backsql_dn2id(
 
 	} else {
 		if ( BACKSQL_USE_REVERSE_DN( bi ) ) {
-			AC_MEMCPY( upperdn, realndn.bv_val, realndn.bv_len + 1 );
+			memcpy( upperdn, realndn.bv_val, realndn.bv_len + 1 );
 			ldap_pvt_str2upper( upperdn );
 			Debug( LDAP_DEBUG_TRACE,
 				"   backsql_dn2id(\"%s\"): "

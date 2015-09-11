@@ -61,7 +61,7 @@ rewrite_subst_compile(
 
 		if (  IS_REWRITE_SUBMATCH_ESCAPE( p[ 1 ] ) ) {
 			/* Pull &p[1] over p, including the trailing '\0' */
-			AC_MEMCPY((char *)p, &p[ 1 ], strlen( p ) );
+			memmove((char *)p, &p[ 1 ], strlen( p ) );
 			continue;
 		}
 
@@ -84,7 +84,7 @@ rewrite_subst_compile(
 			if ( subs[ nsub ].bv_val == NULL ) {
 				goto cleanup;
 			}
-			AC_MEMCPY( subs[ nsub ].bv_val, begin, l );
+			memcpy( subs[ nsub ].bv_val, begin, l );
 			subs[ nsub ].bv_val[ l ] = '\0';
 		} else {
 			subs[ nsub ].bv_val = NULL;
@@ -167,7 +167,7 @@ rewrite_subst_compile(
 		 * Escape '%' ...
 		 */
 		} else if ( p[ 1 ] == '%' ) {
-			AC_MEMCPY( &p[ 1 ], &p[ 2 ], strlen( &p[ 1 ] ) );
+			memmove( &p[ 1 ], &p[ 2 ], strlen( &p[ 1 ] ) );
 			continue;
 
 		} else {
@@ -197,7 +197,7 @@ rewrite_subst_compile(
 		if ( subs[ nsub ].bv_val == NULL ) {
 			goto cleanup;
 		}
-		AC_MEMCPY( subs[ nsub ].bv_val, begin, l );
+		memcpy( subs[ nsub ].bv_val, begin, l );
 		subs[ nsub ].bv_val[ l ] = '\0';
 	} else {
 		subs[ nsub ].bv_val = NULL;
@@ -267,7 +267,7 @@ submatch_copy(
 		return REWRITE_ERR;
 	}
 
-	AC_MEMCPY( val->bv_val, s, l );
+	memcpy( val->bv_val, s, l );
 	val->bv_val[ l ] = '\0';
 
 	return REWRITE_SUCCESS;
@@ -429,16 +429,16 @@ rewrite_subst_apply(
 	 */
         for ( n = 0, cl = 0; n < subst->lt_num_submatch; n++ ) {
 		if ( subst->lt_subs[ n ].bv_val != NULL ) {
-                	AC_MEMCPY( res + cl, subst->lt_subs[ n ].bv_val,
+					memcpy( res + cl, subst->lt_subs[ n ].bv_val,
 					subst->lt_subs[ n ].bv_len );
 			cl += subst->lt_subs[ n ].bv_len;
 		}
-		AC_MEMCPY( res + cl, submatch[ n ].bv_val,
+		memcpy( res + cl, submatch[ n ].bv_val,
 				submatch[ n ].bv_len );
 		cl += submatch[ n ].bv_len;
 	}
 	if ( subst->lt_subs[ n ].bv_val != NULL ) {
-		AC_MEMCPY( res + cl, subst->lt_subs[ n ].bv_val,
+		memcpy( res + cl, subst->lt_subs[ n ].bv_val,
 				subst->lt_subs[ n ].bv_len );
 		cl += subst->lt_subs[ n ].bv_len;
 	}

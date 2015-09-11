@@ -154,7 +154,7 @@ ber_sockbuf_ctrl( Sockbuf *sb, int opt, void *arg )
 #ifdef LDAP_PF_LOCAL_SENDMSG
 			sb->sb_ungetlen = ((struct berval *)arg)->bv_len;
 			if ( sb->sb_ungetlen <= sizeof( sb->sb_ungetbuf )) {
-				AC_MEMCPY( sb->sb_ungetbuf, ((struct berval *)arg)->bv_val,
+				memcpy( sb->sb_ungetbuf, ((struct berval *)arg)->bv_val,
 					sb->sb_ungetlen );
 				ret = 1;
 			} else {
@@ -296,7 +296,7 @@ ber_pvt_sb_copy_out( Sockbuf_Buf *sbb, char *buf, ber_len_t len )
 	max = sbb->buf_end - sbb->buf_ptr;
 	max = ( max < len) ? max : len;
 	if ( max ) {
-		AC_MEMCPY( buf, sbb->buf_base + sbb->buf_ptr, max );
+		memcpy( buf, sbb->buf_base + sbb->buf_ptr, max );
 		sbb->buf_ptr += max;
 		if ( sbb->buf_ptr >= sbb->buf_end ) {
 			sbb->buf_ptr = sbb->buf_end = 0;
@@ -724,12 +724,12 @@ sb_fd_read( Sockbuf_IO_Desc *sbiod, void *buf, ber_len_t len )
 		ber_len_t blen = sbiod->sbiod_sb->sb_ungetlen;
 		if ( blen > len )
 			blen = len;
-		AC_MEMCPY( buf, sbiod->sbiod_sb->sb_ungetbuf, blen );
+		memcpy( buf, sbiod->sbiod_sb->sb_ungetbuf, blen );
 		buf = (char *) buf + blen;
 		len -= blen;
 		sbiod->sbiod_sb->sb_ungetlen -= blen;
 		if ( sbiod->sbiod_sb->sb_ungetlen ) {
-			AC_MEMCPY( sbiod->sbiod_sb->sb_ungetbuf,
+			memcpy( sbiod->sbiod_sb->sb_ungetbuf,
 				sbiod->sbiod_sb->sb_ungetbuf+blen,
 				sbiod->sbiod_sb->sb_ungetlen );
 		}

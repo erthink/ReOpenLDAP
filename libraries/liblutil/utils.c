@@ -329,8 +329,7 @@ lutil_memcopy(
 	size_t n
 )
 {
-	AC_MEMCPY(a, b, n);
-	return a + n;
+	return mempcpy(a, b, n);
 }
 
 #ifndef HAVE_MKSTEMP
@@ -708,7 +707,7 @@ scale( int new, lutil_int_decnum *prev, unsigned char *tmp )
 		prev->beg = prev->bufsiz - i;
 		prev->len = i;
 	}
-	AC_MEMCPY( prev->buf+prev->beg, tmp+prev->beg, prev->len );
+	memcpy( prev->buf+prev->beg, tmp+prev->beg, prev->len );
 }
 
 /* Convert unlimited length decimal or hex string to binary.

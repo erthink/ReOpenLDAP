@@ -1412,7 +1412,7 @@ parse_paged_cookie( Operation *op, SlapReply *rs )
 			goto done;
 		}
 
-		AC_MEMCPY( &reqcookie, ps->ps_cookieval.bv_val, sizeof( reqcookie ));
+		memcpy( &reqcookie, ps->ps_cookieval.bv_val, sizeof( reqcookie ));
 
 		if ( reqcookie > ps->ps_cookie ) {
 			/* bad cookie */
