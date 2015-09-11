@@ -571,21 +571,84 @@ __hot void* ber_memcpy_safe(void* dest, const void* src, size_t n) {
 	return memcpy(dest, src, n);
 }
 
+/*----------------------------------------------------------------------------*/
+
 static uint64_t clock_past;
 static pthread_mutex_t clock_mutex = PTHREAD_MUTEX_INITIALIZER;
+static int64_t clock_mono2real_ns;
 
-__hot void ldap_timespec(struct timespec *ts) {
-	if (! reopenldap_mode_idkfa()) {
-		LDAP_ENSURE(clock_gettime(CLOCK_REALTIME, ts) == 0);
-	} else {
-		uint64_t clock_now;
+__hot static uint64_t clock_ns(clockid_t clk_id) {
+	struct timespec ts;
+	LDAP_ENSURE(clock_gettime(clk_id, &ts) == 0);
+	return ts.tv_sec * 1000000000ull + ts.tv_nsec;
+}
+
+__cold static uint64_t sqr(int64_t v) {
+	return v * v;
+}
+
+__cold static int64_t clock_mono2real_delta() {
+	uint64_t real_a, mono_a, real_b, mono_b;
+	int64_t delta_a, delta_b, best_delta;
+	uint64_t best_dist, dist;
+	int i;
+
+	for(best_dist = best_delta = i = 0; i < 42; ) {
+		real_a = clock_ns(CLOCK_REALTIME);
+		mono_a = clock_ns(CLOCK_BOOTTIME);
+		real_b = clock_ns(CLOCK_REALTIME);
+		mono_b = clock_ns(CLOCK_BOOTTIME);
+
+		delta_a = real_a - mono_a;
+		delta_b = real_b - mono_b;
+
+		dist = sqr(real_b - real_a) + sqr(mono_b - mono_a)
+				+ sqr(delta_b - delta_a) * 2;
+
+		if (i == 0 || best_dist > dist) {
+			best_dist = dist;
+			best_delta = (delta_a + delta_b) / 2;
+			i = 1;
+			continue;
+		}
+		++i;
+	}
+
+	LDAP_ENSURE(best_delta > 0);
+	return best_delta;
+}
+
+__hot uint64_t ldap_now_ns() {
+	uint64_t clock_now;
+
+	if (unlikely(!clock_mono2real_ns)) {
 		LDAP_ENSURE(pthread_mutex_lock(&clock_mutex) == 0);
-		LDAP_ENSURE(clock_gettime(CLOCK_REALTIME, ts) == 0);
-		clock_now = ts->tv_sec * 1000000000ull + ts->tv_nsec;
+		if (!clock_mono2real_ns)
+			clock_mono2real_ns = clock_mono2real_delta();
+		LDAP_ENSURE(pthread_mutex_unlock(&clock_mutex) == 0);
+	}
+
+	if (reopenldap_mode_idkfa())
+		LDAP_ENSURE(pthread_mutex_lock(&clock_mutex) == 0);
+
+	if (reopenldap_mode_iddqd())
+		clock_now = clock_ns(CLOCK_BOOTTIME) + clock_mono2real_ns;
+	else
+		clock_now = clock_ns(CLOCK_REALTIME);
+
+	if (reopenldap_mode_idkfa()) {
 		LDAP_ENSURE(clock_past < clock_now);
 		clock_past = clock_now;
 		LDAP_ENSURE(pthread_mutex_unlock(&clock_mutex) == 0);
 	}
+
+	return clock_now;
+}
+
+__hot void ldap_timespec(struct timespec *ts) {
+	uint64_t clock_now = ldap_now_ns();
+	ts->tv_sec = clock_now / 1000000000ul;
+	ts->tv_nsec = clock_now % 1000000000ul;
 }
 
 __hot void ldap_timeval(struct timeval *tv) {
