@@ -45,32 +45,25 @@ extern int ldap_int_stackguard;
 #  define LDAP_INT_THREAD_MUTEXATTR_DEFAULT NULL
 #endif
 
-#ifdef LDAP_THREAD_DEBUG
-#  if defined LDAP_INT_THREAD_MUTEXATTR	/* May be defined in CPPFLAGS */
-#  elif defined HAVE_PTHREAD_KILL_OTHER_THREADS_NP
-	 /* LinuxThreads hack */
-#    define LDAP_INT_THREAD_MUTEXATTR	PTHREAD_MUTEX_ERRORCHECK_NP
-#  else
-#    define LDAP_INT_THREAD_MUTEXATTR	PTHREAD_MUTEX_ERRORCHECK
-#  endif
-static pthread_mutexattr_t mutex_attr;
-#  undef  LDAP_INT_THREAD_MUTEXATTR_DEFAULT
-#  define LDAP_INT_THREAD_MUTEXATTR_DEFAULT &mutex_attr
-#endif
-
 #if HAVE_PTHREADS < 7
 #define ERRVAL(val)	((val) < 0 ? errno : 0)
 #else
 #define ERRVAL(val)	(val)
 #endif
 
+static pthread_mutexattr_t mutex_attr_errorcheck;
+
+static pthread_mutexattr_t* ldap_mutex_attr() {
+	if (reopenldap_mode_idkfa())
+		return &mutex_attr_errorcheck;
+	return LDAP_INT_THREAD_MUTEXATTR_DEFAULT;
+}
+
 int
 ldap_int_thread_initialize( void )
 {
-#ifdef LDAP_INT_THREAD_MUTEXATTR
-	pthread_mutexattr_init( &mutex_attr );
-	pthread_mutexattr_settype( &mutex_attr, LDAP_INT_THREAD_MUTEXATTR );
-#endif
+	LDAP_ENSURE( pthread_mutexattr_init( &mutex_attr_errorcheck ) == 0 );
+	LDAP_ENSURE( pthread_mutexattr_settype( &mutex_attr_errorcheck, PTHREAD_MUTEX_ERRORCHECK ) == 0);
 	return 0;
 }
 
@@ -81,9 +74,7 @@ ldap_int_thread_destroy( void )
 	/* LinuxThreads: kill clones */
 	pthread_kill_other_threads_np();
 #endif
-#ifdef LDAP_INT_THREAD_MUTEXATTR
-	pthread_mutexattr_destroy( &mutex_attr );
-#endif
+	LDAP_ENSURE( pthread_mutexattr_destroy( &mutex_attr_errorcheck ) == 0);
 	return 0;
 }
 
@@ -314,7 +305,7 @@ ldap_pvt_thread_mutex_init( ldap_pvt_thread_mutex_t *mutex )
 {
 	int rc;
 	LDAP_JITTER(25);
-	rc = ERRVAL( pthread_mutex_init( mutex, LDAP_INT_THREAD_MUTEXATTR_DEFAULT ) );
+	rc = ERRVAL( pthread_mutex_init( mutex, ldap_mutex_attr() ) );
 	LDAP_ENSURE(rc == 0);
 	LDAP_JITTER(25);
 	return rc;
