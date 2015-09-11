@@ -215,7 +215,7 @@ relay_back_op( Operation *op, SlapReply *rs, int which )
 	} else if ( fail_mode & RB_OPERR ) {
 		rs->sr_err = rc;
 		if ( rc == LDAP_UNWILLING_TO_PERFORM ) {
-			rs->sr_text = "operation not supported within naming context";
+			rs->sr_text = "operation not supported within naming context (relay)";
 		}
 
 		if ( fail_mode & RB_SEND ) {

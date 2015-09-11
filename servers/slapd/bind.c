@@ -391,7 +391,7 @@ fe_op_bind( Operation *op, SlapReply *rs )
 
 	} else {
 		send_ldap_error( op, rs, LDAP_UNWILLING_TO_PERFORM,
-			"operation not supported within naming context" );
+			"operation not supported within naming context (bind)" );
 	}
 
 cleanup:;
