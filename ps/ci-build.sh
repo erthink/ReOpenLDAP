@@ -1,6 +1,6 @@
 #!/bin/bash
 
-#autoscan && libtoolize --force --automake --copy && aclocal -I build && autoheader && autoconf && automake --add-missing --copy
+[ -n "$CIBUZZ_PID4" ] && echo $BASHPID > $CIBUZZ_PID4
 
 failure() {
         echo "Oops, $* failed ;(" >&2
@@ -165,6 +165,7 @@ if [ $flag_clean -ne 0 ]; then
 fi
 
 if [ ! -s Makefile ]; then
+	# autoscan && libtoolize --force --automake --copy && aclocal -I build && autoheader && autoconf && automake --add-missing --copy
 	./configure \
 			--enable-debug --enable-backends --enable-overlays $NBD \
 			--enable-rewrite --enable-dynacl --enable-aci --enable-slapi \

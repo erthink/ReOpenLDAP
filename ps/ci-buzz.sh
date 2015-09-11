@@ -14,25 +14,30 @@ test_args="111"
 
 TOP=$(pwd)/@ci-buzz.pool
 RAM=$TOP/ramfs
-MAIN=$$
+MAINPID=$$
+function timestamp {
+	date -u +'%F %T'
+}
 
 function cleanup {
-	if [ $$ = $MAIN ]; then
+	if [ $BASHPID = $MAINPID ]; then
+		echo "Running cleanup:"
 		for ((n=0; n < N; n++)); do
 			for branch in $branch_list; do
-				echo "launching $n of $branch, with nice $nice..."
 				dir=$TOP/@$n.$branch
-				pid=$([ -s $TOP/@$n.$branch/pid ] && echo $TOP/@$n.$branch/pid)
+				pid=$([ -s $TOP/@$n.$branch/pid ] && cat $TOP/@$n.$branch/pid)
 				if [ -n "$pid" ]; then
-					echo "terminating pid $pid ($n of $branch)..."
-					pkill -P $pid && wait $pid
+					echo "Terminating pid $pid ($n of $branch)..."
+					pkill -P $pid && wait $pid 2>/dev/null
 				fi
 			done
 		done
-
-		pkill -P $$ && sleep 1
-		pkill -9 -P $$
+	else
+		echo "Skip cleanup for non-main pid $BASHPID"
 	fi
+
+	pkill -P $BASHPID && sleep 1
+	pkill -9 -P $BASHPID
 }
 
 trap cleanup TERM INT QUIT HUP
@@ -54,17 +59,18 @@ function doit {
 	export CIBUZZ_STATUS=$here/status CIBUZZ_PID4=$here/pid
 	echo "branch $branch"
 	echo "==============================================================================="
-	echo "$(date --rfc-3339=seconds) Preparing..." >$CIBUZZ_STATUS
+	echo "$(timestamp) Preparing..." >$CIBUZZ_STATUS
+	echo $BASHPID > $CIBUZZ_PID4
 	root=$(git rev-parse --show-toplevel)
 	([ -d src/.git ] || (rm -rf src && git clone --local --share -b $branch $root src)) \
 		&& cd src || failure git-clone
 	git fetch && git checkout -f $branch && git pull && git checkout origin/ps-build -- . \
 		|| failure git-checkout
 	echo "==============================================================================="
-	echo "$(date --rfc-3339=seconds) Building..." > $CIBUZZ_STATUS
+	echo "$(timestamp) Building..." > $CIBUZZ_STATUS
 	nice -n $nice $build $build_args || failure "$here/$build $build_args"
 	echo "==============================================================================="
-	echo "$(date --rfc-3339=seconds) Testing..." > $CIBUZZ_STATUS
+	echo "$(timestamp) Testing..." > $CIBUZZ_STATUS
 	NO_COLLECT_SUCCESS=yes TEST_TEMP_DIR=$(readlink -f ${here}/tmp) \
 		setsid -w nice -n $nice $test $test_args
 }
@@ -73,28 +79,32 @@ function doit {
 	|| (mkdir -p ${RAM} && sudo mount -t tmpfs RAM ${RAM})) \
 	|| failure "mount ${RAM}"
 
+started=$(date +%s)
 order=0
 for ((n=0; n < N; n++)); do
 	for branch in $branch_list; do
+		nice=$((5 + order * 2))
+		delay=$((order * 41))
 		echo "launching $n of $branch, with nice $nice..."
 		dir=$TOP/@$n.$branch
 		tmp=$(readlink -f ${RAM}/$n.$branch)
 		mkdir -p $dir || failure "mkdir -p $dir"
-		echo "launching..." >$dir/status
+		echo "delay $delay seconds..." >$dir/status
 		rm -rf $tmp $dir/tmp && mkdir -p $tmp && ln -s $tmp $dir/tmp || failure "mkdir -p $tmp"
 		( \
-			( sleep $((order * 41)) && cd $dir \
-				&& doit $branch $((5 + order * 2)) \
+			( sleep $delay && cd $dir \
+				&& doit $branch $nice \
 			) >$dir/out.log 2>$dir/err.log </dev/null; \
-			wait; echo "$(date --rfc-3339=seconds) *** exited" >$dir/status \
+			wait; echo "$(timestamp) *** exited" >$dir/status \
 		) &
 		order=$((order + 1))
 	done
 done
 
-while true; do
+while sleep 5; do
 	clear
-	echo "=== $(date --rfc-3339=seconds) job(s) left $(jobs -r | wc -l)"
+	/usr/bin/printf "=== %s, running %.2f hours, %d job(s) left\n" \
+		 "$(timestamp)" "$((($(date +%s)-started)/36)).0E-02" $(jobs -r | wc -l)
 	for branch in $branch_list; do
 		for ((n=0; n < N; n++)); do
 			dir="$TOP/@$n.$branch"
@@ -110,7 +120,7 @@ while true; do
 	uptime
 
 	if [ -z "$(jobs -r)" ]; then
-		break;
+		exit 0
 	fi
-	sleep 5
 done
+exit 1

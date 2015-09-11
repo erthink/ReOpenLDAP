@@ -12,7 +12,7 @@ function cleanup {
 	[ -n "$TMP" ] && rm -rf $TMP
 }
 
-[ -n "$CIBUZZ_PID4" ] && echo $$ > $CIBUZZ_PID4
+[ -n "$CIBUZZ_PID4" ] && echo $BASHPID > $CIBUZZ_PID4
 trap cleanup TERM INT QUIT HUP
 
 function failure {
