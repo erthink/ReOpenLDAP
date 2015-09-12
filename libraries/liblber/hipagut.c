@@ -574,6 +574,11 @@ __hot void* ber_memcpy_safe(void* dest, const void* src, size_t n) {
 /*----------------------------------------------------------------------------*/
 
 static uint64_t clock_past, clock_past_us;
+#ifdef CLOCK_BOOTTIME
+static clockid_t clock_mono_id;
+#else
+#	define clock_mono_id CLOCK_MONOTONIC
+#endif /* CLOCK_BOOTTIME */
 static unsigned clock_us_subtick;
 static pthread_mutex_t clock_mutex = PTHREAD_MUTEX_INITIALIZER;
 static int64_t clock_mono2real_ns;
@@ -594,11 +599,20 @@ __cold static int64_t clock_mono2real_delta() {
 	uint64_t best_dist, dist;
 	int i;
 
+#ifdef CLOCK_BOOTTIME
+	if (! clock_mono_id) {
+		struct timespec ts;
+
+		clock_mono_id = (clock_gettime(CLOCK_BOOTTIME, &ts) == 0)
+				? CLOCK_BOOTTIME : CLOCK_MONOTONIC;
+	}
+#endif /* CLOCK_BOOTTIME */
+
 	for(best_dist = best_delta = i = 0; i < 42; ) {
 		real_a = clock_ns(CLOCK_REALTIME);
-		mono_a = clock_ns(CLOCK_BOOTTIME);
+		mono_a = clock_ns(clock_mono_id);
 		real_b = clock_ns(CLOCK_REALTIME);
-		mono_b = clock_ns(CLOCK_BOOTTIME);
+		mono_b = clock_ns(clock_mono_id);
 
 		delta_a = real_a - mono_a;
 		delta_b = real_b - mono_b;
@@ -633,7 +647,7 @@ __hot uint64_t ldap_now_ns() {
 		LDAP_ENSURE(pthread_mutex_lock(&clock_mutex) == 0);
 
 	if (reopenldap_mode_iddqd())
-		clock_now = clock_ns(CLOCK_BOOTTIME) + clock_mono2real_ns;
+		clock_now = clock_ns(clock_mono_id) + clock_mono2real_ns;
 	else
 		clock_now = clock_ns(CLOCK_REALTIME);
 
@@ -661,7 +675,7 @@ __hot unsigned ldap_timeval(struct timeval *tv) {
 		clock_mono2real_ns = clock_mono2real_delta();
 
 	if (reopenldap_mode_iddqd())
-		clock_now = clock_ns(CLOCK_BOOTTIME) + clock_mono2real_ns;
+		clock_now = clock_ns(clock_mono_id) + clock_mono2real_ns;
 	else
 		clock_now = clock_ns(CLOCK_REALTIME);
 
