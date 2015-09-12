@@ -37,7 +37,8 @@ echo "======================================================================="
 step_begin "configure"
 
 LDFLAGS="-Wl,--as-needed,-Bsymbolic,--gc-sections,-O,-zignore"
-CFLAGS="-Wall -Os -free -g -include $(readlink -f $(dirname $0)/ps/glibc-225.h)"
+CFLAGS="-Wall -fvisibility=hidden -Os -g -include $(readlink -f $(dirname $0)/ps/glibc-225.h)"
+LIBS="-Wl,--no-as-needed,-lrt"
 
 if [ -n "$(which gcc)" ] && gcc -v 2>&1 | grep -q -i lto \
 	&& [ -n "$(which gcc-ar)" -a -n "$(which gcc-nm)" -a -n "$(which gcc-ranlib)" ]
@@ -46,11 +47,11 @@ then
 #	CFLAGS+=" -D_LTO_BUG_WORKAROUND -save-temps"
 #	LDFLAGS+=",$(readlink -f ps/glibc-225.o)"
 	echo "*** Link-Time Optimization (LTO) will be used" >&2
-	CFLAGS+=" -flto -fno-fat-lto-objects -flto-partition=none"
+	CFLAGS+=" -free -flto -fno-fat-lto-objects -flto-partition=none"
 	export CC=gcc AR=gcc-ar NM=gcc-nm RANLIB=gcc-ranlib
 fi
 
-export CFLAGS LDFLAGS CXXFLAGS="$CFLAGS"
+export CFLAGS LDFLAGS LIBS CXXFLAGS="$CFLAGS"
 
 ./configure \
 	--prefix=${PREFIX} --enable-dynacl --enable-ldap \
