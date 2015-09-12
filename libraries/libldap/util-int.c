@@ -59,7 +59,6 @@ extern int h_errno;
 # include <ldap_pvt_thread.h>
   ldap_pvt_thread_mutex_t ldap_int_resolv_mutex;
   ldap_pvt_thread_mutex_t ldap_int_hostname_mutex;
-  static ldap_pvt_thread_mutex_t ldap_int_gettime_mutex;
 
 # if (defined( HAVE_CTIME_R ) || defined( HAVE_REENTRANT_FUNCTIONS)) \
 	 && defined( CTIME_R_NARGS )
@@ -185,29 +184,10 @@ void
 ldap_pvt_gettime( struct lutil_tm *ltm )
 {
 	struct timeval tv;
-	static struct timeval prevTv;
-	static int subs;
-
 	struct tm tm;
-	time_t t;
 
-	ldap_timeval( &tv );
-	t = tv.tv_sec;
-
-	LDAP_MUTEX_LOCK( &ldap_int_gettime_mutex );
-	if ( tv.tv_sec < prevTv.tv_sec
-		|| ( tv.tv_sec == prevTv.tv_sec && tv.tv_usec <= prevTv.tv_usec )) {
-		subs++;
-	} else {
-		subs = 0;
-		prevTv = tv;
-	}
-	LDAP_MUTEX_UNLOCK( &ldap_int_gettime_mutex );
-
-	ltm->tm_usub = subs;
-
-	ldap_pvt_gmtime( &t, &tm );
-
+	ltm->tm_usub = ldap_timeval( &tv );
+	ldap_pvt_gmtime( &tv.tv_sec, &tm );
 	ltm->tm_sec = tm.tm_sec;
 	ltm->tm_min = tm.tm_min;
 	ltm->tm_hour = tm.tm_hour;
@@ -529,8 +509,6 @@ void ldap_int_utils_init( void )
 	ldap_pvt_thread_mutex_init( &ldap_int_resolv_mutex );
 
 	ldap_pvt_thread_mutex_init( &ldap_int_hostname_mutex );
-
-	ldap_pvt_thread_mutex_init( &ldap_int_gettime_mutex );
 
 #ifdef HAVE_GSSAPI
 	ldap_pvt_thread_mutex_init( &ldap_int_gssapi_mutex );

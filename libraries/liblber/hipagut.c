@@ -573,7 +573,8 @@ __hot void* ber_memcpy_safe(void* dest, const void* src, size_t n) {
 
 /*----------------------------------------------------------------------------*/
 
-static uint64_t clock_past;
+static uint64_t clock_past, clock_past_us;
+static unsigned clock_us_subtick;
 static pthread_mutex_t clock_mutex = PTHREAD_MUTEX_INITIALIZER;
 static int64_t clock_mono2real_ns;
 
@@ -651,11 +652,35 @@ __hot void ldap_timespec(struct timespec *ts) {
 	ts->tv_nsec = clock_now % 1000000000ul;
 }
 
-__hot void ldap_timeval(struct timeval *tv) {
-	struct timespec ts;
-	ldap_timespec(&ts);
-	tv->tv_sec = ts.tv_sec;
-	tv->tv_usec = ts.tv_nsec / 1000u;
+__hot unsigned ldap_timeval(struct timeval *tv) {
+	uint64_t clock_now, us;
+	unsigned subtick;
+
+	LDAP_ENSURE(pthread_mutex_lock(&clock_mutex) == 0);
+	if (unlikely(!clock_mono2real_ns))
+		clock_mono2real_ns = clock_mono2real_delta();
+
+	if (reopenldap_mode_iddqd())
+		clock_now = clock_ns(CLOCK_BOOTTIME) + clock_mono2real_ns;
+	else
+		clock_now = clock_ns(CLOCK_REALTIME);
+
+	if (reopenldap_mode_idkfa()) {
+		LDAP_ENSURE(clock_past < clock_now);
+		clock_past = clock_now;
+	}
+
+	us = clock_now / 1000u;
+	subtick = 0;
+	if (unlikely(clock_past_us == us))
+		subtick = clock_us_subtick + 1;
+	clock_us_subtick = subtick;
+	clock_past_us = us;
+	LDAP_ENSURE(pthread_mutex_unlock(&clock_mutex) == 0);
+
+	tv->tv_sec = us / 1000000u;
+	tv->tv_usec = us % 1000000u;
+	return subtick;
 }
 
 __hot time_t ldap_time(time_t *p) {
