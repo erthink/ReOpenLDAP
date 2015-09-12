@@ -65,7 +65,7 @@ PACKAGE="$(grep VERSION= Makefile | cut -d ' ' -f 2).${BUILD_NUMBER}"
 echo "PACKAGE: $PACKAGE"
 
 mkdir -p ${PREFIX}/bin \
-	&& (git log --no-merges --date=short --pretty=format:"%ad %s" $(git describe --always --abbrev=0 --tags).. \
+	&& (git log --no-merges --dense --date=short --pretty=format:"%ad %s" $(git describe --always --abbrev=0 --tags HEAD^1~1).. \
 		| tr -s ' ' ' ' | grep -v ' ITS#[0-9]\{4\}$' | sort -r | uniq -u \
 	&& /bin/echo -e "\nPackage version: $PACKAGE\nSource code tag: $(git describe --abbrev=15 --long --always --tags)" ) > ${PREFIX}/changelog.txt \
 	|| failure "fix-1"
