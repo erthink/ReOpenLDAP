@@ -37,6 +37,14 @@
 #endif
 
 #define	UUIDLEN	16
+#define HASHUUID 65003u /* LY: someone prime */
+typedef struct presentlist {
+	void *opacity;
+} presentlist_t;
+static int presentlist_insert( presentlist_t *list, struct berval *syncUUID );
+static void presentlist_delete( presentlist_t *list, struct berval *syncUUID );
+static char *presentlist_find( presentlist_t *list, struct berval *syncUUID );
+static void presentlist_free( presentlist_t *list );
 
 /* LY: This should be different from any error-code in ldap.h,
  *	   the -42 seems good... */
@@ -124,7 +132,7 @@ typedef struct syncinfo_s {
 	int			si_strict_refresh;	/* stop listening during fallback refresh */
 	int			si_too_old;
 	ber_int_t	si_msgid;
-	Avlnode			*si_presentlist;
+	presentlist_t	si_presentlist;
 	LDAP			*si_ld;
 	Connection		*si_conn;
 	LDAP_LIST_HEAD(np, nonpresent_entry)	si_nonpresentlist;
@@ -135,11 +143,6 @@ typedef struct syncinfo_s {
 	ldap_pvt_thread_mutex_t	si_mutex;
 } syncinfo_t;
 
-static int syncuuid_cmp( const void *, const void * );
-static int presentlist_insert( syncinfo_t* si, struct berval *syncUUID );
-static void presentlist_delete( Avlnode **av, struct berval *syncUUID );
-static char *presentlist_find( Avlnode *av, struct berval *syncUUID );
-static int presentlist_free( Avlnode *av );
 static void syncrepl_del_nonpresent( Operation *, syncinfo_t *, BerVarray, struct sync_cookie *, int );
 static int syncrepl_message_to_op(
 					syncinfo_t *, Operation *, LDAPMessage * );
@@ -1312,9 +1315,8 @@ do_syncrep_process(
 					syncrepl_enough_sids( si, syncCookie_req.numcsns, &syncCookie ) )
 				{
 					syncrepl_del_nonpresent( op, si, NULL, &syncCookie, m );
-				} else if ( si->si_presentlist ) {
-					presentlist_free( si->si_presentlist );
-					si->si_presentlist = NULL;
+				} else {
+					presentlist_free( &si->si_presentlist );
 				}
 			}
 			if ( syncCookie.ctxcsn && match < 0 && err == LDAP_SUCCESS )
@@ -1470,7 +1472,7 @@ do_syncrep_process(
 						} else {
 							int i;
 							for ( i = 0; !BER_BVISNULL( &syncUUIDs[i] ); i++ ) {
-								(void)presentlist_insert( si, &syncUUIDs[i] );
+								presentlist_insert( &si->si_presentlist, &syncUUIDs[i] );
 								slap_sl_free( syncUUIDs[i].bv_val, op->o_tmpmemctx );
 							}
 							slap_sl_free( syncUUIDs, op->o_tmpmemctx );
@@ -1514,10 +1516,7 @@ do_syncrep_process(
 					{
 						rc = syncrepl_updateCookie( si, op, &syncCookie);
 					}
-					if ( si->si_presentlist ) {
-						presentlist_free( si->si_presentlist );
-						si->si_presentlist = NULL;
-					}
+					presentlist_free( &si->si_presentlist );
 				}
 
 				ldap_memfree( retoid );
@@ -1705,10 +1704,7 @@ do_syncrepl(
 		si->si_refreshDelete = 0;
 		si->si_refreshPresent = 0;
 
-		if ( si->si_presentlist ) {
-		    presentlist_free( si->si_presentlist );
-		    si->si_presentlist = NULL;
-		}
+		presentlist_free( &si->si_presentlist );
 
 		/* use main DB when retrieving contextCSN */
 		op->o_bd = si->si_wbe;
@@ -2844,6 +2840,89 @@ done:
 	return rc;
 }
 
+static void
+presentlist_free( presentlist_t *list )
+{
+	if (list->opacity) {
+#if HASHUUID
+		Avlnode **array = (Avlnode **) list->opacity;
+		int i = HASHUUID;
+
+		while(--i >= 0) {
+			if (array[i]) {
+				avl_free( array[i], ch_free );
+			}
+		}
+		ch_free( list->opacity );
+#else
+		avl_free( list->opacity, ch_free );
+#endif
+		list->opacity = NULL;
+	}
+}
+
+static int
+syncuuid_cmp( const void* a, const void* b )
+{
+	return memcmp( a, b, UUIDLEN );
+}
+
+static __inline Avlnode**
+presentlist_avl(presentlist_t *list, struct berval *uuid)
+{
+#if HASHUUID
+	Avlnode **array = (Avlnode **) list->opacity;
+	unsigned *body = (unsigned *)(uuid->bv_val);
+	/* LY: malloc() always return aligned */
+	size_t i = body[0] % HASHUUID;
+	return &array[i];
+#else
+	return &list->opacity;
+#endif
+}
+
+/* return 1 if inserted, 0 otherwise */
+static int
+presentlist_insert(
+	presentlist_t *list,
+	struct berval *uuid )
+{
+	/* LY: sizeof block will be rounded up by malloc(),
+	 * so there is no reason to request a couple of bytes smaller. */
+	char *copy = ch_malloc(UUIDLEN);
+	memcpy( copy, uuid->bv_val, UUIDLEN );
+
+#if HASHUUID
+	if (unlikely( !list->opacity ))
+		list->opacity = ch_calloc(HASHUUID, sizeof( Avlnode * ));
+#endif
+
+	if ( avl_insert( presentlist_avl(list, uuid), copy, syncuuid_cmp, avl_dup_error ) ) {
+		ch_free( copy );
+		return 0;
+	}
+	return 1;
+}
+
+static char *
+presentlist_find(
+	presentlist_t *list,
+	struct berval *uuid )
+{
+	if (likely(list->opacity))
+		return avl_find( *presentlist_avl(list, uuid), uuid->bv_val, syncuuid_cmp );
+	return NULL;
+}
+
+static void
+presentlist_delete(
+		presentlist_t *list,
+		struct berval *uuid )
+{
+	if (likely(list->opacity))
+		avl_delete( presentlist_avl(list, uuid), uuid->bv_val, syncuuid_cmp );
+}
+
 static struct berval generic_filterstr = BER_BVC("(objectclass=*)");
 
 /* During a refresh, we may get an LDAP_SYNC_ADD for an already existing
@@ -2879,105 +2958,6 @@ typedef struct dninfo {
 	AttributeDescription *newDesc;	/* for renames */
 } dninfo;
 
-#define HASHUUID	1
-
-/* return 1 if inserted, 0 otherwise */
-static int
-presentlist_insert(
-	syncinfo_t* si,
-	struct berval *syncUUID )
-{
-	char *val;
-
-#ifdef HASHUUID
-	Avlnode **av;
-	unsigned short s;
-
-	if ( !si->si_presentlist )
-		si->si_presentlist = ch_calloc(65536, sizeof( Avlnode * ));
-
-	av = (Avlnode **)si->si_presentlist;
-
-	val = ch_malloc(UUIDLEN-2);
-	memcpy(&s, syncUUID->bv_val, 2);
-	memcpy(val, syncUUID->bv_val+2, UUIDLEN-2);
-
-	if ( avl_insert( &av[s], val,
-		syncuuid_cmp, avl_dup_error ) )
-	{
-		ch_free( val );
-		return 0;
-	}
-#else
-	val = ch_malloc(UUIDLEN);
-
-	memcpy( val, syncUUID->bv_val, UUIDLEN );
-
-	if ( avl_insert( &si->si_presentlist, val,
-		syncuuid_cmp, avl_dup_error ) )
-	{
-		ch_free( val );
-		return 0;
-	}
-#endif
-
-	return 1;
-}
-
-static char *
-presentlist_find(
-	Avlnode *av,
-	struct berval *val )
-{
-#ifdef HASHUUID
-	if (unlikely(! av))
-		return NULL;
-	Avlnode **a2 = (Avlnode **)av;
-	unsigned short s;
-
-	memcpy(&s, val->bv_val, 2);
-	return avl_find( a2[s], val->bv_val+2, syncuuid_cmp );
-#else
-	return avl_find( av, val->bv_val, syncuuid_cmp );
-#endif
-}
-
-static int
-presentlist_free( Avlnode *av )
-{
-#ifdef HASHUUID
-	Avlnode **a2 = (Avlnode **)av;
-	int i, count = 0;
-
-	if ( av ) {
-		for (i=0; i<65536; i++) {
-			if (a2[i])
-				count += avl_free( a2[i], ch_free );
-		}
-		ch_free( av );
-	}
-	return count;
-#else
-	return avl_free( av, ch_free );
-#endif
-}
-
-static void
-presentlist_delete(
-	Avlnode **av,
-	struct berval *val )
-{
-#ifdef HASHUUID
-	Avlnode **a2 = *(Avlnode ***)av;
-	unsigned short s;
-
-	memcpy(&s, val->bv_val, 2);
-	avl_delete( &a2[s], val->bv_val+2, syncuuid_cmp );
-#else
-	avl_delete( av, val->bv_val, syncuuid_cmp );
-#endif
-}
-
 static int
 syncrepl_entry(
 	syncinfo_t* si,
@@ -3008,7 +2988,7 @@ syncrepl_entry(
 
 	if (( syncstate == LDAP_SYNC_PRESENT || syncstate == LDAP_SYNC_ADD ) ) {
 		if ( !si->si_refreshPresent && !si->si_refreshDone ) {
-			syncuuid_inserted = presentlist_insert( si, syncUUID );
+			syncuuid_inserted = presentlist_insert( &si->si_presentlist, syncUUID );
 		}
 	}
 
@@ -3573,6 +3553,7 @@ syncrepl_del_nonpresent(
 	struct berval pdn = BER_BVNULL;
 	struct berval csn;
 	assert(slap_biglock_owned(op->o_bd));
+	assert(LDAP_LIST_EMPTY( &si->si_nonpresentlist ));
 
 #ifdef ENABLE_REWRITE
 	if ( si->si_rewrite ) {
@@ -4500,20 +4481,17 @@ nonpresent_callback(
 {
 	syncinfo_t *si = op->o_callback->sc_private;
 	Attribute *a;
-	int count ALLOW_UNUSED = 0;
 	char *present_uuid = NULL;
 	struct nonpresent_entry *np_entry;
 
 	if ( rs->sr_type == REP_RESULT ) {
-		count = presentlist_free( si->si_presentlist );
-		si->si_presentlist = NULL;
-
+		presentlist_free( &si->si_presentlist );
 	} else if ( rs->sr_type == REP_SEARCH ) {
 		if ( !( si->si_refreshDelete & NP_DELETE_ONE ) ) {
 			a = attr_find( rs->sr_entry->e_attrs, slap_schema.si_ad_entryUUID );
 
 			if ( a ) {
-				present_uuid = presentlist_find( si->si_presentlist, &a->a_nvals[0] );
+				present_uuid = presentlist_find( &si->si_presentlist, &a->a_nvals[0] );
 			}
 
 			if ( LogTest( LDAP_DEBUG_SYNC ) ) {
@@ -4665,16 +4643,6 @@ done:;
 	return new;
 }
 
-static int
-syncuuid_cmp( const void* v_uuid1, const void* v_uuid2 )
-{
-#ifdef HASHUUID
-	return ( memcmp( v_uuid1, v_uuid2, UUIDLEN-2 ));
-#else
-	return ( memcmp( v_uuid1, v_uuid2, UUIDLEN ));
-#endif
-}
-
 void
 syncinfo_free( syncinfo_t *sie, int free_all )
 {
@@ -4772,9 +4740,7 @@ syncinfo_free( syncinfo_t *sie, int free_all )
 			ch_free( sie->si_retrynum_init );
 		}
 		slap_sync_cookie_free( &sie->si_syncCookie, 0 );
-		if ( sie->si_presentlist ) {
-		    presentlist_free( sie->si_presentlist );
-		}
+		presentlist_free( &sie->si_presentlist );
 		while ( !LDAP_LIST_EMPTY( &sie->si_nonpresentlist ) ) {
 			struct nonpresent_entry* npe;
 			npe = LDAP_LIST_FIRST( &sie->si_nonpresentlist );
@@ -5490,7 +5456,6 @@ add_syncrepl(
 	si->si_tlimit = 0;
 	si->si_slimit = 0;
 
-	si->si_presentlist = NULL;
 	LDAP_LIST_INIT( &si->si_nonpresentlist );
 	ldap_pvt_thread_mutex_init( &si->si_mutex );
 
