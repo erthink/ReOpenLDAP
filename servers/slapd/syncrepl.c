@@ -899,9 +899,6 @@ static void syncrepl_refresh_end( syncinfo_t *si, int rc ) {
 				   si->si_ridtxt, rc, (int) (si->si_refreshEnd - si->si_refreshBeg) );
 		}
 	}
-	quorum_notify_status( si->si_be, si->si_rid, si->si_refreshDone );
-	rc = quorum_syncrepl_gate(si->si_be, si, 0);
-	assert(rc == 0);
 }
 
 static int
@@ -1568,6 +1565,7 @@ do_syncrep_process(
 
 done:
 	slap_biglock_release_ex(op->o_bd, biglock_flag);
+
 	if ( err != LDAP_SUCCESS ) {
 		Debug( LDAP_DEBUG_ANY,
 			"do_syncrep_process: %s (%d) %s\n",
@@ -1589,6 +1587,10 @@ done:
 		ldap_unbind_ext( si->si_ld, NULL, NULL );
 		si->si_ld = NULL;
 	}
+
+	quorum_notify_status( si->si_be, si->si_rid,
+		err == LDAP_SUCCESS && rc == LDAP_SUCCESS && si->si_refreshDone );
+	quorum_syncrepl_gate( si->si_be, si, 0 );
 
 	return rc;
 }
