@@ -304,7 +304,7 @@ slap_parse_sync_cookie(
 	AttributeDescription *ad = slap_schema.si_ad_entryCSN;
 
 	if ( cookie == NULL )
-		return -1;
+		goto bailout;
 
 	cookie->rid = -1;
 	cookie->sid = -1;
@@ -313,7 +313,7 @@ slap_parse_sync_cookie(
 	cookie->numcsns = 0;
 
 	if ( cookie->octet_str.bv_len <= STRLENOF( "rid=" ) )
-		return -1;
+		goto bailout;
 
 	end = cookie->octet_str.bv_val + cookie->octet_str.bv_len;
 
@@ -327,7 +327,7 @@ slap_parse_sync_cookie(
 				cookie->rid < 0 ||
 				cookie->rid > SLAP_SYNC_RID_MAX )
 			{
-				return -1;
+				goto bailout;
 			}
 			if ( *next == ',' ) {
 				next++;
@@ -347,7 +347,7 @@ slap_parse_sync_cookie(
 				cookie->sid < 0 ||
 				cookie->sid > SLAP_SYNC_SID_MAX )
 			{
-				return -1;
+				goto bailout;
 			}
 			if ( *next == ',' ) {
 				next++;
@@ -408,7 +408,16 @@ slap_parse_sync_cookie(
 		if ( cookie->numcsns > 1 )
 			slap_sort_csn_sids( cookie->ctxcsn, cookie->sids, cookie->numcsns, memctx );
 	}
-	return 0;
+	return LDAP_SUCCESS;
+
+bailout:
+	cookie->rid = -1;
+	cookie->sid = -1;
+	cookie->ctxcsn = NULL;
+	cookie->sids = NULL;
+	cookie->numcsns = 0;
+
+	return LDAP_PROTOCOL_ERROR;
 }
 
 /* count the numcsns and regenerate the list of SIDs in a recomposed cookie */
