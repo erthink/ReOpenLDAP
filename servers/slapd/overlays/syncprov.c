@@ -895,8 +895,10 @@ syncprov_unlink_syncop( syncops *so, int unlink_flags, int lock_flags )
 		unused = 1;
 	}
 	ldap_pvt_thread_mutex_unlock( &so->s_mutex );
+	/* LY: after the so->s_mutex was released and unused != 0
+	 * the so may be freed immediately by another thread.
+	 * Therefore so should NOT be touched later. */
 
-	assert(so->s_si->si_leftover > 0);
 	if (unused) {
 		reslink *rl, *rlnext;
 
@@ -919,7 +921,7 @@ syncprov_unlink_syncop( syncops *so, int unlink_flags, int lock_flags )
 			ch_free( rl );
 		}
 
-		__sync_fetch_and_sub(&so->s_si->si_leftover, 1);
+		LDAP_ENSURE(__sync_fetch_and_sub(&so->s_si->si_leftover, 1) > 0);
 		so->s_si = NULL;
 		so->s_op = NULL;
 
