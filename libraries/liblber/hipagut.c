@@ -515,6 +515,8 @@ void __attribute__((constructor)) reopenldap_flags_init() {
 		flags |= REOPENLDAP_FLAG_IDDQD;
 	if (getenv("REOPENLDAP_FORCE_IDKFA"))
 		flags |= REOPENLDAP_FLAG_IDKFA;
+	if (getenv("REOPENLDAP_FORCE_IDCLIP"))
+		flags |= REOPENLDAP_FLAG_IDCLIP;
 	if (getenv("REOPENLDAP_FORCE_JITTER"))
 		flags |= REOPENLDAP_FLAG_JITTER;
 	reopenldap_flags_setup(flags);
@@ -523,6 +525,7 @@ void __attribute__((constructor)) reopenldap_flags_init() {
 void reopenldap_flags_setup(int flags) {
 	reopenldap_flags = flags & (REOPENLDAP_FLAG_IDDQD
 								| REOPENLDAP_FLAG_IDKFA
+								| REOPENLDAP_FLAG_IDCLIP
 								| REOPENLDAP_FLAG_JITTER);
 
 #if LDAP_MEMORY_DEBUG > 0
