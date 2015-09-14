@@ -203,7 +203,7 @@ sidsort_cmp(
 
 int slap_check_same_server(BackendDB *bd, int sid) {
 	return ( sid == slap_serverID
-			&& reopenldap_mode_iddqd() && SLAP_MULTIMASTER(bd) ) ? -1 : 0;
+			&& reopenldap_mode_idclip() && SLAP_MULTIMASTER(bd) ) ? -1 : 0;
 }
 
 int

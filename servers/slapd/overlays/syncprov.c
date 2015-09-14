@@ -3608,6 +3608,9 @@ static int syncprov_parseCtrl (
 				sr->sr_state.ctxcsn = NULL;
 			}
 			sr->sr_state.numcsns = 0;
+
+			if (reopenldap_mode_idclip())
+				return LDAP_PROTOCOL_ERROR;
 		}
 	}
 

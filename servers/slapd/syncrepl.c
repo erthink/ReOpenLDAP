@@ -813,7 +813,8 @@ syncrepl_enough_sids( syncinfo_t *si, int req_numcsns, struct sync_cookie *cooki
 	if (req_numcsns != cookie->numcsns)
 		return 0;
 
-	if (reopenldap_mode_iddqd()
+	if (reopenldap_mode_idclip()
+			/* LY: are whenever there are multiple data sources possible? */
 			&& (SLAP_MULTIMASTER( si->si_be ) || si->si_be != si->si_wbe )) {
 		struct sync_cookie *current = &si->si_syncCookie;
 
