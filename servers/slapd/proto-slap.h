@@ -53,21 +53,6 @@ LDAP_SLAPD_F (int) slap_biglock_pool_pause LDAP_P(( BackendDB *be ));
 LDAP_SLAPD_F (int) slap_biglock_pool_pausecheck LDAP_P(( BackendDB *be ));
 LDAP_SLAPD_F (void) slap_biglock_pool_resume LDAP_P(( BackendDB *be ));
 
-#define slap_biglock_acquire_ex(be, flag_locked) \
-	do { \
-		assert(!flag_locked); \
-		slap_biglock_acquire(be); \
-		flag_locked = 1; \
-	} while(0)
-
-#define slap_biglock_release_ex(be, flag_locked) \
-	do { \
-		if (flag_locked) { \
-			flag_locked = 0; \
-			slap_biglock_release(be); \
-		} \
-	} while(0)
-
 /*
  * aci.c
  */

@@ -929,8 +929,7 @@ do_syncrep_process(
 
 	int		refreshDeletes = 0;
 	char empty[6] = "empty";
-
-	int biglock_flag = 0;
+	int biglocked = 0;
 
 	if ( slapd_shutdown ) {
 		rc = -2;
@@ -940,19 +939,11 @@ do_syncrep_process(
 	ber_init2( ber, NULL, LBER_USE_DER );
 	ber_set_option( ber, LBER_OPT_BER_MEMCTX, &op->o_tmpmemctx );
 
-	Debug( LDAP_DEBUG_TRACE, "=>do_syncrep_process %s\n", si->si_ridtxt );
+	Debug( LDAP_DEBUG_TRACE, "=>> do_syncrep_process %s\n", si->si_ridtxt );
 
 	slap_dup_sync_cookie( &syncCookie_req, &si->si_syncCookie );
 
-	if ( abs(si->si_type) == LDAP_SYNC_REFRESH_AND_PERSIST && si->si_refreshDone ) {
-		tout_p = &tout;
-	} else {
-		tout_p = NULL;
-	}
-
-	while ( ( rc = ldap_result( si->si_ld, si->si_msgid, LDAP_MSG_ONE,
-		tout_p, &msg ) ) > 0 )
-	{
+	for (;;) {
 		int				match, punlock, syncstate;
 		struct berval	*retdata, syncUUID[2], cookie = BER_BVNULL;
 		char			*retoid;
@@ -963,13 +954,29 @@ do_syncrep_process(
 		Entry			*entry = NULL;
 		struct berval	bdn;
 
-		if ( slapd_shutdown ) {
-			rc = -2;
-			goto done;
+		tout_p = NULL; /* wait infinite */
+		if ( abs(si->si_type) == LDAP_SYNC_REFRESH_AND_PERSIST && si->si_refreshDone )
+			tout_p = &tout; /* no wait */
+
+		if (! tout_p && biglocked) {
+			slap_biglock_release(op->o_bd);
+			biglocked = 0;
 		}
 
-		/* LY: this is ugly solution, but just a reasonable fix. */
-		slap_biglock_acquire_ex (op->o_bd, biglock_flag);
+		rc = ldap_result( si->si_ld, si->si_msgid, LDAP_MSG_ONE, tout_p, &msg );
+		if (slapd_shutdown)
+			rc = -2;
+		if (rc <= 0)
+			break;
+
+		if (! biglocked) {
+			/* LY: this is ugly solution, on other hand,
+			 * it is reasonable and necessary.
+			 * See https://github.com/ReOpen/ReOpenLDAP/issues/43
+			 */
+			slap_biglock_acquire (op->o_bd);
+			biglocked = 1;
+		}
 
 		switch( ldap_msgtype( msg ) ) {
 		case LDAP_RES_SEARCH_ENTRY:
@@ -1150,7 +1157,6 @@ do_syncrep_process(
 					case LDAP_TYPE_OR_VALUE_EXISTS:
 					case LDAP_NOT_ALLOWED_ON_NONLEAF:
 						si->si_logstate = SYNCLOG_FALLBACK;
-						slap_biglock_release_ex(op->o_bd, biglock_flag);
 						ldap_abandon_ext( si->si_ld, si->si_msgid, NULL, NULL );
 						bdn.bv_val[bdn.bv_len] = '\0';
 						Debug( LDAP_DEBUG_SYNC, "do_syncrep_process: %s delta-sync lost sync on (%s), switching to REFRESH (%d)\n",
@@ -1220,7 +1226,6 @@ do_syncrep_process(
 			}
 #endif
 			if ( err == LDAP_SYNC_REFRESH_REQUIRED ) {
-				slap_biglock_release_ex(op->o_bd, biglock_flag);
 				if ( si->si_logstate == SYNCLOG_LOGGING ) {
 					si->si_logstate = SYNCLOG_FALLBACK;
 					Debug( LDAP_DEBUG_SYNC, "do_syncrep_process: %s delta-sync lost sync, switching to REFRESH\n",
@@ -1325,7 +1330,6 @@ do_syncrep_process(
 			if ( err == LDAP_SUCCESS
 				&& si->si_logstate == SYNCLOG_FALLBACK ) {
 				si->si_logstate = SYNCLOG_LOGGING;
-				slap_biglock_release_ex(op->o_bd, biglock_flag);
 				rc = LDAP_SYNC_REFRESH_REQUIRED;
 				slap_resume_listeners();
 			} else {
@@ -1486,7 +1490,6 @@ do_syncrep_process(
 						si->si_ridtxt, (long) si_tag );
 					ldap_memfree( retoid );
 					ber_bvfree( retdata );
-					slap_biglock_release_ex(op->o_bd, biglock_flag);
 					continue;
 				}
 
@@ -1541,18 +1544,14 @@ do_syncrep_process(
 			break;
 		}
 
-		slap_biglock_release_ex(op->o_bd, biglock_flag);
 		if ( !BER_BVISNULL( &syncCookie.octet_str ) ) {
 			slap_sync_cookie_free( &syncCookie_req, 0 );
 			syncCookie_req = syncCookie;
 			memset( &syncCookie, 0, sizeof( syncCookie ));
 		}
-		ldap_msgfree( msg );
-		msg = NULL;
 		if ( ldap_pvt_thread_pool_pausing( &connection_pool )) {
-			slap_sync_cookie_free( &syncCookie, 0 );
-			slap_sync_cookie_free( &syncCookie_req, 0 );
-			return SYNC_PAUSED;
+			rc = SYNC_PAUSED;
+			break;
 		}
 	}
 
@@ -1563,34 +1562,36 @@ do_syncrep_process(
 	}
 
 done:
-	slap_biglock_release_ex(op->o_bd, biglock_flag);
-
 	if ( err != LDAP_SUCCESS ) {
 		Debug( LDAP_DEBUG_ANY,
 			"do_syncrep_process: %s (%d) %s\n",
 			si->si_ridtxt, err, ldap_err2string( err ) );
 	}
 
+	if (si->si_ld) {
+		if ( rc && rc != LDAP_SYNC_REFRESH_REQUIRED && rc != SYNC_PAUSED) {
+			if ( si->si_conn ) {
+				Debug( LDAP_DEBUG_ANY,
+					"do_syncrep_process: %s client-stop\n", si->si_ridtxt);
+				connection_client_stop( si->si_conn );
+				si->si_conn = NULL;
+			}
+			ldap_unbind_ext( si->si_ld, NULL, NULL );
+			si->si_ld = NULL;
+		}
+	}
+
 	slap_sync_cookie_free( &syncCookie, 0 );
 	slap_sync_cookie_free( &syncCookie_req, 0 );
-
-	if ( msg ) ldap_msgfree( msg );
-
-	if ( rc && rc != LDAP_SYNC_REFRESH_REQUIRED && si->si_ld ) {
-		if ( si->si_conn ) {
-			Debug( LDAP_DEBUG_ANY,
-				"do_syncrep_process: %s client-stop\n", si->si_ridtxt);
-			connection_client_stop( si->si_conn );
-			si->si_conn = NULL;
-		}
-		ldap_unbind_ext( si->si_ld, NULL, NULL );
-		si->si_ld = NULL;
-	}
+	ldap_msgfree( msg );
 
 	quorum_notify_status( si->si_be, si->si_rid,
 		err == LDAP_SUCCESS && rc == LDAP_SUCCESS && si->si_refreshDone );
 	quorum_syncrepl_gate( si->si_be, si, 0 );
+	if (biglocked)
+		slap_biglock_release(op->o_bd);
 
+	Debug( LDAP_DEBUG_TRACE, "<<= do_syncrep_process %s\n", si->si_ridtxt );
 	return rc;
 }
 
