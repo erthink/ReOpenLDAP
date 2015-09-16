@@ -143,7 +143,9 @@ typedef struct syncinfo_s {
 	ldap_pvt_thread_mutex_t	si_mutex;
 } syncinfo_t;
 
-static void syncrepl_del_nonpresent( Operation *, syncinfo_t *, BerVarray, struct sync_cookie *, int );
+static void syncrepl_del_nonpresent(
+					Operation *, syncinfo_t *, BerVarray syncUUIDs,
+					struct sync_cookie *, int which );
 static int syncrepl_message_to_op(
 					syncinfo_t *, Operation *, LDAPMessage * );
 static int syncrepl_message_to_entry(
@@ -2633,6 +2635,53 @@ done:
 	return rc;
 }
 
+static int csn_peek_origin(BerValue *csn)
+{
+	char* endptr;
+	int sid;
+
+	if (csn->bv_val[21] != 'Z' || csn->bv_val[29] != '#')
+		return -1;
+
+	endptr = NULL;
+	sid = strtol(csn->bv_val + 30, &endptr, 16);
+	if (! endptr || (*endptr != '#' && *endptr))
+		return -1;
+
+	return sid;
+}
+
+static int compare_csn(const BerValue *a, const char* b) {
+	return memcmp(a->bv_val, b, 29);
+}
+
+static int check_for_retard(syncinfo_t *si, struct sync_cookie *sc,
+							BerValue *csn_present)
+{
+	int i, origin, rc = 0;
+
+	if (SLAP_MULTIMASTER(si->si_be)) {
+		if (csn_present && csn_present->bv_len > 31 && sc) {
+			origin = csn_peek_origin(csn_present);
+			if (origin > -1) {
+				/* LY: The locally-present entry is newer (e.g. was added after
+				 * deletion) if no a CSN in the cookie for the same SID of entryCSN
+				 * or this CSN is more recent than in the cookie. */
+				rc = 1;
+				for(i = 0; i < sc->numcsns; ++i) {
+					if (origin == sc->sids[i]) {
+						if (compare_csn(csn_present, sc->ctxcsn[i].bv_val) < 0)
+							rc = 0;
+						break;
+					}
+				}
+			}
+		}
+	}
+
+	return rc;
+}
+
 static int
 syncrepl_message_to_entry(
 	syncinfo_t	*si,
@@ -3533,16 +3582,21 @@ static struct berval gcbva[] = {
 
 #define NP_DELETE_ONE	2
 
+struct nonpresent_context {
+	slap_callback cb;
+	struct sync_cookie *sc;
+};
+
 static void
 syncrepl_del_nonpresent(
 	Operation *op,
 	syncinfo_t *si,
-	BerVarray uuids,
+	BerVarray syncUUIDs,
 	struct sync_cookie *sc,
-	int m )
+	int which )
 {
 	Backend* be = op->o_bd;
-	slap_callback	cb = { NULL };
+	struct nonpresent_context cx = {{ NULL }};
 	struct nonpresent_entry *np_list, *np_prev;
 	int rc;
 	AttributeName	an[2];
@@ -3563,17 +3617,17 @@ syncrepl_del_nonpresent(
 		op->o_req_ndn = si->si_base;
 	}
 
-	cb.sc_response = nonpresent_callback;
-	cb.sc_private = si;
-
-	op->o_callback = &cb;
+	cx.cb.sc_response = nonpresent_callback;
+	cx.cb.sc_private = si;
+	cx.sc = sc;
+	op->o_callback = &cx.cb;
 	op->o_tag = LDAP_REQ_SEARCH;
 	op->ors_scope = si->si_scope;
 	op->ors_deref = LDAP_DEREF_NEVER;
 	op->o_time = slap_get_time();
 	op->ors_tlimit = SLAP_NO_LIMIT;
 
-	if ( uuids ) {
+	if ( syncUUIDs ) {
 		Filter uf;
 		AttributeAssertion eq = ATTRIBUTEASSERTION_INIT;
 		int i;
@@ -3589,11 +3643,14 @@ syncrepl_del_nonpresent(
 		uf.f_choice = LDAP_FILTER_EQUALITY;
 		si->si_refreshDelete |= NP_DELETE_ONE;
 
-		for (i=0; uuids[i].bv_val; i++) {
+		Debug( LDAP_DEBUG_SYNC, "syncrepl_del_nonpresent: %s, by-uuid list\n",
+			   si->si_ridtxt );
+
+		for (i=0; syncUUIDs[i].bv_val; i++) {
 			SlapReply rs_search = {REP_RESULT};
 
 			op->ors_slimit = 1;
-			uf.f_av_value = uuids[i];
+			uf.f_av_value = syncUUIDs[i];
 			filter2bv_x( op, op->ors_filter, &op->ors_filterstr );
 			rc = be->be_search( op, &rs_search );
 			op->o_tmpfree( op->ors_filterstr.bv_val, op->o_tmpmemctx );
@@ -3616,8 +3673,7 @@ syncrepl_del_nonpresent(
 		op->ors_filter = filter_dup( si->si_filter, op->o_tmpmemctx );
 		/* In multimaster, updates can continue to arrive while
 		 * we're searching. Limit the search result to entries
-		 * older than our newest/oldest cookie CSN,
-		 * depends on iddqd-mode.
+		 * older than our newest cookie CSN.
 		 */
 		if ( SLAP_MULTIMASTER( op->o_bd ) && sc->numcsns) {
 			Filter *f;
@@ -3635,8 +3691,7 @@ syncrepl_del_nonpresent(
 			f->f_next = NULL;
 			f->f_av_value = sc->ctxcsn[0];
 			for ( i=1; i<sc->numcsns; i++ ) {
-				int csncmp = ber_bvcmp( &sc->ctxcsn[i], &f->f_av_value );
-				if ( reopenldap_mode_iddqd() ? csncmp < 0 : csncmp > 0 )
+				if ( compare_csn( &sc->ctxcsn[i], f->f_av_value.bv_val ) > 0 )
 					f->f_av_value = sc->ctxcsn[i];
 			}
 			of = op->ors_filter;
@@ -3661,8 +3716,8 @@ syncrepl_del_nonpresent(
 
 	if ( !LDAP_LIST_EMPTY( &si->si_nonpresentlist ) ) {
 
-		if ( sc->ctxcsn && !BER_BVISNULL( &sc->ctxcsn[m] ) ) {
-			csn = sc->ctxcsn[m];
+		if ( sc->ctxcsn && !BER_BVISNULL( &sc->ctxcsn[which] ) ) {
+			csn = sc->ctxcsn[which];
 		} else {
 			csn = si->si_syncCookie.ctxcsn[0];
 		}
@@ -3678,9 +3733,8 @@ syncrepl_del_nonpresent(
 			np_prev = np_list;
 			np_list = LDAP_LIST_NEXT( np_list, npe_link );
 			op->o_tag = LDAP_REQ_DELETE;
-			op->o_callback = &cb;
-			cb.sc_response = null_callback;
-			cb.sc_private = si;
+			op->o_callback = &cx.cb;
+			cx.cb.sc_response = null_callback;
 			op->o_req_dn = *np_prev->npe_name;
 			op->o_req_ndn = *np_prev->npe_nname;
 			rc = op->o_bd->bd_info->bi_op_delete( op, &rs_delete );
@@ -3721,7 +3775,7 @@ syncrepl_del_nonpresent(
 				op->o_delete_glue_parent = 0;
 				if ( !be_issuffix( be, &op->o_req_ndn ) ) {
 					slap_callback cb = { NULL };
-					cb.sc_response = slap_null_cb;
+					cb.sc_response = null_callback;
 					dnParent( &op->o_req_ndn, &pdn );
 					op->o_req_dn = pdn;
 					op->o_req_ndn = pdn;
@@ -4479,43 +4533,66 @@ nonpresent_callback(
 	SlapReply*	rs )
 {
 	syncinfo_t *si = op->o_callback->sc_private;
-	Attribute *a;
+	struct sync_cookie *sc = ((struct nonpresent_context*) op->o_callback)->sc;
 	char *present_uuid = NULL;
 	struct nonpresent_entry *np_entry;
 
 	if ( rs->sr_type == REP_RESULT ) {
 		presentlist_free( &si->si_presentlist );
 	} else if ( rs->sr_type == REP_SEARCH ) {
+		Attribute *uuid = NULL;
 		if ( !( si->si_refreshDelete & NP_DELETE_ONE ) ) {
-			a = attr_find( rs->sr_entry->e_attrs, slap_schema.si_ad_entryUUID );
-
-			if ( a ) {
-				present_uuid = presentlist_find( &si->si_presentlist, &a->a_nvals[0] );
+			uuid = attr_find( rs->sr_entry->e_attrs, slap_schema.si_ad_entryUUID );
+			if ( ! uuid ) {
+				Debug( LDAP_DEBUG_SYNC, "nonpresent_callback: entry %s missing UUID\n",
+					   rs->sr_entry->e_name.bv_val);
+				return LDAP_SUCCESS;
 			}
 
-			if ( LogTest( LDAP_DEBUG_SYNC ) ) {
-				char buf[sizeof("rid=999 non")];
-
-				snprintf( buf, sizeof(buf), "%s %s", si->si_ridtxt,
-					present_uuid ? "" : "non" );
-
-				Debug( LDAP_DEBUG_SYNC, "nonpresent_callback: %spresent UUID %s, dn %s\n",
-					buf, a ? a->a_vals[0].bv_val : "<missing>", rs->sr_entry->e_name.bv_val );
-			}
-
-			if ( a == NULL ) return 0;
+			present_uuid = presentlist_find( &si->si_presentlist, &uuid->a_nvals[0] );
 		}
 
-		if ( present_uuid == NULL ) {
+		if ( LogTest(LDAP_DEBUG_SYNC) && ! uuid ) {
+			uuid = attr_find( rs->sr_entry->e_attrs, slap_schema.si_ad_entryUUID );
+		}
+
+		if ( present_uuid ) {
+			Debug( LDAP_DEBUG_SYNC, "nonpresent_callback: %s UUID %s, dn %s, %s\n",
+				si->si_ridtxt,
+				uuid ? uuid->a_vals[0].bv_val : "n/a",
+				rs->sr_entry->e_name.bv_val,
+				"PRESENT" );
+			presentlist_delete( &si->si_presentlist, &uuid->a_nvals[0] );
+			ch_free( present_uuid );
+		} else {
+			if (! is_entry_glue( rs->sr_entry )) {
+				Attribute *csn_present = attr_find(
+					rs->sr_entry->e_attrs, slap_schema.si_ad_entryCSN );
+				/* LY: Assumes that entry should not be deleted if its entryCSN
+				 * is recent than the CSN for the same SID in the cookie.
+				 * E.g. entry was created on a some SID, later than the provider
+				 * was synchronized with these SID. */
+				if (csn_present && check_for_retard(si, sc, csn_present->a_vals)) {
+					Debug( LDAP_DEBUG_SYNC,
+						"nonpresent_callback: %s UUID %s, dn %s, %s, entryCSN %s\n",
+						   si->si_ridtxt,
+						   uuid ? uuid->a_vals[0].bv_val : "n/a",
+						   rs->sr_entry->e_name.bv_val,
+						"recent-PRESENT", csn_present->a_vals->bv_val );
+					return LDAP_SUCCESS;
+				}
+			}
 			np_entry = (struct nonpresent_entry *)
 				ch_calloc( 1, sizeof( struct nonpresent_entry ) );
 			np_entry->npe_name = ber_dupbv( NULL, &rs->sr_entry->e_name );
 			np_entry->npe_nname = ber_dupbv( NULL, &rs->sr_entry->e_nname );
 			LDAP_LIST_INSERT_HEAD( &si->si_nonpresentlist, np_entry, npe_link );
 
-		} else {
-			presentlist_delete( &si->si_presentlist, &a->a_nvals[0] );
-			ch_free( present_uuid );
+			Debug( LDAP_DEBUG_SYNC, "nonpresent_callback: %s UUID %s, dn %s, %s\n",
+				   si->si_ridtxt,
+				   uuid ? uuid->a_vals[0].bv_val : "n/a",
+				   rs->sr_entry->e_name.bv_val,
+				"NON-PRESENT" );
 		}
 	}
 	return LDAP_SUCCESS;
