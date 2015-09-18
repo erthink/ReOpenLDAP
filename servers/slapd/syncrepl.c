@@ -406,7 +406,7 @@ init_syncrepl(syncinfo_t *si)
 }
 
 static int
-ldap_sync_search(
+syncrepl_search_provider(
 	syncinfo_t *si,
 	void *ctx )
 {
@@ -789,7 +789,7 @@ syncrep_start(
 			quorum_notify_csn( si->si_be, si->si_syncCookie.sids[i] );
 	}
 
-	rc = ldap_sync_search( si, op->o_tmpmemctx );
+	rc = syncrepl_search_provider( si, op->o_tmpmemctx );
 
 	if ( rc != LDAP_SUCCESS ) {
 		Debug( LDAP_DEBUG_ANY, "syncrep_start: %s "
@@ -1729,7 +1729,7 @@ reload:
 				slap_compose_sync_cookie( NULL, &si->si_syncCookie.octet_str,
 					si->si_syncCookie.ctxcsn, si->si_syncCookie.rid,
 					si->si_syncCookie.sid );
-			rc = ldap_sync_search( si, op->o_tmpmemctx );
+			rc = syncrepl_search_provider( si, op->o_tmpmemctx );
 			goto reload;
 		}
 		syncrepl_refresh_end(si, rc);
