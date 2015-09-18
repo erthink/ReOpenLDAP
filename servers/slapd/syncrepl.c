@@ -809,18 +809,17 @@ done:
 }
 
 static int
-syncrepl_enough_sids( syncinfo_t *si, int req_numcsns, struct sync_cookie *cookie )
+syncrepl_enough_sids( syncinfo_t *si, struct sync_cookie *cookie )
 {
 	int i, j;
+	struct sync_cookie *current = &si->si_syncCookie;
 
-	if (req_numcsns != cookie->numcsns)
+	if ( cookie->numcsns != current->numcsns )
 		return 0;
 
 	if (reopenldap_mode_idclip()
 			/* LY: are whenever there are multiple data sources possible? */
 			&& (SLAP_MULTIMASTER( si->si_be ) || si->si_be != si->si_wbe )) {
-		struct sync_cookie *current = &si->si_syncCookie;
-
 		/* LY: check for all SIDs from current is exists in cookie,
 		 * include for local sid if exists. */
 		for(i = current->numcsns; --i >= 0; ) {
@@ -1312,7 +1311,7 @@ do_syncrep_process(
 				 */
 				if ( refreshDeletes == 0 && match < 0 &&
 					err == LDAP_SUCCESS &&
-					syncrepl_enough_sids( si, syncCookie_req.numcsns, &syncCookie ) )
+					syncrepl_enough_sids( si, &syncCookie ) )
 				{
 					syncrepl_del_nonpresent( op, si, NULL, &syncCookie, m );
 				} else {
@@ -1507,7 +1506,7 @@ do_syncrep_process(
 				if ( match < 0 ) {
 					if ( si->si_refreshPresent == 1 &&
 						si_tag != LDAP_TAG_SYNC_NEW_COOKIE &&
-						syncrepl_enough_sids( si, syncCookie_req.numcsns, &syncCookie ) ) {
+						syncrepl_enough_sids( si, &syncCookie ) ) {
 						syncrepl_del_nonpresent( op, si, NULL,
 							&syncCookie, m );
 					}
