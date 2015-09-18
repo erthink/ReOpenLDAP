@@ -26,6 +26,17 @@
 #include "slap.h"
 #include "lutil_ldap.h"
 
+struct slap_csn_entry {
+	struct berval ce_csn;
+	int ce_sid;
+#define SLAP_CSN_PENDING	1
+#define SLAP_CSN_COMMIT		2
+	int ce_state;
+	unsigned long ce_opid;
+	unsigned long ce_connid;
+	LDAP_TAILQ_ENTRY (slap_csn_entry) ce_csn_link;
+};
+
 const struct berval slap_ldapsync_bv = BER_BVC("ldapsync");
 const struct berval slap_ldapsync_cn_bv = BER_BVC("cn=ldapsync");
 int slap_serverID;
@@ -52,15 +63,16 @@ slap_get_commit_csn(
 
 	ldap_pvt_thread_mutex_lock( &be->be_pcl_mutex );
 
-	if ( !BER_BVISEMPTY( &op->o_csn )) {
-		sid = slap_parse_csn_sid( &op->o_csn );
-	}
-
-	LDAP_TAILQ_FOREACH( csne, be->be_pending_csn_list, ce_csn_link ) {
-		if ( csne->ce_opid == op->o_opid && csne->ce_connid == op->o_connid ) {
-			csne->ce_state = SLAP_CSN_COMMIT;
-			if ( foundit ) *foundit = 1;
-			break;
+	if (op) {
+		if ( !BER_BVISEMPTY( &op->o_csn )) {
+			sid = slap_parse_csn_sid( &op->o_csn );
+		}
+		LDAP_TAILQ_FOREACH( csne, be->be_pending_csn_list, ce_csn_link ) {
+			if ( csne->ce_opid == op->o_opid && csne->ce_connid == op->o_connid ) {
+				csne->ce_state = SLAP_CSN_COMMIT;
+				if ( foundit ) *foundit = 1;
+				break;
+			}
 		}
 	}
 
@@ -196,4 +208,20 @@ slap_get_csn(
 		slap_queue_csn( op, csn );
 
 	return LDAP_SUCCESS;
+}
+
+void slap_free_commit_csn_list( struct be_pcl *list)
+{
+	struct slap_csn_entry *csne;
+
+	csne = LDAP_TAILQ_FIRST( list );
+	while ( csne ) {
+		struct slap_csn_entry *tmp_csne = csne;
+
+		LDAP_TAILQ_REMOVE( list, csne, ce_csn_link );
+		ch_free( csne->ce_csn.bv_val );
+		csne = LDAP_TAILQ_NEXT( csne, ce_csn_link );
+		ch_free( tmp_csne );
+	}
+	ch_free( list );
 }
