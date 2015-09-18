@@ -177,21 +177,33 @@ slap_queue_csn(
 	struct slap_csn_entry *pending;
 	BackendDB *be = op->o_bd->bd_self;
 
-	pending = (struct slap_csn_entry *) ch_calloc( 1,
-			sizeof( struct slap_csn_entry ));
-
-	Debug( LDAP_DEBUG_SYNC, "slap_queue_csn: queueing %p %s\n", csn->bv_val, csn->bv_val );
-
 	ldap_pvt_thread_mutex_lock( &be->be_pcl_mutex );
 
-	ber_dupbv( &pending->ce_csn, csn );
-	ber_bvreplace_x( &op->o_csn, &pending->ce_csn, op->o_tmpmemctx );
-	pending->ce_sid = slap_parse_csn_sid( csn );
-	pending->ce_connid = op->o_connid;
-	pending->ce_opid = op->o_opid;
-	pending->ce_state = SLAP_CSN_PENDING;
-	LDAP_TAILQ_INSERT_TAIL( be->be_pending_csn_list,
-		pending, ce_csn_link );
+	LDAP_TAILQ_FOREACH( pending, be->be_pending_csn_list, ce_csn_link ) {
+		if (pending->ce_opid == op->o_opid && pending->ce_connid == op->o_connid) {
+			if (reopenldap_mode_idkfa())
+				LDAP_BUG();
+			break;
+		}
+	}
+
+	if (likely(pending == NULL)) {
+		pending = (struct slap_csn_entry *) ch_calloc( 1,
+				sizeof( struct slap_csn_entry ));
+		Debug( LDAP_DEBUG_SYNC, "slap_queue_csn: queueing %p (conn %ld, opid %ld) %s\n",
+			   pending, op->o_connid, op->o_opid, csn->bv_val );
+		ber_dupbv( &pending->ce_csn, csn );
+		assert( BER_BVISNULL( &op->o_csn ));
+		ber_bvreplace_x( &op->o_csn, &pending->ce_csn, op->o_tmpmemctx );
+		pending->ce_sid = slap_parse_csn_sid( csn );
+		assert(pending->ce_sid > -1);
+		pending->ce_connid = op->o_connid;
+		pending->ce_opid = op->o_opid;
+		pending->ce_state = SLAP_CSN_PENDING;
+		LDAP_TAILQ_INSERT_TAIL( be->be_pending_csn_list,
+			pending, ce_csn_link );
+	}
+
 	ldap_pvt_thread_mutex_unlock( &be->be_pcl_mutex );
 }
 
