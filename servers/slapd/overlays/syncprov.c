@@ -2021,25 +2021,16 @@ syncprov_op_response( Operation *op, SlapReply *rs )
 		}
 
 		si->si_numops++;
-		if ( si->si_chkops || si->si_chktime ) {
-			/* Never checkpoint adding the context entry,
-			 * it will deadlock
-			 */
-			if ( op->o_tag != LDAP_REQ_ADD ||
-				!dn_match( &op->o_req_ndn, &si->si_contextdn )) {
-				if ( si->si_chkops && si->si_numops >= si->si_chkops ) {
-					do_check = 1;
-					si->si_numops = 0;
-				}
-				if ( si->si_chktime &&
-					(op->o_time - si->si_chklast >= si->si_chktime )) {
-					if ( si->si_chklast ) {
-						do_check = 1;
-						si->si_chklast = op->o_time;
-					} else {
-						si->si_chklast = 1;
-					}
-				}
+		/* Never checkpoint adding the context entry,
+		 * it will deadlock
+		 */
+		if ( op->o_tag != LDAP_REQ_ADD ||
+			!dn_match( &op->o_req_ndn, &si->si_contextdn )) {
+			if ( (si->si_chkops && si->si_numops >= si->si_chkops)
+			|| (si->si_chktime && op->o_time - si->si_chklast >= si->si_chktime) ) {
+				si->si_chklast = op->o_time;
+				si->si_numops = 0;
+				do_check = 1;
 			}
 		}
 		si->si_dirty = !csn_changed;
