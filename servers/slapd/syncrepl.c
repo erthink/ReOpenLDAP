@@ -553,6 +553,7 @@ check_syncprov(
 		int num = a.a_numvals;
 		/* check for differences */
 		if ( num != si->si_cookieState->cs_num ) {
+			assert(num > si->si_cookieState->cs_num);
 			changed = 1;
 		} else {
 			for ( i=0; i<num; i++ ) {
@@ -564,8 +565,10 @@ check_syncprov(
 			}
 		}
 		if ( changed ) {
+			/* LY: loads a entire snapshot into si_cookieState */
 			ber_bvarray_free( si->si_cookieState->cs_vals );
 			ch_free( si->si_cookieState->cs_sids );
+			assert(num >= si->si_cookieState->cs_num);
 			si->si_cookieState->cs_num = num;
 			si->si_cookieState->cs_vals = a.a_nvals;
 			si->si_cookieState->cs_sids = slap_parse_csn_sids( a.a_nvals,
@@ -581,39 +584,40 @@ check_syncprov(
 	 * this particular consumer. That includes other consumers in
 	 * the same context, or local changes detected above.
 	 */
-	if ( si->si_cookieState->cs_num > 0 && si->si_cookieAge !=
-		si->si_cookieState->cs_age ) {
-		if ( !si->si_syncCookie.numcsns ) {
-			ber_bvarray_free( si->si_syncCookie.ctxcsn );
-			ber_bvarray_dup_x( &si->si_syncCookie.ctxcsn,
-				si->si_cookieState->cs_vals, NULL );
-			changed = 1;
-		} else {
-			for (i=0; !BER_BVISNULL( &si->si_syncCookie.ctxcsn[i] ); i++) {
-				/* bogus, just dup everything */
-				if ( si->si_syncCookie.sids[i] == -1 ) {
+	if ( si->si_cookieAge != si->si_cookieState->cs_age ) {
+		/* LY: merge si_cookieState into si_syncCookie, not just a copy! */
+		for (j = 0; j < si->si_cookieState->cs_num; j++) {
+			for (i = 0; i < si->si_syncCookie.numcsns; i++) {
+				if (unlikely( si->si_syncCookie.sids[i] < 0
+						/* LY: Hm, is this  possible? */
+						|| BER_BVISNULL( &si->si_syncCookie.ctxcsn[i] ))) {
+					/* bogus, just dup everything */
 					ber_bvarray_free( si->si_syncCookie.ctxcsn );
 					ber_bvarray_dup_x( &si->si_syncCookie.ctxcsn,
 						si->si_cookieState->cs_vals, NULL );
-					changed = 1;
-					break;
+					goto paranoia;
 				}
-				for (j=0; j<si->si_cookieState->cs_num; j++) {
-					if ( si->si_syncCookie.sids[i] !=
-						si->si_cookieState->cs_sids[j] )
-						continue;
-					if ( bvmatch( &si->si_syncCookie.ctxcsn[i],
-						&si->si_cookieState->cs_vals[j] ))
-						break;
-					ber_bvreplace( &si->si_syncCookie.ctxcsn[i],
-						&si->si_cookieState->cs_vals[j] );
-					changed = 1;
+				if ( si->si_syncCookie.sids[i] == si->si_cookieState->cs_sids[j] )
 					break;
-				}
+			}
+			if (i == si->si_syncCookie.numcsns) {
+				si->si_syncCookie.numcsns += 1;
+				ber_bvarray_add( &si->si_syncCookie.ctxcsn,
+					ber_bvdup( &si->si_cookieState->cs_vals[j] ) );
+				si->si_syncCookie.sids = ch_realloc( si->si_syncCookie.sids,
+					sizeof(si->si_syncCookie.sids[0]) * si->si_syncCookie.numcsns);
+				si->si_syncCookie.sids[i] = si->si_cookieState->cs_sids[j];
+				changed = 1;
+			} else if (! bvmatch( &si->si_syncCookie.ctxcsn[i],
+					&si->si_cookieState->cs_vals[j])) {
+				ber_bvreplace( &si->si_syncCookie.ctxcsn[i],
+					&si->si_cookieState->cs_vals[j] );
+				changed = 1;
 			}
 		}
 	}
 	if ( changed ) {
+	paranoia:
 		si->si_cookieAge = si->si_cookieState->cs_age;
 		ch_free( si->si_syncCookie.octet_str.bv_val );
 		slap_compose_sync_cookie( NULL, &si->si_syncCookie.octet_str,
