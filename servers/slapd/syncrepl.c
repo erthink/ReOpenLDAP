@@ -2980,6 +2980,7 @@ syncrepl_entry(
 	dninfo dni = {0};
 	int	retry = 1;
 	int	freecsn = 1;
+	int do_graduate = 0;
 
 	Debug( LDAP_DEBUG_SYNC,
 		"syncrepl_entry: %s LDAP_RES_SEARCH_ENTRY(LDAP_SYNC_%s)\n",
@@ -3095,6 +3096,7 @@ syncrepl_entry(
 	assert( BER_BVISNULL( &op->o_csn ) );
 	if ( syncCSN ) {
 		slap_queue_csn( op, syncCSN );
+		do_graduate = 1;
 	}
 
 	slap_op_time( &op->o_time, &op->o_tincr );
@@ -3210,7 +3212,6 @@ retry_add:;
 					si->si_ridtxt, op->o_req_dn.bv_val, rs_add.sr_err );
 				break;
 			}
-			syncCSN = NULL;
 			op->o_bd = be;
 			goto done;
 		}
@@ -3388,8 +3389,10 @@ retry_add:;
 				if ( dni.mods ) {
 					mod = dni.mods;
 					/* don't set a CSN for the rename op */
-					if ( syncCSN )
+					if ( do_graduate ) {
 						slap_graduate_commit_csn( op );
+						do_graduate = 0;
+					}
 				} else {
 					mod = op->orr_modlist;
 					just_rename = 1;
@@ -3424,10 +3427,10 @@ retry_modrdn:;
 			op->o_req_dn = entry->e_name;
 			op->o_req_ndn = entry->e_nname;
 			/* Use CSN on the modify */
-			if ( just_rename )
-				syncCSN = NULL;
-			else if ( syncCSN )
+			if ( ! just_rename && syncCSN ) {
 				slap_queue_csn( op, syncCSN );
+				do_graduate = 1;
+			}
 		}
 		if ( dni.mods ) {
 			SlapReply rs_modify = {REP_RESULT};
@@ -3448,16 +3451,11 @@ retry_modrdn:;
 					"syncrepl_entry: %s be_modify failed (%d)\n",
 					si->si_ridtxt, rs_modify.sr_err );
 			}
-			syncCSN = NULL;
 			op->o_bd = be;
 		} else if ( !dni.renamed ) {
 			Debug( LDAP_DEBUG_SYNC,
 					"syncrepl_entry: %s entry unchanged, ignored (%s)\n",
 					si->si_ridtxt, op->o_req_dn.bv_val );
-			if ( syncCSN ) {
-				slap_graduate_commit_csn( op );
-				syncCSN = NULL;
-			}
 		}
 		goto done;
 	case LDAP_SYNC_DELETE :
@@ -3467,8 +3465,9 @@ retry_modrdn:;
 			op->o_req_ndn = dni.ndn;
 			op->o_tag = LDAP_REQ_DELETE;
 			op->o_bd = si->si_wbe;
-			if ( !syncCSN ) {
+			if ( ! syncCSN ) {
 				slap_queue_csn( op, si->si_syncCookie.ctxcsn );
+				do_graduate = 1;
 			}
 			rc = op->o_bd->bd_info->bi_op_delete( op, &rs_delete );
 			Debug( rc ? LDAP_DEBUG_ANY : LDAP_DEBUG_SYNC,
@@ -3493,7 +3492,6 @@ retry_modrdn:;
 					break;
 				}
 			}
-			syncCSN = NULL;
 			op->o_bd = be;
 		}
 		goto done;
@@ -3505,9 +3503,8 @@ retry_modrdn:;
 	}
 
 done:
-	if ( syncCSN ) {
+	if ( do_graduate )
 		slap_graduate_commit_csn( op );
-	}
 
 	slap_sl_free( syncUUID[1].bv_val, op->o_tmpmemctx );
 	BER_BVZERO( &syncUUID[1] );
@@ -4059,6 +4056,8 @@ syncrepl_updateCookie(
 		if ( e == op->ora_e )
 			be_entry_release_w( op, op->ora_e );
 	}
+
+	slap_graduate_commit_csn(op);
 
 	op->orm_no_opattrs = 0;
 	op->o_dont_replicate = 0;
