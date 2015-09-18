@@ -86,24 +86,6 @@ slap_get_commit_csn(
 }
 
 void
-slap_rewind_commit_csn( Operation *op )
-{
-	struct slap_csn_entry *csne;
-	BackendDB *be = op->o_bd->bd_self;
-
-	ldap_pvt_thread_mutex_lock( &be->be_pcl_mutex );
-
-	LDAP_TAILQ_FOREACH( csne, be->be_pending_csn_list, ce_csn_link ) {
-		if ( csne->ce_opid == op->o_opid && csne->ce_connid == op->o_connid ) {
-			csne->ce_state = SLAP_CSN_PENDING;
-			break;
-		}
-	}
-
-	ldap_pvt_thread_mutex_unlock( &be->be_pcl_mutex );
-}
-
-void
 slap_graduate_commit_csn( Operation *op )
 {
 	struct slap_csn_entry *csne;
