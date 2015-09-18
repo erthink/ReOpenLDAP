@@ -97,24 +97,29 @@ slap_get_commit_csn(
 	ldap_pvt_thread_mutex_unlock( &be->be_pcl_mutex );
 }
 
-void
+int
 slap_graduate_commit_csn( Operation *op )
 {
 	struct slap_csn_entry *csne;
 	BackendDB *be;
+	int found = 0;
 
-	if ( op == NULL ) return;
-	if ( op->o_bd == NULL ) return;
+	if ( op == NULL ) return found;
+	if ( op->o_bd == NULL ) return found;
 	be = op->o_bd->bd_self;
+	if (! be->be_pending_csn_list) return found;
 
 	ldap_pvt_thread_mutex_lock( &be->be_pcl_mutex );
 
 	LDAP_TAILQ_FOREACH( csne, be->be_pending_csn_list, ce_csn_link ) {
 		if ( csne->ce_opid == op->o_opid && csne->ce_connid == op->o_connid ) {
+			Debug( LDAP_DEBUG_SYNC, "slap_graduate_commit_csn: removing %p (conn %ld, opid %ld) %s\n",
+				csne, csne->ce_connid, csne->ce_opid, csne->ce_csn.bv_val );
+			assert(csne->ce_state > 0);
+			assert(strcmp(op->o_csn.bv_val, csne->ce_csn.bv_val) == 0);
+			found = csne->ce_state;
 			LDAP_TAILQ_REMOVE( be->be_pending_csn_list,
 				csne, ce_csn_link );
-			Debug( LDAP_DEBUG_SYNC, "slap_graduate_commit_csn: removing %p %s\n",
-				csne->ce_csn.bv_val, csne->ce_csn.bv_val );
 			if ( op->o_csn.bv_val == csne->ce_csn.bv_val ) {
 				BER_BVZERO( &op->o_csn );
 			}
@@ -126,7 +131,7 @@ slap_graduate_commit_csn( Operation *op )
 
 	ldap_pvt_thread_mutex_unlock( &be->be_pcl_mutex );
 
-	return;
+	return found;
 }
 
 static struct berval ocbva[] = {
