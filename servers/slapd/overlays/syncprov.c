@@ -1911,7 +1911,7 @@ syncprov_op_response( Operation *op, SlapReply *rs )
 	{
 		struct berval maxcsn;
 		char cbuf[LDAP_PVT_CSNSTR_BUFSIZE];
-		int do_check = 0, have_psearches, foundit, csn_changed = 0;
+		int do_check = 0, have_psearches, csn_changed = 0, maxcsn_sid;
 
 		ldap_pvt_thread_mutex_lock( &si->si_resp_mutex );
 
@@ -1921,7 +1921,7 @@ syncprov_op_response( Operation *op, SlapReply *rs )
 		maxcsn.bv_len = sizeof(cbuf);
 		ldap_pvt_thread_rdwr_wlock( &si->si_csn_rwlock );
 
-		slap_get_commit_csn( op, &maxcsn, &foundit );
+		maxcsn_sid = slap_get_commit_csn( op, &maxcsn );
 		if ( BER_BVISEMPTY( &maxcsn ) && SLAP_GLUE_SUBORDINATE( op->o_bd )) {
 			/* syncrepl queues the CSN values in the db where
 			 * it is configured , not where the changes are made.
@@ -1932,20 +1932,19 @@ syncprov_op_response( Operation *op, SlapReply *rs )
 			op->o_bd = select_backend( &be->be_nsuffix[0], 1);
 			maxcsn.bv_val = cbuf;
 			maxcsn.bv_len = sizeof(cbuf);
-			slap_get_commit_csn( op, &maxcsn, &foundit );
+			maxcsn_sid = slap_get_commit_csn( op, &maxcsn );
 			op->o_bd = be;
 		}
 		if ( !BER_BVISEMPTY( &maxcsn ) ) {
-			int i, sid;
+			int i;
 			if (reopenldap_mode_idkfa()) {
 				Syntax *syn = slap_schema.si_ad_contextCSN->ad_type->sat_syntax;
 				assert( !syn->ssyn_validate( syn, &maxcsn ));
 			}
-			sid = slap_parse_csn_sid( &maxcsn );
 			for ( i=0; i<si->si_numcsns; i++ ) {
-				if ( sid < si->si_sids[i] )
+				if ( maxcsn_sid < si->si_sids[i] )
 					break;
-				if ( sid == si->si_sids[i] ) {
+				if ( maxcsn_sid == si->si_sids[i] ) {
 					if ( ber_bvcmp( &maxcsn, &si->si_ctxcsn[i] ) > 0 ) {
 						ber_bvreplace( &si->si_ctxcsn[i], &maxcsn );
 						csn_changed = 1;
@@ -1954,9 +1953,9 @@ syncprov_op_response( Operation *op, SlapReply *rs )
 				}
 			}
 			/* It's a new SID for us */
-			if ( i == si->si_numcsns || sid != si->si_sids[i] ) {
+			if ( i == si->si_numcsns || maxcsn_sid != si->si_sids[i] ) {
 				slap_insert_csn_sids((struct sync_cookie *)&(si->si_ctxcsn),
-					i, sid, &maxcsn );
+					i, maxcsn_sid, &maxcsn );
 				csn_changed = 1;
 			}
 		}

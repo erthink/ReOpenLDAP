@@ -42,59 +42,61 @@ const struct berval slap_ldapsync_cn_bv = BER_BVC("cn=ldapsync");
 int slap_serverID;
 
 /* maxcsn->bv_val must point to a char buf[LDAP_PVT_CSNSTR_BUFSIZE] */
-void
+int
 slap_get_commit_csn(
 	Operation *op,
-	struct berval *maxcsn,
-	int *foundit
+	struct berval *maxcsn
 )
 {
-	struct slap_csn_entry *csne, *committed_csne = NULL;
+	struct slap_csn_entry *csne;
 	BackendDB *be = op->o_bd->bd_self;
 	int sid = -1;
 
-	if ( maxcsn ) {
-		assert( maxcsn->bv_val != NULL );
-		assert( maxcsn->bv_len >= LDAP_PVT_CSNSTR_BUFSIZE );
-	}
-	if ( foundit ) {
-		*foundit = 0;
-	}
-
 	ldap_pvt_thread_mutex_lock( &be->be_pcl_mutex );
 
-	if (op) {
-		if ( !BER_BVISEMPTY( &op->o_csn )) {
-			sid = slap_parse_csn_sid( &op->o_csn );
-		}
-		LDAP_TAILQ_FOREACH( csne, be->be_pending_csn_list, ce_csn_link ) {
-			if ( csne->ce_opid == op->o_opid && csne->ce_connid == op->o_connid ) {
-				csne->ce_state = SLAP_CSN_COMMIT;
-				if ( foundit ) *foundit = 1;
-				break;
-			}
-		}
+	if ( !BER_BVISEMPTY( &op->o_csn )) {
+		sid = slap_parse_csn_sid( &op->o_csn );
+		assert(sid >= 0);
 	}
 
 	LDAP_TAILQ_FOREACH( csne, be->be_pending_csn_list, ce_csn_link ) {
-		if ( sid != -1 && sid == csne->ce_sid ) {
-			if ( csne->ce_state == SLAP_CSN_COMMIT ) committed_csne = csne;
-			if ( csne->ce_state == SLAP_CSN_PENDING ) break;
+		if ( csne->ce_opid == op->o_opid && csne->ce_connid == op->o_connid ) {
+			assert(sid < 0 || sid == csne->ce_sid);
+			csne->ce_state = SLAP_CSN_COMMIT;
+			sid = csne->ce_sid;
+			break;
 		}
 	}
 
 	if ( maxcsn ) {
+		struct slap_csn_entry *committed_csne = NULL;
+		assert( maxcsn->bv_val != NULL );
+		assert( maxcsn->bv_len >= LDAP_PVT_CSNSTR_BUFSIZE );
+		if (sid >= 0) {
+			LDAP_TAILQ_FOREACH( csne, be->be_pending_csn_list, ce_csn_link ) {
+				if ( sid == csne->ce_sid ) {
+					if ( csne->ce_state == SLAP_CSN_COMMIT ) {
+						committed_csne = csne;
+					} else if ( likely(csne->ce_state == SLAP_CSN_PENDING) ) {
+						break;
+					} else {
+						LDAP_BUG();
+					}
+				}
+			}
+		}
 		if ( committed_csne ) {
 			if ( committed_csne->ce_csn.bv_len < maxcsn->bv_len )
 				maxcsn->bv_len = committed_csne->ce_csn.bv_len;
-			memcpy( maxcsn->bv_val, committed_csne->ce_csn.bv_val,
-				maxcsn->bv_len+1 );
+			memcpy( maxcsn->bv_val, committed_csne->ce_csn.bv_val, maxcsn->bv_len+1 );
 		} else {
 			maxcsn->bv_len = 0;
 			maxcsn->bv_val[0] = 0;
 		}
 	}
+
 	ldap_pvt_thread_mutex_unlock( &be->be_pcl_mutex );
+	return sid;
 }
 
 int
