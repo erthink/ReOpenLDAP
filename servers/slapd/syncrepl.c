@@ -49,6 +49,8 @@ static void presentlist_free( presentlist_t *list );
 /* LY: This should be different from any error-code in ldap.h,
  *	   the -42 seems good... */
 #define	SYNC_PAUSED         -42
+#define SYNCREPL_RETARDED	-43
+
 #define	SYNC_REFRESH_YIELD  -421
 
 struct nonpresent_entry {
@@ -141,6 +143,9 @@ typedef struct syncinfo_s {
 	struct berval	si_suffixm;
 #endif
 	ldap_pvt_thread_mutex_t	si_mutex;
+
+	char		si_cutoff_csn[LDAP_PVT_CSNSTR_BUFSIZE];
+
 } syncinfo_t;
 
 static void syncrepl_del_nonpresent(
@@ -153,8 +158,8 @@ static int syncrepl_message_to_entry(
 					Modifications **, Entry **, int, struct berval* );
 static int syncrepl_entry(
 					syncinfo_t *, Operation*, Entry*,
-					Modifications**,int, struct berval*,
-					struct berval *cookieCSN );
+					Modifications**, int, struct berval*,
+					struct sync_cookie *syncCookie );
 static int syncrepl_updateCookie(
 					syncinfo_t *, Operation *,
 					struct sync_cookie * );
@@ -232,6 +237,9 @@ init_syncrepl(syncinfo_t *si)
 {
 	int i, j, k, l, n;
 	char **attrs, **exattrs;
+
+	LDAP_ENSURE( ldap_pvt_csnstr( si->si_cutoff_csn, sizeof(si->si_cutoff_csn),
+		slap_serverID, 0 ) < sizeof(si->si_cutoff_csn) );
 
 	if ( !syncrepl_ov.on_bi.bi_type ) {
 		syncrepl_ov.on_bi.bi_type = "syncrepl";
@@ -1176,7 +1184,7 @@ do_syncrep_process(
 				&modlist, &entry, syncstate, syncUUID ) ) == LDAP_SUCCESS )
 			{
 				if ( ( rc = syncrepl_entry( si, op, entry, &modlist,
-					syncstate, syncUUID, syncCookie.ctxcsn ) ) == LDAP_SUCCESS &&
+					syncstate, syncUUID, &syncCookie ) ) == LDAP_SUCCESS &&
 					syncCookie.ctxcsn )
 				{
 					rc = syncrepl_updateCookie( si, op, &syncCookie );
@@ -1204,6 +1212,8 @@ do_syncrep_process(
 			if ( modlist ) {
 				slap_mods_free( modlist, 1 );
 			}
+			if ( rc == SYNCREPL_RETARDED )
+				rc = LDAP_SUCCESS;
 			if ( rc )
 				goto done;
 			break;
@@ -2651,32 +2661,62 @@ static int csn_peek_origin(BerValue *csn)
 	return sid;
 }
 
+#define RETARD_ECHO		1
+#define RETARD_ALTER	2
+#define RETARD_UPDATE	4
+
 static int compare_csn(const BerValue *a, const char* b) {
 	return memcmp(a->bv_val, b, 29);
 }
 
 static int check_for_retard(syncinfo_t *si, struct sync_cookie *sc,
-							BerValue *csn_present)
+							BerValue *csn_present, BerValue *csn_incomming)
 {
 	int i, origin, rc = 0;
 
+	/* LY: This is fixes https://github.com/ReOpen/ReOpenLDAP/issues/43
+	 * for most cases. */
+
 	if (SLAP_MULTIMASTER(si->si_be)) {
+		if (csn_incomming && csn_incomming->bv_len > 31) {
+			origin = csn_peek_origin(csn_incomming);
+			for(i = 0; i < si->si_syncCookie.numcsns; ++i) {
+				if (origin == si->si_syncCookie.sids[i]) {
+					if (compare_csn(csn_incomming, si->si_syncCookie.ctxcsn[i].bv_val) <= 0)
+						/* LY: It is an "echo" of the notification from this server. */
+						rc |= RETARD_ECHO;
+					break;
+				}
+			}
+			if (reopenldap_mode_idclip() && origin == slap_serverID
+				&& compare_csn(csn_incomming, si->si_cutoff_csn) >= 0) {
+					/* LY: It is an "echo" of the notification from this server. */
+					rc |= RETARD_ECHO;
+			}
+		}
+
 		if (csn_present && csn_present->bv_len > 31 && sc) {
 			origin = csn_peek_origin(csn_present);
 			if (origin > -1) {
 				/* LY: The locally-present entry is newer (e.g. was added after
 				 * deletion) if no a CSN in the cookie for the same SID of entryCSN
 				 * or this CSN is more recent than in the cookie. */
-				rc = 1;
+				rc |= RETARD_ALTER;
 				for(i = 0; i < sc->numcsns; ++i) {
 					if (origin == sc->sids[i]) {
 						if (compare_csn(csn_present, sc->ctxcsn[i].bv_val) < 0)
-							rc = 0;
+							rc &= ~RETARD_ALTER;
 						break;
 					}
 				}
 			}
 		}
+	}
+
+	if (csn_present && csn_present->bv_len > 31
+			&& csn_incomming && csn_incomming->bv_len > 31) {
+		if (compare_csn(csn_present, csn_incomming->bv_val) >= 0)
+			rc |= RETARD_UPDATE;
 	}
 
 	return rc;
@@ -3005,6 +3045,8 @@ typedef struct dninfo {
 	int oldNcount;		/* #values of old naming attr */
 	AttributeDescription *oldDesc;	/* for renames */
 	AttributeDescription *newDesc;	/* for renames */
+	struct berval csn_incomming;
+	struct berval csn_present;
 } dninfo;
 
 static int
@@ -3015,7 +3057,7 @@ syncrepl_entry(
 	Modifications** modlist,
 	int syncstate,
 	struct berval* syncUUID,
-	struct berval* syncCSN )
+	struct sync_cookie *syncCookie )
 {
 	Backend *be = op->o_bd;
 	slap_callback	cb = { NULL, NULL, NULL, NULL };
@@ -3035,6 +3077,7 @@ syncrepl_entry(
 	Debug( LDAP_DEBUG_SYNC,
 		"syncrepl_entry: %s LDAP_RES_SEARCH_ENTRY(LDAP_SYNC_%s)\n",
 		si->si_ridtxt, syncrepl_state2str( syncstate ) );
+	assert(slap_biglock_owned(op->o_bd));
 
 	if (( syncstate == LDAP_SYNC_PRESENT || syncstate == LDAP_SYNC_ADD ) ) {
 		if ( !si->si_refreshPresent && !si->si_refreshDone ) {
@@ -3051,25 +3094,40 @@ syncrepl_entry(
 	}
 
 	if ( syncstate != LDAP_SYNC_DELETE ) {
-		Attribute	*a = attr_find( entry->e_attrs, slap_schema.si_ad_entryUUID );
+		Attribute *entry_uuid = attr_find( entry->e_attrs, slap_schema.si_ad_entryUUID );
+		Attribute *entry_csn = attr_find( entry->e_attrs, slap_schema.si_ad_entryCSN );
+		if (reopenldap_mode_idclip()) {
+			if (unlikely(!entry_uuid || !entry_csn)) {
+				/* LY: entryUUID and entryCSN are required in 'idclip' mode */
+				rc = LDAP_PROTOCOL_ERROR;
+				Debug( LDAP_DEBUG_SYNC,
+						"syncrepl_entry: %s %s, LDAP_PROTOCOL_ERROR (add/modify)\n",
+						si->si_ridtxt, entry->e_name.bv_val);
+				if (syncuuid_inserted)
+					presentlist_delete( &si->si_presentlist, syncUUID );
+				goto bailout;
+			}
+		}
 
-		if ( a == NULL ) {
+		if ( entry_csn )
+			ber_dupbv_x( &dni.csn_incomming, entry_csn->a_vals, op->o_tmpmemctx );
+
+		if (unlikely(! entry_uuid ) ) {
 			/* add if missing */
 			attr_merge_one( entry, slap_schema.si_ad_entryUUID,
 				&syncUUID[1], syncUUID );
 
-		} else if ( !bvmatch( &a->a_nvals[0], syncUUID ) ) {
+		} else if ( !bvmatch( &entry_uuid->a_nvals[0], syncUUID ) ) {
 			/* replace only if necessary */
-			if ( a->a_nvals != a->a_vals ) {
-				ber_memfree( a->a_nvals[0].bv_val );
-				ber_dupbv( &a->a_nvals[0], syncUUID );
+			if ( entry_uuid->a_nvals != entry_uuid->a_vals ) {
+				ber_memfree( entry_uuid->a_nvals[0].bv_val );
+				ber_dupbv( &entry_uuid->a_nvals[0], syncUUID );
 			}
-			ber_memfree( a->a_vals[0].bv_val );
-			ber_dupbv( &a->a_vals[0], &syncUUID[1] );
+			ber_memfree( entry_uuid->a_vals[0].bv_val );
+			ber_dupbv( &entry_uuid->a_vals[0], &syncUUID[1] );
 		}
 	}
 
-	assert(slap_biglock_owned(op->o_bd));
 	f.f_choice = LDAP_FILTER_EQUALITY;
 	f.f_ava = &ava;
 	ava.aa_desc = slap_schema.si_ad_entryUUID;
@@ -3133,19 +3191,33 @@ syncrepl_entry(
 	cb.sc_response = null_callback;
 	cb.sc_private = si;
 
-	if ( entry && !BER_BVISNULL( &entry->e_name ) ) {
-		Debug( LDAP_DEBUG_SYNC,
-				"syncrepl_entry: %s %s\n",
-				si->si_ridtxt, entry->e_name.bv_val );
-	} else {
-		Debug( LDAP_DEBUG_SYNC,
-				"syncrepl_entry: %s %s\n",
-				si->si_ridtxt, dni.dn.bv_val ? dni.dn.bv_val : "(null)" );
+	Debug( LDAP_DEBUG_SYNC,
+			"syncrepl_entry: %s %s, uuid %s,\n\tincoming-csn %s, present-csn %s\n",
+			si->si_ridtxt, dni.dn.bv_val, syncUUID[1].bv_val,
+			dni.csn_incomming.bv_val, dni.csn_present.bv_val );
+
+	rc = check_for_retard(si, syncCookie, &dni.csn_present,
+		syncCookie->ctxcsn ? syncCookie->ctxcsn : &dni.csn_incomming );
+	if (syncstate == LDAP_SYNC_DELETE)
+		rc &= ~RETARD_ALTER;
+
+	if ( rc ) {
+		Debug( LDAP_DEBUG_SYNC, "syncrepl_entry: %s RETARD-%s(%d), %s, %s, %s\n",
+			si->si_ridtxt,
+			(syncstate == LDAP_SYNC_ADD) ? "add" :
+			(syncstate == LDAP_SYNC_MODIFY) ? "modify" :
+			(syncstate == LDAP_SYNC_DELETE) ? "delete" : "???",
+			rc, dni.dn.bv_val,
+			syncUUID[1].bv_val, dni.csn_incomming.bv_val);
+		if (syncuuid_inserted && !dni.csn_present.bv_val)
+			presentlist_delete( &si->si_presentlist, syncUUID );
+		rc = SYNCREPL_RETARDED;
+		goto bailout;
 	}
 
 	assert( BER_BVISNULL( &op->o_csn ) );
-	if ( syncCSN ) {
-		slap_queue_csn( op, syncCSN );
+	if ( syncCookie->ctxcsn ) {
+		slap_queue_csn( op, syncCookie->ctxcsn );
 		do_graduate = 1;
 	}
 
@@ -3153,19 +3225,11 @@ syncrepl_entry(
 	switch ( syncstate ) {
 	case LDAP_SYNC_ADD:
 	case LDAP_SYNC_MODIFY:
-		if ( BER_BVISNULL( &op->o_csn ))
-		{
-
-			Attribute *a = attr_find( entry->e_attrs, slap_schema.si_ad_entryCSN );
-			if ( a ) {
-				/* FIXME: op->o_csn is assumed to be
-				 * on the thread's slab; this needs
-				 * to be cleared ASAP.
-				 */
-				op->o_csn = a->a_vals[0];
-				freecsn = 0;
-			}
+		if (BER_BVISNULL( &op->o_csn ) && dni.csn_incomming.bv_val) {
+			op->o_csn = dni.csn_incomming;
+			freecsn = 0;
 		}
+
 retry_add:;
 		if ( BER_BVISNULL( &dni.dn ) ) {
 			SlapReply	rs_add = {REP_RESULT};
@@ -3477,8 +3541,8 @@ retry_modrdn:;
 			op->o_req_dn = entry->e_name;
 			op->o_req_ndn = entry->e_nname;
 			/* Use CSN on the modify */
-			if ( ! just_rename && syncCSN ) {
-				slap_queue_csn( op, syncCSN );
+			if ( ! just_rename && syncCookie->ctxcsn ) {
+				slap_queue_csn( op, syncCookie->ctxcsn );
 				do_graduate = 1;
 			}
 		}
@@ -3515,7 +3579,7 @@ retry_modrdn:;
 			op->o_req_ndn = dni.ndn;
 			op->o_tag = LDAP_REQ_DELETE;
 			op->o_bd = si->si_wbe;
-			if ( ! syncCSN ) {
+			if ( ! syncCookie->ctxcsn ) {
 				slap_queue_csn( op, si->si_syncCookie.ctxcsn );
 				do_graduate = 1;
 			}
@@ -3549,13 +3613,14 @@ retry_modrdn:;
 	default :
 		Debug( LDAP_DEBUG_ANY,
 			"syncrepl_entry: %s unknown syncstate\n", si->si_ridtxt );
-		goto done;
+		goto bailout;
 	}
 
 done:
 	if ( do_graduate )
 		slap_graduate_commit_csn( op );
 
+bailout:
 	slap_sl_free( syncUUID[1].bv_val, op->o_tmpmemctx );
 	BER_BVZERO( &syncUUID[1] );
 	if ( !BER_BVISNULL( &dni.ndn ) ) {
@@ -3563,6 +3628,12 @@ done:
 	}
 	if ( !BER_BVISNULL( &dni.dn ) ) {
 		op->o_tmpfree( dni.dn.bv_val, op->o_tmpmemctx );
+	}
+	if ( !BER_BVISNULL( &dni.csn_incomming ) ) {
+		op->o_tmpfree( dni.csn_incomming.bv_val, op->o_tmpmemctx );
+	}
+	if ( !BER_BVISNULL( &dni.csn_present ) ) {
+		op->o_tmpfree( dni.csn_present.bv_val, op->o_tmpmemctx );
 	}
 	if ( entry ) {
 		entry_free( entry );
@@ -4408,8 +4479,13 @@ dn_callback(
 			 * We compare the non-normalized values so that cosmetic changes
 			 * in the provider are always propagated.
 			 */
+			if ( !is_entry_glue( rs->sr_entry )) {
+				Attribute *a = attr_find(
+					rs->sr_entry->e_attrs, slap_schema.si_ad_entryCSN );
+				if ( a )
+					ber_dupbv_x( &dni->csn_present, a->a_vals, op->o_tmpmemctx );
+			}
 			if ( dni->new_entry ) {
-				Attribute *old, *new;
 				struct berval old_rdn, new_rdn;
 				struct berval old_p, new_p;
 				int is_ctx, new_sup = 0;
@@ -4417,34 +4493,27 @@ dn_callback(
 				/* If old entry is not a glue entry, make sure new entry
 				 * is actually newer than old entry
 				 */
-				if ( !is_entry_glue( rs->sr_entry )) {
-					old = attr_find( rs->sr_entry->e_attrs,
-						slap_schema.si_ad_entryCSN );
-					new = attr_find( dni->new_entry->e_attrs,
-						slap_schema.si_ad_entryCSN );
-					if ( new && old ) {
-						int rc;
-						ber_len_t len = old->a_vals[0].bv_len;
-						if ( len > new->a_vals[0].bv_len )
-							len = new->a_vals[0].bv_len;
-						rc = memcmp( old->a_vals[0].bv_val,
-							new->a_vals[0].bv_val, len );
-						if ( rc > 0 ) {
-							Debug( LDAP_DEBUG_SYNC,
-								"dn_callback : new entry is older than ours "
-								"%s ours %s, new %s\n",
-								rs->sr_entry->e_name.bv_val,
-								old->a_vals[0].bv_val,
-								new->a_vals[0].bv_val );
-							return LDAP_SUCCESS;
-						} else if ( rc == 0 ) {
-							Debug( LDAP_DEBUG_SYNC,
-								"dn_callback : entries have identical CSN "
-								"%s %s\n",
-								rs->sr_entry->e_name.bv_val,
-								old->a_vals[0].bv_val );
-							return LDAP_SUCCESS;
-						}
+				if ( dni->csn_incomming.bv_len && dni->csn_present.bv_len ) {
+					struct berval *old = &dni->csn_present,
+						*new = &dni->csn_incomming;
+					int rc;
+					ber_len_t len = old->bv_len;
+					if ( len > new->bv_len )
+						len = new->bv_len;
+					rc = memcmp( old->bv_val, new->bv_val, len );
+					if ( rc > 0 ) {
+						Debug( LDAP_DEBUG_SYNC,
+							"dn_callback : new entry is older than ours "
+							"%s ours %s, new %s\n",
+							rs->sr_entry->e_name.bv_val,
+							old->bv_val, new->bv_val );
+						return LDAP_SUCCESS;
+					} else if ( rc == 0 ) {
+						Debug( LDAP_DEBUG_SYNC,
+							"dn_callback : entries have identical CSN "
+							"%s %s\n",
+							rs->sr_entry->e_name.bv_val, old->bv_val );
+						return LDAP_SUCCESS;
 					}
 				}
 
@@ -4572,7 +4641,8 @@ nonpresent_callback(
 				 * is recent than the CSN for the same SID in the cookie.
 				 * E.g. entry was created on a some SID, later than the provider
 				 * was synchronized with these SID. */
-				if (csn_present && check_for_retard(si, sc, csn_present->a_vals)) {
+				if (csn_present
+						&& check_for_retard(si, sc, csn_present->a_vals, NULL)) {
 					Debug( LDAP_DEBUG_SYNC,
 						"nonpresent_callback: %s UUID %s, dn %s, %s, entryCSN %s\n",
 						   si->si_ridtxt,
