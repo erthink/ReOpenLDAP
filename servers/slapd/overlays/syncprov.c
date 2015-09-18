@@ -666,6 +666,7 @@ syncprov_findcsn( Operation *op, find_csn_t mode, struct berval *csn )
 again:
 	switch( mode ) {
 	case FIND_MAXCSN:
+		ldap_pvt_thread_rdwr_wlock( &si->si_csn_rwlock );
 		cf.f_choice = LDAP_FILTER_GE;
 		/* If there are multiple CSNs, use the one with our serverID */
 		for ( i=0; i<si->si_numcsns; i++) {
@@ -678,12 +679,14 @@ again:
 			/* No match: this is multimaster, and none of the content in the DB
 			 * originated locally. Treat like no CSN.
 			 */
+			ldap_pvt_thread_rdwr_wunlock( &si->si_csn_rwlock );
 			return LDAP_NO_SUCH_OBJECT;
 		}
 		cf.f_av_value = si->si_ctxcsn[maxid];
 		fop.ors_filterstr.bv_len = snprintf( buf, sizeof( buf ),
 			"(entryCSN>=%s)", cf.f_av_value.bv_val );
 		if ( fop.ors_filterstr.bv_len >= sizeof( buf ) ) {
+			ldap_pvt_thread_rdwr_wunlock( &si->si_csn_rwlock );
 			return LDAP_OTHER;
 		}
 		fop.ors_attrsonly = 0;
@@ -758,6 +761,7 @@ again:
 			ber_bvreplace( &si->si_ctxcsn[maxid], &maxcsn );
 			si->si_numops++;	/* ensure a checkpoint */
 		}
+		ldap_pvt_thread_rdwr_wunlock( &si->si_csn_rwlock );
 		break;
 	case FIND_CSN:
 		/* If matching CSN was not found, invalidate the context. */
@@ -1178,8 +1182,10 @@ syncprov_qresp( opcookie *opc, syncops *so, int mode )
 	ri->ri_list = rl;
 	if ( mode == LDAP_SYNC_NEW_COOKIE && BER_BVISNULL( &ri->ri_cookie )) {
 		syncprov_info_t	*si = opc->son->on_bi.bi_private;
+		ldap_pvt_thread_rdwr_rlock( &si->si_csn_rwlock );
 		syncprov_compose_sync_cookie( NULL, &ri->ri_cookie,
 									  si->si_ctxcsn, so->s_rid);
+		ldap_pvt_thread_rdwr_runlock( &si->si_csn_rwlock );
 	}
 	ldap_pvt_thread_mutex_unlock( &ri->ri_mutex );
 
