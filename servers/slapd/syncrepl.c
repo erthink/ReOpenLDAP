@@ -737,7 +737,7 @@ syncrep_start(
 			si->si_syncCookie.octet_str = sc->octet_str;
 			ch_free( sc );
 			/* ctxcsn wasn't parsed yet, do it now */
-			slap_parse_sync_cookie( &si->si_syncCookie, NULL );
+			LDAP_ENSURE (slap_parse_sync_cookie( &si->si_syncCookie, NULL ) == 0);
 		} else {
 			ldap_pvt_thread_mutex_lock( &si->si_cookieState->cs_mutex );
 			if ( !si->si_cookieState->cs_num ) {
@@ -959,7 +959,7 @@ do_syncrep_process(
 
 	for (;;) {
 		int				match, punlock, syncstate;
-		struct berval	*retdata, syncUUID[2], cookie = BER_BVNULL;
+		struct berval	*retdata, syncUUID[2];
 		char			*retoid;
 		LDAPControl		**rctrls = NULL, *rctrlp = NULL;
 		BerVarray		syncUUIDs;
@@ -1054,18 +1054,20 @@ do_syncrep_process(
 			}
 			punlock = -1;
 			if ( ber_peek_tag( ber, &len ) == LDAP_TAG_SYNC_COOKIE ) {
-				if ( ber_scanf( ber, /*"{"*/ "m}", &cookie ) != LBER_ERROR ) {
+				struct berval cookie = BER_BVNULL;
+				if ( ber_scanf( ber, /*"{"*/ "m}", &cookie ) == LBER_ERROR
+						|| BER_BVISNULL( &cookie ) ) {
+					rc = LDAP_PROTOCOL_ERROR;
+					goto done;
+				}
 
 				Debug( LDAP_DEBUG_SYNC, "do_syncrep_process: %s cookie=%s\n",
-					si->si_ridtxt,
-					BER_BVISNULL( &cookie ) ? "" : cookie.bv_val );
+					si->si_ridtxt, cookie.bv_val );
 
-				if ( !BER_BVISNULL( &cookie ) ) {
-					ch_free( syncCookie.octet_str.bv_val );
-					ber_dupbv( &syncCookie.octet_str, &cookie );
-				}
-				if ( !BER_BVISNULL( &syncCookie.octet_str )
-					 && slap_parse_sync_cookie( &syncCookie, NULL ) == 0 )
+				ch_free( syncCookie.octet_str.bv_val );
+				ber_dupbv( &syncCookie.octet_str, &cookie );
+				rc = slap_parse_sync_cookie( &syncCookie, NULL );
+				if (rc == 0)
 				{
 					if (slap_check_same_server(si->si_be, syncCookie.sid) < 0) {
 					same_sid:
@@ -1154,7 +1156,6 @@ do_syncrep_process(
 						goto done;
 					}
 					op->o_controls[slap_cids.sc_LDAPsync] = &syncCookie;
-				}
 				}
 			}
 			rc = 0;
@@ -1284,18 +1285,20 @@ do_syncrep_process(
 
 				ber_scanf( ber, "{" /*"}"*/);
 				if ( ber_peek_tag( ber, &len ) == LDAP_TAG_SYNC_COOKIE ) {
-					ber_scanf( ber, "m", &cookie );
+					struct berval cookie = BER_BVNULL;
+					if ( ber_scanf( ber, "m", &cookie ) == LBER_ERROR
+							|| BER_BVISNULL( &cookie ) ) {
+						rc = LDAP_PROTOCOL_ERROR;
+						goto done;
+					}
 
 					Debug( LDAP_DEBUG_SYNC, "do_syncrep_process: %s cookie=%s\n",
-						si->si_ridtxt,
-						BER_BVISNULL( &cookie ) ? "" : cookie.bv_val );
+						si->si_ridtxt, cookie.bv_val );
 
-					if ( !BER_BVISNULL( &cookie ) ) {
-						ch_free( syncCookie.octet_str.bv_val );
-						ber_dupbv( &syncCookie.octet_str, &cookie);
-					}
-					if ( !BER_BVISNULL( &syncCookie.octet_str )
-						 && slap_parse_sync_cookie( &syncCookie, NULL ) == 0 )
+					ch_free( syncCookie.octet_str.bv_val );
+					ber_dupbv( &syncCookie.octet_str, &cookie );
+					rc = slap_parse_sync_cookie( &syncCookie, NULL );
+					if (rc == 0)
 					{
 						if (slap_check_same_server(si->si_be, syncCookie.sid) < 0) {
 							goto same_sid;
@@ -1362,24 +1365,31 @@ do_syncrep_process(
 				ber_init2( ber, retdata, LBER_USE_DER );
 
 				switch ( si_tag = ber_peek_tag( ber, &len ) ) {
-				ber_tag_t tag;
+				ber_tag_t tag = 0;
+				struct berval cookie = BER_BVNULL;
 				case LDAP_TAG_SYNC_NEW_COOKIE:
 					Debug( LDAP_DEBUG_SYNC,
 						"do_syncrep_process: %s %s - %s\n",
 						si->si_ridtxt,
 						"LDAP_RES_INTERMEDIATE",
 						"NEW_COOKIE" );
-					ber_scanf( ber, "tm", &tag, &cookie );
+					if ( ber_scanf( ber, "tm", &tag, &cookie ) == LBER_ERROR
+							|| BER_BVISNULL( &cookie ) ) {
+						rc = LDAP_PROTOCOL_ERROR;
+						ldap_memfree( retoid );
+						ber_bvfree( retdata );
+						goto done;
+					}
+
 					Debug( LDAP_DEBUG_SYNC,
 						"do_syncrep_process: %s NEW_COOKIE: %s\n",
 						si->si_ridtxt,
 						cookie.bv_val);
-					if ( !BER_BVISNULL( &cookie ) ) {
-						ch_free( syncCookie.octet_str.bv_val );
-						ber_dupbv( &syncCookie.octet_str, &cookie );
-					}
-					if ( !BER_BVISNULL( &syncCookie.octet_str )
-						 && slap_parse_sync_cookie( &syncCookie, NULL ) == 0 )
+
+					ch_free( syncCookie.octet_str.bv_val );
+					ber_dupbv( &syncCookie.octet_str, &cookie );
+					rc = slap_parse_sync_cookie( &syncCookie, NULL );
+					if (rc == 0)
 					{
 						if (slap_check_same_server(si->si_be, syncCookie.sid) < 0) {
 							ldap_memfree( retoid );
@@ -1406,18 +1416,21 @@ do_syncrep_process(
 					ber_scanf( ber, "t{" /*"}"*/, &tag );
 					if ( ber_peek_tag( ber, &len ) == LDAP_TAG_SYNC_COOKIE )
 					{
-						ber_scanf( ber, "m", &cookie );
+						if ( ber_scanf( ber, "m", &cookie ) == LBER_ERROR
+								|| BER_BVISNULL( &cookie ) ) {
+							rc = LDAP_PROTOCOL_ERROR;
+							ldap_memfree( retoid );
+							ber_bvfree( retdata );
+							goto done;
+						}
 
 						Debug( LDAP_DEBUG_SYNC, "do_syncrep_process: %s cookie=%s\n",
-							si->si_ridtxt,
-							BER_BVISNULL( &cookie ) ? "" : cookie.bv_val );
+							si->si_ridtxt, cookie.bv_val );
 
-						if ( !BER_BVISNULL( &cookie ) ) {
-							ch_free( syncCookie.octet_str.bv_val );
-							ber_dupbv( &syncCookie.octet_str, &cookie );
-						}
-						if ( !BER_BVISNULL( &syncCookie.octet_str )
-							 && slap_parse_sync_cookie( &syncCookie, NULL ) == 0 )
+						ch_free( syncCookie.octet_str.bv_val );
+						ber_dupbv( &syncCookie.octet_str, &cookie );
+						rc = slap_parse_sync_cookie( &syncCookie, NULL );
+						if (rc == 0)
 						{
 							if (slap_check_same_server(si->si_be, syncCookie.sid) < 0) {
 								ldap_memfree( retoid );
@@ -1449,21 +1462,23 @@ do_syncrep_process(
 						"LDAP_RES_INTERMEDIATE",
 						"SYNC_ID_SET" );
 					ber_scanf( ber, "t{" /*"}"*/, &tag );
-					if ( ber_peek_tag( ber, &len ) ==
-						LDAP_TAG_SYNC_COOKIE )
+					if ( ber_peek_tag( ber, &len ) == LDAP_TAG_SYNC_COOKIE )
 					{
-						ber_scanf( ber, "m", &cookie );
+						if ( ber_scanf( ber, "m", &cookie ) == LBER_ERROR
+								|| BER_BVISNULL( &cookie ) ) {
+							rc = LDAP_PROTOCOL_ERROR;
+							ldap_memfree( retoid );
+							ber_bvfree( retdata );
+							goto done;
+						}
 
 						Debug( LDAP_DEBUG_SYNC, "do_syncrep_process: %s cookie=%s\n",
-							si->si_ridtxt,
-							BER_BVISNULL( &cookie ) ? "" : cookie.bv_val );
+							si->si_ridtxt, cookie.bv_val );
 
-						if ( !BER_BVISNULL( &cookie ) ) {
-							ch_free( syncCookie.octet_str.bv_val );
-							ber_dupbv( &syncCookie.octet_str, &cookie );
-						}
-						if ( !BER_BVISNULL( &syncCookie.octet_str )
-							 && slap_parse_sync_cookie( &syncCookie, NULL ) == 0 )
+						ch_free( syncCookie.octet_str.bv_val );
+						ber_dupbv( &syncCookie.octet_str, &cookie );
+						rc = slap_parse_sync_cookie( &syncCookie, NULL );
+						if (rc == 0)
 						{
 							if (slap_check_same_server(si->si_be, syncCookie.sid) < 0) {
 								ldap_memfree( retoid );
@@ -1475,8 +1490,7 @@ do_syncrep_process(
 							compare_csns( &syncCookie_req, &syncCookie, &m );
 						}
 					}
-					if ( ber_peek_tag( ber, &len ) ==
-						LDAP_TAG_REFRESHDELETES )
+					if ( ber_peek_tag( ber, &len ) == LDAP_TAG_REFRESHDELETES )
 					{
 						ber_scanf( ber, "b", &refreshDeletes );
 					}
