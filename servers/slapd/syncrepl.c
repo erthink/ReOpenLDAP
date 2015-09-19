@@ -936,8 +936,6 @@ do_syncrep_process(
 
 	Modifications	*modlist = NULL;
 
-	int				m;
-
 	struct timeval *tout_p = NULL;
 	struct timeval tout = { 0, 0 };
 
@@ -993,6 +991,7 @@ do_syncrep_process(
 		}
 
 		switch( ldap_msgtype( msg ) ) {
+		int which = INT_MAX; /* LY: paranoia */
 		case LDAP_RES_SEARCH_ENTRY:
 			ldap_get_entry_controls( si->si_ld, msg, &rctrls );
 			ldap_get_dn_ber( si->si_ld, msg, NULL, &bdn );
@@ -1321,9 +1320,9 @@ do_syncrep_process(
 				match = 1;
 			} else if ( !syncCookie_req.ctxcsn ) {
 				match = -1;
-				m = 0;
+				which = 0;
 			} else {
-				match = compare_csns( &syncCookie_req, &syncCookie, &m );
+				match = compare_csns( &syncCookie_req, &syncCookie, &which );
 			}
 			if ( rctrls ) {
 				ldap_controls_free( rctrls );
@@ -1337,7 +1336,7 @@ do_syncrep_process(
 					err == LDAP_SUCCESS &&
 					syncrepl_enough_sids( si, &syncCookie ) )
 				{
-					syncrepl_del_nonpresent( op, si, NULL, &syncCookie, m );
+					syncrepl_del_nonpresent( op, si, NULL, &syncCookie, which );
 				} else {
 					presentlist_free( &si->si_presentlist );
 				}
@@ -1487,7 +1486,7 @@ do_syncrep_process(
 							}
 							quorum_notify_sid( si->si_be, si->si_rid, syncCookie.sid );
 							op->o_controls[slap_cids.sc_LDAPsync] = &syncCookie;
-							compare_csns( &syncCookie_req, &syncCookie, &m );
+							compare_csns( &syncCookie_req, &syncCookie, &which );
 						}
 					}
 					if ( ber_peek_tag( ber, &len ) == LDAP_TAG_REFRESHDELETES )
@@ -1500,7 +1499,7 @@ do_syncrep_process(
 					if ( rc != LBER_ERROR ) {
 						if ( refreshDeletes ) {
 							syncrepl_del_nonpresent( op, si, syncUUIDs,
-								&syncCookie, m );
+								&syncCookie, which );
 							ber_bvarray_free_x( syncUUIDs, op->o_tmpmemctx );
 						} else {
 							int i;
@@ -1531,9 +1530,9 @@ do_syncrep_process(
 					match = 1;
 				} else if ( !syncCookie_req.ctxcsn ) {
 					match = -1;
-					m = 0;
+					which = 0;
 				} else {
-					match = compare_csns( &syncCookie_req, &syncCookie, &m );
+					match = compare_csns( &syncCookie_req, &syncCookie, &which );
 				}
 
 				if ( match < 0 ) {
@@ -1541,7 +1540,7 @@ do_syncrep_process(
 						si_tag != LDAP_TAG_SYNC_NEW_COOKIE &&
 						syncrepl_enough_sids( si, &syncCookie ) ) {
 						syncrepl_del_nonpresent( op, si, NULL,
-							&syncCookie, m );
+							&syncCookie, which );
 					}
 
 					if ( syncCookie.ctxcsn )
