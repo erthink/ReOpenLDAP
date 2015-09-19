@@ -929,7 +929,6 @@ do_syncrep_process(
 	LDAPMessage	*msg = NULL;
 
 	struct sync_cookie	syncCookie = { NULL };
-	struct sync_cookie	syncCookie_req = { NULL };
 
 	int		rc,
 			err = LDAP_SUCCESS;
@@ -953,8 +952,6 @@ do_syncrep_process(
 
 	Debug( LDAP_DEBUG_TRACE, "=>> do_syncrep_process %s\n", si->si_ridtxt );
 
-	slap_dup_sync_cookie( &syncCookie_req, &si->si_syncCookie );
-
 	for (;;) {
 		int				match, punlock, syncstate;
 		struct berval	*retdata, syncUUID[2];
@@ -965,6 +962,11 @@ do_syncrep_process(
 		ber_tag_t		si_tag;
 		Entry			*entry = NULL;
 		struct berval	bdn;
+
+		if ( syncCookie.numcsns > 0 ) {
+			slap_sync_cookie_free( &syncCookie, 0 );
+			memset( &syncCookie, 0, sizeof( syncCookie ));
+		}
 
 		tout_p = NULL; /* wait infinite */
 		if ( abs(si->si_type) == LDAP_SYNC_REFRESH_AND_PERSIST && si->si_refreshDone )
@@ -1312,17 +1314,15 @@ do_syncrep_process(
 				}
 				ber_scanf( ber, /*"{"*/ "}" );
 			}
-			if ( SLAP_MULTIMASTER( op->o_bd ) && check_syncprov( op, si )) {
-				slap_sync_cookie_free( &syncCookie_req, 0 );
-				slap_dup_sync_cookie( &syncCookie_req, &si->si_syncCookie );
-			}
+			if ( SLAP_MULTIMASTER( op->o_bd ) )
+				check_syncprov( op, si );
 			if ( !syncCookie.ctxcsn ) {
 				match = 1;
-			} else if ( !syncCookie_req.ctxcsn ) {
+			} else if ( !si->si_syncCookie.ctxcsn ) {
 				match = -1;
 				which = 0;
 			} else {
-				match = compare_csns( &syncCookie_req, &syncCookie, &which );
+				match = compare_csns( &si->si_syncCookie, &syncCookie, &which );
 			}
 			if ( rctrls ) {
 				ldap_controls_free( rctrls );
@@ -1486,7 +1486,7 @@ do_syncrep_process(
 							}
 							quorum_notify_sid( si->si_be, si->si_rid, syncCookie.sid );
 							op->o_controls[slap_cids.sc_LDAPsync] = &syncCookie;
-							compare_csns( &syncCookie_req, &syncCookie, &which );
+							compare_csns( &si->si_syncCookie, &syncCookie, &which );
 						}
 					}
 					if ( ber_peek_tag( ber, &len ) == LDAP_TAG_REFRESHDELETES )
@@ -1522,17 +1522,15 @@ do_syncrep_process(
 					continue;
 				}
 
-				if ( SLAP_MULTIMASTER( op->o_bd ) && check_syncprov( op, si )) {
-					slap_sync_cookie_free( &syncCookie_req, 0 );
-					slap_dup_sync_cookie( &syncCookie_req, &si->si_syncCookie );
-				}
+				if ( SLAP_MULTIMASTER( op->o_bd ) )
+					check_syncprov( op, si );
 				if ( !syncCookie.ctxcsn ) {
 					match = 1;
-				} else if ( !syncCookie_req.ctxcsn ) {
+				} else if ( !si->si_syncCookie.ctxcsn ) {
 					match = -1;
 					which = 0;
 				} else {
-					match = compare_csns( &syncCookie_req, &syncCookie, &which );
+					match = compare_csns( &si->si_syncCookie, &syncCookie, &which );
 				}
 
 				if ( match < 0 ) {
@@ -1573,11 +1571,6 @@ do_syncrep_process(
 			break;
 		}
 
-		if ( !BER_BVISNULL( &syncCookie.octet_str ) ) {
-			slap_sync_cookie_free( &syncCookie_req, 0 );
-			syncCookie_req = syncCookie;
-			memset( &syncCookie, 0, sizeof( syncCookie ));
-		}
 		if ( ldap_pvt_thread_pool_pausing( &connection_pool )) {
 			rc = SYNC_PAUSED;
 			break;
@@ -1611,7 +1604,6 @@ done:
 	}
 
 	slap_sync_cookie_free( &syncCookie, 0 );
-	slap_sync_cookie_free( &syncCookie_req, 0 );
 	ldap_msgfree( msg );
 
 	quorum_notify_status( si->si_be, si->si_rid,
