@@ -1252,6 +1252,47 @@ void slap_csns_backward_debug(
 	const BerVarray current,
 	const BerVarray next );
 
+void slap_cookie_verify( const struct sync_cookie * );
+void slap_cookie_init( struct sync_cookie * );
+void slap_cookie_clean( struct sync_cookie * );
+void slap_cookie_copy(
+	struct sync_cookie *dst,
+	const struct sync_cookie *src );
+void slap_cookie_move(
+	struct sync_cookie *dst,
+	struct sync_cookie *src );
+int slap_cookie_merge(
+	BackendDB *bd,
+	struct sync_cookie *dst,
+	const struct sync_cookie *src );
+void slap_cookie_free( struct sync_cookie *, int free_cookie );
+void slap_cookie_fetch(
+		struct sync_cookie *dst,
+		BerVarray src );
+int slap_cookie_pull(
+	struct sync_cookie *dst,
+	BerVarray src,
+	int consume );
+int slap_cookie_merge_csn(
+	BackendDB *bd,
+	struct sync_cookie *dst,
+	int sid,
+	BerValue *src );
+int slap_cookie_compare_csn(
+	const struct sync_cookie *cookie,
+	BerValue *csn );
+int slap_cookie_parse(
+	struct sync_cookie *dst,
+	const BerValue *src );
+int slap_cookie_stubself( struct sync_cookie *dst );
+void slap_cookie_compose(
+	BerValue *dst,
+	BerVarray csns,
+	int rid,
+	int sid,
+	void *memctx );
+void slap_cookie_debug( const char *prefix, const struct sync_cookie *sc );
+
 /*
  * limits.c
  */
