@@ -95,37 +95,6 @@ slap_compose_sync_cookie(
 	}
 }
 
-void
-slap_sync_cookie_free(
-	struct sync_cookie *cookie,
-	int free_cookie
-)
-{
-	if ( cookie == NULL )
-		return;
-
-	if ( cookie->sids ) {
-		ber_memfree( cookie->sids );
-		cookie->sids = NULL;
-	}
-
-	if ( cookie->ctxcsn ) {
-		ber_bvarray_free( cookie->ctxcsn );
-		cookie->ctxcsn = NULL;
-	}
-	cookie->numcsns = 0;
-	if ( !BER_BVISNULL( &cookie->octet_str )) {
-		ch_free( cookie->octet_str.bv_val );
-		BER_BVZERO( &cookie->octet_str );
-	}
-
-	if ( free_cookie ) {
-		ber_memfree( cookie );
-	}
-
-	return;
-}
-
 int *
 slap_parse_csn_sids( BerVarray csns, int numcsns, void *memctx )
 {

@@ -529,7 +529,7 @@ int main( int argc, char **argv )
 				Debug( LDAP_DEBUG_ANY,
 						"main: invalid cookie \"%s\"\n",
 						optarg );
-				slap_sync_cookie_free( scp, 1 );
+				slap_cookie_free( scp, 1 );
 				goto destroy;
 			}
 
@@ -537,7 +537,7 @@ int main( int argc, char **argv )
 				if ( scp->rid == scp_entry->rid ) {
 					Debug( LDAP_DEBUG_ANY,
 						    "main: duplicated replica id in cookies\n" );
-					slap_sync_cookie_free( scp, 1 );
+					slap_cookie_free( scp, 1 );
 					goto destroy;
 				}
 			}

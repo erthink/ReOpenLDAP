@@ -709,7 +709,7 @@ syncrep_start(
 
 			LDAP_STAILQ_REMOVE( &slap_sync_cookie, sc, sync_cookie, sc_next );
 
-			slap_sync_cookie_free( &si->si_syncCookie, 0 );
+			slap_cookie_free( &si->si_syncCookie, 0 );
 			si->si_syncCookie.octet_str = sc->octet_str;
 			ch_free( sc );
 			/* ctxcsn wasn't parsed yet, do it now */
@@ -979,7 +979,7 @@ do_syncrep_process(
 		rctrls = NULL;
 
 		if ( syncCookie.numcsns > 0 ) {
-			slap_sync_cookie_free( &syncCookie, 0 );
+			slap_cookie_free( &syncCookie, 0 );
 			memset( &syncCookie, 0, sizeof( syncCookie ));
 		}
 
@@ -1422,7 +1422,7 @@ do_syncrep_process(
 						}
 					}
 					rc = 0;
-					slap_sync_cookie_free( &syncCookie, 0 );
+					slap_cookie_free( &syncCookie, 0 );
 					break;
 				default:
 					Debug( LDAP_DEBUG_ANY,
@@ -1503,7 +1503,7 @@ done:
 		syncrepl_shutdown_io( si );
 	}
 
-	slap_sync_cookie_free( &syncCookie, 0 );
+	slap_cookie_free( &syncCookie, 0 );
 	ldap_msgfree( msg );
 	ldap_controls_free( rctrls );
 
@@ -4728,7 +4728,7 @@ syncinfo_free( syncinfo_t *sie, int free_all )
 		if ( sie->si_retrynum_init ) {
 			ch_free( sie->si_retrynum_init );
 		}
-		slap_sync_cookie_free( &sie->si_syncCookie, 0 );
+		slap_cookie_free( &sie->si_syncCookie, 0 );
 		presentlist_free( &sie->si_presentlist );
 		while ( !LDAP_LIST_EMPTY( &sie->si_nonpresentlist ) ) {
 			struct nonpresent_entry* npe;
