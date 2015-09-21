@@ -512,3 +512,99 @@ slap_dup_sync_cookie(
 	return new;
 }
 
+/*----------------------------------------------------------------------------*/
+
+int slap_csn_verify_lite( const BerValue *csn )
+{
+	if ( unlikely(
+			csn->bv_len != 40 ||
+			csn->bv_val[14] != '.' ||
+			csn->bv_val[21] != 'Z' ||
+			csn->bv_val[22] != '#' ||
+			csn->bv_val[29] != '#' ||
+			csn->bv_val[33] != '#' ||
+			csn->bv_val[40] != 0 ))
+		return 0;
+
+	return 1;
+}
+
+int slap_csn_verify_full( const BerValue *csn )
+{
+	int i;
+	char nowbuf[LDAP_PVT_CSNSTR_BUFSIZE];
+	BerValue now;
+
+	if (unlikely( csn->bv_len != 40 ))
+		goto bailout;
+
+	for( i = 0; i < 40; ++i ) {
+		char c = csn->bv_val[i];
+		const char x = "99999999999999.999999Z#FFFFFF#FFF#FFFFFF"[i];
+		switch ( x ) {
+		case 'F':
+			if ( c >= 'a' && c <= 'f' ) continue;
+			if ( c >= 'A' && c <= 'F' ) continue;
+		case '9':
+			if ( c >= '0' && c <= '9' ) continue;
+		default:
+			if ( c == x ) continue;
+			goto bailout;
+		}
+	}
+
+	if ( reopenldap_mode_idclip() ) {
+		if (unlikely( memcmp( csn->bv_val, "19000101000000.000000", 21 ) < 0 ))
+			goto bailout;
+
+		now.bv_len = ldap_pvt_csnstr( now.bv_val = nowbuf, sizeof(nowbuf), 0, 0 );
+		if ( slap_csn_compare_ts( &now, csn ) < 0 )
+			goto bailout;
+	}
+	return 1;
+
+bailout:
+	return 0;
+}
+
+int slap_csn_match( const BerValue *a, const BerValue *b )
+{
+	assert( slap_csn_verify_lite( a ) && slap_csn_verify_lite( b ) );
+	return memcmp(a->bv_val, b->bv_val, 40) == 0;
+}
+
+int slap_csn_compare_sr( const BerValue *a, const BerValue *b )
+{
+	assert( slap_csn_verify_lite( a ) && slap_csn_verify_lite( b ) );
+	return memcmp( a->bv_val + 30, b->bv_val + 30,
+				   4 /* LY: 3 is enough, but +1 allows one 32-bits ops */ );
+}
+
+int slap_csn_compare_ts( const BerValue *a, const BerValue *b )
+{
+	assert( slap_csn_verify_lite( a ) && slap_csn_verify_lite( b ) );
+	return memcmp( a->bv_val, b->bv_val, 29 );
+}
+
+int slap_csn_get_sid( const BerValue *csn )
+{
+	char* endptr;
+	int sid;
+
+	if ( unlikely( ! slap_csn_verify_lite( csn ) ))
+		goto bailout;
+
+	sid = strtol( csn->bv_val + 30, &endptr, 16 );
+	if ( unlikely(
+			endptr != csn->bv_val + 33 ||
+			sid < 0 ||
+			sid > SLAP_SYNC_SID_MAX /* LY: paranoia ;) */ ))
+		goto bailout;
+
+	return sid;
+
+bailout:
+	Debug( LDAP_DEBUG_SYNC, "slap_csn_get_sid: invalid-CSN '%s'\n",
+		   csn->bv_val );
+	return -1;
+}

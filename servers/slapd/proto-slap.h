@@ -1234,6 +1234,13 @@ LDAP_SLAPD_F (int) slap_csn_stub_self LDAP_P((
 LDAP_SLAPD_F (int) slap_check_same_server LDAP_P((
 				BackendDB *bd, int sid));
 
+int slap_csn_verify_lite( const BerValue *csn );
+int slap_csn_verify_full( const BerValue *csn );
+int slap_csn_match( const BerValue *a, const BerValue *b );
+int slap_csn_compare_sr( const BerValue *a, const BerValue *b );
+int slap_csn_compare_ts( const BerValue *a, const BerValue *b );
+int slap_csn_get_sid( const BerValue *csn );
+
 /*
  * limits.c
  */
