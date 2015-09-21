@@ -515,8 +515,8 @@ syncrepl_search_provider(
 	return rc;
 }
 
-static void
-syncrepl_cookie_pull(
+static int
+syncrepl_pull_contextCSN(
 	Operation *op,
 	syncinfo_t *si )
 {
@@ -524,14 +524,8 @@ syncrepl_cookie_pull(
 	Attribute a = {0};
 	Entry e = {0};
 	SlapReply rs = {REP_SEARCH};
-	int i, j, changed = 0;
+	int rc, i, changed = 0;
 
-	/* Look for contextCSN from syncprov overlay. If
-	 * there's no overlay, this will be a no-op. That means
-	 * this is a pure consumer, so local changes will not be
-	 * allowed, and all changes will already be reflected in
-	 * the cookieState.
-	 */
 	a.a_desc = slap_schema.si_ad_contextCSN;
 	e.e_attrs = &a;
 	e.e_name = si->si_contextdn;
@@ -545,9 +539,14 @@ syncrepl_cookie_pull(
 	op->o_req_dn = e.e_name;
 	op->o_req_ndn = e.e_nname;
 
-	ldap_pvt_thread_mutex_lock( &si->si_cookieState->cs_mutex );
-	i = backend_operational( op, &rs );
-	if ( i == LDAP_SUCCESS && a.a_nvals ) {
+	/* Look for contextCSN from syncprov overlay. If
+	 * there's no overlay, this will be a no-op. That means
+	 * this is a pure consumer, so local changes will not be
+	 * allowed, and all changes will already be reflected in
+	 * the cookieState.
+	 */
+	rc = backend_operational( op, &rs );
+	if ( rc == LDAP_SUCCESS && a.a_nvals ) {
 		int num = a.a_numvals;
 		/* check for differences */
 		if ( num != si->si_cookieState->cs_cookie.numcsns ) {
@@ -578,6 +577,19 @@ syncrepl_cookie_pull(
 		}
 		ber_bvarray_free( a.a_vals );
 	}
+
+	return changed;
+}
+
+static void
+syncrepl_cookie_pull(
+	Operation *op,
+	syncinfo_t *si )
+{
+	int  i, j, changed = 0;
+
+	ldap_pvt_thread_mutex_lock( &si->si_cookieState->cs_mutex );
+	syncrepl_pull_contextCSN ( op, si );
 
 	/* See if the cookieState has changed due to anything outside
 	 * this particular consumer. That includes other consumers in
