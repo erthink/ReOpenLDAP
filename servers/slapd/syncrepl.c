@@ -140,7 +140,8 @@ typedef struct syncinfo_s {
 #endif
 	ldap_pvt_thread_mutex_t	si_mutex;
 
-	char		si_cutoff_csn[LDAP_PVT_CSNSTR_BUFSIZE];
+	BerValue si_cutoff_csn;
+	char si_cutoff_csnbuf[ LDAP_PVT_CSNSTR_BUFSIZE ];
 
 } syncinfo_t;
 
@@ -234,8 +235,9 @@ init_syncrepl(syncinfo_t *si)
 	int i, j, k, l, n;
 	char **attrs, **exattrs;
 
-	LDAP_ENSURE( ldap_pvt_csnstr( si->si_cutoff_csn, sizeof(si->si_cutoff_csn),
-		slap_serverID, 0 ) < sizeof(si->si_cutoff_csn) );
+	si->si_cutoff_csn.bv_val = si->si_cutoff_csnbuf;
+	si->si_cutoff_csn.bv_len = sizeof( si->si_cutoff_csnbuf );
+	slap_get_csn( NULL, &si->si_cutoff_csn, 0 );
 
 	if ( !syncrepl_ov.on_bi.bi_type ) {
 		syncrepl_ov.on_bi.bi_type = "syncrepl";
@@ -2600,29 +2602,9 @@ done:
 	return rc;
 }
 
-static int csn_peek_origin(BerValue *csn)
-{
-	char* endptr;
-	int sid;
-
-	if (csn->bv_val[21] != 'Z' || csn->bv_val[29] != '#')
-		return -1;
-
-	endptr = NULL;
-	sid = strtol(csn->bv_val + 30, &endptr, 16);
-	if (! endptr || (*endptr != '#' && *endptr))
-		return -1;
-
-	return sid;
-}
-
 #define RETARD_ECHO		1
 #define RETARD_ALTER	2
 #define RETARD_UPDATE	4
-
-static int compare_csn(const BerValue *a, const char* b) {
-	return memcmp(a->bv_val, b, 29);
-}
 
 static int check_for_retard(syncinfo_t *si, struct sync_cookie *sc,
 							BerValue *csn_present, BerValue *csn_incomming)
@@ -2634,24 +2616,24 @@ static int check_for_retard(syncinfo_t *si, struct sync_cookie *sc,
 
 	if (SLAP_MULTIMASTER(si->si_be)) {
 		if (csn_incomming && csn_incomming->bv_len > 31) {
-			origin = csn_peek_origin(csn_incomming);
+			origin = slap_csn_get_sid(csn_incomming);
 			for(i = 0; i < si->si_syncCookie.numcsns; ++i) {
 				if (origin == si->si_syncCookie.sids[i]) {
-					if (compare_csn(csn_incomming, si->si_syncCookie.ctxcsn[i].bv_val) <= 0)
+					if (slap_csn_compare_ts(csn_incomming, &si->si_syncCookie.ctxcsn[i]) <= 0)
 						/* LY: It is an "echo" of the notification from this server. */
 						rc |= RETARD_ECHO;
 					break;
 				}
 			}
 			if (reopenldap_mode_idclip() && origin == slap_serverID
-				&& compare_csn(csn_incomming, si->si_cutoff_csn) >= 0) {
+				&& slap_csn_compare_ts(csn_incomming, &si->si_cutoff_csn) >= 0) {
 					/* LY: It is an "echo" of the notification from this server. */
 					rc |= RETARD_ECHO;
 			}
 		}
 
 		if (csn_present && csn_present->bv_len > 31 && sc) {
-			origin = csn_peek_origin(csn_present);
+			origin = slap_csn_get_sid(csn_present);
 			if (origin > -1) {
 				/* LY: The locally-present entry is newer (e.g. was added after
 				 * deletion) if no a CSN in the cookie for the same SID of entryCSN
@@ -2659,7 +2641,7 @@ static int check_for_retard(syncinfo_t *si, struct sync_cookie *sc,
 				rc |= RETARD_ALTER;
 				for(i = 0; i < sc->numcsns; ++i) {
 					if (origin == sc->sids[i]) {
-						if (compare_csn(csn_present, sc->ctxcsn[i].bv_val) < 0)
+						if (slap_csn_compare_ts(csn_present, &sc->ctxcsn[i]) < 0)
 							rc &= ~RETARD_ALTER;
 						break;
 					}
@@ -2670,7 +2652,7 @@ static int check_for_retard(syncinfo_t *si, struct sync_cookie *sc,
 
 	if (csn_present && csn_present->bv_len > 31
 			&& csn_incomming && csn_incomming->bv_len > 31) {
-		if (compare_csn(csn_present, csn_incomming->bv_val) >= 0)
+		if (slap_csn_compare_ts(csn_present, csn_incomming) >= 0)
 			rc |= RETARD_UPDATE;
 	}
 
@@ -3717,7 +3699,7 @@ syncrepl_del_nonpresent(
 			f->f_next = NULL;
 			f->f_av_value = sc->ctxcsn[0];
 			for ( i=1; i<sc->numcsns; i++ ) {
-				if ( compare_csn( &sc->ctxcsn[i], f->f_av_value.bv_val ) > 0 )
+				if ( slap_csn_compare_ts( &sc->ctxcsn[i], &f->f_av_value ) > 0 )
 					f->f_av_value = sc->ctxcsn[i];
 			}
 			of = op->ors_filter;
