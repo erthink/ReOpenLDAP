@@ -138,9 +138,7 @@ typedef struct slog_entry {
 } slog_entry;
 
 typedef struct sessionlog {
-	BerVarray	sl_mincsn;
-	int		*sl_sids;
-	int		sl_numcsns;
+	struct sync_cookie sl_cookie;
 	int		sl_num;
 	int		sl_size;
 	slog_entry *sl_head;
@@ -1691,13 +1689,13 @@ syncprov_add_slog( Operation *op )
 		} else {
 			sl->sl_head = se;
 			sl->sl_tail = se;
-			if ( !sl->sl_mincsn ) {
-				sl->sl_numcsns = 1;
-				sl->sl_mincsn = ch_malloc( 2*sizeof( struct berval ));
-				sl->sl_sids = ch_malloc( sizeof( int ));
-				sl->sl_sids[0] = se->se_sid;
-				ber_dupbv( sl->sl_mincsn, &se->se_csn );
-				BER_BVZERO( &sl->sl_mincsn[1] );
+			if ( !sl->sl_cookie.ctxcsn ) {
+				sl->sl_cookie.numcsns = 1;
+				sl->sl_cookie.ctxcsn = ch_malloc( 2*sizeof( struct berval ));
+				sl->sl_cookie.sids = ch_malloc( sizeof( int ));
+				sl->sl_cookie.sids[0] = se->se_sid;
+				ber_dupbv( sl->sl_cookie.ctxcsn, &se->se_csn );
+				BER_BVZERO( &sl->sl_cookie.ctxcsn[1] );
 			}
 		}
 		sl->sl_num++;
@@ -1705,14 +1703,13 @@ syncprov_add_slog( Operation *op )
 			int i;
 			se = sl->sl_head;
 			sl->sl_head = se->se_next;
-			for ( i=0; i<sl->sl_numcsns; i++ )
-				if ( sl->sl_sids[i] >= se->se_sid )
+			for ( i=0; i<sl->sl_cookie.numcsns; i++ )
+				if ( sl->sl_cookie.sids[i] >= se->se_sid )
 					break;
-			if  ( i == sl->sl_numcsns || sl->sl_sids[i] != se->se_sid ) {
-				slap_insert_csn_sids( (struct sync_cookie *)sl,
-					i, se->se_sid, &se->se_csn );
+			if  ( i == sl->sl_cookie.numcsns || sl->sl_cookie.sids[i] != se->se_sid ) {
+				slap_insert_csn_sids( &sl->sl_cookie, i, se->se_sid, &se->se_csn );
 			} else {
-				ber_bvreplace( &sl->sl_mincsn[i], &se->se_csn );
+				ber_bvreplace( &sl->sl_cookie.ctxcsn[i], &se->se_csn );
 			}
 			ch_free( se );
 			sl->sl_num--;
@@ -1945,7 +1942,7 @@ syncprov_op_response( Operation *op, SlapReply *rs )
 				Syntax *syn = slap_schema.si_ad_contextCSN->ad_type->sat_syntax;
 				assert( !syn->ssyn_validate( syn, &maxcsn ));
 			}
-			for ( i=0; i<si->si_cookie.numcsns; i++ ) {
+			for ( i = 0; i < si->si_cookie.numcsns; i++ ) {
 				if ( maxcsn_sid < si->si_cookie.sids[i] )
 					break;
 				if ( maxcsn_sid == si->si_cookie.sids[i] ) {
@@ -2816,22 +2813,22 @@ no_change:
 			 */
 			if ( sl->sl_num > 0 ) {
 				int i;
-				for ( i=0; i<sl->sl_numcsns; i++ ) {
+				for ( i=0; i<sl->sl_cookie.numcsns; i++ ) {
 					/* SID not present == new enough */
-					if ( minsid < sl->sl_sids[i] ) {
+					if ( minsid < sl->sl_cookie.sids[i] ) {
 						do_play = 1;
 						break;
 					}
 					/* SID present */
-					if ( minsid == sl->sl_sids[i] ) {
+					if ( minsid == sl->sl_cookie.sids[i] ) {
 						/* new enough? */
-						if ( ber_bvcmp( &mincsn, &sl->sl_mincsn[i] ) >= 0 )
+						if ( ber_bvcmp( &mincsn, &sl->sl_cookie.ctxcsn[i] ) >= 0 )
 							do_play = 1;
 						break;
 					}
 				}
 				/* SID not present == new enough */
-				if ( i == sl->sl_numcsns )
+				if ( i == sl->sl_cookie.numcsns )
 					do_play = 1;
 			}
 			if ( do_play ) {
@@ -3186,10 +3183,10 @@ sp_cf_gen(ConfigArgs *c)
 		sl = si->si_logs;
 		if ( !sl ) {
 			sl = ch_malloc( sizeof( sessionlog ));
-			sl->sl_mincsn = NULL;
-			sl->sl_sids = NULL;
+			sl->sl_cookie.ctxcsn = NULL;
+			sl->sl_cookie.sids = NULL;
 			sl->sl_num = 0;
-			sl->sl_numcsns = 0;
+			sl->sl_cookie.numcsns = 0;
 			sl->sl_head = sl->sl_tail = NULL;
 			ldap_pvt_thread_mutex_init( &sl->sl_mutex );
 			si->si_logs = sl;
@@ -3336,11 +3333,11 @@ syncprov_db_open(
 	if ( si->si_logs && si->si_cookie.numcsns ) {
 		sessionlog *sl = si->si_logs;
 		int i;
-		ber_bvarray_dup_x( &sl->sl_mincsn, si->si_cookie.ctxcsn, NULL );
-		sl->sl_numcsns = si->si_cookie.numcsns;
-		sl->sl_sids = ch_malloc( si->si_cookie.numcsns * sizeof(int) );
+		ber_bvarray_dup_x( &sl->sl_cookie.ctxcsn, si->si_cookie.ctxcsn, NULL );
+		sl->sl_cookie.numcsns = si->si_cookie.numcsns;
+		sl->sl_cookie.sids = ch_malloc( si->si_cookie.numcsns * sizeof(int) );
 		for ( i=0; i < si->si_cookie.numcsns; i++ )
-			sl->sl_sids[i] = si->si_cookie.sids[i];
+			sl->sl_cookie.sids[i] = si->si_cookie.sids[i];
 	}
 
 out:
@@ -3474,10 +3471,10 @@ syncprov_db_destroy(
 				ch_free( se );
 				se = se_next;
 			}
-			if ( sl->sl_mincsn )
-				ber_bvarray_free( sl->sl_mincsn );
-			if ( sl->sl_sids )
-				ch_free( sl->sl_sids );
+			if ( sl->sl_cookie.ctxcsn )
+				ber_bvarray_free( sl->sl_cookie.ctxcsn );
+			if ( sl->sl_cookie.sids )
+				ch_free( sl->sl_cookie.sids );
 
 			ldap_pvt_thread_mutex_destroy(&si->si_logs->sl_mutex);
 			ch_free( si->si_logs );
