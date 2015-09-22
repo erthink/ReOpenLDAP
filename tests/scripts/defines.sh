@@ -582,6 +582,8 @@ function wait_syncrepl {
 	$LDAPSEARCH -s $scope -b "$BASEDN" -h $LOCALHOST -p $1 contextCSN
 	echo -n "Consumer: "
 	$LDAPSEARCH -s $scope -b "$BASEDN" -h $LOCALHOST -p $2 contextCSN
+	killservers
+	exit 42
 }
 
 function check_running {
