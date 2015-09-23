@@ -547,19 +547,12 @@ syncrepl_pull_contextCSN(
 	 */
 	rc = backend_operational( op, &rs );
 	if ( rc == LDAP_SUCCESS && a.a_nvals ) {
-		int num = slap_csns_validate_and_sort( a.a_nvals );
-		/* check for differences */
-		vector = slap_csns_compare( a.a_nvals, si->si_cookieState->cs_cookie.ctxcsn );
-		assert( vector >= 0);
-		if ( vector > 0 ) {
-			/* LY: loads a entire snapshot into si_cookieState */
-			slap_cookie_fetch( &si->si_cookieState->cs_cookie, a.a_nvals );
+		vector = slap_cookie_pull(
+			&si->si_cookieState->cs_cookie, a.a_nvals, 1 );
+		if ( vector > 0 )
 			si->si_cookieState->cs_age++;
-		} else {
-			assert( num == si->si_cookieState->cs_cookie.numcsns );
-			ber_bvarray_free( a.a_nvals );
-		}
-		ber_bvarray_free( a.a_vals );
+		if ( a.a_nvals != a.a_vals )
+			ber_bvarray_free( a.a_vals );
 	}
 
 	return vector;
