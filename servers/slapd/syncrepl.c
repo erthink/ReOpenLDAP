@@ -711,7 +711,8 @@ syncrep_start(
 			si->si_syncCookie.octet_str = sc->octet_str;
 			ch_free( sc );
 			/* ctxcsn wasn't parsed yet, do it now */
-			LDAP_ENSURE (slap_parse_sync_cookie( &si->si_syncCookie, NULL ) == 0);
+			LDAP_ENSURE (slap_cookie_parse( &si->si_syncCookie,
+				&si->si_syncCookie.octet_str ) == 0);
 		} else {
 			ldap_pvt_thread_mutex_lock( &si->si_cookieState->cs_mutex );
 			if ( !si->si_cookieState->cs_cookie.numcsns ) {
@@ -882,9 +883,7 @@ syncrep_take_cookie(
 	   "syncrep_process: %s cookie=%s\n",
 		si->si_ridtxt, raw.bv_val );
 
-	ch_free( dst->octet_str.bv_val );
-	ber_dupbv( &dst->octet_str, &raw );
-	rc = slap_parse_sync_cookie( dst, NULL );
+	rc = slap_cookie_parse( dst, &raw );
 	if ( rc )
 		return rc;
 

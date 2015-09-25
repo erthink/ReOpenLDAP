@@ -523,7 +523,7 @@ int main( int argc, char **argv )
 			ber_str2bv( optarg, 0, 1, &scp->octet_str );
 
 			/* This only parses out the rid at this point */
-			slap_parse_sync_cookie( scp, NULL );
+			slap_cookie_parse( scp, &scp->octet_str );
 
 			if ( scp->rid == -1 ) {
 				Debug( LDAP_DEBUG_ANY,
