@@ -695,8 +695,6 @@ syncrep_start(
 	 * any meaningful state.
 	 */
 	if ( !si->si_syncCookie.ctxcsn ) {
-		int i;
-
 		LDAP_STAILQ_FOREACH( sc, &slap_sync_cookie, sc_next ) {
 			if ( si->si_rid == sc->rid ) {
 				cmdline_cookie_found = 1;
@@ -729,50 +727,24 @@ syncrep_start(
 				backend_attribute( op, NULL, &op->o_req_ndn,
 					slap_schema.si_ad_contextCSN, &csn, ACL_READ );
 				op->o_tmpmemctx = ctx;
-				if ( csn ) {
-					si->si_cookieState->cs_cookie.ctxcsn = csn;
-					for (i=0; !BER_BVISNULL( &csn[i] ); i++);
-					si->si_cookieState->cs_cookie.numcsns = i;
-					si->si_cookieState->cs_cookie.sids = slap_parse_csn_sids( csn, i, NULL );
-					rc = slap_sort_csn_sids( csn, si->si_cookieState->cs_cookie.sids, i, NULL );
-					if (rc)
-						goto done;
-				}
+				if ( csn )
+					slap_cookie_pull( &si->si_cookieState->cs_cookie, csn, 1 );
 			}
-			if ( si->si_cookieState->cs_cookie.numcsns ) {
-				ber_bvarray_free( si->si_syncCookie.ctxcsn );
-				if ( ber_bvarray_dup_x( &si->si_syncCookie.ctxcsn,
-					si->si_cookieState->cs_cookie.ctxcsn, NULL )) {
-					rc = LDAP_NO_MEMORY;
-					ldap_pvt_thread_mutex_unlock( &si->si_cookieState->cs_mutex );
-					goto done;
-				}
-				si->si_syncCookie.numcsns = si->si_cookieState->cs_cookie.numcsns;
-				si->si_syncCookie.sids = ch_malloc( si->si_cookieState->cs_cookie.numcsns *
-					sizeof(int) );
-				for ( i=0; i<si->si_syncCookie.numcsns; i++ ) {
-					si->si_syncCookie.sids[i] = si->si_cookieState->cs_cookie.sids[i];
-					quorum_notify_csn( si->si_be, si->si_syncCookie.sids[i] );
-				}
-			}
+			slap_cookie_merge( si->si_be, &si->si_syncCookie, &si->si_cookieState->cs_cookie );
 			ldap_pvt_thread_mutex_unlock( &si->si_cookieState->cs_mutex );
 		}
+	} else {
+		/* ITS#6367: recreate the cookie so it has our SID, not our peer's */
+		/* Look for contextCSN from syncprov overlay. */
+		syncrepl_cookie_pull( op, si );
+	}
 
-		ch_free( si->si_syncCookie.octet_str.bv_val );
+	ch_free( si->si_syncCookie.octet_str.bv_val );
+	BER_BVZERO( &si->si_syncCookie.octet_str );
+	if ( BER_BVISNULL( &si->si_syncCookie.octet_str ))
 		slap_compose_sync_cookie( NULL, &si->si_syncCookie.octet_str,
 			si->si_syncCookie.ctxcsn, si->si_syncCookie.rid,
 			si->si_syncCookie.sid );
-	} else {
-		/* ITS#6367: recreate the cookie so it has our SID, not our peer's */
-		ch_free( si->si_syncCookie.octet_str.bv_val );
-		BER_BVZERO( &si->si_syncCookie.octet_str );
-		/* Look for contextCSN from syncprov overlay. */
-		syncrepl_cookie_pull( op, si );
-		if ( BER_BVISNULL( &si->si_syncCookie.octet_str ))
-			slap_compose_sync_cookie( NULL, &si->si_syncCookie.octet_str,
-				si->si_syncCookie.ctxcsn, si->si_syncCookie.rid,
-				si->si_syncCookie.sid );
-	}
 
 	rc = syncrepl_search_provider( si, op->o_tmpmemctx );
 
