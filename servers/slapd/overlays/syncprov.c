@@ -1968,26 +1968,24 @@ syncprov_op_response( Operation *op, SlapReply *rs )
 					si->si_dirty = 0;
 					si->si_numops++;
 				}
-				ldap_pvt_thread_rdwr_wunlock( &si->si_csn_rwlock );
+			}
+			ldap_pvt_thread_rdwr_wunlock( &si->si_csn_rwlock );
 
-				if ( csn_changed ) {
-					syncops *ss;
-					ldap_pvt_thread_mutex_lock( &si->si_ops_mutex );
-					for ( ss = si->si_ops; ss; ss = ss->s_next ) {
-						if ( is_syncops_abandoned(ss) )
-							continue;
-						/* Send the updated csn to all syncrepl consumers,
-						 * including the server from which it originated.
-						 * The syncrepl consumer and syncprov provider on
-						 * the originating server may be configured to store
-						 * their csn values in different entries.
-						 */
-						syncprov_qresp( opc, ss, LDAP_SYNC_NEW_COOKIE );
-					}
-					ldap_pvt_thread_mutex_unlock( &si->si_ops_mutex );
+			if ( csn_changed ) {
+				syncops *ss;
+				ldap_pvt_thread_mutex_lock( &si->si_ops_mutex );
+				for ( ss = si->si_ops; ss; ss = ss->s_next ) {
+					if ( is_syncops_abandoned( ss ) )
+						continue;
+					/* Send the updated csn to all syncrepl consumers,
+					 * including the server from which it originated.
+					 * The syncrepl consumer and syncprov provider on
+					 * the originating server may be configured to store
+					 * their csn values in different entries.
+					 */
+					syncprov_qresp( opc, ss, LDAP_SYNC_NEW_COOKIE );
 				}
-			} else {
-				ldap_pvt_thread_rdwr_wunlock( &si->si_csn_rwlock );
+				ldap_pvt_thread_mutex_unlock( &si->si_ops_mutex );
 			}
 			goto leave;
 		}
