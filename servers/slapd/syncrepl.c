@@ -1033,15 +1033,16 @@ do_syncrep_process(
 					goto done;
 
 				if ( syncCookie.ctxcsn ) {
+					int vector;
+
 					if ( syncCookie.numcsns != 1 ) {
 						rc = LDAP_PROTOCOL_ERROR;
 						goto done;
 					}
 
-					ldap_pvt_thread_mutex_lock( &si->si_cookieState->cs_mutex );
-					si->si_too_old = ( 0 >= slap_cookie_compare_csn(
-						&si->si_cookieState->cs_cookie, syncCookie.ctxcsn ) );
-					ldap_pvt_thread_mutex_unlock( &si->si_cookieState->cs_mutex );
+					vector = slap_cookie_compare_csn(
+						&si->si_syncCookie, syncCookie.ctxcsn );
+					si->si_too_old = (vector <= 0);
 				}
 			}
 
