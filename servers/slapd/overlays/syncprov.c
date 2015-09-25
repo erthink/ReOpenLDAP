@@ -1960,30 +1960,10 @@ syncprov_op_response( Operation *op, SlapReply *rs )
 				 * all the attribute values, as there may be more than one csn
 				 * that changed, and only one can be passed in the csn queue.
 				 */
-				Modifications *mod = op->orm_modlist;
-				unsigned i;
-				int j, sid;
-
-				for ( i = 0; i < mod->sml_numvals; i++ ) {
-					sid = slap_csn_get_sid( &mod->sml_values[i] );
-					for ( j = 0; j < si->si_cookie.numcsns; j++ ) {
-						if ( sid < si->si_cookie.sids[j] )
-							break;
-						if ( sid == si->si_cookie.sids[j] ) {
-							int cmp = slap_csn_compare_ts( &mod->sml_values[i], &si->si_cookie.ctxcsn[j] );
-							if ( cmp > 0 ) {
-								ber_bvreplace( &si->si_cookie.ctxcsn[j], &mod->sml_values[i] );
-								csn_changed = 1;
-							}
-							break;
-						}
-					}
-
-					if ( j == si->si_cookie.numcsns || sid != si->si_cookie.sids[j] ) {
-						slap_insert_csn_sids( &si->si_cookie, j, sid, &mod->sml_values[i] );
-						csn_changed = 1;
-					}
-				}
+				int vector = slap_cookie_merge_csnset(
+					NULL, &si->si_cookie, op->orm_modlist->sml_values );
+				if ( vector > 0 )
+					csn_changed = 1;
 				if ( csn_changed ) {
 					si->si_dirty = 0;
 					si->si_numops++;
