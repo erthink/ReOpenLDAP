@@ -1611,6 +1611,11 @@ syncprov_checkpoint( Operation *op, slap_overinst *on )
 	}
 	opm.o_bd->bd_info = bi;
 
+	if ( rsm.sr_err == LDAP_SUCCESS ) {
+		si->si_chklast = op->o_time;
+		si->si_numops = 0;
+	}
+
 	if ( mod.sml_next != NULL ) {
 		slap_mods_free( mod.sml_next, 1 );
 	}
@@ -1905,7 +1910,7 @@ syncprov_op_response( Operation *op, SlapReply *rs )
 	{
 		struct berval maxcsn;
 		char cbuf[LDAP_PVT_CSNSTR_BUFSIZE];
-		int do_check = 0, have_psearches, csn_changed = 0, maxcsn_sid;
+		int have_psearches, csn_changed = 0, maxcsn_sid;
 
 		ldap_pvt_thread_mutex_lock( &si->si_resp_mutex );
 		ldap_pvt_thread_rdwr_wlock( &si->si_csn_rwlock );
@@ -1997,19 +2002,11 @@ syncprov_op_response( Operation *op, SlapReply *rs )
 			!dn_match( &op->o_req_ndn, &si->si_contextdn )) {
 			if ( (si->si_chkops && si->si_numops >= si->si_chkops)
 			|| (si->si_chktime && op->o_time - si->si_chklast >= si->si_chktime) ) {
-				si->si_chklast = op->o_time;
-				si->si_numops = 0;
-				do_check = 1;
+				syncprov_checkpoint( op, on );
 			}
 		}
 		si->si_dirty = !csn_changed;
 		ldap_pvt_thread_rdwr_wunlock( &si->si_csn_rwlock );
-
-		if ( do_check ) {
-			ldap_pvt_thread_rdwr_rlock( &si->si_csn_rwlock );
-			syncprov_checkpoint( op, on );
-			ldap_pvt_thread_rdwr_runlock( &si->si_csn_rwlock );
-		}
 
 		/* only update consumer ctx if this is a newer csn */
 		if ( csn_changed ) {
