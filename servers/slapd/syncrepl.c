@@ -563,8 +563,6 @@ syncrepl_cookie_pull(
 	Operation *op,
 	syncinfo_t *si )
 {
-	int  i, j, changed = 0;
-
 	ldap_pvt_thread_mutex_lock( &si->si_cookieState->cs_mutex );
 	syncrepl_pull_contextCSN ( op, si );
 
@@ -574,46 +572,15 @@ syncrepl_cookie_pull(
 	 */
 	if ( si->si_cookieAge != si->si_cookieState->cs_age ) {
 		/* LY: merge si_cookieState into si_syncCookie, not just a copy! */
-		for (j = 0; j < si->si_cookieState->cs_cookie.numcsns; j++) {
-			for (i = 0; i < si->si_syncCookie.numcsns; i++) {
-				assert( si->si_syncCookie.sids[i] > -1
-					   && ! BER_BVISNULL( &si->si_syncCookie.ctxcsn[i] ) );
-				if ( si->si_syncCookie.sids[i] == si->si_cookieState->cs_cookie.sids[j] )
-					break;
-			}
-			if (i == si->si_syncCookie.numcsns) {
-				si->si_syncCookie.numcsns += 1;
-				ber_bvarray_add( &si->si_syncCookie.ctxcsn,
-					ber_bvdup( &si->si_cookieState->cs_cookie.ctxcsn[j] ) );
-				si->si_syncCookie.sids = ch_realloc( si->si_syncCookie.sids,
-					sizeof(si->si_syncCookie.sids[0]) * si->si_syncCookie.numcsns);
-				si->si_syncCookie.sids[i] = si->si_cookieState->cs_cookie.sids[j];
-				changed = 1;
-			} else if (! bvmatch( &si->si_syncCookie.ctxcsn[i],
-					&si->si_cookieState->cs_cookie.ctxcsn[j])) {
-				assert( strcmp( si->si_cookieState->cs_cookie.ctxcsn[j].bv_val,
-								si->si_syncCookie.ctxcsn[i].bv_val ) > 0 );
-				ber_bvreplace( &si->si_syncCookie.ctxcsn[i],
-					&si->si_cookieState->cs_cookie.ctxcsn[j] );
-				changed = 1;
-			}
-		}
-
-		if ( changed ) {
-			si->si_cookieAge = si->si_cookieState->cs_age;
+		int lead = slap_cookie_merge( si->si_be,
+					&si->si_syncCookie, &si->si_cookieState->cs_cookie );
+		if ( lead > -1 ) {
 			ch_free( si->si_syncCookie.octet_str.bv_val );
 			slap_compose_sync_cookie( NULL, &si->si_syncCookie.octet_str,
 				si->si_syncCookie.ctxcsn, si->si_syncCookie.rid,
 				si->si_syncCookie.sid );
-			ch_free( si->si_syncCookie.sids );
-			slap_reparse_sync_cookie( &si->si_syncCookie, op->o_tmpmemctx );
-
-			if ( reopenldap_mode_idkfa() )
-				slap_cookie_verify( &si->si_syncCookie );
-
-			for(i = 0; i < si->si_syncCookie.numcsns; ++i)
-				quorum_notify_csn( si->si_be, si->si_syncCookie.sids[i] );
 		}
+		si->si_cookieAge = si->si_cookieState->cs_age;
 	}
 	ldap_pvt_thread_mutex_unlock( &si->si_cookieState->cs_mutex );
 }
