@@ -1971,27 +1971,10 @@ syncprov_op_response( Operation *op, SlapReply *rs )
 			maxcsn_sid = slap_get_commit_csn( op, &maxcsn );
 			op->o_bd = be;
 		}
-		if ( !BER_BVISEMPTY( &maxcsn ) ) {
-			int i;
-			assert(slap_csn_verify_full( &maxcsn ));
-			for ( i = 0; i < si->si_cookie.numcsns; i++ ) {
-				if ( maxcsn_sid < si->si_cookie.sids[i] )
-					break;
-				if ( maxcsn_sid == si->si_cookie.sids[i] ) {
-					int cmp = slap_csn_compare_ts( &maxcsn, &si->si_cookie.ctxcsn[i] );
-					if ( cmp > 0 ) {
-						ber_bvreplace( &si->si_cookie.ctxcsn[i], &maxcsn );
-						csn_changed = 1;
-					}
-					break;
-				}
-			}
-			/* It's a new SID for us */
-			if ( i == si->si_cookie.numcsns || maxcsn_sid != si->si_cookie.sids[i] ) {
-				slap_insert_csn_sids( &si->si_cookie, i, maxcsn_sid, &maxcsn );
-				csn_changed = 1;
-			}
-		}
+		if ( !BER_BVISEMPTY( &maxcsn )
+				&& slap_cookie_merge_csn( op->o_bd, &si->si_cookie,
+						maxcsn_sid, &maxcsn ) > 0 )
+			csn_changed = 1;
 
 		if ( csn_changed )
 			si->si_numops++;
