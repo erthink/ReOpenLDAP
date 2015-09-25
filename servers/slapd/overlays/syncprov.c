@@ -1908,13 +1908,50 @@ syncprov_op_response( Operation *op, SlapReply *rs )
 		int do_check = 0, have_psearches, csn_changed = 0, maxcsn_sid;
 
 		ldap_pvt_thread_mutex_lock( &si->si_resp_mutex );
+		ldap_pvt_thread_rdwr_wlock( &si->si_csn_rwlock );
+
+		/* Don't do any processing for consumer contextCSN updates */
+		if ( op->o_dont_replicate ) {
+			if ( op->o_tag == LDAP_REQ_MODIFY &&
+				op->orm_modlist->sml_op == LDAP_MOD_REPLACE &&
+				op->orm_modlist->sml_desc == slap_schema.si_ad_contextCSN ) {
+				/* Catch contextCSN updates from syncrepl. We have to look at
+				 * all the attribute values, as there may be more than one csn
+				 * that changed, and only one can be passed in the csn queue.
+				 */
+				int vector = slap_cookie_merge_csnset(
+					NULL, &si->si_cookie, op->orm_modlist->sml_values );
+				if ( vector > 0 ) {
+					csn_changed = 1;
+					si->si_dirty = 0;
+					si->si_numops++;
+				}
+			}
+			ldap_pvt_thread_rdwr_wunlock( &si->si_csn_rwlock );
+
+			if ( csn_changed ) {
+				syncops *ss;
+				ldap_pvt_thread_mutex_lock( &si->si_ops_mutex );
+				for ( ss = si->si_ops; ss; ss = ss->s_next ) {
+					if ( is_syncops_abandoned( ss ) )
+						continue;
+					/* Send the updated csn to all syncrepl consumers,
+					 * including the server from which it originated.
+					 * The syncrepl consumer and syncprov provider on
+					 * the originating server may be configured to store
+					 * their csn values in different entries.
+					 */
+					syncprov_qresp( opc, ss, LDAP_SYNC_NEW_COOKIE );
+				}
+				ldap_pvt_thread_mutex_unlock( &si->si_ops_mutex );
+			}
+			goto leave;
+		}
 
 		/* Update our context CSN */
 		cbuf[0] = '\0';
 		maxcsn.bv_val = cbuf;
 		maxcsn.bv_len = sizeof(cbuf);
-		ldap_pvt_thread_rdwr_wlock( &si->si_csn_rwlock );
-
 		maxcsn_sid = slap_get_commit_csn( op, &maxcsn );
 		if ( BER_BVISEMPTY( &maxcsn ) && SLAP_GLUE_SUBORDINATE( op->o_bd )) {
 			/* syncrepl queues the CSN values in the db where
@@ -1949,45 +1986,6 @@ syncprov_op_response( Operation *op, SlapReply *rs )
 				slap_insert_csn_sids( &si->si_cookie, i, maxcsn_sid, &maxcsn );
 				csn_changed = 1;
 			}
-		}
-
-		/* Don't do any processing for consumer contextCSN updates */
-		if ( op->o_dont_replicate ) {
-			if ( op->o_tag == LDAP_REQ_MODIFY &&
-				op->orm_modlist->sml_op == LDAP_MOD_REPLACE &&
-				op->orm_modlist->sml_desc == slap_schema.si_ad_contextCSN ) {
-				/* Catch contextCSN updates from syncrepl. We have to look at
-				 * all the attribute values, as there may be more than one csn
-				 * that changed, and only one can be passed in the csn queue.
-				 */
-				int vector = slap_cookie_merge_csnset(
-					NULL, &si->si_cookie, op->orm_modlist->sml_values );
-				if ( vector > 0 )
-					csn_changed = 1;
-				if ( csn_changed ) {
-					si->si_dirty = 0;
-					si->si_numops++;
-				}
-			}
-			ldap_pvt_thread_rdwr_wunlock( &si->si_csn_rwlock );
-
-			if ( csn_changed ) {
-				syncops *ss;
-				ldap_pvt_thread_mutex_lock( &si->si_ops_mutex );
-				for ( ss = si->si_ops; ss; ss = ss->s_next ) {
-					if ( is_syncops_abandoned( ss ) )
-						continue;
-					/* Send the updated csn to all syncrepl consumers,
-					 * including the server from which it originated.
-					 * The syncrepl consumer and syncprov provider on
-					 * the originating server may be configured to store
-					 * their csn values in different entries.
-					 */
-					syncprov_qresp( opc, ss, LDAP_SYNC_NEW_COOKIE );
-				}
-				ldap_pvt_thread_mutex_unlock( &si->si_ops_mutex );
-			}
-			goto leave;
 		}
 
 		if ( csn_changed )
