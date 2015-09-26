@@ -409,53 +409,6 @@ slap_init_sync_cookie_ctxcsn(
 	return 0;
 }
 
-struct sync_cookie *
-slap_dup_sync_cookie(
-	struct sync_cookie *dst,
-	struct sync_cookie *src
-)
-{
-	struct sync_cookie *new;
-	int i;
-
-	if ( src == NULL )
-		return NULL;
-
-	if ( dst ) {
-		ber_bvarray_free( dst->ctxcsn );
-		dst->ctxcsn = NULL;
-		dst->sids = NULL;
-		ch_free( dst->octet_str.bv_val );
-		BER_BVZERO( &dst->octet_str );
-		new = dst;
-	} else {
-		new = ( struct sync_cookie * )
-				ber_memcalloc( 1, sizeof( struct sync_cookie ));
-	}
-
-	new->rid = src->rid;
-	new->sid = src->sid;
-	new->numcsns = src->numcsns;
-
-	if ( src->numcsns ) {
-		if ( ber_bvarray_dup_x( &new->ctxcsn, src->ctxcsn, NULL )) {
-			if ( !dst ) {
-				ber_memfree( new );
-			}
-			return NULL;
-		}
-		new->sids = ber_memalloc( src->numcsns * sizeof(int) );
-		for (i=0; i<src->numcsns; i++)
-			new->sids[i] = src->sids[i];
-	}
-
-	if ( !BER_BVISNULL( &src->octet_str )) {
-		ber_dupbv( &new->octet_str, &src->octet_str );
-	}
-
-	return new;
-}
-
 /*----------------------------------------------------------------------------*/
 
 void slap_cookie_verify(const struct sync_cookie *cookie)
