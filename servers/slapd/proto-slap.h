@@ -1263,8 +1263,6 @@ LDAP_SLAPD_V (const char *)	slap_known_controls[];
  */
 LDAP_SLAPD_F (void) slap_compose_sync_cookie LDAP_P((
 				Operation *, struct berval *, BerVarray, int, int ));
-LDAP_SLAPD_F (int) slap_sort_csn_sids LDAP_P((
-				BerVarray, int *, int, void *memctx ));
 LDAP_SLAPD_F (void) slap_insert_csn_sids LDAP_P((
 				struct sync_cookie *ck, int, int, struct berval * ));
 LDAP_SLAPD_F (int) slap_build_syncUUID_set LDAP_P((
