@@ -85,7 +85,6 @@ typedef struct syncinfo_s {
 	BackendDB		*si_wbe;
 	struct re_s		*si_re;
 	int			si_rid;
-	char			si_ridtxt[ STRLENOF("rid=999") + 1 ];
 	slap_bindconf		si_bindconf;
 	struct berval		si_base;
 	struct berval		si_logbase;
@@ -93,18 +92,12 @@ typedef struct syncinfo_s {
 	Filter			*si_filter;
 	struct berval		si_logfilterstr;
 	struct berval		si_contextdn;
-	int			si_scope;
-	int			si_attrsonly;
+
 	char			*si_anfile;
 	AttributeName		*si_anlist;
 	AttributeName		*si_exanlist;
 	char 			**si_attrs;
 	char			**si_exattrs;
-	int			si_allattrs;
-	int			si_allopattrs;
-	int			si_schemachecking;
-	int			si_type;	/* the active type */
-	int			si_ctype;	/* the configured type */
 	time_t			si_interval;
 	time_t			*si_retryinterval;
 	int			*si_retrynum_init;
@@ -113,20 +106,11 @@ typedef struct syncinfo_s {
 	struct sync_cookie	si_syncCookie_in;
 	cookie_state		*si_cookieState;
 	int			si_cookieAge;
-	int			si_manageDSAit;
 	int			si_slimit;
 	int			si_tlimit;
-	int			si_refreshDelete;
-	int			si_refreshPresent;
-	int			si_refreshDone;
 	time_t		si_refreshBeg;
 	time_t		si_refreshEnd;
-	int			si_syncflood_workaround;
-	int			si_syncdata;
-	int			si_logstate;
 	int			si_got;
-	int			si_strict_refresh;	/* stop listening during fallback refresh */
-	int			si_too_old;
 	ber_int_t	si_msgid;
 	presentlist_t	si_presentlist;
 	LDAP			*si_ld;
@@ -138,10 +122,26 @@ typedef struct syncinfo_s {
 #endif
 	ldap_pvt_thread_mutex_t	si_mutex;
 
-	BerValue si_cutoff_csn;
-	char si_cutoff_csnbuf[ LDAP_PVT_CSNSTR_BUFSIZE ];
-
-	char si_keep_cookie4search;
+	BerValue	si_cutoff_csn;
+	char	si_scope;
+	char	si_attrsonly;
+	char	si_allattrs;
+	char	si_allopattrs;
+	char	si_schemachecking;
+	char	si_type;	/* the active type */
+	char	si_ctype;	/* the configured type */
+	char	si_manageDSAit;
+	char	si_refreshDelete;
+	char	si_refreshPresent;
+	char	si_refreshDone;
+	char	si_strict_refresh;	/* stop listening during fallback refresh */
+	char	si_syncdata;
+	char	si_logstate;
+	char	si_too_old;
+	char	si_keep_cookie4search;
+	char	si_syncflood_workaround;
+	char	si_ridtxt[ STRLENOF("rid=999") + 1 ];
+	char	si_cutoff_csnbuf[ LDAP_PVT_CSNSTR_BUFSIZE ];
 } syncinfo_t;
 
 static void syncrepl_del_nonpresent(
@@ -636,7 +636,7 @@ syncrep_start(
 
 	/* LY: workaround for SYNC-flood, when connection to syncprov
 	 * re-establish too often because of limit-concurrent-refresh is reached. */
-	int early_reconnect_limit = 2;
+	char early_reconnect_limit = 2;
 	assert(si->si_ld == NULL);
 	si->si_ld = NULL;
 
@@ -5121,16 +5121,16 @@ parse_syncrepl_line(
 		} else if ( !strncasecmp( c->argv[ i ], MANAGEDSAITSTR "=",
 					STRLENOF( MANAGEDSAITSTR "=" ) ) )
 		{
+			int flag;
 			val = c->argv[ i ] + STRLENOF( MANAGEDSAITSTR "=" );
-			if ( lutil_atoi( &si->si_manageDSAit, val ) != 0
-				|| si->si_manageDSAit < 0 || si->si_manageDSAit > 1 )
+			if ( lutil_atoi( &flag, val ) != 0 || flag < 0 || flag > 1 )
 			{
 				snprintf( c->cr_msg, sizeof( c->cr_msg ),
-					"invalid manageDSAit value \"%s\".\n",
-					val );
+					"invalid manageDSAit value \"%s\".\n", val );
 				Debug( LDAP_DEBUG_ANY, "%s: %s.\n", c->log, c->cr_msg );
 				return 1;
 			}
+			si->si_manageDSAit = (flag != 0);
 			si->si_got |= GOT_MANAGEDSAIT;
 		} else if ( !strncasecmp( c->argv[ i ], SLIMITSTR "=",
 					STRLENOF( SLIMITSTR "=") ) )
