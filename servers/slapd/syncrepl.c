@@ -706,15 +706,10 @@ syncrep_start(
 
 		if ( cmdline_cookie_found ) {
 			/* cookie is supplied in the command line */
-
 			LDAP_STAILQ_REMOVE( &slap_sync_cookie, sc, sync_cookie, sc_next );
-
 			slap_cookie_free( &si->si_syncCookie, 0 );
-			si->si_syncCookie.octet_str = sc->octet_str;
-			ch_free( sc );
-			/* ctxcsn wasn't parsed yet, do it now */
-			LDAP_ENSURE (slap_cookie_parse( &si->si_syncCookie,
-				&si->si_syncCookie.octet_str ) == 0);
+			slap_cookie_move( &si->si_syncCookie, sc );
+			slap_cookie_free( sc, 1 );
 			si->si_keep_cookie4search = 1;
 		} else {
 			ldap_pvt_thread_mutex_lock( &si->si_cookieState->cs_mutex );

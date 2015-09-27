@@ -395,6 +395,7 @@ int main( int argc, char **argv )
 
 	struct sync_cookie *scp = NULL;
 	struct sync_cookie *scp_entry = NULL;
+	BerValue cookie_str;
 
 	char **debug_unknowns = NULL;
 	char **syslog_unknowns = NULL;
@@ -520,9 +521,10 @@ int main( int argc, char **argv )
 		case 'c':	/* provide sync cookie, override if exist in replica */
 			scp = (struct sync_cookie *) ch_calloc( 1,
 										sizeof( struct sync_cookie ));
-			ber_str2bv( optarg, 0, 1, &scp->octet_str );
+			cookie_str.bv_val = optarg;
+			cookie_str.bv_len = strlen(optarg);
 
-			if ( slap_cookie_parse( scp, &scp->octet_str ) ) {
+			if ( slap_cookie_parse( scp, &cookie_str ) ) {
 				Debug( LDAP_DEBUG_ANY, "main: invalid cookie \"%s\"\n", optarg );
 				slap_cookie_free( scp, 1 );
 				goto destroy;
