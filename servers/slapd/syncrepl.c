@@ -143,6 +143,7 @@ typedef struct syncinfo_s {
 	BerValue si_cutoff_csn;
 	char si_cutoff_csnbuf[ LDAP_PVT_CSNSTR_BUFSIZE ];
 
+	char si_keep_cookie4search;
 } syncinfo_t;
 
 static void syncrepl_del_nonpresent(
@@ -160,6 +161,9 @@ static int syncrepl_entry(
 static int syncrepl_cookie_push(
 					syncinfo_t *, Operation *,
 					struct sync_cookie * );
+static void syncrepl_cookie_pull(
+					Operation *op,
+					syncinfo_t *si );
 static struct berval * slap_uuidstr_from_normalized(
 					struct berval *, struct berval *, void * );
 static int syncrepl_add_glue_ancestors(
@@ -439,8 +443,8 @@ void syncrepl_shutdown_io( syncinfo_t *si )
 
 static int
 syncrepl_search_provider(
-	syncinfo_t *si,
-	void *ctx )
+	Operation *op,
+	syncinfo_t *si )
 {
 	BerElementBuffer berbuf;
 	BerElement *ber = (BerElement *)&berbuf;
@@ -455,7 +459,7 @@ syncrepl_search_provider(
 
 	/* setup LDAP SYNC control */
 	ber_init2( ber, NULL, LBER_USE_DER );
-	ber_set_option( ber, LBER_OPT_BER_MEMCTX, &ctx );
+	ber_set_option( ber, LBER_OPT_BER_MEMCTX, &op->o_tmpmemctx );
 
 	/* If we're using a log but we have no state, then fallback to
 	 * normal mode for a full refresh.
@@ -500,13 +504,22 @@ syncrepl_search_provider(
 		si->si_type = si->si_ctype;
 	}
 
-	if ( !BER_BVISNULL( &si->si_syncCookie.octet_str ) )
-	{
-		ber_printf( ber, "{eOb}",
-			abs(si->si_type), &si->si_syncCookie.octet_str, rhint );
+	syncrepl_cookie_pull( op, si );
+	if ( si->si_syncCookie.numcsns > 0 ) {
+		BerValue cookie_str = BER_BVNULL;
+		slap_cookie_compose( &cookie_str, si->si_syncCookie.ctxcsn,
+			si->si_rid, si->si_syncCookie.sid, op->o_tmpmemctx );
+		ber_printf( ber, "{eOb}", abs(si->si_type),
+			&cookie_str, rhint );
+		Debug(LDAP_DEBUG_SYNC,
+			"syncrepl_search_provider: %s, type %d, hint %d, cookie %s\n",
+			si->si_ridtxt, si->si_type, rhint, cookie_str.bv_val );
+		ber_memfree_x( cookie_str.bv_val, op->o_tmpmemctx );
 	} else {
-		ber_printf( ber, "{eb}",
-			abs(si->si_type), rhint );
+		ber_printf( ber, "{eb}", abs(si->si_type), rhint );
+		Debug(LDAP_DEBUG_SYNC,
+			"syncrepl_search_provider: %s, type %d, hint %d, without-cookie\n",
+			si->si_ridtxt, si->si_type, rhint );
 	}
 
 	if ( (rc = ber_flatten2( ber, &c[0].ldctl_value, 0 ) ) == -1 ) {
@@ -587,25 +600,23 @@ syncrepl_cookie_pull(
 	Operation *op,
 	syncinfo_t *si )
 {
-	ldap_pvt_thread_mutex_lock( &si->si_cookieState->cs_mutex );
-	syncrepl_pull_contextCSN ( op, si );
+	if ( !si->si_keep_cookie4search ) {
+		ldap_pvt_thread_mutex_lock( &si->si_cookieState->cs_mutex );
+		syncrepl_pull_contextCSN ( op, si );
 
-	/* See if the cookieState has changed due to anything outside
-	 * this particular consumer. That includes other consumers in
-	 * the same context, or local changes detected above.
-	 */
-	if ( si->si_cookieAge != si->si_cookieState->cs_age ) {
-		/* LY: merge si_cookieState into si_syncCookie, not just a copy! */
-		int lead = slap_cookie_merge( si->si_be,
-					&si->si_syncCookie, &si->si_cookieState->cs_cookie );
-		if ( lead > -1 ) {
-			slap_cookie_compose( &si->si_syncCookie.octet_str,
-				si->si_syncCookie.ctxcsn, si->si_syncCookie.rid,
-				si->si_syncCookie.sid, NULL );
+		/* See if the cookieState has changed due to anything outside
+		 * this particular consumer. That includes other consumers in
+		 * the same context, or local changes detected above.
+		 */
+		if ( si->si_cookieAge != si->si_cookieState->cs_age ) {
+			/* LY: merge si_cookieState into si_syncCookie, not just a copy! */
+			slap_cookie_merge( si->si_be,
+				&si->si_syncCookie, &si->si_cookieState->cs_cookie );
+			si->si_cookieAge = si->si_cookieState->cs_age;
 		}
-		si->si_cookieAge = si->si_cookieState->cs_age;
+
+		ldap_pvt_thread_mutex_unlock( &si->si_cookieState->cs_mutex );
 	}
-	ldap_pvt_thread_mutex_unlock( &si->si_cookieState->cs_mutex );
 }
 
 static int syncrep_gentle_shutdown(LDAP	*ld)
@@ -682,14 +693,6 @@ syncrep_start(
 
 	ldap_set_option( si->si_ld, LDAP_OPT_REFERRALS, LDAP_OPT_OFF );
 
-	si->si_syncCookie.rid = si->si_rid;
-
-	/* whenever there are multiple data sources possible, advertise sid */
-	si->si_syncCookie.sid = ( SLAP_MULTIMASTER( si->si_be )
-			|| si->si_be != si->si_wbe
-			|| (reopenldap_mode_iddqd() && slap_serverID) )
-			? slap_serverID : -1;
-
 	/* We've just started up, or the remote server hasn't sent us
 	 * any meaningful state.
 	 */
@@ -712,39 +715,27 @@ syncrep_start(
 			/* ctxcsn wasn't parsed yet, do it now */
 			LDAP_ENSURE (slap_cookie_parse( &si->si_syncCookie,
 				&si->si_syncCookie.octet_str ) == 0);
+			si->si_keep_cookie4search = 1;
 		} else {
 			ldap_pvt_thread_mutex_lock( &si->si_cookieState->cs_mutex );
 			if ( !si->si_cookieState->cs_cookie.numcsns ) {
 				/* get contextCSN shadow replica from database */
-				BerVarray csn = NULL;
-				void *ctx = op->o_tmpmemctx;
-
-				op->o_req_ndn = si->si_contextdn;
-				op->o_req_dn = op->o_req_ndn;
-
-				/* try to read stored contextCSN */
-				op->o_tmpmemctx = NULL;
-				backend_attribute( op, NULL, &op->o_req_ndn,
-					slap_schema.si_ad_contextCSN, &csn, ACL_READ );
-				op->o_tmpmemctx = ctx;
-				if ( csn )
-					slap_cookie_pull( &si->si_cookieState->cs_cookie, csn, 1 );
+				syncrepl_pull_contextCSN ( op, si );
 			}
-			slap_cookie_merge( si->si_be, &si->si_syncCookie, &si->si_cookieState->cs_cookie );
+			slap_cookie_copy( &si->si_syncCookie, &si->si_cookieState->cs_cookie );
+			si->si_cookieAge = si->si_cookieState->cs_age;
 			ldap_pvt_thread_mutex_unlock( &si->si_cookieState->cs_mutex );
 		}
-	} else {
-		/* ITS#6367: recreate the cookie so it has our SID, not our peer's */
-		/* Look for contextCSN from syncprov overlay. */
-		syncrepl_cookie_pull( op, si );
 	}
 
-	slap_cookie_compose( &si->si_syncCookie.octet_str,
-		si->si_syncCookie.ctxcsn, si->si_syncCookie.rid,
-		si->si_syncCookie.sid, NULL );
+	/* whenever there are multiple data sources possible, advertise sid */
+	si->si_syncCookie.sid = ( SLAP_MULTIMASTER( si->si_be )
+			|| si->si_be != si->si_wbe
+			|| (reopenldap_mode_iddqd() && slap_serverID) )
+			? slap_serverID : -1;
+	si->si_syncCookie.rid = si->si_rid;
 
-	rc = syncrepl_search_provider( si, op->o_tmpmemctx );
-
+	rc = syncrepl_search_provider( op, si );
 	if ( rc != LDAP_SUCCESS ) {
 		Debug( LDAP_DEBUG_ANY, "syncrep_start: %s "
 			"ldap_search_ext: %s (%d)\n",
@@ -843,6 +834,9 @@ static int syncrepl_refresh_begin( syncinfo_t *si ) {
 }
 
 static void syncrepl_refresh_end( syncinfo_t *si, int rc ) {
+	if ( rc == LDAP_SUCCESS || rc == LDAP_SYNC_REFRESH_REQUIRED )
+		si->si_keep_cookie4search = 0;
+
 	if (! si->si_refreshDone ) {
 		if (rc == LDAP_SUCCESS)
 			si->si_refreshDone = 1;
@@ -1600,11 +1594,7 @@ reload:
 		rc = do_syncrep_process( op, si );
 		if ( rc == LDAP_SYNC_REFRESH_REQUIRED )	{
 			syncrepl_refresh_end(si, rc);
-			if ( BER_BVISNULL( &si->si_syncCookie.octet_str ))
-				slap_cookie_compose( &si->si_syncCookie.octet_str,
-					si->si_syncCookie.ctxcsn, si->si_syncCookie.rid,
-					si->si_syncCookie.sid, NULL );
-			rc = syncrepl_search_provider( si, op->o_tmpmemctx );
+			rc = syncrepl_search_provider( op, si );
 			goto reload;
 		}
 		syncrepl_refresh_end(si, rc);
