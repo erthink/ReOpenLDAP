@@ -37,7 +37,7 @@ echo "======================================================================="
 step_begin "configure"
 
 LDFLAGS="-Wl,--as-needed,-Bsymbolic,--gc-sections,-O,-zignore"
-CFLAGS="-Wall -fvisibility=hidden -Os -g -include $(readlink -f $(dirname $0)/ps/glibc-225.h)"
+CFLAGS="-Wall -g -fvisibility=hidden -Os -include $(readlink -f $(dirname $0)/ps/glibc-225.h)"
 LIBS="-Wl,--no-as-needed,-lrt"
 
 if [ -n "$(which gcc)" ] && gcc -v 2>&1 | grep -q -i lto \
@@ -73,6 +73,9 @@ mkdir -p ${PREFIX}/bin \
 
 find ./ -name Makefile -type f | xargs sed -e "s/STRIP = -s/STRIP =/g;s/\(VERSION= .\+\)/\1${BUILD_ID}/g" -i \
 	|| failure "fix-2"
+
+find ./ -name Makefile | xargs -r sed -i 's/-Wall -g/-Wall -Werror -g/g' \
+	|| failure "fix-3"
 
 step_finish "configure"
 echo "======================================================================="
