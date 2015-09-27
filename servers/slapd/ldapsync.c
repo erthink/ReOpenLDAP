@@ -40,64 +40,6 @@ pthread_mutex_t slap_sync_cookie_mutex = PTHREAD_MUTEX_INITIALIZER;
 struct slap_sync_cookie_s slap_sync_cookie =
 	LDAP_STAILQ_HEAD_INITIALIZER( slap_sync_cookie );
 
-void
-slap_compose_sync_cookie(
-	Operation *op,
-	struct berval *cookie,
-	BerVarray csn,
-	int rid,
-	int sid )
-{
-	int len, numcsn = 0;
-
-	if ( csn ) {
-		for (; !BER_BVISNULL( &csn[numcsn] ); numcsn++);
-	}
-
-	if ( numcsn == 0 || rid == -1 ) {
-		char cookiestr[ LDAP_PVT_CSNSTR_BUFSIZE + 20 ];
-		if ( rid == -1 ) {
-			cookiestr[0] = '\0';
-			len = 0;
-		} else {
-			len = snprintf( cookiestr, sizeof( cookiestr ),
-					"rid=%03d", rid );
-			if ( sid >= 0 ) {
-				len += sprintf( cookiestr+len, ",sid=%03x", sid );
-			}
-		}
-		ber_str2bv_x( cookiestr, len, 1, cookie,
-			op ? op->o_tmpmemctx : NULL );
-	} else {
-		char *ptr;
-		int i;
-
-		len = 0;
-		for ( i=0; i<numcsn; i++)
-			len += csn[i].bv_len + 1;
-
-		len += STRLENOF("rid=123,csn=");
-		if ( sid >= 0 )
-			len += STRLENOF("sid=xxx,");
-
-		cookie->bv_val = slap_sl_malloc( len, op ? op->o_tmpmemctx : NULL );
-
-		len = sprintf( cookie->bv_val, "rid=%03d,", rid );
-		ptr = cookie->bv_val + len;
-		if ( sid >= 0 ) {
-			ptr += sprintf( ptr, "sid=%03x,", sid );
-		}
-		ptr = lutil_strcopy( ptr, "csn=" );
-		for ( i=0; i<numcsn; i++) {
-			ptr = lutil_strncopy( ptr, csn[i].bv_val, csn[i].bv_len );
-			*ptr++ = ';';
-		}
-		ptr--;
-		*ptr = '\0';
-		cookie->bv_len = ptr - cookie->bv_val;
-	}
-}
-
 int slap_check_same_server(BackendDB *bd, int sid) {
 	return ( sid == slap_serverID
 			&& reopenldap_mode_idclip() && SLAP_MULTIMASTER(bd) ) ? -1 : 0;
