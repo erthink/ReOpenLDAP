@@ -20,7 +20,7 @@ mkdir -p $TESTDIR $DBDIR1A $DBDIR1B $DBDIR1C
 
 echo "Running slapadd to build glued slapd databases..."
 . $CONFFILTER $BACKEND $MONITORDB < $GLUECONF > $CONF1
-$SLAPADD -d $LVL -f $CONF1 -l $LDIFORDERED > $SLAPADDLOG1 2>&1
+$SLAPADD -f $CONF1 -l $LDIFORDERED > $SLAPADDLOG1 2>&1
 RC=$?
 if test $RC != 0 ; then
 	echo "slapadd failed ($RC)!"
@@ -28,7 +28,7 @@ if test $RC != 0 ; then
 fi
 
 echo "Starting slapd on TCP/IP port $PORT1..."
-$SLAPD -f $CONF1 -h $URI1 -d $LVL $TIMING > $LOG1 2>&1 &
+$SLAPD -f $CONF1 -h $URI1 $TIMING > $LOG1 2>&1 &
 PID=$!
 if test $WAIT != 0 ; then
     echo PID $PID

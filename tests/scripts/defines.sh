@@ -226,12 +226,16 @@ SLAPMODIFY="$TIMEOUT_S $VALGRIND $TESTWD/../servers/slapd/slapd -Tm -d 0 $LDAP_V
 SLAPPASSWD="$TIMEOUT_S $VALGRIND $TESTWD/../servers/slapd/slapd -Tpasswd"
 
 unset DIFF_OPTIONS
+SLAPDMTREAD=$PROGDIR/slapd-mtread
+LVL=${SLAPD_DEBUG-0x4105}
+LOCALHOST=localhost
+BASEPORT=${SLAPD_BASEPORT-9010}
 # NOTE: -u/-c is not that portable...
 DIFF="diff -i"
 CMP="diff -i -Z"
 BCMP="diff -iB"
 CMPOUT=/dev/null
-SLAPD="$TIMEOUT_L $VALGRIND $TESTWD/../servers/slapd/slapd -s0"
+SLAPD="$TIMEOUT_L $VALGRIND $TESTWD/../servers/slapd/slapd -s0 -d $LVL"
 LDAPPASSWD="$TIMEOUT_S $VALGRIND $CLIENTDIR/ldappasswd $TOOLARGS"
 LDAPSASLSEARCH="$TIMEOUT_S $VALGRIND $CLIENTDIR/ldapsearch $TOOLPROTO $LDAP_TOOLARGS -LLL"
 LDAPSEARCH="$TIMEOUT_S $VALGRIND $CLIENTDIR/ldapsearch $TOOLPROTO $TOOLARGS -LLL"
@@ -250,10 +254,6 @@ function ldif-filter-unwrap {
 }
 
 LDIFFILTER=ldif-filter-unwrap
-SLAPDMTREAD=$PROGDIR/slapd-mtread
-LVL=${SLAPD_DEBUG-0x4105}
-LOCALHOST=localhost
-BASEPORT=${SLAPD_BASEPORT-9010}
 PORT1=`expr $BASEPORT + 1`
 PORT2=`expr $BASEPORT + 2`
 PORT3=`expr $BASEPORT + 3`
