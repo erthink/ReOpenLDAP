@@ -105,7 +105,7 @@ slap_sync_cookie_free(
 		return;
 
 	if ( cookie->sids ) {
-		ch_free( cookie->sids );
+		ber_memfree( cookie->sids );
 		cookie->sids = NULL;
 	}
 
@@ -120,7 +120,7 @@ slap_sync_cookie_free(
 	}
 
 	if ( free_cookie ) {
-		ch_free( cookie );
+		ber_memfree( cookie );
 	}
 
 	return;
@@ -225,7 +225,7 @@ slap_csn_stub_self( BerVarray *ctxcsn, int **sids, int *numcsns )
 		if (slap_serverID == (*sids)[i])
 			return 0;
 
-	new_sids = ch_realloc( *sids, (*numcsns + 1) * sizeof(**sids) );
+	new_sids = ber_memrealloc( *sids, (*numcsns + 1) * sizeof(**sids) );
 	if (! new_sids)
 		return LDAP_NO_MEMORY;
 
@@ -286,10 +286,10 @@ slap_insert_csn_sids(
 {
 	int i;
 	ck->numcsns++;
-	ck->ctxcsn = ch_realloc( ck->ctxcsn,
+	ck->ctxcsn = ber_memrealloc( ck->ctxcsn,
 		(ck->numcsns+1) * sizeof(struct berval));
 	BER_BVZERO( &ck->ctxcsn[ck->numcsns] );
-	ck->sids = ch_realloc( ck->sids, ck->numcsns * sizeof(int));
+	ck->sids = ber_memrealloc( ck->sids, ck->numcsns * sizeof(int));
 	for ( i = ck->numcsns-1; i > pos; i-- ) {
 		ck->ctxcsn[i] = ck->ctxcsn[i-1];
 		ck->sids[i] = ck->sids[i-1];
@@ -496,7 +496,7 @@ slap_dup_sync_cookie(
 		new = dst;
 	} else {
 		new = ( struct sync_cookie * )
-				ch_calloc( 1, sizeof( struct sync_cookie ));
+				ber_memcalloc( 1, sizeof( struct sync_cookie ));
 	}
 
 	new->rid = src->rid;
@@ -506,11 +506,11 @@ slap_dup_sync_cookie(
 	if ( src->numcsns ) {
 		if ( ber_bvarray_dup_x( &new->ctxcsn, src->ctxcsn, NULL )) {
 			if ( !dst ) {
-				ch_free( new );
+				ber_memfree( new );
 			}
 			return NULL;
 		}
-		new->sids = ch_malloc( src->numcsns * sizeof(int) );
+		new->sids = ber_memalloc( src->numcsns * sizeof(int) );
 		for (i=0; i<src->numcsns; i++)
 			new->sids[i] = src->sids[i];
 	}
@@ -588,7 +588,7 @@ void slap_cookie_copy(
 	if ( (dst->numcsns = src->numcsns) > 0 ) {
 		ber_bvarray_dup_x( &dst->ctxcsn, src->ctxcsn, NULL );
 		ber_dupbv( &dst->octet_str, &src->octet_str );
-		dst->sids = ch_malloc( dst->numcsns * sizeof(dst->sids[0]) );
+		dst->sids = ber_memalloc( dst->numcsns * sizeof(dst->sids[0]) );
 		memcpy( dst->sids, src->sids, dst->numcsns * sizeof(dst->sids[0]) );
 	}
 }
@@ -620,7 +620,7 @@ void slap_cookie_free(
 		cookie->numcsns = 0;
 
 		if ( cookie->sids ) {
-			ch_free( cookie->sids );
+			ber_memfree( cookie->sids );
 			cookie->sids = NULL;
 		}
 
@@ -635,7 +635,7 @@ void slap_cookie_free(
 		}
 
 		if ( free_cookie )
-			ch_free( cookie );
+			ber_memfree( cookie );
 	}
 }
 
@@ -1209,7 +1209,7 @@ int* slap_csns_parse_sids( BerVarray csns, int* sids )
 {
 	int i;
 
-	sids = ch_realloc( sids, slap_csns_length( csns ) * sizeof(int) );
+	sids = ber_memrealloc( sids, slap_csns_length( csns ) * sizeof(int) );
 
 	for( i = 0; csns && ! BER_BVISNULL( &csns[i] ); ++i)
 		sids[i] = slap_csn_get_sid( &csns[i] );
