@@ -270,7 +270,6 @@ void slap_cookie_init( struct sync_cookie *cookie )
 	cookie->numcsns = 0;
 	cookie->sids = NULL;
 	cookie->ctxcsn = NULL;
-	BER_BVZERO( &cookie->octet_str );
 }
 
 void slap_cookie_clean( struct sync_cookie *cookie )
@@ -280,10 +279,6 @@ void slap_cookie_clean( struct sync_cookie *cookie )
 	cookie->numcsns = 0;
 	if ( cookie->ctxcsn )
 		BER_BVZERO( cookie->ctxcsn );
-	if ( cookie->octet_str.bv_val ) {
-		cookie->octet_str.bv_val[0] = 0;
-		cookie->octet_str.bv_len = 0;
-	}
 }
 
 void slap_cookie_copy(
@@ -297,10 +292,8 @@ void slap_cookie_copy(
 	dst->sid = src->sid;
 	dst->sids = NULL;
 	dst->ctxcsn = NULL;
-	BER_BVZERO( &dst->octet_str );
 	if ( (dst->numcsns = src->numcsns) > 0 ) {
 		ber_bvarray_dup_x( &dst->ctxcsn, src->ctxcsn, NULL );
-		ber_dupbv( &dst->octet_str, &src->octet_str );
 		dst->sids = ber_memalloc( dst->numcsns * sizeof(dst->sids[0]) );
 		memcpy( dst->sids, src->sids, dst->numcsns * sizeof(dst->sids[0]) );
 	}
@@ -318,7 +311,6 @@ void slap_cookie_move(
 	dst->ctxcsn = src->ctxcsn;
 	dst->sids = src->sids;
 	dst->numcsns = src->numcsns;
-	dst->octet_str = src->octet_str;
 	slap_cookie_init( src );
 }
 
@@ -340,11 +332,6 @@ void slap_cookie_free(
 		if ( cookie->ctxcsn ) {
 			ber_bvarray_free( cookie->ctxcsn );
 			cookie->ctxcsn = NULL;
-		}
-
-		if ( !BER_BVISNULL( &cookie->octet_str )) {
-			ch_free( cookie->octet_str.bv_val );
-			BER_BVZERO( &cookie->octet_str );
 		}
 
 		if ( free_cookie )
@@ -551,13 +538,7 @@ int slap_cookie_parse(
 	char *next, *end, *anchor;
 	AttributeDescription *ad = slap_schema.si_ad_entryCSN;
 
-	/* LY: This should be replaced by slap_cookie_clean(), but
-	 * not earlier that octer_str will be removed from cookie struct. */
-	dst->rid = -1;
-	dst->sid = -1;
-	dst->numcsns = 0;
-	if ( dst->ctxcsn )
-		BER_BVZERO( dst->ctxcsn );
+	slap_cookie_clean( dst );
 
 	if ( !src || src->bv_len <= STRLENOF( "rid=" ) )
 		goto bailout;

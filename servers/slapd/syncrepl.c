@@ -3903,7 +3903,6 @@ syncrepl_cookie_push(
 
 	/* clone the cookieState CSNs so we can Replace the whole thing */
 	sc.numcsns = si->si_cookieState->cs_cookie.numcsns;
-	BER_BVZERO( &sc.octet_str );
 	if ( sc.numcsns ) {
 		ber_bvarray_dup_x( &sc.ctxcsn, si->si_cookieState->cs_cookie.ctxcsn, NULL );
 		sc.sids = ch_malloc( sc.numcsns * sizeof(sc.sids[0]) );
@@ -3992,11 +3991,7 @@ syncrepl_cookie_push(
 
 		if ( rs_modify.sr_err == LDAP_SUCCESS ) {
 			slap_cookie_free( &si->si_syncCookie, 0 );
-
-			/* LY: This should be replaced by slap_cookie_free(), but
-			 * not earlier that octer_str will be removed from cookie struct. */
-			ber_bvarray_free( si->si_cookieState->cs_cookie.ctxcsn );
-			ch_free( si->si_cookieState->cs_cookie.sids );
+			slap_cookie_free( &si->si_cookieState->cs_cookie, 0 );
 
 			si->si_cookieState->cs_cookie.ctxcsn = sc.ctxcsn;
 			si->si_cookieState->cs_cookie.sids = sc.sids;
