@@ -238,7 +238,7 @@ syncprov_state_ctrl(
 
 	/* FIXME: what if entryuuid is NULL or empty ? */
 
-	if ( send_cookie && cookie ) {
+	if ( send_cookie && cookie && !BER_BVISEMPTY( cookie ) ) {
 		ber_printf( ber, "{eOON}",
 			entry_sync_state, &entryuuid_bv, cookie );
 	} else {
@@ -957,7 +957,7 @@ static int
 syncprov_sendresp( Operation *op, resinfo *ri, syncops *so, int mode )
 {
 	SlapReply rs = { REP_SEARCH };
-	struct berval cookie = BER_BVNULL, csns[2];
+	struct berval cookie = BER_BVNULL;
 	Entry e_uuid = {0};
 	Attribute a_uuid = {0};
 
@@ -967,9 +967,13 @@ syncprov_sendresp( Operation *op, resinfo *ri, syncops *so, int mode )
 	rs.sr_ctrls = op->o_tmpalloc( sizeof(LDAPControl *)*2, op->o_tmpmemctx );
 	rs.sr_ctrls[1] = NULL;
 	rs.sr_flags = REP_CTRLS_MUSTBEFREED;
-	csns[0] = ri->ri_csn;
-	BER_BVZERO( &csns[1] );
-	syncprov_compose_sync_cookie( op, &cookie, csns, so->s_rid);
+
+	if (! BER_BVISEMPTY( &ri->ri_csn ) ) {
+		struct berval csns[2];
+		csns[0] = ri->ri_csn;
+		BER_BVZERO( &csns[1] );
+		syncprov_compose_sync_cookie( op, &cookie, csns, so->s_rid );
+	}
 
 	Debug( LDAP_DEBUG_SYNC, "syncprov_sendresp: %s, to=%03x, cookie=%s\n",
 		op->o_bd->be_nsuffix->bv_val, so->s_sid, cookie.bv_val );
