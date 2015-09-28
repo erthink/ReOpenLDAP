@@ -2000,55 +2000,68 @@ syncprov_op_response( Operation *op, SlapReply *rs )
 	slap_overinst *on = opc->son;
 	syncprov_info_t		*si = on->on_bi.bi_private;
 	syncmatches *sm;
+	const char* oper = NULL;
+	Attribute *a;
+	BerValue *entry_uuid = NULL;
+	BerValue *entry_csn = NULL;
+	BerValue *entry_dn = NULL;
+	struct berval maxcsn;
+	char cbuf[LDAP_PVT_CSNSTR_BUFSIZE];
+	int maxcsn_sid;
 
 	assert( BER_BVISEMPTY( &opc->sctxcsn ) );
-	if ( rs->sr_err == LDAP_SUCCESS )
-	{
-		const char* oper = NULL;
-		Entry *e = NULL;
-		Attribute *uuid = NULL;
-		Attribute *csn = NULL;
-		BerValue *dn = NULL;
+	if ( rs->sr_err != LDAP_SUCCESS )
+		return SLAP_CB_CONTINUE;
 
 		switch(op->o_tag) {
 		default:
 			oper = "???"; break;
 		case LDAP_REQ_ADD:
-			e = op->ora_e;
+			entry_dn = &op->ora_e->e_nname;
+			a = attr_find( op->ora_e->e_attrs, slap_schema.si_ad_entryUUID );
+			if (a)
+				entry_uuid = a->a_vals;
+			a = attr_find( op->ora_e->e_attrs, slap_schema.si_ad_entryCSN );
+			if (a)
+				entry_csn = a->a_nvals;
 			oper = "ADD"; break;
 		case LDAP_REQ_DELETE:
-			dn = &op->o_req_ndn;
+			entry_dn = &op->o_req_ndn;
 			oper = "DELETE"; break;
-		case LDAP_REQ_MODIFY:
-			dn = &op->o_req_ndn;
+		case LDAP_REQ_MODIFY: {
+			Modifications *mod;
+			entry_dn = &op->o_req_ndn;
+			for ( mod = op->orm_modlist; mod; mod = mod->sml_next ) {
+				if ( mod->sml_mod.sm_op != LDAP_MOD_REPLACE
+						&& mod->sml_mod.sm_op != LDAP_MOD_ADD )
+					continue;
+				if ( mod->sml_mod.sm_desc == slap_schema.si_ad_entryCSN )
+					entry_csn = mod->sml_mod.sm_nvalues;
+				if ( mod->sml_mod.sm_desc == slap_schema.si_ad_entryUUID )
+					entry_uuid = mod->sml_mod.sm_values;
+			}
 			oper = "MODIFY"; break;
+		}
 		case LDAP_REQ_RENAME:
 			oper = "RENAME"; break;
-		}
-
-		if (e) {
-			dn = &e->e_nname;
-			uuid = attr_find( e->e_attrs, slap_schema.si_ad_entryUUID );
-			csn = attr_find( e->e_attrs, slap_schema.si_ad_entryCSN );
+		case LDAP_REQ_EXTENDED:
+			oper = "EXTENDED"; break;
 		}
 
 		Debug( LDAP_DEBUG_SYNC, "syncprov_op_response: %s entry%s %s, %s, %s\n",
 			   oper,
 			   op->o_dont_replicate ? "-dont-replicate" : "",
-			   dn ? dn->bv_val : NULL,
-			   csn ? csn->a_vals->bv_val : NULL,
-			   uuid ? uuid->a_vals->bv_val : NULL
+			   entry_dn ? entry_dn->bv_val : NULL,
+			   entry_csn ? entry_csn->bv_val : NULL,
+			   entry_uuid ? entry_uuid->bv_val : NULL
 			);
-
-		struct berval maxcsn;
-		char cbuf[LDAP_PVT_CSNSTR_BUFSIZE];
-		int have_psearches, csn_changed = 0, maxcsn_sid;
 
 		ldap_pvt_thread_mutex_lock( &si->si_resp_mutex );
 		ldap_pvt_thread_rdwr_wlock( &si->si_csn_rwlock );
 
 		/* Don't do any processing for consumer contextCSN updates */
 		if ( op->o_dont_replicate ) {
+			int vector = 0;
 			if ( op->o_tag == LDAP_REQ_MODIFY &&
 				op->orm_modlist->sml_op == LDAP_MOD_REPLACE &&
 				op->orm_modlist->sml_desc == slap_schema.si_ad_contextCSN ) {
@@ -2056,12 +2069,11 @@ syncprov_op_response( Operation *op, SlapReply *rs )
 				 * all the attribute values, as there may be more than one csn
 				 * that changed, and only one can be passed in the csn queue.
 				 */
-				int vector = slap_cookie_merge_csnset(
+				vector = slap_cookie_merge_csnset(
 					NULL, &si->si_cookie, op->orm_modlist->sml_values );
 				if ( vector > 0 ) {
 					Debug( LDAP_DEBUG_SYNC,
 						"syncprov_op_response: cookie-forward\n" );
-					csn_changed = 1;
 					si->si_dirty = 0;
 					si->si_numops++;
 				} else {
@@ -2071,7 +2083,7 @@ syncprov_op_response( Operation *op, SlapReply *rs )
 			}
 			ldap_pvt_thread_rdwr_wunlock( &si->si_csn_rwlock );
 
-			if ( csn_changed ) {
+			if ( vector > 0 ) {
 				syncops *ss;
 				ldap_pvt_thread_mutex_lock( &si->si_ops_mutex );
 				for ( ss = si->si_ops; ss; ss = ss->s_next ) {
@@ -2091,7 +2103,6 @@ syncprov_op_response( Operation *op, SlapReply *rs )
 		}
 
 		/* Update our context CSN */
-		cbuf[0] = '\0';
 		maxcsn.bv_val = cbuf;
 		maxcsn.bv_len = sizeof(cbuf);
 		maxcsn_sid = slap_get_commit_csn( op, &maxcsn );
@@ -2108,52 +2119,46 @@ syncprov_op_response( Operation *op, SlapReply *rs )
 			maxcsn_sid = slap_get_commit_csn( op, &maxcsn );
 			op->o_bd = be;
 		}
+
+		if (entry_csn) {
+			if (!BER_BVISEMPTY( &maxcsn ))
+				assert( slap_csn_compare_ts( entry_csn, &maxcsn ) >= 0 );
+			if (!BER_BVISEMPTY( &op->o_csn ))
+				assert( slap_csn_match( entry_csn, &op->o_csn ) );
+		}
+		if (!BER_BVISEMPTY( &op->o_csn ) && !BER_BVISEMPTY( &maxcsn ))
+			assert( slap_csn_compare_ts( &op->o_csn, &maxcsn ) >= 0 );
+
+		si->si_dirty++;
+		/* only update consumer ctx if this is a newer csn */
 		if ( !BER_BVISEMPTY( &maxcsn )
 				&& slap_cookie_merge_csn( op->o_bd, &si->si_cookie,
-						maxcsn_sid, &maxcsn ) > 0 )
-			csn_changed = 1;
-
-		if ( csn_changed )
+						maxcsn_sid, &maxcsn ) > 0 ) {
+			Debug( LDAP_DEBUG_SYNC,
+			   "syncprov_op_response: cookie-forward, opc->sctxcsn => %s, n-dirty was %d\n",
+				maxcsn.bv_val, si->si_dirty);
+			opc->sctxcsn = maxcsn;
 			si->si_numops++;
+			si->si_dirty = 0;
+		} else {
+			Debug( LDAP_DEBUG_SYNC,
+				"syncprov_op_response: cookie-kept\n" );
+		}
+
 		/* Never checkpoint adding the context entry,
 		 * it will deadlock
 		 */
 		if ( op->o_tag != LDAP_REQ_ADD ||
 			!dn_match( &op->o_req_ndn, &si->si_contextdn )) {
 			if ( (si->si_chkops && si->si_numops >= si->si_chkops)
-			|| (si->si_chktime && op->o_time - si->si_chklast >= si->si_chktime) ) {
+			|| (si->si_chktime && op->o_time - si->si_chklast >= si->si_chktime) )
 				syncprov_checkpoint( op, on );
-			}
 		}
-		si->si_dirty = !csn_changed;
-
-		if (si->si_dirty) {
-			int i;
-			Debug( LDAP_DEBUG_SYNC,
-			   "syncprov_op_response: maxcsn %s, sid %d\n",
-			   maxcsn.bv_val, maxcsn_sid);
-			for ( i=0; i<si->si_cookie.numcsns; i++ ) {
-				Debug( LDAP_DEBUG_SYNC,
-				   "syncprov_op_response: si_ctxcsn[%d] %s\n",
-				   i, si->si_cookie.ctxcsn[i].bv_val);
-			}
-		}
-
 		ldap_pvt_thread_rdwr_wunlock( &si->si_csn_rwlock );
-
-		/* only update consumer ctx if this is a newer csn */
-		if ( csn_changed ) {
-			if (opc->sctxcsn.bv_val)
-				assert(strcmp(maxcsn.bv_val, opc->sctxcsn.bv_val) >= 0);
-			Debug( LDAP_DEBUG_SYNC,
-			   "syncprov_op_response: opc->sctxcsn %s => %s\n",
-				   opc->sctxcsn.bv_val, maxcsn.bv_val);
-			opc->sctxcsn = maxcsn;
-		}
 
 		/* Handle any persistent searches */
 		ldap_pvt_thread_mutex_lock( &si->si_ops_mutex );
-		have_psearches = ( si->si_ops != NULL );
+		int have_psearches = ( si->si_ops != NULL );
 		ldap_pvt_thread_mutex_unlock( &si->si_ops_mutex );
 		if ( have_psearches ) {
 			switch(op->o_tag) {
@@ -2168,7 +2173,7 @@ syncprov_op_response( Operation *op, SlapReply *rs )
 				 *   send DELETE msg
 				 */
 				for ( sm = opc->smatches; sm; sm=sm->sm_next ) {
-					if ( is_syncops_abandoned(sm->sm_op) )
+					if ( is_syncops_abandoned( sm->sm_op ) )
 						continue;
 					syncprov_qresp( opc, sm->sm_op, LDAP_SYNC_DELETE );
 				}
@@ -2177,11 +2182,11 @@ syncprov_op_response( Operation *op, SlapReply *rs )
 		}
 
 		/* Add any log records */
-		if ( si->si_logs ) {
+		if ( si->si_logs )
 			syncprov_add_slog( op );
-		}
-leave:		ldap_pvt_thread_mutex_unlock( &si->si_resp_mutex );
-	}
+
+	leave:
+		ldap_pvt_thread_mutex_unlock( &si->si_resp_mutex );
 	return SLAP_CB_CONTINUE;
 }
 
