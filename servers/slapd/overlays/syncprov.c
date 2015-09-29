@@ -3458,18 +3458,11 @@ syncprov_db_destroy(
 				ch_free( se );
 				se = se_next;
 			}
-			if ( sl->sl_cookie.ctxcsn )
-				ber_bvarray_free( sl->sl_cookie.ctxcsn );
-			if ( sl->sl_cookie.sids )
-				ch_free( sl->sl_cookie.sids );
-
+			slap_cookie_free( &sl->sl_cookie, 0 );
 			ldap_pvt_thread_mutex_destroy(&si->si_logs->sl_mutex);
 			ch_free( si->si_logs );
 		}
-		if ( si->si_cookie.ctxcsn )
-			ber_bvarray_free( si->si_cookie.ctxcsn );
-		if ( si->si_cookie.sids )
-			ch_free( si->si_cookie.sids );
+		slap_cookie_free( &si->si_cookie, 0 );
 
 		ldap_pvt_thread_mutex_destroy( &si->si_resp_mutex );
 		ldap_pvt_thread_mutex_destroy( &si->si_mods_mutex );
