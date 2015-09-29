@@ -699,7 +699,7 @@ syncrep_start(
 	/* We've just started up, or the remote server hasn't sent us
 	 * any meaningful state.
 	 */
-	if ( !si->si_syncCookie.ctxcsn ) {
+	if ( !si->si_syncCookie.numcsns ) {
 		ldap_pvt_thread_mutex_lock( &slap_sync_cookie_mutex );
 
 		LDAP_STAILQ_FOREACH( sc, &slap_sync_cookie, sci_next ) {
@@ -881,20 +881,18 @@ syncrep_take_cookie(
 		return rc;
 
 	if (row_mode) {
-		if ( dst->ctxcsn ) {
-			if (dst->numcsns != 1)
-				return LDAP_PROTOCOL_ERROR;
-
-			if (slap_cookie_merge_csn( NULL, &si->si_syncCookie_in,
-					-1, dst->ctxcsn ) < 0 ) {
-				Debug( LDAP_DEBUG_ANY, "syncrep_process:"
-					"%s cookie-backward '%s'\n",
-					si->si_ridtxt, raw.bv_val );
-				assert(0);
-				return LDAP_UNWILLING_TO_PERFORM;
-			}
+		if ( dst->numcsns > 1 )
+			return LDAP_PROTOCOL_ERROR;
+		if ( dst->numcsns && slap_cookie_merge_csn(
+				NULL, &si->si_syncCookie_in, -1, dst->ctxcsn ) < 0 ) {
+			Debug( LDAP_DEBUG_ANY, "syncrep_process:"
+				"%s cookie-backward '%s'\n",
+				si->si_ridtxt, raw.bv_val );
+			assert(0);
+			return LDAP_UNWILLING_TO_PERFORM;
 		}
-	} else if ( slap_cookie_pull( &si->si_syncCookie_in, dst->ctxcsn, 0 ) < 0 ) {
+	} else if ( slap_cookie_pull(
+			&si->si_syncCookie_in, dst->ctxcsn, 0 ) < 0 ) {
 		Debug( LDAP_DEBUG_ANY, "syncrep_process:"
 			"%s cookie-backward '%s'\n",
 			si->si_ridtxt, raw.bv_val );
@@ -1061,7 +1059,7 @@ do_syncrep_process(
 				if ( rc )
 					goto done;
 
-				if ( syncCookie.ctxcsn ) {
+				if ( syncCookie.numcsns ) {
 					int vector = slap_cookie_compare_csn(
 						&si->si_syncCookie, syncCookie.ctxcsn );
 					assert( syncCookie.numcsns == 1 );
@@ -1082,7 +1080,7 @@ do_syncrep_process(
 			rc = 0;
 			if ( si->si_syncdata && si->si_logstate == SYNCLOG_LOGGING ) {
 				rc = syncrepl_message_to_op( si, op, msg );
-				if ( rc == LDAP_SUCCESS && syncCookie.ctxcsn ) {
+				if ( rc == LDAP_SUCCESS && syncCookie.numcsns ) {
 					rc = syncrepl_cookie_push( si, op, &syncCookie );
 				} else switch ( rc ) {
 					case LDAP_ALREADY_EXISTS:
@@ -1107,10 +1105,10 @@ do_syncrep_process(
 				Modifications *modlist = NULL;
 				rc = syncrepl_message_to_entry( si, op, msg, &modlist,
 					&entry, syncstate, syncUUID );
-				if ( rc  == LDAP_SUCCESS )
+				if ( rc == LDAP_SUCCESS )
 					rc = syncrepl_entry( si, op, entry, &modlist,
 						syncstate, syncUUID, &syncCookie );
-				if ( rc == LDAP_SUCCESS && syncCookie.ctxcsn )
+				if ( rc == LDAP_SUCCESS && syncCookie.numcsns )
 					rc = syncrepl_cookie_push( si, op, &syncCookie );
 				slap_mods_free( modlist, 1 );
 			}
@@ -1201,9 +1199,9 @@ do_syncrep_process(
 				ber_scanf( ber, /*"{"*/ "}" );
 			}
 
-			if ( !syncCookie.ctxcsn ) {
+			if ( !syncCookie.numcsns ) {
 				match = 1;
-			} else if ( !si->si_syncCookie.ctxcsn ) {
+			} else if ( !si->si_syncCookie.numcsns ) {
 				match = -1;
 				which = 0;
 			} else {
@@ -1221,7 +1219,7 @@ do_syncrep_process(
 					presentlist_free( &si->si_presentlist );
 				}
 			}
-			if ( syncCookie.ctxcsn && match < 0 && rc == LDAP_SUCCESS ) {
+			if ( syncCookie.numcsns && match < 0 && rc == LDAP_SUCCESS ) {
 				rc = syncrepl_cookie_push( si, op, &syncCookie );
 			}
 			if ( rc == LDAP_SUCCESS && si->si_logstate == SYNCLOG_FALLBACK ) {
@@ -1343,9 +1341,9 @@ do_syncrep_process(
 					continue;
 				}
 
-				if ( !syncCookie.ctxcsn ) {
+				if ( !syncCookie.numcsns ) {
 					match = 1;
-				} else if ( !si->si_syncCookie.ctxcsn ) {
+				} else if ( !si->si_syncCookie.numcsns ) {
 					match = -1;
 					which = 0;
 				} else {
@@ -1359,7 +1357,7 @@ do_syncrep_process(
 						syncrepl_del_nonpresent( op, si, NULL, &syncCookie, which );
 					}
 
-					if ( syncCookie.ctxcsn ) {
+					if ( syncCookie.numcsns ) {
 						rc = syncrepl_cookie_push( si, op, &syncCookie);
 					}
 					presentlist_free( &si->si_presentlist );
@@ -2979,7 +2977,7 @@ syncrepl_entry(
 			dni.csn_incomming.bv_val, dni.csn_present.bv_val );
 
 	rc = check_for_retard(si, syncCookie, &dni.csn_present,
-		syncCookie->ctxcsn ? syncCookie->ctxcsn : &dni.csn_incomming );
+		syncCookie->numcsns ? syncCookie->ctxcsn : &dni.csn_incomming );
 	if (syncstate == LDAP_SYNC_DELETE)
 		rc &= ~RETARD_ALTER;
 
@@ -2998,7 +2996,7 @@ syncrepl_entry(
 	}
 
 	assert( BER_BVISNULL( &op->o_csn ) );
-	if ( syncCookie->ctxcsn ) {
+	if ( syncCookie->numcsns ) {
 		slap_queue_csn( op, syncCookie->ctxcsn );
 		do_graduate = 1;
 	}
@@ -3325,7 +3323,7 @@ retry_modrdn:;
 			op->o_req_dn = entry->e_name;
 			op->o_req_ndn = entry->e_nname;
 			/* Use CSN on the modify */
-			if ( ! just_rename && syncCookie->ctxcsn ) {
+			if ( ! just_rename && syncCookie->numcsns ) {
 				slap_queue_csn( op, syncCookie->ctxcsn );
 				do_graduate = 1;
 			}
@@ -3363,7 +3361,7 @@ retry_modrdn:;
 			op->o_req_ndn = dni.ndn;
 			op->o_tag = LDAP_REQ_DELETE;
 			op->o_bd = si->si_wbe;
-			if ( ! syncCookie->ctxcsn ) {
+			if ( ! syncCookie->numcsns ) {
 				slap_queue_csn( op, si->si_syncCookie.ctxcsn );
 				do_graduate = 1;
 			}
@@ -3571,7 +3569,7 @@ syncrepl_del_nonpresent(
 
 	if ( !LDAP_LIST_EMPTY( &si->si_nonpresentlist ) ) {
 
-		if ( sc->ctxcsn && !BER_BVISNULL( &sc->ctxcsn[which] ) ) {
+		if ( sc->numcsns && !BER_BVISNULL( &sc->ctxcsn[which] ) ) {
 			csn = sc->ctxcsn[which];
 		} else {
 			csn = si->si_syncCookie.ctxcsn[0];

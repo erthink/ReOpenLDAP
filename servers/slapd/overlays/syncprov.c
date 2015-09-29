@@ -2460,18 +2460,16 @@ syncprov_search_response( Operation *op, SlapReply *rs )
 			}
 
 			/* Don't send old entries twice */
-			if ( srs->sr_state.ctxcsn ) {
-				for ( i=0; i<srs->sr_state.numcsns; i++ ) {
-					if ( sid == srs->sr_state.sids[i] &&
-						ber_bvcmp( &a->a_nvals[0],
-							&srs->sr_state.ctxcsn[i] )<= 0 ) {
-						Debug( LDAP_DEBUG_SYNC,
-							"Entry %s CSN %s older or equal to ctx %s\n",
-							rs->sr_entry->e_name.bv_val,
-							a->a_nvals[0].bv_val,
-							srs->sr_state.ctxcsn[i].bv_val );
-						return LDAP_SUCCESS;
-					}
+			for ( i=0; i<srs->sr_state.numcsns; i++ ) {
+				if ( sid == srs->sr_state.sids[i] &&
+					ber_bvcmp( &a->a_nvals[0],
+						&srs->sr_state.ctxcsn[i] )<= 0 ) {
+					Debug( LDAP_DEBUG_SYNC,
+						"Entry %s CSN %s older or equal to ctx %s\n",
+						rs->sr_entry->e_name.bv_val,
+						a->a_nvals[0].bv_val,
+						srs->sr_state.ctxcsn[i].bv_val );
+					return LDAP_SUCCESS;
 				}
 			}
 		}
@@ -2671,7 +2669,7 @@ syncprov_op_search( Operation *op, SlapReply *rs )
 	}
 
 	/* If we have a cookie, handle the PRESENT lookups */
-	if ( srs->sr_state.ctxcsn ) {
+	if ( srs->sr_state.numcsns ) {
 		sessionlog *sl;
 		int i, j;
 
@@ -2996,7 +2994,7 @@ syncprov_operational(
 			}
 
 			ldap_pvt_thread_rdwr_rlock( &si->si_csn_rwlock );
-			if ( si->si_cookie.ctxcsn ) {
+			if ( si->si_cookie.numcsns ) {
 				if ( !a ) {
 					for ( ap = &rs->sr_operational_attrs; *ap;
 						ap=&(*ap)->a_next );
@@ -3291,7 +3289,7 @@ syncprov_db_open(
 		overlay_entry_release_ov( op, e, 0, on );
 	}
 
-	if ( !SLAP_DBCLEAN( be ) && (si->si_cookie.ctxcsn || reopenldap_mode_iddqd())) {
+	if ( !SLAP_DBCLEAN( be ) && (si->si_cookie.numcsns || reopenldap_mode_iddqd())) {
 		ldap_pvt_thread_t tid;
 
 		op->o_tag = LDAP_REQ_SEARCH;
@@ -3304,7 +3302,7 @@ syncprov_db_open(
 
 	/* Didn't find a contextCSN, should we generate one? */
 	rc = 0;
-	if ( !si->si_cookie.ctxcsn ) {
+	if ( !si->si_cookie.numcsns ) {
 
 		if ( slap_serverID || SLAP_SYNC_SHADOW( op->o_bd )) {
 			/* If we're also a consumer, then don't generate anything.
