@@ -916,35 +916,28 @@ do_syncrep_process(
 	Operation *op,
 	syncinfo_t *si )
 {
+	static /* const */ struct timeval nowait = { 0, 0 };
 	BerElementBuffer berbuf;
 	BerElement	*ber = (BerElement *)&berbuf;
 	LDAPMessage	*msg = NULL;
 	LDAPControl	**rctrls = NULL;
-
-	struct sync_cookie	syncCookie = { NULL };
-
-	int		rc;
-
-	struct timeval *timeout = NULL;
-	static /* const */ struct timeval nowait = { 0, 0 };
-
-	int		refreshDeletes = 0;
-	char empty[6] = "empty";
-	int biglocked = 0;
+	struct sync_cookie syncCookie;
+	int rc, biglocked = 0;
 	slap_biglock_t *bl = slap_biglock_get(op->o_bd);
+
+	ber_init2( ber, NULL, LBER_USE_DER );
+	ber_set_option( ber, LBER_OPT_BER_MEMCTX, &op->o_tmpmemctx );
+	slap_cookie_init( &syncCookie );
+
+	Debug( LDAP_DEBUG_TRACE, "=>> do_syncrep_process %s\n", si->si_ridtxt );
 
 	if ( slapd_shutdown ) {
 		rc = SYNC_REBUS2;
 		goto done;
 	}
 
-	ber_init2( ber, NULL, LBER_USE_DER );
-	ber_set_option( ber, LBER_OPT_BER_MEMCTX, &op->o_tmpmemctx );
-
-	Debug( LDAP_DEBUG_TRACE, "=>> do_syncrep_process %s\n", si->si_ridtxt );
-
 	for (;;) {
-		int				match, syncstate;
+		int		match, syncstate, refreshDeletes = 0;
 		struct berval	syncUUID[2];
 		LDAPControl		*rctrlp = NULL;
 		BerVarray		syncUUIDs;
@@ -952,6 +945,7 @@ do_syncrep_process(
 		ber_tag_t		si_tag;
 		Entry			*entry = NULL;
 		struct berval	bdn;
+		struct timeval *timeout;
 
 		if ( rctrls ) {
 			ldap_controls_free( rctrls );
@@ -989,6 +983,7 @@ do_syncrep_process(
 		}
 
 		syncrepl_cookie_pull( op, si );
+		slap_cookie_clean( &syncCookie );
 
 		switch( ldap_msgtype( msg ) ) {
 		int which = INT_MAX; /* LY: paranoia */
@@ -1000,8 +995,9 @@ do_syncrep_process(
 			if ( rc )
 				goto done;
 			if (!bdn.bv_len) {
-				bdn.bv_val = empty;
-				bdn.bv_len = sizeof(empty)-1;
+				static const char empty[] = "empty";
+				bdn.bv_val = (char *) empty;
+				bdn.bv_len = sizeof(empty) - 1;
 			}
 			/* we can't work without the control */
 			if ( rctrls ) {
