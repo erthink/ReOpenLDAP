@@ -608,3 +608,141 @@ bailout:
 		   csn->bv_val );
 	return -1;
 }
+
+static int csn_qsort_cmp(const void *a, const void * b)
+{
+	int cmp = slap_csn_compare_sr( a, b );
+	if (unlikely( cmp == 0 ))
+		/* LY: for the same SID move recent to the front */
+		cmp = slap_csn_compare_ts( b, a );
+	return cmp;
+}
+
+int slap_csns_validate_and_sort( BerVarray vals )
+{
+	BerValue *r, *w, *end;
+
+	for( r = w = vals; !BER_BVISNULL( r ); ++r ) {
+		/* LY: validate and filter-out invalid:
+		   { X1, Y2, bad, Z3, X4 | NULL } => { X1, Y2, Z3, X4 | bad, NULL } */
+		if (unlikely( !slap_csn_verify_full( r ) )) {
+			ber_memfree( r->bv_val );
+			continue;
+		}
+		*w++ = *r;
+	}
+	end = w;
+
+	if ( end > vals ) {
+		/* LY: sort by SID and timestamp (recent first)
+		   { X1, Y2, Z3, X4 | bad, NULL } => { X4, X1, Y2, Z3 | bad, NULL } */
+		qsort( vals, end - vals, sizeof(BerValue), csn_qsort_cmp );
+
+		/* LY: filter-out dups of SID.
+		   { X4, X1, Y2, Z3 | bad, NULL } => { X4, Y2, Z3 | X1, bad, NULL } */
+		for( r = w = vals + 1; r < end; ++r ) {
+			if (unlikely( slap_csn_compare_sr( w - 1, r ) == 0 )) {
+				ber_memfree( r->bv_val );
+				continue;
+			}
+			*w++ = *r;
+		}
+		end = w;
+	}
+
+	BER_BVZERO( end );
+	return end - vals;
+}
+
+int slap_csns_match( BerVarray a, BerVarray b )
+{
+	while ( a && !BER_BVISNULL(a) && b && !BER_BVISNULL(b) ) {
+		if ( ! slap_csn_match ( a, b ) )
+			return 0;
+		++a, ++b;
+	}
+
+	return (!a || BER_BVISNULL(a)) && (!b || BER_BVISNULL(b));
+}
+
+int slap_csns_length( BerVarray vals )
+{
+	int res = 0;
+
+	if ( vals )
+		while( ! BER_BVISNULL( vals ) )
+			++vals, ++res;
+
+	return res;
+}
+
+int slap_csns_compare( BerVarray next, BerVarray base )
+{
+	int cmp, n, res = 0;
+
+	for ( n = 1; next && ! BER_BVISNULL( next ); ++next, ++n ) {
+		if ( ! base || BER_BVISNULL( base ) )
+			return INT_MAX;
+
+		cmp = slap_csn_compare_sr ( next, base );
+		if ( cmp > 0 )
+			/* LY: a base's sid is absent in the next. */
+			return INT_MIN;
+
+		if ( cmp < 0 ) {
+			/* LY: a new sid in the next. */
+			res = INT_MAX;
+			continue;
+		}
+
+		cmp = slap_csn_compare_ts ( next, base++ );
+		if (cmp < 0)
+			/* LY: base's timestamp is recent. */
+			return -n;
+
+		if (cmp && res == 0)
+			res = n;
+	}
+
+	if ( ! base || BER_BVISNULL( base ) )
+		return res;
+
+	return INT_MIN;
+}
+
+int* slap_csns_parse_sids( BerVarray csns, int* sids )
+{
+	int i;
+
+	sids = ch_realloc( sids, slap_csns_length( csns ) * sizeof(int) );
+
+	for( i = 0; csns && ! BER_BVISNULL( &csns[i] ); ++i)
+		sids[i] = slap_csn_get_sid( &csns[i] );
+
+	return sids;
+}
+
+void slap_csns_debug( const char *prefix, const BerVarray csns )
+{
+	int i;
+
+	lutil_debug_print("%s: CSNs %p\n", prefix, csns);
+	for( i = 0; csns && ! BER_BVISNULL( &csns[i] ); ++i )
+		lutil_debug_print( "%s: %d) %s%s\n", prefix, i,
+			slap_csn_verify_full( &csns[i] ) ? "" : "INVALID ",
+			csns[i].bv_val
+		);
+}
+
+void slap_csns_backward_debug(
+	const char *prefix,
+	const BerVarray current,
+	const BerVarray next )
+{
+	if ( LogTest( LDAP_DEBUG_SYNC ) ) {
+		slap_backtrace_debug();
+		lutil_debug_print("%s: %s > %s\n", prefix, "current", "next" );
+		slap_csns_debug( "current", current );
+		slap_csns_debug( "next", next );
+	}
+}
