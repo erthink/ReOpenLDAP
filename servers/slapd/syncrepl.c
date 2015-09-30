@@ -157,7 +157,7 @@ static int syncrepl_entry(
 					syncinfo_t *, Operation*, Entry*,
 					Modifications**, int, struct berval*,
 					struct sync_cookie *syncCookie );
-static int syncrepl_updateCookie(
+static int syncrepl_cookie_push(
 					syncinfo_t *, Operation *,
 					struct sync_cookie * );
 static struct berval * slap_uuidstr_from_normalized(
@@ -1150,7 +1150,7 @@ do_syncrep_process(
 				if ( ( rc = syncrepl_message_to_op( si, op, msg ) ) == LDAP_SUCCESS &&
 					syncCookie.ctxcsn )
 				{
-					rc = syncrepl_updateCookie( si, op, &syncCookie );
+					rc = syncrepl_cookie_push( si, op, &syncCookie );
 				} else switch ( rc ) {
 					case LDAP_ALREADY_EXISTS:
 					case LDAP_NO_SUCH_OBJECT:
@@ -1178,7 +1178,7 @@ do_syncrep_process(
 					syncstate, syncUUID, &syncCookie ) ) == LDAP_SUCCESS &&
 					syncCookie.ctxcsn )
 				{
-					rc = syncrepl_updateCookie( si, op, &syncCookie );
+					rc = syncrepl_cookie_push( si, op, &syncCookie );
 				}
 			}
 			if ( punlock >= 0 ) {
@@ -1304,7 +1304,7 @@ do_syncrep_process(
 			}
 			if ( syncCookie.ctxcsn && match < 0 && err == LDAP_SUCCESS )
 			{
-				rc = syncrepl_updateCookie( si, op, &syncCookie );
+				rc = syncrepl_cookie_push( si, op, &syncCookie );
 			}
 			if ( err == LDAP_SUCCESS
 				&& si->si_logstate == SYNCLOG_FALLBACK ) {
@@ -1452,7 +1452,7 @@ do_syncrep_process(
 
 					if ( syncCookie.ctxcsn )
 					{
-						rc = syncrepl_updateCookie( si, op, &syncCookie);
+						rc = syncrepl_cookie_push( si, op, &syncCookie);
 					}
 					presentlist_free( &si->si_presentlist );
 				}
@@ -3923,7 +3923,7 @@ syncrepl_add_glue(
 }
 
 static int
-syncrepl_updateCookie(
+syncrepl_cookie_push(
 	syncinfo_t *si,
 	Operation *op,
 	struct sync_cookie *syncCookie )
@@ -4073,7 +4073,7 @@ syncrepl_updateCookie(
 		si->si_cookieAge = si->si_cookieState->cs_age;
 	} else {
 		Debug( LDAP_DEBUG_ANY,
-			"syncrepl_updateCookie: %s be_modify failed (%d)\n",
+			"syncrepl_cookie_push: %s be_modify failed (%d)\n",
 			si->si_ridtxt, rs_modify.sr_err );
 		ch_free( sc.sids );
 		ber_bvarray_free( sc.ctxcsn );
