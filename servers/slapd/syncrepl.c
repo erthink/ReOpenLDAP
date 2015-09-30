@@ -524,7 +524,7 @@ syncrepl_pull_contextCSN(
 	Attribute a = {0};
 	Entry e = {0};
 	SlapReply rs = {REP_SEARCH};
-	int rc, i, changed = 0;
+	int rc, vector = 0;
 
 	a.a_desc = slap_schema.si_ad_contextCSN;
 	e.e_attrs = &a;
@@ -548,32 +548,21 @@ syncrepl_pull_contextCSN(
 	rc = backend_operational( op, &rs );
 	if ( rc == LDAP_SUCCESS && a.a_nvals ) {
 		int num = slap_csns_validate_and_sort( a.a_nvals );
-
 		/* check for differences */
-		if ( num != si->si_cookieState->cs_cookie.numcsns ) {
-			assert(num > si->si_cookieState->cs_cookie.numcsns);
-			changed = 1;
-		} else {
-			for ( i=0; i<num; i++ ) {
-				int cmp = ber_bvcmp( &a.a_nvals[i], &si->si_cookieState->cs_cookie.ctxcsn[i] );
-				assert( cmp >= 0 );
-				if ( cmp ) {
-					changed = 1;
-					break;
-				}
-			}
-		}
-		if ( changed ) {
+		vector = slap_csns_compare( a.a_nvals, si->si_cookieState->cs_cookie.ctxcsn );
+		assert( vector >= 0);
+		if ( vector > 0 ) {
 			/* LY: loads a entire snapshot into si_cookieState */
 			slap_cookie_fetch( &si->si_cookieState->cs_cookie, a.a_nvals );
 			si->si_cookieState->cs_age++;
 		} else {
+			assert( num == si->si_cookieState->cs_cookie.numcsns );
 			ber_bvarray_free( a.a_nvals );
 		}
 		ber_bvarray_free( a.a_vals );
 	}
 
-	return changed;
+	return vector;
 }
 
 static void
