@@ -565,13 +565,7 @@ syncrepl_pull_contextCSN(
 		}
 		if ( changed ) {
 			/* LY: loads a entire snapshot into si_cookieState */
-			ber_bvarray_free( si->si_cookieState->cs_cookie.ctxcsn );
-			ch_free( si->si_cookieState->cs_cookie.sids );
-			assert( num >= si->si_cookieState->cs_cookie.numcsns );
-			si->si_cookieState->cs_cookie.numcsns = num;
-			si->si_cookieState->cs_cookie.ctxcsn = a.a_nvals;
-			si->si_cookieState->cs_cookie.sids = slap_parse_csn_sids( a.a_nvals,
-				num, NULL );
+			slap_cookie_fetch( &si->si_cookieState->cs_cookie, a.a_nvals );
 			si->si_cookieState->cs_age++;
 		} else {
 			ber_bvarray_free( a.a_nvals );
