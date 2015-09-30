@@ -3881,21 +3881,8 @@ syncrepl_cookie_push(
 	Operation *op,
 	struct sync_cookie *syncCookie )
 {
-	Backend *be = op->o_bd;
-	Modifications mod;
 	struct sync_cookie sc;
-
 	int rc, lead;
-
-	slap_callback cb = { NULL };
-	SlapReply	rs_modify = {REP_RESULT};
-
-	mod.sml_op = LDAP_MOD_REPLACE;
-	mod.sml_desc = slap_schema.si_ad_contextCSN;
-	mod.sml_type = mod.sml_desc->ad_cname;
-	mod.sml_flags = SLAP_MOD_INTERNAL;
-	mod.sml_nvalues = NULL;
-	mod.sml_next = NULL;
 
 	ldap_pvt_thread_mutex_lock( &si->si_cookieState->cs_mutex );
 	assert(slap_biglock_owned(op->o_bd));
@@ -3923,26 +3910,34 @@ syncrepl_cookie_push(
 		slap_cookie_free( &sc, 0 );
 		rc = 0;
 	} else {
+		slap_callback cb = { NULL };
+		Backend *be = op->o_bd;
+		Modifications mod;
+		SlapReply rs_modify = {REP_RESULT};
+
+		mod.sml_op = LDAP_MOD_REPLACE;
+		mod.sml_desc = slap_schema.si_ad_contextCSN;
+		mod.sml_type = mod.sml_desc->ad_cname;
+		mod.sml_flags = SLAP_MOD_INTERNAL;
+		mod.sml_nvalues = NULL;
+		mod.sml_next = NULL;
+
 		op->o_bd = si->si_wbe;
-		slap_queue_csn( op, &sc.ctxcsn[lead] );
-
 		op->o_tag = LDAP_REQ_MODIFY;
-
 		cb.sc_response = null_callback;
 		cb.sc_private = si;
-
 		op->o_callback = &cb;
 		op->o_req_dn = si->si_contextdn;
 		op->o_req_ndn = si->si_contextdn;
 
 		/* update contextCSN */
 		op->o_dont_replicate = 1;
-
 		mod.sml_numvals = sc.numcsns;
 		mod.sml_values = sc.ctxcsn;
-
 		op->orm_modlist = &mod;
 		op->orm_no_opattrs = 1;
+
+		slap_queue_csn( op, &sc.ctxcsn[lead] );
 		rc = op->o_bd->bd_info->bi_op_modify( op, &rs_modify );
 
 		if ( rs_modify.sr_err == LDAP_NO_SUCH_OBJECT &&
