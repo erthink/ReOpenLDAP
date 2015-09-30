@@ -45,8 +45,7 @@ int slap_serverID;
 int
 slap_get_commit_csn(
 	Operation *op,
-	struct berval *maxcsn
-)
+	struct berval *maxcsn )
 {
 	struct slap_csn_entry *csne;
 	BackendDB *be = op->o_bd->bd_self;
@@ -56,12 +55,12 @@ slap_get_commit_csn(
 
 	if ( !BER_BVISEMPTY( &op->o_csn )) {
 		sid = slap_parse_csn_sid( &op->o_csn );
-		assert(sid >= 0);
+		assert( sid >= 0 );
 	}
 
 	LDAP_TAILQ_FOREACH( csne, be->be_pending_csn_list, ce_csn_link ) {
 		if ( csne->ce_opid == op->o_opid && csne->ce_connid == op->o_connid ) {
-			assert(sid < 0 || sid == csne->ce_sid);
+			assert( sid < 0 || sid == csne->ce_sid );
 			csne->ce_state = SLAP_CSN_COMMIT;
 			sid = csne->ce_sid;
 			break;
@@ -86,8 +85,7 @@ slap_get_commit_csn(
 			}
 		}
 		if ( committed_csne ) {
-			if ( committed_csne->ce_csn.bv_len < maxcsn->bv_len )
-				maxcsn->bv_len = committed_csne->ce_csn.bv_len;
+			maxcsn->bv_len = committed_csne->ce_csn.bv_len;
 			memcpy( maxcsn->bv_val, committed_csne->ce_csn.bv_val, maxcsn->bv_len+1 );
 		} else {
 			maxcsn->bv_len = 0;
@@ -117,11 +115,10 @@ slap_graduate_commit_csn( Operation *op )
 		if ( csne->ce_opid == op->o_opid && csne->ce_connid == op->o_connid ) {
 			Debug( LDAP_DEBUG_SYNC, "slap_graduate_commit_csn: removing %p (conn %ld, opid %ld) %s\n",
 				csne, csne->ce_connid, csne->ce_opid, csne->ce_csn.bv_val );
-			assert(csne->ce_state > 0);
-			assert(strcmp(op->o_csn.bv_val, csne->ce_csn.bv_val) == 0);
+			assert( csne->ce_state > 0 );
+			assert( slap_csn_match( &op->o_csn, &csne->ce_csn ) );
 			found = csne->ce_state;
-			LDAP_TAILQ_REMOVE( be->be_pending_csn_list,
-				csne, ce_csn_link );
+			LDAP_TAILQ_REMOVE( be->be_pending_csn_list, csne, ce_csn_link );
 			if ( op->o_csn.bv_val == csne->ce_csn.bv_val ) {
 				BER_BVZERO( &op->o_csn );
 			}
@@ -183,12 +180,15 @@ slap_queue_csn(
 {
 	struct slap_csn_entry *pending;
 	BackendDB *be = op->o_bd->bd_self;
+	int sid = slap_parse_csn_sid( csn );
+	assert(sid > -1);
 
 	ldap_pvt_thread_mutex_lock( &be->be_pcl_mutex );
 
 	LDAP_TAILQ_FOREACH( pending, be->be_pending_csn_list, ce_csn_link ) {
-		if (pending->ce_opid == op->o_opid && pending->ce_connid == op->o_connid) {
-			if (reopenldap_mode_idkfa())
+		if ( pending->ce_opid == op->o_opid && pending->ce_connid == op->o_connid ) {
+			assert( pending->ce_sid == sid );
+			if ( reopenldap_mode_idkfa() )
 				LDAP_BUG();
 			break;
 		}
@@ -202,8 +202,7 @@ slap_queue_csn(
 		ber_dupbv( &pending->ce_csn, csn );
 		assert( BER_BVISNULL( &op->o_csn ));
 		ber_bvreplace_x( &op->o_csn, &pending->ce_csn, op->o_tmpmemctx );
-		pending->ce_sid = slap_parse_csn_sid( csn );
-		assert(pending->ce_sid > -1);
+		pending->ce_sid = sid;
 		pending->ce_connid = op->o_connid;
 		pending->ce_opid = op->o_opid;
 		pending->ce_state = SLAP_CSN_PENDING;
