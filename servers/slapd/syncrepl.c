@@ -547,7 +547,8 @@ syncrepl_pull_contextCSN(
 	 */
 	rc = backend_operational( op, &rs );
 	if ( rc == LDAP_SUCCESS && a.a_nvals ) {
-		int num = a.a_numvals;
+		int num = slap_csns_validate_and_sort( a.a_nvals );
+
 		/* check for differences */
 		if ( num != si->si_cookieState->cs_cookie.numcsns ) {
 			assert(num > si->si_cookieState->cs_cookie.numcsns);
