@@ -3911,8 +3911,15 @@ syncrepl_cookie_push(
 	/* find any CSNs in the syncCookie that are newer than the cookieState */
 	lead = slap_cookie_merge( si->si_be, &sc, syncCookie );
 
-	/* Should never happen, ITS#5065 */
 	if ( lead < 0 ) {
+		/* Should never happen, ITS#5065
+		 *     ^^^^^^^^^^^^^^^
+		 * LY: it is a FALSE !
+		 * This is usual case in multi-master environment. An update could be
+		 * completed by one instance of syncrepl, while another doing the same.
+		 */
+		assert( slap_csns_match( sc.ctxcsn, si->si_cookieState->cs_cookie.ctxcsn ) );
+		assert( slap_csns_compare( sc.ctxcsn, syncCookie->ctxcsn ) >= 0 );
 		slap_cookie_free( &sc, 0 );
 		rc = 0;
 	} else {
