@@ -110,6 +110,7 @@ typedef struct syncinfo_s {
 	int			*si_retrynum_init;
 	int			*si_retrynum;
 	struct sync_cookie	si_syncCookie;
+	struct sync_cookie	si_syncCookie_in;
 	cookie_state		*si_cookieState;
 	int			si_cookieAge;
 	int			si_manageDSAit;
@@ -639,6 +640,11 @@ syncrep_start(
 	assert(si->si_ld == NULL);
 	si->si_ld = NULL;
 
+	slap_cookie_free( &si->si_syncCookie_in, 0 );
+	si->si_refreshDelete = 0;
+	si->si_refreshPresent = 0;
+	presentlist_free( &si->si_presentlist );
+
 	if (si->si_syncflood_workaround >= early_reconnect_limit) {
 		rc = syncrepl_refresh_begin(si);
 		if ( rc != LDAP_SUCCESS ) {
@@ -851,7 +857,8 @@ syncrep_take_cookie(
 		BerElement *ber,
 		const char *wanna,
 		struct sync_cookie *dst,
-		ber_tag_t *tag )
+		ber_tag_t *tag,
+		int row_mode )
 {
 	struct berval raw = BER_BVNULL;
 	int rc;
@@ -872,6 +879,28 @@ syncrep_take_cookie(
 	rc = slap_cookie_parse( dst, &raw, NULL );
 	if ( rc )
 		return rc;
+
+	if (row_mode) {
+		if ( dst->ctxcsn ) {
+			if (dst->numcsns != 1)
+				return LDAP_PROTOCOL_ERROR;
+
+			if (slap_cookie_merge_csn( NULL, &si->si_syncCookie_in,
+					-1, dst->ctxcsn ) < 0 ) {
+				Debug( LDAP_DEBUG_ANY, "syncrep_process:"
+					"%s cookie-backward '%s'\n",
+					si->si_ridtxt, raw.bv_val );
+				assert(0);
+				return LDAP_UNWILLING_TO_PERFORM;
+			}
+		}
+	} else if ( slap_cookie_pull( &si->si_syncCookie_in, dst->ctxcsn, 0 ) < 0 ) {
+		Debug( LDAP_DEBUG_ANY, "syncrep_process:"
+			"%s cookie-backward '%s'\n",
+			si->si_ridtxt, raw.bv_val );
+		assert(0);
+		return LDAP_UNWILLING_TO_PERFORM;
+	}
 
 	if ( slap_check_same_server( si->si_be, dst->sid ) < 0 ) {
 		Debug( LDAP_DEBUG_ANY, "syncrep_process:"
@@ -1028,20 +1057,14 @@ do_syncrep_process(
 			}
 
 			if ( ber_peek_tag( ber, &len ) == LDAP_TAG_SYNC_COOKIE ) {
-				rc = syncrep_take_cookie( si, ber, /*"{"*/ "m}", &syncCookie, NULL );
+				rc = syncrep_take_cookie( si, ber, /*"{"*/ "m}", &syncCookie, NULL, 1 );
 				if ( rc )
 					goto done;
 
 				if ( syncCookie.ctxcsn ) {
-					int vector;
-
-					if ( syncCookie.numcsns != 1 ) {
-						rc = LDAP_PROTOCOL_ERROR;
-						goto done;
-					}
-
-					vector = slap_cookie_compare_csn(
+					int vector = slap_cookie_compare_csn(
 						&si->si_syncCookie, syncCookie.ctxcsn );
+					assert( syncCookie.numcsns == 1 );
 					si->si_too_old = (vector <= 0);
 				}
 			}
@@ -1165,7 +1188,7 @@ do_syncrep_process(
 
 				ber_scanf( ber, "{" /*"}"*/);
 				if ( ber_peek_tag( ber, &len ) == LDAP_TAG_SYNC_COOKIE ) {
-					int err = syncrep_take_cookie( si, ber, "m", &syncCookie, NULL );
+					int err = syncrep_take_cookie( si, ber, "m", &syncCookie, NULL, 0 );
 					if ( err ) {
 						rc = err;
 						goto done;
@@ -1228,7 +1251,7 @@ do_syncrep_process(
 						"LDAP_RES_INTERMEDIATE",
 						"NEW_COOKIE" );
 
-					rc = syncrep_take_cookie( si, ber, "tm", &syncCookie, &tag );
+					rc = syncrep_take_cookie( si, ber, "tm", &syncCookie, &tag, 0 );
 					if ( rc ) {
 						ldap_memfree( retoid );
 						ber_bvfree( retdata );
@@ -1252,7 +1275,7 @@ do_syncrep_process(
 					}
 					ber_scanf( ber, "t{" /*"}"*/, &tag );
 					if ( ber_peek_tag( ber, &len ) == LDAP_TAG_SYNC_COOKIE ) {
-						rc = syncrep_take_cookie( si, ber, "m", &syncCookie, NULL );
+						rc = syncrep_take_cookie( si, ber, "m", &syncCookie, NULL, 0 );
 						if ( rc ) {
 							ldap_memfree( retoid );
 							ber_bvfree( retdata );
@@ -1279,7 +1302,7 @@ do_syncrep_process(
 						"SYNC_ID_SET" );
 					ber_scanf( ber, "t{" /*"}"*/, &tag );
 					if ( ber_peek_tag( ber, &len ) == LDAP_TAG_SYNC_COOKIE ) {
-						rc = syncrep_take_cookie( si, ber, "m", &syncCookie, NULL );
+						rc = syncrep_take_cookie( si, ber, "m", &syncCookie, NULL, 0 );
 						if ( rc ) {
 							ldap_memfree( retoid );
 							ber_bvfree( retdata );
@@ -1497,11 +1520,6 @@ do_syncrepl(
 
 	/* Establish session, do search */
 	if ( !si->si_ld ) {
-		si->si_refreshDelete = 0;
-		si->si_refreshPresent = 0;
-
-		presentlist_free( &si->si_presentlist );
-
 		/* use main DB when retrieving contextCSN */
 		op->o_bd = si->si_wbe;
 		op->o_dn = op->o_bd->be_rootdn;
@@ -4559,6 +4577,7 @@ syncinfo_free( syncinfo_t *sie, int free_all )
 			ch_free( sie->si_retrynum_init );
 		}
 		slap_cookie_free( &sie->si_syncCookie, 0 );
+		slap_cookie_free( &sie->si_syncCookie_in, 0 );
 		presentlist_free( &sie->si_presentlist );
 		while ( !LDAP_LIST_EMPTY( &sie->si_nonpresentlist ) ) {
 			struct nonpresent_entry* npe;
