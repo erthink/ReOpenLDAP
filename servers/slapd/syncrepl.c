@@ -3915,6 +3915,9 @@ syncrepl_cookie_push(
 		Modifications mod;
 		SlapReply rs_modify = {REP_RESULT};
 
+		slap_cookie_free( &si->si_syncCookie, 0 );
+		slap_cookie_move( &si->si_syncCookie, &sc );
+
 		mod.sml_op = LDAP_MOD_REPLACE;
 		mod.sml_desc = slap_schema.si_ad_contextCSN;
 		mod.sml_type = mod.sml_desc->ad_cname;
@@ -3932,12 +3935,12 @@ syncrepl_cookie_push(
 
 		/* update contextCSN */
 		op->o_dont_replicate = 1;
-		mod.sml_numvals = sc.numcsns;
-		mod.sml_values = sc.ctxcsn;
+		mod.sml_numvals = si->si_syncCookie.numcsns;
+		mod.sml_values = si->si_syncCookie.ctxcsn;
 		op->orm_modlist = &mod;
 		op->orm_no_opattrs = 1;
 
-		slap_queue_csn( op, &sc.ctxcsn[lead] );
+		slap_queue_csn( op, &si->si_syncCookie.ctxcsn[lead] );
 		rc = op->o_bd->bd_info->bi_op_modify( op, &rs_modify );
 
 		if ( rs_modify.sr_err == LDAP_NO_SUCH_OBJECT &&
@@ -3960,18 +3963,14 @@ syncrepl_cookie_push(
 		op->o_dont_replicate = 0;
 
 		if ( rs_modify.sr_err == LDAP_SUCCESS ) {
-			slap_cookie_free( &si->si_syncCookie, 0 );
 			slap_cookie_free( &si->si_cookieState->cs_cookie, 0 );
-
-			slap_cookie_move( &si->si_cookieState->cs_cookie, &sc );
-			slap_cookie_copy( &si->si_syncCookie, &si->si_cookieState->cs_cookie );
+			slap_cookie_copy( &si->si_cookieState->cs_cookie, &si->si_syncCookie );
 			si->si_cookieState->cs_age++;
 			si->si_cookieAge = si->si_cookieState->cs_age;
 		} else {
 			Debug( LDAP_DEBUG_ANY,
 				"syncrepl_cookie_push: %s be_modify failed (%d)\n",
 				si->si_ridtxt, rs_modify.sr_err );
-			slap_cookie_free( &sc, 0 );
 		}
 
 		if ( reopenldap_mode_idkfa() )
