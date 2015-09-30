@@ -546,7 +546,7 @@ findmax_cb( Operation *op, SlapReply *rs )
 			slap_schema.si_ad_entryCSN );
 
 		if ( a && ber_bvcmp( &a->a_vals[0], maxcsn ) > 0 &&
-			slap_parse_csn_sid( &a->a_vals[0] ) == slap_serverID ) {
+			slap_csn_get_sid( &a->a_vals[0] ) == slap_serverID ) {
 			maxcsn->bv_len = a->a_vals[0].bv_len;
 			strcpy( maxcsn->bv_val, a->a_vals[0].bv_val );
 		}
@@ -1655,7 +1655,7 @@ syncprov_add_slog( Operation *op )
 		memcpy( se->se_csn.bv_val, op->o_csn.bv_val, op->o_csn.bv_len );
 		se->se_csn.bv_val[op->o_csn.bv_len] = '\0';
 		se->se_csn.bv_len = op->o_csn.bv_len;
-		se->se_sid = slap_parse_csn_sid( &se->se_csn );
+		se->se_sid = slap_csn_get_sid( &se->se_csn );
 
 		ldap_pvt_thread_mutex_lock( &sl->sl_mutex );
 		if ( sl->sl_head ) {
@@ -1959,7 +1959,7 @@ syncprov_op_response( Operation *op, SlapReply *rs )
 				int j, sid;
 
 				for ( i = 0; i < mod->sml_numvals; i++ ) {
-					sid = slap_parse_csn_sid( &mod->sml_values[i] );
+					sid = slap_csn_get_sid( &mod->sml_values[i] );
 					for ( j = 0; j < si->si_cookie.numcsns; j++ ) {
 						if ( sid < si->si_cookie.sids[j] )
 							break;
@@ -2166,7 +2166,7 @@ syncprov_op_mod( Operation *op, SlapReply *rs )
 	opc->osid = -1;
 	opc->rsid = -1;
 	if ( op->o_csn.bv_val ) {
-		opc->osid = slap_parse_csn_sid( &op->o_csn );
+		opc->osid = slap_csn_get_sid( &op->o_csn );
 	}
 	if ( op->o_controls ) {
 		struct sync_cookie *scook =
@@ -2426,7 +2426,7 @@ syncprov_search_response( Operation *op, SlapReply *rs )
 		}
 		if ( a ) {
 			int i, sid;
-			sid = slap_parse_csn_sid( &a->a_nvals[0] );
+			sid = slap_csn_get_sid( &a->a_nvals[0] );
 
 			/* Don't send changed entries back to the originator */
 			if ( sid == srs->sr_state.sid && srs->sr_state.numcsns ) {

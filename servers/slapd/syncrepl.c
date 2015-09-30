@@ -1076,7 +1076,7 @@ do_syncrep_process(
 				}
 
 				if ( syncCookie.ctxcsn ) {
-					int i, sid = slap_parse_csn_sid( syncCookie.ctxcsn );
+					int i, sid = slap_csn_get_sid( syncCookie.ctxcsn );
 					ldap_pvt_thread_mutex_lock( &si->si_cookieState->cs_mutex );
 					for ( i = 0; i<si->si_cookieState->cs_cookie.numcsns; i++ ) {
 						/* new SID */
