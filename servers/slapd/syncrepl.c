@@ -823,10 +823,9 @@ syncrepl_enough_sids( syncinfo_t *si, struct sync_cookie *cookie )
 }
 
 static int
-compare_csns( struct sync_cookie *sc1, struct sync_cookie *sc2, int *which )
+compare_cookies( struct sync_cookie *sc1, struct sync_cookie *sc2, int *which )
 {
 	int i, j, match = 0;
-	const char *text;
 
 	*which = 0;
 
@@ -839,10 +838,7 @@ compare_csns( struct sync_cookie *sc1, struct sync_cookie *sc2, int *which )
 		for (i=0; i<sc1->numcsns; i++) {
 			if ( sc1->sids[i] != sc2->sids[j] )
 				continue;
-			value_match( &match, slap_schema.si_ad_entryCSN,
-				slap_schema.si_ad_entryCSN->ad_type->sat_ordering,
-				SLAP_MR_VALUE_OF_ATTRIBUTE_SYNTAX,
-				&sc1->ctxcsn[i], &sc2->ctxcsn[j], &text );
+			match = slap_csn_compare_ts( &sc1->ctxcsn[i], &sc2->ctxcsn[j] );
 			if ( match < 0 ) {
 				*which = j;
 				return match;
@@ -1286,7 +1282,7 @@ do_syncrep_process(
 				match = -1;
 				which = 0;
 			} else {
-				match = compare_csns( &si->si_syncCookie, &syncCookie, &which );
+				match = compare_cookies( &si->si_syncCookie, &syncCookie, &which );
 			}
 			if (si->si_type != LDAP_SYNC_REFRESH_AND_PERSIST) {
 				/* FIXME : different error behaviors according to
@@ -1398,7 +1394,7 @@ do_syncrep_process(
 						}
 
 						op->o_controls[slap_cids.sc_LDAPsync] = &syncCookie;
-						compare_csns( &si->si_syncCookie, &syncCookie, &which );
+						compare_cookies( &si->si_syncCookie, &syncCookie, &which );
 					}
 					if ( ber_peek_tag( ber, &len ) == LDAP_TAG_REFRESHDELETES )
 					{
@@ -1439,7 +1435,7 @@ do_syncrep_process(
 					match = -1;
 					which = 0;
 				} else {
-					match = compare_csns( &si->si_syncCookie, &syncCookie, &which );
+					match = compare_cookies( &si->si_syncCookie, &syncCookie, &which );
 				}
 
 				if ( match < 0 ) {
