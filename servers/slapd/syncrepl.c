@@ -783,7 +783,6 @@ syncrep_start(
 			si->si_syncCookie.ctxcsn, si->si_syncCookie.rid,
 			si->si_syncCookie.sid );
 	} else {
-		int i;
 		/* ITS#6367: recreate the cookie so it has our SID, not our peer's */
 		ch_free( si->si_syncCookie.octet_str.bv_val );
 		BER_BVZERO( &si->si_syncCookie.octet_str );
@@ -793,10 +792,6 @@ syncrep_start(
 			slap_compose_sync_cookie( NULL, &si->si_syncCookie.octet_str,
 				si->si_syncCookie.ctxcsn, si->si_syncCookie.rid,
 				si->si_syncCookie.sid );
-		/* LY: Seems that in some cases quorum_notify_csn()
-		 *     could be not called from syncrepl_cookie_pull(). */
-		for ( i=0; i<si->si_syncCookie.numcsns; i++ )
-			quorum_notify_csn( si->si_be, si->si_syncCookie.sids[i] );
 	}
 
 	rc = syncrepl_search_provider( si, op->o_tmpmemctx );
