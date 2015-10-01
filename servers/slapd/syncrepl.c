@@ -895,8 +895,7 @@ do_syncrep_process(
 
 	struct sync_cookie	syncCookie = { NULL };
 
-	int		rc,
-			err = LDAP_SUCCESS;
+	int		rc;
 
 	struct timeval *timeout = NULL;
 	static /* const */ struct timeval nowait = { 0, 0 };
@@ -966,8 +965,12 @@ do_syncrep_process(
 		switch( ldap_msgtype( msg ) ) {
 		int which = INT_MAX; /* LY: paranoia */
 		case LDAP_RES_SEARCH_ENTRY:
-			ldap_get_entry_controls( si->si_ld, msg, &rctrls );
-			ldap_get_dn_ber( si->si_ld, msg, NULL, &bdn );
+			rc = ldap_get_entry_controls( si->si_ld, msg, &rctrls );
+			if ( rc )
+				goto done;
+			rc = ldap_get_dn_ber( si->si_ld, msg, NULL, &bdn );
+			if ( rc )
+				goto done;
 			if (!bdn.bv_len) {
 				bdn.bv_val = empty;
 				bdn.bv_len = sizeof(empty)-1;
@@ -1103,15 +1106,27 @@ do_syncrep_process(
 			Debug( LDAP_DEBUG_SYNC,
 				"do_syncrep_process: %s LDAP_RES_SEARCH_RESULT\n",
 				si->si_ridtxt );
-			err = LDAP_OTHER; /* FIXME check parse result properly */
-			ldap_parse_result( si->si_ld, msg, &err, NULL, NULL, NULL, &rctrls, 0 );
+
+			{
+				int result_code = LDAP_OTHER;
+				rc = ldap_parse_result( si->si_ld, msg, &result_code,
+					NULL, NULL, NULL, &rctrls, 0 );
+				if ( rc == LDAP_SUCCESS ) {
+					rc = result_code;
+					if ( rc ) {
+						Debug( LDAP_DEBUG_ANY,
+							"do_syncrep_process: %s LDAP_RES_SEARCH_RESULT (%d) %s\n",
+							si->si_ridtxt, rc, ldap_err2string( rc ) );
+					}
+				}
+			}
 #ifdef LDAP_X_SYNC_REFRESH_REQUIRED
-			if ( err == LDAP_X_SYNC_REFRESH_REQUIRED ) {
+			if ( rc == LDAP_X_SYNC_REFRESH_REQUIRED ) {
 				/* map old result code to registered code */
-				err = LDAP_SYNC_REFRESH_REQUIRED;
+				rc = LDAP_SYNC_REFRESH_REQUIRED;
 			}
 #endif
-			if ( err == LDAP_SYNC_REFRESH_REQUIRED ) {
+			if ( rc == LDAP_SYNC_REFRESH_REQUIRED ) {
 				if ( si->si_logstate == SYNCLOG_LOGGING ) {
 					si->si_logstate = SYNCLOG_FALLBACK;
 					Debug( LDAP_DEBUG_SYNC,
@@ -1122,13 +1137,7 @@ do_syncrep_process(
 						connections_drop();
 					}
 				}
-				rc = err;
 				goto done;
-			}
-			if ( err ) {
-				Debug( LDAP_DEBUG_ANY,
-					"do_syncrep_process: %s LDAP_RES_SEARCH_RESULT (%d) %s\n",
-					si->si_ridtxt, err, ldap_err2string( err ) );
 			}
 			if ( rctrls ) {
 				LDAPControl **next = NULL;
@@ -1154,9 +1163,11 @@ do_syncrep_process(
 
 				ber_scanf( ber, "{" /*"}"*/);
 				if ( ber_peek_tag( ber, &len ) == LDAP_TAG_SYNC_COOKIE ) {
-					rc = syncrep_take_cookie( si, ber, "m", &syncCookie, NULL );
-					if ( rc )
+					int err = syncrep_take_cookie( si, ber, "m", &syncCookie, NULL );
+					if ( err ) {
+						rc = err;
 						goto done;
+					}
 
 					op->o_controls[slap_cids.sc_LDAPsync] = &syncCookie;
 				}
@@ -1178,21 +1189,22 @@ do_syncrep_process(
 				 *	1) err code : LDAP_BUSY ...
 				 *	2) on err policy : stop service, stop sync, retry
 				 */
-				if ( refreshDeletes == 0 && match < 0 && err == LDAP_SUCCESS &&
+				if ( refreshDeletes == 0 && match < 0 && rc == LDAP_SUCCESS &&
 						syncrepl_enough_sids( si, &syncCookie ) ) {
 					syncrepl_del_nonpresent( op, si, NULL, &syncCookie, which );
 				} else {
 					presentlist_free( &si->si_presentlist );
 				}
 			}
-			if ( syncCookie.ctxcsn && match < 0 && err == LDAP_SUCCESS ) {
+			if ( syncCookie.ctxcsn && match < 0 && rc == LDAP_SUCCESS ) {
 				rc = syncrepl_cookie_push( si, op, &syncCookie );
 			}
-			if ( err == LDAP_SUCCESS && si->si_logstate == SYNCLOG_FALLBACK ) {
+			if ( rc == LDAP_SUCCESS && si->si_logstate == SYNCLOG_FALLBACK ) {
 				si->si_logstate = SYNCLOG_LOGGING;
 				rc = LDAP_SYNC_REFRESH_REQUIRED;
 				slap_resume_listeners();
-			} else {
+			} else if ( rc == LDAP_SUCCESS ) {
+				/* LY: test017-syncreplication-refresh */
 				rc = -2;
 			}
 			goto done;
@@ -1360,14 +1372,13 @@ do_syncrep_process(
 	if ( rc == -1 ) {
 		rc = LDAP_OTHER;
 		ldap_get_option( si->si_ld, LDAP_OPT_ERROR_NUMBER, &rc );
-		err = rc;
 	}
 
 done:
-	if ( err != LDAP_SUCCESS ) {
+	if ( rc != LDAP_SUCCESS ) {
 		Debug( LDAP_DEBUG_ANY,
 			"do_syncrep_process: %s (%d) %s\n",
-			si->si_ridtxt, err, ldap_err2string( err ) );
+			si->si_ridtxt, rc, ldap_err2string( rc ) );
 	}
 
 	if ( rc && rc != LDAP_SYNC_REFRESH_REQUIRED && rc != SYNC_PAUSED) {
@@ -1379,7 +1390,7 @@ done:
 	ldap_controls_free( rctrls );
 
 	quorum_notify_status( si->si_be, si->si_rid,
-		err == LDAP_SUCCESS && rc == LDAP_SUCCESS && si->si_refreshDone );
+		rc == LDAP_SUCCESS && si->si_refreshDone );
 	quorum_syncrepl_gate( si->si_be, si, 0 );
 	if (biglocked)
 		slap_biglock_release(bl);
