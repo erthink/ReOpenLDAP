@@ -166,8 +166,7 @@ static struct berval * slap_uuidstr_from_normalized(
 					struct berval *, struct berval *, void * );
 static int syncrepl_add_glue_ancestors(
 	Operation* op, Entry *e );
-static int syncrepl_refresh_begin( syncinfo_t *si );
-static void syncrepl_refresh_end( syncinfo_t *si, int rc );
+static int syncrepl_resync_begin( syncinfo_t *si );
 
 /* delta-mmr overlay handler */
 static int syncrepl_op_modify( Operation *op, SlapReply *rs );
@@ -646,7 +645,7 @@ syncrep_start(
 	presentlist_free( &si->si_presentlist );
 
 	if (si->si_syncflood_workaround >= early_reconnect_limit) {
-		rc = syncrepl_refresh_begin(si);
+		rc = syncrepl_resync_begin(si);
 		if ( rc != LDAP_SUCCESS ) {
 			goto done;
 		}
@@ -661,7 +660,7 @@ syncrep_start(
 	ldap_set_gentle_shutdown( si->si_ld, syncrep_gentle_shutdown );
 
 	if (si->si_syncflood_workaround < early_reconnect_limit) {
-		rc = syncrepl_refresh_begin(si);
+		rc = syncrepl_resync_begin(si);
 		if ( rc != LDAP_SUCCESS ) {
 			si->si_syncflood_workaround++;
 			goto done;
@@ -817,15 +816,15 @@ compare_cookies( struct sync_cookie *local, struct sync_cookie *remote, int *whi
 	return match;
 }
 
-static int syncrepl_refresh_begin( syncinfo_t *si ) {
+static int syncrepl_resync_begin( syncinfo_t *si ) {
 	si->si_refreshDone = 0;
 	si->si_refreshBeg = 0;
 	quorum_notify_status( si->si_be, si->si_rid, 0 );
 	if (quorum_syncrepl_gate(si->si_be, si, 1)) {
 		if (si->si_syncflood_workaround == 0) {
 			Debug( LDAP_DEBUG_ANY,
-				"syncrepl: defers refresh %s because "
-				"limit-concurrent-refresh was reached\n",
+				"syncrepl: defers refresh %s "
+				"limit-concurrent was reached\n",
 				si->si_ridtxt );
 		}
 		return SYNC_REFRESH_YIELD;
@@ -836,20 +835,31 @@ static int syncrepl_refresh_begin( syncinfo_t *si ) {
 	return LDAP_SUCCESS;
 }
 
-static void syncrepl_refresh_end( syncinfo_t *si, int rc ) {
+static void syncrepl_refresh_done( syncinfo_t *si, int rc ) {
 	if ( rc == LDAP_SUCCESS || rc == LDAP_SYNC_REFRESH_REQUIRED )
 		si->si_keep_cookie4search = 0;
 
-	if (! si->si_refreshDone ) {
-		if (rc == LDAP_SUCCESS)
+	if ( !si->si_refreshDone ) {
+		if ( rc == LDAP_SUCCESS )
 			si->si_refreshDone = 1;
-		if (si->si_refreshBeg) {
+		if ( si->si_refreshBeg ) {
 			si->si_refreshEnd = slap_get_time();
 			Debug( LDAP_DEBUG_SYNC,
-				"syncrepl: fihish refresh %s, rc %d, take %d seconds\n",
+				"syncrepl: finish refresh %s, rc %d, take %d seconds\n",
 				si->si_ridtxt, rc, (int) (si->si_refreshEnd - si->si_refreshBeg) );
 		}
 	}
+}
+
+static void syncrepl_resync_finish( syncinfo_t *si, int rc ) {
+	if (rc != LDAP_SUCCESS)
+		syncrepl_refresh_done(si, rc);
+
+	quorum_notify_status( si->si_be, si->si_rid,
+		rc == LDAP_SUCCESS && si->si_refreshDone );
+
+	if (rc != LDAP_SUCCESS || si->si_refreshDone)
+		quorum_syncrepl_gate( si->si_be, si, 0 );
 }
 
 static int
@@ -1284,14 +1294,16 @@ do_syncrep_process(
 
 						op->o_controls[slap_cids.sc_LDAPsync] = &syncCookie;
 					}
-					/* Defaults to TRUE */
-					if ( ber_peek_tag( ber, &len ) == LDAP_TAG_REFRESHDONE ) {
-						int value = 0;
-						ber_scanf( ber, "b", &value );
-						if (value)
-							syncrepl_refresh_end(si, LDAP_SUCCESS);
-					} else
-						syncrepl_refresh_end(si, LDAP_SUCCESS);
+					{
+						/* Defaults to TRUE */
+						int value = 1;
+						if ( ber_peek_tag( ber, &len ) == LDAP_TAG_REFRESHDONE ) {
+							value = 0;
+							ber_scanf( ber, "b", &value );
+						}
+						if ( value )
+							syncrepl_refresh_done( si, LDAP_SUCCESS );
+					}
 					ber_scanf( ber, /*"{"*/ "}" );
 					break;
 				case LDAP_TAG_SYNC_ID_SET:
@@ -1406,9 +1418,6 @@ done:
 	ldap_msgfree( msg );
 	ldap_controls_free( rctrls );
 
-	quorum_notify_status( si->si_be, si->si_rid,
-		rc == LDAP_SUCCESS && si->si_refreshDone );
-	quorum_syncrepl_gate( si->si_be, si, 0 );
 	if (biglocked)
 		slap_biglock_release(bl);
 
@@ -1530,11 +1539,10 @@ reload:
 		op->o_ndn = op->o_bd->be_rootndn;
 		rc = do_syncrep_process( op, si );
 		if ( rc == LDAP_SYNC_REFRESH_REQUIRED )	{
-			syncrepl_refresh_end(si, rc);
 			rc = syncrepl_search_provider( op, si );
 			goto reload;
 		}
-		syncrepl_refresh_end(si, rc);
+		syncrepl_resync_finish(si, rc);
 
 deleted:
 		/* We got deleted while running on cn=config */
@@ -1569,7 +1577,7 @@ deleted:
 			}
 		}
 	} else {
-		syncrepl_refresh_end(si, rc);
+		syncrepl_resync_finish(si, rc);
 	}
 
 	/* At this point, we have 5 cases:
@@ -4491,7 +4499,7 @@ syncinfo_free( syncinfo_t *sie, int free_all )
 	do {
 		si_next = sie->si_next;
 
-		syncrepl_refresh_end(sie, LDAP_UNAVAILABLE);
+		syncrepl_resync_finish(sie, LDAP_UNAVAILABLE);
 		syncrepl_shutdown_io(sie);
 
 		if ( sie->si_re ) {
