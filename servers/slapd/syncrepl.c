@@ -1539,42 +1539,40 @@ reload:
 			rc = syncrepl_process_search( op, si );
 			goto reload;
 		}
-		syncrepl_resync_finish(si, rc);
+	}
+	syncrepl_resync_finish( si, rc );
 
 deleted:
-		/* We got deleted while running on cn=config */
-		if ( si->si_ctype < 1 ) {
-			if ( si->si_ctype == -1 ) {
-				si->si_ctype = 0;
-				freeinfo = 1;
-			}
-			if ( si->si_conn )
-				dostop = 1;
-			rc = -1;
+	/* We got deleted while running on cn=config */
+	if ( si->si_ctype < 1 ) {
+		if ( si->si_ctype == -1 ) {
+			si->si_ctype = 0;
+			freeinfo = 1;
 		}
+		if ( si->si_conn )
+			dostop = 1;
+		rc = SYNC_REBUS1;
+	}
 
-		Debug( LDAP_DEBUG_TRACE, "<=do_syncrepl %s, rc %d\n", si->si_ridtxt, rc );
+	Debug( LDAP_DEBUG_TRACE, "<=do_syncrepl %s, rc %d\n", si->si_ridtxt, rc );
 
-		if ( rc != SYNC_PAUSED && rc != SYNC_REFRESH_YIELD ) {
-			if ( abs(si->si_type) == LDAP_SYNC_REFRESH_AND_PERSIST ) {
-				/* If we succeeded, enable the connection for further listening.
-				 * If we failed, tear down the connection and reschedule.
-				 */
-				if ( rc == LDAP_SUCCESS ) {
-					if ( si->si_conn ) {
-						connection_client_enable( si->si_conn );
-					} else {
-						si->si_conn = connection_client_setup( s, do_syncrepl, arg );
-					}
-				} else if ( si->si_conn ) {
-					dostop = 1;
+	if ( rc != SYNC_PAUSED && rc != SYNC_REFRESH_YIELD ) {
+		if ( abs(si->si_type) == LDAP_SYNC_REFRESH_AND_PERSIST ) {
+			/* If we succeeded, enable the connection for further listening.
+			 * If we failed, tear down the connection and reschedule.
+			 */
+			if ( rc == LDAP_SUCCESS ) {
+				if ( si->si_conn ) {
+					connection_client_enable( si->si_conn );
+				} else {
+					si->si_conn = connection_client_setup( s, do_syncrepl, arg );
 				}
-			} else {
-				if ( rc == SYNC_REBUS2 ) rc = 0;
+			} else if ( si->si_conn ) {
+				dostop = 1;
 			}
+		} else {
+			if ( rc == SYNC_REBUS2 ) rc = 0;
 		}
-	} else {
-		syncrepl_resync_finish(si, rc);
 	}
 
 	/* At this point, we have 5 cases:
