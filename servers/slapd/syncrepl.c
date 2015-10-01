@@ -613,19 +613,23 @@ syncrepl_cookie_pull(
 				changed = 1;
 			}
 		}
-	}
-	if ( changed ) {
-	paranoia:
-		si->si_cookieAge = si->si_cookieState->cs_age;
-		ch_free( si->si_syncCookie.octet_str.bv_val );
-		slap_compose_sync_cookie( NULL, &si->si_syncCookie.octet_str,
-			si->si_syncCookie.ctxcsn, si->si_syncCookie.rid,
-			si->si_syncCookie.sid );
-		ch_free( si->si_syncCookie.sids );
-		slap_reparse_sync_cookie( &si->si_syncCookie, op->o_tmpmemctx );
 
-		for(i = 0; i < si->si_syncCookie.numcsns; ++i)
-			quorum_notify_csn( si->si_be, si->si_syncCookie.sids[i] );
+		if ( changed ) {
+	paranoia:
+			si->si_cookieAge = si->si_cookieState->cs_age;
+			ch_free( si->si_syncCookie.octet_str.bv_val );
+			slap_compose_sync_cookie( NULL, &si->si_syncCookie.octet_str,
+				si->si_syncCookie.ctxcsn, si->si_syncCookie.rid,
+				si->si_syncCookie.sid );
+			ch_free( si->si_syncCookie.sids );
+			slap_reparse_sync_cookie( &si->si_syncCookie, op->o_tmpmemctx );
+
+			if ( reopenldap_mode_idkfa() )
+				slap_cookie_verify( &si->si_syncCookie );
+
+			for(i = 0; i < si->si_syncCookie.numcsns; ++i)
+				quorum_notify_csn( si->si_be, si->si_syncCookie.sids[i] );
+		}
 	}
 	ldap_pvt_thread_mutex_unlock( &si->si_cookieState->cs_mutex );
 }
