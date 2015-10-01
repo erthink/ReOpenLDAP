@@ -515,8 +515,8 @@ syncrepl_search_provider(
 	return rc;
 }
 
-static int
-check_syncprov(
+static void
+syncrepl_cookie_pull(
 	Operation *op,
 	syncinfo_t *si )
 {
@@ -628,7 +628,6 @@ check_syncprov(
 			quorum_notify_csn( si->si_be, si->si_syncCookie.sids[i] );
 	}
 	ldap_pvt_thread_mutex_unlock( &si->si_cookieState->cs_mutex );
-	return changed;
 }
 
 static int syncrep_gentle_shutdown(LDAP	*ld)
@@ -790,13 +789,13 @@ syncrep_start(
 		ch_free( si->si_syncCookie.octet_str.bv_val );
 		BER_BVZERO( &si->si_syncCookie.octet_str );
 		/* Look for contextCSN from syncprov overlay. */
-		check_syncprov( op, si );
+		syncrepl_cookie_pull( op, si );
 		if ( BER_BVISNULL( &si->si_syncCookie.octet_str ))
 			slap_compose_sync_cookie( NULL, &si->si_syncCookie.octet_str,
 				si->si_syncCookie.ctxcsn, si->si_syncCookie.rid,
 				si->si_syncCookie.sid );
 		/* LY: Seems that in some cases quorum_notify_csn()
-		 *     could be not called from check_syncprov(). */
+		 *     could be not called from syncrepl_cookie_pull(). */
 		for ( i=0; i<si->si_syncCookie.numcsns; i++ )
 			quorum_notify_csn( si->si_be, si->si_syncCookie.sids[i] );
 	}
@@ -1101,7 +1100,7 @@ do_syncrep_process(
 
 				if ( syncCookie.ctxcsn ) {
 					int i, sid = slap_parse_csn_sid( syncCookie.ctxcsn );
-					check_syncprov( op, si );
+					syncrepl_cookie_pull( op, si );
 					ldap_pvt_thread_mutex_lock( &si->si_cookieState->cs_mutex );
 					for ( i = 0; i<si->si_cookieState->cs_cookie.numcsns; i++ ) {
 						/* new SID */
@@ -1313,7 +1312,7 @@ do_syncrep_process(
 				ber_scanf( ber, /*"{"*/ "}" );
 			}
 			if ( SLAP_MULTIMASTER( op->o_bd ) )
-				check_syncprov( op, si );
+				syncrepl_cookie_pull( op, si );
 			if ( !syncCookie.ctxcsn ) {
 				match = 1;
 			} else if ( !si->si_syncCookie.ctxcsn ) {
@@ -1471,7 +1470,7 @@ do_syncrep_process(
 				}
 
 				if ( SLAP_MULTIMASTER( op->o_bd ) )
-					check_syncprov( op, si );
+					syncrepl_cookie_pull( op, si );
 				if ( !syncCookie.ctxcsn ) {
 					match = 1;
 				} else if ( !si->si_syncCookie.ctxcsn ) {
