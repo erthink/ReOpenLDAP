@@ -3868,6 +3868,23 @@ syncrepl_cookie_push(
 	ldap_pvt_thread_mutex_lock( &si->si_cookieState->cs_mutex );
 	assert(slap_biglock_owned(op->o_bd));
 
+#if 0
+	/* LY: Напоминалка, так как один раз я уже умудрился это забыть.
+	 * Подобного pull-а тут быть не должно:
+	 * 1) syncprov отслеживает изменение contextCSN, поэтому pull продвинет
+	 *    si->si_cookieState->cs_cookie к syncCookie, или даже дальше (если
+	 *    были локальные изменения или работает несколько syncprov).
+	 * 2) ассерты ставить бесмыслено, перемещение назад должно контролироваться
+	 *    в syncprov и pull_contextCSN(), а движение вперед допустимо.
+	 *    Проверять корректность работы слежки в syncprov тоже не выйдет, так
+	 *    как могут быть изменения cookie которые не отслеживаются, например
+	 *    при завершении delete-non-present).
+	 * 3) syncprov нужен факт записи contextCSN, чтобы вовремя разослать
+	 *    уведомления (например в конце delete-non-present), поэтому
+	 *    оптимизировать запись не следует (это должен делать сам syncprov). */
+	syncrepl_pull_contextCSN( op, si );
+#endif
+
 	if ( reopenldap_mode_idkfa() ) {
 		slap_cookie_verify( syncCookie );
 		slap_cookie_verify( &si->si_cookieState->cs_cookie );
@@ -3961,6 +3978,16 @@ syncrepl_cookie_push(
 		slap_op_csn_clean( op );
 		if ( mod.sml_next ) slap_mods_free( mod.sml_next, 1 );
 	}
+
+#if 0
+	/* LY: Напоминалка, так как один раз я уже умудрился это забыть.
+	 * Подобный assert тут не нужен:
+	 * 1) syncprov отслеживает изменения contextCSN, поэтому изменения могут
+	 *    просто быть если biglock не включен, вне зависимости от синхронизации
+	 *    экземпляров syncrepl.
+	 * 2) перемещение назад должно контролироваться внутри syncprov. */
+	assert( syncrepl_pull_contextCSN( op, si ) == 0 );
+#endif
 
 	ldap_pvt_thread_mutex_unlock( &si->si_cookieState->cs_mutex );
 	return rc;
