@@ -50,7 +50,8 @@ static void presentlist_free( presentlist_t *list );
  *	   the -42 seems good... */
 #define	SYNC_PAUSED         -42
 #define SYNCREPL_RETARDED	-43
-
+#define SYNC_REBUS1			-1
+#define SYNC_REBUS2			-2
 #define	SYNC_REFRESH_YIELD  -421
 
 struct nonpresent_entry {
@@ -906,7 +907,7 @@ do_syncrep_process(
 	slap_biglock_t *bl = slap_biglock_get(op->o_bd);
 
 	if ( slapd_shutdown ) {
-		rc = -2;
+		rc = SYNC_REBUS2;
 		goto done;
 	}
 
@@ -947,7 +948,7 @@ do_syncrep_process(
 		ldap_msgfree( msg );
 		rc = ldap_result( si->si_ld, si->si_msgid, LDAP_MSG_ONE, timeout, &msg );
 		if (slapd_shutdown)
-			rc = -2;
+			rc = SYNC_REBUS2;
 		if (rc <= 0)
 			break;
 
@@ -992,7 +993,7 @@ do_syncrep_process(
 					Debug( LDAP_DEBUG_ANY, "do_syncrep_process: %s "
 						"got search entry with multiple "
 						"Sync State control (%s)\n", si->si_ridtxt, bdn.bv_val );
-					rc = -1;
+					rc = SYNC_REBUS1;
 					goto done;
 				}
 			}
@@ -1001,7 +1002,7 @@ do_syncrep_process(
 				Debug( LDAP_DEBUG_ANY, "do_syncrep_process: %s "
 					"got search entry without "
 					"Sync State control (%s)\n", si->si_ridtxt, bdn.bv_val );
-				rc = -1;
+				rc = SYNC_REBUS1;
 				goto done;
 			}
 			ber_init2( ber, &rctrlp->ldctl_value, LBER_USE_DER );
@@ -1011,7 +1012,7 @@ do_syncrep_process(
 				Debug( LDAP_DEBUG_ANY,
 					"do_syncrep_process: %s malformed message (%s)\n",
 					si->si_ridtxt, bdn.bv_val );
-				rc = -1;
+				rc = SYNC_REBUS1;
 				goto done;
 			}
 			/* FIXME: what if syncUUID is NULL or empty?
@@ -1022,7 +1023,7 @@ do_syncrep_process(
 					"got empty or invalid syncUUID with LDAP_SYNC_%s (%s)\n",
 					si->si_ridtxt,
 					syncrepl_state2str( syncstate ), bdn.bv_val );
-				rc = -1;
+				rc = SYNC_REBUS1;
 				goto done;
 			}
 
@@ -1154,7 +1155,7 @@ do_syncrep_process(
 					Debug( LDAP_DEBUG_ANY, "do_syncrep_process: %s "
 						"got search result with multiple "
 						"Sync State control\n", si->si_ridtxt );
-					rc = -1;
+					rc = SYNC_REBUS1;
 					goto done;
 				}
 			}
@@ -1205,7 +1206,7 @@ do_syncrep_process(
 				slap_resume_listeners();
 			} else if ( rc == LDAP_SUCCESS ) {
 				/* LY: test017-syncreplication-refresh */
-				rc = -2;
+				rc = SYNC_REBUS2;
 			}
 			goto done;
 
@@ -1369,7 +1370,7 @@ do_syncrep_process(
 		}
 	}
 
-	if ( rc == -1 ) {
+	if ( rc == SYNC_REBUS1 ) {
 		rc = LDAP_OTHER;
 		ldap_get_option( si->si_ld, LDAP_OPT_ERROR_NUMBER, &rc );
 	}
@@ -1553,7 +1554,7 @@ deleted:
 					dostop = 1;
 				}
 			} else {
-				if ( rc == -2 ) rc = 0;
+				if ( rc == SYNC_REBUS2 ) rc = 0;
 			}
 		}
 	} else {
@@ -2187,7 +2188,7 @@ syncrepl_message_to_op(
 		Debug( LDAP_DEBUG_ANY, "syncrepl_message_to_op: %s "
 			"Message type should be entry (%d)",
 			si->si_ridtxt, ldap_msgtype( msg ) );
-		return -1;
+		return SYNC_REBUS1;
 	}
 
 	if ( si->si_syncdata == SYNCDATA_ACCESSLOG )
@@ -2228,7 +2229,7 @@ syncrepl_message_to_op(
 					"syncrepl_message_to_op: %s "
 					"dn \"%s\" normalization failed (%d)",
 					si->si_ridtxt, bdn.bv_val, rc );
-				rc = -1;
+				rc = SYNC_REBUS1;
 				ch_free( bvals );
 				goto done;
 			}
@@ -2244,7 +2245,7 @@ syncrepl_message_to_op(
 					"syncrepl_message_to_op: %s unknown op %s",
 					si->si_ridtxt, bvals[0].bv_val );
 				ch_free( bvals );
-				rc = -1;
+				rc = SYNC_REBUS1;
 				goto done;
 			}
 			op->o_tag = modops[i].mask;
@@ -2275,7 +2276,7 @@ syncrepl_message_to_op(
 
 	/* If we didn't get a mod type or a target DN, bail out */
 	if ( op->o_tag == LBER_DEFAULT || BER_BVISNULL( &dn ) ) {
-		rc = -1;
+		rc = SYNC_REBUS1;
 		goto done;
 	}
 
@@ -2510,7 +2511,7 @@ syncrepl_message_to_entry(
 		Debug( LDAP_DEBUG_ANY, "syncrepl_message_to_entry: %s "
 			"Message type should be entry (%d)",
 			si->si_ridtxt, ldap_msgtype( msg ) );
-		return -1;
+		return SYNC_REBUS1;
 	}
 
 	op->o_tag = LDAP_REQ_ADD;
@@ -2546,7 +2547,7 @@ syncrepl_message_to_entry(
 	}
 
 	if ( entry == NULL ) {
-		return -1;
+		return SYNC_REBUS1;
 	}
 
 	REWRITE_DN( si, bdn, bv2, dn, ndn );
@@ -2629,7 +2630,7 @@ syncrepl_message_to_entry(
 	if ( *modlist == NULL ) {
 		Debug( LDAP_DEBUG_ANY, "syncrepl_message_to_entry: %s no attributes\n",
 			si->si_ridtxt );
-		rc = -1;
+		rc = SYNC_REBUS1;
 		goto done;
 	}
 
