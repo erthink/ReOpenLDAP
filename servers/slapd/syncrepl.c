@@ -1029,6 +1029,8 @@ do_syncrep_process(
 			biglocked = 1;
 		}
 
+		syncrepl_cookie_pull( op, si );
+
 		switch( ldap_msgtype( msg ) ) {
 		int which = INT_MAX; /* LY: paranoia */
 		case LDAP_RES_SEARCH_ENTRY:
@@ -1100,7 +1102,6 @@ do_syncrep_process(
 
 				if ( syncCookie.ctxcsn ) {
 					int i, sid = slap_parse_csn_sid( syncCookie.ctxcsn );
-					syncrepl_cookie_pull( op, si );
 					ldap_pvt_thread_mutex_lock( &si->si_cookieState->cs_mutex );
 					for ( i = 0; i<si->si_cookieState->cs_cookie.numcsns; i++ ) {
 						/* new SID */
@@ -1311,8 +1312,7 @@ do_syncrep_process(
 				}
 				ber_scanf( ber, /*"{"*/ "}" );
 			}
-			if ( SLAP_MULTIMASTER( op->o_bd ) )
-				syncrepl_cookie_pull( op, si );
+
 			if ( !syncCookie.ctxcsn ) {
 				match = 1;
 			} else if ( !si->si_syncCookie.ctxcsn ) {
@@ -1469,8 +1469,6 @@ do_syncrep_process(
 					continue;
 				}
 
-				if ( SLAP_MULTIMASTER( op->o_bd ) )
-					syncrepl_cookie_pull( op, si );
 				if ( !syncCookie.ctxcsn ) {
 					match = 1;
 				} else if ( !si->si_syncCookie.ctxcsn ) {
