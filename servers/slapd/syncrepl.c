@@ -555,8 +555,9 @@ syncrepl_cookie_pull(
 			changed = 1;
 		} else {
 			for ( i=0; i<num; i++ ) {
-				if ( ber_bvcmp( &a.a_nvals[i],
-					&si->si_cookieState->cs_cookie.ctxcsn[i] )) {
+				int cmp = ber_bvcmp( &a.a_nvals[i], &si->si_cookieState->cs_cookie.ctxcsn[i] );
+				assert( cmp >= 0 );
+				if ( cmp ) {
 					changed = 1;
 					break;
 				}
@@ -586,15 +587,8 @@ syncrepl_cookie_pull(
 		/* LY: merge si_cookieState into si_syncCookie, not just a copy! */
 		for (j = 0; j < si->si_cookieState->cs_cookie.numcsns; j++) {
 			for (i = 0; i < si->si_syncCookie.numcsns; i++) {
-				if (unlikely( si->si_syncCookie.sids[i] < 0
-						/* LY: Hm, is this  possible? */
-						|| BER_BVISNULL( &si->si_syncCookie.ctxcsn[i] ))) {
-					/* bogus, just dup everything */
-					ber_bvarray_free( si->si_syncCookie.ctxcsn );
-					ber_bvarray_dup_x( &si->si_syncCookie.ctxcsn,
-						si->si_cookieState->cs_cookie.ctxcsn, NULL );
-					goto paranoia;
-				}
+				assert( si->si_syncCookie.sids[i] > -1
+					   && ! BER_BVISNULL( &si->si_syncCookie.ctxcsn[i] ) );
 				if ( si->si_syncCookie.sids[i] == si->si_cookieState->cs_cookie.sids[j] )
 					break;
 			}
@@ -608,6 +602,8 @@ syncrepl_cookie_pull(
 				changed = 1;
 			} else if (! bvmatch( &si->si_syncCookie.ctxcsn[i],
 					&si->si_cookieState->cs_cookie.ctxcsn[j])) {
+				assert( strcmp( si->si_cookieState->cs_cookie.ctxcsn[j].bv_val,
+								si->si_syncCookie.ctxcsn[i].bv_val ) > 0 );
 				ber_bvreplace( &si->si_syncCookie.ctxcsn[i],
 					&si->si_cookieState->cs_cookie.ctxcsn[j] );
 				changed = 1;
@@ -615,7 +611,6 @@ syncrepl_cookie_pull(
 		}
 
 		if ( changed ) {
-	paranoia:
 			si->si_cookieAge = si->si_cookieState->cs_age;
 			ch_free( si->si_syncCookie.octet_str.bv_val );
 			slap_compose_sync_cookie( NULL, &si->si_syncCookie.octet_str,
