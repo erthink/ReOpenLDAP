@@ -898,8 +898,6 @@ do_syncrep_process(
 	int		rc,
 			err = LDAP_SUCCESS;
 
-	Modifications	*modlist = NULL;
-
 	struct timeval *tout_p = NULL;
 	struct timeval tout = { 0, 0 };
 
@@ -931,11 +929,6 @@ do_syncrep_process(
 		if ( rctrls ) {
 			ldap_controls_free( rctrls );
 			rctrls = NULL;
-		}
-
-		if ( modlist ) {
-			slap_mods_free( modlist, 1 );
-			modlist = NULL;
 		}
 
 		if ( syncCookie.numcsns > 0 ) {
@@ -1092,15 +1085,16 @@ do_syncrep_process(
 					default:
 						break;
 				}
-			} else if ( ( rc = syncrepl_message_to_entry( si, op, msg,
-				&modlist, &entry, syncstate, syncUUID ) ) == LDAP_SUCCESS )
-			{
-				if ( ( rc = syncrepl_entry( si, op, entry, &modlist,
-					syncstate, syncUUID, &syncCookie ) ) == LDAP_SUCCESS &&
-					syncCookie.ctxcsn )
-				{
+			} else {
+				Modifications *modlist = NULL;
+				rc = syncrepl_message_to_entry( si, op, msg, &modlist,
+					&entry, syncstate, syncUUID );
+				if ( rc  == LDAP_SUCCESS )
+					rc = syncrepl_entry( si, op, entry, &modlist,
+						syncstate, syncUUID, &syncCookie );
+				if ( rc == LDAP_SUCCESS && syncCookie.ctxcsn )
 					rc = syncrepl_cookie_push( si, op, &syncCookie );
-				}
+				slap_mods_free( modlist, 1 );
 			}
 			if ( rc == SYNCREPL_RETARDED )
 				rc = LDAP_SUCCESS;
@@ -1407,7 +1401,6 @@ done:
 	slap_cookie_free( &syncCookie, 0 );
 	ldap_msgfree( msg );
 	ldap_controls_free( rctrls );
-	slap_mods_free( modlist, 1 );
 
 	quorum_notify_status( si->si_be, si->si_rid,
 		err == LDAP_SUCCESS && rc == LDAP_SUCCESS && si->si_refreshDone );
