@@ -1029,26 +1029,18 @@ do_syncrep_process(
 				}
 
 				if ( syncCookie.ctxcsn ) {
-					int i, sid = slap_csn_get_sid( syncCookie.ctxcsn );
 					ldap_pvt_thread_mutex_lock( &si->si_cookieState->cs_mutex );
-					for ( i = 0; i<si->si_cookieState->cs_cookie.numcsns; i++ ) {
-						/* new SID */
-						if ( sid < si->si_cookieState->cs_cookie.sids[i] )
-							break;
-						if ( si->si_cookieState->cs_cookie.sids[i] == sid ) {
-							if ( ber_bvcmp( syncCookie.ctxcsn, &si->si_cookieState->cs_cookie.ctxcsn[i] ) <= 0 ) {
-								bdn.bv_val[bdn.bv_len] = '\0';
-								Debug( LDAP_DEBUG_SYNC, "do_syncrep_process: %s CSN too old, ignoring %s (%s)\n",
-									si->si_ridtxt, syncCookie.ctxcsn->bv_val, bdn.bv_val );
-								si->si_too_old = 1;
-								ldap_pvt_thread_mutex_unlock( &si->si_cookieState->cs_mutex );
-								rc = 0;
-								goto done;
-							}
-							si->si_too_old = 0;
-							break;
-						}
+					if ( 0 >= slap_cookie_compare_csn (
+							 &si->si_cookieState->cs_cookie, syncCookie.ctxcsn ) ) {
+						bdn.bv_val[bdn.bv_len] = '\0';
+						Debug( LDAP_DEBUG_SYNC, "do_syncrep_process: %s CSN too old, ignoring %s (%s)\n",
+							si->si_ridtxt, syncCookie.ctxcsn->bv_val, bdn.bv_val );
+						si->si_too_old = 1;
+						ldap_pvt_thread_mutex_unlock( &si->si_cookieState->cs_mutex );
+						rc = 0;
+						goto done;
 					}
+					si->si_too_old = 0;
 					ldap_pvt_thread_mutex_unlock( &si->si_cookieState->cs_mutex );
 				} else if (si->si_too_old) {
 					bdn.bv_val[bdn.bv_len] = '\0';
