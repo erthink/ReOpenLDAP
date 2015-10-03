@@ -226,39 +226,50 @@ if test $RC != 0 ; then
 	exit $RC
 fi
 
-echo "Waiting $SLEEP1 seconds for syncrepl to receive changes..."
-sleep $SLEEP1
+for retry in 1 2 3 4 last; do
+	echo "Waiting $SLEEP1 seconds for syncrepl to receive changes..."
+	sleep $SLEEP1
 
-n=1
-while [ $n -le $MMR ]; do
-PORT=`expr $BASEPORT + $n`
-URI="ldap://${LOCALHOST}:$PORT/"
+	n=1
+	while [ $n -le $MMR ]; do
+		PORT=`expr $BASEPORT + $n`
+		URI="ldap://${LOCALHOST}:$PORT/"
 
-echo "Using ldapsearch to read all the entries from server $n..."
-$LDAPSEARCH -S "" -b "$BASEDN" -D "$MANAGERDN" -H $URI -w $PASSWD  \
-	'objectclass=*' > $TESTDIR/server$n.out 2>&1
-RC=$?
+		echo "Using ldapsearch to read all the entries from server $n..."
+		$LDAPSEARCH -S "" -b "$BASEDN" -D "$MANAGERDN" -H $URI -w $PASSWD  \
+			'objectclass=*' > $TESTDIR/server$n.out 2>&1
+		RC=$?
 
-if test $RC != 0 ; then
-	echo "ldapsearch failed at server $n ($RC)!"
-	killservers
-	exit $RC
-fi
-$LDIFFILTER < $TESTDIR/server$n.out > $TESTDIR/server$n.flt
-n=`expr $n + 1`
-done
+		if [ $RC != 0 ]; then
+			echo "ldapsearch failed at server $n ($RC)!"
+			killservers
+			exit $RC
+		fi
+		$LDIFFILTER < $TESTDIR/server$n.out > $TESTDIR/server$n.flt
+		n=`expr $n + 1`
+	done
 
-n=2
-while [ $n -le $MMR ]; do
-echo "Comparing retrieved entries from server 1 and server $n..."
-$CMP $MASTERFLT $TESTDIR/server$n.flt > $CMPOUT
+	n=2
+	while [ $n -le $MMR ]; do
+		echo "Comparing retrieved entries from server 1 and server $n..."
+		$CMP $MASTERFLT $TESTDIR/server$n.flt > $CMPOUT
+		RC=$?
 
-if test $? != 0 ; then
-	echo "test failed - server 1 and server $n databases differ"
-	killservers
-	exit 1
-fi
-n=`expr $n + 1`
+		if [ $RC != 0 ]; then
+			break;
+		fi
+		n=`expr $n + 1`
+	done
+
+	if [ $RC != 0 ]; then
+		if [ "$retry" != "last" ]; then
+			echo "Presumably more time is needed, retry..."
+			continue
+		fi
+		echo "test failed - server 1 and server $n databases differ"
+		killservers
+		exit 1
+	fi
 done
 
 echo "Using ldapadd to populate server 2..."
@@ -273,7 +284,7 @@ fi
 
 THEDN="cn=James A Jones 2,ou=Alumni Association,ou=People,dc=example,dc=com"
 sleep 0.1
-for i in 1 2 3; do
+for i in 1 2 3 4 5; do
 	$LDAPSEARCH -S "" -b "$THEDN" -H $URI1 \
 		-s base '(objectClass=*)' entryCSN > "${MASTEROUT}.$i" 2>&1
 	RC=$?
@@ -485,39 +496,50 @@ fi
 n=`expr $n + 1`
 done
 
-echo "Waiting $SLEEP1 seconds for syncrepl to receive changes..."
-sleep $SLEEP1
+for retry in 1 2 3 4 last; do
+	echo "Waiting $SLEEP1 seconds for syncrepl to receive changes..."
+	sleep $SLEEP1
 
-n=1
-while [ $n -le $MMR ]; do
-PORT=`expr $BASEPORT + $n`
-URI="ldap://${LOCALHOST}:$PORT/"
+	n=1
+	while [ $n -le $MMR ]; do
+		PORT=`expr $BASEPORT + $n`
+		URI="ldap://${LOCALHOST}:$PORT/"
 
-echo "Using ldapsearch to read all the entries from server $n..."
-$LDAPSEARCH -S "" -b "$BASEDN" -D "$MANAGERDN" -H $URI -w $PASSWD  \
-	'objectclass=*' > $TESTDIR/server$n.out 2>&1
-RC=$?
+		echo "Using ldapsearch to read all the entries from server $n..."
+		$LDAPSEARCH -S "" -b "$BASEDN" -D "$MANAGERDN" -H $URI -w $PASSWD  \
+			'objectclass=*' > $TESTDIR/server$n.out 2>&1
+		RC=$?
 
-if test $RC != 0 ; then
-	echo "ldapsearch failed at server $n ($RC)!"
-	killservers
-	exit $RC
-fi
-$LDIFFILTER -s $BACKEND=a < $TESTDIR/server$n.out > $TESTDIR/server$n.flt
-n=`expr $n + 1`
-done
+		if [ $RC != 0 ]; then
+			echo "ldapsearch failed at server $n ($RC)!"
+			killservers
+			exit $RC
+		fi
+		$LDIFFILTER -s $BACKEND=a < $TESTDIR/server$n.out > $TESTDIR/server$n.flt
+		n=`expr $n + 1`
+	done
 
-n=2
-while [ $n -le $MMR ]; do
-echo "Comparing retrieved entries from server 1 and server $n..."
-$CMP $MASTERFLT $TESTDIR/server$n.flt > $CMPOUT
+	n=2
+	while [ $n -le $MMR ]; do
+		echo "Comparing retrieved entries from server 1 and server $n..."
+		$CMP $MASTERFLT $TESTDIR/server$n.flt > $CMPOUT
+		RC=$?
 
-if test $? != 0 ; then
-	echo "test failed - server 1 and server $n databases differ"
-	killservers
-	exit 1
-fi
-n=`expr $n + 1`
+		if [ $RC != 0 ]; then
+			break
+		fi
+		n=`expr $n + 1`
+	done
+
+	if [ $RC != 0 ]; then
+		if [ "$retry" != "last" ]; then
+			echo "Presumably more time is needed, retry..."
+			continue
+		fi
+		echo "test failed - server 1 and server $n databases differ"
+		killservers
+		exit 1
+	fi
 done
 
 killservers
