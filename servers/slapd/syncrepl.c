@@ -3883,10 +3883,9 @@ syncrepl_cookie_push(
 {
 	Backend *be = op->o_bd;
 	Modifications mod;
-	struct berval first = BER_BVNULL;
 	struct sync_cookie sc;
 
-	int rc, i, j, changed = 0;
+	int rc, lead;
 
 	slap_callback cb = { NULL };
 	SlapReply	rs_modify = {REP_RESULT};
@@ -3910,42 +3909,15 @@ syncrepl_cookie_push(
 	slap_cookie_copy( &sc, &si->si_cookieState->cs_cookie );
 
 	/* find any CSNs in the syncCookie that are newer than the cookieState */
-	for ( i=0; i<syncCookie->numcsns; i++ ) {
-		for ( j=0; j<sc.numcsns; j++ ) {
-			if ( syncCookie->sids[i] < sc.sids[j] )
-				break;
-			if ( syncCookie->sids[i] != sc.sids[j] )
-				continue;
-			if ( slap_csn_compare_ts( &syncCookie->ctxcsn[i], &sc.ctxcsn[j] ) > 0 ) {
-				ber_bvreplace( &sc.ctxcsn[j], &syncCookie->ctxcsn[i] );
-				changed = 1;
-				if ( BER_BVISNULL( &first ) ||
-					slap_csn_compare_ts( &syncCookie->ctxcsn[i], &first ) > 0 ) {
-					first = syncCookie->ctxcsn[i];
-				}
-			}
-			break;
-		}
-		/* there was no match for this SID, it's a new CSN */
-		if ( j == sc.numcsns ||
-			syncCookie->sids[i] != sc.sids[j] ) {
-			slap_insert_csn_sids( &sc, j, syncCookie->sids[i],
-				&syncCookie->ctxcsn[i] );
-			quorum_notify_csn( si->si_be, syncCookie->sids[i] );
-			if ( BER_BVISNULL( &first ) ||
-				memcmp( syncCookie->ctxcsn[i].bv_val, first.bv_val, first.bv_len ) > 0 ) {
-				first = syncCookie->ctxcsn[i];
-			}
-			changed = 1;
-		}
-	}
+	lead = slap_cookie_merge( si->si_be, &sc, syncCookie );
+
 	/* Should never happen, ITS#5065 */
-	if ( BER_BVISNULL( &first ) || !changed ) {
+	if ( lead < 0 ) {
 		slap_cookie_free( &sc, 0 );
 		rc = 0;
 	} else {
 		op->o_bd = si->si_wbe;
-		slap_queue_csn( op, &first );
+		slap_queue_csn( op, &sc.ctxcsn[lead] );
 
 		op->o_tag = LDAP_REQ_MODIFY;
 
