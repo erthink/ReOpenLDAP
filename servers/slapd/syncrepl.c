@@ -3907,16 +3907,7 @@ syncrepl_cookie_push(
 	}
 
 	/* clone the cookieState CSNs so we can Replace the whole thing */
-	sc.numcsns = si->si_cookieState->cs_cookie.numcsns;
-	if ( sc.numcsns ) {
-		ber_bvarray_dup_x( &sc.ctxcsn, si->si_cookieState->cs_cookie.ctxcsn, NULL );
-		sc.sids = ch_malloc( sc.numcsns * sizeof(sc.sids[0]) );
-		for ( i = 0; i < sc.numcsns; i++ )
-			sc.sids[i] = si->si_cookieState->cs_cookie.sids[i];
-	} else {
-		sc.ctxcsn = NULL;
-		sc.sids = NULL;
-	}
+	slap_cookie_copy( &sc, &si->si_cookieState->cs_cookie );
 
 	/* find any CSNs in the syncCookie that are newer than the cookieState */
 	for ( i=0; i<syncCookie->numcsns; i++ ) {
@@ -4002,13 +3993,7 @@ syncrepl_cookie_push(
 			si->si_cookieState->cs_cookie.sids = sc.sids;
 			si->si_cookieState->cs_cookie.numcsns = sc.numcsns;
 
-			/* Don't just dup the provider's cookie, recreate it */
-			si->si_syncCookie.numcsns = si->si_cookieState->cs_cookie.numcsns;
-			ber_bvarray_dup_x( &si->si_syncCookie.ctxcsn, si->si_cookieState->cs_cookie.ctxcsn, NULL );
-			si->si_syncCookie.sids = ch_malloc( si->si_cookieState->cs_cookie.numcsns * sizeof(si->si_syncCookie.sids[0]) );
-			for ( i = 0; i < si->si_cookieState->cs_cookie.numcsns; i++ )
-				si->si_syncCookie.sids[i] = si->si_cookieState->cs_cookie.sids[i];
-
+			slap_cookie_copy( &si->si_syncCookie, &si->si_cookieState->cs_cookie );
 			si->si_cookieState->cs_age++;
 			si->si_cookieAge = si->si_cookieState->cs_age;
 		} else {
