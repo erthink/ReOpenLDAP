@@ -3934,7 +3934,6 @@ syncrepl_cookie_push(
 	struct sync_cookie sc;
 
 	int rc, i, j, changed = 0;
-	ber_len_t len;
 
 	slap_callback cb = { NULL };
 	SlapReply	rs_modify = {REP_RESULT};
@@ -3973,15 +3972,11 @@ syncrepl_cookie_push(
 				break;
 			if ( syncCookie->sids[i] != sc.sids[j] )
 				continue;
-			len = syncCookie->ctxcsn[i].bv_len;
-			if ( len > sc.ctxcsn[j].bv_len )
-				len = sc.ctxcsn[j].bv_len;
-			if ( memcmp( syncCookie->ctxcsn[i].bv_val,
-				sc.ctxcsn[j].bv_val, len ) > 0 ) {
+			if ( slap_csn_compare_ts( &syncCookie->ctxcsn[i], &sc.ctxcsn[j] ) > 0 ) {
 				ber_bvreplace( &sc.ctxcsn[j], &syncCookie->ctxcsn[i] );
 				changed = 1;
 				if ( BER_BVISNULL( &first ) ||
-					memcmp( syncCookie->ctxcsn[i].bv_val, first.bv_val, first.bv_len ) > 0 ) {
+					slap_csn_compare_ts( &syncCookie->ctxcsn[i], &first ) > 0 ) {
 					first = syncCookie->ctxcsn[i];
 				}
 			}
