@@ -3989,10 +3989,7 @@ syncrepl_cookie_push(
 			slap_cookie_free( &si->si_syncCookie, 0 );
 			slap_cookie_free( &si->si_cookieState->cs_cookie, 0 );
 
-			si->si_cookieState->cs_cookie.ctxcsn = sc.ctxcsn;
-			si->si_cookieState->cs_cookie.sids = sc.sids;
-			si->si_cookieState->cs_cookie.numcsns = sc.numcsns;
-
+			slap_cookie_move( &si->si_cookieState->cs_cookie, &sc );
 			slap_cookie_copy( &si->si_syncCookie, &si->si_cookieState->cs_cookie );
 			si->si_cookieState->cs_age++;
 			si->si_cookieAge = si->si_cookieState->cs_age;
