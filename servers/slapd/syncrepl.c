@@ -3949,15 +3949,9 @@ syncrepl_cookie_push(
 	ldap_pvt_thread_mutex_lock( &si->si_cookieState->cs_mutex );
 	assert(slap_biglock_owned(op->o_bd));
 
-	if (reopenldap_mode_idkfa()) {
-		Syntax *syn = slap_schema.si_ad_contextCSN->ad_type->sat_syntax;
-		int i;
-		for ( i=0; i<syncCookie->numcsns; i++ ) {
-			assert( !syn->ssyn_validate( syn, syncCookie->ctxcsn+i ));
-		}
-		for ( i=0; i<si->si_cookieState->cs_cookie.numcsns; i++ ) {
-			assert( !syn->ssyn_validate( syn, si->si_cookieState->cs_cookie.ctxcsn+i ));
-		}
+	if ( reopenldap_mode_idkfa() ) {
+		slap_cookie_verify( syncCookie );
+		slap_cookie_verify( &si->si_cookieState->cs_cookie );
 	}
 
 	/* clone the cookieState CSNs so we can Replace the whole thing */
@@ -4078,13 +4072,8 @@ syncrepl_cookie_push(
 			ber_bvarray_free( sc.ctxcsn );
 		}
 
-		if (reopenldap_mode_idkfa()) {
-			Syntax *syn = slap_schema.si_ad_contextCSN->ad_type->sat_syntax;
-			int i;
-			for ( i=0; i<si->si_cookieState->cs_cookie.numcsns; i++ ) {
-				assert( !syn->ssyn_validate( syn, si->si_cookieState->cs_cookie.ctxcsn+i ));
-			}
-		}
+		if ( reopenldap_mode_idkfa() )
+			slap_cookie_verify( &si->si_cookieState->cs_cookie );
 
 		op->o_bd = be;
 		op->o_tmpfree( op->o_csn.bv_val, op->o_tmpmemctx );
