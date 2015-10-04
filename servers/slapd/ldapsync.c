@@ -364,22 +364,6 @@ bailout:
 	return LDAP_PROTOCOL_ERROR;
 }
 
-/* count the numcsns and regenerate the list of SIDs in a recomposed cookie */
-void
-slap_reparse_sync_cookie(
-	struct sync_cookie *cookie,
-	void *memctx )
-{
-	if ( cookie->ctxcsn ) {
-		for (; !BER_BVISNULL( &cookie->ctxcsn[cookie->numcsns] ); cookie->numcsns++);
-	}
-	if ( cookie->numcsns ) {
-		cookie->sids = slap_parse_csn_sids( cookie->ctxcsn, cookie->numcsns, NULL );
-		if ( cookie->numcsns > 1 )
-			slap_sort_csn_sids( cookie->ctxcsn, cookie->sids, cookie->numcsns, memctx );
-	}
-}
-
 int
 slap_init_sync_cookie_ctxcsn(
 	struct sync_cookie *cookie
