@@ -749,11 +749,8 @@ again:
 
 	switch( mode ) {
 	case FIND_MAXCSN:
+		assert( slap_csn_verify_full( &maxcsn ) );
 		if ( ber_bvcmp( &si->si_cookie.ctxcsn[maxid], &maxcsn )) {
-			if (reopenldap_mode_idkfa()) {
-				Syntax *syn = slap_schema.si_ad_contextCSN->ad_type->sat_syntax;
-				assert( !syn->ssyn_validate( syn, &maxcsn ));
-			}
 			ber_bvreplace( &si->si_cookie.ctxcsn[maxid], &maxcsn );
 			si->si_numops++;	/* ensure a checkpoint */
 		}
@@ -1565,13 +1562,8 @@ syncprov_checkpoint( Operation *op, slap_overinst *on )
 	BackendInfo *bi;
 
 	slap_biglock_acquire(op->o_bd);
-	if (reopenldap_mode_idkfa()) {
-		Syntax *syn = slap_schema.si_ad_contextCSN->ad_type->sat_syntax;
-		int i;
-		for ( i=0; i<si->si_cookie.numcsns; i++ ) {
-			assert( !syn->ssyn_validate( syn, si->si_cookie.ctxcsn+i ));
-		}
-	}
+	if (reopenldap_mode_idkfa())
+		slap_cookie_verify( &si->si_cookie );
 
 	mod.sml_numvals = si->si_cookie.numcsns;
 	mod.sml_values = si->si_cookie.ctxcsn;
@@ -1617,13 +1609,7 @@ syncprov_checkpoint( Operation *op, slap_overinst *on )
 	if ( mod.sml_next != NULL ) {
 		slap_mods_free( mod.sml_next, 1 );
 	}
-	if (reopenldap_mode_idkfa()) {
-		Syntax *syn = slap_schema.si_ad_contextCSN->ad_type->sat_syntax;
-		int i;
-		for ( i=0; i<si->si_cookie.numcsns; i++ ) {
-			assert( !syn->ssyn_validate( syn, si->si_cookie.ctxcsn+i ));
-		}
-	}
+
 	slap_biglock_release(op->o_bd);
 }
 
@@ -1940,10 +1926,7 @@ syncprov_op_response( Operation *op, SlapReply *rs )
 		}
 		if ( !BER_BVISEMPTY( &maxcsn ) ) {
 			int i;
-			if (reopenldap_mode_idkfa()) {
-				Syntax *syn = slap_schema.si_ad_contextCSN->ad_type->sat_syntax;
-				assert( !syn->ssyn_validate( syn, &maxcsn ));
-			}
+			assert(slap_csn_verify_full( &maxcsn ));
 			for ( i = 0; i < si->si_cookie.numcsns; i++ ) {
 				if ( maxcsn_sid < si->si_cookie.sids[i] )
 					break;
