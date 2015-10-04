@@ -898,8 +898,8 @@ do_syncrep_process(
 	int		rc,
 			err = LDAP_SUCCESS;
 
-	struct timeval *tout_p = NULL;
-	struct timeval tout = { 0, 0 };
+	struct timeval *timeout = NULL;
+	static /* const */ struct timeval nowait = { 0, 0 };
 
 	int		refreshDeletes = 0;
 	char empty[6] = "empty";
@@ -936,17 +936,17 @@ do_syncrep_process(
 			memset( &syncCookie, 0, sizeof( syncCookie ));
 		}
 
-		tout_p = NULL; /* wait infinite */
+		timeout = NULL; /* wait infinite */
 		if ( abs(si->si_type) == LDAP_SYNC_REFRESH_AND_PERSIST && si->si_refreshDone )
-			tout_p = &tout; /* no wait */
+			timeout = &nowait; /* no wait */
 
-		if (! tout_p && biglocked) {
+		if (! timeout && biglocked) {
 			slap_biglock_release(bl);
 			biglocked = 0;
 		}
 
 		ldap_msgfree( msg );
-		rc = ldap_result( si->si_ld, si->si_msgid, LDAP_MSG_ONE, tout_p, &msg );
+		rc = ldap_result( si->si_ld, si->si_msgid, LDAP_MSG_ONE, timeout, &msg );
 		if (slapd_shutdown)
 			rc = -2;
 		if (rc <= 0)
@@ -1265,9 +1265,6 @@ do_syncrep_process(
 					} else
 						syncrepl_refresh_end(si, LDAP_SUCCESS);
 					ber_scanf( ber, /*"{"*/ "}" );
-					if ( abs(si->si_type) == LDAP_SYNC_REFRESH_AND_PERSIST &&
-						si->si_refreshDone )
-						tout_p = &tout;
 					break;
 				case LDAP_TAG_SYNC_ID_SET:
 					Debug( LDAP_DEBUG_SYNC,
