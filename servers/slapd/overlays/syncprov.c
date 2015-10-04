@@ -555,7 +555,7 @@ findmax_cb( Operation *op, SlapReply *rs )
 		Attribute *a = attr_find( rs->sr_entry->e_attrs,
 			slap_schema.si_ad_entryCSN );
 
-		if ( a && ber_bvcmp( &a->a_vals[0], maxcsn ) > 0 &&
+		if ( a && slap_csn_compare_ts( &a->a_vals[0], maxcsn ) > 0 &&
 			slap_csn_get_sid( &a->a_vals[0] ) == slap_serverID ) {
 			maxcsn->bv_len = a->a_vals[0].bv_len;
 			strcpy( maxcsn->bv_val, a->a_vals[0].bv_val );
@@ -760,7 +760,7 @@ again:
 	switch( mode ) {
 	case FIND_MAXCSN:
 		assert( slap_csn_verify_full( &maxcsn ) );
-		if ( ber_bvcmp( &si->si_cookie.ctxcsn[maxid], &maxcsn )) {
+		if ( slap_csn_compare_ts( &si->si_cookie.ctxcsn[maxid], &maxcsn ) < 0 ) {
 			ber_bvreplace( &si->si_cookie.ctxcsn[maxid], &maxcsn );
 			si->si_numops++;	/* ensure a checkpoint */
 		}
