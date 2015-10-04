@@ -1670,14 +1670,14 @@ syncprov_add_slog( Operation *op )
 		ldap_pvt_thread_mutex_lock( &sl->sl_mutex );
 		if ( sl->sl_head ) {
 			/* Keep the list in csn order. */
-			if ( ber_bvcmp( &sl->sl_tail->se_csn, &se->se_csn ) <= 0 ) {
+			if ( slap_csn_compare_ts( &sl->sl_tail->se_csn, &se->se_csn ) <= 0 ) {
 				sl->sl_tail->se_next = se;
 				sl->sl_tail = se;
 			} else {
 				slog_entry **sep;
 
 				for ( sep = &sl->sl_head; *sep; sep = &(*sep)->se_next ) {
-					if ( ber_bvcmp( &se->se_csn, &(*sep)->se_csn ) < 0 ) {
+					if ( slap_csn_compare_ts( &se->se_csn, &(*sep)->se_csn ) < 0 ) {
 						se->se_next = *sep;
 						*sep = se;
 						break;
@@ -1767,7 +1767,7 @@ syncprov_playlog( Operation *op, SlapReply *rs, sessionlog *sl,
 		ndel = 1;
 		for ( k=0; k<srs->sr_state.numcsns; k++ ) {
 			if ( se->se_sid == srs->sr_state.sids[k] ) {
-				ndel = ber_bvcmp( &se->se_csn, &srs->sr_state.ctxcsn[k] );
+				ndel = slap_csn_compare_ts( &se->se_csn, &srs->sr_state.ctxcsn[k] );
 				break;
 			}
 		}
@@ -1778,7 +1778,7 @@ syncprov_playlog( Operation *op, SlapReply *rs, sessionlog *sl,
 		ndel = 0;
 		for ( k=0; k<numcsns; k++ ) {
 			if ( se->se_sid == sids[k] ) {
-				ndel = ber_bvcmp( &se->se_csn, &ctxcsn[k] );
+				ndel = slap_csn_compare_ts( &se->se_csn, &ctxcsn[k] );
 				break;
 			}
 		}
@@ -2430,7 +2430,7 @@ syncprov_search_response( Operation *op, SlapReply *rs )
 			if ( !(op->o_sync_mode & SLAP_SYNC_PERSIST) ) {
 				/* Make sure entry is less than the snapshot'd contextCSN */
 				for ( i=0; i<ss->ss_numcsns; i++ ) {
-					if ( sid == ss->ss_sids[i] && ber_bvcmp( &a->a_nvals[0],
+					if ( sid == ss->ss_sids[i] && slap_csn_compare_ts( &a->a_nvals[0],
 						&ss->ss_ctxcsn[i] ) > 0 ) {
 						Debug( LDAP_DEBUG_SYNC,
 							"Entry %s CSN %s greater than snapshot %s\n",
@@ -2445,7 +2445,7 @@ syncprov_search_response( Operation *op, SlapReply *rs )
 			/* Don't send old entries twice */
 			for ( i=0; i<srs->sr_state.numcsns; i++ ) {
 				if ( sid == srs->sr_state.sids[i] &&
-					ber_bvcmp( &a->a_nvals[0],
+					slap_csn_compare_ts( &a->a_nvals[0],
 						&srs->sr_state.ctxcsn[i] )<= 0 ) {
 					Debug( LDAP_DEBUG_SYNC,
 						"Entry %s CSN %s older or equal to ctx %s\n",
@@ -2714,19 +2714,19 @@ syncprov_op_search( Operation *op, SlapReply *rs )
 		for ( i=0,j=0; i<srs->sr_state.numcsns; i++ ) {
 			int newer;
 			while ( srs->sr_state.sids[i] != sids[j] ) j++;
-			if ( BER_BVISEMPTY( &maxcsn ) || ber_bvcmp( &maxcsn,
+			if ( BER_BVISEMPTY( &maxcsn ) || slap_csn_compare_ts( &maxcsn,
 				&srs->sr_state.ctxcsn[i] ) < 0 ) {
 				maxcsn = srs->sr_state.ctxcsn[i];
 				maxsid = sids[j];
 			}
-			newer = ber_bvcmp( &srs->sr_state.ctxcsn[i], &ctxcsn[j] );
+			newer = slap_csn_compare_ts( &srs->sr_state.ctxcsn[i], &ctxcsn[j] );
 			/* If our state is newer, tell consumer about changes */
 			if ( newer < 0) {
 				changed = SS_CHANGED;
 				if ( strncmp("19000101000000.000000Z", srs->sr_state.ctxcsn[i].bv_val, 22) >= 0 ) {
 					Debug( LDAP_DEBUG_SYNC, "syncprov_op_search: %s yield stub-csn from sid %d\n",
 						   op->o_bd->be_nsuffix->bv_val, srs->sr_state.sids[i] );
-				} else if ( BER_BVISEMPTY( &mincsn ) || ber_bvcmp( &mincsn,
+				} else if ( BER_BVISEMPTY( &mincsn ) || slap_csn_compare_ts( &mincsn,
 					&srs->sr_state.ctxcsn[i] ) > 0 ) {
 					mincsn = srs->sr_state.ctxcsn[i];
 					minsid = sids[j];
@@ -2813,7 +2813,7 @@ no_change:
 					/* SID present */
 					if ( minsid == sl->sl_cookie.sids[i] ) {
 						/* new enough? */
-						if ( ber_bvcmp( &mincsn, &sl->sl_cookie.ctxcsn[i] ) >= 0 )
+						if ( slap_csn_compare_ts( &mincsn, &sl->sl_cookie.ctxcsn[i] ) >= 0 )
 							do_play = 1;
 						break;
 					}
