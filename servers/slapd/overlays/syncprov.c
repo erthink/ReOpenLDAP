@@ -944,11 +944,12 @@ syncprov_unlink_syncop( syncops *so, int unlink_flags, int lock_flags )
 
 static void syncprov_compose_sync_cookie( Operation *op,
 		struct berval *cookie,
-		BerVarray csn,
+		BerVarray csns,
 		int rid )
 {
-	slap_compose_sync_cookie( op, cookie, csn, rid,
-			(reopenldap_mode_iddqd() || slap_serverID) ? slap_serverID : -1 );
+	slap_cookie_compose( cookie, csns, rid,
+		(reopenldap_mode_iddqd() || slap_serverID) ? slap_serverID : -1,
+		op ? op->o_tmpmemctx : NULL );
 }
 
 /* Send a persistent search response */
@@ -956,7 +957,7 @@ static int
 syncprov_sendresp( Operation *op, resinfo *ri, syncops *so, int mode )
 {
 	SlapReply rs = { REP_SEARCH };
-	struct berval cookie, csns[2];
+	struct berval cookie = BER_BVNULL, csns[2];
 	Entry e_uuid = {0};
 	Attribute a_uuid = {0};
 
@@ -1881,7 +1882,7 @@ syncprov_playlog( Operation *op, SlapReply *rs, sessionlog *sl,
 		fop.o_bd->bd_info = (BackendInfo *)on;
 	}
 	if ( ndel ) {
-		struct berval cookie;
+		struct berval cookie = BER_BVNULL;
 
 		if ( delcsn[0].bv_len ) {
 			syncprov_compose_sync_cookie( op, &cookie, delcsn, srs->sr_state.rid );
@@ -2462,7 +2463,8 @@ syncprov_search_response( Operation *op, SlapReply *rs )
 		rs->sr_flags |= REP_CTRLS_MUSTBEFREED;
 		/* If we're in delta-sync mode, always send a cookie */
 		if ( si->si_nopres && si->si_usehint && a ) {
-			struct berval cookie;
+			struct berval cookie = BER_BVNULL;
+
 			syncprov_compose_sync_cookie( op, &cookie, a->a_nvals, srs->sr_state.rid );
 			rs->sr_err = syncprov_state_ctrl( op, rs, rs->sr_entry,
 				LDAP_SYNC_ADD, rs->sr_ctrls, 0, 1, &cookie );
