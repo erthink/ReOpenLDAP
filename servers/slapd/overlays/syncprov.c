@@ -3294,7 +3294,7 @@ syncprov_db_open(
 		}
 
 		if ( reopenldap_mode_iddqd() ) {
-			rc = slap_csn_stub_self( &si->si_cookie.ctxcsn, &si->si_cookie.sids, &si->si_cookie.numcsns );
+			rc = slap_cookie_stubself( &si->si_cookie );
 			if (rc < 0)
 				goto out;
 			Debug( LDAP_DEBUG_SYNC, "syncprov: %s force stub-csn for self-sid %d\n",
