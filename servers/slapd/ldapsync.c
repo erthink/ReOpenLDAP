@@ -98,18 +98,6 @@ slap_compose_sync_cookie(
 	}
 }
 
-int *
-slap_parse_csn_sids( BerVarray csns, int numcsns, void *memctx )
-{
-	int i, *ret;
-
-	ret = slap_sl_malloc( numcsns * sizeof(int), memctx );
-	for ( i=0; i<numcsns; i++ ) {
-		ret[i] = slap_csn_get_sid( &csns[i] );
-	}
-	return ret;
-}
-
 static slap_mr_match_func sidsort_cmp;
 
 static const MatchingRule sidsort_mr = {
