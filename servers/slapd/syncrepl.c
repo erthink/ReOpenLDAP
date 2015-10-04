@@ -3145,15 +3145,14 @@ retry_add:;
 				if ( abs(si->si_type) == LDAP_SYNC_REFRESH_AND_PERSIST &&
 					si->si_refreshDone ) {
 					/* Something's wrong, start over */
-					ber_bvarray_free( si->si_syncCookie.ctxcsn );
-					si->si_syncCookie.ctxcsn = NULL;
+					Debug( LDAP_DEBUG_ANY,
+						"syncrepl_entry: %s be_add %s failed (%d)"
+						" on REFRESH phase, reset cookie\n",
+						si->si_ridtxt, op->o_req_dn.bv_val, rs_add.sr_err );
+					slap_cookie_clean( &si->si_syncCookie );
 					entry_free( entry );
 					ldap_pvt_thread_mutex_lock( &si->si_cookieState->cs_mutex );
-					ber_bvarray_free( si->si_cookieState->cs_cookie.ctxcsn );
-					ch_free( si->si_cookieState->cs_cookie.sids );
-					si->si_cookieState->cs_cookie.ctxcsn = NULL;
-					si->si_cookieState->cs_cookie.sids = 0;
-					si->si_cookieState->cs_cookie.numcsns = 0;
+					slap_cookie_clean( &si->si_cookieState->cs_cookie );
 					ldap_pvt_thread_mutex_unlock( &si->si_cookieState->cs_mutex );
 					return LDAP_NO_SUCH_OBJECT;
 				}
