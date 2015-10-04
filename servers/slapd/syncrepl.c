@@ -3151,9 +3151,12 @@ retry_add:;
 						si->si_ridtxt, op->o_req_dn.bv_val, rs_add.sr_err );
 					slap_cookie_clean( &si->si_syncCookie );
 					entry_free( entry );
-					ldap_pvt_thread_mutex_lock( &si->si_cookieState->cs_mutex );
-					slap_cookie_clean( &si->si_cookieState->cs_cookie );
-					ldap_pvt_thread_mutex_unlock( &si->si_cookieState->cs_mutex );
+					if (si->si_cookieState->cs_ref == 1) {
+						ldap_pvt_thread_mutex_lock( &si->si_cookieState->cs_mutex );
+						if (si->si_cookieState->cs_ref == 1)
+							slap_cookie_clean( &si->si_cookieState->cs_cookie );
+						ldap_pvt_thread_mutex_unlock( &si->si_cookieState->cs_mutex );
+					}
 					return LDAP_NO_SUCH_OBJECT;
 				}
 				rc = syncrepl_add_glue( op, entry );
