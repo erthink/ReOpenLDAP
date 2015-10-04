@@ -3262,12 +3262,10 @@ syncprov_db_open(
 	if ( e ) {
 		a = attr_find( e->e_attrs, slap_schema.si_ad_contextCSN );
 		if ( a ) {
-			ber_bvarray_dup_x( &si->si_cookie.ctxcsn, a->a_vals, NULL );
-			si->si_cookie.numcsns = a->a_numvals;
-			si->si_cookie.sids = slap_parse_csn_sids( si->si_cookie.ctxcsn, a->a_numvals, NULL );
-			rc = slap_sort_csn_sids( si->si_cookie.ctxcsn, si->si_cookie.sids, si->si_cookie.numcsns, NULL );
-			if (rc)
+			if ( slap_cookie_pull( &si->si_cookie, a->a_nvals, 0 ) < 0 ) {
+				rc = LDAP_OTHER;
 				goto out;
+			}
 		}
 		overlay_entry_release_ov( op, e, 0, on );
 	}
