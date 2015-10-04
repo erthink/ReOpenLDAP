@@ -599,10 +599,9 @@ syncrepl_cookie_pull(
 		int lead = slap_cookie_merge( si->si_be,
 					&si->si_syncCookie, &si->si_cookieState->cs_cookie );
 		if ( lead > -1 ) {
-			ch_free( si->si_syncCookie.octet_str.bv_val );
-			slap_compose_sync_cookie( NULL, &si->si_syncCookie.octet_str,
+			slap_cookie_compose( &si->si_syncCookie.octet_str,
 				si->si_syncCookie.ctxcsn, si->si_syncCookie.rid,
-				si->si_syncCookie.sid );
+				si->si_syncCookie.sid, NULL );
 		}
 		si->si_cookieAge = si->si_cookieState->cs_age;
 	}
@@ -740,12 +739,9 @@ syncrep_start(
 		syncrepl_cookie_pull( op, si );
 	}
 
-	ch_free( si->si_syncCookie.octet_str.bv_val );
-	BER_BVZERO( &si->si_syncCookie.octet_str );
-	if ( BER_BVISNULL( &si->si_syncCookie.octet_str ))
-		slap_compose_sync_cookie( NULL, &si->si_syncCookie.octet_str,
-			si->si_syncCookie.ctxcsn, si->si_syncCookie.rid,
-			si->si_syncCookie.sid );
+	slap_cookie_compose( &si->si_syncCookie.octet_str,
+		si->si_syncCookie.ctxcsn, si->si_syncCookie.rid,
+		si->si_syncCookie.sid, NULL );
 
 	rc = syncrepl_search_provider( si, op->o_tmpmemctx );
 
@@ -1605,9 +1601,9 @@ reload:
 		if ( rc == LDAP_SYNC_REFRESH_REQUIRED )	{
 			syncrepl_refresh_end(si, rc);
 			if ( BER_BVISNULL( &si->si_syncCookie.octet_str ))
-				slap_compose_sync_cookie( NULL, &si->si_syncCookie.octet_str,
+				slap_cookie_compose( &si->si_syncCookie.octet_str,
 					si->si_syncCookie.ctxcsn, si->si_syncCookie.rid,
-					si->si_syncCookie.sid );
+					si->si_syncCookie.sid, NULL );
 			rc = syncrepl_search_provider( si, op->o_tmpmemctx );
 			goto reload;
 		}

@@ -522,13 +522,8 @@ int main( int argc, char **argv )
 										sizeof( struct sync_cookie ));
 			ber_str2bv( optarg, 0, 1, &scp->octet_str );
 
-			/* This only parses out the rid at this point */
-			slap_cookie_parse( scp, &scp->octet_str );
-
-			if ( scp->rid == -1 ) {
-				Debug( LDAP_DEBUG_ANY,
-						"main: invalid cookie \"%s\"\n",
-						optarg );
+			if ( slap_cookie_parse( scp, &scp->octet_str ) ) {
+				Debug( LDAP_DEBUG_ANY, "main: invalid cookie \"%s\"\n", optarg );
 				slap_cookie_free( scp, 1 );
 				goto destroy;
 			}
@@ -1058,7 +1053,7 @@ destroy:
 	while ( !LDAP_STAILQ_EMPTY( &slap_sync_cookie )) {
 		scp = LDAP_STAILQ_FIRST( &slap_sync_cookie );
 		LDAP_STAILQ_REMOVE_HEAD( &slap_sync_cookie, sc_next );
-		ch_free( scp );
+		slap_cookie_free( scp, 1 );
 	}
 
 #ifdef SLAPD_MODULES
