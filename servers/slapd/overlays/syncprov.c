@@ -1936,7 +1936,8 @@ syncprov_op_response( Operation *op, SlapReply *rs )
 				if ( maxcsn_sid < si->si_cookie.sids[i] )
 					break;
 				if ( maxcsn_sid == si->si_cookie.sids[i] ) {
-					if ( ber_bvcmp( &maxcsn, &si->si_cookie.ctxcsn[i] ) > 0 ) {
+					int cmp = slap_csn_compare_ts( &maxcsn, &si->si_cookie.ctxcsn[i] );
+					if ( cmp > 0 ) {
 						ber_bvreplace( &si->si_cookie.ctxcsn[i], &maxcsn );
 						csn_changed = 1;
 					}
@@ -1969,7 +1970,8 @@ syncprov_op_response( Operation *op, SlapReply *rs )
 						if ( sid < si->si_cookie.sids[j] )
 							break;
 						if ( sid == si->si_cookie.sids[j] ) {
-							if ( ber_bvcmp( &mod->sml_values[i], &si->si_cookie.ctxcsn[j] ) > 0 ) {
+							int cmp = slap_csn_compare_ts( &mod->sml_values[i], &si->si_cookie.ctxcsn[j] );
+							if ( cmp > 0 ) {
 								ber_bvreplace( &si->si_cookie.ctxcsn[j], &mod->sml_values[i] );
 								csn_changed = 1;
 							}
