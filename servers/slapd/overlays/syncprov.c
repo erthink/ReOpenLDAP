@@ -3577,9 +3577,8 @@ static int syncprov_parseCtrl (
 	sr = op->o_tmpcalloc( 1, sizeof(struct sync_control), op->o_tmpmemctx );
 	sr->sr_rhint = rhint;
 	if (!BER_BVISNULL(&cookie)) {
-		ber_dupbv_x( &sr->sr_state.octet_str, &cookie, op->o_tmpmemctx );
 		/* If parse fails, pretend no cookie was sent */
-		if ( slap_cookie_parse( &sr->sr_state, &sr->sr_state.octet_str ) ) {
+		if ( slap_cookie_parse( &sr->sr_state, &cookie ) ) {
 			if (reopenldap_mode_idclip())
 				return LDAP_PROTOCOL_ERROR;
 		}
