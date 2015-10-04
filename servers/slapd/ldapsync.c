@@ -150,42 +150,6 @@ int slap_check_same_server(BackendDB *bd, int sid) {
 			&& reopenldap_mode_idclip() && SLAP_MULTIMASTER(bd) ) ? -1 : 0;
 }
 
-int
-slap_csn_stub_self( BerVarray *ctxcsn, int **sids, int *numcsns )
-{
-	int i, rc;
-	struct berval csn;
-	int *new_sids;
-	char buf[ LDAP_PVT_CSNSTR_BUFSIZE ];
-
-	for (i = *numcsns; --i >= 0; )
-		if (slap_serverID == (*sids)[i])
-			return 0;
-
-	new_sids = ch_realloc( *sids, (*numcsns + 1) * sizeof(**sids) );
-	if (! new_sids)
-		return LDAP_NO_MEMORY;
-
-	*sids = new_sids;
-	(*sids)[*numcsns] = slap_serverID;
-
-	csn.bv_val = buf;
-	csn.bv_len = snprintf( buf, sizeof( buf ),
-		"%4d%02d%02d%02d%02d%02d.%06dZ#%06x#%03x#%06x",
-		1900, 1, 1, 0, 0, 0, 0, 0, slap_serverID, 0 );
-
-	rc = value_add_one( ctxcsn, &csn );
-	if (rc < 0)
-		return rc;
-
-	*numcsns += 1;
-	rc = slap_sort_csn_sids( *ctxcsn, *sids, *numcsns, NULL );
-	if (rc < 0)
-		return rc;
-
-	return 1;
-}
-
 /* sort CSNs by SID. Use a fake Attribute with our own
  * syntax and matching rule, which sorts the nvals by
  * bv_len order. Stuff our sids into the bv_len.
