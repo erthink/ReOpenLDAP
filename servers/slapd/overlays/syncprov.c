@@ -3579,14 +3579,7 @@ static int syncprov_parseCtrl (
 	if (!BER_BVISNULL(&cookie)) {
 		ber_dupbv_x( &sr->sr_state.octet_str, &cookie, op->o_tmpmemctx );
 		/* If parse fails, pretend no cookie was sent */
-		if ( slap_parse_sync_cookie( &sr->sr_state, op->o_tmpmemctx ) ||
-			sr->sr_state.rid == -1 ) {
-			if ( sr->sr_state.ctxcsn ) {
-				ber_bvarray_free_x( sr->sr_state.ctxcsn, op->o_tmpmemctx );
-				sr->sr_state.ctxcsn = NULL;
-			}
-			sr->sr_state.numcsns = 0;
-
+		if ( slap_cookie_parse( &sr->sr_state, &sr->sr_state.octet_str ) ) {
 			if (reopenldap_mode_idclip())
 				return LDAP_PROTOCOL_ERROR;
 		}

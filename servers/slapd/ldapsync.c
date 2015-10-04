@@ -838,7 +838,13 @@ int slap_cookie_parse(
 	char *next, *end, *anchor;
 	AttributeDescription *ad = slap_schema.si_ad_entryCSN;
 
-	slap_cookie_clean( dst );
+	/* LY: This should be replaced by slap_cookie_clean(), but
+	 * not earlier that octer_str will be removed from cookie struct. */
+	dst->rid = -1;
+	dst->sid = -1;
+	dst->numcsns = 0;
+	if ( dst->ctxcsn )
+		BER_BVZERO( dst->ctxcsn );
 
 	if ( !src || src->bv_len <= STRLENOF( "rid=" ) )
 		goto bailout;
