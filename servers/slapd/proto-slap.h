@@ -1338,6 +1338,9 @@ int slap_cookie_merge_csnset(
 	BackendDB *bd,
 	struct sync_cookie *dst,
 	BerVarray src );
+int slap_cookie_compare_csnset(
+	struct sync_cookie *base,
+	BerVarray next );
 
 /*
  * limits.c

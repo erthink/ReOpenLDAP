@@ -741,6 +741,39 @@ int slap_cookie_merge_csnset(
 	return rc;
 }
 
+int slap_cookie_compare_csnset(
+	struct sync_cookie *base,
+	BerVarray next )
+{
+	int vector;
+
+	if ( reopenldap_mode_idkfa() )
+		slap_cookie_verify( base );
+
+	for( vector = 0; next && ! BER_BVISNULL( next ); ++next ) {
+		int i, sid = slap_csn_get_sid( next );
+		if ( sid < 0 ) {
+			vector = -1;
+			continue;
+		}
+		for( i = 0; i < base->numcsns; ++i ) {
+			if ( sid < base->sids[i] )
+				/* LY: next has at least one new SID. */
+				return 1;
+
+			if ( sid == base->sids[i] ) {
+				vector = slap_csn_compare_ts( next, &base->ctxcsn[i] );
+				if ( vector > 0 )
+					/* LY: next has at least one recent timestamp. */
+					return vector;
+				break;
+			}
+		}
+	}
+
+	return vector;
+}
+
 /*----------------------------------------------------------------------------*/
 
 int slap_csn_verify_lite( const BerValue *csn )
