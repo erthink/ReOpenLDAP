@@ -720,6 +720,27 @@ void slap_cookie_debug( const char *prefix, const struct sync_cookie *sc )
 			sc->sids[i], sc->ctxcsn[i].bv_val );
 }
 
+int slap_cookie_merge_csnset(
+	BackendDB *bd,
+	struct sync_cookie *dst,
+	BerVarray src )
+{
+	int rc;
+
+	if ( reopenldap_mode_idkfa() )
+		slap_cookie_verify( dst );
+
+	for( rc = 0; src && ! BER_BVISNULL( src ); ++src ) {
+		int vector = slap_cookie_merge_csn( bd, dst, -1, src );
+		if ( vector > 0)
+			rc = vector;
+		else if ( rc == 0 )
+			rc = vector;
+	}
+
+	return rc;
+}
+
 /*----------------------------------------------------------------------------*/
 
 int slap_csn_verify_lite( const BerValue *csn )

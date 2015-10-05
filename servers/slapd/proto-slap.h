@@ -1334,6 +1334,10 @@ void slap_cookie_compose(
 	int sid,
 	void *memctx );
 void slap_cookie_debug( const char *prefix, const struct sync_cookie *sc );
+int slap_cookie_merge_csnset(
+	BackendDB *bd,
+	struct sync_cookie *dst,
+	BerVarray src );
 
 /*
  * limits.c
