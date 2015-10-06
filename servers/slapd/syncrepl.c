@@ -3441,7 +3441,6 @@ syncrepl_del_nonpresent(
 	AttributeName	an[2];
 
 	struct berval pdn = BER_BVNULL;
-	struct berval csn;
 	assert(slap_biglock_owned(op->o_bd));
 	assert(LDAP_LIST_EMPTY( &si->si_nonpresentlist ));
 
@@ -3554,23 +3553,51 @@ syncrepl_del_nonpresent(
 	op->o_nocaching = 0;
 
 	if ( !LDAP_LIST_EMPTY( &si->si_nonpresentlist ) ) {
+		char buf[ LDAP_PVT_CSNSTR_BUFSIZE ];
+		BerValue csn = BER_BVNULL;
 
-		if ( sc->numcsns && !BER_BVISNULL( &sc->ctxcsn[which] ) ) {
-			csn = sc->ctxcsn[which];
-		} else {
-			csn = si->si_syncCookie.ctxcsn[0];
+		if (! sc || sc->numcsns == 0 ) {
+			sc = &si->si_syncCookie;
+			which = 0;
 		}
+		assert( which > -1 );
+		assert( which < sc->numcsns );
+		csn.bv_len = sc->ctxcsn[which].bv_len;
+		assert( csn.bv_len < sizeof(buf) );
+		csn.bv_val = memcpy( buf, sc->ctxcsn[which].bv_val, csn.bv_len + 1 );
 
 		op->o_bd = si->si_wbe;
+		int do_approx_csn = 0;
+		if ( reopenldap_mode_iddqd()
+				/* && si->si_type == LDAP_SYNC_REFRESH_AND_PERSIST */ ) {
+
+			int steps = 0;
+			np_list = LDAP_LIST_FIRST( &si->si_nonpresentlist );
+			while ( np_list != NULL ) {
+				steps += 1;
+				np_list = LDAP_LIST_NEXT( np_list, npe_link );
+			}
+
+			if (steps > 1) {
+				slap_csn_shift( &csn, 1 - steps );
+				do_approx_csn = 1;
+			}
+		}
 
 		np_list = LDAP_LIST_FIRST( &si->si_nonpresentlist );
 		while ( np_list != NULL ) {
 			SlapReply rs_delete = {REP_RESULT};
 
-			slap_queue_csn( op, &csn );
 			LDAP_LIST_REMOVE( np_list, npe_link );
 			np_prev = np_list;
 			np_list = LDAP_LIST_NEXT( np_list, npe_link );
+
+			if ( np_list && do_approx_csn ) {
+				assert( slap_csn_compare_ts( &sc->ctxcsn[which], &csn ) > 0 );
+				slap_csn_shift( &csn, 1 );
+			}
+			slap_queue_csn( op, &csn );
+
 			op->o_tag = LDAP_REQ_DELETE;
 			op->o_callback = &cx.cb;
 			cx.cb.sc_response = null_callback;
@@ -3580,6 +3607,9 @@ syncrepl_del_nonpresent(
 			Debug(rc ? LDAP_DEBUG_ANY : LDAP_DEBUG_SYNC,
 				"syncrepl_del_nonpresent: %s be_delete %s (%d)\n",
 				si->si_ridtxt, op->o_req_dn.bv_val, rc );
+#if OP_CSN_CHECK
+			assert(!op->o_csn.bv_len || strlen(op->o_csn.bv_val) == op->o_csn.bv_len);
+#endif
 
 			if ( rs_delete.sr_err == LDAP_NOT_ALLOWED_ON_NONLEAF ) {
 				SlapReply rs_modify = {REP_RESULT};
@@ -3613,6 +3643,9 @@ syncrepl_del_nonpresent(
 				rc = op->o_bd->bd_info->bi_op_modify( op, &rs_modify );
 				op->o_dont_replicate = 0;
 				if ( mod2.sml_next ) slap_mods_free( mod2.sml_next, 1 );
+#if OP_CSN_CHECK
+				assert(!op->o_csn.bv_len || strlen(op->o_csn.bv_val) == op->o_csn.bv_len);
+#endif
 			}
 
 			while ( rs_delete.sr_err == LDAP_SUCCESS &&
@@ -3653,6 +3686,7 @@ syncrepl_del_nonpresent(
 		}
 
 		op->o_bd = be;
+		assert( slap_csn_compare_ts( &sc->ctxcsn[which], &csn ) == 0 );
 	}
 }
 
