@@ -984,6 +984,7 @@ do_syncrep_process(
 
 		syncrepl_cookie_pull( op, si );
 		slap_cookie_clean_all( &syncCookie );
+		op->o_controls[slap_cids.sc_LDAPsync] = NULL;
 
 		switch( ldap_msgtype( msg ) ) {
 		int which = INT_MAX; /* LY: paranoia */
