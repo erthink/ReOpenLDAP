@@ -1038,15 +1038,13 @@ do_syncrep_process(
 				rc = SYNC_REBUS1;
 				goto done;
 			}
-			/* FIXME: what if syncUUID is NULL or empty?
-			 * (happens with back-sql...) */
 			if ( syncUUID[0].bv_len != UUIDLEN ) {
 				bdn.bv_val[bdn.bv_len] = '\0';
 				Debug( LDAP_DEBUG_ANY, "do_syncrep_process: %s "
 					"got empty or invalid syncUUID with LDAP_SYNC_%s (%s)\n",
 					si->si_ridtxt,
 					syncrepl_state2str( syncstate ), bdn.bv_val );
-				rc = SYNC_REBUS1;
+				rc = LDAP_PROTOCOL_ERROR;
 				goto done;
 			}
 
