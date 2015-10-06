@@ -301,7 +301,7 @@ typedef struct fbase_cookie {
 static AttributeName csn_anlist[3];
 static AttributeName uuid_anlist[2];
 
-static void syncprov_compose_sync_cookie( Operation *op,
+static void syncprov_compose_cookie( Operation *op,
 		struct berval *cookie,
 		BerVarray csns,
 		int rid )
@@ -349,7 +349,7 @@ syncprov_state_ctrl(
 		struct berval csns[2];
 		csns[0] = *csn;
 		BER_BVZERO( &csns[1] );
-		syncprov_compose_sync_cookie( op, &cookie, csns, rid );
+		syncprov_compose_cookie( op, &cookie, csns, rid );
 		ber_printf( ber, "{eOON}",
 			entry_sync_state, &entryuuid_bv, &cookie );
 		op->o_tmpfree( cookie.bv_val, op->o_tmpmemctx );
@@ -1281,8 +1281,8 @@ syncprov_qresp( opcookie *opc, syncops *so, int mode )
 	if ( mode == LDAP_SYNC_NEW_COOKIE && BER_BVISNULL( &ri->ri_cookie )) {
 		syncprov_info_t	*si = opc->son->on_bi.bi_private;
 		ldap_pvt_thread_rdwr_rlock( &si->si_csn_rwlock );
-		syncprov_compose_sync_cookie( NULL, &ri->ri_cookie,
-									  si->si_cookie.ctxcsn, so->s_rid);
+		syncprov_compose_cookie( NULL, &ri->ri_cookie,
+			si->si_cookie.ctxcsn, so->s_rid );
 		ldap_pvt_thread_rdwr_runlock( &si->si_csn_rwlock );
 	}
 	ldap_pvt_thread_mutex_unlock( &ri->ri_mutex );
@@ -1979,7 +1979,7 @@ syncprov_playlog( Operation *op, SlapReply *rs, sessionlog *sl,
 		struct berval cookie = BER_BVNULL;
 
 		if ( delcsn[0].bv_len ) {
-			syncprov_compose_sync_cookie( op, &cookie, delcsn, srs->sr_state.rid );
+			syncprov_compose_cookie( op, &cookie, delcsn, srs->sr_state.rid );
 			Debug( LDAP_DEBUG_SYNC, "syncprov_playlog: cookie=%s\n", cookie.bv_val );
 		}
 
@@ -2584,7 +2584,7 @@ syncprov_search_response( Operation *op, SlapReply *rs )
 		if ( reopenldap_mode_iddqd() /* LY: cookie for quorum's auto-sids */
 			|| (( ss->ss_flags & SS_CHANGED )
 				&& ss->ss_ctxcsn && !BER_BVISNULL( &ss->ss_ctxcsn[0] )) ) {
-			syncprov_compose_sync_cookie( op, &cookie, ss->ss_ctxcsn, srs->sr_state.rid );
+			syncprov_compose_cookie( op, &cookie, ss->ss_ctxcsn, srs->sr_state.rid );
 			Debug( LDAP_DEBUG_SYNC, "syncprov_search_response: cookie=%s\n", cookie.bv_val );
 		}
 
@@ -2871,7 +2871,7 @@ no_change:
 
 				/* LY: cookie for quorum's auto-sids */
 				if ( reopenldap_mode_iddqd() ) {
-					syncprov_compose_sync_cookie( op, &cookie, srs->sr_state.ctxcsn, srs->sr_state.rid );
+					syncprov_compose_cookie( op, &cookie, srs->sr_state.ctxcsn, srs->sr_state.rid );
 					Debug( LDAP_DEBUG_SYNC, "syncprov_op_search: cookie=%s\n", cookie.bv_val );
 				}
 
