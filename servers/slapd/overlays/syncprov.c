@@ -2698,15 +2698,7 @@ syncprov_op_search( Operation *op, SlapReply *rs )
 		if (srs->sr_state.numcsns != numcsns) {
 			/* consumer doesn't have the right number of CSNs */
 			changed = SS_CHANGED;
-			if ( srs->sr_state.ctxcsn ) {
-				ber_bvarray_free_x( srs->sr_state.ctxcsn, op->o_tmpmemctx );
-				srs->sr_state.ctxcsn = NULL;
-			}
-			if ( srs->sr_state.sids ) {
-				slap_sl_free( srs->sr_state.sids, op->o_tmpmemctx );
-				srs->sr_state.sids = NULL;
-			}
-			srs->sr_state.numcsns = 0;
+			slap_cookie_clean_csns( &srs->sr_state, op->o_tmpmemctx );
 			goto shortcut;
 		}
 
