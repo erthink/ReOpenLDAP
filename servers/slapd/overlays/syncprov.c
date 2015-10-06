@@ -361,8 +361,8 @@ syncprov_sendinfo(
 			if ( cookie ) {
 				ber_printf( ber, "O", cookie );
 			}
-			if ( refreshDeletes == 1 ) {
-				ber_printf( ber, "b", refreshDeletes );
+			if ( refreshDeletes ) {
+				ber_printf( ber, "b", 1 );
 			}
 			ber_printf( ber, "[W]", syncUUIDs );
 			ber_printf( ber, "N}" );
