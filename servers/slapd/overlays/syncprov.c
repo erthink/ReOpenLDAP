@@ -2404,7 +2404,7 @@ syncprov_search_response( Operation *op, SlapReply *rs )
 	sync_control *srs = op->o_controls[slap_cids.sc_LDAPsync];
 
 	if ( rs->sr_type == REP_SEARCH || rs->sr_type == REP_SEARCHREF ) {
-		Attribute *a;
+		Attribute *entryCSN = NULL;
 		/* If we got a referral without a referral object, there's
 		 * something missing that we cannot replicate. Just ignore it.
 		 * The consumer will abort because we didn't send the expected
@@ -2415,13 +2415,13 @@ syncprov_search_response( Operation *op, SlapReply *rs )
 			assert( rs->sr_entry != NULL );
 			return SLAP_CB_CONTINUE;
 		}
-		a = attr_find( rs->sr_entry->e_attrs, slap_schema.si_ad_entryCSN );
-		if ( a == NULL && rs->sr_operational_attrs != NULL ) {
-			a = attr_find( rs->sr_operational_attrs, slap_schema.si_ad_entryCSN );
-		}
-		if ( a ) {
+		if ( rs->sr_operational_attrs != NULL	 )
+			entryCSN = attr_find( rs->sr_operational_attrs, slap_schema.si_ad_entryCSN );
+		if ( entryCSN == NULL )
+			entryCSN = attr_find( rs->sr_entry->e_attrs, slap_schema.si_ad_entryCSN );
+		if ( entryCSN ) {
 			int i, sid;
-			sid = slap_csn_get_sid( &a->a_nvals[0] );
+			sid = slap_csn_get_sid( &entryCSN->a_nvals[0] );
 
 			/* Don't send changed entries back to the originator */
 			if ( sid == srs->sr_state.sid && srs->sr_state.numcsns ) {
@@ -2435,12 +2435,12 @@ syncprov_search_response( Operation *op, SlapReply *rs )
 			if ( !(op->o_sync_mode & SLAP_SYNC_PERSIST) ) {
 				/* Make sure entry is less than the snapshot'd contextCSN */
 				for ( i=0; i<ss->ss_numcsns; i++ ) {
-					if ( sid == ss->ss_sids[i] && slap_csn_compare_ts( &a->a_nvals[0],
+					if ( sid == ss->ss_sids[i] && slap_csn_compare_ts( &entryCSN->a_nvals[0],
 						&ss->ss_ctxcsn[i] ) > 0 ) {
 						Debug( LDAP_DEBUG_SYNC,
 							"Entry %s CSN %s greater than snapshot %s\n",
 							rs->sr_entry->e_name.bv_val,
-							a->a_nvals[0].bv_val,
+							entryCSN->a_nvals[0].bv_val,
 							ss->ss_ctxcsn[i].bv_val );
 						return LDAP_SUCCESS;
 					}
@@ -2450,12 +2450,12 @@ syncprov_search_response( Operation *op, SlapReply *rs )
 			/* Don't send old entries twice */
 			for ( i=0; i<srs->sr_state.numcsns; i++ ) {
 				if ( sid == srs->sr_state.sids[i] &&
-					slap_csn_compare_ts( &a->a_nvals[0],
+					slap_csn_compare_ts( &entryCSN->a_nvals[0],
 						&srs->sr_state.ctxcsn[i] )<= 0 ) {
 					Debug( LDAP_DEBUG_SYNC,
 						"Entry %s CSN %s older or equal to ctx %s\n",
 						rs->sr_entry->e_name.bv_val,
-						a->a_nvals[0].bv_val,
+						entryCSN->a_nvals[0].bv_val,
 						srs->sr_state.ctxcsn[i].bv_val );
 					return LDAP_SUCCESS;
 				}
@@ -2466,10 +2466,10 @@ syncprov_search_response( Operation *op, SlapReply *rs )
 		rs->sr_ctrls[1] = NULL;
 		rs->sr_flags |= REP_CTRLS_MUSTBEFREED;
 		/* If we're in delta-sync mode, always send a cookie */
-		if ( si->si_nopres && si->si_usehint && a ) {
+		if ( si->si_nopres && si->si_usehint && entryCSN ) {
 			struct berval cookie = BER_BVNULL;
 
-			syncprov_compose_sync_cookie( op, &cookie, a->a_nvals, srs->sr_state.rid );
+			syncprov_compose_sync_cookie( op, &cookie, entryCSN->a_nvals, srs->sr_state.rid );
 			rs->sr_err = syncprov_state_ctrl( op, rs, rs->sr_entry,
 				LDAP_SYNC_ADD, rs->sr_ctrls, 0, 1, &cookie );
 			op->o_tmpfree( cookie.bv_val, op->o_tmpmemctx );
