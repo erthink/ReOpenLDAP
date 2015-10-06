@@ -204,6 +204,16 @@ typedef struct fbase_cookie {
 static AttributeName csn_anlist[3];
 static AttributeName uuid_anlist[2];
 
+static void syncprov_compose_sync_cookie( Operation *op,
+		struct berval *cookie,
+		BerVarray csns,
+		int rid )
+{
+	slap_cookie_compose( cookie, csns, rid,
+		(reopenldap_mode_iddqd() || slap_serverID) ? slap_serverID : -1,
+		op ? op->o_tmpmemctx : NULL );
+}
+
 /* Build a LDAPsync intermediate state control */
 static int
 syncprov_state_ctrl(
@@ -213,7 +223,8 @@ syncprov_state_ctrl(
 	int		entry_sync_state,
 	LDAPControl	**ctrls,
 	int		num_ctrls,
-	struct berval	*cookie )
+	BerValue	*csn,
+	int		rid)
 {
 	Attribute* a;
 	int ret;
@@ -236,9 +247,15 @@ syncprov_state_ctrl(
 
 	/* FIXME: what if entryuuid is NULL or empty ? */
 
-	if ( cookie && !BER_BVISEMPTY( cookie ) ) {
+	if ( csn && !BER_BVISEMPTY( csn ) ) {
+		struct berval cookie = BER_BVNULL;
+		struct berval csns[2];
+		csns[0] = *csn;
+		BER_BVZERO( &csns[1] );
+		syncprov_compose_sync_cookie( op, &cookie, csns, rid );
 		ber_printf( ber, "{eOON}",
-			entry_sync_state, &entryuuid_bv, cookie );
+			entry_sync_state, &entryuuid_bv, &cookie );
+		op->o_tmpfree( cookie.bv_val, op->o_tmpmemctx );
 	} else {
 		ber_printf( ber, "{eON}",
 			entry_sync_state, &entryuuid_bv );
@@ -940,22 +957,11 @@ syncprov_unlink_syncop( syncops *so, int unlink_flags, int lock_flags )
 	return unused;
 }
 
-static void syncprov_compose_sync_cookie( Operation *op,
-		struct berval *cookie,
-		BerVarray csns,
-		int rid )
-{
-	slap_cookie_compose( cookie, csns, rid,
-		(reopenldap_mode_iddqd() || slap_serverID) ? slap_serverID : -1,
-		op ? op->o_tmpmemctx : NULL );
-}
-
 /* Send a persistent search response */
 static int
 syncprov_sendresp( Operation *op, resinfo *ri, syncops *so, int mode )
 {
 	SlapReply rs = { REP_SEARCH };
-	struct berval cookie = BER_BVNULL;
 	Entry e_uuid = {0};
 	Attribute a_uuid = {0};
 
@@ -966,22 +972,14 @@ syncprov_sendresp( Operation *op, resinfo *ri, syncops *so, int mode )
 	rs.sr_ctrls[1] = NULL;
 	rs.sr_flags = REP_CTRLS_MUSTBEFREED;
 
-	if (! BER_BVISEMPTY( &ri->ri_csn ) ) {
-		struct berval csns[2];
-		csns[0] = ri->ri_csn;
-		BER_BVZERO( &csns[1] );
-		syncprov_compose_sync_cookie( op, &cookie, csns, so->s_rid );
-	}
-
-	Debug( LDAP_DEBUG_SYNC, "syncprov_sendresp: %s, to=%03x, cookie=%s\n",
-		op->o_bd->be_nsuffix->bv_val, so->s_sid, cookie.bv_val );
+	Debug( LDAP_DEBUG_SYNC, "syncprov_sendresp: %s, to=%03x, csn=%s\n",
+		op->o_bd->be_nsuffix->bv_val, so->s_sid, ri->ri_csn.bv_val );
 
 	e_uuid.e_attrs = &a_uuid;
 	a_uuid.a_desc = slap_schema.si_ad_entryUUID;
 	a_uuid.a_nvals = &ri->ri_uuid;
 	rs.sr_err = syncprov_state_ctrl( op, &rs, &e_uuid,
-		mode, rs.sr_ctrls, 0, &cookie );
-	op->o_tmpfree( cookie.bv_val, op->o_tmpmemctx );
+		mode, rs.sr_ctrls, 0, &ri->ri_csn, so->s_rid );
 
 	rs.sr_entry = &e_uuid;
 	if ( mode == LDAP_SYNC_ADD || mode == LDAP_SYNC_MODIFY ) {
@@ -2465,15 +2463,11 @@ syncprov_search_response( Operation *op, SlapReply *rs )
 		rs->sr_flags |= REP_CTRLS_MUSTBEFREED;
 		/* If we're in delta-sync mode, always send a cookie */
 		if ( si->si_nopres && si->si_usehint && entryCSN ) {
-			struct berval cookie = BER_BVNULL;
-
-			syncprov_compose_sync_cookie( op, &cookie, entryCSN->a_nvals, srs->sr_state.rid );
 			rs->sr_err = syncprov_state_ctrl( op, rs, rs->sr_entry,
-				LDAP_SYNC_ADD, rs->sr_ctrls, 0, &cookie );
-			op->o_tmpfree( cookie.bv_val, op->o_tmpmemctx );
+				LDAP_SYNC_ADD, rs->sr_ctrls, 0, entryCSN->a_nvals, srs->sr_state.rid );
 		} else {
 			rs->sr_err = syncprov_state_ctrl( op, rs, rs->sr_entry,
-				LDAP_SYNC_ADD, rs->sr_ctrls, 0, NULL );
+				LDAP_SYNC_ADD, rs->sr_ctrls, 0, NULL, 0 );
 		}
 	} else if ( rs->sr_type == REP_RESULT && rs->sr_err == LDAP_SUCCESS ) {
 		struct berval cookie = BER_BVNULL;
