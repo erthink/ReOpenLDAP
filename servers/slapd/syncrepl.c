@@ -1333,16 +1333,13 @@ syncrepl_process(
 					if ( rc != LBER_ERROR ) {
 						if ( refreshDeletes ) {
 							syncrepl_del_nonpresent( op, si, syncUUIDs, &syncCookie, which );
-							ber_bvarray_free_x( syncUUIDs, op->o_tmpmemctx );
 						} else {
 							int i;
-							for ( i = 0; !BER_BVISNULL( &syncUUIDs[i] ); i++ ) {
+							for ( i = 0; !BER_BVISNULL( &syncUUIDs[i] ); i++ )
 								presentlist_insert( &si->si_presentlist, &syncUUIDs[i] );
-								slap_sl_free( syncUUIDs[i].bv_val, op->o_tmpmemctx );
-							}
-							slap_sl_free( syncUUIDs, op->o_tmpmemctx );
 						}
 					}
+					ber_bvarray_free_x( syncUUIDs, op->o_tmpmemctx );
 					rc = 0;
 					slap_cookie_free( &syncCookie, 0 );
 					break;
