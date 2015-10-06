@@ -1234,6 +1234,8 @@ do_syncrep_process(
 			if ( syncCookie.numcsns && match < 0 && rc == LDAP_SUCCESS ) {
 				rc = syncrepl_cookie_push( si, op, &syncCookie );
 			}
+			syncrepl_refresh_done( si, rc );
+
 			if ( rc == LDAP_SUCCESS && si->si_logstate == SYNCLOG_FALLBACK ) {
 				si->si_logstate = SYNCLOG_LOGGING;
 				rc = LDAP_SYNC_REFRESH_REQUIRED;
