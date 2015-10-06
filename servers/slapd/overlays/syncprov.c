@@ -213,12 +213,10 @@ syncprov_state_ctrl(
 	int		entry_sync_state,
 	LDAPControl	**ctrls,
 	int		num_ctrls,
-	int		send_cookie,
 	struct berval	*cookie )
 {
 	Attribute* a;
 	int ret;
-
 	BerElementBuffer berbuf;
 	BerElement *ber = (BerElement *)&berbuf;
 	LDAPControl *cp;
@@ -238,7 +236,7 @@ syncprov_state_ctrl(
 
 	/* FIXME: what if entryuuid is NULL or empty ? */
 
-	if ( send_cookie && cookie && !BER_BVISEMPTY( cookie ) ) {
+	if ( cookie && !BER_BVISEMPTY( cookie ) ) {
 		ber_printf( ber, "{eOON}",
 			entry_sync_state, &entryuuid_bv, cookie );
 	} else {
@@ -982,7 +980,7 @@ syncprov_sendresp( Operation *op, resinfo *ri, syncops *so, int mode )
 	a_uuid.a_desc = slap_schema.si_ad_entryUUID;
 	a_uuid.a_nvals = &ri->ri_uuid;
 	rs.sr_err = syncprov_state_ctrl( op, &rs, &e_uuid,
-		mode, rs.sr_ctrls, 0, 1, &cookie );
+		mode, rs.sr_ctrls, 0, &cookie );
 	op->o_tmpfree( cookie.bv_val, op->o_tmpmemctx );
 
 	rs.sr_entry = &e_uuid;
@@ -2471,11 +2469,11 @@ syncprov_search_response( Operation *op, SlapReply *rs )
 
 			syncprov_compose_sync_cookie( op, &cookie, entryCSN->a_nvals, srs->sr_state.rid );
 			rs->sr_err = syncprov_state_ctrl( op, rs, rs->sr_entry,
-				LDAP_SYNC_ADD, rs->sr_ctrls, 0, 1, &cookie );
+				LDAP_SYNC_ADD, rs->sr_ctrls, 0, &cookie );
 			op->o_tmpfree( cookie.bv_val, op->o_tmpmemctx );
 		} else {
 			rs->sr_err = syncprov_state_ctrl( op, rs, rs->sr_entry,
-				LDAP_SYNC_ADD, rs->sr_ctrls, 0, 0, NULL );
+				LDAP_SYNC_ADD, rs->sr_ctrls, 0, NULL );
 		}
 	} else if ( rs->sr_type == REP_RESULT && rs->sr_err == LDAP_SUCCESS ) {
 		struct berval cookie = BER_BVNULL;
