@@ -1099,7 +1099,7 @@ do_syncrep_process(
 			rc = 0;
 			if ( si->si_syncdata && si->si_logstate == SYNCLOG_LOGGING ) {
 				rc = syncrepl_message_to_op( si, op, msg );
-				if ( rc == LDAP_SUCCESS && syncCookie.numcsns ) {
+				if ( rc == LDAP_SUCCESS ) {
 					rc = syncrepl_cookie_push( si, op, &syncCookie );
 				} else switch ( rc ) {
 					case LDAP_ALREADY_EXISTS:
@@ -1127,7 +1127,7 @@ do_syncrep_process(
 				if ( rc == LDAP_SUCCESS )
 					rc = syncrepl_entry( si, op, entry, &modlist,
 						syncstate, syncUUID, &syncCookie );
-				if ( rc == LDAP_SUCCESS && syncCookie.numcsns )
+				if ( rc == LDAP_SUCCESS )
 					rc = syncrepl_cookie_push( si, op, &syncCookie );
 				slap_mods_free( modlist, 1 );
 			}
@@ -1231,9 +1231,8 @@ do_syncrep_process(
 					presentlist_free( &si->si_presentlist );
 				}
 			}
-			if ( syncCookie.numcsns && match < 0 && rc == LDAP_SUCCESS ) {
+			if ( match < 0 && rc == LDAP_SUCCESS )
 				rc = syncrepl_cookie_push( si, op, &syncCookie );
-			}
 			syncrepl_refresh_done( si, rc );
 
 			if ( rc == LDAP_SUCCESS && si->si_logstate == SYNCLOG_FALLBACK ) {
@@ -1365,9 +1364,7 @@ do_syncrep_process(
 						syncrepl_del_nonpresent( op, si, NULL, &syncCookie, which );
 					}
 
-					if ( syncCookie.numcsns ) {
-						rc = syncrepl_cookie_push( si, op, &syncCookie);
-					}
+					rc = syncrepl_cookie_push( si, op, &syncCookie);
 					presentlist_free( &si->si_presentlist );
 				}
 
@@ -3830,6 +3827,9 @@ syncrepl_cookie_push(
 {
 	struct sync_cookie sc;
 	int rc, lead;
+
+	if ( !syncCookie->numcsns )
+		return 0;
 
 	ldap_pvt_thread_mutex_lock( &si->si_cookieState->cs_mutex );
 	assert(slap_biglock_owned(op->o_bd));
