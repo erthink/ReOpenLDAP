@@ -861,7 +861,7 @@ syncrep_take_cookie(
 		int row_mode )
 {
 	struct berval raw = BER_BVNULL;
-	int rc;
+	int rc, vector;
 
 	if (tag) {
 		*tag = 0;
@@ -880,21 +880,34 @@ syncrep_take_cookie(
 	if ( rc )
 		return rc;
 
-	if (row_mode) {
-		if ( dst->numcsns != 1 )
-			return LDAP_PROTOCOL_ERROR;
-		if ( slap_cookie_merge_csn(
-				NULL, &si->si_syncCookie_in, -1, dst->ctxcsn ) < 0 ) {
-			Debug( LDAP_DEBUG_ANY, "syncrep_process:"
-				"%s cookie-backward '%s'\n",
-				si->si_ridtxt, raw.bv_val );
-			assert(0);
-			return LDAP_UNWILLING_TO_PERFORM;
-		}
-	} else if ( slap_cookie_pull(
-			&si->si_syncCookie_in, dst->ctxcsn, 0 ) < 0 ) {
+	if ( dst->numcsns == 0 && SLAP_MULTIMASTER( si->si_be ) ) {
 		Debug( LDAP_DEBUG_ANY, "syncrep_process:"
-			"%s cookie-backward '%s'\n",
+			"%s REJECT empty-cookie '%s'\n",
+			si->si_ridtxt, raw.bv_val );
+		assert(0);
+		return LDAP_UNWILLING_TO_PERFORM;
+	}
+
+	if (row_mode) {
+		if ( dst->numcsns > 1 )
+			return LDAP_PROTOCOL_ERROR;
+		vector = slap_cookie_merge_csn( NULL, &si->si_syncCookie_in, -1, dst->ctxcsn );
+	} else {
+		vector = slap_cookie_pull( &si->si_syncCookie_in, dst->ctxcsn, 0 );
+	}
+
+	if ( vector < 0 ) {
+		Debug( LDAP_DEBUG_ANY, "syncrep_process:"
+			"%s REJECT backward-cookie '%s'\n",
+			si->si_ridtxt, raw.bv_val );
+		assert(0);
+		return LDAP_UNWILLING_TO_PERFORM;
+	}
+
+	if ( vector == 0 && SLAP_MULTIMASTER( si->si_be )
+		 && reopenldap_mode_idclip() ) {
+		Debug( LDAP_DEBUG_ANY, "syncrep_process:"
+			"%s REJECT stalled-cookie '%s'\n",
 			si->si_ridtxt, raw.bv_val );
 		assert(0);
 		return LDAP_UNWILLING_TO_PERFORM;
