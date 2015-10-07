@@ -881,9 +881,9 @@ syncrep_take_cookie(
 		return rc;
 
 	if (row_mode) {
-		if ( dst->numcsns > 1 )
+		if ( dst->numcsns != 1 )
 			return LDAP_PROTOCOL_ERROR;
-		if ( dst->numcsns && slap_cookie_merge_csn(
+		if ( slap_cookie_merge_csn(
 				NULL, &si->si_syncCookie_in, -1, dst->ctxcsn ) < 0 ) {
 			Debug( LDAP_DEBUG_ANY, "syncrep_process:"
 				"%s cookie-backward '%s'\n",
