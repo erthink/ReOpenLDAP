@@ -785,30 +785,31 @@ syncrepl_enough_sids( syncinfo_t *si, struct sync_cookie *cookie )
 }
 
 static int
-compare_cookies( struct sync_cookie *sc1, struct sync_cookie *sc2, int *which )
+compare_cookies( struct sync_cookie *local, struct sync_cookie *remote, int *which )
 {
 	int i, j, match = 0;
 
 	*which = 0;
-
-	if ( sc1->numcsns < sc2->numcsns ) {
-		*which = sc1->numcsns;
+	if ( ! remote->numcsns )
+		return 1;
+	if ( local->numcsns < remote->numcsns ) {
+		*which = local->numcsns;
 		return -1;
 	}
 
-	for (j=0; j<sc2->numcsns; j++) {
-		for (i=0; i<sc1->numcsns; i++) {
-			if ( sc1->sids[i] != sc2->sids[j] )
+	for (j=0; j<remote->numcsns; j++) {
+		for (i=0; i<local->numcsns; i++) {
+			if ( local->sids[i] != remote->sids[j] )
 				continue;
-			match = slap_csn_compare_ts( &sc1->ctxcsn[i], &sc2->ctxcsn[j] );
+			match = slap_csn_compare_ts( &local->ctxcsn[i], &remote->ctxcsn[j] );
 			if ( match < 0 ) {
 				*which = j;
 				return match;
 			}
 			break;
 		}
-		if ( i == sc1->numcsns ) {
-			/* sc2 has a sid sc1 lacks */
+		if ( i == local->numcsns ) {
+			/* remote has a SID, local lacks */
 			*which = j;
 			return -1;
 		}
@@ -1207,14 +1208,7 @@ do_syncrep_process(
 				ber_scanf( ber, /*"{"*/ "}" );
 			}
 
-			if ( !syncCookie.numcsns ) {
-				match = 1;
-			} else if ( !si->si_syncCookie.numcsns ) {
-				match = -1;
-				which = 0;
-			} else {
-				match = compare_cookies( &si->si_syncCookie, &syncCookie, &which );
-			}
+			match = compare_cookies( &si->si_syncCookie, &syncCookie, &which );
 			if (si->si_type != LDAP_SYNC_REFRESH_AND_PERSIST) {
 				/* FIXME : different error behaviors according to
 				 *	1) err code : LDAP_BUSY ...
@@ -1349,15 +1343,7 @@ do_syncrep_process(
 					continue;
 				}
 
-				if ( !syncCookie.numcsns ) {
-					match = 1;
-				} else if ( !si->si_syncCookie.numcsns ) {
-					match = -1;
-					which = 0;
-				} else {
-					match = compare_cookies( &si->si_syncCookie, &syncCookie, &which );
-				}
-
+				match = compare_cookies( &si->si_syncCookie, &syncCookie, &which );
 				if ( match < 0 ) {
 					if ( si->si_refreshPresent == 1 &&
 						si_tag != LDAP_TAG_SYNC_NEW_COOKIE &&
