@@ -961,7 +961,7 @@ syncrepl_process(
 	}
 
 	for (;;) {
-		int		match, syncstate, refreshDeletes = 0;
+		int		match, syncstate;
 		struct berval	syncUUID[2];
 		LDAPControl		*rctrlp = NULL;
 		BerVarray		syncUUIDs;
@@ -1144,22 +1144,21 @@ syncrepl_process(
 				si->si_ridtxt );
 			break;
 
-		case LDAP_RES_SEARCH_RESULT:
+		case LDAP_RES_SEARCH_RESULT: {
+			int refreshDeletes = 0;
+			int result_code = LDAP_OTHER;
+
 			Debug( LDAP_DEBUG_SYNC,
 				"syncrepl_process: %s LDAP_RES_SEARCH_RESULT\n",
 				si->si_ridtxt );
-
-			{
-				int result_code = LDAP_OTHER;
-				rc = ldap_parse_result( si->si_ld, msg, &result_code,
-					NULL, NULL, NULL, &rctrls, 0 );
-				if ( rc == LDAP_SUCCESS ) {
-					rc = result_code;
-					if ( rc ) {
-						Debug( LDAP_DEBUG_ANY,
-							"syncrepl_process: %s LDAP_RES_SEARCH_RESULT (%d) %s\n",
-							si->si_ridtxt, rc, ldap_err2string( rc ) );
-					}
+			rc = ldap_parse_result( si->si_ld, msg, &result_code,
+				NULL, NULL, NULL, &rctrls, 0 );
+			if ( rc == LDAP_SUCCESS ) {
+				rc = result_code;
+				if ( rc ) {
+					Debug( LDAP_DEBUG_ANY,
+						"syncrepl_process: %s LDAP_RES_SEARCH_RESULT (%d) %s\n",
+						si->si_ridtxt, rc, ldap_err2string( rc ) );
 				}
 			}
 #ifdef LDAP_X_SYNC_REFRESH_REQUIRED
@@ -1210,7 +1209,6 @@ syncrepl_process(
 						rc = err;
 						goto done;
 					}
-
 					op->o_controls[slap_cids.sc_LDAPsync] = &syncCookie;
 				}
 				if ( ber_peek_tag( ber, &len ) == LDAP_TAG_REFRESHDELETES )
@@ -1225,11 +1223,15 @@ syncrepl_process(
 				 *	2) on err policy : stop service, stop sync, retry
 				 */
 				if ( refreshDeletes == 0 && match < 0 && rc == LDAP_SUCCESS &&
-						syncrepl_enough_sids( si, &syncCookie ) ) {
+						syncrepl_enough_sids( si, &syncCookie ) )
 					syncrepl_del_nonpresent( op, si, NULL, &syncCookie, which );
-				} else {
-					presentlist_free( &si->si_presentlist );
-				}
+				presentlist_free( &si->si_presentlist );
+			} else if ( refreshDeletes ) {
+				Debug( LDAP_DEBUG_SYNC,
+					"syncrepl_process: %s unexpected 'refreshDeletes' for RefreshAndPersist mode\n",
+					si->si_ridtxt );
+				rc = LDAP_PROTOCOL_ERROR;
+				goto done;
 			}
 			if ( match < 0 && rc == LDAP_SUCCESS )
 				rc = syncrepl_cookie_push( si, op, &syncCookie );
@@ -1244,10 +1246,13 @@ syncrepl_process(
 				rc = SYNC_REBUS2;
 			}
 			goto done;
+		}
 
 		case LDAP_RES_INTERMEDIATE: {
 			struct berval	*retdata = NULL;
 			char			*retoid = NULL;
+			int refreshDeletes = 0;
+
 			rc = ldap_parse_intermediate( si->si_ld, msg,
 				&retoid, &retdata, NULL, 0 );
 			if ( !rc && !strcmp( retoid, LDAP_SYNC_INFO ) ) {
@@ -1332,6 +1337,9 @@ syncrepl_process(
 					ber_scanf( ber, /*"{"*/ "}" );
 					if ( rc != LBER_ERROR ) {
 						if ( refreshDeletes ) {
+							/* LY: Have a list of UUIDs which were deleted
+							 * on remote DIT. Therefore is always safe to delete
+							 * such from local DIT, without checking a cookie. */
 							syncrepl_del_nonpresent( op, si, syncUUIDs, &syncCookie, which );
 						} else {
 							int i;
