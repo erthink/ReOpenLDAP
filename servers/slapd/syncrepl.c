@@ -1268,11 +1268,8 @@ syncrepl_process(
 						"NEW_COOKIE" );
 
 					rc = syncrepl_take_cookie( si, ber, "tm", &syncCookie, &tag, 0 );
-					if ( rc ) {
-						ldap_memfree( retoid );
-						ber_bvfree( retdata );
-						goto done;
-					}
+					if ( rc )
+						goto done_intermediate;
 					op->o_controls[slap_cids.sc_LDAPsync] = &syncCookie;
 					break;
 
@@ -1292,11 +1289,8 @@ syncrepl_process(
 					ber_scanf( ber, "t{" /*"}"*/, &tag );
 					if ( ber_peek_tag( ber, &len ) == LDAP_TAG_SYNC_COOKIE ) {
 						rc = syncrepl_take_cookie( si, ber, "m", &syncCookie, NULL, 0 );
-						if ( rc ) {
-							ldap_memfree( retoid );
-							ber_bvfree( retdata );
-							goto done;
-						}
+						if ( rc )
+							goto done_intermediate;
 						op->o_controls[slap_cids.sc_LDAPsync] = &syncCookie;
 					}
 					{
@@ -1320,11 +1314,8 @@ syncrepl_process(
 					ber_scanf( ber, "t{" /*"}"*/, &tag );
 					if ( ber_peek_tag( ber, &len ) == LDAP_TAG_SYNC_COOKIE ) {
 						rc = syncrepl_take_cookie( si, ber, "m", &syncCookie, NULL, 0 );
-						if ( rc ) {
-							ldap_memfree( retoid );
-							ber_bvfree( retdata );
-							goto done;
-						}
+						if ( rc )
+							goto done_intermediate;
 
 						op->o_controls[slap_cids.sc_LDAPsync] = &syncCookie;
 						compare_cookies( &si->si_syncCookie, &syncCookie, &which );
@@ -1355,16 +1346,16 @@ syncrepl_process(
 					Debug( LDAP_DEBUG_ANY,
 						"syncrepl_process: %s unknown syncinfo tag (%ld)\n",
 						si->si_ridtxt, (long) si_tag );
-					ldap_memfree( retoid );
-					ber_bvfree( retdata );
-					continue;
+					rc = 0;
+					goto done_intermediate;
 				}
 
+				assert(rc == 0);
 				match = compare_cookies( &si->si_syncCookie, &syncCookie, &which );
 				if ( match < 0 ) {
-					if ( si->si_refreshPresent == 1 &&
-						si_tag != LDAP_TAG_SYNC_NEW_COOKIE &&
-						syncrepl_enough_sids( si, &syncCookie ) ) {
+					if ( si->si_refreshPresent == 1
+							&& si_tag != LDAP_TAG_SYNC_NEW_COOKIE
+							&& syncrepl_enough_sids( si, &syncCookie ) ) {
 						syncrepl_del_nonpresent( op, si, NULL, &syncCookie, which );
 					}
 
@@ -1372,19 +1363,18 @@ syncrepl_process(
 					presentlist_free( &si->si_presentlist );
 				}
 
-				ldap_memfree( retoid );
-				ber_bvfree( retdata );
-
-				if ( rc )
-					goto done;
-
 			} else {
 				Debug( LDAP_DEBUG_ANY, "syncrepl_process: %s "
 					"unknown intermediate response (%d)\n",
 					si->si_ridtxt, rc );
-				ldap_memfree( retoid );
-				ber_bvfree( retdata );
+				rc = 0;
 			}
+
+		done_intermediate:
+			ldap_memfree( retoid );
+			ber_bvfree( retdata );
+			if ( rc )
+				goto done;
 			break;
 		}
 		default:
