@@ -964,7 +964,6 @@ syncrepl_process(
 		int		match, syncstate;
 		struct berval	syncUUID[2];
 		LDAPControl		*rctrlp = NULL;
-		BerVarray		syncUUIDs;
 		ber_len_t		len;
 		ber_tag_t		si_tag;
 		Entry			*entry = NULL;
@@ -1252,6 +1251,7 @@ syncrepl_process(
 			struct berval	*retdata = NULL;
 			char			*retoid = NULL;
 			int refreshDeletes = 0;
+			BerVarray syncUUIDs = NULL;
 
 			rc = ldap_parse_intermediate( si->si_ld, msg,
 				&retoid, &retdata, NULL, 0 );
@@ -1323,7 +1323,6 @@ syncrepl_process(
 					if ( ber_peek_tag( ber, &len ) == LDAP_TAG_REFRESHDELETES )
 						ber_scanf( ber, "b", &refreshDeletes );
 
-					syncUUIDs = NULL;
 					rc = ber_scanf( ber, "[W]", &syncUUIDs );
 					ber_scanf( ber, /*"{"*/ "}" );
 					if ( rc != LBER_ERROR ) {
@@ -1338,7 +1337,6 @@ syncrepl_process(
 								presentlist_insert( &si->si_presentlist, &syncUUIDs[i] );
 						}
 					}
-					ber_bvarray_free_x( syncUUIDs, op->o_tmpmemctx );
 					rc = 0;
 					slap_cookie_free( &syncCookie, 0 );
 					break;
@@ -1371,6 +1369,7 @@ syncrepl_process(
 			}
 
 		done_intermediate:
+			ber_bvarray_free_x( syncUUIDs, op->o_tmpmemctx );
 			ldap_memfree( retoid );
 			ber_bvfree( retdata );
 			if ( rc )
