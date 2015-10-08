@@ -1274,6 +1274,7 @@ int slap_csn_match( const BerValue *a, const BerValue *b );
 int slap_csn_compare_sr( const BerValue *a, const BerValue *b );
 int slap_csn_compare_ts( const BerValue *a, const BerValue *b );
 int slap_csn_get_sid( const BerValue *csn );
+void slap_csn_shift( BerValue *csn, int delta_points );
 
 int slap_csns_validate_and_sort( BerVarray vals );
 int slap_csns_match( BerVarray a, BerVarray b );

@@ -632,6 +632,76 @@ int slap_csn_verify_lite( const BerValue *csn )
 	return 1;
 }
 
+void slap_csn_shift(BerValue *csn, int delta_points )
+{
+	assert( slap_csn_verify_full( csn ) );
+
+	if ( delta_points ) {
+		char *end;
+		int v, carry;
+
+		v = strntoi( csn->bv_val + 23, csn->bv_len - 23, &end, 16 );
+		LDAP_ENSURE( end == csn->bv_val + 23 + 6 && *end == '#' );
+
+		carry = 0;
+		v += delta_points;
+
+		while( v < 0 ) {
+			carry -= 1;
+			v += 0x1000000;
+		}
+		while( v >= 0x1000000 ) {
+			carry += 1;
+			v -= 0x1000000;
+		}
+
+		LDAP_ENSURE( snprintf( csn->bv_val + 23, csn->bv_len - 23, "%06x", v ) == 6 );
+		csn->bv_val[23 + 6] = '#';
+
+		if ( carry ) {
+			v = strntoi( csn->bv_val + 15, csn->bv_len - 15, &end, 10 );
+			LDAP_ENSURE( end == csn->bv_val + 15 + 6 && *end == 'Z' );
+
+			v += carry /* + delta_us */;
+			carry = 0;
+
+			while( v < 0 ) {
+				carry += 1;
+				v += 1000000;
+			}
+			while( v >= 1000000 ) {
+				carry += 1;
+				v -= 1000000;
+			}
+
+			LDAP_ENSURE( snprintf( csn->bv_val + 15, csn->bv_len - 15, "%06d", v ) == 6 );
+			csn->bv_val[15 + 6] = 'Z';
+
+			if ( carry ) {
+				char *digit = csn->bv_val + 13;
+				assert( labs(carry) == 1 );
+
+				while( digit >= csn->bv_val && carry ) {
+					*digit += carry;
+					carry = 0;
+
+					if ( *digit < '0' ) {
+						*digit = '9';
+						carry = -1;
+					}
+					if ( *digit > '9' ) {
+						*digit = '0';
+						carry = 1;
+					}
+
+					--digit;
+				}
+			}
+		}
+		assert( slap_csn_verify_full( csn ) );
+	}
+}
+
 int slap_csn_verify_full( const BerValue *csn )
 {
 	int i;
