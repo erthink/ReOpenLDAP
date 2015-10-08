@@ -686,7 +686,10 @@ int slap_csn_compare_sr( const BerValue *a, const BerValue *b )
 int slap_csn_compare_ts( const BerValue *a, const BerValue *b )
 {
 	assert( slap_csn_verify_lite( a ) && slap_csn_verify_lite( b ) );
-	return memcmp( a->bv_val, b->bv_val, 29 );
+	int cmp = memcmp( a->bv_val, b->bv_val, 29 );
+	if ( cmp == 0 )
+		cmp = memcmp( a->bv_val + 34, b->bv_val + 34, 6 );
+	return cmp;
 }
 
 int slap_csn_get_sid( const BerValue *csn )
