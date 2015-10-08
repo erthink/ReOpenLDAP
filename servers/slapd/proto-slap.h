@@ -1287,7 +1287,8 @@ void slap_csns_backward_debug(
 
 void slap_cookie_verify( const struct sync_cookie * );
 void slap_cookie_init( struct sync_cookie * );
-void slap_cookie_clean( struct sync_cookie * );
+void slap_cookie_clean_all( struct sync_cookie * );
+void slap_cookie_clean_csns( struct sync_cookie *, void *memctx );
 void slap_cookie_copy(
 	struct sync_cookie *dst,
 	const struct sync_cookie *src );

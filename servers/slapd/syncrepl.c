@@ -983,7 +983,7 @@ do_syncrep_process(
 		}
 
 		syncrepl_cookie_pull( op, si );
-		slap_cookie_clean( &syncCookie );
+		slap_cookie_clean_all( &syncCookie );
 
 		switch( ldap_msgtype( msg ) ) {
 		int which = INT_MAX; /* LY: paranoia */
@@ -3041,12 +3041,12 @@ retry_add:;
 						"syncrepl_entry: %s be_add %s failed (%d)"
 						" on REFRESH phase, reset cookie\n",
 						si->si_ridtxt, op->o_req_dn.bv_val, rs_add.sr_err );
-					slap_cookie_clean( &si->si_syncCookie );
+					slap_cookie_clean_all( &si->si_syncCookie );
 					entry_free( entry );
 					if (si->si_cookieState->cs_ref == 1) {
 						ldap_pvt_thread_mutex_lock( &si->si_cookieState->cs_mutex );
 						if (si->si_cookieState->cs_ref == 1)
-							slap_cookie_clean( &si->si_cookieState->cs_cookie );
+							slap_cookie_clean_all( &si->si_cookieState->cs_cookie );
 						ldap_pvt_thread_mutex_unlock( &si->si_cookieState->cs_mutex );
 					}
 					return LDAP_NO_SUCH_OBJECT;

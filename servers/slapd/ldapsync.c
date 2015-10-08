@@ -107,15 +107,24 @@ void slap_cookie_init( struct sync_cookie *cookie )
 	cookie->ctxcsn = NULL;
 }
 
-void slap_cookie_clean( struct sync_cookie *cookie )
+void slap_cookie_clean_csns( struct sync_cookie *cookie, void *memctx )
+{
+	cookie->numcsns = 0;
+	if ( cookie->ctxcsn ) {
+		ber_bvarray_free_x( cookie->ctxcsn, memctx );
+		cookie->ctxcsn = NULL;
+		if ( memctx ) {
+			ber_memfree_x( cookie->sids, memctx );
+			cookie->sids = NULL;
+		}
+	}
+}
+
+void slap_cookie_clean_all( struct sync_cookie *cookie )
 {
 	cookie->rid = -1;
 	cookie->sid = -1;
-	cookie->numcsns = 0;
-	if ( cookie->ctxcsn ) {
-		ber_bvarray_free( cookie->ctxcsn );
-		cookie->ctxcsn = NULL;
-	}
+	slap_cookie_clean_csns( cookie, NULL );
 }
 
 void slap_cookie_copy(
@@ -382,7 +391,7 @@ int slap_cookie_parse(
 	char *next, *end, *anchor;
 	AttributeDescription *ad = slap_schema.si_ad_entryCSN;
 
-	slap_cookie_clean( dst );
+	slap_cookie_clean_all( dst );
 
 	if ( !src || src->bv_len <= STRLENOF( "rid=" ) )
 		goto bailout;
