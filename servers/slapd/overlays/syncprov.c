@@ -2249,7 +2249,7 @@ syncprov_op_mod( Operation *op, SlapReply *rs )
 
 	opc->osid = -1;
 	opc->rsid = -1;
-	if ( op->o_csn.bv_val ) {
+	if ( ! BER_BVISEMPTY( &op->o_csn ) ) {
 		opc->osid = slap_csn_get_sid( &op->o_csn );
 	}
 	if ( op->o_controls ) {

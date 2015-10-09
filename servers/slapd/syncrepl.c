@@ -2157,7 +2157,8 @@ syncrepl_op_modify( Operation *op, SlapReply *rs )
 				ml->sml_op = LDAP_MOD_REPLACE;
 		}
 		op->orm_modlist = newlist;
-		op->o_csn = mod->sml_nvalues[0];
+		assert( mod->sml_mod.sm_desc == slap_schema.si_ad_entryCSN );
+		slap_op_csn_assign( op, &mod->sml_nvalues[0] );
 	}
 	return SLAP_CB_CONTINUE;
 }
@@ -2334,7 +2335,7 @@ syncrepl_message_to_op(
 			rc = op->o_bd->bd_info->bi_op_modify( op, &rs );
 			if ( SLAP_MULTIMASTER( op->o_bd )) {
 				LDAP_SLIST_REMOVE( &op->o_extra, &oes.oe, OpExtra, oe_next );
-				BER_BVZERO( &op->o_csn );
+				slap_op_csn_clean( op ); /* LY: ?! */
 			}
 			modlist = op->orm_modlist;
 			Debug( rc ? LDAP_DEBUG_ANY : LDAP_DEBUG_SYNC,
@@ -2400,8 +2401,7 @@ done:
 		slap_graduate_commit_csn( op );
 
 	op->o_bd = si->si_be;
-	op->o_tmpfree( op->o_csn.bv_val, op->o_tmpmemctx );
-	BER_BVZERO( &op->o_csn );
+	slap_op_csn_clean( op );
 	if ( modlist ) {
 		slap_mods_free( modlist, op->o_tag != LDAP_REQ_ADD );
 	}
@@ -2837,7 +2837,6 @@ syncrepl_entry(
 	struct berval pdn = BER_BVNULL;
 	dninfo dni = {0};
 	int	retry = 1;
-	int	freecsn = 1;
 	int do_graduate = 0;
 
 	Debug( LDAP_DEBUG_SYNC,
@@ -2981,7 +2980,7 @@ syncrepl_entry(
 		goto bailout;
 	}
 
-	assert( BER_BVISNULL( &op->o_csn ) );
+	assert( BER_BVISEMPTY( &op->o_csn ) );
 	if ( syncCookie->numcsns ) {
 		slap_queue_csn( op, syncCookie->ctxcsn );
 		do_graduate = 1;
@@ -2991,10 +2990,8 @@ syncrepl_entry(
 	switch ( syncstate ) {
 	case LDAP_SYNC_ADD:
 	case LDAP_SYNC_MODIFY:
-		if (BER_BVISNULL( &op->o_csn ) && dni.csn_incomming.bv_val) {
-			op->o_csn = dni.csn_incomming;
-			freecsn = 0;
-		}
+		if ( BER_BVISEMPTY( &op->o_csn ) && !BER_BVISEMPTY( &dni.csn_incomming ) )
+			slap_op_csn_assign( op, &dni.csn_incomming );
 
 retry_add:;
 		if ( BER_BVISNULL( &dni.dn ) ) {
@@ -3406,10 +3403,7 @@ bailout:
 	if ( entry ) {
 		entry_free( entry );
 	}
-	if ( !BER_BVISNULL( &op->o_csn ) && freecsn ) {
-		op->o_tmpfree( op->o_csn.bv_val, op->o_tmpmemctx );
-	}
-	BER_BVZERO( &op->o_csn );
+	slap_op_csn_clean( op );
 	return rc;
 }
 
@@ -3909,8 +3903,7 @@ syncrepl_cookie_push(
 			slap_cookie_verify( &si->si_cookieState->cs_cookie );
 
 		op->o_bd = be;
-		op->o_tmpfree( op->o_csn.bv_val, op->o_tmpmemctx );
-		BER_BVZERO( &op->o_csn );
+		slap_op_csn_clean( op );
 		if ( mod.sml_next ) slap_mods_free( mod.sml_next, 1 );
 	}
 

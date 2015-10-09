@@ -41,6 +41,27 @@ const struct berval slap_ldapsync_bv = BER_BVC("ldapsync");
 const struct berval slap_ldapsync_cn_bv = BER_BVC("cn=ldapsync");
 int slap_serverID;
 
+void slap_op_csn_free( Operation *op )
+{
+	if ( !BER_BVISNULL( &op->o_csn ) ) {
+		op->o_tmpfree( op->o_csn.bv_val, op->o_tmpmemctx );
+		BER_BVZERO( &op->o_csn );
+	}
+}
+
+void slap_op_csn_clean( Operation *op )
+{
+	if ( !BER_BVISNULL( &op->o_csn ) ) {
+		op->o_csn.bv_val[0] = 0;
+		op->o_csn.bv_len = 0;
+	}
+}
+
+void slap_op_csn_assign( Operation *op, BerValue *csn )
+{
+	ber_bvreplace_x( &op->o_csn, csn, op->o_tmpmemctx );
+}
+
 /* maxcsn->bv_val must point to a char buf[LDAP_PVT_CSNSTR_BUFSIZE] */
 int
 slap_get_commit_csn(
@@ -122,9 +143,7 @@ slap_graduate_commit_csn( Operation *op )
 			assert( slap_csn_match( &op->o_csn, &csne->ce_csn ) );
 			found = csne->ce_state;
 			LDAP_TAILQ_REMOVE( be->be_pending_csn_list, csne, ce_csn_link );
-			if ( op->o_csn.bv_val == csne->ce_csn.bv_val ) {
-				BER_BVZERO( &op->o_csn );
-			}
+			slap_op_csn_clean( op );
 			ch_free( csne->ce_csn.bv_val );
 			ch_free( csne );
 			break;
@@ -206,8 +225,8 @@ slap_queue_csn(
 		Debug( LDAP_DEBUG_SYNC, "slap_queue_csn: queueing %p (conn %ld, opid %ld) %s\n",
 			   pending, op->o_connid, op->o_opid, csn->bv_val );
 		ber_dupbv( &pending->ce_csn, csn );
-		assert( BER_BVISNULL( &op->o_csn ));
-		ber_bvreplace_x( &op->o_csn, &pending->ce_csn, op->o_tmpmemctx );
+		assert( BER_BVISEMPTY( &op->o_csn ));
+		slap_op_csn_assign( op, &pending->ce_csn );
 		pending->ce_sid = sid;
 		pending->ce_connid = op->o_connid;
 		pending->ce_opid = op->o_opid;
