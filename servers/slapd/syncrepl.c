@@ -1095,7 +1095,6 @@ syncrepl_process(
 			}
 			op->o_controls[slap_cids.sc_LDAPsync] = &syncCookie;
 
-			rc = 0;
 			if ( si->si_syncdata && si->si_logstate == SYNCLOG_LOGGING ) {
 				rc = syncrepl_message_to_op( si, op, msg );
 				if ( rc == LDAP_SUCCESS ) {
@@ -1251,6 +1250,7 @@ syncrepl_process(
 			struct berval	*retdata = NULL;
 			char			*retoid = NULL;
 			int refreshDeletes = 0;
+			int refreshDone = 0;
 			BerVarray syncUUIDs = NULL;
 
 			rc = ldap_parse_intermediate( si->si_ld, msg,
@@ -1293,15 +1293,11 @@ syncrepl_process(
 							goto done_intermediate;
 						op->o_controls[slap_cids.sc_LDAPsync] = &syncCookie;
 					}
-					{
-						/* Defaults to TRUE */
-						int value = 1;
-						if ( ber_peek_tag( ber, &len ) == LDAP_TAG_REFRESHDONE ) {
-							value = 0;
-							ber_scanf( ber, "b", &value );
-						}
-						if ( value )
-							syncrepl_refresh_done( si, LDAP_SUCCESS );
+					/* Defaults to TRUE */
+					refreshDone = 1;
+					if ( ber_peek_tag( ber, &len ) == LDAP_TAG_REFRESHDONE ) {
+						refreshDone = 0;
+						ber_scanf( ber, "b", &refreshDone );
 					}
 					ber_scanf( ber, /*"{"*/ "}" );
 					break;
@@ -1331,6 +1327,7 @@ syncrepl_process(
 							 * on remote DIT. Therefore is always safe to delete
 							 * such from local DIT, without checking a cookie. */
 							syncrepl_del_nonpresent( op, si, syncUUIDs, &syncCookie, which );
+							slap_cookie_free( &syncCookie, 0 );
 						} else {
 							int i;
 							for ( i = 0; !BER_BVISNULL( &syncUUIDs[i] ); i++ )
@@ -1338,7 +1335,6 @@ syncrepl_process(
 						}
 					}
 					rc = 0;
-					slap_cookie_free( &syncCookie, 0 );
 					break;
 				default:
 					Debug( LDAP_DEBUG_ANY,
@@ -1361,6 +1357,8 @@ syncrepl_process(
 					presentlist_free( &si->si_presentlist );
 				}
 
+				if ( refreshDone )
+					syncrepl_refresh_done( si, rc );
 			} else {
 				Debug( LDAP_DEBUG_ANY, "syncrepl_process: %s "
 					"unknown intermediate response (%d)\n",
