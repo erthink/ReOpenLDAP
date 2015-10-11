@@ -1234,9 +1234,10 @@ syncprov_qresp( opcookie *opc, syncops *so, int mode )
 			ri->ri_dn = opc->se->e_name;
 			ri->ri_ndn = opc->se->e_nname;
 			a = attr_find( opc->se->e_attrs, slap_schema.si_ad_entryUUID );
-			if ( a )
+			if ( a ) {
 				ri->ri_uuid = a->a_nvals[0];
-			else
+				assert( ri->ri_uuid.bv_len == UUID_LEN );
+			} else
 				ri->ri_uuid.bv_len = 0;
 			if ( csn.bv_len ) {
 				ri->ri_csn.bv_val = (char *)(ri + 1);
@@ -1244,6 +1245,8 @@ syncprov_qresp( opcookie *opc, syncops *so, int mode )
 				memcpy( ri->ri_csn.bv_val, csn.bv_val, csn.bv_len );
 				ri->ri_csn.bv_val[csn.bv_len] = '\0';
 			} else {
+				assert( mode == LDAP_SYNC_ADD || mode == LDAP_SYNC_MODIFY
+						|| mode == LDAP_SYNC_NEW_COOKIE );
 				ri->ri_csn.bv_val = NULL;
 			}
 		} else {
@@ -1264,6 +1267,7 @@ syncprov_qresp( opcookie *opc, syncops *so, int mode )
 				memcpy( ri->ri_csn.bv_val, csn.bv_val, csn.bv_len );
 				ri->ri_csn.bv_val[csn.bv_len] = '\0';
 			} else {
+				assert( mode == LDAP_SYNC_NEW_COOKIE || mode == LDAP_SYNC_DELETE );
 				ri->ri_csn.bv_val = NULL;
 			}
 		}
@@ -1487,6 +1491,7 @@ syncprov_matchops( Operation *op, opcookie *opc, int saveit )
 			}
 			continue;
 		}
+		assert(fc.fbase || fc.fscope);
 
 		/* If we're sending results now, look for this op in old matches */
 		if ( !saveit ) {
@@ -1538,31 +1543,46 @@ syncprov_matchops( Operation *op, opcookie *opc, int saveit )
 		Debug( LDAP_DEBUG_TRACE, "syncprov_matchops: sid %03x fscope %d rc %d\n",
 			ss->s_sid, fc.fscope, rc );
 
-		/* check if current o_req_dn is in scope and matches filter */
-		if ( fc.fscope && rc == LDAP_COMPARE_TRUE ) {
-			if ( saveit ) {
-				ldap_pvt_thread_mutex_lock( &ss->s_mutex );
-				if (++ss->s_matchops_inuse == 1) {
-					assert(!(ss->s_flags & OS_REF_OP_MATCH));
-					ss->s_flags |= OS_REF_OP_MATCH;
-				}
-				ldap_pvt_thread_mutex_unlock( &ss->s_mutex );
+		if (rc != SLAPD_ABANDON) {
+			/* check if current o_req_dn is in scope and matches filter */
+			if ( fc.fscope && rc == LDAP_COMPARE_TRUE ) {
+				if ( saveit ) {
+					ldap_pvt_thread_mutex_lock( &ss->s_mutex );
+					if (++ss->s_matchops_inuse == 1) {
+						assert(!(ss->s_flags & OS_REF_OP_MATCH));
+						ss->s_flags |= OS_REF_OP_MATCH;
+					}
+					ldap_pvt_thread_mutex_unlock( &ss->s_mutex );
 
-				sm = op->o_tmpalloc( sizeof(syncmatches), op->o_tmpmemctx );
-				sm->sm_next = opc->smatches;
-				sm->sm_op = ss;
-				opc->smatches = sm;
-			} else {
-				/* if found send UPDATE else send ADD */
-				syncprov_qresp( opc, ss,
-					found ? LDAP_SYNC_MODIFY : LDAP_SYNC_ADD );
+					sm = op->o_tmpalloc( sizeof(syncmatches), op->o_tmpmemctx );
+					sm->sm_next = opc->smatches;
+					sm->sm_op = ss;
+					opc->smatches = sm;
+				} else {
+					/* if found send UPDATE else send ADD */
+					if (found)
+						assert(op->o_tag == LDAP_REQ_MODIFY
+							   || op->o_tag == LDAP_REQ_EXTENDED
+							   || op->o_tag == LDAP_REQ_MODDN);
+					else
+						assert(op->o_tag == LDAP_REQ_ADD);
+					syncprov_qresp( opc, ss,
+						found ? LDAP_SYNC_MODIFY : LDAP_SYNC_ADD );
+				}
+			} else if ( !saveit && found ) {
+				/* send DELETE */
+				assert(op->o_tag == LDAP_REQ_DELETE);
+				syncprov_qresp( opc, ss, LDAP_SYNC_DELETE );
+			} else if ( !saveit ) {
+				assert((!fc.fscope && rc == LDAP_SUCCESS)
+					   || (fc.fscope && rc != LDAP_COMPARE_TRUE && rc != LDAP_SUCCESS));
+				assert(op->o_tag == LDAP_REQ_MODIFY
+					   || op->o_tag == LDAP_REQ_EXTENDED
+					   || op->o_tag == LDAP_REQ_ADD);
+				syncprov_qresp( opc, ss, LDAP_SYNC_NEW_COOKIE );
 			}
-		} else if ( !saveit && found ) {
-			/* send DELETE */
-			syncprov_qresp( opc, ss, LDAP_SYNC_DELETE );
-		} else if ( !saveit ) {
-			syncprov_qresp( opc, ss, LDAP_SYNC_NEW_COOKIE );
 		}
+
 		if ( !saveit && found ) {
 			/* Decrement s_inuse, was incremented when called
 			 * with saveit == TRUE
@@ -2007,6 +2027,7 @@ syncprov_op_response( Operation *op, SlapReply *rs )
 	syncprov_info_t	*si = on->on_bi.bi_private;
 	syncmatches *sm;
 
+	assert( BER_BVISEMPTY( &opc->sctxcsn ) );
 	if ( rs->sr_err == LDAP_SUCCESS )
 	{
 		struct berval maxcsn;
