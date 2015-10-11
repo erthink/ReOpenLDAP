@@ -7,6 +7,8 @@ OpenLDAP 2.4.43 Engineering
 	Fixed slapd segfault with invalid SASL URI (ITS#8218)
 	Fixed slapd must reject lines with unbalanced quotes (ITS#8233)
 	Fixed slapd-ldap SEGV after failed retry (ITS#8173)
+	Fixed slapd-ldap to skip client controls in ldap_back_entry_get (ITS#8244)
+	Fixed slapd-null to have an option to return a search entry (ITS#8249)
 	Fixed slapo-dds segfault when using slapo-memberof (ITS#8133)
 	Fixed slapo-ppolicy to allow purging of stale pwdFailureTime attributes (ITS#8185)
 	Fixed slapo-refint with subtree renames (ITS#8220)
@@ -14,6 +16,9 @@ OpenLDAP 2.4.43 Engineering
 	Fixed slapo-ppolicy revert to default policy on failure (ITS#8234)
 	Contrib
 		Added libnettle support to pw-pbkdf2 (ITS#8198)
+		Fixed smbk5pwd compiler warnings with libnettle (ITS#8235)
+	Documentation
+		Updated guide to reflect changes to how TLS is handled with syncrepl (ITS#7897)
 
 OpenLDAP 2.4.42 Release (2015/08/14)
 	Fixed liblber address length for CLDAP (ITS#8158)
