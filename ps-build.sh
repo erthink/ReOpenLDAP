@@ -18,6 +18,7 @@ step_finish() {
 
 step_begin "cleanup"
 git clean -x -f -d -e .ccache/ -e tests/testrun/ -e times.log || failure "cleanup"
+git submodule foreach --recursive git clean -x -f -d || failure "cleanup-submodules"
 step_finish "cleanup"
 echo "======================================================================="
 step_begin "prepare"

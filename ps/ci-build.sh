@@ -162,6 +162,7 @@ echo "LD		= $(readlink -f $(which ld)) ${LDFLAGS}"
 
 if [ $flag_clean -ne 0 ]; then
 	git clean -x -f -d -e ./ps -e .ccache/ -e tests/testrun/ -e times.log || failure "cleanup"
+	git submodule foreach --recursive git clean -x -f -d || failure "cleanup-submodules"
 fi
 
 if [ ! -s Makefile ]; then
