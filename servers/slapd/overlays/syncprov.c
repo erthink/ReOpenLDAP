@@ -785,6 +785,8 @@ again:
 	switch( mode ) {
 	case FIND_MAXCSN:
 		ldap_pvt_thread_rdwr_wlock( &si->si_csn_rwlock );
+		if (reopenldap_mode_idkfa())
+			slap_cookie_verify( &si->si_cookie );
 		cf.f_choice = LDAP_FILTER_GE;
 		/* If there are multiple CSNs, use the one with our serverID */
 		for ( i=0; i<si->si_cookie.numcsns; i++) {
@@ -876,6 +878,8 @@ again:
 			ber_bvreplace( &si->si_cookie.ctxcsn[maxid], &maxcsn );
 			si->si_numops++;	/* ensure a checkpoint */
 		}
+		if (reopenldap_mode_idkfa())
+			slap_cookie_verify( &si->si_cookie );
 		ldap_pvt_thread_rdwr_wunlock( &si->si_csn_rwlock );
 		break;
 	case FIND_CSN:
@@ -1281,6 +1285,8 @@ syncprov_qresp( opcookie *opc, syncops *so, int mode )
 	if ( mode == LDAP_SYNC_NEW_COOKIE && BER_BVISNULL( &ri->ri_cookie )) {
 		syncprov_info_t	*si = opc->son->on_bi.bi_private;
 		ldap_pvt_thread_rdwr_rlock( &si->si_csn_rwlock );
+		if (reopenldap_mode_idkfa())
+			slap_cookie_verify( &si->si_cookie );
 		syncprov_compose_cookie( NULL, &ri->ri_cookie,
 			si->si_cookie.ctxcsn, so->s_rid );
 		ldap_pvt_thread_rdwr_runlock( &si->si_csn_rwlock );
@@ -2150,6 +2156,8 @@ syncprov_op_compare( Operation *op, SlapReply *rs )
 
 		ldap_pvt_thread_rdwr_rlock( &si->si_csn_rwlock );
 
+		if (reopenldap_mode_idkfa())
+			slap_cookie_verify( &si->si_cookie );
 		a.a_vals = si->si_cookie.ctxcsn;
 		a.a_nvals = a.a_vals;
 		a.a_numvals = si->si_cookie.numcsns;
@@ -2167,7 +2175,6 @@ syncprov_op_compare( Operation *op, SlapReply *rs )
 			rs->sr_err = LDAP_ASSERTION_FAILED;
 			goto return_results;
 		}
-
 
 		rs->sr_err = LDAP_COMPARE_FALSE;
 
@@ -2225,10 +2232,18 @@ syncprov_op_mod( Operation *op, SlapReply *rs )
 		opc->osid = slap_csn_get_sid( &op->o_csn );
 	}
 	if ( op->o_controls ) {
-		struct sync_cookie *scook =
-		op->o_controls[slap_cids.sc_LDAPsync];
-		if ( scook )
-			opc->rsid = scook->sid;
+		struct sync_cookie *cookie = op->o_controls[slap_cids.sc_LDAPsync];
+		if ( cookie ) {
+			if (reopenldap_mode_idkfa())
+				slap_cookie_verify( cookie );
+			opc->rsid = cookie->sid;
+		}
+	}
+
+	if (reopenldap_mode_idkfa()) {
+		ldap_pvt_thread_rdwr_rlock( &si->si_csn_rwlock );
+		slap_cookie_verify( &si->si_cookie );
+		ldap_pvt_thread_rdwr_runlock( &si->si_csn_rwlock );
 	}
 
 	if ( op->o_tag == LDAP_REQ_MODIFY
@@ -2681,6 +2696,8 @@ syncprov_op_search( Operation *op, SlapReply *rs )
 
 	/* snapshot the ctxcsn */
 	ldap_pvt_thread_rdwr_rlock( &si->si_csn_rwlock );
+	if (reopenldap_mode_idkfa())
+		slap_cookie_verify( &si->si_cookie );
 	numcsns = si->si_cookie.numcsns;
 	if ( numcsns ) {
 		ber_bvarray_dup_x( &ctxcsn, si->si_cookie.ctxcsn, op->o_tmpmemctx );
@@ -3076,6 +3093,8 @@ syncprov_operational(
 			}
 
 			ldap_pvt_thread_rdwr_rlock( &si->si_csn_rwlock );
+			if (reopenldap_mode_idkfa())
+				slap_cookie_verify( &si->si_cookie );
 			if ( si->si_cookie.numcsns ) {
 				if ( !a ) {
 					for ( ap = &rs->sr_operational_attrs; *ap;
@@ -3415,6 +3434,9 @@ syncprov_db_open(
 		/* make sure we do a checkpoint on close */
 		si->si_numops++;
 	}
+
+	if (reopenldap_mode_idkfa())
+		slap_cookie_verify( &si->si_cookie );
 
 	/* Initialize the sessionlog mincsn */
 	if ( si->si_logs && si->si_cookie.numcsns )
