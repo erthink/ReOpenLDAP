@@ -24,6 +24,7 @@
  * is provided ``as is'' without express or implied warranty.
  */
 
+/* LY: one more rebus - this turnoff 'free' to 'ch_free' substitution. */
 #define CH_FREE 1
 
 #include "portable.h"
