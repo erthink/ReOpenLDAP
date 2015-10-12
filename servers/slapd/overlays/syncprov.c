@@ -3318,15 +3318,8 @@ syncprov_db_open(
 	}
 
 	/* Initialize the sessionlog mincsn */
-	if ( si->si_logs && si->si_cookie.numcsns ) {
-		sessionlog *sl = si->si_logs;
-		int i;
-		ber_bvarray_dup_x( &sl->sl_cookie.ctxcsn, si->si_cookie.ctxcsn, NULL );
-		sl->sl_cookie.numcsns = si->si_cookie.numcsns;
-		sl->sl_cookie.sids = ch_malloc( si->si_cookie.numcsns * sizeof(int) );
-		for ( i=0; i < si->si_cookie.numcsns; i++ )
-			sl->sl_cookie.sids[i] = si->si_cookie.sids[i];
-	}
+	if ( si->si_logs && si->si_cookie.numcsns )
+		slap_cookie_copy( &si->si_logs->sl_cookie, &si->si_cookie );
 
 out:
 	op->o_bd->bd_info = (BackendInfo *)on;
