@@ -27,6 +27,13 @@
 #include "../../libraries/liblber/lber-int.h" /* get ber_strndup() */
 #include "lutil_ldap.h"
 
+#if LDAP_MEMORY_DEBUG
+#	include <lber_hipagut.h>
+#	define CHEK_MEM_VALID(p) lber_hug_memchk_ensure(p, 0)
+#else
+#	define CHEK_MEM_VALID(p) __noop()
+#endif /* LDAP_MEMORY_DEBUG */
+
 struct slap_sync_cookie_s slap_sync_cookie =
 	LDAP_STAILQ_HEAD_INITIALIZER( slap_sync_cookie );
 
@@ -289,6 +296,9 @@ slap_insert_csn_sids(
 	}
 	ck->sids[i] = sid;
 	ber_dupbv( &ck->ctxcsn[i], csn );
+
+	if (reopenldap_mode_idkfa())
+		slap_cookie_verify( ck );
 }
 
 int
@@ -521,6 +531,8 @@ void slap_cookie_verify(const struct sync_cookie *cookie)
 	if ( cookie->numcsns ) {
 		LDAP_ENSURE( cookie->ctxcsn != NULL );
 		LDAP_ENSURE( cookie->sids != NULL );
+		CHEK_MEM_VALID( cookie->ctxcsn );
+		CHEK_MEM_VALID( cookie->sids );
 	}
 
 	if (cookie->ctxcsn) {
@@ -529,6 +541,7 @@ void slap_cookie_verify(const struct sync_cookie *cookie)
 	}
 
 	for ( i = 0; i < cookie->numcsns; i++ ) {
+		CHEK_MEM_VALID( cookie->ctxcsn[i].bv_val );
 		LDAP_ENSURE( slap_csn_verify_full( cookie->ctxcsn + i ));
 		LDAP_ENSURE( cookie->sids[i] == slap_csn_get_sid( cookie->ctxcsn + i ) );
 		LDAP_ENSURE( cookie->sids[i] >= 0 && cookie->sids[i] <= SLAP_SYNC_SID_MAX );
@@ -564,6 +577,9 @@ void slap_cookie_copy(
 	struct sync_cookie *dst,
 	const struct sync_cookie *src )
 {
+	if (reopenldap_mode_idkfa())
+		slap_cookie_verify( src );
+
 	dst->rid = src->rid;
 	dst->sid = src->sid;
 	dst->sids = NULL;
@@ -581,6 +597,9 @@ void slap_cookie_move(
 	struct sync_cookie *dst,
 	struct sync_cookie *src )
 {
+	if (reopenldap_mode_idkfa())
+		slap_cookie_verify( src );
+
 	dst->rid = src->rid;
 	dst->sid = src->sid;
 	dst->ctxcsn = src->ctxcsn;
@@ -713,6 +732,8 @@ int slap_cookie_pull(
 		}
 		ber_bvarray_free( src );
 	}
+	if (reopenldap_mode_idkfa())
+		slap_cookie_verify( dst );
 	return vector;
 }
 
@@ -726,6 +747,9 @@ int slap_cookie_merge_csn(
 
 	if ( !slap_csn_verify_full( src ) )
 		return -1;
+
+	if (reopenldap_mode_idkfa())
+		slap_cookie_verify( dst );
 
 	if ( sid < 0 ) {
 		sid = slap_csn_get_sid ( src );
