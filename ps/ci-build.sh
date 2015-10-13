@@ -182,7 +182,7 @@ if [ ! -s Makefile ]; then
 fi
 
 export CFLAGS="-Werror $CFLAGS" CXXFLAGS="-Werror $CXXFLAGS"
-make -j4 && make -j4 -C libraries/liblmdb || failure "build"
+make -j4 && make -j4 -C libraries/liblmdb all mtest0 mtest1 mtest2 mtest3 mtest4 mtest5 mtest6 || failure "build"
 
 for m in $(find contrib/slapd-modules -name Makefile -printf '%h\n'); do
 	if [ -e $m/BROKEN ]; then

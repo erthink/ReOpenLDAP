@@ -78,14 +78,19 @@ find ./ -name Makefile -type f | xargs sed -e "s/STRIP = -s/STRIP =/g;s/\(VERSIO
 find ./ -name Makefile | xargs -r sed -i 's/-Wall -g/-Wall -Werror -g/g' \
 	|| failure "fix-3"
 
+sed -e 's/ -lrt/ -Wl,--no-as-needed,-lrt/g' -i libraries/liblmdb/Makefile
+
 step_finish "configure"
 echo "======================================================================="
-step_begin "build mdb-tools"
+step_begin "build mdbx-tools"
 
-(cd libraries/liblmdb && make -k && cp mdb_chk mdb_copy mdb_stat -t ${PREFIX}/bin/) \
+(cd libraries/liblmdb && make -k all mtest0 mtest1 mtest2 mtest3 mtest4 mtest5 mtest6 && \
+	(cp mdbx_chk mdbx_copy mdbx_stat -t ${PREFIX}/bin/ \
+	|| cp mdb_chk mdb_copy mdb_stat -t ${PREFIX}/bin/) \
+) \
 	|| failure "build-1"
 
-step_finish "build mdb-tools"
+step_finish "build mdbx-tools"
 echo "======================================================================="
 step_begin "build openldap"
 
