@@ -951,6 +951,7 @@ syncrep_take_cookie(
 		return LDAP_ASSERTION_FAILED;
 	}
 
+	quorum_notify_sid( si->si_be, si->si_rid, dst->sid );
 	return LDAP_SUCCESS;
 }
 
