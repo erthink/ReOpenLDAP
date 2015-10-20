@@ -5816,7 +5816,7 @@ syncrepl_config( ConfigArgs *c )
 					 */
 					if ( si->si_re ) {
 						ldap_pvt_thread_mutex_lock( &slapd_rq.rq_mutex );
-						if ( ldap_pvt_thread_mutex_trylock( &si->si_mutex )) {
+						if ( si->si_be == c->be || ldap_pvt_thread_mutex_trylock( &si->si_mutex )) {
 							isrunning = 1;
 						} else {
 							/* There is no active thread, but we must still
