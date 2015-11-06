@@ -1,22 +1,37 @@
 OpenLDAP 2.4 Change Log
 
 OpenLDAP 2.4.43 Engineering
+	Fixed liblber remove obsolete assert (ITS#8240)
+	Fixed libldap file URLs on windows (ITS#8273)
+	Fixed libldap microsecond timer for windows (ITS#8295)
 	Fixed slap tools minor one time memory leak (ITS#8082)
 	Fixed slapd to avoid redundant processing of abandon ops (ITS#8232)
 	Fixed slapd syncrepl segv when present list is NULL (ITS#8231, ITS#8042)
 	Fixed slapd segfault with invalid SASL URI (ITS#8218)
-	Fixed slapd must reject lines with unbalanced quotes (ITS#8233)
+	Fixed slapd configuration parser with unbalanced quotes (ITS#8233)
+	Fixed slapd syncrepl check with config db on windows (ITS#8277)
+	Fixed slapd with mod Increment and inherited attribute type (ITS#8289)
 	Fixed slapd-ldap SEGV after failed retry (ITS#8173)
 	Fixed slapd-ldap to skip client controls in ldap_back_entry_get (ITS#8244)
 	Fixed slapd-null to have an option to return a search entry (ITS#8249)
+	Fixed slapd-relay to correctly handle quoted options (ITS#8284)
+	Fixed slapo-accesslog delta-sync MMR with interrupted refresh phase (ITS#8281)
 	Fixed slapo-dds segfault when using slapo-memberof (ITS#8133)
 	Fixed slapo-ppolicy to allow purging of stale pwdFailureTime attributes (ITS#8185)
+	Fixed slapo-ppolicy to release entry on failure (ITS#7537)
+	Fixed slapo-ppolicy to fall back to default policy if there is a parsing error (ITS#8234)
+	Fixed slapo-syncprov with interrupted refresh phase (ITS#8281)
 	Fixed slapo-refint with subtree renames (ITS#8220)
-	Fixed slapo-ppolicy entry memleak on failure (ITS#7537)
-	Fixed slapo-ppolicy revert to default policy on failure (ITS#8234)
+	Fixed slapo-rwm missing olcDropUnrequested attribute (ITS#7889)
+	Fixed slapo-rwm parsing to avoid double-escaping rewrite rules (ITS#7964)
+	Build Environment
+		Fixed slapd-tester EOL handling in test output for windows (ITS#8280)
+		Fixed slapd-tester executable suffix for windows (ITS#8216)
+		Fixed ldif-filter option parsing (ITS#8292)
 	Contrib
 		Added libnettle support to pw-pbkdf2 (ITS#8198)
 		Fixed smbk5pwd compiler warnings with libnettle (ITS#8235)
+		Fixed passwd symbol collisions with other crypto libraries (ITS#8294)
 	Documentation
 		Updated guide to reflect changes to how TLS is handled with syncrepl (ITS#7897)
 
