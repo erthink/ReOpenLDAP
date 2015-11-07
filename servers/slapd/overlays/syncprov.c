@@ -1999,8 +1999,10 @@ syncprov_op_response( Operation *op, SlapReply *rs )
 						csn_changed = 1;
 					}
 				}
-				if ( csn_changed )
+				if ( csn_changed ) {
 					si->si_dirty = 0;
+					si->si_numops++;
+				}
 				ldap_pvt_thread_rdwr_wunlock( &si->si_csn_rwlock );
 
 				if ( csn_changed ) {
@@ -2025,7 +2027,8 @@ syncprov_op_response( Operation *op, SlapReply *rs )
 			goto leave;
 		}
 
-		si->si_numops++;
+		if ( csn_changed )
+			si->si_numops++;
 		if ( si->si_chkops || si->si_chktime ) {
 			/* Never checkpoint adding the context entry,
 			 * it will deadlock
@@ -2606,6 +2609,25 @@ syncprov_op_search( Operation *op, SlapReply *rs )
 		return rs->sr_err;
 	}
 
+	/* snapshot the ctxcsn */
+	ldap_pvt_thread_rdwr_rlock( &si->si_csn_rwlock );
+	numcsns = si->si_numcsns;
+	if ( numcsns ) {
+		ber_bvarray_dup_x( &ctxcsn, si->si_ctxcsn, op->o_tmpmemctx );
+		sids = op->o_tmpalloc( numcsns * sizeof(int), op->o_tmpmemctx );
+		for ( i=0; i<numcsns; i++ )
+			sids[i] = si->si_sids[i];
+	}
+	dirty = si->si_dirty;
+	ldap_pvt_thread_rdwr_runlock( &si->si_csn_rwlock );
+
+	/* We know nothing - do nothing */
+	if ( !numcsns ) {
+		rs->sr_err = LDAP_SUCCESS;
+		send_ldap_result( op, rs );
+		return rs->sr_err;
+	}
+
 	srs = op->o_controls[slap_cids.sc_LDAPsync];
 
 	/* If this is a persistent search, set it up right away */
@@ -2664,18 +2686,6 @@ syncprov_op_search( Operation *op, SlapReply *rs )
 		__sync_fetch_and_add(&si->si_leftover, 1);
 		ldap_pvt_thread_mutex_unlock( &si->si_ops_mutex );
 	}
-
-	/* snapshot the ctxcsn */
-	ldap_pvt_thread_rdwr_rlock( &si->si_csn_rwlock );
-	numcsns = si->si_numcsns;
-	if ( numcsns ) {
-		ber_bvarray_dup_x( &ctxcsn, si->si_ctxcsn, op->o_tmpmemctx );
-		sids = op->o_tmpalloc( numcsns * sizeof(int), op->o_tmpmemctx );
-		for ( i=0; i<numcsns; i++ )
-			sids[i] = si->si_sids[i];
-	}
-	dirty = si->si_dirty;
-	ldap_pvt_thread_rdwr_runlock( &si->si_csn_rwlock );
 
 	/* If we have a cookie, handle the PRESENT lookups */
 	if ( srs->sr_state.ctxcsn ) {
@@ -3326,11 +3336,11 @@ syncprov_db_open(
 		char csnbuf[ LDAP_PVT_CSNSTR_BUFSIZE ];
 		struct berval csn;
 
-		if ( SLAP_SYNC_SHADOW( op->o_bd )) {
-			/* If we're also a consumer, then don't generate anything.
-			 * Wait for our provider to send it to us, or for a local
-			 * modify if we have multimaster.
-			 */
+		if ( slap_serverID || SLAP_SYNC_SHADOW( op->o_bd )) {
+		/* If we're also a consumer, then don't generate anything.
+		 * Wait for our provider to send it to us, or for a local
+		 * modify if we have multimaster.
+		 */
 			goto out;
 		}
 		csn.bv_val = csnbuf;

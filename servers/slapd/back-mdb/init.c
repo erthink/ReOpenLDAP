@@ -68,7 +68,7 @@ mdb_db_init( BackendDB *be, ConfigReply *cr )
 	Debug( LDAP_DEBUG_TRACE,
 		LDAP_XSTRING(mdb_db_init) ": Initializing mdb database\n" );
 
-	flags = mdb_setup_debug(MDB_DBG_DNT, mdb_debug, MDB_DBG_DNT);
+	flags = mdbx_setup_debug(MDB_DBG_DNT, mdb_debug, MDB_DBG_DNT);
 	flags &= ~(MDB_DBG_TRACE | MDB_DBG_EXTRA | MDB_DBG_ASSERT);
 	if (reopenldap_mode_idkfa())
 		flags |=
@@ -77,7 +77,7 @@ mdb_db_init( BackendDB *be, ConfigReply *cr )
 #	endif /* LDAP_DEBUG > 2 */
 				MDB_DBG_ASSERT;
 
-	mdb_setup_debug(flags, (MDB_debug_func*) MDB_DBG_DNT, MDB_DBG_DNT);
+	mdbx_setup_debug(flags, (MDB_debug_func*) MDB_DBG_DNT, MDB_DBG_DNT);
 
 	/* allocate backend-database-specific stuff */
 	mdb = (struct mdb_info *) ch_calloc( 1, sizeof(struct mdb_info) );
@@ -192,7 +192,7 @@ mdb_db_open( BackendDB *be, ConfigReply *cr )
 		goto fail;
 	}
 
-	mdb_env_set_oomfunc( mdb->mi_dbenv, mdb->mi_oom_flags ? mdb_oom_handler : NULL);
+	mdbx_env_set_oomfunc( mdb->mi_dbenv, mdb->mi_oom_flags ? mdb_oom_handler : NULL);
 
 	if ( (slapMode & SLAP_SERVER_MODE) && SLAP_MULTIMASTER(be) &&
 			((MDB_OOM_YIELD & mdb->mi_oom_flags) == 0 || mdb->mi_renew_lag == 0)) {

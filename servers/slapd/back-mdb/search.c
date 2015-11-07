@@ -1125,7 +1125,7 @@ loop_continue:
 		}
 
 		if ( !wwctx.flag && mdb->mi_renew_lag ) {
-			int percentage, lag = mdb_txn_straggler( wwctx.txn, &percentage );
+			int percentage, lag = mdbx_txn_straggler( wwctx.txn, &percentage );
 			if ( lag >= mdb->mi_renew_lag && percentage >= mdb->mi_renew_percent ) {
 				if ( cb.sc_private == &wwctx ) {
 					Debug( LDAP_DEBUG_NONE, "dreamcatcher: lag %d, percentage %u%%\n", lag, percentage );

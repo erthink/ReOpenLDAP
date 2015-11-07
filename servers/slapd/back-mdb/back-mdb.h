@@ -19,7 +19,7 @@
 
 #include <portable.h>
 #include "slap.h"
-#include "lmdb.h"
+#include "mdbx.h"
 
 LDAP_BEGIN_DECL
 
