@@ -369,6 +369,10 @@ int ldap_int_sasl_close( LDAP *ld, LDAPConn *lc )
 		lc->lconn_sasl_sockctx = NULL;
 		lc->lconn_sasl_authctx = NULL;
 	}
+	if( lc->lconn_sasl_cbind ) {
+		ldap_memfree( lc->lconn_sasl_cbind );
+		lc->lconn_sasl_cbind = NULL;
+	}
 
 	return LDAP_SUCCESS;
 }
@@ -484,6 +488,25 @@ ldap_int_sasl_bind(
 
 			(void) ldap_int_sasl_external( ld, ld->ld_defconn, authid.bv_val, fac );
 			LDAP_FREE( authid.bv_val );
+#ifdef SASL_CHANNEL_BINDING	/* 2.1.25+ */
+			{
+				char cbinding[64];
+				struct berval cbv = { sizeof(cbinding), cbinding };
+				if ( ldap_pvt_tls_get_unique( ssl, &cbv, 0 )) {
+					sasl_channel_binding_t *cb = ldap_memalloc( sizeof(*cb) +
+						cbv.bv_len);
+					void *cb_data; /* used since cb->data is const* */
+					cb->name = "ldap";
+					cb->critical = 0;
+					cb->len = cbv.bv_len;
+					cb->data = cb_data = cb+1;
+					memcpy( cb_data, cbv.bv_val, cbv.bv_len );
+					sasl_setprop( ld->ld_defconn->lconn_sasl_authctx,
+						SASL_CHANNEL_BINDING, cb );
+					ld->ld_defconn->lconn_sasl_cbind = cb;
+				}
+			}
+#endif
 		}
 #endif /* HAVE_TLS */
 

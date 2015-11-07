@@ -148,7 +148,6 @@ extern void eb_syslog(int pri, const char *fmt, ...);
 
 #endif /* LDAP_SYSLOG */
 
-
 /* this doesn't below as part of ldap.h */
 #ifdef LDAP_SYSLOG
 #	ifdef LDAP_DEBUG
@@ -178,6 +177,8 @@ extern void eb_syslog(int pri, const char *fmt, ...);
 			} while ( 0 )
 #		define LogTest(level) ( ldap_debug & (level) )
 #	else /* ! LDAP_DEBUG */
+		/* TODO: in case LDAP_DEBUG is undefined, make sure logs with appropriate
+		 * severity gets thru anyway */
 #		define Log( level, severity, fmt, ... ) ((void)0)
 #		define LogTest(level) ( 0 )
 #	endif /* ! LDAP_DEBUG */

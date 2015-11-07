@@ -249,4 +249,3 @@ ldap_modrdn_s( LDAP *ld, LDAP_CONST char *dn, LDAP_CONST char *newrdn )
 {
 	return ldap_rename_s( ld, dn, newrdn, NULL, 1, NULL, NULL );
 }
-

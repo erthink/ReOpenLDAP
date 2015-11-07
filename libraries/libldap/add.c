@@ -242,4 +242,3 @@ ldap_add_s( LDAP *ld, LDAP_CONST char *dn, LDAPMod **attrs )
 {
 	return ldap_add_ext_s( ld, dn, attrs, NULL, NULL );
 }
-

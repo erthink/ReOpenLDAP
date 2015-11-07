@@ -41,6 +41,9 @@ typedef char *(TI_session_errmsg)(tls_session *s, int rc, char *buf, size_t len 
 typedef int (TI_session_dn)(tls_session *sess, struct berval *dn);
 typedef int (TI_session_chkhost)(LDAP *ld, tls_session *s, const char *name_in);
 typedef int (TI_session_strength)(tls_session *sess);
+typedef int (TI_session_unique)(tls_session *sess, struct berval *buf, int is_server);
+typedef const char *(TI_session_name)(tls_session *s);
+typedef int (TI_session_peercert)(tls_session *s, struct berval *der);
 
 typedef void (TI_thr_init)(void);
 
@@ -64,6 +67,10 @@ typedef struct tls_impl {
 	TI_session_dn *ti_session_peer_dn;
 	TI_session_chkhost *ti_session_chkhost;
 	TI_session_strength *ti_session_strength;
+	TI_session_unique *ti_session_unique;
+	TI_session_name *ti_session_version;
+	TI_session_name *ti_session_cipher;
+	TI_session_peercert *ti_session_peercert;
 
 	Sockbuf_IO *ti_sbio;
 

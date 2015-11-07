@@ -628,6 +628,14 @@ must be
 and its contents need to be freed by the caller using
 .BR ldap_memfree (3).
 .TP
+.B LDAP_OPT_X_TLS_CIPHER
+Gets the cipher being used on an established TLS session.
+.BR outvalue
+must be
+.BR "char **" ,
+and its contents need to be freed by the caller using
+.BR ldap_memfree (3).
+.TP
 .B LDAP_OPT_X_TLS_CIPHER_SUITE
 Sets/gets the allowed cipher suite.
 .BR invalue
@@ -708,7 +716,21 @@ must be
 .BR "char **" ,
 and its contents need to be freed by the caller using
 .BR ldap_memfree (3).
-Ignored by GnuTLS and Mozilla NSS.
+Ignored by Mozilla NSS.
+.TP
+.B LDAP_OPT_X_TLS_ECNAME
+Gets/sets the name of the curve used for
+elliptic curve key exchanges.
+.BR invalue
+must be
+.BR "const char *" ;
+.BR outvalue
+must be
+.BR "char **" ,
+and its contents need to be freed by the caller using
+.BR ldap_memfree (3).
+Ignored by GnuTLS and Mozilla NSS. In GnuTLS a curve may be selected
+in the cipher suite specification.
 .TP
 .B LDAP_OPT_X_TLS_KEYFILE
 Sets/gets the full-path of the certificate key file.
@@ -729,6 +751,14 @@ must be
 A non-zero value pointed to by
 .BR invalue
 tells the library to create a context for a server.
+.TP
+.B LDAP_OPT_X_TLS_PEERCERT
+Gets the peer's certificate in DER format from an established TLS session.
+.BR outvalue
+must be
+.BR "struct berval *" ,
+and the data it returns needs to be freed by the caller using
+.BR ldap_memfree (3).
 .TP
 .B LDAP_OPT_X_TLS_PROTOCOL_MIN
 Sets/gets the minimum protocol version.
@@ -772,6 +802,14 @@ must be
 When using the OpenSSL library this is an SSL*. When using other
 crypto libraries this is a pointer to an OpenLDAP private structure.
 Applications generally should not use this option.
+.TP
+.B LDAP_OPT_X_TLS_VERSION
+Gets the TLS version being used on an established TLS session.
+.BR outvalue
+must be
+.BR "char **" ,
+and its contents need to be freed by the caller using
+.BR ldap_memfree (3).
 .SH ERRORS
 On success, the functions return
 .BR LDAP_OPT_SUCCESS ,

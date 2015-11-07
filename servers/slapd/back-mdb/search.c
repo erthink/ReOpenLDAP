@@ -327,6 +327,7 @@ typedef struct ww_ctx {
 	ID key;
 	MDB_val data;
 	int flag;
+	int nentries;
 } ww_ctx;
 
 /* ITS#7904 if we get blocked while writing results to client,
@@ -340,20 +341,28 @@ typedef struct ww_ctx {
  * couldn't succeed, but might succeed on a retry.
  */
 static void
+mdb_rtxn_snap( Operation *op, ww_ctx *ww )
+{
+	MDB_val key, data;
+	/* save cursor position and release read txn */
+	if ( ww->mcd
+		&& ! mdb_cursor_get( ww->mcd, &key, &data, MDB_GET_CURRENT ) ) {
+		memcpy( &ww->key, key.mv_data, sizeof(ID) );
+		ww->data.mv_size = data.mv_size;
+		ww->data.mv_data = op->o_tmpalloc( data.mv_size, op->o_tmpmemctx );
+		memcpy(ww->data.mv_data, data.mv_data, data.mv_size);
+	}
+	mdb_txn_reset( ww->txn );
+	ww->flag = 1;
+	ww->nentries = 0;
+}
+
+static void
 mdb_writewait( Operation *op, slap_callback *sc )
 {
 	ww_ctx *ww = sc->sc_private;
-	MDB_val key, data;
 	if ( !ww->flag ) {
-		if ( ww->mcd
-			&& ! mdb_cursor_get( ww->mcd, &key, &data, MDB_GET_CURRENT ) ) {
-			memcpy( &ww->key, key.mv_data, sizeof(ID) );
-			ww->data.mv_size = data.mv_size;
-			ww->data.mv_data = op->o_tmpalloc( data.mv_size, op->o_tmpmemctx );
-			memcpy(ww->data.mv_data, data.mv_data, data.mv_size);
-		}
-		mdb_txn_reset( ww->txn );
-		ww->flag = 1;
+		mdb_rtxn_snap( op, ww );
 	}
 }
 
@@ -702,12 +711,12 @@ dn2entry_retry:
 
 	wwctx.flag = 0;
 	wwctx.txn = ltid;
+	wwctx.mcd = NULL;
+	wwctx.data.mv_data = NULL;
 	/* If we're running in our own read txn */
 	if (  moi == &opinfo ) {
 		cb.sc_writewait = mdb_writewait;
 		cb.sc_private = &wwctx;
-		wwctx.mcd = NULL;
-		wwctx.data.mv_data = NULL;
 		cb.sc_next = op->o_callback;
 		op->o_callback = &cb;
 	}
@@ -1109,12 +1118,18 @@ notfound:
 		}
 
 loop_continue:
+		if ( cb.sc_private == &wwctx && !wwctx.flag && mdb->mi_rtxn_size ) {
+			if ( ++wwctx.nentries >= mdb->mi_rtxn_size ) {
+				mdb_rtxn_snap( op, &wwctx );
+			}
+		}
+
 		if ( !wwctx.flag && mdb->mi_renew_lag ) {
 			int percentage, lag = mdb_txn_straggler( wwctx.txn, &percentage );
 			if ( lag >= mdb->mi_renew_lag && percentage >= mdb->mi_renew_percent ) {
 				if ( cb.sc_private == &wwctx ) {
 					Debug( LDAP_DEBUG_NONE, "dreamcatcher: lag %d, percentage %u%%\n", lag, percentage );
-					mdb_writewait( op, &cb );
+					mdb_rtxn_snap( op, &wwctx );
 				} else
 					Debug( LDAP_DEBUG_ANY, "dreamcatcher: UNABLE lag %d, percentage %u%%\n", lag, percentage );
 			}

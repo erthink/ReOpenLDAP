@@ -23,7 +23,7 @@
 
 LDAP_BEGIN_DECL
 
-#undef MDB_TOOL_IDL_CACHING	/* currently broken */
+#undef	MDB_TOOL_IDL_CACHING	/* currently no perf gain */
 
 #define DN_BASE_PREFIX		SLAP_INDEX_EQUALITY_PREFIX
 #define DN_ONE_PREFIX	 	'%'
@@ -47,9 +47,10 @@ LDAP_BEGIN_DECL
 /* Default to 10MB max */
 #define DEFAULT_MAPSIZE	(10*1048576)
 
-#ifdef LDAP_DEVEL
+/* Most users will never see this */
+#define DEFAULT_RTXN_SIZE	10000
+
 #define MDB_MONITOR_IDX
-#endif /* LDAP_DEVEL */
 
 typedef struct mdb_monitor_t {
 	void		*mdm_cb;
@@ -63,13 +64,13 @@ struct mdb_info {
 	MDB_env		*mi_dbenv;
 
 	/* DB_ENV parameters */
-	/* The DB_ENV can be tuned via DB_CONFIG */
 	char		*mi_dbenv_home;
 	uint32_t	mi_dbenv_flags;
 	int			mi_dbenv_mode;
 
 	size_t		mi_mapsize;
 	ID			mi_nextid;
+	size_t		mi_maxentrysize;
 
 	slap_mask_t	mi_defaultmask;
 	int			mi_nattrs;
@@ -78,6 +79,7 @@ struct mdb_info {
 	int			mi_search_stack_depth;
 	int			mi_readers;
 
+	uint32_t	mi_rtxn_size;
 	int			mi_txn_cp;
 	uint32_t	mi_txn_cp_period;
 	uint32_t	mi_txn_cp_kbyte;
@@ -122,6 +124,7 @@ typedef struct mdb_op_info {
 } mdb_op_info;
 #define MOI_READER	0x01
 #define MOI_FREEIT	0x02
+#define MOI_KEEPER	0x04
 
 /* Copy an ID "src" to pointer "dst" in big-endian byte order */
 #define MDB_ID2DISK( src, dst )	\
@@ -152,12 +155,18 @@ typedef struct mdb_attrinfo {
 	ComponentReference* ai_cr; /*component indexing*/
 #endif
 	Avlnode *ai_root;		/* for tools */
-	void *ai_flist;		/* for tools */
-	void *ai_clist;		/* for tools */
 	MDB_cursor *ai_cursor;	/* for tools */
 	int ai_idx;	/* position in AI array */
 	MDB_dbi ai_dbi;
 } AttrInfo;
+
+/* tool threaded indexer state */
+typedef struct mdb_attrixinfo {
+	OpExtra ai_oe;
+	void *ai_flist;
+	void *ai_clist;
+	AttrInfo *ai_ai;
+} AttrIxInfo;
 
 /* These flags must not clash with SLAP_INDEX flags or ops in slap.h! */
 #define	MDB_INDEX_DELETING	0x8000U	/* index is being modified */

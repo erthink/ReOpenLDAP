@@ -212,4 +212,3 @@ ldap_modify_s( LDAP *ld, LDAP_CONST char *dn, LDAPMod **mods )
 {
 	return ldap_modify_ext_s( ld, dn, mods, NULL, NULL );
 }
-

@@ -202,6 +202,9 @@ int mdb_id2edata(
 int mdb_entry_return( Operation *op, Entry *e );
 BI_entry_release_rw mdb_entry_release;
 BI_entry_get_rw mdb_entry_get;
+#ifdef LDAP_X_TXN
+BI_op_txn mdb_txn;
+#endif
 
 int mdb_entry_decode( Operation *op, MDB_txn *txn, MDB_val *data, Entry **e );
 

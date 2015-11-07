@@ -8648,7 +8648,7 @@ mdb_env_copythr(void *arg)
 {
 	mdb_copy *my = arg;
 	char *ptr;
-	int toggle = 0, wsize, rc = 0;
+	int toggle = 0, wsize, rc = MDB_SUCCESS;
 	int len;
 
 	pthread_mutex_lock(&my->mc_mutex);

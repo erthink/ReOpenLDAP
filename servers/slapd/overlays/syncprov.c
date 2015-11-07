@@ -1419,11 +1419,11 @@ syncprov_matchops( Operation *op, opcookie *opc, int saveit )
 			op2.o_hdr = &oh;
 			op2.o_extra = op->o_extra;
 			op2.o_callback = NULL;
-			if ( ss->s_flags & PS_FIX_FILTER ) {
+			if (ss->s_flags & PS_FIX_FILTER) {
 				/* Skip the AND/GE clause that we stuck on in front. We
 				   would lose deletes/mods that happen during the refresh
 				   phase otherwise (ITS#6555) */
-				op2.ors_filter = op2.ors_filter->f_and->f_next;
+				op2.ors_filter = ss->s_op->ors_filter->f_and->f_next;
 			}
 			rc = test_filter( &op2, e, op2.ors_filter );
 			ldap_pvt_thread_mutex_unlock( &ss->s_mutex );

@@ -1883,7 +1883,7 @@ int bindconf_tls_set( slap_bindconf *bc, LDAP *ld )
 		}
 	}
 	if ( bc->sb_tls_reqcert ) {
-		rc = ldap_int_tls_config( ld, LDAP_OPT_X_TLS_REQUIRE_CERT,
+		rc = ldap_pvt_tls_config( ld, LDAP_OPT_X_TLS_REQUIRE_CERT,
 			bc->sb_tls_reqcert );
 		if ( rc ) {
 			Debug( LDAP_DEBUG_ANY,
@@ -1894,7 +1894,7 @@ int bindconf_tls_set( slap_bindconf *bc, LDAP *ld )
 			newctx = 1;
 	}
 	if ( bc->sb_tls_protocol_min ) {
-		rc = ldap_int_tls_config( ld, LDAP_OPT_X_TLS_PROTOCOL_MIN,
+		rc = ldap_pvt_tls_config( ld, LDAP_OPT_X_TLS_PROTOCOL_MIN,
 			bc->sb_tls_protocol_min );
 		if ( rc ) {
 			Debug( LDAP_DEBUG_ANY,
@@ -1906,7 +1906,7 @@ int bindconf_tls_set( slap_bindconf *bc, LDAP *ld )
 	}
 #ifdef HAVE_OPENSSL_CRL
 	if ( bc->sb_tls_crlcheck ) {
-		rc = ldap_int_tls_config( ld, LDAP_OPT_X_TLS_CRLCHECK,
+		rc = ldap_pvt_tls_config( ld, LDAP_OPT_X_TLS_CRLCHECK,
 			bc->sb_tls_crlcheck );
 		if ( rc ) {
 			Debug( LDAP_DEBUG_ANY,

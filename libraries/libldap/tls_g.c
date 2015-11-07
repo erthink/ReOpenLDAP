@@ -44,8 +44,6 @@
 #include <gnutls/gnutls.h>
 #include <gnutls/x509.h>
 
-#define DH_BITS	(1024)
-
 typedef struct tlsg_ctx {
 	struct ldapoptions *lo;
 	gnutls_certificate_credentials_t cred;
@@ -181,6 +179,8 @@ tlsg_ctx_free ( tls_ctx *ctx )
 		return;
 	gnutls_priority_deinit( c->prios );
 	gnutls_certificate_free_credentials( c->cred );
+	if ( c->dh_params )
+		gnutls_dh_params_deinit( c->dh_params );
 	ber_memfree ( c );
 }
 
@@ -289,11 +289,6 @@ tlsg_ctx_init( struct ldapoptions *lo, struct ldaptls *lt, int is_server )
 		return -1;
 	}
 
-	if ( lo->ldo_tls_dhfile ) {
-		Debug( LDAP_DEBUG_ANY,
-		       "TLS: warning: ignoring dhfile\n" );
-	}
-
 	if ( lo->ldo_tls_crlfile ) {
 		rc = gnutls_certificate_set_x509_crl_file(
 			ctx->cred,
@@ -303,15 +298,23 @@ tlsg_ctx_init( struct ldapoptions *lo, struct ldaptls *lt, int is_server )
 		rc = 0;
 	}
 
-	/* FIXME: ITS#5992 - this should go be configurable,
+	/* FIXME: ITS#5992 - this should be configurable,
 	 * and V1 CA certs should be phased out ASAP.
 	 */
 	gnutls_certificate_set_verify_flags( ctx->cred,
 		GNUTLS_VERIFY_ALLOW_X509_V1_CA_CRT );
 
-	if ( is_server ) {
-		gnutls_dh_params_init(&ctx->dh_params);
-		gnutls_dh_params_generate2(ctx->dh_params, DH_BITS);
+	if ( is_server && lo->ldo_tls_dhfile ) {
+		gnutls_datum_t buf;
+		rc = tlsg_getfile( lo->ldo_tls_dhfile, &buf );
+		if ( rc ) return -1;
+		rc = gnutls_dh_params_init( &ctx->dh_params );
+		if ( rc == 0 )
+			rc = gnutls_dh_params_import_pkcs3( ctx->dh_params, &buf,
+				GNUTLS_X509_FMT_PEM );
+		LDAP_FREE( buf.data );
+		if ( rc ) return -1;
+		gnutls_certificate_set_dh_params( ctx->cred, ctx->dh_params );
 	}
 	return 0;
 }
@@ -660,6 +663,57 @@ tlsg_session_strength( tls_session *session )
 	return gnutls_cipher_get_key_size( c ) * 8;
 }
 
+static int
+tlsg_session_unique( tls_session *sess, struct berval *buf, int is_server)
+{
+	tlsg_session *s = (tlsg_session *)sess;
+	gnutls_datum_t cb;
+	int rc;
+
+	rc = gnutls_session_channel_binding( s->session, GNUTLS_CB_TLS_UNIQUE, &cb );
+	if ( rc == 0 ) {
+		int len = cb.size;
+		if ( len > buf->bv_len )
+			len = buf->bv_len;
+		buf->bv_len = len;
+		memcpy( buf->bv_val, cb.data, len );
+		return len;
+	}
+	return 0;
+}
+
+static const char *
+tlsg_session_version( tls_session *sess )
+{
+	tlsg_session *s = (tlsg_session *)sess;
+	return gnutls_protocol_get_name(gnutls_protocol_get_version( s->session ));
+}
+
+static const char *
+tlsg_session_cipher( tls_session *sess )
+{
+	tlsg_session *s = (tlsg_session *)sess;
+	return gnutls_cipher_get_name(gnutls_cipher_get( s->session ));
+}
+
+static int
+tlsg_session_peercert( tls_session *sess, struct berval *der )
+{
+	tlsg_session *s = (tlsg_session *)sess;
+	const gnutls_datum_t *peer_cert_list;
+	unsigned int list_size;
+
+	peer_cert_list = gnutls_certificate_get_peers( s->session, &list_size );
+	if (!peer_cert_list)
+		return -1;
+	der->bv_len = peer_cert_list[0].size;
+	der->bv_val = LDAP_MALLOC( der->bv_len );
+	if (!der->bv_val)
+		return -1;
+	memcpy(der->bv_val, peer_cert_list[0].data, der->bv_len);
+	return 0;
+}
+
 /* suites is a string of colon-separated cipher suite names. */
 static int
 tlsg_parse_ciphers( tlsg_ctx *ctx, char *suites )
@@ -912,6 +966,10 @@ tls_impl ldap_int_tls_impl = {
 	tlsg_session_peer_dn,
 	tlsg_session_chkhost,
 	tlsg_session_strength,
+	tlsg_session_unique,
+	tlsg_session_version,
+	tlsg_session_cipher,
+	tlsg_session_peercert,
 
 	&tlsg_sbio,
 

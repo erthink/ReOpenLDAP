@@ -91,6 +91,7 @@ mdb_db_init( BackendDB *be, ConfigReply *cr )
 	mdb->mi_search_stack = NULL;
 
 	mdb->mi_mapsize = DEFAULT_MAPSIZE;
+	mdb->mi_rtxn_size = DEFAULT_RTXN_SIZE;
 
 	be->be_private = mdb;
 	be->be_cf_ocs = be->bd_info->bi_cf_ocs;
@@ -507,6 +508,9 @@ mdb_back_initialize(
 	bi->bi_op_search = mdb_search;
 
 	bi->bi_op_unbind = 0;
+#ifdef LDAP_X_TXN
+	bi->bi_op_txn = mdb_txn;
+#endif
 
 	bi->bi_extended = mdb_extended;
 

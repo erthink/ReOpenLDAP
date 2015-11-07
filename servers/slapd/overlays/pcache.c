@@ -37,7 +37,6 @@
 
 #include "config.h"
 
-#ifdef LDAP_DEVEL
 /*
  * Control that allows to access the private DB
  * instead of the public one
@@ -53,7 +52,6 @@
  * Monitoring
  */
 #define PCACHE_MONITOR
-#endif
 
 /* query cache structs */
 /* query */
@@ -2808,17 +2806,16 @@ pcache_op_privdb(
 	/* map tag to operation */
 	type = slap_req2op( op->o_tag );
 	if ( type != SLAP_OP_LAST ) {
-		BI_op_func	**func;
+		BackendInfo	*bi = cm->db.bd_info;
 		int		rc;
 
 		/* execute, if possible */
-		func = &cm->db.be_bind;
-		if ( func[ type ] != NULL ) {
+		if ( (&bi->bi_op_bind)[ type ] ) {
 			Operation	op2 = *op;
 
 			op2.o_bd = &cm->db;
 
-			rc = func[ type ]( &op2, rs );
+			rc = (&bi->bi_op_bind)[ type ]( &op2, rs );
 			if ( type == SLAP_OP_BIND && rc == LDAP_SUCCESS ) {
 				op->o_conn->c_authz_cookie = cm->db.be_private;
 			}
@@ -5462,7 +5459,7 @@ pcache_monitor_free(
 	const char	*text;
 	char		textbuf[ SLAP_TEXT_BUFLEN ];
 
-	int		rc;
+	int		rc ALLOW_UNUSED;
 
 	/* NOTE: if slap_shutdown != 0, priv might have already been freed */
 	*priv = NULL;
@@ -5564,8 +5561,7 @@ pcache_monitor_db_open( BackendDB *be )
 		if ( warning++ == 0 ) {
 			Debug( LDAP_DEBUG_ANY, "pcache_monitor_db_open: "
 				"monitoring disabled; "
-				"configure monitor database to enable\n",
-				0, 0, 0 );
+				"configure monitor database to enable\n" );
 		}
 
 		return 0;

@@ -63,6 +63,9 @@ static int mdb_id2entry_put(
 	if (e->e_id < mdb->mi_nextid)
 		flag &= ~MDB_APPEND;
 
+	if (mdb->mi_maxentrysize && ec.len > mdb->mi_maxentrysize)
+		return LDAP_ADMINLIMIT_EXCEEDED;
+
 again:
 	data.mv_size = ec.len;
 	if ( mc )
@@ -245,7 +248,7 @@ int mdb_entry_return(
 	if ( !e )
 		return 0;
 	if ( e->e_private ) {
-		if ( op->o_hdr ) {
+		if ( op->o_hdr && op->o_tmpmfuncs ) {
 			op->o_tmpfree( e->e_nname.bv_val, op->o_tmpmemctx );
 			op->o_tmpfree( e->e_name.bv_val, op->o_tmpmemctx );
 			op->o_tmpfree( e, op->o_tmpmemctx );
@@ -280,7 +283,7 @@ int mdb_entry_release(
 				mdb_entry_return( op, e );
 				moi = (mdb_op_info *)oex;
 				/* If it was setup by entry_get we should probably free it */
-				if ( moi->moi_flag & MOI_FREEIT ) {
+				if (( moi->moi_flag & (MOI_FREEIT|MOI_KEEPER)) == MOI_FREEIT ) {
 					moi->moi_ref--;
 					if ( moi->moi_ref < 1 ) {
 						mdb_txn_reset( moi->moi_txn );
@@ -463,7 +466,10 @@ mdb_opinfo_get( Operation *op, struct mdb_info *mdb, int rdonly, mdb_op_info **m
 				moi->moi_txn = mdb_tool_txn;
 			} else {
 				assert(slap_biglock_owned(op->o_bd));
-				rc = mdb_txn_begin( mdb->mi_dbenv, NULL, 0, &moi->moi_txn );
+				int flag = 0;
+				if ( get_lazyCommit( op ))
+					flag |= reopenldap_mode_iddqd() ? MDB_NOSYNC : MDB_NOMETASYNC;
+				rc = mdb_txn_begin( mdb->mi_dbenv, NULL, flag, &moi->moi_txn );
 				if (rc) {
 					Debug( LDAP_DEBUG_ANY, "mdb_opinfo_get: err %s(%d)\n",
 						mdb_strerror(rc), rc );
@@ -525,6 +531,43 @@ ok:
 
 	return 0;
 }
+
+#ifdef LDAP_X_TXN
+int mdb_txn( Operation *op, int txnop, OpExtra **ptr )
+{
+	struct mdb_info *mdb = (struct mdb_info *) op->o_bd->be_private;
+	mdb_op_info **moip = (mdb_op_info **)ptr, *moi = *moip;
+	int rc;
+
+	switch( txnop ) {
+	case SLAP_TXN_BEGIN:
+		/* LY: TODO: deadlock is possible between write-mutex
+		 * inside MDB-backend and syncprov_info_t.si_resp_mutex. */
+		/* LY: TODO: support for bi_op_txn() in biglock */
+		if (op->o_bd->bd_biglock_mode > SLAPD_BIGLOCK_NONE
+				|| quorum_syncrepl_maxrefresh(op->o_bd) > 1) {
+			Debug( LDAP_DEBUG_ANY, "mdb_txn: avoid deadlock - reject SLAP_TXN_BEGIN if biglock or multiple sync-refresh enabled\n" );
+			return LDAP_OTHER;
+		}
+
+		rc = mdb_opinfo_get( op, mdb, 0, moip );
+		if ( !rc ) {
+			moi = *moip;
+			moi->moi_flag |= MOI_KEEPER;
+		}
+		return rc;
+	case SLAP_TXN_COMMIT:
+		rc = mdb_txn_commit( moi->moi_txn );
+		op->o_tmpfree( moi, op->o_tmpmemctx );
+		return rc;
+	case SLAP_TXN_ABORT:
+		mdb_txn_abort( moi->moi_txn );
+		op->o_tmpfree( moi, op->o_tmpmemctx );
+		return 0;
+	}
+	return LDAP_OTHER;
+}
+#endif /* LDAP_X_TXN */
 
 /* Count up the sizes of the components of an entry */
 static int mdb_entry_partsize(struct mdb_info *mdb, MDB_txn *txn, Entry *e,

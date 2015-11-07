@@ -150,6 +150,8 @@ over_db_open(
 	}
 
 	for (; on && rc == 0; on=on->on_next) {
+		if ( on->on_bi.bi_flags & SLAPO_BFLAG_DISABLED )
+			continue;
 		db.bd_info = &on->on_bi;
 		if ( db.bd_info->bi_db_open ) {
 			rc = db.bd_info->bi_db_open( &db, cr );
@@ -171,6 +173,8 @@ over_db_close(
 	int rc = 0;
 
 	for (; on && rc == 0; on=on->on_next) {
+		if ( on->on_bi.bi_flags & SLAPO_BFLAG_DISABLED )
+			continue;
 		be->bd_info = &on->on_bi;
 		if ( be->bd_info->bi_db_close ) {
 			rc = be->bd_info->bi_db_close( be, cr );
@@ -203,6 +207,8 @@ over_db_destroy(
 	}
 
 	for (; on && rc == 0; on=on->on_next) {
+		if ( on->on_bi.bi_flags & SLAPO_BFLAG_DISABLED )
+			continue;
 		be->bd_info = &on->on_bi;
 		if ( be->bd_info->bi_db_destroy ) {
 			rc = be->bd_info->bi_db_destroy( be, cr );
@@ -232,6 +238,8 @@ over_back_response ( Operation *op, SlapReply *rs )
 	db.be_flags |= SLAP_DBFLAG_OVERLAY;
 	op->o_bd = &db;
 	for (; on; on=on->on_next ) {
+		if ( on->on_bi.bi_flags & SLAPO_BFLAG_DISABLED )
+			continue;
 		if ( on->on_response ) {
 			db.bd_info = (BackendInfo *)on;
 			rc = on->on_response( op, rs );
@@ -277,6 +285,8 @@ over_access_allowed(
 	on = oi->oi_list;
 
 	for ( ; on; on = on->on_next ) {
+		if ( on->on_bi.bi_flags & SLAPO_BFLAG_DISABLED )
+			continue;
 		if ( on->on_bi.bi_access_allowed ) {
 			/* NOTE: do not copy the structure until required */
 		 	if ( !SLAP_ISOVERLAY( op->o_bd ) ) {
@@ -338,6 +348,8 @@ overlay_entry_get_ov(
 	int rc = SLAP_CB_CONTINUE;
 
 	for ( ; on; on = on->on_next ) {
+		if ( on->on_bi.bi_flags & SLAPO_BFLAG_DISABLED )
+			continue;
 		if ( on->on_bi.bi_entry_get_rw ) {
 			/* NOTE: do not copy the structure until required */
 		 	if ( !SLAP_ISOVERLAY( op->o_bd ) ) {
@@ -409,6 +421,8 @@ overlay_entry_release_ov(
 	int rc = SLAP_CB_CONTINUE;
 
 	for ( ; on; on = on->on_next ) {
+		if ( on->on_bi.bi_flags & SLAPO_BFLAG_DISABLED )
+			continue;
 		if ( on->on_bi.bi_entry_release_rw ) {
 			/* NOTE: do not copy the structure until required */
 		 	if ( !SLAP_ISOVERLAY( op->o_bd ) ) {
@@ -487,6 +501,8 @@ over_acl_group(
 	on = oi->oi_list;
 
 	for ( ; on; on = on->on_next ) {
+		if ( on->on_bi.bi_flags & SLAPO_BFLAG_DISABLED )
+			continue;
 		if ( on->on_bi.bi_acl_group ) {
 			/* NOTE: do not copy the structure until required */
 		 	if ( !SLAP_ISOVERLAY( op->o_bd ) ) {
@@ -556,6 +572,8 @@ over_acl_attribute(
 	on = oi->oi_list;
 
 	for ( ; on; on = on->on_next ) {
+		if ( on->on_bi.bi_flags & SLAPO_BFLAG_DISABLED )
+			continue;
 		if ( on->on_bi.bi_acl_attribute ) {
 			/* NOTE: do not copy the structure until required */
 		 	if ( !SLAP_ISOVERLAY( op->o_bd ) ) {
@@ -651,30 +669,31 @@ int overlay_op_walk(
 	slap_overinst *on
 )
 {
-	BI_op_bind **func;
+	BackendInfo *bi;
 	int rc = SLAP_CB_CONTINUE;
 
 	for (; on; on=on->on_next ) {
-		func = &on->on_bi.bi_op_bind;
-		if ( func[which] ) {
+		if ( on->on_bi.bi_flags & SLAPO_BFLAG_DISABLED )
+			continue;
+		bi = &on->on_bi;
+		if ( (&bi->bi_op_bind)[ which ] ) {
 			op->o_bd->bd_info = (BackendInfo *)on;
-			rc = func[which]( op, rs );
+			rc = (&bi->bi_op_bind)[ which ]( op, rs );
 			if ( rc != SLAP_CB_CONTINUE ) break;
 		}
 	}
 	if ( rc == SLAP_CB_BYPASS )
 		rc = SLAP_CB_CONTINUE;
-
 	/* if an overlay halted processing, make sure
 	 * any previously set cleanup handlers are run
 	 */
 	if ( rc != SLAP_CB_CONTINUE )
 		goto cleanup;
 
-	func = &oi->oi_orig->bi_op_bind;
-	if ( func[which] ) {
-		op->o_bd->bd_info = oi->oi_orig;
-		rc = func[which]( op, rs );
+	bi = oi->oi_orig;
+	if ( (&bi->bi_op_bind)[ which ] ) {
+		op->o_bd->bd_info = bi;
+		rc = (&bi->bi_op_bind)[ which ]( op, rs );
 	}
 	/* should not fall thru this far without anything happening... */
 	if ( rc == SLAP_CB_CONTINUE ) {
@@ -856,6 +875,8 @@ over_connection_func(
 	}
 
 	for ( ; on; on = on->on_next ) {
+		if ( on->on_bi.bi_flags & SLAPO_BFLAG_DISABLED )
+			continue;
 		func = &on->on_bi.bi_connection_init;
 		if ( func[ which ] ) {
 			bd->bd_info = (BackendInfo *)on;
@@ -1436,4 +1457,3 @@ overlay_config( BackendDB *be, const char *ov, int idx, BackendInfo **res, Confi
 
 	return 0;
 }
-
