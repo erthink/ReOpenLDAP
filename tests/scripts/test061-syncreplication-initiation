@@ -23,7 +23,7 @@
 echo "Running defines.sh"
 . $SRCDIR/scripts/defines.sh
 
-test "x$INITIATION_RACE_TESTS" = "x" && INITIATION_RACE_TESTS=1
+test "x$INITIATION_RACE_TESTS" = "x" && INITIATION_RACE_TESTS=3
 
 if test $SYNCPROV = syncprovno; then
 	echo "Syncrepl provider overlay not available, test skipped"
