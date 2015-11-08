@@ -747,8 +747,7 @@ done:
 		e->e_id = NOID;
 	}
 
-	if ( cursor == NULL )
-	{
+	if ( cursor == NULL ) {
 		int rc = bdb->bi_id2entry->bdi_db->cursor(
 			bdb->bi_id2entry->bdi_db, bdb->bi_cache.c_txn, &cursor,
 			bdb->bi_db_opflags );
@@ -991,8 +990,7 @@ done:
 		e->e_id = NOID;
 	}
 
-	if ( cursor == NULL )
-	{
+	if ( cursor == NULL ) {
 		int rc = bdb->bi_id2entry->bdi_db->cursor(
 			bdb->bi_id2entry->bdi_db, bdb->bi_cache.c_txn, &cursor,
 			bdb->bi_db_opflags );
@@ -1049,9 +1047,6 @@ int bdb_tool_entry_delete(
 				 text->bv_val );
 			return LDAP_OTHER;
 		}
-		rc = bdb->bi_id2entry->bdi_db->cursor(
-			bdb->bi_id2entry->bdi_db, bdb->bi_cache.c_txn, &cursor,
-			bdb->bi_db_opflags );
 	}
 
 	op.o_hdr = &ohdr;
@@ -1158,9 +1153,13 @@ done:
 		}
 	}
 
-	rc = bdb->bi_id2entry->bdi_db->cursor(
-		bdb->bi_id2entry->bdi_db, bdb->bi_cache.c_txn, &cursor,
-		bdb->bi_db_opflags );
+	if ( cursor == NULL ) {
+		int rc2 = bdb->bi_id2entry->bdi_db->cursor(
+			bdb->bi_id2entry->bdi_db, bdb->bi_cache.c_txn, &cursor,
+			bdb->bi_db_opflags );
+		if (! rc)
+			rc = rc2;
+	}
 
 	return rc;
 }
