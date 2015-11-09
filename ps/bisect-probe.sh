@@ -22,6 +22,7 @@ if [ $# -eq 0 ]; then
 	.git/ci-build.sh || exit 125
 else
 	git clean -f -x -d -e ./ps -e tests/testrun || exit 125
+	git submodule foreach --recursive git clean -x -f -d || exit 125
 	[ -f ./configure ] && ./configure "$@" && make depend && make -j4 || exit 125
 fi
 

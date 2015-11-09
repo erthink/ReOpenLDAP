@@ -18,6 +18,7 @@ step_finish() {
 
 step_begin "cleanup"
 git clean -x -f -d -e .ccache/ -e tests/testrun/ -e times.log || failure "cleanup"
+git submodule foreach --recursive git clean -x -f -d || failure "cleanup-submodules"
 step_finish "cleanup"
 echo "======================================================================="
 step_begin "prepare"
@@ -37,7 +38,8 @@ echo "======================================================================="
 step_begin "configure"
 
 LDFLAGS="-Wl,--as-needed,-Bsymbolic,--gc-sections,-O,-zignore"
-CFLAGS="-Wall -Os -free -g -include $(readlink -f $(dirname $0)/ps/glibc-225.h)"
+CFLAGS="-Wall -g -fvisibility=hidden -Os -include $(readlink -f $(dirname $0)/ps/glibc-225.h)"
+LIBS="-Wl,--no-as-needed,-lrt"
 
 if [ -n "$(which gcc)" ] && gcc -v 2>&1 | grep -q -i lto \
 	&& [ -n "$(which gcc-ar)" -a -n "$(which gcc-nm)" -a -n "$(which gcc-ranlib)" ]
@@ -46,11 +48,11 @@ then
 #	CFLAGS+=" -D_LTO_BUG_WORKAROUND -save-temps"
 #	LDFLAGS+=",$(readlink -f ps/glibc-225.o)"
 	echo "*** Link-Time Optimization (LTO) will be used" >&2
-	CFLAGS+=" -flto -fno-fat-lto-objects -flto-partition=none"
+	CFLAGS+=" -free -flto -fno-fat-lto-objects -flto-partition=none"
 	export CC=gcc AR=gcc-ar NM=gcc-nm RANLIB=gcc-ranlib
 fi
 
-export CFLAGS LDFLAGS CXXFLAGS="$CFLAGS"
+export CFLAGS LDFLAGS LIBS CXXFLAGS="$CFLAGS"
 
 ./configure \
 	--prefix=${PREFIX} --enable-dynacl --enable-ldap \
@@ -73,14 +75,22 @@ mkdir -p ${PREFIX}/bin \
 find ./ -name Makefile -type f | xargs sed -e "s/STRIP = -s/STRIP =/g;s/\(VERSION= .\+\)/\1${BUILD_ID}/g" -i \
 	|| failure "fix-2"
 
+find ./ -name Makefile | xargs -r sed -i 's/-Wall -g/-Wall -Werror -g/g' \
+	|| failure "fix-3"
+
+sed -e 's/ -lrt/ -Wl,--no-as-needed,-lrt/g' -i libraries/liblmdb/Makefile
+
 step_finish "configure"
 echo "======================================================================="
-step_begin "build mdb-tools"
+step_begin "build mdbx-tools"
 
-(cd libraries/liblmdb && make -k && cp mdb_chk mdb_copy mdb_stat -t ${PREFIX}/bin/) \
+(cd libraries/liblmdb && make -k all mtest0 mtest1 mtest2 mtest3 mtest4 mtest5 mtest6 && \
+	(cp mdbx_chk mdbx_copy mdbx_stat -t ${PREFIX}/bin/ \
+	|| cp mdb_chk mdb_copy mdb_stat -t ${PREFIX}/bin/) \
+) \
 	|| failure "build-1"
 
-step_finish "build mdb-tools"
+step_finish "build mdbx-tools"
 echo "======================================================================="
 step_begin "build openldap"
 

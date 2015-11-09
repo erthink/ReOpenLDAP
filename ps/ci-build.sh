@@ -162,6 +162,7 @@ echo "LD		= $(readlink -f $(which ld)) ${LDFLAGS}"
 
 if [ $flag_clean -ne 0 ]; then
 	git clean -x -f -d -e ./ps -e .ccache/ -e tests/testrun/ -e times.log || failure "cleanup"
+	git submodule foreach --recursive git clean -x -f -d || failure "cleanup-submodules"
 fi
 
 if [ ! -s Makefile ]; then
@@ -181,7 +182,7 @@ if [ ! -s Makefile ]; then
 fi
 
 export CFLAGS="-Werror $CFLAGS" CXXFLAGS="-Werror $CXXFLAGS"
-make -j4 && make -j4 -C libraries/liblmdb || failure "build"
+make -j4 && make -j4 -C libraries/liblmdb all mtest0 mtest1 mtest2 mtest3 mtest4 mtest5 mtest6 || failure "build"
 
 for m in $(find contrib/slapd-modules -name Makefile -printf '%h\n'); do
 	if [ -e $m/BROKEN ]; then
