@@ -53,7 +53,7 @@ mkdir -p $TESTDIR $DBDIR1 $DBDIR2
 
 echo "Starting master slapd on TCP/IP port $PORT1..."
 . $CONFFILTER < $CACHEMASTERCONF > $CONF1
-$SLAPD -f $CONF1 -h $URI1 -d $LVL > $LOG1 2>&1 &
+$SLAPD -f $CONF1 -h $URI1 > $LOG1 2>&1 &
 PID=$!
 if test $WAIT != 0 ; then
 	echo PID $PID
@@ -83,7 +83,7 @@ echo "Starting proxy cache on TCP/IP port $PORT2..."
 	-e "s/@BTTR@/${PCACHEBTTR}/"			\
 	> $CONF2
 
-$SLAPD -f $CONF2 -h $URI2 -d $LVL -d pcache > $LOG2 2>&1 &
+$SLAPD -f $CONF2 -h $URI2 -d pcache > $LOG2 2>&1 &
 CACHEPID=$!
 if test $WAIT != 0 ; then
 	echo CACHEPID $CACHEPID

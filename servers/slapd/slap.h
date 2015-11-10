@@ -1767,6 +1767,7 @@ struct sync_cookie {
 
 LDAP_STAILQ_HEAD( slap_sync_cookie_s, sync_cookie );
 
+struct slap_csn_entry;
 LDAP_TAILQ_HEAD( be_pcl, slap_csn_entry );
 
 #ifndef SLAP_MAX_CIDS
@@ -2476,17 +2477,6 @@ typedef struct PagedResultsState {
 	PagedResultsCookie ps_cookie;
 	struct berval ps_cookieval;
 } PagedResultsState;
-
-struct slap_csn_entry {
-	struct berval ce_csn;
-	int ce_sid;
-	unsigned long ce_opid;
-	unsigned long ce_connid;
-#define SLAP_CSN_PENDING	1
-#define SLAP_CSN_COMMIT		2
-	long ce_state;
-	LDAP_TAILQ_ENTRY (slap_csn_entry) ce_csn_link;
-};
 
 /*
  * Caches the result of a backend_group check for ACL evaluation

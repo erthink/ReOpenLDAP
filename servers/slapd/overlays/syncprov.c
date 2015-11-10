@@ -138,9 +138,7 @@ typedef struct slog_entry {
 } slog_entry;
 
 typedef struct sessionlog {
-	BerVarray	sl_mincsn;
-	int		*sl_sids;
-	int		sl_numcsns;
+	struct sync_cookie sl_cookie;
 	int		sl_num;
 	int		sl_size;
 	slog_entry *sl_head;
@@ -152,9 +150,7 @@ typedef struct sessionlog {
 typedef struct syncprov_info_t {
 	syncops		*si_ops;
 	struct berval	si_contextdn;
-	BerVarray	si_ctxcsn;	/* ldapsync context */
-	int		*si_sids;
-	int		si_numcsns;
+	struct sync_cookie si_cookie;
 	int		si_chkops;	/* checkpointing info */
 	int		si_chktime;
 	int		si_numops;	/* number of ops since last checkpoint */
@@ -666,10 +662,11 @@ syncprov_findcsn( Operation *op, find_csn_t mode, struct berval *csn )
 again:
 	switch( mode ) {
 	case FIND_MAXCSN:
+		ldap_pvt_thread_rdwr_wlock( &si->si_csn_rwlock );
 		cf.f_choice = LDAP_FILTER_GE;
 		/* If there are multiple CSNs, use the one with our serverID */
-		for ( i=0; i<si->si_numcsns; i++) {
-			if ( slap_serverID == si->si_sids[i] ) {
+		for ( i=0; i<si->si_cookie.numcsns; i++) {
+			if ( slap_serverID == si->si_cookie.sids[i] ) {
 				maxid = i;
 				break;
 			}
@@ -678,12 +675,14 @@ again:
 			/* No match: this is multimaster, and none of the content in the DB
 			 * originated locally. Treat like no CSN.
 			 */
+			ldap_pvt_thread_rdwr_wunlock( &si->si_csn_rwlock );
 			return LDAP_NO_SUCH_OBJECT;
 		}
-		cf.f_av_value = si->si_ctxcsn[maxid];
+		cf.f_av_value = si->si_cookie.ctxcsn[maxid];
 		fop.ors_filterstr.bv_len = snprintf( buf, sizeof( buf ),
 			"(entryCSN>=%s)", cf.f_av_value.bv_val );
 		if ( fop.ors_filterstr.bv_len >= sizeof( buf ) ) {
+			ldap_pvt_thread_rdwr_wunlock( &si->si_csn_rwlock );
 			return LDAP_OTHER;
 		}
 		fop.ors_attrsonly = 0;
@@ -750,14 +749,15 @@ again:
 
 	switch( mode ) {
 	case FIND_MAXCSN:
-		if ( ber_bvcmp( &si->si_ctxcsn[maxid], &maxcsn )) {
+		if ( ber_bvcmp( &si->si_cookie.ctxcsn[maxid], &maxcsn )) {
 			if (reopenldap_mode_idkfa()) {
 				Syntax *syn = slap_schema.si_ad_contextCSN->ad_type->sat_syntax;
 				assert( !syn->ssyn_validate( syn, &maxcsn ));
 			}
-			ber_bvreplace( &si->si_ctxcsn[maxid], &maxcsn );
+			ber_bvreplace( &si->si_cookie.ctxcsn[maxid], &maxcsn );
 			si->si_numops++;	/* ensure a checkpoint */
 		}
+		ldap_pvt_thread_rdwr_wunlock( &si->si_csn_rwlock );
 		break;
 	case FIND_CSN:
 		/* If matching CSN was not found, invalidate the context. */
@@ -895,8 +895,10 @@ syncprov_unlink_syncop( syncops *so, int unlink_flags, int lock_flags )
 		unused = 1;
 	}
 	ldap_pvt_thread_mutex_unlock( &so->s_mutex );
+	/* LY: after the so->s_mutex was released and unused != 0
+	 * the so may be freed immediately by another thread.
+	 * Therefore so should NOT be touched later. */
 
-	assert(so->s_si->si_leftover > 0);
 	if (unused) {
 		reslink *rl, *rlnext;
 
@@ -919,7 +921,7 @@ syncprov_unlink_syncop( syncops *so, int unlink_flags, int lock_flags )
 			ch_free( rl );
 		}
 
-		__sync_fetch_and_sub(&so->s_si->si_leftover, 1);
+		LDAP_ENSURE(__sync_fetch_and_sub(&so->s_si->si_leftover, 1) > 0);
 		so->s_si = NULL;
 		so->s_op = NULL;
 
@@ -961,15 +963,8 @@ syncprov_sendresp( Operation *op, resinfo *ri, syncops *so, int mode )
 	BER_BVZERO( &csns[1] );
 	syncprov_compose_sync_cookie( op, &cookie, csns, so->s_rid);
 
-#ifdef LDAP_DEBUG
-	if ( so->s_sid > 0 ) {
-		Debug( LDAP_DEBUG_SYNC, "syncprov_sendresp: %s, to=%03x, cookie=%s\n",
-			op->o_bd->be_nsuffix->bv_val, so->s_sid, cookie.bv_val );
-	} else {
-		Debug( LDAP_DEBUG_SYNC, "syncprov_sendresp: %s, cookie=%s\n",
-			op->o_bd->be_nsuffix->bv_val, cookie.bv_val );
-	}
-#endif
+	Debug( LDAP_DEBUG_SYNC, "syncprov_sendresp: %s, to=%03x, cookie=%s\n",
+		op->o_bd->be_nsuffix->bv_val, so->s_sid, cookie.bv_val );
 
 	e_uuid.e_attrs = &a_uuid;
 	a_uuid.a_desc = slap_schema.si_ad_entryUUID;
@@ -1183,8 +1178,10 @@ syncprov_qresp( opcookie *opc, syncops *so, int mode )
 	ri->ri_list = rl;
 	if ( mode == LDAP_SYNC_NEW_COOKIE && BER_BVISNULL( &ri->ri_cookie )) {
 		syncprov_info_t	*si = opc->son->on_bi.bi_private;
+		ldap_pvt_thread_rdwr_rlock( &si->si_csn_rwlock );
 		syncprov_compose_sync_cookie( NULL, &ri->ri_cookie,
-									  si->si_ctxcsn, so->s_rid);
+									  si->si_cookie.ctxcsn, so->s_rid);
+		ldap_pvt_thread_rdwr_runlock( &si->si_csn_rwlock );
 	}
 	ldap_pvt_thread_mutex_unlock( &ri->ri_mutex );
 
@@ -1569,13 +1566,13 @@ syncprov_checkpoint( Operation *op, slap_overinst *on )
 	if (reopenldap_mode_idkfa()) {
 		Syntax *syn = slap_schema.si_ad_contextCSN->ad_type->sat_syntax;
 		int i;
-		for ( i=0; i<si->si_numcsns; i++ ) {
-			assert( !syn->ssyn_validate( syn, si->si_ctxcsn+i ));
+		for ( i=0; i<si->si_cookie.numcsns; i++ ) {
+			assert( !syn->ssyn_validate( syn, si->si_cookie.ctxcsn+i ));
 		}
 	}
 
-	mod.sml_numvals = si->si_numcsns;
-	mod.sml_values = si->si_ctxcsn;
+	mod.sml_numvals = si->si_cookie.numcsns;
+	mod.sml_values = si->si_cookie.ctxcsn;
 	mod.sml_nvalues = NULL;
 	mod.sml_desc = slap_schema.si_ad_contextCSN;
 	mod.sml_op = LDAP_MOD_REPLACE;
@@ -1621,8 +1618,8 @@ syncprov_checkpoint( Operation *op, slap_overinst *on )
 	if (reopenldap_mode_idkfa()) {
 		Syntax *syn = slap_schema.si_ad_contextCSN->ad_type->sat_syntax;
 		int i;
-		for ( i=0; i<si->si_numcsns; i++ ) {
-			assert( !syn->ssyn_validate( syn, si->si_ctxcsn+i ));
+		for ( i=0; i<si->si_cookie.numcsns; i++ ) {
+			assert( !syn->ssyn_validate( syn, si->si_cookie.ctxcsn+i ));
 		}
 	}
 	slap_biglock_release(op->o_bd);
@@ -1692,13 +1689,13 @@ syncprov_add_slog( Operation *op )
 		} else {
 			sl->sl_head = se;
 			sl->sl_tail = se;
-			if ( !sl->sl_mincsn ) {
-				sl->sl_numcsns = 1;
-				sl->sl_mincsn = ch_malloc( 2*sizeof( struct berval ));
-				sl->sl_sids = ch_malloc( sizeof( int ));
-				sl->sl_sids[0] = se->se_sid;
-				ber_dupbv( sl->sl_mincsn, &se->se_csn );
-				BER_BVZERO( &sl->sl_mincsn[1] );
+			if ( !sl->sl_cookie.ctxcsn ) {
+				sl->sl_cookie.numcsns = 1;
+				sl->sl_cookie.ctxcsn = ch_malloc( 2*sizeof( struct berval ));
+				sl->sl_cookie.sids = ch_malloc( sizeof( int ));
+				sl->sl_cookie.sids[0] = se->se_sid;
+				ber_dupbv( sl->sl_cookie.ctxcsn, &se->se_csn );
+				BER_BVZERO( &sl->sl_cookie.ctxcsn[1] );
 			}
 		}
 		sl->sl_num++;
@@ -1706,14 +1703,13 @@ syncprov_add_slog( Operation *op )
 			int i;
 			se = sl->sl_head;
 			sl->sl_head = se->se_next;
-			for ( i=0; i<sl->sl_numcsns; i++ )
-				if ( sl->sl_sids[i] >= se->se_sid )
+			for ( i=0; i<sl->sl_cookie.numcsns; i++ )
+				if ( sl->sl_cookie.sids[i] >= se->se_sid )
 					break;
-			if  ( i == sl->sl_numcsns || sl->sl_sids[i] != se->se_sid ) {
-				slap_insert_csn_sids( (struct sync_cookie *)sl,
-					i, se->se_sid, &se->se_csn );
+			if  ( i == sl->sl_cookie.numcsns || sl->sl_cookie.sids[i] != se->se_sid ) {
+				slap_insert_csn_sids( &sl->sl_cookie, i, se->se_sid, &se->se_csn );
 			} else {
-				ber_bvreplace( &sl->sl_mincsn[i], &se->se_csn );
+				ber_bvreplace( &sl->sl_cookie.ctxcsn[i], &se->se_csn );
 			}
 			ch_free( se );
 			sl->sl_num--;
@@ -1916,7 +1912,7 @@ syncprov_op_response( Operation *op, SlapReply *rs )
 	{
 		struct berval maxcsn;
 		char cbuf[LDAP_PVT_CSNSTR_BUFSIZE];
-		int do_check = 0, have_psearches, foundit, csn_changed = 0;
+		int do_check = 0, have_psearches, csn_changed = 0, maxcsn_sid;
 
 		ldap_pvt_thread_mutex_lock( &si->si_resp_mutex );
 
@@ -1926,7 +1922,7 @@ syncprov_op_response( Operation *op, SlapReply *rs )
 		maxcsn.bv_len = sizeof(cbuf);
 		ldap_pvt_thread_rdwr_wlock( &si->si_csn_rwlock );
 
-		slap_get_commit_csn( op, &maxcsn, &foundit );
+		maxcsn_sid = slap_get_commit_csn( op, &maxcsn );
 		if ( BER_BVISEMPTY( &maxcsn ) && SLAP_GLUE_SUBORDINATE( op->o_bd )) {
 			/* syncrepl queues the CSN values in the db where
 			 * it is configured , not where the changes are made.
@@ -1937,31 +1933,29 @@ syncprov_op_response( Operation *op, SlapReply *rs )
 			op->o_bd = select_backend( &be->be_nsuffix[0], 1);
 			maxcsn.bv_val = cbuf;
 			maxcsn.bv_len = sizeof(cbuf);
-			slap_get_commit_csn( op, &maxcsn, &foundit );
+			maxcsn_sid = slap_get_commit_csn( op, &maxcsn );
 			op->o_bd = be;
 		}
 		if ( !BER_BVISEMPTY( &maxcsn ) ) {
-			int i, sid;
+			int i;
 			if (reopenldap_mode_idkfa()) {
 				Syntax *syn = slap_schema.si_ad_contextCSN->ad_type->sat_syntax;
 				assert( !syn->ssyn_validate( syn, &maxcsn ));
 			}
-			sid = slap_parse_csn_sid( &maxcsn );
-			for ( i=0; i<si->si_numcsns; i++ ) {
-				if ( sid < si->si_sids[i] )
+			for ( i = 0; i < si->si_cookie.numcsns; i++ ) {
+				if ( maxcsn_sid < si->si_cookie.sids[i] )
 					break;
-				if ( sid == si->si_sids[i] ) {
-					if ( ber_bvcmp( &maxcsn, &si->si_ctxcsn[i] ) > 0 ) {
-						ber_bvreplace( &si->si_ctxcsn[i], &maxcsn );
+				if ( maxcsn_sid == si->si_cookie.sids[i] ) {
+					if ( ber_bvcmp( &maxcsn, &si->si_cookie.ctxcsn[i] ) > 0 ) {
+						ber_bvreplace( &si->si_cookie.ctxcsn[i], &maxcsn );
 						csn_changed = 1;
 					}
 					break;
 				}
 			}
 			/* It's a new SID for us */
-			if ( i == si->si_numcsns || sid != si->si_sids[i] ) {
-				slap_insert_csn_sids((struct sync_cookie *)&(si->si_ctxcsn),
-					i, sid, &maxcsn );
+			if ( i == si->si_cookie.numcsns || maxcsn_sid != si->si_cookie.sids[i] ) {
+				slap_insert_csn_sids( &si->si_cookie, i, maxcsn_sid, &maxcsn );
 				csn_changed = 1;
 			}
 		}
@@ -1979,23 +1973,22 @@ syncprov_op_response( Operation *op, SlapReply *rs )
 				unsigned i;
 				int j, sid;
 
-				for ( i=0; i<mod->sml_numvals; i++ ) {
+				for ( i = 0; i < mod->sml_numvals; i++ ) {
 					sid = slap_parse_csn_sid( &mod->sml_values[i] );
-					for ( j=0; j<si->si_numcsns; j++ ) {
-						if ( sid < si->si_sids[j] )
+					for ( j = 0; j < si->si_cookie.numcsns; j++ ) {
+						if ( sid < si->si_cookie.sids[j] )
 							break;
-						if ( sid == si->si_sids[j] ) {
-							if ( ber_bvcmp( &mod->sml_values[i], &si->si_ctxcsn[j] ) > 0 ) {
-								ber_bvreplace( &si->si_ctxcsn[j], &mod->sml_values[i] );
+						if ( sid == si->si_cookie.sids[j] ) {
+							if ( ber_bvcmp( &mod->sml_values[i], &si->si_cookie.ctxcsn[j] ) > 0 ) {
+								ber_bvreplace( &si->si_cookie.ctxcsn[j], &mod->sml_values[i] );
 								csn_changed = 1;
 							}
 							break;
 						}
 					}
 
-					if ( j == si->si_numcsns || sid != si->si_sids[j] ) {
-						slap_insert_csn_sids( (struct sync_cookie *)&si->si_ctxcsn,
-							j, sid, &mod->sml_values[i] );
+					if ( j == si->si_cookie.numcsns || sid != si->si_cookie.sids[j] ) {
+						slap_insert_csn_sids( &si->si_cookie, j, sid, &mod->sml_values[i] );
 						csn_changed = 1;
 					}
 				}
@@ -2029,25 +2022,16 @@ syncprov_op_response( Operation *op, SlapReply *rs )
 
 		if ( csn_changed )
 			si->si_numops++;
-		if ( si->si_chkops || si->si_chktime ) {
-			/* Never checkpoint adding the context entry,
-			 * it will deadlock
-			 */
-			if ( op->o_tag != LDAP_REQ_ADD ||
-				!dn_match( &op->o_req_ndn, &si->si_contextdn )) {
-				if ( si->si_chkops && si->si_numops >= si->si_chkops ) {
-					do_check = 1;
-					si->si_numops = 0;
-				}
-				if ( si->si_chktime &&
-					(op->o_time - si->si_chklast >= si->si_chktime )) {
-					if ( si->si_chklast ) {
-						do_check = 1;
-						si->si_chklast = op->o_time;
-					} else {
-						si->si_chklast = 1;
-					}
-				}
+		/* Never checkpoint adding the context entry,
+		 * it will deadlock
+		 */
+		if ( op->o_tag != LDAP_REQ_ADD ||
+			!dn_match( &op->o_req_ndn, &si->si_contextdn )) {
+			if ( (si->si_chkops && si->si_numops >= si->si_chkops)
+			|| (si->si_chktime && op->o_time - si->si_chklast >= si->si_chktime) ) {
+				si->si_chklast = op->o_time;
+				si->si_numops = 0;
+				do_check = 1;
 			}
 		}
 		si->si_dirty = !csn_changed;
@@ -2123,9 +2107,9 @@ syncprov_op_compare( Operation *op, SlapReply *rs )
 
 		ldap_pvt_thread_rdwr_rlock( &si->si_csn_rwlock );
 
-		a.a_vals = si->si_ctxcsn;
+		a.a_vals = si->si_cookie.ctxcsn;
 		a.a_nvals = a.a_vals;
-		a.a_numvals = si->si_numcsns;
+		a.a_numvals = si->si_cookie.numcsns;
 
 		rs->sr_err = access_allowed( op, &e, op->oq_compare.rs_ava->aa_desc,
 			&op->oq_compare.rs_ava->aa_value, ACL_COMPARE, NULL );
@@ -2611,12 +2595,12 @@ syncprov_op_search( Operation *op, SlapReply *rs )
 
 	/* snapshot the ctxcsn */
 	ldap_pvt_thread_rdwr_rlock( &si->si_csn_rwlock );
-	numcsns = si->si_numcsns;
+	numcsns = si->si_cookie.numcsns;
 	if ( numcsns ) {
-		ber_bvarray_dup_x( &ctxcsn, si->si_ctxcsn, op->o_tmpmemctx );
-		sids = op->o_tmpalloc( numcsns * sizeof(int), op->o_tmpmemctx );
+		ber_bvarray_dup_x( &ctxcsn, si->si_cookie.ctxcsn, op->o_tmpmemctx );
+		sids = op->o_tmpalloc( numcsns * sizeof(sids[0]), op->o_tmpmemctx );
 		for ( i=0; i<numcsns; i++ )
-			sids[i] = si->si_sids[i];
+			sids[i] = si->si_cookie.sids[i];
 	}
 	dirty = si->si_dirty;
 	ldap_pvt_thread_rdwr_runlock( &si->si_csn_rwlock );
@@ -2839,22 +2823,22 @@ no_change:
 			 */
 			if ( sl->sl_num > 0 ) {
 				int i;
-				for ( i=0; i<sl->sl_numcsns; i++ ) {
+				for ( i=0; i<sl->sl_cookie.numcsns; i++ ) {
 					/* SID not present == new enough */
-					if ( minsid < sl->sl_sids[i] ) {
+					if ( minsid < sl->sl_cookie.sids[i] ) {
 						do_play = 1;
 						break;
 					}
 					/* SID present */
-					if ( minsid == sl->sl_sids[i] ) {
+					if ( minsid == sl->sl_cookie.sids[i] ) {
 						/* new enough? */
-						if ( ber_bvcmp( &mincsn, &sl->sl_mincsn[i] ) >= 0 )
+						if ( ber_bvcmp( &mincsn, &sl->sl_cookie.ctxcsn[i] ) >= 0 )
 							do_play = 1;
 						break;
 					}
 				}
 				/* SID not present == new enough */
-				if ( i == sl->sl_numcsns )
+				if ( i == sl->sl_cookie.numcsns )
 					do_play = 1;
 			}
 			if ( do_play ) {
@@ -3013,7 +2997,7 @@ syncprov_operational(
 			}
 
 			ldap_pvt_thread_rdwr_rlock( &si->si_csn_rwlock );
-			if ( si->si_ctxcsn ) {
+			if ( si->si_cookie.ctxcsn ) {
 				if ( !a ) {
 					for ( ap = &rs->sr_operational_attrs; *ap;
 						ap=&(*ap)->a_next );
@@ -3035,7 +3019,7 @@ syncprov_operational(
 					a->a_vals = NULL;
 					a->a_numvals = 0;
 				}
-				attr_valadd( a, si->si_ctxcsn, si->si_ctxcsn, si->si_numcsns );
+				attr_valadd( a, si->si_cookie.ctxcsn, si->si_cookie.ctxcsn, si->si_cookie.numcsns );
 			}
 			ldap_pvt_thread_rdwr_runlock( &si->si_csn_rwlock );
 		}
@@ -3209,10 +3193,10 @@ sp_cf_gen(ConfigArgs *c)
 		sl = si->si_logs;
 		if ( !sl ) {
 			sl = ch_malloc( sizeof( sessionlog ));
-			sl->sl_mincsn = NULL;
-			sl->sl_sids = NULL;
+			sl->sl_cookie.ctxcsn = NULL;
+			sl->sl_cookie.sids = NULL;
 			sl->sl_num = 0;
-			sl->sl_numcsns = 0;
+			sl->sl_cookie.numcsns = 0;
 			sl->sl_head = sl->sl_tail = NULL;
 			ldap_pvt_thread_mutex_init( &sl->sl_mutex );
 			si->si_logs = sl;
@@ -3298,17 +3282,17 @@ syncprov_db_open(
 	if ( e ) {
 		a = attr_find( e->e_attrs, slap_schema.si_ad_contextCSN );
 		if ( a ) {
-			ber_bvarray_dup_x( &si->si_ctxcsn, a->a_vals, NULL );
-			si->si_numcsns = a->a_numvals;
-			si->si_sids = slap_parse_csn_sids( si->si_ctxcsn, a->a_numvals, NULL );
-			rc = slap_sort_csn_sids( si->si_ctxcsn, si->si_sids, si->si_numcsns, NULL );
+			ber_bvarray_dup_x( &si->si_cookie.ctxcsn, a->a_vals, NULL );
+			si->si_cookie.numcsns = a->a_numvals;
+			si->si_cookie.sids = slap_parse_csn_sids( si->si_cookie.ctxcsn, a->a_numvals, NULL );
+			rc = slap_sort_csn_sids( si->si_cookie.ctxcsn, si->si_cookie.sids, si->si_cookie.numcsns, NULL );
 			if (rc)
 				goto out;
 		}
 		overlay_entry_release_ov( op, e, 0, on );
 	}
 
-	if ( !SLAP_DBCLEAN( be ) && (si->si_ctxcsn || reopenldap_mode_iddqd())) {
+	if ( !SLAP_DBCLEAN( be ) && (si->si_cookie.ctxcsn || reopenldap_mode_iddqd())) {
 		ldap_pvt_thread_t tid;
 
 		op->o_tag = LDAP_REQ_SEARCH;
@@ -3320,50 +3304,50 @@ syncprov_db_open(
 	}
 
 	/* Didn't find a contextCSN, should we generate one? */
-	if ( reopenldap_mode_iddqd() && slap_serverID
-	&& ( SLAP_MULTIMASTER( op->o_bd ) || SLAP_GLUE_SUBORDINATE( op->o_bd ))) {
-		rc = slap_csn_stub_self( &si->si_ctxcsn, &si->si_sids, &si->si_numcsns );
-		if (rc < 0)
-			goto out;
-		Debug( LDAP_DEBUG_SYNC, "syncprov: %s force stub-csn for self-sid %d\n",
-			   be->be_nsuffix->bv_val, slap_serverID );
-		/* make sure we do a checkpoint on close */
-		si->si_numops++;
-	}
 	rc = 0;
-
-	if ( !si->si_ctxcsn ) {
-		char csnbuf[ LDAP_PVT_CSNSTR_BUFSIZE ];
-		struct berval csn;
+	if ( !si->si_cookie.ctxcsn ) {
 
 		if ( slap_serverID || SLAP_SYNC_SHADOW( op->o_bd )) {
-		/* If we're also a consumer, then don't generate anything.
-		 * Wait for our provider to send it to us, or for a local
-		 * modify if we have multimaster.
-		 */
+			/* If we're also a consumer, then don't generate anything.
+			 * Wait for our provider to send it to us, or for a local
+			 * modify if we have multimaster.
+			 */
 			goto out;
 		}
-		csn.bv_val = csnbuf;
-		csn.bv_len = sizeof( csnbuf );
-		slap_get_csn( op, &csn, 0 );
-		value_add_one( &si->si_ctxcsn, &csn );
-		si->si_numcsns = 1;
-		si->si_sids = ch_malloc( sizeof(int) );
-		si->si_sids[0] = slap_serverID;
+
+		if ( reopenldap_mode_iddqd() ) {
+			rc = slap_csn_stub_self( &si->si_cookie.ctxcsn, &si->si_cookie.sids, &si->si_cookie.numcsns );
+			if (rc < 0)
+				goto out;
+			Debug( LDAP_DEBUG_SYNC, "syncprov: %s force stub-csn for self-sid %d\n",
+				be->be_nsuffix->bv_val, slap_serverID );
+			rc = 0;
+		} else {
+			char csnbuf[ LDAP_PVT_CSNSTR_BUFSIZE ];
+			struct berval csn;
+
+			csn.bv_val = csnbuf;
+			csn.bv_len = sizeof( csnbuf );
+			slap_get_csn( op, &csn, 0 );
+			value_add_one( &si->si_cookie.ctxcsn, &csn );
+			si->si_cookie.numcsns = 1;
+			si->si_cookie.sids = ch_malloc( sizeof(int) );
+			si->si_cookie.sids[0] = slap_serverID;
+		}
 
 		/* make sure we do a checkpoint on close */
 		si->si_numops++;
 	}
 
 	/* Initialize the sessionlog mincsn */
-	if ( si->si_logs && si->si_numcsns ) {
+	if ( si->si_logs && si->si_cookie.numcsns ) {
 		sessionlog *sl = si->si_logs;
 		int i;
-		ber_bvarray_dup_x( &sl->sl_mincsn, si->si_ctxcsn, NULL );
-		sl->sl_numcsns = si->si_numcsns;
-		sl->sl_sids = ch_malloc( si->si_numcsns * sizeof(int) );
-		for ( i=0; i < si->si_numcsns; i++ )
-			sl->sl_sids[i] = si->si_sids[i];
+		ber_bvarray_dup_x( &sl->sl_cookie.ctxcsn, si->si_cookie.ctxcsn, NULL );
+		sl->sl_cookie.numcsns = si->si_cookie.numcsns;
+		sl->sl_cookie.sids = ch_malloc( si->si_cookie.numcsns * sizeof(int) );
+		for ( i=0; i < si->si_cookie.numcsns; i++ )
+			sl->sl_cookie.sids[i] = si->si_cookie.sids[i];
 	}
 
 out:
@@ -3497,18 +3481,18 @@ syncprov_db_destroy(
 				ch_free( se );
 				se = se_next;
 			}
-			if ( sl->sl_mincsn )
-				ber_bvarray_free( sl->sl_mincsn );
-			if ( sl->sl_sids )
-				ch_free( sl->sl_sids );
+			if ( sl->sl_cookie.ctxcsn )
+				ber_bvarray_free( sl->sl_cookie.ctxcsn );
+			if ( sl->sl_cookie.sids )
+				ch_free( sl->sl_cookie.sids );
 
 			ldap_pvt_thread_mutex_destroy(&si->si_logs->sl_mutex);
 			ch_free( si->si_logs );
 		}
-		if ( si->si_ctxcsn )
-			ber_bvarray_free( si->si_ctxcsn );
-		if ( si->si_sids )
-			ch_free( si->si_sids );
+		if ( si->si_cookie.ctxcsn )
+			ber_bvarray_free( si->si_cookie.ctxcsn );
+		if ( si->si_cookie.sids )
+			ch_free( si->si_cookie.sids );
 
 		ldap_pvt_thread_mutex_destroy( &si->si_resp_mutex );
 		ldap_pvt_thread_mutex_destroy( &si->si_mods_mutex );
@@ -3616,6 +3600,9 @@ static int syncprov_parseCtrl (
 				sr->sr_state.ctxcsn = NULL;
 			}
 			sr->sr_state.numcsns = 0;
+
+			if (reopenldap_mode_idclip())
+				return LDAP_PROTOCOL_ERROR;
 		}
 	}
 

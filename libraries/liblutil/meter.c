@@ -22,6 +22,7 @@
 #include "lutil_meter.h"
 
 #include <ac/string.h>
+#include <ac/time.h>
 
 int
 lutil_time_string (
@@ -76,21 +77,12 @@ lutil_time_string (
 int
 lutil_get_now (double *now)
 {
-#ifdef HAVE_GETTIMEOFDAY
-	struct timeval tv;
+	struct timespec tv;
 
 	assert( now );
-	gettimeofday( &tv, NULL );
-	*now = ((double) tv.tv_sec) + (((double) tv.tv_usec) / 1000000.0);
+	ldap_timespec( &tv );
+	*now = ((double) tv.tv_sec) + (((double) tv.tv_nsec) / 1000000000.0);
 	return 0;
-#else
-	time_t tm;
-
-	assert( now );
-	time( &tm );
-	*now = (double) tm;
-	return 0;
-#endif
 }
 
 int

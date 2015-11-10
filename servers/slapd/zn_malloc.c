@@ -905,13 +905,13 @@ slap_timediff(struct timeval *tv_begin, struct timeval *tv_end)
 void
 slap_set_timing(struct timeval *tv_set)
 {
-	gettimeofday(tv_set, (struct timezone *)NULL);
+	ldap_timeval(tv_set);
 }
 
 int
 slap_measure_timing(struct timeval *tv_set, struct timeval *tv_measure)
 {
-	gettimeofday(tv_measure, (struct timezone *)NULL);
+	ldap_timeval(tv_measure);
 	return(slap_timediff(tv_set, tv_measure));
 }
 

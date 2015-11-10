@@ -589,4 +589,79 @@ void slap_backtrace_set_enable( int value )
 	}
 }
 
+void slap_backtrace_debug() {
+	void *array[42];
+	size_t size, i;
+	char name_buf[PATH_MAX];
+	char **bt_glibc;
+
+	/* get all entries on the stack */
+	size = backtrace(array, 42);
+
+	bt_glibc = backtrace_symbols(array, size);
+	if (bt_glibc) {
+		lutil_debug_print("*** Backtrace by glibc:\n");
+		for(i = 0; i < size; i++)
+			lutil_debug_print("(%zd) %s\n", i, bt_glibc[i]);
+		free(bt_glibc);
+	}
+
+	int n = readlink("/proc/self/exe", name_buf, sizeof(name_buf) - 1);
+	if (n < 0) {
+		lutil_debug_print("*** Unable read executable name: %s\n", STRERROR(errno));
+		return;
+	}
+	name_buf[n] = 0;
+
+	int to_addr2line[2], from_addr2line[2];
+	if (pipe(to_addr2line)|| pipe(from_addr2line)) {
+		lutil_debug_print("*** Unable complete backtrace by addr2line, sorry (%s, %d).\n", "pipe", errno);
+		return;
+	}
+
+	int child_pid = fork();
+	if (child_pid == 0) {
+		dup2(to_addr2line[0], STDIN_FILENO);
+		close(to_addr2line[0]);
+		close(to_addr2line[1]);
+
+		dup2(from_addr2line[1], STDOUT_FILENO);
+		close(from_addr2line[0]);
+		close(from_addr2line[1]);
+
+		execlp("addr2line", "addr2line", "-C", "-f", "-i",
+			   "-p", /* LY: not available on RHEL6 */
+			   "-e", name_buf, NULL);
+		exit(errno);
+	}
+
+	close(to_addr2line[0]);
+	close(from_addr2line[1]);
+
+	if (child_pid < 0) {
+		lutil_debug_print("*** Unable complete backtrace by addr2line, sorry (%s, %d).\n", "fork", errno);
+		close(to_addr2line[1]);
+		close(from_addr2line[0]);
+		return;
+	}
+
+	FILE* file = fdopen(from_addr2line[0], "r");
+	lutil_debug_print("*** Backtrace by addr2line:\n");
+	for(i = 0; i < size; ++i) {
+		char addr_buf[1024];
+
+		dprintf(to_addr2line[1], "%p\n", array[i]);
+		if (! fgets(addr_buf, sizeof(addr_buf), file))
+			break;
+		lutil_debug_print("(%zd) %s", i, addr_buf);
+	}
+
+	close(to_addr2line[1]);
+	close(from_addr2line[0]);
+
+	int status = 0;
+	if (waitpid(child_pid, &status, 0) < 0 || status != W_EXITCODE(EXIT_SUCCESS, 0))
+		lutil_debug_print("*** Unable complete backtrace by addr2line, sorry (%s, %d).\n", "wait", status ? status : errno);
+}
+
 #endif /* __linux__ */

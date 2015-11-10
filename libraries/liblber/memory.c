@@ -26,7 +26,7 @@
 
 /* LY: With respect to http://en.wikipedia.org/wiki/Fail-fast */
 #if ! LDAP_MEMORY_DEBUG
-#	define BER_MEM_VALID(p) do {} while(0)
+#	define BER_MEM_VALID(p) __noop()
 #else
 /*
  * LDAP_MEMORY_DEBUG should be enabled for properly memory handling,
@@ -43,7 +43,8 @@
  *
  */
 #	include <lber_hipagut.h>
-#	define BER_MEM_VALID(p) lber_hug_memchk_ensure(p)
+#	define BER_MEM_VALID(p) lber_hug_memchk_ensure(p, 0)
+#	define LIBC_MEM_TAG 0x71BC
 #endif /* LDAP_MEMORY_DEBUG */
 
 BerMemoryFunctions *ber_int_memory_fns = NULL;
@@ -55,11 +56,9 @@ ber_memfree_x( void *p, void *ctx )
 		return;
 	}
 
-	BER_MEM_VALID( p );
-
 	if( ber_int_memory_fns == NULL || ctx == NULL ) {
 #if LDAP_MEMORY_DEBUG > 0
-		p = lber_hug_memchk_drown(p);
+		p = lber_hug_memchk_drown(p, LIBC_MEM_TAG);
 #ifdef LDAP_MEMORY_TRACE
 		struct lber_hug_memchk *mh = p;
 		fprintf(stderr, "%p.%zu -f- %zu ber_memfree %zu\n",
@@ -127,7 +126,8 @@ ber_memalloc_x( ber_len_t s, void *ctx )
 
 #if LDAP_MEMORY_DEBUG > 0
 		if (p) {
-			p = lber_hug_memchk_setup(p, s, LBER_HUG_POISON_DEFAULT);
+			p = lber_hug_memchk_setup(p, s,
+				LIBC_MEM_TAG, LBER_HUG_POISON_DEFAULT);
 #ifdef LDAP_MEMORY_TRACE
 			struct lber_hug_memchk *mh = LBER_HUG_CHUNK(p);
 			fprintf(stderr, "%p.%zu -a- %zu ber_memalloc %zu\n",
@@ -193,7 +193,8 @@ ber_memcalloc_x( ber_len_t n, ber_len_t s, void *ctx )
 
 #if LDAP_MEMORY_DEBUG > 0
 		if (p) {
-			p = lber_hug_memchk_setup(p, payload_bytes, LBER_HUG_POISON_CALLOC_ALREADY);
+			p = lber_hug_memchk_setup(p, payload_bytes,
+				LIBC_MEM_TAG, LBER_HUG_POISON_CALLOC_ALREADY);
 #ifdef LDAP_MEMORY_TRACE
 			struct lber_hug_memchk *mh = LBER_HUG_CHUNK(p);
 			fprintf(stderr, "%p.%zu -a- %zu ber_memcalloc %zu\n",
@@ -236,8 +237,6 @@ ber_memrealloc_x( void* p, ber_len_t s, void *ctx )
 		return NULL;
 	}
 
-	BER_MEM_VALID( p );
-
 	if( ber_int_memory_fns == NULL || ctx == NULL ) {
 		size_t bytes = s;
 
@@ -250,7 +249,7 @@ ber_memrealloc_x( void* p, ber_len_t s, void *ctx )
 			ber_errno = LBER_ERROR_MEMORY;
 			return NULL;
 		}
-		undo_key = lber_hug_realloc_begin(p, &old_size);
+		undo_key = lber_hug_realloc_begin(p, LIBC_MEM_TAG, &old_size);
 		p = LBER_HUG_CHUNK(p);
 #endif /* LDAP_MEMORY_DEBUG */
 
@@ -258,7 +257,7 @@ ber_memrealloc_x( void* p, ber_len_t s, void *ctx )
 
 #if LDAP_MEMORY_DEBUG > 0
 		if (p) {
-			p = lber_hug_realloc_commit(old_size, p, s);
+			p = lber_hug_realloc_commit(old_size, p, LIBC_MEM_TAG, s);
 #ifdef LDAP_MEMORY_TRACE
 			struct lber_hug_memchk *mh = LBER_HUG_CHUNK(p);
 			fprintf(stderr, "%p.%zu -a- %zu ber_memrealloc %zu\n",
@@ -266,7 +265,7 @@ ber_memrealloc_x( void* p, ber_len_t s, void *ctx )
 				lber_hug_memchk_info.mi_inuse_bytes);
 #endif
 		} else {
-			lber_hug_realloc_undo(p, undo_key);
+			lber_hug_realloc_undo(p, LIBC_MEM_TAG, undo_key);
 		}
 #endif /* LDAP_MEMORY_DEBUG */
 

@@ -830,7 +830,7 @@ static ConfigTable config_back_cf_table[] = {
 		&config_biglock, "( OLcfgDbAt:0.45 NAME 'olcBiglock' "
 			"DESC 'Synchronuzation mode for suffix/database' "
 			"SYNTAX OMsDirectoryString SINGLE-VALUE )", NULL, NULL },
-	{ "reopenldap", "[iddqd] [idkfa] [jitter]", 0, 0, 0, ARG_MAGIC,
+	{ "reopenldap", "[iddqd] [idkfa] [idclip] [jitter]", 0, 0, 0, ARG_MAGIC,
 		&config_reopenldap, "( OLcfgGlAt:0.46 NAME 'olcReOpenLDAP' "
 			"DESC 'ReOpenLDAP cheating flags' "
 			"EQUALITY caseIgnoreMatch "
@@ -3415,6 +3415,7 @@ config_reopenldap(ConfigArgs *c)
 	static const slap_verbmasks reopenldap_ops[] = {
 		{ BER_BVC("iddqd"),		REOPENLDAP_FLAG_IDDQD },
 		{ BER_BVC("idkfa"),		REOPENLDAP_FLAG_IDKFA },
+		{ BER_BVC("idclip"),	REOPENLDAP_FLAG_IDCLIP },
 		{ BER_BVC("jitter"),	REOPENLDAP_FLAG_JITTER },
 		{ BER_BVNULL,	0 }
 	};

@@ -59,7 +59,6 @@ extern int h_errno;
 # include <ldap_pvt_thread.h>
   ldap_pvt_thread_mutex_t ldap_int_resolv_mutex;
   ldap_pvt_thread_mutex_t ldap_int_hostname_mutex;
-  static ldap_pvt_thread_mutex_t ldap_int_gettime_mutex;
 
 # if (defined( HAVE_CTIME_R ) || defined( HAVE_REENTRANT_FUNCTIONS)) \
 	 && defined( CTIME_R_NARGS )
@@ -174,8 +173,6 @@ ldap_pvt_localtime( const time_t *timep, struct tm *result )
 }
 #endif /* !USE_LOCALTIME_R */
 
-static int _ldap_pvt_gt_subs;
-
 #ifdef _WIN32
 /* Windows SYSTEMTIME only has 10 millisecond resolution, so we
  * also need to use a high resolution timer to get microseconds.
@@ -184,6 +181,7 @@ static int _ldap_pvt_gt_subs;
 static LARGE_INTEGER _ldap_pvt_gt_freq;
 static LARGE_INTEGER _ldap_pvt_gt_prev;
 static int _ldap_pvt_gt_offset;
+static int _ldap_pvt_gt_subs;
 
 #define SEC_TO_UNIX_EPOCH 11644473600LL
 #define TICKS_PER_SECOND 10000000
@@ -266,7 +264,6 @@ ldap_pvt_gettimeusec(int *sec)
 	*sec = count.QuadPart / 1000000;
 	return count.QuadPart % 1000000;
 }
-
 
 /* emulate POSIX gettimeofday */
 int
@@ -355,36 +352,18 @@ ldap_pvt_gettime( struct lutil_tm *tm )
 		}
 	}
 }
-#else
+#else /* _WIN32 */
 
-static struct timeval _ldap_pvt_gt_prevTv;
-
+/* return a broken out time, with microseconds
+ */
 void
 ldap_pvt_gettime( struct lutil_tm *ltm )
 {
 	struct timeval tv;
-
 	struct tm tm;
-	time_t t;
 
-	gettimeofday( &tv, NULL );
-	t = tv.tv_sec;
-
-	LDAP_MUTEX_LOCK( &ldap_int_gettime_mutex );
-	if ( tv.tv_sec < _ldap_pvt_gt_prevTv.tv_sec
-		|| ( tv.tv_sec == _ldap_pvt_gt_prevTv.tv_sec
-		&& tv.tv_usec <= _ldap_pvt_gt_prevTv.tv_usec )) {
-		_ldap_pvt_gt_subs++;
-	} else {
-		_ldap_pvt_gt_subs = 0;
-		_ldap_pvt_gt_prevTv = tv;
-	}
-	LDAP_MUTEX_UNLOCK( &ldap_int_gettime_mutex );
-
-	ltm->tm_usub = _ldap_pvt_gt_subs;
-
-	ldap_pvt_gmtime( &t, &tm );
-
+	ltm->tm_usub = ldap_timeval( &tv );
+	ldap_pvt_gmtime( &tv.tv_sec, &tm );
 	ltm->tm_sec = tm.tm_sec;
 	ltm->tm_min = tm.tm_min;
 	ltm->tm_hour = tm.tm_hour;
@@ -393,7 +372,7 @@ ldap_pvt_gettime( struct lutil_tm *ltm )
 	ltm->tm_year = tm.tm_year;
 	ltm->tm_usec = tv.tv_usec;
 }
-#endif
+#endif /* _WIN32 */
 
 size_t
 ldap_pvt_csnstr(char *buf, size_t len, unsigned int replica, unsigned int mod)
@@ -707,8 +686,6 @@ void ldap_int_utils_init( void )
 	ldap_pvt_thread_mutex_init( &ldap_int_resolv_mutex );
 
 	ldap_pvt_thread_mutex_init( &ldap_int_hostname_mutex );
-
-	ldap_pvt_thread_mutex_init( &ldap_int_gettime_mutex );
 
 #ifdef HAVE_GSSAPI
 	ldap_pvt_thread_mutex_init( &ldap_int_gssapi_mutex );

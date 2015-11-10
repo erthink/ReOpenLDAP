@@ -52,7 +52,7 @@ mkdir -p $TESTDIR $DBDIR1 $DBDIR2
 
 echo "Starting master slapd on TCP/IP port $PORT1..."
 . $CONFFILTER $BACKEND $MONITORDB < $SRMASTERCONF > $CONF1
-$SLAPD -f $CONF1 -h $URI1 -d $LVL $TIMING > $LOG1 2>&1 &
+$SLAPD -f $CONF1 -h $URI1 $TIMING > $LOG1 2>&1 &
 MASTERPID=$!
 if test $WAIT != 0 ; then
     echo MASTERPID $MASTERPID
@@ -73,7 +73,7 @@ fi
 
 echo "Starting slave slapd on TCP/IP port $PORT2..."
 . $CONFFILTER $BACKEND $MONITORDB < $RSLAVECONF > $CONF2
-$SLAPD -f $CONF2 -h $URI2 -d $LVL $TIMING > $LOG2 2>&1 &
+$SLAPD -f $CONF2 -h $URI2 $TIMING > $LOG2 2>&1 &
 SLAVEPID=$!
 if test $WAIT != 0 ; then
     echo SLAVEPID $SLAVEPID
@@ -84,7 +84,7 @@ check_running 2 slave
 
 echo "Starting proxy slapd on TCP/IP port $PORT3..."
 . $CONFFILTER $BACKEND $MONITORDB < $PLSRSLAVECONF > $CONF3
-$SLAPD -f $CONF3 -h $URI3 -d $LVL $TIMING > $LOG3 2>&1 &
+$SLAPD -f $CONF3 -h $URI3 $TIMING > $LOG3 2>&1 &
 PROXYPID=$!
 if test $WAIT != 0 ; then
     echo PROXYPID $PROXYPID
@@ -185,7 +185,7 @@ kill -HUP $MASTERPID && safewait $MASTERPID && echo " Done" || echo " Failure ($
 sleep $SLEEP1
 
 echo "======================= RESTART =======================" >> $LOG1
-$SLAPD -f $CONF1 -h $URI1 -d $LVL $TIMING >> $LOG1 2>&1 &
+$SLAPD -f $CONF1 -h $URI1 $TIMING >> $LOG1 2>&1 &
 MASTERPID=$!
 if test $WAIT != 0 ; then
     echo MASTERPID $MASTERPID
@@ -360,7 +360,7 @@ EOMODS
 
 echo "Restarting proxy..."
 echo "======================= RESTART =======================" >> $LOG3
-$SLAPD -f $CONF3 -h $URI3 -d $LVL $TIMING >> $LOG3 2>&1 &
+$SLAPD -f $CONF3 -h $URI3 $TIMING >> $LOG3 2>&1 &
 PROXYPID=$!
 if test $WAIT != 0 ; then
     echo PROXYPID $PROXYPID
@@ -504,7 +504,7 @@ sleep 3
 
 echo "Restarting consumer..."
 echo "======================= RESTART =======================" >> $LOG2
-$SLAPD -f $CONF2 -h $URI2 -d $LVL $TIMING >> $LOG2 2>&1 &
+$SLAPD -f $CONF2 -h $URI2 $TIMING >> $LOG2 2>&1 &
 SLAVEPID=$!
 if test $WAIT != 0 ; then
     echo SLAVEPID $SLAVEPID
@@ -570,7 +570,7 @@ if test $? != 0 ; then
 
 	echo "	${CHECK}.1 > Restarting proxy..."
 	echo "======================= RESTART =======================" >> $LOG3
-	$SLAPD -f $CONF3 -h $URI3 -d $LVL $TIMING >> $LOG3 2>&1 &
+	$SLAPD -f $CONF3 -h $URI3 $TIMING >> $LOG3 2>&1 &
 	PROXYPID=$!
 	if test $WAIT != 0 ; then
 		echo PROXYPID $PROXYPID

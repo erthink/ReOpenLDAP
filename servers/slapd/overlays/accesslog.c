@@ -1849,7 +1849,6 @@ static int accesslog_response(Operation *op, SlapReply *rs) {
 	if (( lo->mask & LOG_OP_WRITES ) && !BER_BVISEMPTY( &op->o_csn )) {
 		struct berval maxcsn;
 		char cbuf[LDAP_PVT_CSNSTR_BUFSIZE];
-		int foundit;
 		cbuf[0] = '\0';
 		maxcsn.bv_val = cbuf;
 		maxcsn.bv_len = sizeof(cbuf);
@@ -1857,8 +1856,9 @@ static int accesslog_response(Operation *op, SlapReply *rs) {
 		 * we must propagate it to the log DB for its
 		 * own syncprov. Otherwise, don't generate one.
 		 */
-		slap_get_commit_csn( op, &maxcsn, &foundit );
+		slap_get_commit_csn( op, &maxcsn );
 		if ( !BER_BVISEMPTY( &maxcsn ) ) {
+			BER_BVZERO( &op2.o_csn );
 			slap_queue_csn( &op2, &op->o_csn );
 			do_graduate = 1;
 		} else {

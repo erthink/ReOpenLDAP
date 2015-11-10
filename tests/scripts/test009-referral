@@ -32,7 +32,7 @@ if test $RC != 0 ; then
 fi
 
 echo "Starting master slapd on TCP/IP port $PORT1..."
-$SLAPD -n master -f $CONF1 -h $URI1 -d $LVL $TIMING > $LOG1 2>&1 &
+$SLAPD -n master -f $CONF1 -h $URI1 $TIMING > $LOG1 2>&1 &
 PID=$!
 if test $WAIT != 0 ; then
     echo PID $PID
@@ -41,7 +41,7 @@ fi
 
 echo "Starting slave slapd on TCP/IP port $PORT2..."
 . $CONFFILTER $BACKEND $MONITORDB < $REFSLAVECONF > $CONF2
-$SLAPD -n slave -f $CONF2 -h $URI2 -d $LVL $TIMING > $LOG2 2>&1 &
+$SLAPD -n slave -f $CONF2 -h $URI2 $TIMING > $LOG2 2>&1 &
 SLAVEPID=$!
 if test $WAIT != 0 ; then
     echo SLAVEPID $SLAVEPID
