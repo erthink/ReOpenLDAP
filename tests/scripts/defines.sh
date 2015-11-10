@@ -219,10 +219,11 @@ else
 	SLEEP2=${SLEEP2-15}
 fi
 
-SLAPADD="$TIMEOUT_S $VALGRIND $TESTWD/../servers/slapd/slapd -Ta -d 0 $LDAP_VERBOSE"
-SLAPCAT="$TIMEOUT_S $VALGRIND $TESTWD/../servers/slapd/slapd -Tc -d 0 $LDAP_VERBOSE"
-SLAPINDEX="$TIMEOUT_S $VALGRIND $TESTWD/../servers/slapd/slapd -Ti -d 0 $LDAP_VERBOSE"
-SLAPMODIFY="$TIMEOUT_S $VALGRIND $TESTWD/../servers/slapd/slapd -Tm -d 0 $LDAP_VERBOSE"
+SLAP_VERBOSE=${SLAP_VERBOSE-none}
+SLAPADD="$TIMEOUT_S $VALGRIND $TESTWD/../servers/slapd/slapd -Ta -d $SLAP_VERBOSE"
+SLAPCAT="$TIMEOUT_S $VALGRIND $TESTWD/../servers/slapd/slapd -Tc -d $SLAP_VERBOSE"
+SLAPINDEX="$TIMEOUT_S $VALGRIND $TESTWD/../servers/slapd/slapd -Ti -d $SLAP_VERBOSE"
+SLAPMODIFY="$TIMEOUT_S $VALGRIND $TESTWD/../servers/slapd/slapd -Tm -d $SLAP_VERBOSE"
 SLAPPASSWD="$TIMEOUT_S $VALGRIND $TESTWD/../servers/slapd/slapd -Tpasswd"
 
 unset DIFF_OPTIONS

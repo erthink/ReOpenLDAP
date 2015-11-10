@@ -515,7 +515,7 @@ for retry in 1 2 3 4 last; do
 			killservers
 			exit $RC
 		fi
-		$LDIFFILTER -s $BACKEND=a < $TESTDIR/server$n.out > $TESTDIR/server$n.flt
+		$LDIFFILTER -s a < $TESTDIR/server$n.out > $TESTDIR/server$n.flt
 		n=`expr $n + 1`
 	done
 

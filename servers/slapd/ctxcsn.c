@@ -51,12 +51,12 @@ slap_get_commit_csn(
 	BackendDB *be = op->o_bd->bd_self;
 	int sid = -1;
 
-	ldap_pvt_thread_mutex_lock( &be->be_pcl_mutex );
-
 	if ( !BER_BVISEMPTY( &op->o_csn )) {
 		sid = slap_parse_csn_sid( &op->o_csn );
 		assert( sid >= 0 );
 	}
+
+	ldap_pvt_thread_mutex_lock( &be->be_pcl_mutex );
 
 	LDAP_TAILQ_FOREACH( csne, be->be_pending_csn_list, ce_csn_link ) {
 		if ( csne->ce_opid == op->o_opid && csne->ce_connid == op->o_connid ) {
