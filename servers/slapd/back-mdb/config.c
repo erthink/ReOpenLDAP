@@ -500,7 +500,7 @@ mdb_cf_gen( ConfigArgs *c )
 
 		case MDB_OOMFLAGS:
 			mdb->mi_oom_flags = 0;
-			mdb_env_set_oomfunc( mdb->mi_dbenv, NULL );
+			mdbx_env_set_oomfunc( mdb->mi_dbenv, NULL );
 			break;
 
 		case MDB_INDEX:
@@ -752,7 +752,7 @@ mdb_cf_gen( ConfigArgs *c )
 		}
 		}
 		if ( mdb->mi_flags & MDB_IS_OPEN )
-			mdb_env_set_oomfunc( mdb->mi_dbenv, mdb_oom_handler );
+			mdbx_env_set_oomfunc( mdb->mi_dbenv, mdb_oom_handler );
 		break;
 
 	case MDB_INDEX:

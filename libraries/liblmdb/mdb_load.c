@@ -17,7 +17,7 @@
 #include <string.h>
 #include <ctype.h>
 #include <unistd.h>
-#include "lmdb.h"
+#include "mdbx.h"
 
 #define PRINT	1
 #define NOHDR	2
@@ -282,7 +282,7 @@ badend:
 
 static void usage(void)
 {
-	fprintf(stderr, "usage: %s dbpath [-V] [-f input] [-n] [-s name] [-N] [-T]\n", prog);
+	fprintf(stderr, "usage: %s [-V] [-f input] [-n] [-s name] [-N] [-T] dbpath\n", prog);
 	exit(EXIT_FAILURE);
 }
 

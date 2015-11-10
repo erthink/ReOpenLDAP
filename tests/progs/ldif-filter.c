@@ -21,6 +21,9 @@
 #include <ac/stdlib.h>
 #include <ac/string.h>
 #include <ac/unistd.h>
+#ifdef _WIN32
+#include <fcntl.h>
+#endif
 
 #define DEFAULT_SPECS "ndb=a,null=n"
 
@@ -56,15 +59,21 @@ get_flags( const char *backend, const char *spec )
 {
 	size_t len = strlen( backend );
 	unsigned flags = DUMMY_FLAG;
-	const char *tmp;
+	const char *end, *tmp;
 
-	while ( '=' != *(spec += strncmp( spec, backend, len ) ? 0 : len) ) {
-		if ( (spec = strchr( spec, ',' )) == NULL ) {
+	for ( ;; spec = end + ( *end != '\0' )) {
+		if ( !*spec )
 			return 0;
+		end = spec + strcspn( spec, "," );
+		if ( !(tmp = memchr( spec, '=', end-spec )))
+			break;
+		if ( tmp-spec == len && !memcmp( spec, backend, len )) {
+			spec = tmp+1;
+			break;
 		}
-		++spec;
 	}
-	while ( *++spec && *spec != ',' ) {
+
+	for ( ; spec < end; spec++ ) {
 		if ( (tmp = strchr( spec_options, *spec )) == NULL ) {
 			usage();
 		}
@@ -233,6 +242,9 @@ main( int argc, char **argv )
 		backend = "";
 	}
 
+#ifdef _WIN32
+	_setmode(1, _O_BINARY);	/* don't convert \n to \r\n on stdout */
+#endif
 	flags = get_flags( backend, specs );
 	filter_stdin( flags ? flags : get_flags( backend, DEFAULT_SPECS ));
 	if ( fclose( stdout ) == EOF ) {
