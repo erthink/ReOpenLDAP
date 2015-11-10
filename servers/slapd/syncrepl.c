@@ -2566,7 +2566,7 @@ static int check_for_retard(syncinfo_t *si, struct sync_cookie *sc,
 			origin = slap_csn_get_sid(csn_incomming);
 			for(i = 0; i < si->si_syncCookie.numcsns; ++i) {
 				if (origin == si->si_syncCookie.sids[i]) {
-					if (slap_csn_compare_ts(csn_incomming, &si->si_syncCookie.ctxcsn[i]) <= 0)
+					if (slap_csn_compare_ts(csn_incomming, &si->si_syncCookie.ctxcsn[i]) < 0)
 						/* LY: It is an "echo" of the notification from this server. */
 						rc |= RETARD_ECHO;
 					break;
@@ -2588,7 +2588,7 @@ static int check_for_retard(syncinfo_t *si, struct sync_cookie *sc,
 				rc |= RETARD_ALTER;
 				for(i = 0; i < sc->numcsns; ++i) {
 					if (origin == sc->sids[i]) {
-						if (slap_csn_compare_ts(csn_present, &sc->ctxcsn[i]) < 0)
+						if (slap_csn_compare_ts(csn_present, &sc->ctxcsn[i]) <= 0)
 							rc &= ~RETARD_ALTER;
 						break;
 					}
@@ -2599,7 +2599,7 @@ static int check_for_retard(syncinfo_t *si, struct sync_cookie *sc,
 
 	if (csn_present && csn_present->bv_len > 31
 			&& csn_incomming && csn_incomming->bv_len > 31) {
-		if (slap_csn_compare_ts(csn_present, csn_incomming) >= 0)
+		if (slap_csn_compare_ts(csn_present, csn_incomming) > 0)
 			rc |= RETARD_UPDATE;
 	}
 
