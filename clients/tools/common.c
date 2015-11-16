@@ -254,6 +254,11 @@ tool_destroy( void )
 	ldap_pvt_tls_destroy();
 #endif
 
+	if ( ldaphost != NULL ) {
+		ber_memfree( ldaphost );
+		ldaphost = NULL;
+	}
+
 	if ( ldapuri != NULL ) {
 		ber_memfree( ldapuri );
 		ldapuri = NULL;
