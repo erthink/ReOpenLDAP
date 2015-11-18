@@ -2882,8 +2882,12 @@ presentlist_delete(
 		presentlist_t *list,
 		struct berval *uuid )
 {
-	if (likely(list->opacity))
-		avl_delete( presentlist_avl(list, uuid), uuid->bv_val, syncuuid_cmp );
+	if (likely(list->opacity)) {
+		void *p;
+		p = avl_delete( presentlist_avl(list, uuid), uuid->bv_val, syncuuid_cmp );
+		assert( p != NULL );
+		ch_free( p );
+	}
 }
 
 static struct berval generic_filterstr = BER_BVC("(objectclass=*)");
@@ -4506,7 +4510,6 @@ nonpresent_callback(
 				rs->sr_entry->e_name.bv_val,
 				"PRESENT" );
 			presentlist_delete( &si->si_presentlist, &uuid->a_nvals[0] );
-			ch_free( present_uuid );
 		} else {
 			if (! is_entry_glue( rs->sr_entry )) {
 				Attribute *csn_present = attr_find(
