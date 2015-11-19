@@ -317,9 +317,21 @@ static int
 bdb_get_nextid(struct bdb_info *bdb, DB_TXN *ltid, ID *cursor)
 {
 	DBC *curs;
-	DBT key, data;
 	ID id, nid;
 	int rc;
+
+	DBT key = {
+		.data = &nid,
+		.size = sizeof(ID),
+		.ulen = sizeof(ID),
+		.flags = DB_DBT_USERMEM
+	};
+
+	DBT data = {
+		.dlen = 0,
+		.ulen = 0,
+		.flags = DB_DBT_USERMEM | DB_DBT_PARTIAL
+	};
 
 	id = *cursor + 1;
 	BDB_ID2DISK( id, &nid );
@@ -327,11 +339,6 @@ bdb_get_nextid(struct bdb_info *bdb, DB_TXN *ltid, ID *cursor)
 		bdb->bi_id2entry->bdi_db, ltid, &curs, bdb->bi_db_opflags );
 	if ( rc )
 		return rc;
-	key.data = &nid;
-	key.size = key.ulen = sizeof(ID);
-	key.flags = DB_DBT_USERMEM;
-	data.flags = DB_DBT_USERMEM | DB_DBT_PARTIAL;
-	data.dlen = data.ulen = 0;
 	rc = curs->c_get( curs, &key, &data, DB_SET_RANGE );
 	curs->c_close( curs );
 	if ( rc )
