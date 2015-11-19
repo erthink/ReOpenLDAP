@@ -3482,6 +3482,15 @@ config_extra_attrs(ConfigArgs *c)
 
 static slap_verbmasks	*loglevel_ops;
 
+static void
+loglevel_destroy( void )
+{
+	if ( loglevel_ops ) {
+		(void)slap_verbmasks_destroy( loglevel_ops );
+	}
+	loglevel_ops = NULL;
+}
+
 static int
 loglevel_init( void )
 {
@@ -3508,16 +3517,12 @@ loglevel_init( void )
 		{ BER_BVNULL,		0 }
 	};
 
-	return slap_verbmasks_init( &loglevel_ops, lo );
-}
-
-static void
-loglevel_destroy( void )
-{
-	if ( loglevel_ops ) {
-		(void)slap_verbmasks_destroy( loglevel_ops );
+	if (atexit(loglevel_destroy)) {
+		perror("atexit(loglevel_destroy)");
+		abort();
 	}
-	loglevel_ops = NULL;
+
+	return slap_verbmasks_init( &loglevel_ops, lo );
 }
 
 static slap_mask_t	loglevel_ignore[] = { -1, 0 };
