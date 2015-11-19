@@ -14,6 +14,9 @@ flag_lto=1
 flag_O=-O2
 flag_clang=0
 flag_bdb=1
+flag_wt=0
+flag_ndb=1
+flag_memleak=0
 for arg in "$@"; do
 	case "$arg" in
 	--debug)
@@ -55,6 +58,27 @@ for arg in "$@"; do
 	--without-bdb)
 		flag_bdb=0
 		;;
+	--with-wt)
+		flag_wt=1
+		;;
+	--without-wt)
+		flag_wt=0
+		;;
+	--with-ndb)
+		flag_nbd=1
+		;;
+	--without-ndb)
+		flag_ndb=0
+		;;
+	--memleak)
+		flag_memleak=1
+		flag_ndb=0
+		flag_wt=0
+		flag_bdb=1
+		flag_lto=0
+		flag_check=1
+		flag_O=-Og
+		;;
 	*)
 		failure "unknown option '$arg'"
 		;;
@@ -63,22 +87,45 @@ done
 
 #======================================================================
 
+BACKENDS="--enable-backends"
+#if [ $flag_memleak -ne 0 ]; then
+#	BACKENDS="$BACKENDS --disable-perl"
+#fi
+
+#    --enable-bdb	  enable Berkeley DB backend no|yes|mod [yes]
+#    --enable-dnssrv	  enable dnssrv backend no|yes|mod [no]
+#    --enable-hdb	  enable Hierarchical DB backend no|yes|mod [yes]
+#    --enable-ldap	  enable ldap backend no|yes|mod [no]
+#    --enable-mdb	  enable mdb database backend no|yes|mod [yes]
+#    --enable-meta	  enable metadirectory backend no|yes|mod [no]
+#    --enable-monitor	  enable monitor backend no|yes|mod [yes]
+#    --enable-ndb	  enable MySQL NDB Cluster backend no|yes|mod [no]
+#    --enable-null	  enable null backend no|yes|mod [no]
+#    --enable-passwd	  enable passwd backend no|yes|mod [no]
+#    --enable-perl	  enable perl backend no|yes|mod [no]
+#    --enable-relay  	  enable relay backend no|yes|mod [yes]
+#    --enable-shell	  enable shell backend no|yes|mod [no]
+#    --enable-sock	  enable sock backend no|yes|mod [no]
+#    --enable-sql	  enable sql backend no|yes|mod [no]
+
 NBD="--disable-ndb"
-MYSQL_CLUSTER="$(find -L /opt /usr/local -maxdepth 2 -name 'mysql-cluster*' -type d | sort -r | head -1)"
-if [ -n "${MYSQL_CLUSTER}" -a -x ${MYSQL_CLUSTER}/bin/mysql_config ]; then
-	echo "MYSQL_CLUSTER	= ${MYSQL_CLUSTER}"
-	PATH=${MYSQL_CLUSTER}/bin:$PATH
-fi
-MYSQL_CONFIG="$(which mysql_config)"
-if [ -n "${MYSQL_CONFIG}" ]; then
-	echo "MYSQL_CONFIG	= ${MYSQL_CONFIG}"
-	MYSQL_NDB_API="$(${MYSQL_CONFIG} --include | sed 's|-I/|/|g')/storage/ndb/ndbapi/NdbApi.hpp"
-	if [ -s "${MYSQL_NDB_API}" ]; then
-		echo "MYSQL_NDB_API	= ${MYSQL_NDB_API}"
-		MYSQL_NDB_RPATH="$(${MYSQL_CONFIG} --libs_r | sed -n 's|-L\(/\S\+\)\s.*$|\1|p')"
-		echo "MYSQL_NDB_RPATH	= ${MYSQL_NDB_RPATH}"
-		LDFLAGS="-Xlinker -rpath=${MYSQL_NDB_RPATH}"
-		NBD="--enable-ndb"
+if [ $flag_ndb -ne 0 ]; then
+	MYSQL_CLUSTER="$(find -L /opt /usr/local -maxdepth 2 -name 'mysql-cluster*' -type d | sort -r | head -1)"
+	if [ -n "${MYSQL_CLUSTER}" -a -x ${MYSQL_CLUSTER}/bin/mysql_config ]; then
+		echo "MYSQL_CLUSTER	= ${MYSQL_CLUSTER}"
+		PATH=${MYSQL_CLUSTER}/bin:$PATH
+	fi
+	MYSQL_CONFIG="$(which mysql_config)"
+	if [ -n "${MYSQL_CONFIG}" ]; then
+		echo "MYSQL_CONFIG	= ${MYSQL_CONFIG}"
+		MYSQL_NDB_API="$(${MYSQL_CONFIG} --include | sed 's|-I/|/|g')/storage/ndb/ndbapi/NdbApi.hpp"
+		if [ -s "${MYSQL_NDB_API}" ]; then
+			echo "MYSQL_NDB_API	= ${MYSQL_NDB_API}"
+			MYSQL_NDB_RPATH="$(${MYSQL_CONFIG} --libs_r | sed -n 's|-L\(/\S\+\)\s.*$|\1|p')"
+			echo "MYSQL_NDB_RPATH	= ${MYSQL_NDB_RPATH}"
+			LDFLAGS="-Xlinker -rpath=${MYSQL_NDB_RPATH}"
+			NBD="--enable-ndb"
+		fi
 	fi
 fi
 
@@ -168,9 +215,10 @@ fi
 if [ ! -s Makefile ]; then
 	# autoscan && libtoolize --force --automake --copy && aclocal -I build && autoheader && autoconf && automake --add-missing --copy
 	./configure \
-			--enable-debug --enable-backends --enable-overlays $NBD \
+			--enable-debug $BACKENDS --enable-overlays $NBD \
 			--enable-rewrite --enable-dynacl --enable-aci --enable-slapi \
-			$([ $flag_bdb -eq 0 ] && echo "--disable-bdb --disable-hdb") \
+			$(if [ $flag_bdb -eq 0 ]; then echo "--disable-bdb --disable-hdb"; else echo "--enable-bdb --enable-hdb"; fi) \
+			$(if [ $flag_wt -eq 0 ]; then echo "--disable-wt"; else echo "--enable-wt"; fi) \
 		|| failure "configure"
 
 	find ./ -name Makefile | xargs -r sed -i 's/-Wall -g/-Wall -Werror -g/g' || failure "prepare"
