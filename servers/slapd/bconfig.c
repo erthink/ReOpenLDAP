@@ -3983,7 +3983,7 @@ config_include(ConfigArgs *c) {
 	}
 	cfn = cf;
 	ber_str2bv( c->argv[1], 0, 1, &cf->c_file );
-	rc = read_config_file(c->argv[1], c->depth + 1, c, config_back_cf_table);
+	rc = read_config_file(c->argv[1], c, config_back_cf_table);
 	c->lineno = savelineno - 1;
 	cfn = cfsave;
 	if ( rc ) {
@@ -4452,7 +4452,7 @@ read_config(const char *fname, const char *dir) {
 	else
 		cfname = SLAPD_DEFAULT_CONFIGFILE;
 
-	rc = read_config_file(cfname, 0, NULL, config_back_cf_table);
+	rc = read_config_file(cfname, NULL, config_back_cf_table);
 
 	if ( rc == 0 )
 		ber_str2bv( cfname, 0, 1, &cfb->cb_config->c_file );

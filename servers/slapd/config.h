@@ -199,7 +199,7 @@ int init_config_ocs( ConfigOCs *ocs );
 void config_parse_ldif( ConfigArgs *c );
 int config_parse_vals(ConfigTable *ct, ConfigArgs *c, int valx);
 int config_parse_add(ConfigTable *ct, ConfigArgs *c, int valx);
-int read_config_file(const char *fname, int depth, ConfigArgs *cf,
+int read_config_file(const char *fname, ConfigArgs *cf,
 	ConfigTable *cft );
 
 ConfigTable * config_find_keyword(ConfigTable *ct, ConfigArgs *c);
