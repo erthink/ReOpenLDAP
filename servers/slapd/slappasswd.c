@@ -38,8 +38,8 @@
 
 #include "ldap_defaults.h"
 #include "slap.h"
+#include "slapcommon.h"
 
-static int	verbose = 0;
 static char	*modulepath = NULL;
 static char	*moduleload = NULL;
 
@@ -106,7 +106,7 @@ slappasswd( int argc, char *argv[] )
 
 	char	*newpw = NULL;
 	char	*pwfile = NULL;
-	const char *text;
+	const char *text = NULL;
 	const char *progname = "slappasswd";
 
 	int		i;
@@ -126,7 +126,8 @@ slappasswd( int argc, char *argv[] )
 	{
 		switch (i) {
 		case 'c':	/* crypt salt format */
-			scheme = "{CRYPT}";
+			if (scheme == default_scheme)
+				scheme = ch_strdup("{CRYPT}");
 			lutil_salt_format( optarg );
 			break;
 
@@ -216,7 +217,8 @@ slappasswd( int argc, char *argv[] )
 #ifdef SLAPD_MODULES
 	if ( module_init() != 0 ) {
 		fprintf( stderr, "%s: module_init failed\n", progname );
-		return EXIT_FAILURE;
+		rc = EXIT_FAILURE;
+		goto destroy;
 	}
 
 	if ( modulepath && module_path(modulepath) ) {
@@ -231,6 +233,8 @@ slappasswd( int argc, char *argv[] )
 #endif
 
 	if( pwfile != NULL ) {
+		if (passwd.bv_val)
+			free(passwd.bv_val);
 		if( lutil_get_filed_password( pwfile, &passwd )) {
 			rc = EXIT_FAILURE;
 			goto destroy;
@@ -276,9 +280,18 @@ print_pw:;
 	printf( "%s%s" , hash.bv_val, newline );
 
 destroy:;
-#ifdef SLAPD_MODULES
-	module_kill();
-#endif
+	slap_tool_destroy();
+
+	if (text && text != passwd.bv_val && text != hash.bv_val)
+		free((void*) text);
+	if (scheme != default_scheme)
+		free(scheme);
+	if (passwd.bv_val)
+		free(passwd.bv_val);
+	if (hash.bv_val && hash.bv_val != passwd.bv_val)
+		free(hash.bv_val);
+	if (newpw && newpw != passwd.bv_val)
+		free(newpw );
 
 	return rc;
 }
