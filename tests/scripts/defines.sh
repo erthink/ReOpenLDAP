@@ -203,8 +203,11 @@ CONFFILTER=$SRCDIR/scripts/conf.sh
 
 MONITORDATA=$SRCDIR/scripts/monitor_data.sh
 
-#VALGRIND="valgrind --fair-sched=yes --log-socket=127.0.0.1:55555 --leak-check=full --track-origins=yes --trace-children=yes --suppressions=$TESTWD/scripts/valgrind.supp"
-# --gen-suppressions=yes
+#VALGRIND="valgrind --fair-sched=yes --quiet --log-socket=127.0.0.1:55555 \
+#	--error-markers=@ --leak-check=full --num-callers=41 --error-exitcode=43 \
+#	--gen-suppressions=no --track-origins=yes --show-leak-kinds=all \
+#	--trace-children=yes --suppressions=$TESTWD/scripts/valgrind.supp"
+
 if [ -z "$VALGRIND" -a -z "$CIBUZZ_PID4" ]; then
 	TIMEOUT_S="timeout -s SIGXCPU 30s"
 	TIMEOUT_L="timeout -s SIGXCPU 5m"
