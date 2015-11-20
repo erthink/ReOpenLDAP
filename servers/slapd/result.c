@@ -1494,6 +1494,8 @@ slap_send_search_reference( Operation *op, SlapReply *rs )
 	AttributeDescription *ad_ref = slap_schema.si_ad_ref;
 	AttributeDescription *ad_entry = slap_schema.si_ad_entry;
 
+	if ( rs->sr_ref && rs->sr_err == LDAP_SUCCESS )
+		rs->sr_err = LDAP_REFERRAL;
 	rs->sr_type = REP_SEARCHREF;
 	if ( op->o_callback ) {
 		rc = slap_response_play( op, rs );
