@@ -559,34 +559,36 @@ function collect_test {
 function wait_syncrepl {
 	local scope=${3:-base}
 	echo -n "Waiting while syncrepl replicates a changes (between $1 and $2)..."
-	sleep 0.1
+	sleep $SLEEP0
+	local t=$SLEEP0
 
-	for i in $(seq 1 150); do
+	for i in $(seq 1 100); do
 		#echo "  Using ldapsearch to read contextCSN from the provider:$1..."
-		provider_csn=$($LDAPSEARCH -s $scope -b "$BASEDN" -h $LOCALHOST -p $1 contextCSN 2>&1)
+		provider_csn=$($LDAPSEARCH -s $scope -b "$BASEDN" -h $LOCALHOST -p $1 contextCSN |& grep -i ^contextCSN; exit ${PIPESTATUS[0]})
 		RC=${PIPESTATUS[0]}
-		if test $RC != 0 ; then
+		if [ "$RC" -ne 0 ]; then
 			echo "ldapsearch failed at provider ($RC, $provider_csn)!"
 			killservers
 			exit $RC
 		fi
 
 		#echo "  Using ldapsearch to read contextCSN from the consumer:$2..."
-		consumer_csn=$($LDAPSEARCH -s $scope -b "$BASEDN" -h $LOCALHOST -p $2 contextCSN 2>&1)
+		consumer_csn=$($LDAPSEARCH -s $scope -b "$BASEDN" -h $LOCALHOST -p $2 contextCSN |& grep -i ^contextCSN; exit ${PIPESTATUS[0]})
 		RC=${PIPESTATUS[0]}
-		if test $RC != 0 -a $RC != 32; then
+		if [ "$RC" -ne 0 -a "$RC" -ne 32 ]; then
 			echo "ldapsearch failed at consumer ($RC, $consumer_csn)!"
 			killservers
 			exit $RC
 		fi
 
 		if [ "$provider_csn" == "$consumer_csn" ]; then
-			echo " Done in $(expr $i / 10).$(expr $i % 10) seconds"
+			echo " Done in $t seconds"
 			return
 		fi
 
-		#echo "  Waiting +0.1 seconds for syncrepl to receive changes (from $1 to $2)..."
-		sleep 0.1
+		#echo "  Waiting +SLEEP0 seconds for syncrepl to receive changes (from $1 to $2)..."
+		sleep $SLEEP0
+		t=$(echo "$SLEEP0 + $t" | bc)
 	done
 	echo " Timeout $(expr $i / 10) seconds"
 	echo -n "Provider: "
