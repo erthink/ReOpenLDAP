@@ -244,7 +244,11 @@ tool_destroy( void )
 		return;
 
 #ifdef HAVE_CYRUS_SASL
-	sasl_done();
+#	if SASL_VERSION_FULL < 0x020118
+		sasl_done();
+#	else
+		sasl_client_done();
+#	endif
 #endif
 #ifdef HAVE_TLS
 	ldap_pvt_tls_destroy();
