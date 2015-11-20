@@ -238,7 +238,7 @@ SLAPPASSWD="$TIMEOUT_S $VALGRIND $TESTWD/../servers/slapd/slapd -Tpasswd"
 
 unset DIFF_OPTIONS
 SLAPDMTREAD=$PROGDIR/slapd-mtread
-LVL=${SLAPD_DEBUG-0x4105}
+LVL=${SLAPD_DEBUG-sync,stats,args,trace,conns}
 LOCALHOST=localhost
 BASEPORT=${SLAPD_BASEPORT-9010}
 # NOTE: -u/-c is not that portable...
