@@ -52,7 +52,6 @@ typedef struct mdb_tool_idl_cache {
 
 MDB_txn *mdb_tool_txn = NULL;
 
-static MDB_txn *txi = NULL;
 static MDB_cursor *cursor = NULL, *idcursor = NULL;
 static MDB_cursor *mcp = NULL, *mcd = NULL;
 static MDB_val key, data;
@@ -828,15 +827,14 @@ int mdb_tool_entry_reindex(
 		return -1;
 	}
 
-	if ( !txi ) {
-		rc = mdb_txn_begin( mi->mi_dbenv, NULL, 0, &txi );
-		if( rc != 0 ) {
-			Debug( LDAP_DEBUG_ANY,
-				"=> " LDAP_XSTRING(mdb_tool_entry_reindex) ": "
-				"txn_begin failed: %s (%d)\n",
-				mdb_strerror(rc), rc );
-			goto done;
-		}
+	MDB_txn *txi = NULL;
+	rc = mdb_txn_begin( mi->mi_dbenv, NULL, 0, &txi );
+	if( rc != 0 ) {
+		Debug( LDAP_DEBUG_ANY,
+			"=> " LDAP_XSTRING(mdb_tool_entry_reindex) ": "
+			"txn_begin failed: %s (%d)\n",
+			mdb_strerror(rc), rc );
+		goto done;
 	}
 
 	if ( slapMode & SLAP_TRUNCATE_MODE ) {
@@ -849,7 +847,7 @@ int mdb_tool_entry_reindex(
 					": (Truncate) mdb_drop(%s) failed: %s (%d)\n",
 					mi->mi_attrs[i]->ai_desc->ad_type->sat_cname.bv_val,
 					mdb_strerror(rc), rc );
-				return -1;
+				goto done;
 			}
 		}
 		slapMode ^= SLAP_TRUNCATE_MODE;
@@ -890,7 +888,6 @@ done:
 				e->e_id = NOID;
 			}
 			mdb_cursor_close( cursor );
-			txi = NULL;
 			/* Must close the read txn to allow old pages to be reclaimed. */
 			mdb_txn_abort( mdb_tool_txn );
 			/* and then reopen it so that tool_entry_next still works. */
@@ -914,7 +911,6 @@ done:
 			": txn_aborted! err=%d\n",
 			rc );
 		e->e_id = NOID;
-		txi = NULL;
 	}
 	mdb_entry_release( &op, e, 0 );
 
