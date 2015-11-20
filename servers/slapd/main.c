@@ -390,6 +390,7 @@ int main( int argc, char **argv )
 	char *configfile = NULL;
 	char *configdir = NULL;
 	char *serverName;
+	char *serverName_strdup = NULL;
 	int serverMode = SLAP_SERVER_MODE;
 
 	struct sync_cookie *scp = NULL;
@@ -652,7 +653,9 @@ int main( int argc, char **argv )
 #endif /* SETUID && GETUID */
 
 		case 'n':  /* NT service name */
-			serverName = ch_strdup( optarg );
+			if (serverName_strdup) free( serverName_strdup );
+			serverName_strdup = ch_strdup( optarg );
+			serverName = serverName_strdup;
 			break;
 
 		case 't':
@@ -1132,6 +1135,7 @@ stop:
 	mal_dumpleaktrace( leakfile );
 #endif
 
+	if (serverName_strdup) free( serverName_strdup );
 	MAIN_RETURN(rc);
 }
 
