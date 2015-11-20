@@ -1314,7 +1314,7 @@ slap_sasl_rewrite_destroy( void )
 	return 0;
 }
 
-int slap_sasl_regexp_rewrite_config(
+static int slap_sasl_regexp_rewrite_config(
 		const char	*fname,
 		int		lineno,
 		const char	*match,
