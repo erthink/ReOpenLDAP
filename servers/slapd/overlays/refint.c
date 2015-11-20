@@ -264,6 +264,8 @@ refint_cf_gen(ConfigArgs *c)
 				ch_free ( dd->nnothing.bv_val );
 				dd->nothing = c->value_dn;
 				dd->nnothing = c->value_ndn;
+				BER_BVZERO( &c->value_dn );
+				BER_BVZERO( &c->value_ndn );
 				rc = 0;
 			} else {
 				rc = ARG_BAD_CONF;
@@ -275,6 +277,8 @@ refint_cf_gen(ConfigArgs *c)
 				ch_free( dd->refint_ndn.bv_val );
 				dd->refint_dn = c->value_dn;
 				dd->refint_ndn = c->value_ndn;
+				BER_BVZERO( &c->value_dn );
+				BER_BVZERO( &c->value_ndn );
 				rc = 0;
 			} else {
 				rc = ARG_BAD_CONF;

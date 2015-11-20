@@ -128,6 +128,8 @@ relay_back_cf( ConfigArgs *c )
 relay_done:;
 		ch_free( c->value_dn.bv_val );
 		ch_free( c->value_ndn.bv_val );
+		BER_BVZERO( &c->value_dn );
+		BER_BVZERO( &c->value_ndn );
 	}
 
 	return rc;

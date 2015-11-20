@@ -918,10 +918,13 @@ log_cf_gen(ConfigArgs *c)
 					rc = 1;
 				}
 				ch_free( c->value_ndn.bv_val );
+				BER_BVZERO( &c->value_ndn );
 			} else {
 				li->li_db_suffix = c->value_ndn;
+				BER_BVZERO( &c->value_ndn );
 			}
 			ch_free( c->value_dn.bv_val );
+			BER_BVZERO( &c->value_dn );
 			break;
 		case LOG_OPS:
 			rc = verbs_to_mask( c->argc, c->argv, logops, &tmask );

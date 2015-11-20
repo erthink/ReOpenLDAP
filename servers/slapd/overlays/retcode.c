@@ -922,6 +922,8 @@ rc_cf_gen( ConfigArgs *c )
 		}
 		rd->rd_pdn = c->value_dn;
 		rd->rd_npdn = c->value_ndn;
+		BER_BVZERO( &c->value_dn );
+		BER_BVZERO( &c->value_ndn );
 		rc = 0;
 		break;
 

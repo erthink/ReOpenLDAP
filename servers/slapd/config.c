@@ -223,7 +223,9 @@ int config_check_vals(ConfigTable *Conf, ConfigArgs *c, int check_only ) {
 		}
 		if ( check_only ) {
 			ch_free( c->value_ndn.bv_val );
+			BER_BVZERO(&c->value_ndn);
 			ch_free( c->value_dn.bv_val );
+			BER_BVZERO(&c->value_dn);
 		}
 	} else if(arg_type == ARG_ATDESC) {
 		const char *text = NULL;
@@ -895,6 +897,8 @@ read_config_file(const char *fname, int depth, ConfigArgs *cf, ConfigTable *cft)
 	rc = 0;
 
 done:
+	ber_memfree( c->value_dn.bv_val );
+	ber_memfree( c->value_ndn.bv_val );
 	if ( cf ) {
 		cf->be = c->be;
 		cf->bi = c->bi;
