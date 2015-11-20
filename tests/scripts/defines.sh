@@ -210,19 +210,22 @@ MONITORDATA=$SRCDIR/scripts/monitor_data.sh
 
 if [ -z "$VALGRIND" -a -z "$CIBUZZ_PID4" ]; then
 	TIMEOUT_S="timeout -s SIGXCPU 30s"
-	TIMEOUT_L="timeout -s SIGXCPU 5m"
+	TIMEOUT_L="timeout -s SIGXCPU 2m"
+	TIMEOUT_H="timeout -s SIGXCPU 5m"
 	SLEEP0=${SLEEP0-0.2}
 	SLEEP1=${SLEEP1-1}
 	SLEEP2=${SLEEP2-3}
 elif [ -z "$VALGRIND" ]; then
 	TIMEOUT_S="timeout -s SIGXCPU 3m"
-	TIMEOUT_L="timeout -s SIGXCPU 30m"
+	TIMEOUT_L="timeout -s SIGXCPU 10m"
+	TIMEOUT_H="timeout -s SIGXCPU 30m"
 	SLEEP0=${SLEEP0-1}
 	SLEEP1=${SLEEP1-7}
 	SLEEP2=${SLEEP2-15}
 else
 	TIMEOUT_S="timeout -s SIGXCPU 5m"
-	TIMEOUT_L="timeout -s SIGXCPU 60m"
+	TIMEOUT_L="timeout -s SIGXCPU 45m"
+	TIMEOUT_H="timeout -s SIGXCPU 120m"
 	SLEEP0=${SLEEP0-3}
 	SLEEP1=${SLEEP1-15}
 	SLEEP2=${SLEEP2-30}
@@ -247,6 +250,7 @@ CMP="diff -i -Z"
 BCMP="diff -iB"
 CMPOUT=/dev/null
 SLAPD="$TIMEOUT_L $VALGRIND $TESTWD/../servers/slapd/slapd -s0 -d $LVL"
+SLAPD_HUGE="$TIMEOUT_H $VALGRIND $TESTWD/../servers/slapd/slapd -s0 -d $LVL"
 LDAPPASSWD="$TIMEOUT_S $VALGRIND $CLIENTDIR/ldappasswd $TOOLARGS"
 LDAPSASLSEARCH="$TIMEOUT_S $VALGRIND $CLIENTDIR/ldapsearch $TOOLPROTO $LDAP_TOOLARGS -LLL"
 LDAPSEARCH="$TIMEOUT_S $VALGRIND $CLIENTDIR/ldapsearch $TOOLPROTO $TOOLARGS -LLL"
