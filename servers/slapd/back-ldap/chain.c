@@ -1318,6 +1318,7 @@ chain_ldadd( CfEntryInfo *p, Entry *e, ConfigArgs *ca )
 
 	assert( ca->be == NULL );
 	ca->be = (BackendDB *)ch_calloc( 1, sizeof( BackendDB ) );
+	memleak_crutch_push(ca->be);
 
 	ca->be->bd_info = (BackendInfo *)on;
 
@@ -1387,6 +1388,7 @@ fail:
 
 done:;
 	if ( rc != LDAP_SUCCESS ) {
+		memleak_crutch_pop(ca->be);
 		(void)ldap_chain_db_destroy_one( ca->be, NULL );
 		ch_free( ca->be );
 		ca->be = NULL;
@@ -1485,6 +1487,7 @@ chain_lddel( CfEntryInfo *ce, Operation *op )
 		ce->ce_be->bd_info->bi_db_destroy( ce->ce_be, NULL );
 	}
 
+	memleak_crutch_pop(ce->be);
 	ch_free(ce->ce_be);
 	ce->ce_be = NULL;
 
