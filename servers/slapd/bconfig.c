@@ -7284,6 +7284,17 @@ static int
 config_back_destroy( BackendInfo *bi )
 {
 	ldif_must_b64_encode_release();
+
+	while(sid_list) {
+		ServerID *si = sid_list;
+		sid_list = si->si_next;
+		if ( si->si_url.bv_val && si->si_url.bv_val != (char *)(si+1) )
+			ch_free( si->si_url.bv_val );
+		ch_free( si );
+		if ( sid_set == si )
+			sid_set = NULL;
+	}
+
 	return 0;
 }
 
