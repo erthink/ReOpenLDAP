@@ -518,13 +518,10 @@ dn2entry_retry:
 
 			/* return referral only if "disclose"
 			 * is granted on the object */
-			if ( ! access_allowed( op, matched,
+			if ( access_allowed( op, matched,
 						slap_schema.si_ad_entry,
 						NULL, ACL_DISCLOSE, NULL ) )
 			{
-				rs->sr_err = LDAP_NO_SUCH_OBJECT;
-
-			} else {
 				ber_dupbv( &matched_dn, &matched->e_name );
 
 				erefs = is_entry_referral( matched )
@@ -547,19 +544,13 @@ dn2entry_retry:
 		} else {
 			rs->sr_ref = referral_rewrite( default_referral,
 				NULL, &op->o_req_dn, op->oq_search.rs_scope );
-			rs->sr_err = rs->sr_ref != NULL ? LDAP_REFERRAL : LDAP_NO_SUCH_OBJECT;
 		}
 
+		rs->sr_flags = REP_REF_MUSTBEFREED;
+		rs->sr_err = rs->sr_ref ? LDAP_REFERRAL : LDAP_NO_SUCH_OBJECT;
 		send_ldap_result( op, rs );
-
-		if ( rs->sr_ref ) {
-			ber_bvarray_free( rs->sr_ref );
-			rs->sr_ref = NULL;
-		}
-		if ( !BER_BVISNULL( &matched_dn ) ) {
-			ber_memfree( matched_dn.bv_val );
-			rs->sr_matched = NULL;
-		}
+		rs_send_cleanup( rs );
+		ber_memfree( matched_dn.bv_val );
 		goto done;
 	}
 
@@ -606,12 +597,10 @@ dn2entry_retry:
 			LDAP_XSTRING(mdb_search) ": entry is referral\n" );
 
 		rs->sr_matched = matched_dn.bv_val;
+		rs->sr_flags = REP_REF_MUSTBEFREED;
 		send_ldap_result( op, rs );
-
-		ber_bvarray_free( rs->sr_ref );
-		rs->sr_ref = NULL;
+		rs_send_cleanup( rs );
 		ber_memfree( matched_dn.bv_val );
-		rs->sr_matched = NULL;
 		goto done;
 	}
 
@@ -1033,18 +1022,14 @@ notfound:
 					? LDAP_SCOPE_BASE : LDAP_SCOPE_SUBTREE );
 
 			rs->sr_entry = e;
-			rs->sr_flags = 0;
-
+			rs->sr_flags = REP_REF_MUSTBEFREED;
 			send_search_reference( op, rs );
+			rs_send_cleanup( rs );
 
 			if (e != base)
 				mdb_entry_return( op, e );
-			rs->sr_entry = NULL;
 			e = NULL;
-
-			ber_bvarray_free( rs->sr_ref );
 			ber_bvarray_free( erefs );
-			rs->sr_ref = NULL;
 
 			goto loop_continue;
 		}

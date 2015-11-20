@@ -221,6 +221,7 @@ fe_extended( Operation *op, SlapReply *rs )
 				rs->sr_ref = referral_rewrite( default_referral,
 					NULL, NULL, LDAP_SCOPE_DEFAULT );
 				if ( !rs->sr_ref ) rs->sr_ref = default_referral;
+				else rs->sr_flags |= REP_REF_MUSTBEFREED;
 				if ( !rs->sr_ref ) {
 					rs->sr_err = LDAP_UNWILLING_TO_PERFORM;
 					rs->sr_text = "referral missing";
@@ -230,11 +231,7 @@ fe_extended( Operation *op, SlapReply *rs )
 			if ( op->o_bd == NULL )
 				op->o_bd = bd;
 			send_ldap_extended( op, rs );
-
-			if ( rs->sr_ref != default_referral ) {
-				ber_bvarray_free( rs->sr_ref );
-				rs->sr_ref = NULL;
-			}
+			rs_send_cleanup( rs );
 		}
 
 		if ( rs->sr_rspoid != NULL ) {

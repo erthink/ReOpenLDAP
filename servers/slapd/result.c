@@ -279,6 +279,28 @@ rs_entry2modifiable( Operation *op, SlapReply *rs, slap_overinst *on )
 	return 1;
 }
 
+void rs_send_cleanup( SlapReply *rs )
+{
+	if ( rs->sr_matched ) {
+		if ( rs->sr_flags & REP_MATCHED_MUSTBEFREED ) {
+			rs->sr_flags ^= REP_MATCHED_MUSTBEFREED; /* paranoia */
+			free( (char *)rs->sr_matched );
+		}
+		rs->sr_matched = NULL;
+	}
+
+	if ( rs->sr_ref ) {
+		if ( rs->sr_flags & REP_REF_MUSTBEFREED ) {
+			rs->sr_flags ^= REP_REF_MUSTBEFREED; /* paranoia */
+			if ( rs->sr_ref != default_referral ) ber_bvarray_free( rs->sr_ref );
+		}
+		rs->sr_ref = NULL;
+	}
+	rs->sr_entry = NULL;
+	rs->sr_attrs = NULL;
+	rs->sr_text = NULL;
+}
+
 /* Check for any callbacks that want to be informed about being blocked
  * on output. These callbacks are expected to leave the callback list
  * unmodified. Their result is ignored.
@@ -743,7 +765,7 @@ clean2:;
 	if ( rs->sr_flags & REP_REF_MUSTBEFREED ) {
 		rs->sr_flags ^= REP_REF_MUSTBEFREED; /* paranoia */
 		if ( rs->sr_ref ) {
-			ber_bvarray_free( rs->sr_ref );
+			if ( rs->sr_ref != default_referral ) ber_bvarray_free( rs->sr_ref );
 			rs->sr_ref = NULL;
 		}
 	}
@@ -850,7 +872,7 @@ abandon:
 	if ( rs->sr_flags & REP_REF_MUSTBEFREED ) {
 		if ( rs->sr_ref == NULL ) {
 			rs->sr_flags ^= REP_REF_MUSTBEFREED;
-			ber_bvarray_free( oref );
+			if ( oref != default_referral ) ber_bvarray_free( oref );
 		}
 		oref = NULL; /* send_ldap_response() will free rs->sr_ref if != NULL */
 	}

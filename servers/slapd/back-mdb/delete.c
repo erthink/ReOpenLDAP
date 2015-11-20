@@ -460,6 +460,7 @@ return_results:
 	}
 
 	send_ldap_result( op, rs );
+	rs_send_cleanup( rs );
 	slap_graduate_commit_csn( op );
 
 	if( preread_ctrl != NULL && (*preread_ctrl) != NULL ) {

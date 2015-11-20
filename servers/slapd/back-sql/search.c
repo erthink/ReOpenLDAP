@@ -2061,12 +2061,7 @@ backsql_search( Operation *op, SlapReply *rs )
 				dn_match( &op->o_req_ndn, &bsi.bsi_e->e_nname ) )
 		{
 			rs->sr_err = LDAP_SUCCESS;
-			rs->sr_text = NULL;
-			rs->sr_matched = NULL;
-			if ( rs->sr_ref ) {
-				ber_bvarray_free( rs->sr_ref );
-				rs->sr_ref = NULL;
-			}
+			rs_send_cleanup( rs );
 			break;
 		}
 
@@ -2082,20 +2077,11 @@ backsql_search( Operation *op, SlapReply *rs )
 					ACL_DISCLOSE, NULL ) )
 		{
 			rs->sr_err = LDAP_NO_SUCH_OBJECT;
-			if ( rs->sr_ref ) {
-				ber_bvarray_free( rs->sr_ref );
-				rs->sr_ref = NULL;
-			}
-			rs->sr_matched = NULL;
-			rs->sr_text = NULL;
+			rs_send_cleanup( rs );
 		}
 
 		send_ldap_result( op, rs );
-
-		if ( rs->sr_ref ) {
-			ber_bvarray_free( rs->sr_ref );
-			rs->sr_ref = NULL;
-		}
+		rs_send_cleanup( rs );
 
 		if ( !BER_BVISNULL( &base_entry.e_nname ) ) {
 			entry_clean( &base_entry );
@@ -2349,10 +2335,7 @@ backsql_search( Operation *op, SlapReply *rs )
 			rs->sr_matched = user_entry.e_name.bv_val;
 			send_search_reference( op, rs );
 
-			ber_bvarray_free( rs->sr_ref );
-			rs->sr_ref = NULL;
-			rs->sr_matched = NULL;
-			rs->sr_entry = NULL;
+			rs_send_cleanup( rs );
 			if ( rs->sr_err == LDAP_REFERRAL ) {
 				rs->sr_err = LDAP_SUCCESS;
 			}

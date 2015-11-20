@@ -248,17 +248,15 @@ fe_op_add( Operation *op, SlapReply *rs )
 		rs->sr_ref = referral_rewrite( default_referral,
 			NULL, &op->ora_e->e_name, LDAP_SCOPE_DEFAULT );
 		if ( !rs->sr_ref ) rs->sr_ref = default_referral;
+		else rs->sr_flags |= REP_REF_MUSTBEFREED;
 		if ( rs->sr_ref ) {
 			rs->sr_err = LDAP_REFERRAL;
 			send_ldap_result( op, rs );
-
-			if ( rs->sr_ref != default_referral ) {
-				ber_bvarray_free( rs->sr_ref );
-			}
 		} else {
 			send_ldap_error( op, rs, LDAP_UNWILLING_TO_PERFORM,
 				"no global superior knowledge" );
 		}
+		rs_send_cleanup( rs );
 		goto done;
 	}
 
@@ -355,19 +353,16 @@ fe_op_add( Operation *op, SlapReply *rs )
 			if ( defref != NULL ) {
 				rs->sr_ref = referral_rewrite( defref,
 					NULL, &op->ora_e->e_name, LDAP_SCOPE_DEFAULT );
-				if ( rs->sr_ref == NULL ) rs->sr_ref = defref;
+				if ( ! rs->sr_ref ) ber_bvarray_dup_x( &rs->sr_ref, defref, NULL );
 				rs->sr_err = LDAP_REFERRAL;
-				if (!rs->sr_ref) rs->sr_ref = default_referral;
+				rs->sr_flags |= REP_REF_MUSTBEFREED;
 				send_ldap_result( op, rs );
-
-				if ( rs->sr_ref != default_referral ) {
-					ber_bvarray_free( rs->sr_ref );
-				}
 			} else {
 				send_ldap_error( op, rs,
 					LDAP_UNWILLING_TO_PERFORM,
 					"shadow context; no update referral" );
 			}
+			rs_send_cleanup( rs );
 		}
 	} else {
 		Debug( LDAP_DEBUG_ARGS, "do_add: no backend support\n" );

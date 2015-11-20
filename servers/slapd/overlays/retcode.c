@@ -127,13 +127,7 @@ retcode_sleep( int s )
 static int
 retcode_cleanup_cb( Operation *op, SlapReply *rs )
 {
-	rs->sr_matched = NULL;
-	rs->sr_text = NULL;
-
-	if ( rs->sr_ref != NULL ) {
-		ber_bvarray_free( rs->sr_ref );
-		rs->sr_ref = NULL;
-	}
+	rs_send_cleanup( rs );
 
 	ch_free( op->o_callback );
 	op->o_callback = NULL;
@@ -447,7 +441,7 @@ retcode_op_func( Operation *op, SlapReply *rs )
 			if ( ref != NULL ) {
 				rs->sr_ref = referral_rewrite( ref,
 					NULL, &op->o_req_dn, LDAP_SCOPE_DEFAULT );
-
+				rs->sr_flags |= REP_REF_MUSTBEFREED;
 			} else {
 				rs->sr_err = LDAP_OTHER;
 				rs->sr_text = "bad referral object";
@@ -498,12 +492,7 @@ retcode_op_func( Operation *op, SlapReply *rs )
 			send_ldap_result( op, rs );
 		}
 
-		if ( rs->sr_ref != NULL ) {
-			ber_bvarray_free( rs->sr_ref );
-			rs->sr_ref = NULL;
-		}
-		rs->sr_matched = NULL;
-		rs->sr_text = NULL;
+		rs_send_cleanup( rs );
 
 		if ( rdi && rdi->rdi_flags & RDI_POST_DISCONNECT ) {
 			return rs->sr_err = SLAPD_DISCONNECT;
@@ -654,11 +643,9 @@ retcode_entry_response( Operation *op, SlapReply *rs, BackendInfo *bi, Entry *e 
 			}
 			rs->sr_ref = referral_rewrite( refs,
 				NULL, &op->o_req_dn, op->oq_search.rs_scope );
-
+			rs->sr_flags |= REP_REF_MUSTBEFREED;
 			send_search_reference( op, rs );
-			ber_bvarray_free( rs->sr_ref );
-			rs->sr_ref = NULL;
-
+			rs_send_cleanup( rs );
 		} else {
 			a = attr_find( e->e_attrs, ad_errUnsolicitedOID );
 			if ( a != NULL ) {

@@ -1154,7 +1154,6 @@ cannot_chain:;
 			if ( LDAP_CHAIN_RETURN_ERR( lc ) ) {
 				sr_err = rs->sr_err = rc;
 				rs->sr_type = sr_type;
-
 			} else {
 				rc = SLAP_CB_CONTINUE;
 				rs->sr_err = sr_err;
@@ -1174,6 +1173,7 @@ cannot_chain:;
 		op->o_callback = sc->sc_next;
 		rc = rs->sr_err = slap_map_api2result( rs );
 		send_ldap_result( op, rs );
+		rs_send_cleanup( rs );
 	}
 
 dont_chain:;

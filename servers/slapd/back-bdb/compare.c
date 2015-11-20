@@ -70,7 +70,6 @@ dn2entry_retry:
 				NULL, ACL_DISCLOSE, NULL ) )
 			{
 				rs->sr_err = LDAP_NO_SUCH_OBJECT;
-
 			} else {
 				rs->sr_matched = ch_strdup( e->e_dn );
 				rs->sr_ref = is_entry_referral( e )
@@ -81,21 +80,13 @@ dn2entry_retry:
 
 			bdb_cache_return_entry_r( bdb, e, &lock );
 			e = NULL;
-
 		} else {
 			rs->sr_ref = referral_rewrite( default_referral,
 				NULL, &op->o_req_dn, LDAP_SCOPE_DEFAULT );
 			rs->sr_err = rs->sr_ref ? LDAP_REFERRAL : LDAP_NO_SUCH_OBJECT;
 		}
-
-		send_ldap_result( op, rs );
-
-		ber_bvarray_free( rs->sr_ref );
-		free( (char *)rs->sr_matched );
-		rs->sr_ref = NULL;
-		rs->sr_matched = NULL;
-
-		goto done;
+		rs->sr_flags = REP_MATCHED_MUSTBEFREED | REP_REF_MUSTBEFREED;
+		goto return_results;
 	}
 
 	if (!manageDSAit && is_entry_referral( e ) ) {
@@ -109,22 +100,18 @@ dn2entry_retry:
 			rs->sr_ref = get_entry_referrals( op, e );
 			rs->sr_err = LDAP_REFERRAL;
 			rs->sr_matched = e->e_name.bv_val;
+			rs->sr_flags = REP_REF_MUSTBEFREED;
 		}
 
 		Debug( LDAP_DEBUG_TRACE, "entry is referral\n" );
-
-		send_ldap_result( op, rs );
-
-		ber_bvarray_free( rs->sr_ref );
-		rs->sr_ref = NULL;
-		rs->sr_matched = NULL;
-		goto done;
+		goto return_results;
 	}
 
 	rs->sr_err = slap_compare_entry( op, e, op->orc_ava );
 
 return_results:
 	send_ldap_result( op, rs );
+	rs_send_cleanup( rs );
 
 	switch ( rs->sr_err ) {
 	case LDAP_COMPARE_FALSE:
@@ -133,7 +120,6 @@ return_results:
 		break;
 	}
 
-done:
 	/* free entry */
 	if ( e != NULL ) {
 		bdb_cache_return_entry_r( bdb, e, &lock );
