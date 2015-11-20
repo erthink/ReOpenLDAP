@@ -54,6 +54,10 @@ LDAP_SLAPD_F (int) slap_biglock_pool_pause LDAP_P(( BackendDB *be ));
 LDAP_SLAPD_F (int) slap_biglock_pool_pausecheck LDAP_P(( BackendDB *be ));
 LDAP_SLAPD_F (void) slap_biglock_pool_resume LDAP_P(( BackendDB *be ));
 
+LDAP_SLAPD_F (void) memleak_crutch_push LDAP_P(( void *p ));
+LDAP_SLAPD_F (void) memleak_crutch_pop LDAP_P(( void *p ));
+LDAP_SLAPD_F (void) rs_send_cleanup LDAP_P(( SlapReply *rs ));
+
 /*
  * aci.c
  */
