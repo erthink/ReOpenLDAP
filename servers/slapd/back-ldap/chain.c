@@ -967,6 +967,7 @@ ldap_chain_response( Operation *op, SlapReply *rs )
 
 	int		sr_err = rs->sr_err;
 	slap_reply_t	sr_type = rs->sr_type;
+	slap_mask_t	sr_flags = rs->sr_flags;
 #ifdef LDAP_CONTROL_X_CHAINING_BEHAVIOR
 	slap_mask_t	chain_mask = 0;
 	ber_len_t	chain_shift = 0;
@@ -1161,6 +1162,7 @@ cannot_chain:;
 				rs->sr_text = text;
 				rs->sr_matched = matched;
 				rs->sr_ref = ref;
+				rs->sr_flags = sr_flags;
 			}
 #ifdef LDAP_CONTROL_X_CHAINING_BEHAVIOR
 			break;
@@ -1182,10 +1184,10 @@ dont_chain:;
 	rs->sr_text = text;
 	rs->sr_matched = matched;
 	rs->sr_ref = ref;
+	rs->sr_flags = sr_flags;
 	op->o_bd = bd;
 	op->o_callback = sc;
 	op->o_ndn = ndn;
-
 	return rc;
 }
 
