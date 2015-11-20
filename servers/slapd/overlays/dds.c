@@ -1130,7 +1130,7 @@ dds_op_extended( Operation *op, SlapReply *rs )
 
 			} else {
 				(void)ber_flatten( ber, &rs->sr_rspdata );
-				rs->sr_rspoid = ch_strdup( slap_EXOP_REFRESH.bv_val );
+				rs->sr_rspoid = slap_EXOP_REFRESH.bv_val;
 
 				Log3( LDAP_DEBUG_TRACE, LDAP_LEVEL_INFO,
 					"%s REFRESH dn=\"%s\" TTL=%ld\n",
