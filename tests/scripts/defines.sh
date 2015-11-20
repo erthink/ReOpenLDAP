@@ -214,12 +214,19 @@ if [ -z "$VALGRIND" -a -z "$CIBUZZ_PID4" ]; then
 	SLEEP0=${SLEEP0-0.2}
 	SLEEP1=${SLEEP1-1}
 	SLEEP2=${SLEEP2-3}
-else
+elif [ -z "$VALGRIND" ]; then
 	TIMEOUT_S="timeout -s SIGXCPU 3m"
 	TIMEOUT_L="timeout -s SIGXCPU 30m"
 	SLEEP0=${SLEEP0-1}
 	SLEEP1=${SLEEP1-7}
 	SLEEP2=${SLEEP2-15}
+else
+	TIMEOUT_S="timeout -s SIGXCPU 5m"
+	TIMEOUT_L="timeout -s SIGXCPU 60m"
+	SLEEP0=${SLEEP0-3}
+	SLEEP1=${SLEEP1-15}
+	SLEEP2=${SLEEP2-30}
+	pkill -SIGKILL -s 0 -u $EUID memcheck-*
 fi
 
 SLAP_VERBOSE=${SLAP_VERBOSE-none}
