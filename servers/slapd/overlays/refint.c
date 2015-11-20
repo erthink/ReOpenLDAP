@@ -412,12 +412,23 @@ refint_close(
 	slap_overinst *on	= (slap_overinst *) be->bd_info;
 	refint_data *id	= on->on_bi.bi_private;
 
+	if (id->qtask) {
+		ldap_pvt_thread_mutex_lock( &slapd_rq.rq_mutex );
+		if ( ldap_pvt_runqueue_isrunning( &slapd_rq, id->qtask ))
+			ldap_pvt_runqueue_stoptask( &slapd_rq, id->qtask );
+		ldap_pvt_runqueue_remove( &slapd_rq, id->qtask );
+		id->qtask = NULL;
+		ldap_pvt_thread_mutex_unlock( &slapd_rq.rq_mutex );
+	}
+
+	ldap_pvt_thread_mutex_lock( &id->qmutex );
 	ch_free( id->dn.bv_val );
 	BER_BVZERO( &id->dn );
 	ch_free( id->refint_dn.bv_val );
 	BER_BVZERO( &id->refint_dn );
 	ch_free( id->refint_ndn.bv_val );
 	BER_BVZERO( &id->refint_ndn );
+	ldap_pvt_thread_mutex_unlock( &id->qmutex );
 
 	return(0);
 }
