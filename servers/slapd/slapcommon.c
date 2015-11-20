@@ -949,6 +949,7 @@ int slap_tool_destroy( void )
 	ldap_pvt_tls_destroy();
 #endif
 	config_destroy();
+	slap_sasl_regexp_destroy();
 
 #ifdef CSRIMALLOC
 	mal_dumpleaktrace( leakfile );

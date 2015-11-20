@@ -1106,9 +1106,7 @@ stop:
 	ldap_pvt_tls_destroy();
 #endif
 
-#ifdef SLAP_AUTH_REWRITE
 	slap_sasl_regexp_destroy();
-#endif
 
 	if ( slapd_pid_file_unlink ) {
 		unlink( slapd_pid_file );
