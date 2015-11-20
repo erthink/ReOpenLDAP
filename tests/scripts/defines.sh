@@ -261,7 +261,7 @@ LDAPEXOP="$TIMEOUT_S $VALGRIND $CLIENTDIR/ldapexop $TOOLARGS"
 SLAPDTESTER=$PROGDIR/slapd-tester
 
 function ldif-filter-unwrap {
-	$PROGDIR/ldif-filter "$@" | sed -n -e 'H; ${ x; s/\n//; s/\n //g; p}'
+	grep -v ^== | $PROGDIR/ldif-filter "$@" | sed -n -e 'H; ${ x; s/\n//; s/\n //g; p}'
 }
 
 LDIFFILTER=ldif-filter-unwrap
