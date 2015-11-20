@@ -413,6 +413,30 @@ init_syncrepl(syncinfo_t *si)
 	si->si_exattrs = exattrs;
 }
 
+void syncrepl_shutdown_io( syncinfo_t *si )
+{
+	if ( si->si_conn ) {
+		Debug( LDAP_DEBUG_ANY,
+			"syncrepl_shutdown_io: %s client-stop >>\n", si->si_ridtxt);
+		connection_client_stop( si->si_conn );
+		si->si_conn = NULL;
+		Debug( LDAP_DEBUG_ANY,
+			"syncrepl_shutdown_io: %s client-stop <<\n", si->si_ridtxt);
+	}
+	if ( si->si_ld ) {
+		int rc;
+		Debug( LDAP_DEBUG_ANY,
+			"syncrepl_shutdown_io: %s unbind-ext >>\n", si->si_ridtxt);
+		rc = ldap_unbind_ext( si->si_ld, NULL, NULL );
+		si->si_ld = NULL;
+		if ( rc )
+			Debug( LDAP_DEBUG_ANY,
+				"syncrepl_shutdown_io: %s unbind-ext, rc = %d\n", si->si_ridtxt, rc);
+		Debug( LDAP_DEBUG_ANY,
+			"syncrepl_shutdown_io: %s unbind-ext <<\n", si->si_ridtxt);
+	}
+}
+
 static int
 syncrepl_search_provider(
 	syncinfo_t *si,
@@ -760,10 +784,7 @@ syncrep_start(
 
 done:
 	if ( rc != LDAP_SUCCESS ) {
-		if ( si->si_ld ) {
-			ldap_unbind_ext( si->si_ld, NULL, NULL );
-			si->si_ld = NULL;
-		}
+		syncrepl_shutdown_io(si);
 	}
 
 	return rc;
@@ -1474,17 +1495,8 @@ done:
 			si->si_ridtxt, err, ldap_err2string( err ) );
 	}
 
-	if (si->si_ld) {
-		if ( rc && rc != LDAP_SYNC_REFRESH_REQUIRED && rc != SYNC_PAUSED) {
-			if ( si->si_conn ) {
-				Debug( LDAP_DEBUG_ANY,
-					"do_syncrep_process: %s client-stop\n", si->si_ridtxt);
-				connection_client_stop( si->si_conn );
-				si->si_conn = NULL;
-			}
-			ldap_unbind_ext( si->si_ld, NULL, NULL );
-			si->si_ld = NULL;
-		}
+	if ( rc && rc != LDAP_SYNC_REFRESH_REQUIRED && rc != SYNC_PAUSED) {
+		syncrepl_shutdown_io( si );
 	}
 
 	slap_sync_cookie_free( &syncCookie, 0 );
@@ -1523,13 +1535,10 @@ do_syncrepl(
 	Debug( LDAP_DEBUG_TRACE, "=>do_syncrepl %s\n", si->si_ridtxt );
 
 	for (;;) {
-		if ( slapd_shutdown ) {
-			return NULL;
-		}
 		if ( ! ldap_pvt_thread_mutex_trylock( &si->si_mutex ))
 			break;
 		/* Don't get stuck here while a pause is initiated */
-		if ( ! ldap_pvt_thread_pool_pausecheck( &connection_pool ))
+		if ( ! slapd_shutdown && ! ldap_pvt_thread_pool_pausecheck( &connection_pool ))
 			ldap_pvt_thread_yield();
 	}
 
@@ -1548,17 +1557,10 @@ do_syncrepl(
 		return NULL;
 	}
 
-	if ( slapd_gentle_shutdown ) {
+	if ( slapd_gentle_shutdown || slapd_shutdown ) {
 		Debug( LDAP_DEBUG_ANY,
 			"do_syncrepl: %s gentle shutdown\n", si->si_ridtxt);
-		if ( si->si_ld ) {
-			if ( si->si_conn ) {
-				connection_client_stop( si->si_conn );
-				si->si_conn = NULL;
-			}
-			ldap_unbind_ext( si->si_ld, NULL, NULL );
-			si->si_ld = NULL;
-		}
+		syncrepl_shutdown_io( si );
 		ldap_pvt_thread_mutex_unlock( &si->si_mutex );
 		return NULL;
 	}
@@ -4678,15 +4680,7 @@ syncinfo_free( syncinfo_t *sie, int free_all )
 		si_next = sie->si_next;
 
 		syncrepl_refresh_end(sie, LDAP_OTHER);
-		if ( sie->si_ld ) {
-			if ( sie->si_conn ) {
-				Debug( LDAP_DEBUG_ANY,
-					"syncinfo_free: %s client-stop\n", sie->si_ridtxt);
-				connection_client_stop( sie->si_conn );
-				sie->si_conn = NULL;
-			}
-			ldap_unbind_ext( sie->si_ld, NULL, NULL );
-		}
+		syncrepl_shutdown_io(sie);
 
 		if ( sie->si_re ) {
 			struct re_s		*re = sie->si_re;
