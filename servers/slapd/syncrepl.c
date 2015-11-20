@@ -964,6 +964,7 @@ do_syncrep_process(
 			biglocked = 0;
 		}
 
+		ldap_msgfree( msg );
 		rc = ldap_result( si->si_ld, si->si_msgid, LDAP_MSG_ONE, tout_p, &msg );
 		if (slapd_shutdown)
 			rc = -2;
