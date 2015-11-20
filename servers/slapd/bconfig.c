@@ -7243,6 +7243,8 @@ config_back_db_destroy( BackendDB *be, ConfigReply *cr )
 		BER_BVZERO( &cfb->cb_db.be_rootndn );
 
 		backend_destroy_one( &cfb->cb_db, 0 );
+	} else {
+		slap_biglock_destroy( &cfb->cb_db );
 	}
 
 	loglevel_destroy();
