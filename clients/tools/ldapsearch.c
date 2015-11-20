@@ -277,8 +277,8 @@ static void cleanup(void)
 	}
 
 	if ( c ) {
-		for ( ; save_nctrls-- > 0; ) {
-			ber_memfree( c[ save_nctrls ].ldctl_value.bv_val );
+		for ( ; nctrls-- > 0; ) {
+			ber_memfree( c[ nctrls ].ldctl_value.bv_val );
 		}
 		free( c );
 		c = NULL;
@@ -828,7 +828,6 @@ main( int argc, char **argv )
 	char		*filtpattern, **attrs = NULL, line[BUFSIZ];
 	FILE		*fp = NULL;
 	int			rc, rc1, i, first;
-	BerElement	*seber = NULL, *vrber = NULL;
 
 	BerElement      *syncber = NULL;
 	struct berval   *syncbvalp = NULL;
@@ -1000,6 +999,8 @@ getNextPage:
 		}
 
 		if ( subentries ) {
+			BerElement	*seber = NULL;
+
 			if ( ctrl_add() ) {
 				main_exit(EXIT_FAILURE);
 			}
@@ -1054,9 +1055,12 @@ getNextPage:
 			c[i].ldctl_value = (*syncbvalp);
 			c[i].ldctl_iscritical = ldapsync < 0;
 			i++;
+			ber_free( syncber, 0 );
 		}
 
 		if ( valuesReturnFilter ) {
+			BerElement	*vrber = NULL;
+
 			if ( ctrl_add() ) {
 				main_exit(EXIT_FAILURE);
 			}
@@ -1078,6 +1082,7 @@ getNextPage:
 			c[i].ldctl_oid = LDAP_CONTROL_VALUESRETURNFILTER;
 			c[i].ldctl_iscritical = valuesReturnFilter > 1;
 			i++;
+			ber_free( vrber, 0 );
 		}
 
 		if ( pagedResults ) {
@@ -1166,12 +1171,13 @@ getNextPage:
 
 	tool_server_controls( ld, c, i );
 
-	if ( seber ) ber_free( seber, 1 );
-	if ( vrber ) ber_free( vrber, 1 );
-
 	/* step back to the original number of controls, so that
 	 * those set while parsing args are preserved */
-	nctrls = save_nctrls;
+	while ( nctrls > save_nctrls ) {
+		--nctrls;
+		ber_memfree( c[ nctrls ].ldctl_value.bv_val );
+		c[ nctrls ].ldctl_value.bv_val = NULL;
+	}
 
 	if ( verbose ) {
 		fprintf( stderr, _("filter%s: %s\nrequesting: "),
