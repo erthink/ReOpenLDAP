@@ -913,8 +913,8 @@ do_syncrep_process(
 {
 	BerElementBuffer berbuf;
 	BerElement	*ber = (BerElement *)&berbuf;
-
 	LDAPMessage	*msg = NULL;
+	LDAPControl	**rctrls = NULL;
 
 	struct sync_cookie	syncCookie = { NULL };
 
@@ -943,12 +943,15 @@ do_syncrep_process(
 	for (;;) {
 		int				match, punlock, syncstate;
 		struct berval	syncUUID[2];
-		LDAPControl		**rctrls = NULL, *rctrlp = NULL;
+		LDAPControl		*rctrlp = NULL;
 		BerVarray		syncUUIDs;
 		ber_len_t		len;
 		ber_tag_t		si_tag;
 		Entry			*entry = NULL;
 		struct berval	bdn;
+
+		ldap_controls_free( rctrls );
+		rctrls = NULL;
 
 		if ( syncCookie.numcsns > 0 ) {
 			slap_sync_cookie_free( &syncCookie, 0 );
@@ -1008,7 +1011,6 @@ do_syncrep_process(
 					Debug( LDAP_DEBUG_ANY, "do_syncrep_process: %s "
 						"got search entry with multiple "
 						"Sync State control (%s)\n", si->si_ridtxt, bdn.bv_val );
-					ldap_controls_free( rctrls );
 					rc = -1;
 					goto done;
 				}
@@ -1027,7 +1029,6 @@ do_syncrep_process(
 				bdn.bv_val[bdn.bv_len] = '\0';
 				Debug( LDAP_DEBUG_ANY, "do_syncrep_process: %s malformed message (%s)\n",
 					si->si_ridtxt, bdn.bv_val );
-				ldap_controls_free( rctrls );
 				rc = -1;
 				goto done;
 			}
@@ -1039,7 +1040,6 @@ do_syncrep_process(
 					"got empty or invalid syncUUID with LDAP_SYNC_%s (%s)\n",
 					si->si_ridtxt,
 					syncrepl_state2str( syncstate ), bdn.bv_val );
-				ldap_controls_free( rctrls );
 				rc = -1;
 				goto done;
 			}
@@ -1047,7 +1047,6 @@ do_syncrep_process(
 			if ( ber_peek_tag( ber, &len ) == LDAP_TAG_SYNC_COOKIE ) {
 				rc = syncrep_take_cookie( si, ber, /*"{"*/ "m}", &syncCookie, NULL );
 				if ( rc ) {
-					ldap_controls_free( rctrls );
 					goto done;
 				}
 
@@ -1065,7 +1064,6 @@ do_syncrep_process(
 									si->si_ridtxt, syncCookie.ctxcsn->bv_val, bdn.bv_val );
 								si->si_too_old = 1;
 								ldap_pvt_thread_mutex_unlock( &si->si_cookieState->cs_mutex );
-								ldap_controls_free( rctrls );
 								rc = 0;
 								goto done;
 							}
@@ -1078,7 +1076,6 @@ do_syncrep_process(
 					/* check pending CSNs too */
 					while ( ldap_pvt_thread_mutex_trylock( &si->si_cookieState->cs_pmutex )) {
 						if ( slapd_shutdown ) {
-							ldap_controls_free( rctrls );
 							rc = -2;
 							goto done;
 						}
@@ -1095,7 +1092,6 @@ do_syncrep_process(
 								bdn.bv_val[bdn.bv_len] = '\0';
 								Debug( LDAP_DEBUG_SYNC, "do_syncrep_process: %s CSN pending, ignoring %s (%s)\n",
 									si->si_ridtxt, syncCookie.ctxcsn->bv_val, bdn.bv_val );
-								ldap_controls_free( rctrls );
 								rc = 0;
 								goto done;
 							}
@@ -1118,7 +1114,6 @@ do_syncrep_process(
 					bdn.bv_val[bdn.bv_len] = '\0';
 					Debug( LDAP_DEBUG_SYNC, "do_syncrep_process: %s CSN too old, ignoring (%s)\n",
 						si->si_ridtxt, bdn.bv_val );
-					ldap_controls_free( rctrls );
 					rc = 0;
 					goto done;
 				}
@@ -1179,10 +1174,8 @@ do_syncrep_process(
 				}
 				ldap_pvt_thread_mutex_unlock( &si->si_cookieState->cs_pmutex );
 			}
-			ldap_controls_free( rctrls );
-			if ( modlist ) {
-				slap_mods_free( modlist, 1 );
-			}
+
+			slap_mods_free( modlist, 1 );
 			if ( rc == SYNCREPL_RETARDED )
 				rc = LDAP_SUCCESS;
 			if ( rc )
@@ -1200,8 +1193,7 @@ do_syncrep_process(
 				"do_syncrep_process: %s LDAP_RES_SEARCH_RESULT\n",
 				si->si_ridtxt );
 			err = LDAP_OTHER; /* FIXME check parse result properly */
-			ldap_parse_result( si->si_ld, msg, &err, NULL, NULL, NULL,
-				&rctrls, 0 );
+			ldap_parse_result( si->si_ld, msg, &err, NULL, NULL, NULL, &rctrls, 0 );
 #ifdef LDAP_X_SYNC_REFRESH_REQUIRED
 			if ( err == LDAP_X_SYNC_REFRESH_REQUIRED ) {
 				/* map old result code to registered code */
@@ -1241,7 +1233,6 @@ do_syncrep_process(
 					Debug( LDAP_DEBUG_ANY, "do_syncrep_process: %s "
 						"got search result with multiple "
 						"Sync State control\n", si->si_ridtxt );
-					ldap_controls_free( rctrls );
 					rc = -1;
 					goto done;
 				}
@@ -1271,9 +1262,6 @@ do_syncrep_process(
 				which = 0;
 			} else {
 				match = compare_csns( &si->si_syncCookie, &syncCookie, &which );
-			}
-			if ( rctrls ) {
-				ldap_controls_free( rctrls );
 			}
 			if (si->si_type != LDAP_SYNC_REFRESH_AND_PERSIST) {
 				/* FIXME : different error behaviors according to
@@ -1501,6 +1489,7 @@ done:
 
 	slap_sync_cookie_free( &syncCookie, 0 );
 	ldap_msgfree( msg );
+	ldap_controls_free( rctrls );
 
 	quorum_notify_status( si->si_be, si->si_rid,
 		err == LDAP_SUCCESS && rc == LDAP_SUCCESS && si->si_refreshDone );
