@@ -2183,6 +2183,9 @@ accesslog_db_destroy(
 	log_info *li = on->on_bi.bi_private;
 	log_attr *la;
 
+	ch_free( li->li_db_suffix.bv_val );
+	BER_BVZERO( &li->li_db_suffix );
+
 	if ( li->li_oldf )
 		filter_free( li->li_oldf );
 	for ( la=li->li_oldattrs; la; la=li->li_oldattrs ) {
@@ -2306,8 +2309,6 @@ accesslog_db_open(
 
 	if ( !BER_BVISEMPTY( &li->li_db_suffix )) {
 		li->li_db = select_backend( &li->li_db_suffix, 0 );
-		ch_free( li->li_db_suffix.bv_val );
-		BER_BVZERO( &li->li_db_suffix );
 	}
 	if ( li->li_db == NULL ) {
 		Debug( LDAP_DEBUG_ANY,
