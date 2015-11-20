@@ -3837,29 +3837,16 @@ syncrepl_add_glue_ancestors(
 		ber_dupbv( &glue->e_nname, &ndn );
 
 		a = attr_alloc( slap_schema.si_ad_objectClass );
-
 		a->a_numvals = 2;
 		a->a_vals = ch_calloc( 3, sizeof( struct berval ) );
 		ber_dupbv( &a->a_vals[0], &gcbva[0] );
 		ber_dupbv( &a->a_vals[1], &gcbva[1] );
-		ber_dupbv( &a->a_vals[2], &gcbva[2] );
-
+		BER_BVZERO(&a->a_vals[2]);
 		a->a_nvals = a->a_vals;
-
 		a->a_next = glue->e_attrs;
 		glue->e_attrs = a;
 
-		a = attr_alloc( slap_schema.si_ad_structuralObjectClass );
-
-		a->a_numvals = 1;
-		a->a_vals = ch_calloc( 2, sizeof( struct berval ) );
-		ber_dupbv( &a->a_vals[0], &gcbva[1] );
-		ber_dupbv( &a->a_vals[1], &gcbva[2] );
-
-		a->a_nvals = a->a_vals;
-
-		a->a_next = glue->e_attrs;
-		glue->e_attrs = a;
+		attr_merge_one( glue, slap_schema.si_ad_structuralObjectClass, &gcbva[1], NULL);
 
 		op->o_req_dn = glue->e_name;
 		op->o_req_ndn = glue->e_nname;
@@ -3871,10 +3858,8 @@ syncrepl_add_glue_ancestors(
 		} else {
 		/* incl. ALREADY EXIST */
 			entry_free( glue );
-			if ( rs_add.sr_err != LDAP_ALREADY_EXISTS ) {
-				entry_free( e );
+			if ( rs_add.sr_err != LDAP_ALREADY_EXISTS )
 				return rc;
-			}
 		}
 
 		/* Move to next child */
@@ -3908,12 +3893,8 @@ syncrepl_add_glue(
 	SlapReply	rs_add = {REP_RESULT};
 
 	rc = syncrepl_add_glue_ancestors( op, e );
-	switch ( rc ) {
-	case LDAP_SUCCESS:
-	case LDAP_ALREADY_EXISTS:
-		break;
-
-	default:
+	if (rc != LDAP_SUCCESS && rc != LDAP_ALREADY_EXISTS) {
+		entry_free( e );
 		return rc;
 	}
 
@@ -3932,7 +3913,6 @@ syncrepl_add_glue(
 	} else {
 		entry_free( e );
 	}
-
 	return rc;
 }
 
