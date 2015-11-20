@@ -706,7 +706,7 @@ config_parse_add(ConfigTable *ct, ConfigArgs *c, int valx)
 int
 read_config_file(const char *fname, ConfigArgs *cf, ConfigTable *cft)
 {
-	FILE *fp;
+	FILE *fp = NULL;
 	ConfigTable *ct;
 	ConfigArgs *c;
 	int rc;
@@ -733,9 +733,8 @@ read_config_file(const char *fname, ConfigArgs *cf, ConfigTable *cft)
 		Debug(LDAP_DEBUG_ANY,
 		    "could not stat config file \"%s\": %s (%d)\n",
 			fname, STRERROR(errno), errno);
-		ch_free( c->argv );
-		ch_free( c );
-		return(1);
+		rc = 1;
+		goto done;
 	}
 
 	if ( !S_ISREG( s.st_mode ) ) {
@@ -743,9 +742,8 @@ read_config_file(const char *fname, ConfigArgs *cf, ConfigTable *cft)
 		Debug(LDAP_DEBUG_ANY,
 		    "regular file expected, got \"%s\"\n",
 		    fname );
-		ch_free( c->argv );
-		ch_free( c );
-		return(1);
+		rc = 1;
+		goto done;
 	}
 
 	fp = fopen( fname, "r" );
@@ -902,7 +900,7 @@ done:
 		cf->bi = c->bi;
 	}
 	ch_free(c->tline);
-	fclose(fp);
+	if (fp) fclose(fp);
 	ch_free(c->argv);
 	ch_free(c);
 	return(rc);
