@@ -3454,7 +3454,9 @@ syncprov_db_destroy(
 	if ( si ) {
 		/* LY: workaround for https://github.com/ReOpen/ReOpenLDAP/issues/45 */
 		for(;;) {
-			int drained, paused = slap_biglock_pool_pause(be);
+			int drained, paused =
+				(slap_biglock_pool_pausing(be) == 0
+					&& slap_biglock_pool_pause(be) == 1) ? 1 : 0;
 			ldap_pvt_thread_mutex_lock( &si->si_ops_mutex );
 			drained = 0;
 			if (si->si_ops == NULL && si->si_leftover == 0 && si->si_active == 0)
