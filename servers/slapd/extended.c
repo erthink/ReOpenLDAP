@@ -332,7 +332,7 @@ extops_init (void)
 }
 
 int
-extops_kill (void)
+extops_destroy (void)
 {
 	struct extop_list *ext;
 

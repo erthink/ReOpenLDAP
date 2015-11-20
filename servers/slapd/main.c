@@ -1062,7 +1062,7 @@ destroy:
 	module_kill();
 #endif
 
-	extops_kill();
+	extops_destroy();
 
 	supported_feature_destroy();
 	entry_info_destroy();

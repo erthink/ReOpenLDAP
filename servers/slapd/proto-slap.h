@@ -1112,7 +1112,7 @@ LDAP_SLAPD_F (int) load_extop2 LDAP_P((
 
 LDAP_SLAPD_F (int) extops_init LDAP_P(( void ));
 
-LDAP_SLAPD_F (int) extops_kill LDAP_P(( void ));
+LDAP_SLAPD_F (int) extops_destroy LDAP_P(( void ));
 
 LDAP_SLAPD_F (struct berval *) get_supported_extop LDAP_P((int index));
 
