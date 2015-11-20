@@ -343,11 +343,12 @@ main( int argc, char *argv[] )
 		ldap_controls_free( ctrls );
 	}
 
-	ber_memfree( text );
 	ber_memfree( matcheddn );
 	ber_memvfree( (void **) refs );
 
 skip:
+	ber_memfree( text );
+
 	/* disconnect from server */
 	if ( res )
 		ldap_msgfree( res );
