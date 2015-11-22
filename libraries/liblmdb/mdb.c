@@ -1033,7 +1033,7 @@ enum {
 #define MDB_END_UPDATE	0x10	/**< update env state (DBIs) */
 #define MDB_END_FREE	0x20	/**< free txn unless it is #MDB_env.%me_txn0 */
 #define MDB_END_SLOT MDB_NOTLS	/**< release any reader slot if #MDB_NOTLS */
-static void mdb_txn_end(MDB_txn *txn, unsigned mode);
+static int mdb_txn_end(MDB_txn *txn, unsigned mode);
 
 static int  mdb_page_get(MDB_txn *txn, pgno_t pgno, MDB_page **mp, int *lvl);
 static int  mdb_page_search_root(MDB_cursor *mc,
@@ -1521,6 +1521,8 @@ mdb_page_malloc(MDB_txn *txn, unsigned num)
 	}
 #endif
 	VALGRIND_MAKE_MEM_UNDEFINED(np, size);
+	np->mp_flags = 0;
+	np->mp_pages = num;
 	return np;
 }
 
@@ -2317,6 +2319,8 @@ done:
 
 	np->mp_pgno = pgno;
 	np->mp_ksize = 0;
+	np->mp_flags = 0;
+	np->mp_pages = num;
 	mdb_page_dirty(txn, np);
 	*mp = np;
 
@@ -2696,8 +2700,13 @@ mdb_txn_renew0(MDB_txn *txn)
 	uint16_t x;
 	int rc, new_notls = 0;
 
+	if (unlikely(env->me_pid != getpid())) {
+		env->me_flags |= MDB_FATAL_ERROR;
+		return MDB_PANIC;
+	}
+
 	if ((flags &= MDB_TXN_RDONLY) != 0) {
-		struct MDB_rthc* rthc = NULL;
+		struct MDB_rthc *rthc = NULL;
 		MDB_reader *r = NULL;
 		if (likely(env->me_flags & MDB_ENV_TXKEY)) {
 			mdb_assert(env, !(env->me_flags & MDB_NOTLS));
@@ -2885,6 +2894,11 @@ mdb_txn_begin(MDB_env *env, MDB_txn *parent, unsigned flags, MDB_txn **ret)
 	if (unlikely(env->me_signature != MDBX_ME_SIGNATURE))
 		return MDB_VERSION_MISMATCH;
 
+	if (unlikely(env->me_pid != getpid())) {
+		env->me_flags |= MDB_FATAL_ERROR;
+		return MDB_PANIC;
+	}
+
 	flags &= MDB_TXN_BEGIN_FLAGS;
 	flags |= env->me_flags & MDB_WRITEMAP;
 
@@ -3060,11 +3074,16 @@ mdbx_txn_straggler(MDB_txn *txn, int *percent)
  * @param[in] txn the transaction handle to end
  * @param[in] mode why and how to end the transaction
  */
-static void
+static int
 mdb_txn_end(MDB_txn *txn, unsigned mode)
 {
 	MDB_env	*env = txn->mt_env;
 	static const char *const names[] = MDB_END_NAMES;
+
+	if (unlikely(txn->mt_env->me_pid != getpid())) {
+		env->me_flags |= MDB_FATAL_ERROR;
+		return MDB_PANIC;
+	}
 
 	/* Export or close DBI handles opened in this txn */
 	mdb_dbis_update(txn, mode & MDB_END_UPDATE);
@@ -3135,6 +3154,8 @@ mdb_txn_end(MDB_txn *txn, unsigned mode)
 		txn->mt_signature = 0;
 		free(txn);
 	}
+
+	return MDB_SUCCESS;
 }
 
 int
@@ -3150,8 +3171,7 @@ mdb_txn_reset(MDB_txn *txn)
 	if (unlikely(!(txn->mt_flags & MDB_TXN_RDONLY)))
 		return EINVAL;
 
-	mdb_txn_end(txn, MDB_END_RESET);
-	return MDB_SUCCESS;
+	return mdb_txn_end(txn, MDB_END_RESET);
 }
 
 int
@@ -3166,8 +3186,7 @@ mdb_txn_abort(MDB_txn *txn)
 	if (txn->mt_child)
 		mdb_txn_abort(txn->mt_child);
 
-	mdb_txn_end(txn, MDB_END_ABORT|MDB_END_SLOT|MDB_END_FREE);
-	return MDB_SUCCESS;
+	return mdb_txn_end(txn, MDB_END_ABORT|MDB_END_SLOT|MDB_END_FREE);
 }
 
 static int
@@ -3645,6 +3664,11 @@ mdb_txn_commit(MDB_txn *txn)
 	if(unlikely(txn->mt_signature != MDBX_MT_SIGNATURE))
 		return MDB_VERSION_MISMATCH;
 
+	if (unlikely(txn->mt_env->me_pid != getpid())) {
+		txn->mt_env->me_flags |= MDB_FATAL_ERROR;
+		return MDB_PANIC;
+	}
+
 	/* mdb_txn_end() mode for a commit which writes nothing */
 	end_mode = MDB_END_EMPTY_COMMIT|MDB_END_UPDATE|MDB_END_SLOT|MDB_END_FREE;
 
@@ -3782,7 +3806,7 @@ mdb_txn_commit(MDB_txn *txn)
 		}
 
 		/* Append our loose page list to parent's */
-		for (lp = &parent->mt_loose_pgs; *lp; lp = &NEXT_LOOSE_PAGE(lp))
+		for (lp = &parent->mt_loose_pgs; *lp; lp = &NEXT_LOOSE_PAGE(*lp))
 			;
 		*lp = txn->mt_loose_pgs;
 		parent->mt_loose_count += txn->mt_loose_count;
@@ -3860,8 +3884,7 @@ mdb_txn_commit(MDB_txn *txn)
 	end_mode = MDB_END_COMMITTED|MDB_END_UPDATE;
 
 done:
-	mdb_txn_end(txn, end_mode);
-	return MDB_SUCCESS;
+	return mdb_txn_end(txn, end_mode);
 
 fail:
 	mdb_txn_abort(txn);
@@ -4050,7 +4073,8 @@ mdb_env_sync0(MDB_env *env, unsigned flags, MDB_meta *pending)
 			if (unlikely(prev_mapsize != pending->mm_mapsize)) {
 				/* LY: It is no reason to use fdatasync() here, even in case
 				 * no such bug in a kernel. Because "no-bug" mean that a kernel
-				 * internally do nearly the same.
+				 * internally do nearly the same, e.g. fdatasync() == fsync()
+				 * when no-kernel-bug and file size was changed.
 				 *
 				 * So, this code is always safe and without appreciable
 				 * performance degradation.
@@ -4200,14 +4224,16 @@ mdb_env_map(MDB_env *env, void *addr)
 		return errno;
 	}
 
-	if (flags & MDB_NORDAHEAD) {
+	unsigned madvise_flags = MADV_DONTFORK;
+	if (flags & MDB_NORDAHEAD)
 		/* Turn off readahead. It's harmful when the DB is larger than RAM. */
-#ifdef MADV_RANDOM
-		madvise(env->me_map, env->me_mapsize, MADV_RANDOM);
-#elif defined(POSIX_MADV_RANDOM)
-		posix_madvise(env->me_map, env->me_mapsize, POSIX_MADV_RANDOM);
-#endif /* MADV_RANDOM & POSIX_MADV_RANDOM */
-	}
+		madvise_flags |= MADV_RANDOM;
+	if (madvise(env->me_map, env->me_mapsize, madvise_flags))
+		return errno;
+
+#ifdef MADV_DONTDUMP
+	madvise(env->me_map, env->me_mapsize, MADV_DONTDUMP);
+#endif
 
 	/* Can happen because the address argument to mmap() is just a
 	 * hint.  mmap() can pick another, e.g. if the range is in use.
@@ -4422,17 +4448,18 @@ static pthread_mutex_t mdb_rthc_lock = PTHREAD_MUTEX_INITIALIZER;
 /* LY: TODO: Yet another problem is here - segfault in case if a DSO will
  * be unloaded before a thread would been finished. */
 static void
-mdb_env_reader_dest(void *ptr)
+mdb_env_reader_destr(void *ptr)
 {
 	struct MDB_rthc* rthc = ptr;
 	MDB_reader *reader;
 
+	if (! rthc)
+		/* LY: paranoia */
+		return;
+
 	mdb_ensure(NULL, pthread_mutex_lock(&mdb_rthc_lock) == 0);
-	/* LY: Here may be a race with mdb_env_close(),
-	 * see https://github.com/ReOpen/ReOpenLDAP/issues/48
-	 */
 	reader = rthc->rc_reader;
-	if (reader) {
+	if (reader && reader->mr_pid == getpid()) {
 		mdb_ensure(NULL, reader->mr_rthc == rthc);
 		rthc->rc_reader = NULL;
 		reader->mr_rthc = NULL;
@@ -4605,7 +4632,7 @@ mdb_env_setup_locks(MDB_env *env, char *lpath, int mode, int *excl)
 		if (rc == EROFS && (env->me_flags & MDB_RDONLY)) {
 			return MDB_SUCCESS;
 		}
-		goto fail_errno;
+		return rc;
 	}
 
 	/* Lose record locks when exec*() */
@@ -4613,22 +4640,22 @@ mdb_env_setup_locks(MDB_env *env, char *lpath, int mode, int *excl)
 			fcntl(env->me_lfd, F_SETFD, fdflags);
 
 	if (!(env->me_flags & MDB_NOTLS)) {
-		rc = pthread_key_create(&env->me_txkey, mdb_env_reader_dest);
+		rc = pthread_key_create(&env->me_txkey, mdb_env_reader_destr);
 		if (rc)
-			goto fail;
+			return rc;
 		env->me_flags |= MDB_ENV_TXKEY;
 	}
 
 	/* Try to get exclusive lock. If we succeed, then
 	 * nobody is using the lock region and we should initialize it.
 	 */
-	if ((rc = mdb_env_excl_lock(env, excl))) goto fail;
+	if ((rc = mdb_env_excl_lock(env, excl))) return rc;
 
 	size = lseek(env->me_lfd, 0, SEEK_END);
-	if (size == -1) goto fail_errno;
+	if (size == -1) return errno;
 	rsize = (env->me_maxreaders-1) * sizeof(MDB_reader) + sizeof(MDB_txninfo);
 	if (size < rsize && *excl > 0) {
-		if (ftruncate(env->me_lfd, rsize) != 0) goto fail_errno;
+		if (ftruncate(env->me_lfd, rsize) != 0) return errno;
 	} else {
 		rsize = size;
 		size = rsize - sizeof(MDB_txninfo);
@@ -4637,8 +4664,15 @@ mdb_env_setup_locks(MDB_env *env, char *lpath, int mode, int *excl)
 
 	m = mmap(NULL, rsize, PROT_READ|PROT_WRITE, MAP_SHARED, env->me_lfd, 0);
 	if (m == MAP_FAILED)
-		goto fail_errno;
+		return errno;
 	env->me_txns = m;
+
+	if (madvise(env->me_txns, rsize, MADV_DONTFORK | MADV_WILLNEED))
+		return errno;
+
+#ifdef MADV_DODUMP
+	madvise(env->me_txns, rsize, MADV_DODUMP);
+#endif
 
 	if (*excl > 0) {
 		pthread_mutexattr_t mattr;
@@ -4650,7 +4684,7 @@ mdb_env_setup_locks(MDB_env *env, char *lpath, int mode, int *excl)
 #endif /* MDB_USE_ROBUST */
 			|| (rc = pthread_mutex_init(&env->me_txns->mti_rmutex, &mattr))
 			|| (rc = pthread_mutex_init(&env->me_txns->mti_wmutex, &mattr)))
-			goto fail;
+			return rc;
 		pthread_mutexattr_destroy(&mattr);
 
 		env->me_txns->mti_magic = MDB_MAGIC;
@@ -4660,27 +4694,19 @@ mdb_env_setup_locks(MDB_env *env, char *lpath, int mode, int *excl)
 	} else {
 		if (env->me_txns->mti_magic != MDB_MAGIC) {
 			mdb_debug("lock region has invalid magic");
-			rc = MDB_INVALID;
-			goto fail;
+			return MDB_INVALID;
 		}
 		if (env->me_txns->mti_format != MDB_LOCK_FORMAT) {
 			mdb_debug("lock region has format+version 0x%x, expected 0x%x",
 				env->me_txns->mti_format, MDB_LOCK_FORMAT);
-			rc = MDB_VERSION_MISMATCH;
-			goto fail;
+			return MDB_VERSION_MISMATCH;
 		}
 		rc = errno;
-		if (rc && rc != EACCES && rc != EAGAIN) {
-			goto fail;
-		}
+		if (rc && rc != EACCES && rc != EAGAIN)
+			return rc;
 	}
 
 	return MDB_SUCCESS;
-
-fail_errno:
-	rc = errno;
-fail:
-	return rc;
 }
 
 	/** The name of the lock file in the DB environment */
@@ -4903,20 +4929,25 @@ mdb_env_close0(MDB_env *env)
 	 * data owned by this process (me_close_readers and
 	 * our readers), and clear each reader atomically.
 	 */
-	mdb_ensure(env, pthread_mutex_lock(&mdb_rthc_lock) == 0);
-	for (i = env->me_close_readers; --i >= 0; ) {
-		MDB_reader *reader = &env->me_txns->mti_readers[i];
-
-		if (reader->mr_pid == pid) {
-			mdb_ensure(env, reader->mr_rthc->rc_reader == reader);
-			reader->mr_rthc->rc_reader = NULL;
-			reader->mr_rthc = NULL;
-			mdb_compiler_barrier();
-			reader->mr_pid = 0;
+	if (pid == getpid()) {
+		mdb_ensure(env, pthread_mutex_lock(&mdb_rthc_lock) == 0);
+		for (i = env->me_close_readers; --i >= 0; ) {
+			MDB_reader *reader = &env->me_txns->mti_readers[i];
+			if (reader->mr_pid == pid) {
+				struct MDB_rthc *rthc = reader->mr_rthc;
+				if (rthc) {
+					mdb_ensure(env, rthc->rc_reader == reader);
+					rthc->rc_reader = NULL;
+					reader->mr_rthc = NULL;
+					free(rthc);
+				}
+				reader->mr_pid = 0;
+			}
 		}
+		mdb_coherent_barrier();
+		mdb_ensure(env, pthread_mutex_unlock(&mdb_rthc_lock) == 0);
 	}
-	mdb_coherent_barrier();
-	mdb_ensure(env, pthread_mutex_unlock(&mdb_rthc_lock) == 0);
+
 	munmap((void *)env->me_txns, (env->me_maxreaders-1)*sizeof(MDB_reader)+sizeof(MDB_txninfo));
 	env->me_txns = NULL;
 
@@ -5533,6 +5564,7 @@ mdb_ovpage_free(MDB_cursor *mc, MDB_page *mp)
 				return MDB_CORRUPTED;
 			}
 		}
+		txn->mt_dirty_room++;
 		if (!(env->me_flags & MDB_WRITEMAP))
 			mdb_dpage_free(env, mp);
 release:
@@ -6502,16 +6534,18 @@ fix_parent:
 			 * update branch key if there is a parent page
 			 */
 			if (mc->mc_top && !mc->mc_ki[mc->mc_top]) {
-				unsigned short top = mc->mc_top;
+				unsigned short dtop = 1;
 				mc->mc_top--;
 				/* slot 0 is always an empty key, find real slot */
-				while (mc->mc_top && !mc->mc_ki[mc->mc_top])
+				while (mc->mc_top && !mc->mc_ki[mc->mc_top]) {
 					mc->mc_top--;
+					dtop++;
+				}
 				if (mc->mc_ki[mc->mc_top])
 					rc2 = mdb_update_key(mc, key);
 				else
 					rc2 = MDB_SUCCESS;
-				mc->mc_top = top;
+				mc->mc_top += dtop;
 				if (rc2)
 					return rc2;
 			}
@@ -6687,6 +6721,7 @@ current:
 						return ENOMEM;
 					id2.mid = pg;
 					id2.mptr = np;
+					/* Note - this page is already counted in parent's dirty_room */
 					rc2 = mdb_mid2l_insert(mc->mc_txn->mt_u.dirty_list, &id2);
 					mdb_cassert(mc, rc2 == 0);
 					if (!(flags & MDB_RESERVE)) {
@@ -8189,6 +8224,7 @@ mdb_rebalance(MDB_cursor *mc)
 			mn.mc_ki[mn.mc_top] += mc->mc_ki[mn.mc_top] + 1;
 			/* We want mdb_rebalance to find mn when doing fixups */
 			if (mc->mc_flags & C_SUB) {
+				dummy.mc_flags = C_INITIALIZED;
 				dummy.mc_next = mc->mc_txn->mt_cursors[mc->mc_dbi];
 				mc->mc_txn->mt_cursors[mc->mc_dbi] = &dummy;
 				dummy.mc_xcursor = (MDB_xcursor *)&mn;
@@ -8391,12 +8427,19 @@ mdb_page_split(MDB_cursor *mc, MDB_val *newkey, MDB_val *newdata, pgno_t newpgno
 	rp->mp_ksize = mp->mp_ksize;
 	mdb_debug("new right sibling: page %zu", rp->mp_pgno);
 
-	if (mc->mc_snum < 2) {
+	/* Usually when splitting the root page, the cursor
+	 * height is 1. But when called from mdb_update_key,
+	 * the cursor height may be greater because it walks
+	 * up the stack while finding the branch slot to update.
+	 */
+	if (mc->mc_top < 1) {
 		if ((rc = mdb_page_new(mc, P_BRANCH, 1, &pp)))
 			goto done;
 		/* shift current top to make room for new parent */
-		mc->mc_pg[1] = mc->mc_pg[0];
-		mc->mc_ki[1] = mc->mc_ki[0];
+		for (i=mc->mc_snum; i>0; i--) {
+			mc->mc_pg[i] = mc->mc_pg[i-1];
+			mc->mc_ki[i] = mc->mc_ki[i-1];
+		}
 		mc->mc_pg[0] = pp;
 		mc->mc_ki[0] = 0;
 		mc->mc_db->md_root = pp->mp_pgno;
@@ -8412,8 +8455,8 @@ mdb_page_split(MDB_cursor *mc, MDB_val *newkey, MDB_val *newdata, pgno_t newpgno
 			mc->mc_db->md_depth--;
 			goto done;
 		}
-		mc->mc_snum = 2;
-		mc->mc_top = 1;
+		mc->mc_snum++;
+		mc->mc_top++;
 		ptop = 0;
 	} else {
 		ptop = mc->mc_top-1;
@@ -9151,7 +9194,9 @@ mdb_env_copyfd0(MDB_env *env, HANDLE fd)
 		return rc;
 
 	/* We must start the actual read txn after blocking writers */
-	mdb_txn_end(txn, MDB_END_RESET_TMP);
+	rc = mdb_txn_end(txn, MDB_END_RESET_TMP);
+	if (rc)
+		return rc;
 
 	/* Temporarily block writers until we snapshot the meta pages */
 	wmutex = MDB_MUTEX(env, w);
@@ -9995,6 +10040,11 @@ mdb_reader_check0(MDB_env *env, int rlocked, int *dead)
 	MDB_reader *mr;
 	pid_t *pids, pid;
 	int rc = MDB_SUCCESS, count = 0;
+
+	if (unlikely(env->me_pid != getpid())) {
+		env->me_flags |= MDB_FATAL_ERROR;
+		return MDB_PANIC;
+	}
 
 	rdrs = env->me_txns->mti_numreaders;
 	pids = malloc((rdrs+1) * sizeof(pid_t));
