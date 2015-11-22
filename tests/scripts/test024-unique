@@ -538,6 +538,21 @@ if test $RC != 0 ; then
 	exit 2
 fi
 
+echo "Sending an empty modification"
+
+$LDAPMODIFY -D "$UNIQUEDN" -h $LOCALHOST -p $PORT1 -w $PASSWD > \
+	 $TESTOUT 2>&1 << EOF
+dn: uid=empty,ou=users,o=unique
+changetype: modify
+EOF
+
+RC=$?
+if test $RC != 0 ; then
+	echo "spurious unique error ($RC)!"
+	killservers
+	exit 2
+fi
+
 echo "Making a record non-unique"
 $LDAPMODIFY -D "uid=dave,ou=users,o=unique" -h $LOCALHOST -p $PORT1 -w $PASSWD > \
     $TESTOUT 2>&1 << EOF
