@@ -140,6 +140,7 @@ handle_private_option( int i )
 				prog, protocol );
 			exit( EXIT_FAILURE );
 		}
+		if (newSuperior) free(newSuperior);
 		newSuperior = strdup( optarg );
 		protocol = LDAP_VERSION3;
 		break;
@@ -231,6 +232,7 @@ fail:
 	if ( fp && fp != stdin ) fclose( fp );
 	if ( entrydn ) free( entrydn );
 	if ( rdn ) free( rdn );
+	if (newSuperior) free(newSuperior);
 	tool_exit( ld, retval );
 }
 

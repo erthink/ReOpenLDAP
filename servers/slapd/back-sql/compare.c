@@ -71,12 +71,7 @@ backsql_compare( Operation *op, SlapReply *rs )
 				dn_match( &op->o_req_ndn, &bsi.bsi_e->e_nname ) )
 		{
 			rs->sr_err = LDAP_SUCCESS;
-			rs->sr_text = NULL;
-			rs->sr_matched = NULL;
-			if ( rs->sr_ref ) {
-				ber_bvarray_free( rs->sr_ref );
-				rs->sr_ref = NULL;
-			}
+			rs_send_cleanup( rs );
 			break;
 		}
 		/* fallthru */
@@ -160,15 +155,6 @@ return_results:;
 
 	send_ldap_result( op, rs );
 
-	if ( rs->sr_matched ) {
-		rs->sr_matched = NULL;
-	}
-
-	if ( rs->sr_ref ) {
-		ber_bvarray_free( rs->sr_ref );
-		rs->sr_ref = NULL;
-	}
-
 	if ( !BER_BVISNULL( &bsi.bsi_base_id.eid_ndn ) ) {
 		(void)backsql_free_entryID( &bsi.bsi_base_id, 0, op->o_tmpmemctx );
 	}
@@ -182,6 +168,8 @@ return_results:;
 	}
 
 	Debug(LDAP_DEBUG_TRACE,"<==backsql_compare()\n");
+	rs_send_cleanup( rs );
+
 	switch ( rs->sr_err ) {
 	case LDAP_COMPARE_TRUE:
 	case LDAP_COMPARE_FALSE:

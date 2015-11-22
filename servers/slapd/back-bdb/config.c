@@ -801,6 +801,7 @@ bdb_cf_gen( ConfigArgs *c )
 			rc = 1;
 		} else {
 			bdb->bi_db_crypt_key = c->value_bv;
+			BER_BVZERO( &c->value_bv );
 		}
 		break;
 

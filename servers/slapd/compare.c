@@ -196,11 +196,11 @@ fe_op_compare( Operation *op, SlapReply *rs )
 			NULL, &op->o_req_dn, LDAP_SCOPE_DEFAULT );
 
 		rs->sr_err = LDAP_REFERRAL;
-		if (!rs->sr_ref) rs->sr_ref = default_referral;
+		if ( !rs->sr_ref ) rs->sr_ref = default_referral;
+		else rs->sr_flags |= REP_REF_MUSTBEFREED;
 		op->o_bd = bd;
 		send_ldap_result( op, rs );
-
-		if (rs->sr_ref != default_referral) ber_bvarray_free( rs->sr_ref );
+		rs_send_cleanup( rs );
 		rs->sr_err = 0;
 		goto cleanup;
 	}

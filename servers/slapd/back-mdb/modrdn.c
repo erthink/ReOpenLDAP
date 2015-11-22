@@ -153,10 +153,8 @@ txnReturn:
 		rs->sr_ref = referral_rewrite( default_referral, NULL,
 					&op->o_req_dn, LDAP_SCOPE_DEFAULT );
 		rs->sr_err = LDAP_REFERRAL;
-
+		rs->sr_flags = REP_REF_MUSTBEFREED;
 		send_ldap_result( op, rs );
-
-		ber_bvarray_free( rs->sr_ref );
 		goto done;
 	case 0:
 		break;
@@ -230,20 +228,14 @@ txnReturn:
 			}
 			mdb_entry_return( op, e );
 			e = NULL;
-
 		} else {
 			rs->sr_ref = referral_rewrite( default_referral, NULL,
 					&op->o_req_dn, LDAP_SCOPE_DEFAULT );
 		}
 
 		rs->sr_err = LDAP_REFERRAL;
+		rs->sr_flags = REP_MATCHED_MUSTBEFREED | REP_REF_MUSTBEFREED;
 		send_ldap_result( op, rs );
-
-		ber_bvarray_free( rs->sr_ref );
-		free( (char *)rs->sr_matched );
-		rs->sr_ref = NULL;
-		rs->sr_matched = NULL;
-
 		goto done;
 	}
 
@@ -272,11 +264,8 @@ txnReturn:
 
 		rs->sr_err = LDAP_REFERRAL,
 		rs->sr_matched = e->e_name.bv_val;
+		rs->sr_flags = REP_REF_MUSTBEFREED;
 		send_ldap_result( op, rs );
-
-		ber_bvarray_free( rs->sr_ref );
-		rs->sr_ref = NULL;
-		rs->sr_matched = NULL;
 		goto done;
 	}
 
@@ -621,6 +610,7 @@ return_results:
 	}
 
 done:
+	rs_send_cleanup( rs );
 	slap_graduate_commit_csn( op );
 
 	if( new_ndn.bv_val != NULL ) op->o_tmpfree( new_ndn.bv_val, op->o_tmpmemctx );

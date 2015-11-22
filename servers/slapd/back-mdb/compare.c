@@ -60,12 +60,9 @@ mdb_compare( Operation *op, SlapReply *rs )
 	if ( rs->sr_err == MDB_NOTFOUND ) {
 		if ( e != NULL ) {
 			/* return referral only if "disclose" is granted on the object */
-			if ( ! access_allowed( op, e, slap_schema.si_ad_entry,
+			if ( access_allowed( op, e, slap_schema.si_ad_entry,
 				NULL, ACL_DISCLOSE, NULL ) )
 			{
-				rs->sr_err = LDAP_NO_SUCH_OBJECT;
-
-			} else {
 				rs->sr_matched = ch_strdup( e->e_dn );
 				if ( is_entry_referral( e )) {
 					BerVarray ref = get_entry_referrals( op, e );
@@ -75,49 +72,40 @@ mdb_compare( Operation *op, SlapReply *rs )
 				} else {
 					rs->sr_ref = NULL;
 				}
-				rs->sr_err = LDAP_REFERRAL;
 			}
 			mdb_entry_return( op, e );
 			e = NULL;
-
 		} else {
 			rs->sr_ref = referral_rewrite( default_referral,
 				NULL, &op->o_req_dn, LDAP_SCOPE_DEFAULT );
-			rs->sr_err = rs->sr_ref ? LDAP_REFERRAL : LDAP_NO_SUCH_OBJECT;
 		}
 
 		rs->sr_flags = REP_MATCHED_MUSTBEFREED | REP_REF_MUSTBEFREED;
-		send_ldap_result( op, rs );
-		goto done;
+		rs->sr_err = rs->sr_ref ? LDAP_REFERRAL : LDAP_NO_SUCH_OBJECT;
+		goto return_results;
 	}
 
 	if (!manageDSAit && is_entry_referral( e ) ) {
 		/* return referral only if "disclose" is granted on the object */
-		if ( !access_allowed( op, e, slap_schema.si_ad_entry,
+		if ( access_allowed( op, e, slap_schema.si_ad_entry,
 			NULL, ACL_DISCLOSE, NULL ) )
 		{
-			rs->sr_err = LDAP_NO_SUCH_OBJECT;
-		} else {
 			/* entry is a referral, don't allow compare */
 			rs->sr_ref = get_entry_referrals( op, e );
-			rs->sr_err = LDAP_REFERRAL;
 			rs->sr_matched = e->e_name.bv_val;
+			rs->sr_flags = REP_REF_MUSTBEFREED;
 		}
 
 		Debug( LDAP_DEBUG_TRACE, "entry is referral\n" );
-
-		send_ldap_result( op, rs );
-
-		ber_bvarray_free( rs->sr_ref );
-		rs->sr_ref = NULL;
-		rs->sr_matched = NULL;
-		goto done;
+		rs->sr_err = rs->sr_ref ? LDAP_REFERRAL : LDAP_NO_SUCH_OBJECT;
+		goto return_results;
 	}
 
 	rs->sr_err = slap_compare_entry( op, e, op->orc_ava );
 
 return_results:
 	send_ldap_result( op, rs );
+	rs_send_cleanup( rs );
 
 	switch ( rs->sr_err ) {
 	case LDAP_COMPARE_FALSE:
@@ -126,7 +114,6 @@ return_results:
 		break;
 	}
 
-done:
 	if ( moi == &opinfo ) {
 		mdb_txn_reset( moi->moi_txn );
 		LDAP_SLIST_REMOVE( &op->o_extra, &moi->moi_oe, OpExtra, oe_next );

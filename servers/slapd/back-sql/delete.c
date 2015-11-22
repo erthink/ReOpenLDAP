@@ -436,12 +436,7 @@ backsql_delete( Operation *op, SlapReply *rs )
 				dn_match( &op->o_req_ndn, &bsi.bsi_e->e_nname ) )
 		{
 			rs->sr_err = LDAP_SUCCESS;
-			rs->sr_text = NULL;
-			rs->sr_matched = NULL;
-			if ( rs->sr_ref ) {
-				ber_bvarray_free( rs->sr_ref );
-				rs->sr_ref = NULL;
-			}
+			rs_send_cleanup( rs );
 			break;
 		}
 		e = &d;
@@ -588,12 +583,7 @@ done:;
 					ACL_DISCLOSE, NULL ) )
 		{
 			rs->sr_err = LDAP_NO_SUCH_OBJECT;
-			rs->sr_text = NULL;
-			rs->sr_matched = NULL;
-			if ( rs->sr_ref ) {
-				ber_bvarray_free( rs->sr_ref );
-				rs->sr_ref = NULL;
-			}
+			rs_send_cleanup( rs );
 		}
 	}
 
@@ -617,11 +607,7 @@ done:;
 		backsql_entry_clean( op, &p );
 	}
 
-	if ( rs->sr_ref ) {
-		ber_bvarray_free( rs->sr_ref );
-		rs->sr_ref = NULL;
-	}
-
+	rs_send_cleanup( rs );
 	return rs->sr_err;
 }
 

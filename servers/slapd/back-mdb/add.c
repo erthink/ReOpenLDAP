@@ -175,8 +175,7 @@ txnReturn:
 		p = (Entry *)&slap_entry_root;
 
 	if ( !bvmatch( &pdn, &p->e_nname ) ) {
-		rs->sr_matched = ber_strdup_x( p->e_name.bv_val,
-			op->o_tmpmemctx );
+		rs->sr_matched = ber_strdup_x( p->e_name.bv_val, op->o_tmpmemctx );
 		if ( p != (Entry *)&slap_entry_root && is_entry_referral( p )) {
 			BerVarray ref = get_entry_referrals( op, p );
 			rs->sr_ref = referral_rewrite( ref, &p->e_name,
@@ -209,7 +208,7 @@ txnReturn:
 			LDAP_XSTRING(mdb_add) ": no write access to parent\n" );
 		rs->sr_err = LDAP_INSUFFICIENT_ACCESS;
 		rs->sr_text = "no write access to parent";
-		goto return_results;;
+		goto return_results;
 	}
 
 	if ( p != (Entry *)&slap_entry_root ) {
@@ -221,7 +220,7 @@ txnReturn:
 				LDAP_XSTRING(mdb_add) ": parent is subentry\n" );
 			rs->sr_err = LDAP_OBJECT_CLASS_VIOLATION;
 			rs->sr_text = "parent is a subentry";
-			goto return_results;;
+			goto return_results;
 		}
 
 		if ( is_entry_alias( p ) ) {
@@ -232,14 +231,13 @@ txnReturn:
 				LDAP_XSTRING(mdb_add) ": parent is alias\n" );
 			rs->sr_err = LDAP_ALIAS_PROBLEM;
 			rs->sr_text = "parent is an alias";
-			goto return_results;;
+			goto return_results;
 		}
 
 		if ( is_entry_referral( p ) ) {
 			BerVarray ref = get_entry_referrals( op, p );
 			/* parent is a referral, don't allow add */
-			rs->sr_matched = ber_strdup_x( p->e_name.bv_val,
-				op->o_tmpmemctx );
+			rs->sr_matched = ber_strdup_x( p->e_name.bv_val, op->o_tmpmemctx );
 			rs->sr_ref = referral_rewrite( ref, &p->e_name,
 				&op->o_req_dn, LDAP_SCOPE_DEFAULT );
 			ber_bvarray_free( ref );
@@ -296,7 +294,7 @@ txnReturn:
 			LDAP_XSTRING(mdb_add) ": no write access to entry\n" );
 		rs->sr_err = LDAP_INSUFFICIENT_ACCESS;
 		rs->sr_text = "no write access to entry";
-		goto return_results;;
+		goto return_results;
 	}
 
 	/*
@@ -307,7 +305,7 @@ txnReturn:
 			LDAP_XSTRING(mdb_add) ": no write access to attribute\n" );
 		rs->sr_err = LDAP_INSUFFICIENT_ACCESS;
 		rs->sr_text = "no write access to attribute";
-		goto return_results;;
+		goto return_results;
 	}
 
 	rs->sr_err = mdb_cursor_open( txn, mdb->mi_id2entry, &mc );
@@ -422,6 +420,7 @@ txnReturn:
 return_results:
 	success = rs->sr_err;
 	send_ldap_result( op, rs );
+	rs_send_cleanup( rs );
 
 	if( moi == &opinfo ) {
 		if( txn != NULL ) {

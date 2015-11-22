@@ -146,10 +146,7 @@ done:
 
 	if ( rs->sr_err ) {
 		send_ldap_result( op, rs );
-		if ( rs->sr_ref ) {
-			ber_bvarray_free( rs->sr_ref );
-			rs->sr_ref = NULL;
-		}
+		rs_send_cleanup( rs );
 	}
 	/* front end will send result on success (rs->sr_err==0) */
 	return rs->sr_err;
