@@ -24,7 +24,7 @@
 /* LY: With respect to http://en.wikipedia.org/wiki/Fail-fast */
 #if LDAP_MEMORY_DEBUG > 0
 #	include <lber_hipagut.h>
-#	define SL_MEM_VALID(p) lber_hug_memchk_ensure(p)
+#	define SL_MEM_TAG 0x081E
 #endif /* LDAP_MEMORY_DEBUG */
 
 /*
@@ -403,7 +403,8 @@ slap_sl_malloc(
 
 		if (likely(ptr)) {
 #if LDAP_MEMORY_DEBUG > 0
-			ptr = lber_hug_memchk_setup(ptr, nett_size, LBER_HUG_POISON_DEFAULT);
+			ptr = lber_hug_memchk_setup(ptr, nett_size,
+				SL_MEM_TAG, LBER_HUG_POISON_DEFAULT);
 #endif /* LDAP_MEMORY_DEBUG */
 			return ptr;
 		}
@@ -452,7 +453,8 @@ slap_sl_calloc( ber_len_t n, ber_len_t s, void *ctx )
 
 		if (likely(ptr)) {
 #if LDAP_MEMORY_DEBUG > 0
-			ptr = lber_hug_memchk_setup(ptr, nett_size, LBER_HUG_POISON_CALLOC_SETUP);
+			ptr = lber_hug_memchk_setup(ptr, nett_size,
+				SL_MEM_TAG, LBER_HUG_POISON_CALLOC_SETUP);
 #else
 			memset(ptr, 0, nett_size);
 #endif /* LDAP_MEMORY_DEBUG */
@@ -503,7 +505,7 @@ slap_sl_realloc(void *ptr, ber_len_t new_nett_size, void *ctx)
 		LDAP_BUG();
 	}
 
-	unsigned undo_key = lber_hug_realloc_begin(ptr, &old_nett_size);
+	unsigned undo_key = lber_hug_realloc_begin(ptr, SL_MEM_TAG, &old_nett_size);
 	oldptr = LBER_HUG_CHUNK(ptr);
 #else
 	oldptr = ptr;
@@ -536,7 +538,8 @@ slap_sl_realloc(void *ptr, ber_len_t new_nett_size, void *ctx)
 				VALGRIND_MAKE_MEM_UNDEFINED((char *) ptr + old_nett_size,
 					new_nett_size - old_nett_size + LBER_HUG_MEMCHK_OVERHEAD);
 			}
-			lber_hug_realloc_commit(old_nett_size, oldptr, new_nett_size);
+			lber_hug_realloc_commit(old_nett_size, oldptr,
+				SL_MEM_TAG, new_nett_size);
 #endif /* LDAP_MEMORY_DEBUG */
 			VALGRIND_MEMPOOL_CHANGE(sh, oldptr, oldptr, new_gross_size);
 			if (old_nett_size > new_nett_size) {
@@ -558,7 +561,8 @@ slap_sl_realloc(void *ptr, ber_len_t new_nett_size, void *ctx)
 #if LDAP_MEMORY_DEBUG > 0
 				VALGRIND_MAKE_MEM_UNDEFINED((char *) ptr + old_nett_size,
 					new_nett_size - old_nett_size + LBER_HUG_MEMCHK_OVERHEAD);
-				lber_hug_realloc_commit(old_nett_size, oldptr, new_nett_size);
+				lber_hug_realloc_commit(old_nett_size, oldptr,
+					SL_MEM_TAG, new_nett_size);
 #else
 				VALGRIND_MAKE_MEM_UNDEFINED((char *) ptr + old_nett_size,
 					new_nett_size - old_nett_size);
@@ -572,7 +576,8 @@ slap_sl_realloc(void *ptr, ber_len_t new_nett_size, void *ctx)
 			newptr = __slap_sl_malloc(sh, new_gross_size);
 			if (newptr) {
 #if LDAP_MEMORY_DEBUG > 0
-				newptr = lber_hug_realloc_commit(old_nett_size, newptr, new_nett_size);
+				newptr = lber_hug_realloc_commit(old_nett_size, newptr,
+					SL_MEM_TAG, new_nett_size);
 #endif /* LDAP_MEMORY_DEBUG */
 			} else {
 				Debug(LDAP_DEBUG_TRACE,
@@ -595,7 +600,7 @@ slap_sl_realloc(void *ptr, ber_len_t new_nett_size, void *ctx)
 
 	VALGRIND_MAKE_MEM_NOACCESS(p, sizeof(*p));
 #if LDAP_MEMORY_DEBUG > 0
-	lber_hug_realloc_undo(oldptr, undo_key);
+	lber_hug_realloc_undo(oldptr, SL_MEM_TAG, undo_key);
 #endif /* LDAP_MEMORY_DEBUG */
 	newptr = slap_sl_malloc(new_nett_size, ctx);
 	VALGRIND_DISABLE_ADDR_ERROR_REPORTING_IN_RANGE(ptr, old_nett_size);
@@ -622,7 +627,7 @@ slap_sl_free(void *ptr, void *ctx)
 	}
 
 #if LDAP_MEMORY_DEBUG > 0
-	ptr = lber_hug_memchk_drown(ptr);
+	ptr = lber_hug_memchk_drown(ptr, SL_MEM_TAG);
 #endif /* LDAP_MEMORY_DEBUG */
 
 	VALGRIND_MEMPOOL_FREE(sh, ptr);

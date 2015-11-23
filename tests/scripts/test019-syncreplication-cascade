@@ -34,7 +34,7 @@ mkdir -p $TESTDIR $DBDIR1 $DBDIR2 $DBDIR3 $DBDIR4 $DBDIR5 $DBDIR6
 
 echo "Starting master slapd on TCP/IP port $PORT1..."
 . $CONFFILTER $BACKEND $MONITORDB < $SRMASTERCONF > $CONF1
-$SLAPD -f $CONF1 -h $URI1 -d $LVL $TIMING > $LOG1 2>&1 &
+$SLAPD -f $CONF1 -h $URI1 $TIMING > $LOG1 2>&1 &
 PID=$!
 if test $WAIT != 0 ; then
     echo PID $PID
@@ -55,7 +55,7 @@ fi
 
 echo "Starting R1-slave slapd on TCP/IP port $PORT2..."
 . $CONFFILTER $BACKEND $MONITORDB < $R1SRSLAVECONF > $CONF2
-$SLAPD -f $CONF2 -h $URI2 -d $LVL $TIMING > $LOG2 2>&1 &
+$SLAPD -f $CONF2 -h $URI2 $TIMING > $LOG2 2>&1 &
 SLAVEPID=$!
 if test $WAIT != 0 ; then
     echo SLAVE R1 PID $SLAVEPID
@@ -66,7 +66,7 @@ check_running 2 R1-slave
 
 echo "Starting R2-slave slapd on TCP/IP port $PORT3..."
 . $CONFFILTER $BACKEND $MONITORDB < $R2SRSLAVECONF > $CONF3
-$SLAPD -f $CONF3 -h $URI3 -d $LVL $TIMING > $LOG3 2>&1 &
+$SLAPD -f $CONF3 -h $URI3 $TIMING > $LOG3 2>&1 &
 SLAVEPID=$!
 if test $WAIT != 0 ; then
     echo SLAVE R2 PID $SLAVEPID
@@ -77,7 +77,7 @@ check_running 3 R2-slave
 
 echo "Starting P1-slave slapd on TCP/IP port $PORT4..."
 . $CONFFILTER $BACKEND $MONITORDB < $P1SRSLAVECONF > $CONF4
-$SLAPD -f $CONF4 -h $URI4 -d $LVL $TIMING > $LOG4 2>&1 &
+$SLAPD -f $CONF4 -h $URI4 $TIMING > $LOG4 2>&1 &
 SLAVEPID=$!
 if test $WAIT != 0 ; then
     echo SLAVE P1 PID $SLAVEPID
@@ -88,7 +88,7 @@ check_running 4 P1-slave
 
 echo "Starting P2 slave slapd on TCP/IP port $PORT5..."
 . $CONFFILTER $BACKEND $MONITORDB < $P2SRSLAVECONF > $CONF5
-$SLAPD -f $CONF5 -h $URI5 -d $LVL $TIMING > $LOG5 2>&1 &
+$SLAPD -f $CONF5 -h $URI5 $TIMING > $LOG5 2>&1 &
 SLAVEPID=$!
 if test $WAIT != 0 ; then
     echo SLAVE P2 PID $SLAVEPID
@@ -99,7 +99,7 @@ check_running 5 P2-slave
 
 echo "Starting P3 slave slapd on TCP/IP port $PORT6..."
 . $CONFFILTER $BACKEND $MONITORDB < $P3SRSLAVECONF > $CONF6
-$SLAPD -f $CONF6 -h $URI6 -d $LVL $TIMING > $LOG6 2>&1 &
+$SLAPD -f $CONF6 -h $URI6 $TIMING > $LOG6 2>&1 &
 SLAVEPID=$!
 if test $WAIT != 0 ; then
     echo SLAVE P3 PID $SLAVEPID

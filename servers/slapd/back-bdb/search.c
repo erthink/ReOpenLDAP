@@ -317,9 +317,21 @@ static int
 bdb_get_nextid(struct bdb_info *bdb, DB_TXN *ltid, ID *cursor)
 {
 	DBC *curs;
-	DBT key, data;
 	ID id, nid;
 	int rc;
+
+	DBT key = {
+		.data = &nid,
+		.size = sizeof(ID),
+		.ulen = sizeof(ID),
+		.flags = DB_DBT_USERMEM
+	};
+
+	DBT data = {
+		.dlen = 0,
+		.ulen = 0,
+		.flags = DB_DBT_USERMEM | DB_DBT_PARTIAL
+	};
 
 	id = *cursor + 1;
 	BDB_ID2DISK( id, &nid );
@@ -327,11 +339,6 @@ bdb_get_nextid(struct bdb_info *bdb, DB_TXN *ltid, ID *cursor)
 		bdb->bi_id2entry->bdi_db, ltid, &curs, bdb->bi_db_opflags );
 	if ( rc )
 		return rc;
-	key.data = &nid;
-	key.size = key.ulen = sizeof(ID);
-	key.flags = DB_DBT_USERMEM;
-	data.flags = DB_DBT_USERMEM | DB_DBT_PARTIAL;
-	data.dlen = data.ulen = 0;
 	rc = curs->c_get( curs, &key, &data, DB_SET_RANGE );
 	curs->c_close( curs );
 	if ( rc )
@@ -456,20 +463,15 @@ dn2entry_retry:
 
 			/* return referral only if "disclose"
 			 * is granted on the object */
-			if ( ! access_allowed( op, matched,
+			if ( access_allowed( op, matched,
 						slap_schema.si_ad_entry,
 						NULL, ACL_DISCLOSE, NULL ) )
 			{
-				rs->sr_err = LDAP_NO_SUCH_OBJECT;
-
-			} else {
 				ber_dupbv( &matched_dn, &matched->e_name );
 
 				erefs = is_entry_referral( matched )
 					? get_entry_referrals( op, matched )
 					: NULL;
-				if ( rs->sr_err == DB_NOTFOUND )
-					rs->sr_err = LDAP_REFERRAL;
 				rs->sr_matched = matched_dn.bv_val;
 			}
 
@@ -491,19 +493,14 @@ dn2entry_retry:
 #endif
 			rs->sr_ref = referral_rewrite( default_referral,
 				NULL, &op->o_req_dn, op->oq_search.rs_scope );
-			rs->sr_err = rs->sr_ref != NULL ? LDAP_REFERRAL : LDAP_NO_SUCH_OBJECT;
 		}
 
+		rs->sr_flags = REP_REF_MUSTBEFREED;
+		rs->sr_err = rs->sr_ref ? LDAP_REFERRAL : LDAP_NO_SUCH_OBJECT;
 		send_ldap_result( op, rs );
 
-		if ( rs->sr_ref ) {
-			ber_bvarray_free( rs->sr_ref );
-			rs->sr_ref = NULL;
-		}
-		if ( !BER_BVISNULL( &matched_dn ) ) {
-			ber_memfree( matched_dn.bv_val );
-			rs->sr_matched = NULL;
-		}
+		ber_memfree( matched_dn.bv_val );
+		rs_send_cleanup( rs );
 		return rs->sr_err;
 	}
 
@@ -558,12 +555,11 @@ dn2entry_retry:
 			LDAP_XSTRING(bdb_search) ": entry is referral\n" );
 
 		rs->sr_matched = matched_dn.bv_val;
+		rs->sr_flags = REP_REF_MUSTBEFREED;
 		send_ldap_result( op, rs );
 
-		ber_bvarray_free( rs->sr_ref );
-		rs->sr_ref = NULL;
 		ber_memfree( matched_dn.bv_val );
-		rs->sr_matched = NULL;
+		rs_send_cleanup( rs );
 		return 1;
 	}
 
@@ -927,8 +923,8 @@ id_retry:
 			blis.bli_flag = BLI_DONTFREE;
 
 			rs->sr_entry = e;
-			rs->sr_flags = REP_ENTRY_MUSTRELEASE;
-
+			rs->sr_flags = REP_ENTRY_MUSTRELEASE | REP_REF_MUSTBEFREED;
+			rs->sr_err = LDAP_REFERRAL;
 			send_search_reference( op, rs );
 
 			if ( blis.bli_flag ) {
@@ -943,12 +939,9 @@ id_retry:
 						OpExtra, oe_next );
 				}
 			}
-			rs->sr_entry = NULL;
 			e = NULL;
-
-			ber_bvarray_free( rs->sr_ref );
 			ber_bvarray_free( erefs );
-			rs->sr_ref = NULL;
+			rs_send_cleanup( rs );
 
 			goto loop_continue;
 		}

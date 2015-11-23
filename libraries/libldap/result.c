@@ -270,12 +270,7 @@ wait4msg(
 		tv0 = *timeout;
 		tv = *timeout;
 		tvp = &tv;
-#ifdef HAVE_GETTIMEOFDAY
-		gettimeofday( &start_time_tv, NULL );
-#else /* ! HAVE_GETTIMEOFDAY */
-		start_time_tv.tv_sec = time( NULL );
-		start_time_tv.tv_usec = 0;
-#endif /* ! HAVE_GETTIMEOFDAY */
+		ldap_timeval( &start_time_tv );
 	}
 
 	rc = LDAP_MSG_X_KEEP_LOOKING;
@@ -389,12 +384,7 @@ wait4msg(
 			if ( tvp == NULL )
 				continue;
 
-#ifdef HAVE_GETTIMEOFDAY
-			gettimeofday( &curr_time_tv, NULL );
-#else /* ! HAVE_GETTIMEOFDAY */
-			curr_time_tv.tv_sec = time( NULL );
-			curr_time_tv.tv_usec = 0;
-#endif /* ! HAVE_GETTIMEOFDAY */
+			ldap_timeval( &curr_time_tv );
 
 			/* delta_time = tmp_time - start_time */
 			delta_time_tv.tv_sec = curr_time_tv.tv_sec - start_time_tv.tv_sec;

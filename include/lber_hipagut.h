@@ -29,11 +29,13 @@
 
 #if defined(LDAP_MEMORY_TRACE) && !defined(LDAP_MEMORY_DEBUG)
 #	define LDAP_MEMORY_DEBUG 1
+#	define HIPAGUT_ASSERT_CHECK 1
 #endif
 
 #ifndef LDAP_MEMORY_DEBUG
 #	ifdef LDAP_DEBUG
 #		define LDAP_MEMORY_DEBUG 1
+#		define HIPAGUT_ASSERT_CHECK 1
 #	else
 #		define LDAP_MEMORY_DEBUG 0
 #	endif
@@ -46,7 +48,7 @@
 LDAP_BEGIN_DECL
 
 struct lber_hipagut {
-	char opacue[8];
+	char opaque[8];
 };
 typedef struct lber_hipagut lber_hug_t;
 
@@ -78,22 +80,22 @@ LBER_F(int) lber_hug_probe_link LDAP_P((
 #define LBER_HUG_TETRAD(a, b, c, d) \
 	((a) << 24 | (b) << 16 | (c) << 8 | (d))
 
-#define LBER_HUG_N42(label) \
-	LBER_HUG_TETRAD(# label[0], # label[1], # label[2], # label[3])
+#define LBER_HUG_N42(label, tag) \
+	((tag) + LBER_HUG_TETRAD(# label[0], # label[1], # label[2], # label[3]))
 
 #define LBER_HUG_DECLARE(gizmo) \
 	struct lber_hipagut gizmo
 
 /* -------------------------------------------------------------------------- */
 
-#define LBER_HUG_SETUP(gizmo, label) \
-	lber_hug_setup(&(gizmo), LBER_HUG_N42(label))
+#define LBER_HUG_SETUP(gizmo, label, tag) \
+	lber_hug_setup(&(gizmo), LBER_HUG_N42(label, tag))
 
 #define LBER_HUG_DROWN(gizmo) \
 	lber_hug_drown(&(gizmo))
 
-#define LBER_HUG_PROBE(gizmo, label) \
-	lber_hug_probe(&(gizmo), LBER_HUG_N42(label))
+#define LBER_HUG_PROBE(gizmo, label, tag) \
+	lber_hug_probe(&(gizmo), LBER_HUG_N42(label, tag))
 
 #define LBER_HUG_SETUP_LINK(slave, master) \
 	lber_hug_setup_link(&(slave), &(master))
@@ -114,14 +116,14 @@ LBER_F(int) lber_hug_probe_link LDAP_P((
 
 /* -------------------------------------------------------------------------- */
 
-#define LBER_HUG_SETUP_ASIDE(base, label, offset) \
-	lber_hug_setup(LBER_HUG_ASIDE(base, offset), LBER_HUG_N42(label))
+#define LBER_HUG_SETUP_ASIDE(base, label, tag, offset) \
+	lber_hug_setup(LBER_HUG_ASIDE(base, offset), LBER_HUG_N42(label, tag))
 
 #define LBER_HUG_DROWN_ASIDE(base, offset) \
 	lber_hug_drown(LBER_HUG_ASIDE(base, offset))
 
-#define LBER_HUG_PROBE_ASIDE(base, label, offset) \
-	lber_hug_probe(LBER_HUG_ASIDE(base, offset), LBER_HUG_N42(label))
+#define LBER_HUG_PROBE_ASIDE(base, label, tag, offset) \
+	lber_hug_probe(LBER_HUG_ASIDE(base, offset), LBER_HUG_N42(label, tag))
 
 #define LBER_HUG_SETUP_LINK_ASIDE(base, master, offset) \
 	lber_hug_setup_link(LBER_HUG_ASIDE(base, offset), &(master))
@@ -134,14 +136,14 @@ LBER_F(int) lber_hug_probe_link LDAP_P((
 #define lber_hug_throw(info) \
 	__assert_fail("hipagut: guard " info, __FILE__, __LINE__, __FUNCTION__)
 
-#define LBER_HUG_ENSURE(gizmo, label) do \
-	if (unlikely(! LBER_HUG_PROBE(gizmo, label))) \
-			lber_hug_throw(#label "@" #gizmo); \
+#define LBER_HUG_ENSURE(gizmo, label, tag) do \
+	if (unlikely(! LBER_HUG_PROBE(gizmo, label, tag))) \
+			lber_hug_throw(#label "." #tag "@" #gizmo); \
     while (0)
 
-#define LBER_HUG_ENSURE_ASIDE(base, label, offset) \
-	if (unlikely(! LBER_HUG_PROBE_ASIDE(base, label, offset))) \
-		lber_hug_throw(#label "@" #base "[" #offset "]"); \
+#define LBER_HUG_ENSURE_ASIDE(base, label, tag, offset) \
+	if (unlikely(! LBER_HUG_PROBE_ASIDE(base, label, tag, offset))) \
+		lber_hug_throw(#label "." #tag "@" #base "[" #offset "]"); \
     while (0)
 
 #define LBER_HUG_ENSURE_LINK(slave, master) do \
@@ -155,18 +157,18 @@ LBER_F(int) lber_hug_probe_link LDAP_P((
     while (0)
 
 #if HIPAGUT_ASSERT_CHECK
-#   define LBER_HUG_ASSERT(gizmo, label)  \
-		LBER_HUG_ENSURE(gizmo, label)
-#   define LBER_HUG_ASSERT_ASIDE(base, label, offset) \
-		LBER_HUG_ENSURE_ASIDE(base, label, offset)
+#   define LBER_HUG_ASSERT(gizmo, label, tag)  \
+		LBER_HUG_ENSURE(gizmo, label, tag)
+#   define LBER_HUG_ASSERT_ASIDE(base, label, tag, offset) \
+		LBER_HUG_ENSURE_ASIDE(base, label, tag, offset)
 #   define LBER_HUG_ASSERT_LINK(slave, maser) \
 		LBER_HUG_ENSURE_LINK(slave, master)
 #   define LBER_HUG_ASSERT_LINK_ASIDE(base, master, offset) \
 		LBER_HUG_ENSURE_LINK_ASIDE(base, master, offset)
 #else
-#   define LBER_HUG_ASSERT(gizmo, label) \
+#   define LBER_HUG_ASSERT(gizmo, label, tag) \
 		do {} while (0)
-#   define LBER_HUG_ASSERT_ASIDE(base, label, offset) \
+#   define LBER_HUG_ASSERT_ASIDE(base, label, tag, offset) \
 		do {} while (0)
 #   define LBER_HUG_ASSERT_LINK(slave, master) \
 		do {} while (0)
@@ -220,27 +222,32 @@ struct lber_hug_memchk {
 LBER_F(void*) lber_hug_memchk_setup LDAP_P((
 	struct lber_hug_memchk* memchunk,
 	size_t payload_size,
+	unsigned tag,
 	unsigned poison_mode ));
 
-LBER_F(void*) lber_hug_memchk_drown LDAP_P(( void* payload ));
-LBER_F(void) lber_hug_memchk_ensure LDAP_P(( const void* payload ));
-LBER_F(size_t) lber_hug_memchk_size LDAP_P(( const void* payload ));
+LBER_F(void*) lber_hug_memchk_drown LDAP_P(( void* payload, unsigned tag ));
+LBER_F(void) lber_hug_memchk_ensure LDAP_P(( const void* payload, unsigned tag ));
+LBER_F(size_t) lber_hug_memchk_size LDAP_P(( const void* payload, unsigned tag ));
 
 LBER_F(unsigned) lber_hug_realloc_begin LDAP_P((
 	const void* payload,
+	unsigned tag,
 	size_t* old_size ));
 LBER_F(void*) lber_hug_realloc_undo LDAP_P((
 	struct lber_hug_memchk* old_memchunk,
+	unsigned tag,
 	unsigned undo_key ));
 LBER_F(void*) lber_hug_realloc_commit LDAP_P((
 	size_t old_size,
 	struct lber_hug_memchk* new_memchunk,
+	unsigned tag,
 	size_t new_size ));
 
 /* Return zero when no corruption detected,
  * otherwise returns combination of OR'ed bits: 1, 2, 3. */
 LBER_F(int) lber_hug_memchk_probe LDAP_P((
 	const void* payload,
+	unsigned tag,
 	size_t *length,
 	size_t *sequence ));
 

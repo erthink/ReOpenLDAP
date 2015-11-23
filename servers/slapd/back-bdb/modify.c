@@ -617,15 +617,8 @@ retry:	/* transaction retry */
 		}
 
 		rs->sr_err = LDAP_REFERRAL;
+		rs->sr_flags = REP_MATCHED_MUSTBEFREED | REP_REF_MUSTBEFREED;
 		send_ldap_result( op, rs );
-
-		if ( rs->sr_ref != default_referral ) {
-			ber_bvarray_free( rs->sr_ref );
-		}
-		free( (char *)rs->sr_matched );
-		rs->sr_ref = NULL;
-		rs->sr_matched = NULL;
-
 		goto done;
 	}
 
@@ -638,11 +631,8 @@ retry:	/* transaction retry */
 
 		rs->sr_err = LDAP_REFERRAL;
 		rs->sr_matched = e->e_name.bv_val;
+		rs->sr_flags = REP_REF_MUSTBEFREED;
 		send_ldap_result( op, rs );
-
-		ber_bvarray_free( rs->sr_ref );
-		rs->sr_ref = NULL;
-		rs->sr_matched = NULL;
 		goto done;
 	}
 
@@ -806,6 +796,7 @@ return_results:
 	}
 
 done:
+	rs_send_cleanup( rs );
 	slap_graduate_commit_csn( op );
 
 	if( ltid != NULL ) {
@@ -827,8 +818,6 @@ done:
 		slap_sl_free( (*postread_ctrl)->ldctl_value.bv_val, op->o_tmpmemctx );
 		slap_sl_free( *postread_ctrl, op->o_tmpmemctx );
 	}
-
-	rs->sr_text = NULL;
 
 	return rs->sr_err;
 }

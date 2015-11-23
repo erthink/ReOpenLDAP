@@ -918,10 +918,13 @@ log_cf_gen(ConfigArgs *c)
 					rc = 1;
 				}
 				ch_free( c->value_ndn.bv_val );
+				BER_BVZERO( &c->value_ndn );
 			} else {
 				li->li_db_suffix = c->value_ndn;
+				BER_BVZERO( &c->value_ndn );
 			}
 			ch_free( c->value_dn.bv_val );
+			BER_BVZERO( &c->value_dn );
 			break;
 		case LOG_OPS:
 			rc = verbs_to_mask( c->argc, c->argv, logops, &tmask );
@@ -1849,7 +1852,6 @@ static int accesslog_response(Operation *op, SlapReply *rs) {
 	if (( lo->mask & LOG_OP_WRITES ) && !BER_BVISEMPTY( &op->o_csn )) {
 		struct berval maxcsn;
 		char cbuf[LDAP_PVT_CSNSTR_BUFSIZE];
-		int foundit;
 		cbuf[0] = '\0';
 		maxcsn.bv_val = cbuf;
 		maxcsn.bv_len = sizeof(cbuf);
@@ -1857,8 +1859,9 @@ static int accesslog_response(Operation *op, SlapReply *rs) {
 		 * we must propagate it to the log DB for its
 		 * own syncprov. Otherwise, don't generate one.
 		 */
-		slap_get_commit_csn( op, &maxcsn, &foundit );
+		slap_get_commit_csn( op, &maxcsn );
 		if ( !BER_BVISEMPTY( &maxcsn ) ) {
+			BER_BVZERO( &op2.o_csn );
 			slap_queue_csn( &op2, &op->o_csn );
 			do_graduate = 1;
 		} else {
@@ -2180,6 +2183,9 @@ accesslog_db_destroy(
 	log_info *li = on->on_bi.bi_private;
 	log_attr *la;
 
+	ch_free( li->li_db_suffix.bv_val );
+	BER_BVZERO( &li->li_db_suffix );
+
 	if ( li->li_oldf )
 		filter_free( li->li_oldf );
 	for ( la=li->li_oldattrs; la; la=li->li_oldattrs ) {
@@ -2303,8 +2309,6 @@ accesslog_db_open(
 
 	if ( !BER_BVISEMPTY( &li->li_db_suffix )) {
 		li->li_db = select_backend( &li->li_db_suffix, 0 );
-		ch_free( li->li_db_suffix.bv_val );
-		BER_BVZERO( &li->li_db_suffix );
 	}
 	if ( li->li_db == NULL ) {
 		Debug( LDAP_DEBUG_ANY,

@@ -70,6 +70,14 @@ EOF
 		TEST_ID="$BCMD-$BACKEND-$REOPENLDAP_MODE"
 	fi
 
+	if [ -n "$SKIP_LONG" ]; then
+		if echo $TEST_ID | grep -q -e 008 -e 036 -e 039 -e 060; then
+			echo "***** Skip long ${TB}$BCMD${TN} for $BACKEND_MODE"
+			echo
+			continue
+		fi
+	fi
+
 	if [ -x "$CMD" ]; then
 		wanna_free=1000
 		if [ $(get_df_mb $TESTDIR) -lt $wanna_free ]; then

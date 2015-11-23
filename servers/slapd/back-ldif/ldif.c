@@ -768,12 +768,11 @@ ldif_send_entry( Operation *op, SlapReply *rs, Entry *e, int scope )
 			 */
 			BerVarray refs = get_entry_referrals( op, e );
 			rs->sr_ref = referral_rewrite( refs, &e->e_name, NULL, scope );
+			rs->sr_flags = REP_REF_MUSTBEFREED;
 			rs->sr_entry = e;
 			rc = send_search_reference( op, rs );
-			ber_bvarray_free( rs->sr_ref );
 			ber_bvarray_free( refs );
-			rs->sr_ref = NULL;
-			rs->sr_entry = NULL;
+			rs_send_cleanup( rs );
 		}
 
 		else if ( test_filter( op, e, op->ors_filter ) == LDAP_COMPARE_TRUE ) {
@@ -1296,14 +1295,13 @@ ldif_back_referrals( Operation *op, SlapReply *rs )
 				/* send referral */
 				rc = rs->sr_err = LDAP_REFERRAL;
 				rs->sr_matched = entry->e_dn;
+				rs->sr_flags = REP_REF_MUSTBEFREED;
 				send_ldap_result( op, rs );
-				ber_bvarray_free( rs->sr_ref );
-				rs->sr_ref = NULL;
 			} else {
 				rc = LDAP_OTHER;
 				rs->sr_text = "bad referral object";
 			}
-			rs->sr_matched = NULL;
+			rs_send_cleanup( rs );
 		}
 
 		entry_free( entry );

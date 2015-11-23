@@ -1956,9 +1956,9 @@ slapi_timer_current_time( void )
 	ldap_pvt_thread_mutex_lock( &slapi_time_mutex );
 	if (first_time) {
 		first_time = 0;
-		gettimeofday( &base_time, NULL );
+		ldap_timeval( &base_time );
 	}
-	gettimeofday( &now, NULL );
+	ldap_timeval( &now );
 	ret = ( now.tv_sec  - base_time.tv_sec ) * 1000000 +
 			(now.tv_usec - base_time.tv_usec);
 	ldap_pvt_thread_mutex_unlock( &slapi_time_mutex );

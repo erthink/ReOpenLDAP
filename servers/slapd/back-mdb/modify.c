@@ -587,7 +587,6 @@ txnReturn:
 		rs->sr_matched = e->e_name.bv_val;
 		rs->sr_flags = REP_REF_MUSTBEFREED;
 		send_ldap_result( op, rs );
-		rs->sr_matched = NULL;
 		goto done;
 	}
 
@@ -710,6 +709,7 @@ return_results:
 #endif
 
 done:
+	rs_send_cleanup( rs );
 	slap_graduate_commit_csn( op );
 
 	if( moi == &opinfo ) {
@@ -735,8 +735,6 @@ done:
 		slap_sl_free( (*postread_ctrl)->ldctl_value.bv_val, op->o_tmpmemctx );
 		slap_sl_free( *postread_ctrl, op->o_tmpmemctx );
 	}
-
-	rs->sr_text = NULL;
 
 	return rs->sr_err;
 }

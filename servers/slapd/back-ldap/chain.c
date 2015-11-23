@@ -967,6 +967,7 @@ ldap_chain_response( Operation *op, SlapReply *rs )
 
 	int		sr_err = rs->sr_err;
 	slap_reply_t	sr_type = rs->sr_type;
+	slap_mask_t	sr_flags = rs->sr_flags;
 #ifdef LDAP_CONTROL_X_CHAINING_BEHAVIOR
 	slap_mask_t	chain_mask = 0;
 	ber_len_t	chain_shift = 0;
@@ -1154,7 +1155,6 @@ cannot_chain:;
 			if ( LDAP_CHAIN_RETURN_ERR( lc ) ) {
 				sr_err = rs->sr_err = rc;
 				rs->sr_type = sr_type;
-
 			} else {
 				rc = SLAP_CB_CONTINUE;
 				rs->sr_err = sr_err;
@@ -1162,6 +1162,7 @@ cannot_chain:;
 				rs->sr_text = text;
 				rs->sr_matched = matched;
 				rs->sr_ref = ref;
+				rs->sr_flags = sr_flags;
 			}
 #ifdef LDAP_CONTROL_X_CHAINING_BEHAVIOR
 			break;
@@ -1174,6 +1175,7 @@ cannot_chain:;
 		op->o_callback = sc->sc_next;
 		rc = rs->sr_err = slap_map_api2result( rs );
 		send_ldap_result( op, rs );
+		rs_send_cleanup( rs );
 	}
 
 dont_chain:;
@@ -1182,10 +1184,10 @@ dont_chain:;
 	rs->sr_text = text;
 	rs->sr_matched = matched;
 	rs->sr_ref = ref;
+	rs->sr_flags = sr_flags;
 	op->o_bd = bd;
 	op->o_callback = sc;
 	op->o_ndn = ndn;
-
 	return rc;
 }
 
@@ -1316,6 +1318,7 @@ chain_ldadd( CfEntryInfo *p, Entry *e, ConfigArgs *ca )
 
 	assert( ca->be == NULL );
 	ca->be = (BackendDB *)ch_calloc( 1, sizeof( BackendDB ) );
+	memleak_crutch_push(ca->be);
 
 	ca->be->bd_info = (BackendInfo *)on;
 
@@ -1385,6 +1388,7 @@ fail:
 
 done:;
 	if ( rc != LDAP_SUCCESS ) {
+		memleak_crutch_pop(ca->be);
 		(void)ldap_chain_db_destroy_one( ca->be, NULL );
 		ch_free( ca->be );
 		ca->be = NULL;
@@ -1483,6 +1487,7 @@ chain_lddel( CfEntryInfo *ce, Operation *op )
 		ce->ce_be->bd_info->bi_db_destroy( ce->ce_be, NULL );
 	}
 
+	memleak_crutch_pop(ce->be);
 	ch_free(ce->ce_be);
 	ce->ce_be = NULL;
 
