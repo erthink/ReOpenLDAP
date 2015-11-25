@@ -863,13 +863,16 @@ static int syncrepl_refresh_begin( syncinfo_t *si ) {
 	si->si_refreshBeg = 0;
 	quorum_notify_status( si->si_be, si->si_rid, 0 );
 	if (quorum_syncrepl_gate(si->si_be, si, 1)) {
-		Debug( LDAP_DEBUG_ANY, "syncrepl_refresh_begin: %s, "
-								"yield while busy\n",
-			   si->si_ridtxt );
+		if (si->si_syncflood_workaround == 0) {
+			Debug( LDAP_DEBUG_ANY,
+				"syncrepl: defers refresh %s because "
+				"limit-concurrent-refresh was reached\n",
+				si->si_ridtxt );
+		}
 		return SYNC_REFRESH_YIELD;
 	}
 	si->si_refreshBeg = slap_get_time();
-	Debug( LDAP_DEBUG_ANY, "syncrepl_refresh_begin: %s, success\n",
+	Debug( LDAP_DEBUG_SYNC, "syncrepl: begin refresh %s\n",
 		   si->si_ridtxt );
 	return LDAP_SUCCESS;
 }
@@ -880,8 +883,9 @@ static void syncrepl_refresh_end( syncinfo_t *si, int rc ) {
 			si->si_refreshDone = 1;
 		if (si->si_refreshBeg) {
 			si->si_refreshEnd = slap_get_time();
-			Debug( LDAP_DEBUG_ANY, "syncrepl_refresh_end: %s, rc %d, take %d seconds\n",
-				   si->si_ridtxt, rc, (int) (si->si_refreshEnd - si->si_refreshBeg) );
+			Debug( LDAP_DEBUG_SYNC,
+				"syncrepl: fihish refresh %s, rc %d, take %d seconds\n",
+				si->si_ridtxt, rc, (int) (si->si_refreshEnd - si->si_refreshBeg) );
 		}
 	}
 }
@@ -4659,7 +4663,7 @@ syncinfo_free( syncinfo_t *sie, int free_all )
 	do {
 		si_next = sie->si_next;
 
-		syncrepl_refresh_end(sie, LDAP_OTHER);
+		syncrepl_refresh_end(sie, LDAP_UNAVAILABLE);
 		syncrepl_shutdown_io(sie);
 
 		if ( sie->si_re ) {
