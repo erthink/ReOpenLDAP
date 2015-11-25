@@ -1308,6 +1308,7 @@ config_generic(ConfigArgs *c) {
 			ch_free( logfileName );
 			logfileName = NULL;
 			if ( logfile ) {
+				lutil_debug_file( NULL );
 				fclose( logfile );
 				logfile = NULL;
 			}
@@ -2007,6 +2008,10 @@ sortval_reject:
 				if ( logfileName ) ch_free( logfileName );
 				logfileName = c->value_string;
 				c->value_string = NULL;
+				if ( logfile ) {
+					lutil_debug_file( NULL );
+					fclose( logfile );
+				}
 				logfile = fopen(logfileName, "w");
 				if(logfile) lutil_debug_file(logfile);
 			} break;
@@ -3489,8 +3494,14 @@ loglevel_destroy( void )
 {
 	if ( loglevel_ops ) {
 		(void)slap_verbmasks_destroy( loglevel_ops );
+		loglevel_ops = NULL;
 	}
-	loglevel_ops = NULL;
+
+	if ( logfile ) {
+		lutil_debug_file( NULL );
+		fclose( logfile );
+		logfile = NULL;
+	}
 }
 
 static int
