@@ -420,17 +420,7 @@ void
 backend_stopdown_one( BackendDB *bd )
 {
 	if ( bd->be_pending_csn_list ) {
-		struct slap_csn_entry *csne;
-		csne = LDAP_TAILQ_FIRST( bd->be_pending_csn_list );
-		while ( csne ) {
-			struct slap_csn_entry *tmp_csne = csne;
-
-			LDAP_TAILQ_REMOVE( bd->be_pending_csn_list, csne, ce_csn_link );
-			ch_free( csne->ce_csn.bv_val );
-			csne = LDAP_TAILQ_NEXT( csne, ce_csn_link );
-			ch_free( tmp_csne );
-		}
-		ch_free( bd->be_pending_csn_list );
+		slap_free_commit_csn_list(bd->be_pending_csn_list);
 	}
 
 	if ( bd->bd_info->bi_db_destroy ) {
@@ -512,6 +502,12 @@ int backend_destroy(void)
 		quorum_be_destroy ( bd );
 		ber_bvarray_free( bd->be_suffix );
 		ber_bvarray_free( bd->be_nsuffix );
+		if ( !BER_BVISNULL( &bd->be_schemadn ) ) {
+			free( bd->be_schemadn.bv_val );
+		}
+		if ( !BER_BVISNULL( &bd->be_schemandn ) ) {
+			free( bd->be_schemandn.bv_val );
+		}
 		if ( !BER_BVISNULL( &bd->be_rootdn ) ) {
 			free( bd->be_rootdn.bv_val );
 		}

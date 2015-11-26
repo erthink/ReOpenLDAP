@@ -69,7 +69,7 @@ typedef struct Trec {
 	unsigned long lineno;
 	unsigned long nextline;
 	int rc;
-	int ready;
+	volatile int ready;
 } Trec;
 
 static Trec trec;
@@ -332,6 +332,12 @@ static int
 getrec(Erec *erec)
 {
 	int rc;
+
+	if ( erec->e ) {
+		entry_free( erec->e );
+		erec->e = NULL;
+	}
+
 	if ( !ldif_threaded )
 		return getrec0(erec);
 
@@ -340,6 +346,7 @@ getrec(Erec *erec)
 	erec->e = trec.e;
 	erec->lineno = trec.lineno;
 	erec->nextline = trec.nextline;
+	trec.e = NULL;
 	trec.ready = 0;
 	rc = trec.rc;
 	ldap_pvt_thread_mutex_lock( &add_mutex );
@@ -357,8 +364,6 @@ slapadd( int argc, char **argv )
 	struct berval bvtext;
 	ldap_pvt_thread_t thr;
 	ID id;
-	Entry *prev = NULL;
-
 	int ldifrc;
 	int rc = EXIT_SUCCESS;
 
@@ -460,8 +465,6 @@ slapadd( int argc, char **argv )
 								 erec.lineno, bvtext.bv_val );
 				rc = EXIT_FAILURE;
 				if( continuemode ) {
-					if ( prev ) entry_free( prev );
-					prev = erec.e;
 					continue;
 				}
 				break;
@@ -474,9 +477,6 @@ slapadd( int argc, char **argv )
 				fprintf( stderr, "added: \"%s\"\n",
 					erec.e->e_dn );
 		}
-
-		if ( prev ) entry_free( prev );
-		prev = erec.e;
 	}
 
 	if ( ldif_threaded ) {
@@ -486,6 +486,7 @@ slapadd( int argc, char **argv )
 		ldap_pvt_thread_cond_signal( &add_cond );
 		ldap_pvt_thread_mutex_unlock( &add_mutex );
 		ldap_pvt_thread_join( thr, NULL );
+		if (trec.e) entry_free( trec.e );
 	}
 	if ( erec.e ) entry_free( erec.e );
 

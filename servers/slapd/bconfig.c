@@ -784,7 +784,7 @@ static ConfigTable config_back_cf_table[] = {
 		&config_biglock, "( OLcfgDbAt:0.45 NAME 'olcBiglock' "
 			"DESC 'Synchronuzation mode for suffix/database' "
 			"SYNTAX OMsDirectoryString SINGLE-VALUE )", NULL, NULL },
-	{ "reopenldap", "[iddqd] [idkfa] [jitter]", 0, 0, 0, ARG_MAGIC,
+	{ "reopenldap", "[iddqd] [idkfa] [idclip] [jitter]", 0, 0, 0, ARG_MAGIC,
 		&config_reopenldap, "( OLcfgGlAt:0.46 NAME 'olcReOpenLDAP' "
 			"DESC 'ReOpenLDAP cheating flags' "
 			"EQUALITY caseIgnoreMatch "
@@ -1308,6 +1308,7 @@ config_generic(ConfigArgs *c) {
 			ch_free( logfileName );
 			logfileName = NULL;
 			if ( logfile ) {
+				lutil_debug_file( NULL );
 				fclose( logfile );
 				logfile = NULL;
 			}
@@ -1624,6 +1625,7 @@ config_generic(ConfigArgs *c) {
 		case CFG_SALT:
 			if ( passwd_salt ) ch_free( passwd_salt );
 			passwd_salt = c->value_string;
+			c->value_string = NULL;
 			lutil_salt_format(passwd_salt);
 			break;
 
@@ -2005,6 +2007,11 @@ sortval_reject:
 		case CFG_LOGFILE: {
 				if ( logfileName ) ch_free( logfileName );
 				logfileName = c->value_string;
+				c->value_string = NULL;
+				if ( logfile ) {
+					lutil_debug_file( NULL );
+					fclose( logfile );
+				}
 				logfile = fopen(logfileName, "w");
 				if(logfile) lutil_debug_file(logfile);
 			} break;
@@ -2259,6 +2266,8 @@ config_search_base(ConfigArgs *c) {
 
 	default_search_base = c->value_dn;
 	default_search_nbase = c->value_ndn;
+	BER_BVZERO( &c->value_dn );
+	BER_BVZERO( &c->value_ndn );
 	return(0);
 }
 
@@ -2333,6 +2342,8 @@ config_schema_dn(ConfigArgs *c) {
 	ch_free( c->be->be_schemandn.bv_val );
 	c->be->be_schemadn = c->value_dn;
 	c->be->be_schemandn = c->value_ndn;
+	BER_BVZERO( &c->value_dn );
+	BER_BVZERO( &c->value_ndn );
 	return(0);
 }
 
@@ -3015,6 +3026,8 @@ config_suffix(ConfigArgs *c)
 
 	pdn = c->value_dn;
 	ndn = c->value_ndn;
+	BER_BVZERO( &c->value_dn );
+	BER_BVZERO( &c->value_ndn );
 
 	if (SLAP_DBHIDDEN( c->be ))
 		tbe = NULL;
@@ -3169,6 +3182,7 @@ config_reopenldap(ConfigArgs *c)
 	static const slap_verbmasks reopenldap_ops[] = {
 		{ BER_BVC("iddqd"),		REOPENLDAP_FLAG_IDDQD },
 		{ BER_BVC("idkfa"),		REOPENLDAP_FLAG_IDKFA },
+		{ BER_BVC("idclip"),	REOPENLDAP_FLAG_IDCLIP },
 		{ BER_BVC("jitter"),	REOPENLDAP_FLAG_JITTER },
 		{ BER_BVNULL,	0 }
 	};
@@ -3217,6 +3231,8 @@ config_rootdn(ConfigArgs *c) {
 	}
 	c->be->be_rootdn = c->value_dn;
 	c->be->be_rootndn = c->value_ndn;
+	BER_BVZERO( &c->value_dn );
+	BER_BVZERO( &c->value_ndn );
 	return(0);
 }
 
@@ -3249,6 +3265,7 @@ config_rootpw(ConfigArgs *c) {
 	if ( !BER_BVISNULL( &c->be->be_rootpw ))
 		ch_free( c->be->be_rootpw.bv_val );
 	c->be->be_rootpw = c->value_bv;
+	BER_BVZERO( &c->value_bv );
 	return(0);
 }
 
@@ -3472,6 +3489,21 @@ config_extra_attrs(ConfigArgs *c)
 
 static slap_verbmasks	*loglevel_ops;
 
+static void
+loglevel_destroy( void )
+{
+	if ( loglevel_ops ) {
+		(void)slap_verbmasks_destroy( loglevel_ops );
+		loglevel_ops = NULL;
+	}
+
+	if ( logfile ) {
+		lutil_debug_file( NULL );
+		fclose( logfile );
+		logfile = NULL;
+	}
+}
+
 static int
 loglevel_init( void )
 {
@@ -3498,16 +3530,12 @@ loglevel_init( void )
 		{ BER_BVNULL,		0 }
 	};
 
-	return slap_verbmasks_init( &loglevel_ops, lo );
-}
-
-static void
-loglevel_destroy( void )
-{
-	if ( loglevel_ops ) {
-		(void)slap_verbmasks_destroy( loglevel_ops );
+	if (atexit(loglevel_destroy)) {
+		perror("atexit(loglevel_destroy)");
+		abort();
 	}
-	loglevel_ops = NULL;
+
+	return slap_verbmasks_init( &loglevel_ops, lo );
 }
 
 static slap_mask_t	loglevel_ignore[] = { -1, 0 };
@@ -3856,11 +3884,11 @@ config_updatedn(ConfigArgs *c) {
 	}
 
 	ber_memfree_x( c->value_dn.bv_val, NULL );
+	BER_BVZERO( &c->value_dn );
 	if ( !BER_BVISNULL( &c->be->be_update_ndn ) ) {
 		ber_memfree_x( c->be->be_update_ndn.bv_val, NULL );
 	}
 	c->be->be_update_ndn = c->value_ndn;
-	BER_BVZERO( &c->value_dn );
 	BER_BVZERO( &c->value_ndn );
 
 	return config_slurp_shadow( c );
@@ -3973,7 +4001,7 @@ config_include(ConfigArgs *c) {
 	}
 	cfn = cf;
 	ber_str2bv( c->argv[1], 0, 1, &cf->c_file );
-	rc = read_config_file(c->argv[1], c->depth + 1, c, config_back_cf_table);
+	rc = read_config_file(c->argv[1], c, config_back_cf_table);
 	c->lineno = savelineno - 1;
 	cfn = cfsave;
 	if ( rc ) {
@@ -4442,7 +4470,7 @@ read_config(const char *fname, const char *dir) {
 	else
 		cfname = SLAPD_DEFAULT_CONFIGFILE;
 
-	rc = read_config_file(cfname, 0, NULL, config_back_cf_table);
+	rc = read_config_file(cfname, NULL, config_back_cf_table);
 
 	if ( rc == 0 )
 		ber_str2bv( cfname, 0, 1, &cfb->cb_config->c_file );
@@ -5493,6 +5521,16 @@ done:
 		}
 	}
 done_noop:
+
+	ber_memfree( ca->value_dn.bv_val );
+	BER_BVZERO( &ca->value_dn );
+	ber_memfree( ca->value_ndn.bv_val );
+	BER_BVZERO( &ca->value_ndn );
+	ber_memfree( ca->value_bv.bv_val );
+	BER_BVZERO( &ca->value_bv );
+
+	ch_free( ca->value_string );
+	ca->value_string = NULL;
 
 	ch_free( ca->argv );
 	if ( colst ) ch_free( colst );
@@ -7242,6 +7280,8 @@ config_back_db_destroy( BackendDB *be, ConfigReply *cr )
 		BER_BVZERO( &cfb->cb_db.be_rootndn );
 
 		backend_destroy_one( &cfb->cb_db, 0 );
+	} else {
+		slap_biglock_destroy( &cfb->cb_db );
 	}
 
 	loglevel_destroy();
@@ -7281,6 +7321,17 @@ static int
 config_back_destroy( BackendInfo *bi )
 {
 	ldif_must_b64_encode_release();
+
+	while(sid_list) {
+		ServerID *si = sid_list;
+		sid_list = si->si_next;
+		if ( si->si_url.bv_val && si->si_url.bv_val != (char *)(si+1) )
+			ch_free( si->si_url.bv_val );
+		ch_free( si );
+		if ( sid_set == si )
+			sid_set = NULL;
+	}
+
 	return 0;
 }
 

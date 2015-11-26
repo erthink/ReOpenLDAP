@@ -89,17 +89,14 @@ void lutil_debug_va( const char* fmt, va_list vl )
 		struct tm tm;
 		long rc;
 
-		rc = gettimeofday(&now, NULL);
-		assert(rc == 0);
+		ldap_timeval(&now);
+		/* LY: it is important to don't use extra spaces here, to avoid break a test(s). */
+		gmtime_r(&now.tv_sec, &tm);
+		off += strftime(buffer+off, sizeof(buffer)-off, "%y%m%d-%H:%M:%S", &tm);
+		assert(off > 0);
 		rc = syscall(SYS_gettid, NULL, NULL, NULL);
 		assert(rc > 0);
-		/* LY: it is important to don't use extra spaces here, to avoid break a test(s). */
-		off += snprintf(buffer+off, sizeof(buffer)-off, "%05ld_", rc);
-		assert(off > 0);
-		localtime_r(&now.tv_sec, &tm);
-		off += strftime(buffer+off, sizeof(buffer)-off, "%y%m%d-%H(%z)%M%S", &tm);
-		assert(off > 0);
-		off += snprintf(buffer+off, sizeof(buffer)-off, ".%06ld ", now.tv_usec);
+		off += snprintf(buffer+off, sizeof(buffer)-off, ".%06ld_%05ld ", now.tv_usec, rc);
 		assert(off > 0);
 	}
 	len = vsnprintf( buffer+off, sizeof(buffer)-off, fmt, vl );

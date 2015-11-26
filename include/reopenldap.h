@@ -201,7 +201,8 @@ __extern_C void __assert_fail(
 /* LY: ReOpenLDAP operation mode global flags */
 #define REOPENLDAP_FLAG_IDDQD	1
 #define REOPENLDAP_FLAG_IDKFA	2
-#define REOPENLDAP_FLAG_JITTER	4
+#define REOPENLDAP_FLAG_IDCLIP	4
+#define REOPENLDAP_FLAG_JITTER	8
 
 __extern_C void reopenldap_flags_setup (int flags);
 __extern_C int reopenldap_flags;
@@ -210,6 +211,8 @@ __extern_C int reopenldap_flags;
 	likely((reopenldap_flags & REOPENLDAP_FLAG_IDDQD) != 0)
 #define reopenldap_mode_idkfa() \
 	unlikely((reopenldap_flags & REOPENLDAP_FLAG_IDKFA) != 0)
+#define reopenldap_mode_idclip() \
+	likely((reopenldap_flags & REOPENLDAP_FLAG_IDCLIP) != 0)
 #define reopenldap_mode_jitter() \
 	unlikely((reopenldap_flags & REOPENLDAP_FLAG_JITTER) != 0)
 

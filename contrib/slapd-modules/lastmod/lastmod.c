@@ -339,17 +339,11 @@ return_referral:;
 	rs->sr_ref = referral_rewrite( default_referral,
 			NULL, &op->o_req_dn, op->ors_scope );
 
-	if ( !rs->sr_ref ) {
-		rs->sr_ref = default_referral;
-	}
+	if ( !rs->sr_ref ) rs->sr_ref = default_referral;
+	else rs->sr_flags |= REP_REF_MUSTBEFREED;
 	rs->sr_err = LDAP_REFERRAL;
 	send_ldap_result( op, rs );
-
-	if ( rs->sr_ref != default_referral ) {
-		ber_bvarray_free( rs->sr_ref );
-	}
-	rs->sr_ref = NULL;
-
+	rs_send_cleanup( rs );
 	return -1;
 
 return_error:;

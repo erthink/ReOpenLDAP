@@ -169,16 +169,12 @@ static int nolock_passwd_extop(
 			? op->o_bd->be_update_refs : default_referral;
 
 		if( defref != NULL ) {
-			rs->sr_ref = referral_rewrite( op->o_bd->be_update_refs,
+			rs->sr_ref = referral_rewrite( defref,
 				NULL, NULL, LDAP_SCOPE_DEFAULT );
-			if(rs->sr_ref) {
-				rs->sr_flags |= REP_REF_MUSTBEFREED;
-			} else {
-				rs->sr_ref = defref;
-			}
+			if ( ! rs->sr_ref ) ber_bvarray_dup_x( &rs->sr_ref, defref, NULL );
+			rs->sr_flags |= REP_REF_MUSTBEFREED;
 			rc = LDAP_REFERRAL;
 			goto error_return;
-
 		}
 
 		rs->sr_text = "shadow context; no update referral";

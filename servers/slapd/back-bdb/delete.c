@@ -204,7 +204,6 @@ retry:	/* transaction retry */
 				: NULL;
 			bdb_unlocked_cache_return_entry_r(&bdb->bi_cache, matched);
 			matched = NULL;
-
 		} else {
 			rs->sr_ref = referral_rewrite( default_referral, NULL,
 					&op->o_req_dn, LDAP_SCOPE_DEFAULT );
@@ -587,6 +586,7 @@ return_results:
 	}
 
 	send_ldap_result( op, rs );
+	rs_send_cleanup( rs );
 	slap_graduate_commit_csn( op );
 
 	if( preread_ctrl != NULL && (*preread_ctrl) != NULL ) {

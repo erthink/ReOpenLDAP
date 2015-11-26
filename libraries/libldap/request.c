@@ -729,8 +729,6 @@ use_connection( LDAP *ld, LDAPConn *lc )
 void
 ldap_free_connection( LDAP *ld, LDAPConn *lc, int force, int unbind )
 {
-	LDAPConn	*tmplc, *prevlc;
-
 	LDAP_ASSERT_MUTEX_OWNER( &ld->ld_conn_mutex );
 	Debug( LDAP_DEBUG_TRACE,
 		"ldap_free_connection %d %d\n",
@@ -739,22 +737,17 @@ ldap_free_connection( LDAP *ld, LDAPConn *lc, int force, int unbind )
 	if ( force || --lc->lconn_refcnt <= 0 ) {
 		/* remove from connections list first */
 
-		for ( prevlc = NULL, tmplc = ld->ld_conns;
-			tmplc != NULL;
-			tmplc = tmplc->lconn_next )
+		LDAPConn **pc = &ld->ld_conns;
+		for ( pc = &ld->ld_conns;
+			*pc != NULL;
+			pc = &(*pc)->lconn_next )
 		{
-			if ( tmplc == lc ) {
-				if ( prevlc == NULL ) {
-				    ld->ld_conns = tmplc->lconn_next;
-				} else {
-				    prevlc->lconn_next = tmplc->lconn_next;
-				}
-				if ( ld->ld_defconn == lc ) {
+			if ( *pc == lc ) {
+				*pc = lc->lconn_next;
+				if ( ld->ld_defconn == lc )
 					ld->ld_defconn = NULL;
-				}
 				break;
 			}
-			prevlc = tmplc;
 		}
 
 		/* process connection callbacks */

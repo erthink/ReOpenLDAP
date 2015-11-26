@@ -28,6 +28,7 @@
 #include <stdint.h>
 #include <sched.h>
 #include <stdlib.h>
+#include <pthread.h>
 
 #include "lber_hipagut.h"
 
@@ -196,7 +197,7 @@ __hot __flatten void lber_hug_setup(lber_hug_t* self, const unsigned n42) {
 				/* fprintf(stderr, "hipagut_setup: ptr %p | n42 %08x, "
 						"tale %016lx, chirp %08x, sign %08x ? %08x\n",
 						self, n42, tale, chirp, sign, mixup(chirp, n42)); */
-				unaligned_store(self->opacue, tale);
+				unaligned_store(self->opaque, tale);
 				break;
 			}
 		}
@@ -210,7 +211,7 @@ __hot __flatten int lber_hug_probe(const lber_hug_t* self, const unsigned n42) {
 	if (unlikely(lber_hug_nasty_disabled == LBER_HUG_DISABLED))
 		return 0;
 
-	uint64_t tale = unaligned_load(self->opacue);
+	uint64_t tale = unaligned_load(self->opaque);
 	uint32_t chirp = tale;
 	uint32_t sign = tale >> 32;
 	/* fprintf(stderr, "hipagut_probe: ptr %p | n42 %08x, "
@@ -223,11 +224,11 @@ __hot __flatten int lber_hug_probe(const lber_hug_t* self, const unsigned n42) {
 __hot __flatten void lber_hug_drown(lber_hug_t* gizmo) {
 	/* LY: This notable value would always bite,
 	 * because (chirp == 0) != (sign == 0). */
-	unaligned_store(gizmo->opacue, 0xDEADB0D1Ful);
+	unaligned_store(gizmo->opaque, 0xDEADB0D1Ful);
 }
 
 void lber_hug_setup_link(lber_hug_t* slave, const lber_hug_t* master) {
-	lber_hug_setup(slave, unaligned_load(master->opacue) >> 32);
+	lber_hug_setup(slave, unaligned_load(master->opaque) >> 32);
 }
 
 void lber_hug_drown_link(lber_hug_t* slave, const lber_hug_t* master) {
@@ -235,7 +236,7 @@ void lber_hug_drown_link(lber_hug_t* slave, const lber_hug_t* master) {
 }
 
 int lber_hug_probe_link(const lber_hug_t* slave, const lber_hug_t* master) {
-	return lber_hug_probe(slave, unaligned_load(master->opacue) >> 32);
+	return lber_hug_probe(slave, unaligned_load(master->opaque) >> 32);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -285,9 +286,9 @@ static void lber_hug_memchk_throw(const void* payload, unsigned bits) {
 	__assert_fail(trouble, __FILE__, __LINE__, __FUNCTION__);
 }
 
-__hot __flatten size_t lber_hug_memchk_size(const void* payload) {
+__hot __flatten size_t lber_hug_memchk_size(const void* payload, unsigned tag) {
 	size_t size = 0;
-	unsigned bits = lber_hug_memchk_probe(payload, &size, NULL);
+	unsigned bits = lber_hug_memchk_probe(payload, tag, &size, NULL);
 
 	if (unlikely (bits != 0))
 		lber_hug_memchk_throw(payload, bits);
@@ -311,36 +312,38 @@ __hot __flatten size_t lber_hug_memchk_size(const void* payload) {
 
 __hot __flatten int lber_hug_memchk_probe(
 		const void* payload,
+		unsigned tag,
 		size_t *length,
 		size_t *sequence ) {
 	struct lber_hug_memchk* memchunk = LBER_HUG_CHUNK(payload);
 	unsigned bits = 0;
 
-	VALGRIND_OPEN(memchunk);
 	if (likely(lber_hug_nasty_disabled != LBER_HUG_DISABLED)) {
-		if (unlikely(LBER_HUG_PROBE(memchunk->hm_guard_head, MEMCHK_TAG_HEADER)))
+		VALGRIND_OPEN(memchunk);
+		if (tag && unlikely(
+				LBER_HUG_PROBE(memchunk->hm_guard_head, MEMCHK_TAG_HEADER, tag)))
 			bits |= 1;
-		if (unlikely(LBER_HUG_PROBE(memchunk->hm_guard_bottom, MEMCHK_TAG_BOTTOM)))
+		if (unlikely(LBER_HUG_PROBE(memchunk->hm_guard_bottom, MEMCHK_TAG_BOTTOM, 0)))
 			bits |= 2;
 		if (likely(bits == 0)) {
 			if (length)
 				*length = memchunk->hm_length;
 			if (sequence)
 				*sequence = memchunk->hm_sequence;
-			if (unlikely(LBER_HUG_PROBE_ASIDE(memchunk, MEMCHK_TAG_COVER,
+			if (unlikely(LBER_HUG_PROBE_ASIDE(memchunk, MEMCHK_TAG_COVER, 0,
 					memchunk->hm_length + sizeof(struct lber_hug_memchk))))
 				bits |= 4;
 			else
 				LDAP_ENSURE(VALGRIND_CHECK_MEM_IS_ADDRESSABLE(memchunk,
 						memchunk->hm_length + LBER_HUG_MEMCHK_OVERHEAD) == 0);
 		}
+		VALGRIND_CLOSE(memchunk);
 	}
-	VALGRIND_CLOSE(memchunk);
 	return bits;
 }
 
-__hot __flatten void lber_hug_memchk_ensure(const void* payload) {
-	unsigned bits = lber_hug_memchk_probe(payload, NULL, NULL);
+__hot __flatten void lber_hug_memchk_ensure(const void* payload, unsigned tag) {
+	unsigned bits = lber_hug_memchk_probe(payload, tag, NULL, NULL);
 
 	if (unlikely (bits != 0))
 		lber_hug_memchk_throw(payload, bits);
@@ -349,7 +352,8 @@ __hot __flatten void lber_hug_memchk_ensure(const void* payload) {
 __hot __flatten void* lber_hug_memchk_setup(
 		struct lber_hug_memchk* memchunk,
 		size_t payload_size,
-		unsigned poison_mode) {
+		unsigned tag,
+		unsigned poison_mode ) {
 	void* payload = LBER_HUG_PAYLOAD(memchunk);
 
 	size_t sequence = LBER_HUG_DISABLED;
@@ -359,11 +363,12 @@ __hot __flatten void* lber_hug_memchk_setup(
 		__sync_fetch_and_add(&lber_hug_memchk_info.mi_inuse_bytes, payload_size);
 	}
 
-	LBER_HUG_SETUP(memchunk->hm_guard_head, MEMCHK_TAG_HEADER);
+	assert(tag != 0);
+	LBER_HUG_SETUP(memchunk->hm_guard_head, MEMCHK_TAG_HEADER, tag);
 	memchunk->hm_length = payload_size;
 	memchunk->hm_sequence = sequence;
-	LBER_HUG_SETUP(memchunk->hm_guard_bottom, MEMCHK_TAG_BOTTOM);
-	LBER_HUG_SETUP_ASIDE(memchunk, MEMCHK_TAG_COVER,
+	LBER_HUG_SETUP(memchunk->hm_guard_bottom, MEMCHK_TAG_BOTTOM, 0);
+	LBER_HUG_SETUP_ASIDE(memchunk, MEMCHK_TAG_COVER, 0,
 		payload_size + sizeof(struct lber_hug_memchk));
 	VALGRIND_CLOSE(memchunk);
 
@@ -384,11 +389,11 @@ __hot __flatten void* lber_hug_memchk_setup(
 	return payload;
 }
 
-__hot __flatten void* lber_hug_memchk_drown(void* payload) {
+__hot __flatten void* lber_hug_memchk_drown(void* payload, unsigned tag) {
 	size_t payload_size;
 	struct lber_hug_memchk* memchunk;
 
-	lber_hug_memchk_ensure(payload);
+	lber_hug_memchk_ensure(payload, tag);
 	memchunk = LBER_HUG_CHUNK(payload);
 	VALGRIND_OPEN(memchunk);
 	payload_size = memchunk->hm_length;
@@ -433,24 +438,25 @@ static int lber_hug_memchk_probe_realloc(
 	return bits;
 }
 
-unsigned lber_hug_realloc_begin ( const void* payload, size_t* old_size ) {
+unsigned lber_hug_realloc_begin ( const void* payload,
+		unsigned tag, size_t* old_size ) {
 	struct lber_hug_memchk* memchunk;
 	unsigned key = canary();
 
-	lber_hug_memchk_ensure(payload);
+	lber_hug_memchk_ensure(payload, tag);
 	memchunk = LBER_HUG_CHUNK(payload);
 	VALGRIND_OPEN(memchunk);
 	*old_size = memchunk->hm_length;
-	LBER_HUG_SETUP(memchunk->hm_guard_head, key);
-	LBER_HUG_SETUP(memchunk->hm_guard_bottom, key + 1);
-	LBER_HUG_SETUP_ASIDE(memchunk, key + 2,
+	LBER_HUG_SETUP(memchunk->hm_guard_head, key, 0);
+	LBER_HUG_SETUP(memchunk->hm_guard_bottom, key, 1);
+	LBER_HUG_SETUP_ASIDE(memchunk, key, 2,
 		memchunk->hm_length + sizeof(struct lber_hug_memchk));
 
 	return key;
 }
 
 void* lber_hug_realloc_undo ( struct lber_hug_memchk* memchunk,
-		unsigned key) {
+		unsigned tag, unsigned key) {
 	unsigned bits = lber_hug_memchk_probe_realloc(memchunk, key);
 
 	if (unlikely (bits != 0)) {
@@ -458,9 +464,9 @@ void* lber_hug_realloc_undo ( struct lber_hug_memchk* memchunk,
 		lber_hug_memchk_throw(payload, bits);
 	}
 
-	LBER_HUG_SETUP(memchunk->hm_guard_head, MEMCHK_TAG_HEADER);
-	LBER_HUG_SETUP(memchunk->hm_guard_bottom, MEMCHK_TAG_BOTTOM);
-	LBER_HUG_SETUP_ASIDE(memchunk, MEMCHK_TAG_COVER,
+	LBER_HUG_SETUP(memchunk->hm_guard_head, MEMCHK_TAG_HEADER, tag);
+	LBER_HUG_SETUP(memchunk->hm_guard_bottom, MEMCHK_TAG_BOTTOM, 0);
+	LBER_HUG_SETUP_ASIDE(memchunk, MEMCHK_TAG_COVER, 0,
 		memchunk->hm_length + sizeof(struct lber_hug_memchk));
 	VALGRIND_CLOSE(memchunk);
 
@@ -469,6 +475,7 @@ void* lber_hug_realloc_undo ( struct lber_hug_memchk* memchunk,
 
 void* lber_hug_realloc_commit ( size_t old_size,
 		struct lber_hug_memchk* new_memchunk,
+		unsigned tag,
 		size_t new_size ) {
 	void* new_payload = LBER_HUG_PAYLOAD(new_memchunk);
 	size_t sequence = LBER_HUG_DISABLED;
@@ -481,11 +488,11 @@ void* lber_hug_realloc_commit ( size_t old_size,
 		__sync_fetch_and_add(&lber_hug_memchk_info.mi_inuse_bytes, new_size - old_size);
 	}
 
-	LBER_HUG_SETUP(new_memchunk->hm_guard_head, MEMCHK_TAG_HEADER);
+	LBER_HUG_SETUP(new_memchunk->hm_guard_head, MEMCHK_TAG_HEADER, tag);
 	new_memchunk->hm_length = new_size;
 	new_memchunk->hm_sequence = sequence;
-	LBER_HUG_SETUP(new_memchunk->hm_guard_bottom, MEMCHK_TAG_BOTTOM);
-	LBER_HUG_SETUP_ASIDE(new_memchunk, MEMCHK_TAG_COVER,
+	LBER_HUG_SETUP(new_memchunk->hm_guard_bottom, MEMCHK_TAG_BOTTOM, 0);
+	LBER_HUG_SETUP_ASIDE(new_memchunk, MEMCHK_TAG_COVER, 0,
 		new_size + sizeof(struct lber_hug_memchk));
 	VALGRIND_CLOSE(new_memchunk);
 
@@ -514,6 +521,8 @@ void __attribute__((constructor)) reopenldap_flags_init() {
 		flags |= REOPENLDAP_FLAG_IDDQD;
 	if (getenv("REOPENLDAP_FORCE_IDKFA"))
 		flags |= REOPENLDAP_FLAG_IDKFA;
+	if (getenv("REOPENLDAP_FORCE_IDCLIP"))
+		flags |= REOPENLDAP_FLAG_IDCLIP;
 	if (getenv("REOPENLDAP_FORCE_JITTER"))
 		flags |= REOPENLDAP_FLAG_JITTER;
 	reopenldap_flags_setup(flags);
@@ -522,6 +531,7 @@ void __attribute__((constructor)) reopenldap_flags_init() {
 void reopenldap_flags_setup(int flags) {
 	reopenldap_flags = flags & (REOPENLDAP_FLAG_IDDQD
 								| REOPENLDAP_FLAG_IDKFA
+								| REOPENLDAP_FLAG_IDCLIP
 								| REOPENLDAP_FLAG_JITTER);
 
 #if LDAP_MEMORY_DEBUG > 0
@@ -568,4 +578,138 @@ __hot void* ber_memcpy_safe(void* dest, const void* src, size_t n) {
 
 #undef memcpy
 	return memcpy(dest, src, n);
+}
+
+/*----------------------------------------------------------------------------*/
+
+static uint64_t clock_past, clock_past_us;
+#ifdef CLOCK_BOOTTIME
+static clockid_t clock_mono_id;
+#else
+#	define clock_mono_id CLOCK_MONOTONIC
+#endif /* CLOCK_BOOTTIME */
+static unsigned clock_us_subtick;
+static pthread_mutex_t clock_mutex = PTHREAD_MUTEX_INITIALIZER;
+static int64_t clock_mono2real_ns;
+
+__hot static uint64_t clock_ns(clockid_t clk_id) {
+	struct timespec ts;
+	LDAP_ENSURE(clock_gettime(clk_id, &ts) == 0);
+	return ts.tv_sec * 1000000000ull + ts.tv_nsec;
+}
+
+__cold static uint64_t sqr(int64_t v) {
+	return v * v;
+}
+
+__cold static int64_t clock_mono2real_delta() {
+	uint64_t real_a, mono_a, real_b, mono_b;
+	int64_t delta_a, delta_b, best_delta;
+	uint64_t best_dist, dist;
+	int i;
+
+#ifdef CLOCK_BOOTTIME
+	if (! clock_mono_id) {
+		struct timespec ts;
+
+		clock_mono_id = (clock_gettime(CLOCK_BOOTTIME, &ts) == 0)
+				? CLOCK_BOOTTIME : CLOCK_MONOTONIC;
+	}
+#endif /* CLOCK_BOOTTIME */
+
+	for(best_dist = best_delta = i = 0; i < 42; ) {
+		real_a = clock_ns(CLOCK_REALTIME);
+		mono_a = clock_ns(clock_mono_id);
+		real_b = clock_ns(CLOCK_REALTIME);
+		mono_b = clock_ns(clock_mono_id);
+
+		delta_a = real_a - mono_a;
+		delta_b = real_b - mono_b;
+
+		dist = sqr(real_b - real_a) + sqr(mono_b - mono_a)
+				+ sqr(delta_b - delta_a) * 2;
+
+		if (i == 0 || best_dist > dist) {
+			best_dist = dist;
+			best_delta = (delta_a + delta_b) / 2;
+			i = 1;
+			continue;
+		}
+		++i;
+	}
+
+	LDAP_ENSURE(best_delta > 0);
+	return best_delta;
+}
+
+__hot uint64_t ldap_now_ns() {
+	uint64_t clock_now;
+
+	if (unlikely(!clock_mono2real_ns)) {
+		LDAP_ENSURE(pthread_mutex_lock(&clock_mutex) == 0);
+		if (!clock_mono2real_ns)
+			clock_mono2real_ns = clock_mono2real_delta();
+		LDAP_ENSURE(pthread_mutex_unlock(&clock_mutex) == 0);
+	}
+
+	if (reopenldap_mode_idkfa())
+		LDAP_ENSURE(pthread_mutex_lock(&clock_mutex) == 0);
+
+	if (reopenldap_mode_iddqd())
+		clock_now = clock_ns(clock_mono_id) + clock_mono2real_ns;
+	else
+		clock_now = clock_ns(CLOCK_REALTIME);
+
+	if (reopenldap_mode_idkfa()) {
+		LDAP_ENSURE(clock_past < clock_now);
+		clock_past = clock_now;
+		LDAP_ENSURE(pthread_mutex_unlock(&clock_mutex) == 0);
+	}
+
+	return clock_now;
+}
+
+__hot void ldap_timespec(struct timespec *ts) {
+	uint64_t clock_now = ldap_now_ns();
+	ts->tv_sec = clock_now / 1000000000ul;
+	ts->tv_nsec = clock_now % 1000000000ul;
+}
+
+__hot unsigned ldap_timeval(struct timeval *tv) {
+	uint64_t clock_now, us;
+	unsigned subtick;
+
+	LDAP_ENSURE(pthread_mutex_lock(&clock_mutex) == 0);
+	if (unlikely(!clock_mono2real_ns))
+		clock_mono2real_ns = clock_mono2real_delta();
+
+	if (reopenldap_mode_iddqd())
+		clock_now = clock_ns(clock_mono_id) + clock_mono2real_ns;
+	else
+		clock_now = clock_ns(CLOCK_REALTIME);
+
+	if (reopenldap_mode_idkfa()) {
+		LDAP_ENSURE(clock_past < clock_now);
+		clock_past = clock_now;
+	}
+
+	us = clock_now / 1000u;
+	subtick = 0;
+	if (unlikely(clock_past_us == us))
+		subtick = clock_us_subtick + 1;
+	clock_us_subtick = subtick;
+	clock_past_us = us;
+	LDAP_ENSURE(pthread_mutex_unlock(&clock_mutex) == 0);
+
+	tv->tv_sec = us / 1000000u;
+	tv->tv_usec = us % 1000000u;
+	return subtick;
+}
+
+__hot time_t ldap_time(time_t *p) {
+	struct timespec t;
+	ldap_timespec(&t);
+	if (p)
+		*p = t.tv_sec;
+	return t.tv_sec;
 }

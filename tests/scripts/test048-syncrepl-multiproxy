@@ -50,7 +50,7 @@ mkdir -p $TESTDIR $DBDIR1 $DBDIR2 $DBDIR3
 
 echo "Starting master slapd on TCP/IP port $PORT1..."
 . $CONFFILTER $BACKEND $MONITORDB < $PLSRMASTERCONF > $CONF1
-$SLAPD -f $CONF1 -h $URI1 -d $LVL $TIMING > $LOG1 2>&1 &
+$SLAPD -f $CONF1 -h $URI1 $TIMING > $LOG1 2>&1 &
 MASTERPID=$!
 if test $WAIT != 0 ; then
     echo MASTERPID $MASTERPID
@@ -71,7 +71,7 @@ fi
 
 echo "Starting P1-slave slapd on TCP/IP port $PORT2..."
 . $CONFFILTER $BACKEND $MONITORDB < $RSLAVECONF > $CONF2
-$SLAPD -f $CONF2 -h $URI2 -d $LVL $TIMING > $LOG2 2>&1 &
+$SLAPD -f $CONF2 -h $URI2 $TIMING > $LOG2 2>&1 &
 P1SLAVEPID=$!
 if test $WAIT != 0 ; then
     echo P1SLAVEPID $P1SLAVEPID
@@ -82,7 +82,7 @@ check_running 2 P1-slave
 
 echo "Starting R1-slave slapd on TCP/IP port $PORT3..."
 . $CONFFILTER $BACKEND $MONITORDB < $RSLAVECONF | sed -e 's;\.2\.\([^/]*\)$;.3.\1;' > $CONF3
-$SLAPD -f $CONF3 -h $URI3 -d $LVL $TIMING > $LOG3 2>&1 &
+$SLAPD -f $CONF3 -h $URI3 $TIMING > $LOG3 2>&1 &
 R1SLAVEPID=$!
 if test $WAIT != 0 ; then
     echo R1SLAVEPID $R1SLAVEPID
@@ -173,7 +173,7 @@ kill -HUP $MASTERPID && safewait $MASTERPID && echo " Done" || echo " Failure ($
 sleep $SLEEP1
 
 echo "======================= RESTART =======================" >> $LOG1
-$SLAPD -f $CONF1 -h $URI1 -d $LVL $TIMING >> $LOG1 2>&1 &
+$SLAPD -f $CONF1 -h $URI1 $TIMING >> $LOG1 2>&1 &
 MASTERPID=$!
 if test $WAIT != 0 ; then
     echo MASTERPID $MASTERPID
@@ -364,7 +364,7 @@ EOMODS
 
 echo "Restarting P1-slave..."
 echo "======================= RESTART =======================" >> $LOG3
-$SLAPD -f $CONF2 -h $URI2 -d $LVL $TIMING >> $LOG2 2>&1 &
+$SLAPD -f $CONF2 -h $URI2 $TIMING >> $LOG2 2>&1 &
 P1SLAVEPID=$!
 if test $WAIT != 0 ; then
     echo P1SLAVEPID $P1SLAVEPID
@@ -373,7 +373,7 @@ fi
 
 echo "Restarting R1-slave..."
 echo "======================= RESTART =======================" >> $LOG3
-$SLAPD -f $CONF3 -h $URI3 -d $LVL $TIMING >> $LOG3 2>&1 &
+$SLAPD -f $CONF3 -h $URI3 $TIMING >> $LOG3 2>&1 &
 R1SLAVEPID=$!
 if test $WAIT != 0 ; then
     echo R1SLAVEPID $R1SLAVEPID

@@ -525,11 +525,7 @@ novals:;
 		if ( done ) break;
 	}
 
-#ifdef _WIN32
-	beg = GetTickCount();
-#else
-	gettimeofday( &beg, NULL );
-#endif
+	ldap_timeval( &beg );
 
 	if ( ndns == 0 ) {
 		tester_error( "No DNs" );
@@ -570,14 +566,7 @@ novals:;
 		ld = NULL;
 	}
 
-#ifdef _WIN32
-	end = GetTickCount();
-	end -= beg;
-
-	fprintf( stderr, "  PID=%ld - Bind done %d in %d.%03d seconds.\n",
-		(long) pid, i, end / 1000, end % 1000 );
-#else
-	gettimeofday( &end, NULL );
+	ldap_timeval( &end );
 	end.tv_usec -= beg.tv_usec;
 	if (end.tv_usec < 0 ) {
 		end.tv_usec += 1000000;
@@ -587,7 +576,6 @@ novals:;
 
 	fprintf( stderr, "  PID=%ld - Bind done %d in %ld.%06ld seconds.\n",
 		(long) pid, i, (long) end.tv_sec, (long) end.tv_usec );
-#endif
 
 	if ( dns ) {
 		for ( i = 0; i < ndns; i++ ) {

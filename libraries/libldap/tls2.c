@@ -845,12 +845,7 @@ ldap_int_tls_start ( LDAP *ld, LDAPConn *conn, LDAPURLDesc *srv )
 		ber_sockbuf_ctrl( sb, LBER_SB_OPT_GET_FD, &sd );
 		tv = ld->ld_options.ldo_tm_net;
 		tv0 = tv;
-#ifdef HAVE_GETTIMEOFDAY
-		gettimeofday( &start_time_tv, NULL );
-#else /* ! HAVE_GETTIMEOFDAY */
-		time( &start_time_tv.tv_sec );
-		start_time_tv.tv_usec = 0;
-#endif /* ! HAVE_GETTIMEOFDAY */
+		ldap_timeval( &start_time_tv );
 	}
 
 #endif /* LDAP_USE_NON_BLOCKING_TLS */
@@ -883,12 +878,7 @@ ldap_int_tls_start ( LDAP *ld, LDAPConn *conn, LDAPURLDesc *srv )
 
 				/* This is mostly copied from result.c:wait4msg(), should
 				 * probably be moved into a separate function */
-#ifdef HAVE_GETTIMEOFDAY
-				gettimeofday( &curr_time_tv, NULL );
-#else /* ! HAVE_GETTIMEOFDAY */
-				time( &curr_time_tv.tv_sec );
-				curr_time_tv.tv_usec = 0;
-#endif /* ! HAVE_GETTIMEOFDAY */
+				ldap_timeval( &curr_time_tv );
 
 				/* delta = curr - start */
 				delta_tv.tv_sec = curr_time_tv.tv_sec - start_time_tv.tv_sec;

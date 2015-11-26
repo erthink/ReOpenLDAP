@@ -56,8 +56,9 @@ fi
 
 echo "Starting slapd on TCP/IP port $PORT1..."
 . $CONFFILTER $BACKEND $MONITORDB < $METACONF1 > $CONF1
-$SLAPD -f $CONF1 -h $URI1 -d $LVL $TIMING > $LOG1 2>&1 &
-PID=$!
+echo " = $SLAPD_HUGE -f $CONF1 -h $URI1 $TIMING"
+$SLAPD_HUGE -f $CONF1 -h $URI1 $TIMING |& gzip > $LOG1.gz &
+PID=$(jobs -p | tail -1)
 if test $WAIT != 0 ; then
     echo PID $PID
     read foo
@@ -77,8 +78,9 @@ fi
 
 echo "Starting slapd on TCP/IP port $PORT2..."
 . $CONFFILTER $BACKEND $MONITORDB < $METACONF2 > $CONF2
-$SLAPD -f $CONF2 -h $URI2 -d $LVL $TIMING > $LOG2 2>&1 &
-PID=$!
+echo " = $SLAPD_HUGE -f $CONF2 -h $URI2 $TIMING"
+$SLAPD_HUGE -f $CONF2 -h $URI2 $TIMING |& gzip > $LOG2.gz &
+PID=$(jobs -p | tail -1)
 if test $WAIT != 0 ; then
     echo PID $PID
     read foo
@@ -98,8 +100,9 @@ fi
 
 echo "Starting slapd on TCP/IP port $PORT3..."
 . $CONFFILTER $BACKEND $MONITORDB < $METACONF > $CONF3
-$SLAPD -f $CONF3 -h $URI3 -d $LVL $TIMING > $LOG3 2>&1 &
-PID=$!
+echo " = $SLAPD_HUGE -f $CONF3 -h $URI3 $TIMING"
+$SLAPD_HUGE -f $CONF3 -h $URI3 $TIMING |& gzip > $LOG3.gz &
+PID=$(jobs -p | tail -1)
 if test $WAIT != 0 ; then
     echo PID $PID
     read foo

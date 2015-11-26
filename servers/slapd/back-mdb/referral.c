@@ -86,8 +86,8 @@ mdb_referrals( Operation *op, SlapReply *rs )
 					&op->o_req_dn, LDAP_SCOPE_DEFAULT );
 				ber_bvarray_free( ref );
 				if ( rs->sr_ref ) {
-					rs->sr_matched = ber_strdup_x(
-					e->e_name.bv_val, op->o_tmpmemctx );
+					rs->sr_matched = ber_strdup_x( e->e_name.bv_val, op->o_tmpmemctx );
+					rs->sr_flags = REP_MATCHED_MUSTBEFREED | REP_REF_MUSTBEFREED;
 				}
 			}
 
@@ -99,15 +99,9 @@ mdb_referrals( Operation *op, SlapReply *rs )
 			/* send referrals */
 			rc = rs->sr_err = LDAP_REFERRAL;
 			send_ldap_result( op, rs );
-			ber_bvarray_free( rs->sr_ref );
-			rs->sr_ref = NULL;
+			rs_send_cleanup( rs );
 		} else if ( rc != LDAP_SUCCESS ) {
 			rs->sr_text = rs->sr_matched ? "bad referral object" : NULL;
-		}
-
-		if (rs->sr_matched) {
-			op->o_tmpfree( (char *)rs->sr_matched, op->o_tmpmemctx );
-			rs->sr_matched = NULL;
 		}
 		goto done;
 	}
@@ -117,25 +111,23 @@ mdb_referrals( Operation *op, SlapReply *rs )
 		BerVarray refs = get_entry_referrals( op, e );
 		rs->sr_ref = referral_rewrite(
 			refs, &e->e_name, &op->o_req_dn, LDAP_SCOPE_DEFAULT );
+		ber_bvarray_free( refs );
 
 		Debug( LDAP_DEBUG_TRACE,
 			LDAP_XSTRING(mdb_referrals)
 			": tag=%lu target=\"%s\" matched=\"%s\"\n",
 			(unsigned long)op->o_tag, op->o_req_dn.bv_val, e->e_name.bv_val );
 
-		rs->sr_matched = e->e_name.bv_val;
 		if( rs->sr_ref != NULL ) {
 			rc = rs->sr_err = LDAP_REFERRAL;
+			rs->sr_matched = e->e_name.bv_val;
+			rs->sr_flags = REP_REF_MUSTBEFREED;
 			send_ldap_result( op, rs );
-			ber_bvarray_free( rs->sr_ref );
-			rs->sr_ref = NULL;
+			rs_send_cleanup( rs );
 		} else {
 			rc = LDAP_OTHER;
 			rs->sr_text = "bad referral object";
 		}
-
-		rs->sr_matched = NULL;
-		ber_bvarray_free( refs );
 	}
 
 done:

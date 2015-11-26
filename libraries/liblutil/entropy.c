@@ -113,18 +113,10 @@ int lutil_entropy( unsigned char *buf, ber_len_t nbytes )
 
 		struct rdata_s {
 			int counter;
-
 			unsigned char *buf;
 			struct rdata_s *stack;
-
 			pid_t	pid;
-
-#ifdef HAVE_GETTIMEOFDAY
-			struct timeval tv;
-#else
-			time_t	time;
-#endif
-
+			struct timespec tv;
 			unsigned long	junk;	/* purposely not initialized */
 		} rdata;
 
@@ -140,11 +132,7 @@ int lutil_entropy( unsigned char *buf, ber_len_t nbytes )
 			unsigned char digest[16];
 
 			/* poor resolution */
-#ifdef HAVE_GETTIMEOFDAY
-			(void) gettimeofday( &rdata.tv, NULL );
-#else
-			(void) time( &rdata.time );
-#endif
+			clock_gettime(CLOCK_MONOTONIC, &rdata.tv);
 
 			/* make sure rdata differs */
 			rdata.counter = ++counter;

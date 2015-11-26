@@ -57,7 +57,7 @@ esac
 echo "Starting provider slapd on TCP/IP port $PORT1..."
 . $CONFFILTER $BACKEND $MONITORDB < $DYNAMICCONF > $CONFLDIF
 $SLAPADD -F $CFPRO -n 0 -l $CONFLDIF
-$SLAPD -F $CFPRO -h $URI1 -d $LVL $TIMING > $LOG1 2>&1 &
+$SLAPD -F $CFPRO -h $URI1 $TIMING > $LOG1 2>&1 &
 PID=$!
 if test $WAIT != 0 ; then
     echo PID $PID
@@ -168,7 +168,7 @@ fi
 
 echo "Starting consumer slapd on TCP/IP port $PORT2..."
 $SLAPADD -F $CFCON -n 0 -l $CONFLDIF
-$SLAPD -F $CFCON -h $URI2 -d $LVL $TIMING > $LOG2 2>&1 &
+$SLAPD -F $CFCON -h $URI2 $TIMING > $LOG2 2>&1 &
 SLAVEPID=$!
 if test $WAIT != 0 ; then
     echo SLAVEPID $SLAVEPID
@@ -212,7 +212,7 @@ if test $RC != 0 ; then
 	exit $RC
 fi
 
-echo "Adding schema and databases on provider..."
+echo -n "Adding schema and databases on provider... "
 $LDAPADD -D cn=config -H $URI1 -y $CONFIGPWF <<EOF >>$TESTOUT 2>&1
 include: file://$ABS_SCHEMADIR/core.ldif
 
@@ -230,6 +230,7 @@ if test $RC != 0 ; then
 	killservers
 	exit $RC
 fi
+echo -n "+"
 
 nullExclude="" nullOK=""
 test $BACKEND = null && nullExclude="# " nullOK="OK"
@@ -255,6 +256,7 @@ EOF
 		exit $RC
 	fi
 fi
+echo -n "+"
 
 $LDAPADD -D cn=config -H $URI1 -y $CONFIGPWF <<EOF >>$TESTOUT 2>&1
 dn: olcDatabase={2}$BACKEND,cn=config
@@ -296,6 +298,7 @@ if test $RC != 0 ; then
 	killservers
 	exit $RC
 fi
+echo -n "+"
 
 if test $INDEXDB = indexdb ; then
 	$LDAPMODIFY -D cn=config -H $URI1 -y $CONFIGPWF <<EOF >>$TESTOUT 2>&1
@@ -312,6 +315,7 @@ EOF
 		exit $RC
 	fi
 fi
+echo "+"
 
 echo "Using ldapadd to populate provider..."
 $LDAPADD -D "$MANAGERDN" -H $URI1 -w $PASSWD -f $LDIFORDERED \

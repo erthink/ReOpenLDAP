@@ -98,10 +98,16 @@ ldap_ld_free(
 			LDAP_VFREE(ld->ld_referrals);
 			ld->ld_referrals = NULL;
 		}
+		Debug( LDAP_DEBUG_TRACE,
+			"ldap_ld_free %p/%p still using (%d)\n",
+			ld, ld->ldc, ld->ld_ldcrefcnt );
 		LDAP_MUTEX_UNLOCK( &ld->ld_ldcmutex );
 		LDAP_FREE( (char *) ld );
 		return( err );
 	}
+
+	Debug( LDAP_DEBUG_TRACE,
+		"ldap_ld_free %p/%p unused\n", ld, ld->ldc );
 
 	/* This ld is the last thread. */
 	LDAP_MUTEX_UNLOCK( &ld->ld_ldcmutex );

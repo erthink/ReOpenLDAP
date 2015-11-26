@@ -941,12 +941,16 @@ int slap_tool_destroy( void )
 	}
 	module_kill();
 #endif
+	extops_destroy();
+	controls_destroy();
 	quorum_global_destroy();
 	schema_destroy();
+	lutil_passwd_destroy();
 #ifdef HAVE_TLS
 	ldap_pvt_tls_destroy();
 #endif
 	config_destroy();
+	slap_sasl_regexp_destroy();
 
 #ifdef CSRIMALLOC
 	mal_dumpleaktrace( leakfile );

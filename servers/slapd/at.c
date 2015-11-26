@@ -326,6 +326,7 @@ at_destroy( void )
 	}
 
 	avl_free(attr_index, at_destroy_one);
+	avl_free(attr_cache, NULL);
 
 	if ( slap_schema.si_at_undefined ) {
 		ad_destroy(slap_schema.si_at_undefined->sat_ad);

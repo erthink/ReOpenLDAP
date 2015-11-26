@@ -256,19 +256,12 @@ static void glue_parent(Operation *op) {
 	a->a_vals = ch_malloc(sizeof(struct berval) * 3);
 	ber_dupbv(&a->a_vals[0], &glue[0]);
 	ber_dupbv(&a->a_vals[1], &glue[1]);
-	ber_dupbv(&a->a_vals[2], &glue[2]);
+	BER_BVZERO(&a->a_vals[2]);
 	a->a_nvals = a->a_vals;
 	a->a_next = e->e_attrs;
 	e->e_attrs = a;
 
-	a = attr_alloc( slap_schema.si_ad_structuralObjectClass );
-	a->a_numvals = 1;
-	a->a_vals = ch_malloc(sizeof(struct berval) * 2);
-	ber_dupbv(&a->a_vals[0], &glue[1]);
-	ber_dupbv(&a->a_vals[1], &glue[2]);
-	a->a_nvals = a->a_vals;
-	a->a_next = e->e_attrs;
-	e->e_attrs = a;
+	attr_merge_one( e, slap_schema.si_ad_structuralObjectClass, &glue[1], NULL);
 
 	nop.o_req_dn = ndn;
 	nop.o_req_ndn = ndn;
@@ -276,11 +269,10 @@ static void glue_parent(Operation *op) {
 
 	nop.o_bd->bd_info = (BackendInfo *) on->on_info->oi_orig;
 	syncrepl_add_glue(&nop, e);
+	e = NULL;
 	nop.o_bd->bd_info = (BackendInfo *) on;
 
 	op->o_tmpfree( ndn.bv_val, op->o_tmpmemctx );
-
-	return;
 }
 
 /*

@@ -1025,6 +1025,7 @@ ldap_back_monitor_db_open( BackendDB *be )
 		li->li_monitor_info.lmi_mss = ch_calloc(2, sizeof(monitor_subsys_t));
 		if (! li->li_monitor_info.lmi_mss)
 			return ENOMEM;
+		memleak_crutch_push(li->li_monitor_info.lmi_mss);
 	}
 
 	mss = li->li_monitor_info.lmi_mss;

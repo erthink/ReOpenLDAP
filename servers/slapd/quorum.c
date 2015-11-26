@@ -526,7 +526,7 @@ void quorum_notify_status(BackendDB *bd, int rid, int ready) {
 
 void quorum_notify_csn(BackendDB *bd, int csnsid) {
 	assert(quorum_list != QR_POISON);
-	assert(csnsid > -1 && csnsid <= SLAP_SYNC_RID_MAX);
+	assert(csnsid > -1 && csnsid <= SLAP_SYNC_SID_MAX);
 
 	if (bd->bd_quorum && (bd->bd_quorum->flags & QR_AUTO_SIDS))  {
 		lock();

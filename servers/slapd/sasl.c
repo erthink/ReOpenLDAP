@@ -1196,8 +1196,15 @@ int slap_sasl_init( void )
 
 int slap_sasl_destroy( void )
 {
+#ifdef ENABLE_REWRITE
+	rewrite_mapper_unregister( &slapd_mapper );
+#endif
 #ifdef HAVE_CYRUS_SASL
-	sasl_done();
+#	if SASL_VERSION_FULL < 0x020118
+		sasl_done();
+#	else
+		sasl_server_done();
+#	endif
 #endif
 	free( sasl_host );
 	sasl_host = NULL;

@@ -473,6 +473,7 @@ oc_destroy( void )
 	}
 
 	avl_free( oc_index, oc_destroy_one );
+	avl_free( oc_cache, NULL );
 
 	while( !LDAP_STAILQ_EMPTY(&oc_undef_list) ) {
 		o = LDAP_STAILQ_FIRST(&oc_undef_list);

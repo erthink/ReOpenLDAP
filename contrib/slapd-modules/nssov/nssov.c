@@ -758,10 +758,13 @@ nss_cf_gen(ConfigArgs *c)
 	case NSS_PAMGROUP:
 		ni->ni_pam_group_dn = c->value_ndn;
 		ch_free( c->value_dn.bv_val );
+		BER_BVZERO( &c->value_dn );
+		BER_BVZERO( &c->value_ndn );
 		break;
 	case NSS_PAMSESS:
 		ber_str2bv( c->argv[1], 0, 1, &c->value_bv );
 		ber_bvarray_add( &ni->ni_pam_sessions, &c->value_bv );
+		BER_BVZERO( &c->value_bv );
 		break;
 	}
 	return rc;

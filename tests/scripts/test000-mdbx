@@ -30,11 +30,17 @@ rm -rf testdb && mkdir testdb
 
 for n in 0 1 2 3 4 5 6; do
 	echo -n "*** LMDB-TEST-$n: "
-	if ${LMDBDIR}/mtest${n} > mtest${n}.log; then
+	$TIMEOUT_S $VALGRIND ${LMDBDIR}/mtest${n} > mtest${n}.log
+	RC=$?
+	if [ $RC -eq 0 ]; then
 		echo -n "passed"
-	elif [ $? -eq 134 ]; then
+	elif [ $RC -eq 134 ]; then
 		echo "assertion/coredump"
 		troubles=core
+		break
+	elif [ $RC -eq 43 ]; then
+		echo "memleak"
+		troubles=memleak
 		break
 	else
 		echo -n "troubles"
@@ -42,11 +48,17 @@ for n in 0 1 2 3 4 5 6; do
 	fi
 
 	echo -n ", mdbx_chk "
-	if ${LMDBDIR}/mdbx_chk -vv testdb >> mtest${n}.log; then
+	$TIMEOUT_S $VALGRIND ${LMDBDIR}/mdbx_chk -vv testdb >> mtest${n}.log
+	RC=$?
+	if [ $RC -eq 0 ]; then
 		echo "ok"
-	elif [ $? -eq 134 ]; then
+	elif [ $RC -eq 134 ]; then
 		echo "coredump"
 		troubles=core
+		break
+	elif [ $RC -eq 43 ]; then
+		echo "memleak"
+		troubles=memleak
 		break
 	else
 		echo "broken"
