@@ -1487,7 +1487,7 @@ chain_lddel( CfEntryInfo *ce, Operation *op )
 		ce->ce_be->bd_info->bi_db_destroy( ce->ce_be, NULL );
 	}
 
-	memleak_crutch_pop(ce->be);
+	memleak_crutch_pop(ce->ce_be);
 	ch_free(ce->ce_be);
 	ce->ce_be = NULL;
 
