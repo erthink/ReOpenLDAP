@@ -928,8 +928,15 @@ do_syncrep_process(
 		Entry			*entry = NULL;
 		struct berval	bdn;
 
-		ldap_controls_free( rctrls );
-		rctrls = NULL;
+		if ( rctrls ) {
+			ldap_controls_free( rctrls );
+			rctrls = NULL;
+		}
+
+		if ( modlist ) {
+			slap_mods_free( modlist, 1 );
+			modlist = NULL;
+		}
 
 		if ( syncCookie.numcsns > 0 ) {
 			slap_cookie_free( &syncCookie, 0 );
@@ -1061,7 +1068,6 @@ do_syncrep_process(
 			}
 			rc = 0;
 			if ( si->si_syncdata && si->si_logstate == SYNCLOG_LOGGING ) {
-				modlist = NULL;
 				if ( ( rc = syncrepl_message_to_op( si, op, msg ) ) == LDAP_SUCCESS &&
 					syncCookie.ctxcsn )
 				{
@@ -1096,7 +1102,6 @@ do_syncrep_process(
 					rc = syncrepl_cookie_push( si, op, &syncCookie );
 				}
 			}
-			slap_mods_free( modlist, 1 );
 			if ( rc == SYNCREPL_RETARDED )
 				rc = LDAP_SUCCESS;
 			if ( rc )
@@ -1402,6 +1407,7 @@ done:
 	slap_cookie_free( &syncCookie, 0 );
 	ldap_msgfree( msg );
 	ldap_controls_free( rctrls );
+	slap_mods_free( modlist, 1 );
 
 	quorum_notify_status( si->si_be, si->si_rid,
 		err == LDAP_SUCCESS && rc == LDAP_SUCCESS && si->si_refreshDone );
