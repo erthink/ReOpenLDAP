@@ -949,6 +949,7 @@ int slap_tool_destroy( void )
 	module_kill();
 #endif
 	extops_destroy();
+	supported_feature_destroy();
 	controls_destroy();
 	quorum_global_destroy();
 	schema_destroy();
