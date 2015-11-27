@@ -792,6 +792,7 @@ bdb_cf_gen( ConfigArgs *c )
 		rc = lutil_get_filed_password( c->value_string, &bdb->bi_db_crypt_key );
 		if ( rc == 0 ) {
 			bdb->bi_db_crypt_file = c->value_string;
+			c->value_string = NULL;
 		}
 		break;
 
@@ -801,6 +802,7 @@ bdb_cf_gen( ConfigArgs *c )
 			rc = 1;
 		} else {
 			bdb->bi_db_crypt_key = c->value_bv;
+			BER_BVZERO( &c->value_bv );
 		}
 		break;
 
@@ -830,6 +832,7 @@ bdb_cf_gen( ConfigArgs *c )
 		if ( bdb->bi_dbenv_home )
 			ch_free( bdb->bi_dbenv_home );
 		bdb->bi_dbenv_home = c->value_string;
+		c->value_string = NULL;
 
 		/* See if a DB_CONFIG file already exists here */
 		if ( bdb->bi_db_config_path )

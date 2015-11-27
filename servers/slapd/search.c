@@ -360,14 +360,12 @@ fail1:
 		rs->sr_ref = referral_rewrite( default_referral,
 			NULL, &op->o_req_dn, op->ors_scope );
 
-		if (!rs->sr_ref) rs->sr_ref = default_referral;
+		if ( !rs->sr_ref ) rs->sr_ref = default_referral;
+		else rs->sr_flags |= REP_REF_MUSTBEFREED;
 		rs->sr_err = LDAP_REFERRAL;
 		op->o_bd = bd;
 		send_ldap_result( op, rs );
-
-		if (rs->sr_ref != default_referral)
-		ber_bvarray_free( rs->sr_ref );
-		rs->sr_ref = NULL;
+		rs_send_cleanup( rs );
 		goto return_results;
 	}
 
@@ -390,12 +388,11 @@ fail1:
 		if( defref != NULL ) {
 			rs->sr_ref = referral_rewrite( defref,
 				NULL, &op->o_req_dn, op->ors_scope );
-			if( !rs->sr_ref) rs->sr_ref = defref;
+			if ( ! rs->sr_ref ) ber_bvarray_dup_x( &rs->sr_ref, defref, NULL );
 			rs->sr_err = LDAP_REFERRAL;
+			rs->sr_flags |= REP_REF_MUSTBEFREED;
 			send_ldap_result( op, rs );
-
-			if (rs->sr_ref != defref) ber_bvarray_free( rs->sr_ref );
-
+			rs_send_cleanup( rs );
 		} else {
 			send_ldap_error( op, rs, LDAP_UNWILLING_TO_PERFORM,
 				"copy not used; no referral information available" );

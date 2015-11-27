@@ -189,6 +189,10 @@ void slap_biglock_pool_resume ( BackendDB *bd ) {
 	ldap_pvt_thread_pool_resume( &connection_pool );
 }
 
+int slap_biglock_pool_pausing ( BackendDB *bd ) {
+	return ldap_pvt_thread_pool_pausing( &connection_pool );
+}
+
 int slap_biglock_pool_pausecheck ( BackendDB *bd ) {
 	int res;
 	slap_biglock_t* bl = slap_biglock_get( bd );

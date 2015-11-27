@@ -1339,8 +1339,6 @@ syncprov_matchops( Operation *op, opcookie *opc, int saveit )
 	ldap_pvt_thread_mutex_lock( &si->si_ops_mutex );
 	for (pss = &si->si_ops; *pss; pss = gonext ? &(*pss)->s_next : pss)
 	{
-		Operation op2;
-		Opheader oh;
 		syncmatches *sm;
 		int found = 0;
 		syncops *snext, *ss = *pss;
@@ -1408,21 +1406,25 @@ syncprov_matchops( Operation *op, opcookie *opc, int saveit )
 
 		if ( fc.fscope ) {
 			ldap_pvt_thread_mutex_lock( &ss->s_mutex );
-			op2 = *ss->s_op;
-			oh = *op->o_hdr;
-			oh.oh_conn = ss->s_op->o_conn;
-			oh.oh_connid = ss->s_op->o_connid;
-			op2.o_bd = op->o_bd->bd_self;
-			op2.o_hdr = &oh;
-			op2.o_extra = op->o_extra;
-			op2.o_callback = NULL;
-			if (ss->s_flags & PS_FIX_FILTER) {
-				/* Skip the AND/GE clause that we stuck on in front. We
-				   would lose deletes/mods that happen during the refresh
-				   phase otherwise (ITS#6555) */
-				op2.ors_filter = ss->s_op->ors_filter->f_and->f_next;
+			rc = SLAPD_ABANDON;
+			if ( likely(! is_syncops_abandoned( ss )) ) {
+				Operation op2 = *ss->s_op;
+				Opheader oh = *op->o_hdr;
+
+				oh.oh_conn = ss->s_op->o_conn;
+				oh.oh_connid = ss->s_op->o_connid;
+				op2.o_bd = op->o_bd->bd_self;
+				op2.o_hdr = &oh;
+				op2.o_extra = op->o_extra;
+				op2.o_callback = NULL;
+				if ( ss->s_flags & PS_FIX_FILTER ) {
+					/* Skip the AND/GE clause that we stuck on in front. We
+					   would lose deletes/mods that happen during the refresh
+					   phase otherwise (ITS#6555) */
+					op2.ors_filter = op2.ors_filter->f_and->f_next;
+				}
+				rc = test_filter( &op2, e, op2.ors_filter );
 			}
-			rc = test_filter( &op2, e, op2.ors_filter );
 			ldap_pvt_thread_mutex_unlock( &ss->s_mutex );
 		}
 
@@ -2917,8 +2919,7 @@ shortcut:
 			sop->s_flags |= PS_FIX_FILTER;
 		} else if ( !BER_BVISNULL( &op->ors_filterstr ) ) {
 			op->o_tmpfree( op->ors_filterstr.bv_val, op->o_tmpmemctx );
-			op->ors_filterstr.bv_val = NULL;
-			op->ors_filterstr.bv_len = 0;
+			BER_BVZERO( &op->ors_filterstr );
 		}
 		filter2bv_x( op, op->ors_filter, &op->ors_filterstr );
 	}
@@ -3454,13 +3455,15 @@ syncprov_db_destroy(
 	if ( si ) {
 		/* LY: workaround for https://github.com/ReOpen/ReOpenLDAP/issues/45 */
 		for(;;) {
-			int drained, paused = slap_biglock_pool_pause(be);
+			int drained, paused =
+				(slap_biglock_pool_pausing(be) == 0
+					&& slap_biglock_pool_pause(be) == 1) ? 1 : 0;
 			ldap_pvt_thread_mutex_lock( &si->si_ops_mutex );
 			drained = 0;
 			if (si->si_ops == NULL && si->si_leftover == 0 && si->si_active == 0)
 				drained = 1;
 			ldap_pvt_thread_mutex_unlock( &si->si_ops_mutex );
-			if (paused == LDAP_SUCCESS)
+			if (paused)
 				slap_biglock_pool_resume(be);
 			if (drained)
 				break;

@@ -14,10 +14,7 @@
 ## <http://www.OpenLDAP.org/license.html>.
 
 # The default debug level logs more than 1Gb:
-case "$SLAPD_DEBUG_MT_HOT/$SLAPD_DEBUG" in
-/0 | /0x0 | /0X0 | /none | /NONE | /32768 | /0x8000 | 0X8000 | /0100000) :;;
-*) SLAPD_DEBUG=${SLAPD_DEBUG_MT_HOT-stats} ;;
-esac
+SLAPD_DEBUG=${SLAPD_DEBUG_MT_HOT-stats}
 
 echo "running defines.sh"
 . $SRCDIR/scripts/defines.sh
@@ -56,8 +53,8 @@ if test $RC != 0 ; then
 fi
 
 echo "Starting slapd on TCP/IP port $PORT1..."
-echo $SLAPD -f $CONF1 -h $URI1 $TIMING
-$SLAPD -f $CONF1 -h $URI1 $TIMING 2>&1 | gzip > $LOG1.gz &
+echo " = $SLAPD_HUGE -f $CONF1 -h $URI1 $TIMING"
+$SLAPD_HUGE -f $CONF1 -h $URI1 $TIMING |& gzip > $LOG1.gz &
 PID=$(jobs -p | tail -1)
 if test $WAIT != 0 ; then
     echo PID $PID

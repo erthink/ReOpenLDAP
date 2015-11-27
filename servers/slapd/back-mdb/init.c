@@ -393,6 +393,11 @@ mdb_db_close( BackendDB *be, ConfigReply *cr )
 		mdb->mi_dbenv = NULL;
 	}
 
+	if ( mdb->mi_search_stack ) {
+		ch_free( mdb->mi_search_stack );
+		mdb->mi_search_stack = NULL;
+	}
+
 	return 0;
 }
 

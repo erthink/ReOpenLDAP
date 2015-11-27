@@ -177,13 +177,8 @@ retry:	/* transaction retry */
 		}
 
 		rs->sr_err = LDAP_REFERRAL;
+		rs->sr_flags = REP_MATCHED_MUSTBEFREED | REP_REF_MUSTBEFREED;
 		send_ldap_result( op, rs );
-
-		ber_bvarray_free( rs->sr_ref );
-		free( (char *)rs->sr_matched );
-		rs->sr_ref = NULL;
-		rs->sr_matched = NULL;
-
 		goto done;
 	}
 
@@ -246,11 +241,8 @@ retry:	/* transaction retry */
 
 		rs->sr_err = LDAP_REFERRAL,
 		rs->sr_matched = e->e_name.bv_val;
+		rs->sr_flags = REP_REF_MUSTBEFREED;
 		send_ldap_result( op, rs );
-
-		ber_bvarray_free( rs->sr_ref );
-		rs->sr_ref = NULL;
-		rs->sr_matched = NULL;
 		goto done;
 	}
 
@@ -762,6 +754,7 @@ return_results:
 	}
 
 done:
+	rs_send_cleanup( rs );
 	slap_graduate_commit_csn( op );
 
 	if( new_dn.bv_val != NULL ) free( new_dn.bv_val );

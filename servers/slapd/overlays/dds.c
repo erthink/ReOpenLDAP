@@ -1043,15 +1043,11 @@ dds_op_extended( Operation *op, SlapReply *rs )
 				? op->o_bd->be_update_refs : default_referral;
 
 			if ( defref != NULL ) {
-				rs->sr_ref = referral_rewrite( op->o_bd->be_update_refs,
+				rs->sr_ref = referral_rewrite( defref,
 					NULL, NULL, LDAP_SCOPE_DEFAULT );
-				if ( rs->sr_ref ) {
-					rs->sr_flags |= REP_REF_MUSTBEFREED;
-				} else {
-					rs->sr_ref = defref;
-				}
+				if ( ! rs->sr_ref ) ber_bvarray_dup_x( &rs->sr_ref, defref, NULL );
+				rs->sr_flags |= REP_REF_MUSTBEFREED;
 				rs->sr_err = LDAP_REFERRAL;
-
 			} else {
 				rs->sr_text = "shadow context; no update referral";
 				rs->sr_err = LDAP_UNWILLING_TO_PERFORM;
@@ -1061,8 +1057,6 @@ dds_op_extended( Operation *op, SlapReply *rs )
 		}
 
 		assert( !BER_BVISNULL( &op->o_req_ndn ) );
-
-
 
 		/* check if exists but not dynamicObject */
 		op->o_bd->bd_info = (BackendInfo *)on->on_info;
@@ -1136,7 +1130,7 @@ dds_op_extended( Operation *op, SlapReply *rs )
 
 			} else {
 				(void)ber_flatten( ber, &rs->sr_rspdata );
-				rs->sr_rspoid = ch_strdup( slap_EXOP_REFRESH.bv_val );
+				rs->sr_rspoid = slap_EXOP_REFRESH.bv_val;
 
 				Log3( LDAP_DEBUG_TRACE, LDAP_LEVEL_INFO,
 					"%s REFRESH dn=\"%s\" TTL=%ld\n",

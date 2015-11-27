@@ -1,8 +1,90 @@
 {
-   lmdb_pwrite_tail_of_pages
+   mdbx-pwrite_tail_of_pages
    Memcheck:Param
    pwritev(vector[...])
    fun:pwritev
    fun:mdb_page_flush
-   fun:mdb_txn_commit
+}
+
+{
+   dlerror_run-1
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   ...
+   fun:dlerror_run
+}
+{
+   dlerror_run-2
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   ...
+   fun:_dlerror_run
+}
+{
+   dlerror_run-3
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   ...
+   fun:_dl_catch_error
+}
+
+{
+   oracle_bdb_bullshit-1
+   Memcheck:Cond
+   obj:/usr/*/libdb-*.so
+   fun:__log_put
+   ...
+   obj:/usr/*/libdb-*.so
+   fun:__db_put_pp
+}
+{
+   oracle_bdb_bullshit-2
+   Memcheck:Param
+   pwrite64(buf)
+   ...
+   fun:__os_io
+   obj:/usr/*/libdb-*.so
+   ...
+   fun:__txn_commit
+   obj:/usr/*/libdb-*.so
+}
+{
+   oracle_bdb_bullshit-3
+   Memcheck:Param
+   pwrite64(buf)
+   ...
+   fun:__os_io
+   obj:/usr/*/libdb-*.so
+   ...
+   fun:__db_sync
+   obj:/usr/*/libdb-*.so
+}
+{
+   oracle_bdb_bullshit-4
+   Memcheck:Cond
+   fun:__bam_stkrel
+   obj:/usr/*/libdb-*.so
+}
+
+{
+   perl_backend_bullshit
+   Memcheck:Leak
+   ...
+   fun:perl_back_initialize
+}
+
+{
+   libssl-bullshit-1
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   ...
+   fun:SSL_library_init
+}
+
+{
+   regcomp_bitfield
+   Memcheck:Cond
+   fun:re_compile_fastmap_iter*
+   fun:re_compile_fastmap
+   fun:regcomp
 }

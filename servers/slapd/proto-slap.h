@@ -49,9 +49,14 @@ LDAP_SLAPD_F (size_t) slap_biglock_age LDAP_P(( BackendDB *be ));
 LDAP_SLAPD_F (size_t) slap_biglock_evo LDAP_P(( BackendDB *be ));
 LDAP_SLAPD_F (int) slap_biglock_deep LDAP_P(( BackendDB *be ));
 LDAP_SLAPD_F (int) slap_biglock_owned LDAP_P(( BackendDB *be ));
+LDAP_SLAPD_F (int) slap_biglock_pool_pausing LDAP_P(( BackendDB *bd ));
 LDAP_SLAPD_F (int) slap_biglock_pool_pause LDAP_P(( BackendDB *be ));
 LDAP_SLAPD_F (int) slap_biglock_pool_pausecheck LDAP_P(( BackendDB *be ));
 LDAP_SLAPD_F (void) slap_biglock_pool_resume LDAP_P(( BackendDB *be ));
+
+LDAP_SLAPD_F (void) memleak_crutch_push LDAP_P(( void *p ));
+LDAP_SLAPD_F (void) memleak_crutch_pop LDAP_P(( void *p ));
+LDAP_SLAPD_F (void) rs_send_cleanup LDAP_P(( SlapReply *rs ));
 
 /*
  * aci.c
@@ -1131,7 +1136,7 @@ LDAP_SLAPD_F (int) unload_extop LDAP_P((
 
 LDAP_SLAPD_F (int) extops_init LDAP_P(( void ));
 
-LDAP_SLAPD_F (int) extops_kill LDAP_P(( void ));
+LDAP_SLAPD_F (int) extops_destroy LDAP_P(( void ));
 
 LDAP_SLAPD_F (struct berval *) get_supported_extop LDAP_P((int index));
 
@@ -1828,8 +1833,8 @@ LDAP_SLAPD_F (int) slap_sasl_rewrite_config LDAP_P((
 	int lineno,
 	int argc,
 	char **argv ));
-LDAP_SLAPD_F (void) slap_sasl_regexp_destroy LDAP_P(( void ));
 #endif /* SLAP_AUTH_REWRITE */
+LDAP_SLAPD_F (void) slap_sasl_regexp_destroy LDAP_P(( void ));
 LDAP_SLAPD_F (int) authzValidate LDAP_P((
 	Syntax *syn, struct berval *in ));
 #if 0

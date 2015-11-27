@@ -223,7 +223,9 @@ int config_check_vals(ConfigTable *Conf, ConfigArgs *c, int check_only ) {
 		}
 		if ( check_only ) {
 			ch_free( c->value_ndn.bv_val );
+			BER_BVZERO(&c->value_ndn);
 			ch_free( c->value_dn.bv_val );
+			BER_BVZERO(&c->value_dn);
 		}
 	} else if(arg_type == ARG_ATDESC) {
 		const char *text = NULL;
@@ -696,14 +698,15 @@ config_parse_add(ConfigTable *ct, ConfigArgs *c, int valx)
 	c->op = LDAP_MOD_ADD;
 	rc = config_add_vals( ct, c );
 	ch_free( c->tline );
+	c->tline = NULL;
 
 	return rc;
 }
 
 int
-read_config_file(const char *fname, int depth, ConfigArgs *cf, ConfigTable *cft)
+read_config_file(const char *fname, ConfigArgs *cf, ConfigTable *cft)
 {
-	FILE *fp;
+	FILE *fp = NULL;
 	ConfigTable *ct;
 	ConfigArgs *c;
 	int rc;
@@ -714,12 +717,11 @@ read_config_file(const char *fname, int depth, ConfigArgs *cf, ConfigTable *cft)
 		return 1;
 	}
 
-	if ( depth ) {
+	if ( cf ) {
 		memcpy( c, cf, sizeof( ConfigArgs ) );
-	} else {
-		c->depth = depth; /* XXX */
-		c->bi = NULL;
-		c->be = NULL;
+		memset( &c->values, 0, sizeof(c->values) );
+		c->depth = cf->depth + 1;
+		c->tline = NULL;
 	}
 
 	c->valx = -1;
@@ -731,9 +733,8 @@ read_config_file(const char *fname, int depth, ConfigArgs *cf, ConfigTable *cft)
 		Debug(LDAP_DEBUG_ANY,
 		    "could not stat config file \"%s\": %s (%d)\n",
 			fname, STRERROR(errno), errno);
-		ch_free( c->argv );
-		ch_free( c );
-		return(1);
+		rc = 1;
+		goto done;
 	}
 
 	if ( !S_ISREG( s.st_mode ) ) {
@@ -741,9 +742,8 @@ read_config_file(const char *fname, int depth, ConfigArgs *cf, ConfigTable *cft)
 		Debug(LDAP_DEBUG_ANY,
 		    "regular file expected, got \"%s\"\n",
 		    fname );
-		ch_free( c->argv );
-		ch_free( c );
-		return(1);
+		rc = 1;
+		goto done;
 	}
 
 	fp = fopen( fname, "r" );
@@ -752,16 +752,13 @@ read_config_file(const char *fname, int depth, ConfigArgs *cf, ConfigTable *cft)
 		Debug(LDAP_DEBUG_ANY,
 		    "could not open config file \"%s\": %s (%d)\n",
 			fname, STRERROR(errno), errno);
-		ch_free( c->argv );
-		ch_free( c );
-		return(1);
+		rc = 1;
+		goto done;
 	}
 
 	Debug(LDAP_DEBUG_CONFIG, "reading config file %s\n", fname);
 
 	fp_getline_init(c);
-
-	c->tline = NULL;
 
 	while ( fp_getline( fp, c ) ) {
 		/* skip comments and blank lines */
@@ -774,6 +771,7 @@ read_config_file(const char *fname, int depth, ConfigArgs *cf, ConfigTable *cft)
 
 		c->argc = 0;
 		ch_free( c->tline );
+		c->tline = NULL;
 		if ( config_fp_parse_line( c ) ) {
 			rc = 1;
 			goto done;
@@ -895,12 +893,14 @@ read_config_file(const char *fname, int depth, ConfigArgs *cf, ConfigTable *cft)
 	rc = 0;
 
 done:
+	ber_memfree( c->value_dn.bv_val );
+	ber_memfree( c->value_ndn.bv_val );
 	if ( cf ) {
 		cf->be = c->be;
 		cf->bi = c->bi;
 	}
 	ch_free(c->tline);
-	fclose(fp);
+	if (fp) fclose(fp);
 	ch_free(c->argv);
 	ch_free(c);
 	return(rc);

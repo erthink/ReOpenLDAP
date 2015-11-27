@@ -918,10 +918,13 @@ log_cf_gen(ConfigArgs *c)
 					rc = 1;
 				}
 				ch_free( c->value_ndn.bv_val );
+				BER_BVZERO( &c->value_ndn );
 			} else {
 				li->li_db_suffix = c->value_ndn;
+				BER_BVZERO( &c->value_ndn );
 			}
 			ch_free( c->value_dn.bv_val );
+			BER_BVZERO( &c->value_dn );
 			break;
 		case LOG_OPS:
 			rc = verbs_to_mask( c->argc, c->argv, logops, &tmask );
@@ -2180,6 +2183,9 @@ accesslog_db_destroy(
 	log_info *li = on->on_bi.bi_private;
 	log_attr *la;
 
+	ch_free( li->li_db_suffix.bv_val );
+	BER_BVZERO( &li->li_db_suffix );
+
 	if ( li->li_oldf )
 		filter_free( li->li_oldf );
 	for ( la=li->li_oldattrs; la; la=li->li_oldattrs ) {
@@ -2303,8 +2309,6 @@ accesslog_db_open(
 
 	if ( !BER_BVISEMPTY( &li->li_db_suffix )) {
 		li->li_db = select_backend( &li->li_db_suffix, 0 );
-		ch_free( li->li_db_suffix.bv_val );
-		BER_BVZERO( &li->li_db_suffix );
 	}
 	if ( li->li_db == NULL ) {
 		Debug( LDAP_DEBUG_ANY,

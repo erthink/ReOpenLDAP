@@ -84,6 +84,13 @@ int slap_limit_memory_get() {return 0;}
 #endif
 
 static char* homedir;
+static void backtrace_cleanup(void)
+{
+	if (homedir) {
+		ch_free(homedir);
+		homedir = NULL;
+	}
+}
 
 #ifdef HAVE_LIBBFD
 static int is_bfd_symbols_available(void) {
@@ -491,8 +498,18 @@ int slap_backtrace_get_enable() {
 }
 
 void slap_backtrace_set_dir( const char* path ) {
-	ch_free(homedir);
-	homedir = path ? ch_strdup(path) : NULL;
+	backtrace_cleanup();
+	if (path) {
+		static char not_a_first_time;
+		if (! not_a_first_time) {
+			not_a_first_time = 1;
+			if (atexit(backtrace_cleanup)) {
+				perror("atexit()");
+				abort();
+			}
+		}
+		homedir = ch_strdup(path);
+	}
 }
 
 int slap_limit_coredump_set(int mbytes) {

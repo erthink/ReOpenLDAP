@@ -36,3 +36,65 @@ const struct berval slap_unknown_bv = BER_BVC("unknown");
 const struct berval slap_true_bv = BER_BVC("TRUE");
 const struct berval slap_false_bv = BER_BVC("FALSE");
 
+static void** memleak_crutch;
+static pthread_mutex_t memleak_crutch_lock = PTHREAD_MUTEX_INITIALIZER;
+
+static void memleak_crutch_atexit(void)
+{
+	int i;
+	assert(memleak_crutch != NULL);
+
+	LDAP_ENSURE(pthread_mutex_lock(&memleak_crutch_lock) == 0);
+	for(i = 0; memleak_crutch[i] != (void*)0xDEAD; ++i)
+		if (memleak_crutch[i])
+			free(memleak_crutch[i]);
+	free(memleak_crutch);
+	LDAP_ENSURE(pthread_mutex_unlock(&memleak_crutch_lock) == 0);
+}
+
+void memleak_crutch_push(void *p)
+{
+	int i;
+	assert(p && p != (void*) 0xDEAD);
+
+	LDAP_ENSURE(pthread_mutex_lock(&memleak_crutch_lock) == 0);
+	if (memleak_crutch == NULL) {
+		memleak_crutch = ch_calloc(42, sizeof(void*));
+		memleak_crutch[42 - 1] = (void*) 0xDEAD;
+
+		if (atexit(memleak_crutch_atexit)) {
+			perror("atexit(memleak_crutch)");
+			abort();
+		}
+	}
+
+	for(i = 0; memleak_crutch[i] != (void*)0xDEAD; ++i)
+		if (! memleak_crutch[i]) {
+			memleak_crutch[i] = p;
+			LDAP_ENSURE(pthread_mutex_unlock(&memleak_crutch_lock) == 0);
+			return;
+		}
+
+	memleak_crutch = ch_realloc(memleak_crutch, (i * 2 + 1) * sizeof(void*));
+	memset(memleak_crutch + i, 0, i * sizeof(void*));
+	memleak_crutch[i] = p;
+	memleak_crutch[i*2] = (void*) 0xDEAD;
+	LDAP_ENSURE(pthread_mutex_unlock(&memleak_crutch_lock) == 0);
+}
+
+void memleak_crutch_pop(void *p)
+{
+	int i;
+	assert(p && p != (void*) 0xDEAD);
+	assert(memleak_crutch != NULL);
+
+	LDAP_ENSURE(pthread_mutex_lock(&memleak_crutch_lock) == 0);
+	if (memleak_crutch) {
+		for(i = 0; memleak_crutch[i] != (void*) 0xDEAD; ++i)
+			if (memleak_crutch[i] == p) {
+				memleak_crutch[i] = NULL;
+				break;
+			}
+	}
+	LDAP_ENSURE(pthread_mutex_unlock(&memleak_crutch_lock) == 0);
+}

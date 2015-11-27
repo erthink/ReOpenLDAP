@@ -1268,6 +1268,7 @@ void connection_client_stop(
 	c = connection_get( s );
 
 	assert( c->c_conn_state == SLAP_C_CLIENT );
+	connection_closing( c, "connection_client_stop" );
 
 	c->c_listener = NULL;
 	c->c_sd = AC_SOCKET_INVALID;

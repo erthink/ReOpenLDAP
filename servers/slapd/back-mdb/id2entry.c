@@ -274,13 +274,12 @@ int mdb_entry_release(
 	/* slapMode : SLAP_SERVER_MODE, SLAP_TOOL_MODE,
 			SLAP_TRUNCATE_MODE, SLAP_UNDEFINED_MODE */
 
-	int release = 1;
 	if ( slapMode & SLAP_SERVER_MODE ) {
 		OpExtra *oex;
 		LDAP_SLIST_FOREACH( oex, &op->o_extra, oe_next ) {
-			release = 0;
 			if ( oex->oe_key == mdb ) {
 				mdb_entry_return( op, e );
+				e = NULL;
 				moi = (mdb_op_info *)oex;
 				/* If it was setup by entry_get we should probably free it */
 				if (( moi->moi_flag & (MOI_FREEIT|MOI_KEEPER)) == MOI_FREEIT ) {
@@ -297,7 +296,7 @@ int mdb_entry_release(
 		}
 	}
 
-	if (release)
+	if (e)
 		mdb_entry_return( op, e );
 
 	return 0;

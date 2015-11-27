@@ -509,6 +509,12 @@ int backend_destroy(void)
 		quorum_be_destroy ( bd );
 		ber_bvarray_free( bd->be_suffix );
 		ber_bvarray_free( bd->be_nsuffix );
+		if ( !BER_BVISNULL( &bd->be_schemadn ) ) {
+			free( bd->be_schemadn.bv_val );
+		}
+		if ( !BER_BVISNULL( &bd->be_schemandn ) ) {
+			free( bd->be_schemandn.bv_val );
+		}
 		if ( !BER_BVISNULL( &bd->be_rootdn ) ) {
 			free( bd->be_rootdn.bv_val );
 		}

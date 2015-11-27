@@ -467,6 +467,8 @@ unique_cf_base( ConfigArgs *c )
 		ch_free ( legacy->uri->ndn.bv_val );
 		legacy->uri->dn = c->value_dn;
 		legacy->uri->ndn = c->value_ndn;
+		BER_BVZERO( &c->value_dn );
+		BER_BVZERO( &c->value_ndn );
 		rc = 0;
 		break;
 	default:

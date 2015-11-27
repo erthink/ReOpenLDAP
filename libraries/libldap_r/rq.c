@@ -89,7 +89,7 @@ ldap_pvt_runqueue_remove(
 			break;
 	}
 
-	assert( e == entry );
+	LDAP_ENSURE ( e == entry );
 
 	LDAP_STAILQ_REMOVE( &rq->task_list, entry, re_s, tnext );
 
@@ -162,7 +162,7 @@ ldap_pvt_runqueue_resched(
 			break;
 	}
 
-	assert ( e == entry );
+	LDAP_ENSURE ( e == entry );
 
 	LDAP_STAILQ_REMOVE( &rq->task_list, entry, re_s, tnext );
 

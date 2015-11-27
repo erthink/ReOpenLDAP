@@ -649,6 +649,11 @@ bdb_db_close( BackendDB *be, ConfigReply *cr )
 		bdb->bi_idl_lru_head = bdb->bi_idl_lru_tail = NULL;
 	}
 
+	if ( bdb->bi_search_stack ) {
+		ch_free( bdb->bi_search_stack );
+		bdb->bi_search_stack = NULL;
+	}
+
 	/* close db environment */
 	if( bdb->bi_dbenv ) {
 		/* force a checkpoint, but not if we were ReadOnly,

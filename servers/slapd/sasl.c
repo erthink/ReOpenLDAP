@@ -1316,8 +1316,15 @@ int slap_sasl_init( void )
 
 int slap_sasl_destroy( void )
 {
+#ifdef ENABLE_REWRITE
+	rewrite_mapper_unregister( &slapd_mapper );
+#endif
 #ifdef HAVE_CYRUS_SASL
-	sasl_done();
+#	if SASL_VERSION_FULL < 0x020118
+		sasl_done();
+#	else
+		sasl_server_done();
+#	endif /* SASL_VERSION_FULL */
 
 #ifdef SLAP_AUXPROP_DONTUSECOPY
 	if ( slap_dontUseCopy_propnames ) {
@@ -1325,7 +1332,7 @@ int slap_sasl_destroy( void )
 		slap_dontUseCopy_propnames = NULL;
 	}
 #endif /* SLAP_AUXPROP_DONTUSECOPY */
-#endif
+#endif /* HAVE_CYRUS_SASL */
 	free( sasl_host );
 	sasl_host = NULL;
 

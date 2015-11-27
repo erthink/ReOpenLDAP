@@ -1664,7 +1664,7 @@ slapd_daemon_init( const char *urls )
 
 	Debug( LDAP_DEBUG_TRACE, "daemon_init: %d listeners to open...\n",
 		i );
-	slap_listeners = ch_malloc( (i+1)*sizeof(Listener *) );
+	slap_listeners = ch_calloc( i+1, sizeof(Listener *) );
 
 	for(n = 0, j = 0; u[n]; n++ ) {
 		if ( slap_open_listener( u[n], &i, &j ) ) {
@@ -1691,9 +1691,35 @@ slapd_daemon_init( const char *urls )
 }
 
 
+static void
+destroy_listeners( void )
+{
+	Listener *lr, **ll = slap_listeners;
+
+	if ( ll == NULL )
+		return;
+
+	while ( (lr = *ll++) != NULL ) {
+		if ( lr->sl_url.bv_val ) {
+			ber_memfree( lr->sl_url.bv_val );
+		}
+
+		if ( lr->sl_name.bv_val ) {
+			ber_memfree( lr->sl_name.bv_val );
+		}
+
+		free( lr );
+	}
+
+	free( slap_listeners );
+	slap_listeners = NULL;
+}
+
+
 int
 slapd_daemon_destroy( void )
 {
+	destroy_listeners();
 	connections_destroy();
 	if ( daemon_inited ) {
 		int i;
@@ -1756,30 +1782,6 @@ close_listeners(
 			slapd_close( s );
 		}
 	}
-}
-
-static void
-destroy_listeners( void )
-{
-	Listener *lr, **ll = slap_listeners;
-
-	if ( ll == NULL )
-		return;
-
-	while ( (lr = *ll++) != NULL ) {
-		if ( lr->sl_url.bv_val ) {
-			ber_memfree( lr->sl_url.bv_val );
-		}
-
-		if ( lr->sl_name.bv_val ) {
-			ber_memfree( lr->sl_name.bv_val );
-		}
-
-		free( lr );
-	}
-
-	free( slap_listeners );
-	slap_listeners = NULL;
 }
 
 static int
@@ -2914,7 +2916,6 @@ slapd_daemon( void )
 	for ( i=0; i<slapd_daemon_threads; i++ )
   		ldap_pvt_thread_join( listener_tid[i], (void *)NULL );
 
-	destroy_listeners();
 	ch_free( listener_tid );
 	listener_tid = NULL;
 

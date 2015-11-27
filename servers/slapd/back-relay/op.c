@@ -163,6 +163,7 @@ relay_back_select_backend( Operation *op, SlapReply *rs, int which )
 		rs->sr_err = rc;
 		if ( fail_mode & RB_SEND ) {
 			send_ldap_result( op, rs );
+			rs_send_cleanup( rs );
 		}
 	}
 

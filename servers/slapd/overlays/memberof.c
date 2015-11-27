@@ -1890,6 +1890,8 @@ mo_cf_gen( ConfigArgs *c )
 			}
 			mo->mo_dn = c->value_dn;
 			mo->mo_ndn = c->value_ndn;
+			BER_BVZERO( &c->value_dn );
+			BER_BVZERO( &c->value_ndn );
 			break;
 
 		case MO_DANGLING:

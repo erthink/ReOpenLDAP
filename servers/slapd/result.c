@@ -311,6 +311,28 @@ rs_entry2modifiable( Operation *op, SlapReply *rs, slap_overinst *on )
 	return 1;
 }
 
+void rs_send_cleanup( SlapReply *rs )
+{
+	if ( rs->sr_matched ) {
+		if ( rs->sr_flags & REP_MATCHED_MUSTBEFREED ) {
+			rs->sr_flags ^= REP_MATCHED_MUSTBEFREED; /* paranoia */
+			free( (char *)rs->sr_matched );
+		}
+		rs->sr_matched = NULL;
+	}
+
+	if ( rs->sr_ref ) {
+		if ( rs->sr_flags & REP_REF_MUSTBEFREED ) {
+			rs->sr_flags ^= REP_REF_MUSTBEFREED; /* paranoia */
+			if ( rs->sr_ref != default_referral ) ber_bvarray_free( rs->sr_ref );
+		}
+		rs->sr_ref = NULL;
+	}
+	rs->sr_entry = NULL;
+	rs->sr_attrs = NULL;
+	rs->sr_text = NULL;
+}
+
 /* Check for any callbacks that want to be informed about being blocked
  * on output. These callbacks are expected to leave the callback list
  * unmodified. Their result is ignored.
@@ -786,7 +808,7 @@ clean2:;
 	if ( rs->sr_flags & REP_REF_MUSTBEFREED ) {
 		rs->sr_flags ^= REP_REF_MUSTBEFREED; /* paranoia */
 		if ( rs->sr_ref ) {
-			ber_bvarray_free( rs->sr_ref );
+			if ( rs->sr_ref != default_referral ) ber_bvarray_free( rs->sr_ref );
 			rs->sr_ref = NULL;
 		}
 	}
@@ -853,8 +875,10 @@ slap_send_ldap_result( Operation *op, SlapReply *rs )
 	rs->sr_type = REP_RESULT;
 
 	/* Propagate Abandons so that cleanup callbacks can be processed */
-	if ( rs->sr_err == SLAPD_ABANDON || op->o_abandon )
+	if ( rs->sr_err == SLAPD_ABANDON || op->o_abandon ) {
+		rs->sr_ref = NULL;
 		goto abandon;
+	}
 
 	Debug( LDAP_DEBUG_TRACE,
 		"send_ldap_result: %s p=%d\n",
@@ -877,26 +901,23 @@ slap_send_ldap_result( Operation *op, SlapReply *rs )
 		if( rs->sr_ref == NULL ) {
 			rs->sr_err = LDAP_NO_SUCH_OBJECT;
 		} else if ( op->o_protocol < LDAP_VERSION3 ) {
+			tmp = v2ref( rs->sr_ref, rs->sr_text );
+			rs->sr_text = tmp;
+			rs->sr_ref = NULL;
 			rs->sr_err = LDAP_PARTIAL_RESULTS;
 		}
-	}
-
-	if ( op->o_protocol < LDAP_VERSION3 ) {
-		tmp = v2ref( rs->sr_ref, rs->sr_text );
-		rs->sr_text = tmp;
-		rs->sr_ref = NULL;
 	}
 
 abandon:
 	rs->sr_tag = slap_req2res( op->o_tag );
 	rs->sr_msgid = (rs->sr_tag != LBER_SEQUENCE) ? op->o_msgid : 0;
 
-	if ( rs->sr_flags & REP_REF_MUSTBEFREED ) {
-		if ( rs->sr_ref == NULL ) {
+	if ( rs->sr_ref != oref ) {
+		assert( rs->sr_ref == NULL && oref != NULL );
+		if ( rs->sr_flags & REP_REF_MUSTBEFREED ) {
 			rs->sr_flags ^= REP_REF_MUSTBEFREED;
-			ber_bvarray_free( oref );
+			if ( oref != default_referral ) ber_bvarray_free( oref );
 		}
-		oref = NULL; /* send_ldap_response() will free rs->sr_ref if != NULL */
 	}
 
 	if ( send_ldap_response( op, rs ) == SLAP_CB_CONTINUE ) {
@@ -916,7 +937,6 @@ abandon:
 
 	if( tmp != NULL ) ch_free(tmp);
 	rs->sr_text = otext;
-	rs->sr_ref = oref;
 }
 
 void
@@ -1541,6 +1561,8 @@ slap_send_search_reference( Operation *op, SlapReply *rs )
 	AttributeDescription *ad_ref = slap_schema.si_ad_ref;
 	AttributeDescription *ad_entry = slap_schema.si_ad_entry;
 
+	if ( rs->sr_ref && rs->sr_err == LDAP_SUCCESS )
+		rs->sr_err = LDAP_REFERRAL;
 	rs->sr_type = REP_SEARCHREF;
 	if ( op->o_callback ) {
 		rc = slap_response_play( op, rs );

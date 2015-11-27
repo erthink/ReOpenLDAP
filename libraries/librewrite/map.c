@@ -575,6 +575,10 @@ rewrite_mapper_unregister(
 			num_mappers--;
 			mappers[i] = mappers[num_mappers];
 			mappers[num_mappers] = NULL;
+			if (num_mappers == 0) {
+				free(mappers);
+				mappers = NULL;
+			}
 			return 0;
 		}
 	}
