@@ -3457,13 +3457,13 @@ syncprov_db_destroy(
 		for(;;) {
 			int drained, paused =
 				(slap_biglock_pool_pausing(be) == 0
-					&& slap_biglock_pool_pause(be) == 1) ? 1 : 0;
+					&& slap_biglock_pool_pause(be) == LDAP_SUCCESS) ? 1 : 0;
 			ldap_pvt_thread_mutex_lock( &si->si_ops_mutex );
 			drained = 0;
 			if (si->si_ops == NULL && si->si_leftover == 0 && si->si_active == 0)
 				drained = 1;
 			ldap_pvt_thread_mutex_unlock( &si->si_ops_mutex );
-			if (paused == LDAP_SUCCESS)
+			if (paused)
 				slap_biglock_pool_resume(be);
 			if (drained)
 				break;

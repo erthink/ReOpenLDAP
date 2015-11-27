@@ -214,6 +214,8 @@ slappasswd( int argc, char *argv[] )
 		usage( progname );
 	}
 
+	slapMode = SLAP_TOOL_MODE;
+
 #ifdef SLAPD_MODULES
 	if ( module_init() != 0 ) {
 		fprintf( stderr, "%s: module_init failed\n", progname );
@@ -280,7 +282,10 @@ print_pw:;
 	printf( "%s%s" , hash.bv_val, newline );
 
 destroy:;
-	slap_tool_destroy();
+#ifdef SLAPD_MODULES
+	module_kill();
+#endif
+	lutil_passwd_destroy();
 
 	if (text && text != passwd.bv_val && text != hash.bv_val)
 		free((void*) text);

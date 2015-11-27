@@ -1048,6 +1048,7 @@ getNextPage:
 			}
 
 			if ( ber_flatten( syncber, &syncbvalp ) == -1 ) {
+				ber_free( syncber, 1 );
 				main_exit(EXIT_FAILURE);
 			}
 
@@ -1173,7 +1174,7 @@ getNextPage:
 
 	/* step back to the original number of controls, so that
 	 * those set while parsing args are preserved */
-	while ( nctrls > save_nctrls ) {
+	for ( nctrls = i; nctrls > save_nctrls; ) {
 		--nctrls;
 		ber_memfree( c[ nctrls ].ldctl_value.bv_val );
 		c[ nctrls ].ldctl_value.bv_val = NULL;
