@@ -383,6 +383,7 @@ sql_cf_gen( ConfigArgs *c )
 			return -1;
 		}
 		bi->sql_concat_patt = c->value_string;
+		c->value_string = NULL;
 		break;
 	case BSQL_CREATE_NEEDS_SEL:
 		if ( c->value_int )
@@ -465,6 +466,7 @@ sql_cf_gen( ConfigArgs *c )
 			if ( rc == 0 ) {
 				ch_free( bi->sql_base_ob_file );
 				bi->sql_base_ob_file = c->value_string;
+				c->value_string = NULL;
 			}
 			return rc;
 

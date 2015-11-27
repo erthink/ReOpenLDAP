@@ -1308,6 +1308,7 @@ config_generic(ConfigArgs *c) {
 			ch_free( logfileName );
 			logfileName = NULL;
 			if ( logfile ) {
+				lutil_debug_file( NULL );
 				fclose( logfile );
 				logfile = NULL;
 			}
@@ -1624,6 +1625,7 @@ config_generic(ConfigArgs *c) {
 		case CFG_SALT:
 			if ( passwd_salt ) ch_free( passwd_salt );
 			passwd_salt = c->value_string;
+			c->value_string = NULL;
 			lutil_salt_format(passwd_salt);
 			break;
 
@@ -2005,6 +2007,11 @@ sortval_reject:
 		case CFG_LOGFILE: {
 				if ( logfileName ) ch_free( logfileName );
 				logfileName = c->value_string;
+				c->value_string = NULL;
+				if ( logfile ) {
+					lutil_debug_file( NULL );
+					fclose( logfile );
+				}
 				logfile = fopen(logfileName, "w");
 				if(logfile) lutil_debug_file(logfile);
 			} break;
@@ -3487,8 +3494,14 @@ loglevel_destroy( void )
 {
 	if ( loglevel_ops ) {
 		(void)slap_verbmasks_destroy( loglevel_ops );
+		loglevel_ops = NULL;
 	}
-	loglevel_ops = NULL;
+
+	if ( logfile ) {
+		lutil_debug_file( NULL );
+		fclose( logfile );
+		logfile = NULL;
+	}
 }
 
 static int
@@ -5515,6 +5528,9 @@ done_noop:
 	BER_BVZERO( &ca->value_ndn );
 	ber_memfree( ca->value_bv.bv_val );
 	BER_BVZERO( &ca->value_bv );
+
+	ch_free( ca->value_string );
+	ca->value_string = NULL;
 
 	ch_free( ca->argv );
 	if ( colst ) ch_free( colst );
