@@ -3463,7 +3463,7 @@ syncprov_db_destroy(
 			if (si->si_ops == NULL && si->si_leftover == 0 && si->si_active == 0)
 				drained = 1;
 			ldap_pvt_thread_mutex_unlock( &si->si_ops_mutex );
-			if (paused == LDAP_SUCCESS)
+			if (paused)
 				slap_biglock_pool_resume(be);
 			if (drained)
 				break;
