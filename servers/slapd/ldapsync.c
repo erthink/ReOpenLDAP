@@ -367,7 +367,7 @@ int slap_cookie_merge(
 				ber_bvreplace( &dst->ctxcsn[j], &src->ctxcsn[i] );
 				if ( lead < 0 ||
 					slap_csn_compare_ts( &dst->ctxcsn[j], &dst->ctxcsn[lead] ) > 0 ) {
-					lead = i;
+					lead = j;
 				}
 			}
 			break;
@@ -383,7 +383,7 @@ int slap_cookie_merge(
 			}
 			if ( lead < 0 ||
 				slap_csn_compare_ts( &dst->ctxcsn[j], &dst->ctxcsn[lead] ) > 0 ) {
-				lead = i;
+				lead = j;
 			}
 		}
 	}
