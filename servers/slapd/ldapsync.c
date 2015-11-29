@@ -163,6 +163,9 @@ slap_csn_stub_self( BerVarray *ctxcsn, int **sids, int *numcsns )
 	if (! new_sids)
 		return LDAP_NO_MEMORY;
 
+	*sids = new_sids;
+	(*sids)[*numcsns] = slap_serverID;
+
 	csn.bv_val = buf;
 	csn.bv_len = snprintf( buf, sizeof( buf ),
 		"%4d%02d%02d%02d%02d%02d.%06dZ#%06x#%03x#%06x",
@@ -172,10 +175,7 @@ slap_csn_stub_self( BerVarray *ctxcsn, int **sids, int *numcsns )
 	if (rc < 0)
 		return rc;
 
-	*sids = new_sids;
-	(*sids)[*numcsns] = slap_serverID;
 	*numcsns += 1;
-
 	rc = slap_sort_csn_sids( *ctxcsn, *sids, *numcsns, NULL );
 	if (rc < 0)
 		return rc;
