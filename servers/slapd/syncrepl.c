@@ -631,7 +631,7 @@ syncrep_start(
 {
 	int	rc;
 	int cmdline_cookie_found = 0;
-	struct sync_cookie	*sc = NULL;
+	struct sync_cookie_item	*sc = NULL;
 #ifdef HAVE_TLS
 	void	*ssl;
 #endif
@@ -697,8 +697,8 @@ syncrep_start(
 	 * any meaningful state.
 	 */
 	if ( !si->si_syncCookie.ctxcsn ) {
-		LDAP_STAILQ_FOREACH( sc, &slap_sync_cookie, sc_next ) {
-			if ( si->si_rid == sc->rid ) {
+		LDAP_STAILQ_FOREACH( sc, &slap_sync_cookie, sci_next ) {
+			if ( si->si_rid == sc->sci_cookie.rid ) {
 				cmdline_cookie_found = 1;
 				break;
 			}
@@ -706,10 +706,10 @@ syncrep_start(
 
 		if ( cmdline_cookie_found ) {
 			/* cookie is supplied in the command line */
-			LDAP_STAILQ_REMOVE( &slap_sync_cookie, sc, sync_cookie, sc_next );
+			LDAP_STAILQ_REMOVE( &slap_sync_cookie, sc, sync_cookie_item, sci_next );
 			slap_cookie_free( &si->si_syncCookie, 0 );
-			slap_cookie_move( &si->si_syncCookie, sc );
-			slap_cookie_free( sc, 1 );
+			slap_cookie_move( &si->si_syncCookie, &sc->sci_cookie );
+			ch_free( sc );
 			si->si_keep_cookie4search = 1;
 		} else {
 			ldap_pvt_thread_mutex_lock( &si->si_cookieState->cs_mutex );
