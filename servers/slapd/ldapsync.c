@@ -29,9 +29,9 @@
 
 #if LDAP_MEMORY_DEBUG
 #	include <lber_hipagut.h>
-#	define CHEK_MEM_VALID(p) lber_hug_memchk_ensure(p, 0)
+#	define CHECK_MEM_VALID(p) lber_hug_memchk_ensure(p, 0)
 #else
-#	define CHEK_MEM_VALID(p) __noop()
+#	define CHECK_MEM_VALID(p) __noop()
 #endif /* LDAP_MEMORY_DEBUG */
 
 struct slap_sync_cookie_s slap_sync_cookie =
@@ -244,8 +244,8 @@ void slap_cookie_verify(const struct sync_cookie *cookie)
 	if ( cookie->numcsns ) {
 		LDAP_ENSURE( cookie->ctxcsn != NULL );
 		LDAP_ENSURE( cookie->sids != NULL );
-		CHEK_MEM_VALID( cookie->ctxcsn );
-		CHEK_MEM_VALID( cookie->sids );
+		CHECK_MEM_VALID( cookie->ctxcsn );
+		CHECK_MEM_VALID( cookie->sids );
 	}
 
 	if (cookie->ctxcsn) {
@@ -254,7 +254,7 @@ void slap_cookie_verify(const struct sync_cookie *cookie)
 	}
 
 	for ( i = 0; i < cookie->numcsns; i++ ) {
-		CHEK_MEM_VALID( cookie->ctxcsn[i].bv_val );
+		CHECK_MEM_VALID( cookie->ctxcsn[i].bv_val );
 		LDAP_ENSURE( slap_csn_verify_full( cookie->ctxcsn + i ));
 		LDAP_ENSURE( cookie->sids[i] == slap_csn_get_sid( cookie->ctxcsn + i ) );
 		LDAP_ENSURE( cookie->sids[i] >= 0 && cookie->sids[i] <= SLAP_SYNC_SID_MAX );
