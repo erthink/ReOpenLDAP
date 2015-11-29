@@ -277,8 +277,10 @@ void slap_cookie_clean( struct sync_cookie *cookie )
 	cookie->rid = -1;
 	cookie->sid = -1;
 	cookie->numcsns = 0;
-	if ( cookie->ctxcsn )
-		BER_BVZERO( cookie->ctxcsn );
+	if ( cookie->ctxcsn ) {
+		ber_bvarray_free( cookie->ctxcsn );
+		cookie->ctxcsn = NULL;
+	}
 }
 
 void slap_cookie_copy(
