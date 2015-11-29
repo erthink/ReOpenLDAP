@@ -161,7 +161,7 @@ slap_csn_stub_self( BerVarray *ctxcsn, int **sids, int *numcsns )
 		if (slap_serverID == (*sids)[i])
 			return 0;
 
-	new_sids = ber_memrealloc( *sids, (*numcsns + 1) * sizeof(**sids) );
+	new_sids = ch_realloc( *sids, (*numcsns + 1) * sizeof(**sids) );
 	if (! new_sids)
 		return LDAP_NO_MEMORY;
 
@@ -222,10 +222,10 @@ slap_insert_csn_sids(
 {
 	int i;
 	ck->numcsns++;
-	ck->ctxcsn = ber_memrealloc( ck->ctxcsn,
+	ck->ctxcsn = ch_realloc( ck->ctxcsn,
 		(ck->numcsns+1) * sizeof(struct berval));
 	BER_BVZERO( &ck->ctxcsn[ck->numcsns] );
-	ck->sids = ber_memrealloc( ck->sids, ck->numcsns * sizeof(int));
+	ck->sids = ch_realloc( ck->sids, ck->numcsns * sizeof(int));
 	for ( i = ck->numcsns-1; i > pos; i-- ) {
 		ck->ctxcsn[i] = ck->ctxcsn[i-1];
 		ck->sids[i] = ck->sids[i-1];
@@ -298,7 +298,7 @@ void slap_cookie_copy(
 	dst->ctxcsn = NULL;
 	if ( (dst->numcsns = src->numcsns) > 0 ) {
 		ber_bvarray_dup_x( &dst->ctxcsn, src->ctxcsn, NULL );
-		dst->sids = ber_memalloc( dst->numcsns * sizeof(dst->sids[0]) );
+		dst->sids = ch_malloc( dst->numcsns * sizeof(dst->sids[0]) );
 		memcpy( dst->sids, src->sids, dst->numcsns * sizeof(dst->sids[0]) );
 	}
 }
@@ -329,7 +329,7 @@ void slap_cookie_free(
 		cookie->numcsns = 0;
 
 		if ( cookie->sids ) {
-			ber_memfree( cookie->sids );
+			ch_free( cookie->sids );
 			cookie->sids = NULL;
 		}
 
@@ -339,7 +339,7 @@ void slap_cookie_free(
 		}
 
 		if ( free_cookie )
-			ber_memfree( cookie );
+			ch_free( cookie );
 	}
 }
 
@@ -600,7 +600,7 @@ int slap_cookie_parse(
 
 				if ( ! slap_csn_verify_full( &csn ) ) {
 					if ( csn.bv_val != anchor )
-						ber_memfree( csn.bv_val );
+						ch_free( csn.bv_val );
 					if ( reopenldap_mode_idclip() )
 						goto bailout;
 					csn.bv_val = ber_strdup(
@@ -825,7 +825,7 @@ int slap_csns_validate_and_sort( BerVarray vals )
 		/* LY: validate and filter-out invalid:
 		   { X1, Y2, bad, Z3, X4 | NULL } => { X1, Y2, Z3, X4 | bad, NULL } */
 		if (unlikely( !slap_csn_verify_full( r ) )) {
-			ber_memfree( r->bv_val );
+			ch_free( r->bv_val );
 			continue;
 		}
 		*w++ = *r;
@@ -841,7 +841,7 @@ int slap_csns_validate_and_sort( BerVarray vals )
 		   { X4, X1, Y2, Z3 | bad, NULL } => { X4, Y2, Z3 | X1, bad, NULL } */
 		for( r = w = vals + 1; r < end; ++r ) {
 			if (unlikely( slap_csn_compare_sr( w - 1, r ) == 0 )) {
-				ber_memfree( r->bv_val );
+				ch_free( r->bv_val );
 				continue;
 			}
 			*w++ = *r;
