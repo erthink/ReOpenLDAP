@@ -868,7 +868,7 @@ syncrep_take_cookie(
 	   "syncrep_process: %s cookie=%s\n",
 		si->si_ridtxt, raw.bv_val );
 
-	rc = slap_cookie_parse( dst, &raw );
+	rc = slap_cookie_parse( dst, &raw, NULL );
 	if ( rc )
 		return rc;
 

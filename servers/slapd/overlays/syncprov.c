@@ -3578,7 +3578,7 @@ static int syncprov_parseCtrl (
 	sr->sr_rhint = rhint;
 	if (!BER_BVISNULL(&cookie)) {
 		/* If parse fails, pretend no cookie was sent */
-		if ( slap_cookie_parse( &sr->sr_state, &cookie ) ) {
+		if ( slap_cookie_parse( &sr->sr_state, &cookie, op->o_tmpmemctx ) ) {
 			if (reopenldap_mode_idclip())
 				return LDAP_PROTOCOL_ERROR;
 		}

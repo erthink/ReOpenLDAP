@@ -1275,7 +1275,8 @@ int slap_cookie_compare_csn(
 	BerValue *csn );
 int slap_cookie_parse(
 	struct sync_cookie *dst,
-	const BerValue *src );
+	const BerValue *src,
+	void *memctx );
 int slap_cookie_stubself( struct sync_cookie *dst );
 void slap_cookie_compose(
 	BerValue *dst,

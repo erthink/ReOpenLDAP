@@ -526,7 +526,7 @@ int main( int argc, char **argv )
 			cookie_str.bv_val = optarg;
 			cookie_str.bv_len = strlen(optarg);
 
-			if ( slap_cookie_parse( &scp->sci_cookie, &cookie_str ) ) {
+			if ( slap_cookie_parse( &scp->sci_cookie, &cookie_str, NULL ) ) {
 				Debug( LDAP_DEBUG_ANY, "main: invalid cookie \"%s\"\n", optarg );
 				slap_cookie_free( &scp->sci_cookie, 0 );
 				ch_free( scp );
