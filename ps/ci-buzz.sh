@@ -84,7 +84,7 @@ order=0
 for ((n=0; n < N; n++)); do
 	for branch in $branch_list; do
 		nice=$((5 + order * 2))
-		delay=$((order * 41))
+		delay=$((order * 199))
 		echo "launching $n of $branch, with nice $nice..."
 		dir=$TOP/@$n.$branch
 		tmp=$(readlink -f ${RAM}/$n.$branch)
