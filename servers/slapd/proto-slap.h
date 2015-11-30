@@ -1238,7 +1238,6 @@ int slap_csns_validate_and_sort( BerVarray vals );
 int slap_csns_match( BerVarray a, BerVarray b );
 int slap_csns_length( BerVarray vals );
 int slap_csns_compare( BerVarray next, BerVarray base );
-int* slap_csns_parse_sids( BerVarray csns, int* sids );
 void slap_csns_debug( const char *prefix, const BerVarray csns );
 void slap_csns_backward_debug(
 	const char *prefix,

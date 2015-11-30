@@ -34,6 +34,8 @@
 #	define CHECK_MEM_VALID(p) __noop()
 #endif /* LDAP_MEMORY_DEBUG */
 
+static int* slap_csns_parse_sids(BerVarray csns, int* sids);
+
 struct slap_sync_cookie_s slap_sync_cookie =
 	LDAP_STAILQ_HEAD_INITIALIZER( slap_sync_cookie );
 
@@ -907,13 +909,12 @@ int slap_csns_compare( BerVarray next, BerVarray base )
 	return INT_MIN;
 }
 
-int* slap_csns_parse_sids( BerVarray csns, int* sids )
+static int* slap_csns_parse_sids( BerVarray csns, int* sids )
 {
-	int i;
+	int i = slap_csns_length( csns );
 
-	sids = ber_memrealloc( sids, slap_csns_length( csns ) * sizeof(int) );
-
-	for( i = 0; csns && ! BER_BVISNULL( &csns[i] ); ++i)
+	sids = ch_realloc( sids, i * sizeof(sids[0]) );
+	while(--i >= 0)
 		sids[i] = slap_csn_get_sid( &csns[i] );
 
 	return sids;
