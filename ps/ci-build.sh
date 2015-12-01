@@ -135,18 +135,21 @@ IODBC=$([ -d /usr/include/iodbc ] && echo "-I/usr/include/iodbc")
 
 CFLAGS="-Wall -g"
 
-if [ $flag_clang -ne 0 ]; then
-	CC=clang
-	LLVM_VERSION="$($CC --version | sed -n 's/.\+LLVM \([0-9]\.[0-9]\)\.[0-9].*/\1/p')"
-	echo "LLVM_VERSION	= $LLVM_VERSION"
-	LTO_PLUGIN="/usr/lib/llvm-${LLVM_VERSION}/lib/LLVMgold.so"
-	echo "LTO_PLUGIN	= $LTO_PLUGIN"
-	CFLAGS+=" -Wno-pointer-bool-conversion"
-elif [ -n "$(which gcc)" ]; then
-	CC=gcc
-else
-	CC=cc
+if [ -z "$CC" ]; then
+	if [ $flag_clang -ne 0 ]; then
+		CC=clang
+		LLVM_VERSION="$($CC --version | sed -n 's/.\+LLVM \([0-9]\.[0-9]\)\.[0-9].*/\1/p')"
+		echo "LLVM_VERSION	= $LLVM_VERSION"
+		LTO_PLUGIN="/usr/lib/llvm-${LLVM_VERSION}/lib/LLVMgold.so"
+		echo "LTO_PLUGIN	= $LTO_PLUGIN"
+		CFLAGS+=" -Wno-pointer-bool-conversion"
+	elif [ -n "$(which gcc)" ]; then
+		CC=gcc
+	else
+		CC=cc
+	fi
 fi
+CC_VER_SUFF=$(sed -nre 's/^(gcc|clang)-(.*)/-\2/p' <<< "$CC")
 
 if [ $flag_debug -ne 0 ]; then
 	if [ "$CC" = "gcc" ]; then
@@ -159,12 +162,12 @@ else
 fi
 
 if [ $flag_lto -ne 0 ]; then
-	if [ "$CC" = "gcc" ] && gcc -v 2>&1 | grep -q -i lto \
-	&& [ -n "$(which gcc-ar)" -a -n "$(which gcc-nm)" -a -n "$(which gcc-ranlib)" ]; then
+	if grep -q gcc <<< "$CC" && $CC -v 2>&1 | grep -q -i lto \
+	&& [ -n "$(which gcc-ar$CC_VER_SUFF)" -a -n "$(which gcc-nm$CC_VER_SUFF)" -a -n "$(which gcc-ranlib$CC_VER_SUFF)" ]; then
 		echo "*** GCC Link-Time Optimization (LTO) will be used" >&2
 		CFLAGS+=" -flto=jobserver -fno-fat-lto-objects -fuse-linker-plugin -fwhole-program"
-		export AR=gcc-ar NM=gcc-nm RANLIB=gcc-ranlib
-	elif [ "$CC" = "clang" -a -n "$LLVM_VERSION" -a -e "$LTO_PLUGIN" -a -n "$(which ld.gold)" ]; then
+		export AR=gcc-ar$CC_VER_SUFF NM=gcc-nm$CC_VER_SUFF RANLIB=gcc-ranlib$CC_VER_SUFF
+	elif grep -q clang <<< "$CC" && [ -a -n "$LLVM_VERSION" -a -e "$LTO_PLUGIN" -a -n "$(which ld.gold)" ]; then
 		echo "*** CLANG Link-Time Optimization (LTO) will be used" >&2
 		HERE=$(readlink -f $(dirname $0))
 
@@ -204,6 +207,7 @@ export CC CFLAGS LDFLAGS CXXFLAGS="$CFLAGS"
 echo "CFLAGS		= ${CFLAGS}"
 echo "PATH		= ${PATH}"
 echo "LD		= $(readlink -f $(which ld)) ${LDFLAGS}"
+echo "TOOLCHAIN	= $CC $AR $NM $RANLIB"
 
 #======================================================================
 

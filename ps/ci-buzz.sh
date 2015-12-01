@@ -4,8 +4,8 @@ N=$1
 shift
 branch_list="$@"
 
-if [ -z "$N" ]; then N=4; fi
-if [ -z "$branch_list" ]; then branch_list="devel-2.4 devel-2.5"; fi
+if [ -z "$N" ]; then N=10; fi
+if [ -z "$branch_list" ]; then branch_list="devel master"; fi
 
 build="ps/ci-build.sh"
 test="ps/ci-test.sh"
@@ -84,7 +84,7 @@ order=0
 for ((n=0; n < N; n++)); do
 	for branch in $branch_list; do
 		nice=$((5 + order * 2))
-		delay=$((order * 41))
+		delay=$((order * 199))
 		echo "launching $n of $branch, with nice $nice..."
 		dir=$TOP/@$n.$branch
 		tmp=$(readlink -f ${RAM}/$n.$branch)
