@@ -546,7 +546,7 @@ findmax_cb( Operation *op, SlapReply *rs )
 			slap_schema.si_ad_entryCSN );
 
 		if ( a && ber_bvcmp( &a->a_vals[0], maxcsn ) > 0 &&
-			slap_parse_csn_sid( &a->a_vals[0] ) == slap_serverID ) {
+			slap_csn_get_sid( &a->a_vals[0] ) == slap_serverID ) {
 			maxcsn->bv_len = a->a_vals[0].bv_len;
 			strcpy( maxcsn->bv_val, a->a_vals[0].bv_val );
 		}
@@ -749,11 +749,8 @@ again:
 
 	switch( mode ) {
 	case FIND_MAXCSN:
+		assert( slap_csn_verify_full( &maxcsn ) );
 		if ( ber_bvcmp( &si->si_cookie.ctxcsn[maxid], &maxcsn )) {
-			if (reopenldap_mode_idkfa()) {
-				Syntax *syn = slap_schema.si_ad_contextCSN->ad_type->sat_syntax;
-				assert( !syn->ssyn_validate( syn, &maxcsn ));
-			}
 			ber_bvreplace( &si->si_cookie.ctxcsn[maxid], &maxcsn );
 			si->si_numops++;	/* ensure a checkpoint */
 		}
@@ -1565,13 +1562,8 @@ syncprov_checkpoint( Operation *op, slap_overinst *on )
 	BackendInfo *bi;
 
 	slap_biglock_acquire(op->o_bd);
-	if (reopenldap_mode_idkfa()) {
-		Syntax *syn = slap_schema.si_ad_contextCSN->ad_type->sat_syntax;
-		int i;
-		for ( i=0; i<si->si_cookie.numcsns; i++ ) {
-			assert( !syn->ssyn_validate( syn, si->si_cookie.ctxcsn+i ));
-		}
-	}
+	if (reopenldap_mode_idkfa())
+		slap_cookie_verify( &si->si_cookie );
 
 	mod.sml_numvals = si->si_cookie.numcsns;
 	mod.sml_values = si->si_cookie.ctxcsn;
@@ -1617,13 +1609,7 @@ syncprov_checkpoint( Operation *op, slap_overinst *on )
 	if ( mod.sml_next != NULL ) {
 		slap_mods_free( mod.sml_next, 1 );
 	}
-	if (reopenldap_mode_idkfa()) {
-		Syntax *syn = slap_schema.si_ad_contextCSN->ad_type->sat_syntax;
-		int i;
-		for ( i=0; i<si->si_cookie.numcsns; i++ ) {
-			assert( !syn->ssyn_validate( syn, si->si_cookie.ctxcsn+i ));
-		}
-	}
+
 	slap_biglock_release(op->o_bd);
 }
 
@@ -1669,7 +1655,7 @@ syncprov_add_slog( Operation *op )
 		memcpy( se->se_csn.bv_val, op->o_csn.bv_val, op->o_csn.bv_len );
 		se->se_csn.bv_val[op->o_csn.bv_len] = '\0';
 		se->se_csn.bv_len = op->o_csn.bv_len;
-		se->se_sid = slap_parse_csn_sid( &se->se_csn );
+		se->se_sid = slap_csn_get_sid( &se->se_csn );
 
 		ldap_pvt_thread_mutex_lock( &sl->sl_mutex );
 		if ( sl->sl_head ) {
@@ -1940,10 +1926,7 @@ syncprov_op_response( Operation *op, SlapReply *rs )
 		}
 		if ( !BER_BVISEMPTY( &maxcsn ) ) {
 			int i;
-			if (reopenldap_mode_idkfa()) {
-				Syntax *syn = slap_schema.si_ad_contextCSN->ad_type->sat_syntax;
-				assert( !syn->ssyn_validate( syn, &maxcsn ));
-			}
+			assert(slap_csn_verify_full( &maxcsn ));
 			for ( i = 0; i < si->si_cookie.numcsns; i++ ) {
 				if ( maxcsn_sid < si->si_cookie.sids[i] )
 					break;
@@ -1976,7 +1959,7 @@ syncprov_op_response( Operation *op, SlapReply *rs )
 				int j, sid;
 
 				for ( i = 0; i < mod->sml_numvals; i++ ) {
-					sid = slap_parse_csn_sid( &mod->sml_values[i] );
+					sid = slap_csn_get_sid( &mod->sml_values[i] );
 					for ( j = 0; j < si->si_cookie.numcsns; j++ ) {
 						if ( sid < si->si_cookie.sids[j] )
 							break;
@@ -2183,7 +2166,7 @@ syncprov_op_mod( Operation *op, SlapReply *rs )
 	opc->osid = -1;
 	opc->rsid = -1;
 	if ( op->o_csn.bv_val ) {
-		opc->osid = slap_parse_csn_sid( &op->o_csn );
+		opc->osid = slap_csn_get_sid( &op->o_csn );
 	}
 	if ( op->o_controls ) {
 		struct sync_cookie *scook =
@@ -2443,7 +2426,7 @@ syncprov_search_response( Operation *op, SlapReply *rs )
 		}
 		if ( a ) {
 			int i, sid;
-			sid = slap_parse_csn_sid( &a->a_nvals[0] );
+			sid = slap_csn_get_sid( &a->a_nvals[0] );
 
 			/* Don't send changed entries back to the originator */
 			if ( sid == srs->sr_state.sid && srs->sr_state.numcsns ) {
@@ -3594,16 +3577,8 @@ static int syncprov_parseCtrl (
 	sr = op->o_tmpcalloc( 1, sizeof(struct sync_control), op->o_tmpmemctx );
 	sr->sr_rhint = rhint;
 	if (!BER_BVISNULL(&cookie)) {
-		ber_dupbv_x( &sr->sr_state.octet_str, &cookie, op->o_tmpmemctx );
 		/* If parse fails, pretend no cookie was sent */
-		if ( slap_parse_sync_cookie( &sr->sr_state, op->o_tmpmemctx ) ||
-			sr->sr_state.rid == -1 ) {
-			if ( sr->sr_state.ctxcsn ) {
-				ber_bvarray_free_x( sr->sr_state.ctxcsn, op->o_tmpmemctx );
-				sr->sr_state.ctxcsn = NULL;
-			}
-			sr->sr_state.numcsns = 0;
-
+		if ( slap_cookie_parse( &sr->sr_state, &cookie ) ) {
 			if (reopenldap_mode_idclip())
 				return LDAP_PROTOCOL_ERROR;
 		}

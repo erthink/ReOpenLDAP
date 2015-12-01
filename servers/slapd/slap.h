@@ -1756,7 +1756,6 @@ struct sync_cookie {
 	int *sids;
 	int numcsns;
 	int rid;
-	struct berval octet_str;
 	int sid;
 	LDAP_STAILQ_ENTRY(sync_cookie) sc_next;
 };

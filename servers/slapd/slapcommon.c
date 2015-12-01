@@ -1030,7 +1030,7 @@ slap_tool_update_ctxcsn(
 					int match;
 					const char *text = NULL;
 
-					rc_sid = slap_parse_csn_sid( &attr->a_nvals[ i ] );
+					rc_sid = slap_csn_get_sid( &attr->a_nvals[ i ] );
 					if ( rc_sid < 0 ) {
 						Debug( LDAP_DEBUG_ANY,
 							"%s: unable to extract SID "
@@ -1122,7 +1122,7 @@ slap_tool_update_ctxcsn_check(
 		attr = attr_find( e->e_attrs, slap_schema.si_ad_entryCSN );
 		assert( attr != NULL );
 
-		rc_sid = slap_parse_csn_sid( &attr->a_nvals[ 0 ] );
+		rc_sid = slap_csn_get_sid( &attr->a_nvals[ 0 ] );
 		if ( rc_sid < 0 ) {
 			Debug( LDAP_DEBUG_ANY, "%s: could not "
 				"extract SID from entryCSN=%s, entry dn=\"%s\"\n",
