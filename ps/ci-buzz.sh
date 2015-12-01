@@ -4,8 +4,8 @@ N=$1
 shift
 branch_list="$@"
 
-if [ -z "$N" ]; then N=4; fi
-if [ -z "$branch_list" ]; then branch_list="devel-2.4 devel-2.5"; fi
+if [ -z "$N" ]; then N=10; fi
+if [ -z "$branch_list" ]; then branch_list="devel master"; fi
 
 build="ps/ci-build.sh"
 test="ps/ci-test.sh"
