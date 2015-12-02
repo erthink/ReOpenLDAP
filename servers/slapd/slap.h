@@ -1760,12 +1760,15 @@ struct sync_cookie {
 	int *sids;
 	int numcsns;
 	int rid;
-	struct berval octet_str;
 	int sid;
-	LDAP_STAILQ_ENTRY(sync_cookie) sc_next;
 };
 
-LDAP_STAILQ_HEAD( slap_sync_cookie_s, sync_cookie );
+struct sync_cookie_item {
+	LDAP_STAILQ_ENTRY(sync_cookie_item) sci_next;
+	struct sync_cookie sci_cookie;
+};
+
+LDAP_STAILQ_HEAD( slap_sync_cookie_s, sync_cookie_item );
 
 struct slap_csn_entry;
 LDAP_TAILQ_HEAD( be_pcl, slap_csn_entry );

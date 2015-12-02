@@ -96,7 +96,7 @@ void quorum_global_destroy() {
 	if (quorum_list != QR_POISON) {
 		lock();
 		while (quorum_list) {
-			slap_quorum_t *next = quorum_list;
+			slap_quorum_t *next = quorum_list->qr_next;
 			ch_free(quorum_list->qr_present);
 			ch_free(quorum_list->qr_requirements);
 			ch_free(quorum_list);

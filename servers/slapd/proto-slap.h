@@ -1235,24 +1235,12 @@ LDAP_SLAPD_V (const char *)	slap_known_controls[];
  */
 LDAP_SLAPD_F (void) slap_compose_sync_cookie LDAP_P((
 				Operation *, struct berval *, BerVarray, int, int ));
-LDAP_SLAPD_F (void) slap_sync_cookie_free LDAP_P((
-				struct sync_cookie *, int free_cookie ));
-LDAP_SLAPD_F (int) slap_parse_csn_sid LDAP_P((
-				struct berval * ));
 LDAP_SLAPD_F (int *) slap_parse_csn_sids LDAP_P((
 				BerVarray, int, void *memctx ));
 LDAP_SLAPD_F (int) slap_sort_csn_sids LDAP_P((
 				BerVarray, int *, int, void *memctx ));
 LDAP_SLAPD_F (void) slap_insert_csn_sids LDAP_P((
 				struct sync_cookie *ck, int, int, struct berval * ));
-LDAP_SLAPD_F (int) slap_parse_sync_cookie LDAP_P((
-				struct sync_cookie *, void *memctx ));
-LDAP_SLAPD_F (void) slap_reparse_sync_cookie LDAP_P((
-				struct sync_cookie *, void *memctx ));
-LDAP_SLAPD_F (int) slap_init_sync_cookie_ctxcsn LDAP_P((
-				struct sync_cookie * ));
-LDAP_SLAPD_F (struct sync_cookie *) slap_dup_sync_cookie LDAP_P((
-				struct sync_cookie *, struct sync_cookie * ));
 LDAP_SLAPD_F (int) slap_build_syncUUID_set LDAP_P((
 				Operation *, BerVarray *, Entry * ));
 LDAP_SLAPD_F (int) slap_csn_stub_self LDAP_P((
@@ -1271,7 +1259,6 @@ int slap_csns_validate_and_sort( BerVarray vals );
 int slap_csns_match( BerVarray a, BerVarray b );
 int slap_csns_length( BerVarray vals );
 int slap_csns_compare( BerVarray next, BerVarray base );
-int* slap_csns_parse_sids( BerVarray csns, int* sids );
 void slap_csns_debug( const char *prefix, const BerVarray csns );
 void slap_csns_backward_debug(
 	const char *prefix,
@@ -1309,7 +1296,8 @@ int slap_cookie_compare_csn(
 	BerValue *csn );
 int slap_cookie_parse(
 	struct sync_cookie *dst,
-	const BerValue *src );
+	const BerValue *src,
+	void *memctx );
 int slap_cookie_stubself( struct sync_cookie *dst );
 void slap_cookie_compose(
 	BerValue *dst,

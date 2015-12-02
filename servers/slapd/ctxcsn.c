@@ -52,7 +52,7 @@ slap_get_commit_csn(
 	int sid = -1;
 
 	if ( !BER_BVISEMPTY( &op->o_csn )) {
-		sid = slap_parse_csn_sid( &op->o_csn );
+		sid = slap_csn_get_sid( &op->o_csn );
 		assert( sid >= 0 );
 	}
 
@@ -180,7 +180,7 @@ slap_queue_csn(
 {
 	struct slap_csn_entry *pending;
 	BackendDB *be = op->o_bd->bd_self;
-	int sid = slap_parse_csn_sid( csn );
+	int sid = slap_csn_get_sid( csn );
 	assert(sid > -1);
 
 	ldap_pvt_thread_mutex_lock( &be->be_pcl_mutex );
