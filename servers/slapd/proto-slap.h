@@ -2083,6 +2083,10 @@ LDAP_SLAPD_F (int) value_add_one_str LDAP_P((
 LDAP_SLAPD_F (int) value_add_one_int LDAP_P((
 	BerVarray *vals,
 	int x ));
+LDAP_SLAPD_F (int) value_join_str LDAP_P((
+	BerVarray	vals,
+	const char* comma,
+	BerValue	*dest ));
 
 /* assumes (x) > (y) returns 1 if true, 0 otherwise */
 #define SLAP_PTRCMP(x, y) ((x) < (y) ? -1 : (x) > (y))
