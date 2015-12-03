@@ -114,6 +114,21 @@ function update_TESTDIR {
 	SLAVE2FLT=$SERVER3FLT
 
 	MTREADOUT=$TESTDIR/mtread.out
+
+	#detect_deadlocks=1
+	export ASAN_OPTIONS="symbolize=1:allow_addr2line=1:report_globals=1:replace_str=1:replace_intrin=1:malloc_context_size=21:detect_leaks=${ASAN_DETECT_LEAKS-0}:abort_on_error:log_path=$TESTDIR/asan-log"
+	export TSAN_OPTIONS="history_size=2:log_path=$TESTDIR/tsan-log"
+
+	VALGRIND_OPTIONS="--fair-sched=yes --quiet --log-file=$TESTDIR/valgrind-log.%p \
+		--error-markers=@ --leak-check=full --num-callers=41 --error-exitcode=43 \
+		--gen-suppressions=no --track-origins=yes --show-leak-kinds=all \
+		--trace-children=yes --suppressions=$TESTWD/scripts/valgrind.supp"
+
+	if [ -n "$USE_VALGRIND" ] && [ "$USE_VALGRIND" -ne 0 ]; then
+		VALGRIND_CMD="valgrind $VALGRIND_OPTIONS"
+	else
+		VALGRIND_CMD=""
+	fi
 }
 
 # dirs
@@ -203,26 +218,7 @@ CONFFILTER=$SRCDIR/scripts/conf.sh
 
 MONITORDATA=$SRCDIR/scripts/monitor_data.sh
 
-#VALGRIND="valgrind --fair-sched=yes --quiet --log-socket=127.0.0.1:55555 \
-#	--error-markers=@ --leak-check=full --num-callers=41 --error-exitcode=43 \
-#	--gen-suppressions=no --track-origins=yes --show-leak-kinds=all \
-#	--trace-children=yes --suppressions=$TESTWD/scripts/valgrind.supp"
-
-if [ -z "$VALGRIND" -a -z "$CIBUZZ_PID4" ]; then
-	TIMEOUT_S="timeout -s SIGXCPU 30s"
-	TIMEOUT_L="timeout -s SIGXCPU 2m"
-	TIMEOUT_H="timeout -s SIGXCPU 5m"
-	SLEEP0=${SLEEP0-0.2}
-	SLEEP1=${SLEEP1-1}
-	SLEEP2=${SLEEP2-3}
-elif [ -z "$VALGRIND" ]; then
-	TIMEOUT_S="timeout -s SIGXCPU 3m"
-	TIMEOUT_L="timeout -s SIGXCPU 10m"
-	TIMEOUT_H="timeout -s SIGXCPU 30m"
-	SLEEP0=${SLEEP0-1}
-	SLEEP1=${SLEEP1-7}
-	SLEEP2=${SLEEP2-15}
-else
+if [ -n "$USE_VALGRIND" ] && [ "$USE_VALGRIND" -ne 0 ]; then
 	TIMEOUT_S="timeout -s SIGXCPU 5m"
 	TIMEOUT_L="timeout -s SIGXCPU 45m"
 	TIMEOUT_H="timeout -s SIGXCPU 120m"
@@ -230,14 +226,28 @@ else
 	SLEEP1=${SLEEP1-15}
 	SLEEP2=${SLEEP2-30}
 	pkill -SIGKILL -s 0 -u $EUID memcheck-*
+elif [ -n "$CIBUZZ_PID4" ]; then
+	TIMEOUT_S="timeout -s SIGXCPU 3m"
+	TIMEOUT_L="timeout -s SIGXCPU 10m"
+	TIMEOUT_H="timeout -s SIGXCPU 30m"
+	SLEEP0=${SLEEP0-1}
+	SLEEP1=${SLEEP1-7}
+	SLEEP2=${SLEEP2-15}
+else
+	TIMEOUT_S="timeout -s SIGXCPU 30s"
+	TIMEOUT_L="timeout -s SIGXCPU 2m"
+	TIMEOUT_H="timeout -s SIGXCPU 5m"
+	SLEEP0=${SLEEP0-0.2}
+	SLEEP1=${SLEEP1-1}
+	SLEEP2=${SLEEP2-3}
 fi
 
 SLAP_VERBOSE=${SLAP_VERBOSE-none}
-SLAPADD="$TIMEOUT_S $VALGRIND $TESTWD/../servers/slapd/slapd -Ta -d $SLAP_VERBOSE"
-SLAPCAT="$TIMEOUT_S $VALGRIND $TESTWD/../servers/slapd/slapd -Tc -d $SLAP_VERBOSE"
-SLAPINDEX="$TIMEOUT_S $VALGRIND $TESTWD/../servers/slapd/slapd -Ti -d $SLAP_VERBOSE"
-SLAPMODIFY="$TIMEOUT_S $VALGRIND $TESTWD/../servers/slapd/slapd -Tm -d $SLAP_VERBOSE"
-SLAPPASSWD="$TIMEOUT_S $VALGRIND $TESTWD/../servers/slapd/slapd -Tpasswd"
+SLAPADD="$TIMEOUT_S $VALGRIND_CMD $TESTWD/../servers/slapd/slapd -Ta -d $SLAP_VERBOSE"
+SLAPCAT="$TIMEOUT_S $VALGRIND_CMD $TESTWD/../servers/slapd/slapd -Tc -d $SLAP_VERBOSE"
+SLAPINDEX="$TIMEOUT_S $VALGRIND_CMD $TESTWD/../servers/slapd/slapd -Ti -d $SLAP_VERBOSE"
+SLAPMODIFY="$TIMEOUT_S $VALGRIND_CMD $TESTWD/../servers/slapd/slapd -Tm -d $SLAP_VERBOSE"
+SLAPPASSWD="$TIMEOUT_S $VALGRIND_CMD $TESTWD/../servers/slapd/slapd -Tpasswd"
 
 unset DIFF_OPTIONS
 SLAPDMTREAD=$PROGDIR/slapd-mtread
@@ -249,19 +259,19 @@ DIFF="diff -i"
 CMP="diff -i -Z"
 BCMP="diff -iB"
 CMPOUT=/dev/null
-SLAPD="$TIMEOUT_L $VALGRIND $TESTWD/../servers/slapd/slapd -s0 -d $LVL"
-SLAPD_HUGE="$TIMEOUT_H $VALGRIND $TESTWD/../servers/slapd/slapd -s0 -d $LVL"
-LDAPPASSWD="$TIMEOUT_S $VALGRIND $CLIENTDIR/ldappasswd $TOOLARGS"
-LDAPSASLSEARCH="$TIMEOUT_S $VALGRIND $CLIENTDIR/ldapsearch $TOOLPROTO $LDAP_TOOLARGS -LLL"
-LDAPSEARCH="$TIMEOUT_S $VALGRIND $CLIENTDIR/ldapsearch $TOOLPROTO $TOOLARGS -LLL"
-LDAPRSEARCH="$TIMEOUT_S $VALGRIND $CLIENTDIR/ldapsearch $TOOLPROTO $TOOLARGS"
-LDAPDELETE="$TIMEOUT_S $VALGRIND $CLIENTDIR/ldapdelete $TOOLPROTO $TOOLARGS"
-LDAPMODIFY="$TIMEOUT_S $VALGRIND $CLIENTDIR/ldapmodify $TOOLPROTO $TOOLARGS"
-LDAPADD="$TIMEOUT_S $VALGRIND $CLIENTDIR/ldapmodify -a $TOOLPROTO $TOOLARGS"
-LDAPMODRDN="$TIMEOUT_S $VALGRIND $CLIENTDIR/ldapmodrdn $TOOLPROTO $TOOLARGS"
-LDAPWHOAMI="$TIMEOUT_S $VALGRIND $CLIENTDIR/ldapwhoami $TOOLARGS"
-LDAPCOMPARE="$TIMEOUT_S $VALGRIND $CLIENTDIR/ldapcompare $TOOLARGS"
-LDAPEXOP="$TIMEOUT_S $VALGRIND $CLIENTDIR/ldapexop $TOOLARGS"
+SLAPD="$TIMEOUT_L $VALGRIND_CMD $TESTWD/../servers/slapd/slapd -s0 -d $LVL"
+SLAPD_HUGE="$TIMEOUT_H $VALGRIND_CMD $TESTWD/../servers/slapd/slapd -s0 -d $LVL"
+LDAPPASSWD="$TIMEOUT_S $VALGRIND_CMD $CLIENTDIR/ldappasswd $TOOLARGS"
+LDAPSASLSEARCH="$TIMEOUT_S $VALGRIND_CMD $CLIENTDIR/ldapsearch $TOOLPROTO $LDAP_TOOLARGS -LLL"
+LDAPSEARCH="$TIMEOUT_S $VALGRIND_CMD $CLIENTDIR/ldapsearch $TOOLPROTO $TOOLARGS -LLL"
+LDAPRSEARCH="$TIMEOUT_S $VALGRIND_CMD $CLIENTDIR/ldapsearch $TOOLPROTO $TOOLARGS"
+LDAPDELETE="$TIMEOUT_S $VALGRIND_CMD $CLIENTDIR/ldapdelete $TOOLPROTO $TOOLARGS"
+LDAPMODIFY="$TIMEOUT_S $VALGRIND_CMD $CLIENTDIR/ldapmodify $TOOLPROTO $TOOLARGS"
+LDAPADD="$TIMEOUT_S $VALGRIND_CMD $CLIENTDIR/ldapmodify -a $TOOLPROTO $TOOLARGS"
+LDAPMODRDN="$TIMEOUT_S $VALGRIND_CMD $CLIENTDIR/ldapmodrdn $TOOLPROTO $TOOLARGS"
+LDAPWHOAMI="$TIMEOUT_S $VALGRIND_CMD $CLIENTDIR/ldapwhoami $TOOLARGS"
+LDAPCOMPARE="$TIMEOUT_S $VALGRIND_CMD $CLIENTDIR/ldapcompare $TOOLARGS"
+LDAPEXOP="$TIMEOUT_S $VALGRIND_CMD $CLIENTDIR/ldapexop $TOOLARGS"
 SLAPDTESTER=$PROGDIR/slapd-tester
 
 function ldif-filter-unwrap {
