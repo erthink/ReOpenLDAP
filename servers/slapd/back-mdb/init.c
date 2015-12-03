@@ -58,6 +58,38 @@ mdb_debug(int type, const char *function, int line, const char *msg, va_list arg
 		lutil_debug_va(msg, args);
 }
 
+/* perform kick/kill a laggard readers */
+static int
+mdb_oom_handler(MDB_env *env, int pid, void* thread_id, size_t txnid, unsigned gap, int retry)
+{
+	struct mdb_info *mdb = mdb_env_get_userctx(env);
+
+	if ( (mdb->mi_oom_flags & MDB_OOM_KILL) && pid != getpid() ) {
+		if ( kill( pid, SIGKILL ) == 0 ) {
+			Debug( LDAP_DEBUG_ANY, "oom-handler: txnid %zu gap %u, KILLED pid %i\n",
+				   txnid, gap, pid );
+			ldap_pvt_thread_yield();
+			return 2;
+		}
+		if ( errno == ESRCH )
+			return 0;
+		Debug( LDAP_DEBUG_ANY, "oom-handler: retry %d, UNABLE kill pid %i: %s\n",
+			   retry, pid, STRERROR(errno) );
+	}
+
+	if ( (mdb->mi_oom_flags & MDB_OOM_YIELD) && ! slapd_shutdown ) {
+		Debug( LDAP_DEBUG_ANY, "oom-handler: txnid %zu gap %u, retry %d, YIELD\n",
+			   txnid, gap, retry );
+		if (retry < 42)
+			ldap_pvt_thread_yield();
+		else
+			usleep(retry);
+		return 0;
+	}
+
+	return -1;
+}
+
 static int
 mdb_db_init( BackendDB *be, ConfigReply *cr )
 {
@@ -191,7 +223,7 @@ mdb_db_open( BackendDB *be, ConfigReply *cr )
 		goto fail;
 	}
 
-	mdbx_env_set_oomfunc( mdb->mi_dbenv, mdb->mi_oom_flags ? mdb_oom_handler : NULL);
+	mdbx_env_set_oomfunc( mdb->mi_dbenv, mdb_oom_handler );
 
 	if ( (slapMode & SLAP_SERVER_MODE) && SLAP_MULTIMASTER(be) &&
 			((MDB_OOM_YIELD & mdb->mi_oom_flags) == 0 || mdb->mi_renew_lag == 0)) {
