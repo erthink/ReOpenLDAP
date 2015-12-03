@@ -364,9 +364,8 @@ mdb_cf_gen( ConfigArgs *c )
 			break;
 
 		case MDB_OOMFLAGS:
-			if ( mdb->mi_oom_flags )
-				mask_to_verbs( oom_flags, mdb->mi_oom_flags, &c->rvalue_vals );
-			if ( !c->rvalue_vals ) rc = 1;
+			rc = mask_to_verbstring( oom_flags, mdb->mi_oom_flags,
+				' ', &c->value_bv );
 			break;
 
 		case MDB_INDEX:
@@ -706,6 +705,7 @@ mdb_cf_gen( ConfigArgs *c )
 
 	case MDB_OOMFLAGS: {
 		int i, j;
+		mdb->mi_oom_flags = 0;
 		for ( i=1; i<c->argc; i++ ) {
 			j = verb_to_mask( c->argv[i], oom_flags );
 			if ( oom_flags[j].mask ) {
