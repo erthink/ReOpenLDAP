@@ -3190,21 +3190,17 @@ config_reopenldap(ConfigArgs *c)
 	};
 
 	if (c->op == SLAP_CONFIG_EMIT) {
-		return mask_to_verbs( reopenldap_ops, reopenldap_flags, &c->rvalue_vals );
+		return mask_to_verbstring( reopenldap_ops, reopenldap_flags,
+			' ', &c->value_bv );
 	} else if ( c->op == LDAP_MOD_DELETE ) {
-		if ( !c->line ) {
-			reopenldap_flags_setup( 0 );
-		} else {
-			i = verb_to_mask( c->line, reopenldap_ops );
-			reopenldap_flags_setup( reopenldap_flags & ~reopenldap_ops[i].mask );
-		}
+		reopenldap_flags_setup( 0 );
 		return 0;
 	}
 	i = verbs_to_mask( c->argc, c->argv, reopenldap_ops, &flags );
 	if ( i ) {
 		snprintf( c->cr_msg, sizeof( c->cr_msg ), "<%s> unknown ReOpenLDAP's flag", c->argv[0] );
 		Debug(LDAP_DEBUG_ANY, "%s: %s %s\n", c->log, c->cr_msg, c->argv[i]);
-		return 1 ;
+		return 1;
 	}
 	reopenldap_flags_setup( reopenldap_flags | flags );
 	return 0;
