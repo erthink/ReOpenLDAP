@@ -215,6 +215,7 @@ slap_sl_mem_create(
 		}
 	}
 	VALGRIND_MAKE_MEM_NOACCESS(base, size);
+	ASAN_POISON_MEMORY_REGION(base, size);
 	sh->sh_base = base;
 	sh->sh_end = base + size;
 
@@ -282,7 +283,7 @@ slap_sl_mem_setctx(
 	SET_MEMCTX(thrctx, memctx, slap_sl_mem_destroy);
 }
 
-static void * __slap_sl_malloc( struct slab_heap *sh, ber_len_t size )
+ATTRIBUTE_NO_SANITIZE_ADDRESS static void * __slap_sl_malloc( struct slab_heap *sh, ber_len_t size )
 {
 	ber_len_t *ptr;
 
@@ -290,8 +291,10 @@ static void * __slap_sl_malloc( struct slab_heap *sh, ber_len_t size )
 	 * round up to doubleword boundary. */
 	size_t sl_size = (size + sizeof(ber_len_t) + Align-1) & -Align;
 	if (unlikely(sl_size < size)) {
+#ifndef __SANITIZE_ADDRESS__
 		Debug(LDAP_DEBUG_ANY,
 			  "__slap_sl_malloc(%zu) out of range\n", (size_t) size);
+#endif
 		LDAP_BUG();
 	}
 
@@ -406,6 +409,7 @@ slap_sl_malloc(
 			ptr = lber_hug_memchk_setup(ptr, nett_size,
 				SL_MEM_TAG, LBER_HUG_POISON_DEFAULT);
 #endif /* LDAP_MEMORY_DEBUG */
+			ASAN_UNPOISON_MEMORY_REGION(ptr, nett_size);
 			return ptr;
 		}
 
@@ -452,6 +456,7 @@ slap_sl_calloc( ber_len_t n, ber_len_t s, void *ctx )
 		ptr = __slap_sl_malloc(sh, gross_size);
 
 		if (likely(ptr)) {
+			ASAN_UNPOISON_MEMORY_REGION(ptr, nett_size);
 #if LDAP_MEMORY_DEBUG > 0
 			ptr = lber_hug_memchk_setup(ptr, nett_size,
 				SL_MEM_TAG, LBER_HUG_POISON_CALLOC_SETUP);
@@ -468,11 +473,11 @@ slap_sl_calloc( ber_len_t n, ber_len_t s, void *ctx )
 	return ch_calloc(n, s);
 }
 
-void *
+ATTRIBUTE_NO_SANITIZE_ADDRESS void *
 slap_sl_realloc(void *ptr, ber_len_t new_nett_size, void *ctx)
 {
 	struct slab_heap *sh = ctx;
-	ber_len_t *p, *nextp;
+	ber_len_t *p;
 	void *oldptr, *newptr;
 	size_t old_sl_size;
 
@@ -484,8 +489,10 @@ slap_sl_realloc(void *ptr, ber_len_t new_nett_size, void *ctx)
 		/* Like ch_realloc(), except not trying a new context */
 		newptr = ber_memrealloc_x(ptr, new_nett_size, NULL);
 		if (unlikely(! newptr)) {
+#ifndef __SANITIZE_ADDRESS__
 			Debug(LDAP_DEBUG_ANY,
 				  "slap_sl_realloc of %zu bytes failed\n", (size_t) new_nett_size);
+#endif
 			LDAP_BUG();
 		}
 		return newptr;
@@ -499,9 +506,11 @@ slap_sl_realloc(void *ptr, ber_len_t new_nett_size, void *ctx)
 	size_t old_nett_size, new_gross_size = new_nett_size;
 #if LDAP_MEMORY_DEBUG > 0
 	new_gross_size += LBER_HUG_MEMCHK_OVERHEAD;
-	if(unlikely(new_gross_size < new_nett_size)) {
+	if (unlikely(new_gross_size < new_nett_size)) {
+#ifndef __SANITIZE_ADDRESS__
 		Debug(LDAP_DEBUG_ANY,
 			  "slap_sl_realloc of %zu bytes failed\n", (size_t) new_nett_size);
+#endif
 		LDAP_BUG();
 	}
 
@@ -514,7 +523,7 @@ slap_sl_realloc(void *ptr, ber_len_t new_nett_size, void *ctx)
 	p = ((ber_len_t *) oldptr) - 1;
 	VALGRIND_MAKE_MEM_DEFINED(p, sizeof(*p));
 	old_sl_size = *p & -2;
-#if LDAP_MEMORY_DEBUG
+#if LDAP_MEMORY_DEBUG > 0
 	assert(old_sl_size >= old_nett_size + LBER_HUG_MEMCHK_OVERHEAD + sizeof(ber_len_t));
 #else
 	assert(old_sl_size > sizeof(ber_len_t));
@@ -525,8 +534,10 @@ slap_sl_realloc(void *ptr, ber_len_t new_nett_size, void *ctx)
 		/* Add room for head, round up to doubleword boundary */
 		size_t new_sl_size = (new_gross_size + sizeof(ber_len_t) + Align-1) & -Align;
 		if (unlikely(new_sl_size < new_gross_size)) {
+#ifndef __SANITIZE_ADDRESS__
 			Debug(LDAP_DEBUG_ANY,
 				  "slap_sl_realloc(%zu) out of range\n", (size_t) new_nett_size);
+#endif
 			LDAP_BUG();
 		}
 
@@ -541,15 +552,18 @@ slap_sl_realloc(void *ptr, ber_len_t new_nett_size, void *ctx)
 			lber_hug_realloc_commit(old_nett_size, oldptr,
 				SL_MEM_TAG, new_nett_size);
 #endif /* LDAP_MEMORY_DEBUG */
-			VALGRIND_MEMPOOL_CHANGE(sh, oldptr, oldptr, new_gross_size);
 			if (old_nett_size > new_nett_size) {
+				VALGRIND_MEMPOOL_CHANGE(sh, oldptr, oldptr, new_gross_size);
 				VALGRIND_MAKE_MEM_NOACCESS((char *) ptr + new_nett_size,
 					old_nett_size - new_nett_size);
 			}
+			ASAN_POISON_MEMORY_REGION(ptr, old_nett_size);
+			/* LY: avoid asan-trap because of old_nett_size rounding */
+			ASAN_UNPOISON_MEMORY_REGION(ptr, new_nett_size);
 			return ptr;
 		}
 
-		nextp = (ber_len_t *) ((char *) p + old_sl_size);
+		ber_len_t *nextp = (ber_len_t *) ((char *) p + old_sl_size);
 
 		/* If reallocing the last block, try to grow it */
 		if (nextp == sh->sh_last) {
@@ -567,6 +581,7 @@ slap_sl_realloc(void *ptr, ber_len_t new_nett_size, void *ctx)
 				VALGRIND_MAKE_MEM_UNDEFINED((char *) ptr + old_nett_size,
 					new_nett_size - old_nett_size);
 #endif /* LDAP_MEMORY_DEBUG */
+				ASAN_UNPOISON_MEMORY_REGION(ptr, new_nett_size);
 				return ptr;
 			}
 		/* Nowhere to grow, need to alloc and copy */
@@ -580,8 +595,10 @@ slap_sl_realloc(void *ptr, ber_len_t new_nett_size, void *ctx)
 					SL_MEM_TAG, new_nett_size);
 #endif /* LDAP_MEMORY_DEBUG */
 			} else {
+#ifndef __SANITIZE_ADDRESS__
 				Debug(LDAP_DEBUG_TRACE,
 					  "sl_malloc %zu: fallback to ch_malloc\n", new_sl_size);
+#endif
 				newptr = ch_malloc(new_nett_size);
 			}
 			/* Not last block, can just mark old region as free */
@@ -591,7 +608,15 @@ slap_sl_realloc(void *ptr, ber_len_t new_nett_size, void *ctx)
 			VALGRIND_MAKE_MEM_NOACCESS(nextp-1, sizeof(ber_len_t) * 2);
 
 			VALGRIND_DISABLE_ADDR_ERROR_REPORTING_IN_RANGE(ptr, old_nett_size);
+#ifdef __SANITIZE_ADDRESS__
+			/* LY: avoid inline-failure and asan-trap because of old_nett_size rounding */
+			ASAN_UNPOISON_MEMORY_REGION(ptr, old_nett_size);
+			ASAN_UNPOISON_MEMORY_REGION(newptr, new_nett_size);
+			__builtin_memmove(newptr, ptr, old_nett_size);
+			ASAN_POISON_MEMORY_REGION(p, old_sl_size);
+#else
 			memmove(newptr, ptr, old_nett_size);
+#endif
 			VALGRIND_ENABLE_ADDR_ERROR_REPORTING_IN_RANGE(ptr, old_nett_size);
 			VALGRIND_MEMPOOL_FREE(sh, oldptr);
 			return newptr;
@@ -604,14 +629,20 @@ slap_sl_realloc(void *ptr, ber_len_t new_nett_size, void *ctx)
 #endif /* LDAP_MEMORY_DEBUG */
 	newptr = slap_sl_malloc(new_nett_size, ctx);
 	VALGRIND_DISABLE_ADDR_ERROR_REPORTING_IN_RANGE(ptr, old_nett_size);
+#ifdef __SANITIZE_ADDRESS__
+	/* LY: avoid inline-failure and asan-trap because of old_nett_size rounding */
+	__builtin_memmove(newptr, ptr,
+			(old_nett_size < new_nett_size) ? old_nett_size : new_nett_size);
+#else
 	memmove(newptr, ptr,
 			(old_nett_size < new_nett_size) ? old_nett_size : new_nett_size);
+#endif
 	VALGRIND_ENABLE_ADDR_ERROR_REPORTING_IN_RANGE(ptr, old_nett_size);
 	slap_sl_free(ptr, ctx);
 	return newptr;
 }
 
-void
+ATTRIBUTE_NO_SANITIZE_ADDRESS void
 slap_sl_free(void *ptr, void *ctx)
 {
 	struct slab_heap *sh = ctx;
@@ -634,6 +665,7 @@ slap_sl_free(void *ptr, void *ctx)
 	p = ((ber_len_t*) ptr) - 1;
 	VALGRIND_MAKE_MEM_DEFINED(p, sizeof(*p));
 	sl_size = *p & -2;
+	ASAN_POISON_MEMORY_REGION(p, sl_size);
 
 	if (sh->sh_stack) {
 		nextp = (ber_len_t *) ((char *) p + sl_size);
@@ -706,11 +738,6 @@ slap_sl_free(void *ptr, void *ctx)
 						LDAP_LIST_INSERT_HEAD(&sh->sh_free[i-order_start],
 								so, so_link);
 						break;
-
-						Debug(LDAP_DEBUG_TRACE, "slap_sl_free: "
-							"free object not found while bit is clear.\n");
-						assert(so != NULL);
-
 					}
 				} else {
 					if (!inserted) {
@@ -756,10 +783,6 @@ slap_sl_free(void *ptr, void *ctx)
 						LDAP_LIST_INSERT_HEAD(&sh->sh_free[i-order_start],
 								so, so_link);
 						break;
-
-						Debug(LDAP_DEBUG_TRACE, "slap_sl_free: "
-							"free object not found while bit is clear.\n" );
-						assert(so != NULL);
 					}
 				} else {
 					if ( !inserted ) {

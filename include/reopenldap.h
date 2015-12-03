@@ -281,4 +281,21 @@ __extern_C void reopenldap_jitter(int probability_percent);
 #	define VALGRIND_CHECK_MEM_IS_DEFINED(a,s) (0)
 #endif /* ! USE_VALGRIND */
 
+#if defined(__has_feature)
+#	if __has_feature(address_sanitizer)
+#		define __SANITIZE_ADDRESS__ 1
+#	endif
+#endif
+
+#ifdef __SANITIZE_ADDRESS__
+#	include <sanitizer/asan_interface.h>
+#	define ATTRIBUTE_NO_SANITIZE_ADDRESS __attribute__((no_sanitize_address))
+#else
+#	define ASAN_POISON_MEMORY_REGION(addr, size) \
+		((void)(addr), (void)(size))
+#	define ASAN_UNPOISON_MEMORY_REGION(addr, size) \
+		((void)(addr), (void)(size))
+#	define ATTRIBUTE_NO_SANITIZE_ADDRESS
+#endif /* __SANITIZE_ADDRESS__ */
+
 #endif /* _LDAP_REOPEN_H */
