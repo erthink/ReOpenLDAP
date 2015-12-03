@@ -330,10 +330,11 @@ int passwd_extop(
 	SlapReply *rs )
 {
 	int rc;
+	slap_biglock_t *bl = slap_biglock_get(op->o_bd);
 
-	slap_biglock_acquire(op->o_bd);
+	slap_biglock_acquire(bl);
 	rc = nolock_passwd_extop(op, rs);
-	slap_biglock_release(op->o_bd);
+	slap_biglock_release(bl);
 	return rc;
 }
 

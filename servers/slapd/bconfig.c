@@ -4345,7 +4345,8 @@ config_setup_ldif( BackendDB *be, const char *dir, int readit ) {
 		prev_DN_strict = slap_DN_strict;
 		slap_DN_strict = 0;
 
-		slap_biglock_acquire(op->o_bd);
+		slap_biglock_t *bl = slap_biglock_get(op->o_bd);
+		slap_biglock_acquire(bl);
 		rc = op->o_bd->be_search( op, &rs );
 
 		/* Restore normal DN validation */
@@ -4362,7 +4363,7 @@ config_setup_ldif( BackendDB *be, const char *dir, int readit ) {
 			op->ora_e = sc.config;
 			rc = op->o_bd->bd_info->bi_op_add( op, &rs );
 		}
-		slap_biglock_release(op->o_bd);
+		slap_biglock_release(bl);
 		ldap_pvt_thread_pool_context_reset( thrctx );
 	}
 
@@ -6148,7 +6149,10 @@ config_back_modify( Operation *op, SlapReply *rs )
 	 * 3) perform the individual config operations.
 	 * 4) store Modified entry in underlying LDIF backend.
 	 */
+	slap_biglock_t *bl = slap_biglock_get(ce->ce_be);
+	slap_biglock_acquire(bl);
 	rs->sr_err = config_modify_internal( ce, op, rs, &ca );
+	slap_biglock_release(bl);
 	if ( rs->sr_err ) {
 		rs->sr_text = ca.cr_msg;
 	} else if ( cfb->cb_use_ldif ) {
@@ -7568,9 +7572,11 @@ static ID
 config_tool_entry_put( BackendDB *be, Entry *e, struct berval *text )
 {
 	ID res;
-	slap_biglock_acquire(be);
+	slap_biglock_t *bl = slap_biglock_get(be);
+
+	slap_biglock_acquire(bl);
 	res = nolock_config_tool_entry_put(be, e, text);
-	slap_biglock_release(be);
+	slap_biglock_release(bl);
 	return res;
 }
 

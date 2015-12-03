@@ -860,7 +860,8 @@ merge_entry(
 	/* append the attribute list from the fetched entry */
 	e->e_attrs->a_next = attr;
 
-	slap_biglock_acquire(op->o_bd);
+	slap_biglock_t *bl = slap_biglock_get(op->o_bd);
+	slap_biglock_acquire(bl);
 
 	op->o_tag = LDAP_REQ_ADD;
 	op->o_protocol = LDAP_VERSION3;
@@ -899,7 +900,7 @@ merge_entry(
 		rc = 1;
 	}
 
-	slap_biglock_release(op->o_bd);
+	slap_biglock_release(bl);
 	return rc;
 }
 
@@ -1811,7 +1812,8 @@ remove_query_data(
 	filter.f_av_desc = ad_queryId;
 	filter.f_av_value = *query_uuid;
 
-	slap_biglock_acquire(op->o_bd);
+	slap_biglock_t *bl = slap_biglock_get(op->o_bd);
+	slap_biglock_acquire(bl);
 
 	op->o_tag = LDAP_REQ_SEARCH;
 	op->o_protocol = LDAP_VERSION3;
@@ -1878,7 +1880,7 @@ remove_query_data(
 		op->o_tmpfree( qi, op->o_tmpmemctx );
 	}
 
-	slap_biglock_release(op->o_bd);
+	slap_biglock_release(bl);
 	return deleted;
 }
 
@@ -3417,7 +3419,8 @@ refresh_query( Operation *op, CachedQuery *query, slap_overinst *on )
 	dnlist *dn;
 	int rc;
 
-	slap_biglock_acquire(op->o_bd);
+	slap_biglock_t *bl = slap_biglock_get(op->o_bd);
+	slap_biglock_acquire(bl);
 
 	ldap_pvt_thread_mutex_lock( &query->answerable_cnt_mutex );
 	query->refcnt = 0;
@@ -3508,7 +3511,7 @@ refresh_query( Operation *op, CachedQuery *query, slap_overinst *on )
 leave:
 	/* reset our local heap, we're done with it */
 	slap_sl_mem_create(SLAP_SLAB_SIZE, SLAP_SLAB_STACK, op->o_threadctx, 1 );
-	slap_biglock_release(op->o_bd);
+	slap_biglock_release(bl);
 
 	return rc;
 }

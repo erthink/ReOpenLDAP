@@ -50,7 +50,7 @@ void slap_biglock_destroy ( BackendDB *bd ) {
 
 static const ldap_pvt_thread_t thread_null;
 
-static slap_biglock_t* slap_biglock_get( BackendDB *bd ) {
+slap_biglock_t* slap_biglock_get( BackendDB *bd ) {
 	switch(bd->bd_biglock_mode) {
 	default:
 		/* LY: zero-value indicates than mode was not initialized,
@@ -94,9 +94,8 @@ int slap_biglock_owned ( BackendDB *bd ) {
 	return bl ? ldap_pvt_thread_self() == bl->bl_owner : 1;
 }
 
-size_t slap_biglock_acquire(BackendDB *bd) {
+size_t slap_biglock_acquire(slap_biglock_t* bl) {
 	int rc;
-	slap_biglock_t* bl = slap_biglock_get( bd );
 
 	if (!bl)
 		return 0;
@@ -119,10 +118,9 @@ size_t slap_biglock_acquire(BackendDB *bd) {
 	return bl->bl_evo += 1;
 }
 
-size_t slap_biglock_release(BackendDB *bd) {
+size_t slap_biglock_release(slap_biglock_t* bl) {
 	int rc;
 	size_t res;
-	slap_biglock_t* bl = slap_biglock_get( bd );
 
 	if (!bl)
 		return 0;
@@ -146,14 +144,15 @@ int slap_biglock_call_be ( slap_operation_t which,
 						   SlapReply *rs ) {
 	int rc;
 	BI_op_func **func;
+	slap_biglock_t *bl = slap_biglock_get(op->o_bd);
 
-	slap_biglock_acquire(op->o_bd);
+	slap_biglock_acquire(bl);
 
 	/* LY: this crutch was copied from backover.c */
 	func = &op->o_bd->bd_info->bi_op_bind;
 	rc = func[which](op, rs);
 
-	slap_biglock_release(op->o_bd);
+	slap_biglock_release(bl);
 	return rc;
 }
 

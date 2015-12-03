@@ -1560,8 +1560,9 @@ syncprov_checkpoint( Operation *op, slap_overinst *on )
 	slap_callback cb = {0};
 	BackendDB be;
 	BackendInfo *bi;
+	slap_biglock_t *bl = slap_biglock_get(op->o_bd);
 
-	slap_biglock_acquire(op->o_bd);
+	slap_biglock_acquire(bl);
 	if (reopenldap_mode_idkfa())
 		slap_cookie_verify( &si->si_cookie );
 
@@ -1610,7 +1611,7 @@ syncprov_checkpoint( Operation *op, slap_overinst *on )
 		slap_mods_free( mod.sml_next, 1 );
 	}
 
-	slap_biglock_release(op->o_bd);
+	slap_biglock_release(bl);
 }
 
 static void
