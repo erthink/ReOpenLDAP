@@ -138,12 +138,14 @@ include: file://$ABS_SCHEMADIR/nis.ldif
 dn: olcDatabase={0}config,cn=config
 objectClass: olcDatabaseConfig
 olcDatabase: {0}config
+olcBiglock: local
 olcRootPW:< file://$CONFIGPWF
 
 dn: olcDatabase={1}$BACKEND,cn=config
 objectClass: olcDatabaseConfig
 ${nullExclude}objectClass: olc${BACKEND}Config
 olcDatabase: {1}$BACKEND
+olcBiglock: local
 olcSuffix: cn=log
 ${nullExclude}olcDbDirectory: ${DBDIR}.1
 olcRootDN: $MANAGERDN
@@ -160,6 +162,7 @@ dn: olcDatabase={2}$BACKEND,cn=config
 objectClass: olcDatabaseConfig
 ${nullExclude}objectClass: olc${BACKEND}Config
 olcDatabase: {2}$BACKEND
+olcBiglock: local
 olcSuffix: $BASEDN
 ${nullExclude}olcDbDirectory: ${DBDIR}.2
 olcRootDN: $MANAGERDN

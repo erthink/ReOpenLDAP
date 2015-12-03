@@ -115,6 +115,7 @@ changetype: add
 objectClass: olcDatabaseConfig
 objectClass: olcLdifConfig
 olcDatabase: {1}ldif
+olcBiglock: local
 olcDbDirectory: $DBDIR1A
 olcSuffix: cn=config,cn=slave
 olcRootDN: cn=config,cn=slave
@@ -141,6 +142,7 @@ dn: olcDatabase={0}config,cn=config,cn=slave
 changetype: add
 objectClass: olcDatabaseConfig
 olcDatabase: {0}config
+olcBiglock: local
 olcRootPW: topsecret
 olcSyncrepl: {0}rid=001 provider=$URI1 binddn="cn=config,cn=slave"
   bindmethod=simple credentials=repsecret searchbase="cn=config,cn=slave"
@@ -263,6 +265,7 @@ dn: olcDatabase={2}$BACKEND,cn=config
 objectClass: olcDatabaseConfig
 ${nullExclude}objectClass: olc${BACKEND}Config
 olcDatabase: {2}$BACKEND
+olcBiglock: local
 olcSuffix: $BASEDN
 ${nullExclude}olcDbDirectory: $DBDIR1B
 olcRootDN: $MANAGERDN
@@ -282,6 +285,7 @@ dn: olcDatabase={1}$BACKEND,cn=config,cn=slave
 objectClass: olcDatabaseConfig
 ${nullExclude}objectClass: olc${BACKEND}Config
 olcDatabase: {1}$BACKEND
+olcBiglock: local
 olcSuffix: $BASEDN
 ${nullExclude}olcDbDirectory: $DBDIR2A
 olcRootDN: $MANAGERDN
