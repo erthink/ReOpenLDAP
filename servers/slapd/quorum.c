@@ -558,27 +558,36 @@ int quorum_config(ConfigArgs *c) {
 
 	assert(quorum_list != QR_POISON);
 	if (c->op == SLAP_CONFIG_EMIT) {
-		if (q) {
-			if ((q->flags & QR_ALL_LINKS) != 0
-			&& value_add_one_str(&c->rvalue_vals, "all-links"))
-				return 1;
-			if ((q->flags & QR_AUTO_SIDS) != 0
-			&& value_add_one_str(&c->rvalue_vals, "auto-sids"))
-				return 1;
-			if ((q->flags & QR_AUTO_RIDS) != 0
-			&& value_add_one_str(&c->rvalue_vals, "auto-rids"))
-				return 1;
-			if (q->qr_requirements
-			&& (unparse(&c->rvalue_vals, q, QR_DEMAND_RID, "require-rids")
-			 || unparse(&c->rvalue_vals, q, QR_DEMAND_SID, "require-sids")
-			 || unparse(&c->rvalue_vals, q, QR_VOTED_RID, "vote-rids")
-			 || unparse(&c->rvalue_vals, q, QR_VOTED_SID, "vote-sids")))
-				return 1;
-			if (q->qr_syncrepl_limit > 0
-			&& (value_add_one_str(&c->rvalue_vals, "limit-concurrent-refresh")
-			 || value_add_one_int(&c->rvalue_vals, q->qr_syncrepl_limit)))
-				return 1;
+		BerVarray vals = NULL;
+		if (! q)
+			return 1;
+		if ((q->flags & QR_ALL_LINKS) != 0
+		&& value_add_one_str(&vals, "all-links"))
+			return 1;
+		if ((q->flags & QR_AUTO_SIDS) != 0
+		&& value_add_one_str(&vals, "auto-sids"))
+			return 1;
+		if ((q->flags & QR_AUTO_RIDS) != 0
+		&& value_add_one_str(&vals, "auto-rids"))
+			return 1;
+		if (q->qr_requirements
+		&& (unparse(&vals, q, QR_DEMAND_RID, "require-rids")
+		 || unparse(&vals, q, QR_DEMAND_SID, "require-sids")
+		 || unparse(&vals, q, QR_VOTED_RID, "vote-rids")
+		 || unparse(&vals, q, QR_VOTED_SID, "vote-sids")))
+			return 1;
+		if (q->qr_syncrepl_limit > 0
+		&& (value_add_one_str(&vals, "limit-concurrent-refresh")
+		 || value_add_one_int(&vals, q->qr_syncrepl_limit)))
+			return 1;
+
+		if (! vals)
+			return 1;
+		if (value_join_str(vals, " ", &c->value_bv) < 0) {
+			ber_bvarray_free(vals);
+			return -1;
 		}
+		ber_bvarray_free(vals);
 		return 0;
 	} else if ( c->op == LDAP_MOD_DELETE ) {
 		lock();
