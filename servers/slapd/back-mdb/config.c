@@ -115,6 +115,9 @@ static ConfigOCs mdbocs[] = {
 };
 
 static slap_verbmasks mdb_envflags[] = {
+#ifdef MDB_UTTERLY_NOSYNC
+	{ BER_BVC("utterly-nosync"),	MDB_UTTERLY_NOSYNC },
+#endif
 	{ BER_BVC("nosync"),	MDB_NOSYNC },
 	{ BER_BVC("nometasync"),	MDB_NOMETASYNC },
 	{ BER_BVC("writemap"),	MDB_WRITEMAP },
@@ -352,14 +355,22 @@ mdb_cf_gen( ConfigArgs *c )
 			break;
 
 		case MDB_DBNOSYNC:
-			if ( mdb->mi_dbenv_flags & MDB_NOSYNC )
+			if ( mdb->mi_dbenv_flags == MDB_UTTERLY_NOSYNC )
 				c->value_int = 1;
+			else if ( mdb->mi_dbenv_flags == 0 )
+				c->value_int = 0;
+			else
+				rc = 1;
 			break;
 
 		case MDB_ENVFLAGS:
-			if ( mdb->mi_dbenv_flags )
-				mask_to_verbs( mdb_envflags, mdb->mi_dbenv_flags, &c->rvalue_vals );
-			if ( !c->rvalue_vals ) rc = 1;
+			if ( mdb->mi_dbenv_flags == MDB_UTTERLY_NOSYNC )
+				rc = 1;
+			else {
+				if ( mdb->mi_dbenv_flags )
+					mask_to_verbs( mdb_envflags, mdb->mi_dbenv_flags, &c->rvalue_vals );
+				if ( !c->rvalue_vals ) rc = 1;
+			}
 			break;
 
 		case MDB_OOMFLAGS:
@@ -426,8 +437,8 @@ mdb_cf_gen( ConfigArgs *c )
 			ldap_pvt_thread_pool_purgekey( mdb->mi_dbenv );
 			break;
 		case MDB_DBNOSYNC:
-			mdb_env_set_flags( mdb->mi_dbenv, MDB_NOSYNC, 0 );
-			mdb->mi_dbenv_flags &= ~MDB_NOSYNC;
+			mdb_env_set_flags( mdb->mi_dbenv, MDB_UTTERLY_NOSYNC, 0 );
+			mdb->mi_dbenv_flags &= ~MDB_UTTERLY_NOSYNC;
 			break;
 
 		case MDB_ENVFLAGS:
@@ -667,12 +678,11 @@ mdb_cf_gen( ConfigArgs *c )
 
 	case MDB_DBNOSYNC:
 		if ( c->value_int )
-			mdb->mi_dbenv_flags |= MDB_NOSYNC;
+			mdb->mi_dbenv_flags |= MDB_UTTERLY_NOSYNC;
 		else
-			mdb->mi_dbenv_flags ^= MDB_NOSYNC;
+			mdb->mi_dbenv_flags &= ~MDB_UTTERLY_NOSYNC;
 		if ( mdb->mi_flags & MDB_IS_OPEN ) {
-			mdb_env_set_flags( mdb->mi_dbenv, MDB_NOSYNC,
-				c->value_int );
+			mdb_env_set_flags( mdb->mi_dbenv, MDB_UTTERLY_NOSYNC, c->value_int );
 		}
 		break;
 
