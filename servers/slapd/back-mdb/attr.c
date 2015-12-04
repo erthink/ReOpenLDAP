@@ -566,6 +566,8 @@ int mdb_ad_read( struct mdb_info *mdb, MDB_txn *txn )
 		return rc;
 	}
 
+	ldap_pvt_thread_mutex_lock( &mdb->mi_ads_mutex );
+
 	/* our array is 1-based, an index of 0 means no data */
 	i = mdb->mi_numads+1;
 	key.mv_size = sizeof(int);
@@ -593,13 +595,13 @@ int mdb_ad_read( struct mdb_info *mdb, MDB_txn *txn )
 		i++;
 		rc = mdb_cursor_get( mc, &key, &data, MDB_NEXT );
 	}
-	mdb->mi_numads = i-1;
 
-/* done: */
+	mdb->mi_numads = i-1;
+	ldap_pvt_thread_mutex_unlock( &mdb->mi_ads_mutex );
+	mdb_cursor_close( mc );
+
 	if ( rc == MDB_NOTFOUND )
 		rc = 0;
-
-	mdb_cursor_close( mc );
 
 	return rc;
 }
@@ -616,6 +618,7 @@ int mdb_ad_get( struct mdb_info *mdb, MDB_txn *txn, AttributeDescription *ad )
 	if ( mdb->mi_adxs[ad->ad_index] )
 		return 0;
 
+	ldap_pvt_thread_mutex_lock( &mdb->mi_ads_mutex );
 	i = mdb->mi_numads+1;
 	key.mv_size = sizeof(int);
 	key.mv_data = &i;
@@ -633,5 +636,6 @@ int mdb_ad_get( struct mdb_info *mdb, MDB_txn *txn, AttributeDescription *ad )
 			mdb_strerror(rc), rc);
 	}
 
+	ldap_pvt_thread_mutex_unlock( &mdb->mi_ads_mutex );
 	return rc;
 }

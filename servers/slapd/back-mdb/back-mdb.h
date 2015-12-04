@@ -103,6 +103,7 @@ struct mdb_info {
 #define	MDB_RE_OPEN		0x10
 #define	MDB_NEED_UPGRADE	0x20
 
+	ldap_pvt_thread_mutex_t	mi_ads_mutex;
 	int mi_numads;
 
 	MDB_dbi	mi_dbis[MDB_NDB];

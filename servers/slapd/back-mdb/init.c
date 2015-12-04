@@ -133,6 +133,8 @@ mdb_db_init( BackendDB *be, ConfigReply *cr )
 
 	slap_backtrace_set_dir( mdb->mi_dbenv_home );
 
+	ldap_pvt_thread_mutex_init( &mdb->mi_ads_mutex );
+
 	rc = mdb_monitor_db_init( be );
 
 	return rc;

@@ -678,7 +678,6 @@ static int mdb_entry_encode(Operation *op, Entry *e, MDB_val *data, Ecount *eh)
  * you can not free individual attributes or names from this
  * structure. Attempting to do so will likely corrupt memory.
  */
-
 int mdb_entry_decode(Operation *op, MDB_txn *txn, MDB_val *data, Entry **e)
 {
 	struct mdb_info *mdb = (struct mdb_info *) op->o_bd->be_private;
@@ -714,11 +713,11 @@ int mdb_entry_decode(Operation *op, MDB_txn *txn, MDB_val *data, Entry **e)
 			i ^= HIGH_BIT;
 			a->a_flags |= SLAP_ATTR_SORTED_VALS;
 		}
-		if (i > mdb->mi_numads) {
+		if (i > read_int__tsan_workaround(&mdb->mi_numads)) {
 			rc = mdb_ad_read(mdb, txn);
 			if (rc)
 				return rc;
-			if (i > mdb->mi_numads) {
+			if (i > read_int__tsan_workaround(&mdb->mi_numads)) {
 				Debug( LDAP_DEBUG_ANY,
 					"mdb_entry_decode: attribute index %d not recognized\n",
 					i );
