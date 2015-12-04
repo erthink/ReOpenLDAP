@@ -1613,15 +1613,17 @@ add_query(
 	new_cached_query->first = first = filter_first( query->filter );
 
 	ldap_pvt_thread_rdwr_init(&new_cached_query->rwlock);
-	if (wlock)
-		ldap_pvt_thread_rdwr_wlock(&new_cached_query->rwlock);
-
-	qb.base = query->base;
 
 	/* Adding a query    */
 	Debug( pcache_debug, "Lock AQ index = %p\n",
 			(void *) templ );
 	ldap_pvt_thread_rdwr_wlock(&templ->t_rwlock);
+
+	if (wlock)
+		ldap_pvt_thread_rdwr_wlock(&new_cached_query->rwlock);
+
+	qb.base = query->base;
+
 	qbase = avl_find( templ->qbase, &qb, pcache_dn_cmp );
 	if ( !qbase ) {
 		qbase = ch_calloc( 1, sizeof(Qbase) + qb.base.bv_len + 1 );
