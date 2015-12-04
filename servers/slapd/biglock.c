@@ -39,12 +39,23 @@ void slap_biglock_init ( BackendDB *bd ) {
 	bd->bd_biglock_mode = SLAPD_BIGLOCK_NONE;
 }
 
-void slap_biglock_destroy ( BackendDB *bd ) {
-	if (bd->bd_biglock) {
-		ldap_pvt_thread_mutex_destroy(&bd->bd_biglock->bl_mutex);
-		ch_free(bd->bd_biglock);
+static void slap_biglock_free( slap_biglock_t* bl ) {
+	LDAP_ENSURE(bl->bl_recursion == 0);
+	ldap_pvt_thread_mutex_destroy(&bl->bl_mutex);
+	ch_free(bl);
+}
+
+void slap_biglock_destroy( BackendDB *bd ) {
+	slap_biglock_t* bl = bd->bd_biglock;
+	if (bl) {
 		bd->bd_biglock = NULL;
 		bd->bd_biglock_mode = -1;
+		if (! bl->bl_recursion) {
+			slap_biglock_free(bl);
+		} else {
+			LDAP_ENSURE(ldap_pvt_thread_self() == bl->bl_owner);
+			bl->bl_free_on_release = 1;
+		}
 	}
 }
 
@@ -134,6 +145,8 @@ size_t slap_biglock_release(slap_biglock_t* bl) {
 		bl->bl_owner = thread_null;
 		rc = ldap_pvt_thread_mutex_unlock(&bl->bl_mutex);
 		assert(rc == 0);
+		if (bl->bl_free_on_release)
+			slap_biglock_free(bl);
 	}
 
 	return res;

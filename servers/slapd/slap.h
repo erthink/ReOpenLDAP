@@ -1788,6 +1788,7 @@ struct slap_biglock {
 	volatile ldap_pvt_thread_t bl_owner;
 	volatile size_t bl_age, bl_evo;
 	volatile int bl_recursion;
+	int bl_free_on_release;
 };
 
 struct BackendDB {
