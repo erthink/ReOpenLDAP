@@ -1785,7 +1785,7 @@ typedef struct slap_quorum slap_quorum_t;
 
 struct slap_biglock {
 	ldap_pvt_thread_mutex_t bl_mutex;
-	volatile ldap_pvt_thread_t bl_owner;
+	volatile ldap_pvt_thread_t _bl_owner;
 	volatile size_t bl_age, bl_evo;
 	volatile int bl_recursion;
 	int bl_free_on_release;
