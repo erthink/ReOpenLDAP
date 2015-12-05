@@ -50,6 +50,7 @@ meta_back_delete( Operation *op, SlapReply *rs )
 	}
 
 	assert( mc->mc_conns[ candidate ].msc_ld != NULL );
+	ldap_pvt_thread_mutex_lock( &mc->mc_mutex );
 
 	/*
 	 * Rewrite the compare dn, if needed
@@ -95,6 +96,7 @@ cleanup:;
 	}
 
 	if ( mc ) {
+		ldap_pvt_thread_mutex_unlock( &mc->mc_mutex );
 		meta_back_release_conn( mi, mc );
 	}
 

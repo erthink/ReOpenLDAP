@@ -819,6 +819,7 @@ getconn:;
 		return rs->sr_err;
 	}
 
+	ldap_pvt_thread_mutex_lock( &mc->mc_mutex );
 	dc.conn = op->o_conn;
 	dc.rs = rs;
 
@@ -921,6 +922,7 @@ getconn:;
 			op->o_log_prefix, (void *)mc );
 #endif /* DEBUG_205 */
 
+		ldap_pvt_thread_mutex_unlock( &mc->mc_mutex );
 		meta_back_release_conn( mi, mc );
 		mc = NULL;
 
@@ -2013,6 +2015,7 @@ finish:;
 	}
 
 	if ( mc ) {
+		ldap_pvt_thread_mutex_unlock( &mc->mc_mutex );
 		ldap_pvt_thread_mutex_lock( &mi->mi_conninfo.lai_mutex );
 		if ( do_taint ) {
 			LDAP_BACK_CONN_TAINTED_SET( mc );
