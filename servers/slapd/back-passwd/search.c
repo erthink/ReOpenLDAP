@@ -139,7 +139,7 @@ passwd_back_search(
 				Entry		e = { 0 };
 
 				/* check for abandon */
-				if ( op->o_abandon ) {
+				if ( get_op_abandon(op) ) {
 					endpwent();
 					ldap_pvt_thread_mutex_unlock( &passwd_mutex );
 					return( SLAPD_ABANDON );

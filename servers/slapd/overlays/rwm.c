@@ -162,7 +162,7 @@ rwm_op_cleanup( Operation *op, SlapReply *rs )
 	rwm_op_state *ros = cb->sc_private;
 
 	if ( rs->sr_type == REP_RESULT || rs->sr_type == REP_EXTENDED ||
-		op->o_abandon || rs->sr_err == SLAPD_ABANDON )
+		get_op_abandon(op) || rs->sr_err == SLAPD_ABANDON )
 	{
 		rwm_op_rollback( op, rs, ros );
 

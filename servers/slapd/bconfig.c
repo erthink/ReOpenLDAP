@@ -5650,7 +5650,7 @@ config_back_add( Operation *op, SlapReply *rs )
 		}
 	}
 
-	if ( op->o_abandon ) {
+	if ( get_op_abandon(op) ) {
 		rs->sr_err = SLAPD_ABANDON;
 		goto out;
 	}
@@ -6136,7 +6136,7 @@ config_back_modify( Operation *op, SlapReply *rs )
 	slap_mods_opattrs( op, &op->orm_modlist, 1 );
 
 	if ( do_pause ) {
-		if ( op->o_abandon ) {
+		if ( get_op_abandon(op) ) {
 			rs->sr_err = SLAPD_ABANDON;
 			goto out;
 		}
@@ -6308,7 +6308,7 @@ config_back_modrdn( Operation *op, SlapReply *rs )
 		goto out;
 	}
 
-	if ( op->o_abandon ) {
+	if ( get_op_abandon(op) ) {
 		rs->sr_err = SLAPD_ABANDON;
 		goto out;
 	}
@@ -6401,7 +6401,7 @@ config_back_delete( Operation *op, SlapReply *rs )
 		rs->sr_err = LDAP_NO_SUCH_OBJECT;
 	} else if ( ce->ce_kids ) {
 		rs->sr_err = LDAP_NOT_ALLOWED_ON_NONLEAF;
-	} else if ( op->o_abandon ) {
+	} else if ( get_op_abandon(op) ) {
 		rs->sr_err = SLAPD_ABANDON;
 	} else if ( ce->ce_type == Cft_Overlay ||
 			ce->ce_type == Cft_Database ||

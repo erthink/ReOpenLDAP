@@ -762,10 +762,10 @@ static void connection_abandon( Connection *c )
 			LDAP_ASSERT(next->o_conn == c);
 
 		/* don't abandon an op twice */
-		if ( o->o_abandon )
+		if ( get_op_abandon(o) )
 			continue;
 		op.orn_msgid = o->o_msgid;
-		o->o_abandon = 1;
+		set_op_abandon(o, 1);
 		op.o_bd = frontendDB;
 		frontendDB->be_abandon( &op, &rs );
 
@@ -1198,11 +1198,11 @@ operations_error:
 	if ( opidx == SLAP_OP_BIND && conn->c_conn_state == SLAP_C_BINDING )
 		conn->c_conn_state = SLAP_C_ACTIVE;
 
-	cancel = op->o_cancel;
+	cancel = get_op_cancel(op);
 	if ( cancel != SLAP_CANCEL_NONE && cancel != SLAP_CANCEL_DONE ) {
 		if ( cancel == SLAP_CANCEL_REQ ) {
-			op->o_cancel = rc == SLAPD_ABANDON
-				? SLAP_CANCEL_ACK : LDAP_TOO_LATE;
+			set_op_cancel(op, (rc == SLAPD_ABANDON)
+				? SLAP_CANCEL_ACK : LDAP_TOO_LATE);
 		}
 
 		do {
@@ -1212,10 +1212,10 @@ operations_error:
 			ldap_pvt_thread_mutex_unlock( &conn->c_mutex );
 			do {
 				ldap_pvt_thread_yield();
-			} while ( (cancel = op->o_cancel) != SLAP_CANCEL_NONE
+			} while ( (cancel = get_op_cancel(op)) != SLAP_CANCEL_NONE
 					&& cancel != SLAP_CANCEL_DONE );
 			ldap_pvt_thread_mutex_lock( &conn->c_mutex );
-		} while ( (cancel = op->o_cancel) != SLAP_CANCEL_NONE
+		} while ( (cancel = get_op_cancel(op)) != SLAP_CANCEL_NONE
 				&& cancel != SLAP_CANCEL_DONE );
 	}
 
@@ -1806,7 +1806,7 @@ connection_resched( Connection *conn )
 		LDAP_STAILQ_REMOVE_HEAD( &conn->c_pending_ops, o_next );
 
 		/* pending operations should not be marked for abandonment */
-		assert(!op->o_abandon);
+		assert(!get_op_abandon(op));
 
 		conn->c_n_ops_pending--;
 		conn->c_n_ops_executing++;
@@ -2017,7 +2017,7 @@ int connection_write(ber_socket_t s)
 		op->o_conn = NULL;
 
 		/* pending operations should not be marked for abandonment */
-		assert(!op->o_abandon);
+		assert(!get_op_abandon(op));
 
 		c->c_n_ops_pending--;
 		c->c_n_ops_executing++;

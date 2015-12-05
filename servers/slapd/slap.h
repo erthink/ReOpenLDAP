@@ -2672,8 +2672,8 @@ struct Operation {
 #define ore_reqoid oq_extended.rs_reqoid
 #define ore_flags oq_extended.rs_flags
 #define ore_reqdata oq_extended.rs_reqdata
-	volatile sig_atomic_t o_abandon;	/* abandon flag */
-	volatile sig_atomic_t o_cancel;		/* cancel flag */
+	volatile sig_atomic_t _o_abandon;	/* abandon flag */
+	volatile sig_atomic_t _o_cancel;		/* cancel flag */
 #define SLAP_CANCEL_NONE				0x00
 #define SLAP_CANCEL_REQ					0x01
 #define SLAP_CANCEL_ACK					0x02
@@ -2793,6 +2793,41 @@ struct Operation {
 
 	LDAP_STAILQ_ENTRY(Operation)	o_next;	/* next operation in list */
 };
+
+#ifdef __SANITIZE_THREAD__
+
+int get_op_abandon(const struct Operation *op);
+int get_op_cancel(const struct Operation *op);
+void set_op_abandon(struct Operation *op, int v);
+void set_op_cancel(struct Operation *op, int v);
+
+#else
+
+static __inline
+int get_op_abandon(const struct Operation *op)
+{
+	return op->_o_abandon;
+}
+
+static __inline
+int get_op_cancel(const struct Operation *op)
+{
+	return op->_o_cancel;
+}
+
+static __inline
+void set_op_abandon(struct Operation *op, int v)
+{
+	op->_o_abandon = v;
+}
+
+static __inline
+void set_op_cancel(struct Operation *op, int v)
+{
+	op->_o_cancel = v;
+}
+
+#endif /* __SANITIZE_THREAD__ */
 
 typedef struct OperationBuffer {
 	Operation	ob_op;

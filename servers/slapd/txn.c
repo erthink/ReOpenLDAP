@@ -180,7 +180,7 @@ int txn_end_extop(
 	op->o_conn->c_txn = CONN_TXN_SETTLE;
 
 	if( commit ) {
-		if ( op->o_abandon ) {
+		if ( get_op_abandon(op) ) {
 		}
 
 		if( LDAP_STAILQ_EMPTY(&op->o_conn->c_txn_ops) ) {

@@ -2360,13 +2360,13 @@ pcache_op_cleanup( Operation *op, SlapReply *rs ) {
 	query_manager*		qm = cm->qm;
 
 	if ( rs->sr_type == REP_RESULT ||
-		op->o_abandon || rs->sr_err == SLAPD_ABANDON )
+		get_op_abandon(op) || rs->sr_err == SLAPD_ABANDON )
 	{
 		if ( si->swap_saved_attrs ) {
 			rs->sr_attrs = si->save_attrs;
 			op->ors_attrs = si->save_attrs;
 		}
-		if ( (op->o_abandon || rs->sr_err == SLAPD_ABANDON) &&
+		if ( (get_op_abandon(op) || rs->sr_err == SLAPD_ABANDON) &&
 				si->caching_reason == PC_IGNORE )
 		{
 			filter_free( si->query.filter );

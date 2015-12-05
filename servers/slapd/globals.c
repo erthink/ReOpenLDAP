@@ -98,3 +98,31 @@ void memleak_crutch_pop(void *p)
 	}
 	LDAP_ENSURE(pthread_mutex_unlock(&memleak_crutch_lock) == 0);
 }
+
+#ifdef __SANITIZE_THREAD__
+
+ATTRIBUTE_NO_SANITIZE_THREAD
+int get_op_abandon(const struct Operation *op)
+{
+	return op->_o_abandon;
+}
+
+ATTRIBUTE_NO_SANITIZE_THREAD
+int get_op_cancel(const struct Operation *op)
+{
+	return op->_o_cancel;
+}
+
+ATTRIBUTE_NO_SANITIZE_THREAD
+void set_op_abandon(struct Operation *op, int v)
+{
+	op->_o_abandon = v;
+}
+
+ATTRIBUTE_NO_SANITIZE_THREAD
+void set_op_cancel(struct Operation *op, int v)
+{
+	op->_o_cancel = v;
+}
+
+#endif /* __SANITIZE_THREAD__ */

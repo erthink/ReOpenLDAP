@@ -100,8 +100,15 @@ typedef struct syncops {
 #endif /* SLAP_NO_SL_MALLOC */
 
 /* LY: safely check is it abandoned, without deref so->s_op */
-#define is_syncops_abandoned(so) \
-	((so)->s_next == (so) || (so)->s_op->o_abandon)
+#ifdef __SANITIZE_THREAD__
+static ATTRIBUTE_NO_SANITIZE_THREAD
+#else
+static __inline
+#endif
+int is_syncops_abandoned(const syncops *so)
+{
+	return so->s_next == so || get_op_abandon(so->s_op);
+}
 
 /* A received sync control */
 typedef struct sync_control {
@@ -1240,7 +1247,7 @@ syncprov_op_abandon( Operation *op, SlapReply *rs )
 			so->s_op->o_msgid == op->orn_msgid ) {
 				*pso = so->s_next;
 				so->s_next = so; /* LY: safely mark it as terminated */
-				so->s_op->o_abandon = 1;
+				set_op_abandon(so->s_op, 1);
 				break;
 		}
 	}
@@ -1249,7 +1256,7 @@ syncprov_op_abandon( Operation *op, SlapReply *rs )
 	if ( so ) {
 		/* Is this really a Cancel exop? */
 		if ( op->o_tag != LDAP_REQ_ABANDON ) {
-			so->s_op->o_cancel = SLAP_CANCEL_ACK;
+			set_op_cancel(so->s_op, SLAP_CANCEL_ACK);
 			rs->sr_err = LDAP_CANCELLED;
 			send_ldap_result( so->s_op, rs );
 			if ( so->s_flags & PS_IS_DETACHED ) {
@@ -2239,7 +2246,7 @@ retry:
 				ldap_pvt_thread_mutex_lock( &mt->mt_mutex );
 
 				/* clean up if the caller is giving up */
-				if ( op->o_abandon ) {
+				if ( get_op_abandon(op) ) {
 					slap_callback **pcb;
 					modinst **pmi;
 					for (pmi = &mt->mt_mods; /* *pmi != NULL */; pmi = &(*pmi)->mi_next ) {
@@ -2389,7 +2396,7 @@ syncprov_detach_op( Operation *op, syncops *so, slap_overinst *on )
 
 	/* Prevent anyone else from trying to send a result for this op */
 	so->s_flags |= PS_IS_DETACHED;
-	op->o_abandon = 1;
+	set_op_abandon(op, 1);
 	/* LY: Icing on the cake - this is a crutch/workaround
 	 * for https://github.com/ReOpen/ReOpenLDAP/issues/47 */
 	op->o_msgid += ~((~0u) >> 1);
@@ -2518,7 +2525,7 @@ syncprov_search_response( Operation *op, SlapReply *rs )
 			ldap_pvt_thread_mutex_lock( &op->o_conn->c_mutex );
 
 			/* But not if this connection was closed along the way */
-			if (unlikely(op->o_abandon)) {
+			if (unlikely(get_op_abandon(op))) {
 abandon:
 				ldap_pvt_thread_mutex_unlock( &op->o_conn->c_mutex );
 				/* syncprov_abandon_cleanup will free this syncop */

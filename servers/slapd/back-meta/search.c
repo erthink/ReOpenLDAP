@@ -1118,7 +1118,7 @@ getconn:;
 			}
 
 			/* check for abandon */
-			if ( op->o_abandon || LDAP_BACK_CONN_ABANDON( mc ) ) {
+			if ( get_op_abandon(op) || LDAP_BACK_CONN_ABANDON( mc ) ) {
 				break;
 			}
 
@@ -1735,7 +1735,7 @@ free_message:;
 		}
 
 		/* check for abandon */
-		if ( op->o_abandon || LDAP_BACK_CONN_ABANDON( mc ) ) {
+		if ( get_op_abandon(op) || LDAP_BACK_CONN_ABANDON( mc ) ) {
 			for ( i = 0; i < mi->mi_ntargets; i++ ) {
 				if ( candidates[ i ].sr_msgid >= 0
 					|| candidates[ i ].sr_msgid == META_MSGID_CONNECTING )
@@ -1777,7 +1777,7 @@ free_message:;
 				}
 			}
 
-			if ( op->o_abandon ) {
+			if ( get_op_abandon(op) ) {
 				rc = SLAPD_ABANDON;
 			}
 
