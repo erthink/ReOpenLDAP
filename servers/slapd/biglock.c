@@ -27,6 +27,7 @@ void slap_biglock_init ( BackendDB *bd ) {
 	slap_biglock_t *bl;
 	int rc;
 
+	assert(bd->bd_self == bd);
 	assert(bd->bd_biglock == NULL);
 	bl = ch_calloc(1, sizeof(slap_biglock_t));
 	rc = ldap_pvt_thread_mutex_init(&bl->bl_mutex);
@@ -46,6 +47,7 @@ static void slap_biglock_free( slap_biglock_t* bl ) {
 }
 
 void slap_biglock_destroy( BackendDB *bd ) {
+	assert(bd->bd_self == bd);
 	slap_biglock_t* bl = bd->bd_biglock;
 	if (bl) {
 		bd->bd_biglock = NULL;
@@ -62,7 +64,9 @@ void slap_biglock_destroy( BackendDB *bd ) {
 static const ldap_pvt_thread_t thread_null;
 
 slap_biglock_t* slap_biglock_get( BackendDB *bd ) {
-	switch(bd->bd_biglock_mode) {
+	bd = bd->bd_self;
+
+	switch (bd->bd_biglock_mode) {
 	default:
 		/* LY: zero-value indicates than mode was not initialized,
 		 * for instance in overlay's code. */

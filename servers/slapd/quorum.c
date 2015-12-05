@@ -112,6 +112,7 @@ static void quorum_be_init(BackendDB *bd) {
 	slap_quorum_t *q;
 
 	assert(quorum_list != QR_POISON);
+	assert(bd->bd_self == bd);
 	q = ch_calloc(1, sizeof(slap_quorum_t));
 
 	q->qr_bd = bd;
@@ -123,6 +124,7 @@ static void quorum_be_init(BackendDB *bd) {
 
 void quorum_be_destroy(BackendDB *bd) {
 	assert(quorum_list != QR_POISON);
+	assert(bd->bd_self == bd);
 
 	if (bd->bd_quorum) {
 		slap_quorum_t *q, **pq;

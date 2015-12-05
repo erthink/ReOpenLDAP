@@ -7282,8 +7282,6 @@ config_back_db_destroy( BackendDB *be, ConfigReply *cr )
 		BER_BVZERO( &cfb->cb_db.be_rootndn );
 
 		backend_destroy_one( &cfb->cb_db, 0 );
-	} else {
-		slap_biglock_destroy( &cfb->cb_db );
 	}
 
 	loglevel_destroy();
@@ -7301,7 +7299,6 @@ config_back_db_init( BackendDB *be, ConfigReply* cr )
 	cfb->cb_config = ch_calloc( 1, sizeof(ConfigFile));
 	cfn = cfb->cb_config;
 	be->be_private = cfb;
-	slap_biglock_init(&cfb->cb_db);
 
 	ber_dupbv( &be->be_rootdn, &config_rdn );
 	ber_dupbv( &be->be_rootndn, &be->be_rootdn );
