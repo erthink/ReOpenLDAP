@@ -234,6 +234,7 @@ static int lazy_update(slap_quorum_t *q) {
 }
 
 static void quorum_invalidate(BackendDB *bd) {
+	assert(bd->bd_self == bd);
 	bd->bd_quorum_cache = 0;
 }
 
@@ -248,6 +249,7 @@ void quorum_notify_self_sid() {
 }
 
 int quorum_query(BackendDB *bd) {
+	bd = bd->bd_self;
 	int snap = bd->bd_quorum_cache;
 	if (unlikely(snap == 0)) {
 		assert(quorum_list != QR_POISON);
@@ -425,6 +427,7 @@ void quorum_add_rid(BackendDB *bd, int rid) {
 	struct present* p;
 	assert(rid > -1 || rid <= SLAP_SYNC_RID_MAX);
 	assert(quorum_list != QR_POISON);
+	bd = bd->bd_self;
 
 	lock();
 	if (! bd->bd_quorum)
@@ -464,6 +467,7 @@ void quorum_remove_rid(BackendDB *bd, int rid) {
 	struct present* p;
 	assert(rid > -1 || rid <= SLAP_SYNC_RID_MAX);
 	assert(quorum_list != QR_POISON);
+	bd = bd->bd_self;
 
 	lock();
 
@@ -505,6 +509,7 @@ void quorum_notify_sid(BackendDB *bd, int rid, int sid) {
 	assert(rid > -1 || rid <= SLAP_SYNC_RID_MAX);
 	assert(sid < 0 || sid <= SLAP_SYNC_SID_MAX);
 	assert(quorum_list != QR_POISON);
+	bd = bd->bd_self;
 
 	if (bd->bd_quorum) {
 		lock();
@@ -517,6 +522,7 @@ void quorum_notify_sid(BackendDB *bd, int rid, int sid) {
 void quorum_notify_status(BackendDB *bd, int rid, int ready) {
 	assert(rid > -1 || rid <= SLAP_SYNC_RID_MAX);
 	assert(quorum_list != QR_POISON);
+	bd = bd->bd_self;
 
 	if (bd->bd_quorum) {
 		lock();
@@ -529,6 +535,7 @@ void quorum_notify_status(BackendDB *bd, int rid, int ready) {
 void quorum_notify_csn(BackendDB *bd, int csnsid) {
 	assert(quorum_list != QR_POISON);
 	assert(csnsid > -1 && csnsid <= SLAP_SYNC_SID_MAX);
+	bd = bd->bd_self;
 
 	if (bd->bd_quorum && (bd->bd_quorum->flags & QR_AUTO_SIDS))  {
 		lock();
@@ -557,6 +564,7 @@ static int unparse(BerVarray *vals, slap_quorum_t *q, int type, const char* verb
 int quorum_config(ConfigArgs *c) {
 	int i, type;
 	slap_quorum_t *q = c->be->bd_quorum;
+	assert(c->be->bd_self == c->be);
 
 	assert(quorum_list != QR_POISON);
 	if (c->op == SLAP_CONFIG_EMIT) {
@@ -712,6 +720,7 @@ int quorum_syncrepl_gate(BackendDB *bd, void *instance_key, int in)
 {
 	slap_quorum_t *q;
 	int i, slot, rc, turn;
+	bd = bd->bd_self;
 
 	assert(instance_key != NULL);
 	if (! instance_key)
