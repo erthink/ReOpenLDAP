@@ -199,8 +199,7 @@
 
 /* -------------------------------------------------------------------------- */
 
-/* Prototype should match libc runtime. ISO POSIX (2003) & LSB 3.1 */
-__extern_C void __assert_fail(
+__extern_C void __ldap_assert_fail(
 		const char* assertion,
 		const char* file,
 		unsigned line,
@@ -243,7 +242,7 @@ __extern_C void reopenldap_jitter(int probability_percent);
 
 #define LDAP_ENSURE(condition) do \
 		if (unlikely(!(condition))) \
-			__assert_fail("ldap: " #condition, __FILE__, __LINE__, __FUNCTION__); \
+			__ldap_assert_fail("ldap: " #condition, __FILE__, __LINE__, __FUNCTION__); \
 	while (0)
 
 #if ! LDAP_ASSERT_CHECK
@@ -257,7 +256,7 @@ __extern_C void reopenldap_jitter(int probability_percent);
 	while (0)
 #endif /* LDAP_ASSERT_CHECK */
 
-#define LDAP_BUG() __assert_fail("ldap-BUG", __FILE__, __LINE__, __FUNCTION__)
+#define LDAP_BUG() __ldap_assert_fail("ldap-BUG", __FILE__, __LINE__, __FUNCTION__)
 
 #undef assert
 #define assert(expr) LDAP_ASSERT(expr)
