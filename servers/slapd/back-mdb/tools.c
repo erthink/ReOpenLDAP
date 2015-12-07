@@ -640,7 +640,7 @@ ID mdb_tool_entry_put(
 				 text->bv_val );
 			return NOID;
 		}
-		if ( !mdb->mi_nextid ) {
+		if ( ! mdb_read_nextid(mdb) ) {
 			ID dummy;
 			mdb_next_id( be, idcursor, &dummy );
 		}

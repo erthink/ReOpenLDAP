@@ -213,11 +213,9 @@ mdb_filter_candidates(
 	}
 	if ( ids[2] == NOID && MDB_IDL_IS_RANGE( ids )) {
 		struct mdb_info *mdb = (struct mdb_info *) op->o_bd->be_private;
-		ID last;
+		ID last = mdb_read_nextid(mdb);
 
-		if ( mdb->mi_nextid ) {
-			last = mdb->mi_nextid;
-		} else {
+		if ( !last ) {
 			MDB_cursor *mc;
 			MDB_val key;
 

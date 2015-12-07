@@ -69,7 +69,7 @@ struct mdb_info {
 	int			mi_dbenv_mode;
 
 	size_t		mi_mapsize;
-	ID			mi_nextid;
+	volatile ID	_mi_nextid;
 
 	slap_mask_t	mi_defaultmask;
 	int			mi_nattrs;
@@ -110,6 +110,15 @@ struct mdb_info {
 	AttributeDescription *mi_ads[MDB_MAXADS];
 	int mi_adxs[MDB_MAXADS];
 };
+
+#ifdef __SANITIZE_THREAD__
+ID mdb_read_nextid(struct mdb_info *mdb);
+#else
+static __inline
+ID mdb_read_nextid(struct mdb_info *mdb) {
+	return mdb->_mi_nextid;
+}
+#endif
 
 #define mi_id2entry	mi_dbis[MDB_ID2ENTRY]
 #define mi_dn2id	mi_dbis[MDB_DN2ID]

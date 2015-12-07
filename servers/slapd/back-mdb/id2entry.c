@@ -60,7 +60,7 @@ static int mdb_id2entry_put(
 
 	flag |= MDB_RESERVE;
 
-	if (e->e_id < mdb->mi_nextid)
+	if (e->e_id < mdb_read_nextid(mdb))
 		flag &= ~MDB_APPEND;
 
 again:
