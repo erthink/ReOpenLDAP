@@ -326,7 +326,15 @@ done:;
 	}
 
 	/* see if a matching description is already cached */
-	for (d2 = desc.ad_type->sat_ad; d2; d2=d2->ad_next) {
+	for (d2 = read_ptr__tsan_workaround(&desc.ad_type->sat_ad);
+			d2 != NULL;
+			d2 = read_ptr__tsan_workaround(&d2->ad_next)) {
+
+#ifdef __SANITIZE_THREAD__
+		ldap_pvt_thread_mutex_lock( &desc.ad_type->sat_ad_mutex );
+		ldap_pvt_thread_mutex_unlock( &desc.ad_type->sat_ad_mutex );
+#endif
+
 		if( d2->ad_flags != desc.ad_flags ) {
 			continue;
 		}
@@ -443,9 +451,11 @@ done:;
 		 */
 		if (desc.ad_type->sat_ad == NULL || dlen == 0) {
 			d2->ad_next = desc.ad_type->sat_ad;
+			compiler_barrier();
 			desc.ad_type->sat_ad = d2;
 		} else {
 			d2->ad_next = desc.ad_type->sat_ad->ad_next;
+			compiler_barrier();
 			desc.ad_type->sat_ad->ad_next = d2;
 		}
 		ldap_pvt_thread_mutex_unlock( &desc.ad_type->sat_ad_mutex );
@@ -527,6 +537,8 @@ int is_ad_subtype(
 	return is_ad_subtags( &sub->ad_tags, &super->ad_tags );
 }
 
+static pthread_mutex_t tsan_mutex = PTHREAD_MUTEX_INITIALIZER;
+
 int ad_inlist(
 	AttributeDescription *desc,
 	AttributeName *attrs )
@@ -600,31 +612,35 @@ int ad_inlist(
 		 * else if requested description is !objectClass, return
 		 * attributes which the class does not require/allow
 		 */
-		if ( !( attrs->an_flags & SLAP_AN_OCINITED )) {
-			if( attrs->an_name.bv_val ) {
-				switch( attrs->an_name.bv_val[0] ) {
-				case '@': /* @objectClass */
-				case '+': /* +objectClass (deprecated) */
-				case '!': { /* exclude */
-						struct berval ocname;
-						ocname.bv_len = attrs->an_name.bv_len - 1;
-						ocname.bv_val = &attrs->an_name.bv_val[1];
-						oc = oc_bvfind( &ocname );
-						if ( oc && attrs->an_name.bv_val[0] == '!' ) {
-							attrs->an_flags |= SLAP_AN_OCEXCLUDE;
-						} else {
-							attrs->an_flags &= ~SLAP_AN_OCEXCLUDE;
-						}
-					} break;
+		if ( !( read_int__tsan_workaround(&attrs->an_flags) & SLAP_AN_OCINITED )) {
+			ldap_pvt_thread_mutex_lock( &tsan_mutex );
+			if( !(attrs->an_flags & SLAP_AN_OCINITED) ) {
+				if ( attrs->an_name.bv_val ) {
+					switch( attrs->an_name.bv_val[0] ) {
+					case '@': /* @objectClass */
+					case '+': /* +objectClass (deprecated) */
+					case '!': { /* exclude */
+							struct berval ocname;
+							ocname.bv_len = attrs->an_name.bv_len - 1;
+							ocname.bv_val = &attrs->an_name.bv_val[1];
+							oc = oc_bvfind( &ocname );
+							if ( oc && attrs->an_name.bv_val[0] == '!' ) {
+								attrs->an_flags |= SLAP_AN_OCEXCLUDE;
+							} else {
+								attrs->an_flags &= ~SLAP_AN_OCEXCLUDE;
+							}
+						} break;
 
-				default: /* old (deprecated) way */
-					oc = oc_bvfind( &attrs->an_name );
+					default: /* old (deprecated) way */
+						oc = oc_bvfind( &attrs->an_name );
+					}
+					attrs->an_oc = oc;
 				}
-				attrs->an_oc = oc;
+				attrs->an_flags |= SLAP_AN_OCINITED;
 			}
-			attrs->an_flags |= SLAP_AN_OCINITED;
+			ldap_pvt_thread_mutex_unlock( &tsan_mutex );
 		}
-		oc = attrs->an_oc;
+		oc = read_ptr__tsan_workaround(&attrs->an_oc);
 		if( oc != NULL ) {
 			if ( attrs->an_flags & SLAP_AN_OCEXCLUDE ) {
 				if ( oc == slap_schema.si_oc_extensibleObject ) {
