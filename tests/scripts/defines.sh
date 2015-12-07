@@ -494,15 +494,21 @@ function safepath {
 function collect_coredumps {
 	wait
 	local id=${1:-xxx-$(date '+%F.%H%M%S.%N')}
-	local cores="$(find -L ../${SRCDIR}/tests ../${SRCDIR}/libraries/liblmdb -name core -type f)"
-	if [ -n "${cores}" ]; then
-		echo "Found some CORE(s): '$(safepath $cores)', collect it..." >&2
+	local cores="$(find -L ../${SRCDIR}/tests ../${SRCDIR}/libraries/liblmdb -type f -name core)"
+	local sans="$(find -L ../${SRCDIR}/tests ../${SRCDIR}/libraries/liblmdb -type f -name 'tsan-log*' -o -name 'asan-log*')"
+	if [ -n "${cores}" -o -n "${sans}" ]; then
+		if [ -n "${cores}" ]; then
+			echo "Found some CORE(s): '$(safepath $cores)', collect it..." >&2
+		fi
+		if [ -n "${sans}" ]; then
+			echo "Found some TSAN/ASAN(s): '$(safepath $sans)', collect it..." >&2
+		fi
 
 		local dir n c target
 		if [ -n "${TEST_NOOK}" ]; then
 			dir="../${SRCDIR}/${TEST_NOOK}"
 		else
-			dir="../${SRCDIR}/@cores"
+			dir="../${SRCDIR}/@cores-n-sans"
 		fi
 
 		mkdir -p "$dir" || failure "failed: mkdir -p '$dir'"
@@ -515,8 +521,22 @@ function collect_coredumps {
 			done
 			mv "$c" "${target}" || failure "failed: mv '$c' '${target}'"
 		done
+		n=
+		for c in ${sans}; do
+			while true; do
+				target="${dir}/${id}${n}.san"
+				if [ ! -e "${target}" ]; then break; fi
+				n=$((n-1))
+			done
+			mv "$c" "${target}" || failure "failed: mv '$c' '${target}'"
+		done
 
-		teamcity_msg "publishArtifacts '$(safepath ${dir})/${id}*.core => ${id}-cores.tar.gz'"
+		if [ -n "${cores}" ]; then
+			teamcity_msg "publishArtifacts '$(safepath ${dir})/${id}*.core => ${id}-cores.tar.gz'"
+		fi
+		if [ -n "${sans}" ]; then
+			teamcity_msg "publishArtifacts '$(safepath ${dir})/${id}*.san => ${id}-sans.tar.gz'"
+		fi
 		teamcity_sleep 1
 		return 1
 	fi
