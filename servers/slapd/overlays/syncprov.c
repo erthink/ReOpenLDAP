@@ -1412,15 +1412,14 @@ syncprov_matchops( Operation *op, opcookie *opc, int saveit )
 			ldap_pvt_thread_mutex_lock( &ss->s_mutex );
 			rc = SLAPD_ABANDON;
 			if ( likely(! is_syncops_abandoned( ss )) ) {
-				Operation op2 = *ss->s_op;
+				Operation op2; op_copy(ss->s_op, &op2, NULL, NULL);
 				Opheader oh = *op->o_hdr;
 
-				oh.oh_conn = ss->s_op->o_conn;
-				oh.oh_connid = ss->s_op->o_connid;
+				oh.oh_conn = op2.o_conn;
+				oh.oh_connid = op2.o_connid;
 				op2.o_bd = op->o_bd->bd_self;
 				op2.o_hdr = &oh;
 				op2.o_extra = op->o_extra;
-				op2.o_callback = NULL;
 				if ( ss->s_flags & PS_FIX_FILTER ) {
 					/* Skip the AND/GE clause that we stuck on in front. We
 					   would lose deletes/mods that happen during the refresh
