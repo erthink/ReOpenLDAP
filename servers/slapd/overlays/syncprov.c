@@ -2533,13 +2533,16 @@ abandon:
 			}
 
 			assert(ss->ss_so->s_flags & OS_REF_MASK);
+			ldap_pvt_thread_mutex_lock( &si->si_ops_mutex );
 			ldap_pvt_thread_mutex_lock( &ss->ss_so->s_mutex );
 			assert(ss->ss_so->s_flags & OS_REF_MASK);
 
 			if (unlikely(is_syncops_abandoned(ss->ss_so))) {
 				ldap_pvt_thread_mutex_unlock( &ss->ss_so->s_mutex );
+				ldap_pvt_thread_mutex_unlock( &si->si_ops_mutex );
 				goto abandon;
 			}
+
 
 			/* Turn off the refreshing flag */
 			ss->ss_so->s_flags ^= PS_IS_REFRESHING;
@@ -2552,6 +2555,7 @@ abandon:
 			if ( ss->ss_so->s_rl )
 				syncprov_payback_enqueue( ss->ss_so );
 			ldap_pvt_thread_mutex_unlock( &ss->ss_so->s_mutex );
+			ldap_pvt_thread_mutex_unlock( &si->si_ops_mutex );
 
 			return LDAP_SUCCESS;
 		}
