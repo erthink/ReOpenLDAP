@@ -2801,6 +2801,10 @@ int get_op_cancel(const struct Operation *op);
 void set_op_abandon(struct Operation *op, int v);
 void set_op_cancel(struct Operation *op, int v);
 
+int read_int__tsan_workaround(volatile int *ptr);
+char read_char__tsan_workaround(volatile char *ptr);
+void* read_ptr__tsan_workaround(void *ptr);
+
 #else
 
 static __inline
@@ -2827,7 +2831,25 @@ void set_op_cancel(struct Operation *op, int v)
 	op->_o_cancel = v;
 }
 
+static __inline
+int read_int__tsan_workaround(volatile int *ptr) {
+		return *ptr;
+}
+
+static __inline
+char read_char__tsan_workaround(volatile char *ptr) {
+		return *ptr;
+}
+
+static __inline
+void* read_ptr__tsan_workaround(void *ptr) {
+		return *(void * volatile *)ptr;
+}
+
 #endif /* __SANITIZE_THREAD__ */
+
+void op_copy(const volatile Operation *src,
+	Operation *op, Opheader *hdr, BackendDB *be);
 
 typedef struct OperationBuffer {
 	Operation	ob_op;

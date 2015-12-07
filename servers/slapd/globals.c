@@ -125,4 +125,52 @@ void set_op_cancel(struct Operation *op, int v)
 	op->_o_cancel = v;
 }
 
+ATTRIBUTE_NO_SANITIZE_THREAD
+int read_int__tsan_workaround(volatile int *ptr) {
+		return *ptr;
+}
+
+ATTRIBUTE_NO_SANITIZE_THREAD
+char read_char__tsan_workaround(volatile char *ptr) {
+		return *ptr;
+}
+
+ATTRIBUTE_NO_SANITIZE_THREAD
+void* read_ptr__tsan_workaround(void *ptr) {
+		return *(void * volatile *)ptr;
+}
+
 #endif /* __SANITIZE_THREAD__ */
+
+ATTRIBUTE_NO_SANITIZE_THREAD
+void op_copy(const volatile Operation *src, Operation *op, Opheader *hdr, BackendDB *be)
+{
+	BackendDB* bd;
+	BackendInfo *bi;
+
+retry:
+	bd = src->o_bd;
+	compiler_barrier();
+	bi = bd->bd_info;
+	compiler_barrier();
+	*op = *src;
+	compiler_barrier();
+	if (be) {
+		*be = *bd;
+		compiler_barrier();
+		op->o_bd = be;
+	}
+	if (hdr) {
+		*hdr = *src->o_hdr;
+		compiler_barrier();
+		op->o_hdr = hdr;
+	}
+	if (unlikely(bd != src->o_bd))
+		goto retry;
+	if (unlikely(bi != bd->bd_info))
+		goto retry;
+	if (be && unlikely(bi != be->bd_info))
+		goto retry;
+
+	op->o_callback = NULL;
+}
