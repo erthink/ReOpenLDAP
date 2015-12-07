@@ -538,6 +538,9 @@ int main( int argc, char **argv )
 				goto destroy;
 			}
 
+			/* LY: it is not needed to lock mutex here, but to reminding */
+			ldap_pvt_thread_mutex_lock( &slap_sync_cookie_mutex );
+
 			LDAP_STAILQ_FOREACH( scp_entry, &slap_sync_cookie, sci_next ) {
 				if ( scp->sci_cookie.rid == scp_entry->sci_cookie.rid ) {
 					Debug( LDAP_DEBUG_ANY,
@@ -548,6 +551,8 @@ int main( int argc, char **argv )
 				}
 			}
 			LDAP_STAILQ_INSERT_TAIL( &slap_sync_cookie, scp, sci_next );
+
+			ldap_pvt_thread_mutex_unlock( &slap_sync_cookie_mutex );
 			break;
 
 		case 'd': {	/* set debug level and 'do not detach' flag */

@@ -36,6 +36,7 @@
 
 static int* slap_csns_parse_sids(BerVarray csns, int* sids, void *memctx);
 
+pthread_mutex_t slap_sync_cookie_mutex = PTHREAD_MUTEX_INITIALIZER;
 struct slap_sync_cookie_s slap_sync_cookie =
 	LDAP_STAILQ_HEAD_INITIALIZER( slap_sync_cookie );
 

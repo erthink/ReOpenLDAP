@@ -697,6 +697,8 @@ syncrep_start(
 	 * any meaningful state.
 	 */
 	if ( !si->si_syncCookie.ctxcsn ) {
+		ldap_pvt_thread_mutex_lock( &slap_sync_cookie_mutex );
+
 		LDAP_STAILQ_FOREACH( sc, &slap_sync_cookie, sci_next ) {
 			if ( si->si_rid == sc->sci_cookie.rid ) {
 				cmdline_cookie_found = 1;
@@ -721,6 +723,8 @@ syncrep_start(
 			si->si_cookieAge = si->si_cookieState->cs_age;
 			ldap_pvt_thread_mutex_unlock( &si->si_cookieState->cs_mutex );
 		}
+
+		ldap_pvt_thread_mutex_unlock( &slap_sync_cookie_mutex );
 	}
 
 	/* whenever there are multiple data sources possible, advertise sid */
