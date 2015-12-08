@@ -1300,9 +1300,11 @@ void connection_client_stop(
 		ber_len_t max = sockbuf_max_incoming;
 		ber_sockbuf_ctrl( c->c_sb, LBER_SB_OPT_SET_MAX_INCOMING, &max );
 	}
+	ldap_pvt_thread_mutex_lock( &connections_mutex );
 	c->c_conn_state = SLAP_C_INVALID;
 	c->c_struct_state = SLAP_C_UNUSED;
 	slapd_remove( s, sb, 0, 1, 0 );
+	ldap_pvt_thread_mutex_unlock( &connections_mutex );
 
 	connection_return( c );
 }
