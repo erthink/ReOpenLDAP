@@ -328,14 +328,18 @@ static long send_ldap_ber(
 	ber_get_option( ber, LBER_OPT_BER_BYTES_TO_WRITE, &bytes );
 
 	/* write only one pdu at a time - wait til it's our turn */
+	ldap_pvt_thread_mutex_lock( &conn->c_mutex );
 	ldap_pvt_thread_mutex_lock( &conn->c_write1_mutex );
+
 	if (( get_op_abandon(op) && !get_op_cancel(op) ) || !connection_valid( conn ) ||
 		conn->c_writers < 0 ) {
 		ldap_pvt_thread_mutex_unlock( &conn->c_write1_mutex );
+		ldap_pvt_thread_mutex_unlock( &conn->c_mutex );
 		return 0;
 	}
 
 	conn->c_writers++;
+	ldap_pvt_thread_mutex_unlock( &conn->c_mutex );
 
 	while ( conn->c_writers > 0 && conn->c_writing ) {
 		ldap_pvt_thread_cond_wait( &conn->c_write1_cv, &conn->c_write1_mutex );
