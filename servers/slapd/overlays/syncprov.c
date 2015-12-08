@@ -1019,12 +1019,11 @@ syncprov_payback_enqueue( syncops *so );
 
 /* Play back queued responses */
 static int
-syncprov_payback_do( Operation *op, syncops *so )
+syncprov_payback_do_locked( Operation *op, syncops *so )
 {
 	reslink *rl;
 	int resubmit, rc = LDAP_SUCCESS;
 
-	ldap_pvt_thread_mutex_lock( &so->s_mutex );
 	do {
 		rl = so->s_rl;
 		if ( !rl )
@@ -1055,7 +1054,6 @@ syncprov_payback_do( Operation *op, syncops *so )
 	 * there are more responses queued and no errors occurred.
 	 */
 	resubmit = (rc == LDAP_SUCCESS && so->s_rl) ? 1 : 0;
-	ldap_pvt_thread_mutex_unlock( &so->s_mutex );
 	return resubmit;
 }
 
@@ -1069,27 +1067,24 @@ syncprov_payback_dequeue( void *ctx, void *arg )
 	BackendDB be;
 	int resubmit;
 
-	op = &opbuf.ob_op;
-	*op = *so->s_op;
-	op->o_hdr = &opbuf.ob_hdr;
+	ldap_pvt_thread_mutex_lock( &so->s_mutex );
+
+	op_copy(so->s_op, op = &opbuf.ob_op, &opbuf.ob_hdr, &be);
 	op->o_controls = opbuf.ob_controls;
 	memset( op->o_controls, 0, sizeof(opbuf.ob_controls) );
 	op->o_sync = SLAP_CONTROL_IGNORED;
-
-	*op->o_hdr = *so->s_op->o_hdr;
 
 	op->o_tmpmemctx = slap_sl_mem_create(SLAP_SLAB_SIZE, SLAP_SLAB_STACK, ctx, 1);
 	op->o_tmpmfuncs = &slap_sl_mfuncs;
 	op->o_threadctx = ctx;
 
 	/* syncprov_payback_do expects a fake db */
-	be = *so->s_op->o_bd;
 	be.be_flags |= SLAP_DBFLAG_OVERLAY;
-	op->o_bd = &be;
 	LDAP_SLIST_FIRST(&op->o_extra) = NULL;
-	op->o_callback = NULL;
 
-	resubmit = syncprov_payback_do( op, so );
+	resubmit = syncprov_payback_do_locked( op, so );
+
+	ldap_pvt_thread_mutex_unlock( &so->s_mutex );
 
 	if (resubmit)
 		ldap_pvt_thread_pool_submit( &connection_pool,
