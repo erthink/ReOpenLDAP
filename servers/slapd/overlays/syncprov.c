@@ -71,6 +71,7 @@ typedef struct syncops {
 	struct berval	s_base;		/* ndn of search base */
 	ID		s_eid;		/* entryID of search base */
 	Operation	*s_op;		/* search op */
+	Operation	*s_op_avoid_race;
 	int		s_rid;
 	int		s_sid;
 	struct berval s_filterstr;
@@ -93,6 +94,8 @@ typedef struct syncops {
 	struct reslink *s_rl;
 	struct reslink *s_rltail;
 	ldap_pvt_thread_mutex_t	s_mutex;
+
+	Operation	crutch_avoid_race;
 } syncops;
 
 #ifdef SLAP_NO_SL_MALLOC
@@ -462,7 +465,7 @@ syncprov_findbase( Operation *op, fbase_cookie *fc )
 		fc->fss->s_flags ^= PS_FIND_BASE;
 		ldap_pvt_thread_mutex_unlock( &fc->fss->s_mutex );
 
-		fop = *fc->fss->s_op;
+		op_copy(fc->fss->s_op_avoid_race, &fop, NULL, NULL);
 
 		fop.o_bd = fop.o_bd->bd_self;
 		fop.o_hdr = op->o_hdr;
@@ -495,7 +498,7 @@ syncprov_findbase( Operation *op, fbase_cookie *fc )
 
 	/* After the first call, see if the fdn resides in the scope */
 	if ( fc->fbase == 1 ) {
-		switch ( fc->fss->s_op->ors_scope ) {
+		switch ( fc->fss->s_op_avoid_race->ors_scope ) {
 		case LDAP_SCOPE_BASE:
 			fc->fscope = dn_match( fc->fdn, &fc->fss->s_base );
 			break;
@@ -650,7 +653,7 @@ syncprov_findcsn( Operation *op, find_csn_t mode, struct berval *csn )
 		srs = op->o_controls[slap_cids.sc_LDAPsync];
 	}
 
-	fop = *op;
+	op_copy(op, &fop, NULL, NULL);
 	fop.o_sync_mode &= SLAP_CONTROL_MASK;	/* turn off sync_mode */
 	/* We want pure entries, not referrals */
 	fop.o_managedsait = SLAP_CONTROL_CRITICAL;
@@ -831,7 +834,7 @@ syncprov_unlink_syncop( syncops *so, int unlink_flags, int lock_flags )
 	if (unlink_flags & OS_REF_OP_SEARCH) {
 		assert(so->s_op != NULL);
 		if (so->s_flags & PS_IS_DETACHED) {
-			conn = so->s_op->o_conn;
+			conn = so->s_op_avoid_race->o_conn;
 			Debug( LDAP_DEBUG_ANY, "syncop_release: detach op %p from conn %p\n", so->s_op, conn );
 			if (lock_flags & SO_LOCK_OPCON) {
 				/* LY: workaround for https://github.com/ReOpen/ReOpenLDAP/issues/49 */
@@ -1069,7 +1072,7 @@ syncprov_payback_dequeue( void *ctx, void *arg )
 
 	ldap_pvt_thread_mutex_lock( &so->s_mutex );
 
-	op_copy(so->s_op, op = &opbuf.ob_op, &opbuf.ob_hdr, &be);
+	op_copy(so->s_op_avoid_race, op = &opbuf.ob_op, &opbuf.ob_hdr, &be);
 	op->o_controls = opbuf.ob_controls;
 	memset( op->o_controls, 0, sizeof(opbuf.ob_controls) );
 	op->o_sync = SLAP_CONTROL_IGNORED;
@@ -1831,7 +1834,7 @@ syncprov_playlog( Operation *op, SlapReply *rs, sessionlog *sl,
 		AttributeAssertion eq = ATTRIBUTEASSERTION_INIT;
 		slap_callback cb = {0};
 
-		fop = *op;
+		op_copy(op, &fop, NULL, NULL);
 
 		fop.o_sync_mode = 0;
 		fop.o_callback = &cb;
@@ -2399,6 +2402,8 @@ syncprov_detach_op( Operation *op, syncops *so, slap_overinst *on )
 	op2->o_conn->c_n_ops_executing++;
 	op2->o_conn->c_n_ops_completed--;
 	LDAP_STAILQ_INSERT_TAIL( &op2->o_conn->c_ops, op2, o_next );
+
+	so->s_op_avoid_race = op2;
 }
 
 static int
@@ -2615,6 +2620,7 @@ syncprov_op_search( Operation *op, SlapReply *rs )
 		fc.fss = &so;
 		fc.fbase = 0;
 		so.s_eid = NOID;
+		so.s_op_avoid_race =
 		so.s_op = op;
 		so.s_flags = PS_IS_REFRESHING | PS_FIND_BASE;
 		/* syncprov_findbase expects to be called as a callback... */
@@ -2633,6 +2639,8 @@ syncprov_op_search( Operation *op, SlapReply *rs )
 		}
 		sop = ch_malloc( sizeof( syncops ) );
 		*sop = so;
+		sop->crutch_avoid_race = *op;
+		sop->s_op_avoid_race = &sop->crutch_avoid_race;
 		ldap_pvt_thread_mutex_init( &sop->s_mutex );
 		sop->s_rid = srs->sr_state.rid;
 		sop->s_sid = srs->sr_state.sid;
