@@ -413,6 +413,11 @@ int main( int argc, char **argv )
 	}
 #endif
 
+#if defined(__SANITIZE_THREAD__) || defined(__SANITIZE_ADDRESS__)
+	/* LY: enable backtrace, because coredump will unavailable. */
+	slap_backtrace_set_enable( 1 );
+#endif
+
 	slap_sl_mem_init();
 
 	(void) ldap_pvt_thread_initialize();
