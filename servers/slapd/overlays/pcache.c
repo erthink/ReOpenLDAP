@@ -2962,6 +2962,15 @@ pcache_op_bind(
 
 static slap_response refresh_merge;
 
+#ifdef __SANITIZE_THREAD__
+static ATTRIBUTE_NO_SANITIZE_THREAD
+#else
+static __inline
+#endif
+void pick_acl__tsan_workaround(cache_manager *cm, Operation *op) {
+	cm->db.be_acl = op->o_bd->be_acl;
+}
+
 static int
 pcache_op_search(
 	Operation	*op,
@@ -2997,7 +3006,7 @@ pcache_op_search(
 	}
 
 	/* pickup runtime ACL changes */
-	cm->db.be_acl = op->o_bd->be_acl;
+	pick_acl__tsan_workaround(cm, op);
 
 	{
 		/* See if we're processing a Bind request
