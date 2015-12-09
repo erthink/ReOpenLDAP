@@ -237,6 +237,7 @@ mdb_online_index( void *ctx, void *arg )
 	}
 
 	for ( i = 0; i < mdb->mi_nattrs; i++ ) {
+		SCOPED_LOCK(&mdb->mi_attrs[ i ]->ai_mutex);
 		if ( mdb->mi_attrs[ i ]->ai_indexmask & MDB_INDEX_DELETING
 			|| mdb->mi_attrs[ i ]->ai_newmask == 0 )
 		{
