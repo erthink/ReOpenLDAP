@@ -78,6 +78,31 @@ typedef struct {
 
 static CfBackInfo cfBackInfo;
 
+static pthread_mutex_t crutch_mutex = PTHREAD_RECURSIVE_MUTEX_INITIALIZER_NP;
+
+static slap_biglock_t* crutch_lock(BackendDB *be)
+{
+	slap_biglock_t *bl = NULL;
+
+#if 0 /* LY: lock order reversal is possible. */
+	bl = slap_biglock_get(be);
+#endif
+
+	if (bl)
+		slap_biglock_acquire(bl);
+	else
+		LDAP_ENSURE(pthread_mutex_lock(&crutch_mutex) == 0);
+	return bl;
+}
+
+static void crutch_unlock(slap_biglock_t* bl)
+{
+	if (bl)
+		slap_biglock_release(bl);
+	else
+		LDAP_ENSURE(pthread_mutex_unlock(&crutch_mutex) == 0);
+}
+
 static char	*passwd_salt;
 static FILE *logfile;
 static char	*logfileName;
@@ -5183,7 +5208,7 @@ config_add_oc( ConfigOCs **cop, CfEntryInfo *last, Entry *e, ConfigArgs *ca )
 
 /* Parse an LDAP entry into config directives */
 static int
-config_add_internal( CfBackInfo *cfb, Entry *e, ConfigArgs *ca, SlapReply *rs,
+config_add_internal_unlocked( CfBackInfo *cfb, Entry *e, ConfigArgs *ca, SlapReply *rs,
 	int *renum, Operation *op )
 {
 	CfEntryInfo	*ce, *last = NULL;
@@ -5536,6 +5561,17 @@ done_noop:
 	return rc;
 }
 
+/* Parse an LDAP entry into config directives */
+static int
+config_add_internal( CfBackInfo *cfb, Entry *e, ConfigArgs *ca, SlapReply *rs,
+	int *renum, Operation *op )
+{
+	slap_biglock_t *bl = crutch_lock( op ? op->o_bd : &cfb->cb_db );
+	int rc = config_add_internal_unlocked(cfb, e, ca, rs, renum, op);
+	crutch_unlock(bl);
+	return rc;
+}
+
 #define	BIGTMP	10000
 static int
 config_rename_add( Operation *op, SlapReply *rs, CfEntryInfo *ce,
@@ -5755,7 +5791,7 @@ config_modify_add( ConfigTable *ct, ConfigArgs *ca, AttributeDescription *ad,
 }
 
 static int
-config_modify_internal( CfEntryInfo *ce, Operation *op, SlapReply *rs,
+config_modify_internal_unlocked( CfEntryInfo *ce, Operation *op, SlapReply *rs,
 	ConfigArgs *ca )
 {
 	int rc = LDAP_UNWILLING_TO_PERFORM;
@@ -6083,6 +6119,16 @@ out_noop:
 }
 
 static int
+config_modify_internal( CfEntryInfo *ce, Operation *op, SlapReply *rs,
+	ConfigArgs *ca )
+{
+	slap_biglock_t *bl = crutch_lock(op->o_bd);
+	int rc = config_modify_internal_unlocked(ce, op, rs, ca);
+	crutch_unlock(bl);
+	return rc;
+}
+
+static int
 config_back_modify( Operation *op, SlapReply *rs )
 {
 	CfBackInfo *cfb;
@@ -6149,10 +6195,7 @@ config_back_modify( Operation *op, SlapReply *rs )
 	 * 3) perform the individual config operations.
 	 * 4) store Modified entry in underlying LDIF backend.
 	 */
-	slap_biglock_t *bl = slap_biglock_get(ce->ce_be);
-	slap_biglock_acquire(bl);
 	rs->sr_err = config_modify_internal( ce, op, rs, &ca );
-	slap_biglock_release(bl);
 	if ( rs->sr_err ) {
 		rs->sr_text = ca.cr_msg;
 	} else if ( cfb->cb_use_ldif ) {
@@ -6536,6 +6579,7 @@ config_back_search( Operation *op, SlapReply *rs )
 	CfBackInfo *cfb;
 	CfEntryInfo *ce, *last;
 	slap_mask_t mask;
+	slap_biglock_t *bl = NULL;
 
 	cfb = (CfBackInfo *)op->o_bd->be_private;
 
@@ -6559,16 +6603,20 @@ config_back_search( Operation *op, SlapReply *rs )
 	switch ( op->ors_scope ) {
 	case LDAP_SCOPE_BASE:
 	case LDAP_SCOPE_SUBTREE:
+		bl = crutch_lock(op->o_bd);
 		rs->sr_err = config_send( op, rs, ce, 0 );
+		crutch_unlock(bl);
 		break;
 
 	case LDAP_SCOPE_ONELEVEL:
+		bl = crutch_lock(op->o_bd);
 		for (ce = ce->ce_kids; ce; ce=ce->ce_sibs) {
 			rs->sr_err = config_send( op, rs, ce, 1 );
 			if ( rs->sr_err ) {
 				break;
 			}
 		}
+		crutch_unlock(bl);
 		break;
 	}
 
@@ -7418,7 +7466,7 @@ config_tool_entry_get( BackendDB *be, ID id )
 static int entry_put_got_frontend=0;
 static int entry_put_got_config=0;
 static ID
-nolock_config_tool_entry_put( BackendDB *be, Entry *e, struct berval *text )
+config_tool_entry_put( BackendDB *be, Entry *e, struct berval *text )
 {
 	CfBackInfo *cfb = be->be_private;
 	BackendInfo *bi = cfb->cb_db.bd_info;
@@ -7563,18 +7611,6 @@ nolock_config_tool_entry_put( BackendDB *be, Entry *e, struct berval *text )
 		return bi->bi_tool_entry_put( &cfb->cb_db, e, text );
 	else
 		return NOID;
-}
-
-static ID
-config_tool_entry_put( BackendDB *be, Entry *e, struct berval *text )
-{
-	ID res;
-	slap_biglock_t *bl = slap_biglock_get(be);
-
-	slap_biglock_acquire(bl);
-	res = nolock_config_tool_entry_put(be, e, text);
-	slap_biglock_release(bl);
-	return res;
 }
 
 static struct {
