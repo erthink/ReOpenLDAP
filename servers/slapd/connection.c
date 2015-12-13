@@ -641,7 +641,11 @@ connection_destroy( Connection *c )
 
 	assert( connections != NULL );
 	assert( c != NULL );
+
+	ldap_pvt_thread_mutex_lock( &connections_mutex );
+
 	assert( c->c_struct_state != SLAP_C_UNUSED );
+	assert( c->c_struct_state != SLAP_C_PENDING );
 	assert( c->c_conn_state != SLAP_C_INVALID );
 	assert( LDAP_STAILQ_EMPTY(&c->c_ops) );
 	assert( LDAP_STAILQ_EMPTY(&c->c_pending_ops) );
@@ -657,7 +661,6 @@ connection_destroy( Connection *c )
 	connid = c->c_connid;
 	close_reason = c->c_close_reason;
 
-	ldap_pvt_thread_mutex_lock( &connections_mutex );
 	c->c_struct_state = SLAP_C_PENDING;
 	ldap_pvt_thread_mutex_unlock( &connections_mutex );
 
@@ -711,8 +714,14 @@ connection_destroy( Connection *c )
 		ber_len_t max = sockbuf_max_incoming;
 		ber_sockbuf_ctrl( c->c_sb, LBER_SB_OPT_SET_MAX_INCOMING, &max );
 	}
+#ifdef __SANITIZE_THREAD__
+	ldap_pvt_thread_mutex_lock( &connections_mutex );
+#endif
 	c->c_conn_state = SLAP_C_INVALID;
 	c->c_struct_state = SLAP_C_UNUSED;
+#ifdef __SANITIZE_THREAD__
+	ldap_pvt_thread_mutex_unlock( &connections_mutex );
+#endif
 
 	/* c must be fully reset by this point; when we call slapd_remove
 	 * it may get immediately reused by a new connection.
