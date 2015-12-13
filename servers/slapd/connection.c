@@ -1132,7 +1132,8 @@ connection_operation( void *ctx, void *arg_v )
 		goto operations_error;
 	}
 
-	if( conn->c_sasl_bind_in_progress && tag != LDAP_REQ_BIND ) {
+	if( read_char__tsan_workaround(&conn->c_sasl_bind_in_progress)
+			&& tag != LDAP_REQ_BIND ) {
 		Debug( LDAP_DEBUG_ANY, "connection_operation: "
 			"error: SASL bind in progress (tag=%ld).\n",
 			(long) tag );
