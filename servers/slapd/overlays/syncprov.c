@@ -822,8 +822,8 @@ syncprov_unlink_syncop( syncops *so, int unlink_flags, int lock_flags )
 	int unused = 0;
 
 	assert(unlink_flags && !(unlink_flags & ~OS_REF_MASK));
-	assert(so->s_si->si_leftover > 0);
-	assert((so->s_flags & unlink_flags) > 0);
+	assert(read_int__tsan_workaround(&so->s_si->si_leftover) > 0);
+	assert((read_int__tsan_workaround(&so->s_flags) & unlink_flags) > 0);
 
 	ldap_pvt_thread_mutex_lock( &so->s_mutex );
 	LDAP_ENSURE(so->s_flags & unlink_flags);
@@ -1259,7 +1259,7 @@ syncprov_op_abandon( Operation *op, SlapReply *rs )
 			set_op_cancel(so->s_op, SLAP_CANCEL_ACK);
 			rs->sr_err = LDAP_CANCELLED;
 			send_ldap_result( so->s_op, rs );
-			if ( so->s_flags & PS_IS_DETACHED ) {
+			if ( read_int__tsan_workaround(&so->s_flags) & PS_IS_DETACHED ) {
 				slap_callback *cb;
 				cb = op->o_tmpcalloc( 1, sizeof(slap_callback), op->o_tmpmemctx );
 				cb->sc_cleanup = syncprov_abandon_cleanup;
@@ -1397,8 +1397,8 @@ syncprov_matchops( Operation *op, opcookie *opc, int saveit )
 
 			for ( sm=opc->smatches, old=(syncmatches *)&opc->smatches; sm;
 				old=sm, sm=sm->sm_next ) {
-				assert(sm->sm_op->s_matchops_inuse > 0);
-				assert(sm->sm_op->s_flags & OS_REF_OP_MATCH);
+				assert(read_int__tsan_workaround(&sm->sm_op->s_matchops_inuse) > 0);
+				assert(read_int__tsan_workaround(&sm->sm_op->s_flags) & OS_REF_OP_MATCH);
 				if ( sm->sm_op == ss ) {
 					found = 1;
 					old->sm_next = sm->sm_next;
@@ -2531,7 +2531,7 @@ abandon:
 				return SLAPD_ABANDON;
 			}
 
-			assert(ss->ss_so->s_flags & OS_REF_MASK);
+			assert(read_int__tsan_workaround(&ss->ss_so->s_flags) & OS_REF_MASK);
 			ldap_pvt_thread_mutex_lock( &si->si_ops_mutex );
 			ldap_pvt_thread_mutex_lock( &ss->ss_so->s_mutex );
 			assert(ss->ss_so->s_flags & OS_REF_MASK);
@@ -2580,7 +2580,7 @@ syncprov_op_search( Operation *op, SlapReply *rs )
 	int dirty = 0;
 	int rc;
 
-	assert(si->si_leftover >= 0);
+	assert(read_int__tsan_workaround(&si->si_leftover) >= 0);
 	if ( !(op->o_sync_mode & SLAP_SYNC_REFRESH) )
 		return SLAP_CB_CONTINUE;
 
@@ -2766,8 +2766,9 @@ bailout:
 					ldap_pvt_thread_mutex_unlock( &si->si_ops_mutex );
 					ch_free( sop );
 
-					assert(si->si_leftover > 0);
-					__sync_fetch_and_sub(&si->si_leftover, 1);
+					int chk = __sync_fetch_and_sub(&si->si_leftover, 1);
+					assert(chk > 0);
+					(void) chk;
 				}
 				rs->sr_ctrls = NULL;
 				send_ldap_result( op, rs );
@@ -2945,7 +2946,7 @@ shortcut:
 			cb->sc_cleanup = NULL;
 			op->o_callback = NULL;
 			ldap_pvt_thread_mutex_unlock( &sop->s_mutex );
-			assert((sop->s_flags & PS_IS_DETACHED) == 0);
+			assert((read_int__tsan_workaround(&sop->s_flags) & PS_IS_DETACHED) == 0);
 
 			syncprov_unlink_syncop( sop, OS_REF_PREPARE, SO_LOCK_SIOPS );
 			return rs->sr_err = SLAPD_ABANDON;
@@ -3454,7 +3455,9 @@ syncprov_db_destroy(
 					&& slap_biglock_pool_pause(be) == LDAP_SUCCESS) ? 1 : 0;
 			ldap_pvt_thread_mutex_lock( &si->si_ops_mutex );
 			drained = 0;
-			if (si->si_ops == NULL && si->si_leftover == 0 && si->si_active == 0)
+			if (si->si_ops == NULL
+					&& read_int__tsan_workaround(&si->si_leftover) == 0
+					&& si->si_active == 0)
 				drained = 1;
 			ldap_pvt_thread_mutex_unlock( &si->si_ops_mutex );
 			if (paused)
