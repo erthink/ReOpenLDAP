@@ -34,14 +34,18 @@
 
 #include <unistd.h>
 #include <sys/syscall.h>
+#include <pthread.h>
 
+static pthread_mutex_t debug_mutex = PTHREAD_MUTEX_INITIALIZER;
 static FILE *log_file = NULL;
 static int debug_lastc = '\n';
 
 int lutil_debug_file( FILE *file )
 {
+	LDAP_ENSURE(pthread_mutex_lock(&debug_mutex) == 0);
 	log_file = file;
 	ber_set_option( NULL, LBER_OPT_LOG_PRINT_FILE, file );
+	LDAP_ENSURE(pthread_mutex_unlock(&debug_mutex) == 0);
 
 	return 0;
 }
@@ -70,6 +74,8 @@ void lutil_debug_va( const char* fmt, va_list vl )
 {
 	char buffer[4096];
 	int len, off = 0;
+
+	LDAP_ENSURE(pthread_mutex_lock(&debug_mutex) == 0);
 
 #ifdef HAVE_WINSOCK
 	if( log_file == NULL ) {
@@ -109,6 +115,7 @@ void lutil_debug_va( const char* fmt, va_list vl )
 		fflush( log_file );
 	}
 	fputs( buffer, stderr );
+	LDAP_ENSURE(pthread_mutex_unlock(&debug_mutex) == 0);
 }
 
 #if defined(HAVE_EBCDIC) && defined(LDAP_SYSLOG)

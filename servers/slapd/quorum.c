@@ -108,21 +108,43 @@ void quorum_global_destroy() {
 	}
 }
 
+#ifdef __SANITIZE_THREAD__
+static ATTRIBUTE_NO_SANITIZE_THREAD
+#else
+static __inline
+#endif
+void set_cache(BackendDB *bd, int value) {
+	assert(bd->bd_self == bd);
+	bd->bd_quorum_cache = value;
+}
+
+#ifdef __SANITIZE_THREAD__
+static ATTRIBUTE_NO_SANITIZE_THREAD
+#else
+static __inline
+#endif
+int get_cache(BackendDB *bd) {
+	assert(bd->bd_self == bd);
+	return bd->bd_quorum_cache;
+}
+
 static void quorum_be_init(BackendDB *bd) {
 	slap_quorum_t *q;
 
 	assert(quorum_list != QR_POISON);
+	assert(bd->bd_self == bd);
 	q = ch_calloc(1, sizeof(slap_quorum_t));
 
 	q->qr_bd = bd;
 	q->qr_next = quorum_list;
 	bd->bd_quorum = q;
-	bd->bd_quorum_cache = 1;
+	set_cache(bd, 1);
 	quorum_list = q;
 }
 
 void quorum_be_destroy(BackendDB *bd) {
 	assert(quorum_list != QR_POISON);
+	assert(bd->bd_self == bd);
 
 	if (bd->bd_quorum) {
 		slap_quorum_t *q, **pq;
@@ -130,7 +152,7 @@ void quorum_be_destroy(BackendDB *bd) {
 		lock();
 		q = bd->bd_quorum;
 		if (q) {
-			bd->bd_quorum_cache = 1;
+			set_cache(bd, 1);
 			bd->bd_quorum = NULL;
 
 			for(pq = &quorum_list; *pq; pq = &((*pq)->qr_next))
@@ -232,7 +254,7 @@ static int lazy_update(slap_quorum_t *q) {
 }
 
 static void quorum_invalidate(BackendDB *bd) {
-	bd->bd_quorum_cache = 0;
+	set_cache(bd, 0);
 }
 
 void quorum_notify_self_sid() {
@@ -246,16 +268,17 @@ void quorum_notify_self_sid() {
 }
 
 int quorum_query(BackendDB *bd) {
-	int snap = bd->bd_quorum_cache;
+	bd = bd->bd_self;
+	int snap = get_cache(bd);
 	if (unlikely(snap == 0)) {
 		assert(quorum_list != QR_POISON);
 
 		lock();
-		snap = bd->bd_quorum_cache;
+		snap = get_cache(bd);
 		if (snap == 0) {
 			snap = bd->bd_quorum ? lazy_update(bd->bd_quorum) : 1;
 			assert(snap != 0);
-			bd->bd_quorum_cache = snap;
+			set_cache(bd, snap);
 		}
 		unlock();
 	}
@@ -423,6 +446,7 @@ void quorum_add_rid(BackendDB *bd, int rid) {
 	struct present* p;
 	assert(rid > -1 || rid <= SLAP_SYNC_RID_MAX);
 	assert(quorum_list != QR_POISON);
+	bd = bd->bd_self;
 
 	lock();
 	if (! bd->bd_quorum)
@@ -462,6 +486,7 @@ void quorum_remove_rid(BackendDB *bd, int rid) {
 	struct present* p;
 	assert(rid > -1 || rid <= SLAP_SYNC_RID_MAX);
 	assert(quorum_list != QR_POISON);
+	bd = bd->bd_self;
 
 	lock();
 
@@ -503,6 +528,7 @@ void quorum_notify_sid(BackendDB *bd, int rid, int sid) {
 	assert(rid > -1 || rid <= SLAP_SYNC_RID_MAX);
 	assert(sid < 0 || sid <= SLAP_SYNC_SID_MAX);
 	assert(quorum_list != QR_POISON);
+	bd = bd->bd_self;
 
 	if (bd->bd_quorum) {
 		lock();
@@ -515,6 +541,7 @@ void quorum_notify_sid(BackendDB *bd, int rid, int sid) {
 void quorum_notify_status(BackendDB *bd, int rid, int ready) {
 	assert(rid > -1 || rid <= SLAP_SYNC_RID_MAX);
 	assert(quorum_list != QR_POISON);
+	bd = bd->bd_self;
 
 	if (bd->bd_quorum) {
 		lock();
@@ -527,6 +554,7 @@ void quorum_notify_status(BackendDB *bd, int rid, int ready) {
 void quorum_notify_csn(BackendDB *bd, int csnsid) {
 	assert(quorum_list != QR_POISON);
 	assert(csnsid > -1 && csnsid <= SLAP_SYNC_SID_MAX);
+	bd = bd->bd_self;
 
 	if (bd->bd_quorum && (bd->bd_quorum->flags & QR_AUTO_SIDS))  {
 		lock();
@@ -555,30 +583,40 @@ static int unparse(BerVarray *vals, slap_quorum_t *q, int type, const char* verb
 int quorum_config(ConfigArgs *c) {
 	int i, type;
 	slap_quorum_t *q = c->be->bd_quorum;
+	assert(c->be->bd_self == c->be);
 
 	assert(quorum_list != QR_POISON);
 	if (c->op == SLAP_CONFIG_EMIT) {
-		if (q) {
-			if ((q->flags & QR_ALL_LINKS) != 0
-			&& value_add_one_str(&c->rvalue_vals, "all-links"))
-				return 1;
-			if ((q->flags & QR_AUTO_SIDS) != 0
-			&& value_add_one_str(&c->rvalue_vals, "auto-sids"))
-				return 1;
-			if ((q->flags & QR_AUTO_RIDS) != 0
-			&& value_add_one_str(&c->rvalue_vals, "auto-rids"))
-				return 1;
-			if (q->qr_requirements
-			&& (unparse(&c->rvalue_vals, q, QR_DEMAND_RID, "require-rids")
-			 || unparse(&c->rvalue_vals, q, QR_DEMAND_SID, "require-sids")
-			 || unparse(&c->rvalue_vals, q, QR_VOTED_RID, "vote-rids")
-			 || unparse(&c->rvalue_vals, q, QR_VOTED_SID, "vote-sids")))
-				return 1;
-			if (q->qr_syncrepl_limit > 0
-			&& (value_add_one_str(&c->rvalue_vals, "limit-concurrent-refresh")
-			 || value_add_one_int(&c->rvalue_vals, q->qr_syncrepl_limit)))
-				return 1;
+		BerVarray vals = NULL;
+		if (! q)
+			return 1;
+		if ((q->flags & QR_ALL_LINKS) != 0
+		&& value_add_one_str(&vals, "all-links"))
+			return 1;
+		if ((q->flags & QR_AUTO_SIDS) != 0
+		&& value_add_one_str(&vals, "auto-sids"))
+			return 1;
+		if ((q->flags & QR_AUTO_RIDS) != 0
+		&& value_add_one_str(&vals, "auto-rids"))
+			return 1;
+		if (q->qr_requirements
+		&& (unparse(&vals, q, QR_DEMAND_RID, "require-rids")
+		 || unparse(&vals, q, QR_DEMAND_SID, "require-sids")
+		 || unparse(&vals, q, QR_VOTED_RID, "vote-rids")
+		 || unparse(&vals, q, QR_VOTED_SID, "vote-sids")))
+			return 1;
+		if (q->qr_syncrepl_limit > 0
+		&& (value_add_one_str(&vals, "limit-concurrent-refresh")
+		 || value_add_one_int(&vals, q->qr_syncrepl_limit)))
+			return 1;
+
+		if (! vals)
+			return 1;
+		if (value_join_str(vals, " ", &c->value_bv) < 0) {
+			ber_bvarray_free(vals);
+			return -1;
 		}
+		ber_bvarray_free(vals);
 		return 0;
 	} else if ( c->op == LDAP_MOD_DELETE ) {
 		lock();
@@ -587,7 +625,7 @@ int quorum_config(ConfigArgs *c) {
 			if(q->qr_requirements) {
 				ch_free(q->qr_requirements);
 				q->qr_requirements = NULL;
-				c->be->bd_quorum_cache = 1;
+				set_cache(c->be, 1);
 				Debug( LDAP_DEBUG_SYNC, "syncrep_quorum: %s requirements-list cleared\n",
 					   q->qr_cluster );
 			}
@@ -701,6 +739,7 @@ int quorum_syncrepl_gate(BackendDB *bd, void *instance_key, int in)
 {
 	slap_quorum_t *q;
 	int i, slot, rc, turn;
+	bd = bd->bd_self;
 
 	assert(instance_key != NULL);
 	if (! instance_key)

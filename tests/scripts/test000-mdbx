@@ -30,7 +30,7 @@ rm -rf testdb && mkdir testdb
 
 for n in 0 1 2 3 4 5 6; do
 	echo -n "*** LMDB-TEST-$n: "
-	$TIMEOUT_S $VALGRIND ${LMDBDIR}/mtest${n} > mtest${n}.log
+	$TIMEOUT_S $VALGRIND_CMD ${LMDBDIR}/mtest${n} > mtest${n}.log
 	RC=$?
 	if [ $RC -eq 0 ]; then
 		echo -n "passed"
@@ -48,7 +48,7 @@ for n in 0 1 2 3 4 5 6; do
 	fi
 
 	echo -n ", mdbx_chk "
-	$TIMEOUT_S $VALGRIND ${LMDBDIR}/mdbx_chk -vv testdb >> mtest${n}.log
+	$TIMEOUT_S $VALGRIND_CMD ${LMDBDIR}/mdbx_chk -vv testdb >> mtest${n}.log
 	RC=$?
 	if [ $RC -eq 0 ]; then
 		echo "ok"

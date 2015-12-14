@@ -593,7 +593,6 @@ backend_db_init(
 	 */
 	if ( !be ) {
 		be = ch_calloc( 1, sizeof(Backend) );
-		slap_biglock_init(be);
 
 		/* Just append */
 		if ( idx >= nbackends )
@@ -604,6 +603,8 @@ backend_db_init(
 
 	be->bd_info = bi;
 	be->bd_self = be;
+	if (!be->bd_biglock)
+		slap_biglock_init(be);
 
 	be->be_def_limit = frontendDB->be_def_limit;
 	be->be_dfltaccess = frontendDB->be_dfltaccess;
@@ -1611,7 +1612,7 @@ backend_group(
 	BackendDB *be_orig;
 	OpExtraDB	oex;
 
-	if ( op->o_abandon ) {
+	if ( get_op_abandon(op) ) {
 		return SLAPD_ABANDON;
 	}
 

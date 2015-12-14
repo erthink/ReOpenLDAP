@@ -100,7 +100,6 @@ mdb_attr_dbs_open(
 
 	txn = tx0;
 	if ( txn == NULL ) {
-		assert(slap_biglock_owned(be));
 		rc = mdb_txn_begin( mdb->mi_dbenv, NULL, 0, &txn );
 		if ( rc ) {
 			snprintf( cr->msg, sizeof(cr->msg), "database \"%s\": "
@@ -387,6 +386,7 @@ fail:
 		a->ai_root = NULL;
 		a->ai_desc = ad;
 		a->ai_dbi = 0;
+		ldap_pvt_thread_mutex_init(&a->ai_mutex);
 
 		if ( mdb->mi_flags & MDB_IS_OPEN ) {
 			a->ai_indexmask = 0;
@@ -566,6 +566,8 @@ int mdb_ad_read( struct mdb_info *mdb, MDB_txn *txn )
 		return rc;
 	}
 
+	ldap_pvt_thread_mutex_lock( &mdb->mi_ads_mutex );
+
 	/* our array is 1-based, an index of 0 means no data */
 	i = mdb->mi_numads+1;
 	key.mv_size = sizeof(int);
@@ -584,7 +586,8 @@ int mdb_ad_read( struct mdb_info *mdb, MDB_txn *txn )
 			if ( ad->ad_index >= MDB_MAXADS ) {
 				Debug( LDAP_DEBUG_ANY,
 					"mdb_adb_read: too many AttributeDescriptions in use\n" );
-				return LDAP_OTHER;
+				rc = LDAP_OTHER;
+				break;
 			}
 			mdb->mi_adxs[ad->ad_index] = i;
 			mdb->mi_ads[i] = ad;
@@ -592,13 +595,13 @@ int mdb_ad_read( struct mdb_info *mdb, MDB_txn *txn )
 		i++;
 		rc = mdb_cursor_get( mc, &key, &data, MDB_NEXT );
 	}
-	mdb->mi_numads = i-1;
 
-/* done: */
+	mdb->mi_numads = i-1;
+	ldap_pvt_thread_mutex_unlock( &mdb->mi_ads_mutex );
+	mdb_cursor_close( mc );
+
 	if ( rc == MDB_NOTFOUND )
 		rc = 0;
-
-	mdb_cursor_close( mc );
 
 	return rc;
 }
@@ -615,6 +618,7 @@ int mdb_ad_get( struct mdb_info *mdb, MDB_txn *txn, AttributeDescription *ad )
 	if ( mdb->mi_adxs[ad->ad_index] )
 		return 0;
 
+	ldap_pvt_thread_mutex_lock( &mdb->mi_ads_mutex );
 	i = mdb->mi_numads+1;
 	key.mv_size = sizeof(int);
 	key.mv_data = &i;
@@ -632,5 +636,6 @@ int mdb_ad_get( struct mdb_info *mdb, MDB_txn *txn, AttributeDescription *ad )
 			mdb_strerror(rc), rc);
 	}
 
+	ldap_pvt_thread_mutex_unlock( &mdb->mi_ads_mutex );
 	return rc;
 }

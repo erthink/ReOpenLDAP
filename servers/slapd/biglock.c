@@ -27,6 +27,7 @@ void slap_biglock_init ( BackendDB *bd ) {
 	slap_biglock_t *bl;
 	int rc;
 
+	assert(bd->bd_self == bd);
 	assert(bd->bd_biglock == NULL);
 	bl = ch_calloc(1, sizeof(slap_biglock_t));
 	rc = ldap_pvt_thread_mutex_init(&bl->bl_mutex);
@@ -39,19 +40,42 @@ void slap_biglock_init ( BackendDB *bd ) {
 	bd->bd_biglock_mode = SLAPD_BIGLOCK_NONE;
 }
 
-void slap_biglock_destroy ( BackendDB *bd ) {
-	if (bd->bd_biglock) {
-		ldap_pvt_thread_mutex_destroy(&bd->bd_biglock->bl_mutex);
-		ch_free(bd->bd_biglock);
+static void slap_biglock_free( slap_biglock_t* bl ) {
+	LDAP_ENSURE(bl->bl_recursion == 0);
+	ldap_pvt_thread_mutex_destroy(&bl->bl_mutex);
+	ch_free(bl);
+}
+
+#ifdef __SANITIZE_THREAD__
+static ATTRIBUTE_NO_SANITIZE_THREAD
+#else
+static __inline
+#endif
+ldap_pvt_thread_t get_owner(slap_biglock_t* bl) {
+	return bl->_bl_owner;
+}
+
+void slap_biglock_destroy( BackendDB *bd ) {
+	assert(bd->bd_self == bd);
+	slap_biglock_t* bl = bd->bd_biglock;
+	if (bl) {
 		bd->bd_biglock = NULL;
 		bd->bd_biglock_mode = -1;
+		if (! bl->bl_recursion) {
+			slap_biglock_free(bl);
+		} else {
+			LDAP_ENSURE(ldap_pvt_thread_self() == get_owner(bl));
+			bl->bl_free_on_release = 1;
+		}
 	}
 }
 
 static const ldap_pvt_thread_t thread_null;
 
-static slap_biglock_t* slap_biglock_get( BackendDB *bd ) {
-	switch(bd->bd_biglock_mode) {
+slap_biglock_t* slap_biglock_get( BackendDB *bd ) {
+	bd = bd->bd_self;
+
+	switch (bd->bd_biglock_mode) {
 	default:
 		/* LY: zero-value indicates than mode was not initialized,
 		 * for instance in overlay's code. */
@@ -91,17 +115,16 @@ int slap_biglock_deep ( BackendDB *bd ) {
 
 int slap_biglock_owned ( BackendDB *bd ) {
 	slap_biglock_t* bl = slap_biglock_get( bd );
-	return bl ? ldap_pvt_thread_self() == bl->bl_owner : 1;
+	return bl ? ldap_pvt_thread_self() == get_owner(bl) : 1;
 }
 
-size_t slap_biglock_acquire(BackendDB *bd) {
+size_t slap_biglock_acquire(slap_biglock_t* bl) {
 	int rc;
-	slap_biglock_t* bl = slap_biglock_get( bd );
 
 	if (!bl)
 		return 0;
 
-	if (ldap_pvt_thread_self() == bl->bl_owner) {
+	if (ldap_pvt_thread_self() == get_owner(bl)) {
 		assert(bl->bl_recursion > 0);
 		assert(bl->bl_recursion < 42);
 		bl->bl_recursion += 1;
@@ -109,9 +132,9 @@ size_t slap_biglock_acquire(BackendDB *bd) {
 		rc = ldap_pvt_thread_mutex_lock(&bl->bl_mutex);
 		assert(rc == 0);
 		assert(bl->bl_recursion == 0);
-		assert(bl->bl_owner == thread_null);
+		assert(get_owner(bl) == thread_null);
 
-		bl->bl_owner = ldap_pvt_thread_self();
+		bl->_bl_owner = ldap_pvt_thread_self();
 		bl->bl_recursion = 1;
 		bl->bl_age += 1;
 	}
@@ -119,23 +142,24 @@ size_t slap_biglock_acquire(BackendDB *bd) {
 	return bl->bl_evo += 1;
 }
 
-size_t slap_biglock_release(BackendDB *bd) {
+size_t slap_biglock_release(slap_biglock_t* bl) {
 	int rc;
 	size_t res;
-	slap_biglock_t* bl = slap_biglock_get( bd );
 
 	if (!bl)
 		return 0;
 
-	assert(ldap_pvt_thread_self() == bl->bl_owner);
+	assert(ldap_pvt_thread_self() == get_owner(bl));
 	assert(bl->bl_recursion > 0);
 
 	res = ++bl->bl_evo;
 	if (--bl->bl_recursion == 0) {
 		++bl->bl_age;
-		bl->bl_owner = thread_null;
+		bl->_bl_owner = thread_null;
 		rc = ldap_pvt_thread_mutex_unlock(&bl->bl_mutex);
 		assert(rc == 0);
+		if (bl->bl_free_on_release)
+			slap_biglock_free(bl);
 	}
 
 	return res;
@@ -146,14 +170,15 @@ int slap_biglock_call_be ( slap_operation_t which,
 						   SlapReply *rs ) {
 	int rc;
 	BI_op_func **func;
+	slap_biglock_t *bl = slap_biglock_get(op->o_bd);
 
-	slap_biglock_acquire(op->o_bd);
+	slap_biglock_acquire(bl);
 
 	/* LY: this crutch was copied from backover.c */
 	func = &op->o_bd->bd_info->bi_op_bind;
 	rc = func[which](op, rs);
 
-	slap_biglock_release(op->o_bd);
+	slap_biglock_release(bl);
 	return rc;
 }
 
@@ -161,14 +186,14 @@ int slap_biglock_pool_pause ( BackendDB *bd ) {
 	slap_biglock_t* bl = slap_biglock_get( bd );
 	int res;
 
-	if ( bl == NULL || ldap_pvt_thread_self() != bl->bl_owner) {
+	if ( bl == NULL || ldap_pvt_thread_self() != get_owner(bl)) {
 		res = ldap_pvt_thread_pool_pause( &connection_pool );
 	} else {
 		int rc, deep = bl->bl_recursion;
 		assert(bl->bl_recursion > 0);
 		bl->bl_age += 1;
 		bl->bl_recursion = 0;
-		bl->bl_owner = thread_null;
+		bl->_bl_owner = thread_null;
 		rc = ldap_pvt_thread_mutex_unlock(&bl->bl_mutex);
 		assert(rc == 0);
 
@@ -177,8 +202,8 @@ int slap_biglock_pool_pause ( BackendDB *bd ) {
 		rc = ldap_pvt_thread_mutex_lock(&bl->bl_mutex);
 		assert(rc == 0);
 		assert(bl->bl_recursion == 0);
-		assert(bl->bl_owner == thread_null);
-		bl->bl_owner = ldap_pvt_thread_self();
+		assert(bl->_bl_owner == thread_null);
+		bl->_bl_owner = ldap_pvt_thread_self();
 		bl->bl_recursion = deep;
 		bl->bl_age += 1;
 	}
@@ -197,14 +222,14 @@ int slap_biglock_pool_pausecheck ( BackendDB *bd ) {
 	int res;
 	slap_biglock_t* bl = slap_biglock_get( bd );
 
-	if ( bl == NULL || ldap_pvt_thread_self() != bl->bl_owner) {
+	if ( bl == NULL || ldap_pvt_thread_self() != get_owner(bl)) {
 		res = ldap_pvt_thread_pool_pausecheck( &connection_pool );
 	} else {
 		int rc, deep = bl->bl_recursion;
 		assert(bl->bl_recursion > 0);
 		bl->bl_age += 1;
 		bl->bl_recursion = 0;
-		bl->bl_owner = thread_null;
+		bl->_bl_owner = thread_null;
 		rc = ldap_pvt_thread_mutex_unlock(&bl->bl_mutex);
 		assert(rc == 0);
 
@@ -213,8 +238,8 @@ int slap_biglock_pool_pausecheck ( BackendDB *bd ) {
 		rc = ldap_pvt_thread_mutex_lock(&bl->bl_mutex);
 		assert(rc == 0);
 		assert(bl->bl_recursion == 0);
-		assert(bl->bl_owner == thread_null);
-		bl->bl_owner = ldap_pvt_thread_self();
+		assert(get_owner(bl) == thread_null);
+		bl->_bl_owner = ldap_pvt_thread_self();
 		bl->bl_recursion = deep;
 		bl->bl_age += 1;
 	}

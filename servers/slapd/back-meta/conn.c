@@ -253,6 +253,7 @@ metaconn_alloc(
 
 	mc->mc_authz_target = META_BOUND_NONE;
 	mc->mc_refcnt = 1;
+	ldap_pvt_thread_mutex_init( &mc->mc_mutex );
 
 	return mc;
 }

@@ -144,7 +144,7 @@ retcode_send_onelevel( Operation *op, SlapReply *rs )
 	retcode_item_t	*rdi;
 
 	for ( rdi = rd->rd_item; rdi != NULL; rdi = rdi->rdi_next ) {
-		if ( op->o_abandon ) {
+		if ( get_op_abandon(op) ) {
 			return rs->sr_err = SLAPD_ABANDON;
 		}
 
@@ -218,7 +218,7 @@ retcode_cb_response( Operation *op, SlapReply *rs )
 	case LDAP_NO_SUCH_OBJECT:
 		/* in case of noSuchObject, stop the internal search
 		 * for in-directory error stuff */
-		if ( !op->o_abandon ) {
+		if ( !get_op_abandon(op) ) {
 			rdc->rdc_flags = SLAP_CB_CONTINUE;
 		}
 		return 0;
@@ -270,7 +270,7 @@ retcode_op_internal( Operation *op, SlapReply *rs )
 	op2.o_callback = &sc;
 
 	rc = op2.o_bd->be_search( &op2, rs );
-	op->o_abandon = op2.o_abandon;
+	set_op_abandon(op, op2._o_abandon);
 
 	filter_free_x( &op2, op2.ors_filter, 1 );
 	ber_memfree_x( op2.ors_filterstr.bv_val, op2.o_tmpmemctx );
@@ -698,7 +698,7 @@ retcode_entry_response( Operation *op, SlapReply *rs, BackendInfo *bi, Entry *e 
 			return rs->sr_err = SLAPD_DISCONNECT;
 		}
 
-		op->o_abandon = 1;
+		set_op_abandon(op, 1);
 		return rs->sr_err;
 	}
 

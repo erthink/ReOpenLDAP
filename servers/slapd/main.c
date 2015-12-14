@@ -393,8 +393,9 @@ int main( int argc, char **argv )
 	char *serverName_strdup = NULL;
 	int serverMode = SLAP_SERVER_MODE;
 
-	struct sync_cookie *scp = NULL;
-	struct sync_cookie *scp_entry = NULL;
+	struct sync_cookie_item *scp = NULL;
+	struct sync_cookie_item *scp_entry = NULL;
+	BerValue cookie_str;
 
 	char **debug_unknowns = NULL;
 	char **syslog_unknowns = NULL;
@@ -410,6 +411,11 @@ int main( int argc, char **argv )
 	if( ( leakfile = fopen( "slapd.leak", "w" )) == NULL ) {
 		leakfile = stderr;
 	}
+#endif
+
+#if defined(__SANITIZE_THREAD__) || defined(__SANITIZE_ADDRESS__)
+	/* LY: enable backtrace, because coredump will unavailable. */
+	slap_backtrace_set_enable( 1 );
 #endif
 
 	slap_sl_mem_init();
@@ -518,30 +524,35 @@ int main( int argc, char **argv )
 			break;
 
 		case 'c':	/* provide sync cookie, override if exist in replica */
-			scp = (struct sync_cookie *) ch_calloc( 1,
-										sizeof( struct sync_cookie ));
-			ber_str2bv( optarg, 0, 1, &scp->octet_str );
+			scp = ch_malloc( sizeof( struct sync_cookie_item ));
+			LDAP_STAILQ_ENTRY_INIT( scp, sci_next );
+			slap_cookie_init( &scp->sci_cookie );
 
-			/* This only parses out the rid at this point */
-			slap_parse_sync_cookie( scp, NULL );
+			cookie_str.bv_val = optarg;
+			cookie_str.bv_len = strlen(optarg);
 
-			if ( scp->rid == -1 ) {
-				Debug( LDAP_DEBUG_ANY,
-						"main: invalid cookie \"%s\"\n",
-						optarg );
-				slap_sync_cookie_free( scp, 1 );
+			if ( slap_cookie_parse( &scp->sci_cookie, &cookie_str, NULL ) ) {
+				Debug( LDAP_DEBUG_ANY, "main: invalid cookie \"%s\"\n", optarg );
+				slap_cookie_free( &scp->sci_cookie, 0 );
+				ch_free( scp );
 				goto destroy;
 			}
 
-			LDAP_STAILQ_FOREACH( scp_entry, &slap_sync_cookie, sc_next ) {
-				if ( scp->rid == scp_entry->rid ) {
+			/* LY: it is not needed to lock mutex here, but to reminding */
+			ldap_pvt_thread_mutex_lock( &slap_sync_cookie_mutex );
+
+			LDAP_STAILQ_FOREACH( scp_entry, &slap_sync_cookie, sci_next ) {
+				if ( scp->sci_cookie.rid == scp_entry->sci_cookie.rid ) {
 					Debug( LDAP_DEBUG_ANY,
 						    "main: duplicated replica id in cookies\n" );
-					slap_sync_cookie_free( scp, 1 );
+					slap_cookie_free( &scp->sci_cookie, 0 );
+					ch_free( scp );
 					goto destroy;
 				}
 			}
-			LDAP_STAILQ_INSERT_TAIL( &slap_sync_cookie, scp, sc_next );
+			LDAP_STAILQ_INSERT_TAIL( &slap_sync_cookie, scp, sci_next );
+
+			ldap_pvt_thread_mutex_unlock( &slap_sync_cookie_mutex );
 			break;
 
 		case 'd': {	/* set debug level and 'do not detach' flag */
@@ -1057,7 +1068,8 @@ destroy:
 
 	while ( !LDAP_STAILQ_EMPTY( &slap_sync_cookie )) {
 		scp = LDAP_STAILQ_FIRST( &slap_sync_cookie );
-		LDAP_STAILQ_REMOVE_HEAD( &slap_sync_cookie, sc_next );
+		LDAP_STAILQ_REMOVE_HEAD( &slap_sync_cookie, sci_next );
+		slap_cookie_free( &scp->sci_cookie, 0 );
 		ch_free( scp );
 	}
 

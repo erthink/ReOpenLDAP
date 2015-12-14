@@ -78,6 +78,31 @@ typedef struct {
 
 static CfBackInfo cfBackInfo;
 
+static pthread_mutex_t crutch_mutex = PTHREAD_RECURSIVE_MUTEX_INITIALIZER_NP;
+
+static slap_biglock_t* crutch_lock(BackendDB *be)
+{
+	slap_biglock_t *bl = NULL;
+
+#if 0 /* LY: lock order reversal is possible. */
+	bl = slap_biglock_get(be);
+#endif
+
+	if (bl)
+		slap_biglock_acquire(bl);
+	else
+		LDAP_ENSURE(pthread_mutex_lock(&crutch_mutex) == 0);
+	return bl;
+}
+
+static void crutch_unlock(slap_biglock_t* bl)
+{
+	if (bl)
+		slap_biglock_release(bl);
+	else
+		LDAP_ENSURE(pthread_mutex_unlock(&crutch_mutex) == 0);
+}
+
 static char	*passwd_salt;
 static FILE *logfile;
 static char	*logfileName;
@@ -858,6 +883,7 @@ static ConfigOCs cf_ocs[] = {
 		 "olcTLSRandFile $ olcTLSVerifyClient $ olcTLSDHParamFile $ "
 		 "olcTLSCRLFile $ olcTLSProtocolMin $ olcToolThreads $ olcWriteTimeout $ "
 		 "olcObjectIdentifier $ olcAttributeTypes $ olcObjectClasses $ "
+		 "olcCrashBacktrace $ olcMemoryLimit $ olcCoredumpLimit $ olcReOpenLDAP $ "
 		 "olcDitContentRules $ olcLdapSyntaxes ) )", Cft_Global },
 	{ "( OLcfgGlOc:2 "
 		"NAME 'olcSchemaConfig' "
@@ -883,6 +909,7 @@ static ConfigOCs cf_ocs[] = {
 		 "olcReplogFile $ olcRequires $ olcRestrict $ olcRootDN $ olcRootPW $ "
 		 "olcSchemaDN $ olcSecurity $ olcSizeLimit $ olcSyncUseSubentry $ olcSyncrepl $ "
 		 "olcTimeLimit $ olcUpdateDN $ olcUpdateRef $ olcMirrorMode $ "
+		 "olcBiglock $ olcQuorum $ "
 		 "olcMonitoring $ olcExtraAttrs ) )",
 		 	Cft_Database, NULL, cfAddDatabase },
 	{ "( OLcfgGlOc:5 "
@@ -3188,21 +3215,17 @@ config_reopenldap(ConfigArgs *c)
 	};
 
 	if (c->op == SLAP_CONFIG_EMIT) {
-		return mask_to_verbs( reopenldap_ops, reopenldap_flags, &c->rvalue_vals );
+		return mask_to_verbstring( reopenldap_ops, reopenldap_flags,
+			' ', &c->value_bv );
 	} else if ( c->op == LDAP_MOD_DELETE ) {
-		if ( !c->line ) {
-			reopenldap_flags_setup( 0 );
-		} else {
-			i = verb_to_mask( c->line, reopenldap_ops );
-			reopenldap_flags_setup( reopenldap_flags & ~reopenldap_ops[i].mask );
-		}
+		reopenldap_flags_setup( 0 );
 		return 0;
 	}
 	i = verbs_to_mask( c->argc, c->argv, reopenldap_ops, &flags );
 	if ( i ) {
 		snprintf( c->cr_msg, sizeof( c->cr_msg ), "<%s> unknown ReOpenLDAP's flag", c->argv[0] );
 		Debug(LDAP_DEBUG_ANY, "%s: %s %s\n", c->log, c->cr_msg, c->argv[i]);
-		return 1 ;
+		return 1;
 	}
 	reopenldap_flags_setup( reopenldap_flags | flags );
 	return 0;
@@ -4347,7 +4370,8 @@ config_setup_ldif( BackendDB *be, const char *dir, int readit ) {
 		prev_DN_strict = slap_DN_strict;
 		slap_DN_strict = 0;
 
-		slap_biglock_acquire(op->o_bd);
+		slap_biglock_t *bl = slap_biglock_get(op->o_bd);
+		slap_biglock_acquire(bl);
 		rc = op->o_bd->be_search( op, &rs );
 
 		/* Restore normal DN validation */
@@ -4364,7 +4388,7 @@ config_setup_ldif( BackendDB *be, const char *dir, int readit ) {
 			op->ora_e = sc.config;
 			rc = op->o_bd->bd_info->bi_op_add( op, &rs );
 		}
-		slap_biglock_release(op->o_bd);
+		slap_biglock_release(bl);
 		ldap_pvt_thread_pool_context_reset( thrctx );
 	}
 
@@ -5184,7 +5208,7 @@ config_add_oc( ConfigOCs **cop, CfEntryInfo *last, Entry *e, ConfigArgs *ca )
 
 /* Parse an LDAP entry into config directives */
 static int
-config_add_internal( CfBackInfo *cfb, Entry *e, ConfigArgs *ca, SlapReply *rs,
+config_add_internal_unlocked( CfBackInfo *cfb, Entry *e, ConfigArgs *ca, SlapReply *rs,
 	int *renum, Operation *op )
 {
 	CfEntryInfo	*ce, *last = NULL;
@@ -5537,6 +5561,17 @@ done_noop:
 	return rc;
 }
 
+/* Parse an LDAP entry into config directives */
+static int
+config_add_internal( CfBackInfo *cfb, Entry *e, ConfigArgs *ca, SlapReply *rs,
+	int *renum, Operation *op )
+{
+	slap_biglock_t *bl = crutch_lock( op ? op->o_bd : &cfb->cb_db );
+	int rc = config_add_internal_unlocked(cfb, e, ca, rs, renum, op);
+	crutch_unlock(bl);
+	return rc;
+}
+
 #define	BIGTMP	10000
 static int
 config_rename_add( Operation *op, SlapReply *rs, CfEntryInfo *ce,
@@ -5651,7 +5686,7 @@ config_back_add( Operation *op, SlapReply *rs )
 		}
 	}
 
-	if ( op->o_abandon ) {
+	if ( get_op_abandon(op) ) {
 		rs->sr_err = SLAPD_ABANDON;
 		goto out;
 	}
@@ -5756,7 +5791,7 @@ config_modify_add( ConfigTable *ct, ConfigArgs *ca, AttributeDescription *ad,
 }
 
 static int
-config_modify_internal( CfEntryInfo *ce, Operation *op, SlapReply *rs,
+config_modify_internal_unlocked( CfEntryInfo *ce, Operation *op, SlapReply *rs,
 	ConfigArgs *ca )
 {
 	int rc = LDAP_UNWILLING_TO_PERFORM;
@@ -6084,6 +6119,16 @@ out_noop:
 }
 
 static int
+config_modify_internal( CfEntryInfo *ce, Operation *op, SlapReply *rs,
+	ConfigArgs *ca )
+{
+	slap_biglock_t *bl = crutch_lock(op->o_bd);
+	int rc = config_modify_internal_unlocked(ce, op, rs, ca);
+	crutch_unlock(bl);
+	return rc;
+}
+
+static int
 config_back_modify( Operation *op, SlapReply *rs )
 {
 	CfBackInfo *cfb;
@@ -6137,7 +6182,7 @@ config_back_modify( Operation *op, SlapReply *rs )
 	slap_mods_opattrs( op, &op->orm_modlist, 1 );
 
 	if ( do_pause ) {
-		if ( op->o_abandon ) {
+		if ( get_op_abandon(op) ) {
 			rs->sr_err = SLAPD_ABANDON;
 			goto out;
 		}
@@ -6306,7 +6351,7 @@ config_back_modrdn( Operation *op, SlapReply *rs )
 		goto out;
 	}
 
-	if ( op->o_abandon ) {
+	if ( get_op_abandon(op) ) {
 		rs->sr_err = SLAPD_ABANDON;
 		goto out;
 	}
@@ -6399,7 +6444,7 @@ config_back_delete( Operation *op, SlapReply *rs )
 		rs->sr_err = LDAP_NO_SUCH_OBJECT;
 	} else if ( ce->ce_kids ) {
 		rs->sr_err = LDAP_NOT_ALLOWED_ON_NONLEAF;
-	} else if ( op->o_abandon ) {
+	} else if ( get_op_abandon(op) ) {
 		rs->sr_err = SLAPD_ABANDON;
 	} else if ( ce->ce_type == Cft_Overlay ||
 			ce->ce_type == Cft_Database ||
@@ -6534,6 +6579,7 @@ config_back_search( Operation *op, SlapReply *rs )
 	CfBackInfo *cfb;
 	CfEntryInfo *ce, *last;
 	slap_mask_t mask;
+	slap_biglock_t *bl = NULL;
 
 	cfb = (CfBackInfo *)op->o_bd->be_private;
 
@@ -6557,16 +6603,20 @@ config_back_search( Operation *op, SlapReply *rs )
 	switch ( op->ors_scope ) {
 	case LDAP_SCOPE_BASE:
 	case LDAP_SCOPE_SUBTREE:
+		bl = crutch_lock(op->o_bd);
 		rs->sr_err = config_send( op, rs, ce, 0 );
+		crutch_unlock(bl);
 		break;
 
 	case LDAP_SCOPE_ONELEVEL:
+		bl = crutch_lock(op->o_bd);
 		for (ce = ce->ce_kids; ce; ce=ce->ce_sibs) {
 			rs->sr_err = config_send( op, rs, ce, 1 );
 			if ( rs->sr_err ) {
 				break;
 			}
 		}
+		crutch_unlock(bl);
 		break;
 	}
 
@@ -7280,8 +7330,6 @@ config_back_db_destroy( BackendDB *be, ConfigReply *cr )
 		BER_BVZERO( &cfb->cb_db.be_rootndn );
 
 		backend_destroy_one( &cfb->cb_db, 0 );
-	} else {
-		slap_biglock_destroy( &cfb->cb_db );
 	}
 
 	loglevel_destroy();
@@ -7299,7 +7347,6 @@ config_back_db_init( BackendDB *be, ConfigReply* cr )
 	cfb->cb_config = ch_calloc( 1, sizeof(ConfigFile));
 	cfn = cfb->cb_config;
 	be->be_private = cfb;
-	slap_biglock_init(&cfb->cb_db);
 
 	ber_dupbv( &be->be_rootdn, &config_rdn );
 	ber_dupbv( &be->be_rootndn, &be->be_rootdn );
@@ -7419,7 +7466,7 @@ config_tool_entry_get( BackendDB *be, ID id )
 static int entry_put_got_frontend=0;
 static int entry_put_got_config=0;
 static ID
-nolock_config_tool_entry_put( BackendDB *be, Entry *e, struct berval *text )
+config_tool_entry_put( BackendDB *be, Entry *e, struct berval *text )
 {
 	CfBackInfo *cfb = be->be_private;
 	BackendInfo *bi = cfb->cb_db.bd_info;
@@ -7564,16 +7611,6 @@ nolock_config_tool_entry_put( BackendDB *be, Entry *e, struct berval *text )
 		return bi->bi_tool_entry_put( &cfb->cb_db, e, text );
 	else
 		return NOID;
-}
-
-static ID
-config_tool_entry_put( BackendDB *be, Entry *e, struct berval *text )
-{
-	ID res;
-	slap_biglock_acquire(be);
-	res = nolock_config_tool_entry_put(be, e, text);
-	slap_biglock_release(be);
-	return res;
 }
 
 static struct {

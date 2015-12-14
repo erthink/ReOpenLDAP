@@ -494,7 +494,7 @@ mdb_idl_insert_keys(
 				}
 			} else {
 			/* There's room, just store it */
-				if (id == mdb->mi_nextid)
+				if (id == mdb_read_nextid(mdb))
 					flag |= MDB_APPENDDUP;
 				goto put1;
 			}

@@ -77,6 +77,7 @@ olcServerID: $n
 dn: olcDatabase={0}config,cn=config
 objectClass: olcDatabaseConfig
 olcDatabase: {0}config
+olcBiglock: local
 olcRootPW:< file://$CONFIGPWF
 EOF
 
@@ -240,6 +241,7 @@ dn: olcDatabase={1}$BACKEND,cn=config
 objectClass: olcDatabaseConfig
 ${nullExclude}objectClass: olc${BACKEND}Config
 olcDatabase: {1}$BACKEND
+olcBiglock: common
 olcSuffix: $BASEDN
 ${nullExclude}olcDbDirectory: ./db
 olcRootDN: $MANAGERDN

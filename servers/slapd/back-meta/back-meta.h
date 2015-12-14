@@ -246,6 +246,8 @@ typedef struct metaconn_t {
 
 	struct metainfo_t	*mc_info;
 
+	ldap_pvt_thread_mutex_t	mc_mutex;
+
 	/* supersedes the connection stuff */
 	metasingleconn_t	mc_conns[ 1 ];
 	/* NOTE: mc_conns must be last, because
