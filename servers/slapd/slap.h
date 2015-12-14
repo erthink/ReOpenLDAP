@@ -3409,14 +3409,16 @@ struct lock_holder_t {
 };
 typedef struct lock_holder_t lock_holder_t;
 
+#define LDAP_PASTETOKENS(a, b) a ## b
+
 ldap_pvt_thread_mutex_t* __scoped_lock(ldap_pvt_thread_mutex_t *m);
 void __scoped_unlock(lock_holder_t *lh);
-#define SCOPED_LOCK(mutex) lock_holder_t scoped_lock_##__COUNTER__ \
-	__attribute__((cleanup(__scoped_unlock))) = {__scoped_lock(mutex)}
+#define SCOPED_LOCK(mutex) lock_holder_t LDAP_PASTETOKENS(scoped_lock_, __LINE__) \
+	__attribute__((cleanup(__scoped_unlock),unused)) = {__scoped_lock(mutex)}
 
 ldap_pvt_thread_mutex_t* __op_scoped_lock(const Operation *op);
-#define OP_SCOPED_LOCK(op) lock_holder_t scoped_lock_##__COUNTER__ \
-	__attribute__((cleanup(__scoped_unlock))) = {__op_scoped_lock(op)}
+#define OP_SCOPED_LOCK(op) lock_holder_t LDAP_PASTETOKENS(scoped_lock_, __LINE__) \
+	__attribute__((cleanup(__scoped_unlock),unused)) = {__op_scoped_lock(op)}
 
 
 LDAP_END_DECL
