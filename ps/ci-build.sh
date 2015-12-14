@@ -16,7 +16,9 @@ flag_clang=0
 flag_bdb=1
 flag_wt=0
 flag_ndb=1
-flag_memleak=0
+flag_valgrind=0
+flag_asan=0
+flag_tsan=0
 for arg in "$@"; do
 	case "$arg" in
 	--debug)
@@ -71,13 +73,30 @@ for arg in "$@"; do
 		flag_ndb=0
 		;;
 	--memleak)
-		flag_memleak=1
+		flag_valgrind=1
+		flag_asan=0
+		flag_tsan=0
+
 		flag_ndb=0
 		flag_wt=0
 		flag_bdb=1
 		flag_lto=0
-		flag_check=1
+		flag_check=0
 		flag_O=-Og
+		;;
+	--asan)
+		flag_valgrind=0
+		flag_asan=1
+		flag_tsan=0
+		flag_check=0
+		flag_bdb=0
+		;;
+	--tsan)
+		flag_valgrind=0
+		flag_asan=0
+		flag_tsan=1
+		flag_check=0
+		flag_bdb=0
 		;;
 	*)
 		failure "unknown option '$arg'"
@@ -88,10 +107,6 @@ done
 #======================================================================
 
 BACKENDS="--enable-backends"
-#if [ $flag_memleak -ne 0 ]; then
-#	BACKENDS="$BACKENDS --disable-perl"
-#fi
-
 #    --enable-bdb	  enable Berkeley DB backend no|yes|mod [yes]
 #    --enable-dnssrv	  enable dnssrv backend no|yes|mod [no]
 #    --enable-hdb	  enable Hierarchical DB backend no|yes|mod [yes]
@@ -196,7 +211,20 @@ if [ $flag_lto -ne 0 ]; then
 fi
 
 if [ $flag_check -ne 0 ]; then
-	CFLAGS+=" -DLDAP_MEMORY_CHECK -DLDAP_MEMORY_DEBUG -DUSE_VALGRIND"
+	CFLAGS+=" -DLDAP_MEMORY_CHECK -DLDAP_MEMORY_DEBUG"
+fi
+
+if [ $flag_valgrind -ne 0 ]; then
+	CFLAGS+=" -DUSE_VALGRIND"
+fi
+
+if [ $flag_asan -ne 0 ]; then
+	# -asan-stack -asan-globals
+	CFLAGS+=" -fsanitize=address -pthread -Wno-inline"
+fi
+
+if [ $flag_tsan -ne 0 ]; then
+	CFLAGS+=" -fsanitize=thread -static-libtsan -D__SANITIZE_THREAD__=1"
 fi
 
 if [ -n "$IODBC" ]; then
