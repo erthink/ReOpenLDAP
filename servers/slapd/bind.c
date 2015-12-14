@@ -206,10 +206,12 @@ do_bind(
 
 cleanup:
 	if ( rs->sr_err == LDAP_SUCCESS ) {
+		ldap_pvt_thread_mutex_lock( &op->o_conn->c_mutex );
 		if ( op->orb_method != LDAP_AUTH_SASL ) {
 			ber_dupbv( &op->o_conn->c_authmech, &mech );
 		}
 		op->o_conn->c_authtype = op->orb_method;
+		ldap_pvt_thread_mutex_unlock( &op->o_conn->c_mutex );
 	}
 
 	if( !BER_BVISNULL( &op->o_req_dn ) ) {

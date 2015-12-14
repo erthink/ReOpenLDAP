@@ -283,7 +283,8 @@ slap_sl_mem_setctx(
 	SET_MEMCTX(thrctx, memctx, slap_sl_mem_destroy);
 }
 
-ATTRIBUTE_NO_SANITIZE_ADDRESS static void * __slap_sl_malloc( struct slab_heap *sh, ber_len_t size )
+static ATTRIBUTE_NO_SANITIZE_ADDRESS
+void * __slap_sl_malloc( struct slab_heap *sh, ber_len_t size )
 {
 	ber_len_t *ptr;
 

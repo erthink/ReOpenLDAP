@@ -1612,7 +1612,7 @@ backend_group(
 	BackendDB *be_orig;
 	OpExtraDB	oex;
 
-	if ( op->o_abandon ) {
+	if ( get_op_abandon(op) ) {
 		return SLAPD_ABANDON;
 	}
 

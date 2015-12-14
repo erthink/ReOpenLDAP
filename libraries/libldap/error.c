@@ -27,13 +27,29 @@
 #include "ac/errno.h"
 
 #ifdef HAVE_STRERROR_R
+#include <pthread.h>
+
 const char* strerror_safe(int err) {
 	static __thread char buf[1024];
+	const char *str;
+
+#ifdef __SANITIZE_THREAD__
+	/* LY: tsan may report a race in some glibc revisions. */
+	static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
+	pthread_mutex_lock( &mutex );
+#endif
+
 #if HAVE_NONPOSIX_STRERROR_R
-	return strerror_r(err, buf, sizeof(buf));
+	str = strerror_r(err, buf, sizeof(buf));
 #else
-	return ! strerror_r(err, buf, sizeof(buf)) ? _AC_ERRNO_UNKNOWN : buf;
+	str = ! strerror_r(err, buf, sizeof(buf)) ? _AC_ERRNO_UNKNOWN : buf;
 #endif /* HAVE_NONPOSIX_STRERROR_R */
+
+#ifdef __SANITIZE_THREAD__
+	pthread_mutex_unlock( &mutex );
+#endif
+
+	return str;
 }
 #endif /* HAVE_STRERROR_R */
 

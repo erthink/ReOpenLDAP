@@ -413,6 +413,11 @@ int main( int argc, char **argv )
 	}
 #endif
 
+#if defined(__SANITIZE_THREAD__) || defined(__SANITIZE_ADDRESS__)
+	/* LY: enable backtrace, because coredump will unavailable. */
+	slap_backtrace_set_enable( 1 );
+#endif
+
 	slap_sl_mem_init();
 
 	(void) ldap_pvt_thread_initialize();
@@ -533,6 +538,9 @@ int main( int argc, char **argv )
 				goto destroy;
 			}
 
+			/* LY: it is not needed to lock mutex here, but to reminding */
+			ldap_pvt_thread_mutex_lock( &slap_sync_cookie_mutex );
+
 			LDAP_STAILQ_FOREACH( scp_entry, &slap_sync_cookie, sci_next ) {
 				if ( scp->sci_cookie.rid == scp_entry->sci_cookie.rid ) {
 					Debug( LDAP_DEBUG_ANY,
@@ -543,6 +551,8 @@ int main( int argc, char **argv )
 				}
 			}
 			LDAP_STAILQ_INSERT_TAIL( &slap_sync_cookie, scp, sci_next );
+
+			ldap_pvt_thread_mutex_unlock( &slap_sync_cookie_mutex );
 			break;
 
 		case 'd': {	/* set debug level and 'do not detach' flag */

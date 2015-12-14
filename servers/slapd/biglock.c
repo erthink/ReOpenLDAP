@@ -46,6 +46,15 @@ static void slap_biglock_free( slap_biglock_t* bl ) {
 	ch_free(bl);
 }
 
+#ifdef __SANITIZE_THREAD__
+static ATTRIBUTE_NO_SANITIZE_THREAD
+#else
+static __inline
+#endif
+ldap_pvt_thread_t get_owner(slap_biglock_t* bl) {
+	return bl->_bl_owner;
+}
+
 void slap_biglock_destroy( BackendDB *bd ) {
 	assert(bd->bd_self == bd);
 	slap_biglock_t* bl = bd->bd_biglock;
@@ -55,7 +64,7 @@ void slap_biglock_destroy( BackendDB *bd ) {
 		if (! bl->bl_recursion) {
 			slap_biglock_free(bl);
 		} else {
-			LDAP_ENSURE(ldap_pvt_thread_self() == bl->bl_owner);
+			LDAP_ENSURE(ldap_pvt_thread_self() == get_owner(bl));
 			bl->bl_free_on_release = 1;
 		}
 	}
@@ -106,7 +115,7 @@ int slap_biglock_deep ( BackendDB *bd ) {
 
 int slap_biglock_owned ( BackendDB *bd ) {
 	slap_biglock_t* bl = slap_biglock_get( bd );
-	return bl ? ldap_pvt_thread_self() == bl->bl_owner : 1;
+	return bl ? ldap_pvt_thread_self() == get_owner(bl) : 1;
 }
 
 size_t slap_biglock_acquire(slap_biglock_t* bl) {
@@ -115,7 +124,7 @@ size_t slap_biglock_acquire(slap_biglock_t* bl) {
 	if (!bl)
 		return 0;
 
-	if (ldap_pvt_thread_self() == bl->bl_owner) {
+	if (ldap_pvt_thread_self() == get_owner(bl)) {
 		assert(bl->bl_recursion > 0);
 		assert(bl->bl_recursion < 42);
 		bl->bl_recursion += 1;
@@ -123,9 +132,9 @@ size_t slap_biglock_acquire(slap_biglock_t* bl) {
 		rc = ldap_pvt_thread_mutex_lock(&bl->bl_mutex);
 		assert(rc == 0);
 		assert(bl->bl_recursion == 0);
-		assert(bl->bl_owner == thread_null);
+		assert(get_owner(bl) == thread_null);
 
-		bl->bl_owner = ldap_pvt_thread_self();
+		bl->_bl_owner = ldap_pvt_thread_self();
 		bl->bl_recursion = 1;
 		bl->bl_age += 1;
 	}
@@ -140,13 +149,13 @@ size_t slap_biglock_release(slap_biglock_t* bl) {
 	if (!bl)
 		return 0;
 
-	assert(ldap_pvt_thread_self() == bl->bl_owner);
+	assert(ldap_pvt_thread_self() == get_owner(bl));
 	assert(bl->bl_recursion > 0);
 
 	res = ++bl->bl_evo;
 	if (--bl->bl_recursion == 0) {
 		++bl->bl_age;
-		bl->bl_owner = thread_null;
+		bl->_bl_owner = thread_null;
 		rc = ldap_pvt_thread_mutex_unlock(&bl->bl_mutex);
 		assert(rc == 0);
 		if (bl->bl_free_on_release)
@@ -177,14 +186,14 @@ int slap_biglock_pool_pause ( BackendDB *bd ) {
 	slap_biglock_t* bl = slap_biglock_get( bd );
 	int res;
 
-	if ( bl == NULL || ldap_pvt_thread_self() != bl->bl_owner) {
+	if ( bl == NULL || ldap_pvt_thread_self() != get_owner(bl)) {
 		res = ldap_pvt_thread_pool_pause( &connection_pool );
 	} else {
 		int rc, deep = bl->bl_recursion;
 		assert(bl->bl_recursion > 0);
 		bl->bl_age += 1;
 		bl->bl_recursion = 0;
-		bl->bl_owner = thread_null;
+		bl->_bl_owner = thread_null;
 		rc = ldap_pvt_thread_mutex_unlock(&bl->bl_mutex);
 		assert(rc == 0);
 
@@ -193,8 +202,8 @@ int slap_biglock_pool_pause ( BackendDB *bd ) {
 		rc = ldap_pvt_thread_mutex_lock(&bl->bl_mutex);
 		assert(rc == 0);
 		assert(bl->bl_recursion == 0);
-		assert(bl->bl_owner == thread_null);
-		bl->bl_owner = ldap_pvt_thread_self();
+		assert(bl->_bl_owner == thread_null);
+		bl->_bl_owner = ldap_pvt_thread_self();
 		bl->bl_recursion = deep;
 		bl->bl_age += 1;
 	}
@@ -213,14 +222,14 @@ int slap_biglock_pool_pausecheck ( BackendDB *bd ) {
 	int res;
 	slap_biglock_t* bl = slap_biglock_get( bd );
 
-	if ( bl == NULL || ldap_pvt_thread_self() != bl->bl_owner) {
+	if ( bl == NULL || ldap_pvt_thread_self() != get_owner(bl)) {
 		res = ldap_pvt_thread_pool_pausecheck( &connection_pool );
 	} else {
 		int rc, deep = bl->bl_recursion;
 		assert(bl->bl_recursion > 0);
 		bl->bl_age += 1;
 		bl->bl_recursion = 0;
-		bl->bl_owner = thread_null;
+		bl->_bl_owner = thread_null;
 		rc = ldap_pvt_thread_mutex_unlock(&bl->bl_mutex);
 		assert(rc == 0);
 
@@ -229,8 +238,8 @@ int slap_biglock_pool_pausecheck ( BackendDB *bd ) {
 		rc = ldap_pvt_thread_mutex_lock(&bl->bl_mutex);
 		assert(rc == 0);
 		assert(bl->bl_recursion == 0);
-		assert(bl->bl_owner == thread_null);
-		bl->bl_owner = ldap_pvt_thread_self();
+		assert(get_owner(bl) == thread_null);
+		bl->_bl_owner = ldap_pvt_thread_self();
 		bl->bl_recursion = deep;
 		bl->bl_age += 1;
 	}

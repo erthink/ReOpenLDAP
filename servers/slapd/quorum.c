@@ -108,6 +108,26 @@ void quorum_global_destroy() {
 	}
 }
 
+#ifdef __SANITIZE_THREAD__
+static ATTRIBUTE_NO_SANITIZE_THREAD
+#else
+static __inline
+#endif
+void set_cache(BackendDB *bd, int value) {
+	assert(bd->bd_self == bd);
+	bd->bd_quorum_cache = value;
+}
+
+#ifdef __SANITIZE_THREAD__
+static ATTRIBUTE_NO_SANITIZE_THREAD
+#else
+static __inline
+#endif
+int get_cache(BackendDB *bd) {
+	assert(bd->bd_self == bd);
+	return bd->bd_quorum_cache;
+}
+
 static void quorum_be_init(BackendDB *bd) {
 	slap_quorum_t *q;
 
@@ -118,7 +138,7 @@ static void quorum_be_init(BackendDB *bd) {
 	q->qr_bd = bd;
 	q->qr_next = quorum_list;
 	bd->bd_quorum = q;
-	bd->bd_quorum_cache = 1;
+	set_cache(bd, 1);
 	quorum_list = q;
 }
 
@@ -132,7 +152,7 @@ void quorum_be_destroy(BackendDB *bd) {
 		lock();
 		q = bd->bd_quorum;
 		if (q) {
-			bd->bd_quorum_cache = 1;
+			set_cache(bd, 1);
 			bd->bd_quorum = NULL;
 
 			for(pq = &quorum_list; *pq; pq = &((*pq)->qr_next))
@@ -234,8 +254,7 @@ static int lazy_update(slap_quorum_t *q) {
 }
 
 static void quorum_invalidate(BackendDB *bd) {
-	assert(bd->bd_self == bd);
-	bd->bd_quorum_cache = 0;
+	set_cache(bd, 0);
 }
 
 void quorum_notify_self_sid() {
@@ -250,16 +269,16 @@ void quorum_notify_self_sid() {
 
 int quorum_query(BackendDB *bd) {
 	bd = bd->bd_self;
-	int snap = bd->bd_quorum_cache;
+	int snap = get_cache(bd);
 	if (unlikely(snap == 0)) {
 		assert(quorum_list != QR_POISON);
 
 		lock();
-		snap = bd->bd_quorum_cache;
+		snap = get_cache(bd);
 		if (snap == 0) {
 			snap = bd->bd_quorum ? lazy_update(bd->bd_quorum) : 1;
 			assert(snap != 0);
-			bd->bd_quorum_cache = snap;
+			set_cache(bd, snap);
 		}
 		unlock();
 	}
@@ -606,7 +625,7 @@ int quorum_config(ConfigArgs *c) {
 			if(q->qr_requirements) {
 				ch_free(q->qr_requirements);
 				q->qr_requirements = NULL;
-				c->be->bd_quorum_cache = 1;
+				set_cache(c->be, 1);
 				Debug( LDAP_DEBUG_SYNC, "syncrep_quorum: %s requirements-list cleared\n",
 					   q->qr_cluster );
 			}

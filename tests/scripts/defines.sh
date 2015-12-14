@@ -117,7 +117,7 @@ function update_TESTDIR {
 
 	#detect_deadlocks=1
 	export ASAN_OPTIONS="symbolize=1:allow_addr2line=1:report_globals=1:replace_str=1:replace_intrin=1:malloc_context_size=21:detect_leaks=${ASAN_DETECT_LEAKS-0}:abort_on_error:log_path=$TESTDIR/asan-log"
-	export TSAN_OPTIONS="history_size=2:log_path=$TESTDIR/tsan-log"
+	export TSAN_OPTIONS="second_deadlock_stack=1:history_size=2:log_path=$TESTDIR/tsan-log"
 
 	VALGRIND_OPTIONS="--fair-sched=yes --quiet --log-file=$TESTDIR/valgrind-log.%p \
 		--error-markers=@ --leak-check=full --num-callers=41 --error-exitcode=43 \
@@ -494,15 +494,21 @@ function safepath {
 function collect_coredumps {
 	wait
 	local id=${1:-xxx-$(date '+%F.%H%M%S.%N')}
-	local cores="$(find -L ../${SRCDIR}/tests ../${SRCDIR}/libraries/liblmdb -name core -type f)"
-	if [ -n "${cores}" ]; then
-		echo "Found some CORE(s): '$(safepath $cores)', collect it..." >&2
+	local cores="$(find -L ../${SRCDIR}/tests ../${SRCDIR}/libraries/liblmdb -type f -name core)"
+	local sans="$(find -L ../${SRCDIR}/tests ../${SRCDIR}/libraries/liblmdb -type f -name 'tsan-log*' -o -name 'asan-log*')"
+	if [ -n "${cores}" -o -n "${sans}" ]; then
+		if [ -n "${cores}" ]; then
+			echo "Found some CORE(s): '$(safepath $cores)', collect it..." >&2
+		fi
+		if [ -n "${sans}" ]; then
+			echo "Found some TSAN/ASAN(s): '$(safepath $sans)', collect it..." >&2
+		fi
 
 		local dir n c target
 		if [ -n "${TEST_NOOK}" ]; then
 			dir="../${SRCDIR}/${TEST_NOOK}"
 		else
-			dir="../${SRCDIR}/@cores"
+			dir="../${SRCDIR}/@cores-n-sans"
 		fi
 
 		mkdir -p "$dir" || failure "failed: mkdir -p '$dir'"
@@ -515,8 +521,22 @@ function collect_coredumps {
 			done
 			mv "$c" "${target}" || failure "failed: mv '$c' '${target}'"
 		done
+		n=
+		for c in ${sans}; do
+			while true; do
+				target="${dir}/${id}${n}.san"
+				if [ ! -e "${target}" ]; then break; fi
+				n=$((n-1))
+			done
+			mv "$c" "${target}" || failure "failed: mv '$c' '${target}'"
+		done
 
-		teamcity_msg "publishArtifacts '$(safepath ${dir})/${id}*.core => ${id}-cores.tar.gz'"
+		if [ -n "${cores}" ]; then
+			teamcity_msg "publishArtifacts '$(safepath ${dir})/${id}*.core => ${id}-cores.tar.gz'"
+		fi
+		if [ -n "${sans}" ]; then
+			teamcity_msg "publishArtifacts '$(safepath ${dir})/${id}*.san => ${id}-sans.tar.gz'"
+		fi
 		teamcity_sleep 1
 		return 1
 	fi

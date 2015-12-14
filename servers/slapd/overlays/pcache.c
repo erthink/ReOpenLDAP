@@ -1613,15 +1613,17 @@ add_query(
 	new_cached_query->first = first = filter_first( query->filter );
 
 	ldap_pvt_thread_rdwr_init(&new_cached_query->rwlock);
-	if (wlock)
-		ldap_pvt_thread_rdwr_wlock(&new_cached_query->rwlock);
-
-	qb.base = query->base;
 
 	/* Adding a query    */
 	Debug( pcache_debug, "Lock AQ index = %p\n",
 			(void *) templ );
 	ldap_pvt_thread_rdwr_wlock(&templ->t_rwlock);
+
+	if (wlock)
+		ldap_pvt_thread_rdwr_wlock(&new_cached_query->rwlock);
+
+	qb.base = query->base;
+
 	qbase = avl_find( templ->qbase, &qb, pcache_dn_cmp );
 	if ( !qbase ) {
 		qbase = ch_calloc( 1, sizeof(Qbase) + qb.base.bv_len + 1 );
@@ -2360,13 +2362,13 @@ pcache_op_cleanup( Operation *op, SlapReply *rs ) {
 	query_manager*		qm = cm->qm;
 
 	if ( rs->sr_type == REP_RESULT ||
-		op->o_abandon || rs->sr_err == SLAPD_ABANDON )
+		get_op_abandon(op) || rs->sr_err == SLAPD_ABANDON )
 	{
 		if ( si->swap_saved_attrs ) {
 			rs->sr_attrs = si->save_attrs;
 			op->ors_attrs = si->save_attrs;
 		}
-		if ( (op->o_abandon || rs->sr_err == SLAPD_ABANDON) &&
+		if ( (get_op_abandon(op) || rs->sr_err == SLAPD_ABANDON) &&
 				si->caching_reason == PC_IGNORE )
 		{
 			filter_free( si->query.filter );
@@ -2960,6 +2962,15 @@ pcache_op_bind(
 
 static slap_response refresh_merge;
 
+#ifdef __SANITIZE_THREAD__
+static ATTRIBUTE_NO_SANITIZE_THREAD
+#else
+static __inline
+#endif
+void pick_acl__tsan_workaround(cache_manager *cm, Operation *op) {
+	cm->db.be_acl = op->o_bd->be_acl;
+}
+
 static int
 pcache_op_search(
 	Operation	*op,
@@ -2995,7 +3006,7 @@ pcache_op_search(
 	}
 
 	/* pickup runtime ACL changes */
-	cm->db.be_acl = op->o_bd->be_acl;
+	pick_acl__tsan_workaround(cm, op);
 
 	{
 		/* See if we're processing a Bind request

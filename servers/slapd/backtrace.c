@@ -251,7 +251,7 @@ static void backtrace_sigaction(int signum, siginfo_t *info, void* ptr) {
 #ifdef snprintf
 #	undef snprintf
 #endif
-	if (snprintf(name_buf, sizeof(name_buf), "%s/lmdb-backtrace.%s-%i.log%c",
+	if (snprintf(name_buf, sizeof(name_buf), "%s/slapd-backtrace.%s-%i.log%c",
 				 homedir ? homedir : ".", time_buf, getpid(), 0) > 0)
 		fd = open(name_buf, O_CREAT | O_EXCL | O_WRONLY, 0644);
 
@@ -369,13 +369,13 @@ static void backtrace_sigaction(int signum, siginfo_t *info, void* ptr) {
 	int retry_by_return = 0;
 	if (should_die && SI_FROMKERNEL(info)) {
 		/* LY: Expect kernel kill us again,
-		 * therefore for switch to 'guilty' thread and we we may just return,
+		 * therefore for switch to 'guilty' thread and we may just return,
 		 * instead of sending SIGTRAP and later switch stack frame by GDB. */
 		retry_by_return = 1;
 		/* LY: The trouble is that GDB should be ready, but no way to check it.
 		 * If we just return from handle while GDB not ready the kernel just terminate us.
 		 * So, we can just some delay before return or don't try this way. */
-		retry_by_return =  0;
+		retry_by_return = 0;
 	}
 
 	pid_t tid = syscall(SYS_gettid);
@@ -459,7 +459,7 @@ static void backtrace_sigaction(int signum, siginfo_t *info, void* ptr) {
 			}
 
 			is_debugger_active = 1;
-			/* LY: gdb needs  a kick to switch on this thread. */
+			/* LY: gdb needs a kick to switch on this thread. */
 			if (pthread_kill(pthread_self(), SIGTRAP) < 0)
 				break;
 			sched_yield();

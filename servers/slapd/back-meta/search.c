@@ -819,6 +819,7 @@ getconn:;
 		return rs->sr_err;
 	}
 
+	ldap_pvt_thread_mutex_lock( &mc->mc_mutex );
 	dc.conn = op->o_conn;
 	dc.rs = rs;
 
@@ -921,6 +922,7 @@ getconn:;
 			op->o_log_prefix, (void *)mc );
 #endif /* DEBUG_205 */
 
+		ldap_pvt_thread_mutex_unlock( &mc->mc_mutex );
 		meta_back_release_conn( mi, mc );
 		mc = NULL;
 
@@ -1118,7 +1120,7 @@ getconn:;
 			}
 
 			/* check for abandon */
-			if ( op->o_abandon || LDAP_BACK_CONN_ABANDON( mc ) ) {
+			if ( get_op_abandon(op) || LDAP_BACK_CONN_ABANDON( mc ) ) {
 				break;
 			}
 
@@ -1735,7 +1737,7 @@ free_message:;
 		}
 
 		/* check for abandon */
-		if ( op->o_abandon || LDAP_BACK_CONN_ABANDON( mc ) ) {
+		if ( get_op_abandon(op) || LDAP_BACK_CONN_ABANDON( mc ) ) {
 			for ( i = 0; i < mi->mi_ntargets; i++ ) {
 				if ( candidates[ i ].sr_msgid >= 0
 					|| candidates[ i ].sr_msgid == META_MSGID_CONNECTING )
@@ -1777,7 +1779,7 @@ free_message:;
 				}
 			}
 
-			if ( op->o_abandon ) {
+			if ( get_op_abandon(op) ) {
 				rc = SLAPD_ABANDON;
 			}
 
@@ -2013,6 +2015,7 @@ finish:;
 	}
 
 	if ( mc ) {
+		ldap_pvt_thread_mutex_unlock( &mc->mc_mutex );
 		ldap_pvt_thread_mutex_lock( &mi->mi_conninfo.lai_mutex );
 		if ( do_taint ) {
 			LDAP_BACK_CONN_TAINTED_SET( mc );

@@ -3325,7 +3325,7 @@ slapi_op_abandoned( Slapi_PBlock *pb )
 	if ( pb->pb_op == NULL )
 		return 0;
 
-	return ( pb->pb_op->o_abandon );
+	return get_op_abandon(pb->pb_op);
 }
 
 char *

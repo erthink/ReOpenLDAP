@@ -69,6 +69,14 @@
 #	endif
 #endif /* __forceinline */
 
+#ifndef __noinline
+#	if defined(__GNUC__) || defined(__clang__)
+#		define __noinline __attribute__((noinline))
+#	elif defined(_MSC_VER)
+#		define __noinline __declspec(noinline)
+#	endif
+#endif /* __noinline */
+
 #ifndef __must_check_result
 #	if defined(__GNUC__) || defined(__clang__)
 #		define __must_check_result __attribute__((warn_unused_result))
@@ -114,6 +122,8 @@
 #ifndef __noreturn
 #	if defined(__GNUC__) || defined(__clang__)
 #		define __noreturn __attribute__((noreturn))
+#	elif defined(__MSC_VER)
+#		define __noreturn __declspec(noreturn)
 #	else
 #		define __noreturn
 #	endif
@@ -122,6 +132,8 @@
 #ifndef __nothrow
 #	if defined(__GNUC__) || defined(__clang__)
 #		define __nothrow __attribute__((nothrow))
+#	elif defined(__MSC_VER)
+#		define __nothrow __declspec(nothrow)
 #	else
 #		define __nothrow
 #	endif
@@ -179,10 +191,15 @@
 #    define __noop() do {} while (0)
 #endif
 
+#ifndef compiler_barrier
+#	define compiler_barrier() do { \
+		__asm__ __volatile__ ("" ::: "memory"); \
+	} while(0)
+#endif /* compiler_barrier */
+
 /* -------------------------------------------------------------------------- */
 
-/* Prototype should match libc runtime. ISO POSIX (2003) & LSB 3.1 */
-__extern_C void __assert_fail(
+__extern_C void __ldap_assert_fail(
 		const char* assertion,
 		const char* file,
 		unsigned line,
@@ -225,7 +242,7 @@ __extern_C void reopenldap_jitter(int probability_percent);
 
 #define LDAP_ENSURE(condition) do \
 		if (unlikely(!(condition))) \
-			__assert_fail("ldap: " #condition, __FILE__, __LINE__, __FUNCTION__); \
+			__ldap_assert_fail("ldap: " #condition, __FILE__, __LINE__, __FUNCTION__); \
 	while (0)
 
 #if ! LDAP_ASSERT_CHECK
@@ -239,7 +256,7 @@ __extern_C void reopenldap_jitter(int probability_percent);
 	while (0)
 #endif /* LDAP_ASSERT_CHECK */
 
-#define LDAP_BUG() __assert_fail("ldap-BUG", __FILE__, __LINE__, __FUNCTION__)
+#define LDAP_BUG() __ldap_assert_fail("ldap-BUG", __FILE__, __LINE__, __FUNCTION__)
 
 #undef assert
 #define assert(expr) LDAP_ASSERT(expr)
@@ -282,6 +299,18 @@ __extern_C void reopenldap_jitter(int probability_percent);
 #endif /* ! USE_VALGRIND */
 
 #if defined(__has_feature)
+#	if __has_feature(thread_sanitizer)
+#		define __SANITIZE_THREAD__ 1
+#	endif
+#endif
+
+#ifdef __SANITIZE_THREAD__
+#	define ATTRIBUTE_NO_SANITIZE_THREAD __attribute__((no_sanitize_thread, noinline))
+#else
+#	define ATTRIBUTE_NO_SANITIZE_THREAD
+#endif
+
+#if defined(__has_feature)
 #	if __has_feature(address_sanitizer)
 #		define __SANITIZE_ADDRESS__ 1
 #	endif
@@ -289,7 +318,7 @@ __extern_C void reopenldap_jitter(int probability_percent);
 
 #ifdef __SANITIZE_ADDRESS__
 #	include <sanitizer/asan_interface.h>
-#	define ATTRIBUTE_NO_SANITIZE_ADDRESS __attribute__((no_sanitize_address))
+#	define ATTRIBUTE_NO_SANITIZE_ADDRESS __attribute__((no_sanitize_address, noinline))
 #else
 #	define ASAN_POISON_MEMORY_REGION(addr, size) \
 		((void)(addr), (void)(size))

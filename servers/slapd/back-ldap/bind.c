@@ -923,9 +923,11 @@ retry_lock:
 				&li->li_conn_priv[ LDAP_BACK_CONN2PRIV( &lc_curr ) ].lic_priv,
 				lc_q )
 			{
-				if ( !LDAP_BACK_CONN_BINDING( lc ) && lc->lc_refcnt == 0 ) {
+				if ( lc->lc_refcnt )
+					continue;
+				compiler_barrier();
+				if ( !LDAP_BACK_CONN_BINDING( lc ) )
 					break;
-				}
 			}
 
 			if ( lc != NULL ) {
