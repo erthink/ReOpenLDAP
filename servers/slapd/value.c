@@ -37,6 +37,7 @@
 #include <sys/stat.h>
 
 #include "slap.h"
+#include "lutil.h"
 
 int
 value_add(
@@ -149,6 +150,33 @@ value_add_one_int(
 	v.bv_val = buf;
 	v.bv_len = x;
 	return value_add_one(vals, &v);
+}
+
+int value_join_str(
+	BerVarray	vals,
+	const char* comma,
+	BerValue	*dest )
+{
+	size_t len = 0;
+	int i;
+
+	BER_BVZERO(dest);
+	for( i = 0; vals && !BER_BVISNULL(&vals[i]); ++i)
+		len += strlen(vals[i].bv_val) + (comma ? strlen(comma) : 0);
+
+	if (len) {
+		char *p = ber_memalloc(len + 1);
+		if (! p)
+			return -1;
+		dest->bv_val = p;
+		dest->bv_len = len;
+		for( i = 0; !BER_BVISNULL(&vals[i]); ++i) {
+			if (i && comma)
+				p = lutil_strcopy(p, comma);
+			p = lutil_strcopy(p, vals[i].bv_val);
+		}
+	}
+	return 0;
 }
 
 int asserted_value_validate_normalize(

@@ -283,7 +283,7 @@ static void lber_hug_memchk_throw(const void* payload, unsigned bits) {
 		trouble = "hipagut: corrupted memory chunk"
 				  " (control header was destroyed)";
 	}
-	__assert_fail(trouble, __FILE__, __LINE__, __FUNCTION__);
+	__ldap_assert_fail(trouble, __FILE__, __LINE__, __FUNCTION__);
 }
 
 __hot __flatten size_t lber_hug_memchk_size(const void* payload, unsigned tag) {
@@ -571,7 +571,7 @@ __hot void* ber_memcpy_safe(void* dest, const void* src, size_t n) {
 
 	if (unlikely(n > (size_t) __builtin_labs(diff))) {
 		if (reopenldap_mode_idkfa())
-			__assert_fail("source and destination MUST NOT overlap",
+			__ldap_assert_fail("source and destination MUST NOT overlap",
 				__FILE__, __LINE__, __FUNCTION__);
 		return memmove(dest, src, n);
 	}
@@ -712,4 +712,25 @@ __hot time_t ldap_time(time_t *p) {
 	if (p)
 		*p = t.tv_sec;
 	return t.tv_sec;
+}
+
+/*----------------------------------------------------------------------------*/
+
+/* Prototype should match libc runtime. ISO POSIX (2003) & LSB 3.1 */
+__extern_C void __assert_fail(
+		const char* assertion,
+		const char* file,
+		unsigned line,
+		const char* function) __nothrow __noreturn;
+
+void __attribute__((weak)) slap_backtrace_debug(void) {/* LY: TODO */}
+
+void __ldap_assert_fail(
+		const char* assertion,
+		const char* file,
+		unsigned line,
+		const char* function)
+{
+	slap_backtrace_debug();
+	__assert_fail(assertion, file, line, function);
 }

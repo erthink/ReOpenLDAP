@@ -66,7 +66,7 @@ int cancel_extop( Operation *op, SlapReply *rs )
 
 	ldap_pvt_thread_mutex_lock( &op->o_conn->c_mutex );
 
-	if ( op->o_abandon ) {
+	if ( get_op_abandon(op) ) {
 		/* FIXME: Should instead reject the cancel/abandon of this op, but
 		 * it seems unsafe to reset op->o_abandon once it is set. ITS#6138.
 		 */
@@ -104,7 +104,7 @@ int cancel_extop( Operation *op, SlapReply *rs )
 			|| o->o_tag == LDAP_REQ_ABANDON ) {
 		rc = LDAP_CANNOT_CANCEL;
 
-	} else if ( o->o_cancel != SLAP_CANCEL_NONE ) {
+	} else if ( get_op_cancel(o) != SLAP_CANCEL_NONE ) {
 		rc = LDAP_OPERATIONS_ERROR;
 		rs->sr_text = "message ID already being cancelled";
 
@@ -118,8 +118,8 @@ int cancel_extop( Operation *op, SlapReply *rs )
 
 	} else {
 		rc = LDAP_SUCCESS;
-		o->o_cancel = SLAP_CANCEL_REQ;
-		o->o_abandon = 1;
+		set_op_cancel(o, SLAP_CANCEL_REQ);
+		set_op_abandon(o, 1);
 	}
 
  out:
@@ -139,10 +139,10 @@ int cancel_extop( Operation *op, SlapReply *rs )
 			/* Fake a cond_wait with thread_yield, then
 			 * verify the result properly mutex-protected.
 			 */
-			while ( o->o_cancel == SLAP_CANCEL_REQ )
+			while ( get_op_cancel(o) == SLAP_CANCEL_REQ )
 				ldap_pvt_thread_yield();
 			ldap_pvt_thread_mutex_lock( &op->o_conn->c_mutex );
-			rc = o->o_cancel;
+			rc = get_op_cancel(o);
 			ldap_pvt_thread_mutex_unlock( &op->o_conn->c_mutex );
 		} while ( rc == SLAP_CANCEL_REQ );
 
@@ -150,7 +150,7 @@ int cancel_extop( Operation *op, SlapReply *rs )
 			rc = LDAP_SUCCESS;
 		}
 
-		o->o_cancel = SLAP_CANCEL_DONE;
+		set_op_cancel(o, SLAP_CANCEL_DONE);
 	}
 
 	return rc;

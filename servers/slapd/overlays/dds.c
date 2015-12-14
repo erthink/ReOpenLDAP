@@ -210,7 +210,8 @@ done_search:;
 	sc.sc_response = slap_null_cb;
 	sc.sc_private = NULL;
 
-	slap_biglock_acquire(op->o_bd);
+	slap_biglock_t *bl = slap_biglock_get(op->o_bd);
+	slap_biglock_acquire(bl);
 	for ( ntotdeletes = 0, ndeletes = 1; dc.dc_ndnlist != NULL  && ndeletes > 0; ) {
 		ndeletes = 0;
 
@@ -253,7 +254,7 @@ done_search:;
 
 		ntotdeletes += ndeletes;
 	}
-	slap_biglock_release(op->o_bd);
+	slap_biglock_release(bl);
 
 	rs.sr_err = LDAP_SUCCESS;
 

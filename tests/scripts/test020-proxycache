@@ -276,13 +276,13 @@ FIRST=$CNT
 # queries 2-6,8-10 are cacheable
 CACHEABILITY=0111110111
 grep CACHEABLE $LOG2 | awk '{
-		if ($3 == "NOT")
+		if ($0 ~ / NOT /)
 			printf "Query %d not cacheable\n",NR
 		else
 			printf "Query %d cacheable\n",NR
 	}'
 CACHED=`grep CACHEABLE $LOG2 | awk '{
-		if ($3 == "NOT")
+		if ($0 ~ / NOT /)
 			printf "0"
 		else
 			printf "1"
@@ -291,9 +291,7 @@ CACHED=`grep CACHEABLE $LOG2 | awk '{
 if test "$CACHEABILITY" = "$CACHED" ; then
 	echo "Successfully verified cacheability"
 else
-	echo "Error in verifying cacheability"
-	echo "$CACHED"
-	echo "$CACHEABILITY"
+	echo "Error in verifying cacheability (have $CACHED != should $CACHEABILITY)"
 	killservers
 	exit 1
 fi
@@ -430,7 +428,7 @@ fi
 ANSWERABILITY=1110011
 grep ANSWERABLE $LOG2 | awk "BEGIN {FIRST=$FIRST}"'{
 		if (NR > FIRST) {
-			if ($3 == "NOT")
+			if ($0 ~ / NOT /)
 				printf "Query %d not answerable\n",NR
 			else
 				printf "Query %d answerable\n",NR
@@ -438,7 +436,7 @@ grep ANSWERABLE $LOG2 | awk "BEGIN {FIRST=$FIRST}"'{
 	}'
 ANSWERED=`grep ANSWERABLE $LOG2 | awk "BEGIN {FIRST=$FIRST}"'{
 		if (NR > FIRST) {
-			if ($3 == "NOT")
+			if ($0 ~ / NOT /)
 				printf "0"
 			else
 				printf "1"
@@ -448,7 +446,7 @@ ANSWERED=`grep ANSWERABLE $LOG2 | awk "BEGIN {FIRST=$FIRST}"'{
 if test "$ANSWERABILITY" = "$ANSWERED" ; then
 	echo "Successfully verified answerability"
 else
-	echo "Error in verifying answerability"
+	echo "Error in verifying answerability (have $ANSWERED != should $ANSWERABILITY)"
 	killservers
 	exit 1
 fi

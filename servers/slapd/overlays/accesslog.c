@@ -685,8 +685,9 @@ accesslog_purge( void *ctx, void *arg )
 
 	if ( pd.used ) {
 		int i;
+		slap_biglock_t *bl = slap_biglock_get(op->o_bd);
 
-		slap_biglock_acquire(op->o_bd);
+		slap_biglock_acquire(bl);
 
 		/* delete the expired entries */
 		op->o_tag = LDAP_REQ_DELETE;
@@ -734,7 +735,7 @@ accesslog_purge( void *ctx, void *arg )
 				slap_mods_free( mod.sml_next, 1 );
 			}
 		}
-		slap_biglock_release(op->o_bd);
+		slap_biglock_release(bl);
 	}
 
 	ldap_pvt_thread_mutex_lock( &slapd_rq.rq_mutex );

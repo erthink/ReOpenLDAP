@@ -21,6 +21,13 @@
 
 #include "back-mdb.h"
 
+#ifdef __SANITIZE_THREAD__
+ATTRIBUTE_NO_SANITIZE_THREAD
+ID mdb_read_nextid(struct mdb_info *mdb) {
+	return mdb->_mi_nextid;
+}
+#endif
+
 int mdb_next_id( BackendDB *be, MDB_cursor *mc, ID *out )
 {
 	struct mdb_info *mdb = (struct mdb_info *) be->be_private;
@@ -46,7 +53,7 @@ int mdb_next_id( BackendDB *be, MDB_cursor *mc, ID *out )
 			mdb_strerror(rc), rc );
 		goto done;
 	}
-	mdb->mi_nextid = *out;
+	mdb->_mi_nextid = *out;
 
 done:
 	return rc;

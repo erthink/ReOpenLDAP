@@ -108,12 +108,16 @@ static ConfigOCs mdbocs[] = {
 		"MUST olcDbDirectory "
 		"MAY ( olcDbCheckpoint $ olcDbEnvFlags $ "
 		"olcDbNoSync $ olcDbIndex $ olcDbMaxReaders $ olcDbMaxSize $ "
+		"olcDbDreamcatcher $ olcDbOomFlags $ "
 		"olcDbMode $ olcDbSearchStack ) )",
 		 	Cft_Database, mdbcfg },
 	{ NULL, 0, NULL }
 };
 
 static slap_verbmasks mdb_envflags[] = {
+#ifdef MDB_UTTERLY_NOSYNC
+	{ BER_BVC("utterly-nosync"),	MDB_UTTERLY_NOSYNC },
+#endif
 	{ BER_BVC("nosync"),	MDB_NOSYNC },
 	{ BER_BVC("nometasync"),	MDB_NOMETASYNC },
 	{ BER_BVC("writemap"),	MDB_WRITEMAP },
@@ -148,38 +152,6 @@ mdb_checkpoint( void *ctx, void *arg )
 	return NULL;
 }
 
-/* perform killing a laggard readers */
-int
-mdb_oom_handler(MDB_env *env, int pid, void* thread_id, size_t txnid, unsigned gap, int retry)
-{
-	struct mdb_info *mdb = mdb_env_get_userctx(env);
-
-	if ( (mdb->mi_oom_flags & MDB_OOM_KILL) && pid != getpid() ) {
-		if ( kill( pid, SIGKILL ) == 0 ) {
-			Debug( LDAP_DEBUG_ANY, "oom-handler: txnid %zu gap %u, KILLED pid %i\n",
-				   txnid, gap, pid );
-			ldap_pvt_thread_yield();
-			return 2;
-		}
-		if ( errno == ESRCH )
-			return 0;
-		Debug( LDAP_DEBUG_ANY, "oom-handler: retry %d, UNABLE kill pid %i: %s\n",
-			   retry, pid, STRERROR(errno) );
-	}
-
-	if ( (mdb->mi_oom_flags & MDB_OOM_YIELD) && ! slapd_shutdown ) {
-		Debug( LDAP_DEBUG_ANY, "oom-handler: txnid %zu gap %u, retry %d, YIELD\n",
-			   txnid, gap, retry );
-		if (retry < 42)
-			ldap_pvt_thread_yield();
-		else
-			usleep(retry);
-		return 0;
-	}
-
-	return -1;
-}
-
 /* reindex entries on the fly */
 static void *
 mdb_online_index( void *ctx, void *arg )
@@ -212,7 +184,6 @@ mdb_online_index( void *ctx, void *arg )
 		if ( slapd_shutdown )
 			break;
 
-		assert(slap_biglock_owned(op->o_bd));
 		rc = mdb_txn_begin( mdb->mi_dbenv, NULL, 0, &txn );
 		if ( rc )
 			break;
@@ -266,6 +237,7 @@ mdb_online_index( void *ctx, void *arg )
 	}
 
 	for ( i = 0; i < mdb->mi_nattrs; i++ ) {
+		SCOPED_LOCK(&mdb->mi_attrs[ i ]->ai_mutex);
 		if ( mdb->mi_attrs[ i ]->ai_indexmask & MDB_INDEX_DELETING
 			|| mdb->mi_attrs[ i ]->ai_newmask == 0 )
 		{
@@ -384,20 +356,27 @@ mdb_cf_gen( ConfigArgs *c )
 			break;
 
 		case MDB_DBNOSYNC:
-			if ( mdb->mi_dbenv_flags & MDB_NOSYNC )
+			if ( mdb->mi_dbenv_flags == MDB_UTTERLY_NOSYNC )
 				c->value_int = 1;
+			else if ( mdb->mi_dbenv_flags == 0 )
+				c->value_int = 0;
+			else
+				rc = 1;
 			break;
 
 		case MDB_ENVFLAGS:
-			if ( mdb->mi_dbenv_flags )
-				mask_to_verbs( mdb_envflags, mdb->mi_dbenv_flags, &c->rvalue_vals );
-			if ( !c->rvalue_vals ) rc = 1;
+			if ( mdb->mi_dbenv_flags == MDB_UTTERLY_NOSYNC )
+				rc = 1;
+			else {
+				if ( mdb->mi_dbenv_flags )
+					mask_to_verbs( mdb_envflags, mdb->mi_dbenv_flags, &c->rvalue_vals );
+				if ( !c->rvalue_vals ) rc = 1;
+			}
 			break;
 
 		case MDB_OOMFLAGS:
-			if ( mdb->mi_oom_flags )
-				mask_to_verbs( oom_flags, mdb->mi_oom_flags, &c->rvalue_vals );
-			if ( !c->rvalue_vals ) rc = 1;
+			rc = mask_to_verbstring( oom_flags, mdb->mi_oom_flags,
+				' ', &c->value_bv );
 			break;
 
 		case MDB_INDEX:
@@ -459,8 +438,8 @@ mdb_cf_gen( ConfigArgs *c )
 			ldap_pvt_thread_pool_purgekey( mdb->mi_dbenv );
 			break;
 		case MDB_DBNOSYNC:
-			mdb_env_set_flags( mdb->mi_dbenv, MDB_NOSYNC, 0 );
-			mdb->mi_dbenv_flags &= ~MDB_NOSYNC;
+			mdb_env_set_flags( mdb->mi_dbenv, MDB_UTTERLY_NOSYNC, 0 );
+			mdb->mi_dbenv_flags &= ~MDB_UTTERLY_NOSYNC;
 			break;
 
 		case MDB_ENVFLAGS:
@@ -500,7 +479,6 @@ mdb_cf_gen( ConfigArgs *c )
 
 		case MDB_OOMFLAGS:
 			mdb->mi_oom_flags = 0;
-			mdbx_env_set_oomfunc( mdb->mi_dbenv, NULL );
 			break;
 
 		case MDB_INDEX:
@@ -701,12 +679,11 @@ mdb_cf_gen( ConfigArgs *c )
 
 	case MDB_DBNOSYNC:
 		if ( c->value_int )
-			mdb->mi_dbenv_flags |= MDB_NOSYNC;
+			mdb->mi_dbenv_flags |= MDB_UTTERLY_NOSYNC;
 		else
-			mdb->mi_dbenv_flags ^= MDB_NOSYNC;
+			mdb->mi_dbenv_flags &= ~MDB_UTTERLY_NOSYNC;
 		if ( mdb->mi_flags & MDB_IS_OPEN ) {
-			mdb_env_set_flags( mdb->mi_dbenv, MDB_NOSYNC,
-				c->value_int );
+			mdb_env_set_flags( mdb->mi_dbenv, MDB_UTTERLY_NOSYNC, c->value_int );
 		}
 		break;
 
@@ -738,6 +715,7 @@ mdb_cf_gen( ConfigArgs *c )
 
 	case MDB_OOMFLAGS: {
 		int i, j;
+		mdb->mi_oom_flags = 0;
 		for ( i=1; i<c->argc; i++ ) {
 			j = verb_to_mask( c->argv[i], oom_flags );
 			if ( oom_flags[j].mask ) {
@@ -751,8 +729,6 @@ mdb_cf_gen( ConfigArgs *c )
 			}
 		}
 		}
-		if ( mdb->mi_flags & MDB_IS_OPEN )
-			mdbx_env_set_oomfunc( mdb->mi_dbenv, mdb_oom_handler );
 		break;
 
 	case MDB_INDEX:

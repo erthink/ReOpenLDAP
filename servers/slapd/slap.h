@@ -1756,12 +1756,15 @@ struct sync_cookie {
 	int *sids;
 	int numcsns;
 	int rid;
-	struct berval octet_str;
 	int sid;
-	LDAP_STAILQ_ENTRY(sync_cookie) sc_next;
 };
 
-LDAP_STAILQ_HEAD( slap_sync_cookie_s, sync_cookie );
+struct sync_cookie_item {
+	LDAP_STAILQ_ENTRY(sync_cookie_item) sci_next;
+	struct sync_cookie sci_cookie;
+};
+
+LDAP_STAILQ_HEAD( slap_sync_cookie_s, sync_cookie_item );
 
 struct slap_csn_entry;
 LDAP_TAILQ_HEAD( be_pcl, slap_csn_entry );
@@ -1782,9 +1785,10 @@ typedef struct slap_quorum slap_quorum_t;
 
 struct slap_biglock {
 	ldap_pvt_thread_mutex_t bl_mutex;
-	volatile ldap_pvt_thread_t bl_owner;
+	volatile ldap_pvt_thread_t _bl_owner;
 	volatile size_t bl_age, bl_evo;
 	volatile int bl_recursion;
+	int bl_free_on_release;
 };
 
 struct BackendDB {
@@ -2668,8 +2672,8 @@ struct Operation {
 #define ore_reqoid oq_extended.rs_reqoid
 #define ore_flags oq_extended.rs_flags
 #define ore_reqdata oq_extended.rs_reqdata
-	volatile sig_atomic_t o_abandon;	/* abandon flag */
-	volatile sig_atomic_t o_cancel;		/* cancel flag */
+	volatile sig_atomic_t _o_abandon;	/* abandon flag */
+	volatile sig_atomic_t _o_cancel;		/* cancel flag */
 #define SLAP_CANCEL_NONE				0x00
 #define SLAP_CANCEL_REQ					0x01
 #define SLAP_CANCEL_ACK					0x02
@@ -2789,6 +2793,63 @@ struct Operation {
 
 	LDAP_STAILQ_ENTRY(Operation)	o_next;	/* next operation in list */
 };
+
+#ifdef __SANITIZE_THREAD__
+
+int get_op_abandon(const struct Operation *op);
+int get_op_cancel(const struct Operation *op);
+void set_op_abandon(struct Operation *op, int v);
+void set_op_cancel(struct Operation *op, int v);
+
+int read_int__tsan_workaround(volatile int *ptr);
+char read_char__tsan_workaround(volatile char *ptr);
+void* read_ptr__tsan_workaround(void *ptr);
+
+#else
+
+static __inline
+int get_op_abandon(const struct Operation *op)
+{
+	return op->_o_abandon;
+}
+
+static __inline
+int get_op_cancel(const struct Operation *op)
+{
+	return op->_o_cancel;
+}
+
+static __inline
+void set_op_abandon(struct Operation *op, int v)
+{
+	op->_o_abandon = v;
+}
+
+static __inline
+void set_op_cancel(struct Operation *op, int v)
+{
+	op->_o_cancel = v;
+}
+
+static __inline
+int read_int__tsan_workaround(volatile int *ptr) {
+		return *ptr;
+}
+
+static __inline
+char read_char__tsan_workaround(volatile char *ptr) {
+		return *ptr;
+}
+
+static __inline
+void* read_ptr__tsan_workaround(void *ptr) {
+		return *(void * volatile *)ptr;
+}
+
+#endif /* __SANITIZE_THREAD__ */
+
+void op_copy(const volatile Operation *src,
+	Operation *op, Opheader *hdr, BackendDB *be);
 
 typedef struct OperationBuffer {
 	Operation	ob_op;
@@ -3340,6 +3401,23 @@ typedef struct slap_oinit_t {
 	const char	*ov_type;
 	OV_init		*ov_init;
 } OverlayInit;
+
+
+/* LY: crutchs ;) */
+struct lock_holder_t {
+	ldap_pvt_thread_mutex_t *lh_mutex;
+};
+typedef struct lock_holder_t lock_holder_t;
+
+ldap_pvt_thread_mutex_t* __scoped_lock(ldap_pvt_thread_mutex_t *m);
+void __scoped_unlock(lock_holder_t *lh);
+#define SCOPED_LOCK(mutex) lock_holder_t scoped_lock_##__COUNTER__ \
+	__attribute__((cleanup(__scoped_unlock))) = {__scoped_lock(mutex)}
+
+ldap_pvt_thread_mutex_t* __op_scoped_lock(const Operation *op);
+#define OP_SCOPED_LOCK(op) lock_holder_t scoped_lock_##__COUNTER__ \
+	__attribute__((cleanup(__scoped_unlock))) = {__op_scoped_lock(op)}
+
 
 LDAP_END_DECL
 

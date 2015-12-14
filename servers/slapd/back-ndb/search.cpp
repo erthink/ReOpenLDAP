@@ -362,7 +362,7 @@ static int ndb_oc_search( Operation *op, SlapReply *rs, Ndb *ndb, NdbTransaction
 	NA.ndb = ndb;
 	while ( scan->nextResult( true, true ) == 0 ) {
 		NdbTransaction *tx2;
-		if ( op->o_abandon ) {
+		if ( get_op_abandon(op) ) {
 			rc = rs->sr_err = SLAPD_ABANDON;
 			break;
 		}
@@ -684,7 +684,7 @@ int ndb_back_search( Operation *op, SlapReply *rs )
 
 	e.e_name.bv_val = dnBuf;
 	while ( scan->nextResult( true, true ) == 0 ) {
-		if ( op->o_abandon ) {
+		if ( get_op_abandon(op) ) {
 			rs->sr_err = SLAPD_ABANDON;
 			break;
 		}

@@ -87,7 +87,7 @@ retry:	/* transaction retry */
 		NA.txn = NULL;
 		Debug( LDAP_DEBUG_TRACE,
 			"==> " LDAP_XSTRING(ndb_back_delete) ": retrying...\n" );
-		if ( op->o_abandon ) {
+		if ( get_op_abandon(op) ) {
 			rs->sr_err = SLAPD_ABANDON;
 			goto return_results;
 		}

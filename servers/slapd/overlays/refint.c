@@ -597,8 +597,9 @@ refint_repair(
 	unsigned long	opid;
 	int		rc;
 	int	cache;
+	slap_biglock_t *bl = slap_biglock_get(op->o_bd);
 
-	slap_biglock_acquire(op->o_bd);
+	slap_biglock_acquire(bl);
 	op->o_callback->sc_response = refint_search_cb;
 	op->o_req_dn = op->o_bd->be_suffix[ 0 ];
 	op->o_req_ndn = op->o_bd->be_nsuffix[ 0 ];
@@ -615,7 +616,7 @@ refint_repair(
 		Debug( LDAP_DEBUG_TRACE,
 			"refint_repair: search failed: %d\n",
 			rc );
-		slap_biglock_release(op->o_bd);
+		slap_biglock_release(bl);
 		return rc;
 	}
 
@@ -623,7 +624,7 @@ refint_repair(
 	if ( op->o_callback->sc_private == NULL ) {
 		Debug( LDAP_DEBUG_TRACE,
 			"refint_repair: callback wiped out sc_private?!\n" );
-		slap_biglock_release(op->o_bd);
+		slap_biglock_release(bl);
 		return 0;
 	}
 
@@ -764,7 +765,7 @@ refint_repair(
 	}
 	op2.o_opid = opid;
 
-	slap_biglock_release(op->o_bd);
+	slap_biglock_release(bl);
 	return 0;
 }
 

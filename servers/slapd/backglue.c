@@ -395,8 +395,6 @@ glue_op_search ( Operation *op, SlapReply *rs )
 	long stoptime = 0, starttime;
 	glue_state gs = {NULL, NULL, NULL, 0, 0, 0, 0};
 	slap_callback cb = { NULL, glue_op_response, glue_op_cleanup, NULL };
-	int scope0, tlimit0;
-	struct berval dn, ndn, *pdn;
 
 	cb.sc_private = &gs;
 
@@ -452,7 +450,10 @@ glue_op_search ( Operation *op, SlapReply *rs )
 
 	case LDAP_SCOPE_ONELEVEL:
 	case LDAP_SCOPE_SUBTREE:
-	case LDAP_SCOPE_SUBORDINATE: /* FIXME */
+	case LDAP_SCOPE_SUBORDINATE: /* FIXME */ {
+		int scope0, tlimit0;
+		struct berval dn, ndn, *pdn;
+
 		op->o_callback = &cb;
 		rs->sr_err = gs.err = LDAP_UNWILLING_TO_PERFORM;
 		scope0 = op->ors_scope;
@@ -498,7 +499,7 @@ glue_op_search ( Operation *op, SlapReply *rs )
 			/*
 			 * check for abandon
 			 */
-			if (op->o_abandon) {
+			if (get_op_abandon(op)) {
 				goto end_of_loop;
 			}
 			op->o_bd = btmp;
@@ -702,9 +703,10 @@ end_of_loop:;
 
 		break;
 	}
+	}
 
 	op->o_callback = cb.sc_next;
-	if ( op->o_abandon ) {
+	if ( get_op_abandon(op) ) {
 		rs->sr_err = SLAPD_ABANDON;
 	} else {
 		rs->sr_err = gs.err;
