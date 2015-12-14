@@ -182,7 +182,7 @@ if [ $flag_lto -ne 0 ]; then
 		echo "*** GCC Link-Time Optimization (LTO) will be used" >&2
 		CFLAGS+=" -flto=jobserver -fno-fat-lto-objects -fuse-linker-plugin -fwhole-program"
 		export AR=gcc-ar$CC_VER_SUFF NM=gcc-nm$CC_VER_SUFF RANLIB=gcc-ranlib$CC_VER_SUFF
-	elif grep -q clang <<< "$CC" && [ -a -n "$LLVM_VERSION" -a -e "$LTO_PLUGIN" -a -n "$(which ld.gold)" ]; then
+	elif grep -q clang <<< "$CC" && [ -n "$LLVM_VERSION" -a -e "$LTO_PLUGIN" -a -n "$(which ld.gold)" ]; then
 		echo "*** CLANG Link-Time Optimization (LTO) will be used" >&2
 		HERE=$(readlink -f $(dirname $0))
 
