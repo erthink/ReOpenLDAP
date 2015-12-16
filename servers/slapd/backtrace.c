@@ -395,7 +395,11 @@ static void backtrace_sigaction(int signum, siginfo_t *info, void* ptr) {
 		setpgid(0, 0);
 
 		dprintf(STDOUT_FILENO, "\n*** Backtrace by GDB "
-			"(pid %s, see tid/LWP %i frame #%d):\n", pid_buf, tid, frame);
+#if GDB_SWITCH2GUILTY_THREAD
+			"(pid %s, LWP %i, frame #%d):\n", pid_buf, tid, frame);
+#else
+			"(pid %s, LWP %i, please find frame manually):\n", pid_buf, tid);
+#endif
 		execlp("gdb", "gdb", "-q", "-se", name_buf, "-n", NULL);
 		kill(getppid(), SIGKILL);
 		dprintf(STDOUT_FILENO, "\n*** Sorry, GDB launch failed: %s\n", STRERROR(errno));
