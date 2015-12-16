@@ -275,7 +275,7 @@ mdb_cf_cleanup( ConfigArgs *c )
 			rc = c->be->bd_info->bi_db_open( c->be, &c->reply );
 		/* If this fails, we need to restart */
 		if ( rc ) {
-			slapd_shutdown = 2;
+			set_shutdown( 2 );
 			snprintf( c->cr_msg, sizeof( c->cr_msg ),
 				"failed to reopen database, rc=%d", rc );
 			Debug( LDAP_DEBUG_ANY, LDAP_XSTRING(mdb_cf_cleanup)
