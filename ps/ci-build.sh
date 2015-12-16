@@ -219,12 +219,20 @@ if [ $flag_valgrind -ne 0 ]; then
 fi
 
 if [ $flag_asan -ne 0 ]; then
-	# -asan-stack -asan-globals
-	CFLAGS+=" -fsanitize=address -pthread -Wno-inline"
+	# -Wno-inline
+	CFLAGS+=" -fsanitize=address -D__SANITIZE_ADDRESS__=1"
+	if [ $flag_clang -eq 0 ]; then
+		CFLAGS+=" -static-libasan -pthread"
+	fi
 fi
 
 if [ $flag_tsan -ne 0 ]; then
-	CFLAGS+=" -fsanitize=thread -static-libtsan -D__SANITIZE_THREAD__=1"
+	CFLAGS+=" -fsanitize=thread -D__SANITIZE_THREAD__=1"
+	if [ $flag_clang -eq 0 ]; then
+		CFLAGS+=" -static-libtsan"
+	#else
+	#	CFLAGS+=" -fPIE -Wl,-pie"
+	fi
 fi
 
 if [ -n "$IODBC" ]; then
