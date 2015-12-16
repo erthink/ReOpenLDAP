@@ -83,6 +83,37 @@ int slap_limit_memory_get() {return 0;}
 #	define PR_SET_PTRACER_ANY ((unsigned long)-1)
 #endif
 
+/*
+   It is convenient to get backtrace of a 'guilty' thread and its stack frame,
+   which had generated SIGSEGV/SIGBUS or SIGABORT. But the problem is than
+   no robust way to do so, when gdb executing from a signal handler.
+
+GDB_SWITCH2GUILTY_THREAD == 0
+   In this case a full and the same backtrace will be made for all threads,
+   without a switching to the guilty stack frame or a thread.
+   This is ROBUST WAY, but the problematic stack frame and thread should
+   be found manually.
+
+GDB_SWITCH2GUILTY_THREAD != 0
+   In this case a 'ping-pong' of control will be used for switch gdb to
+   the 'guilty' thread. By some unclear conditions this could fail,
+   so this is UNRELIABLE.
+
+
+DETAILS:
+   Unfortunately gdb unable to select the thread by LWP/TID. Therefore,
+   in general, to do so we should:
+	- Issue the 'continue' command to gdb, after it was started
+	  and attached to the our process;
+	- Send SIGTRAP to a `guilty` thread, gdb should catch this signal
+	  and switch to the subject thread;
+	- Give the 'bt' command to gdb, after it has captured SIGTRAP
+	  and got the control back.
+
+   By incomprehensible reasons this may fail in some gdb versions,
+   especially a modern. */
+#define GDB_SWITCH2GUILTY_THREAD 0
+
 static char* homedir;
 static void backtrace_cleanup(void)
 {
@@ -191,11 +222,6 @@ static int is_debugger_present(void) {
 	return debugger_pid != 0;
 }
 
-static volatile sig_atomic_t is_debugger_active;
-static void trap_sigaction(int signum, siginfo_t *info, void* ptr) {
-	is_debugger_active = 0;
-}
-
 static int is_valgrind_present() {
 #ifdef RUNNING_ON_VALGRIND
 	if (RUNNING_ON_VALGRIND)
@@ -206,6 +232,8 @@ static int is_valgrind_present() {
 		return strcmp(str, "0") != 0;
 	return 0;
 }
+
+volatile int gdb_is_ready_for_backtrace __attribute__((visibility("default")));
 
 static void backtrace_sigaction(int signum, siginfo_t *info, void* ptr) {
 	void *array[42];
@@ -325,44 +353,8 @@ static void backtrace_sigaction(int signum, siginfo_t *info, void* ptr) {
 		}
 	}
 
-	sigset_t mask, prev_mask;
-	if (pthread_sigmask(SIG_SETMASK, NULL, &prev_mask))
-		goto ballout;
-
-	struct sigaction sa, prev_sa;
-	sa.sa_sigaction = trap_sigaction;
-	sa.sa_flags = SA_RESTART | SA_SIGINFO;
-	sa.sa_mask = prev_mask;
-	sigdelset(&sa.sa_mask, SIGTRAP);
-	if(sigaction(SIGTRAP, &sa, &prev_sa))
-		goto ballout;
-
-	sigemptyset(&mask);
-	sigaddset(&mask, SIGTRAP);
-	if(pthread_sigmask(SIG_UNBLOCK, &mask, NULL))
-		goto ballout;
-
 	if (is_debugger_present()) {
 		dprintf(fd, "*** debugger already present\n");
-		goto ballout;
-	}
-
-	is_debugger_active = 1;
-	if (pthread_kill(pthread_self(), SIGTRAP) < 0)
-		goto ballout;
-	if (is_debugger_active) {
-		dprintf(fd, "*** debugger already running\n");
-		goto ballout;
-	}
-
-	if (is_valgrind_present()) {
-		dprintf(fd, "*** valgrind present, skip backtrace by gdb\n");
-		goto ballout;
-	}
-
-	int	pipe_fd[2];
-	if (pipe(pipe_fd)) {
-		pipe_fd[0] = pipe_fd[1] = -1;
 		goto ballout;
 	}
 
@@ -372,99 +364,127 @@ static void backtrace_sigaction(int signum, siginfo_t *info, void* ptr) {
 		 * therefore for switch to 'guilty' thread and we may just return,
 		 * instead of sending SIGTRAP and later switch stack frame by GDB. */
 		retry_by_return = 1;
-		/* LY: The trouble is that GDB should be ready, but no way to check it.
-		 * If we just return from handle while GDB not ready the kernel just terminate us.
-		 * So, we can just some delay before return or don't try this way. */
-		retry_by_return = 0;
 	}
 
+	if (is_valgrind_present()) {
+		dprintf(fd, "*** valgrind present, skip backtrace by gdb\n");
+		goto ballout;
+	}
+
+	int pipe_fd[2];
+	if (pipe(pipe_fd)) {
+		pipe_fd[0] = pipe_fd[1] = -1;
+		goto ballout;
+	}
+
+	gdb_is_ready_for_backtrace = 0;
 	pid_t tid = syscall(SYS_gettid);
 	gdb_pid = fork();
 	if (!gdb_pid) {
 		char pid_buf[16];
-		char tid_buf[32];
-		char frame_buf[16];
+		sprintf(pid_buf, "%d", getppid());
 
 		dup2(pipe_fd[0], STDIN_FILENO);
+		close(pipe_fd[1]);
+		pipe_fd[0] = pipe_fd[1] =-1;
 		dup2(fd, STDOUT_FILENO);
 		dup2(fd, STDERR_FILENO);
-		close(pipe_fd[0]);
-		close(pipe_fd[1]);
-		close(fd);
-		setpgid(0, 0);
+		for(fd = getdtablesize(); fd > STDERR_FILENO; --fd)
+			close(fd);
 		setsid();
+		setpgid(0, 0);
 
-		sprintf(pid_buf, "%d", getppid());
-		sprintf(frame_buf, "frame %d", frame);
-		sprintf(tid_buf, "thread find %d", tid);
-
-		dprintf(STDOUT_FILENO, "\n*** Backtrace by GDB (pid %s, tid %i frame #%d):\n", pid_buf, tid, frame);
-		execlp("gdb", "gdb", "-q", "-p", pid_buf, "-se", name_buf, "-n",
-			"-ex", "set confirm off",
-			"-ex", "handle SIG33 pass nostop noprint",
-			"-ex", "handle SIGPIPE pass nostop noprint",
-			"-ex", "handle SIGTRAP nopass stop print",
-			"-ex", "continue",
-			NULL);
+		dprintf(STDOUT_FILENO, "\n*** Backtrace by GDB "
+			"(pid %s, see tid/LWP %i frame #%d):\n", pid_buf, tid, frame);
+		execlp("gdb", "gdb", "-q", "-se", name_buf, "-n", NULL);
+		kill(getppid(), SIGKILL);
 		dprintf(STDOUT_FILENO, "\n*** Sorry, GDB launch failed: %s\n", STRERROR(errno));
 		fsync(STDOUT_FILENO);
-		kill(getppid(), SIGKILL);
-	} else if (gdb_pid > 0) {
+		exit(EXIT_FAILURE);
+	}
+
+	if (gdb_pid > 0) {
 		/* enable debugging */
 		prctl(PR_SET_PTRACER, gdb_pid /* PR_SET_PTRACER_ANY */, 0, 0, 0);
 
 		close(pipe_fd[0]);
 		pipe_fd[0] = -1;
+
 		if (0 >= dprintf(pipe_fd[1],
-			"info threads\n"
+			"set confirm off\n"
+			"set width 132\n"
+			"set prompt =============================================================================\\n\n"
+			"attach %d\n"
+			"handle SIGPIPE pass nostop\n"
+			"interrupt\n"
+			"set scheduler-locking on\n"
 			"thread find %d\n"
-			"frame %d\n"
-			"thread\n"
-			"backtrace\n"
-			"info all-registers\n"
-			"disassemble\n"
-			"backtrace full\n"
 
 			"info sharedlibrary\n"
 			"info threads\n"
-			"thread apply all bt\n"
-			"thread apply all backtrace full\n"
+			"thread apply all backtrace\n"
 			"thread apply all disassemble\n"
 			"thread apply all info all-registers\n"
+			"thread apply all backtrace full\n"
 			"shell uname -a\n"
+			"shell df -l -h\n"
 			"show environment\n"
+			"set variable gdb_is_ready_for_backtrace=%d\n"
+#if GDB_SWITCH2GUILTY_THREAD
+			"continue\n", getpid(), tid, gdb_pid
+#else
 			"%s\n"
-			"quit\n",
-			tid,
-			/* LY: first frame if we will just return in order to be catched by debugger. */
-			retry_by_return ? 1 : frame + 1,
-			should_die ? "kill" : "detach"))
+			"quit\n", getpid(), tid, gdb_pid,
+			should_die ? "kill" : "detach"
+#endif
+			))
 				goto ballout;
 
 		time_t timeout;
-		is_debugger_active = -1;
-		for (timeout = time(NULL) + 11; waitpid(gdb_pid, NULL, WNOHANG) == 0
-			&& time(NULL) < timeout; usleep(10 * 1000)) {
-			/* wait until GDB climbs up */
+		/* wait until GDB climbs up */
+		for (timeout = time(NULL) + 11; time(NULL) < timeout; usleep(10 * 1000)) {
+			if (waitpid(gdb_pid, NULL, WNOHANG) != 0) {
+#if ! GDB_SWITCH2GUILTY_THREAD
+				if (gdb_is_ready_for_backtrace == gdb_pid)
+					goto done;
+#endif
+				break;
+			}
+
+			if (gdb_is_ready_for_backtrace != gdb_pid)
+				continue;
+
 			if (! is_debugger_present())
 				continue;
 
-			if (is_debugger_active < 0)
-				dprintf(fd, "\n*** GDB 7.8 may hang here - this is just a bug, sorry.\n");
+#if GDB_SWITCH2GUILTY_THREAD
+			dprintf(fd, "\n*** GDB 7.8 may hang here - this is just a bug, sorry.\n");
+
+			if (0 >= dprintf(pipe_fd[1],
+				"frame %d\n"
+				"thread\n"
+				"backtrace\n"
+				"info all-registers\n"
+				"disassemble\n"
+				"backtrace full\n"
+				"%s\n"
+				"quit\n",
+				/* LY: first frame if we will return in order to be catched by debugger. */
+				retry_by_return ? 1 : frame + 1,
+				should_die ? "kill" : "detach"))
+					goto ballout;
+#endif
 
 			if (retry_by_return) {
-				dprintf(fd, "\n*** Expect kernel catch us again...\n");
-				usleep(10 * 1000);
+				dprintf(fd, "\n*** Expect kernel and GDB catch us again...\n");
+				/* LY: The trouble is that GDB should be READY, but no way to check it.
+				 * If we return from signal handler while GDB not ready the kernel just terminate us.
+				 * Assume that checking gdb_is_ready_for_backtrace == gdb_pid is enough. */
 				return;
 			}
 
-			is_debugger_active = 1;
-			/* LY: gdb needs a kick to switch on this thread. */
-			if (pthread_kill(pthread_self(), SIGTRAP) < 0)
-				break;
-			sched_yield();
-			if (is_debugger_active)
-				goto done;
+			pthread_kill(pthread_self(), SIGTRAP);
+			goto done;
 		}
 	}
 
@@ -486,9 +506,6 @@ done:
 		close(pipe_fd[1]);
 	dprintf(fd, "\n*** No reason for die, continue running.\n");
 	close(fd);
-
-	sigaction(SIGTRAP, &prev_sa, NULL);
-	pthread_sigmask(SIG_SETMASK, &prev_mask, NULL);
 }
 
 static int enabled;
