@@ -121,11 +121,11 @@ lutil_b64_ntop(
 	size_t targsize)
 {
 	size_t datalength = 0;
-	u_char input[3];
 	u_char output[4];
 	size_t i;
 
 	while (2 < srclength) {
+		u_char input[3];
 		input[0] = *src++;
 		input[1] = *src++;
 		input[2] = *src++;
@@ -150,8 +150,8 @@ lutil_b64_ntop(
 
 	/* Now we worry about padding. */
 	if (0 != srclength) {
+		u_char input[3] = { 0 };
 		/* Get what's left. */
-		input[0] = input[1] = input[2] = '\0';
 		for (i = 0; i < srclength; i++)
 			input[i] = *src++;
 
