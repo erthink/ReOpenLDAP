@@ -114,9 +114,49 @@ static volatile int waking;
 } while (0)
 #endif /* ! NO_THREADS */
 
-volatile sig_atomic_t slapd_shutdown = 0;
-volatile sig_atomic_t slapd_gentle_shutdown = 0;
-volatile sig_atomic_t slapd_abrupt_shutdown = 0;
+#ifdef __SANITIZE_THREAD__
+
+static volatile sig_atomic_t _slapd_shutdown = 0;
+static volatile sig_atomic_t _slapd_gentle_shutdown = 0;
+static volatile sig_atomic_t _slapd_abrupt_shutdown = 0;
+
+ATTRIBUTE_NO_SANITIZE_THREAD
+int get_shutdown() {
+	return _slapd_shutdown;
+}
+
+ATTRIBUTE_NO_SANITIZE_THREAD
+int get_gentle_shutdown() {
+	return _slapd_gentle_shutdown;
+}
+
+ATTRIBUTE_NO_SANITIZE_THREAD
+int get_abrupt_shutdown() {
+	return _slapd_abrupt_shutdown;
+}
+
+ATTRIBUTE_NO_SANITIZE_THREAD
+int set_shutdown(int v) {
+	return _slapd_shutdown = v;
+}
+
+ATTRIBUTE_NO_SANITIZE_THREAD
+int set_gentle_shutdown(int v) {
+	return _slapd_gentle_shutdown = v;
+}
+
+ATTRIBUTE_NO_SANITIZE_THREAD
+int set_abrupt_shutdown(int v) {
+	return _slapd_abrupt_shutdown = v;
+}
+
+#else
+
+volatile sig_atomic_t _slapd_shutdown = 0;
+volatile sig_atomic_t _slapd_gentle_shutdown = 0;
+volatile sig_atomic_t _slapd_abrupt_shutdown = 0;
+
+#endif /* __SANITIZE_THREAD__ */
 
 #ifdef HAVE_WINSOCK
 ldap_pvt_thread_mutex_t slapd_ws_mutex;
@@ -242,7 +282,7 @@ static slap_daemon_st slap_daemon[SLAPD_MAX_DAEMON_THREADS];
 		Debug( LDAP_DEBUG_ANY, \
 			"daemon: epoll_ctl(ADD,fd=%d) failed, errno=%d, shutting down\n", \
 			s, errno ); \
-		slapd_shutdown = 2; \
+		set_shutdown( 2 ); \
 	} \
 } while (0)
 
@@ -263,7 +303,7 @@ static slap_daemon_st slap_daemon[SLAPD_MAX_DAEMON_THREADS];
 		Debug( LDAP_DEBUG_ANY, \
 			"daemon: epoll_ctl(epfd=%d,DEL,fd=%d) failed, errno=%d, shutting down\n", \
 			slap_daemon[t].sd_epfd, s, errno ); \
-		slapd_shutdown = 2; \
+		set_shutdown( 2 ); \
 	} \
 	slap_daemon[t].sd_epolls[index] = \
 		slap_daemon[t].sd_epolls[slap_daemon[t].sd_nfds-1]; \
@@ -2347,7 +2387,7 @@ slapd_daemon_task(
 		if ( ber_pvt_socket_set_nonblock( SLAP_FD2SOCK( slap_listeners[l]->sl_sd ), 1 ) < 0 ) {
 			Debug( LDAP_DEBUG_ANY, "slapd_daemon_task: "
 				"set nonblocking on a listening socket failed\n" );
-			slapd_shutdown = 2;
+			set_shutdown( 2 );
 			return (void*)-1;
 		}
 
@@ -2435,7 +2475,7 @@ loop:
 					if (! global_writetimeout)
 						global_writetimeout = 5;
 				}
-				slapd_gentle_shutdown = 2;
+				set_gentle_shutdown( 2 );
 			}
 
 			ldap_pvt_thread_mutex_lock( &slap_daemon[tid].sd_mutex );
@@ -2450,7 +2490,7 @@ loop:
 						ldap_pvt_thread_mutex_unlock( &slap_daemon[l].sd_mutex );
 					}
 					if ( !active )
-						slapd_shutdown = 1;
+						set_shutdown( 1 );
 				}
 				if ( !active )
 					break;
@@ -2575,7 +2615,7 @@ loop:
 							sock_errstr( err ) );
 					}
 					if ( ebadf >= SLAPD_EBADF_LIMIT ) {
-						slapd_shutdown = 2;
+						set_shutdown( 2 );
 					}
 				}
 			}
@@ -2856,7 +2896,7 @@ loop:
 	close_listeners( 0 );
 
 	if ( !slapd_gentle_shutdown ) {
-		slapd_abrupt_shutdown = 1;
+		set_abrupt_shutdown( 1 );
 		connections_shutdown( 0 );
 	}
 
@@ -3032,10 +3072,10 @@ slap_sig_shutdown( int sig )
 			sig == SIGHUP
 #endif /* SIGHUP */
 		 ) && global_gentlehup && slapd_gentle_shutdown == 0 ) {
-		slapd_gentle_shutdown = 1;
+		set_gentle_shutdown( 1 );
 	} else
 	{
-		slapd_shutdown = 1;
+		set_shutdown ( 1 );
 	}
 
 	for (i=0; i<slapd_daemon_threads; i++) {

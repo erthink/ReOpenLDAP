@@ -925,9 +925,56 @@ LDAP_SLAPD_F (int) slapd_clr_read LDAP_P((ber_socket_t s, int wake));
 LDAP_SLAPD_F (void) slapd_clr_writetime LDAP_P((time_t old));
 LDAP_SLAPD_F (time_t) slapd_get_writetime LDAP_P((void));
 
-LDAP_SLAPD_V (volatile sig_atomic_t) slapd_abrupt_shutdown;
-LDAP_SLAPD_V (volatile sig_atomic_t) slapd_gentle_shutdown;
-LDAP_SLAPD_V (volatile sig_atomic_t) slapd_shutdown;
+#ifdef __SANITIZE_THREAD__
+
+int get_shutdown();
+int get_gentle_shutdown();
+int get_abrupt_shutdown();
+int set_shutdown(int v);
+int set_gentle_shutdown(int v);
+int set_abrupt_shutdown(int v);
+
+#else
+
+extern volatile sig_atomic_t
+	_slapd_shutdown, _slapd_gentle_shutdown, _slapd_abrupt_shutdown;
+
+static __inline
+int get_shutdown() {
+	return _slapd_shutdown;
+}
+
+static __inline
+int get_gentle_shutdown() {
+	return _slapd_gentle_shutdown;
+}
+
+static __inline
+int get_abrupt_shutdown() {
+	return _slapd_abrupt_shutdown;
+}
+
+static __inline
+int set_shutdown(int v) {
+	return _slapd_shutdown = v;
+}
+
+static __inline
+int set_gentle_shutdown(int v) {
+	return _slapd_gentle_shutdown = v;
+}
+
+static __inline
+int set_abrupt_shutdown(int v) {
+	return _slapd_abrupt_shutdown = v;
+}
+
+#endif /* __SANITIZE_THREAD__ */
+
+#define slapd_shutdown get_shutdown()
+#define slapd_gentle_shutdown get_gentle_shutdown()
+#define slapd_abrupt_shutdown get_abrupt_shutdown()
+
 LDAP_SLAPD_V (int) slapd_register_slp;
 LDAP_SLAPD_V (const char *) slapd_slp_attrs;
 LDAP_SLAPD_V (slap_ssf_t) local_ssf;
