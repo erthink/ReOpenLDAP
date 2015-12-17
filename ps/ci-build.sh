@@ -148,7 +148,7 @@ IODBC=$([ -d /usr/include/iodbc ] && echo "-I/usr/include/iodbc")
 
 #======================================================================
 
-CFLAGS="-Wall -g"
+CFLAGS="-Wall -ggdb3"
 
 if [ -z "$CC" ]; then
 	if [ $flag_clang -ne 0 ]; then
@@ -219,12 +219,20 @@ if [ $flag_valgrind -ne 0 ]; then
 fi
 
 if [ $flag_asan -ne 0 ]; then
-	# -asan-stack -asan-globals
-	CFLAGS+=" -fsanitize=address -pthread -Wno-inline"
+	# -Wno-inline
+	CFLAGS+=" -fsanitize=address -D__SANITIZE_ADDRESS__=1"
+	if [ $flag_clang -eq 0 ]; then
+		CFLAGS+=" -static-libasan -pthread"
+	fi
 fi
 
 if [ $flag_tsan -ne 0 ]; then
-	CFLAGS+=" -fsanitize=thread -static-libtsan -D__SANITIZE_THREAD__=1"
+	CFLAGS+=" -fsanitize=thread -D__SANITIZE_THREAD__=1"
+	if [ $flag_clang -eq 0 ]; then
+		CFLAGS+=" -static-libtsan"
+	#else
+	#	CFLAGS+=" -fPIE -Wl,-pie"
+	fi
 fi
 
 if [ -n "$IODBC" ]; then
@@ -253,7 +261,7 @@ if [ ! -s Makefile ]; then
 			$(if [ $flag_wt -eq 0 ]; then echo "--disable-wt"; else echo "--enable-wt"; fi) \
 		|| failure "configure"
 
-	find ./ -name Makefile | xargs -r sed -i 's/-Wall -g/-Wall -Werror -g/g' || failure "prepare"
+	find ./ -name Makefile | xargs -r sed -i 's/-Wall -ggdb3/-Wall -Werror -ggdb3/g' || failure "prepare"
 
 	if [ -z "${TEAMCITY_PROCESS_FLOW_ID}" ]; then
 		make depend \
