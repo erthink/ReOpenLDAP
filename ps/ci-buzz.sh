@@ -9,8 +9,8 @@ if [ -z "$branch_list" ]; then branch_list="devel master"; fi
 
 build="ps/ci-build.sh"
 test="ps/ci-test.sh"
-build_args="--size --without-bdb --do-not-clean"
-test_args="111"
+build_args="--without-bdb --do-not-clean"
+test_args="7"
 
 TOP=$(pwd)/@ci-buzz.pool
 RAM=$TOP/ramfs
@@ -55,9 +55,11 @@ rm -rf $TOP/@* || failure  "rm -rf $TOP/@*"
 function doit {
 	branch=$1
 	nice=$2
+	shift 2
+	build_opt=$@
 	here=$(pwd)
 	export CIBUZZ_STATUS=$here/status CIBUZZ_PID4=$here/pid
-	echo "branch $branch"
+	echo "branch $branch | $build_opt"
 	echo "==============================================================================="
 	echo "$(timestamp) Preparing..." >$CIBUZZ_STATUS
 	echo $BASHPID > $CIBUZZ_PID4
@@ -68,7 +70,7 @@ function doit {
 		|| failure git-checkout
 	echo "==============================================================================="
 	echo "$(timestamp) Building..." > $CIBUZZ_STATUS
-	nice -n $nice $build $build_args || failure "$here/$build $build_args"
+	nice -n $nice $build $build_args $build_opt || failure "$here/$build $build_args $build_opt"
 	echo "==============================================================================="
 	echo "$(timestamp) Testing..." > $CIBUZZ_STATUS
 	NO_COLLECT_SUCCESS=yes TEST_TEMP_DIR=$(readlink -f ${here}/tmp) \
@@ -85,15 +87,33 @@ for ((n=0; n < N; n++)); do
 	for branch in $branch_list; do
 		nice=$((5 + order * 2))
 		delay=$((order * 199))
-		echo "launching $n of $branch, with nice $nice..."
+		case $((n % 4)) in
+			0)
+				build_opt="--no-lto --tsan"
+				;;
+			1)
+				build_opt="--no-lto --asan"
+				;;
+			2)
+				build_opt="--size --no-check --lto"
+				;;
+			3)
+				build_opt="--speed --check --lto"
+				;;
+			*)
+				build_opt=
+				;;
+		esac
+		echo "launching $n of $branch, with nice $nice and... $build_opt"
 		dir=$TOP/@$n.$branch
 		tmp=$(readlink -f ${RAM}/$n.$branch)
 		mkdir -p $dir || failure "mkdir -p $dir"
-		echo "delay $delay seconds..." >$dir/status
+
+		echo "delay $delay seconds... $build_opt" >$dir/status
 		rm -rf $tmp $dir/tmp && mkdir -p $tmp && ln -s $tmp $dir/tmp || failure "mkdir -p $tmp"
 		( \
 			( sleep $delay && cd $dir \
-				&& doit $branch $nice \
+				&& doit $branch $nice $build_opt \
 			) >$dir/out.log 2>$dir/err.log </dev/null; \
 			wait; echo "$(timestamp) *** exited" >$dir/status \
 		) &
