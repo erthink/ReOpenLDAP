@@ -70,7 +70,7 @@ function doit {
 		|| failure git-checkout
 	echo "==============================================================================="
 	echo "$(timestamp) Building..." > $CIBUZZ_STATUS
-	nice -n $nice $build $build_args $build_opt || failure "$here/$build $build_args $build_opt"
+	nice -n 19 $build $build_args $build_opt || failure "$here/$build $build_args $build_opt"
 	echo "==============================================================================="
 	echo "$(timestamp) Testing..." > $CIBUZZ_STATUS
 	NO_COLLECT_SUCCESS=yes TEST_TEMP_DIR=$(readlink -f ${here}/tmp) \
@@ -85,8 +85,8 @@ started=$(date +%s)
 order=0
 for ((n=0; n < N; n++)); do
 	for branch in $branch_list; do
-		nice=$((5 + order * 2))
-		delay=$((order * 199))
+		nice=$((2 + order))
+		delay=$((order * 257))
 		case $((n % 4)) in
 			0)
 				build_opt="--no-lto --tsan"
