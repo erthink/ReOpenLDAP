@@ -2138,6 +2138,31 @@ syncprov_op_mod( Operation *op, SlapReply *rs )
 			opc->rsid = scook->sid;
 	}
 
+	if ( op->o_tag == LDAP_REQ_MODIFY
+			&& dn_match( &op->o_req_ndn, &si->si_contextdn ) ) {
+		Modifications *mod;
+		for ( mod = op->orm_modlist; mod; mod = mod->sml_next ) {
+			if ( mod->sml_mod.sm_desc == slap_schema.si_ad_contextCSN ) {
+				if (mod->sml_op == LDAP_MOD_REPLACE) {
+					ldap_pvt_thread_rdwr_rlock( &si->si_csn_rwlock );
+					int vector = slap_cookie_compare_csnset( &si->si_cookie, mod->sml_values );
+					if ( vector <= 0 && mod->sml_next == NULL ) {
+						/* LY: actually here no any changes,
+						 * allow to backend skip it if no penging updates. */
+						if ( si->si_numops == 0 ) {
+							Debug( LDAP_DEBUG_SYNC,
+								   "syncprov_op_mod: hollow contextCSN update %s\n",
+								   op->o_req_ndn.bv_val );
+							op->o_hollow = 1;
+						}
+					}
+					ldap_pvt_thread_rdwr_runlock( &si->si_csn_rwlock );
+				}
+				break;
+			}
+		}
+	}
+
 	if ( op->o_dont_replicate )
 		return SLAP_CB_CONTINUE;
 
