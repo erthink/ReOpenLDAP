@@ -1128,7 +1128,7 @@ ldap_chain_response( Operation *op, SlapReply *rs )
 	case LDAP_REFERRAL:
 		sr_err = rs->sr_err;
 		/* slapd-ldap sent response */
-		if ( !op->o_abandon && lb.lb_status != LDAP_CH_RES ) {
+		if ( !get_op_abandon(op) && lb.lb_status != LDAP_CH_RES ) {
 			/* FIXME: should we send response? */
 			Debug( LDAP_DEBUG_ANY,
 				"%s: ldap_chain_response: "

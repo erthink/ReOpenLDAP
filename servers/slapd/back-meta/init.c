@@ -293,6 +293,7 @@ meta_back_conn_free(
 		free( mc->mc_local_ndn.bv_val );
 	}
 
+	ldap_pvt_thread_mutex_destroy( &mc->mc_mutex );
 	free( mc );
 }
 

@@ -116,9 +116,49 @@ static volatile int waking;
 } while (0)
 #endif /* ! NO_THREADS */
 
-volatile sig_atomic_t slapd_shutdown = 0;
-volatile sig_atomic_t slapd_gentle_shutdown = 0;
-volatile sig_atomic_t slapd_abrupt_shutdown = 0;
+#ifdef __SANITIZE_THREAD__
+
+static volatile sig_atomic_t _slapd_shutdown = 0;
+static volatile sig_atomic_t _slapd_gentle_shutdown = 0;
+static volatile sig_atomic_t _slapd_abrupt_shutdown = 0;
+
+ATTRIBUTE_NO_SANITIZE_THREAD
+int get_shutdown() {
+	return _slapd_shutdown;
+}
+
+ATTRIBUTE_NO_SANITIZE_THREAD
+int get_gentle_shutdown() {
+	return _slapd_gentle_shutdown;
+}
+
+ATTRIBUTE_NO_SANITIZE_THREAD
+int get_abrupt_shutdown() {
+	return _slapd_abrupt_shutdown;
+}
+
+ATTRIBUTE_NO_SANITIZE_THREAD
+int set_shutdown(int v) {
+	return _slapd_shutdown = v;
+}
+
+ATTRIBUTE_NO_SANITIZE_THREAD
+int set_gentle_shutdown(int v) {
+	return _slapd_gentle_shutdown = v;
+}
+
+ATTRIBUTE_NO_SANITIZE_THREAD
+int set_abrupt_shutdown(int v) {
+	return _slapd_abrupt_shutdown = v;
+}
+
+#else
+
+volatile sig_atomic_t _slapd_shutdown = 0;
+volatile sig_atomic_t _slapd_gentle_shutdown = 0;
+volatile sig_atomic_t _slapd_abrupt_shutdown = 0;
+
+#endif /* __SANITIZE_THREAD__ */
 
 #ifdef HAVE_WINSOCK
 ldap_pvt_thread_mutex_t slapd_ws_mutex;
@@ -132,6 +172,8 @@ SOCKET *slapd_ws_sockets;
 #ifdef HAVE_TCPD
 static ldap_pvt_thread_mutex_t	sd_tcpd_mutex;
 #endif /* TCP Wrappers */
+
+static pthread_mutex_t tsan_mutex = PTHREAD_MUTEX_INITIALIZER;
 
 typedef struct slap_daemon_st {
 	ldap_pvt_thread_mutex_t	sd_mutex;
@@ -242,7 +284,7 @@ static slap_daemon_st slap_daemon[SLAPD_MAX_DAEMON_THREADS];
 		Debug( LDAP_DEBUG_ANY, \
 			"daemon: epoll_ctl(ADD,fd=%d) failed, errno=%d, shutting down\n", \
 			s, errno ); \
-		slapd_shutdown = 2; \
+		set_shutdown( 2 ); \
 	} \
 } while (0)
 
@@ -263,7 +305,7 @@ static slap_daemon_st slap_daemon[SLAPD_MAX_DAEMON_THREADS];
 		Debug( LDAP_DEBUG_ANY, \
 			"daemon: epoll_ctl(epfd=%d,DEL,fd=%d) failed, errno=%d, shutting down\n", \
 			slap_daemon[t].sd_epfd, s, errno ); \
-		slapd_shutdown = 2; \
+		set_shutdown( 2 ); \
 	} \
 	slap_daemon[t].sd_epolls[index] = \
 		slap_daemon[t].sd_epolls[slap_daemon[t].sd_nfds-1]; \
@@ -868,7 +910,9 @@ slapd_add( ber_socket_t s, int isactive, Listener *sl, int id )
 
 	if ( isactive ) slap_daemon[id].sd_nactives++;
 
+	ldap_pvt_thread_mutex_lock( &tsan_mutex );
 	SLAP_SOCK_ADD(id, s, sl);
+	ldap_pvt_thread_mutex_unlock( &tsan_mutex );
 
 	Debug( LDAP_DEBUG_CONNS, "daemon: added %ldr%s listener=%p\n",
 		(long) s, isactive ? " (active)" : "", (void *)sl );
@@ -896,6 +940,7 @@ slapd_remove(
 	if ( !locked )
 		ldap_pvt_thread_mutex_lock( &slap_daemon[id].sd_mutex );
 
+	ldap_pvt_thread_mutex_lock( &tsan_mutex );
 	assert( SLAP_SOCK_IS_ACTIVE( id, s ));
 
 	if ( wasactive ) slap_daemon[id].sd_nactives--;
@@ -939,6 +984,7 @@ slapd_remove(
 		 */
 		if ( slap_listeners[i] == NULL ) emfile = 0;
 	}
+	ldap_pvt_thread_mutex_unlock( &tsan_mutex );
 	ldap_pvt_thread_mutex_unlock( &slap_daemon[id].sd_mutex );
 	WAKE_LISTENER(id, wake || slapd_gentle_shutdown);
 }
@@ -1838,8 +1884,10 @@ slap_listener(
 	/* Resume the listener FD to allow concurrent-processing of
 	 * additional incoming connections.
 	 */
+	ldap_pvt_thread_mutex_lock( &tsan_mutex );
 	sl->sl_busy = 0;
 	WAKE_LISTENER(DAEMON_ID(sl->sl_sd),1);
+	ldap_pvt_thread_mutex_unlock( &tsan_mutex );
 
 	if ( s == AC_SOCKET_INVALID ) {
 		int err = sock_errno();
@@ -2096,8 +2144,9 @@ slap_listener_activate(
 {
 	int rc;
 
-	Debug( LDAP_DEBUG_TRACE, "slap_listener_activate(%d): %s\n",
-		sl->sl_sd, sl->sl_busy ? "busy" : "" );
+	ldap_pvt_thread_mutex_lock( &tsan_mutex );
+	Debug( LDAP_DEBUG_TRACE, "slap_listener_activate(%d): %s%s\n",
+		sl->sl_sd, sl->sl_mute ? " muted" : "", sl->sl_busy ? " busy" : "" );
 
 	sl->sl_busy = 1;
 
@@ -2108,7 +2157,11 @@ slap_listener_activate(
 		Debug( LDAP_DEBUG_ANY,
 			"slap_listener_activate(%d): submit failed (%d)\n",
 			sl->sl_sd, rc );
+
+		sl->sl_busy = 0; /* LY: ?! */
 	}
+
+	ldap_pvt_thread_mutex_unlock( &tsan_mutex );
 	return rc;
 }
 
@@ -2316,7 +2369,7 @@ slapd_daemon_task(
 		if ( ber_pvt_socket_set_nonblock( SLAP_FD2SOCK( slap_listeners[l]->sl_sd ), 1 ) < 0 ) {
 			Debug( LDAP_DEBUG_ANY, "slapd_daemon_task: "
 				"set nonblocking on a listening socket failed\n" );
-			slapd_shutdown = 2;
+			set_shutdown( 2 );
 			return (void*)-1;
 		}
 
@@ -2399,7 +2452,7 @@ loop:
 					if (! global_writetimeout)
 						global_writetimeout = 5;
 				}
-				slapd_gentle_shutdown = 2;
+				set_gentle_shutdown( 2 );
 			}
 
 			ldap_pvt_thread_mutex_lock( &slap_daemon[tid].sd_mutex );
@@ -2414,7 +2467,7 @@ loop:
 						ldap_pvt_thread_mutex_unlock( &slap_daemon[l].sd_mutex );
 					}
 					if ( !active )
-						slapd_shutdown = 1;
+						set_shutdown( 1 );
 				}
 				if ( !active )
 					break;
@@ -2426,6 +2479,7 @@ loop:
 
 		nwriters = slap_daemon[tid].sd_nwriters;
 
+		ldap_pvt_thread_mutex_lock( &tsan_mutex );
 		if ( listening )
 		for ( l = 0; slap_listeners[l] != NULL; l++ ) {
 			Listener *lr = slap_listeners[l];
@@ -2440,6 +2494,7 @@ loop:
 				SLAP_SOCK_SET_READ( tid, lr->sl_sd );
 			}
 		}
+		ldap_pvt_thread_mutex_unlock( &tsan_mutex );
 
 		SLAP_EVENT_INIT(tid);
 
@@ -2496,6 +2551,7 @@ loop:
 			}
 		}
 
+		ldap_pvt_thread_mutex_lock( &tsan_mutex );
 		for ( l = 0; slap_listeners[l] != NULL; l++ ) {
 			Listener *lr = slap_listeners[l];
 
@@ -2503,19 +2559,10 @@ loop:
 				continue;
 			}
 
-			if ( lr->sl_mute ) {
+			if ( lr->sl_mute || lr->sl_busy ) {
 				Debug( LDAP_DEBUG_CONNS,
-					"daemon: " SLAP_EVENT_FNAME ": "
-					"listen=%d muted\n",
-					lr->sl_sd );
-				continue;
-			}
-
-			if ( lr->sl_busy ) {
-				Debug( LDAP_DEBUG_CONNS,
-					"daemon: " SLAP_EVENT_FNAME ": "
-					"listen=%d busy\n",
-					lr->sl_sd );
+					"daemon: " SLAP_EVENT_FNAME ": listen=%d%s%s\n",
+					lr->sl_sd, lr->sl_mute ? " muted" : "", lr->sl_busy ? " busy" : "" );
 				continue;
 			}
 
@@ -2524,6 +2571,7 @@ loop:
 				"listen=%d active_threads=%d tvp=%s\n",
 				lr->sl_sd, at, tvp == NULL ? "NULL" : "zero" );
 		}
+		ldap_pvt_thread_mutex_unlock( &tsan_mutex );
 
 		SLAP_EVENT_WAIT( tid, tvp, &ns );
 		switch ( ns ) {
@@ -2544,7 +2592,7 @@ loop:
 							sock_errstr( err ) );
 					}
 					if ( ebadf >= SLAPD_EBADF_LIMIT ) {
-						slapd_shutdown = 2;
+						set_shutdown( 2 );
 					}
 				}
 			}
@@ -2785,9 +2833,11 @@ loop:
 #ifdef HAVE_EPOLL
 					/* Don't keep reporting the hangup
 					 */
+					ldap_pvt_thread_mutex_lock( &slap_daemon[tid].sd_mutex );
 					if ( SLAP_SOCK_IS_ACTIVE( tid, fd )) {
 						SLAP_EPOLL_SOCK_SET( tid, fd, EPOLLET );
 					}
+					ldap_pvt_thread_mutex_unlock( &slap_daemon[tid].sd_mutex );
 #endif
 				}
 			}
@@ -2823,7 +2873,7 @@ loop:
 	close_listeners( 0 );
 
 	if ( !slapd_gentle_shutdown ) {
-		slapd_abrupt_shutdown = 1;
+		set_abrupt_shutdown( 1 );
 		connections_shutdown( 0 );
 	}
 
@@ -2999,10 +3049,10 @@ slap_sig_shutdown( int sig )
 			sig == SIGHUP
 #endif /* SIGHUP */
 		 ) && global_gentlehup && slapd_gentle_shutdown == 0 ) {
-		slapd_gentle_shutdown = 1;
+		set_gentle_shutdown( 1 );
 	} else
 	{
-		slapd_shutdown = 1;
+		set_shutdown ( 1 );
 	}
 
 	for (i=0; i<slapd_daemon_threads; i++) {

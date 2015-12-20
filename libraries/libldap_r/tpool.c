@@ -746,6 +746,17 @@ ldap_pvt_thread_pool_query(
  * true if pool is pausing; does not lock any mutex to check.
  * 0 if not pause, 1 if pause, -1 if error or no pool.
  */
+
+#ifdef __SANITIZE_THREAD__
+static ATTRIBUTE_NO_SANITIZE_THREAD
+#else
+static __inline
+#endif
+int read_ltp_pause__tsan_woraround(struct ldap_int_thread_pool_s *pool)
+{
+	return pool->ltp_pause;
+}
+
 int
 ldap_pvt_thread_pool_pausing( ldap_pvt_thread_pool_t *tpool )
 {
@@ -753,7 +764,7 @@ ldap_pvt_thread_pool_pausing( ldap_pvt_thread_pool_t *tpool )
 	struct ldap_int_thread_pool_s *pool;
 
 	if ( tpool != NULL && (pool = *tpool) != NULL ) {
-		rc = (pool->ltp_pause != 0);
+		rc = (read_ltp_pause__tsan_woraround(pool) != 0);
 	}
 
 	return rc;
@@ -1032,8 +1043,11 @@ handle_pause( ldap_pvt_thread_pool_t *tpool, int pause_type )
 	if (pool == NULL)
 		return(0);
 
-	if (pause_type == CHECK_PAUSE && !pool->ltp_pause)
-		return(0);
+	ldap_pvt_thread_mutex_lock(&pool->ltp_mutex);
+	if (pause_type == CHECK_PAUSE && !pool->ltp_pause) {
+		ldap_pvt_thread_mutex_unlock(&pool->ltp_mutex);
+		return 0;
+	}
 
 	{
 		ldap_int_thread_userctx_t *ctx = ldap_pvt_thread_pool_context();
@@ -1044,8 +1058,6 @@ handle_pause( ldap_pvt_thread_pool_t *tpool, int pause_type )
 
 	/* Let pool_unidle() ignore requests for new pauses */
 	max_ltp_pause = pause_type==PAUSE_ARG(GO_UNIDLE) ? WANT_PAUSE : NOT_PAUSED;
-
-	ldap_pvt_thread_mutex_lock(&pool->ltp_mutex);
 
 	pause = pool->ltp_pause;	/* NOT_PAUSED, WANT_PAUSE or PAUSED */
 

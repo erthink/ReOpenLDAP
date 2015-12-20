@@ -69,7 +69,7 @@ struct mdb_info {
 	int			mi_dbenv_mode;
 
 	size_t		mi_mapsize;
-	ID			mi_nextid;
+	volatile ID	_mi_nextid;
 	size_t		mi_maxentrysize;
 
 	slap_mask_t	mi_defaultmask;
@@ -105,12 +105,22 @@ struct mdb_info {
 #define	MDB_RE_OPEN		0x10
 #define	MDB_NEED_UPGRADE	0x20
 
+	ldap_pvt_thread_mutex_t	mi_ads_mutex;
 	int mi_numads;
 
 	MDB_dbi	mi_dbis[MDB_NDB];
 	AttributeDescription *mi_ads[MDB_MAXADS];
 	int mi_adxs[MDB_MAXADS];
 };
+
+#ifdef __SANITIZE_THREAD__
+ID mdb_read_nextid(struct mdb_info *mdb);
+#else
+static __inline
+ID mdb_read_nextid(struct mdb_info *mdb) {
+	return mdb->_mi_nextid;
+}
+#endif
 
 #define mi_id2entry	mi_dbis[MDB_ID2ENTRY]
 #define mi_dn2id	mi_dbis[MDB_DN2ID]
@@ -158,6 +168,7 @@ typedef struct mdb_attrinfo {
 	MDB_cursor *ai_cursor;	/* for tools */
 	int ai_idx;	/* position in AI array */
 	MDB_dbi ai_dbi;
+	ldap_pvt_thread_mutex_t	ai_mutex;
 } AttrInfo;
 
 /* tool threaded indexer state */

@@ -706,6 +706,8 @@ syncrep_start(
 	 * any meaningful state.
 	 */
 	if ( !si->si_syncCookie.ctxcsn ) {
+		ldap_pvt_thread_mutex_lock( &slap_sync_cookie_mutex );
+
 		LDAP_STAILQ_FOREACH( sc, &slap_sync_cookie, sci_next ) {
 			if ( si->si_rid == sc->sci_cookie.rid ) {
 				cmdline_cookie_found = 1;
@@ -730,6 +732,8 @@ syncrep_start(
 			si->si_cookieAge = si->si_cookieState->cs_age;
 			ldap_pvt_thread_mutex_unlock( &si->si_cookieState->cs_mutex );
 		}
+
+		ldap_pvt_thread_mutex_unlock( &slap_sync_cookie_mutex );
 	}
 
 	/* whenever there are multiple data sources possible, advertise sid */
@@ -933,6 +937,7 @@ do_syncrep_process(
 	int		refreshDeletes = 0;
 	char empty[6] = "empty";
 	int biglocked = 0;
+	slap_biglock_t *bl = slap_biglock_get(op->o_bd);
 
 	if ( slapd_shutdown ) {
 		rc = -2;
@@ -967,7 +972,7 @@ do_syncrep_process(
 			tout_p = &tout; /* no wait */
 
 		if (! tout_p && biglocked) {
-			slap_biglock_release(op->o_bd);
+			slap_biglock_release(bl);
 			biglocked = 0;
 		}
 
@@ -983,7 +988,7 @@ do_syncrep_process(
 			 * it is reasonable and necessary.
 			 * See https://github.com/ReOpen/ReOpenLDAP/issues/43
 			 */
-			slap_biglock_acquire (op->o_bd);
+			slap_biglock_acquire(bl);
 			biglocked = 1;
 		}
 
@@ -1503,7 +1508,7 @@ done:
 		err == LDAP_SUCCESS && rc == LDAP_SUCCESS && si->si_refreshDone );
 	quorum_syncrepl_gate( si->si_be, si, 0 );
 	if (biglocked)
-		slap_biglock_release(op->o_bd);
+		slap_biglock_release(bl);
 
 	Debug( LDAP_DEBUG_TRACE, "<<= do_syncrep_process %s\n", si->si_ridtxt );
 	return rc;

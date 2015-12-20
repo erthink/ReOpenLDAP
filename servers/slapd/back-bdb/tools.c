@@ -164,7 +164,7 @@ int bdb_tool_entry_close(
 	BackendDB *be )
 {
 	if ( bdb_tool_info ) {
-		slapd_shutdown = 1;
+		set_shutdown( 1 );
 #ifdef USE_TRICKLE
 		ldap_pvt_thread_mutex_lock( &bdb_tool_trickle_mutex );
 
@@ -203,7 +203,7 @@ int bdb_tool_entry_close(
 			bdb_tool_index_tcount = bdb_tool_threads - 1;
 		}
 		bdb_tool_info = NULL;
-		slapd_shutdown = 0;
+		set_shutdown( 0 );
 	}
 
 	if( eh.bv.bv_val ) {

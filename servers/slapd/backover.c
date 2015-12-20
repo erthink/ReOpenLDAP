@@ -326,8 +326,11 @@ over_access_allowed(
 		rc = 0;
 	}
 
+	if ( be->bd_info != bi ) {
+		assert(SLAP_ISOVERLAY( be ));
+		be->bd_info = bi;
+	}
 	op->o_bd = be;
-	op->o_bd->bd_info = bi;
 
 	return rc;
 }
@@ -382,8 +385,11 @@ overlay_entry_get_ov(
 		rc = LDAP_UNWILLING_TO_PERFORM;
 	}
 
+	if ( be->bd_info != bi ) {
+		assert(SLAP_ISOVERLAY( be ));
+		be->bd_info = bi;
+	}
 	op->o_bd = be;
-	op->o_bd->bd_info = bi;
 
 	return rc;
 }
@@ -454,8 +460,11 @@ overlay_entry_release_ov(
 		rc = 0;
 	}
 
+	if ( be->bd_info != bi ) {
+		assert(SLAP_ISOVERLAY( be ));
+		be->bd_info = bi;
+	}
 	op->o_bd = be;
-	op->o_bd->bd_info = bi;
 
 	return rc;
 }
@@ -542,8 +551,11 @@ over_acl_group(
 		rc = 0;
 	}
 
+	if ( be->bd_info != bi ) {
+		assert(SLAP_ISOVERLAY( be ));
+		be->bd_info = bi;
+	}
 	op->o_bd = be;
-	op->o_bd->bd_info = bi;
 
 	return rc;
 }
@@ -613,8 +625,11 @@ over_acl_attribute(
 		rc = 0;
 	}
 
+	if ( be->bd_info != bi ) {
+		assert(SLAP_ISOVERLAY( be ));
+		be->bd_info = bi;
+	}
 	op->o_bd = be;
-	op->o_bd->bd_info = bi;
 
 	return rc;
 }
@@ -727,6 +742,7 @@ over_op_func(
 	slap_overinfo *oi;
 	slap_overinst *on;
 	BackendDB *be = op->o_bd, db;
+	BackendInfo *bi = be->bd_info;
 	slap_callback cb = {NULL, over_back_response, NULL, NULL}, **sc;
 	int rc = SLAP_CB_CONTINUE;
 
@@ -754,7 +770,12 @@ over_op_func(
 		}
 	}
 
+	if ( be->bd_info != bi ) {
+		assert(SLAP_ISOVERLAY( be ));
+		be->bd_info = bi;
+	}
 	op->o_bd = be;
+
 	return rc;
 }
 

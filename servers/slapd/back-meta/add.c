@@ -60,6 +60,7 @@ meta_back_add( Operation *op, SlapReply *rs )
 	}
 
 	assert( mc->mc_conns[ candidate ].msc_ld != NULL );
+	ldap_pvt_thread_mutex_lock( &mc->mc_mutex );
 
 	/*
 	 * Rewrite the add dn, if needed
@@ -203,6 +204,7 @@ cleanup:;
 
 done:;
 	if ( mc ) {
+		ldap_pvt_thread_mutex_unlock( &mc->mc_mutex );
 		meta_back_release_conn( mi, mc );
 	}
 

@@ -858,7 +858,8 @@ merge_entry(
 	/* append the attribute list from the fetched entry */
 	e->e_attrs->a_next = attr;
 
-	slap_biglock_acquire(op->o_bd);
+	slap_biglock_t *bl = slap_biglock_get(op->o_bd);
+	slap_biglock_acquire(bl);
 
 	op->o_tag = LDAP_REQ_ADD;
 	op->o_protocol = LDAP_VERSION3;
@@ -897,7 +898,7 @@ merge_entry(
 		rc = 1;
 	}
 
-	slap_biglock_release(op->o_bd);
+	slap_biglock_release(bl);
 	return rc;
 }
 
@@ -1610,15 +1611,17 @@ add_query(
 	new_cached_query->first = first = filter_first( query->filter );
 
 	ldap_pvt_thread_rdwr_init(&new_cached_query->rwlock);
-	if (wlock)
-		ldap_pvt_thread_rdwr_wlock(&new_cached_query->rwlock);
-
-	qb.base = query->base;
 
 	/* Adding a query    */
 	Debug( pcache_debug, "Lock AQ index = %p\n",
 			(void *) templ );
 	ldap_pvt_thread_rdwr_wlock(&templ->t_rwlock);
+
+	if (wlock)
+		ldap_pvt_thread_rdwr_wlock(&new_cached_query->rwlock);
+
+	qb.base = query->base;
+
 	qbase = avl_find( templ->qbase, &qb, pcache_dn_cmp );
 	if ( !qbase ) {
 		qbase = ch_calloc( 1, sizeof(Qbase) + qb.base.bv_len + 1 );
@@ -1809,7 +1812,8 @@ remove_query_data(
 	filter.f_av_desc = ad_queryId;
 	filter.f_av_value = *query_uuid;
 
-	slap_biglock_acquire(op->o_bd);
+	slap_biglock_t *bl = slap_biglock_get(op->o_bd);
+	slap_biglock_acquire(bl);
 
 	op->o_tag = LDAP_REQ_SEARCH;
 	op->o_protocol = LDAP_VERSION3;
@@ -1876,7 +1880,7 @@ remove_query_data(
 		op->o_tmpfree( qi, op->o_tmpmemctx );
 	}
 
-	slap_biglock_release(op->o_bd);
+	slap_biglock_release(bl);
 	return deleted;
 }
 
@@ -2356,13 +2360,13 @@ pcache_op_cleanup( Operation *op, SlapReply *rs ) {
 	query_manager*		qm = cm->qm;
 
 	if ( rs->sr_type == REP_RESULT ||
-		op->o_abandon || rs->sr_err == SLAPD_ABANDON )
+		get_op_abandon(op) || rs->sr_err == SLAPD_ABANDON )
 	{
 		if ( si->swap_saved_attrs ) {
 			rs->sr_attrs = si->save_attrs;
 			op->ors_attrs = si->save_attrs;
 		}
-		if ( (op->o_abandon || rs->sr_err == SLAPD_ABANDON) &&
+		if ( (get_op_abandon(op) || rs->sr_err == SLAPD_ABANDON) &&
 				si->caching_reason == PC_IGNORE )
 		{
 			filter_free( si->query.filter );
@@ -2955,6 +2959,15 @@ pcache_op_bind(
 
 static slap_response refresh_merge;
 
+#ifdef __SANITIZE_THREAD__
+static ATTRIBUTE_NO_SANITIZE_THREAD
+#else
+static __inline
+#endif
+void pick_acl__tsan_workaround(cache_manager *cm, Operation *op) {
+	cm->db.be_acl = op->o_bd->be_acl;
+}
+
 static int
 pcache_op_search(
 	Operation	*op,
@@ -2990,7 +3003,7 @@ pcache_op_search(
 	}
 
 	/* pickup runtime ACL changes */
-	cm->db.be_acl = op->o_bd->be_acl;
+	pick_acl__tsan_workaround(cm, op);
 
 	{
 		/* See if we're processing a Bind request
@@ -3414,7 +3427,8 @@ refresh_query( Operation *op, CachedQuery *query, slap_overinst *on )
 	dnlist *dn;
 	int rc;
 
-	slap_biglock_acquire(op->o_bd);
+	slap_biglock_t *bl = slap_biglock_get(op->o_bd);
+	slap_biglock_acquire(bl);
 
 	ldap_pvt_thread_mutex_lock( &query->answerable_cnt_mutex );
 	query->refcnt = 0;
@@ -3505,7 +3519,7 @@ refresh_query( Operation *op, CachedQuery *query, slap_overinst *on )
 leave:
 	/* reset our local heap, we're done with it */
 	slap_sl_mem_create(SLAP_SLAB_SIZE, SLAP_SLAB_STACK, op->o_threadctx, 1 );
-	slap_biglock_release(op->o_bd);
+	slap_biglock_release(bl);
 
 	return rc;
 }

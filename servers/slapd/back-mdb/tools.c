@@ -152,7 +152,7 @@ int mdb_tool_entry_close(
 #ifdef MDB_TOOL_IDL_CACHING
 	if ( mdb_tool_info ) {
 		int i;
-		slapd_shutdown = 1;
+		set_shutdown( 1 );
 		ldap_pvt_thread_mutex_lock( &mdb_tool_index_mutex );
 
 		/* There might still be some threads starting */
@@ -172,7 +172,7 @@ int mdb_tool_entry_close(
 		ldap_pvt_thread_mutex_unlock( &mdb_tool_index_mutex );
 
 		mdb_tool_info = NULL;
-		slapd_shutdown = 0;
+		set_shutdown( 0 );
 		ch_free( mdb_tool_index_rec );
 		mdb_tool_index_tcount = mdb_tool_threads - 1;
 		if (mdb_tool_txn)
@@ -669,7 +669,7 @@ ID mdb_tool_entry_put(
 				 text->bv_val );
 			return NOID;
 		}
-		if ( !mdb->mi_nextid ) {
+		if ( ! mdb_read_nextid(mdb) ) {
 			ID dummy;
 			mdb_next_id( be, idcursor, &dummy );
 		}

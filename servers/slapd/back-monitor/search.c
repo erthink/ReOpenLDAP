@@ -108,7 +108,7 @@ monitor_send_children(
 		mp = ( monitor_entry_t * )e->e_private;
 		e_tmp = mp->mp_next;
 
-		if ( op->o_abandon ) {
+		if ( get_op_abandon(op) ) {
 			monitor_cache_release( mi, e );
 			rc = SLAPD_ABANDON;
 			goto freeout;

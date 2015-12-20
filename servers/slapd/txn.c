@@ -224,7 +224,7 @@ int txn_end_extop(
 	if( commit ) {
 		slap_callback cb = {0};
 		OpExtra *txn = NULL;
-		if ( op->o_abandon ) {
+		if ( get_op_abandon(op) ) {
 			goto drain;
 		}
 

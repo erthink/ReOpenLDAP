@@ -52,6 +52,7 @@ meta_back_modrdn( Operation *op, SlapReply *rs )
 	}
 
 	assert( mc->mc_conns[ candidate ].msc_ld != NULL );
+	ldap_pvt_thread_mutex_lock( &mc->mc_mutex );
 
 	mt = mi->mi_targets[ candidate ];
 	dc.target = mt;
@@ -169,6 +170,7 @@ cleanup:;
 	}
 
 	if ( mc ) {
+		ldap_pvt_thread_mutex_unlock( &mc->mc_mutex );
 		meta_back_release_conn( mi, mc );
 	}
 

@@ -623,7 +623,11 @@ connection_destroy( Connection *c )
 
 	assert( connections != NULL );
 	assert( c != NULL );
+
+	ldap_pvt_thread_mutex_lock( &connections_mutex );
+
 	assert( c->c_struct_state != SLAP_C_UNUSED );
+	assert( c->c_struct_state != SLAP_C_PENDING );
 	assert( c->c_conn_state != SLAP_C_INVALID );
 	assert( LDAP_STAILQ_EMPTY(&c->c_ops) );
 	assert( LDAP_STAILQ_EMPTY(&c->c_pending_ops) );
@@ -639,7 +643,6 @@ connection_destroy( Connection *c )
 	connid = c->c_connid;
 	close_reason = c->c_close_reason;
 
-	ldap_pvt_thread_mutex_lock( &connections_mutex );
 	c->c_struct_state = SLAP_C_PENDING;
 	ldap_pvt_thread_mutex_unlock( &connections_mutex );
 
@@ -693,8 +696,14 @@ connection_destroy( Connection *c )
 		ber_len_t max = sockbuf_max_incoming;
 		ber_sockbuf_ctrl( c->c_sb, LBER_SB_OPT_SET_MAX_INCOMING, &max );
 	}
+#ifdef __SANITIZE_THREAD__
+	ldap_pvt_thread_mutex_lock( &connections_mutex );
+#endif
 	c->c_conn_state = SLAP_C_INVALID;
 	c->c_struct_state = SLAP_C_UNUSED;
+#ifdef __SANITIZE_THREAD__
+	ldap_pvt_thread_mutex_unlock( &connections_mutex );
+#endif
 
 	/* c must be fully reset by this point; when we call slapd_remove
 	 * it may get immediately reused by a new connection.
@@ -744,10 +753,10 @@ static void connection_abandon( Connection *c )
 			LDAP_ASSERT(next->o_conn == c);
 
 		/* don't abandon an op twice */
-		if ( o->o_abandon )
+		if ( get_op_abandon(o) )
 			continue;
 		op.orn_msgid = o->o_msgid;
-		o->o_abandon = 1;
+		set_op_abandon(o, 1);
 		op.o_bd = frontendDB;
 		frontendDB->be_abandon( &op, &rs );
 
@@ -1111,7 +1120,8 @@ connection_operation( void *ctx, void *arg_v )
 		goto operations_error;
 	}
 
-	if( conn->c_sasl_bind_in_progress && tag != LDAP_REQ_BIND ) {
+	if( read_char__tsan_workaround(&conn->c_sasl_bind_in_progress)
+			&& tag != LDAP_REQ_BIND ) {
 		Debug( LDAP_DEBUG_ANY, "connection_operation: "
 			"error: SASL bind in progress (tag=%ld).\n",
 			(long) tag );
@@ -1177,11 +1187,11 @@ operations_error:
 	if ( opidx == SLAP_OP_BIND && conn->c_conn_state == SLAP_C_BINDING )
 		conn->c_conn_state = SLAP_C_ACTIVE;
 
-	cancel = op->o_cancel;
+	cancel = get_op_cancel(op);
 	if ( cancel != SLAP_CANCEL_NONE && cancel != SLAP_CANCEL_DONE ) {
 		if ( cancel == SLAP_CANCEL_REQ ) {
-			op->o_cancel = rc == SLAPD_ABANDON
-				? SLAP_CANCEL_ACK : LDAP_TOO_LATE;
+			set_op_cancel(op, (rc == SLAPD_ABANDON)
+				? SLAP_CANCEL_ACK : LDAP_TOO_LATE);
 		}
 
 		do {
@@ -1191,10 +1201,10 @@ operations_error:
 			ldap_pvt_thread_mutex_unlock( &conn->c_mutex );
 			do {
 				ldap_pvt_thread_yield();
-			} while ( (cancel = op->o_cancel) != SLAP_CANCEL_NONE
+			} while ( (cancel = get_op_cancel(op)) != SLAP_CANCEL_NONE
 					&& cancel != SLAP_CANCEL_DONE );
 			ldap_pvt_thread_mutex_lock( &conn->c_mutex );
-		} while ( (cancel = op->o_cancel) != SLAP_CANCEL_NONE
+		} while ( (cancel = get_op_cancel(op)) != SLAP_CANCEL_NONE
 				&& cancel != SLAP_CANCEL_DONE );
 	}
 
@@ -1279,9 +1289,11 @@ void connection_client_stop(
 		ber_len_t max = sockbuf_max_incoming;
 		ber_sockbuf_ctrl( c->c_sb, LBER_SB_OPT_SET_MAX_INCOMING, &max );
 	}
+	ldap_pvt_thread_mutex_lock( &connections_mutex );
 	c->c_conn_state = SLAP_C_INVALID;
 	c->c_struct_state = SLAP_C_UNUSED;
 	slapd_remove( s, sb, 0, 1, 0 );
+	ldap_pvt_thread_mutex_unlock( &connections_mutex );
 
 	connection_return( c );
 }
@@ -1799,7 +1811,7 @@ connection_resched( Connection *conn )
 		LDAP_STAILQ_REMOVE_HEAD( &conn->c_pending_ops, o_next );
 
 		/* pending operations should not be marked for abandonment */
-		assert(!op->o_abandon);
+		assert(!get_op_abandon(op));
 
 		conn->c_n_ops_pending--;
 		conn->c_n_ops_executing++;
@@ -2010,7 +2022,7 @@ int connection_write(ber_socket_t s)
 		op->o_conn = NULL;
 
 		/* pending operations should not be marked for abandonment */
-		assert(!op->o_abandon);
+		assert(!get_op_abandon(op));
 
 		c->c_n_ops_pending--;
 		c->c_n_ops_executing++;

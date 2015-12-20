@@ -544,7 +544,7 @@ ldif_write_entry(
 	int fd, entry_length;
 	char *entry_as_string, *tmpfname;
 
-	if ( op->o_abandon )
+	if ( get_op_abandon(op) )
 		return SLAPD_ABANDON;
 
 	if ( parentdir != NULL && mkdir( parentdir, 0750 ) < 0 ) {
@@ -643,7 +643,7 @@ ldif_read_entry(
 	/* TODO: Does slapd prevent Abandon of Bind as per rfc4511?
 	 * If so we need not check for LDAP_REQ_BIND here.
 	 */
-	if ( op->o_abandon && op->o_tag != LDAP_REQ_BIND )
+	if ( get_op_abandon(op) && op->o_tag != LDAP_REQ_BIND )
 		return SLAPD_ABANDON;
 
 	rc = ldif_read_file( path, entryp ? &entry_as_string : NULL );
@@ -1052,7 +1052,7 @@ ldif_prepare_create(
 	Entry *parent = NULL;
 	int rc;
 
-	if ( op->o_abandon )
+	if ( get_op_abandon(op) )
 		return SLAPD_ABANDON;
 
 	rc = ndn2path( op, ndn, dnpath, 0 );
@@ -1483,7 +1483,7 @@ ldif_back_delete( Operation *op, SlapReply *rs )
 
 	ldap_pvt_thread_mutex_lock( &li->li_modop_mutex );
 	ldap_pvt_thread_rdwr_wlock( &li->li_rdwr );
-	if ( op->o_abandon ) {
+	if ( get_op_abandon(op) ) {
 		rc = SLAPD_ABANDON;
 		goto done;
 	}
