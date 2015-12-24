@@ -104,6 +104,7 @@ EOF
 			exit 125
 		fi
 
+		RC_EXT="test-failure"
 		if ! collect_coredumps $TEST_ID; then
 			RC=134
 		fi
@@ -111,18 +112,17 @@ EOF
 		if test $RC -eq 0 ; then
 			cibuzz_report "<<< ${TEST_ITER}--${TEST_ID}"
 			[ -z "$NO_COLLECT_SUCCESS" ] && collect_test $TEST_ID no
-			echo ">>>>> $BCMD completed ${TB}OK${TN} for $BACKEND_MODE."
+			echo "<<<<< $BCMD completed ${TB}OK${TN} for $BACKEND_MODE."
 		else
 			cibuzz_report "=== ${TEST_ITER}--${TEST_ID} = $RC"
 			collect_test $TEST_ID yes
-			echo ">>>>> $BCMD ${TB}failed${TN} for $BACKEND_MODE"
-			teamcity_msg "testFailed name='$BCMD for $BACKEND_MODE'"
+			echo "<<<<< $BCMD ${TB}failed${TN} for $BACKEND_MODE (code $RC, $RC_EXT)"
+			teamcity_msg "testFailed name='$BCMD for $BACKEND_MODE' message='code $RC, $RC_EXT'"
 			FAILCOUNT=`expr $FAILCOUNT + 1`
 
 			if [ -n "$NOEXIT" ]; then
 				echo "Continuing."
 			else
-				echo "(exit $RC)"
 				exit $RC
 			fi
 		fi

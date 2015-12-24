@@ -499,9 +499,11 @@ function collect_coredumps {
 	if [ -n "${cores}" -o -n "${sans}" ]; then
 		if [ -n "${cores}" ]; then
 			echo "Found some CORE(s): '$(safepath $cores)', collect it..." >&2
+			RC_EXT="coredump"
 		fi
 		if [ -n "${sans}" ]; then
 			echo "Found some TSAN/ASAN(s): '$(safepath $sans)', collect it..." >&2
+			RC_EXT="tsan/asan"
 		fi
 
 		local dir n c target
