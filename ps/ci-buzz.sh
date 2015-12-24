@@ -16,7 +16,7 @@ TOP=$(pwd)/@ci-buzz.pool
 RAM=$TOP/ramfs
 MAINPID=$$
 function timestamp {
-	date -u +'%F %T'
+	date +'%F %T'
 }
 
 function cleanup {
