@@ -520,9 +520,17 @@ function collect_coredumps {
 				n=$((n-1))
 			done
 			mv "$c" "${target}" || failure "failed: mv '$c' '${target}'"
+			gdb ../${SRCDIR}/servers/slapd/slapd -c "$c" &> "${target}-gdb" <<GDB
+bt
+info thread
+thread apply all bt full
+quit
+GDB
+			git show -s &>> "${target}-gdb"
 		done
 		n=
 		for c in ${sans}; do
+			git show -s &>> "$c"
 			while true; do
 				target="${dir}/${id}${n}.san"
 				if [ ! -e "${target}" ]; then break; fi
