@@ -3123,10 +3123,12 @@ void
 slap_suspend_listeners( void )
 {
 	int i;
+	ldap_pvt_thread_mutex_lock( &tsan_mutex );
 	for (i=0; slap_listeners[i]; i++) {
 		slap_listeners[i]->sl_mute = 1;
 		listen( slap_listeners[i]->sl_sd, 0 );
 	}
+	ldap_pvt_thread_mutex_unlock( &tsan_mutex );
 }
 
 /* Resume after a suspend */
@@ -3134,10 +3136,12 @@ void
 slap_resume_listeners( void )
 {
 	int i;
+	ldap_pvt_thread_mutex_lock( &tsan_mutex );
 	for (i=0; slap_listeners[i]; i++) {
 		slap_listeners[i]->sl_mute = 0;
 		listen( slap_listeners[i]->sl_sd, SLAPD_LISTEN_BACKLOG );
 	}
+	ldap_pvt_thread_mutex_unlock( &tsan_mutex );
 }
 
 void
