@@ -2380,6 +2380,8 @@ ldap_txn_end_s LDAP_P(( LDAP *ld,
  * in ldap_sync.c
  */
 
+const char* ldap_sync_state2str( int state );
+
 /*
  * initialize the persistent search structure
  */
