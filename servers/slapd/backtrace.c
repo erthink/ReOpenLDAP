@@ -344,8 +344,10 @@ static void backtrace_sigaction(int signum, siginfo_t *info, void* ptr) {
 			dprintf(STDOUT_FILENO, "(%d) %p: ", n, actual[n]);
 			sprintf(addr_buf, "%p", actual[n]);
 			execlp("addr2line", "addr2line", addr_buf, "-C", "-f", "-i",
-				   /* "-p", LY: not available on RHEL6 */
-				   "-e", name_buf, NULL);
+#if __GLIBC_PREREQ(2,14)
+				"-p", /* LY: not available on RHEL6, guest by glibc version */
+#endif
+				"-e", name_buf, NULL);
 			exit(EXIT_FAILURE);
 		} else if (child_pid < 0 || waitpid(child_pid, &status, 0) < 0 || status != W_EXITCODE(EXIT_SUCCESS, 0)) {
 			dprintf(fd, "\n*** Unable complete backtrace by addr2line, sorry (%d, %d, 0x%x).\n", child_pid, errno, status);
@@ -668,8 +670,10 @@ void slap_backtrace_debug() {
 		close(from_addr2line[1]);
 
 		execlp("addr2line", "addr2line", "-C", "-f", "-i",
-			   "-p", /* LY: not available on RHEL6 */
-			   "-e", name_buf, NULL);
+#if __GLIBC_PREREQ(2,14)
+			"-p", /* LY: not available on RHEL6, guest by glibc version */
+#endif
+			"-e", name_buf, NULL);
 		exit(errno);
 	}
 

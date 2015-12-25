@@ -3558,7 +3558,8 @@ consistency_check(
 
 	for (templ = qm->templates; templ; templ=templ->qmnext) {
 		time_t ttl = 0;
-		if ( !templ->query_last ) continue;
+		if ( ! read_ptr__tsan_workaround(&templ->query_last) ) continue;
+		ldap_pvt_thread_rdwr_wlock(&templ->t_rwlock);
 		pause = 0;
 		op->o_time = slap_get_time();
 		if ( !templ->ttr ) {
@@ -3591,7 +3592,6 @@ consistency_check(
 				int rem = 0;
 				Debug( pcache_debug, "Lock CR index = %p\n",
 						(void *) templ );
-				ldap_pvt_thread_rdwr_wlock(&templ->t_rwlock);
 				if ( query == templ->query_last ) {
 					rem = 1;
 					remove_from_template(query, templ);
@@ -3600,10 +3600,7 @@ consistency_check(
 					Debug( pcache_debug, "Unlock CR index = %p\n",
 							(void *) templ );
 				}
-				if ( !rem ) {
-					ldap_pvt_thread_rdwr_wunlock(&templ->t_rwlock);
-					continue;
-				}
+				if ( !rem ) continue;
 				ldap_pvt_thread_mutex_lock(&qm->lru_mutex);
 				remove_query(qm, query);
 				ldap_pvt_thread_mutex_unlock(&qm->lru_mutex);
@@ -3631,7 +3628,6 @@ consistency_check(
 				}
 				ldap_pvt_thread_rdwr_wunlock( &query->rwlock );
 				if ( rem ) free_query(query);
-				ldap_pvt_thread_rdwr_wunlock(&templ->t_rwlock);
 			} else if ( !templ->ttr && query->expiry_time > ttl ) {
 				/* We don't need to check for refreshes, and this
 				 * query's expiry is too new, and all subsequent queries
@@ -3643,6 +3639,7 @@ consistency_check(
 				break;
 			}
 		}
+		ldap_pvt_thread_rdwr_wunlock(&templ->t_rwlock);
 	}
 
 leave:
