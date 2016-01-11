@@ -64,7 +64,7 @@ typedef struct cookie_state {
 	ldap_pvt_thread_mutex_t	cs_mutex;
 	struct sync_cookie cs_cookie;
 	int cs_age;
-	int cs_ref;
+	volatile int cs_ref;
 } cookie_state;
 
 #define	SYNCDATA_DEFAULT	0	/* entries are plain LDAP entries */
@@ -4600,8 +4600,8 @@ syncinfo_free( syncinfo_t *sie, int free_all )
 			ch_free( npe );
 		}
 		if ( sie->si_cookieState ) {
-			sie->si_cookieState->cs_ref--;
-			if ( !sie->si_cookieState->cs_ref ) {
+			assert(sie->si_cookieState->cs_ref > 0);
+			if (__sync_fetch_and_sub(&sie->si_cookieState->cs_ref, 1) == 1) {
 				ch_free( sie->si_cookieState->cs_cookie.sids );
 				ber_bvarray_free( sie->si_cookieState->cs_cookie.ctxcsn );
 				ldap_pvt_thread_mutex_destroy( &sie->si_cookieState->cs_mutex );
@@ -5386,6 +5386,9 @@ add_syncrepl(
 			syncinfo_t *sip;
 
 			si->si_cookieState = c->be->be_syncinfo->si_cookieState;
+			/* LY: couldn't use si_cookieState->cs_mutex here
+			 * to avoid deadlock inside bconfig.c */
+			LDAP_ENSURE(__sync_fetch_and_add(&si->si_cookieState->cs_ref, 1) > 0);
 
 			/* add new syncrepl to end of list (same order as when deleting) */
 			for ( sip = c->be->be_syncinfo; sip->si_next; sip = sip->si_next );
@@ -5393,10 +5396,9 @@ add_syncrepl(
 		} else {
 			si->si_cookieState = ch_calloc( 1, sizeof( cookie_state ));
 			ldap_pvt_thread_mutex_init( &si->si_cookieState->cs_mutex );
-
+			si->si_cookieState->cs_ref = 1;
 			c->be->be_syncinfo = si;
 		}
-		si->si_cookieState->cs_ref++;
 
 		si->si_next = NULL;
 		quorum_add_rid( si->si_be, si->si_rid );
