@@ -72,16 +72,20 @@ EOF
 
 	if [ -n "$SKIPLONG" ]; then
 		if echo $TEST_ID | grep -q -e 008 -e 036 -e 039 -e 058 -e 060; then
+			((SKIPCOUNT++))
 			echo "***** Skip long ${TB}$BCMD${TN} for $BACKEND_MODE"
 			echo
+			teamcity_msg "testIgnored name='$BCMD for $BACKEND_MODE'"
 			continue
 		fi
 	fi
 
 	if [ -n "$REPLONLY" ]; then
 		if echo $BCMD | grep -q -v syncrepl; then
+			((SKIPCOUNT++))
 			echo "***** Skip non-syncrepl ${TB}$BCMD${TN} for $BACKEND_MODE"
 			echo
+			teamcity_msg "testIgnored name='$BCMD for $BACKEND_MODE'"
 			continue
 		fi
 	fi
@@ -136,10 +140,10 @@ EOF
 		fi
 		teamcity_msg "testFinished name='$BCMD for $BACKEND_MODE'"
 	else
-		echo ">>>>> Skipping ${TB}$BCMD${TN} for $BACKEND_MODE."
-		SKIPCOUNT=`expr $SKIPCOUNT + 1`
+		echo "***** Skipping ${TB}$BCMD${TN} for $BACKEND_MODE."
+		((SKIPCOUNT++))
 		RC="-"
-		teamcity_msg t"testIgnored name='$BCMD for $BACKEND_MODE'"
+		teamcity_msg "testIgnored name='$BCMD for $BACKEND_MODE'"
 	fi
 
 	if [ -n "$NOEXIT" ]; then
