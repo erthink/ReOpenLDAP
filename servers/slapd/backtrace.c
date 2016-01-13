@@ -235,7 +235,8 @@ static int is_valgrind_present() {
 
 volatile int gdb_is_ready_for_backtrace __attribute__((visibility("default")));
 
-static void backtrace_sigaction(int signum, siginfo_t *info, void* ptr) {
+static ATTRIBUTE_NO_SANITIZE_THREAD
+void backtrace_sigaction(int signum, siginfo_t *info, void* ptr) {
 	void *array[42];
 	size_t size;
 	void * caller_address;
