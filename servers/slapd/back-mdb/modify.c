@@ -618,26 +618,30 @@ txnReturn:
 
 	/* Modify the entry */
 	dummy = *e;
-	rs->sr_err = mdb_modify_internal( op, txn, op->orm_modlist,
-		&dummy, &rs->sr_text, textbuf, textlen );
+	if (unlikely( op->o_hollow )) {
+		op->o_hollow = 0;
+	} else {
+		rs->sr_err = mdb_modify_internal( op, txn, op->orm_modlist,
+			&dummy, &rs->sr_text, textbuf, textlen );
 
-	if( rs->sr_err != LDAP_SUCCESS ) {
-		Debug( LDAP_DEBUG_TRACE,
-			LDAP_XSTRING(mdb_modify) ": modify failed (%d)\n",
-			rs->sr_err );
-		/* Only free attrs if they were dup'd.  */
-		if ( dummy.e_attrs == e->e_attrs ) dummy.e_attrs = NULL;
-		goto return_results;
-	}
+		if( rs->sr_err != LDAP_SUCCESS ) {
+			Debug( LDAP_DEBUG_TRACE,
+				LDAP_XSTRING(mdb_modify) ": modify failed (%d)\n",
+				rs->sr_err );
+			/* Only free attrs if they were dup'd.  */
+			if ( dummy.e_attrs == e->e_attrs ) dummy.e_attrs = NULL;
+			goto return_results;
+		}
 
-	/* change the entry itself */
-	rs->sr_err = mdb_id2entry_update( op, txn, NULL, &dummy );
-	if ( rs->sr_err != 0 ) {
-		Debug( LDAP_DEBUG_TRACE,
-			LDAP_XSTRING(mdb_modify) ": id2entry update failed " "(%d)\n",
-			rs->sr_err );
-		rs->sr_text = "entry update failed";
-		goto return_results;
+		/* change the entry itself */
+		rs->sr_err = mdb_id2entry_update( op, txn, NULL, &dummy );
+		if ( rs->sr_err != 0 ) {
+			Debug( LDAP_DEBUG_TRACE,
+				LDAP_XSTRING(mdb_modify) ": id2entry update failed " "(%d)\n",
+				rs->sr_err );
+			rs->sr_text = "entry update failed";
+			goto return_results;
+		}
 	}
 
 	if( op->o_postread ) {

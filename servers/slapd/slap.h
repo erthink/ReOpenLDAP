@@ -2683,6 +2683,7 @@ struct Operation {
 	char o_do_not_cache;	/* don't cache groups from this op */
 	char o_is_auth_check;	/* authorization in progress */
 	char o_dont_replicate;
+	char o_hollow;		/* actually is no any changes */
 	slap_access_t o_acl_priv;
 
 	char o_nocaching;

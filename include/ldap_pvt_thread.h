@@ -109,6 +109,12 @@ ldap_pvt_thread_cond_wait LDAP_P((
 	ldap_pvt_thread_mutex_t *mutex ));
 
 LDAP_F( int )
+ldap_pvt_thread_cond_timedwait LDAP_P((
+	unsigned timeout_ms,
+	ldap_pvt_thread_cond_t *cond,
+	ldap_pvt_thread_mutex_t *mutex ));
+
+LDAP_F( int )
 ldap_pvt_thread_mutex_init LDAP_P(( ldap_pvt_thread_mutex_t *mutex ));
 
 LDAP_F( int )

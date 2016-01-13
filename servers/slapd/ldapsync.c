@@ -40,177 +40,9 @@ pthread_mutex_t slap_sync_cookie_mutex = PTHREAD_MUTEX_INITIALIZER;
 struct slap_sync_cookie_s slap_sync_cookie =
 	LDAP_STAILQ_HEAD_INITIALIZER( slap_sync_cookie );
 
-void
-slap_compose_sync_cookie(
-	Operation *op,
-	struct berval *cookie,
-	BerVarray csn,
-	int rid,
-	int sid )
-{
-	int len, numcsn = 0;
-
-	if ( csn ) {
-		for (; !BER_BVISNULL( &csn[numcsn] ); numcsn++);
-	}
-
-	if ( numcsn == 0 || rid == -1 ) {
-		char cookiestr[ LDAP_PVT_CSNSTR_BUFSIZE + 20 ];
-		if ( rid == -1 ) {
-			cookiestr[0] = '\0';
-			len = 0;
-		} else {
-			len = snprintf( cookiestr, sizeof( cookiestr ),
-					"rid=%03d", rid );
-			if ( sid >= 0 ) {
-				len += sprintf( cookiestr+len, ",sid=%03x", sid );
-			}
-		}
-		ber_str2bv_x( cookiestr, len, 1, cookie,
-			op ? op->o_tmpmemctx : NULL );
-	} else {
-		char *ptr;
-		int i;
-
-		len = 0;
-		for ( i=0; i<numcsn; i++)
-			len += csn[i].bv_len + 1;
-
-		len += STRLENOF("rid=123,csn=");
-		if ( sid >= 0 )
-			len += STRLENOF("sid=xxx,");
-
-		cookie->bv_val = slap_sl_malloc( len, op ? op->o_tmpmemctx : NULL );
-
-		len = sprintf( cookie->bv_val, "rid=%03d,", rid );
-		ptr = cookie->bv_val + len;
-		if ( sid >= 0 ) {
-			ptr += sprintf( ptr, "sid=%03x,", sid );
-		}
-		ptr = lutil_strcopy( ptr, "csn=" );
-		for ( i=0; i<numcsn; i++) {
-			ptr = lutil_strncopy( ptr, csn[i].bv_val, csn[i].bv_len );
-			*ptr++ = ';';
-		}
-		ptr--;
-		*ptr = '\0';
-		cookie->bv_len = ptr - cookie->bv_val;
-	}
-}
-
-int *
-slap_parse_csn_sids( BerVarray csns, int numcsns, void *memctx )
-{
-	int i, *ret;
-
-	ret = slap_sl_malloc( numcsns * sizeof(int), memctx );
-	for ( i=0; i<numcsns; i++ ) {
-		ret[i] = slap_csn_get_sid( &csns[i] );
-	}
-	return ret;
-}
-
-static slap_mr_match_func sidsort_cmp;
-
-static const MatchingRule sidsort_mr = {
-	{ 0 },
-	NULL,
-	{ 0 },
-	{ 0 },
-	0,
-	NULL, NULL, NULL, sidsort_cmp
-};
-static const AttributeType sidsort_at = {
-	{ 0 },
-	{ 0 },
-	NULL, NULL, (MatchingRule *)&sidsort_mr,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, SLAP_AT_SORTED_VAL
-};
-static const AttributeDescription sidsort_ad = {
-	NULL,
-	(AttributeType *)&sidsort_at
-};
-
-static int
-sidsort_cmp(
-	int *matchp,
-	slap_mask_t flags,
-	Syntax *syntax,
-	MatchingRule *mr,
-	struct berval *b1,
-	void *v2 )
-{
-	struct berval *b2 = v2;
-	*matchp = b1->bv_len - b2->bv_len;
-	return LDAP_SUCCESS;
-}
-
 int slap_check_same_server(BackendDB *bd, int sid) {
 	return ( sid == slap_serverID
 			&& reopenldap_mode_idclip() && SLAP_MULTIMASTER(bd) ) ? -1 : 0;
-}
-
-int
-slap_csn_stub_self( BerVarray *ctxcsn, int **sids, int *numcsns )
-{
-	int i, rc;
-	struct berval csn;
-	int *new_sids;
-	char buf[ LDAP_PVT_CSNSTR_BUFSIZE ];
-
-	for (i = *numcsns; --i >= 0; )
-		if (slap_serverID == (*sids)[i])
-			return 0;
-
-	new_sids = ch_realloc( *sids, (*numcsns + 1) * sizeof(**sids) );
-	if (! new_sids)
-		return LDAP_NO_MEMORY;
-
-	*sids = new_sids;
-	(*sids)[*numcsns] = slap_serverID;
-
-	csn.bv_val = buf;
-	csn.bv_len = snprintf( buf, sizeof( buf ),
-		"%4d%02d%02d%02d%02d%02d.%06dZ#%06x#%03x#%06x",
-		1900, 1, 1, 0, 0, 0, 0, 0, slap_serverID, 0 );
-
-	rc = value_add_one( ctxcsn, &csn );
-	if (rc < 0)
-		return rc;
-
-	*numcsns += 1;
-	rc = slap_sort_csn_sids( *ctxcsn, *sids, *numcsns, NULL );
-	if (rc < 0)
-		return rc;
-
-	return 1;
-}
-
-/* sort CSNs by SID. Use a fake Attribute with our own
- * syntax and matching rule, which sorts the nvals by
- * bv_len order. Stuff our sids into the bv_len.
- */
-int
-slap_sort_csn_sids( BerVarray csns, int *sids, int numcsns, void *memctx )
-{
-	Attribute a;
-	const char *text;
-	int i, rc;
-
-	a.a_desc = (AttributeDescription *)&sidsort_ad;
-	a.a_nvals = slap_sl_malloc( numcsns * sizeof(struct berval), memctx );
-	for ( i=0; i<numcsns; i++ ) {
-		a.a_nvals[i].bv_len = sids[i];
-		a.a_nvals[i].bv_val = NULL;
-	}
-	a.a_vals = csns;
-	a.a_numvals = numcsns;
-	a.a_flags = 0;
-	rc = slap_sort_vals( (Modifications *)&a, &text, &i, memctx );
-	for ( i=0; i<numcsns; i++ )
-		sids[i] = a.a_nvals[i].bv_len;
-	slap_sl_free( a.a_nvals, memctx );
-	return rc;
 }
 
 void
@@ -275,15 +107,24 @@ void slap_cookie_init( struct sync_cookie *cookie )
 	cookie->ctxcsn = NULL;
 }
 
-void slap_cookie_clean( struct sync_cookie *cookie )
+void slap_cookie_clean_csns( struct sync_cookie *cookie, void *memctx )
+{
+	cookie->numcsns = 0;
+	if ( cookie->ctxcsn ) {
+		ber_bvarray_free_x( cookie->ctxcsn, memctx );
+		cookie->ctxcsn = NULL;
+		if ( memctx ) {
+			ber_memfree_x( cookie->sids, memctx );
+			cookie->sids = NULL;
+		}
+	}
+}
+
+void slap_cookie_clean_all( struct sync_cookie *cookie )
 {
 	cookie->rid = -1;
 	cookie->sid = -1;
-	cookie->numcsns = 0;
-	if ( cookie->ctxcsn ) {
-		ber_bvarray_free( cookie->ctxcsn );
-		cookie->ctxcsn = NULL;
-	}
+	slap_cookie_clean_csns( cookie, NULL );
 }
 
 void slap_cookie_copy(
@@ -550,7 +391,7 @@ int slap_cookie_parse(
 	char *next, *end, *anchor;
 	AttributeDescription *ad = slap_schema.si_ad_entryCSN;
 
-	slap_cookie_clean( dst );
+	slap_cookie_clean_all( dst );
 
 	if ( !src || src->bv_len <= STRLENOF( "rid=" ) )
 		goto bailout;
@@ -718,6 +559,60 @@ void slap_cookie_debug( const char *prefix, const struct sync_cookie *sc )
 		lutil_debug_print( "%s: %d) %ssid=%d %s\n", prefix, i,
 			slap_csn_verify_full( &sc->ctxcsn[i] ) ? "" : "INVALID ",
 			sc->sids[i], sc->ctxcsn[i].bv_val );
+}
+
+int slap_cookie_merge_csnset(
+	BackendDB *bd,
+	struct sync_cookie *dst,
+	BerVarray src )
+{
+	int rc;
+
+	if ( reopenldap_mode_idkfa() )
+		slap_cookie_verify( dst );
+
+	for( rc = 0; src && ! BER_BVISNULL( src ); ++src ) {
+		int vector = slap_cookie_merge_csn( bd, dst, -1, src );
+		if ( vector > 0)
+			rc = vector;
+		else if ( rc == 0 )
+			rc = vector;
+	}
+
+	return rc;
+}
+
+int slap_cookie_compare_csnset(
+	struct sync_cookie *base,
+	BerVarray next )
+{
+	int vector;
+
+	if ( reopenldap_mode_idkfa() )
+		slap_cookie_verify( base );
+
+	for( vector = 0; next && ! BER_BVISNULL( next ); ++next ) {
+		int i, sid = slap_csn_get_sid( next );
+		if ( sid < 0 ) {
+			vector = -1;
+			continue;
+		}
+		for( i = 0; i < base->numcsns; ++i ) {
+			if ( sid < base->sids[i] )
+				/* LY: next has at least one new SID. */
+				return 1;
+
+			if ( sid == base->sids[i] ) {
+				vector = slap_csn_compare_ts( next, &base->ctxcsn[i] );
+				if ( vector > 0 )
+					/* LY: next has at least one recent timestamp. */
+					return vector;
+				break;
+			}
+		}
+	}
+
+	return vector;
 }
 
 /*----------------------------------------------------------------------------*/
