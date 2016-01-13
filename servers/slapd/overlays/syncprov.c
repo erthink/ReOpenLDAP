@@ -110,7 +110,8 @@ static __inline
 #endif
 int is_syncops_abandoned(const syncops *so)
 {
-	return so->s_next == so || get_op_abandon(so->s_op);
+	return so->s_next == so || get_op_abandon(so->s_op)
+			|| get_op_cancel(so->s_op) != SLAP_CANCEL_NONE;
 }
 
 /* A received sync control */
@@ -183,22 +184,29 @@ typedef struct syncprov_info_t {
 	ldap_pvt_thread_cond_t si_fetch_cond;
 } syncprov_info_t;
 
-static void syncprov_fetch_begin(syncprov_info_t *si)
+static int syncprov_fetch_begin(syncprov_info_t *si, Operation *op)
 {
 	ldap_pvt_thread_mutex_lock( &si->si_ops_mutex );
 
 	if (si->si_mods_pending | si->si_mods_waiting) {
 		do {
-			si->si_fetch_waiting = 1;
+			si->si_fetch_waiting++;
 			ldap_pvt_thread_cond_wait(&si->si_fetch_cond, &si->si_ops_mutex);
+			assert(si->si_fetch_waiting > 0);
+			si->si_fetch_waiting--;
+			if (slapd_shutdown || get_op_abandon(op)
+					|| get_op_cancel(op) != SLAP_CANCEL_NONE) {
+				ldap_pvt_thread_mutex_unlock( &si->si_ops_mutex );
+				return SLAPD_ABANDON;
+			}
 		} while (si->si_mods_pending);
-		si->si_fetch_waiting = 0;
 	}
 
 	si->si_fetch_pending++;
 	assert(si->si_fetch_pending > 0 && si->si_mods_pending == 0);
 
 	ldap_pvt_thread_mutex_unlock( &si->si_ops_mutex );
+	return 0;
 }
 
 static void syncprov_fetch_end(syncprov_info_t *si)
@@ -212,25 +220,31 @@ static void syncprov_fetch_end(syncprov_info_t *si)
 	ldap_pvt_thread_mutex_unlock( &si->si_ops_mutex );
 }
 
-static int syncprov_mod_begin(syncprov_info_t *si)
+static int syncprov_mod_begin(syncprov_info_t *si, Operation *op)
 {
-	int have_psearches;
 	ldap_pvt_thread_mutex_lock( &si->si_ops_mutex );
 
 	if (si->si_fetch_pending | si->si_fetch_waiting) {
 		do {
-			si->si_mods_waiting = 1;
+			si->si_mods_waiting++;
 			ldap_pvt_thread_cond_wait(&si->si_mods_cond, &si->si_ops_mutex);
+			assert(si->si_mods_waiting > 0);
+			si->si_mods_waiting--;
+
+			if (slapd_shutdown || get_op_abandon(op)
+					|| get_op_cancel(op) != SLAP_CANCEL_NONE) {
+				ldap_pvt_thread_mutex_unlock( &si->si_ops_mutex );
+				return SLAPD_ABANDON;
+			}
 		} while (si->si_fetch_pending);
-		si->si_mods_waiting = 0;
 	}
 
 	si->si_mods_pending++;
 	assert(si->si_mods_pending > 0 && si->si_fetch_pending == 0);
 
-	have_psearches = ( si->si_ops != NULL );
+	int rc = /* have_psearches */ ( si->si_ops != NULL ) ? 1 : 0;
 	ldap_pvt_thread_mutex_unlock( &si->si_ops_mutex );
-	return have_psearches;
+	return rc;
 }
 
 static void syncprov_mod_end(syncprov_info_t *si)
@@ -2171,7 +2185,9 @@ syncprov_op_mod( Operation *op, SlapReply *rs )
 	opcookie *opc;
 	int have_psearches, cbsize;
 
-	have_psearches = syncprov_mod_begin(si);
+	have_psearches = syncprov_mod_begin(si, op);
+	if (have_psearches < 0)
+		return have_psearches;
 
 	cbsize = sizeof(slap_callback) + sizeof(opcookie) +
 		( have_psearches ? sizeof(modinst) : 0 );
@@ -2641,7 +2657,9 @@ syncprov_op_search( Operation *op, SlapReply *rs )
 		return rs->sr_err;
 	}
 
-	syncprov_fetch_begin(si);
+	rc = syncprov_fetch_begin(si, op);
+	if (rc < 0)
+		return rc;
 
 	/* snapshot the ctxcsn */
 	ldap_pvt_thread_rdwr_rlock( &si->si_csn_rwlock );
