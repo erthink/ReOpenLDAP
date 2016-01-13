@@ -450,6 +450,19 @@ function killservers {
 	fi
 }
 
+function dumppids {
+	if [ $# != 0 ]; then
+		echo -n ">>>>> waiting for things ($@) to dump..."
+		kill -SIGABRT "$@" && safewait "$@"
+		echo " done"
+	fi
+}
+
+function dumpservers {
+	echo -n ">>>>> waiting for things ($@) to dump..."
+	(pkill -SIGABRT -s 0 slapd && sleep 5 && echo "done") || echo "fail"
+}
+
 function get_df_mb {
 	local path=$1
 	while [ -n "$path" ]; do
@@ -611,8 +624,8 @@ function wait_syncrepl {
 		provider_csn=$($LDAPSEARCH -s $scope -b "$BASEDN" -h $LOCALHOST -p $1 contextCSN |& grep -i ^contextCSN; exit ${PIPESTATUS[0]})
 		RC=${PIPESTATUS[0]}
 		if [ "$RC" -ne 0 ]; then
-			echo "ldapsearch failed at provider ($RC, $provider_csn)!"
-			killservers
+			echo "ldapsearch failed at provider ($RC, csn=$provider_csn)!"
+			dumpservers
 			exit $RC
 		fi
 
@@ -620,8 +633,8 @@ function wait_syncrepl {
 		consumer_csn=$($LDAPSEARCH -s $scope -b "$BASEDN" -h $LOCALHOST -p $2 contextCSN |& grep -i ^contextCSN; exit ${PIPESTATUS[0]})
 		RC=${PIPESTATUS[0]}
 		if [ "$RC" -ne 0 -a "$RC" -ne 32 ]; then
-			echo "ldapsearch failed at consumer ($RC, $consumer_csn)!"
-			killservers
+			echo "ldapsearch failed at consumer ($RC, csn=$consumer_csn)!"
+			dumpservers
 			exit $RC
 		fi
 
