@@ -74,6 +74,9 @@ slap_get_commit_csn(
 		if (sid >= 0) {
 			LDAP_TAILQ_FOREACH( csne, be->be_pending_csn_list, ce_csn_link ) {
 				if ( sid == csne->ce_sid ) {
+					if ( committed_csne )
+						assert( slap_csn_compare_ts( &csne->ce_csn,
+							&committed_csne->ce_csn ) >= 0 );
 					if ( csne->ce_state == SLAP_CSN_COMMIT ) {
 						committed_csne = csne;
 					} else if ( likely(csne->ce_state == SLAP_CSN_PENDING) ) {
@@ -146,7 +149,6 @@ slap_create_context_csn_entry(
 	struct berval *context_csn )
 {
 	Entry* e;
-
 	struct berval bv;
 
 	e = entry_alloc();
@@ -178,14 +180,18 @@ slap_queue_csn(
 	Operation *op,
 	struct berval *csn )
 {
-	struct slap_csn_entry *pending;
+	struct slap_csn_entry *pending, *before;
 	BackendDB *be = op->o_bd->bd_self;
 	int sid = slap_csn_get_sid( csn );
 	assert(sid > -1);
 
 	ldap_pvt_thread_mutex_lock( &be->be_pcl_mutex );
 
+	before = NULL;
 	LDAP_TAILQ_FOREACH( pending, be->be_pending_csn_list, ce_csn_link ) {
+		if ( pending->ce_sid == sid
+				&& slap_csn_compare_ts( csn, &pending->ce_csn ) < 0 )
+			before = pending;
 		if ( pending->ce_opid == op->o_opid && pending->ce_connid == op->o_connid ) {
 			assert( pending->ce_sid == sid );
 			if ( reopenldap_mode_idkfa() )
@@ -194,7 +200,7 @@ slap_queue_csn(
 		}
 	}
 
-	if (likely(pending == NULL)) {
+	if (likely( pending == NULL )) {
 		pending = (struct slap_csn_entry *) ch_calloc( 1,
 				sizeof( struct slap_csn_entry ));
 		Debug( LDAP_DEBUG_SYNC, "slap_queue_csn: queueing %p (conn %ld, opid %ld) %s\n",
@@ -206,8 +212,10 @@ slap_queue_csn(
 		pending->ce_connid = op->o_connid;
 		pending->ce_opid = op->o_opid;
 		pending->ce_state = SLAP_CSN_PENDING;
-		LDAP_TAILQ_INSERT_TAIL( be->be_pending_csn_list,
-			pending, ce_csn_link );
+		if ( before == NULL )
+			LDAP_TAILQ_INSERT_TAIL( be->be_pending_csn_list, pending, ce_csn_link );
+		else
+			LDAP_TAILQ_INSERT_BEFORE( before, pending, ce_csn_link );
 	}
 
 	ldap_pvt_thread_mutex_unlock( &be->be_pcl_mutex );

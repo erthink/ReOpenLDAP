@@ -28,8 +28,7 @@
 
 #include "ldap-int.h"
 
-#ifdef LDAP_SYNC_TRACE
-static const char *
+const char *
 ldap_sync_state2str( int state )
 {
 	switch ( state ) {
@@ -45,11 +44,13 @@ ldap_sync_state2str( int state )
 	case LDAP_SYNC_DELETE:
 		return "LDAP_SYNC_DELETE";
 
+	case LDAP_SYNC_NEW_COOKIE:
+		return "LDAP_SYNC_NEW_COOKIE";
+
 	default:
 		return "(unknown)";
 	}
 }
-#endif
 
 /*
  * initialize the persistent search structure
