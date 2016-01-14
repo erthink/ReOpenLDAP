@@ -494,14 +494,18 @@ function failure {
 }
 
 function safepath {
-	local r=$(realpath --relative-to ../${SRCDIR} $@ 2>/dev/null)
-	# LY: realpath from RHEL6 don't support '--relative-to' option,
-	#     this is workaround/crutch.
-	if [ -n "$r" ]; then
-		echo $r
-	else
-		readlink -f $@ | sed -e 's|^/sandbox|.|g'
-	fi
+	local arg
+	# LY: readlink/realpath from RHEL6 support only one filename.
+	for arg in "$@"; do
+		local r=$(realpath --relative-to ../${SRCDIR} $arg 2>/dev/null)
+		# LY: realpath from RHEL6 don't support '--relative-to' option,
+		#     this is workaround/crutch.
+		if [ -n "$r" ]; then
+			echo $arg
+		else
+			readlink -f $arg | sed -e 's|^/sandbox|.|g'
+		fi
+	done
 }
 
 function collect_coredumps {
