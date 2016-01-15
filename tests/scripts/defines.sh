@@ -459,7 +459,7 @@ function dumppids {
 }
 
 function dumpservers {
-	echo -n ">>>>> waiting for things ($@) to dump..."
+	echo -n ">>>>> waiting for things ($(pgrep -s 0 slapd)) to dump..."
 	(pkill -SIGABRT -s 0 slapd && sleep 5 && echo "done") || echo "fail"
 }
 
@@ -625,7 +625,9 @@ function wait_syncrepl {
 
 	for i in $(seq 1 100); do
 		#echo "  Using ldapsearch to read contextCSN from the provider:$1..."
-		provider_csn=$($LDAPSEARCH -s $scope -b "$BASEDN" -h $LOCALHOST -p $1 contextCSN |& grep -i ^contextCSN; exit ${PIPESTATUS[0]})
+		provider_csn=$($LDAPSEARCH -s $scope -b "$BASEDN" -h $LOCALHOST -p $1 contextCSN -v \
+			2>${TESTDIR}/ldapsearch.error | tee ${TESTDIR}/ldapsearch.output \
+				|& grep -i ^contextCSN; exit ${PIPESTATUS[0]})
 		RC=${PIPESTATUS[0]}
 		if [ "$RC" -ne 0 ]; then
 			echo "ldapsearch failed at provider ($RC, csn=$provider_csn)!"
@@ -634,7 +636,9 @@ function wait_syncrepl {
 		fi
 
 		#echo "  Using ldapsearch to read contextCSN from the consumer:$2..."
-		consumer_csn=$($LDAPSEARCH -s $scope -b "$BASEDN" -h $LOCALHOST -p $2 contextCSN |& grep -i ^contextCSN; exit ${PIPESTATUS[0]})
+		consumer_csn=$($LDAPSEARCH -s $scope -b "$BASEDN" -h $LOCALHOST -p $2 contextCSN -v \
+			2>${TESTDIR}/ldapsearch.error | tee ${TESTDIR}/ldapsearch.output \
+				|& grep -i ^contextCSN; exit ${PIPESTATUS[0]})
 		RC=${PIPESTATUS[0]}
 		if [ "$RC" -ne 0 -a "$RC" -ne 32 ]; then
 			echo "ldapsearch failed at consumer ($RC, csn=$consumer_csn)!"
