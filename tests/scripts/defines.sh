@@ -234,9 +234,10 @@ elif [ -n "$CIBUZZ_PID4" ]; then
 	SLEEP1=${SLEEP1-7}
 	SLEEP2=${SLEEP2-15}
 else
-	TIMEOUT_S="timeout -s SIGXCPU 30s"
-	TIMEOUT_L="timeout -s SIGXCPU 2m"
-	TIMEOUT_H="timeout -s SIGXCPU 5m"
+	# LY: take in account -O0
+	TIMEOUT_S="timeout -s SIGXCPU 1m"
+	TIMEOUT_L="timeout -s SIGXCPU 3m"
+	TIMEOUT_H="timeout -s SIGXCPU 9m"
 	SLEEP0=${SLEEP0-0.2}
 	SLEEP1=${SLEEP1-1}
 	SLEEP2=${SLEEP2-3}
