@@ -192,6 +192,8 @@ static int syncprov_fetch_begin(syncprov_info_t *si, Operation *op)
 		si->si_fetch_waiting++;
 		do {
 			if (slap_biglock_pool_pausing(op->o_bd)) {
+				if (si->si_fetch_pending == 0 && si->si_mods_waiting)
+					ldap_pvt_thread_cond_broadcast(&si->si_mods_cond);
 				ldap_pvt_thread_mutex_unlock( &si->si_ops_mutex );
 				slap_biglock_pool_pausecheck(op->o_bd);
 				ldap_pvt_thread_mutex_lock( &si->si_ops_mutex );
