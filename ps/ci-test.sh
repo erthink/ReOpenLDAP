@@ -156,7 +156,7 @@ for n in $(seq 1 $N); do
 			pkill -SIGKILL -s 0 -u $EUID slapd
 			echo "##teamcity[buildProblem description='Test(s) failed']"
 			find ./@ci-test-* -name all.log | xargs -r grep ' completed OK for '
-			find ./@ci-test-* -name all.log | xargs -r grep ' failed for ' >&2
+			[ -z "$CIBUZZ_PID4" ] && find ./@ci-test-* -name all.log | xargs -r grep ' failed for ' >&2
 			cleanup
 			exit 1
 		fi

@@ -10,13 +10,13 @@ if [ -z "$branch_list" ]; then branch_list="devel master"; fi
 build="ps/ci-build.sh"
 test="ps/ci-test.sh"
 build_args="--without-bdb --do-not-clean"
-test_args="7"
+test_args="42"
 
 TOP=$(pwd)/@ci-buzz.pool
 RAM=$TOP/ramfs
 MAINPID=$$
 function timestamp {
-	date -u +'%F %T'
+	date +'%F %T'
 }
 
 function cleanup {
@@ -85,8 +85,8 @@ started=$(date +%s)
 order=0
 for ((n=0; n < N; n++)); do
 	for branch in $branch_list; do
-		nice=$((2 + order))
-		delay=$((order * 257))
+		nice=$((1 + order % 3))
+		delay=$((order * 167))
 		case $((n % 4)) in
 			0)
 				build_opt="--no-lto --tsan"

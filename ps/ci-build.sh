@@ -1,5 +1,8 @@
 #!/bin/bash
 
+ncpu=$((grep processor /proc/cpuinfo || echo ?) | wc -l)
+lalim=$((ncpu*4))
+
 [ -n "$CIBUZZ_PID4" ] && echo $BASHPID > $CIBUZZ_PID4
 
 failure() {
@@ -264,21 +267,23 @@ if [ ! -s Makefile ]; then
 	find ./ -name Makefile | xargs -r sed -i 's/-Wall -ggdb3/-Wall -Werror -ggdb3/g' || failure "prepare"
 
 	if [ -z "${TEAMCITY_PROCESS_FLOW_ID}" ]; then
-		make depend \
+		make -j 1 -l $lalim depend \
 			|| failure "depends"
 	fi
 fi
 
 export CFLAGS="-Werror $CFLAGS" CXXFLAGS="-Werror $CXXFLAGS"
-make -j4 && make -j4 -C libraries/liblmdb all mtest0 mtest1 mtest2 mtest3 mtest4 mtest5 mtest6 || failure "build"
+make -j $ncpu -l $lalim \
+	&& make -j $ncpu -l $lalim -C libraries/liblmdb \
+		all mtest0 mtest1 mtest2 mtest3 mtest4 mtest5 mtest6 || failure "build"
 
 for m in $(find contrib/slapd-modules -name Makefile -printf '%h\n'); do
 	if [ -e $m/BROKEN ]; then
 		echo "----------- EXTENTIONS: $m - expecting is BROKEN"
-		make -C $m &>$m/build.log && failure "contrib-module '$m' is NOT broken as expected"
+		make -j $ncpu -l $lalim -C $m &>$m/build.log && failure "contrib-module '$m' is NOT broken as expected"
 	else
 		echo "----------- EXTENTIONS: $m - expecting is NOT broken"
-		make -C $m || failure "contrib-module '$m' is BROKEN"
+		make -j $ncpu -l $lalim -C $m || failure "contrib-module '$m' is BROKEN"
 	fi
 done
 

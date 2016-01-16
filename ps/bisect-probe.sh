@@ -4,7 +4,7 @@ function probe() {
 	echo "****************************************************************************************** "
 	rm -rf @dumps
 	patch -p1 < .git/test-select.patch || exit 125
-	if make test; then
+	if make check; then
 		echo "*** OK"
 		git checkout .
 	else
@@ -15,11 +15,11 @@ function probe() {
 	echo "****************************************************************************************** "
 }
 
-N=${1:-42}
+N=${1:-1}
 shift
 
 if [ $# -eq 0 ]; then
-	.git/ci-build.sh || exit 125
+	.git/ci-build.sh --do-not-clean --no-lto || exit 125
 else
 	git clean -f -x -d -e ./ps -e tests/testrun || exit 125
 	git submodule foreach --recursive git clean -x -f -d || exit 125
@@ -31,8 +31,8 @@ counter=0
 while [ $counter -lt $N ]; do
 	counter=$(($counter + 1))
 	echo "*** repeat-probe $counter of $N"
-	probe
+	REOPENLDAP_FORCE_IDKFA=1 probe
 done
 echo "****************************************************************************************** "
-sleep 10
+sleep 7
 exit 0
