@@ -10,7 +10,7 @@ if [ -z "$branch_list" ]; then branch_list="devel master"; fi
 build="ps/ci-build.sh"
 test="ps/ci-test.sh"
 build_args="--without-bdb --do-not-clean"
-test_args="7"
+test_args="42"
 
 TOP=$(pwd)/@ci-buzz.pool
 RAM=$TOP/ramfs
