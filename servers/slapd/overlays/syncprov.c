@@ -192,6 +192,8 @@ static int syncprov_fetch_begin(syncprov_info_t *si, Operation *op)
 		si->si_fetch_waiting++;
 		do {
 			if (slap_biglock_pool_pausing(op->o_bd)) {
+				if (si->si_fetch_pending == 0 && si->si_mods_waiting)
+					ldap_pvt_thread_cond_broadcast(&si->si_mods_cond);
 				ldap_pvt_thread_mutex_unlock( &si->si_ops_mutex );
 				slap_biglock_pool_pausecheck(op->o_bd);
 				ldap_pvt_thread_mutex_lock( &si->si_ops_mutex );
@@ -201,9 +203,12 @@ static int syncprov_fetch_begin(syncprov_info_t *si, Operation *op)
 
 			ldap_pvt_thread_cond_timedwait(0, &si->si_fetch_cond, &si->si_ops_mutex);
 			assert(si->si_fetch_waiting > 0);
+
 			if (slapd_shutdown || get_op_abandon(op)
 					|| get_op_cancel(op) != SLAP_CANCEL_NONE) {
-				si->si_fetch_waiting--;
+				if (--si->si_fetch_waiting == 0 && si->si_fetch_pending == 0
+						&& si->si_mods_waiting)
+					ldap_pvt_thread_cond_broadcast(&si->si_mods_cond);
 				ldap_pvt_thread_mutex_unlock( &si->si_ops_mutex );
 				return SLAPD_ABANDON;
 			}
@@ -233,19 +238,23 @@ static int syncprov_mod_begin(syncprov_info_t *si, Operation *op)
 {
 	ldap_pvt_thread_mutex_lock( &si->si_ops_mutex );
 
-	if (si->si_fetch_pending | si->si_fetch_waiting) {
+	if (si->si_fetch_pending
+			|| (si->si_fetch_waiting && !slap_biglock_pool_pausing(op->o_bd))) {
+		si->si_mods_waiting++;
 		do {
-			si->si_mods_waiting++;
 			ldap_pvt_thread_cond_wait(&si->si_mods_cond, &si->si_ops_mutex);
 			assert(si->si_mods_waiting > 0);
-			si->si_mods_waiting--;
 
 			if (slapd_shutdown || get_op_abandon(op)
 					|| get_op_cancel(op) != SLAP_CANCEL_NONE) {
+				if (--si->si_mods_waiting == 0 && si->si_mods_pending == 0
+						&& si->si_fetch_waiting)
+					ldap_pvt_thread_cond_broadcast(&si->si_fetch_cond);
 				ldap_pvt_thread_mutex_unlock( &si->si_ops_mutex );
 				return SLAPD_ABANDON;
 			}
 		} while (si->si_fetch_pending);
+		si->si_mods_waiting--;
 	}
 
 	si->si_mods_pending++;
