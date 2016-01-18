@@ -639,7 +639,7 @@ syncrepl_start(
 	assert(si->si_ld == NULL);
 	si->si_ld = NULL;
 
-	slap_cookie_free( &si->si_syncCookie_in, 0 );
+	slap_cookie_clean_all( &si->si_syncCookie_in );
 	si->si_refreshDelete = 0;
 	si->si_refreshPresent = 0;
 	presentlist_free( &si->si_presentlist );
@@ -975,10 +975,7 @@ syncrepl_process(
 			rctrls = NULL;
 		}
 
-		if ( syncCookie.numcsns > 0 ) {
-			slap_cookie_free( &syncCookie, 0 );
-			memset( &syncCookie, 0, sizeof( syncCookie ));
-		}
+		slap_cookie_clean_all( &syncCookie );
 
 		timeout = NULL; /* wait infinite */
 		if ( abs(si->si_type) == LDAP_SYNC_REFRESH_AND_PERSIST && si->si_refreshDone )
@@ -1327,7 +1324,7 @@ syncrepl_process(
 							 * on remote DIT. Therefore is always safe to delete
 							 * such from local DIT, without checking a cookie. */
 							syncrepl_del_nonpresent( op, si, syncUUIDs, &syncCookie, which );
-							slap_cookie_free( &syncCookie, 0 );
+							slap_cookie_clean_all( &syncCookie );
 						} else {
 							int i;
 							for ( i = 0; !BER_BVISNULL( &syncUUIDs[i] ); i++ )
