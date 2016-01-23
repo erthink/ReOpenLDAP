@@ -2786,6 +2786,16 @@ struct Operation {
 	BerElement	*o_res_ber;	/* ber of the CLDAP reply or readback control */
 	slap_callback *o_callback;	/* callback pointers */
 	LDAPControl	**o_ctrls;	 /* controls */
+#ifndef OP_CSN_CHECK
+#	if defined(LDAP_DEBUG) && LDAP_DEBUG > 1
+#		define OP_CSN_CHECK 1
+#	else
+#		define OP_CSN_CHECK 0
+#	endif
+#endif
+#if OP_CSN_CHECK
+	struct Operation* o_csn_master;
+#endif
 	struct berval o_csn;
 
 	/* DEPRECATE o_private - use o_extra instead */
