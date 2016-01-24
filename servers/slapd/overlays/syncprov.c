@@ -334,17 +334,32 @@ syncprov_state_ctrl(
 	ber_init2( ber, 0, LBER_USE_DER );
 	ber_set_option( ber, LBER_OPT_BER_MEMCTX, &op->o_tmpmemctx );
 
-	for ( a = e->e_attrs; a != NULL; a = a->a_next ) {
-		AttributeDescription *desc = a->a_desc;
-		if ( desc == slap_schema.si_ad_entryUUID ) {
-			entryuuid_bv = a->a_nvals[0];
-			break;
+	if ( csn && BER_BVISEMPTY( csn ) )
+		csn = NULL;
+
+	a = attr_find( e->e_attrs, slap_schema.si_ad_entryUUID );
+	if ( a )
+		entryuuid_bv = a->a_nvals[0];
+
+	a = attr_find( e->e_attrs, slap_schema.si_ad_entryCSN );
+	if ( a ) {
+		if ( csn ) {
+			assert( slap_csn_match( csn, a->a_nvals ));
+			/* LY: may skip cookie. */
+			if (reopenldap_mode_iddqd())
+				csn = NULL;
+		} else {
+			assert( entry_sync_state == LDAP_SYNC_ADD || entry_sync_state == LDAP_SYNC_MODIFY );
 		}
+	} else {
+		/* LY: CSN could be empty, when DN-base (itself) was added/deleted/etc
+			   How to check this?
+		assert ( csn || entry_sync_state == LDAP_SYNC_DELETE ); */
 	}
 
 	/* FIXME: what if entryuuid is NULL or empty ? */
 
-	if ( csn && !BER_BVISEMPTY( csn ) ) {
+	if ( csn ) {
 		struct berval cookie = BER_BVNULL;
 		struct berval csns[2];
 		csns[0] = *csn;
@@ -372,8 +387,7 @@ syncprov_state_ctrl(
 
 	if ( ret < 0 ) {
 		Debug( LDAP_DEBUG_TRACE,
-			"slap_build_sync_ctrl: ber_flatten2 failed (%d)\n",
-			ret );
+			"slap_build_sync_ctrl: ber_flatten2 failed (%d)\n", ret );
 		send_ldap_error( op, rs, LDAP_OTHER, "internal error" );
 		return LDAP_OTHER;
 	}
