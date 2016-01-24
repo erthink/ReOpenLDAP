@@ -324,15 +324,7 @@ syncprov_state_ctrl(
 	int		rid)
 {
 	Attribute* a;
-	int ret;
-	BerElementBuffer berbuf;
-	BerElement *ber = (BerElement *)&berbuf;
-	LDAPControl *cp;
-	struct berval bv;
-	struct berval	entryuuid_bv = BER_BVNULL;
-
-	ber_init2( ber, 0, LBER_USE_DER );
-	ber_set_option( ber, LBER_OPT_BER_MEMCTX, &op->o_tmpmemctx );
+	struct berval entryuuid_bv = BER_BVNULL;
 
 	if ( csn && BER_BVISEMPTY( csn ) )
 		csn = NULL;
@@ -357,7 +349,20 @@ syncprov_state_ctrl(
 		assert ( csn || entry_sync_state == LDAP_SYNC_DELETE ); */
 	}
 
-	/* FIXME: what if entryuuid is NULL or empty ? */
+	if (entryuuid_bv.bv_val == NULL || entryuuid_bv.bv_len != 16) {
+		Debug( LDAP_DEBUG_TRACE,
+			"slap_build_sync_ctrl: DN-UUID is empty or invalid (%s)\n", e->e_nname.bv_val );
+		send_ldap_error( op, rs, LDAP_OTHER, "DN-UUID is empty or invalid" );
+		return LDAP_OTHER;
+	}
+
+	BerElementBuffer berbuf;
+	BerElement *ber = (BerElement *)&berbuf;
+	LDAPControl *cp;
+	struct berval bv;
+
+	ber_init2( ber, 0, LBER_USE_DER );
+	ber_set_option( ber, LBER_OPT_BER_MEMCTX, &op->o_tmpmemctx );
 
 	if ( csn ) {
 		struct berval cookie = BER_BVNULL;
@@ -373,7 +378,7 @@ syncprov_state_ctrl(
 			entry_sync_state, &entryuuid_bv );
 	}
 
-	ret = ber_flatten2( ber, &bv, 0 );
+	int ret = ber_flatten2( ber, &bv, 0 );
 	if ( ret == 0 ) {
 		cp = op->o_tmpalloc( sizeof( LDAPControl ) + bv.bv_len, op->o_tmpmemctx );
 		cp->ldctl_oid = LDAP_CONTROL_SYNC_STATE;
@@ -438,8 +443,7 @@ syncprov_done_ctrl(
 
 	if ( ret < 0 ) {
 		Debug( LDAP_DEBUG_TRACE,
-			"syncprov_done_ctrl: ber_flatten2 failed (%d)\n",
-			ret );
+			"syncprov_done_ctrl: ber_flatten2 failed (%d)\n", ret );
 		send_ldap_error( op, rs, LDAP_OTHER, "internal error" );
 		return LDAP_OTHER;
 	}
@@ -1089,8 +1093,8 @@ syncprov_sendresp( Operation *op, resinfo *ri, syncops *so, int mode )
 	rs.sr_ctrls[1] = NULL;
 	rs.sr_flags = REP_CTRLS_MUSTBEFREED;
 
-	Debug( LDAP_DEBUG_SYNC, "syncprov_sendresp: %s, to=%03x, csn=%s\n",
-		op->o_bd->be_nsuffix->bv_val, so->s_sid, ri->ri_csn.bv_val );
+	Debug( LDAP_DEBUG_SYNC, "syncprov_sendresp: %s/%d, to=%03x, csn=%s\n",
+		op->o_bd->be_nsuffix->bv_val, mode, so->s_sid, ri->ri_csn.bv_val );
 
 	e_uuid.e_attrs = &a_uuid;
 	a_uuid.a_desc = slap_schema.si_ad_entryUUID;
