@@ -52,29 +52,73 @@ mkdir -p $TOP || failure "mkdir -p $TOP"
 rm -rf $TOP/@* || failure  "rm -rf $TOP/@*"
 [ ! -d $RAM ] || rm -rf $RAM/* || failure "$RAM/*"
 
-function doit {
-	branch=$1
-	nice=$2
+function waitloop {
+	while sleep 15; do
+		clear
+		/usr/bin/printf "=== $1: %s, running %.2f hours, %d job(s) left\n" \
+			 "$(timestamp)" "$((($(date +%s)-started)/36)).0E-02" $(jobs -r | wc -l)
+		for branch in $branch_list; do
+			for ((n=0; n < N; n++)); do
+				dir="$TOP/@$n.$branch"
+				echo "$branch/$n: $(tail -n 1 $dir/status) | $(tail -n 1 $dir/err.log)"
+			done
+		done
+
+		echo "==="
+		df -h $TOP $TOP/ramfs
+		echo "==="
+		vmstat -w; vmstat -w -a
+		echo "==="
+		uptime
+
+		if [ -z "$(jobs -r)" ]; then
+			return 0
+		fi
+	done
+	exit 1
+}
+
+function doit_build {
+	local branch=$1
+	local nice=$2
 	shift 2
-	build_opt=$@
-	here=$(pwd)
+	local build_opt=$@
+	local here=$(pwd)
 	export CIBUZZ_STATUS=$here/status CIBUZZ_PID4=$here/pid
+	rm -f $here/build.ok $here/build.failed
+	echo $BASHPID > $CIBUZZ_PID4
 	echo "branch $branch | $build_opt"
 	echo "==============================================================================="
 	echo "$(timestamp) Preparing..." >$CIBUZZ_STATUS
 	echo $BASHPID > $CIBUZZ_PID4
-	root=$(git rev-parse --show-toplevel)
+	local root=$(git rev-parse --show-toplevel)
 	([ -d src/.git ] || (rm -rf src && git clone --local --share -b $branch $root src)) \
 		&& cd src || failure git-clone
 	git fetch && git checkout -f $branch && git pull && git checkout origin/ps-build -- . \
 		|| failure git-checkout
 	echo "==============================================================================="
 	echo "$(timestamp) Building..." > $CIBUZZ_STATUS
-	nice -n 19 $build $build_args $build_opt || failure "$here/$build $build_args $build_opt"
-	echo "==============================================================================="
-	echo "$(timestamp) Testing..." > $CIBUZZ_STATUS
-	NO_COLLECT_SUCCESS=yes TEST_TEMP_DIR=$(readlink -f ${here}/tmp) \
-		setsid -w nice -n $nice $test $test_args
+	nice -n $nice $build $build_args $build_opt || (touch $here/build.failed; failure "$here/$build $build_args $build_opt")
+	touch $here/build.ok
+	echo "build done" >> $here/err.log
+	exit 0
+}
+
+function doit_test {
+	local branch=$1
+	local nice=$2
+	local here=$(pwd)
+	rm -f $here/test.ok $here/test.failed
+	if [ -e $here/build.ok ]; then
+		export CIBUZZ_STATUS=$here/status CIBUZZ_PID4=$here/pid
+		echo $BASHPID > $CIBUZZ_PID4
+		echo "==============================================================================="
+		echo "$(timestamp) Testing..." > $CIBUZZ_STATUS
+		(cd src && NO_COLLECT_SUCCESS=yes TEST_TEMP_DIR=$(readlink -f ${here}/tmp) \
+			setsid -w nice -n $nice $test $test_args) \
+		&& touch $here/test.ok || touch $here/test.failed
+	fi
+	exit 0
 }
 
 (mount | grep ${RAM} \
@@ -85,19 +129,19 @@ started=$(date +%s)
 order=0
 for ((n=0; n < N; n++)); do
 	for branch in $branch_list; do
-		nice=$((1 + order % 3))
-		delay=$((order * 167))
+		nice=$((1 + order % 17))
+		delay=$((order * 101))
 		case $((n % 4)) in
-			0)
+			2)
 				build_opt="--no-lto --tsan"
 				;;
-			1)
+			3)
 				build_opt="--no-lto --asan"
 				;;
-			2)
+			0)
 				build_opt="--size --no-check --lto"
 				;;
-			3)
+			1)
 				build_opt="--speed --check --lto"
 				;;
 			*)
@@ -109,38 +153,63 @@ for ((n=0; n < N; n++)); do
 		tmp=$(readlink -f ${RAM}/$n.$branch)
 		mkdir -p $dir || failure "mkdir -p $dir"
 
-		echo "delay $delay seconds... $build_opt" >$dir/status
+		echo "delay $delay seconds, nice $nice... $build_opt" >$dir/status
 		rm -rf $tmp $dir/tmp && mkdir -p $tmp && ln -s $tmp $dir/tmp || failure "mkdir -p $tmp"
 		( \
 			( sleep $delay && cd $dir \
-				&& doit $branch $nice $build_opt \
+				&& doit_build $branch $nice $build_opt \
+			) >$dir/out.log 2>$dir/err.log </dev/null; \
+			wait; echo "$(timestamp) *** fihished" >$dir/status \
+		) &
+		((order++))
+	done
+done
+
+waitloop "building"
+
+started=$(date +%s)
+order=0
+for ((n=0; n < N; n++)); do
+	for branch in $branch_list; do
+		delay=$((order * 47))
+		case $((n % 4)) in
+			2)
+				#build_opt="--no-lto --tsan"
+				nice=1
+				;;
+			3)
+				#build_opt="--no-lto --asan"
+				nice=2
+				;;
+			0)
+				#build_opt="--size --no-check --lto"
+				nice=4
+				;;
+			1)
+				#build_opt="--speed --check --lto"
+				nice=4
+				;;
+			*)
+				#build_opt=
+				nice=5
+				;;
+		esac
+		echo "launching $n of $branch, with nice $nice..."
+		dir=$TOP/@$n.$branch
+		tmp=$(readlink -f ${RAM}/$n.$branch)
+		mkdir -p $dir || failure "mkdir -p $dir"
+
+		echo "delay $delay seconds, nice $nice..." >$dir/status
+		rm -rf $tmp $dir/tmp && mkdir -p $tmp && ln -s $tmp $dir/tmp || failure "mkdir -p $tmp"
+		( \
+			( sleep $delay && cd $dir \
+				&& doit_test $branch $nice \
 			) >$dir/out.log 2>$dir/err.log </dev/null; \
 			wait; echo "$(timestamp) *** exited" >$dir/status \
 		) &
-		order=$((order + 1))
+		((order++))
 	done
 done
 
-while sleep 5; do
-	clear
-	/usr/bin/printf "=== %s, running %.2f hours, %d job(s) left\n" \
-		 "$(timestamp)" "$((($(date +%s)-started)/36)).0E-02" $(jobs -r | wc -l)
-	for branch in $branch_list; do
-		for ((n=0; n < N; n++)); do
-			dir="$TOP/@$n.$branch"
-			echo "$branch/$n: $(tail -n 1 $dir/status) | $(tail -n 1 $dir/err.log)"
-		done
-	done
-
-	echo "==="
-	df -h $TOP $TOP/ramfs
-	echo "==="
-	vmstat -w; vmstat -w -a
-	echo "==="
-	uptime
-
-	if [ -z "$(jobs -r)" ]; then
-		exit 0
-	fi
-done
-exit 1
+waitloop "testing"
+exit 0
