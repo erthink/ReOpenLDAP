@@ -4600,10 +4600,10 @@ syncinfo_free( syncinfo_t *sie, int free_all )
 			ch_free( npe );
 		}
 		if ( sie->si_cookieState ) {
-			assert(sie->si_cookieState->cs_ref > 0);
-			if (__sync_fetch_and_sub(&sie->si_cookieState->cs_ref, 1) == 1) {
-				ch_free( sie->si_cookieState->cs_cookie.sids );
-				ber_bvarray_free( sie->si_cookieState->cs_cookie.ctxcsn );
+			int before = __sync_fetch_and_sub( &sie->si_cookieState->cs_ref, 1 );
+			assert( before > 0 );
+			if ( before == 1 ) {
+				slap_cookie_free( &sie->si_cookieState->cs_cookie, 0 );
 				ldap_pvt_thread_mutex_destroy( &sie->si_cookieState->cs_mutex );
 				ch_free( sie->si_cookieState );
 			}
