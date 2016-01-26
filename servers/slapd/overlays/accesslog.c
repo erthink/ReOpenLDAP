@@ -692,7 +692,7 @@ accesslog_purge( void *ctx, void *arg )
 		/* delete the expired entries */
 		op->o_tag = LDAP_REQ_DELETE;
 		op->o_callback = &nullsc;
-		op->o_csn = pd.csn;
+		slap_op_csn_assign( op, &pd.csn );
 		op->o_dont_replicate = 1;
 
 		for (i=0; i<pd.used; i++) {
@@ -736,6 +736,7 @@ accesslog_purge( void *ctx, void *arg )
 			}
 		}
 		slap_biglock_release(bl);
+		slap_op_csn_free( op );
 	}
 
 	ldap_pvt_thread_mutex_lock( &slapd_rq.rq_mutex );
@@ -1874,9 +1875,8 @@ static int accesslog_response(Operation *op, SlapReply *rs) {
 	slap_biglock_call_be( op_add, &op2, &rs2 );
 	if ( e == op2.ora_e ) entry_free( e );
 	e = NULL;
-	if ( do_graduate ) {
+	if ( do_graduate )
 		slap_graduate_commit_csn( &op2 );
-	}
 
 done:
 	if ( lo->mask & LOG_OP_WRITES )
