@@ -114,9 +114,7 @@ slap_op_free( Operation *op, void *ctx )
 	}
 #endif /* defined( LDAP_SLAPI ) */
 
-	if ( !BER_BVISNULL( &op->o_csn ) ) {
-		op->o_tmpfree( op->o_csn.bv_val, op->o_tmpmemctx );
-	}
+	slap_op_csn_free( op );
 
 	if ( op->o_pagedresults_state != NULL ) {
 		op->o_tmpfree( op->o_pagedresults_state, op->o_tmpmemctx );
