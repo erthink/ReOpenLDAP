@@ -3366,7 +3366,13 @@ retry_modrdn:;
 					op->o_req_ndn = pdn;
 					op->o_callback = &cb;
 					rs_reinit( &rs_delete, REP_RESULT );
+					if (reopenldap_mode_iddqd()) {
+						/* LY: don't replicate glue deletions,
+						 * it should be done by on receiver-side by itself. */
+						op->o_dont_replicate = 1;
+					}
 					op->o_bd->bd_info->bi_op_delete( op, &rs_delete );
+					op->o_dont_replicate = 0;
 				} else {
 					break;
 				}
@@ -3599,7 +3605,13 @@ syncrepl_del_nonpresent(
 				op->o_tag = LDAP_REQ_MODIFY;
 				op->orm_modlist = &mod1;
 
+				if (reopenldap_mode_iddqd()) {
+					/* LY: don't replicate glue modifications,
+					 * it should be done by on receiver-side by itself. */
+					op->o_dont_replicate = 1;
+				}
 				rc = op->o_bd->bd_info->bi_op_modify( op, &rs_modify );
+				op->o_dont_replicate = 0;
 				if ( mod2.sml_next ) slap_mods_free( mod2.sml_next, 1 );
 			}
 
@@ -3614,8 +3626,14 @@ syncrepl_del_nonpresent(
 					op->o_req_ndn = pdn;
 					op->o_callback = &cb;
 					rs_reinit( &rs_delete, REP_RESULT );
+					if (reopenldap_mode_iddqd()) {
+						/* LY: don't replicate glue deletions,
+						 * it should be done by on receiver-side by itself. */
+						op->o_dont_replicate = 1;
+					}
 					/* give it a root privil ? */
 					op->o_bd->bd_info->bi_op_delete( op, &rs_delete );
+					op->o_dont_replicate = 0;
 				} else {
 					break;
 				}
@@ -3733,7 +3751,13 @@ syncrepl_add_glue_ancestors(
 		op->o_req_dn = glue->e_name;
 		op->o_req_ndn = glue->e_nname;
 		op->ora_e = glue;
+		if (reopenldap_mode_iddqd()) {
+			/* LY: don't replicate glue additions,
+			 * it should be done by on receiver-side by itself. */
+			op->o_dont_replicate = 1;
+		}
 		rc = op->o_bd->bd_info->bi_op_add( op, &rs_add );
+		op->o_dont_replicate = 0;
 		if ( rs_add.sr_err == LDAP_SUCCESS ) {
 			if ( op->ora_e == glue )
 				be_entry_release_w( op, glue );
@@ -3788,7 +3812,13 @@ syncrepl_add_glue(
 	op->o_req_dn = e->e_name;
 	op->o_req_ndn = e->e_nname;
 	op->ora_e = e;
+	if (reopenldap_mode_iddqd()) {
+		/* LY: don't replicate glue additions,
+		 * it should be done by on receiver-side by itself. */
+		op->o_dont_replicate = 1;
+	}
 	rc = op->o_bd->bd_info->bi_op_add( op, &rs_add );
+	op->o_dont_replicate = 0;
 	if ( rs_add.sr_err == LDAP_SUCCESS ) {
 		if ( op->ora_e == e )
 			be_entry_release_w( op, e );
