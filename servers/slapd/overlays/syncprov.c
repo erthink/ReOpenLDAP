@@ -1307,8 +1307,16 @@ syncprov_qresp( opcookie *opc, syncops *so, int mode )
 	if ( mode == LDAP_SYNC_NEW_COOKIE && BER_BVISNULL( &ri->ri_cookie )) {
 		syncprov_info_t	*si = opc->son->on_bi.bi_private;
 		ldap_pvt_thread_rdwr_rlock( &si->si_csn_rwlock );
-		if (reopenldap_mode_idkfa())
+		if (reopenldap_mode_idkfa()) {
 			slap_cookie_verify( &si->si_cookie );
+			if (opc->sctxcsn.bv_len) {
+				int i;
+				for( i = si->si_cookie.numcsns; --i >= 0; )
+					if (strcmp(si->si_cookie.ctxcsn[i].bv_val, opc->sctxcsn.bv_val) == 0)
+						break;
+				assert(i >= 0);
+			}
+		}
 		syncprov_compose_cookie( NULL, &ri->ri_cookie,
 			si->si_cookie.ctxcsn, so->s_rid );
 		ldap_pvt_thread_rdwr_runlock( &si->si_csn_rwlock );
