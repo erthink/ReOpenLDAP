@@ -858,26 +858,28 @@ int slap_csns_compare( BerVarray next, BerVarray base )
 
 	for ( n = 1; next && ! BER_BVISNULL( next ); ++next, ++n ) {
 		if ( ! base || BER_BVISNULL( base ) )
-			return INT_MAX;
+			/* LY: eof of base, but next still continue, a new sid in the next. */
+			return INT_MAX /* next > base */;
 
-		cmp = slap_csn_compare_sr ( next, base );
+		cmp = slap_csn_compare_sr( next, base );
 		if ( cmp > 0 )
 			/* LY: a base's sid is absent in the next. */
-			return INT_MIN;
+			return INT_MIN /* next < base */;
 
 		if ( cmp < 0 ) {
 			/* LY: a new sid in the next. */
-			res = INT_MAX;
+			res = INT_MAX /* next > base */;
 			continue;
 		}
 
-		cmp = slap_csn_compare_ts ( next, base++ );
+		cmp = slap_csn_compare_ts( next, base++ );
 		if (cmp < 0)
-			/* LY: base's timestamp is recent. */
-			return -n;
+			/* LY: base's timestamp is recent in #n position. */
+			return -n /* next[n] < base[n] */;
 
 		if (cmp && res == 0)
-			res = n;
+			/* LY: next's timestamp is recent in #n position. */
+			res = n /* next[n] > base[n] */;
 	}
 
 	if ( ! base || BER_BVISNULL( base ) )
