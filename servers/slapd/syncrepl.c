@@ -3562,12 +3562,12 @@ syncrepl_del_nonpresent(
 		}
 
 		op->o_bd = si->si_wbe;
-		slap_queue_csn( op, &csn );
 
 		np_list = LDAP_LIST_FIRST( &si->si_nonpresentlist );
 		while ( np_list != NULL ) {
 			SlapReply rs_delete = {REP_RESULT};
 
+			slap_queue_csn( op, &csn );
 			LDAP_LIST_REMOVE( np_list, npe_link );
 			np_prev = np_list;
 			np_list = LDAP_LIST_NEXT( np_list, npe_link );
@@ -3640,6 +3640,8 @@ syncrepl_del_nonpresent(
 			}
 
 			op->o_delete_glue_parent = 0;
+			if (! slap_graduate_commit_csn( op ))
+				slap_op_csn_clean( op );
 
 			ber_bvfree( np_prev->npe_name );
 			ber_bvfree( np_prev->npe_nname );
@@ -3650,11 +3652,7 @@ syncrepl_del_nonpresent(
 			}
 		}
 
-		slap_graduate_commit_csn( op );
 		op->o_bd = be;
-
-		op->o_tmpfree( op->o_csn.bv_val, op->o_tmpmemctx );
-		BER_BVZERO( &op->o_csn );
 	}
 }
 
