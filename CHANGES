@@ -8,6 +8,9 @@ OpenLDAP 2.4.44 Engineering
 	Fixed slapo-ppolicy pwdMaxRecordedFailure must never be zero (ITS#8327)
 	already fixed in ReOpenLDAP - slapo-syncprov segfault on abandon (ITS#8354)
 	partial fixes - support for OpenSSL 1.1.X (ITS#8353)
+	Documentation
+		admin24 Stop linking to Berkeley DB downloads (ITS#8362)
+		admin24 Update documentation for LMDB preference
 
 OpenLDAP 2.4.43 Release (2015/11/30)
 	Fixed liblber remove obsolete assert (ITS#8240, ITS#8301)
