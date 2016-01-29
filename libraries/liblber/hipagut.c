@@ -1,8 +1,8 @@
 /*
     Imported from 1Hippeus project at 2015-01-19.
 
-    Copyright (c) 2015 Leonid Yuriev <leo@yuriev.ru>.
-    Copyright (c) 2015 Peter-Service R&D LLC.
+    Copyright (c) 2013-2016 Leonid Yuriev <leo@yuriev.ru>.
+    Copyright (c) 2013-2016 Peter-Service R&D LLC.
 
     This file is part of ReOpenLDAP.
 
