@@ -256,6 +256,21 @@ over_back_response ( Operation *op, SlapReply *rs )
 }
 
 static int
+over_back_response_cleanup(Operation *op, SlapReply *rs)
+{
+    if (rs->sr_type == REP_RESULT) {
+        if (op->o_callback != NULL) {
+            slap_callback *sc = op->o_callback;
+            op->o_callback = sc->sc_next;
+
+            free( sc );
+        }
+    }
+
+    return 0;
+}
+
+static int
 over_access_allowed(
 	Operation		*op,
 	Entry			*e,
@@ -743,7 +758,8 @@ over_op_func(
 	slap_overinst *on;
 	BackendDB *be = op->o_bd, db;
 	BackendInfo *bi = be->bd_info;
-	slap_callback cb = {NULL, over_back_response, NULL, NULL}, **sc;
+	slap_callback **sc;
+	slap_callback *cb = (slap_callback *) ch_malloc( sizeof( slap_callback ));
 	int rc = SLAP_CB_CONTINUE;
 
 	/* FIXME: used to happen for instance during abandon
@@ -758,14 +774,18 @@ over_op_func(
 		db.be_flags |= SLAP_DBFLAG_OVERLAY;
 		op->o_bd = &db;
 	}
-	cb.sc_next = op->o_callback;
-	cb.sc_private = oi;
-	op->o_callback = &cb;
+	cb->sc_cleanup = over_back_response_cleanup;
+	cb->sc_response = over_back_response;
+	cb->sc_writewait = NULL;
+	cb->sc_next = op->o_callback;
+	cb->sc_private = oi;
+	op->o_callback = cb;
 
 	rc = overlay_op_walk( op, rs, which, oi, on );
 	for ( sc = &op->o_callback; *sc; sc = &(*sc)->sc_next ) {
-		if ( *sc == &cb ) {
-			*sc = cb.sc_next;
+		if ( *sc == cb ) {
+			*sc = cb->sc_next;
+			ch_free( cb );
 			break;
 		}
 	}
