@@ -1,7 +1,7 @@
 /* $OpenLDAP$ */
 /* This work is part of OpenLDAP Software <http://www.openldap.org/>.
  *
- * Copyright 1998-2015 The OpenLDAP Foundation.
+ * Copyright 1998-2016 The OpenLDAP Foundation.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -898,6 +898,9 @@ LDAP_SLAPD_F (Entry *) slap_create_context_csn_entry LDAP_P(( Backend *, struct 
 LDAP_SLAPD_F (int) slap_get_csn LDAP_P(( Operation *, struct berval *, int ));
 LDAP_SLAPD_F (void) slap_queue_csn LDAP_P(( Operation *, struct berval * ));
 LDAP_SLAPD_F (void) slap_free_commit_csn_list LDAP_P(( struct be_pcl *list ));
+void slap_op_csn_free( Operation *op );
+void slap_op_csn_clean( Operation *op );
+void slap_op_csn_assign( Operation *op, BerValue *csn );
 
 /*
  * quorum.c
@@ -1295,6 +1298,7 @@ int slap_csn_match( const BerValue *a, const BerValue *b );
 int slap_csn_compare_sr( const BerValue *a, const BerValue *b );
 int slap_csn_compare_ts( const BerValue *a, const BerValue *b );
 int slap_csn_get_sid( const BerValue *csn );
+void slap_csn_shift( BerValue *csn, int delta_points );
 
 int slap_csns_validate_and_sort( BerVarray vals );
 int slap_csns_match( BerVarray a, BerVarray b );

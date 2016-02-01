@@ -5,7 +5,7 @@
  *	BerkeleyDB API, but much simplified.
  */
 /*
- * Copyright 2011-2015 Howard Chu, Symas Corp.
+ * Copyright 2011-2016 Howard Chu, Symas Corp.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -4097,6 +4097,7 @@ mdb_env_sync0(MDB_env *env, unsigned flags, MDB_meta *pending)
 	size_t prev_mapsize = head->mm_mapsize;
 	MDB_meta* tail = META_IS_WEAK(head) ? head : mdb_env_meta_flipflop(env, head);
 	off_t offset = (char*) tail - env->me_map;
+	size_t used_size = env->me_psize * (pending->mm_last_pg + 1);
 
 	mdb_assert(env, (env->me_flags & (MDB_RDONLY | MDB_FATAL_ERROR)) == 0);
 	mdb_assert(env, META_IS_WEAK(head) || env->me_sync_pending != 0
@@ -4108,6 +4109,7 @@ mdb_env_sync0(MDB_env *env, unsigned flags, MDB_meta *pending)
 	mdb_assert(env, pending->mm_txnid > stay->mm_txnid);
 
 	pending->mm_mapsize = env->me_mapsize;
+	mdb_assert(env, pending->mm_mapsize >= used_size);
 	if (unlikely(pending->mm_mapsize != prev_mapsize)) {
 		if (pending->mm_mapsize < prev_mapsize) {
 			/* LY: currently this can't happen, but force full-sync. */
@@ -4124,7 +4126,7 @@ mdb_env_sync0(MDB_env *env, unsigned flags, MDB_meta *pending)
 	if (env->me_sync_pending && (flags & MDB_NOSYNC) == 0) {
 		if (env->me_flags & MDB_WRITEMAP) {
 			int mode = (flags & MDB_MAPASYNC) ? MS_ASYNC : MS_SYNC;
-			if (unlikely(msync(env->me_map, pending->mm_mapsize, mode))) {
+			if (unlikely(msync(env->me_map, used_size, mode))) {
 				rc = errno;
 				goto fail;
 			}
@@ -4509,15 +4511,11 @@ static pthread_mutex_t mdb_rthc_lock = PTHREAD_MUTEX_INITIALIZER;
 
 /* LY: TODO: Yet another problem is here - segfault in case if a DSO will
  * be unloaded before a thread would been finished. */
-static void
-mdb_env_reader_destr(void *ptr)
+static ATTRIBUTE_NO_SANITIZE_THREAD
+void mdb_env_reader_destr(void *ptr)
 {
 	struct MDB_rthc* rthc = ptr;
 	MDB_reader *reader;
-
-	if (! rthc)
-		/* LY: paranoia */
-		return;
 
 	mdb_ensure(NULL, pthread_mutex_lock(&mdb_rthc_lock) == 0);
 	reader = rthc->rc_reader;
@@ -4729,12 +4727,22 @@ mdb_env_setup_locks(MDB_env *env, char *lpath, int mode, int *excl)
 		return errno;
 	env->me_txns = m;
 
-	if (madvise(env->me_txns, rsize, MADV_DONTFORK | MADV_WILLNEED))
-		return errno;
+#ifdef MADV_NOHUGEPAGE
+	(void) madvise(env->me_txns, rsize, MADV_NOHUGEPAGE);
+#endif
 
 #ifdef MADV_DODUMP
-	madvise(env->me_txns, rsize, MADV_DODUMP);
+	(void) madvise(env->me_txns, rsize, MADV_DODUMP);
 #endif
+
+	if (madvise(env->me_txns, rsize, MADV_DONTFORK) < 0)
+		return errno;
+
+	if (madvise(env->me_txns, rsize, MADV_WILLNEED) < 0)
+		return errno;
+
+	if (madvise(env->me_txns, rsize, MADV_RANDOM) < 0)
+		return errno;
 
 	if (*excl > 0) {
 		pthread_mutexattr_t mattr;
@@ -5806,8 +5814,10 @@ mdb_cursor_next(MDB_cursor *mc, MDB_val *key, MDB_val *data, MDB_cursor_op op)
 
 	mdb_debug("cursor_next: top page is %zu in cursor %p",
 		mdb_dbg_pgno(mp), (void *) mc);
-	if (mc->mc_flags & C_DEL)
+	if (mc->mc_flags & C_DEL) {
+		mc->mc_flags ^= C_DEL;
 		goto skip;
+	}
 
 	if (mc->mc_ki[mc->mc_top] + 1u >= NUMKEYS(mp)) {
 		mdb_debug("=====> move to next sibling page");
@@ -5886,6 +5896,8 @@ mdb_cursor_prev(MDB_cursor *mc, MDB_val *key, MDB_val *data, MDB_cursor_op op)
 	mdb_debug("cursor_prev: top page is %zu in cursor %p",
 		mdb_dbg_pgno(mp), (void *) mc);
 
+	mc->mc_flags &= ~(C_EOF|C_DEL);
+
 	if (mc->mc_ki[mc->mc_top] == 0)  {
 		mdb_debug("=====> move to prev sibling page");
 		if ((rc = mdb_cursor_sibling(mc, 0)) != MDB_SUCCESS) {
@@ -5896,8 +5908,6 @@ mdb_cursor_prev(MDB_cursor *mc, MDB_val *key, MDB_val *data, MDB_cursor_op op)
 		mdb_debug("prev page is %zu, key index %u", mp->mp_pgno, mc->mc_ki[mc->mc_top]);
 	} else
 		mc->mc_ki[mc->mc_top]--;
-
-	mc->mc_flags &= ~C_EOF;
 
 	mdb_debug("==> cursor points to page %zu with %u keys, key index %u",
 		mdb_dbg_pgno(mp), NUMKEYS(mp), mc->mc_ki[mc->mc_top]);
@@ -6322,6 +6332,28 @@ fetchm:
 					mx->mc_db->md_xsize;
 				data->mv_data = PAGEDATA(mx->mc_pg[mx->mc_top]);
 				mx->mc_ki[mx->mc_top] = NUMKEYS(mx->mc_pg[mx->mc_top])-1;
+			} else {
+				rc = MDB_NOTFOUND;
+			}
+		}
+		break;
+	case MDB_PREV_MULTIPLE:
+		if (data == NULL) {
+			rc = EINVAL;
+			break;
+		}
+		if (!(mc->mc_db->md_flags & MDB_DUPFIXED)) {
+			rc = MDB_INCOMPATIBLE;
+			break;
+		}
+		if (!(mc->mc_flags & C_INITIALIZED))
+			rc = mdb_cursor_first(mc, key, data);
+		else {
+			MDB_cursor *mx = &mc->mc_xcursor->mx_cursor;
+			if (mx->mc_flags & C_INITIALIZED) {
+				rc = mdb_cursor_sibling(mx, 0);
+				if (rc == MDB_SUCCESS)
+					goto fetchm;
 			} else {
 				rc = MDB_NOTFOUND;
 			}

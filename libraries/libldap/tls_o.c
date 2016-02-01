@@ -2,7 +2,7 @@
 /* $OpenLDAP$ */
 /* This work is part of OpenLDAP Software <http://www.openldap.org/>.
  *
- * Copyright 2008-2015 The OpenLDAP Foundation.
+ * Copyright 2008-2016 The OpenLDAP Foundation.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -57,7 +57,9 @@ static void tlso_report_error( void );
 static void tlso_info_cb( const SSL *ssl, int where, int ret );
 static int tlso_verify_cb( int ok, X509_STORE_CTX *ctx );
 static int tlso_verify_ok( int ok, X509_STORE_CTX *ctx );
+#if OPENSSL_VERSION_NUMBER < 0x10100000
 static RSA * tlso_tmp_rsa_cb( SSL *ssl, int is_export, int key_length );
+#endif
 
 static int tlso_seed_PRNG( const char *randfile );
 
@@ -164,7 +166,11 @@ tlso_destroy( void )
 	struct ldapoptions *lo = LDAP_INT_GLOBAL_OPT();
 
 	EVP_cleanup();
+#if OPENSSL_VERSION_NUMBER < 0x10000000
 	ERR_remove_state(0);
+#else
+	ERR_remove_thread_state(NULL);
+#endif
 	ERR_free_strings();
 
 	if ( lo->ldo_tls_randfile ) {
@@ -183,7 +189,10 @@ static void
 tlso_ctx_ref( tls_ctx *ctx )
 {
 	tlso_ctx *c = (tlso_ctx *)ctx;
-	CRYPTO_add( &c->references, 1, CRYPTO_LOCK_SSL_CTX );
+#if OPENSSL_VERSION_NUMBER < 0x10100000
+#define	SSL_CTX_up_ref(ctx)	CRYPTO_add( &(ctx->references), 1, CRYPTO_LOCK_SSL_CTX )
+#endif
+	SSL_CTX_up_ref( c );
 }
 
 static void
@@ -365,7 +374,9 @@ tlso_ctx_init( struct ldapoptions *lo, struct ldaptls *lt, int is_server )
 	SSL_CTX_set_verify( ctx, i,
 		lo->ldo_tls_require_cert == LDAP_OPT_X_TLS_ALLOW ?
 		tlso_verify_ok : tlso_verify_cb );
+#if OPENSSL_VERSION_NUMBER < 0x10100000
 	SSL_CTX_set_tmp_rsa_callback( ctx, tlso_tmp_rsa_cb );
+#endif
 #ifdef HAVE_OPENSSL_CRL
 	if ( lo->ldo_tls_crlcheck ) {
 		X509_STORE *x509_s = SSL_CTX_get_cert_store( ctx );
@@ -460,8 +471,17 @@ tlso_session_my_dn( tls_session *sess, struct berval *der_dn )
 	if (!x) return LDAP_INVALID_CREDENTIALS;
 
 	xn = X509_get_subject_name(x);
+#if OPENSSL_VERSION_NUMBER < 0x10100000
 	der_dn->bv_len = i2d_X509_NAME( xn, NULL );
 	der_dn->bv_val = xn->bytes->data;
+#else
+	{
+		size_t len = 0;
+		der_dn->bv_val = NULL;
+		X509_NAME_get0_der( (const unsigned char **)&der_dn->bv_val, &len, xn );
+		der_dn->bv_len = len;
+	}
+#endif
 	/* Don't X509_free, the session is still using it */
 	return 0;
 }
@@ -487,8 +507,17 @@ tlso_session_peer_dn( tls_session *sess, struct berval *der_dn )
 		return LDAP_INVALID_CREDENTIALS;
 
 	xn = X509_get_subject_name(x);
+#if OPENSSL_VERSION_NUMBER < 0x10100000
 	der_dn->bv_len = i2d_X509_NAME( xn, NULL );
 	der_dn->bv_val = xn->bytes->data;
+#else
+	{
+		size_t len = 0;
+		der_dn->bv_val = NULL;
+		X509_NAME_get0_der( (const unsigned char **)&der_dn->bv_val, &len, xn );
+		der_dn->bv_len = len;
+	}
+#endif
 	X509_free(x);
 	return 0;
 }
@@ -627,7 +656,7 @@ tlso_session_chkhost( LDAP *ld, tls_session *sess, const char *name_in )
 		navas = X509_NAME_entry_count( xn );
 		for ( i=navas-1; i>=0; i-- ) {
 			ne = X509_NAME_get_entry( xn, i );
-			if ( !OBJ_cmp( ne->object, obj )) {
+			if ( !OBJ_cmp( X509_NAME_ENTRY_get_object(ne), obj )) {
 				cn = X509_NAME_ENTRY_get_data( ne );
 				break;
 			}
@@ -1138,6 +1167,7 @@ tlso_report_error( void )
 	}
 }
 
+#if OPENSSL_VERSION_NUMBER < 0x10100000
 static RSA *
 tlso_tmp_rsa_cb( SSL *ssl, int is_export, int key_length )
 {
@@ -1168,6 +1198,7 @@ tlso_tmp_rsa_cb( SSL *ssl, int is_export, int key_length )
 	}
 	return tmp_rsa;
 }
+#endif /* OPENSSL_VERSION_NUMBER < 1.1 */
 
 static int
 tlso_seed_PRNG( const char *randfile )

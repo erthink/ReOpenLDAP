@@ -2,7 +2,7 @@
 /* $OpenLDAP$ */
 /* This work is part of OpenLDAP Software <http://www.openldap.org/>.
  *
- * Copyright 2000-2015 The OpenLDAP Foundation.
+ * Copyright 2000-2016 The OpenLDAP Foundation.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -67,7 +67,7 @@ mdb_delete( Operation *op, SlapReply *rs )
 	txn = moi->moi_txn;
 
 	/* allocate CSN */
-	if ( BER_BVISNULL( &op->o_csn ) ) {
+	if ( BER_BVISEMPTY( &op->o_csn ) ) {
 		struct berval csn;
 		char csnbuf[LDAP_PVT_CSNSTR_BUFSIZE];
 
@@ -319,7 +319,7 @@ mdb_delete( Operation *op, SlapReply *rs )
 	if ( !SLAP_SHADOW( op->o_bd )) {
 		struct berval vals[2];
 
-		assert( !BER_BVISNULL( &op->o_csn ) );
+		assert( !BER_BVISEMPTY( &op->o_csn ) );
 		vals[0] = op->o_csn;
 		BER_BVZERO( &vals[1] );
 		rs->sr_err = mdb_index_values( op, txn, slap_schema.si_ad_entryCSN,

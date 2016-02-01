@@ -2,7 +2,7 @@
 /* $OpenLDAP$ */
 /* This work is part of OpenLDAP Software <http://www.openldap.org/>.
  *
- * Copyright 1998-2015 The OpenLDAP Foundation.
+ * Copyright 1998-2016 The OpenLDAP Foundation.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,6 +32,8 @@
 #define LDAP_THREAD_RDWR_IMPLEMENTATION
 #include "ldap_thr_debug.h"	 /* May rename the symbols defined below */
 #include <signal.h>			 /* For pthread_kill() */
+#include <unistd.h>
+#include <sched.h>
 
 extern int ldap_int_stackguard;
 
@@ -296,6 +298,39 @@ ldap_pvt_thread_cond_wait( ldap_pvt_thread_cond_t *cond,
 	LDAP_JITTER(25);
 	rc = ERRVAL( pthread_cond_wait( cond, mutex ) );
 	LDAP_ENSURE(rc == 0);
+	LDAP_JITTER(25);
+	return rc;
+}
+
+int
+ldap_pvt_thread_cond_timedwait(
+		unsigned timeout_ms,
+		ldap_pvt_thread_cond_t *cond,
+		ldap_pvt_thread_mutex_t *mutex )
+{
+	int rc;
+	struct timespec abstime;
+
+	LDAP_ENSURE(0 == clock_gettime(CLOCK_REALTIME_COARSE, &abstime));
+	if (timeout_ms) {
+		abstime.tv_sec += timeout_ms / 1000u;
+		abstime.tv_nsec += (timeout_ms % 1000u) * 1000000ul;
+	} else {
+		static struct timespec rr_interval;
+		if (! rr_interval.tv_nsec) {
+			LDAP_ENSURE(0 == sched_rr_get_interval(getpid(), &rr_interval));
+			LDAP_ENSURE(rr_interval.tv_sec == 0);
+		}
+		abstime.tv_nsec += rr_interval.tv_nsec;
+	}
+	if (abstime.tv_nsec >= 1000000000ul) {
+		abstime.tv_sec += 1;
+		abstime.tv_nsec -= 1000000000ul;
+	}
+
+	LDAP_JITTER(25);
+	rc = pthread_cond_timedwait( cond, mutex, &abstime );
+	LDAP_ENSURE(rc == 0 || rc == ETIMEDOUT || rc == EINTR);
 	LDAP_JITTER(25);
 	return rc;
 }

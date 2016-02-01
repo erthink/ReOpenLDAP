@@ -2,7 +2,7 @@
 /* $OpenLDAP$ */
 /* This work is part of OpenLDAP Software <http://www.openldap.org/>.
  *
- * Copyright 2003-2015 The OpenLDAP Foundation.
+ * Copyright 2003-2016 The OpenLDAP Foundation.
  * Portions Copyright 2003 IBM Corporation.
  * All rights reserved.
  *
@@ -632,6 +632,76 @@ int slap_csn_verify_lite( const BerValue *csn )
 	return 1;
 }
 
+void slap_csn_shift(BerValue *csn, int delta_points )
+{
+	assert( slap_csn_verify_full( csn ) );
+
+	if ( delta_points ) {
+		char *end;
+		int v, carry;
+
+		v = strntoi( csn->bv_val + 23, csn->bv_len - 23, &end, 16 );
+		LDAP_ENSURE( end == csn->bv_val + 23 + 6 && *end == '#' );
+
+		carry = 0;
+		v += delta_points;
+
+		while( v < 0 ) {
+			carry -= 1;
+			v += 0x1000000;
+		}
+		while( v >= 0x1000000 ) {
+			carry += 1;
+			v -= 0x1000000;
+		}
+
+		LDAP_ENSURE( snprintf( csn->bv_val + 23, csn->bv_len - 23, "%06x", v ) == 6 );
+		csn->bv_val[23 + 6] = '#';
+
+		if ( carry ) {
+			v = strntoi( csn->bv_val + 15, csn->bv_len - 15, &end, 10 );
+			LDAP_ENSURE( end == csn->bv_val + 15 + 6 && *end == 'Z' );
+
+			v += carry /* + delta_us */;
+			carry = 0;
+
+			while( v < 0 ) {
+				carry += 1;
+				v += 1000000;
+			}
+			while( v >= 1000000 ) {
+				carry += 1;
+				v -= 1000000;
+			}
+
+			LDAP_ENSURE( snprintf( csn->bv_val + 15, csn->bv_len - 15, "%06d", v ) == 6 );
+			csn->bv_val[15 + 6] = 'Z';
+
+			if ( carry ) {
+				char *digit = csn->bv_val + 13;
+				assert( labs(carry) == 1 );
+
+				while( digit >= csn->bv_val && carry ) {
+					*digit += carry;
+					carry = 0;
+
+					if ( *digit < '0' ) {
+						*digit = '9';
+						carry = -1;
+					}
+					if ( *digit > '9' ) {
+						*digit = '0';
+						carry = 1;
+					}
+
+					--digit;
+				}
+			}
+		}
+		assert( slap_csn_verify_full( csn ) );
+	}
+}
+
 int slap_csn_verify_full( const BerValue *csn )
 {
 	int i;
@@ -686,7 +756,10 @@ int slap_csn_compare_sr( const BerValue *a, const BerValue *b )
 int slap_csn_compare_ts( const BerValue *a, const BerValue *b )
 {
 	assert( slap_csn_verify_lite( a ) && slap_csn_verify_lite( b ) );
-	return memcmp( a->bv_val, b->bv_val, 29 );
+	int cmp = memcmp( a->bv_val, b->bv_val, 29 );
+	if ( cmp == 0 )
+		cmp = memcmp( a->bv_val + 34, b->bv_val + 34, 6 );
+	return cmp;
 }
 
 int slap_csn_get_sid( const BerValue *csn )
@@ -785,26 +858,28 @@ int slap_csns_compare( BerVarray next, BerVarray base )
 
 	for ( n = 1; next && ! BER_BVISNULL( next ); ++next, ++n ) {
 		if ( ! base || BER_BVISNULL( base ) )
-			return INT_MAX;
+			/* LY: eof of base, but next still continue, a new sid in the next. */
+			return INT_MAX /* next > base */;
 
-		cmp = slap_csn_compare_sr ( next, base );
+		cmp = slap_csn_compare_sr( next, base );
 		if ( cmp > 0 )
 			/* LY: a base's sid is absent in the next. */
-			return INT_MIN;
+			return INT_MIN /* next < base */;
 
 		if ( cmp < 0 ) {
 			/* LY: a new sid in the next. */
-			res = INT_MAX;
+			res = INT_MAX /* next > base */;
 			continue;
 		}
 
-		cmp = slap_csn_compare_ts ( next, base++ );
+		cmp = slap_csn_compare_ts( next, base++ );
 		if (cmp < 0)
-			/* LY: base's timestamp is recent. */
-			return -n;
+			/* LY: base's timestamp is recent in #n position. */
+			return -n /* next[n] < base[n] */;
 
 		if (cmp && res == 0)
-			res = n;
+			/* LY: next's timestamp is recent in #n position. */
+			res = n /* next[n] > base[n] */;
 	}
 
 	if ( ! base || BER_BVISNULL( base ) )

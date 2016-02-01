@@ -2,7 +2,7 @@
 /* $OpenLDAP$ */
 /* This work is part of OpenLDAP Software <http://www.openldap.org/>.
  *
- * Copyright 2005-2015 The OpenLDAP Foundation.
+ * Copyright 2005-2016 The OpenLDAP Foundation.
  * Portions copyright 2004-2005 Symas Corporation.
  * All rights reserved.
  *
@@ -578,7 +578,7 @@ log_age_unparse( int age, struct berval *agebv, size_t size )
 	agebv->bv_len = ptr - agebv->bv_val;
 }
 
-static slap_callback nullsc = { NULL, NULL, NULL, NULL };
+static slap_callback nullsc;
 
 #define PURGE_INCREMENT	100
 
@@ -637,7 +637,7 @@ accesslog_purge( void *ctx, void *arg )
 	OperationBuffer opbuf;
 	Operation *op;
 	SlapReply rs = {REP_RESULT};
-	slap_callback cb = { NULL, log_old_lookup, NULL, NULL };
+	slap_callback cb = { NULL, log_old_lookup, NULL, NULL, NULL };
 	Filter f;
 	AttributeAssertion ava = ATTRIBUTEASSERTION_INIT;
 	purge_data pd = {0};
@@ -692,7 +692,7 @@ accesslog_purge( void *ctx, void *arg )
 		/* delete the expired entries */
 		op->o_tag = LDAP_REQ_DELETE;
 		op->o_callback = &nullsc;
-		op->o_csn = pd.csn;
+		slap_op_csn_assign( op, &pd.csn );
 		op->o_dont_replicate = 1;
 
 		for (i=0; i<pd.used; i++) {
@@ -736,6 +736,7 @@ accesslog_purge( void *ctx, void *arg )
 			}
 		}
 		slap_biglock_release(bl);
+		slap_op_csn_free( op );
 	}
 
 	ldap_pvt_thread_mutex_lock( &slapd_rq.rq_mutex );
@@ -1874,9 +1875,8 @@ static int accesslog_response(Operation *op, SlapReply *rs) {
 	slap_biglock_call_be( op_add, &op2, &rs2 );
 	if ( e == op2.ora_e ) entry_free( e );
 	e = NULL;
-	if ( do_graduate ) {
+	if ( do_graduate )
 		slap_graduate_commit_csn( &op2 );
-	}
 
 done:
 	if ( lo->mask & LOG_OP_WRITES )
@@ -1982,11 +1982,9 @@ accesslog_op_mod( Operation *op, SlapReply *rs )
 	}
 
 	if ( doit ) {
-		slap_callback *cb = op->o_tmpalloc( sizeof( slap_callback ), op->o_tmpmemctx ), *cb2;
+		slap_callback *cb = op->o_tmpcalloc( 1, sizeof( slap_callback ), op->o_tmpmemctx ), *cb2;
 		cb->sc_cleanup = accesslog_mod_cleanup;
-		cb->sc_response = NULL;
 		cb->sc_private = on;
-		cb->sc_next = NULL;
 		for ( cb2 = op->o_callback; cb2->sc_next; cb2 = cb2->sc_next );
 		cb2->sc_next = cb;
 

@@ -1,9 +1,8 @@
 /*
-	Imported from 1Hippeus project at 2015-01-19.
+    Imported from 1Hippeus project at 2015-01-19.
 
-	Copyright (c) 2013 Leonid Yuriev <leo@yuriev.ru>.
-    Copyright (c) 2013 Peter-Service LLC.
-    Copyright (c) 2013 Other contributors as noted in the AUTHORS file.
+    Copyright (c) 2013-2016 Leonid Yuriev <leo@yuriev.ru>.
+    Copyright (c) 2013-2016 Peter-Service LLC.
 
     This file is part of 1Hippeus.
 

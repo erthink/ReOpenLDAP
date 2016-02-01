@@ -2,7 +2,7 @@
 /* $OpenLDAP$ */
 /* This work is part of OpenLDAP Software <http://www.openldap.org/>.
  *
- * Copyright 2000-2015 The OpenLDAP Foundation.
+ * Copyright 2000-2016 The OpenLDAP Foundation.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -458,6 +458,7 @@ mdb_modify( Operation *op, SlapReply *rs )
 	LDAPControl **postread_ctrl = NULL;
 	LDAPControl *ctrls[SLAP_MAX_RESPONSE_CONTROLS];
 	int num_ctrls = 0;
+	int numads = mdb->mi_numads;
 
 	Debug( LDAP_DEBUG_ARGS, LDAP_XSTRING(mdb_modify) ": %s\n",
 		op->o_req_dn.bv_val );
@@ -637,12 +638,15 @@ mdb_modify( Operation *op, SlapReply *rs )
 		LDAP_SLIST_REMOVE( &op->o_extra, &opinfo.moi_oe, OpExtra, oe_next );
 		opinfo.moi_oe.oe_key = NULL;
 		if( op->o_noop ) {
+			mdb->mi_numads = numads;
 			mdb_txn_abort( txn );
 			rs->sr_err = LDAP_X_NO_OPERATION;
 			txn = NULL;
 			goto return_results;
 		} else {
 			rs->sr_err = mdb_txn_commit( txn );
+			if ( rs->sr_err )
+				mdb->mi_numads = numads;
 			txn = NULL;
 		}
 	}
@@ -686,6 +690,7 @@ done:
 
 	if( moi == &opinfo ) {
 		if( txn != NULL ) {
+			mdb->mi_numads = numads;
 			mdb_txn_abort( txn );
 		}
 		if ( opinfo.moi_oe.oe_key ) {

@@ -2,7 +2,7 @@
 # $OpenLDAP$
 ## This work is part of OpenLDAP Software <http://www.openldap.org/>.
 ##
-## Copyright 1998-2015 The OpenLDAP Foundation.
+## Copyright 1998-2016 The OpenLDAP Foundation.
 ## All rights reserved.
 ##
 ## Redistribution and use in source and binary forms, with or without
@@ -117,7 +117,7 @@ function update_TESTDIR {
 
 	#detect_deadlocks=1
 	export ASAN_OPTIONS="symbolize=1:allow_addr2line=1:report_globals=1:replace_str=1:replace_intrin=1:malloc_context_size=21:detect_leaks=${ASAN_DETECT_LEAKS-0}:abort_on_error:log_path=$TESTDIR/asan-log"
-	export TSAN_OPTIONS="second_deadlock_stack=1:history_size=2:log_path=$TESTDIR/tsan-log"
+	export TSAN_OPTIONS="report_signal_unsafe=0:second_deadlock_stack=1:history_size=2:log_path=$TESTDIR/tsan-log"
 
 	VALGRIND_OPTIONS="--fair-sched=yes --quiet --log-file=$TESTDIR/valgrind-log.%p \
 		--error-markers=@ --leak-check=full --num-callers=41 --error-exitcode=43 \
@@ -234,9 +234,10 @@ elif [ -n "$CIBUZZ_PID4" ]; then
 	SLEEP1=${SLEEP1-7}
 	SLEEP2=${SLEEP2-15}
 else
-	TIMEOUT_S="timeout -s SIGXCPU 30s"
-	TIMEOUT_L="timeout -s SIGXCPU 2m"
-	TIMEOUT_H="timeout -s SIGXCPU 5m"
+	# LY: take in account -O0
+	TIMEOUT_S="timeout -s SIGXCPU 1m"
+	TIMEOUT_L="timeout -s SIGXCPU 3m"
+	TIMEOUT_H="timeout -s SIGXCPU 9m"
 	SLEEP0=${SLEEP0-0.2}
 	SLEEP1=${SLEEP1-1}
 	SLEEP2=${SLEEP2-3}
@@ -450,6 +451,19 @@ function killservers {
 	fi
 }
 
+function dumppids {
+	if [ $# != 0 ]; then
+		echo -n ">>>>> waiting for things ($@) to dump..."
+		kill -SIGABRT "$@" && safewait "$@"
+		echo " done"
+	fi
+}
+
+function dumpservers {
+	echo -n ">>>>> waiting for things ($(pgrep -s 0 slapd)) to dump..."
+	(pkill -SIGABRT -s 0 slapd && sleep 5 && echo "done") || echo "fail"
+}
+
 function get_df_mb {
 	local path=$1
 	while [ -n "$path" ]; do
@@ -481,14 +495,18 @@ function failure {
 }
 
 function safepath {
-	local r=$(realpath --relative-to ../${SRCDIR} $@ 2>/dev/null)
-	# LY: realpath from RHEL6 don't support '--relative-to' option,
-	#     this is workaround/crutch.
-	if [ -n "$r" ]; then
-		echo $r
-	else
-		readlink -f $@ | sed -e 's|^/sandbox|.|g'
-	fi
+	local arg
+	# LY: readlink/realpath from RHEL6 support only one filename.
+	for arg in "$@"; do
+		local r=$(realpath --relative-to ../${SRCDIR} $arg 2>/dev/null)
+		# LY: realpath from RHEL6 don't support '--relative-to' option,
+		#     this is workaround/crutch.
+		if [ -n "$r" ]; then
+			echo $arg
+		else
+			readlink -f $arg | sed -e 's|^/sandbox|.|g'
+		fi
+	done
 }
 
 function collect_coredumps {
@@ -608,20 +626,24 @@ function wait_syncrepl {
 
 	for i in $(seq 1 100); do
 		#echo "  Using ldapsearch to read contextCSN from the provider:$1..."
-		provider_csn=$($LDAPSEARCH -s $scope -b "$BASEDN" -h $LOCALHOST -p $1 contextCSN |& grep -i ^contextCSN; exit ${PIPESTATUS[0]})
+		provider_csn=$($LDAPSEARCH -s $scope -b "$BASEDN" -h $LOCALHOST -p $1 contextCSN -v \
+			2>${TESTDIR}/ldapsearch.error | tee ${TESTDIR}/ldapsearch.output \
+				|& grep -i ^contextCSN; exit ${PIPESTATUS[0]})
 		RC=${PIPESTATUS[0]}
 		if [ "$RC" -ne 0 ]; then
-			echo "ldapsearch failed at provider ($RC, $provider_csn)!"
-			killservers
+			echo "ldapsearch failed at provider ($RC, csn=$provider_csn)!"
+			dumpservers
 			exit $RC
 		fi
 
 		#echo "  Using ldapsearch to read contextCSN from the consumer:$2..."
-		consumer_csn=$($LDAPSEARCH -s $scope -b "$BASEDN" -h $LOCALHOST -p $2 contextCSN |& grep -i ^contextCSN; exit ${PIPESTATUS[0]})
+		consumer_csn=$($LDAPSEARCH -s $scope -b "$BASEDN" -h $LOCALHOST -p $2 contextCSN -v \
+			2>${TESTDIR}/ldapsearch.error | tee ${TESTDIR}/ldapsearch.output \
+				|& grep -i ^contextCSN; exit ${PIPESTATUS[0]})
 		RC=${PIPESTATUS[0]}
 		if [ "$RC" -ne 0 -a "$RC" -ne 32 ]; then
-			echo "ldapsearch failed at consumer ($RC, $consumer_csn)!"
-			killservers
+			echo "ldapsearch failed at consumer ($RC, csn=$consumer_csn)!"
+			dumpservers
 			exit $RC
 		fi
 

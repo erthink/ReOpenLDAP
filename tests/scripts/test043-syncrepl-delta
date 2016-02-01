@@ -2,7 +2,7 @@
 # $OpenLDAP$
 ## This work is part of OpenLDAP Software <http://www.openldap.org/>.
 ##
-## Copyright 1998-2015 The OpenLDAP Foundation.
+## Copyright 1998-2016 The OpenLDAP Foundation.
 ## All rights reserved.
 ##
 ## Redistribution and use in source and binary forms, with or without
@@ -20,8 +20,19 @@ if test $SYNCPROV = syncprovno; then
 	echo "Syncrepl provider overlay not available, test skipped"
 	exit 0
 fi
+if test $ACCESSLOG = accesslogno; then
+	echo "Accesslog overlay not available, test skipped"
+	exit 0
+fi
+if test $BACKEND = ldif ; then
+	# Onelevel search does not return entries in order of creation or CSN.
+	echo "$BACKEND backend unsuitable for syncprov logdb, test skipped"
+	exit 0
+fi
 
-mkdir -p $TESTDIR $DBDIR1 $DBDIR4
+mkdir -p $TESTDIR $DBDIR1A $DBDIR1B $DBDIR2
+
+SPEC="mdb=a,bdb=a,hdb=a"
 
 #
 # Test replication:
@@ -34,7 +45,7 @@ mkdir -p $TESTDIR $DBDIR1 $DBDIR4
 #
 
 echo "Starting provider slapd on TCP/IP port $PORT1..."
-. $CONFFILTER $BACKEND $MONITORDB < $SRMASTERCONF > $CONF1
+. $CONFFILTER $BACKEND $MONITORDB < $DSRMASTERCONF > $CONF1
 $SLAPD -f $CONF1 -h $URI1 $TIMING > $LOG1 2>&1 &
 PID=$!
 if test $WAIT != 0 ; then
@@ -44,7 +55,7 @@ fi
 KILLPIDS="$PID"
 check_running 1 provider
 
-echo "Using ldapadd to create the context prefix entry in the provider..."
+echo "Using ldapadd to create the context prefix entries in the provider..."
 $LDAPADD -D "$MANAGERDN" -h $LOCALHOST -p $PORT1 -w $PASSWD < \
 	$LDIFORDEREDCP > /dev/null 2>&1
 RC=$?
@@ -54,41 +65,34 @@ if test $RC != 0 ; then
 	exit $RC
 fi
 
-echo "Starting consumer slapd on TCP/IP port $PORT4..."
-. $CONFFILTER $BACKEND $MONITORDB < $P1SRSLAVECONF > $CONF4
-$SLAPD -f $CONF4 -h $URI4 $TIMING > $LOG4 2>&1 &
+echo "Starting consumer slapd on TCP/IP port $PORT2..."
+. $CONFFILTER $BACKEND $MONITORDB < $DSRSLAVECONF > $CONF2
+$SLAPD -f $CONF2 -h $URI2 $TIMING > $LOG2 2>&1 &
 SLAVEPID=$!
 if test $WAIT != 0 ; then
     echo SLAVEPID $SLAVEPID
     read foo
 fi
 KILLPIDS="$KILLPIDS $SLAVEPID"
-check_running 4 consumer
-
-MORELDIF=$TESTDIR/more.ldif
-TESTOUT1=$TESTDIR/testout1.out
-TESTOUT2=$TESTDIR/testout2.out
-sed -e 's/[Oo][Uu]=/ou=More /g' -e 's/^[Oo][Uu]: /ou: More /' \
-	-e 's/cn=Manager/cn=More Manager/g' \
-	-e 's/^cn: Manager/cn: More Manager/' \
-	$LDIFORDEREDNOCP > $MORELDIF
+check_running 2 consumer
 
 echo "Using ldapadd to populate the provider directory..."
 $LDAPADD -D "$MANAGERDN" -h $LOCALHOST -p $PORT1 -w $PASSWD < \
-	$LDIFORDEREDNOCP > $TESTOUT1 2>&1  &
-C1PID=$!
-$LDAPADD -D "$MANAGERDN" -h $LOCALHOST -p $PORT1 -w $PASSWD < \
-	$MORELDIF > $TESTOUT2 2>&1 &
-C2PID=$!
-safewait $C1PID $C2PID
+	$LDIFORDEREDNOCP > /dev/null 2>&1
+RC=$?
+if test $RC != 0 ; then
+	echo "ldapadd failed ($RC)!"
+	killservers
+	exit $RC
+fi
 
 #echo "Waiting $SLEEP1 seconds for syncrepl to receive changes..."
-wait_syncrepl $PORT1 $PORT4
+wait_syncrepl $PORT1 $PORT2
 
-echo "Stopping the provider, sleeping 3 seconds and restarting it..."
-kill -HUP "$PID"
-safewait $PID
-sleep 3
+echo -n "Stopping the provider ($PID), sleeping $SLEEP1 seconds and restarting it..."
+kill -HUP "$PID" && safewait $PID && echo " Done" || echo " Failure ($?) !!!"
+sleep $SLEEP1
+
 echo "RESTART" >> $LOG1
 $SLAPD -f $CONF1 -h $URI1 $TIMING >> $LOG1 2>&1 &
 PID=$!
@@ -98,9 +102,6 @@ if test $WAIT != 0 ; then
 fi
 KILLPIDS="$PID $SLAVEPID"
 check_running 1 provider
-
-#echo "Waiting 10 seconds to let the system catch up"
-#sleep 10
 
 echo "Using ldapmodify to modify provider directory..."
 
@@ -180,18 +181,6 @@ dn: cn=James A Jones 2, ou=Information Technology Division, ou=People, dc=exampl
 changetype: delete
 
 EOMODS
-
-RC=$?
-if test $RC != 0 ; then
-	echo "ldapmodify failed ($RC)!"
-	killservers
-	exit $RC
-fi
-
-echo "Using ldappasswd to change some passwords..."
-$LDAPPASSWD -D "$MANAGERDN" -h $LOCALHOST -p $PORT1 -w $PASSWD \
-	'cn=Bjorn Jensen,ou=Information Technology Division,ou=People,dc=example,dc=com' \
-	> $TESTOUT 2>&1
 RC=$?
 if test $RC != 0 ; then
 	echo "ldapmodify failed ($RC)!"
@@ -200,14 +189,49 @@ if test $RC != 0 ; then
 fi
 
 #echo "Waiting $SLEEP1 seconds for syncrepl to receive changes..."
-wait_syncrepl $PORT1 $PORT4
+wait_syncrepl $PORT1 $PORT2
 
-echo "Stopping consumer to test recovery..."
-kill -HUP $SLAVEPID
-safewait $SLAVEPID
+echo "Using ldapsearch to read all the entries from the provider..."
+$LDAPSEARCH -S "" -b "$BASEDN" -h $LOCALHOST -p $PORT1 \
+	'objectclass=*' \* + > $MASTEROUT 2>&1
+RC=$?
+
+if test $RC != 0 ; then
+	echo "ldapsearch failed at provider ($RC)!"
+	killservers
+	exit $RC
+fi
+
+echo "Using ldapsearch to read all the entries from the consumer..."
+$LDAPSEARCH -S "" -b "$BASEDN" -h $LOCALHOST -p $PORT2 \
+	'objectclass=*' \* + > $SLAVEOUT 2>&1
+RC=$?
+
+if test $RC != 0 ; then
+	echo "ldapsearch failed at consumer ($RC)!"
+	killservers
+	exit $RC
+fi
+
+echo "Filtering provider results..."
+$LDIFFILTER -b $BACKEND -s $SPEC < $MASTEROUT | grep -iv "^auditcontext:" > $MASTERFLT
+echo "Filtering consumer results..."
+$LDIFFILTER -b $BACKEND -s $SPEC < $SLAVEOUT | grep -iv "^auditcontext:" > $SLAVEFLT
+
+echo "Comparing retrieved entries from provider and consumer..."
+$CMP $MASTERFLT $SLAVEFLT > $CMPOUT
+
+if test $? != 0 ; then
+	echo "test failed - provider and consumer databases differ"
+	killservers
+	exit 1
+fi
+
+echo -n "Stopping consumer ($SLAVEPID) to test recovery..."
+kill -HUP $SLAVEPID && safewait $SLAVEPID && echo " Done" || echo " Failure ($?) !!!"
 
 echo "Modifying more entries on the provider..."
-$LDAPMODIFY -v -D "$MANAGERDN" -h $LOCALHOST -p $PORT1 -w $PASSWD >> \
+$LDAPMODIFY -v -D "$BJORNSDN" -h $LOCALHOST -p $PORT1 -w bjorn >> \
 	$TESTOUT 2>&1 << EOMODS
 dn: cn=Rosco P. Coltrane, ou=Retired, ou=People, dc=example,dc=com
 changetype: delete
@@ -224,25 +248,34 @@ sn: Coltrane
 uid: rosco
 cn: Rosco P. Coltrane
 
+dn: cn=Mark Elliot,ou=Alumni Association,ou=People,dc=example,dc=com
+changetype: modify
+replace: drink
+
+dn: cn=All Staff,ou=Groups,dc=example,dc=com
+changetype: modrdn
+newrdn: cn=Some Staff
+deleteoldrdn: 1
+
 EOMODS
 
 echo "Restarting consumer..."
-echo "RESTART" >> $LOG4
-$SLAPD -f $CONF4 -h $URI4 $TIMING >> $LOG4 2>&1 &
+echo "RESTART" >> $LOG2
+$SLAPD -f $CONF2 -h $URI2 $TIMING >> $LOG2 2>&1 &
 SLAVEPID=$!
 if test $WAIT != 0 ; then
     echo SLAVEPID $SLAVEPID
     read foo
 fi
 KILLPIDS="$PID $SLAVEPID"
-check_running 4 consumer
+check_running 2 consumer
 
 #echo "Waiting $SLEEP1 seconds for syncrepl to receive changes..."
-wait_syncrepl $PORT1 $PORT4
+wait_syncrepl $PORT1 $PORT2
 
 if test ! $BACKLDAP = "ldapno" ; then
 	echo "Try updating the consumer slapd..."
-	$LDAPMODIFY -v -D "$MANAGERDN" -h $LOCALHOST -p $PORT4 -w $PASSWD > \
+	$LDAPMODIFY -v -D "$MANAGERDN" -h $LOCALHOST -p $PORT2 -w $PASSWD > \
 		$TESTOUT 2>&1 << EOMODS
 dn: cn=James A Jones 1, ou=Alumni Association, ou=People, dc=example, dc=com
 changetype: modify
@@ -259,27 +292,13 @@ EOMODS
 		exit $RC
 	fi
 
-	# ITS#4964
-	echo "Trying to change some passwords on the consumer..."
-	$LDAPPASSWD -D "$MANAGERDN" -h $LOCALHOST -p $PORT4 -w $PASSWD \
-		'cn=Barbara Jensen,ou=Information Technology Division,ou=People,dc=example,dc=com' \
-		> $TESTOUT 2>&1
-	RC=$?
-	if test $RC != 0 ; then
-		echo "ldapmodify failed ($RC)!"
-		killservers
-		exit $RC
-	fi
-
 	#echo "Waiting $SLEEP1 seconds for syncrepl to receive changes..."
-	wait_syncrepl $PORT4 $PORT1
+	wait_syncrepl $PORT1 $PORT2
 fi
-
-OPATTRS="entryUUID creatorsName createTimestamp modifiersName modifyTimestamp"
 
 echo "Using ldapsearch to read all the entries from the provider..."
 $LDAPSEARCH -S "" -b "$BASEDN" -h $LOCALHOST -p $PORT1 \
-	'(objectclass=*)' '*' $OPATTRS > $MASTEROUT 2>&1
+	'objectclass=*' \* + > $MASTEROUT 2>&1
 RC=$?
 
 if test $RC != 0 ; then
@@ -289,8 +308,8 @@ if test $RC != 0 ; then
 fi
 
 echo "Using ldapsearch to read all the entries from the consumer..."
-$LDAPSEARCH -S "" -b "$BASEDN" -h $LOCALHOST -p $PORT4 \
-	'(objectclass=*)' '*' $OPATTRS > $SLAVEOUT 2>&1
+$LDAPSEARCH -S "" -b "$BASEDN" -h $LOCALHOST -p $PORT2 \
+	'objectclass=*' \* + > $SLAVEOUT 2>&1
 RC=$?
 
 if test $RC != 0 ; then
@@ -302,9 +321,9 @@ fi
 killservers
 
 echo "Filtering provider results..."
-$LDIFFILTER < $MASTEROUT > $MASTERFLT
+$LDIFFILTER -b $BACKEND -s $SPEC < $MASTEROUT | grep -iv "^auditcontext:" > $MASTERFLT
 echo "Filtering consumer results..."
-$LDIFFILTER < $SLAVEOUT > $SLAVEFLT
+$LDIFFILTER -b $BACKEND -s $SPEC < $SLAVEOUT | grep -iv "^auditcontext:" > $SLAVEFLT
 
 echo "Comparing retrieved entries from provider and consumer..."
 $CMP $MASTERFLT $SLAVEFLT > $CMPOUT

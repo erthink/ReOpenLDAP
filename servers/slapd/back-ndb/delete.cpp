@@ -2,7 +2,7 @@
 /* $OpenLDAP$ */
 /* This work is part of OpenLDAP Software <http://www.openldap.org/>.
  *
- * Copyright 2008-2015 The OpenLDAP Foundation.
+ * Copyright 2008-2016 The OpenLDAP Foundation.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -57,7 +57,7 @@ ndb_back_delete( Operation *op, SlapReply *rs )
 	ctrls[num_ctrls] = 0;
 
 	/* allocate CSN */
-	if ( BER_BVISNULL( &op->o_csn ) ) {
+	if ( BER_BVISEMPTY( &op->o_csn ) ) {
 		struct berval csn;
 		char csnbuf[LDAP_PVT_CSNSTR_BUFSIZE];
 
