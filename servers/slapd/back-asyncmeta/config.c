@@ -612,7 +612,7 @@ asyncmeta_suffixm_config(
 		snprintf( c->cr_msg, sizeof( c->cr_msg ),
 			"suffix \"%s\" is invalid",
 			argv[1] );
-		Debug( LDAP_DEBUG_ANY, "%s: %s.\n", c->log, c->cr_msg, 0 );
+		Debug( LDAP_DEBUG_ANY, "%s: %s.\n", c->log, c->cr_msg );
 		return 1;
 	}
 
@@ -626,7 +626,7 @@ asyncmeta_suffixm_config(
 		snprintf( c->cr_msg, sizeof( c->cr_msg ),
 			"suffix \"%s\" must be within the database naming context",
 			argv[1] );
-		Debug( LDAP_DEBUG_ANY, "%s: %s.\n", c->log, c->cr_msg, 0 );
+		Debug( LDAP_DEBUG_ANY, "%s: %s.\n", c->log, c->cr_msg );
 		free( pvnc.bv_val );
 		free( nvnc.bv_val );
 		return 1;
@@ -637,7 +637,7 @@ asyncmeta_suffixm_config(
 		snprintf( c->cr_msg, sizeof( c->cr_msg ),
 			"massaged suffix \"%s\" is invalid",
 			argv[2] );
-		Debug( LDAP_DEBUG_ANY, "%s: %s.\n", c->log, c->cr_msg, 0 );
+		Debug( LDAP_DEBUG_ANY, "%s: %s.\n", c->log, c->cr_msg );
 		free( pvnc.bv_val );
 		free( nvnc.bv_val );
 		return 1;
@@ -648,7 +648,7 @@ asyncmeta_suffixm_config(
 		Debug( LDAP_DEBUG_ANY,
 	"%s: warning: <massaged suffix> \"%s\" resolves to this database, in "
 	"\"suffixMassage <suffix> <massaged suffix>\"\n",
-			c->log, prnc.bv_val, 0 );
+			c->log, prnc.bv_val );
 	}
 
 	/*
@@ -1128,10 +1128,10 @@ static int
 asyncmeta_back_cf_gen( ConfigArgs *c )
 {
 	a_metainfo_t	*mi = ( a_metainfo_t * )c->be->be_private;
-	a_metatarget_t	*mt;
-	a_metacommon_t	*mc;
+	a_metatarget_t	*mt = NULL;
+	a_metacommon_t	*mc = NULL;
 
-	int i, rc = 0;
+	int rc = 0;
 
 	assert( mi != NULL );
 
@@ -1297,7 +1297,9 @@ asyncmeta_back_cf_gen( ConfigArgs *c )
 			c->value_int = META_BACK_CMN_SAVECRED(mc);
 			break;
 
-		case LDAP_BACK_CFG_TIMEOUT:
+		case LDAP_BACK_CFG_TIMEOUT: {
+			int i;
+
 			for ( i = 0; i < SLAP_OP_LAST; i++ ) {
 				if ( mc->mc_timeout[ i ] != 0 ) {
 					break;
@@ -1320,12 +1322,13 @@ asyncmeta_back_cf_gen( ConfigArgs *c )
 
 			if ( i ) {
 				bv.bv_len -= i;
-				AC_MEMCPY( bv.bv_val, &bv.bv_val[ i ],
+				memmove( bv.bv_val, &bv.bv_val[ i ],
 					bv.bv_len + 1 );
 			}
 
 			ber_bvarray_add( &c->rvalue_vals, &bv );
 			break;
+		}
 
 		case LDAP_BACK_CFG_VERSION:
 			if ( mc->mc_version == 0 )
@@ -1577,7 +1580,7 @@ asyncmeta_back_cf_gen( ConfigArgs *c )
 
 				if ( i ) {
 					bc.bv_len -= i;
-					AC_MEMCPY( bc.bv_val, &bc.bv_val[ i ], bc.bv_len + 1 );
+					memmove( bc.bv_val, &bc.bv_val[ i ], bc.bv_len + 1 );
 				}
 
 				bv = bc;
@@ -1722,11 +1725,13 @@ asyncmeta_back_cf_gen( ConfigArgs *c )
 			mc->mc_flags &= ~LDAP_BACK_F_SAVECRED;
 			break;
 
-		case LDAP_BACK_CFG_TIMEOUT:
+		case LDAP_BACK_CFG_TIMEOUT: {
+			int i;
 			for ( i = 0; i < SLAP_OP_LAST; i++ ) {
 				mc->mc_timeout[ i ] = 0;
 			}
 			break;
+		}
 
 		case LDAP_BACK_CFG_VERSION:
 			mc->mc_version = 0;
@@ -1775,6 +1780,7 @@ asyncmeta_back_cf_gen( ConfigArgs *c )
 					break;
 				}
 
+				int i;
 				for ( i = 0; !BER_BVISNULL( &((*bvp)[ i ]) ); i++ )
 					;
 
@@ -1828,6 +1834,7 @@ asyncmeta_back_cf_gen( ConfigArgs *c )
 				mt->mt_subtree = NULL;
 			} else {
 				a_metasubtree_t *ms, **mprev;
+				int i;
 				for (i=0, mprev = &mt->mt_subtree, ms = *mprev; ms; ms = *mprev) {
 					if ( i == c->valx ) {
 						*mprev = ms->ms_next;
@@ -1848,6 +1855,7 @@ asyncmeta_back_cf_gen( ConfigArgs *c )
 				mt->mt_filter = NULL;
 			} else {
 				metafilter_t *mf, **mprev;
+				int i;
 				for (i=0, mprev = &mt->mt_filter, mf = *mprev; mf; mf = *mprev) {
 					if ( i == c->valx ) {
 						*mprev = mf->mf_next;
@@ -1894,7 +1902,7 @@ asyncmeta_back_cf_gen( ConfigArgs *c )
 				if ( !mi->mi_ntargets ) {
 					snprintf( c->cr_msg, sizeof( c->cr_msg ),
 						"need \"uri\" directive first" );
-					Debug( LDAP_DEBUG_ANY, "%s: %s.\n", c->log, c->cr_msg, 0 );
+					Debug( LDAP_DEBUG_ANY, "%s: %s.\n", c->log, c->cr_msg );
 					return 1;
 				}
 			}
@@ -1923,14 +1931,14 @@ asyncmeta_back_cf_gen( ConfigArgs *c )
 	case LDAP_BACK_CFG_URI: {
 		LDAPURLDesc 	*ludp;
 		struct berval	dn;
-		int		j;
+		int	i, j;
 
 		char		**uris = NULL;
 
 		if ( c->be->be_nsuffix == NULL ) {
 			snprintf( c->cr_msg, sizeof( c->cr_msg ),
 				"the suffix must be defined before any target" );
-			Debug( LDAP_DEBUG_ANY, "%s: %s.\n", c->log, c->cr_msg, 0 );
+			Debug( LDAP_DEBUG_ANY, "%s: %s.\n", c->log, c->cr_msg );
 			return 1;
 		}
 
@@ -1943,7 +1951,7 @@ asyncmeta_back_cf_gen( ConfigArgs *c )
 				"out of memory while storing server name"
 				" in \"%s <protocol>://<server>[:port]/<naming context>\"",
 				c->argv[0] );
-			Debug( LDAP_DEBUG_ANY, "%s: %s.\n", c->log, c->cr_msg, 0 );
+			Debug( LDAP_DEBUG_ANY, "%s: %s.\n", c->log, c->cr_msg );
 			return 1;
 		}
 
@@ -1952,7 +1960,7 @@ asyncmeta_back_cf_gen( ConfigArgs *c )
 				"unable to init server"
 				" in \"%s <protocol>://<server>[:port]/<naming context>\"",
 				c->argv[0] );
-			Debug( LDAP_DEBUG_ANY, "%s: %s.\n", c->log, c->cr_msg, 0 );
+			Debug( LDAP_DEBUG_ANY, "%s: %s.\n", c->log, c->cr_msg );
 			return 1;
 		}
 
@@ -1975,7 +1983,7 @@ asyncmeta_back_cf_gen( ConfigArgs *c )
 					"unable to parse URIs #%d"
 					" in \"%s <protocol>://<server>[:port]/<naming context>\"",
 					j-1, c->argv[0] );
-				Debug( LDAP_DEBUG_ANY, "%s: %s.\n", c->log, c->cr_msg, 0 );
+				Debug( LDAP_DEBUG_ANY, "%s: %s.\n", c->log, c->cr_msg );
 				return 1;
 			}
 
@@ -2002,7 +2010,7 @@ asyncmeta_back_cf_gen( ConfigArgs *c )
 					"unable to parse URI #%d"
 					" in \"%s <protocol>://<server>[:port]/<naming context>\"",
 					j-1, c->argv[0] );
-				Debug( LDAP_DEBUG_ANY, "%s: %s.\n", c->log, c->cr_msg, 0 );
+				Debug( LDAP_DEBUG_ANY, "%s: %s.\n", c->log, c->cr_msg );
 				ldap_charray_free( uris );
 				return 1;
 			}
@@ -2017,7 +2025,7 @@ asyncmeta_back_cf_gen( ConfigArgs *c )
 						"missing <naming context> "
 						" in \"%s <protocol>://<server>[:port]/<naming context>\"",
 						c->argv[0] );
-					Debug( LDAP_DEBUG_ANY, "%s: %s.\n", c->log, c->cr_msg, 0 );
+					Debug( LDAP_DEBUG_ANY, "%s: %s.\n", c->log, c->cr_msg );
 					ldap_free_urllist( ludp );
 					ldap_charray_free( uris );
 					return 1;
@@ -2033,7 +2041,7 @@ asyncmeta_back_cf_gen( ConfigArgs *c )
 					snprintf( c->cr_msg, sizeof( c->cr_msg ),
 						"target DN is invalid \"%s\"",
 						c->argv[1] );
-					Debug( LDAP_DEBUG_ANY, "%s: %s.\n", c->log, c->cr_msg, 0 );
+					Debug( LDAP_DEBUG_ANY, "%s: %s.\n", c->log, c->cr_msg );
 					ldap_free_urllist( ludp );
 					ldap_charray_free( uris );
 					return( 1 );
@@ -2055,7 +2063,7 @@ asyncmeta_back_cf_gen( ConfigArgs *c )
 					snprintf( c->cr_msg, sizeof( c->cr_msg ),
 						"invalid scope for target \"%s\"",
 						c->argv[1] );
-					Debug( LDAP_DEBUG_ANY, "%s: %s.\n", c->log, c->cr_msg, 0 );
+					Debug( LDAP_DEBUG_ANY, "%s: %s.\n", c->log, c->cr_msg );
 					ldap_free_urllist( ludp );
 					ldap_charray_free( uris );
 					return( 1 );
@@ -2066,7 +2074,7 @@ asyncmeta_back_cf_gen( ConfigArgs *c )
 				if ( ludp->lud_dn != NULL && ludp->lud_dn[ 0 ] != '\0' ) {
 					snprintf( c->cr_msg, sizeof( c->cr_msg ),
 						"multiple URIs must have no DN part" );
-					Debug( LDAP_DEBUG_ANY, "%s: %s.\n", c->log, c->cr_msg, 0 );
+					Debug( LDAP_DEBUG_ANY, "%s: %s.\n", c->log, c->cr_msg );
 					ldap_free_urllist( ludp );
 					ldap_charray_free( uris );
 					return( 1 );
@@ -2078,7 +2086,7 @@ asyncmeta_back_cf_gen( ConfigArgs *c )
 			ldap_free_urllist( ludp );
 			if ( tmpuri == NULL ) {
 				snprintf( c->cr_msg, sizeof( c->cr_msg ), "no memory?" );
-				Debug( LDAP_DEBUG_ANY, "%s: %s.\n", c->log, c->cr_msg, 0 );
+				Debug( LDAP_DEBUG_ANY, "%s: %s.\n", c->log, c->cr_msg );
 				ldap_charray_free( uris );
 				return( 1 );
 			}
@@ -2090,7 +2098,7 @@ asyncmeta_back_cf_gen( ConfigArgs *c )
 		ldap_charray_free( uris );
 		if ( mt->mt_uri == NULL) {
 			snprintf( c->cr_msg, sizeof( c->cr_msg ), "no memory?" );
-			Debug( LDAP_DEBUG_ANY, "%s: %s.\n", c->log, c->cr_msg, 0 );
+			Debug( LDAP_DEBUG_ANY, "%s: %s.\n", c->log, c->cr_msg );
 			return( 1 );
 		}
 
@@ -2106,7 +2114,7 @@ asyncmeta_back_cf_gen( ConfigArgs *c )
 		if ( BER_BVISNULL( &c->be->be_nsuffix[ j ] ) ) {
 			snprintf( c->cr_msg, sizeof( c->cr_msg ),
 				"<naming context> of URI must be within the naming context of this database." );
-			Debug( LDAP_DEBUG_ANY, "%s: %s.\n", c->log, c->cr_msg, 0 );
+			Debug( LDAP_DEBUG_ANY, "%s: %s.\n", c->log, c->cr_msg );
 			return 1;
 		}
 		c->ca_private = mt;
@@ -2116,7 +2124,7 @@ asyncmeta_back_cf_gen( ConfigArgs *c )
 	case LDAP_BACK_CFG_SUBTREE_IN:
 	/* subtree-exclude */
 		if ( asyncmeta_subtree_config( mt, c )) {
-			Debug( LDAP_DEBUG_ANY, "%s: %s.\n", c->log, c->cr_msg, 0 );
+			Debug( LDAP_DEBUG_ANY, "%s: %s.\n", c->log, c->cr_msg );
 			return 1;
 		}
 		break;
@@ -2150,7 +2158,6 @@ asyncmeta_back_cf_gen( ConfigArgs *c )
 		break;
 	case LDAP_BACK_CFG_MAX_TARGET_CONNS:
 	{
-		int msc_num, i;
 		if (c->value_int < 0) {
 			snprintf( c->cr_msg, sizeof( c->cr_msg ),
 				  "max-target-conns invalid value %d",
@@ -2170,16 +2177,16 @@ asyncmeta_back_cf_gen( ConfigArgs *c )
 		mi->mi_max_timeout_ops = c->value_int;
 		break;
 
-	case LDAP_BACK_CFG_DEFAULT_T:
+	case LDAP_BACK_CFG_DEFAULT_T: {
 	/* default target directive */
-		i = mi->mi_ntargets - 1;
+		int i = mi->mi_ntargets - 1;
 
 		if ( c->argc == 1 ) {
 			if ( i < 0 ) {
 				snprintf( c->cr_msg, sizeof( c->cr_msg ),
 					"\"%s\" alone must be inside a \"uri\" directive",
 					c->argv[0] );
-				Debug( LDAP_DEBUG_ANY, "%s: %s.\n", c->log, c->cr_msg, 0 );
+				Debug( LDAP_DEBUG_ANY, "%s: %s.\n", c->log, c->cr_msg );
 				return 1;
 			}
 			mi->mi_defaulttarget = i;
@@ -2190,7 +2197,7 @@ asyncmeta_back_cf_gen( ConfigArgs *c )
 					snprintf( c->cr_msg, sizeof( c->cr_msg ),
 						"\"%s none\" should go before uri definitions",
 						c->argv[0] );
-					Debug( LDAP_DEBUG_ANY, "%s: %s.\n", c->log, c->cr_msg, 0 );
+					Debug( LDAP_DEBUG_ANY, "%s: %s.\n", c->log, c->cr_msg );
 				}
 				mi->mi_defaulttarget = META_DEFAULT_TARGET_NONE;
 
@@ -2198,17 +2205,17 @@ asyncmeta_back_cf_gen( ConfigArgs *c )
 
 				if ( lutil_atoi( &mi->mi_defaulttarget, c->argv[ 1 ] ) != 0
 					|| mi->mi_defaulttarget < 0
-					|| mi->mi_defaulttarget >= i - 1 )
-				{
+					|| mi->mi_defaulttarget >= i - 1 ) {
 					snprintf( c->cr_msg, sizeof( c->cr_msg ),
 						"illegal target number %d",
 						mi->mi_defaulttarget );
-					Debug( LDAP_DEBUG_ANY, "%s: %s.\n", c->log, c->cr_msg, 0 );
+					Debug( LDAP_DEBUG_ANY, "%s: %s.\n", c->log, c->cr_msg );
 					return 1;
 				}
 			}
 		}
 		break;
+	}
 
 	case LDAP_BACK_CFG_DNCACHE_TTL:
 	/* ttl of dn cache */
@@ -2225,7 +2232,7 @@ asyncmeta_back_cf_gen( ConfigArgs *c )
 				snprintf( c->cr_msg, sizeof( c->cr_msg ),
 					"unable to parse dncache ttl \"%s\"",
 					c->argv[ 1 ] );
-				Debug( LDAP_DEBUG_ANY, "%s: %s.\n", c->log, c->cr_msg, 0 );
+				Debug( LDAP_DEBUG_ANY, "%s: %s.\n", c->log, c->cr_msg );
 				return 1;
 			}
 			mi->mi_cache.ttl = (time_t)t;
@@ -2240,7 +2247,7 @@ asyncmeta_back_cf_gen( ConfigArgs *c )
 			snprintf( c->cr_msg, sizeof( c->cr_msg ),
 				"unable to parse network timeout \"%s\"",
 				c->argv[ 1 ] );
-			Debug( LDAP_DEBUG_ANY, "%s: %s.\n", c->log, c->cr_msg, 0 );
+			Debug( LDAP_DEBUG_ANY, "%s: %s.\n", c->log, c->cr_msg );
 			return 1;
 		}
 		mc->mc_network_timeout = (time_t)t;
@@ -2254,7 +2261,7 @@ asyncmeta_back_cf_gen( ConfigArgs *c )
 			snprintf( c->cr_msg, sizeof( c->cr_msg ),
 				"unable to parse idle timeout \"%s\"",
 				c->argv[ 1 ] );
-			Debug( LDAP_DEBUG_ANY, "%s: %s.\n", c->log, c->cr_msg, 0 );
+			Debug( LDAP_DEBUG_ANY, "%s: %s.\n", c->log, c->cr_msg );
 			return 1;
 
 		}
@@ -2272,8 +2279,7 @@ asyncmeta_back_cf_gen( ConfigArgs *c )
 		if ( strcasecmp( c->argv[ 0 ], "binddn" ) == 0 ) {
 			Debug( LDAP_DEBUG_ANY, "%s: "
 				"\"binddn\" statement is deprecated; "
-				"use \"acl-authcDN\" instead\n",
-				c->log, 0, 0 );
+				"use \"acl-authcDN\" instead\n", c->log );
 			/* FIXME: some day we'll need to throw an error */
 		}
 
@@ -2288,8 +2294,7 @@ asyncmeta_back_cf_gen( ConfigArgs *c )
 		if ( strcasecmp( c->argv[ 0 ], "bindpw" ) == 0 ) {
 			Debug( LDAP_DEBUG_ANY, "%s "
 				"\"bindpw\" statement is deprecated; "
-				"use \"acl-passwd\" instead\n",
-				c->log, 0, 0 );
+				"use \"acl-passwd\" instead\n", c->log );
 			/* FIXME: some day we'll need to throw an error */
 		}
 
@@ -2313,13 +2318,13 @@ asyncmeta_back_cf_gen( ConfigArgs *c )
 		}
 		break;
 
-	case LDAP_BACK_CFG_TLS:
-		i = verb_to_mask( c->argv[1], tls_mode );
+	case LDAP_BACK_CFG_TLS: {
+		int i = verb_to_mask( c->argv[1], tls_mode );
 		if ( BER_BVISNULL( &tls_mode[i].word ) ) {
 			snprintf( c->cr_msg, sizeof( c->cr_msg ),
 				"%s unknown argument \"%s\"",
 				c->argv[0], c->argv[1] );
-			Debug( LDAP_DEBUG_ANY, "%s: %s.\n", c->log, c->cr_msg, 0 );
+			Debug( LDAP_DEBUG_ANY, "%s: %s.\n", c->log, c->cr_msg );
 			return 1;
 		}
 		mc->mc_flags &= ~LDAP_BACK_F_TLS_MASK;
@@ -2329,7 +2334,7 @@ asyncmeta_back_cf_gen( ConfigArgs *c )
 			if ( c->op == SLAP_CONFIG_ADD && mi->mi_ntargets == 0 ) {
 				snprintf( c->cr_msg, sizeof( c->cr_msg ),
 					"need \"uri\" directive first" );
-				Debug( LDAP_DEBUG_ANY, "%s: %s.\n", c->log, c->cr_msg, 0 );
+				Debug( LDAP_DEBUG_ANY, "%s: %s.\n", c->log, c->cr_msg );
 				return 1;
 			}
 
@@ -2340,33 +2345,36 @@ asyncmeta_back_cf_gen( ConfigArgs *c )
 			bindconf_tls_defaults( &mt->mt_tls );
 		}
 		break;
+	}
 
-	case LDAP_BACK_CFG_T_F:
-		i = verb_to_mask( c->argv[1], t_f_mode );
+	case LDAP_BACK_CFG_T_F: {
+		int i = verb_to_mask( c->argv[1], t_f_mode );
 		if ( BER_BVISNULL( &t_f_mode[i].word ) ) {
 			snprintf( c->cr_msg, sizeof( c->cr_msg ),
 				"%s unknown argument \"%s\"",
 				c->argv[0], c->argv[1] );
-			Debug( LDAP_DEBUG_ANY, "%s: %s.\n", c->log, c->cr_msg, 0 );
+			Debug( LDAP_DEBUG_ANY, "%s: %s.\n", c->log, c->cr_msg );
 			return 1;
 		}
 		mc->mc_flags &= ~LDAP_BACK_F_T_F_MASK2;
 		mc->mc_flags |= t_f_mode[i].mask;
 		break;
+	}
 
-	case LDAP_BACK_CFG_ONERR:
+	case LDAP_BACK_CFG_ONERR: {
 	/* onerr? */
-		i = verb_to_mask( c->argv[1], onerr_mode );
+		int i = verb_to_mask( c->argv[1], onerr_mode );
 		if ( BER_BVISNULL( &onerr_mode[i].word ) ) {
 			snprintf( c->cr_msg, sizeof( c->cr_msg ),
 				"%s unknown argument \"%s\"",
 				c->argv[0], c->argv[1] );
-			Debug( LDAP_DEBUG_ANY, "%s: %s.\n", c->log, c->cr_msg, 0 );
+			Debug( LDAP_DEBUG_ANY, "%s: %s.\n", c->log, c->cr_msg );
 			return 1;
 		}
 		mi->mi_flags &= ~META_BACK_F_ONERR_MASK;
 		mi->mi_flags |= onerr_mode[i].mask;
 		break;
+	}
 
 	case LDAP_BACK_CFG_PSEUDOROOT_BIND_DEFER:
 	/* bind-defer? */
@@ -2383,7 +2391,7 @@ asyncmeta_back_cf_gen( ConfigArgs *c )
 			snprintf( c->cr_msg, sizeof( c->cr_msg ),
 				"\"%s\" must appear before target definitions",
 				c->argv[0] );
-			Debug( LDAP_DEBUG_ANY, "%s: %s.\n", c->log, c->cr_msg, 0 );
+			Debug( LDAP_DEBUG_ANY, "%s: %s.\n", c->log, c->cr_msg );
 			return( 1 );
 		}
 
@@ -2398,26 +2406,28 @@ asyncmeta_back_cf_gen( ConfigArgs *c )
 				c->argv[ 1 ],
 				LDAP_BACK_CONN_PRIV_MIN,
 				LDAP_BACK_CONN_PRIV_MAX );
-			Debug( LDAP_DEBUG_ANY, "%s: %s.\n", c->log, c->cr_msg, 0 );
+			Debug( LDAP_DEBUG_ANY, "%s: %s.\n", c->log, c->cr_msg );
 			return 1;
 		}
 		mi->mi_conn_priv_max = c->value_int;
 		break;
 
-	case LDAP_BACK_CFG_CANCEL:
-		i = verb_to_mask( c->argv[1], cancel_mode );
+	case LDAP_BACK_CFG_CANCEL: {
+		int i = verb_to_mask( c->argv[1], cancel_mode );
 		if ( BER_BVISNULL( &cancel_mode[i].word ) ) {
 			snprintf( c->cr_msg, sizeof( c->cr_msg ),
 				"%s unknown argument \"%s\"",
 				c->argv[0], c->argv[1] );
-			Debug( LDAP_DEBUG_ANY, "%s: %s.\n", c->log, c->cr_msg, 0 );
+			Debug( LDAP_DEBUG_ANY, "%s: %s.\n", c->log, c->cr_msg );
 			return 1;
 		}
 		mc->mc_flags &= ~LDAP_BACK_F_CANCEL_MASK2;
 		mc->mc_flags |= cancel_mode[i].mask;
 		break;
+	}
 
-	case LDAP_BACK_CFG_TIMEOUT:
+	case LDAP_BACK_CFG_TIMEOUT: {
+		int i;
 		for ( i = 1; i < c->argc; i++ ) {
 			if ( isdigit( (unsigned char) c->argv[ i ][ 0 ] ) ) {
 				int		j;
@@ -2427,7 +2437,7 @@ asyncmeta_back_cf_gen( ConfigArgs *c )
 					snprintf( c->cr_msg, sizeof( c->cr_msg),
 						"unable to parse timeout \"%s\"",
 						c->argv[ i ] );
-					Debug( LDAP_DEBUG_ANY, "%s: %s.\n", c->log, c->cr_msg, 0 );
+					Debug( LDAP_DEBUG_ANY, "%s: %s.\n", c->log, c->cr_msg );
 					return 1;
 				}
 
@@ -2442,11 +2452,12 @@ asyncmeta_back_cf_gen( ConfigArgs *c )
 				snprintf( c->cr_msg, sizeof( c->cr_msg),
 					"unable to parse timeout \"%s\"",
 					c->argv[ i ] );
-				Debug( LDAP_DEBUG_ANY, "%s: %s.\n", c->log, c->cr_msg, 0 );
+				Debug( LDAP_DEBUG_ANY, "%s: %s.\n", c->log, c->cr_msg );
 				return 1;
 			}
 		}
 		break;
+	}
 
 	case LDAP_BACK_CFG_IDASSERT_BIND:
 	/* idassert-bind */
@@ -2464,7 +2475,7 @@ asyncmeta_back_cf_gen( ConfigArgs *c )
 		{
 			snprintf( c->cr_msg, sizeof( c->cr_msg ),
 				"quarantine already defined" );
-			Debug( LDAP_DEBUG_ANY, "%s: %s.\n", c->log, c->cr_msg, 0 );
+			Debug( LDAP_DEBUG_ANY, "%s: %s.\n", c->log, c->cr_msg );
 			return 1;
 		}
 
@@ -2477,7 +2488,7 @@ asyncmeta_back_cf_gen( ConfigArgs *c )
 		}
 
 		if ( mi->mi_ldap_extra->retry_info_parse( c->argv[ 1 ], &mc->mc_quarantine, c->cr_msg, sizeof( c->cr_msg ) ) ) {
-			Debug( LDAP_DEBUG_ANY, "%s: %s.\n", c->log, c->cr_msg, 0 );
+			Debug( LDAP_DEBUG_ANY, "%s: %s.\n", c->log, c->cr_msg );
 			return 1;
 		}
 
@@ -2521,6 +2532,7 @@ asyncmeta_back_cf_gen( ConfigArgs *c )
 			ca.be = c->be;
 			ca.fname = c->fname;
 			ca.lineno = c->lineno;
+			int i;
 			for ( i = 0; i < ix; i++ ) {
 				ca.line = mt->mt_rwmap.rwm_bva_rewrite[ i ].bv_val;
 				ca.argc = 0;
@@ -2558,7 +2570,8 @@ asyncmeta_back_cf_gen( ConfigArgs *c )
 			return 1;
 		}
 		if ( ix < cnt ) {
-			for ( ; i < cnt; i++ ) {
+			int i;
+			for ( i = /* LY: guess this */ ix; i < cnt; i++ ) {
 				ca.line = mt->mt_rwmap.rwm_bva_rewrite[ i ].bv_val;
 				ca.argc = 0;
 				config_fp_parse_line( &ca );
@@ -2582,12 +2595,13 @@ asyncmeta_back_cf_gen( ConfigArgs *c )
 			int len = strlen( argv[ 0 ] );
 
 			ber_str2bv( line, 0, 0, &bv );
-			AC_MEMCPY( &bv.bv_val[ len ], &bv.bv_val[ len + 1 ],
+			memmove( &bv.bv_val[ len ], &bv.bv_val[ len + 1 ],
 				bv.bv_len - ( len + 1 ));
 			bv.bv_val[ bv.bv_len - 1] = '"';
 			ber_bvarray_add( &mt->mt_rwmap.rwm_bva_rewrite, &bv );
 			/* move it to the right slot */
 			if ( ix < cnt ) {
+				int i;
 				for ( i=cnt; i>ix; i-- )
 					mt->mt_rwmap.rwm_bva_rewrite[i+1] = mt->mt_rwmap.rwm_bva_rewrite[i];
 				mt->mt_rwmap.rwm_bva_rewrite[i] = bv;
@@ -2625,6 +2639,7 @@ asyncmeta_back_cf_gen( ConfigArgs *c )
 			argv[0] = c->argv[0];
 			ca.fname = c->fname;
 			ca.lineno = c->lineno;
+			int i;
 			for ( i = 0; i < ix; i++ ) {
 				ca.line = mt->mt_rwmap.rwm_bva_map[ i ].bv_val;
 				ca.argc = 0;
@@ -2659,7 +2674,14 @@ asyncmeta_back_cf_gen( ConfigArgs *c )
 		}
 
 		if ( ix < cnt ) {
+#if 0
+			/* LY: the original 'magic' ;) */
 			for ( ; i<cnt ; cnt++ ) {
+#else
+			int i;
+			/* LY: guess this, but don't sure... */
+			for ( i = ix; i < cnt; i++ ) {
+#endif
 				ca.line = mt->mt_rwmap.rwm_bva_map[ i ].bv_val;
 				ca.argc = 0;
 				config_fp_parse_line( &ca );
@@ -2692,9 +2714,11 @@ asyncmeta_back_cf_gen( ConfigArgs *c )
 		if ( argv[0] != NULL ) {
 			struct berval bv;
 			ber_str2bv( argv[0], 0, 0, &bv );
+			assert(mt != NULL);
 			ber_bvarray_add( &mt->mt_rwmap.rwm_bva_map, &bv );
 			/* move it to the right slot */
 			if ( ix < cnt ) {
+				int i;
 				for ( i=cnt; i>ix; i-- )
 					mt->mt_rwmap.rwm_bva_map[i+1] = mt->mt_rwmap.rwm_bva_map[i];
 				mt->mt_rwmap.rwm_bva_map[i] = bv;
@@ -2729,7 +2753,7 @@ map_fail:;
 				snprintf( c->cr_msg, sizeof( c->cr_msg ),
 					"unable to parse nretries {never|forever|<retries>}: \"%s\"",
 					c->argv[ 1 ] );
-				Debug( LDAP_DEBUG_ANY, "%s: %s.\n", c->log, c->cr_msg, 0 );
+				Debug( LDAP_DEBUG_ANY, "%s: %s.\n", c->log, c->cr_msg );
 				return 1;
 			}
 		}
@@ -2738,11 +2762,12 @@ map_fail:;
 		} break;
 
 	case LDAP_BACK_CFG_VERSION:
+		assert(mc != NULL);
 		if ( c->value_int != 0 && ( c->value_int < LDAP_VERSION_MIN || c->value_int > LDAP_VERSION_MAX ) ) {
 			snprintf( c->cr_msg, sizeof( c->cr_msg ),
 				"unsupported protocol version \"%s\"",
 				c->argv[ 1 ] );
-			Debug( LDAP_DEBUG_ANY, "%s: %s.\n", c->log, c->cr_msg, 0 );
+			Debug( LDAP_DEBUG_ANY, "%s: %s.\n", c->log, c->cr_msg );
 			return 1;
 		}
 		mc->mc_version = c->value_int;
@@ -2750,6 +2775,7 @@ map_fail:;
 
 	case LDAP_BACK_CFG_NOREFS:
 	/* do not return search references */
+		assert(mc != NULL);
 		if ( c->value_int ) {
 			mc->mc_flags |= LDAP_BACK_F_NOREFS;
 		} else {
@@ -2759,6 +2785,7 @@ map_fail:;
 
 	case LDAP_BACK_CFG_NOUNDEFFILTER:
 	/* do not propagate undefined search filters */
+		assert(mc != NULL);
 		if ( c->value_int ) {
 			mc->mc_flags |= LDAP_BACK_F_NOUNDEFFILTER;
 		} else {
@@ -2778,7 +2805,7 @@ map_fail:;
 			snprintf( c->cr_msg, sizeof( c->cr_msg ),
 				"unable to parse client-pr {accept-unsolicited|disable|<size>}: \"%s\"",
 				c->argv[ 1 ] );
-			Debug( LDAP_DEBUG_ANY, "%s: %s.\n", c->log, c->cr_msg, 0 );
+			Debug( LDAP_DEBUG_ANY, "%s: %s.\n", c->log, c->cr_msg );
 			return( 1 );
 		}
 		break;
@@ -2822,7 +2849,7 @@ asyncmeta_back_init_cf( BackendInfo *bi )
 		Debug( LDAP_DEBUG_ANY, "config_back_initialize: "
 			"warning, unable to get \"olcDbACLPasswd\" "
 			"attribute description: %d: %s\n",
-			rc, text, 0 );
+			rc, text );
 	} else {
 		(void)ldif_must_b64_encode_register( ad->ad_cname.bv_val,
 			ad->ad_type->sat_oid );
@@ -2834,7 +2861,7 @@ asyncmeta_back_init_cf( BackendInfo *bi )
 		Debug( LDAP_DEBUG_ANY, "config_back_initialize: "
 			"warning, unable to get \"olcDbIDAssertPasswd\" "
 			"attribute description: %d: %s\n",
-			rc, text, 0 );
+			rc, text );
 	} else {
 		(void)ldif_must_b64_encode_register( ad->ad_cname.bv_val,
 			ad->ad_type->sat_oid );
@@ -2865,7 +2892,7 @@ asyncmeta_map_config(
 		snprintf( c->cr_msg, sizeof(c->cr_msg),
 			"%s unknown argument \"%s\"",
 			c->argv[0], c->argv[1] );
-		Debug( LDAP_DEBUG_ANY, "%s: %s.\n", c->log, c->cr_msg, 0 );
+		Debug( LDAP_DEBUG_ANY, "%s: %s.\n", c->log, c->cr_msg );
 		return 1;
 	}
 
@@ -2896,7 +2923,7 @@ asyncmeta_map_config(
 	{
 		snprintf( c->cr_msg, sizeof(c->cr_msg),
 			"objectclass attribute cannot be mapped" );
-		Debug( LDAP_DEBUG_ANY, "%s: %s.\n", c->log, c->cr_msg, 0 );
+		Debug( LDAP_DEBUG_ANY, "%s: %s.\n", c->log, c->cr_msg );
 		return 1;
 	}
 
@@ -2905,7 +2932,7 @@ asyncmeta_map_config(
 	if ( mapping == NULL ) {
 		snprintf( c->cr_msg, sizeof(c->cr_msg),
 			"out of memory" );
-		Debug( LDAP_DEBUG_ANY, "%s: %s.\n", c->log, c->cr_msg, 0 );
+		Debug( LDAP_DEBUG_ANY, "%s: %s.\n", c->log, c->cr_msg );
 		return 1;
 	}
 	ber_str2bv( src, 0, 1, &mapping[ 0 ].src );
@@ -2920,8 +2947,8 @@ asyncmeta_map_config(
 		if ( src[ 0 ] != '\0' ) {
 			if ( oc_bvfind( &mapping[ 0 ].src ) == NULL ) {
 				Debug( LDAP_DEBUG_ANY,
-	"warning, source objectClass '%s' should be defined in schema\n",
-					c->log, src, 0 );
+	"%s: warning, source objectClass '%s' should be defined in schema\n",
+					c->log, src );
 
 				/*
 				 * FIXME: this should become an err
@@ -2932,8 +2959,8 @@ asyncmeta_map_config(
 
 		if ( oc_bvfind( &mapping[ 0 ].dst ) == NULL ) {
 			Debug( LDAP_DEBUG_ANY,
-	"warning, destination objectClass '%s' is not defined in schema\n",
-				c->log, dst, 0 );
+	"%s: warning, destination objectClass '%s' is not defined in schema\n",
+				c->log, dst );
 		}
 	} else {
 		int			rc;
@@ -2944,8 +2971,8 @@ asyncmeta_map_config(
 			rc = slap_bv2ad( &mapping[ 0 ].src, &ad, &text );
 			if ( rc != LDAP_SUCCESS ) {
 				Debug( LDAP_DEBUG_ANY,
-	"warning, source attributeType '%s' should be defined in schema\n",
-					c->log, src, 0 );
+	"%s: warning, source attributeType '%s' should be defined in schema\n",
+					c->log, src );
 
 				/*
 				 * FIXME: this should become an err
@@ -2961,7 +2988,7 @@ asyncmeta_map_config(
 					snprintf( c->cr_msg, sizeof( c->cr_msg ),
 						"source attributeType \"%s\": %d (%s)",
 						src, rc, text ? text : "" );
-					Debug( LDAP_DEBUG_ANY, "%s: %s.\n", c->log, c->cr_msg, 0 );
+					Debug( LDAP_DEBUG_ANY, "%s: %s.\n", c->log, c->cr_msg );
 					goto error_return;
 				}
 			}
@@ -2972,8 +2999,8 @@ asyncmeta_map_config(
 		rc = slap_bv2ad( &mapping[ 0 ].dst, &ad, &text );
 		if ( rc != LDAP_SUCCESS ) {
 			Debug( LDAP_DEBUG_ANY,
-	"warning, destination attributeType '%s' is not defined in schema\n",
-				c->log, dst, 0 );
+	"%s: warning, destination attributeType '%s' is not defined in schema\n",
+				c->log, dst );
 
 			/*
 			 * we create a fake "proxied" ad
@@ -2986,7 +3013,7 @@ asyncmeta_map_config(
 				snprintf( c->cr_msg, sizeof( c->cr_msg ),
 					"destination attributeType \"%s\": %d (%s)\n",
 					dst, rc, text ? text : "" );
-				Debug( LDAP_DEBUG_ANY, "%s: %s.\n", c->log, c->cr_msg, 0 );
+				Debug( LDAP_DEBUG_ANY, "%s: %s.\n", c->log, c->cr_msg );
 				return 1;
 			}
 		}
@@ -2997,7 +3024,7 @@ asyncmeta_map_config(
 	{
 		snprintf( c->cr_msg, sizeof( c->cr_msg ),
 			"duplicate mapping found." );
-		Debug( LDAP_DEBUG_ANY, "%s: %s.\n", c->log, c->cr_msg, 0 );
+		Debug( LDAP_DEBUG_ANY, "%s: %s.\n", c->log, c->cr_msg );
 		goto error_return;
 	}
 

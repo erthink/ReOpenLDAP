@@ -106,8 +106,7 @@ asyncmeta_back_db_init(
 	bi = backend_info( "ldap" );
 	if ( !bi || !bi->bi_extra ) {
 		Debug( LDAP_DEBUG_ANY,
-			"asyncmeta_back_db_init: needs back-ldap\n",
-			0, 0, 0 );
+			"asyncmeta_back_db_init: needs back-ldap\n" );
 		return 1;
 	}
 
@@ -167,7 +166,6 @@ asyncmeta_target_finish(
 	slap_bindconf	sb = { BER_BVNULL };
 	struct berval mapped;
 	int rc;
-	int msc_num, i;
 
 	ber_str2bv( mt->mt_uri, 0, 0, &sb.sb_uri );
 	sb.sb_version = mt->mt_version;
@@ -206,7 +204,7 @@ asyncmeta_target_finish(
 			"(likely authz=\"*\" used with \"non-prescriptive\" flag)",
 			log );
 		Debug( LDAP_DEBUG_ANY, "%s (target %s)\n",
-			msg, mt->mt_uri, 0 );
+			msg, mt->mt_uri );
 		return 1;
 	}
 
@@ -247,7 +245,7 @@ asyncmeta_back_db_open(
 
 	char msg[SLAP_TEXT_BUFLEN];
 
-	int		i, rc;
+	int		i;
 
 	if ( mi->mi_ntargets == 0 ) {
 		/* Dynamically added, nothing to check here until
@@ -257,8 +255,7 @@ asyncmeta_back_db_open(
 			return 0;
 
 		Debug( LDAP_DEBUG_ANY,
-			"asyncmeta_back_db_open: no targets defined\n",
-			0, 0, 0 );
+			"asyncmeta_back_db_open: no targets defined\n" );
 		return 1;
 	}
 	mi->mi_num_conns = 0;
@@ -294,10 +291,8 @@ asyncmeta_back_db_open(
  */
 void
 asyncmeta_back_conn_free(
-	void 		*v_mc )
+	a_metaconn_t* mc )
 {
-	a_metaconn_t		*mc = v_mc;
-
 	assert( mc != NULL );
 	ldap_pvt_thread_mutex_destroy( &mc->mc_om_mutex );
 	free( mc );
@@ -348,13 +343,15 @@ asyncmeta_back_clear_miconns( a_metainfo_t *mi )
 	for (i = 0; i < mi->mi_num_conns; i++) {
 		mc = &mi->mi_conns[i];
 		/* todo clear the message queue */
-		for (j = 0; j < mi->mi_ntargets; j ++) {
+		for (j = 0; j < mi->mi_ntargets; j++) {
 			asyncmeta_clear_one_msc(NULL, mc, j);
 		}
 		free(mc->mc_conns);
+		mc->mc_conns = NULL;
 		ldap_pvt_thread_mutex_destroy( &mc->mc_om_mutex );
 	}
 	free(mi->mi_conns);
+	mi->mi_conns = NULL;
 }
 
 static void
@@ -425,8 +422,6 @@ asyncmeta_back_db_close(
 	a_metainfo_t	*mi;
 
 	if ( be->be_private ) {
-		int i;
-
 		mi = ( a_metainfo_t * )be->be_private;
 		if ( mi->mi_task != NULL ) {
 			ldap_pvt_thread_mutex_lock( &slapd_rq.rq_mutex );
@@ -440,6 +435,7 @@ asyncmeta_back_db_close(
 		asyncmeta_back_stop_miconns( mi );
 		ldap_pvt_thread_mutex_unlock( &mi->mi_mc_mutex );
 	}
+	return 0;
 }
 
 int
@@ -447,12 +443,10 @@ asyncmeta_back_db_destroy(
 	Backend		*be,
 	ConfigReply	*cr )
 {
-	a_metainfo_t	*mi;
-
 	if ( be->be_private ) {
 		int i;
 
-		mi = ( a_metainfo_t * )be->be_private;
+		a_metainfo_t	*mi = ( a_metainfo_t * )be->be_private;
 		/*
 		 * Destroy the per-target stuff (assuming there's at
 		 * least one ...)
@@ -462,8 +456,7 @@ asyncmeta_back_db_destroy(
 				a_metatarget_t	*mt = mi->mi_targets[ i ];
 
 				if ( META_BACK_TGT_QUARANTINE( mt ) ) {
-					if ( mt->mt_quarantine.ri_num != mi->mi_quarantine.ri_num )
-					{
+					if ( mt->mt_quarantine.ri_num != mi->mi_quarantine.ri_num ) {
 						mi->mi_ldap_extra->retry_info_destroy( &mt->mt_quarantine );
 					}
 
@@ -491,13 +484,13 @@ asyncmeta_back_db_destroy(
 		if ( META_BACK_QUARANTINE( mi ) ) {
 			mi->mi_ldap_extra->retry_info_destroy( &mi->mi_quarantine );
 		}
-	}
-	ldap_pvt_thread_mutex_lock( &mi->mi_mc_mutex );
-	asyncmeta_back_clear_miconns(mi);
-	ldap_pvt_thread_mutex_unlock( &mi->mi_mc_mutex );
-	ldap_pvt_thread_mutex_destroy( &mi->mi_mc_mutex );
 
-	free( be->be_private );
+		ldap_pvt_thread_mutex_lock( &mi->mi_mc_mutex );
+		asyncmeta_back_clear_miconns(mi);
+		ldap_pvt_thread_mutex_unlock( &mi->mi_mc_mutex );
+		ldap_pvt_thread_mutex_destroy( &mi->mi_mc_mutex );
+		free( be->be_private );
+	}
 	return 0;
 }
 

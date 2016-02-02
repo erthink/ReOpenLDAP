@@ -549,14 +549,12 @@ asyncmeta_conn_free(
 	void			*v_mc );
 
 extern int
-asyncmeta_init_one_conn(
-	Operation		*op,
+asyncmeta_init_one_conn(Operation		*op,
 	SlapReply		*rs,
 	a_metaconn_t		*mc,
 	int			candidate,
 	int			ispriv,
-	ldap_back_send_t	sendok,
-	int			dolock );
+	ldap_back_send_t	sendok);
 
 extern void
 asyncmeta_quarantine(
@@ -841,6 +839,30 @@ asyncmeta_sender_error(Operation *op,
 		       SlapReply *rs,
 		       slap_callback *cb);
 
+void
+asyncmeta_back_conn_free( a_metaconn_t *mc );
+
+int
+asyncmeta_dncache_update_entry(
+	a_metadncache_t	*cache,
+	struct berval	*ndn,
+	int 		target );
+
+int
+asyncmeta_back_single_dobind(
+	Operation		*op,
+	SlapReply		*rs,
+	a_metaconn_t		**mcp,
+	int			candidate,
+	ldap_back_send_t	sendok,
+	int			nretries,
+	int			dolock );
+
+int
+asyncmeta_referral_result_rewrite(
+	a_dncookie		*dc,
+	BerVarray		a_vals,
+	void			*memctx );
 
 LDAP_END_DECL
 

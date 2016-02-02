@@ -34,6 +34,7 @@
 #include "slap.h"
 #include "../back-ldap/back-ldap.h"
 #include "back-asyncmeta.h"
+#include "../../../libraries/libldap/ldap-int.h"	/* for ldap_ld_free */
 
 #include "lutil_ldap.h"
 
@@ -70,7 +71,7 @@ asyncmeta_back_bind( Operation *op, SlapReply *rs )
 	rs->sr_err = LDAP_SUCCESS;
 
 	Debug( LDAP_DEBUG_ARGS, "%s asyncmeta_back_bind: dn=\"%s\".\n",
-		op->o_log_prefix, op->o_req_dn.bv_val, 0 );
+		op->o_log_prefix, op->o_req_dn.bv_val );
 
 	/* the test on the bind method should be superfluous */
 	switch ( be_rootdn_bind( op, rs ) ) {
@@ -107,7 +108,7 @@ asyncmeta_back_bind( Operation *op, SlapReply *rs )
 				rs->sr_text ? rs->sr_text : "" );
 			Debug( LDAP_DEBUG_ANY,
 				"%s %s\n",
-				op->o_log_prefix, buf, 0 );
+				op->o_log_prefix, buf );
 		}
 
 		/* FIXME: there might be cases where we don't want
@@ -152,7 +153,7 @@ asyncmeta_back_bind( Operation *op, SlapReply *rs )
 			Debug( LDAP_DEBUG_ANY,
 				"### %s asyncmeta_back_bind: more than one"
 				" candidate selected...\n",
-				op->o_log_prefix, 0, 0 );
+				op->o_log_prefix );
 		}
 
 		if ( isroot ) {
@@ -262,7 +263,7 @@ asyncmeta_bind_op_result(
 
 	Debug( LDAP_DEBUG_TRACE,
 		">>> %s asyncmeta_bind_op_result[%d]\n",
-		op->o_log_prefix, candidate, 0 );
+		op->o_log_prefix, candidate );
 
 	/* make sure this is clean */
 	assert( rs->sr_ctrls == NULL );
@@ -693,8 +694,8 @@ asyncmeta_back_abandon_candidate(
 	int			candidate )
 {
 
-	a_metainfo_t		*mi = mc->mc_info;
-	a_metatarget_t		*mt = mi->mi_targets[ candidate ];
+	/* a_metainfo_t		*mi = mc->mc_info;
+	a_metatarget_t		*mt = mi->mi_targets[ candidate ]; */
 	a_metasingleconn_t	*msc = &mc->mc_conns[ candidate ];
 
 	int			rc = LDAP_OTHER;
@@ -983,7 +984,7 @@ retry:;
 						( xtext ? xtext : "" ),
 						( xmatched ? xmatched : "" ) );
 					Debug( LDAP_DEBUG_ANY, "%s %s.\n",
-						op->o_log_prefix, buf, 0 );
+						op->o_log_prefix, buf );
 				}
 
 				/*
@@ -1251,8 +1252,8 @@ asyncmeta_back_proxy_authz_cred(
 				}
 				authzID.bv_len = STRLENOF( "dn:" ) + ndn.bv_len;
 				authzID.bv_val = slap_sl_malloc( authzID.bv_len + 1, op->o_tmpmemctx );
-				AC_MEMCPY( authzID.bv_val, "dn:", STRLENOF( "dn:" ) );
-				AC_MEMCPY( authzID.bv_val + STRLENOF( "dn:" ),
+				memcpy( authzID.bv_val, "dn:", STRLENOF( "dn:" ) );
+				memcpy( authzID.bv_val + STRLENOF( "dn:" ),
 						ndn.bv_val, ndn.bv_len + 1 );
 				freeauthz = 1;
 				break;
@@ -1682,7 +1683,6 @@ asyncmeta_dobind_init(Operation *op, SlapReply *rs, bm_context_t *bc, a_metaconn
 	a_metainfo_t		*mi = ( a_metainfo_t * )mc->mc_info;
 	a_metatarget_t		*mt = mi->mi_targets[ candidate ];
 	a_metasingleconn_t	*msc = &mc->mc_conns[ candidate ];
-	ber_socket_t s;
 	struct berval		binddn = msc->msc_bound_ndn,
 				cred = msc->msc_cred;
 	int			method;
@@ -1693,7 +1693,7 @@ asyncmeta_dobind_init(Operation *op, SlapReply *rs, bm_context_t *bc, a_metaconn
 	meta_search_candidate_t	retcode;
 
 	Debug( LDAP_DEBUG_TRACE, "%s >>> asyncmeta_search_dobind_init[%d]\n",
-		op->o_log_prefix, candidate, 0 );
+		op->o_log_prefix, candidate );
 
 	if ( mc->mc_authz_target == META_BOUND_ALL ) {
 		return META_SEARCH_CANDIDATE;
@@ -1757,7 +1757,7 @@ asyncmeta_dobind_init(Operation *op, SlapReply *rs, bm_context_t *bc, a_metaconn
 				op->o_log_prefix, candidate, (void *)mc );
 
 			rc = asyncmeta_init_one_conn( op, rs, mc, candidate,
-				LDAP_BACK_CONN_ISPRIV( mc ), LDAP_BACK_DONTSEND, 0 );
+				LDAP_BACK_CONN_ISPRIV( mc ), LDAP_BACK_DONTSEND );
 			switch ( rc ) {
 			case LDAP_SUCCESS:
 				assert( msc->msc_ld != NULL );
@@ -1864,7 +1864,7 @@ retry_bind:
 		snprintf( buf, sizeof( buf ), "asyncmeta_search_dobind_init[%d] mc=%p ld=%p rc=%d",
 			candidate, (void *)mc, (void *)mc->mc_conns[ candidate ].msc_ld, rc );
 		Debug( LDAP_DEBUG_ANY, "### %s %s\n",
-			op->o_log_prefix, buf, 0 );
+			op->o_log_prefix, buf );
 	}
 #endif /* DEBUG_205 */
 
@@ -1919,7 +1919,6 @@ asyncmeta_dobind_init_with_retry(Operation *op, SlapReply *rs, bm_context_t *bc,
 	a_metasingleconn_t *msc = &mc->mc_conns[candidate];
 	a_metainfo_t		*mi = mc->mc_info;
 	a_metatarget_t		*mt = mi->mi_targets[ candidate ];
-	SlapReply		*candidates = bc->candidates;
 
 retry_dobind:
 	rc = asyncmeta_dobind_init(op, rs, bc, mc, candidate);
@@ -1962,7 +1961,7 @@ retry_dobind:
 	( void )rewrite_session_delete( mt->mt_rwmap.rwm_rw, op->o_conn );
 
 	rc = asyncmeta_init_one_conn( op, rs, mc, candidate,
-				      LDAP_BACK_CONN_ISPRIV( mc ), LDAP_BACK_DONTSEND, 0 );
+					  LDAP_BACK_CONN_ISPRIV( mc ), LDAP_BACK_DONTSEND );
 
 	if (rs->sr_err != LDAP_SUCCESS) {
 		ldap_pvt_thread_mutex_lock( &mc->mc_om_mutex );

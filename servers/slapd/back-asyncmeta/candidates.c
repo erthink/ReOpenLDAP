@@ -29,6 +29,7 @@
 #include "slap.h"
 #include "../back-ldap/back-ldap.h"
 #include "back-asyncmeta.h"
+#include "../../../libraries/libldap/ldap-int.h"	/* for ldap_ld_free */
 
 /*
  * The meta-directory has one suffix, called <suffix>.
@@ -263,7 +264,7 @@ asyncmeta_clear_one_msc(
 		snprintf( buf, sizeof( buf ), "asyncmeta_clear_one_msc ldap_unbind_ext[%d] ld=%p",
 			candidate, (void *)msc->msc_ld );
 		Debug( LDAP_DEBUG_ANY, "### %s %s\n",
-		       op ? op->o_log_prefix : "", buf, 0 );
+			   op ? op->o_log_prefix : "", buf );
 #endif /* DEBUG_205 */
 
 		ldap_unbind_ext( msc->msc_ld, NULL, NULL );

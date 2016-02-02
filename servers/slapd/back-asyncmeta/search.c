@@ -92,7 +92,7 @@ asyncmeta_back_search_start(
 	struct berval		mfilter = BER_BVNULL;
 	char			**mapped_attrs = NULL;
 	int			rc;
-	meta_search_candidate_t	retcode;
+	meta_search_candidate_t	retcode = LDAP_OTHER+1;
 	int timelimit;
 	int			nretries = 1;
 	LDAPControl		**ctrls = NULL;
@@ -116,7 +116,7 @@ asyncmeta_back_search_start(
 		return META_SEARCH_NOT_CANDIDATE;
 	}
 
-	Debug( LDAP_DEBUG_TRACE, "%s >>> asyncmeta_back_search_start[%d]\n", op->o_log_prefix, candidate, 0 );
+	Debug( LDAP_DEBUG_TRACE, "%s >>> asyncmeta_back_search_start[%d]\n", op->o_log_prefix, candidate );
 	/*
 	 * modifies the base according to the scope, if required
 	 */
@@ -431,22 +431,13 @@ int
 asyncmeta_back_search( Operation *op, SlapReply *rs )
 {
 	a_metainfo_t	*mi = ( a_metainfo_t * )op->o_bd->be_private;
-	struct timeval	save_tv = { 0, 0 },
-			tv;
 	time_t		stoptime = (time_t)(-1),
-			lastres_time = slap_get_time(),
 			timeout = 0;
-	int		rc = 0, sres = LDAP_SUCCESS;
-	char		*matched = NULL;
-	int		last = 0, ncandidates = 0,
-			initial_candidates = 0, candidate_match = 0,
-			needbind = 0;
-	ldap_back_send_t	sendok = LDAP_BACK_SENDERR;
+	int		rc = 0;
+	int		ncandidates = 0,
+			initial_candidates = 0;
 	long		i;
-	int		is_ok = 0;
-	void		*savepriv;
 	SlapReply	*candidates = NULL;
-	int		do_taint = 0;
 	bm_context_t *bc;
 	a_metaconn_t *mc;
 	slap_callback *cb = op->o_callback;
@@ -551,7 +542,7 @@ asyncmeta_back_search( Operation *op, SlapReply *rs )
 			/* target is already bound, just send the search request */
 			ncandidates++;
 			Debug( LDAP_DEBUG_TRACE, "%s asyncmeta_back_search: IS_CANDIDATE "
-			       "cnd=\"%ld\"\n", op->o_log_prefix, i , 0);
+				   "cnd=\"%ld\"\n", op->o_log_prefix, i );
 
 			rc = asyncmeta_back_search_start( op, rs, mc, bc, i,  NULL, 0 );
 			if (rc == META_SEARCH_ERR) {
@@ -568,14 +559,14 @@ asyncmeta_back_search( Operation *op, SlapReply *rs )
 			break;
 		case META_SEARCH_NOT_CANDIDATE:
 			Debug( LDAP_DEBUG_TRACE, "%s asyncmeta_back_search: NOT_CANDIDATE "
-			       "cnd=\"%ld\"\n", op->o_log_prefix, i , 0);
+				   "cnd=\"%ld\"\n", op->o_log_prefix, i );
 			candidates[ i ].sr_msgid = META_MSGID_IGNORE;
 			break;
 
 		case META_SEARCH_NEED_BIND:
 		case META_SEARCH_CONNECTING:
 			Debug( LDAP_DEBUG_TRACE, "%s asyncmeta_back_search: NEED_BIND "
-			       "cnd=\"%ld\" %p\n", op->o_log_prefix, i , &mc->mc_conns[i]);
+				   "cnd=\"%ld\" %p\n", op->o_log_prefix, i, &mc->mc_conns[i]);
 			ncandidates++;
 			rc = asyncmeta_dobind_init(op, rs, bc, mc, i);
 			if (rc == META_SEARCH_ERR) {
@@ -591,7 +582,7 @@ asyncmeta_back_search( Operation *op, SlapReply *rs )
 			break;
 		case META_SEARCH_BINDING:
 			Debug( LDAP_DEBUG_TRACE, "%s asyncmeta_back_search: BINDING "
-			       "cnd=\"%ld\" %p\n", op->o_log_prefix, i , &mc->mc_conns[i]);
+				   "cnd=\"%ld\" %p\n", op->o_log_prefix, i, &mc->mc_conns[i]);
 			ncandidates++;
 			/* Todo add the context to the message queue but do not send the request
 			 the receiver must send this when we are done binding */
@@ -600,7 +591,7 @@ asyncmeta_back_search( Operation *op, SlapReply *rs )
 
 		case META_SEARCH_ERR:
 			Debug( LDAP_DEBUG_TRACE, "%s asyncmeta_back_search: SEARCH_ERR "
-			       "cnd=\"%ldd\"\n", op->o_log_prefix, i , 0);
+				   "cnd=\"%ldd\"\n", op->o_log_prefix, i );
 			candidates[ i ].sr_msgid = META_MSGID_IGNORE;
 			candidates[ i ].sr_type = REP_RESULT;
 

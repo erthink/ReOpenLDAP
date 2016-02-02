@@ -41,7 +41,6 @@ LDAPControl **asyncmeta_copy_controls(Operation *op)
 {
 	LDAPControl **new_controls = NULL;
 	LDAPControl **c;
-	LDAPControl  *tmp_ctl = NULL;
 	int i, length = 1;
 
 
@@ -111,7 +110,6 @@ Modifications* asyncmeta_copy_modlist(Operation *op, Modifications *modlist)
 Operation *asyncmeta_copy_op(Operation *op)
 {
 	const char	*text;
-	int rc;
 	char txtbuf[SLAP_TEXT_BUFLEN];
 	size_t textlen = sizeof txtbuf;
 	Entry *e;
@@ -145,8 +143,7 @@ Operation *asyncmeta_copy_op(Operation *op)
 		if (i > 0) {
 			at_names = op->o_tmpcalloc( i+1, sizeof( AttributeName ), op->o_tmpmemctx );
 			at_names[i].an_name.bv_len = 0;
-			i--;
-			for (i; i >= 0; i--) {
+			while (--i >= 0) {
 				at_names[i] = op->ors_attrs[i];
 				ber_dupbv_x( &at_names[i].an_name, &op->ors_attrs[i].an_name, op->o_tmpmemctx );
 			}
@@ -165,7 +162,8 @@ Operation *asyncmeta_copy_op(Operation *op)
 		new_op->ora_e = e;
 		ber_dupbv_x( &e->e_name, &op->o_req_dn, op->o_tmpmemctx );
 		ber_dupbv_x( &e->e_nname, &op->o_req_ndn, op->o_tmpmemctx );
-		rc = slap_mods2entry( new_op->ora_modlist, &new_op->ora_e, 1, 0, &text, txtbuf, textlen);
+		int rc = slap_mods2entry( new_op->ora_modlist, &new_op->ora_e, 1, 0, &text, txtbuf, textlen);
+		(void) rc;
 	}
 	break;
 	case LDAP_REQ_MODIFY:
@@ -223,11 +221,11 @@ typedef struct listhead {
 	int cnt;
 } listhead;
 
-static void *asyncmeta_memctx_destroy(void *key, void *data)
+static void asyncmeta_memctx_destroy(void *key, void *data)
 {
 	listhead *lh = data;
 	listptr *lp;
-	while (lp = lh->list) {
+	while ( (lp = lh->list) != NULL ) {
 		lh->list = lp->next;
 		slap_sl_mem_destroy((void *)1, lp);
 	}
@@ -242,12 +240,12 @@ static void *asyncmeta_memctx_get(void *threadctx)
 {
 	listhead *lh = NULL;
 	listptr *lp = NULL;
-	ldap_pvt_thread_pool_getkey(threadctx, asyncmeta_memctx_get, &lh, NULL);
+	ldap_pvt_thread_pool_getkey(threadctx, asyncmeta_memctx_get, (void**) &lh, NULL);
 	if (!lh) {
 		lh = ch_malloc(sizeof(listhead));
 		lh->cnt = 0;
 		lh->list = NULL;
-		ldap_pvt_thread_pool_setkey(threadctx, asyncmeta_memctx_get, lh, asyncmeta_memctx_destroy, NULL, NULL);
+		ldap_pvt_thread_pool_setkey(threadctx, asyncmeta_memctx_get, (void*) lh, asyncmeta_memctx_destroy, NULL, NULL);
 	}
 	if (lh->list) {
 		lp = lh->list;
@@ -261,12 +259,12 @@ static void *asyncmeta_memctx_get(void *threadctx)
 static void asyncmeta_memctx_put(void *threadctx, void *memctx)
 {
 	listhead *lh = NULL;
-	ldap_pvt_thread_pool_getkey(threadctx, asyncmeta_memctx_get, &lh, NULL);
+	ldap_pvt_thread_pool_getkey(threadctx, asyncmeta_memctx_get, (void**) &lh, NULL);
 	if (!lh) {
 		lh = ch_malloc(sizeof(listhead));
 		lh->cnt = 0;
 		lh->list = NULL;
-		ldap_pvt_thread_pool_setkey(threadctx, asyncmeta_memctx_get, lh, asyncmeta_memctx_destroy, NULL, NULL);
+		ldap_pvt_thread_pool_setkey(threadctx, asyncmeta_memctx_get, (void*) lh, asyncmeta_memctx_destroy, NULL, NULL);
 	}
 	if (lh->cnt < LH_MAX) {
 		listptr *lp = memctx;
@@ -361,8 +359,7 @@ void asyncmeta_free_op(Operation *op)
 	case LDAP_REQ_DELETE:
 		break;
 	default:
-		Debug( LDAP_DEBUG_TRACE, "==> asyncmeta_free_op : other message type",
-	       0, 0, 0 );
+		Debug( LDAP_DEBUG_TRACE, "==> asyncmeta_free_op : other message type" );
 	}
 
 	if (op->o_ctrls != NULL) {
@@ -466,8 +463,7 @@ void asyncmeta_clear_bm_context(bm_context_t *bc)
 		}
 		break;
 	default:
-		Debug( LDAP_DEBUG_TRACE, "==> asyncmeta_clear_bm_context: other message type",
-	       0, 0, 0 );
+		Debug( LDAP_DEBUG_TRACE, "==> asyncmeta_clear_bm_context: other message type" );
 	}
 	if (bmc->dc != NULL) {
 		free (bmc->dc);
@@ -476,8 +472,7 @@ void asyncmeta_clear_bm_context(bm_context_t *bc)
 
 	if (clear_cl > 0) {
 		asyncmeta_free_candidate_list(cl, lock);
-		Debug( LDAP_DEBUG_TRACE, "==> asyncmeta_clear_bm_context: free_cl_list\n",
-	       0, 0, 0 );
+		Debug( LDAP_DEBUG_TRACE, "==> asyncmeta_clear_bm_context: free_cl_list\n" );
 	}
 #else
 	asyncmeta_memctx_put(op->o_threadctx, op->o_tmpmemctx);

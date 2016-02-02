@@ -113,7 +113,8 @@ done:
 	}
 
 doreturn:;
-	Debug( LDAP_DEBUG_TRACE, "%s <<< asyncmeta_back_delete_start[%p]=%d\n", op->o_log_prefix, msc, candidates[candidate].sr_msgid );
+	Debug( LDAP_DEBUG_TRACE, "%s <<< asyncmeta_back_delete_start[%p]=%d\n",
+		   op->o_log_prefix, msc, candidates[candidate].sr_msgid );
 	return retcode;
 }
 
@@ -124,13 +125,12 @@ asyncmeta_back_delete( Operation *op, SlapReply *rs )
 	a_metatarget_t	*mt;
 	a_metaconn_t	*mc;
 	int		rc, candidate = -1;
-	OperationBuffer opbuf;
 	bm_context_t *bc;
 	SlapReply *candidates;
 	slap_callback *cb = op->o_callback;
 
 	Debug(LDAP_DEBUG_ARGS, "==> asyncmeta_back_delete: %s\n",
-	      op->o_req_dn.bv_val, 0, 0 );
+		  op->o_req_dn.bv_val );
 
 	asyncmeta_new_bm_context(op, rs, &bc, mi->mi_ntargets );
 	if (bc == NULL) {
@@ -171,7 +171,7 @@ asyncmeta_back_delete( Operation *op, SlapReply *rs )
 	case META_SEARCH_CANDIDATE:
 		/* target is already bound, just send the request */
 		Debug( LDAP_DEBUG_TRACE, "%s asyncmeta_back_delete:  "
-		       "cnd=\"%ld\"\n", op->o_log_prefix, candidate , 0);
+			   "cnd=\"%d\"\n", op->o_log_prefix, candidate );
 
 		rc = asyncmeta_back_delete_start( op, rs, mc, bc, candidate);
 		if (rc == META_SEARCH_ERR) {
@@ -186,7 +186,7 @@ asyncmeta_back_delete( Operation *op, SlapReply *rs )
 			break;
 	case META_SEARCH_NOT_CANDIDATE:
 		Debug( LDAP_DEBUG_TRACE, "%s asyncmeta_back_delete: NOT_CANDIDATE "
-		       "cnd=\"%ld\"\n", op->o_log_prefix, candidate , 0);
+			   "cnd=\"%d\"\n", op->o_log_prefix, candidate );
 		candidates[ candidate ].sr_msgid = META_MSGID_IGNORE;
 		ldap_pvt_thread_mutex_lock( &mc->mc_om_mutex);
 		asyncmeta_drop_bc(mc, bc);
@@ -198,7 +198,7 @@ asyncmeta_back_delete( Operation *op, SlapReply *rs )
 	case META_SEARCH_NEED_BIND:
 	case META_SEARCH_CONNECTING:
 		Debug( LDAP_DEBUG_TRACE, "%s asyncmeta_back_delete: NEED_BIND "
-		       "cnd=\"%ld\" %p\n", op->o_log_prefix, candidate , &mc->mc_conns[candidate]);
+			   "cnd=\"%d\" %p\n", op->o_log_prefix, candidate , &mc->mc_conns[candidate]);
 		rc = asyncmeta_dobind_init(op, rs, bc, mc, candidate);
 		if (rc == META_SEARCH_ERR) {
 			ldap_pvt_thread_mutex_lock( &mc->mc_om_mutex);
@@ -211,7 +211,7 @@ asyncmeta_back_delete( Operation *op, SlapReply *rs )
 		break;
 	case META_SEARCH_BINDING:
 			Debug( LDAP_DEBUG_TRACE, "%s asyncmeta_back_delete: BINDING "
-			       "cnd=\"%ld\" %p\n", op->o_log_prefix, candidate , &mc->mc_conns[candidate]);
+				   "cnd=\"%d\" %p\n", op->o_log_prefix, candidate , &mc->mc_conns[candidate]);
 			/* Todo add the context to the message queue but do not send the request
 			   the receiver must send this when we are done binding */
 			/* question - how would do receiver know to which targets??? */
@@ -219,7 +219,7 @@ asyncmeta_back_delete( Operation *op, SlapReply *rs )
 
 	case META_SEARCH_ERR:
 			Debug( LDAP_DEBUG_TRACE, "%s asyncmeta_back_delete: ERR "
-			       "cnd=\"%ldd\"\n", op->o_log_prefix, candidate , 0);
+				   "cnd=\"%d\"\n", op->o_log_prefix, candidate );
 			candidates[ candidate ].sr_msgid = META_MSGID_IGNORE;
 			candidates[ candidate ].sr_type = REP_RESULT;
 			ldap_pvt_thread_mutex_lock( &mc->mc_om_mutex);
