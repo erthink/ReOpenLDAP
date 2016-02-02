@@ -2630,27 +2630,6 @@ syncprov_op_search( Operation *op, SlapReply *rs )
 		return rs->sr_err;
 	}
 
-	/* snapshot the ctxcsn */
-	ldap_pvt_thread_rdwr_rlock( &si->si_csn_rwlock );
-	if (reopenldap_mode_idkfa())
-		slap_cookie_verify( &si->si_cookie );
-	numcsns = si->si_cookie.numcsns;
-	if ( numcsns ) {
-		ber_bvarray_dup_x( &ctxcsn, si->si_cookie.ctxcsn, op->o_tmpmemctx );
-		sids = op->o_tmpalloc( numcsns * sizeof(sids[0]), op->o_tmpmemctx );
-		for ( i=0; i<numcsns; i++ )
-			sids[i] = si->si_cookie.sids[i];
-	}
-	dirty = si->si_dirty;
-	ldap_pvt_thread_rdwr_runlock( &si->si_csn_rwlock );
-
-	/* We know nothing - do nothing */
-	if ( !numcsns ) {
-		rs->sr_err = LDAP_SUCCESS;
-		send_ldap_result( op, rs );
-		return rs->sr_err;
-	}
-
 	srs = op->o_controls[slap_cids.sc_LDAPsync];
 
 	/* If this is a persistent search, set it up right away */
@@ -2713,22 +2692,40 @@ syncprov_op_search( Operation *op, SlapReply *rs )
 		ldap_pvt_thread_mutex_unlock( &si->si_ops_mutex );
 	}
 
+	/* snapshot the ctxcsn
+	 * Note: this must not be done before the psearch setup. (ITS#8365)
+	 */
+	ldap_pvt_thread_rdwr_rlock( &si->si_csn_rwlock );
+	if (reopenldap_mode_idkfa())
+		slap_cookie_verify( &si->si_cookie );
+	numcsns = si->si_cookie.numcsns;
+	if ( numcsns ) {
+		ber_bvarray_dup_x( &ctxcsn, si->si_cookie.ctxcsn, op->o_tmpmemctx );
+		sids = op->o_tmpalloc( numcsns * sizeof(sids[0]), op->o_tmpmemctx );
+		for ( i=0; i<numcsns; i++ )
+			sids[i] = si->si_cookie.sids[i];
+	}
+	dirty = si->si_dirty;
+	ldap_pvt_thread_rdwr_runlock( &si->si_csn_rwlock );
+
 	/* If we have a cookie, handle the PRESENT lookups */
 	if ( srs->sr_state.numcsns ) {
 		sessionlog *sl;
 		int i, j;
+
+		/* If we don't have any CSN of our own yet, bail out.
+		 */
+		if ( !numcsns ) {
+			rs->sr_err = LDAP_UNWILLING_TO_PERFORM;
+			rs->sr_text = "consumer has state info but provider doesn't!";
+			goto bailout;
+		}
 
 		if (slap_check_same_server(op->o_bd, srs->sr_state.sid) < 0) {
 			rs->sr_err = LDAP_ASSERTION_FAILED;
 			rs->sr_text = "consumer has the same ServeID!";
 			goto bailout;
 		}
-
-		/* If we don't have any CSN of our own yet, pretend nothing
-		 * has changed.
-		 */
-		if ( !numcsns )
-			goto no_change;
 
 		if ( !si->si_nopres )
 			do_present = SS_PRESENT;
@@ -2917,6 +2914,9 @@ no_change:
 			}
 		}
 	} else {
+		/* The consumer knows nothing, we know nothing. OK. */
+		if (!numcsns)
+			goto no_change;
 		/* No consumer state, assume something has changed */
 		changed = SS_CHANGED;
 	}
