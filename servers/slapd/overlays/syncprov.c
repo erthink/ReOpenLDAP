@@ -110,8 +110,7 @@ static __inline
 #endif
 int is_syncops_abandoned(const syncops *so)
 {
-	return so->s_next == so || get_op_abandon(so->s_op)
-			|| get_op_cancel(so->s_op) != SLAP_CANCEL_NONE;
+	return so->s_next == so || get_op_abandon(so->s_op);
 }
 
 /* A received sync control */
@@ -167,6 +166,7 @@ typedef struct syncprov_info_t {
 	int		si_numops;	/* number of ops since last checkpoint */
 	int		si_nopres;	/* Skip present phase */
 	int		si_usehint;	/* use reload hint */
+	int		si_active;	/* True if there are active mods */
 	int		si_dirty;	/* True if the context is dirty, i.e changes
 						 * have been made without updating the csn. */
 	time_t	si_chklast;	/* time of last checkpoint */
@@ -174,107 +174,10 @@ typedef struct syncprov_info_t {
 	sessionlog	*si_logs;
 	int		si_leftover;
 	ldap_pvt_thread_rdwr_t	si_csn_rwlock;
-	ldap_pvt_thread_mutex_t	si_resp_mutex;
-	ldap_pvt_thread_mutex_t	si_mods_mutex;
-
 	ldap_pvt_thread_mutex_t	si_ops_mutex;
-	int	si_mods_pending, si_mods_waiting;
-	int	si_fetch_pending, si_fetch_waiting;
-	ldap_pvt_thread_cond_t si_mods_cond;
-	ldap_pvt_thread_cond_t si_fetch_cond;
+	ldap_pvt_thread_mutex_t	si_mods_mutex;
+	ldap_pvt_thread_mutex_t	si_resp_mutex;
 } syncprov_info_t;
-
-static int syncprov_fetch_begin(syncprov_info_t *si, Operation *op)
-{
-	ldap_pvt_thread_mutex_lock( &si->si_ops_mutex );
-
-	if (si->si_mods_pending | si->si_mods_waiting) {
-		do {
-			if (slap_biglock_pool_pausing(op->o_bd)) {
-				if (si->si_fetch_pending == 0 && si->si_mods_waiting)
-					ldap_pvt_thread_cond_broadcast(&si->si_mods_cond);
-				ldap_pvt_thread_mutex_unlock( &si->si_ops_mutex );
-				slap_biglock_pool_pausecheck(op->o_bd);
-				ldap_pvt_thread_mutex_lock( &si->si_ops_mutex );
-				if (! si->si_mods_pending)
-					break;
-			}
-
-			si->si_fetch_waiting++;
-			ldap_pvt_thread_cond_timedwait(0, &si->si_fetch_cond, &si->si_ops_mutex);
-			assert(si->si_fetch_waiting > 0);
-			si->si_fetch_waiting--;
-
-			if (slapd_shutdown || get_op_abandon(op)
-					|| get_op_cancel(op) != SLAP_CANCEL_NONE) {
-				if (si->si_fetch_waiting == 0 && si->si_fetch_pending == 0
-						&& si->si_mods_waiting)
-					ldap_pvt_thread_cond_broadcast(&si->si_mods_cond);
-				ldap_pvt_thread_mutex_unlock( &si->si_ops_mutex );
-				return SLAPD_ABANDON;
-			}
-		} while (si->si_mods_pending);
-	}
-
-	si->si_fetch_pending++;
-	assert(si->si_fetch_pending > 0 && si->si_mods_pending == 0);
-
-	ldap_pvt_thread_mutex_unlock( &si->si_ops_mutex );
-	return 0;
-}
-
-static void syncprov_fetch_end(syncprov_info_t *si)
-{
-	ldap_pvt_thread_mutex_lock( &si->si_ops_mutex );
-
-	assert(si->si_fetch_pending > 0);
-	if (--si->si_fetch_pending == 0 && si->si_mods_waiting)
-		ldap_pvt_thread_cond_broadcast(&si->si_mods_cond);
-
-	ldap_pvt_thread_mutex_unlock( &si->si_ops_mutex );
-}
-
-static int syncprov_mod_begin(syncprov_info_t *si, Operation *op)
-{
-	ldap_pvt_thread_mutex_lock( &si->si_ops_mutex );
-
-	if (si->si_fetch_pending
-			|| (si->si_fetch_waiting && !slap_biglock_pool_pausing(op->o_bd))) {
-		do {
-			si->si_mods_waiting++;
-			ldap_pvt_thread_cond_wait(&si->si_mods_cond, &si->si_ops_mutex);
-			assert(si->si_mods_waiting > 0);
-			si->si_mods_waiting--;
-
-			if (slapd_shutdown || get_op_abandon(op)
-					|| get_op_cancel(op) != SLAP_CANCEL_NONE) {
-				if (si->si_mods_waiting == 0 && si->si_mods_pending == 0
-						&& si->si_fetch_waiting)
-					ldap_pvt_thread_cond_broadcast(&si->si_fetch_cond);
-				ldap_pvt_thread_mutex_unlock( &si->si_ops_mutex );
-				return SLAPD_ABANDON;
-			}
-		} while (si->si_fetch_pending);
-	}
-
-	si->si_mods_pending++;
-	assert(si->si_mods_pending > 0 && si->si_fetch_pending == 0);
-
-	int rc = /* have_psearches */ ( si->si_ops != NULL ) ? 1 : 0;
-	ldap_pvt_thread_mutex_unlock( &si->si_ops_mutex );
-	return rc;
-}
-
-static void syncprov_mod_end(syncprov_info_t *si)
-{
-	ldap_pvt_thread_mutex_lock( &si->si_ops_mutex );
-
-	assert(si->si_mods_pending > 0);
-	if (--si->si_mods_pending == 0 && si->si_fetch_waiting)
-		ldap_pvt_thread_cond_broadcast(&si->si_fetch_cond);
-
-	ldap_pvt_thread_mutex_unlock( &si->si_ops_mutex );
-}
 
 typedef struct opcookie {
 	slap_overinst *son;
@@ -1062,8 +965,6 @@ syncprov_unlink_syncop( syncops *so, int unlink_flags, int lock_flags )
 			ch_free( rl );
 		}
 
-		if (so->s_flags & PS_IS_REFRESHING)
-			syncprov_fetch_end(so->s_si);
 		LDAP_ENSURE(__sync_fetch_and_sub(&so->s_si->si_leftover, 1) > 0);
 		so->s_si = NULL;
 		so->s_op = NULL;
@@ -1648,9 +1549,15 @@ syncprov_op_cleanup( Operation *op, SlapReply *rs )
 	slap_callback *cb = op->o_callback;
 	opcookie *opc = cb->sc_private;
 	slap_overinst *on = opc->son;
-	syncprov_info_t	*si = on->on_bi.bi_private;
+	syncprov_info_t		*si = on->on_bi.bi_private;
 	syncmatches *sm, *snext;
 	modtarget *mt;
+
+	ldap_pvt_thread_mutex_lock( &si->si_ops_mutex );
+	assert(si->si_active > 0);
+	if ( si->si_active )
+		si->si_active--;
+	ldap_pvt_thread_mutex_unlock( &si->si_ops_mutex );
 
 	for (sm = opc->smatches; sm; sm=snext) {
 		snext = sm->sm_next;
@@ -1697,8 +1604,7 @@ syncprov_op_cleanup( Operation *op, SlapReply *rs )
 	op->o_callback = cb->sc_next;
 	op->o_tmpfree(cb, op->o_tmpmemctx);
 
-	syncprov_mod_end(si);
-	return SLAP_CB_CONTINUE;
+	return 0;
 }
 
 static void
@@ -2050,7 +1956,7 @@ syncprov_op_response( Operation *op, SlapReply *rs )
 {
 	opcookie *opc = op->o_callback->sc_private;
 	slap_overinst *on = opc->son;
-	syncprov_info_t	*si = on->on_bi.bi_private;
+	syncprov_info_t		*si = on->on_bi.bi_private;
 	syncmatches *sm;
 
 	assert( BER_BVISEMPTY( &opc->sctxcsn ) );
@@ -2257,9 +2163,11 @@ syncprov_op_mod( Operation *op, SlapReply *rs )
 	opcookie *opc;
 	int have_psearches, cbsize;
 
-	have_psearches = syncprov_mod_begin(si, op);
-	if (have_psearches < 0)
-		return have_psearches;
+	ldap_pvt_thread_mutex_lock( &si->si_ops_mutex );
+	have_psearches = ( si->si_ops != NULL );
+	assert(si->si_active >= 0);
+	si->si_active++;
+	ldap_pvt_thread_mutex_unlock( &si->si_ops_mutex );
 
 	cbsize = sizeof(slap_callback) + sizeof(opcookie) +
 		( have_psearches ? sizeof(modinst) : 0 );
@@ -2373,10 +2281,8 @@ retry:
 				 * Currently it's not an issue because there are
 				 * no dynamic config deletes...
 				 */
-				if ( slapd_shutdown ) {
-					syncprov_mod_end(si);
+				if ( slapd_shutdown )
 					return SLAPD_ABANDON;
-				}
 
 				if ( ! slap_biglock_pool_pausecheck(op->o_bd) )
 					ldap_pvt_thread_yield();
@@ -2402,7 +2308,6 @@ retry:
 					}
 					op->o_tmpfree( cb, op->o_tmpmemctx );
 					ldap_pvt_thread_mutex_unlock( &mt->mt_mutex );
-					syncprov_mod_end(si);
 					return SLAPD_ABANDON;
 				}
 			}
@@ -2548,20 +2453,6 @@ syncprov_detach_op( Operation *op, syncops *so, slap_overinst *on )
 }
 
 static int
-syncprov_search_cleanup( Operation *op, SlapReply *rs )
-{
-	slap_callback *cb = op->o_callback;
-	searchstate *ss = cb->sc_private;
-	slap_overinst *on = ss->ss_on;
-	syncprov_info_t *si = (syncprov_info_t *)on->on_bi.bi_private;
-
-	assert(ss->ss_so == NULL);
-	cb->sc_cleanup = NULL;
-	syncprov_fetch_end(si);
-	return SLAP_CB_CONTINUE;
-}
-
-static int
 syncprov_search_response( Operation *op, SlapReply *rs )
 {
 	slap_callback *cb = op->o_callback;
@@ -2692,9 +2583,12 @@ abandon:
 				goto abandon;
 			}
 
+
 			/* Turn off the refreshing flag */
 			ss->ss_so->s_flags ^= PS_IS_REFRESHING;
+
 			syncprov_detach_op( op, ss->ss_so, on );
+
 			ldap_pvt_thread_mutex_unlock( &op->o_conn->c_mutex );
 
 			/* If there are queued responses, fire them off */
@@ -2703,7 +2597,6 @@ abandon:
 			ldap_pvt_thread_mutex_unlock( &ss->ss_so->s_mutex );
 			ldap_pvt_thread_mutex_unlock( &si->si_ops_mutex );
 
-			syncprov_fetch_end(si);
 			return LDAP_SUCCESS;
 		}
 	}
@@ -2737,10 +2630,6 @@ syncprov_op_search( Operation *op, SlapReply *rs )
 		return rs->sr_err;
 	}
 
-	rc = syncprov_fetch_begin(si, op);
-	if (rc < 0)
-		return rc;
-
 	/* snapshot the ctxcsn */
 	ldap_pvt_thread_rdwr_rlock( &si->si_csn_rwlock );
 	if (reopenldap_mode_idkfa())
@@ -2757,7 +2646,6 @@ syncprov_op_search( Operation *op, SlapReply *rs )
 
 	/* We know nothing - do nothing */
 	if ( !numcsns ) {
-		syncprov_fetch_end(si);
 		rs->sr_err = LDAP_SUCCESS;
 		send_ldap_result( op, rs );
 		return rs->sr_err;
@@ -2789,7 +2677,6 @@ syncprov_op_search( Operation *op, SlapReply *rs )
 		ldap_pvt_thread_mutex_destroy( &so.s_mutex );
 
 		if ( rs->sr_err != LDAP_SUCCESS ) {
-			syncprov_fetch_end(si);
 			send_ldap_result( op, rs );
 			return rs->sr_err;
 		}
@@ -2803,15 +2690,22 @@ syncprov_op_search( Operation *op, SlapReply *rs )
 		sop->s_flags |= OS_REF_PREPARE | OS_REF_OP_SEARCH;
 
 		ldap_pvt_thread_mutex_lock( &si->si_ops_mutex );
-		assert(si->si_mods_pending == 0);
-		/* LY: legacy comment, now we have explicit locking.
-		 *
-		 * Wait for active mods to finish before proceeding, as they
-		 * may already have inspected the si_ops list looking for
-		 * consumers to replicate the change to.  Using the log
-		 * doesn't help, as we may finish playing it before the
-		 * active mods gets added to it.
-		 */
+		while ( si->si_active ) {
+			/* Wait for active mods to finish before proceeding, as they
+			 * may already have inspected the si_ops list looking for
+			 * consumers to replicate the change to.  Using the log
+			 * doesn't help, as we may finish playing it before the
+			 * active mods gets added to it.
+			 */
+			ldap_pvt_thread_mutex_unlock( &si->si_ops_mutex );
+			if ( slapd_shutdown ) {
+				ch_free( sop );
+				return SLAPD_ABANDON;
+			}
+			if ( ! slap_biglock_pool_pausecheck(op->o_bd) )
+				ldap_pvt_thread_yield();
+			ldap_pvt_thread_mutex_lock( &si->si_ops_mutex );
+		}
 		sop->s_next = si->si_ops;
 		sop->s_si = si;
 		si->si_ops = sop;
@@ -2914,7 +2808,6 @@ bailout:
 					assert(chk > 0);
 					(void) chk;
 				}
-				syncprov_fetch_end(si);
 				rs->sr_ctrls = NULL;
 				send_ldap_result( op, rs );
 				return rs->sr_err;
@@ -2946,7 +2839,6 @@ no_change:
 					LDAP_SYNC_REFRESH_DELETES );
 				if ( !BER_BVISNULL( &cookie ))
 					op->o_tmpfree( cookie.bv_val, op->o_tmpmemctx );
-				syncprov_fetch_end(si);
 				rs->sr_ctrls = ctrls;
 				send_ldap_result( op, rs );
 				rs->sr_ctrls = NULL;
@@ -3089,15 +2981,14 @@ shortcut:
 			Debug( LDAP_DEBUG_ANY,
 				"syncprov: rare-case race op_search with abandon.\n");
 			assert(sop->s_next == sop);
-			op->o_callback = cb->sc_next;
+			cb->sc_cleanup = NULL;
+			op->o_callback = NULL;
 			ldap_pvt_thread_mutex_unlock( &sop->s_mutex );
 			assert((read_int__tsan_workaround(&sop->s_flags) & PS_IS_DETACHED) == 0);
 
 			syncprov_unlink_syncop( sop, OS_REF_PREPARE, SO_LOCK_SIOPS );
 			return rs->sr_err = SLAPD_ABANDON;
 		}
-	} else {
-		cb->sc_cleanup = syncprov_search_cleanup;
 	}
 
 	/* If this is a persistent search and no changes were reported during
@@ -3569,8 +3460,6 @@ syncprov_db_init(
 	ldap_pvt_thread_mutex_init( &si->si_ops_mutex );
 	ldap_pvt_thread_mutex_init( &si->si_mods_mutex );
 	ldap_pvt_thread_mutex_init( &si->si_resp_mutex );
-	ldap_pvt_thread_cond_init( &si->si_fetch_cond );
-	ldap_pvt_thread_cond_init( &si->si_mods_cond );
 
 	csn_anlist[0].an_desc = slap_schema.si_ad_entryCSN;
 	csn_anlist[0].an_name = slap_schema.si_ad_entryCSN->ad_cname;
@@ -3602,8 +3491,7 @@ syncprov_db_destroy(
 			drained = 0;
 			if (si->si_ops == NULL
 					&& read_int__tsan_workaround(&si->si_leftover) == 0
-					&& si->si_mods_pending == 0
-					&& si->si_fetch_pending == 0)
+					&& si->si_active == 0)
 				drained = 1;
 			ldap_pvt_thread_mutex_unlock( &si->si_ops_mutex );
 			if (paused)
@@ -3617,7 +3505,6 @@ syncprov_db_destroy(
 
 		on->on_bi.bi_private = NULL;
 		assert(si->si_ops == NULL && si->si_mods == NULL);
-		assert(si->si_fetch_pending == 0);
 
 		if ( si->si_logs ) {
 			sessionlog *sl = si->si_logs;
@@ -3638,8 +3525,6 @@ syncprov_db_destroy(
 		ldap_pvt_thread_mutex_destroy( &si->si_mods_mutex );
 		ldap_pvt_thread_mutex_destroy( &si->si_ops_mutex );
 		ldap_pvt_thread_rdwr_destroy( &si->si_csn_rwlock );
-		ldap_pvt_thread_cond_destroy( &si->si_mods_cond );
-		ldap_pvt_thread_cond_destroy( &si->si_fetch_cond );
 		ch_free( si );
 	}
 
