@@ -120,9 +120,14 @@ slap_get_commit_csn(
 		if (sid >= 0) {
 			LDAP_TAILQ_FOREACH( csne, be->be_pending_csn_list, ce_csn_link ) {
 				if ( sid == csne->ce_sid ) {
-					if ( committed_csne )
-						assert( slap_csn_compare_ts( &csne->ce_csn,
-							&committed_csne->ce_csn ) >= 0 );
+					if ( committed_csne
+							&& slap_csn_compare_ts( &csne->ce_csn,
+								&committed_csne->ce_csn ) < 0 ) {
+						Debug( LDAP_DEBUG_ANY, "slap_get_commit_csn:"
+							"VIOLATION: pending %s < commited %s\n",
+							csne->ce_csn.bv_val, committed_csne->ce_csn.bv_val );
+						assert( 0 );
+					}
 					if ( csne->ce_state == SLAP_CSN_COMMIT ) {
 						committed_csne = csne;
 					} else if ( likely(csne->ce_state == SLAP_CSN_PENDING) ) {
