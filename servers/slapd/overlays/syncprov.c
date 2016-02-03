@@ -2774,10 +2774,7 @@ syncprov_op_search( Operation *op, SlapReply *rs )
 			/* If our state is newer, tell consumer about changes */
 			if ( newer < 0) {
 				changed = SS_CHANGED;
-				if ( strncmp("19000101000000.000000Z", srs->sr_state.ctxcsn[i].bv_val, 22) >= 0 ) {
-					Debug( LDAP_DEBUG_SYNC, "syncprov_op_search: %s yield stub-csn from sid %d\n",
-						   op->o_bd->be_nsuffix->bv_val, srs->sr_state.sids[i] );
-				} else if ( BER_BVISEMPTY( &mincsn ) || slap_csn_compare_ts( &mincsn,
+				if ( BER_BVISEMPTY( &mincsn ) || slap_csn_compare_ts( &mincsn,
 					&srs->sr_state.ctxcsn[i] ) > 0 ) {
 					mincsn = srs->sr_state.ctxcsn[i];
 					minsid = sids[j];
