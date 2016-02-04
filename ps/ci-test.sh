@@ -157,8 +157,10 @@ for n in $(seq 1 $N); do
 			echo "##teamcity[buildProblem description='Test(s) failed']"
 			find ./@ci-test-* -name all.log | xargs -r grep ' completed OK for '
 			[ -z "$CIBUZZ_PID4" ] && find ./@ci-test-* -name all.log | xargs -r grep ' failed for ' >&2
-			cleanup
-			exit 1
+			if [ -z "${TEAMCITY_PROCESS_FLOW_ID}" ]; then
+				cleanup
+				exit 1
+			fi
 		fi
 		echo "##teamcity[blockClosed name='$REOPENLDAP_MODE']"
 		teamcity_sleep 1
