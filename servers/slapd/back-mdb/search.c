@@ -2,7 +2,7 @@
 /* $OpenLDAP$ */
 /* This work is part of OpenLDAP Software <http://www.openldap.org/>.
  *
- * Copyright 2000-2015 The OpenLDAP Foundation.
+ * Copyright 2000-2016 The OpenLDAP Foundation.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -327,6 +327,7 @@ typedef struct ww_ctx {
 	ID key;
 	MDB_val data;
 	int flag;
+	int nentries;
 } ww_ctx;
 
 /* ITS#7904 if we get blocked while writing results to client,
@@ -363,6 +364,7 @@ mdb_waitfixup( Operation *op, ww_ctx *ww, MDB_cursor *mci, MDB_cursor *mcd, IdSc
 	MDB_val key;
 	int rc = 0;
 	ww->flag = 0;
+	ww->nentries = 0;
 	mdb_txn_renew( ww->txn );
 	mdb_cursor_renew( ww->txn, mci );
 	mdb_cursor_renew( ww->txn, mcd );
@@ -1097,11 +1099,22 @@ loop_continue:
 		if ( !wwctx.flag && mdb->mi_renew_lag ) {
 			int percentage, lag = mdbx_txn_straggler( wwctx.txn, &percentage );
 			if ( lag >= mdb->mi_renew_lag && percentage >= mdb->mi_renew_percent ) {
-				if ( cb.sc_private == &wwctx ) {
+				if ( moi == &opinfo ) {
 					Debug( LDAP_DEBUG_NONE, "dreamcatcher: lag %d, percentage %u%%\n", lag, percentage );
 					mdb_writewait( op, &cb );
 				} else
 					Debug( LDAP_DEBUG_ANY, "dreamcatcher: UNABLE lag %d, percentage %u%%\n", lag, percentage );
+			}
+		}
+
+		if ( !wwctx.flag && mdb->mi_rtxn_size ) {
+			wwctx.nentries++;
+			if ( wwctx.nentries >= mdb->mi_rtxn_size ) {
+				if ( moi == &opinfo ) {
+					Debug( LDAP_DEBUG_NONE, "dreamcatcher: %u entries (> %u)\n", wwctx.nentries, mdb->mi_rtxn_size );
+					mdb_writewait( op, &cb );
+				} else
+					Debug( LDAP_DEBUG_ANY, "dreamcatcher: UNABLE %u entries (> %u)\n", wwctx.nentries, mdb->mi_rtxn_size );
 			}
 		}
 

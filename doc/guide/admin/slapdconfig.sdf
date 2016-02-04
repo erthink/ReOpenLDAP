@@ -1,5 +1,5 @@
 # $OpenLDAP$
-# Copyright 1999-2015 The OpenLDAP Foundation, All Rights Reserved.
+# Copyright 1999-2016 The OpenLDAP Foundation, All Rights Reserved.
 # COPYING RESTRICTIONS APPLY, see COPYRIGHT.
 
 H1: The slapd Configuration File
@@ -532,8 +532,8 @@ conforms to the obsolete {{changelog}} format. If the {{EX:syncdata}}
 parameter is omitted or set to {{EX:"default"}} then the log
 parameters are ignored.
 
-The {{syncrepl}} replication mechanism is supported by the {{bdb}} and
-{{hdb}} backends.
+The {{syncrepl}} replication mechanism is supported by the {{bdb}},
+{{hdb}}, and {{mdb}} backends.
 
 See the {{SECT:LDAP Sync Replication}} chapter of this guide for
 more information on how to use this directive.

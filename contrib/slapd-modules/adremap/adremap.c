@@ -1,7 +1,7 @@
 /* adremap.c - Case-folding and DN-value remapping for AD proxies */
 /* $OpenLDAP$ */
 /*
- * Copyright 2015 Howard Chu <hyc@symas.com>.
+ * Copyright 2015-2016 Howard Chu <hyc@symas.com>.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without

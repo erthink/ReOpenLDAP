@@ -2,7 +2,7 @@
 /* $OpenLDAP$ */
 /* This work is part of OpenLDAP Software <http://www.openldap.org/>.
  *
- * Copyright 2003-2015 The OpenLDAP Foundation.
+ * Copyright 2003-2016 The OpenLDAP Foundation.
  * Portions Copyright 2003 by IBM Corporation.
  * Portions Copyright 2003-2008 by Howard Chu, Symas Corporation.
  * All rights reserved.
@@ -891,11 +891,11 @@ syncrepl_take_cookie(
 	if ( rc )
 		return rc;
 
-	if ( dst->numcsns == 0 && SLAP_MULTIMASTER( si->si_be ) ) {
+	if ( dst->numcsns == 0 && SLAP_MULTIMASTER( si->si_be )
+		&& ( reopenldap_mode_iddqd() || reopenldap_mode_idclip() ) ) {
 		Debug( LDAP_DEBUG_ANY, "syncrepl_process:"
 			"%s REJECT empty-cookie '%s'\n",
 			si->si_ridtxt, raw.bv_val );
-		assert(0);
 		return LDAP_UNWILLING_TO_PERFORM;
 	}
 

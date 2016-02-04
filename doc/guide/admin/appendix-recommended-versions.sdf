@@ -1,5 +1,5 @@
 # $OpenLDAP$
-# Copyright 1999-2015 The OpenLDAP Foundation, All Rights Reserved.
+# Copyright 1999-2016 The OpenLDAP Foundation, All Rights Reserved.
 # COPYING RESTRICTIONS APPLY, see COPYRIGHT.
 
 H1: Recommended OpenLDAP Software Dependency Versions
@@ -22,8 +22,6 @@ Feature|Software|Version
 {{TERM[expand]Kerberos}}:
 |{{PRD:Heimdal}}|Version
 |{{PRD:MIT Kerberos}}|Version
-Database Software|{{PRD:Berkeley DB}}:|5.3
-||Note: It is highly recommended to apply the patches from Oracle for a given release.
 Threads:
 |POSIX {{pthreads}}|Version
 |Mach {{CThreads}}|Version
