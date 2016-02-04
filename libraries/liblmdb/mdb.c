@@ -4288,15 +4288,24 @@ mdb_env_map(MDB_env *env, void *addr)
 		return errno;
 	}
 
-	unsigned madvise_flags = MADV_DONTFORK;
-	if (flags & MDB_NORDAHEAD)
+	if (flags & MDB_NORDAHEAD) {
 		/* Turn off readahead. It's harmful when the DB is larger than RAM. */
-		madvise_flags |= MADV_RANDOM;
-	if (madvise(env->me_map, env->me_mapsize, madvise_flags))
+		if (madvise(env->me_map, env->me_mapsize, MADV_RANDOM) < 0)
+			return errno;
+	}
+
+	if (madvise(env->me_map, env->me_mapsize, MADV_DONTFORK) < 0)
 		return errno;
 
+	if (madvise(env->me_map, env->me_mapsize, MADV_WILLNEED) < 0)
+		return errno;
+
+#ifdef MADV_NOHUGEPAGE
+	(void) madvise(env->me_map, env->me_mapsize, MADV_NOHUGEPAGE);
+#endif
+
 #ifdef MADV_DONTDUMP
-	madvise(env->me_map, env->me_mapsize, MADV_DONTDUMP);
+	(void) madvise(env->me_map, env->me_mapsize, MADV_DONTDUMP);
 #endif
 
 	/* Can happen because the address argument to mmap() is just a
@@ -4771,9 +4780,6 @@ mdb_env_setup_locks(MDB_env *env, char *lpath, int mode, int *excl)
 				env->me_txns->mti_format, MDB_LOCK_FORMAT);
 			return MDB_VERSION_MISMATCH;
 		}
-		rc = errno;
-		if (rc && rc != EACCES && rc != EAGAIN)
-			return rc;
 	}
 
 	return MDB_SUCCESS;
