@@ -2,7 +2,7 @@
 /* $OpenLDAP$ */
 /* This work is part of OpenLDAP Software <http://www.openldap.org/>.
  *
- * Copyright 2000-2015 The OpenLDAP Foundation.
+ * Copyright 2000-2016 The OpenLDAP Foundation.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -123,6 +123,7 @@ mdb_db_init( BackendDB *be, ConfigReply *cr )
 	mdb->mi_search_stack = NULL;
 
 	mdb->mi_mapsize = DEFAULT_MAPSIZE;
+	mdb->mi_rtxn_size = DEFAULT_RTXN_SIZE;
 
 	be->be_private = mdb;
 	be->be_cf_ocs = be->bd_info->bi_cf_ocs;

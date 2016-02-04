@@ -2,7 +2,7 @@
 /* $OpenLDAP$ */
 /* This work is part of OpenLDAP Software <http://www.openldap.org/>.
  *
- * Copyright 2000-2015 The OpenLDAP Foundation.
+ * Copyright 2000-2016 The OpenLDAP Foundation.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -47,6 +47,9 @@ LDAP_BEGIN_DECL
 /* Default to 10MB max */
 #define DEFAULT_MAPSIZE	(10*1048576)
 
+/* Most users will never see this */
+#define DEFAULT_RTXN_SIZE      10000
+
 #ifdef LDAP_DEVEL
 #define MDB_MONITOR_IDX
 #endif /* LDAP_DEVEL */
@@ -78,6 +81,7 @@ struct mdb_info {
 	int			mi_search_stack_depth;
 	int			mi_readers;
 
+	uint32_t	mi_rtxn_size;
 	int			mi_txn_cp;
 	uint32_t	mi_txn_cp_period;
 	uint32_t	mi_txn_cp_kbyte;

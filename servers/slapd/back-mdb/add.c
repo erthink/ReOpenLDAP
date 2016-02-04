@@ -2,7 +2,7 @@
 /* $OpenLDAP$ */
 /* This work is part of OpenLDAP Software <http://www.openldap.org/>.
  *
- * Copyright 2000-2015 The OpenLDAP Foundation.
+ * Copyright 2000-2016 The OpenLDAP Foundation.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -37,8 +37,8 @@ mdb_add(Operation *op, SlapReply *rs )
 	ID eid, pid = 0;
 	mdb_op_info opinfo = {{{ 0 }}}, *moi = &opinfo;
 	int subentry;
-
-	int		success;
+	int numads = -1;
+	int success;
 
 	LDAPControl **postread_ctrl = NULL;
 	LDAPControl *ctrls[SLAP_MAX_RESPONSE_CONTROLS];
@@ -113,6 +113,8 @@ txnReturn:
 		goto return_results;
 	}
 	txn = moi->moi_txn;
+	/* LY: to avoid race mi_numads should be read after a transaction was started */
+	numads = mdb->mi_numads;
 
 	/* add opattrs to shadow as well, only missing attrs will actually
 	 * be added; helps compatibility with older OL versions */
@@ -391,6 +393,8 @@ txnReturn:
 		LDAP_SLIST_REMOVE( &op->o_extra, &opinfo.moi_oe, OpExtra, oe_next );
 		opinfo.moi_oe.oe_key = NULL;
 		if ( op->o_noop ) {
+			assert(numads > -1);
+			mdb->mi_numads = numads;
 			mdb_txn_abort( txn );
 			rs->sr_err = LDAP_X_NO_OPERATION;
 			txn = NULL;
@@ -400,6 +404,8 @@ txnReturn:
 		rs->sr_err = mdb_txn_commit( txn );
 		txn = NULL;
 		if ( rs->sr_err != 0 ) {
+			assert(numads > -1);
+			mdb->mi_numads = numads;
 			rs->sr_text = "txn_commit failed";
 			Debug( LDAP_DEBUG_ANY,
 				LDAP_XSTRING(mdb_add) ": %s : %s (%d)\n",
@@ -424,6 +430,8 @@ return_results:
 
 	if( moi == &opinfo ) {
 		if( txn != NULL ) {
+			assert(numads > -1);
+			mdb->mi_numads = numads;
 			mdb_txn_abort( txn );
 		}
 		if ( opinfo.moi_oe.oe_key ) {
