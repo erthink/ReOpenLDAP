@@ -184,6 +184,10 @@ slap_graduate_commit_csn( Operation *op )
 			slap_op_csn_clean( op );
 			ch_free( csne->ce_csn.bv_val );
 			ch_free( csne );
+#if OP_CSN_CHECK
+			assert(be->be_pending_csn_count > 0);
+			be->be_pending_csn_count--;
+#endif
 			break;
 		}
 	}
@@ -280,6 +284,10 @@ slap_queue_csn(
 				   before, before->ce_connid, before->ce_opid, before->ce_csn.bv_val);
 			LDAP_TAILQ_INSERT_BEFORE( before, pending, ce_csn_link );
 		}
+#if OP_CSN_CHECK
+		be->be_pending_csn_count++;
+		assert(be->be_pending_csn_count < 42);
+#endif
 	}
 
 	ldap_pvt_thread_mutex_unlock( &be->be_pcl_mutex );
