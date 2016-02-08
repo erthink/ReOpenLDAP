@@ -535,7 +535,7 @@ mdb_modify( Operation *op, SlapReply *rs )
 	LDAPControl **postread_ctrl = NULL;
 	LDAPControl *ctrls[SLAP_MAX_RESPONSE_CONTROLS];
 	int num_ctrls = 0;
-	int numads = mdb->mi_numads;
+	int numads = -1;
 
 	Debug( LDAP_DEBUG_ARGS, LDAP_XSTRING(mdb_modify) ": %s\n",
 		op->o_req_dn.bv_val );
@@ -559,6 +559,8 @@ mdb_modify( Operation *op, SlapReply *rs )
 		goto return_results;
 	}
 	txn = moi->moi_txn;
+	/* LY: to avoid race mi_numads should be read after a transaction was started */
+	numads = mdb->mi_numads;
 
 	/* Don't touch the opattrs, if this is a contextCSN update
 	 * initiated from updatedn */
@@ -715,6 +717,7 @@ mdb_modify( Operation *op, SlapReply *rs )
 		LDAP_SLIST_REMOVE( &op->o_extra, &opinfo.moi_oe, OpExtra, oe_next );
 		opinfo.moi_oe.oe_key = NULL;
 		if( op->o_noop ) {
+			assert(numads > -1);
 			mdb->mi_numads = numads;
 			mdb_txn_abort( txn );
 			rs->sr_err = LDAP_X_NO_OPERATION;
@@ -722,8 +725,10 @@ mdb_modify( Operation *op, SlapReply *rs )
 			goto return_results;
 		} else {
 			rs->sr_err = mdb_txn_commit( txn );
-			if ( rs->sr_err )
+			if ( rs->sr_err ) {
+				assert(numads > -1);
 				mdb->mi_numads = numads;
+			}
 			txn = NULL;
 		}
 	}
@@ -767,6 +772,7 @@ done:
 
 	if( moi == &opinfo ) {
 		if( txn != NULL ) {
+			assert(numads > -1);
 			mdb->mi_numads = numads;
 			mdb_txn_abort( txn );
 		}

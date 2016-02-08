@@ -1996,6 +1996,16 @@ struct BackendDB {
 	struct berval be_update_ndn;	/* allowed to make changes (in replicas) */
 	BerVarray	be_update_refs;	/* where to refer modifying clients to */
 	struct		be_pcl	*be_pending_csn_list;
+#ifndef OP_CSN_CHECK
+#	if defined(LDAP_DEBUG) && LDAP_DEBUG > 1
+#		define OP_CSN_CHECK 1
+#	else
+#		define OP_CSN_CHECK 0
+#	endif
+#endif
+#if OP_CSN_CHECK
+	int be_pending_csn_count;
+#endif
 	ldap_pvt_thread_mutex_t					be_pcl_mutex;
 	struct syncinfo_s						*be_syncinfo; /* For syncrepl */
 
@@ -2820,13 +2830,6 @@ struct Operation {
 	BerElement	*o_res_ber;	/* ber of the CLDAP reply or readback control */
 	slap_callback *o_callback;	/* callback pointers */
 	LDAPControl	**o_ctrls;	 /* controls */
-#ifndef OP_CSN_CHECK
-#	if defined(LDAP_DEBUG) && LDAP_DEBUG > 1
-#		define OP_CSN_CHECK 1
-#	else
-#		define OP_CSN_CHECK 0
-#	endif
-#endif
 #if OP_CSN_CHECK
 	struct Operation* o_csn_master;
 #endif

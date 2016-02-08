@@ -918,11 +918,11 @@ syncrepl_take_cookie(
 	if ( rc )
 		return rc;
 
-	if ( dst->numcsns == 0 && SLAP_MULTIMASTER( si->si_be ) ) {
+	if ( dst->numcsns == 0 && SLAP_MULTIMASTER( si->si_be )
+		&& ( reopenldap_mode_iddqd() || reopenldap_mode_idclip() ) ) {
 		Debug( LDAP_DEBUG_ANY, "syncrepl_process:"
 			"%s REJECT empty-cookie '%s'\n",
 			si->si_ridtxt, raw.bv_val );
-		assert(0);
 		return LDAP_UNWILLING_TO_PERFORM;
 	}
 
