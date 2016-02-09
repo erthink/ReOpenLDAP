@@ -1189,6 +1189,7 @@ done:
 				cb.sc_private = NULL;
 				break;
 			}
+			scp = &(*scp)->sc_next;
 		}
 	}
 	mdb_cursor_close( mcd );
