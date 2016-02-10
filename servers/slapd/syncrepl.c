@@ -776,36 +776,29 @@ syncrepl_enough_sids( syncinfo_t *si, struct sync_cookie *remote )
 }
 
 static int
-compare_cookies( struct sync_cookie *local, struct sync_cookie *remote, int *which )
+compare_cookies( struct sync_cookie *local, struct sync_cookie *remote )
 {
-	int i, j, match = 0;
+	int l, r, lead = -1;
 
-	*which = 0;
-	if ( ! remote->numcsns )
-		return 1;
-	if ( local->numcsns < remote->numcsns ) {
-		*which = local->numcsns;
-		return -1;
-	}
+	for(r = 0; r < remote->numcsns; ++r) {
+		for(l = 0; l < local->numcsns; ++l)	{
+			if (remote->sids[r] <= local->sids[l])
+				break;
+		}
 
-	for (j=0; j<remote->numcsns; j++) {
-		for (i=0; i<local->numcsns; i++) {
-			if ( local->sids[i] != remote->sids[j] )
-				continue;
-			match = slap_csn_compare_ts( &local->ctxcsn[i], &remote->ctxcsn[j] );
-			if ( match < 0 ) {
-				*which = j;
-				return match;
+		if (/* LY: lack a remote SID */
+				l >= local->numcsns || remote->sids[r] != local->sids[l]
+			/* LY: or remote SID is newer than local */ ||
+				slap_csn_compare_ts(&remote->ctxcsn[r], &local->ctxcsn[l]) > 0) {
+
+			if (lead < 0 || slap_csn_compare_ts(&remote->ctxcsn[r], &remote->ctxcsn[lead]) > 0) {
+					/* LY: selects a newest CSN */
+					lead = r;
 			}
-			break;
-		}
-		if ( i == local->numcsns ) {
-			/* remote has a SID, local lacks */
-			*which = j;
-			return -1;
 		}
 	}
-	return match;
+
+	return lead;
 }
 
 static int syncrepl_resync_begin( syncinfo_t *si ) {
@@ -953,7 +946,7 @@ syncrepl_process(
 	}
 
 	for (;;) {
-		int		match, syncstate;
+		int		syncstate;
 		struct berval	syncUUID[2];
 		LDAPControl		*rctrlp = NULL;
 		ber_len_t		len;
@@ -999,7 +992,7 @@ syncrepl_process(
 		op->o_controls[slap_cids.sc_LDAPsync] = NULL;
 
 		switch( ldap_msgtype( msg ) ) {
-		int which = INT_MAX; /* LY: paranoia */
+		int lead = -1; /* LY: paranoia */
 		case LDAP_RES_SEARCH_ENTRY:
 			rc = ldap_get_entry_controls( si->si_ld, msg, &rctrls );
 			if ( rc )
@@ -1203,15 +1196,16 @@ syncrepl_process(
 				ber_scanf( ber, /*"{"*/ "}" );
 			}
 
-			match = compare_cookies( &si->si_syncCookie, &syncCookie, &which );
+			lead = compare_cookies( &si->si_syncCookie, &syncCookie );
 			if (si->si_type != LDAP_SYNC_REFRESH_AND_PERSIST) {
 				/* FIXME : different error behaviors according to
 				 *	1) err code : LDAP_BUSY ...
 				 *	2) on err policy : stop service, stop sync, retry
 				 */
-				if ( refreshDeletes == 0 && match < 0 && rc == LDAP_SUCCESS &&
-						syncrepl_enough_sids( si, &syncCookie ) )
-					syncrepl_del_nonpresent( op, si, NULL, &syncCookie, which );
+				if ( refreshDeletes == 0 && lead >= 0 && rc == LDAP_SUCCESS &&
+						syncrepl_enough_sids( si, &syncCookie ) ) {
+					syncrepl_del_nonpresent( op, si, NULL, &syncCookie, lead );
+				}
 				presentlist_free( &si->si_presentlist );
 			} else if ( refreshDeletes ) {
 				Debug( LDAP_DEBUG_SYNC,
@@ -1220,7 +1214,7 @@ syncrepl_process(
 				rc = LDAP_PROTOCOL_ERROR;
 				goto done;
 			}
-			if ( match < 0 && rc == LDAP_SUCCESS )
+			if ( lead >= 0 && rc == LDAP_SUCCESS )
 				rc = syncrepl_cookie_push( si, op, &syncCookie );
 			syncrepl_refresh_done( si, rc );
 
@@ -1303,7 +1297,7 @@ syncrepl_process(
 							goto done_intermediate;
 
 						op->o_controls[slap_cids.sc_LDAPsync] = &syncCookie;
-						compare_cookies( &si->si_syncCookie, &syncCookie, &which );
+						lead = compare_cookies( &si->si_syncCookie, &syncCookie );
 					}
 					if ( ber_peek_tag( ber, &len ) == LDAP_TAG_REFRESHDELETES )
 						ber_scanf( ber, "b", &refreshDeletes );
@@ -1315,7 +1309,7 @@ syncrepl_process(
 							/* LY: Have a list of UUIDs which were deleted
 							 * on remote DIT. Therefore is always safe to delete
 							 * such from local DIT, without checking a cookie. */
-							syncrepl_del_nonpresent( op, si, syncUUIDs, &syncCookie, which );
+							syncrepl_del_nonpresent( op, si, syncUUIDs, &syncCookie, lead );
 							slap_cookie_clean_all( &syncCookie );
 						} else {
 							int i;
@@ -1334,12 +1328,12 @@ syncrepl_process(
 				}
 
 				assert(rc == 0);
-				match = compare_cookies( &si->si_syncCookie, &syncCookie, &which );
-				if ( match < 0 ) {
+				lead = compare_cookies( &si->si_syncCookie, &syncCookie );
+				if ( lead >= 0 ) {
 					if ( si->si_refreshPresent == 1
 							&& si_tag != LDAP_TAG_SYNC_NEW_COOKIE
 							&& syncrepl_enough_sids( si, &syncCookie ) ) {
-						syncrepl_del_nonpresent( op, si, NULL, &syncCookie, which );
+						syncrepl_del_nonpresent( op, si, NULL, &syncCookie, lead );
 					}
 
 					rc = syncrepl_cookie_push( si, op, &syncCookie);
@@ -3439,6 +3433,7 @@ syncrepl_del_nonpresent(
 	struct berval pdn = BER_BVNULL;
 	assert(slap_biglock_owned(op->o_bd));
 	assert(LDAP_LIST_EMPTY( &si->si_nonpresentlist ));
+	assert(which < sc->numcsns);
 
 #ifdef ENABLE_REWRITE
 	if ( si->si_rewrite ) {
@@ -3495,6 +3490,8 @@ syncrepl_del_nonpresent(
 		Filter mmf[2];
 		AttributeAssertion mmaa;
 		SlapReply rs_search = {REP_RESULT};
+		assert(sc->numcsns > 0);
+		assert(which >= 0);
 
 		memset( &an[0], 0, 2 * sizeof( AttributeName ) );
 		an[0].an_name = slap_schema.si_ad_entryUUID->ad_cname;
@@ -3509,7 +3506,7 @@ syncrepl_del_nonpresent(
 		 * we're searching. Limit the search result to entries
 		 * older than our newest cookie CSN.
 		 */
-		if ( SLAP_MULTIMASTER( op->o_bd ) && sc->numcsns) {
+		if ( SLAP_MULTIMASTER( op->o_bd ) ) {
 			Filter *f;
 			int i;
 
@@ -3550,17 +3547,14 @@ syncrepl_del_nonpresent(
 
 	if ( !LDAP_LIST_EMPTY( &si->si_nonpresentlist ) ) {
 		char buf[ LDAP_PVT_CSNSTR_BUFSIZE ];
-		BerValue csn = BER_BVNULL;
+		BerValue csn = {sizeof(buf), buf};
 
-		if (! sc || sc->numcsns == 0 ) {
-			sc = &si->si_syncCookie;
-			which = 0;
+		if (which < 0) {
+			slap_get_csn( op, &csn, 0 );
+		} else {
+			csn.bv_len = sc->ctxcsn[which].bv_len;
+			memcpy( buf, sc->ctxcsn[which].bv_val, csn.bv_len + 1 );
 		}
-		assert( which > -1 );
-		assert( which < sc->numcsns );
-		csn.bv_len = sc->ctxcsn[which].bv_len;
-		assert( csn.bv_len < sizeof(buf) );
-		csn.bv_val = memcpy( buf, sc->ctxcsn[which].bv_val, csn.bv_len + 1 );
 
 		op->o_bd = si->si_wbe;
 		int do_approx_csn = 0;
@@ -3588,10 +3582,8 @@ syncrepl_del_nonpresent(
 			np_prev = np_list;
 			np_list = LDAP_LIST_NEXT( np_list, npe_link );
 
-			if ( np_list && do_approx_csn ) {
-				assert( slap_csn_compare_ts( &sc->ctxcsn[which], &csn ) > 0 );
+			if ( np_list && do_approx_csn )
 				slap_csn_shift( &csn, 1 );
-			}
 			slap_queue_csn( op, &csn );
 
 			op->o_tag = LDAP_REQ_DELETE;
@@ -3682,7 +3674,6 @@ syncrepl_del_nonpresent(
 		}
 
 		op->o_bd = be;
-		assert( slap_csn_compare_ts( &sc->ctxcsn[which], &csn ) == 0 );
 	}
 }
 
