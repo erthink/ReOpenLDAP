@@ -752,35 +752,27 @@ done:
 }
 
 static int
-syncrepl_enough_sids( syncinfo_t *si, struct sync_cookie *cookie )
+syncrepl_enough_sids( syncinfo_t *si, struct sync_cookie *remote )
 {
-	int i, j;
-	struct sync_cookie *current = &si->si_syncCookie;
+	struct sync_cookie *local = &si->si_syncCookie;
 
-	if ( cookie->numcsns != current->numcsns )
+	if (! remote->numcsns)
 		return 0;
 
-	if (reopenldap_mode_idclip()
+	if (reopenldap_mode_iddqd()
 			/* LY: are whenever there are multiple data sources possible? */
-			&& (SLAP_MULTIMASTER( si->si_be ) || si->si_be != si->si_wbe )) {
-		/* LY: check for all SIDs from current is exists in cookie,
-		 * include for local sid if exists. */
-		for(i = current->numcsns; --i >= 0; ) {
-			if (current->sids[i] > -1) {
-				for(j = cookie->numcsns; --j >= 0; )
-					if (current->sids[i] == cookie->sids[j]
-							|| current->sids[i] == cookie->sid)
-						break;
-				if (j < 0) {
-					Debug( LDAP_DEBUG_SYNC, "syncrepl_enough_sids: %s sid %d is apsent\n",
-						   si->si_ridtxt, current->sids[i] );
-					return 0;
-				}
-			}
+			&& SLAP_MULTIMASTER( si->si_be )) {
+		int i;
+		for(i = 0; i < local->numcsns; ++i ) {
+			/* LY: if any of sid(s) is present on the both sides */
+			if (slap_serverID != local->sids[i]
+					&& slap_cookie_is_sid_here(remote, local->sids[i]))
+				return 1;
 		}
+		return local->numcsns ? 0 : 1;
 	}
 
-	return 1;
+	return local->numcsns == remote->numcsns;
 }
 
 static int

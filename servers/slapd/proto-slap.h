@@ -1338,6 +1338,7 @@ int slap_cookie_merge_csnset(
 int slap_cookie_compare_csnset(
 	struct sync_cookie *base,
 	BerVarray next );
+int slap_cookie_is_sid_here(const struct sync_cookie *cookie, int sid);
 
 /*
  * limits.c
