@@ -2441,8 +2441,10 @@ static int check_for_retard(syncinfo_t *si, struct sync_cookie *sc,
 						rc |= RETARD_ECHO;
 					break;
 				}
+				if (origin < si->si_syncCookie.sids[i])
+					break;
 			}
-			if (reopenldap_mode_idclip() && origin == slap_serverID
+			if (!rc && reopenldap_mode_idclip() && origin == slap_serverID
 				&& slap_csn_compare_ts(csn_incomming, &si->si_cutoff_csn) >= 0) {
 					/* LY: It is an "echo" of the notification from this server. */
 					rc |= RETARD_ECHO;
@@ -2462,6 +2464,8 @@ static int check_for_retard(syncinfo_t *si, struct sync_cookie *sc,
 							rc &= ~RETARD_ALTER;
 						break;
 					}
+					if (origin < sc->sids[i])
+						break;
 				}
 			}
 		}
