@@ -98,10 +98,14 @@ function doit_build {
 		|| failure git-checkout
 	echo "==============================================================================="
 	echo "$(timestamp) Building..." > $CIBUZZ_STATUS
-	nice -n $nice $build $build_args $build_opt || (touch $here/build.failed; failure "$here/$build $build_args $build_opt")
-	touch $here/build.ok
-	echo "build done" >> $here/err.log
-	exit 0
+	if nice -n $nice $build $build_args $build_opt; then
+		touch $here/build.ok
+		echo "build done" >> $here/err.log
+		exit 0
+	else
+		touch $here/build.failed
+		failure "$here/$build $build_args $build_opt"
+	fi
 }
 
 function doit_test {
