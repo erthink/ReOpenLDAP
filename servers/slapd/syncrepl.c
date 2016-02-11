@@ -992,7 +992,6 @@ syncrepl_process(
 		op->o_controls[slap_cids.sc_LDAPsync] = NULL;
 
 		switch( ldap_msgtype( msg ) ) {
-		int lead = -1; /* LY: paranoia */
 		case LDAP_RES_SEARCH_ENTRY:
 			rc = ldap_get_entry_controls( si->si_ld, msg, &rctrls );
 			if ( rc )
@@ -1196,7 +1195,7 @@ syncrepl_process(
 				ber_scanf( ber, /*"{"*/ "}" );
 			}
 
-			lead = compare_cookies( &si->si_syncCookie, &syncCookie );
+			int lead = compare_cookies( &si->si_syncCookie, &syncCookie );
 			if (si->si_type != LDAP_SYNC_REFRESH_AND_PERSIST) {
 				/* FIXME : different error behaviors according to
 				 *	1) err code : LDAP_BUSY ...
@@ -1232,7 +1231,6 @@ syncrepl_process(
 		case LDAP_RES_INTERMEDIATE: {
 			struct berval	*retdata = NULL;
 			char			*retoid = NULL;
-			int refreshDeletes = 0;
 			int refreshDone = 0;
 			BerVarray syncUUIDs = NULL;
 
@@ -1284,7 +1282,7 @@ syncrepl_process(
 					}
 					ber_scanf( ber, /*"{"*/ "}" );
 					break;
-				case LDAP_TAG_SYNC_ID_SET:
+				case LDAP_TAG_SYNC_ID_SET: {
 					Debug( LDAP_DEBUG_SYNC,
 						"syncrepl_process: %s %s - %s\n",
 						si->si_ridtxt,
@@ -1297,8 +1295,8 @@ syncrepl_process(
 							goto done_intermediate;
 
 						op->o_controls[slap_cids.sc_LDAPsync] = &syncCookie;
-						lead = compare_cookies( &si->si_syncCookie, &syncCookie );
 					}
+					int refreshDeletes = 0;
 					if ( ber_peek_tag( ber, &len ) == LDAP_TAG_REFRESHDELETES )
 						ber_scanf( ber, "b", &refreshDeletes );
 
@@ -1309,8 +1307,10 @@ syncrepl_process(
 							/* LY: Have a list of UUIDs which were deleted
 							 * on remote DIT. Therefore is always safe to delete
 							 * such from local DIT, without checking a cookie. */
+							int lead = compare_cookies( &si->si_syncCookie, &syncCookie );
 							syncrepl_del_nonpresent( op, si, syncUUIDs, &syncCookie, lead );
-							slap_cookie_clean_all( &syncCookie );
+							rc = 0;
+							goto done_intermediate;
 						} else {
 							int i;
 							for ( i = 0; !BER_BVISNULL( &syncUUIDs[i] ); i++ )
@@ -1319,6 +1319,7 @@ syncrepl_process(
 					}
 					rc = 0;
 					break;
+				}
 				default:
 					Debug( LDAP_DEBUG_ANY,
 						"syncrepl_process: %s unknown syncinfo tag (%ld)\n",
@@ -1328,7 +1329,7 @@ syncrepl_process(
 				}
 
 				assert(rc == 0);
-				lead = compare_cookies( &si->si_syncCookie, &syncCookie );
+				int lead = compare_cookies( &si->si_syncCookie, &syncCookie );
 				if ( lead >= 0 ) {
 					if ( si->si_refreshPresent == 1
 							&& si_tag != LDAP_TAG_SYNC_NEW_COOKIE
