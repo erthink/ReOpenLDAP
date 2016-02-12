@@ -703,6 +703,7 @@ dn2entry_retry:
 	wwctx.txn = ltid;
 	wwctx.mcd = NULL;
 	wwctx.data.mv_data = NULL;
+	wwctx.nentries = 0;
 	/* If we're running in our own read txn */
 	if (  moi == &opinfo ) {
 		cb.sc_writewait = mdb_writewait;
@@ -1203,6 +1204,7 @@ done:
 				cb.sc_private = NULL;
 				break;
 			}
+			scp = &(*scp)->sc_next;
 		}
 	}
 	mdb_cursor_close( mcd );

@@ -255,6 +255,11 @@ mdb_db_open( BackendDB *be, ConfigReply *cr )
 
 	flags = mdb->mi_dbenv_flags;
 
+#ifdef MDB_PAGEPERTURB
+	if (reopenldap_mode_idkfa())
+		flags |= MDB_PAGEPERTURB;
+#endif
+
 	if ( slapMode & SLAP_TOOL_QUICK )
 		flags |= MDB_NOSYNC|MDB_WRITEMAP;
 

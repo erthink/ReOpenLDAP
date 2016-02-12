@@ -769,6 +769,7 @@ static void connection_abandon( Connection *c )
 	while ( (o = LDAP_STAILQ_FIRST( &c->c_txn_ops )) != NULL) {
 		LDAP_ASSERT(o->o_conn == c);
 		LDAP_STAILQ_REMOVE_HEAD( &c->c_txn_ops, o_next );
+		LDAP_STAILQ_NEXT(o, o_next) = NULL;
 		o->o_conn = NULL;
 		slap_op_free( o, NULL );
 	}
@@ -782,6 +783,7 @@ static void connection_abandon( Connection *c )
 	while ( (o = LDAP_STAILQ_FIRST( &c->c_pending_ops )) != NULL) {
 		LDAP_ASSERT(o->o_conn == c);
 		LDAP_STAILQ_REMOVE_HEAD( &c->c_pending_ops, o_next );
+		LDAP_STAILQ_NEXT(o, o_next) = NULL;
 		o->o_conn = NULL;
 		slap_op_free( o, NULL );
 	}
@@ -1216,6 +1218,7 @@ operations_error:
 #endif
 	{
 		LDAP_STAILQ_REMOVE( &conn->c_ops, op, Operation, o_next);
+		LDAP_STAILQ_NEXT(op, o_next) = NULL;
 		op->o_conn = NULL;
 	}
 	conn->c_n_ops_executing--;
@@ -1809,6 +1812,7 @@ connection_resched( Connection *conn )
 		if ( conn->c_n_ops_executing > connection_pool_max/2 ) break;
 
 		LDAP_STAILQ_REMOVE_HEAD( &conn->c_pending_ops, o_next );
+		LDAP_STAILQ_NEXT(op, o_next) = NULL;
 
 		/* pending operations should not be marked for abandonment */
 		assert(!get_op_abandon(op));
@@ -2019,7 +2023,7 @@ int connection_write(ber_socket_t s)
 		if ( c->c_n_ops_executing > connection_pool_max/2 ) break;
 
 		LDAP_STAILQ_REMOVE_HEAD( &c->c_pending_ops, o_next );
-		op->o_conn = NULL;
+		LDAP_STAILQ_NEXT(op, o_next) = NULL;
 
 		/* pending operations should not be marked for abandonment */
 		assert(!get_op_abandon(op));

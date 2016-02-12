@@ -202,7 +202,7 @@ typedef int mdb_filehandle_t;
 	MDB_VERINT(MDB_VERSION_MAJOR,MDB_VERSION_MINOR,MDB_VERSION_PATCH)
 
 /** The release date of this library version */
-#define MDB_VERSION_DATE	"November 30, 2015, https://github.com/ReOpen/libmdbx"
+#define MDB_VERSION_DATE	"February 5, 2016, https://github.com/ReOpen/libmdbx"
 
 /** A stringifier for the version info */
 #define MDB_VERSTR(a,b,c,d)	"LMDB " #a "." #b "." #c ": (" d ")"
@@ -304,8 +304,10 @@ typedef void (MDB_rel_func)(MDB_val *item, void *oldptr, void *newptr, void *rel
 #define MDB_LIFORECLAIM	0x4000000
 #endif /* MDBX_MODE_ENABLED */
 
-/** make a steady-sync only on close and explicit env-sync */
+	/** make a steady-sync only on close and explicit env-sync */
 #define MDB_UTTERLY_NOSYNC (MDB_NOSYNC|MDB_MAPASYNC)
+	/** debuging option, fill/perturb released pages */
+#define MDB_PAGEPERTURB        0x8000000
 /** @} */
 
 /**	@defgroup	mdb_dbi_open	Database Flags
