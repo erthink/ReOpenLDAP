@@ -296,13 +296,18 @@ slap_queue_csn(
 int
 slap_get_csn(
 	Operation *op,
-	struct berval *csn,
-	int manage_ctxcsn )
+	struct berval *csn )
 {
-	if ( csn == NULL ) return LDAP_OTHER;
+	char buf[ LDAP_PVT_CSNSTR_BUFSIZE ];
+	BerValue local = {sizeof(buf), buf};
+
+	if ( csn == NULL ) {
+		csn = &local;
+		assert(op != NULL);
+	}
 
 	csn->bv_len = ldap_pvt_csnstr( csn->bv_val, csn->bv_len, slap_serverID, 0 );
-	if ( manage_ctxcsn )
+	if ( op )
 		slap_queue_csn( op, csn );
 
 	return LDAP_SUCCESS;

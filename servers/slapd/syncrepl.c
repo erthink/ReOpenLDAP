@@ -219,7 +219,7 @@ init_syncrepl(syncinfo_t *si)
 
 	si->si_cutoff_csn.bv_val = si->si_cutoff_csnbuf;
 	si->si_cutoff_csn.bv_len = sizeof( si->si_cutoff_csnbuf );
-	slap_get_csn( NULL, &si->si_cutoff_csn, 0 );
+	slap_get_csn( NULL, &si->si_cutoff_csn );
 
 	if ( !syncrepl_ov.on_bi.bi_type ) {
 		syncrepl_ov.on_bi.bi_type = "syncrepl";
@@ -3592,7 +3592,7 @@ syncrepl_del_nonpresent(
 		BerValue csn = {sizeof(buf), buf};
 
 		if (which < 0) {
-			slap_get_csn( op, &csn, 0 );
+			slap_get_csn( NULL, &csn );
 		} else {
 			csn.bv_len = sc->ctxcsn[which].bv_len;
 			memcpy( buf, sc->ctxcsn[which].bv_val, csn.bv_len + 1 );

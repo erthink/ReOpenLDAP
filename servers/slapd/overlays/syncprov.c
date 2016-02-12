@@ -3497,7 +3497,7 @@ syncprov_db_open(
 
 			csn.bv_val = csnbuf;
 			csn.bv_len = sizeof( csnbuf );
-			slap_get_csn( op, &csn, 0 );
+			slap_get_csn( NULL, &csn );
 			value_add_one( &si->si_cookie.ctxcsn, &csn );
 			si->si_cookie.numcsns = 1;
 			si->si_cookie.sids = ch_malloc( sizeof(int) );

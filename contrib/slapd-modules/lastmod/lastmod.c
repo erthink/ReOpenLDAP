@@ -366,7 +366,7 @@ best_guess( Operation *op,
 
 		entryCSN.bv_val = csnbuf;
 		entryCSN.bv_len = sizeof( csnbuf );
-		slap_get_csn( NULL, &entryCSN, 0 );
+		slap_get_csn( NULL, &entryCSN );
 
 		ber_dupbv( bv_entryCSN, &entryCSN );
 		ber_dupbv( bv_nentryCSN, &entryCSN );
@@ -849,7 +849,7 @@ lastmod_db_open(
 
 	entryCSN.bv_val = csnbuf;
 	entryCSN.bv_len = sizeof( csnbuf );
-	slap_get_csn( NULL, &entryCSN, 0 );
+	slap_get_csn( NULL, &entryCSN );
 
 	if ( BER_BVISNULL( &lmi->lmi_rdnvalue ) ) {
 		ber_str2bv( "Lastmod", 0, 1, &lmi->lmi_rdnvalue );
