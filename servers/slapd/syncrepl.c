@@ -2852,6 +2852,7 @@ syncrepl_entry(
 		"syncrepl_entry: %s LDAP_RES_SEARCH_ENTRY, %s\n",
 		si->si_ridtxt, ldap_sync_state2str( syncstate ) );
 	assert(slap_biglock_owned(op->o_bd));
+	assert( BER_BVISEMPTY( &op->o_csn ) );
 
 	if (( syncstate == LDAP_SYNC_PRESENT || syncstate == LDAP_SYNC_ADD ) ) {
 		if ( !si->si_refreshPresent && !si->si_refreshDone ) {
@@ -2879,7 +2880,7 @@ syncrepl_entry(
 						si->si_ridtxt, entry->e_name.bv_val);
 				if (syncuuid_inserted)
 					presentlist_delete( &si->si_presentlist, syncUUID );
-				goto bailout;
+				goto done;
 			}
 		}
 
@@ -3000,21 +3001,23 @@ syncrepl_entry(
 		if (syncuuid_inserted && !dni.csn_present.bv_val)
 			presentlist_delete( &si->si_presentlist, syncUUID );
 		rc = SYNCREPL_RETARDED;
-		goto bailout;
+		goto done;
 	}
 
-	assert( BER_BVISEMPTY( &op->o_csn ) );
+	BerValue *csn = NULL;
 	if ( syncCookie->numcsns ) {
-		slap_queue_csn( op, syncCookie->ctxcsn );
+		csn = syncCookie->ctxcsn;
+		slap_queue_csn( op, csn );
 		do_graduate = 1;
+	} else if ( !BER_BVISEMPTY( &dni.csn_incomming ) ) {
+		csn = &dni.csn_incomming;
+		slap_op_csn_assign(op, csn);
 	}
 
 	slap_op_time( &op->o_time, &op->o_tincr );
 	switch ( syncstate ) {
 	case LDAP_SYNC_ADD:
 	case LDAP_SYNC_MODIFY:
-		if ( BER_BVISEMPTY( &op->o_csn ) && !BER_BVISEMPTY( &dni.csn_incomming ) )
-			slap_op_csn_assign( op, &dni.csn_incomming );
 
 retry_add:;
 		if ( BER_BVISNULL( &dni.dn ) ) {
@@ -3052,17 +3055,17 @@ retry_add:;
 						" on REFRESH phase, reset cookie\n",
 						si->si_ridtxt, op->o_req_dn.bv_val, rs_add.sr_err );
 					slap_cookie_clean_all( &si->si_syncCookie );
-					entry_free( entry );
 					if (si->si_cookieState->cs_ref == 1) {
 						ldap_pvt_thread_mutex_lock( &si->si_cookieState->cs_mutex );
 						if (si->si_cookieState->cs_ref == 1)
 							slap_cookie_clean_all( &si->si_cookieState->cs_cookie );
 						ldap_pvt_thread_mutex_unlock( &si->si_cookieState->cs_mutex );
 					}
-					return LDAP_NO_SUCH_OBJECT;
+					rc = LDAP_NO_SUCH_OBJECT;
+				} else {
+					rc = syncrepl_add_glue( op, entry );
+					entry = NULL;
 				}
-				rc = syncrepl_add_glue( op, entry );
-				entry = NULL;
 				break;
 
 			/* if an entry was added via syncrepl_add_glue(),
@@ -3329,8 +3332,9 @@ retry_modrdn:;
 			op->o_req_dn = entry->e_name;
 			op->o_req_ndn = entry->e_nname;
 			/* Use CSN on the modify */
-			if ( ! just_rename && syncCookie->numcsns ) {
-				slap_queue_csn( op, syncCookie->ctxcsn );
+			if ( ! just_rename && csn && ! do_graduate ) {
+				slap_op_csn_clean( op );
+				slap_queue_csn( op, csn );
 				do_graduate = 1;
 			}
 		}
@@ -3359,7 +3363,8 @@ retry_modrdn:;
 					"syncrepl_entry: %s entry unchanged, ignored (%s)\n",
 					si->si_ridtxt, op->o_req_dn.bv_val );
 		}
-		goto done;
+		break;
+
 	case LDAP_SYNC_DELETE :
 		if ( !BER_BVISNULL( &dni.dn ) ) {
 			SlapReply	rs_delete = {REP_RESULT};
@@ -3367,8 +3372,9 @@ retry_modrdn:;
 			op->o_req_ndn = dni.ndn;
 			op->o_tag = LDAP_REQ_DELETE;
 			op->o_bd = si->si_wbe;
-			if ( ! syncCookie->numcsns ) {
-				slap_queue_csn( op, si->si_syncCookie.ctxcsn );
+			if ( ! do_graduate ) {
+				assert( ! csn );
+				slap_get_csn(op, NULL);
 				do_graduate = 1;
 			}
 			rc = op->o_bd->bd_info->bi_op_delete( op, &rs_delete );
@@ -3402,19 +3408,17 @@ retry_modrdn:;
 			}
 			op->o_bd = be;
 		}
-		goto done;
+		break;
 
 	default :
 		Debug( LDAP_DEBUG_ANY,
 		   "syncrepl_entry: %s unknown syncstate %d\n", si->si_ridtxt, syncstate );
-		goto bailout;
 	}
 
 done:
 	if ( do_graduate )
 		slap_graduate_commit_csn( op );
 
-bailout:
 	slap_sl_free( syncUUID[1].bv_val, op->o_tmpmemctx );
 	BER_BVZERO( &syncUUID[1] );
 	if ( !BER_BVISNULL( &dni.ndn ) ) {

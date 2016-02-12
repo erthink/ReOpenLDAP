@@ -179,7 +179,7 @@ slap_graduate_commit_csn( Operation *op )
 			assert( csne->ce_state > 0 );
 			assert( slap_csn_match( &op->o_csn, &csne->ce_csn ) );
 			found = csne->ce_state;
-			assert(found != 0);
+			/* assert(found != 0); LY: op could be cancelled/abandoned before slap_get_commit_csn() */
 			LDAP_TAILQ_REMOVE( be->be_pending_csn_list, csne, ce_csn_link );
 			slap_op_csn_clean( op );
 			ch_free( csne->ce_csn.bv_val );
