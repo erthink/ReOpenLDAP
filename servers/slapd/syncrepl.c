@@ -115,6 +115,7 @@ typedef struct syncinfo_s {
 	presentlist_t	si_presentlist;
 	LDAP			*si_ld;
 	Connection		*si_conn;
+	unsigned	si_opcnt;
 	LDAP_LIST_HEAD(np, nonpresent_entry)	si_nonpresentlist;
 #ifdef ENABLE_REWRITE
 	struct rewrite_info *si_rewrite;
@@ -955,6 +956,8 @@ syncrepl_process(
 		struct berval	bdn;
 		struct timeval *timeout;
 
+		op->o_opid = ++si->si_opcnt;
+
 		if ( rctrls ) {
 			ldap_controls_free( rctrls );
 			rctrls = NULL;
@@ -1453,6 +1456,7 @@ do_syncrepl(
 	connection_fake_init( &conn, &opbuf, ctx );
 	op = &opbuf.ob_op;
 	/* o_connids must be unique for slap_graduate_commit_csn */
+	conn.c_connid =
 	op->o_connid = SLAPD_SYNC_RID2SYNCCONN(si->si_rid);
 
 	op->o_managedsait = SLAP_CONTROL_NONCRITICAL;
@@ -3583,6 +3587,7 @@ syncrepl_del_nonpresent(
 			np_prev = np_list;
 			np_list = LDAP_LIST_NEXT( np_list, npe_link );
 
+			op->o_opid = ++si->si_opcnt;
 			if ( np_list && do_approx_csn )
 				slap_csn_shift( &csn, 1 );
 			slap_queue_csn( op, &csn );
