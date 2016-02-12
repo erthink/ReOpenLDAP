@@ -2026,7 +2026,6 @@ int connection_write(ber_socket_t s)
 		if ( c->c_n_ops_executing > connection_pool_max/2 ) break;
 
 		LDAP_STAILQ_REMOVE_HEAD( &c->c_pending_ops, o_next );
-		op->o_conn = NULL;
 
 		/* pending operations should not be marked for abandonment */
 		assert(!get_op_abandon(op));
