@@ -78,6 +78,7 @@ slap_op_free( Operation *op, void *ctx )
 	OperationBuffer *opbuf;
 
 	assert( op->o_conn == NULL );
+	assert( LDAP_STAILQ_NEXT(op, o_next) == NULL );
 
 	/* paranoia */
 	set_op_abandon(op, 1);
