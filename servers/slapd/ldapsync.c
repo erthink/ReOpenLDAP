@@ -72,6 +72,20 @@ slap_insert_csn_sids(
 
 /*----------------------------------------------------------------------------*/
 
+int slap_cookie_is_sid_here(const struct sync_cookie *cookie, int sid)
+{
+	int i;
+
+	for (i = 0; i < cookie->numcsns; ++i) {
+		if (sid == cookie->sids[i])
+			return 1;
+		if (sid < cookie->sids[i])
+			break;
+	}
+
+	return 0;
+}
+
 void slap_cookie_verify(const struct sync_cookie *cookie)
 {
 	int i;

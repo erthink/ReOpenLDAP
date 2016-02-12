@@ -91,6 +91,7 @@ do_abandon( Operation *op, SlapReply *rs )
 				/* FIXME: This traverses c_pending_ops yet again. */
 				LDAP_STAILQ_REMOVE( &op->o_conn->c_pending_ops,
 					o, Operation, o_next );
+				LDAP_STAILQ_NEXT(o, o_next) = NULL;
 				op->o_conn->c_n_ops_pending--;
 				op->o_conn = NULL;
 				slap_op_free( o, NULL );

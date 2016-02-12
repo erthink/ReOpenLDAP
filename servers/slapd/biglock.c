@@ -128,11 +128,13 @@ size_t slap_biglock_acquire(slap_biglock_t* bl) {
 		assert(bl->bl_recursion > 0);
 		assert(bl->bl_recursion < 42);
 		bl->bl_recursion += 1;
+		Debug(LDAP_DEBUG_NONE, "biglock: recursion++ (%d)\n", bl->bl_recursion);
 	} else {
 		rc = ldap_pvt_thread_mutex_lock(&bl->bl_mutex);
 		assert(rc == 0);
 		assert(bl->bl_recursion == 0);
 		assert(get_owner(bl) == thread_null);
+		Debug(LDAP_DEBUG_NONE, "biglock: acquire\n");
 
 		bl->_bl_owner = ldap_pvt_thread_self();
 		bl->bl_recursion = 1;
@@ -156,11 +158,13 @@ size_t slap_biglock_release(slap_biglock_t* bl) {
 	if (--bl->bl_recursion == 0) {
 		++bl->bl_age;
 		bl->_bl_owner = thread_null;
+		Debug(LDAP_DEBUG_NONE, "biglock: release\n");
 		rc = ldap_pvt_thread_mutex_unlock(&bl->bl_mutex);
 		assert(rc == 0);
 		if (bl->bl_free_on_release)
 			slap_biglock_free(bl);
-	}
+	} else
+		Debug(LDAP_DEBUG_NONE, "biglock: recursion-- (%d)\n", bl->bl_recursion);
 
 	return res;
 }
@@ -194,6 +198,7 @@ int slap_biglock_pool_pause ( BackendDB *bd ) {
 		bl->bl_age += 1;
 		bl->bl_recursion = 0;
 		bl->_bl_owner = thread_null;
+		Debug(LDAP_DEBUG_NONE, "biglock: pause-release\n");
 		rc = ldap_pvt_thread_mutex_unlock(&bl->bl_mutex);
 		assert(rc == 0);
 
@@ -203,6 +208,7 @@ int slap_biglock_pool_pause ( BackendDB *bd ) {
 		assert(rc == 0);
 		assert(bl->bl_recursion == 0);
 		assert(bl->_bl_owner == thread_null);
+		Debug(LDAP_DEBUG_NONE, "biglock: pause-acquire\n");
 		bl->_bl_owner = ldap_pvt_thread_self();
 		bl->bl_recursion = deep;
 		bl->bl_age += 1;
@@ -230,6 +236,7 @@ int slap_biglock_pool_pausecheck ( BackendDB *bd ) {
 		bl->bl_age += 1;
 		bl->bl_recursion = 0;
 		bl->_bl_owner = thread_null;
+		Debug(LDAP_DEBUG_NONE, "biglock: pausecheck-release\n");
 		rc = ldap_pvt_thread_mutex_unlock(&bl->bl_mutex);
 		assert(rc == 0);
 
@@ -239,6 +246,7 @@ int slap_biglock_pool_pausecheck ( BackendDB *bd ) {
 		assert(rc == 0);
 		assert(bl->bl_recursion == 0);
 		assert(get_owner(bl) == thread_null);
+		Debug(LDAP_DEBUG_NONE, "biglock: pausecheck-acquire\n");
 		bl->_bl_owner = ldap_pvt_thread_self();
 		bl->bl_recursion = deep;
 		bl->bl_age += 1;
