@@ -906,13 +906,15 @@ syncrepl_process(
 	syncinfo_t *si )
 {
 	static /* const */ struct timeval nowait = { 0, 0 };
+	struct timeval *wait_infinite = NULL;
+
 	BerElementBuffer berbuf;
 	BerElement	*ber = (BerElement *)&berbuf;
 	LDAPMessage	*msg = NULL;
 	LDAPControl	**rctrls = NULL;
 	struct sync_cookie syncCookie;
-	int rc, biglocked = 0;
-	slap_biglock_t *bl = slap_biglock_get(op->o_bd);
+	int rc;
+	slap_biglock_t* bl = NULL;
 
 	ber_init2( ber, NULL, LBER_USE_DER );
 	ber_set_option( ber, LBER_OPT_BER_MEMCTX, &op->o_tmpmemctx );
@@ -933,42 +935,30 @@ syncrepl_process(
 		ber_tag_t		si_tag;
 		Entry			*entry = NULL;
 		struct berval	bdn;
-		struct timeval *timeout;
-
-		op->o_opid = ++si->si_opcnt;
 
 		if ( rctrls ) {
 			ldap_controls_free( rctrls );
 			rctrls = NULL;
 		}
 
-		slap_cookie_clean_all( &syncCookie );
-
-		timeout = NULL; /* wait infinite */
-		if ( abs(si->si_type) == LDAP_SYNC_REFRESH_AND_PERSIST && si->si_refreshDone )
-			timeout = &nowait; /* no wait */
-
-		if (! timeout && biglocked) {
-			slap_biglock_release(bl);
-			biglocked = 0;
-		}
-
 		ldap_msgfree( msg );
-		rc = ldap_result( si->si_ld, si->si_msgid, LDAP_MSG_ONE, timeout, &msg );
+		rc = ldap_result( si->si_ld, si->si_msgid, LDAP_MSG_ONE,
+			(abs(si->si_type) != LDAP_SYNC_REFRESH_AND_PERSIST || !si->si_refreshDone)
+			? wait_infinite : &nowait, &msg );
 		if (slapd_shutdown)
 			rc = SYNC_REBUS2;
 		if (rc <= 0)
 			break;
 
-		if (! biglocked) {
-			/* LY: this is ugly solution, on other hand,
-			 * it is reasonable and necessary.
-			 * See https://github.com/ReOpen/ReOpenLDAP/issues/43
-			 */
-			slap_biglock_acquire(bl);
-			biglocked = 1;
-		}
+		assert( bl == NULL );
+		bl = slap_biglock_get(op->o_bd);
+		/* LY: this is ugly solution, on other hand,
+		 * it is reasonable and necessary.
+		 * See https://github.com/ReOpen/ReOpenLDAP/issues/43
+		 */
+		slap_biglock_acquire(bl);
 
+		op->o_opid = ++si->si_opcnt;
 		syncrepl_cookie_pull( op, si );
 		slap_cookie_clean_all( &syncCookie );
 		op->o_controls[slap_cids.sc_LDAPsync] = NULL;
@@ -1361,6 +1351,9 @@ syncrepl_process(
 			break;
 		}
 
+		slap_biglock_release(bl);
+		bl = NULL;
+
 		if ( ldap_pvt_thread_pool_pausing( &connection_pool )) {
 			rc = SYNC_PAUSED;
 			break;
@@ -1373,6 +1366,8 @@ syncrepl_process(
 	}
 
 done:
+	slap_biglock_release(bl);
+
 	if ( rc != LDAP_SUCCESS ) {
 		Debug( LDAP_DEBUG_ANY,
 			"syncrepl_process: %s (%d) %s\n",
@@ -1385,9 +1380,6 @@ done:
 	slap_cookie_free( &syncCookie, 0 );
 	ldap_msgfree( msg );
 	ldap_controls_free( rctrls );
-
-	if (biglocked)
-		slap_biglock_release(bl);
 
 	Debug( LDAP_DEBUG_SYNC, "<<= syncrep_process %s, rc %d\n", si->si_ridtxt, rc );
 	return rc;
@@ -1508,6 +1500,7 @@ reload:
 		op->o_dn = op->o_bd->be_rootdn;
 		op->o_ndn = op->o_bd->be_rootndn;
 		rc = syncrepl_process( op, si );
+
 		if ( rc == LDAP_SYNC_REFRESH_REQUIRED )	{
 			rc = syncrepl_process_search( op, si );
 			goto reload;
