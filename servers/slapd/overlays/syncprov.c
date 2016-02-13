@@ -236,16 +236,9 @@ syncprov_state_ctrl(
 	if ( a ) {
 		if ( csn ) {
 			assert( slap_csn_match( csn, a->a_nvals ));
-			/* LY: may skip cookie. */
-			if (reopenldap_mode_iddqd())
-				csn = NULL;
 		} else {
 			assert( entry_sync_state == LDAP_SYNC_ADD || entry_sync_state == LDAP_SYNC_MODIFY );
 		}
-	} else {
-		/* LY: CSN could be empty, when DN-base (itself) was added/deleted/etc
-			   How to check this?
-		assert ( csn || entry_sync_state == LDAP_SYNC_DELETE ); */
 	}
 
 	a = attr_find( e->e_attrs, slap_schema.si_ad_entryUUID );
