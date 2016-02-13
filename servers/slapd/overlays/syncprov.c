@@ -1428,7 +1428,8 @@ syncprov_matchops( Operation *op, opcookie *opc, int saveit )
 			continue;
 
 		/* Don't send ops back to the originator */
-		if ( opc->osid > 0 && opc->osid == ss->s_sid ) {
+		if ( op->o_tag != LDAP_REQ_DELETE
+				&& opc->osid > 0 && opc->osid == ss->s_sid ) {
 			Debug( LDAP_DEBUG_SYNC, "syncprov_matchops: %s skipping original sid %03x\n",
 				op->o_bd->be_nsuffix->bv_val, opc->osid );
 			continue;
