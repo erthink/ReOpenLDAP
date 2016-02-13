@@ -632,7 +632,14 @@ function wait_syncrepl {
 		RC=${PIPESTATUS[0]}
 		if [ "$RC" -ne 0 ]; then
 			echo "ldapsearch failed at provider ($RC, csn=$provider_csn)!"
-			dumpservers
+			sleep 1
+			local cores="$(find -L ../${SRCDIR}/tests -type f -name core)"
+			local sans="$(find -L ../${SRCDIR}/tests -type f -name 'tsan-log*' -o -name 'asan-log*')"
+			if [ -z "${cores}" -a -z "${sans}" ]; then
+				dumpservers
+			else
+				killservers
+			fi
 			exit $RC
 		fi
 
@@ -643,7 +650,14 @@ function wait_syncrepl {
 		RC=${PIPESTATUS[0]}
 		if [ "$RC" -ne 0 -a "$RC" -ne 32 ]; then
 			echo "ldapsearch failed at consumer ($RC, csn=$consumer_csn)!"
-			dumpservers
+			sleep 1
+			local cores="$(find -L ../${SRCDIR}/tests -type f -name core)"
+			local sans="$(find -L ../${SRCDIR}/tests -type f -name 'tsan-log*' -o -name 'asan-log*')"
+			if [ -z "${cores}" -a -z "${sans}" ]; then
+				dumpservers
+			else
+				killservers
+			fi
 			exit $RC
 		fi
 
