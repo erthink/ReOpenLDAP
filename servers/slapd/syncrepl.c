@@ -3490,10 +3490,27 @@ syncrepl_del_nonpresent(
 	op->o_time = slap_get_time();
 	op->ors_tlimit = SLAP_NO_LIMIT;
 
+	char buf[ LDAP_PVT_CSNSTR_BUFSIZE ];
+	BerValue csn = {sizeof(buf), buf};
+
+	if (which >= 0 && which < sc->numcsns
+			&& !( reopenldap_mode_iddqd() && SLAP_MULTIMASTER( si->si_be ) )) {
+		assert(which < sc->numcsns);
+		csn.bv_len = sc->ctxcsn[which].bv_len;
+		memcpy( buf, sc->ctxcsn[which].bv_val, csn.bv_len + 1 );
+	} else {
+		/* LY: here two cases:
+		 *  1) multi-master deletion while refresh-present;
+		 *  2) recovery a lost-delete(s);
+		 *  in the both cases we should update cookie to propagate. */
+		which = -1;
+		slap_get_csn(NULL, &csn);
+	}
+
 	if ( LogTest( LDAP_DEBUG_SYNC ) ) {
 		slap_cookie_debug_pair( "del_nonpresent",
 			"local", &si->si_syncCookie,
-			"remote", sc, which );
+			"target", sc, which );
 	}
 
 	if ( syncUUIDs ) {
@@ -3530,8 +3547,6 @@ syncrepl_del_nonpresent(
 		Filter mmf[2];
 		AttributeAssertion mmaa;
 		SlapReply rs_search = {REP_RESULT};
-		assert(sc->numcsns > 0);
-		assert(which >= 0);
 
 		memset( &an[0], 0, 2 * sizeof( AttributeName ) );
 		an[0].an_name = slap_schema.si_ad_entryUUID->ad_cname;
@@ -3589,20 +3604,10 @@ syncrepl_del_nonpresent(
 	op->o_nocaching = 0;
 
 	if ( !LDAP_LIST_EMPTY( &si->si_nonpresentlist ) ) {
-		char buf[ LDAP_PVT_CSNSTR_BUFSIZE ];
-		BerValue csn = {sizeof(buf), buf};
-
-		if (which < 0) {
-			slap_get_csn( NULL, &csn );
-		} else {
-			csn.bv_len = sc->ctxcsn[which].bv_len;
-			memcpy( buf, sc->ctxcsn[which].bv_val, csn.bv_len + 1 );
-		}
-
 		op->o_bd = si->si_wbe;
-		int do_approx_csn = 0;
-		if ( reopenldap_mode_iddqd()
-				/* && si->si_type == LDAP_SYNC_REFRESH_AND_PERSIST */ ) {
+
+		int hack_csn = 0;
+		if ( which >= 0 && reopenldap_mode_iddqd() ) {
 
 			int steps = 0;
 			np_list = LDAP_LIST_FIRST( &si->si_nonpresentlist );
@@ -3613,7 +3618,7 @@ syncrepl_del_nonpresent(
 
 			if (steps > 1) {
 				slap_csn_shift( &csn, 1 - steps );
-				do_approx_csn = 1;
+				hack_csn = 1;
 			}
 		}
 
@@ -3626,7 +3631,7 @@ syncrepl_del_nonpresent(
 			np_list = LDAP_LIST_NEXT( np_list, npe_link );
 
 			op->o_opid = ++si->si_opcnt;
-			if ( np_list && do_approx_csn )
+			if ( np_list && hack_csn )
 				slap_csn_shift( &csn, 1 );
 			slap_queue_csn( op, &csn );
 
@@ -3705,7 +3710,7 @@ syncrepl_del_nonpresent(
 			}
 
 			op->o_delete_glue_parent = 0;
-			if (! slap_graduate_commit_csn( op ))
+			if (!slap_graduate_commit_csn( op ))
 				slap_op_csn_clean( op );
 
 			ber_bvfree( np_prev->npe_name );
