@@ -2985,23 +2985,20 @@ syncrepl_entry(
 		assert( slap_csn_match( &dni.csn_incomming, syncCookie->ctxcsn ) );
 	}
 
-	rc = check_for_retard(si, syncCookie, &dni.csn_present,
-		syncCookie->numcsns ? syncCookie->ctxcsn : &dni.csn_incomming );
-	if (syncstate == LDAP_SYNC_DELETE)
-		rc &= ~RETARD_ALTER;
+	if (syncstate != LDAP_SYNC_DELETE || syncUUID[0].bv_len != 16) {
+		rc = check_for_retard(si, syncCookie, &dni.csn_present,
+			syncCookie->numcsns ? syncCookie->ctxcsn : &dni.csn_incomming );
 
-	if ( rc ) {
-		Debug( LDAP_DEBUG_SYNC, "syncrepl_entry: %s RETARD-%s(%d), %s, %s, %s\n",
-			si->si_ridtxt,
-			(syncstate == LDAP_SYNC_ADD) ? "add" :
-			(syncstate == LDAP_SYNC_MODIFY) ? "modify" :
-			(syncstate == LDAP_SYNC_DELETE) ? "delete" : "???",
-			rc, dni.dn.bv_val,
-			syncUUID[1].bv_val, dni.csn_incomming.bv_val);
-		if (syncuuid_inserted && !dni.csn_present.bv_val)
-			presentlist_delete( &si->si_presentlist, syncUUID );
-		rc = SYNCREPL_RETARDED;
-		goto done;
+		if ( rc ) {
+			Debug( LDAP_DEBUG_SYNC, "syncrepl_entry: %s RETARD-%s(%d), %s, %s, %s\n",
+				si->si_ridtxt, ldap_sync_state2str(syncstate),
+				rc, dni.dn.bv_val,
+				syncUUID[1].bv_val, dni.csn_incomming.bv_val);
+			if (syncuuid_inserted && !dni.csn_present.bv_val)
+				presentlist_delete( &si->si_presentlist, syncUUID );
+			rc = SYNCREPL_RETARDED;
+			goto done;
+		}
 	}
 
 	BerValue *csn = NULL;
