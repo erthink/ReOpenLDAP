@@ -2583,7 +2583,9 @@ syncprov_search_response( Operation *op, SlapReply *rs )
 			sid = slap_csn_get_sid( &entryCSN->a_nvals[0] );
 
 			/* Don't send changed entries back to the originator */
-			if ( sid == srs->sr_state.sid && srs->sr_state.numcsns ) {
+			if ( ! reopenldap_mode_iddqd()
+					/* LY: checking by SID is wrong, CSNs should be compared as below */
+					&& sid == srs->sr_state.sid && srs->sr_state.numcsns ) {
 				Debug( LDAP_DEBUG_SYNC,
 					"syncprov-response: sid %03x, Entry %s changed by peer, skip\n",
 					srs->sr_state.sid, rs->sr_entry->e_name.bv_val );
