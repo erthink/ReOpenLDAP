@@ -4418,23 +4418,21 @@ nonpresent_callback(
 				"PRESENT" );
 			presentlist_delete( &si->si_presentlist, &uuid->a_nvals[0] );
 		} else {
-			if (! is_entry_glue( rs->sr_entry )) {
-				Attribute *csn_present = attr_find(
-					rs->sr_entry->e_attrs, slap_schema.si_ad_entryCSN );
-				/* LY: Assumes that entry should not be deleted if its entryCSN
-				 * is recent than the CSN for the same SID in the cookie.
-				 * E.g. entry was created on a some SID, later than the provider
-				 * was synchronized with these SID. */
-				if (csn_present
-						&& check_for_retard(si, sc, csn_present->a_vals, NULL)) {
-					Debug( LDAP_DEBUG_SYNC,
-						"nonpresent_callback: %s UUID %s, dn %s, %s, entryCSN %s\n",
-						   si->si_ridtxt,
-						   uuid ? uuid->a_vals[0].bv_val : "n/a",
-						   rs->sr_entry->e_name.bv_val,
-						"recent-PRESENT", csn_present->a_vals->bv_val );
-					return LDAP_SUCCESS;
-				}
+			Attribute *csn_present = attr_find(
+				rs->sr_entry->e_attrs, slap_schema.si_ad_entryCSN );
+			/* LY: Assumes that entry should not be deleted if its entryCSN
+			 * is recent than the CSN for the same SID in the cookie.
+			 * E.g. entry was created on a some SID, later than the provider
+			 * was synchronized with these SID. */
+			if (csn_present
+					&& check_for_retard(si, sc, csn_present->a_vals, NULL)) {
+				Debug( LDAP_DEBUG_SYNC,
+					"nonpresent_callback: %s UUID %s, dn %s, %s, entryCSN %s\n",
+					   si->si_ridtxt,
+					   uuid ? uuid->a_vals[0].bv_val : "n/a",
+					   rs->sr_entry->e_name.bv_val,
+					"recent-PRESENT", csn_present->a_vals->bv_val );
+				return LDAP_SUCCESS;
 			}
 			np_entry = (struct nonpresent_entry *)
 				ch_calloc( 1, sizeof( struct nonpresent_entry ) );
