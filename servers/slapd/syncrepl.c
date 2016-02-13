@@ -2449,7 +2449,7 @@ static int check_for_retard(syncinfo_t *si, struct sync_cookie *sc,
 			origin = slap_csn_get_sid(csn_incomming);
 			for(i = 0; i < si->si_syncCookie.numcsns; ++i) {
 				if (origin == si->si_syncCookie.sids[i]) {
-					if (slap_csn_compare_ts(csn_incomming, &si->si_syncCookie.ctxcsn[i]) < 0)
+					if (slap_csn_compare_ts(csn_incomming, &si->si_syncCookie.ctxcsn[i]) <= 0)
 						/* LY: It is an "echo" of the notification from this server. */
 						rc |= RETARD_ECHO;
 					break;
