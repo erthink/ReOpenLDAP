@@ -2740,6 +2740,8 @@ syncprov_op_search( Operation *op, SlapReply *rs )
 		return rs->sr_err;
 	}
 
+	ldap_pvt_thread_mutex_lock( &si->si_ops_mutex );
+	ldap_pvt_thread_rdwr_rlock( &si->si_csn_rwlock );
 	srs = op->o_controls[slap_cids.sc_LDAPsync];
 
 	/* If this is a persistent search, set it up right away */
@@ -2766,6 +2768,8 @@ syncprov_op_search( Operation *op, SlapReply *rs )
 		ldap_pvt_thread_mutex_destroy( &so.s_mutex );
 
 		if ( rs->sr_err != LDAP_SUCCESS ) {
+			ldap_pvt_thread_rdwr_runlock( &si->si_csn_rwlock );
+			ldap_pvt_thread_mutex_unlock( &si->si_ops_mutex );
 			send_ldap_result( op, rs );
 			return rs->sr_err;
 		}
@@ -2778,7 +2782,6 @@ syncprov_op_search( Operation *op, SlapReply *rs )
 		sop->s_sid = srs->sr_state.sid;
 		sop->s_flags |= OS_REF_PREPARE | OS_REF_OP_SEARCH;
 
-		ldap_pvt_thread_mutex_lock( &si->si_ops_mutex );
 		while ( si->si_active ) {
 			/* Wait for active mods to finish before proceeding, as they
 			 * may already have inspected the si_ops list looking for
@@ -2786,6 +2789,7 @@ syncprov_op_search( Operation *op, SlapReply *rs )
 			 * doesn't help, as we may finish playing it before the
 			 * active mods gets added to it.
 			 */
+			ldap_pvt_thread_rdwr_runlock( &si->si_csn_rwlock );
 			ldap_pvt_thread_mutex_unlock( &si->si_ops_mutex );
 			if ( slapd_shutdown ) {
 				ch_free( sop );
@@ -2793,19 +2797,19 @@ syncprov_op_search( Operation *op, SlapReply *rs )
 			}
 			if ( ! slap_biglock_pool_pausecheck(op->o_bd) )
 				ldap_pvt_thread_yield();
+
 			ldap_pvt_thread_mutex_lock( &si->si_ops_mutex );
+			ldap_pvt_thread_rdwr_rlock( &si->si_csn_rwlock );
 		}
 		__sync_fetch_and_add(&si->si_leftover, 1);
 		sop->s_next = si->si_ops;
 		sop->s_si = si;
 		si->si_ops = sop;
-		ldap_pvt_thread_mutex_unlock( &si->si_ops_mutex );
 	}
 
 	/* snapshot the ctxcsn
 	 * Note: this must not be done before the psearch setup. (ITS#8365)
 	 */
-	ldap_pvt_thread_rdwr_rlock( &si->si_csn_rwlock );
 	if (reopenldap_mode_idkfa())
 		slap_cookie_verify( &si->si_cookie );
 	numcsns = si->si_cookie.numcsns;
@@ -2830,6 +2834,7 @@ syncprov_op_search( Operation *op, SlapReply *rs )
 	}
 
 	ldap_pvt_thread_rdwr_runlock( &si->si_csn_rwlock );
+	ldap_pvt_thread_mutex_unlock( &si->si_ops_mutex );
 
 	/* If we have a cookie, handle the PRESENT lookups */
 	if ( srs->sr_state.numcsns ) {
