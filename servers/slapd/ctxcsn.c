@@ -110,7 +110,6 @@ slap_get_commit_csn(
 		if ( csne->ce_opid == op->o_opid && csne->ce_connid == op->o_connid ) {
 			assert( sid < 0 || sid == csne->ce_sid );
 			csne->ce_state = SLAP_CSN_COMMIT;
-			sid = csne->ce_sid;
 			break;
 		}
 	}
