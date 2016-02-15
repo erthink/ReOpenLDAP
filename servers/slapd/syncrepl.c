@@ -4281,11 +4281,7 @@ dn_callback(
 				if ( dni->csn_incomming.bv_len && dni->csn_present.bv_len ) {
 					struct berval *old = &dni->csn_present,
 						*new = &dni->csn_incomming;
-					int rc;
-					ber_len_t len = old->bv_len;
-					if ( len > new->bv_len )
-						len = new->bv_len;
-					rc = memcmp( old->bv_val, new->bv_val, len );
+					int rc = slap_csn_compare_ts(old, new);
 					if ( rc > 0 ) {
 						Debug( LDAP_DEBUG_SYNC,
 							"dn_callback : new entry is older than ours "
