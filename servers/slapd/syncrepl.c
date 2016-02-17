@@ -135,6 +135,7 @@ typedef struct syncinfo_s {
 	char	si_refreshDelete;
 	char	si_refreshPresent;
 	char	si_refreshDone;
+	char	si_got_present_list;
 	char	si_strict_refresh;	/* stop listening during fallback refresh */
 	char	si_syncdata;
 	char	si_logstate;
@@ -628,6 +629,7 @@ syncrepl_start(
 	slap_cookie_clean_all( &si->si_syncCookie_in );
 	si->si_refreshDelete = 0;
 	si->si_refreshPresent = 0;
+	si->si_got_present_list = 0;
 	presentlist_free( &si->si_presentlist );
 	quorum_notify_status( si->si_be, si->si_rid, 0 );
 
@@ -1176,6 +1178,7 @@ syncrepl_process(
 					syncrepl_del_nonpresent( op, si, NULL, &syncCookie, lead );
 				}
 				presentlist_free( &si->si_presentlist );
+				si->si_got_present_list = 0;
 			} else if ( refreshDeletes ) {
 				Debug( LDAP_DEBUG_SYNC,
 					"syncrepl_process: %s unexpected 'refreshDeletes' for RefreshAndPersist mode\n",
@@ -1287,6 +1290,7 @@ syncrepl_process(
 							int i;
 							for ( i = 0; !BER_BVISNULL( &syncUUIDs[i] ); i++ )
 								presentlist_insert( &si->si_presentlist, &syncUUIDs[i] );
+							si->si_got_present_list = 1;
 							Debug( LDAP_DEBUG_SYNC, "syncrepl_process: !refreshDeletes, syncUUIDs => presentlist\n" );
 						}
 					}
@@ -1304,7 +1308,8 @@ syncrepl_process(
 				assert(rc == 0);
 				int lead = compare_cookies( &si->si_syncCookie, &syncCookie );
 				int force_refresh_present = 0;
-				if (lead < 0 && reopenldap_mode_iddqd() && si->si_refreshPresent == 1
+				if (lead < 0 && si->si_got_present_list
+					&& reopenldap_mode_iddqd() && si->si_refreshPresent == 1
 					&& si_tag != LDAP_TAG_SYNC_NEW_COOKIE && syncCookie.numcsns
 					&& syncrepl_enough_sids( si, &syncCookie ) ) {
 					Debug( LDAP_DEBUG_SYNC,
@@ -1325,6 +1330,7 @@ syncrepl_process(
 
 					rc = syncrepl_cookie_push( si, op, &syncCookie);
 					presentlist_free( &si->si_presentlist );
+					si->si_got_present_list = 0;
 				} else {
 					Debug( LDAP_DEBUG_SYNC,
 						"syncrepl_process: %s LDAP_RES_INTERMEDIATE, cookie-lead < 0, presentList=%s\n",
@@ -3521,7 +3527,12 @@ syncrepl_del_nonpresent(
 			op->o_tmpfree( op->ors_filterstr.bv_val, op->o_tmpmemctx );
 		}
 		si->si_refreshDelete ^= NP_DELETE_ONE;
+	} else if (! si->si_got_present_list ) {
+		Debug( LDAP_DEBUG_SYNC, "syncrepl_del_nonpresent: %s, no present-list\n",
+			   si->si_ridtxt );
 	} else {
+		si->si_got_present_list = 0;
+
 		Filter *of = NULL;
 		Filter mmf[2];
 		AttributeAssertion mmaa;
@@ -4367,6 +4378,7 @@ nonpresent_callback(
 
 	if ( rs->sr_type == REP_RESULT ) {
 		presentlist_free( &si->si_presentlist );
+		si->si_got_present_list = 0;
 	} else if ( rs->sr_type == REP_SEARCH ) {
 		Attribute *uuid = NULL;
 		if ( !( si->si_refreshDelete & NP_DELETE_ONE ) ) {
