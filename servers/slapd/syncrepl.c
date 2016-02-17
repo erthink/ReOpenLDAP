@@ -562,7 +562,9 @@ syncrepl_pull_contextCSN(
 	 * allowed, and all changes will already be reflected in
 	 * the cookieState.
 	 */
+	op->o_dont_replicate = 1;
 	rc = backend_operational( op, &rs );
+	op->o_dont_replicate = 0;
 	if ( rc == LDAP_SUCCESS && a.a_nvals ) {
 		vector = slap_cookie_pull(
 			&si->si_cookieState->cs_cookie, a.a_nvals, 1 );

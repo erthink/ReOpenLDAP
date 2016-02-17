@@ -722,6 +722,7 @@ syncprov_findcsn( Operation *op, find_csn_t mode, struct berval *pivot )
 	fop.ors_tlimit = SLAP_NO_LIMIT;
 	fop.ors_filter = &cf;
 	fop.ors_filterstr.bv_val = buf;
+	fop.o_dont_replicate = 1;
 
 again:
 	switch( mode ) {
@@ -3194,7 +3195,22 @@ syncprov_operational(
 			ldap_pvt_thread_rdwr_rlock( &si->si_csn_rwlock );
 			if (reopenldap_mode_idkfa())
 				slap_cookie_verify( &si->si_cookie );
-			if ( si->si_cookie.numcsns ) {
+
+			BerValue status = {0};
+			int mock = 0;
+			if (! op->o_dont_replicate && si->si_showstatus ) {
+				mock = quorum_query_status(op->o_bd, &status)
+#if SS_FETCHING
+					| read_int__tsan_workaround(&si->si_fetching)
+#endif
+					| slap_biglock_deep(op->o_bd)
+					| read_int__tsan_workaround(&si->si_active);
+
+				Debug( LDAP_DEBUG_SYNC, "syncprov_gate: %s\n",
+					mock ? "dirty" : "clean" );
+			}
+
+			if ( si->si_cookie.numcsns || mock ) {
 				if ( !a ) {
 					for ( ap = &rs->sr_operational_attrs; *ap;
 						ap=&(*ap)->a_next );
@@ -3216,7 +3232,10 @@ syncprov_operational(
 					a->a_vals = NULL;
 					a->a_numvals = 0;
 				}
-				attr_valadd( a, si->si_cookie.ctxcsn, si->si_cookie.ctxcsn, si->si_cookie.numcsns );
+				if (si->si_cookie.numcsns)
+					attr_valadd( a, si->si_cookie.ctxcsn, si->si_cookie.ctxcsn, si->si_cookie.numcsns );
+				if (mock)
+					attr_valadd( a, &status, &status, 1 );
 			}
 			ldap_pvt_thread_rdwr_runlock( &si->si_csn_rwlock );
 		}
