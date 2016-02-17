@@ -2855,9 +2855,6 @@ syncprov_op_search( Operation *op, SlapReply *rs )
 			goto bailout;
 		}
 
-		if ( !si->si_nopres )
-			do_present = SS_PRESENT;
-
 		/* If there are SIDs we don't recognize in the cookie, drop them */
 		for (i=0; i<srs->sr_state.numcsns; ) {
 			for (j=i; j<numcsns; j++) {
@@ -2888,8 +2885,8 @@ syncprov_op_search( Operation *op, SlapReply *rs )
 			changed = SS_CHANGED;
 			slap_cookie_clean_csns( &srs->sr_state, op->o_tmpmemctx );
 			Debug( LDAP_DEBUG_SYNC,
-				"syncprov_op_search: sid %03x, clean-consumer-cookie (%d != %d)\n",
-				srs->sr_state.sid, srs->sr_state.numcsns, numcsns );
+				"syncprov_op_search: sid %03x, useless consumer-cookie\n",
+				srs->sr_state.sid );
 			goto shortcut;
 		}
 
@@ -2954,7 +2951,6 @@ bailout:
 
 		/* If nothing has changed, shortcut it */
 		if ( !changed && !dirty ) {
-			do_present = 0;
 no_change:
 			if ( !(op->o_sync_mode & SLAP_SYNC_PERSIST) ) {
 				LDAPControl	*ctrls[2];
@@ -2985,6 +2981,9 @@ no_change:
 		Debug( LDAP_DEBUG_SYNC,
 			"syncprov_op_search: sid %03x\n\trange-min %d %s\n\trange-max %d %s\n",
 			srs->sr_state.sid, minsid, mincsn.bv_val, maxsid, maxcsn.bv_val );
+
+		if ( !si->si_nopres )
+			do_present = SS_PRESENT;
 
 		/* Do we have a sessionlog for this search? */
 		sl=si->si_logs;
@@ -3048,11 +3047,6 @@ no_change:
 			srs->sr_state.numcsns = 0;
 		} else {
 			gotstate = 1;
-			/* If changed and doing Present lookup, send Present UUIDs */
-			if ( do_present && syncprov_findcsn( op, FIND_PRESENT, 0 ) !=
-				LDAP_SUCCESS ) {
-				goto bailout;
-			}
 		}
 	} else {
 		/* The consumer knows nothing, we know nothing. OK. */
@@ -3063,6 +3057,12 @@ no_change:
 	}
 
 shortcut:
+
+	/* If changed and doing Present lookup, send Present UUIDs */
+	if ( do_present && syncprov_findcsn( op, FIND_PRESENT, 0 ) != LDAP_SUCCESS ) {
+		goto bailout;
+	}
+
 	/* Append CSN range to search filter, save original filter
 	 * for persistent search evaluation
 	 */
