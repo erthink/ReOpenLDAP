@@ -294,7 +294,6 @@ int slap_cookie_pull(
 	} else {
 		if (unlikely( vector < 0 )) {
 			slap_csns_backward_debug( __FUNCTION__, dst->ctxcsn, src );
-			assert(vector >= 0);
 		}
 		ber_bvarray_free( src );
 	}
