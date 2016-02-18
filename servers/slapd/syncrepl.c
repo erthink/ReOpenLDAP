@@ -726,7 +726,7 @@ syncrepl_start(
 }
 
 static int
-syncrepl_enough_sids( syncinfo_t *si, struct sync_cookie *remote )
+syncrepl_enough_sids( syncinfo_t *si, struct sync_cookie *remote, int lead )
 {
 	struct sync_cookie *local = &si->si_syncCookie;
 
@@ -746,7 +746,7 @@ syncrepl_enough_sids( syncinfo_t *si, struct sync_cookie *remote )
 		return local->numcsns ? 0 : 1;
 	}
 
-	return local->numcsns == remote->numcsns;
+	return lead >= 0 && local->numcsns == remote->numcsns;
 }
 
 static int
@@ -1172,13 +1172,16 @@ syncrepl_process(
 				 *	1) err code : LDAP_BUSY ...
 				 *	2) on err policy : stop service, stop sync, retry
 				 */
-				if ( refreshDeletes == 0 && lead >= 0 && rc == LDAP_SUCCESS &&
-						syncrepl_enough_sids( si, &syncCookie ) ) {
-					Debug( LDAP_DEBUG_SYNC, "syncrepl_process: !refreshDeletes, del_nonpresent(presentlist)\n" );
-					rc = syncrepl_del_nonpresent( op, si, NULL, &syncCookie, lead );
+				if ( refreshDeletes == 0 ) {
+					if (rc == LDAP_SUCCESS && syncrepl_enough_sids( si, &syncCookie, lead )) {
+						Debug( LDAP_DEBUG_SYNC,
+							"syncrepl_process: %s, !refreshDeletes, %sdel_nonpresent(presentlist)\n",
+							si->si_ridtxt, (lead < 0) ? "boosted-" : "" );
+						rc = syncrepl_del_nonpresent( op, si, NULL, &syncCookie, lead );
+					}
+					presentlist_free( &si->si_presentlist );
+					si->si_got_present_list = 0;
 				}
-				presentlist_free( &si->si_presentlist );
-				si->si_got_present_list = 0;
 			} else if ( refreshDeletes ) {
 				Debug( LDAP_DEBUG_SYNC,
 					"syncrepl_process: %s unexpected 'refreshDeletes' for RefreshAndPersist mode\n",
@@ -1282,7 +1285,9 @@ syncrepl_process(
 							 * on remote DIT. Therefore is always safe to delete
 							 * such from local DIT, without checking a cookie. */
 							int lead = compare_cookies( &si->si_syncCookie, &syncCookie );
-							Debug( LDAP_DEBUG_SYNC, "syncrepl_process: refreshDeletes, del_nonpresent(syncUUIDs)\n" );
+							Debug( LDAP_DEBUG_SYNC,
+								"syncrepl_process: %s, del_nonpresent(syncUUIDs)\n",
+								si->si_ridtxt );
 							rc = syncrepl_del_nonpresent( op, si, syncUUIDs, &syncCookie, lead );
 							goto done_intermediate;
 						} else {
@@ -1290,75 +1295,58 @@ syncrepl_process(
 							for ( i = 0; !BER_BVISNULL( &syncUUIDs[i] ); i++ )
 								presentlist_insert( &si->si_presentlist, &syncUUIDs[i] );
 							si->si_got_present_list = 1;
-							Debug( LDAP_DEBUG_SYNC, "syncrepl_process: !refreshDeletes, syncUUIDs => presentlist\n" );
+							Debug( LDAP_DEBUG_SYNC, "syncrepl_process: %s, syncUUID#%d => presentlist\n",
+								si->si_ridtxt, i );
 						}
 					}
-					rc = 0;
+					rc = LDAP_SUCCESS;
 					break;
 				}
 				default:
 					Debug( LDAP_DEBUG_ANY,
 						"syncrepl_process: %s unknown syncinfo tag (%ld)\n",
 						si->si_ridtxt, (long) si_tag );
-					rc = 0;
+					rc = LDAP_SUCCESS;
 					goto done_intermediate;
 				}
 
-				assert(rc == 0);
 				int lead = compare_cookies( &si->si_syncCookie, &syncCookie );
-				int force_refresh_present = 0;
-				if (lead < 0 && si->si_got_present_list
-					&& reopenldap_mode_iddqd() && si->si_refreshPresent == 1
-					&& si_tag != LDAP_TAG_SYNC_NEW_COOKIE && syncCookie.numcsns
-					&& syncrepl_enough_sids( si, &syncCookie ) ) {
-					Debug( LDAP_DEBUG_SYNC,
-						"syncrepl_process: %s multimaster, force refreshPresent\n",
-						si->si_ridtxt );
-					force_refresh_present = 1;
-				}
-
-				if ( lead >= 0 || force_refresh_present ) {
-					if ( si->si_refreshPresent == 1
-							&& si_tag != LDAP_TAG_SYNC_NEW_COOKIE
-							&& syncrepl_enough_sids( si, &syncCookie ) ) {
+				if ( si->si_refreshPresent == 1 && si_tag != LDAP_TAG_SYNC_NEW_COOKIE ) {
+					if (rc == LDAP_SUCCESS && syncrepl_enough_sids( si, &syncCookie, lead )) {
 						Debug( LDAP_DEBUG_SYNC,
-							"syncrepl_process: %s, refreshPresent, del_nonpresent(presentlist)\n",
-							si->si_ridtxt );
+							"syncrepl_process: %s, refreshPresent, %sdel_nonpresent(presentlist)\n",
+							si->si_ridtxt, (lead < 0) ? "boosted-" : "" );
 						rc = syncrepl_del_nonpresent( op, si, NULL, &syncCookie, lead );
 					}
-
-					if (rc == LDAP_SUCCESS)
-						rc = syncrepl_cookie_push( si, op, &syncCookie);
 					presentlist_free( &si->si_presentlist );
 					si->si_got_present_list = 0;
-				} else {
-					Debug( LDAP_DEBUG_SYNC,
-						"syncrepl_process: %s LDAP_RES_INTERMEDIATE, cookie-lead < 0, presentList=%s\n",
-						si->si_ridtxt,
-						si->si_presentlist.opacity ? "filled" : "empty" );
+				}
+
+				if ( lead >= 0 && rc == LDAP_SUCCESS) {
+					rc = syncrepl_cookie_push( si, op, &syncCookie);
 				}
 
 				if ( refreshDone )
 					syncrepl_refresh_done( si, rc );
 
 				Debug( LDAP_DEBUG_SYNC,
-					"syncrepl_process: %s LDAP_RES_INTERMEDIATE, end\n",
-					si->si_ridtxt );
+					"syncrepl_process: %s LDAP_RES_INTERMEDIATE, end, presentList=%s\n",
+					si->si_ridtxt, si->si_got_present_list ? "exists" : "no" );
 			} else {
 				Debug( LDAP_DEBUG_ANY, "syncrepl_process: %s "
 					"unknown intermediate response (%d)\n",
 					si->si_ridtxt, rc );
-				rc = 0;
+				rc = LDAP_SUCCESS;
 			}
 
 		done_intermediate:
 			ber_bvarray_free_x( syncUUIDs, op->o_tmpmemctx );
 			ldap_memfree( retoid );
 			ber_bvfree( retdata );
+			Debug( LDAP_DEBUG_SYNC, "syncrepl_process: %s LDAP_RES_INTERMEDIATE, done, rc = %d\n",
+				si->si_ridtxt, rc );
 			if ( rc )
 				goto done;
-
-			Debug( LDAP_DEBUG_SYNC, "syncrepl_process: LDAP_RES_INTERMEDIATE, done, rc = 0\n" );
 			break;
 		}
 		default:
