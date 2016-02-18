@@ -815,7 +815,7 @@ static void syncrepl_resync_end( syncinfo_t *si, int rc ) {
 		syncrepl_refresh_done(si, rc);
 
 	quorum_notify_status( si->si_be, si->si_rid,
-		rc == LDAP_SUCCESS && si->si_refreshDone );
+		rc == LDAP_SUCCESS && si->si_refreshDone && ! si->si_got_present_list );
 
 	if (si->si_refreshBeg) {
 		quorum_syncrepl_gate( si->si_be, si, 0 );
