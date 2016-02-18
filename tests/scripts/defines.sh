@@ -641,7 +641,7 @@ function wait_syncrepl {
 			2>${TESTDIR}/ldapsearch.error | tee ${TESTDIR}/ldapsearch.output \
 				|& grep -i ^contextCSN; exit ${PIPESTATUS[0]})
 		RC=${PIPESTATUS[0]}
-		if [ "$RC" -ne 0 -a "$RC" -ne 32 ]; then
+		if [ "$RC" -ne 0 -a "$RC" -ne 32 -a "$RC" -ne 34 ]; then
 			echo "ldapsearch failed at consumer ($RC, csn=$consumer_csn)!"
 			dumpservers
 			exit $RC

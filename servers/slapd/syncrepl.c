@@ -137,6 +137,7 @@ typedef struct syncinfo_s {
 	char	si_refreshDone;
 	char	si_got_present_list;
 	char	si_strict_refresh;	/* stop listening during fallback refresh */
+	char	si_require_present; /* requre preset-check phase on refresh */
 	char	si_syncdata;
 	char	si_logstate;
 	char	si_too_old;
@@ -1380,7 +1381,15 @@ done:
 			si->si_ridtxt, rc, ldap_err2string( rc ) );
 	}
 
-	if ( rc && rc != LDAP_SYNC_REFRESH_REQUIRED && rc != SYNC_PAUSED )
+	if ( si->si_require_present && rc == LDAP_SUCCESS
+			&& si->si_refreshDone && ! si->si_refreshPresent ) {
+		Debug( LDAP_DEBUG_SYNC,
+			"syncrepl: refresh-end, %s, no-present-phase, resync\n",
+			si->si_ridtxt );
+		rc = LDAP_SYNC_REFRESH_REQUIRED;
+	}
+
+	if ( rc && rc != SYNC_PAUSED )
 		syncrepl_shutdown_io( si );
 
 	slap_cookie_free( &syncCookie, 0 );
@@ -1496,7 +1505,6 @@ do_syncrepl(
 		rc = syncrepl_start( op, si );
 	}
 
-reload:
 	/* Process results */
 	if ( rc == LDAP_SUCCESS ) {
 		ldap_get_option( si->si_ld, LDAP_OPT_DESC, &s );
@@ -1506,11 +1514,6 @@ reload:
 		op->o_dn = op->o_bd->be_rootdn;
 		op->o_ndn = op->o_bd->be_rootndn;
 		rc = syncrepl_process( op, si );
-
-		if ( rc == LDAP_SYNC_REFRESH_REQUIRED )	{
-			rc = syncrepl_process_search( op, si );
-			goto reload;
-		}
 	}
 	syncrepl_resync_end( si, rc );
 
@@ -4763,6 +4766,7 @@ config_suffixm( ConfigArgs *c, syncinfo_t *si )
 #define LOGFILTERSTR	"logfilter"
 #define SUFFIXMSTR		"suffixmassage"
 #define	STRICT_REFRESH	"strictrefresh"
+#define	REQUIRE_PRESENT	"requirecheckpresent"
 
 /* FIXME: undocumented */
 #define EXATTRSSTR		"exattrs"
@@ -5262,6 +5266,10 @@ parse_syncrepl_line(
 					STRLENOF( STRICT_REFRESH ) ) )
 		{
 			si->si_strict_refresh = 1;
+		} else if ( !strncasecmp( c->argv[ i ], REQUIRE_PRESENT,
+					STRLENOF( REQUIRE_PRESENT ) ) )
+		{
+			si->si_require_present = 1;
 		} else if ( !bindconf_parse( c->argv[i], &si->si_bindconf ) ) {
 			si->si_got |= GOT_BINDCONF;
 		} else {
@@ -5671,6 +5679,12 @@ syncrepl_unparse( syncinfo_t *si, struct berval *bv )
 
 	if ( si->si_strict_refresh ) {
 		len = snprintf( ptr, WHATSLEFT, " " STRICT_REFRESH );
+		if ( WHATSLEFT <= len ) return;
+		ptr += len;
+	}
+
+	if ( si->si_require_present ) {
+		len = snprintf( ptr, WHATSLEFT, " " REQUIRE_PRESENT );
 		if ( WHATSLEFT <= len ) return;
 		ptr += len;
 	}
