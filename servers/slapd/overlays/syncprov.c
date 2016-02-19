@@ -164,9 +164,10 @@ typedef struct syncprov_info_t {
 	int		si_chkops;	/* checkpointing info */
 	int		si_chktime;
 	int		si_numops;	/* number of ops since last checkpoint */
-	int		si_nopres;	/* Skip present phase */
-	int		si_usehint;	/* use reload hint */
-	int		si_active;	/* True if there are active mods */
+	char	si_nopres;	/* Skip present phase */
+	char	si_usehint;	/* use reload hint */
+	char	si_showstatus;	/* add a mock contextCSN if sync is not perfect */
+	int		si_active;	/* >0 if there are active mods */
 	int		si_dirty;	/* True if the context is dirty, i.e changes
 						 * have been made without updating the csn. */
 	time_t	si_chklast;	/* time of last checkpoint */
@@ -3227,7 +3228,8 @@ enum {
 	SP_CHKPT = 1,
 	SP_SESSL,
 	SP_NOPRES,
-	SP_USEHINT
+	SP_USEHINT,
+	SP_SHOWSTATUS
 };
 
 static ConfigDriver sp_cf_gen;
@@ -3249,6 +3251,10 @@ static ConfigTable spcfg[] = {
 		sp_cf_gen, "( OLcfgOvAt:1.4 NAME 'olcSpReloadHint' "
 			"DESC 'Observe Reload Hint in Request control' "
 			"SYNTAX OMsBoolean SINGLE-VALUE )", NULL, NULL },
+	{ "syncprov-showstatus", NULL, 2, 2, 0, ARG_ON_OFF|ARG_MAGIC|SP_SHOWSTATUS,
+		sp_cf_gen, "( OLcfgOvAt:1.9 NAME 'olcSpShowStatus' "
+			"DESC 'Show a Mock contextCSN Until Synchronization is Perfect' "
+			"SYNTAX OMsBoolean SINGLE-VALUE )", NULL, NULL },
 	{ NULL, NULL, 0, 0, 0, ARG_IGNORED }
 };
 
@@ -3261,6 +3267,7 @@ static ConfigOCs spocs[] = {
 			"$ olcSpSessionlog "
 			"$ olcSpNoPresent "
 			"$ olcSpReloadHint "
+			"$ olcSpShowStatus "
 		") )",
 			Cft_Overlay, spcfg },
 	{ NULL, 0, NULL }
@@ -3314,6 +3321,13 @@ sp_cf_gen(ConfigArgs *c)
 				rc = 1;
 			}
 			break;
+		case SP_SHOWSTATUS:
+			if ( si->si_showstatus ) {
+				c->value_int = 1;
+			} else {
+				rc = 1;
+			}
+			break;
 		}
 		return rc;
 	} else if ( c->op == LDAP_MOD_DELETE ) {
@@ -3337,6 +3351,12 @@ sp_cf_gen(ConfigArgs *c)
 		case SP_USEHINT:
 			if ( si->si_usehint )
 				si->si_usehint = 0;
+			else
+				rc = LDAP_NO_SUCH_ATTRIBUTE;
+			break;
+		case SP_SHOWSTATUS:
+			if ( si->si_showstatus )
+				si->si_showstatus = 0;
 			else
 				rc = LDAP_NO_SUCH_ATTRIBUTE;
 			break;
@@ -3406,6 +3426,8 @@ sp_cf_gen(ConfigArgs *c)
 	case SP_USEHINT:
 		si->si_usehint = c->value_int;
 		break;
+	case SP_SHOWSTATUS:
+		si->si_showstatus = c->value_int;
 	}
 	return rc;
 }
