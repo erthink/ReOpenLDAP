@@ -145,7 +145,7 @@ typedef struct syncinfo_s {
 	char	si_cutoff_csnbuf[ LDAP_PVT_CSNSTR_BUFSIZE ];
 } syncinfo_t;
 
-static void syncrepl_del_nonpresent(
+static int syncrepl_del_nonpresent(
 					Operation *, syncinfo_t *, BerVarray syncUUIDs,
 					struct sync_cookie *, int which );
 static int syncrepl_message_to_op(
@@ -1175,7 +1175,7 @@ syncrepl_process(
 				if ( refreshDeletes == 0 && lead >= 0 && rc == LDAP_SUCCESS &&
 						syncrepl_enough_sids( si, &syncCookie ) ) {
 					Debug( LDAP_DEBUG_SYNC, "syncrepl_process: !refreshDeletes, del_nonpresent(presentlist)\n" );
-					syncrepl_del_nonpresent( op, si, NULL, &syncCookie, lead );
+					rc = syncrepl_del_nonpresent( op, si, NULL, &syncCookie, lead );
 				}
 				presentlist_free( &si->si_presentlist );
 				si->si_got_present_list = 0;
@@ -1283,8 +1283,7 @@ syncrepl_process(
 							 * such from local DIT, without checking a cookie. */
 							int lead = compare_cookies( &si->si_syncCookie, &syncCookie );
 							Debug( LDAP_DEBUG_SYNC, "syncrepl_process: refreshDeletes, del_nonpresent(syncUUIDs)\n" );
-							syncrepl_del_nonpresent( op, si, syncUUIDs, &syncCookie, lead );
-							rc = 0;
+							rc = syncrepl_del_nonpresent( op, si, syncUUIDs, &syncCookie, lead );
 							goto done_intermediate;
 						} else {
 							int i;
@@ -1325,10 +1324,11 @@ syncrepl_process(
 						Debug( LDAP_DEBUG_SYNC,
 							"syncrepl_process: %s, refreshPresent, del_nonpresent(presentlist)\n",
 							si->si_ridtxt );
-						syncrepl_del_nonpresent( op, si, NULL, &syncCookie, lead );
+						rc = syncrepl_del_nonpresent( op, si, NULL, &syncCookie, lead );
 					}
 
-					rc = syncrepl_cookie_push( si, op, &syncCookie);
+					if (rc == LDAP_SUCCESS)
+						rc = syncrepl_cookie_push( si, op, &syncCookie);
 					presentlist_free( &si->si_presentlist );
 					si->si_got_present_list = 0;
 				} else {
@@ -2712,6 +2712,26 @@ presentlist_free( presentlist_t *list )
 }
 
 static int
+presentlist_empty( presentlist_t *list )
+{
+	if (list->opacity) {
+#if HASHUUID
+		Avlnode **array = (Avlnode **) list->opacity;
+		int i = HASHUUID;
+
+		while(--i >= 0) {
+			if (array[i]) {
+				return 0;
+			}
+		}
+#else
+		return 0;
+#endif
+	}
+	return 1;
+}
+
+static int
 syncuuid_cmp( const void* a, const void* b )
 {
 	return memcmp( a, b, UUIDLEN );
@@ -3435,8 +3455,7 @@ struct nonpresent_context {
 	struct sync_cookie *sc;
 };
 
-static void
-syncrepl_del_nonpresent(
+static int syncrepl_del_nonpresent(
 	Operation *op,
 	syncinfo_t *si,
 	BerVarray syncUUIDs,
@@ -3714,6 +3733,21 @@ syncrepl_del_nonpresent(
 
 		op->o_bd = be;
 	}
+
+	rc = LDAP_SUCCESS;
+	if (! syncUUIDs) {
+		int empty = presentlist_empty(&si->si_presentlist);
+		int strict = reopenldap_mode_idclip();
+		Debug( LDAP_DEBUG_SYNC,
+			"syncrepl_del_nonpresent: %s, present-list=%s, %s\n",
+			si->si_ridtxt, empty ? "exhausted" : "leftover",
+			(strict && !empty) ? "resync" : "done" );
+		if ( strict && !empty )
+			rc = LDAP_SYNC_REFRESH_REQUIRED;
+	}
+	presentlist_free( &si->si_presentlist );
+
+	return rc;
 }
 
 static int
@@ -3923,7 +3957,7 @@ syncrepl_cookie_push(
 		assert( slap_csns_match( sc.ctxcsn, si->si_cookieState->cs_cookie.ctxcsn ) );
 		assert( slap_csns_compare( sc.ctxcsn, syncCookie->ctxcsn ) >= 0 );
 		slap_cookie_free( &sc, 0 );
-		rc = 0;
+		rc = LDAP_SUCCESS;
 	} else {
 		slap_callback cb = { NULL };
 		Backend *be = op->o_bd;
@@ -4376,10 +4410,7 @@ nonpresent_callback(
 	char *present_uuid = NULL;
 	struct nonpresent_entry *np_entry;
 
-	if ( rs->sr_type == REP_RESULT ) {
-		presentlist_free( &si->si_presentlist );
-		si->si_got_present_list = 0;
-	} else if ( rs->sr_type == REP_SEARCH ) {
+	if ( rs->sr_type == REP_SEARCH ) {
 		Attribute *uuid = NULL;
 		if ( !( si->si_refreshDelete & NP_DELETE_ONE ) ) {
 			uuid = attr_find( rs->sr_entry->e_attrs, slap_schema.si_ad_entryUUID );
