@@ -3875,13 +3875,7 @@ syncrepl_add_glue(
 	op->o_req_dn = e->e_name;
 	op->o_req_ndn = e->e_nname;
 	op->ora_e = e;
-	if (reopenldap_mode_iddqd()) {
-		/* LY: don't replicate glue additions,
-		 * it should be done by on receiver-side by itself. */
-		op->o_dont_replicate = 1;
-	}
 	rc = op->o_bd->bd_info->bi_op_add( op, &rs_add );
-	op->o_dont_replicate = 0;
 	if ( rs_add.sr_err == LDAP_SUCCESS ) {
 		if ( op->ora_e == e )
 			be_entry_release_w( op, e );
