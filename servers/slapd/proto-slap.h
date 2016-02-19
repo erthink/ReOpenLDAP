@@ -1331,6 +1331,13 @@ void slap_cookie_compose(
 	int sid,
 	void *memctx );
 void slap_cookie_debug( const char *prefix, const struct sync_cookie *sc );
+void slap_cookie_debug_pair( const char *prefix,
+	 const char* x_name, const struct sync_cookie *x_cookie,
+	 const char* y_name, const struct sync_cookie *y_cookie, int y_marker);
+void slap_cookie_backward_debug(
+	const char *prefix,
+	const struct sync_cookie* current,
+	const struct sync_cookie* next );
 int slap_cookie_merge_csnset(
 	BackendDB *bd,
 	struct sync_cookie *dst,
