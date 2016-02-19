@@ -636,7 +636,7 @@ findcsn_cb( Operation *op, SlapReply *rs )
 #define UUID_LEN	16
 
 typedef struct fpres_cookie {
-	int num;
+	int num, total;
 	BerVarray uuids;
 	char *last;
 } fpres_cookie;
@@ -652,13 +652,13 @@ findpres_cb( Operation *op, SlapReply *rs )
 	switch ( rs->sr_type ) {
 	case REP_SEARCH:
 		a = attr_find( rs->sr_entry->e_attrs, slap_schema.si_ad_entryUUID );
-		if ( a ) {
-			assert(a->a_nvals[0].bv_len == UUID_LEN);
+		if ( a && a->a_nvals[0].bv_len == UUID_LEN ) {
 			pc->uuids[pc->num].bv_val = pc->last;
 			pc->uuids[pc->num].bv_len = UUID_LEN;
 			memcpy( pc->last, a->a_nvals[0].bv_val, UUID_LEN );
 			pc->last += UUID_LEN;
 			pc->num++;
+			pc->total++;
 		}
 		ret = LDAP_SUCCESS;
 		if ( pc->num != SLAP_SYNCUUID_SET_SIZE )
@@ -682,7 +682,7 @@ findpres_cb( Operation *op, SlapReply *rs )
 }
 
 static int
-syncprov_findcsn( Operation *op, find_csn_t mode, struct berval *csn )
+syncprov_findcsn( Operation *op, find_csn_t mode, struct berval *pivot )
 {
 	slap_overinst		*on = (slap_overinst *)op->o_bd->bd_info;
 	syncprov_info_t		*si = on->on_bi.bi_private;
@@ -760,7 +760,7 @@ again:
 		break;
 	case FIND_CSN:
 		if ( BER_BVISEMPTY( &cf.f_av_value )) {
-			cf.f_av_value = *csn;
+			cf.f_av_value = *pivot;
 		}
 		fop.o_dn = op->o_bd->be_rootdn;
 		fop.o_ndn = op->o_bd->be_rootndn;
@@ -831,6 +831,9 @@ again:
 				rs_reinit( &frs, REP_RESULT );
 				goto again;
 			}
+			Debug( LDAP_DEBUG_SYNC,
+				"syncprov-findcsn: sid %d, pivot %s, not-found\n",
+				srs->sr_state.sid, pivot->bv_val );
 			rc = LDAP_NO_SUCH_OBJECT;
 		}
 		break;
@@ -838,10 +841,10 @@ again:
 		if ( LogTest( LDAP_DEBUG_SYNC ) ) {
 			ldap_pvt_thread_rdwr_rlock( &si->si_csn_rwlock );
 			Debug( LDAP_DEBUG_SYNC,
-				"syncprov_op_search: sid %03x, find-present %u, rc %d\n",
-				srs->sr_state.sid, pcookie.num, rc );
+				"syncprov-findpresent: sid %d, pivot %s, find-present %u, rc %d\n",
+				srs->sr_state.sid, pivot->bv_val, pcookie.total, rc );
 			slap_cookie_debug_pair(
-				"syncprov-search: find-present",
+				"syncprov-findpresent:",
 				"provider", &si->si_cookie,
 				"consumer", &srs->sr_state, -1 );
 			ldap_pvt_thread_rdwr_runlock( &si->si_csn_rwlock );
@@ -2725,9 +2728,8 @@ syncprov_op_search( Operation *op, SlapReply *rs )
 	searchstate *ss;
 	sync_control *srs;
 	BerVarray ctxcsn = NULL;
+	BerValue pivot_csn = {0};
 	int i, *sids = NULL, numcsns;
-	struct berval mincsn, maxcsn = {0};
-	int minsid = 0, maxsid = 0;
 	int dirty = 0;
 	int rc;
 
@@ -2855,6 +2857,7 @@ syncprov_op_search( Operation *op, SlapReply *rs )
 			goto bailout;
 		}
 
+		int pivot_sid = -1;
 		/* If there are SIDs we don't recognize in the cookie, drop them */
 		for (i=0; i<srs->sr_state.numcsns; ) {
 			for (j=i; j<numcsns; j++) {
@@ -2877,6 +2880,12 @@ syncprov_op_search( Operation *op, SlapReply *rs )
 				srs->sr_state.ctxcsn[j].bv_len = 0;
 				continue;
 			}
+
+			if ( BER_BVISEMPTY( &pivot_csn )
+					|| slap_csn_compare_ts( &pivot_csn, &srs->sr_state.ctxcsn[i] ) > 0 ) {
+				pivot_csn = srs->sr_state.ctxcsn[i];
+				pivot_sid = sids[j];
+			}
 			i++;
 		}
 
@@ -2891,26 +2900,14 @@ syncprov_op_search( Operation *op, SlapReply *rs )
 		}
 
 		/* Find the smallest CSN which differs from contextCSN */
-		mincsn.bv_len = 0;
-		maxcsn.bv_len = 0;
 		for ( i=0,j=0; i<srs->sr_state.numcsns; i++ ) {
 			int newer;
 			while ( srs->sr_state.sids[i] != sids[j] ) j++;
 			assert(j < numcsns);
-			if ( BER_BVISEMPTY( &maxcsn ) ||
-					slap_csn_compare_ts( &maxcsn, &srs->sr_state.ctxcsn[i] ) < 0 ) {
-				maxcsn = srs->sr_state.ctxcsn[i];
-				maxsid = sids[j];
-			}
 			newer = slap_csn_compare_ts( &srs->sr_state.ctxcsn[i], &ctxcsn[j] );
 			/* If our state is newer, tell consumer about changes */
-			if ( newer < 0) {
+			if ( newer < 0 ) {
 				changed = SS_CHANGED;
-				if ( BER_BVISEMPTY( &mincsn )
-						|| slap_csn_compare_ts( &mincsn, &srs->sr_state.ctxcsn[i] ) > 0 ) {
-					mincsn = srs->sr_state.ctxcsn[i];
-					minsid = sids[j];
-				}
 			} else if ( newer > 0 && sids[j] == slap_serverID ) {
 				/* our state is older, complain to consumer */
 				rs->sr_err = LDAP_UNWILLING_TO_PERFORM;
@@ -2940,14 +2937,12 @@ bailout:
 				return rs->sr_err;
 			}
 		}
-		if ( BER_BVISEMPTY( &mincsn )) {
-			mincsn = maxcsn;
-			minsid = maxsid;
-		}
 
 		Debug( LDAP_DEBUG_SYNC,
-			"syncprov_op_search: sid %03x, provider's state is %s\n",
-			srs->sr_state.sid, (changed == SS_CHANGED) ? "newer" : "the same" );
+			"syncprov_op_search: sid %03x, provider's state is %s%s, pivot %s\n",
+			srs->sr_state.sid, (changed == SS_CHANGED) ? "newer" : "the same",
+			dirty ? " and dirty" : "",
+			pivot_csn.bv_val );
 
 		/* If nothing has changed, shortcut it */
 		if ( !changed && !dirty ) {
@@ -2978,10 +2973,6 @@ no_change:
 			goto shortcut;
 		}
 
-		Debug( LDAP_DEBUG_SYNC,
-			"syncprov_op_search: sid %03x\n\trange-min %d %s\n\trange-max %d %s\n",
-			srs->sr_state.sid, minsid, mincsn.bv_val, maxsid, maxcsn.bv_val );
-
 		if ( !si->si_nopres )
 			do_present = SS_PRESENT;
 
@@ -2997,14 +2988,14 @@ no_change:
 				int i;
 				for ( i=0; i<sl->sl_cookie.numcsns; i++ ) {
 					/* SID not present == new enough */
-					if ( minsid < sl->sl_cookie.sids[i] ) {
+					if ( pivot_sid < sl->sl_cookie.sids[i] ) {
 						do_play = 1;
 						break;
 					}
 					/* SID present */
-					if ( minsid == sl->sl_cookie.sids[i] ) {
+					if ( pivot_sid == sl->sl_cookie.sids[i] ) {
 						/* new enough? */
-						if ( slap_csn_compare_ts( &mincsn, &sl->sl_cookie.ctxcsn[i] ) >= 0 )
+						if ( slap_csn_compare_ts( &pivot_csn, &sl->sl_cookie.ctxcsn[i] ) >= 0 )
 							do_play = 1;
 						break;
 					}
@@ -3022,7 +3013,7 @@ no_change:
 			}
 		}
 		/* Is the CSN still present in the database? */
-		rc = syncprov_findcsn( op, FIND_CSN, &mincsn );
+		rc = syncprov_findcsn( op, FIND_CSN, &pivot_csn );
 		if ( rc != LDAP_SUCCESS ) {
 			if ( rc != LDAP_NO_SUCH_OBJECT ) {
 				rs->sr_err = rc;
@@ -3059,7 +3050,7 @@ no_change:
 shortcut:
 
 	/* If changed and doing Present lookup, send Present UUIDs */
-	if ( do_present && syncprov_findcsn( op, FIND_PRESENT, 0 ) != LDAP_SUCCESS ) {
+	if ( do_present && syncprov_findcsn( op, FIND_PRESENT, &pivot_csn ) != LDAP_SUCCESS ) {
 		goto bailout;
 	}
 
@@ -3086,7 +3077,12 @@ shortcut:
 #ifdef LDAP_COMP_MATCH
 		fava->f_ava->aa_cf = NULL;
 #endif
-		ber_dupbv_x( &fava->f_ava->aa_value, &mincsn, op->o_tmpmemctx );
+		/* LY: Cut-off filter's key after the timestamp.
+		 * Otherwise is a chance to skip an a entry which has
+		 * the same timestamp in entryCSN, but different SID. */
+		pivot_csn.bv_val[pivot_csn.bv_len = 30] = '\0';
+
+		ber_dupbv_x( &fava->f_ava->aa_value, &pivot_csn, op->o_tmpmemctx );
 		fava->f_next = op->ors_filter;
 		op->ors_filter = fand;
 		if ( sop ) {
