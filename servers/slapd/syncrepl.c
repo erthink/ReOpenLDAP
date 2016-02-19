@@ -140,7 +140,6 @@ typedef struct syncinfo_s {
 	char	si_logstate;
 	char	si_too_old;
 	char	si_keep_cookie4search;
-	char	si_syncflood_workaround;
 	char	si_ridtxt[ STRLENOF("rid=999") + 1 ];
 	char	si_cutoff_csnbuf[ LDAP_PVT_CSNSTR_BUFSIZE ];
 } syncinfo_t;
@@ -168,6 +167,7 @@ static struct berval * slap_uuidstr_from_normalized(
 static int syncrepl_add_glue_ancestors(
 	Operation* op, Entry *e );
 static int syncrepl_resync_begin( syncinfo_t *si );
+static void syncrepl_resync_end( syncinfo_t *si, int rc );
 
 /* delta-mmr overlay handler */
 static int syncrepl_op_modify( Operation *op, SlapReply *rs );
@@ -395,7 +395,7 @@ init_syncrepl(syncinfo_t *si)
 	si->si_exattrs = exattrs;
 }
 
-void syncrepl_shutdown_io( syncinfo_t *si )
+static void syncrepl_shutdown_io( syncinfo_t *si )
 {
 	if ( si->si_conn ) {
 		Debug( LDAP_DEBUG_ANY,
@@ -482,6 +482,7 @@ syncrepl_process_search(
 		si->si_type = si->si_ctype;
 	}
 
+	slap_cookie_clean_all( &si->si_syncCookie_in );
 	syncrepl_cookie_pull( op, si );
 	slap_cookie_debug( "refresh-begin-cookie", &si->si_syncCookie );
 	if ( si->si_syncCookie.numcsns > 0 ) {
@@ -619,9 +620,6 @@ syncrepl_start(
 	void	*ssl;
 #endif
 
-	/* LY: workaround for SYNC-flood, when connection to syncprov
-	 * re-establish too often because of limit-concurrent-refresh is reached. */
-	char early_reconnect_limit = 2;
 	assert(si->si_ld == NULL);
 	si->si_ld = NULL;
 
@@ -629,29 +627,14 @@ syncrepl_start(
 	si->si_refreshDelete = 0;
 	si->si_refreshPresent = 0;
 	presentlist_free( &si->si_presentlist );
-
-	if (si->si_syncflood_workaround >= early_reconnect_limit) {
-		rc = syncrepl_resync_begin(si);
-		if ( rc != LDAP_SUCCESS ) {
-			goto done;
-		}
-	}
+	quorum_notify_status( si->si_be, si->si_rid, 0 );
 
 	rc = slap_client_connect( &si->si_ld, &si->si_bindconf );
 	if ( rc != LDAP_SUCCESS ) {
-		si->si_syncflood_workaround = 0;
-		goto done;
+		return rc;
 	}
 	op->o_protocol = LDAP_VERSION3;
 	ldap_set_gentle_shutdown( si->si_ld, syncrepl_gentle_shutdown );
-
-	if (si->si_syncflood_workaround < early_reconnect_limit) {
-		rc = syncrepl_resync_begin(si);
-		if ( rc != LDAP_SUCCESS ) {
-			si->si_syncflood_workaround++;
-			goto done;
-		}
-	}
 
 	/* Set SSF to strongest of TLS, SASL SSFs */
 	op->o_sasl_ssf = 0;
@@ -680,6 +663,11 @@ syncrepl_start(
 	ldap_set_option( si->si_ld, LDAP_OPT_DEREF, &rc );
 
 	ldap_set_option( si->si_ld, LDAP_OPT_REFERRALS, LDAP_OPT_OFF );
+
+	rc = syncrepl_resync_begin(si);
+	if ( rc != LDAP_SUCCESS ) {
+		return rc;
+	}
 
 	/* We've just started up, or the remote server hasn't sent us
 	 * any meaningful state.
@@ -728,11 +716,6 @@ syncrepl_start(
 		Debug( LDAP_DEBUG_ANY, "syncrepl_start: %s "
 			"ldap_search_ext: %s (%d)\n",
 			si->si_ridtxt, ldap_err2string( rc ), rc );
-	}
-
-done:
-	if ( rc != LDAP_SUCCESS ) {
-		syncrepl_shutdown_io(si);
 	}
 
 	return rc;
@@ -790,16 +773,14 @@ compare_cookies( struct sync_cookie *local, struct sync_cookie *remote )
 }
 
 static int syncrepl_resync_begin( syncinfo_t *si ) {
+	assert(	si->si_refreshBeg == 0);
 	si->si_refreshDone = 0;
-	si->si_refreshBeg = 0;
 	quorum_notify_status( si->si_be, si->si_rid, 0 );
+
 	if (quorum_syncrepl_gate(si->si_be, si, 1)) {
-		if (si->si_syncflood_workaround == 0) {
-			Debug( LDAP_DEBUG_ANY,
-				"syncrepl: defers refresh %s "
-				"limit-concurrent was reached\n",
-				si->si_ridtxt );
-		}
+		Debug( LDAP_DEBUG_ANY,
+			"syncrepl: yielding %s, another running\n",
+			si->si_ridtxt );
 		return SYNC_REFRESH_YIELD;
 	}
 	si->si_refreshBeg = slap_get_time();
@@ -832,8 +813,10 @@ static void syncrepl_resync_end( syncinfo_t *si, int rc ) {
 	quorum_notify_status( si->si_be, si->si_rid,
 		rc == LDAP_SUCCESS && si->si_refreshDone );
 
-	if (rc != LDAP_SUCCESS || si->si_refreshDone)
+	if (si->si_refreshBeg) {
 		quorum_syncrepl_gate( si->si_be, si, 0 );
+		si->si_refreshBeg = 0;
+	}
 }
 
 static int
@@ -1442,6 +1425,7 @@ do_syncrepl(
 	si->si_too_old = 0;
 
 	if ( si->si_ctype < 1 ) {
+		rc = LDAP_SERVER_DOWN;
 		goto deleted;
 	}
 
