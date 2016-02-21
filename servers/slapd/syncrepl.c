@@ -5615,6 +5615,13 @@ syncrepl_unparse( syncinfo_t *si, struct berval *bv )
 			ptr = lutil_strcopy( ptr, bc.bv_val );
 		}
 	}
+
+	if ( si->si_strict_refresh ) {
+		len = snprintf( ptr, WHATSLEFT, " " STRICT_REFRESH );
+		if ( WHATSLEFT <= len ) return;
+		ptr += len;
+	}
+
 	bc.bv_len = ptr - buf;
 	bc.bv_val = buf;
 	ber_dupbv( bv, &bc );
