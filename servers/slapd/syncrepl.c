@@ -2807,8 +2807,7 @@ syncrepl_entry(
 	struct sync_cookie *syncCookie )
 {
 	Backend *be = op->o_bd;
-	slap_callback	cb = { NULL, NULL, NULL, NULL };
-	int syncuuid_inserted = 0;
+	slap_callback	cb = { NULL };
 
 	SlapReply	rs_search = {REP_RESULT};
 	Filter f = {0};
@@ -2826,9 +2825,14 @@ syncrepl_entry(
 	assert(slap_biglock_owned(op->o_bd));
 	assert( BER_BVISEMPTY( &op->o_csn ) );
 
-	if (( syncstate == LDAP_SYNC_PRESENT || syncstate == LDAP_SYNC_ADD ) ) {
-		if ( !si->si_refreshPresent && !si->si_refreshDone ) {
-			syncuuid_inserted = presentlist_insert( &si->si_presentlist, syncUUID );
+	int syncuuid_inserted = 0;
+	if ( syncstate < LDAP_SYNC_DELETE
+			&& !si->si_refreshPresent && !si->si_refreshDone ) {
+		syncuuid_inserted = presentlist_insert( &si->si_presentlist, syncUUID );
+
+		if ( syncuuid_inserted ) {
+			Debug( LDAP_DEBUG_SYNC, "syncrepl_entry: %s inserted UUID %s\n",
+				si->si_ridtxt, syncUUID[1].bv_val );
 		}
 	}
 
@@ -2838,9 +2842,6 @@ syncrepl_entry(
 		if ( entry == NULL ) {
 			return 0;
 		}
-	}
-
-	if ( syncstate != LDAP_SYNC_DELETE ) {
 		Attribute *entry_uuid = attr_find( entry->e_attrs, slap_schema.si_ad_entryUUID );
 		Attribute *entry_csn = attr_find( entry->e_attrs, slap_schema.si_ad_entryCSN );
 		if (reopenldap_mode_idclip()) {
@@ -2879,13 +2880,7 @@ syncrepl_entry(
 	f.f_ava = &ava;
 	ava.aa_desc = slap_schema.si_ad_entryUUID;
 	ava.aa_value = *syncUUID;
-
-	if ( syncuuid_inserted ) {
-		Debug( LDAP_DEBUG_SYNC, "syncrepl_entry: %s inserted UUID %s\n",
-			si->si_ridtxt, syncUUID[1].bv_val );
-	}
 	op->ors_filter = &f;
-
 	op->ors_filterstr.bv_len = STRLENOF( "(entryUUID=)" ) + syncUUID[1].bv_len;
 	op->ors_filterstr.bv_val = (char *) slap_sl_malloc(
 		op->ors_filterstr.bv_len + 1, op->o_tmpmemctx );
