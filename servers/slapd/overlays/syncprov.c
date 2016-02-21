@@ -121,6 +121,7 @@ int is_syncops_abandoned(const syncops *so)
 typedef struct sync_control {
 	struct sync_cookie sr_state;
 	int sr_rhint;
+	int sr_jammed;
 } sync_control;
 
 #ifndef o_sync /* moved back to slap.h */
@@ -2776,7 +2777,7 @@ syncprov_search_response( Operation *op, SlapReply *rs )
 			if ( !BER_BVISNULL( &cookie ))
 				op->o_tmpfree( cookie.bv_val, op->o_tmpmemctx );
 
-			if ( ss->ss_so && rs->sr_err == LDAP_SUCCESS ) {
+			if ( ss->ss_so && rs->sr_err == LDAP_SUCCESS && !srs->sr_jammed ) {
 				/* Detach this Op from frontend control */
 				ldap_pvt_thread_mutex_lock( &op->o_conn->c_mutex );
 
@@ -2813,6 +2814,14 @@ syncprov_search_response( Operation *op, SlapReply *rs )
 			}
 		}
 
+		if ( srs->sr_jammed && rs->sr_err == LDAP_SUCCESS ) {
+			Debug( LDAP_DEBUG_SYNC,
+				"syncprov-response: sid %03x,%s%s, force resync\n",
+				srs->sr_state.sid, srs->sr_jammed ? " jammed" : "",
+				(ss->ss_flags & SS_PRESENT) ? "" : " no-present" );
+			send_ldap_error(op, rs,
+				LDAP_SYNC_REFRESH_REQUIRED, "unable to provide robust sync");
+		}
 		if ( rs->sr_err != LDAP_SUCCESS ) {
 			/* LY: return error if have, otherwise just continue */
 			return rs->sr_err;
@@ -2876,6 +2885,7 @@ syncprov_op_search( Operation *op, SlapReply *rs )
 
 		if ( rs->sr_err != LDAP_SUCCESS ) {
 			ch_free( so );
+			rs->sr_text = "wrong sync base";
 			send_ldap_result( op, rs );
 			return rs->sr_err;
 		}
@@ -2986,6 +2996,7 @@ syncprov_op_search( Operation *op, SlapReply *rs )
 				continue;
 			}
 
+			/* LY: Find the smallest CSN */
 			if ( BER_BVISEMPTY( &pivot_csn )
 					|| slap_csn_compare_ts( &pivot_csn, &srs->sr_state.ctxcsn[i] ) > 0 ) {
 				pivot_csn = srs->sr_state.ctxcsn[i];
@@ -2994,17 +3005,7 @@ syncprov_op_search( Operation *op, SlapReply *rs )
 			i++;
 		}
 
-		if (srs->sr_state.numcsns != numcsns) {
-			/* consumer doesn't have the right number of CSNs */
-			changed = SS_CHANGED;
-			slap_cookie_clean_csns( &srs->sr_state, op->o_tmpmemctx );
-			Debug( LDAP_DEBUG_SYNC,
-				"syncprov_op_search: sid %03x, useless consumer-cookie\n",
-				srs->sr_state.sid );
-			goto shortcut;
-		}
-
-		/* Find the smallest CSN which differs from contextCSN */
+		/* LY: comparison consumer's and provider's CSNs */
 		for ( i=0,j=0; i<srs->sr_state.numcsns; i++ ) {
 			int newer;
 			while ( srs->sr_state.sids[i] != sids[j] ) j++;
@@ -3037,6 +3038,17 @@ bailout:
 			}
 		}
 
+		if ( srs->sr_state.numcsns != numcsns ) {
+			/* consumer doesn't have the right set of CSNs */
+			changed = SS_CHANGED;
+			slap_cookie_clean_csns( &srs->sr_state, op->o_tmpmemctx );
+			Debug( LDAP_DEBUG_SYNC,
+				"syncprov_op_search: sid %03x, useless consumer-cookie\n",
+				srs->sr_state.sid );
+			srs->sr_jammed = reopenldap_mode_idclip();
+			goto shortcut;
+		}
+
 		Debug( LDAP_DEBUG_SYNC,
 			"syncprov_op_search: sid %03x, provider's state is %s%s, pivot %s\n",
 			srs->sr_state.sid, (changed == SS_CHANGED) ? "newer" : "the same",
@@ -3045,8 +3057,9 @@ bailout:
 
 		/* If nothing has changed, shortcut it */
 		if ( !changed && !dirty ) {
-			if (reopenldap_mode_iddqd() && SLAP_MULTIMASTER( op->o_bd->bd_self )
-					&& !si->si_nopres && !si->si_logs) {
+			if ( reopenldap_mode_iddqd()
+					&& SLAP_MULTIMASTER( op->o_bd->bd_self )
+					&& !si->si_nopres && !si->si_logs ) {
 				Debug( LDAP_DEBUG_SYNC,
 					"syncprov_op_search: sid %03x, force present-check\n",
 					 srs->sr_state.sid );
@@ -3124,7 +3137,7 @@ no_change:
 		if ( rc != LDAP_SUCCESS ) {
 			if ( rc != LDAP_NO_SUCH_OBJECT ) {
 				rs->sr_err = rc;
-				rs->sr_text = "sync cookie is stale";
+				rs->sr_text = "unable to provide robust sync";
 				goto bailout;
 			}
 			/* No, so a reload is required */
@@ -3134,7 +3147,9 @@ no_change:
 				rs->sr_text = "sync cookie is stale";
 				goto bailout;
 			}
-			slap_cookie_clean_csns(&srs->sr_state, op->o_tmpmemctx);
+			if (! reopenldap_mode_iddqd())
+				/* LY: Hm, why we should clean cookie in this case ? */
+				slap_cookie_clean_csns(&srs->sr_state, op->o_tmpmemctx);
 		} else {
 			gotstate = 1;
 		}
@@ -3147,9 +3162,9 @@ no_change:
 	}
 
 shortcut:
-
 	/* If changed and doing Present lookup, send Present UUIDs */
 	if ( do_present && syncprov_findcsn( op, FIND_PRESENT, &pivot_csn ) != LDAP_SUCCESS ) {
+		rs->sr_text = "unable to provide robust sync";
 		goto bailout;
 	}
 
@@ -3232,8 +3247,12 @@ shortcut:
 	 * us into persist phase
 	 */
 	if ( (changed | dirty | do_present) == 0 ) {
-		rs->sr_err = LDAP_SUCCESS;
 		rs->sr_nentries = 0;
+		rs->sr_err = LDAP_SUCCESS;
+		if (srs->sr_jammed) {
+			rs->sr_err = LDAP_SYNC_REFRESH_REQUIRED;
+			rs->sr_text = "unable to provide robust sync";
+		}
 		send_ldap_result( op, rs );
 		return rs->sr_err;
 	}
