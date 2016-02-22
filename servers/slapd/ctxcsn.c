@@ -95,7 +95,7 @@ slap_get_commit_csn(
 	Operation *op,
 	struct berval *maxcsn )
 {
-	struct slap_csn_entry *csne;
+	struct slap_csn_entry *csne, *self;
 	BackendDB *be = op->o_bd->bd_self;
 	int sid = -1;
 
@@ -106,9 +106,11 @@ slap_get_commit_csn(
 
 	ldap_pvt_thread_mutex_lock( &be->be_pcl_mutex );
 
+	self = NULL;
 	LDAP_TAILQ_FOREACH( csne, be->be_pending_csn_list, ce_csn_link ) {
 		if ( csne->ce_opid == op->o_opid && csne->ce_connid == op->o_connid ) {
 			assert( sid < 0 || sid == csne->ce_sid );
+			self = csne;
 			csne->ce_state = SLAP_CSN_COMMIT;
 			break;
 		}
@@ -140,6 +142,10 @@ slap_get_commit_csn(
 						break;
 					} else {
 						LDAP_BUG();
+					}
+					if (csne == self) {
+						/* LY: don't go ahead */
+						break;
 					}
 				}
 			}
