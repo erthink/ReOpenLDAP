@@ -2673,8 +2673,7 @@ syncprov_search_response( Operation *op, SlapReply *rs )
 	} else if ( rs->sr_type == REP_RESULT && rs->sr_err == LDAP_SUCCESS ) {
 		struct berval cookie = BER_BVNULL;
 
-		if ( reopenldap_mode_iddqd() /* LY: cookie for quorum's auto-sids */
-			|| (( ss->ss_flags & SS_CHANGED )
+		if ((( ss->ss_flags & (SS_CHANGED | SS_PRESENT) )
 				&& ss->ss_ctxcsn && !BER_BVISNULL( &ss->ss_ctxcsn[0] )) ) {
 			syncprov_compose_cookie( op, &cookie, ss->ss_ctxcsn, srs->sr_state.rid );
 			Debug( LDAP_DEBUG_SYNC, "syncprov-response: cookie=%s\n", cookie.bv_val );
@@ -2962,6 +2961,14 @@ bailout:
 
 		/* If nothing has changed, shortcut it */
 		if ( !changed && !dirty ) {
+			if (reopenldap_mode_iddqd() && SLAP_MULTIMASTER( op->o_bd->bd_self )
+					&& !si->si_nopres && !si->si_logs) {
+				Debug( LDAP_DEBUG_SYNC,
+					"syncprov_op_search: sid %03x, force present-check\n",
+					 srs->sr_state.sid );
+				do_present = SS_PRESENT;
+				goto shortcut;
+			}
 no_change:
 			if ( !(op->o_sync_mode & SLAP_SYNC_PERSIST) ) {
 				LDAPControl	*ctrls[2];
@@ -3148,7 +3155,7 @@ shortcut:
 	 * the refresh phase, just invoke the response callback to transition
 	 * us into persist phase
 	 */
-	if ( !changed && !dirty ) {
+	if ( (changed | dirty | do_present) == 0 ) {
 		rs->sr_err = LDAP_SUCCESS;
 		rs->sr_nentries = 0;
 		send_ldap_result( op, rs );
