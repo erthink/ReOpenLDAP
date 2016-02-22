@@ -1301,7 +1301,17 @@ syncrepl_process(
 
 				assert(rc == 0);
 				int lead = compare_cookies( &si->si_syncCookie, &syncCookie );
-				if ( lead >= 0 ) {
+				int force_refresh_present = 0;
+				if (lead < 0 && reopenldap_mode_iddqd() && si->si_refreshPresent == 1
+					&& si_tag != LDAP_TAG_SYNC_NEW_COOKIE && syncCookie.numcsns
+					&& syncrepl_enough_sids( si, &syncCookie ) ) {
+					Debug( LDAP_DEBUG_SYNC,
+						"syncrepl_process: %s multimaster, force refreshPresent\n",
+						si->si_ridtxt );
+					force_refresh_present = 1;
+				}
+
+				if ( lead >= 0 || force_refresh_present ) {
 					if ( si->si_refreshPresent == 1
 							&& si_tag != LDAP_TAG_SYNC_NEW_COOKIE
 							&& syncrepl_enough_sids( si, &syncCookie ) ) {
