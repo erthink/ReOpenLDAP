@@ -40,14 +40,12 @@ struct config_reply_s;	/* config.h */
 LDAP_SLAPD_F (void) slap_biglock_init LDAP_P(( BackendDB *be ));
 LDAP_SLAPD_F (void) slap_biglock_destroy LDAP_P(( BackendDB *be ));
 LDAP_SLAPD_F (slap_biglock_t*) slap_biglock_get LDAP_P(( BackendDB *bd ));
-LDAP_SLAPD_F (size_t) slap_biglock_acquire LDAP_P(( slap_biglock_t *bl ));
-LDAP_SLAPD_F (size_t) slap_biglock_release LDAP_P(( slap_biglock_t *bl ));
+LDAP_SLAPD_F (void) slap_biglock_acquire LDAP_P(( slap_biglock_t *bl ));
+LDAP_SLAPD_F (void) slap_biglock_release LDAP_P(( slap_biglock_t *bl ));
 LDAP_SLAPD_F (int) slap_biglock_call_be LDAP_P((
    slap_operation_t which,
    Operation *op,
    SlapReply *rs ));
-LDAP_SLAPD_F (size_t) slap_biglock_age LDAP_P(( BackendDB *be ));
-LDAP_SLAPD_F (size_t) slap_biglock_evo LDAP_P(( BackendDB *be ));
 LDAP_SLAPD_F (int) slap_biglock_deep LDAP_P(( BackendDB *be ));
 LDAP_SLAPD_F (int) slap_biglock_owned LDAP_P(( BackendDB *be ));
 LDAP_SLAPD_F (int) slap_biglock_pool_pausing LDAP_P(( BackendDB *bd ));
