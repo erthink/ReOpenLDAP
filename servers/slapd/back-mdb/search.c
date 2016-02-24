@@ -345,17 +345,23 @@ mdb_writewait( Operation *op, slap_callback *sc )
 {
 	ww_ctx *ww = sc->sc_private;
 	MDB_val key, data;
+	int rc;
 	if ( !ww->flag ) {
-		if ( ww->mcd
-			&& ! mdb_cursor_get( ww->mcd, &key, &data, MDB_GET_CURRENT ) ) {
-			memcpy( &ww->key, key.mv_data, sizeof(ID) );
-			ww->data.mv_size = data.mv_size;
-			ww->data.mv_data = op->o_tmpalloc( data.mv_size, op->o_tmpmemctx );
-			memcpy(ww->data.mv_data, data.mv_data, data.mv_size);
+		if ( ww->mcd ) {
+			rc = mdb_cursor_get( ww->mcd, &key, &data, MDB_GET_CURRENT );
+			assert(rc == MDB_SUCCESS);
+			if (likely( rc == MDB_SUCCESS )) {
+				memcpy( &ww->key, key.mv_data, sizeof(ID) );
+				ww->data.mv_size = data.mv_size;
+				ww->data.mv_data = op->o_tmpalloc( data.mv_size, op->o_tmpmemctx );
+				memcpy(ww->data.mv_data, data.mv_data, data.mv_size);
+			}
 		}
-		mdb_txn_reset( ww->txn );
+		rc = mdb_txn_reset( ww->txn );
+		assert(rc == MDB_SUCCESS);
 		ww->flag = 1;
 	}
+	(void) rc;
 }
 
 static int
@@ -365,9 +371,12 @@ mdb_waitfixup( Operation *op, ww_ctx *ww, MDB_cursor *mci, MDB_cursor *mcd, IdSc
 	int rc = 0;
 	ww->flag = 0;
 	ww->nentries = 0;
-	mdb_txn_renew( ww->txn );
-	mdb_cursor_renew( ww->txn, mci );
-	mdb_cursor_renew( ww->txn, mcd );
+	rc = mdb_txn_renew( ww->txn );
+	assert(rc == MDB_SUCCESS);
+	rc = mdb_cursor_renew( ww->txn, mci );
+	assert(rc == MDB_SUCCESS);
+	rc = mdb_cursor_renew( ww->txn, mcd );
+	assert(rc == MDB_SUCCESS);
 
 	key.mv_size = sizeof(ID);
 	if ( ww->mcd ) {	/* scope-based search using dn2id_walk */
