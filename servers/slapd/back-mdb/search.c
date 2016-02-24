@@ -411,7 +411,12 @@ mdb_waitfixup( Operation *op, ww_ctx *ww, MDB_cursor *mci, MDB_cursor *mcd, IdSc
 			if ( !isc->scopes[i].mval.mv_data )
 				continue;
 			key.mv_data = &isc->scopes[i].mid;
-			mdb_cursor_get( mcd, &key, &isc->scopes[i].mval, MDB_SET );
+			rc = mdb_cursor_get( mcd, &key, &isc->scopes[i].mval, MDB_SET_RANGE );
+			if ( rc != MDB_SUCCESS ) {
+				/* LY: Yea, this is my paranoia */
+				rc = (rc == MDB_NOTFOUND) ? LDAP_BUSY : LDAP_OTHER;
+				break;
+			}
 		}
 	}
 	return rc;
