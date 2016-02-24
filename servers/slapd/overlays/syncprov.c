@@ -642,7 +642,7 @@ findcsn_cb( Operation *op, SlapReply *rs )
 #define UUID_LEN	16
 
 typedef struct fpres_cookie {
-	int num, total;
+	int num, total, rc;
 	BerVarray uuids;
 	char *last;
 } fpres_cookie;
@@ -653,7 +653,16 @@ findpres_cb( Operation *op, SlapReply *rs )
 	slap_callback *sc = op->o_callback;
 	fpres_cookie *pc = sc->sc_private;
 	Attribute *a;
-	int ret = SLAP_CB_CONTINUE;
+
+	if ( pc->rc != LDAP_SUCCESS ) {
+		return pc->rc;
+	}
+	if ( rs->sr_err != LDAP_SUCCESS ) {
+		pc->rc = rs->sr_err;
+		Debug( LDAP_DEBUG_SYNC,
+			"find-present: search failed, rc %d\n", pc->rc );
+		return pc->rc;
+	}
 
 	switch ( rs->sr_type ) {
 	case REP_SEARCH:
@@ -666,25 +675,29 @@ findpres_cb( Operation *op, SlapReply *rs )
 			pc->num++;
 			pc->total++;
 		}
-		ret = LDAP_SUCCESS;
 		if ( pc->num != SLAP_SYNCUUID_SET_SIZE )
-			break;
+			return LDAP_SUCCESS;
 		/* FALLTHRU */
+
 	case REP_RESULT:
-		ret = rs->sr_err;
 		if ( pc->num ) {
 			pc->uuids[pc->num].bv_val = NULL;
 			pc->uuids[pc->num].bv_len = 0;
-			ret = syncprov_sendinfo( op, rs, LDAP_TAG_SYNC_ID_SET, NULL,
+			pc->rc = syncprov_sendinfo( op, rs, LDAP_TAG_SYNC_ID_SET, NULL,
 				0, pc->uuids, 0 );
 			pc->num = 0;
 			pc->last = (char *)(pc->uuids + SLAP_SYNCUUID_SET_SIZE+1);
+			if ( pc->rc != LDAP_SUCCESS ) {
+				Debug( LDAP_DEBUG_SYNC,
+					"find-present: send failed, rc %d\n", pc->rc );
+				return pc->rc;
+			}
 		}
-		break;
+		return LDAP_SUCCESS;
+
 	default:
-		break;
+		return SLAP_CB_CONTINUE;
 	}
-	return ret;
 }
 
 static int
@@ -805,6 +818,8 @@ again:
 		cb.sc_private = &pcookie;
 		cb.sc_response = findpres_cb;
 		pcookie.num = 0;
+		pcookie.total = 0;
+		pcookie.rc = LDAP_SUCCESS;
 
 		/* preallocate storage for a full set */
 		pcookie.uuids = op->o_tmpalloc( (SLAP_SYNCUUID_SET_SIZE+1) *
@@ -815,21 +830,35 @@ again:
 	}
 
 	fop.o_bd->bd_info = (BackendInfo *)on->on_info;
-	fop.o_bd->be_search( &fop, &frs );
+	rc = fop.o_bd->be_search( &fop, &frs );
 	fop.o_bd->bd_info = (BackendInfo *)on;
 
 	switch( mode ) {
 	case FIND_MAXCSN:
-		assert( slap_csn_verify_full( &maxcsn ) );
-		if ( slap_csn_compare_ts( &si->si_cookie.ctxcsn[maxid], &maxcsn ) < 0 ) {
-			ber_bvreplace( &si->si_cookie.ctxcsn[maxid], &maxcsn );
-			si->si_numops++;	/* ensure a checkpoint */
+		if ( rc == LDAP_BUSY ) {
+			Debug( LDAP_DEBUG_SYNC,
+				"syncprov-findmax: got %d, retry\n", rc );
+			rs_reinit( &frs, REP_RESULT );
+			goto again;
 		}
-		if (reopenldap_mode_idkfa())
-			slap_cookie_verify( &si->si_cookie );
+		if ( rc == LDAP_SUCCESS ) {
+			assert( slap_csn_verify_full( &maxcsn ) );
+			if ( slap_csn_compare_ts( &si->si_cookie.ctxcsn[maxid], &maxcsn ) < 0 ) {
+				ber_bvreplace( &si->si_cookie.ctxcsn[maxid], &maxcsn );
+				si->si_numops++;	/* ensure a checkpoint */
+			}
+			if (reopenldap_mode_idkfa())
+				slap_cookie_verify( &si->si_cookie );
+		}
 		ldap_pvt_thread_rdwr_wunlock( &si->si_csn_rwlock );
 		break;
 	case FIND_CSN:
+		if ( rc == LDAP_BUSY ) {
+			Debug( LDAP_DEBUG_SYNC,
+				"syncprov-findcsn: got %d, retry\n", rc );
+			rs_reinit( &frs, REP_RESULT );
+			goto again;
+		}
 		/* If matching CSN was not found, invalidate the context. */
 		if ( !cb.sc_private ) {
 			/* If we didn't find an exact match, then try for <= */
@@ -845,6 +874,8 @@ again:
 		}
 		break;
 	case FIND_PRESENT:
+		if ( rc == LDAP_SUCCESS )
+			rc = pcookie.rc;
 		if ( LogTest( LDAP_DEBUG_SYNC ) ) {
 			ldap_pvt_thread_rdwr_rlock( &si->si_csn_rwlock );
 			Debug( LDAP_DEBUG_SYNC,
