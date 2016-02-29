@@ -1289,16 +1289,19 @@ asyncmeta_get_next_mc( a_metainfo_t *mi )
 	return mc;
 }
 
-int asyncmeta_start_listeners(a_metaconn_t *mc, SlapReply *candidates)
+int asyncmeta_start_listeners(a_metaconn_t *mc, SlapReply *candidates, bm_context_t *bc)
 {
 	int i;
 	for (i = 0; i < mc->mc_info->mi_ntargets; i++) {
-		asyncmeta_start_one_listener(mc, candidates, i);
+		asyncmeta_start_one_listener(mc, candidates, bc, i);
 	}
 	return LDAP_SUCCESS;
 }
 
-int asyncmeta_start_one_listener(a_metaconn_t *mc, SlapReply *candidates, int candidate)
+int asyncmeta_start_one_listener(a_metaconn_t *mc,
+				 SlapReply *candidates,
+				 bm_context_t *bc,
+				 int candidate)
 {
 	a_metasingleconn_t *msc;
 	ber_socket_t s;
@@ -1307,6 +1310,8 @@ int asyncmeta_start_one_listener(a_metaconn_t *mc, SlapReply *candidates, int ca
 	if (msc->msc_ld == NULL || !META_IS_CANDIDATE( &candidates[ candidate ] )) {
 		return LDAP_SUCCESS;
 	}
+	bc->msgids[candidate] = candidates[candidate].sr_msgid;
+	msc->msc_pending_ops++;
 	if ( msc->conn == NULL) {
 		ldap_get_option( msc->msc_ld, LDAP_OPT_DESC, &s );
 		if (s < 0) {
