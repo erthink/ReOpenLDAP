@@ -3894,8 +3894,10 @@ static int syncprov_parseCtrl (
 	if (!BER_BVISNULL(&cookie)) {
 		/* If parse fails, pretend no cookie was sent */
 		if ( slap_cookie_parse( &sr->sr_state, &cookie, op->o_tmpmemctx ) ) {
-			if (reopenldap_mode_idclip())
+			if (reopenldap_mode_idclip()) {
+				rs->sr_text = "Sync control : invalid cookie";
 				return LDAP_PROTOCOL_ERROR;
+			}
 		}
 	}
 
