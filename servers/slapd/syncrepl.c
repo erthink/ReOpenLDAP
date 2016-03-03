@@ -1057,12 +1057,7 @@ syncrepl_process(
 				if ( rc )
 					goto done;
 
-				if ( syncCookie.numcsns ) {
-					int vector = slap_cookie_compare_csn(
-						&si->si_syncCookie, syncCookie.ctxcsn );
-					assert( syncCookie.numcsns == 1 );
-					si->si_too_old = (vector <= 0);
-				}
+				si->si_too_old = compare_cookies(&si->si_syncCookie, &syncCookie) < 0;
 			}
 
 			if ( si->si_too_old ) {
