@@ -371,13 +371,20 @@ get_ssa(
 
 	if( rc != LDAP_SUCCESS ) {
 		f->f_choice |= SLAPD_FILTER_UNDEFINED;
-		rc = slap_bv2undef_ad( &desc, &ssa.sa_desc, text,
+		int rc2 = slap_bv2undef_ad( &desc, &ssa.sa_desc, text,
 			SLAP_AD_PROXIED|SLAP_AD_NOINSERT );
 
-		if( rc != LDAP_SUCCESS ) {
-			Debug( LDAP_DEBUG_ANY,
-				"get_ssa: conn %lu unknown attribute type=%s (%ld)\n",
-				op->o_connid, desc.bv_val, (long) rc );
+		if( rc2 != LDAP_SUCCESS ) {
+			if ( desc.bv_val && *desc.bv_val /* LY: zap worthless */ ) {
+				Debug( LDAP_DEBUG_ANY,
+					"get_ssa: conn %lu unknown attribute type=%s (%d, %d)\n",
+					op->o_connid, desc.bv_val, rc, rc2 );
+			} else {
+				/* LY: but make a whole backtrace, instead of. */
+				static volatile int once;
+				if (once == 0 && __sync_fetch_and_add(&once, 1) == 0)
+					slap_backtrace_debug();
+			}
 
 			ssa.sa_desc = slap_bv2tmp_ad( &desc, op->o_tmpmemctx );
 		}

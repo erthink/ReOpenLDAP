@@ -90,7 +90,7 @@ backsql_operational_entryCSN( Operation *op )
 	{
 		entryCSN.bv_val = csnbuf;
 		entryCSN.bv_len = sizeof( csnbuf );
-		slap_get_csn( op, &entryCSN, 0 );
+		slap_get_csn( NULL, &entryCSN );
 	}
 
 	ber_dupbv( &a->a_vals[ 0 ], &entryCSN );

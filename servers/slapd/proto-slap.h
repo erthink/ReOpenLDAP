@@ -40,14 +40,12 @@ struct config_reply_s;	/* config.h */
 LDAP_SLAPD_F (void) slap_biglock_init LDAP_P(( BackendDB *be ));
 LDAP_SLAPD_F (void) slap_biglock_destroy LDAP_P(( BackendDB *be ));
 LDAP_SLAPD_F (slap_biglock_t*) slap_biglock_get LDAP_P(( BackendDB *bd ));
-LDAP_SLAPD_F (size_t) slap_biglock_acquire LDAP_P(( slap_biglock_t *bl ));
-LDAP_SLAPD_F (size_t) slap_biglock_release LDAP_P(( slap_biglock_t *bl ));
+LDAP_SLAPD_F (void) slap_biglock_acquire LDAP_P(( slap_biglock_t *bl ));
+LDAP_SLAPD_F (void) slap_biglock_release LDAP_P(( slap_biglock_t *bl ));
 LDAP_SLAPD_F (int) slap_biglock_call_be LDAP_P((
    slap_operation_t which,
    Operation *op,
    SlapReply *rs ));
-LDAP_SLAPD_F (size_t) slap_biglock_age LDAP_P(( BackendDB *be ));
-LDAP_SLAPD_F (size_t) slap_biglock_evo LDAP_P(( BackendDB *be ));
 LDAP_SLAPD_F (int) slap_biglock_deep LDAP_P(( BackendDB *be ));
 LDAP_SLAPD_F (int) slap_biglock_owned LDAP_P(( BackendDB *be ));
 LDAP_SLAPD_F (int) slap_biglock_pool_pausing LDAP_P(( BackendDB *bd ));
@@ -880,7 +878,7 @@ LDAP_SLAPD_V( const struct berval ) slap_ldapsync_cn_bv;
 LDAP_SLAPD_F (int) slap_get_commit_csn LDAP_P(( Operation *, struct berval *maxcsn ));
 LDAP_SLAPD_F (int) slap_graduate_commit_csn LDAP_P(( Operation * ));
 LDAP_SLAPD_F (Entry *) slap_create_context_csn_entry LDAP_P(( Backend *, struct berval *));
-LDAP_SLAPD_F (int) slap_get_csn LDAP_P(( Operation *, struct berval *, int ));
+LDAP_SLAPD_F (int) slap_get_csn LDAP_P(( Operation *, struct berval * ));
 LDAP_SLAPD_F (void) slap_queue_csn LDAP_P(( Operation *, struct berval * ));
 LDAP_SLAPD_F (void) slap_free_commit_csn_list LDAP_P(( struct be_pcl *list ));
 void slap_op_csn_free( Operation *op );
@@ -902,6 +900,7 @@ void quorum_notify_status(BackendDB *bd, int rid, int ready);
 int quorum_query(BackendDB *bd);
 void quorum_notify_csn(BackendDB *bd, int csnsid);
 int quorum_syncrepl_gate(BackendDB *bd, void *instance_key, int in);
+int quorum_query_status(BackendDB *bd, BerValue*);
 
 /*
  * daemon.c
@@ -1331,6 +1330,13 @@ void slap_cookie_compose(
 	int sid,
 	void *memctx );
 void slap_cookie_debug( const char *prefix, const struct sync_cookie *sc );
+void slap_cookie_debug_pair( const char *prefix,
+	 const char* x_name, const struct sync_cookie *x_cookie,
+	 const char* y_name, const struct sync_cookie *y_cookie, int y_marker);
+void slap_cookie_backward_debug(
+	const char *prefix,
+	const struct sync_cookie* current,
+	const struct sync_cookie* next );
 int slap_cookie_merge_csnset(
 	BackendDB *bd,
 	struct sync_cookie *dst,

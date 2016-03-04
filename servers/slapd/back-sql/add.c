@@ -929,7 +929,7 @@ backsql_add( Operation *op, SlapReply *rs )
 
 		csn.bv_val = buf;
 		csn.bv_len = sizeof( buf );
-		slap_get_csn( op, &csn, 1 );
+		slap_get_csn( op, &csn );
 
 		rs->sr_err = LDAP_SUCCESS;
 		send_ldap_result( op, rs );
