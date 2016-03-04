@@ -98,19 +98,9 @@ slap_biglock_t* slap_biglock_get( BackendDB *bd ) {
 	}
 }
 
-size_t slap_biglock_age ( BackendDB *bd ) {
-	slap_biglock_t* bl = slap_biglock_get( bd );
-	return bl ? bl->bl_age : 0;
-}
-
-size_t slap_biglock_evo ( BackendDB *bd ) {
-	slap_biglock_t* bl = slap_biglock_get( bd );
-	return bl ? bl->bl_evo : 0;
-}
-
 int slap_biglock_deep ( BackendDB *bd ) {
 	slap_biglock_t* bl = slap_biglock_get( bd );
-	return bl ? bl->bl_recursion : 0;
+	return bl ? read_int__tsan_workaround(&bl->bl_recursion) : 0;
 }
 
 int slap_biglock_owned ( BackendDB *bd ) {
@@ -118,11 +108,9 @@ int slap_biglock_owned ( BackendDB *bd ) {
 	return bl ? ldap_pvt_thread_self() == get_owner(bl) : 1;
 }
 
-size_t slap_biglock_acquire(slap_biglock_t* bl) {
-	int rc;
-
+void slap_biglock_acquire(slap_biglock_t* bl) {
 	if (!bl)
-		return 0;
+		return;
 
 	if (ldap_pvt_thread_self() == get_owner(bl)) {
 		assert(bl->bl_recursion > 0);
@@ -130,7 +118,7 @@ size_t slap_biglock_acquire(slap_biglock_t* bl) {
 		bl->bl_recursion += 1;
 		Debug(LDAP_DEBUG_NONE, "biglock: recursion++ (%d)\n", bl->bl_recursion);
 	} else {
-		rc = ldap_pvt_thread_mutex_lock(&bl->bl_mutex);
+		int rc = ldap_pvt_thread_mutex_lock(&bl->bl_mutex);
 		assert(rc == 0);
 		assert(bl->bl_recursion == 0);
 		assert(get_owner(bl) == thread_null);
@@ -138,35 +126,25 @@ size_t slap_biglock_acquire(slap_biglock_t* bl) {
 
 		bl->_bl_owner = ldap_pvt_thread_self();
 		bl->bl_recursion = 1;
-		bl->bl_age += 1;
 	}
-
-	return bl->bl_evo += 1;
 }
 
-size_t slap_biglock_release(slap_biglock_t* bl) {
-	int rc;
-	size_t res;
-
+void slap_biglock_release(slap_biglock_t* bl) {
 	if (!bl)
-		return 0;
+		return;
 
 	assert(ldap_pvt_thread_self() == get_owner(bl));
 	assert(bl->bl_recursion > 0);
 
-	res = ++bl->bl_evo;
 	if (--bl->bl_recursion == 0) {
-		++bl->bl_age;
 		bl->_bl_owner = thread_null;
 		Debug(LDAP_DEBUG_NONE, "biglock: release\n");
-		rc = ldap_pvt_thread_mutex_unlock(&bl->bl_mutex);
+		int rc = ldap_pvt_thread_mutex_unlock(&bl->bl_mutex);
 		assert(rc == 0);
 		if (bl->bl_free_on_release)
 			slap_biglock_free(bl);
 	} else
 		Debug(LDAP_DEBUG_NONE, "biglock: recursion-- (%d)\n", bl->bl_recursion);
-
-	return res;
 }
 
 int slap_biglock_call_be ( slap_operation_t which,
@@ -195,7 +173,6 @@ int slap_biglock_pool_pause ( BackendDB *bd ) {
 	} else {
 		int rc, deep = bl->bl_recursion;
 		assert(bl->bl_recursion > 0);
-		bl->bl_age += 1;
 		bl->bl_recursion = 0;
 		bl->_bl_owner = thread_null;
 		Debug(LDAP_DEBUG_NONE, "biglock: pause-release\n");
@@ -211,7 +188,6 @@ int slap_biglock_pool_pause ( BackendDB *bd ) {
 		Debug(LDAP_DEBUG_NONE, "biglock: pause-acquire\n");
 		bl->_bl_owner = ldap_pvt_thread_self();
 		bl->bl_recursion = deep;
-		bl->bl_age += 1;
 	}
 	return res;
 }
@@ -233,7 +209,6 @@ int slap_biglock_pool_pausecheck ( BackendDB *bd ) {
 	} else {
 		int rc, deep = bl->bl_recursion;
 		assert(bl->bl_recursion > 0);
-		bl->bl_age += 1;
 		bl->bl_recursion = 0;
 		bl->_bl_owner = thread_null;
 		Debug(LDAP_DEBUG_NONE, "biglock: pausecheck-release\n");
@@ -249,7 +224,6 @@ int slap_biglock_pool_pausecheck ( BackendDB *bd ) {
 		Debug(LDAP_DEBUG_NONE, "biglock: pausecheck-acquire\n");
 		bl->_bl_owner = ldap_pvt_thread_self();
 		bl->bl_recursion = deep;
-		bl->bl_age += 1;
 	}
 
 	return res;

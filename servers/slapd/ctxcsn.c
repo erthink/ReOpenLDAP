@@ -95,7 +95,7 @@ slap_get_commit_csn(
 	Operation *op,
 	struct berval *maxcsn )
 {
-	struct slap_csn_entry *csne;
+	struct slap_csn_entry *csne, *self;
 	BackendDB *be = op->o_bd->bd_self;
 	int sid = -1;
 
@@ -106,11 +106,12 @@ slap_get_commit_csn(
 
 	ldap_pvt_thread_mutex_lock( &be->be_pcl_mutex );
 
+	self = NULL;
 	LDAP_TAILQ_FOREACH( csne, be->be_pending_csn_list, ce_csn_link ) {
 		if ( csne->ce_opid == op->o_opid && csne->ce_connid == op->o_connid ) {
 			assert( sid < 0 || sid == csne->ce_sid );
+			self = csne;
 			csne->ce_state = SLAP_CSN_COMMIT;
-			sid = csne->ce_sid;
 			break;
 		}
 	}
@@ -141,6 +142,10 @@ slap_get_commit_csn(
 						break;
 					} else {
 						LDAP_BUG();
+					}
+					if (csne == self) {
+						/* LY: don't go ahead */
+						break;
 					}
 				}
 			}
@@ -179,7 +184,7 @@ slap_graduate_commit_csn( Operation *op )
 			assert( csne->ce_state > 0 );
 			assert( slap_csn_match( &op->o_csn, &csne->ce_csn ) );
 			found = csne->ce_state;
-			assert(found != 0);
+			/* assert(found != 0); LY: op could be cancelled/abandoned before slap_get_commit_csn() */
 			LDAP_TAILQ_REMOVE( be->be_pending_csn_list, csne, ce_csn_link );
 			slap_op_csn_clean( op );
 			ch_free( csne->ce_csn.bv_val );
@@ -296,13 +301,18 @@ slap_queue_csn(
 int
 slap_get_csn(
 	Operation *op,
-	struct berval *csn,
-	int manage_ctxcsn )
+	struct berval *csn )
 {
-	if ( csn == NULL ) return LDAP_OTHER;
+	char buf[ LDAP_PVT_CSNSTR_BUFSIZE ];
+	BerValue local = {sizeof(buf), buf};
+
+	if ( csn == NULL ) {
+		csn = &local;
+		assert(op != NULL);
+	}
 
 	csn->bv_len = ldap_pvt_csnstr( csn->bv_val, csn->bv_len, slap_serverID, 0 );
-	if ( manage_ctxcsn )
+	if ( op )
 		slap_queue_csn( op, csn );
 
 	return LDAP_SUCCESS;
