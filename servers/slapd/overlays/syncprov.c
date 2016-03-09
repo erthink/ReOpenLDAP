@@ -2645,16 +2645,22 @@ syncprov_search_cleanup( Operation *op, SlapReply *rs )
 {
 	slap_callback *cb = op->o_callback;
 	searchstate *ss = cb->sc_private;
+	syncops *so = ss->ss_so;
 
 	if ( rs->sr_err != LDAP_SUCCESS && rs->sr_type == REP_RESULT
-			&& ss->ss_so && !is_syncops_abandoned(ss->ss_so) ) {
-		syncops *so = ss->ss_so;
+			&& !get_op_abandon(op) && so != NULL ) {
 		ss->ss_so = NULL;
 		cb->sc_cleanup = NULL;
-		Debug( LDAP_DEBUG_SYNC,
-			"syncprov-search: sid %03x, refresh-abort, type %d, rc %d\n",
-			so->s_sid, rs->sr_type, rs->sr_err );
-		syncprov_unlink_syncop( so, OS_REF_OP_SEARCH, SO_LOCKED_NONE );
+		ldap_pvt_thread_mutex_lock( &op->o_conn->c_mutex );
+		if ( !get_op_abandon(op) ) {
+			Debug( LDAP_DEBUG_SYNC,
+				"syncprov-search: sid %03x, refresh-abort, type %d, rc %d\n",
+				so->s_sid, rs->sr_type, rs->sr_err );
+			syncprov_unlink_syncop( so, OS_REF_OP_SEARCH, SO_LOCKED_CONN );
+		} else {
+			/* LY: rare race with abandon */
+		}
+		ldap_pvt_thread_mutex_unlock( &op->o_conn->c_mutex );
 	}
 
 	return SLAP_CB_CONTINUE;
@@ -2774,7 +2780,10 @@ syncprov_search_response( Operation *op, SlapReply *rs )
 			if ( !BER_BVISNULL( &cookie ))
 				op->o_tmpfree( cookie.bv_val, op->o_tmpmemctx );
 
-			if ( ss->ss_so && rs->sr_err == LDAP_SUCCESS && !srs->sr_jammed ) {
+			if ( rs->sr_err == LDAP_SUCCESS && !srs->sr_jammed ) {
+				syncops *so = ss->ss_so;
+				ss->ss_so = NULL;
+
 				/* Detach this Op from frontend control */
 				ldap_pvt_thread_mutex_lock( &op->o_conn->c_mutex );
 
@@ -2786,25 +2795,25 @@ syncprov_search_response( Operation *op, SlapReply *rs )
 					return SLAPD_ABANDON;
 				}
 
-				assert(read_int__tsan_workaround(&ss->ss_so->s_flags) & OS_REF_MASK);
+				assert(read_int__tsan_workaround(&so->s_flags) & OS_REF_MASK);
 				ldap_pvt_thread_mutex_lock( &si->si_ops_mutex );
-				ldap_pvt_thread_mutex_lock( &ss->ss_so->s_mutex );
-				assert(ss->ss_so->s_flags & OS_REF_MASK);
+				ldap_pvt_thread_mutex_lock( &so->s_mutex );
+				assert(so->s_flags & OS_REF_MASK);
 
-				if (unlikely(is_syncops_abandoned(ss->ss_so))) {
-					ldap_pvt_thread_mutex_unlock( &ss->ss_so->s_mutex );
+				if (unlikely(is_syncops_abandoned(so))) {
+					ldap_pvt_thread_mutex_unlock( &so->s_mutex );
 					ldap_pvt_thread_mutex_unlock( &si->si_ops_mutex );
 					goto abandon;
 				}
 
-				syncprov_refresh_end( si, ss->ss_so );
-				syncprov_detach_op( op, ss->ss_so, on );
+				syncprov_refresh_end( si, so );
+				syncprov_detach_op( op, so, on );
 				ldap_pvt_thread_mutex_unlock( &op->o_conn->c_mutex );
 
 				/* If there are queued responses, fire them off */
-				if ( ss->ss_so->s_rl )
-					syncprov_playback_enqueue( ss->ss_so );
-				ldap_pvt_thread_mutex_unlock( &ss->ss_so->s_mutex );
+				if ( so->s_rl )
+					syncprov_playback_enqueue( so );
+				ldap_pvt_thread_mutex_unlock( &so->s_mutex );
 				ldap_pvt_thread_mutex_unlock( &si->si_ops_mutex );
 				/* LY: psearch was detached, couldn't SLAP_CB_CONTINUE */
 				return LDAP_SUCCESS;
