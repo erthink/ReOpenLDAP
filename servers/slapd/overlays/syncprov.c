@@ -488,11 +488,9 @@ findbase_cb( Operation *op, SlapReply *rs )
 			fc->fbase = 2;
 			fc->fss->s_eid = rs->sr_entry->e_id;
 			ber_dupbv( &fc->fss->s_base, &rs->sr_entry->e_nname );
-
 		} else if ( rs->sr_entry->e_id == fc->fss->s_eid &&
 			dn_match( &rs->sr_entry->e_nname, &fc->fss->s_base )) {
-
-		/* OK, the DN is the same and the entryID is the same. */
+			/* OK, the DN is the same and the entryID is the same. */
 			fc->fbase = 1;
 		}
 	}
@@ -2497,8 +2495,7 @@ retry:
 			ber_dupbv( &mt->mt_dn, &mi->mi_op->o_req_ndn );
 			ldap_pvt_thread_mutex_init( &mt->mt_mutex );
 			avl_err = avl_insert( &si->si_mods, mt, sp_avl_cmp, avl_dup_error );
-			if (reopenldap_mode_idkfa())
-				assert(avl_err == 0);
+			assert(avl_err == 0);
 			ldap_pvt_thread_mutex_unlock( &si->si_mods_mutex );
 		}
 		opc->smt = mt;
