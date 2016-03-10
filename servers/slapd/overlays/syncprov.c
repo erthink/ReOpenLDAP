@@ -2763,6 +2763,8 @@ syncprov_search_response( Operation *op, SlapReply *rs )
 			rs->sr_err = syncprov_done_ctrl( op, rs, rs->sr_ctrls,
 				0, &cookie, ( ss->ss_flags & SS_PRESENT )
 					? LDAP_SYNC_REFRESH_PRESENTS : LDAP_SYNC_REFRESH_DELETES );
+			if ( !BER_BVISNULL( &cookie ))
+				op->o_tmpfree( cookie.bv_val, op->o_tmpmemctx );
 		} else {
 			/* It's RefreshAndPersist, transition to Persist phase */
 			rs->sr_err = syncprov_sendinfo( op, rs, ( ss->ss_flags & SS_PRESENT ) ?
