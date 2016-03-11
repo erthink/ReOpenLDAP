@@ -357,9 +357,13 @@ mdb_writewait( Operation *op, slap_callback *sc )
 				memcpy(ww->data.mv_data, data.mv_data, data.mv_size);
 			}
 		}
+#if MDBX_MODE_ENABLED
 		rc = mdb_txn_reset( ww->txn );
 		assert(rc == MDB_SUCCESS);
 		(void) rc;
+#else
+		mdb_txn_reset( ww->txn );
+#endif /* MDBX_MODE_ENABLED */
 		ww->flag = 1;
 	}
 }
@@ -1111,8 +1115,13 @@ notfound:
 		}
 
 loop_continue:
+#ifdef MDB_LIFORECLAIM
 		if ( !wwctx.flag && mdb->mi_renew_lag ) {
+#if MDBX_MODE_ENABLED
 			int percentage, lag = mdbx_txn_straggler( wwctx.txn, &percentage );
+#else
+			int percentage, lag = mdb_txn_straggler( wwctx.txn, &percentage );
+#endif /* MDBX_MODE_ENABLED */
 			if ( lag >= mdb->mi_renew_lag && percentage >= mdb->mi_renew_percent ) {
 				if ( moi == &opinfo ) {
 					Debug( LDAP_DEBUG_NONE, "dreamcatcher: lag %d, percentage %u%%\n", lag, percentage );
@@ -1121,6 +1130,7 @@ loop_continue:
 					Debug( LDAP_DEBUG_ANY, "dreamcatcher: UNABLE lag %d, percentage %u%%\n", lag, percentage );
 			}
 		}
+#endif /* MDB_LIFORECLAIM */
 
 		if ( !wwctx.flag && mdb->mi_rtxn_size ) {
 			wwctx.nentries++;

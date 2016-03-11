@@ -34,12 +34,26 @@ static const struct berval mdmi_databases[] = {
 	BER_BVNULL
 };
 
+#if MDBX_MODE_ENABLED
 static long
 mdb_id_compare( const MDB_val *a, const MDB_val *b )
 {
 	return *(ID *)a->mv_data - *(ID *)b->mv_data;
 }
+#else
+static int
+mdb_id_compare( const MDB_val *a, const MDB_val *b )
+{
+	long diff = *(ID *)a->mv_data - *(ID *)b->mv_data;
+	if (diff < 0)
+		return -1;
+	if (diff > 0)
+		return 1;
+	return 0;
+}
+#endif /* MDBX_MODE_ENABLED */
 
+#if MDBX_MODE_ENABLED
 static void
 mdb_debug(int type, const char *function, int line, const char *msg, va_list args)
 {
@@ -57,7 +71,9 @@ mdb_debug(int type, const char *function, int line, const char *msg, va_list arg
 	if (LogTest(level))
 		lutil_debug_va(msg, args);
 }
+#endif /* MDBX_MODE_ENABLED */
 
+#ifdef MDB_LIFORECLAIM
 /* perform kick/kill a laggard readers */
 static int
 mdb_oom_handler(MDB_env *env, int pid, void* thread_id, size_t txnid, unsigned gap, int retry)
@@ -89,18 +105,19 @@ mdb_oom_handler(MDB_env *env, int pid, void* thread_id, size_t txnid, unsigned g
 
 	return -1;
 }
+#endif /* MDB_LIFORECLAIM */
 
 static int
 mdb_db_init( BackendDB *be, ConfigReply *cr )
 {
 	struct mdb_info	*mdb;
 	int rc;
-	unsigned flags;
 
 	Debug( LDAP_DEBUG_TRACE,
 		LDAP_XSTRING(mdb_db_init) ": Initializing mdb database\n" );
 
-	flags = mdbx_setup_debug(MDB_DBG_DNT, mdb_debug, MDB_DBG_DNT);
+#if MDBX_MODE_ENABLED
+	unsigned flags = mdbx_setup_debug(MDB_DBG_DNT, mdb_debug, MDB_DBG_DNT);
 	flags &= ~(MDB_DBG_TRACE | MDB_DBG_EXTRA | MDB_DBG_ASSERT);
 	if (reopenldap_mode_idkfa())
 		flags |=
@@ -110,6 +127,7 @@ mdb_db_init( BackendDB *be, ConfigReply *cr )
 				MDB_DBG_ASSERT;
 
 	mdbx_setup_debug(flags, (MDB_debug_func*) MDB_DBG_DNT, MDB_DBG_DNT);
+#endif /* MDBX_MODE_ENABLED */
 
 	/* allocate backend-database-specific stuff */
 	mdb = (struct mdb_info *) ch_calloc( 1, sizeof(struct mdb_info) );
@@ -217,6 +235,7 @@ mdb_db_open( BackendDB *be, ConfigReply *cr )
 		goto fail;
 	}
 
+#ifdef MDB_LIFORECLAIM
 	rc = mdb_env_set_syncbytes( mdb->mi_dbenv, mdb->mi_txn_cp_kbyte * 1024ul);
 	if( rc != 0 ) {
 		Debug( LDAP_DEBUG_ANY,
@@ -226,7 +245,11 @@ mdb_db_open( BackendDB *be, ConfigReply *cr )
 		goto fail;
 	}
 
+#if MDBX_MODE_ENABLED
 	mdbx_env_set_oomfunc( mdb->mi_dbenv, mdb_oom_handler );
+#else
+	mdb_env_set_oomfunc( mdb->mi_dbenv, mdb_oom_handler );
+#endif /* MDBX_MODE_ENABLED */
 
 	if ( (slapMode & SLAP_SERVER_MODE) && SLAP_MULTIMASTER(be) &&
 			((MDB_OOM_YIELD & mdb->mi_oom_flags) == 0 || mdb->mi_renew_lag == 0)) {
@@ -236,6 +259,7 @@ mdb_db_open( BackendDB *be, ConfigReply *cr )
 			be->be_suffix[0].bv_val );
 		Debug( LDAP_DEBUG_ANY, LDAP_XSTRING(mdb_db_open) ": %s\n", cr->msg );
 	}
+#endif /* MDB_LIFORECLAIM */
 
 #ifdef HAVE_EBCDIC
 	strcpy( path, mdb->mi_dbenv_home );

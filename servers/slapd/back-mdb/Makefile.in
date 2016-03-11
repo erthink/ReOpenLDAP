@@ -52,10 +52,12 @@ all-local-lib:	../.backend
 ../.backend: lib$(LIBBASE).a
 	@touch $@
 
-mdbx.lo: $(MDB_SUBDIR)/mdb.c $(MDB_SUBDIR)/midl.c \
-	$(MDB_SUBDIR)/lmdb.h $(MDB_SUBDIR)/mdbx.h \
-	$(MDB_SUBDIR)/midl.h $(MDB_SUBDIR)/reopen.h $(MDB_SUBDIR)/barriers.h
+mdbx.lo: $(MDB_SUBDIR)/mdb.c $(MDB_SUBDIR)/midl.c $(MDB_SUBDIR)/*.h
+ifneq ($(wildcard $(MDB_SUBDIR)/mdbx.h),)
 	$(LTCOMPILE_MOD) -include $(MDB_SUBDIR)/mdbx.h $(MDB_SUBDIR)/mdb.c -o $@
+else
+	$(LTCOMPILE_MOD) -include $(MDB_SUBDIR)/midl.c $(MDB_SUBDIR)/mdb.c -o $@
+endif
 
 veryclean-local-lib: FORCE
 	$(RM) $(XXHEADERS) $(XXSRCS) .links
