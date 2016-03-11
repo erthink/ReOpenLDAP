@@ -68,7 +68,7 @@ bdb_delete( Operation *op, SlapReply *rs )
 
 		csn.bv_val = csnbuf;
 		csn.bv_len = sizeof(csnbuf);
-		slap_get_csn( op, &csn, 1 );
+		slap_get_csn( op, &csn );
 	}
 
 	if( 0 ) {

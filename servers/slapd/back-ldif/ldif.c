@@ -1478,7 +1478,7 @@ ldif_back_delete( Operation *op, SlapReply *rs )
 
 		csn.bv_val = csnbuf;
 		csn.bv_len = sizeof( csnbuf );
-		slap_get_csn( op, &csn, 1 );
+		slap_get_csn( op, &csn );
 	}
 
 	ldap_pvt_thread_mutex_lock( &li->li_modop_mutex );

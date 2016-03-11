@@ -60,9 +60,10 @@ struct slap_quorum {
 #	define QR_ALL_LINKS	4
 	int flags;
 
-#define QR_SYNCREPL_MAX 8
-	int qr_syncrepl_limit;
-	void *qr_syncrepl_current[QR_SYNCREPL_MAX];
+#define QR_SYNCREPL_MAX 15
+	int qr_syncrepl_limit, qt_running;
+	uintmax_t qt_notdone_mask;
+	char cns_status_buf[ LDAP_PVT_CSNSTR_BUFSIZE ];
 };
 
 static ldap_pvt_thread_mutex_t quorum_mutex;
@@ -83,13 +84,11 @@ void quorum_global_init() {
 }
 
 static void lock() {
-	int rc = ldap_pvt_thread_mutex_lock(&quorum_mutex);
-	assert(rc == 0);
+	ldap_pvt_thread_mutex_lock(&quorum_mutex);
 }
 
 static void unlock() {
-	int rc = ldap_pvt_thread_mutex_unlock(&quorum_mutex);
-	assert(rc == 0);
+	ldap_pvt_thread_mutex_unlock(&quorum_mutex);
 }
 
 void quorum_global_destroy() {
@@ -285,6 +284,46 @@ int quorum_query(BackendDB *bd) {
 	return snap > 0;
 }
 
+static void kick(slap_quorum_t *q)
+{
+	struct lutil_tm tm;
+
+	ldap_pvt_gettime( &tm );
+	snprintf( q->cns_status_buf, sizeof(q->cns_status_buf),
+		"%4d%02d%02d%02d%02d%02d.%06d~%c.%016jx",
+		tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday, tm.tm_hour,
+		tm.tm_min, tm.tm_sec, tm.tm_usec,
+		(q->qt_running > 9) ? '@' : '0' + q->qt_running,
+		q->qt_notdone_mask );
+
+	static int last = -1;
+	int now = q->qt_running || q->qt_notdone_mask;
+	if(last != now) {
+		last = now;
+		Debug( LDAP_DEBUG_SYNC, "syncrepl_gate: %s\n", now ? "dirty" : "clean" );
+	}
+}
+
+int quorum_query_status(BackendDB *bd, BerValue *status)
+{
+	int rc = 0;
+
+	lock();
+	bd = bd->bd_self;
+	if (! bd->bd_quorum)
+		quorum_be_init(bd);
+
+	slap_quorum_t *q = bd->bd_quorum;
+	if (! q->cns_status_buf[0])
+		kick(q);
+
+	status->bv_len = strlen(status->bv_val = q->cns_status_buf);
+	rc = q->qt_running || q->qt_notdone_mask;
+
+	unlock();
+	return rc;
+}
+
 static int require_append(slap_quorum_t *q, int type, int id) {
 	int n;
 	struct requirment* r;
@@ -430,6 +469,11 @@ static int notify_ready(slap_quorum_t *q, int rid, int ready) {
 						   p->ready ? "ready" : "loser",
 						   ready ? "ready" : "loser" );
 					p->ready = ready;
+					if (ready > 0)
+						q->qt_notdone_mask &= ~(1 << p->rid);
+					else
+						q->qt_notdone_mask |= 1 << p->rid;
+					kick(q);
 					return 1;
 				}
 				return 0;
@@ -473,6 +517,9 @@ void quorum_add_rid(BackendDB *bd, int rid) {
 	p->ready = 0;
 	p[1].ready = -1;
 
+	bd->bd_quorum->qt_notdone_mask |= 1 << p->rid;
+	kick(bd->bd_quorum);
+
 	if ((bd->bd_quorum->flags & QR_AUTO_RIDS)
 	&& require_append(bd->bd_quorum, QR_VOTED_RID | QR_FLAG_AUTO, rid))
 		quorum_invalidate(bd);
@@ -503,6 +550,9 @@ void quorum_remove_rid(BackendDB *bd, int rid) {
 			if (bd->bd_quorum->flags & QR_AUTO_RIDS)
 				require_remove(bd->bd_quorum,
 							   QR_VOTED_RID | QR_FLAG_AUTO, ~QR_FLAG_DEMAND, rid);
+
+			bd->bd_quorum->qt_notdone_mask &= ~(1 << p->rid);
+			kick(bd->bd_quorum);
 
 			for (;;) {
 				p[0] = p[1];
@@ -748,7 +798,7 @@ int quorum_syncrepl_maxrefresh(BackendDB *bd)
 int quorum_syncrepl_gate(BackendDB *bd, void *instance_key, int in)
 {
 	slap_quorum_t *q;
-	int i, slot, rc, turn;
+	int rc;
 	bd = bd->bd_self;
 
 	assert(instance_key != NULL);
@@ -763,45 +813,24 @@ int quorum_syncrepl_gate(BackendDB *bd, void *instance_key, int in)
 	}
 
 	rc = LDAP_SUCCESS;
-	turn = 0;
-	slot = -1;
-	assert(q->qr_syncrepl_limit <= QR_SYNCREPL_MAX);
-
-	/* LY: Firstly find and release slot if any,
-	 *     even when limit-concurrent-refresh disabled.
-	 *     This is necessary for consistency in case
-	 *     it has been disabled at runtime. */
-	for(i = 0; i < QR_SYNCREPL_MAX; ++i) {
-		if (q->qr_syncrepl_current[i] == instance_key) {
-			q->qr_syncrepl_current[i] = NULL;
-			slot = i;
-			turn = 1;
-			if (in && q->qr_syncrepl_limit)
-				/* LY: If was already acquired and limit-concurrent-refresh enabled,
-				 *     then indicate that syncrepl should yield. */
-				rc = LDAP_SYNC_REFRESH_REQUIRED;
-		}
+	if (in) {
+		if (q->qr_syncrepl_limit && q->qt_running >= q->qr_syncrepl_limit)
+			rc = LDAP_BUSY;
+		else
+			q->qt_running += 1;
+	} else {
+		assert(q->qt_running > 0);
+		q->qt_running--;
 	}
 
-	if (in && rc == LDAP_SUCCESS && q->qr_syncrepl_limit) {
-		turn = 1;
-		rc = LDAP_BUSY;
-		for(i = 0; i < q->qr_syncrepl_limit; ++i) {
-			if (q->qr_syncrepl_current[i] == NULL) {
-				q->qr_syncrepl_current[i] = instance_key;
-				slot = i;
-				rc = LDAP_SUCCESS;
-				break;
-			}
-		}
-	}
+	if (rc == LDAP_SUCCESS)
+		kick(q);
 
-	if (turn) {
-		Debug( LDAP_DEBUG_SYNC, "quorum_syncrepl_gate: %s, "
-								"limit %d, %p %s, slot %d, rc %d\n",
-			q->qr_cluster, q->qr_syncrepl_limit,
-			instance_key, in ? "in" : "out", slot, rc );
-	}
+	Debug( LDAP_DEBUG_SYNC, "quorum_syncrepl_gate: %s, "
+							"limit %d, running %d, %p %s, rc %d\n",
+		q->qr_cluster, q->qr_syncrepl_limit, q->qt_running,
+		instance_key, in ? "in" : "out", rc );
+	assert(q->qt_running >= 0 && q->qt_running <= QR_SYNCREPL_MAX);
 
 	unlock();
 	return rc;

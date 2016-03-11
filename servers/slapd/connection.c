@@ -292,8 +292,8 @@ static Connection* connection_get( ber_socket_t s )
 	if( c != NULL ) {
 		ldap_pvt_thread_mutex_lock( &c->c_mutex );
 
+		ldap_pvt_thread_mutex_lock( &connections_mutex );
 		assert( c->c_struct_state != SLAP_C_UNINITIALIZED );
-
 		if( c->c_struct_state != SLAP_C_USED ) {
 			/* connection must have been closed due to resched */
 
@@ -302,6 +302,7 @@ static Connection* connection_get( ber_socket_t s )
 				s );
 			assert( c->c_conn_state == SLAP_C_INVALID );
 			assert( c->c_sd == AC_SOCKET_INVALID );
+			ldap_pvt_thread_mutex_unlock( &connections_mutex );
 
 			ldap_pvt_thread_mutex_unlock( &c->c_mutex );
 			return NULL;
@@ -323,6 +324,7 @@ static Connection* connection_get( ber_socket_t s )
 		{
 			c->c_activitytime = slap_get_time();
 		}
+		ldap_pvt_thread_mutex_unlock( &connections_mutex );
 	}
 
 	return c;
@@ -367,11 +369,13 @@ Connection * connection_init(
 	assert( s >= 0 );
 	assert( s < dtblsize );
 	c = &connections[s];
+	ldap_pvt_thread_mutex_lock( &connections_mutex );
 	if( c->c_struct_state == SLAP_C_UNINITIALIZED ) {
 		doinit = 1;
 	} else {
 		assert( c->c_struct_state == SLAP_C_UNUSED );
 	}
+	ldap_pvt_thread_mutex_unlock( &connections_mutex );
 
 	if( doinit ) {
 		c->c_send_ldap_result = slap_send_ldap_result;
@@ -696,14 +700,10 @@ connection_destroy( Connection *c )
 		ber_len_t max = sockbuf_max_incoming;
 		ber_sockbuf_ctrl( c->c_sb, LBER_SB_OPT_SET_MAX_INCOMING, &max );
 	}
-#ifdef __SANITIZE_THREAD__
 	ldap_pvt_thread_mutex_lock( &connections_mutex );
-#endif
 	c->c_conn_state = SLAP_C_INVALID;
 	c->c_struct_state = SLAP_C_UNUSED;
-#ifdef __SANITIZE_THREAD__
 	ldap_pvt_thread_mutex_unlock( &connections_mutex );
-#endif
 
 	/* c must be fully reset by this point; when we call slapd_remove
 	 * it may get immediately reused by a new connection.

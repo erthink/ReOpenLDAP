@@ -601,7 +601,7 @@ int slap_add_opattrs(
 			if ( !gotcsn ) {
 				csn.bv_val = csnbuf;
 				csn.bv_len = sizeof(csnbuf);
-				slap_get_csn( op, &csn, manage_ctxcsn );
+				slap_get_csn( manage_ctxcsn ? op : NULL, &csn );
 			} else {
 				if ( manage_ctxcsn )
 					slap_queue_csn( op, &csn );

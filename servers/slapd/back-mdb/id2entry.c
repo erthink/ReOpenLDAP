@@ -114,7 +114,7 @@ int mdb_mval_del(Operation *op, MDB_cursor *mc, ID id, Attribute *a)
 	MDB_val key, data;
 	char ivk[ID2VKSZ];
 	unsigned i;
-	int rc;
+	int rc = MDB_SUCCESS;
 	unsigned short s;
 
 	memcpy(ivk, &id, sizeof(id));

@@ -340,29 +340,29 @@ typedef struct ww_ctx {
  * case return an LDAP_BUSY error - let the client know this search
  * couldn't succeed, but might succeed on a retry.
  */
-static void
-mdb_rtxn_snap( Operation *op, ww_ctx *ww )
-{
-	MDB_val key, data;
-	/* save cursor position and release read txn */
-	if ( ww->mcd
-		&& ! mdb_cursor_get( ww->mcd, &key, &data, MDB_GET_CURRENT ) ) {
-		memcpy( &ww->key, key.mv_data, sizeof(ID) );
-		ww->data.mv_size = data.mv_size;
-		ww->data.mv_data = op->o_tmpalloc( data.mv_size, op->o_tmpmemctx );
-		memcpy(ww->data.mv_data, data.mv_data, data.mv_size);
-	}
-	mdb_txn_reset( ww->txn );
-	ww->flag = 1;
-	ww->nentries = 0;
-}
 
 static void
 mdb_writewait( Operation *op, slap_callback *sc )
 {
 	ww_ctx *ww = sc->sc_private;
 	if ( !ww->flag ) {
-		mdb_rtxn_snap( op, ww );
+		MDB_val key, data;
+		int rc;
+		/* save cursor position and release read txn */
+		if ( ww->mcd ) {
+			rc = mdb_cursor_get( ww->mcd, &key, &data, MDB_GET_CURRENT );
+			assert(rc == MDB_SUCCESS);
+			if (likely( rc == MDB_SUCCESS )) {
+				memcpy( &ww->key, key.mv_data, sizeof(ID) );
+				ww->data.mv_size = data.mv_size;
+				ww->data.mv_data = op->o_tmpalloc( data.mv_size, op->o_tmpmemctx );
+				memcpy(ww->data.mv_data, data.mv_data, data.mv_size);
+			}
+		}
+		rc = mdb_txn_reset( ww->txn );
+		assert(rc == MDB_SUCCESS);
+		(void) rc;
+		ww->flag = 1;
 	}
 }
 
@@ -373,9 +373,12 @@ mdb_waitfixup( Operation *op, ww_ctx *ww, MDB_cursor *mci, MDB_cursor *mcd, IdSc
 	int rc = 0;
 	ww->flag = 0;
 	ww->nentries = 0;
-	mdb_txn_renew( ww->txn );
-	mdb_cursor_renew( ww->txn, mci );
-	mdb_cursor_renew( ww->txn, mcd );
+	rc = mdb_txn_renew( ww->txn );
+	assert(rc == MDB_SUCCESS);
+	rc = mdb_cursor_renew( ww->txn, mci );
+	assert(rc == MDB_SUCCESS);
+	rc = mdb_cursor_renew( ww->txn, mcd );
+	assert(rc == MDB_SUCCESS);
 
 	key.mv_size = sizeof(ID);
 	if ( ww->mcd ) {	/* scope-based search using dn2id_walk */
@@ -410,7 +413,12 @@ mdb_waitfixup( Operation *op, ww_ctx *ww, MDB_cursor *mci, MDB_cursor *mcd, IdSc
 			if ( !isc->scopes[i].mval.mv_data )
 				continue;
 			key.mv_data = &isc->scopes[i].mid;
-			mdb_cursor_get( mcd, &key, &isc->scopes[i].mval, MDB_SET );
+			rc = mdb_cursor_get( mcd, &key, &isc->scopes[i].mval, MDB_SET_RANGE );
+			if ( rc != MDB_SUCCESS ) {
+				/* LY: Yea, this is my paranoia */
+				rc = (rc == MDB_NOTFOUND) ? LDAP_BUSY : LDAP_OTHER;
+				break;
+			}
 		}
 	}
 	return rc;
@@ -1105,18 +1113,12 @@ notfound:
 		}
 
 loop_continue:
-		if ( cb.sc_private == &wwctx && !wwctx.flag && mdb->mi_rtxn_size ) {
-			if ( ++wwctx.nentries >= mdb->mi_rtxn_size ) {
-				mdb_rtxn_snap( op, &wwctx );
-			}
-		}
-
 		if ( !wwctx.flag && mdb->mi_renew_lag ) {
 			int percentage, lag = mdbx_txn_straggler( wwctx.txn, &percentage );
 			if ( lag >= mdb->mi_renew_lag && percentage >= mdb->mi_renew_percent ) {
 				if ( moi == &opinfo ) {
 					Debug( LDAP_DEBUG_NONE, "dreamcatcher: lag %d, percentage %u%%\n", lag, percentage );
-					mdb_rtxn_snap( op, &wwctx );
+					mdb_writewait( op, &cb );
 				} else
 					Debug( LDAP_DEBUG_ANY, "dreamcatcher: UNABLE lag %d, percentage %u%%\n", lag, percentage );
 			}
