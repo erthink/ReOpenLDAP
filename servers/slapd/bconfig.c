@@ -78,29 +78,14 @@ typedef struct {
 
 static CfBackInfo cfBackInfo;
 
-static pthread_mutex_t crutch_mutex = PTHREAD_RECURSIVE_MUTEX_INITIALIZER_NP;
-
 static slap_biglock_t* crutch_lock(BackendDB *be)
 {
-	slap_biglock_t *bl = NULL;
-
-#if 0 /* LY: lock order reversal is possible. */
-	bl = slap_biglock_get(be);
-#endif
-
-	if (bl)
-		slap_biglock_acquire(bl);
-	else
-		LDAP_ENSURE(pthread_mutex_lock(&crutch_mutex) == 0);
-	return bl;
+	return NULL;
 }
 
 static void crutch_unlock(slap_biglock_t* bl)
 {
-	if (bl)
-		slap_biglock_release(bl);
-	else
-		LDAP_ENSURE(pthread_mutex_unlock(&crutch_mutex) == 0);
+	assert(bl == NULL);
 }
 
 static char	*passwd_salt;

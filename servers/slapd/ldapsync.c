@@ -294,7 +294,6 @@ int slap_cookie_pull(
 	} else {
 		if (unlikely( vector < 0 )) {
 			slap_csns_backward_debug( __FUNCTION__, dst->ctxcsn, src );
-			assert(vector >= 0);
 		}
 		ber_bvarray_free( src );
 	}
@@ -573,6 +572,48 @@ void slap_cookie_debug( const char *prefix, const struct sync_cookie *sc )
 		lutil_debug_print( "%s: %d) %ssid=%d %s\n", prefix, i,
 			slap_csn_verify_full( &sc->ctxcsn[i] ) ? "" : "INVALID ",
 			sc->sids[i], sc->ctxcsn[i].bv_val );
+}
+
+void slap_cookie_debug_pair( const char *prefix,
+	 const char* x_name, const struct sync_cookie *x_cookie,
+	 const char* y_name, const struct sync_cookie *y_cookie, int y_marker)
+{
+	lutil_debug_print( "%s: %s[rid=%d, sid=%d]#%d | %s[rid=%d, sid=%d]#%d\n", prefix,
+		x_name, x_cookie->rid, x_cookie->sid, x_cookie->numcsns,
+		y_name, y_cookie->rid, y_cookie->sid, y_cookie->numcsns );
+
+	int x, y;
+	for(x = y = 0; ; ) {
+		int sid;
+		if (x < x_cookie->numcsns && y < y_cookie->numcsns)
+			sid = (x_cookie->sids[x] < y_cookie->sids[y]) ? x_cookie->sids[x] : y_cookie->sids[y];
+		else if (x < x_cookie->numcsns)
+			sid = x_cookie->sids[x];
+		else if (y < y_cookie->numcsns)
+			sid = y_cookie->sids[y];
+		else
+			break;
+
+		BerValue *x_csn = (x < x_cookie->numcsns && sid == x_cookie->sids[x])
+				? &x_cookie->ctxcsn[x] : NULL;
+		BerValue *y_csn = (y < y_cookie->numcsns && sid == y_cookie->sids[y])
+				? &y_cookie->ctxcsn[y] : NULL;
+
+		int sign = 0;
+		if (x_csn && y_csn)
+			sign = slap_csn_compare_ts(x_csn, y_csn);
+		else if (x_csn || y_csn)
+			sign = x_csn ? 1 : -1;
+
+		lutil_debug_print( "%s: %s %s %40s %c %s %s %s\n", prefix,
+			(x_csn && sid == slap_serverID) ? "~>" : "  ",
+			x_name, x_csn ? x_csn->bv_val : "lack",
+			sign ? ((sign > 0) ? '>' : '<')  : '=',
+			y_name, y_csn ? y_csn->bv_val : "lack", (y_csn && y_marker == y) ? "<~" : "" );
+
+		if (x_csn) x++;
+		if (y_csn) y++;
+	}
 }
 
 int slap_cookie_merge_csnset(
@@ -931,9 +972,20 @@ void slap_csns_backward_debug(
 	const BerVarray next )
 {
 	if ( LogTest( LDAP_DEBUG_SYNC ) ) {
-		slap_backtrace_debug();
 		lutil_debug_print("%s: %s > %s\n", prefix, "current", "next" );
 		slap_csns_debug( "current", current );
 		slap_csns_debug( "next", next );
+		slap_backtrace_debug();
+	}
+}
+
+void slap_cookie_backward_debug(const char *prefix,
+	const struct sync_cookie *current,
+	const struct sync_cookie *next )
+{
+	if ( LogTest( LDAP_DEBUG_SYNC ) ) {
+		lutil_debug_print("%s (COOKIE BACKWARD): %s > %s\n", prefix, "current", "next" );
+		slap_cookie_debug_pair(prefix, "current", current, "next", next, -1);
+		slap_backtrace_debug();
 	}
 }
