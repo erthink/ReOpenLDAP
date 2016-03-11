@@ -486,9 +486,6 @@ bdb_cache_find_ndn(
 			 * complete.
 			 */
 			bdb_cache_entryinfo_unlock( ei2 );
-			bdb_cache_entryinfo_unlock( eip );
-			ldap_pvt_thread_yield();
-			bdb_cache_entryinfo_lock( eip );
 			*res = eip;
 			return DB_NOTFOUND;
 		}
