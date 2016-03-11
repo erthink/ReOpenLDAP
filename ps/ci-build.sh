@@ -264,7 +264,11 @@ if [ ! -s Makefile ]; then
 			$(if [ $flag_wt -eq 0 ]; then echo "--disable-wt"; else echo "--enable-wt"; fi) \
 		|| failure "configure"
 
-	find ./ -name Makefile | xargs -r sed -i 's/-Wall -ggdb3/-Wall -Werror -ggdb3/g' || failure "prepare"
+	if [ -e libraries/liblmdb/mdbx.h ]; then
+		find ./ -name Makefile | xargs -r sed -i 's/-Wall -ggdb3/-Wall -Werror -ggdb3/g' || failure "prepare"
+	else
+		find ./ -name Makefile | grep -v liblmdb | xargs -r sed -i 's/-Wall -ggdb3/-Wall -Werror -ggdb3/g' || failure "prepare"
+	fi
 
 	if [ -z "${TEAMCITY_PROCESS_FLOW_ID}" ]; then
 		make -j 1 -l $lalim depend \
@@ -272,10 +276,15 @@ if [ ! -s Makefile ]; then
 	fi
 fi
 
-export CFLAGS="-Werror $CFLAGS" CXXFLAGS="-Werror $CXXFLAGS"
+if [ -e libraries/liblmdb/mdbx.h ]; then
+	CFLAGS="-Werror $CFLAGS"
+	CXXFLAGS="-Werror $CXXFLAGS"
+fi
+export CFLAGS CXXFLAGS
+
 make -j $ncpu -l $lalim \
 	&& make -j $ncpu -l $lalim -C libraries/liblmdb \
-		all mtest0 mtest1 mtest2 mtest3 mtest4 mtest5 mtest6 || failure "build"
+		all $(find libraries/liblmdb -name 'mtest*.c' | xargs -n 1 -r -I '{}' basename '{}' .c) || failure "build"
 
 for m in $(find contrib/slapd-modules -name Makefile -printf '%h\n'); do
 	if [ -e $m/BROKEN ]; then
