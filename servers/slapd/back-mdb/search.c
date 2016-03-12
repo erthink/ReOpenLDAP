@@ -344,9 +344,9 @@ static void
 mdb_writewait( Operation *op, slap_callback *sc )
 {
 	ww_ctx *ww = sc->sc_private;
-	MDB_val key, data;
-	int rc;
 	if ( !ww->flag ) {
+		MDB_val key, data;
+		int rc;
 		if ( ww->mcd ) {
 			rc = mdb_cursor_get( ww->mcd, &key, &data, MDB_GET_CURRENT );
 			assert(rc == MDB_SUCCESS);
@@ -359,9 +359,9 @@ mdb_writewait( Operation *op, slap_callback *sc )
 		}
 		rc = mdb_txn_reset( ww->txn );
 		assert(rc == MDB_SUCCESS);
+		(void) rc;
 		ww->flag = 1;
 	}
-	(void) rc;
 }
 
 static int
