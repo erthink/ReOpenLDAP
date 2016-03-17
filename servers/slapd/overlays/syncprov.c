@@ -3162,9 +3162,12 @@ no_change:
 
 shortcut:
 	/* If changed and doing Present lookup, send Present UUIDs */
-	if ( do_present && syncprov_findcsn( op, FIND_PRESENT, &pivot_csn ) != LDAP_SUCCESS ) {
-		rs->sr_text = "unable to provide robust sync";
-		goto bailout;
+	if ( do_present ) {
+		rs->sr_err = syncprov_findcsn( op, FIND_PRESENT, &pivot_csn );
+		if ( rs->sr_err != LDAP_SUCCESS ) {
+			rs->sr_text = "unable to provide robust sync";
+			goto bailout;
+		}
 	}
 
 	/* Append CSN range to search filter, save original filter
