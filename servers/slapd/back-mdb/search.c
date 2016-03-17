@@ -1124,7 +1124,7 @@ loop_continue:
 #endif /* MDBX_MODE_ENABLED */
 			if ( lag >= mdb->mi_renew_lag && percentage >= mdb->mi_renew_percent ) {
 				if ( moi == &opinfo ) {
-					Debug( LDAP_DEBUG_NONE, "dreamcatcher: lag %d, percentage %u%%\n", lag, percentage );
+					Debug( LDAP_DEBUG_FILTER, "dreamcatcher: lag %d, percentage %u%%\n", lag, percentage );
 					mdb_writewait( op, &cb );
 				} else
 					Debug( LDAP_DEBUG_ANY, "dreamcatcher: UNABLE lag %d, percentage %u%%\n", lag, percentage );
@@ -1136,7 +1136,7 @@ loop_continue:
 			wwctx.nentries++;
 			if ( wwctx.nentries >= mdb->mi_rtxn_size ) {
 				if ( moi == &opinfo ) {
-					Debug( LDAP_DEBUG_NONE, "dreamcatcher: %u entries (> %u)\n", wwctx.nentries, mdb->mi_rtxn_size );
+					Debug( LDAP_DEBUG_FILTER, "dreamcatcher: %u entries (> %u)\n", wwctx.nentries, mdb->mi_rtxn_size );
 					mdb_writewait( op, &cb );
 				} else
 					Debug( LDAP_DEBUG_ANY, "dreamcatcher: UNABLE %u entries (> %u)\n", wwctx.nentries, mdb->mi_rtxn_size );
