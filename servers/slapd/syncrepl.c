@@ -400,23 +400,23 @@ init_syncrepl(syncinfo_t *si)
 static void syncrepl_shutdown_io( syncinfo_t *si )
 {
 	if ( si->si_conn ) {
-		Debug( LDAP_DEBUG_ANY,
+		Debug( LDAP_DEBUG_SYNC,
 			"syncrepl_shutdown_io: %s client-stop >>\n", si->si_ridtxt);
 		connection_client_stop( si->si_conn );
 		si->si_conn = NULL;
-		Debug( LDAP_DEBUG_ANY,
+		Debug( LDAP_DEBUG_SYNC,
 			"syncrepl_shutdown_io: %s client-stop <<\n", si->si_ridtxt);
 	}
 	if ( si->si_ld ) {
 		int rc;
-		Debug( LDAP_DEBUG_ANY,
+		Debug( LDAP_DEBUG_SYNC,
 			"syncrepl_shutdown_io: %s unbind-ext >>\n", si->si_ridtxt);
 		rc = ldap_unbind_ext( si->si_ld, NULL, NULL );
 		si->si_ld = NULL;
 		if ( rc )
 			Debug( LDAP_DEBUG_ANY,
 				"syncrepl_shutdown_io: %s unbind-ext, rc = %d\n", si->si_ridtxt, rc);
-		Debug( LDAP_DEBUG_ANY,
+		Debug( LDAP_DEBUG_SYNC,
 			"syncrepl_shutdown_io: %s unbind-ext <<\n", si->si_ridtxt);
 	}
 }
@@ -486,7 +486,9 @@ syncrepl_process_search(
 
 	slap_cookie_clean_all( &si->si_syncCookie_in );
 	syncrepl_cookie_pull( op, si );
-	slap_cookie_debug( "refresh-begin-cookie", &si->si_syncCookie );
+	if ( LogTest( LDAP_DEBUG_SYNC ) ) {
+		slap_cookie_debug( "refresh-begin-cookie", &si->si_syncCookie );
+	}
 	if ( si->si_syncCookie.numcsns > 0 ) {
 		BerValue cookie_str = BER_BVNULL;
 		slap_cookie_compose( &cookie_str, si->si_syncCookie.ctxcsn,
@@ -694,7 +696,9 @@ syncrepl_start(
 			slap_cookie_move( &si->si_syncCookie, &sc->sci_cookie );
 			ch_free( sc );
 			si->si_keep_cookie4search = 1;
-			slap_cookie_debug( "cmdline-cookie", &si->si_syncCookie );
+			if ( LogTest( LDAP_DEBUG_SYNC ) ) {
+				slap_cookie_debug( "cmdline-cookie", &si->si_syncCookie );
+			}
 		} else {
 			ldap_pvt_thread_mutex_lock( &si->si_cookieState->cs_mutex );
 			if ( !si->si_cookieState->cs_cookie.numcsns ) {
@@ -718,7 +722,7 @@ syncrepl_start(
 
 	rc = syncrepl_process_search( op, si );
 	if ( rc != LDAP_SUCCESS ) {
-		Debug( LDAP_DEBUG_ANY, "syncrepl_start: %s "
+		Debug( LDAP_DEBUG_SYNC, "syncrepl_start: %s "
 			"ldap_search_ext: %s (%d)\n",
 			si->si_ridtxt, ldap_err2string( rc ), rc );
 	}
@@ -773,7 +777,9 @@ compare_cookies( struct sync_cookie *local, struct sync_cookie *remote )
 		}
 	}
 
-	slap_cookie_debug_pair("compare-cookie", "local", local, "remote", remote, lead);
+	if ( LogTest( LDAP_DEBUG_SYNC ) ) {
+		slap_cookie_debug_pair("compare-cookie", "local", local, "remote", remote, lead);
+	}
 	return lead;
 }
 
@@ -783,7 +789,7 @@ static int syncrepl_resync_begin( syncinfo_t *si ) {
 	quorum_notify_status( si->si_be, si->si_rid, 0 );
 
 	if (quorum_syncrepl_gate(si->si_be, si, 1)) {
-		Debug( LDAP_DEBUG_ANY,
+		Debug( LDAP_DEBUG_SYNC,
 			"syncrepl: yielding %s, another running\n",
 			si->si_ridtxt );
 		return SYNC_REFRESH_YIELD;
@@ -873,11 +879,6 @@ syncrepl_take_cookie(
 		Debug( LDAP_DEBUG_ANY, "syncrepl_cookie_take:"
 			"%s REJECT backward-cookie '%s'\n",
 			si->si_ridtxt, raw.bv_val );
-		/* TODO: remove this */
-		slap_cookie_backward_debug(
-			"syncrep_process",
-			&si->si_syncCookie_in, dst );
-		assert(0);
 		return LDAP_UNWILLING_TO_PERFORM;
 	}
 
@@ -886,11 +887,6 @@ syncrepl_take_cookie(
 		Debug( LDAP_DEBUG_ANY, "syncrepl_cookie_take:"
 			"%s REJECT stalled-cookie '%s'\n",
 			si->si_ridtxt, raw.bv_val );
-		/* TODO: remove this */
-		slap_cookie_backward_debug(
-			"syncrep_process-cookie-stalled",
-			&si->si_syncCookie_in, dst );
-		assert(0);
 		return LDAP_UNWILLING_TO_PERFORM;
 	}
 
@@ -1564,7 +1560,7 @@ deleted:
 	}
 
 	if ( dostop ) {
-		Debug( LDAP_DEBUG_ANY,
+		Debug( LDAP_DEBUG_SYNC,
 			"do_syncrep: %s client-stop\n", si->si_ridtxt);
 		connection_client_stop( si->si_conn );
 		si->si_conn = NULL;
@@ -1622,15 +1618,15 @@ deleted:
 
 	if ( rc ) {
 		if ( fail == RETRYNUM_TAIL ) {
-			Debug( LDAP_DEBUG_ANY,
+			Debug( LDAP_DEBUG_SYNC,
 				"do_syncrepl: %s rc %d quitting\n",
 				si->si_ridtxt, rc );
 		} else if ( fail > 0 ) {
-			Debug( LDAP_DEBUG_ANY,
+			Debug( LDAP_DEBUG_SYNC,
 				"do_syncrepl: %s rc %d retrying (%d retries left)\n",
 				si->si_ridtxt, rc, fail );
 		} else {
-			Debug( LDAP_DEBUG_ANY,
+			Debug( LDAP_DEBUG_SYNC,
 				"do_syncrepl: %s rc %d retrying\n",
 				si->si_ridtxt, rc );
 		}
@@ -4496,7 +4492,7 @@ null_callback(
 		rs->sr_err != LDAP_NO_SUCH_OBJECT &&
 		rs->sr_err != LDAP_NOT_ALLOWED_ON_NONLEAF )
 	{
-		Debug( LDAP_DEBUG_ANY,
+		Debug( LDAP_DEBUG_SYNC,
 			"null_callback : error code 0x%x\n",
 			rs->sr_err );
 	}
@@ -5767,7 +5763,7 @@ syncrepl_config( ConfigArgs *c )
 							si->si_re = NULL;
 
 							if ( si->si_conn ) {
-								Debug( LDAP_DEBUG_ANY,
+								Debug( LDAP_DEBUG_SYNC,
 									"syncinfo_config: %s client-stop\n", si->si_ridtxt);
 								connection_client_stop( si->si_conn );
 								si->si_conn = NULL;
