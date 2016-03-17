@@ -926,7 +926,7 @@ syncprov_refresh_end(syncprov_info_t *si, syncops *so);
 #define SO_LOCKED_SIOP 1
 #define SO_LOCKED_CONN 2
 
-static int
+static void
 syncprov_unlink_syncop( syncops *so, int unlink_flags, int locked_flags )
 {
 	syncprov_info_t *si = so->s_si;
@@ -1004,7 +1004,7 @@ syncprov_unlink_syncop( syncops *so, int unlink_flags, int locked_flags )
 	so->s_flags &= ~unlink_flags;
 	if (so->s_flags & OS_REF_MASK) {
 		ldap_pvt_thread_mutex_unlock( &so->s_mutex );
-		return 0;
+		return;
 	}
 
 	assert(so->s_matchops_inuse == 0);
@@ -1037,8 +1037,6 @@ syncprov_unlink_syncop( syncops *so, int unlink_flags, int locked_flags )
 	ldap_pvt_thread_mutex_destroy( &so->s_mutex );
 	ch_free( so );
 	LDAP_ENSURE(__sync_fetch_and_sub(&si->si_psearches, 1) > 0 );
-
-	return 1;
 }
 
 /* Send a persistent search response */
@@ -3026,10 +3024,8 @@ bailout:
 				if ( sids )
 					op->o_tmpfree( sids, op->o_tmpmemctx );
 				if ( so ) {
-					int freed = syncprov_unlink_syncop(so,
+					syncprov_unlink_syncop(so,
 						OS_REF_PREPARE | OS_REF_OP_SEARCH, SO_LOCKED_NONE );
-					assert(freed);
-					(void) freed;
 				}
 				rs->sr_ctrls = NULL;
 				send_ldap_result( op, rs );
