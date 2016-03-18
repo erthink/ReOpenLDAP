@@ -80,8 +80,13 @@ mkdir -p ${PREFIX}/bin \
 find ./ -name Makefile -type f | xargs sed -e "s/STRIP = -s/STRIP =/g;s/\(VERSION= .\+\)/\1${BUILD_ID}/g" -i \
 	|| failure "fix-2"
 
-find ./ -name Makefile | xargs -r sed -i 's/-Wall -g/-Wall -Werror -g/g' \
-	|| failure "fix-3"
+if [ -e libraries/liblmdb/mdbx.h ]; then
+	find ./ -name Makefile | xargs -r sed -i 's/-Wall -g/-Wall -Werror -g/g' \
+		|| failure "fix-3"
+else
+	find ./ -name Makefile | grep -v liblmdb | xargs -r sed -i 's/-Wall -g/-Wall -Werror -g/g' \
+		|| failure "fix-3"
+fi
 
 sed -e 's/ -lrt/ -Wl,--no-as-needed,-lrt/g' -i libraries/liblmdb/Makefile
 
@@ -89,7 +94,7 @@ step_finish "configure"
 echo "======================================================================="
 step_begin "build mdbx-tools"
 
-(cd libraries/liblmdb && make -k all mtest0 mtest1 mtest2 mtest3 mtest4 mtest5 mtest6 && \
+(cd libraries/liblmdb && make -k all && \
 	(cp mdbx_chk mdbx_copy mdbx_stat -t ${PREFIX}/bin/ \
 	|| cp mdb_chk mdb_copy mdb_stat -t ${PREFIX}/bin/) \
 ) \
