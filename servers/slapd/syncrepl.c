@@ -131,6 +131,7 @@ typedef struct syncinfo_s {
 	char	si_schemachecking;
 	char	si_type;	/* the active type */
 	char	si_ctype;	/* the configured type */
+	char	si_search_started;
 	char	si_manageDSAit;
 	char	si_refreshDelete;
 	char	si_refreshPresent;
@@ -399,6 +400,7 @@ init_syncrepl(syncinfo_t *si)
 
 static void syncrepl_shutdown_io( syncinfo_t *si )
 {
+	si->si_search_started = 0;
 	if ( si->si_conn ) {
 		Debug( LDAP_DEBUG_SYNC,
 			"syncrepl_shutdown_io: %s client-stop >>\n", si->si_ridtxt);
@@ -626,9 +628,6 @@ syncrepl_start(
 	void	*ssl;
 #endif
 
-	assert(si->si_ld == NULL);
-	si->si_ld = NULL;
-
 	slap_cookie_clean_all( &si->si_syncCookie_in );
 	si->si_refreshDelete = 0;
 	si->si_refreshPresent = 0;
@@ -636,40 +635,43 @@ syncrepl_start(
 	presentlist_free( &si->si_presentlist );
 	quorum_notify_status( si->si_be, si->si_rid, 0 );
 
-	rc = slap_client_connect( &si->si_ld, &si->si_bindconf );
-	if ( rc != LDAP_SUCCESS ) {
-		return rc;
-	}
-	op->o_protocol = LDAP_VERSION3;
-	ldap_set_gentle_shutdown( si->si_ld, syncrepl_gentle_shutdown );
+	if (si->si_ld == NULL) {
+		si->si_search_started = 0;
+		rc = slap_client_connect( &si->si_ld, &si->si_bindconf );
+		if ( rc != LDAP_SUCCESS ) {
+			return rc;
+		}
+		op->o_protocol = LDAP_VERSION3;
+		ldap_set_gentle_shutdown( si->si_ld, syncrepl_gentle_shutdown );
 
-	/* Set SSF to strongest of TLS, SASL SSFs */
-	op->o_sasl_ssf = 0;
-	op->o_tls_ssf = 0;
-	op->o_transport_ssf = 0;
+		/* Set SSF to strongest of TLS, SASL SSFs */
+		op->o_sasl_ssf = 0;
+		op->o_tls_ssf = 0;
+		op->o_transport_ssf = 0;
 #ifdef HAVE_TLS
-	if ( ldap_get_option( si->si_ld, LDAP_OPT_X_TLS_SSL_CTX, &ssl )
-		== LDAP_SUCCESS && ssl != NULL )
-	{
-		op->o_tls_ssf = ldap_pvt_tls_get_strength( ssl );
-	}
+		if ( ldap_get_option( si->si_ld, LDAP_OPT_X_TLS_SSL_CTX, &ssl )
+			== LDAP_SUCCESS && ssl != NULL )
+		{
+			op->o_tls_ssf = ldap_pvt_tls_get_strength( ssl );
+		}
 #endif /* HAVE_TLS */
-	{
-		ber_len_t ssf; /* ITS#5403, 3864 LDAP_OPT_X_SASL_SSF probably ought
-						  to use sasl_ssf_t but currently uses ber_len_t */
-		if ( ldap_get_option( si->si_ld, LDAP_OPT_X_SASL_SSF, &ssf )
-			== LDAP_SUCCESS )
-			op->o_sasl_ssf = ssf;
+		{
+			ber_len_t ssf; /* ITS#5403, 3864 LDAP_OPT_X_SASL_SSF probably ought
+							  to use sasl_ssf_t but currently uses ber_len_t */
+			if ( ldap_get_option( si->si_ld, LDAP_OPT_X_SASL_SSF, &ssf )
+				== LDAP_SUCCESS )
+				op->o_sasl_ssf = ssf;
+		}
+		op->o_ssf = ( op->o_sasl_ssf > op->o_tls_ssf )
+			?  op->o_sasl_ssf : op->o_tls_ssf;
+
+		ldap_set_option( si->si_ld, LDAP_OPT_TIMELIMIT, &si->si_tlimit );
+
+		rc = LDAP_DEREF_NEVER;	/* actually could allow DEREF_FINDING */
+		ldap_set_option( si->si_ld, LDAP_OPT_DEREF, &rc );
+
+		ldap_set_option( si->si_ld, LDAP_OPT_REFERRALS, LDAP_OPT_OFF );
 	}
-	op->o_ssf = ( op->o_sasl_ssf > op->o_tls_ssf )
-		?  op->o_sasl_ssf : op->o_tls_ssf;
-
-	ldap_set_option( si->si_ld, LDAP_OPT_TIMELIMIT, &si->si_tlimit );
-
-	rc = LDAP_DEREF_NEVER;	/* actually could allow DEREF_FINDING */
-	ldap_set_option( si->si_ld, LDAP_OPT_DEREF, &rc );
-
-	ldap_set_option( si->si_ld, LDAP_OPT_REFERRALS, LDAP_OPT_OFF );
 
 	rc = syncrepl_resync_begin(si);
 	if ( rc != LDAP_SUCCESS ) {
@@ -1493,12 +1495,14 @@ do_syncrepl(
 		op->o_no_schema_check = 1;
 
 	/* Establish session, do search */
-	if ( !si->si_ld ) {
+	if ( !si->si_ld || !si->si_search_started ) {
 		/* use main DB when retrieving contextCSN */
 		op->o_bd = si->si_wbe;
 		op->o_dn = op->o_bd->be_rootdn;
 		op->o_ndn = op->o_bd->be_rootndn;
 		rc = syncrepl_start( op, si );
+		if ( rc == LDAP_SUCCESS )
+			si->si_search_started = 1;
 	}
 
 	/* Process results */
@@ -1538,7 +1542,7 @@ deleted:
 				} else {
 					si->si_conn = connection_client_setup( s, do_syncrepl, arg );
 				}
-			} else if ( si->si_conn ) {
+			} else {
 				dostop = 1;
 			}
 		} else {
@@ -1560,29 +1564,25 @@ deleted:
 	}
 
 	if ( dostop ) {
-		Debug( LDAP_DEBUG_SYNC,
-			"do_syncrep: %s client-stop\n", si->si_ridtxt);
-		connection_client_stop( si->si_conn );
-		si->si_conn = NULL;
+		syncrepl_shutdown_io( si );
 	}
 
 	if ( rc == SYNC_PAUSED ) {
 		rtask->interval.tv_sec = 0;
+		rtask->interval.tv_usec = 1;
 		ldap_pvt_runqueue_resched( &slapd_rq, rtask, 0 );
-		rtask->interval.tv_sec = si->si_interval;
 		rc = 0;
 	} else if ( rc == SYNC_REFRESH_YIELD ) {
 		rtask->interval.tv_sec = 0;
 		rtask->interval.tv_usec = 1000000/10;
 		ldap_pvt_runqueue_resched( &slapd_rq, rtask, 0 );
-		rtask->interval.tv_sec = si->si_interval;
-		rtask->interval.tv_usec = 0;
 		rc = 0;
 	} else if ( rc == LDAP_SUCCESS ) {
 		if ( si->si_type == LDAP_SYNC_REFRESH_ONLY ) {
 			defer = 0;
 		}
 		rtask->interval.tv_sec = si->si_interval;
+		rtask->interval.tv_usec = 0;
 		ldap_pvt_runqueue_resched( &slapd_rq, rtask, defer );
 		if ( si->si_retrynum ) {
 			for ( i = 0; si->si_retrynum_init[i] != RETRYNUM_TAIL; i++ ) {
@@ -1608,6 +1608,7 @@ deleted:
 				si->si_retrynum[i]--;
 			fail = si->si_retrynum[i];
 			rtask->interval.tv_sec = si->si_retryinterval[i];
+			rtask->interval.tv_usec = 0;
 			ldap_pvt_runqueue_resched( &slapd_rq, rtask, 0 );
 			slap_wake_listener();
 		}
