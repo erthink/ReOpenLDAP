@@ -87,11 +87,13 @@ struct mdb_info {
 	uint32_t	mi_txn_cp_kbyte;
 	struct re_s		*mi_txn_cp_task;
 	struct re_s		*mi_index_task;
+#ifdef MDB_LIFORECLAIM
 	uint32_t	mi_renew_lag;
 	uint32_t	mi_renew_percent;
 #define MDB_OOM_KILL	1
 #define MDB_OOM_YIELD	2
 	int			mi_oom_flags;
+#endif /* MDB_LIFORECLAIM */
 
 	mdb_monitor_t	mi_monitor;
 

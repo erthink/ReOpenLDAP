@@ -29,6 +29,10 @@ cd $TESTDIR
 rm -rf testdb && mkdir testdb
 
 for n in 0 1 2 3 4 5 6; do
+	if [ ! -x ${LMDBDIR}/mtest${n} ]; then
+		continue
+	fi
+
 	echo -n "*** LMDB-TEST-$n: "
 	$TIMEOUT_S $VALGRIND_CMD ${LMDBDIR}/mtest${n} > mtest${n}.log
 	RC=$?
@@ -45,6 +49,11 @@ for n in 0 1 2 3 4 5 6; do
 	else
 		echo -n "troubles"
 		troubles=yes
+	fi
+
+	if [ ! -x ${LMDBDIR}/mdbx_chk ]; then
+		echo ""
+		continue
 	fi
 
 	echo -n ", mdbx_chk "
