@@ -303,7 +303,7 @@ static slap_daemon_st slap_daemon[SLAPD_MAX_DAEMON_THREADS];
 		Debug( LDAP_DEBUG_ANY, \
 			"daemon: epoll_ctl(epfd=%d,DEL,fd=%d) failed, errno=%d, shutting down\n", \
 			slap_daemon[t].sd_epfd, s, errno ); \
-		set_shutdown( 2 ); \
+		if (errno != EBADF) set_shutdown( 2 ); \
 	} \
 	slap_daemon[t].sd_epolls[index] = \
 		slap_daemon[t].sd_epolls[slap_daemon[t].sd_nfds-1]; \
