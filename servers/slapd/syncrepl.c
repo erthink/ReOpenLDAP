@@ -833,7 +833,7 @@ static void syncrepl_resync_end( syncinfo_t *si, int rc ) {
 }
 
 static int
-syncrepl_take_cookie(
+syncrepl_eat_cookie(
 		syncinfo_t *si,
 		BerElement *ber,
 		const char *wanna,
@@ -1029,7 +1029,7 @@ syncrepl_process(
 			}
 
 			if ( ber_peek_tag( ber, &len ) == LDAP_TAG_SYNC_COOKIE ) {
-				rc = syncrepl_take_cookie( si, ber, /*"{"*/ "m}", &syncCookie, NULL, 1 );
+				rc = syncrepl_eat_cookie( si, ber, /*"{"*/ "m}", &syncCookie, NULL, 1 );
 				if ( rc )
 					goto done;
 
@@ -1153,7 +1153,7 @@ syncrepl_process(
 				ber_init2( ber, &rctrlp->ldctl_value, LBER_USE_DER );
 				ber_scanf( ber, "{" /*"}"*/);
 				if ( ber_peek_tag( ber, &len ) == LDAP_TAG_SYNC_COOKIE ) {
-					int err = syncrepl_take_cookie( si, ber, "m", &syncCookie, NULL, 0 );
+					int err = syncrepl_eat_cookie( si, ber, "m", &syncCookie, NULL, 0 );
 					if ( err ) {
 						rc = err;
 						goto done;
@@ -1224,7 +1224,7 @@ syncrepl_process(
 						"LDAP_RES_INTERMEDIATE",
 						"NEW_COOKIE" );
 
-					rc = syncrepl_take_cookie( si, ber, "tm", &syncCookie, &tag, 0 );
+					rc = syncrepl_eat_cookie( si, ber, "tm", &syncCookie, &tag, 0 );
 					if ( rc )
 						goto done_intermediate;
 					op->o_controls[slap_cids.sc_LDAPsync] = &syncCookie;
@@ -1245,7 +1245,7 @@ syncrepl_process(
 					}
 					ber_scanf( ber, "t{" /*"}"*/, &tag );
 					if ( ber_peek_tag( ber, &len ) == LDAP_TAG_SYNC_COOKIE ) {
-						rc = syncrepl_take_cookie( si, ber, "m", &syncCookie, NULL, 0 );
+						rc = syncrepl_eat_cookie( si, ber, "m", &syncCookie, NULL, 0 );
 						if ( rc )
 							goto done_intermediate;
 						op->o_controls[slap_cids.sc_LDAPsync] = &syncCookie;
@@ -1266,7 +1266,7 @@ syncrepl_process(
 						"SYNC_ID_SET" );
 					ber_scanf( ber, "t{" /*"}"*/, &tag );
 					if ( ber_peek_tag( ber, &len ) == LDAP_TAG_SYNC_COOKIE ) {
-						rc = syncrepl_take_cookie( si, ber, "m", &syncCookie, NULL, 0 );
+						rc = syncrepl_eat_cookie( si, ber, "m", &syncCookie, NULL, 0 );
 						if ( rc )
 							goto done_intermediate;
 
