@@ -344,9 +344,9 @@ static void
 mdb_writewait( Operation *op, slap_callback *sc )
 {
 	ww_ctx *ww = sc->sc_private;
-	MDB_val key, data;
-	int rc;
 	if ( !ww->flag ) {
+		MDB_val key, data;
+		int rc;
 		if ( ww->mcd ) {
 			rc = mdb_cursor_get( ww->mcd, &key, &data, MDB_GET_CURRENT );
 			assert(rc == MDB_SUCCESS);
@@ -357,11 +357,15 @@ mdb_writewait( Operation *op, slap_callback *sc )
 				memcpy(ww->data.mv_data, data.mv_data, data.mv_size);
 			}
 		}
+#if MDBX_MODE_ENABLED
 		rc = mdb_txn_reset( ww->txn );
 		assert(rc == MDB_SUCCESS);
+		(void) rc;
+#else
+		mdb_txn_reset( ww->txn );
+#endif /* MDBX_MODE_ENABLED */
 		ww->flag = 1;
 	}
-	(void) rc;
 }
 
 static int
@@ -1111,22 +1115,28 @@ notfound:
 		}
 
 loop_continue:
+#ifdef MDB_LIFORECLAIM
 		if ( !wwctx.flag && mdb->mi_renew_lag ) {
+#if MDBX_MODE_ENABLED
 			int percentage, lag = mdbx_txn_straggler( wwctx.txn, &percentage );
+#else
+			int percentage, lag = mdb_txn_straggler( wwctx.txn, &percentage );
+#endif /* MDBX_MODE_ENABLED */
 			if ( lag >= mdb->mi_renew_lag && percentage >= mdb->mi_renew_percent ) {
 				if ( moi == &opinfo ) {
-					Debug( LDAP_DEBUG_NONE, "dreamcatcher: lag %d, percentage %u%%\n", lag, percentage );
+					Debug( LDAP_DEBUG_FILTER, "dreamcatcher: lag %d, percentage %u%%\n", lag, percentage );
 					mdb_writewait( op, &cb );
 				} else
 					Debug( LDAP_DEBUG_ANY, "dreamcatcher: UNABLE lag %d, percentage %u%%\n", lag, percentage );
 			}
 		}
+#endif /* MDB_LIFORECLAIM */
 
 		if ( !wwctx.flag && mdb->mi_rtxn_size ) {
 			wwctx.nentries++;
 			if ( wwctx.nentries >= mdb->mi_rtxn_size ) {
 				if ( moi == &opinfo ) {
-					Debug( LDAP_DEBUG_NONE, "dreamcatcher: %u entries (> %u)\n", wwctx.nentries, mdb->mi_rtxn_size );
+					Debug( LDAP_DEBUG_FILTER, "dreamcatcher: %u entries (> %u)\n", wwctx.nentries, mdb->mi_rtxn_size );
 					mdb_writewait( op, &cb );
 				} else
 					Debug( LDAP_DEBUG_ANY, "dreamcatcher: UNABLE %u entries (> %u)\n", wwctx.nentries, mdb->mi_rtxn_size );

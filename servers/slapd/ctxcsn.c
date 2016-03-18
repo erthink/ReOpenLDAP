@@ -127,7 +127,7 @@ slap_get_commit_csn(
 					if ( committed_csne
 							&& slap_csn_compare_ts( &csne->ce_csn,
 								&committed_csne->ce_csn ) CTXCSN_ORDERING 0 ) {
-						Debug( LDAP_DEBUG_ANY, "slap_get_commit_csn:"
+						Debug( LDAP_DEBUG_SYNC, "slap_get_commit_csn:"
 							"  next-pending %p (conn %ld, opid %ld) %s\n\t"
 							" prev-commited %p (conn %ld, opid %ld) %s\n",
 							csne, csne->ce_connid, csne->ce_opid, csne->ce_csn.bv_val,
