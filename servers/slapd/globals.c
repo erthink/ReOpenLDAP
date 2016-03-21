@@ -174,36 +174,3 @@ retry:
 
 	op->o_callback = NULL;
 }
-
-ldap_pvt_thread_mutex_t* __scoped_lock(ldap_pvt_thread_mutex_t *m) {
-	if (likely(m))
-		LDAP_ENSURE(pthread_mutex_lock(m) == 0);
-	return m;
-}
-
-void __scoped_unlock(lock_holder_t *lh) {
-	if (lh->lh_mutex) {
-		LDAP_ENSURE(pthread_mutex_unlock(lh->lh_mutex) == 0);
-		lh->lh_mutex = NULL;
-	}
-}
-
-ldap_pvt_thread_mutex_t* __op_scoped_lock(const Operation *op) {
-	static ldap_pvt_thread_mutex_t forest_of_crutch
-			[ 17 /* LY: the prime number, it is important! */ ] = {
-		PTHREAD_RECURSIVE_MUTEX_INITIALIZER_NP,	PTHREAD_RECURSIVE_MUTEX_INITIALIZER_NP,
-		PTHREAD_RECURSIVE_MUTEX_INITIALIZER_NP,	PTHREAD_RECURSIVE_MUTEX_INITIALIZER_NP,
-		PTHREAD_RECURSIVE_MUTEX_INITIALIZER_NP,	PTHREAD_RECURSIVE_MUTEX_INITIALIZER_NP,
-		PTHREAD_RECURSIVE_MUTEX_INITIALIZER_NP,	PTHREAD_RECURSIVE_MUTEX_INITIALIZER_NP,
-		PTHREAD_RECURSIVE_MUTEX_INITIALIZER_NP,	PTHREAD_RECURSIVE_MUTEX_INITIALIZER_NP,
-		PTHREAD_RECURSIVE_MUTEX_INITIALIZER_NP,	PTHREAD_RECURSIVE_MUTEX_INITIALIZER_NP,
-		PTHREAD_RECURSIVE_MUTEX_INITIALIZER_NP,	PTHREAD_RECURSIVE_MUTEX_INITIALIZER_NP,
-		PTHREAD_RECURSIVE_MUTEX_INITIALIZER_NP,	PTHREAD_RECURSIVE_MUTEX_INITIALIZER_NP,
-		PTHREAD_RECURSIVE_MUTEX_INITIALIZER_NP,
-	};
-
-	size_t n = ((unsigned)((size_t) op)) % 17;
-	ldap_pvt_thread_mutex_t *m = &forest_of_crutch[n];
-	LDAP_ENSURE(pthread_mutex_lock(m) == 0);
-	return m;
-}
