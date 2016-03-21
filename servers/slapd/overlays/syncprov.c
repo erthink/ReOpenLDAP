@@ -2889,7 +2889,6 @@ syncprov_op_search( Operation *op, SlapReply *rs )
 	}
 
 	ldap_pvt_thread_mutex_lock( &si->si_ops_mutex );
-	ldap_pvt_thread_rdwr_rlock( &si->si_csn_rwlock );
 
 	/* If this is a persistent search, set it up right away */
 	if ( op->o_sync_mode & SLAP_SYNC_PERSIST ) {
@@ -2900,7 +2899,6 @@ syncprov_op_search( Operation *op, SlapReply *rs )
 			 * doesn't help, as we may finish playing it before the
 			 * active mods gets added to it.
 			 */
-			ldap_pvt_thread_rdwr_runlock( &si->si_csn_rwlock );
 			ldap_pvt_thread_mutex_unlock( &si->si_ops_mutex );
 			if ( slapd_shutdown ) {
 				ch_free( so );
@@ -2910,7 +2908,6 @@ syncprov_op_search( Operation *op, SlapReply *rs )
 				ldap_pvt_thread_yield();
 
 			ldap_pvt_thread_mutex_lock( &si->si_ops_mutex );
-			ldap_pvt_thread_rdwr_rlock( &si->si_csn_rwlock );
 		}
 
 		so->s_flags |= OS_REF_PREPARE | OS_REF_OP_SEARCH;
@@ -2924,6 +2921,7 @@ syncprov_op_search( Operation *op, SlapReply *rs )
 	/* snapshot the ctxcsn
 	 * Note: this must not be done before the psearch setup. (ITS#8365)
 	 */
+	ldap_pvt_thread_rdwr_rlock( &si->si_csn_rwlock );
 	if (reopenldap_mode_idkfa())
 		slap_cookie_verify( &si->si_cookie );
 	numcsns = si->si_cookie.numcsns;
@@ -3283,21 +3281,20 @@ syncprov_operational(
 					break;
 			}
 
-			ldap_pvt_thread_rdwr_rlock( &si->si_csn_rwlock );
-			if (reopenldap_mode_idkfa())
-				slap_cookie_verify( &si->si_cookie );
-
 			BerValue status = {0};
 			int mock = 0;
 			if (! op->o_dont_replicate && si->si_showstatus ) {
 				mock = quorum_query_status(op->o_bd, &status)
 					| read_int__tsan_workaround(&si->si_prefresh)
-					| slap_biglock_deep(op->o_bd)
 					| read_int__tsan_workaround(&si->si_active);
 
 				Debug( LDAP_DEBUG_SYNC, "syncprov_gate: %s\n",
 					mock ? "dirty" : "clean" );
 			}
+
+			ldap_pvt_thread_rdwr_rlock( &si->si_csn_rwlock );
+			if (reopenldap_mode_idkfa())
+				slap_cookie_verify( &si->si_cookie );
 
 			if ( si->si_cookie.numcsns || mock ) {
 				if ( !a ) {
