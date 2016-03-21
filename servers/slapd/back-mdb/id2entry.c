@@ -516,7 +516,11 @@ ok:
 	}
 	if ( renew ) {
 		rc = mdb_txn_renew( moi->moi_txn );
-		assert(!rc);
+		if (rc) {
+			Debug( LDAP_DEBUG_ANY, "mdb_opinfo_get: err %s(%d)\n",
+				mdb_strerror(rc), rc );
+			return rc;
+		}
 	}
 	moi->moi_ref++;
 	if ( *moip != moi )
