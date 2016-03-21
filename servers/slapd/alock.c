@@ -392,7 +392,7 @@ alock_open ( alock_info_t * info,
 	assert ((locktype & ALOCK_SMASK) >= 1 && (locktype & ALOCK_SMASK) <= 2);
 
 	slot_data.al_lock = locktype;
-	slot_data.al_stamp = time(NULL);
+	slot_data.al_stamp = ldap_time_steady();
 	slot_data.al_pid = getpid();
 	slot_data.al_appname = ber_memcalloc (1, ALOCK_MAX_APPNAME);
 	if (slot_data.al_appname == NULL) {

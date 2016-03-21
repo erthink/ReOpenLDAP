@@ -602,7 +602,7 @@ static int pam_sess(nssov_info *ni,TFILE *fp,Operation *op,int action)
 		timestamp.bv_len = sizeof(timebuf);
 		timestamp.bv_val = timebuf;
 		stamp = op->o_time;
-		slap_timestamp( &stamp, &timestamp );
+		slap_timestamp( stamp, &timestamp );
 	} else {
 		READ_STRING(fp,sessionID);
 		timestamp.bv_val = sessionID;

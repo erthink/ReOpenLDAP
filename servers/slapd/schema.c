@@ -132,8 +132,7 @@ schema_info( Entry **entry, const char **text )
 
 		vals[0].bv_val = timebuf;
 		vals[0].bv_len = sizeof( timebuf );
-
-		slap_timestamp( &starttime, vals );
+		slap_timestamp( ldap_to_time(starttime), vals );
 
 		if( attr_merge_one( e, ad_createTimestamp, vals, NULL ) ) {
 			/* Out of memory, do something about it */

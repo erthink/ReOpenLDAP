@@ -21,8 +21,8 @@
 LDAP_BEGIN_DECL
 
 typedef struct re_s {
-	struct timeval next_sched;
-	struct timeval interval;
+	slap_time_t next_sched;
+	slap_time_t interval;
 	LDAP_STAILQ_ENTRY(re_s) tnext; /* it includes running */
 	LDAP_STAILQ_ENTRY(re_s) rnext;
 	ldap_pvt_thread_start_t *routine;
@@ -38,9 +38,18 @@ typedef struct runqueue_s {
 } runqueue_t;
 
 LDAP_F( struct re_s* )
-ldap_pvt_runqueue_insert(
+ldap_pvt_runqueue_insert_ns(
 	struct runqueue_s* rq,
-	time_t interval,
+	slap_time_t interval,
+	ldap_pvt_thread_start_t* routine,
+	void *arg,
+	char *tname,
+	char *tspec
+);
+
+LDAP_F( struct re_s* )
+ldap_pvt_runqueue_insert(struct runqueue_s* rq,
+	int interval_seconds,
 	ldap_pvt_thread_start_t* routine,
 	void *arg,
 	char *tname,
@@ -63,7 +72,7 @@ ldap_pvt_runqueue_remove(
 LDAP_F( struct re_s* )
 ldap_pvt_runqueue_next_sched(
 	struct runqueue_s* rq,
-	struct timeval* next_run
+	slap_time_t* next_run
 );
 
 LDAP_F( void )

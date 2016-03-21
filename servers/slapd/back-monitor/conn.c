@@ -279,12 +279,12 @@ conn_create(
 	assert( c != NULL );
 	assert( ep != NULL );
 
-	ldap_pvt_gmtime( &c->c_starttime, &tm );
+	ldap_pvt_gmtime( c->c_starttime, &tm );
 
 	ctmbv.bv_len = lutil_gentime( buf2, sizeof( buf2 ), &tm );
 	ctmbv.bv_val = buf2;
 
-	ldap_pvt_gmtime( &c->c_activitytime, &tm );
+	ldap_pvt_gmtime( c->c_activitytime, &tm );
 	mtmbv.bv_len = lutil_gentime( buf3, sizeof( buf3 ), &tm );
 	mtmbv.bv_val = buf3;
 

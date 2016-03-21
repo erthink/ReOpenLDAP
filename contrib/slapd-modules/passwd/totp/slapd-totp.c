@@ -400,7 +400,7 @@ static int chk_totp(
 	Operation *op;
 	Entry *e;
 	Attribute *a;
-	long t = time(0L) / TIME_STEP;
+	long t = ldap_time_steady() / TIME_STEP;
 	int rc;
 	myval out, key;
 	char outbuf[32];
@@ -614,7 +614,7 @@ totp_bind_response( Operation *op, SlapReply *rs )
 		/* update the authTimestamp in the user's entry with the current time */
 		timestamp.bv_val = nowstr;
 		timestamp.bv_len = sizeof(nowstr);
-		slap_timestamp( &now, &timestamp );
+		slap_timestamp( now, &timestamp );
 
 		m = ch_calloc( sizeof(Modifications), 1 );
 		m->sml_op = LDAP_MOD_REPLACE;

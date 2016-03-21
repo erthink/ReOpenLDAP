@@ -274,6 +274,52 @@ __extern_C void reopenldap_jitter(int probability_percent);
 
 /* -------------------------------------------------------------------------- */
 
+#include <stdint.h>
+#include <time.h>
+
+/* LY: to avoid include <sys/time.h> here */
+struct timeval;
+
+__extern_C time_t ldap_time_steady(void);
+__extern_C time_t ldap_time_unsteady(void);
+__extern_C void ldap_timespec(struct timespec *);
+__extern_C unsigned ldap_timeval(struct timeval *);
+__extern_C uint64_t ldap_now_ns(void);
+
+typedef struct {
+	uint64_t ns;
+} slap_time_t;
+
+#define ldap_now(void) ({ \
+	slap_time_t __t = { ldap_now_ns() }; \
+	__t; \
+})
+
+#define ldap_from_seconds(S) ({ \
+	slap_time_t __t = { (S) * (uint64_t) 1000ul * 1000ul * 1000ul }; \
+	__t; \
+})
+
+#define ldap_from_timeval(T) ({ \
+	slap_time_t __t = { \
+		(T)->tv_sec * (uint64_t) 1000ul * 1000ul * 1000ul \
+		+ (T)->tv_usec * (uint64_t) 1000ul }; \
+	__t; \
+})
+
+#define ldap_from_timespec(T) ({ \
+	slap_time_t __t = { \
+		(T)->tv_sec * (uint64_t) 1000ul * 1000ul * 1000ul \
+		+ (T)->tv_nsec }; \
+	__t; \
+})
+
+#define ldap_to_milliseconds(TS) ((TS).ns / 1000000ul)
+#define ldap_to_seconds(TS) ((TS).ns / 1000000000ull)
+#define ldap_to_time(TS) ldap_to_seconds(TS)
+
+/* -------------------------------------------------------------------------- */
+
 #if defined(HAVE_VALGRIND) || defined(USE_VALGRIND)
 	/* Get debugging help from Valgrind */
 #	include <valgrind/memcheck.h>

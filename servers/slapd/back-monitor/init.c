@@ -2266,7 +2266,7 @@ monitor_back_db_open(
 	/*
 	 * Start
 	 */
-	ldap_pvt_gmtime( &starttime, &tms );
+	ldap_pvt_gmtime( starttime, &tms );
 	lutil_gentime( tmbuf, sizeof(tmbuf), &tms );
 
 	mi->mi_startTime.bv_val = tmbuf;

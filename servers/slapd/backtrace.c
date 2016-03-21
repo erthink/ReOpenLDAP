@@ -272,7 +272,7 @@ void backtrace_sigaction(int signum, siginfo_t *info, void* ptr) {
 	}
 
 	char time_buf[64];
-	time_t t = time(NULL);
+	time_t t = ldap_time_steady();
 	strftime(time_buf, sizeof(time_buf), "%F-%H%M%S", localtime(&t));
 
 	char name_buf[PATH_MAX];
@@ -449,7 +449,7 @@ void backtrace_sigaction(int signum, siginfo_t *info, void* ptr) {
 
 		time_t timeout;
 		/* wait until GDB climbs up */
-		for (timeout = time(NULL) + 11; time(NULL) < timeout; usleep(10 * 1000)) {
+		for (timeout = ldap_time_steady() + 42; ldap_time_steady() < timeout; usleep(10 * 1000)) {
 			if (waitpid(gdb_pid, NULL, WNOHANG) != 0) {
 #if ! GDB_SWITCH2GUILTY_THREAD
 				if (gdb_is_ready_for_backtrace == gdb_pid)

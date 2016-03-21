@@ -110,7 +110,6 @@ typedef struct syncinfo_s {
 	int			si_slimit;
 	int			si_tlimit;
 	time_t		si_refreshBeg;
-	time_t		si_refreshEnd;
 	int			si_got;
 	ber_int_t	si_msgid;
 	presentlist_t	si_presentlist;
@@ -799,7 +798,7 @@ static int syncrepl_resync_begin( syncinfo_t *si ) {
 			si->si_ridtxt );
 		return SYNC_REFRESH_YIELD;
 	}
-	si->si_refreshBeg = slap_get_time();
+	si->si_refreshBeg = ldap_time_steady();
 	Debug( LDAP_DEBUG_SYNC, "syncrepl: refresh-begin %s\n",
 		   si->si_ridtxt );
 	return LDAP_SUCCESS;
@@ -813,11 +812,10 @@ static void syncrepl_refresh_done( syncinfo_t *si, int rc ) {
 		if ( rc == LDAP_SUCCESS )
 			si->si_refreshDone = 1;
 		if ( si->si_refreshBeg ) {
-			si->si_refreshEnd = slap_get_time();
 			Debug( LDAP_DEBUG_SYNC,
 				"syncrepl: refresh-%s %s, rc %d, take %d seconds\n",
 				rc ? "abort" : "done",
-				si->si_ridtxt, rc, (int) (si->si_refreshEnd - si->si_refreshBeg) );
+				si->si_ridtxt, rc, (int) (ldap_time_steady() - si->si_refreshBeg) );
 		}
 	}
 }
@@ -831,6 +829,9 @@ static void syncrepl_resync_end( syncinfo_t *si, int rc ) {
 
 	if (si->si_refreshBeg) {
 		quorum_syncrepl_gate( si->si_be, si, 0 );
+		Debug( LDAP_DEBUG_SYNC,
+			"syncrepl: refresh-%s %s, rc %d, take %d seconds\n", "end",
+			si->si_ridtxt, rc, (int) (ldap_time_steady() - si->si_refreshBeg) );
 		si->si_refreshBeg = 0;
 	}
 }
@@ -1571,21 +1572,18 @@ deleted:
 	}
 
 	if ( rc == SYNC_PAUSED ) {
-		rtask->interval.tv_sec = 0;
-		rtask->interval.tv_usec = 1;
+		rtask->interval.ns = 1;
 		ldap_pvt_runqueue_resched( &slapd_rq, rtask, 0 );
 		rc = 0;
 	} else if ( rc == SYNC_REFRESH_YIELD ) {
-		rtask->interval.tv_sec = 0;
-		rtask->interval.tv_usec = 1000000/10;
+		rtask->interval.ns = ldap_from_seconds(1).ns / 100;
 		ldap_pvt_runqueue_resched( &slapd_rq, rtask, 0 );
 		rc = 0;
 	} else if ( rc == LDAP_SUCCESS ) {
 		if ( si->si_type == LDAP_SYNC_REFRESH_ONLY ) {
 			defer = 0;
 		}
-		rtask->interval.tv_sec = si->si_interval;
-		rtask->interval.tv_usec = 0;
+		rtask->interval = ldap_from_seconds(si->si_interval);
 		ldap_pvt_runqueue_resched( &slapd_rq, rtask, defer );
 		if ( si->si_retrynum ) {
 			for ( i = 0; si->si_retrynum_init[i] != RETRYNUM_TAIL; i++ ) {
@@ -1610,8 +1608,7 @@ deleted:
 			if ( si->si_retrynum[i] > 0 )
 				si->si_retrynum[i]--;
 			fail = si->si_retrynum[i];
-			rtask->interval.tv_sec = si->si_retryinterval[i];
-			rtask->interval.tv_usec = 0;
+			rtask->interval = ldap_from_seconds(si->si_retryinterval[i]);
 			ldap_pvt_runqueue_resched( &slapd_rq, rtask, 0 );
 			slap_wake_listener();
 		}
@@ -2935,7 +2932,7 @@ syncrepl_entry(
 		op->o_req_ndn = si->si_base;
 	}
 
-	op->o_time = slap_get_time();
+	op->o_time = ldap_time_steady();
 	op->ors_tlimit = SLAP_NO_LIMIT;
 	op->ors_slimit = 1;
 	op->ors_limit = NULL;
@@ -3520,7 +3517,7 @@ static int syncrepl_del_nonpresent(
 	op->o_tag = LDAP_REQ_SEARCH;
 	op->ors_scope = si->si_scope;
 	op->ors_deref = LDAP_DEREF_NEVER;
-	op->o_time = slap_get_time();
+	op->o_time = ldap_time_steady();
 	op->ors_tlimit = SLAP_NO_LIMIT;
 
 	char buf[ LDAP_PVT_CSNSTR_BUFSIZE ];

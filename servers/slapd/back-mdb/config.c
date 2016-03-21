@@ -651,7 +651,7 @@ mdb_cf_gen( ConfigArgs *c )
 						/* LY: compatible mode, interval in minutes */
 						mdb->mi_txn_cp_period * 60;
 			if ( re ) {
-				re->interval.tv_sec = interval_sec;
+				re->interval = ldap_from_seconds(interval_sec);
 			} else {
 				if ( c->be->be_suffix == NULL || BER_BVISNULL( &c->be->be_suffix[0] ) ) {
 					fprintf( stderr, "%s: "

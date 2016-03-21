@@ -379,14 +379,14 @@ best_guess( Operation *op,
 
 		/* best guess */
 #if 0
-		currtime = slap_get_time();
+		currtime = ldap_time_steady();
 #endif
 		/* maybe we better use the time the operation was initiated */
 		currtime = op->o_time;
 
 		timestamp.bv_val = tmbuf;
 		timestamp.bv_len = sizeof(tmbuf);
-		slap_timestamp( &currtime, &timestamp );
+		slap_timestamp( currtime, &timestamp );
 
 		ber_dupbv( bv_modifyTimestamp, &timestamp );
 		ber_dupbv( bv_nmodifyTimestamp, bv_modifyTimestamp );
@@ -845,7 +845,7 @@ lastmod_db_open(
 	 */
 	timestamp.bv_val = tmbuf;
 	timestamp.bv_len = sizeof(tmbuf);
-	slap_timestamp( &starttime, &timestamp );
+	slap_timestamp( ldap_to_time(starttime), &timestamp );
 
 	entryCSN.bv_val = csnbuf;
 	entryCSN.bv_len = sizeof( csnbuf );
@@ -914,7 +914,6 @@ lastmod_db_destroy(
 
 		if ( lmi->lmi_e ) {
 			entry_free( lmi->lmi_e );
-
 			ldap_pvt_thread_mutex_destroy( &lmi->lmi_entry_mutex );
 		}
 

@@ -2934,8 +2934,8 @@ struct Connection {
 	Sockbuf		*c_sb;			/* ber connection stuff		  */
 
 	/* only can be changed by connect_init */
-	time_t		c_starttime;	/* when the connection was opened */
-	time_t		c_activitytime;	/* when the connection was last used */
+	slap_time_t		c_starttime;	/* when the connection was opened */
+	slap_time_t		c_activitytime;	/* when the connection was last used */
 	unsigned long		c_connid;	/* id of this connection for stats*/
 
 	struct berval	c_peer_domain;	/* DNS name of client */

@@ -147,7 +147,7 @@ passwd_back_search(
 
 				/* check time limit */
 				if ( op->ors_tlimit != SLAP_NO_LIMIT
-						&& slap_get_time() > stoptime )
+						&& ldap_time_steady() > stoptime )
 				{
 					send_ldap_error( op, rs, LDAP_TIMELIMIT_EXCEEDED, NULL );
 					endpwent();
