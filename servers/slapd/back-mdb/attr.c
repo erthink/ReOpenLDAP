@@ -386,7 +386,6 @@ fail:
 		a->ai_root = NULL;
 		a->ai_desc = ad;
 		a->ai_dbi = 0;
-		ldap_pvt_thread_mutex_init(&a->ai_mutex);
 
 		if ( mdb->mi_flags & MDB_IS_OPEN ) {
 			a->ai_indexmask = 0;
