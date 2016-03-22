@@ -902,6 +902,7 @@ void quorum_notify_sid(BackendDB *bd, int rid, int sid);
 #define QS_REFRESH	2
 #define QS_READY	3
 #define QS_PROCESS	4
+#define QS_MAX		5
 void quorum_notify_status(BackendDB *bd, int rid, int status);
 
 int quorum_query(BackendDB *bd);
