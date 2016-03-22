@@ -3434,9 +3434,11 @@ sp_cf_gen(ConfigArgs *c)
 			break;
 		case SP_SHOWSTATUS:
 			switch ( si->si_showstatus ) {
-			case SS_NONE:
 			default:
 				rc = 1;
+				break;
+			case SS_NONE:
+				c->value_string = ch_strdup( "none" );
 				break;
 			case SS_RUNNING:
 				c->value_string = ch_strdup( "running" );
@@ -3473,10 +3475,7 @@ sp_cf_gen(ConfigArgs *c)
 				rc = LDAP_NO_SUCH_ATTRIBUTE;
 			break;
 		case SP_SHOWSTATUS:
-			if ( si->si_showstatus != SS_NONE )
-				si->si_showstatus = SS_NONE;
-			else
-				rc = LDAP_NO_SUCH_ATTRIBUTE;
+			si->si_showstatus = SS_NONE;
 			break;
 		}
 		return rc;
@@ -3768,6 +3767,7 @@ syncprov_db_init(
 	}
 
 	si = ch_calloc(1, sizeof(syncprov_info_t));
+	si->si_showstatus = SS_RUNNING;
 	on->on_bi.bi_private = si;
 	ldap_pvt_thread_rdwr_init( &si->si_csn_rwlock );
 	ldap_pvt_thread_mutex_init( &si->si_ops_mutex );
