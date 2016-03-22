@@ -3255,6 +3255,10 @@ shortcut:
 	return SLAP_CB_CONTINUE;
 }
 
+#define SS_NONE		0	/* LY: no mock contextCSN */
+#define SS_RUNNING	1	/* LY: show mock contextCSN for running (connected) syncrepl(s) */
+#define SS_ALL		2	/* LY: show mock contextCSN for any dirty syncrepl(s) */
+
 static int
 syncprov_operational(
 	Operation *op,
@@ -3283,8 +3287,9 @@ syncprov_operational(
 
 			BerValue status = {0};
 			int mock = 0;
-			if (! op->o_dont_replicate && si->si_showstatus ) {
-				mock = quorum_query_status(op->o_bd, &status)
+			if (! op->o_dont_replicate && si->si_showstatus != SS_NONE ) {
+				mock = quorum_query_status(op->o_bd,
+						si->si_showstatus == SS_RUNNING, &status)
 					| read_int__tsan_workaround(&si->si_prefresh)
 					| read_int__tsan_workaround(&si->si_active);
 
@@ -3356,10 +3361,11 @@ static ConfigTable spcfg[] = {
 		sp_cf_gen, "( OLcfgOvAt:1.4 NAME 'olcSpReloadHint' "
 			"DESC 'Observe Reload Hint in Request control' "
 			"SYNTAX OMsBoolean SINGLE-VALUE )", NULL, NULL },
-	{ "syncprov-showstatus", NULL, 2, 2, 0, ARG_ON_OFF|ARG_MAGIC|SP_SHOWSTATUS,
+	{ "syncprov-showstatus", "mode", 2, 2, 0, ARG_STRING|ARG_MAGIC|SP_SHOWSTATUS,
 		sp_cf_gen, "( OLcfgOvAt:1.9 NAME 'olcSpShowStatus' "
 			"DESC 'Show a Mock contextCSN Until Synchronization is Perfect' "
-			"SYNTAX OMsBoolean SINGLE-VALUE )", NULL, NULL },
+			"EQUALITY caseIgnoreMatch "
+			"SYNTAX OMsDirectoryString SINGLE-VALUE )", NULL, NULL },
 	{ NULL, NULL, 0, 0, 0, ARG_IGNORED }
 };
 
@@ -3427,10 +3433,17 @@ sp_cf_gen(ConfigArgs *c)
 			}
 			break;
 		case SP_SHOWSTATUS:
-			if ( si->si_showstatus ) {
-				c->value_int = 1;
-			} else {
+			switch ( si->si_showstatus ) {
+			case SS_NONE:
+			default:
 				rc = 1;
+				break;
+			case SS_RUNNING:
+				c->value_string = ch_strdup( "running" );
+				break;
+			case SS_ALL:
+				c->value_string = ch_strdup( "all" );
+				break;
 			}
 			break;
 		}
@@ -3460,8 +3473,8 @@ sp_cf_gen(ConfigArgs *c)
 				rc = LDAP_NO_SUCH_ATTRIBUTE;
 			break;
 		case SP_SHOWSTATUS:
-			if ( si->si_showstatus )
-				si->si_showstatus = 0;
+			if ( si->si_showstatus != SS_NONE )
+				si->si_showstatus = SS_NONE;
 			else
 				rc = LDAP_NO_SUCH_ATTRIBUTE;
 			break;
@@ -3532,7 +3545,19 @@ sp_cf_gen(ConfigArgs *c)
 		si->si_usehint = c->value_int;
 		break;
 	case SP_SHOWSTATUS:
-		si->si_showstatus = c->value_int;
+		if ( strcasecmp( c->value_string, "none" ) == 0 )
+			si->si_showstatus = SS_NONE;
+		else if ( strcasecmp( c->value_string, "running" ) == 0)
+			si->si_showstatus = SS_RUNNING;
+		else if ( strcasecmp( c->value_string, "all" ) == 0)
+			si->si_showstatus = SS_ALL;
+		else {
+			snprintf( c->cr_msg, sizeof( c->cr_msg ), "%s invalid mode \"%s\" (none|running|all)",
+				c->argv[0], c->value_string );
+			Debug( LDAP_DEBUG_CONFIG|LDAP_DEBUG_NONE,
+				"%s: %s\n", c->log, c->cr_msg );
+			return ARG_BAD_CONF;
+		}
 	}
 	return rc;
 }

@@ -304,7 +304,7 @@ static void kick(slap_quorum_t *q)
 	}
 }
 
-int quorum_query_status(BackendDB *bd, BerValue *status)
+int quorum_query_status(BackendDB *bd, int running_only, BerValue *status)
 {
 	int rc = 0;
 
