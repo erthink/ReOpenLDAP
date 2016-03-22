@@ -588,14 +588,14 @@ void quorum_notify_sid(BackendDB *bd, int rid, int sid) {
 	}
 }
 
-void quorum_notify_status(BackendDB *bd, int rid, int ready) {
+void quorum_notify_status(BackendDB *bd, int rid, int status) {
 	assert(rid > -1 || rid <= SLAP_SYNC_RID_MAX);
 	assert(quorum_list != QR_POISON);
 	bd = bd->bd_self;
 
 	if (bd->bd_quorum) {
 		lock();
-		if (bd->bd_quorum && notify_ready(bd->bd_quorum, rid, ready > 0))
+		if (bd->bd_quorum && notify_ready(bd->bd_quorum, rid, status >= QS_READY))
 			quorum_invalidate(bd);
 		unlock();
 	}

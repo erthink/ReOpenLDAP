@@ -896,7 +896,14 @@ void quorum_notify_self_sid();
 void quorum_add_rid(BackendDB *bd, int rid);
 void quorum_remove_rid(BackendDB *bd, int rid);
 void quorum_notify_sid(BackendDB *bd, int rid, int sid);
-void quorum_notify_status(BackendDB *bd, int rid, int ready);
+
+#define QS_DIRTY	0
+#define QS_DEAD		1
+#define QS_REFRESH	2
+#define QS_READY	3
+#define QS_PROCESS	4
+void quorum_notify_status(BackendDB *bd, int rid, int status);
+
 int quorum_query(BackendDB *bd);
 void quorum_notify_csn(BackendDB *bd, int csnsid);
 int quorum_syncrepl_gate(BackendDB *bd, void *instance_key, int in);

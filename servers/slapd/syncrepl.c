@@ -132,6 +132,7 @@ typedef struct syncinfo_s {
 	char	si_type;	/* the active type */
 	char	si_ctype;	/* the configured type */
 	char	si_search_started;
+	char	si_quorum_status;
 	char	si_manageDSAit;
 	char	si_refreshDelete;
 	char	si_refreshPresent;
@@ -215,6 +216,17 @@ static logschema accesslog_sc = {
 };
 
 static slap_overinst syncrepl_ov;
+
+static void
+syncrepl_notify_quorum(syncinfo_t *si, int status)
+{
+	if (si->si_quorum_status != (char) status) {
+		if (status == QS_PROCESS && si->si_quorum_status != QS_READY)
+			return;
+		si->si_quorum_status = status;
+		quorum_notify_status( si->si_be, si->si_rid, status );
+	}
+}
 
 static void
 init_syncrepl(syncinfo_t *si)
@@ -635,12 +647,13 @@ syncrepl_start(
 	si->si_refreshPresent = 0;
 	si->si_got_present_list = 0;
 	presentlist_free( &si->si_presentlist );
-	quorum_notify_status( si->si_be, si->si_rid, 0 );
+	syncrepl_notify_quorum( si, QS_DIRTY );
 
 	if (si->si_ld == NULL) {
 		si->si_search_started = 0;
 		rc = slap_client_connect( &si->si_ld, &si->si_bindconf );
 		if ( rc != LDAP_SUCCESS ) {
+			syncrepl_notify_quorum( si, QS_DEAD );
 			return rc;
 		}
 		op->o_protocol = LDAP_VERSION3;
@@ -790,7 +803,7 @@ compare_cookies( struct sync_cookie *local, struct sync_cookie *remote )
 static int syncrepl_resync_begin( syncinfo_t *si ) {
 	assert(	si->si_refreshBeg == 0);
 	si->si_refreshDone = 0;
-	quorum_notify_status( si->si_be, si->si_rid, 0 );
+	syncrepl_notify_quorum( si, QS_DIRTY );
 
 	if (quorum_syncrepl_gate(si->si_be, si, 1)) {
 		Debug( LDAP_DEBUG_SYNC,
@@ -798,6 +811,8 @@ static int syncrepl_resync_begin( syncinfo_t *si ) {
 			si->si_ridtxt );
 		return SYNC_REFRESH_YIELD;
 	}
+
+	syncrepl_notify_quorum( si, QS_REFRESH );
 	si->si_refreshBeg = ldap_time_steady();
 	Debug( LDAP_DEBUG_SYNC, "syncrepl: refresh-begin %s\n",
 		   si->si_ridtxt );
@@ -824,8 +839,9 @@ static void syncrepl_resync_end( syncinfo_t *si, int rc ) {
 	if (rc != LDAP_SUCCESS)
 		syncrepl_refresh_done(si, rc);
 
-	quorum_notify_status( si->si_be, si->si_rid,
-		rc == LDAP_SUCCESS && si->si_refreshDone && ! si->si_got_present_list );
+	syncrepl_notify_quorum( si,
+		(rc == LDAP_SUCCESS && si->si_refreshDone && ! si->si_got_present_list)
+			? QS_READY : QS_DIRTY );
 
 	if (si->si_refreshBeg) {
 		quorum_syncrepl_gate( si->si_be, si, 0 );
@@ -957,6 +973,7 @@ syncrepl_process(
 		if (rc <= 0)
 			break;
 
+		syncrepl_notify_quorum( si, QS_PROCESS );
 		assert( bl == NULL );
 		bl = slap_biglock_get(si->si_wbe);
 		/* LY: this is ugly solution, on other hand,
@@ -1568,6 +1585,7 @@ deleted:
 	}
 
 	if ( dostop ) {
+		syncrepl_notify_quorum( si, QS_DEAD );
 		syncrepl_shutdown_io( si );
 	}
 
@@ -5595,6 +5613,8 @@ add_syncrepl(
 
 		si->si_next = NULL;
 		quorum_add_rid( si->si_be, si->si_rid );
+		/* quorum_notify_status( si->si_be, si->si_rid, QS_DIRTY ); */
+		si->si_quorum_status = QS_DIRTY;
 
 		return 0;
 	}
