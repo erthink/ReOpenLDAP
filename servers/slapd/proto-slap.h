@@ -893,9 +893,9 @@ void quorum_global_init();
 void quorum_global_destroy();
 void quorum_be_destroy(BackendDB *bd);
 void quorum_notify_self_sid();
-void quorum_add_rid(BackendDB *bd, int rid);
-void quorum_remove_rid(BackendDB *bd, int rid);
-void quorum_notify_sid(BackendDB *bd, int rid, int sid);
+void quorum_add_rid(BackendDB *bd, void* key, int rid);
+void quorum_remove_rid(BackendDB *bd, void* key);
+void quorum_notify_sid(BackendDB *bd, void* key, int sid);
 
 #define QS_DIRTY	0
 #define QS_DEAD		1
@@ -903,7 +903,7 @@ void quorum_notify_sid(BackendDB *bd, int rid, int sid);
 #define QS_READY	3
 #define QS_PROCESS	4
 #define QS_MAX		5
-void quorum_notify_status(BackendDB *bd, int rid, int status);
+void quorum_notify_status(BackendDB *bd, void* key, int status);
 
 int quorum_query(BackendDB *bd);
 void quorum_notify_csn(BackendDB *bd, int csnsid);

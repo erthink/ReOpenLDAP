@@ -132,7 +132,7 @@ typedef struct syncinfo_s {
 	char	si_type;	/* the active type */
 	char	si_ctype;	/* the configured type */
 	char	si_search_started;
-	char	si_quorum_status;
+	int8_t	si_quorum_status;
 	char	si_manageDSAit;
 	char	si_refreshDelete;
 	char	si_refreshPresent;
@@ -220,11 +220,11 @@ static slap_overinst syncrepl_ov;
 static void
 syncrepl_notify_quorum(syncinfo_t *si, int status)
 {
-	if (si->si_quorum_status != (char) status) {
+	if (si->si_wbe && si->si_quorum_status != (char) status) {
 		if (status == QS_PROCESS && si->si_quorum_status != QS_READY)
 			return;
 		si->si_quorum_status = status;
-		quorum_notify_status( si->si_be, si->si_rid, status );
+		quorum_notify_status( si->si_wbe, si, status );
 	}
 }
 
@@ -805,7 +805,7 @@ static int syncrepl_resync_begin( syncinfo_t *si ) {
 	si->si_refreshDone = 0;
 	syncrepl_notify_quorum( si, QS_DIRTY );
 
-	if (quorum_syncrepl_gate(si->si_be, si, 1)) {
+	if (quorum_syncrepl_gate(si->si_wbe, si, 1)) {
 		Debug( LDAP_DEBUG_SYNC,
 			"syncrepl: yielding %s, another running\n",
 			si->si_ridtxt );
@@ -836,15 +836,20 @@ static void syncrepl_refresh_done( syncinfo_t *si, int rc ) {
 }
 
 static void syncrepl_resync_end( syncinfo_t *si, int rc ) {
-	if (rc != LDAP_SUCCESS)
+	if (rc == SYNC_REBUS2 && abs(si->si_type) == LDAP_SYNC_REFRESH_ONLY) {
+		rc = LDAP_SUCCESS;
+		syncrepl_refresh_done(si, rc);
+	} else if (rc != LDAP_SUCCESS)
 		syncrepl_refresh_done(si, rc);
 
 	syncrepl_notify_quorum( si,
-		(rc == LDAP_SUCCESS && si->si_refreshDone && ! si->si_got_present_list)
+		(rc == LDAP_SUCCESS
+		 && (si->si_refreshDone || abs(si->si_type) != LDAP_SYNC_REFRESH_AND_PERSIST)
+		 && !si->si_got_present_list)
 			? QS_READY : QS_DIRTY );
 
 	if (si->si_refreshBeg) {
-		quorum_syncrepl_gate( si->si_be, si, 0 );
+		quorum_syncrepl_gate( si->si_wbe, si, 0 );
 		Debug( LDAP_DEBUG_SYNC,
 			"syncrepl: refresh-%s %s, rc %d, take %d seconds\n", "end",
 			si->si_ridtxt, rc, (int) (ldap_time_steady() - si->si_refreshBeg) );
@@ -919,7 +924,7 @@ syncrepl_eat_cookie(
 		return LDAP_ASSERTION_FAILED;
 	}
 
-	quorum_notify_sid( si->si_be, si->si_rid, dst->sid );
+	quorum_notify_sid( si->si_wbe, si, dst->sid );
 	return LDAP_SUCCESS;
 }
 
@@ -1511,6 +1516,8 @@ do_syncrepl(
 		} else {
 			si->si_contextdn = si->si_wbe->be_nsuffix[0];
 		}
+		si->si_quorum_status = QS_DIRTY;
+		quorum_add_rid( si->si_wbe, si, si->si_rid );
 	}
 	if ( !si->si_schemachecking )
 		op->o_no_schema_check = 1;
@@ -1567,7 +1574,7 @@ deleted:
 				dostop = 1;
 			}
 		} else {
-			if ( rc == SYNC_REBUS2 ) rc = 0;
+			if ( rc == SYNC_REBUS2 ) rc = LDAP_SUCCESS;
 		}
 	}
 
@@ -4722,6 +4729,8 @@ syncinfo_free( syncinfo_t *sie, int free_all )
 		}
 
 		ldap_pvt_thread_mutex_destroy( &sie->si_mutex );
+		if (sie->si_wbe)
+			quorum_remove_rid( sie->si_wbe, sie );
 
 		bindconf_free( &sie->si_bindconf );
 
@@ -5612,9 +5621,6 @@ add_syncrepl(
 		}
 
 		si->si_next = NULL;
-		quorum_add_rid( si->si_be, si->si_rid );
-		/* quorum_notify_status( si->si_be, si->si_rid, QS_DIRTY ); */
-		si->si_quorum_status = QS_DIRTY;
 
 		return 0;
 	}
@@ -5840,7 +5846,6 @@ syncrepl_config( ConfigArgs *c )
 					*sip = si->si_next;
 					si->si_ctype = -1;
 					si->si_next = NULL;
-					quorum_remove_rid( si->si_be, si->si_rid );
 
 					/* If the task is currently active, we have to leave
 					 * it running. It will exit on its own. This will only
