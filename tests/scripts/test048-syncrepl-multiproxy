@@ -105,67 +105,81 @@ fi
 #echo "Waiting $SLEEP1 seconds for syncrepl to receive changes..."
 wait_syncrepl $PORT1 $PORT2
 
-#echo "Using ldapsearch to read all the entries from the master..."
-$LDAPSEARCH -S "" -b "$BASEDN" -h $LOCALHOST -p $PORT1 \
-	'(objectClass=*)' > "${MASTEROUT}.1" 2>&1
-RC=$?
+for retry in y y n; do
+	#echo "Using ldapsearch to read all the entries from the master..."
+	$LDAPSEARCH -S "" -b "$BASEDN" -h $LOCALHOST -p $PORT1 \
+		'(objectClass=*)' > "${MASTEROUT}.1" 2>&1
+	RC=$?
 
-if test $RC != 0 ; then
-	echo "ldapsearch failed at master ($RC)!"
-	killservers
-	exit $RC
-fi
+	if test $RC != 0 ; then
+		echo "ldapsearch failed at master ($RC)!"
+		killservers
+		exit $RC
+	fi
 
-#echo "Using ldapsearch to read all the entries from the P1-slave..."
-$LDAPSEARCH -S "" -b "$BASEDN" -h $LOCALHOST -p $PORT2 \
-	'(objectClass=*)' > "${SLAVEOUT}.1" 2>&1
-RC=$?
+	#echo "Using ldapsearch to read all the entries from the P1-slave..."
+	$LDAPSEARCH -S "" -b "$BASEDN" -h $LOCALHOST -p $PORT2 \
+		'(objectClass=*)' > "${SLAVEOUT}.1" 2>&1
+	RC=$?
 
-if test $RC != 0 ; then
-	echo "ldapsearch failed at P1-slave ($RC)!"
-	killservers
-	exit $RC
-fi
+	if test $RC != 0 ; then
+		echo "ldapsearch failed at P1-slave ($RC)!"
+		killservers
+		exit $RC
+	fi
 
-#echo "Filtering master results..."
-$LDIFFILTER < "${MASTEROUT}.1" > $MASTERFLT
-#echo "Filtering slave results..."
-$LDIFFILTER < "${SLAVEOUT}.1" > $SLAVEFLT
+	#echo "Filtering master results..."
+	$LDIFFILTER < "${MASTEROUT}.1" > $MASTERFLT
+	#echo "Filtering slave results..."
+	$LDIFFILTER < "${SLAVEOUT}.1" > $SLAVEFLT
 
-echo "$CHECK < Comparing retrieved entries from master and P1-slave..."
-$CMP $MASTERFLT $SLAVEFLT > $CMPOUT
+	echo "$CHECK < Comparing retrieved entries from master and P1-slave..."
+	$CMP $MASTERFLT $SLAVEFLT > $CMPOUT
 
-if test $? != 0 ; then
-	echo "test failed - master and P1-slave databases differ"
-	killservers
-	exit 1
-fi
+	if test $? = 0 ; then
+		break
+	elif [ $retry = y ]; then
+		echo "sleep $SLEEP1 and retry"
+		sleep $SLEEP1
+	else
+		echo "test failed - master and P1-slave databases differ"
+		killservers
+		exit 1
+	fi
+done
 
 #echo "Waiting $SLEEP1 seconds for syncrepl to receive changes..."
 wait_syncrepl $PORT1 $PORT3
 
-#echo "Using ldapsearch to read all the entries from the R1-slave..."
-$LDAPSEARCH -S "" -b "$BASEDN" -h $LOCALHOST -p $PORT3 \
-	'(objectClass=*)' > "${SLAVEOUT}.1" 2>&1
-RC=$?
+for retry in y y n; do
+	#echo "Using ldapsearch to read all the entries from the R1-slave..."
+	$LDAPSEARCH -S "" -b "$BASEDN" -h $LOCALHOST -p $PORT3 \
+		'(objectClass=*)' > "${SLAVEOUT}.1" 2>&1
+	RC=$?
 
-if test $RC != 0 ; then
-	echo "ldapsearch failed at R1-slave ($RC)!"
-	killservers
-	exit $RC
-fi
+	if test $RC != 0 ; then
+		echo "ldapsearch failed at R1-slave ($RC)!"
+		killservers
+		exit $RC
+	fi
 
-#echo "Filtering slave results..."
-$LDIFFILTER < "${SLAVEOUT}.1" > $SLAVEFLT
+	#echo "Filtering slave results..."
+	$LDIFFILTER < "${SLAVEOUT}.1" > $SLAVEFLT
 
-echo "$CHECK < Comparing retrieved entries from master and R1-slave..."
-$CMP $MASTERFLT $SLAVEFLT > $CMPOUT
+	echo "$CHECK < Comparing retrieved entries from master and R1-slave..."
+	$CMP $MASTERFLT $SLAVEFLT > $CMPOUT
 
-if test $? != 0 ; then
-	echo "test failed - master and R1-slave databases differ"
-	killservers
-	exit 1
-fi
+	if test $? = 0 ; then
+		break
+	elif [ $retry = y ]; then
+		echo "sleep $SLEEP1 and retry"
+		sleep $SLEEP1
+	else
+		echo "test failed - master and R1-slave databases differ"
+		killservers
+		exit 1
+	fi
+done
 
 CHECK=`expr $CHECK + 1`
 echo -n "$CHECK > Stopping the provider ($MASTERPID), sleeping $SLEEP1 seconds and restarting it..."
@@ -272,67 +286,81 @@ fi
 #echo "Waiting $SLEEP1 seconds for syncrepl to receive changes..."
 wait_syncrepl $PORT1 $PORT2
 
-#echo "Using ldapsearch to read all the entries from the master..."
-$LDAPSEARCH -S "" -b "$BASEDN" -h $LOCALHOST -p $PORT1 \
-	'(objectClass=*)' > "${MASTEROUT}.2" 2>&1
-RC=$?
+for retry in y y n; do
+	#echo "Using ldapsearch to read all the entries from the master..."
+	$LDAPSEARCH -S "" -b "$BASEDN" -h $LOCALHOST -p $PORT1 \
+		'(objectClass=*)' > "${MASTEROUT}.2" 2>&1
+	RC=$?
 
-if test $RC != 0 ; then
-	echo "ldapsearch failed at master ($RC)!"
-	killservers
-	exit $RC
-fi
+	if test $RC != 0 ; then
+		echo "ldapsearch failed at master ($RC)!"
+		killservers
+		exit $RC
+	fi
 
-#echo "Using ldapsearch to read all the entries from the P1-slave..."
-$LDAPSEARCH -S "" -b "$BASEDN" -h $LOCALHOST -p $PORT2 \
-	'(objectClass=*)' > "${SLAVEOUT}.2" 2>&1
-RC=$?
+	#echo "Using ldapsearch to read all the entries from the P1-slave..."
+	$LDAPSEARCH -S "" -b "$BASEDN" -h $LOCALHOST -p $PORT2 \
+		'(objectClass=*)' > "${SLAVEOUT}.2" 2>&1
+	RC=$?
 
-if test $RC != 0 ; then
-	echo "ldapsearch failed at P1 slave ($RC)!"
-	killservers
-	exit $RC
-fi
+	if test $RC != 0 ; then
+		echo "ldapsearch failed at P1 slave ($RC)!"
+		killservers
+		exit $RC
+	fi
 
-#echo "Filtering master results..."
-$LDIFFILTER < "${MASTEROUT}.2" > $MASTERFLT
-#echo "Filtering P1-slave results..."
-$LDIFFILTER < "${SLAVEOUT}.2" > $SLAVEFLT
+	#echo "Filtering master results..."
+	$LDIFFILTER < "${MASTEROUT}.2" > $MASTERFLT
+	#echo "Filtering P1-slave results..."
+	$LDIFFILTER < "${SLAVEOUT}.2" > $SLAVEFLT
 
-echo "$CHECK < Comparing retrieved entries from master and P1-slave..."
-$CMP $MASTERFLT $SLAVEFLT > $CMPOUT
+	echo "$CHECK < Comparing retrieved entries from master and P1-slave..."
+	$CMP $MASTERFLT $SLAVEFLT > $CMPOUT
 
-if test $? != 0 ; then
-	echo "test failed - master and P1-slave databases differ"
-	killservers
-	exit 1
-fi
+	if test $? = 0 ; then
+		break
+	elif [ $retry = y ]; then
+		echo "sleep $SLEEP1 and retry"
+		sleep $SLEEP1
+	else
+		echo "test failed - master and P1-slave databases differ"
+		killservers
+		exit 1
+	fi
+done
 
 #echo "Waiting $SLEEP1 seconds for syncrepl to receive changes..."
 wait_syncrepl $PORT1 $PORT3
 
-#echo "Using ldapsearch to read all the entries from the R1-slave..."
-$LDAPSEARCH -S "" -b "$BASEDN" -h $LOCALHOST -p $PORT3 \
-	'(objectClass=*)' > "${SLAVEOUT}.2" 2>&1
-RC=$?
+for retry in y y n; do
+	#echo "Using ldapsearch to read all the entries from the R1-slave..."
+	$LDAPSEARCH -S "" -b "$BASEDN" -h $LOCALHOST -p $PORT3 \
+		'(objectClass=*)' > "${SLAVEOUT}.2" 2>&1
+	RC=$?
 
-if test $RC != 0 ; then
-	echo "ldapsearch failed at R1 slave ($RC)!"
-	killservers
-	exit $RC
-fi
+	if test $RC != 0 ; then
+		echo "ldapsearch failed at R1 slave ($RC)!"
+		killservers
+		exit $RC
+	fi
 
-#echo "Filtering slave results..."
-$LDIFFILTER < "${SLAVEOUT}.2" > $SLAVEFLT
+	#echo "Filtering slave results..."
+	$LDIFFILTER < "${SLAVEOUT}.2" > $SLAVEFLT
 
-echo "$CHECK < Comparing retrieved entries from master and R1-slave..."
-$CMP $MASTERFLT $SLAVEFLT > $CMPOUT
+	echo "$CHECK < Comparing retrieved entries from master and R1-slave..."
+	$CMP $MASTERFLT $SLAVEFLT > $CMPOUT
 
-if test $? != 0 ; then
-	echo "test failed - master and R1-slave databases differ"
-	killservers
-	exit 1
-fi
+	if test $? = 0 ; then
+		break
+	elif [ $retry = y ]; then
+		echo "sleep $SLEEP1 and retry"
+		sleep $SLEEP1
+	else
+		echo "test failed - master and R1-slave databases differ"
+		killservers
+		exit 1
+	fi
+done
 
 CHECK=`expr $CHECK + 1`
 echo -n "$CHECK > Stopping slaves ($P1SLAVEPID, $R1SLAVEPID) to test recovery..."
@@ -387,67 +415,81 @@ check_running 3 R1-slave
 #echo "Waiting $SLEEP2 seconds for syncrepl to receive changes..."
 wait_syncrepl $PORT1 $PORT2
 
-#echo "Using ldapsearch to read all the entries from the master..."
-$LDAPSEARCH -S "" -b "$BASEDN" -h $LOCALHOST -p $PORT1 \
-	'(objectClass=*)' > "${MASTEROUT}.3" 2>&1
-RC=$?
+for retry in y y n; do
+	#echo "Using ldapsearch to read all the entries from the master..."
+	$LDAPSEARCH -S "" -b "$BASEDN" -h $LOCALHOST -p $PORT1 \
+		'(objectClass=*)' > "${MASTEROUT}.3" 2>&1
+	RC=$?
 
-if test $RC != 0 ; then
-	echo "ldapsearch failed at master ($RC)!"
-	killservers
-	exit $RC
-fi
+	if test $RC != 0 ; then
+		echo "ldapsearch failed at master ($RC)!"
+		killservers
+		exit $RC
+	fi
 
-#echo "Using ldapsearch to read all the entries from the P1-slave..."
-$LDAPSEARCH -S "" -b "$BASEDN" -h $LOCALHOST -p $PORT2 \
-	'(objectClass=*)' > "${SLAVEOUT}.3" 2>&1
-RC=$?
+	#echo "Using ldapsearch to read all the entries from the P1-slave..."
+	$LDAPSEARCH -S "" -b "$BASEDN" -h $LOCALHOST -p $PORT2 \
+		'(objectClass=*)' > "${SLAVEOUT}.3" 2>&1
+	RC=$?
 
-if test $RC != 0 ; then
-	echo "ldapsearch failed at P1-slave ($RC)!"
-	killservers
-	exit $RC
-fi
+	if test $RC != 0 ; then
+		echo "ldapsearch failed at P1-slave ($RC)!"
+		killservers
+		exit $RC
+	fi
 
-#echo "Filtering master results..."
-$LDIFFILTER < "${MASTEROUT}.3" > $MASTERFLT
-#echo "Filtering slave results..."
-$LDIFFILTER < "${SLAVEOUT}.3" > $SLAVEFLT
+	#echo "Filtering master results..."
+	$LDIFFILTER < "${MASTEROUT}.3" > $MASTERFLT
+	#echo "Filtering slave results..."
+	$LDIFFILTER < "${SLAVEOUT}.3" > $SLAVEFLT
 
-echo "$CHECK < Comparing retrieved entries from master and P1-slave..."
-$CMP $MASTERFLT $SLAVEFLT > $CMPOUT
+	echo "$CHECK < Comparing retrieved entries from master and P1-slave..."
+	$CMP $MASTERFLT $SLAVEFLT > $CMPOUT
 
-if test $? != 0 ; then
-	echo "test failed - master and P1-slave databases differ"
-	killservers
-	exit 1
-fi
+	if test $? = 0 ; then
+		break
+	elif [ $retry = y ]; then
+		echo "sleep $SLEEP1 and retry"
+		sleep $SLEEP1
+	else
+		echo "test failed - master and P1-slave databases differ"
+		killservers
+		exit 1
+	fi
+done
 
 #echo "Waiting $SLEEP1 seconds for syncrepl to receive changes..."
 wait_syncrepl $PORT1 $PORT3
 
-#echo "Using ldapsearch to read all the entries from the R1-slave..."
-$LDAPSEARCH -S "" -b "$BASEDN" -h $LOCALHOST -p $PORT3 \
-	'(objectClass=*)' > "${SLAVEOUT}.3" 2>&1
-RC=$?
+for retry in y y n; do
+	#echo "Using ldapsearch to read all the entries from the R1-slave..."
+	$LDAPSEARCH -S "" -b "$BASEDN" -h $LOCALHOST -p $PORT3 \
+		'(objectClass=*)' > "${SLAVEOUT}.3" 2>&1
+	RC=$?
 
-if test $RC != 0 ; then
-	echo "ldapsearch failed at R1-slave ($RC)!"
-	killservers
-	exit $RC
-fi
+	if test $RC != 0 ; then
+		echo "ldapsearch failed at R1-slave ($RC)!"
+		killservers
+		exit $RC
+	fi
 
-#echo "Filtering slave results..."
-$LDIFFILTER < "${SLAVEOUT}.3" > $SLAVEFLT
+	#echo "Filtering slave results..."
+	$LDIFFILTER < "${SLAVEOUT}.3" > $SLAVEFLT
 
-echo "$CHECK < Comparing retrieved entries from master and R1-slave..."
-$CMP $MASTERFLT $SLAVEFLT > $CMPOUT
+	echo "$CHECK < Comparing retrieved entries from master and R1-slave..."
+	$CMP $MASTERFLT $SLAVEFLT > $CMPOUT
 
-if test $? != 0 ; then
-	echo "test failed - master and R1-slave databases differ"
-	killservers
-	exit 1
-fi
+	if test $? = 0 ; then
+		break
+	elif [ $retry = y ]; then
+		echo "sleep $SLEEP1 and retry"
+		sleep $SLEEP1
+	else
+		echo "test failed - master and R1-slave databases differ"
+		killservers
+		exit 1
+	fi
+done
 
 CHECK=`expr $CHECK + 1`
 echo "$CHECK > Try updating the P1-slave slapd..."
@@ -471,67 +513,81 @@ fi
 #echo "Waiting $SLEEP1 seconds for syncrepl to receive changes..."
 wait_syncrepl $PORT1 $PORT2
 
-#echo "Using ldapsearch to read all the entries from the master..."
-$LDAPSEARCH -S "" -b "$BASEDN" -h $LOCALHOST -p $PORT1 \
-	'(objectClass=*)' > "${MASTEROUT}.4" 2>&1
-RC=$?
+for retry in y y n; do
+	#echo "Using ldapsearch to read all the entries from the master..."
+	$LDAPSEARCH -S "" -b "$BASEDN" -h $LOCALHOST -p $PORT1 \
+		'(objectClass=*)' > "${MASTEROUT}.4" 2>&1
+	RC=$?
 
-if test $RC != 0 ; then
-	echo "ldapsearch failed at master ($RC)!"
-	killservers
-	exit $RC
-fi
+	if test $RC != 0 ; then
+		echo "ldapsearch failed at master ($RC)!"
+		killservers
+		exit $RC
+	fi
 
-#echo "Using ldapsearch to read all the entries from the P1-slave..."
-$LDAPSEARCH -S "" -b "$BASEDN" -h $LOCALHOST -p $PORT2 \
-'(objectClass=*)' > "${SLAVEOUT}.4" 2>&1
-RC=$?
+	#echo "Using ldapsearch to read all the entries from the P1-slave..."
+	$LDAPSEARCH -S "" -b "$BASEDN" -h $LOCALHOST -p $PORT2 \
+	'(objectClass=*)' > "${SLAVEOUT}.4" 2>&1
+	RC=$?
 
-if test $RC != 0 ; then
-	echo "ldapsearch failed at P1-slave ($RC)!"
-	killservers
-	exit $RC
-fi
+	if test $RC != 0 ; then
+		echo "ldapsearch failed at P1-slave ($RC)!"
+		killservers
+		exit $RC
+	fi
 
-#echo "Filtering master results..."
-$LDIFFILTER < "${MASTEROUT}.4" > $MASTERFLT
-#echo "Filtering slave results..."
-$LDIFFILTER < "${SLAVEOUT}.4" > $SLAVEFLT
+	#echo "Filtering master results..."
+	$LDIFFILTER < "${MASTEROUT}.4" > $MASTERFLT
+	#echo "Filtering slave results..."
+	$LDIFFILTER < "${SLAVEOUT}.4" > $SLAVEFLT
 
-echo "$CHECK < Comparing retrieved entries from master and P1-slave..."
-$CMP $MASTERFLT $SLAVEFLT > $CMPOUT
+	echo "$CHECK < Comparing retrieved entries from master and P1-slave..."
+	$CMP $MASTERFLT $SLAVEFLT > $CMPOUT
 
-if test $? != 0 ; then
-	echo "test failed - master and P1-slave databases differ"
-	killservers
-	exit 1
-fi
+	if test $? = 0 ; then
+		break
+	elif [ $retry = y ]; then
+		echo "sleep $SLEEP1 and retry"
+		sleep $SLEEP1
+	else
+		echo "test failed - master and P1-slave databases differ"
+		killservers
+		exit 1
+	fi
+done
 
 #echo "Waiting $SLEEP1 seconds for syncrepl to receive changes..."
 wait_syncrepl $PORT1 $PORT3
 
-#echo "Using ldapsearch to read all the entries from the R1-slave..."
-$LDAPSEARCH -S "" -b "$BASEDN" -h $LOCALHOST -p $PORT3 \
-'(objectClass=*)' > "${SLAVEOUT}.4" 2>&1
-RC=$?
+for retry in y y n; do
+	#echo "Using ldapsearch to read all the entries from the R1-slave..."
+	$LDAPSEARCH -S "" -b "$BASEDN" -h $LOCALHOST -p $PORT3 \
+	'(objectClass=*)' > "${SLAVEOUT}.4" 2>&1
+	RC=$?
 
-if test $RC != 0 ; then
-	echo "ldapsearch failed at R1-slave ($RC)!"
-	killservers
-	exit $RC
-fi
+	if test $RC != 0 ; then
+		echo "ldapsearch failed at R1-slave ($RC)!"
+		killservers
+		exit $RC
+	fi
 
-#echo "Filtering slave results..."
-$LDIFFILTER < "${SLAVEOUT}.4" > $SLAVEFLT
+	#echo "Filtering slave results..."
+	$LDIFFILTER < "${SLAVEOUT}.4" > $SLAVEFLT
 
-echo "$CHECK < Comparing retrieved entries from master and R1-slave..."
-$CMP $MASTERFLT $SLAVEFLT > $CMPOUT
+	echo "$CHECK < Comparing retrieved entries from master and R1-slave..."
+	$CMP $MASTERFLT $SLAVEFLT > $CMPOUT
 
-if test $? != 0 ; then
-	echo "test failed - master and R1-slave databases differ"
-	killservers
-	exit 1
-fi
+	if test $? = 0 ; then
+		break
+	elif [ $retry = y ]; then
+		echo "sleep $SLEEP1 and retry"
+		sleep $SLEEP1
+	else
+		echo "test failed - master and R1-slave databases differ"
+		killservers
+		exit 1
+	fi
+done
 
 killservers
 echo ">>>>> Test succeeded"
