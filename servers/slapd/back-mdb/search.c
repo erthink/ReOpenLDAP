@@ -1220,7 +1220,8 @@ done:
 	mdb_cursor_close( mcd );
 	mdb_cursor_close( mci );
 	if ( moi == &opinfo ) {
-		mdb_txn_reset( moi->moi_txn );
+		int rc2 = mdb_txn_reset( moi->moi_txn );
+		assert(rc2 == MDB_SUCCESS);
 		LDAP_SLIST_REMOVE( &op->o_extra, &moi->moi_oe, OpExtra, oe_next );
 	} else {
 		moi->moi_ref--;

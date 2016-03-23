@@ -282,7 +282,8 @@ int mdb_entry_release(
 				if ( moi->moi_flag & MOI_FREEIT ) {
 					moi->moi_ref--;
 					if ( moi->moi_ref < 1 ) {
-						mdb_txn_reset( moi->moi_txn );
+						int rc2 = mdb_txn_reset( moi->moi_txn );
+						assert(rc2 == MDB_SUCCESS);
 						moi->moi_ref = 0;
 						LDAP_SLIST_REMOVE( &op->o_extra, &moi->moi_oe, OpExtra, oe_next );
 						op->o_tmpfree( moi, op->o_tmpmemctx );
@@ -384,7 +385,7 @@ mdb_reader_free( void *key, void *data )
 {
 	MDB_txn *txn = data;
 
-	if ( txn ) mdb_txn_abort( txn );
+	if ( txn ) LDAP_ENSURE( mdb_txn_abort( txn ) == MDB_SUCCESS );
 }
 
 /* free up any keys used by the main thread */
@@ -405,7 +406,7 @@ extern MDB_txn *mdb_tool_txn;
 int
 mdb_opinfo_get( Operation *op, struct mdb_info *mdb, int rdonly, mdb_op_info **moip )
 {
-	int rc, renew = 0;
+	int rc;
 	void *data;
 	void *ctx;
 	mdb_op_info *moi = NULL;
@@ -464,7 +465,7 @@ mdb_opinfo_get( Operation *op, struct mdb_info *mdb, int rdonly, mdb_op_info **m
 				assert(slap_biglock_owned(op->o_bd));
 				rc = mdb_txn_begin( mdb->mi_dbenv, NULL, 0, &moi->moi_txn );
 				if (rc) {
-					Debug( LDAP_DEBUG_ANY, "mdb_opinfo_get: err %s(%d)\n",
+					Debug( LDAP_DEBUG_ANY, "mdb_opinfo_get: mdb_txn_begin() err %s(%d)\n",
 						mdb_strerror(rc), rc );
 				}
 				return rc;
@@ -483,15 +484,16 @@ mdb_opinfo_get( Operation *op, struct mdb_info *mdb, int rdonly, mdb_op_info **m
 			/* Shouldn't happen unless we're single-threaded */
 			rc = mdb_txn_begin( mdb->mi_dbenv, NULL, MDB_RDONLY, &moi->moi_txn );
 			if (rc) {
-				Debug( LDAP_DEBUG_ANY, "mdb_opinfo_get: err %s(%d)\n",
+				Debug( LDAP_DEBUG_ANY, "mdb_opinfo_get: mdb_txn_begin() err %s(%d)\n",
 					mdb_strerror(rc), rc );
 			}
 			return rc;
 		}
+workaround:
 		if ( ldap_pvt_thread_pool_getkey( ctx, mdb->mi_dbenv, &data, NULL ) ) {
 			rc = mdb_txn_begin( mdb->mi_dbenv, NULL, MDB_RDONLY, &moi->moi_txn );
 			if (rc) {
-				Debug( LDAP_DEBUG_ANY, "mdb_opinfo_get: err %s(%d)\n",
+				Debug( LDAP_DEBUG_ANY, "mdb_opinfo_get: mdb_txn_begin() err %s(%d)\n",
 					mdb_strerror(rc), rc );
 				return rc;
 			}
@@ -505,22 +507,22 @@ mdb_opinfo_get( Operation *op, struct mdb_info *mdb, int rdonly, mdb_op_info **m
 				return rc;
 			}
 		} else {
+			rc = mdb_txn_renew( data );
+			if (rc) {
+				Debug( LDAP_DEBUG_ANY, "mdb_opinfo_get: mdb_txn_renew() err %s(%d)\n",
+					mdb_strerror(rc), rc );
+				mdb_reader_flush( mdb->mi_dbenv );
+				if (rc == EINVAL && ! slapd_shutdown)
+					goto workaround;
+				return rc;
+			}
 			moi->moi_txn = data;
-			renew = 1;
 		}
 		moi->moi_flag |= MOI_READER;
 	}
 ok:
 	if ( moi->moi_ref < 1 ) {
 		moi->moi_ref = 0;
-	}
-	if ( renew ) {
-		rc = mdb_txn_renew( moi->moi_txn );
-		if (rc) {
-			Debug( LDAP_DEBUG_ANY, "mdb_opinfo_get: err %s(%d)\n",
-				mdb_strerror(rc), rc );
-			return rc;
-		}
 	}
 	moi->moi_ref++;
 	if ( *moip != moi )
