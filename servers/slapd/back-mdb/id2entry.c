@@ -279,12 +279,11 @@ int mdb_entry_release(
 				e = NULL;
 				moi = (mdb_op_info *)oex;
 				/* If it was setup by entry_get we should probably free it */
+				assert( moi->moi_ref > 0 );
 				if ( moi->moi_flag & MOI_FREEIT ) {
-					moi->moi_ref--;
-					if ( moi->moi_ref < 1 ) {
+					if ( --moi->moi_ref < 1 ) {
 						int rc2 = mdb_txn_reset( moi->moi_txn );
 						assert(rc2 == MDB_SUCCESS);
-						moi->moi_ref = 0;
 						LDAP_SLIST_REMOVE( &op->o_extra, &moi->moi_oe, OpExtra, oe_next );
 						op->o_tmpfree( moi, op->o_tmpmemctx );
 					}
@@ -502,15 +501,15 @@ workaround:
 				data, mdb_reader_free, NULL, NULL ) ) ) {
 				mdb_txn_abort( moi->moi_txn );
 				moi->moi_txn = NULL;
-				Debug( LDAP_DEBUG_ANY, "mdb_opinfo_get: thread_pool_setkey failed err (%d)\n",
-					rc );
+				Debug( LDAP_DEBUG_ANY, "mdb_opinfo_get: thread_pool_setkey failed err (%d)\n", rc );
 				return rc;
 			}
 		} else {
-			rc = mdb_txn_renew( data );
-			if (rc) {
+			int rc = mdb_txn_renew( data );
+			if (unlikely(rc)) {
 				Debug( LDAP_DEBUG_ANY, "mdb_opinfo_get: mdb_txn_renew() err %s(%d)\n",
 					mdb_strerror(rc), rc );
+				{ int txn_renew_rc = rc; LDAP_ENSURE(txn_renew_rc == MDB_SUCCESS); }
 				mdb_reader_flush( mdb->mi_dbenv );
 				if (rc == EINVAL && ! slapd_shutdown)
 					goto workaround;
@@ -521,12 +520,9 @@ workaround:
 		moi->moi_flag |= MOI_READER;
 	}
 ok:
-	if ( moi->moi_ref < 1 ) {
-		moi->moi_ref = 0;
-	}
+	assert(moi->moi_ref >= 0);
 	moi->moi_ref++;
-	if ( *moip != moi )
-		*moip = moi;
+	*moip = moi;
 
 	return 0;
 }

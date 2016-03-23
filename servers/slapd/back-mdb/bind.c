@@ -133,12 +133,13 @@ mdb_bind( Operation *op, SlapReply *rs )
 	}
 
 done:
-	if ( moi == &opinfo ) {
+	if ( moi == &opinfo || --moi->moi_ref < 1 ) {
 		int rc2 = mdb_txn_reset( moi->moi_txn );
 		assert(rc2 == MDB_SUCCESS);
-		LDAP_SLIST_REMOVE( &op->o_extra, &moi->moi_oe, OpExtra, oe_next );
-	} else {
-		moi->moi_ref--;
+		if ( moi->moi_oe.oe_key )
+			LDAP_SLIST_REMOVE( &op->o_extra, &moi->moi_oe, OpExtra, oe_next );
+		if ( moi->moi_flag & MOI_FREEIT )
+			op->o_tmpfree( moi, op->o_tmpmemctx );
 	}
 	/* free entry and reader lock */
 	if( e != NULL ) {

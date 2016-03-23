@@ -468,14 +468,14 @@ mdb_search( Operation *op, SlapReply *rs )
 	rs->sr_err = mdb_cursor_open( ltid, mdb->mi_id2entry, &mci );
 	if ( rs->sr_err ) {
 		send_ldap_error( op, rs, LDAP_OTHER, "internal error" );
-		return rs->sr_err;
+		goto bailout;
 	}
 
 	rs->sr_err = mdb_cursor_open( ltid, mdb->mi_dn2id, &mcd );
 	if ( rs->sr_err ) {
 		mdb_cursor_close( mci );
 		send_ldap_error( op, rs, LDAP_OTHER, "internal error" );
-		return rs->sr_err;
+		goto bailout;
 	}
 
 	scopes = scope_chunk_get( op );
@@ -1219,13 +1219,6 @@ done:
 	}
 	mdb_cursor_close( mcd );
 	mdb_cursor_close( mci );
-	if ( moi == &opinfo ) {
-		int rc2 = mdb_txn_reset( moi->moi_txn );
-		assert(rc2 == MDB_SUCCESS);
-		LDAP_SLIST_REMOVE( &op->o_extra, &moi->moi_oe, OpExtra, oe_next );
-	} else {
-		moi->moi_ref--;
-	}
 	if( rs->sr_v2ref ) {
 		ber_bvarray_free( rs->sr_v2ref );
 		rs->sr_v2ref = NULL;
@@ -1233,6 +1226,16 @@ done:
 	if (base)
 		mdb_entry_return( op, base );
 	scope_chunk_ret( op, scopes );
+
+bailout:
+	if ( moi == &opinfo || --moi->moi_ref < 1 ) {
+		int rc2 = mdb_txn_reset( moi->moi_txn );
+		assert(rc2 == MDB_SUCCESS);
+		if ( moi->moi_oe.oe_key )
+			LDAP_SLIST_REMOVE( &op->o_extra, &moi->moi_oe, OpExtra, oe_next );
+		if ( moi->moi_flag & MOI_FREEIT )
+			op->o_tmpfree( moi, op->o_tmpmemctx );
+	}
 
 	return rs->sr_err;
 }
