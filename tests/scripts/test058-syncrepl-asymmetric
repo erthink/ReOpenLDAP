@@ -757,7 +757,9 @@ fi
 
 echo "Using ldapsearch to check that site1-master received changes..."
 RC=32
-for i in 0.1 1 0.5 2 3 4 5; do
+for i in 0.2 0.5 1 2 3 4 5; do
+	echo "Waiting $i seconds for syncrepl to receive changes..."
+	sleep $i
 	RESULT=`$LDAPSEARCH -H $URI2 \
 		-s base -b "ou=ou1,$BASEDN" \
 		'(objectClass=*)' 2>&1 | awk '/^dn:/ {print "OK"}'`
@@ -765,8 +767,6 @@ for i in 0.1 1 0.5 2 3 4 5; do
 		RC=0
 		break
 	fi
-	echo "Waiting $i seconds for syncrepl to receive changes..."
-	sleep $i
 done
 if test $RC != 0 ; then
 	echo "ldapsearch failed ($RC)!"
@@ -776,7 +776,9 @@ fi
 
 echo "Using ldapsearch to check that site2-master received changes..."
 RC=32
-for i in 0.1 1 0.5 2 3 4 5; do
+for i in 0.2 0.5 1 2 3 4 5; do
+	echo "Waiting $i seconds for syncrepl to receive changes..."
+	sleep $i
 	RESULT=`$LDAPSEARCH -H $URI3 \
 		-s base -b "ou=ou1,$BASEDN" \
 		'(objectClass=*)' 2>&1 | awk '/^dn:/ {print "OK"}'`
@@ -784,16 +786,12 @@ for i in 0.1 1 0.5 2 3 4 5; do
 		RC=0
 		break
 	fi
-	echo "Waiting $i seconds for syncrepl to receive changes..."
-	sleep $i
 done
 if test $RC != 0 ; then
 	echo "ldapsearch failed ($RC)!"
 	killservers
 	exit $RC
 fi
-
-sleep 0.1
 
 echo "Populating site1-master..."
 $LDAPADD -D "ou=sm1ou1,$BASEDN" -H $URI2 -w $PASSWD <<EOF >> $TESTOUT 2>&1
@@ -814,8 +812,6 @@ if test $RC != 0 ; then
 	killservers
 	exit $RC
 fi
-
-sleep 0.1
 
 echo "Populating site2-master..."
 $LDAPADD -D "ou=sm2ou1,$BASEDN" -H $URI3 -w $PASSWD <<EOF >> $TESTOUT 2>&1
@@ -877,7 +873,9 @@ fi
 
 echo "Using ldapsearch to check that central master received site2-entries..."
 RC=32
-for i in 0.1 1 0.5 2 3 4 5; do
+for i in 0.2 0.5 1 2 3 4 5; do
+	echo "Waiting $i seconds for syncrepl to receive changes..."
+	sleep $i
 	RESULT=`$LDAPSEARCH -H $URI1 \
 		-s base -b "ou=sm2ou1,$BASEDN" \
 		'(objectClass=*)' 2>&1 | awk '/^dn:/ {print "OK"}'`
@@ -885,8 +883,6 @@ for i in 0.1 1 0.5 2 3 4 5; do
 		RC=0
 		break
 	fi
-	echo "Waiting $i seconds for syncrepl to receive changes..."
-	sleep $i
 done
 if test $RC != 0 ; then
 	echo "ldapsearch failed ($RC)!"
@@ -933,7 +929,9 @@ fi
 
 echo "Using ldapsearch to check that central-master received site1 entries..."
 RC=32
-for i in 0.1 0.5 1 2 3 4 5; do
+for i in 0.2 0.5 1 2 3 4 5; do
+	echo "Waiting $i seconds for syncrepl to receive changes..."
+	sleep $i
 	RESULT=`$LDAPSEARCH -H $URI1 \
 		-s base -b "ou=sm1ou1,$BASEDN" \
 		'(objectClass=*)' 2>&1 | awk '/^dn:/ {print "OK"}'`
@@ -941,8 +939,6 @@ for i in 0.1 0.5 1 2 3 4 5; do
 		RC=0
 		break
 	fi
-	echo "Waiting $i seconds for syncrepl to receive changes..."
-	sleep $i
 done
 if test $RC != 0 ; then
 	echo "ldapsearch failed ($RC)!"
@@ -952,7 +948,9 @@ fi
 
 echo "Using ldapsearch to check that site1-master received central-master update..."
 RC=32
-for i in 0.1 0.5 1 2 3 4 5; do
+for i in 0.2 0.5 1 2 3 4 5; do
+	echo "Waiting $i seconds for syncrepl to receive changes..."
+	sleep $i
 	RESULT=`$LDAPSEARCH -H $URI2 \
 		-s base -b "$BASEDN" \
 		"(description=Modify$MNUM)" 2>&1 | awk '/^dn:/ {print "OK"}'`
@@ -960,8 +958,6 @@ for i in 0.1 0.5 1 2 3 4 5; do
 		RC=0
 		break
 	fi
-	echo "Waiting $i seconds for syncrepl to receive changes..."
-	sleep $i
 done
 if test $RC != 0 ; then
 	echo "ldapsearch failed ($RC)!"
@@ -971,7 +967,9 @@ fi
 
 echo "Using ldapsearch to check that site2-master received central-master update..."
 RC=32
-for i in 0.1 0.5 1 2 3 4 5; do
+for i in 0.2 0.5 1 2 3 4 5; do
+	echo "Waiting $i seconds for syncrepl to receive changes..."
+	sleep $i
 	RESULT=`$LDAPSEARCH -H $URI3 \
 		-s base -b "$BASEDN" \
 		"(description=Modify$MNUM)" 2>&1 | awk '/^dn:/ {print "OK"}'`
@@ -979,8 +977,6 @@ for i in 0.1 0.5 1 2 3 4 5; do
 		RC=0
 		break
 	fi
-	echo "Waiting $i seconds for syncrepl to receive changes..."
-	sleep $i
 done
 if test $RC != 0 ; then
 	echo "ldapsearch failed ($RC)!"
@@ -1043,7 +1039,9 @@ fi
 
 echo "Using ldapsearch to check that central-search received changes..."
 RC=32
-for i in 0.1 0.5 1 2 3 4 5; do
+for i in 0.2 0.5 1 2 3 4 5; do
+	echo "Waiting $i seconds for syncrepl to receive changes..."
+	sleep $i
 	RESULT=`$LDAPSEARCH -H $URI4 \
 		-s base -b "$BASEDN" \
 		'(objectClass=*)' 2>&1 | awk '/^dn:/ {print "OK"}'`
@@ -1051,8 +1049,6 @@ for i in 0.1 0.5 1 2 3 4 5; do
 		RC=0
 		break
 	fi
-	echo "Waiting $i seconds for syncrepl to receive changes..."
-	sleep $i
 done
 if test $RC != 0 ; then
 	echo "ldapsearch failed ($RC)!"
@@ -1062,7 +1058,9 @@ fi
 
 echo "Using ldapsearch to check that site1-search received changes..."
 RC=32
-for i in 0.1 0.5 1 2 3 4 5; do
+for i in 0.2 0.5 1 2 3 4 5; do
+	echo "Waiting $i seconds for syncrepl to receive changes..."
+	sleep $i
 	RESULT=`$LDAPSEARCH -H $URI5 \
 		-s base -b "$BASEDN" \
 		'(objectClass=*)' 2>&1 | awk '/^dn:/ {print "OK"}'`
@@ -1070,8 +1068,6 @@ for i in 0.1 0.5 1 2 3 4 5; do
 		RC=0
 		break
 	fi
-	echo "Waiting $i seconds for syncrepl to receive changes..."
-	sleep $i
 done
 if test $RC != 0 ; then
 	echo "ldapsearch failed ($RC)!"
@@ -1081,7 +1077,9 @@ fi
 
 echo "Using ldapsearch to check that site2-search received changes..."
 RC=32
-for i in 0.1 0.5 1 2 3 4 5; do
+for i in 0.2 0.5 1 2 3 4 5; do
+	echo "Waiting $i seconds for syncrepl to receive changes..."
+	sleep $i
 	RESULT=`$LDAPSEARCH -H $URI6 \
 		-s base -b "$BASEDN" \
 		'(objectClass=*)' 2>&1 | awk '/^dn:/ {print "OK"}'`
@@ -1089,8 +1087,6 @@ for i in 0.1 0.5 1 2 3 4 5; do
 		RC=0
 		break
 	fi
-	echo "Waiting $i seconds for syncrepl to receive changes..."
-	sleep $i
 done
 if test $RC != 0 ; then
 	echo "ldapsearch failed ($RC)!"
@@ -1385,7 +1381,9 @@ fi
 
 echo "Using ldapsearch to check replication to central-search..."
 RC=32
-for i in 0.1 0.5 1 2 3 4 5; do
+for i in 0.2 0.5 1 2 3 4 5; do
+	echo "Waiting $i seconds for syncrepl to receive changes..."
+	sleep $i
 	RESULT=`$LDAPSEARCH -H $URI4 \
 		-s base -b "ou=ou1,$BASEDN" \
 		"(description=Modify$MNUM)" 2>&1 | awk '/^dn:/ {print "OK"}'`
@@ -1393,8 +1391,6 @@ for i in 0.1 0.5 1 2 3 4 5; do
 		RC=0
 		break
 	fi
-	echo "Waiting $i seconds for syncrepl to receive changes..."
-	sleep $i
 done
 if test $RC != 0 ; then
 	echo "ldapsearch failed ($RC)!"
@@ -1404,7 +1400,9 @@ fi
 
 echo "Using ldapsearch to check replication to site1-search..."
 RC=32
-for i in 0.1 0.5 1 2 3 4 5; do
+for i in 0.2 0.5 1 2 3 4 5; do
+	echo "Waiting $i seconds for syncrepl to receive changes..."
+	sleep $i
 	RESULT=`$LDAPSEARCH -H $URI5 \
 		-s base -b "ou=ou1,$BASEDN" \
 		"(description=Modify$MNUM)" 2>&1 | awk '/^dn:/ {print "OK"}'`
@@ -1412,8 +1410,6 @@ for i in 0.1 0.5 1 2 3 4 5; do
 		RC=0
 		break
 	fi
-	echo "Waiting $i seconds for syncrepl to receive changes..."
-	sleep $i
 done
 if test $RC != 0 ; then
 	echo "ldapsearch failed ($RC)!"
@@ -1423,7 +1419,9 @@ fi
 
 echo "Using ldapsearch to check replication to site2-search..."
 RC=32
-for i in 0.1 0.5 1 2 3 4 5; do
+for i in 0.2 0.5 1 2 3 4 5; do
+	echo "Waiting $i seconds for syncrepl to receive changes..."
+	sleep $i
 	RESULT=`$LDAPSEARCH -H $URI6 \
 		-s base -b "ou=ou1,$BASEDN" \
 		"(description=Modify$MNUM)" 2>&1 | awk '/^dn:/ {print "OK"}'`
@@ -1431,8 +1429,6 @@ for i in 0.1 0.5 1 2 3 4 5; do
 		RC=0
 		break
 	fi
-	echo "Waiting $i seconds for syncrepl to receive changes..."
-	sleep $i
 done
 if test $RC != 0 ; then
 	echo "ldapsearch failed ($RC)!"
@@ -1465,7 +1461,9 @@ fi
 
 echo "Using ldapsearch to check replication to site2-search..."
 RC=32
-for i in 0.1 0.5 1 2 3 4 5; do
+for i in 0.2 0.5 1 2 3 4 5; do
+	echo "Waiting $i seconds for syncrepl to receive changes..."
+	sleep $i
 	RESULT=`$LDAPSEARCH -H $URI6 \
 		-s base -b "ou=ou2,$BASEDN" \
 		"(description=Modify$MNUM)" 2>&1 | awk '/^dn:/ {print "OK"}'`
@@ -1473,8 +1471,6 @@ for i in 0.1 0.5 1 2 3 4 5; do
 		RC=0
 		break
 	fi
-	echo "Waiting $i seconds for syncrepl to receive changes..."
-	sleep $i
 done
 if test $RC != 0 ; then
 	echo "ldapsearch failed ($RC)!"
@@ -1483,30 +1479,25 @@ if test $RC != 0 ; then
 fi
 
 echo "Using ldapsearch to check NO replication to site1-master..."
-for i in 0.5 1 2 3; do
-	RESULT=`$LDAPSEARCH -H $URI2 \
-		-s base -b "ou=ou2,$BASEDN" \
-		"(description=Modify$NMUM)" 2>&1 | awk '/^dn:/ {print "NOK"}'`
-	if test "x$RESULT" = "xNOK" ; then
-		echo "Change was replicated to site1-search!"
-		killservers
-		exit 1
-	fi
-	sleep $i
-done
+sleep $i
+RESULT=`$LDAPSEARCH -H $URI2 \
+	-s base -b "ou=ou2,$BASEDN" \
+	"(description=Modify$NMUM)" 2>&1 | awk '/^dn:/ {print "NOK"}'`
+if test "x$RESULT" = "xNOK" ; then
+	echo "Change was replicated to site1-search!"
+	killservers
+	exit 1
+fi
 
 echo "Using ldapsearch to check NO replication to central-search..."
-for i in 0.5 1 2 3; do
-	RESULT=`$LDAPSEARCH -H $URI4 \
-		-s base -b "ou=ou2,$BASEDN" \
-		"(description=Modify$MNUM)" 2>&1 | awk '/^dn:/ {print "NOK"}'`
-	if test "x$RESULT" = "xNOK" ; then
-		echo "Change was replicated to central-search!"
-		killservers
-		exit 1
-	fi
-	sleep $i
-done
+RESULT=`$LDAPSEARCH -H $URI4 \
+	-s base -b "ou=ou2,$BASEDN" \
+	"(description=Modify$MNUM)" 2>&1 | awk '/^dn:/ {print "NOK"}'`
+if test "x$RESULT" = "xNOK" ; then
+	echo "Change was replicated to central-search!"
+	killservers
+	exit 1
+fi
 
 echo "Checking contextCSN after modify of second-backend on central-master..."
 . $TESTDIR/checkcsn.sh
@@ -1533,7 +1524,9 @@ fi
 
 echo "Using ldapsearch to check replication to site1-search..."
 RC=32
-for i in 0.1 0.5 1 2 3 4 5; do
+for i in 0.2 0.5 1 2 3 4 5; do
+	echo "Waiting $i seconds for syncrepl to receive changes..."
+	sleep $i
 	RESULT=`$LDAPSEARCH -H $URI5 \
 		-s base -b "ou=sm1ou1,$BASEDN" \
 		"(description=Modify$MNUM)" 2>&1 | awk '/^dn:/ {print "OK"}'`
@@ -1541,8 +1534,6 @@ for i in 0.1 0.5 1 2 3 4 5; do
 		RC=0
 		break
 	fi
-	echo "Waiting $i seconds for syncrepl to receive changes..."
-	sleep $i
 done
 if test $RC != 0 ; then
 	echo "ldapsearch failed ($RC)!"
@@ -1552,7 +1543,9 @@ fi
 
 echo "Using ldapsearch to check replication to site2-master..."
 RC=32
-for i in 0.1 0.5 1 2 3 4 5; do
+for i in 0.2 0.5 1 2 3 4 5; do
+	echo "Waiting $i seconds for syncrepl to receive changes..."
+	sleep $i
 	RESULT=`$LDAPSEARCH -H $URI3 \
 		-s base -b "ou=sm1ou1,$BASEDN" \
 		"(description=Modify$MNUM)" 2>&1 | awk '/^dn:/ {print "OK"}'`
@@ -1560,8 +1553,6 @@ for i in 0.1 0.5 1 2 3 4 5; do
 		RC=0
 		break
 	fi
-	echo "Waiting $i seconds for syncrepl to receive changes..."
-	sleep $i
 done
 if test $RC != 0 ; then
 	echo "ldapsearch failed ($RC)!"
@@ -1570,30 +1561,25 @@ if test $RC != 0 ; then
 fi
 
 echo "Using ldapsearch to check NO replication to site2-search..."
-for i in 0.5 1 2 3; do
-	RESULT=`$LDAPSEARCH -H $URI6 \
-		-s base -b "ou=sm1ou2,$BASEDN" \
-		"(description=Modify$MNUM)" 2>&1 | awk '/^dn:/ {print "NOK"}'`
-	if test "x$RESULT" = "xNOK" ; then
-		echo "Change was replicated to central-search!"
-		killservers
-		exit 1
-	fi
-	sleep $i
-done
+sleep $i
+RESULT=`$LDAPSEARCH -H $URI6 \
+	-s base -b "ou=sm1ou2,$BASEDN" \
+	"(description=Modify$MNUM)" 2>&1 | awk '/^dn:/ {print "NOK"}'`
+if test "x$RESULT" = "xNOK" ; then
+	echo "Change was replicated to central-search!"
+	killservers
+	exit 1
+fi
 
 echo "Using ldapsearch to check NO replication to central-search..."
-for i in 0.5 1 2 3; do
-	RESULT=`$LDAPSEARCH -H $URI4 \
-		-s base -b "ou=sm1ou2,$BASEDN" \
-		"(description=Modify$MNUM)" 2>&1 | awk '/^dn:/ {print "NOK"}'`
-	if test "x$RESULT" = "xNOK" ; then
-		echo "Change was replicated to central-search!"
-		killservers
-		exit 1
-	fi
-	sleep $i
-done
+RESULT=`$LDAPSEARCH -H $URI4 \
+	-s base -b "ou=sm1ou2,$BASEDN" \
+	"(description=Modify$MNUM)" 2>&1 | awk '/^dn:/ {print "NOK"}'`
+if test "x$RESULT" = "xNOK" ; then
+	echo "Change was replicated to central-search!"
+	killservers
+	exit 1
+fi
 
 echo "Checking contextCSN after modify of first-backend on site1-master..."
 . $TESTDIR/checkcsn.sh
@@ -1620,7 +1606,9 @@ fi
 
 echo "Using ldapsearch to check replication to site1-search..."
 RC=32
-for i in 0.1 0.5 1 2 3 4 5; do
+for i in 0.2 0.5 1 2 3 4 5; do
+	echo "Waiting $i seconds for syncrepl to receive changes..."
+	sleep $i
 	RESULT=`$LDAPSEARCH -H $URI5 \
 		-s base -b "ou=sm1ou2,$BASEDN" \
 		"(description=Modify$MNUM)" 2>&1 | awk '/^dn:/ {print "OK"}'`
@@ -1628,8 +1616,6 @@ for i in 0.1 0.5 1 2 3 4 5; do
 		RC=0
 		break
 	fi
-	echo "Waiting $i seconds for syncrepl to receive changes..."
-	sleep $i
 done
 if test $RC != 0 ; then
 	echo "ldapsearch failed ($RC)!"
@@ -1638,17 +1624,15 @@ if test $RC != 0 ; then
 fi
 
 echo "Using ldapsearch to check NO replication to central-master..."
-for i in 0.5 1 2 3; do
-	RESULT=`$LDAPSEARCH -H $URI1 \
-		-s base -b "ou=sm1ou2,$BASEDN" \
-		"(description=Modify$NMUM)" 2>&1 | awk '/^dn:/ {print "NOK"}'`
-	if test "x$RESULT" = "xNOK" ; then
-		echo "Change was replicated to site2-search!"
-		killservers
-		exit 1
-	fi
-	sleep $i
-done
+sleep $i
+RESULT=`$LDAPSEARCH -H $URI1 \
+	-s base -b "ou=sm1ou2,$BASEDN" \
+	"(description=Modify$NMUM)" 2>&1 | awk '/^dn:/ {print "NOK"}'`
+if test "x$RESULT" = "xNOK" ; then
+	echo "Change was replicated to site2-search!"
+	killservers
+	exit 1
+fi
 
 echo "Checking contextCSN after modify of second-backend on site1-master..."
 . $TESTDIR/checkcsn.sh
@@ -1676,7 +1660,9 @@ fi
 
 echo "Using ldapsearch to check replication to central-master..."
 RC=32
-for i in 0.1 0.5 1 2 3 4 5; do
+for i in 0.2 0.5 1 2 3 4 5; do
+	echo "Waiting $i seconds for syncrepl to receive changes..."
+	sleep $i
 	RESULT=`$LDAPSEARCH -H $URI1 \
 		-s base -b "ou=sm2ou1,$BASEDN" \
 		"(description=Modify$MNUM)" 2>&1 | awk '/^dn:/ {print "OK"}'`
@@ -1684,8 +1670,6 @@ for i in 0.1 0.5 1 2 3 4 5; do
 		RC=0
 		break
 	fi
-	echo "Waiting $i seconds for syncrepl to receive changes..."
-	sleep $i
 done
 if test $RC != 0 ; then
 	echo "ldapsearch failed ($RC)!"
@@ -1695,7 +1679,9 @@ fi
 
 echo "Using ldapsearch to check replication to site2-search..."
 RC=32
-for i in 0.1 0.5 1 2 3 4 5; do
+for i in 0.2 0.5 1 2 3 4 5; do
+	echo "Waiting $i seconds for syncrepl to receive changes..."
+	sleep $i
 	RESULT=`$LDAPSEARCH -H $URI6 \
 		-s base -b "ou=sm2ou1,$BASEDN" \
 		"(description=Modify$MNUM)" 2>&1 | awk '/^dn:/ {print "OK"}'`
@@ -1703,8 +1689,6 @@ for i in 0.1 0.5 1 2 3 4 5; do
 		RC=0
 		break
 	fi
-	echo "Waiting $i seconds for syncrepl to receive changes..."
-	sleep $i
 done
 if test $RC != 0 ; then
 	echo "ldapsearch failed ($RC)!"
@@ -1713,30 +1697,25 @@ if test $RC != 0 ; then
 fi
 
 echo "Using ldapsearch to check NO replication to site1-master..."
-for i in 0.5 1 2 3; do
-	RESULT=`$LDAPSEARCH -H $URI2 \
-		-s base -b "ou=sm2ou1,$BASEDN" \
-		"(description=Modify$MNUM)" 2>&1 | awk '/^dn:/ {print "NOK"}'`
-	if test "x$RESULT" = "xNOK" ; then
-		echo "Change was replicated to site2-master!"
-		killservers
-		exit 1
-	fi
-	sleep $i
-done
+sleep $i
+RESULT=`$LDAPSEARCH -H $URI2 \
+	-s base -b "ou=sm2ou1,$BASEDN" \
+	"(description=Modify$MNUM)" 2>&1 | awk '/^dn:/ {print "NOK"}'`
+if test "x$RESULT" = "xNOK" ; then
+	echo "Change was replicated to site2-master!"
+	killservers
+	exit 1
+fi
 
 echo "Using ldapsearch to check NO replication to central-search..."
-for i in 0.5 1 2 3; do
-	RESULT=`$LDAPSEARCH -H $URI4 \
-		-s base -b "ou=sm2ou1,$BASEDN" \
-		"(description=Modify$MNUM)" 2>&1 | awk '/^dn:/ {print "NOK"}'`
-	if test "x$RESULT" = "xNOK" ; then
-		echo "Change was replicated to central-search!"
-		killservers
-		exit 1
-	fi
-	sleep 1
-done
+RESULT=`$LDAPSEARCH -H $URI4 \
+	-s base -b "ou=sm2ou1,$BASEDN" \
+	"(description=Modify$MNUM)" 2>&1 | awk '/^dn:/ {print "NOK"}'`
+if test "x$RESULT" = "xNOK" ; then
+	echo "Change was replicated to central-search!"
+	killservers
+	exit 1
+fi
 
 echo "Checking contextCSN after modify of first-backend on site2-master..."
 . $TESTDIR/checkcsn.sh
@@ -1764,7 +1743,9 @@ fi
 
 echo "Using ldapsearch to check replication to site2-search..."
 RC=32
-for i in 0.1 0.5 1 2 3 4 5; do
+for i in 0.2 0.5 1 2 3 4 5; do
+	echo "Waiting $i seconds for syncrepl to receive changes..."
+	sleep $i
 	RESULT=`$LDAPSEARCH -H $URI6 \
 		-s base -b "ou=sm2ou2,$BASEDN" \
 		"(description=Modify$MNUM)" 2>&1 | awk '/^dn:/ {print "OK"}'`
@@ -1772,8 +1753,6 @@ for i in 0.1 0.5 1 2 3 4 5; do
 		RC=0
 		break
 	fi
-	echo "Waiting $i seconds for syncrepl to receive changes..."
-	sleep $i
 done
 if test $RC != 0 ; then
 	echo "ldapsearch failed ($RC)!"
@@ -1782,17 +1761,15 @@ if test $RC != 0 ; then
 fi
 
 echo "Using ldapsearch to check NO replication to central-master..."
-for i in 0.5 1 2 3; do
-	RESULT=`$LDAPSEARCH -H $URI4 \
-		-s base -b "ou=sm2ou2,$BASEDN" \
-		"(description=Modify$MNUM)" 2>&1 | awk '/^dn:/ {print "NOK"}'`
-	if test "x$RESULT" = "xNOK" ; then
-		echo "Change was replicated to central-search!"
-		killservers
-		exit 1
-	fi
-	sleep $i
-done
+sleep $i
+RESULT=`$LDAPSEARCH -H $URI4 \
+	-s base -b "ou=sm2ou2,$BASEDN" \
+	"(description=Modify$MNUM)" 2>&1 | awk '/^dn:/ {print "NOK"}'`
+if test "x$RESULT" = "xNOK" ; then
+	echo "Change was replicated to central-search!"
+	killservers
+	exit 1
+fi
 
 echo "Checking contextCSN after modify of second-backend on site2-master..."
 . $TESTDIR/checkcsn.sh
@@ -1851,7 +1828,9 @@ check_running 1 central-master
 
 echo "Using ldapsearch to check that site2-master received base..."
 RC=32
-for i in 0.1 0.5 1 2 3 4 5; do
+for i in 0.2 0.5 1 2 3 4 5; do
+	echo "Waiting $i seconds for syncrepl to receive changes..."
+	sleep $i
 	RESULT=`$LDAPSEARCH -H $URI3 \
 		-s base -b "$BASEDN" \
 		'(objectClass=*)' 2>&1 | awk '/^dn:/ {print "OK"}'`
@@ -1859,8 +1838,6 @@ for i in 0.1 0.5 1 2 3 4 5; do
 		RC=0
 		break
 	fi
-	echo "Waiting $i seconds for syncrepl to receive changes..."
-	sleep $i
 done
 if test $RC != 0 ; then
 	echo "ldapsearch failed ($RC)!"
@@ -1870,7 +1847,9 @@ fi
 
 echo "Using ldapsearch to check that site2-search received base..."
 RC=32
-for i in 0.1 0.5 1 2 3 4 5; do
+for i in 0.2 0.5 1 2 3 4 5; do
+	echo "Waiting $i seconds for syncrepl to receive changes..."
+	sleep $i
 	RESULT=`$LDAPSEARCH -H $URI6 \
 		-s base -b "$BASEDN" \
 		'(objectClass=*)' 2>&1 | awk '/^dn:/ {print "OK"}'`
@@ -1878,8 +1857,6 @@ for i in 0.1 0.5 1 2 3 4 5; do
 		RC=0
 		break
 	fi
-	echo "Waiting $i seconds for syncrepl to receive changes..."
-	sleep $i
 done
 if test $RC != 0 ; then
 	echo "ldapsearch failed ($RC)!"
@@ -1919,7 +1896,9 @@ fi
 
 echo "Using ldapsearch to check that central-master received second site1-backend..."
 RC=32
-for i in 0.1 0.5 1 2 3 4 5; do
+for i in 0.2 0.5 1 2 3 4 5; do
+	echo "Waiting $i seconds for syncrepl to receive changes..."
+	sleep $i
 	RESULT=`$LDAPSEARCH -H $URI1 \
 		-s base -b "ou=sm1ou2,$BASEDN" \
 		'(objectClass=*)' 2>&1 | awk '/^dn:/ {print "OK"}'`
@@ -1927,8 +1906,6 @@ for i in 0.1 0.5 1 2 3 4 5; do
 		RC=0
 		break
 	fi
-	echo "Waiting 1 seconds for syncrepl to receive changes..."
-	sleep 1
 done
 if test $RC != 0 ; then
 	echo "ERROR: Second site1-backend not replicated to central-master"
@@ -1951,7 +1928,9 @@ if test $RC != 0 ; then
 
 	echo "Using ldapsearch to check that central-master received second site1-backend..."
 	RC=32
-	for i in 0.1 0.5 1 2 3 4 5; do
+	for i in 0.2 0.5 1 2 3 4 5; do
+		echo "Waiting $i seconds for syncrepl to receive changes..."
+		sleep $i
 		RESULT=`$LDAPSEARCH -H $URI1 \
 			-s base -b "ou=sm1ou2,$BASEDN" \
 			'(objectClass=*)' 2>&1 | awk '/^dn:/ {print "OK"}'`
@@ -1959,8 +1938,6 @@ if test $RC != 0 ; then
 			RC=0
 			break
 		fi
-		echo "Waiting $i seconds for syncrepl to receive changes..."
-		sleep $i
 	done
 	if test $RC != 0 ; then
 		echo "ldapsearch failed ($RC)!"
@@ -1971,7 +1948,9 @@ fi
 
 echo "Using ldapsearch to check that central-search received second site1-backend..."
 RC=32
-for i in 0.1 0.5 1 2 3; do
+for i in 0.1 1 2 3 4 5; do
+	echo "Waiting $i seconds for syncrepl to receive changes..."
+	sleep $i
 	RESULT=`$LDAPSEARCH -H $URI4 \
 		-s base -b "ou=sm1ou2,$BASEDN" \
 		'(objectClass=*)' 2>&1 | awk '/^dn:/ {print "OK"}'`
@@ -1979,8 +1958,6 @@ for i in 0.1 0.5 1 2 3; do
 		RC=0
 		break
 	fi
-	echo "Waiting $i seconds for syncrepl to receive changes..."
-	sleep $i
 done
 if test $RC != 0 ; then
 	echo "ERROR: Second site1-backend not replicated to central-search"
@@ -2003,7 +1980,9 @@ if test $RC != 0 ; then
 
 	echo "Using ldapsearch to check that central-search received second site1-backend..."
 	RC=32
-	for i in 1 2 3 ; do
+	for i in 0.5 1 2 3 4 5; do
+		echo "Waiting $i seconds for syncrepl to receive changes..."
+		sleep $i
 		RESULT=`$LDAPSEARCH -H $URI4 \
 			-s base -b "ou=sm1ou2,$BASEDN" \
 			'(objectClass=*)' 2>&1 | awk '/^dn:/ {print "OK"}'`
@@ -2011,8 +1990,6 @@ if test $RC != 0 ; then
 			RC=0
 			break
 		fi
-		echo "Waiting $i seconds for syncrepl to receive changes..."
-		sleep $i
 	done
 	if test $RC != 0 ; then
 		echo "ldapsearch failed ($RC)!"
@@ -2071,11 +2048,11 @@ EOF
 	check_running 1 central-master
 
 	echo "Using ldapsearch to check that central-master received entry..."
-	for i in 0.1 0.5 1 2 3 4 5; do
+	for i in 0.2 0.5 1 2 3 4 5; do
+		sleep $i
 		$LDAPSEARCH -s base -b "$SUB_DN"  -H $URI1 > /dev/null 2>&1
 		RC=$?
 		test $RC = 0 && break
-		sleep $i
 	done
 	if test $RC != 0 ; then
 		echo "ERROR: entry not replicated to central-master!"
@@ -2084,11 +2061,11 @@ EOF
 	fi
 
 	echo "Using ldapsearch to check that central-search received entry..."
-	for i in 0.1 0.5 1 2 3 4 5; do
+	for i in 0.2 0.5 1 2 3 4 5; do
+		sleep $i
 		$LDAPSEARCH -s base -b "$SUB_DN"  -H $URI4 > /dev/null 2>&1
 		RC=$?
 		test $RC = 0 && break
-		sleep $i
 	done
 	if test $RC != 0 ; then
 		echo "ERROR: entry not replicated to central-master!"
@@ -2119,11 +2096,11 @@ EOF
 
 	echo "Using ldapsearch to check that entry was deleted on central-master..."
 	RC=0
-	for i in 0.1 0.5 1 2 3 4 5; do
+	for i in 0.2 0.5 1 2 3 4 5; do
+		sleep $i
 		$LDAPSEARCH -s base -b "$SUB_DN" -H $URI1 > /dev/null 2>&1
 		RC=$?
 		if test $RC = $wantNoObj; then break; fi
-		sleep $i
 	done
 
 	if test $RC != $wantNoObj; then
@@ -2139,11 +2116,11 @@ EOF
 
 	echo "Using ldapsearch to check that entry was deleted on central-search..."
 	RC=0
-	for i in 0.1 0.5 1 2 3 4 5; do
+	for i in 0.2 0.5 1 2 3 4 5; do
+		sleep $i
 		$LDAPSEARCH -s base -b "$SUB_DN" -H $URI4 > /dev/null 2>&1
 		RC=$?
 		if test $RC != 0; then break; fi
-		sleep $i
 	done
 
 	if test $RC != $wantNoObj; then

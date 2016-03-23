@@ -277,12 +277,12 @@ done
 for uri in $FWD1_URI $CONS_URI; do
 	echo "Using ldapsearch to check that $uri received database..."
 	for i in 0.1 0.2 0.5 1 2 3 4 5; do
+		echo "Waiting $i seconds for slapd to receive database..."
+		sleep $i
 		$LDAPSEARCH -s base -b "$BASEDN" -H $uri \
 			'objectclass=*' > /dev/null 2>&1
 		RC=$?
 		test $RC = 0 && break
-		echo "Waiting $i seconds for slapd to receive database..."
-		sleep $i
 	done
 	if test $RC != 0 ; then
 		echo "ldapsearch failed ($RC)!"
@@ -367,14 +367,14 @@ EOF
 		i=$addStart
 		while test $i -lt $addEnd; do
 			for j in 0.1 0.5 1 2 3 4 5; do
+				echo "Waiting $j seconds for $uri to receive entry $i..."
+				sleep $j
 				RESULT=`$LDAPSEARCH -H $uri -s base -b "ou=$i,$BASEDN" 2>&1 \
 					| awk '/^dn:/ {print "OK"}'`
 				if test "x$RESULT$nullOK" = "xOK" ; then
 					RC=0
 					break
 				fi
-				echo "Waiting $j seconds for $uri to receive entry $i..."
-				sleep $j
 			done
 			if test $RC != 0 ; then
 				echo "ERROR: Entry $i not replicated to $uri! ($RC)!"
@@ -477,14 +477,14 @@ EOF
 		i=$addStart
 		while test $i -lt $addEnd; do
 			for j in 0.1 0.5 1 2 3 4 5; do
+				echo "Waiting $j seconds for $uri to receive entry $i..."
+				sleep $j
 				RESULT=`$LDAPSEARCH -H $uri -s base -b "ou=$i,$BASEDN" 2>&1 \
 					| awk '/^dn:/ {print "OK"}'`
 				if test "x$RESULT$nullOK" = "xOK" ; then
 					RC=0
 					break
 				fi
-				echo "Waiting $j seconds for $uri to receive entry $i..."
-				sleep $j
 			done
 			if test $RC != 0 ; then
 				echo "ERROR: Entry $i not replicated to $uri! ($RC)!"
@@ -498,11 +498,11 @@ EOF
 		i=$delStart
 		while test $i -lt $delEnd; do
 			for j in 0.1 0.5 1 2 3 4 5; do
+				echo "Waiting $j seconds for $uri to delete entry $i..."
+				sleep $j
 				$LDAPSEARCH -s base -b "ou=$i,$BASEDN" -H $uri > /dev/null 2>&1
 				RC=$?
 				if test $RC = $noObj; then break; fi
-				echo "Waiting $j seconds for $uri to delete entry $i..."
-				sleep $j
 			done
 			if test $RC != $noObj; then
 				echo "ERROR: Entry $i not removed on $uri! (RC=$RC)"
@@ -565,11 +565,11 @@ EOF
 		i=$delStart
 		while test $i -lt $delEnd; do
 			for j in 0.1 0.5 1 2 3 4 5; do
+				echo "Waiting $j seconds for $uri to delete entry $i..."
+				sleep $j
 				$LDAPSEARCH -s base -b "ou=$i,$BASEDN" -H $uri > /dev/null 2>&1
 				RC=$?
 				if test $RC = $noObj; then break; fi
-				echo "Waiting $j seconds for $uri to delete entry $i..."
-				sleep $j
 			done
 			if test $RC != $noObj; then
 				echo "ERROR: Entry $i not removed on $uri! (RC=$RC)"
