@@ -3559,7 +3559,6 @@ static int syncrepl_del_nonpresent(
 		 *  2) recovery a lost-delete(s);
 		 *  in the both cases we should update cookie to propagate. */
 		which = -1;
-		slap_get_csn(NULL, &csn);
 	}
 
 	if ( LogTest( LDAP_DEBUG_SYNC ) ) {
@@ -3734,8 +3733,12 @@ static int syncrepl_del_nonpresent(
 				}
 			}
 
+			if (which  >= 0)
+				slap_queue_csn( op, &csn );
+			else
+				slap_get_csn(op, NULL);
+
 			SlapReply rs_delete = {REP_RESULT};
-			slap_queue_csn( op, &csn );
 			op->o_tag = LDAP_REQ_DELETE;
 			op->o_callback = &cx.cb;
 			cx.cb.sc_response = null_callback;
