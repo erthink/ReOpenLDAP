@@ -136,16 +136,16 @@ for ((n=0; n < N; n++)); do
 		nice=$((1 + order % 17))
 		delay=$((order * 101))
 		case $((n % 4)) in
-			2)
-				build_opt="--no-lto --tsan"
-				;;
-			3)
+			0)
 				build_opt="--no-lto --asan"
 				;;
-			0)
+			1)
+				build_opt="--no-lto --debug"
+				;;
+			2)
 				build_opt="--size --no-check --lto"
 				;;
-			1)
+			3)
 				build_opt="--speed --check --lto"
 				;;
 			*)
@@ -177,19 +177,19 @@ for ((n=0; n < N; n++)); do
 	for branch in $branch_list; do
 		delay=$((order * 47))
 		case $((n % 4)) in
-			2)
-				#build_opt="--no-lto --tsan"
+			0)
+				#build_opt="--no-lto --asan"
 				nice=1
 				;;
-			3)
-				#build_opt="--no-lto --asan"
+			1)
+				#build_opt="--no-lto --debug"
 				nice=2
 				;;
-			0)
+			2)
 				#build_opt="--size --no-check --lto"
-				nice=4
+				nice=3
 				;;
-			1)
+			3)
 				#build_opt="--speed --check --lto"
 				nice=4
 				;;
