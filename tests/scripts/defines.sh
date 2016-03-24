@@ -620,13 +620,17 @@ function collect_test {
 
 function wait_syncrepl {
 	local scope=${3:-base}
-	echo -n "Waiting while syncrepl replicates a changes (between $1 and $2)..."
+	local base=${4}
+	local extra=${5}
+	local caption=""
+	if [ -z "$base" ]; then base="$BASEDN"; else caption="$base "; fi
+	echo -n "Waiting while syncrepl replicates a changes (${caption}between $1 and $2)..."
 	sleep $SLEEP0
 	local t=$SLEEP0
 
 	for i in $(seq 1 100); do
 		#echo "  Using ldapsearch to read contextCSN from the provider:$1..."
-		provider_csn=$($LDAPSEARCH -s $scope -b "$BASEDN" -h $LOCALHOST -p $1 contextCSN -v \
+		provider_csn=$($LDAPSEARCH -s $scope -b "$base" $extra -h $LOCALHOST -p $1 contextCSN -v \
 			2>${TESTDIR}/ldapsearch.error | tee ${TESTDIR}/ldapsearch.output \
 				|& grep -i ^contextCSN; exit ${PIPESTATUS[0]})
 		RC=${PIPESTATUS[0]}
@@ -644,7 +648,7 @@ function wait_syncrepl {
 		fi
 
 		#echo "  Using ldapsearch to read contextCSN from the consumer:$2..."
-		consumer_csn=$($LDAPSEARCH -s $scope -b "$BASEDN" -h $LOCALHOST -p $2 contextCSN -v \
+		consumer_csn=$($LDAPSEARCH -s $scope -b "$base" $extra -h $LOCALHOST -p $2 contextCSN -v \
 			2>${TESTDIR}/ldapsearch.error | tee ${TESTDIR}/ldapsearch.output \
 				|& grep -i ^contextCSN; exit ${PIPESTATUS[0]})
 		RC=${PIPESTATUS[0]}
@@ -672,9 +676,9 @@ function wait_syncrepl {
 	done
 	echo " Timeout $(expr $i / 10) seconds"
 	echo -n "Provider: "
-	$LDAPSEARCH -s $scope -b "$BASEDN" -h $LOCALHOST -p $1 contextCSN
+	$LDAPSEARCH -s $scope -b "$base" $extra -h $LOCALHOST -p $1 contextCSN
 	echo -n "Consumer: "
-	$LDAPSEARCH -s $scope -b "$BASEDN" -h $LOCALHOST -p $2 contextCSN
+	$LDAPSEARCH -s $scope -b "$base" $extra -h $LOCALHOST -p $2 contextCSN
 	killservers
 	exit 42
 }
