@@ -2889,7 +2889,6 @@ syncprov_op_search( Operation *op, SlapReply *rs )
 	}
 
 	ldap_pvt_thread_mutex_lock( &si->si_ops_mutex );
-	ldap_pvt_thread_rdwr_rlock( &si->si_csn_rwlock );
 
 	/* If this is a persistent search, set it up right away */
 	if ( op->o_sync_mode & SLAP_SYNC_PERSIST ) {
@@ -2900,7 +2899,6 @@ syncprov_op_search( Operation *op, SlapReply *rs )
 			 * doesn't help, as we may finish playing it before the
 			 * active mods gets added to it.
 			 */
-			ldap_pvt_thread_rdwr_runlock( &si->si_csn_rwlock );
 			ldap_pvt_thread_mutex_unlock( &si->si_ops_mutex );
 			if ( slapd_shutdown ) {
 				ch_free( so );
@@ -2910,7 +2908,6 @@ syncprov_op_search( Operation *op, SlapReply *rs )
 				ldap_pvt_thread_yield();
 
 			ldap_pvt_thread_mutex_lock( &si->si_ops_mutex );
-			ldap_pvt_thread_rdwr_rlock( &si->si_csn_rwlock );
 		}
 
 		so->s_flags |= OS_REF_PREPARE | OS_REF_OP_SEARCH;
@@ -2924,6 +2921,7 @@ syncprov_op_search( Operation *op, SlapReply *rs )
 	/* snapshot the ctxcsn
 	 * Note: this must not be done before the psearch setup. (ITS#8365)
 	 */
+	ldap_pvt_thread_rdwr_rlock( &si->si_csn_rwlock );
 	if (reopenldap_mode_idkfa())
 		slap_cookie_verify( &si->si_cookie );
 	numcsns = si->si_cookie.numcsns;
@@ -3257,6 +3255,10 @@ shortcut:
 	return SLAP_CB_CONTINUE;
 }
 
+#define SS_NONE		0	/* LY: no mock contextCSN */
+#define SS_RUNNING	1	/* LY: show mock contextCSN for running (connected) syncrepl(s) */
+#define SS_ALL		2	/* LY: show mock contextCSN for any dirty syncrepl(s) */
+
 static int
 syncprov_operational(
 	Operation *op,
@@ -3283,21 +3285,21 @@ syncprov_operational(
 					break;
 			}
 
-			ldap_pvt_thread_rdwr_rlock( &si->si_csn_rwlock );
-			if (reopenldap_mode_idkfa())
-				slap_cookie_verify( &si->si_cookie );
-
 			BerValue status = {0};
 			int mock = 0;
-			if (! op->o_dont_replicate && si->si_showstatus ) {
-				mock = quorum_query_status(op->o_bd, &status)
+			if (! op->o_dont_replicate && si->si_showstatus != SS_NONE ) {
+				mock = quorum_query_status(op->o_bd,
+						si->si_showstatus == SS_RUNNING, &status)
 					| read_int__tsan_workaround(&si->si_prefresh)
-					| slap_biglock_deep(op->o_bd)
 					| read_int__tsan_workaround(&si->si_active);
 
 				Debug( LDAP_DEBUG_SYNC, "syncprov_gate: %s\n",
 					mock ? "dirty" : "clean" );
 			}
+
+			ldap_pvt_thread_rdwr_rlock( &si->si_csn_rwlock );
+			if (reopenldap_mode_idkfa())
+				slap_cookie_verify( &si->si_cookie );
 
 			if ( si->si_cookie.numcsns || mock ) {
 				if ( !a ) {
@@ -3359,10 +3361,11 @@ static ConfigTable spcfg[] = {
 		sp_cf_gen, "( OLcfgOvAt:1.4 NAME 'olcSpReloadHint' "
 			"DESC 'Observe Reload Hint in Request control' "
 			"SYNTAX OMsBoolean SINGLE-VALUE )", NULL, NULL },
-	{ "syncprov-showstatus", NULL, 2, 2, 0, ARG_ON_OFF|ARG_MAGIC|SP_SHOWSTATUS,
+	{ "syncprov-showstatus", "mode", 2, 2, 0, ARG_STRING|ARG_MAGIC|SP_SHOWSTATUS,
 		sp_cf_gen, "( OLcfgOvAt:1.9 NAME 'olcSpShowStatus' "
 			"DESC 'Show a Mock contextCSN Until Synchronization is Perfect' "
-			"SYNTAX OMsBoolean SINGLE-VALUE )", NULL, NULL },
+			"EQUALITY caseIgnoreMatch "
+			"SYNTAX OMsDirectoryString SINGLE-VALUE )", NULL, NULL },
 	{ NULL, NULL, 0, 0, 0, ARG_IGNORED }
 };
 
@@ -3430,10 +3433,19 @@ sp_cf_gen(ConfigArgs *c)
 			}
 			break;
 		case SP_SHOWSTATUS:
-			if ( si->si_showstatus ) {
-				c->value_int = 1;
-			} else {
+			switch ( si->si_showstatus ) {
+			default:
 				rc = 1;
+				break;
+			case SS_NONE:
+				c->value_string = ch_strdup( "none" );
+				break;
+			case SS_RUNNING:
+				c->value_string = ch_strdup( "running" );
+				break;
+			case SS_ALL:
+				c->value_string = ch_strdup( "all" );
+				break;
 			}
 			break;
 		}
@@ -3463,10 +3475,7 @@ sp_cf_gen(ConfigArgs *c)
 				rc = LDAP_NO_SUCH_ATTRIBUTE;
 			break;
 		case SP_SHOWSTATUS:
-			if ( si->si_showstatus )
-				si->si_showstatus = 0;
-			else
-				rc = LDAP_NO_SUCH_ATTRIBUTE;
+			si->si_showstatus = SS_NONE;
 			break;
 		}
 		return rc;
@@ -3535,7 +3544,19 @@ sp_cf_gen(ConfigArgs *c)
 		si->si_usehint = c->value_int;
 		break;
 	case SP_SHOWSTATUS:
-		si->si_showstatus = c->value_int;
+		if ( strcasecmp( c->value_string, "none" ) == 0 )
+			si->si_showstatus = SS_NONE;
+		else if ( strcasecmp( c->value_string, "running" ) == 0)
+			si->si_showstatus = SS_RUNNING;
+		else if ( strcasecmp( c->value_string, "all" ) == 0)
+			si->si_showstatus = SS_ALL;
+		else {
+			snprintf( c->cr_msg, sizeof( c->cr_msg ), "%s invalid mode \"%s\" (none|running|all)",
+				c->argv[0], c->value_string );
+			Debug( LDAP_DEBUG_CONFIG|LDAP_DEBUG_NONE,
+				"%s: %s\n", c->log, c->cr_msg );
+			return ARG_BAD_CONF;
+		}
 	}
 	return rc;
 }
@@ -3746,6 +3767,7 @@ syncprov_db_init(
 	}
 
 	si = ch_calloc(1, sizeof(syncprov_info_t));
+	si->si_showstatus = SS_RUNNING;
 	on->on_bi.bi_private = si;
 	ldap_pvt_thread_rdwr_init( &si->si_csn_rwlock );
 	ldap_pvt_thread_mutex_init( &si->si_ops_mutex );

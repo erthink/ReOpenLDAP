@@ -737,7 +737,7 @@ bdb_cf_gen( ConfigArgs *c )
 		if ((slapMode & SLAP_SERVER_MODE) && bdb->bi_txn_cp_min ) {
 			struct re_s *re = bdb->bi_txn_cp_task;
 			if ( re ) {
-				re->interval.tv_sec = bdb->bi_txn_cp_min * 60;
+				re->interval = ldap_from_seconds(bdb->bi_txn_cp_min * 60);
 			} else {
 				if ( c->be->be_suffix == NULL || BER_BVISNULL( &c->be->be_suffix[0] ) ) {
 					fprintf( stderr, "%s: "

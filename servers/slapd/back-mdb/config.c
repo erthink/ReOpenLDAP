@@ -250,7 +250,6 @@ mdb_online_index( void *ctx, void *arg )
 	}
 
 	for ( i = 0; i < mdb->mi_nattrs; i++ ) {
-		SCOPED_LOCK(&mdb->mi_attrs[ i ]->ai_mutex);
 		if ( mdb->mi_attrs[ i ]->ai_indexmask & MDB_INDEX_DELETING
 			|| mdb->mi_attrs[ i ]->ai_newmask == 0 )
 		{
@@ -651,7 +650,7 @@ mdb_cf_gen( ConfigArgs *c )
 						/* LY: compatible mode, interval in minutes */
 						mdb->mi_txn_cp_period * 60;
 			if ( re ) {
-				re->interval.tv_sec = interval_sec;
+				re->interval = ldap_from_seconds(interval_sec);
 			} else {
 				if ( c->be->be_suffix == NULL || BER_BVISNULL( &c->be->be_suffix[0] ) ) {
 					fprintf( stderr, "%s: "

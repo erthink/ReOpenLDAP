@@ -156,10 +156,10 @@ dds_expire( void *ctx, dds_info_t *di )
 	op->ors_slimit = SLAP_NO_LIMIT;
 	op->ors_attrs = slap_anlist_no_attrs;
 
-	expire = slap_get_time() - di->di_tolerance;
+	expire = ldap_time_steady() - di->di_tolerance;
 	ts.bv_val = tsbuf;
 	ts.bv_len = sizeof( tsbuf );
-	slap_timestamp( &expire, &ts );
+	slap_timestamp( expire, &ts );
 
 	op->ors_filterstr.bv_len = STRLENOF( "(&(objectClass=" ")(" "<=" "))" )
 		+ slap_schema.si_oc_dynamicObject->soc_cname.bv_len
@@ -429,10 +429,10 @@ dds_op_add( Operation *op, SlapReply *rs )
 		assert( attr_find( op->ora_e->e_attrs, slap_schema.si_ad_entryTtl ) == NULL );
 		attr_merge_one( op->ora_e, slap_schema.si_ad_entryTtl, &bv, &bv );
 
-		expire = slap_get_time() + ttl;
+		expire = ldap_time_steady() + ttl;
 		bv.bv_val = tsbuf;
 		bv.bv_len = sizeof( tsbuf );
-		slap_timestamp( &expire, &bv );
+		slap_timestamp( expire, &bv );
 		assert( attr_find( op->ora_e->e_attrs, ad_entryExpireTimestamp ) == NULL );
 		attr_merge_one( op->ora_e, ad_entryExpireTimestamp, &bv, &bv );
 
@@ -802,10 +802,10 @@ done:;
 
 			/* keep entryExpireTimestamp consistent
 			 * with entryTtl */
-			expire = slap_get_time() + entryTtl;
+			expire = ldap_time_steady() + entryTtl;
 			bv.bv_val = tsbuf;
 			bv.bv_len = sizeof( tsbuf );
-			slap_timestamp( &expire, &bv );
+			slap_timestamp( expire, &bv );
 
 			tmpmod->sml_op = LDAP_MOD_REPLACE;
 			value_add_one( &tmpmod->sml_values, &bv );
@@ -1484,7 +1484,7 @@ dds_cfgen( ConfigArgs *c )
 			if ( ldap_pvt_runqueue_isrunning( &slapd_rq, di->di_expire_task ) ) {
 				ldap_pvt_runqueue_stoptask( &slapd_rq, di->di_expire_task );
 			}
-			di->di_expire_task->interval.tv_sec = DDS_INTERVAL( di );
+			di->di_expire_task->interval = ldap_from_seconds( DDS_INTERVAL( di ) );
 			ldap_pvt_runqueue_resched( &slapd_rq, di->di_expire_task, 0 );
 			ldap_pvt_thread_mutex_unlock( &slapd_rq.rq_mutex );
 		}

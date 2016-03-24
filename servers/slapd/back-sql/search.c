@@ -2212,7 +2212,7 @@ backsql_search( Operation *op, SlapReply *rs )
 
 		/* check time limit */
 		if ( op->ors_tlimit != SLAP_NO_LIMIT
-				&& slap_get_time() > stoptime )
+				&& ldap_time_steady() > stoptime )
 		{
 			rs->sr_err = LDAP_TIMELIMIT_EXCEEDED;
 			rs->sr_ctrls = NULL;

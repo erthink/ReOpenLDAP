@@ -350,7 +350,7 @@ account_locked( Operation *op, Entry *e,
 			if ((then = parse_time( vals[0].bv_val )) == (time_t)0)
 				return 1;
 
-			now = slap_get_time();
+			now = ldap_time_steady();
 
 			if (now < then + pp->pwdLockoutDuration)
 				return 1;
@@ -975,7 +975,7 @@ ppolicy_bind_response( Operation *op, SlapReply *rs )
 	now = now_usec.tt_sec;
 	timestamp.bv_val = nowstr;
 	timestamp.bv_len = sizeof(nowstr);
-	slap_timestamp( &now, &timestamp );
+	slap_timestamp( now, &timestamp );
 
 	/* Separate timestamp for pwdFailureTime with microsecond granularity */
 	strcpy(nowstr_usec, nowstr);
@@ -1591,11 +1591,11 @@ ppolicy_add(
 		if ( pp.pwdMaxAge || pp.pwdMinAge ) {
 			struct berval timestamp;
 			char timebuf[ LDAP_LUTIL_GENTIME_BUFSIZE ];
-			time_t now = slap_get_time();
+			time_t now = ldap_time_steady();
 
 			timestamp.bv_val = timebuf;
 			timestamp.bv_len = sizeof(timebuf);
-			slap_timestamp( &now, &timestamp );
+			slap_timestamp( now, &timestamp );
 
 			attr_merge_one( op->ora_e, ad_pwdChangedTime, &timestamp, &timestamp );
 		}
@@ -1962,7 +1962,7 @@ ppolicy_modify( Operation *op, SlapReply *rs )
 
 		if ((pa = attr_find( e->e_attrs, ad_pwdChangedTime )) != NULL)
 			pwtime = parse_time( pa->a_nvals[0].bv_val );
-		now = slap_get_time();
+		now = ldap_time_steady();
 		age = (int)(now - pwtime);
 		if ((pwtime != (time_t)-1) && (age < pp.pwdMinAge)) {
 			rs->sr_err = LDAP_CONSTRAINT_VIOLATION;
@@ -2065,7 +2065,7 @@ do_modify:
 	if (pwmod) {
 		struct berval timestamp;
 		char timebuf[ LDAP_LUTIL_GENTIME_BUFSIZE ];
-		time_t now = slap_get_time();
+		time_t now = ldap_time_steady();
 
 		/* If the conn is restricted, set a callback to clear it
 		 * if the pwmod succeeds
@@ -2091,7 +2091,7 @@ do_modify:
 		if (!got_changed) {
 			timestamp.bv_val = timebuf;
 			timestamp.bv_len = sizeof(timebuf);
-			slap_timestamp( &now, &timestamp );
+			slap_timestamp( now, &timestamp );
 
 			mods = NULL;
 			if (pwmop != LDAP_MOD_DELETE) {

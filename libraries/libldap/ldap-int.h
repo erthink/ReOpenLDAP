@@ -154,7 +154,7 @@ struct ldapmsg {
 	struct ldapmsg	*lm_chain;	/* for search - next msg in the resp */
 	struct ldapmsg	*lm_chain_tail;
 	struct ldapmsg	*lm_next;	/* next response */
-	time_t	lm_time;	/* used to maintain cache */
+	slap_time_t	lm_time;	/* used to maintain cache */
 };
 
 #ifdef HAVE_TLS
@@ -312,8 +312,8 @@ typedef struct ldap_conn {
 	void		*lconn_gss_ctx;		/* gss_ctx_id_t */
 #endif
 	int			lconn_refcnt;
-	time_t		lconn_created;	/* time */
-	time_t		lconn_lastused;	/* time */
+	slap_time_t	lconn_created;	/* time */
+	slap_time_t	lconn_lastused;	/* time */
 	int			lconn_rebind_inprogress;	/* set if rebind in progress */
 	char		***lconn_rebind_queue;		/* used if rebind in progress */
 	int			lconn_status;

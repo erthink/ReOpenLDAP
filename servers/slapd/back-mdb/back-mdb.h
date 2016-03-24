@@ -173,7 +173,6 @@ typedef struct mdb_attrinfo {
 	MDB_cursor *ai_cursor;	/* for tools */
 	int ai_idx;	/* position in AI array */
 	MDB_dbi ai_dbi;
-	ldap_pvt_thread_mutex_t	ai_mutex;
 } AttrInfo;
 
 /* These flags must not clash with SLAP_INDEX flags or ops in slap.h! */
