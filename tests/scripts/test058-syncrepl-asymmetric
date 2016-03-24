@@ -757,7 +757,7 @@ fi
 
 echo "Using ldapsearch to check that site1-master received changes..."
 RC=32
-for i in 0.2 0.5 1 2 3 4 5; do
+for i in 0.2 0.5 1 2 3 4 5 6 7; do
 	echo "Waiting $i seconds for syncrepl to receive changes..."
 	sleep $i
 	RESULT=`$LDAPSEARCH -H $URI2 \
@@ -776,7 +776,7 @@ fi
 
 echo "Using ldapsearch to check that site2-master received changes..."
 RC=32
-for i in 0.2 0.5 1 2 3 4 5; do
+for i in 0.2 0.5 1 2 3 4 5 6 7; do
 	echo "Waiting $i seconds for syncrepl to receive changes..."
 	sleep $i
 	RESULT=`$LDAPSEARCH -H $URI3 \
@@ -873,7 +873,7 @@ fi
 
 echo "Using ldapsearch to check that central master received site2-entries..."
 RC=32
-for i in 0.2 0.5 1 2 3 4 5; do
+for i in 0.2 0.5 1 2 3 4 5 6 7; do
 	echo "Waiting $i seconds for syncrepl to receive changes..."
 	sleep $i
 	RESULT=`$LDAPSEARCH -H $URI1 \
@@ -929,7 +929,7 @@ fi
 
 echo "Using ldapsearch to check that central-master received site1 entries..."
 RC=32
-for i in 0.2 0.5 1 2 3 4 5; do
+for i in 0.2 0.5 1 2 3 4 5 6 7; do
 	echo "Waiting $i seconds for syncrepl to receive changes..."
 	sleep $i
 	RESULT=`$LDAPSEARCH -H $URI1 \
@@ -948,7 +948,7 @@ fi
 
 echo "Using ldapsearch to check that site1-master received central-master update..."
 RC=32
-for i in 0.2 0.5 1 2 3 4 5; do
+for i in 0.2 0.5 1 2 3 4 5 6 7; do
 	echo "Waiting $i seconds for syncrepl to receive changes..."
 	sleep $i
 	RESULT=`$LDAPSEARCH -H $URI2 \
@@ -967,7 +967,7 @@ fi
 
 echo "Using ldapsearch to check that site2-master received central-master update..."
 RC=32
-for i in 0.2 0.5 1 2 3 4 5; do
+for i in 0.2 0.5 1 2 3 4 5 6 7; do
 	echo "Waiting $i seconds for syncrepl to receive changes..."
 	sleep $i
 	RESULT=`$LDAPSEARCH -H $URI3 \
@@ -1039,7 +1039,7 @@ fi
 
 echo "Using ldapsearch to check that central-search received changes..."
 RC=32
-for i in 0.2 0.5 1 2 3 4 5; do
+for i in 0.2 0.5 1 2 3 4 5 6 7; do
 	echo "Waiting $i seconds for syncrepl to receive changes..."
 	sleep $i
 	RESULT=`$LDAPSEARCH -H $URI4 \
@@ -1058,7 +1058,7 @@ fi
 
 echo "Using ldapsearch to check that site1-search received changes..."
 RC=32
-for i in 0.2 0.5 1 2 3 4 5; do
+for i in 0.2 0.5 1 2 3 4 5 6 7; do
 	echo "Waiting $i seconds for syncrepl to receive changes..."
 	sleep $i
 	RESULT=`$LDAPSEARCH -H $URI5 \
@@ -1077,7 +1077,7 @@ fi
 
 echo "Using ldapsearch to check that site2-search received changes..."
 RC=32
-for i in 0.2 0.5 1 2 3 4 5; do
+for i in 0.2 0.5 1 2 3 4 5 6 7; do
 	echo "Waiting $i seconds for syncrepl to receive changes..."
 	sleep $i
 	RESULT=`$LDAPSEARCH -H $URI6 \
@@ -1100,6 +1100,12 @@ cat > $TESTDIR/checkcsn.sh <<'EOF'
 #!/bin/bash
 
 CSN_ERRORS=0
+
+wait_syncrepl $PORT1 $PORT2
+wait_syncrepl $PORT1 $PORT3
+wait_syncrepl $PORT1 $PORT4
+wait_syncrepl $PORT2 $PORT5
+wait_syncrepl $PORT3 $PORT6
 
 CSN1=`$LDAPSEARCH -H $URI1 -b $BASEDN -s base contextCSN | grep contextCSN | sort`
 CSN2=`$LDAPSEARCH -H $URI2 -b $BASEDN -s base contextCSN | grep contextCSN | sort`
@@ -1381,7 +1387,7 @@ fi
 
 echo "Using ldapsearch to check replication to central-search..."
 RC=32
-for i in 0.2 0.5 1 2 3 4 5; do
+for i in 0.2 0.5 1 2 3 4 5 6 7; do
 	echo "Waiting $i seconds for syncrepl to receive changes..."
 	sleep $i
 	RESULT=`$LDAPSEARCH -H $URI4 \
@@ -1400,7 +1406,7 @@ fi
 
 echo "Using ldapsearch to check replication to site1-search..."
 RC=32
-for i in 0.2 0.5 1 2 3 4 5; do
+for i in 0.2 0.5 1 2 3 4 5 6 7; do
 	echo "Waiting $i seconds for syncrepl to receive changes..."
 	sleep $i
 	RESULT=`$LDAPSEARCH -H $URI5 \
@@ -1419,7 +1425,7 @@ fi
 
 echo "Using ldapsearch to check replication to site2-search..."
 RC=32
-for i in 0.2 0.5 1 2 3 4 5; do
+for i in 0.2 0.5 1 2 3 4 5 6 7; do
 	echo "Waiting $i seconds for syncrepl to receive changes..."
 	sleep $i
 	RESULT=`$LDAPSEARCH -H $URI6 \
@@ -1461,7 +1467,7 @@ fi
 
 echo "Using ldapsearch to check replication to site2-search..."
 RC=32
-for i in 0.2 0.5 1 2 3 4 5; do
+for i in 0.2 0.5 1 2 3 4 5 6 7; do
 	echo "Waiting $i seconds for syncrepl to receive changes..."
 	sleep $i
 	RESULT=`$LDAPSEARCH -H $URI6 \
@@ -1524,7 +1530,7 @@ fi
 
 echo "Using ldapsearch to check replication to site1-search..."
 RC=32
-for i in 0.2 0.5 1 2 3 4 5; do
+for i in 0.2 0.5 1 2 3 4 5 6 7; do
 	echo "Waiting $i seconds for syncrepl to receive changes..."
 	sleep $i
 	RESULT=`$LDAPSEARCH -H $URI5 \
@@ -1543,7 +1549,7 @@ fi
 
 echo "Using ldapsearch to check replication to site2-master..."
 RC=32
-for i in 0.2 0.5 1 2 3 4 5; do
+for i in 0.2 0.5 1 2 3 4 5 6 7; do
 	echo "Waiting $i seconds for syncrepl to receive changes..."
 	sleep $i
 	RESULT=`$LDAPSEARCH -H $URI3 \
@@ -1606,7 +1612,7 @@ fi
 
 echo "Using ldapsearch to check replication to site1-search..."
 RC=32
-for i in 0.2 0.5 1 2 3 4 5; do
+for i in 0.2 0.5 1 2 3 4 5 6 7; do
 	echo "Waiting $i seconds for syncrepl to receive changes..."
 	sleep $i
 	RESULT=`$LDAPSEARCH -H $URI5 \
@@ -1660,7 +1666,7 @@ fi
 
 echo "Using ldapsearch to check replication to central-master..."
 RC=32
-for i in 0.2 0.5 1 2 3 4 5; do
+for i in 0.2 0.5 1 2 3 4 5 6 7; do
 	echo "Waiting $i seconds for syncrepl to receive changes..."
 	sleep $i
 	RESULT=`$LDAPSEARCH -H $URI1 \
@@ -1679,7 +1685,7 @@ fi
 
 echo "Using ldapsearch to check replication to site2-search..."
 RC=32
-for i in 0.2 0.5 1 2 3 4 5; do
+for i in 0.2 0.5 1 2 3 4 5 6 7; do
 	echo "Waiting $i seconds for syncrepl to receive changes..."
 	sleep $i
 	RESULT=`$LDAPSEARCH -H $URI6 \
@@ -1743,7 +1749,7 @@ fi
 
 echo "Using ldapsearch to check replication to site2-search..."
 RC=32
-for i in 0.2 0.5 1 2 3 4 5; do
+for i in 0.2 0.5 1 2 3 4 5 6 7; do
 	echo "Waiting $i seconds for syncrepl to receive changes..."
 	sleep $i
 	RESULT=`$LDAPSEARCH -H $URI6 \
@@ -1828,7 +1834,7 @@ check_running 1 central-master
 
 echo "Using ldapsearch to check that site2-master received base..."
 RC=32
-for i in 0.2 0.5 1 2 3 4 5; do
+for i in 0.2 0.5 1 2 3 4 5 6 7; do
 	echo "Waiting $i seconds for syncrepl to receive changes..."
 	sleep $i
 	RESULT=`$LDAPSEARCH -H $URI3 \
@@ -1847,7 +1853,7 @@ fi
 
 echo "Using ldapsearch to check that site2-search received base..."
 RC=32
-for i in 0.2 0.5 1 2 3 4 5; do
+for i in 0.2 0.5 1 2 3 4 5 6 7; do
 	echo "Waiting $i seconds for syncrepl to receive changes..."
 	sleep $i
 	RESULT=`$LDAPSEARCH -H $URI6 \
@@ -1896,7 +1902,7 @@ fi
 
 echo "Using ldapsearch to check that central-master received second site1-backend..."
 RC=32
-for i in 0.2 0.5 1 2 3 4 5; do
+for i in 0.2 0.5 1 2 3 4 5 6 7; do
 	echo "Waiting $i seconds for syncrepl to receive changes..."
 	sleep $i
 	RESULT=`$LDAPSEARCH -H $URI1 \
@@ -1928,7 +1934,7 @@ if test $RC != 0 ; then
 
 	echo "Using ldapsearch to check that central-master received second site1-backend..."
 	RC=32
-	for i in 0.2 0.5 1 2 3 4 5; do
+	for i in 0.2 0.5 1 2 3 4 5 6 7; do
 		echo "Waiting $i seconds for syncrepl to receive changes..."
 		sleep $i
 		RESULT=`$LDAPSEARCH -H $URI1 \
@@ -2048,7 +2054,7 @@ EOF
 	check_running 1 central-master
 
 	echo "Using ldapsearch to check that central-master received entry..."
-	for i in 0.2 0.5 1 2 3 4 5; do
+	for i in 0.2 0.5 1 2 3 4 5 6 7; do
 		sleep $i
 		$LDAPSEARCH -s base -b "$SUB_DN"  -H $URI1 > /dev/null 2>&1
 		RC=$?
@@ -2061,7 +2067,7 @@ EOF
 	fi
 
 	echo "Using ldapsearch to check that central-search received entry..."
-	for i in 0.2 0.5 1 2 3 4 5; do
+	for i in 0.2 0.5 1 2 3 4 5 6 7; do
 		sleep $i
 		$LDAPSEARCH -s base -b "$SUB_DN"  -H $URI4 > /dev/null 2>&1
 		RC=$?
@@ -2096,7 +2102,7 @@ EOF
 
 	echo "Using ldapsearch to check that entry was deleted on central-master..."
 	RC=0
-	for i in 0.2 0.5 1 2 3 4 5; do
+	for i in 0.2 0.5 1 2 3 4 5 6 7; do
 		sleep $i
 		$LDAPSEARCH -s base -b "$SUB_DN" -H $URI1 > /dev/null 2>&1
 		RC=$?
@@ -2116,7 +2122,7 @@ EOF
 
 	echo "Using ldapsearch to check that entry was deleted on central-search..."
 	RC=0
-	for i in 0.2 0.5 1 2 3 4 5; do
+	for i in 0.2 0.5 1 2 3 4 5 6 7; do
 		sleep $i
 		$LDAPSEARCH -s base -b "$SUB_DN" -H $URI4 > /dev/null 2>&1
 		RC=$?
