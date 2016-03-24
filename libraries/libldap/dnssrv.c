@@ -373,7 +373,7 @@ add_size:;
     qsort(hostent_head, hostent_count, sizeof(srv_record), srv_cmp);
 
 	if (!srv_seed)
-		srv_srand(time(0L));
+		srv_srand( ldap_now_ns() );
 
 	/* shuffle records of same priority */
 	j = 0;

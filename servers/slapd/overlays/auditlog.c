@@ -126,7 +126,7 @@ static int auditlog_response(Operation *op, SlapReply *rs) {
 		return SLAP_CB_CONTINUE;
 	}
 
-	stamp = slap_get_time();
+	stamp = ldap_time_steady();
 	fprintf(f, "# %s %ld %s%s%s %s conn=%ld\n",
 		what, (long)stamp, suffix, who ? " " : "", who ? who->bv_val : "",
 		peername.bv_val ? peername.bv_val: "", op->o_conn->c_connid);

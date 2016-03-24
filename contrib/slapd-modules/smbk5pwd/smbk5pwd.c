@@ -605,7 +605,7 @@ static int smbk5pwd_exop_passwd(
 		keys[0].bv_val = ch_malloc( LDAP_PVT_INTTYPE_CHARS(long) );
 		keys[0].bv_len = snprintf(keys[0].bv_val,
 			LDAP_PVT_INTTYPE_CHARS(long),
-			"%ld", slap_get_time());
+			"%ld", ldap_time_steady());
 		BER_BVZERO( &keys[1] );
 
 		ml->sml_desc = ad_sambaPwdLastSet;
@@ -627,7 +627,7 @@ static int smbk5pwd_exop_passwd(
 			keys[0].bv_val = ch_malloc( LDAP_PVT_INTTYPE_CHARS(long) );
 			keys[0].bv_len = snprintf(keys[0].bv_val,
 					LDAP_PVT_INTTYPE_CHARS(long),
-					"%ld", slap_get_time() + pi->smb_must_change);
+					"%ld", ldap_time_steady() + pi->smb_must_change);
 			BER_BVZERO( &keys[1] );
 
 			ml->sml_desc = ad_sambaPwdMustChange;
@@ -650,7 +650,7 @@ static int smbk5pwd_exop_passwd(
 			keys[0].bv_val = ch_malloc( LDAP_PVT_INTTYPE_CHARS(long) );
 			keys[0].bv_len = snprintf(keys[0].bv_val,
 					LDAP_PVT_INTTYPE_CHARS(long),
-					"%ld", slap_get_time() + pi->smb_can_change);
+					"%ld", ldap_time_steady() + pi->smb_can_change);
 			BER_BVZERO( &keys[1] );
 
 			ml->sml_desc = ad_sambaPwdCanChange;
@@ -680,7 +680,7 @@ static int smbk5pwd_exop_passwd(
 		keys[0].bv_val = ch_malloc( LDAP_PVT_INTTYPE_CHARS(long) );
 		keys[0].bv_len = snprintf(keys[0].bv_val,
 			LDAP_PVT_INTTYPE_CHARS(long),
-			"%ld", (long)(slap_get_time() / (60 * 60 * 24)));
+			"%ld", (long)(ldap_time_steady() / (60 * 60 * 24)));
 
 		ml->sml_desc = ad_shadowLastChange;
 		ml->sml_op = LDAP_MOD_REPLACE;

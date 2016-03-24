@@ -930,9 +930,9 @@ refint_qtask( void *ctx, void *arg )
 	ldap_pvt_runqueue_stoptask( &slapd_rq, id->qtask );
 	if ( pausing ) {
 		/* try to run again as soon as the pause is done */
-		id->qtask->interval.tv_sec = 0;
+		id->qtask->interval.ns = 0;
 		ldap_pvt_runqueue_resched( &slapd_rq, id->qtask, 0 );
-		id->qtask->interval.tv_sec = RUNQ_INTERVAL;
+		id->qtask->interval = ldap_from_seconds(RUNQ_INTERVAL);
 	} else {
 		ldap_pvt_runqueue_resched( &slapd_rq,id->qtask, 1 );
 	}
@@ -1008,10 +1008,10 @@ refint_response(
 		ac = 1;
 	} else {
 		if ( !ldap_pvt_runqueue_isrunning( &slapd_rq, id->qtask ) &&
-			!id->qtask->next_sched.tv_sec ) {
-			id->qtask->interval.tv_sec = 0;
+			!id->qtask->next_sched.ns ) {
+			id->qtask->interval.ns = 0;
 			ldap_pvt_runqueue_resched( &slapd_rq, id->qtask, 0 );
-			id->qtask->interval.tv_sec = RUNQ_INTERVAL;
+			id->qtask->interval = ldap_from_seconds(RUNQ_INTERVAL);
 			ac = 1;
 		}
 	}

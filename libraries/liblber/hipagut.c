@@ -642,7 +642,7 @@ __cold static int64_t clock_mono2real_delta() {
 	return best_delta;
 }
 
-__hot uint64_t ldap_now_ns() {
+__hot uint64_t ldap_now_ns(void) {
 	uint64_t clock_now;
 
 	if (unlikely(!clock_mono2real_ns)) {
@@ -706,12 +706,13 @@ __hot unsigned ldap_timeval(struct timeval *tv) {
 	return subtick;
 }
 
-__hot time_t ldap_time(time_t *p) {
-	struct timespec t;
-	ldap_timespec(&t);
-	if (p)
-		*p = t.tv_sec;
-	return t.tv_sec;
+__hot time_t ldap_time_steady(void) {
+	return ldap_to_time( ldap_now() );
+}
+
+__hot time_t ldap_time_unsteady(void) {
+#	undef time
+	return time(NULL);
 }
 
 /*----------------------------------------------------------------------------*/

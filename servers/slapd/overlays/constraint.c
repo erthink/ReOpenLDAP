@@ -614,7 +614,7 @@ constraint_violation( constraint *c, struct berval *bv, Operation *op )
 
 			nop.o_protocol = LDAP_VERSION3;
 			nop.o_tag = LDAP_REQ_SEARCH;
-			nop.o_time = slap_get_time();
+			nop.o_time = ldap_time_steady();
 			if (c->lud->lud_dn) {
 				struct berval dn;
 

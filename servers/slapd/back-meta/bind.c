@@ -373,7 +373,7 @@ retry:;
 		switch ( rc ) {
 		case 0:
 			if ( nretries != META_RETRY_NEVER
-				|| ( timeout && slap_get_time() <= stoptime ) )
+				|| ( timeout && ldap_time_steady() <= stoptime ) )
 			{
 				ldap_pvt_thread_yield();
 				if ( nretries > 0 ) {
@@ -1048,7 +1048,7 @@ retry:;
 			rc = ldap_result( msc->msc_ld, msgid, LDAP_MSG_ALL, &tv, &res );
 			switch ( rc ) {
 			case 0:
-				if ( timeout && slap_get_time() > stoptime ) {
+				if ( timeout && ldap_time_steady() > stoptime ) {
 					(void)meta_back_cancel( mc, op, rs, msgid, candidate, sendok );
 					rs->sr_err = timeout_err;
 					rs->sr_text = timeout_text;

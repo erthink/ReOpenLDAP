@@ -73,7 +73,7 @@ slapi_int_log_error(
 			/* DO NOTHING */ ;
 		}
 
-		time( &currentTime );
+		currentTime = ldap_time_steady();
 		ltm = localtime( &currentTime );
 		strftime( timeStr, sizeof(timeStr), "%x %X", ltm );
 		fputs( timeStr, fp );

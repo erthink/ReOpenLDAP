@@ -159,7 +159,7 @@ void
 slap_op_time(time_t *t, int *nop)
 {
 	ldap_pvt_thread_mutex_lock( &slap_op_mutex );
-	*t = slap_get_time();
+	*t = ldap_time_steady();
 	if ( *t == last_time ) {
 		*nop = ++last_incr;
 	} else {

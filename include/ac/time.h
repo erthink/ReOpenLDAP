@@ -29,11 +29,6 @@
 # include <time.h>
 #endif
 
-__extern_C time_t ldap_time(time_t *);
-__extern_C void ldap_timespec(struct timespec *);
-__extern_C unsigned ldap_timeval(struct timeval *);
-
-#define gettimeofday(result_ptr, null_ptr) ldap_timeval(result_ptr)
-#define time(ptr) ldap_time(ptr)
+#define time(ptr) @wanna_steady_or_not?
 
 #endif /* _AC_TIME_H */

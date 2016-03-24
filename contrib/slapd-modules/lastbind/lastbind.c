@@ -130,7 +130,7 @@ lastbind_bind_response( Operation *op, SlapReply *rs )
 		struct berval timestamp;
 
 		/* get the current time */
-		now = slap_get_time();
+		now = ldap_time_steady();
 
 		/* get authTimestamp attribute, if it exists */
 		if ((a = attr_find( e->e_attrs, ad_authTimestamp)) != NULL) {
@@ -148,7 +148,7 @@ lastbind_bind_response( Operation *op, SlapReply *rs )
 		/* update the authTimestamp in the user's entry with the current time */
 		timestamp.bv_val = nowstr;
 		timestamp.bv_len = sizeof(nowstr);
-		slap_timestamp( &now, &timestamp );
+		slap_timestamp( now, &timestamp );
 
 		m = ch_calloc( sizeof(Modifications), 1 );
 		m->sml_op = LDAP_MOD_REPLACE;

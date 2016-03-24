@@ -221,12 +221,12 @@ int connections_shutdown(int gentle_shutdown_only)
 /*
  * Timeout idle connections.
  */
-int connections_timeout_idle(time_t now)
+int connections_timeout_idle(slap_time_t now)
 {
 	int i = 0, writers = 0;
 	ber_socket_t connindex;
 	Connection* c;
-	time_t old;
+	slap_time_t old;
 
 	old = slapd_get_writetime();
 
@@ -244,7 +244,7 @@ int connections_timeout_idle(time_t now)
 		}
 
 		if( global_idletimeout &&
-			difftime( c->c_activitytime+global_idletimeout, now) < 0 ) {
+			now.ns - c->c_activitytime.ns > ldap_from_seconds(global_idletimeout).ns ) {
 			/* close it */
 			connection_closing( c, "idletimeout" );
 			connection_close( c );
@@ -253,7 +253,7 @@ int connections_timeout_idle(time_t now)
 		}
 		if ( c->c_writewaiter && global_writetimeout ) {
 			writers = 1;
-			if( difftime( c->c_activitytime+global_writetimeout, now) < 0 ) {
+			if( now.ns - c->c_activitytime.ns > ldap_from_seconds(global_writetimeout).ns ) {
 				/* close it */
 				connection_closing( c, "writetimeout" );
 				connection_close( c );
@@ -263,7 +263,7 @@ int connections_timeout_idle(time_t now)
 		}
 	}
 	connection_done( c );
-	if ( old && !writers )
+	if ( old.ns && !writers )
 		slapd_clr_writetime( old );
 
 	return i;
@@ -340,7 +340,7 @@ static Connection* connection_get( ber_socket_t s )
 		if ( global_idletimeout > 0 )
 #endif /* ! SLAPD_MONITOR */
 		{
-			c->c_activitytime = slap_get_time();
+			c->c_activitytime = ldap_now();
 		}
 		ldap_pvt_thread_mutex_unlock( &connections_mutex );
 	}
@@ -510,7 +510,7 @@ Connection * connection_init(
 	if ( global_idletimeout > 0 )
 #endif /* ! SLAPD_MONITOR */
 	{
-		c->c_activitytime = c->c_starttime = slap_get_time();
+		c->c_activitytime = c->c_starttime = ldap_now();
 	}
 
 #ifdef LDAP_CONNECTIONLESS
@@ -673,7 +673,7 @@ connection_destroy( Connection *c )
 	c->c_protocol = 0;
 	c->c_connid = -1;
 
-	c->c_activitytime = c->c_starttime = 0;
+	c->c_activitytime.ns = c->c_starttime.ns = 0;
 
 	connection2anonymous( c );
 	c->c_listener = NULL;

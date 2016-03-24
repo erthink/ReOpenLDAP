@@ -68,7 +68,7 @@ int slap_inet4or6 = AF_INET;
 #endif /* ! INETv6 */
 
 /* globals */
-time_t starttime;
+slap_time_t starttime;
 ber_socket_t dtblsize;
 slap_ssf_t local_ssf = LDAP_PVT_SASL_LOCAL_SSF;
 struct runqueue_s slapd_rq;
@@ -97,7 +97,7 @@ static ldap_pvt_thread_t *listener_tid;
 static ber_socket_t wake_sds[SLAPD_MAX_DAEMON_THREADS][2];
 static int emfile;
 
-static time_t chk_writetime;
+static slap_time_t chk_writetime;
 
 static volatile int waking;
 #ifdef NO_THREADS
@@ -352,7 +352,7 @@ static slap_daemon_st slap_daemon[SLAPD_MAX_DAEMON_THREADS];
 
 # define SLAP_EVENT_WAIT(t, tvp, nsp)	do { \
 	*(nsp) = epoll_wait( slap_daemon[t].sd_epfd, revents, \
-		dtblsize, (tvp) ? (tvp)->tv_sec * 1000 : -1 ); \
+		dtblsize, (tvp) ? ldap_to_milliseconds(*tvp) : -1 ); \
 } while (0)
 
 #elif defined(SLAP_X_DEVPOLL) && defined(HAVE_DEVPOLL)
@@ -1016,11 +1016,11 @@ slapd_set_write( ber_socket_t s, int wake )
 		SLAP_SOCK_SET_WRITE( id, s );
 		slap_daemon[id].sd_nwriters++;
 	}
-	if (( wake & 2 ) && global_writetimeout && !chk_writetime ) {
+	if (( wake & 2 ) && global_writetimeout && !chk_writetime.ns ) {
 		if (id)
 			ldap_pvt_thread_mutex_lock( &slap_daemon[0].sd_mutex );
-		if (!chk_writetime)
-			chk_writetime = slap_get_time();
+		if (! chk_writetime.ns)
+			chk_writetime = ldap_now();
 		if (id)
 			ldap_pvt_thread_mutex_unlock( &slap_daemon[0].sd_mutex );
 	}
@@ -1063,10 +1063,10 @@ slapd_set_read( ber_socket_t s, int wake )
 		WAKE_LISTENER(id,wake);
 }
 
-time_t
+slap_time_t
 slapd_get_writetime()
 {
-	time_t cur;
+	slap_time_t cur;
 	ldap_pvt_thread_mutex_lock( &slap_daemon[0].sd_mutex );
 	cur = chk_writetime;
 	ldap_pvt_thread_mutex_unlock( &slap_daemon[0].sd_mutex );
@@ -1074,11 +1074,11 @@ slapd_get_writetime()
 }
 
 void
-slapd_clr_writetime( time_t old )
+slapd_clr_writetime( slap_time_t old )
 {
 	ldap_pvt_thread_mutex_lock( &slap_daemon[0].sd_mutex );
-	if ( chk_writetime == old )
-		chk_writetime = 0;
+	if ( chk_writetime.ns == old.ns )
+		chk_writetime.ns = 0;
 	ldap_pvt_thread_mutex_unlock( &slap_daemon[0].sd_mutex );
 }
 
@@ -2188,7 +2188,7 @@ slapd_daemon_task(
 	void *ptr )
 {
 	int l;
-	time_t last_idle_check = 0;
+	slap_time_t last_idle_check = {0};
 	int ebadf = 0;
 	int tid = (ldap_pvt_thread_t *) ptr - listener_tid;
 
@@ -2200,7 +2200,7 @@ slapd_daemon_task(
 
 	/* Init stuff done only by thread 0 */
 
-	last_idle_check = slap_get_time();
+	last_idle_check = ldap_now();
 
 	for ( l = 0; slap_listeners[l] != NULL; l++ ) {
 		if ( slap_listeners[l]->sl_sd == AC_SOCKET_INVALID ) continue;
@@ -2415,46 +2415,31 @@ loop:
 #endif /* SLAP_EVENTS_ARE_INDEXED */
 #define SLAPD_EBADF_LIMIT 16
 
-		time_t			now;
+		slap_time_t			now, cat, tv, *tvp;
+		struct re_s*		rtask;
 
 		SLAP_EVENT_DECL;
 
-		struct timeval		tv;
-		struct timeval		*tvp;
+		now = ldap_now();
 
-		struct timeval		cat;
-		time_t			tdelta = 1;
-		struct re_s*		rtask;
-
-		now = slap_get_time();
-
-		if ( !tid && ( global_idletimeout > 0 || chk_writetime )) {
+		tv.ns = 0;
+		if ( !tid ) {
 			int check = 0;
-			/* Set the select timeout.
-			 * Don't just truncate, preserve the fractions of
-			 * seconds to prevent sleeping for zero time.
-			 */
-			if ( chk_writetime ) {
-				tv.tv_sec = global_writetimeout;
-				tv.tv_usec = 0;
-				if ( difftime( chk_writetime, now ) < 0 )
-					check = 2;
-			} else {
-				tv.tv_sec = global_idletimeout / SLAPD_IDLE_CHECK_LIMIT;
-				tv.tv_usec = global_idletimeout - \
-					( tv.tv_sec * SLAPD_IDLE_CHECK_LIMIT );
-				tv.tv_usec *= 1000000 / SLAPD_IDLE_CHECK_LIMIT;
-				if ( difftime( last_idle_check +
-					global_idletimeout/SLAPD_IDLE_CHECK_LIMIT, now ) < 0 )
-					check = 1;
+			/* Set the select timeout. */
+			if ( global_idletimeout && now.ns > last_idle_check.ns
+					+ ldap_from_seconds(global_idletimeout / SLAPD_IDLE_CHECK_LIMIT).ns ) {
+				check = 1;
+				tv = ldap_from_seconds(global_idletimeout / SLAPD_IDLE_CHECK_LIMIT);
+			}
+			if ( chk_writetime.ns && now.ns > chk_writetime.ns ) {
+				check = 2;
+				if ( !tv.ns || tv.ns > ldap_from_seconds(global_writetimeout).ns )
+					tv = ldap_from_seconds(global_writetimeout);
 			}
 			if ( check ) {
 				connections_timeout_idle( now );
 				last_idle_check = now;
 			}
-		} else {
-			tv.tv_sec = 0;
-			tv.tv_usec = 0;
 		}
 
 		if ( slapd_gentle_shutdown ) {
@@ -2523,13 +2508,15 @@ loop:
 
 		nfds = SLAP_EVENT_MAX(tid);
 
-		if (( chk_writetime || global_idletimeout ) && slap_daemon[tid].sd_nactives ) at = 1;
+		if (( chk_writetime.ns || global_idletimeout )
+				&& slap_daemon[tid].sd_nactives )
+			at = 1;
 
 		ldap_pvt_thread_mutex_unlock( &slap_daemon[tid].sd_mutex );
 
 		if ( at
 #if defined(HAVE_YIELDING_SELECT) || defined(NO_THREADS)
-			&&  ( tv.tv_sec || tv.tv_usec )
+			&& tv.ns
 #endif /* HAVE_YIELDING_SELECT || NO_THREADS */
 			)
 		{
@@ -2542,7 +2529,7 @@ loop:
 		if ( !tid ) {
 			ldap_pvt_thread_mutex_lock( &slapd_rq.rq_mutex );
 			rtask = ldap_pvt_runqueue_next_sched( &slapd_rq, &cat );
-			while ( rtask && cat.tv_sec && cat.tv_sec <= now ) {
+			while ( rtask && cat.ns && cat.ns <= now.ns ) {
 				if ( ldap_pvt_runqueue_isrunning( &slapd_rq, rtask )) {
 					ldap_pvt_runqueue_resched( &slapd_rq, rtask, 0 );
 				} else {
@@ -2557,18 +2544,15 @@ loop:
 			}
 			ldap_pvt_thread_mutex_unlock( &slapd_rq.rq_mutex );
 
-			if ( rtask && cat.tv_sec ) {
+			if ( rtask && cat.ns ) {
 				/* NOTE: diff __should__ always be >= 0,
 				 * AFAI understand; however (ITS#4872),
 				 * time_t might be unsigned in some systems,
 				 * while difftime() returns a double */
-				double diff = difftime( cat.tv_sec, now );
-				if ( diff <= 0 ) {
-					diff = tdelta;
-				}
-				if ( tvp == NULL || diff < tv.tv_sec ) {
-					tv.tv_sec = diff;
-					tv.tv_usec = 0;
+				int64_t diff_ns = cat.ns - now.ns;
+				if ( diff_ns < 0 ) diff_ns = 0;
+				if ( tvp == NULL || diff_ns < (int64_t) tv.ns ) {
+					tv.ns = diff_ns;
 					tvp = &tv;
 				}
 			}

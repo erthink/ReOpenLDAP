@@ -1967,7 +1967,7 @@ slapi_timer_current_time( void )
 
 	/*
 	 * Ain't it better?
-	return (slap_get_time() - starttime) * 1000000;
+	return (ldap_time_steady() - starttime) * 1000000;
 	 */
 #else /* _WIN32 */
 	LARGE_INTEGER now;
