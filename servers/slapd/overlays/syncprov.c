@@ -1373,6 +1373,7 @@ syncprov_op_abandon( Operation *op, SlapReply *rs )
 
 	ldap_pvt_thread_mutex_lock( &si->si_ops_mutex );
 	for (pso = &si->si_ops; (so = *pso) != NULL; pso = &so->s_next) {
+		assert(so->s_next != so);
 		if ( so->s_op && so->s_op->o_connid == op->o_connid
 				&& so->s_op->o_msgid == op->orn_msgid ) {
 			ldap_pvt_thread_mutex_lock( &so->s_mutex );
@@ -3707,9 +3708,6 @@ syncprov_db_close(
 {
 	slap_overinst   *on = (slap_overinst *) be->bd_info;
 	syncprov_info_t *si = (syncprov_info_t *)on->on_bi.bi_private;
-#ifdef SLAP_CONFIG_DELETE
-	syncops *so, *sonext;
-#endif /* SLAP_CONFIG_DELETE */
 
 	if ( slapMode & SLAP_TOOL_MODE ) {
 		return 0;
@@ -3733,16 +3731,17 @@ syncprov_db_close(
 	if ( !slapd_shutdown ) {
 		int paused = slap_biglock_pool_pause(be);
 		ldap_pvt_thread_mutex_lock( &si->si_ops_mutex );
-		for ( so=si->si_ops, sonext=so;  so; so=sonext  ) {
+		while ( si->si_ops != NULL ) {
+			syncops *so = si->si_ops;
 			SlapReply rs = {REP_RESULT};
 			rs.sr_err = LDAP_UNAVAILABLE;
 			send_ldap_result( so->s_op, &rs );
 			ldap_pvt_thread_mutex_lock( &so->s_mutex );
-			sonext = so->s_next;
-			so->s_next = so;
+			si->si_ops = so->s_next;
+			so->s_next = so; /* LY: safely mark it as unlinked */
 			so->s_flags |= PS_DEAD | OS_REF_CLOSE;
 			ldap_pvt_thread_mutex_unlock( &so->s_mutex );
-			syncprov_unlink_syncop( so, OS_REF_OP_SEARCH, SO_LOCKED_SIOP );
+			syncprov_unlink_syncop( so, OS_REF_OP_SEARCH | OS_REF_CLOSE, SO_LOCKED_SIOP );
 		}
 		ldap_pvt_thread_mutex_unlock( &si->si_ops_mutex );
 		if (paused == LDAP_SUCCESS)
