@@ -705,6 +705,7 @@ workaround:
 			if (unlikely(rc)) {
 				Debug( LDAP_DEBUG_ANY, "mdb_opinfo_get: mdb_txn_renew() err %s(%d)\n",
 					mdb_strerror(rc), rc );
+				assert( rc == MDB_SUCCESS );
 				mdb_reader_flush( mdb->mi_dbenv );
 				if (rc == EINVAL && ! slapd_shutdown)
 					goto workaround;

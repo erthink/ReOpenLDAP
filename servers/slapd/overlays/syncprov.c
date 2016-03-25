@@ -3799,9 +3799,10 @@ syncprov_db_destroy(
 	if ( si ) {
 		/* LY: workaround for https://github.com/ReOpen/ReOpenLDAP/issues/45 */
 		for(;;) {
-			int drained, paused =
-				(slap_biglock_pool_pausing(be) == 0
-					&& slap_biglock_pool_pause(be) == LDAP_SUCCESS) ? 1 : 0;
+			int drained, paused = -1;
+
+			if ( slapMode == SLAP_SERVER_MODE && !slap_biglock_pool_pausing(be) )
+				paused = slap_biglock_pool_pause(be);
 			ldap_pvt_thread_mutex_lock( &si->si_ops_mutex );
 			drained = 0;
 			if (si->si_ops == NULL
@@ -3809,7 +3810,7 @@ syncprov_db_destroy(
 					&& read_int__tsan_workaround(&si->si_active) == 0)
 				drained = 1;
 			ldap_pvt_thread_mutex_unlock( &si->si_ops_mutex );
-			if (paused)
+			if (paused == LDAP_SUCCESS)
 				slap_biglock_pool_resume(be);
 			if (drained)
 				break;
