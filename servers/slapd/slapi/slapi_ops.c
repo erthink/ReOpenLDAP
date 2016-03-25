@@ -242,7 +242,7 @@ slapi_int_connection_init_pb( Slapi_PBlock *pb, ber_tag_t tag )
 
 	conn->c_protocol = LDAP_VERSION3;
 
-	conn->c_activitytime = conn->c_starttime = slap_get_time();
+	conn->c_activitytime = conn->c_starttime = ldap_now();
 
 	/*
 	 * A real connection ID is required, because syncrepl associates
@@ -269,7 +269,7 @@ slapi_int_connection_init_pb( Slapi_PBlock *pb, ber_tag_t tag )
 	op->o_tag = tag;
 	op->o_protocol = LDAP_VERSION3;
 	BER_BVZERO( &op->o_authmech );
-	op->o_time = slap_get_time();
+	op->o_time = ldap_time_steady();
 	op->o_do_not_cache = 1;
 	op->o_threadctx = ldap_pvt_thread_pool_context();
 	op->o_tmpmemctx = NULL;

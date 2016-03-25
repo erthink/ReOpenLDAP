@@ -57,7 +57,7 @@ kinit_check_tgt(kinit_data *kid, int *remaining)
 	krb5_cc_cursor cursor;
 	krb5_creds creds;
 	char *name;
-	time_t now=time(NULL);
+	time_t now = ldap_time_steady();
 
 	rc = krb5_cc_get_principal(kid->ctx, kid->ccache, &princ);
 	if (rc) {
@@ -189,7 +189,7 @@ kinit_qtask( void *ctx, void *arg )
 	Log3(LDAP_DEBUG_TRACE, LDAP_LEVEL_DEBUG,
 			"kinit_qtask: Next TGT check in %dh:%02dm:%02ds\n",
 			nextcheck/3600, (nextcheck%3600)/60,  nextcheck%60);
-	rtask->interval.tv_sec = nextcheck;
+	rtask->interval = ldap_from_seconds(nextcheck);
 	ldap_pvt_runqueue_resched( &slapd_rq, rtask, 0 );
 	slap_wake_listener();
 	ldap_pvt_thread_mutex_unlock( &slapd_rq.rq_mutex );
@@ -292,4 +292,3 @@ term_module() {
 #endif
 
 #endif /* SLAPD_MOD_KINIT */
-

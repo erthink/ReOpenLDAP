@@ -219,11 +219,16 @@ int connections_shutdown(int gentle_shutdown_only)
 /*
  * Timeout idle connections.
  */
-int connections_timeout_idle(time_t now)
+int connections_timeout_idle(slap_time_t now)
 {
 	int i = 0;
 	ber_socket_t connindex;
 	Connection* c;
+
+#ifdef SLAPD_WRITE_TIMEOUT
+	int writers = 0;
+	slap_time_t old = slapd_get_writetime();
+#endif /* SLAPD_WRITE_TIMEOUT */
 
 	for( c = connection_first( &connindex );
 		c != NULL;
@@ -238,15 +243,32 @@ int connections_timeout_idle(time_t now)
 		}
 
 		if( global_idletimeout &&
-			difftime( c->c_activitytime+global_idletimeout, now) < 0 ) {
+			now.ns - c->c_activitytime.ns > ldap_from_seconds(global_idletimeout).ns ) {
 			/* close it */
 			connection_closing( c, "idletimeout" );
 			connection_close( c );
 			i++;
 			continue;
 		}
+#ifdef SLAPD_WRITE_TIMEOUT
+		if ( c->c_writewaiter && global_writetimeout ) {
+			writers = 1;
+			if( now.ns - c->c_activitytime.ns > ldap_from_seconds(global_writetimeout).ns ) {
+				/* close it */
+				connection_closing( c, "writetimeout" );
+				connection_close( c );
+				i++;
+				continue;
+			}
+		}
+#endif /* SLAPD_WRITE_TIMEOUT */
 	}
 	connection_done( c );
+
+#ifdef SLAPD_WRITE_TIMEOUT
+	if ( old.ns && !writers )
+		slapd_clr_writetime( old );
+#endif /* SLAPD_WRITE_TIMEOUT */
 
 	return i;
 }
@@ -322,7 +344,7 @@ static Connection* connection_get( ber_socket_t s )
 		if ( global_idletimeout > 0 )
 #endif /* ! SLAPD_MONITOR */
 		{
-			c->c_activitytime = slap_get_time();
+			c->c_activitytime = ldap_now();
 		}
 		ldap_pvt_thread_mutex_unlock( &connections_mutex );
 	}
@@ -492,7 +514,7 @@ Connection * connection_init(
 	if ( global_idletimeout > 0 )
 #endif /* ! SLAPD_MONITOR */
 	{
-		c->c_activitytime = c->c_starttime = slap_get_time();
+		c->c_activitytime = c->c_starttime = ldap_now();
 	}
 
 #ifdef LDAP_CONNECTIONLESS
@@ -655,7 +677,7 @@ connection_destroy( Connection *c )
 	c->c_protocol = 0;
 	c->c_connid = -1;
 
-	c->c_activitytime = c->c_starttime = 0;
+	c->c_activitytime.ns = c->c_starttime.ns = 0;
 
 	connection2anonymous( c );
 	c->c_listener = NULL;

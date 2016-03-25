@@ -2968,8 +2968,8 @@ struct Connection {
 	Sockbuf		*c_sb;			/* ber connection stuff		  */
 
 	/* only can be changed by connect_init */
-	time_t		c_starttime;	/* when the connection was opened */
-	time_t		c_activitytime;	/* when the connection was last used */
+	slap_time_t		c_starttime;	/* when the connection was opened */
+	slap_time_t		c_activitytime;	/* when the connection was last used */
 	unsigned long		c_connid;	/* id of this connection for stats*/
 
 	struct berval	c_peer_domain;	/* DNS name of client */
@@ -3449,23 +3449,7 @@ typedef struct slap_oinit_t {
 } OverlayInit;
 
 
-/* LY: crutchs ;) */
-struct lock_holder_t {
-	ldap_pvt_thread_mutex_t *lh_mutex;
-};
-typedef struct lock_holder_t lock_holder_t;
-
 #define LDAP_PASTETOKENS(a, b) a ## b
-
-ldap_pvt_thread_mutex_t* __scoped_lock(ldap_pvt_thread_mutex_t *m);
-void __scoped_unlock(lock_holder_t *lh);
-#define SCOPED_LOCK(mutex) lock_holder_t LDAP_PASTETOKENS(scoped_lock_, __LINE__) \
-	__attribute__((cleanup(__scoped_unlock),unused)) = {__scoped_lock(mutex)}
-
-ldap_pvt_thread_mutex_t* __op_scoped_lock(const Operation *op);
-#define OP_SCOPED_LOCK(op) lock_holder_t LDAP_PASTETOKENS(scoped_lock_, __LINE__) \
-	__attribute__((cleanup(__scoped_unlock),unused)) = {__op_scoped_lock(op)}
-
 
 LDAP_END_DECL
 

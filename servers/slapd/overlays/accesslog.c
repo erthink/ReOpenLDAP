@@ -643,7 +643,7 @@ accesslog_purge( void *ctx, void *arg )
 	purge_data pd = {0};
 	char timebuf[LDAP_LUTIL_GENTIME_BUFSIZE];
 	char csnbuf[LDAP_PVT_CSNSTR_BUFSIZE];
-	time_t old = slap_get_time();
+	time_t old = ldap_time_steady();
 
 	connection_fake_init( &conn, &opbuf, ctx );
 	op = &opbuf.ob_op;
@@ -657,7 +657,7 @@ accesslog_purge( void *ctx, void *arg )
 	ava.aa_value.bv_len = sizeof(timebuf);
 
 	old -= li->li_age;
-	slap_timestamp( &old, &ava.aa_value );
+	slap_timestamp( old, &ava.aa_value );
 
 	op->o_tag = LDAP_REQ_SEARCH;
 	op->o_bd = li->li_db;
@@ -944,7 +944,7 @@ log_cf_gen(ConfigArgs *c)
 				} else if ( slapMode & SLAP_SERVER_MODE ) {
 					struct re_s *re = li->li_task;
 					if ( re )
-						re->interval.tv_sec = li->li_cycle;
+						re->interval = ldap_from_seconds(li->li_cycle);
 					else {
 						ldap_pvt_thread_mutex_lock( &slapd_rq.rq_mutex );
 						li->li_task = ldap_pvt_runqueue_insert( &slapd_rq,
@@ -1317,7 +1317,7 @@ static Entry *accesslog_entry( Operation *op, SlapReply *rs, int logop,
 
 	timestamp.bv_val = rdnbuf+STRLENOF(RDNEQ);
 	timestamp.bv_len = sizeof(rdnbuf) - STRLENOF(RDNEQ);
-	slap_timestamp( &op->o_time, &timestamp );
+	slap_timestamp( op->o_time, &timestamp );
 	snprintf( timestamp.bv_val + timestamp.bv_len-1, sizeof(".123456Z"), ".%06dZ", op->o_tincr );
 	timestamp.bv_len += STRLENOF(".123456");
 
@@ -1342,7 +1342,7 @@ static Entry *accesslog_entry( Operation *op, SlapReply *rs, int logop,
 	slap_op_time( &op2->o_time, &op2->o_tincr );
 
 	timestamp.bv_len = sizeof(rdnbuf) - STRLENOF(RDNEQ);
-	slap_timestamp( &op2->o_time, &timestamp );
+	slap_timestamp( op2->o_time, &timestamp );
 	snprintf( timestamp.bv_val + timestamp.bv_len-1, sizeof(".123456Z"), ".%06dZ", op2->o_tincr );
 	timestamp.bv_len += STRLENOF(".123456");
 

@@ -34,9 +34,9 @@
 #include "ldap_rq.h"
 
 struct re_s *
-ldap_pvt_runqueue_insert(
+ldap_pvt_runqueue_insert_ns(
 	struct runqueue_s* rq,
-	time_t interval,
+	slap_time_t interval,
 	ldap_pvt_thread_start_t *routine,
 	void *arg,
 	char *tname,
@@ -47,10 +47,8 @@ ldap_pvt_runqueue_insert(
 
 	entry = (struct re_s *) LDAP_CALLOC( 1, sizeof( struct re_s ));
 	if ( entry ) {
-		entry->interval.tv_sec = interval;
-		entry->interval.tv_usec = 0;
-		entry->next_sched.tv_sec = time( NULL );
-		entry->next_sched.tv_usec = 0;
+		entry->interval = interval;
+		entry->next_sched = ldap_now();
 		entry->routine = routine;
 		entry->arg = arg;
 		entry->tname = tname;
@@ -58,6 +56,21 @@ ldap_pvt_runqueue_insert(
 		LDAP_STAILQ_INSERT_HEAD( &rq->task_list, entry, tnext );
 	}
 	return entry;
+}
+
+struct re_s *
+ldap_pvt_runqueue_insert(
+	struct runqueue_s* rq,
+	int interval_seconds,
+	ldap_pvt_thread_start_t *routine,
+	void *arg,
+	char *tname,
+	char *tspec
+)
+{
+	return ldap_pvt_runqueue_insert_ns(
+				rq, ldap_from_seconds(interval_seconds),
+				routine, arg, tname, tspec );
 }
 
 struct re_s *
@@ -99,13 +112,13 @@ ldap_pvt_runqueue_remove(
 struct re_s*
 ldap_pvt_runqueue_next_sched(
 	struct runqueue_s* rq,
-	struct timeval* next_run
+	slap_time_t* next_run
 )
 {
 	struct re_s* entry;
 
 	entry = LDAP_STAILQ_FIRST( &rq->task_list );
-	if ( entry == NULL || entry->next_sched.tv_sec == 0 ) {
+	if ( entry == NULL || entry->next_sched.ns == 0 ) {
 		return NULL;
 	} else {
 		*next_run = entry->next_sched;
@@ -166,27 +179,25 @@ ldap_pvt_runqueue_resched(
 
 	LDAP_STAILQ_REMOVE( &rq->task_list, entry, re_s, tnext );
 
-	if ( !defer ) {
-		entry->next_sched.tv_sec = time( NULL ) + entry->interval.tv_sec;
-	} else {
-		entry->next_sched.tv_sec = 0;
-	}
+	entry->next_sched.ns = 0;
+	if ( !defer )
+		entry->next_sched.ns = ldap_now_ns() + entry->interval.ns;
 
 	if ( LDAP_STAILQ_EMPTY( &rq->task_list )) {
 		LDAP_STAILQ_INSERT_HEAD( &rq->task_list, entry, tnext );
-	} else if ( entry->next_sched.tv_sec == 0 ) {
+	} else if ( entry->next_sched.ns == 0 ) {
 		LDAP_STAILQ_INSERT_TAIL( &rq->task_list, entry, tnext );
 	} else {
 		prev = NULL;
 		LDAP_STAILQ_FOREACH( e, &rq->task_list, tnext ) {
-			if ( e->next_sched.tv_sec == 0 ) {
+			if ( e->next_sched.ns == 0 ) {
 				if ( prev == NULL ) {
 					LDAP_STAILQ_INSERT_HEAD( &rq->task_list, entry, tnext );
 				} else {
 					LDAP_STAILQ_INSERT_AFTER( &rq->task_list, prev, entry, tnext );
 				}
 				return;
-			} else if ( e->next_sched.tv_sec > entry->next_sched.tv_sec ) {
+			} else if ( e->next_sched.ns > entry->next_sched.ns ) {
 				if ( prev == NULL ) {
 					LDAP_STAILQ_INSERT_HEAD( &rq->task_list, entry, tnext );
 				} else {
@@ -211,7 +222,7 @@ ldap_pvt_runqueue_persistent_backload(
 	ldap_pvt_thread_mutex_lock( &rq->rq_mutex );
 	if ( !LDAP_STAILQ_EMPTY( &rq->task_list )) {
 		LDAP_STAILQ_FOREACH( e, &rq->task_list, tnext ) {
-			if ( e->next_sched.tv_sec == 0 )
+			if ( e->next_sched.ns == 0 )
 				count++;
 		}
 	}

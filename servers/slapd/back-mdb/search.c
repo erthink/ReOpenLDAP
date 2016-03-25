@@ -348,6 +348,7 @@ mdb_writewait( Operation *op, slap_callback *sc )
 	if ( !ww->flag ) {
 		MDB_val key, data;
 		int rc;
+
 		/* save cursor position and release read txn */
 		if ( ww->mcd ) {
 			rc = mdb_cursor_get( ww->mcd, &key, &data, MDB_GET_CURRENT );
@@ -359,9 +360,13 @@ mdb_writewait( Operation *op, slap_callback *sc )
 				memcpy(ww->data.mv_data, data.mv_data, data.mv_size);
 			}
 		}
+#if MDBX_MODE_ENABLED
 		rc = mdb_txn_reset( ww->txn );
 		assert(rc == MDB_SUCCESS);
 		(void) rc;
+#else
+		mdb_txn_reset( ww->txn );
+#endif /* MDBX_MODE_ENABLED */
 		ww->flag = 1;
 	}
 }
@@ -466,14 +471,14 @@ mdb_search( Operation *op, SlapReply *rs )
 	rs->sr_err = mdb_cursor_open( ltid, mdb->mi_id2entry, &mci );
 	if ( rs->sr_err ) {
 		send_ldap_error( op, rs, LDAP_OTHER, "internal error" );
-		return rs->sr_err;
+		goto bailout;
 	}
 
 	rs->sr_err = mdb_cursor_open( ltid, mdb->mi_dn2id, &mcd );
 	if ( rs->sr_err ) {
 		mdb_cursor_close( mci );
 		send_ldap_error( op, rs, LDAP_OTHER, "internal error" );
-		return rs->sr_err;
+		goto bailout;
 	}
 
 	scopes = scope_chunk_get( op );
@@ -807,7 +812,7 @@ loop_begin:
 
 		/* check time limit */
 		if ( op->ors_tlimit != SLAP_NO_LIMIT
-				&& slap_get_time() > stoptime )
+				&& ldap_time_steady() > stoptime )
 		{
 			rs->sr_err = LDAP_TIMELIMIT_EXCEEDED;
 			rs->sr_ref = rs->sr_v2ref;
@@ -1113,22 +1118,28 @@ notfound:
 		}
 
 loop_continue:
+#ifdef MDB_LIFORECLAIM
 		if ( !wwctx.flag && mdb->mi_renew_lag ) {
+#if MDBX_MODE_ENABLED
 			int percentage, lag = mdbx_txn_straggler( wwctx.txn, &percentage );
+#else
+			int percentage, lag = mdb_txn_straggler( wwctx.txn, &percentage );
+#endif /* MDBX_MODE_ENABLED */
 			if ( lag >= mdb->mi_renew_lag && percentage >= mdb->mi_renew_percent ) {
 				if ( moi == &opinfo ) {
-					Debug( LDAP_DEBUG_NONE, "dreamcatcher: lag %d, percentage %u%%\n", lag, percentage );
+					Debug( LDAP_DEBUG_FILTER, "dreamcatcher: lag %d, percentage %u%%\n", lag, percentage );
 					mdb_writewait( op, &cb );
 				} else
 					Debug( LDAP_DEBUG_ANY, "dreamcatcher: UNABLE lag %d, percentage %u%%\n", lag, percentage );
 			}
 		}
+#endif /* MDB_LIFORECLAIM */
 
 		if ( !wwctx.flag && mdb->mi_rtxn_size ) {
 			wwctx.nentries++;
 			if ( wwctx.nentries >= mdb->mi_rtxn_size ) {
 				if ( moi == &opinfo ) {
-					Debug( LDAP_DEBUG_NONE, "dreamcatcher: %u entries (> %u)\n", wwctx.nentries, mdb->mi_rtxn_size );
+					Debug( LDAP_DEBUG_FILTER, "dreamcatcher: %u entries (> %u)\n", wwctx.nentries, mdb->mi_rtxn_size );
 					mdb_writewait( op, &cb );
 				} else
 					Debug( LDAP_DEBUG_ANY, "dreamcatcher: UNABLE %u entries (> %u)\n", wwctx.nentries, mdb->mi_rtxn_size );
@@ -1211,12 +1222,6 @@ done:
 	}
 	mdb_cursor_close( mcd );
 	mdb_cursor_close( mci );
-	if ( moi == &opinfo ) {
-		mdb_txn_reset( moi->moi_txn );
-		LDAP_SLIST_REMOVE( &op->o_extra, &moi->moi_oe, OpExtra, oe_next );
-	} else {
-		moi->moi_ref--;
-	}
 	if( rs->sr_v2ref ) {
 		ber_bvarray_free( rs->sr_v2ref );
 		rs->sr_v2ref = NULL;
@@ -1224,6 +1229,16 @@ done:
 	if (base)
 		mdb_entry_return( op, base );
 	scope_chunk_ret( op, scopes );
+
+bailout:
+	if ( moi == &opinfo || --moi->moi_ref < 1 ) {
+		int rc2 = mdb_txn_reset( moi->moi_txn );
+		assert(rc2 == MDB_SUCCESS);
+		if ( moi->moi_oe.oe_key )
+			LDAP_SLIST_REMOVE( &op->o_extra, &moi->moi_oe, OpExtra, oe_next );
+		if ( (moi->moi_flag & (MOI_FREEIT|MOI_KEEPER)) == MOI_FREEIT )
+			op->o_tmpfree( moi, op->o_tmpmemctx );
+	}
 
 	return rs->sr_err;
 }

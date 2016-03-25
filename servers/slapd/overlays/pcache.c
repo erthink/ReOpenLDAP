@@ -757,7 +757,7 @@ url2query(
 		refresh_time = 0;
 
 	/* ignore expired queries */
-	if ( expiry_time <= slap_get_time()) {
+	if ( expiry_time <= ldap_time_steady()) {
 		Operation	op2 = *op;
 
 		memset( &op2.oq_search, 0, sizeof( op2.oq_search ) );
@@ -864,7 +864,7 @@ merge_entry(
 	op->o_tag = LDAP_REQ_ADD;
 	op->o_protocol = LDAP_VERSION3;
 	op->o_callback = &cb;
-	op->o_time = slap_get_time();
+	op->o_time = ldap_time_steady();
 	op->o_do_not_cache = 1;
 
 	op->ora_e = e;
@@ -1571,7 +1571,7 @@ add_query(
 	BER_BVZERO( &new_cached_query->q_uuid );
 	new_cached_query->q_sizelimit = 0;
 
-	now = slap_get_time();
+	now = ldap_time_steady();
 	switch ( why ) {
 	case PC_POSITIVE:
 		ttl = templ->ttl;
@@ -1818,7 +1818,7 @@ remove_query_data(
 	op->o_tag = LDAP_REQ_SEARCH;
 	op->o_protocol = LDAP_VERSION3;
 	op->o_callback = &cb;
-	op->o_time = slap_get_time();
+	op->o_time = ldap_time_steady();
 	op->o_do_not_cache = 1;
 
 	op->o_req_dn = op->o_bd->be_suffix[0];
@@ -3561,7 +3561,7 @@ consistency_check(
 		if ( ! read_ptr__tsan_workaround(&templ->query_last) ) continue;
 		ldap_pvt_thread_rdwr_wlock(&templ->t_rwlock);
 		pause = 0;
-		op->o_time = slap_get_time();
+		op->o_time = ldap_time_steady();
 		if ( !templ->ttr ) {
 			ttl = templ->ttl;
 			if ( templ->negttl && templ->negttl < ttl )
@@ -4659,7 +4659,7 @@ pcache_db_open2(
 			cb.sc_response = pcache_cachedquery_open_cb;
 			cb.sc_private = &vals;
 			op->o_callback = &cb;
-			op->o_time = slap_get_time();
+			op->o_time = ldap_time_steady();
 			op->o_do_not_cache = 1;
 			op->o_managedsait = SLAP_CONTROL_CRITICAL;
 
@@ -4861,7 +4861,7 @@ pcache_db_close(
 		op->o_protocol = LDAP_VERSION3;
 		cb.sc_response = slap_null_cb;
 		op->o_callback = &cb;
-		op->o_time = slap_get_time();
+		op->o_time = ldap_time_steady();
 		op->o_do_not_cache = 1;
 		op->o_managedsait = SLAP_CONTROL_CRITICAL;
 

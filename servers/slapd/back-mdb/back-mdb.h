@@ -87,11 +87,13 @@ struct mdb_info {
 
 	struct re_s		*mi_txn_cp_task;
 	struct re_s		*mi_index_task;
+#ifdef MDB_LIFORECLAIM
 	uint32_t	mi_renew_lag;
 	uint32_t	mi_renew_percent;
 #define MDB_OOM_KILL	1
 #define MDB_OOM_YIELD	2
 	int			mi_oom_flags;
+#endif /* MDB_LIFORECLAIM */
 
 	mdb_monitor_t	mi_monitor;
 
@@ -160,7 +162,6 @@ typedef struct mdb_attrinfo {
 	MDB_cursor *ai_cursor;	/* for tools */
 	int ai_idx;	/* position in AI array */
 	MDB_dbi ai_dbi;
-	ldap_pvt_thread_mutex_t	ai_mutex;
 } AttrInfo;
 
 /* tool threaded indexer state */

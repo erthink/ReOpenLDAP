@@ -53,7 +53,11 @@ typedef struct diskNode {
 /* Sort function for the sorted duplicate data items of a dn2id key.
  * Sorts based on normalized RDN, in length order.
  */
+#if MDBX_MODE_ENABLED
 long
+#else
+int
+#endif /* MDBX_MODE_ENABLED */
 mdb_dup_compare(
 	const MDB_val *usrkey,
 	const MDB_val *curkey

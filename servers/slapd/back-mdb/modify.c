@@ -770,17 +770,16 @@ done:
 	rs_send_cleanup( rs );
 	slap_graduate_commit_csn( op );
 
-	if( moi == &opinfo ) {
-		if( txn != NULL ) {
+	if ( moi == &opinfo || --moi->moi_ref < 1 ) {
+		if ( txn != NULL ) {
 			assert(numads > -1);
 			mdb->mi_numads = numads;
 			mdb_txn_abort( txn );
 		}
-		if ( opinfo.moi_oe.oe_key ) {
-			LDAP_SLIST_REMOVE( &op->o_extra, &opinfo.moi_oe, OpExtra, oe_next );
-		}
-	} else {
-		moi->moi_ref--;
+		if ( moi->moi_oe.oe_key )
+			LDAP_SLIST_REMOVE( &op->o_extra, &moi->moi_oe, OpExtra, oe_next );
+		if ( (moi->moi_flag & (MOI_FREEIT|MOI_KEEPER)) == MOI_FREEIT )
+			op->o_tmpfree( moi, op->o_tmpmemctx );
 	}
 
 	if( e != NULL ) {

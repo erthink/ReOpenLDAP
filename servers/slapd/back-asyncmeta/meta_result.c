@@ -1673,7 +1673,7 @@ again:
 
 void asyncmeta_set_msc_time(a_metasingleconn_t *msc)
 {
-	msc->msc_time = slap_get_time();
+	msc->msc_time = ldap_time_steady();
 }
 
 void* asyncmeta_timeout_loop(void *ctx, void *arg)
@@ -1682,7 +1682,7 @@ void* asyncmeta_timeout_loop(void *ctx, void *arg)
 	a_metainfo_t *mi = rtask->arg;
 	a_metaconn_t *mc;
 	bm_context_t *bc, *onext;
-	time_t current_time = slap_get_time();
+	time_t current_time = ldap_time_steady();
 	int i, j;
 
 	for (i=0; i<mi->mi_num_conns; i++) {
@@ -1758,8 +1758,7 @@ void* asyncmeta_timeout_loop(void *ctx, void *arg)
 	if ( ldap_pvt_runqueue_isrunning( &slapd_rq, rtask )) {
 		ldap_pvt_runqueue_stoptask( &slapd_rq, rtask );
 	}
-	rtask->interval.tv_sec = 1;
-	rtask->interval.tv_usec = 0;
+	rtask->interval = ldap_from_seconds (1);
 	ldap_pvt_runqueue_resched(&slapd_rq, rtask, 0);
 	ldap_pvt_thread_mutex_unlock( &slapd_rq.rq_mutex );
 	return NULL;

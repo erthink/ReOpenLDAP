@@ -314,4 +314,3 @@ H4: TLS_REQCERT { never | allow | try | demand }
 This directive is equivalent to the server's {{EX:TLSVerifyClient}}
 option. However, for clients the default value is {{EX:demand}}
 and there generally is no good reason to change this setting.
-

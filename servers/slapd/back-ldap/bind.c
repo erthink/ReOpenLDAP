@@ -826,7 +826,7 @@ ldap_back_getconn(
 			ldap_pvt_thread_mutex_lock( &li->li_quarantine_mutex );
 			if ( li->li_isquarantined == LDAP_BACK_FQ_YES ) {
 				dont_retry = ( ri->ri_num[ ri->ri_idx ] == SLAP_RETRYNUM_TAIL
-					|| slap_get_time() < ri->ri_last + ri->ri_interval[ ri->ri_idx ] );
+					|| ldap_time_steady() < ri->ri_last + ri->ri_interval[ ri->ri_idx ] );
 				if ( !dont_retry ) {
 					Debug( LDAP_DEBUG_ANY,
 						"%s: ldap_back_getconn quarantine "
@@ -1228,7 +1228,7 @@ ldap_back_quarantine(
 	ldap_pvt_thread_mutex_lock( &li->li_quarantine_mutex );
 
 	if ( rs->sr_err == LDAP_UNAVAILABLE ) {
-		time_t		new_last = slap_get_time();
+		time_t		new_last = ldap_time_steady();
 
 		switch ( li->li_isquarantined ) {
 		case LDAP_BACK_FQ_NO:
@@ -1266,7 +1266,7 @@ ldap_back_quarantine(
 		ri->ri_last = new_last;
 
 	} else if ( li->li_isquarantined != LDAP_BACK_FQ_NO ) {
-		if ( ri->ri_last == slap_get_time() ) {
+		if ( ri->ri_last == ldap_time_steady() ) {
 			goto done;
 		}
 
@@ -1812,7 +1812,7 @@ retry:;
 
 		switch ( rc ) {
 		case 0:
-			if ( timeout && slap_get_time() > stoptime ) {
+			if ( timeout && ldap_time_steady() > stoptime ) {
 				if ( sendok & LDAP_BACK_BINDING ) {
 					ldap_unbind_ext( lc->lc_ld, NULL, NULL );
 					lc->lc_ld = NULL;

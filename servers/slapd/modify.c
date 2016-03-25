@@ -837,12 +837,11 @@ slap_sort_vals(
 /* Enter with bv->bv_len = sizeof buffer, returns with
  * actual length of string
  */
-void slap_timestamp( time_t *tm, struct berval *bv )
+void slap_timestamp( time_t tm, struct berval *bv )
 {
 	struct tm ltm;
 
-	ldap_pvt_gmtime( tm, &ltm );
-
+	gmtime_r( &tm, &ltm );
 	bv->bv_len = lutil_gentime( bv->bv_val, bv->bv_len, &ltm );
 }
 
@@ -912,11 +911,9 @@ void slap_mods_opattrs(
 			timebuf[timestamp.bv_len] = '\0';
 
 		} else {
-			time_t now = slap_get_time();
-
+			time_t now = ldap_time_steady();
 			timestamp.bv_len = sizeof(timebuf);
-
-			slap_timestamp( &now, &timestamp );
+			slap_timestamp( now, &timestamp );
 		}
 
 		if ( BER_BVISEMPTY( &op->o_dn ) ) {

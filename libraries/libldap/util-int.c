@@ -60,22 +60,6 @@ extern int h_errno;
   ldap_pvt_thread_mutex_t ldap_int_resolv_mutex;
   ldap_pvt_thread_mutex_t ldap_int_hostname_mutex;
 
-# if (defined( HAVE_CTIME_R ) || defined( HAVE_REENTRANT_FUNCTIONS)) \
-	 && defined( CTIME_R_NARGS )
-#   define USE_CTIME_R
-# else
-	static ldap_pvt_thread_mutex_t ldap_int_ctime_mutex;
-# endif
-
-/* USE_GMTIME_R and USE_LOCALTIME_R defined in ldap_pvt.h */
-
-#if !defined( USE_GMTIME_R ) || !defined( USE_LOCALTIME_R )
-	/* we use the same mutex for gmtime(3) and localtime(3)
-	 * because implementations may use the same buffer
-	 * for both functions */
-	static ldap_pvt_thread_mutex_t ldap_int_gmtime_mutex;
-#endif
-
 # if defined(HAVE_GETHOSTBYNAME_R) && \
 	(GETHOSTBYNAME_R_NARGS < 5) || (6 < GETHOSTBYNAME_R_NARGS)
 	/* Don't know how to handle this version, pretend it's not there */
@@ -88,274 +72,26 @@ extern int h_errno;
 # endif
 #endif /* LDAP_R_COMPILE */
 
-char *ldap_pvt_ctime( const time_t *tp, char *buf )
+char *ldap_pvt_ctime( slap_time_t ts, char *buf )
 {
-#ifdef USE_CTIME_R
-# if (CTIME_R_NARGS > 3) || (CTIME_R_NARGS < 2)
-#	error "CTIME_R_NARGS should be 2 or 3"
-# elif CTIME_R_NARGS > 2 && defined(CTIME_R_RETURNS_INT)
-	return( ctime_r(tp,buf,26) < 0 ? 0 : buf );
-# elif CTIME_R_NARGS > 2
-	return ctime_r(tp,buf,26);
-# else
-	return ctime_r(tp,buf);
-# endif
-
-#else
-
-	LDAP_MUTEX_LOCK( &ldap_int_ctime_mutex );
-	memcpy( buf, ctime(tp), 26 );
-	LDAP_MUTEX_UNLOCK( &ldap_int_ctime_mutex );
-
-	return buf;
-#endif
+	time_t t = ldap_to_time(ts);
+	return ctime_r( &t, buf );
 }
 
-#if !defined( USE_GMTIME_R ) || !defined( USE_LOCALTIME_R )
-int
-ldap_pvt_gmtime_lock( void )
-{
-# ifndef LDAP_R_COMPILE
-	return 0;
-# else /* LDAP_R_COMPILE */
-	return ldap_pvt_thread_mutex_lock( &ldap_int_gmtime_mutex );
-# endif /* LDAP_R_COMPILE */
-}
-
-int
-ldap_pvt_gmtime_unlock( void )
-{
-# ifndef LDAP_R_COMPILE
-	return 0;
-# else /* LDAP_R_COMPILE */
-	return ldap_pvt_thread_mutex_unlock( &ldap_int_gmtime_mutex );
-# endif /* LDAP_R_COMPILE */
-}
-#endif /* !USE_GMTIME_R || !USE_LOCALTIME_R */
-
-#ifndef USE_GMTIME_R
 struct tm *
-ldap_pvt_gmtime( const time_t *timep, struct tm *result )
+ldap_pvt_gmtime( slap_time_t ts, struct tm *result )
 {
-	struct tm *tm_ptr;
-
-	LDAP_MUTEX_LOCK( &ldap_int_gmtime_mutex );
-	tm_ptr = gmtime( timep );
-	if ( tm_ptr == NULL ) {
-		result = NULL;
-
-	} else {
-		*result = *tm_ptr;
-	}
-	LDAP_MUTEX_UNLOCK( &ldap_int_gmtime_mutex );
-
-	return result;
+	time_t t = ldap_to_time(ts);
+	return gmtime_r( &t, result );
 }
-#endif /* !USE_GMTIME_R */
 
-#ifndef USE_LOCALTIME_R
 struct tm *
-ldap_pvt_localtime( const time_t *timep, struct tm *result )
+ldap_pvt_localtime( slap_time_t ts, struct tm *result )
 {
-	struct tm *tm_ptr;
-
-	LDAP_MUTEX_LOCK( &ldap_int_gmtime_mutex );
-	tm_ptr = localtime( timep );
-	if ( tm_ptr == NULL ) {
-		result = NULL;
-
-	} else {
-		*result = *tm_ptr;
-	}
-	LDAP_MUTEX_UNLOCK( &ldap_int_gmtime_mutex );
-
-	return result;
-}
-#endif /* !USE_LOCALTIME_R */
-
-#ifdef _WIN32
-/* Windows SYSTEMTIME only has 10 millisecond resolution, so we
- * also need to use a high resolution timer to get microseconds.
- * This is pretty clunky.
- */
-static LARGE_INTEGER _ldap_pvt_gt_freq;
-static LARGE_INTEGER _ldap_pvt_gt_prev;
-static int _ldap_pvt_gt_offset;
-static int _ldap_pvt_gt_subs;
-
-#define SEC_TO_UNIX_EPOCH 11644473600LL
-#define TICKS_PER_SECOND 10000000
-
-static int
-ldap_pvt_gettimeusec(int *sec)
-{
-	LARGE_INTEGER count;
-
-	QueryPerformanceCounter( &count );
-
-	/* It shouldn't ever go backwards, but multiple CPUs might
-	 * be able to hit in the same tick.
-	 */
-	LDAP_MUTEX_LOCK( &ldap_int_gettime_mutex );
-	/* We assume Windows has at least a vague idea of
-	 * when a second begins. So we align our microsecond count
-	 * with the Windows millisecond count using this offset.
-	 * We retain the submillisecond portion of our own count.
-	 *
-	 * Note - this also assumes that the relationship between
-	 * the PerformanceCounter and SystemTime stays constant;
-	 * that assumption breaks if the SystemTime is adjusted by
-	 * an external action.
-	 */
-	if ( !_ldap_pvt_gt_freq.QuadPart ) {
-		LARGE_INTEGER c2;
-		ULARGE_INTEGER ut;
-		FILETIME ft0, ft1;
-		long long t;
-		int usec;
-
-		/* Initialize our offset */
-		QueryPerformanceFrequency( &_ldap_pvt_gt_freq );
-
-		/* Wait for a tick of the system time: 10-15ms */
-		GetSystemTimeAsFileTime( &ft0 );
-		do {
-			GetSystemTimeAsFileTime( &ft1 );
-		} while ( ft1.dwLowDateTime == ft0.dwLowDateTime );
-
-		ut.LowPart = ft1.dwLowDateTime;
-		ut.HighPart = ft1.dwHighDateTime;
-		QueryPerformanceCounter( &c2 );
-
-		/* get second and fraction portion of counter */
-		t = c2.QuadPart % (_ldap_pvt_gt_freq.QuadPart*10);
-
-		/* convert to microseconds */
-		t *= 1000000;
-		usec = t / _ldap_pvt_gt_freq.QuadPart;
-
-		ut.QuadPart /= 10;
-		ut.QuadPart %= 10000000;
-		_ldap_pvt_gt_offset = usec - ut.QuadPart;
-		count = c2;
-	}
-	if ( count.QuadPart <= _ldap_pvt_gt_prev.QuadPart ) {
-		_ldap_pvt_gt_subs++;
-	} else {
-		_ldap_pvt_gt_subs = 0;
-		_ldap_pvt_gt_prev = count;
-	}
-	LDAP_MUTEX_UNLOCK( &ldap_int_gettime_mutex );
-
-	/* convert to microseconds */
-	count.QuadPart %= _ldap_pvt_gt_freq.QuadPart*10;
-	count.QuadPart *= 1000000;
-	count.QuadPart /= _ldap_pvt_gt_freq.QuadPart;
-	count.QuadPart -= _ldap_pvt_gt_offset;
-
-	/* We've extracted the 1s and microseconds.
-	 * The 1sec digit is used to detect wraparound in microsecnds.
-	 */
-	if (count.QuadPart < 0)
-		count.QuadPart += 10000000;
-	else if (count.QuadPart >= 10000000)
-		count.QuadPart -= 10000000;
-
-	*sec = count.QuadPart / 1000000;
-	return count.QuadPart % 1000000;
+	time_t t = ldap_to_time(ts);
+	return localtime_r( &t, result );
 }
 
-/* emulate POSIX gettimeofday */
-int
-ldap_pvt_gettimeofday( struct timeval *tv, void *unused )
-{
-	FILETIME ft;
-	ULARGE_INTEGER ut;
-	int sec, sec0;
-
-	GetSystemTimeAsFileTime( &ft );
-	ut.LowPart = ft.dwLowDateTime;
-	ut.HighPart = ft.dwHighDateTime;
-
-	/* convert to usec */
-	ut.QuadPart /= (TICKS_PER_SECOND / 1000000);
-
-	tv->tv_usec = ldap_pvt_gettimeusec(&sec);
-	tv->tv_sec = ut.QuadPart / 1000000 - SEC_TO_UNIX_EPOCH;
-
-	/* check for carry from microseconds */
-	sec0 = tv->tv_sec % 10;
-	if (sec0 < sec || (sec0 == 9 && !sec))
-		tv->tv_sec++;
-
-	return 0;
-}
-
-/* return a broken out time, with microseconds
- */
-void
-ldap_pvt_gettime( struct lutil_tm *tm )
-{
-	SYSTEMTIME st;
-	int sec, sec0;
-	static const char daysPerMonth[] = {
-	31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
-
-	GetSystemTime( &st );
-	tm->tm_usec = ldap_pvt_gettimeusec(&sec);
-	tm->tm_usub = _ldap_pvt_gt_subs;
-
-	/* any difference larger than microseconds is
-	 * already reflected in st
-	 */
-	tm->tm_sec = st.wSecond;
-	tm->tm_min = st.wMinute;
-	tm->tm_hour = st.wHour;
-	tm->tm_mday = st.wDay;
-	tm->tm_mon = st.wMonth - 1;
-	tm->tm_year = st.wYear - 1900;
-
-	/* check for carry from microseconds */
-	sec0 = tm->tm_sec % 10;
-	if (sec0 < sec || (sec0 == 9 && !sec)) {
-		tm->tm_sec++;
-		/* FIXME: we don't handle leap seconds */
-		if (tm->tm_sec > 59) {
-			tm->tm_sec = 0;
-			tm->tm_min++;
-			if (tm->tm_min > 59) {
-				tm->tm_min = 0;
-				tm->tm_hour++;
-				if (tm->tm_hour > 23) {
-					int days = daysPerMonth[tm->tm_mon];
-					tm->tm_hour = 0;
-					tm->tm_mday++;
-
-					/* if it's February of a leap year,
-					 * add 1 day to this month
-					 */
-					if (tm->tm_mon == 1 &&
-						((!(st.wYear % 4) && (st.wYear % 100)) ||
-						!(st.wYear % 400)))
-						days++;
-
-					if (tm->tm_mday > days) {
-						tm->tm_mday = 1;
-						tm->tm_mon++;
-						if (tm->tm_mon > 11) {
-							tm->tm_mon = 0;
-							tm->tm_year++;
-						}
-					}
-				}
-			}
-		}
-	}
-}
-#else /* _WIN32 */
-
-/* return a broken out time, with microseconds
- */
 void
 ldap_pvt_gettime( struct lutil_tm *ltm )
 {
@@ -363,7 +99,7 @@ ldap_pvt_gettime( struct lutil_tm *ltm )
 	struct tm tm;
 
 	ltm->tm_usub = ldap_timeval( &tv );
-	ldap_pvt_gmtime( &tv.tv_sec, &tm );
+	gmtime_r( &tv.tv_sec, &tm );
 	ltm->tm_sec = tm.tm_sec;
 	ltm->tm_min = tm.tm_min;
 	ltm->tm_hour = tm.tm_hour;
@@ -372,7 +108,6 @@ ldap_pvt_gettime( struct lutil_tm *ltm )
 	ltm->tm_year = tm.tm_year;
 	ltm->tm_usec = tv.tv_usec;
 }
-#endif /* _WIN32 */
 
 size_t
 ldap_pvt_csnstr(char *buf, size_t len, unsigned int replica, unsigned int mod)
@@ -677,12 +412,6 @@ void ldap_int_utils_init( void )
 	done=1;
 
 #ifdef LDAP_R_COMPILE
-#if !defined( USE_CTIME_R ) && !defined( HAVE_REENTRANT_FUNCTIONS )
-	ldap_pvt_thread_mutex_init( &ldap_int_ctime_mutex );
-#endif
-#if !defined( USE_GMTIME_R ) && !defined( USE_LOCALTIME_R )
-	ldap_pvt_thread_mutex_init( &ldap_int_gmtime_mutex );
-#endif
 	ldap_pvt_thread_mutex_init( &ldap_int_resolv_mutex );
 
 	ldap_pvt_thread_mutex_init( &ldap_int_hostname_mutex );

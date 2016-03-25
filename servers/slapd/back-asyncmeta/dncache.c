@@ -115,7 +115,7 @@ asyncmeta_dncache_get_target(
 			target = entry->target;
 
 		} else {
-			if ( entry->lastupdated+cache->ttl > slap_get_time() ) {
+			if ( entry->lastupdated+cache->ttl > ldap_time_steady() ) {
 				target = entry->target;
 			}
 		}
@@ -151,7 +151,7 @@ asyncmeta_dncache_update_entry(
 	 * else, cache is used with ttl
 	 */
 	if ( cache->ttl > 0 ) {
-		curr_time = slap_get_time();
+		curr_time = ldap_time_steady();
 	}
 
 	tmp_entry.dn = *ndn;

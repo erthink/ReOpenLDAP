@@ -398,7 +398,7 @@ glue_op_search ( Operation *op, SlapReply *rs )
 	cb.sc_next = op->o_callback;
 
 	starttime = op->o_time;
-	stoptime = slap_get_time () + op->ors_tlimit;
+	stoptime = ldap_time_steady () + op->ors_tlimit;
 
 	/* reset dummy cookie used to keep paged results going across databases */
 	if ( get_pagedresults( op ) > SLAP_CONTROL_IGNORED
@@ -485,7 +485,7 @@ glue_op_search ( Operation *op, SlapReply *rs )
 				continue;
 
 			if (tlimit0 != SLAP_NO_LIMIT) {
-				op->o_time = slap_get_time();
+				op->o_time = ldap_time_steady();
 				op->ors_tlimit = stoptime - op->o_time;
 				if (op->ors_tlimit <= 0) {
 					rs->sr_err = gs.err = LDAP_TIMELIMIT_EXCEEDED;

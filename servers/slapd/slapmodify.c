@@ -448,7 +448,6 @@ slapmodify( int argc, char **argv )
 		}
 
 		if ( SLAP_LASTMOD(be) && e != NULL ) {
-			time_t now = slap_get_time();
 			char uuidbuf[ LDAP_LUTIL_UUIDSTR_BUFSIZE ];
 			struct berval vals[ 2 ];
 
@@ -472,7 +471,7 @@ slapmodify( int argc, char **argv )
 			timestamp.bv_val = timebuf;
 			timestamp.bv_len = sizeof(timebuf);
 
-			slap_timestamp( &now, &timestamp );
+			slap_timestamp( ldap_time_steady(), &timestamp );
 
 			if ( BER_BVISEMPTY( &be->be_rootndn ) ) {
 				BER_BVSTR( &name, SLAPD_ANONYMOUS );

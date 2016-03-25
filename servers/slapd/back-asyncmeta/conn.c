@@ -147,7 +147,7 @@ asyncmeta_init_one_conn(
 			dont_retry = ( mt->mt_isquarantined > LDAP_BACK_FQ_NO );
 			if ( dont_retry ) {
 				dont_retry = ( ri->ri_num[ ri->ri_idx ] == SLAP_RETRYNUM_TAIL
-					|| slap_get_time() < ri->ri_last + ri->ri_interval[ ri->ri_idx ] );
+					|| ldap_time_steady() < ri->ri_last + ri->ri_interval[ ri->ri_idx ] );
 				if ( !dont_retry ) {
 					if ( LogTest( LDAP_DEBUG_ANY ) ) {
 						char	buf[ SLAP_TEXT_BUFLEN ];
@@ -1210,7 +1210,7 @@ asyncmeta_quarantine(
 	ldap_pvt_thread_mutex_lock( &mt->mt_quarantine_mutex );
 
 	if ( rs->sr_err == LDAP_UNAVAILABLE ) {
-		time_t	new_last = slap_get_time();
+		time_t	new_last = ldap_time_steady();
 
 		switch ( mt->mt_isquarantined ) {
 		case LDAP_BACK_FQ_NO:

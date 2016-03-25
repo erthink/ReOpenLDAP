@@ -39,10 +39,11 @@ enum {
 	MDB_MAXREADERS,
 	MDB_MAXSIZE,
 	MDB_MODE,
-	MDB_SSTACK,
-	MDB_MAXENTSZ,
-	MDB_DREAMCATCHER,
-	MDB_OOMFLAGS
+	MDB_SSTACK
+#ifdef MDB_LIFORECLAIM
+	,MDB_DREAMCATCHER
+	,MDB_OOMFLAGS
+#endif /* MDB_LIFORECLAIM */
 };
 
 static ConfigTable mdbcfg[] = {
@@ -106,6 +107,7 @@ static ConfigTable mdbcfg[] = {
 		"DESC 'Depth of search stack in IDLs' "
 		"SYNTAX OMsInteger SINGLE-VALUE )", NULL, NULL },
 
+#ifdef MDB_LIFORECLAIM
 	{ "dreamcatcher", "lag> <percentage", 3, 3, 0, ARG_MAGIC|MDB_DREAMCATCHER,
 		mdb_cf_gen, "( OLcfgDbAt:12.42 NAME 'olcDbDreamcatcher' "
 			"DESC 'Dreamcatcher to avoids withhold of reclaiming' "
@@ -115,6 +117,7 @@ static ConfigTable mdbcfg[] = {
 			"DESC 'Database OOM-handler flags' "
 			"EQUALITY caseIgnoreMatch "
 			"SYNTAX OMsDirectoryString SINGLE-VALUE )", NULL, NULL },
+#endif /* MDB_LIFORECLAIM */
 
 	{ NULL, NULL, 0, 0, 0, ARG_IGNORED,
 		NULL, NULL, NULL, NULL }
@@ -129,7 +132,9 @@ static ConfigOCs mdbocs[] = {
 		"MUST olcDbDirectory "
 		"MAY ( olcDbCheckpoint $ olcDbEnvFlags $ "
 		"olcDbNoSync $ olcDbIndex $ olcDbMaxReaders $ olcDbMaxSize $ "
+#ifdef MDB_LIFORECLAIM
 		"olcDbDreamcatcher $ olcDbOomFlags $ "
+#endif /* MDB_LIFORECLAIM */
 		"olcDbMode $ olcDbSearchStack $ olcDbMaxEntrySize $ olcDbRtxnSize $ "
 		"olcDbMultivalHi $ olcDbMultivalLo ) )",
 		Cft_Database, mdbcfg },
@@ -154,11 +159,13 @@ static slap_verbmasks mdb_envflags[] = {
 	{ BER_BVNULL, 0 }
 };
 
+#ifdef MDB_LIFORECLAIM
 static slap_verbmasks oom_flags[] = {
 	{ BER_BVC("kill"),	MDB_OOM_KILL },
 	{ BER_BVC("yield"),	MDB_OOM_YIELD },
 	{ BER_BVNULL, 0 }
 };
+#endif /* MDB_LIFORECLAIM */
 
 /* perform periodic syncs */
 static void *
@@ -259,7 +266,6 @@ mdb_online_index( void *ctx, void *arg )
 	}
 
 	for ( i = 0; i < mdb->mi_nattrs; i++ ) {
-		SCOPED_LOCK(&mdb->mi_attrs[ i ]->ai_mutex);
 		if ( mdb->mi_attrs[ i ]->ai_indexmask & MDB_INDEX_DELETING
 			|| mdb->mi_attrs[ i ]->ai_newmask == 0 )
 		{
@@ -352,6 +358,7 @@ mdb_cf_gen( ConfigArgs *c )
 			}
 			break;
 
+#ifdef MDB_LIFORECLAIM
 		case MDB_DREAMCATCHER:
 			if ( mdb->mi_renew_lag ) {
 				char buf[64];
@@ -368,6 +375,7 @@ mdb_cf_gen( ConfigArgs *c )
 				rc = 1;
 			}
 			break;
+#endif /* MDB_LIFORECLAIM */
 
 		case MDB_DIRECTORY:
 			if ( mdb->mi_dbenv_home ) {
@@ -378,28 +386,38 @@ mdb_cf_gen( ConfigArgs *c )
 			break;
 
 		case MDB_DBNOSYNC:
+#ifdef MDB_UTTERLY_NOSYNC
 			if ( mdb->mi_dbenv_flags == MDB_UTTERLY_NOSYNC )
 				c->value_int = 1;
 			else if ( mdb->mi_dbenv_flags == 0 )
 				c->value_int = 0;
 			else
 				rc = 1;
+#else
+			if ( mdb->mi_dbenv_flags & MDB_NOSYNC )
+				c->value_int = 1;
+#endif /* MDB_UTTERLY_NOSYNC */
 			break;
 
 		case MDB_ENVFLAGS:
+#ifdef MDB_UTTERLY_NOSYNC
 			if ( mdb->mi_dbenv_flags == MDB_UTTERLY_NOSYNC )
 				rc = 1;
-			else {
+			else
+#endif /* MDB_UTTERLY_NOSYNC */
+			{
 				if ( mdb->mi_dbenv_flags )
 					mask_to_verbs( mdb_envflags, mdb->mi_dbenv_flags, &c->rvalue_vals );
 				if ( !c->rvalue_vals ) rc = 1;
 			}
 			break;
 
+#ifdef MDB_LIFORECLAIM
 		case MDB_OOMFLAGS:
 			rc = mask_to_verbstring( oom_flags, mdb->mi_oom_flags,
 				' ', &c->value_bv );
 			break;
+#endif /* MDB_LIFORECLAIM */
 
 		case MDB_INDEX:
 			mdb_attr_index_unparse( mdb, &c->rvalue_vals );
@@ -448,10 +466,12 @@ mdb_cf_gen( ConfigArgs *c )
 			}
 			mdb->mi_txn_cp = 0;
 			break;
+#ifdef MDB_LIFORECLAIM
 		case MDB_DREAMCATCHER:
 			mdb->mi_renew_lag = 0;
 			mdb->mi_renew_percent = 0;
 			break;
+#endif /* MDB_LIFORECLAIM */
 		case MDB_DIRECTORY:
 			mdb->mi_flags |= MDB_RE_OPEN;
 			ch_free( mdb->mi_dbenv_home );
@@ -460,8 +480,13 @@ mdb_cf_gen( ConfigArgs *c )
 			ldap_pvt_thread_pool_purgekey( mdb->mi_dbenv );
 			break;
 		case MDB_DBNOSYNC:
+#if MDB_UTTERLY_NOSYNC
 			mdb_env_set_flags( mdb->mi_dbenv, MDB_UTTERLY_NOSYNC, 0 );
 			mdb->mi_dbenv_flags &= ~MDB_UTTERLY_NOSYNC;
+#else
+			mdb_env_set_flags( mdb->mi_dbenv, MDB_NOSYNC, 0 );
+			mdb->mi_dbenv_flags &= ~MDB_NOSYNC;
+#endif /* MDB_UTTERLY_NOSYNC */
 			break;
 
 		case MDB_ENVFLAGS:
@@ -499,9 +524,11 @@ mdb_cf_gen( ConfigArgs *c )
 			}
 			break;
 
+#ifdef MDB_LIFORECLAIM
 		case MDB_OOMFLAGS:
 			mdb->mi_oom_flags = 0;
 			break;
+#endif /* MDB_LIFORECLAIM */
 
 		case MDB_INDEX:
 			if ( c->valx == -1 ) {
@@ -612,8 +639,14 @@ mdb_cf_gen( ConfigArgs *c )
 			return 1;
 		}
 		mdb->mi_txn_cp_kbyte = l;
+#ifdef MDB_LIFORECLAIM
 		if ( mdb->mi_flags & MDB_IS_OPEN )
+#if MDBX_MODE_ENABLED
+			mdbx_env_set_syncbytes( mdb->mi_dbenv, mdb->mi_txn_cp_kbyte * 1024ull);
+#else
 			mdb_env_set_syncbytes( mdb->mi_dbenv, mdb->mi_txn_cp_kbyte * 1024ull);
+#endif /* MDBX_MODE_ENABLED */
+#endif /* MDB_LIFORECLAIM */
 		if ( lutil_atolx( &l, c->argv[2], 0 ) != 0 ) {
 			fprintf( stderr, "%s: "
 				"invalid %s \"%s\" in \"checkpoint\".\n",
@@ -633,7 +666,7 @@ mdb_cf_gen( ConfigArgs *c )
 						/* LY: compatible mode, interval in minutes */
 						mdb->mi_txn_cp_period * 60;
 			if ( re ) {
-				re->interval.tv_sec = interval_sec;
+				re->interval = ldap_from_seconds(interval_sec);
 			} else {
 				if ( c->be->be_suffix == NULL || BER_BVISNULL( &c->be->be_suffix[0] ) ) {
 					fprintf( stderr, "%s: "
@@ -650,6 +683,7 @@ mdb_cf_gen( ConfigArgs *c )
 		}
 		} break;
 
+#ifdef MDB_LIFORECLAIM
 	case MDB_DREAMCATCHER: {
 		long	l;
 		if ( lutil_atolx( &l, c->argv[1], 0 ) != 0 || l < 1 ) {
@@ -667,6 +701,7 @@ mdb_cf_gen( ConfigArgs *c )
 		}
 		mdb->mi_renew_percent = l;
 		} break;
+#endif /* MDB_LIFORECLAIM */
 
 	case MDB_DIRECTORY: {
 		FILE *f;
@@ -700,6 +735,7 @@ mdb_cf_gen( ConfigArgs *c )
 		break;
 
 	case MDB_DBNOSYNC:
+#if MDB_UTTERLY_NOSYNC
 		if ( c->value_int )
 			mdb->mi_dbenv_flags |= MDB_UTTERLY_NOSYNC;
 		else
@@ -707,6 +743,15 @@ mdb_cf_gen( ConfigArgs *c )
 		if ( mdb->mi_flags & MDB_IS_OPEN ) {
 			mdb_env_set_flags( mdb->mi_dbenv, MDB_UTTERLY_NOSYNC, c->value_int );
 		}
+#else
+		if ( c->value_int )
+			mdb->mi_dbenv_flags |= MDB_NOSYNC;
+		else
+			mdb->mi_dbenv_flags &= ~MDB_NOSYNC;
+		if ( mdb->mi_flags & MDB_IS_OPEN ) {
+			mdb_env_set_flags( mdb->mi_dbenv, MDB_NOSYNC, c->value_int );
+		}
+#endif /* MDB_UTTERLY_NOSYNC */
 		break;
 
 	case MDB_ENVFLAGS: {
@@ -735,6 +780,7 @@ mdb_cf_gen( ConfigArgs *c )
 		}
 		break;
 
+#ifdef MDB_LIFORECLAIM
 	case MDB_OOMFLAGS: {
 		int i, j;
 		mdb->mi_oom_flags = 0;
@@ -752,6 +798,7 @@ mdb_cf_gen( ConfigArgs *c )
 		}
 		}
 		break;
+#endif /* MDB_LIFORECLAIM */
 
 	case MDB_INDEX:
 		rc = mdb_attr_index_config( mdb, c->fname, c->lineno,

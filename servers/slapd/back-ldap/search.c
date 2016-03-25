@@ -328,7 +328,7 @@ retry:
 
 			/* check time limit */
 			if ( op->ors_tlimit != SLAP_NO_LIMIT
-					&& slap_get_time() > stoptime )
+					&& ldap_time_steady() > stoptime )
 			{
 				(void)ldap_back_cancel( lc, op, rs, msgid, LDAP_BACK_DONTSEND );
 				rc = rs->sr_err = LDAP_TIMELIMIT_EXCEEDED;

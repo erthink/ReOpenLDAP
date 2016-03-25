@@ -108,10 +108,6 @@ int mdb_index_param(
 
 		return LDAP_INAPPROPRIATE_MATCHING;
 	}
-
-	/* LY: this could be a bottleneck, but avoid race with mdb_online_index() */
-	SCOPED_LOCK(&ai->ai_mutex);
-
 	mask = ai->ai_indexmask;
 
 	switch( ftype ) {
@@ -317,7 +313,6 @@ static int index_at_values(
 	if( type->sat_ad ) {
 		ai = mdb_attr_mask( op->o_bd->be_private, type->sat_ad );
 		if ( ai ) {
-			SCOPED_LOCK(&ai->ai_mutex);
 #ifdef LDAP_COMP_MATCH
 			/* component indexing */
 			if ( ai->ai_cr ) {
@@ -357,7 +352,6 @@ static int index_at_values(
 			ai = mdb_attr_mask( op->o_bd->be_private, desc );
 
 			if( ai ) {
-				SCOPED_LOCK(&ai->ai_mutex);
 				if ( opid == MDB_INDEX_UPDATE_OP )
 					mask = ai->ai_newmask & ~ai->ai_indexmask;
 				else
@@ -512,7 +506,6 @@ mdb_index_entry(
 		AttrInfo *ai;
 		/* see if attribute has components to be indexed */
 		ai = mdb_attr_mask( op->o_bd->be_private, ap->a_desc->ad_type->sat_ad );
-		SCOPED_LOCK(&ai->ai_mutex);
 		if ( !ai ) continue;
 		cr_list = ai->ai_cr;
 		if ( attr_converter && cr_list ) {

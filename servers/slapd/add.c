@@ -616,11 +616,9 @@ int slap_add_opattrs(
 			timebuf[timestamp.bv_len-1] = 'Z';
 			timebuf[timestamp.bv_len] = '\0';
 		} else {
-			time_t now = slap_get_time();
-
+			time_t now = ldap_time_steady();
 			timestamp.bv_len = sizeof(timebuf);
-
-			slap_timestamp( &now, &timestamp );
+			slap_timestamp( now, &timestamp );
 		}
 
 		if ( BER_BVISEMPTY( &op->o_dn ) ) {

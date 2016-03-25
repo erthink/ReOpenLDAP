@@ -789,7 +789,7 @@ meta_back_search( Operation *op, SlapReply *rs )
 	struct timeval	save_tv = { 0, 0 },
 			tv;
 	time_t		stoptime = (time_t)(-1),
-			lastres_time = slap_get_time(),
+			lastres_time = ldap_time_steady(),
 			timeout = 0;
 	int		rc = 0, sres = LDAP_SUCCESS;
 	char		*matched = NULL;
@@ -1003,7 +1003,7 @@ getconn:;
 
 		/* check timeout */
 		if ( timeout && lastres_time > 0
-			&& ( slap_get_time() - lastres_time ) > timeout )
+			&& ( ldap_time_steady() - lastres_time ) > timeout )
 		{
 			rs->sr_text = "Operation timed out";
 			rc = rs->sr_err = op->o_protocol >= LDAP_VERSION3 ?
@@ -1017,7 +1017,7 @@ getconn:;
 
 		/* check time limit */
 		if ( op->ors_tlimit != SLAP_NO_LIMIT
-				&& slap_get_time() > stoptime )
+				&& ldap_time_steady() > stoptime )
 		{
 			rc = rs->sr_err = LDAP_TIMELIMIT_EXCEEDED;
 			savepriv = op->o_private;
@@ -1224,7 +1224,7 @@ really_bad:;
 				continue;
 
 			default:
-				lastres_time = slap_get_time();
+				lastres_time = ldap_time_steady();
 
 				/* only touch when activity actually took place... */
 				if ( mi->mi_idle_timeout != 0 && msc->msc_time < lastres_time ) {
@@ -1795,7 +1795,7 @@ free_message:;
 
 				/* arbitrarily limit to something between 1 and 2 minutes */
 			} else if ( ( stoptime == -1 && save_tv.tv_sec < 60 )
-				|| save_tv.tv_sec < ( stoptime - slap_get_time() ) / ( 2 * ncandidates ) )
+				|| save_tv.tv_sec < ( stoptime - ldap_time_steady() ) / ( 2 * ncandidates ) )
 			{
 				/* double the timeout */
 				lutil_timermul( &save_tv, 2, &save_tv );
@@ -1817,7 +1817,7 @@ free_message:;
 		 */
 		if ( mc ) {
 			rc = meta_back_op_result( mc, op, rs, META_TARGET_NONE,
-				-1, stoptime != -1 ? (stoptime - slap_get_time()) : 0,
+				-1, stoptime != -1 ? (stoptime - ldap_time_steady()) : 0,
 				LDAP_BACK_SENDERR );
 		} else {
 			rc = rs->sr_err;

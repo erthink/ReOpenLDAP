@@ -804,7 +804,7 @@ LDAP_SLAPD_V (int) slapi_plugins_used;
 LDAP_SLAPD_F (int) connections_init LDAP_P((void));
 LDAP_SLAPD_F (int) connections_shutdown LDAP_P((int gentle_shutdown_only));
 LDAP_SLAPD_F (int) connections_destroy LDAP_P((void));
-LDAP_SLAPD_F (int) connections_timeout_idle LDAP_P((time_t));
+LDAP_SLAPD_F (int) connections_timeout_idle LDAP_P((slap_time_t));
 LDAP_SLAPD_F (void) connections_drop LDAP_P((void));
 
 LDAP_SLAPD_F (Connection *) connection_client_setup LDAP_P((
@@ -908,14 +908,22 @@ void quorum_global_init();
 void quorum_global_destroy();
 void quorum_be_destroy(BackendDB *bd);
 void quorum_notify_self_sid();
-void quorum_add_rid(BackendDB *bd, int rid);
-void quorum_remove_rid(BackendDB *bd, int rid);
-void quorum_notify_sid(BackendDB *bd, int rid, int sid);
-void quorum_notify_status(BackendDB *bd, int rid, int ready);
+void quorum_add_rid(BackendDB *bd, void* key, int rid);
+void quorum_remove_rid(BackendDB *bd, void* key);
+void quorum_notify_sid(BackendDB *bd, void* key, int sid);
+
+#define QS_DIRTY	0
+#define QS_DEAD		1
+#define QS_REFRESH	2
+#define QS_READY	3
+#define QS_PROCESS	4
+#define QS_MAX		5
+void quorum_notify_status(BackendDB *bd, void* key, int status);
+
 int quorum_query(BackendDB *bd);
 void quorum_notify_csn(BackendDB *bd, int csnsid);
 int quorum_syncrepl_gate(BackendDB *bd, void *instance_key, int in);
-int quorum_query_status(BackendDB *bd, BerValue*);
+int quorum_query_status(BackendDB *bd, int running_only, BerValue*);
 int quorum_syncrepl_maxrefresh(BackendDB *bd);
 
 /*
@@ -942,6 +950,10 @@ LDAP_SLAPD_F (void) slapd_set_read LDAP_P((ber_socket_t s, int wake));
 LDAP_SLAPD_F (int) slapd_clr_read LDAP_P((ber_socket_t s, int wake));
 LDAP_SLAPD_F (int) slapd_wait_writer( ber_socket_t sd );
 LDAP_SLAPD_F (void) slapd_shutsock( ber_socket_t sd );
+#ifdef SLAPD_WRITE_TIMEOUT
+LDAP_SLAPD_F (void) slapd_clr_writetime LDAP_P((slap_time_t old));
+LDAP_SLAPD_F (slap_time_t) slapd_get_writetime LDAP_P((void));
+#endif /* SLAPD_WRITE_TIMEOUT */
 
 #ifdef __SANITIZE_THREAD__
 
@@ -1454,7 +1466,7 @@ LDAP_SLAPD_F( int ) slap_sort_vals(
 	void *ctx );
 
 LDAP_SLAPD_F( void ) slap_timestamp(
-	time_t *tm,
+	time_t tm,
 	struct berval *bv );
 
 LDAP_SLAPD_F( void ) slap_mods_opattrs(
@@ -2246,10 +2258,7 @@ LDAP_SLAPD_V (slap_counters_t)	slap_counters;
 
 LDAP_SLAPD_V (char *)		slapd_pid_file;
 LDAP_SLAPD_V (char *)		slapd_args_file;
-LDAP_SLAPD_V (time_t)		starttime;
-
-/* use time(3) -- no mutex */
-#define slap_get_time()	time( NULL )
+LDAP_SLAPD_V (slap_time_t)		starttime;
 
 LDAP_SLAPD_V (ldap_pvt_thread_pool_t)	connection_pool;
 LDAP_SLAPD_V (int)			connection_pool_max;

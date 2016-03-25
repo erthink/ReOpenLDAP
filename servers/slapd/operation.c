@@ -37,17 +37,12 @@
 #include "slapi/slapi.h"
 #endif
 
-static ldap_pvt_thread_mutex_t	slap_op_mutex;
-static struct timeval last_time;
-
 void slap_op_init(void)
 {
-	ldap_pvt_thread_mutex_init( &slap_op_mutex );
 }
 
 void slap_op_destroy(void)
 {
-	ldap_pvt_thread_mutex_destroy( &slap_op_mutex );
 }
 
 static void
@@ -158,30 +153,11 @@ void
 slap_op_time(time_t *t, int *nop)
 {
 	struct timeval tv;
-#if SLAP_STATS_ETIME
-	gettimeofday( &tv, NULL );
-#else
-	tv.tv_sec = slap_get_time();
-	tv.tv_usec = 0;
-#endif
-	ldap_pvt_thread_mutex_lock( &slap_op_mutex );
-	/* Usually tv.tv_sec cannot be < last_time.tv_sec
-	 * but it might happen if we wrapped around tv_usec.
-	 */
-	if ( tv.tv_sec <= last_time.tv_sec &&
-		tv.tv_usec <= last_time.tv_usec ) {
-		tv.tv_sec = last_time.tv_sec;
-		tv.tv_usec = last_time.tv_usec + 1;
-		if (tv.tv_usec >= 1000000) {
-			tv.tv_usec -= 1000000;
-			tv.tv_sec++;
-			last_time.tv_sec = tv.tv_sec;
-		}
-	}
-	last_time.tv_usec = tv.tv_usec;
-	ldap_pvt_thread_mutex_unlock( &slap_op_mutex );
+	unsigned sametick;
+
+	sametick = ldap_timeval( &tv );
 	*t = tv.tv_sec;
-	*nop = tv.tv_usec;
+	*nop = tv.tv_usec + sametick;
 }
 
 Operation *
