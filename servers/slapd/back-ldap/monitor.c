@@ -1068,9 +1068,10 @@ int
 ldap_back_monitor_db_close( BackendDB *be )
 {
 	ldapinfo_t		*li = (ldapinfo_t *) be->be_private;
-	int paused;
+	int paused = -1;
 
-	paused = slap_biglock_pool_pause(be);
+	if ( slapMode == SLAP_SERVER_MODE && !slap_biglock_pool_pausing(be) )
+		paused = slap_biglock_pool_pause(be);
 	if ( li && !BER_BVISNULL( &li->li_monitor_info.lmi_ndn ) ) {
 		BackendInfo		*mi;
 		monitor_extra_t		*mbe ALLOW_UNUSED;
