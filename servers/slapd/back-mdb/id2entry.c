@@ -39,7 +39,7 @@ static Entry *mdb_entry_alloc( Operation *op, int nattrs, int nvals );
 
 #define ID2VKSZ	(sizeof(ID)+2)
 
-long
+int
 mdb_id2v_compare(
 	const MDB_val *usrkey,
 	const MDB_val *curkey
