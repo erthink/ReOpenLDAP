@@ -21,6 +21,8 @@
 #include "slap.h"
 #include "mdbx.h"
 
+#define mdb_cmp2int(a, b) (((a) > (b)) - ((b) > (a)))
+
 LDAP_BEGIN_DECL
 
 #undef MDB_TOOL_IDL_CACHING	/* currently broken */

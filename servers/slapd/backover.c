@@ -723,7 +723,6 @@ over_op_func(
 	slap_overinfo *oi;
 	slap_overinst *on;
 	BackendDB *be = op->o_bd, db;
-	BackendInfo *bi = be->bd_info;
 	slap_callback cb = {NULL, over_back_response, NULL, NULL}, **sc;
 	int rc = SLAP_CB_CONTINUE;
 
@@ -751,12 +750,7 @@ over_op_func(
 		}
 	}
 
-	if ( be->bd_info != bi ) {
-		assert(SLAP_ISOVERLAY( be ));
-		be->bd_info = bi;
-	}
 	op->o_bd = be;
-
 	return rc;
 }
 
