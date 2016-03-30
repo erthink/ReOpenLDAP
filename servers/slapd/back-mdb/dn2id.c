@@ -53,18 +53,15 @@ typedef struct diskNode {
 /* Sort function for the sorted duplicate data items of a dn2id key.
  * Sorts based on normalized RDN, in length order.
  */
-#if MDBX_MODE_ENABLED
-long
-#else
 int
-#endif /* MDBX_MODE_ENABLED */
 mdb_dup_compare(
 	const MDB_val *usrkey,
 	const MDB_val *curkey
 )
 {
 	diskNode *un, *cn;
-	long diff, nrlen;
+	int diff;
+	size_t nrlen;
 
 	un = (diskNode *)usrkey->mv_data;
 	cn = (diskNode *)curkey->mv_data;

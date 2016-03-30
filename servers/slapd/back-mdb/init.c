@@ -34,24 +34,11 @@ static const struct berval mdmi_databases[] = {
 	BER_BVNULL
 };
 
-#if MDBX_MODE_ENABLED
-static long
-mdb_id_compare( const MDB_val *a, const MDB_val *b )
-{
-	return *(ID *)a->mv_data - *(ID *)b->mv_data;
-}
-#else
 static int
 mdb_id_compare( const MDB_val *a, const MDB_val *b )
 {
-	long diff = *(ID *)a->mv_data - *(ID *)b->mv_data;
-	if (diff < 0)
-		return -1;
-	if (diff > 0)
-		return 1;
-	return 0;
+	return mdb_cmp2int( *(ID *)a->mv_data, *(ID *)b->mv_data );
 }
-#endif /* MDBX_MODE_ENABLED */
 
 #if MDBX_MODE_ENABLED
 static void
