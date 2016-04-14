@@ -134,6 +134,13 @@ step_finish "sweep"
 echo "======================================================================="
 step_begin "packaging"
 
+# LY: '.tgz' could be just changed to 'zip' or '.tar.gz', transparently
+FILE="openldap.$PACKAGE-src.tgz"
+git archive --prefix=openldap.$PACKAGE-sources/ -o $FILE HEAD \
+	&& ([ -n "$2" ] && echo "##teamcity[publishArtifacts '$FILE']" \
+		|| echo "Skip publishing of artifact ($(ls -hs $FILE))" >&2) \
+	|| failure "sources"
+
 FILE="openldap.$PACKAGE.tar.xz"
 tar -caf $FILE --owner=root -C ${PREFIX}/.. openldap \
 	&& sleep 1 && cat ${PREFIX}/changelog.txt >&2 && sleep 1 \
