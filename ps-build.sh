@@ -29,7 +29,7 @@ echo "======================================================================="
 step_begin "prepare"
 
 BUILD_NUMBER=${1:-$(date '+%y%m%d')}
-PREFIX=$(readlink -m ${2:-$(pwd)/install_prefix_as_the_second_parameter}/openldap)
+PREFIX=$(readlink -m ${2:-$(pwd)/install_prefix_as_the_second_parameter}/reopenldap)
 
 echo "BUILD_NUMBER: $BUILD_NUMBER"
 echo "PREFIX: $PREFIX"
@@ -102,7 +102,7 @@ step_begin "build mdbx-tools"
 
 step_finish "build mdbx-tools"
 echo "======================================================================="
-step_begin "build openldap"
+step_begin "build reopenldap"
 
 if [ -z "${TEAMCITY_PROCESS_FLOW_ID}" ]; then
 	make depend \
@@ -112,7 +112,7 @@ fi
 make -k \
 	|| failure "build-2"
 
-step_finish "build openldap"
+step_finish "build reopenldap"
 echo "======================================================================="
 step_begin "install"
 
@@ -135,14 +135,14 @@ echo "======================================================================="
 step_begin "packaging"
 
 # LY: '.tgz' could be just changed to 'zip' or '.tar.gz', transparently
-FILE="openldap.$PACKAGE-src.tgz"
-git archive --prefix=openldap.$PACKAGE-sources/ -o $FILE HEAD \
+FILE="reopenldap.$PACKAGE-src.tgz"
+git archive --prefix=reopenldap.$PACKAGE-sources/ -o $FILE HEAD \
 	&& ([ -n "$2" ] && echo "##teamcity[publishArtifacts '$FILE']" \
 		|| echo "Skip publishing of artifact ($(ls -hs $FILE))" >&2) \
 	|| failure "sources"
 
-FILE="openldap.$PACKAGE.tar.xz"
-tar -caf $FILE --owner=root -C ${PREFIX}/.. openldap \
+FILE="reopenldap.$PACKAGE.tar.xz"
+tar -caf $FILE --owner=root -C ${PREFIX}/.. reopenldap \
 	&& sleep 1 && cat ${PREFIX}/changelog.txt >&2 && sleep 1 \
 	&& ([ -n "$2" ] && echo "##teamcity[publishArtifacts '$FILE']" \
 		|| echo "Skip publishing of artifact ($(ls -hs $FILE))" >&2) \
