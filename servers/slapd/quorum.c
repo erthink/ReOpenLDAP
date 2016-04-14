@@ -304,7 +304,7 @@ static void kick(slap_quorum_t *q)
 		tm.tm_min, tm.tm_sec, tm.tm_usec,
 		q->salt & 0xFFFFFFu, slap_serverID,
 		lpq(q, QS_DEAD), lpq(q, QS_DIRTY), lpq(q, QS_REFRESH),
-		lpq(q, QS_READY), lpq(q, QS_PROCESS) );
+		lpq(q, QS_PROCESS), lpq(q, QS_READY));
 
 	int now = q->qt_status[QS_DEAD] + q->qt_status[QS_DIRTY]
 			+ q->qt_status[QS_REFRESH] + q->qt_status[QS_PROCESS];
