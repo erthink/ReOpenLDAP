@@ -37,22 +37,22 @@ static const struct berval mdmi_databases[] = {
 static int
 mdb_id_compare( const MDB_val *a, const MDB_val *b )
 {
-	return mdb_cmp2int( *(ID *)a->mv_data, *(ID *)b->mv_data );
+	return mdbx_cmp2int( *(ID *)a->mv_data, *(ID *)b->mv_data );
 }
 
 #if MDBX_MODE_ENABLED
 static void
-mdb_debug(int type, const char *function, int line, const char *msg, va_list args)
+mdbx_debug(int type, const char *function, int line, const char *msg, va_list args)
 {
 	int level = 0;
 
-	if (type & MDB_DBG_ASSERT)
+	if (type & MDBX_DBG_ASSERT)
 		level |= LDAP_DEBUG_ANY;
 
-	if (type & MDB_DBG_PRINT)
+	if (type & MDBX_DBG_PRINT)
 		level |= LDAP_DEBUG_NONE;
 
-	if (type & MDB_DBG_TRACE)
+	if (type & MDBX_DBG_TRACE)
 		level |= LDAP_DEBUG_TRACE;
 
 	if (LogTest(level))
@@ -60,14 +60,14 @@ mdb_debug(int type, const char *function, int line, const char *msg, va_list arg
 }
 #endif /* MDBX_MODE_ENABLED */
 
-#ifdef MDB_LIFORECLAIM
+#ifdef MDBX_LIFORECLAIM
 /* perform kick/kill a laggard readers */
 static int
 mdb_oom_handler(MDB_env *env, int pid, void* thread_id, size_t txnid, unsigned gap, int retry)
 {
 	struct mdb_info *mdb = mdb_env_get_userctx(env);
 
-	if ( (mdb->mi_oom_flags & MDB_OOM_KILL) && pid != getpid() ) {
+	if ( (mdb->mi_oom_flags & MDBX_OOM_KILL) && pid != getpid() ) {
 		if ( kill( pid, SIGKILL ) == 0 ) {
 			Debug( LDAP_DEBUG_ANY, "oom-handler: txnid %zu gap %u, KILLED pid %i\n",
 				   txnid, gap, pid );
@@ -80,7 +80,7 @@ mdb_oom_handler(MDB_env *env, int pid, void* thread_id, size_t txnid, unsigned g
 			   retry, pid, STRERROR(errno) );
 	}
 
-	if ( (mdb->mi_oom_flags & MDB_OOM_YIELD) && ! slapd_shutdown ) {
+	if ( (mdb->mi_oom_flags & MDBX_OOM_YIELD) && ! slapd_shutdown ) {
 		Debug( LDAP_DEBUG_ANY, "oom-handler: txnid %zu gap %u, retry %d, YIELD\n",
 			   txnid, gap, retry );
 		if (retry < 42)
@@ -92,7 +92,7 @@ mdb_oom_handler(MDB_env *env, int pid, void* thread_id, size_t txnid, unsigned g
 
 	return -1;
 }
-#endif /* MDB_LIFORECLAIM */
+#endif /* MDBX_LIFORECLAIM */
 
 static int
 mdb_db_init( BackendDB *be, ConfigReply *cr )
@@ -104,16 +104,16 @@ mdb_db_init( BackendDB *be, ConfigReply *cr )
 		LDAP_XSTRING(mdb_db_init) ": Initializing mdb database\n" );
 
 #if MDBX_MODE_ENABLED
-	unsigned flags = mdbx_setup_debug(MDB_DBG_DNT, mdb_debug, MDB_DBG_DNT);
-	flags &= ~(MDB_DBG_TRACE | MDB_DBG_EXTRA | MDB_DBG_ASSERT);
+	unsigned flags = mdbx_setup_debug(MDBX_DBG_DNT, mdbx_debug, MDBX_DBG_DNT);
+	flags &= ~(MDBX_DBG_TRACE | MDBX_DBG_EXTRA | MDBX_DBG_ASSERT);
 	if (reopenldap_mode_idkfa())
 		flags |=
 #	if LDAP_DEBUG > 2
-				MDB_DBG_TRACE | MDB_DBG_EXTRA |
+				MDBX_DBG_TRACE | MDBX_DBG_EXTRA |
 #	endif /* LDAP_DEBUG > 2 */
-				MDB_DBG_ASSERT;
+				MDBX_DBG_ASSERT;
 
-	mdbx_setup_debug(flags, (MDB_debug_func*) MDB_DBG_DNT, MDB_DBG_DNT);
+	mdbx_setup_debug(flags, (MDBX_debug_func*) MDBX_DBG_DNT, MDBX_DBG_DNT);
 #endif /* MDBX_MODE_ENABLED */
 
 	/* allocate backend-database-specific stuff */
@@ -222,7 +222,7 @@ mdb_db_open( BackendDB *be, ConfigReply *cr )
 		goto fail;
 	}
 
-#ifdef MDB_LIFORECLAIM
+#ifdef MDBX_LIFORECLAIM
 #if MDBX_MODE_ENABLED
 	rc = mdbx_env_set_syncbytes( mdb->mi_dbenv, mdb->mi_txn_cp_kbyte * 1024ul);
 #else
@@ -243,14 +243,14 @@ mdb_db_open( BackendDB *be, ConfigReply *cr )
 #endif /* MDBX_MODE_ENABLED */
 
 	if ( (slapMode & SLAP_SERVER_MODE) && SLAP_MULTIMASTER(be) &&
-			((MDB_OOM_YIELD & mdb->mi_oom_flags) == 0 || mdb->mi_renew_lag == 0)) {
+			((MDBX_OOM_YIELD & mdb->mi_oom_flags) == 0 || mdb->mi_renew_lag == 0)) {
 		snprintf( cr->msg, sizeof(cr->msg), "database \"%s\": "
 			"for properly operation in multi-master mode"
 			" 'oom-handler yield' and 'dreamcatcher' are recommended",
 			be->be_suffix[0].bv_val );
 		Debug( LDAP_DEBUG_ANY, LDAP_XSTRING(mdb_db_open) ": %s\n", cr->msg );
 	}
-#endif /* MDB_LIFORECLAIM */
+#endif /* MDBX_LIFORECLAIM */
 
 #ifdef HAVE_EBCDIC
 	strcpy( path, mdb->mi_dbenv_home );
@@ -267,9 +267,9 @@ mdb_db_open( BackendDB *be, ConfigReply *cr )
 
 	flags = mdb->mi_dbenv_flags;
 
-#ifdef MDB_PAGEPERTURB
+#ifdef MDBX_PAGEPERTURB
 	if (reopenldap_mode_idkfa())
-		flags |= MDB_PAGEPERTURB;
+		flags |= MDBX_PAGEPERTURB;
 #endif
 
 	if ( slapMode & SLAP_TOOL_QUICK )
