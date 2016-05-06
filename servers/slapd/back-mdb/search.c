@@ -1118,7 +1118,7 @@ notfound:
 		}
 
 loop_continue:
-#ifdef MDB_LIFORECLAIM
+#ifdef MDBX_LIFORECLAIM
 		if ( !wwctx.flag && mdb->mi_renew_lag ) {
 #if MDBX_MODE_ENABLED
 			int percentage, lag = mdbx_txn_straggler( wwctx.txn, &percentage );
@@ -1133,7 +1133,7 @@ loop_continue:
 					Debug( LDAP_DEBUG_ANY, "dreamcatcher: UNABLE lag %d, percentage %u%%\n", lag, percentage );
 			}
 		}
-#endif /* MDB_LIFORECLAIM */
+#endif /* MDBX_LIFORECLAIM */
 
 		if ( !wwctx.flag && mdb->mi_rtxn_size ) {
 			wwctx.nentries++;
