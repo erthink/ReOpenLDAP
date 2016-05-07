@@ -512,16 +512,19 @@ function safepath {
 function collect_coredumps {
 	wait
 	local id=${1:-xxx-$(date '+%F.%H%M%S.%N')}
-	local cores="$(find -L ../${SRCDIR}/tests ../${SRCDIR}/libraries/liblmdb -type f -name core)"
-	local sans="$(find -L ../${SRCDIR}/tests ../${SRCDIR}/libraries/liblmdb -type f -name 'tsan-log*' -o -name 'asan-log*')"
-	if [ -n "${cores}" -o -n "${sans}" ]; then
+	local cores="$(find -L ../${SRCDIR}/tests -type f -size +0 -name core -o -name 'valgrind-log*.core.*')"
+	local sans="$(find -L ../${SRCDIR}/tests -type f -size +0 -name 'tsan-log*' -o -name 'asan-log*')"
+	local vags="$(find -L ../${SRCDIR}/tests -type f -size +0 -regextype posix-egrep -regex '.*\./valgrind-log.[0-9]+$')"
+	local rc=0
+	if [ -n "${cores}" -o -n "${sans}" -o -n "${vags}" ]; then
 		if [ -n "${cores}" ]; then
 			echo "Found some CORE(s): '$(safepath $cores)', collect it..." >&2
-			RC_EXT="coredump"
 		fi
 		if [ -n "${sans}" ]; then
 			echo "Found some TSAN/ASAN(s): '$(safepath $sans)', collect it..." >&2
-			RC_EXT="tsan/asan"
+		fi
+		if [ -n "${vags}" ]; then
+			echo "Found some VALGRIND(s): '$(safepath $vags)', collect it..." >&2
 		fi
 
 		local dir n c target
@@ -548,27 +551,67 @@ quit
 EOF
 			git show -s &>> "${target}-gdb"
 		done
+
 		n=
 		for c in ${sans}; do
 			git show -s &>> "$c"
-			while true; do
-				target="${dir}/${id}${n}.san"
-				if [ ! -e "${target}" ]; then break; fi
-				n=$((n-1))
-			done
+			ext=$(sed -n 's/^.\+\.\([0-9]\+\)$/\1/p' <<< "$c")
+			if [ -n "$ext" ]; then
+				target="${dir}/${id}-${ext}.san"
+			else
+				while true; do
+					target="${dir}/${id}${n}.san"
+					if [ ! -e "${target}" ]; then break; fi
+					n=$((n-1))
+				done
+			fi
 			mv "$c" "${target}" || failure "failed: mv '$c' '${target}'"
 		done
 
-		if [ -n "${cores}" ]; then
-			teamcity_msg "publishArtifacts '$(safepath ${dir})/${id}*.core* => ${id}-cores.tar.gz'"
+		local filtered_vags=0
+		n=
+		for c in ${vags}; do
+			grep -i -e "invalid read" -e "invalid write" -e "definitely lost" \
+				-e "uninitialised value" -e "uninitialised bytes" -e "invalid free" \
+				-e "mismatched free" -e "destination overlap" -e "has a fishy" "$c" \
+				| sed -e 's/^/VALGRIND: /'
+			if [ ${PIPESTATUS[0]} -ne 0 ]; then
+				continue
+			fi
+
+			git show -s &>> "$c"
+			ext=$(sed -n 's/^.\+\.\([0-9]\+\)$/\1/p' <<< "$c")
+			if [ -n "$ext" ]; then
+				target="${dir}/${id}-${ext}.vag"
+			else
+				while true; do
+					target="${dir}/${id}${n}.vag"
+					if [ ! -e "${target}" ]; then break; fi
+					n=$((n-1))
+				done
+			fi
+			mv "$c" "${target}" || failure "failed: mv '$c' '${target}'"
+			filtered_vags=$((filtered_vags+1))
+		done
+
+		if [  ${filtered_vags} -gt 0 ]; then
+			teamcity_msg "publishArtifacts '$(safepath ${dir})/${id}*.vag => ${id}-vags.tar.gz'"
+			RC_EXT="valgrind"
+			rc=1
 		fi
 		if [ -n "${sans}" ]; then
 			teamcity_msg "publishArtifacts '$(safepath ${dir})/${id}*.san => ${id}-sans.tar.gz'"
+			RC_EXT="tsan/asan"
+			rc=1
+		fi
+		if [ -n "${cores}" ]; then
+			teamcity_msg "publishArtifacts '$(safepath ${dir})/${id}*.core* => ${id}-cores.tar.gz'"
+			RC_EXT="coredump"
+			rc=1
 		fi
 		teamcity_sleep 1
-		return 1
 	fi
-	return 0
+	return $rc
 }
 
 function collect_test {
