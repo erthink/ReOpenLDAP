@@ -97,6 +97,7 @@ struct mdb_info {
 #define MDBX_OOM_KILL	1
 #define MDBX_OOM_YIELD	2
 	int			mi_oom_flags;
+	uint64_t	mi_oom_timestamp_ns;
 #endif /* MDBX_LIFORECLAIM */
 
 	mdb_monitor_t	mi_monitor;
