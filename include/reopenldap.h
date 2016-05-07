@@ -365,12 +365,14 @@ typedef struct {
 #ifdef __SANITIZE_ADDRESS__
 #	include <sanitizer/asan_interface.h>
 #	define ATTRIBUTE_NO_SANITIZE_ADDRESS __attribute__((no_sanitize_address, noinline))
+#	define ATTRIBUTE_NO_SANITIZE_ADDRESS_INLINE ATTRIBUTE_NO_SANITIZE_ADDRESS
 #else
 #	define ASAN_POISON_MEMORY_REGION(addr, size) \
 		((void)(addr), (void)(size))
 #	define ASAN_UNPOISON_MEMORY_REGION(addr, size) \
 		((void)(addr), (void)(size))
 #	define ATTRIBUTE_NO_SANITIZE_ADDRESS
+#	define ATTRIBUTE_NO_SANITIZE_ADDRESS_INLINE __inline
 #endif /* __SANITIZE_ADDRESS__ */
 
 #endif /* _LDAP_REOPEN_H */
