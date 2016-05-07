@@ -304,9 +304,9 @@ void * __slap_sl_malloc( struct slab_heap *sh, ber_len_t size )
 			ptr = sh->sh_last;
 			sh->sh_last = (char *) sh->sh_last + sl_size;
 
-			VALGRIND_MAKE_MEM_UNDEFINED(ptr, sizeof(*ptr));
+			VALGRIND_MAKE_MEM_UNDEFINED(ptr, sl_size);
 			*ptr = sl_size;
-			VALGRIND_MAKE_MEM_NOACCESS(ptr, sl_size);
+			VALGRIND_MAKE_MEM_NOACCESS(ptr, sizeof(*ptr));
 			ptr += 1;
 			VALGRIND_MEMPOOL_ALLOC(sh, ptr, size);
 			return ptr;
@@ -334,9 +334,9 @@ void * __slap_sl_malloc( struct slab_heap *sh, ber_len_t size )
 			sh->sh_map[order-order_start][diff>>3] |= (1 << (diff & 0x7));
 			LDAP_LIST_INSERT_HEAD(&sh->sh_sopool, so_new, so_link);
 
-			VALGRIND_MAKE_MEM_UNDEFINED(ptr, sizeof(*ptr));
+			VALGRIND_MAKE_MEM_UNDEFINED(ptr, sl_size);
 			*ptr = sl_size;
-			VALGRIND_MAKE_MEM_NOACCESS(ptr, sl_size);
+			VALGRIND_MAKE_MEM_NOACCESS(ptr, sizeof(*ptr));
 			ptr += 1;
 			VALGRIND_MEMPOOL_ALLOC(sh, ptr, size);
 			return ptr;
@@ -360,9 +360,9 @@ void * __slap_sl_malloc( struct slab_heap *sh, ber_len_t size )
 							&sh->sh_free[j-1-order_start], so_right, so_link);
 					LDAP_LIST_INSERT_HEAD(&sh->sh_sopool, so_left, so_link);
 
-					VALGRIND_MAKE_MEM_UNDEFINED(ptr, sizeof(*ptr));
+					VALGRIND_MAKE_MEM_UNDEFINED(ptr, sl_size);
 					*ptr = sl_size;
-					VALGRIND_MAKE_MEM_NOACCESS(ptr, sl_size);
+					VALGRIND_MAKE_MEM_NOACCESS(ptr, sizeof(*ptr));
 					ptr += 1;
 					VALGRIND_MEMPOOL_ALLOC(sh, ptr, size);
 					return ptr;

@@ -571,7 +571,7 @@ EOF
 		local filtered_vags=0
 		n=
 		for c in ${vags}; do
-			grep -i -e "invalid read" -e "invalid write" -e "definitely lost" \
+			grep -i -e "invalid read" -e "invalid write" -e "_definitely lost" \
 				-e "uninitialised value" -e "uninitialised bytes" -e "invalid free" \
 				-e "mismatched free" -e "destination overlap" -e "has a fishy" "$c" \
 				| sed -e 's/^/VALGRIND: /'
