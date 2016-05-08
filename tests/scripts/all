@@ -31,6 +31,11 @@ if [ -n "$REOPENLDAP_MODE" ]; then
 	BACKEND_MODE="$BACKEND/$REOPENLDAP_MODE"
 fi
 
+if [ -n "$VALGRIND_CMD" -a "$BACKEND" != mdb ]; then
+	echo ">>>>> Skip all LDAP tests for $BACKEND_MODE under Valgrind"
+	exit 0
+fi
+
 teamcity_msg "testSuiteStarted name='all LDAP tests for $BACKEND_MODE'"
 echo ">>>>> Executing all LDAP tests for $BACKEND_MODE"
 
