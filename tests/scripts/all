@@ -44,6 +44,10 @@ if [ -n "$NOEXIT" ]; then
 fi
 
 for CMD in $SRCDIR/scripts/test*; do
+
+	TESTNO=$(sed -n 's/^.*\/test\([0-9]\+\)-.*/\1/p' <<< "$CMD")
+	if [ 0"$TESTNO" -lt 0 ]; then continue; fi
+
 	case "$CMD" in
 		*~)	continue;;
 		*.bak)	continue;;
