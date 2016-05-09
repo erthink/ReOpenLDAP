@@ -93,15 +93,15 @@ fi
 KILLPIDS="$MASTERPID $SLAVEPID $PROXYPID"
 
 echo "Using ldapsearch to check that proxy slapd is running..."
-for i in 0.1 0.5 1 2 3 4 5; do
+for i in $SLEEP0 0.5 1 2 3 4 5 5; do
+	echo "Waiting $i seconds for slapd to start..."
+	sleep $i
 	$LDAPSEARCH -s base -b "$MONITOR" -h $LOCALHOST -p $PORT3 \
 		'(objectClass=*)' > /dev/null 2>&1
 	RC=$?
 	if test $RC = 0 || test $RC = 53 ; then
 		break
 	fi
-	echo "Waiting $i seconds for slapd to start..."
-	sleep $i
 done
 
 case $RC in
@@ -113,7 +113,7 @@ case $RC in
 53)
 	;;
 *)
-	echo "ldapsearch failed ($RC)!"
+	echo "ldapsearch failed! ($RC, $(date --rfc-3339=ns))"
 	killservers
 	exit $RC
 	;;
