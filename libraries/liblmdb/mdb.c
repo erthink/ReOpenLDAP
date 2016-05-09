@@ -5019,6 +5019,7 @@ mdb_env_close0(MDB_env *env)
 
 	if (!(env->me_flags & MDB_ENV_ACTIVE))
 		return;
+	env->me_flags &= ~MDB_ENV_ACTIVE;
 
 	/* Doing this here since me_dbxs may not exist during mdb_env_close */
 	if (env->me_dbxs) {
@@ -5038,7 +5039,12 @@ mdb_env_close0(MDB_env *env)
 	mdb_midl_free(env->me_free_pgs);
 
 	if (env->me_flags & MDB_ENV_TXKEY) {
+		struct MDB_rthc *rthc = pthread_getspecific(env->me_txkey);
+		if (rthc && pthread_setspecific(env->me_txkey, NULL) == 0) {
+			mdb_env_reader_destr(rthc);
+		}
 		pthread_key_delete(env->me_txkey);
+		env->me_flags &= ~MDB_ENV_TXKEY;
 	}
 
 	if (env->me_map) {
@@ -5083,8 +5089,6 @@ mdb_env_close0(MDB_env *env)
 	if (env->me_lfd != INVALID_HANDLE_VALUE) {
 		(void) close(env->me_lfd);
 	}
-
-	env->me_flags &= ~(MDB_ENV_ACTIVE|MDB_ENV_TXKEY);
 }
 
 #if ! MDBX_MODE_ENABLED
@@ -7323,10 +7327,10 @@ mdb_node_add(MDB_cursor *mc, indx_t indx,
 		node_size += key->mv_size;
 	if (IS_LEAF(mp)) {
 		mdb_cassert(mc, key && data);
-		if (F_ISSET(flags, F_BIGDATA)) {
+		if (unlikely(F_ISSET(flags, F_BIGDATA))) {
 			/* Data already on overflow page. */
 			node_size += sizeof(pgno_t);
-		} else if (node_size + data->mv_size > mc->mc_txn->mt_env->me_nodemax) {
+		} else if (unlikely(node_size + data->mv_size > mc->mc_txn->mt_env->me_nodemax)) {
 			int ovpages = OVPAGES(data->mv_size, mc->mc_txn->mt_env->me_psize);
 			int rc;
 			/* Put data on overflow page. */
@@ -7374,19 +7378,19 @@ update:
 
 	if (IS_LEAF(mp)) {
 		ndata = NODEDATA(node);
-		if (ofp == NULL) {
-			if (F_ISSET(flags, F_BIGDATA))
+		if (unlikely(ofp == NULL)) {
+			if (unlikely(F_ISSET(flags, F_BIGDATA)))
 				memcpy(ndata, data->mv_data, sizeof(pgno_t));
 			else if (F_ISSET(flags, MDB_RESERVE))
 				data->mv_data = ndata;
-			else
+			else if (likely(ndata != data->mv_data))
 				memcpy(ndata, data->mv_data, data->mv_size);
 		} else {
 			memcpy(ndata, &ofp->mp_pgno, sizeof(pgno_t));
 			ndata = PAGEDATA(ofp);
 			if (F_ISSET(flags, MDB_RESERVE))
 				data->mv_data = ndata;
-			else
+			else if (likely(ndata != data->mv_data))
 				memcpy(ndata, data->mv_data, data->mv_size);
 		}
 	}
