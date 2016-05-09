@@ -1556,10 +1556,10 @@ syncprov_matchops( Operation *op, opcookie *opc, int saveit )
 		if ( fc.fscope ) {
 			ldap_pvt_thread_mutex_lock( &so->s_mutex );
 			rc = SLAPD_ABANDON;
-			if ( likely(! is_syncops_abandoned( so )) ) {
+			if ( likely(! is_syncops_abandoned( so )
+					&& (so->s_flags & OS_REF_OP_SEARCH)) ) {
 				Operation op2; op_copy(so->s_op, &op2, NULL, NULL);
 				Opheader oh = *op->o_hdr;
-				assert(so->s_flags & OS_REF_OP_SEARCH);
 
 				oh.oh_conn = op2.o_conn;
 				oh.oh_connid = op2.o_connid;
