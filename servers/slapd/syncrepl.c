@@ -2155,6 +2155,7 @@ syncrepl_op_modify( Operation *op, SlapReply *rs )
 
 		op2.o_callback = &cb;
 		op2.o_bd = select_backend( &op2.o_req_ndn, 1 );
+		op2.o_dont_replicate = 1;
 		op2.o_bd->be_search( &op2, &rs1 );
 		newlist = rx.rx_mods;
 	}
@@ -2992,7 +2993,9 @@ syncrepl_entry(
 	dni.new_entry = entry;
 	dni.modlist = modlist;
 
+	op->o_dont_replicate = 1;
 	rc = be->be_search( op, &rs_search );
+	op->o_dont_replicate = 0;
 	Debug( LDAP_DEBUG_SYNC,
 			"syncrepl_entry: %s be_search (%d)\n",
 			si->si_ridtxt, rc );
@@ -3137,6 +3140,7 @@ retry_add:;
 					cb2.sc_response = dn_callback;
 					cb2.sc_private = &dni;
 
+					op2.o_dont_replicate = 1;
 					rc = be->be_search( &op2, &rs2 );
 					if ( rc ) goto done;
 
@@ -3612,7 +3616,9 @@ static int syncrepl_del_nonpresent(
 			op->ors_slimit = 1;
 			uf.f_av_value = syncUUIDs[i];
 			filter2bv_x( op, op->ors_filter, &op->ors_filterstr );
+			op->o_dont_replicate = 1;
 			rc = be->be_search( op, &rs_search );
+			op->o_dont_replicate = 0;
 			op->o_tmpfree( op->ors_filterstr.bv_val, op->o_tmpmemctx );
 		}
 		si->si_refreshDelete ^= NP_DELETE_ONE;
@@ -3670,7 +3676,9 @@ static int syncrepl_del_nonpresent(
 		Debug( LDAP_DEBUG_SYNC, "syncrepl_del_nonpresent: %s, by-csn-cutoff %s\n",
 			   si->si_ridtxt, op->ors_filterstr.bv_val );
 
+		op->o_dont_replicate = 1;
 		rc = be->be_search( op, &rs_search );
+		op->o_dont_replicate = 0;
 		if ( SLAP_MULTIMASTER( op->o_bd )) {
 			op->ors_filter = of;
 		}
@@ -3744,6 +3752,7 @@ static int syncrepl_del_nonpresent(
 				cx.cb.sc_response = predelete_callback;
 				cx.npe = np_prev;
 
+				op2.o_dont_replicate = 1;
 				rc = be->be_search( &op2, &rs_search );
 				if ( rc != LDAP_SUCCESS || cx.race ) {
 					Debug(LDAP_DEBUG_SYNC,
