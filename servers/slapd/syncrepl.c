@@ -648,7 +648,6 @@ syncrepl_start(
 	si->si_refreshPresent = 0;
 	si->si_got_present_list = 0;
 	presentlist_free( &si->si_presentlist );
-	syncrepl_notify_quorum( si, QS_DIRTY );
 
 	if (si->si_ld == NULL) {
 		si->si_search_started = 0;
@@ -659,6 +658,7 @@ syncrepl_start(
 		}
 		op->o_protocol = LDAP_VERSION3;
 		ldap_set_gentle_shutdown( si->si_ld, syncrepl_gentle_shutdown );
+		syncrepl_notify_quorum( si, QS_DIRTY );
 
 		/* Set SSF to strongest of TLS, SASL SSFs */
 		op->o_sasl_ssf = 0;
