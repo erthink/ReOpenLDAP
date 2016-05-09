@@ -447,11 +447,14 @@ unsigned lber_hug_realloc_begin ( const void* payload,
 	memchunk = LBER_HUG_CHUNK(payload);
 	VALGRIND_OPEN(memchunk);
 	*old_size = memchunk->hm_length;
-	LBER_HUG_SETUP(memchunk->hm_guard_head, key, 0);
-	LBER_HUG_SETUP(memchunk->hm_guard_bottom, key, 1);
-	LBER_HUG_SETUP_ASIDE(memchunk, key, 2,
-		memchunk->hm_length + sizeof(struct lber_hug_memchk));
+	lber_hug_setup(&memchunk->hm_guard_head, key);
+	lber_hug_setup(&memchunk->hm_guard_bottom, key + 1);
+	lber_hug_setup(
+		LBER_HUG_ASIDE(memchunk,
+			memchunk->hm_length + sizeof(struct lber_hug_memchk)),
+		key+2);
 
+	assert(lber_hug_memchk_probe_realloc(memchunk, key) == 0);
 	return key;
 }
 
