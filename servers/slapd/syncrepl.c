@@ -2512,6 +2512,8 @@ static int check_for_retard(syncinfo_t *si, struct sync_cookie *sc,
 			&& csn_incomming && csn_incomming->bv_len > 31) {
 		if (slap_csn_compare_ts(csn_present, csn_incomming) > 0)
 			rc |= RETARD_UPDATE;
+		else
+			rc &= ~RETARD_ALTER;
 	}
 
 	return rc;
