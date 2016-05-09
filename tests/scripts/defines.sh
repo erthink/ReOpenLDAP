@@ -217,6 +217,7 @@ TOOLPROTO="-P 3"
 CONFFILTER=$SRCDIR/scripts/conf.sh
 
 MONITORDATA=$SRCDIR/scripts/monitor_data.sh
+SYNCREPL_RETRY="1 +"
 
 if [ -n "$USE_VALGRIND" ] && [ "$USE_VALGRIND" -ne 0 ]; then
 	TIMEOUT_S="timeout -s SIGXCPU 5m"
