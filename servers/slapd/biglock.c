@@ -46,11 +46,7 @@ static void slap_biglock_free( slap_biglock_t* bl ) {
 	ch_free(bl);
 }
 
-#ifdef __SANITIZE_THREAD__
-static ATTRIBUTE_NO_SANITIZE_THREAD
-#else
-static __inline
-#endif
+static ATTRIBUTE_NO_SANITIZE_THREAD_INLINE
 ldap_pvt_thread_t get_owner(slap_biglock_t* bl) {
 	return bl->_bl_owner;
 }

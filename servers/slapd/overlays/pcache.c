@@ -2962,11 +2962,7 @@ pcache_op_bind(
 
 static slap_response refresh_merge;
 
-#ifdef __SANITIZE_THREAD__
-static ATTRIBUTE_NO_SANITIZE_THREAD
-#else
-static __inline
-#endif
+static ATTRIBUTE_NO_SANITIZE_THREAD_INLINE
 void pick_acl__tsan_workaround(cache_manager *cm, Operation *op) {
 	cm->db.be_acl = op->o_bd->be_acl;
 }

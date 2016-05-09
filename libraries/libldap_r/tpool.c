@@ -517,11 +517,7 @@ ldap_pvt_thread_pool_query(
  * 0 if not pause, 1 if pause, -1 if error or no pool.
  */
 
-#ifdef __SANITIZE_THREAD__
-static ATTRIBUTE_NO_SANITIZE_THREAD
-#else
-static __inline
-#endif
+static ATTRIBUTE_NO_SANITIZE_THREAD_INLINE
 int read_ltp_pause__tsan_woraround(struct ldap_int_thread_pool_s *pool)
 {
 	return pool->ltp_pause;

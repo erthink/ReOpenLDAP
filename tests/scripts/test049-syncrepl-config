@@ -95,7 +95,7 @@ changetype: modify
 add: olcSyncRepl
 olcSyncRepl: rid=001 provider=$URI1 binddn="cn=config" bindmethod=simple
   credentials=$CONFIGPW searchbase="cn=config" type=refreshAndPersist
-  retry="3 5 300 5" timeout=3
+  retry="$SYNCREPL_RETRY" timeout=1
 -
 add: olcUpdateRef
 olcUpdateRef: $URI1
@@ -133,7 +133,7 @@ changetype: modify
 add: olcSyncRepl
 olcSyncRepl: rid=001 provider=$URI1 binddn="cn=config" bindmethod=simple
   credentials=$CONFIGPW searchbase="cn=config" type=refreshAndPersist
-  retry="3 5 300 5" timeout=3
+  retry="$SYNCREPL_RETRY" timeout=1
 -
 add: olcUpdateRef
 olcUpdateRef: $URI1
@@ -209,7 +209,7 @@ olcRootDN: $MANAGERDN
 olcRootPW: $PASSWD
 olcSyncRepl: rid=002 provider=$URI1 binddn="$MANAGERDN" bindmethod=simple
   credentials=$PASSWD searchbase="$BASEDN" $SYNCTYPE
-  retry="3 5 300 5" timeout=3
+  retry="$SYNCREPL_RETRY" timeout=1
 olcUpdateRef: $URI1
 
 dn: olcOverlay=syncprov,olcDatabase={1}${BACKEND},cn=config
@@ -275,7 +275,7 @@ changetype: modify
 replace: olcSyncRepl
 olcSyncRepl: rid=002 provider=$URI1 binddn="cn=config" bindmethod=simple
   credentials=$CONFIGPW searchbase="cn=config" type=refreshAndPersist
-  retry="3 5 300 5" timeout=3
+  retry="$SYNCREPL_RETRY" timeout=1
 EOF
 
 wait_syncrepl $PORT1 $PORT2 base cn=config "-D cn=config -y $CONFIGPWF"

@@ -155,12 +155,6 @@ $SLAPPASSWD -g -n >$CONFIGPWF
 
 ID=1
 
-if test $WAIT != 0 ; then
-	RETRY="1 60"
-else
-	RETRY="1 10"
-fi
-
 echo "Initializing master configurations..."
 for dir in $SMC_DIR $SM1_DIR $SM2_DIR; do
 	$SLAPADD -F $dir/slapd.d -n 0 <<EOF
@@ -728,7 +722,7 @@ changetype: modify
 add: olcSyncRepl
 olcSyncRepl: rid=1 provider=$URI1 searchbase="$BASEDN"
   binddn="ou=ou1,$BASEDN" bindmethod=simple credentials=$PASSWD
-  type=refreshAndPersist retry="$RETRY" timeout=1
+  type=refreshAndPersist retry="$SYNCREPL_RETRY" timeout=1
 
 EOF
 RC=$?
@@ -745,7 +739,7 @@ changetype: modify
 add: olcSyncRepl
 olcSyncRepl: rid=1 provider=$URI1 searchbase="$BASEDN"
   binddn="ou=ou2,$BASEDN" bindmethod=simple credentials=$PASSWD
-  type=refreshAndPersist retry="$RETRY" timeout=1
+  type=refreshAndPersist retry="$SYNCREPL_RETRY" timeout=1
 
 EOF
 RC=$?
@@ -854,14 +848,14 @@ changetype: modify
 add: olcSyncRepl
 olcSyncRepl: rid=3 provider=$URI2 searchbase="ou=sm1ou1,$BASEDN"
   binddn="ou=sm1ou1,$BASEDN" bindmethod=simple credentials=$PASSWD
-  type=refreshAndPersist retry="$RETRY" timeout=1
+  type=refreshAndPersist retry="$SYNCREPL_RETRY" timeout=1
 
 dn: olcDatabase={5}$BACKEND,cn=config
 changetype: modify
 add: olcSyncRepl
 olcSyncRepl: rid=5 provider=$URI3 searchbase="ou=sm2ou1,$BASEDN"
   binddn="ou=sm2ou1,$BASEDN" bindmethod=simple credentials=$PASSWD
-  type=refreshAndPersist retry="$RETRY" timeout=1
+  type=refreshAndPersist retry="$SYNCREPL_RETRY" timeout=1
 
 EOF
 RC=$?
@@ -993,7 +987,7 @@ changetype: modify
 add: olcSyncRepl
 olcSyncRepl: rid=1 provider=$URI1 searchbase="$BASEDN"
   binddn="$BASEDN" bindmethod=simple credentials=$PASSWD
-  type=refreshAndPersist retry="$RETRY" timeout=1
+  type=refreshAndPersist retry="$SYNCREPL_RETRY" timeout=1
 
 EOF
 RC=$?
@@ -1010,7 +1004,7 @@ changetype: modify
 add: olcSyncRepl
 olcSyncRepl: rid=1 provider=$URI2 searchbase="$BASEDN"
   binddn="$BASEDN" bindmethod=simple credentials=$PASSWD
-  type=refreshAndPersist retry="$RETRY" timeout=1
+  type=refreshAndPersist retry="$SYNCREPL_RETRY" timeout=1
 
 EOF
 RC=$?
@@ -1027,7 +1021,7 @@ changetype: modify
 add: olcSyncRepl
 olcSyncRepl: rid=1 provider=$URI3 searchbase="$BASEDN"
   binddn="$BASEDN" bindmethod=simple credentials=$PASSWD
-  type=refreshAndPersist retry="$RETRY" timeout=1
+  type=refreshAndPersist retry="$SYNCREPL_RETRY" timeout=1
 
 EOF
 RC=$?
@@ -1891,7 +1885,7 @@ changetype: modify
 add: olcSyncRepl
 olcSyncRepl: rid=4 provider=$URI2 searchbase="ou=sm1ou2,$BASEDN"
   binddn="ou=sm1ou1,$BASEDN" bindmethod=simple credentials=$PASSWD
-  type=refreshAndPersist retry="$RETRY" timeout=1
+  type=refreshAndPersist retry="$SYNCREPL_RETRY" timeout=1
 EOF
 RC=$?
 if test $RC != 0 ; then

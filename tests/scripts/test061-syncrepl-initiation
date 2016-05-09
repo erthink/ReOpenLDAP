@@ -30,8 +30,6 @@ if test $SYNCPROV = syncprovno; then
 	exit 0
 fi
 
-RETRY="1 +"
-
 PROV_DIR=$TESTDIR/prov
 CONS_DIR=$TESTDIR/cons
 FWD1_DIR=$TESTDIR/fwd1
@@ -230,7 +228,7 @@ olcRootDN: $MANAGERDN
 olcRootPW: $PASSWD
 olcSyncRepl: rid=1 provider=$PROV_URI searchbase="$BASEDN"
   binddn="$MANAGERDN" bindmethod=simple credentials=$PASSWD
-  type=refreshAndPersist retry="$RETRY" timeout=1
+  type=refreshAndPersist retry="$SYNCREPL_RETRY" timeout=1
 
 $syncprov_module
 
@@ -263,7 +261,7 @@ olcRootDN: $MANAGERDN
 olcRootPW: $PASSWD
 olcSyncRepl: rid=1 provider=$FWD1_URI searchbase="$BASEDN"
   binddn="$MANAGERDN" bindmethod=simple credentials=$PASSWD
-  type=refreshAndPersist retry="$RETRY" timeout=1
+  type=refreshAndPersist retry="$SYNCREPL_RETRY" timeout=1
 
 EOF
 	RC=$?
