@@ -352,8 +352,10 @@ typedef struct {
 
 #ifdef __SANITIZE_THREAD__
 #	define ATTRIBUTE_NO_SANITIZE_THREAD __attribute__((no_sanitize_thread, noinline))
+#	define ATTRIBUTE_NO_SANITIZE_THREAD_INLINE ATTRIBUTE_NO_SANITIZE_THREAD
 #else
 #	define ATTRIBUTE_NO_SANITIZE_THREAD
+#	define ATTRIBUTE_NO_SANITIZE_THREAD_INLINE __inline
 #endif
 
 #if defined(__has_feature)

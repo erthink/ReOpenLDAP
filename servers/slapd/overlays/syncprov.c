@@ -104,11 +104,7 @@ typedef struct syncops {
 #endif /* SLAP_NO_SL_MALLOC */
 
 /* LY: safely check is it abandoned, without deref so->s_op */
-#ifdef __SANITIZE_THREAD__
-static ATTRIBUTE_NO_SANITIZE_THREAD
-#else
-static __inline
-#endif
+static ATTRIBUTE_NO_SANITIZE_THREAD_INLINE
 int is_syncops_abandoned(const syncops *so)
 {
 	return so->s_next == so || get_op_abandon(so->s_op);
