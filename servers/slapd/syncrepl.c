@@ -843,11 +843,14 @@ static void syncrepl_resync_end( syncinfo_t *si, int rc ) {
 	} else if (rc != LDAP_SUCCESS)
 		syncrepl_refresh_done(si, rc);
 
-	syncrepl_notify_quorum( si,
-		(rc == LDAP_SUCCESS
-		 && (si->si_refreshDone || abs(si->si_type) != LDAP_SYNC_REFRESH_AND_PERSIST)
-		 && !si->si_got_present_list)
-			? QS_READY : QS_DIRTY );
+	int status = QS_DIRTY;
+	if (rc == LDAP_SUCCESS) {
+		if ((si->si_refreshDone || abs(si->si_type) != LDAP_SYNC_REFRESH_AND_PERSIST)
+				&& !si->si_got_present_list)
+			status = QS_READY;
+	} else if (rc == LDAP_UNAVAILABLE || si->si_quorum_status == QS_DEAD || !si->si_ld)
+		status = QS_DEAD;
+	syncrepl_notify_quorum( si, status );
 
 	if (si->si_refreshBeg) {
 		quorum_syncrepl_gate( si->si_wbe, si, 0 );
