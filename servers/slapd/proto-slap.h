@@ -341,7 +341,9 @@ LDAP_SLAPD_F (Attribute *) attrs_dup LDAP_P(( Attribute *a ));
 LDAP_SLAPD_F (int) attr_init LDAP_P(( void ));
 LDAP_SLAPD_F (int) attr_destroy LDAP_P(( void ));
 
-void slap_backtrace_debug();
+void slap_backtrace_debug(void);
+void slap_backtrace_debug_ex(int skip, int deep, const char *caption);
+void slap_backtrace_log(void *array[], int nentries, const char *caption);
 void slap_backtrace_set_enable( int value );
 int slap_backtrace_get_enable();
 void slap_backtrace_set_dir(const char* path );

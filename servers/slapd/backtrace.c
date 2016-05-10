@@ -630,34 +630,38 @@ void slap_backtrace_set_enable( int value )
 	}
 }
 
-void slap_backtrace_debug() {
-	void *array[42];
-	size_t size, i;
-	char name_buf[PATH_MAX];
+void __noinline
+slap_backtrace_debug(void) {
+	slap_backtrace_debug_ex(2, 42, "Backtrace");
+}
+
+void __noinline
+slap_backtrace_debug_ex(int skip, int deep, const char *caption) {
+	void **array = alloca(sizeof(void*) * (deep + skip));
+	slap_backtrace_log(array + skip, backtrace(array, deep + skip) - skip, caption);
+}
+
+void __noinline
+slap_backtrace_log(void *array[], int nentries, const char* caption)
+{
+	int i;
 	char **bt_glibc;
+	char name_buf[PATH_MAX];
 
-	/* get all entries on the stack */
-	size = backtrace(array, 42);
-
-	bt_glibc = backtrace_symbols(array, size);
-	if (bt_glibc) {
-		lutil_debug_print("*** Backtrace by glibc:\n");
-		for(i = 0; i < size; i++)
-			lutil_debug_print("(%zd) %s\n", i, bt_glibc[i]);
-		free(bt_glibc);
-	}
+	if (nentries < 1)
+		return;
 
 	int n = readlink("/proc/self/exe", name_buf, sizeof(name_buf) - 1);
 	if (n < 0) {
 		lutil_debug_print("*** Unable read executable name: %s\n", STRERROR(errno));
-		return;
+		goto fallback;
 	}
 	name_buf[n] = 0;
 
 	int to_addr2line[2], from_addr2line[2];
 	if (pipe(to_addr2line)|| pipe(from_addr2line)) {
 		lutil_debug_print("*** Unable complete backtrace by addr2line, sorry (%s, %d).\n", "pipe", errno);
-		return;
+		goto fallback;
 	}
 
 	int child_pid = fork();
@@ -685,26 +689,38 @@ void slap_backtrace_debug() {
 		lutil_debug_print("*** Unable complete backtrace by addr2line, sorry (%s, %d).\n", "fork", errno);
 		close(to_addr2line[1]);
 		close(from_addr2line[0]);
-		return;
+		goto fallback;
 	}
 
 	FILE* file = fdopen(from_addr2line[0], "r");
-	lutil_debug_print("*** Backtrace by addr2line:\n");
-	for(i = 0; i < size; ++i) {
+	lutil_debug_print("*** %s by addr2line:\n", caption);
+	for(i = 0; i < nentries; ++i) {
 		char addr_buf[1024];
 
 		dprintf(to_addr2line[1], "%p\n", array[i]);
 		if (! fgets(addr_buf, sizeof(addr_buf), file))
 			break;
-		lutil_debug_print("(%zd) %s", i, addr_buf);
+		lutil_debug_print("(%d) %s", i, addr_buf);
 	}
 
 	close(to_addr2line[1]);
 	close(from_addr2line[0]);
 
 	int status = 0;
-	if (waitpid(child_pid, &status, 0) < 0 || status != W_EXITCODE(EXIT_SUCCESS, 0))
+	if (waitpid(child_pid, &status, 0) < 0 || status != W_EXITCODE(EXIT_SUCCESS, 0)) {
 		lutil_debug_print("*** Unable complete backtrace by addr2line, sorry (%s, %d).\n", "wait", status ? status : errno);
+		goto fallback;
+	}
+	return;
+
+fallback:
+	bt_glibc = backtrace_symbols(array, nentries);
+	if (bt_glibc) {
+		lutil_debug_print("*** %s by glibc:\n", caption);
+		for(i = 0; i < nentries; i++)
+			lutil_debug_print("(%d) %s\n", i, bt_glibc[i]);
+		free(bt_glibc);
+	}
 }
 
 #endif /* __linux__ */
