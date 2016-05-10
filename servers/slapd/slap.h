@@ -42,6 +42,10 @@
 
 #include "avl.h"
 
+#if SLAPD_BIGLOCK_TRACELATENCY > 1
+#	include <execinfo.h>
+#endif
+
 #ifndef ldap_debug
 #define ldap_debug slap_debug
 #endif
@@ -1788,6 +1792,14 @@ struct slap_biglock {
 	volatile ldap_pvt_thread_t _bl_owner;
 	volatile int bl_recursion;
 	int bl_free_on_release;
+
+#if SLAPD_BIGLOCK_TRACELATENCY > 0
+	uint64_t bl_timestamp_ns;
+	void *bl_backtrace[SLAPD_BIGLOCK_TRACELATENCY];
+#if SLAPD_BIGLOCK_TRACELATENCY > 1
+	int bl_backtrace_deep;
+#endif
+#endif /* SLAPD_BIGLOCK_TRACELATENCY */
 };
 
 struct BackendDB {

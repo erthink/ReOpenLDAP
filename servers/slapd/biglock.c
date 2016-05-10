@@ -67,6 +67,9 @@ void slap_biglock_destroy( BackendDB *bd ) {
 }
 
 static const ldap_pvt_thread_t thread_null;
+#if SLAPD_BIGLOCK_TRACELATENCY > 0
+static uint64_t biglock_max_latency_ns = 1e9 / 1000; /* LY: 1 ms */
+#endif /* SLAPD_BIGLOCK_TRACELATENCY */
 
 slap_biglock_t* slap_biglock_get( BackendDB *bd ) {
 	bd = bd->bd_self;
@@ -104,7 +107,8 @@ int slap_biglock_owned ( BackendDB *bd ) {
 	return bl ? ldap_pvt_thread_self() == get_owner(bl) : 1;
 }
 
-void slap_biglock_acquire(slap_biglock_t* bl) {
+void __noinline
+slap_biglock_acquire(slap_biglock_t* bl) {
 	if (!bl)
 		return;
 
@@ -119,13 +123,22 @@ void slap_biglock_acquire(slap_biglock_t* bl) {
 		assert(bl->bl_recursion == 0);
 		assert(get_owner(bl) == thread_null);
 		Debug(LDAP_DEBUG_TRACE, "biglock: acquire\n");
-
 		bl->_bl_owner = ldap_pvt_thread_self();
 		bl->bl_recursion = 1;
+
+#if SLAPD_BIGLOCK_TRACELATENCY > 0
+		bl->bl_timestamp_ns = ldap_now_ns();
+#if SLAPD_BIGLOCK_TRACELATENCY == 1
+		bl->bl_backtrace[0] = __builtin_extract_return_addr(__builtin_return_address(0));
+#else
+		bl->bl_backtrace_deep = backtrace(bl->bl_backtrace, SLAPD_BIGLOCK_TRACELATENCY);
+#endif
+#endif /* SLAPD_BIGLOCK_TRACELATENCY */
 	}
 }
 
-void slap_biglock_release(slap_biglock_t* bl) {
+void __noinline
+slap_biglock_release(slap_biglock_t* bl) {
 	if (!bl)
 		return;
 
@@ -135,6 +148,39 @@ void slap_biglock_release(slap_biglock_t* bl) {
 	if (--bl->bl_recursion == 0) {
 		bl->_bl_owner = thread_null;
 		Debug(LDAP_DEBUG_TRACE, "biglock: release\n");
+
+#if SLAPD_BIGLOCK_TRACELATENCY > 0
+		uint64_t latency_ns = ldap_now_ns() - bl->bl_timestamp_ns;
+		if (biglock_max_latency_ns < latency_ns) {
+			biglock_max_latency_ns = latency_ns;
+
+			lutil_debug_print(
+				"*** Biglock new latency achievement: %'.6f seconds\n",
+				latency_ns * 1e-9);
+
+			slap_backtrace_log(bl->bl_backtrace,
+#if SLAPD_BIGLOCK_TRACELATENCY == 1
+				1, "Biglock acquirer"
+#else
+				SLAPD_BIGLOCK_TRACELATENCY, "Biglock acquirer backtrace"
+#endif
+			);
+
+#if SLAPD_BIGLOCK_TRACELATENCY == 1
+			bl->bl_backtrace[0] = __builtin_extract_return_addr(__builtin_return_address(0));
+#else
+			bl->bl_backtrace_deep = backtrace(bl->bl_backtrace, SLAPD_BIGLOCK_TRACELATENCY);
+#endif
+			slap_backtrace_log(bl->bl_backtrace,
+#if SLAPD_BIGLOCK_TRACELATENCY == 1
+				1, "Biglock releaser"
+#else
+				SLAPD_BIGLOCK_TRACELATENCY, "Biglock releaser backtrace"
+#endif
+			);
+		}
+#endif /* SLAPD_BIGLOCK_TRACELATENCY */
+
 		int rc = ldap_pvt_thread_mutex_unlock(&bl->bl_mutex);
 		assert(rc == 0);
 		if (bl->bl_free_on_release)

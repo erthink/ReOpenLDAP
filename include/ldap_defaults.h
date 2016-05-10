@@ -63,4 +63,8 @@
 	/* dn of the default "monitor" subentry */
 #define SLAPD_MONITOR_DN		"cn=Monitor"
 
+#ifndef SLAPD_BIGLOCK_TRACELATENCY
+#	define SLAPD_BIGLOCK_TRACELATENCY 0
+#endif
+
 #endif /* _LDAP_CONFIG_H */
