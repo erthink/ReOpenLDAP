@@ -169,7 +169,7 @@ olcRootDN: $MANAGERDN
 olcRootPW: $PASSWD
 olcSyncRepl: rid=001 provider=$PROVIDERURI binddn="$MANAGERDN" bindmethod=simple
   credentials=$PASSWD searchbase="$BASEDN" $SYNCTYPE
-  retry="3 +" timeout=3 logbase="cn=log"
+  retry="$SYNCREPL_RETRY" timeout=1 logbase="cn=log"
   logfilter="(&(objectclass=auditWriteObject)(reqresult=0))"
   syncdata=accesslog
 olcMirrorMode: TRUE
@@ -350,7 +350,7 @@ changetype: modify
 replace: olcSyncRepl
 olcSyncRepl: rid=001 provider=$PROVIDERURI binddn="$MANAGERDN" bindmethod=simple
   credentials=InvalidPw searchbase="$BASEDN" $SYNCTYPE
-  retry="3 +" timeout=3 logbase="cn=log"
+  retry="$SYNCREPL_RETRY" timeout=1 logbase="cn=log"
   logfilter="(&(objectclass=auditWriteObject)(reqresult=0))"
   syncdata=accesslog
 -
@@ -482,7 +482,7 @@ changetype: modify
 replace: olcSyncRepl
 olcSyncRepl: rid=001 provider=$PROVIDERURI binddn="$MANAGERDN" bindmethod=simple
   credentials=$PASSWD searchbase="$BASEDN" $SYNCTYPE
-  retry="3 +" timeout=3 logbase="cn=log"
+  retry="$SYNCREPL_RETRY" timeout=1 logbase="cn=log"
   logfilter="(&(objectclass=auditWriteObject)(reqresult=0))"
   syncdata=accesslog
 -

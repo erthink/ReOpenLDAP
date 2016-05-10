@@ -64,7 +64,7 @@ $LDAPSEARCH -e ppolicy -h $LOCALHOST -p $PORT1 -D "$USER" -w wrongpw >> $SEARCHO
 $LDAPSEARCH -e ppolicy -h $LOCALHOST -p $PORT1 -D "$USER" -w $PASS >> $SEARCHOUT 2>&1
 COUNT=`grep "Account locked" $SEARCHOUT | wc -l`
 if test $COUNT != 2 ; then
-	echo "Account lockout test failed"
+	echo "Account lockout test failed ($COUNT != 2)"
 	killservers
 	exit 1
 fi
@@ -73,7 +73,7 @@ echo "Waiting 20 seconds for lockout to reset..."
 sleep 20
 
 $LDAPSEARCH -e ppolicy -h $LOCALHOST -p $PORT1 -D "$USER" -w $PASS \
-	-b "$BASEDN" -s base >> $SEARCHOUT 2>&1
+	-b "$BASEDN" -s base > $SEARCHOUT2 2>&1
 RC=$?
 if test $RC != 0 ; then
 	echo "ldapsearch failed ($RC)!"
@@ -83,29 +83,27 @@ fi
 
 echo "Testing password expiration"
 echo "Waiting 20 seconds for password to expire..."
-sleep 20
+sleep 10
 
-$LDAPSEARCH -e ppolicy -h $LOCALHOST -p $PORT1 -D "$USER" -w $PASS \
-	-b "$BASEDN" -s base > $SEARCHOUT 2>&1
-sleep 2
-$LDAPSEARCH -e ppolicy -h $LOCALHOST -p $PORT1 -D "$USER" -w $PASS \
-	-b "$BASEDN" -s base >> $SEARCHOUT 2>&1
-sleep 2
-$LDAPSEARCH -e ppolicy -h $LOCALHOST -p $PORT1 -D "$USER" -w $PASS \
-	-b "$BASEDN" -s base >> $SEARCHOUT 2>&1
-sleep 2
-$LDAPSEARCH -e ppolicy -h $LOCALHOST -p $PORT1 -D "$USER" -w $PASS \
-	-b "$BASEDN" -s base >> $SEARCHOUT 2>&1
-RC=$?
-if test $RC = 0 ; then
+for n in $(seq 0 15); do
+	$LDAPSEARCH -e ppolicy -h $LOCALHOST -p $PORT1 -D "$USER" -w $PASS \
+		-b "$BASEDN" -s base >> $SEARCHOUT2 2>&1
+	RC=$?
+	if test $RC != 0 ; then
+		break
+	fi
+	sleep 1
+done
+
+if test $RC != 49 ; then
 	echo "Password expiration failed ($RC)!"
 	killservers
 	exit 1
 fi
 
-COUNT=`grep "grace logins" $SEARCHOUT | wc -l`
+COUNT=`grep "grace logins" $SEARCHOUT2 | wc -l`
 if test $COUNT != 3 ; then
-	echo "Password expiration test failed"
+	echo "Password expiration test failed ($COUNT != 3)"
 	killservers
 	exit 1
 fi
@@ -229,7 +227,7 @@ fi
 
 COUNT=`grep "Operations are restricted" $SEARCHOUT | wc -l`
 if test $COUNT != 1 ; then
-	echo "Forced reset test failed"
+	echo "Forced reset test failed ($COUNT != 1)"
 	killservers
 	exit 1
 fi
@@ -300,13 +298,13 @@ if test $RC = 0 ; then
 fi
 COUNT=`grep "Password fails quality" ${TESTOUT}.2 | wc -l`
 if test $COUNT != 1 ; then
-	echo "Length requirement test failed"
+	echo "Length requirement test failed ($COUNT != 1)"
 	killservers
 	exit 1
 fi
 COUNT=`grep "Password is too short for policy" ${TESTOUT}.2 | wc -l`
 if test $COUNT != 1 ; then
-	echo "Control not returned in response"
+	echo "Control not returned in response ($COUNT != 1)"
 	killservers
 	exit 1
 fi
@@ -333,7 +331,7 @@ if test $RC = 0 ; then
 fi
 COUNT=`grep "Password fails quality" ${TESTOUT}.2 | wc -l`
 if test $COUNT != 1 ; then
-	echo "Hashed length requirement test failed"
+	echo "Hashed length requirement test failed ($COUNT != 1)"
 	killservers
 	exit 1
 fi
@@ -479,7 +477,7 @@ olcSyncrepl: rid=1
   credentials=secret
   searchbase="dc=example,dc=com"
   type=refreshAndPersist
-  retry="3 5 300 5"
+  retry="$SYNCREPL_RETRY"
 -
 add: olcUpdateref
 olcUpdateref: $URI1

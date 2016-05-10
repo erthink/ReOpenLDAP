@@ -657,7 +657,6 @@ syncrepl_start(
 	si->si_refreshPresent = 0;
 	si->si_got_present_list = 0;
 	presentlist_free( &si->si_presentlist );
-	syncrepl_notify_quorum( si, QS_DIRTY );
 
 	if (si->si_ld == NULL) {
 		si->si_search_started = 0;
@@ -668,6 +667,7 @@ syncrepl_start(
 		}
 		op->o_protocol = LDAP_VERSION3;
 		ldap_set_gentle_shutdown( si->si_ld, syncrepl_gentle_shutdown );
+		syncrepl_notify_quorum( si, QS_DIRTY );
 
 		/* Set SSF to strongest of TLS, SASL SSFs */
 		op->o_sasl_ssf = 0;
@@ -872,11 +872,14 @@ static void syncrepl_resync_end( syncinfo_t *si, int rc, Operation *op )
 	} else if (rc != LDAP_SUCCESS)
 		syncrepl_refresh_done(si, rc, op);
 
-	syncrepl_notify_quorum( si,
-		(rc == LDAP_SUCCESS
-		 && (si->si_refreshDone || abs(si->si_type) != LDAP_SYNC_REFRESH_AND_PERSIST)
-		 && !si->si_got_present_list)
-			? QS_READY : QS_DIRTY );
+	int status = QS_DIRTY;
+	if (rc == LDAP_SUCCESS) {
+		if ((si->si_refreshDone || abs(si->si_type) != LDAP_SYNC_REFRESH_AND_PERSIST)
+				&& !si->si_got_present_list)
+			status = QS_READY;
+	} else if (rc == LDAP_UNAVAILABLE || si->si_quorum_status == QS_DEAD || !si->si_ld)
+		status = QS_DEAD;
+	syncrepl_notify_quorum( si, status );
 
 	if (si->si_refreshBeg) {
 		quorum_syncrepl_gate( si->si_wbe, si, 0 );
@@ -2187,6 +2190,7 @@ syncrepl_op_modify( Operation *op, SlapReply *rs )
 
 		op2.o_callback = &cb;
 		op2.o_bd = select_backend( &op2.o_req_ndn, 1 );
+		op2.o_dont_replicate = 1;
 		op2.o_bd->be_search( &op2, &rs1 );
 		newlist = rx.rx_mods;
 	}
@@ -2543,6 +2547,8 @@ static int check_for_retard(syncinfo_t *si, struct sync_cookie *sc,
 			&& csn_incomming && csn_incomming->bv_len > 31) {
 		if (slap_csn_compare_ts(csn_present, csn_incomming) > 0)
 			rc |= RETARD_UPDATE;
+		else
+			rc &= ~RETARD_ALTER;
 	}
 
 	return rc;
@@ -3024,7 +3030,9 @@ syncrepl_entry(
 	dni.new_entry = entry;
 	dni.modlist = modlist;
 
+	op->o_dont_replicate = 1;
 	rc = be->be_search( op, &rs_search );
+	op->o_dont_replicate = 0;
 	Debug( LDAP_DEBUG_SYNC,
 			"syncrepl_entry: %s be_search (%d)\n",
 			si->si_ridtxt, rc );
@@ -3196,6 +3204,7 @@ retry_add:;
 					cb2.sc_response = dn_callback;
 					cb2.sc_private = &dni;
 
+					op2.o_dont_replicate = 1;
 					rc = be->be_search( &op2, &rs2 );
 					if ( rc ) goto done;
 
@@ -3671,7 +3680,9 @@ static int syncrepl_del_nonpresent(
 			op->ors_slimit = 1;
 			uf.f_av_value = syncUUIDs[i];
 			filter2bv_x( op, op->ors_filter, &op->ors_filterstr );
+			op->o_dont_replicate = 1;
 			rc = be->be_search( op, &rs_search );
+			op->o_dont_replicate = 0;
 			op->o_tmpfree( op->ors_filterstr.bv_val, op->o_tmpmemctx );
 		}
 		si->si_refreshDelete ^= NP_DELETE_ONE;
@@ -3729,7 +3740,9 @@ static int syncrepl_del_nonpresent(
 		Debug( LDAP_DEBUG_SYNC, "syncrepl_del_nonpresent: %s, by-csn-cutoff %s\n",
 			   si->si_ridtxt, op->ors_filterstr.bv_val );
 
+		op->o_dont_replicate = 1;
 		rc = be->be_search( op, &rs_search );
+		op->o_dont_replicate = 0;
 		if ( SLAP_MULTIMASTER( op->o_bd )) {
 			op->ors_filter = of;
 		}
@@ -3803,6 +3816,7 @@ static int syncrepl_del_nonpresent(
 				cx.cb.sc_response = predelete_callback;
 				cx.npe = np_prev;
 
+				op2.o_dont_replicate = 1;
 				rc = be->be_search( &op2, &rs_search );
 				if ( rc != LDAP_SUCCESS || cx.race ) {
 					Debug(LDAP_DEBUG_SYNC,

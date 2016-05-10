@@ -105,11 +105,7 @@ typedef struct syncops {
 #endif /* SLAP_NO_SL_MALLOC */
 
 /* LY: safely check is it abandoned, without deref so->s_op */
-#ifdef __SANITIZE_THREAD__
-static ATTRIBUTE_NO_SANITIZE_THREAD
-#else
-static __inline
-#endif
+static ATTRIBUTE_NO_SANITIZE_THREAD_INLINE
 int is_syncops_abandoned(const syncops *so)
 {
 	return so->s_next == so || get_op_abandon(so->s_op);
@@ -1562,10 +1558,10 @@ syncprov_matchops( Operation *op, opcookie *opc, int saveit )
 		if ( fc.fscope ) {
 			ldap_pvt_thread_mutex_lock( &so->s_mutex );
 			rc = SLAPD_ABANDON;
-			if ( likely(! is_syncops_abandoned( so )) ) {
+			if ( likely(! is_syncops_abandoned( so )
+					&& (so->s_flags & OS_REF_OP_SEARCH)) ) {
 				Operation op2; op_copy(so->s_op, &op2, NULL, NULL);
 				Opheader oh = *op->o_hdr;
-				assert(so->s_flags & OS_REF_OP_SEARCH);
 
 				oh.oh_conn = op2.o_conn;
 				oh.oh_connid = op2.o_connid;

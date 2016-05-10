@@ -66,11 +66,40 @@ mdbx_debug(int type, const char *function, int line, const char *msg, va_list ar
 static int
 mdb_oom_handler(MDB_env *env, int pid, void* thread_id, size_t txnid, unsigned gap, int retry)
 {
+	uint64_t now_ns = ldap_now_ns();
 	struct mdb_info *mdb = mdb_env_get_userctx(env);
+
+	if (retry < 0) {
+		double elapsed = (now_ns - mdb->mi_oom_timestamp_ns) * 1e-9;
+		const char* suffix = "s";
+		if (elapsed < 1) {
+			elapsed *= 1000;
+			suffix = "ms";
+		}
+
+		if (gap) {
+			Debug( LDAP_DEBUG_ANY, "oom-handler: done, txnid %zu, got/forward %u, elapsed/waited %.3f%s, %d retries\n",
+				   txnid, gap, elapsed, suffix, -retry );
+		} else {
+			Debug( LDAP_DEBUG_ANY, "oom-handler: unable, txnid %zu, elapsed/waited %.3f%s, %d retries\n",
+				   txnid, elapsed, suffix, -retry );
+		}
+
+		mdb->mi_oom_timestamp_ns = 0;
+		return 0;
+	}
+
+	if (! mdb->mi_oom_flags)
+		return -1;
+	else if (! mdb->mi_oom_timestamp_ns) {
+		mdb->mi_oom_timestamp_ns = now_ns;
+		Debug( LDAP_DEBUG_ANY, "oom-handler: begin, txnid %zu lag %u\n",
+			   txnid, gap );
+	}
 
 	if ( (mdb->mi_oom_flags & MDBX_OOM_KILL) && pid != getpid() ) {
 		if ( kill( pid, SIGKILL ) == 0 ) {
-			Debug( LDAP_DEBUG_ANY, "oom-handler: txnid %zu gap %u, KILLED pid %i\n",
+			Debug( LDAP_DEBUG_ANY, "oom-handler: txnid %zu lag %u, KILLED pid %i\n",
 				   txnid, gap, pid );
 			ldap_pvt_thread_yield();
 			return 2;
@@ -82,8 +111,9 @@ mdb_oom_handler(MDB_env *env, int pid, void* thread_id, size_t txnid, unsigned g
 	}
 
 	if ( (mdb->mi_oom_flags & MDBX_OOM_YIELD) && ! slapd_shutdown ) {
-		Debug( LDAP_DEBUG_ANY, "oom-handler: txnid %zu gap %u, retry %d, YIELD\n",
-			   txnid, gap, retry );
+		if (retry == 0)
+			Debug( LDAP_DEBUG_ANY, "oom-handler: txnid %zu lag %u, WAITING\n",
+				   txnid, gap );
 		if (retry < 42)
 			ldap_pvt_thread_yield();
 		else
@@ -91,6 +121,7 @@ mdb_oom_handler(MDB_env *env, int pid, void* thread_id, size_t txnid, unsigned g
 		return 0;
 	}
 
+	mdb->mi_oom_timestamp_ns = 0;
 	return -1;
 }
 #endif /* MDBX_LIFORECLAIM */
