@@ -133,8 +133,8 @@ started=$(date +%s)
 order=0
 for ((n=0; n < N; n++)); do
 	for branch in $branch_list; do
-		nice=$((1 + order % 17))
-		delay=$((order * 101))
+		nice=$((1 + order % 20))
+		delay=$((order * 113))
 		case $((n % 4)) in
 			0)
 				build_opt="--no-lto --asan"
