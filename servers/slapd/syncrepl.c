@@ -3540,13 +3540,15 @@ static int syncrepl_del_nonpresent(
 	int which )
 {
 	Backend* be = op->o_bd;
+	assert(slap_biglock_owned(be));
+	slap_biglock_release(bl);
+
 	struct nonpresent_context cx = {{ NULL }};
 	struct nonpresent_entry *np_list, *np_prev;
 	int rc;
 	AttributeName	an[2];
 
 	struct berval pdn = BER_BVNULL;
-	assert(slap_biglock_owned(op->o_bd));
 	assert(LDAP_LIST_EMPTY( &si->si_nonpresentlist ));
 	assert(which < sc->numcsns);
 
@@ -3713,6 +3715,7 @@ static int syncrepl_del_nonpresent(
 
 		np_list = LDAP_LIST_FIRST( &si->si_nonpresentlist );
 		while ( np_list != NULL ) {
+			slap_biglock_acquire(bl);
 
 			LDAP_LIST_REMOVE( np_list, npe_link );
 			np_prev = np_list;
@@ -3726,9 +3729,6 @@ static int syncrepl_del_nonpresent(
 			op->o_req_ndn = *np_prev->npe_nname;
 
 			if ( bl && syncrepl_uuid_nonzero(np_prev) ) {
-				slap_biglock_release(bl);
-				slap_biglock_acquire(bl);
-
 				Operation op2 = *op;
 				SlapReply rs_search = {REP_RESULT};
 				Filter f = {0};
@@ -3755,6 +3755,7 @@ static int syncrepl_del_nonpresent(
 				cx.npe = np_prev;
 
 				op2.o_dont_replicate = 1;
+				op2.o_nocaching = 1;
 				rc = be->be_search( &op2, &rs_search );
 				if ( rc != LDAP_SUCCESS || cx.race ) {
 					Debug(LDAP_DEBUG_SYNC,
@@ -3847,6 +3848,7 @@ static int syncrepl_del_nonpresent(
 				slap_op_csn_clean( op );
 
 		skip:
+			slap_biglock_release(bl);
 			ber_bvfree( np_prev->npe_name );
 			ber_bvfree( np_prev->npe_nname );
 			ch_free( np_prev );
@@ -3872,6 +3874,7 @@ static int syncrepl_del_nonpresent(
 	}
 	presentlist_free( &si->si_presentlist );
 
+	slap_biglock_acquire(bl);
 	return rc;
 }
 
