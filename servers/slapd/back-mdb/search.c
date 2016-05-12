@@ -349,7 +349,9 @@ mdb_writewait( Operation *op, slap_callback *sc )
 		int rc;
 		if ( ww->mcd ) {
 			rc = mdb_cursor_get( ww->mcd, &key, &data, MDB_GET_CURRENT );
-			assert(rc == MDB_SUCCESS);
+			ww->key = 0;
+			ww->data.iov_base = NULL;
+			ww->data.iov_len = 0;
 			if (likely( rc == MDB_SUCCESS )) {
 				memcpy( &ww->key, key.mv_data, sizeof(ID) );
 				ww->data.mv_size = data.mv_size;
@@ -409,6 +411,7 @@ mdb_waitfixup( Operation *op, ww_ctx *ww, MDB_cursor *mci, MDB_cursor *mcd, IdSc
 			op->o_tmpfree( ww->data.mv_data, op->o_tmpmemctx );
 			ww->data.mv_data = NULL;
 		}
+		ww->flag = 0;
 	} else if ( isc->scopes[0].mid > 1 ) {	/* candidate-based search */
 		int i;
 		for ( i=1; i<isc->scopes[0].mid; i++ ) {
@@ -444,7 +447,7 @@ mdb_search( Operation *op, SlapReply *rs )
 	int		tentries = 0;
 	IdScopes	isc;
 	MDB_cursor	*mci, *mcd;
-	ww_ctx wwctx;
+	ww_ctx wwctx = { 0 };
 	slap_callback cb = { 0 };
 
 	mdb_op_info	opinfo = {{{0}}}, *moi = &opinfo;
@@ -709,15 +712,11 @@ dn2entry_retry:
 		tentries = ncand;
 	}
 
-	wwctx.flag = 0;
 	wwctx.txn = ltid;
-	wwctx.nentries = 0;
 	/* If we're running in our own read txn */
 	if (  moi == &opinfo ) {
 		cb.sc_writewait = mdb_writewait;
 		cb.sc_private = &wwctx;
-		wwctx.mcd = NULL;
-		wwctx.data.mv_data = NULL;
 		cb.sc_next = op->o_callback;
 		op->o_callback = &cb;
 	}
