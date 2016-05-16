@@ -1417,9 +1417,6 @@ done:
 		rc = LDAP_SYNC_REFRESH_REQUIRED;
 	}
 
-	if ( rc && rc != SYNC_PAUSED )
-		syncrepl_shutdown_io( si );
-
 	slap_cookie_free( &syncCookie, 0 );
 	ldap_msgfree( msg );
 	ldap_controls_free( rctrls );
@@ -1556,8 +1553,6 @@ deleted:
 			si->si_ctype = 0;
 			freeinfo = 1;
 		}
-		if ( si->si_conn )
-			dostop = 1;
 		rc = SYNC_REBUS1;
 	}
 
@@ -1579,6 +1574,7 @@ deleted:
 			}
 		} else {
 			if ( rc == SYNC_REBUS2 ) rc = LDAP_SUCCESS;
+			dostop = 1;
 		}
 	}
 
@@ -1595,10 +1591,8 @@ deleted:
 		ldap_pvt_runqueue_stoptask( &slapd_rq, rtask );
 	}
 
-	if ( dostop ) {
-		syncrepl_notify_quorum( si, QS_DEAD );
+	if ( dostop )
 		syncrepl_shutdown_io( si );
-	}
 
 	if ( rc == SYNC_PAUSED ) {
 		rtask->interval.ns = 1;
@@ -4750,9 +4744,6 @@ syncinfo_free( syncinfo_t *sie, int free_all )
 	do {
 		si_next = sie->si_next;
 
-		syncrepl_resync_end(sie, LDAP_UNAVAILABLE);
-		syncrepl_shutdown_io(sie);
-
 		if ( sie->si_re ) {
 			struct re_s		*re = sie->si_re;
 			sie->si_re = NULL;
@@ -4763,6 +4754,9 @@ syncinfo_free( syncinfo_t *sie, int free_all )
 			ldap_pvt_runqueue_remove( &slapd_rq, re );
 			ldap_pvt_thread_mutex_unlock( &slapd_rq.rq_mutex );
 		}
+
+		syncrepl_resync_end(sie, LDAP_UNAVAILABLE);
+		syncrepl_shutdown_io(sie);
 
 		ldap_pvt_thread_mutex_destroy( &sie->si_mutex );
 		if (sie->si_wbe)
