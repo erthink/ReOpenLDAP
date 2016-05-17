@@ -257,6 +257,10 @@ void backtrace_sigaction(int signum, siginfo_t *info, void* ptr) {
 
 	int should_die = 0;
 	switch(info->si_signo) {
+	case SIGXCPU:
+	case SIGXFSZ:
+		should_die = 1;
+		break;
 	case SIGABRT:
 		if (info->si_pid == getpid())
 			should_die = 1;
@@ -610,7 +614,6 @@ void slap_backtrace_set_enable( int value )
 			sigdelset(&sa.sa_mask, SIGCONT);
 			sigdelset(&sa.sa_mask, SIGTRAP);
 			sigdelset(&sa.sa_mask, SIGTERM);
-
 		} else {
 			sa.sa_handler = SIG_DFL;
 			sa.sa_flags = 0;
@@ -622,6 +625,9 @@ void slap_backtrace_set_enable( int value )
 		sigaction(SIGILL, &sa, NULL);
 		sigaction(SIGFPE, &sa, NULL);
 		sigaction(SIGABRT, &sa, NULL);
+
+		sigaction(SIGXCPU, &sa, NULL);
+		sigaction(SIGXFSZ, &sa, NULL);
 
 		sa.sa_flags |= SA_RESTART;
 		sigaction(SIGTRAP, &sa, NULL);
