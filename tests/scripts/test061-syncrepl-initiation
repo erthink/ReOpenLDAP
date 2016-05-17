@@ -85,7 +85,7 @@ done
 
 echo "Starting provider slapd on $PROV_URI"
 cd $PROV_DIR
-$SLAPD -F slapd.d -h $PROV_URI $TIMING >> $PROV_LOG 2>&1 &
+$SLAPD_HUGE -F slapd.d -h $PROV_URI $TIMING >> $PROV_LOG 2>&1 &
 PROV_PID=$!
 if test $WAIT != 0 ; then
 	echo PID $PROV_PID
@@ -97,7 +97,7 @@ check_running 1 provider
 
 echo "Starting forward1 slapd on $FWD1_URI"
 cd $FWD1_DIR
-$SLAPD -F slapd.d -h $FWD1_URI $TIMING >> $FWD1_LOG 2>&1 &
+$SLAPD_HUGE -F slapd.d -h $FWD1_URI $TIMING >> $FWD1_LOG 2>&1 &
 FWD1_PID=$!
 if test $WAIT != 0 ; then
 	echo PID $FWD1_PID
@@ -109,7 +109,7 @@ check_running 3 forward1
 
 echo "Starting consumer slapd on $CONS_URI"
 cd $CONS_DIR
-$SLAPD -F slapd.d -h $CONS_URI $TIMING >> $CONS_LOG 2>&1 &
+$SLAPD_HUGE -F slapd.d -h $CONS_URI $TIMING >> $CONS_LOG 2>&1 &
 CONS_PID=$!
 if test $WAIT != 0 ; then
 	echo PID $CONS_PID
@@ -334,7 +334,7 @@ EOF
 
 	echo "Starting forwarders again"
 	cd $FWD1_DIR
-	$SLAPD -F slapd.d -h $FWD1_URI $TIMING >> $FWD1_LOG 2>&1 &
+	$SLAPD_HUGE -F slapd.d -h $FWD1_URI $TIMING >> $FWD1_LOG 2>&1 &
 	FWD1_PID=$!
 	KILLPIDS="$KILLPIDS $FWD1_PID"
 	cd $TESTWD
@@ -431,7 +431,7 @@ EOF
 
 	echo "Starting forwarders again"
 	cd $FWD1_DIR
-	$SLAPD -F slapd.d -h $FWD1_URI $TIMING >> $FWD1_LOG 2>&1 &
+	$SLAPD_HUGE -F slapd.d -h $FWD1_URI $TIMING >> $FWD1_LOG 2>&1 &
 	FWD1_PID=$!
 	KILLPIDS="$KILLPIDS $FWD1_PID"
 	cd $TESTWD
@@ -538,7 +538,7 @@ EOF
 
 	echo "Starting forwarders again"
 	cd $FWD1_DIR
-	$SLAPD -F slapd.d -h $FWD1_URI $TIMING >> $FWD1_LOG 2>&1 &
+	$SLAPD_HUGE -F slapd.d -h $FWD1_URI $TIMING >> $FWD1_LOG 2>&1 &
 	FWD1_PID=$!
 	KILLPIDS="$KILLPIDS $FWD1_PID"
 	cd $TESTWD
