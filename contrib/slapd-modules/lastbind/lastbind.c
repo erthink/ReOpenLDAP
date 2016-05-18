@@ -197,7 +197,7 @@ lastbind_bind( Operation *op, SlapReply *rs )
 
 	/* setup a callback to intercept result of this bind operation
 	 * and pass along the lastbind_info struct */
-	cb = op->o_tmpcalloc( sizeof(slap_callback), 1, op->o_tmpmemctx );
+	cb = op->o_tmpcalloc( 1, sizeof(slap_callback), op->o_tmpmemctx );
 	cb->sc_response = lastbind_bind_response;
 	cb->sc_next = op->o_callback->sc_next;
 	cb->sc_private = on->on_bi.bi_private;

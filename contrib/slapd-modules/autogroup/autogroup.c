@@ -863,7 +863,7 @@ autogroup_add_entry( Operation *op, SlapReply *rs)
 	Debug( LDAP_DEBUG_TRACE, "==> autogroup_add_entry <%s>\n",
 		op->ora_e->e_name.bv_val);
 
-	sc = op->o_tmpcalloc( sizeof(slap_callback) + sizeof(ag_addinfo), 1, op->o_tmpmemctx );
+	sc = op->o_tmpcalloc( 1, sizeof(slap_callback) + sizeof(ag_addinfo), op->o_tmpmemctx );
 	sc->sc_private = (sc+1);
 	sc->sc_response = autogroup_add_entry_cb;
 	aa = sc->sc_private;
