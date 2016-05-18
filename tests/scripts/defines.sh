@@ -279,7 +279,7 @@ LDAPMODRDN="$TIMEOUT_S $VALGRIND_EX_CMD $CLIENTDIR/ldapmodrdn $TOOLPROTO $TOOLAR
 LDAPWHOAMI="$TIMEOUT_S $VALGRIND_EX_CMD $CLIENTDIR/ldapwhoami $TOOLARGS"
 LDAPCOMPARE="$TIMEOUT_S $VALGRIND_EX_CMD $CLIENTDIR/ldapcompare $TOOLARGS"
 LDAPEXOP="$TIMEOUT_S $VALGRIND_EX_CMD $CLIENTDIR/ldapexop $TOOLARGS"
-SLAPDTESTER=$PROGDIR/slapd-tester
+SLAPDTESTER="$TIMEOUT_H $PROGDIR/slapd-tester"
 
 function ldif-filter-unwrap {
 	grep -v ^== | $PROGDIR/ldif-filter "$@" | sed -n -e 'H; ${ x; s/\n//; s/\n //g; p}'
