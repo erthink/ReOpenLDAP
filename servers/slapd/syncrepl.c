@@ -2161,7 +2161,7 @@ syncrepl_op_modify( Operation *op, SlapReply *rs )
 	}
 
 	{
-		slap_callback *sc = op->o_tmpalloc( sizeof(slap_callback) +
+		slap_callback *sc = op->o_tmpcalloc( 1, sizeof(slap_callback) +
 			sizeof(modify_ctxt), op->o_tmpmemctx );
 		modify_ctxt *mx = (modify_ctxt *)(sc+1);
 		Modifications *ml;
@@ -2169,7 +2169,6 @@ syncrepl_op_modify( Operation *op, SlapReply *rs )
 		sc->sc_response = syncrepl_modify_cb;
 		sc->sc_private = mx;
 		sc->sc_next = op->o_callback;
-		sc->sc_cleanup = NULL;
 		op->o_callback = sc;
 		op->orm_no_opattrs = 1;
 		mx->mx_orig = op->orm_modlist;
