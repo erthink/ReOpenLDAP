@@ -116,7 +116,7 @@ function update_TESTDIR {
 	MTREADOUT=$TESTDIR/mtread.out
 
 	#detect_deadlocks=1
-	export ASAN_OPTIONS="symbolize=1:allow_addr2line=1:report_globals=1:replace_str=1:replace_intrin=1:malloc_context_size=21:detect_leaks=${ASAN_DETECT_LEAKS-0}:abort_on_error:log_path=$TESTDIR/asan-log"
+	export ASAN_OPTIONS="symbolize=1:allow_addr2line=1:report_globals=1:replace_str=1:replace_intrin=1:malloc_context_size=9:detect_leaks=${ASAN_DETECT_LEAKS-0}:abort_on_error:log_path=$TESTDIR/asan-log"
 	export TSAN_OPTIONS="report_signal_unsafe=0:second_deadlock_stack=1:history_size=2:log_path=$TESTDIR/tsan-log"
 
 	VALGRIND_OPTIONS="--fair-sched=yes --quiet --log-file=$TESTDIR/valgrind-log.%p \
