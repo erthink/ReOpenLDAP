@@ -25,9 +25,7 @@
 #endif
 
 /* LY: With respect to http://en.wikipedia.org/wiki/Fail-fast */
-#if ! LDAP_MEMORY_DEBUG
-#	define BER_MEM_VALID(p) __noop()
-#else
+#if LDAP_MEMORY_DEBUG
 /*
  * LDAP_MEMORY_DEBUG should be enabled for properly memory handling,
  * durability and data consistency.
@@ -43,8 +41,17 @@
  *
  */
 #	include <lber_hipagut.h>
-#	define BER_MEM_VALID(p) lber_hug_memchk_ensure(p, 0)
+#	define BER_MEM_VALID(p, s) lber_hug_memchk_ensure(p, 0)
 #	define LIBC_MEM_TAG 0x71BC
+#elif defined(HAVE_VALGRIND) || defined(USE_VALGRIND) || defined(__SANITIZE_ADDRESS__)
+#	define BER_MEM_VALID(p, s) do { \
+		if((s) > 0) { \
+			LDAP_ENSURE(VALGRIND_CHECK_MEM_IS_ADDRESSABLE(p, s) == 0); \
+			LDAP_ENSURE(ASAN_REGION_IS_POISONED(p, s) == 0); \
+		} \
+	} while(0)
+#else
+#	define BER_MEM_VALID(p, s) __noop()
 #endif /* LDAP_MEMORY_DEBUG */
 
 BerMemoryFunctions *ber_int_memory_fns = NULL;
@@ -146,7 +153,7 @@ ber_memalloc_x( ber_len_t s, void *ctx )
 		return p;
 	}
 
-	BER_MEM_VALID( p );
+	BER_MEM_VALID( p, s );
 	return p;
 }
 
@@ -213,7 +220,7 @@ ber_memcalloc_x( ber_len_t n, ber_len_t s, void *ctx )
 		return p;
 	}
 
-	BER_MEM_VALID( p );
+	BER_MEM_VALID( p, (size_t) n * (size_t) s );
 	return p;
 }
 
@@ -278,7 +285,7 @@ ber_memrealloc_x( void* p, ber_len_t s, void *ctx )
 		return p;
 	}
 
-	BER_MEM_VALID( p );
+	BER_MEM_VALID( p, s );
 	return p;
 }
 
@@ -295,7 +302,7 @@ ber_bvfree_x( struct berval *bv, void *ctx )
 		return;
 	}
 
-	BER_MEM_VALID( bv );
+	BER_MEM_VALID( bv, 0 );
 
 	if ( bv->bv_val != NULL ) {
 		ber_memfree_x( bv->bv_val, ctx );
@@ -319,7 +326,7 @@ ber_bvecfree_x( struct berval **bv, void *ctx )
 		return;
 	}
 
-	BER_MEM_VALID( bv );
+	BER_MEM_VALID( bv, 0 );
 
 	/* count elements */
 	for ( i = 0; bv[i] != NULL; i++ ) ;
@@ -362,7 +369,7 @@ ber_bvecadd_x( struct berval ***bvec, struct berval *bv, void *ctx )
 		return 1;
 	}
 
-	BER_MEM_VALID( bvec );
+	BER_MEM_VALID( bvec, 0 );
 
 	/* count entries */
 	for ( i = 0; (*bvec)[i] != NULL; i++ ) {
@@ -632,7 +639,7 @@ ber_bvarray_free_x( BerVarray a, void *ctx )
 	int i;
 
 	if (a) {
-		BER_MEM_VALID( a );
+		BER_MEM_VALID( a, 0 );
 
 		/* count elements */
 		for (i=0; a[i].bv_val; i++) ;

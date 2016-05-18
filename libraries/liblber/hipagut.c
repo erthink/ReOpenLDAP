@@ -37,7 +37,27 @@
 
 /* -------------------------------------------------------------------------- */
 
-static __forceinline uint64_t unaligned_load(const volatile void* ptr) {
+static __inline
+#ifdef __SANITIZE_ADDRESS__
+__attribute__((no_sanitize_address))
+#endif
+__attribute__((always_inline))
+uint64_t unaligned_load_noasan(const volatile void* ptr) {
+#if defined(__x86_64__) || defined(__i386__)
+	return *(const volatile uint64_t*) ptr;
+#else
+	uint64_t local;
+#	if defined(__GNUC__) || defined(__clang__)
+		__builtin_memcpy(&local, ptr, 8);
+#	else
+		memcpy(&local, ptr, 8);
+#	endif /* __GNUC__ || __clang__ */
+	return local;
+#endif /* arch selector */
+}
+
+static __forceinline
+uint64_t unaligned_load(const volatile void* ptr) {
 #if defined(__x86_64__) || defined(__i386__)
 	return *(const volatile uint64_t*) ptr;
 #else
@@ -162,7 +182,7 @@ static __forceinline uint32_t linear_congruential(uint32_t value) {
 }
 
 /*! Calculate magic mesh from a variable chirp and the constant salt n42 */
-static __forceinline uint32_t mixup(unsigned chirp, const unsigned n42) {
+static __inline uint32_t mixup(unsigned chirp, const unsigned n42) {
 	uint64_t caramba;
 
 	/* LY: just multiplication by a prime number. */
@@ -180,7 +200,7 @@ static __forceinline uint32_t mixup(unsigned chirp, const unsigned n42) {
 	return caramba ^ (caramba >> 32);
 }
 
-static __forceinline int fairly(uint32_t value) {
+static __inline int fairly(uint32_t value) {
 	if (unlikely((value >= 0xFFFF0000u) || (value <= 0x0000FFFFu)))
 		return 0;
 
@@ -207,11 +227,12 @@ __hot __flatten void lber_hug_setup(lber_hug_t* self, const unsigned n42) {
 
 unsigned lber_hug_nasty_disabled;
 
-__hot __flatten int lber_hug_probe(const lber_hug_t* self, const unsigned n42) {
+__hot __flatten ATTRIBUTE_NO_SANITIZE_ADDRESS
+int lber_hug_probe(const lber_hug_t* self, const unsigned n42) {
 	if (unlikely(lber_hug_nasty_disabled == LBER_HUG_DISABLED))
 		return 0;
 
-	uint64_t tale = unaligned_load(self->opaque);
+	uint64_t tale = unaligned_load_noasan(self->opaque);
 	uint32_t chirp = tale;
 	uint32_t sign = tale >> 32;
 	/* fprintf(stderr, "hipagut_probe: ptr %p | n42 %08x, "
@@ -296,21 +317,30 @@ __hot __flatten size_t lber_hug_memchk_size(const void* payload, unsigned tag) {
 	return size;
 }
 
-#define VALGRIND_CLOSE(memchunk) { \
+#define VALGRIND_CLOSE(memchunk) do { \
+		ASAN_POISON_MEMORY_REGION( \
+			(char *) memchunk + sizeof(*memchunk) + memchunk->hm_length, \
+			sizeof(struct lber_hipagut)); \
+		ASAN_POISON_MEMORY_REGION(memchunk, sizeof(*memchunk)); \
 		VALGRIND_MAKE_MEM_NOACCESS( \
 			(char *) memchunk + sizeof(*memchunk) + memchunk->hm_length, \
 			sizeof(struct lber_hipagut)); \
 		VALGRIND_MAKE_MEM_NOACCESS(memchunk, sizeof(*memchunk)); \
-	}
+	} while(0)
 
-#define VALGRIND_OPEN(memchunk) { \
+#define VALGRIND_OPEN(memchunk) do { \
+		ASAN_UNPOISON_MEMORY_REGION(memchunk, sizeof(*memchunk)); \
+		ASAN_UNPOISON_MEMORY_REGION( \
+			(char *) memchunk + sizeof(*memchunk) + memchunk->hm_length, \
+			sizeof(struct lber_hipagut)); \
 		VALGRIND_MAKE_MEM_DEFINED(memchunk, sizeof(*memchunk)); \
 		VALGRIND_MAKE_MEM_DEFINED( \
 			(char *) memchunk + sizeof(*memchunk) + memchunk->hm_length, \
 			sizeof(struct lber_hipagut)); \
-	}
+	} while(0)
 
-__hot __flatten int lber_hug_memchk_probe(
+__hot __flatten ATTRIBUTE_NO_SANITIZE_ADDRESS
+int lber_hug_memchk_probe(
 		const void* payload,
 		unsigned tag,
 		size_t *length,
@@ -319,7 +349,18 @@ __hot __flatten int lber_hug_memchk_probe(
 	unsigned bits = 0;
 
 	if (likely(lber_hug_nasty_disabled != LBER_HUG_DISABLED)) {
+#if defined(HAVE_VALGRIND) || defined(USE_VALGRIND) || defined(__SANITIZE_ADDRESS__)
+#		define N_ASAN_MUTEX 7
+		static pthread_mutex_t asan_mutex[N_ASAN_MUTEX] = {
+			PTHREAD_MUTEX_INITIALIZER, PTHREAD_MUTEX_INITIALIZER,
+			PTHREAD_MUTEX_INITIALIZER, PTHREAD_MUTEX_INITIALIZER,
+			PTHREAD_MUTEX_INITIALIZER, PTHREAD_MUTEX_INITIALIZER,
+			PTHREAD_MUTEX_INITIALIZER
+		};
+		pthread_mutex_t *mutex = asan_mutex + ((unsigned)(uintptr_t) payload) % N_ASAN_MUTEX;
+		LDAP_ENSURE(pthread_mutex_lock(mutex) == 0);
 		VALGRIND_OPEN(memchunk);
+#endif
 		if (tag && unlikely(
 				LBER_HUG_PROBE(memchunk->hm_guard_head, MEMCHK_TAG_HEADER, tag)))
 			bits |= 1;
@@ -333,11 +374,27 @@ __hot __flatten int lber_hug_memchk_probe(
 			if (unlikely(LBER_HUG_PROBE_ASIDE(memchunk, MEMCHK_TAG_COVER, 0,
 					memchunk->hm_length + sizeof(struct lber_hug_memchk))))
 				bits |= 4;
-			else
+			else {
 				LDAP_ENSURE(VALGRIND_CHECK_MEM_IS_ADDRESSABLE(memchunk,
 						memchunk->hm_length + LBER_HUG_MEMCHK_OVERHEAD) == 0);
+#ifdef __SANITIZE_ADDRESS__
+				char* bug = ASAN_REGION_IS_POISONED(
+					memchunk, memchunk->hm_length + LBER_HUG_MEMCHK_OVERHEAD);
+				if (unlikely(bug)) {
+					__asan_report_error(
+						/* PC */ __builtin_extract_return_addr(__builtin_return_address(0)),
+						/* BP */ __builtin_frame_address(0),
+						/* SP */ __builtin_frame_address(0),
+						bug, 0, 0 );
+					bits |= 8;
+				}
+#endif
+			}
 		}
+#if defined(HAVE_VALGRIND) || defined(USE_VALGRIND) || defined(__SANITIZE_ADDRESS__)
 		VALGRIND_CLOSE(memchunk);
+		LDAP_ENSURE(pthread_mutex_unlock(mutex) == 0);
+#endif
 	}
 	return bits;
 }
@@ -345,7 +402,7 @@ __hot __flatten int lber_hug_memchk_probe(
 __hot __flatten void lber_hug_memchk_ensure(const void* payload, unsigned tag) {
 	unsigned bits = lber_hug_memchk_probe(payload, tag, NULL, NULL);
 
-	if (unlikely (bits != 0))
+	if (unlikely(bits != 0))
 		lber_hug_memchk_throw(payload, bits);
 }
 
@@ -374,6 +431,7 @@ __hot __flatten void* lber_hug_memchk_setup(
 
 	if (poison_mode == LBER_HUG_POISON_DEFAULT)
 		poison_mode = lber_hug_memchk_poison_alloc;
+	ASAN_UNPOISON_MEMORY_REGION(payload, payload_size);
 	switch(poison_mode) {
 	default:
 		memset(payload, (char) poison_mode, payload_size);
@@ -412,10 +470,12 @@ __hot __flatten void* lber_hug_memchk_drown(void* payload, unsigned tag) {
 		memset(payload, (char) lber_hug_memchk_poison_free, payload_size);
 
 	VALGRIND_MAKE_MEM_NOACCESS(memchunk, LBER_HUG_MEMCHK_OVERHEAD + payload_size);
+	ASAN_POISON_MEMORY_REGION(memchunk, LBER_HUG_MEMCHK_OVERHEAD + payload_size);
 	return memchunk;
 }
 
-static int lber_hug_memchk_probe_realloc(
+static ATTRIBUTE_NO_SANITIZE_ADDRESS
+int lber_hug_memchk_probe_realloc(
 		struct lber_hug_memchk* memchunk, unsigned key) {
 	unsigned bits = 0;
 
@@ -430,9 +490,22 @@ static int lber_hug_memchk_probe_realloc(
 					memchunk->hm_length + sizeof(struct lber_hug_memchk)),
 					key + 2)))
 				bits |= 4;
-			else
+			else {
 				LDAP_ENSURE(VALGRIND_CHECK_MEM_IS_ADDRESSABLE(memchunk,
 						memchunk->hm_length + LBER_HUG_MEMCHK_OVERHEAD) == 0);
+#ifdef __SANITIZE_ADDRESS__
+				char* bug = ASAN_REGION_IS_POISONED(
+					memchunk, memchunk->hm_length + LBER_HUG_MEMCHK_OVERHEAD);
+				if (unlikely(bug)) {
+					__asan_report_error(
+						/* PC */ __builtin_extract_return_addr(__builtin_return_address(0)),
+						/* BP */ __builtin_frame_address(0),
+						/* SP */ __builtin_frame_address(0),
+						bug, 0, 0 );
+					bits |= 8;
+				}
+#endif
+			}
 		}
 	}
 	return bits;
@@ -484,7 +557,9 @@ void* lber_hug_realloc_commit ( size_t old_size,
 	size_t sequence = LBER_HUG_DISABLED;
 
 	LDAP_ENSURE(VALGRIND_CHECK_MEM_IS_ADDRESSABLE(new_memchunk,
-			new_size + LBER_HUG_MEMCHK_OVERHEAD) == 0);
+		new_size + LBER_HUG_MEMCHK_OVERHEAD) == 0);
+	LDAP_ENSURE(ASAN_REGION_IS_POISONED(new_memchunk,
+		new_size + LBER_HUG_MEMCHK_OVERHEAD) == 0);
 
 	if (unlikely(lber_hug_memchk_trace_disabled != LBER_HUG_DISABLED)) {
 		sequence = __sync_fetch_and_add(&lber_hug_memchk_info.mi_sequence, 1);
@@ -507,6 +582,7 @@ void* lber_hug_realloc_commit ( size_t old_size,
 			(char *) new_payload + old_size, new_size - old_size);
 	}
 
+	assert(lber_hug_memchk_probe(new_payload, tag, NULL, NULL) == 0);
 	return new_payload;
 }
 

@@ -368,11 +368,14 @@ typedef struct {
 #	include <sanitizer/asan_interface.h>
 #	define ATTRIBUTE_NO_SANITIZE_ADDRESS __attribute__((no_sanitize_address, noinline))
 #	define ATTRIBUTE_NO_SANITIZE_ADDRESS_INLINE ATTRIBUTE_NO_SANITIZE_ADDRESS
+#	define ASAN_REGION_IS_POISONED(addr, size) __asan_region_is_poisoned(addr, size)
 #else
 #	define ASAN_POISON_MEMORY_REGION(addr, size) \
 		((void)(addr), (void)(size))
 #	define ASAN_UNPOISON_MEMORY_REGION(addr, size) \
 		((void)(addr), (void)(size))
+#	define ASAN_REGION_IS_POISONED(addr, size) \
+		((void)(addr), (void)(size), 0)
 #	define ATTRIBUTE_NO_SANITIZE_ADDRESS
 #	define ATTRIBUTE_NO_SANITIZE_ADDRESS_INLINE __inline
 #endif /* __SANITIZE_ADDRESS__ */
