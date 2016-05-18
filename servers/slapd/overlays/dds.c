@@ -440,7 +440,7 @@ dds_op_add( Operation *op, SlapReply *rs )
 		if ( di->di_max_dynamicObjects > 0) {
 			slap_callback	*sc;
 
-			sc = op->o_tmpalloc( sizeof( slap_callback ), op->o_tmpmemctx );
+			sc = op->o_tmpcalloc( 1, sizeof( slap_callback ), op->o_tmpmemctx );
 			sc->sc_cleanup = dds_freeit_cb;
 			sc->sc_response = dds_counter_cb;
 			sc->sc_private = di;
@@ -475,7 +475,7 @@ dds_op_delete( Operation *op, SlapReply *rs )
 			be_entry_release_r( op, e );
 			e = NULL;
 
-			sc = op->o_tmpalloc( sizeof( slap_callback ), op->o_tmpmemctx );
+			sc = op->o_tmpcalloc( 1, sizeof( slap_callback ), op->o_tmpmemctx );
 			sc->sc_cleanup = dds_freeit_cb;
 			sc->sc_response = dds_counter_cb;
 			sc->sc_private = di;
