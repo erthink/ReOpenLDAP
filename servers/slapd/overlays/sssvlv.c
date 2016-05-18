@@ -908,7 +908,7 @@ static int sssvlv_op_search(
 			send_result( op, rs, so );
 			rc = LDAP_SUCCESS;
 		} else {
-			slap_callback *cb = op->o_tmpalloc( sizeof(slap_callback),
+			slap_callback *cb = op->o_tmpcalloc( 1, sizeof(slap_callback),
 				op->o_tmpmemctx );
 			/* Install serversort response callback to handle a new search */
 			if ( ps || vc ) {
@@ -918,7 +918,6 @@ static int sssvlv_op_search(
 			}
 			sort_conns[op->o_conn->c_conn_idx][sess_id] = so;
 
-			cb->sc_cleanup		= NULL;
 			cb->sc_response		= sssvlv_op_response;
 			cb->sc_next			= op->o_callback;
 			cb->sc_private		= so;
