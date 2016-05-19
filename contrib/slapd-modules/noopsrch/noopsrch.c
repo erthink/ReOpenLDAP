@@ -183,7 +183,7 @@ noopsrch_op_search( Operation *op, SlapReply *rs )
 		op->ors_attrs = slap_anlist_no_attrs;
 
 		sc->sc_next = op->o_callback->sc_next;
-                op->o_callback->sc_next = sc;
+		op->o_callback->sc_next = sc;
 	}
 
 	return SLAP_CB_CONTINUE;

@@ -1313,8 +1313,7 @@ ppolicy_bind( Operation *op, SlapReply *rs )
 			return SLAP_CB_CONTINUE;
 		}
 
-		cb = op->o_tmpcalloc( sizeof(ppbind)+sizeof(slap_callback),
-			1, op->o_tmpmemctx );
+		cb = op->o_tmpcalloc( 1, sizeof(ppbind)+sizeof(slap_callback), op->o_tmpmemctx );
 		ppb = (ppbind *)(cb+1);
 		ppb->on = on;
 		ppb->pErr = PP_noError;
@@ -1457,8 +1456,7 @@ ppolicy_compare(
 			return SLAP_CB_CONTINUE;
 		}
 
-		cb = op->o_tmpcalloc( sizeof(ppbind)+sizeof(slap_callback),
-			1, op->o_tmpmemctx );
+		cb = op->o_tmpcalloc( 1, sizeof(ppbind)+sizeof(slap_callback), op->o_tmpmemctx );
 		ppb = (ppbind *)(cb+1);
 		ppb->on = on;
 		ppb->pErr = PP_noError;
@@ -2071,8 +2069,7 @@ do_modify:
 		 * if the pwmod succeeds
 		 */
 		if (!BER_BVISEMPTY( &pwcons[op->o_conn->c_conn_idx].dn )) {
-			slap_callback *sc = op->o_tmpcalloc( 1, sizeof( slap_callback ),
-				op->o_tmpmemctx );
+			slap_callback *sc = op->o_tmpcalloc( 1, sizeof( slap_callback ), op->o_tmpmemctx );
 			sc->sc_next = op->o_callback;
 			/* Must use sc_response to insure we reset on success, before
 			 * the client sees the response. Must use sc_cleanup to insure
