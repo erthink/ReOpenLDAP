@@ -1563,7 +1563,7 @@ syncprov_matchops( Operation *op, opcookie *opc, int saveit )
 
 				oh.oh_conn = op2.o_conn;
 				oh.oh_connid = op2.o_connid;
-				op2.o_bd = op->o_bd->bd_self;
+				op2.o_bd = op2.o_bd->bd_self;
 				op2.o_hdr = &oh;
 				op2.o_extra = op->o_extra;
 				if ( so->s_flags & PS_FIX_FILTER ) {

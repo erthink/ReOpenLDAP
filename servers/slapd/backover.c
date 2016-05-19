@@ -282,6 +282,7 @@ over_access_allowed(
 		 	if ( !SLAP_ISOVERLAY( op->o_bd ) ) {
  				db = *op->o_bd;
 				db.be_flags |= SLAP_DBFLAG_OVERLAY;
+				compiler_barrier();
 				op->o_bd = &db;
 			}
 
@@ -346,6 +347,7 @@ overlay_entry_get_ov(
 		 	if ( !SLAP_ISOVERLAY( op->o_bd ) ) {
  				db = *op->o_bd;
 				db.be_flags |= SLAP_DBFLAG_OVERLAY;
+				compiler_barrier();
 				op->o_bd = &db;
 			}
 
@@ -420,6 +422,7 @@ overlay_entry_release_ov(
 		 	if ( !SLAP_ISOVERLAY( op->o_bd ) ) {
  				db = *op->o_bd;
 				db.be_flags |= SLAP_DBFLAG_OVERLAY;
+				compiler_barrier();
 				op->o_bd = &db;
 			}
 
@@ -501,6 +504,7 @@ over_acl_group(
 		 	if ( !SLAP_ISOVERLAY( op->o_bd ) ) {
  				db = *op->o_bd;
 				db.be_flags |= SLAP_DBFLAG_OVERLAY;
+				compiler_barrier();
 				op->o_bd = &db;
 			}
 
@@ -573,6 +577,7 @@ over_acl_attribute(
 		 	if ( !SLAP_ISOVERLAY( op->o_bd ) ) {
  				db = *op->o_bd;
 				db.be_flags |= SLAP_DBFLAG_OVERLAY;
+				compiler_barrier();
 				op->o_bd = &db;
 			}
 
@@ -736,6 +741,7 @@ over_op_func(
  	if ( !SLAP_ISOVERLAY( op->o_bd )) {
  		db = *op->o_bd;
 		db.be_flags |= SLAP_DBFLAG_OVERLAY;
+		compiler_barrier();
 		op->o_bd = &db;
 	}
 	cb.sc_next = op->o_callback;
