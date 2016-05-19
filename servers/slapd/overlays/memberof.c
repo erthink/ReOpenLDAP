@@ -736,14 +736,12 @@ memberof_op_add( Operation *op, SlapReply *rs )
 
 	rc = SLAP_CB_CONTINUE;
 
-	sc = op->o_tmpalloc( sizeof(slap_callback)+sizeof(*mci), op->o_tmpmemctx );
+	sc = op->o_tmpcalloc( 1, sizeof(slap_callback)+sizeof(*mci), op->o_tmpmemctx );
 	sc->sc_private = sc+1;
 	sc->sc_response = memberof_res_add;
 	sc->sc_cleanup = memberof_cleanup;
 	mci = sc->sc_private;
 	mci->on = on;
-	mci->member = NULL;
-	mci->memberof = NULL;
 	sc->sc_next = op->o_callback;
 	op->o_callback = sc;
 
@@ -770,14 +768,12 @@ memberof_op_delete( Operation *op, SlapReply *rs )
 			return SLAP_CB_CONTINUE;
 	}
 
-	sc = op->o_tmpalloc( sizeof(slap_callback)+sizeof(*mci), op->o_tmpmemctx );
+	sc = op->o_tmpcalloc( 1, sizeof(slap_callback)+sizeof(*mci), op->o_tmpmemctx );
 	sc->sc_private = sc+1;
 	sc->sc_response = memberof_res_delete;
 	sc->sc_cleanup = memberof_cleanup;
 	mci = sc->sc_private;
 	mci->on = on;
-	mci->member = NULL;
-	mci->memberof = NULL;
 	mci->what = MEMBEROF_IS_GROUP;
 	if ( MEMBEROF_REFINT( mo ) ) {
 		mci->what = MEMBEROF_IS_BOTH;
@@ -1188,14 +1184,12 @@ done2:;
 		op->o_bd->bd_info = (BackendInfo *)on;
 	}
 
-	sc = op->o_tmpalloc( sizeof(slap_callback)+sizeof(*mci), op->o_tmpmemctx );
+	sc = op->o_tmpcalloc( 1, sizeof(slap_callback)+sizeof(*mci), op->o_tmpmemctx );
 	sc->sc_private = sc+1;
 	sc->sc_response = memberof_res_modify;
 	sc->sc_cleanup = memberof_cleanup;
 	mci = sc->sc_private;
 	mci->on = on;
-	mci->member = NULL;
-	mci->memberof = NULL;
 	mci->what = mcis.what;
 
 	if ( save_member ) {
@@ -1233,14 +1227,12 @@ memberof_op_modrdn( Operation *op, SlapReply *rs )
 			return SLAP_CB_CONTINUE;
 	}
 
-	sc = op->o_tmpalloc( sizeof(slap_callback)+sizeof(*mci), op->o_tmpmemctx );
+	sc = op->o_tmpcalloc( 1, sizeof(slap_callback)+sizeof(*mci), op->o_tmpmemctx );
 	sc->sc_private = sc+1;
 	sc->sc_response = memberof_res_modrdn;
 	sc->sc_cleanup = memberof_cleanup;
 	mci = sc->sc_private;
 	mci->on = on;
-	mci->member = NULL;
-	mci->memberof = NULL;
 
 	sc->sc_next = op->o_callback;
 	op->o_callback = sc;

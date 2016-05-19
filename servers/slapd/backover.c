@@ -1229,10 +1229,8 @@ overlay_remove( BackendDB *be, slap_overinst *on, Operation *op )
 	rm_ctx->be = be;
 	rm_ctx->on = on;
 
-	rm_cb = op->o_tmpalloc( sizeof( slap_callback ), op->o_tmpmemctx );
-	rm_cb->sc_next = NULL;
+	rm_cb = op->o_tmpcalloc( 1, sizeof( slap_callback ), op->o_tmpmemctx );
 	rm_cb->sc_cleanup = overlay_remove_cb;
-	rm_cb->sc_response = NULL;
 	rm_cb->sc_private = (void*) rm_ctx;
 
 	/* Append callback to the end of the list */
