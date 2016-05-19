@@ -65,7 +65,7 @@ export CFLAGS LDFLAGS LIBS CXXFLAGS="$CFLAGS"
 	--disable-dynamic --disable-shared --enable-static \
 	--enable-debug --with-gnu-ld --without-cyrus-sasl \
 	--disable-spasswd --disable-lmpasswd \
-	--without-tls --disable-rwm --disable-relay \
+	--without-tls --disable-rwm --disable-relay > configure.log \
 	|| failure "configure"
 
 PACKAGE="$(grep VERSION= Makefile | cut -d ' ' -f 2).${BUILD_NUMBER}"
