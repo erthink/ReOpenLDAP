@@ -43,7 +43,7 @@ echo "======================================================================="
 step_begin "configure"
 
 LDFLAGS="-Wl,--as-needed,-Bsymbolic,--gc-sections,-O,-zignore"
-CFLAGS="-Wall -ggdb3 -fvisibility=hidden -Os -include $(readlink -f $(dirname $0)/ps/glibc-225.h)"
+CFLAGS="-Wall -ggdb3 -gstrict-dwarf -fvisibility=hidden -Os -include $(readlink -f $(dirname $0)/ps/glibc-225.h)"
 LIBS="-Wl,--no-as-needed,-lrt"
 
 if [ -n "$(which gcc)" ] && gcc -v 2>&1 | grep -q -i lto \
