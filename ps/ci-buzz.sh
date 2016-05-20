@@ -94,7 +94,7 @@ function doit_build {
 	local root=$(git rev-parse --show-toplevel)
 	([ -d src/.git ] || (rm -rf src && git clone --local --share -b $branch $root src)) \
 		&& cd src || failure git-clone
-	git fetch && git checkout -f $branch && git pull && git checkout origin/ps-build -- . \
+	git checkout origin/ps-build -- . \
 		|| failure git-checkout
 	echo "==============================================================================="
 	echo "$(timestamp) Building..." > $CIBUZZ_STATUS
@@ -133,8 +133,8 @@ started=$(date +%s)
 order=0
 for ((n=0; n < N; n++)); do
 	for branch in $branch_list; do
-		nice=$((1 + order % 17))
-		delay=$((order * 101))
+		nice=$((1 + order % 20))
+		delay=$((order * 113))
 		case $((n % 4)) in
 			0)
 				build_opt="--no-lto --asan"

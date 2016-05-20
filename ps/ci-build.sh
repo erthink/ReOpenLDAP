@@ -151,7 +151,7 @@ IODBC=$([ -d /usr/include/iodbc ] && echo "-I/usr/include/iodbc")
 
 #======================================================================
 
-CFLAGS="-Wall -ggdb3"
+CFLAGS="-Wall -ggdb3 -gdwarf-4 -fvar-tracking-assignments"
 
 if [ -z "$CC" ]; then
 	if [ $flag_clang -ne 0 ]; then

@@ -43,7 +43,7 @@ echo "======================================================================="
 step_begin "configure"
 
 LDFLAGS="-Wl,--as-needed,-Bsymbolic,--gc-sections,-O,-zignore"
-CFLAGS="-Wall -ggdb3 -fvisibility=hidden -Os -include $(readlink -f $(dirname $0)/ps/glibc-225.h)"
+CFLAGS="-Wall -ggdb3 -gstrict-dwarf -fvisibility=hidden -Os -include $(readlink -f $(dirname $0)/ps/glibc-225.h)"
 LIBS="-Wl,--no-as-needed,-lrt"
 
 if [ -n "$(which gcc)" ] && gcc -v 2>&1 | grep -q -i lto \
@@ -65,14 +65,21 @@ export CFLAGS LDFLAGS LIBS CXXFLAGS="$CFLAGS"
 	--disable-dynamic --disable-shared --enable-static \
 	--enable-debug --with-gnu-ld --without-cyrus-sasl \
 	--disable-spasswd --disable-lmpasswd \
-	--without-tls --disable-rwm --disable-relay \
+	--without-tls --disable-rwm --disable-relay > configure.log \
 	|| failure "configure"
 
 PACKAGE="$(grep VERSION= Makefile | cut -d ' ' -f 2).${BUILD_NUMBER}"
 echo "PACKAGE: $PACKAGE"
 
+if [ "$(git describe --abbrev=0 --tags)" != "$(git describe --exact-match --abbrev=0 --tags 2>/dev/null)" ]; then
+	PREV_RELEASE="$(git describe --abbrev=0 --tags)"
+else
+	PREV_RELEASE="$(git describe --abbrev=0 --tags HEAD~)"
+fi
+[ -n "$PREV_RELEASE" ] || failure "previous release?"
+echo "PREVIOUS RELEASE: $PREV_RELEASE"
 mkdir -p ${PREFIX}/bin \
-	&& (git log --no-merges --dense --date=short --pretty=format:"%ad %s" $(git describe --always --abbrev=0 --tags HEAD^1~1).. \
+	&& (git log --no-merges --dense --date=short --pretty=format:"%ad %s" "$PREV_RELEASE".. \
 		| tr -s ' ' ' ' | grep -v ' ITS#[0-9]\{4\}$' | sort -r | uniq -u \
 	&& /bin/echo -e "\nPackage version: $PACKAGE\nSource code tag: $(git describe --abbrev=15 --long --always --tags)" ) > ${PREFIX}/changelog.txt \
 	|| failure "fix-1"
