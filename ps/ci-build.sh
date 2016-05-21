@@ -151,26 +151,32 @@ IODBC=$([ -d /usr/include/iodbc ] && echo "-I/usr/include/iodbc")
 
 #======================================================================
 
-CFLAGS="-Wall -ggdb3 -gdwarf-4 -fvar-tracking-assignments"
+CFLAGS="-Wall -ggdb3 -gdwarf-4"
 
 if [ -z "$CC" ]; then
 	if [ $flag_clang -ne 0 ]; then
 		CC=clang
-		LLVM_VERSION="$($CC --version | sed -n 's/.\+LLVM \([0-9]\.[0-9]\)\.[0-9].*/\1/p')"
-		echo "LLVM_VERSION	= $LLVM_VERSION"
-		LTO_PLUGIN="/usr/lib/llvm-${LLVM_VERSION}/lib/LLVMgold.so"
-		echo "LTO_PLUGIN	= $LTO_PLUGIN"
-		CFLAGS+=" -Wno-pointer-bool-conversion"
 	elif [ -n "$(which gcc)" ]; then
 		CC=gcc
 	else
 		CC=cc
 	fi
 fi
+
+if grep -q gcc <<< "$CC"; then
+	CFLAGS+=" -fvar-tracking-assignments"
+elif grep -q clang <<< "$CC"; then
+	LLVM_VERSION="$($CC --version | sed -n 's/.\+LLVM \([0-9]\.[0-9]\)\.[0-9].*/\1/p')"
+	echo "LLVM_VERSION	= $LLVM_VERSION"
+	LTO_PLUGIN="/usr/lib/llvm-${LLVM_VERSION}/lib/LLVMgold.so"
+	echo "LTO_PLUGIN	= $LTO_PLUGIN"
+	CFLAGS+=" -Wno-pointer-bool-conversion"
+fi
+
 CC_VER_SUFF=$(sed -nre 's/^(gcc|clang)-(.*)/-\2/p' <<< "$CC")
 
 if [ $flag_debug -ne 0 ]; then
-	if [ "$CC" = "gcc" ]; then
+	if grep -q gcc <<< "$CC" ; then
 		CFLAGS+=" -Og"
 	else
 		CFLAGS+=" -O0"
