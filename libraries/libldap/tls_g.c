@@ -865,7 +865,7 @@ tlsg_cert_verify( tlsg_session *ssl )
 {
 	unsigned int status = 0;
 	int err;
-	time_t now = time(0);
+	time_t now = ldap_time_unsteady();
 	time_t peertime;
 
 	err = gnutls_certificate_verify_peers2( ssl->session, &status );
