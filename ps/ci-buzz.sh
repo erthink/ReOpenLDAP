@@ -94,7 +94,7 @@ function doit_build {
 	local root=$(git rev-parse --show-toplevel)
 	([ -d src/.git ] || (rm -rf src && git clone --local --share -b $branch $root src)) \
 		&& cd src || failure git-clone
-	git checkout origin/ps-build -- . \
+	git checkout origin/ps/build -- . \
 		|| failure git-checkout
 	echo "==============================================================================="
 	echo "$(timestamp) Building..." > $CIBUZZ_STATUS
