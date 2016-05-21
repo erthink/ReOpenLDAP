@@ -147,8 +147,8 @@ if test $RC != 0 ; then
 	exit $RC
 fi
 
-echo "Delay $SLEEP1 seconds to handle previous and closed connection(s)..."
-sleep $SLEEP1
+echo "Delay $SLEEP0 seconds to handle previous and closed connection(s)..."
+sleep $SLEEP0
 
 echo "Using ldapsearch to retrieve all the entries..."
 $LDAPSEARCH -S "" -b "$METABASEDN" -h $LOCALHOST -p $PORT3 \

@@ -243,7 +243,7 @@ int connections_timeout_idle(slap_time_t now)
 			continue;
 		}
 
-		if( global_idletimeout &&
+		if( global_idletimeout && now.ns > c->c_activitytime.ns &&
 			now.ns - c->c_activitytime.ns > ldap_from_seconds(global_idletimeout).ns ) {
 			/* close it */
 			connection_closing( c, "idletimeout" );
@@ -253,7 +253,8 @@ int connections_timeout_idle(slap_time_t now)
 		}
 		if ( c->c_writewaiter && global_writetimeout ) {
 			writers = 1;
-			if( now.ns - c->c_activitytime.ns > ldap_from_seconds(global_writetimeout).ns ) {
+			if( now.ns > c->c_activitytime.ns &&
+					now.ns - c->c_activitytime.ns > ldap_from_seconds(global_writetimeout).ns ) {
 				/* close it */
 				connection_closing( c, "writetimeout" );
 				connection_close( c );
@@ -477,6 +478,13 @@ Connection * connection_init(
 	c->c_listener = listener;
 	c->c_sd = s;
 
+#ifndef SLAPD_MONITOR
+	if ( global_idletimeout > 0 )
+#endif /* ! SLAPD_MONITOR */
+	{
+		c->c_activitytime = c->c_starttime = ldap_now();
+	}
+
 	if ( flags & CONN_IS_CLIENT ) {
 		c->c_gentle_kick = 1;
 		c->c_connid = 0;
@@ -505,13 +513,6 @@ Connection * connection_init(
 
 	/* set to zero until bind, implies LDAP_VERSION3 */
 	c->c_protocol = 0;
-
-#ifndef SLAPD_MONITOR
-	if ( global_idletimeout > 0 )
-#endif /* ! SLAPD_MONITOR */
-	{
-		c->c_activitytime = c->c_starttime = ldap_now();
-	}
 
 #ifdef LDAP_CONNECTIONLESS
 	c->c_is_udp = 0;
