@@ -17,6 +17,7 @@ flag_lto=1
 flag_O=-O2
 flag_clang=0
 flag_bdb=1
+flag_mdb=1
 flag_wt=0
 flag_ndb=1
 flag_valgrind=0
@@ -57,6 +58,12 @@ for arg in "$@"; do
 	--clang)
 		flag_clang=1
 		;;
+	--with-mdb)
+		flag_mdb=1
+		;;
+	--without-mdb)
+		flag_mdb=0
+		;;
 	--with-bdb)
 		flag_bdb=1
 		;;
@@ -82,7 +89,7 @@ for arg in "$@"; do
 
 		flag_ndb=0
 		flag_wt=0
-		flag_bdb=1
+		flag_bdb=0
 		flag_lto=0
 		flag_check=0
 		flag_O=-Og
@@ -266,6 +273,7 @@ if [ ! -s Makefile ]; then
 	./configure \
 			--enable-debug $BACKENDS --enable-overlays $NBD \
 			--enable-rewrite --enable-dynacl --enable-aci --enable-slapi \
+			$(if [ $flag_mdb -eq 0 ]; then echo "--disable-mdb"; else echo "--enable-mdb"; fi) \
 			$(if [ $flag_bdb -eq 0 ]; then echo "--disable-bdb --disable-hdb"; else echo "--enable-bdb --enable-hdb"; fi) \
 			$(if [ $flag_wt -eq 0 ]; then echo "--disable-wt"; else echo "--enable-wt"; fi) \
 		|| failure "configure"
