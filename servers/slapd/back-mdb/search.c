@@ -348,10 +348,8 @@ mdb_writewait( Operation *op, slap_callback *sc )
 		MDB_val key, data;
 		int rc;
 		if ( ww->mcd ) {
-			rc = mdb_cursor_get( ww->mcd, &key, &data, MDB_GET_CURRENT );
-			ww->key = 0;
 			ww->data.iov_base = NULL;
-			ww->data.iov_len = 0;
+			rc = mdb_cursor_get( ww->mcd, &key, &data, MDB_GET_CURRENT );
 			if (likely( rc == MDB_SUCCESS )) {
 				memcpy( &ww->key, key.mv_data, sizeof(ID) );
 				ww->data.mv_size = data.mv_size;
