@@ -981,6 +981,7 @@ syncprov_unlink_syncop( syncops *so, int unlink_flags, int locked_flags )
 				}
 			}
 			if (conn == so->s_op->o_conn) {
+				assert(conn->c_n_ops_executing > 0);
 				conn->c_n_ops_executing--;
 				conn->c_n_ops_completed++;
 				LDAP_STAILQ_REMOVE( &conn->c_ops, so->s_op, Operation, o_next );
@@ -1373,8 +1374,11 @@ syncprov_op_abandon( Operation *op, SlapReply *rs )
 			ldap_pvt_thread_mutex_lock( &so->s_mutex );
 			so->s_flags |= PS_DEAD | OS_REF_ABANDON;
 			*pso = so->s_next;
-			so->s_next = so; /* LY: safely mark it as unlinked */
-			set_op_abandon(so->s_op, 1);
+			/* LY: safely mark it as unlinked */
+			so->s_next = so;
+			/* LY: when called via syncprov.on_bi.bi_op_cancel */
+			if (! get_op_abandon(so->s_op))
+				set_op_abandon(so->s_op, 1);
 			ldap_pvt_thread_mutex_unlock( &so->s_mutex );
 			break;
 		}
@@ -1476,8 +1480,8 @@ syncprov_matchops( Operation *op, opcookie *opc, int saveit )
 		int found = 0;
 		snext = so->s_next;
 
-		if ( is_syncops_abandoned(so)
-				|| (read_int__tsan_workaround(&so->s_flags) & PS_DEAD) )
+		if (unlikely( is_syncops_abandoned(so)
+				|| (read_int__tsan_workaround(&so->s_flags) & PS_DEAD) ))
 			continue;
 
 		assert(read_int__tsan_workaround(&so->s_flags) & OS_REF_OP_SEARCH);
@@ -1505,9 +1509,9 @@ syncprov_matchops( Operation *op, opcookie *opc, int saveit )
 		/* If the base of the search is missing, signal a refresh */
 		rc = syncprov_findbase( op, &fc );
 		if ( rc != LDAP_SUCCESS ) {
-			SlapReply rs = {REP_RESULT};
 			ldap_pvt_thread_mutex_lock( &so->s_mutex );
 			so->s_flags |= PS_DEAD | PS_LOST_BASE;
+kill_locked:
 			switch (so->s_flags & (PS_TASK_QUEUED | PS_IS_DETACHED)) {
 			default:
 				LDAP_BUG();
@@ -1520,8 +1524,11 @@ syncprov_matchops( Operation *op, opcookie *opc, int saveit )
 				/* LY: we can send error and kill psearch now,
 				 * OS_REF_OP_MATCH will be done by op_cleanup().
 				 */
-				send_ldap_error( so->s_op, &rs, LDAP_SYNC_REFRESH_REQUIRED,
+				if (! is_syncops_abandoned( so )) {
+					SlapReply rs = {REP_RESULT};
+					send_ldap_error( so->s_op, &rs, LDAP_SYNC_REFRESH_REQUIRED,
 					"search base has changed" );
+				}
 				ldap_pvt_thread_mutex_unlock( &so->s_mutex );
 				syncprov_unlink_syncop( so, OS_REF_OP_SEARCH, SO_LOCKED_SIOP );
 				continue;
@@ -1555,77 +1562,76 @@ syncprov_matchops( Operation *op, opcookie *opc, int saveit )
 
 		if ( fc.fscope ) {
 			ldap_pvt_thread_mutex_lock( &so->s_mutex );
-			rc = SLAPD_ABANDON;
-			if ( likely(! is_syncops_abandoned( so )
-					&& (so->s_flags & OS_REF_OP_SEARCH)) ) {
-				Operation op2; op_copy(so->s_op, &op2, NULL, NULL);
-				Opheader oh = *op->o_hdr;
-
-				oh.oh_conn = op2.o_conn;
-				oh.oh_connid = op2.o_connid;
-				op2.o_bd = op2.o_bd->bd_self;
-				op2.o_hdr = &oh;
-				op2.o_extra = op->o_extra;
-				if ( so->s_flags & PS_FIX_FILTER ) {
-					/* Skip the AND/GE clause that we stuck on in front. We
-					   would lose deletes/mods that happen during the refresh
-					   phase otherwise (ITS#6555) */
-					op2.ors_filter = op2.ors_filter->f_and->f_next;
-				}
-				rc = test_filter( &op2, e, op2.ors_filter );
+			if ( unlikely(is_syncops_abandoned( so )) ) {
+				rc = SLAPD_ABANDON;
+				goto kill_locked;
 			}
+			Operation op2; op_copy(so->s_op, &op2, NULL, NULL);
+			Opheader oh = *op->o_hdr;
+
+			oh.oh_conn = op2.o_conn;
+			oh.oh_connid = op2.o_connid;
+			op2.o_bd = op2.o_bd->bd_self;
+			op2.o_hdr = &oh;
+			op2.o_extra = op->o_extra;
+			if ( so->s_flags & PS_FIX_FILTER ) {
+				/* Skip the AND/GE clause that we stuck on in front. We
+				   would lose deletes/mods that happen during the refresh
+				   phase otherwise (ITS#6555) */
+				op2.ors_filter = op2.ors_filter->f_and->f_next;
+			}
+			rc = test_filter( &op2, e, op2.ors_filter );
+			assert( so->s_flags & OS_REF_OP_SEARCH );
 			ldap_pvt_thread_mutex_unlock( &so->s_mutex );
 		}
 
 		Debug( LDAP_DEBUG_TRACE, "syncprov_matchops: sid %03x fscope %d rc %d\n",
 			so->s_sid, fc.fscope, rc );
 
-		if (rc != SLAPD_ABANDON) {
-			/* check if current o_req_dn is in scope and matches filter */
-			if ( fc.fscope && rc == LDAP_COMPARE_TRUE ) {
-				if ( saveit ) {
-					ldap_pvt_thread_mutex_lock( &so->s_mutex );
-					assert(so->s_flags & OS_REF_OP_SEARCH);
-					if (++so->s_matchops_inuse == 1) {
-						assert(!(so->s_flags & OS_REF_OP_MATCH));
-						so->s_flags |= OS_REF_OP_MATCH;
-					}
-					ldap_pvt_thread_mutex_unlock( &so->s_mutex );
-
-					sm = op->o_tmpalloc( sizeof(syncmatches), op->o_tmpmemctx );
-					sm->sm_next = opc->smatches;
-					sm->sm_op = so;
-					opc->smatches = sm;
-				} else {
-					/* if found send UPDATE else send ADD */
-					if (found)
-						assert(op->o_tag == LDAP_REQ_MODIFY
-							   || op->o_tag == LDAP_REQ_EXTENDED
-							   || op->o_tag == LDAP_REQ_MODDN);
-					else
-						assert(op->o_tag == LDAP_REQ_ADD);
-					syncprov_qresp( opc, so,
-						found ? LDAP_SYNC_MODIFY : LDAP_SYNC_ADD );
+		assert(rc != SLAPD_ABANDON);
+		/* check if current o_req_dn is in scope and matches filter */
+		if ( fc.fscope && rc == LDAP_COMPARE_TRUE ) {
+			if ( saveit ) {
+				ldap_pvt_thread_mutex_lock( &so->s_mutex );
+				assert(so->s_flags & OS_REF_OP_SEARCH);
+				if (++so->s_matchops_inuse == 1) {
+					assert(!(so->s_flags & OS_REF_OP_MATCH));
+					so->s_flags |= OS_REF_OP_MATCH;
 				}
-			} else if ( !saveit && found ) {
-				/* send DELETE */
-				assert(op->o_tag == LDAP_REQ_DELETE);
-				syncprov_qresp( opc, so, LDAP_SYNC_DELETE );
-			} else if ( !saveit ) {
-				assert((!fc.fscope && rc == LDAP_SUCCESS)
-					   || (fc.fscope && rc != LDAP_COMPARE_TRUE && rc != LDAP_SUCCESS));
-				assert(op->o_tag == LDAP_REQ_MODIFY
-					   || op->o_tag == LDAP_REQ_EXTENDED
-					   || op->o_tag == LDAP_REQ_ADD);
-				syncprov_qresp( opc, so, LDAP_SYNC_NEW_COOKIE );
+				ldap_pvt_thread_mutex_unlock( &so->s_mutex );
+
+				sm = op->o_tmpalloc( sizeof(syncmatches), op->o_tmpmemctx );
+				sm->sm_next = opc->smatches;
+				sm->sm_op = so;
+				opc->smatches = sm;
+			} else {
+				/* if found send UPDATE else send ADD */
+				if (found)
+					assert(op->o_tag == LDAP_REQ_MODIFY
+						   || op->o_tag == LDAP_REQ_EXTENDED
+						   || op->o_tag == LDAP_REQ_MODDN);
+				else
+					assert(op->o_tag == LDAP_REQ_ADD);
+				syncprov_qresp( opc, so,
+					found ? LDAP_SYNC_MODIFY : LDAP_SYNC_ADD );
 			}
+		} else if ( !saveit && found ) {
+			/* send DELETE */
+			assert(op->o_tag == LDAP_REQ_DELETE);
+			syncprov_qresp( opc, so, LDAP_SYNC_DELETE );
+		} else if ( !saveit ) {
+			assert((!fc.fscope && rc == LDAP_SUCCESS)
+				   || (fc.fscope && rc != LDAP_COMPARE_TRUE && rc != LDAP_SUCCESS));
+			assert(op->o_tag == LDAP_REQ_MODIFY
+				   || op->o_tag == LDAP_REQ_EXTENDED
+				   || op->o_tag == LDAP_REQ_ADD);
+			syncprov_qresp( opc, so, LDAP_SYNC_NEW_COOKIE );
 		}
 
 		if ( !saveit && found ) {
 			/* Decrement s_inuse, was incremented when called
 			 * with saveit == TRUE
 			 */
-			assert(read_int__tsan_workaround(&so->s_flags) & OS_REF_OP_SEARCH);
 			syncprov_unlink_syncop( so, OS_REF_OP_MATCH, SO_LOCKED_SIOP );
 			continue;
 		}
