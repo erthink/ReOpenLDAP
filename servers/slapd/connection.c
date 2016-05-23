@@ -334,7 +334,7 @@ static Connection* connection_get( ber_socket_t s )
 
 		assert( c->c_struct_state == SLAP_C_USED );
 		assert( c->c_conn_state != SLAP_C_INVALID );
-		assert( c->c_sd != AC_SOCKET_INVALID );
+		assert( c->c_conn_state == SLAP_C_CLOSING || c->c_sd != AC_SOCKET_INVALID );
 
 #ifndef SLAPD_MONITOR
 		if ( global_idletimeout > 0 )
@@ -807,7 +807,7 @@ static void connection_abandon( Connection *c )
 	}
 }
 
-static void
+static int
 connection_wake_writers( Connection *c )
 {
 	/* wake write blocked operations */
@@ -827,9 +827,11 @@ connection_wake_writers( Connection *c )
 			ldap_pvt_thread_cond_wait( &c->c_write1_cv, &c->c_write1_mutex );
 		}
 		ldap_pvt_thread_mutex_unlock( &c->c_write1_mutex );
+		return 1;
 	} else {
 		ldap_pvt_thread_mutex_unlock( &c->c_write1_mutex );
 		slapd_clr_write( c->c_sd, 1 );
+		return 0;
 	}
 }
 
@@ -846,8 +848,8 @@ void connection_closing( Connection *c, const char *why )
 
 	if( c->c_conn_state != SLAP_C_CLOSING ) {
 		Debug( LDAP_DEBUG_CONNS,
-			"connection_closing: readying conn=%lu sd=%d for close\n",
-			c->c_connid, c->c_sd );
+			"connection_closing: readying conn=%lu sd=%d for close(%s)\n",
+			c->c_connid, c->c_sd, why );
 		/* update state to closing */
 		c->c_conn_state = SLAP_C_CLOSING;
 		c->c_close_reason = why;
@@ -859,7 +861,8 @@ void connection_closing( Connection *c, const char *why )
 		connection_abandon( c );
 
 		/* wake write blocked operations */
-		connection_wake_writers( c );
+		if (! connection_wake_writers( c ))
+			connection_resched( c );
 
 	} else if( why == NULL && c->c_close_reason == conn_lost_str ) {
 		/* Client closed connection after doing Unbind. */
