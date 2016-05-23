@@ -196,17 +196,16 @@ int connections_shutdown(int gentle_shutdown_only)
 			}
 
 			if( connections[i].c_struct_state == SLAP_C_USED ) {
-
 				/* give persistent clients a chance to cleanup */
 				if( connections[i].c_conn_state == SLAP_C_CLIENT ) {
 					ldap_pvt_thread_pool_submit( &connection_pool,
-					connections[i].c_clientfunc, connections[i].c_clientarg );
+						connections[i].c_clientfunc, connections[i].c_clientarg );
 				} else {
 					/* c_mutex is locked */
-					connection_closing( &connections[i], "slapd shutdown" );
 					ldap_pvt_thread_mutex_unlock( &connections_mutex );
-					locked = 0;
+					connection_closing( &connections[i], "slapd shutdown" );
 					connection_close( &connections[i] );
+					locked = 0;
 				}
 			}
 			ldap_pvt_thread_mutex_unlock( &connections[i].c_mutex );
