@@ -1286,27 +1286,33 @@ void connection_client_stop(
 	Connection *c )
 {
 	Sockbuf *sb;
-	ber_socket_t s = c->c_sd;
+	ber_socket_t s;
 
 	/* get (locked) connection */
-	c = connection_get( s );
+	c = connection_get( c->c_sd );
+	if (! c)
+		return;
 
 	assert( c->c_conn_state == SLAP_C_CLIENT );
 	connection_closing( c, "connection_client_stop" );
 
 	c->c_listener = NULL;
-	c->c_sd = AC_SOCKET_INVALID;
-	c->c_close_reason = "?";			/* should never be needed */
+	s = c->c_sd;
 	sb = c->c_sb;
-	c->c_sb = ber_sockbuf_alloc( );
-	{
-		ber_len_t max = sockbuf_max_incoming;
-		ber_sockbuf_ctrl( c->c_sb, LBER_SB_OPT_SET_MAX_INCOMING, &max );
+	if (s != AC_SOCKET_INVALID) {
+		c->c_sd = AC_SOCKET_INVALID;
+		c->c_close_reason = "?";			/* should never be needed */
+		c->c_sb = ber_sockbuf_alloc( );
+		{
+			ber_len_t max = sockbuf_max_incoming;
+			ber_sockbuf_ctrl( c->c_sb, LBER_SB_OPT_SET_MAX_INCOMING, &max );
+		}
 	}
 	ldap_pvt_thread_mutex_lock( &connections_mutex );
 	c->c_conn_state = SLAP_C_INVALID;
 	c->c_struct_state = SLAP_C_UNUSED;
-	slapd_remove( s, sb, 0, 1, 0 );
+	if (s != AC_SOCKET_INVALID)
+		slapd_remove( s, sb, 0, 1, 0 );
 	ldap_pvt_thread_mutex_unlock( &connections_mutex );
 
 	connection_return( c );
