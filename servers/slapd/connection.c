@@ -353,6 +353,18 @@ static void connection_return( Connection *c )
 	ldap_pvt_thread_mutex_unlock( &c->c_mutex );
 }
 
+int connections_socket_troube(ber_socket_t s)
+{
+	int rc = -1;
+	Connection *c = connection_get(s);
+	if (c) {
+		connection_closing( c, "socket trouble");
+		connection_return( c );
+		rc = 0;
+	}
+	return rc;
+}
+
 Connection * connection_init(
 	ber_socket_t s,
 	Listener *listener,

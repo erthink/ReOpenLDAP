@@ -320,6 +320,7 @@ static slap_daemon_st slap_daemon[SLAPD_MAX_DAEMON_THREADS];
 
 # define SLAP_EVENT_IS_READ(i)		SLAP_EPOLL_EVENT_CHK((i), EPOLLIN)
 # define SLAP_EVENT_IS_WRITE(i)		SLAP_EPOLL_EVENT_CHK((i), EPOLLOUT)
+# define SLAP_EVENT_IS_ERROR(i)		SLAP_EPOLL_EVENT_CHK((i), (EPOLLERR | EPOLLHUP))
 # define SLAP_EVENT_IS_LISTENER(t,i)	SLAP_EPOLL_EV_LISTENER(t,revents[(i)].data.ptr)
 # define SLAP_EVENT_LISTENER(t,i)		((Listener *)(revents[(i)].data.ptr))
 
@@ -380,6 +381,7 @@ static slap_daemon_st slap_daemon[SLAPD_MAX_DAEMON_THREADS];
 
 # define SLAP_SOCK_IS_READ(t,s)		SLAP_SOCK_IS_SET(t,(s), POLLIN)
 # define SLAP_SOCK_IS_WRITE(t,s)		SLAP_SOCK_IS_SET(t,(s), POLLOUT)
+# define SLAP_SOCK_IS_ERROR(t,s)		SLAP_SOCK_IS_SET(t,(s), (POLLERR | POLLHUP))
 
 /* as far as I understand, any time we need to communicate with the kernel
  * about the number and/or properties of a file descriptor we need it to
@@ -486,6 +488,8 @@ static slap_daemon_st slap_daemon[SLAPD_MAX_DAEMON_THREADS];
 
 # define SLAP_EVENT_IS_READ(i)		SLAP_DEVPOLL_EVENT_CHK((i), POLLIN)
 # define SLAP_EVENT_IS_WRITE(i)		SLAP_DEVPOLL_EVENT_CHK((i), POLLOUT)
+# define SLAP_EVENT_IS_ERROR(i)		SLAP_DEVPOLL_EVENT_CHK((i), (POLLERR | POLLHUP))
+
 # define SLAP_EVENT_IS_LISTENER(t,i)	SLAP_DEVPOLL_EV_LISTENER(SLAP_DEVPOLL_SOCK_LX(SLAP_EVENT_FD(t,(i))))
 # define SLAP_EVENT_LISTENER(t,i)		SLAP_DEVPOLL_SOCK_LX(SLAP_EVENT_FD(t,(i)))
 
@@ -2787,8 +2791,7 @@ loop:
 #endif /* LDAP_DEBUG */
 
 		for ( i = 0; i < ns; i++ ) {
-			int rc = 1, fd, w = 0;
-			int r ALLOW_UNUSED = 0;
+			int rc = 1, fd, w = 0, r = 0;
 
 			if ( SLAP_EVENT_IS_LISTENER( tid, i ) ) {
 				rc = slap_listener_activate( SLAP_EVENT_LISTENER( tid, i ) );
@@ -2823,9 +2826,8 @@ loop:
 					 * connection_write() must valid the stream is still
 					 * active.
 					 */
-					if ( connection_write( fd ) < 0 ) {
-						continue;
-					}
+					if ( connection_write( fd ) < 0 )
+						w = -2;
 				}
 				/* If event is a read */
 				if ( SLAP_EVENT_IS_READ( i )) {
@@ -2836,16 +2838,25 @@ loop:
 
 					SLAP_EVENT_CLR_READ( i );
 					connection_read_activate( fd );
-				} else if ( !w ) {
-#ifdef HAVE_EPOLL
-					/* Don't keep reporting the hangup
-					 */
-					ldap_pvt_thread_mutex_lock( &slap_daemon[tid].sd_mutex );
-					if ( SLAP_SOCK_IS_ACTIVE( tid, fd )) {
-						SLAP_EPOLL_SOCK_SET( tid, fd, EPOLLET );
-					}
-					ldap_pvt_thread_mutex_unlock( &slap_daemon[tid].sd_mutex );
+				}
+				if ( r + w < 0
+#ifdef SLAP_EVENT_IS_ERROR
+						|| SLAP_EVENT_IS_ERROR( fd )
 #endif
+					) {
+					Debug( LDAP_DEBUG_CONNS,
+						"daemon: socket troube on %d\n",
+						fd );
+					if (connections_socket_troube(fd) < 0) {
+#ifdef HAVE_EPOLL
+						/* Don't keep reporting the hangup */
+						ldap_pvt_thread_mutex_lock( &slap_daemon[tid].sd_mutex );
+						if ( SLAP_SOCK_IS_ACTIVE( tid, fd ))
+							SLAP_EPOLL_SOCK_SET( tid, fd, EPOLLET );
+						ldap_pvt_thread_mutex_unlock( &slap_daemon[tid].sd_mutex );
+#endif/* HAVE_EPOLL */
+					}
+					continue;
 				}
 			}
 		}
