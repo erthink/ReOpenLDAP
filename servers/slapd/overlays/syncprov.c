@@ -68,12 +68,14 @@ typedef struct reslink {
 typedef struct syncops {
 	struct syncops *s_next;
 	struct syncprov_info_t *s_si;
-	struct berval	s_base;		/* ndn of search base */
-	ID		s_eid;		/* entryID of search base */
 	Operation	*s_op;		/* search op */
 	int		s_rid;
 	int		s_sid;
+	struct berval	s_base;		/* ndn of search base */
+	ID		s_eid;		/* entryID of search base */
 	struct berval s_filterstr;
+
+	ldap_pvt_thread_mutex_t	s_mutex;
 	int		s_flags;	/* search status and reference bits */
 #define	PS_IS_REFRESHING	0x01
 #define	PS_IS_DETACHED		0x02
@@ -96,7 +98,8 @@ typedef struct syncops {
 	int		s_matchops_inuse;	/* reference count from matchops */
 	struct reslink *s_rl;
 	struct reslink *s_rltail;
-	ldap_pvt_thread_mutex_t	s_mutex;
+
+	Operation *s_op_safe, s_op_copy;
 } syncops;
 
 #ifdef SLAP_NO_SL_MALLOC
@@ -1574,14 +1577,15 @@ kill_locked:
 				rc = SLAPD_ABANDON;
 				goto kill_locked;
 			}
-			Operation op2; op_copy(so->s_op, &op2, NULL, NULL);
+			assert( so->s_flags & OS_REF_OP_SEARCH );
+			Operation op2; op_copy(so->s_op_safe, &op2, NULL, NULL);
 			Opheader oh = *op->o_hdr;
-
-			oh.oh_conn = op2.o_conn;
-			oh.oh_connid = op2.o_connid;
-			op2.o_bd = op2.o_bd->bd_self;
+			oh.oh_conn = so->s_op->o_conn;
+			oh.oh_connid = so->s_op->o_connid;
+			op2.o_bd = op->o_bd->bd_self;
 			op2.o_hdr = &oh;
 			op2.o_extra = op->o_extra;
+
 			if ( so->s_flags & PS_FIX_FILTER ) {
 				/* Skip the AND/GE clause that we stuck on in front. We
 				   would lose deletes/mods that happen during the refresh
@@ -1589,7 +1593,6 @@ kill_locked:
 				op2.ors_filter = op2.ors_filter->f_and->f_next;
 			}
 			rc = test_filter( &op2, e, op2.ors_filter );
-			assert( so->s_flags & OS_REF_OP_SEARCH );
 			ldap_pvt_thread_mutex_unlock( &so->s_mutex );
 		}
 
@@ -2604,7 +2607,7 @@ syncprov_detach_op( Operation *op, syncops *so, slap_overinst *on )
 		op2->ors_filter = op->ors_filter;
 	}
 	op2->ors_filter = filter_dup( op2->ors_filter, NULL );
-	so->s_op = op2;
+	so->s_op_safe = so->s_op = op2;
 
 	/* Copy any cached group ACLs individually */
 	op2->o_groups = NULL;
@@ -2876,7 +2879,7 @@ syncprov_op_search( Operation *op, SlapReply *rs )
 		fc.fss = so;
 		fc.fbase = 0;
 		so->s_eid = NOID;
-		so->s_op = op;
+		so->s_op_safe = so->s_op = op;
 		so->s_flags = PS_IS_REFRESHING | PS_FIND_BASE;
 		so->s_rid = srs->sr_state.rid;
 		so->s_sid = srs->sr_state.sid;
@@ -3228,6 +3231,8 @@ shortcut:
 
 	if ( so ) {
 		if (so->s_flags & OS_REF_OP_SEARCH) {
+			/* LY: make a copy to avoid race syncprov_matchops() with over_op_func() */
+			op_copy(so->s_op, so->s_op_safe = &so->s_op_copy, NULL, NULL);
 			assert(so->s_flags & OS_REF_PREPARE);
 			so->s_flags -= OS_REF_PREPARE;
 			cb->sc_cleanup = syncprov_search_cleanup;
