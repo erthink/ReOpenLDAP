@@ -717,6 +717,9 @@ LDAP_F (int) ldap_is_write_ready( LDAP *ld, Sockbuf *sb );
 LDAP_F (int) ldap_int_connect_cbs( LDAP *ld, Sockbuf *sb,
 	ber_socket_t *s, LDAPURLDesc *srv, struct sockaddr *addr );
 
+int ldap_pvt_tcpkeepalive(int fd,
+		ber_int_t idle, ber_int_t probes, ber_int_t interval);
+
 /*
  * in os-local.c
  */
