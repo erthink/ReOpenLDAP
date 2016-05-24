@@ -1000,6 +1000,16 @@ syncprov_unlink_syncop( syncops *so, int unlink_flags, int locked_flags )
 			} else {
 				assert(so->s_op->o_conn == NULL);
 			}
+			if ( (so->s_flags & OS_REF_ABANDON) == 0
+					&& LDAP_STAILQ_EMPTY(&conn->c_ops)
+					&& LDAP_STAILQ_EMPTY(&conn->c_pending_ops) ) {
+				/* LY: If ops-queues are empty
+				 *        and we called NOT from connection_abandon(),
+				 *     then kicks the connection to close it immediately.
+				 * For instance, when syncprov_unlink_syncop() called
+				 * from syncprov_playback_dequeue(). */
+				connection_closing( conn, NULL );
+			}
 			if ( (locked_flags & SO_LOCKED_CONN) == 0 )
 				ldap_pvt_thread_mutex_unlock( &conn->c_mutex );
 		}
