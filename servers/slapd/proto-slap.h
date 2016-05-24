@@ -910,7 +910,7 @@ void quorum_notify_status(BackendDB *bd, void* key, int status);
 int quorum_query(BackendDB *bd);
 void quorum_notify_csn(BackendDB *bd, int csnsid);
 int quorum_syncrepl_gate(BackendDB *bd, void *instance_key, int in);
-int quorum_query_status(BackendDB *bd, int running_only, BerValue*);
+int quorum_query_status(BackendDB *bd, int running_only, BerValue*, Operation *op);
 
 /*
  * daemon.c

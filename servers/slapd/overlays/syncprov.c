@@ -3303,7 +3303,7 @@ syncprov_operational(
 			int mock = 0;
 			if (! op->o_dont_replicate && si->si_showstatus != SS_NONE ) {
 				mock = quorum_query_status(op->o_bd,
-						si->si_showstatus == SS_RUNNING, &status)
+						si->si_showstatus == SS_RUNNING, &status, op)
 					| read_int__tsan_workaround(&si->si_prefresh)
 					| read_int__tsan_workaround(&si->si_active);
 
