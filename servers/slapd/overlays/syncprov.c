@@ -970,8 +970,15 @@ syncprov_unlink_syncop( syncops *so, int unlink_flags, int locked_flags )
 		else if ( so->s_op->o_conn && (so->s_flags & OS_REF_UNLINK) == 0 ) {
 			Connection* conn = so->s_op->o_conn;
 			if ( (locked_flags & SO_LOCKED_CONN) == 0 ) {
-				/* LY: avoid lock-order reversal */
 				if (ldap_pvt_thread_mutex_trylock( &conn->c_mutex )) {
+					if (get_op_abandon(so->s_op)) {
+						/* LY: connection_abandon() is running, and we are
+						 * clashed with it. So, we could skip OS_REF_OP_SEARCH
+						 * and connection unlinkin. */
+						unlink_flags -= OS_REF_OP_SEARCH;
+						goto skip_conn_unlink;
+					}
+					/* LY: avoid lock-order reversal */
 					so->s_flags |= OS_REF_UNLINK;
 					unlink_flags |= OS_REF_UNLINK;
 					ldap_pvt_thread_mutex_unlock( &so->s_mutex );
@@ -998,6 +1005,7 @@ syncprov_unlink_syncop( syncops *so, int unlink_flags, int locked_flags )
 		ldap_pvt_thread_mutex_unlock( &si->si_ops_mutex );
 	}
 
+skip_conn_unlink:
 	so->s_flags &= ~unlink_flags;
 	if (so->s_flags & OS_REF_MASK) {
 		ldap_pvt_thread_mutex_unlock( &so->s_mutex );
@@ -3023,10 +3031,9 @@ bailout:
 					ber_bvarray_free_x( ctxcsn, op->o_tmpmemctx );
 				if ( sids )
 					op->o_tmpfree( sids, op->o_tmpmemctx );
-				if ( so ) {
+				if ( so )
 					syncprov_unlink_syncop(so,
 						OS_REF_PREPARE | OS_REF_OP_SEARCH, SO_LOCKED_NONE );
-				}
 				rs->sr_ctrls = NULL;
 				send_ldap_result( op, rs );
 				return rs->sr_err;
@@ -3734,14 +3741,20 @@ syncprov_db_close(
 	if ( !slapd_shutdown ) {
 		int paused = slap_biglock_pool_pause(be);
 		ldap_pvt_thread_mutex_lock( &si->si_ops_mutex );
-		for ( so=si->si_ops, sonext=so;  so; so=sonext  ) {
+		while ( si->si_ops != NULL ) {
+			syncops *so = si->si_ops;
 			SlapReply rs = {REP_RESULT};
 			rs.sr_err = LDAP_UNAVAILABLE;
 			send_ldap_result( so->s_op, &rs );
-			sonext=so->s_next;
-			@ TODO
-			so->s_flags |= PS_DEAD;
-			syncprov_unlink_syncop( so, OS_REF_OP_SEARCH, SO_LOCKED_SIOP );
+			ldap_pvt_thread_mutex_lock( &so->s_mutex );
+			si->si_ops = so->s_next;
+			so->s_next = so; /* LY: safely mark it as unlinked */
+			so->s_flags |= PS_DEAD | OS_REF_CLOSE;
+			ldap_pvt_thread_mutex_unlock( &so->s_mutex );
+			ldap_pvt_thread_mutex_unlock( &si->si_ops_mutex );
+
+			syncprov_unlink_syncop( so, OS_REF_OP_SEARCH | OS_REF_CLOSE, SO_LOCKED_NONE );
+			ldap_pvt_thread_mutex_lock( &si->si_ops_mutex );
 		}
 		ldap_pvt_thread_mutex_unlock( &si->si_ops_mutex );
 		if (paused == LDAP_SUCCESS)
