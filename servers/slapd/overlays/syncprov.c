@@ -1166,7 +1166,7 @@ syncprov_playback_locked( Operation *op, syncops *so )
 	if ( (so->s_flags & PS_DEAD) == 0 )
 		return 0;
 
-	if ( so->s_flags & PS_LOST_BASE ) {
+	if ( (so->s_flags & PS_LOST_BASE) && ! is_syncops_abandoned(so) ) {
 		SlapReply rs = {REP_RESULT};
 		send_ldap_error( so->s_op, &rs, LDAP_SYNC_REFRESH_REQUIRED,
 			"search base has changed" );
