@@ -49,10 +49,9 @@ static void presentlist_free( presentlist_t *list );
 /* LY: This should be different from any error-code in ldap.h,
  *	   the -42 seems good... */
 #define	SYNC_PAUSED         -42
-#define SYNCREPL_RETARDED	-43
-#define SYNC_REBUS1			-1
-#define SYNC_REBUS2			-2
-#define	SYNC_REFRESH_YIELD  -421
+#define SYNC_RETARDED		-43
+#define	SYNC_REFRESH_YIELD  -44
+#define SYNC_DONE			-45
 
 struct nonpresent_entry {
 	struct berval *npe_name;
@@ -837,7 +836,7 @@ static void syncrepl_refresh_done( syncinfo_t *si, int rc ) {
 }
 
 static void syncrepl_resync_end( syncinfo_t *si, int rc ) {
-	if (rc == SYNC_REBUS2 && abs(si->si_type) == LDAP_SYNC_REFRESH_ONLY) {
+	if (rc == SYNC_DONE) {
 		rc = LDAP_SUCCESS;
 		syncrepl_refresh_done(si, rc);
 	} else if (rc != LDAP_SUCCESS)
@@ -955,7 +954,7 @@ syncrepl_process(
 	Debug( LDAP_DEBUG_SYNC, "=>> syncrep_process %s\n", si->si_ridtxt );
 
 	if ( slapd_shutdown ) {
-		rc = SYNC_REBUS2;
+		rc = LDAP_SERVER_DOWN;
 		goto done;
 	}
 
@@ -978,7 +977,7 @@ syncrepl_process(
 			(abs(si->si_type) != LDAP_SYNC_REFRESH_AND_PERSIST || !si->si_refreshDone)
 			? wait_infinite : &nowait, &msg );
 		if (slapd_shutdown)
-			rc = SYNC_REBUS2;
+			rc = LDAP_SERVER_DOWN;
 		if (rc <= 0)
 			break;
 
@@ -1026,7 +1025,7 @@ syncrepl_process(
 					Debug( LDAP_DEBUG_ANY, "syncrepl_process: %s "
 						"got search entry with multiple "
 						"Sync State control (%s)\n", si->si_ridtxt, bdn.bv_val );
-					rc = SYNC_REBUS1;
+					rc = LDAP_PROTOCOL_ERROR;
 					goto done;
 				}
 			}
@@ -1035,7 +1034,7 @@ syncrepl_process(
 				Debug( LDAP_DEBUG_ANY, "syncrepl_process: %s "
 					"got search entry without "
 					"Sync State control (%s)\n", si->si_ridtxt, bdn.bv_val );
-				rc = SYNC_REBUS1;
+				rc = LDAP_PROTOCOL_ERROR;
 				goto done;
 			}
 			ber_init2( ber, &rctrlp->ldctl_value, LBER_USE_DER );
@@ -1045,7 +1044,7 @@ syncrepl_process(
 				Debug( LDAP_DEBUG_ANY,
 					"syncrepl_process: %s malformed message (%s)\n",
 					si->si_ridtxt, bdn.bv_val );
-				rc = SYNC_REBUS1;
+				rc = LDAP_PROTOCOL_ERROR;
 				goto done;
 			}
 			if ( syncUUID[0].bv_len != UUIDLEN ) {
@@ -1111,7 +1110,7 @@ syncrepl_process(
 				slap_mods_free( modlist, 1 );
 			}
 
-			if ( rc == SYNCREPL_RETARDED )
+			if ( rc == SYNC_RETARDED )
 				rc = LDAP_SUCCESS;
 			if ( rc )
 				goto done;
@@ -1125,7 +1124,7 @@ syncrepl_process(
 
 		case LDAP_RES_SEARCH_RESULT: {
 			int refreshDeletes = 0;
-			int result_code = LDAP_OTHER;
+			int result_code = LDAP_PROTOCOL_ERROR;
 
 			Debug( LDAP_DEBUG_SYNC,
 				"syncrepl_process: %s LDAP_RES_SEARCH_RESULT\n",
@@ -1174,7 +1173,7 @@ syncrepl_process(
 					Debug( LDAP_DEBUG_ANY, "syncrepl_process: %s "
 						"got search result with multiple "
 						"Sync State control\n", si->si_ridtxt );
-					rc = SYNC_REBUS1;
+					rc = LDAP_PROTOCOL_ERROR;
 					goto done;
 				}
 			}
@@ -1228,8 +1227,7 @@ syncrepl_process(
 				slap_resume_listeners();
 			} else if ( rc == LDAP_SUCCESS ) {
 				/* LY: test017-syncreplication-refresh */
-				rc = SYNC_REBUS2;
-				Debug( LDAP_DEBUG_SYNC, "syncrepl_process: => SYNC_REBUS2 %d\n", __LINE__);
+				rc = SYNC_DONE;
 			}
 			goto done;
 		}
@@ -1395,9 +1393,11 @@ syncrepl_process(
 		}
 	}
 
-	if ( rc == SYNC_REBUS1 ) {
-		rc = LDAP_OTHER;
-		ldap_get_option( si->si_ld, LDAP_OPT_ERROR_NUMBER, &rc );
+	if ( rc == LDAP_PROTOCOL_ERROR ) {
+		int err = LDAP_OTHER;
+		if ( ldap_get_option( si->si_ld, LDAP_OPT_ERROR_NUMBER, &err ) == LDAP_SUCCESS
+				&& err != LDAP_OTHER && err != LDAP_SUCCESS )
+			rc = err;
 	}
 
 done:
@@ -1553,7 +1553,7 @@ deleted:
 			si->si_ctype = 0;
 			freeinfo = 1;
 		}
-		rc = SYNC_REBUS1;
+		rc = LDAP_UNAVAILABLE;
 	}
 
 	Debug( LDAP_DEBUG_TRACE, "<=do_syncrepl %s, rc %d\n", si->si_ridtxt, rc );
@@ -1573,7 +1573,7 @@ deleted:
 				dostop = 1;
 			}
 		} else {
-			if ( rc == SYNC_REBUS2 ) rc = LDAP_SUCCESS;
+			if ( rc == SYNC_DONE ) rc = LDAP_SUCCESS;
 			dostop = 1;
 		}
 	}
@@ -2214,7 +2214,7 @@ syncrepl_message_to_op(
 		Debug( LDAP_DEBUG_ANY, "syncrepl_message_to_op: %s "
 			"Message type should be entry (%d)",
 			si->si_ridtxt, ldap_msgtype( msg ) );
-		return SYNC_REBUS1;
+		return LDAP_PROTOCOL_ERROR;
 	}
 
 	if ( si->si_syncdata == SYNCDATA_ACCESSLOG )
@@ -2238,7 +2238,7 @@ syncrepl_message_to_op(
 		Debug( LDAP_DEBUG_ANY,
 			"syncrepl_message_to_op: %s got empty dn",
 			si->si_ridtxt );
-		return LDAP_OTHER;
+		return LDAP_PROTOCOL_ERROR;
 	}
 
 	assert(slap_biglock_owned(op->o_bd));
@@ -2255,7 +2255,7 @@ syncrepl_message_to_op(
 					"syncrepl_message_to_op: %s "
 					"dn \"%s\" normalization failed (%d)",
 					si->si_ridtxt, bdn.bv_val, rc );
-				rc = SYNC_REBUS1;
+				rc = LDAP_PROTOCOL_ERROR;
 				ch_free( bvals );
 				goto done;
 			}
@@ -2271,7 +2271,7 @@ syncrepl_message_to_op(
 					"syncrepl_message_to_op: %s unknown op %s",
 					si->si_ridtxt, bvals[0].bv_val );
 				ch_free( bvals );
-				rc = SYNC_REBUS1;
+				rc = LDAP_PROTOCOL_ERROR;
 				goto done;
 			}
 			op->o_tag = modops[i].mask;
@@ -2302,7 +2302,7 @@ syncrepl_message_to_op(
 
 	/* If we didn't get a mod type or a target DN, bail out */
 	if ( op->o_tag == LBER_DEFAULT || BER_BVISNULL( &dn ) ) {
-		rc = SYNC_REBUS1;
+		rc = LDAP_PROTOCOL_ERROR;
 		goto done;
 	}
 
@@ -2542,7 +2542,7 @@ syncrepl_message_to_entry(
 		Debug( LDAP_DEBUG_ANY, "syncrepl_message_to_entry: %s "
 			"Message type should be entry (%d)",
 			si->si_ridtxt, ldap_msgtype( msg ) );
-		return SYNC_REBUS1;
+		return LDAP_PROTOCOL_ERROR;
 	}
 
 	op->o_tag = LDAP_REQ_ADD;
@@ -2559,7 +2559,7 @@ syncrepl_message_to_entry(
 		Debug( LDAP_DEBUG_ANY,
 			"syncrepl_message_to_entry: %s got empty dn",
 			si->si_ridtxt );
-		return LDAP_OTHER;
+		return LDAP_PROTOCOL_ERROR;
 	}
 
 	/* syncUUID[0] is normalized UUID received over the wire
@@ -2578,7 +2578,7 @@ syncrepl_message_to_entry(
 	}
 
 	if ( entry == NULL ) {
-		return SYNC_REBUS1;
+		return LDAP_PROTOCOL_ERROR;
 	}
 
 	REWRITE_DN( si, bdn, bv2, dn, ndn );
@@ -2661,7 +2661,7 @@ syncrepl_message_to_entry(
 	if ( *modlist == NULL ) {
 		Debug( LDAP_DEBUG_ANY, "syncrepl_message_to_entry: %s no attributes\n",
 			si->si_ridtxt );
-		rc = SYNC_REBUS1;
+		rc = LDAP_PROTOCOL_ERROR;
 		goto done;
 	}
 
@@ -3032,7 +3032,7 @@ syncrepl_entry(
 				syncUUID[1].bv_val, dni.csn_incomming.bv_val);
 			if (syncuuid_inserted && !dni.csn_present.bv_val)
 				presentlist_delete( &si->si_presentlist, syncUUID );
-			rc = SYNCREPL_RETARDED;
+			rc = SYNC_RETARDED;
 			goto done;
 		}
 	}
