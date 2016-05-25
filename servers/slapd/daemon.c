@@ -44,6 +44,9 @@
 /* LY: needed by config_keepalive() */
 #include "config.h"
 
+/* LY: for ldap_pvt_tcpkeepalive() from libldap */
+#include "../../../libraries/libldap/ldap-int.h"
+
 #if defined(HAVE_SYS_EPOLL_H) && defined(HAVE_EPOLL)
 # include <sys/epoll.h>
 #elif defined(SLAP_X_DEVPOLL) && defined(HAVE_SYS_DEVPOLL_H) && defined(HAVE_DEVPOLL)
@@ -1964,29 +1967,24 @@ slap_listener(
 	ldap_pvt_thread_mutex_unlock( &slap_daemon[tid].sd_mutex );
 #endif /* LDAP_DEBUG */
 
-#if defined( SO_KEEPALIVE ) || defined( TCP_NODELAY )
 #ifdef LDAP_PF_LOCAL
 	/* for IPv4 and IPv6 sockets only */
 	if ( from.sa_addr.sa_family != AF_LOCAL )
 #endif /* LDAP_PF_LOCAL */
 	{
-		int rc;
-		int tmp;
-#ifdef SO_KEEPALIVE
-		/* enable keep alives */
-		tmp = 1;
-		rc = setsockopt( s, SOL_SOCKET, SO_KEEPALIVE,
-			(char *) &tmp, sizeof(tmp) );
-		if ( rc == AC_SOCKET_ERROR ) {
+		int rc = ldap_pvt_tcpkeepalive( sfd,
+			slapd_tcpkeepalive.idle,
+			slapd_tcpkeepalive.probes,
+			slapd_tcpkeepalive.interval );
+		if ( !rc ) {
 			int err = sock_errno();
 			Debug( LDAP_DEBUG_ANY,
-				"slapd(%ld): setsockopt(SO_KEEPALIVE) failed "
+				"slapd(%ld): tcp-keepalive setup failed "
 				"errno=%d (%s)\n", (long) sfd, err, sock_errstr(err) );
 		}
-#endif /* SO_KEEPALIVE */
 #ifdef TCP_NODELAY
 		/* enable no delay */
-		tmp = 1;
+		int tmp = 1;
 		rc = setsockopt( s, IPPROTO_TCP, TCP_NODELAY,
 			(char *)&tmp, sizeof(tmp) );
 		if ( rc == AC_SOCKET_ERROR ) {
@@ -1997,7 +1995,6 @@ slap_listener(
 		}
 #endif /* TCP_NODELAY */
 	}
-#endif /* SO_KEEPALIVE || TCP_NODELAY */
 
 	Debug( LDAP_DEBUG_CONNS,
 		"daemon: listen=%ld, new connection on %ld\n",
