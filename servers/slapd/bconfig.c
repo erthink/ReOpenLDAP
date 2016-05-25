@@ -122,8 +122,6 @@ static ConfigDriver config_timelimit;
 static ConfigDriver config_overlay;
 static ConfigDriver config_subordinate;
 static ConfigDriver config_suffix;
-static ConfigDriver config_biglock;
-static ConfigDriver config_reopenldap;
 #ifdef LDAP_TCP_BUFFER
 static ConfigDriver config_tcp_buffer;
 #endif /* LDAP_TCP_BUFFER */
@@ -145,8 +143,12 @@ static ConfigDriver config_obsolete;
 static ConfigDriver config_tls_option;
 static ConfigDriver config_tls_config;
 #endif
-extern ConfigDriver syncrepl_config;
-extern ConfigDriver quorum_config;
+
+extern ConfigDriver config_syncrepl;
+extern ConfigDriver config_quorum;
+static ConfigDriver config_biglock;
+static ConfigDriver config_reopenldap;
+extern ConfigDriver config_keepalive;
 
 enum {
 	CFG_ACL = 1,
@@ -641,7 +643,7 @@ static ConfigTable config_back_cf_table[] = {
 			"DESC 'Store sync context in a subentry' "
 			"SYNTAX OMsBoolean SINGLE-VALUE )", NULL, NULL },
 	{ "syncrepl", NULL, 0, 0, 0, ARG_DB|ARG_MAGIC,
-		&syncrepl_config, "( OLcfgDbAt:0.11 NAME 'olcSyncrepl' "
+		&config_syncrepl, "( OLcfgDbAt:0.11 NAME 'olcSyncrepl' "
 			"EQUALITY caseIgnoreMatch "
 			"SYNTAX OMsDirectoryString X-ORDERED 'VALUES' )", NULL, NULL },
 	{ "tcp-buffer", "[listener=<listener>] [{read|write}=]size", 0, 0, 0,
@@ -790,7 +792,12 @@ static ConfigTable config_back_cf_table[] = {
 			"EQUALITY caseIgnoreMatch "
 			"SYNTAX OMsDirectoryString SINGLE-VALUE )", NULL, NULL },
 	{ "quorum", "requirements-list", 2, 0, 0, ARG_DB|ARG_MAGIC,
-		&quorum_config, "( OLcfgDbAt:0.47 NAME 'olcQuorum' "
+		&config_quorum, "( OLcfgDbAt:0.47 NAME 'olcQuorum' "
+			"EQUALITY caseIgnoreMatch "
+			"SYNTAX OMsDirectoryString SINGLE-VALUE )", NULL, NULL },
+	{ "keepalive", "idle:probes:interval", 2, 2, 0, ARG_STRING|ARG_MAGIC,
+		&config_keepalive, "( OLcfgGlAt:0.48 NAME 'olcTcpKeepalive' "
+			"DESC 'TCP Keepalive' "
 			"EQUALITY caseIgnoreMatch "
 			"SYNTAX OMsDirectoryString SINGLE-VALUE )", NULL, NULL },
 	{ NULL,	NULL, 0, 0, 0, ARG_IGNORED,

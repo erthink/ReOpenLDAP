@@ -5862,7 +5862,7 @@ syncrepl_unparse( syncinfo_t *si, struct berval *bv )
 }
 
 int
-syncrepl_config( ConfigArgs *c )
+config_syncrepl( ConfigArgs *c )
 {
 	if (c->op == SLAP_CONFIG_EMIT) {
 		if ( c->be->be_syncinfo ) {

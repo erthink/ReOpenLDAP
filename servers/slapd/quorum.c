@@ -458,7 +458,7 @@ static int notify_sid(slap_quorum_t *q, void* key, int sid) {
 			}
 		}
 	}
-	/* LY: this may occur when 'syncrepl' removed by syncrepl_config()
+	/* LY: this may occur when 'syncrepl' removed by config_syncrepl()
 	 * while do_syncrepl() is running. */
 	return 0;
 }
@@ -658,7 +658,7 @@ static int unparse(BerVarray *vals, slap_quorum_t *q, int type, const char* verb
 	return 0;
 }
 
-int quorum_config(ConfigArgs *c) {
+int config_quorum(ConfigArgs *c) {
 	int i, type;
 	slap_quorum_t *q = c->be->bd_quorum;
 	assert(c->be->bd_self == c->be);

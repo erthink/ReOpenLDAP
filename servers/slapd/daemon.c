@@ -41,6 +41,9 @@
 
 #include "ldap_rq.h"
 
+/* LY: needed by config_keepalive() */
+#include "config.h"
+
 #if defined(HAVE_SYS_EPOLL_H) && defined(HAVE_EPOLL)
 # include <sys/epoll.h>
 #elif defined(SLAP_X_DEVPOLL) && defined(HAVE_SYS_DEVPOLL_H) && defined(HAVE_DEVPOLL)
@@ -72,6 +75,10 @@ slap_time_t starttime;
 ber_socket_t dtblsize;
 slap_ssf_t local_ssf = LDAP_PVT_SASL_LOCAL_SSF;
 struct runqueue_s slapd_rq;
+
+struct {
+	int idle, probes, interval;
+} slapd_tcpkeepalive = {-1, -1, -1};
 
 #ifndef SLAPD_MAX_DAEMON_THREADS
 #define SLAPD_MAX_DAEMON_THREADS	16
@@ -3143,4 +3150,90 @@ void
 slap_wake_listener()
 {
 	WAKE_LISTENER(0,1);
+}
+
+int
+config_keepalive(ConfigArgs *c)
+{
+	if (c->op == SLAP_CONFIG_EMIT) {
+		if (slapd_tcpkeepalive.idle < 0
+				&& slapd_tcpkeepalive.probes < 0
+				&& slapd_tcpkeepalive.interval < 0) {
+			c->value_string = ch_strdup( "default" );
+		} else if (slapd_tcpkeepalive.idle == 0
+				   && slapd_tcpkeepalive.probes == 0
+				   && slapd_tcpkeepalive.interval == 0) {
+			c->value_string = ch_strdup( "disable" );
+		} else {
+			char buf[64], *s = buf;
+			if (slapd_tcpkeepalive.idle >= 0)
+				s += snprintf(s, buf + sizeof(buf) - s, "%d",
+							  slapd_tcpkeepalive.idle);
+			*s++ = ':';
+			if (slapd_tcpkeepalive.probes >= 0)
+				s += snprintf(s, buf + sizeof(buf) - s, "%d",
+							  slapd_tcpkeepalive.probes);
+			*s++ = ':';
+			if (slapd_tcpkeepalive.interval >= 0)
+				s += snprintf(s, buf + sizeof(buf) - s, "%d",
+							  slapd_tcpkeepalive.interval);
+			*s = '\0';
+		}
+		return 0;
+	} else if ( c->op == LDAP_MOD_DELETE
+			|| strcasecmp(c->value_string, "default") == 0) {
+		slapd_tcpkeepalive.idle = -1;
+		slapd_tcpkeepalive.probes = -1;
+		slapd_tcpkeepalive.interval = -1;
+		return 0;
+	} else if (strcasecmp(c->value_string, "disable") == 0) {
+		slapd_tcpkeepalive.idle = 0;
+		slapd_tcpkeepalive.probes = 0;
+		slapd_tcpkeepalive.interval = 0;
+		return 0;
+	} else {
+		int idle, probes, interval;
+		char *s = c->value_string;
+
+		idle = -1;
+		if (*s) {
+			if (*s != ':') {
+				idle = strtoul(s, &s, 10);
+				if (idle < 0)
+					goto bailout;
+			}
+			if (*s == ':')
+				s++;
+		}
+
+		probes = -1;
+		if (*s) {
+			if (*s != ':') {
+				probes = strtoul(s, &s, 10);
+				if (probes < 0)
+					goto bailout;
+			}
+			if (*s == ':')
+				s++;
+		}
+
+		interval = -1;
+		if (*s) {
+			interval = strtoul(s, &s, 10);
+			if (interval < 0)
+				goto bailout;
+		}
+
+		if (*s == '\0') {
+			slapd_tcpkeepalive.idle = idle;
+			slapd_tcpkeepalive.probes = probes;
+			slapd_tcpkeepalive.interval = interval;
+			return 0;
+		}
+
+bailout:
+		snprintf( c->cr_msg, sizeof( c->cr_msg ), "<%s> invalid specification", c->argv[0] );
+		Debug(LDAP_DEBUG_ANY, "%s: %s '%s'\n", c->log, c->cr_msg, c->value_string);
+		return 1;
+	}
 }
