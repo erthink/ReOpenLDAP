@@ -141,7 +141,7 @@ ldap_pvt_tcpkeepalive(int fd, ber_int_t idle, ber_int_t probes, ber_int_t interv
 	return AC_SOCKET_ERROR;
 #else
 	int rc = 0, enable = 1;
-	if (idle == 0 && probes == 0 && interval == 0);
+	if (idle == 0 && probes == 0 && interval == 0)
 		enable = 0;
 
 	if ( enable && idle >= 0 )
