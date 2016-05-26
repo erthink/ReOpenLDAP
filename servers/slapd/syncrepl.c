@@ -937,7 +937,7 @@ syncrepl_process(
 	syncinfo_t *si )
 {
 	static /* const */ struct timeval nowait = { 0, 0 };
-	struct timeval *wait_infinite = NULL;
+	struct timeval * const wait_infinite = NULL;
 
 	BerElementBuffer berbuf;
 	BerElement	*ber = (BerElement *)&berbuf;
@@ -1120,6 +1120,10 @@ syncrepl_process(
 			Debug( LDAP_DEBUG_ANY,
 				"syncrepl_process: %s reference received error\n",
 				si->si_ridtxt );
+			if (reopenldap_mode_strict()) {
+				rc = LDAP_PROTOCOL_ERROR;
+				goto done;
+			}
 			break;
 
 		case LDAP_RES_SEARCH_RESULT: {
@@ -1190,7 +1194,10 @@ syncrepl_process(
 					op->o_controls[slap_cids.sc_LDAPsync] = &syncCookie;
 				}
 				if ( ber_peek_tag( ber, &len ) == LDAP_TAG_REFRESHDELETES )
-					ber_scanf( ber, "b", &refreshDeletes );
+					if (ber_scanf( ber, "b", &refreshDeletes ) == LBER_ERROR) {
+						rc = LDAP_PROTOCOL_ERROR;
+						goto done;
+					}
 				ber_scanf( ber, /*"{"*/ "}" );
 			}
 
@@ -1240,7 +1247,7 @@ syncrepl_process(
 
 			rc = ldap_parse_intermediate( si->si_ld, msg,
 				&retoid, &retdata, NULL, 0 );
-			if ( !rc && !strcmp( retoid, LDAP_SYNC_INFO ) ) {
+			if ( rc == LDAP_SUCCESS && strcmp( retoid, LDAP_SYNC_INFO ) == 0 ) {
 				ber_init2( ber, retdata, LBER_USE_DER );
 
 				switch ( si_tag = ber_peek_tag( ber, &len ) ) {
@@ -1281,11 +1288,14 @@ syncrepl_process(
 					/* Defaults to TRUE */
 					refreshDone = 1;
 					if ( ber_peek_tag( ber, &len ) == LDAP_TAG_REFRESHDONE ) {
-						refreshDone = 0;
-						ber_scanf( ber, "b", &refreshDone );
+						if (ber_scanf( ber, "b", &refreshDone ) == LBER_ERROR) {
+							rc = LDAP_PROTOCOL_ERROR;
+							goto done_intermediate;
+						}
 					}
 					ber_scanf( ber, /*"{"*/ "}" );
 					break;
+
 				case LDAP_TAG_SYNC_ID_SET: {
 					Debug( LDAP_DEBUG_SYNC,
 						"syncrepl_process: %s %s - %s\n",
@@ -1301,8 +1311,12 @@ syncrepl_process(
 						op->o_controls[slap_cids.sc_LDAPsync] = &syncCookie;
 					}
 					int refreshDeletes = 0;
-					if ( ber_peek_tag( ber, &len ) == LDAP_TAG_REFRESHDELETES )
-						ber_scanf( ber, "b", &refreshDeletes );
+					if ( ber_peek_tag( ber, &len ) == LDAP_TAG_REFRESHDELETES ) {
+						if (ber_scanf( ber, "b", &refreshDeletes ) == LBER_ERROR) {
+							rc = LDAP_PROTOCOL_ERROR;
+							goto done_intermediate;
+						}
+					}
 
 					rc = ber_scanf( ber, "[W]", &syncUUIDs );
 					ber_scanf( ber, /*"{"*/ "}" );
@@ -1329,11 +1343,12 @@ syncrepl_process(
 					rc = LDAP_SUCCESS;
 					break;
 				}
+
 				default:
 					Debug( LDAP_DEBUG_ANY,
 						"syncrepl_process: %s unknown syncinfo tag (%ld)\n",
 						si->si_ridtxt, (long) si_tag );
-					rc = LDAP_SUCCESS;
+					rc = reopenldap_mode_strict() ? LDAP_PROTOCOL_ERROR : LDAP_SUCCESS;
 					goto done_intermediate;
 				}
 
@@ -1349,9 +1364,8 @@ syncrepl_process(
 					si->si_got_present_list = 0;
 				}
 
-				if ( lead >= 0 && rc == LDAP_SUCCESS) {
+				if ( lead >= 0 && rc == LDAP_SUCCESS )
 					rc = syncrepl_cookie_push( si, op, &syncCookie);
-				}
 
 				if ( refreshDone )
 					syncrepl_refresh_done( si, rc );
@@ -1363,7 +1377,8 @@ syncrepl_process(
 				Debug( LDAP_DEBUG_ANY, "syncrepl_process: %s "
 					"unknown intermediate response (%d)\n",
 					si->si_ridtxt, rc );
-				rc = LDAP_SUCCESS;
+				if ( rc == LDAP_SUCCESS && reopenldap_mode_strict() )
+					rc = LDAP_PROTOCOL_ERROR;
 			}
 
 		done_intermediate:
@@ -1376,11 +1391,16 @@ syncrepl_process(
 				goto done;
 			break;
 		}
+
 		default:
 			Debug( LDAP_DEBUG_ANY, "syncrepl_process: %s "
 				"unknown message (0x%02lx)\n",
 				si->si_ridtxt,
 				(unsigned long)ldap_msgtype( msg ) );
+			if ( reopenldap_mode_strict() ) {
+				rc = LDAP_PROTOCOL_ERROR;
+				goto done;
+			}
 			break;
 		}
 
@@ -4573,7 +4593,7 @@ nonpresent_callback(
 		if ( present_uuid ) {
 			Debug( LDAP_DEBUG_SYNC, "nonpresent_callback: %s UUID %s, dn %s, %s\n",
 				si->si_ridtxt,
-				uuid ? uuid->a_vals[0].bv_val : "n/a",
+				uuid->a_vals[0].bv_val,
 				rs->sr_entry->e_name.bv_val,
 				"PRESENT" );
 			presentlist_delete( &si->si_presentlist, &uuid->a_nvals[0] );
