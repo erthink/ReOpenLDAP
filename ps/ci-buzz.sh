@@ -175,6 +175,9 @@ started=$(date +%s)
 order=0
 for ((n=0; n < N; n++)); do
 	for branch in $branch_list; do
+		dir=$TOP/@$n.$branch
+		[ -e $dir/build.ok ] || continue
+
 		delay=$((order * 47))
 		case $((n % 4)) in
 			0)
@@ -198,8 +201,8 @@ for ((n=0; n < N; n++)); do
 				nice=5
 				;;
 		esac
+
 		echo "launching $n of $branch, with nice $nice..."
-		dir=$TOP/@$n.$branch
 		tmp=$(readlink -f ${RAM}/$n.$branch)
 		mkdir -p $dir || failure "mkdir -p $dir"
 
