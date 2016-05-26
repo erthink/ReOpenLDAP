@@ -81,9 +81,7 @@ syslog(int pri, const char *fmt, ...)
 
 	/* Check for invalid bits. */
 	if (pri & ~(LOG_PRIMASK|LOG_FACMASK)) {
-		if (LogTest(LOG_ERR))
-			lutil_debug(slap_debug, LOG_ERR,
-			    "syslog: unknown facility/priority: %x", pri);
+		Log(LDAP_DEBUG_ANY, LOG_ERR, "syslog: unknown facility/priority: %x", pri);
 		pri &= LOG_PRIMASK|LOG_FACMASK;
 	}
 

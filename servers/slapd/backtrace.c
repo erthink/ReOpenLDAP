@@ -588,7 +588,7 @@ void slap_backtrace_set_enable( int value )
 #if defined(HAVE_LIBBFD) || defined(HAVE_LIBELF)
 	if (value && ! is_bfd_symbols_available() && ! is_elf_symbols_available()) {
 		if (slap_backtrace_get_enable() != (value != 0))
-			Log0( LDAP_DEBUG_ANY, LDAP_LEVEL_NOTICE, "Backtrace could be UNUSEFUL, because symbols not available.\n");
+			Log( LDAP_DEBUG_ANY, LDAP_LEVEL_NOTICE, "Backtrace could be UNUSEFUL, because symbols not available.\n");
 	}
 #endif
 

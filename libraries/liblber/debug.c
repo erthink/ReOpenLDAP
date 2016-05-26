@@ -59,17 +59,6 @@ void lutil_debug_print( const char *fmt, ... )
 	va_end( vl );
 }
 
-void lutil_debug( int debug, int level, const char *fmt, ... )
-{
-	if ( level & debug ) {
-		va_list vl;
-
-		va_start( vl, fmt );
-		lutil_debug_va( fmt, vl);
-		va_end( vl );
-	}
-}
-
 void lutil_debug_va( const char* fmt, va_list vl )
 {
 	char buffer[4096];

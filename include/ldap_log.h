@@ -183,19 +183,6 @@ extern void eb_syslog(int pri, const char *fmt, ...);
 #	endif /* ! LDAP_DEBUG */
 #endif /* ! LDAP_SYSLOG */
 
-#define Log0( level, severity, fmt ) \
-	Log( ldap_debug, (level), (fmt) )
-#define Log1( level, severity, fmt, arg1 ) \
-	Log( ldap_debug, (level), (fmt), arg1 )
-#define Log2( level, severity, fmt, arg1, arg2 ) \
-	Log( ldap_debug, (level), (fmt), arg1, arg2 )
-#define Log3( level, severity, fmt, arg1, arg2, arg3 ) \
-	Log( ldap_debug, (level), (fmt), arg1, arg2, arg3 )
-#define Log4( level, severity, fmt, arg1, arg2, arg3, arg4 ) \
-	Log( ldap_debug, (level), (fmt), arg1, arg2, arg3, arg4 )
-#define Log5( level, severity, fmt, arg1, arg2, arg3, arg4, arg5 ) \
-	Log( ldap_debug, (level), (fmt), arg1, arg2, arg3, arg4, arg5 )
-
 #define Debug( level, ... )	\
 	Log( (level), ldap_syslog_level, __VA_ARGS__ )
 
