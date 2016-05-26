@@ -17,6 +17,7 @@
 #include "portable.h"
 
 #include <ac/string.h>
+#include <ac/stdarg.h>
 #include "lber_pvt.h"
 
 #include "slap.h"
@@ -173,4 +174,20 @@ retry:
 		goto retry;
 
 	op->o_callback = NULL;
+}
+
+/* LY: override weak from libldap */
+int ldap_log_printf(void *ld, int loglvl, const char *fmt, ... )
+{
+	(void) ld;
+
+	if ( ldap_debug & loglvl ) {
+		va_list vl;
+
+		va_start( vl, fmt );
+		lutil_debug_va( fmt, vl);
+		va_end( vl );
+		return 1;
+	}
+	return 0;
 }
