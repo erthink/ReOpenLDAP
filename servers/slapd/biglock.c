@@ -116,13 +116,12 @@ slap_biglock_acquire(slap_biglock_t* bl) {
 		assert(bl->bl_recursion > 0);
 		assert(bl->bl_recursion < 42);
 		bl->bl_recursion += 1;
-		Debug(LDAP_DEBUG_TRACE, "biglock: recursion++ (%d)\n", bl->bl_recursion);
+		Debug(LDAP_DEBUG_TRACE, "biglock: recursion++ %p (%d)\n", bl, bl->bl_recursion);
 	} else {
-		int rc = ldap_pvt_thread_mutex_lock(&bl->bl_mutex);
-		assert(rc == 0);
+		ldap_pvt_thread_mutex_lock(&bl->bl_mutex);
 		assert(bl->bl_recursion == 0);
 		assert(get_owner(bl) == thread_null);
-		Debug(LDAP_DEBUG_TRACE, "biglock: acquire\n");
+		Debug(LDAP_DEBUG_TRACE, "biglock: acquire %p\n", bl);
 		bl->_bl_owner = ldap_pvt_thread_self();
 		bl->bl_recursion = 1;
 
@@ -147,7 +146,7 @@ slap_biglock_release(slap_biglock_t* bl) {
 
 	if (--bl->bl_recursion == 0) {
 		bl->_bl_owner = thread_null;
-		Debug(LDAP_DEBUG_TRACE, "biglock: release\n");
+		Debug(LDAP_DEBUG_TRACE, "biglock: release %p\n", bl);
 
 #if SLAPD_BIGLOCK_TRACELATENCY > 0
 		uint64_t latency_ns = ldap_now_ns() - bl->bl_timestamp_ns;
@@ -181,12 +180,11 @@ slap_biglock_release(slap_biglock_t* bl) {
 		}
 #endif /* SLAPD_BIGLOCK_TRACELATENCY */
 
-		int rc = ldap_pvt_thread_mutex_unlock(&bl->bl_mutex);
-		assert(rc == 0);
+		ldap_pvt_thread_mutex_unlock(&bl->bl_mutex);
 		if (bl->bl_free_on_release)
 			slap_biglock_free(bl);
 	} else
-		Debug(LDAP_DEBUG_TRACE, "biglock: recursion-- (%d)\n", bl->bl_recursion);
+		Debug(LDAP_DEBUG_TRACE, "biglock: recursion-- %p (%d)\n", bl, bl->bl_recursion);
 }
 
 int slap_biglock_call_be ( slap_operation_t which,
