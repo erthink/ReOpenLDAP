@@ -389,7 +389,7 @@ case $RC in
 esac
 
 echo "Waiting 10 seconds for cached connections to timeout..."
-sleep 10
+sleep $SLEEP0 && sleep 10 && sleep $SLEEP0
 
 echo "Searching with a timed out connection..."
 echo "# searching filter=\"$FILTER\"" >> $SEARCHOUT

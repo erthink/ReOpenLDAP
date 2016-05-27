@@ -109,21 +109,13 @@ void quorum_global_destroy() {
 	}
 }
 
-#ifdef __SANITIZE_THREAD__
-static ATTRIBUTE_NO_SANITIZE_THREAD
-#else
-static __inline
-#endif
+static ATTRIBUTE_NO_SANITIZE_THREAD_INLINE
 void set_cache(BackendDB *bd, int value) {
 	assert(bd->bd_self == bd);
 	bd->bd_quorum_cache = value;
 }
 
-#ifdef __SANITIZE_THREAD__
-static ATTRIBUTE_NO_SANITIZE_THREAD
-#else
-static __inline
-#endif
+static ATTRIBUTE_NO_SANITIZE_THREAD_INLINE
 int get_cache(BackendDB *bd) {
 	assert(bd->bd_self == bd);
 	return bd->bd_quorum_cache;
@@ -304,7 +296,7 @@ static void kick(slap_quorum_t *q)
 		tm.tm_min, tm.tm_sec, tm.tm_usec,
 		q->salt & 0xFFFFFFu, slap_serverID,
 		lpq(q, QS_DEAD), lpq(q, QS_DIRTY), lpq(q, QS_REFRESH),
-		lpq(q, QS_READY), lpq(q, QS_PROCESS) );
+		lpq(q, QS_PROCESS), lpq(q, QS_READY));
 
 	int now = q->qt_status[QS_DEAD] + q->qt_status[QS_DIRTY]
 			+ q->qt_status[QS_REFRESH] + q->qt_status[QS_PROCESS];

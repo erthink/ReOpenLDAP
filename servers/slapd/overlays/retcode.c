@@ -456,8 +456,7 @@ retcode_op_func( Operation *op, SlapReply *rs )
 		if ( rdi == NULL ) {
 			break;
 		}
-		cb = ( slap_callback * )ch_malloc( sizeof( slap_callback ) );
-		memset( cb, 0, sizeof( slap_callback ) );
+		cb = ( slap_callback * )ch_calloc( 1, sizeof( slap_callback ) );
 		cb->sc_cleanup = retcode_cleanup_cb;
 		op->o_callback = cb;
 		break;

@@ -146,7 +146,7 @@ olcBiglock: local
 olcRootPW: topsecret
 olcSyncrepl: {0}rid=001 provider=$URI1 binddn="cn=config,cn=slave"
   bindmethod=simple credentials=repsecret searchbase="cn=config,cn=slave"
-  $SYNCTYPE retry="3 5 300 5" timeout=3 suffixmassage="cn=config"
+  $SYNCTYPE retry="$SYNCREPL_RETRY" timeout=1 suffixmassage="cn=config"
 olcUpdateRef: $URI1
 
 dn: olcDatabase={1}ldif,cn=config
@@ -154,7 +154,7 @@ changetype: modify
 add: olcSyncrepl
 olcSyncrepl: {0}rid=001 provider=$URI1 binddn="cn=config"
   bindmethod=simple credentials=$CONFIGPW searchbase="cn=schema,cn=config"
-  $SYNCTYPE retry="3 5 300 5" timeout=3
+  $SYNCTYPE retry="$SYNCREPL_RETRY" timeout=1
   suffixmassage="cn=schema,cn=config,cn=slave"
 -
 add: olcMirrorMode
@@ -186,7 +186,7 @@ changetype: modify
 add: olcSyncRepl
 olcSyncRepl: rid=001 provider=$URI1 binddn="cn=config,cn=slave"
   bindmethod=simple credentials=repsecret searchbase="cn=config,cn=slave"
-  $SYNCTYPE retry="3 5 300 5" timeout=3
+  $SYNCTYPE retry="$SYNCREPL_RETRY" timeout=1
   suffixmassage="cn=config"
 -
 add: olcUpdateRef
@@ -272,7 +272,7 @@ olcRootDN: $MANAGERDN
 olcRootPW: $PASSWD
 olcSyncRepl: rid=002 provider=$URI1 binddn="$MANAGERDN" bindmethod=simple
   credentials=$PASSWD searchbase="$BASEDN" $SYNCTYPE
-  retry="3 5 300 5" timeout=3
+  retry="$SYNCREPL_RETRY" timeout=1
 olcUpdateRef: $URI1
 
 dn: olcOverlay=syncprov,olcDatabase={2}${BACKEND},cn=config
@@ -292,7 +292,7 @@ olcRootDN: $MANAGERDN
 olcRootPW: $PASSWD
 olcSyncRepl: rid=002 provider=$URI1 binddn="$MANAGERDN" bindmethod=simple
   credentials=$PASSWD searchbase="$BASEDN" $SYNCTYPE
-  retry="3 5 300 5" timeout=3
+  retry="$SYNCREPL_RETRY" timeout=1
 olcUpdateRef: $URI1
 
 EOF

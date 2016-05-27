@@ -21,7 +21,9 @@
 #include "slap.h"
 #include "mdbx.h"
 
-#define mdb_cmp2int(a, b) (((a) > (b)) - ((b) > (a)))
+#ifndef mdbx_cmp2int
+#	define mdbx_cmp2int(a, b) (((b) > (a)) ? -1 : (a) > (b))
+#endif
 
 LDAP_BEGIN_DECL
 
@@ -89,13 +91,14 @@ struct mdb_info {
 	uint32_t	mi_txn_cp_kbyte;
 	struct re_s		*mi_txn_cp_task;
 	struct re_s		*mi_index_task;
-#ifdef MDB_LIFORECLAIM
+#ifdef MDBX_LIFORECLAIM
 	uint32_t	mi_renew_lag;
 	uint32_t	mi_renew_percent;
-#define MDB_OOM_KILL	1
-#define MDB_OOM_YIELD	2
+#define MDBX_OOM_KILL	1
+#define MDBX_OOM_YIELD	2
 	int			mi_oom_flags;
-#endif /* MDB_LIFORECLAIM */
+	uint64_t	mi_oom_timestamp_ns;
+#endif /* MDBX_LIFORECLAIM */
 
 	mdb_monitor_t	mi_monitor;
 

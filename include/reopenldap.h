@@ -352,8 +352,10 @@ typedef struct {
 
 #ifdef __SANITIZE_THREAD__
 #	define ATTRIBUTE_NO_SANITIZE_THREAD __attribute__((no_sanitize_thread, noinline))
+#	define ATTRIBUTE_NO_SANITIZE_THREAD_INLINE ATTRIBUTE_NO_SANITIZE_THREAD
 #else
 #	define ATTRIBUTE_NO_SANITIZE_THREAD
+#	define ATTRIBUTE_NO_SANITIZE_THREAD_INLINE __inline
 #endif
 
 #if defined(__has_feature)
@@ -365,12 +367,14 @@ typedef struct {
 #ifdef __SANITIZE_ADDRESS__
 #	include <sanitizer/asan_interface.h>
 #	define ATTRIBUTE_NO_SANITIZE_ADDRESS __attribute__((no_sanitize_address, noinline))
+#	define ATTRIBUTE_NO_SANITIZE_ADDRESS_INLINE ATTRIBUTE_NO_SANITIZE_ADDRESS
 #else
 #	define ASAN_POISON_MEMORY_REGION(addr, size) \
 		((void)(addr), (void)(size))
 #	define ASAN_UNPOISON_MEMORY_REGION(addr, size) \
 		((void)(addr), (void)(size))
 #	define ATTRIBUTE_NO_SANITIZE_ADDRESS
+#	define ATTRIBUTE_NO_SANITIZE_ADDRESS_INLINE __inline
 #endif /* __SANITIZE_ADDRESS__ */
 
 #endif /* _LDAP_REOPEN_H */
