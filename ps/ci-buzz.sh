@@ -94,7 +94,7 @@ function doit_build {
 	local root=$(git rev-parse --show-toplevel)
 	([ -d src/.git ] || (rm -rf src && git clone --local --share -b $branch $root src)) \
 		&& cd src || failure git-clone
-	git checkout origin/ps-build -- . \
+	git checkout origin/ps/build -- . \
 		|| failure git-checkout
 	echo "==============================================================================="
 	echo "$(timestamp) Building..." > $CIBUZZ_STATUS
@@ -175,6 +175,9 @@ started=$(date +%s)
 order=0
 for ((n=0; n < N; n++)); do
 	for branch in $branch_list; do
+		dir=$TOP/@$n.$branch
+		[ -e $dir/build.ok ] || continue
+
 		delay=$((order * 47))
 		case $((n % 4)) in
 			0)
@@ -198,8 +201,8 @@ for ((n=0; n < N; n++)); do
 				nice=5
 				;;
 		esac
+
 		echo "launching $n of $branch, with nice $nice..."
-		dir=$TOP/@$n.$branch
 		tmp=$(readlink -f ${RAM}/$n.$branch)
 		mkdir -p $dir || failure "mkdir -p $dir"
 

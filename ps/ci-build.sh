@@ -17,6 +17,7 @@ flag_lto=1
 flag_O=-O2
 flag_clang=0
 flag_bdb=1
+flag_mdb=1
 flag_wt=0
 flag_ndb=1
 flag_valgrind=0
@@ -57,6 +58,12 @@ for arg in "$@"; do
 	--clang)
 		flag_clang=1
 		;;
+	--with-mdb)
+		flag_mdb=1
+		;;
+	--without-mdb)
+		flag_mdb=0
+		;;
 	--with-bdb)
 		flag_bdb=1
 		;;
@@ -82,7 +89,7 @@ for arg in "$@"; do
 
 		flag_ndb=0
 		flag_wt=0
-		flag_bdb=1
+		flag_bdb=0
 		flag_lto=0
 		flag_check=0
 		flag_O=-Og
@@ -151,26 +158,32 @@ IODBC=$([ -d /usr/include/iodbc ] && echo "-I/usr/include/iodbc")
 
 #======================================================================
 
-CFLAGS="-Wall -ggdb3 -gdwarf-4 -fvar-tracking-assignments"
+CFLAGS="-Wall -ggdb3 -gdwarf-4"
 
 if [ -z "$CC" ]; then
 	if [ $flag_clang -ne 0 ]; then
 		CC=clang
-		LLVM_VERSION="$($CC --version | sed -n 's/.\+LLVM \([0-9]\.[0-9]\)\.[0-9].*/\1/p')"
-		echo "LLVM_VERSION	= $LLVM_VERSION"
-		LTO_PLUGIN="/usr/lib/llvm-${LLVM_VERSION}/lib/LLVMgold.so"
-		echo "LTO_PLUGIN	= $LTO_PLUGIN"
-		CFLAGS+=" -Wno-pointer-bool-conversion"
 	elif [ -n "$(which gcc)" ]; then
 		CC=gcc
 	else
 		CC=cc
 	fi
 fi
+
+if grep -q gcc <<< "$CC"; then
+	CFLAGS+=" -fvar-tracking-assignments"
+elif grep -q clang <<< "$CC"; then
+	LLVM_VERSION="$($CC --version | sed -n 's/.\+LLVM \([0-9]\.[0-9]\)\.[0-9].*/\1/p')"
+	echo "LLVM_VERSION	= $LLVM_VERSION"
+	LTO_PLUGIN="/usr/lib/llvm-${LLVM_VERSION}/lib/LLVMgold.so"
+	echo "LTO_PLUGIN	= $LTO_PLUGIN"
+	CFLAGS+=" -Wno-pointer-bool-conversion"
+fi
+
 CC_VER_SUFF=$(sed -nre 's/^(gcc|clang)-(.*)/-\2/p' <<< "$CC")
 
 if [ $flag_debug -ne 0 ]; then
-	if [ "$CC" = "gcc" ]; then
+	if grep -q gcc <<< "$CC" ; then
 		CFLAGS+=" -Og"
 	else
 		CFLAGS+=" -O0"
@@ -258,8 +271,9 @@ fi
 if [ ! -s Makefile ]; then
 	# autoscan && libtoolize --force --automake --copy && aclocal -I build && autoheader && autoconf && automake --add-missing --copy
 	./configure \
-			--enable-debug $BACKENDS --enable-overlays $NBD \
+			--with-tls --enable-debug $BACKENDS --enable-overlays $NBD \
 			--enable-rewrite --enable-dynacl --enable-aci --enable-slapi \
+			$(if [ $flag_mdb -eq 0 ]; then echo "--disable-mdb"; else echo "--enable-mdb"; fi) \
 			$(if [ $flag_bdb -eq 0 ]; then echo "--disable-bdb --disable-hdb"; else echo "--enable-bdb --enable-hdb"; fi) \
 			$(if [ $flag_wt -eq 0 ]; then echo "--disable-wt"; else echo "--enable-wt"; fi) \
 		|| failure "configure"
