@@ -41,6 +41,10 @@ git clean -x -f -d \
 	) || failure "cleanup"
 git submodule foreach --recursive git clean -x -f -d || failure "cleanup-submodules"
 
+if [ -n "${PREFIX}" ]; then
+	rm -rf "${PREFIX}"/* && mkdir -p "${PREFIX}" || failure "cleanup of '${PREFIX}/*'"
+fi
+
 step_finish "cleanup"
 echo "======================================================================="
 step_begin "configure"
