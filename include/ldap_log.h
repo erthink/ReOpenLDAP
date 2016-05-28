@@ -200,6 +200,10 @@ LDAP_LUTIL_F(void) lutil_debug_print LDAP_P((
 LDAP_LUTIL_F(void) lutil_debug_va LDAP_P((
 	const char* fmt, va_list args ));
 
+void lutil_debug_lock(void);
+int lutil_debug_trylock(void);
+void lutil_debug_unlock(void);
+
 #ifdef LDAP_DEFINE_LDAP_DEBUG
 /* This struct matches the head of ldapoptions in <ldap-int.h> */
 struct ldapoptions_prefix {
