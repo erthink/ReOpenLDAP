@@ -354,8 +354,12 @@ void backtrace_sigaction(int signum, siginfo_t *info, void* ptr) {
 #endif
 				"-e", name_buf, NULL);
 			exit(EXIT_FAILURE);
-		} else if (child_pid < 0 || waitpid(child_pid, &status, 0) < 0 || status != W_EXITCODE(EXIT_SUCCESS, 0)) {
-			dprintf(fd, "\n*** Unable complete backtrace by addr2line, sorry (%d, %d, 0x%x).\n", child_pid, errno, status);
+		} else if (child_pid < 0) {
+			dprintf(fd, "\n*** Unable complete backtrace by addr2line, sorry (%s, %d).\n", "fork", errno);
+			break;
+		} else if (waitpid(child_pid, &status, 0) < 0 || status != W_EXITCODE(EXIT_SUCCESS, 0)) {
+			dprintf(fd, "\n*** Unable complete backtrace by addr2line, sorry (%s, pid %d, errno %d, status 0x%x).\n",
+				"waitpid", child_pid, errno, status);
 			break;
 		}
 	}
@@ -714,7 +718,8 @@ slap_backtrace_log(void *array[], int nentries, const char* caption)
 
 	int status = 0;
 	if (waitpid(child_pid, &status, 0) < 0 || status != W_EXITCODE(EXIT_SUCCESS, 0)) {
-		lutil_debug_print("*** Unable complete backtrace by addr2line, sorry (%s, %d).\n", "wait", status ? status : errno);
+		lutil_debug_print("*** Unable complete backtrace by addr2line, sorry (%s, pid %d, errno %d, status 0x%x).\n",
+			"waitpid", child_pid, errno, status);
 		goto fallback;
 	}
 	return;
