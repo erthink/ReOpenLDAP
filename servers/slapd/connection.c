@@ -742,10 +742,10 @@ connection_destroy( Connection *c )
 		slapd_remove( sd, sb, 1, 0, 0 );
 
 		if ( close_reason == NULL ) {
-			Statslog( LDAP_DEBUG_STATS, "conn=%lu fd=%ld closed\n",
+			Statslog( LDAP_DEBUG_CONNS, "conn=%lu fd=%ld closed\n",
 				connid, (long) sd );
 		} else {
-			Statslog( LDAP_DEBUG_STATS, "conn=%lu fd=%ld closed (%s)\n",
+			Statslog( LDAP_DEBUG_CONNS, "conn=%lu fd=%ld closed (%s)\n",
 				connid, (long) sd, close_reason );
 		}
 	}
@@ -898,12 +898,15 @@ connection_close( Connection *c )
 		!LDAP_STAILQ_EMPTY(&c->c_pending_ops) )
 	{
 		Debug( LDAP_DEBUG_CONNS,
-			"connection_close: deferring conn=%lu sd=%d\n",
-			c->c_connid, c->c_sd );
+			"connection_close: deferring conn=%lu sd=%d (c_ops %s, c_pending_ops %s)\n",
+			c->c_connid, c->c_sd,
+			LDAP_STAILQ_EMPTY(&c->c_ops) ? "empty" : "still",
+			LDAP_STAILQ_EMPTY(&c->c_pending_ops) ? "empty" : "still"
+		);
 		return;
 	}
 
-	Debug( LDAP_DEBUG_TRACE, "connection_close: conn=%lu sd=%d\n",
+	Debug( LDAP_DEBUG_CONNS, "connection_close: conn=%lu sd=%d\n",
 		c->c_connid, c->c_sd );
 
 	connection_destroy( c );

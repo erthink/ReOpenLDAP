@@ -1807,11 +1807,19 @@ slapd_daemon_destroy( void )
 			if ( wake_sds[i][1] != INVALID_SOCKET &&
 				SLAP_FD2SOCK( wake_sds[i][1] ) != SLAP_FD2SOCK( wake_sds[i][0] ))
 #endif /* HAVE_WINSOCK */
+			{
+				Debug( LDAP_DEBUG_CONNS, "daemon: closing %d, fd %d\n",
+					wake_sds[i][1], SLAP_FD2SOCK(wake_sds[i][1]) );
 				tcp_close( SLAP_FD2SOCK(wake_sds[i][1]) );
+			}
 #ifdef HAVE_WINSOCK
 			if ( wake_sds[i][0] != INVALID_SOCKET )
 #endif /* HAVE_WINSOCK */
+			{
+				Debug( LDAP_DEBUG_CONNS, "daemon: closing %d, fd %d\n",
+					wake_sds[i][0], SLAP_FD2SOCK(wake_sds[i][0]) );
 				tcp_close( SLAP_FD2SOCK(wake_sds[i][0]) );
+			}
 			ldap_pvt_thread_mutex_destroy( &slap_daemon[i].sd_mutex );
 			SLAP_SOCK_DESTROY(i);
 		}
