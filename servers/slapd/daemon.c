@@ -1976,7 +1976,7 @@ slap_listener(
 			slapd_tcpkeepalive.idle,
 			slapd_tcpkeepalive.probes,
 			slapd_tcpkeepalive.interval );
-		if ( !rc ) {
+		if ( rc ) {
 			int err = sock_errno();
 			Debug( LDAP_DEBUG_ANY,
 				"slapd(%ld): tcp-keepalive setup failed "
