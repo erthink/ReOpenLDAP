@@ -246,7 +246,7 @@ else
 	TIMEOUT_H="timeout -s SIGXCPU 9m"
 	SLEEP0=${SLEEP0-0.2}
 	SLEEP1=${SLEEP1-1}
-	SLEEP2=${SLEEP2-3}
+	SLEEP2=${SLEEP2-5}
 fi
 
 SLAP_VERBOSE=${SLAP_VERBOSE-none}
@@ -677,7 +677,8 @@ function wait_syncrepl {
 	sleep $SLEEP0
 	local t=$SLEEP0
 
-	for i in $(seq 1 100); do
+	while true; do
+
 		#echo "  Using ldapsearch to read contextCSN from the provider:$1..."
 		provider_csn=$($LDAPSEARCH -s $scope -b "$base" $extra -h $LOCALHOST -p $1 contextCSN -v \
 			2>${TESTDIR}/ldapsearch.error | tee ${TESTDIR}/ldapsearch.output \
@@ -719,17 +720,20 @@ function wait_syncrepl {
 			return
 		fi
 
+		if [ $(echo "$t > $SLEEP2" | bc -q) == "1" ]; then
+			echo " Timeout $t seconds"
+			echo -n "Provider: "
+			$LDAPSEARCH -s $scope -b "$base" $extra -h $LOCALHOST -p $1 contextCSN
+			echo -n "Consumer: "
+			$LDAPSEARCH -s $scope -b "$base" $extra -h $LOCALHOST -p $2 contextCSN
+			killservers
+			exit 42
+		fi
+
 		#echo "  Waiting +SLEEP0 seconds for syncrepl to receive changes (from $1 to $2)..."
 		sleep $SLEEP0
-		t=$(echo "$SLEEP0 + $t" | bc)
+		t=$(echo "$SLEEP0 + $t" | bc -q)
 	done
-	echo " Timeout $(expr $i / 10) seconds"
-	echo -n "Provider: "
-	$LDAPSEARCH -s $scope -b "$base" $extra -h $LOCALHOST -p $1 contextCSN
-	echo -n "Consumer: "
-	$LDAPSEARCH -s $scope -b "$base" $extra -h $LOCALHOST -p $2 contextCSN
-	killservers
-	exit 42
 }
 
 function check_running {
