@@ -35,6 +35,7 @@
 #include <unistd.h>
 #include <sys/syscall.h>
 #include <pthread.h>
+#include <errno.h>
 
 static pthread_mutex_t debug_mutex = PTHREAD_RECURSIVE_MUTEX_INITIALIZER_NP;
 static FILE *log_file = NULL;

@@ -279,6 +279,8 @@ void backtrace_sigaction(int signum, siginfo_t *info, void* ptr) {
 	time_t t = ldap_time_steady();
 	strftime(time_buf, sizeof(time_buf), "%F-%H%M%S", localtime(&t));
 
+	int debug_locked = (lutil_debug_trylock() == 0);
+
 	char name_buf[PATH_MAX];
 	int fd = -1;
 #ifdef snprintf
@@ -495,6 +497,8 @@ void backtrace_sigaction(int signum, siginfo_t *info, void* ptr) {
 				/* LY: The trouble is that GDB should be READY, but no way to check it.
 				 * If we return from signal handler while GDB not ready the kernel just terminate us.
 				 * Assume that checking gdb_is_ready_for_backtrace == gdb_pid is enough. */
+				if (debug_locked)
+					lutil_debug_unlock();
 				return;
 			}
 
@@ -507,8 +511,11 @@ ballout:
 	dprintf(fd, "\n*** Unable complete backtrace by GDB, sorry.\n");
 
 done:
-	if (should_die)
+	if (should_die) {
+		if (debug_locked)
+			lutil_debug_unlock();
 		exit(EXIT_FAILURE);
+	}
 
 	if (gdb_pid > 0) {
 		dprintf(fd, "\n*** Waitfor GDB done.\n");
@@ -521,6 +528,8 @@ done:
 		close(pipe_fd[1]);
 	dprintf(fd, "\n*** No reason for die, continue running.\n");
 	close(fd);
+	if (debug_locked)
+		lutil_debug_unlock();
 }
 
 static int enabled;
@@ -661,6 +670,8 @@ slap_backtrace_log(void *array[], int nentries, const char* caption)
 	if (nentries < 1)
 		return;
 
+	lutil_debug_lock();
+
 	int n = readlink("/proc/self/exe", name_buf, sizeof(name_buf) - 1);
 	if (n < 0) {
 		lutil_debug_print("*** Unable read executable name: %s\n", STRERROR(errno));
@@ -722,6 +733,8 @@ slap_backtrace_log(void *array[], int nentries, const char* caption)
 			"waitpid", child_pid, errno, status);
 		goto fallback;
 	}
+
+	lutil_debug_unlock();
 	return;
 
 fallback:
@@ -732,6 +745,7 @@ fallback:
 			lutil_debug_print("(%d) %s\n", i, bt_glibc[i]);
 		free(bt_glibc);
 	}
+	lutil_debug_unlock();
 }
 
 #endif /* __linux__ */
