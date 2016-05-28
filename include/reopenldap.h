@@ -224,11 +224,11 @@ __extern_C void __ldap_assert_fail(
 __extern_C void reopenldap_flags_setup (int flags);
 __extern_C int reopenldap_flags;
 
-#define reopenldap_mode_iddqd() \
+#define reopenldap_mode_righteous() \
 	likely((reopenldap_flags & REOPENLDAP_FLAG_IDDQD) != 0)
-#define reopenldap_mode_idkfa() \
+#define reopenldap_mode_check() \
 	unlikely((reopenldap_flags & REOPENLDAP_FLAG_IDKFA) != 0)
-#define reopenldap_mode_idclip() \
+#define reopenldap_mode_strict() \
 	likely((reopenldap_flags & REOPENLDAP_FLAG_IDCLIP) != 0)
 #define reopenldap_mode_jitter() \
 	unlikely((reopenldap_flags & REOPENLDAP_FLAG_JITTER) != 0)
@@ -251,7 +251,7 @@ __extern_C void reopenldap_jitter(int probability_percent);
 #	define LDAP_ASSERT(condition) LDAP_ENSURE(condition)
 #else
 #	define LDAP_ASSERT(condition) do \
-		if (reopenldap_mode_idkfa()) \
+		if (reopenldap_mode_check()) \
 			LDAP_ENSURE(condition); \
 	while (0)
 #endif /* LDAP_ASSERT_CHECK */

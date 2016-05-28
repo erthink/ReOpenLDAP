@@ -213,7 +213,7 @@ static void syncprov_compose_cookie( Operation *op,
 		int rid )
 {
 	slap_cookie_compose( cookie, csns, rid,
-		(reopenldap_mode_iddqd() || slap_serverID) ? slap_serverID : -1,
+		(reopenldap_mode_righteous() || slap_serverID) ? slap_serverID : -1,
 		op ? op->o_tmpmemctx : NULL );
 }
 
@@ -740,7 +740,7 @@ again:
 	switch( mode ) {
 	case FIND_MAXCSN:
 		ldap_pvt_thread_rdwr_wlock( &si->si_csn_rwlock );
-		if (reopenldap_mode_idkfa())
+		if (reopenldap_mode_check())
 			slap_cookie_verify( &si->si_cookie );
 		cf.f_choice = LDAP_FILTER_GE;
 		/* If there are multiple CSNs, use the one with our serverID */
@@ -842,7 +842,7 @@ again:
 				ber_bvreplace( &si->si_cookie.ctxcsn[maxid], &maxcsn );
 				si->si_numops++;	/* ensure a checkpoint */
 			}
-			if (reopenldap_mode_idkfa())
+			if (reopenldap_mode_check())
 				slap_cookie_verify( &si->si_cookie );
 		}
 		ldap_pvt_thread_rdwr_wunlock( &si->si_csn_rwlock );
@@ -1320,7 +1320,7 @@ syncprov_qresp( opcookie *opc, syncops *so, int mode )
 	if ( mode == LDAP_SYNC_NEW_COOKIE && BER_BVISNULL( &ri->ri_cookie )) {
 		syncprov_info_t	*si = opc->son->on_bi.bi_private;
 		ldap_pvt_thread_rdwr_rlock( &si->si_csn_rwlock );
-		if (reopenldap_mode_idkfa()) {
+		if (reopenldap_mode_check()) {
 			slap_cookie_verify( &si->si_cookie );
 			if (opc->sctxcsn.bv_len) {
 				int i;
@@ -1755,7 +1755,7 @@ syncprov_checkpoint( Operation *op, slap_overinst *on )
 	slap_biglock_t *bl = slap_biglock_get(op->o_bd);
 
 	slap_biglock_acquire(bl);
-	if (reopenldap_mode_idkfa())
+	if (reopenldap_mode_check())
 		slap_cookie_verify( &si->si_cookie );
 
 	mod.sml_numvals = si->si_cookie.numcsns;
@@ -2304,7 +2304,7 @@ syncprov_op_compare( Operation *op, SlapReply *rs )
 
 		ldap_pvt_thread_rdwr_rlock( &si->si_csn_rwlock );
 
-		if (reopenldap_mode_idkfa())
+		if (reopenldap_mode_check())
 			slap_cookie_verify( &si->si_cookie );
 		a.a_vals = si->si_cookie.ctxcsn;
 		a.a_nvals = a.a_vals;
@@ -2384,13 +2384,13 @@ syncprov_op_mod( Operation *op, SlapReply *rs )
 	if ( op->o_controls ) {
 		struct sync_cookie *cookie = op->o_controls[slap_cids.sc_LDAPsync];
 		if ( cookie ) {
-			if (reopenldap_mode_idkfa())
+			if (reopenldap_mode_check())
 				slap_cookie_verify( cookie );
 			opc->rsid = cookie->sid;
 		}
 	}
 
-	if (reopenldap_mode_idkfa()) {
+	if (reopenldap_mode_check()) {
 		ldap_pvt_thread_rdwr_rlock( &si->si_csn_rwlock );
 		slap_cookie_verify( &si->si_cookie );
 		ldap_pvt_thread_rdwr_runlock( &si->si_csn_rwlock );
@@ -2714,7 +2714,7 @@ syncprov_search_response( Operation *op, SlapReply *rs )
 			sid = slap_csn_get_sid( &entryCSN->a_nvals[0] );
 
 			/* Don't send changed entries back to the originator */
-			if ( ! reopenldap_mode_iddqd()
+			if ( ! reopenldap_mode_righteous()
 					/* LY: checking by SID is wrong, CSNs should be compared as below */
 					&& sid == srs->sr_state.sid && srs->sr_state.numcsns ) {
 				Debug( LDAP_DEBUG_SYNC,
@@ -2945,7 +2945,7 @@ syncprov_op_search( Operation *op, SlapReply *rs )
 	 * Note: this must not be done before the psearch setup. (ITS#8365)
 	 */
 	ldap_pvt_thread_rdwr_rlock( &si->si_csn_rwlock );
-	if (reopenldap_mode_idkfa())
+	if (reopenldap_mode_check())
 		slap_cookie_verify( &si->si_cookie );
 	numcsns = si->si_cookie.numcsns;
 	if ( numcsns ) {
@@ -3060,7 +3060,7 @@ bailout:
 			Debug( LDAP_DEBUG_SYNC,
 				"syncprov_op_search: sid %03x, useless consumer-cookie\n",
 				srs->sr_state.sid );
-			srs->sr_jammed = reopenldap_mode_idclip();
+			srs->sr_jammed = reopenldap_mode_strict();
 			goto shortcut;
 		}
 
@@ -3072,7 +3072,7 @@ bailout:
 
 		/* If nothing has changed, shortcut it */
 		if ( !changed && !dirty ) {
-			if ( reopenldap_mode_iddqd()
+			if ( reopenldap_mode_righteous()
 					&& SLAP_MULTIMASTER( op->o_bd->bd_self )
 					&& !si->si_nopres && !si->si_logs ) {
 				Debug( LDAP_DEBUG_SYNC,
@@ -3087,7 +3087,7 @@ no_change:
 				struct berval cookie = BER_BVNULL;
 
 				/* LY: cookie for quorum's auto-sids */
-				if ( reopenldap_mode_iddqd() ) {
+				if ( reopenldap_mode_righteous() ) {
 					syncprov_compose_cookie( op, &cookie, srs->sr_state.ctxcsn, srs->sr_state.rid );
 					Debug( LDAP_DEBUG_SYNC, "syncprov_op_search: cookie=%s\n", cookie.bv_val );
 				}
@@ -3162,7 +3162,7 @@ no_change:
 				rs->sr_text = "sync cookie is stale";
 				goto bailout;
 			}
-			if (! reopenldap_mode_iddqd())
+			if (! reopenldap_mode_righteous())
 				/* LY: Hm, why we should clean cookie in this case ? */
 				slap_cookie_clean_csns(&srs->sr_state, op->o_tmpmemctx);
 		} else {
@@ -3322,7 +3322,7 @@ syncprov_operational(
 			}
 
 			ldap_pvt_thread_rdwr_rlock( &si->si_csn_rwlock );
-			if (reopenldap_mode_idkfa())
+			if (reopenldap_mode_check())
 				slap_cookie_verify( &si->si_cookie );
 
 			if ( si->si_cookie.numcsns || mock ) {
@@ -3661,7 +3661,7 @@ syncprov_db_open(
 		overlay_entry_release_ov( op, e, 0, on );
 	}
 
-	if ( !SLAP_DBCLEAN( be ) && (si->si_cookie.numcsns || reopenldap_mode_iddqd())) {
+	if ( !SLAP_DBCLEAN( be ) && (si->si_cookie.numcsns || reopenldap_mode_righteous())) {
 		ldap_pvt_thread_t tid;
 
 		op->o_tag = LDAP_REQ_SEARCH;
@@ -3684,7 +3684,7 @@ syncprov_db_open(
 			goto out;
 		}
 
-		if ( reopenldap_mode_iddqd() ) {
+		if ( reopenldap_mode_righteous() ) {
 			rc = slap_cookie_stubself( &si->si_cookie );
 			if (rc < 0)
 				goto out;
@@ -3708,7 +3708,7 @@ syncprov_db_open(
 		si->si_numops++;
 	}
 
-	if (reopenldap_mode_idkfa())
+	if (reopenldap_mode_check())
 		slap_cookie_verify( &si->si_cookie );
 
 	/* Initialize the sessionlog mincsn */
@@ -3964,7 +3964,7 @@ static int syncprov_parseCtrl (
 	if (!BER_BVISNULL(&cookie)) {
 		/* If parse fails, pretend no cookie was sent */
 		if ( slap_cookie_parse( &sr->sr_state, &cookie, op->o_tmpmemctx ) ) {
-			if (reopenldap_mode_idclip()) {
+			if (reopenldap_mode_strict()) {
 				rs->sr_text = "Sync control : invalid cookie";
 				return LDAP_PROTOCOL_ERROR;
 			}

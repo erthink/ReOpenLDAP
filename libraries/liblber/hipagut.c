@@ -614,7 +614,7 @@ void reopenldap_flags_setup(int flags) {
 								| REOPENLDAP_FLAG_JITTER);
 
 #if LDAP_MEMORY_DEBUG > 0
-	if (reopenldap_mode_idkfa()) {
+	if (reopenldap_mode_check()) {
 		lber_hug_nasty_disabled = 0;
 #ifdef LDAP_MEMORY_TRACE
 		lber_hug_memchk_trace_disabled = 0;
@@ -649,7 +649,7 @@ __hot void* ber_memcpy_safe(void* dest, const void* src, size_t n) {
 	long diff = (char*) dest - (char*) src;
 
 	if (unlikely(n > (size_t) __builtin_labs(diff))) {
-		if (reopenldap_mode_idkfa())
+		if (reopenldap_mode_check())
 			__ldap_assert_fail("source and destination MUST NOT overlap",
 				__FILE__, __LINE__, __FUNCTION__);
 		return memmove(dest, src, n);
@@ -731,15 +731,15 @@ __hot uint64_t ldap_now_ns(void) {
 		LDAP_ENSURE(pthread_mutex_unlock(&clock_mutex) == 0);
 	}
 
-	if (reopenldap_mode_idkfa())
+	if (reopenldap_mode_check())
 		LDAP_ENSURE(pthread_mutex_lock(&clock_mutex) == 0);
 
-	if (reopenldap_mode_iddqd())
+	if (reopenldap_mode_righteous())
 		clock_now = clock_ns(clock_mono_id) + clock_mono2real_ns;
 	else
 		clock_now = clock_ns(CLOCK_REALTIME);
 
-	if (reopenldap_mode_idkfa()) {
+	if (reopenldap_mode_check()) {
 		LDAP_ENSURE(clock_past < clock_now);
 		clock_past = clock_now;
 		LDAP_ENSURE(pthread_mutex_unlock(&clock_mutex) == 0);
@@ -762,12 +762,12 @@ __hot unsigned ldap_timeval(struct timeval *tv) {
 	if (unlikely(!clock_mono2real_ns))
 		clock_mono2real_ns = clock_mono2real_delta();
 
-	if (reopenldap_mode_iddqd())
+	if (reopenldap_mode_righteous())
 		clock_now = clock_ns(clock_mono_id) + clock_mono2real_ns;
 	else
 		clock_now = clock_ns(CLOCK_REALTIME);
 
-	if (reopenldap_mode_idkfa()) {
+	if (reopenldap_mode_check()) {
 		LDAP_ENSURE(clock_past < clock_now);
 		clock_past = clock_now;
 	}

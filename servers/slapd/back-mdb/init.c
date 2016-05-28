@@ -137,7 +137,7 @@ mdb_db_init( BackendDB *be, ConfigReply *cr )
 #if MDBX_MODE_ENABLED
 	unsigned flags = mdbx_setup_debug(MDBX_DBG_DNT, mdbx_debug, MDBX_DBG_DNT);
 	flags &= ~(MDBX_DBG_TRACE | MDBX_DBG_EXTRA | MDBX_DBG_ASSERT);
-	if (reopenldap_mode_idkfa())
+	if (reopenldap_mode_check())
 		flags |=
 #	if LDAP_DEBUG > 2
 				MDBX_DBG_TRACE | MDBX_DBG_EXTRA |
@@ -299,7 +299,7 @@ mdb_db_open( BackendDB *be, ConfigReply *cr )
 	flags = mdb->mi_dbenv_flags;
 
 #ifdef MDBX_PAGEPERTURB
-	if (reopenldap_mode_idkfa())
+	if (reopenldap_mode_check())
 		flags |= MDBX_PAGEPERTURB;
 #endif
 

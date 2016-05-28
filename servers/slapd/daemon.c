@@ -2470,7 +2470,7 @@ loop:
 					be->be_restrictops |= SLAP_RESTRICT_OP_WRITES;
 				}
 				connections_shutdown( 1 );
-				if (reopenldap_mode_iddqd() && ! global_gentlehup) {
+				if (reopenldap_mode_righteous() && ! global_gentlehup) {
 					if (! global_idletimeout)
 						global_idletimeout = 5;
 					if (! global_writetimeout)
@@ -3074,7 +3074,7 @@ slap_sig_shutdown( int sig )
 		/* empty */;
 	} else
 #endif /* HAVE_NT_SERVICE_MANAGER && SIGBREAK */
-	if ( ( reopenldap_mode_iddqd() ||
+	if ( ( reopenldap_mode_righteous() ||
 #ifdef SIGHUP
 			sig == SIGHUP
 #endif /* SIGHUP */

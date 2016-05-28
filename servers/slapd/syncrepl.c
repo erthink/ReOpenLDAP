@@ -733,7 +733,7 @@ syncrepl_start(
 	/* whenever there are multiple data sources possible, advertise sid */
 	si->si_syncCookie.sid = ( SLAP_MULTIMASTER( si->si_be )
 			|| si->si_be != si->si_wbe
-			|| (reopenldap_mode_iddqd() && slap_serverID) )
+			|| (reopenldap_mode_righteous() && slap_serverID) )
 			? slap_serverID : -1;
 	si->si_syncCookie.rid = si->si_rid;
 
@@ -755,7 +755,7 @@ syncrepl_enough_sids( syncinfo_t *si, struct sync_cookie *remote, int lead )
 	if (! remote->numcsns)
 		return 0;
 
-	if (reopenldap_mode_iddqd()
+	if (reopenldap_mode_righteous()
 			/* LY: are whenever there are multiple data sources possible? */
 			&& SLAP_MULTIMASTER( si->si_be )) {
 		int i;
@@ -890,7 +890,7 @@ syncrepl_eat_cookie(
 		return rc;
 
 	if ( dst->numcsns == 0 && SLAP_MULTIMASTER( si->si_be )
-		&& ( reopenldap_mode_iddqd() || reopenldap_mode_idclip() ) ) {
+		&& ( reopenldap_mode_righteous() || reopenldap_mode_strict() ) ) {
 		Debug( LDAP_DEBUG_ANY, "syncrepl_cookie_take:"
 			"%s REJECT empty-cookie '%s'\n",
 			si->si_ridtxt, raw.bv_val );
@@ -913,7 +913,7 @@ syncrepl_eat_cookie(
 	}
 
 	if ( vector == 0 && SLAP_MULTIMASTER( si->si_be )
-			&& reopenldap_mode_idclip() ) {
+			&& reopenldap_mode_strict() ) {
 		Debug( LDAP_DEBUG_ANY, "syncrepl_cookie_take:"
 			"%s REJECT stalled-cookie '%s'\n",
 			si->si_ridtxt, raw.bv_val );
@@ -2474,7 +2474,7 @@ static int check_for_retard(syncinfo_t *si, struct sync_cookie *sc,
 				if (origin < si->si_syncCookie.sids[i])
 					break;
 			}
-			if (!rc && reopenldap_mode_idclip() && origin == slap_serverID
+			if (!rc && reopenldap_mode_strict() && origin == slap_serverID
 				&& slap_csn_compare_ts(csn_incomming, &si->si_cutoff_csn) >= 0) {
 					/* LY: It is an "echo" of the notification from this server. */
 					rc |= RETARD_ECHO;
@@ -2911,7 +2911,7 @@ syncrepl_entry(
 		}
 		Attribute *entry_uuid = attr_find( entry->e_attrs, slap_schema.si_ad_entryUUID );
 		Attribute *entry_csn = attr_find( entry->e_attrs, slap_schema.si_ad_entryCSN );
-		if (reopenldap_mode_idclip()) {
+		if (reopenldap_mode_strict()) {
 			if (unlikely(!entry_uuid || !entry_csn)) {
 				/* LY: entryUUID and entryCSN are required in 'idclip' mode */
 				rc = LDAP_PROTOCOL_ERROR;
@@ -3429,7 +3429,7 @@ retry_modrdn:;
 					op->o_req_ndn = pdn;
 					op->o_callback = &cb;
 					rs_reinit( &rs_delete, REP_RESULT );
-					if (reopenldap_mode_iddqd()) {
+					if (reopenldap_mode_righteous()) {
 						/* LY: don't replicate glue deletions,
 						 * it should be done by on receiver-side by itself. */
 						op->o_dont_replicate = 1;
@@ -3570,7 +3570,7 @@ static int syncrepl_del_nonpresent(
 	BerValue csn = {sizeof(buf), buf};
 
 	if (which >= 0 && which < sc->numcsns
-			&& !( reopenldap_mode_iddqd() && SLAP_MULTIMASTER( si->si_be ) )) {
+			&& !( reopenldap_mode_righteous() && SLAP_MULTIMASTER( si->si_be ) )) {
 		assert(which < sc->numcsns);
 		csn.bv_len = sc->ctxcsn[which].bv_len;
 		memcpy( buf, sc->ctxcsn[which].bv_val, csn.bv_len + 1 );
@@ -3691,7 +3691,7 @@ static int syncrepl_del_nonpresent(
 		op->o_bd = si->si_wbe;
 
 		int hack_csn = 0;
-		if ( which >= 0 && reopenldap_mode_iddqd() ) {
+		if ( which >= 0 && reopenldap_mode_righteous() ) {
 
 			int steps = 0;
 			np_list = LDAP_LIST_FIRST( &si->si_nonpresentlist );
@@ -3799,7 +3799,7 @@ static int syncrepl_del_nonpresent(
 				op->o_tag = LDAP_REQ_MODIFY;
 				op->orm_modlist = &mod1;
 
-				if (reopenldap_mode_iddqd()) {
+				if (reopenldap_mode_righteous()) {
 					/* LY: don't replicate glue modifications,
 					 * it should be done by on receiver-side by itself. */
 					op->o_dont_replicate = 1;
@@ -3823,7 +3823,7 @@ static int syncrepl_del_nonpresent(
 					op->o_req_ndn = pdn;
 					op->o_callback = &cb;
 					rs_reinit( &rs_delete, REP_RESULT );
-					if (reopenldap_mode_iddqd()) {
+					if (reopenldap_mode_righteous()) {
 						/* LY: don't replicate glue deletions,
 						 * it should be done by on receiver-side by itself. */
 						op->o_dont_replicate = 1;
@@ -3857,7 +3857,7 @@ static int syncrepl_del_nonpresent(
 	rc = LDAP_SUCCESS;
 	if (! syncUUIDs) {
 		int empty = presentlist_empty(&si->si_presentlist);
-		int strict = reopenldap_mode_idclip();
+		int strict = reopenldap_mode_strict();
 		Debug( LDAP_DEBUG_SYNC,
 			"syncrepl_del_nonpresent: %s, present-list=%s, %s\n",
 			si->si_ridtxt, empty ? "exhausted" : "leftover",
@@ -3964,7 +3964,7 @@ syncrepl_add_glue_ancestors(
 		op->o_req_dn = glue->e_name;
 		op->o_req_ndn = glue->e_nname;
 		op->ora_e = glue;
-		if (reopenldap_mode_iddqd()) {
+		if (reopenldap_mode_righteous()) {
 			/* LY: don't replicate glue additions,
 			 * it should be done by on receiver-side by itself. */
 			op->o_dont_replicate = 1;
@@ -4067,7 +4067,7 @@ syncrepl_cookie_push(
 	syncrepl_pull_contextCSN( op, si );
 #endif
 
-	if ( reopenldap_mode_idkfa() ) {
+	if ( reopenldap_mode_check() ) {
 		slap_cookie_verify( syncCookie );
 		slap_cookie_verify( &si->si_cookieState->cs_cookie );
 	}
@@ -4163,7 +4163,7 @@ syncrepl_cookie_push(
 				si->si_ridtxt, rs_modify.sr_err );
 		}
 
-		if ( reopenldap_mode_idkfa() )
+		if ( reopenldap_mode_check() )
 			slap_cookie_verify( &si->si_cookieState->cs_cookie );
 
 		op->o_bd = be;

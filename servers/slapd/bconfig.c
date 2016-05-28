@@ -3189,10 +3189,14 @@ config_reopenldap(ConfigArgs *c)
 	slap_mask_t flags = 0;
 	int i = INT_MAX;
 	static const slap_verbmasks reopenldap_ops[] = {
+		{ BER_BVC("righteous"),	REOPENLDAP_FLAG_IDDQD },
+		{ BER_BVC("check"),		REOPENLDAP_FLAG_IDKFA },
+		{ BER_BVC("strict"),	REOPENLDAP_FLAG_IDCLIP },
+		{ BER_BVC("jitter"),	REOPENLDAP_FLAG_JITTER },
+
 		{ BER_BVC("iddqd"),		REOPENLDAP_FLAG_IDDQD },
 		{ BER_BVC("idkfa"),		REOPENLDAP_FLAG_IDKFA },
 		{ BER_BVC("idclip"),	REOPENLDAP_FLAG_IDCLIP },
-		{ BER_BVC("jitter"),	REOPENLDAP_FLAG_JITTER },
 		{ BER_BVNULL,	0 }
 	};
 
