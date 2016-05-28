@@ -541,8 +541,13 @@ sb_stream_close( Sockbuf_IO_Desc *sbiod )
 {
 	assert( sbiod != NULL );
 	assert( SOCKBUF_VALID( sbiod->sbiod_sb ) );
-	if ( sbiod->sbiod_sb->sb_fd != AC_SOCKET_INVALID )
-		tcp_close( sbiod->sbiod_sb->sb_fd );
+	if ( sbiod->sbiod_sb->sb_fd != AC_SOCKET_INVALID ) {
+		ber_socket_t fd = sbiod->sbiod_sb->sb_fd;
+		sbiod->sbiod_sb->sb_fd = AC_SOCKET_INVALID;
+		ber_pvt_log_printf( LDAP_DEBUG_CONNS, sbiod->sbiod_sb->sb_debug,
+			"liblber: closing stream-socket %d\n", fd );
+		tcp_close( fd );
+	}
    return 0;
 }
 
@@ -963,8 +968,13 @@ sb_dgram_close( Sockbuf_IO_Desc *sbiod )
 	assert( sbiod != NULL );
 	assert( SOCKBUF_VALID( sbiod->sbiod_sb ) );
 
-	if ( sbiod->sbiod_sb->sb_fd != AC_SOCKET_INVALID )
-		tcp_close( sbiod->sbiod_sb->sb_fd );
+	if ( sbiod->sbiod_sb->sb_fd != AC_SOCKET_INVALID ) {
+		ber_socket_t fd = sbiod->sbiod_sb->sb_fd;
+		sbiod->sbiod_sb->sb_fd = AC_SOCKET_INVALID;
+		ber_pvt_log_printf( LDAP_DEBUG_CONNS, sbiod->sbiod_sb->sb_debug,
+			"liblber: closing dgram-socket %d\n", fd );
+		tcp_close( fd );
+	}
 	return 0;
 }
 
