@@ -122,7 +122,7 @@ ldap_int_socket(LDAP *ld, int family, int type )
 static int
 ldap_pvt_close_socket(LDAP *ld, int s)
 {
-	osip_debug(ld, "ldap_close_socket: %d\n",s);
+	osip_debug(ld, "%s: closing socket %d\n", __FUNCTION__, s);
 	return tcp_close(s);
 }
 
@@ -358,6 +358,7 @@ ldap_int_poll(
 #if defined( FD_SETSIZE ) && !defined( HAVE_WINSOCK )
 		if ( s >= FD_SETSIZE ) {
 			rc = AC_SOCKET_ERROR;
+			osip_debug(ld, "%s: closing socket %d\n", __FUNCTION__, s);
 			tcp_close( s );
 			ldap_pvt_set_errno( EMFILE );
 			return rc;
