@@ -191,3 +191,28 @@ int ldap_log_printf(void *ld, int loglvl, const char *fmt, ... )
 	}
 	return 0;
 }
+
+/* LY: override weaks from liblber */
+void ber_error_print( LDAP_CONST char *str )
+{
+	Debug(LDAP_DEBUG_BER, "%s", str);
+}
+
+int ber_pvt_log_output(
+	const char *subsystem,
+	int level,
+	const char *fmt,
+	... )
+{
+	(void) subsystem;
+	(void) level;
+	if (LogTest(LDAP_DEBUG_BER)) {
+		va_list vl;
+
+		va_start( vl, fmt );
+		lutil_debug_va( fmt, vl);
+		va_end( vl );
+		return 1;
+	}
+	return 0;
+}
