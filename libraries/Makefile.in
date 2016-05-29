@@ -15,8 +15,6 @@
 
 SUBDIRS= \
 	liblutil \
-	liblber \
+	libreldap \
 	liblunicode \
-	libldap libldap_r \
 	librewrite
-

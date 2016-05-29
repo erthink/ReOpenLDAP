@@ -45,7 +45,7 @@
 #include "config.h"
 
 /* LY: for ldap_pvt_tcpkeepalive() from libldap */
-#include "../../../libraries/libldap/ldap-int.h"
+#include "../../../libraries/libreldap/ldap-int.h"
 
 #if defined(HAVE_SYS_EPOLL_H) && defined(HAVE_EPOLL)
 # include <sys/epoll.h>

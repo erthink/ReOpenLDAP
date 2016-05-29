@@ -35,7 +35,7 @@
 #include "lutil.h"
 #include "config.h"
 
-#include "../../../libraries/liblber/lber-int.h"	/* ber_rewind */
+#include "../../../libraries/libreldap/lber-int.h"	/* ber_rewind */
 
 /* RFC2891: Server Side Sorting
  * RFC2696: Paged Results

@@ -132,18 +132,18 @@ LDAP_BEGIN_DECL
      * a 'proper' dllimport.
      */
 #ifndef ldap_debug
-extern int	ldap_debug;
+LDAP_V(int)	ldap_debug;
 #endif /* !ldap_debug */
 
 #endif /* LDAP_DEBUG */
 
 #ifdef LDAP_SYSLOG
-extern int	ldap_syslog;
-extern int	ldap_syslog_level;
+LDAP_V(int)	ldap_syslog;
+LDAP_V(int)	ldap_syslog_level;
 
 #ifdef HAVE_EBCDIC
-#define syslog	eb_syslog
-extern void eb_syslog(int pri, const char *fmt, ...);
+#define syslog	_ldap_eb_syslog
+LDAP_F(void) _ldap_eb_syslog(int pri, const char *fmt, ...);
 #endif /* HAVE_EBCDIC */
 
 #endif /* LDAP_SYSLOG */
@@ -155,7 +155,7 @@ extern void eb_syslog(int pri, const char *fmt, ...);
 #		define Log( level, severity, ... )	\
 			do { \
 				if ( ldap_debug & (level) ) \
-					lutil_debug_print( __VA_ARGS__ ); \
+					ldap_debug_print( __VA_ARGS__ ); \
 				if ( ldap_syslog & (level) ) \
 					syslog( LDAP_LEVEL_MASK((severity)), __VA_ARGS__ ); \
 			} while ( 0 )
@@ -174,7 +174,7 @@ extern void eb_syslog(int pri, const char *fmt, ...);
 #		define Log( level, severity, ... )	\
 			do { \
 				if ( ldap_debug & (level) ) \
-					lutil_debug_print( __VA_ARGS__ ); \
+					ldap_debug_print( __VA_ARGS__ ); \
 			} while ( 0 )
 #		define LogTest(level) ( ldap_debug & (level) )
 #	else /* ! LDAP_DEBUG */
@@ -188,21 +188,21 @@ extern void eb_syslog(int pri, const char *fmt, ...);
 
 
 /* Actually now in liblber/debug.c */
-LDAP_LUTIL_F(int) lutil_debug_file LDAP_P(( FILE *file ));
+LDAP_LUTIL_F(int) ldap_debug_file LDAP_P(( FILE *file ));
 
-LDAP_LUTIL_F(void) lutil_debug LDAP_P((
+LDAP_LUTIL_F(void) ldap_debug_log LDAP_P((
 	int debug, int level,
 	const char* fmt, ... )) LDAP_GCCATTR((format(printf, 3, 4)));
 
-LDAP_LUTIL_F(void) lutil_debug_print LDAP_P((
+LDAP_LUTIL_F(void) ldap_debug_print LDAP_P((
 	const char* fmt, ... )) LDAP_GCCATTR((format(printf, 1, 2)));
 
-LDAP_LUTIL_F(void) lutil_debug_va LDAP_P((
+LDAP_LUTIL_F(void) ldap_debug_va LDAP_P((
 	const char* fmt, va_list args ));
 
-void lutil_debug_lock(void);
-int lutil_debug_trylock(void);
-void lutil_debug_unlock(void);
+LDAP_LUTIL_F(void) ldap_debug_lock(void);
+LDAP_LUTIL_F(int) ldap_debug_trylock(void);
+LDAP_LUTIL_F(void) ldap_debug_unlock(void);
 
 #ifdef LDAP_DEFINE_LDAP_DEBUG
 /* This struct matches the head of ldapoptions in <ldap-int.h> */

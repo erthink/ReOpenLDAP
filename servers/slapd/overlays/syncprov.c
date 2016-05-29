@@ -2957,7 +2957,7 @@ syncprov_op_search( Operation *op, SlapReply *rs )
 	dirty = si->si_dirty;
 
 	if ( LogTest( LDAP_DEBUG_SYNC ) ) {
-		lutil_debug_print(
+		ldap_debug_print(
 			"syncprov-search: %srid=%03x, sid=%03x, hint %d, srs %p, sop %p\n",
 			so ? "PERSISTENT, " : "",
 			srs->sr_state.rid, srs->sr_state.sid, srs->sr_rhint,

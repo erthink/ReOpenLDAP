@@ -66,7 +66,7 @@ main( int argc, char **argv )
 			for ( n = tavl_end( tree, TAVL_DIR_LEFT );
 			    n != NULL;
 				n = tavl_next( n, TAVL_DIR_RIGHT ))
-				printf( "%s\n", n->avl_data );
+				printf( "%s\n", (char*) n->avl_data );
 			printf( "***\n" );
 			break;
 		case 'f':	/* find */

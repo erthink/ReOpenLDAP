@@ -29,7 +29,7 @@
 #ifdef HAVE_STRERROR_R
 #include <pthread.h>
 
-const char* strerror_safe(int err) {
+const char* lber_strerror_safe(int err) {
 	static __thread char buf[1024];
 	const char *str;
 

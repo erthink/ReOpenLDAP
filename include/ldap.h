@@ -1367,6 +1367,9 @@ ldap_parse_result LDAP_P((
 	LDAPControl		***serverctrls,
 	int				freeit ));
 
+LBER_F( const char * )
+lber_strerror_safe(int err);
+
 LDAP_F( char * )
 ldap_err2string LDAP_P((
 	int err ));
@@ -2380,7 +2383,7 @@ ldap_txn_end_s LDAP_P(( LDAP *ld,
  * in ldap_sync.c
  */
 
-const char* ldap_sync_state2str( int state );
+LDAP_F(const char*) ldap_sync_state2str( int state );
 
 /*
  * initialize the persistent search structure

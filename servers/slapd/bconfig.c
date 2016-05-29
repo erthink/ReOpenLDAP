@@ -1317,7 +1317,7 @@ config_generic(ConfigArgs *c) {
 			ch_free( logfileName );
 			logfileName = NULL;
 			if ( logfile ) {
-				lutil_debug_file( NULL );
+				ldap_debug_file( NULL );
 				fclose( logfile );
 				logfile = NULL;
 			}
@@ -2018,11 +2018,11 @@ sortval_reject:
 				logfileName = c->value_string;
 				c->value_string = NULL;
 				if ( logfile ) {
-					lutil_debug_file( NULL );
+					ldap_debug_file( NULL );
 					fclose( logfile );
 				}
 				logfile = fopen(logfileName, "w");
-				if(logfile) lutil_debug_file(logfile);
+				if(logfile) ldap_debug_file(logfile);
 			} break;
 
 		case CFG_LASTMOD:
@@ -3507,7 +3507,7 @@ loglevel_destroy( void )
 	}
 
 	if ( logfile ) {
-		lutil_debug_file( NULL );
+		ldap_debug_file( NULL );
 		fclose( logfile );
 		logfile = NULL;
 	}

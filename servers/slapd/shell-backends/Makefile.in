@@ -25,6 +25,10 @@ LDAP_LIBDIR= ../../../libraries
 BUILD_OPT = "--enable-shell"
 BUILD_SRV = @BUILD_SHELL@
 
+XLIBS   = $(LDAP_LIBLUTIL_A) $(LDAP_LIBRELDAP_LA)
+XXLIBS  = $(SECURITY_LIBS) $(LUTIL_LIBS)
+XXXLIBS = $(LTHREAD_LIBS)
+
 all-local-srv: $(PROGRAMS)
 
 # create programs also when using modules

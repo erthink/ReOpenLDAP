@@ -40,7 +40,7 @@
  * a-priori knowledge of libldap internal workings.
  * hodges@stanford.edu 5-Feb-96
  */
-#include "ldap-int.h"
+#include "../ldap-int.h"
 
 /* local functions */
 static char *get_line LDAP_P(( char *line, int len, FILE *fp, const char *prompt ));

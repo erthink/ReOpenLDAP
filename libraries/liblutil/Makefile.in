@@ -14,28 +14,12 @@
 ## <http://www.OpenLDAP.org/license.html>.
 
 LIBRARY	= liblutil.a
-PROGRAM = testavl
 
 LDAP_INCDIR= ../../include
 LDAP_LIBDIR= ../../libraries
 
-XLIBS = $(LIBRARY) $(LDAP_LIBLBER_LA)
-
 SRCS	= base64.c entropy.c sasl.c signal.c hash.c passfile.c \
 	md5.c passwd.c sha1.c getpass.c lockf.c utils.c uuid.c sockpair.c \
-	avl.c tavl.c \
-	testavl.c \
-	meter.c \
-	@LIBSRCS@ detach.c
+	avl.c tavl.c meter.c detach.c @LIBSRCS@
 
-OBJS	= base64.o entropy.o sasl.o signal.o hash.o passfile.o \
-	md5.o passwd.o sha1.o getpass.o lockf.o utils.o uuid.o sockpair.o \
-	avl.o tavl.o \
-	meter.o \
-	@LIBOBJS@ detach.o
-
-testavl: $(XLIBS) testavl.o
-	(LTLINK) -o $@ testavl.o $(LIBS)
-
-testtavl: $(XLIBS) testtavl.o
-	(LTLINK) -o $@ testtavl.o $(LIBS)
+OBJS    = $(SRCS:.c=.o)

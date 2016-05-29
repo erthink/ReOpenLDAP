@@ -279,7 +279,7 @@ void backtrace_sigaction(int signum, siginfo_t *info, void* ptr) {
 	time_t t = ldap_time_steady();
 	strftime(time_buf, sizeof(time_buf), "%F-%H%M%S", localtime(&t));
 
-	int debug_locked = (lutil_debug_trylock() == 0);
+	int debug_locked = (ldap_debug_trylock() == 0);
 
 	char name_buf[PATH_MAX];
 	int fd = -1;
@@ -498,7 +498,7 @@ void backtrace_sigaction(int signum, siginfo_t *info, void* ptr) {
 				 * If we return from signal handler while GDB not ready the kernel just terminate us.
 				 * Assume that checking gdb_is_ready_for_backtrace == gdb_pid is enough. */
 				if (debug_locked)
-					lutil_debug_unlock();
+					ldap_debug_unlock();
 				return;
 			}
 
@@ -513,7 +513,7 @@ ballout:
 done:
 	if (should_die) {
 		if (debug_locked)
-			lutil_debug_unlock();
+			ldap_debug_unlock();
 		exit(EXIT_FAILURE);
 	}
 
@@ -529,7 +529,7 @@ done:
 	dprintf(fd, "\n*** No reason for die, continue running.\n");
 	close(fd);
 	if (debug_locked)
-		lutil_debug_unlock();
+		ldap_debug_unlock();
 }
 
 static int enabled;
@@ -670,18 +670,18 @@ slap_backtrace_log(void *array[], int nentries, const char* caption)
 	if (nentries < 1)
 		return;
 
-	lutil_debug_lock();
+	ldap_debug_lock();
 
 	int n = readlink("/proc/self/exe", name_buf, sizeof(name_buf) - 1);
 	if (n < 0) {
-		lutil_debug_print("*** Unable read executable name: %s\n", STRERROR(errno));
+		ldap_debug_print("*** Unable read executable name: %s\n", STRERROR(errno));
 		goto fallback;
 	}
 	name_buf[n] = 0;
 
 	int to_addr2line[2], from_addr2line[2];
 	if (pipe(to_addr2line)|| pipe(from_addr2line)) {
-		lutil_debug_print("*** Unable complete backtrace by addr2line, sorry (%s, %d).\n", "pipe", errno);
+		ldap_debug_print("*** Unable complete backtrace by addr2line, sorry (%s, %d).\n", "pipe", errno);
 		goto fallback;
 	}
 
@@ -707,21 +707,21 @@ slap_backtrace_log(void *array[], int nentries, const char* caption)
 	close(from_addr2line[1]);
 
 	if (child_pid < 0) {
-		lutil_debug_print("*** Unable complete backtrace by addr2line, sorry (%s, %d).\n", "fork", errno);
+		ldap_debug_print("*** Unable complete backtrace by addr2line, sorry (%s, %d).\n", "fork", errno);
 		close(to_addr2line[1]);
 		close(from_addr2line[0]);
 		goto fallback;
 	}
 
 	FILE* file = fdopen(from_addr2line[0], "r");
-	lutil_debug_print("*** %s by addr2line:\n", caption);
+	ldap_debug_print("*** %s by addr2line:\n", caption);
 	for(i = 0; i < nentries; ++i) {
 		char addr_buf[1024];
 
 		dprintf(to_addr2line[1], "%p\n", array[i]);
 		if (! fgets(addr_buf, sizeof(addr_buf), file))
 			break;
-		lutil_debug_print("(%d) %s", i, addr_buf);
+		ldap_debug_print("(%d) %s", i, addr_buf);
 	}
 
 	close(to_addr2line[1]);
@@ -729,23 +729,23 @@ slap_backtrace_log(void *array[], int nentries, const char* caption)
 
 	int status = 0;
 	if (waitpid(child_pid, &status, 0) < 0 || status != W_EXITCODE(EXIT_SUCCESS, 0)) {
-		lutil_debug_print("*** Unable complete backtrace by addr2line, sorry (%s, pid %d, errno %d, status 0x%x).\n",
+		ldap_debug_print("*** Unable complete backtrace by addr2line, sorry (%s, pid %d, errno %d, status 0x%x).\n",
 			"waitpid", child_pid, errno, status);
 		goto fallback;
 	}
 
-	lutil_debug_unlock();
+	ldap_debug_unlock();
 	return;
 
 fallback:
 	bt_glibc = backtrace_symbols(array, nentries);
 	if (bt_glibc) {
-		lutil_debug_print("*** %s by glibc:\n", caption);
+		ldap_debug_print("*** %s by glibc:\n", caption);
 		for(i = 0; i < nentries; i++)
-			lutil_debug_print("(%d) %s\n", i, bt_glibc[i]);
+			ldap_debug_print("(%d) %s\n", i, bt_glibc[i]);
 		free(bt_glibc);
 	}
-	lutil_debug_unlock();
+	ldap_debug_unlock();
 }
 
 #endif /* __linux__ */

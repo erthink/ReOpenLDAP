@@ -41,45 +41,45 @@ static pthread_mutex_t debug_mutex = PTHREAD_RECURSIVE_MUTEX_INITIALIZER_NP;
 static FILE *log_file = NULL;
 static int debug_lastc = '\n';
 
-void lutil_debug_lock(void) {
+void ldap_debug_lock(void) {
 	LDAP_ENSURE(pthread_mutex_lock(&debug_mutex) == 0);
 }
 
-int lutil_debug_trylock(void) {
+int ldap_debug_trylock(void) {
 	int rc = pthread_mutex_trylock(&debug_mutex);
 	LDAP_ENSURE(rc == 0 || rc == EBUSY);
 	return rc;
 }
 
-void lutil_debug_unlock(void) {
+void ldap_debug_unlock(void) {
 	LDAP_ENSURE(pthread_mutex_unlock(&debug_mutex) == 0);
 }
 
-int lutil_debug_file( FILE *file )
+int ldap_debug_file( FILE *file )
 {
-	lutil_debug_lock();
+	ldap_debug_lock();
 	log_file = file;
 	ber_set_option( NULL, LBER_OPT_LOG_PRINT_FILE, file );
-	lutil_debug_unlock();
+	ldap_debug_unlock();
 
 	return 0;
 }
 
-void lutil_debug_print( const char *fmt, ... )
+void ldap_debug_print( const char *fmt, ... )
 {
 	va_list vl;
 
 	va_start( vl, fmt );
-	lutil_debug_va( fmt, vl);
+	ldap_debug_va( fmt, vl);
 	va_end( vl );
 }
 
-void lutil_debug_va( const char* fmt, va_list vl )
+void ldap_debug_va( const char* fmt, va_list vl )
 {
 	char buffer[4096];
 	int len, off = 0;
 
-	lutil_debug_lock();
+	ldap_debug_lock();
 	if (debug_lastc == '\n') {
 		struct timeval now;
 		struct tm tm;
@@ -105,12 +105,12 @@ void lutil_debug_va( const char* fmt, va_list vl )
 		fflush( log_file );
 	}
 	fputs( buffer, stderr );
-	lutil_debug_unlock();
+	ldap_debug_unlock();
 }
 
 #if defined(HAVE_EBCDIC) && defined(LDAP_SYSLOG)
 #undef syslog
-void eb_syslog( int pri, const char *fmt, ... )
+void _ldap_eb_syslog( int pri, const char *fmt, ... )
 {
 	char buffer[4096];
 	va_list vl;

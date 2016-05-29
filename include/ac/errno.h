@@ -18,9 +18,9 @@
 #define _AC_ERRNO_H
 
 #if defined( HAVE_ERRNO_H )
-# include <errno.h>
+#	include <errno.h>
 #elif defined( HAVE_SYS_ERRNO_H )
-# include <sys/errno.h>
+#	include <sys/errno.h>
 #endif
 
 #ifndef HAVE_SYS_ERRLIST
@@ -37,8 +37,8 @@
 #define _AC_ERRNO_UNKNOWN "unknown error"
 
 #ifdef HAVE_STRERROR_R
-	const char* strerror_safe(int err);
-#	define	STRERROR(e) strerror_safe(e)
+	__extern_C const char* lber_strerror_safe(int err);
+#	define	STRERROR(e) lber_strerror_safe(e)
 #elif defined(HAVE_SYS_ERRLIST)
 	/* this is thread safe */
 #	define	STRERROR(e) ( (e) > -1 && (e) < sys_nerr \

@@ -56,7 +56,7 @@ mdbx_debug(int type, const char *function, int line, const char *msg, va_list ar
 		level |= LDAP_DEBUG_TRACE;
 
 	if (LogTest(level))
-		lutil_debug_va(msg, args);
+		ldap_debug_va(msg, args);
 }
 #endif /* MDBX_MODE_ENABLED */
 

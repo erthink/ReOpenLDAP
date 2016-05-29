@@ -31,8 +31,7 @@
 #include <ac/unistd.h>
 
 #include <ldap.h>
-
-#include "ldap-int.h"
+#include "../ldap-int.h"
 
 #include "ldif.h"
 #include "lutil.h"

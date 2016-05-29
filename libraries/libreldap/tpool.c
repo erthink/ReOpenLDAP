@@ -27,8 +27,6 @@
 #include "ldap-int.h"
 #include "ldap_pvt_thread.h" /* Get the thread interface */
 #include "ldap_queue.h"
-#define LDAP_THREAD_POOL_IMPLEMENTATION
-#include "ldap_thr_debug.h"  /* May rename symbols defined below */
 
 #ifndef LDAP_THREAD_HAVE_TPOOL
 

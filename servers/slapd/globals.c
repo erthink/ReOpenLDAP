@@ -185,7 +185,7 @@ int ldap_log_printf(void *ld, int loglvl, const char *fmt, ... )
 		va_list vl;
 
 		va_start( vl, fmt );
-		lutil_debug_va( fmt, vl);
+		ldap_debug_va( fmt, vl);
 		va_end( vl );
 		return 1;
 	}
@@ -210,9 +210,19 @@ int ber_pvt_log_output(
 		va_list vl;
 
 		va_start( vl, fmt );
-		lutil_debug_va( fmt, vl);
+		ldap_debug_va( fmt, vl);
 		va_end( vl );
 		return 1;
 	}
 	return 0;
+}
+
+LDAP_SLAPD_F(void) __ldap_assert_fail(
+		const char* assertion,
+		const char* file,
+		unsigned line,
+		const char* function)
+{
+	slap_backtrace_debug();
+	__assert_fail(assertion, file, line, function);
 }

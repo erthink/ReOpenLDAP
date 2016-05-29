@@ -40,7 +40,7 @@
 #include "slap.h"
 
 #ifdef LDAP_CONNECTIONLESS
-#include "../../libraries/liblber/lber-int.h"	/* ber_int_sb_read() */
+#include "../../libraries/libreldap/lber-int.h"	/* ber_int_sb_read() */
 #endif
 
 #ifdef LDAP_SLAPI

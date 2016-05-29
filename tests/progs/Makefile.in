@@ -24,8 +24,8 @@ SRCS     = slapd-common.c \
 LDAP_INCDIR= ../../include
 LDAP_LIBDIR= ../../libraries
 
-XLIBS    = $(LDAP_LIBLDAP_LA) $(LDAP_LIBLUTIL_A) $(LDAP_LIBLBER_LA)
-XRLIBS    = $(LDAP_LIBLDAP_R_LA) $(LDAP_LIBLUTIL_A) $(LDAP_LIBLBER_LA)
+XLIBS    = $(LDAP_LIBRELDAP_LA) $(LDAP_LIBLUTIL_A)
+XRLIBS    = $(LDAP_LIBRELDAP_LA) $(LDAP_LIBLUTIL_A)
 XXLIBS	 = $(SECURITY_LIBS) $(LUTIL_LIBS)
 RLIBS = $(XRLIBS) $(XXLIBS) $(AC_LIBS) $(XXXLIBS)
 
@@ -63,4 +63,3 @@ ldif-filter: ldif-filter.o $(XLIBS)
 
 slapd-mtread: slapd-mtread.o $(OBJS) $(XRLIBS)
 	$(LTLINK) -o $@ slapd-mtread.o $(OBJS) $(RLIBS)
-

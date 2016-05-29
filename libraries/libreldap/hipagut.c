@@ -645,20 +645,6 @@ __hot void reopenldap_jitter(int probability_percent) {
 	}
 }
 
-__hot void* ber_memcpy_safe(void* dest, const void* src, size_t n) {
-	long diff = (char*) dest - (char*) src;
-
-	if (unlikely(n > (size_t) __builtin_labs(diff))) {
-		if (reopenldap_mode_check())
-			__ldap_assert_fail("source and destination MUST NOT overlap",
-				__FILE__, __LINE__, __FUNCTION__);
-		return memmove(dest, src, n);
-	}
-
-#undef memcpy
-	return memcpy(dest, src, n);
-}
-
 /*----------------------------------------------------------------------------*/
 
 static uint64_t clock_past, clock_past_us;
@@ -796,21 +782,27 @@ __hot time_t ldap_time_unsteady(void) {
 
 /*----------------------------------------------------------------------------*/
 
-/* Prototype should match libc runtime. ISO POSIX (2003) & LSB 3.1 */
-__extern_C void __assert_fail(
-		const char* assertion,
-		const char* file,
-		unsigned line,
-		const char* function) __nothrow __noreturn;
-
-void __attribute__((weak)) slap_backtrace_debug(void) {/* LY: TODO */}
-
+__attribute__((weak))
 void __ldap_assert_fail(
 		const char* assertion,
 		const char* file,
 		unsigned line,
-		const char* function)
-{
-	slap_backtrace_debug();
+		const char* function) {
 	__assert_fail(assertion, file, line, function);
+}
+
+__hot void* ber_memcpy_safe(void* dest, const void* src, size_t n) {
+	long diff = (char*) dest - (char*) src;
+
+	if (unlikely(n > (size_t) __builtin_labs(diff))) {
+		if (unlikely(src == dest))
+			return dest;
+		if (reopenldap_mode_check())
+			__ldap_assert_fail("source and destination MUST NOT overlap",
+				__FILE__, __LINE__, __FUNCTION__);
+		return memmove(dest, src, n);
+	}
+
+#undef memcpy
+	return memcpy(dest, src, n);
 }

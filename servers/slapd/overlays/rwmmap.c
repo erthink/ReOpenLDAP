@@ -39,7 +39,7 @@
 	   *       types of 'struct ldapoptions' with different size.
 	   */
 #	undef ldap_debug	/* silence a warning in ldap-int.h */
-#	include "../../../libraries/libldap/ldap-int.h"
+#	include "../../../libraries/libreldap/ldap-int.h"
 #endif /* OpenLDAP's rebus codestyle */
 
 int

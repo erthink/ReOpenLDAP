@@ -32,7 +32,7 @@
 #include "slap.h"
 #include "../back-ldap/back-ldap.h"
 #include "back-meta.h"
-#include "../../../libraries/liblber/lber-int.h"
+#include "../../../libraries/libreldap/lber-int.h"
 
 /* IGNORE means that target does not (no longer) participate
  * in the search;

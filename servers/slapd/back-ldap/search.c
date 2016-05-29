@@ -31,7 +31,7 @@
 
 #include "slap.h"
 #include "back-ldap.h"
-#include "../../../libraries/liblber/lber-int.h"
+#include "../../../libraries/libreldap/lber-int.h"
 
 #include "lutil.h"
 

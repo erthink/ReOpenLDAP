@@ -32,4 +32,3 @@ lint5: FORCE
 	$(5LINT) $(DEFS) $(DEFINES) $(SRCS)
 
 Makefile: $(top_srcdir)/build/rules.mk
-

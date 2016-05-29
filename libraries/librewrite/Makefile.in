@@ -26,12 +26,11 @@ OBJS = config.o context.o info.o ldapmap.o map.o params.o rule.o \
 LDAP_INCDIR= ../../include
 LDAP_LIBDIR= ../../libraries
 
-LIBRARY = librewrite.a
-PROGRAMS	= rewrite
-XLIBS = $(LIBRARY) $(LDAP_LIBLUTIL_A) \
-	$(LDAP_LIBLDAP_R_LA) $(LDAP_LIBLBER_LA)
-XXLIBS  = $(SECURITY_LIBS) $(LUTIL_LIBS)
-XXXLIBS = $(LTHREAD_LIBS)
+LIBRARY	= librewrite.a
+PROGRAMS= rewrite
+XLIBS	= $(LIBRARY) $(LDAP_LIBLUTIL_A) $(LDAP_LIBRELDAP_LA)
+XXLIBS	= $(SECURITY_LIBS) $(LUTIL_LIBS)
+XXXLIBS	= $(LTHREAD_LIBS)
 
 rewrite:	$(XLIBS) rewrite.o parse.o
 	$(LTLINK) -o $@ rewrite.o parse.o $(LIBS)

@@ -41,16 +41,19 @@
  * read-only global variables or variables only written by the listener
  * thread (after they are initialized) - no need to protect them with a mutex.
  */
-int		slap_debug = 0;
+#ifdef LDAP_DEBUG
+LDAP_SLAPD_V(int) slap_debug;
+int slap_debug;
+#endif
 
 #ifdef LDAP_DEBUG
-int		ldap_syslog = LDAP_DEBUG_STATS;
-#else
-int		ldap_syslog;
+LDAP_SLAPD_V(int) ldap_syslog;
+int ldap_syslog = LDAP_DEBUG_STATS;
 #endif
 
 #ifdef LOG_DEBUG
-int		ldap_syslog_level = LOG_DEBUG;
+LDAP_SLAPD_V(int) ldap_syslog_level;
+int ldap_syslog_level = LOG_DEBUG;
 #endif
 
 BerVarray default_referral = NULL;
@@ -59,10 +62,10 @@ BerVarray default_referral = NULL;
  * global variables that need mutex protection
  */
 ldap_pvt_thread_pool_t	connection_pool;
-int			connection_pool_max = SLAP_MAX_WORKER_THREADS;
-int		slap_tool_thread_max = 1;
+int connection_pool_max = SLAP_MAX_WORKER_THREADS;
+int slap_tool_thread_max = 1;
 
-slap_counters_t			slap_counters, *slap_counters_list;
+slap_counters_t slap_counters, *slap_counters_list;
 
 static const char* slap_name = NULL;
 int slapMode = SLAP_UNDEFINED_MODE;

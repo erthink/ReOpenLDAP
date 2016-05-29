@@ -24,7 +24,7 @@
 #include "ldif.h"
 #include "lutil.h"
 
-#include "../../libraries/liblber/lber-int.h"
+#include "../../libraries/libreldap/lber-int.h"
 
 static SLAP_CTRL_PARSE_FN parseAssert;
 static SLAP_CTRL_PARSE_FN parseDomainScope;

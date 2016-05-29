@@ -20,14 +20,13 @@
 #include <string.h>
 
 /* use ldap_pvt_strtok instead of strtok or strtok_r! */
-LDAP_F(char *) ldap_pvt_strtok LDAP_P(( char *str,
-	const char *delim, char **pos ));
+__extern_C LDAP_F(char*) ldap_pvt_strtok(char *str, const char *delim, char **pos);
 
 #if LDAP_SAFEMEMCPY
 #	undef memcpy
 #	define memcpy ber_memcpy_safe
 	/* LY: memcpy with checking for overlap */
-	__extern_C void* ber_memcpy_safe(void* dest, const void* src, size_t n);
+	__extern_C LDAP_F(void*) ber_memcpy_safe(void* dest, const void* src, size_t n);
 #endif
 
 #define STRLENOF(s)	(sizeof(s)-1)
