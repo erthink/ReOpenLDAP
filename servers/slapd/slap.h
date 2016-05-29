@@ -3135,9 +3135,6 @@ typedef int (*SLAP_ENTRY_INFO_FN) LDAP_P(( void *arg, Entry *e ));
 #define SLAP_SLAB_SIZE	(1024*1024)
 #define SLAP_SLAB_STACK 1
 
-#define SLAP_ZONE_ALLOC 1
-#undef SLAP_ZONE_ALLOC
-
 #ifdef LDAP_COMP_MATCH
 /*
  * Extensible Filter Definition
@@ -3362,53 +3359,6 @@ struct ComponentSyntaxInfo {
 };
 
 #endif /* LDAP_COMP_MATCH */
-
-#ifdef SLAP_ZONE_ALLOC
-#define SLAP_ZONE_SIZE 0x80000		/* 512KB */
-#define SLAP_ZONE_SHIFT 19
-#define SLAP_ZONE_INITSIZE 0x800000 /* 8MB */
-#define SLAP_ZONE_MAXSIZE 0x80000000/* 2GB */
-#define SLAP_ZONE_DELTA 0x800000	/* 8MB */
-#define SLAP_ZONE_ZOBLOCK 256
-
-struct zone_object {
-	void *zo_ptr;
-	int zo_siz;
-	int zo_idx;
-	int zo_blockhead;
-	LDAP_LIST_ENTRY(zone_object) zo_link;
-};
-
-struct zone_latency_history {
-	double zlh_latency;
-	LDAP_STAILQ_ENTRY(zone_latency_history) zlh_next;
-};
-
-struct zone_heap {
-	int zh_fd;
-	int zh_zonesize;
-	int zh_zoneorder;
-	int zh_numzones;
-	int zh_maxzones;
-	int zh_deltazones;
-	void **zh_zones;
-	ldap_pvt_thread_rdwr_t *zh_znlock;
-	Avlnode *zh_zonetree;
-	unsigned char ***zh_maps;
-	int *zh_seqno;
-	LDAP_LIST_HEAD( zh_freelist, zone_object ) *zh_free;
-	LDAP_LIST_HEAD( zh_so, zone_object ) zh_zopool;
-	ldap_pvt_thread_mutex_t zh_mutex;
-	ldap_pvt_thread_rdwr_t zh_lock;
-	double zh_ema_latency;
-	unsigned long zh_ema_samples;
-	LDAP_STAILQ_HEAD( zh_latency_history, zone_latency_history )
-				zh_latency_history_queue;
-	int zh_latency_history_qlen;
-	int zh_latency_jump;
-	int zh_swapping;
-};
-#endif
 
 #define SLAP_BACKEND_INIT_MODULE(b) \
 	static BackendInfo bi;	\

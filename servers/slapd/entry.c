@@ -809,11 +809,7 @@ entry_decode_dn( EntryHeader *eh, struct berval *dn, struct berval *ndn )
 	return 0;
 }
 
-#ifdef SLAP_ZONE_ALLOC
-int entry_decode(EntryHeader *eh, Entry **e, void *ctx)
-#else
 int entry_decode(EntryHeader *eh, Entry **e)
-#endif
 {
 	int i, j, nattrs, nvals ALLOW_UNUSED;
 	int rc;

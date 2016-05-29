@@ -1126,13 +1126,8 @@ LDAP_SLAPD_F (void) entry_partsize LDAP_P(( Entry *e, ber_len_t *len,
 LDAP_SLAPD_F (int) entry_header LDAP_P(( EntryHeader *eh ));
 LDAP_SLAPD_F (int) entry_decode_dn LDAP_P((
 	EntryHeader *eh, struct berval *dn, struct berval *ndn ));
-#ifdef SLAP_ZONE_ALLOC
-LDAP_SLAPD_F (int) entry_decode LDAP_P((
-						EntryHeader *eh, Entry **e, void *ctx ));
-#else
 LDAP_SLAPD_F (int) entry_decode LDAP_P((
 						EntryHeader *eh, Entry **e ));
-#endif
 LDAP_SLAPD_F (int) entry_encode LDAP_P(( Entry *e, struct berval *bv ));
 
 LDAP_SLAPD_F (void) entry_clean LDAP_P(( Entry *e ));
@@ -2161,30 +2156,6 @@ LDAP_SLAPD_F (int) value_join_str LDAP_P((
 
 /* assumes (x) > (y) returns 1 if true, 0 otherwise */
 #define SLAP_PTRCMP(x, y) ((x) < (y) ? -1 : (x) > (y))
-
-#ifdef SLAP_ZONE_ALLOC
-/*
- * zn_malloc.c
- */
-LDAP_SLAPD_F (void *) slap_zn_malloc LDAP_P((ber_len_t, void *));
-LDAP_SLAPD_F (void *) slap_zn_realloc LDAP_P((void *, ber_len_t, void *));
-LDAP_SLAPD_F (void *) slap_zn_calloc LDAP_P((ber_len_t, ber_len_t, void *));
-LDAP_SLAPD_F (void) slap_zn_free LDAP_P((void *, void *));
-
-LDAP_SLAPD_F (void *) slap_zn_mem_create LDAP_P((
-							ber_len_t, ber_len_t, ber_len_t, ber_len_t));
-LDAP_SLAPD_F (void) slap_zn_mem_destroy LDAP_P((void *));
-LDAP_SLAPD_F (int) slap_zn_validate LDAP_P((void *, void *, int));
-LDAP_SLAPD_F (int) slap_zn_invalidate LDAP_P((void *, void *));
-LDAP_SLAPD_F (void) slap_zh_rlock LDAP_P((void*));
-LDAP_SLAPD_F (void) slap_zh_runlock LDAP_P((void*));
-LDAP_SLAPD_F (void) slap_zh_wlock LDAP_P((void*));
-LDAP_SLAPD_F (void) slap_zh_wunlock LDAP_P((void*));
-LDAP_SLAPD_F (void) slap_zn_rlock LDAP_P((void*, void*));
-LDAP_SLAPD_F (void) slap_zn_runlock LDAP_P((void*, void*));
-LDAP_SLAPD_F (void) slap_zn_wlock LDAP_P((void*, void*));
-LDAP_SLAPD_F (void) slap_zn_wunlock LDAP_P((void*, void*));
-#endif
 
 /*
  * Other...

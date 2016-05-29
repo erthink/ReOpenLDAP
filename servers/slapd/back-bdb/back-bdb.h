@@ -107,8 +107,7 @@ typedef struct bdb_entry_info {
 	Entry	*bei_e;
 	Avlnode	*bei_kids;
 #ifdef SLAP_ZONE_ALLOC
-	struct bdb_info *bei_bdb;
-	int bei_zseq;
+#	error "zone-alloc is not supported by ReOpenLDAP"
 #endif
 	ldap_pvt_thread_mutex_t	bei_kids_mutex;
 
