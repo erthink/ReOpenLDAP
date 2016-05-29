@@ -65,8 +65,4 @@ LDAP_LUTIL_F(char*)(lutil_getpass) LDAP_P((const char *getpass));
  * is declared in stdlib.h
  */
 
-#ifdef _WIN32
-#define sleep _sleep
-#endif
-
 #endif /* _AC_UNISTD_H */

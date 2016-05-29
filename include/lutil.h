@@ -184,13 +184,7 @@ LDAP_LUTIL_F( int )
 lutil_tm2time LDAP_P((
 	struct lutil_tm *, struct lutil_timet * ));
 
-#ifdef _WIN32
-LDAP_LUTIL_F( void )
-lutil_slashpath LDAP_P(( char* path ));
-#define	LUTIL_SLASHPATH(p)	lutil_slashpath(p)
-#else
 #define	LUTIL_SLASHPATH(p)
-#endif
 
 LDAP_LUTIL_F( char* )
 lutil_strcopy LDAP_P(( char *dst, const char *src ));
@@ -240,44 +234,6 @@ lutil_uuidstr_from_normalized(
  * been defined. Thus, we don't need to include a symbol if
  * its type has not been defined through another header file.
  */
-
-#ifdef HAVE_NT_SERVICE_MANAGER
-LDAP_LUTIL_V (int) is_NT_Service;
-
-#ifdef _LDAP_PVT_THREAD_H
-LDAP_LUTIL_V (ldap_pvt_thread_cond_t) started_event;
-#endif /* _LDAP_PVT_THREAD_H */
-
-/* macros are different between Windows and Mingw */
-#if defined(_WINSVC_H) || defined(_WINSVC_)
-LDAP_LUTIL_V (SERVICE_STATUS) lutil_ServiceStatus;
-LDAP_LUTIL_V (SERVICE_STATUS_HANDLE) hlutil_ServiceStatus;
-#endif /* _WINSVC_H */
-
-LDAP_LUTIL_F (void)
-lutil_CommenceStartupProcessing( char *serverName, void (*stopper)(int)) ;
-
-LDAP_LUTIL_F (void)
-lutil_ReportShutdownComplete( void );
-
-LDAP_LUTIL_F (void *)
-lutil_getRegParam( char *svc, char *value );
-
-LDAP_LUTIL_F (int)
-lutil_srv_install( char* service, char * displayName, char* filename,
-		 int auto_start );
-LDAP_LUTIL_F (int)
-lutil_srv_remove ( char* service, char* filename );
-
-#endif /* HAVE_NT_SERVICE_MANAGER */
-
-#ifdef HAVE_NT_EVENT_LOG
-LDAP_LUTIL_F (void)
-lutil_LogStartedEvent( char *svc, int slap_debug, char *configfile, char *urls );
-
-LDAP_LUTIL_F (void)
-lutil_LogStoppedEvent( char *svc );
-#endif
 
 #ifdef HAVE_EBCDIC
 /* Generally this has only been used to put '\n' to stdout. We need to

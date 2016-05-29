@@ -487,20 +487,18 @@ ldap_int_sasl_bind(
 		}
 #endif /* HAVE_TLS */
 
-#if !defined(_WIN32)
 		/* Check for local */
 		if ( ldap_pvt_url_scheme2proto(
 			ld->ld_defconn->lconn_server->lud_scheme ) == LDAP_PROTO_IPC )
 		{
-			char authid[sizeof("gidNumber=4294967295+uidNumber=4294967295,"
-				"cn=peercred,cn=external,cn=auth")];
-			sprintf( authid, "gidNumber=%u+uidNumber=%u,"
+			char buf[sizeof("gidNumber=4294967295+uidNumber=4294967295,"
+				"cn=peercred,cn=external,cn=auth") + 8];
+			snprintf( buf, sizeof(buf), "gidNumber=%u+uidNumber=%u,"
 				"cn=peercred,cn=external,cn=auth",
 				getegid(), geteuid() );
-			(void) ldap_int_sasl_external( ld, ld->ld_defconn, authid,
+			(void) ldap_int_sasl_external( ld, ld->ld_defconn, buf,
 				LDAP_PVT_SASL_LOCAL_SSF );
 		}
-#endif
 
 		/* (re)set security properties */
 		sasl_setprop( ctx, SASL_SEC_PROPS,

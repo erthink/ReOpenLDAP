@@ -167,29 +167,6 @@ typedef thread_key_t	ldap_int_thread_key_t;
 #define LDAP_INT_MUTEX_FIRSTCREATE(m)	((void) 0)
 #endif
 
-#elif defined(HAVE_NT_THREADS)
-/*************************************
- *                                   *
- * thread definitions for NT threads *
- *                                   *
- *************************************/
-
-#include <process.h>
-#include <windows.h>
-
-LDAP_BEGIN_DECL
-
-typedef unsigned long	ldap_int_thread_t;
-typedef HANDLE	ldap_int_thread_mutex_t;
-typedef HANDLE	ldap_int_thread_cond_t;
-typedef DWORD	ldap_int_thread_key_t;
-
-#ifndef LDAP_INT_MUTEX_NULL
-#define LDAP_INT_MUTEX_NULL		((HANDLE)0)
-#define LDAP_INT_MUTEX_FIRSTCREATE(m) \
-		((void) ((m) || ldap_pvt_thread_mutex_init(&(m))))
-#endif
-
 LDAP_END_DECL
 
 #else

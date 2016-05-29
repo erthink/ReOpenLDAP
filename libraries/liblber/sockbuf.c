@@ -463,35 +463,7 @@ sb_stream_read( Sockbuf_IO_Desc *sbiod, void *buf, ber_len_t len )
 	assert( sbiod != NULL);
 	assert( SOCKBUF_VALID( sbiod->sbiod_sb ) );
 
-#if defined(MACOS)
-/*
- * MacTCP/OpenTransport
- */
-	return tcpread( sbiod->sbiod_sb->sb_fd, 0, (unsigned char *)buf,
-		len, NULL );
-
-#elif defined( HAVE_PCNFS ) || \
-   defined( HAVE_WINSOCK ) || defined ( __BEOS__ )
-/*
- * PCNFS (under DOS)
- */
-/*
- * Windows Socket API (under DOS/Windows 3.x)
- */
-/*
- * 32-bit Windows Socket API (under Windows NT or Windows 95)
- */
-	return recv( sbiod->sbiod_sb->sb_fd, buf, len, 0 );
-
-#elif defined( HAVE_NCSA )
-/*
- * NCSA Telnet TCP/IP stack (under DOS)
- */
-	return nread( sbiod->sbiod_sb->sb_fd, buf, len );
-
-#else
 	return read( sbiod->sbiod_sb->sb_fd, buf, len );
-#endif
 }
 
 static ber_slen_t
@@ -500,40 +472,7 @@ sb_stream_write( Sockbuf_IO_Desc *sbiod, void *buf, ber_len_t len )
 	assert( sbiod != NULL);
 	assert( SOCKBUF_VALID( sbiod->sbiod_sb ) );
 
-#if defined(MACOS)
-/*
- * MacTCP/OpenTransport
- */
-#define MAX_WRITE	65535
-	return tcpwrite( sbiod->sbiod_sb->sb_fd, (unsigned char *)buf,
-		(len<MAX_WRITE) ? len : MAX_WRITE );
-
-#elif defined( HAVE_PCNFS) \
-	|| defined( HAVE_WINSOCK) || defined ( __BEOS__ )
-/*
- * PCNFS (under DOS)
- */
-/*
- * Windows Socket API (under DOS/Windows 3.x)
- */
-/*
- * 32-bit Windows Socket API (under Windows NT or Windows 95)
- */
-	return send( sbiod->sbiod_sb->sb_fd, buf, len, 0 );
-
-#elif defined(HAVE_NCSA)
-	return netwrite( sbiod->sbiod_sb->sb_fd, buf, len );
-
-#elif defined(VMS)
-/*
- * VMS -- each write must be 64K or smaller
- */
-#define MAX_WRITE 65535
-	return write( sbiod->sbiod_sb->sb_fd, buf,
-		(len<MAX_WRITE) ? len : MAX_WRITE);
-#else
 	return write( sbiod->sbiod_sb->sb_fd, buf, len );
-#endif
 }
 
 static int

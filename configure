@@ -827,7 +827,6 @@ WITH_ACI_ENABLED
 WITH_MODULES_ENABLED
 WITH_TLS
 WITH_SASL
-PLAT
 LIBSRCS
 LIBOBJS
 MYSQL
@@ -24645,13 +24644,6 @@ $as_echo "#define ENABLE_SLAPI 1" >>confdefs.h
 fi
 
 
-
-if test "$ac_cv_mingw32" = yes -o $ol_cv_msvc = yes ; then
-	PLAT=NT
-	SLAPD_MODULES_LDFLAGS=
-else
-	PLAT=UNIX
-fi
 
 
 

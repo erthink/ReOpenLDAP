@@ -40,31 +40,14 @@ ldap_config.h: $(LDAP_CONFIG) Makefile
 	@$(RM) $@
 	@echo "Making $@"
 	@echo "/* Generated from $(LDAP_CONFIG) on `date` */" > $@;  \
-	if test $(PLAT) = NT; then \
-	    sysconfdir=`cygpath -w $(sysconfdir) | \
-		$(SED) -e 's/\\\\/\\\\\\\\\\\\\\\\/g'`; \
-	    datadir=`cygpath -w $(datadir) | \
-		$(SED) -e 's/\\\\/\\\\\\\\\\\\\\\\/g'`; \
-	    bindir=`cygpath -w $(bindir) | \
-		$(SED) -e 's/\\\\/\\\\\\\\\\\\\\\\/g'`; \
-	    sbindir=`cygpath -w $(sbindir) | \
-		$(SED) -e 's/\\\\/\\\\\\\\\\\\\\\\/g'`; \
-	    libexecdir=`cygpath -w $(libexecdir) | \
-		$(SED) -e 's/\\\\/\\\\\\\\\\\\\\\\/g'`; \
-	    moduledir=`cygpath -w $(moduledir) | \
-		$(SED) -e 's/\\\\/\\\\\\\\\\\\\\\\/g'`; \
-	    localstatedir=`cygpath -w $(localstatedir) | \
-		$(SED) -e 's/\\\\/\\\\\\\\\\\\\\\\/g'`; \
-	else \
-	    sysconfdir=$(sysconfdir); \
-	    datadir=$(datadir); \
-	    bindir=$(bindir); \
-	    sbindir=$(sbindir); \
-	    libexecdir=$(libexecdir); \
-	    moduledir=$(moduledir); \
-	    localstatedir=$(localstatedir); \
-	    localedir=$(localedir); \
-	fi; \
+	sysconfdir=$(sysconfdir); \
+	datadir=$(datadir); \
+	bindir=$(bindir); \
+	sbindir=$(sbindir); \
+	libexecdir=$(libexecdir); \
+	moduledir=$(moduledir); \
+	localstatedir=$(localstatedir); \
+	localedir=$(localedir); \
 	$(SED) \
 			-e "s;%SYSCONFDIR%;$$sysconfdir;" \
 			-e "s;%DATADIR%;$$datadir;" \
@@ -82,4 +65,3 @@ install-common:		all-common install-local
 clean-common:		clean-local
 veryclean-common:	veryclean-local
 depend-common:		depend-local
-

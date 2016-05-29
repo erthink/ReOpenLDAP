@@ -1949,7 +1949,6 @@ unsigned long
 slapi_timer_current_time( void )
 {
 	static int	first_time = 1;
-#if !defined (_WIN32)
 	struct timeval	now;
 	unsigned long	ret;
 
@@ -1969,21 +1968,6 @@ slapi_timer_current_time( void )
 	 * Ain't it better?
 	return (ldap_time_steady() - starttime) * 1000000;
 	 */
-#else /* _WIN32 */
-	LARGE_INTEGER now;
-
-	if ( first_time ) {
-		first_time = 0;
-		performance_counter_present = QueryPerformanceCounter( &base_time );
-		QueryPerformanceFrequency( &performance_freq );
-	}
-
-	if ( !performance_counter_present )
-	     return 0;
-
-	QueryPerformanceCounter( &now );
-	return (1000000*(now.QuadPart-base_time.QuadPart))/performance_freq.QuadPart;
-#endif /* _WIN32 */
 }
 
 /*
@@ -3470,4 +3454,3 @@ slapi_operation_is_flag_set(Slapi_Operation *op, unsigned long flag)
 #endif
 
 #endif /* LDAP_SLAPI */
-

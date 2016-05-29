@@ -31,8 +31,7 @@ mod_DEFS = -DSLAPD_IMPORT
 MOD_DEFS = $(@BUILD_DNSSRV@_DEFS)
 
 shared_LDAP_LIBS = $(LDAP_LIBLDAP_R_LA) $(LDAP_LIBLBER_LA)
-NT_LINK_LIBS = -L.. -lslapd $(@BUILD_LIBS_DYNAMIC@_LDAP_LIBS)
-UNIX_LINK_LIBS = $(@BUILD_LIBS_DYNAMIC@_LDAP_LIBS)
+NEED_LIBS = $(@BUILD_LIBS_DYNAMIC@_LDAP_LIBS)
 
 LIBBASE = back_dnssrv
 
@@ -43,4 +42,3 @@ all-local-lib:	../.backend
 
 ../.backend: lib$(LIBBASE).a
 	@touch $@
-

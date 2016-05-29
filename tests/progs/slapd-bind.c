@@ -426,11 +426,7 @@ do_base( char *uri, char *dn, struct berval *pass, char *base, char *filter, cha
 	struct berval *creds = NULL;
 	char *attrs[] = { LDAP_NO_ATTRS, NULL };
 	int ndns = 0;
-#ifdef _WIN32
-	DWORD beg, end;
-#else
 	struct timeval beg, end;
-#endif
 	int version = LDAP_VERSION3;
 	char *nullstr = "";
 

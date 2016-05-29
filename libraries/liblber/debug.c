@@ -80,20 +80,6 @@ void lutil_debug_va( const char* fmt, va_list vl )
 	int len, off = 0;
 
 	lutil_debug_lock();
-
-#ifdef HAVE_WINSOCK
-	if( log_file == NULL ) {
-		log_file = fopen( LDAP_RUNDIR LDAP_DIRSEP "openldap.log", "w" );
-
-		if ( log_file == NULL ) {
-			log_file = fopen( "openldap.log", "w" );
-			if ( log_file == NULL ) return;
-		}
-
-		ber_set_option( NULL, LBER_OPT_LOG_PRINT_FILE, log_file );
-	}
-#endif
-
 	if (debug_lastc == '\n') {
 		struct timeval now;
 		struct tm tm;

@@ -999,18 +999,9 @@ LDAP_SLAPD_V (int) slapd_tcp_rmem;
 LDAP_SLAPD_V (int) slapd_tcp_wmem;
 #endif /* LDAP_TCP_BUFFER */
 
-#ifdef HAVE_WINSOCK
-LDAP_SLAPD_F (ber_socket_t) slapd_socknew(ber_socket_t s);
-LDAP_SLAPD_F (ber_socket_t) slapd_sock2fd(ber_socket_t s);
-LDAP_SLAPD_V (SOCKET *) slapd_ws_sockets;
-#define	SLAP_FD2SOCK(s)	slapd_ws_sockets[s]
-#define	SLAP_SOCK2FD(s)	slapd_sock2fd(s)
-#define	SLAP_SOCKNEW(s)	slapd_socknew(s)
-#else
 #define	SLAP_FD2SOCK(s)	s
 #define	SLAP_SOCK2FD(s)	s
 #define	SLAP_SOCKNEW(s)	s
-#endif
 
 /*
  * dn.c

@@ -364,15 +364,6 @@
 /* Define to 1 if you have the <nssutil.h> header file. */
 #undef HAVE_NSSUTIL_H
 
-/* if you have NT Event Log */
-#undef HAVE_NT_EVENT_LOG
-
-/* if you have NT Service Manager */
-#undef HAVE_NT_SERVICE_MANAGER
-
-/* if you have NT Threads */
-#undef HAVE_NT_THREADS
-
 /* define if you have OpenSSL */
 #undef HAVE_OPENSSL
 
@@ -771,18 +762,6 @@
 /* Define to 1 if you have the `waitpid' function. */
 #undef HAVE_WAITPID
 
-/* define if you have winsock */
-#undef HAVE_WINSOCK
-
-/* define if you have winsock2 */
-#undef HAVE_WINSOCK2
-
-/* Define to 1 if you have the <winsock2.h> header file. */
-#undef HAVE_WINSOCK2_H
-
-/* Define to 1 if you have the <winsock.h> header file. */
-#undef HAVE_WINSOCK_H
-
 /* Define to 1 if you have the `write' function. */
 #undef HAVE_WRITE
 
@@ -1115,11 +1094,6 @@
 /* begin of portable.h.post */
 
 #include "reopenldap.h"
-
-#ifdef _WIN32
-	/* don't suck in all of the win32 api */
-#	define WIN32_LEAN_AND_MEAN 1
-#endif
 
 #ifndef LDAP_NEEDS_PROTOTYPES
 	/* force LDAP_P to always include prototypes */

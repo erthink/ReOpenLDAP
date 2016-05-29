@@ -243,9 +243,6 @@ main(int argc, char* argv[])
   ownerP = argv[1];
 
   signal(SIGINT, onintr);    /* signal for CTRL-C */
-#ifdef _WIN32
-  signal(SIGBREAK, onintr);  /* signal for CTRL-BREAK */
-#endif
 
   // Before we do anything related to XLA, first we connect
   // to the database.  This is the connection we will use
@@ -362,14 +359,7 @@ main(int argc, char* argv[])
     }
 
     if (records == 0) {
-#ifdef _WIN32
-      Sleep(250);
-#else
-      struct timeval t;
-      t.tv_sec = 0;
-      t.tv_usec = 250000; // .25 seconds
-      select(0, NULL, NULL, NULL, &t);
-#endif
+      usleep(250000); // .25 seconds
     }
   } // end while pleasestop == 0
 
@@ -384,4 +374,3 @@ main(int argc, char* argv[])
   return 0;
 
 }
-

@@ -40,12 +40,7 @@
 #include <ac/bytes.h>
 
 #include "ure.h"
-
-#ifdef _MSC_VER
-#  include "../ucdata/ucdata.h"
-#else
-#  include "ucdata.h"
-#endif
+#include "ucdata.h"
 
 /*
  * This file contains stub routines needed by the URE package to test

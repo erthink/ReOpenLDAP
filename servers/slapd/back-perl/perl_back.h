@@ -21,7 +21,6 @@
 #include <EXTERN.h>
 #include <perl.h>
 #undef _	/* #defined by both Perl and ac/localize.h */
-#include "asperl_undefs.h"
 
 #include "portable.h"
 
@@ -52,7 +51,7 @@ extern ldap_pvt_thread_mutex_t  perl_interpreter_mutex;
 # define ERRSV	GvSV(errgv)
 #endif
 
-#if defined( HAVE_WIN32_ASPERL ) || defined( USE_ITHREADS )
+#ifdef USE_ITHREADS
 /* pTHX is needed often now */
 # define PERL_INTERPRETER			my_perl
 # define PERL_BACK_XS_INIT_PARAMS		pTHX

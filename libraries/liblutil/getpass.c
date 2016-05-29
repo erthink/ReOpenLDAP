@@ -60,11 +60,7 @@
 
 #define PBUF	512
 
-#ifdef HAVE_WINSOCK
-#define TTY "con:"
-#else
 #define TTY "/dev/tty"
-#endif
 
 char *
 lutil_getpass( const char *prompt )

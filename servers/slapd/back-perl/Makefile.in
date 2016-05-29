@@ -31,8 +31,7 @@ MOD_DEFS = $(@BUILD_PERL@_DEFS)
 MOD_LIBS = @MOD_PERL_LDFLAGS@
 
 shared_LDAP_LIBS = $(LDAP_LIBLDAP_R_LA) $(LDAP_LIBLBER_LA)
-NT_LINK_LIBS = -L.. -lslapd $(@BUILD_LIBS_DYNAMIC@_LDAP_LIBS)
-UNIX_LINK_LIBS = $(@BUILD_LIBS_DYNAMIC@_LDAP_LIBS)
+NEED_LIBS = $(@BUILD_LIBS_DYNAMIC@_LDAP_LIBS)
 
 LIBBASE = back_perl
 
@@ -43,4 +42,3 @@ all-local-lib:	../.backend
 
 ../.backend: lib$(LIBBASE).a
 	@touch $@
-

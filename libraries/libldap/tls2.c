@@ -360,10 +360,6 @@ ldap_int_tls_connect( LDAP *ld, LDAPConn *conn )
 
 	err = tls_imp->ti_session_connect( ld, ssl );
 
-#ifdef HAVE_WINSOCK
-	errno = WSAGetLastError();
-#endif
-
 	if ( err < 0 )
 	{
 		char buf[256], *msg;
@@ -422,10 +418,6 @@ ldap_pvt_tls_accept( Sockbuf *sb, void *ctx_arg )
 	}
 
 	err = tls_imp->ti_session_accept( ssl );
-
-#ifdef HAVE_WINSOCK
-	errno = WSAGetLastError();
-#endif
 
 	if ( err < 0 )
 	{
@@ -1359,4 +1351,3 @@ nomem:
 		LDAP_FREE( newDN );
 	return rc;
 }
-

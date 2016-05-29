@@ -38,12 +38,6 @@
 #endif
 #include <fcntl.h>
 
-#ifdef _WIN32
-#include <windows.h>
-#include <stdio.h>
-#include <io.h>
-#endif
-
 
 static int
 alock_grab_lock ( int fd, int slot )
@@ -64,14 +58,6 @@ alock_grab_lock ( int fd, int slot )
 	lock_info.l_len = (off_t) ALOCK_SLOT_SIZE;
 
 	res = fcntl (fd, F_SETLKW, &lock_info);
-#elif defined( _WIN32 )
-	OVERLAPPED ov;
-	HANDLE hh = _get_osfhandle ( fd );
-	ov.hEvent = 0;
-	ov.Offset = ALOCK_SLOT_SIZE*slot;
-	ov.OffsetHigh = 0;
-	res = LockFileEx( hh, LOCKFILE_EXCLUSIVE_LOCK, 0,
-		ALOCK_SLOT_SIZE, 0, &ov ) ? 0 : -1;
 #else
 #   error alock needs lockf, fcntl, or LockFile[Ex]
 #endif
@@ -103,11 +89,6 @@ alock_release_lock ( int fd, int slot )
 
 	res = fcntl (fd, F_SETLKW, &lock_info);
 	if (res == -1) return -1;
-#elif defined( _WIN32 )
-	HANDLE hh = _get_osfhandle ( fd );
-	if ( !UnlockFile ( hh, ALOCK_SLOT_SIZE*slot, 0,
-		ALOCK_SLOT_SIZE, 0 ))
-		return -1;
 #else
 #   error alock needs lockf, fcntl, or LockFile[Ex]
 #endif
@@ -133,27 +114,6 @@ alock_share_lock ( int fd, int slot )
 	lock_info.l_len = (off_t) ALOCK_SLOT_SIZE;
 
 	res = fcntl (fd, F_SETLK, &lock_info);
-#elif defined( _WIN32 )
-	HANDLE hh = _get_osfhandle ( fd );
-	if (hh == INVALID_HANDLE_VALUE)
-		res = -1;
-	else {
-		OVERLAPPED ov;
-		/* Windows locks are mandatory, not advisory.
-		 * We must downgrade the lock to allow future
-		 * callers to read the slot data.
-		 *
-		 * First acquire a shared lock. Unlock will
-		 * release the existing exclusive lock.
-		 */
-		ov.hEvent = 0;
-		ov.Offset = ALOCK_SLOT_SIZE*slot;
-		ov.OffsetHigh = 0;
-		if (! LockFileEx (hh, 0, 0, ALOCK_SLOT_SIZE, 0, &ov))
-			res = -1;
-		if (! UnlockFile (hh, ALOCK_SLOT_SIZE*slot, 0, ALOCK_SLOT_SIZE, 0))
-			res = -1;
-	}
 #else
 #   error alock needs lockf, fcntl, or LockFile[Ex]
 #endif
@@ -191,21 +151,6 @@ alock_test_lock ( int fd, int slot )
 	if (res == -1) return -1;
 
 	if (lock_info.l_type != F_UNLCK) return ALOCK_LOCKED;
-#elif defined( _WIN32 )
-	OVERLAPPED ov;
-	HANDLE hh = _get_osfhandle ( fd );
-	ov.hEvent = 0;
-	ov.Offset = ALOCK_SLOT_SIZE*slot;
-	ov.OffsetHigh = 0;
-	if( !LockFileEx( hh,
-		LOCKFILE_EXCLUSIVE_LOCK|LOCKFILE_FAIL_IMMEDIATELY, 0,
-		ALOCK_SLOT_SIZE, 0, &ov )) {
-		int err = GetLastError();
-		if ( err == ERROR_LOCK_VIOLATION )
-			return ALOCK_LOCKED;
-		else
-			return -1;
-	}
 #else
 #   error alock needs lockf, fcntl, or LockFile
 #endif
@@ -408,15 +353,7 @@ alock_open ( alock_info_t * info,
 	}
 	ptr = lutil_strcopy(filename, envdir);
 	lutil_strcopy(ptr, "/alock");
-#ifdef _WIN32
-	{ HANDLE handle = CreateFile (filename, GENERIC_READ|GENERIC_WRITE,
-		FILE_SHARE_READ|FILE_SHARE_WRITE, NULL, OPEN_ALWAYS,
-		FILE_ATTRIBUTE_NORMAL, NULL);
-		info->al_fd = _open_osfhandle (handle, 0);
-	}
-#else
 	info->al_fd = open (filename, O_CREAT|O_RDWR, 0666);
-#endif
 	ber_memfree (filename);
 	if (info->al_fd < 0) {
 		ber_memfree (slot_data.al_appname);

@@ -233,8 +233,6 @@ ldap_int_prepare_socket(LDAP *ld, int s, int proto )
 	return 0;
 }
 
-#ifndef HAVE_WINSOCK
-
 #undef TRACE
 #define TRACE do { \
 	osip_debug(ld, \
@@ -293,8 +291,6 @@ ldap_pvt_is_socket_ready(LDAP *ld, int s)
 }
 #undef TRACE
 
-#endif /* HAVE_WINSOCK */
-
 /* NOTE: this is identical to analogous code in os-local.c */
 int
 ldap_int_poll(
@@ -350,12 +346,9 @@ ldap_int_poll(
 #else
 	{
 		fd_set		wfds, *z = NULL;
-#ifdef HAVE_WINSOCK
-		fd_set		efds;
-#endif
 		struct timeval	tv = { 0 };
 
-#if defined( FD_SETSIZE ) && !defined( HAVE_WINSOCK )
+#if defined( FD_SETSIZE )
 		if ( s >= FD_SETSIZE ) {
 			rc = AC_SOCKET_ERROR;
 			osip_debug(ld, "%s: closing socket %d\n", __FUNCTION__, s);
@@ -373,17 +366,8 @@ ldap_int_poll(
 			FD_ZERO(&wfds);
 			FD_SET(s, &wfds );
 
-#ifdef HAVE_WINSOCK
-			FD_ZERO(&efds);
-			FD_SET(s, &efds );
-#endif
-
 			rc = select( ldap_int_tblsize, z, &wfds,
-#ifdef HAVE_WINSOCK
-				&efds,
-#else
 				z,
-#endif
 				tvp ? &tv : NULL );
 		} while ( rc == AC_SOCKET_ERROR && errno == EINTR &&
 			LDAP_BOOL_GET( &ld->ld_options, LDAP_BOOL_RESTART ) );
@@ -396,29 +380,10 @@ ldap_int_poll(
 			return -2;
 		}
 
-#ifdef HAVE_WINSOCK
-		/* This means the connection failed */
-		if ( FD_ISSET(s, &efds) ) {
-			int so_errno;
-			ber_socklen_t dummy = sizeof(so_errno);
-			if ( getsockopt( s, SOL_SOCKET, SO_ERROR,
-				(char *) &so_errno, &dummy ) == AC_SOCKET_ERROR || !so_errno )
-			{
-				/* impossible */
-				so_errno = WSAGetLastError();
-			}
-			ldap_pvt_set_errno( so_errno );
-			osip_debug(ld, "ldap_int_poll: error on socket %d: "
-			       "errno: %d (%s)\n", s, errno, sock_errstr( errno ));
-			return -1;
-		}
-#endif
 		if ( FD_ISSET(s, &wfds) ) {
-#ifndef HAVE_WINSOCK
 			if ( ldap_pvt_is_socket_ready( ld, s ) == -1 ) {
 				return -1;
 			}
-#endif
 			if ( ldap_pvt_ndelay_off(ld, s) == -1 ) {
 				return -1;
 			}
@@ -700,12 +665,8 @@ ldap_connect_to_host(LDAP *ld, Sockbuf *sb,
 			&hp, &local_h_errno );
 
 		if ( (rc < 0) || (hp == NULL) ) {
-#ifdef HAVE_WINSOCK
-			ldap_pvt_set_errno( WSAGetLastError() );
-#else
 			/* not exactly right, but... */
 			ldap_pvt_set_errno( EHOSTUNREACH );
-#endif
 			if (ha_buf) LDAP_FREE(ha_buf);
 			return -1;
 		}

@@ -19,12 +19,6 @@ PROGRAM = testavl
 LDAP_INCDIR= ../../include
 LDAP_LIBDIR= ../../libraries
 
-NT_SRCS = ntservice.c
-NT_OBJS = ntservice.o slapdmsg.res
-
-UNIX_SRCS = detach.c
-UNIX_OBJS = detach.o
-
 XLIBS = $(LIBRARY) $(LDAP_LIBLBER_LA)
 
 SRCS	= base64.c entropy.c sasl.c signal.c hash.c passfile.c \
@@ -32,29 +26,16 @@ SRCS	= base64.c entropy.c sasl.c signal.c hash.c passfile.c \
 	avl.c tavl.c \
 	testavl.c \
 	meter.c \
-	@LIBSRCS@ $(@PLAT@_SRCS)
+	@LIBSRCS@ detach.c
 
 OBJS	= base64.o entropy.o sasl.o signal.o hash.o passfile.o \
 	md5.o passwd.o sha1.o getpass.o lockf.o utils.o uuid.o sockpair.o \
 	avl.o tavl.o \
 	meter.o \
-	@LIBOBJS@ $(@PLAT@_OBJS)
+	@LIBOBJS@ detach.o
 
 testavl: $(XLIBS) testavl.o
 	(LTLINK) -o $@ testavl.o $(LIBS)
 
 testtavl: $(XLIBS) testtavl.o
 	(LTLINK) -o $@ testtavl.o $(LIBS)
-
-# These rules are for a Mingw32 build, specifically.
-# It's ok for them to be here because the clean rule is harmless, and
-# slapdmsg.res won't get built unless it's declared in OBJS.
-
-slapdmsg.bin: FORCE
-	@if [ ! -f $@ ]; then cp $(srcdir)/$@ .; fi
-
-slapdmsg.res: slapdmsg.rc slapdmsg.bin
-	windres $< -O coff -o $@
-
-clean-local:
-	$(RM) *.res

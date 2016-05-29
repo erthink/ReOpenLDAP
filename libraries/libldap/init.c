@@ -489,9 +489,6 @@ ldap_int_destroy_global_options(void)
 		ldap_free_urllist( gopts->ldo_defludp );
 		gopts->ldo_defludp = NULL;
 	}
-#if defined(HAVE_WINSOCK) || defined(HAVE_WINSOCK2)
-	WSACleanup( );
-#endif
 
 #if defined(HAVE_TLS) || defined(HAVE_CYRUS_SASL)
 	if ( ldap_int_hostname ) {
@@ -608,40 +605,6 @@ void ldap_int_initialize( struct ldapoptions *gopts, int *dbglvl )
 	ldap_int_error_init();
 
 	ldap_int_utils_init();
-
-#ifdef HAVE_WINSOCK2
-{	WORD wVersionRequested;
-	WSADATA wsaData;
-
-	wVersionRequested = MAKEWORD( 2, 0 );
-	if ( WSAStartup( wVersionRequested, &wsaData ) != 0 ) {
-		/* Tell the user that we couldn't find a usable */
-		/* WinSock DLL.                                  */
-		return;
-	}
-
-	/* Confirm that the WinSock DLL supports 2.0.*/
-	/* Note that if the DLL supports versions greater    */
-	/* than 2.0 in addition to 2.0, it will still return */
-	/* 2.0 in wVersion since that is the version we      */
-	/* requested.                                        */
-
-	if ( LOBYTE( wsaData.wVersion ) != 2 ||
-		HIBYTE( wsaData.wVersion ) != 0 )
-	{
-	    /* Tell the user that we couldn't find a usable */
-	    /* WinSock DLL.                                  */
-	    WSACleanup( );
-	    return;
-	}
-}	/* The WinSock DLL is acceptable. Proceed. */
-#elif defined(HAVE_WINSOCK)
-{	WSADATA wsaData;
-	if ( WSAStartup( 0x0101, &wsaData ) != 0 ) {
-	    return;
-	}
-}
-#endif
 
 #if defined(HAVE_TLS) || defined(HAVE_CYRUS_SASL)
 	LDAP_MUTEX_LOCK( &ldap_int_hostname_mutex );

@@ -15,18 +15,12 @@
 
 LIBRARY = liblber.la
 
-NT_SRCS = nt_err.c
-NT_OBJS = nt_err.lo
-
-UNIX_SRCS = stdio.c
-UNIX_OBJS = stdio.lo
-
 LIB_DEFS = -DLBER_LIBRARY
 
 SRCS= decode.c encode.c io.c bprint.c debug.c \
-	memory.c options.c sockbuf.c hipagut.c $(@PLAT@_SRCS)
+	memory.c options.c sockbuf.c hipagut.c stdio.c
 OBJS= decode.lo encode.lo io.lo bprint.lo debug.lo \
-	memory.lo options.lo sockbuf.lo hipagut.lo $(@PLAT@_OBJS)
+	memory.lo options.lo sockbuf.lo hipagut.lo stdio.lo
 XSRCS= version.c
 
 PROGRAMS= dtest etest idtest
@@ -36,8 +30,7 @@ LDAP_LIBDIR= ../../libraries
 
 XLIBS = $(LIBRARY) $(LDAP_LIBLUTIL_A)
 XXLIBS =
-NT_LINK_LIBS = $(AC_LIBS)
-UNIX_LINK_LIBS = $(AC_LIBS)
+NEED_LIBS = $(AC_LIBS)
 
 dtest:    $(XLIBS) dtest.o
 	$(LTLINK) -o $@ dtest.o $(LIBS)

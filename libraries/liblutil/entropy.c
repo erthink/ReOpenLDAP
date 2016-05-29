@@ -73,26 +73,6 @@ int lutil_entropy( unsigned char *buf, ber_len_t nbytes )
 		close(fd);
 		return nbytes > 0 ? -1 : 0;
 	}
-#elif defined(PROV_RSA_FULL)
-	{
-		/* Not used since _WIN32_WINNT not set... */
-		HCRYPTPROV hProv = 0;
-
-		/* Get handle to user default provider */
-		if(!CryptAcquireContext(&hProv, NULL, NULL, PROV_RSA_FULL, 0)) {
-		   return -1;
-		}
-
-		/* Generate random initialization vector */
-		if(!CryptGenRandom(hProv, (DWORD) nbytes, (BYTE *) buf)) {
-		   return -1;
-		}
-
-		/* Release provider handle */
-		if(hProv != 0) CryptReleaseContext(hProv, 0);
-
-		return 0;
-	}
 #else
 	{
 		/* based upon Phil Karn's "practical randomness" idea

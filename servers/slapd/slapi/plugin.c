@@ -511,14 +511,14 @@ slapi_int_get_supported_extop( int index )
 /*********************************************************************
  * Function Name:      slapi_int_load_plugin
  *
- * Description:        This routine loads the specified DLL, gets and executes the init function
+ * Description:        This routine loads the specified solib, gets and executes the init function
  *                     if requested.
  *
  * Input:
  *                     pPlugin - a pointer to a Slapi_PBlock struct which will be passed to
- *                               the DLL init function.
- *                     path - path name of the DLL to be load.
- *                     initfunc - either the DLL initialization function or an OID of the
+ *                               the solib init function.
+ *                     path - path name of the solib to be load.
+ *                     initfunc - either the solib initialization function or an OID of the
  *                                loaded extended operation.
  *                     doInit - if it is TRUE, execute the init function, otherwise, save the
  *                              function address but not execute it.
@@ -744,4 +744,3 @@ slapi_int_plugin_unparse(
 		ber_bvarray_add( out, &bv );
 	}
 }
-

@@ -20,23 +20,6 @@
 #ifdef HAVE_DIRENT_H
 # include <dirent.h>
 # define NAMLEN(dirent) strlen((dirent)->d_name)
-#elif defined(_MSC_VER)
-#include <windows.h>
-#ifndef MAX_PATH
-#define MAX_PATH	260
-#endif
-struct dirent {
-	char *d_name;
-};
-typedef struct DIR {
-	HANDLE dir;
-	struct dirent data;
-	int first;
-	char buf[MAX_PATH+1];
-} DIR;
-DIR *opendir(const char *name);
-struct dirent *readdir(DIR *dir);
-int closedir(DIR *dir);
 #else
 # define dirent direct
 # define NAMLEN(dirent) (dirent)->d_namlen

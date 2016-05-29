@@ -103,13 +103,6 @@ static char *control;
 static char *def_tmpdir;
 static char *def_urlpre;
 
-#if defined(__CYGWIN__) || defined(__MINGW32__)
-/* Turn off commandline globbing, otherwise you cannot search for
- * attribute '*'
- */
-int _CRT_glob = 0;
-#endif
-
 void
 usage( void )
 {

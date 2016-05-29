@@ -55,17 +55,8 @@ ldif_open_url(
 			 * accept a non-empty hostname
 			 */
 			if ( urlstr[0] != '/' ) {
-#ifdef _WIN32
-				/* An absolute path in improper file://C:/foo/bar format */
-				if ( urlstr[1] != ':' )
-#endif
 				return NULL;
 			}
-#ifdef _WIN32
-			/* An absolute path in proper file:///C:/foo/bar format */
-			if ( urlstr[2] == ':' )
-				urlstr++;
-#endif
 		}
 
 		p = ber_strdup( urlstr );

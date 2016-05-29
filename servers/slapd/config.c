@@ -50,13 +50,8 @@
 #include "lutil_ldap.h"
 #include "config.h"
 
-#ifdef _WIN32
-#define	LUTIL_ATOULX	lutil_atoullx
-#define	Z	"I"
-#else
 #define	LUTIL_ATOULX	lutil_atoulx
 #define	Z	"z"
-#endif
 
 #define ARGS_STEP	512
 

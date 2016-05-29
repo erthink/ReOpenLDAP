@@ -40,18 +40,12 @@
 #include "lber_pvt.h"
 #include "slapd-common.h"
 
-#ifdef _WIN32
-#define EXE		".exe"
-#else
-#define EXE
-#endif
-
-#define SEARCHCMD		"slapd-search" EXE
-#define READCMD			"slapd-read" EXE
-#define ADDCMD			"slapd-addel" EXE
-#define MODRDNCMD		"slapd-modrdn" EXE
-#define MODIFYCMD		"slapd-modify" EXE
-#define BINDCMD			"slapd-bind" EXE
+#define SEARCHCMD		"slapd-search"
+#define READCMD			"slapd-read"
+#define ADDCMD			"slapd-addel"
+#define MODRDNCMD		"slapd-modrdn"
+#define MODIFYCMD		"slapd-modify"
+#define BINDCMD			"slapd-bind"
 #define MAXARGS      		100
 #define MAXREQS			5000
 #define LOOPS			100
@@ -74,13 +68,7 @@ static void	wait4kids( int nkidval );
 static int      maxkids = 20;
 static int      nkids;
 
-#ifdef HAVE_WINSOCK
-static HANDLE	*children;
-static char argbuf[BUFSIZ];
-#define	ArgDup(x) strdup(strcat(strcat(strcpy(argbuf,"\""),x),"\""))
-#else
 #define	ArgDup(x) strdup(x)
-#endif
 
 static void
 usage( char *name, char opt )
@@ -377,9 +365,6 @@ main( int argc, char **argv )
 		usage( argv[0], '\0' );
 	}
 
-#ifdef HAVE_WINSOCK
-	children = malloc( maxkids * sizeof(HANDLE) );
-#endif
 	/* get the file list */
 	if ( ( datadir = opendir( dirname )) == NULL ) {
 		fprintf( stderr, "%s: couldn't open data directory \"%s\".\n",
@@ -1079,7 +1064,6 @@ get_read_entries( char *filename, char *entries[], char *filters[] )
 	return( entry );
 }
 
-#ifndef HAVE_WINSOCK
 static void
 fork_child( char *prog, char **args )
 {
@@ -1162,34 +1146,3 @@ wait4kids( int nkidval )
 		}
 	}
 }
-#else
-
-static void
-wait4kids( int nkidval )
-{
-	int rc, i;
-
-	while ( nkids >= nkidval ) {
-		rc = WaitForMultipleObjects( nkids, children, FALSE, INFINITE );
-		for ( i=rc - WAIT_OBJECT_0; i<nkids-1; i++)
-			children[i] = children[i+1];
-		nkids--;
-	}
-}
-
-static void
-fork_child( char *prog, char **args )
-{
-	int rc;
-
-	wait4kids( maxkids );
-
-	rc = _spawnvp( _P_NOWAIT, prog, args );
-
-	if ( rc == -1 ) {
-		tester_perror( "_spawnvp", NULL );
-	} else {
-		children[nkids++] = (HANDLE)rc;
-	}
-}
-#endif

@@ -40,11 +40,7 @@
 
 /*
  * If a module is configured as dynamic, its header should not
- * get included into slapd. While this is a general rule and does
- * not have much of an effect in UNIX, this rule should be adhered
- * to for Windows, where dynamic object code should not be implicitly
- * imported into slapd without appropriate __declspec(dllimport) directives.
- */
+ * get included into slapd. */
 
 int			nBackendInfo = 0;
 slap_bi_head backendInfo = LDAP_STAILQ_HEAD_INITIALIZER(backendInfo);

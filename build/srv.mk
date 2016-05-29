@@ -47,7 +47,7 @@ lint-yes: lint-local-srv FORCE
 
 clean-local-srv:
 clean-srv: 	clean-local-srv FORCE
-	$(RM) $(PROGRAMS) $(XPROGRAMS) $(XSRCS) *.o a.out core .libs/* *.exe
+	$(RM) $(PROGRAMS) $(XPROGRAMS) $(XSRCS) *.o a.out core .libs/*
 
 depend-local-srv:
 depend-yes: depend-local-srv FORCE

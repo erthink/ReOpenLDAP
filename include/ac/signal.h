@@ -37,36 +37,8 @@ LDAP_LUTIL_F(lutil_sig_t) lutil_sigaction( int sig, lutil_sig_t func );
 #if !defined( LDAP_SIGUSR1 ) || !defined( LDAP_SIGUSR2 )
 #undef LDAP_SIGUSR1
 #undef LDAP_SIGUSR2
-
-#	if defined(WINNT) || defined(_WINNT) || defined(_WIN32)
-#		define LDAP_SIGUSR1	SIGILL
-#		define LDAP_SIGUSR2	SIGTERM
-
-#	elif !defined(HAVE_LINUX_THREADS)
-#		define LDAP_SIGUSR1	SIGUSR1
-#		define LDAP_SIGUSR2	SIGUSR2
-
-#	else
-		/*
-		 * Some versions of LinuxThreads unfortunately uses the only
-		 * two signals reserved for user applications.  This forces
-		 * OpenLDAP to use other signals reserved for other uses.
-		 */
-
-#		if defined( SIGSTKFLT )
-#			define LDAP_SIGUSR1	SIGSTKFLT
-#		elif defined ( SIGSYS )
-#			define LDAP_SIGUSR1	SIGSYS
-#		endif
-
-#		if defined( SIGUNUSED )
-#			define LDAP_SIGUSR2	SIGUNUSED
-#		elif defined ( SIGINFO )
-#			define LDAP_SIGUSR2	SIGINFO
-#		elif defined ( SIGEMT )
-#			define LDAP_SIGUSR2	SIGEMT
-#		endif
-#	endif
+#define LDAP_SIGUSR1	SIGUSR1
+#define LDAP_SIGUSR2	SIGUSR2
 #endif
 
 #ifndef LDAP_SIGCHLD

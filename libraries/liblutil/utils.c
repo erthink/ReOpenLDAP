@@ -30,9 +30,6 @@
 #ifdef HAVE_FCNTL_H
 #include <fcntl.h>
 #endif
-#ifdef _WIN32
-#include <windows.h>
-#endif
 
 #include "lutil.h"
 #include "ldap_defaults.h"
@@ -41,23 +38,6 @@
 
 #ifdef HAVE_EBCDIC
 int _trans_argv = 1;
-#endif
-
-#ifdef _WIN32
-/* Some Windows versions accept both forward and backslashes in
- * directory paths, but we always use backslashes when generating
- * and parsing...
- */
-void lutil_slashpath( char *path )
-{
-	char *c, *p;
-
-	p = path;
-	while (( c=strchr( p, '/' ))) {
-		*c++ = '\\';
-		p = c;
-	}
-}
 #endif
 
 char* lutil_progname( const char* name, int argc, char *argv[] )
@@ -78,13 +58,6 @@ char* lutil_progname( const char* name, int argc, char *argv[] )
 	LUTIL_SLASHPATH( argv[0] );
 	progname = strrchr ( argv[0], *LDAP_DIRSEP );
 	progname = progname ? &progname[1] : argv[0];
-#ifdef _WIN32
-	{
-		size_t len = strlen( progname );
-		if ( len > 4 && strcasecmp( &progname[len - 4], ".exe" ) == 0 )
-			progname[len - 4] = '\0';
-	}
-#endif
 	return progname;
 }
 

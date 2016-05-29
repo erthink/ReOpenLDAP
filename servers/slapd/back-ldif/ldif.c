@@ -60,14 +60,8 @@ struct ldif_info {
 
 static int write_data( int fd, const char *spew, int len, int *save_errno );
 
-#ifdef _WIN32
-#define mkdir(a,b)	mkdir(a)
-#define move_file(from, to) (!MoveFileEx(from, to, MOVEFILE_REPLACE_EXISTING))
-#else
 #define move_file(from, to) rename(from, to)
-#endif
 #define move_dir(from, to) rename(from, to)
-
 
 #define LDIF	".ldif"
 #define LDIF_FILETYPE_SEP	'.'			/* LDIF[0] */
@@ -91,8 +85,6 @@ static int write_data( int fd, const char *spew, int len, int *save_errno );
  * followed by ".ldif", except with '\\' replaced with LDIF_ESCAPE_CHAR.
  */
 
-#ifndef _WIN32
-
 /*
  * Unix/MacOSX version.  ':' vs '/' can cause confusion on MacOSX so we
  * escape both.  We escape them on Unix so both OS variants get the same
@@ -100,17 +92,6 @@ static int write_data( int fd, const char *spew, int len, int *save_errno );
  */
 #define LDIF_ESCAPE_CHAR	'\\'
 #define LDIF_UNSAFE_CHAR(c)	((c) == '/' || (c) == ':')
-
-#else /* _WIN32 */
-
-/* Windows version - Microsoft's list of unsafe characters, except '\\' */
-#define LDIF_ESCAPE_CHAR	'^'			/* Not '\\' (unsafe on Windows) */
-#define LDIF_UNSAFE_CHAR(c)	\
-	((c) == '/' || (c) == ':' || \
-	 (c) == '<' || (c) == '>' || (c) == '"' || \
-	 (c) == '|' || (c) == '?' || (c) == '*')
-
-#endif /* !_WIN32 */
 
 /*
  * Left and Right "{num}" prefix to ordered RDNs ("olcDatabase={1}bdb").

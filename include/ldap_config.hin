@@ -23,17 +23,11 @@
 
 /* directory separator */
 #ifndef LDAP_DIRSEP
-#ifndef _WIN32
 #define LDAP_DIRSEP "/"
-#else
-#define LDAP_DIRSEP "\\"
-#endif
 #endif
 
 /* directory for temporary files */
-#if defined(_WIN32)
-# define LDAP_TMPDIR "C:\\."	/* we don't have much of a choice */
-#elif defined( _P_tmpdir )
+#if defined( _P_tmpdir )
 # define LDAP_TMPDIR _P_tmpdir
 #elif defined( P_tmpdir )
 # define LDAP_TMPDIR P_tmpdir
