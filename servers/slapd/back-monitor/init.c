@@ -2182,10 +2182,10 @@ monitor_back_db_init(
 
 	be2 = select_backend( &ndn, 0 );
 	if ( be2 != be ) {
-		char	*type = be2->bd_info->bi_type;
+		const char *type = be2->bd_info->bi_type;
 
 		if ( overlay_is_over( be2 ) ) {
-			slap_overinfo	*oi = (slap_overinfo *)be2->bd_info->bi_private;
+			slap_overinfo *oi = (slap_overinfo *)be2->bd_info->bi_private;
 			type = oi->oi_orig->bi_type;
 		}
 

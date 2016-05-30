@@ -3055,7 +3055,7 @@ config_suffix(ConfigArgs *c)
 		while (( b2 = LDAP_STAILQ_NEXT(b2, be_next )) && b2 && b2 != c->be );
 
 		if ( b2 ) {
-			char	*type = tbe->bd_info->bi_type;
+			const char *type = tbe->bd_info->bi_type;
 
 			if ( overlay_is_over( tbe ) ) {
 				slap_overinfo	*oi = (slap_overinfo *)tbe->bd_info->bi_private;

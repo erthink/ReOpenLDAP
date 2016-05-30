@@ -531,7 +531,7 @@ pblock_get( Slapi_PBlock *pb, int param, void **value )
 	case SLAPI_BE_TYPE:
 		PBLOCK_ASSERT_OP( pb, 0 );
 		if ( pb->pb_op->o_bd != NULL )
-			*((char **)value) = pb->pb_op->o_bd->bd_info->bi_type;
+			*((const char **)value) = pb->pb_op->o_bd->bd_info->bi_type;
 		else
 			*value = NULL;
 		break;

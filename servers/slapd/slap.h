@@ -2248,7 +2248,7 @@ typedef ID (BI_tool_entry_modify) LDAP_P(( BackendDB *be, Entry *e,
 	struct berval *text ));
 
 struct BackendInfo {
-	char	*bi_type; /* type of backend */
+	const char	*bi_type; /* type of backend */
 
 	/*
 	 * per backend type routines:

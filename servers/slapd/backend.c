@@ -226,8 +226,8 @@ int backend_startup_one(Backend *be, ConfigReply *cr)
 			(void)backend_set_controls( be );
 
 		} else {
-			char *type = be->bd_info->bi_type;
-			char *suffix = "(null)";
+			const char *type = be->bd_info->bi_type;
+			const char *suffix = "(null)";
 
 			if ( overlay_is_over( be ) ) {
 				slap_overinfo	*oi = (slap_overinfo *)be->bd_info->bi_private;
