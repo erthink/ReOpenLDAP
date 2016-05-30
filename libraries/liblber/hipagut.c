@@ -649,6 +649,8 @@ __hot void* ber_memcpy_safe(void* dest, const void* src, size_t n) {
 	long diff = (char*) dest - (char*) src;
 
 	if (unlikely(n > (size_t) __builtin_labs(diff))) {
+		if (unlikely(src == dest))
+			return dest;
 		if (reopenldap_mode_check())
 			__ldap_assert_fail("source and destination MUST NOT overlap",
 				__FILE__, __LINE__, __FUNCTION__);
