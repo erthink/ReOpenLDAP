@@ -554,7 +554,7 @@ static int mdb_entry_partsize(struct mdb_info *mdb, MDB_txn *txn, Entry *e,
 			len += a->a_vals[i].bv_len + 1 + sizeof(int);	/* len */
 		}
 		if (a->a_nvals != a->a_vals) {
-			if (! reopenldap_mode_iddqd())
+			if (! reopenldap_mode_righteous())
 				goto dont_skip_dups;
 			for (i=0; i<a->a_numvals; i++) {
 				if (! bvmatch(&a->a_vals[i], &a->a_nvals[i])) {
@@ -568,7 +568,7 @@ static int mdb_entry_partsize(struct mdb_info *mdb, MDB_txn *txn, Entry *e,
 			}
 		}
 	}
-	if (! reopenldap_mode_iddqd()) {
+	if (! reopenldap_mode_righteous()) {
 		/* padding */
 		len = (len + sizeof(ID)-1) & ~(sizeof(ID)-1);
 	}
@@ -636,7 +636,7 @@ static int mdb_entry_encode(Operation *op, Entry *e, MDB_val *data, Ecount *eh)
 
 		l = a->a_numvals;
 		if (a->a_nvals != a->a_vals) {
-			if (reopenldap_mode_iddqd()) {
+			if (reopenldap_mode_righteous()) {
 				for (i=0; i<a->a_numvals; i++) {
 					if (! bvmatch(&a->a_vals[i], &a->a_nvals[i])) {
 						l |= HIGH_BIT;

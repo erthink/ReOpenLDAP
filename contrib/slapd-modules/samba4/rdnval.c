@@ -379,19 +379,19 @@ rdnval_db_init(
 	ConfigReply	*cr)
 {
 	if ( SLAP_ISGLOBALOVERLAY( be ) ) {
-		Log0( LDAP_DEBUG_ANY, LDAP_LEVEL_ERR,
+		Log( LDAP_DEBUG_ANY, LDAP_LEVEL_ERR,
 			"rdnval_db_init: rdnval cannot be used as global overlay.\n" );
 		return 1;
 	}
 
 	if ( be->be_nsuffix == NULL ) {
-		Log0( LDAP_DEBUG_ANY, LDAP_LEVEL_ERR,
+		Log( LDAP_DEBUG_ANY, LDAP_LEVEL_ERR,
 			"rdnval_db_init: database must have suffix\n" );
 		return 1;
 	}
 
 	if ( BER_BVISNULL( &be->be_rootndn ) || BER_BVISEMPTY( &be->be_rootndn ) ) {
-		Log1( LDAP_DEBUG_ANY, LDAP_LEVEL_ERR,
+		Log( LDAP_DEBUG_ANY, LDAP_LEVEL_ERR,
 			"rdnval_db_init: missing rootdn for database DN=\"%s\", YMMV\n",
 			be->be_suffix[ 0 ].bv_val );
 	}
@@ -569,7 +569,7 @@ done_search:;
 	op->o_tmpfree( op->ors_filterstr.bv_val, op->o_tmpmemctx );
 	filter_free_x( op, op->ors_filter, 1 );
 
-	Log1( LDAP_DEBUG_STATS, LDAP_LEVEL_INFO,
+	Log( LDAP_DEBUG_STATS, LDAP_LEVEL_INFO,
 		"rdnval: repaired=%d\n", nrepaired );
 
 	return 0;
@@ -582,7 +582,7 @@ rdnval_db_open(
 	ConfigReply	*cr )
 {
 	if ( SLAP_SINGLE_SHADOW( be ) ) {
-		Log1( LDAP_DEBUG_ANY, LDAP_LEVEL_ERR,
+		Log( LDAP_DEBUG_ANY, LDAP_LEVEL_ERR,
 			"rdnval incompatible with shadow database \"%s\".\n",
 			be->be_suffix[ 0 ].bv_val );
 		return 1;

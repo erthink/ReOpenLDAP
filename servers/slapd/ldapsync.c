@@ -42,7 +42,7 @@ struct slap_sync_cookie_s slap_sync_cookie =
 
 int slap_check_same_server(BackendDB *bd, int sid) {
 	return ( sid == slap_serverID
-			&& reopenldap_mode_idclip() && SLAP_MULTIMASTER(bd) ) ? -1 : 0;
+			&& reopenldap_mode_strict() && SLAP_MULTIMASTER(bd) ) ? -1 : 0;
 }
 
 void
@@ -66,7 +66,7 @@ slap_insert_csn_sids(
 	ck->sids[i] = sid;
 	ber_dupbv( &ck->ctxcsn[i], csn );
 
-	if (reopenldap_mode_idkfa())
+	if (reopenldap_mode_check())
 		slap_cookie_verify( ck );
 }
 
@@ -145,7 +145,7 @@ void slap_cookie_copy(
 	struct sync_cookie *dst,
 	const struct sync_cookie *src )
 {
-	if (reopenldap_mode_idkfa())
+	if (reopenldap_mode_check())
 		slap_cookie_verify( src );
 
 	dst->rid = src->rid;
@@ -163,7 +163,7 @@ void slap_cookie_move(
 	struct sync_cookie *dst,
 	struct sync_cookie *src )
 {
-	if (reopenldap_mode_idkfa())
+	if (reopenldap_mode_check())
 		slap_cookie_verify( src );
 
 	dst->rid = src->rid;
@@ -212,7 +212,7 @@ int slap_cookie_merge(
 {
 	int i, j, lead = -1;
 
-	if ( reopenldap_mode_idkfa() ) {
+	if ( reopenldap_mode_check() ) {
 		slap_cookie_verify( dst );
 		slap_cookie_verify( src );
 	}
@@ -252,7 +252,7 @@ int slap_cookie_merge(
 		}
 	}
 
-	if ( reopenldap_mode_idkfa() && lead > -1) {
+	if ( reopenldap_mode_check() && lead > -1) {
 		slap_cookie_verify( dst );
 	}
 	return lead;
@@ -267,7 +267,7 @@ void slap_cookie_fetch(
 	dst->numcsns = slap_csns_length( dst->ctxcsn );
 	dst->sids = slap_csns_parse_sids( dst->ctxcsn, dst->sids, NULL );
 
-	if ( reopenldap_mode_idkfa() )
+	if ( reopenldap_mode_check() )
 		slap_cookie_verify( dst );
 }
 
@@ -297,7 +297,7 @@ int slap_cookie_pull(
 		}
 		ber_bvarray_free( src );
 	}
-	if (reopenldap_mode_idkfa())
+	if (reopenldap_mode_check())
 		slap_cookie_verify( dst );
 	return vector;
 }
@@ -313,7 +313,7 @@ int slap_cookie_merge_csn(
 	if ( !slap_csn_verify_full( src ) )
 		return -1;
 
-	if (reopenldap_mode_idkfa())
+	if (reopenldap_mode_check())
 		slap_cookie_verify( dst );
 
 	if ( sid < 0 ) {
@@ -463,7 +463,7 @@ int slap_cookie_parse(
 				if ( ! slap_csn_verify_full( &csn ) ) {
 					if ( csn.bv_val != anchor )
 						ber_memfree_x( csn.bv_val, memctx );
-					if ( reopenldap_mode_idclip() )
+					if ( reopenldap_mode_strict() )
 						goto bailout;
 					csn.bv_val = ber_strdup_x(
 						"19000101000000.000000Z#000000#000#000000",
@@ -493,7 +493,7 @@ int slap_cookie_parse(
 
 	if ( dst->numcsns == slap_csns_validate_and_sort( dst->ctxcsn ) ) {
 		dst->sids = slap_csns_parse_sids( dst->ctxcsn, dst->sids, memctx );
-		if ( reopenldap_mode_idkfa() )
+		if ( reopenldap_mode_check() )
 			slap_cookie_verify( dst );
 		return LDAP_SUCCESS;
 	}
@@ -623,7 +623,7 @@ int slap_cookie_merge_csnset(
 {
 	int rc;
 
-	if ( reopenldap_mode_idkfa() )
+	if ( reopenldap_mode_check() )
 		slap_cookie_verify( dst );
 
 	for( rc = 0; src && ! BER_BVISNULL( src ); ++src ) {
@@ -643,7 +643,7 @@ int slap_cookie_compare_csnset(
 {
 	int vector;
 
-	if ( reopenldap_mode_idkfa() )
+	if ( reopenldap_mode_check() )
 		slap_cookie_verify( base );
 
 	for( vector = 0; next && ! BER_BVISNULL( next ); ++next ) {
@@ -781,7 +781,7 @@ int slap_csn_verify_full( const BerValue *csn )
 		}
 	}
 
-	if ( reopenldap_mode_idclip() ) {
+	if ( reopenldap_mode_strict() ) {
 		if (unlikely( memcmp( csn->bv_val, "19000101000000.000000", 21 ) < 0 ))
 			goto bailout;
 

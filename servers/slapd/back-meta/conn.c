@@ -680,10 +680,8 @@ error_return:;
 
 	if ( rs->sr_err != LDAP_SUCCESS ) {
 		/* Get the error message and print it in TRACE mode */
-		if ( LogTest( LDAP_DEBUG_TRACE ) ) {
-			Log4( LDAP_DEBUG_TRACE, ldap_syslog_level, "%s: meta_back_init_one_conn[%d] failed err=%d text=%s\n",
-				op->o_log_prefix, candidate, rs->sr_err, rs->sr_text );
-		}
+		Debug( LDAP_DEBUG_TRACE, "%s: meta_back_init_one_conn[%d] failed err=%d text=%s\n",
+			op->o_log_prefix, candidate, rs->sr_err, rs->sr_text );
 
 		rs->sr_err = slap_map_api2result( rs );
 		if ( sendok & LDAP_BACK_SENDERR ) {
@@ -1594,11 +1592,11 @@ retry_lock2:;
 					err = lerr;
 
 					if ( lerr == LDAP_UNAVAILABLE && mt->mt_isquarantined != LDAP_BACK_FQ_NO ) {
-						Log4( LDAP_DEBUG_TRACE, ldap_syslog_level, "%s: meta_back_getconn[%d] quarantined err=%d text=%s\n",
+						Debug( LDAP_DEBUG_TRACE, "%s: meta_back_getconn[%d] quarantined err=%d text=%s\n",
 							op->o_log_prefix, i, lerr, rs->sr_text );
 
 					} else {
-						Log4( LDAP_DEBUG_ANY, ldap_syslog, "%s: meta_back_getconn[%d] failed err=%d text=%s\n",
+						Debug( LDAP_DEBUG_ANY, "%s: meta_back_getconn[%d] failed err=%d text=%s\n",
 							op->o_log_prefix, i, lerr, rs->sr_text );
 					}
 

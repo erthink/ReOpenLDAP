@@ -34,6 +34,9 @@ fi
 KILLPIDS="$PID"
 check_running 1
 
+echo "Delay $SLEEP0 seconds to handle previous and closed connection(s)..."
+sleep $SLEEP0
+
 echo "Using ldapsearch to read connection monitor entries..."
 $LDAPSEARCH -S "" -b "$CONNECTIONSMONITORDN" -h $LOCALHOST -p $PORT1 \
 	'objectclass=*' \
@@ -67,6 +70,9 @@ if test $? != 0 ; then
 	killservers
         exit 1
 fi
+
+echo "Delay $SLEEP0 seconds to handle previous and closed connection(s)..."
+sleep $SLEEP0
 
 echo "Using ldapsearch to read database monitor entries..."
 $LDAPSEARCH -S "" -b "$DATABASESMONITORDN" -h $LOCALHOST -p $PORT1 \
@@ -105,6 +111,9 @@ if test $? != 0 ; then
         exit 1
 fi
 
+echo "Delay $SLEEP0 seconds to handle previous and closed connection(s)..."
+sleep $SLEEP0
+
 echo "Using ldapsearch to read statistics monitor entries..."
 $LDAPSEARCH -S "" -b "$STATISTICSMONITORDN" -h $LOCALHOST -p $PORT1 \
 	'(|(cn=Entries)(cn=PDU)(cn=Referrals))' \
@@ -129,6 +138,9 @@ if test $? != 0 ; then
 	killservers
         exit 1
 fi
+
+echo "Delay $SLEEP0 seconds to handle previous and closed connection(s)..."
+sleep $SLEEP0
 
 echo "Using ldapsearch to read operation monitor entries..."
 $LDAPSEARCH -S "" -b "$OPERATIONSMONITORDN" -h $LOCALHOST -p $PORT1 \

@@ -41,7 +41,7 @@ static int ldap_log_check( LDAP *ld, int loglvl )
 	return errlvl & loglvl ? 1 : 0;
 }
 
-int ldap_log_printf( LDAP *ld, int loglvl, const char *fmt, ... )
+int __attribute__((weak)) ldap_log_printf( LDAP *ld, int loglvl, const char *fmt, ... )
 {
 	char buf[ 1024 ];
 	va_list ap;

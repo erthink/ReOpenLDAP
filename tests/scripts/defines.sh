@@ -116,7 +116,7 @@ function update_TESTDIR {
 	MTREADOUT=$TESTDIR/mtread.out
 
 	#detect_deadlocks=1
-	export ASAN_OPTIONS="symbolize=1:allow_addr2line=1:report_globals=1:replace_str=1:replace_intrin=1:malloc_context_size=21:detect_leaks=${ASAN_DETECT_LEAKS-0}:abort_on_error:log_path=$TESTDIR/asan-log"
+	export ASAN_OPTIONS="symbolize=1:allow_addr2line=1:report_globals=1:replace_str=1:replace_intrin=1:malloc_context_size=9:detect_leaks=${ASAN_DETECT_LEAKS-0}:abort_on_error:log_path=$TESTDIR/asan-log"
 	export TSAN_OPTIONS="report_signal_unsafe=0:second_deadlock_stack=1:history_size=2:log_path=$TESTDIR/tsan-log"
 
 	VALGRIND_OPTIONS="--fair-sched=yes --quiet --log-file=$TESTDIR/valgrind-log.%p \
@@ -246,7 +246,7 @@ else
 	TIMEOUT_H="timeout -s SIGXCPU 9m"
 	SLEEP0=${SLEEP0-0.2}
 	SLEEP1=${SLEEP1-1}
-	SLEEP2=${SLEEP2-3}
+	SLEEP2=${SLEEP2-5}
 fi
 
 SLAP_VERBOSE=${SLAP_VERBOSE-none}
@@ -279,7 +279,7 @@ LDAPMODRDN="$TIMEOUT_S $VALGRIND_EX_CMD $CLIENTDIR/ldapmodrdn $TOOLPROTO $TOOLAR
 LDAPWHOAMI="$TIMEOUT_S $VALGRIND_EX_CMD $CLIENTDIR/ldapwhoami $TOOLARGS"
 LDAPCOMPARE="$TIMEOUT_S $VALGRIND_EX_CMD $CLIENTDIR/ldapcompare $TOOLARGS"
 LDAPEXOP="$TIMEOUT_S $VALGRIND_EX_CMD $CLIENTDIR/ldapexop $TOOLARGS"
-SLAPDTESTER=$PROGDIR/slapd-tester
+SLAPDTESTER="$TIMEOUT_H $PROGDIR/slapd-tester"
 
 function ldif-filter-unwrap {
 	grep -v ^== | $PROGDIR/ldif-filter "$@" | sed -n -e 'H; ${ x; s/\n//; s/\n //g; p}'
@@ -520,7 +520,7 @@ function collect_coredumps {
 	local id=${1:-xxx-$(date '+%F.%H%M%S.%N')}
 	local cores="$(find -L ../${SRCDIR}/tests -type f -size +0 -name core -o -name 'valgrind-log*.core.*')"
 	local sans="$(find -L ../${SRCDIR}/tests -type f -size +0 -name 'tsan-log*' -o -name 'asan-log*')"
-	local vags="$(find -L ../${SRCDIR}/tests -type f -size +0 -regextype posix-egrep -regex '.*\./valgrind-log.[0-9]+$')"
+	local vags="$(find -L ../${SRCDIR}/tests -type f -size +0 -regextype posix-egrep -regex '.*/valgrind-log.[0-9]+$')"
 	local rc=0
 	if [ -n "${cores}" -o -n "${sans}" -o -n "${vags}" ]; then
 		if [ -n "${cores}" ]; then
@@ -677,7 +677,8 @@ function wait_syncrepl {
 	sleep $SLEEP0
 	local t=$SLEEP0
 
-	for i in $(seq 1 100); do
+	while true; do
+
 		#echo "  Using ldapsearch to read contextCSN from the provider:$1..."
 		provider_csn=$($LDAPSEARCH -s $scope -b "$base" $extra -h $LOCALHOST -p $1 contextCSN -v \
 			2>${TESTDIR}/ldapsearch.error | tee ${TESTDIR}/ldapsearch.output \
@@ -719,17 +720,20 @@ function wait_syncrepl {
 			return
 		fi
 
+		if [ $(echo "$t > $SLEEP2" | bc -q) == "1" ]; then
+			echo " Timeout $t seconds"
+			echo -n "Provider: "
+			$LDAPSEARCH -s $scope -b "$base" $extra -h $LOCALHOST -p $1 contextCSN
+			echo -n "Consumer: "
+			$LDAPSEARCH -s $scope -b "$base" $extra -h $LOCALHOST -p $2 contextCSN
+			killservers
+			exit 42
+		fi
+
 		#echo "  Waiting +SLEEP0 seconds for syncrepl to receive changes (from $1 to $2)..."
 		sleep $SLEEP0
-		t=$(echo "$SLEEP0 + $t" | bc)
+		t=$(echo "$SLEEP0 + $t" | bc -q)
 	done
-	echo " Timeout $(expr $i / 10) seconds"
-	echo -n "Provider: "
-	$LDAPSEARCH -s $scope -b "$base" $extra -h $LOCALHOST -p $1 contextCSN
-	echo -n "Consumer: "
-	$LDAPSEARCH -s $scope -b "$base" $extra -h $LOCALHOST -p $2 contextCSN
-	killservers
-	exit 42
 }
 
 function check_running {

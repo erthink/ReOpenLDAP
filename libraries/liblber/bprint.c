@@ -70,7 +70,8 @@ int * ber_errno_addr(void)
 /*
  * Print stuff
  */
-void ber_error_print( LDAP_CONST char *data )
+void __attribute__((weak))
+ber_error_print( LDAP_CONST char *data )
 {
 	assert( data != NULL );
 
@@ -93,7 +94,8 @@ BER_LOG_PRINT_FN ber_pvt_log_print = ber_error_print;
  * lber log
  */
 
-int ber_pvt_log_output(
+int __attribute__((weak))
+ber_pvt_log_output(
 	const char *subsystem,
 	int level,
 	const char *fmt,

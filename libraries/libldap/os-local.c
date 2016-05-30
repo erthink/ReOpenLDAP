@@ -101,7 +101,7 @@ ldap_pvt_socket(LDAP *ld)
 static int
 ldap_pvt_close_socket(LDAP *ld, int s)
 {
-	oslocal_debug(ld, "ldap_close_socket: %d\n",s);
+	oslocal_debug(ld, "%s: closing socket %d\n", __FUNCTION__, s);
 	return tcp_close(s);
 }
 
@@ -287,6 +287,7 @@ sendcred:
 #ifdef FD_SETSIZE
 		if ( s >= FD_SETSIZE ) {
 			rc = AC_SOCKET_ERROR;
+			oslocal_debug(ld, "%s: closing socket %d\n", __FUNCTION__, s);
 			tcp_close( s );
 			ldap_pvt_set_errno( EMFILE );
 			return rc;
