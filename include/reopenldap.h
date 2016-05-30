@@ -18,22 +18,8 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-/* LY: Please do not ask us for Windows support, just never!
- * But you can make a fork for Windows, or become maintainer for FreeBSD... */
-#ifndef __gnu_linux__
-#	error "ReOpenLDAP branch supports only GNU Linux"
-#endif
-
 #ifndef _LDAP_REOPEN_H
 #define _LDAP_REOPEN_H
-
-#ifndef _GNU_SOURCE
-#	define _GNU_SOURCE
-#endif
-
-#ifdef HAVE_ANSIDECL_H
-#	include <ansidecl.h>
-#endif
 
 #ifndef __has_attribute
 #	define __has_attribute(x) (0)

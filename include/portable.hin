@@ -1,10 +1,27 @@
 /* include/portable.hin.  Generated from configure.in by autoheader.  */
 
-
 /* begin of portable.h.pre */
-/* This work is part of OpenLDAP Software <http://www.openldap.org/>.
+/* Copyright (c) 2015,2016 Leonid Yuriev <leo@yuriev.ru>.
+ * Copyright (c) 2015,2016 Peter-Service R&D LLC <http://billing.ru/>.
  *
- * Copyright 1998-2016 The OpenLDAP Foundation
+ * This file is part of ReOpenLDAP.
+ *
+ * ReOpenLDAP is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation; either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * ReOpenLDAP is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * ---
+ *
+ * Copyright 1998-2014 The OpenLDAP Foundation
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -18,6 +35,16 @@
 
 #ifndef _LDAP_PORTABLE_H
 #define _LDAP_PORTABLE_H
+
+/* LY: Please do not ask us for Windows support, just never!
+ * But you can make a fork for Windows, or become maintainer for FreeBSD... */
+#ifndef __gnu_linux__
+#	error "ReOpenLDAP supports only GNU Linux"
+#endif
+
+#ifndef _GNU_SOURCE
+#	define _GNU_SOURCE
+#endif
 
 /* define this if needed to get reentrant functions */
 #ifndef REENTRANT
@@ -1093,8 +1120,6 @@
 
 /* begin of portable.h.post */
 
-#include "reopenldap.h"
-
 #ifndef LDAP_NEEDS_PROTOTYPES
 	/* force LDAP_P to always include prototypes */
 #	define LDAP_NEEDS_PROTOTYPES 1
@@ -1108,6 +1133,10 @@
 #	if defined(LDAP_DEVEL) && !defined(LDAP_TEST)
 #		define LDAP_TEST
 #	endif
+#endif
+
+#ifdef HAVE_ANSIDECL_H
+#	include <ansidecl.h>
 #endif
 
 #ifdef HAVE_STDDEF_H
@@ -1133,6 +1162,8 @@
 #include "ldap_features.h"
 
 #include "ac/localize.h"
+
+#include "reopenldap.h"
 
 #endif /* _LDAP_PORTABLE_H */
 /* end of portable.h.post */

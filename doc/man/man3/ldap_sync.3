@@ -1,11 +1,31 @@
-.TH LDAP_SYNC 3 "RELEASEDATE" "OpenLDAP LDVERSION"
-.\" $OpenLDAP$
-.\" Copyright 2006-2016 The OpenLDAP Foundation All Rights Reserved.
+.TH LDAP_SYNC 3 "RELEASEDATE" "ReOpenLDAP LDVERSION"
+.\" $ReOpenLDAP$
+.\" Copyright (c) 2015,2016 Leonid Yuriev <leo@yuriev.ru>.
+.\" Copyright (c) 2015,2016 Peter-Service R&D LLC <http://billing.ru/>.
+.\"
+.\" This file is part of ReOpenLDAP.
+.\"
+.\" ReOpenLDAP is free software; you can redistribute it and/or modify it under
+.\" the terms of the GNU Affero General Public License as published by
+.\" the Free Software Foundation; either version 3 of the License, or
+.\" (at your option) any later version.
+.\"
+.\" ReOpenLDAP is distributed in the hope that it will be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+.\" GNU Affero General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU Affero General Public License
+.\" along with this program.  If not, see <http://www.gnu.org/licenses/>.
+.\"
+.\" ---
+.\"
+.\" Copyright 2006-2014 The OpenLDAP Foundation All Rights Reserved.
 .\" Copying restrictions apply.  See COPYRIGHT/LICENSE.
 .SH NAME
 ldap_sync_init, ldap_sync_init_refresh_only, ldap_sync_init_refresh_and_persist, ldap_sync_poll \- LDAP sync routines
 .SH LIBRARY
-OpenLDAP LDAP (libldap, \-lldap)
+ReOpenLDAP LDAP (libreldap, \-lreldap)
 .SH SYNOPSIS
 .nf
 .B #include <ldap.h>
@@ -320,6 +340,10 @@ and loosely inspired by syncrepl code in
 .SH ACKNOWLEDGEMENTS
 Initially developed by
 .BR "SysNet s.n.c."
+.B ReOpenLDAP
+is developed and maintained by The ReOpenLDAP Project (https://github.com/ReOpen/ReOpenLDAP).
+.B ReOpenLDAP
+is derived from University of OpenLDAP 2.4 Release.
 .B OpenLDAP
 is developed and maintained by The OpenLDAP Project (http://www.openldap.org/).
 .B OpenLDAP

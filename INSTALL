@@ -1,27 +1,25 @@
-Making and Installing the OpenLDAP Distribution
+Making and Installing the ReOpenLDAP Distribution
 ===============================================
 
 This file provides brief instructions on how to build and install
-OpenLDAP on UNIX (and UNIX-like) systems.  More detailed information
-and instructions can be found in The OpenLDAP Administrator's Guide
-(available from http://www.openldap.org/doc/).
+ReOpenLDAP on UNIX (and UNIX-like) systems.  More detailed information
+and instructions can be found in The ReOpenLDAP Administrator's Guide
+(available from http://pro-ldap.ru/).
 
 It is recommended that you read, or at least skim through, ALL of the
 instructions in this file before attempting to build the software.
 
 It is also recommended you review the Frequently Asked Questions
 (http://www.openldap.org/faq/) pages, in particular the Installation
-section (http://www.openldap.org/faq/index.cgi?file=8) and Platform
-Hints (http://www.openldap.org/faq/index.cgi?file=9) should be
-examined.
+section (http://www.openldap.org/faq/index.cgi?file=8).
 
-Making and Installing the OpenLDAP Distribution
+Making and Installing the ReOpenLDAP Distribution
 -----------------------------------------------
 
 1.   Unpack the distribution and change directory:
 
-        % tar xfz openldap-VERSION.tgz
-        % cd openldap-VERSION
+        % tar xfz reopenldap-VERSION.tgz
+        % cd reopenldap-VERSION
 
      (replacing VERSION with the appropriate version string).  If you
      are reading this file, you probably have already done this!
@@ -91,23 +89,39 @@ Making and Installing the OpenLDAP Distribution
 
 8.   That's it.  Enjoy!
 
-See the OpenLDAP Administrator's Guide and the manual pages for the
+See the ReOpenLDAP Administrator's Guide and the manual pages for the
 individual applications for configuration and use information. You may
 also want to edit the configuration files used by the various
-components.  These configuration files are located in the OpenLDAP
-configuration directory (normally /usr/local/etc/openldap).
+components.  These configuration files are located in the ReOpenLDAP
+configuration directory (normally /usr/local/etc/reopenldap).
 
         ldap.conf               client defaults
         slapd.conf              Standalone LDAP daemon
         schema/*.schema         Schema Definitions
 
 ---
-$OpenLDAP: pkg/openldap-guide/release/install.sdf,v 1.16 2002/02/18
-17:09:26 kurt Exp $
 
-This work is part of OpenLDAP Software <http://www.openldap.org/>.
+Copyright (c) 2015,2016 Leonid Yuriev <leo@yuriev.ru>.
+Copyright (c) 2015,2016 Peter-Service R&D LLC <http://billing.ru/>.
 
-Copyright 1998-2016 The OpenLDAP Foundation.
+This file is part of ReOpenLDAP.
+
+ReOpenLDAP is free software; you can redistribute it and/or modify it under
+the terms of the GNU Affero General Public License as published by
+the Free Software Foundation; either version 3 of the License, or
+(at your option) any later version.
+
+ReOpenLDAP is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Affero General Public License for more details.
+
+You should have received a copy of the GNU Affero General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+---
+
+Copyright 1998-2014 The OpenLDAP Foundation.
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without

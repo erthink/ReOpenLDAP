@@ -1,9 +1,27 @@
 #! /bin/sh
 # Create a version.c file
-# $OpenLDAP$
-## This work is part of OpenLDAP Software <http://www.openldap.org/>.
+## Copyright (c) 2015,2016 Leonid Yuriev <leo@yuriev.ru>.
+## Copyright (c) 2015,2016 Peter-Service R&D LLC <http://billing.ru/>.
 ##
-## Copyright 1998-2016 The OpenLDAP Foundation.
+## This file is part of ReOpenLDAP.
+##
+## ReOpenLDAP is free software; you can redistribute it and/or modify it under
+## the terms of the GNU Affero General Public License as published by
+## the Free Software Foundation; either version 3 of the License, or
+## (at your option) any later version.
+##
+## ReOpenLDAP is distributed in the hope that it will be useful,
+## but WITHOUT ANY WARRANTY; without even the implied warranty of
+## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+## GNU Affero General Public License for more details.
+##
+## You should have received a copy of the GNU Affero General Public License
+## along with this program.  If not, see <http://www.gnu.org/licenses/>.
+##
+## ---
+##
+# $ReOpenLDAP$
+## Copyright 1998-2014 The OpenLDAP Foundation.
 ## All rights reserved.
 ##
 ## Redistribution and use in source and binary forms, with or without
@@ -14,7 +32,7 @@
 ## top-level directory of the distribution or, alternatively, at
 ## <http://www.OpenLDAP.org/license.html>.
 
-PACKAGE=OpenLDAP
+PACKAGE=ReOpenLDAP
 VERSION=unknown
 SYMBOL=__Version
 static=static
@@ -53,9 +71,27 @@ APPLICATION=$1
 WHOWHERE="$USER@`uname -n`:`pwd`"
 
 cat << __EOF__
-/* This work is part of OpenLDAP Software <http://www.openldap.org/>.
+/* Copyright (c) 2015,2016 Leonid Yuriev <leo@yuriev.ru>.
+ * Copyright (c) 2015,2016 Peter-Service R&D LLC <http://billing.ru/>.
  *
- * Copyright 1998-2016 The OpenLDAP Foundation.
+ * This file is part of ReOpenLDAP.
+ *
+ * ReOpenLDAP is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation; either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * ReOpenLDAP is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * ---
+ *
+ * Copyright 1998-2014 The OpenLDAP Foundation.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -68,8 +104,23 @@ cat << __EOF__
  */
 
 static const char __attribute__((__unused__)) copyright[] =
-"Copyright 1998-2015 The OpenLDAP Foundation.  All rights reserved.\n"
-"COPYING RESTRICTIONS APPLY\n";
+"The ReOpenLDAP Project <https://github.com/ReOpen/ReOpenLDAP>.\n"
+"GNU AFFERO GENERAL PUBLIC LICENSE Version 3.\n"
+"Copyright (c) 2015,2016 Leonid Yuriev <leo@yuriev.ru>.\n"
+"Copyright (c) 2015,2016 Peter-Service R&D LLC <http://billing.ru/>.\n"
+"Copyright (c) 1998-2014 The OpenLDAP Foundation.\n"
+/*
+	"Portions Copyright 1998-2012 Kurt D. Zeilenga.\n"
+	"Portions Copyright 1998-2006 Net Boolean Incorporated.\n"
+	"Portions Copyright 2001-2006 IBM Corporation.\n"
+	"Portions Copyright 1999-2008 Howard Y.H. Chu.\n"
+	"Portions Copyright 1999-2008 Symas Corporation.\n"
+	"Portions Copyright 1998-2003 Hallvard B. Furuseth.\n"
+	"Portions Copyright 2007-2011 Gavin Henry.\n"
+	"Portions Copyright 2007-2011 Suretec Systems Ltd.\n"
+*/
+"Copyright (c) 1992-1996 Regents of the University of Michigan.\n"
+"All rights reserved. COPYING RESTRICTIONS APPLY.\n";
 
 $static $const char __attribute__((__unused__)) $SYMBOL[] =
 "@(#) \$$PACKAGE: $APPLICATION $VERSION (" __DATE__ " " __TIME__ ") \$\n"
