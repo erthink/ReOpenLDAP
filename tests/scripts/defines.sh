@@ -230,7 +230,7 @@ if [ -n "$USE_VALGRIND" ] && [ "$USE_VALGRIND" -ne 0 ]; then
 	TIMEOUT_H="timeout -s SIGXCPU 120m"
 	SLEEP0=${SLEEP0-3}
 	SLEEP1=${SLEEP1-15}
-	SLEEP2=${SLEEP2-30}
+	SYNCREPL_WAIT=${SYNCREPL_WAIT-30}
 	pkill -SIGKILL -s 0 -u $EUID memcheck-*
 elif [ -n "$CIBUZZ_PID4" ]; then
 	TIMEOUT_S="timeout -s SIGXCPU 3m"
@@ -238,7 +238,7 @@ elif [ -n "$CIBUZZ_PID4" ]; then
 	TIMEOUT_H="timeout -s SIGXCPU 30m"
 	SLEEP0=${SLEEP0-1}
 	SLEEP1=${SLEEP1-7}
-	SLEEP2=${SLEEP2-15}
+	SYNCREPL_WAIT=${SYNCREPL_WAIT-30}
 else
 	# LY: take in account -O0
 	TIMEOUT_S="timeout -s SIGXCPU 1m"
@@ -246,7 +246,7 @@ else
 	TIMEOUT_H="timeout -s SIGXCPU 9m"
 	SLEEP0=${SLEEP0-0.2}
 	SLEEP1=${SLEEP1-1}
-	SLEEP2=${SLEEP2-5}
+	SYNCREPL_WAIT=${SYNCREPL_WAIT-10}
 fi
 
 SLAP_VERBOSE=${SLAP_VERBOSE-none}
@@ -720,7 +720,7 @@ function wait_syncrepl {
 			return
 		fi
 
-		if [ $(echo "$t > $SLEEP2" | bc -q) == "1" ]; then
+		if [ $(echo "$t > $SYNCREPL_WAIT" | bc -q) == "1" ]; then
 			echo " Timeout $t seconds"
 			echo -n "Provider: "
 			$LDAPSEARCH -s $scope -b "$base" $extra -h $LOCALHOST -p $1 contextCSN

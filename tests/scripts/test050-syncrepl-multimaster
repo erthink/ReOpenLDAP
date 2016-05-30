@@ -301,7 +301,7 @@ if test $RC != 0 ; then
 	exit $RC
 fi
 
-#echo "Waiting $SLEEP2 seconds for syncrepl to receive changes..."
+#echo "Waiting $SYNCREPL_WAIT seconds for syncrepl to receive changes..."
 wait_syncrepl $PORT1 $PORT2 base cn=config "-D cn=config -y $CONFIGPWF"
 wait_syncrepl $PORT1 $PORT3 base cn=config "-D cn=config -y $CONFIGPWF"
 wait_syncrepl $PORT1 $PORT4 base cn=config "-D cn=config -y $CONFIGPWF"
