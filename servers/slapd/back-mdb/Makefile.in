@@ -29,7 +29,7 @@ OBJS = init.lo tools.lo config.lo \
 
 LDAP_INCDIR= ../../../include
 LDAP_LIBDIR= ../../../libraries
-MDB_SUBDIR = $(srcdir)/$(LDAP_LIBDIR)/liblmdb
+MDBX_SUBDIR = $(srcdir)/$(LDAP_LIBDIR)/libmdbx
 
 BUILD_OPT = "--enable-mdb"
 BUILD_MOD = @BUILD_MDB@
@@ -43,7 +43,7 @@ NEED_LIBS = $(@BUILD_LIBS_DYNAMIC@_LDAP_LIBS)
 
 LIBBASE = back_mdb
 
-XINCPATH = -I.. -I$(srcdir)/.. -I$(MDB_SUBDIR)
+XINCPATH = -I.. -I$(srcdir)/.. -I$(MDBX_SUBDIR)
 XDEFS = $(MODULES_CPPFLAGS)
 
 all-local-lib:	../.backend
@@ -51,11 +51,11 @@ all-local-lib:	../.backend
 ../.backend: lib$(LIBBASE).a
 	@touch $@
 
-mdbx.lo: $(MDB_SUBDIR)/mdb.c $(MDB_SUBDIR)/midl.c $(MDB_SUBDIR)/*.h
-ifneq ($(wildcard $(MDB_SUBDIR)/mdbx.h),)
-	$(LTCOMPILE_MOD) -include $(MDB_SUBDIR)/mdbx.h $(MDB_SUBDIR)/mdb.c -o $@
+mdbx.lo: $(MDBX_SUBDIR)/mdb.c $(MDBX_SUBDIR)/midl.c $(MDBX_SUBDIR)/*.h
+ifneq ($(wildcard $(MDBX_SUBDIR)/mdbx.h),)
+	$(LTCOMPILE_MOD) -include $(MDBX_SUBDIR)/mdbx.h $(MDBX_SUBDIR)/mdb.c -o $@
 else
-	$(LTCOMPILE_MOD) -include $(MDB_SUBDIR)/midl.c $(MDB_SUBDIR)/mdb.c -o $@
+	$(LTCOMPILE_MOD) -include $(MDBX_SUBDIR)/midl.c $(MDBX_SUBDIR)/mdb.c -o $@
 endif
 
 veryclean-local-lib: FORCE
