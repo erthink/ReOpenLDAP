@@ -56,7 +56,7 @@ extern int ldap_int_stackguard;
 static pthread_mutexattr_t mutex_attr_errorcheck;
 
 static pthread_mutexattr_t* ldap_mutex_attr() {
-	if (reopenldap_mode_idkfa())
+	if (reopenldap_mode_check())
 		return &mutex_attr_errorcheck;
 	return LDAP_INT_THREAD_MUTEXATTR_DEFAULT;
 }

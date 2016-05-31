@@ -224,11 +224,11 @@ __extern_C void __ldap_assert_fail(
 __extern_C void reopenldap_flags_setup (int flags);
 __extern_C int reopenldap_flags;
 
-#define reopenldap_mode_iddqd() \
+#define reopenldap_mode_righteous() \
 	likely((reopenldap_flags & REOPENLDAP_FLAG_IDDQD) != 0)
-#define reopenldap_mode_idkfa() \
+#define reopenldap_mode_check() \
 	unlikely((reopenldap_flags & REOPENLDAP_FLAG_IDKFA) != 0)
-#define reopenldap_mode_idclip() \
+#define reopenldap_mode_strict() \
 	likely((reopenldap_flags & REOPENLDAP_FLAG_IDCLIP) != 0)
 #define reopenldap_mode_jitter() \
 	unlikely((reopenldap_flags & REOPENLDAP_FLAG_JITTER) != 0)
@@ -251,7 +251,7 @@ __extern_C void reopenldap_jitter(int probability_percent);
 #	define LDAP_ASSERT(condition) LDAP_ENSURE(condition)
 #else
 #	define LDAP_ASSERT(condition) do \
-		if (reopenldap_mode_idkfa()) \
+		if (reopenldap_mode_check()) \
 			LDAP_ENSURE(condition); \
 	while (0)
 #endif /* LDAP_ASSERT_CHECK */
@@ -368,11 +368,14 @@ typedef struct {
 #	include <sanitizer/asan_interface.h>
 #	define ATTRIBUTE_NO_SANITIZE_ADDRESS __attribute__((no_sanitize_address, noinline))
 #	define ATTRIBUTE_NO_SANITIZE_ADDRESS_INLINE ATTRIBUTE_NO_SANITIZE_ADDRESS
+#	define ASAN_REGION_IS_POISONED(addr, size) __asan_region_is_poisoned(addr, size)
 #else
 #	define ASAN_POISON_MEMORY_REGION(addr, size) \
 		((void)(addr), (void)(size))
 #	define ASAN_UNPOISON_MEMORY_REGION(addr, size) \
 		((void)(addr), (void)(size))
+#	define ASAN_REGION_IS_POISONED(addr, size) \
+		((void)(addr), (void)(size), 0)
 #	define ATTRIBUTE_NO_SANITIZE_ADDRESS
 #	define ATTRIBUTE_NO_SANITIZE_ADDRESS_INLINE __inline
 #endif /* __SANITIZE_ADDRESS__ */

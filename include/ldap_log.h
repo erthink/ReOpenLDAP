@@ -184,19 +184,6 @@ extern void eb_syslog(int pri, const char *fmt, ...);
 #	endif /* ! LDAP_DEBUG */
 #endif /* ! LDAP_SYSLOG */
 
-#define Log0( level, severity, fmt ) \
-	Log( ldap_debug, (level), (fmt) )
-#define Log1( level, severity, fmt, arg1 ) \
-	Log( ldap_debug, (level), (fmt), arg1 )
-#define Log2( level, severity, fmt, arg1, arg2 ) \
-	Log( ldap_debug, (level), (fmt), arg1, arg2 )
-#define Log3( level, severity, fmt, arg1, arg2, arg3 ) \
-	Log( ldap_debug, (level), (fmt), arg1, arg2, arg3 )
-#define Log4( level, severity, fmt, arg1, arg2, arg3, arg4 ) \
-	Log( ldap_debug, (level), (fmt), arg1, arg2, arg3, arg4 )
-#define Log5( level, severity, fmt, arg1, arg2, arg3, arg4, arg5 ) \
-	Log( ldap_debug, (level), (fmt), arg1, arg2, arg3, arg4, arg5 )
-
 #define Debug( level, ... )	\
 	Log( (level), ldap_syslog_level, __VA_ARGS__ )
 
@@ -212,6 +199,10 @@ LDAP_LUTIL_F(void) lutil_debug_print LDAP_P((
 
 LDAP_LUTIL_F(void) lutil_debug_va LDAP_P((
 	const char* fmt, va_list args ));
+
+void lutil_debug_lock(void);
+int lutil_debug_trylock(void);
+void lutil_debug_unlock(void);
 
 #ifdef LDAP_DEFINE_LDAP_DEBUG
 /* This struct matches the head of ldapoptions in <ldap-int.h> */

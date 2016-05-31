@@ -193,9 +193,7 @@ slapi_int_connection_init_pb( Slapi_PBlock *pb, ber_tag_t tag )
 
 	op->o_callback = (slap_callback *) slapi_ch_calloc( 1, sizeof(slap_callback) );
 	op->o_callback->sc_response = slapi_int_response;
-	op->o_callback->sc_cleanup = NULL;
 	op->o_callback->sc_private = pb;
-	op->o_callback->sc_next = NULL;
 
 	conn->c_pending_ops.stqh_first = op;
 

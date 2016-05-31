@@ -145,7 +145,7 @@ nops_modify( Operation *op, SlapReply *rs )
 
 		op->o_bd->bd_info = (BackendInfo *)(on->on_info);
 		op->o_callback = NULL;
-                send_ldap_error(op, rs, LDAP_SUCCESS, "");
+		send_ldap_error(op, rs, LDAP_SUCCESS, "");
 		op->o_callback = cb;
 
 		return (rs->sr_err);

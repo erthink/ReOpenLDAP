@@ -85,7 +85,7 @@ done
 
 echo "Starting provider slapd on $PROV_URI"
 cd $PROV_DIR
-$SLAPD -F slapd.d -h $PROV_URI $TIMING >> $PROV_LOG 2>&1 &
+$SLAPD_HUGE -F slapd.d -h $PROV_URI $TIMING >> $PROV_LOG 2>&1 &
 PROV_PID=$!
 if test $WAIT != 0 ; then
 	echo PID $PROV_PID
@@ -97,7 +97,7 @@ check_running 1 provider
 
 echo "Starting forward1 slapd on $FWD1_URI"
 cd $FWD1_DIR
-$SLAPD -F slapd.d -h $FWD1_URI $TIMING >> $FWD1_LOG 2>&1 &
+$SLAPD_HUGE -F slapd.d -h $FWD1_URI $TIMING >> $FWD1_LOG 2>&1 &
 FWD1_PID=$!
 if test $WAIT != 0 ; then
 	echo PID $FWD1_PID
@@ -109,7 +109,7 @@ check_running 3 forward1
 
 echo "Starting consumer slapd on $CONS_URI"
 cd $CONS_DIR
-$SLAPD -F slapd.d -h $CONS_URI $TIMING >> $CONS_LOG 2>&1 &
+$SLAPD_HUGE -F slapd.d -h $CONS_URI $TIMING >> $CONS_LOG 2>&1 &
 CONS_PID=$!
 if test $WAIT != 0 ; then
 	echo PID $CONS_PID
@@ -274,7 +274,7 @@ done
 
 for uri in $FWD1_URI $CONS_URI; do
 	echo "Using ldapsearch to check that $uri received database..."
-	for i in 0.1 0.2 0.5 1 2 3 4 5; do
+	for i in 0.1 0.2 0.5 $SLEEP0 1 2 3 4 5 5; do
 		echo "Waiting $i seconds for slapd to receive database..."
 		sleep $i
 		$LDAPSEARCH -s base -b "$BASEDN" -H $uri \
@@ -334,7 +334,7 @@ EOF
 
 	echo "Starting forwarders again"
 	cd $FWD1_DIR
-	$SLAPD -F slapd.d -h $FWD1_URI $TIMING >> $FWD1_LOG 2>&1 &
+	$SLAPD_HUGE -F slapd.d -h $FWD1_URI $TIMING >> $FWD1_LOG 2>&1 &
 	FWD1_PID=$!
 	KILLPIDS="$KILLPIDS $FWD1_PID"
 	cd $TESTWD
@@ -364,7 +364,7 @@ EOF
 		RC=32
 		i=$addStart
 		while test $i -lt $addEnd; do
-			for j in 0.1 0.5 1 2 3 4 5; do
+			for j in 0.1 0.2 0.5 $SLEEP0 1 2 3 4 5 5; do
 				echo "Waiting $j seconds for $uri to receive entry $i..."
 				sleep $j
 				RESULT=`$LDAPSEARCH -H $uri -s base -b "ou=$i,$BASEDN" 2>&1 \
@@ -431,7 +431,7 @@ EOF
 
 	echo "Starting forwarders again"
 	cd $FWD1_DIR
-	$SLAPD -F slapd.d -h $FWD1_URI $TIMING >> $FWD1_LOG 2>&1 &
+	$SLAPD_HUGE -F slapd.d -h $FWD1_URI $TIMING >> $FWD1_LOG 2>&1 &
 	FWD1_PID=$!
 	KILLPIDS="$KILLPIDS $FWD1_PID"
 	cd $TESTWD
@@ -474,7 +474,7 @@ EOF
 		RC=32
 		i=$addStart
 		while test $i -lt $addEnd; do
-			for j in 0.1 0.5 1 2 3 4 5; do
+			for j in 0.1 0.2 0.5 $SLEEP0 1 2 3 4 5 5; do
 				echo "Waiting $j seconds for $uri to receive entry $i..."
 				sleep $j
 				RESULT=`$LDAPSEARCH -H $uri -s base -b "ou=$i,$BASEDN" 2>&1 \
@@ -495,7 +495,7 @@ EOF
 
 		i=$delStart
 		while test $i -lt $delEnd; do
-			for j in 0.1 0.5 1 2 3 4 5; do
+			for j in 0.1 0.2 0.5 $SLEEP0 1 2 3 4 5 5; do
 				echo "Waiting $j seconds for $uri to delete entry $i..."
 				sleep $j
 				$LDAPSEARCH -s base -b "ou=$i,$BASEDN" -H $uri > /dev/null 2>&1
@@ -538,7 +538,7 @@ EOF
 
 	echo "Starting forwarders again"
 	cd $FWD1_DIR
-	$SLAPD -F slapd.d -h $FWD1_URI $TIMING >> $FWD1_LOG 2>&1 &
+	$SLAPD_HUGE -F slapd.d -h $FWD1_URI $TIMING >> $FWD1_LOG 2>&1 &
 	FWD1_PID=$!
 	KILLPIDS="$KILLPIDS $FWD1_PID"
 	cd $TESTWD
@@ -562,7 +562,7 @@ EOF
 		RC=0
 		i=$delStart
 		while test $i -lt $delEnd; do
-			for j in 0.1 0.5 1 2 3 4 5; do
+			for j in 0.1 0.2 0.5 $SLEEP0 1 2 3 4 5 5; do
 				echo "Waiting $j seconds for $uri to delete entry $i..."
 				sleep $j
 				$LDAPSEARCH -s base -b "ou=$i,$BASEDN" -H $uri > /dev/null 2>&1

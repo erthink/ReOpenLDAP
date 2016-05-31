@@ -845,7 +845,7 @@ merge_entry(
 
 	SlapReply sreply = {REP_RESULT};
 
-	slap_callback cb = { NULL, slap_null_cb, NULL, NULL };
+	slap_callback cb = { .sc_response = slap_null_cb };
 
 	if ( dup )
 		e = entry_dup( e );
@@ -1803,7 +1803,7 @@ remove_query_data(
 	AttributeAssertion	ava = ATTRIBUTEASSERTION_INIT;
 	Filter			filter = {LDAP_FILTER_EQUALITY};
 	SlapReply 		sreply = {REP_RESULT};
-	slap_callback cb = { NULL, remove_func, NULL, NULL };
+	slap_callback cb = { .sc_response = remove_func };
 	int deleted = 0;
 
 	op->ors_filterstr.bv_len = snprintf(filter_str, sizeof(filter_str),
@@ -2608,7 +2608,7 @@ pc_setpw( Operation *op, struct berval *pwd, cache_manager *cm )
 	{
 		Modifications mod;
 		SlapReply sr = { REP_RESULT };
-		slap_callback cb = { 0, slap_null_cb, 0, 0 };
+		slap_callback cb = { .sc_response = slap_null_cb };
 		int rc;
 
 		mod.sml_op = LDAP_MOD_REPLACE;
@@ -2943,10 +2943,9 @@ pcache_op_bind(
 
 	/* We have a cached query to work with */
 	if ( bi.bi_cq ) {
-		sc = op->o_tmpalloc( sizeof(slap_callback) + sizeof(bindcacheinfo),
+		sc = op->o_tmpcalloc( 1, sizeof(slap_callback) + sizeof(bindcacheinfo),
 			op->o_tmpmemctx );
 		sc->sc_response = pc_bind_save;
-		sc->sc_cleanup = NULL;
 		sc->sc_private = sc+1;
 		bci = sc->sc_private;
 		sc->sc_next = op->o_callback;
@@ -3097,7 +3096,7 @@ pcache_op_search(
 
 			op->o_bd = &cm->db;
 			if ( cm->response_cb == PCACHE_RESPONSE_CB_TAIL ) {
-				slap_callback cb;
+				slap_callback cb = { 0 };
 				/* The cached entry was already processed by any
 				 * other overlays, so don't let it get processed again.
 				 *
@@ -3141,7 +3140,7 @@ pcache_op_search(
 		Debug( pcache_debug, "QUERY CACHEABLE\n" );
 		query.filter = filter_dup(op->ors_filter, NULL);
 
-		cb = op->o_tmpalloc( sizeof(*cb) + sizeof(*si), op->o_tmpmemctx );
+		cb = op->o_tmpcalloc( 1, sizeof(*cb) + sizeof(*si), op->o_tmpmemctx );
 		cb->sc_response = pcache_response;
 		cb->sc_cleanup = pcache_op_cleanup;
 		cb->sc_private = (cb+1);
@@ -3150,17 +3149,11 @@ pcache_op_search(
 		si->query = query;
 		si->qtemp = qtemp;
 		si->max = cm->num_entries_limit ;
-		si->over = 0;
-		si->count = 0;
-		si->slimit = 0;
-		si->slimit_exceeded = 0;
 		si->caching_reason = PC_IGNORE;
 		if ( op->ors_slimit > 0 && op->ors_slimit < cm->num_entries_limit ) {
 			si->slimit = op->ors_slimit;
 			op->ors_slimit = cm->num_entries_limit;
 		}
-		si->head = NULL;
-		si->tail = NULL;
 		si->swap_saved_attrs = 1;
 		si->save_attrs = op->ors_attrs;
 		si->pbi = pbi;
@@ -3323,7 +3316,7 @@ refresh_merge( Operation *op, SlapReply *rs )
 			const char* 	text = NULL;
 			char			textbuf[SLAP_TEXT_BUFLEN];
 			size_t			textlen = sizeof(textbuf);
-			slap_callback cb = { NULL, slap_null_cb, NULL, NULL };
+			slap_callback cb = { .sc_response = slap_null_cb };
 
 			ne = *e;
 			b = &ne.e_attrs;

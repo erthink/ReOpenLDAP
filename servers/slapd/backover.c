@@ -292,6 +292,7 @@ over_access_allowed(
 		 	if ( !SLAP_ISOVERLAY( op->o_bd ) ) {
  				db = *op->o_bd;
 				db.be_flags |= SLAP_DBFLAG_OVERLAY;
+				compiler_barrier();
 				op->o_bd = &db;
 			}
 
@@ -358,6 +359,7 @@ overlay_entry_get_ov(
 		 	if ( !SLAP_ISOVERLAY( op->o_bd ) ) {
  				db = *op->o_bd;
 				db.be_flags |= SLAP_DBFLAG_OVERLAY;
+				compiler_barrier();
 				op->o_bd = &db;
 			}
 
@@ -434,6 +436,7 @@ overlay_entry_release_ov(
 		 	if ( !SLAP_ISOVERLAY( op->o_bd ) ) {
  				db = *op->o_bd;
 				db.be_flags |= SLAP_DBFLAG_OVERLAY;
+				compiler_barrier();
 				op->o_bd = &db;
 			}
 
@@ -517,6 +520,7 @@ over_acl_group(
 		 	if ( !SLAP_ISOVERLAY( op->o_bd ) ) {
  				db = *op->o_bd;
 				db.be_flags |= SLAP_DBFLAG_OVERLAY;
+				compiler_barrier();
 				op->o_bd = &db;
 			}
 
@@ -591,6 +595,7 @@ over_acl_attribute(
 		 	if ( !SLAP_ISOVERLAY( op->o_bd ) ) {
  				db = *op->o_bd;
 				db.be_flags |= SLAP_DBFLAG_OVERLAY;
+				compiler_barrier();
 				op->o_bd = &db;
 			}
 
@@ -756,6 +761,7 @@ over_op_func(
  	if ( !SLAP_ISOVERLAY( op->o_bd )) {
  		db = *op->o_bd;
 		db.be_flags |= SLAP_DBFLAG_OVERLAY;
+		compiler_barrier();
 		op->o_bd = &db;
 	}
 	cb->sc_cleanup = NULL;
@@ -1255,10 +1261,8 @@ overlay_remove( BackendDB *be, slap_overinst *on, Operation *op )
 	rm_ctx->be = be;
 	rm_ctx->on = on;
 
-	rm_cb = op->o_tmpalloc( sizeof( slap_callback ), op->o_tmpmemctx );
-	rm_cb->sc_next = NULL;
+	rm_cb = op->o_tmpcalloc( 1, sizeof( slap_callback ), op->o_tmpmemctx );
 	rm_cb->sc_cleanup = overlay_remove_cb;
-	rm_cb->sc_response = NULL;
 	rm_cb->sc_private = (void*) rm_ctx;
 
 	/* Append callback to the end of the list */

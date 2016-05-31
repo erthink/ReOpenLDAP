@@ -483,7 +483,7 @@ attr_merge(
 		 * of nvals and the value of (*a)->a_nvals must be consistent
 		 */
 
-		if (reopenldap_mode_iddqd() && nvals
+		if (reopenldap_mode_righteous() && nvals
 				&& (*a)->a_vals && (*a)->a_nvals == (*a)->a_vals) {
 			for(j = 0; j < i; j++)
 				if (! bvmatch(&vals[j], &nvals[j]))

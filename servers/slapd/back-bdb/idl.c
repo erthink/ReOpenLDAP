@@ -110,7 +110,7 @@ unsigned bdb_idl_search( ID *ids, ID id )
 	int val = 0;
 	unsigned n = ids[0];
 
-	if (reopenldap_mode_idkfa())
+	if (reopenldap_mode_check())
 		idl_check( ids );
 
 	while( 0 < n ) {
@@ -139,7 +139,7 @@ unsigned bdb_idl_search( ID *ids, ID id )
 	/* (reverse) linear search */
 	int i;
 
-	if (reopenldap_mode_idkfa())
+	if (reopenldap_mode_check())
 		idl_check( ids );
 
 	for( i=ids[0]; i; i-- ) {
@@ -160,7 +160,7 @@ int bdb_idl_insert( ID *ids, ID id )
 	Debug( LDAP_DEBUG_ANY, "insert: %04lx at %d\n", (long) id, x );
 	idl_dump( ids );
 #else
-	if (reopenldap_mode_idkfa())
+	if (reopenldap_mode_check())
 		idl_check( ids );
 #endif /* IDL_DEBUG */
 
@@ -208,7 +208,7 @@ int bdb_idl_insert( ID *ids, ID id )
 #if IDL_DEBUG
 	idl_dump( ids );
 #else
-	if (reopenldap_mode_idkfa())
+	if (reopenldap_mode_check())
 		idl_check( ids );
 #endif /* IDL_DEBUG */
 
@@ -223,7 +223,7 @@ int bdb_idl_delete( ID *ids, ID id )
 	Debug( LDAP_DEBUG_ANY, "delete: %04lx at %d\n", (long) id, x );
 	idl_dump( ids );
 #else
-	if (reopenldap_mode_idkfa())
+	if (reopenldap_mode_check())
 		idl_check( ids );
 #endif /* IDL_DEBUG */
 
@@ -267,7 +267,7 @@ int bdb_idl_delete( ID *ids, ID id )
 #if IDL_DEBUG
 	idl_dump( ids );
 #else
-	if (reopenldap_mode_idkfa())
+	if (reopenldap_mode_check())
 		idl_check( ids );
 #endif /* IDL_DEBUG */
 

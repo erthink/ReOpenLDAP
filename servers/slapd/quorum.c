@@ -307,7 +307,7 @@ static void kick(slap_quorum_t *q)
 	}
 }
 
-int quorum_query_status(BackendDB *bd, int running_only, BerValue *status)
+int quorum_query_status(BackendDB *bd, int running_only, BerValue *status, Operation *op)
 {
 	lock();
 	bd = bd->bd_self;
@@ -318,7 +318,11 @@ int quorum_query_status(BackendDB *bd, int running_only, BerValue *status)
 	if (! q->cns_status_buf[0])
 		kick(q);
 
-	status->bv_len = strlen(status->bv_val = q->cns_status_buf);
+	status->bv_val = (op && op->o_tmpmemctx)
+		? ber_strdup_x( q->cns_status_buf, op->o_tmpmemctx )
+		: q->cns_status_buf;
+	status->bv_len = strlen(status->bv_val);
+
 	int left = q->qt_left;
 	if (running_only)
 		left -= q->qt_status[QS_DEAD];
@@ -454,7 +458,7 @@ static int notify_sid(slap_quorum_t *q, void* key, int sid) {
 			}
 		}
 	}
-	/* LY: this may occur when 'syncrepl' removed by syncrepl_config()
+	/* LY: this may occur when 'syncrepl' removed by config_syncrepl()
 	 * while do_syncrepl() is running. */
 	return 0;
 }
@@ -654,7 +658,7 @@ static int unparse(BerVarray *vals, slap_quorum_t *q, int type, const char* verb
 	return 0;
 }
 
-int quorum_config(ConfigArgs *c) {
+int config_quorum(ConfigArgs *c) {
 	int i, type;
 	slap_quorum_t *q = c->be->bd_quorum;
 	assert(c->be->bd_self == c->be);

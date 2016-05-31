@@ -650,7 +650,7 @@ mdb_cf_gen( ConfigArgs *c )
 		if ( lutil_atolx( &l, c->argv[2], 0 ) != 0 ) {
 			fprintf( stderr, "%s: "
 				"invalid %s \"%s\" in \"checkpoint\".\n",
-				c->log, reopenldap_mode_iddqd() ? "seconds" : "minutes", c->argv[2] );
+				c->log, reopenldap_mode_righteous() ? "seconds" : "minutes", c->argv[2] );
 			return 1;
 		}
 		mdb->mi_txn_cp_period = l;
@@ -659,7 +659,7 @@ mdb_cf_gen( ConfigArgs *c )
 		 */
 		if ((slapMode & SLAP_SERVER_MODE) && mdb->mi_txn_cp_period ) {
 			struct re_s *re = mdb->mi_txn_cp_task;
-			unsigned interval_sec = reopenldap_mode_iddqd() ?
+			unsigned interval_sec = reopenldap_mode_righteous() ?
 						/* LY: ReOpenLDAP mode, interval in seconds */
 						mdb->mi_txn_cp_period
 					  :

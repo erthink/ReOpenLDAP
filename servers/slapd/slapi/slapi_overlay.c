@@ -79,6 +79,7 @@ slapi_op_internal_p( Operation *op, SlapReply *rs, slap_callback *cb )
 			pb = slapi_over_pblock_new( op, rs );
 		}
 
+		memset( cb, 0, sizeof(slap_callback) );
 		cb->sc_response = slapi_over_response;
 		cb->sc_cleanup = slapi_over_cleanup;
 		cb->sc_private = pb;

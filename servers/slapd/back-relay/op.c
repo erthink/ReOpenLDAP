@@ -94,9 +94,9 @@ relay_back_response_cb( Operation *op, SlapReply *rs )
 }
 
 #define relay_back_add_cb( rcb, op ) {				\
+		memset((rcb), 0, sizeof(relay_callback));	\
 		(rcb)->rcb_sc.sc_next = (op)->o_callback;	\
 		(rcb)->rcb_sc.sc_response = relay_back_response_cb; \
-		(rcb)->rcb_sc.sc_cleanup = 0;			\
 		(rcb)->rcb_sc.sc_private = (op)->o_bd;		\
 		(op)->o_callback = (slap_callback *) (rcb);	\
 }

@@ -341,7 +341,9 @@ LDAP_SLAPD_F (Attribute *) attrs_dup LDAP_P(( Attribute *a ));
 LDAP_SLAPD_F (int) attr_init LDAP_P(( void ));
 LDAP_SLAPD_F (int) attr_destroy LDAP_P(( void ));
 
-void slap_backtrace_debug();
+void slap_backtrace_debug(void);
+void slap_backtrace_debug_ex(int skip, int deep, const char *caption);
+void slap_backtrace_log(void *array[], int nentries, const char *caption);
 void slap_backtrace_set_enable( int value );
 int slap_backtrace_get_enable();
 void slap_backtrace_set_dir(const char* path );
@@ -835,6 +837,7 @@ LDAP_SLAPD_F (void) connection_closing LDAP_P((
 LDAP_SLAPD_F (int) connection_valid LDAP_P(( Connection *c ));
 LDAP_SLAPD_F (const char *) connection_state2str LDAP_P(( int state ))
 	LDAP_GCCATTR((const));
+int connections_socket_troube(ber_socket_t s);
 
 LDAP_SLAPD_F (int) connection_read_activate LDAP_P((ber_socket_t s));
 LDAP_SLAPD_F (int) connection_write LDAP_P((ber_socket_t s));
@@ -923,7 +926,7 @@ void quorum_notify_status(BackendDB *bd, void* key, int status);
 int quorum_query(BackendDB *bd);
 void quorum_notify_csn(BackendDB *bd, int csnsid);
 int quorum_syncrepl_gate(BackendDB *bd, void *instance_key, int in);
-int quorum_query_status(BackendDB *bd, int running_only, BerValue*);
+int quorum_query_status(BackendDB *bd, int running_only, BerValue*, Operation *op);
 int quorum_syncrepl_maxrefresh(BackendDB *bd);
 
 /*
@@ -2249,7 +2252,6 @@ LDAP_SLAPD_V (int)		slap_dontUseCopy_ignore;
 LDAP_SLAPD_V (BerVarray)	slap_dontUseCopy_propnames;
 #endif /* SLAP_AUXPROP_DONTUSECOPY */
 LDAP_SLAPD_V (char **)	default_passwd_hash;
-LDAP_SLAPD_V (int)		lber_debug;
 LDAP_SLAPD_V (int)		ldap_syslog;
 LDAP_SLAPD_V (struct berval)	default_search_base;
 LDAP_SLAPD_V (struct berval)	default_search_nbase;

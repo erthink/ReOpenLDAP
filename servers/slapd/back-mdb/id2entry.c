@@ -657,7 +657,7 @@ mdb_opinfo_get( Operation *op, struct mdb_info *mdb, int rdonly, mdb_op_info **m
 				assert(slap_biglock_owned(op->o_bd));
 				int flag = 0;
 				if ( get_lazyCommit( op ))
-					flag |= reopenldap_mode_iddqd() ? MDB_NOSYNC : MDB_NOMETASYNC;
+					flag |= MDB_NOMETASYNC; /* LY: TODO LAZY-SYNC */
 				rc = mdb_txn_begin( mdb->mi_dbenv, NULL, flag, &moi->moi_txn );
 				if (rc) {
 					Debug( LDAP_DEBUG_ANY, "mdb_opinfo_get: mdb_txn_begin() err %s(%d)\n",
@@ -804,7 +804,7 @@ static int mdb_entry_partsize(struct mdb_info *mdb, MDB_txn *txn, Entry *e,
 			}
 		}
 		if (a->a_nvals != a->a_vals) {
-			if (! reopenldap_mode_iddqd())
+			if (! reopenldap_mode_righteous())
 				goto dont_skip_dups;
 			for (i=0; i<a->a_numvals; i++) {
 				if (! bvmatch(&a->a_vals[i], &a->a_nvals[i])) {
@@ -824,7 +824,7 @@ static int mdb_entry_partsize(struct mdb_info *mdb, MDB_txn *txn, Entry *e,
 			}
 		}
 	}
-	if (! reopenldap_mode_iddqd()) {
+	if (! reopenldap_mode_righteous()) {
 		/* padding */
 		dlen = (dlen + sizeof(ID)-1) & ~(sizeof(ID)-1);
 	}
@@ -912,7 +912,7 @@ static int mdb_entry_encode(Operation *op, Entry *e, MDB_val *data, Ecount *eh)
 
 		l = a->a_numvals;
 		if (a->a_nvals != a->a_vals) {
-			if (reopenldap_mode_iddqd()) {
+			if (reopenldap_mode_righteous()) {
 				for (i=0; i<a->a_numvals; i++) {
 					if (! bvmatch(&a->a_vals[i], &a->a_nvals[i])) {
 						l |= MDB_AT_NVALS;

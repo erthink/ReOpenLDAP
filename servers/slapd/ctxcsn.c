@@ -262,7 +262,7 @@ slap_queue_csn(
 #endif
 		if ( pending->ce_opid == op->o_opid && pending->ce_connid == op->o_connid ) {
 			assert( pending->ce_sid == sid );
-			if ( reopenldap_mode_idkfa() )
+			if ( reopenldap_mode_check() )
 				LDAP_BUG();
 			break;
 		}

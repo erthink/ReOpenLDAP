@@ -512,7 +512,7 @@ deref_op_search( Operation *op, SlapReply *rs )
 		sc->sc_private = (void *)dc;
 
 		sc->sc_next = op->o_callback->sc_next;
-                op->o_callback->sc_next = sc;
+		op->o_callback->sc_next = sc;
 	}
 
 	return SLAP_CB_CONTINUE;

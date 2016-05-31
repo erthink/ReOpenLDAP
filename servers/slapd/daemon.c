@@ -45,6 +45,12 @@
 #include <poll.h>
 #endif
 
+/* LY: needed by config_keepalive() */
+#include "config.h"
+
+/* LY: for ldap_pvt_tcpkeepalive() from libldap */
+#include "../../../libraries/libldap/ldap-int.h"
+
 #if defined(HAVE_SYS_EPOLL_H) && defined(HAVE_EPOLL)
 # include <sys/epoll.h>
 #elif defined(SLAP_X_DEVPOLL) && defined(HAVE_SYS_DEVPOLL_H) && defined(HAVE_DEVPOLL)
@@ -76,6 +82,10 @@ slap_time_t starttime;
 ber_socket_t dtblsize;
 slap_ssf_t local_ssf = LDAP_PVT_SASL_LOCAL_SSF;
 struct runqueue_s slapd_rq;
+
+struct {
+	int idle, probes, interval;
+} slapd_tcpkeepalive = {-1, -1, -1};
 
 #ifndef SLAPD_MAX_DAEMON_THREADS
 #define SLAPD_MAX_DAEMON_THREADS	16
@@ -326,6 +336,7 @@ static slap_daemon_st slap_daemon[SLAPD_MAX_DAEMON_THREADS];
 
 # define SLAP_EVENT_IS_READ(i)		SLAP_EPOLL_EVENT_CHK((i), EPOLLIN)
 # define SLAP_EVENT_IS_WRITE(i)		SLAP_EPOLL_EVENT_CHK((i), EPOLLOUT)
+# define SLAP_EVENT_IS_ERROR(i)		SLAP_EPOLL_EVENT_CHK((i), (EPOLLERR | EPOLLHUP))
 # define SLAP_EVENT_IS_LISTENER(t,i)	SLAP_EPOLL_EV_LISTENER(t,revents[(i)].data.ptr)
 # define SLAP_EVENT_LISTENER(t,i)		((Listener *)(revents[(i)].data.ptr))
 
@@ -386,6 +397,7 @@ static slap_daemon_st slap_daemon[SLAPD_MAX_DAEMON_THREADS];
 
 # define SLAP_SOCK_IS_READ(t,s)		SLAP_SOCK_IS_SET(t,(s), POLLIN)
 # define SLAP_SOCK_IS_WRITE(t,s)		SLAP_SOCK_IS_SET(t,(s), POLLOUT)
+# define SLAP_SOCK_IS_ERROR(t,s)		SLAP_SOCK_IS_SET(t,(s), (POLLERR | POLLHUP))
 
 /* as far as I understand, any time we need to communicate with the kernel
  * about the number and/or properties of a file descriptor we need it to
@@ -492,6 +504,8 @@ static slap_daemon_st slap_daemon[SLAPD_MAX_DAEMON_THREADS];
 
 # define SLAP_EVENT_IS_READ(i)		SLAP_DEVPOLL_EVENT_CHK((i), POLLIN)
 # define SLAP_EVENT_IS_WRITE(i)		SLAP_DEVPOLL_EVENT_CHK((i), POLLOUT)
+# define SLAP_EVENT_IS_ERROR(i)		SLAP_DEVPOLL_EVENT_CHK((i), (POLLERR | POLLHUP))
+
 # define SLAP_EVENT_IS_LISTENER(t,i)	SLAP_DEVPOLL_EV_LISTENER(SLAP_DEVPOLL_SOCK_LX(SLAP_EVENT_FD(t,(i))))
 # define SLAP_EVENT_LISTENER(t,i)		SLAP_DEVPOLL_SOCK_LX(SLAP_EVENT_FD(t,(i)))
 
@@ -1811,11 +1825,19 @@ slapd_daemon_destroy( void )
 			if ( wake_sds[i][1] != INVALID_SOCKET &&
 				SLAP_FD2SOCK( wake_sds[i][1] ) != SLAP_FD2SOCK( wake_sds[i][0] ))
 #endif /* HAVE_WINSOCK */
+			{
+				Debug( LDAP_DEBUG_CONNS, "daemon: closing %d, fd %d\n",
+					wake_sds[i][1], SLAP_FD2SOCK(wake_sds[i][1]) );
 				tcp_close( SLAP_FD2SOCK(wake_sds[i][1]) );
+			}
 #ifdef HAVE_WINSOCK
 			if ( wake_sds[i][0] != INVALID_SOCKET )
 #endif /* HAVE_WINSOCK */
+			{
+				Debug( LDAP_DEBUG_CONNS, "daemon: closing %d, fd %d\n",
+					wake_sds[i][0], SLAP_FD2SOCK(wake_sds[i][0]) );
 				tcp_close( SLAP_FD2SOCK(wake_sds[i][0]) );
+			}
 			ldap_pvt_thread_mutex_destroy( &slap_daemon[i].sd_mutex );
 			SLAP_SOCK_DESTROY(i);
 		}
@@ -1971,29 +1993,24 @@ slap_listener(
 	ldap_pvt_thread_mutex_unlock( &slap_daemon[tid].sd_mutex );
 #endif /* LDAP_DEBUG */
 
-#if defined( SO_KEEPALIVE ) || defined( TCP_NODELAY )
 #ifdef LDAP_PF_LOCAL
 	/* for IPv4 and IPv6 sockets only */
 	if ( from.sa_addr.sa_family != AF_LOCAL )
 #endif /* LDAP_PF_LOCAL */
 	{
-		int rc;
-		int tmp;
-#ifdef SO_KEEPALIVE
-		/* enable keep alives */
-		tmp = 1;
-		rc = setsockopt( s, SOL_SOCKET, SO_KEEPALIVE,
-			(char *) &tmp, sizeof(tmp) );
-		if ( rc == AC_SOCKET_ERROR ) {
+		int rc = ldap_pvt_tcpkeepalive( sfd,
+			slapd_tcpkeepalive.idle,
+			slapd_tcpkeepalive.probes,
+			slapd_tcpkeepalive.interval );
+		if ( rc ) {
 			int err = sock_errno();
 			Debug( LDAP_DEBUG_ANY,
-				"slapd(%ld): setsockopt(SO_KEEPALIVE) failed "
+				"slapd(%ld): tcp-keepalive setup failed "
 				"errno=%d (%s)\n", (long) sfd, err, sock_errstr(err) );
 		}
-#endif /* SO_KEEPALIVE */
 #ifdef TCP_NODELAY
 		/* enable no delay */
-		tmp = 1;
+		int tmp = 1;
 		rc = setsockopt( s, IPPROTO_TCP, TCP_NODELAY,
 			(char *)&tmp, sizeof(tmp) );
 		if ( rc == AC_SOCKET_ERROR ) {
@@ -2004,7 +2021,6 @@ slap_listener(
 		}
 #endif /* TCP_NODELAY */
 	}
-#endif /* SO_KEEPALIVE || TCP_NODELAY */
 
 	Debug( LDAP_DEBUG_CONNS,
 		"daemon: listen=%ld, new connection on %ld\n",
@@ -2474,7 +2490,7 @@ loop:
 					be->be_restrictops |= SLAP_RESTRICT_OP_WRITES;
 				}
 				connections_shutdown( 1 );
-				if (reopenldap_mode_iddqd() && ! global_gentlehup) {
+				if (reopenldap_mode_righteous() && ! global_gentlehup) {
 					if (! global_idletimeout)
 						global_idletimeout = 5;
 					if (! global_writetimeout)
@@ -2811,8 +2827,7 @@ loop:
 #endif /* LDAP_DEBUG */
 
 		for ( i = 0; i < ns; i++ ) {
-			int rc = 1, fd, w = 0;
-			int r ALLOW_UNUSED = 0;
+			int rc = 1, fd, w = 0, r = 0;
 
 			if ( SLAP_EVENT_IS_LISTENER( tid, i ) ) {
 				rc = slap_listener_activate( SLAP_EVENT_LISTENER( tid, i ) );
@@ -2847,9 +2862,8 @@ loop:
 					 * connection_write() must valid the stream is still
 					 * active.
 					 */
-					if ( connection_write( fd ) < 0 ) {
-						continue;
-					}
+					if ( connection_write( fd ) < 0 )
+						w = -2;
 				}
 				/* If event is a read */
 				if ( SLAP_EVENT_IS_READ( i )) {
@@ -2860,16 +2874,25 @@ loop:
 
 					SLAP_EVENT_CLR_READ( i );
 					connection_read_activate( fd );
-				} else if ( !w ) {
-#ifdef HAVE_EPOLL
-					/* Don't keep reporting the hangup
-					 */
-					ldap_pvt_thread_mutex_lock( &slap_daemon[tid].sd_mutex );
-					if ( SLAP_SOCK_IS_ACTIVE( tid, fd )) {
-						SLAP_EPOLL_SOCK_SET( tid, fd, EPOLLET );
-					}
-					ldap_pvt_thread_mutex_unlock( &slap_daemon[tid].sd_mutex );
+				}
+				if ( r + w < 0
+#ifdef SLAP_EVENT_IS_ERROR
+						|| SLAP_EVENT_IS_ERROR( fd )
 #endif
+					) {
+					Debug( LDAP_DEBUG_CONNS,
+						"daemon: socket troube on %d\n",
+						fd );
+					if (connections_socket_troube(fd) < 0) {
+#ifdef HAVE_EPOLL
+						/* Don't keep reporting the hangup */
+						ldap_pvt_thread_mutex_lock( &slap_daemon[tid].sd_mutex );
+						if ( SLAP_SOCK_IS_ACTIVE( tid, fd ))
+							SLAP_EPOLL_SOCK_SET( tid, fd, EPOLLET );
+						ldap_pvt_thread_mutex_unlock( &slap_daemon[tid].sd_mutex );
+#endif/* HAVE_EPOLL */
+					}
+					continue;
 				}
 			}
 		}
@@ -3075,7 +3098,7 @@ slap_sig_shutdown( int sig )
 		/* empty */;
 	} else
 #endif /* HAVE_NT_SERVICE_MANAGER && SIGBREAK */
-	if ( ( reopenldap_mode_iddqd() ||
+	if ( ( reopenldap_mode_righteous() ||
 #ifdef SIGHUP
 			sig == SIGHUP
 #endif /* SIGHUP */
@@ -3164,21 +3187,6 @@ slap_wake_listener()
 int
 slapd_wait_writer( ber_socket_t sd )
 {
-#ifdef HAVE_WINSOCK
-	fd_set writefds;
-	struct timeval tv, *tvp;
-
-	FD_ZERO( &writefds );
-	FD_SET( slapd_ws_sockets[sd], &writefds );
-	if ( global_writetimeout ) {
-		tv.tv_sec = global_writetimeout;
-		tv.tv_usec = 0;
-		tvp = &tv;
-	} else {
-		tvp = NULL;
-	}
-	return select( 0, NULL, &writefds, NULL, tvp );
-#else
 	struct pollfd fds;
 	int timeout = global_writetimeout ? global_writetimeout * 1000 : -1;
 
@@ -3186,5 +3194,90 @@ slapd_wait_writer( ber_socket_t sd )
 	fds.events = POLLOUT;
 
 	return poll( &fds, 1, timeout );
-#endif
+}
+
+int
+config_keepalive(ConfigArgs *c)
+{
+	if (c->op == SLAP_CONFIG_EMIT) {
+		if (slapd_tcpkeepalive.idle < 0
+				&& slapd_tcpkeepalive.probes < 0
+				&& slapd_tcpkeepalive.interval < 0) {
+			c->value_string = ch_strdup( "default" );
+		} else if (slapd_tcpkeepalive.idle == 0
+				   && slapd_tcpkeepalive.probes == 0
+				   && slapd_tcpkeepalive.interval == 0) {
+			c->value_string = ch_strdup( "disable" );
+		} else {
+			char buf[64], *s = buf;
+			if (slapd_tcpkeepalive.idle >= 0)
+				s += snprintf(s, buf + sizeof(buf) - s, "%d",
+							  slapd_tcpkeepalive.idle);
+			*s++ = ':';
+			if (slapd_tcpkeepalive.probes >= 0)
+				s += snprintf(s, buf + sizeof(buf) - s, "%d",
+							  slapd_tcpkeepalive.probes);
+			*s++ = ':';
+			if (slapd_tcpkeepalive.interval >= 0)
+				s += snprintf(s, buf + sizeof(buf) - s, "%d",
+							  slapd_tcpkeepalive.interval);
+			*s = '\0';
+		}
+		return 0;
+	} else if ( c->op == LDAP_MOD_DELETE
+			|| strcasecmp(c->value_string, "default") == 0) {
+		slapd_tcpkeepalive.idle = -1;
+		slapd_tcpkeepalive.probes = -1;
+		slapd_tcpkeepalive.interval = -1;
+		return 0;
+	} else if (strcasecmp(c->value_string, "disable") == 0) {
+		slapd_tcpkeepalive.idle = 0;
+		slapd_tcpkeepalive.probes = 0;
+		slapd_tcpkeepalive.interval = 0;
+		return 0;
+	} else {
+		int idle, probes, interval;
+		char *s = c->value_string;
+
+		idle = -1;
+		if (*s) {
+			if (*s != ':') {
+				idle = strtoul(s, &s, 10);
+				if (idle < 0)
+					goto bailout;
+			}
+			if (*s == ':')
+				s++;
+		}
+
+		probes = -1;
+		if (*s) {
+			if (*s != ':') {
+				probes = strtoul(s, &s, 10);
+				if (probes < 0)
+					goto bailout;
+			}
+			if (*s == ':')
+				s++;
+		}
+
+		interval = -1;
+		if (*s) {
+			interval = strtoul(s, &s, 10);
+			if (interval < 0)
+				goto bailout;
+		}
+
+		if (*s == '\0') {
+			slapd_tcpkeepalive.idle = idle;
+			slapd_tcpkeepalive.probes = probes;
+			slapd_tcpkeepalive.interval = interval;
+			return 0;
+		}
+
+bailout:
+		snprintf( c->cr_msg, sizeof( c->cr_msg ), "<%s> invalid specification", c->argv[0] );
+		Debug(LDAP_DEBUG_ANY, "%s: %s '%s'\n", c->log, c->cr_msg, c->value_string);
+		return 1;
+	}
 }
