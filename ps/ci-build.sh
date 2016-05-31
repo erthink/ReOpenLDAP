@@ -268,6 +268,8 @@ if [ $flag_clean -ne 0 ]; then
 	git submodule foreach --recursive git clean -x -f -d || failure "cleanup-submodules"
 fi
 
+LIBMDBX_DIR=$([ -d libraries/liblmdb ] && echo "libraries/liblmdb" || echo "libraries/libmdbx")
+
 if [ ! -s Makefile ]; then
 	# autoscan && libtoolize --force --automake --copy && aclocal -I build && autoheader && autoconf && automake --add-missing --copy
 	./configure \
@@ -278,7 +280,7 @@ if [ ! -s Makefile ]; then
 			$(if [ $flag_wt -eq 0 ]; then echo "--disable-wt"; else echo "--enable-wt"; fi) \
 		|| failure "configure"
 
-	if [ -e libraries/liblmdb/mdbx.h ]; then
+	if [ -e ${LIBMDBX_DIR}/mdbx.h ]; then
 		find ./ -name Makefile | xargs -r sed -i 's/-Wall -ggdb3/-Wall -Werror -ggdb3/g' || failure "prepare"
 	else
 		find ./ -name Makefile | grep -v liblmdb | xargs -r sed -i 's/-Wall -ggdb3/-Wall -Werror -ggdb3/g' || failure "prepare"
@@ -290,15 +292,15 @@ if [ ! -s Makefile ]; then
 	fi
 fi
 
-if [ -e libraries/liblmdb/mdbx.h ]; then
+if [ -e ${LIBMDBX_DIR}/mdbx.h ]; then
 	CFLAGS="-Werror $CFLAGS"
 	CXXFLAGS="-Werror $CXXFLAGS"
 fi
 export CFLAGS CXXFLAGS
 
 make -j $ncpu -l $lalim \
-	&& make -j $ncpu -l $lalim -C libraries/liblmdb \
-		all $(find libraries/liblmdb -name 'mtest*.c' | xargs -n 1 -r -I '{}' basename '{}' .c) || failure "build"
+	&& make -j $ncpu -l $lalim -C ${LIBMDBX_DIR} \
+		all $(find ${LIBMDBX_DIR} -name 'mtest*.c' | xargs -n 1 -r -I '{}' basename '{}' .c) || failure "build"
 
 for m in $(find contrib/slapd-modules -name Makefile -printf '%h\n'); do
 	if [ -e $m/BROKEN ]; then
