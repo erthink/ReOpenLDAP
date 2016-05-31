@@ -23934,7 +23934,7 @@ $as_echo "$ac_cv_lib_ltdl_lt_dlinit" >&6; }
 if test "x$ac_cv_lib_ltdl_lt_dlinit" = x""yes; then :
 
 		SLAPI_LIBS=-lltdl
-		LIBSLAPI=slapi/libslapi.la
+		LIBSLAPI=slapi/libreslapi.la
 
 $as_echo "#define HAVE_LIBLTDL 1" >>confdefs.h
 
@@ -24640,7 +24640,7 @@ if test "$ol_enable_slapi" != no ; then
 $as_echo "#define ENABLE_SLAPI 1" >>confdefs.h
 
 	BUILD_SLAPI=yes
-	SLAPD_SLAPI_DEPEND=libslapi.a
+	SLAPD_SLAPI_DEPEND=libreslapi.a
 fi
 
 

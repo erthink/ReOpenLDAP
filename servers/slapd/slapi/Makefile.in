@@ -14,7 +14,7 @@
 ## top-level directory of the distribution or, alternatively, at
 ## <http://www.OpenLDAP.org/license.html>.
 
-LIBRARY = libslapi.la
+LIBRARY = libreslapi.la
 
 #all-common: $(LIBRARY) $(PROGRAMS)
 #	@touch plugin.c slapi_pblock.c slapi_utils.c slapi_ops.c slapi_ext.c

@@ -18,6 +18,8 @@
 
 MKDEPFLAG = -l
 
+LIB_DEFS += -DSHARED_LIBRARY
+
 .SUFFIXES: .c .o .lo
 
 .c.lo:
