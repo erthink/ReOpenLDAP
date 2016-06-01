@@ -2390,12 +2390,6 @@ fi
 
 dnl ----------------------------------------------------------------
 dnl Checks for library functions.
-AC_FUNC_MEMCMP
-
-if test $ac_cv_func_memcmp_working = no ; then
-	AC_DEFINE(NEED_MEMCMP_REPLACEMENT,1,
-		[define if memcmp is not 8-bit clean or is otherwise broken])
-fi
 
 AC_FUNC_STRFTIME
 
@@ -2446,7 +2440,6 @@ AC_CHECK_FUNCS(			\
 	lockf			\
 	memcpy			\
 	memmove			\
-	memrchr			\
 	mkstemp			\
 	mktemp			\
 	pipe			\
@@ -2460,7 +2453,6 @@ AC_CHECK_FUNCS(			\
 	setuid			\
 	seteuid			\
 	signal			\
-	strdup			\
 	strpbrk			\
 	strrchr			\
 	strsep			\

@@ -8,13 +8,6 @@ own use and may have different redistribution restrictions than typical
 for OpenLDAP Software.
 
 Current contributions:
-	ldapc++
-		LDAP C++ API
-		Contributed by SuSE Gmbh.
-
-	ldaptcl
-		LDAP TCL API
-		Contributed by NeoSoft
 
 	slapd-modules
 		Native-API modules

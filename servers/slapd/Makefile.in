@@ -366,14 +366,8 @@ veryclean-local-srv: FORCE
 		fi; \
 	done
 
-install-dbc-maybe: install-dbc-@BUILD_BDB@ install-dbc-@BUILD_HDB@
-
-install-dbc-yes:	install-db-config
-install-dbc-mod:	install-db-config
-install-dbc-no:
-
 install-local-srv: install-slapd install-tools \
-	install-conf install-dbc-maybe install-schema install-tools
+	install-conf install-schema install-tools
 
 install-slapd: FORCE
 	-$(MKDIR) $(DESTDIR)$(libexecdir)
@@ -442,14 +436,6 @@ install-conf: FORCE
 	else \
 		echo "PRESERVING EXISTING CONFIGURATION FILE $(DESTDIR)$(sysconfdir)/slapd.ldif" ; \
 	fi
-
-install-db-config: FORCE
-	@-$(MKDIR) $(DESTDIR)$(localstatedir) $(DESTDIR)$(sysconfdir)
-	@-$(INSTALL) -m 700 -d $(DESTDIR)$(localstatedir)/openldap-data
-	$(INSTALL) $(INSTALLFLAGS) -m 600 $(srcdir)/DB_CONFIG \
-		$(DESTDIR)$(localstatedir)/openldap-data/DB_CONFIG.example
-	$(INSTALL) $(INSTALLFLAGS) -m 600 $(srcdir)/DB_CONFIG \
-		$(DESTDIR)$(sysconfdir)/DB_CONFIG.example
 
 install-tools: FORCE
 	-$(MKDIR) $(DESTDIR)$(sbindir)
