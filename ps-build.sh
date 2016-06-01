@@ -74,6 +74,8 @@ step_finish "cleanup"
 echo "======================================================================="
 step_begin "configure"
 
+LIBMDBX_DIR=$([ -d libraries/liblmdb ] && echo "libraries/liblmdb" || echo "libraries/libmdbx")
+
 if [ -s Makefile ]; then
 	notice "Makefile present, skip configure"
 else
@@ -106,7 +108,7 @@ else
 	find ./ -name Makefile -type f | xargs sed -e "s/STRIP = -s/STRIP =/g;s/\(VERSION= .\+\)/\1${BUILD_ID}/g" -i \
 		|| failure "fixup build-id"
 
-	if [ -e libraries/liblmdb/mdbx.h ]; then
+	if [ -e ${LIBMDBX_DIR}/mdbx.h ]; then
 		find ./ -name Makefile | xargs -r sed -i 's/-Wall -g/-Wall -Werror -g/g' \
 			|| failure "fix-1"
 	else
@@ -114,7 +116,7 @@ else
 			|| failure "fix-2"
 	fi
 
-	sed -e 's/ -lrt/ -Wl,--no-as-needed,-lrt/g' -i libraries/liblmdb/Makefile
+	sed -e 's/ -lrt/ -Wl,--no-as-needed,-lrt/g' -i ${LIBMDBX_DIR}/Makefile
 
 	if [ -z "${TEAMCITY_PROCESS_FLOW_ID}" ]; then
 		make depend \
@@ -147,7 +149,7 @@ echo "======================================================================="
 step_begin "build mdbx-tools"
 
 mkdir -p ${PREFIX}/bin && \
-(cd libraries/liblmdb && make -k all && \
+(cd ${LIBMDBX_DIR} && make -k all && \
 	(cp mdbx_chk mdbx_copy mdbx_stat -t ${PREFIX}/bin/ \
 	|| cp mdb_chk mdb_copy mdb_stat -t ${PREFIX}/bin/) \
 ) \

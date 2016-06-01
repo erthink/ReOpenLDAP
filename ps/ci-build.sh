@@ -23,8 +23,23 @@ flag_ndb=1
 flag_valgrind=0
 flag_asan=0
 flag_tsan=0
+flag_hidden=0
+flag_dynamic=0
 for arg in "$@"; do
 	case "$arg" in
+	--hidden)
+		flag_hidden=1
+		;;
+	--no-hidden)
+		flag_hidden=0
+		;;
+	--dynamic)
+		flag_dynamic=1
+		flag_hidden=1
+		;;
+	--no-dynamic)
+		flag_dynamic=0
+		;;
 	--debug)
 		flag_debug=1
 		;;
@@ -82,7 +97,7 @@ for arg in "$@"; do
 	--without-ndb)
 		flag_ndb=0
 		;;
-	--memleak)
+	--valg)
 		flag_valgrind=1
 		flag_asan=0
 		flag_tsan=0
@@ -116,7 +131,15 @@ done
 
 #======================================================================
 
-BACKENDS="--enable-backends"
+if [ $flag_dynamic -ne 0 ]; then
+	MOD=mod
+	DYNAMIC="--enable-dynamic --enable-shared --enable-modules"
+else
+	MOD=yes
+	DYNAMIC="--disable-shared"
+fi
+
+BACKENDS="--enable-backends=${MOD}"
 #    --enable-bdb	  enable Berkeley DB backend no|yes|mod [yes]
 #    --enable-dnssrv	  enable dnssrv backend no|yes|mod [no]
 #    --enable-hdb	  enable Hierarchical DB backend no|yes|mod [yes]
@@ -148,8 +171,8 @@ if [ $flag_ndb -ne 0 ]; then
 			echo "MYSQL_NDB_API	= ${MYSQL_NDB_API}"
 			MYSQL_NDB_RPATH="$(${MYSQL_CONFIG} --libs_r | sed -n 's|-L\(/\S\+\)\s.*$|\1|p')"
 			echo "MYSQL_NDB_RPATH	= ${MYSQL_NDB_RPATH}"
-			LDFLAGS="-Xlinker -rpath=${MYSQL_NDB_RPATH}"
-			NBD="--enable-ndb"
+			LDFLAGS="-Wl,-rpath,${MYSQL_NDB_RPATH}"
+			NBD="--enable-ndb=${MOD}"
 		fi
 	fi
 fi
@@ -159,6 +182,9 @@ IODBC=$([ -d /usr/include/iodbc ] && echo "-I/usr/include/iodbc")
 #======================================================================
 
 CFLAGS="-Wall -ggdb3 -gdwarf-4"
+if [ $flag_hidden -ne 0 ]; then
+	CFLAGS+=" -fvisibility=hidden"
+fi
 
 if [ -z "$CC" ]; then
 	if [ $flag_clang -ne 0 ]; then
@@ -264,21 +290,29 @@ echo "TOOLCHAIN	= $CC $AR $NM $RANLIB"
 #======================================================================
 
 if [ $flag_clean -ne 0 ]; then
-	git clean -x -f -d -e ./ps -e .ccache/ -e tests/testrun/ -e times.log || failure "cleanup"
-	git submodule foreach --recursive git clean -x -f -d || failure "cleanup-submodules"
+	git clean -x -f -d -e ./ps -e .ccache/ -e tests/testrun/ -e times.log >/dev/null || failure "cleanup"
+	git submodule foreach --recursive git clean -x -f -d >/dev/null || failure "cleanup-submodules"
 fi
+
+LIBMDBX_DIR=$([ -d libraries/liblmdb ] && echo "libraries/liblmdb" || echo "libraries/libmdbx")
+
+configure() {
+	echo "CONFIGURE	= $*"
+	./configure "$@"
+}
 
 if [ ! -s Makefile ]; then
 	# autoscan && libtoolize --force --automake --copy && aclocal -I build && autoheader && autoconf && automake --add-missing --copy
-	./configure \
-			--with-tls --enable-debug $BACKENDS --enable-overlays $NBD \
+	configure \
+			--prefix=$(pwd)/@install_here ${DYNAMIC} \
+			--with-tls --enable-debug $BACKENDS --enable-overlays=${MOD} $NBD \
 			--enable-rewrite --enable-dynacl --enable-aci --enable-slapi \
-			$(if [ $flag_mdb -eq 0 ]; then echo "--disable-mdb"; else echo "--enable-mdb"; fi) \
-			$(if [ $flag_bdb -eq 0 ]; then echo "--disable-bdb --disable-hdb"; else echo "--enable-bdb --enable-hdb"; fi) \
-			$(if [ $flag_wt -eq 0 ]; then echo "--disable-wt"; else echo "--enable-wt"; fi) \
+			$(if [ $flag_mdb -eq 0 ]; then echo "--disable-mdb"; else echo "--enable-mdb=${MOD}"; fi) \
+			$(if [ $flag_bdb -eq 0 ]; then echo "--disable-bdb --disable-hdb"; else echo "--enable-bdb=${MOD} --enable-hdb=${MOD}"; fi) \
+			$(if [ $flag_wt -eq 0 ]; then echo "--disable-wt"; else echo "--enable-wt=${MOD}"; fi) \
 		|| failure "configure"
 
-	if [ -e libraries/liblmdb/mdbx.h ]; then
+	if [ -e ${LIBMDBX_DIR}/mdbx.h ]; then
 		find ./ -name Makefile | xargs -r sed -i 's/-Wall -ggdb3/-Wall -Werror -ggdb3/g' || failure "prepare"
 	else
 		find ./ -name Makefile | grep -v liblmdb | xargs -r sed -i 's/-Wall -ggdb3/-Wall -Werror -ggdb3/g' || failure "prepare"
@@ -290,15 +324,15 @@ if [ ! -s Makefile ]; then
 	fi
 fi
 
-if [ -e libraries/liblmdb/mdbx.h ]; then
+if [ -e ${LIBMDBX_DIR}/mdbx.h ]; then
 	CFLAGS="-Werror $CFLAGS"
 	CXXFLAGS="-Werror $CXXFLAGS"
 fi
 export CFLAGS CXXFLAGS
 
 make -j $ncpu -l $lalim \
-	&& make -j $ncpu -l $lalim -C libraries/liblmdb \
-		all $(find libraries/liblmdb -name 'mtest*.c' | xargs -n 1 -r -I '{}' basename '{}' .c) || failure "build"
+	&& make -j $ncpu -l $lalim -C ${LIBMDBX_DIR} \
+		all $(find ${LIBMDBX_DIR} -name 'mtest*.c' | xargs -n 1 -r -I '{}' basename '{}' .c) || failure "build"
 
 for m in $(find contrib/slapd-modules -name Makefile -printf '%h\n'); do
 	if [ -e $m/BROKEN ]; then
@@ -309,5 +343,7 @@ for m in $(find contrib/slapd-modules -name Makefile -printf '%h\n'); do
 		make -j $ncpu -l $lalim -C $m || failure "contrib-module '$m' is BROKEN"
 	fi
 done
+
+make install
 
 echo "DONE"
