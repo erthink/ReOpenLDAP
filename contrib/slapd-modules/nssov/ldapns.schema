@@ -1,4 +1,4 @@
-# $OpenLDAP$
+# $ReOpenLDAP$
 # $Id: ldapns.schema,v 1.3 2009-10-01 19:17:20 tedcheng Exp $
 # LDAP Name Service Additional Schema
 # http://www.iana.org/assignments/gssapi-service-names

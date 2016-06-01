@@ -1,8 +1,26 @@
 /* Generic signal.h */
-/* $OpenLDAP$ */
-/* This work is part of OpenLDAP Software <http://www.openldap.org/>.
+/* $ReOpenLDAP$ */
+/* Copyright (c) 2015,2016 Leonid Yuriev <leo@yuriev.ru>.
+ * Copyright (c) 2015,2016 Peter-Service R&D LLC <http://billing.ru/>.
  *
- * Copyright 1998-2016 The OpenLDAP Foundation.
+ * This file is part of ReOpenLDAP.
+ *
+ * ReOpenLDAP is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation; either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * ReOpenLDAP is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * ---
+ *
+ * Copyright 1998-2014 The OpenLDAP Foundation.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -37,36 +55,8 @@ LDAP_LUTIL_F(lutil_sig_t) lutil_sigaction( int sig, lutil_sig_t func );
 #if !defined( LDAP_SIGUSR1 ) || !defined( LDAP_SIGUSR2 )
 #undef LDAP_SIGUSR1
 #undef LDAP_SIGUSR2
-
-#	if defined(WINNT) || defined(_WINNT) || defined(_WIN32)
-#		define LDAP_SIGUSR1	SIGILL
-#		define LDAP_SIGUSR2	SIGTERM
-
-#	elif !defined(HAVE_LINUX_THREADS)
-#		define LDAP_SIGUSR1	SIGUSR1
-#		define LDAP_SIGUSR2	SIGUSR2
-
-#	else
-		/*
-		 * Some versions of LinuxThreads unfortunately uses the only
-		 * two signals reserved for user applications.  This forces
-		 * OpenLDAP to use other signals reserved for other uses.
-		 */
-
-#		if defined( SIGSTKFLT )
-#			define LDAP_SIGUSR1	SIGSTKFLT
-#		elif defined ( SIGSYS )
-#			define LDAP_SIGUSR1	SIGSYS
-#		endif
-
-#		if defined( SIGUNUSED )
-#			define LDAP_SIGUSR2	SIGUNUSED
-#		elif defined ( SIGINFO )
-#			define LDAP_SIGUSR2	SIGINFO
-#		elif defined ( SIGEMT )
-#			define LDAP_SIGUSR2	SIGEMT
-#		endif
-#	endif
+#define LDAP_SIGUSR1	SIGUSR1
+#define LDAP_SIGUSR2	SIGUSR2
 #endif
 
 #ifndef LDAP_SIGCHLD

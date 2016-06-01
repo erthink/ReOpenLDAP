@@ -1,7 +1,25 @@
-/* $OpenLDAP$ */
-/* This work is part of OpenLDAP Software <http://www.openldap.org/>.
+/* $ReOpenLDAP$ */
+/* Copyright (c) 2015,2016 Leonid Yuriev <leo@yuriev.ru>.
+ * Copyright (c) 2015,2016 Peter-Service R&D LLC <http://billing.ru/>.
  *
- * Copyright 2002-2016 The OpenLDAP Foundation.
+ * This file is part of ReOpenLDAP.
+ *
+ * ReOpenLDAP is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation; either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * ReOpenLDAP is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * ---
+ *
+ * Copyright 2002-2014 The OpenLDAP Foundation.
  * Portions Copyright 1997,2002-2003 IBM Corporation.
  * All rights reserved.
  *
@@ -1949,7 +1967,6 @@ unsigned long
 slapi_timer_current_time( void )
 {
 	static int	first_time = 1;
-#if !defined (_WIN32)
 	struct timeval	now;
 	unsigned long	ret;
 
@@ -1969,21 +1986,6 @@ slapi_timer_current_time( void )
 	 * Ain't it better?
 	return (ldap_time_steady() - starttime) * 1000000;
 	 */
-#else /* _WIN32 */
-	LARGE_INTEGER now;
-
-	if ( first_time ) {
-		first_time = 0;
-		performance_counter_present = QueryPerformanceCounter( &base_time );
-		QueryPerformanceFrequency( &performance_freq );
-	}
-
-	if ( !performance_counter_present )
-	     return 0;
-
-	QueryPerformanceCounter( &now );
-	return (1000000*(now.QuadPart-base_time.QuadPart))/performance_freq.QuadPart;
-#endif /* _WIN32 */
 }
 
 /*
@@ -3470,4 +3472,3 @@ slapi_operation_is_flag_set(Slapi_Operation *op, unsigned long flag)
 #endif
 
 #endif /* LDAP_SLAPI */
-

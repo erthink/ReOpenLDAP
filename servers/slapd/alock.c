@@ -1,8 +1,26 @@
 /* alock.c - access lock library */
-/* $OpenLDAP$ */
-/* This work is part of OpenLDAP Software <http://www.openldap.org/>.
+/* $ReOpenLDAP$ */
+/* Copyright (c) 2015,2016 Leonid Yuriev <leo@yuriev.ru>.
+ * Copyright (c) 2015,2016 Peter-Service R&D LLC <http://billing.ru/>.
  *
- * Copyright 2005-2016 The OpenLDAP Foundation.
+ * This file is part of ReOpenLDAP.
+ *
+ * ReOpenLDAP is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation; either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * ReOpenLDAP is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * ---
+ *
+ * Copyright 2005-2014 The OpenLDAP Foundation.
  * Portions Copyright 2004-2005 Symas Corporation.
  * All rights reserved.
  *
@@ -38,12 +56,6 @@
 #endif
 #include <fcntl.h>
 
-#ifdef _WIN32
-#include <windows.h>
-#include <stdio.h>
-#include <io.h>
-#endif
-
 
 static int
 alock_grab_lock ( int fd, int slot )
@@ -64,14 +76,6 @@ alock_grab_lock ( int fd, int slot )
 	lock_info.l_len = (off_t) ALOCK_SLOT_SIZE;
 
 	res = fcntl (fd, F_SETLKW, &lock_info);
-#elif defined( _WIN32 )
-	OVERLAPPED ov;
-	HANDLE hh = _get_osfhandle ( fd );
-	ov.hEvent = 0;
-	ov.Offset = ALOCK_SLOT_SIZE*slot;
-	ov.OffsetHigh = 0;
-	res = LockFileEx( hh, LOCKFILE_EXCLUSIVE_LOCK, 0,
-		ALOCK_SLOT_SIZE, 0, &ov ) ? 0 : -1;
 #else
 #   error alock needs lockf, fcntl, or LockFile[Ex]
 #endif
@@ -103,11 +107,6 @@ alock_release_lock ( int fd, int slot )
 
 	res = fcntl (fd, F_SETLKW, &lock_info);
 	if (res == -1) return -1;
-#elif defined( _WIN32 )
-	HANDLE hh = _get_osfhandle ( fd );
-	if ( !UnlockFile ( hh, ALOCK_SLOT_SIZE*slot, 0,
-		ALOCK_SLOT_SIZE, 0 ))
-		return -1;
 #else
 #   error alock needs lockf, fcntl, or LockFile[Ex]
 #endif
@@ -133,27 +132,6 @@ alock_share_lock ( int fd, int slot )
 	lock_info.l_len = (off_t) ALOCK_SLOT_SIZE;
 
 	res = fcntl (fd, F_SETLK, &lock_info);
-#elif defined( _WIN32 )
-	HANDLE hh = _get_osfhandle ( fd );
-	if (hh == INVALID_HANDLE_VALUE)
-		res = -1;
-	else {
-		OVERLAPPED ov;
-		/* Windows locks are mandatory, not advisory.
-		 * We must downgrade the lock to allow future
-		 * callers to read the slot data.
-		 *
-		 * First acquire a shared lock. Unlock will
-		 * release the existing exclusive lock.
-		 */
-		ov.hEvent = 0;
-		ov.Offset = ALOCK_SLOT_SIZE*slot;
-		ov.OffsetHigh = 0;
-		if (! LockFileEx (hh, 0, 0, ALOCK_SLOT_SIZE, 0, &ov))
-			res = -1;
-		if (! UnlockFile (hh, ALOCK_SLOT_SIZE*slot, 0, ALOCK_SLOT_SIZE, 0))
-			res = -1;
-	}
 #else
 #   error alock needs lockf, fcntl, or LockFile[Ex]
 #endif
@@ -191,21 +169,6 @@ alock_test_lock ( int fd, int slot )
 	if (res == -1) return -1;
 
 	if (lock_info.l_type != F_UNLCK) return ALOCK_LOCKED;
-#elif defined( _WIN32 )
-	OVERLAPPED ov;
-	HANDLE hh = _get_osfhandle ( fd );
-	ov.hEvent = 0;
-	ov.Offset = ALOCK_SLOT_SIZE*slot;
-	ov.OffsetHigh = 0;
-	if( !LockFileEx( hh,
-		LOCKFILE_EXCLUSIVE_LOCK|LOCKFILE_FAIL_IMMEDIATELY, 0,
-		ALOCK_SLOT_SIZE, 0, &ov )) {
-		int err = GetLastError();
-		if ( err == ERROR_LOCK_VIOLATION )
-			return ALOCK_LOCKED;
-		else
-			return -1;
-	}
 #else
 #   error alock needs lockf, fcntl, or LockFile
 #endif
@@ -408,15 +371,7 @@ alock_open ( alock_info_t * info,
 	}
 	ptr = lutil_strcopy(filename, envdir);
 	lutil_strcopy(ptr, "/alock");
-#ifdef _WIN32
-	{ HANDLE handle = CreateFile (filename, GENERIC_READ|GENERIC_WRITE,
-		FILE_SHARE_READ|FILE_SHARE_WRITE, NULL, OPEN_ALWAYS,
-		FILE_ATTRIBUTE_NORMAL, NULL);
-		info->al_fd = _open_osfhandle (handle, 0);
-	}
-#else
 	info->al_fd = open (filename, O_CREAT|O_RDWR, 0666);
-#endif
 	ber_memfree (filename);
 	if (info->al_fd < 0) {
 		ber_memfree (slot_data.al_appname);

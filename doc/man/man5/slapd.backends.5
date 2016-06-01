@@ -1,7 +1,27 @@
-.TH SLAPD.BACKENDS 5 "RELEASEDATE" "OpenLDAP LDVERSION"
-.\" Copyright 2006-2016 The OpenLDAP Foundation All Rights Reserved.
+.TH SLAPD.BACKENDS 5 "RELEASEDATE" "ReOpenLDAP LDVERSION"
+.\" $ReOpenLDAP$
+.\" Copyright (c) 2015,2016 Leonid Yuriev <leo@yuriev.ru>.
+.\" Copyright (c) 2015,2016 Peter-Service R&D LLC <http://billing.ru/>.
+.\"
+.\" This file is part of ReOpenLDAP.
+.\"
+.\" ReOpenLDAP is free software; you can redistribute it and/or modify it under
+.\" the terms of the GNU Affero General Public License as published by
+.\" the Free Software Foundation; either version 3 of the License, or
+.\" (at your option) any later version.
+.\"
+.\" ReOpenLDAP is distributed in the hope that it will be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+.\" GNU Affero General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU Affero General Public License
+.\" along with this program.  If not, see <http://www.gnu.org/licenses/>.
+.\"
+.\" ---
+.\"
+.\" Copyright 2006-2014 The OpenLDAP Foundation All Rights Reserved.
 .\" Copying restrictions apply.  See COPYRIGHT/LICENSE.
-.\" $OpenLDAP$
 .SH NAME
 slapd.backends \- backends for slapd, the stand-alone LDAP daemon
 .SH DESCRIPTION
@@ -18,6 +38,19 @@ Configuration options for each backend are documented separately in the
 corresponding
 .BR slapd\-<backend> (5)
 manual pages.
+.TP
+.B mdb
+This is the recommended primary backend, superseding
+.BR hdb
+and
+.BR bdb
+.
+This backend uses ReOpenLDAP's own MDBX transactional database
+library. It is extremely compact and extremely efficient, delivering
+much higher performance than the Berkeley DB backends while using
+significantly less memory.  Also, unlike Berkeley DB, MDB is crash proof,
+and requires no special tuning or maintenance.
+This backend also supports subtree renames.
 .TP
 .B bdb
 This was the recommended primary backend through OpenLDAP 2.3, but it has
@@ -63,16 +96,6 @@ This database uses the filesystem to build the tree structure
 of the database, using plain ascii files to store data.
 Its usage should be limited to very simple databases, where performance
 is not a requirement. This backend also supports subtree renames.
-.TP
-.B mdb
-This will soon be the recommended primary backend, superseding
-.BR hdb .
-This backend uses OpenLDAP's own MDB transactional database
-library. It is extremely compact and extremely efficient, delivering
-much higher performance than the Berkeley DB backends while using
-significantly less memory.  Also, unlike Berkeley DB, MDB is crash proof,
-and requires no special tuning or maintenance.
-This backend also supports subtree renames.
 .TP
 .B meta
 This backend performs basic LDAP proxying with respect to a set of

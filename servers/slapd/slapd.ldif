@@ -90,6 +90,6 @@ olcRootPW: secret
 # The database directory MUST exist prior to running slapd AND
 # should only be accessible by the slapd and slap tools.
 # Mode 700 recommended.
-olcDbDirectory:	%LOCALSTATEDIR%/openldap-data
+olcDbDirectory:	%LOCALSTATEDIR%/reopenldap-data
 # Indices to maintain
 olcDbIndex: objectClass eq

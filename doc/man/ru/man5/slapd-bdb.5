@@ -1,18 +1,38 @@
-.TH SLAPD-BDB 5 "RELEASEDATE" "OpenLDAP LDVERSION"
-.\" Copyright 1998-2015 The OpenLDAP Foundation All Rights Reserved.
+.TH SLAPD-BDB 5 "RELEASEDATE" "ReOpenLDAP LDVERSION"
+.\" $ReOpenLDAP$
+.\" Copyright (c) 2015,2016 Leonid Yuriev <leo@yuriev.ru>.
+.\" Copyright (c) 2015,2016 Peter-Service R&D LLC <http://billing.ru/>.
+.\"
+.\" This file is part of ReOpenLDAP.
+.\"
+.\" ReOpenLDAP is free software; you can redistribute it and/or modify it under
+.\" the terms of the GNU Affero General Public License as published by
+.\" the Free Software Foundation; either version 3 of the License, or
+.\" (at your option) any later version.
+.\"
+.\" ReOpenLDAP is distributed in the hope that it will be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+.\" GNU Affero General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU Affero General Public License
+.\" along with this program.  If not, see <http://www.gnu.org/licenses/>.
+.\"
+.\" ---
+.\"
+.\" Copyright 1998-2014 The OpenLDAP Foundation All Rights Reserved.
 .\" Copying restrictions apply.  See COPYRIGHT/LICENSE.
-.\" $OpenLDAP$
 .SH НАЗВАНИЕ
-slapd\-bdb, slapd\-hdb \- механизмы манипуляции данными для slapd Berkeley DB.
+slapd\-bdb, slapd\-hdb \- устаревшие механизмы манипуляции данными для slapd Berkeley DB.
 .SH ОБЗОР
 .B ETCDIR/slapd.conf
 .SH ОПИСАНИЕ
 Механизм манипуляции данными для
 .BR slapd (8)
-\fBbdb\fP использует для хранения данных пакет Oracle Berkeley DB (BDB).
+\fBbdb\fP использует для хранения данных устаревший пакет Oracle Berkeley DB (BDB).
 Для ускорения доступа к данным он широко использует индексацию и кэширование.
 .LP
-Имейте ввиду, что механизм BDB является устаревшим, и в будущих выпусках OpenLDAP его поддержка
+Имейте ввиду, что механизм BDB является устаревшим, и в будущих выпусках ReOpenLDAP его поддержка
 будет прекращена. Вместо него следует использовать \fBmdb\fP.
 .LP
 \fBhdb\fP - это вариант механизма \fBbdb\fP, использующий иерархическую модель базы данных, поддерживающую
@@ -114,7 +134,7 @@ slapd\-bdb, slapd\-hdb \- механизмы манипуляции данным
 .BI directory \ <directory>
 Указывает директорию, где находятся BDB-файлы, содержащие эту базу данных и ассоциированные с ней
 индексы. Для каждой базы данных должна быть определена отдельная директория. По умолчанию -
-.BR LOCALSTATEDIR/openldap\-data .
+.BR LOCALSTATEDIR/reopenldap\-data .
 .TP
 .B dirtyread
 Позволяет считывать модифицированные данные, фиксация изменений которых ещё не произошла. Обычно

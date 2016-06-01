@@ -1,8 +1,9 @@
 ReOpenLDAP is...
 =================
-1. The fork of OpenLDAP
-2. With a few new features, mostly for highload and multi-master clustering
-3. With additional bug fixing and code quality improvement
+1. The fork of OpenLDAP under AGPL version 3,
+   but with respect the original OpenLDAP license.
+2. With a few new features, mostly for highload and multi-master clustering.
+3. With additional bug fixing and code quality improvement.
 
 *But no Windows, no Mac OS, no FreeBSD, no Solaris, no HP-UX, just __only Linux__!*
 

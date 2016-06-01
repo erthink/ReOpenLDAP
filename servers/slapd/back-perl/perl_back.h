@@ -1,7 +1,25 @@
-/* $OpenLDAP$ */
-/* This work is part of OpenLDAP Software <http://www.openldap.org/>.
+/* $ReOpenLDAP$ */
+/* Copyright (c) 2015,2016 Leonid Yuriev <leo@yuriev.ru>.
+ * Copyright (c) 2015,2016 Peter-Service R&D LLC <http://billing.ru/>.
  *
- * Copyright 1999-2016 The OpenLDAP Foundation.
+ * This file is part of ReOpenLDAP.
+ *
+ * ReOpenLDAP is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation; either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * ReOpenLDAP is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * ---
+ *
+ * Copyright 1999-2014 The OpenLDAP Foundation.
  * Portions Copyright 1999 John C. Quillan.
  * Portions Copyright 2002 myinternet Limited.
  * All rights reserved.
@@ -21,7 +39,6 @@
 #include <EXTERN.h>
 #include <perl.h>
 #undef _	/* #defined by both Perl and ac/localize.h */
-#include "asperl_undefs.h"
 
 #include "portable.h"
 
@@ -52,7 +69,7 @@ extern ldap_pvt_thread_mutex_t  perl_interpreter_mutex;
 # define ERRSV	GvSV(errgv)
 #endif
 
-#if defined( HAVE_WIN32_ASPERL ) || defined( USE_ITHREADS )
+#ifdef USE_ITHREADS
 /* pTHX is needed often now */
 # define PERL_INTERPRETER			my_perl
 # define PERL_BACK_XS_INIT_PARAMS		pTHX

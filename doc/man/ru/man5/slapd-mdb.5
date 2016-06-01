@@ -1,7 +1,27 @@
-.TH SLAPD-MDB 5 "RELEASEDATE" "OpenLDAP LDVERSION"
-.\" Copyright 2011-2015 The OpenLDAP Foundation All Rights Reserved.
+.TH SLAPD-MDB 5 "RELEASEDATE" "ReOpenLDAP LDVERSION"
+.\" $ReOpenLDAP$
+.\" Copyright (c) 2015,2016 Leonid Yuriev <leo@yuriev.ru>.
+.\" Copyright (c) 2015,2016 Peter-Service R&D LLC <http://billing.ru/>.
+.\"
+.\" This file is part of ReOpenLDAP.
+.\"
+.\" ReOpenLDAP is free software; you can redistribute it and/or modify it under
+.\" the terms of the GNU Affero General Public License as published by
+.\" the Free Software Foundation; either version 3 of the License, or
+.\" (at your option) any later version.
+.\"
+.\" ReOpenLDAP is distributed in the hope that it will be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+.\" GNU Affero General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU Affero General Public License
+.\" along with this program.  If not, see <http://www.gnu.org/licenses/>.
+.\"
+.\" ---
+.\"
+.\" Copyright 2011-2014 The OpenLDAP Foundation All Rights Reserved.
 .\" Copying restrictions apply.  See COPYRIGHT/LICENSE.
-.\" $OpenLDAP$
 .SH НАЗВАНИЕ
 slapd\-mdb \- механизм манипуляции данными для slapd Memory-Mapped DB (отображаемая в памяти база данных)
 .SH СИНТАКСИС
@@ -9,7 +29,7 @@ slapd\-mdb \- механизм манипуляции данными для slap
 .SH ОПИСАНИЕ
 Механизм манипуляции данными для
 .BR slapd (8)
-\fBmdb\fP использует для хранения данных библиотеку OpenLDAP Lightning Memory-Mapped DB (LMDB).
+\fBmdb\fP использует для хранения данных библиотеку ReOpenLDAP reliable Lightning Memory-Mapped DB (MDBX).
 Библиотека не имеет собственных механизмов кэширования, полагаясь на средства
 управления виртуальной памятью операционной системы, в которой она работает.
 \fBmdb\fP является рекомендуемым первичным механизмом для работы с базами данных.
@@ -106,7 +126,7 @@ slapd\-mdb \- механизм манипуляции данными для slap
 Указывает директорию, где находятся LMDB-файлы, содержащие эту базу данных
 и ассоциированные с ней индексы. Для каждой базы данных должна быть определена
 отдельная директория. По умолчанию -
-.BR LOCALSTATEDIR/openldap\-data .
+.BR LOCALSTATEDIR/reopenldap\-data .
 .TP
 .BI dreamcatcher \ <lag>\ <percentage>
 Управляет механизмом перезапуска долгих операций чтения, которые в LMDB
@@ -312,7 +332,7 @@ slapd\-mdb \- механизм манипуляции данными для slap
 .BR slapadd (8),
 .BR slapcat (8),
 .BR slapindex (8),
-документацию LMDB OpenLDAP.
+документацию MDBX ReOpenLDAP.
 .SH ПРИЗНАНИЕ ЗАСЛУГ
 .so ../Project
 Исходный англоязычный текст написан Говардом Чу (Howard Chu) и переведен на русский Егором Левинца.

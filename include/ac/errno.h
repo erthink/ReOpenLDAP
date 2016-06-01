@@ -1,8 +1,26 @@
 /* Generic errno.h */
-/* $OpenLDAP$ */
-/* This work is part of OpenLDAP Software <http://www.openldap.org/>.
+/* $ReOpenLDAP$ */
+/* Copyright (c) 2015,2016 Leonid Yuriev <leo@yuriev.ru>.
+ * Copyright (c) 2015,2016 Peter-Service R&D LLC <http://billing.ru/>.
  *
- * Copyright 1998-2016 The OpenLDAP Foundation.
+ * This file is part of ReOpenLDAP.
+ *
+ * ReOpenLDAP is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation; either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * ReOpenLDAP is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * ---
+ *
+ * Copyright 1998-2014 The OpenLDAP Foundation.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -18,9 +36,9 @@
 #define _AC_ERRNO_H
 
 #if defined( HAVE_ERRNO_H )
-# include <errno.h>
+#	include <errno.h>
 #elif defined( HAVE_SYS_ERRNO_H )
-# include <sys/errno.h>
+#	include <sys/errno.h>
 #endif
 
 #ifndef HAVE_SYS_ERRLIST
@@ -37,8 +55,8 @@
 #define _AC_ERRNO_UNKNOWN "unknown error"
 
 #ifdef HAVE_STRERROR_R
-	const char* strerror_safe(int err);
-#	define	STRERROR(e) strerror_safe(e)
+	__extern_C const char* lber_strerror_safe(int err);
+#	define	STRERROR(e) lber_strerror_safe(e)
 #elif defined(HAVE_SYS_ERRLIST)
 	/* this is thread safe */
 #	define	STRERROR(e) ( (e) > -1 && (e) < sys_nerr \

@@ -252,11 +252,7 @@ LBER_F(int) lber_hug_memchk_probe LDAP_P((
 
 #endif /* LDAP_MEMORY_DEBUG > 0 */
 
-/* LY: memcpy with checking for overlap */
-LBER_F(void*) ber_memcpy_safe LDAP_P((
-	void* dest,
-	const void* src,
-	size_t n ));
+LDAP_F(void*) ber_memcpy_safe(void* dest, const void* src, size_t n);
 
 LDAP_END_DECL
 

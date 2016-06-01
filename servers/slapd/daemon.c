@@ -1,7 +1,25 @@
-/* $OpenLDAP$ */
-/* This work is part of OpenLDAP Software <http://www.openldap.org/>.
+/* $ReOpenLDAP$ */
+/* Copyright (c) 2015,2016 Leonid Yuriev <leo@yuriev.ru>.
+ * Copyright (c) 2015,2016 Peter-Service R&D LLC <http://billing.ru/>.
  *
- * Copyright 1998-2016 The OpenLDAP Foundation.
+ * This file is part of ReOpenLDAP.
+ *
+ * ReOpenLDAP is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation; either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * ReOpenLDAP is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * ---
+ *
+ * Copyright 1998-2014 The OpenLDAP Foundation.
  * Portions Copyright 2007 by Howard Chu, Symas Corporation.
  * All rights reserved.
  *
@@ -45,7 +63,7 @@
 #include "config.h"
 
 /* LY: for ldap_pvt_tcpkeepalive() from libldap */
-#include "../../../libraries/libldap/ldap-int.h"
+#include "../../../libraries/libreldap/ldap-int.h"
 
 #if defined(HAVE_SYS_EPOLL_H) && defined(HAVE_EPOLL)
 # include <sys/epoll.h>
@@ -168,15 +186,6 @@ volatile sig_atomic_t _slapd_abrupt_shutdown = 0;
 
 #endif /* __SANITIZE_THREAD__ */
 
-#ifdef HAVE_WINSOCK
-ldap_pvt_thread_mutex_t slapd_ws_mutex;
-SOCKET *slapd_ws_sockets;
-#define	SD_READ 1
-#define	SD_WRITE	2
-#define	SD_ACTIVE	4
-#define	SD_LISTENER	8
-#endif
-
 #ifdef HAVE_TCPD
 static ldap_pvt_thread_mutex_t	sd_tcpd_mutex;
 #endif /* TCP Wrappers */
@@ -201,14 +210,9 @@ typedef struct slap_daemon_st {
 	Listener		**sd_l;
 	int			sd_dpfd;
 #else /* ! epoll && ! /dev/poll */
-#ifdef HAVE_WINSOCK
-	char	*sd_flags;
-	char	*sd_rflags;
-#else /* ! HAVE_WINSOCK */
 	fd_set			sd_actives;
 	fd_set			sd_readers;
 	fd_set			sd_writers;
-#endif /* ! HAVE_WINSOCK */
 #endif /* ! epoll && ! /dev/poll */
 } slap_daemon_st;
 
@@ -549,117 +553,6 @@ static slap_daemon_st slap_daemon[SLAPD_MAX_DAEMON_THREADS];
 } while (0)
 
 #else /* ! epoll && ! /dev/poll */
-# ifdef HAVE_WINSOCK
-# define SLAP_EVENT_FNAME		"WSselect"
-/* Winsock provides a "select" function but its fd_sets are
- * actually arrays of sockets. Since these sockets are handles
- * and not a contiguous range of small integers, we manage our
- * own "fd" table of socket handles and use their indices as
- * descriptors.
- *
- * All of our listener/connection structures use fds; the actual
- * I/O functions use sockets. The SLAP_FD2SOCK macro in proto-slap.h
- * handles the mapping.
- *
- * Despite the mapping overhead, this is about 45% more efficient
- * than just using Winsock's select and FD_ISSET directly.
- *
- * Unfortunately Winsock's select implementation doesn't scale well
- * as the number of connections increases. This probably needs to be
- * rewritten to use the Winsock overlapped/asynchronous I/O functions.
- */
-# define SLAP_EVENTS_ARE_INDEXED	1
-# define SLAP_EVENT_DECL		fd_set readfds, writefds; char *rflags
-# define SLAP_EVENT_INIT(t)	do { \
-	int i; \
-	FD_ZERO( &readfds ); \
-	FD_ZERO( &writefds ); \
-	rflags = slap_daemon[t].sd_rflags; \
-	memset( rflags, 0, slap_daemon[t].sd_nfds ); \
-	for ( i=0; i<slap_daemon[t].sd_nfds; i++ ) { \
-		if ( slap_daemon[t].sd_flags[i] & SD_READ ) \
-			FD_SET( slapd_ws_sockets[i], &readfds );\
-		if ( slap_daemon[t].sd_flags[i] & SD_WRITE ) \
-			FD_SET( slapd_ws_sockets[i], &writefds ); \
-	} } while ( 0 )
-
-# define SLAP_EVENT_MAX(t)		slap_daemon[t].sd_nfds
-
-# define SLAP_EVENT_WAIT(t, tvp, nsp)	do { \
-	int i; \
-	*(nsp) = select( SLAP_EVENT_MAX(t), &readfds, \
-		nwriters > 0 ? &writefds : NULL, NULL, (tvp) ); \
-	for ( i=0; i<readfds.fd_count; i++) { \
-		int fd = slapd_sock2fd(readfds.fd_array[i]); \
-		if ( fd >= 0 ) { \
-			slap_daemon[t].sd_rflags[fd] = SD_READ; \
-			if ( fd >= *(nsp)) *(nsp) = fd+1; \
-		} \
-	} \
-	for ( i=0; i<writefds.fd_count; i++) { \
-		int fd = slapd_sock2fd(writefds.fd_array[i]); \
-		if ( fd >= 0 ) { \
-			slap_daemon[t].sd_rflags[fd] = SD_WRITE; \
-			if ( fd >= *(nsp)) *(nsp) = fd+1; \
-		} \
-	} \
-} while (0)
-
-# define SLAP_EVENT_IS_READ(fd)		(rflags[fd] & SD_READ)
-# define SLAP_EVENT_IS_WRITE(fd)	(rflags[fd] & SD_WRITE)
-
-# define SLAP_EVENT_CLR_READ(fd) 	rflags[fd] &= ~SD_READ
-# define SLAP_EVENT_CLR_WRITE(fd)	rflags[fd] &= ~SD_WRITE
-
-# define SLAP_SOCK_INIT(t)		do { \
-	if (!t) { \
-	ldap_pvt_thread_mutex_init( &slapd_ws_mutex ); \
-	slapd_ws_sockets = ch_malloc( dtblsize * ( sizeof(SOCKET) + 2)); \
-	memset( slapd_ws_sockets, -1, dtblsize * sizeof(SOCKET) ); \
-	} \
-	slap_daemon[t].sd_flags = (char *)(slapd_ws_sockets + dtblsize); \
-	slap_daemon[t].sd_rflags = slap_daemon[t].sd_flags + dtblsize; \
-	memset( slap_daemon[t].sd_flags, 0, dtblsize ); \
-	slapd_ws_sockets[t*2] = wake_sds[t][0]; \
-	slapd_ws_sockets[t*2+1] = wake_sds[t][1]; \
-	wake_sds[t][0] = t*2; \
-	wake_sds[t][1] = t*2+1; \
-	slap_daemon[t].sd_nfds = t*2 + 2; \
-	} while ( 0 )
-
-# define SLAP_SOCK_DESTROY(t)	do { \
-	ch_free( slapd_ws_sockets ); slapd_ws_sockets = NULL; \
-	slap_daemon[t].sd_flags = NULL; \
-	slap_daemon[t].sd_rflags = NULL; \
-	ldap_pvt_thread_mutex_destroy( &slapd_ws_mutex ); \
-	} while ( 0 )
-
-# define SLAP_SOCK_IS_ACTIVE(t,fd) ( slap_daemon[t].sd_flags[fd] & SD_ACTIVE )
-# define SLAP_SOCK_IS_READ(t,fd) ( slap_daemon[t].sd_flags[fd] & SD_READ )
-# define SLAP_SOCK_IS_WRITE(t,fd) ( slap_daemon[t].sd_flags[fd] & SD_WRITE )
-# define SLAP_SOCK_NOT_ACTIVE(t,fd)	(!slap_daemon[t].sd_flags[fd])
-
-# define SLAP_SOCK_SET_READ(t,fd)		( slap_daemon[t].sd_flags[fd] |= SD_READ )
-# define SLAP_SOCK_SET_WRITE(t,fd)		( slap_daemon[t].sd_flags[fd] |= SD_WRITE )
-
-# define SLAP_SELECT_ADDTEST(t,s)	do { \
-	if ((s) >= slap_daemon[t].sd_nfds) slap_daemon[t].sd_nfds = (s)+1; \
-} while (0)
-
-# define SLAP_SOCK_CLR_READ(t,fd)		( slap_daemon[t].sd_flags[fd] &= ~SD_READ )
-# define SLAP_SOCK_CLR_WRITE(t,fd)		( slap_daemon[t].sd_flags[fd] &= ~SD_WRITE )
-
-# define SLAP_SOCK_ADD(t,s, l)	do { \
-	SLAP_SELECT_ADDTEST(t,(s)); \
-	slap_daemon[t].sd_flags[s] = SD_ACTIVE|SD_READ; \
-} while ( 0 )
-
-# define SLAP_SOCK_DEL(t,s) do { \
-	slap_daemon[t].sd_flags[s] = 0; \
-	slapd_sockdel( s ); \
-} while ( 0 )
-
-# else /* !HAVE_WINSOCK */
 
 /**************************************
  * Use select system call - select(2) *
@@ -735,7 +628,6 @@ static slap_daemon_st slap_daemon[SLAPD_MAX_DAEMON_THREADS];
 	*(nsp) = select( SLAP_EVENT_MAX(t), &readfds, \
 		nwriters > 0 ? &writefds : NULL, NULL, (tvp) ); \
 } while (0)
-# endif /* !HAVE_WINSOCK */
 #endif /* ! epoll && ! /dev/poll */
 
 #ifdef HAVE_SLP
@@ -865,42 +757,6 @@ slapd_slp_dereg( void )
 	}
 }
 #endif /* HAVE_SLP */
-
-#ifdef HAVE_WINSOCK
-/* Manage the descriptor to socket table */
-ber_socket_t
-slapd_socknew( ber_socket_t s )
-{
-	ber_socket_t i;
-	ldap_pvt_thread_mutex_lock( &slapd_ws_mutex );
-	for ( i = 0; i < dtblsize && slapd_ws_sockets[i] != INVALID_SOCKET; i++ );
-	if ( i == dtblsize ) {
-		WSASetLastError( WSAEMFILE );
-	} else {
-		slapd_ws_sockets[i] = s;
-	}
-	ldap_pvt_thread_mutex_unlock( &slapd_ws_mutex );
-	return i;
-}
-
-void
-slapd_sockdel( ber_socket_t s )
-{
-	ldap_pvt_thread_mutex_lock( &slapd_ws_mutex );
-	slapd_ws_sockets[s] = INVALID_SOCKET;
-	ldap_pvt_thread_mutex_unlock( &slapd_ws_mutex );
-}
-
-ber_socket_t
-slapd_sock2fd( ber_socket_t s )
-{
-	ber_socket_t i;
-	for ( i=0; i<dtblsize && slapd_ws_sockets[i] != s; i++);
-	if ( i == dtblsize )
-		i = -1;
-	return i;
-}
-#endif
 
 /*
  * Add a descriptor to daemon control
@@ -1102,9 +958,6 @@ slapd_close( ber_socket_t s )
 	Debug( LDAP_DEBUG_CONNS, "daemon: closing %ld\n",
 		(long) s );
 	tcp_close( SLAP_FD2SOCK(s) );
-#ifdef HAVE_WINSOCK
-	slapd_sockdel( s );
-#endif
 }
 
 static void
@@ -1666,9 +1519,6 @@ slap_open_listener(
 	return 0;
 }
 
-static int sockinit(void);
-static int sockdestroy(void);
-
 static int daemon_inited = 0;
 
 int
@@ -1691,8 +1541,6 @@ slapd_daemon_init( const char *urls )
 #endif /* TCP Wrappers */
 
 	daemon_inited = 1;
-
-	if( (rc = sockinit()) != 0 ) return rc;
 
 #ifdef HAVE_SYSCONF
 	dtblsize = sysconf( _SC_OPEN_MAX );
@@ -1803,23 +1651,11 @@ slapd_daemon_destroy( void )
 		int i;
 
 		for ( i=0; i<slapd_daemon_threads; i++ ) {
-#ifdef HAVE_WINSOCK
-			if ( wake_sds[i][1] != INVALID_SOCKET &&
-				SLAP_FD2SOCK( wake_sds[i][1] ) != SLAP_FD2SOCK( wake_sds[i][0] ))
-#endif /* HAVE_WINSOCK */
-			{
-				Debug( LDAP_DEBUG_CONNS, "daemon: closing %d, fd %d\n",
-					wake_sds[i][1], SLAP_FD2SOCK(wake_sds[i][1]) );
-				tcp_close( SLAP_FD2SOCK(wake_sds[i][1]) );
-			}
-#ifdef HAVE_WINSOCK
-			if ( wake_sds[i][0] != INVALID_SOCKET )
-#endif /* HAVE_WINSOCK */
-			{
-				Debug( LDAP_DEBUG_CONNS, "daemon: closing %d, fd %d\n",
-					wake_sds[i][0], SLAP_FD2SOCK(wake_sds[i][0]) );
-				tcp_close( SLAP_FD2SOCK(wake_sds[i][0]) );
-			}
+			Debug( LDAP_DEBUG_CONNS, "daemon: closing [1] %d/fd %d, [0] %d/fd %d\n",
+				wake_sds[i][1], SLAP_FD2SOCK(wake_sds[i][1]),
+				wake_sds[i][0], SLAP_FD2SOCK(wake_sds[i][0]) );
+			tcp_close( SLAP_FD2SOCK(wake_sds[i][1]) );
+			tcp_close( SLAP_FD2SOCK(wake_sds[i][0]) );
 			ldap_pvt_thread_mutex_destroy( &slap_daemon[i].sd_mutex );
 			SLAP_SOCK_DESTROY(i);
 		}
@@ -1828,7 +1664,6 @@ slapd_daemon_destroy( void )
 		ldap_pvt_thread_mutex_destroy( &sd_tcpd_mutex );
 #endif /* TCP Wrappers */
 	}
-	sockdestroy();
 
 #ifdef HAVE_SLP
 	if( slapd_register_slp ) {
@@ -2410,12 +2245,6 @@ slapd_daemon_task(
 		slapd_add( slap_listeners[l]->sl_sd, 0, slap_listeners[l], -1 );
 	}
 
-#ifdef HAVE_NT_SERVICE_MANAGER
-	if ( started_event != NULL ) {
-		ldap_pvt_thread_cond_signal( &started_event );
-	}
-#endif /* HAVE_NT_SERVICE_MANAGER */
-
 loop:
 
 	/* initialization complete. Here comes the loop. */
@@ -2888,13 +2717,8 @@ loop:
 			"daemon: shutdown requested and initiated.\n" );
 
 	} else if ( slapd_shutdown == 2 ) {
-#ifdef HAVE_NT_SERVICE_MANAGER
-			Debug( LDAP_DEBUG_ANY,
-			       "daemon: shutdown initiated by Service Manager.\n");
-#else /* !HAVE_NT_SERVICE_MANAGER */
-			Debug( LDAP_DEBUG_ANY,
-			       "daemon: abnormal condition, shutdown initiated.\n" );
-#endif /* !HAVE_NT_SERVICE_MANAGER */
+		Debug( LDAP_DEBUG_ANY,
+		       "daemon: abnormal condition, shutdown initiated.\n" );
 	} else {
 		Debug( LDAP_DEBUG_ANY,
 		       "daemon: no active streams, shutdown initiated.\n" );
@@ -3002,57 +2826,6 @@ slapd_daemon( void )
 	return 0;
 }
 
-static int
-sockinit( void )
-{
-#if defined( HAVE_WINSOCK2 )
-	WORD wVersionRequested;
-	WSADATA wsaData;
-	int err;
-
-	wVersionRequested = MAKEWORD( 2, 0 );
-
-	err = WSAStartup( wVersionRequested, &wsaData );
-	if ( err != 0 ) {
-		/* Tell the user that we couldn't find a usable */
-		/* WinSock DLL.					 */
-		return -1;
-	}
-
-	/* Confirm that the WinSock DLL supports 2.0.*/
-	/* Note that if the DLL supports versions greater    */
-	/* than 2.0 in addition to 2.0, it will still return */
-	/* 2.0 in wVersion since that is the version we	     */
-	/* requested.					     */
-
-	if ( LOBYTE( wsaData.wVersion ) != 2 ||
-		HIBYTE( wsaData.wVersion ) != 0 )
-	{
-	    /* Tell the user that we couldn't find a usable */
-	    /* WinSock DLL.				     */
-	    WSACleanup();
-	    return -1;
-	}
-
-	/* The WinSock DLL is acceptable. Proceed. */
-#elif defined( HAVE_WINSOCK )
-	WSADATA wsaData;
-	if ( WSAStartup( 0x0101, &wsaData ) != 0 ) return -1;
-#endif /* ! HAVE_WINSOCK2 && ! HAVE_WINSOCK */
-
-	return 0;
-}
-
-static int
-sockdestroy( void )
-{
-#if defined( HAVE_WINSOCK2 ) || defined( HAVE_WINSOCK )
-	WSACleanup();
-#endif /* HAVE_WINSOCK2 || HAVE_WINSOCK */
-
-	return 0;
-}
-
 RETSIGTYPE
 slap_sig_shutdown( int sig )
 {
@@ -3069,11 +2842,6 @@ slap_sig_shutdown( int sig )
 	 * SIGBREAK is generated when a user logs out.
 	 */
 
-#if defined(HAVE_NT_SERVICE_MANAGER) && defined(SIGBREAK)
-	if (is_NT_Service && sig == SIGBREAK) {
-		/* empty */;
-	} else
-#endif /* HAVE_NT_SERVICE_MANAGER && SIGBREAK */
 	if ( ( reopenldap_mode_righteous() ||
 #ifdef SIGHUP
 			sig == SIGHUP

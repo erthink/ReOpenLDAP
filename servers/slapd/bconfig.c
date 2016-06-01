@@ -1,8 +1,26 @@
 /* bconfig.c - the config backend */
-/* $OpenLDAP$ */
-/* This work is part of OpenLDAP Software <http://www.openldap.org/>.
+/* $ReOpenLDAP$ */
+/* Copyright (c) 2015,2016 Leonid Yuriev <leo@yuriev.ru>.
+ * Copyright (c) 2015,2016 Peter-Service R&D LLC <http://billing.ru/>.
  *
- * Copyright 2005-2016 The OpenLDAP Foundation.
+ * This file is part of ReOpenLDAP.
+ *
+ * ReOpenLDAP is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation; either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * ReOpenLDAP is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * ---
+ *
+ * Copyright 2005-2014 The OpenLDAP Foundation.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -1317,7 +1335,7 @@ config_generic(ConfigArgs *c) {
 			ch_free( logfileName );
 			logfileName = NULL;
 			if ( logfile ) {
-				lutil_debug_file( NULL );
+				ldap_debug_file( NULL );
 				fclose( logfile );
 				logfile = NULL;
 			}
@@ -2018,11 +2036,11 @@ sortval_reject:
 				logfileName = c->value_string;
 				c->value_string = NULL;
 				if ( logfile ) {
-					lutil_debug_file( NULL );
+					ldap_debug_file( NULL );
 					fclose( logfile );
 				}
 				logfile = fopen(logfileName, "w");
-				if(logfile) lutil_debug_file(logfile);
+				if(logfile) ldap_debug_file(logfile);
 			} break;
 
 		case CFG_LASTMOD:
@@ -3507,7 +3525,7 @@ loglevel_destroy( void )
 	}
 
 	if ( logfile ) {
-		lutil_debug_file( NULL );
+		ldap_debug_file( NULL );
 		fclose( logfile );
 		logfile = NULL;
 	}

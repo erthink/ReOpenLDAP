@@ -1,7 +1,25 @@
-/* $OpenLDAP$ */
-/* This work is part of OpenLDAP Software <http://www.openldap.org/>.
+/* $ReOpenLDAP$ */
+/* Copyright (c) 2015,2016 Leonid Yuriev <leo@yuriev.ru>.
+ * Copyright (c) 2015,2016 Peter-Service R&D LLC <http://billing.ru/>.
  *
- * Copyright 1998-2016 The OpenLDAP Foundation.
+ * This file is part of ReOpenLDAP.
+ *
+ * ReOpenLDAP is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation; either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * ReOpenLDAP is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * ---
+ *
+ * Copyright 1998-2014 The OpenLDAP Foundation.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -999,18 +1017,9 @@ LDAP_SLAPD_V (int) slapd_tcp_rmem;
 LDAP_SLAPD_V (int) slapd_tcp_wmem;
 #endif /* LDAP_TCP_BUFFER */
 
-#ifdef HAVE_WINSOCK
-LDAP_SLAPD_F (ber_socket_t) slapd_socknew(ber_socket_t s);
-LDAP_SLAPD_F (ber_socket_t) slapd_sock2fd(ber_socket_t s);
-LDAP_SLAPD_V (SOCKET *) slapd_ws_sockets;
-#define	SLAP_FD2SOCK(s)	slapd_ws_sockets[s]
-#define	SLAP_SOCK2FD(s)	slapd_sock2fd(s)
-#define	SLAP_SOCKNEW(s)	slapd_socknew(s)
-#else
 #define	SLAP_FD2SOCK(s)	s
 #define	SLAP_SOCK2FD(s)	s
 #define	SLAP_SOCKNEW(s)	s
-#endif
 
 /*
  * dn.c

@@ -1,7 +1,25 @@
-/* $OpenLDAP$ */
-/* This work is part of OpenLDAP Software <http://www.openldap.org/>.
+/* $ReOpenLDAP$ */
+/* Copyright (c) 2015,2016 Leonid Yuriev <leo@yuriev.ru>.
+ * Copyright (c) 2015,2016 Peter-Service R&D LLC <http://billing.ru/>.
  *
- * Copyright 1998-2016 The OpenLDAP Foundation.
+ * This file is part of ReOpenLDAP.
+ *
+ * ReOpenLDAP is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation; either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * ReOpenLDAP is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * ---
+ *
+ * Copyright 1998-2014 The OpenLDAP Foundation.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -50,26 +68,12 @@
 #	define PR_SET_PTRACER 0x59616d61
 #	define PR_SET_PTRACER_ANY ((unsigned long)-1)
 #endif
+#else
+#	error "Linux is required for ReOpenLDAP"
 #endif /* __linux__ */
 
 #ifdef LDAP_SIGCHLD
 static RETSIGTYPE wait4child( int sig );
-#endif
-
-#ifdef HAVE_NT_SERVICE_MANAGER
-#define MAIN_RETURN(x) return
-static struct sockaddr_in	bind_addr;
-
-#define SERVICE_EXIT( e, n )	do { \
-	if ( is_NT_Service ) { \
-		lutil_ServiceStatus.dwWin32ExitCode				= (e); \
-		lutil_ServiceStatus.dwServiceSpecificExitCode	= (n); \
-	} \
-} while ( 0 )
-
-#else
-#define SERVICE_EXIT( e, n )
-#define MAIN_RETURN(x) return(x)
 #endif
 
 typedef int (MainFunc) LDAP_P(( int argc, char *argv[] ));
@@ -361,11 +365,7 @@ usage( char *name )
 	);
 }
 
-#ifdef HAVE_NT_SERVICE_MANAGER
-void WINAPI ServiceMain( DWORD argc, LPTSTR *argv )
-#else
 int main( int argc, char **argv )
-#endif
 {
 	int		i, no_detach = 0;
 	int		rc = 1;
@@ -381,9 +381,7 @@ int main( int argc, char **argv )
 	int syslogUser = SLAP_DEFAULT_SYSLOG_USER;
 #endif
 
-#ifndef HAVE_WINSOCK
 	int pid, waitfds[2];
-#endif
 	int g_argc = argc;
 	char **g_argv = argv;
 
@@ -428,55 +426,10 @@ int main( int argc, char **argv )
 		for (i=0; tools[i].name; i++) {
 			if ( !strcmp( serverName, tools[i].name ) ) {
 				rc = tools[i].func(argc, argv);
-				MAIN_RETURN(rc);
+				return rc;
 			}
 		}
 	}
-
-#ifdef HAVE_NT_SERVICE_MANAGER
-	{
-		int *ip;
-		char *newConfigFile;
-		char *newConfigDir;
-		char *newUrls;
-		char *regService = NULL;
-
-		if ( is_NT_Service ) {
-			lutil_CommenceStartupProcessing( serverName, slap_sig_shutdown );
-			if ( strcmp(serverName, SERVICE_NAME) )
-			    regService = serverName;
-		}
-
-		ip = (int*)lutil_getRegParam( regService, "DebugLevel" );
-		if ( ip != NULL ) {
-			slap_debug = *ip;
-			Debug( LDAP_DEBUG_ANY,
-				"new debug level from registry is: %d\n", slap_debug );
-		}
-
-		newUrls = (char *) lutil_getRegParam(regService, "Urls");
-		if (newUrls) {
-		    if (urls)
-			ch_free(urls);
-
-		    urls = ch_strdup(newUrls);
-		    Debug(LDAP_DEBUG_ANY, "new urls from registry: %s\n",
-				urls);
-		}
-
-		newConfigFile = (char*)lutil_getRegParam( regService, "ConfigFile" );
-		if ( newConfigFile != NULL ) {
-			configfile = ch_strdup(newConfigFile);
-			Debug ( LDAP_DEBUG_ANY, "new config file from registry is: %s\n", configfile );
-		}
-
-		newConfigDir = (char*)lutil_getRegParam( regService, "ConfigDir" );
-		if ( newConfigDir != NULL ) {
-			configdir = ch_strdup(newConfigDir);
-			Debug ( LDAP_DEBUG_ANY, "new config dir from registry is: %s\n", configdir );
-		}
-	}
-#endif
 
 	while ( (i = getopt( argc, argv,
 				 "?c:d:f:F:h:n:o:s:tT:V"
@@ -691,7 +644,7 @@ int main( int argc, char **argv )
 			for ( i = 0; tools[i].name; i++ ) {
 				if ( strcmp( optarg, &tools[i].name[4] ) == 0 ) {
 					rc = tools[i].func( argc, argv );
-					MAIN_RETURN( rc );
+					return rc;
 				}
 			}
 
@@ -700,7 +653,7 @@ int main( int argc, char **argv )
 			for ( i = 0; tools[i].name; i++ ) {
 				if ( strncmp( optarg, &tools[i].name[4], l ) == 0 ) {
 					rc = tools[i].func( argc, argv );
-					MAIN_RETURN( rc );
+					return rc;
 				}
 			}
 
@@ -715,7 +668,6 @@ int main( int argc, char **argv )
 unhandled_option:;
 			usage( argv[0] );
 			rc = 1;
-			SERVICE_EXIT( ERROR_SERVICE_SPECIFIC_ERROR, 15 );
 			goto stop;
 		}
 
@@ -779,7 +731,6 @@ unhandled_option:;
 
 	if( check == CHECK_NONE && slapd_daemon_init( urls ) != 0 ) {
 		rc = 1;
-		SERVICE_EXIT( ERROR_SERVICE_SPECIFIC_ERROR, 16 );
 		goto stop;
 	}
 
@@ -815,7 +766,6 @@ unhandled_option:;
 #ifdef HAVE_TLS
 	rc = ldap_create( &slap_tls_ld );
 	if ( rc ) {
-		SERVICE_EXIT( ERROR_SERVICE_SPECIFIC_ERROR, 20 );
 		goto destroy;
 	}
 	/* Library defaults to full certificate checking. This is correct when
@@ -829,13 +779,11 @@ unhandled_option:;
 
 	rc = slap_init( serverMode, serverName );
 	if ( rc ) {
-		SERVICE_EXIT( ERROR_SERVICE_SPECIFIC_ERROR, 18 );
 		goto destroy;
 	}
 
 	if ( read_config( configfile, configdir ) != 0 ) {
 		rc = 1;
-		SERVICE_EXIT( ERROR_SERVICE_SPECIFIC_ERROR, 19 );
 
 		if ( check & CHECK_CONFIG ) {
 			fprintf( stderr, "config check failed\n" );
@@ -895,7 +843,6 @@ unhandled_option:;
 		    "main: TLS init failed: %d\n",
 		    rc );
 		rc = 1;
-		SERVICE_EXIT( ERROR_SERVICE_SPECIFIC_ERROR, 20 );
 		goto destroy;
 	}
 
@@ -913,7 +860,6 @@ unhandled_option:;
 			    "main: TLS init def ctx failed: %d\n",
 			    rc );
 			rc = 1;
-			SERVICE_EXIT( ERROR_SERVICE_SPECIFIC_ERROR, 20 );
 			goto destroy;
 		}
 	}
@@ -944,7 +890,6 @@ unhandled_option:;
 	(void) SIGNAL( SIGBREAK, slap_sig_shutdown );
 #endif
 
-#ifndef HAVE_WINSOCK
 	if ( !no_detach ) {
 		if ( lutil_pair( waitfds ) < 0 ) {
 			Debug( LDAP_DEBUG_ANY,
@@ -964,7 +909,6 @@ unhandled_option:;
 			close( waitfds[0] );
 		}
 	}
-#endif /* HAVE_WINSOCK */
 
 #ifdef CSRIMALLOC
 	mal_leaktrace(1);
@@ -1028,32 +972,17 @@ unhandled_option:;
 
 	if ( slap_startup( NULL ) != 0 ) {
 		rc = 1;
-		SERVICE_EXIT( ERROR_SERVICE_SPECIFIC_ERROR, 21 );
 		goto shutdown;
 	}
 
 	Debug( LDAP_DEBUG_ANY, "slapd starting\n" );
 
-#ifndef HAVE_WINSOCK
 	if ( !no_detach ) {
 		int ignore ALLOW_UNUSED = write( waitfds[1], "1", 1 );
 		close( waitfds[1] );
 	}
-#endif
-
-#ifdef HAVE_NT_EVENT_LOG
-	if (is_NT_Service)
-	lutil_LogStartedEvent( serverName, slap_debug, configfile ?
-		configfile : SLAPD_DEFAULT_CONFIGFILE , urls );
-#endif
 
 	rc = slapd_daemon();
-
-#ifdef HAVE_NT_SERVICE_MANAGER
-	/* Throw away the event that we used during the startup process. */
-	if ( is_NT_Service )
-		ldap_pvt_thread_cond_destroy( &started_event );
-#endif
 
 shutdown:
 	/* remember an error during shutdown */
@@ -1083,20 +1012,11 @@ destroy:
 	entry_info_destroy();
 
 stop:
-#ifdef HAVE_NT_EVENT_LOG
-	if (is_NT_Service)
-	lutil_LogStoppedEvent( serverName );
-#endif
-
 	Debug( LDAP_DEBUG_ANY, "slapd stopped.\n" );
 
 
-#ifdef HAVE_NT_SERVICE_MANAGER
-	lutil_ReportShutdownComplete();
-#endif
-
 #ifdef LOG_DEBUG
-    closelog();
+	closelog();
 #endif
 	slapd_daemon_destroy();
 
@@ -1146,7 +1066,7 @@ stop:
 #endif
 
 	if (serverName_strdup) free( serverName_strdup );
-	MAIN_RETURN(rc);
+	return rc;
 }
 
 

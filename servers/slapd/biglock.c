@@ -1,3 +1,4 @@
+/* $ReOpenLDAP$ */
 /*
     Copyright (c) 2015,2016 Leonid Yuriev <leo@yuriev.ru>.
     Copyright (c) 2015,2016 Peter-Service R&D LLC.
@@ -153,7 +154,7 @@ slap_biglock_release(slap_biglock_t* bl) {
 		if (biglock_max_latency_ns < latency_ns) {
 			biglock_max_latency_ns = latency_ns;
 
-			lutil_debug_print(
+			ldap_debug_print(
 				"*** Biglock new latency achievement: %'.6f seconds\n",
 				latency_ns * 1e-9);
 

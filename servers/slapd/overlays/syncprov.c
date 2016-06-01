@@ -1,8 +1,26 @@
-/* $OpenLDAP$ */
+/* $ReOpenLDAP$ */
 /* syncprov.c - syncrepl provider */
-/* This work is part of OpenLDAP Software <http://www.openldap.org/>.
+/* Copyright (c) 2015,2016 Leonid Yuriev <leo@yuriev.ru>.
+ * Copyright (c) 2015,2016 Peter-Service R&D LLC <http://billing.ru/>.
  *
- * Copyright 2004-2016 The OpenLDAP Foundation.
+ * This file is part of ReOpenLDAP.
+ *
+ * ReOpenLDAP is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation; either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * ReOpenLDAP is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * ---
+ *
+ * Copyright 2004-2014 The OpenLDAP Foundation.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -2957,7 +2975,7 @@ syncprov_op_search( Operation *op, SlapReply *rs )
 	dirty = si->si_dirty;
 
 	if ( LogTest( LDAP_DEBUG_SYNC ) ) {
-		lutil_debug_print(
+		ldap_debug_print(
 			"syncprov-search: %srid=%03x, sid=%03x, hint %d, srs %p, sop %p\n",
 			so ? "PERSISTENT, " : "",
 			srs->sr_state.rid, srs->sr_state.sid, srs->sr_rhint,
