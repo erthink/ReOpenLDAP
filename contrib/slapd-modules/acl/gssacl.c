@@ -14,6 +14,11 @@
 
 #include <portable.h>
 
+/* Need dynacl... */
+#if ! SLAP_DYNACL
+#	error "Run-time loadable ACL support (--enable-dynacl) is required for acl-gssacl plugin!"
+#else
+
 #include <ac/string.h>
 #include <slap.h>
 #include <lutil.h>
@@ -314,3 +319,4 @@ regex_matches(
 	return( !rc );
 }
 
+#endif /* SLAP_DYNACL */

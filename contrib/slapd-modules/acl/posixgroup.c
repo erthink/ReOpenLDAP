@@ -16,13 +16,14 @@
 
 #include <portable.h>
 
+/* Need dynacl... */
+#if ! SLAP_DYNACL
+#	error "Run-time loadable ACL support (--enable-dynacl) is required for acl-posixgroup plugin!"
+#else
+
 #include <ac/string.h>
 #include <slap.h>
 #include <lutil.h>
-
-/* Need dynacl... */
-
-#ifdef SLAP_DYNACL
 
 typedef struct pg_t {
 	slap_style_t		pg_style;
