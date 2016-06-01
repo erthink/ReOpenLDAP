@@ -296,6 +296,11 @@ fi
 
 LIBMDBX_DIR=$([ -d libraries/liblmdb ] && echo "libraries/liblmdb" || echo "libraries/libmdbx")
 
+configure() {
+	echo "CONFIGURE	= $*"
+	./configure "$@"
+}
+
 if [ ! -s Makefile ]; then
 	# autoscan && libtoolize --force --automake --copy && aclocal -I build && autoheader && autoconf && automake --add-missing --copy
 	configure \
