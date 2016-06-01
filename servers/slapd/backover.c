@@ -1,8 +1,26 @@
 /* backover.c - backend overlay routines */
-/* $OpenLDAP$ */
-/* This work is part of OpenLDAP Software <http://www.openldap.org/>.
+/* $ReOpenLDAP$ */
+/* Copyright (c) 2015,2016 Leonid Yuriev <leo@yuriev.ru>.
+ * Copyright (c) 2015,2016 Peter-Service R&D LLC <http://billing.ru/>.
  *
- * Copyright 2003-2016 The OpenLDAP Foundation.
+ * This file is part of ReOpenLDAP.
+ *
+ * ReOpenLDAP is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation; either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * ReOpenLDAP is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * ---
+ *
+ * Copyright 2003-2014 The OpenLDAP Foundation.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -282,6 +300,7 @@ over_access_allowed(
 		 	if ( !SLAP_ISOVERLAY( op->o_bd ) ) {
  				db = *op->o_bd;
 				db.be_flags |= SLAP_DBFLAG_OVERLAY;
+				compiler_barrier();
 				op->o_bd = &db;
 			}
 
@@ -346,6 +365,7 @@ overlay_entry_get_ov(
 		 	if ( !SLAP_ISOVERLAY( op->o_bd ) ) {
  				db = *op->o_bd;
 				db.be_flags |= SLAP_DBFLAG_OVERLAY;
+				compiler_barrier();
 				op->o_bd = &db;
 			}
 
@@ -420,6 +440,7 @@ overlay_entry_release_ov(
 		 	if ( !SLAP_ISOVERLAY( op->o_bd ) ) {
  				db = *op->o_bd;
 				db.be_flags |= SLAP_DBFLAG_OVERLAY;
+				compiler_barrier();
 				op->o_bd = &db;
 			}
 
@@ -501,6 +522,7 @@ over_acl_group(
 		 	if ( !SLAP_ISOVERLAY( op->o_bd ) ) {
  				db = *op->o_bd;
 				db.be_flags |= SLAP_DBFLAG_OVERLAY;
+				compiler_barrier();
 				op->o_bd = &db;
 			}
 
@@ -573,6 +595,7 @@ over_acl_attribute(
 		 	if ( !SLAP_ISOVERLAY( op->o_bd ) ) {
  				db = *op->o_bd;
 				db.be_flags |= SLAP_DBFLAG_OVERLAY;
+				compiler_barrier();
 				op->o_bd = &db;
 			}
 
@@ -736,6 +759,7 @@ over_op_func(
  	if ( !SLAP_ISOVERLAY( op->o_bd )) {
  		db = *op->o_bd;
 		db.be_flags |= SLAP_DBFLAG_OVERLAY;
+		compiler_barrier();
 		op->o_bd = &db;
 	}
 	cb.sc_next = op->o_callback;

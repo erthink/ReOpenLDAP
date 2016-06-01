@@ -1,8 +1,26 @@
 /* config.c - mdb backend configuration file routine */
-/* $OpenLDAP$ */
-/* This work is part of OpenLDAP Software <http://www.openldap.org/>.
+/* $ReOpenLDAP$ */
+/* Copyright (c) 2015,2016 Leonid Yuriev <leo@yuriev.ru>.
+ * Copyright (c) 2015,2016 Peter-Service R&D LLC <http://billing.ru/>.
  *
- * Copyright 2000-2016 The OpenLDAP Foundation.
+ * This file is part of ReOpenLDAP.
+ *
+ * ReOpenLDAP is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation; either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * ReOpenLDAP is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * ---
+ *
+ * Copyright 2000-2014 The OpenLDAP Foundation.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -634,7 +652,7 @@ mdb_cf_gen( ConfigArgs *c )
 		if ( lutil_atolx( &l, c->argv[2], 0 ) != 0 ) {
 			fprintf( stderr, "%s: "
 				"invalid %s \"%s\" in \"checkpoint\".\n",
-				c->log, reopenldap_mode_iddqd() ? "seconds" : "minutes", c->argv[2] );
+				c->log, reopenldap_mode_righteous() ? "seconds" : "minutes", c->argv[2] );
 			return 1;
 		}
 		mdb->mi_txn_cp_period = l;
@@ -643,7 +661,7 @@ mdb_cf_gen( ConfigArgs *c )
 		 */
 		if ((slapMode & SLAP_SERVER_MODE) && mdb->mi_txn_cp_period ) {
 			struct re_s *re = mdb->mi_txn_cp_task;
-			unsigned interval_sec = reopenldap_mode_iddqd() ?
+			unsigned interval_sec = reopenldap_mode_righteous() ?
 						/* LY: ReOpenLDAP mode, interval in seconds */
 						mdb->mi_txn_cp_period
 					  :

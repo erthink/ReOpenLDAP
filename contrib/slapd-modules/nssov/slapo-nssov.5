@@ -1,7 +1,9 @@
-.TH SLAPO-NSSOV 5 "RELEASEDATE" "OpenLDAP LDVERSION"
-.\" Copyright 1998-2016 The OpenLDAP Foundation, All Rights Reserved.
+.TH SLAPO-NSSOV 5 "RELEASEDATE" "ReOpenLDAP LDVERSION"
+.\" Copyright (c) 2015,2016 Leonid Yuriev <leo@yuriev.ru>.
+.\" Copyright (c) 2015,2016 Peter-Service R&D LLC <http://billing.ru/>.
+.\" Copyright 1998-2014 The OpenLDAP Foundation, All Rights Reserved.
 .\" Copying restrictions apply.  See the COPYRIGHT file.
-.\" $OpenLDAP$
+.\" $ReOpenLDAP$
 .SH NAME
 slapo-nssov \- NSS and PAM requests through a local Unix Domain socket
 .SH SYNOPSIS
@@ -41,7 +43,7 @@ administered centrally via LDAP, instead of having fragile rules scattered
 across multiple flat files. As such, there is no client-side configuration at
 all for the NSS/PAM stub libraries. (The stubs talk to the server via a Unix
 domain socket whose path is hardcoded to NSLCDPATH). As a side benefit,
-this can finally eliminate the perpetual confusion between OpenLDAP's
+this can finally eliminate the perpetual confusion between ReOpenLDAP's
 ldap.conf file in ETCDIR/ldap.conf and the similarly named files typically
 used by pam_ldap and nss_ldap.
 .LP

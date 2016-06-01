@@ -1,8 +1,26 @@
 /* vernum.c - RDN value overlay */
-/* $OpenLDAP$ */
-/* This work is part of OpenLDAP Software <http://www.openldap.org/>.
+/* $ReOpenLDAP$ */
+/* Copyright (c) 2015,2016 Leonid Yuriev <leo@yuriev.ru>.
+ * Copyright (c) 2015,2016 Peter-Service R&D LLC <http://billing.ru/>.
  *
- * Copyright 1998-2016 The OpenLDAP Foundation.
+ * This file is part of ReOpenLDAP.
+ *
+ * ReOpenLDAP is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation; either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * ReOpenLDAP is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * ---
+ *
+ * Copyright 1998-2014 The OpenLDAP Foundation.
  * Portions Copyright 2008 Pierangelo Masarati.
  * All rights reserved.
  *
@@ -158,19 +176,19 @@ vernum_db_init(
 	vernum_t	*vn = NULL;
 
 	if ( SLAP_ISGLOBALOVERLAY( be ) ) {
-		Log0( LDAP_DEBUG_ANY, LDAP_LEVEL_ERR,
+		Log( LDAP_DEBUG_ANY, LDAP_LEVEL_ERR,
 			"vernum_db_init: vernum cannot be used as global overlay.\n" );
 		return 1;
 	}
 
 	if ( be->be_nsuffix == NULL ) {
-		Log0( LDAP_DEBUG_ANY, LDAP_LEVEL_ERR,
+		Log( LDAP_DEBUG_ANY, LDAP_LEVEL_ERR,
 			"vernum_db_init: database must have suffix\n" );
 		return 1;
 	}
 
 	if ( BER_BVISNULL( &be->be_rootndn ) || BER_BVISEMPTY( &be->be_rootndn ) ) {
-		Log1( LDAP_DEBUG_ANY, LDAP_LEVEL_ERR,
+		Log( LDAP_DEBUG_ANY, LDAP_LEVEL_ERR,
 			"vernum_db_init: missing rootdn for database DN=\"%s\", YMMV\n",
 			be->be_suffix[ 0 ].bv_val );
 	}
@@ -339,7 +357,7 @@ done_search:;
 	op->o_tmpfree( op->ors_filterstr.bv_val, op->o_tmpmemctx );
 	filter_free_x( op, op->ors_filter, 1 );
 
-	Log1( LDAP_DEBUG_STATS, LDAP_LEVEL_INFO,
+	Log( LDAP_DEBUG_STATS, LDAP_LEVEL_INFO,
 		"vernum: repaired=%d\n", nrepaired );
 
 	return 0;
@@ -354,7 +372,7 @@ vernum_db_open(
 	vernum_t *vn = (vernum_t *)on->on_bi.bi_private;
 
 	if ( SLAP_SINGLE_SHADOW( be ) ) {
-		Log1( LDAP_DEBUG_ANY, LDAP_LEVEL_ERR,
+		Log( LDAP_DEBUG_ANY, LDAP_LEVEL_ERR,
 			"vernum incompatible with shadow database \"%s\".\n",
 			be->be_suffix[ 0 ].bv_val );
 		return 1;

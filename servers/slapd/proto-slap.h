@@ -1,7 +1,25 @@
-/* $OpenLDAP$ */
-/* This work is part of OpenLDAP Software <http://www.openldap.org/>.
+/* $ReOpenLDAP$ */
+/* Copyright (c) 2015,2016 Leonid Yuriev <leo@yuriev.ru>.
+ * Copyright (c) 2015,2016 Peter-Service R&D LLC <http://billing.ru/>.
  *
- * Copyright 1998-2016 The OpenLDAP Foundation.
+ * This file is part of ReOpenLDAP.
+ *
+ * ReOpenLDAP is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation; either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * ReOpenLDAP is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * ---
+ *
+ * Copyright 1998-2014 The OpenLDAP Foundation.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -341,7 +359,9 @@ LDAP_SLAPD_F (Attribute *) attrs_dup LDAP_P(( Attribute *a ));
 LDAP_SLAPD_F (int) attr_init LDAP_P(( void ));
 LDAP_SLAPD_F (int) attr_destroy LDAP_P(( void ));
 
-void slap_backtrace_debug();
+void slap_backtrace_debug(void);
+void slap_backtrace_debug_ex(int skip, int deep, const char *caption);
+void slap_backtrace_log(void *array[], int nentries, const char *caption);
 void slap_backtrace_set_enable( int value );
 int slap_backtrace_get_enable();
 void slap_backtrace_set_dir(const char* path );
@@ -820,6 +840,7 @@ LDAP_SLAPD_F (void) connection_closing LDAP_P((
 LDAP_SLAPD_F (int) connection_valid LDAP_P(( Connection *c ));
 LDAP_SLAPD_F (const char *) connection_state2str LDAP_P(( int state ))
 	LDAP_GCCATTR((const));
+int connections_socket_troube(ber_socket_t s);
 
 LDAP_SLAPD_F (int) connection_read_activate LDAP_P((ber_socket_t s));
 LDAP_SLAPD_F (int) connection_write LDAP_P((ber_socket_t s));
@@ -908,7 +929,7 @@ void quorum_notify_status(BackendDB *bd, void* key, int status);
 int quorum_query(BackendDB *bd);
 void quorum_notify_csn(BackendDB *bd, int csnsid);
 int quorum_syncrepl_gate(BackendDB *bd, void *instance_key, int in);
-int quorum_query_status(BackendDB *bd, int running_only, BerValue*);
+int quorum_query_status(BackendDB *bd, int running_only, BerValue*, Operation *op);
 
 /*
  * daemon.c
@@ -996,18 +1017,9 @@ LDAP_SLAPD_V (int) slapd_tcp_rmem;
 LDAP_SLAPD_V (int) slapd_tcp_wmem;
 #endif /* LDAP_TCP_BUFFER */
 
-#ifdef HAVE_WINSOCK
-LDAP_SLAPD_F (ber_socket_t) slapd_socknew(ber_socket_t s);
-LDAP_SLAPD_F (ber_socket_t) slapd_sock2fd(ber_socket_t s);
-LDAP_SLAPD_V (SOCKET *) slapd_ws_sockets;
-#define	SLAP_FD2SOCK(s)	slapd_ws_sockets[s]
-#define	SLAP_SOCK2FD(s)	slapd_sock2fd(s)
-#define	SLAP_SOCKNEW(s)	slapd_socknew(s)
-#else
 #define	SLAP_FD2SOCK(s)	s
 #define	SLAP_SOCK2FD(s)	s
 #define	SLAP_SOCKNEW(s)	s
-#endif
 
 /*
  * dn.c
@@ -1123,13 +1135,8 @@ LDAP_SLAPD_F (void) entry_partsize LDAP_P(( Entry *e, ber_len_t *len,
 LDAP_SLAPD_F (int) entry_header LDAP_P(( EntryHeader *eh ));
 LDAP_SLAPD_F (int) entry_decode_dn LDAP_P((
 	EntryHeader *eh, struct berval *dn, struct berval *ndn ));
-#ifdef SLAP_ZONE_ALLOC
-LDAP_SLAPD_F (int) entry_decode LDAP_P((
-						EntryHeader *eh, Entry **e, void *ctx ));
-#else
 LDAP_SLAPD_F (int) entry_decode LDAP_P((
 						EntryHeader *eh, Entry **e ));
-#endif
 LDAP_SLAPD_F (int) entry_encode LDAP_P(( Entry *e, struct berval *bv ));
 
 LDAP_SLAPD_F (void) entry_clean LDAP_P(( Entry *e ));
@@ -2159,30 +2166,6 @@ LDAP_SLAPD_F (int) value_join_str LDAP_P((
 /* assumes (x) > (y) returns 1 if true, 0 otherwise */
 #define SLAP_PTRCMP(x, y) ((x) < (y) ? -1 : (x) > (y))
 
-#ifdef SLAP_ZONE_ALLOC
-/*
- * zn_malloc.c
- */
-LDAP_SLAPD_F (void *) slap_zn_malloc LDAP_P((ber_len_t, void *));
-LDAP_SLAPD_F (void *) slap_zn_realloc LDAP_P((void *, ber_len_t, void *));
-LDAP_SLAPD_F (void *) slap_zn_calloc LDAP_P((ber_len_t, ber_len_t, void *));
-LDAP_SLAPD_F (void) slap_zn_free LDAP_P((void *, void *));
-
-LDAP_SLAPD_F (void *) slap_zn_mem_create LDAP_P((
-							ber_len_t, ber_len_t, ber_len_t, ber_len_t));
-LDAP_SLAPD_F (void) slap_zn_mem_destroy LDAP_P((void *));
-LDAP_SLAPD_F (int) slap_zn_validate LDAP_P((void *, void *, int));
-LDAP_SLAPD_F (int) slap_zn_invalidate LDAP_P((void *, void *));
-LDAP_SLAPD_F (void) slap_zh_rlock LDAP_P((void*));
-LDAP_SLAPD_F (void) slap_zh_runlock LDAP_P((void*));
-LDAP_SLAPD_F (void) slap_zh_wlock LDAP_P((void*));
-LDAP_SLAPD_F (void) slap_zh_wunlock LDAP_P((void*));
-LDAP_SLAPD_F (void) slap_zn_rlock LDAP_P((void*, void*));
-LDAP_SLAPD_F (void) slap_zn_runlock LDAP_P((void*, void*));
-LDAP_SLAPD_F (void) slap_zn_wlock LDAP_P((void*, void*));
-LDAP_SLAPD_F (void) slap_zn_wunlock LDAP_P((void*, void*));
-#endif
-
 /*
  * Other...
  */
@@ -2216,7 +2199,6 @@ LDAP_SLAPD_V (char *)	global_realm;
 LDAP_SLAPD_V (char *)	sasl_host;
 LDAP_SLAPD_V (char *)	slap_sasl_auxprops;
 LDAP_SLAPD_V (char **)	default_passwd_hash;
-LDAP_SLAPD_V (int)		lber_debug;
 LDAP_SLAPD_V (int)		ldap_syslog;
 LDAP_SLAPD_V (struct berval)	default_search_base;
 LDAP_SLAPD_V (struct berval)	default_search_nbase;

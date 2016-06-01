@@ -1,10 +1,27 @@
 /* include/portable.hin.  Generated from configure.in by autoheader.  */
 
-
 /* begin of portable.h.pre */
-/* This work is part of OpenLDAP Software <http://www.openldap.org/>.
+/* Copyright (c) 2015,2016 Leonid Yuriev <leo@yuriev.ru>.
+ * Copyright (c) 2015,2016 Peter-Service R&D LLC <http://billing.ru/>.
  *
- * Copyright 1998-2016 The OpenLDAP Foundation
+ * This file is part of ReOpenLDAP.
+ *
+ * ReOpenLDAP is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation; either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * ReOpenLDAP is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * ---
+ *
+ * Copyright 1998-2014 The OpenLDAP Foundation
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -18,6 +35,16 @@
 
 #ifndef _LDAP_PORTABLE_H
 #define _LDAP_PORTABLE_H
+
+/* LY: Please do not ask us for Windows support, just never!
+ * But you can make a fork for Windows, or become maintainer for FreeBSD... */
+#ifndef __gnu_linux__
+#	error "ReOpenLDAP supports only GNU Linux"
+#endif
+
+#ifndef _GNU_SOURCE
+#	define _GNU_SOURCE
+#endif
 
 /* define this if needed to get reentrant functions */
 #ifndef REENTRANT
@@ -340,9 +367,6 @@
 /* Define to 1 if you have the <memory.h> header file. */
 #undef HAVE_MEMORY_H
 
-/* Define to 1 if you have the `memrchr' function. */
-#undef HAVE_MEMRCHR
-
 /* Define to 1 if you have the `mkstemp' function. */
 #undef HAVE_MKSTEMP
 
@@ -366,15 +390,6 @@
 
 /* Define to 1 if you have the <nssutil.h> header file. */
 #undef HAVE_NSSUTIL_H
-
-/* if you have NT Event Log */
-#undef HAVE_NT_EVENT_LOG
-
-/* if you have NT Service Manager */
-#undef HAVE_NT_SERVICE_MANAGER
-
-/* if you have NT Threads */
-#undef HAVE_NT_THREADS
 
 /* define if you have OpenSSL */
 #undef HAVE_OPENSSL
@@ -549,9 +564,6 @@
 
 /* Define to 1 if you have the <stdlib.h> header file. */
 #undef HAVE_STDLIB_H
-
-/* Define to 1 if you have the `strdup' function. */
-#undef HAVE_STRDUP
 
 /* Define to 1 if you have the `strerror' function. */
 #undef HAVE_STRERROR
@@ -776,18 +788,6 @@
 
 /* Define to 1 if you have the `waitpid' function. */
 #undef HAVE_WAITPID
-
-/* define if you have winsock */
-#undef HAVE_WINSOCK
-
-/* define if you have winsock2 */
-#undef HAVE_WINSOCK2
-
-/* Define to 1 if you have the <winsock2.h> header file. */
-#undef HAVE_WINSOCK2_H
-
-/* Define to 1 if you have the <winsock.h> header file. */
-#undef HAVE_WINSOCK_H
 
 /* Define to 1 if you have the `write' function. */
 #undef HAVE_WRITE
@@ -1120,13 +1120,6 @@
 
 /* begin of portable.h.post */
 
-#include "reopenldap.h"
-
-#ifdef _WIN32
-	/* don't suck in all of the win32 api */
-#	define WIN32_LEAN_AND_MEAN 1
-#endif
-
 #ifndef LDAP_NEEDS_PROTOTYPES
 	/* force LDAP_P to always include prototypes */
 #	define LDAP_NEEDS_PROTOTYPES 1
@@ -1140,6 +1133,10 @@
 #	if defined(LDAP_DEVEL) && !defined(LDAP_TEST)
 #		define LDAP_TEST
 #	endif
+#endif
+
+#ifdef HAVE_ANSIDECL_H
+#	include <ansidecl.h>
 #endif
 
 #ifdef HAVE_STDDEF_H
@@ -1165,6 +1162,8 @@
 #include "ldap_features.h"
 
 #include "ac/localize.h"
+
+#include "reopenldap.h"
 
 #endif /* _LDAP_PORTABLE_H */
 /* end of portable.h.post */

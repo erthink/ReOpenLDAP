@@ -1,8 +1,26 @@
 /* idl.c - ldap id list handling routines */
-/* $OpenLDAP$ */
-/* This work is part of OpenLDAP Software <http://www.openldap.org/>.
+/* $ReOpenLDAP$ */
+/* Copyright (c) 2015,2016 Leonid Yuriev <leo@yuriev.ru>.
+ * Copyright (c) 2015,2016 Peter-Service R&D LLC <http://billing.ru/>.
  *
- * Copyright 2000-2016 The OpenLDAP Foundation.
+ * This file is part of ReOpenLDAP.
+ *
+ * ReOpenLDAP is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation; either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * ReOpenLDAP is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * ---
+ *
+ * Copyright 2000-2014 The OpenLDAP Foundation.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -79,7 +97,7 @@ unsigned mdb_idl_search( ID *ids, ID id )
 	int val = 0;
 	unsigned n = ids[0];
 
-	if (reopenldap_mode_idkfa())
+	if (reopenldap_mode_check())
 		idl_check( ids );
 
 	while( 0 < n ) {
@@ -108,7 +126,7 @@ unsigned mdb_idl_search( ID *ids, ID id )
 	/* (reverse) linear search */
 	int i;
 
-	if (reopenldap_mode_idkfa())
+	if (reopenldap_mode_check())
 		idl_check( ids );
 
 	for( i=ids[0]; i; i-- ) {
@@ -129,7 +147,7 @@ int mdb_idl_insert( ID *ids, ID id )
 	Debug( LDAP_DEBUG_ANY, "insert: %04lx at %d\n", (long) id, x );
 	idl_dump( ids );
 #else
-	if (reopenldap_mode_idkfa())
+	if (reopenldap_mode_check())
 		idl_check( ids );
 #endif /* IDL_DEBUG */
 
@@ -177,7 +195,7 @@ int mdb_idl_insert( ID *ids, ID id )
 #if IDL_DEBUG
 	idl_dump( ids );
 #else
-	if (reopenldap_mode_idkfa())
+	if (reopenldap_mode_check())
 		idl_check( ids );
 #endif /* IDL_DEBUG */
 
@@ -193,7 +211,7 @@ static int mdb_idl_delete( ID *ids, ID id )
 	Debug( LDAP_DEBUG_ANY, "delete: %04lx at %d\n", (long) id, x );
 	idl_dump( ids );
 #else
-	if (reopenldap_mode_idkfa())
+	if (reopenldap_mode_check())
 		idl_check( ids );
 #endif /* IDL_DEBUG */
 
@@ -237,7 +255,7 @@ static int mdb_idl_delete( ID *ids, ID id )
 #if IDL_DEBUG
 	idl_dump( ids );
 #else
-	if (reopenldap_mode_idkfa())
+	if (reopenldap_mode_check())
 		idl_check( ids );
 #endif /* IDL_DEBUG */
 

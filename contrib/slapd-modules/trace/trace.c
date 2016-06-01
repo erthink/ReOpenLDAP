@@ -1,8 +1,26 @@
 /* trace.c - traces overlay invocation */
-/* $OpenLDAP$ */
-/* This work is part of OpenLDAP Software <http://www.openldap.org/>.
+/* $ReOpenLDAP$ */
+/* Copyright (c) 2015,2016 Leonid Yuriev <leo@yuriev.ru>.
+ * Copyright (c) 2015,2016 Peter-Service R&D LLC <http://billing.ru/>.
  *
- * Copyright 2006-2016 The OpenLDAP Foundation.
+ * This file is part of ReOpenLDAP.
+ *
+ * ReOpenLDAP is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation; either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * ReOpenLDAP is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * ---
+ *
+ * Copyright 2006-2014 The OpenLDAP Foundation.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -90,7 +108,7 @@ trace_op_func( Operation *op, SlapReply *rs )
 
 	switch ( op->o_tag ) {
 	case LDAP_REQ_EXTENDED:
-		Log3( LDAP_DEBUG_ANY, LDAP_LEVEL_INFO,
+		Log( LDAP_DEBUG_ANY, LDAP_LEVEL_INFO,
 			"%s trace op=EXTENDED dn=\"%s\" reqoid=%s\n",
 			op->o_log_prefix,
 			BER_BVISNULL( &op->o_req_ndn ) ? "(null)" : op->o_req_ndn.bv_val,
@@ -98,7 +116,7 @@ trace_op_func( Operation *op, SlapReply *rs )
 		break;
 
 	default:
-		Log3( LDAP_DEBUG_ANY, LDAP_LEVEL_INFO,
+		Log( LDAP_DEBUG_ANY, LDAP_LEVEL_INFO,
 			"%s trace op=%s dn=\"%s\"\n",
 			op->o_log_prefix, op_str,
 			BER_BVISNULL( &op->o_req_ndn ) ? "(null)" : op->o_req_ndn.bv_val );
@@ -117,7 +135,7 @@ trace_response( Operation *op, SlapReply *rs )
 
 	switch ( op->o_tag ) {
 	case LDAP_REQ_EXTENDED:
-		Log5( LDAP_DEBUG_ANY, LDAP_LEVEL_INFO,
+		Log( LDAP_DEBUG_ANY, LDAP_LEVEL_INFO,
 			"%s trace op=EXTENDED RESPONSE dn=\"%s\" reqoid=%s rspoid=%s err=%d\n",
 			op->o_log_prefix,
 			BER_BVISNULL( &op->o_req_ndn ) ? "(null)" : op->o_req_ndn.bv_val,
@@ -129,14 +147,14 @@ trace_response( Operation *op, SlapReply *rs )
 	case LDAP_REQ_SEARCH:
 		switch ( rs->sr_type ) {
 		case REP_SEARCH:
-			Log2( LDAP_DEBUG_ANY, LDAP_LEVEL_INFO,
+			Log( LDAP_DEBUG_ANY, LDAP_LEVEL_INFO,
 				"%s trace op=SEARCH ENTRY dn=\"%s\"\n",
 				op->o_log_prefix,
 				rs->sr_entry->e_name.bv_val );
 			goto done;
 
 		case REP_SEARCHREF:
-			Log2( LDAP_DEBUG_ANY, LDAP_LEVEL_INFO,
+			Log( LDAP_DEBUG_ANY, LDAP_LEVEL_INFO,
 				"%s trace op=SEARCH REFERENCE ref=\"%s\"\n",
 				op->o_log_prefix,
 				rs->sr_ref[ 0 ].bv_val );
@@ -151,7 +169,7 @@ trace_response( Operation *op, SlapReply *rs )
 		/* fallthru */
 
 	default:
-		Log4( LDAP_DEBUG_ANY, LDAP_LEVEL_INFO,
+		Log( LDAP_DEBUG_ANY, LDAP_LEVEL_INFO,
 			"%s trace op=%s RESPONSE dn=\"%s\" err=%d\n",
 			op->o_log_prefix,
 			op_str,
@@ -168,7 +186,7 @@ static int
 trace_db_init(
 	BackendDB *be, ConfigReply *cr )
 {
-	Log0( LDAP_DEBUG_ANY, LDAP_LEVEL_INFO,
+	Log( LDAP_DEBUG_ANY, LDAP_LEVEL_INFO,
 		"trace DB_INIT\n" );
 
 	return 0;
@@ -182,7 +200,7 @@ trace_db_config(
 	int		argc,
 	char		**argv )
 {
-	Log2( LDAP_DEBUG_ANY, LDAP_LEVEL_INFO,
+	Log( LDAP_DEBUG_ANY, LDAP_LEVEL_INFO,
 		"trace DB_CONFIG argc=%d argv[0]=\"%s\"\n",
 		argc, argv[ 0 ] );
 
@@ -193,7 +211,7 @@ static int
 trace_db_open(
 	BackendDB *be, ConfigReply *cr )
 {
-	Log0( LDAP_DEBUG_ANY, LDAP_LEVEL_INFO,
+	Log( LDAP_DEBUG_ANY, LDAP_LEVEL_INFO,
 		"trace DB_OPEN\n" );
 
 	return 0;
@@ -203,7 +221,7 @@ static int
 trace_db_close(
 	BackendDB *be, ConfigReply *cr )
 {
-	Log0( LDAP_DEBUG_ANY, LDAP_LEVEL_INFO,
+	Log( LDAP_DEBUG_ANY, LDAP_LEVEL_INFO,
 		"trace DB_CLOSE\n" );
 
 	return 0;
@@ -213,7 +231,7 @@ static int
 trace_db_destroy(
 	BackendDB *be, ConfigReply *cr )
 {
-	Log0( LDAP_DEBUG_ANY, LDAP_LEVEL_INFO,
+	Log( LDAP_DEBUG_ANY, LDAP_LEVEL_INFO,
 		"trace DB_DESTROY\n" );
 
 	return 0;

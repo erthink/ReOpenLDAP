@@ -1,8 +1,26 @@
 /* bconfig.c - the config backend */
-/* $OpenLDAP$ */
-/* This work is part of OpenLDAP Software <http://www.openldap.org/>.
+/* $ReOpenLDAP$ */
+/* Copyright (c) 2015,2016 Leonid Yuriev <leo@yuriev.ru>.
+ * Copyright (c) 2015,2016 Peter-Service R&D LLC <http://billing.ru/>.
  *
- * Copyright 2005-2016 The OpenLDAP Foundation.
+ * This file is part of ReOpenLDAP.
+ *
+ * ReOpenLDAP is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation; either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * ReOpenLDAP is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * ---
+ *
+ * Copyright 2005-2014 The OpenLDAP Foundation.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -122,8 +140,6 @@ static ConfigDriver config_timelimit;
 static ConfigDriver config_overlay;
 static ConfigDriver config_subordinate;
 static ConfigDriver config_suffix;
-static ConfigDriver config_biglock;
-static ConfigDriver config_reopenldap;
 #ifdef LDAP_TCP_BUFFER
 static ConfigDriver config_tcp_buffer;
 #endif /* LDAP_TCP_BUFFER */
@@ -145,8 +161,12 @@ static ConfigDriver config_obsolete;
 static ConfigDriver config_tls_option;
 static ConfigDriver config_tls_config;
 #endif
-extern ConfigDriver syncrepl_config;
-extern ConfigDriver quorum_config;
+
+extern ConfigDriver config_syncrepl;
+extern ConfigDriver config_quorum;
+static ConfigDriver config_biglock;
+static ConfigDriver config_reopenldap;
+extern ConfigDriver config_keepalive;
 
 enum {
 	CFG_ACL = 1,
@@ -641,7 +661,7 @@ static ConfigTable config_back_cf_table[] = {
 			"DESC 'Store sync context in a subentry' "
 			"SYNTAX OMsBoolean SINGLE-VALUE )", NULL, NULL },
 	{ "syncrepl", NULL, 0, 0, 0, ARG_DB|ARG_MAGIC,
-		&syncrepl_config, "( OLcfgDbAt:0.11 NAME 'olcSyncrepl' "
+		&config_syncrepl, "( OLcfgDbAt:0.11 NAME 'olcSyncrepl' "
 			"EQUALITY caseIgnoreMatch "
 			"SYNTAX OMsDirectoryString X-ORDERED 'VALUES' )", NULL, NULL },
 	{ "tcp-buffer", "[listener=<listener>] [{read|write}=]size", 0, 0, 0,
@@ -790,7 +810,12 @@ static ConfigTable config_back_cf_table[] = {
 			"EQUALITY caseIgnoreMatch "
 			"SYNTAX OMsDirectoryString SINGLE-VALUE )", NULL, NULL },
 	{ "quorum", "requirements-list", 2, 0, 0, ARG_DB|ARG_MAGIC,
-		&quorum_config, "( OLcfgDbAt:0.47 NAME 'olcQuorum' "
+		&config_quorum, "( OLcfgDbAt:0.47 NAME 'olcQuorum' "
+			"EQUALITY caseIgnoreMatch "
+			"SYNTAX OMsDirectoryString SINGLE-VALUE )", NULL, NULL },
+	{ "keepalive", "idle:probes:interval", 2, 2, 0, ARG_STRING|ARG_MAGIC,
+		&config_keepalive, "( OLcfgGlAt:0.48 NAME 'olcTcpKeepalive' "
+			"DESC 'TCP Keepalive' "
 			"EQUALITY caseIgnoreMatch "
 			"SYNTAX OMsDirectoryString SINGLE-VALUE )", NULL, NULL },
 	{ NULL,	NULL, 0, 0, 0, ARG_IGNORED,
@@ -1310,7 +1335,7 @@ config_generic(ConfigArgs *c) {
 			ch_free( logfileName );
 			logfileName = NULL;
 			if ( logfile ) {
-				lutil_debug_file( NULL );
+				ldap_debug_file( NULL );
 				fclose( logfile );
 				logfile = NULL;
 			}
@@ -2011,11 +2036,11 @@ sortval_reject:
 				logfileName = c->value_string;
 				c->value_string = NULL;
 				if ( logfile ) {
-					lutil_debug_file( NULL );
+					ldap_debug_file( NULL );
 					fclose( logfile );
 				}
 				logfile = fopen(logfileName, "w");
-				if(logfile) lutil_debug_file(logfile);
+				if(logfile) ldap_debug_file(logfile);
 			} break;
 
 		case CFG_LASTMOD:
@@ -3048,7 +3073,7 @@ config_suffix(ConfigArgs *c)
 		while (( b2 = LDAP_STAILQ_NEXT(b2, be_next )) && b2 && b2 != c->be );
 
 		if ( b2 ) {
-			char	*type = tbe->bd_info->bi_type;
+			const char *type = tbe->bd_info->bi_type;
 
 			if ( overlay_is_over( tbe ) ) {
 				slap_overinfo	*oi = (slap_overinfo *)tbe->bd_info->bi_private;
@@ -3182,10 +3207,14 @@ config_reopenldap(ConfigArgs *c)
 	slap_mask_t flags = 0;
 	int i = INT_MAX;
 	static const slap_verbmasks reopenldap_ops[] = {
+		{ BER_BVC("righteous"),	REOPENLDAP_FLAG_IDDQD },
+		{ BER_BVC("check"),		REOPENLDAP_FLAG_IDKFA },
+		{ BER_BVC("strict"),	REOPENLDAP_FLAG_IDCLIP },
+		{ BER_BVC("jitter"),	REOPENLDAP_FLAG_JITTER },
+
 		{ BER_BVC("iddqd"),		REOPENLDAP_FLAG_IDDQD },
 		{ BER_BVC("idkfa"),		REOPENLDAP_FLAG_IDKFA },
 		{ BER_BVC("idclip"),	REOPENLDAP_FLAG_IDCLIP },
-		{ BER_BVC("jitter"),	REOPENLDAP_FLAG_JITTER },
 		{ BER_BVNULL,	0 }
 	};
 
@@ -3496,7 +3525,7 @@ loglevel_destroy( void )
 	}
 
 	if ( logfile ) {
-		lutil_debug_file( NULL );
+		ldap_debug_file( NULL );
 		fclose( logfile );
 		logfile = NULL;
 	}

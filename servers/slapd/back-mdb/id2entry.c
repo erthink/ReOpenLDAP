@@ -1,8 +1,26 @@
 /* id2entry.c - routines to deal with the id2entry database */
-/* $OpenLDAP$ */
-/* This work is part of OpenLDAP Software <http://www.openldap.org/>.
+/* $ReOpenLDAP$ */
+/* Copyright (c) 2015,2016 Leonid Yuriev <leo@yuriev.ru>.
+ * Copyright (c) 2015,2016 Peter-Service R&D LLC <http://billing.ru/>.
  *
- * Copyright 2000-2016 The OpenLDAP Foundation.
+ * This file is part of ReOpenLDAP.
+ *
+ * ReOpenLDAP is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation; either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * ReOpenLDAP is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * ---
+ *
+ * Copyright 2000-2014 The OpenLDAP Foundation.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -554,7 +572,7 @@ static int mdb_entry_partsize(struct mdb_info *mdb, MDB_txn *txn, Entry *e,
 			len += a->a_vals[i].bv_len + 1 + sizeof(int);	/* len */
 		}
 		if (a->a_nvals != a->a_vals) {
-			if (! reopenldap_mode_iddqd())
+			if (! reopenldap_mode_righteous())
 				goto dont_skip_dups;
 			for (i=0; i<a->a_numvals; i++) {
 				if (! bvmatch(&a->a_vals[i], &a->a_nvals[i])) {
@@ -568,7 +586,7 @@ static int mdb_entry_partsize(struct mdb_info *mdb, MDB_txn *txn, Entry *e,
 			}
 		}
 	}
-	if (! reopenldap_mode_iddqd()) {
+	if (! reopenldap_mode_righteous()) {
 		/* padding */
 		len = (len + sizeof(ID)-1) & ~(sizeof(ID)-1);
 	}
@@ -636,7 +654,7 @@ static int mdb_entry_encode(Operation *op, Entry *e, MDB_val *data, Ecount *eh)
 
 		l = a->a_numvals;
 		if (a->a_nvals != a->a_vals) {
-			if (reopenldap_mode_iddqd()) {
+			if (reopenldap_mode_righteous()) {
 				for (i=0; i<a->a_numvals; i++) {
 					if (! bvmatch(&a->a_vals[i], &a->a_nvals[i])) {
 						l |= HIGH_BIT;

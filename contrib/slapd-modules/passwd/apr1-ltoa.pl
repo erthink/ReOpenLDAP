@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# OpenLDAP {APR1} to Apache $apr1$ hash converter
+# ReOpenLDAP {APR1} to Apache $apr1$ hash converter
 # (C) 2011 Devin J. Pohly
 # You may use this code freely.  It would be nice to be credited.
 

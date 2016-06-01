@@ -1,7 +1,25 @@
-/* $OpenLDAP$ */
-/* This work is part of OpenLDAP Software <http://www.openldap.org/>.
+/* $ReOpenLDAP$ */
+/* Copyright (c) 2015,2016 Leonid Yuriev <leo@yuriev.ru>.
+ * Copyright (c) 2015,2016 Peter-Service R&D LLC <http://billing.ru/>.
  *
- * Copyright 1999-2016 The OpenLDAP Foundation.
+ * This file is part of ReOpenLDAP.
+ *
+ * ReOpenLDAP is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation; either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * ReOpenLDAP is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * ---
+ *
+ * Copyright 1999-2014 The OpenLDAP Foundation.
  * Portions Copyright 2001-2003 Pierangelo Masarati.
  * Portions Copyright 1999-2003 Howard Chu.
  * All rights reserved.
@@ -680,10 +698,8 @@ error_return:;
 
 	if ( rs->sr_err != LDAP_SUCCESS ) {
 		/* Get the error message and print it in TRACE mode */
-		if ( LogTest( LDAP_DEBUG_TRACE ) ) {
-			Log4( LDAP_DEBUG_TRACE, ldap_syslog_level, "%s: meta_back_init_one_conn[%d] failed err=%d text=%s\n",
-				op->o_log_prefix, candidate, rs->sr_err, rs->sr_text );
-		}
+		Debug( LDAP_DEBUG_TRACE, "%s: meta_back_init_one_conn[%d] failed err=%d text=%s\n",
+			op->o_log_prefix, candidate, rs->sr_err, rs->sr_text );
 
 		rs->sr_err = slap_map_api2result( rs );
 		if ( sendok & LDAP_BACK_SENDERR ) {
@@ -1594,11 +1610,11 @@ retry_lock2:;
 					err = lerr;
 
 					if ( lerr == LDAP_UNAVAILABLE && mt->mt_isquarantined != LDAP_BACK_FQ_NO ) {
-						Log4( LDAP_DEBUG_TRACE, ldap_syslog_level, "%s: meta_back_getconn[%d] quarantined err=%d text=%s\n",
+						Debug( LDAP_DEBUG_TRACE, "%s: meta_back_getconn[%d] quarantined err=%d text=%s\n",
 							op->o_log_prefix, i, lerr, rs->sr_text );
 
 					} else {
-						Log4( LDAP_DEBUG_ANY, ldap_syslog, "%s: meta_back_getconn[%d] failed err=%d text=%s\n",
+						Debug( LDAP_DEBUG_ANY, "%s: meta_back_getconn[%d] failed err=%d text=%s\n",
 							op->o_log_prefix, i, lerr, rs->sr_text );
 					}
 

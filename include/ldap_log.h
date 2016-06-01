@@ -1,7 +1,25 @@
-/* $OpenLDAP$ */
-/* This work is part of OpenLDAP Software <http://www.openldap.org/>.
+/* $ReOpenLDAP$ */
+/* Copyright (c) 2015,2016 Leonid Yuriev <leo@yuriev.ru>.
+ * Copyright (c) 2015,2016 Peter-Service R&D LLC <http://billing.ru/>.
  *
- * Copyright 1998-2016 The OpenLDAP Foundation.
+ * This file is part of ReOpenLDAP.
+ *
+ * ReOpenLDAP is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation; either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * ReOpenLDAP is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * ---
+ *
+ * Copyright 1998-2014 The OpenLDAP Foundation.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -132,18 +150,18 @@ LDAP_BEGIN_DECL
      * a 'proper' dllimport.
      */
 #ifndef ldap_debug
-extern int	ldap_debug;
+LDAP_V(int)	ldap_debug;
 #endif /* !ldap_debug */
 
 #endif /* LDAP_DEBUG */
 
 #ifdef LDAP_SYSLOG
-extern int	ldap_syslog;
-extern int	ldap_syslog_level;
+LDAP_V(int)	ldap_syslog;
+LDAP_V(int)	ldap_syslog_level;
 
 #ifdef HAVE_EBCDIC
-#define syslog	eb_syslog
-extern void eb_syslog(int pri, const char *fmt, ...);
+#define syslog	_ldap_eb_syslog
+LDAP_F(void) _ldap_eb_syslog(int pri, const char *fmt, ...);
 #endif /* HAVE_EBCDIC */
 
 #endif /* LDAP_SYSLOG */
@@ -155,7 +173,7 @@ extern void eb_syslog(int pri, const char *fmt, ...);
 #		define Log( level, severity, ... )	\
 			do { \
 				if ( ldap_debug & (level) ) \
-					lutil_debug_print( __VA_ARGS__ ); \
+					ldap_debug_print( __VA_ARGS__ ); \
 				if ( ldap_syslog & (level) ) \
 					syslog( LDAP_LEVEL_MASK((severity)), __VA_ARGS__ ); \
 			} while ( 0 )
@@ -174,7 +192,7 @@ extern void eb_syslog(int pri, const char *fmt, ...);
 #		define Log( level, severity, ... )	\
 			do { \
 				if ( ldap_debug & (level) ) \
-					lutil_debug_print( __VA_ARGS__ ); \
+					ldap_debug_print( __VA_ARGS__ ); \
 			} while ( 0 )
 #		define LogTest(level) ( ldap_debug & (level) )
 #	else /* ! LDAP_DEBUG */
@@ -183,35 +201,26 @@ extern void eb_syslog(int pri, const char *fmt, ...);
 #	endif /* ! LDAP_DEBUG */
 #endif /* ! LDAP_SYSLOG */
 
-#define Log0( level, severity, fmt ) \
-	Log( ldap_debug, (level), (fmt) )
-#define Log1( level, severity, fmt, arg1 ) \
-	Log( ldap_debug, (level), (fmt), arg1 )
-#define Log2( level, severity, fmt, arg1, arg2 ) \
-	Log( ldap_debug, (level), (fmt), arg1, arg2 )
-#define Log3( level, severity, fmt, arg1, arg2, arg3 ) \
-	Log( ldap_debug, (level), (fmt), arg1, arg2, arg3 )
-#define Log4( level, severity, fmt, arg1, arg2, arg3, arg4 ) \
-	Log( ldap_debug, (level), (fmt), arg1, arg2, arg3, arg4 )
-#define Log5( level, severity, fmt, arg1, arg2, arg3, arg4, arg5 ) \
-	Log( ldap_debug, (level), (fmt), arg1, arg2, arg3, arg4, arg5 )
-
 #define Debug( level, ... )	\
 	Log( (level), ldap_syslog_level, __VA_ARGS__ )
 
 
 /* Actually now in liblber/debug.c */
-LDAP_LUTIL_F(int) lutil_debug_file LDAP_P(( FILE *file ));
+LDAP_LUTIL_F(int) ldap_debug_file LDAP_P(( FILE *file ));
 
-LDAP_LUTIL_F(void) lutil_debug LDAP_P((
+LDAP_LUTIL_F(void) ldap_debug_log LDAP_P((
 	int debug, int level,
 	const char* fmt, ... )) LDAP_GCCATTR((format(printf, 3, 4)));
 
-LDAP_LUTIL_F(void) lutil_debug_print LDAP_P((
+LDAP_LUTIL_F(void) ldap_debug_print LDAP_P((
 	const char* fmt, ... )) LDAP_GCCATTR((format(printf, 1, 2)));
 
-LDAP_LUTIL_F(void) lutil_debug_va LDAP_P((
+LDAP_LUTIL_F(void) ldap_debug_va LDAP_P((
 	const char* fmt, va_list args ));
+
+LDAP_LUTIL_F(void) ldap_debug_lock(void);
+LDAP_LUTIL_F(int) ldap_debug_trylock(void);
+LDAP_LUTIL_F(void) ldap_debug_unlock(void);
 
 #ifdef LDAP_DEFINE_LDAP_DEBUG
 /* This struct matches the head of ldapoptions in <ldap-int.h> */

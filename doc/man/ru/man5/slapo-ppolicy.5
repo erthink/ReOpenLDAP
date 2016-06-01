@@ -1,7 +1,27 @@
-.\" Copyright 2004-2015 The OpenLDAP Foundation All Rights Reserved.
+.TH SLAPO_PPOLICY 5 "RELEASEDATE" "ReOpenLDAP LDVERSION"
+.\" $ReOpenLDAP$
+.\" Copyright (c) 2015,2016 Leonid Yuriev <leo@yuriev.ru>.
+.\" Copyright (c) 2015,2016 Peter-Service R&D LLC <http://billing.ru/>.
+.\"
+.\" This file is part of ReOpenLDAP.
+.\"
+.\" ReOpenLDAP is free software; you can redistribute it and/or modify it under
+.\" the terms of the GNU Affero General Public License as published by
+.\" the Free Software Foundation; either version 3 of the License, or
+.\" (at your option) any later version.
+.\"
+.\" ReOpenLDAP is distributed in the hope that it will be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+.\" GNU Affero General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU Affero General Public License
+.\" along with this program.  If not, see <http://www.gnu.org/licenses/>.
+.\"
+.\" ---
+.\"
+.\" Copyright 2004-2014 The OpenLDAP Foundation All Rights Reserved.
 .\" Copying restrictions apply.  See COPYRIGHT/LICENSE.
-.\" $OpenLDAP$
-.TH SLAPO_PPOLICY 5 "RELEASEDATE" "OpenLDAP LDVERSION"
 .SH НАЗВАНИЕ
 slapo\-ppolicy \- наложение slapd политики паролей.
 .SH ОБЗОР
@@ -380,7 +400,7 @@ ETCDIR/slapd.conf
 .B pwdAllowUserChange
 был определён в спецификации политики паролей в основном для того, чтобы обеспечить возможность
 грубого контроля доступа к парольному атрибуту для систем, где не реализована воможность тонкого
-контроля доступа. Поскольку в OpenLDAP имеется развитая подсистема контроля доступа, использовать
+контроля доступа. Поскольку в ReOpenLDAP имеется развитая подсистема контроля доступа, использовать
 этот атрибут не рекомендуется, лучше применять ACL (смотрите
 .BR slapd.access (5)).
 .LP
@@ -484,7 +504,7 @@ int
 строго говоря, не является составной частью модуля
 .BR ppolicy .
 Однако этот атрибут отслеживается и контролируется этим модулем. Определение этого атрибута можно
-найти в стандартном наборе схемы данных OpenLDAP.
+найти в стандартном наборе схемы данных ReOpenLDAP.
 
 .B pwdPolicySubentry
 .P
@@ -683,7 +703,7 @@ data =
 .LP
 .RS
 .nf
-database bdb
+database mdb
 suffix dc=example,dc=com
 \|...
 overlay ppolicy

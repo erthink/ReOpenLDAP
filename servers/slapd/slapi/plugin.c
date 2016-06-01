@@ -1,7 +1,25 @@
-/* $OpenLDAP$ */
-/* This work is part of OpenLDAP Software <http://www.openldap.org/>.
+/* $ReOpenLDAP$ */
+/* Copyright (c) 2015,2016 Leonid Yuriev <leo@yuriev.ru>.
+ * Copyright (c) 2015,2016 Peter-Service R&D LLC <http://billing.ru/>.
  *
- * Copyright 2002-2016 The OpenLDAP Foundation.
+ * This file is part of ReOpenLDAP.
+ *
+ * ReOpenLDAP is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation; either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * ReOpenLDAP is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * ---
+ *
+ * Copyright 2002-2014 The OpenLDAP Foundation.
  * Portions Copyright 1997,2002-2003 IBM Corporation.
  * All rights reserved.
  *
@@ -511,14 +529,14 @@ slapi_int_get_supported_extop( int index )
 /*********************************************************************
  * Function Name:      slapi_int_load_plugin
  *
- * Description:        This routine loads the specified DLL, gets and executes the init function
+ * Description:        This routine loads the specified solib, gets and executes the init function
  *                     if requested.
  *
  * Input:
  *                     pPlugin - a pointer to a Slapi_PBlock struct which will be passed to
- *                               the DLL init function.
- *                     path - path name of the DLL to be load.
- *                     initfunc - either the DLL initialization function or an OID of the
+ *                               the solib init function.
+ *                     path - path name of the solib to be load.
+ *                     initfunc - either the solib initialization function or an OID of the
  *                                loaded extended operation.
  *                     doInit - if it is TRUE, execute the init function, otherwise, save the
  *                              function address but not execute it.
@@ -744,4 +762,3 @@ slapi_int_plugin_unparse(
 		ber_bvarray_add( out, &bv );
 	}
 }
-

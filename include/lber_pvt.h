@@ -1,7 +1,25 @@
-/* $OpenLDAP$ */
-/* This work is part of OpenLDAP Software <http://www.openldap.org/>.
+/* $ReOpenLDAP$ */
+/* Copyright (c) 2015,2016 Leonid Yuriev <leo@yuriev.ru>.
+ * Copyright (c) 2015,2016 Peter-Service R&D LLC <http://billing.ru/>.
  *
- * Copyright 1998-2016 The OpenLDAP Foundation.
+ * This file is part of ReOpenLDAP.
+ *
+ * ReOpenLDAP is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation; either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * ReOpenLDAP is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * ---
+ *
+ * Copyright 1998-2014 The OpenLDAP Foundation.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -173,7 +191,7 @@ ber_bvarray_dup_x LDAP_P(( BerVarray *dst, BerVarray src, void *ctx ));
 	((char *) memchr( (bv)->bv_val, (c), (bv)->bv_len ))
 
 #define ber_bvrchr(bv,c) \
-	((char *) lutil_memrchr( (bv)->bv_val, (c), (bv)->bv_len ))
+	((char *) memrchr( (bv)->bv_val, (c), (bv)->bv_len ))
 
 #define ber_bvchr_post(dst,bv,c) \
 	do { \
@@ -190,13 +208,13 @@ ber_bvarray_dup_x LDAP_P(( BerVarray *dst, BerVarray src, void *ctx ));
 
 #define ber_bvrchr_post(dst,bv,c) \
 	do { \
-		(dst)->bv_val = lutil_memrchr( (bv)->bv_val, (c), (bv)->bv_len ); \
+		(dst)->bv_val = memrchr( (bv)->bv_val, (c), (bv)->bv_len ); \
 		(dst)->bv_len = (dst)->bv_val ? (bv)->bv_len - ((dst)->bv_val - (bv)->bv_val) : 0; \
 	} while (0)
 
 #define ber_bvrchr_pre(dst,bv,c) \
 	do { \
-		(dst)->bv_val = lutil_memrchr( (bv)->bv_val, (c), (bv)->bv_len ); \
+		(dst)->bv_val = memrchr( (bv)->bv_val, (c), (bv)->bv_len ); \
 		(dst)->bv_len = (dst)->bv_val ? ((dst)->bv_val - (bv)->bv_val) : (bv)->bv_len; \
 		(dst)->bv_val = (bv)->bv_val; \
 	} while (0)
@@ -219,4 +237,3 @@ ber_bvarray_dup_x LDAP_P(( BerVarray *dst, BerVarray src, void *ctx ));
 LDAP_END_DECL
 
 #endif
-

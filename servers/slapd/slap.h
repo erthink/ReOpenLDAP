@@ -1,8 +1,26 @@
 /* slap.h - stand alone ldap server include file */
-/* $OpenLDAP$ */
-/* This work is part of OpenLDAP Software <http://www.openldap.org/>.
+/* $ReOpenLDAP$ */
+/* Copyright (c) 2015,2016 Leonid Yuriev <leo@yuriev.ru>.
+ * Copyright (c) 2015,2016 Peter-Service R&D LLC <http://billing.ru/>.
  *
- * Copyright 1998-2016 The OpenLDAP Foundation.
+ * This file is part of ReOpenLDAP.
+ *
+ * ReOpenLDAP is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation; either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * ReOpenLDAP is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * ---
+ *
+ * Copyright 1998-2014 The OpenLDAP Foundation.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -41,6 +59,10 @@
 #include <ac/param.h>
 
 #include "avl.h"
+
+#if SLAPD_BIGLOCK_TRACELATENCY > 1
+#	include <execinfo.h>
+#endif
 
 #ifndef ldap_debug
 #define ldap_debug slap_debug
@@ -1788,6 +1810,14 @@ struct slap_biglock {
 	volatile ldap_pvt_thread_t _bl_owner;
 	volatile int bl_recursion;
 	int bl_free_on_release;
+
+#if SLAPD_BIGLOCK_TRACELATENCY > 0
+	uint64_t bl_timestamp_ns;
+	void *bl_backtrace[SLAPD_BIGLOCK_TRACELATENCY];
+#if SLAPD_BIGLOCK_TRACELATENCY > 1
+	int bl_backtrace_deep;
+#endif
+#endif /* SLAPD_BIGLOCK_TRACELATENCY */
 };
 
 struct BackendDB {
@@ -2236,7 +2266,7 @@ typedef ID (BI_tool_entry_modify) LDAP_P(( BackendDB *be, Entry *e,
 	struct berval *text ));
 
 struct BackendInfo {
-	char	*bi_type; /* type of backend */
+	const char	*bi_type; /* type of backend */
 
 	/*
 	 * per backend type routines:
@@ -2412,8 +2442,8 @@ typedef struct slap_callback {
 	struct slap_callback *sc_next;
 	slap_response *sc_response;
 	slap_response *sc_cleanup;
-	slap_writewait *sc_writewait;
 	void *sc_private;
+	slap_writewait *sc_writewait;
 } slap_callback;
 
 struct slap_overinfo;
@@ -3123,9 +3153,6 @@ typedef int (*SLAP_ENTRY_INFO_FN) LDAP_P(( void *arg, Entry *e ));
 #define SLAP_SLAB_SIZE	(1024*1024)
 #define SLAP_SLAB_STACK 1
 
-#define SLAP_ZONE_ALLOC 1
-#undef SLAP_ZONE_ALLOC
-
 #ifdef LDAP_COMP_MATCH
 /*
  * Extensible Filter Definition
@@ -3350,53 +3377,6 @@ struct ComponentSyntaxInfo {
 };
 
 #endif /* LDAP_COMP_MATCH */
-
-#ifdef SLAP_ZONE_ALLOC
-#define SLAP_ZONE_SIZE 0x80000		/* 512KB */
-#define SLAP_ZONE_SHIFT 19
-#define SLAP_ZONE_INITSIZE 0x800000 /* 8MB */
-#define SLAP_ZONE_MAXSIZE 0x80000000/* 2GB */
-#define SLAP_ZONE_DELTA 0x800000	/* 8MB */
-#define SLAP_ZONE_ZOBLOCK 256
-
-struct zone_object {
-	void *zo_ptr;
-	int zo_siz;
-	int zo_idx;
-	int zo_blockhead;
-	LDAP_LIST_ENTRY(zone_object) zo_link;
-};
-
-struct zone_latency_history {
-	double zlh_latency;
-	LDAP_STAILQ_ENTRY(zone_latency_history) zlh_next;
-};
-
-struct zone_heap {
-	int zh_fd;
-	int zh_zonesize;
-	int zh_zoneorder;
-	int zh_numzones;
-	int zh_maxzones;
-	int zh_deltazones;
-	void **zh_zones;
-	ldap_pvt_thread_rdwr_t *zh_znlock;
-	Avlnode *zh_zonetree;
-	unsigned char ***zh_maps;
-	int *zh_seqno;
-	LDAP_LIST_HEAD( zh_freelist, zone_object ) *zh_free;
-	LDAP_LIST_HEAD( zh_so, zone_object ) zh_zopool;
-	ldap_pvt_thread_mutex_t zh_mutex;
-	ldap_pvt_thread_rdwr_t zh_lock;
-	double zh_ema_latency;
-	unsigned long zh_ema_samples;
-	LDAP_STAILQ_HEAD( zh_latency_history, zone_latency_history )
-				zh_latency_history_queue;
-	int zh_latency_history_qlen;
-	int zh_latency_jump;
-	int zh_swapping;
-};
-#endif
 
 #define SLAP_BACKEND_INIT_MODULE(b) \
 	static BackendInfo bi;	\

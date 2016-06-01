@@ -1,8 +1,26 @@
 /* ldapsync.c -- LDAP Content Sync Routines */
-/* $OpenLDAP$ */
-/* This work is part of OpenLDAP Software <http://www.openldap.org/>.
+/* $ReOpenLDAP$ */
+/* Copyright (c) 2015,2016 Leonid Yuriev <leo@yuriev.ru>.
+ * Copyright (c) 2015,2016 Peter-Service R&D LLC <http://billing.ru/>.
  *
- * Copyright 2003-2016 The OpenLDAP Foundation.
+ * This file is part of ReOpenLDAP.
+ *
+ * ReOpenLDAP is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation; either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * ReOpenLDAP is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * ---
+ *
+ * Copyright 2003-2014 The OpenLDAP Foundation.
  * Portions Copyright 2003 IBM Corporation.
  * All rights reserved.
  *
@@ -24,7 +42,7 @@
 
 #include "lutil.h"
 #include "slap.h"
-#include "../../libraries/liblber/lber-int.h" /* get ber_strndup() */
+#include "../../libraries/libreldap/lber-int.h" /* get ber_strndup() */
 #include "lutil_ldap.h"
 
 #if LDAP_MEMORY_DEBUG
@@ -42,7 +60,7 @@ struct slap_sync_cookie_s slap_sync_cookie =
 
 int slap_check_same_server(BackendDB *bd, int sid) {
 	return ( sid == slap_serverID
-			&& reopenldap_mode_idclip() && SLAP_MULTIMASTER(bd) ) ? -1 : 0;
+			&& reopenldap_mode_strict() && SLAP_MULTIMASTER(bd) ) ? -1 : 0;
 }
 
 void
@@ -66,7 +84,7 @@ slap_insert_csn_sids(
 	ck->sids[i] = sid;
 	ber_dupbv( &ck->ctxcsn[i], csn );
 
-	if (reopenldap_mode_idkfa())
+	if (reopenldap_mode_check())
 		slap_cookie_verify( ck );
 }
 
@@ -145,7 +163,7 @@ void slap_cookie_copy(
 	struct sync_cookie *dst,
 	const struct sync_cookie *src )
 {
-	if (reopenldap_mode_idkfa())
+	if (reopenldap_mode_check())
 		slap_cookie_verify( src );
 
 	dst->rid = src->rid;
@@ -163,7 +181,7 @@ void slap_cookie_move(
 	struct sync_cookie *dst,
 	struct sync_cookie *src )
 {
-	if (reopenldap_mode_idkfa())
+	if (reopenldap_mode_check())
 		slap_cookie_verify( src );
 
 	dst->rid = src->rid;
@@ -212,7 +230,7 @@ int slap_cookie_merge(
 {
 	int i, j, lead = -1;
 
-	if ( reopenldap_mode_idkfa() ) {
+	if ( reopenldap_mode_check() ) {
 		slap_cookie_verify( dst );
 		slap_cookie_verify( src );
 	}
@@ -252,7 +270,7 @@ int slap_cookie_merge(
 		}
 	}
 
-	if ( reopenldap_mode_idkfa() && lead > -1) {
+	if ( reopenldap_mode_check() && lead > -1) {
 		slap_cookie_verify( dst );
 	}
 	return lead;
@@ -267,7 +285,7 @@ void slap_cookie_fetch(
 	dst->numcsns = slap_csns_length( dst->ctxcsn );
 	dst->sids = slap_csns_parse_sids( dst->ctxcsn, dst->sids, NULL );
 
-	if ( reopenldap_mode_idkfa() )
+	if ( reopenldap_mode_check() )
 		slap_cookie_verify( dst );
 }
 
@@ -297,7 +315,7 @@ int slap_cookie_pull(
 		}
 		ber_bvarray_free( src );
 	}
-	if (reopenldap_mode_idkfa())
+	if (reopenldap_mode_check())
 		slap_cookie_verify( dst );
 	return vector;
 }
@@ -313,7 +331,7 @@ int slap_cookie_merge_csn(
 	if ( !slap_csn_verify_full( src ) )
 		return -1;
 
-	if (reopenldap_mode_idkfa())
+	if (reopenldap_mode_check())
 		slap_cookie_verify( dst );
 
 	if ( sid < 0 ) {
@@ -463,7 +481,7 @@ int slap_cookie_parse(
 				if ( ! slap_csn_verify_full( &csn ) ) {
 					if ( csn.bv_val != anchor )
 						ber_memfree_x( csn.bv_val, memctx );
-					if ( reopenldap_mode_idclip() )
+					if ( reopenldap_mode_strict() )
 						goto bailout;
 					csn.bv_val = ber_strdup_x(
 						"19000101000000.000000Z#000000#000#000000",
@@ -493,7 +511,7 @@ int slap_cookie_parse(
 
 	if ( dst->numcsns == slap_csns_validate_and_sort( dst->ctxcsn ) ) {
 		dst->sids = slap_csns_parse_sids( dst->ctxcsn, dst->sids, memctx );
-		if ( reopenldap_mode_idkfa() )
+		if ( reopenldap_mode_check() )
 			slap_cookie_verify( dst );
 		return LDAP_SUCCESS;
 	}
@@ -566,10 +584,10 @@ void slap_cookie_debug( const char *prefix, const struct sync_cookie *sc )
 {
 	int i;
 
-	lutil_debug_print( "%s %p: rid=%d, sid=%d\n", prefix,
+	ldap_debug_print( "%s %p: rid=%d, sid=%d\n", prefix,
 		sc, sc->rid, sc->sid );
 	for( i = 0; i < sc->numcsns; ++i )
-		lutil_debug_print( "%s: %d) %ssid=%d %s\n", prefix, i,
+		ldap_debug_print( "%s: %d) %ssid=%d %s\n", prefix, i,
 			slap_csn_verify_full( &sc->ctxcsn[i] ) ? "" : "INVALID ",
 			sc->sids[i], sc->ctxcsn[i].bv_val );
 }
@@ -578,7 +596,7 @@ void slap_cookie_debug_pair( const char *prefix,
 	 const char* x_name, const struct sync_cookie *x_cookie,
 	 const char* y_name, const struct sync_cookie *y_cookie, int y_marker)
 {
-	lutil_debug_print( "%s: %s[rid=%d, sid=%d]#%d | %s[rid=%d, sid=%d]#%d\n", prefix,
+	ldap_debug_print( "%s: %s[rid=%d, sid=%d]#%d | %s[rid=%d, sid=%d]#%d\n", prefix,
 		x_name, x_cookie->rid, x_cookie->sid, x_cookie->numcsns,
 		y_name, y_cookie->rid, y_cookie->sid, y_cookie->numcsns );
 
@@ -605,7 +623,7 @@ void slap_cookie_debug_pair( const char *prefix,
 		else if (x_csn || y_csn)
 			sign = x_csn ? 1 : -1;
 
-		lutil_debug_print( "%s: %s %s %40s %c %s %s %s\n", prefix,
+		ldap_debug_print( "%s: %s %s %40s %c %s %s %s\n", prefix,
 			(x_csn && sid == slap_serverID) ? "~>" : "  ",
 			x_name, x_csn ? x_csn->bv_val : "lack",
 			sign ? ((sign > 0) ? '>' : '<')  : '=',
@@ -623,7 +641,7 @@ int slap_cookie_merge_csnset(
 {
 	int rc;
 
-	if ( reopenldap_mode_idkfa() )
+	if ( reopenldap_mode_check() )
 		slap_cookie_verify( dst );
 
 	for( rc = 0; src && ! BER_BVISNULL( src ); ++src ) {
@@ -643,7 +661,7 @@ int slap_cookie_compare_csnset(
 {
 	int vector;
 
-	if ( reopenldap_mode_idkfa() )
+	if ( reopenldap_mode_check() )
 		slap_cookie_verify( base );
 
 	for( vector = 0; next && ! BER_BVISNULL( next ); ++next ) {
@@ -781,7 +799,7 @@ int slap_csn_verify_full( const BerValue *csn )
 		}
 	}
 
-	if ( reopenldap_mode_idclip() ) {
+	if ( reopenldap_mode_strict() ) {
 		if (unlikely( memcmp( csn->bv_val, "19000101000000.000000", 21 ) < 0 ))
 			goto bailout;
 
@@ -958,9 +976,9 @@ void slap_csns_debug( const char *prefix, const BerVarray csns )
 {
 	int i;
 
-	lutil_debug_print("%s: CSNs %p\n", prefix, csns);
+	ldap_debug_print("%s: CSNs %p\n", prefix, csns);
 	for( i = 0; csns && ! BER_BVISNULL( &csns[i] ); ++i )
-		lutil_debug_print( "%s: %d) %s%s\n", prefix, i,
+		ldap_debug_print( "%s: %d) %s%s\n", prefix, i,
 			slap_csn_verify_full( &csns[i] ) ? "" : "INVALID ",
 			csns[i].bv_val
 		);
@@ -972,7 +990,7 @@ void slap_csns_backward_debug(
 	const BerVarray next )
 {
 	if ( LogTest( LDAP_DEBUG_SYNC ) ) {
-		lutil_debug_print("%s: %s > %s\n", prefix, "current", "next" );
+		ldap_debug_print("%s: %s > %s\n", prefix, "current", "next" );
 		slap_csns_debug( "current", current );
 		slap_csns_debug( "next", next );
 		slap_backtrace_debug();
@@ -984,7 +1002,7 @@ void slap_cookie_backward_debug(const char *prefix,
 	const struct sync_cookie *next )
 {
 	if ( LogTest( LDAP_DEBUG_SYNC ) ) {
-		lutil_debug_print("%s (COOKIE BACKWARD): %s > %s\n", prefix, "current", "next" );
+		ldap_debug_print("%s (COOKIE BACKWARD): %s > %s\n", prefix, "current", "next" );
 		slap_cookie_debug_pair(prefix, "current", current, "next", next, -1);
 		slap_backtrace_debug();
 	}

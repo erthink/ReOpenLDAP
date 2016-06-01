@@ -1,8 +1,26 @@
 /* init.c - initialize monitor backend */
-/* $OpenLDAP$ */
-/* This work is part of OpenLDAP Software <http://www.openldap.org/>.
+/* $ReOpenLDAP$ */
+/* Copyright (c) 2015,2016 Leonid Yuriev <leo@yuriev.ru>.
+ * Copyright (c) 2015,2016 Peter-Service R&D LLC <http://billing.ru/>.
  *
- * Copyright 2001-2016 The OpenLDAP Foundation.
+ * This file is part of ReOpenLDAP.
+ *
+ * ReOpenLDAP is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation; either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * ReOpenLDAP is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * ---
+ *
+ * Copyright 2001-2014 The OpenLDAP Foundation.
  * Portions Copyright 2001-2003 Pierangelo Masarati.
  * All rights reserved.
  *
@@ -2182,10 +2200,10 @@ monitor_back_db_init(
 
 	be2 = select_backend( &ndn, 0 );
 	if ( be2 != be ) {
-		char	*type = be2->bd_info->bi_type;
+		const char *type = be2->bd_info->bi_type;
 
 		if ( overlay_is_over( be2 ) ) {
-			slap_overinfo	*oi = (slap_overinfo *)be2->bd_info->bi_private;
+			slap_overinfo *oi = (slap_overinfo *)be2->bd_info->bi_private;
 			type = oi->oi_orig->bi_type;
 		}
 

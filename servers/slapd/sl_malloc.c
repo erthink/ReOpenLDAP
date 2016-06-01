@@ -1,8 +1,26 @@
 /* sl_malloc.c - malloc routines using a per-thread slab */
-/* $OpenLDAP$ */
-/* This work is part of OpenLDAP Software <http://www.openldap.org/>.
+/* $ReOpenLDAP$ */
+/* Copyright (c) 2015,2016 Leonid Yuriev <leo@yuriev.ru>.
+ * Copyright (c) 2015,2016 Peter-Service R&D LLC <http://billing.ru/>.
  *
- * Copyright 2003-2016 The OpenLDAP Foundation.
+ * This file is part of ReOpenLDAP.
+ *
+ * ReOpenLDAP is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation; either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * ReOpenLDAP is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * ---
+ *
+ * Copyright 2003-2014 The OpenLDAP Foundation.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -155,9 +173,11 @@ slap_sl_mem_destroy(
 			ch_free(so_tmp);
 		}
 	}
+	ASAN_POISON_MEMORY_REGION(sh->sh_base, (char *) sh->sh_end - (char *) sh->sh_base);
 	VALGRIND_MEMPOOL_TRIM(sh, sh->sh_base, 0);
 
 	if (key != NULL) {
+		ASAN_UNPOISON_MEMORY_REGION(sh->sh_base, (char *) sh->sh_end - (char *) sh->sh_base);
 		VALGRIND_MAKE_MEM_UNDEFINED(sh->sh_base, (char *) sh->sh_end - (char *) sh->sh_base);
 		ber_memfree_x(sh->sh_base, NULL);
 		VALGRIND_DESTROY_MEMPOOL(sh);
@@ -172,7 +192,6 @@ void
 slap_sl_mem_init()
 {
 	assert( Align == 1 << Align_log2 );
-
 	ber_set_option( NULL, LBER_OPT_MEMORY_FNS, &slap_sl_mfuncs );
 }
 
@@ -328,8 +347,10 @@ void * __slap_sl_malloc( struct slab_heap *sh, ber_len_t gross_size )
 			ptr = sh->sh_last;
 			sh->sh_last = (char *) sh->sh_last + sl_size;
 
+			ASAN_UNPOISON_MEMORY_REGION(ptr, sl_size);
 			VALGRIND_MAKE_MEM_UNDEFINED(ptr, sl_size);
 			sl_set_size(ptr, sl_size);
+			ASAN_POISON_MEMORY_REGION(ptr, sizeof(*ptr));
 			VALGRIND_MAKE_MEM_NOACCESS(ptr, sizeof(*ptr));
 			ptr += 1;
 			VALGRIND_MEMPOOL_ALLOC(sh, ptr, gross_size);
@@ -358,8 +379,10 @@ void * __slap_sl_malloc( struct slab_heap *sh, ber_len_t gross_size )
 			sh->sh_map[order-order_start][diff>>3] |= (1 << (diff & 0x7));
 			LDAP_LIST_INSERT_HEAD(&sh->sh_sopool, so_new, so_link);
 
+			ASAN_UNPOISON_MEMORY_REGION(ptr, sl_size);
 			VALGRIND_MAKE_MEM_UNDEFINED(ptr, sl_size);
 			sl_set_size(ptr, sl_size);
+			ASAN_POISON_MEMORY_REGION(ptr, sizeof(*ptr));
 			VALGRIND_MAKE_MEM_NOACCESS(ptr, sizeof(*ptr));
 			ptr += 1;
 			VALGRIND_MEMPOOL_ALLOC(sh, ptr, gross_size);
@@ -384,8 +407,10 @@ void * __slap_sl_malloc( struct slab_heap *sh, ber_len_t gross_size )
 							&sh->sh_free[j-1-order_start], so_right, so_link);
 					LDAP_LIST_INSERT_HEAD(&sh->sh_sopool, so_left, so_link);
 
+					ASAN_UNPOISON_MEMORY_REGION(ptr, sl_size);
 					VALGRIND_MAKE_MEM_UNDEFINED(ptr, sl_size);
 					sl_set_size(ptr, sl_size);
+					ASAN_POISON_MEMORY_REGION(ptr, sizeof(*ptr));
 					VALGRIND_MAKE_MEM_NOACCESS(ptr, sizeof(*ptr));
 					ptr += 1;
 					VALGRIND_MEMPOOL_ALLOC(sh, ptr, gross_size);
@@ -518,7 +543,8 @@ slap_sl_realloc(void *ptr, ber_len_t new_nett_size, void *ctx)
 		return NULL;
 	}
 
-	size_t old_nett_size, new_gross_size = new_nett_size;
+	size_t old_gross_size,  old_nett_size;
+	size_t new_gross_size = new_nett_size;
 #if LDAP_MEMORY_DEBUG > 0
 	new_gross_size += LBER_HUG_MEMCHK_OVERHEAD;
 
@@ -529,13 +555,16 @@ slap_sl_realloc(void *ptr, ber_len_t new_nett_size, void *ctx)
 #endif /* LDAP_MEMORY_DEBUG */
 
 	block = ((ber_len_t *) oldptr) - 1;
+	ASAN_UNPOISON_MEMORY_REGION(block, sizeof(*block));
 	VALGRIND_MAKE_MEM_DEFINED(block, sizeof(*block));
 	old_sl_size = sl_get_size(block);
 #if LDAP_MEMORY_DEBUG > 0
-	assert(old_sl_size >= sl_up2block(old_nett_size + LBER_HUG_MEMCHK_OVERHEAD));
+	old_gross_size = old_nett_size + LBER_HUG_MEMCHK_OVERHEAD;
+	assert(old_sl_size >= sl_up2block(old_gross_size));
 #else
 	assert(old_sl_size > sizeof(ber_len_t));
 	old_nett_size = old_sl_size - sizeof(ber_len_t);
+	old_gross_size = old_nett_size;
 #endif
 
 	if (likely(sh->sh_stack && new_nett_size < SL_MAX_SIZE)) {
@@ -545,23 +574,42 @@ slap_sl_realloc(void *ptr, ber_len_t new_nett_size, void *ctx)
 		/* Never shrink blocks */
 		if (new_sl_size <= old_sl_size) {
 			VALGRIND_MAKE_MEM_NOACCESS(block, sizeof(*block));
+			ASAN_POISON_MEMORY_REGION(block, sizeof(*block));
+
+			VALGRIND_MEMPOOL_CHANGE(sh, oldptr, oldptr, new_gross_size);
+			if (old_gross_size > new_gross_size) {
+				VALGRIND_MAKE_MEM_NOACCESS((char *) ptr + new_gross_size,
+					old_gross_size - new_gross_size);
+				ASAN_POISON_MEMORY_REGION((char *) ptr + new_gross_size,
+					old_gross_size - new_gross_size);
 #if LDAP_MEMORY_DEBUG > 0
+			} else {
+				VALGRIND_MAKE_MEM_UNDEFINED((char *) ptr + old_nett_size,
+					new_gross_size - old_nett_size);
+				ASAN_UNPOISON_MEMORY_REGION((char *) ptr + old_nett_size,
+					new_gross_size - old_nett_size);
+			}
 			lber_hug_realloc_commit(old_nett_size, oldptr,
 				SL_MEM_TAG, new_nett_size);
-#endif /* LDAP_MEMORY_DEBUG */
-			if (old_nett_size != new_nett_size) {
-				VALGRIND_MEMPOOL_CHANGE(sh, oldptr, oldptr, new_gross_size);
-				if (old_nett_size > new_nett_size) {
-					VALGRIND_MAKE_MEM_NOACCESS((char *) ptr + new_nett_size,
-						old_nett_size - new_nett_size);
-				} else {
-					VALGRIND_MAKE_MEM_UNDEFINED((char *) ptr + old_nett_size,
-						new_nett_size - old_nett_size);
-				}
-				ASAN_POISON_MEMORY_REGION(ptr, old_nett_size);
-				/* LY: avoid asan-trap because of old_nett_size rounding */
-				ASAN_UNPOISON_MEMORY_REGION(ptr, new_nett_size);
+#else /* LY: avoiding traps because of gross_size alignment and non-shrinking */
 			}
+			size_t floor = 1;
+#	ifdef VALGRIND_GET_VBITS
+			/* LY: lookup for non-addressable edge */
+			do {
+				size_t vbits, probe = (floor + old_gross_size) >> 1;
+				if (3 == VALGRIND_GET_VBITS((char *) ptr + probe, &vbits, 1))
+					old_gross_size = probe;
+				else
+					floor = probe + 1;
+			} while(floor < old_gross_size);
+#	endif /* VALGRIND_GET_VBITS */
+			/* LY: make it addressable */
+			VALGRIND_MAKE_MEM_UNDEFINED((char *) ptr + floor,
+				new_gross_size - floor);
+			ASAN_UNPOISON_MEMORY_REGION((char *) ptr + floor,
+				new_gross_size - floor);
+#endif /* LDAP_MEMORY_DEBUG */
 			return ptr;
 		}
 
@@ -573,23 +621,41 @@ slap_sl_realloc(void *ptr, ber_len_t new_nett_size, void *ctx)
 			sh->sh_last = (char *) block + new_sl_size;
 			sl_update_size(block, new_sl_size);
 			VALGRIND_MAKE_MEM_NOACCESS(block, sizeof(*block));
+			ASAN_POISON_MEMORY_REGION(block, sizeof(*block));
 			VALGRIND_MEMPOOL_CHANGE(sh, oldptr, oldptr, new_gross_size);
+
 #if LDAP_MEMORY_DEBUG > 0
 			VALGRIND_MAKE_MEM_UNDEFINED((char *) ptr + old_nett_size,
-				new_nett_size - old_nett_size + LBER_HUG_MEMCHK_OVERHEAD);
+				new_gross_size - old_nett_size);
+			ASAN_UNPOISON_MEMORY_REGION((char *) ptr + old_nett_size,
+				new_gross_size - old_nett_size);
 			lber_hug_realloc_commit(old_nett_size, oldptr,
 				SL_MEM_TAG, new_nett_size);
-#else
-			VALGRIND_MAKE_MEM_UNDEFINED((char *) ptr + old_nett_size,
-				new_nett_size - old_nett_size);
+#else /* LY: avoiding traps because of gross_size alignment and non-shrinking */
+			size_t floor = 1;
+#	ifdef VALGRIND_GET_VBITS
+			/* LY: lookup for non-addressable edge */
+			do {
+				size_t vbits, probe = (floor + old_gross_size) >> 1;
+				if (3 == VALGRIND_GET_VBITS((char *) ptr + probe, &vbits, 1))
+					old_gross_size = probe;
+				else
+					floor = probe + 1;
+			} while(floor < old_gross_size);
+#	endif /* VALGRIND_GET_VBITS */
+			/* LY: make it addressable */
+			VALGRIND_MAKE_MEM_UNDEFINED((char *) ptr + floor,
+				new_gross_size - floor);
+			ASAN_UNPOISON_MEMORY_REGION((char *) ptr + floor,
+				new_gross_size - floor);
 #endif /* LDAP_MEMORY_DEBUG */
-			ASAN_UNPOISON_MEMORY_REGION(ptr, new_nett_size);
 			return ptr;
 		}
 		/* Nowhere to grow, need to alloc and copy */
 	}
 
 	VALGRIND_MAKE_MEM_NOACCESS(block, sizeof(*block));
+	ASAN_POISON_MEMORY_REGION(block, sizeof(*block));
 #if LDAP_MEMORY_DEBUG > 0
 	lber_hug_realloc_undo(oldptr, SL_MEM_TAG, undo_key);
 #endif /* LDAP_MEMORY_DEBUG */
@@ -597,7 +663,6 @@ slap_sl_realloc(void *ptr, ber_len_t new_nett_size, void *ctx)
 	newptr = slap_sl_malloc(new_nett_size, ctx);
 	if (likely(newptr)) {
 		VALGRIND_DISABLE_ADDR_ERROR_REPORTING_IN_RANGE(ptr, old_nett_size);
-		/* LY: avoid inline-failure and asan-trap because of old_nett_size rounding */
 		ASAN_UNPOISON_MEMORY_REGION(ptr, old_nett_size);
 		memcpy(newptr, ptr,
 				(old_nett_size < new_nett_size) ? old_nett_size : new_nett_size);
@@ -628,6 +693,7 @@ slap_sl_free(void *ptr, void *ctx)
 
 	VALGRIND_MEMPOOL_FREE(sh, ptr);
 	block = ((ber_len_t*) ptr) - 1;
+	ASAN_UNPOISON_MEMORY_REGION(block, sizeof(*block));
 	VALGRIND_MAKE_MEM_DEFINED(block, sizeof(*block));
 	sl_size = sl_get_size(block);
 	ASAN_POISON_MEMORY_REGION(block, sl_size);
@@ -636,19 +702,19 @@ slap_sl_free(void *ptr, void *ctx)
 		next_block = (ber_len_t *) ((char *) block + sl_size);
 		if (sh->sh_last != next_block) {
 			/* Mark it free: tail = size, head of next block |= 1 */
+			ASAN_UNPOISON_MEMORY_REGION(next_block-1, sizeof(ber_len_t) * 2);
 			VALGRIND_MAKE_MEM_DEFINED(next_block-1, sizeof(ber_len_t) * 2);
 			next_block[-1] = sl_size;
 			sl_set_free(next_block);
 			VALGRIND_MAKE_MEM_NOACCESS(block, sl_size + sizeof(ber_len_t));
-			/* We can't tell Valgrind about it yet, because we
-			 * still need read/write access to this block for
-			 * when we eventually get to reclaim it.
-			 */
+			ASAN_POISON_MEMORY_REGION(block, sl_size + sizeof(ber_len_t));
 		} else {
 			/* Reclaim freed block(s) off tail */
 			while (sl_get_free(block)) {
+				ASAN_UNPOISON_MEMORY_REGION(block-1, sizeof(ber_len_t));
 				VALGRIND_MAKE_MEM_DEFINED(block-1, sizeof(ber_len_t));
 				block = (ber_len_t *) ((char *) block - block[-1]);
+				ASAN_UNPOISON_MEMORY_REGION(block, sizeof(ber_len_t));
 				VALGRIND_MAKE_MEM_DEFINED(block, sizeof(ber_len_t));
 			}
 			sh->sh_last = block;
@@ -662,6 +728,7 @@ slap_sl_free(void *ptr, void *ctx)
 		int i, inserted = 0, order = -1;
 
 		VALGRIND_MAKE_MEM_NOACCESS(block, sizeof(*block));
+		ASAN_POISON_MEMORY_REGION(block, sizeof(*block));
 		size_shift = sl_size - 1;
 		do {
 			order++;

@@ -1,8 +1,26 @@
 /* init.c - initialize relay backend */
-/* $OpenLDAP$ */
-/* This work is part of OpenLDAP Software <http://www.openldap.org/>.
+/* $ReOpenLDAP$ */
+/* Copyright (c) 2015,2016 Leonid Yuriev <leo@yuriev.ru>.
+ * Copyright (c) 2015,2016 Peter-Service R&D LLC <http://billing.ru/>.
  *
- * Copyright 2004-2016 The OpenLDAP Foundation.
+ * This file is part of ReOpenLDAP.
+ *
+ * ReOpenLDAP is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation; either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * ReOpenLDAP is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * ---
+ *
+ * Copyright 2004-2014 The OpenLDAP Foundation.
  * Portions Copyright 2004 Pierangelo Masarati.
  * All rights reserved.
  *
@@ -85,7 +103,7 @@ relay_back_cf( ConfigArgs *c )
 			snprintf( c->cr_msg, sizeof( c->cr_msg),
 				"\"relay\" directive "
 				"must appear after \"suffix\"" );
-			Log2( LDAP_DEBUG_ANY, LDAP_LEVEL_ERR,
+			Log( LDAP_DEBUG_ANY, LDAP_LEVEL_ERR,
 				"%s: %s.\n", c->log, c->cr_msg );
 			rc = 1;
 			goto relay_done;
@@ -95,7 +113,7 @@ relay_back_cf( ConfigArgs *c )
 			snprintf( c->cr_msg, sizeof( c->cr_msg),
 				"relaying of multiple suffix "
 				"database not supported" );
-			Log2( LDAP_DEBUG_ANY, LDAP_LEVEL_ERR,
+			Log( LDAP_DEBUG_ANY, LDAP_LEVEL_ERR,
 				"%s: %s.\n", c->log, c->cr_msg );
 			rc = 1;
 			goto relay_done;
@@ -108,7 +126,7 @@ relay_back_cf( ConfigArgs *c )
 				"of relay dn \"%s\" "
 				"in \"olcRelay <dn>\"\n",
 				c->value_dn.bv_val );
-			Log2( LDAP_DEBUG_CONFIG, LDAP_LEVEL_ERR,
+			Log( LDAP_DEBUG_CONFIG, LDAP_LEVEL_ERR,
 				"%s: %s.\n", c->log, c->cr_msg );
 
 		} else if ( bd->be_private == c->be->be_private ) {
@@ -116,7 +134,7 @@ relay_back_cf( ConfigArgs *c )
 				"relay dn \"%s\" would call self "
 				"in \"relay <dn>\" line\n",
 				c->value_dn.bv_val );
-			Log2( LDAP_DEBUG_ANY, LDAP_LEVEL_ERR,
+			Log( LDAP_DEBUG_ANY, LDAP_LEVEL_ERR,
 				"%s: %s.\n", c->log, c->cr_msg );
 			rc = 1;
 			goto relay_done;
@@ -210,7 +228,7 @@ relay_back_db_open( Backend *be, ConfigReply *cr )
 				"of relay dn \"%s\" "
 				"in \"olcRelay <dn>\"\n",
 				ri->ri_realsuffix.bv_val );
-			Log1( LDAP_DEBUG_ANY, LDAP_LEVEL_ERR,
+			Log( LDAP_DEBUG_ANY, LDAP_LEVEL_ERR,
 				"relay_back_db_open: %s.\n", cr->msg );
 
 			return 1;

@@ -1,5 +1,24 @@
-/*	$OpenBSD: syslog.c,v 1.29 2007/11/09 18:40:19 millert Exp $ */
 /*
+/* Copyright (c) 2015,2016 Leonid Yuriev <leo@yuriev.ru>.
+ * Copyright (c) 2015,2016 Peter-Service R&D LLC <http://billing.ru/>.
+ *
+ * This file is part of ReOpenLDAP.
+ *
+ * ReOpenLDAP is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation; either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * ReOpenLDAP is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * ---
+ *
  * Copyright (c) 1983, 1988, 1993
  *	The Regents of the University of California.  All rights reserved.
  *
@@ -27,6 +46,8 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  */
+
+/*	$OpenBSD: syslog.c,v 1.29 2007/11/09 18:40:19 millert Exp $ */
 
 #include "portable.h"
 
@@ -81,9 +102,7 @@ syslog(int pri, const char *fmt, ...)
 
 	/* Check for invalid bits. */
 	if (pri & ~(LOG_PRIMASK|LOG_FACMASK)) {
-		if (LogTest(LOG_ERR))
-			lutil_debug(slap_debug, LOG_ERR,
-			    "syslog: unknown facility/priority: %x", pri);
+		Log(LDAP_DEBUG_ANY, LOG_ERR, "syslog: unknown facility/priority: %x", pri);
 		pri &= LOG_PRIMASK|LOG_FACMASK;
 	}
 

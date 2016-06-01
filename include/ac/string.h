@@ -1,8 +1,26 @@
 /* Generic string.h */
-/* $OpenLDAP$ */
-/* This work is part of OpenLDAP Software <http://www.openldap.org/>.
+/* $ReOpenLDAP$ */
+/* Copyright (c) 2015,2016 Leonid Yuriev <leo@yuriev.ru>.
+ * Copyright (c) 2015,2016 Peter-Service R&D LLC <http://billing.ru/>.
  *
- * Copyright 1998-2016 The OpenLDAP Foundation.
+ * This file is part of ReOpenLDAP.
+ *
+ * ReOpenLDAP is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation; either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * ReOpenLDAP is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * ---
+ *
+ * Copyright 1998-2014 The OpenLDAP Foundation.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -19,36 +37,15 @@
 
 #include <string.h>
 
+/* use ldap_pvt_strtok instead of strtok or strtok_r! */
+__extern_C LDAP_F(char*) ldap_pvt_strtok(char *str, const char *delim, char **pos);
+
 #if LDAP_SAFEMEMCPY
 #	undef memcpy
-	__extern_C void* ber_memcpy_safe(void* dest, const void* src, size_t n);
 #	define memcpy ber_memcpy_safe
+	/* LY: memcpy with checking for overlap */
+	__extern_C LDAP_F(void*) ber_memcpy_safe(void* dest, const void* src, size_t n);
 #endif
-
-/* use ldap_pvt_strtok instead of strtok or strtok_r! */
-LDAP_F(char *) ldap_pvt_strtok LDAP_P(( char *str,
-	const char *delim, char **pos ));
-
-#ifndef HAVE_STRDUP
-	/* strdup() is missing, declare our own version */
-#	undef strdup
-#	define strdup(s) ber_strdup(s)
-#elif !defined(_WIN32)
-	/* some systems fail to declare strdup */
-	/* Windows does not require this declaration */
-	LDAP_LIBC_F(char *) (strdup)();
-#endif
-
-#ifdef NEED_MEMCMP_REPLACEMENT
-	int (lutil_memcmp)(const void *b1, const void *b2, size_t len);
-#define memcmp lutil_memcmp
-#endif
-
-void *(lutil_memrchr)(const void *b, int c, size_t n);
-/* GNU extension (glibc >= 2.1.91), only declared when defined(_GNU_SOURCE) */
-#if defined(HAVE_MEMRCHR) && defined(_GNU_SOURCE)
-#define lutil_memrchr(b, c, n) memrchr(b, c, n)
-#endif /* ! HAVE_MEMRCHR */
 
 #define STRLENOF(s)	(sizeof(s)-1)
 

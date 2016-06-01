@@ -17,9 +17,6 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-#ifdef _WIN32
-#pragma warning( disable : 4101 )
-#endif
 #include "componentlib.h"
 typedef ComponentOcts ComponentKeyIdentifier; /* OCTET STRING */
 

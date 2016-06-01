@@ -1,8 +1,26 @@
 /* search.c - search operation */
-/* $OpenLDAP$ */
-/* This work is part of OpenLDAP Software <http://www.openldap.org/>.
+/* $ReOpenLDAP$ */
+/* Copyright (c) 2015,2016 Leonid Yuriev <leo@yuriev.ru>.
+ * Copyright (c) 2015,2016 Peter-Service R&D LLC <http://billing.ru/>.
  *
- * Copyright 2000-2016 The OpenLDAP Foundation.
+ * This file is part of ReOpenLDAP.
+ *
+ * ReOpenLDAP is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation; either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * ReOpenLDAP is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * ---
+ *
+ * Copyright 2000-2014 The OpenLDAP Foundation.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -348,8 +366,8 @@ mdb_writewait( Operation *op, slap_callback *sc )
 		MDB_val key, data;
 		int rc;
 		if ( ww->mcd ) {
+			ww->data.iov_base = NULL;
 			rc = mdb_cursor_get( ww->mcd, &key, &data, MDB_GET_CURRENT );
-			assert(rc == MDB_SUCCESS);
 			if (likely( rc == MDB_SUCCESS )) {
 				memcpy( &ww->key, key.mv_data, sizeof(ID) );
 				ww->data.mv_size = data.mv_size;
@@ -409,6 +427,7 @@ mdb_waitfixup( Operation *op, ww_ctx *ww, MDB_cursor *mci, MDB_cursor *mcd, IdSc
 			op->o_tmpfree( ww->data.mv_data, op->o_tmpmemctx );
 			ww->data.mv_data = NULL;
 		}
+		ww->flag = 0;
 	} else if ( isc->scopes[0].mid > 1 ) {	/* candidate-based search */
 		int i;
 		for ( i=1; i<isc->scopes[0].mid; i++ ) {
@@ -444,7 +463,7 @@ mdb_search( Operation *op, SlapReply *rs )
 	int		tentries = 0;
 	IdScopes	isc;
 	MDB_cursor	*mci, *mcd;
-	ww_ctx wwctx;
+	ww_ctx wwctx = { 0 };
 	slap_callback cb = { 0 };
 
 	mdb_op_info	opinfo = {{{0}}}, *moi = &opinfo;
@@ -709,15 +728,11 @@ dn2entry_retry:
 		tentries = ncand;
 	}
 
-	wwctx.flag = 0;
 	wwctx.txn = ltid;
-	wwctx.nentries = 0;
 	/* If we're running in our own read txn */
 	if (  moi == &opinfo ) {
 		cb.sc_writewait = mdb_writewait;
 		cb.sc_private = &wwctx;
-		wwctx.mcd = NULL;
-		wwctx.data.mv_data = NULL;
 		cb.sc_next = op->o_callback;
 		op->o_callback = &cb;
 	}
