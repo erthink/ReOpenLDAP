@@ -24,6 +24,7 @@ flag_valgrind=0
 flag_asan=0
 flag_tsan=0
 flag_hidden=0
+flag_dynamic=0
 for arg in "$@"; do
 	case "$arg" in
 	--hidden)
@@ -31,6 +32,13 @@ for arg in "$@"; do
 		;;
 	--no-hidden)
 		flag_hidden=0
+		;;
+	--dynamic)
+		flag_dynamic=1
+		flag_hidden=1
+		;;
+	--no-dynamic)
+		flag_dynamic=0
 		;;
 	--debug)
 		flag_debug=1
@@ -123,7 +131,15 @@ done
 
 #======================================================================
 
-BACKENDS="--enable-backends"
+if [ $flag_dynamic -ne 0 ]; then
+	MOD=mod
+	DYNAMIC="--enable-dynamic --enable-shared --enable-modules"
+else
+	MOD=yes
+	DYNAMIC="--disable-shared"
+fi
+
+BACKENDS="--enable-backends=${MOD}"
 #    --enable-bdb	  enable Berkeley DB backend no|yes|mod [yes]
 #    --enable-dnssrv	  enable dnssrv backend no|yes|mod [no]
 #    --enable-hdb	  enable Hierarchical DB backend no|yes|mod [yes]
@@ -155,8 +171,8 @@ if [ $flag_ndb -ne 0 ]; then
 			echo "MYSQL_NDB_API	= ${MYSQL_NDB_API}"
 			MYSQL_NDB_RPATH="$(${MYSQL_CONFIG} --libs_r | sed -n 's|-L\(/\S\+\)\s.*$|\1|p')"
 			echo "MYSQL_NDB_RPATH	= ${MYSQL_NDB_RPATH}"
-			LDFLAGS="-Xlinker -rpath=${MYSQL_NDB_RPATH}"
-			NBD="--enable-ndb"
+			LDFLAGS="-Wl,-rpath,${MYSQL_NDB_RPATH}"
+			NBD="--enable-ndb=${MOD}"
 		fi
 	fi
 fi
@@ -282,13 +298,13 @@ LIBMDBX_DIR=$([ -d libraries/liblmdb ] && echo "libraries/liblmdb" || echo "libr
 
 if [ ! -s Makefile ]; then
 	# autoscan && libtoolize --force --automake --copy && aclocal -I build && autoheader && autoconf && automake --add-missing --copy
-	./configure \
-			--prefix=$(pwd)/@install_here \
-			--with-tls --enable-debug $BACKENDS --enable-overlays $NBD \
+	configure \
+			--prefix=$(pwd)/@install_here ${DYNAMIC} \
+			--with-tls --enable-debug $BACKENDS --enable-overlays=${MOD} $NBD \
 			--enable-rewrite --enable-dynacl --enable-aci --enable-slapi \
-			$(if [ $flag_mdb -eq 0 ]; then echo "--disable-mdb"; else echo "--enable-mdb"; fi) \
-			$(if [ $flag_bdb -eq 0 ]; then echo "--disable-bdb --disable-hdb"; else echo "--enable-bdb --enable-hdb"; fi) \
-			$(if [ $flag_wt -eq 0 ]; then echo "--disable-wt"; else echo "--enable-wt"; fi) \
+			$(if [ $flag_mdb -eq 0 ]; then echo "--disable-mdb"; else echo "--enable-mdb=${MOD}"; fi) \
+			$(if [ $flag_bdb -eq 0 ]; then echo "--disable-bdb --disable-hdb"; else echo "--enable-bdb=${MOD} --enable-hdb=${MOD}"; fi) \
+			$(if [ $flag_wt -eq 0 ]; then echo "--disable-wt"; else echo "--enable-wt=${MOD}"; fi) \
 		|| failure "configure"
 
 	if [ -e ${LIBMDBX_DIR}/mdbx.h ]; then
