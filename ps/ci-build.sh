@@ -283,6 +283,7 @@ LIBMDBX_DIR=$([ -d libraries/liblmdb ] && echo "libraries/liblmdb" || echo "libr
 if [ ! -s Makefile ]; then
 	# autoscan && libtoolize --force --automake --copy && aclocal -I build && autoheader && autoconf && automake --add-missing --copy
 	./configure \
+			--prefix=$(pwd)/@install_here \
 			--with-tls --enable-debug $BACKENDS --enable-overlays $NBD \
 			--enable-rewrite --enable-dynacl --enable-aci --enable-slapi \
 			$(if [ $flag_mdb -eq 0 ]; then echo "--disable-mdb"; else echo "--enable-mdb"; fi) \
@@ -321,5 +322,7 @@ for m in $(find contrib/slapd-modules -name Makefile -printf '%h\n'); do
 		make -j $ncpu -l $lalim -C $m || failure "contrib-module '$m' is BROKEN"
 	fi
 done
+
+make install
 
 echo "DONE"
