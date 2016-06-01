@@ -190,6 +190,8 @@ servers/slapd/slapmodify
 servers/slapd/slappasswd
 servers/slapd/slapschema
 servers/slapd/slaptest
+servers/slapd/shell-backends/passwd-shell
+servers/slapd/shell-backends/pwd-version.c
 tests/progs/ldif-filter
 tests/progs/slapd-addel
 tests/progs/slapd-bind

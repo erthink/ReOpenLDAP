@@ -79,8 +79,6 @@ XXXLIBS = $(LTHREAD_LIBS) $(SLAPI_LIBS)
 BUILD_OPT = "--enable-slapd"
 BUILD_SRV = @BUILD_SLAPD@
 
-all-local-srv: all-cffiles
-
 NT_SLAPD_DEPENDS = slapd.exp
 NT_SLAPD_OBJECTS = slapd.exp symdummy.o $(OBJS) version.o
 
@@ -332,6 +330,9 @@ version.o: version.c $(OBJS) $(SLAPD_LIBDEPEND)
 
 backends.o: backends.c $(srcdir)/slap.h
 
+all-local-srv: all-cffiles
+	$(MAKE) -C shell-backends $(MFLAGS) all
+
 depend-local-srv: FORCE
 	@for i in $(SUBDIRS); do \
 		if test -d $$i && test -f $$i/Makefile ; then \
@@ -374,6 +375,7 @@ install-dbc-no:
 
 install-local-srv: install-slapd install-tools \
 	install-conf install-dbc-maybe install-schema install-tools
+	$(MAKE) -C shell-backends $(MFLAGS) install
 
 install-slapd: FORCE
 	-$(MKDIR) $(DESTDIR)$(libexecdir)

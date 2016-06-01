@@ -43,6 +43,7 @@
 
 #include <lber.h>
 #include <ldap.h>
+#include <lutil.h>
 #include "shellutil.h"
 
 
@@ -50,16 +51,16 @@ int	debugflg;
 char	*progname;
 
 static struct inputparams	ips[] = {
-    IP_TYPE_SUFFIX,	"suffix",
-    IP_TYPE_BASE,	"base",
-    IP_TYPE_SCOPE,	"scope",
-    IP_TYPE_ALIASDEREF,	"deref",
-    IP_TYPE_SIZELIMIT,	"sizelimit",
-    IP_TYPE_TIMELIMIT,	"timelimit",
-    IP_TYPE_FILTER,	"filter",
-    IP_TYPE_ATTRS,	"attrs",
-    IP_TYPE_ATTRSONLY,	"attrsonly",
-    0,			NULL
+	{IP_TYPE_SUFFIX,	"suffix"},
+	{IP_TYPE_BASE,	"base"	},
+	{IP_TYPE_SCOPE,	"scope"	},
+	{IP_TYPE_ALIASDEREF,"deref"	},
+	{IP_TYPE_SIZELIMIT,	"sizelimit"},
+	{IP_TYPE_TIMELIMIT,	"timelimit"},
+	{IP_TYPE_FILTER,	"filter"},
+	{IP_TYPE_ATTRS,	"attrs"	},
+	{IP_TYPE_ATTRSONLY,	"attrsonly"},
+	{0,			NULL	}
 };
 
 
