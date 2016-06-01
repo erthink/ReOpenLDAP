@@ -56,8 +56,6 @@
 #include <ac/socket.h>
 #include <ac/time.h>
 
-int ldif_debug = 0;
-
 #include "ldap_log.h"
 #include "lber_pvt.h"
 #include "ldif.h"
@@ -72,6 +70,8 @@ int ldif_debug = 0;
 #define ber_memrealloc realloc
 #define ber_strdup strdup
 #endif
+
+int ldif_debug = 0;
 
 static const char nib2b64[0x40] =
         "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
