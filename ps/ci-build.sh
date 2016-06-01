@@ -89,7 +89,7 @@ for arg in "$@"; do
 	--without-ndb)
 		flag_ndb=0
 		;;
-	--memleak)
+	--valg)
 		flag_valgrind=1
 		flag_asan=0
 		flag_tsan=0
