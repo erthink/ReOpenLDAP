@@ -290,8 +290,8 @@ echo "TOOLCHAIN	= $CC $AR $NM $RANLIB"
 #======================================================================
 
 if [ $flag_clean -ne 0 ]; then
-	git clean -x -f -d -e ./ps -e .ccache/ -e tests/testrun/ -e times.log || failure "cleanup"
-	git submodule foreach --recursive git clean -x -f -d || failure "cleanup-submodules"
+	git clean -x -f -d -e ./ps -e .ccache/ -e tests/testrun/ -e times.log >/dev/null || failure "cleanup"
+	git submodule foreach --recursive git clean -x -f -d >/dev/null || failure "cleanup-submodules"
 fi
 
 LIBMDBX_DIR=$([ -d libraries/liblmdb ] && echo "libraries/liblmdb" || echo "libraries/libmdbx")
