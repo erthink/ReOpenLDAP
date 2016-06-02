@@ -1,3 +1,2 @@
 configure.in ident
 .git*	export-ignore
-/doc/drafts/draft-*.xml	export-ignore

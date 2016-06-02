@@ -250,8 +250,8 @@ tool_init( tool_type_t type )
 {
 	tool_type = type;
 	ldap_pvt_setlocale(LC_MESSAGES, "");
-	ldap_pvt_bindtextdomain(OPENLDAP_PACKAGE, LDAP_LOCALEDIR);
-	ldap_pvt_textdomain(OPENLDAP_PACKAGE);
+	ldap_pvt_bindtextdomain(REOPENLDAP_PACKAGE, LDAP_LOCALEDIR);
+	ldap_pvt_textdomain(REOPENLDAP_PACKAGE);
 }
 
 void

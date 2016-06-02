@@ -67,9 +67,9 @@ LDAP_BEGIN_DECL
  * someday an RFC produced).
  */
 #define LDAP_API_VERSION	3001
-#define LDAP_VENDOR_NAME	"OpenLDAP"
+#define LDAP_VENDOR_NAME	"ReOpenLDAP"
 
-/* OpenLDAP API Features */
+/* ReOpenLDAP API Features */
 #define LDAP_API_FEATURE_X_OPENLDAP LDAP_VENDOR_VERSION
 
 #if defined( LDAP_API_FEATURE_X_OPENLDAP_REENTRANT ) || \

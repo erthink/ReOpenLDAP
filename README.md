@@ -23,7 +23,7 @@ The Changes
 
 Below is the list of changes from point-of-view of ReOpenLDAP project.
 For description of the new features please see man-page for slapd.conf.
-For a changes merged from OpenLDAP project please see the `CHANGES` file.
+For a changes merged from OpenLDAP project please see the `CHANGES.OpenLDAP` file.
 
 #### Features (major):
  * multi-master replication is working, properly and robustly (seems no any other LDAP-server that could do this)

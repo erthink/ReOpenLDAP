@@ -209,7 +209,7 @@
  *
  * The LDAP libraries, i.e. liblber and libldap, can be built as
  * static or shared, based on configuration. Just about all other source
- * code in OpenLDAP use these libraries. If the LDAP libraries
+ * code in ReOpenLDAP use these libraries. If the LDAP libraries
  * are configured as shared, 'configure' defines the LDAP_LIBS_DYNAMIC
  * macro. When other source files include LDAP library headers, the
  * LDAP library symbols will automatically be marked as imported. When
@@ -217,7 +217,7 @@
  * be marked as imported because the LBER_LIBRARY or LDAP_LIBRARY macros
  * will be respectively defined.
  *
- * Any project outside of OpenLDAP with source code wanting to use
+ * Any project outside of ReOpenLDAP with source code wanting to use
  * LDAP dynamic libraries should explicitly define LDAP_LIBS_DYNAMIC.
  * This will ensure that external source code appropriately marks symbols
  * that will be imported.

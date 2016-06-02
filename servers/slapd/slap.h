@@ -122,7 +122,6 @@ LDAP_BEGIN_DECL
 #undef f_next /* name conflict between sys/file.h on SCO and struct filter */
 #endif
 
-#define SERVICE_NAME  OPENLDAP_PACKAGE "-slapd"
 #define SLAPD_ANONYMOUS ""
 
 #ifdef HAVE_TCPD
