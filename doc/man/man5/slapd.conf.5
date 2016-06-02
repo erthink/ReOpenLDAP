@@ -2071,6 +2071,7 @@ the contextCSN is stored in the context entry.
 .B [logbase=<base DN>]
 .B [logfilter=<filter str>]
 .B [syncdata=default|accesslog|changelog]
+.B [requirecheckpresent]
 .RS
 Specify the current database as a replica which is kept up-to-date with the
 master content by establishing the current
@@ -2300,6 +2301,11 @@ Specify the referral to pass back when
 .BR slapd (8)
 is asked to modify a replicated local database.
 If specified multiple times, each url is provided.
+.TP
+.B requirecheckpresent
+Enforce resync, in case a data provider
+.BR syncprov
+skips the present phase during a refresh stage.
 
 .SH DATABASE-SPECIFIC OPTIONS
 Each database may allow specific configuration options; they are

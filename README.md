@@ -41,7 +41,8 @@ For a changes merged from OpenLDAP project please see the `CHANGES.OpenLDAP` fil
  * `coredump-limit <mbytes>`
  * `memory-limit <mbytes>`
  * checkpoints by volume-of-changes and periodically in seconds
- * support for LTO (Link-Time Optimization) by GCC/clang
+ * syncrepl's `requirecheckpresent` option
+ * ready for LTO (Link-Time Optimization) by GCC/clang
 
 #### Fixes:
  * all from openldap/master and openldap/2.4 branches
