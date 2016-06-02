@@ -42,6 +42,9 @@ For a changes merged from OpenLDAP project please see the `CHANGES.OpenLDAP` fil
  * `memory-limit <mbytes>`
  * checkpoints by volume-of-changes and periodically in seconds
  * syncrepl's `requirecheckpresent` option
+ * `keepalive <idle>:<probes>:<interval>` for incomming connections
+ * builtin memory checker, including ls-malloc
+ * ready for AddressSanitizer and Valgrind
  * ready for LTO (Link-Time Optimization) by GCC/clang
 
 #### Fixes:
