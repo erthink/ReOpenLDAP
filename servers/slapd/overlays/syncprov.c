@@ -536,7 +536,7 @@ syncprov_findbase( Operation *op, fbase_cookie *fc )
 		fc->fss->s_flags ^= PS_FIND_BASE;
 		ldap_pvt_thread_mutex_unlock( &fc->fss->s_mutex );
 
-		op_copy(fc->fss->s_op, &fop, NULL, NULL);
+		op_copy(fc->fss->s_op_safe, &fop, NULL, NULL);
 
 		fop.o_bd = fop.o_bd->bd_self;
 		fop.o_hdr = op->o_hdr;
@@ -569,7 +569,7 @@ syncprov_findbase( Operation *op, fbase_cookie *fc )
 
 	/* After the first call, see if the fdn resides in the scope */
 	if ( fc->fbase == 1 ) {
-		switch ( fc->fss->s_op->ors_scope ) {
+		switch ( fc->fss->s_op_safe->ors_scope ) {
 		case LDAP_SCOPE_BASE:
 			fc->fscope = dn_match( fc->fdn, &fc->fss->s_base );
 			break;
@@ -1115,7 +1115,7 @@ syncprov_sendresp( Operation *op, resinfo *ri, syncops *so, int mode )
 
 	switch( mode ) {
 	case LDAP_SYNC_ADD:
-		if ( ri->ri_isref && so->s_op->o_managedsait <= SLAP_CONTROL_IGNORED ) {
+		if ( ri->ri_isref && so->s_op_safe->o_managedsait <= SLAP_CONTROL_IGNORED ) {
 			rs.sr_ref = get_entry_referrals( op, rs.sr_entry );
 			rs.sr_err = send_search_reference( op, &rs );
 			ber_bvarray_free( rs.sr_ref );
@@ -1134,7 +1134,7 @@ syncprov_sendresp( Operation *op, resinfo *ri, syncops *so, int mode )
 		e_uuid.e_attrs = NULL;
 		e_uuid.e_name = ri->ri_dn;
 		e_uuid.e_nname = ri->ri_ndn;
-		if ( ri->ri_isref && so->s_op->o_managedsait <= SLAP_CONTROL_IGNORED ) {
+		if ( ri->ri_isref && so->s_op_safe->o_managedsait <= SLAP_CONTROL_IGNORED ) {
 			struct berval bv = BER_BVNULL;
 			rs.sr_ref = &bv;
 			rs.sr_err = send_search_reference( op, &rs );
@@ -1565,8 +1565,8 @@ kill_locked:
 				 */
 				if (! is_syncops_abandoned( so )) {
 					SlapReply rs = {REP_RESULT};
-					send_ldap_error( so->s_op, &rs, LDAP_SYNC_REFRESH_REQUIRED,
-					"search base has changed" );
+					send_ldap_error( so->s_op_safe, &rs,
+						LDAP_SYNC_REFRESH_REQUIRED, "search base has changed" );
 				}
 				ldap_pvt_thread_mutex_unlock( &so->s_mutex );
 				syncprov_unlink_syncop( so, OS_REF_OP_SEARCH, SO_LOCKED_SIOP );
@@ -3778,7 +3778,7 @@ syncprov_db_close(
 			syncops *so = si->si_ops;
 			SlapReply rs = {REP_RESULT};
 			rs.sr_err = LDAP_UNAVAILABLE;
-			send_ldap_result( so->s_op, &rs );
+			send_ldap_result( so->s_op_safe, &rs );
 			ldap_pvt_thread_mutex_lock( &so->s_mutex );
 			si->si_ops = so->s_next;
 			so->s_next = so; /* LY: safely mark it as unlinked */
