@@ -106,21 +106,18 @@ for arg in "$@"; do
 		flag_wt=0
 		flag_bdb=0
 		flag_lto=0
-		flag_check=0
 		flag_O=-Og
 		;;
 	--asan)
 		flag_valgrind=0
 		flag_asan=1
 		flag_tsan=0
-		flag_check=0
 		flag_bdb=0
 		;;
 	--tsan)
 		flag_valgrind=0
 		flag_asan=0
 		flag_tsan=1
-		flag_check=0
 		flag_bdb=0
 		;;
 	*)
