@@ -1,7 +1,7 @@
 #!/bin/bash
 
 N=${1:-42}
-HERE=$(readlink -f $(pwd))
+TESTING_ROOT=$(readlink -f $(pwd))
 TMP=
 ulimit -c unlimited
 NPORTS=8
@@ -104,8 +104,8 @@ elif [ -n "${TEAMCITY_PROCESS_FLOW_ID}" ]; then
 	fi
 	ln -s ${TMP} tests/testrun || failure "link tests/testrun"
 else
-	(mount | grep ${HERE}/tests/testrun \
-		|| (mkdir -p ${HERE}/tests/testrun && sudo mount -t tmpfs RAM ${HERE}/tests/testrun)) \
+	(mount | grep ${TESTING_ROOT}/tests/testrun \
+		|| (mkdir -p ${TESTING_ROOT}/tests/testrun && sudo mount -t tmpfs RAM ${TESTING_ROOT}/tests/testrun)) \
 		|| failure "mount tests/testrun"
 fi
 
@@ -115,6 +115,7 @@ else
 	filter=cat
 fi
 
+export TESTING_ROOT
 for n in $(seq 1 $N); do
 	echo "##teamcity[blockOpened name='Round $n of $N']"
 	for m in 0 1 2 3; do
