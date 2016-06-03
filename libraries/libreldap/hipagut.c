@@ -782,14 +782,26 @@ __hot time_t ldap_time_unsteady(void) {
 
 /*----------------------------------------------------------------------------*/
 
-__attribute__((weak))
+#if defined(GCC_VERSION) && GCC_VERSION > 40400
+#	pragma GCC push_options
+#	pragma GCC optimize ("-O0", "-fno-lto")
+	__cold __attribute__((weak, used, noinline, noclone))
+#else
+	__cold __attribute__((weak, used, noinline))
+#endif
+
 void __ldap_assert_fail(
 		const char* assertion,
 		const char* file,
 		unsigned line,
 		const char* function) {
 	__assert_fail(assertion, file, line, function);
+	abort();
 }
+
+#if defined(GCC_VERSION) && GCC_VERSION > 40400
+#	pragma GCC pop_options
+#endif
 
 __hot void* ber_memcpy_safe(void* dest, const void* src, size_t n) {
 	long diff = (char*) dest - (char*) src;
