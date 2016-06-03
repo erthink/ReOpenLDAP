@@ -28,6 +28,99 @@ step_finish() {
 	echo "##teamcity[blockClosed name='$1']"
 }
 
+configure() {
+	echo "CONFIGURE	= $*"
+	./configure "$@" > configure.log
+}
+
+flag_debug=0
+flag_check=0
+flag_clean=1
+flag_lto=1
+flag_O=-Os
+flag_clang=0
+flag_valgrind=0
+flag_asan=0
+flag_tsan=0
+flag_hidden=1
+flag_dynamic=0
+
+while grep -q '^--' <<< "$1"; do
+	case "$1" in
+	--hidden)
+		flag_hidden=1
+		;;
+	--no-hidden)
+		flag_hidden=0
+		;;
+	--dynamic)
+		flag_dynamic=1
+		;;
+	--no-dynamic)
+		flag_dynamic=0
+		;;
+	--debug)
+		flag_debug=1
+		;;
+	--no-debug)
+		flag_debug=0
+		;;
+	--check)
+		flag_check=1
+		;;
+	--no-check)
+		flag_check=0
+		;;
+	--lto)
+		flag_lto=1
+		;;
+	--no-lto)
+		flag_lto=0
+		;;
+	--do-clean)
+		flag_clean=1
+		;;
+	--do-not-clean)
+		flag_clean=0
+		;;
+	--size)
+		flag_O=-Os
+		;;
+	--speed)
+		flag_O=-Ofast
+		;;
+	--clang)
+		flag_clang=1
+		;;
+	--valg)
+		flag_valgrind=1
+		flag_asan=0
+		flag_tsan=0
+
+		flag_lto=0
+		flag_O=-Og
+		;;
+	--asan)
+		flag_valgrind=0
+		flag_asan=1
+		flag_tsan=0
+		;;
+	--tsan)
+		flag_valgrind=0
+		flag_asan=0
+		flag_tsan=1
+		;;
+	--*)
+		failure "unknown option '$1'"
+		;;
+	*)
+		break
+		;;
+	esac
+	shift
+done
+
+
 ##############################################################################
 
 step_begin "prepare"
@@ -54,16 +147,18 @@ step_finish "prepare"
 echo "======================================================================="
 step_begin "cleanup"
 
-if [ -d .git ]; then
-	git clean -x -f -d \
-		$( \
-			[ -d .ccache ] && echo " -e .ccache/"; \
-			[ -d tests/testrun ] && echo " -e tests/testrun/"; \
-			[ -f times.log ] && echo " -e times.log"; \
-		) || failure "cleanup"
-	git submodule foreach --recursive git clean -x -f -d || failure "cleanup-submodules"
-else
-	notice "No git repository, skip cleanup step"
+if [ $flag_clean -ne 0 ]; then
+	if [ -d .git ]; then
+		git clean -x -f -d \
+			$( \
+				[ -d .ccache ] && echo " -e .ccache/"; \
+				[ -d tests/testrun ] && echo " -e tests/testrun/"; \
+				[ -f times.log ] && echo " -e times.log"; \
+			) > /dev/null || failure "cleanup"
+		git submodule foreach --recursive git clean -x -f -d > /dev/null || failure "cleanup-submodules"
+	else
+		notice "No git repository, skip cleanup step"
+	fi
 fi
 
 if [ -n "${PREFIX}" ]; then
@@ -80,30 +175,125 @@ if [ -s Makefile ]; then
 	notice "Makefile present, skip configure"
 else
 	LDFLAGS="-Wl,--as-needed,-Bsymbolic,--gc-sections,-O,-zignore"
-	CFLAGS="-Wall -ggdb3 -gstrict-dwarf -fvisibility=hidden -Os -include $(readlink -f $(dirname $0)/ps/glibc-225.h)"
+	CFLAGS="-Wall -ggdb3 -gstrict-dwarf -include $(readlink -f $(dirname $0)/ps/glibc-225.h)"
 	LIBS="-Wl,--no-as-needed,-lrt"
 
-	if [ -n "$(which gcc)" ] && gcc -v 2>&1 | grep -q -i lto \
-		&& [ -n "$(which gcc-ar)" -a -n "$(which gcc-nm)" -a -n "$(which gcc-ranlib)" ]
-	then
-	#	gcc -fpic -O3 -c ps/glibc-225.c -o ps/glibc-225.o
-	#	CFLAGS+=" -D_LTO_BUG_WORKAROUND -save-temps"
-	#	LDFLAGS+=",$(readlink -f ps/glibc-225.o)"
-		sleep 0.5 && echo "*** Link-Time Optimization (LTO) will be used" >&2
-		CFLAGS+=" -free -flto -fno-fat-lto-objects -flto-partition=none"
-		export CC=gcc AR=gcc-ar NM=gcc-nm RANLIB=gcc-ranlib
+	if [ $flag_hidden -ne 0 ]; then
+		CFLAGS+=" -fvisibility=hidden"
 	fi
 
+	if [ -z "$CC" ]; then
+		if [ $flag_clang -ne 0 ]; then
+			CC=clang
+		elif [ -n "$(which gcc)" ]; then
+			CC=gcc
+		else
+			CC=cc
+		fi
+	fi
+
+	if grep -q gcc <<< "$CC"; then
+		CFLAGS+=" -fvar-tracking-assignments"
+	elif grep -q clang <<< "$CC"; then
+		LLVM_VERSION="$($CC --version | sed -n 's/.\+LLVM \([0-9]\.[0-9]\)\.[0-9].*/\1/p')"
+		echo "LLVM_VERSION	= $LLVM_VERSION"
+		LTO_PLUGIN="/usr/lib/llvm-${LLVM_VERSION}/lib/LLVMgold.so"
+		echo "LTO_PLUGIN	= $LTO_PLUGIN"
+		CFLAGS+=" -Wno-pointer-bool-conversion"
+	fi
+
+	CC_VER_SUFF=$(sed -nre 's/^(gcc|clang)-(.*)/-\2/p' <<< "$CC")
+
+	if [ $flag_debug -ne 0 ]; then
+		if grep -q gcc <<< "$CC" ; then
+			CFLAGS+=" -Og"
+		else
+			CFLAGS+=" -O0"
+		fi
+	else
+		CFLAGS+=" ${flag_O}"
+	fi
+
+	if [ $flag_lto -ne 0 ]; then
+		if grep -q gcc <<< "$CC" && $CC -v 2>&1 | grep -q -i lto \
+		&& [ -n "$(which gcc-ar$CC_VER_SUFF)" -a -n "$(which gcc-nm$CC_VER_SUFF)" -a -n "$(which gcc-ranlib$CC_VER_SUFF)" ]; then
+			notice "*** GCC Link-Time Optimization (LTO) will be used"
+			CFLAGS+=" -flto=jobserver -fno-fat-lto-objects -fuse-linker-plugin -fwhole-program"
+			export AR=gcc-ar$CC_VER_SUFF NM=gcc-nm$CC_VER_SUFF RANLIB=gcc-ranlib$CC_VER_SUFF
+		elif grep -q clang <<< "$CC" && [ -n "$LLVM_VERSION" -a -e "$LTO_PLUGIN" -a -n "$(which ld.gold)" ]; then
+			notice "*** CLANG Link-Time Optimization (LTO) will be used"
+			HERE=$(readlink -f $(dirname $0))
+
+			(echo "#!/bin/bash" \
+			&& echo "firstarg=\${1};shift;exec /usr/bin/ar \"\${firstarg}\" --plugin $LTO_PLUGIN \"\${@}\"") > ${HERE}/ar \
+			&& chmod a+x ${HERE}/ar || failure "create thunk-ar"
+
+			(echo "#!/bin/bash" \
+			&& echo "exec $(which clang) -flto -fuse-ld=gold \"\${@}\"") > ${HERE}/clang \
+			&& chmod a+x ${HERE}/clang || failure "create thunk-clang"
+
+			(echo "#!/bin/bash" \
+			&& echo "exec $(which ld.gold) --plugin $LTO_PLUGIN \"\${@}\"") > ${HERE}/ld \
+			&& chmod a+x ${HERE}/ld || failure "create thunk-ld"
+
+			(echo "#!/bin/bash" \
+			&& echo "exec $(which nm) --plugin $LTO_PLUGIN \"\${@}\"") > ${HERE}/nm \
+			&& chmod a+x ${HERE}/nm || failure "create thunk-nm"
+
+			(echo "#!/bin/bash" \
+			&& echo "exec $(which ranlib) --plugin $LTO_PLUGIN \"\${@}\"") > ${HERE}/ranlib \
+			&& chmod a+x ${HERE}/ranlib || failure "create thunk-ranlib"
+
+			export PATH="$HERE:$PATH"
+		fi
+	fi
+
+	if [ $flag_check -ne 0 ]; then
+		CFLAGS+=" -DLDAP_MEMORY_CHECK -DLDAP_MEMORY_DEBUG"
+	fi
+
+	if [ $flag_valgrind -ne 0 ]; then
+		CFLAGS+=" -DUSE_VALGRIND"
+	fi
+
+	if [ $flag_asan -ne 0 ]; then
+		# -Wno-inline
+		CFLAGS+=" -fsanitize=address -D__SANITIZE_ADDRESS__=1"
+		if [ $flag_clang -eq 0 ]; then
+			CFLAGS+=" -static-libasan -pthread"
+		fi
+	fi
+
+	if [ $flag_tsan -ne 0 ]; then
+		CFLAGS+=" -fsanitize=thread -D__SANITIZE_THREAD__=1"
+		if [ $flag_clang -eq 0 ]; then
+			CFLAGS+=" -static-libtsan"
+		#else
+		#	CFLAGS+=" -fPIE -Wl,-pie"
+		fi
+	fi
+
+	echo "CFLAGS		= ${CFLAGS}"
+	echo "PATH		= ${PATH}"
+	echo "LD		= $(readlink -f $(which ld)) ${LDFLAGS}"
+	echo "TOOLCHAIN	= $CC $AR $NM $RANLIB"
 	export CFLAGS LDFLAGS LIBS CXXFLAGS="$CFLAGS"
 
-	./configure \
-		--prefix=${PREFIX} --enable-dynacl --enable-ldap \
+	if [ $flag_dynamic -ne 0 ]; then
+		MOD=mod
+		DYNAMIC="--enable-dynamic --enable-shared --enable-modules"
+	else
+		MOD=yes
+		DYNAMIC="--disable-shared --enable-static --disable-dynamic"
+	fi
+
+	configure \
+		--prefix=${PREFIX} ${DYNAMIC} \
+		--enable-dynacl --enable-ldap \
 		--enable-overlays --disable-bdb --disable-hdb \
-		--disable-dynamic --disable-shared --enable-static \
 		--enable-debug --with-gnu-ld --without-cyrus-sasl \
 		--disable-spasswd --disable-lmpasswd \
-		--without-tls --disable-rwm --disable-relay > configure.log \
-		|| failure "configure"
+		--without-tls --disable-rwm --disable-relay || failure "configure"
 
 	find ./ -name Makefile -type f | xargs sed -e "s/STRIP = -s/STRIP =/g;s/\(VERSION= .\+\)/\1${BUILD_ID}/g" -i \
 		|| failure "fixup build-id"
