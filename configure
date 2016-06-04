@@ -15041,40 +15041,7 @@ $as_echo "#define HAVE_UUID_GENERATE 1" >>confdefs.h
 fi
 
 if test $have_uuid = no ; then
-	{ $as_echo "$as_me:${as_lineno-$LINENO}: checking to see if -lrpcrt4 is needed for win32 UUID support" >&5
-$as_echo_n "checking to see if -lrpcrt4 is needed for win32 UUID support... " >&6; }
-	save_LIBS="$LIBS"
-	LIBS="$LIBS -lrpcrt4"
-	cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-		int __stdcall UuidCreate(void *);
-		int __stdcall UuidToStringA(void *,void **);
-
-int
-main ()
-{
-
-		UuidCreate(0);
-		UuidToStringA(0,0);
-
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_link "$LINENO"; then :
-  need_rpcrt=yes
-else
-  need_rpcrt=no
-fi
-rm -f core conftest.err conftest.$ac_objext \
-    conftest$ac_exeext conftest.$ac_ext
-	if test $need_rpcrt = yes; then
-		SLAPD_LIBS="$SLAPD_LIBS -lrpcrt4"
-	fi
-	LIBS="$save_LIBS"
-	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $need_rpcrt" >&5
-$as_echo "$need_rpcrt" >&6; }
+	as_fn_error $? "*** uuid support not found (this typically means the uuid development package is missing)" "$LINENO" 5
 fi
 
 ol_cv_lib_resolver=no

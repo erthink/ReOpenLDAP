@@ -1114,23 +1114,8 @@ if test $have_uuid = no ; then
 	fi
 fi
 
-dnl For windows, check for the need of RPCRT for UUID function support
 if test $have_uuid = no ; then
-	AC_MSG_CHECKING(to see if -lrpcrt4 is needed for win32 UUID support)
-	save_LIBS="$LIBS"
-	LIBS="$LIBS -lrpcrt4"
-	AC_LINK_IFELSE([AC_LANG_PROGRAM([[
-		int __stdcall UuidCreate(void *);
-		int __stdcall UuidToStringA(void *,void **);
-		]], [[
-		UuidCreate(0);
-		UuidToStringA(0,0);
-		]])],[need_rpcrt=yes],[need_rpcrt=no])
-	if test $need_rpcrt = yes; then
-		SLAPD_LIBS="$SLAPD_LIBS -lrpcrt4"
-	fi
-	LIBS="$save_LIBS"
-	AC_MSG_RESULT($need_rpcrt)
+	AC_MSG_ERROR([*** uuid support not found (this typically means the uuid development package is missing)])
 fi
 
 dnl ----------------------------------------------------------------
