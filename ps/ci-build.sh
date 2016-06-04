@@ -258,19 +258,22 @@ if [ $flag_valgrind -ne 0 ]; then
 fi
 
 if [ $flag_asan -ne 0 ]; then
-	# -Wno-inline
-	CFLAGS+=" -fsanitize=address -D__SANITIZE_ADDRESS__=1"
-	if [ $flag_clang -eq 0 ]; then
-		CFLAGS+=" -static-libasan -pthread"
+	if grep -q clang <<< "$CC"; then
+		CFLAGS+=" -fsanitize=address -D__SANITIZE_ADDRESS__=1"
+	elif $CC -v 2>&1 | grep -q -e 'gcc version [5-9]'; then
+		CFLAGS+=" -fsanitize=address -D__SANITIZE_ADDRESS__=1 -static-libasan -pthread"
+	else
+		notice "*** AddressSanitizer is unusable"
 	fi
 fi
 
 if [ $flag_tsan -ne 0 ]; then
-	CFLAGS+=" -fsanitize=thread -D__SANITIZE_THREAD__=1"
-	if [ $flag_clang -eq 0 ]; then
-		CFLAGS+=" -static-libtsan"
-	#else
-	#	CFLAGS+=" -fPIE -Wl,-pie"
+	if grep -q clang <<< "$CC"; then
+		CFLAGS+=" -fsanitize=thread -D__SANITIZE_THREAD__=1"
+	elif $CC -v 2>&1 | grep -q -e 'gcc version [5-9]'; then
+		CFLAGS+=" -fsanitize=thread -D__SANITIZE_THREAD__=1 -static-libtsan"
+	else
+		notice "*** ThreadSanitizer is unusable"
 	fi
 fi
 
