@@ -23,19 +23,19 @@ flag_ndb=1
 flag_valgrind=0
 flag_asan=0
 flag_tsan=0
-flag_hidden=0
+flag_hide=0
 flag_dynamic=0
 for arg in "$@"; do
 	case "$arg" in
-	--hidden)
-		flag_hidden=1
+	--hide)
+		flag_hide=1
 		;;
-	--no-hidden)
-		flag_hidden=0
+	--no-hide)
+		flag_hide=0
 		;;
 	--dynamic)
 		flag_dynamic=1
-		flag_hidden=1
+		flag_hide=1
 		;;
 	--no-dynamic)
 		flag_dynamic=0
@@ -179,7 +179,7 @@ IODBC=$([ -d /usr/include/iodbc ] && echo "-I/usr/include/iodbc")
 #======================================================================
 
 CFLAGS="-Wall -ggdb3 -gdwarf-4"
-if [ $flag_hidden -ne 0 ]; then
+if [ $flag_hide -ne 0 ]; then
 	CFLAGS+=" -fvisibility=hidden"
 fi
 

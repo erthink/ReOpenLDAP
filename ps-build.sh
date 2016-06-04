@@ -42,16 +42,16 @@ flag_clang=0
 flag_valgrind=0
 flag_asan=0
 flag_tsan=0
-flag_hidden=1
+flag_hide=1
 flag_dynamic=0
 
 while grep -q '^--' <<< "$1"; do
 	case "$1" in
-	--hidden)
-		flag_hidden=1
+	--hide)
+		flag_hide=1
 		;;
-	--no-hidden)
-		flag_hidden=0
+	--no-hide)
+		flag_hide=0
 		;;
 	--dynamic)
 		flag_dynamic=1
@@ -178,7 +178,7 @@ else
 	CFLAGS="-Wall -ggdb3 -gstrict-dwarf -include $(readlink -f $(dirname $0)/ps/glibc-225.h)"
 	LIBS="-Wl,--no-as-needed,-lrt"
 
-	if [ $flag_hidden -ne 0 ]; then
+	if [ $flag_hide -ne 0 ]; then
 		CFLAGS+=" -fvisibility=hidden"
 	fi
 
