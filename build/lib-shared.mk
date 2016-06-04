@@ -38,10 +38,13 @@ MKDEPFLAG = -l
 
 LIB_DEFS += -DSHARED_LIBRARY
 
-.SUFFIXES: .c .o .lo
+.SUFFIXES: .c .cpp .o .lo
 
 .c.lo:
 	$(LTCOMPILE_LIB) $<
+
+.cpp.lo:
+	$(LTCOMPILE_LIB_CXX) $<
 
 $(LIBRARY): version.lo
 	$(LTLINK_LIB) -o $@ $(OBJS) version.lo $(LINK_LIBS)
