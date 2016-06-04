@@ -1167,7 +1167,8 @@ syncprov_playback_locked( Operation *op, syncops *so )
 			so->s_rltail = NULL;
 		ldap_pvt_thread_mutex_unlock( &so->s_mutex );
 
-		if ( is_syncops_abandoned(so) ) {
+		if ( is_syncops_abandoned(so)
+				|| (read_int__tsan_workaround(&so->s_flags) & PS_DEAD)) {
 			rc = SLAPD_ABANDON;
 		} else if ( rl->rl_mode == LDAP_SYNC_NEW_COOKIE ) {
 			SlapReply rs = { REP_INTERMEDIATE };
