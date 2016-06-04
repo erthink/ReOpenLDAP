@@ -175,7 +175,7 @@ if [ -s Makefile ]; then
 	notice "Makefile present, skip configure"
 else
 	LDFLAGS="-Wl,--as-needed,-Bsymbolic,--gc-sections,-O,-zignore"
-	CFLAGS="-Wall -ggdb3 -gstrict-dwarf -include $(readlink -f $(dirname $0)/ps/glibc-225.h)"
+	CFLAGS="-Wall -ggdb3 -gstrict-dwarf -DPS_COMPAT_RHEL6=1"
 	LIBS="-Wl,--no-as-needed,-lrt"
 
 	if [ $flag_hide -ne 0 ]; then
