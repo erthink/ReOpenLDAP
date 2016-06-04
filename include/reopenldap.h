@@ -389,15 +389,6 @@ LDAP_LUTIL_F(void) reopenldap_jitter(int probability_percent);
 #undef assert
 #define assert(expr) LDAP_ASSERT(expr)
 
-/* LY: engaging overlap checking for memcpy */
-#ifndef LDAP_SAFEMEMCPY
-#	if LDAP_ASSERT_CHECK || LDAP_DEBUG || ! defined(NDEBUG)
-#		define LDAP_SAFEMEMCPY 1
-#	else
-#		define LDAP_SAFEMEMCPY 0
-#	endif
-#endif
-
 LDAP_END_DECL
 
 /* -------------------------------------------------------------------------- */
