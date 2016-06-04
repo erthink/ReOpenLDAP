@@ -733,11 +733,11 @@ int mdb_entry_decode(Operation *op, MDB_txn *txn, MDB_val *data, Entry **e)
 			i ^= HIGH_BIT;
 			a->a_flags |= SLAP_ATTR_SORTED_VALS;
 		}
-		if (i > read_int__tsan_workaround(&mdb->mi_numads)) {
+		if (i > slap_tsan__read_int(&mdb->mi_numads)) {
 			rc = mdb_ad_read(mdb, txn);
 			if (rc)
 				return rc;
-			if (i > read_int__tsan_workaround(&mdb->mi_numads)) {
+			if (i > slap_tsan__read_int(&mdb->mi_numads)) {
 				Debug( LDAP_DEBUG_ANY,
 					"mdb_entry_decode: attribute index %d not recognized\n",
 					i );

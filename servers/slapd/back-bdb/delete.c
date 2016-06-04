@@ -148,7 +148,7 @@ retry:	/* transaction retry */
 			rs->sr_text = "internal error";
 			goto return_results;
 		}
-		if ( get_op_abandon(op) ) {
+		if ( slap_get_op_abandon(op) ) {
 			rs->sr_err = SLAPD_ABANDON;
 			goto return_results;
 		}

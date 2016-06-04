@@ -117,7 +117,7 @@ typedef struct syncops {
 	struct reslink *s_rl;
 	struct reslink *s_rltail;
 
-	Operation *s_op_safe, s_op_copy;
+	Operation *s_op_safe, s_slap_op_copy;
 } syncops;
 
 #ifdef SLAP_NO_SL_MALLOC
@@ -128,7 +128,7 @@ typedef struct syncops {
 static ATTRIBUTE_NO_SANITIZE_THREAD_INLINE
 int is_syncops_abandoned(const syncops *so)
 {
-	return so->s_next == so || get_op_abandon(so->s_op);
+	return so->s_next == so || slap_get_op_abandon(so->s_op);
 }
 
 /* A received sync control */
@@ -536,7 +536,7 @@ syncprov_findbase( Operation *op, fbase_cookie *fc )
 		fc->fss->s_flags ^= PS_FIND_BASE;
 		ldap_pvt_thread_mutex_unlock( &fc->fss->s_mutex );
 
-		op_copy(fc->fss->s_op_safe, &fop, NULL, NULL);
+		slap_op_copy(fc->fss->s_op_safe, &fop, NULL, NULL);
 
 		fop.o_bd = fop.o_bd->bd_self;
 		fop.o_hdr = op->o_hdr;
@@ -737,7 +737,7 @@ syncprov_findcsn( Operation *op, find_csn_t mode, struct berval *pivot )
 		srs = op->o_controls[slap_cids.sc_LDAPsync];
 	}
 
-	op_copy(op, &fop, NULL, NULL);
+	slap_op_copy(op, &fop, NULL, NULL);
 	fop.o_sync_mode &= SLAP_CONTROL_MASK;	/* turn off sync_mode */
 	/* We want pure entries, not referrals */
 	fop.o_managedsait = SLAP_CONTROL_CRITICAL;
@@ -948,7 +948,7 @@ syncprov_unlink_syncop( syncops *so, int unlink_flags, int locked_flags )
 {
 	syncprov_info_t *si = so->s_si;
 	assert(unlink_flags && !(unlink_flags & ~OS_REF_MASK));
-	assert((read_int__tsan_workaround(&so->s_flags) & unlink_flags) > 0);
+	assert((slap_tsan__read_int(&so->s_flags) & unlink_flags) > 0);
 
 	if (locked_flags & SO_LOCKED_SIOP)
 		assert(ldap_pvt_thread_mutex_trylock( &si->si_ops_mutex ) != 0);
@@ -992,7 +992,7 @@ syncprov_unlink_syncop( syncops *so, int unlink_flags, int locked_flags )
 			Connection* conn = so->s_op->o_conn;
 			if ( (locked_flags & SO_LOCKED_CONN) == 0 ) {
 				if (ldap_pvt_thread_mutex_trylock( &conn->c_mutex )) {
-					if (get_op_abandon(so->s_op)) {
+					if (slap_get_op_abandon(so->s_op)) {
 						/* LY: connection_abandon() is running, and we are
 						 * clashed with it. So, we could skip OS_REF_OP_SEARCH
 						 * and connection unlinkin. */
@@ -1084,7 +1084,7 @@ syncprov_sendresp( Operation *op, resinfo *ri, syncops *so, int mode )
 	Attribute a_uuid = {0};
 
 	if ( is_syncops_abandoned(so)
-			|| (read_int__tsan_workaround(&so->s_flags) & PS_DEAD) )
+			|| (slap_tsan__read_int(&so->s_flags) & PS_DEAD) )
 		return SLAPD_ABANDON;
 
 	rs.sr_ctrls = op->o_tmpalloc( sizeof(LDAPControl *)*2, op->o_tmpmemctx );
@@ -1168,7 +1168,7 @@ syncprov_playback_locked( Operation *op, syncops *so )
 		ldap_pvt_thread_mutex_unlock( &so->s_mutex );
 
 		if ( is_syncops_abandoned(so)
-				|| (read_int__tsan_workaround(&so->s_flags) & PS_DEAD)) {
+				|| (slap_tsan__read_int(&so->s_flags) & PS_DEAD)) {
 			rc = SLAPD_ABANDON;
 		} else if ( rl->rl_mode == LDAP_SYNC_NEW_COOKIE ) {
 			SlapReply rs = { REP_INTERMEDIATE };
@@ -1219,7 +1219,7 @@ syncprov_playback_dequeue( void *ctx, void *arg )
 
 	ldap_pvt_thread_mutex_lock( &so->s_mutex );
 
-	op_copy(so->s_op, op = &opbuf.ob_op, &opbuf.ob_hdr, &be);
+	slap_op_copy(so->s_op, op = &opbuf.ob_op, &opbuf.ob_hdr, &be);
 	op->o_controls = opbuf.ob_controls;
 	memset( op->o_controls, 0, sizeof(opbuf.ob_controls) );
 	op->o_sync = SLAP_CONTROL_IGNORED;
@@ -1267,7 +1267,7 @@ syncprov_qresp( opcookie *opc, syncops *so, int mode )
 	struct berval csn = opc->sctxcsn;
 
 	if (unlikely( is_syncops_abandoned(so)
-			|| (read_int__tsan_workaround(&so->s_flags) & PS_DEAD) ))
+			|| (slap_tsan__read_int(&so->s_flags) & PS_DEAD) ))
 		return;
 
 	rl = ch_malloc( sizeof( reslink ));
@@ -1417,8 +1417,8 @@ syncprov_op_abandon( Operation *op, SlapReply *rs )
 			/* LY: safely mark it as unlinked */
 			so->s_next = so;
 			/* LY: when called via syncprov.on_bi.bi_op_cancel */
-			if (! get_op_abandon(so->s_op))
-				set_op_abandon(so->s_op, 1);
+			if (! slap_get_op_abandon(so->s_op))
+				slap_set_op_abandon(so->s_op, 1);
 			ldap_pvt_thread_mutex_unlock( &so->s_mutex );
 			break;
 		}
@@ -1428,10 +1428,10 @@ syncprov_op_abandon( Operation *op, SlapReply *rs )
 	if ( so ) {
 		/* Is this really a Cancel exop? */
 		if ( op->o_tag != LDAP_REQ_ABANDON ) {
-			set_op_cancel(so->s_op, SLAP_CANCEL_ACK);
+			slap_set_op_cancel(so->s_op, SLAP_CANCEL_ACK);
 			rs->sr_err = LDAP_CANCELLED;
 			send_ldap_result( so->s_op, rs );
-			if ( read_int__tsan_workaround(&so->s_flags) & PS_IS_DETACHED ) {
+			if ( slap_tsan__read_int(&so->s_flags) & PS_IS_DETACHED ) {
 				slap_callback *cb;
 				cb = op->o_tmpcalloc( 1, sizeof(slap_callback), op->o_tmpmemctx );
 				cb->sc_cleanup = syncprov_abandon_cleanup;
@@ -1521,10 +1521,10 @@ syncprov_matchops( Operation *op, opcookie *opc, int saveit )
 		snext = so->s_next;
 
 		if (unlikely( is_syncops_abandoned(so)
-				|| (read_int__tsan_workaround(&so->s_flags) & PS_DEAD) ))
+				|| (slap_tsan__read_int(&so->s_flags) & PS_DEAD) ))
 			continue;
 
-		assert(read_int__tsan_workaround(&so->s_flags) & OS_REF_OP_SEARCH);
+		assert(slap_tsan__read_int(&so->s_flags) & OS_REF_OP_SEARCH);
 
 		/* Don't send ops back to the originator */
 		if ( op->o_tag != LDAP_REQ_DELETE
@@ -1589,8 +1589,8 @@ kill_locked:
 
 			for ( sm=opc->smatches, old=(syncmatches *)&opc->smatches; sm;
 				old=sm, sm=sm->sm_next ) {
-				assert(read_int__tsan_workaround(&sm->sm_op->s_matchops_inuse) > 0);
-				assert(read_int__tsan_workaround(&sm->sm_op->s_flags) & OS_REF_OP_MATCH);
+				assert(slap_tsan__read_int(&sm->sm_op->s_matchops_inuse) > 0);
+				assert(slap_tsan__read_int(&sm->sm_op->s_flags) & OS_REF_OP_MATCH);
 				if ( sm->sm_op == so ) {
 					found = 1;
 					old->sm_next = sm->sm_next;
@@ -1607,7 +1607,7 @@ kill_locked:
 				goto kill_locked;
 			}
 			assert( so->s_flags & OS_REF_OP_SEARCH );
-			Operation op2; op_copy(so->s_op_safe, &op2, NULL, NULL);
+			Operation op2; slap_op_copy(so->s_op_safe, &op2, NULL, NULL);
 			Opheader oh = *op->o_hdr;
 			oh.oh_conn = so->s_op->o_conn;
 			oh.oh_connid = so->s_op->o_connid;
@@ -2046,7 +2046,7 @@ syncprov_playlog( Operation *op, SlapReply *rs, sessionlog *sl,
 		AttributeAssertion eq = ATTRIBUTEASSERTION_INIT;
 		slap_callback cb = {0};
 
-		op_copy(op, &fop, NULL, NULL);
+		slap_op_copy(op, &fop, NULL, NULL);
 
 		fop.o_sync_mode = 0;
 		fop.o_callback = &cb;
@@ -2503,7 +2503,7 @@ retry:
 				ldap_pvt_thread_mutex_lock( &mt->mt_mutex );
 
 				/* clean up if the caller is giving up */
-				if ( get_op_abandon(op) ) {
+				if ( slap_get_op_abandon(op) ) {
 					slap_callback **pcb;
 					modinst **pmi;
 					for (pmi = &mt->mt_mods; /* *pmi != NULL */; pmi = &(*pmi)->mi_next ) {
@@ -2652,7 +2652,7 @@ syncprov_detach_op( Operation *op, syncops *so, slap_overinst *on )
 
 	/* Prevent anyone else from trying to send a result for this op */
 	so->s_flags |= PS_IS_DETACHED;
-	set_op_abandon(op, 1);
+	slap_set_op_abandon(op, 1);
 	/* LY: Icing on the cake - this is a crutch/workaround
 	 * for https://github.com/ReOpen/ReOpenLDAP/issues/47 */
 	op->o_msgid += ~((~0u) >> 1);
@@ -2666,7 +2666,7 @@ syncprov_detach_op( Operation *op, syncops *so, slap_overinst *on )
 static void
 syncprov_refresh_end(syncprov_info_t *si, syncops *so)
 {
-	assert(read_int__tsan_workaround(&si->si_psearches) > 0);
+	assert(slap_tsan__read_int(&si->si_psearches) > 0);
 	assert(so->s_flags & PS_IS_REFRESHING);
 	assert(si->si_prefresh > 0);
 	/* Turn off the refreshing flag */
@@ -2685,11 +2685,11 @@ syncprov_search_cleanup( Operation *op, SlapReply *rs )
 	syncops *so = ss->ss_so;
 
 	if ( rs->sr_err != LDAP_SUCCESS && rs->sr_type == REP_RESULT
-			&& !get_op_abandon(op) && so != NULL ) {
+			&& !slap_get_op_abandon(op) && so != NULL ) {
 		ss->ss_so = NULL;
 		cb->sc_cleanup = NULL;
 		ldap_pvt_thread_mutex_lock( &op->o_conn->c_mutex );
-		if ( !get_op_abandon(op) ) {
+		if ( !slap_get_op_abandon(op) ) {
 			Debug( LDAP_DEBUG_SYNC,
 				"syncprov-search: sid %03x, refresh-abort, type %d, rc %d\n",
 				so->s_sid, rs->sr_type, rs->sr_err );
@@ -2825,14 +2825,14 @@ syncprov_search_response( Operation *op, SlapReply *rs )
 				ldap_pvt_thread_mutex_lock( &op->o_conn->c_mutex );
 
 				/* But not if this connection was closed along the way */
-				if (unlikely(get_op_abandon(op))) {
+				if (unlikely(slap_get_op_abandon(op))) {
 	abandon:
 					ldap_pvt_thread_mutex_unlock( &op->o_conn->c_mutex );
 					/* syncprov_abandon_cleanup will free this syncop */
 					return SLAPD_ABANDON;
 				}
 
-				assert(read_int__tsan_workaround(&so->s_flags) & OS_REF_MASK);
+				assert(slap_tsan__read_int(&so->s_flags) & OS_REF_MASK);
 				ldap_pvt_thread_mutex_lock( &si->si_ops_mutex );
 				ldap_pvt_thread_mutex_lock( &so->s_mutex );
 				assert(so->s_flags & OS_REF_MASK);
@@ -2934,7 +2934,7 @@ syncprov_op_search( Operation *op, SlapReply *rs )
 
 	/* If this is a persistent search, set it up right away */
 	if ( op->o_sync_mode & SLAP_SYNC_PERSIST ) {
-		while ( read_int__tsan_workaround(&si->si_active) ) {
+		while ( slap_tsan__read_int(&si->si_active) ) {
 			/* Wait for active mods to finish before proceeding, as they
 			 * may already have inspected the si_ops list looking for
 			 * consumers to replicate the change to.  Using the log
@@ -3261,7 +3261,7 @@ shortcut:
 	if ( so ) {
 		if (so->s_flags & OS_REF_OP_SEARCH) {
 			/* LY: make a copy to avoid race syncprov_matchops() with over_op_func() */
-			op_copy(so->s_op, so->s_op_safe = &so->s_op_copy, NULL, NULL);
+			slap_op_copy(so->s_op, so->s_op_safe = &so->s_slap_op_copy, NULL, NULL);
 			assert(so->s_flags & OS_REF_PREPARE);
 			so->s_flags -= OS_REF_PREPARE;
 			cb->sc_cleanup = syncprov_search_cleanup;
@@ -3274,7 +3274,7 @@ shortcut:
 			assert(so->s_next == so);
 			op->o_callback = NULL;
 			ldap_pvt_thread_mutex_unlock( &so->s_mutex );
-			assert((read_int__tsan_workaround(&so->s_flags) & PS_IS_DETACHED) == 0);
+			assert((slap_tsan__read_int(&so->s_flags) & PS_IS_DETACHED) == 0);
 
 			syncprov_unlink_syncop( so, OS_REF_PREPARE, SO_LOCKED_NONE );
 			return rs->sr_err = SLAPD_ABANDON;
@@ -3333,8 +3333,8 @@ syncprov_operational(
 			if (! op->o_dont_replicate && si->si_showstatus != SS_NONE ) {
 				mock = quorum_query_status(op->o_bd,
 						si->si_showstatus == SS_RUNNING, &status, op)
-					| read_int__tsan_workaround(&si->si_prefresh)
-					| read_int__tsan_workaround(&si->si_active);
+					| slap_tsan__read_int(&si->si_prefresh)
+					| slap_tsan__read_int(&si->si_active);
 
 				Debug( LDAP_DEBUG_SYNC, "syncprov_gate: %s\n",
 					mock ? "dirty" : "clean" );
@@ -3853,8 +3853,8 @@ syncprov_db_destroy(
 			ldap_pvt_thread_mutex_lock( &si->si_ops_mutex );
 			drained = 0;
 			if (si->si_ops == NULL
-					&& read_int__tsan_workaround(&si->si_psearches) == 0
-					&& read_int__tsan_workaround(&si->si_active) == 0)
+					&& slap_tsan__read_int(&si->si_psearches) == 0
+					&& slap_tsan__read_int(&si->si_active) == 0)
 				drained = 1;
 			ldap_pvt_thread_mutex_unlock( &si->si_ops_mutex );
 			if (paused == LDAP_SUCCESS)

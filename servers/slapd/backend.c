@@ -1626,7 +1626,7 @@ backend_group(
 	BackendDB *be_orig;
 	OpExtraDB	oex;
 
-	if ( get_op_abandon(op) ) {
+	if ( slap_get_op_abandon(op) ) {
 		return SLAPD_ABANDON;
 	}
 

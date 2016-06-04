@@ -517,7 +517,7 @@ glue_op_search ( Operation *op, SlapReply *rs )
 			/*
 			 * check for abandon
 			 */
-			if (get_op_abandon(op)) {
+			if (slap_get_op_abandon(op)) {
 				goto end_of_loop;
 			}
 			op->o_bd = btmp;
@@ -724,7 +724,7 @@ end_of_loop:;
 	}
 
 	op->o_callback = cb.sc_next;
-	if ( get_op_abandon(op) ) {
+	if ( slap_get_op_abandon(op) ) {
 		rs->sr_err = SLAPD_ABANDON;
 	} else {
 		rs->sr_err = gs.err;

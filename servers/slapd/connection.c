@@ -801,10 +801,10 @@ static void connection_abandon( Connection *c )
 			LDAP_ASSERT(next->o_conn == c);
 
 		/* don't abandon an op twice */
-		if ( get_op_abandon(o) == 2 )
+		if ( slap_get_op_abandon(o) == 2 )
 			continue;
 		op.orn_msgid = o->o_msgid;
-		set_op_abandon(o, 2);
+		slap_set_op_abandon(o, 2);
 		op.o_bd = frontendDB;
 		frontendDB->be_abandon( &op, &rs );
 
@@ -1179,7 +1179,7 @@ connection_operation( void *ctx, void *arg_v )
 		goto operations_error;
 	}
 
-	if( read_char__tsan_workaround(&conn->c_sasl_bind_in_progress)
+	if( slap_tsan__read_char(&conn->c_sasl_bind_in_progress)
 			&& tag != LDAP_REQ_BIND ) {
 		Debug( LDAP_DEBUG_ANY, "connection_operation: "
 			"error: SASL bind in progress (tag=%ld).\n",
@@ -1246,10 +1246,10 @@ operations_error:
 	if ( opidx == SLAP_OP_BIND && conn->c_conn_state == SLAP_C_BINDING )
 		conn->c_conn_state = SLAP_C_ACTIVE;
 
-	cancel = get_op_cancel(op);
+	cancel = slap_get_op_cancel(op);
 	if ( cancel != SLAP_CANCEL_NONE && cancel != SLAP_CANCEL_DONE ) {
 		if ( cancel == SLAP_CANCEL_REQ ) {
-			set_op_cancel(op, (rc == SLAPD_ABANDON)
+			slap_set_op_cancel(op, (rc == SLAPD_ABANDON)
 				? SLAP_CANCEL_ACK : LDAP_TOO_LATE);
 		}
 
@@ -1260,10 +1260,10 @@ operations_error:
 			ldap_pvt_thread_mutex_unlock( &conn->c_mutex );
 			do {
 				ldap_pvt_thread_yield();
-			} while ( (cancel = get_op_cancel(op)) != SLAP_CANCEL_NONE
+			} while ( (cancel = slap_get_op_cancel(op)) != SLAP_CANCEL_NONE
 					&& cancel != SLAP_CANCEL_DONE );
 			ldap_pvt_thread_mutex_lock( &conn->c_mutex );
-		} while ( (cancel = get_op_cancel(op)) != SLAP_CANCEL_NONE
+		} while ( (cancel = slap_get_op_cancel(op)) != SLAP_CANCEL_NONE
 				&& cancel != SLAP_CANCEL_DONE );
 	}
 
@@ -1864,7 +1864,7 @@ connection_resched( Connection *conn )
 		LDAP_STAILQ_NEXT(op, o_next) = NULL;
 
 		/* pending operations should not be marked for abandonment */
-		assert(!get_op_abandon(op));
+		assert(!slap_get_op_abandon(op));
 
 		conn->c_n_ops_pending--;
 		conn->c_n_ops_executing++;
@@ -2075,7 +2075,7 @@ int connection_write(ber_socket_t s)
 		LDAP_STAILQ_NEXT(op, o_next) = NULL;
 
 		/* pending operations should not be marked for abandonment */
-		assert(!get_op_abandon(op));
+		assert(!slap_get_op_abandon(op));
 
 		c->c_n_ops_pending--;
 		c->c_n_ops_executing++;

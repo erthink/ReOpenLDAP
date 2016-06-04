@@ -192,7 +192,7 @@ monitor_subsys_log_modify(
 		static char	textbuf[ BACKMONITOR_BUFSIZE ];
 
 		/* check for abandon */
-		if ( get_op_abandon(op) ) {
+		if ( slap_get_op_abandon(op) ) {
 			rc = rs->sr_err = SLAPD_ABANDON;
 
 			goto cleanup;

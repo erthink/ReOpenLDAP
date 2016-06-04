@@ -2380,13 +2380,13 @@ pcache_op_cleanup( Operation *op, SlapReply *rs ) {
 	query_manager*		qm = cm->qm;
 
 	if ( rs->sr_type == REP_RESULT ||
-		get_op_abandon(op) || rs->sr_err == SLAPD_ABANDON )
+		slap_get_op_abandon(op) || rs->sr_err == SLAPD_ABANDON )
 	{
 		if ( si->swap_saved_attrs ) {
 			rs->sr_attrs = si->save_attrs;
 			op->ors_attrs = si->save_attrs;
 		}
-		if ( (get_op_abandon(op) || rs->sr_err == SLAPD_ABANDON) &&
+		if ( (slap_get_op_abandon(op) || rs->sr_err == SLAPD_ABANDON) &&
 				si->caching_reason == PC_IGNORE )
 		{
 			filter_free( si->query.filter );
@@ -3568,7 +3568,7 @@ consistency_check(
 
 	for (templ = qm->templates; templ; templ=templ->qmnext) {
 		time_t ttl = 0;
-		if ( ! read_ptr__tsan_workaround(&templ->query_last) ) continue;
+		if ( ! slap_tsan__read_ptr(&templ->query_last) ) continue;
 		ldap_pvt_thread_rdwr_wlock(&templ->t_rwlock);
 		pause = 0;
 		op->o_time = ldap_time_steady();

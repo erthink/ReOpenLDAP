@@ -318,7 +318,7 @@ retry:
 	for ( rc = -2; rc != -1; rc = ldap_result( lc->lc_ld, msgid, LDAP_MSG_ONE, &tv, &res ) )
 	{
 		/* check for abandon */
-		if ( get_op_abandon(op) || LDAP_BACK_CONN_ABANDON( lc ) ) {
+		if ( slap_get_op_abandon(op) || LDAP_BACK_CONN_ABANDON( lc ) ) {
 			if ( rc > 0 ) {
 				ldap_msgfree( res );
 			}

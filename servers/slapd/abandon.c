@@ -135,7 +135,7 @@ do_abandon( Operation *op, SlapReply *rs )
 		 * the response anyway, with result code SLAPD_ABANDON.
 		 * The functions in result.c will intercept the message.
 		 */
-		set_op_abandon(o, 1);
+		slap_set_op_abandon(o, 1);
 		op->orn_msgid = id;
 		op->o_bd = frontendDB;
 		rs->sr_err = frontendDB->be_abandon( op, rs );

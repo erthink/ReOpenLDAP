@@ -121,48 +121,48 @@ void memleak_crutch_pop(void *p)
 #ifdef __SANITIZE_THREAD__
 
 ATTRIBUTE_NO_SANITIZE_THREAD
-int get_op_abandon(const struct Operation *op)
+int slap_get_op_abandon(const struct Operation *op)
 {
 	return op->_o_abandon;
 }
 
 ATTRIBUTE_NO_SANITIZE_THREAD
-int get_op_cancel(const struct Operation *op)
+int slap_get_op_cancel(const struct Operation *op)
 {
 	return op->_o_cancel;
 }
 
 ATTRIBUTE_NO_SANITIZE_THREAD
-void set_op_abandon(struct Operation *op, int v)
+void slap_set_op_abandon(struct Operation *op, int v)
 {
 	op->_o_abandon = v;
 }
 
 ATTRIBUTE_NO_SANITIZE_THREAD
-void set_op_cancel(struct Operation *op, int v)
+void slap_set_op_cancel(struct Operation *op, int v)
 {
 	op->_o_cancel = v;
 }
 
 ATTRIBUTE_NO_SANITIZE_THREAD
-int read_int__tsan_workaround(volatile int *ptr) {
+int slap_tsan__read_int(volatile int *ptr) {
 		return *ptr;
 }
 
 ATTRIBUTE_NO_SANITIZE_THREAD
-char read_char__tsan_workaround(volatile char *ptr) {
+char slap_tsan__read_char(volatile char *ptr) {
 		return *ptr;
 }
 
 ATTRIBUTE_NO_SANITIZE_THREAD
-void* read_ptr__tsan_workaround(void *ptr) {
+void* slap_tsan__read_ptr(void *ptr) {
 		return *(void * volatile *)ptr;
 }
 
 #endif /* __SANITIZE_THREAD__ */
 
 ATTRIBUTE_NO_SANITIZE_THREAD
-void op_copy(const volatile Operation *src, Operation *op, Opheader *hdr, BackendDB *be)
+void slap_op_copy(const volatile Operation *src, Operation *op, Opheader *hdr, BackendDB *be)
 {
 	BackendDB* bd;
 	slap_mask_t	flags;
