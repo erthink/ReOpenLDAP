@@ -210,6 +210,10 @@ IODBC=$([ -d /usr/include/iodbc ] && echo "-I/usr/include/iodbc")
 CFLAGS="-Wall -ggdb3 -gdwarf-4"
 if [ $flag_hide -ne 0 ]; then
 	CFLAGS+=" -fvisibility=hidden"
+	if [ $flag_asan -ne 0 -o $flag_tsan -ne 0 ] && [ $flag_lto -ne 0 ]; then
+		notice "*** LTO will be disabled for ASAN/TSN with --hide"
+		flag_lto=0
+	fi
 fi
 
 if [ -z "$CC" ]; then
