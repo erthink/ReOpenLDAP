@@ -5,10 +5,39 @@ lalim=$((ncpu*4))
 
 [ -n "$CIBUZZ_PID4" ] && echo $BASHPID > $CIBUZZ_PID4
 
-failure() {
-        echo "Oops, $* failed ;(" >&2
-        exit 1
+teamcity_sync() {
+	[ -z "${TEAMCITY_PROCESS_FLOW_ID}" ] || sleep 1
 }
+
+failure() {
+	teamcity_sync
+	echo "Oops, $* failed ;(" >&2
+	teamcity_sync
+	exit 1
+}
+
+notice() {
+	teamcity_sync
+	echo "$*" >&2
+	teamcity_sync
+}
+
+step_begin() {
+	echo "##teamcity[blockOpened name='$1']"
+	#echo "##teamcity[progressStart '$1']"
+}
+
+step_finish() {
+	teamcity_sync
+	#echo "##teamcity[progressEnd '$1']"
+	echo "##teamcity[blockClosed name='$1']"
+}
+
+configure() {
+	echo "CONFIGURE	= $*"
+	./configure "$@" > configure.log
+}
+
 
 flag_debug=0
 flag_check=1
@@ -218,11 +247,11 @@ fi
 if [ $flag_lto -ne 0 ]; then
 	if grep -q gcc <<< "$CC" && $CC -v 2>&1 | grep -q -i lto \
 	&& [ -n "$(which gcc-ar$CC_VER_SUFF)" -a -n "$(which gcc-nm$CC_VER_SUFF)" -a -n "$(which gcc-ranlib$CC_VER_SUFF)" ]; then
-		echo "*** GCC Link-Time Optimization (LTO) will be used" >&2
+		notice "*** GCC Link-Time Optimization (LTO) will be used"
 		CFLAGS+=" -flto=jobserver -fno-fat-lto-objects -fuse-linker-plugin -fwhole-program"
 		export AR=gcc-ar$CC_VER_SUFF NM=gcc-nm$CC_VER_SUFF RANLIB=gcc-ranlib$CC_VER_SUFF
 	elif grep -q clang <<< "$CC" && [ -n "$LLVM_VERSION" -a -e "$LTO_PLUGIN" -a -n "$(which ld.gold)" ]; then
-		echo "*** CLANG Link-Time Optimization (LTO) will be used" >&2
+		notice "*** CLANG Link-Time Optimization (LTO) will be used"
 		HERE=$(readlink -f $(dirname $0))
 
 		(echo "#!/bin/bash" \
@@ -295,11 +324,6 @@ if [ $flag_clean -ne 0 ]; then
 fi
 
 LIBMDBX_DIR=$([ -d libraries/liblmdb ] && echo "libraries/liblmdb" || echo "libraries/libmdbx")
-
-configure() {
-	echo "CONFIGURE	= $*"
-	./configure "$@"
-}
 
 if [ ! -s Makefile ]; then
 	# autoscan && libtoolize --force --automake --copy && aclocal -I build && autoheader && autoconf && automake --add-missing --copy

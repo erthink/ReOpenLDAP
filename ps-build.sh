@@ -23,7 +23,7 @@ step_begin() {
 }
 
 step_finish() {
-	sleep 1
+	teamcity_sync
 	#echo "##teamcity[progressEnd '$1']"
 	echo "##teamcity[blockClosed name='$1']"
 }
