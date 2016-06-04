@@ -1,0 +1,144 @@
+# Makefile for LDAP tools
+# $ReOpenLDAP$
+## Copyright (c) 2015,2016 Leonid Yuriev <leo@yuriev.ru>.
+## Copyright (c) 2015,2016 Peter-Service R&D LLC <http://billing.ru/>.
+##
+## This file is part of ReOpenLDAP.
+##
+## ReOpenLDAP is free software; you can redistribute it and/or modify it under
+## the terms of the GNU Affero General Public License as published by
+## the Free Software Foundation; either version 3 of the License, or
+## (at your option) any later version.
+##
+## ReOpenLDAP is distributed in the hope that it will be useful,
+## but WITHOUT ANY WARRANTY; without even the implied warranty of
+## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+## GNU Affero General Public License for more details.
+##
+## You should have received a copy of the GNU Affero General Public License
+## along with this program.  If not, see <http://www.gnu.org/licenses/>.
+##
+## ---
+##
+## Copyright 1998-2014 The OpenLDAP Foundation.
+## All rights reserved.
+##
+## Redistribution and use in source and binary forms, with or without
+## modification, are permitted only as authorized by the OpenLDAP
+## Public License.
+##
+## A copy of this license is available in the file LICENSE in the
+## top-level directory of the distribution or, alternatively, at
+## <http://www.OpenLDAP.org/license.html>.
+
+SRCS	= ldapsearch.c ldapmodify.c ldapdelete.c ldapmodrdn.c \
+		ldappasswd.c ldapwhoami.c ldapcompare.c \
+		ldapexop.c ldapurl.c common.c
+OBJS	= $(SRCS:.c=.o)
+
+LDAP_INCDIR= ../../include
+LDAP_LIBDIR= ../../libraries
+
+MKVOPTS = -s
+
+XLIBS =  $(LDAP_L)
+XXLIBS	= $(SECURITY_LIBS) $(LUTIL_LIBS)
+
+XSRCS	= ldsversion.c ldmversion.c lddversion.c ldrversion.c \
+	ldpversion.c ldwversion.c ldcversion.c ldeversion.c lduversion.c
+
+bin_PROGRAMS = ldapsearch ldapmodify ldapdelete ldapmodrdn \
+	ldappasswd ldapwhoami ldapcompare ldapexop ldapurl
+
+
+ldapsearch$(EXEEXT):	ldsversion.o
+	$(LTLINK) -o $@ ldapsearch.o common.o ldsversion.o $(LIBS)
+
+ldapmodify$(EXEEXT):	ldmversion.o
+	$(LTLINK) -o $@ ldapmodify.o common.o ldmversion.o $(LIBS)
+
+ldapdelete$(EXEEXT):	lddversion.o
+	$(LTLINK) -o $@ ldapdelete.o common.o lddversion.o $(LIBS)
+
+ldapmodrdn$(EXEEXT):	ldrversion.o
+	$(LTLINK) -o $@ ldapmodrdn.o common.o ldrversion.o $(LIBS)
+
+ldappasswd$(EXEEXT):	ldpversion.o
+	$(LTLINK) -o $@ ldappasswd.o common.o ldpversion.o $(LIBS)
+
+ldapwhoami$(EXEEXT):	ldwversion.o
+	$(LTLINK) -o $@ ldapwhoami.o common.o ldwversion.o $(LIBS)
+
+ldapcompare$(EXEEXT): ldcversion.o
+	$(LTLINK) -o $@ ldapcompare.o common.o ldcversion.o $(LIBS)
+
+ldapexop$(EXEEXT): ldeversion.o
+	$(LTLINK) -o $@ ldapexop.o common.o ldeversion.o $(LIBS)
+
+ldapurl$(EXEEXT): lduversion.o
+	$(LTLINK) -o $@ ldapurl.o lduversion.o $(LIBS)
+
+ldsversion.c: Makefile
+	@-$(RM) $@
+	$(MKVERSION) $(MKVOPTS) ldapsearch > $@
+
+ldsversion.o: ldapsearch.o common.o $(XLIBS)
+
+ldmversion.c: Makefile
+	@-$(RM) $@
+	$(MKVERSION) $(MKVOPTS) ldapmodify > $@
+
+ldmversion.o: ldapmodify.o common.o $(XLIBS)
+
+lddversion.c: Makefile
+	@-$(RM) $@
+	$(MKVERSION) $(MKVOPTS) ldapdelete > $@
+
+lddversion.o: ldapdelete.o common.o $(XLIBS)
+
+ldpversion.c: Makefile
+	@-$(RM) $@
+	$(MKVERSION) $(MKVOPTS) ldappasswd > $@
+
+ldpversion.o: ldappasswd.o common.o $(XLIBS)
+
+ldrversion.c: Makefile
+	@-$(RM) $@
+	$(MKVERSION) $(MKVOPTS) ldapmodrdn > $@
+
+ldrversion.o: ldapmodrdn.o common.o $(XLIBS)
+
+ldwversion.c: Makefile
+	@-$(RM) $@
+	$(MKVERSION) $(MKVOPTS) ldapwhoami > $@
+
+ldwversion.o: ldapwhoami.o common.o $(XLIBS)
+
+ldcversion.c: Makefile
+	@-$(RM) $@
+	$(MKVERSION) $(MKVOPTS) ldapcompare > $@
+
+ldcversion.o: ldapcompare.o common.o $(XLIBS)
+
+ldeversion.c: Makefile
+	@-$(RM) $@
+	$(MKVERSION) $(MKVOPTS) ldapexop > $@
+
+ldeversion.o: ldapexop.o common.o $(XLIBS)
+
+lduversion.c: Makefile
+	@-$(RM) $@
+	$(MKVERSION) $(MKVOPTS) ldapurl > $@
+
+lduversion.o: ldapurl.o $(XLIBS)
+
+install-exec-local:	FORCE
+	-$(MKDIR) $(DESTDIR)$(bindir)
+	@(								\
+	    for prg in $(PROGRAMS); do					\
+		$(LTINSTALL) $(INSTALLFLAGS) $(STRIP) -m 755 $$prg$(EXEEXT)	\
+		    $(DESTDIR)$(bindir);				\
+	    done							\
+	)
+	$(RM) $(DESTDIR)$(bindir)/ldapadd$(EXEEXT)
+	$(LN_S) $(DESTDIR)$(bindir)/ldapmodify$(EXEEXT) $(DESTDIR)$(bindir)/ldapadd$(EXEEXT)

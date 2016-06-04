@@ -6,26 +6,6 @@
 *.so
 *.a
 
-# for MacOS/X
-*.dylib
-*.dSYM
-.DS_Store
-
-# for Windows
-*.exe
-*.obj
-*.dll
-*.exp
-*.pdb
-lib*.lib
-lib*.dll
-resource.RES
-resource.rc
-*_.RES
-*_.rc
-*0000.bin
-*.ilk
-
 # Misc
 *.eml
 *.patch
@@ -33,14 +13,16 @@ resource.rc
 *.rej
 *.swp
 
-# For OpenLDAP
 *.tmp
 .libs
 .links
-
+.deps
+/autom4te.cache/
 version.c
 
 Makefile
+Makefile.in
+
 !/contrib/slapd-modules/*/Makefile
 !/contrib/slapd-modules/*/*/Makefile
 !/doc/guide/admin/Makefile

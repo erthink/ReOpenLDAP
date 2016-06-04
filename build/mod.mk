@@ -39,7 +39,7 @@ LIBSTAT = lib$(LIBBASE).a
 
 MKDEPFLAG = -l
 
-.SUFFIXES: .c .cpp .o .lo
+SUFFIXES = .c .cpp .o .lo
 
 .c.lo:
 	$(LTCOMPILE_MOD) $<

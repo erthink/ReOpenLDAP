@@ -38,7 +38,6 @@ define([AC_CACHE_LOAD], )dnl
 define([AC_CACHE_SAVE], )dnl
 dnl ----------------------------------------------------------------
 dnl Disable libtool 1.5 support for languages we don't use
-define([AC_LIBTOOL_LANG_CXX_CONFIG], [:])dnl
 define([AC_LIBTOOL_LANG_F77_CONFIG], [:])dnl
 define([AC_LIBTOOL_LANG_GCJ_CONFIG], [:])dnl
 dnl ================================================================
@@ -65,10 +64,13 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 Copyright 1998-2014 The OpenLDAP Foundation. All rights reserved.
 Restrictions apply, see COPYRIGHT and LICENSE files.]])
-AC_REVISION([$Id$])
-AC_INIT([OpenLDAP],,[http://www.openldap.org/its/])
-m4_define([AC_PACKAGE_BUGREPORT],[<http://www.openldap.org/its/>])
+
+AC_REVISION([$Id: 8c9139400f1cfd3f68bc9b65828515fe85e91ee1 $])dnl
+AC_INIT([$OL_PACKAGE],[$OL_VERSION],[https://github.com/ReOpen/ReOpenLDAP/issues],[],[https://github.com/ReOpen/ReOpenLDAP/wiki])dnl
+AC_CONFIG_SRCDIR([ReOpenLDAP])dnl
+AC_DEFINE([_GNU_SOURCE], [1], [Enable GNU extensions.])dnl
 AC_CONFIG_SRCDIR(build/version.sh)dnl
+AC_CONFIG_MACRO_DIRS([build/m4])dnl
 dnl ----------------------------------------------------------------
 dnl OpenLDAP Autoconf Macros
 builtin(include, build/openldap.m4)dnl
@@ -109,9 +111,10 @@ dnl Determine host platform
 dnl		we try not to use this for much
 AC_CANONICAL_TARGET([])
 
-AM_INIT_AUTOMAKE([$OL_PACKAGE],[$OL_VERSION], [no defines])dnl
-AC_SUBST(PACKAGE)dnl
-AC_SUBST(VERSION)dnl
+AM_INIT_AUTOMAKE([no-define subdir-objects --warnings=no-portability])
+AC_SUBST(PACKAGE)
+AC_SUBST(VERSION)
+AC_LANG([C])
 AC_DEFINE_UNQUOTED(REOPENLDAP_PACKAGE,"$PACKAGE",Package)
 AC_DEFINE_UNQUOTED(REOPENLDAP_VERSION,"$VERSION",Version)
 
@@ -132,7 +135,22 @@ AC_SUBST(REOPENLDAP_RELEASE_DATE)dnl
 dnl We use autoconf features new to 2.59.  Later versions like won't work.
 dnl aclocal.m4 should be built using aclocal from automake 1.5
 dnl libtool 1.5 should be installed.
-AC_PREREQ(2.59)dnl Required Autoconf version
+AC_PREREQ([2.69])dnl Required Autoconf version
+
+dnl ----------------------------------------------------------------
+AC_PROG_CC([gcc clang icc cc])
+if test "${ac_cv_prog_cc_stdc}" = no ; then
+	AC_MSG_ERROR([ReOpenLDAP requires compiler to support STDC constructs.])
+fi
+
+AC_PROG_CC_C99
+if test "$ac_cv_prog_cc_c99" = no; then
+	AC_MSG_ERROR([ReOpenLDAP requires compiler to support C99 constructs.])
+fi
+
+AC_PROG_CXX([g++ clang++ icpc c++])
+
+dnl ----------------------------------------------------------------
 
 AH_TOP([
 /* begin of portable.h.pre */
@@ -171,30 +189,36 @@ AH_TOP([
 #ifndef _LDAP_PORTABLE_H
 #define _LDAP_PORTABLE_H
 
+/* LY: Please do not ask us for Windows support, just never!
+ * But you can make a fork for Windows, or become maintainer for FreeBSD... */
+#ifndef __gnu_linux__
+#	error "ReOpenLDAP supports only GNU Linux"
+#endif
+
 /* define this if needed to get reentrant functions */
 #ifndef REENTRANT
-#undef REENTRANT
+#	undef REENTRANT
 #endif
 #ifndef _REENTRANT
-#undef _REENTRANT
+#	undef _REENTRANT
 #endif
 
 /* define this if needed to get threadsafe functions */
 #ifndef THREADSAFE
-#undef THREADSAFE
+#	undef THREADSAFE
 #endif
 #ifndef _THREADSAFE
-#undef _THREADSAFE
+#	undef _THREADSAFE
 #endif
 #ifndef THREAD_SAFE
-#undef THREAD_SAFE
+#	undef THREAD_SAFE
 #endif
 #ifndef _THREAD_SAFE
-#undef _THREAD_SAFE
+#	undef _THREAD_SAFE
 #endif
 
 #ifndef _SGI_MP_SOURCE
-#undef _SGI_MP_SOURCE
+#	undef _SGI_MP_SOURCE
 #endif
 
 /* end of portable.h.pre */
@@ -202,40 +226,37 @@ AH_TOP([
 AH_BOTTOM([
 /* begin of portable.h.post */
 
-#ifdef _WIN32
-	/* don't suck in all of the win32 api */
-#	define WIN32_LEAN_AND_MEAN 1
-#endif
-
-#ifndef LDAP_NEEDS_PROTOTYPES
 /* force LDAP_P to always include prototypes */
 #define LDAP_NEEDS_PROTOTYPES 1
-#endif
 
 #ifndef LDAP_REL_ENG
-#if (LDAP_VENDOR_VERSION == 000000) && !defined(LDAP_DEVEL)
-#define LDAP_DEVEL
-#endif
-#if defined(LDAP_DEVEL) && !defined(LDAP_TEST)
-#define LDAP_TEST
-#endif
+#	if (LDAP_VENDOR_VERSION == 000000) && !defined(LDAP_DEVEL)
+#		define LDAP_DEVEL
+#	endif
+#	if defined(LDAP_DEVEL) && !defined(LDAP_TEST)
+#		define LDAP_TEST
+#	endif
 #endif
 
 #ifdef HAVE_STDDEF_H
 #	include <stddef.h>
 #endif
 
+#ifdef HAVE_ANSIDECL_H
+#	include <ansidecl.h>
+#endif
+
 #ifdef HAVE_EBCDIC
-/* ASCII/EBCDIC converting replacements for stdio funcs
- * vsnprintf and snprintf are used too, but they are already
- * checked by the configure script
- */
-#define fputs ber_pvt_fputs
-#define fgets ber_pvt_fgets
-#define printf ber_pvt_printf
-#define fprintf ber_pvt_fprintf
-#define vfprintf ber_pvt_vfprintf
-#define vsprintf ber_pvt_vsprintf
+	/* ASCII/EBCDIC converting replacements for stdio funcs
+	 * vsnprintf and snprintf are used too, but they are already
+	 * checked by the configure script
+	 */
+#	define fputs ber_pvt_fputs
+#	define fgets ber_pvt_fgets
+#	define printf ber_pvt_printf
+#	define fprintf ber_pvt_fprintf
+#	define vfprintf ber_pvt_vfprintf
+#	define vsprintf ber_pvt_vsprintf
 #endif
 
 #include "ac/fdset.h"
@@ -243,16 +264,17 @@ AH_BOTTOM([
 #include "ldap_cdefs.h"
 #include "ldap_features.h"
 
-#include "ac/assert.h"
 #include "ac/localize.h"
 
+#include "reopenldap.h"
+
 #endif /* _LDAP_PORTABLE_H */
-/* end of portable.h.post */
-])
+/* end of portable.h.post */])
 
 AC_CONFIG_HEADERS([include/portable.h:include/portable.hin])
 AC_CONFIG_HEADERS([include/ldap_features.h:include/ldap_features.hin])
 AC_CONFIG_HEADERS([include/lber_types.h:include/lber_types.hin])
+AC_CONFIG_HEADERS([include/ldap_config.h:include/ldap_config.hin])
 
 dnl ================================================================
 dnl Start Args
@@ -302,8 +324,6 @@ OL_ARG_WITH(cyrus_sasl,[  --with-cyrus-sasl	  with Cyrus SASL support],
 	auto, [auto yes no] )
 OL_ARG_WITH(fetch,[  --with-fetch		  with fetch(3) URL support],
 	auto, [auto yes no] )
-OL_ARG_WITH(threads,[  --with-threads	  with threads],
-	auto, [auto nt posix mach pth lwp yes no manual] )
 OL_ARG_WITH(tls,[  --with-tls		  with TLS/SSL support auto|openssl|gnutls|moznss],
 	auto, [auto openssl gnutls moznss yes no] )
 OL_ARG_WITH(yielding_select,
@@ -313,8 +333,8 @@ OL_ARG_WITH(mp,
 	[  --with-mp               with multiple precision statistics auto|longlong|long|bignum|gmp],
 	auto, [auto longlong long bignum gmp yes no])
 OL_ARG_WITH(odbc,
-	[  --with-odbc             with specific ODBC support iodbc|unixodbc|odbc32|auto],
-	auto, [auto iodbc unixodbc odbc32] )
+	[  --with-odbc             with specific ODBC support iodbc|unixodbc|auto],
+	auto, [auto iodbc unixodbc] )
 
 dnl ----------------------------------------------------------------
 dnl Server options
@@ -669,48 +689,6 @@ dnl
 dnl Determine which C translator to use
 dnl
 
-dnl AIX Thread requires we use cc_r or xlc_r.
-dnl But only do this IF AIX and CC is not set
-dnl and threads are auto|yes|posix.
-dnl
-dnl If we find cc_r|xlc_r, force pthreads and assume
-dnl		pthread_create is in $LIBS (ie: don't bring in
-dnl		any additional thread libraries)
-dnl If we do not find cc_r|xlc_r, disable threads
-
-ol_aix_threads=no
-case "$target" in
-*-*-aix*) dnl all AIX is not a good idea.
-	if test -z "$CC" ; then
-		case "$ol_with_threads" in
-		auto | yes |  posix) ol_aix_threads=yes ;;
-		esac
-	fi
-;;
-esac
-
-if test $ol_aix_threads = yes ; then
-	if test -z "${CC}" ; then
-		AC_CHECK_PROGS(CC,cc_r xlc_r cc)
-
-		if test "$CC" = cc ; then
-			dnl no CC! don't allow --with-threads
-			if test $ol_with_threads != auto ; then
-				AC_MSG_ERROR([--with-threads requires cc_r (or other suitable compiler) on AIX])
-			else
-				AC_MSG_WARN([disabling threads, no cc_r on AIX])
-			fi
-			ol_with_threads=no
-  		fi
-	fi
-
-	case ${CC} in cc_r | xlc_r)
-		ol_with_threads=posix
-		ol_cv_pthread_create=yes
-		;;
-	esac
-fi
-
 if test -z "${CC}"; then
 	AC_CHECK_PROGS(CC,cc gcc,missing)
 
@@ -727,7 +705,6 @@ if test -z "${AR}"; then
 	fi
 fi
 
-AC_LIBTOOL_WIN32_DLL
 AC_LIBTOOL_DLOPEN
 AC_PROG_LIBTOOL
 
@@ -760,30 +737,10 @@ AC_PROG_CPP
 OL_MSVC
 
 dnl ----------------------------------------------------------------
-dnl Checks for Windows NT
-case $host_os in
-  *mingw32* ) ac_cv_mingw32=yes ;;
-  *cygwin* ) ac_cv_cygwin=yes ;;
-  *interix* ) ac_cv_interix=yes ;;
-esac
-
-dnl ----------------------------------------------------------------
 dnl Checks for file extensions
 AC_EXEEXT
 AC_OBJEXT
 AC_DEFINE_UNQUOTED(EXEEXT, "${EXEEXT}", [defined to be the EXE extension])
-
-dnl ----------------------------------------------------------------
-dnl BeOS requires -lbe -lroot -lnet
-AC_CHECK_LIB(be, be_app, [LIBS="$LIBS -lbe -lroot -lnet"], :, [-lroot -lnet])
-
-dnl ----------------------------------------------------------------
-dnl ReOpenLDAP requires STDC features
-AC_PROG_CC
-AC_PROG_CXX
-if test "X${ac_cv_prog_cc_stdc}" = "Xno" ; then
-	AC_MSG_ERROR([ReOpenLDAP requires compiler to support STDC constructs.])
-fi
 
 dnl ----------------------------------------------------------------
 dnl Check cc depend flags
@@ -792,22 +749,6 @@ if test "${ol_cv_mkdep}" = no ; then
 	# this will soon become an error
 	AC_MSG_WARN([do not know how to generate dependencies])
 fi
-
-dnl ----------------------------------------------------------------
-dnl Check for AIX security library
-AC_CHECK_LIB(s, afopen, [
-	AUTH_LIBS=-ls
-	AC_DEFINE(HAVE_AIX_SECURITY,1,[define if you have AIX security lib])
-])
-
-dnl ----------------------------------------------------------------
-dnl Check for IBM OS/390
-case "$target" in
-*-ibm-openedition)
-	ac_cv_func_getopt=no
-	AC_DEFINE(BOTH_STRINGS_H,1,[define to use both <string.h> and <strings.h>])
-	;;
-esac
 
 dnl ----------------------------------------------------------------
 dnl Check for module support
@@ -861,6 +802,7 @@ AC_HEADER_SYS_WAIT
 AC_HEADER_TIOCGWINSZ
 
 AC_CHECK_HEADERS(	\
+	ansidecl.h		\
 	arpa/inet.h		\
 	arpa/nameser.h	\
 	assert.h		\
@@ -873,6 +815,7 @@ AC_CHECK_HEADERS(	\
 	filio.h			\
 	getopt.h		\
 	grp.h			\
+	inttypes.h		\
 	io.h			\
 	libutil.h		\
 	limits.h		\
@@ -887,6 +830,7 @@ AC_CHECK_HEADERS(	\
 	stddef.h		\
 	string.h		\
 	strings.h		\
+	stdint.h		\
 	sysexits.h		\
 	sys/file.h		\
 	sys/filio.h		\
@@ -910,14 +854,6 @@ AC_CHECK_HEADERS(	\
 	utime.h			\
 )
 
-dnl Only check Winsock on MinGW
-if test "$ac_cv_mingw32" = yes \
-	-o "$ac_cv_interix" = yes \
-	-o "$ol_cv_msvc" = yes
-then
-	AC_CHECK_HEADERS( winsock.h winsock2.h )
-fi
-
 AC_CHECK_HEADERS( resolv.h, [], [],
 [$ac_includes_default
 #include <netinet/in.h>
@@ -939,56 +875,6 @@ dnl ----------------------------------------------------------------
 dnl Checks for libraries
 
 AC_CHECK_FUNCS( sigaction sigset )
-
-dnl HP-UX requires -lV3
-dnl this is not needed on newer versions of HP-UX
-if test $ac_cv_func_sigaction = no && test $ac_cv_func_sigaction = no ; then
-	AC_CHECK_LIB(V3, sigset)
-fi
-
-if test $ol_cv_msvc = yes ; then
-   ol_cv_winsock=yes
-fi
-
-dnl The following is INTENTIONALLY scripted out because shell does not
-dnl support variable names with the '@' character, which is what
-dnl autoconf would try to generate if one merely used AC_SEARCH_LIBS
-if test "$ac_cv_header_winsock_h" = yes; then
-	AC_CACHE_CHECK([for winsock], [ol_cv_winsock],[
-	save_LIBS="$LIBS"
-	for curlib in none ws2_32 wsock32; do
-		if test $curlib != none ; then
-	    	LIBS="$save_LIBS -l$curlib"
-		fi
-		AC_LINK_IFELSE([AC_LANG_PROGRAM([[#include <winsock.h>
-			]], [[
-			socket(0,0,0);
-			select(0,NULL,NULL,NULL,NULL);
-			closesocket(0);
-			gethostname(NULL,0);
-			]])],[ol_cv_winsock=$curlib],[ol_cv_winsock=no])
-
-		test "$ol_cv_winsock" != no && break
-	done
-	LIBS="$save_LIBS"
-	])
-
-	if test $ol_cv_winsock != no ; then
-    	AC_DEFINE(HAVE_WINSOCK, 1, [define if you have winsock])
-    	ac_cv_func_socket=yes
-    	ac_cv_func_select=yes
-    	ac_cv_func_closesocket=yes
-    	ac_cv_func_gethostname=yes
-
-		if test $ol_cv_winsock != none -a $ol_cv_winsock != yes ; then
-        	LIBS="$LIBS -l$ol_cv_winsock"
-		fi
-
-    	if test $ol_cv_winsock = ws2_32 -o $ol_cv_winsock = yes ; then
-			AC_DEFINE(HAVE_WINSOCK2, 1, [define if you have winsock2])
-    	fi
-	fi
-fi
 
 dnl Find socket()
 dnl Likely combinations:
@@ -1251,11 +1137,11 @@ if test $ol_link_tls = no ; then
 		AC_CHECK_HEADERS(gnutls/gnutls.h)
 
 		if test $ac_cv_header_gnutls_gnutls_h = yes ; then
-			AC_PREPROC_IFELSE(
+			AC_PREPROC_IFELSE([AC_LANG_SOURCE(
                                [[#include <gnutls/gnutls.h>]
 [#if GNUTLS_VERSION_NUMBER < 0x020c00]
 [#error "GnuTLS 2.12.0 or newer required"]
-[#endif]],
+[#endif]])],
                                        , [AC_MSG_FAILURE([GnuTLS is too old])])
 
 			AC_CHECK_LIB(gnutls, gnutls_init,
@@ -1325,26 +1211,7 @@ fi
 
 dnl ----------------------------------------------------------------
 dnl Threads?
-ol_link_threads=no
-
-case $ol_with_threads in auto | yes | nt)
-
-	OL_NT_THREADS
-
-	if test "$ol_cv_nt_threads" = yes ; then
-		ol_link_threads=nt
-		ol_with_threads=found
-		ol_with_yielding_select=yes
-
-		AC_DEFINE(HAVE_NT_SERVICE_MANAGER,1,[if you have NT Service Manager])
-		AC_DEFINE(HAVE_NT_EVENT_LOG,1,[if you have NT Event Log])
-	fi
-
-	if test $ol_with_threads = nt ; then
-		AC_MSG_ERROR([could not locate NT Threads])
-	fi
-	;;
-esac
+ol_link_threads=posix
 
 case $ol_with_threads in auto | yes | posix)
 
@@ -1409,9 +1276,7 @@ case $ol_with_threads in auto | yes | posix)
 			AC_RUN_IFELSE([OL_PTHREAD_TEST_PROGRAM],
 				[ol_cv_pthread_create=yes],
 				[ol_cv_pthread_create=no],
-				[AC_TRY_LINK(OL_PTHREAD_TEST_INCLUDES,OL_PTHREAD_TEST_FUNCTION,
-					[ol_cv_pthread_create=yes],
-					[ol_cv_pthread_create=no])])])
+				[AC_LINK_IFELSE([AC_LANG_PROGRAM([[OL_PTHREAD_TEST_INCLUDES]], [[OL_PTHREAD_TEST_FUNCTION]])],[ol_cv_pthread_create=yes],[ol_cv_pthread_create=no])])])
 
 		if test $ol_cv_pthread_create != no ; then
 			ol_link_threads=posix
@@ -1659,140 +1524,12 @@ int main(argc, argv)
 	;;
 esac
 
-case $ol_with_threads in auto | yes | mach)
-
-	dnl check for Mach CThreads
-	AC_CHECK_HEADERS(mach/cthreads.h cthreads.h)
-	if test $ac_cv_header_mach_cthreads_h = yes ; then
-		ol_with_threads=found
-
-		dnl check for cthreads support in current $LIBS
-		AC_CHECK_FUNC(cthread_fork,[ol_link_threads=yes])
-
-		if test $ol_link_threads = no ; then
-			dnl try -all_load
-			dnl this test needs work
-			AC_CACHE_CHECK([for cthread_fork with -all_load],
-				[ol_cv_cthread_all_load], [
-				dnl save the flags
-				save_LIBS="$LIBS"
-				LIBS="-all_load $LIBS"
-				AC_LINK_IFELSE([AC_LANG_PROGRAM([[#include <mach/cthreads.h>]], [[
-					cthread_fork((void *)0, (void *)0);
-					]])],[ol_cv_cthread_all_load=yes],[ol_cv_cthread_all_load=no])
-				dnl restore the LIBS
-				LIBS="$save_LIBS"
-			])
-
-			if test $ol_cv_cthread_all_load = yes ; then
-				LTHREAD_LIBS="$LTHREAD_LIBS -all_load"
-				ol_link_threads=mach
-				ol_with_threads=found
-			fi
-		fi
-
-	elif test $ac_cv_header_cthreads_h = yes ; then
-		dnl Hurd variant of Mach Cthreads
-		dnl uses <cthreads.h> and -lthreads
-
-		ol_with_threads=found
-
-		dnl save the flags
-		save_LIBS="$LIBS"
-		LIBS="$LIBS -lthreads"
-		AC_CHECK_FUNC(cthread_fork,[ol_link_threads=yes])
-		LIBS="$save_LIBS"
-
-		if test $ol_link_threads = yes ; then
-			LTHREAD_LIBS="-lthreads"
-			ol_link_threads=mach
-			ol_with_threads=found
-		else
-			AC_MSG_ERROR([could not link with Mach CThreads])
-		fi
-
-	elif test $ol_with_threads = mach ; then
-		AC_MSG_ERROR([could not locate Mach CThreads])
-	fi
-
-	if test $ol_link_threads = mach ; then
-		AC_DEFINE(HAVE_MACH_CTHREADS,1,
-			[define if you have Mach Cthreads])
-	elif test $ol_with_threads = found ; then
-		AC_MSG_ERROR([could not link with Mach CThreads])
-	fi
-	;;
-esac
-
-case $ol_with_threads in auto | yes | pth)
-
-	AC_CHECK_HEADERS(pth.h)
-
-	if test $ac_cv_header_pth_h = yes ; then
-		AC_CHECK_LIB(pth, pth_version, [have_pth=yes], [have_pth=no])
-
-		if test $have_pth = yes ; then
-			AC_DEFINE(HAVE_GNU_PTH,1,[if you have GNU Pth])
-			LTHREAD_LIBS="$LTHREAD_LIBS -lpth"
-			ol_link_threads=pth
-			ol_with_threads=found
-
-			if test $ol_with_yielding_select = auto ; then
-				ol_with_yielding_select=yes
-			fi
-		fi
-	fi
-	;;
-esac
-
-case $ol_with_threads in auto | yes | lwp)
-
-	dnl check for SunOS5 LWP
-	AC_CHECK_HEADERS(thread.h synch.h)
-	if test $ac_cv_header_thread_h = yes &&
-	   test $ac_cv_header_synch_h = yes ; then
-		AC_CHECK_LIB(thread, thr_create, [have_thr=yes], [have_thr=no])
-
-		if test $have_thr = yes ; then
-			AC_DEFINE(HAVE_THR,1,
-				[if you have Solaris LWP (thr) package])
-			LTHREAD_LIBS="$LTHREAD_LIBS -lthread"
-			ol_link_threads=thr
-
-			if test $ol_with_yielding_select = auto ; then
-				ol_with_yielding_select=yes
-			fi
-
-			dnl Check for setconcurreny functions
-			AC_CHECK_FUNCS(	\
-				thr_setconcurrency \
-				thr_getconcurrency \
-			)
-		fi
-	fi
-	;;
-esac
-
 if test $ol_with_yielding_select = yes ; then
 	AC_DEFINE(HAVE_YIELDING_SELECT,1,
 		[define if select implicitly yields])
 fi
 
-if test $ol_with_threads = manual ; then
-	dnl User thinks he can manually configure threads.
-	ol_link_threads=yes
-
-	AC_MSG_WARN([thread defines and link options must be set manually])
-
-	AC_CHECK_HEADERS(pthread.h sched.h)
-	AC_CHECK_FUNCS(sched_yield pthread_yield)
-	OL_HEADER_LINUX_THREADS
-
-	AC_CHECK_HEADERS(mach/cthreads.h)
-	AC_CHECK_HEADERS(thread.h synch.h)
-fi
-
-if test $ol_link_threads != no && test $ol_link_threads != nt ; then
+if test $ol_link_threads != no ; then
 	dnl needed to get reentrant/threadsafe versions
 	dnl
 	AC_DEFINE(REENTRANT,1)
@@ -1822,83 +1559,16 @@ if test $ol_link_threads != no && test $ol_link_threads != nt ; then
 		LIBS="$LTHREAD_LIBS $LIBS"
 		LTHREAD_LIBS=""
 	fi
-
-dnl When in thread environment, use
-dnl		#if defined( HAVE_REENTRANT_FUNCTIONS ) || defined( HAVE_FUNC_R )
-dnl			func_r(...);
-dnl		#else
-dnl		#	if defined( HAVE_THREADS )
-dnl				/* lock */
-dnl		#	endif
-dnl				func(...);
-dnl		#	if defined( HAVE_THREADS )
-dnl				/* unlock */
-dnl		#	endif
-dnl		#endif
-dnl
-dnl HAVE_REENTRANT_FUNCTIONS is derived from:
-dnl		_POSIX_REENTRANT_FUNCTIONS
-dnl		_POSIX_THREAD_SAFE_FUNCTIONS
-dnl		_POSIX_THREADSAFE_FUNCTIONS
-dnl
-dnl		and is currently defined in <ldap_pvt_thread.h>
-dnl
-dnl HAVE_THREADS is defined by <ldap_pvt_thread.h> iff -UNO_THREADS
-dnl
-dnl libldap/*.c should only include <ldap_pvt_thread.h> iff
-dnl LDAP_R_COMPILE is defined.  ie:
-dnl		#ifdef LDAP_R_COMPILE
-dnl		#	include <ldap_pvt_thread.h>
-dnl		#endif
-dnl
-dnl LDAP_R_COMPILE is defined by libldap_r/Makefile.in
-dnl specifically for compiling the threadsafe version of
-dnl	the ldap library (-lldap_r).
-dnl
-dnl	dnl check for reentrant/threadsafe functions
-dnl	dnl
-dnl	dnl note: these should only be used when linking
-dnl	dnl		with $LTHREAD_LIBS
-dnl	dnl
-dnl	save_CPPFLAGS="$CPPFLAGS"
-dnl	save_LIBS="$LIBS"
-dnl	LIBS="$LTHREAD_LIBS $LIBS"
-dnl	AC_CHECK_FUNCS(	\
-dnl		gmtime_r \
-dnl		gethostbyaddr_r gethostbyname_r \
-dnl		feof_unlocked unlocked_feof \
-dnl		putc_unlocked unlocked_putc \
-dnl		flockfile ftrylockfile \
-dnl	)
-dnl	CPPFLAGS="$save_CPPFLAGS"
-dnl	LIBS="$save_LIBS"
 fi
 
 if test $ol_link_threads = no ; then
-	if test $ol_with_threads = yes ; then
-		AC_MSG_ERROR([no suitable thread support])
-	fi
-
-	if test $ol_with_threads = auto ; then
-		AC_MSG_WARN([no suitable thread support, disabling threads])
-		ol_with_threads=no
-	fi
-
-	AC_DEFINE(NO_THREADS,1,
-		[define if you have (or want) no threads])
-	LTHREAD_LIBS=""
-	BUILD_THREAD=no
+	AC_MSG_ERROR([no suitable thread support])
 else
 	BUILD_THREAD=yes
 fi
 
-if test $ol_link_threads != no ; then
-	AC_DEFINE(LDAP_API_FEATURE_X_OPENLDAP_THREAD_SAFE,1,
-		[define to 1 if library is thread safe])
-fi
-
 dnl ----------------------------------------------------------------
-dnl Tests for reentrant functions necessary to build -lldap_r
+dnl Tests for reentrant functions necessary to build -lreldap
 AC_CHECK_FUNCS(		\
 	ctime_r			\
 	gmtime_r localtime_r \
@@ -1913,15 +1583,15 @@ dnl	OL_FUNC_CTIME_R_TYPE
 fi
 
 if test "$ac_cv_func_gethostbyname_r" = yes ; then
- 	OL_FUNC_GETHOSTBYNAME_R_NARGS
+	OL_FUNC_GETHOSTBYNAME_R_NARGS
 else
- 	ol_cv_func_gethostbyname_r_nargs=0
+	ol_cv_func_gethostbyname_r_nargs=0
 fi
 
 if test "$ac_cv_func_gethostbyaddr_r" = yes ; then
- 	OL_FUNC_GETHOSTBYADDR_R_NARGS
+	OL_FUNC_GETHOSTBYADDR_R_NARGS
 else
- 	ol_cv_func_gethostbyaddr_r_nargs=0
+	ol_cv_func_gethostbyaddr_r_nargs=0
 fi
 
 dnl ----------------------------------------------------------------
@@ -1979,15 +1649,15 @@ hosts_access(req)
 		LIBS="$save_LIBS"],[
 		dnl try with -lnsl
 		LIBS="$LIBS -lnsl"
-		AC_TRY_LINK([
+		AC_LINK_IFELSE([AC_LANG_PROGRAM([[
 #include <tcpd.h>
 int allow_severity = 0;
 int deny_severity  = 0;
 
 struct request_info *req;
-		],[
+		]], [[
 hosts_access(req)
-		],[AC_MSG_RESULT([-lwrap -lnsl])
+		]])],[AC_MSG_RESULT([-lwrap -lnsl])
 		have_wrappers=yes
 		LIBS="$save_LIBS -lnsl"],[
 		AC_MSG_RESULT(no)
@@ -2026,7 +1696,7 @@ if test $ol_enable_sql != no ; then
 	LIBS="$LTHREAD_LIBS $LIBS"
 
 	if test $ol_with_odbc = auto ; then
-		ol_with_odbc="iodbc unixodbc odbc32"
+		ol_with_odbc="iodbc unixodbc"
 	fi
 
 	for odbc in $ol_with_odbc ; do
@@ -2043,28 +1713,6 @@ if test $ol_enable_sql != no ; then
 				AC_CHECK_LIB(odbc, SQLDriverConnect, [have_odbc=yes], [have_odbc=no])
 				if test $have_odbc = yes ; then
 					ol_link_sql="-lodbc"
-				fi
-				;;
-
-			odbc32)
-				AC_CHECK_LIB(odbc32, SQLDriverConnect, [have_odbc32=yes], [have_odbc32=no])
-
-				dnl The windows API uses __stdcall which cannot be detected by AC_CHECK_LIB
-				if test $have_odbc32 = no ; then
-					AC_MSG_CHECKING([for SQLDriverConnect in -lodbc32 with windows.h])
-					save_LIBS="$LIBS"
-					LIBS="$LIBS -lodbc32"
-					AC_LINK_IFELSE([AC_LANG_PROGRAM([[#include <windows.h>
-					#include <sqlext.h>
-						]], [[
-						SQLDriverConnect(NULL,NULL,NULL,0,NULL,0,NULL,0);
-						]])],[have_odbc32=yes], [have_odbc32=no])
-					LIBS="$save_LIBS"
-					AC_MSG_RESULT($have_odbc32)
-				fi
-
-				if test $have_odbc32 = yes ; then
-					ol_link_sql="-lodbc32"
 				fi
 				;;
 
@@ -2339,9 +1987,6 @@ if test "$ac_cv_type_socklen_t" != yes; then
 		[Define like ber_socklen_t if <sys/socket.h> does not define.])
 fi
 
-
-AC_TYPE_SIGNAL
-
 AC_CHECK_TYPE([sig_atomic_t],,
 	[AC_DEFINE_UNQUOTED([sig_atomic_t], [int],
 		[Define to `int' if <signal.h> does not define.])],
@@ -2541,7 +2186,7 @@ if test "$ac_cv_func_getpeereid" != yes; then
 		fi
 		AC_CHECK_MEMBERS([struct stat.st_fstype, struct stat.st_vfstype])
 		if test "$ac_cv_member_struct_stat_st_fstype" = yes; then
-			AC_COMPILE_IFELSE([struct stat st; char *ptr=st.st_fstype;],
+			AC_COMPILE_IFELSE([AC_LANG_SOURCE([struct stat st; char *ptr=st.st_fstype;])],
 				AC_DEFINE([HAVE_STRUCT_STAT_ST_FSTYPE_CHAR],1,[define to 1 if st_fstype is char *]),
 				AC_DEFINE([HAVE_STRUCT_STAT_ST_FSTYPE_INT],1,[define to 1 if st_fstype is int]))
 		fi
@@ -3213,11 +2858,11 @@ AC_CONFIG_FILES([Makefile:build/top.mk:Makefile.in:build/dir.mk]
 [doc/man/man3/Makefile:build/top.mk:doc/man/man3/Makefile.in:build/man.mk]
 [doc/man/man5/Makefile:build/top.mk:doc/man/man5/Makefile.in:build/man.mk]
 [doc/man/man8/Makefile:build/top.mk:doc/man/man8/Makefile.in:build/man.mk]
-[doc/ru/man/Makefile:build/top.mk:doc/ru/man/Makefile.in:build/dir.mk]
-[doc/ru/man/man1/Makefile:build/top.mk:doc/ru/man/man1/Makefile.in:build/man.mk]
-[doc/ru/man/man3/Makefile:build/top.mk:doc/ru/man/man3/Makefile.in:build/man.mk]
-[doc/ru/man/man5/Makefile:build/top.mk:doc/ru/man/man5/Makefile.in:build/man.mk]
-[doc/ru/man/man8/Makefile:build/top.mk:doc/ru/man/man8/Makefile.in:build/man.mk]
+[doc/man/ru/Makefile:build/top.mk:doc/man/ru/Makefile.in:build/dir.mk]
+[doc/man/ru/man1/Makefile:build/top.mk:doc/man/ru/man1/Makefile.in:build/man.mk]
+[doc/man/ru/man3/Makefile:build/top.mk:doc/man/ru/man3/Makefile.in:build/man.mk]
+[doc/man/ru/man5/Makefile:build/top.mk:doc/man/ru/man5/Makefile.in:build/man.mk]
+[doc/man/ru/man8/Makefile:build/top.mk:doc/man/ru/man8/Makefile.in:build/man.mk]
 [clients/Makefile:build/top.mk:clients/Makefile.in:build/dir.mk]
 [clients/tools/Makefile:build/top.mk:clients/tools/Makefile.in:build/rules.mk]
 [include/Makefile:build/top.mk:include/Makefile.in]

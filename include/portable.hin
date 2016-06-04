@@ -1,4 +1,5 @@
-/* include/portable.hin.  Generated from configure.in by autoheader.  */
+/* include/portable.hin.  Generated from configure.ac by autoheader.  */
+
 
 /* begin of portable.h.pre */
 /* Copyright (c) 2015,2016 Leonid Yuriev <leo@yuriev.ru>.
@@ -42,10 +43,6 @@
 #	error "ReOpenLDAP supports only GNU Linux"
 #endif
 
-#ifndef _GNU_SOURCE
-#	define _GNU_SOURCE
-#endif
-
 /* define this if needed to get reentrant functions */
 #ifndef REENTRANT
 #	undef REENTRANT
@@ -75,8 +72,8 @@
 /* end of portable.h.pre */
 
 
-/* define to use both <string.h> and <strings.h> */
-#undef BOTH_STRINGS_H
+/* Define if building universal (internal helper macro) */
+#undef AC_APPLE_UNIVERSAL_BUILD
 
 /* define if cross compiling */
 #undef CROSS_COMPILING
@@ -108,14 +105,17 @@
 /* Define to 1 if `TIOCGWINSZ' requires <sys/ioctl.h>. */
 #undef GWINSZ_IN_SYS_IOCTL
 
-/* define if you have AIX security lib */
-#undef HAVE_AIX_SECURITY
+/* Define to 1 if you have the <ansidecl.h> header file. */
+#undef HAVE_ANSIDECL_H
 
 /* Define to 1 if you have the <arpa/inet.h> header file. */
 #undef HAVE_ARPA_INET_H
 
 /* Define to 1 if you have the <arpa/nameser.h> header file. */
 #undef HAVE_ARPA_NAMESER_H
+
+/* Define to 1 if you have the <assert.h> header file. */
+#undef HAVE_ASSERT_H
 
 /* Define to 1 if you have the `bcopy' function. */
 #undef HAVE_BCOPY
@@ -143,9 +143,6 @@
 
 /* Define to 1 if you have the <crypt.h> header file. */
 #undef HAVE_CRYPT_H
-
-/* Define to 1 if you have the <cthreads.h> header file. */
-#undef HAVE_CTHREADS_H
 
 /* Define to 1 if you have the `ctime_r' function. */
 #undef HAVE_CTIME_R
@@ -271,9 +268,6 @@
 /* Define to 1 if you have the <gnutls/gnutls.h> header file. */
 #undef HAVE_GNUTLS_GNUTLS_H
 
-/* if you have GNU Pth */
-#undef HAVE_GNU_PTH
-
 /* Define to 1 if you have the <grp.h> header file. */
 #undef HAVE_GRP_H
 
@@ -331,9 +325,6 @@
 /* Define to 1 if you have the <libutil.h> header file. */
 #undef HAVE_LIBUTIL_H
 
-/* Define to 1 if you have the `V3' library (-lV3). */
-#undef HAVE_LIBV3
-
 /* Define to 1 if you have the <limits.h> header file. */
 #undef HAVE_LIMITS_H
 
@@ -355,14 +346,14 @@
 /* Define to 1 if you have the <ltdl.h> header file. */
 #undef HAVE_LTDL_H
 
-/* define if you have Mach Cthreads */
-#undef HAVE_MACH_CTHREADS
-
-/* Define to 1 if you have the <mach/cthreads.h> header file. */
-#undef HAVE_MACH_CTHREADS_H
-
 /* Define to 1 if you have the <malloc.h> header file. */
 #undef HAVE_MALLOC_H
+
+/* Define to 1 if you have the `memcpy' function. */
+#undef HAVE_MEMCPY
+
+/* Define to 1 if you have the `memmove' function. */
+#undef HAVE_MEMMOVE
 
 /* Define to 1 if you have the <memory.h> header file. */
 #undef HAVE_MEMORY_H
@@ -448,9 +439,6 @@
 /* Define to 1 if you have the `pthread_yield' function. */
 #undef HAVE_PTHREAD_YIELD
 
-/* Define to 1 if you have the <pth.h> header file. */
-#undef HAVE_PTH_H
-
 /* Define to 1 if the system has the type `ptrdiff_t'. */
 #undef HAVE_PTRDIFF_T
 
@@ -490,7 +478,7 @@
 /* Define to 1 if you have the <sched.h> header file. */
 #undef HAVE_SCHED_H
 
-/* Define to 1 if you have the `sched_yield' function. */
+/* Define if you have the sched_yield function. */
 #undef HAVE_SCHED_YIELD
 
 /* Define to 1 if you have the `send' function. */
@@ -613,22 +601,22 @@
 /* Define to 1 if you have the `strtouq' function. */
 #undef HAVE_STRTOUQ
 
-/* Define to 1 if `msg_accrightslen' is member of `struct msghdr'. */
+/* Define to 1 if `msg_accrightslen' is a member of `struct msghdr'. */
 #undef HAVE_STRUCT_MSGHDR_MSG_ACCRIGHTSLEN
 
-/* Define to 1 if `msg_control' is member of `struct msghdr'. */
+/* Define to 1 if `msg_control' is a member of `struct msghdr'. */
 #undef HAVE_STRUCT_MSGHDR_MSG_CONTROL
 
-/* Define to 1 if `pw_gecos' is member of `struct passwd'. */
+/* Define to 1 if `pw_gecos' is a member of `struct passwd'. */
 #undef HAVE_STRUCT_PASSWD_PW_GECOS
 
-/* Define to 1 if `pw_passwd' is member of `struct passwd'. */
+/* Define to 1 if `pw_passwd' is a member of `struct passwd'. */
 #undef HAVE_STRUCT_PASSWD_PW_PASSWD
 
-/* Define to 1 if `st_blksize' is member of `struct stat'. */
+/* Define to 1 if `st_blksize' is a member of `struct stat'. */
 #undef HAVE_STRUCT_STAT_ST_BLKSIZE
 
-/* Define to 1 if `st_fstype' is member of `struct stat'. */
+/* Define to 1 if `st_fstype' is a member of `struct stat'. */
 #undef HAVE_STRUCT_STAT_ST_FSTYPE
 
 /* define to 1 if st_fstype is char * */
@@ -637,11 +625,8 @@
 /* define to 1 if st_fstype is int */
 #undef HAVE_STRUCT_STAT_ST_FSTYPE_INT
 
-/* Define to 1 if `st_vfstype' is member of `struct stat'. */
+/* Define to 1 if `st_vfstype' is a member of `struct stat'. */
 #undef HAVE_STRUCT_STAT_ST_VFSTYPE
-
-/* Define to 1 if you have the <synch.h> header file. */
-#undef HAVE_SYNCH_H
 
 /* Define to 1 if you have the `sysconf' function. */
 #undef HAVE_SYSCONF
@@ -741,12 +726,6 @@
 /* Define to 1 if you have the <termios.h> header file. */
 #undef HAVE_TERMIOS_H
 
-/* if you have Solaris LWP (thr) package */
-#undef HAVE_THR
-
-/* Define to 1 if you have the <thread.h> header file. */
-#undef HAVE_THREAD_H
-
 /* Define to 1 if you have the `thr_getconcurrency' function. */
 #undef HAVE_THR_GETCONCURRENCY
 
@@ -810,9 +789,6 @@
 /* define to large integer type */
 #undef LBER_TAG_T
 
-/* define to 1 if library is thread safe */
-#undef LDAP_API_FEATURE_X_OPENLDAP_THREAD_SAFE
-
 /* define to LDAP VENDOR VERSION */
 #undef LDAP_API_FEATURE_X_OPENLDAP_V2_REFERRALS
 
@@ -849,20 +825,11 @@
 /* Patch */
 #undef LDAP_VENDOR_VERSION_PATCH
 
-/* define if memcmp is not 8-bit clean or is otherwise broken */
-#undef NEED_MEMCMP_REPLACEMENT
-
-/* define if you have (or want) no threads */
-#undef NO_THREADS
+/* Define to the sub-directory where libtool stores uninstalled libraries. */
+#undef LT_OBJDIR
 
 /* define to use the original debug style */
 #undef OLD_DEBUG
-
-/* Package */
-#undef REOPENLDAP_PACKAGE
-
-/* Version */
-#undef REOPENLDAP_VERSION
 
 /* Define to the address where bug reports for this package should be sent. */
 #undef PACKAGE_BUGREPORT
@@ -876,14 +843,20 @@
 /* Define to the one symbol short name of this package. */
 #undef PACKAGE_TARNAME
 
+/* Define to the home page for this package. */
+#undef PACKAGE_URL
+
 /* Define to the version of this package. */
 #undef PACKAGE_VERSION
 
+/* Package */
+#undef REOPENLDAP_PACKAGE
+
+/* Version */
+#undef REOPENLDAP_VERSION
+
 /* define if sched_yield yields the entire process */
 #undef REPLACE_BROKEN_YIELD
-
-/* Define as the return type of signal handlers (`int' or `void'). */
-#undef RETSIGTYPE
 
 /* Define to the type of arg 1 for `select'. */
 #undef SELECT_TYPE_ARG1
@@ -1068,9 +1041,20 @@
 /* define to use 'long long' for MP */
 #undef USE_MP_LONG_LONG
 
-/* Define to 1 if your processor stores words with the most significant byte
-   first (like Motorola and SPARC, unlike Intel and VAX). */
-#undef WORDS_BIGENDIAN
+/* Define WORDS_BIGENDIAN to 1 if your processor stores words with the most
+   significant byte first (like Motorola and SPARC, unlike Intel). */
+#if defined AC_APPLE_UNIVERSAL_BUILD
+# if defined __BIG_ENDIAN__
+#  define WORDS_BIGENDIAN 1
+# endif
+#else
+# ifndef WORDS_BIGENDIAN
+#  undef WORDS_BIGENDIAN
+# endif
+#endif
+
+/* Enable GNU extensions. */
+#undef _GNU_SOURCE
 
 /* Define to the type of arg 3 for `accept'. */
 #undef ber_socklen_t
@@ -1120,12 +1104,9 @@
 
 /* begin of portable.h.post */
 
-#ifndef LDAP_NEEDS_PROTOTYPES
-	/* force LDAP_P to always include prototypes */
-#	define LDAP_NEEDS_PROTOTYPES 1
-#endif
+/* force LDAP_P to always include prototypes */
+#define LDAP_NEEDS_PROTOTYPES 1
 
-/* TODO: (LY): refine this */
 #ifndef LDAP_REL_ENG
 #	if (LDAP_VENDOR_VERSION == 000000) && !defined(LDAP_DEVEL)
 #		define LDAP_DEVEL
@@ -1135,12 +1116,12 @@
 #	endif
 #endif
 
-#ifdef HAVE_ANSIDECL_H
-#	include <ansidecl.h>
-#endif
-
 #ifdef HAVE_STDDEF_H
 #	include <stddef.h>
+#endif
+
+#ifdef HAVE_ANSIDECL_H
+#	include <ansidecl.h>
 #endif
 
 #ifdef HAVE_EBCDIC
