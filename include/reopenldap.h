@@ -34,9 +34,14 @@
 #	error "ReOpenLDAP required at least GCC 4.2 compatible C/C++ compiler."
 #endif
 
-#if !defined(GCC_VERSION) && defined(__GNUC__)
-#	define GCC_VERSION (__GNUC__ * 10000 + __GNUC_MINOR__ * 100 + __GNUC_PATCHLEVEL__)
-#endif /* GCC_VERSION */
+#ifndef __CLANG_PREREQ
+#	ifdef __clang__
+#		define __CLANG_PREREQ(maj,min) \
+			((__clang_major__ << 16) + __clang_minor__ >= ((maj) << 16) + (min))
+#	else
+#		define __CLANG_PREREQ(maj,min) (0)
+#	endif
+#endif /* __CLANG_PREREQ */
 
 #ifndef ALLOW_UNUSED
 #	ifdef ATTRIBUTE_UNUSED
