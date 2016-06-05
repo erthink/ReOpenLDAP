@@ -38,7 +38,7 @@
  * Support for shadowLastChange added by SATOH Fumiyasu @ OSS Technology, Inc.
  */
 
-#include <portable.h>
+#include <reldap.h>
 
 #ifndef SLAPD_OVER_SMBK5PWD
 #define SLAPD_OVER_SMBK5PWD SLAPD_MOD_DYNAMIC
@@ -50,7 +50,7 @@
 #include <ac/errno.h>
 #include <ac/string.h>
 
-#include "config.h"
+#include "slapconfig.h"
 
 #ifdef DO_KRB5
 #include <lber.h>

@@ -1,5 +1,5 @@
 # Makefile.in for back-ndb
-# $ReOpenLDAP$
+## $ReOpenLDAP$
 ## Copyright (c) 2015,2016 Leonid Yuriev <leo@yuriev.ru>.
 ## Copyright (c) 2015,2016 Peter-Service R&D LLC <http://billing.ru/>.
 ##
@@ -18,47 +18,30 @@
 ## You should have received a copy of the GNU Affero General Public License
 ## along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ##
-## ---
-##
-## Copyright 2008-2014 The OpenLDAP Foundation.
-## All rights reserved.
-##
-## Redistribution and use in source and binary forms, with or without
-## modification, are permitted only as authorized by the OpenLDAP
-## Public License.
-##
-## A copy of this license is available in the file LICENSE in the
-## top-level directory of the distribution or, alternatively, at
-## <http://www.OpenLDAP.org/license.html>.
-##
-## ACKNOWLEDGEMENTS:
-## This work was initially developed by Howard Chu for inclusion
-## in OpenLDAP Software. This work was sponsored by MySQL.
 
-SRCS = init.cpp tools.cpp config.cpp ndbio.cpp \
-	add.cpp bind.cpp compare.cpp delete.cpp modify.cpp modrdn.cpp search.cpp
+pkglib_LTLIBRARIES =
+noinst_LTLIBRARIES =
+back_ndb_la_LDFLAGS = -module
+AM_CPPFLAGS = -DSLAPD_IMPORT -I$(srcdir)/.. -I$(top_srcdir)/include
+EXTRA_DIST = attrsets.conf
 
-OBJS = $(SRCS:.cpp=.lo)
+if NDB_DYNAMIC
+pkglib_LTLIBRARIES += back_ndb.la
+back_ndb_la_LDFLAGS += -export-dynamic \
+	-release $(API_LIB_RELEASE) -version-info $(API_LIB_VERSION)
+else
+noinst_LTLIBRARIES += back_ndb.la
+endif
 
-LDAP_INCDIR= ../../../include
-LDAP_LIBDIR= ../../../libraries
+if BEHIND_CURTIAN
+BUILT_SOURCES = banner.c
+banner.c: Makefile
+	$(MKBANNER) --name backend_ndb --global 'backend-ndb' > $@
+endif
 
-BUILD_OPT = "--enable-ndb"
-BUILD_MOD = @BUILD_NDB@
+back_ndb_la_SOURCES = add.cpp back-ndb.h banner.c bind.cpp \
+	compare.cpp config.cpp delete.cpp init.cpp modify.cpp \
+	modrdn.cpp ndbio.cpp proto-ndb.h search.cpp tools.cpp
 
-mod_DEFS = -DSLAPD_IMPORT
-MOD_DEFS = $(@BUILD_NDB@_DEFS)
-MOD_LIBS = $(SLAPD_NDB_LIBS)
-
-shared_LDAP_LIBS = $(LDAP_LIBRELDAP_LA)
-NEED_LIBS = $(@BUILD_LIBS_DYNAMIC@_LDAP_LIBS)
-
-LIBBASE = back_ndb
-
-XINCPATH = -I.. -I$(srcdir)/.. @SLAPD_NDB_INCS@
-XDEFS = $(MODULES_CPPFLAGS)
-
-all-local-lib:	../.backend
-
-../.backend: lib$(LIBBASE).a
-	@touch $@
+AM_CPPFLAGS += @NDB_INCLUDES@
+back_ndb_la_LIBADD = @NDB_LIBS@

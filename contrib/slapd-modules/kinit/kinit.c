@@ -31,7 +31,7 @@
  * <http://www.OpenLDAP.org/license.html>.
  */
 
-#include <portable.h>
+#include <reldap.h>
 
 #ifndef SLAPD_MOD_KINIT
 #define SLAPD_MOD_KINIT SLAPD_MOD_DYNAMIC
@@ -276,7 +276,7 @@ int init_module(int argc, char *argv[]) {
 	return kinit_initialize();
 }
 
-int
+REOPEN_EXPORT_F(int)
 term_module() {
 	if (principal)
 		ch_free(principal);

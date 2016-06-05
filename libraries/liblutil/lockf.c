@@ -44,7 +44,7 @@
  * NOTE: lutil_lockf() MUST block until an exclusive lock is acquired.
  */
 
-#include "portable.h"
+#include "reldap.h"
 
 #include <stdio.h>
 #include <ac/unistd.h>

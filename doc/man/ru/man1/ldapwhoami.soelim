@@ -1,0 +1,217 @@
+.TH LDAPWHOAMI 1 "@RELEASE_DATE@" "ReOpenLDAP @VERSION@"
+.\" $ReOpenLDAP$
+.\" Copyright (c) 2015,2016 Leonid Yuriev <leo@yuriev.ru>.
+.\" Copyright (c) 2015,2016 Peter-Service R&D LLC <http://billing.ru/>.
+.\"
+.\" This file is part of ReOpenLDAP.
+.\"
+.\" ReOpenLDAP is free software; you can redistribute it and/or modify it under
+.\" the terms of the GNU Affero General Public License as published by
+.\" the Free Software Foundation; either version 3 of the License, or
+.\" (at your option) any later version.
+.\"
+.\" ReOpenLDAP is distributed in the hope that it will be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+.\" GNU Affero General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU Affero General Public License
+.\" along with this program.  If not, see <http://www.gnu.org/licenses/>.
+.\"
+.\" ---
+.\"
+.\" Copyright 1998-2014 The OpenLDAP Foundation All Rights Reserved.
+.\" Copying restrictions apply.  See COPYRIGHT/LICENSE.
+.SH НАЗВАНИЕ
+ldapwhoami \- инструмент who am i? LDAP
+.SH СИНТАКСИС
+.B ldapwhoami
+[\c
+.BR \-V [ V ]]
+[\c
+.BI \-d \ debuglevel\fR]
+[\c
+.BR \-n ]
+[\c
+.BR \-v ]
+[\c
+.BR \-x ]
+[\c
+.BI \-D \ binddn\fR]
+[\c
+.BR \-W ]
+[\c
+.BI \-w \ passwd\fR]
+[\c
+.BI \-y \ passwdfile\fR]
+[\c
+.BI \-H \ ldapuri\fR]
+[\c
+.BI \-h \ ldaphost\fR]
+[\c
+.BI \-p \ ldapport\fR]
+[\c
+.BR \-e \ [ ! ] \fIext\fP [ =\fIextparam\fP ]]
+[\c
+.BR \-E \ [ ! ] \fIext\fP [ =\fIextparam\fP ]]
+[\c
+.BI \-o \ opt \fR[= optparam \fR]]
+[\c
+.BI \-O \ security-properties\fR]
+[\c
+.BR \-I ]
+[\c
+.BR \-Q ]
+[\c
+.BR \-N ]
+[\c
+.BI \-U \ authcid\fR]
+[\c
+.BI \-R \ realm\fR]
+[\c
+.BI \-X \ authzid\fR]
+[\c
+.BI \-Y \ mech\fR]
+[\c
+.BR \-Z [ Z ]]
+.SH ОПИСАНИЕ
+.I ldapwhoami
+реализует расширенную операцию LDAP "Who Am I?".
+.LP
+.B ldapwhoami
+открывает соединение с сервером LDAP, выполняет подсоединение и операцию whoami.
+.SH ПАРАМЕТРЫ
+.BR \-V [ V ]
+Вывод информации о версии. При указании \fB\-VV\fP выводится только информация о версии.
+.TP
+.BI \-d \ debuglevel
+Установить уровень отладки LDAP в \fIdebuglevel\fP. Чтобы этот параметр работал,
+.B ldapwhoami
+должен быть скомпилирован с опцией LDAP_DEBUG.
+.TP
+.B \-n
+Демонстрируется, что будет сделано, но реальной операции whoami не выполняется.
+Используется для отладки совместно с параметром \fB\-v\fP.
+.TP
+.B \-v
+Запуск в режиме подробного вывода, множество диагностических сообщений посылается на стандартный вывод.
+.TP
+.B \-x
+Использовать простую аутентификацию вместо SASL.
+.TP
+.BI \-D \ binddn
+Использовать указанное в \fIbinddn\fP уникальное имя Distinguished Name
+при подсоединении к каталогу LDAP.
+При SASL-подсоединениях сервер будет игнорировать это значение.
+.TP
+.B \-W
+Запрашивать ввод пароля для простой аутентификации.
+Используется для того, чтобы не указывать пароль в командной строке.
+.TP
+.BI \-w \ passwd
+Использовать указанное значение \fIpasswd\fP в качестве пароля для простой аутентификации.
+.TP
+.BI \-y \ passwdfile
+Использовать полное содержимое файла \fIpasswdfile\fP в качестве пароля для простой аутентификации.
+.TP
+.BI \-H \ ldapuri
+Указывает URI (возможно, несколько), ссылающийся на LDAP-сервер (серверы);
+в URI допускаются только поля протокол/хост/порт;
+в качестве значения параметр принимает список URI, разделённый пробелами или запятыми.
+.TP
+.BI \-h \ ldaphost
+Указывает альтернативный хост, на котором работает LDAP-сервер.
+Устаревший параметр; используйте вместо него \fB\-H\fP.
+.TP
+.BI \-p \ ldapport
+Указывает альтернативный порт TCP, на котором ожидает соединений LDAP-сервер.
+Устаревший параметр; используйте вместо него \fB\-H\fP.
+.TP
+.BR \-e \ [ ! ] \fIext\fP [ =\fIextparam\fP ]
+.TP
+.BR \-E \ [ ! ] \fIext\fP [ =\fIextparam\fP ]
+
+Указывает общие расширения с помощью \fB\-e\fP и расширения whoami с помощью \fB\-E\fP.
+Знак \'\fB!\fP\' обозначает критичность расширения.
+
+Общие расширения:
+.nf
+  [!]assert=<filter>    (фильтр RFC 4515)
+  [!]authzid=<authzid>  ("dn:<dn>" или "u:<user>")
+  [!]bauthzid           (элемент управления authzid RFC 3829)
+  [!]chaining[=<resolve>[/<cont>]]
+  [!]manageDSAit
+  [!]noop
+  ppolicy
+  [!]postread[=<attrs>] (разделённый запятыми список атрибутов)
+  [!]preread[=<attrs>]  (разделённый запятыми список атрибутов)
+  [!]relax
+  sessiontracking
+  abandon,cancel,ignore (сигнал SIGINT посылает abandon/cancel,
+  либо в ответ на него посылается ignore; если расширение помечено
+  как критичное, сигнал SIGINT не принимается;
+  ненастоящие элементы управления)
+.fi
+
+Расширения whoami:
+.nf
+  (none)
+.fi
+.TP
+.BI \-o \ opt \fR[= optparam \fR]
+
+Указывает опции общего назначения.
+
+Возможные опции:
+.nf
+  nettimeout=<timeout>  (в секундах, либо "none" или "max")
+  ldif-wrap=<width>     (в символах, либо "no" для предотвращения разбиения строк)
+.fi
+.TP
+.BI \-O \ security-properties
+Указывает параметры безопасности SASL.
+.TP
+.B \-I
+Включает интерактивный режим SASL. Запросы выводятся всегда. По умолчанию запросы выводятся только по мере необходимости.
+.TP
+.B \-Q
+Включает тихий режим SASL. Запросы не выводятся никогда.
+.TP
+.B \-N
+Указывает не использовать обратное разрешение DNS для получения канонического имени хоста SASL.
+.TP
+.BI \-U \ authcid
+Задаёт аутентификационный идентификатор для подсоединений SASL.
+Форма идентификатора зависит от того, какой механизм аутентификации в действительности используется.
+.TP
+.BI \-R \ realm
+Задаёт realm аутентификационного идентификатора для подсоединений SASL.
+Форма realm зависит от того, какой механизм аутентификации в действительности используется.
+.TP
+.BI \-X \ authzid
+Задаёт запрашиваемый авторизационный идентификатор для подсоединений SASL. Значение
+.I authzid
+должно быть в одном из следующих форматов:
+.BI dn: "<distinguished name>"
+или
+.BI u: <username>
+.TP
+.BI \-Y \ mech
+Задаёт механизм SASL, который будет использоваться для аутентификации.
+Если параметр не указан, программа выберет лучший из известных серверу механизмов.
+.TP
+.BR \-Z [ Z ]
+Запрос расширенной операции StartTLS (Transport Layer Security). При использовании \fB\-ZZ\fP
+эта операция должна быть выполнена успешно.
+.SH ПРИМЕРЫ
+.nf
+    ldapwhoami \-x \-D "cn=Manager,dc=example,dc=com" -W
+.fi
+.SH "СМОТРИТЕ ТАКЖЕ"
+.BR ldap.conf (5),
+.BR ldap (3),
+.BR ldap_extended_operation (3).
+.SH АВТОРЫ
+OpenLDAP Project <http://www.openldap.org/>
+.SH "ПРИЗНАНИЕ ЗАСЛУГ"
+.so ../Project

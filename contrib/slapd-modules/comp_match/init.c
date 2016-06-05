@@ -9,7 +9,7 @@
  * 2004/06/18	03:20:00	slim@OpenLDAP.org
  */
 
-#include "portable.h"
+#include "reldap.h"
 #include <ac/string.h>
 #include <ac/socket.h>
 #include <ldap_pvt.h>

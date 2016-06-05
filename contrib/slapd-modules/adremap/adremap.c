@@ -32,7 +32,7 @@
  * <http://www.OpenLDAP.org/license.html>.
  */
 
-#include "portable.h"
+#include "reldap.h"
 
 /*
  * This file implements an overlay that performs two remapping functions
@@ -51,7 +51,7 @@
 #include <ac/time.h>
 #include <ac/string.h>
 #include <ac/ctype.h>
-#include "config.h"
+#include "slapconfig.h"
 
 typedef struct adremap_dnv {
 	struct adremap_dnv *ad_next;

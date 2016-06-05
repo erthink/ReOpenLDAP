@@ -38,14 +38,14 @@
  * Pierangelo Masarati.
  */
 
-#include "portable.h"
+#include "reldap.h"
 
 #include <stdio.h>
 #include <sys/types.h>
 #include "ac/string.h"
 
 #include "slap.h"
-#include "config.h"
+#include "slapconfig.h"
 #include "proto-sql.h"
 
 int

@@ -1,5 +1,5 @@
 # Makefile.in for back-mdb
-# $ReOpenLDAP$
+## $ReOpenLDAP$
 ## Copyright (c) 2015,2016 Leonid Yuriev <leo@yuriev.ru>.
 ## Copyright (c) 2015,2016 Peter-Service R&D LLC <http://billing.ru/>.
 ##
@@ -18,54 +18,57 @@
 ## You should have received a copy of the GNU Affero General Public License
 ## along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ##
-## ---
-##
-## Copyright 2011-2014 The OpenLDAP Foundation.
-## All rights reserved.
-##
-## Redistribution and use in source and binary forms, with or without
-## modification, are permitted only as authorized by the OpenLDAP
-## Public License.
-##
-## A copy of this license is available in the file LICENSE in the
-## top-level directory of the distribution or, alternatively, at
-## <http://www.OpenLDAP.org/license.html>.
 
-SRCS = init.c tools.c config.c \
-	add.c bind.c compare.c delete.c modify.c modrdn.c search.c \
-	extended.c operational.c \
-	attr.c index.c key.c filterindex.c \
-	dn2entry.c dn2id.c id2entry.c idl.c \
-	nextid.c monitor.c
+pkglib_LTLIBRARIES =
+noinst_LTLIBRARIES = libmdbx.la
+back_mdb_la_LDFLAGS = -module
+AM_CPPFLAGS = -DSLAPD_IMPORT -I$(srcdir)/.. -I$(top_srcdir)/include
 
-OBJS = $(SRCS:.c=.lo) mdbx.lo
+if MDBX_DYNAMIC
+pkglib_LTLIBRARIES += back_mdb.la
+back_mdb_la_LDFLAGS += -export-dynamic \
+	-release $(API_LIB_RELEASE) -version-info $(API_LIB_VERSION)
+else
+noinst_LTLIBRARIES += back_mdb.la
+endif
 
-LDAP_INCDIR= ../../../include
-LDAP_LIBDIR= ../../../libraries
-MDBX_SUBDIR = $(srcdir)/$(LDAP_LIBDIR)/libmdbx
+if BEHIND_CURTIAN
+BUILT_SOURCES = banner.c
+banner.c: Makefile
+	$(MKBANNER) --name backend_mdbx --global 'backend-mdbx' > $@
+endif
 
-BUILD_OPT = "--enable-mdb"
-BUILD_MOD = @BUILD_MDB@
+libmdbx_la_CFLAGS = -DNDEBUG=1 -DMDB_DEBUG=0
+libmdbx_la_LIBADD = $(LTHREAD_LIBS)
+libmdbx_la_SOURCES = ../../../libraries/libmdbx/mdbx.c
 
-mod_DEFS = -DSLAPD_IMPORT
-MOD_DEFS = $(@BUILD_MDB@_DEFS)
-MOD_LIBS = $(MDB_LIBS)
+# LY: TODO
+EXTRA_DIST = ../../../libraries/libmdbx/barriers.h \
+	../../../libraries/libmdbx/CHANGES \
+	../../../libraries/libmdbx/COPYRIGHT \
+	../../../libraries/libmdbx/LICENSE\
+	../../../libraries/libmdbx/lmdb.h \
+	../../../libraries/libmdbx/Makefile\
+	../../../libraries/libmdbx/mdb.c \
+	../../../libraries/libmdbx/mdb_chk.c \
+	../../../libraries/libmdbx/mdb_copy.1 \
+	../../../libraries/libmdbx/mdb_copy.c \
+	../../../libraries/libmdbx/mdb_dump.1 \
+	../../../libraries/libmdbx/mdb_dump.c \
+	../../../libraries/libmdbx/mdb_load.1 \
+	../../../libraries/libmdbx/mdb_load.c \
+	../../../libraries/libmdbx/mdb_stat.1 \
+	../../../libraries/libmdbx/mdb_stat.c \
+	../../../libraries/libmdbx/mdbx.h \
+	../../../libraries/libmdbx/midl.c \
+	../../../libraries/libmdbx/midl.h \
+	../../../libraries/libmdbx/reopen.h
 
-shared_LDAP_LIBS = $(LDAP_LIBRELDAP_LA)
-NEED_LIBS = $(@BUILD_LIBS_DYNAMIC@_LDAP_LIBS)
+back_mdb_la_SOURCES = add.c attr.c banner.c bind.c compare.c \
+	config.c delete.c dn2entry.c dn2id.c extended.c filterindex.c \
+	id2entry.c idl.c index.c init.c key.c modify.c modrdn.c \
+	monitor.c nextid.c operational.c search.c tools.c \
+	back-mdb.h idl.h proto-mdb.h
 
-LIBBASE = back_mdb
-
-XINCPATH = -I.. -I$(srcdir)/.. -I$(MDBX_SUBDIR)
-XDEFS = $(MODULES_CPPFLAGS)
-
-all-local-lib:	../.backend
-
-../.backend: lib$(LIBBASE).a
-	@touch $@
-
-mdbx.lo: $(MDBX_SUBDIR)/mdb.c $(MDBX_SUBDIR)/midl.c $(MDBX_SUBDIR)/*.h
-	$(LTCOMPILE_MOD) -include $(MDBX_SUBDIR)/mdbx.h $(MDBX_SUBDIR)/mdb.c -o $@
-
-veryclean-local-lib: FORCE
-	$(RM) $(XXHEADERS) $(XXSRCS) .links
+back_mdb_la_CFLAGS = -I$(srcdir)/.. -I$(top_srcdir)/libraries/libmdbx
+back_mdb_la_LIBADD = libmdbx.la

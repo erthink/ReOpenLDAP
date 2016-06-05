@@ -40,8 +40,6 @@
 #include <ldap_cdefs.h>
 #include <ac/bytes.h>
 
-#ifdef AC_INT4_TYPE
-
 LDAP_BEGIN_DECL
 
 
@@ -52,17 +50,16 @@ LDAP_BEGIN_DECL
 #define LUTIL_SHA1_BYTES 20
 
 /* This code assumes char are 8-bits and uint32 are 32-bits */
-typedef ac_uint4 uint32;
 
 typedef struct {
-    uint32 state[5];
-    uint32 count[2];
+    uint32_t state[5];
+    uint32_t count[2];
     unsigned char buffer[64];
 } lutil_SHA1_CTX;
 
 LDAP_LUTIL_F( void )
 lutil_SHA1Transform
-	LDAP_P((uint32 state[5], const unsigned char buffer[64]));
+	LDAP_P((uint32_t state[5], const unsigned char buffer[64]));
 
 LDAP_LUTIL_F( void  )
 lutil_SHA1Init
@@ -70,7 +67,7 @@ lutil_SHA1Init
 
 LDAP_LUTIL_F( void  )
 lutil_SHA1Update
-	LDAP_P((lutil_SHA1_CTX *context, const unsigned char *data, uint32 len));
+	LDAP_P((lutil_SHA1_CTX *context, const unsigned char *data, uint32_t len));
 
 LDAP_LUTIL_F( void  )
 lutil_SHA1Final
@@ -89,7 +86,5 @@ lutil_SHA1Data
 	LDAP_P((const unsigned char *, size_t, char *));
 
 LDAP_END_DECL
-
-#endif /* AC_INT4_TYPE */
 
 #endif /* _LUTIL_SHA1_H_ */

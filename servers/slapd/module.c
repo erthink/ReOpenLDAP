@@ -31,11 +31,11 @@
  * <http://www.OpenLDAP.org/license.html>.
  */
 
-#include "portable.h"
+#include "reldap.h"
 #include <stdio.h>
 #include "slap.h"
 
-#ifdef SLAPD_MODULES
+#ifdef SLAPD_DYNAMIC_MODULES
 
 #include <ltdl.h>
 
@@ -69,25 +69,20 @@ module_loaded_t *module_list = NULL;
 
 static int module_int_unload (module_loaded_t *module);
 
-#ifdef HAVE_EBCDIC
-static char ebuf[BUFSIZ];
-#endif
-
 int module_init (void)
 {
 	if (lt_dlinit()) {
 		const char *error = lt_dlerror();
-#ifdef HAVE_EBCDIC
-		strcpy( ebuf, error );
-		__etoa( ebuf );
-		error = ebuf;
-#endif
 		Debug(LDAP_DEBUG_ANY, "lt_dlinit failed: %s\n", error);
 
 		return -1;
 	}
 
+#ifndef SLAPD_MAINTAINER_DIR
 	return module_path( LDAP_MODULEDIR );
+#else
+	return module_path( SLAPD_MAINTAINER_DIR ":" LDAP_MODULEDIR);
+#endif
 }
 
 int module_kill (void)
@@ -99,11 +94,6 @@ int module_kill (void)
 
 	if (lt_dlexit()) {
 		const char *error = lt_dlerror();
-#ifdef HAVE_EBCDIC
-		strcpy( ebuf, error );
-		__etoa( ebuf );
-		error = ebuf;
-#endif
 		Debug(LDAP_DEBUG_ANY, "lt_dlexit failed: %s\n", error);
 
 		return -1;
@@ -111,12 +101,18 @@ int module_kill (void)
 	return 0;
 }
 
+static const char* safe_basename(const char* path) {
+	const char *slash = strrchr(path, '/');
+	return slash ? slash + 1 : path;
+}
+
 void * module_handle( const char *file_name )
 {
 	module_loaded_t *module;
+	file_name = safe_basename(file_name);
 
 	for ( module = module_list; module; module= module->next ) {
-		if ( !strcmp( module->name, file_name )) {
+		if ( !strcmp( safe_basename(module->name), file_name )) {
 			return module;
 		}
 	}
@@ -139,24 +135,27 @@ int module_load(const char* file_name, int argc, char *argv[])
 {
 	module_loaded_t *module;
 	const char *error;
-	int rc;
+	int rc, len;
 	MODULE_INIT_FN initialize;
-#ifdef HAVE_EBCDIC
-#define	file	ebuf
-#else
-#define	file	file_name
-#endif
 
 	module = module_handle( file_name );
 	if ( module ) {
 		Debug( LDAP_DEBUG_ANY, "module_load: (%s) already loaded\n",
-			file_name );
+			module->name );
+		return -1;
+	}
+
+	const char* file_basename = safe_basename(file_name);
+	len = strcspn(file_basename, ".<>?;:'\"[]{}`~!@#%^&*()-=\\|		");
+	if (len < 1 || len > 32) {
+		Debug( LDAP_DEBUG_ANY, "module_load: (%s) invalid module name\n",
+			file_basename );
 		return -1;
 	}
 
 	/* If loading a backend, see if we already have it */
-	if ( !strncasecmp( file_name, "back_", 5 )) {
-		char *name = (char *)file_name + 5;
+	if ( !strncasecmp( file_basename, "back_", 5 )) {
+		char *name = (char *)file_basename + 5;
 		char *dot = strchr( name, '.');
 		if (dot) *dot = '\0';
 		rc = backend_info( name ) != NULL;
@@ -168,9 +167,9 @@ int module_load(const char* file_name, int argc, char *argv[])
 		}
 	} else {
 		/* check for overlays too */
-		char *dot = strchr( file_name, '.' );
+		char *dot = strchr( file_basename, '.' );
 		if ( dot ) *dot = '\0';
-		rc = overlay_find( file_name ) != NULL;
+		rc = overlay_find( file_basename ) != NULL;
 		if ( dot ) *dot = '.';
 		if ( rc ) {
 			Debug( LDAP_DEBUG_CONFIG, "module_load: (%s) already present (static)\n",
@@ -183,27 +182,17 @@ int module_load(const char* file_name, int argc, char *argv[])
 		strlen(file_name));
 	if (module == NULL) {
 		Debug(LDAP_DEBUG_ANY, "module_load failed: (%s) out of memory\n", file_name);
-
 		return -1;
 	}
 	strcpy( module->name, file_name );
 
-#ifdef HAVE_EBCDIC
-	strcpy( file, file_name );
-	__atoe( file );
-#endif
 	/*
 	 * The result of lt_dlerror(), when called, must be cached prior
 	 * to calling Debug. This is because Debug is a macro that expands
 	 * into multiple function calls.
 	 */
-	if ((module->lib = lt_dlopenext(file)) == NULL) {
+	if ((module->lib = lt_dlopenext(file_name)) == NULL) {
 		error = lt_dlerror();
-#ifdef HAVE_EBCDIC
-		strcpy( ebuf, error );
-		__etoa( ebuf );
-		error = ebuf;
-#endif
 		Debug(LDAP_DEBUG_ANY, "lt_dlopenext failed: (%s) %s\n", file_name,
 			error);
 
@@ -213,16 +202,13 @@ int module_load(const char* file_name, int argc, char *argv[])
 
 	Debug(LDAP_DEBUG_CONFIG, "loaded module %s\n", file_name);
 
+	char entry[64];
+	snprintf(entry, sizeof(entry), "%.*s_ReOpenLDAP_modinit",
+		len, file_basename);
 
-#ifdef HAVE_EBCDIC
-#pragma convlit(suspend)
-#endif
-	if ((initialize = lt_dlsym(module->lib, "init_module")) == NULL) {
-#ifdef HAVE_EBCDIC
-#pragma convlit(resume)
-#endif
-		Debug(LDAP_DEBUG_CONFIG, "module %s: no init_module() function found\n",
-			file_name);
+	if ((initialize = lt_dlsym(module->lib, entry)) == NULL) {
+		Debug(LDAP_DEBUG_ANY, "module %s: no %s() function found\n",
+			file_name, entry);
 
 		lt_dlclose(module->lib);
 		ch_free(module);
@@ -246,7 +232,7 @@ int module_load(const char* file_name, int argc, char *argv[])
 	 */
 	rc = initialize(argc, argv);
 	if (rc == -1) {
-		Debug(LDAP_DEBUG_CONFIG, "module %s: init_module() failed\n",
+		Debug(LDAP_DEBUG_ANY, "module %s: init_module() failed\n",
 			file_name);
 
 		lt_dlclose(module->lib);
@@ -257,7 +243,7 @@ int module_load(const char* file_name, int argc, char *argv[])
 	if (rc >= (int)(sizeof(module_regtable) / sizeof(struct module_regtable_t))
 		|| module_regtable[rc].proc == NULL)
 	{
-		Debug(LDAP_DEBUG_CONFIG, "module %s: unknown registration type (%d)\n",
+		Debug(LDAP_DEBUG_ANY, "module %s: unknown registration type (%d)\n",
 			file_name, rc);
 
 		module_int_unload(module);
@@ -266,7 +252,7 @@ int module_load(const char* file_name, int argc, char *argv[])
 
 	rc = (module_regtable[rc].proc)(module, file_name);
 	if (rc != 0) {
-		Debug(LDAP_DEBUG_CONFIG, "module %s: %s module could not be registered\n",
+		Debug(LDAP_DEBUG_ANY, "module %s: %s module could not be registered\n",
 			file_name, module_regtable[rc].type);
 
 		module_int_unload(module);
@@ -284,21 +270,11 @@ int module_load(const char* file_name, int argc, char *argv[])
 
 int module_path(const char *path)
 {
-#ifdef HAVE_EBCDIC
-	strcpy(ebuf, path);
-	__atoe(ebuf);
-	path = ebuf;
-#endif
 	return lt_dlsetsearchpath( path );
 }
 
 void *module_resolve (const void *module, const char *name)
 {
-#ifdef HAVE_EBCDIC
-	strcpy(ebuf, name);
-	__atoe(ebuf);
-	name = ebuf;
-#endif
 	if (module == NULL || name == NULL)
 		return(NULL);
 	return(lt_dlsym(((module_loaded_t *)module)->lib, name));
@@ -323,13 +299,7 @@ static int module_int_unload (module_loaded_t *module)
 		}
 
 		/* call module's terminate routine, if present */
-#ifdef HAVE_EBCDIC
-#pragma convlit(suspend)
-#endif
 		if ((terminate = lt_dlsym(module->lib, "term_module"))) {
-#ifdef HAVE_EBCDIC
-#pragma convlit(resume)
-#endif
 			terminate();
 		}
 
@@ -381,5 +351,5 @@ load_extop_module (
 	return rc;
 }
 #endif /* SLAPD_EXTERNAL_EXTENSIONS */
-#endif /* SLAPD_MODULES */
+#endif /* SLAPD_DYNAMIC_MODULES */
 

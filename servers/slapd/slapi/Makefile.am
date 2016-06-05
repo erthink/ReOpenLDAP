@@ -1,5 +1,5 @@
 # Makefile.in for SLAPI
-# $ReOpenLDAP$
+## $ReOpenLDAP$
 ## Copyright (c) 2015,2016 Leonid Yuriev <leo@yuriev.ru>.
 ## Copyright (c) 2015,2016 Peter-Service R&D LLC <http://billing.ru/>.
 ##
@@ -18,42 +18,24 @@
 ## You should have received a copy of the GNU Affero General Public License
 ## along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ##
-## ---
-##
-## Copyright 1998-2014 The OpenLDAP Foundation.
-## Portions Copyright IBM Corp. 1997,2002,2003
-## All rights reserved.
-##
-## Redistribution and use in source and binary forms, with or without
-## modification, are permitted only as authorized by the OpenLDAP
-## Public License.
-##
-## A copy of this license is available in the file LICENSE in the
-## top-level directory of the distribution or, alternatively, at
-## <http://www.OpenLDAP.org/license.html>.
 
-LIBRARY = libreslapi.la
+pkglib_LTLIBRARIES = libreslapi.la
+libreslapi_la_LDFLAGS = -export-dynamic \
+	-release $(API_LIB_RELEASE) -version-info $(API_LIB_VERSION) \
+	-weak libslapi.la
 
-LIB_DEFS = -DSLAPI_LIBRARY
+AM_CPPFLAGS = -DSLAPI_LIBRARY -DSLAPD_IMPORT \
+	-I$(srcdir)/.. -I$(top_srcdir)/include $(LTDLINCL)
 
-SRCS=  plugin.c slapi_pblock.c slapi_utils.c printmsg.c slapi_ops.c slapi_dn.c slapi_ext.c slapi_overlay.c
-OBJS= $(SRCS:.c=.lo)
+libreslapi_la_LIBADD = $(SLAPI_LIBS) $(LIBLTDL)
+libreslapi_la_DEPENDENCIES = $(LTDLDEPS)
 
-XSRCS= version.c
+if BEHIND_CURTIAN
+BUILT_SOURCES = banner.c
+banner.c: Makefile
+	$(MKBANNER) --name SLAPI --global 'libreslapi' > $@
+endif
 
-LDAP_INCDIR= ../../../include -I.. -I.
-LDAP_LIBDIR= ../../../libraries
-
-XLIBS = $(LIBRARY)
-XXLIBS =
-
-XINCPATH = -I$(srcdir)/.. -I$(srcdir)
-XDEFS = $(MODULES_CPPFLAGS)
-
-BUILD_MOD = @BUILD_SLAPI@
-
-install-exec-local: FORCE
-	if test "$(BUILD_MOD)" = "yes"; then \
-		$(MKDIR) $(DESTDIR)$(libdir); \
-		$(LTINSTALL) $(INSTALLFLAGS) -m 644 $(LIBRARY) $(DESTDIR)$(libdir); \
-	fi
+libreslapi_la_SOURCES = banner.c plugin.c printmsg.c slapi_dn.c \
+	slapi_ext.c slapi_ops.c slapi_overlay.c slapi_pblock.c \
+	slapi_utils.c proto-slapi.h slapi.h

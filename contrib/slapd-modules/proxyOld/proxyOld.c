@@ -33,7 +33,7 @@
  * <http://www.OpenLDAP.org/license.html>.
  */
 
-#include <portable.h>
+#include <reldap.h>
 
 #include <slap.h>
 

@@ -31,13 +31,14 @@
  * <http://www.OpenLDAP.org/license.html>.
  */
 
-#include "portable.h"
+#include "reldap.h"
 
 #include <stdio.h>
 
 #include <ac/stdlib.h>
 #include <ac/ctype.h>
 #include <ac/string.h>
+#include <ac/localize.h>
 
 #ifdef HAVE_FSTAT
 #include <sys/types.h>

@@ -1,5 +1,5 @@
 # Makefile.in for back-bdb
-# $ReOpenLDAP$
+## $ReOpenLDAP$
 ## Copyright (c) 2015,2016 Leonid Yuriev <leo@yuriev.ru>.
 ## Copyright (c) 2015,2016 Peter-Service R&D LLC <http://billing.ru/>.
 ##
@@ -18,47 +18,32 @@
 ## You should have received a copy of the GNU Affero General Public License
 ## along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ##
-## ---
-##
-## Copyright 1998-2014 The OpenLDAP Foundation.
-## All rights reserved.
-##
-## Redistribution and use in source and binary forms, with or without
-## modification, are permitted only as authorized by the OpenLDAP
-## Public License.
-##
-## A copy of this license is available in the file LICENSE in the
-## top-level directory of the distribution or, alternatively, at
-## <http://www.OpenLDAP.org/license.html>.
 
-SRCS = init.c tools.c config.c \
-	add.c bind.c compare.c delete.c modify.c modrdn.c search.c \
-	extended.c referral.c operational.c \
-	attr.c index.c key.c dbcache.c filterindex.c \
-	dn2entry.c dn2id.c error.c id2entry.c idl.c \
-	nextid.c cache.c trans.c monitor.c
+pkglib_LTLIBRARIES =
+noinst_LTLIBRARIES =
+back_bdb_la_LDFLAGS = -module
+AM_CPPFLAGS = -DSLAPD_IMPORT -I$(srcdir)/.. -I$(top_srcdir)/include
 
-OBJS = $(SRCS:.c=.lo)
+if BDB_DYNAMIC
+pkglib_LTLIBRARIES += back_bdb.la
+back_bdb_la_LDFLAGS += -export-dynamic \
+	-release $(API_LIB_RELEASE) -version-info $(API_LIB_VERSION)
+else
+noinst_LTLIBRARIES += back_bdb.la
+endif
 
-LDAP_INCDIR= ../../../include
-LDAP_LIBDIR= ../../../libraries
+if BEHIND_CURTIAN
+BUILT_SOURCES = banner.c
+banner.c: Makefile
+	$(MKBANNER) --name backend_bdb --global 'backend-bdb' > $@
+endif
 
-BUILD_OPT = "--enable-bdb"
-BUILD_MOD = @BUILD_BDB@
+back_bdb_la_SOURCES = add.c attr.c back-bdb.h banner.c bind.c \
+	cache.c compare.c config.c dbcache.c delete.c dn2entry.c \
+	dn2id.c error.c extended.c filterindex.c id2entry.c idl.c idl.h \
+	index.c init.c key.c Makefile.am modify.c modrdn.c monitor.c \
+	nextid.c operational.c proto-bdb.h referral.c search.c tools.c \
+	trans.c
 
-mod_DEFS = -DSLAPD_IMPORT
-MOD_DEFS = $(@BUILD_BDB@_DEFS)
-MOD_LIBS = $(BDB_LIBS)
-
-shared_LDAP_LIBS = $(LDAP_LIBRELDAP_LA)
-NEED_LIBS = $(@BUILD_LIBS_DYNAMIC@_LDAP_LIBS)
-
-LIBBASE = back_bdb
-
-XINCPATH = -I.. -I$(srcdir)/..
-XDEFS = $(MODULES_CPPFLAGS)
-
-all-local-lib:	../.backend
-
-../.backend: lib$(LIBBASE).a
-	@touch $@
+back_bdb_la_CFLAGS = -UBDB_HIER @BDB_INCLUDES@
+back_bdb_la_LIBADD = @BDB_LIBS@

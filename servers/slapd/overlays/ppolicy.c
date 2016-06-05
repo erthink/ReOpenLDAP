@@ -38,7 +38,7 @@
  * This work was sponsored by the Hewlett-Packard Company.
  */
 
-#include "portable.h"
+#include "reldap.h"
 
 /* This file implements "Password Policy for LDAP Directories",
  * based on draft behera-ldap-password-policy-09
@@ -49,15 +49,14 @@
 #include <ldap.h>
 #include "lutil.h"
 #include "slap.h"
-#ifdef SLAPD_MODULES
-#define LIBLTDL_DLL_IMPORT	/* Win32: don't re-export libltdl's symbols */
+#ifdef SLAPD_DYNAMIC_MODULES
 #include <ltdl.h>
 #endif
 #include <ac/errno.h>
 #include <ac/time.h>
 #include <ac/string.h>
 #include <ac/ctype.h>
-#include "config.h"
+#include "slapconfig.h"
 
 #ifndef MODULE_NAME_SZ
 #define MODULE_NAME_SZ 256
@@ -696,7 +695,7 @@ check_password_quality( struct berval *cred, PassPolicy *pp, LDAPPasswordPolicyE
 	rc = LDAP_SUCCESS;
 
 	if (pp->pwdCheckModule[0]) {
-#ifdef SLAPD_MODULES
+#ifdef SLAPD_DYNAMIC_MODULES
 		lt_dlhandle mod;
 		const char *err;
 
@@ -738,7 +737,7 @@ check_password_quality( struct berval *cred, PassPolicy *pp, LDAPPasswordPolicyE
 #else
 	Debug(LDAP_DEBUG_ANY, "check_password_quality: external modules not "
 		"supported. pwdCheckModule ignored.\n");
-#endif /* SLAPD_MODULES */
+#endif /* SLAPD_DYNAMIC_MODULES */
 	}
 
 
@@ -2481,7 +2480,7 @@ static const char * const extops[] = {
 
 static slap_overinst ppolicy;
 
-int ppolicy_initialize()
+int ppolicy_over_initialize()
 {
 	int i, code;
 
@@ -2531,9 +2530,7 @@ int ppolicy_initialize()
 }
 
 #if SLAPD_OVER_PPOLICY == SLAPD_MOD_DYNAMIC
-int init_module(int argc, char *argv[]) {
-	return ppolicy_initialize();
-}
+SLAP_OVERLAY_INIT_MODULE(ppolicy)
 #endif
 
 #endif	/* defined(SLAPD_OVER_PPOLICY) */

@@ -1,5 +1,4 @@
-## Makefile.in for test programs
-# $ReOpenLDAP$
+## $ReOpenLDAP$
 ## Copyright (c) 2015,2016 Leonid Yuriev <leo@yuriev.ru>.
 ## Copyright (c) 2015,2016 Peter-Service R&D LLC <http://billing.ru/>.
 ##
@@ -18,61 +17,39 @@
 ## You should have received a copy of the GNU Affero General Public License
 ## along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ##
-## ---
-##
-## Copyright 1998-2014 The OpenLDAP Foundation.
-## All rights reserved.
-##
-## Redistribution and use in source and binary forms, with or without
-## modification, are permitted only as authorized by the OpenLDAP
-## Public License.
-##
-## A copy of this license is available in the file LICENSE in the
-## top-level directory of the distribution or, alternatively, at
-## <http://www.OpenLDAP.org/license.html>.
 
-bin_PROGRAMS = slapd-tester slapd-search slapd-read slapd-addel slapd-modrdn \
-		slapd-modify slapd-bind slapd-mtread ldif-filter
+noinst_PROGRAMS = ldif_filter slapd_addel slapd_bind \
+	slapd_modify slapd_modrdn slapd_mtread slapd_read \
+	slapd_search slapd_tester
 
-SRCS     = slapd-common.c \
-		slapd-tester.c slapd-search.c slapd-read.c slapd-addel.c \
-		slapd-modrdn.c slapd-modify.c slapd-bind.c slapd-mtread.c \
-		ldif-filter.c
+AM_CPPFLAGS = -I$(top_srcdir)/include
 
-LDAP_INCDIR= ../../include
-LDAP_LIBDIR= ../../libraries
+LIBS = $(LDAP_LIBRELDAP_LA) $(LDAP_LIBLUTIL_LA) \
+	 $(LUTIL_LIBS) $(SECURITY_LIBS)
 
-XLIBS    = $(LDAP_LIBRELDAP_LA) $(LDAP_LIBLUTIL_A)
-XRLIBS    = $(LDAP_LIBRELDAP_LA) $(LDAP_LIBLUTIL_A)
-XXLIBS	 = $(SECURITY_LIBS) $(LUTIL_LIBS)
-RLIBS = $(XRLIBS) $(XXLIBS) $(AC_LIBS) $(XXXLIBS)
+ldif_filter_SOURCES = ldif-filter.c
+ldif_filter_LDADD = $(LIBS)
 
+slapd_addel_SOURCES = slapd-addel.c slapd-common.c slapd-common.h
+slapd_addel_LDADD = $(LIBS)
 
-OBJS     = slapd-common.o
+slapd_bind_SOURCES = slapd-bind.c slapd-common.c slapd-common.h
+slapd_bind_LDADD = $(LIBS)
 
-slapd-tester$(EXEEXT): slapd-tester.o $(OBJS) $(XLIBS)
-	$(LTLINK) -o $@ slapd-tester.o $(OBJS) $(LIBS)
+slapd_modify_SOURCES = slapd-modify.c slapd-common.c slapd-common.h
+slapd_modify_LDADD = $(LIBS)
 
-slapd-search$(EXEEXT): slapd-search.o $(OBJS) $(XLIBS)
-	$(LTLINK) -o $@ slapd-search.o $(OBJS) $(LIBS)
+slapd_modrdn_SOURCES = slapd-modrdn.c slapd-common.c slapd-common.h
+slapd_modrdn_LDADD = $(LIBS)
 
-slapd-read$(EXEEXT): slapd-read.o $(OBJS) $(XLIBS)
-	$(LTLINK) -o $@ slapd-read.o $(OBJS) $(LIBS)
+slapd_mtread_SOURCES = slapd-mtread.c slapd-common.c slapd-common.h
+slapd_mtread_LDADD = $(LIBS)
 
-slapd-addel$(EXEEXT): slapd-addel.o $(OBJS) $(XLIBS)
-	$(LTLINK) -o $@ slapd-addel.o $(OBJS) $(LIBS)
+slapd_read_SOURCES = slapd-read.c slapd-common.c slapd-common.h
+slapd_read_LDADD = $(LIBS)
 
-slapd-modrdn$(EXEEXT): slapd-modrdn.o $(OBJS) $(XLIBS)
-	$(LTLINK) -o $@ slapd-modrdn.o $(OBJS) $(LIBS)
+slapd_search_SOURCES = slapd-search.c slapd-common.c slapd-common.h
+slapd_search_LDADD = $(LIBS)
 
-slapd-modify$(EXEEXT): slapd-modify.o $(OBJS) $(XLIBS)
-	$(LTLINK) -o $@ slapd-modify.o $(OBJS) $(LIBS)
-
-slapd-bind$(EXEEXT): slapd-bind.o $(OBJS) $(XLIBS)
-	$(LTLINK) -o $@ slapd-bind.o $(OBJS) $(LIBS)
-
-ldif-filter$(EXEEXT): ldif-filter.o $(XLIBS)
-	$(LTLINK) -o $@ ldif-filter.o $(LIBS)
-
-slapd-mtread$(EXEEXT): slapd-mtread.o $(OBJS) $(XRLIBS)
-	$(LTLINK) -o $@ slapd-mtread.o $(OBJS) $(RLIBS)
+slapd_tester_SOURCES = slapd-tester.c slapd-common.c slapd-common.h
+slapd_tester_LDADD = $(LIBS)

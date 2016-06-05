@@ -42,7 +42,7 @@
  *				work, but might not be threadsafe.
  */
 
-#include "portable.h"
+#include "reldap.h"
 
 #include <ac/stdlib.h>
 

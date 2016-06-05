@@ -32,7 +32,7 @@
  * <http://www.OpenLDAP.org/license.html>.
  */
 
-#include "portable.h"
+#include "reldap.h"
 
 #include <stdio.h>
 
@@ -41,7 +41,7 @@
 
 #include "slap.h"
 #include "back-bdb.h"
-#include "config.h"
+#include "slapconfig.h"
 #include "lutil.h"
 
 /* Find the ad, return -1 if not found,

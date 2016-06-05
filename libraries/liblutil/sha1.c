@@ -51,10 +51,10 @@
  *   34AA973C D4C4DAA4 F61EEB2B DBAD2731 6534016F
  */
 /*
- * This code assumes uint32 is 32 bits and char is 8 bits
+ * This code assumes uint32_t is 32 bits and char is 8 bits
  */
 
-#include "portable.h"
+#include "reldap.h"
 #include <ac/param.h>
 #include <ac/string.h>
 #include <ac/socket.h>
@@ -95,15 +95,15 @@
  * Hash a single 512-bit block. This is the core of the algorithm.
  */
 void
-lutil_SHA1Transform( uint32 *state, const unsigned char *buffer )
+lutil_SHA1Transform( uint32_t *state, const unsigned char *buffer )
 {
-    uint32 a, b, c, d, e;
+    uint32_t a, b, c, d, e;
 
 #ifdef SHA1HANDSOFF
-    uint32 block[16];
+    uint32_t block[16];
 	(void)memcpy(block, buffer, 64);
 #else
-    uint32 *block = (u_int32 *) buffer;
+    uint32_t *block = (u_int32 *) buffer;
 #endif
 
     /* Copy context->state[] to working vars */
@@ -171,7 +171,7 @@ void
 lutil_SHA1Update(
     lutil_SHA1_CTX	*context,
     const unsigned char	*data,
-    uint32		len
+    uint32_t		len
 )
 {
     u_int i, j;

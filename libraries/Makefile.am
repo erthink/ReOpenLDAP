@@ -1,5 +1,5 @@
 # Libraries Makefile for ReOpenLDAP
-# $ReOpenLDAP$
+## $ReOpenLDAP$
 ## Copyright (c) 2015,2016 Leonid Yuriev <leo@yuriev.ru>.
 ## Copyright (c) 2015,2016 Peter-Service R&D LLC <http://billing.ru/>.
 ##
@@ -31,8 +31,5 @@
 ## top-level directory of the distribution or, alternatively, at
 ## <http://www.OpenLDAP.org/license.html>.
 
-SUBDIRS= \
-	liblutil \
-	libreldap \
-	liblunicode \
-	librewrite
+DIST_SUBDIRS = liblunicode liblutil libreldap librewrite
+SUBDIRS = liblunicode liblutil libreldap librewrite

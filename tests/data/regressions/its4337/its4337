@@ -1,5 +1,5 @@
 #!/bin/bash
-# $ReOpenLDAP$
+## $ReOpenLDAP$
 ## Copyright (c) 2015,2016 Leonid Yuriev <leo@yuriev.ru>.
 ## Copyright (c) 2015,2016 Peter-Service R&D LLC <http://billing.ru/>.
 ##
@@ -34,7 +34,7 @@
 echo "running defines.sh"
 . $SRCDIR/scripts/defines.sh
 
-if test $BACKLDAP = "ldapno" ; then
+if test ${AC_conf[ldap]} = no ; then
 	echo "LDAP backend not available, test skipped"
 	exit 0
 fi
@@ -45,7 +45,7 @@ ITS=4337
 ITSDIR=$DATADIR/regressions/its$ITS
 
 echo "Starting slapd on TCP/IP port $PORT1..."
-. $CONFFILTER $BACKEND $MONITORDB < $ITSDIR/slapd.conf > $CONF1
+config_filter $BACKEND ${AC_conf[monitor]} < $ITSDIR/slapd.conf > $CONF1
 #$SLAPD -f $CONF1 -F $TESTDIR/slapd.d -h $URI1 $TIMING > $LOG1 2>&1 &
 $SLAPD -f $CONF1 -h $URI1 $TIMING > $LOG1 2>&1 &
 PID=$!

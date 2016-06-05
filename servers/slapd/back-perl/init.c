@@ -34,7 +34,7 @@
  */
 
 #include "perl_back.h"
-#include "../config.h"
+#include "slapconfig.h"
 
 #ifdef PERL_SYS_INIT3
 #include <ac/unistd.h>		/* maybe get environ */
@@ -190,5 +190,3 @@ perl_back_xs_init(PERL_BACK_XS_INIT_PARAMS)
 SLAP_BACKEND_INIT_MODULE( perl )
 
 #endif /* SLAPD_PERL == SLAPD_MOD_DYNAMIC */
-
-

@@ -1,5 +1,5 @@
 # Makefile.in for back-meta
-# $ReOpenLDAP$
+## $ReOpenLDAP$
 ## Copyright (c) 2015,2016 Leonid Yuriev <leo@yuriev.ru>.
 ## Copyright (c) 2015,2016 Peter-Service R&D LLC <http://billing.ru/>.
 ##
@@ -18,42 +18,27 @@
 ## You should have received a copy of the GNU Affero General Public License
 ## along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ##
-## ---
-##
-## Copyright 1998-2014 The OpenLDAP Foundation.
-## All rights reserved.
-##
-## Redistribution and use in source and binary forms, with or without
-## modification, are permitted only as authorized by the OpenLDAP
-## Public License.
-##
-## A copy of this license is available in the file LICENSE in the
-## top-level directory of the distribution or, alternatively, at
-## <http://www.OpenLDAP.org/license.html>.
 
-SRCS	= init.c config.c search.c bind.c unbind.c add.c compare.c \
-		delete.c modify.c modrdn.c suffixmassage.c map.c \
-		conn.c candidates.c dncache.c
-OBJS	= $(SRCS:.c=.lo)
+pkglib_LTLIBRARIES =
+noinst_LTLIBRARIES =
+back_meta_la_LDFLAGS = -module
+AM_CPPFLAGS = -DSLAPD_IMPORT -I$(srcdir)/.. -I$(top_srcdir)/include
 
-LDAP_INCDIR= ../../../include
-LDAP_LIBDIR= ../../../libraries
+if META_DYNAMIC
+pkglib_LTLIBRARIES += back_meta.la
+back_meta_la_LDFLAGS += -export-dynamic \
+	-release $(API_LIB_RELEASE) -version-info $(API_LIB_VERSION)
+else
+noinst_LTLIBRARIES += back_meta.la
+endif
 
-BUILD_OPT = "--enable-meta"
-BUILD_MOD = @BUILD_META@
+if BEHIND_CURTIAN
+BUILT_SOURCES = banner.c
+banner.c: Makefile
+	$(MKBANNER) --name backend_meta --global 'backend-meta' > $@
+endif
 
-mod_DEFS = -DSLAPD_IMPORT
-MOD_DEFS = $(@BUILD_META@_DEFS)
-
-shared_LDAP_LIBS = $(LDAP_LIBRELDAP_LA)
-NEED_LIBS = $(@BUILD_LIBS_DYNAMIC@_LDAP_LIBS)
-
-LIBBASE = back_meta
-
-XINCPATH = -I.. -I$(srcdir)/..
-XDEFS = $(MODULES_CPPFLAGS)
-
-all-local-lib:	../.backend
-
-../.backend: lib$(LIBBASE).a
-	@touch $@
+back_meta_la_SOURCES = add.c back-meta.h banner.c bind.c \
+	candidates.c compare.c config.c conn.c delete.c dncache.c \
+	init.c Makefile.am map.c modify.c modrdn.c proto-meta.h \
+	search.c suffixmassage.c unbind.c

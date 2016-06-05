@@ -31,18 +31,18 @@
  * <http://www.OpenLDAP.org/license.html>.
  */
 
-#include "portable.h"
+#include "reldap.h"
 
 #include <stdio.h>
 
 #include <ac/stdlib.h>
-
 #include <ac/socket.h>
 #include <ac/string.h>
 #include <ac/time.h>
+#include <ac/localize.h>
+#include "ac/errno.h"
 
 #include "ldap-int.h"
-#include "ac/errno.h"
 
 #ifdef HAVE_STRERROR_R
 #include <pthread.h>

@@ -1,5 +1,5 @@
 # Makefile.in for back-monitor
-# $ReOpenLDAP$
+## $ReOpenLDAP$
 ## Copyright (c) 2015,2016 Leonid Yuriev <leo@yuriev.ru>.
 ## Copyright (c) 2015,2016 Peter-Service R&D LLC <http://billing.ru/>.
 ##
@@ -18,44 +18,28 @@
 ## You should have received a copy of the GNU Affero General Public License
 ## along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ##
-## ---
-##
-## Copyright 1998-2014 The OpenLDAP Foundation.
-## All rights reserved.
-##
-## Redistribution and use in source and binary forms, with or without
-## modification, are permitted only as authorized by the OpenLDAP
-## Public License.
-##
-## A copy of this license is available in the file LICENSE in the
-## top-level directory of the distribution or, alternatively, at
-## <http://www.OpenLDAP.org/license.html>.
 
-SRCS = init.c search.c compare.c modify.c bind.c \
-	operational.c \
-	cache.c entry.c \
-	backend.c database.c thread.c conn.c rww.c log.c \
-	operation.c sent.c listener.c time.c overlay.c
-OBJS = $(SRCS:.c=.lo)
+pkglib_LTLIBRARIES =
+noinst_LTLIBRARIES =
+back_monitor_la_LDFLAGS = -module
+AM_CPPFLAGS = -I$(srcdir)/.. -I$(top_srcdir)/include
+EXTRA_DIST = README
 
-LDAP_INCDIR= ../../../include
-LDAP_LIBDIR= ../../../libraries
+if MONITOR_DYNAMIC
+pkglib_LTLIBRARIES += back_monitor.la
+back_monitor_la_LDFLAGS += -export-dynamic \
+	-release $(API_LIB_RELEASE) -version-info $(API_LIB_VERSION)
+else
+noinst_LTLIBRARIES += back_monitor.la
+endif
 
-BUILD_OPT = "--enable-monitor"
-BUILD_MOD = @BUILD_MONITOR@
+if BEHIND_CURTIAN
+BUILT_SOURCES = banner.c
+banner.c: Makefile
+	$(MKBANNER) --name backend_monitor --global 'backend-monitor' > $@
+endif
 
-mod_DEFS = -DSLAPD_IMPORT
-MOD_DEFS = $(@BUILD_MONITOR@_DEFS)
-
-shared_LDAP_LIBS = $(LDAP_LIBRELDAP_LA)
-NEED_LIBS = $(@BUILD_LIBS_DYNAMIC@_LDAP_LIBS)
-
-LIBBASE = back_monitor
-
-XINCPATH = -I.. -I$(srcdir)/.. -I$(srcdir)/../slapi
-XDEFS = $(MODULES_CPPFLAGS)
-
-all-local-lib:	../.backend
-
-../.backend: lib$(LIBBASE).a
-	@touch $@
+back_monitor_la_SOURCES = backend.c banner.c bind.c cache.c \
+	compare.c conn.c database.c entry.c init.c listener.c log.c \
+	modify.c operational.c operation.c overlay.c rww.c search.c \
+	sent.c thread.c time.c back-monitor.h proto-back-monitor.h

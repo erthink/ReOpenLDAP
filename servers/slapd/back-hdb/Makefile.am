@@ -1,5 +1,5 @@
-# Makefile for back-hdb
-# $ReOpenLDAP$
+# Makefile.in for back-bdb
+## $ReOpenLDAP$
 ## Copyright (c) 2015,2016 Leonid Yuriev <leo@yuriev.ru>.
 ## Copyright (c) 2015,2016 Peter-Service R&D LLC <http://billing.ru/>.
 ##
@@ -18,65 +18,38 @@
 ## You should have received a copy of the GNU Affero General Public License
 ## along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ##
-## ---
-##
-## Copyright 1998-2014 The OpenLDAP Foundation.
-## All rights reserved.
-##
-## Redistribution and use in source and binary forms, with or without
-## modification, are permitted only as authorized by the OpenLDAP
-## Public License.
-##
-## A copy of this license is available in the file LICENSE in the
-## top-level directory of the distribution or, alternatively, at
-## <http://www.OpenLDAP.org/license.html>.
-#
-## Copyright 2003 Howard Chu @ Symas Corp. See master COPYRIGHT file for terms.
 
-XXDIR = $(srcdir)/../back-bdb
+pkglib_LTLIBRARIES =
+noinst_LTLIBRARIES =
+back_hdb_la_LDFLAGS = -module
+AM_CPPFLAGS = -DSLAPD_IMPORT -I$(srcdir)/.. -I$(top_srcdir)/include
 
-XXSRCS = init.c tools.c config.c \
-	add.c bind.c compare.c delete.c modify.c modrdn.c search.c \
-	extended.c referral.c operational.c \
-	attr.c index.c key.c dbcache.c filterindex.c trans.c \
-	dn2entry.c dn2id.c error.c id2entry.c idl.c nextid.c cache.c \
-	monitor.c
-SRCS = $(XXSRCS)
-OBJS = $(SRCS:.c=.lo)
+if HDB_DYNAMIC
+pkglib_LTLIBRARIES += back_hdb.la
+back_hdb_la_LDFLAGS += -export-dynamic \
+	-release $(API_LIB_RELEASE) -version-info $(API_LIB_VERSION)
+else
+noinst_LTLIBRARIES += back_hdb.la
+endif
 
-LDAP_INCDIR= ../../../include
-LDAP_LIBDIR= ../../../libraries
+if BEHIND_CURTIAN
+BUILT_SOURCES = banner.c
+banner.c: Makefile
+	$(MKBANNER) --name backend_hdb --global 'backend-hdb' > $@
+endif
 
-BUILD_OPT = "--enable-hdb"
-BUILD_MOD = @BUILD_HDB@
+back_hdb_la_SOURCES = ../back-bdb/add.c ../back-bdb/attr.c \
+	../back-bdb/back-bdb.h banner.c ../back-bdb/bind.c \
+	../back-bdb/cache.c ../back-bdb/compare.c ../back-bdb/config.c \
+	../back-bdb/dbcache.c ../back-bdb/delete.c \
+	../back-bdb/dn2entry.c ../back-bdb/dn2id.c ../back-bdb/error.c \
+	../back-bdb/extended.c ../back-bdb/filterindex.c \
+	../back-bdb/id2entry.c ../back-bdb/idl.c ../back-bdb/idl.h \
+	../back-bdb/index.c ../back-bdb/init.c ../back-bdb/key.c \
+	../back-bdb/modify.c ../back-bdb/modrdn.c ../back-bdb/monitor.c \
+	../back-bdb/nextid.c ../back-bdb/operational.c \
+	../back-bdb/proto-bdb.h ../back-bdb/referral.c \
+	../back-bdb/search.c ../back-bdb/tools.c ../back-bdb/trans.c
 
-mod_DEFS = -DSLAPD_IMPORT
-MOD_DEFS = $(@BUILD_HDB@_DEFS)
-MOD_LIBS = $(BDB_LIBS)
-
-shared_LDAP_LIBS = $(LDAP_LIBRELDAP_LA)
-NEED_LIBS = $(@BUILD_LIBS_DYNAMIC@_LDAP_LIBS)
-
-.links : Makefile
-	@for i in $(XXSRCS); do \
-		$(RM) $$i; \
-		$(LN_S) $(XXDIR)/$$i . ; \
-	done
-	touch .links
-
-$(XXSRCS) : .links
-
-LIBBASE = back_hdb
-
-XINCPATH = -I.. -I$(srcdir)/.. -I$(srcdir) -I$(XXDIR)
-XDEFS = $(MODULES_CPPFLAGS)
-
-depend-local-lib: .links
-
-all-local-lib:	../.backend
-
-../.backend: lib$(LIBBASE).a
-	@touch $@
-
-veryclean-local: FORCE
-	$(RM) $(XXSRCS) .links
+back_hdb_la_CFLAGS = -DBDB_HIER=1 @BDB_INCLUDES@
+back_hdb_la_LIBADD = @BDB_LIBS@

@@ -61,7 +61,7 @@
    copyright in any changes I have made; this code remains in the
    public domain.  */
 
-#include "portable.h"
+#include "reldap.h"
 
 #include <ac/string.h>
 

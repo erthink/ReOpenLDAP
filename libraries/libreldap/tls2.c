@@ -34,8 +34,8 @@
 /* ACKNOWLEDGEMENTS: restructured by Howard Chu.
  */
 
-#include "portable.h"
-#include "ldap_config.h"
+#include "reldap.h"
+#include "ldap_dirs.h"
 
 #include <stdio.h>
 

@@ -1,0 +1,133 @@
+#! /bin/bash
+## $ReOpenLDAP$
+## Copyright (c) 2015,2016 Leonid Yuriev <leo@yuriev.ru>.
+## Copyright (c) 2015,2016 Peter-Service R&D LLC <http://billing.ru/>.
+##
+## This file is part of ReOpenLDAP.
+##
+## ReOpenLDAP is free software; you can redistribute it and/or modify it under
+## the terms of the GNU Affero General Public License as published by
+## the Free Software Foundation; either version 3 of the License, or
+## (at your option) any later version.
+##
+## ReOpenLDAP is distributed in the hope that it will be useful,
+## but WITHOUT ANY WARRANTY; without even the implied warranty of
+## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+## GNU Affero General Public License for more details.
+##
+## You should have received a copy of the GNU Affero General Public License
+## along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+failure() {
+	echo "$*" >&2
+	exit 1
+}
+
+PACKAGE=ReOpenLDAP
+PACKAGE_URL="https://github.com/ReOpen/ReOpenLDAP/wiki"
+PACKAGE_BUGREPORT="https://github.com/ReOpen/ReOpenLDAP/issues"
+
+RELEASE_TYPE=Devel
+
+VERSION_MAJOR=1
+VERSION_MINOR=0
+VERSION_PATCH_LEVEL=1
+
+API_CURRENT=12
+API_REVISON=7
+API_AGE=10
+
+VERSION="${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH_LEVEL}"
+VERSION_NUMBER=$(bc <<< "${VERSION_MAJOR} * 10000 + ${VERSION_MINOR} * 100 + ${VERSION_PATCH_LEVEL}")
+
+RELEASE_DATE="$(date --date=@$(git show --no-patch --format='%ct' HEAD) -u --iso-8601)"
+RELEASE_STAMP="g$(git show --no-patch --abbrev=12 --format=%h HEAD)-t$(git show --no-patch --abbrev=16 --format=%t HEAD)"
+
+PACKAGE_TITLE="${PACKAGE} ${VERSION}-${RELEASE_TYPE}"
+PACKAGE_CAPTION=$(tr [:upper:] [:lower:] <<< "${PACKAGE}-${VERSION}-${RELEASE_TYPE}")
+PACKAGE_TARNAME=$(tr [:upper:] [:lower:] <<< "${PACKAGE}")
+API_LIB_RELEASE="${VERSION_MAJOR}.${VERSION_MINOR}"
+API_LIB_VERSION="${API_CURRENT}:${API_REVISON}:${API_AGE}"
+
+WHOWHERE="$(whoami || echo $USER)@$(uname -n):$(pwd)"
+
+#######################################################################
+
+if [ $# = 0 ]; then
+	echo "***********************************************************************"
+	echo "PACKAGE	= ${PACKAGE_TITLE}"
+	echo "VERSION	= ${API_LIB_VERSION} / ${VERSION_NUMBER}"
+	echo "DATE	= ${RELEASE_DATE}"
+	echo "STAMP	= ${RELEASE_STAMP}"
+	echo "WHOWHERE= ${WHOWHERE}"
+	echo "***********************************************************************"
+else
+	while [ $# != 0 ]; do
+		case "$1" in
+			--package)
+				echo "$PACKAGE"
+				shift ;;
+			--title)
+				echo "$PACKAGE_TITLE"
+				shift ;;
+			--caption)
+				echo "$PACKAGE_CAPTION"
+				shift ;;
+			--tarname)
+				echo "$PACKAGE_TARNAME"
+				shift ;;
+			--version)
+				echo "$VERSION"
+				shift ;;
+			--number)
+				echo "$VERSION_NUMBER"
+				shift ;;
+			--url)
+				echo "$PACKAGE_URL"
+				shift ;;
+			--bugs)
+				echo "$PACKAGE_BUGREPORT"
+				shift ;;
+			--type)
+				echo "$RELEASE_TYPE"
+				shift ;;
+			--major)
+				echo "$VERSION_MAJOR"
+				shift ;;
+			--minor)
+				echo "$VERSION_MINOR"
+				shift ;;
+			--patch)
+				echo "$VERSION_PATCH_LEVEL"
+				shift ;;
+			--date)
+				echo "$RELEASE_DATE"
+				shift ;;
+			--stamp)
+				echo "$RELEASE_STAMP"
+				shift ;;
+			--api)
+				echo "$API_LIB_RELEASE"
+				shift ;;
+			--so)
+				echo "$API_LIB_VERSION"
+				shift ;;
+			--current)
+				echo "$API_CURRENT"
+				shift ;;
+			--revision)
+				echo "$API_REVISION"
+				shift ;;
+			--age)
+				echo "$API_AGE"
+				shift ;;
+			--whowhere)
+				echo "$WHOWHERE"
+				shift ;;
+			--silent)
+				shift ;;
+			*)
+				failure "usage: BRANDING ..., WTF '$1' ?" ;;
+		esac
+	done
+fi

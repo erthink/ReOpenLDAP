@@ -1,5 +1,5 @@
 # Makefile.in for back-ldif
-# $ReOpenLDAP$
+## $ReOpenLDAP$
 ## Copyright (c) 2015,2016 Leonid Yuriev <leo@yuriev.ru>.
 ## Copyright (c) 2015,2016 Peter-Service R&D LLC <http://billing.ru/>.
 ##
@@ -18,40 +18,24 @@
 ## You should have received a copy of the GNU Affero General Public License
 ## along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ##
-## ---
-##
-## Copyright 2005-2014 The OpenLDAP Foundation.
-## All rights reserved.
-##
-## Redistribution and use in source and binary forms, with or without
-## modification, are permitted only as authorized by the OpenLDAP
-## Public License.
-##
-## A copy of this license is available in the file LICENSE in the
-## top-level directory of the distribution or, alternatively, at
-## <http://www.OpenLDAP.org/license.html>.
 
-SRCS = ldif.c
-OBJS = $(SRCS:.c=.lo)
+pkglib_LTLIBRARIES =
+noinst_LTLIBRARIES =
+back_ldif_la_LDFLAGS = -module
+AM_CPPFLAGS = -DSLAPD_IMPORT -I$(srcdir)/.. -I$(top_srcdir)/include
 
-LDAP_INCDIR= ../../../include
-LDAP_LIBDIR= ../../../libraries
+if LDIF_DYNAMIC
+pkglib_LTLIBRARIES += back_ldif.la
+back_ldif_la_LDFLAGS += -export-dynamic \
+	-release $(API_LIB_RELEASE) -version-info $(API_LIB_VERSION)
+else
+noinst_LTLIBRARIES += back_ldif.la
+endif
 
-BUILD_OPT = "--enable-ldif"
-BUILD_MOD = yes
+if BEHIND_CURTIAN
+BUILT_SOURCES = banner.c
+banner.c: Makefile
+	$(MKBANNER) --name backend_ldif --global 'backend-ldif' > $@
+endif
 
-mod_DEFS = -DSLAPD_IMPORT
-MOD_DEFS = $(yes_DEFS)
-
-shared_LDAP_LIBS = $(LDAP_LIBRELDAP_LA)
-NEED_LIBS = $(@BUILD_LIBS_DYNAMIC@_LDAP_LIBS)
-
-LIBBASE = back_ldif
-
-XINCPATH = -I.. -I$(srcdir)/..
-XDEFS = $(MODULES_CPPFLAGS)
-
-all-local-lib:	../.backend
-
-../.backend: lib$(LIBBASE).a
-	@touch $@
+back_ldif_la_SOURCES = banner.c ldif.c

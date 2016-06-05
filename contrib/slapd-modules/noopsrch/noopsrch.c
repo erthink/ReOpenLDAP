@@ -36,7 +36,7 @@
  * in OpenLDAP Software.
  */
 
-#include "portable.h"
+#include "reldap.h"
 
 /* define SLAPD_OVER_NOOPSRCH=2 to build as run-time loadable module */
 #ifdef SLAPD_OVER_NOOPSRCH

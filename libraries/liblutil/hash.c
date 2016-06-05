@@ -37,7 +37,7 @@
  *   http://www.isthe.com/chongo/tech/comp/fnv/index.html
  */
 
-#include "portable.h"
+#include "reldap.h"
 
 #include <lutil_hash.h>
 

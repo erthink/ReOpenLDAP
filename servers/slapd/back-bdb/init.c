@@ -32,7 +32,7 @@
  * <http://www.OpenLDAP.org/license.html>.
  */
 
-#include "portable.h"
+#include "reldap.h"
 
 #include <stdio.h>
 #include <ac/string.h>
@@ -44,7 +44,7 @@
 #include <lutil.h>
 #include <ldap_rq.h>
 #include "alock.h"
-#include "config.h"
+#include "slapconfig.h"
 
 static const struct bdbi_database {
 	char *file;

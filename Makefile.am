@@ -1,5 +1,4 @@
-# Master Makefile for ReOpenLDAP
-# $ReOpenLDAP$
+## $ReOpenLDAP$
 ## Copyright (c) 2015,2016 Leonid Yuriev <leo@yuriev.ru>.
 ## Copyright (c) 2015,2016 Peter-Service R&D LLC <http://billing.ru/>.
 ##
@@ -18,41 +17,31 @@
 ## You should have received a copy of the GNU Affero General Public License
 ## along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ##
-## ---
-##
-## Copyright 1998-2014 The OpenLDAP Foundation.
-## All rights reserved.
-##
-## Redistribution and use in source and binary forms, with or without
-## modification, are permitted only as authorized by the OpenLDAP
-## Public License.
-##
-## A copy of this license is available in the file LICENSE in the
-## top-level directory of the distribution or, alternatively, at
-## <http://www.OpenLDAP.org/license.html>.
 
 ACLOCAL_AMFLAGS = -I build/m4
 
-SUBDIRS= include libraries clients servers tests doc
-CLEANDIRS=
-INSTALLDIRS=
+DIST_SUBDIRS = include libraries clients servers doc/man build/libltdl
+SUBDIRS = include libraries clients servers doc/man
 
-makefiles:	FORCE
-	./config.status
+EXTRA_DIST = build/stub
 
-# force a make all before make install
-#	only done at the top-level
-install-common: all FORCE
+if SLAPD_DYNAMIC
+SUBDIRS += build/libltdl
+endif
 
-clean-local: FORCE
-	$(RM) config.cache config.log configure.lineno
-	$(RM) -r autom4te.cache
+am__tar = $${TAR-tar} cof - "$$tardir"
+if BEHIND_CURTIAN
+SUBDIRS += tests
+test:
+	$(MAKE) -C tests check
 
-veryclean-local: FORCE
-	$(RM) config.status libtool stamp-h stamp-h.in
+dist-hook:
+	find $(distdir) -type f | xargs -r \
+		sed -i 's/\$$ReOpenLDAP\$$/$$ $(RELEASE_STAMP) | $(RELEASE_DATE) | $(shell $(srcdir)/build/BRANDING --title) $$/g' && \
+	find $(distdir) -name Makefile.am -exec sh -c 'ln -sfr -T $(distdir)/build/stub {}' \; && \
+	ln -sfr -T $(distdir)/build/stub $(distdir)/configure.ac && \
+	find $(distdir) -type f | xargs -r \
+		touch -r $(distdir)/configure && \
+	find $(distdir) -type d -empty -exec rmdir {} \;
 
-distclean: veryclean FORCE
-
-check: test
-test: FORCE
-	cd tests; $(MAKE) test
+endif

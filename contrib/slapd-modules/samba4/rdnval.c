@@ -37,7 +37,7 @@
  * for inclusion in OpenLDAP Software.
  */
 
-#include "portable.h"
+#include "reldap.h"
 
 #ifdef SLAPD_OVER_RDNVAL
 
@@ -47,7 +47,7 @@
 #include "ac/socket.h"
 
 #include "slap.h"
-#include "config.h"
+#include "slapconfig.h"
 
 #include "lutil.h"
 

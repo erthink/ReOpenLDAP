@@ -36,7 +36,7 @@
  * This work includes code from the lastbind overlay.
  */
 
-#include <portable.h>
+#include <reldap.h>
 
 #if HAVE_STDINT_H
 #include <stdint.h>
@@ -87,7 +87,7 @@
 #endif
 
 #include "slap.h"
-#include "config.h"
+#include "slapconfig.h"
 
 static LUTIL_PASSWD_CHK_FUNC chk_totp1, chk_totp256, chk_totp512;
 static LUTIL_PASSWD_HASH_FUNC hash_totp1, hash_totp256, hash_totp512;

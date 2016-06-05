@@ -1,5 +1,5 @@
 # Makefile.in for back-perl
-# $ReOpenLDAP$
+## $ReOpenLDAP$
 ## Copyright (c) 2015,2016 Leonid Yuriev <leo@yuriev.ru>.
 ## Copyright (c) 2015,2016 Peter-Service R&D LLC <http://billing.ru/>.
 ##
@@ -18,44 +18,30 @@
 ## You should have received a copy of the GNU Affero General Public License
 ## along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ##
-## ---
-##
-## Copyright 1998-2014 The OpenLDAP Foundation.
-## Portions Copyright 1999 John C. Quillan.
-## All rights reserved.
-##
-## Redistribution and use in source and binary forms, with or without
-## modification, are permitted only as authorized by the OpenLDAP
-## Public License.
-##
-## A copy of this license is available in the file LICENSE in the
-## top-level directory of the distribution or, alternatively, at
-## <http://www.OpenLDAP.org/license.html>.
 
-SRCS	= init.c search.c close.c config.c bind.c compare.c \
-		modify.c add.c modrdn.c delete.c
-OBJS	= $(SRCS:.c=.lo)
+pkglib_LTLIBRARIES =
+noinst_LTLIBRARIES =
+back_perl_la_LDFLAGS = -module
+AM_CPPFLAGS = -DSLAPD_IMPORT -I$(srcdir)/.. -I$(top_srcdir)/include
+EXTRA_DIST = README SampleLDAP.pm
 
-LDAP_INCDIR= ../../../include
-LDAP_LIBDIR= ../../../libraries
+if PERL_DYNAMIC
+pkglib_LTLIBRARIES += back_perl.la
+back_perl_la_LDFLAGS += -export-dynamic \
+	-release $(API_LIB_RELEASE) -version-info $(API_LIB_VERSION)
+else
+noinst_LTLIBRARIES += back_perl.la
+endif
 
-BUILD_OPT = "--enable-perl"
-BUILD_MOD = @BUILD_PERL@
-PERL_CPPFLAGS = @PERL_CPPFLAGS@
+if BEHIND_CURTIAN
+BUILT_SOURCES = banner.c
+banner.c: Makefile
+	$(MKBANNER) --name backend_perl --global 'backend-perl' > $@
+endif
 
-mod_DEFS = -DSLAPD_IMPORT
-MOD_DEFS = $(@BUILD_PERL@_DEFS)
-MOD_LIBS = @MOD_PERL_LDFLAGS@
+back_perl_la_SOURCES = add.c banner.c bind.c close.c compare.c \
+	config.c delete.c init.c modify.c modrdn.c perl_back.h \
+	proto-perl.h search.c
 
-shared_LDAP_LIBS = $(LDAP_LIBRELDAP_LA)
-NEED_LIBS = $(@BUILD_LIBS_DYNAMIC@_LDAP_LIBS)
-
-LIBBASE = back_perl
-
-XINCPATH = -I.. -I$(srcdir)/..
-XDEFS = $(PERL_CPPFLAGS) $(MODULES_CPPFLAGS)
-
-all-local-lib:	../.backend
-
-../.backend: lib$(LIBBASE).a
-	@touch $@
+AM_CPPFLAGS += @PERL_CPPFLAGS@
+back_perl_la_LIBADD = @PERL_LIBS@

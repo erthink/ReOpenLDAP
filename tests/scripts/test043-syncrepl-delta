@@ -1,5 +1,5 @@
 #!/bin/bash
-# $ReOpenLDAP$
+## $ReOpenLDAP$
 ## Copyright (c) 2015,2016 Leonid Yuriev <leo@yuriev.ru>.
 ## Copyright (c) 2015,2016 Peter-Service R&D LLC <http://billing.ru/>.
 ##
@@ -32,13 +32,13 @@
 ## <http://www.OpenLDAP.org/license.html>.
 
 echo "running defines.sh"
-. $SRCDIR/scripts/defines.sh
+. ${TOP_SRCDIR}/tests/scripts/defines.sh
 
-if test $SYNCPROV = syncprovno; then
+if test ${AC_conf[syncprov]} = no; then
 	echo "Syncrepl provider overlay not available, test skipped"
 	exit 0
 fi
-if test $ACCESSLOG = accesslogno; then
+if test ${AC_conf[accesslog]} = no; then
 	echo "Accesslog overlay not available, test skipped"
 	exit 0
 fi
@@ -63,7 +63,7 @@ SPEC="mdb=a,bdb=a,hdb=a"
 #
 
 echo "Starting provider slapd on TCP/IP port $PORT1..."
-. $CONFFILTER $BACKEND $MONITORDB < $DSRMASTERCONF > $CONF1
+config_filter $BACKEND ${AC_conf[monitor]} < $DSRMASTERCONF > $CONF1
 $SLAPD -f $CONF1 -h $URI1 $TIMING > $LOG1 2>&1 &
 PID=$!
 if test $WAIT != 0 ; then
@@ -84,7 +84,7 @@ if test $RC != 0 ; then
 fi
 
 echo "Starting consumer slapd on TCP/IP port $PORT2..."
-. $CONFFILTER $BACKEND $MONITORDB < $DSRSLAVECONF > $CONF2
+config_filter $BACKEND ${AC_conf[monitor]} < $DSRSLAVECONF > $CONF2
 $SLAPD -f $CONF2 -h $URI2 $TIMING > $LOG2 2>&1 &
 SLAVEPID=$!
 if test $WAIT != 0 ; then
@@ -291,7 +291,7 @@ check_running 2 consumer
 #echo "Waiting $SLEEP1 seconds for syncrepl to receive changes..."
 wait_syncrepl $PORT1 $PORT2
 
-if test ! $BACKLDAP = "ldapno" ; then
+if test ! ${AC_conf[ldap]} = no ; then
 	echo "Try updating the consumer slapd..."
 	$LDAPMODIFY -v -D "$MANAGERDN" -h $LOCALHOST -p $PORT2 -w $PASSWD > \
 		$TESTOUT 2>&1 << EOMODS

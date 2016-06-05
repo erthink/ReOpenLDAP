@@ -36,7 +36,7 @@
  * in OpenLDAP Software. This work was sponsored by MySQL.
  */
 
-#include "portable.h"
+#include "reldap.h"
 
 #include <stdio.h>
 #include <ac/string.h>
@@ -46,7 +46,7 @@
 #include <sys/stat.h>
 #include "back-ndb.h"
 #include <lutil.h>
-#include "config.h"
+#include "slapconfig.h"
 
 extern "C" {
 	static BI_db_init ndb_db_init;

@@ -36,12 +36,12 @@
  * in OpenLDAP Software. This work was sponsored by MySQL.
  */
 
-#include "portable.h"
+#include "reldap.h"
 #include "lutil.h"
 
 #include "back-ndb.h"
 
-#include "config.h"
+#include "slapconfig.h"
 
 extern "C" {
 	static ConfigDriver ndb_cf_gen;

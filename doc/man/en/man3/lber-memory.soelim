@@ -1,0 +1,69 @@
+.TH LBER_MEMORY 3 "@RELEASE_DATE@" "ReOpenLDAP @VERSION@"
+.\" $ReOpenLDAP$
+.\" Copyright (c) 2015,2016 Leonid Yuriev <leo@yuriev.ru>.
+.\" Copyright (c) 2015,2016 Peter-Service R&D LLC <http://billing.ru/>.
+.\"
+.\" This file is part of ReOpenLDAP.
+.\"
+.\" ReOpenLDAP is free software; you can redistribute it and/or modify it under
+.\" the terms of the GNU Affero General Public License as published by
+.\" the Free Software Foundation; either version 3 of the License, or
+.\" (at your option) any later version.
+.\"
+.\" ReOpenLDAP is distributed in the hope that it will be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+.\" GNU Affero General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU Affero General Public License
+.\" along with this program.  If not, see <http://www.gnu.org/licenses/>.
+.\"
+.\" ---
+.\"
+.\" Copyright 1998-2014 The OpenLDAP Foundation All Rights Reserved.
+.\" Copying restrictions apply.  See COPYRIGHT/LICENSE.
+.SH NAME
+ber_memalloc, ber_memcalloc, ber_memrealloc, ber_memfree, ber_memvfree \- ReOpenLDAP LBER memory allocators
+.SH LIBRARY
+ReOpenLDAP LBER (libreldap, \-lreldap)
+.SH SYNOPSIS
+.B #include <lber.h>
+.LP
+.BI "void *ber_memalloc(ber_len_t " bytes ");"
+.LP
+.BI "void *ber_memcalloc(ber_len_t " nelems ", ber_len_t " bytes ");"
+.LP
+.BI "void *ber_memrealloc(void *" ptr ", ber_len_t " bytes ");"
+.LP
+.BI "void ber_memfree(void *" ptr ");"
+.LP
+.BI "void ber_memvfree(void **" vec ");"
+.SH DESCRIPTION
+.LP
+These routines are used to allocate/deallocate memory used/returned
+by the Lightweight BER library as required by
+.BR lber-encode (3)
+and
+.BR lber-decode (3).
+.BR ber_memalloc (),
+.BR ber_memcalloc (),
+.BR ber_memrealloc (),
+and
+.BR ber_memfree ()
+are used exactly like the standard
+.BR malloc (3),
+.BR calloc (3),
+.BR realloc (3),
+and
+.BR free (3)
+routines, respectively.  The
+.BR ber_memvfree ()
+routine is used to free a dynamically allocated array of pointers to
+arbitrary dynamically allocated objects.
+.SH SEE ALSO
+.BR lber-decode (3),
+.BR lber-encode (3),
+.BR lber-types (3)
+.LP
+.SH ACKNOWLEDGEMENTS
+.so ../Project

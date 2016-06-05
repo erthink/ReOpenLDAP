@@ -1,5 +1,5 @@
 # Makefile.in for LDAP -llunicode
-# $ReOpenLDAP$
+## $ReOpenLDAP$
 ## Copyright (c) 2015,2016 Leonid Yuriev <leo@yuriev.ru>.
 ## Copyright (c) 2015,2016 Peter-Service R&D LLC <http://billing.ru/>.
 ##
@@ -18,55 +18,27 @@
 ## You should have received a copy of the GNU Affero General Public License
 ## along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ##
-## ---
-##
-## Copyright 1998-2014 The OpenLDAP Foundation.
-## All rights reserved.
-##
-## Redistribution and use in source and binary forms, with or without
-## modification, are permitted only as authorized by the OpenLDAP
-## Public License.
-##
-## A copy of this license is available in the file LICENSE in the
-## top-level directory of the distribution or, alternatively, at
-## <http://www.OpenLDAP.org/license.html>.
 
-LIBRARY = liblunicode.a
+noinst_LTLIBRARIES = liblunicode.la
+BUILT_SOURCES =
 
-XXDIR = $(srcdir)/ucdata/
-XXHEADERS = ucdata.h ure.h uctable.h
+AM_CPPFLAGS = -I$(top_srcdir)/include
 
-XXSRCS	= ucdata.c ucgendat.c ure.c urestubs.c
-SRCS	= ucstr.c
-OBJS	= ucdata.o ure.o urestubs.o ucstr.o
+if BEHIND_CURTIAN
+BUILT_SOURCES += banner.c uctable.h
 
-XLIB = $(LIBRARY)
-XLIBS = $(LDAP_LIBLUTIL_A) $(LDAP_LIBRELDAP_LA)
-#PROGRAMS = ucgendat
+banner.c: Makefile
+	$(MKBANNER) 'liblunicode' > $@
 
-LDAP_INCDIR= ../../include
-LDAP_LIBDIR= ../../libraries
+noinst_PROGRAMS = ucgendat
+nodist_ucgendat_SOURCES = ucgendat.c
+ucgendat_CPPFLAGS = -DSKIP_LDAP_AC_INCLUDES $(AM_CPPFLAGS)
 
-uctable.h: $(XXDIR)/uctable.h
+uctable.h: ucgendat$(EXEEXT) UnicodeData.txt CompositionExclusions.txt
+	./ucgendat$(EXEEXT) $(srcdir)/UnicodeData.txt -x $(srcdir)/CompositionExclusions.txt \
+		|| ($(RM) $@; exit 1)
 
-$(XXDIR)/uctable.h: $(XXDIR)/ucgendat.c $(srcdir)/UnicodeData.txt $(srcdir)/CompositionExclusions.txt
-	$(MAKE) ucgendat
-	./ucgendat $(srcdir)/UnicodeData.txt -x $(srcdir)/CompositionExclusions.txt
+endif
 
-ucgendat: $(XLIBS) ucgendat.o
-	$(LTLINK) -o $@ ucgendat.o $(LIBS)
-
-.links :
-	@for i in $(XXSRCS) $(XXHEADERS); do \
-		$(RM) $$i ; \
-		ii=`find $(srcdir) -name $$i` ; \
-		$(LN_S) $$ii . ; \
-	done
-	touch .links
-
-$(XXSRCS) $(XXHEADERS) : .links
-
-clean-local: FORCE
-	@$(RM) *.dat .links $(XXHEADERS) ucgendat
-
-depend-common: .links
+liblunicode_la_SOURCES = banner.c ucstr.c ucdata.c ure.c \
+	urestubs.c ucdata.h ucpgba.h uctable.h ure.h utbm.h

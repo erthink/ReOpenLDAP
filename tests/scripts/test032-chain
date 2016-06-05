@@ -1,5 +1,5 @@
 #!/bin/bash
-# $ReOpenLDAP$
+## $ReOpenLDAP$
 ## Copyright (c) 2015,2016 Leonid Yuriev <leo@yuriev.ru>.
 ## Copyright (c) 2015,2016 Peter-Service R&D LLC <http://billing.ru/>.
 ##
@@ -32,9 +32,9 @@
 ## <http://www.OpenLDAP.org/license.html>.
 
 echo "running defines.sh"
-. $SRCDIR/scripts/defines.sh
+. ${TOP_SRCDIR}/tests/scripts/defines.sh
 
-if test $BACKLDAP = "ldapno" ; then
+if test ${AC_conf[ldap]} = no ; then
 	echo "LDAP backend not available, test skipped"
 	exit 0
 fi
@@ -42,8 +42,8 @@ fi
 mkdir -p $TESTDIR $DBDIR1 $DBDIR2
 
 echo "Running slapadd to build slapd database..."
-. $CONFFILTER $BACKEND $MONITORDB < $CHAINCONF1 > $ADDCONF
-. $CONFFILTER < $LDIFCHAIN1 > $SEARCHOUT
+config_filter $BACKEND ${AC_conf[monitor]} < $CHAINCONF1 > $ADDCONF
+config_filter < $LDIFCHAIN1 > $SEARCHOUT
 $SLAPADD -f $ADDCONF -l $SEARCHOUT
 RC=$?
 if test $RC != 0 ; then
@@ -51,8 +51,8 @@ if test $RC != 0 ; then
 	exit $RC
 fi
 
-. $CONFFILTER $BACKEND $MONITORDB < $CHAINCONF2 > $ADDCONF
-. $CONFFILTER < $LDIFCHAIN2 > $SEARCHOUT
+config_filter $BACKEND ${AC_conf[monitor]} < $CHAINCONF2 > $ADDCONF
+config_filter < $LDIFCHAIN2 > $SEARCHOUT
 $SLAPADD -f $ADDCONF -l $SEARCHOUT
 RC=$?
 if test $RC != 0 ; then
@@ -61,7 +61,7 @@ if test $RC != 0 ; then
 fi
 
 echo "Starting first slapd on TCP/IP port $PORT1..."
-. $CONFFILTER $BACKEND $MONITORDB < $CHAINCONF1 > $CONF1
+config_filter $BACKEND ${AC_conf[monitor]} < $CHAINCONF1 > $CONF1
 $SLAPD -f $CONF1 -h $URI1 $TIMING > $LOG1 2>&1 &
 PID1=$!
 if test $WAIT != 0 ; then
@@ -71,7 +71,7 @@ fi
 KILLPIDS="$PID1"
 
 echo "Starting second slapd on TCP/IP port $PORT2..."
-. $CONFFILTER $BACKEND $MONITORDB < $CHAINCONF2 > $CONF2
+config_filter $BACKEND ${AC_conf[monitor]} < $CHAINCONF2 > $CONF2
 $SLAPD -f $CONF2 -h $URI2 $TIMING > $LOG2 2>&1 &
 PID2=$!
 if test $WAIT != 0 ; then

@@ -1,5 +1,5 @@
 #!/bin/bash
-# $ReOpenLDAP$
+## $ReOpenLDAP$
 ## Copyright (c) 2015,2016 Leonid Yuriev <leo@yuriev.ru>.
 ## Copyright (c) 2015,2016 Peter-Service R&D LLC <http://billing.ru/>.
 ##
@@ -46,7 +46,7 @@ USER="uid=user1,ou=People,dc=example,dc=com"
 PASS="abc"
 
 echo "Running slapadd to build slapd database..."
-. $CONFFILTER $BACKEND $MONITORDB < $ITSDIR/slapd.conf > $CONF1
+config_filter $BACKEND ${AC_conf[monitor]} < $ITSDIR/slapd.conf > $CONF1
 $SLAPADD -f $CONF1 -l $ITSDIR/adds.ldif
 RC=$?
 if test $RC != 0 ; then

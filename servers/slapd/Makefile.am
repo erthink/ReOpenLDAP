@@ -1,5 +1,4 @@
-## Makefile.in for slapd
-# $ReOpenLDAP$
+## $ReOpenLDAP$
 ## Copyright (c) 2015,2016 Leonid Yuriev <leo@yuriev.ru>.
 ## Copyright (c) 2015,2016 Peter-Service R&D LLC <http://billing.ru/>.
 ##
@@ -17,263 +16,298 @@
 ##
 ## You should have received a copy of the GNU Affero General Public License
 ## along with this program.  If not, see <http://www.gnu.org/licenses/>.
-##
-## ---
-##
-## Copyright 1998-2014 The OpenLDAP Foundation.
-## All rights reserved.
-##
-## Redistribution and use in source and binary forms, with or without
-## modification, are permitted only as authorized by the OpenLDAP
-## Public License.
-##
-## A copy of this license is available in the file LICENSE in the
-## top-level directory of the distribution or, alternatively, at
-## <http://www.OpenLDAP.org/license.html>.
 
-SLAPTOOLS=slapadd slapcat slapdn slapindex slappasswd slaptest slapauth slapacl slapschema
-bin_PROGRAMS=slapd $(SLAPTOOLS)
-XPROGRAMS=sslapd libbackends.a .backend liboverlays.a
-XSRCS=version.c
+DIST_SUBDIRS = overlays slapi back-bdb back-dnssrv back-hdb \
+	back-ldap back-ldif back-mdb back-meta back-monitor back-ndb \
+	back-null back-passwd back-perl back-relay back-shell back-sock \
+	back-sql shell-backends
 
-SUBDIRS	= back-bdb back-dnssrv back-hdb back-ldap back-ldif \
-	back-mdb back-meta back-monitor back-ndb back-null \
-	back-passwd back-perl back-relay back-shell back-sock \
-	back-sql shell-backends slapi overlays
+SUBDIRS	= overlays
 
-SRCS	= main.c globals.c bconfig.c config.c daemon.c \
-		connection.c search.c filter.c add.c cr.c quorum.c \
-		attr.c entry.c backend.c result.c operation.c \
-		dn.c compare.c modify.c delete.c modrdn.c ch_malloc.c \
-		value.c ava.c bind.c unbind.c abandon.c filterentry.c \
-		phonetic.c acl.c str2filter.c aclparse.c init.c user.c \
-		lock.c controls.c extended.c passwd.c biglock.c \
-		schema.c schema_check.c schema_init.c schema_prep.c \
-		schemaparse.c ad.c at.c mr.c syntax.c oc.c saslauthz.c \
-		oidm.c starttls.c index.c sets.c referral.c root_dse.c \
-		sasl.c module.c mra.c mods.c sl_malloc.c limits.c \
-		operational.c matchedValues.c cancel.c syncrepl.c \
-		backglue.c backover.c ctxcsn.c ldapsync.c frontend.c \
-		slapadd.c slapcat.c slapcommon.c slapdn.c slapindex.c \
-		slappasswd.c slaptest.c slapauth.c slapacl.c component.c \
-		aci.c alock.c txn.c slapschema.c backtrace.c
+backends_BUILTIN = config
+backends_DYNAMIC =
+overlays_BUILTIN =
+overlays_DYNAMIC =
 
-OBJS	= main.o globals.o bconfig.o config.o daemon.o \
-		connection.o search.o filter.o add.o cr.o quorum.o \
-		attr.o entry.o backend.o backends.o result.o operation.o \
-		dn.o compare.o modify.o delete.o modrdn.o ch_malloc.o \
-		value.o ava.o bind.o unbind.o abandon.o filterentry.o \
-		phonetic.o acl.o str2filter.o aclparse.o init.o user.o \
-		lock.o controls.o extended.o passwd.o biglock.o \
-		schema.o schema_check.o schema_init.o schema_prep.o \
-		schemaparse.o ad.o at.o mr.o syntax.o oc.o saslauthz.o \
-		oidm.o starttls.o index.o sets.o referral.o root_dse.o \
-		sasl.o module.o mra.o mods.o sl_malloc.o limits.o \
-		operational.o matchedValues.o cancel.o syncrepl.o \
-		backglue.o backover.o ctxcsn.o ldapsync.o frontend.o \
-		slapadd.o slapcat.o slapcommon.o slapdn.o slapindex.o \
-		slappasswd.o slaptest.o slapauth.o slapacl.o component.o \
-		aci.o alock.o txn.o slapschema.o backtrace.o
+AM_CPPFLAGS = -I${top_srcdir}/include
+libexec_PROGRAMS = slapd
+slapd_LDADD = overlays/liboverlays_builtin.la
+slapd_LDFLAGS =
 
-LDAP_INCDIR= ../../include -I$(srcdir) -I$(srcdir)/slapi -I.
-LDAP_LIBDIR= ../../libraries
+EXTRA_DIST = slapd.ldif.in slapd.conf.in
+CLEANFILES = slapd.ldif slapd.conf
+sysconf_DATA = slapd.ldif slapd.conf
 
-SLAP_DIR=
-SLAPD_STATIC_DEPENDS=@SLAPD_NO_STATIC@ libbackends.a liboverlays.a
-SLAPD_STATIC_BACKENDS=@SLAPD_STATIC_BACKENDS@
-SLAPD_DYNAMIC_BACKENDS=@SLAPD_DYNAMIC_BACKENDS@
+if BUILD_LDIF
+SUBDIRS	+= back-ldif
+if LDIF_DYNAMIC
+backends_DYNAMIC += ldif
+else
+backends_BUILTIN += ldif
+slapd_LDADD += back-ldif/back_ldif.la
+endif
+endif
 
-SLAPI_LIBS=@LIBSLAPI@ @SLAPI_LIBS@
+if BUILD_MONITOR
+SUBDIRS	+= back-monitor
+if MONITOR_DYNAMIC
+backends_DYNAMIC += monitor
+else
+backends_BUILTIN += monitor
+slapd_LDADD += back-monitor/back_monitor.la
+endif
+endif
 
-XDEFS = $(MODULES_CPPFLAGS)
-XLDFLAGS = $(MODULES_LDFLAGS)
+if BUILD_MDBX
+SUBDIRS	+= back-mdb
+if MDBX_DYNAMIC
+backends_DYNAMIC += mdb
+else
+backends_BUILTIN += mdb
+slapd_LDADD += back-mdb/back_mdb.la
+endif
+endif
 
-XLIBS = $(SLAPD_STATIC_DEPENDS) $(SLAPD_L) $(MODULES_LIBS) $(SLAPI_LIBS)
-XXLIBS = $(SLAPD_LIBS) $(SECURITY_LIBS) $(LUTIL_LIBS)
-XXXLIBS = $(LTHREAD_LIBS)
+if BUILD_NULL
+SUBDIRS	+= back-null
+if NULL_DYNAMIC
+backends_DYNAMIC += null
+else
+backends_BUILTIN += null
+slapd_LDADD += back-null/back_null.la
+endif
+endif
 
-BUILD_OPT = "--enable-slapd"
-BUILD_SRV = @BUILD_SLAPD@
+if BUILD_LDAP
+SUBDIRS	+= back-ldap
+if LDAP_DYNAMIC
+backends_DYNAMIC += ldap
+else
+backends_BUILTIN += ldap
+slapd_LDADD += back-ldap/back_ldap.la
+endif
+endif
 
-SLAPD_DEPENDS = $(SLAPD_STATIC_DEPENDS) version.o $(SLAPD_L)
-SLAPD_OBJECTS = $(OBJS) version.o
+if BUILD_META
+SUBDIRS	+= back-meta
+if META_DYNAMIC
+backends_DYNAMIC += meta
+else
+backends_BUILTIN += meta
+slapd_LDADD += back-meta/back_meta.la
+endif
+endif
 
-slapi/libreslapi.la: FORCE
-	(cd slapi; $(MAKE) $(MFLAGS) all)
+if BUILD_RELAY
+SUBDIRS	+= back-relay
+if RELAY_DYNAMIC
+backends_DYNAMIC += relay
+else
+backends_BUILTIN += relay
+slapd_LDADD += back-relay/back_relay.la
+endif
+endif
 
-slapd$(EXEEXT): $(SLAPD_DEPENDS) @LIBSLAPI@
-	$(LTLINK) -o $@ $(SLAPD_OBJECTS) $(LIBS) \
-		$(WRAP_LIBS)
-	$(RM) $(SLAPTOOLS)
-	for i in $(SLAPTOOLS); do \
-		$(LN_S) slapd$(EXEEXT) $$i$(EXEEXT); done
+if BUILD_SOCK
+SUBDIRS	+= back-sock
+if SOCK_DYNAMIC
+backends_DYNAMIC += sock
+else
+backends_BUILTIN += sock
+slapd_LDADD += back-sock/back_sock.la
+endif
+endif
 
+if BUILD_BDB
+SUBDIRS	+= back-bdb
+if BDB_DYNAMIC
+backends_DYNAMIC += bdb
+else
+backends_BUILTIN += bdb
+slapd_LDADD += back-bdb/back_bdb.la
+endif
+endif
 
-sslapd$(EXEEXT): version.o
-	$(LTLINK) -static -o $@ $(OBJS) version.o $(LIBS) $(WRAP_LIBS)
+if BUILD_HDB
+SUBDIRS	+= back-hdb
+if HDB_DYNAMIC
+backends_DYNAMIC += hdb
+else
+backends_BUILTIN += hdb
+slapd_LDADD += back-hdb/back_hdb.la
+endif
+endif
 
-dummy $(SLAPD_DYNAMIC_BACKENDS): slapd
-	cd $@; $(MAKE) $(MFLAGS) all
-	@touch $@
+if BUILD_DNSSRV
+SUBDIRS	+= back-dnssrv
+if DNSSRV_DYNAMIC
+backends_DYNAMIC += dnssrv
+else
+backends_BUILTIN += dnssrv
+slapd_LDADD += back-dnssrv/back_dnssrv.la
+endif
+endif
 
-dynamic_overlays: slapd
-	cd overlays; $(MAKE) $(MFLAGS) dynamic
+if BUILD_NDB
+SUBDIRS	+= back-ndb
+if NDB_DYNAMIC
+backends_DYNAMIC += ndb
+else
+backends_BUILTIN += ndb
+slapd_LDADD += back-ndb/back_ndb.la
+endif
+endif
 
-#
-# In Windows, dynamic backends have to be built after slapd. For this
-# reason, we only build static backends now and dynamic backends later.
-#
-.backend: FORCE
-	@if test -n "$(SLAPD_STATIC_BACKENDS)"; then \
-	    echo "building static backends..."; \
-	    for i in XX $(SLAPD_STATIC_BACKENDS); do \
-		if test $$i != XX; then \
-		    echo " "; echo "  cd $$i; $(MAKE) $(MFLAGS) all"; \
-		    ( cd $$i; $(MAKE) $(MFLAGS) all ); \
-		    if test $$? != 0; then exit 1; fi; \
-		fi; \
-	    done; \
-	    echo " "; \
-	fi
+if BUILD_PASSWD
+SUBDIRS	+= back-passwd
+if PASSWD_DYNAMIC
+backends_DYNAMIC += passwd
+else
+backends_BUILTIN += passwd
+slapd_LDADD += back-passwd/back_passwd.la
+endif
+endif
 
-libbackends.a: .backend
-	@$(RM) -r tmp
-	@$(MKDIR) tmp
-	@-for i in back-*/*.a; do \
-		( \
-		  cd tmp; \
-		  $(AR) x ../$$i; \
-		  pre=`echo $$i | $(SED) -e 's/\/.*$$//' -e 's/back-//'`; \
-		  for j in *.o; do \
-			mv $$j $${pre}$$j; \
-		  done; \
-		  $(AR) ruv libbackends.a *.o 2>&1 | grep -v truncated; \
-		  $(RM) *.o __.SYMDEF  ________64ELEL_ ; \
-		  echo "added backend library $$i"; \
-		  echo ""; \
-		); \
+if BUILD_PERL
+SUBDIRS	+= back-perl
+if PERL_DYNAMIC
+backends_DYNAMIC += perl
+else
+backends_BUILTIN += perl
+slapd_LDADD += back-perl/back_perl.la
+endif
+endif
+
+if BUILD_SHELL
+SUBDIRS	+= back-shell shell-backends
+if SHELL_DYNAMIC
+backends_DYNAMIC += shell
+else
+backends_BUILTIN += shell
+slapd_LDADD += back-shell/back_shell.la
+endif
+endif
+
+if BUILD_SQL
+SUBDIRS	+= back-sql
+if SQL_DYNAMIC
+backends_DYNAMIC += sql
+else
+backends_BUILTIN += sql
+slapd_LDADD += back-sql/back_sql.la
+endif
+endif
+
+#########################################
+
+if BUILD_SLAPI
+SUBDIRS	+= slapi
+slapd_LDADD += slapi/libreslapi.la
+endif
+
+if SLAPD_DYNAMIC
+AM_CPPFLAGS += $(LTDLINCL)
+slapd_LDFLAGS += -export-dynamic -dlopen self
+slapd_LDADD += $(LIBLTDL)
+slapd_DEPENDENCIES = $(LTDLDEPS)
+endif
+
+#########################################
+
+BUILT_SOURCES = builtin.c
+CLEANFILES += builtin.c
+nodist_slapd_SOURCES = builtin.c
+
+if BEHIND_CURTIAN
+BUILT_SOURCES += banner.c
+banner.c: Makefile
+	$(MKBANNER) --name SLAPD --global 'slapd' > $@
+endif
+
+builtin.c: Makefile
+	@echo "Make $@"; \
+	echo "/* This file is automatically generated by configure; please do not edit. */" > $@ \
+	&& echo '#include "reldap.h"' >> $@ \
+	&& echo '#include "slap.h"' >> $@ \
+		|| exit 1
+	echo "/*-----------------------------------------*/" >> $@ && \
+	for BE in $(backends_BUILTIN); do \
+		echo "extern BI_init $${BE}_back_initialize;" >> $@ \
+		|| exit 1; \
+	done; \
+	echo 'BackendInfo slap_binfo[] = {' >>$@ || exit 1;
+	for BE in $(backends_BUILTIN); do \
+		echo "	backend $BE"; \
+		echo "	{ \"$${BE}\", $${BE}_back_initialize }," >> $@ \
+		|| exit 1; \
 	done
-	@mv -f tmp/libbackends.a ./libbackends.a
-	@$(RM) -r tmp
-	@if test ! -z "$(RANLIB)" ; then \
-		$(RANLIB) libbackends.a; \
-	fi
-	@ls -l libbackends.a; echo ""
+	echo '	{ NULL, NULL }' >> $@ \
+	&& echo '};' >> $@ \
+		|| exit 1;
+	echo "/*-----------------------------------------*/" >> $@ && \
+	for OV in $(overlays_BUILTIN); do \
+		echo "extern OV_init $${OV}_back_initialize;" >> $@ \
+		|| exit 1; \
+	done; \
+	echo 'OverlayInit slap_oinfo[] = {' >>$@ || exit 1;
+	for OV in $(overlays_BUILTIN); do \
+		echo "	overlay $OV"; \
+		echo "	{ \"$${OV}\", $${OV}_over_initialize }," >> $@ \
+		|| exit 1; \
+	done; \
+	echo '	{ NULL, NULL }' >> $@ \
+	&& echo '};' >> $@ \
+		|| exit 1;
 
-liboverlays.a: FORCE
-	cd overlays; $(MAKE) $(MFLAGS) static
+# LY: TODO += BUILD_REWRITE ?
+slapd_LDADD += $(LDAP_LIBREWRITE_LA)
+slapd_LDADD += $(LDAP_LIBRELDAP_LA) $(LDAP_LIBLUTIL_LA) $(LDAP_LIBLUNICODE_LA)
+# LY: TODO += -lelf
+slapd_LDADD += $(SLAPD_LIBS) -lelf
 
-version.c: Makefile
-	@-$(RM) $@
-	$(MKVERSION) -s -n Versionstr slapd > $@
+slapd_SOURCES = abandon.c aci.c acl.c aclparse.c ad.c add.c \
+	alock.c at.c attr.c ava.c backend.c backglue.c backover.c \
+	backtrace.c banner.c bconfig.c biglock.c bind.c cancel.c \
+	ch_malloc.c compare.c component.c config.c connection.c \
+	controls.c cr.c ctxcsn.c daemon.c delete.c dn.c entry.c \
+	extended.c filter.c filterentry.c frontend.c globals.c index.c \
+	init.c ldapsync.c limits.c lock.c main.c matchedValues.c \
+	modify.c modrdn.c mods.c module.c mra.c mr.c oc.c oidm.c \
+	operational.c operation.c passwd.c phonetic.c quorum.c \
+	referral.c result.c root_dse.c saslauthz.c sasl.c schema.c \
+	schema_check.c schema_init.c schemaparse.c schema_prep.c \
+	search.c sets.c slapacl.c slapadd.c slapauth.c slapcat.c \
+	slapcommon.c slapdn.c slapindex.c slappasswd.c slapschema.c \
+	slaptest.c sl_malloc.c starttls.c str2filter.c syncrepl.c \
+	syntax.c txn.c unbind.c user.c value.c alock.h component.h \
+	slapconfig.h proto-slap.h sets.h slapcommon.h slap.h
 
-version.o: version.c $(OBJS) $(SLAPD_LIBDEPEND)
+schema_files = schema/collective.ldif schema/collective.schema \
+	schema/corba.ldif schema/corba.schema schema/core.ldif \
+	schema/core.schema schema/cosine.ldif schema/cosine.schema \
+	schema/duaconf.ldif schema/duaconf.schema schema/dyngroup.ldif \
+	schema/dyngroup.schema schema/inetorgperson.ldif \
+	schema/inetorgperson.schema schema/java.ldif schema/java.schema \
+	schema/misc.ldif schema/misc.schema schema/nis.ldif \
+	schema/nis.schema schema/openldap.ldif schema/openldap.schema \
+	schema/pmi.ldif schema/pmi.schema schema/ppolicy.ldif \
+	schema/ppolicy.schema schema/README
 
-backends.o: backends.c $(srcdir)/slap.h
+slapd.ldif: $(srcdir)/slapd.ldif.in Makefile
+	@echo "Making $@" && $(RM) $@ && \
+	echo "# Generated from $< on `date --rfc-3339=seconds --utc`" > $@ && \
+	$(FIXUP_DIST) $< | $(FIXUP_DIRS) >> $@
 
-all-local-srv: all-cffiles
-	$(MAKE) -C shell-backends $(MFLAGS) all
+slapd.conf: $(srcdir)/slapd.conf.in Makefile
+	@echo "Making $@" && $(RM) $@ && \
+	echo "# Generated from $< on `date --rfc-3339=seconds --utc`" > $@ && \
+	$(FIXUP_DIST) $< | $(FIXUP_DIRS) >> $@
 
-depend-local-srv: FORCE
-	@for i in $(SUBDIRS); do \
-		if test -d $$i && test -f $$i/Makefile ; then \
-			echo; echo "  cd $$i; $(MAKE) $(MFLAGS) depend"; \
-			( cd $$i; $(MAKE) $(MFLAGS) depend ); \
-			if test $$? != 0 ; then exit 1; fi ; \
-		fi; \
-	done
-	@echo ""
+EXTRA_DIST += $(schema_files)
 
-clean-local:
-	$(RM) *.exp *.def *.base *.a *.objs symdummy.c
+install-data-hook:
+	$(MKDIR_P) $(sysconfdir)/schema && \
+		(cd $(srcdir) && $(INSTALL) -t $(sysconfdir)/schema -m 0444 $(schema_files))
 
-veryclean-local:
-	$(RM) backends.c
-
-clean-local-srv: FORCE
-	@for i in $(SUBDIRS); do \
-		if test -d $$i && test -f $$i/Makefile ; then \
-			echo; echo "  cd $$i; $(MAKE) $(MFLAGS) clean"; \
-			( cd $$i; $(MAKE) $(MFLAGS) clean ); \
-			if test $$? != 0 ; then exit 1; fi ; \
-		fi; \
-	done
-	$(RM) *.tmp all-cffiles
-
-veryclean-local-srv: FORCE
-	@for i in $(SUBDIRS); do \
-		if test -d $$i && test -f $$i/Makefile ; then \
-			echo; echo "  cd $$i; $(MAKE) $(MFLAGS) clean"; \
-			( cd $$i; $(MAKE) $(MFLAGS) veryclean ); \
-		fi; \
-	done
-
-install-local-srv: install-slapd install-tools \
-	install-conf install-schema install-tools
-	$(MAKE) -C shell-backends $(MFLAGS) install
-
-install-slapd: FORCE
-	-$(MKDIR) $(DESTDIR)$(libexecdir)
-	-$(MKDIR) $(DESTDIR)$(localstatedir)/run
-	$(LTINSTALL) $(INSTALLFLAGS) $(STRIP) -m 755 \
-		slapd$(EXEEXT) $(DESTDIR)$(libexecdir)
-	@for i in $(SUBDIRS); do \
-	    if test -d $$i && test -f $$i/Makefile ; then \
-		echo; echo "  cd $$i; $(MAKE) $(MFLAGS) install"; \
-		( cd $$i; $(MAKE) $(MFLAGS) install ); \
-		if test $$? != 0 ; then exit 1; fi ; \
-	    fi; \
-	done
-
-all-cffiles: slapd $(SLAPD_DYNAMIC_BACKENDS) dynamic_overlays
-	sysconfdir=$(sysconfdir); \
-	localstatedir=$(localstatedir); \
-	moduledir=$(moduledir); \
-	$(SED) -e "s;%SYSCONFDIR%;$$sysconfdir;" \
-		-e "s;%LOCALSTATEDIR%;$$localstatedir;" \
-		-e "s;%MODULEDIR%;$$moduledir;" \
-		$(srcdir)/slapd.conf > slapd.conf.tmp ; \
-	$(SED) -e "s;%SYSCONFDIR%;$$sysconfdir;" \
-		-e "s;%LOCALSTATEDIR%;$$localstatedir;" \
-		-e "s;%MODULEDIR%;$$moduledir;" \
-		$(srcdir)/slapd.ldif > slapd.ldif.tmp ; \
-	touch all-cffiles
-
-install-schema: FORCE
-	@if test -d $(DESTDIR)$(schemadir) ; then \
-		echo "MOVING EXISTING SCHEMA DIR to $(DESTDIR)$(schemadir).$$$$" ; \
-		mv $(DESTDIR)$(schemadir) $(DESTDIR)$(schemadir).$$$$ ; \
-	fi
-	$(MKDIR) $(DESTDIR)$(schemadir)
-	@SD=$(DESTDIR)$(schemadir) ; \
-	files=`cd $(srcdir)/schema ; echo README *.ldif *.schema` ; \
-	for i in $$files ; do \
-		echo $(INSTALL) $(INSTALLFLAGS) -m 444 schema/$$i $$SD/$$i ; \
-		$(INSTALL) $(INSTALLFLAGS) -m 444 $(srcdir)/schema/$$i $$SD/$$i ; \
-	done
-
-install-conf: FORCE
-	@-$(MKDIR) $(DESTDIR)$(sysconfdir)
-	$(INSTALL) $(INSTALLFLAGS) -m 600 slapd.conf.tmp $(DESTDIR)$(sysconfdir)/slapd.conf.default
-	if test ! -f $(DESTDIR)$(sysconfdir)/slapd.conf; then \
-		echo "installing slapd.conf in $(sysconfdir)"; \
-		echo "$(INSTALL) $(INSTALLFLAGS) -m 600 slapd.conf.tmp $(DESTDIR)$(sysconfdir)/slapd.conf"; \
-		$(INSTALL) $(INSTALLFLAGS) -m 600 slapd.conf.tmp $(DESTDIR)$(sysconfdir)/slapd.conf; \
-	else \
-		echo "PRESERVING EXISTING CONFIGURATION FILE $(DESTDIR)$(sysconfdir)/slapd.conf" ; \
-	fi
-	$(INSTALL) $(INSTALLFLAGS) -m 600 slapd.ldif.tmp $(DESTDIR)$(sysconfdir)/slapd.ldif.default
-	if test ! -f $(DESTDIR)$(sysconfdir)/slapd.ldif; then \
-		echo "installing slapd.ldif in $(sysconfdir)"; \
-		echo "$(INSTALL) $(INSTALLFLAGS) -m 600 slapd.ldif.tmp $(DESTDIR)$(sysconfdir)/slapd.ldif"; \
-		$(INSTALL) $(INSTALLFLAGS) -m 600 slapd.ldif.tmp $(DESTDIR)$(sysconfdir)/slapd.ldif; \
-	else \
-		echo "PRESERVING EXISTING CONFIGURATION FILE $(DESTDIR)$(sysconfdir)/slapd.ldif" ; \
-	fi
-
-install-tools: FORCE
-	-$(MKDIR) $(DESTDIR)$(sbindir)
-	for i in $(SLAPTOOLS); do \
-		$(RM) $(DESTDIR)$(sbindir)/$$i$(EXEEXT); \
-		$(LN_S) -f $(DESTDIR)$(libexecdir)/slapd$(EXEEXT) $(DESTDIR)$(sbindir)/$$i$(EXEEXT); \
-	done
+uninstall-hook:
+	(cd $(sysconfdir) && rm -f $(schema_files)) && rmdir $(sysconfdir)/schema

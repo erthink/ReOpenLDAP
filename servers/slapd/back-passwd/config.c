@@ -46,7 +46,7 @@
  * (as part of U-MICH LDAP).
  */
 
-#include "portable.h"
+#include "reldap.h"
 
 #include <stdio.h>
 
@@ -56,7 +56,7 @@
 
 #include "slap.h"
 #include "back-passwd.h"
-#include "config.h"
+#include "slapconfig.h"
 
 static ConfigTable passwdcfg[] = {
 	{ "file", "filename", 2, 2, 0,

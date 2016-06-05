@@ -68,7 +68,7 @@
  *	LDAPURL ::= LDAPString			(limited to URL chars)
  */
 
-#include "portable.h"
+#include "reldap.h"
 
 #include <stdio.h>
 

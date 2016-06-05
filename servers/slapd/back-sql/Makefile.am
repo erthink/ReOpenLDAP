@@ -1,5 +1,5 @@
 # Makefile.in for back-sql
-# $ReOpenLDAP$
+## $ReOpenLDAP$
 ## Copyright (c) 2015,2016 Leonid Yuriev <leo@yuriev.ru>.
 ## Copyright (c) 2015,2016 Peter-Service R&D LLC <http://billing.ru/>.
 ##
@@ -18,42 +18,83 @@
 ## You should have received a copy of the GNU Affero General Public License
 ## along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ##
-## ---
-##
-## Copyright 1998-2014 The OpenLDAP Foundation.
-## All rights reserved.
-##
-## Redistribution and use in source and binary forms, with or without
-## modification, are permitted only as authorized by the OpenLDAP
-## Public License.
-##
-## A copy of this license is available in the file LICENSE in the
-## top-level directory of the distribution or, alternatively, at
-## <http://www.OpenLDAP.org/license.html>.
 
-SRCS	= init.c config.c search.c bind.c compare.c operational.c \
-		entry-id.c schema-map.c sql-wrap.c modify.c util.c \
-		add.c delete.c modrdn.c api.c
-OBJS	= $(SRCS:.c=.lo)
+pkglib_LTLIBRARIES =
+noinst_LTLIBRARIES =
+back_sql_la_LDFLAGS = -module
+AM_CPPFLAGS = -DSLAPD_IMPORT -I$(srcdir)/.. -I$(top_srcdir)/include
 
-LDAP_INCDIR= ../../../include
-LDAP_LIBDIR= ../../../libraries
+if SQL_DYNAMIC
+pkglib_LTLIBRARIES += back_sql.la
+back_sql_la_LDFLAGS += -export-dynamic \
+	-release $(API_LIB_RELEASE) -version-info $(API_LIB_VERSION)
+else
+noinst_LTLIBRARIES += back_sql.la
+endif
 
-BUILD_OPT = "--enable-sql"
-BUILD_MOD = @BUILD_SQL@
+if BEHIND_CURTIAN
+BUILT_SOURCES = banner.c
+banner.c: Makefile
+	$(MKBANNER) --name backend_sql --global 'backend-sql' > $@
+endif
 
-mod_DEFS = -DSLAPD_IMPORT
-MOD_DEFS = $(@BUILD_SQL@_DEFS)
+back_sql_la_SOURCES = add.c api.c back-sql.h banner.c bind.c \
+	compare.c config.c delete.c entry-id.c init.c modify.c modrdn.c \
+	operational.c proto-sql.h schema-map.c search.c sql-wrap.c \
+	util.c
 
-shared_LDAP_LIBS = $(LDAP_LIBRELDAP_LA)
-NEED_LIBS = $(@BUILD_LIBS_DYNAMIC@_LDAP_LIBS) $(SLAPD_SQL_LIBS)
+AM_CPPFLAGS += @SQL_INCLUDES@
+back_sql_la_LIBADD = @SQL_LIBS@
 
-LIBBASE = back_sql
-
-XINCPATH = -I.. -I$(srcdir)/.. $(SLAPD_SQL_INCLUDES)
-XDEFS = $(MODULES_CPPFLAGS)
-
-all-local-lib:	../.backend
-
-../.backend: lib$(LIBBASE).a
-	@touch $@
+EXTRA_DIST = docs/install docs/platforms docs/bugs docs/todo \
+	docs/concept rdbms_depend/README \
+	rdbms_depend/pgsql/slapd.conf \
+	rdbms_depend/pgsql/testdb_drop.sql \
+	rdbms_depend/pgsql/testdb_metadata.sql \
+	rdbms_depend/pgsql/testdb_create.sql \
+	rdbms_depend/pgsql/testdb_data.sql \
+	rdbms_depend/pgsql/backsql_create.sql \
+	rdbms_depend/pgsql/backsql_drop.sql \
+	rdbms_depend/mssql/slapd.conf \
+	rdbms_depend/mssql/testdb_drop.sql \
+	rdbms_depend/mssql/testdb_metadata.sql \
+	rdbms_depend/mssql/testdb_create.sql \
+	rdbms_depend/mssql/testdb_data.sql \
+	rdbms_depend/mssql/backsql_create.sql \
+	rdbms_depend/mssql/backsql_drop.sql \
+	rdbms_depend/mysql/slapd.conf \
+	rdbms_depend/mysql/testdb_drop.sql \
+	rdbms_depend/mysql/testdb_metadata.sql \
+	rdbms_depend/mysql/testdb_create.sql \
+	rdbms_depend/mysql/testdb_data.sql \
+	rdbms_depend/mysql/backsql_create.sql \
+	rdbms_depend/mysql/backsql_drop.sql \
+	rdbms_depend/timesten/slapd.conf \
+	rdbms_depend/timesten/testdb_drop.sql \
+	rdbms_depend/timesten/tttestdb_metadata.sql \
+	rdbms_depend/timesten/ttcreate_schema.sh \
+	rdbms_depend/timesten/tttestdb_drop.sql \
+	rdbms_depend/timesten/tttestdb_data.sql \
+	rdbms_depend/timesten/testdb_metadata.sql \
+	rdbms_depend/timesten/testdb_create.sql \
+	rdbms_depend/timesten/create_schema.sh \
+	rdbms_depend/timesten/testdb_data.sql \
+	rdbms_depend/timesten/backsql_create.sql \
+	rdbms_depend/timesten/dnreverse/dnreverse.cpp \
+	rdbms_depend/timesten/dnreverse/Makefile \
+	rdbms_depend/timesten/backsql_drop.sql \
+	rdbms_depend/timesten/tttestdb_create.sql \
+	rdbms_depend/ibmdb2/slapd.conf \
+	rdbms_depend/ibmdb2/testdb_drop.sql \
+	rdbms_depend/ibmdb2/testdb_metadata.sql \
+	rdbms_depend/ibmdb2/testdb_create.sql \
+	rdbms_depend/ibmdb2/testdb_data.sql\
+	rdbms_depend/ibmdb2/backsql_create.sql \
+	rdbms_depend/ibmdb2/backsql_drop.sql \
+	rdbms_depend/oracle/slapd.conf \
+	rdbms_depend/oracle/testdb_drop.sql \
+	rdbms_depend/oracle/testdb_metadata.sql \
+	rdbms_depend/oracle/testdb_create.sql \
+	rdbms_depend/oracle/testdb_data.sql \
+	rdbms_depend/oracle/backsql_create.sql \
+	rdbms_depend/oracle/backsql_drop.sql

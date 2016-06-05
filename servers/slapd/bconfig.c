@@ -36,7 +36,7 @@
  * in OpenLDAP Software.
  */
 
-#include "portable.h"
+#include "reldap.h"
 
 #include <stdio.h>
 #include <ac/string.h>
@@ -54,7 +54,7 @@
 #include <ldif.h>
 #include <lutil.h>
 
-#include "config.h"
+#include "slapconfig.h"
 
 #define	CONFIG_RDN	"cn=config"
 #define	SCHEMA_RDN	"cn=schema"
@@ -64,7 +64,7 @@ static struct berval schema_rdn = BER_BVC(SCHEMA_RDN);
 
 extern int slap_DN_strict;	/* dn.c */
 
-#ifdef SLAPD_MODULES
+#ifdef SLAPD_DYNAMIC_MODULES
 typedef struct modpath_s {
 	struct modpath_s *mp_next;
 	struct berval mp_path;
@@ -474,7 +474,7 @@ static ConfigTable config_back_cf_table[] = {
 		&config_generic, "( OLcfgDbAt:0.16 NAME 'olcMirrorMode' "
 			"SYNTAX OMsBoolean SINGLE-VALUE )", NULL, NULL },
 	{ "moduleload",	"file", 2, 0, 0,
-#ifdef SLAPD_MODULES
+#ifdef SLAPD_DYNAMIC_MODULES
 		ARG_MAGIC|CFG_MODLOAD|ARG_NO_DELETE, &config_generic,
 #else
 		ARG_IGNORED, NULL,
@@ -483,7 +483,7 @@ static ConfigTable config_back_cf_table[] = {
 			"EQUALITY caseIgnoreMatch "
 			"SYNTAX OMsDirectoryString X-ORDERED 'VALUES' )", NULL, NULL },
 	{ "modulepath", "path", 2, 2, 0,
-#ifdef SLAPD_MODULES
+#ifdef SLAPD_DYNAMIC_MODULES
 		ARG_MAGIC|CFG_MODPATH|ARG_NO_DELETE|ARG_NO_INSERT, &config_generic,
 #else
 		ARG_IGNORED, NULL,
@@ -834,7 +834,7 @@ ConfigTable olcDatabaseDummy[] = {
 /* Routines to check if a child can be added to this type */
 static ConfigLDAPadd cfAddSchema, cfAddInclude, cfAddDatabase,
 	cfAddBackend, cfAddOverlay;
-#ifdef SLAPD_MODULES
+#ifdef SLAPD_DYNAMIC_MODULES
 static ConfigLDAPadd cfAddModule;
 #endif
 
@@ -848,9 +848,9 @@ static ConfigLDAPadd cfAddModule;
 #define CFOC_OVERLAY	cf_ocs[5]
 #define CFOC_INCLUDE	cf_ocs[6]
 #define CFOC_FRONTEND	cf_ocs[7]
-#ifdef SLAPD_MODULES
+#ifdef SLAPD_DYNAMIC_MODULES
 #define CFOC_MODULE	cf_ocs[8]
-#endif /* SLAPD_MODULES */
+#endif /* SLAPD_DYNAMIC_MODULES */
 
 static ConfigOCs cf_ocs[] = {
 	{ "( OLcfgGlOc:0 "
@@ -935,7 +935,7 @@ static ConfigOCs cf_ocs[] = {
 		"AUXILIARY "
 		"MAY ( olcDefaultSearchBase $ olcPasswordHash $ olcSortVals ) )",
 		Cft_Database, NULL, NULL },
-#ifdef SLAPD_MODULES
+#ifdef SLAPD_DYNAMIC_MODULES
 	{ "( OLcfgGlOc:8 "
 		"NAME 'olcModuleList' "
 		"DESC 'OpenLDAP dynamic module info' "
@@ -1220,7 +1220,7 @@ config_generic(ConfigArgs *c) {
 				rc = 0;
 			}
 			} break;
-#ifdef SLAPD_MODULES
+#ifdef SLAPD_DYNAMIC_MODULES
 		case CFG_MODLOAD: {
 			ModPaths *mp = c->ca_private;
 			if (mp->mp_loads) {
@@ -2115,7 +2115,7 @@ sortval_reject:
 			index_substr_if_minlen = c->value_uint;
 			break;
 
-#ifdef SLAPD_MODULES
+#ifdef SLAPD_DYNAMIC_MODULES
 		case CFG_MODLOAD:
 			/* If we're just adding a module on an existing modpath,
 			 * make sure we've selected the current path.
@@ -4101,7 +4101,7 @@ config_tls_option(ConfigArgs *c) {
 	return(ldap_pvt_tls_set_option(ld, flag, c->argv[1]));
 }
 
-/* FIXME: this ought to be provided by libldap */
+/* FIXME: this ought to be provided by libreldap */
 static int
 config_tls_config(ConfigArgs *c) {
 	int i, flag;
@@ -5106,7 +5106,7 @@ cfAddBackend( CfEntryInfo *p, Entry *e, struct config_args_s *ca )
 	return LDAP_SUCCESS;
 }
 
-#ifdef SLAPD_MODULES
+#ifdef SLAPD_DYNAMIC_MODULES
 static int
 cfAddModule( CfEntryInfo *p, Entry *e, struct config_args_s *ca )
 {
@@ -5115,7 +5115,7 @@ cfAddModule( CfEntryInfo *p, Entry *e, struct config_args_s *ca )
 	}
 	return LDAP_SUCCESS;
 }
-#endif /* SLAPD_MODULES */
+#endif /* SLAPD_DYNAMIC_MODULES */
 
 static int
 cfAddOverlay( CfEntryInfo *p, Entry *e, struct config_args_s *ca )
@@ -6875,7 +6875,7 @@ config_build_schema_inc( ConfigArgs *c, CfEntryInfo *ceparent,
 	return 0;
 }
 
-#ifdef SLAPD_MODULES
+#ifdef SLAPD_DYNAMIC_MODULES
 
 static int
 config_build_modules( ConfigArgs *c, CfEntryInfo *ceparent,
@@ -7072,7 +7072,7 @@ config_back_db_open( BackendDB *be, ConfigReply *cr )
 
 	ceparent = ce;
 
-#ifdef SLAPD_MODULES
+#ifdef SLAPD_DYNAMIC_MODULES
 	/* Create Module nodes... */
 	if ( modpaths.mp_loads ) {
 		if ( config_build_modules( &c, ceparent, op, &rs ) ){

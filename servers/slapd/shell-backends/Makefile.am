@@ -1,5 +1,5 @@
 # Makefile.in for shell-backends
-# $ReOpenLDAP$
+## $ReOpenLDAP$
 ## Copyright (c) 2015,2016 Leonid Yuriev <leo@yuriev.ru>.
 ## Copyright (c) 2015,2016 Peter-Service R&D LLC <http://billing.ru/>.
 ##
@@ -18,45 +18,15 @@
 ## You should have received a copy of the GNU Affero General Public License
 ## along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ##
-## ---
-##
-## Copyright 1998-2014 The OpenLDAP Foundation.
-## All rights reserved.
-##
-## Redistribution and use in source and binary forms, with or without
-## modification, are permitted only as authorized by the OpenLDAP
-## Public License.
-##
-## A copy of this license is available in the file LICENSE in the
-## top-level directory of the distribution or, alternatively, at
-## <http://www.OpenLDAP.org/license.html>.
 
 bin_PROGRAMS = passwd-shell
+AM_CPPFLAGS = -I$(top_srcdir)/include
 
-SRCS = passwd-shell.c shellutil.c
-XSRCS = pwd-version.c
-OBJS = $(SRCS:.c=.lo)
+if BEHIND_CURTIAN
+BUILT_SOURCES = banner.c
+banner.c: Makefile
+	$(MKBANNER) --name passwd_shell --global 'passwd-shell' > $@
+endif
 
-LDAP_INCDIR= ../../../include
-LDAP_LIBDIR= ../../../libraries
-
-BUILD_OPT = "--enable-shell"
-BUILD_SRV = @BUILD_SHELL@
-
-XLIBS   = $(LDAP_LIBLUTIL_A) $(LDAP_LIBRELDAP_LA)
-XXLIBS  = $(SECURITY_LIBS) $(LUTIL_LIBS)
-XXXLIBS = $(LTHREAD_LIBS)
-
-all-local-srv: $(PROGRAMS)
-
-# create programs also when using modules
-depend-mod: depend-yes
-all-mod: all-yes
-install-mod: install-yes
-
-passwd-shell$(EXEEXT):	pwd-version.o
-	$(LTLINK) $(LDFLAGS) -o $@ $(OBJS) pwd-version.o $(LIBS)
-
-pwd-version.c: $(OBJS) $(LDAP_LIBDEPEND)
-	@-$(RM) $@
-	$(MKVERSION) passwd-shell > $@
+passwd_shell_SOURCES = banner.c passwd-shell.c shellutil.c shellutil.h
+passwd_shell_LDADD = @LDAP_LIBLUTIL_LA@ @LDAP_LIBRELDAP_LA@

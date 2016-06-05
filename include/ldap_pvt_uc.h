@@ -43,7 +43,7 @@
 #include <lber.h>				/* get ber_slen_t */
 
 #include <ac/bytes.h>
-#include "../libraries/liblunicode/ucdata/ucdata.h"
+#include "../libraries/liblunicode/ucdata.h"
 
 LDAP_BEGIN_DECL
 
@@ -52,7 +52,7 @@ LDAP_BEGIN_DECL
  */
 
 /* UCDATA uses UCS-2 passed in a 4 byte unsigned int */
-typedef ac_uint4 ldap_unicode_t;
+typedef uint32_t ldap_unicode_t;
 
 /* Convert a string with csize octets per character to UTF-8 */
 LDAP_F( int ) ldap_ucs_to_utf8s LDAP_P((
@@ -178,4 +178,3 @@ LDAP_LUNICODE_F(int) UTF8bvnormcmp(
 LDAP_END_DECL
 
 #endif
-

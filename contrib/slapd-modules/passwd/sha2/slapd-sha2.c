@@ -41,7 +41,7 @@
  * fix a race by SATOH Fumiyasu @ OSS Technology, Inc.
  */
 
-#include "portable.h"
+#include "reldap.h"
 
 #include <ac/string.h>
 

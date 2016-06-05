@@ -1,5 +1,4 @@
-# Makefile.in for tests
-# $ReOpenLDAP$
+## $ReOpenLDAP$
 ## Copyright (c) 2015,2016 Leonid Yuriev <leo@yuriev.ru>.
 ## Copyright (c) 2015,2016 Peter-Service R&D LLC <http://billing.ru/>.
 ##
@@ -18,79 +17,48 @@
 ## You should have received a copy of the GNU Affero General Public License
 ## along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ##
-## ---
-##
-## Copyright 1998-2014 The OpenLDAP Foundation.
-## All rights reserved.
-##
-## Redistribution and use in source and binary forms, with or without
-## modification, are permitted only as authorized by the OpenLDAP
-## Public License.
-##
-## A copy of this license is available in the file LICENSE in the
-## top-level directory of the distribution or, alternatively, at
-## <http://www.OpenLDAP.org/license.html>.
 
-RUN=./run
-SUBDIRS= progs
+SUBDIRS = progs
+RUN = $(builddir)/run
+BACKENDS = $(SLAPD_DYNAMIC_BACKENDS) $(SLAPD_STATIC_BACKENDS)
+check test: $(BACKENDS)
 
-BUILD_BDB=@BUILD_BDB@
-BUILD_HDB=@BUILD_HDB@
-BUILD_MDB=@BUILD_MDB@
-BUILD_SQL=@BUILD_SQL@
+clean-local:
+	-$(RM) -r testrun configpw configpw.conf *gmon *core
 
-# test primary backends (default)
-test tests:
-	@$(MAKE) mdb bdb hdb
-
-# test all backends
-alltests: tests
-	@$(MAKE) ldif sql
-
-bdb test-bdb:	bdb-$(BUILD_BDB)
-bdb-no:
-	@echo "run configure with --enable-bdb to run BDB tests"
-
-bdb-yes bdb-mod: FORCE
-	@echo "Initiating LDAP tests for BDB..."
-	@$(RUN) -b bdb all
-
-hdb test-hdb:	hdb-$(BUILD_HDB)
-hdb-no:
-	@echo "run configure with --enable-hdb to run HDB tests"
-
-hdb-yes hdb-mod: FORCE
-	@echo "Initiating LDAP tests for HDB..."
-	@$(RUN) -b hdb all
-
-mdb test-mdb:	mdb-$(BUILD_MDB)
-mdb-no:
-	@echo "run configure with --enable-mdb to run MDB tests"
-
-mdb-yes mdb-mod: FORCE
-	@echo "Initiating LDAP tests for MDB..."
-	@$(RUN) -b mdb all
-
-sql test-sql:	sql-$(BUILD_SQL)
-sql-no:
-	@echo "run configure with --enable-sql to run SQL tests"
-
-sql-yes sql-mod:	FORCE
-	@echo "Initiating LDAP tests for SQL..."
-	@$(RUN) -b sql sql-all
-
-ldif test-ldif: FORCE
-	@echo "Initiating LDAP tests for LDIF..."
-	@$(RUN) -b ldif all
-
-regressions:	FORCE
+its regressions:
 	@echo "Testing (available) ITS regressions"
 	@$(RUN) its-all
 
-its: regressions
+# LY: still not ready
+#ldif:
+#	@echo "Initiating LDAP tests for LDIF..."
+#	@$(RUN) -b $@ all
 
-clean-local:	FORCE
-	-$(RM) -r testrun configpw configpw.conf *leak *gmon *core
+mdb mdbx:
+if BUILD_MDBX
+	@echo "Initiating LDAP tests for MDBX..."
+	@$(RUN) -b $@ all
+else
+	@echo "run configure with --enable-mdbx to run MDBX tests"
+endif
 
-veryclean-local: FORCE
-	@-$(RM) run testdata schema ucdata
+bdb:
+if BUILD_BDB
+	@echo "Initiating LDAP tests for BDB..."
+	@$(RUN) -b $@ all
+else
+	@echo "run configure with --enable-bdb to run BDB tests"
+endif
+
+hdb:
+if BUILD_HDB
+	@echo "Initiating LDAP tests for HDB..."
+	@$(RUN) -b $@ all
+else
+	@echo "run configure with --enable-hdb to run HDB tests"
+endif
+
+# LY: TODO
+ldif dnssrv ldap meta monitor ndb null passwd perl relay shell sock sql:
+	@echo "Skip testing $@-backend for now (TODO)"

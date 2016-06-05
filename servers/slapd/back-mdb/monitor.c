@@ -32,7 +32,7 @@
  * <http://www.OpenLDAP.org/license.html>.
  */
 
-#include "portable.h"
+#include "reldap.h"
 
 #include <stdio.h>
 #include <ac/string.h>
@@ -45,7 +45,7 @@
 
 #include "../back-monitor/back-monitor.h"
 
-#include "config.h"
+#include "slapconfig.h"
 
 static ObjectClass		*oc_olmMDBDatabase;
 

@@ -38,7 +38,7 @@
  * Based on back-ldap and slapo-chain, developed by Howard Chu
  */
 
-#include "portable.h"
+#include "reldap.h"
 
 #include <stdio.h>
 
@@ -51,7 +51,7 @@
 
 #include "back-ldap.h"
 
-#include "config.h"
+#include "slapconfig.h"
 
 /*
  * From <draft-sermersheim-ldap-distproc>

@@ -38,7 +38,7 @@
  * for SysNet s.n.c., for inclusion in OpenLDAP Software.
  */
 
-#include "portable.h"
+#include "reldap.h"
 
 #ifdef SLAPD_OVER_DYNLIST
 
@@ -51,7 +51,7 @@
 #include <ac/string.h>
 
 #include "slap.h"
-#include "config.h"
+#include "slapconfig.h"
 #include "lutil.h"
 
 static AttributeDescription *ad_dgIdentity, *ad_dgAuthz;
@@ -1549,11 +1549,8 @@ static char		*obsolete_names[] = {
 };
 #endif
 
-#if SLAPD_OVER_DYNLIST == SLAPD_MOD_DYNAMIC
-static
-#endif /* SLAPD_OVER_DYNLIST == SLAPD_MOD_DYNAMIC */
 int
-dynlist_initialize(void)
+dynlist_over_initialize(void)
 {
 	int	rc = 0;
 
@@ -1581,11 +1578,7 @@ dynlist_initialize(void)
 }
 
 #if SLAPD_OVER_DYNLIST == SLAPD_MOD_DYNAMIC
-int
-init_module( int argc, char *argv[] )
-{
-	return dynlist_initialize();
-}
+SLAP_OVERLAY_INIT_MODULE(dynlist)
 #endif
 
 #endif /* SLAPD_OVER_DYNLIST */

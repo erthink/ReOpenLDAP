@@ -37,7 +37,7 @@
  * in OpenLDAP Software.
  */
 
-#include "portable.h"
+#include "reldap.h"
 
 #include <stdio.h>
 #include <ac/string.h>
@@ -47,7 +47,7 @@
 #include "back-monitor.h"
 
 #if defined(LDAP_SLAPI)
-#include "slapi.h"
+#	include "../slapi/slapi.h"
 static int monitor_back_add_plugin( monitor_info_t *mi, Backend *be, Entry *e );
 #endif /* defined(LDAP_SLAPI) */
 

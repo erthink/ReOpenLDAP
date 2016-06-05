@@ -37,7 +37,7 @@
  * Pierangelo Masarati.
  */
 
-#include "portable.h"
+#include "reldap.h"
 
 #include <stdio.h>
 #include <sys/types.h>

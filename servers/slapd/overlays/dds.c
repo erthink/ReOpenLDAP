@@ -36,7 +36,7 @@
  * in OpenLDAP Software, sponsored by SysNet s.n.c.
  */
 
-#include "portable.h"
+#include "reldap.h"
 
 #ifdef SLAPD_OVER_DDS
 
@@ -49,7 +49,7 @@
 #include "lutil.h"
 #include "ldap_rq.h"
 
-#include "config.h"
+#include "slapconfig.h"
 
 #define	DDS_RF2589_MAX_TTL		(31557600)	/* 1 year + 6 hours */
 #define	DDS_RF2589_DEFAULT_TTL		(86400)		/* 1 day */
@@ -1874,11 +1874,8 @@ static int do_not_load_exop;
 static int do_not_replace_exop;
 static int do_not_load_schema;
 
-#if SLAPD_OVER_DDS == SLAPD_MOD_DYNAMIC
-static
-#endif /* SLAPD_OVER_DDS == SLAPD_MOD_DYNAMIC */
 int
-dds_initialize()
+dds_over_initialize()
 {
 	int		rc = 0;
 	int		i, code;
@@ -1954,10 +1951,10 @@ dds_initialize()
 }
 
 #if SLAPD_OVER_DDS == SLAPD_MOD_DYNAMIC
-int
-init_module( int argc, char *argv[] )
+REOPEN_EXPORT_F(int)
+dds_ReOpenLDAP_modinit( int argc, char *argv[] )
 {
-	int	i;
+	int	rc, i;
 
 	for ( i = 0; i < argc; i++ ) {
 		char	*arg = argv[ i ];
@@ -1985,7 +1982,10 @@ init_module( int argc, char *argv[] )
 		}
 	}
 
-	return dds_initialize();
+	rc = dds_over_initialize();
+	Debug( rc ? LDAP_DEBUG_ANY : LDAP_DEBUG_TRACE,
+		"module %s: %s() rc = %d\n", "dds", __FUNCTION__, rc );
+	return rc;
 }
 #endif /* SLAPD_OVER_DDS == SLAPD_MOD_DYNAMIC */
 

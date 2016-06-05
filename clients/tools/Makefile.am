@@ -1,5 +1,5 @@
 # Makefile for LDAP tools
-# $ReOpenLDAP$
+## $ReOpenLDAP$
 ## Copyright (c) 2015,2016 Leonid Yuriev <leo@yuriev.ru>.
 ## Copyright (c) 2015,2016 Peter-Service R&D LLC <http://billing.ru/>.
 ##
@@ -18,127 +18,62 @@
 ## You should have received a copy of the GNU Affero General Public License
 ## along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ##
-## ---
-##
-## Copyright 1998-2014 The OpenLDAP Foundation.
-## All rights reserved.
-##
-## Redistribution and use in source and binary forms, with or without
-## modification, are permitted only as authorized by the OpenLDAP
-## Public License.
-##
-## A copy of this license is available in the file LICENSE in the
-## top-level directory of the distribution or, alternatively, at
-## <http://www.OpenLDAP.org/license.html>.
-
-SRCS	= ldapsearch.c ldapmodify.c ldapdelete.c ldapmodrdn.c \
-		ldappasswd.c ldapwhoami.c ldapcompare.c \
-		ldapexop.c ldapurl.c common.c
-OBJS	= $(SRCS:.c=.o)
-
-LDAP_INCDIR= ../../include
-LDAP_LIBDIR= ../../libraries
-
-MKVOPTS = -s
-
-XLIBS =  $(LDAP_L)
-XXLIBS	= $(SECURITY_LIBS) $(LUTIL_LIBS)
-
-XSRCS	= ldsversion.c ldmversion.c lddversion.c ldrversion.c \
-	ldpversion.c ldwversion.c ldcversion.c ldeversion.c lduversion.c
 
 bin_PROGRAMS = ldapsearch ldapmodify ldapdelete ldapmodrdn \
 	ldappasswd ldapwhoami ldapcompare ldapexop ldapurl
 
+AM_CPPFLAGS = -I$(top_srcdir)/include
 
-ldapsearch$(EXEEXT):	ldsversion.o
-	$(LTLINK) -o $@ ldapsearch.o common.o ldsversion.o $(LIBS)
+if BEHIND_CURTIAN
+BUILT_SOURCES = s_banner.c m_banner.c d_banner.c r_banner.c \
+	p_banner.c w_banner.c c_banner.c e_banner.c u_banner.c
+s_banner.c: Makefile
+	$(MKBANNER) --global 'ldapsearch' > $@
+m_banner.c: Makefile
+	$(MKBANNER) --global 'ldapmodify' > $@
+d_banner.c: Makefile
+	$(MKBANNER) --global 'ldapdelete' > $@
+r_banner.c: Makefile
+	$(MKBANNER) --global 'ldapmodrdn' > $@
+p_banner.c: Makefile
+	$(MKBANNER) --global 'ldappasswd' > $@
+w_banner.c: Makefile
+	$(MKBANNER) --global 'ldapwhoami' > $@
+c_banner.c: Makefile
+	$(MKBANNER) --global 'ldapcompare' > $@
+e_banner.c: Makefile
+	$(MKBANNER) --global 'ldapexop' > $@
+u_banner.c: Makefile
+	$(MKBANNER) --global 'ldapurl' > $@
+endif
 
-ldapmodify$(EXEEXT):	ldmversion.o
-	$(LTLINK) -o $@ ldapmodify.o common.o ldmversion.o $(LIBS)
+ldapsearch_SOURCES = common.c ldapsearch.c s_banner.c common.h
+ldapsearch_LDADD = @LDAP_LIBLUTIL_LA@ @LDAP_LIBRELDAP_LA@
 
-ldapdelete$(EXEEXT):	lddversion.o
-	$(LTLINK) -o $@ ldapdelete.o common.o lddversion.o $(LIBS)
+ldapmodify_SOURCES = common.c ldapmodify.c m_banner.c common.h
+ldapmodify_LDADD = @LDAP_LIBLUTIL_LA@ @LDAP_LIBRELDAP_LA@
 
-ldapmodrdn$(EXEEXT):	ldrversion.o
-	$(LTLINK) -o $@ ldapmodrdn.o common.o ldrversion.o $(LIBS)
+ldapdelete_SOURCES = common.c ldapdelete.c d_banner.c common.h
+ldapdelete_LDADD = @LDAP_LIBLUTIL_LA@ @LDAP_LIBRELDAP_LA@
 
-ldappasswd$(EXEEXT):	ldpversion.o
-	$(LTLINK) -o $@ ldappasswd.o common.o ldpversion.o $(LIBS)
+ldapmodrdn_SOURCES = common.c ldapmodrdn.c r_banner.c common.h
+ldapmodrdn_LDADD = @LDAP_LIBLUTIL_LA@ @LDAP_LIBRELDAP_LA@
 
-ldapwhoami$(EXEEXT):	ldwversion.o
-	$(LTLINK) -o $@ ldapwhoami.o common.o ldwversion.o $(LIBS)
+ldappasswd_SOURCES = common.c ldappasswd.c p_banner.c common.h
+ldappasswd_LDADD = @LDAP_LIBLUTIL_LA@ @LDAP_LIBRELDAP_LA@
 
-ldapcompare$(EXEEXT): ldcversion.o
-	$(LTLINK) -o $@ ldapcompare.o common.o ldcversion.o $(LIBS)
+ldapwhoami_SOURCES = common.c ldapwhoami.c w_banner.c common.h
+ldapwhoami_LDADD = @LDAP_LIBLUTIL_LA@ @LDAP_LIBRELDAP_LA@
 
-ldapexop$(EXEEXT): ldeversion.o
-	$(LTLINK) -o $@ ldapexop.o common.o ldeversion.o $(LIBS)
+ldapcompare_SOURCES = common.c ldapcompare.c c_banner.c common.h
+ldapcompare_LDADD = @LDAP_LIBLUTIL_LA@ @LDAP_LIBRELDAP_LA@
 
-ldapurl$(EXEEXT): lduversion.o
-	$(LTLINK) -o $@ ldapurl.o lduversion.o $(LIBS)
+ldapexop_SOURCES = common.c ldapexop.c e_banner.c common.h
+ldapexop_LDADD = @LDAP_LIBLUTIL_LA@ @LDAP_LIBRELDAP_LA@
 
-ldsversion.c: Makefile
-	@-$(RM) $@
-	$(MKVERSION) $(MKVOPTS) ldapsearch > $@
+ldapurl_SOURCES = ldapurl.c u_banner.c common.h
+ldapurl_LDADD = @LDAP_LIBLUTIL_LA@ @LDAP_LIBRELDAP_LA@
 
-ldsversion.o: ldapsearch.o common.o $(XLIBS)
-
-ldmversion.c: Makefile
-	@-$(RM) $@
-	$(MKVERSION) $(MKVOPTS) ldapmodify > $@
-
-ldmversion.o: ldapmodify.o common.o $(XLIBS)
-
-lddversion.c: Makefile
-	@-$(RM) $@
-	$(MKVERSION) $(MKVOPTS) ldapdelete > $@
-
-lddversion.o: ldapdelete.o common.o $(XLIBS)
-
-ldpversion.c: Makefile
-	@-$(RM) $@
-	$(MKVERSION) $(MKVOPTS) ldappasswd > $@
-
-ldpversion.o: ldappasswd.o common.o $(XLIBS)
-
-ldrversion.c: Makefile
-	@-$(RM) $@
-	$(MKVERSION) $(MKVOPTS) ldapmodrdn > $@
-
-ldrversion.o: ldapmodrdn.o common.o $(XLIBS)
-
-ldwversion.c: Makefile
-	@-$(RM) $@
-	$(MKVERSION) $(MKVOPTS) ldapwhoami > $@
-
-ldwversion.o: ldapwhoami.o common.o $(XLIBS)
-
-ldcversion.c: Makefile
-	@-$(RM) $@
-	$(MKVERSION) $(MKVOPTS) ldapcompare > $@
-
-ldcversion.o: ldapcompare.o common.o $(XLIBS)
-
-ldeversion.c: Makefile
-	@-$(RM) $@
-	$(MKVERSION) $(MKVOPTS) ldapexop > $@
-
-ldeversion.o: ldapexop.o common.o $(XLIBS)
-
-lduversion.c: Makefile
-	@-$(RM) $@
-	$(MKVERSION) $(MKVOPTS) ldapurl > $@
-
-lduversion.o: ldapurl.o $(XLIBS)
-
-install-exec-local:	FORCE
-	-$(MKDIR) $(DESTDIR)$(bindir)
-	@(								\
-	    for prg in $(PROGRAMS); do					\
-		$(LTINSTALL) $(INSTALLFLAGS) $(STRIP) -m 755 $$prg$(EXEEXT)	\
-		    $(DESTDIR)$(bindir);				\
-	    done							\
-	)
-	$(RM) $(DESTDIR)$(bindir)/ldapadd$(EXEEXT)
+install-exec-hook:
+	$(RM) $(DESTDIR)$(bindir)/ldapadd$(EXEEXT) && \
 	$(LN_S) $(DESTDIR)$(bindir)/ldapmodify$(EXEEXT) $(DESTDIR)$(bindir)/ldapadd$(EXEEXT)
