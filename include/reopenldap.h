@@ -25,21 +25,28 @@
 #	define __has_attribute(x) (0)
 #endif
 
+#if !defined(__GNUC__) || __GNUC__ < 4 || (__GNUC__ == 4 && __GNUC_MINOR__ < 2)
+	/* LY: Actualy ReOpenLDAP was not tested with compilers
+	 *     older than GCC 4.4 from RHEL6.
+	 * But you could remove this #error and try to continue at your own risk.
+	 * In such case please don't rise up an issues related ONLY to old compilers.
+	 */
+#	error "ReOpenLDAP required at least GCC 4.2 compatible C/C++ compiler."
+#endif
+
 #if !defined(GCC_VERSION) && defined(__GNUC__)
-#	define GCC_VERSION (__GNUC__ * 1000 + __GNUC_MINOR__)
+#	define GCC_VERSION (__GNUC__ * 10000 + __GNUC_MINOR__ * 100 + __GNUC_PATCHLEVEL__)
 #endif /* GCC_VERSION */
 
 #ifndef ALLOW_UNUSED
 #	ifdef ATTRIBUTE_UNUSED
 #		define ALLOW_UNUSED ATTRIBUTE_UNUSED
-#	elif defined(GCC_VERSION) && (GCC_VERSION >= 3004)
-#		define ALLOW_UNUSED __attribute__((__unused__))
 #	elif __has_attribute(__unused__)
 #		define ALLOW_UNUSED __attribute__((__unused__))
 #	elif __has_attribute(unused)
 #		define ALLOW_UNUSED __attribute__((unused))
 #	else
-#		define ALLOW_UNUSED
+#		define ALLOW_UNUSED __attribute__((__unused__))
 #	endif
 #endif /* ALLOW_UNUSED */
 
