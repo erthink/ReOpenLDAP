@@ -175,7 +175,7 @@ if [ -s Makefile ]; then
 	notice "Makefile present, skip configure"
 else
 	LDFLAGS="-Wl,--as-needed,-Bsymbolic,--gc-sections,-O,-zignore"
-	CFLAGS="-Wall -ggdb3 -gstrict-dwarf -DPS_COMPAT_RHEL6=1"
+	CFLAGS="-Wall -ggdb3 -DPS_COMPAT_RHEL6=1"
 	LIBS="-Wl,--no-as-needed,-lrt"
 
 	if [ $flag_hide -ne 0 ]; then
@@ -208,7 +208,7 @@ else
 	fi
 
 	if grep -q gcc <<< "$CC"; then
-		CFLAGS+=" -fvar-tracking-assignments"
+		CFLAGS+=" -fvar-tracking-assignments -gstrict-dwarf"
 	elif grep -q clang <<< "$CC"; then
 		LLVM_VERSION="$($CC --version | sed -n 's/.\+ version \([0-9]\.[0-9]\)\.[0-9]-.*/\1/p')"
 		echo "LLVM_VERSION	= $LLVM_VERSION"
