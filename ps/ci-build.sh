@@ -225,6 +225,17 @@ if [ -z "$CC" ]; then
 		CC=cc
 	fi
 fi
+CC_VER_SUFF=$(sed -nre 's/^(gcc|clang)-(.*)/-\2/p' <<< "$CC")
+
+if [ -z "$CXX" ]; then
+	if grep -q clang <<< "$CC"; then
+		CXX=clang++$([ -n "$CC_VER_SUFF" ] && echo "-$CC_VER_SUFF")
+	elif grep -q gcc <<< "$CC"; then
+		CXX=g++$([ -n "$CC_VER_SUFF" ] && echo "-$CC_VER_SUFF")
+	else
+		CXX=c++
+	fi
+fi
 
 if grep -q gcc <<< "$CC"; then
 	CFLAGS+=" -fvar-tracking-assignments"
@@ -235,8 +246,6 @@ elif grep -q clang <<< "$CC"; then
 	echo "LTO_PLUGIN	= $LTO_PLUGIN"
 	CFLAGS+=" -Wno-pointer-bool-conversion"
 fi
-
-CC_VER_SUFF=$(sed -nre 's/^(gcc|clang)-(.*)/-\2/p' <<< "$CC")
 
 if [ $flag_debug -ne 0 ]; then
 	if grep -q gcc <<< "$CC" ; then
@@ -314,11 +323,11 @@ if [ -n "$IODBC" ]; then
 	CFLAGS+=" $IODBC"
 fi
 
-export CC CFLAGS LDFLAGS CXXFLAGS="$CFLAGS"
+export CC CXX CFLAGS LDFLAGS CXXFLAGS="$CFLAGS"
 echo "CFLAGS		= ${CFLAGS}"
 echo "PATH		= ${PATH}"
 echo "LD		= $(readlink -f $(which ld)) ${LDFLAGS}"
-echo "TOOLCHAIN	= $CC $AR $NM $RANLIB"
+echo "TOOLCHAIN	= $CC $CXX $AR $NM $RANLIB"
 
 #======================================================================
 
