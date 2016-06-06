@@ -229,7 +229,7 @@ fi
 if grep -q gcc <<< "$CC"; then
 	CFLAGS+=" -fvar-tracking-assignments"
 elif grep -q clang <<< "$CC"; then
-	LLVM_VERSION="$($CC --version | sed -n 's/.\+LLVM \([0-9]\.[0-9]\)\.[0-9].*/\1/p')"
+	LLVM_VERSION="$($CC --version | sed -n 's/.\+ version \([0-9]\.[0-9]\)\.[0-9]-.*/\1/p')"
 	echo "LLVM_VERSION	= $LLVM_VERSION"
 	LTO_PLUGIN="/usr/lib/llvm-${LLVM_VERSION}/lib/LLVMgold.so"
 	echo "LTO_PLUGIN	= $LTO_PLUGIN"
