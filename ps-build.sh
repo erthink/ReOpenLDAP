@@ -262,7 +262,7 @@ else
 
 	if [ $flag_asan -ne 0 ]; then
 		if grep -q clang <<< "$CC"; then
-			CFLAGS+=" -fsanitize=address -D__SANITIZE_ADDRESS__=1"
+			CFLAGS+=" -fsanitize=address -D__SANITIZE_ADDRESS__=1 -pthread"
 		elif $CC -v 2>&1 | grep -q -e 'gcc version [5-9]'; then
 			CFLAGS+=" -fsanitize=address -D__SANITIZE_ADDRESS__=1 -static-libasan -pthread"
 		else
