@@ -529,7 +529,7 @@ function safepath {
 		if [ -n "$r" ]; then
 			echo $arg
 		else
-			readlink -f $arg | sed -e 's|^${buildroot}/||g'
+			readlink -f $arg | sed -e "s|^${buildroot}/||g"
 		fi
 	done
 }
