@@ -263,7 +263,9 @@ else
 	fi
 
 	if [ $flag_check -ne 0 ]; then
-		CFLAGS+=" -DLDAP_MEMORY_CHECK -DLDAP_MEMORY_DEBUG"
+		CFLAGS+=" -DLDAP_MEMORY_CHECK -DLDAP_MEMORY_DEBUG -fstack-protector-all"
+	else
+		CFLAGS+=" -fstack-protector"
 	fi
 
 	if [ $flag_valgrind -ne 0 ]; then
