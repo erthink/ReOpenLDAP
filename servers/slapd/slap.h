@@ -1796,6 +1796,37 @@ LDAP_TAILQ_HEAD( be_pcl, slap_csn_entry );
 
 struct ConfigOCs;	/* config.h */
 
+
+#define RURW_LOCK_MAXTHREADS	(sizeof(size_t) * 8)
+typedef union rurw_lock_deep rurw_lock_deep_t;
+typedef struct rurw_thr_state rurw_thr_state_t;
+typedef struct recursive_upgradable_rw_lock rurw_lock_t;
+
+union rurw_lock_deep {
+	struct {
+		uint16_t r, w;
+	};
+	uint32_t all;
+};
+
+struct rurw_thr_state {
+	ldap_pvt_thread_t thr;
+	rurw_lock_deep_t state;
+};
+
+struct recursive_upgradable_rw_lock {
+	ldap_pvt_thread_mutex_t rurw_mutex;
+	ldap_pvt_thread_cond_t	rurw_wait4r;
+	ldap_pvt_thread_cond_t	rurw_wait4w;
+	ldap_pvt_thread_cond_t	rurw_wait4u;
+	int rurw_readers;
+	char rurw_writer, rurw_readers_wait,
+		rurw_writers_wait, rurw_upgrades_wait;
+
+	uint64_t rurw_fullscan_bitmask;
+	rurw_thr_state_t state[RURW_LOCK_MAXTHREADS];
+};
+
 typedef struct slap_biglock slap_biglock_t;
 typedef struct slap_quorum slap_quorum_t;
 

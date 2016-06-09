@@ -53,7 +53,7 @@ SRCS	= main.c globals.c bconfig.c config.c daemon.c \
 		backglue.c backover.c ctxcsn.c ldapsync.c frontend.c \
 		slapadd.c slapcat.c slapcommon.c slapdn.c slapindex.c \
 		slappasswd.c slaptest.c slapauth.c slapacl.c component.c \
-		aci.c alock.c txn.c slapschema.c backtrace.c
+		aci.c alock.c txn.c slapschema.c backtrace.c rurwl.c
 
 OBJS	= main.o globals.o bconfig.o config.o daemon.o \
 		connection.o search.o filter.o add.o cr.o quorum.o \
@@ -70,7 +70,7 @@ OBJS	= main.o globals.o bconfig.o config.o daemon.o \
 		backglue.o backover.o ctxcsn.o ldapsync.o frontend.o \
 		slapadd.o slapcat.o slapcommon.o slapdn.o slapindex.o \
 		slappasswd.o slaptest.o slapauth.o slapacl.o component.o \
-		aci.o alock.o txn.o slapschema.o backtrace.o
+		aci.o alock.o txn.o slapschema.o backtrace.o rurwl.o
 
 LDAP_INCDIR= ../../include -I$(srcdir) -I$(srcdir)/slapi -I.
 LDAP_LIBDIR= ../../libraries

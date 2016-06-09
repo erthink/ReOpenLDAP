@@ -53,6 +53,19 @@ struct config_args_s;	/* config.h */
 struct config_reply_s;	/* config.h */
 
 /*
+ * rurwlock.c
+ */
+
+LDAP_SLAPD_F(void) rurw_lock_init(rurw_lock_t *p);
+LDAP_SLAPD_F(void) rurw_lock_destroy(rurw_lock_t *p);
+LDAP_SLAPD_F(void) rurw_r_lock(rurw_lock_t *p);
+LDAP_SLAPD_F(void) rurw_r_unlock(rurw_lock_t *p);
+LDAP_SLAPD_F(void) rurw_w_lock(rurw_lock_t *p);
+LDAP_SLAPD_F(void) rurw_w_unlock(rurw_lock_t *p);
+LDAP_SLAPD_F(rurw_lock_deep_t) rurw_retreat(rurw_lock_t *p);
+LDAP_SLAPD_F(void) rurw_obtain(rurw_lock_t *p, rurw_lock_deep_t state);
+
+/*
  * biglock.c
  */
 LDAP_SLAPD_F (void) slap_biglock_init LDAP_P(( BackendDB *be ));
