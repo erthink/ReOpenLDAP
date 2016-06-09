@@ -5,10 +5,39 @@ lalim=$((ncpu*4))
 
 [ -n "$CIBUZZ_PID4" ] && echo $BASHPID > $CIBUZZ_PID4
 
-failure() {
-        echo "Oops, $* failed ;(" >&2
-        exit 1
+teamcity_sync() {
+	[ -z "${TEAMCITY_PROCESS_FLOW_ID}" ] || sleep 1
 }
+
+failure() {
+	teamcity_sync
+	echo "Oops, $* failed ;(" >&2
+	teamcity_sync
+	exit 1
+}
+
+notice() {
+	teamcity_sync
+	echo "$*" >&2
+	teamcity_sync
+}
+
+step_begin() {
+	echo "##teamcity[blockOpened name='$1']"
+	#echo "##teamcity[progressStart '$1']"
+}
+
+step_finish() {
+	teamcity_sync
+	#echo "##teamcity[progressEnd '$1']"
+	echo "##teamcity[blockClosed name='$1']"
+}
+
+configure() {
+	echo "CONFIGURE	= $*"
+	./configure "$@" > configure.log
+}
+
 
 flag_debug=0
 flag_check=1
@@ -23,19 +52,19 @@ flag_ndb=1
 flag_valgrind=0
 flag_asan=0
 flag_tsan=0
-flag_hidden=0
+flag_hide=0
 flag_dynamic=0
 for arg in "$@"; do
 	case "$arg" in
-	--hidden)
-		flag_hidden=1
+	--hide)
+		flag_hide=1
 		;;
-	--no-hidden)
-		flag_hidden=0
+	--no-hide)
+		flag_hide=0
 		;;
 	--dynamic)
 		flag_dynamic=1
-		flag_hidden=1
+		flag_hide=1
 		;;
 	--no-dynamic)
 		flag_dynamic=0
@@ -106,21 +135,18 @@ for arg in "$@"; do
 		flag_wt=0
 		flag_bdb=0
 		flag_lto=0
-		flag_check=0
 		flag_O=-Og
 		;;
 	--asan)
 		flag_valgrind=0
 		flag_asan=1
 		flag_tsan=0
-		flag_check=0
 		flag_bdb=0
 		;;
 	--tsan)
 		flag_valgrind=0
 		flag_asan=0
 		flag_tsan=1
-		flag_check=0
 		flag_bdb=0
 		;;
 	*)
@@ -182,8 +208,12 @@ IODBC=$([ -d /usr/include/iodbc ] && echo "-I/usr/include/iodbc")
 #======================================================================
 
 CFLAGS="-Wall -ggdb3 -gdwarf-4"
-if [ $flag_hidden -ne 0 ]; then
+if [ $flag_hide -ne 0 ]; then
 	CFLAGS+=" -fvisibility=hidden"
+	if [ $flag_asan -ne 0 -o $flag_tsan -ne 0 ] && [ $flag_lto -ne 0 ]; then
+		notice "*** LTO will be disabled for ASAN/TSN with --hide"
+		flag_lto=0
+	fi
 fi
 
 if [ -z "$CC" ]; then
@@ -195,18 +225,27 @@ if [ -z "$CC" ]; then
 		CC=cc
 	fi
 fi
+CC_VER_SUFF=$(sed -nre 's/^(gcc|clang)-(.*)/-\2/p' <<< "$CC")
+
+if [ -z "$CXX" ]; then
+	if grep -q clang <<< "$CC"; then
+		CXX=clang++$([ -n "$CC_VER_SUFF" ] && echo "-$CC_VER_SUFF")
+	elif grep -q gcc <<< "$CC"; then
+		CXX=g++$([ -n "$CC_VER_SUFF" ] && echo "-$CC_VER_SUFF")
+	else
+		CXX=c++
+	fi
+fi
 
 if grep -q gcc <<< "$CC"; then
 	CFLAGS+=" -fvar-tracking-assignments"
 elif grep -q clang <<< "$CC"; then
-	LLVM_VERSION="$($CC --version | sed -n 's/.\+LLVM \([0-9]\.[0-9]\)\.[0-9].*/\1/p')"
+	LLVM_VERSION="$($CC --version | sed -n 's/.\+ version \([0-9]\.[0-9]\)\.[0-9]-.*/\1/p')"
 	echo "LLVM_VERSION	= $LLVM_VERSION"
 	LTO_PLUGIN="/usr/lib/llvm-${LLVM_VERSION}/lib/LLVMgold.so"
 	echo "LTO_PLUGIN	= $LTO_PLUGIN"
 	CFLAGS+=" -Wno-pointer-bool-conversion"
 fi
-
-CC_VER_SUFF=$(sed -nre 's/^(gcc|clang)-(.*)/-\2/p' <<< "$CC")
 
 if [ $flag_debug -ne 0 ]; then
 	if grep -q gcc <<< "$CC" ; then
@@ -221,11 +260,11 @@ fi
 if [ $flag_lto -ne 0 ]; then
 	if grep -q gcc <<< "$CC" && $CC -v 2>&1 | grep -q -i lto \
 	&& [ -n "$(which gcc-ar$CC_VER_SUFF)" -a -n "$(which gcc-nm$CC_VER_SUFF)" -a -n "$(which gcc-ranlib$CC_VER_SUFF)" ]; then
-		echo "*** GCC Link-Time Optimization (LTO) will be used" >&2
+		notice "*** GCC Link-Time Optimization (LTO) will be used"
 		CFLAGS+=" -flto=jobserver -fno-fat-lto-objects -fuse-linker-plugin -fwhole-program"
 		export AR=gcc-ar$CC_VER_SUFF NM=gcc-nm$CC_VER_SUFF RANLIB=gcc-ranlib$CC_VER_SUFF
 	elif grep -q clang <<< "$CC" && [ -n "$LLVM_VERSION" -a -e "$LTO_PLUGIN" -a -n "$(which ld.gold)" ]; then
-		echo "*** CLANG Link-Time Optimization (LTO) will be used" >&2
+		notice "*** CLANG Link-Time Optimization (LTO) will be used"
 		HERE=$(readlink -f $(dirname $0))
 
 		(echo "#!/bin/bash" \
@@ -253,7 +292,9 @@ if [ $flag_lto -ne 0 ]; then
 fi
 
 if [ $flag_check -ne 0 ]; then
-	CFLAGS+=" -DLDAP_MEMORY_CHECK -DLDAP_MEMORY_DEBUG"
+	CFLAGS+=" -DLDAP_MEMORY_CHECK -DLDAP_MEMORY_DEBUG -fstack-protector-all"
+else
+	CFLAGS+=" -fstack-protector"
 fi
 
 if [ $flag_valgrind -ne 0 ]; then
@@ -261,19 +302,22 @@ if [ $flag_valgrind -ne 0 ]; then
 fi
 
 if [ $flag_asan -ne 0 ]; then
-	# -Wno-inline
-	CFLAGS+=" -fsanitize=address -D__SANITIZE_ADDRESS__=1"
-	if [ $flag_clang -eq 0 ]; then
-		CFLAGS+=" -static-libasan -pthread"
+	if grep -q clang <<< "$CC"; then
+		CFLAGS+=" -fsanitize=address -D__SANITIZE_ADDRESS__=1 -pthread"
+	elif $CC -v 2>&1 | grep -q -e 'gcc version [5-9]'; then
+		CFLAGS+=" -fsanitize=address -D__SANITIZE_ADDRESS__=1 -static-libasan -pthread"
+	else
+		notice "*** AddressSanitizer is unusable"
 	fi
 fi
 
 if [ $flag_tsan -ne 0 ]; then
-	CFLAGS+=" -fsanitize=thread -D__SANITIZE_THREAD__=1"
-	if [ $flag_clang -eq 0 ]; then
-		CFLAGS+=" -static-libtsan"
-	#else
-	#	CFLAGS+=" -fPIE -Wl,-pie"
+	if grep -q clang <<< "$CC"; then
+		CFLAGS+=" -fsanitize=thread -D__SANITIZE_THREAD__=1"
+	elif $CC -v 2>&1 | grep -q -e 'gcc version [5-9]'; then
+		CFLAGS+=" -fsanitize=thread -D__SANITIZE_THREAD__=1 -static-libtsan"
+	else
+		notice "*** ThreadSanitizer is unusable"
 	fi
 fi
 
@@ -281,11 +325,11 @@ if [ -n "$IODBC" ]; then
 	CFLAGS+=" $IODBC"
 fi
 
-export CC CFLAGS LDFLAGS CXXFLAGS="$CFLAGS"
+export CC CXX CFLAGS LDFLAGS CXXFLAGS="$CFLAGS"
 echo "CFLAGS		= ${CFLAGS}"
 echo "PATH		= ${PATH}"
 echo "LD		= $(readlink -f $(which ld)) ${LDFLAGS}"
-echo "TOOLCHAIN	= $CC $AR $NM $RANLIB"
+echo "TOOLCHAIN	= $CC $CXX $AR $NM $RANLIB"
 
 #======================================================================
 
@@ -295,11 +339,6 @@ if [ $flag_clean -ne 0 ]; then
 fi
 
 LIBMDBX_DIR=$([ -d libraries/liblmdb ] && echo "libraries/liblmdb" || echo "libraries/libmdbx")
-
-configure() {
-	echo "CONFIGURE	= $*"
-	./configure "$@"
-}
 
 if [ ! -s Makefile ]; then
 	# autoscan && libtoolize --force --automake --copy && aclocal -I build && autoheader && autoconf && automake --add-missing --copy
