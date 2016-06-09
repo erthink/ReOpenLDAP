@@ -104,7 +104,7 @@ retry:	/* transaction retry */
 		}
 		Debug( LDAP_DEBUG_TRACE, "==>" LDAP_XSTRING(ndb_back_modrdn)
 				": retrying...\n" );
-		if ( get_op_abandon(op) ) {
+		if ( slap_get_op_abandon(op) ) {
 			rs->sr_err = SLAPD_ABANDON;
 			goto return_results;
 		}

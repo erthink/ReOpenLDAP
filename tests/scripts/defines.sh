@@ -257,14 +257,22 @@ elif [ -n "$CIBUZZ_PID4" ]; then
 	SLEEP0=${SLEEP0-1}
 	SLEEP1=${SLEEP1-7}
 	SYNCREPL_WAIT=${SYNCREPL_WAIT-30}
-else
-	# LY: take in account -O0
+elif [ -n "${TEAMCITY_PROCESS_FLOW_ID}" ]; then
+	# LY: under Teamcity, take in account ASAN/TSAN and nice
 	TIMEOUT_S="timeout -s SIGXCPU 1m"
 	TIMEOUT_L="timeout -s SIGXCPU 3m"
 	TIMEOUT_H="timeout -s SIGXCPU 9m"
-	SLEEP0=${SLEEP0-0.2}
-	SLEEP1=${SLEEP1-1}
+	SLEEP0=${SLEEP0-0.3}
+	SLEEP1=${SLEEP1-2}
 	SYNCREPL_WAIT=${SYNCREPL_WAIT-10}
+else
+	# LY: take in account -O0
+	TIMEOUT_S="timeout -s SIGXCPU 30s"
+	TIMEOUT_L="timeout -s SIGXCPU 1m"
+	TIMEOUT_H="timeout -s SIGXCPU 5m"
+	SLEEP0=${SLEEP0-0.1}
+	SLEEP1=${SLEEP1-1}
+	SYNCREPL_WAIT=${SYNCREPL_WAIT-5}
 fi
 
 SLAP_VERBOSE=${SLAP_VERBOSE-none}
@@ -521,14 +529,15 @@ function failure {
 function safepath {
 	local arg
 	# LY: readlink/realpath from RHEL6 support only one filename.
+	local buildroot=$(readlink -f $([ -n "${TESTING_ROOT}" ] && echo "${TESTING_ROOT}" || echo "../${SRCDIR}"))
 	for arg in "$@"; do
-		local r=$(realpath --relative-to ../${SRCDIR} $arg 2>/dev/null)
+		local r=$(realpath --relative-to ${buildroot} $arg 2>/dev/null | sed -e 's|/\./|/|g' -e 's|^\./||g')
 		# LY: realpath from RHEL6 don't support '--relative-to' option,
 		#     this is workaround/crutch.
 		if [ -n "$r" ]; then
 			echo $arg
 		else
-			readlink -f $arg | sed -e 's|^/sandbox|.|g'
+			readlink -f $arg | sed -e "s|^${buildroot}/||g"
 		fi
 	done
 }

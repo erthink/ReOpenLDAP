@@ -99,7 +99,7 @@ slap_op_free( Operation *op, void *ctx )
 	assert( LDAP_STAILQ_NEXT(op, o_next) == NULL );
 
 	/* paranoia */
-	set_op_abandon(op, 1);
+	slap_set_op_abandon(op, 1);
 
 	if ( op->o_ber != NULL ) {
 		ber_free( op->o_ber, 1 );
@@ -206,8 +206,8 @@ slap_op_alloc(
 			otmp = LDAP_STAILQ_NEXT( op, o_next );
 			ldap_pvt_thread_pool_setkey( ctx, (void *)slap_op_free,
 				otmp, slap_op_q_destroy, NULL, NULL );
-			set_op_abandon(op, 0);
-			set_op_cancel(op, 0);
+			slap_set_op_abandon(op, 0);
+			slap_set_op_cancel(op, 0);
 		}
 	}
 	if (!op) {

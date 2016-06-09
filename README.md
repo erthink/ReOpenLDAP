@@ -23,7 +23,7 @@ The Changes
 
 Below is the list of changes from point-of-view of ReOpenLDAP project.
 For description of the new features please see man-page for slapd.conf.
-For a changes merged from OpenLDAP project please see the `CHANGES` file.
+For a changes merged from OpenLDAP project please see the `CHANGES.OpenLDAP` file.
 
 #### Features (major):
  * multi-master replication is working, properly and robustly (seems no any other LDAP-server that could do this)
@@ -41,7 +41,11 @@ For a changes merged from OpenLDAP project please see the `CHANGES` file.
  * `coredump-limit <mbytes>`
  * `memory-limit <mbytes>`
  * checkpoints by volume-of-changes and periodically in seconds
- * support for LTO (Link-Time Optimization) by GCC/clang
+ * syncrepl's `requirecheckpresent` option
+ * `keepalive <idle>:<probes>:<interval>` for incomming connections
+ * builtin memory checker, including ls-malloc
+ * ready for AddressSanitizer and Valgrind
+ * ready for LTO (Link-Time Optimization) by GCC/clang
 
 #### Fixes:
  * all from openldap/master and openldap/2.4 branches

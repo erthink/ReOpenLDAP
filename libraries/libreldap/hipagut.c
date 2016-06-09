@@ -779,30 +779,3 @@ __hot time_t ldap_time_unsteady(void) {
 #	undef time
 	return time(NULL);
 }
-
-/*----------------------------------------------------------------------------*/
-
-__attribute__((weak))
-void __ldap_assert_fail(
-		const char* assertion,
-		const char* file,
-		unsigned line,
-		const char* function) {
-	__assert_fail(assertion, file, line, function);
-}
-
-__hot void* ber_memcpy_safe(void* dest, const void* src, size_t n) {
-	long diff = (char*) dest - (char*) src;
-
-	if (unlikely(n > (size_t) __builtin_labs(diff))) {
-		if (unlikely(src == dest))
-			return dest;
-		if (reopenldap_mode_check())
-			__ldap_assert_fail("source and destination MUST NOT overlap",
-				__FILE__, __LINE__, __FUNCTION__);
-		return memmove(dest, src, n);
-	}
-
-#undef memcpy
-	return memcpy(dest, src, n);
-}

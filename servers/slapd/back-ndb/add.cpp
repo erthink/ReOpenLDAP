@@ -117,7 +117,7 @@ ndb_back_add(Operation *op, SlapReply *rs )
 retry:	/* transaction retry */
 		NA.txn->close();
 		NA.txn = NULL;
-		if ( get_op_abandon(op) ) {
+		if ( slap_get_op_abandon(op) ) {
 			rs->sr_err = SLAPD_ABANDON;
 			goto return_results;
 		}

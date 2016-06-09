@@ -515,8 +515,8 @@ if test $RC != 0 ; then
 	exit $RC
 fi
 
-echo "Waiting for consumer to sync..."
-sleep $SLEEP1
+#echo "Waiting for consumer to sync..."
+wait_syncrepl $PORT1 $PORT2
 
 echo "Testing policy state forwarding..."
 $LDAPSEARCH -H $URI2 -D "$USER" -w wrongpw >$SEARCHOUT 2>&1

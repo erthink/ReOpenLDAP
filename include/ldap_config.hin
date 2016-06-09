@@ -32,7 +32,7 @@
  */
 
 /*
- * This file works in confunction with OpenLDAP configure system.
+ * This file works in confunction with ReOpenLDAP configure system.
  * If you do no like the values below, adjust your configure options.
  */
 

@@ -175,6 +175,8 @@ ldap_modify_ext( LDAP *ld,
 
 	Debug( LDAP_DEBUG_TRACE, "ldap_modify_ext\n" );
 
+	*msgidp = -1;
+
 	/* check client controls */
 	rc = ldap_int_client_controls( ld, cctrls );
 	if( rc != LDAP_SUCCESS ) return rc;

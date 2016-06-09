@@ -59,17 +59,7 @@ LIBBASE = back_ndb
 XINCPATH = -I.. -I$(srcdir)/.. @SLAPD_NDB_INCS@
 XDEFS = $(MODULES_CPPFLAGS)
 
-AC_CXX = g++
-CXX = $(AC_CXX)
-LTCXX_MOD = $(LIBTOOL) $(LTONLY_MOD) --mode=compile \
-	$(CXX) $(LT_CFLAGS) $(LT_CPPFLAGS) $(MOD_DEFS) -c
-
 all-local-lib:	../.backend
-
-.SUFFIXES: .c .o .lo .cpp
-
-.cpp.lo:
-	$(LTCXX_MOD) $<
 
 ../.backend: lib$(LIBBASE).a
 	@touch $@

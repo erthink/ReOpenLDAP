@@ -40,6 +40,15 @@
 /* use ldap_pvt_strtok instead of strtok or strtok_r! */
 __extern_C LDAP_F(char*) ldap_pvt_strtok(char *str, const char *delim, char **pos);
 
+/* LY: engaging overlap checking for memcpy */
+#ifndef LDAP_SAFEMEMCPY
+#	if LDAP_ASSERT_CHECK || LDAP_DEBUG || ! defined(NDEBUG)
+#		define LDAP_SAFEMEMCPY 1
+#	else
+#		define LDAP_SAFEMEMCPY 0
+#	endif
+#endif
+
 #if LDAP_SAFEMEMCPY
 #	undef memcpy
 #	define memcpy ber_memcpy_safe

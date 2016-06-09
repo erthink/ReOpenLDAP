@@ -231,7 +231,7 @@ tlso_ctx_init( struct ldapoptions *lo, struct ldaptls *lt, int is_server )
 
 	if ( is_server ) {
 		SSL_CTX_set_session_id_context( ctx,
-			(const unsigned char *) "OpenLDAP", sizeof("OpenLDAP")-1 );
+			(const unsigned char *) "ReOpenLDAP", sizeof("ReOpenLDAP")-1 );
 	}
 
 #ifdef SSL_OP_NO_TLSv1

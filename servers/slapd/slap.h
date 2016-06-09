@@ -122,7 +122,6 @@ LDAP_BEGIN_DECL
 #undef f_next /* name conflict between sys/file.h on SCO and struct filter */
 #endif
 
-#define SERVICE_NAME  OPENLDAP_PACKAGE "-slapd"
 #define SLAPD_ANONYMOUS ""
 
 #ifdef HAVE_TCPD
@@ -1797,6 +1796,37 @@ LDAP_TAILQ_HEAD( be_pcl, slap_csn_entry );
 
 struct ConfigOCs;	/* config.h */
 
+
+#define RURW_LOCK_MAXTHREADS	(sizeof(size_t) * 8)
+typedef union rurw_lock_deep rurw_lock_deep_t;
+typedef struct rurw_thr_state rurw_thr_state_t;
+typedef struct recursive_upgradable_rw_lock rurw_lock_t;
+
+union rurw_lock_deep {
+	struct {
+		uint16_t r, w;
+	};
+	uint32_t all;
+};
+
+struct rurw_thr_state {
+	ldap_pvt_thread_t thr;
+	rurw_lock_deep_t state;
+};
+
+struct recursive_upgradable_rw_lock {
+	ldap_pvt_thread_mutex_t rurw_mutex;
+	ldap_pvt_thread_cond_t	rurw_wait4r;
+	ldap_pvt_thread_cond_t	rurw_wait4w;
+	ldap_pvt_thread_cond_t	rurw_wait4u;
+	int rurw_readers;
+	char rurw_writer, rurw_readers_wait,
+		rurw_writers_wait, rurw_upgrades_wait;
+
+	uint64_t rurw_fullscan_bitmask;
+	rurw_thr_state_t state[RURW_LOCK_MAXTHREADS];
+};
+
 typedef struct slap_biglock slap_biglock_t;
 typedef struct slap_quorum slap_quorum_t;
 
@@ -2839,59 +2869,59 @@ struct Operation {
 
 #ifdef __SANITIZE_THREAD__
 
-int get_op_abandon(const struct Operation *op);
-int get_op_cancel(const struct Operation *op);
-void set_op_abandon(struct Operation *op, int v);
-void set_op_cancel(struct Operation *op, int v);
+LDAP_SLAPD_V(int) slap_get_op_abandon(const struct Operation *op);
+LDAP_SLAPD_V(int) slap_get_op_cancel(const struct Operation *op);
+LDAP_SLAPD_V(void) slap_set_op_abandon(struct Operation *op, int v);
+LDAP_SLAPD_V(void) slap_set_op_cancel(struct Operation *op, int v);
 
-int read_int__tsan_workaround(volatile int *ptr);
-char read_char__tsan_workaround(volatile char *ptr);
-void* read_ptr__tsan_workaround(void *ptr);
+LDAP_SLAPD_V(int) slap_tsan__read_int(volatile int *ptr);
+LDAP_SLAPD_V(char) slap_tsan__read_char(volatile char *ptr);
+LDAP_SLAPD_V(void*) slap_tsan__read_ptr(void *ptr);
 
 #else
 
 static __inline
-int get_op_abandon(const struct Operation *op)
+int slap_get_op_abandon(const struct Operation *op)
 {
 	return op->_o_abandon;
 }
 
 static __inline
-int get_op_cancel(const struct Operation *op)
+int slap_get_op_cancel(const struct Operation *op)
 {
 	return op->_o_cancel;
 }
 
 static __inline
-void set_op_abandon(struct Operation *op, int v)
+void slap_set_op_abandon(struct Operation *op, int v)
 {
 	op->_o_abandon = v;
 }
 
 static __inline
-void set_op_cancel(struct Operation *op, int v)
+void slap_set_op_cancel(struct Operation *op, int v)
 {
 	op->_o_cancel = v;
 }
 
 static __inline
-int read_int__tsan_workaround(volatile int *ptr) {
+int slap_tsan__read_int(volatile int *ptr) {
 		return *ptr;
 }
 
 static __inline
-char read_char__tsan_workaround(volatile char *ptr) {
+char slap_tsan__read_char(volatile char *ptr) {
 		return *ptr;
 }
 
 static __inline
-void* read_ptr__tsan_workaround(void *ptr) {
+void* slap_tsan__read_ptr(void *ptr) {
 		return *(void * volatile *)ptr;
 }
 
 #endif /* __SANITIZE_THREAD__ */
 
-void op_copy(const volatile Operation *src,
+void LDAP_SLAPD_V(slap_op_copy)(const volatile Operation *src,
 	Operation *op, Opheader *hdr, BackendDB *be);
 
 typedef struct OperationBuffer {

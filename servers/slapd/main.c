@@ -109,7 +109,7 @@ static struct {
 
 #ifndef HAVE_MKVERSION
 const char Versionstr[] =
-	OPENLDAP_PACKAGE " " OPENLDAP_VERSION " Standalone LDAP Server (slapd)";
+	REOPENLDAP_PACKAGE " " REOPENLDAP_VERSION " Standalone LDAP Server (slapd)";
 #endif
 
 extern OverlayInit slap_oinfo[];

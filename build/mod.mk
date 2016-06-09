@@ -39,10 +39,13 @@ LIBSTAT = lib$(LIBBASE).a
 
 MKDEPFLAG = -l
 
-.SUFFIXES: .c .o .lo
+.SUFFIXES: .c .cpp .o .lo
 
 .c.lo:
 	$(LTCOMPILE_MOD) $<
+
+.cpp.lo:
+	$(LTCOMPILE_MOD_CXX) $<
 
 all-no lint-no 5lint-no depend-no install-no: FORCE
 	@echo "run configure with $(BUILD_OPT) to make $(LIBBASE)"

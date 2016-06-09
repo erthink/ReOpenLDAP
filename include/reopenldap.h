@@ -25,21 +25,33 @@
 #	define __has_attribute(x) (0)
 #endif
 
-#if !defined(GCC_VERSION) && defined(__GNUC__)
-#	define GCC_VERSION (__GNUC__ * 1000 + __GNUC_MINOR__)
-#endif /* GCC_VERSION */
+#if !defined(__GNUC__) || __GNUC__ < 4 || (__GNUC__ == 4 && __GNUC_MINOR__ < 2)
+	/* LY: Actualy ReOpenLDAP was not tested with compilers
+	 *     older than GCC 4.4 from RHEL6.
+	 * But you could remove this #error and try to continue at your own risk.
+	 * In such case please don't rise up an issues related ONLY to old compilers.
+	 */
+#	error "ReOpenLDAP required at least GCC 4.2 compatible C/C++ compiler."
+#endif
+
+#ifndef __CLANG_PREREQ
+#	ifdef __clang__
+#		define __CLANG_PREREQ(maj,min) \
+			((__clang_major__ << 16) + __clang_minor__ >= ((maj) << 16) + (min))
+#	else
+#		define __CLANG_PREREQ(maj,min) (0)
+#	endif
+#endif /* __CLANG_PREREQ */
 
 #ifndef ALLOW_UNUSED
 #	ifdef ATTRIBUTE_UNUSED
 #		define ALLOW_UNUSED ATTRIBUTE_UNUSED
-#	elif defined(GCC_VERSION) && (GCC_VERSION >= 3004)
-#		define ALLOW_UNUSED __attribute__((__unused__))
 #	elif __has_attribute(__unused__)
 #		define ALLOW_UNUSED __attribute__((__unused__))
 #	elif __has_attribute(unused)
 #		define ALLOW_UNUSED __attribute__((unused))
 #	else
-#		define ALLOW_UNUSED
+#		define ALLOW_UNUSED __attribute__((__unused__))
 #	endif
 #endif /* ALLOW_UNUSED */
 
@@ -209,7 +221,7 @@
  *
  * The LDAP libraries, i.e. liblber and libldap, can be built as
  * static or shared, based on configuration. Just about all other source
- * code in OpenLDAP use these libraries. If the LDAP libraries
+ * code in ReOpenLDAP use these libraries. If the LDAP libraries
  * are configured as shared, 'configure' defines the LDAP_LIBS_DYNAMIC
  * macro. When other source files include LDAP library headers, the
  * LDAP library symbols will automatically be marked as imported. When
@@ -217,7 +229,7 @@
  * be marked as imported because the LBER_LIBRARY or LDAP_LIBRARY macros
  * will be respectively defined.
  *
- * Any project outside of OpenLDAP with source code wanting to use
+ * Any project outside of ReOpenLDAP with source code wanting to use
  * LDAP dynamic libraries should explicitly define LDAP_LIBS_DYNAMIC.
  * This will ensure that external source code appropriately marks symbols
  * that will be imported.
@@ -388,15 +400,6 @@ LDAP_LUTIL_F(void) reopenldap_jitter(int probability_percent);
 
 #undef assert
 #define assert(expr) LDAP_ASSERT(expr)
-
-/* LY: engaging overlap checking for memcpy */
-#ifndef LDAP_SAFEMEMCPY
-#	if LDAP_ASSERT_CHECK || LDAP_DEBUG || ! defined(NDEBUG)
-#		define LDAP_SAFEMEMCPY 1
-#	else
-#		define LDAP_SAFEMEMCPY 0
-#	endif
-#endif
 
 LDAP_END_DECL
 

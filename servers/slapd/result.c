@@ -349,7 +349,7 @@ static long send_ldap_ber(
 	ldap_pvt_thread_mutex_lock( &conn->c_mutex );
 	ldap_pvt_thread_mutex_lock( &conn->c_write1_mutex );
 
-	if (( get_op_abandon(op) && !get_op_cancel(op) ) || !connection_valid( conn ) ||
+	if (( slap_get_op_abandon(op) && !slap_get_op_cancel(op) ) || !connection_valid( conn ) ||
 		conn->c_writers < 0 ) {
 		ldap_pvt_thread_mutex_unlock( &conn->c_write1_mutex );
 		ldap_pvt_thread_mutex_unlock( &conn->c_mutex );
@@ -618,7 +618,7 @@ send_ldap_response(
 	long	bytes;
 
 	/* op was actually aborted, bypass everything if client didn't Cancel */
-	if (( rs->sr_err == SLAPD_ABANDON ) && !get_op_cancel(op) ) {
+	if (( rs->sr_err == SLAPD_ABANDON ) && !slap_get_op_cancel(op) ) {
 		rc = SLAPD_ABANDON;
 		goto clean2;
 	}
@@ -631,7 +631,7 @@ send_ldap_response(
 	}
 
 	/* op completed, connection aborted, bypass sending response */
-	if ( get_op_abandon(op) && !get_op_cancel(op) ) {
+	if ( slap_get_op_abandon(op) && !slap_get_op_cancel(op) ) {
 		rc = SLAPD_ABANDON;
 		goto clean2;
 	}
@@ -647,7 +647,7 @@ send_ldap_response(
 	}
 
 	rc = rs->sr_err;
-	if ( rc == SLAPD_ABANDON && get_op_cancel(op) )
+	if ( rc == SLAPD_ABANDON && slap_get_op_cancel(op) )
 		rc = LDAP_CANCELLED;
 
 	Debug( LDAP_DEBUG_TRACE,
@@ -853,7 +853,7 @@ slap_send_ldap_result( Operation *op, SlapReply *rs )
 	rs->sr_type = REP_RESULT;
 
 	/* Propagate Abandons so that cleanup callbacks can be processed */
-	if ( rs->sr_err == SLAPD_ABANDON || get_op_abandon(op) ) {
+	if ( rs->sr_err == SLAPD_ABANDON || slap_get_op_abandon(op) ) {
 		rs->sr_ref = NULL;
 		goto abandon;
 	}

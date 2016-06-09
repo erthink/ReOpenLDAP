@@ -1690,7 +1690,7 @@ backsql_oc_get_candidates( void *v_oc, void *v_bsi )
 			BACKSQL_OC_NAME( oc ) );
 
 	/* check for abandon */
-	if ( get_op_abandon(op) ) {
+	if ( slap_get_op_abandon(op) ) {
 		bsi->bsi_status = SLAPD_ABANDON;
 		return BACKSQL_AVL_STOP;
 	}
@@ -2189,7 +2189,7 @@ backsql_search( Operation *op, SlapReply *rs )
 				&bsi, BACKSQL_AVL_STOP, AVL_INORDER );
 
 		/* check for abandon */
-		if ( get_op_abandon(op) ) {
+		if ( slap_get_op_abandon(op) ) {
 			eid = bsi.bsi_id_list;
 			rs->sr_err = SLAPD_ABANDON;
 			goto send_results;
@@ -2223,7 +2223,7 @@ backsql_search( Operation *op, SlapReply *rs )
 		Entry		*e = NULL;
 
 		/* check for abandon */
-		if ( get_op_abandon(op) ) {
+		if ( slap_get_op_abandon(op) ) {
 			rs->sr_err = SLAPD_ABANDON;
 			goto send_results;
 		}

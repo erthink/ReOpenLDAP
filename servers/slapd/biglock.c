@@ -100,7 +100,7 @@ slap_biglock_t* slap_biglock_get( BackendDB *bd ) {
 
 int slap_biglock_deep ( BackendDB *bd ) {
 	slap_biglock_t* bl = slap_biglock_get( bd );
-	return bl ? read_int__tsan_workaround(&bl->bl_recursion) : 0;
+	return bl ? slap_tsan__read_int(&bl->bl_recursion) : 0;
 }
 
 int slap_biglock_owned ( BackendDB *bd ) {

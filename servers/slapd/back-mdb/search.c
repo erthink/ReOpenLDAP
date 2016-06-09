@@ -807,7 +807,7 @@ dn2entry_retry:
 loop_begin:
 
 		/* check for abandon */
-		if ( get_op_abandon(op) ) {
+		if ( slap_get_op_abandon(op) ) {
 			rs->sr_err = SLAPD_ABANDON;
 			send_ldap_result( op, rs );
 			goto done;

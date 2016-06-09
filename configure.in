@@ -42,8 +42,28 @@ define([AC_LIBTOOL_LANG_CXX_CONFIG], [:])dnl
 define([AC_LIBTOOL_LANG_F77_CONFIG], [:])dnl
 define([AC_LIBTOOL_LANG_GCJ_CONFIG], [:])dnl
 dnl ================================================================
-dnl Configure.in for OpenLDAP
-AC_COPYRIGHT([[Copyright 1998-2014 The OpenLDAP Foundation. All rights reserved.
+dnl Configure.in for ReOpenLDAP
+AC_COPYRIGHT([[Copyright (c) 2015,2016 Leonid Yuriev <leo@yuriev.ru>.
+Copyright (c) 2015,2016 Peter-Service R&D LLC <http://billing.ru/>.
+
+This is part of ReOpenLDAP.
+
+ReOpenLDAP is free software; you can redistribute it and/or modify it under
+the terms of the GNU Affero General Public License as published by
+the Free Software Foundation; either version 3 of the License, or
+(at your option) any later version.
+
+ReOpenLDAP is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Affero General Public License for more details.
+
+You should have received a copy of the GNU Affero General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+---
+
+Copyright 1998-2014 The OpenLDAP Foundation. All rights reserved.
 Restrictions apply, see COPYRIGHT and LICENSE files.]])
 AC_REVISION([$Id$])
 AC_INIT([OpenLDAP],,[http://www.openldap.org/its/])
@@ -76,14 +96,14 @@ if test -t 1; then
 	TN="`$SHTOOL echo -e '%b' 2>/dev/null`"
 fi
 
-OPENLDAP_REPO=""
+REOPENLDAP_REPO=""
 if test -d $ac_aux_dir/../.git; then
-	OPENLDAP_REPO="(from Git clone) "
+	REOPENLDAP_REPO="(from Git clone) "
 elif test -d $ac_aux_dir/CVS; then
-	OPENLDAP_REPO="(from CVS checkout) "
+	REOPENLDAP_REPO="(from CVS checkout) "
 fi
 
-echo "Configuring ${TB}${OL_STRING}${TN} ${OPENLDAP_REPO}..."
+echo "Configuring ${TB}${OL_STRING}${TN} ${REOPENLDAP_REPO}..."
 
 dnl Determine host platform
 dnl		we try not to use this for much
@@ -92,22 +112,22 @@ AC_CANONICAL_TARGET([])
 AM_INIT_AUTOMAKE([$OL_PACKAGE],[$OL_VERSION], [no defines])dnl
 AC_SUBST(PACKAGE)dnl
 AC_SUBST(VERSION)dnl
-AC_DEFINE_UNQUOTED(OPENLDAP_PACKAGE,"$PACKAGE",Package)
-AC_DEFINE_UNQUOTED(OPENLDAP_VERSION,"$VERSION",Version)
+AC_DEFINE_UNQUOTED(REOPENLDAP_PACKAGE,"$PACKAGE",Package)
+AC_DEFINE_UNQUOTED(REOPENLDAP_VERSION,"$VERSION",Version)
 
 AC_DEFINE_UNQUOTED(LDAP_VENDOR_VERSION,$OL_API_INC,Version)
 AC_DEFINE_UNQUOTED(LDAP_VENDOR_VERSION_MAJOR,$OL_MAJOR,Major)
 AC_DEFINE_UNQUOTED(LDAP_VENDOR_VERSION_MINOR,$OL_MINOR,Minor)
 AC_DEFINE_UNQUOTED(LDAP_VENDOR_VERSION_PATCH,$OL_PATCH,Patch)
 
-OPENLDAP_LIBRELEASE=$OL_API_LIB_RELEASE
-AC_SUBST(OPENLDAP_LIBRELEASE)dnl
+REOPENLDAP_LIBRELEASE=$OL_API_LIB_RELEASE
+AC_SUBST(REOPENLDAP_LIBRELEASE)dnl
 
-OPENLDAP_LIBVERSION=$OL_API_LIB_VERSION
-AC_SUBST(OPENLDAP_LIBVERSION)dnl
+REOPENLDAP_LIBVERSION=$OL_API_LIB_VERSION
+AC_SUBST(REOPENLDAP_LIBVERSION)dnl
 
-OPENLDAP_RELEASE_DATE="$OL_RELEASE_DATE"
-AC_SUBST(OPENLDAP_RELEASE_DATE)dnl
+REOPENLDAP_RELEASE_DATE="$OL_RELEASE_DATE"
+AC_SUBST(REOPENLDAP_RELEASE_DATE)dnl
 
 dnl We use autoconf features new to 2.59.  Later versions like won't work.
 dnl aclocal.m4 should be built using aclocal from automake 1.5
@@ -758,10 +778,11 @@ dnl BeOS requires -lbe -lroot -lnet
 AC_CHECK_LIB(be, be_app, [LIBS="$LIBS -lbe -lroot -lnet"], :, [-lroot -lnet])
 
 dnl ----------------------------------------------------------------
-dnl OpenLDAP requires STDC features
+dnl ReOpenLDAP requires STDC features
 AC_PROG_CC
+AC_PROG_CXX
 if test "X${ac_cv_prog_cc_stdc}" = "Xno" ; then
-	AC_MSG_ERROR([OpenLDAP requires compiler to support STDC constructs.])
+	AC_MSG_ERROR([ReOpenLDAP requires compiler to support STDC constructs.])
 fi
 
 dnl ----------------------------------------------------------------
@@ -1094,23 +1115,8 @@ if test $have_uuid = no ; then
 	fi
 fi
 
-dnl For windows, check for the need of RPCRT for UUID function support
 if test $have_uuid = no ; then
-	AC_MSG_CHECKING(to see if -lrpcrt4 is needed for win32 UUID support)
-	save_LIBS="$LIBS"
-	LIBS="$LIBS -lrpcrt4"
-	AC_LINK_IFELSE([AC_LANG_PROGRAM([[
-		int __stdcall UuidCreate(void *);
-		int __stdcall UuidToStringA(void *,void **);
-		]], [[
-		UuidCreate(0);
-		UuidToStringA(0,0);
-		]])],[need_rpcrt=yes],[need_rpcrt=no])
-	if test $need_rpcrt = yes; then
-		SLAPD_LIBS="$SLAPD_LIBS -lrpcrt4"
-	fi
-	LIBS="$save_LIBS"
-	AC_MSG_RESULT($need_rpcrt)
+	AC_MSG_ERROR([*** uuid support not found (this typically means the uuid development package is missing)])
 fi
 
 dnl ----------------------------------------------------------------
@@ -2371,7 +2377,7 @@ AC_CHECK_SIZEOF(long long)
 AC_CHECK_SIZEOF(wchar_t)
 
 if test "$ac_cv_sizeof_int" -lt 4 ; then
-	AC_MSG_WARN([OpenLDAP requires 'int' to be 32 bits or greater.])
+	AC_MSG_WARN([ReOpenLDAP requires 'int' to be 32 bits or greater.])
 
 	AC_DEFINE(LBER_INT_T,long,[define to 32-bit or greater integer type])
 else

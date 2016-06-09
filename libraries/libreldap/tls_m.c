@@ -3091,7 +3091,7 @@ tlsm_init( void )
 
 	PR_Init(0, 0, 0);
 
-	tlsm_layer_id = PR_GetUniqueIdentity( "OpenLDAP" );
+	tlsm_layer_id = PR_GetUniqueIdentity( "ReOpenLDAP" );
 
 	/*
 	 * There are some applications that acquire a crypto context in the parent process

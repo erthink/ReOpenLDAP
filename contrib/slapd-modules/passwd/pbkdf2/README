@@ -18,7 +18,7 @@ Schemes:
 
 First, You need to configure and build ReOpenLDAP.
 
-    $ cd <OPENLDAP_BUILD_DIR>/contrib/slapd-modules/passwd/
+    $ cd <REOPENLDAP_BUILD_DIR>/contrib/slapd-modules/passwd/
     $ git clone https://github.com/hamano/openldap-pbkdf2.git
     $ cd openldap-pbkdf2/
     $ make
