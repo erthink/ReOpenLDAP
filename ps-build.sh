@@ -44,6 +44,7 @@ flag_asan=0
 flag_tsan=0
 flag_hide=1
 flag_dynamic=0
+flag_publish=1
 
 while grep -q '^--' <<< "$1"; do
 	case "$1" in
@@ -109,6 +110,12 @@ while grep -q '^--' <<< "$1"; do
 		flag_valgrind=0
 		flag_asan=0
 		flag_tsan=1
+		;;
+	--publish)
+		flag_publish=1
+		;;
+	--no-publish)
+		flag_publish=0
 		;;
 	--*)
 		failure "unknown option '$1'"
@@ -391,13 +398,14 @@ rm -r ${PREFIX}/var ${PREFIX}/include && ln -s /var ${PREFIX}/ \
 
 step_finish "sweep"
 echo "======================================================================="
+
 step_begin "packaging"
 
 # LY: '.tgz' could be just changed to 'zip' or '.tar.gz', transparently
 FILE="reopenldap.$PACKAGE-src.tgz"
 if [ -d .git ]; then
 	git archive --prefix=reopenldap.$PACKAGE-sources/ -o $FILE HEAD \
-		&& ([ -n "$2" ] && echo "##teamcity[publishArtifacts '$FILE']" \
+		&& ([ -n "$2" ] && [ $flag_publish -ne 0 ] && echo "##teamcity[publishArtifacts '$FILE']" \
 			|| echo "Skip publishing of artifact ($(ls -hs $FILE))" >&2) \
 		|| failure "sources"
 else
@@ -407,8 +415,7 @@ fi
 FILE="reopenldap.$PACKAGE.tar.xz"
 tar -caf $FILE --owner=root -C ${PREFIX}/.. reopenldap \
 	&& sleep 1 && cat ${PREFIX}/changelog.txt >&2 && sleep 1 \
-	&& ([ -n "$2" ] && echo "##teamcity[publishArtifacts '$FILE']" \
+	&& ([ -n "$2" ] && [ $flag_publish -ne 0 ] && echo "##teamcity[publishArtifacts '$FILE']" \
 		|| echo "Skip publishing of artifact ($(ls -hs $FILE))" >&2) \
 	|| failure "tar"
-
 step_finish "packaging"
