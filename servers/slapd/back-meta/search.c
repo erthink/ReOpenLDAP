@@ -1,7 +1,25 @@
-/* $OpenLDAP$ */
-/* This work is part of OpenLDAP Software <http://www.openldap.org/>.
+/* $ReOpenLDAP$ */
+/* Copyright (c) 2015,2016 Leonid Yuriev <leo@yuriev.ru>.
+ * Copyright (c) 2015,2016 Peter-Service R&D LLC <http://billing.ru/>.
  *
- * Copyright 1999-2016 The OpenLDAP Foundation.
+ * This file is part of ReOpenLDAP.
+ *
+ * ReOpenLDAP is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation; either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * ReOpenLDAP is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * ---
+ *
+ * Copyright 1999-2014 The OpenLDAP Foundation.
  * Portions Copyright 2001-2003 Pierangelo Masarati.
  * Portions Copyright 1999-2003 Howard Chu.
  * All rights reserved.
@@ -32,7 +50,7 @@
 #include "slap.h"
 #include "../back-ldap/back-ldap.h"
 #include "back-meta.h"
-#include "../../../libraries/liblber/lber-int.h"
+#include "../../../libraries/libreldap/lber-int.h"
 
 /* IGNORE means that target does not (no longer) participate
  * in the search;
@@ -1120,7 +1138,7 @@ getconn:;
 			}
 
 			/* check for abandon */
-			if ( get_op_abandon(op) || LDAP_BACK_CONN_ABANDON( mc ) ) {
+			if ( slap_get_op_abandon(op) || LDAP_BACK_CONN_ABANDON( mc ) ) {
 				break;
 			}
 
@@ -1737,7 +1755,7 @@ free_message:;
 		}
 
 		/* check for abandon */
-		if ( get_op_abandon(op) || LDAP_BACK_CONN_ABANDON( mc ) ) {
+		if ( slap_get_op_abandon(op) || LDAP_BACK_CONN_ABANDON( mc ) ) {
 			for ( i = 0; i < mi->mi_ntargets; i++ ) {
 				if ( candidates[ i ].sr_msgid >= 0
 					|| candidates[ i ].sr_msgid == META_MSGID_CONNECTING )
@@ -1779,7 +1797,7 @@ free_message:;
 				}
 			}
 
-			if ( get_op_abandon(op) ) {
+			if ( slap_get_op_abandon(op) ) {
 				rc = SLAPD_ABANDON;
 			}
 

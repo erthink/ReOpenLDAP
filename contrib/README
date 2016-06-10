@@ -1,3 +1,33 @@
+Copyright (c) 2015,2016 Leonid Yuriev <leo@yuriev.ru>.
+Copyright (c) 2015,2016 Peter-Service R&D LLC <http://billing.ru/>.
+
+This file is part of ReOpenLDAP.
+
+ReOpenLDAP is free software; you can redistribute it and/or modify it under
+the terms of the GNU Affero General Public License as published by
+the Free Software Foundation; either version 3 of the License, or
+(at your option) any later version.
+
+ReOpenLDAP is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Affero General Public License for more details.
+
+You should have received a copy of the GNU Affero General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+---
+
+ReOpenLDAP is developed and maintained by The ReOpenLDAP
+Project (https://github.com/ReOpen/ReOpenLDAP).
+ReOpenLDAP is derived from University of OpenLDAP 2.4 Release.
+
+OpenLDAP is developed and maintained by The OpenLDAP Project
+(http://www.openldap.org/). OpenLDAP is derived from University
+of Michigan LDAP 3.3 Release.
+
+---
+
 OpenLDAP Contributed Software README
 
 OpenLDAP Project provides a number of freely-distributable LDAP
@@ -8,13 +38,6 @@ own use and may have different redistribution restrictions than typical
 for OpenLDAP Software.
 
 Current contributions:
-	ldapc++
-		LDAP C++ API
-		Contributed by SuSE Gmbh.
-
-	ldaptcl
-		LDAP TCL API
-		Contributed by NeoSoft
 
 	slapd-modules
 		Native-API modules
@@ -29,4 +52,4 @@ Current contributions:
 OpenLDAP Contributing Guidelines are available at:
   <http://www.openldap.org/devel/contributing.html>.
 
-$OpenLDAP$
+$ReOpenLDAP$

@@ -1,8 +1,26 @@
 /* ldif.c - the ldif backend */
-/* $OpenLDAP$ */
-/* This work is part of OpenLDAP Software <http://www.openldap.org/>.
+/* $ReOpenLDAP$ */
+/* Copyright (c) 2015,2016 Leonid Yuriev <leo@yuriev.ru>.
+ * Copyright (c) 2015,2016 Peter-Service R&D LLC <http://billing.ru/>.
  *
- * Copyright 2005-2016 The OpenLDAP Foundation.
+ * This file is part of ReOpenLDAP.
+ *
+ * ReOpenLDAP is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation; either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * ReOpenLDAP is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * ---
+ *
+ * Copyright 2005-2014 The OpenLDAP Foundation.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -60,14 +78,8 @@ struct ldif_info {
 
 static int write_data( int fd, const char *spew, int len, int *save_errno );
 
-#ifdef _WIN32
-#define mkdir(a,b)	mkdir(a)
-#define move_file(from, to) (!MoveFileEx(from, to, MOVEFILE_REPLACE_EXISTING))
-#else
 #define move_file(from, to) rename(from, to)
-#endif
 #define move_dir(from, to) rename(from, to)
-
 
 #define LDIF	".ldif"
 #define LDIF_FILETYPE_SEP	'.'			/* LDIF[0] */
@@ -91,8 +103,6 @@ static int write_data( int fd, const char *spew, int len, int *save_errno );
  * followed by ".ldif", except with '\\' replaced with LDIF_ESCAPE_CHAR.
  */
 
-#ifndef _WIN32
-
 /*
  * Unix/MacOSX version.  ':' vs '/' can cause confusion on MacOSX so we
  * escape both.  We escape them on Unix so both OS variants get the same
@@ -100,17 +110,6 @@ static int write_data( int fd, const char *spew, int len, int *save_errno );
  */
 #define LDIF_ESCAPE_CHAR	'\\'
 #define LDIF_UNSAFE_CHAR(c)	((c) == '/' || (c) == ':')
-
-#else /* _WIN32 */
-
-/* Windows version - Microsoft's list of unsafe characters, except '\\' */
-#define LDIF_ESCAPE_CHAR	'^'			/* Not '\\' (unsafe on Windows) */
-#define LDIF_UNSAFE_CHAR(c)	\
-	((c) == '/' || (c) == ':' || \
-	 (c) == '<' || (c) == '>' || (c) == '"' || \
-	 (c) == '|' || (c) == '?' || (c) == '*')
-
-#endif /* !_WIN32 */
 
 /*
  * Left and Right "{num}" prefix to ordered RDNs ("olcDatabase={1}bdb").
@@ -544,7 +543,7 @@ ldif_write_entry(
 	int fd, entry_length;
 	char *entry_as_string, *tmpfname;
 
-	if ( get_op_abandon(op) )
+	if ( slap_get_op_abandon(op) )
 		return SLAPD_ABANDON;
 
 	if ( parentdir != NULL && mkdir( parentdir, 0750 ) < 0 ) {
@@ -643,7 +642,7 @@ ldif_read_entry(
 	/* TODO: Does slapd prevent Abandon of Bind as per rfc4511?
 	 * If so we need not check for LDAP_REQ_BIND here.
 	 */
-	if ( get_op_abandon(op) && op->o_tag != LDAP_REQ_BIND )
+	if ( slap_get_op_abandon(op) && op->o_tag != LDAP_REQ_BIND )
 		return SLAPD_ABANDON;
 
 	rc = ldif_read_file( path, entryp ? &entry_as_string : NULL );
@@ -1051,7 +1050,7 @@ ldif_prepare_create(
 	Entry *parent = NULL;
 	int rc;
 
-	if ( get_op_abandon(op) )
+	if ( slap_get_op_abandon(op) )
 		return SLAPD_ABANDON;
 
 	rc = ndn2path( op, ndn, dnpath, 0 );
@@ -1482,7 +1481,7 @@ ldif_back_delete( Operation *op, SlapReply *rs )
 
 	ldap_pvt_thread_mutex_lock( &li->li_modop_mutex );
 	ldap_pvt_thread_rdwr_wlock( &li->li_rdwr );
-	if ( get_op_abandon(op) ) {
+	if ( slap_get_op_abandon(op) ) {
 		rc = SLAPD_ABANDON;
 		goto done;
 	}

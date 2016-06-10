@@ -1,8 +1,26 @@
 /* ldif-filter -- clean up LDIF testdata from stdin */
-/* $OpenLDAP$ */
-/* This work is part of OpenLDAP Software <http://www.openldap.org/>.
+/* $ReOpenLDAP$ */
+/* Copyright (c) 2015,2016 Leonid Yuriev <leo@yuriev.ru>.
+ * Copyright (c) 2015,2016 Peter-Service R&D LLC <http://billing.ru/>.
  *
- * Copyright 2009-2016 The OpenLDAP Foundation.
+ * This file is part of ReOpenLDAP.
+ *
+ * ReOpenLDAP is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation; either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * ReOpenLDAP is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * ---
+ *
+ * Copyright 2009-2014 The OpenLDAP Foundation.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -21,9 +39,6 @@
 #include <ac/stdlib.h>
 #include <ac/string.h>
 #include <ac/unistd.h>
-#ifdef _WIN32
-#include <fcntl.h>
-#endif
 
 #define DEFAULT_SPECS "ndb=a,null=n"
 
@@ -242,9 +257,6 @@ main( int argc, char **argv )
 		backend = "";
 	}
 
-#ifdef _WIN32
-	_setmode(1, _O_BINARY);	/* don't convert \n to \r\n on stdout */
-#endif
 	flags = get_flags( backend, specs );
 	filter_stdin( flags ? flags : get_flags( backend, DEFAULT_SPECS ));
 	if ( fclose( stdout ) == EOF ) {

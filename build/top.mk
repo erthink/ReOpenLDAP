@@ -1,7 +1,25 @@
-# $OpenLDAP$
-## This work is part of OpenLDAP Software <http://www.openldap.org/>.
+# $ReOpenLDAP$
+## Copyright (c) 2015,2016 Leonid Yuriev <leo@yuriev.ru>.
+## Copyright (c) 2015,2016 Peter-Service R&D LLC <http://billing.ru/>.
 ##
-## Copyright 1998-2016 The OpenLDAP Foundation.
+## This file is part of ReOpenLDAP.
+##
+## ReOpenLDAP is free software; you can redistribute it and/or modify it under
+## the terms of the GNU Affero General Public License as published by
+## the Free Software Foundation; either version 3 of the License, or
+## (at your option) any later version.
+##
+## ReOpenLDAP is distributed in the hope that it will be useful,
+## but WITHOUT ANY WARRANTY; without even the implied warranty of
+## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+## GNU Affero General Public License for more details.
+##
+## You should have received a copy of the GNU Affero General Public License
+## along with this program.  If not, see <http://www.gnu.org/licenses/>.
+##
+## ---
+##
+## Copyright 1998-2014 The OpenLDAP Foundation.
 ## All rights reserved.
 ##
 ## Redistribution and use in source and binary forms, with or without
@@ -17,7 +35,7 @@
 
 PACKAGE= @PACKAGE@
 VERSION= @VERSION@
-RELEASEDATE= @OPENLDAP_RELEASE_DATE@
+RELEASEDATE= @REOPENLDAP_RELEASE_DATE@
 
 @SET_MAKE@
 SHELL = /bin/sh
@@ -46,7 +64,6 @@ sharedstatedir = @sharedstatedir@
 sysconfdir = @sysconfdir@$(ldap_subdir)
 schemadir = $(sysconfdir)/schema
 
-PLAT = @PLAT@
 EXEEXT = @EXEEXT@
 OBJEXT = @OBJEXT@
 
@@ -72,13 +89,9 @@ MKDEP_CFLAGS = @OL_MKDEP_FLAGS@
 MKVERSION = $(top_srcdir)/build/mkversion -v "$(VERSION)"
 
 LIBTOOL = @LIBTOOL@
-LIBRELEASE = @OPENLDAP_LIBRELEASE@
-LIBVERSION = @OPENLDAP_LIBVERSION@
+LIBRELEASE = @REOPENLDAP_LIBRELEASE@
+LIBVERSION = @REOPENLDAP_LIBVERSION@
 LTVERSION = -release $(LIBRELEASE) -version-info $(LIBVERSION)
-
-# libtool --only flag for libraries: platform specific
-NT_LTONLY_LIB = # --only-$(BUILD_LIBS_DYNAMIC)
-LTONLY_LIB = $(@PLAT@_LTONLY_LIB)
 
 # libtool --only flag for modules: depends on linkage of module
 # The BUILD_MOD macro is defined in each backend Makefile.in file
@@ -86,23 +99,17 @@ LTONLY_yes = --tag=disable-shared
 LTONLY_mod = --tag=disable-static
 LTONLY_MOD = $(LTONLY_$(BUILD_MOD))
 
-# platform-specific libtool flags
-NT_LTFLAGS_LIB = -no-undefined -avoid-version -rpath $(libdir)
-NT_LTFLAGS_MOD = -no-undefined -avoid-version -rpath $(moduledir)
-UNIX_LTFLAGS_LIB = $(LTVERSION) -rpath $(libdir)
-UNIX_LTFLAGS_MOD = $(LTVERSION) -rpath $(moduledir)
-
 # libtool flags
-LTFLAGS     = $(@PLAT@_LTFLAGS)
-LTFLAGS_LIB = $(@PLAT@_LTFLAGS_LIB)
-LTFLAGS_MOD = $(@PLAT@_LTFLAGS_MOD)
+LTFLAGS     =
+LTFLAGS_LIB = $(LTVERSION) -rpath $(libdir)
+LTFLAGS_MOD = $(LTVERSION) -rpath $(moduledir)
 
 # LIB_DEFS defined in liblber and libldap Makefile.in files.
 # MOD_DEFS defined in backend Makefile.in files.
 
-# platform-specific LINK_LIBS defined in various Makefile.in files.
+# NEED_LIBS defined in various Makefile.in files.
 # LINK_LIBS referenced in library and module link commands.
-LINK_LIBS = $(MOD_LIBS) $(@PLAT@_LINK_LIBS)
+LINK_LIBS = $(MOD_LIBS) $(NEED_LIBS)
 
 LTSTATIC = @LTSTATIC@
 
@@ -120,6 +127,23 @@ LTCOMPILE_MOD = $(LIBTOOL) $(LTONLY_MOD) --mode=compile \
 
 LTLINK_MOD = $(LIBTOOL) $(LTONLY_MOD) --mode=link \
 	$(CC) $(LT_CFLAGS) $(LDFLAGS) $(LTFLAGS_MOD)
+
+
+LTLINK_CXX   = $(LIBTOOL) --mode=link \
+	$(CXX) $(LTSTATIC) $(LT_CXXFLAGS) $(LDFLAGS) $(LTFLAGS)
+
+LTCOMPILE_LIB_CXX = $(LIBTOOL) $(LTONLY_LIB) --mode=compile \
+	$(CXX) $(LT_CXXFLAGS) $(LT_CPPFLAGS) $(LIB_DEFS) -c
+
+LTLINK_LIB_CXX = $(LIBTOOL) $(LTONLY_LIB) --mode=link \
+	$(CXX) $(LT_CXXFLAGS) $(LDFLAGS) $(LTFLAGS_LIB)
+
+LTCOMPILE_MOD_CXX = $(LIBTOOL) $(LTONLY_MOD) --mode=compile \
+	$(CXX) $(LT_CXXFLAGS) $(LT_CPPFLAGS) $(MOD_DEFS) -c
+
+LTLINK_MOD_CXX = $(LIBTOOL) $(LTONLY_MOD) --mode=link \
+	$(CXX) $(LT_CXXFLAGS) $(LDFLAGS) $(LTFLAGS_MOD)
+
 
 LTINSTALL = $(LIBTOOL) --mode=install $(INSTALL)
 LTFINISH = $(LIBTOOL) --mode=finish
@@ -162,23 +186,21 @@ LTHREAD_LIBS = @LTHREAD_LIBS@
 BDB_LIBS = @BDB_LIBS@
 SLAPD_NDB_LIBS = @SLAPD_NDB_LIBS@
 
-LDAP_LIBLBER_LA = $(LDAP_LIBDIR)/liblber/liblber.la
-LDAP_LIBLDAP_LA = $(LDAP_LIBDIR)/libldap/libldap.la
-LDAP_LIBLDAP_R_LA = $(LDAP_LIBDIR)/libldap_r/libldap_r.la
-
+LDAP_LIBRELDAP_LA = $(LDAP_LIBDIR)/libreldap/libreldap.la
 LDAP_LIBREWRITE_A = $(LDAP_LIBDIR)/librewrite/librewrite.a
 LDAP_LIBLUNICODE_A = $(LDAP_LIBDIR)/liblunicode/liblunicode.a
 LDAP_LIBLUTIL_A = $(LDAP_LIBDIR)/liblutil/liblutil.a
 
-LDAP_L = $(LDAP_LIBLUTIL_A) \
-	$(LDAP_LIBLDAP_LA) $(LDAP_LIBLBER_LA)
+LDAP_L = $(LDAP_LIBLUTIL_A) $(LDAP_LIBRELDAP_LA)
 SLAPD_L = $(LDAP_LIBLUNICODE_A) $(LDAP_LIBREWRITE_A) \
-	$(LDAP_LIBLUTIL_A) $(LDAP_LIBLDAP_R_LA) $(LDAP_LIBLBER_LA)
+	$(LDAP_LIBLUTIL_A) $(LDAP_LIBRELDAP_LA)
 
 WRAP_LIBS = @WRAP_LIBS@
 # AutoConfig generated
 AC_CC	= @CC@
 AC_CFLAGS = @CFLAGS@
+AC_CXX	= @CXX@
+AC_CXXFLAGS = @CXXFLAGS@
 AC_DEFS = @CPPFLAGS@ # @DEFS@
 AC_LDFLAGS = @LDFLAGS@
 AC_LIBS = @LIBS@
@@ -205,12 +227,15 @@ SLAPD_LIBS = @SLAPD_LIBS@ @SLAPD_PERL_LDFLAGS@ @SLAPD_SQL_LDFLAGS@ @SLAPD_SQL_LI
 
 # Our Defaults
 CC = $(AC_CC)
+CXX = $(AC_CXX)
 DEFS = $(LDAP_INCPATH) $(XINCPATH) $(XDEFS) $(AC_DEFS) $(DEFINES)
 CFLAGS = $(AC_CFLAGS) $(DEFS)
+CXXFLAGS = $(AC_CXXFLAGS) $(DEFS)
 LDFLAGS = $(LDAP_LIBPATH) $(AC_LDFLAGS) $(XLDFLAGS)
 LIBS = $(XLIBS) $(XXLIBS) $(AC_LIBS) $(XXXLIBS)
 
 LT_CFLAGS = $(AC_CFLAGS)
+LT_CXXFLAGS = $(AC_CXXFLAGS)
 LT_CPPFLAGS = $(DEFS)
 
 all:		all-common all-local FORCE
@@ -250,4 +275,3 @@ pathtest:
 FORCE:
 
 ##---------------------------------------------------------------------------
-

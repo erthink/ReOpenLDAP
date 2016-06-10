@@ -1,7 +1,25 @@
-/* $OpenLDAP$ */
-/* This work is part of OpenLDAP Software <http://www.openldap.org/>.
+/* $ReOpenLDAP$ */
+/* Copyright (c) 2015,2016 Leonid Yuriev <leo@yuriev.ru>.
+ * Copyright (c) 2015,2016 Peter-Service R&D LLC <http://billing.ru/>.
  *
- * Copyright 1999-2016 The OpenLDAP Foundation.
+ * This file is part of ReOpenLDAP.
+ *
+ * ReOpenLDAP is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation; either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * ReOpenLDAP is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * ---
+ *
+ * Copyright 1999-2014 The OpenLDAP Foundation.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -40,18 +58,12 @@
 #include "lber_pvt.h"
 #include "slapd-common.h"
 
-#ifdef _WIN32
-#define EXE		".exe"
-#else
-#define EXE
-#endif
-
-#define SEARCHCMD		"slapd-search" EXE
-#define READCMD			"slapd-read" EXE
-#define ADDCMD			"slapd-addel" EXE
-#define MODRDNCMD		"slapd-modrdn" EXE
-#define MODIFYCMD		"slapd-modify" EXE
-#define BINDCMD			"slapd-bind" EXE
+#define SEARCHCMD		"slapd-search"
+#define READCMD			"slapd-read"
+#define ADDCMD			"slapd-addel"
+#define MODRDNCMD		"slapd-modrdn"
+#define MODIFYCMD		"slapd-modify"
+#define BINDCMD			"slapd-bind"
 #define MAXARGS      		100
 #define MAXREQS			5000
 #define LOOPS			100
@@ -74,13 +86,7 @@ static void	wait4kids( int nkidval );
 static int      maxkids = 20;
 static int      nkids;
 
-#ifdef HAVE_WINSOCK
-static HANDLE	*children;
-static char argbuf[BUFSIZ];
-#define	ArgDup(x) strdup(strcat(strcat(strcpy(argbuf,"\""),x),"\""))
-#else
 #define	ArgDup(x) strdup(x)
-#endif
 
 static void
 usage( char *name, char opt )
@@ -377,9 +383,6 @@ main( int argc, char **argv )
 		usage( argv[0], '\0' );
 	}
 
-#ifdef HAVE_WINSOCK
-	children = malloc( maxkids * sizeof(HANDLE) );
-#endif
 	/* get the file list */
 	if ( ( datadir = opendir( dirname )) == NULL ) {
 		fprintf( stderr, "%s: couldn't open data directory \"%s\".\n",
@@ -1079,7 +1082,6 @@ get_read_entries( char *filename, char *entries[], char *filters[] )
 	return( entry );
 }
 
-#ifndef HAVE_WINSOCK
 static void
 fork_child( char *prog, char **args )
 {
@@ -1162,34 +1164,3 @@ wait4kids( int nkidval )
 		}
 	}
 }
-#else
-
-static void
-wait4kids( int nkidval )
-{
-	int rc, i;
-
-	while ( nkids >= nkidval ) {
-		rc = WaitForMultipleObjects( nkids, children, FALSE, INFINITE );
-		for ( i=rc - WAIT_OBJECT_0; i<nkids-1; i++)
-			children[i] = children[i+1];
-		nkids--;
-	}
-}
-
-static void
-fork_child( char *prog, char **args )
-{
-	int rc;
-
-	wait4kids( maxkids );
-
-	rc = _spawnvp( _P_NOWAIT, prog, args );
-
-	if ( rc == -1 ) {
-		tester_perror( "_spawnvp", NULL );
-	} else {
-		children[nkids++] = (HANDLE)rc;
-	}
-}
-#endif

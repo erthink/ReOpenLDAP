@@ -1,8 +1,26 @@
 /* globals.c - various global variables */
-/* $OpenLDAP$ */
-/* This work is part of OpenLDAP Software <http://www.openldap.org/>.
+/* $ReOpenLDAP$ */
+/* Copyright (c) 2015,2016 Leonid Yuriev <leo@yuriev.ru>.
+ * Copyright (c) 2015,2016 Peter-Service R&D LLC <http://billing.ru/>.
  *
- * Copyright 1998-2016 The OpenLDAP Foundation.
+ * This file is part of ReOpenLDAP.
+ *
+ * ReOpenLDAP is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation; either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * ReOpenLDAP is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * ---
+ *
+ * Copyright 1998-2014 The OpenLDAP Foundation.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -103,48 +121,48 @@ void memleak_crutch_pop(void *p)
 #ifdef __SANITIZE_THREAD__
 
 ATTRIBUTE_NO_SANITIZE_THREAD
-int get_op_abandon(const struct Operation *op)
+int slap_get_op_abandon(const struct Operation *op)
 {
 	return op->_o_abandon;
 }
 
 ATTRIBUTE_NO_SANITIZE_THREAD
-int get_op_cancel(const struct Operation *op)
+int slap_get_op_cancel(const struct Operation *op)
 {
 	return op->_o_cancel;
 }
 
 ATTRIBUTE_NO_SANITIZE_THREAD
-void set_op_abandon(struct Operation *op, int v)
+void slap_set_op_abandon(struct Operation *op, int v)
 {
 	op->_o_abandon = v;
 }
 
 ATTRIBUTE_NO_SANITIZE_THREAD
-void set_op_cancel(struct Operation *op, int v)
+void slap_set_op_cancel(struct Operation *op, int v)
 {
 	op->_o_cancel = v;
 }
 
 ATTRIBUTE_NO_SANITIZE_THREAD
-int read_int__tsan_workaround(volatile int *ptr) {
+int slap_tsan__read_int(volatile int *ptr) {
 		return *ptr;
 }
 
 ATTRIBUTE_NO_SANITIZE_THREAD
-char read_char__tsan_workaround(volatile char *ptr) {
+char slap_tsan__read_char(volatile char *ptr) {
 		return *ptr;
 }
 
 ATTRIBUTE_NO_SANITIZE_THREAD
-void* read_ptr__tsan_workaround(void *ptr) {
+void* slap_tsan__read_ptr(void *ptr) {
 		return *(void * volatile *)ptr;
 }
 
 #endif /* __SANITIZE_THREAD__ */
 
 ATTRIBUTE_NO_SANITIZE_THREAD
-void op_copy(const volatile Operation *src, Operation *op, Opheader *hdr, BackendDB *be)
+void slap_op_copy(const volatile Operation *src, Operation *op, Opheader *hdr, BackendDB *be)
 {
 	BackendDB* bd;
 	slap_mask_t	flags;
@@ -185,7 +203,7 @@ int ldap_log_printf(void *ld, int loglvl, const char *fmt, ... )
 		va_list vl;
 
 		va_start( vl, fmt );
-		lutil_debug_va( fmt, vl);
+		ldap_debug_va( fmt, vl);
 		va_end( vl );
 		return 1;
 	}
@@ -210,9 +228,19 @@ int ber_pvt_log_output(
 		va_list vl;
 
 		va_start( vl, fmt );
-		lutil_debug_va( fmt, vl);
+		ldap_debug_va( fmt, vl);
 		va_end( vl );
 		return 1;
 	}
 	return 0;
+}
+
+LDAP_SLAPD_F(void) __ldap_assert_fail(
+		const char* assertion,
+		const char* file,
+		unsigned line,
+		const char* function)
+{
+	slap_backtrace_debug();
+	__assert_fail(assertion, file, line, function);
 }

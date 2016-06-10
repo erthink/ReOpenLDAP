@@ -1,8 +1,26 @@
 /* ldapsync.c -- LDAP Content Sync Routines */
-/* $OpenLDAP$ */
-/* This work is part of OpenLDAP Software <http://www.openldap.org/>.
+/* $ReOpenLDAP$ */
+/* Copyright (c) 2015,2016 Leonid Yuriev <leo@yuriev.ru>.
+ * Copyright (c) 2015,2016 Peter-Service R&D LLC <http://billing.ru/>.
  *
- * Copyright 2003-2016 The OpenLDAP Foundation.
+ * This file is part of ReOpenLDAP.
+ *
+ * ReOpenLDAP is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation; either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * ReOpenLDAP is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * ---
+ *
+ * Copyright 2003-2014 The OpenLDAP Foundation.
  * Portions Copyright 2003 IBM Corporation.
  * All rights reserved.
  *
@@ -24,7 +42,7 @@
 
 #include "lutil.h"
 #include "slap.h"
-#include "../../libraries/liblber/lber-int.h" /* get ber_strndup() */
+#include "../../libraries/libreldap/lber-int.h" /* get ber_strndup() */
 #include "lutil_ldap.h"
 
 #if LDAP_MEMORY_DEBUG
@@ -566,10 +584,10 @@ void slap_cookie_debug( const char *prefix, const struct sync_cookie *sc )
 {
 	int i;
 
-	lutil_debug_print( "%s %p: rid=%d, sid=%d\n", prefix,
+	ldap_debug_print( "%s %p: rid=%d, sid=%d\n", prefix,
 		sc, sc->rid, sc->sid );
 	for( i = 0; i < sc->numcsns; ++i )
-		lutil_debug_print( "%s: %d) %ssid=%d %s\n", prefix, i,
+		ldap_debug_print( "%s: %d) %ssid=%d %s\n", prefix, i,
 			slap_csn_verify_full( &sc->ctxcsn[i] ) ? "" : "INVALID ",
 			sc->sids[i], sc->ctxcsn[i].bv_val );
 }
@@ -578,7 +596,7 @@ void slap_cookie_debug_pair( const char *prefix,
 	 const char* x_name, const struct sync_cookie *x_cookie,
 	 const char* y_name, const struct sync_cookie *y_cookie, int y_marker)
 {
-	lutil_debug_print( "%s: %s[rid=%d, sid=%d]#%d | %s[rid=%d, sid=%d]#%d\n", prefix,
+	ldap_debug_print( "%s: %s[rid=%d, sid=%d]#%d | %s[rid=%d, sid=%d]#%d\n", prefix,
 		x_name, x_cookie->rid, x_cookie->sid, x_cookie->numcsns,
 		y_name, y_cookie->rid, y_cookie->sid, y_cookie->numcsns );
 
@@ -605,7 +623,7 @@ void slap_cookie_debug_pair( const char *prefix,
 		else if (x_csn || y_csn)
 			sign = x_csn ? 1 : -1;
 
-		lutil_debug_print( "%s: %s %s %40s %c %s %s %s\n", prefix,
+		ldap_debug_print( "%s: %s %s %40s %c %s %s %s\n", prefix,
 			(x_csn && sid == slap_serverID) ? "~>" : "  ",
 			x_name, x_csn ? x_csn->bv_val : "lack",
 			sign ? ((sign > 0) ? '>' : '<')  : '=',
@@ -958,9 +976,9 @@ void slap_csns_debug( const char *prefix, const BerVarray csns )
 {
 	int i;
 
-	lutil_debug_print("%s: CSNs %p\n", prefix, csns);
+	ldap_debug_print("%s: CSNs %p\n", prefix, csns);
 	for( i = 0; csns && ! BER_BVISNULL( &csns[i] ); ++i )
-		lutil_debug_print( "%s: %d) %s%s\n", prefix, i,
+		ldap_debug_print( "%s: %d) %s%s\n", prefix, i,
 			slap_csn_verify_full( &csns[i] ) ? "" : "INVALID ",
 			csns[i].bv_val
 		);
@@ -972,7 +990,7 @@ void slap_csns_backward_debug(
 	const BerVarray next )
 {
 	if ( LogTest( LDAP_DEBUG_SYNC ) ) {
-		lutil_debug_print("%s: %s > %s\n", prefix, "current", "next" );
+		ldap_debug_print("%s: %s > %s\n", prefix, "current", "next" );
 		slap_csns_debug( "current", current );
 		slap_csns_debug( "next", next );
 		slap_backtrace_debug();
@@ -984,7 +1002,7 @@ void slap_cookie_backward_debug(const char *prefix,
 	const struct sync_cookie *next )
 {
 	if ( LogTest( LDAP_DEBUG_SYNC ) ) {
-		lutil_debug_print("%s (COOKIE BACKWARD): %s > %s\n", prefix, "current", "next" );
+		ldap_debug_print("%s (COOKIE BACKWARD): %s > %s\n", prefix, "current", "next" );
 		slap_cookie_debug_pair(prefix, "current", current, "next", next, -1);
 		slap_backtrace_debug();
 	}

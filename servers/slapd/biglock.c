@@ -1,3 +1,4 @@
+/* $ReOpenLDAP$ */
 /*
     Copyright (c) 2015,2016 Leonid Yuriev <leo@yuriev.ru>.
     Copyright (c) 2015,2016 Peter-Service R&D LLC.
@@ -99,7 +100,7 @@ slap_biglock_t* slap_biglock_get( BackendDB *bd ) {
 
 int slap_biglock_deep ( BackendDB *bd ) {
 	slap_biglock_t* bl = slap_biglock_get( bd );
-	return bl ? read_int__tsan_workaround(&bl->bl_recursion) : 0;
+	return bl ? slap_tsan__read_int(&bl->bl_recursion) : 0;
 }
 
 int slap_biglock_owned ( BackendDB *bd ) {
@@ -153,7 +154,7 @@ slap_biglock_release(slap_biglock_t* bl) {
 		if (biglock_max_latency_ns < latency_ns) {
 			biglock_max_latency_ns = latency_ns;
 
-			lutil_debug_print(
+			ldap_debug_print(
 				"*** Biglock new latency achievement: %'.6f seconds\n",
 				latency_ns * 1e-9);
 

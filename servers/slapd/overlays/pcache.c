@@ -1,7 +1,25 @@
-/* $OpenLDAP$ */
-/* This work is part of OpenLDAP Software <http://www.openldap.org/>.
+/* $ReOpenLDAP$ */
+/* Copyright (c) 2015,2016 Leonid Yuriev <leo@yuriev.ru>.
+ * Copyright (c) 2015,2016 Peter-Service R&D LLC <http://billing.ru/>.
  *
- * Copyright 2003-2016 The OpenLDAP Foundation.
+ * This file is part of ReOpenLDAP.
+ *
+ * ReOpenLDAP is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation; either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * ReOpenLDAP is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * ---
+ *
+ * Copyright 2003-2014 The OpenLDAP Foundation.
  * Portions Copyright 2003 IBM Corporation.
  * Portions Copyright 2003-2009 Symas Corporation.
  * All rights reserved.
@@ -2362,13 +2380,13 @@ pcache_op_cleanup( Operation *op, SlapReply *rs ) {
 	query_manager*		qm = cm->qm;
 
 	if ( rs->sr_type == REP_RESULT ||
-		get_op_abandon(op) || rs->sr_err == SLAPD_ABANDON )
+		slap_get_op_abandon(op) || rs->sr_err == SLAPD_ABANDON )
 	{
 		if ( si->swap_saved_attrs ) {
 			rs->sr_attrs = si->save_attrs;
 			op->ors_attrs = si->save_attrs;
 		}
-		if ( (get_op_abandon(op) || rs->sr_err == SLAPD_ABANDON) &&
+		if ( (slap_get_op_abandon(op) || rs->sr_err == SLAPD_ABANDON) &&
 				si->caching_reason == PC_IGNORE )
 		{
 			filter_free( si->query.filter );
@@ -3550,7 +3568,7 @@ consistency_check(
 
 	for (templ = qm->templates; templ; templ=templ->qmnext) {
 		time_t ttl = 0;
-		if ( ! read_ptr__tsan_workaround(&templ->query_last) ) continue;
+		if ( ! slap_tsan__read_ptr(&templ->query_last) ) continue;
 		ldap_pvt_thread_rdwr_wlock(&templ->t_rwlock);
 		pause = 0;
 		op->o_time = ldap_time_steady();

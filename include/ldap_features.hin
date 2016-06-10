@@ -1,7 +1,25 @@
-/* $OpenLDAP$ */
-/* This work is part of OpenLDAP Software <http://www.openldap.org/>.
+/* $ReOpenLDAP$ */
+/* Copyright (c) 2015,2016 Leonid Yuriev <leo@yuriev.ru>.
+ * Copyright (c) 2015,2016 Peter-Service R&D LLC <http://billing.ru/>.
  *
- * Copyright 1998-2016 The OpenLDAP Foundation.
+ * This file is part of ReOpenLDAP.
+ *
+ * ReOpenLDAP is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation; either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * ReOpenLDAP is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * ---
+ *
+ * Copyright 1998-2014 The OpenLDAP Foundation.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -20,7 +38,7 @@
 #ifndef _LDAP_FEATURES_H
 #define _LDAP_FEATURES_H 1
 
-/* OpenLDAP API version macros */
+/* ReOpenLDAP API version macros */
 #undef LDAP_VENDOR_VERSION
 #undef LDAP_VENDOR_VERSION_MAJOR
 #undef LDAP_VENDOR_VERSION_MINOR
@@ -32,27 +50,13 @@
 ** OpenLDAP reentrancy/thread-safeness should be dynamically
 ** checked using ldap_get_option().
 **
-** The -lldap implementation is not thread-safe.
-**
-** The -lldap_r implementation is:
-**		LDAP_API_FEATURE_THREAD_SAFE (basic thread safety)
-** but also be:
-**		LDAP_API_FEATURE_SESSION_THREAD_SAFE
-**		LDAP_API_FEATURE_OPERATION_THREAD_SAFE
-**
-** The preprocessor flag LDAP_API_FEATURE_X_OPENLDAP_THREAD_SAFE
-** can be used to determine if -lldap_r is available at compile
-** time.  You must define LDAP_THREAD_SAFE if and only if you
-** link with -lldap_r.
-**
-** If you fail to define LDAP_THREAD_SAFE when linking with
-** -lldap_r or define LDAP_THREAD_SAFE when linking with -lldap,
-** provided header definations and declarations may be incorrect.
-**
+** The -lreldap implementation is basic thread safety,
+** but also should be:
+**	LDAP_API_FEATURE_SESSION_THREAD_SAFE
+**	LDAP_API_FEATURE_OPERATION_THREAD_SAFE
 */
 
-/* is -lldap_r available or not */
-#undef LDAP_API_FEATURE_X_OPENLDAP_THREAD_SAFE
+#define LDAP_API_FEATURE_X_OPENLDAP_THREAD_SAFE 1
 
 /* LDAP v2 Referrals */
 #undef LDAP_API_FEATURE_X_OPENLDAP_V2_REFERRALS

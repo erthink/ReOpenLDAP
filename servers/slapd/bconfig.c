@@ -1,8 +1,26 @@
 /* bconfig.c - the config backend */
-/* $OpenLDAP$ */
-/* This work is part of OpenLDAP Software <http://www.openldap.org/>.
+/* $ReOpenLDAP$ */
+/* Copyright (c) 2015,2016 Leonid Yuriev <leo@yuriev.ru>.
+ * Copyright (c) 2015,2016 Peter-Service R&D LLC <http://billing.ru/>.
  *
- * Copyright 2005-2016 The OpenLDAP Foundation.
+ * This file is part of ReOpenLDAP.
+ *
+ * ReOpenLDAP is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation; either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * ReOpenLDAP is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * ---
+ *
+ * Copyright 2005-2014 The OpenLDAP Foundation.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -77,6 +95,14 @@ typedef struct {
 } CfBackInfo;
 
 static CfBackInfo cfBackInfo;
+
+static void cf_rdwr_init(void);
+static rurw_lock_deep_t cf_rdwr_retreat(void);
+static void cf_rdwr_obtain(rurw_lock_deep_t state);
+static void cf_rd_lock(void);
+static void cf_rd_unlock(void);
+static void cf_wr_lock(void);
+static void cf_wr_unlock(void);
 
 static char	*passwd_salt;
 static FILE *logfile;
@@ -1317,7 +1343,7 @@ config_generic(ConfigArgs *c) {
 			ch_free( logfileName );
 			logfileName = NULL;
 			if ( logfile ) {
-				lutil_debug_file( NULL );
+				ldap_debug_file( NULL );
 				fclose( logfile );
 				logfile = NULL;
 			}
@@ -2018,11 +2044,11 @@ sortval_reject:
 				logfileName = c->value_string;
 				c->value_string = NULL;
 				if ( logfile ) {
-					lutil_debug_file( NULL );
+					ldap_debug_file( NULL );
 					fclose( logfile );
 				}
 				logfile = fopen(logfileName, "w");
-				if(logfile) lutil_debug_file(logfile);
+				if(logfile) ldap_debug_file(logfile);
 			} break;
 
 		case CFG_LASTMOD:
@@ -3055,7 +3081,7 @@ config_suffix(ConfigArgs *c)
 		while (( b2 = LDAP_STAILQ_NEXT(b2, be_next )) && b2 && b2 != c->be );
 
 		if ( b2 ) {
-			char	*type = tbe->bd_info->bi_type;
+			const char *type = tbe->bd_info->bi_type;
 
 			if ( overlay_is_over( tbe ) ) {
 				slap_overinfo	*oi = (slap_overinfo *)tbe->bd_info->bi_private;
@@ -3507,7 +3533,7 @@ loglevel_destroy( void )
 	}
 
 	if ( logfile ) {
-		lutil_debug_file( NULL );
+		ldap_debug_file( NULL );
 		fclose( logfile );
 		logfile = NULL;
 	}
@@ -4511,15 +4537,18 @@ done:
 static int
 config_back_bind( Operation *op, SlapReply *rs )
 {
+	cf_rd_lock();
 	if ( be_isroot_pw( op ) ) {
 		ber_dupbv( &op->orb_edn, be_root_dn( op->o_bd ));
 		/* frontend sends result */
+		cf_rd_unlock();
 		return LDAP_SUCCESS;
 	}
 
 	rs->sr_err = LDAP_INVALID_CREDENTIALS;
 	send_ldap_result( op, rs );
 
+	cf_rd_unlock();
 	return rs->sr_err;
 }
 
@@ -5621,7 +5650,7 @@ config_rename_del( Operation *op, SlapReply *rs, CfEntryInfo *ce,
  * database.
  */
 static int
-config_back_add( Operation *op, SlapReply *rs )
+__config_back_add( Operation *op, SlapReply *rs )
 {
 	CfBackInfo *cfb;
 	int renumber;
@@ -5661,11 +5690,14 @@ config_back_add( Operation *op, SlapReply *rs )
 		}
 	}
 
-	if ( get_op_abandon(op) ) {
+	if ( slap_get_op_abandon(op) ) {
 		rs->sr_err = SLAPD_ABANDON;
 		goto out;
 	}
+
+	rurw_lock_deep_t state = cf_rdwr_retreat();
 	slap_biglock_pool_pause(op->o_bd);
+	cf_rdwr_obtain(state);
 
 	/* Strategy:
 	 * 1) check for existence of entry
@@ -5729,6 +5761,14 @@ out:;
 	}
 	slap_graduate_commit_csn( op );
 	return rs->sr_err;
+}
+
+static int
+config_back_add( Operation *op, SlapReply *rs ) {
+	cf_wr_lock();
+	int rc = __config_back_add( op, rs );
+	cf_wr_unlock();
+	return rc;
 }
 
 typedef struct delrec {
@@ -6094,7 +6134,7 @@ out_noop:
 }
 
 static int
-config_back_modify( Operation *op, SlapReply *rs )
+__config_back_modify( Operation *op, SlapReply *rs )
 {
 	CfBackInfo *cfb;
 	CfEntryInfo *ce, *last;
@@ -6147,11 +6187,13 @@ config_back_modify( Operation *op, SlapReply *rs )
 	slap_mods_opattrs( op, &op->orm_modlist, 1 );
 
 	if ( do_pause ) {
-		if ( get_op_abandon(op) ) {
+		if ( slap_get_op_abandon(op) ) {
 			rs->sr_err = SLAPD_ABANDON;
 			goto out;
 		}
+		rurw_lock_deep_t state = cf_rdwr_retreat();
 		slap_biglock_pool_pause(op->o_bd);
+		cf_rdwr_obtain(state);
 	}
 
 	/* Strategy:
@@ -6193,7 +6235,15 @@ out:
 }
 
 static int
-config_back_modrdn( Operation *op, SlapReply *rs )
+config_back_modify( Operation *op, SlapReply *rs ) {
+	cf_wr_lock();
+	int rc = __config_back_modify( op, rs );
+	cf_wr_unlock();
+	return rc;
+}
+
+static int
+__config_back_modrdn( Operation *op, SlapReply *rs )
 {
 	CfBackInfo *cfb;
 	CfEntryInfo *ce, *last;
@@ -6316,11 +6366,13 @@ config_back_modrdn( Operation *op, SlapReply *rs )
 		goto out;
 	}
 
-	if ( get_op_abandon(op) ) {
+	if ( slap_get_op_abandon(op) ) {
 		rs->sr_err = SLAPD_ABANDON;
 		goto out;
 	}
+	rurw_lock_deep_t state = cf_rdwr_retreat();
 	slap_biglock_pool_pause(op->o_bd);
+	cf_rdwr_obtain(state);
 
 	if ( ce->ce_type == Cft_Schema ) {
 		req_modrdn_s modr = op->oq_modrdn;
@@ -6394,7 +6446,15 @@ out:
 }
 
 static int
-config_back_delete( Operation *op, SlapReply *rs )
+config_back_modrdn( Operation *op, SlapReply *rs ) {
+	cf_wr_lock();
+	int rc = __config_back_modrdn( op, rs );
+	cf_wr_unlock();
+	return rc;
+}
+
+static int
+__config_back_delete( Operation *op, SlapReply *rs )
 {
 #ifdef SLAP_CONFIG_DELETE
 	CfBackInfo *cfb;
@@ -6409,7 +6469,7 @@ config_back_delete( Operation *op, SlapReply *rs )
 		rs->sr_err = LDAP_NO_SUCH_OBJECT;
 	} else if ( ce->ce_kids ) {
 		rs->sr_err = LDAP_NOT_ALLOWED_ON_NONLEAF;
-	} else if ( get_op_abandon(op) ) {
+	} else if ( slap_get_op_abandon(op) ) {
 		rs->sr_err = SLAPD_ABANDON;
 	} else if ( ce->ce_type == Cft_Overlay ||
 			ce->ce_type == Cft_Database ||
@@ -6417,7 +6477,9 @@ config_back_delete( Operation *op, SlapReply *rs )
 		char *iptr;
 		int count, ixold;
 
-		slap_biglock_pool_pause( op->o_bd );
+		rurw_lock_deep_t state = cf_rdwr_retreat();
+		slap_biglock_pool_pause(op->o_bd);
+		cf_rdwr_obtain(state);
 
 		if ( ce->ce_type == Cft_Overlay ){
 			overlay_remove( ce->ce_be, (slap_overinst *)ce->ce_bi, op );
@@ -6539,7 +6601,15 @@ out:
 }
 
 static int
-config_back_search( Operation *op, SlapReply *rs )
+config_back_delete( Operation *op, SlapReply *rs ) {
+	cf_wr_lock();
+	int rc = __config_back_delete( op, rs );
+	cf_wr_unlock();
+	return rc;
+}
+
+static int
+__config_back_search( Operation *op, SlapReply *rs )
 {
 	CfBackInfo *cfb;
 	CfEntryInfo *ce, *last;
@@ -6583,6 +6653,14 @@ config_back_search( Operation *op, SlapReply *rs )
 out:
 	send_ldap_result( op, rs );
 	return rs->sr_err;
+}
+
+static int
+config_back_search( Operation *op, SlapReply *rs ) {
+	cf_rd_lock();
+	int rc = __config_back_search(op, rs);
+	cf_rd_unlock();
+	return rc;
 }
 
 /* no-op, we never free entries */
@@ -6988,7 +7066,7 @@ static const char *defacl[] = {
 };
 
 static int
-config_back_db_open( BackendDB *be, ConfigReply *cr )
+__config_back_db_open( BackendDB *be, ConfigReply *cr )
 {
 	CfBackInfo *cfb = be->be_private;
 	struct berval rdn;
@@ -7222,6 +7300,14 @@ config_back_db_open( BackendDB *be, ConfigReply *cr )
 	return 0;
 }
 
+static int
+config_back_db_open( BackendDB *be, ConfigReply *cr ) {
+	cf_wr_lock();
+	int rc = __config_back_db_open(be, cr);
+	cf_wr_unlock();
+	return rc;
+}
+
 static void
 cfb_free_cffile( ConfigFile *cf )
 {
@@ -7256,6 +7342,7 @@ static int
 config_back_db_close( BackendDB *be, ConfigReply *cr )
 {
 	CfBackInfo *cfb = be->be_private;
+	cf_wr_lock();
 
 	cfb_free_entries( cfb->cb_root );
 	cfb->cb_root = NULL;
@@ -7269,6 +7356,7 @@ config_back_db_close( BackendDB *be, ConfigReply *cr )
 		defacl_parsed = NULL;
 	}
 
+	cf_wr_unlock();
 	return 0;
 }
 
@@ -7276,6 +7364,7 @@ static int
 config_back_db_destroy( BackendDB *be, ConfigReply *cr )
 {
 	CfBackInfo *cfb = be->be_private;
+	cf_wr_lock();
 
 	cfb_free_cffile( cfb->cb_config );
 
@@ -7294,6 +7383,7 @@ config_back_db_destroy( BackendDB *be, ConfigReply *cr )
 
 	loglevel_destroy();
 
+	cf_wr_unlock();
 	return 0;
 }
 
@@ -7304,6 +7394,7 @@ config_back_db_init( BackendDB *be, ConfigReply* cr )
 	CfBackInfo *cfb;
 
 	cfb = &cfBackInfo;
+	cf_wr_lock();
 	cfb->cb_config = ch_calloc( 1, sizeof(ConfigFile));
 	cfn = cfb->cb_config;
 	be->be_private = cfb;
@@ -7321,12 +7412,14 @@ config_back_db_init( BackendDB *be, ConfigReply* cr )
 	/* Check ACLs on content of Adds by default */
 	SLAP_DBFLAGS(be) |= SLAP_DBFLAG_ACL_ADD;
 
+	cf_wr_unlock();
 	return 0;
 }
 
 static int
 config_back_destroy( BackendInfo *bi )
 {
+	cf_wr_lock();
 	ldif_must_b64_encode_release();
 
 	while(sid_list) {
@@ -7339,6 +7432,7 @@ config_back_destroy( BackendInfo *bi )
 			sid_set = NULL;
 	}
 
+	cf_wr_unlock();
 	return 0;
 }
 
@@ -7625,6 +7719,8 @@ config_back_initialize( BackendInfo *bi )
 		NULL
 	};
 
+	cf_rdwr_init();
+
 	/* Make sure we don't exceed the bits reserved for userland */
 	config_check_userland( CFG_LAST );
 
@@ -7715,4 +7811,36 @@ config_back_initialize( BackendInfo *bi )
 	}
 
 	return 0;
+}
+
+/* -------------------------------------------------------------------------- */
+
+rurw_lock_t cb_lock;
+
+static void cf_rdwr_init(void) {
+	rurw_lock_init(&cb_lock);
+}
+
+static rurw_lock_deep_t cf_rdwr_retreat(void) {
+	return rurw_retreat(&cb_lock);
+}
+
+static void cf_rdwr_obtain(rurw_lock_deep_t state) {
+	return rurw_obtain(&cb_lock, state);
+}
+
+static void cf_rd_lock(void) {
+	rurw_r_lock(&cb_lock);
+}
+
+static void cf_rd_unlock(void) {
+	rurw_r_unlock(&cb_lock);
+}
+
+static void cf_wr_lock(void) {
+	rurw_w_lock(&cb_lock);
+}
+
+static void cf_wr_unlock() {
+	rurw_w_unlock(&cb_lock);
 }

@@ -1,7 +1,27 @@
-dnl $OpenLDAP$
-dnl This work is part of OpenLDAP Software <http://www.openldap.org/>.
+dnl $ReOpenLDAP$
 dnl
-dnl Copyright 1998-2016 The OpenLDAP Foundation.
+dnl Copyright (c) 2015,2016 Leonid Yuriev <leo@yuriev.ru>.
+dnl Copyright (c) 2015,2016 Peter-Service R&D LLC <http://billing.ru/>.
+dnl
+dnl This file is part of ReOpenLDAP.
+dnl
+dnl ReOpenLDAP is free software; you can redistribute it and/or modify it under
+dnl the terms of the GNU Affero General Public License as published by
+dnl the Free Software Foundation; either version 3 of the License, or
+dnl (at your option) any later version.
+dnl
+dnl ReOpenLDAP is distributed in the hope that it will be useful,
+dnl but WITHOUT ANY WARRANTY; without even the implied warranty of
+dnl MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+dnl GNU Affero General Public License for more details.
+dnl
+dnl You should have received a copy of the GNU Affero General Public License
+dnl along with this program.  If not, see <http://www.gnu.org/licenses/>.
+dnl
+dnl ---
+dnl
+dnl
+dnl Copyright 1998-2014 The OpenLDAP Foundation.
 dnl All rights reserved.
 dnl
 dnl Redistribution and use in source and binary forms, with or without
@@ -22,8 +42,28 @@ define([AC_LIBTOOL_LANG_CXX_CONFIG], [:])dnl
 define([AC_LIBTOOL_LANG_F77_CONFIG], [:])dnl
 define([AC_LIBTOOL_LANG_GCJ_CONFIG], [:])dnl
 dnl ================================================================
-dnl Configure.in for OpenLDAP
-AC_COPYRIGHT([[Copyright 1998-2016 The OpenLDAP Foundation. All rights reserved.
+dnl Configure.in for ReOpenLDAP
+AC_COPYRIGHT([[Copyright (c) 2015,2016 Leonid Yuriev <leo@yuriev.ru>.
+Copyright (c) 2015,2016 Peter-Service R&D LLC <http://billing.ru/>.
+
+This is part of ReOpenLDAP.
+
+ReOpenLDAP is free software; you can redistribute it and/or modify it under
+the terms of the GNU Affero General Public License as published by
+the Free Software Foundation; either version 3 of the License, or
+(at your option) any later version.
+
+ReOpenLDAP is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Affero General Public License for more details.
+
+You should have received a copy of the GNU Affero General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+---
+
+Copyright 1998-2014 The OpenLDAP Foundation. All rights reserved.
 Restrictions apply, see COPYRIGHT and LICENSE files.]])
 AC_REVISION([$Id$])
 AC_INIT([OpenLDAP],,[http://www.openldap.org/its/])
@@ -56,14 +96,14 @@ if test -t 1; then
 	TN="`$SHTOOL echo -e '%b' 2>/dev/null`"
 fi
 
-OPENLDAP_REPO=""
+REOPENLDAP_REPO=""
 if test -d $ac_aux_dir/../.git; then
-	OPENLDAP_REPO="(from Git clone) "
+	REOPENLDAP_REPO="(from Git clone) "
 elif test -d $ac_aux_dir/CVS; then
-	OPENLDAP_REPO="(from CVS checkout) "
+	REOPENLDAP_REPO="(from CVS checkout) "
 fi
 
-echo "Configuring ${TB}${OL_STRING}${TN} ${OPENLDAP_REPO}..."
+echo "Configuring ${TB}${OL_STRING}${TN} ${REOPENLDAP_REPO}..."
 
 dnl Determine host platform
 dnl		we try not to use this for much
@@ -72,22 +112,22 @@ AC_CANONICAL_TARGET([])
 AM_INIT_AUTOMAKE([$OL_PACKAGE],[$OL_VERSION], [no defines])dnl
 AC_SUBST(PACKAGE)dnl
 AC_SUBST(VERSION)dnl
-AC_DEFINE_UNQUOTED(OPENLDAP_PACKAGE,"$PACKAGE",Package)
-AC_DEFINE_UNQUOTED(OPENLDAP_VERSION,"$VERSION",Version)
+AC_DEFINE_UNQUOTED(REOPENLDAP_PACKAGE,"$PACKAGE",Package)
+AC_DEFINE_UNQUOTED(REOPENLDAP_VERSION,"$VERSION",Version)
 
 AC_DEFINE_UNQUOTED(LDAP_VENDOR_VERSION,$OL_API_INC,Version)
 AC_DEFINE_UNQUOTED(LDAP_VENDOR_VERSION_MAJOR,$OL_MAJOR,Major)
 AC_DEFINE_UNQUOTED(LDAP_VENDOR_VERSION_MINOR,$OL_MINOR,Minor)
 AC_DEFINE_UNQUOTED(LDAP_VENDOR_VERSION_PATCH,$OL_PATCH,Patch)
 
-OPENLDAP_LIBRELEASE=$OL_API_LIB_RELEASE
-AC_SUBST(OPENLDAP_LIBRELEASE)dnl
+REOPENLDAP_LIBRELEASE=$OL_API_LIB_RELEASE
+AC_SUBST(REOPENLDAP_LIBRELEASE)dnl
 
-OPENLDAP_LIBVERSION=$OL_API_LIB_VERSION
-AC_SUBST(OPENLDAP_LIBVERSION)dnl
+REOPENLDAP_LIBVERSION=$OL_API_LIB_VERSION
+AC_SUBST(REOPENLDAP_LIBVERSION)dnl
 
-OPENLDAP_RELEASE_DATE="$OL_RELEASE_DATE"
-AC_SUBST(OPENLDAP_RELEASE_DATE)dnl
+REOPENLDAP_RELEASE_DATE="$OL_RELEASE_DATE"
+AC_SUBST(REOPENLDAP_RELEASE_DATE)dnl
 
 dnl We use autoconf features new to 2.59.  Later versions like won't work.
 dnl aclocal.m4 should be built using aclocal from automake 1.5
@@ -96,9 +136,27 @@ AC_PREREQ(2.59)dnl Required Autoconf version
 
 AH_TOP([
 /* begin of portable.h.pre */
-/* This work is part of OpenLDAP Software <http://www.openldap.org/>.
+/* Copyright (c) 2015,2016 Leonid Yuriev <leo@yuriev.ru>.
+ * Copyright (c) 2015,2016 Peter-Service R&D LLC <http://billing.ru/>.
  *
- * Copyright 1998-2016 The OpenLDAP Foundation
+ * This file is part of ReOpenLDAP.
+ *
+ * ReOpenLDAP is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation; either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * ReOpenLDAP is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * ---
+ *
+ * Copyright 1998-2014 The OpenLDAP Foundation
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -206,7 +264,7 @@ AC_SUBST(top_builddir)dnl
 
 dnl ----------------------------------------------------------------
 dnl --with-subdir
-ldap_subdir="/openldap"
+ldap_subdir="/reopenldap"
 
 AC_ARG_WITH(subdir,
 [  --with-subdir=DIR       change default subdirectory used for installs],
@@ -720,10 +778,11 @@ dnl BeOS requires -lbe -lroot -lnet
 AC_CHECK_LIB(be, be_app, [LIBS="$LIBS -lbe -lroot -lnet"], :, [-lroot -lnet])
 
 dnl ----------------------------------------------------------------
-dnl OpenLDAP requires STDC features
+dnl ReOpenLDAP requires STDC features
 AC_PROG_CC
+AC_PROG_CXX
 if test "X${ac_cv_prog_cc_stdc}" = "Xno" ; then
-	AC_MSG_ERROR([OpenLDAP requires compiler to support STDC constructs.])
+	AC_MSG_ERROR([ReOpenLDAP requires compiler to support STDC constructs.])
 fi
 
 dnl ----------------------------------------------------------------
@@ -1056,23 +1115,8 @@ if test $have_uuid = no ; then
 	fi
 fi
 
-dnl For windows, check for the need of RPCRT for UUID function support
 if test $have_uuid = no ; then
-	AC_MSG_CHECKING(to see if -lrpcrt4 is needed for win32 UUID support)
-	save_LIBS="$LIBS"
-	LIBS="$LIBS -lrpcrt4"
-	AC_LINK_IFELSE([AC_LANG_PROGRAM([[
-		int __stdcall UuidCreate(void *);
-		int __stdcall UuidToStringA(void *,void **);
-		]], [[
-		UuidCreate(0);
-		UuidToStringA(0,0);
-		]])],[need_rpcrt=yes],[need_rpcrt=no])
-	if test $need_rpcrt = yes; then
-		SLAPD_LIBS="$SLAPD_LIBS -lrpcrt4"
-	fi
-	LIBS="$save_LIBS"
-	AC_MSG_RESULT($need_rpcrt)
+	AC_MSG_ERROR([*** uuid support not found (this typically means the uuid development package is missing)])
 fi
 
 dnl ----------------------------------------------------------------
@@ -2333,7 +2377,7 @@ AC_CHECK_SIZEOF(long long)
 AC_CHECK_SIZEOF(wchar_t)
 
 if test "$ac_cv_sizeof_int" -lt 4 ; then
-	AC_MSG_WARN([OpenLDAP requires 'int' to be 32 bits or greater.])
+	AC_MSG_WARN([ReOpenLDAP requires 'int' to be 32 bits or greater.])
 
 	AC_DEFINE(LBER_INT_T,long,[define to 32-bit or greater integer type])
 else
@@ -2390,12 +2434,6 @@ fi
 
 dnl ----------------------------------------------------------------
 dnl Checks for library functions.
-AC_FUNC_MEMCMP
-
-if test $ac_cv_func_memcmp_working = no ; then
-	AC_DEFINE(NEED_MEMCMP_REPLACEMENT,1,
-		[define if memcmp is not 8-bit clean or is otherwise broken])
-fi
 
 AC_FUNC_STRFTIME
 
@@ -2446,7 +2484,6 @@ AC_CHECK_FUNCS(			\
 	lockf			\
 	memcpy			\
 	memmove			\
-	memrchr			\
 	mkstemp			\
 	mktemp			\
 	pipe			\
@@ -2460,7 +2497,6 @@ AC_CHECK_FUNCS(			\
 	setuid			\
 	seteuid			\
 	signal			\
-	strdup			\
 	strpbrk			\
 	strrchr			\
 	strsep			\
@@ -2536,7 +2572,7 @@ if test "$ol_enable_slapi" != no ; then
 	fi
 	AC_CHECK_LIB(ltdl, lt_dlinit, [
 		SLAPI_LIBS=-lltdl
-		LIBSLAPI=slapi/libslapi.la
+		LIBSLAPI=slapi/libreslapi.la
 		AC_DEFINE(HAVE_LIBLTDL,1,[define if you have libtool -ltdl])
 	],[AC_MSG_ERROR([could not locate libtool -lltdl])])
 
@@ -3060,7 +3096,7 @@ fi
 if test "$ol_enable_slapi" != no ; then
 	AC_DEFINE(ENABLE_SLAPI,1,[define to enable slapi library])
 	BUILD_SLAPI=yes
-	SLAPD_SLAPI_DEPEND=libslapi.a
+	SLAPD_SLAPI_DEPEND=libreslapi.a
 fi
 
 dnl ----------------------------------------------------------------
@@ -3070,15 +3106,7 @@ dnl For Windows build, we don't want to include -dlopen flags.
 dnl They hurt more than they help.
 dnl
 
-if test "$ac_cv_mingw32" = yes -o $ol_cv_msvc = yes ; then
-	PLAT=NT
-	SLAPD_MODULES_LDFLAGS=
-else
-	PLAT=UNIX
-fi
-
 AC_SUBST(LIBSRCS)
-AC_SUBST(PLAT)
 AC_SUBST(WITH_SASL)
 AC_SUBST(WITH_TLS)
 AC_SUBST(WITH_MODULES_ENABLED)
@@ -3185,13 +3213,16 @@ AC_CONFIG_FILES([Makefile:build/top.mk:Makefile.in:build/dir.mk]
 [doc/man/man3/Makefile:build/top.mk:doc/man/man3/Makefile.in:build/man.mk]
 [doc/man/man5/Makefile:build/top.mk:doc/man/man5/Makefile.in:build/man.mk]
 [doc/man/man8/Makefile:build/top.mk:doc/man/man8/Makefile.in:build/man.mk]
+[doc/ru/man/Makefile:build/top.mk:doc/ru/man/Makefile.in:build/dir.mk]
+[doc/ru/man/man1/Makefile:build/top.mk:doc/ru/man/man1/Makefile.in:build/man.mk]
+[doc/ru/man/man3/Makefile:build/top.mk:doc/ru/man/man3/Makefile.in:build/man.mk]
+[doc/ru/man/man5/Makefile:build/top.mk:doc/ru/man/man5/Makefile.in:build/man.mk]
+[doc/ru/man/man8/Makefile:build/top.mk:doc/ru/man/man8/Makefile.in:build/man.mk]
 [clients/Makefile:build/top.mk:clients/Makefile.in:build/dir.mk]
 [clients/tools/Makefile:build/top.mk:clients/tools/Makefile.in:build/rules.mk]
 [include/Makefile:build/top.mk:include/Makefile.in]
 [libraries/Makefile:build/top.mk:libraries/Makefile.in:build/dir.mk]
-[libraries/liblber/Makefile:build/top.mk:libraries/liblber/Makefile.in:build/lib.mk:build/lib-shared.mk]
-[libraries/libldap/Makefile:build/top.mk:libraries/libldap/Makefile.in:build/lib.mk:build/lib-shared.mk]
-[libraries/libldap_r/Makefile:build/top.mk:libraries/libldap_r/Makefile.in:build/lib.mk:build/lib-shared.mk]
+[libraries/libreldap/Makefile:build/top.mk:libraries/libreldap/Makefile.in:build/lib.mk:build/lib-shared.mk]
 [libraries/liblunicode/Makefile:build/top.mk:libraries/liblunicode/Makefile.in:build/lib.mk:build/lib-static.mk]
 [libraries/liblutil/Makefile:build/top.mk:libraries/liblutil/Makefile.in:build/lib.mk:build/lib-static.mk]
 [libraries/librewrite/Makefile:build/top.mk:libraries/librewrite/Makefile.in:build/lib.mk:build/lib-static.mk]
@@ -3227,9 +3258,27 @@ BACKENDSC="servers/slapd/backends.c"
 echo "Making $BACKENDSC"
 rm -f $BACKENDSC
 cat > $BACKENDSC << ENDX
-/* This work is part of OpenLDAP Software <http://www.openldap.org/>.
+/* Copyright (c) 2015,2016 Leonid Yuriev <leo@yuriev.ru>.
+ * Copyright (c) 2015,2016 Peter-Service R&D LLC <http://billing.ru/>.
  *
- * Copyright 1998-2016 The OpenLDAP Foundation.
+ * This file is part of ReOpenLDAP.
+ *
+ * ReOpenLDAP is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation; either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * ReOpenLDAP is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * ---
+ *
+ * Copyright 1998-2014 The OpenLDAP Foundation.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -3278,9 +3327,27 @@ OVERLAYSC="servers/slapd/overlays/statover.c"
 echo "Making $OVERLAYSC"
 rm -f $OVERLAYSC
 cat > $OVERLAYSC << ENDX
-/* This work is part of OpenLDAP Software <http://www.openldap.org/>.
+/* Copyright (c) 2015,2016 Leonid Yuriev <leo@yuriev.ru>.
+ * Copyright (c) 2015,2016 Peter-Service R&D LLC <http://billing.ru/>.
  *
- * Copyright 1998-2016 The OpenLDAP Foundation.
+ * This file is part of ReOpenLDAP.
+ *
+ * ReOpenLDAP is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation; either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * ReOpenLDAP is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * ---
+ *
+ * Copyright 1998-2014 The OpenLDAP Foundation.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without

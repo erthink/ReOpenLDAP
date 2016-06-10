@@ -1,8 +1,28 @@
-.TH SLAPO-RWM 5 "RELEASEDATE" "OpenLDAP LDVERSION"
-.\" Copyright 1998-2016 The OpenLDAP Foundation, All Rights Reserved.
+.TH SLAPO-RWM 5 "RELEASEDATE" "ReOpenLDAP LDVERSION"
+.\" $ReOpenLDAP$
+.\" Copyright (c) 2015,2016 Leonid Yuriev <leo@yuriev.ru>.
+.\" Copyright (c) 2015,2016 Peter-Service R&D LLC <http://billing.ru/>.
+.\"
+.\" This file is part of ReOpenLDAP.
+.\"
+.\" ReOpenLDAP is free software; you can redistribute it and/or modify it under
+.\" the terms of the GNU Affero General Public License as published by
+.\" the Free Software Foundation; either version 3 of the License, or
+.\" (at your option) any later version.
+.\"
+.\" ReOpenLDAP is distributed in the hope that it will be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+.\" GNU Affero General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU Affero General Public License
+.\" along with this program.  If not, see <http://www.gnu.org/licenses/>.
+.\"
+.\" ---
+.\"
+.\" Copyright 1998-2014 The OpenLDAP Foundation, All Rights Reserved.
 .\" Copying restrictions apply.  See the COPYRIGHT file.
 .\" Copyright 2004, Pierangelo Masarati, All rights reserved. <ando@sys-net.it>
-.\" $OpenLDAP$
 .\"
 .\" Portions of this document should probably be moved to slapd-ldap(5)
 .\" and maybe manual pages for librewrite.
@@ -521,16 +541,16 @@ rwm\-rewriteContext referralDN
 
 # Everything defined here goes into the `default' context.
 # This rule changes the naming context of anything sent
-# to `dc=home,dc=net' to `dc=OpenLDAP, dc=org'
+# to `dc=home,dc=net' to `dc=ReOpenLDAP, dc=org'
 
 rwm\-rewriteRule "(.+,)?dc=home,[ ]?dc=net$"
-            "$1dc=OpenLDAP, dc=org"  ":"
+            "$1dc=ReOpenLDAP, dc=org"  ":"
 
 # since a pretty/normalized DN does not include spaces
 # after rdn separators, e.g. `,', this rule suffices:
 
 rwm\-rewriteRule "(.+,)?dc=home,dc=net$"
-            "$1dc=OpenLDAP,dc=org"  ":"
+            "$1dc=ReOpenLDAP,dc=org"  ":"
 
 # Start a new context (ends input of the previous one).
 # This rule adds blanks between DN parts if not present.
@@ -566,10 +586,10 @@ rwm\-rewriteRule     ".*" "${>addBlanks($0)}" ":"
 # Rewrite the search base according to `default' rules.
 rwm\-rewriteContext  searchDN alias default
 
-# Search results with OpenLDAP DN are rewritten back with
+# Search results with ReOpenLDAP DN are rewritten back with
 # `dc=home,dc=net' naming context, with spaces eaten.
 rwm\-rewriteContext  searchEntryDN
-rwm\-rewriteRule     "(.*[^ ],)?[ ]?dc=OpenLDAP,[ ]?dc=org$"
+rwm\-rewriteRule     "(.*[^ ],)?[ ]?dc=ReOpenLDAP,[ ]?dc=org$"
                 "${>eatBlanks($1)}dc=home,dc=net"    ":"
 
 # Bind with email instead of full DN: we first need

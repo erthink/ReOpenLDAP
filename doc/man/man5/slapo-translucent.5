@@ -1,14 +1,34 @@
-.TH SLAPO-TRANSLUCENT 5 "RELEASEDATE" "OpenLDAP LDVERSION"
-.\" Copyright 2004-2016 The OpenLDAP Foundation All Rights Reserved.
+.TH SLAPO-TRANSLUCENT 5 "RELEASEDATE" "ReOpenLDAP LDVERSION"
+.\" $ReOpenLDAP$
+.\" Copyright (c) 2015,2016 Leonid Yuriev <leo@yuriev.ru>.
+.\" Copyright (c) 2015,2016 Peter-Service R&D LLC <http://billing.ru/>.
+.\"
+.\" This file is part of ReOpenLDAP.
+.\"
+.\" ReOpenLDAP is free software; you can redistribute it and/or modify it under
+.\" the terms of the GNU Affero General Public License as published by
+.\" the Free Software Foundation; either version 3 of the License, or
+.\" (at your option) any later version.
+.\"
+.\" ReOpenLDAP is distributed in the hope that it will be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+.\" GNU Affero General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU Affero General Public License
+.\" along with this program.  If not, see <http://www.gnu.org/licenses/>.
+.\"
+.\" ---
+.\"
+.\" Copyright 2004-2014 The OpenLDAP Foundation All Rights Reserved.
 .\" Copying restrictions apply.  See COPYRIGHT/LICENSE.
-.\" $OpenLDAP$
 .SH NAME
 slapo\-translucent \- Translucent Proxy overlay to slapd
 .SH SYNOPSIS
 ETCDIR/slapd.conf
 .SH DESCRIPTION
 The Translucent Proxy overlay can be used with a backend database such as
-.BR slapd\-bdb (5)
+.BR slapd\-mdb (5)
 to create a "translucent proxy".  Entries retrieved from a remote LDAP
 server may have some or all attributes overridden, or new attributes
 added, by entries in the local database before being presented to the

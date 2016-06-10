@@ -1,8 +1,26 @@
 /* Generic socket.h */
-/* $OpenLDAP$ */
-/* This work is part of OpenLDAP Software <http://www.openldap.org/>.
+/* $ReOpenLDAP$ */
+/* Copyright (c) 2015,2016 Leonid Yuriev <leo@yuriev.ru>.
+ * Copyright (c) 2015,2016 Peter-Service R&D LLC <http://billing.ru/>.
  *
- * Copyright 1998-2016 The OpenLDAP Foundation.
+ * This file is part of ReOpenLDAP.
+ *
+ * ReOpenLDAP is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation; either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * ReOpenLDAP is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * ---
+ *
+ * Copyright 1998-2014 The OpenLDAP Foundation.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -60,13 +78,6 @@
 
 #endif /* HAVE_SYS_SOCKET_H */
 
-#ifdef HAVE_WINSOCK2
-#include <winsock2.h>
-#include <ws2tcpip.h>
-#elif HAVE_WINSOCK
-#include <winsock.h>
-#endif
-
 #ifdef HAVE_PCNFS
 #include <tklib.h>
 #endif /* HAVE_PCNFS */
@@ -85,66 +96,14 @@
 #define sock_errstr(e)	STRERROR(e)
 #define sock_errset(e)	((void) (errno = (e)))
 
-#ifdef HAVE_WINSOCK
-#	define tcp_read( s, buf, len )	recv( s, buf, len, 0 )
-#	define tcp_write( s, buf, len )	send( s, buf, len, 0 )
-#	define ioctl( s, c, a )		ioctlsocket( (s), (c), (a) )
-#	define ioctl_t				u_long
-#	define AC_SOCKET_INVALID	((unsigned int) -1)
+#define tcp_read( s, buf, len)	read( s, buf, len )
+#define tcp_write( s, buf, len)	write( s, buf, len )
 
-#	ifdef SD_BOTH
-#		define tcp_close( s )	(shutdown( s, SD_BOTH ), closesocket( s ))
-#	else
-#		define tcp_close( s )		closesocket( s )
-#	endif
-
-#define EWOULDBLOCK WSAEWOULDBLOCK
-#define EINPROGRESS WSAEINPROGRESS
-#define ETIMEDOUT	WSAETIMEDOUT
-
-#undef	sock_errno
-#undef	sock_errstr
-#undef	sock_errset
-#define	sock_errno()	WSAGetLastError()
-#define	sock_errstr(e)	ber_pvt_wsa_err2string(e)
-#define	sock_errset(e)	WSASetLastError(e)
-
-LBER_F( char * ) ber_pvt_wsa_err2string LDAP_P((int));
-
-#elif MACOS
-#	define tcp_close( s )		tcpclose( s )
-#	define tcp_read( s, buf, len )	tcpread( s, buf, len )
-#	define tcp_write( s, buf, len )	tcpwrite( s, buf, len )
-
-#elif DOS
-#	ifdef PCNFS
-#		define tcp_close( s )	close( s )
-#		define tcp_read( s, buf, len )	recv( s, buf, len, 0 )
-#		define tcp_write( s, buf, len )	send( s, buf, len, 0 )
-#	endif /* PCNFS */
-#	ifdef NCSA
-#		define tcp_close( s )	do { netclose( s ); netshut() } while(0)
-#		define tcp_read( s, buf, len )	nread( s, buf, len )
-#		define tcp_write( s, buf, len )	netwrite( s, buf, len )
-#	endif /* NCSA */
-
-#elif defined(HAVE_CLOSESOCKET)
-#	define tcp_close( s )		closesocket( s )
-
-#	ifdef __BEOS__
-#		define tcp_read( s, buf, len )	recv( s, buf, len, 0 )
-#		define tcp_write( s, buf, len )	send( s, buf, len, 0 )
-#	endif
-
+#ifdef SHUT_RDWR
+#	define tcp_close( s )	(shutdown( s, SHUT_RDWR ), close( s ))
 #else
-#	define tcp_read( s, buf, len)	read( s, buf, len )
-#	define tcp_write( s, buf, len)	write( s, buf, len )
-
-#	ifdef SHUT_RDWR
-#		define tcp_close( s )	(shutdown( s, SHUT_RDWR ), close( s ))
-#	else
-#		define tcp_close( s )	close( s )
-#	endif
+#	define tcp_close( s )	close( s )
+#endif
 
 #ifdef HAVE_PIPE
 /*
@@ -153,8 +112,6 @@ LBER_F( char * ) ber_pvt_wsa_err2string LDAP_P((int));
  */
 #	define USE_PIPE HAVE_PIPE
 #endif
-
-#endif /* MACOS */
 
 #ifndef ioctl_t
 #	define ioctl_t				int
@@ -173,17 +130,8 @@ struct in_addr;
 LDAP_F (int) ldap_pvt_inet_aton LDAP_P(( const char *, struct in_addr * ));
 #endif
 
-#if	defined(__WIN32) && defined(_ALPHA)
-/* NT on Alpha is hosed. */
-#	define AC_HTONL( l ) \
-        ((((l)&0xffU)<<24) + (((l)&0xff00U)<<8) + \
-         (((l)&0xff0000U)>>8) + (((l)&0xff000000U)>>24))
-#	define AC_NTOHL(l) AC_HTONL(l)
-
-#else
-#	define AC_HTONL( l ) htonl( l )
-#	define AC_NTOHL( l ) ntohl( l )
-#endif
+#define AC_HTONL( l ) htonl( l )
+#define AC_NTOHL( l ) ntohl( l )
 
 /* htons()/ntohs() may be broken much like htonl()/ntohl() */
 #define AC_HTONS( s ) htons( s )

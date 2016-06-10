@@ -1,8 +1,26 @@
 /* operation.c - routines to deal with pending ldap operations */
-/* $OpenLDAP$ */
-/* This work is part of OpenLDAP Software <http://www.openldap.org/>.
+/* $ReOpenLDAP$ */
+/* Copyright (c) 2015,2016 Leonid Yuriev <leo@yuriev.ru>.
+ * Copyright (c) 2015,2016 Peter-Service R&D LLC <http://billing.ru/>.
  *
- * Copyright 1998-2016 The OpenLDAP Foundation.
+ * This file is part of ReOpenLDAP.
+ *
+ * ReOpenLDAP is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation; either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * ReOpenLDAP is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * ---
+ *
+ * Copyright 1998-2014 The OpenLDAP Foundation.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -81,7 +99,7 @@ slap_op_free( Operation *op, void *ctx )
 	assert( LDAP_STAILQ_NEXT(op, o_next) == NULL );
 
 	/* paranoia */
-	set_op_abandon(op, 1);
+	slap_set_op_abandon(op, 1);
 
 	if ( op->o_ber != NULL ) {
 		ber_free( op->o_ber, 1 );
@@ -188,8 +206,8 @@ slap_op_alloc(
 			otmp = LDAP_STAILQ_NEXT( op, o_next );
 			ldap_pvt_thread_pool_setkey( ctx, (void *)slap_op_free,
 				otmp, slap_op_q_destroy, NULL, NULL );
-			set_op_abandon(op, 0);
-			set_op_cancel(op, 0);
+			slap_set_op_abandon(op, 0);
+			slap_set_op_cancel(op, 0);
 		}
 	}
 	if (!op) {

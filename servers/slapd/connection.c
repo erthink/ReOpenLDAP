@@ -1,7 +1,25 @@
-/* $OpenLDAP$ */
-/* This work is part of OpenLDAP Software <http://www.openldap.org/>.
+/* $ReOpenLDAP$ */
+/* Copyright (c) 2015,2016 Leonid Yuriev <leo@yuriev.ru>.
+ * Copyright (c) 2015,2016 Peter-Service R&D LLC <http://billing.ru/>.
  *
- * Copyright 1998-2016 The OpenLDAP Foundation.
+ * This file is part of ReOpenLDAP.
+ *
+ * ReOpenLDAP is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation; either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * ReOpenLDAP is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * ---
+ *
+ * Copyright 1998-2014 The OpenLDAP Foundation.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -40,7 +58,7 @@
 #include "slap.h"
 
 #ifdef LDAP_CONNECTIONLESS
-#include "../../libraries/liblber/lber-int.h"	/* ber_int_sb_read() */
+#include "../../libraries/libreldap/lber-int.h"	/* ber_int_sb_read() */
 #endif
 
 #ifdef LDAP_SLAPI
@@ -783,10 +801,10 @@ static void connection_abandon( Connection *c )
 			LDAP_ASSERT(next->o_conn == c);
 
 		/* don't abandon an op twice */
-		if ( get_op_abandon(o) == 2 )
+		if ( slap_get_op_abandon(o) == 2 )
 			continue;
 		op.orn_msgid = o->o_msgid;
-		set_op_abandon(o, 2);
+		slap_set_op_abandon(o, 2);
 		op.o_bd = frontendDB;
 		frontendDB->be_abandon( &op, &rs );
 
@@ -1161,7 +1179,7 @@ connection_operation( void *ctx, void *arg_v )
 		goto operations_error;
 	}
 
-	if( read_char__tsan_workaround(&conn->c_sasl_bind_in_progress)
+	if( slap_tsan__read_char(&conn->c_sasl_bind_in_progress)
 			&& tag != LDAP_REQ_BIND ) {
 		Debug( LDAP_DEBUG_ANY, "connection_operation: "
 			"error: SASL bind in progress (tag=%ld).\n",
@@ -1228,10 +1246,10 @@ operations_error:
 	if ( opidx == SLAP_OP_BIND && conn->c_conn_state == SLAP_C_BINDING )
 		conn->c_conn_state = SLAP_C_ACTIVE;
 
-	cancel = get_op_cancel(op);
+	cancel = slap_get_op_cancel(op);
 	if ( cancel != SLAP_CANCEL_NONE && cancel != SLAP_CANCEL_DONE ) {
 		if ( cancel == SLAP_CANCEL_REQ ) {
-			set_op_cancel(op, (rc == SLAPD_ABANDON)
+			slap_set_op_cancel(op, (rc == SLAPD_ABANDON)
 				? SLAP_CANCEL_ACK : LDAP_TOO_LATE);
 		}
 
@@ -1242,10 +1260,10 @@ operations_error:
 			ldap_pvt_thread_mutex_unlock( &conn->c_mutex );
 			do {
 				ldap_pvt_thread_yield();
-			} while ( (cancel = get_op_cancel(op)) != SLAP_CANCEL_NONE
+			} while ( (cancel = slap_get_op_cancel(op)) != SLAP_CANCEL_NONE
 					&& cancel != SLAP_CANCEL_DONE );
 			ldap_pvt_thread_mutex_lock( &conn->c_mutex );
-		} while ( (cancel = get_op_cancel(op)) != SLAP_CANCEL_NONE
+		} while ( (cancel = slap_get_op_cancel(op)) != SLAP_CANCEL_NONE
 				&& cancel != SLAP_CANCEL_DONE );
 	}
 
@@ -1846,7 +1864,7 @@ connection_resched( Connection *conn )
 		LDAP_STAILQ_NEXT(op, o_next) = NULL;
 
 		/* pending operations should not be marked for abandonment */
-		assert(!get_op_abandon(op));
+		assert(!slap_get_op_abandon(op));
 
 		conn->c_n_ops_pending--;
 		conn->c_n_ops_executing++;
@@ -2057,7 +2075,7 @@ int connection_write(ber_socket_t s)
 		LDAP_STAILQ_NEXT(op, o_next) = NULL;
 
 		/* pending operations should not be marked for abandonment */
-		assert(!get_op_abandon(op));
+		assert(!slap_get_op_abandon(op));
 
 		c->c_n_ops_pending--;
 		c->c_n_ops_executing++;

@@ -1,6 +1,26 @@
-.TH LDAP.CONF 5 "RELEASEDATE" "OpenLDAP LDVERSION"
-.\" $OpenLDAP$
-.\" Copyright 1998-2015 The OpenLDAP Foundation All Rights Reserved.
+.TH LDAP.CONF 5 "RELEASEDATE" "ReOpenLDAP LDVERSION"
+.\" $ReOpenLDAP$
+.\" Copyright (c) 2015,2016 Leonid Yuriev <leo@yuriev.ru>.
+.\" Copyright (c) 2015,2016 Peter-Service R&D LLC <http://billing.ru/>.
+.\"
+.\" This file is part of ReOpenLDAP.
+.\"
+.\" ReOpenLDAP is free software; you can redistribute it and/or modify it under
+.\" the terms of the GNU Affero General Public License as published by
+.\" the Free Software Foundation; either version 3 of the License, or
+.\" (at your option) any later version.
+.\"
+.\" ReOpenLDAP is distributed in the hope that it will be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+.\" GNU Affero General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU Affero General Public License
+.\" along with this program.  If not, see <http://www.gnu.org/licenses/>.
+.\"
+.\" ---
+.\"
+.\" Copyright 1998-2014 The OpenLDAP Foundation All Rights Reserved.
 .\" Copying restrictions apply.  See COPYRIGHT/LICENSE.
 .SH НАЗВАНИЕ
 ldap.conf, .ldaprc \- конфигурационный файл/переменные окружения для LDAP-клиентов
@@ -205,7 +225,7 @@ LDAP-сервер. В данной опции может быть предост
 .BR ldap_result (3),
 в которых параметру timeout было задано значение NULL.
 .SH ОПЦИИ SASL
-Если OpenLDAP собран с поддержкой Simple Authentication and Security Layer,
+Если ReOpenLDAP собран с поддержкой Simple Authentication and Security Layer,
 можно определить дополнительные опции:
 .TP
 .B SASL_MECH <mechanism>
@@ -275,7 +295,7 @@ Triple DES и других сильных шифров, 128 разрешает �
 Значение 0 отключает уровни обеспечения безопасности. Значение по умолчанию - 65536.
 .RE
 .SH ОПЦИИ GSSAPI
-Если OpenLDAP собран с поддержкой Generic Security Services Application Programming Interface,
+Если ReOpenLDAP собран с поддержкой Generic Security Services Application Programming Interface,
 есть возможность определить дополнительные опции.
 .TP
 .B GSSAPI_SIGN <on/true/yes/off/false/no>
@@ -291,7 +311,7 @@ Triple DES и других сильных шифров, 128 разрешает �
 имя целевого принципала из значений атрибутов ldapServiceName или dnsHostName
 записи RootDSE каталога, содержащего целевой объект. Значение по умолчанию - off.
 .SH ОПЦИИ TLS
-Если OpenLDAP собран с поддержкой Transport Layer Security, есть возможность определить
+Если ReOpenLDAP собран с поддержкой Transport Layer Security, есть возможность определить
 дополнительные опции. Эти опции используются, когда при соединении выбран URI
 .B ldaps://
 (по умолчанию или явно), или когда приложение устанавливает TLS путём запроса операции LDAP StartTLS.
@@ -310,7 +330,7 @@ Triple DES и других сильных шифров, 128 разрешает �
 
 При использовании библиотеки Mozilla NSS аргумент <path> может содержать путь к базе данных
 сертификатов/ключей Mozilla NSS. Если аргумент <path> содержит пути и к базе данных
-сертификатов/ключей Mozilla NSS, и к файлам сертификатов удостоверяющих центров, OpenLDAP будет
+сертификатов/ключей Mozilla NSS, и к файлам сертификатов удостоверяющих центров, ReOpenLDAP будет
 использовать базу данных сертификатов/ключей, а файлы сертификатов удостоверяющих центров
 проигнорирует.
 .TP
@@ -405,8 +425,8 @@ TLS 1.x или выше, задайте в качестве аргумента �
 .fi
 
 требуется использовать TLS 1.1. Если в качестве минимально допустимой указана та версия
-протокола, которая не поддерживается данной реализацией OpenLDAP, то в итоге будет
-требоваться та наибольшая версия протокола, которую OpenLDAP поддерживает.
+протокола, которая не поддерживается данной реализацией ReOpenLDAP, то в итоге будет
+требоваться та наибольшая версия протокола, которую ReOpenLDAP поддерживает.
 Библиотека GnuTLS игнорирует эту опцию.
 .TP
 .B TLS_RANDFILE <filename>

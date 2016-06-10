@@ -1,19 +1,39 @@
-.TH SLAPD-BDB 5 "RELEASEDATE" "OpenLDAP LDVERSION"
-.\" Copyright 1998-2016 The OpenLDAP Foundation All Rights Reserved.
+.TH SLAPD-BDB 5 "RELEASEDATE" "ReOpenLDAP LDVERSION"
+.\" $ReOpenLDAP$
+.\" Copyright (c) 2015,2016 Leonid Yuriev <leo@yuriev.ru>.
+.\" Copyright (c) 2015,2016 Peter-Service R&D LLC <http://billing.ru/>.
+.\"
+.\" This file is part of ReOpenLDAP.
+.\"
+.\" ReOpenLDAP is free software; you can redistribute it and/or modify it under
+.\" the terms of the GNU Affero General Public License as published by
+.\" the Free Software Foundation; either version 3 of the License, or
+.\" (at your option) any later version.
+.\"
+.\" ReOpenLDAP is distributed in the hope that it will be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+.\" GNU Affero General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU Affero General Public License
+.\" along with this program.  If not, see <http://www.gnu.org/licenses/>.
+.\"
+.\" ---
+.\"
+.\" Copyright 1998-2014 The OpenLDAP Foundation All Rights Reserved.
 .\" Copying restrictions apply.  See COPYRIGHT/LICENSE.
-.\" $OpenLDAP$
 .SH NAME
-slapd\-bdb, slapd\-hdb \- Berkeley DB backends to slapd
+slapd\-bdb, slapd\-hdb \- obsolete Berkeley DB backends to slapd
 .SH SYNOPSIS
 .B ETCDIR/slapd.conf
 .SH DESCRIPTION
 The \fBbdb\fP backend to
 .BR slapd (8)
-uses the Oracle Berkeley DB (BDB) package to store data.
+uses the obsolete Oracle Berkeley DB (BDB) package to store data.
 It makes extensive use of indexing and caching to speed data access.
 .LP
 Note that BDB is deprecated and support will be dropped in future
-OpenLDAP releases. Installations should use the \fBmdb\fP
+ReOpenLDAP releases. Installations should use the \fBmdb\fP
 backend instead.
 .LP
 \fBhdb\fP is a variant of
@@ -135,7 +155,7 @@ Specify the directory where the BDB files containing this database and
 associated indexes live.
 A separate directory must be specified for each database.
 The default is
-.BR LOCALSTATEDIR/openldap\-data .
+.BR LOCALSTATEDIR/reopenldap\-data .
 .TP
 .B dirtyread
 Allow reads of modified but not yet committed data.

@@ -1,8 +1,26 @@
-# include Makefile.in for OpenLDAP
-# $OpenLDAP$
-## This work is part of OpenLDAP Software <http://www.openldap.org/>.
+# include Makefile.in for ReOpenLDAP
+# $ReOpenLDAP$
+## Copyright (c) 2015,2016 Leonid Yuriev <leo@yuriev.ru>.
+## Copyright (c) 2015,2016 Peter-Service R&D LLC <http://billing.ru/>.
 ##
-## Copyright 1998-2016 The OpenLDAP Foundation.
+## This file is part of ReOpenLDAP.
+##
+## ReOpenLDAP is free software; you can redistribute it and/or modify it under
+## the terms of the GNU Affero General Public License as published by
+## the Free Software Foundation; either version 3 of the License, or
+## (at your option) any later version.
+##
+## ReOpenLDAP is distributed in the hope that it will be useful,
+## but WITHOUT ANY WARRANTY; without even the implied warranty of
+## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+## GNU Affero General Public License for more details.
+##
+## You should have received a copy of the GNU Affero General Public License
+## along with this program.  If not, see <http://www.gnu.org/licenses/>.
+##
+## ---
+##
+## Copyright 1998-2014 The OpenLDAP Foundation.
 ## All rights reserved.
 ##
 ## Redistribution and use in source and binary forms, with or without
@@ -40,31 +58,14 @@ ldap_config.h: $(LDAP_CONFIG) Makefile
 	@$(RM) $@
 	@echo "Making $@"
 	@echo "/* Generated from $(LDAP_CONFIG) on `date` */" > $@;  \
-	if test $(PLAT) = NT; then \
-	    sysconfdir=`cygpath -w $(sysconfdir) | \
-		$(SED) -e 's/\\\\/\\\\\\\\\\\\\\\\/g'`; \
-	    datadir=`cygpath -w $(datadir) | \
-		$(SED) -e 's/\\\\/\\\\\\\\\\\\\\\\/g'`; \
-	    bindir=`cygpath -w $(bindir) | \
-		$(SED) -e 's/\\\\/\\\\\\\\\\\\\\\\/g'`; \
-	    sbindir=`cygpath -w $(sbindir) | \
-		$(SED) -e 's/\\\\/\\\\\\\\\\\\\\\\/g'`; \
-	    libexecdir=`cygpath -w $(libexecdir) | \
-		$(SED) -e 's/\\\\/\\\\\\\\\\\\\\\\/g'`; \
-	    moduledir=`cygpath -w $(moduledir) | \
-		$(SED) -e 's/\\\\/\\\\\\\\\\\\\\\\/g'`; \
-	    localstatedir=`cygpath -w $(localstatedir) | \
-		$(SED) -e 's/\\\\/\\\\\\\\\\\\\\\\/g'`; \
-	else \
-	    sysconfdir=$(sysconfdir); \
-	    datadir=$(datadir); \
-	    bindir=$(bindir); \
-	    sbindir=$(sbindir); \
-	    libexecdir=$(libexecdir); \
-	    moduledir=$(moduledir); \
-	    localstatedir=$(localstatedir); \
-	    localedir=$(localedir); \
-	fi; \
+	sysconfdir=$(sysconfdir); \
+	datadir=$(datadir); \
+	bindir=$(bindir); \
+	sbindir=$(sbindir); \
+	libexecdir=$(libexecdir); \
+	moduledir=$(moduledir); \
+	localstatedir=$(localstatedir); \
+	localedir=$(localedir); \
 	$(SED) \
 			-e "s;%SYSCONFDIR%;$$sysconfdir;" \
 			-e "s;%DATADIR%;$$datadir;" \
@@ -82,4 +83,3 @@ install-common:		all-common install-local
 clean-common:		clean-local
 veryclean-common:	veryclean-local
 depend-common:		depend-local
-

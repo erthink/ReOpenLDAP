@@ -1,4 +1,23 @@
-// Copyright 1997-2016 The OpenLDAP Foundation, All Rights Reserved.
+/* Copyright (c) 2015,2016 Leonid Yuriev <leo@yuriev.ru>.
+ * Copyright (c) 2015,2016 Peter-Service R&D LLC <http://billing.ru/>.
+ *
+ * This file is part of ReOpenLDAP.
+ *
+ * ReOpenLDAP is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation; either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * ReOpenLDAP is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ */
+// Copyright 1997-2014 The OpenLDAP Foundation, All Rights Reserved.
 //  COPYING RESTRICTIONS APPLY, see COPYRIGHT file
 
 // (c) Copyright 1999-2001 TimesTen Performance Software. All rights reserved.
@@ -243,9 +262,6 @@ main(int argc, char* argv[])
   ownerP = argv[1];
 
   signal(SIGINT, onintr);    /* signal for CTRL-C */
-#ifdef _WIN32
-  signal(SIGBREAK, onintr);  /* signal for CTRL-BREAK */
-#endif
 
   // Before we do anything related to XLA, first we connect
   // to the database.  This is the connection we will use
@@ -362,14 +378,7 @@ main(int argc, char* argv[])
     }
 
     if (records == 0) {
-#ifdef _WIN32
-      Sleep(250);
-#else
-      struct timeval t;
-      t.tv_sec = 0;
-      t.tv_usec = 250000; // .25 seconds
-      select(0, NULL, NULL, NULL, &t);
-#endif
+      usleep(250000); // .25 seconds
     }
   } // end while pleasestop == 0
 
@@ -384,4 +393,3 @@ main(int argc, char* argv[])
   return 0;
 
 }
-

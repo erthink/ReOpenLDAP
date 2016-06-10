@@ -1,4 +1,24 @@
-Copyright 2004-2016 The OpenLDAP Foundation. All rights reserved.
+Copyright (c) 2015,2016 Leonid Yuriev <leo@yuriev.ru>.
+Copyright (c) 2015,2016 Peter-Service R&D LLC <http://billing.ru/>.
+
+This file is part of ReOpenLDAP.
+
+ReOpenLDAP is free software; you can redistribute it and/or modify it under
+the terms of the GNU Affero General Public License as published by
+the Free Software Foundation; either version 3 of the License, or
+(at your option) any later version.
+
+ReOpenLDAP is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Affero General Public License for more details.
+
+You should have received a copy of the GNU Affero General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+---
+
+Copyright 2004-2014 The OpenLDAP Foundation. All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
 modification, are permitted only as authorized by the OpenLDAP
@@ -11,13 +31,12 @@ attributes).
 To use the plugin, add:
 
 moduleload dsaschema.so
-	/etc/openldap/schema/foo1.schema
+	/etc/reopenldap/schema/foo1.schema
 	...etc...
-	/etc/openldap/schema/fooN.schema
+	/etc/reopenldap/schema/fooN.schema
 
 to your slapd configuration file.
 
 Use Makefile to compile this plugin or use a command line similar to:
 
 gcc -shared -I../../../include -Wall -g -o dsaschema.so dsaschema.c
-

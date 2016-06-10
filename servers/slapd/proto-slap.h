@@ -1,7 +1,25 @@
-/* $OpenLDAP$ */
-/* This work is part of OpenLDAP Software <http://www.openldap.org/>.
+/* $ReOpenLDAP$ */
+/* Copyright (c) 2015,2016 Leonid Yuriev <leo@yuriev.ru>.
+ * Copyright (c) 2015,2016 Peter-Service R&D LLC <http://billing.ru/>.
  *
- * Copyright 1998-2016 The OpenLDAP Foundation.
+ * This file is part of ReOpenLDAP.
+ *
+ * ReOpenLDAP is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation; either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * ReOpenLDAP is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * ---
+ *
+ * Copyright 1998-2014 The OpenLDAP Foundation.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,6 +51,19 @@ LDAP_BEGIN_DECL
 
 struct config_args_s;	/* config.h */
 struct config_reply_s;	/* config.h */
+
+/*
+ * rurwlock.c
+ */
+
+LDAP_SLAPD_F(void) rurw_lock_init(rurw_lock_t *p);
+LDAP_SLAPD_F(void) rurw_lock_destroy(rurw_lock_t *p);
+LDAP_SLAPD_F(void) rurw_r_lock(rurw_lock_t *p);
+LDAP_SLAPD_F(void) rurw_r_unlock(rurw_lock_t *p);
+LDAP_SLAPD_F(void) rurw_w_lock(rurw_lock_t *p);
+LDAP_SLAPD_F(void) rurw_w_unlock(rurw_lock_t *p);
+LDAP_SLAPD_F(rurw_lock_deep_t) rurw_retreat(rurw_lock_t *p);
+LDAP_SLAPD_F(void) rurw_obtain(rurw_lock_t *p, rurw_lock_deep_t state);
 
 /*
  * biglock.c
@@ -999,18 +1030,9 @@ LDAP_SLAPD_V (int) slapd_tcp_rmem;
 LDAP_SLAPD_V (int) slapd_tcp_wmem;
 #endif /* LDAP_TCP_BUFFER */
 
-#ifdef HAVE_WINSOCK
-LDAP_SLAPD_F (ber_socket_t) slapd_socknew(ber_socket_t s);
-LDAP_SLAPD_F (ber_socket_t) slapd_sock2fd(ber_socket_t s);
-LDAP_SLAPD_V (SOCKET *) slapd_ws_sockets;
-#define	SLAP_FD2SOCK(s)	slapd_ws_sockets[s]
-#define	SLAP_SOCK2FD(s)	slapd_sock2fd(s)
-#define	SLAP_SOCKNEW(s)	slapd_socknew(s)
-#else
 #define	SLAP_FD2SOCK(s)	s
 #define	SLAP_SOCK2FD(s)	s
 #define	SLAP_SOCKNEW(s)	s
-#endif
 
 /*
  * dn.c
@@ -1126,13 +1148,8 @@ LDAP_SLAPD_F (void) entry_partsize LDAP_P(( Entry *e, ber_len_t *len,
 LDAP_SLAPD_F (int) entry_header LDAP_P(( EntryHeader *eh ));
 LDAP_SLAPD_F (int) entry_decode_dn LDAP_P((
 	EntryHeader *eh, struct berval *dn, struct berval *ndn ));
-#ifdef SLAP_ZONE_ALLOC
-LDAP_SLAPD_F (int) entry_decode LDAP_P((
-						EntryHeader *eh, Entry **e, void *ctx ));
-#else
 LDAP_SLAPD_F (int) entry_decode LDAP_P((
 						EntryHeader *eh, Entry **e ));
-#endif
 LDAP_SLAPD_F (int) entry_encode LDAP_P(( Entry *e, struct berval *bv ));
 
 LDAP_SLAPD_F (void) entry_clean LDAP_P(( Entry *e ));
@@ -2161,30 +2178,6 @@ LDAP_SLAPD_F (int) value_join_str LDAP_P((
 
 /* assumes (x) > (y) returns 1 if true, 0 otherwise */
 #define SLAP_PTRCMP(x, y) ((x) < (y) ? -1 : (x) > (y))
-
-#ifdef SLAP_ZONE_ALLOC
-/*
- * zn_malloc.c
- */
-LDAP_SLAPD_F (void *) slap_zn_malloc LDAP_P((ber_len_t, void *));
-LDAP_SLAPD_F (void *) slap_zn_realloc LDAP_P((void *, ber_len_t, void *));
-LDAP_SLAPD_F (void *) slap_zn_calloc LDAP_P((ber_len_t, ber_len_t, void *));
-LDAP_SLAPD_F (void) slap_zn_free LDAP_P((void *, void *));
-
-LDAP_SLAPD_F (void *) slap_zn_mem_create LDAP_P((
-							ber_len_t, ber_len_t, ber_len_t, ber_len_t));
-LDAP_SLAPD_F (void) slap_zn_mem_destroy LDAP_P((void *));
-LDAP_SLAPD_F (int) slap_zn_validate LDAP_P((void *, void *, int));
-LDAP_SLAPD_F (int) slap_zn_invalidate LDAP_P((void *, void *));
-LDAP_SLAPD_F (void) slap_zh_rlock LDAP_P((void*));
-LDAP_SLAPD_F (void) slap_zh_runlock LDAP_P((void*));
-LDAP_SLAPD_F (void) slap_zh_wlock LDAP_P((void*));
-LDAP_SLAPD_F (void) slap_zh_wunlock LDAP_P((void*));
-LDAP_SLAPD_F (void) slap_zn_rlock LDAP_P((void*, void*));
-LDAP_SLAPD_F (void) slap_zn_runlock LDAP_P((void*, void*));
-LDAP_SLAPD_F (void) slap_zn_wlock LDAP_P((void*, void*));
-LDAP_SLAPD_F (void) slap_zn_wunlock LDAP_P((void*, void*));
-#endif
 
 /*
  * Other...

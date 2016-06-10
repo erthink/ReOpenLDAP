@@ -1,7 +1,25 @@
-/* $OpenLDAP$ */
-/* This work is part of OpenLDAP Software <http://www.openldap.org/>.
+/* $ReOpenLDAP$ */
+/* Copyright (c) 2015,2016 Leonid Yuriev <leo@yuriev.ru>.
+ * Copyright (c) 2015,2016 Peter-Service R&D LLC <http://billing.ru/>.
  *
- * Copyright 1999-2016 The OpenLDAP Foundation.
+ * This file is part of ReOpenLDAP.
+ *
+ * ReOpenLDAP is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation; either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * ReOpenLDAP is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * ---
+ *
+ * Copyright 1999-2014 The OpenLDAP Foundation.
  * Portions Copyright 1999 Dmitry Kovalev.
  * Portions Copyright 2002 Pierangelo Masarati.
  * Portions Copyright 2004 Mark Adamson.
@@ -1672,7 +1690,7 @@ backsql_oc_get_candidates( void *v_oc, void *v_bsi )
 			BACKSQL_OC_NAME( oc ) );
 
 	/* check for abandon */
-	if ( get_op_abandon(op) ) {
+	if ( slap_get_op_abandon(op) ) {
 		bsi->bsi_status = SLAPD_ABANDON;
 		return BACKSQL_AVL_STOP;
 	}
@@ -2171,7 +2189,7 @@ backsql_search( Operation *op, SlapReply *rs )
 				&bsi, BACKSQL_AVL_STOP, AVL_INORDER );
 
 		/* check for abandon */
-		if ( get_op_abandon(op) ) {
+		if ( slap_get_op_abandon(op) ) {
 			eid = bsi.bsi_id_list;
 			rs->sr_err = SLAPD_ABANDON;
 			goto send_results;
@@ -2205,7 +2223,7 @@ backsql_search( Operation *op, SlapReply *rs )
 		Entry		*e = NULL;
 
 		/* check for abandon */
-		if ( get_op_abandon(op) ) {
+		if ( slap_get_op_abandon(op) ) {
 			rs->sr_err = SLAPD_ABANDON;
 			goto send_results;
 		}

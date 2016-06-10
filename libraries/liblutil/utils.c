@@ -1,7 +1,25 @@
-/* $OpenLDAP$ */
-/* This work is part of OpenLDAP Software <http://www.openldap.org/>.
+/* $ReOpenLDAP$ */
+/* Copyright (c) 2015,2016 Leonid Yuriev <leo@yuriev.ru>.
+ * Copyright (c) 2015,2016 Peter-Service R&D LLC <http://billing.ru/>.
  *
- * Copyright 1998-2016 The OpenLDAP Foundation.
+ * This file is part of ReOpenLDAP.
+ *
+ * ReOpenLDAP is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation; either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * ReOpenLDAP is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * ---
+ *
+ * Copyright 1998-2014 The OpenLDAP Foundation.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,9 +48,6 @@
 #ifdef HAVE_FCNTL_H
 #include <fcntl.h>
 #endif
-#ifdef _WIN32
-#include <windows.h>
-#endif
 
 #include "lutil.h"
 #include "ldap_defaults.h"
@@ -41,23 +56,6 @@
 
 #ifdef HAVE_EBCDIC
 int _trans_argv = 1;
-#endif
-
-#ifdef _WIN32
-/* Some Windows versions accept both forward and backslashes in
- * directory paths, but we always use backslashes when generating
- * and parsing...
- */
-void lutil_slashpath( char *path )
-{
-	char *c, *p;
-
-	p = path;
-	while (( c=strchr( p, '/' ))) {
-		*c++ = '\\';
-		p = c;
-	}
-}
 #endif
 
 char* lutil_progname( const char* name, int argc, char *argv[] )
@@ -78,13 +76,6 @@ char* lutil_progname( const char* name, int argc, char *argv[] )
 	LUTIL_SLASHPATH( argv[0] );
 	progname = strrchr ( argv[0], *LDAP_DIRSEP );
 	progname = progname ? &progname[1] : argv[0];
-#ifdef _WIN32
-	{
-		size_t len = strlen( progname );
-		if ( len > 4 && strcasecmp( &progname[len - 4], ".exe" ) == 0 )
-			progname[len - 4] = '\0';
-	}
-#endif
 	return progname;
 }
 
@@ -342,124 +333,6 @@ int mkstemp( char * template )
 #endif
 }
 #endif
-
-#ifdef _MSC_VER
-/* Equivalent of MS CRT's _dosmaperr().
- * @param lastError[in] Result of GetLastError().
- */
-static errno_t win2errno(DWORD lastError)
-{
-	const struct {
-		DWORD   windows_code;
-		errno_t errno_code;
-	} WIN2ERRNO_TABLE[] = {
-		{ ERROR_SUCCESS, 0 },
-		{ ERROR_FILE_NOT_FOUND, ENOENT },
-		{ ERROR_PATH_NOT_FOUND, ENOENT },
-		{ ERROR_TOO_MANY_OPEN_FILES, EMFILE },
-		{ ERROR_ACCESS_DENIED, EACCES },
-		{ ERROR_INVALID_HANDLE, EBADF },
-		{ ERROR_NOT_ENOUGH_MEMORY, ENOMEM },
-		{ ERROR_LOCK_VIOLATION, EACCES },
-		{ ERROR_FILE_EXISTS, EEXIST },
-		{ ERROR_INVALID_PARAMETER, EINVAL },
-		{ ERROR_FILENAME_EXCED_RANGE, ENAMETOOLONG },
-	};
-	const unsigned int WIN2ERRNO_TABLE_SIZE = sizeof(WIN2ERRNO_TABLE) /
-sizeof(WIN2ERRNO_TABLE[0]);
-	const errno_t DEFAULT_ERRNO_ERROR = -1;
-	unsigned int i;
-
-	for (i = 0; i < WIN2ERRNO_TABLE_SIZE; ++i) {
-		if (WIN2ERRNO_TABLE[i].windows_code == lastError) {
-			return WIN2ERRNO_TABLE[i].errno_code;
-		}
-	}
-	return DEFAULT_ERRNO_ERROR;
-}
-
-struct dirent {
-	char *d_name;
-};
-typedef struct DIR {
-	HANDLE dir;
-	struct dirent data;
-	int first;
-	char buf[MAX_PATH+1];
-} DIR;
-DIR *opendir( char *path )
-{
-	char tmp[32768];
-	int len = strlen(path);
-	DIR *d;
-	HANDLE h;
-	WIN32_FIND_DATA data;
-
-	if (len+3 >= sizeof(tmp)) {
-		errno = ENAMETOOLONG;
-		return NULL;
-	}
-
-	strcpy(tmp, path);
-	tmp[len++] = '\\';
-	tmp[len++] = '*';
-	tmp[len] = '\0';
-
-	h = FindFirstFile( tmp, &data );
-
-	if ( h == INVALID_HANDLE_VALUE ) {
-		errno = win2errno( GetLastError());
-		return NULL;
-	}
-
-	d = ber_memalloc( sizeof(DIR) );
-	if ( !d )
-		return NULL;
-	d->dir = h;
-	d->data.d_name = d->buf;
-	d->first = 1;
-	strcpy(d->data.d_name, data.cFileName);
-	return d;
-}
-struct dirent *readdir(DIR *dir)
-{
-	WIN32_FIND_DATA data;
-
-	if (dir->first) {
-		dir->first = 0;
-	} else {
-		if (!FindNextFile(dir->dir, &data))
-			return NULL;
-		strcpy(dir->data.d_name, data.cFileName);
-	}
-	return &dir->data;
-}
-int closedir(DIR *dir)
-{
-	(void) FindClose(dir->dir);
-	ber_memfree(dir);
-	return 0;
-}
-#endif
-
-/*
- * Memory Reverse Search
- */
-void *
-(lutil_memrchr)(const void *b, int c, size_t n)
-{
-	if (n != 0) {
-		const unsigned char *s, *bb = b, cc = c;
-
-		for ( s = bb + n; s > bb; ) {
-			if ( *--s == cc ) {
-				return (void *) s;
-			}
-		}
-	}
-
-	return NULL;
-}
 
 int
 lutil_atoix( int *v, const char *s, int x )
@@ -983,4 +856,3 @@ lutil_snprintf( char *buf, ber_len_t bufsize, char **next, ber_len_t *len, LDAP_
 
 	return 0;
 }
-
