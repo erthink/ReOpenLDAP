@@ -1,7 +1,27 @@
-.TH SLAPO_PPOLICY 5 "RELEASEDATE" "OpenLDAP LDVERSION"
-.\" Copyright 2004-2016 The OpenLDAP Foundation All Rights Reserved.
+.TH SLAPO_PPOLICY 5 "RELEASEDATE" "ReOpenLDAP LDVERSION"
+.\" $ReOpenLDAP$
+.\" Copyright (c) 2015,2016 Leonid Yuriev <leo@yuriev.ru>.
+.\" Copyright (c) 2015,2016 Peter-Service R&D LLC <http://billing.ru/>.
+.\"
+.\" This file is part of ReOpenLDAP.
+.\"
+.\" ReOpenLDAP is free software; you can redistribute it and/or modify it under
+.\" the terms of the GNU Affero General Public License as published by
+.\" the Free Software Foundation; either version 3 of the License, or
+.\" (at your option) any later version.
+.\"
+.\" ReOpenLDAP is distributed in the hope that it will be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+.\" GNU Affero General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU Affero General Public License
+.\" along with this program.  If not, see <http://www.gnu.org/licenses/>.
+.\"
+.\" ---
+.\"
+.\" Copyright 2004-2014 The OpenLDAP Foundation All Rights Reserved.
 .\" Copying restrictions apply.  See COPYRIGHT/LICENSE.
-.\" $OpenLDAP$
 .SH NAME
 slapo\-ppolicy \- Password Policy overlay to slapd
 .SH SYNOPSIS
@@ -444,7 +464,7 @@ It should also be noted that
 was defined in the specification to provide rough access control
 to the password attribute in implementations that do not allow fine-grain
 access control.
-Since OpenLDAP provides fine-grain access control, the use of this attribute
+Since ReOpenLDAP provides fine-grain access control, the use of this attribute
 is discouraged; ACLs should be used instead
 (see
 .BR slapd.access (5)
@@ -567,7 +587,7 @@ The
 attribute is not strictly part of the
 .B ppolicy
 module.  It is, however, the attribute that is tracked and controlled
-by the module.  Please refer to the standard OpenLDAP schema for
+by the module.  Please refer to the standard ReOpenLDAP schema for
 its definition.
 
 .B pwdPolicySubentry

@@ -1,8 +1,26 @@
 /* ad.c - routines for dealing with attribute descriptions */
-/* $OpenLDAP$ */
-/* This work is part of OpenLDAP Software <http://www.openldap.org/>.
+/* $ReOpenLDAP$ */
+/* Copyright (c) 2015,2016 Leonid Yuriev <leo@yuriev.ru>.
+ * Copyright (c) 2015,2016 Peter-Service R&D LLC <http://billing.ru/>.
  *
- * Copyright 1998-2016 The OpenLDAP Foundation.
+ * This file is part of ReOpenLDAP.
+ *
+ * ReOpenLDAP is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation; either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * ReOpenLDAP is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * ---
+ *
+ * Copyright 1998-2014 The OpenLDAP Foundation.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -326,9 +344,9 @@ done:;
 	}
 
 	/* see if a matching description is already cached */
-	for (d2 = read_ptr__tsan_workaround(&desc.ad_type->sat_ad);
+	for (d2 = slap_tsan__read_ptr(&desc.ad_type->sat_ad);
 			d2 != NULL;
-			d2 = read_ptr__tsan_workaround(&d2->ad_next)) {
+			d2 = slap_tsan__read_ptr(&d2->ad_next)) {
 
 #ifdef __SANITIZE_THREAD__
 		ldap_pvt_thread_mutex_lock( &desc.ad_type->sat_ad_mutex );
@@ -612,7 +630,7 @@ int ad_inlist(
 		 * else if requested description is !objectClass, return
 		 * attributes which the class does not require/allow
 		 */
-		if ( !( read_int__tsan_workaround(&attrs->an_flags) & SLAP_AN_OCINITED )) {
+		if ( !( slap_tsan__read_int(&attrs->an_flags) & SLAP_AN_OCINITED )) {
 			ldap_pvt_thread_mutex_lock( &tsan_mutex );
 			if( !(attrs->an_flags & SLAP_AN_OCINITED) ) {
 				if ( attrs->an_name.bv_val ) {
@@ -640,7 +658,7 @@ int ad_inlist(
 			}
 			ldap_pvt_thread_mutex_unlock( &tsan_mutex );
 		}
-		oc = read_ptr__tsan_workaround(&attrs->an_oc);
+		oc = slap_tsan__read_ptr(&attrs->an_oc);
 		if( oc != NULL ) {
 			if ( attrs->an_flags & SLAP_AN_OCEXCLUDE ) {
 				if ( oc == slap_schema.si_oc_extensibleObject ) {

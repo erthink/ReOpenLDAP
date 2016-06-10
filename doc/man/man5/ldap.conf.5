@@ -1,6 +1,26 @@
-.TH LDAP.CONF 5 "RELEASEDATE" "OpenLDAP LDVERSION"
-.\" $OpenLDAP$
-.\" Copyright 1998-2016 The OpenLDAP Foundation All Rights Reserved.
+.TH LDAP.CONF 5 "RELEASEDATE" "ReOpenLDAP LDVERSION"
+.\" $ReOpenLDAP$
+.\" Copyright (c) 2015,2016 Leonid Yuriev <leo@yuriev.ru>.
+.\" Copyright (c) 2015,2016 Peter-Service R&D LLC <http://billing.ru/>.
+.\"
+.\" This file is part of ReOpenLDAP.
+.\"
+.\" ReOpenLDAP is free software; you can redistribute it and/or modify it under
+.\" the terms of the GNU Affero General Public License as published by
+.\" the Free Software Foundation; either version 3 of the License, or
+.\" (at your option) any later version.
+.\"
+.\" ReOpenLDAP is distributed in the hope that it will be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+.\" GNU Affero General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU Affero General Public License
+.\" along with this program.  If not, see <http://www.gnu.org/licenses/>.
+.\"
+.\" ---
+.\"
+.\" Copyright 1998-2014 The OpenLDAP Foundation All Rights Reserved.
 .\" Copying restrictions apply.  See COPYRIGHT/LICENSE.
 .SH NAME
 ldap.conf, .ldaprc \- LDAP configuration file/environment variables
@@ -215,7 +235,7 @@ APIs will abort if no response is received.  Also used for any
 .BR ldap_result (3)
 calls where a NULL timeout parameter is supplied.
 .SH SASL OPTIONS
-If OpenLDAP is built with Simple Authentication and Security Layer support,
+If ReOpenLDAP is built with Simple Authentication and Security Layer support,
 there are more options you can specify.
 .TP
 .B SASL_MECH <mechanism>
@@ -285,7 +305,7 @@ specifies the maximum security layer receive buffer
 size allowed.  0 disables security layers.  The default is 65536.
 .RE
 .SH GSSAPI OPTIONS
-If OpenLDAP is built with Generic Security Services Application Programming Interface support,
+If ReOpenLDAP is built with Generic Security Services Application Programming Interface support,
 there are more options you can specify.
 .TP
 .B GSSAPI_SIGN <on/true/yes/off/false/no>
@@ -301,7 +321,7 @@ Specifies if GSSAPI based authentication should try to form the
 target principal name out of the ldapServiceName or dnsHostName
 attribute of the targets RootDSE entry. The default is off.
 .SH TLS OPTIONS
-If OpenLDAP is built with Transport Layer Security support, there
+If ReOpenLDAP is built with Transport Layer Security support, there
 are more options you can specify.  These options are used when an
 .B ldaps:// URI
 is selected (by default or otherwise) or when the application
@@ -321,7 +341,7 @@ This parameter is ignored with GnuTLS.
 
 When using Mozilla NSS, <path> may contain a Mozilla NSS cert/key
 database.  If <path> contains a Mozilla NSS cert/key database and
-CA cert files, OpenLDAP will use the cert/key database and will
+CA cert files, ReOpenLDAP will use the cert/key database and will
 ignore the CA cert files.
 .TP
 .B TLS_CERT <filename>
@@ -420,7 +440,7 @@ e.g.,
 
 would require TLS 1.1.
 Specifying a minimum that is higher than that supported by the
-OpenLDAP implementation will result in it requiring the
+ReOpenLDAP implementation will result in it requiring the
 highest level that it does support.
 This parameter is ignored with GnuTLS.
 .TP

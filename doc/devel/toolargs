@@ -26,4 +26,4 @@ slaptest             F          Q            d f       no     uv
 	-v verbose
 
 ---
-$OpenLDAP$
+$ReOpenLDAP$

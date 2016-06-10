@@ -1,3 +1,4 @@
+/* $ReOpenLDAP$ */
 /*
     Copyright (c) 2015,2016 Leonid Yuriev <leo@yuriev.ru>.
     Copyright (c) 2015,2016 Peter-Service R&D LLC.

@@ -1,7 +1,25 @@
-/* $OpenLDAP$ */
-/* This work is part of OpenLDAP Software <http://www.openldap.org/>.
+/* $ReOpenLDAP$ */
+/* Copyright (c) 2015,2016 Leonid Yuriev <leo@yuriev.ru>.
+ * Copyright (c) 2015,2016 Peter-Service R&D LLC <http://billing.ru/>.
  *
- * Copyright 1998-2016 The OpenLDAP Foundation.
+ * This file is part of ReOpenLDAP.
+ *
+ * ReOpenLDAP is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation; either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * ReOpenLDAP is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * ---
+ *
+ * Copyright 1998-2014 The OpenLDAP Foundation.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -184,13 +202,7 @@ LDAP_LUTIL_F( int )
 lutil_tm2time LDAP_P((
 	struct lutil_tm *, struct lutil_timet * ));
 
-#ifdef _WIN32
-LDAP_LUTIL_F( void )
-lutil_slashpath LDAP_P(( char* path ));
-#define	LUTIL_SLASHPATH(p)	lutil_slashpath(p)
-#else
 #define	LUTIL_SLASHPATH(p)
-#endif
 
 LDAP_LUTIL_F( char* )
 lutil_strcopy LDAP_P(( char *dst, const char *src ));
@@ -240,44 +252,6 @@ lutil_uuidstr_from_normalized(
  * been defined. Thus, we don't need to include a symbol if
  * its type has not been defined through another header file.
  */
-
-#ifdef HAVE_NT_SERVICE_MANAGER
-LDAP_LUTIL_V (int) is_NT_Service;
-
-#ifdef _LDAP_PVT_THREAD_H
-LDAP_LUTIL_V (ldap_pvt_thread_cond_t) started_event;
-#endif /* _LDAP_PVT_THREAD_H */
-
-/* macros are different between Windows and Mingw */
-#if defined(_WINSVC_H) || defined(_WINSVC_)
-LDAP_LUTIL_V (SERVICE_STATUS) lutil_ServiceStatus;
-LDAP_LUTIL_V (SERVICE_STATUS_HANDLE) hlutil_ServiceStatus;
-#endif /* _WINSVC_H */
-
-LDAP_LUTIL_F (void)
-lutil_CommenceStartupProcessing( char *serverName, void (*stopper)(int)) ;
-
-LDAP_LUTIL_F (void)
-lutil_ReportShutdownComplete( void );
-
-LDAP_LUTIL_F (void *)
-lutil_getRegParam( char *svc, char *value );
-
-LDAP_LUTIL_F (int)
-lutil_srv_install( char* service, char * displayName, char* filename,
-		 int auto_start );
-LDAP_LUTIL_F (int)
-lutil_srv_remove ( char* service, char* filename );
-
-#endif /* HAVE_NT_SERVICE_MANAGER */
-
-#ifdef HAVE_NT_EVENT_LOG
-LDAP_LUTIL_F (void)
-lutil_LogStartedEvent( char *svc, int slap_debug, char *configfile, char *urls );
-
-LDAP_LUTIL_F (void)
-lutil_LogStoppedEvent( char *svc );
-#endif
 
 #ifdef HAVE_EBCDIC
 /* Generally this has only been used to put '\n' to stdout. We need to

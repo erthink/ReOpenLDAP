@@ -1,4 +1,4 @@
-/* $OpenLDAP$ */
+/* $ReOpenLDAP$ */
 /* constraint.c - Overlay to constrain attributes to certain values */
 /*
  * Copyright 2003-2004 Hewlett-Packard Company

@@ -1,4 +1,4 @@
-The OpenLDAP build environment relies on non-standard versions of
+The ReOpenLDAP build environment relies on non-standard versions of
 configuration tools:
 	Autoconf 2.13.1
 	Automake 1.4a

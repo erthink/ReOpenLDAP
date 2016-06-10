@@ -1493,7 +1493,7 @@ asyncmeta_op_read_error(a_metaconn_t *mc, int candidate, int error)
 		if ( !META_IS_CANDIDATE( &candidates[ candidate ] ) )
 			continue;
 
-		if ( get_op_abandon(bc->op) ) {
+		if ( slap_get_op_abandon(bc->op) ) {
 			continue;
 		}
 
@@ -1598,7 +1598,7 @@ again:
 		bc->op->o_threadctx = ctx;
 		bc->op->o_tid = ldap_pvt_thread_pool_tid( ctx );
 		slap_sl_mem_setctx(ctx, bc->op->o_tmpmemctx);
-		if ( get_op_abandon(bc->op) ) {
+		if ( slap_get_op_abandon(bc->op) ) {
 			ldap_pvt_thread_mutex_lock( &mc->mc_om_mutex );
 			asyncmeta_drop_bc( mc, bc);
 			ldap_pvt_thread_mutex_unlock( &mc->mc_om_mutex );

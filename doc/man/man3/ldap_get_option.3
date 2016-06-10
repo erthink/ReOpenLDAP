@@ -1,11 +1,31 @@
-.TH LDAP_GET_OPTION 3 "RELEASEDATE" "OpenLDAP LDVERSION"
-.\" $OpenLDAP$
-.\" Copyright 1998-2016 The OpenLDAP Foundation All Rights Reserved.
+.TH LDAP_GET_OPTION 3 "RELEASEDATE" "ReOpenLDAP LDVERSION"
+.\" $ReOpenLDAP$
+.\" Copyright (c) 2015,2016 Leonid Yuriev <leo@yuriev.ru>.
+.\" Copyright (c) 2015,2016 Peter-Service R&D LLC <http://billing.ru/>.
+.\"
+.\" This file is part of ReOpenLDAP.
+.\"
+.\" ReOpenLDAP is free software; you can redistribute it and/or modify it under
+.\" the terms of the GNU Affero General Public License as published by
+.\" the Free Software Foundation; either version 3 of the License, or
+.\" (at your option) any later version.
+.\"
+.\" ReOpenLDAP is distributed in the hope that it will be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+.\" GNU Affero General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU Affero General Public License
+.\" along with this program.  If not, see <http://www.gnu.org/licenses/>.
+.\"
+.\" ---
+.\"
+.\" Copyright 1998-2014 The OpenLDAP Foundation All Rights Reserved.
 .\" Copying restrictions apply.  See COPYRIGHT/LICENSE.
 .SH NAME
 ldap_get_option, ldap_set_option \- LDAP option handling routines
 .SH LIBRARY
-OpenLDAP LDAP (libldap, \-lldap)
+ReOpenLDAP LDAP (libreldap, \-lreldap)
 .SH SYNOPSIS
 .nf
 .B #include <ldap.h>
@@ -111,7 +131,7 @@ As a consequence, library calls that need to establish a connection
 with a DSA do not block even for the network timeout
 (option
 .BR LDAP_OPT_NETWORK_TIMEOUT ).
-This option is OpenLDAP specific.
+This option is OpenLDAP specific and supported by ReOpenLDAP.
 .TP
 .B LDAP_OPT_CONNECT_CB
 This option allows to set a connect callback.
@@ -129,7 +149,7 @@ Calling
 .BR ldap_get_option (3)
 for this option removes the callback whose pointer matches
 .BR outvalue .
-This option is OpenLDAP specific.
+This option is OpenLDAP specific and supported by ReOpenLDAP.
 .TP
 .B LDAP_OPT_DEBUG_LEVEL
 Sets/gets the debug level of the client library.
@@ -149,7 +169,7 @@ Valid debug levels are
 .BR LDAP_DEBUG_PARSE ,
 and
 .BR LDAP_DEBUG_TRACE .
-This option is OpenLDAP specific.
+This option is OpenLDAP specific and supported by ReOpenLDAP.
 .TP
 .B LDAP_OPT_DEFBASE
 Sets/gets a string containing the DN to be used as default base
@@ -164,7 +184,7 @@ while
 must be a
 .BR "const char *" ;
 the library duplicates the corresponding string.
-This option is OpenLDAP specific.
+This option is OpenLDAP specific and supported by ReOpenLDAP.
 .TP
 .B LDAP_OPT_DEREF
 Sets/gets the value that defines when alias dereferencing must occur.
@@ -257,7 +277,7 @@ must be a
 .BR "const struct timeval *" .
 They cannot be NULL. Using a struct with seconds set to \-1 results
 in an infinite timeout, which is the default.
-This option is OpenLDAP specific.
+This option is OpenLDAP specific and supported by ReOpenLDAP.
 .TP
 .B LDAP_OPT_PROTOCOL_VERSION
 Sets/gets the protocol version.
@@ -279,7 +299,7 @@ while
 must be a NULL-terminated
 .BR "char *const *" ;
 the library duplicates the corresponding string.
-This option is OpenLDAP specific.
+This option is OpenLDAP specific and supported by ReOpenLDAP.
 .TP
 .B LDAP_OPT_REFERRALS
 Determines whether the library should implicitly chase referrals or not.
@@ -295,7 +315,7 @@ must be
 .BR "int *" .
 .\".TP
 .\".B LDAP_OPT_REFHOPLIMIT
-.\"This option is OpenLDAP specific.
+.\"This option is OpenLDAP specific and supported by ReOpenLDAP.
 .\"It is not currently implemented.
 .TP
 .B LDAP_OPT_RESTART
@@ -351,7 +371,7 @@ Returns the reference count associated with the LDAP handle passed in as
 must be a
 .BR "int *" .
 This is a read-only, handle-specific option.
-This option is OpenLDAP specific.
+This option is OpenLDAP specific and supported by ReOpenLDAP.
 .TP
 .B LDAP_OPT_SIZELIMIT
 Sets/gets the value that defines the maximum number of entries
@@ -372,7 +392,7 @@ Returns a pointer to the socket buffer of the LDAP handle passed in as
 must be a
 .BR "Sockbuf **" .
 This is a read-only, handle-specific option.
-This option is OpenLDAP specific.
+This option is OpenLDAP specific and supported by ReOpenLDAP.
 .TP
 .B LDAP_OPT_TIMELIMIT
 Sets/gets the value that defines the time limit after which
@@ -399,7 +419,7 @@ must be a
 .BR "struct timeval *" ,
 and they cannot be NULL. Using a struct with seconds set to \-1 results
 in an infinite timeout, which is the default.
-This option is OpenLDAP specific.
+This option is OpenLDAP specific and supported by ReOpenLDAP.
 .TP
 .B LDAP_OPT_URI
 Sets/gets a comma- or space-separated list of URIs to be contacted by the library
@@ -425,7 +445,7 @@ the
 and the
 .BR port
 fields.
-This option is OpenLDAP specific.
+This option is OpenLDAP specific and supported by ReOpenLDAP.
 .SH SASL OPTIONS
 The SASL options are OpenLDAP specific.
 .TP

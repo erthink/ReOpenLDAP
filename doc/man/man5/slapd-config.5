@@ -1,7 +1,27 @@
-.TH SLAPD-CONFIG 5 "RELEASEDATE" "OpenLDAP LDVERSION"
-.\" Copyright 1998-2016 The OpenLDAP Foundation All Rights Reserved.
+.TH SLAPD-CONFIG 5 "RELEASEDATE" "ReOpenLDAP LDVERSION"
+.\" $ReOpenLDAP$
+.\" Copyright (c) 2015,2016 Leonid Yuriev <leo@yuriev.ru>.
+.\" Copyright (c) 2015,2016 Peter-Service R&D LLC <http://billing.ru/>.
+.\"
+.\" This file is part of ReOpenLDAP.
+.\"
+.\" ReOpenLDAP is free software; you can redistribute it and/or modify it under
+.\" the terms of the GNU Affero General Public License as published by
+.\" the Free Software Foundation; either version 3 of the License, or
+.\" (at your option) any later version.
+.\"
+.\" ReOpenLDAP is distributed in the hope that it will be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+.\" GNU Affero General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU Affero General Public License
+.\" along with this program.  If not, see <http://www.gnu.org/licenses/>.
+.\"
+.\" ---
+.\"
+.\" Copyright 1998-2014 The OpenLDAP Foundation All Rights Reserved.
 .\" Copying restrictions apply.  See COPYRIGHT/LICENSE.
-.\" $OpenLDAP$
 .SH NAME
 slapd\-config \- configuration backend to slapd
 .SH SYNOPSIS
@@ -169,7 +189,7 @@ That is, `x\-foo\-bar\-' matches `x\-foo\-bar' and `x\-foo\-bar\-baz'.
 
 RFC 4520 reserves options beginning with `x\-' for private experiments.
 Other options should be registered with IANA, see RFC 4520 section 3.5.
-OpenLDAP also has the `binary' option built in, but this is a transfer
+ReOpenLDAP also has the `binary' option built in, but this is a transfer
 option, not a tagging option.
 .TP
 .B olcAuthIDRewrite: <rewrite\-rule>
@@ -869,7 +889,7 @@ when using GnuTLS.
 
 When using Mozilla NSS, <path> may contain a Mozilla NSS cert/key
 database.  If <path> contains a Mozilla NSS cert/key database and
-CA cert files, OpenLDAP will use the cert/key database and will
+CA cert files, ReOpenLDAP will use the cert/key database and will
 ignore the CA cert files.
 .TP
 .B olcTLSCertificateFile: <filename>
@@ -908,10 +928,10 @@ When using Mozilla NSS, olcTLSCertificateKeyFile specifies the name of
 a file that contains the password for the key for the certificate specified with
 olcTLSCertificateFile.  The modutil command can be used to turn off password
 protection for the cert/key database.  For example, if olcTLSCACertificatePath
-specifes /etc/openldap/certdb as the location of the cert/key database, use
+specifes /etc/reopenldap/certdb as the location of the cert/key database, use
 modutil to change the password to the empty string:
 .nf
-	modutil -dbdir /etc/openldap/certdb -changepw 'NSS Certificate DB'
+	modutil -dbdir /etc/reopenldap/certdb -changepw 'NSS Certificate DB'
 .fi
 You must have the old password, if any.  Ignore the WARNING about the running
 browser.  Press 'Enter' for the new password.
@@ -951,7 +971,7 @@ e.g.,
 
 would require TLS 1.1.
 Specifying a minimum that is higher than that supported by the
-OpenLDAP implementation will result in it requiring the
+ReOpenLDAP implementation will result in it requiring the
 highest level that it does support.
 This directive is ignored with GnuTLS.
 .TP
@@ -1043,7 +1063,7 @@ option.
 .B olcModulePath: <pathspec>
 Specify a list of directories to search for loadable modules. Typically
 the path is colon-separated but this depends on the operating system.
-The default is MODULEDIR, which is where the standard OpenLDAP install
+The default is MODULEDIR, which is where the standard ReOpenLDAP install
 will place its modules.
 .SH SCHEMA OPTIONS
 Schema definitions are created as entries in the
@@ -1733,14 +1753,14 @@ when using the \fIsyncprov\fP overlay, which needs to follow \fIglue\fP
 in order to work over all of the glued databases. E.g.
 .RS
 .nf
-	dn: olcDatabase={1}bdb,cn=config
+	dn: olcDatabase={1}mdb,cn=config
 	olcSuffix: dc=example,dc=com
 	...
 
-	dn: olcOverlay={0}glue,olcDatabase={1}bdb,cn=config
+	dn: olcOverlay={0}glue,olcDatabase={1}mdb,cn=config
 	...
 
-	dn: olcOverlay={1}syncprov,olcDatabase={1}bdb,cn=config
+	dn: olcOverlay={1}syncprov,olcDatabase={1}mdb,cn=config
 	...
 .fi
 .RE
@@ -2070,15 +2090,15 @@ olcDatabase: config
 olcRootPW: {SSHA}XKYnrjvGT3wZFQrDD5040US592LxsdLy
 olcAccess: to * by * none
 
-dn: olcDatabase=bdb,cn=config
+dn: olcDatabase=mdb,cn=config
 objectClass: olcDatabaseConfig
 objectClass: olcBdbConfig
-olcDatabase: bdb
+olcDatabase: mdb
 olcSuffix: "dc=our\-domain,dc=com"
 # The database directory MUST exist prior to
 # running slapd AND should only be accessible
 # by the slapd/tools. Mode 0700 recommended.
-olcDbDirectory: LOCALSTATEDIR/openldap\-data
+olcDbDirectory: LOCALSTATEDIR/reopenldap\-data
 # Indices to maintain
 olcDbIndex:     objectClass  eq
 olcDbIndex:     cn,sn,mail   pres,eq,approx,sub

@@ -1,8 +1,26 @@
 /* init.c - initialize various things */
-/* $OpenLDAP$ */
-/* This work is part of OpenLDAP Software <http://www.openldap.org/>.
+/* $ReOpenLDAP$ */
+/* Copyright (c) 2015,2016 Leonid Yuriev <leo@yuriev.ru>.
+ * Copyright (c) 2015,2016 Peter-Service R&D LLC <http://billing.ru/>.
  *
- * Copyright 1998-2016 The OpenLDAP Foundation.
+ * This file is part of ReOpenLDAP.
+ *
+ * ReOpenLDAP is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation; either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * ReOpenLDAP is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * ---
+ *
+ * Copyright 1998-2014 The OpenLDAP Foundation.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -41,16 +59,19 @@
  * read-only global variables or variables only written by the listener
  * thread (after they are initialized) - no need to protect them with a mutex.
  */
-int		slap_debug = 0;
+#ifdef LDAP_DEBUG
+LDAP_SLAPD_V(int) slap_debug;
+int slap_debug;
+#endif
 
 #ifdef LDAP_DEBUG
-int		ldap_syslog = LDAP_DEBUG_STATS;
-#else
-int		ldap_syslog;
+LDAP_SLAPD_V(int) ldap_syslog;
+int ldap_syslog = LDAP_DEBUG_STATS;
 #endif
 
 #ifdef LOG_DEBUG
-int		ldap_syslog_level = LOG_DEBUG;
+LDAP_SLAPD_V(int) ldap_syslog_level;
+int ldap_syslog_level = LOG_DEBUG;
 #endif
 
 BerVarray default_referral = NULL;
@@ -59,11 +80,11 @@ BerVarray default_referral = NULL;
  * global variables that need mutex protection
  */
 ldap_pvt_thread_pool_t	connection_pool;
-int		connection_pool_max = SLAP_MAX_WORKER_THREADS;
-int		connection_pool_queues = 1;
-int		slap_tool_thread_max = 1;
+int connection_pool_max = SLAP_MAX_WORKER_THREADS;
+int connection_pool_queues = 1;
+int slap_tool_thread_max = 1;
 
-slap_counters_t			slap_counters, *slap_counters_list;
+slap_counters_t slap_counters, *slap_counters_list;
 
 static const char* slap_name = NULL;
 int slapMode = SLAP_UNDEFINED_MODE;
@@ -322,4 +343,3 @@ void slap_counters_destroy( slap_counters_t *sc )
 	}
 #endif /* SLAPD_MONITOR */
 }
-

@@ -1,7 +1,27 @@
-.TH SLAPO-ACCESSLOG 5 "RELEASEDATE" "OpenLDAP LDVERSION"
-.\" Copyright 2005-2016 The OpenLDAP Foundation All Rights Reserved.
+.TH SLAPO-ACCESSLOG 5 "RELEASEDATE" "ReOpenLDAP LDVERSION"
+.\" $ReOpenLDAP$
+.\" Copyright 2005-2014 The OpenLDAP Foundation All Rights Reserved.
 .\" Copying restrictions apply.  See COPYRIGHT/LICENSE.
-.\" $OpenLDAP$
+.\" Copyright (c) 2015,2016 Leonid Yuriev <leo@yuriev.ru>.
+.\" Copyright (c) 2015,2016 Peter-Service R&D LLC <http://billing.ru/>.
+.\"
+.\" This file is part of ReOpenLDAP.
+.\"
+.\" ReOpenLDAP is free software; you can redistribute it and/or modify it under
+.\" the terms of the GNU Affero General Public License as published by
+.\" the Free Software Foundation; either version 3 of the License, or
+.\" (at your option) any later version.
+.\"
+.\" ReOpenLDAP is distributed in the hope that it will be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+.\" GNU Affero General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU Affero General Public License
+.\" along with this program.  If not, see <http://www.gnu.org/licenses/>.
+.\"
+.\" ---
+.\"
 .SH NAME
 slapo\-accesslog \- Access Logging overlay to slapd
 .SH SYNOPSIS
@@ -161,8 +181,8 @@ class is as follows:
 .RE
 .P
 Note that all of the OIDs used in the logging schema currently reside
-under the OpenLDAP Experimental branch. It is anticipated that they
-will migrate to a Standard branch in the future.
+under the ReOpenLDAP Next branch. It is anticipated that they
+will migrate to a Master branch in the future.
 
 An overview of the attributes follows:
 .B reqStart

@@ -1,8 +1,26 @@
 /* entropy.c -- routines for providing pseudo-random data */
-/* $OpenLDAP$ */
-/* This work is part of OpenLDAP Software <http://www.openldap.org/>.
+/* $ReOpenLDAP$ */
+/* Copyright (c) 2015,2016 Leonid Yuriev <leo@yuriev.ru>.
+ * Copyright (c) 2015,2016 Peter-Service R&D LLC <http://billing.ru/>.
  *
- * Copyright 1999-2016 The OpenLDAP Foundation.
+ * This file is part of ReOpenLDAP.
+ *
+ * ReOpenLDAP is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation; either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * ReOpenLDAP is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * ---
+ *
+ * Copyright 1999-2014 The OpenLDAP Foundation.
  * Portions Copyright 1999-2003 Kurt D. Zeilenga.
  * All rights reserved.
  *
@@ -72,26 +90,6 @@ int lutil_entropy( unsigned char *buf, ber_len_t nbytes )
 
 		close(fd);
 		return nbytes > 0 ? -1 : 0;
-	}
-#elif defined(PROV_RSA_FULL)
-	{
-		/* Not used since _WIN32_WINNT not set... */
-		HCRYPTPROV hProv = 0;
-
-		/* Get handle to user default provider */
-		if(!CryptAcquireContext(&hProv, NULL, NULL, PROV_RSA_FULL, 0)) {
-		   return -1;
-		}
-
-		/* Generate random initialization vector */
-		if(!CryptGenRandom(hProv, (DWORD) nbytes, (BYTE *) buf)) {
-		   return -1;
-		}
-
-		/* Release provider handle */
-		if(hProv != 0) CryptReleaseContext(hProv, 0);
-
-		return 0;
 	}
 #else
 	{

@@ -1,8 +1,26 @@
 /* cancel.c - LDAP cancel extended operation */
-/* $OpenLDAP$ */
-/* This work is part of OpenLDAP Software <http://www.openldap.org/>.
+/* $ReOpenLDAP$ */
+/* Copyright (c) 2015,2016 Leonid Yuriev <leo@yuriev.ru>.
+ * Copyright (c) 2015,2016 Peter-Service R&D LLC <http://billing.ru/>.
  *
- * Copyright 1998-2016 The OpenLDAP Foundation.
+ * This file is part of ReOpenLDAP.
+ *
+ * ReOpenLDAP is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation; either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * ReOpenLDAP is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * ---
+ *
+ * Copyright 1998-2014 The OpenLDAP Foundation.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -66,7 +84,7 @@ int cancel_extop( Operation *op, SlapReply *rs )
 
 	ldap_pvt_thread_mutex_lock( &op->o_conn->c_mutex );
 
-	if ( get_op_abandon(op) ) {
+	if ( slap_get_op_abandon(op) ) {
 		/* FIXME: Should instead reject the cancel/abandon of this op, but
 		 * it seems unsafe to reset op->o_abandon once it is set. ITS#6138.
 		 */
@@ -104,7 +122,7 @@ int cancel_extop( Operation *op, SlapReply *rs )
 			|| o->o_tag == LDAP_REQ_ABANDON ) {
 		rc = LDAP_CANNOT_CANCEL;
 
-	} else if ( get_op_cancel(o) != SLAP_CANCEL_NONE ) {
+	} else if ( slap_get_op_cancel(o) != SLAP_CANCEL_NONE ) {
 		rc = LDAP_OPERATIONS_ERROR;
 		rs->sr_text = "message ID already being cancelled";
 
@@ -118,8 +136,8 @@ int cancel_extop( Operation *op, SlapReply *rs )
 
 	} else {
 		rc = LDAP_SUCCESS;
-		set_op_cancel(o, SLAP_CANCEL_REQ);
-		set_op_abandon(o, 1);
+		slap_set_op_cancel(o, SLAP_CANCEL_REQ);
+		slap_set_op_abandon(o, 1);
 	}
 
  out:
@@ -139,10 +157,10 @@ int cancel_extop( Operation *op, SlapReply *rs )
 			/* Fake a cond_wait with thread_yield, then
 			 * verify the result properly mutex-protected.
 			 */
-			while ( get_op_cancel(o) == SLAP_CANCEL_REQ )
+			while ( slap_get_op_cancel(o) == SLAP_CANCEL_REQ )
 				ldap_pvt_thread_yield();
 			ldap_pvt_thread_mutex_lock( &op->o_conn->c_mutex );
-			rc = get_op_cancel(o);
+			rc = slap_get_op_cancel(o);
 			ldap_pvt_thread_mutex_unlock( &op->o_conn->c_mutex );
 		} while ( rc == SLAP_CANCEL_REQ );
 
@@ -150,7 +168,7 @@ int cancel_extop( Operation *op, SlapReply *rs )
 			rc = LDAP_SUCCESS;
 		}
 
-		set_op_cancel(o, SLAP_CANCEL_DONE);
+		slap_set_op_cancel(o, SLAP_CANCEL_DONE);
 	}
 
 	return rc;

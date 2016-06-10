@@ -22,9 +22,7 @@
 #ifndef COMPAT__ATTRS_H
 #define COMPAT__ATTRS_H 1
 
-/* macro for testing the version of GCC */
-#define IS_GCC_VERSION(major, minor) \
-  ((__GNUC__ > (major)) || (__GNUC__ == (major) && __GNUC_MINOR__ >= (minor)))
+#include <features.h>
 
 /* These are macros to use some gcc-specific flags in case the're available
    and otherwise define them to empty strings. This allows us to give
@@ -34,7 +32,7 @@
 
 /* this is used to flag function parameters that are not used in the function
    body. */
-#if IS_GCC_VERSION(3, 0)
+#if __GNUC_PREREQ(3, 0)
 #define UNUSED(x)   x __attribute__((__unused__))
 #else
 #define UNUSED(x)   x
@@ -42,7 +40,7 @@
 
 /* this is used to add extra format checking to the function calls as if this
    was a printf()-like function */
-#if IS_GCC_VERSION(3, 0)
+#if __GNUC_PREREQ(3, 0)
 #define LIKE_PRINTF(format_idx, arg_idx) \
                     __attribute__((__format__(__printf__, format_idx, arg_idx)))
 #else
@@ -51,7 +49,7 @@
 
 /* indicates that the function is "pure": its result is purely based on
    the parameters and has no side effects or used static data */
-#if IS_GCC_VERSION(3, 0)
+#if __GNUC_PREREQ(3, 0)
 #define PURE        __attribute__((__pure__))
 #else
 #define PURE        /* no attribute */
@@ -59,21 +57,21 @@
 
 /* the function returns a new data structure that has been freshly
    allocated */
-#if IS_GCC_VERSION(3, 0)
+#if __GNUC_PREREQ(3, 0)
 #define LIKE_MALLOC __attribute__((__malloc__))
 #else
 #define LIKE_MALLOC /* no attribute */
 #endif
 
 /* the function's return value should be used by the caller */
-#if IS_GCC_VERSION(3, 4)
+#if __GNUC_PREREQ(3, 4)
 #define MUST_USE    __attribute__((__warn_unused_result__))
 #else
 #define MUST_USE    /* no attribute */
 #endif
 
 /* the function's return value should be used by the caller */
-#if IS_GCC_VERSION(2, 5)
+#if __GNUC_PREREQ(2, 5)
 #define NORETURN    __attribute__((__noreturn__))
 #else
 #define NORETURN    /* no attribute */

@@ -1,8 +1,26 @@
 #!/bin/bash
-# $OpenLDAP$
-## This work is part of OpenLDAP Software <http://www.openldap.org/>.
+# $ReOpenLDAP$
+## Copyright (c) 2015,2016 Leonid Yuriev <leo@yuriev.ru>.
+## Copyright (c) 2015,2016 Peter-Service R&D LLC <http://billing.ru/>.
 ##
-## Copyright 1998-2016 The OpenLDAP Foundation.
+## This file is part of ReOpenLDAP.
+##
+## ReOpenLDAP is free software; you can redistribute it and/or modify it under
+## the terms of the GNU Affero General Public License as published by
+## the Free Software Foundation; either version 3 of the License, or
+## (at your option) any later version.
+##
+## ReOpenLDAP is distributed in the hope that it will be useful,
+## but WITHOUT ANY WARRANTY; without even the implied warranty of
+## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+## GNU Affero General Public License for more details.
+##
+## You should have received a copy of the GNU Affero General Public License
+## along with this program.  If not, see <http://www.gnu.org/licenses/>.
+##
+## ---
+##
+## Copyright 1998-2014 The OpenLDAP Foundation.
 ## All rights reserved.
 ##
 ## Redistribution and use in source and binary forms, with or without
@@ -239,14 +257,22 @@ elif [ -n "$CIBUZZ_PID4" ]; then
 	SLEEP0=${SLEEP0-1}
 	SLEEP1=${SLEEP1-7}
 	SYNCREPL_WAIT=${SYNCREPL_WAIT-30}
-else
-	# LY: take in account -O0
+elif [ -n "${TEAMCITY_PROCESS_FLOW_ID}" ]; then
+	# LY: under Teamcity, take in account ASAN/TSAN and nice
 	TIMEOUT_S="timeout -s SIGXCPU 1m"
 	TIMEOUT_L="timeout -s SIGXCPU 3m"
 	TIMEOUT_H="timeout -s SIGXCPU 9m"
-	SLEEP0=${SLEEP0-0.2}
-	SLEEP1=${SLEEP1-1}
+	SLEEP0=${SLEEP0-0.3}
+	SLEEP1=${SLEEP1-2}
 	SYNCREPL_WAIT=${SYNCREPL_WAIT-10}
+else
+	# LY: take in account -O0
+	TIMEOUT_S="timeout -s SIGXCPU 30s"
+	TIMEOUT_L="timeout -s SIGXCPU 1m"
+	TIMEOUT_H="timeout -s SIGXCPU 5m"
+	SLEEP0=${SLEEP0-0.1}
+	SLEEP1=${SLEEP1-1}
+	SYNCREPL_WAIT=${SYNCREPL_WAIT-5}
 fi
 
 SLAP_VERBOSE=${SLAP_VERBOSE-none}
@@ -503,14 +529,15 @@ function failure {
 function safepath {
 	local arg
 	# LY: readlink/realpath from RHEL6 support only one filename.
+	local buildroot=$(readlink -f $([ -n "${TESTING_ROOT}" ] && echo "${TESTING_ROOT}" || echo "../${SRCDIR}"))
 	for arg in "$@"; do
-		local r=$(realpath --relative-to ../${SRCDIR} $arg 2>/dev/null)
+		local r=$(realpath --relative-to ${buildroot} $arg 2>/dev/null | sed -e 's|/\./|/|g' -e 's|^\./||g')
 		# LY: realpath from RHEL6 don't support '--relative-to' option,
 		#     this is workaround/crutch.
 		if [ -n "$r" ]; then
 			echo $arg
 		else
-			readlink -f $arg | sed -e 's|^/sandbox|.|g'
+			readlink -f $arg | sed -e "s|^${buildroot}/||g"
 		fi
 	done
 }

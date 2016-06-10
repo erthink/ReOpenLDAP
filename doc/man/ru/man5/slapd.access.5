@@ -1,7 +1,27 @@
-.TH SLAPD.ACCESS 5 "RELEASEDATE" "OpenLDAP LDVERSION"
-.\" Copyright 1998-2015 The OpenLDAP Foundation All Rights Reserved.
+.TH SLAPD.ACCESS 5 "RELEASEDATE" "ReOpenLDAP LDVERSION"
+.\" $ReOpenLDAP$
+.\" Copyright (c) 2015,2016 Leonid Yuriev <leo@yuriev.ru>.
+.\" Copyright (c) 2015,2016 Peter-Service R&D LLC <http://billing.ru/>.
+.\"
+.\" This file is part of ReOpenLDAP.
+.\"
+.\" ReOpenLDAP is free software; you can redistribute it and/or modify it under
+.\" the terms of the GNU Affero General Public License as published by
+.\" the Free Software Foundation; either version 3 of the License, or
+.\" (at your option) any later version.
+.\"
+.\" ReOpenLDAP is distributed in the hope that it will be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+.\" GNU Affero General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU Affero General Public License
+.\" along with this program.  If not, see <http://www.gnu.org/licenses/>.
+.\"
+.\" ---
+.\"
+.\" Copyright 1998-2014 The OpenLDAP Foundation All Rights Reserved.
 .\" Copying restrictions apply.  See COPYRIGHT/LICENSE.
-.\" $OpenLDAP$
 .SH НАЗВАНИЕ
 slapd.access \- конфигурация доступа для slapd, автономного демона LDAP
 .SH СИНТАКСИС
@@ -669,7 +689,7 @@ ETCDIR/slapd.conf
 .B <attrname>
 указывает, в атрибутах какого типа содержится ACI-информация в записи.
 По умолчанию используется операционный атрибут
-.BR OpenLDAPaci .
+.BR ReOpenLDAPaci .
 ACIs являются экспериментальными; они должны быть явно включены во время компиляции.
 .LP
 Выражения
@@ -1017,7 +1037,7 @@ ACL добавления контента (смотрите man-страницы
 поэтому полностью соблюдается всеми механизмами манипуляции данными; для всех остальных операций
 и для фазы обнаружения записей операции поиска search полные семантики ACL поддерживаются
 только первичными механизмами манипуляции данными, то есть
-.BR back\-bdb (5)
+.BR back\-mdb (5)
 и
 .BR back\-hdb (5).
 
