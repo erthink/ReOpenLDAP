@@ -66,7 +66,7 @@
 /* LY: needed by config_keepalive() */
 #include "config.h"
 
-/* LY: for ldap_pvt_tcpkeepalive() from libldap */
+/* LY: for ldap_pvt_tcpkeepalive() from libreldap */
 #include "../../../libraries/libreldap/ldap-int.h"
 
 #if defined(HAVE_SYS_EPOLL_H) && defined(HAVE_EPOLL)

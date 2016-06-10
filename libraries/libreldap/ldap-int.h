@@ -429,7 +429,7 @@ struct ldap_common {
 #define	ld_nabandoned		ldc->ldc_nabandoned
 #define	ld_abandoned		ldc->ldc_abandoned
 
-	/* unused by libldap */
+	/* unused by libreldap */
 	LDAPCache	*ldc_cache;	/* non-null if cache is initialized */
 #define	ld_cache		ldc->ldc_cache
 

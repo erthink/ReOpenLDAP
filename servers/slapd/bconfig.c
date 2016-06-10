@@ -4356,7 +4356,7 @@ config_tls_option(ConfigArgs *c) {
 	return(ldap_pvt_tls_set_option(ld, flag, c->argv[1]));
 }
 
-/* FIXME: this ought to be provided by libldap */
+/* FIXME: this ought to be provided by libreldap */
 static int
 config_tls_config(ConfigArgs *c) {
 	int i, flag;

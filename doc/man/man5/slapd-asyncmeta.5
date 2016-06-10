@@ -1,8 +1,28 @@
-.TH SLAPD-ASYNCMETA 5 "RELEASEDATE" "OpenLDAP LDVERSION"
+.TH SLAPD-ASYNCMETA 5 "RELEASEDATE" "ReOpenLDAP LDVERSION"
+.\" $ReOpenLDAP$
+.\" Copyright (c) 2016 Leonid Yuriev <leo@yuriev.ru>.
+.\" Copyright (c) 2016 Peter-Service R&D LLC <http://billing.ru/>.
+.\"
+.\" This file is part of ReOpenLDAP.
+.\"
+.\" ReOpenLDAP is free software; you can redistribute it and/or modify it under
+.\" the terms of the GNU Affero General Public License as published by
+.\" the Free Software Foundation; either version 3 of the License, or
+.\" (at your option) any later version.
+.\"
+.\" ReOpenLDAP is distributed in the hope that it will be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+.\" GNU Affero General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU Affero General Public License
+.\" along with this program.  If not, see <http://www.gnu.org/licenses/>.
+.\"
+.\" ---
+.\"
 .\" Copyright 2016 The OpenLDAP Foundation.
 .\" Portions Copyright 2016 Symas Corporation.
 .\" Copying restrictions apply.  See the COPYRIGHT file.
-.\" $OpenLDAP$
 .\"
 
 .SH NAME
@@ -58,7 +78,7 @@ is selected, or using round\-robin if the numbers are equal.
 .LP
 .B Overlays:
 .LP
-Due to implementation specifics, there is no guarantee that any of the existing OpenLDAP overlays will work with
+Due to implementation specifics, there is no guarantee that any of the existing ReOpenLDAP overlays will work with
 .B asyncmeta
 backend.
 
@@ -256,7 +276,7 @@ for details.
 .TP
 .B chase\-referrals {YES|no}
 enable/disable automatic referral chasing, which is delegated to the
-underlying libldap, with rebinding eventually performed if the
+underlying libreldap, with rebinding eventually performed if the
 \fBrebind\-as\-user\fP directive is used.  The default is to chase referrals.
 If set before any target specification, it affects all targets, unless
 overridden by any per-target directive.

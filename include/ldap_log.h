@@ -205,7 +205,7 @@ LDAP_F(void) _ldap_eb_syslog(int pri, const char *fmt, ...);
 #define Debug( level, ... )	\
 	Log( (level), ldap_syslog_level, __VA_ARGS__ )
 
-/* Actually now in liblber/debug.c */
+/* Actually now in libreldap/debug.c */
 LDAP_LUTIL_F(int) ldap_debug_file LDAP_P(( FILE *file ));
 
 LDAP_LUTIL_F(void) ldap_debug_log LDAP_P((

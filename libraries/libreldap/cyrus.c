@@ -241,7 +241,7 @@ sb_sasl_cyrus_fini(
 #if SASL_VERSION_MAJOR >= 2
 	/*
 	 * SASLv2 encode/decode buffers are managed by
-	 * libsasl2. Ensure they are not freed by liblber.
+	 * libsasl2. Ensure they are not freed by libreldap.
 	 */
 	p->buf_in.buf_base = NULL;
 	p->buf_out.buf_base = NULL;

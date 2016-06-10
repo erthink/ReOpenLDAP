@@ -194,7 +194,7 @@ retry:
 	op->o_callback = NULL;
 }
 
-/* LY: override weak from libldap */
+/* LY: override weak from libreldap */
 int ldap_log_printf(void *ld, int loglvl, const char *fmt, ... )
 {
 	(void) ld;
@@ -210,7 +210,7 @@ int ldap_log_printf(void *ld, int loglvl, const char *fmt, ... )
 	return 0;
 }
 
-/* LY: override weaks from liblber */
+/* LY: override weaks from libreldap */
 void ber_error_print( LDAP_CONST char *str )
 {
 	Debug(LDAP_DEBUG_BER, "%s", str);

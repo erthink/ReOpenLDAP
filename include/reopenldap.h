@@ -219,13 +219,13 @@
  * (gcc or MSVC) will generate stubs when this directive is absent.
  * However, this is required for imported variables.
  *
- * The LDAP libraries, i.e. liblber and libldap, can be built as
+ * The LDAP library, i.e. libreldap, can be built as
  * static or shared, based on configuration. Just about all other source
- * code in ReOpenLDAP use these libraries. If the LDAP libraries
- * are configured as shared, 'configure' defines the LDAP_LIBS_DYNAMIC
+ * code in ReOpenLDAP use these libraries. If the LDAP library
+ * is configured as shared, 'configure' defines the LDAP_LIBS_DYNAMIC
  * macro. When other source files include LDAP library headers, the
  * LDAP library symbols will automatically be marked as imported. When
- * the actual LDAP libraries are being built, the symbols will not
+ * the actual LDAP library is being built, the symbols will not
  * be marked as imported because the LBER_LIBRARY or LDAP_LIBRARY macros
  * will be respectively defined.
  *

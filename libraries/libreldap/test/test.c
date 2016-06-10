@@ -55,7 +55,7 @@
 #include <fcntl.h>
 
 /* including the "internal" defs is legit and nec. since this test routine has
- * a-priori knowledge of libldap internal workings.
+ * a-priori knowledge of libreldap internal workings.
  * hodges@stanford.edu 5-Feb-96
  */
 #include "../ldap-int.h"

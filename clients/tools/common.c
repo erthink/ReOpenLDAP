@@ -2428,7 +2428,7 @@ void tool_print_ctrls(
 
 		/* FIXME: there might be cases where a control has NULL OID;
 		 * this makes little sense, especially when returned by the
-		 * server, but libldap happily allows it */
+		 * server, but libreldap happily allows it */
 		if ( ctrls[i]->ldctl_oid == NULL ) {
 			continue;
 		}

@@ -174,7 +174,7 @@ a higher layer
 .LP
 Currently defined
 .B Sockbuf_IO
-handlers in liblber include
+handlers in libreldap include
 .TP
 .B ber_sockbuf_io_tcp
 The default stream-oriented provider
@@ -183,7 +183,7 @@ The default stream-oriented provider
 A stream-oriented provider for local IPC sockets
 .TP
 .B ber_sockbuf_io_dgram
-A datagram-oriented provider. This handler is only present if the liblber
+A datagram-oriented provider. This handler is only present if the libreldap
 library was built with LDAP_CONNECTIONLESS defined.
 .TP
 .B ber_sockbuf_io_readahead
@@ -195,7 +195,7 @@ A generic handler that outputs hex dumps of all traffic. This handler
 may be inserted multiple times at arbitrary layers to show the flow
 of data between other handlers.
 .LP
-Additional handlers may be present in libldap if support for them was
+Additional handlers may be present in libreldap if support for them was
 enabled:
 .TP
 .B ldap_pvt_sockbuf_io_sasl
@@ -205,7 +205,7 @@ An application layer handler for SASL encoding/decoding.
 A transport layer handler for SSL/TLS encoding/decoding. Note that this
 handler is private to the library and is not exposed in the API.
 .LP
-The provided handlers are all instantiated implicitly by libldap, and
+The provided handlers are all instantiated implicitly by libreldap, and
 applications generally will not need to directly manipulate them.
 
 .SH SEE ALSO
