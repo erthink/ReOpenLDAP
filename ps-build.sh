@@ -156,13 +156,13 @@ step_begin "cleanup"
 
 if [ $flag_clean -ne 0 ]; then
 	if [ -d .git ]; then
-		git clean -x -f -d \
+		git clean -x -f -d -q -e '*.pdf' \
 			$( \
 				[ -d .ccache ] && echo " -e .ccache/"; \
 				[ -d tests/testrun ] && echo " -e tests/testrun/"; \
 				[ -f times.log ] && echo " -e times.log"; \
-			) > /dev/null || failure "cleanup"
-		git submodule foreach --recursive git clean -x -f -d > /dev/null || failure "cleanup-submodules"
+			) || failure "cleanup"
+		git submodule foreach --recursive git clean -q -x -f -d || failure "cleanup-submodules"
 	else
 		notice "No git repository, skip cleanup step"
 	fi
