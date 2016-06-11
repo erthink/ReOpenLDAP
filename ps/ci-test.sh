@@ -115,6 +115,12 @@ else
 	filter=cat
 fi
 
+if which ionice >/dev/null; then
+	IONICE="ionice -c 3"
+else
+	IONICE=""
+fi
+
 export TESTING_ROOT
 for n in $(seq 1 $N); do
 	echo "##teamcity[blockOpened name='Round $n of $N']"
@@ -143,7 +149,7 @@ for n in $(seq 1 $N); do
 			export SLAPD_BASEPORT=$(find_free_port ${NPORTS})
 		done
 
-		NOEXIT="${NOEXIT:-${TEAMCITY_PROCESS_FLOW_ID}}" ionice -c 3 make test 2>&1 | tee ${TEST_NOOK}/all.log | $filter
+		NOEXIT="${NOEXIT:-${TEAMCITY_PROCESS_FLOW_ID}}" ${IONICE} make test 2>&1 | tee ${TEST_NOOK}/all.log | $filter
 		RC=${PIPESTATUS[0]}
 		grep ' failed for ' ${TEST_NOOK}/all.log >&2
 		teamcity_sleep 1
