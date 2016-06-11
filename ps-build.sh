@@ -344,7 +344,7 @@ else
 	fi
 fi
 
-PACKAGE="$(grep VERSION= Makefile | cut -d ' ' -f 2).${BUILD_NUMBER}"
+PACKAGE="$(grep VERSION= Makefile | cut -d ' ' -f 2)"
 echo "PACKAGE: $PACKAGE"
 
 if [ -d .git ]; then
