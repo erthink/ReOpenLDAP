@@ -45,9 +45,13 @@ flag_tsan=0
 flag_hide=1
 flag_dynamic=0
 flag_publish=1
+PREV_RELEASE=""
 
 while grep -q '^--' <<< "$1"; do
 	case "$1" in
+	--prev-release)
+		PREV_RELEASE="$2"
+		shift ;;
 	--hide)
 		flag_hide=1
 		;;
@@ -344,7 +348,10 @@ PACKAGE="$(grep VERSION= Makefile | cut -d ' ' -f 2).${BUILD_NUMBER}"
 echo "PACKAGE: $PACKAGE"
 
 if [ -d .git ]; then
-	if [ "$(git describe --abbrev=0 --tags)" != "$(git describe --exact-match --abbrev=0 --tags 2>/dev/null)" ]; then
+	if [ -n "$PREV_RELEASE" ]; then
+		 git describe --abbrev=0 --all "$PREV_RELEASE" > /dev/null \
+			|| failure "invalid prev-release ref '$PREV_RELEASE'"
+	elif [ "$(git describe --abbrev=0 --tags)" != "$(git describe --exact-match --abbrev=0 --tags 2>/dev/null)" ]; then
 		PREV_RELEASE="$(git describe --abbrev=0 --tags)"
 	else
 		PREV_RELEASE="$(git describe --abbrev=0 --tags HEAD~)"
