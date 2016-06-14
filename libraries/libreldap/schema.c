@@ -1851,7 +1851,7 @@ ldap_matchingruleuse_free( LDAPMatchingRuleUse * mru )
 	LDAP_FREE(mru->mru_oid);
 	if (mru->mru_names) LDAP_VFREE(mru->mru_names);
 	if (mru->mru_desc) LDAP_FREE(mru->mru_desc);
-	if (mru->mru_applies_oids) LDAP_VFREE(mru->mru_applies_oids);
+	if (mru->mru_applies_oids) ldap_charray_free(mru->mru_applies_oids);
 	free_extensions(mru->mru_extensions);
 	LDAP_FREE(mru);
 }
