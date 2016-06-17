@@ -29,4 +29,4 @@ banner.c: Makefile
 endif
 
 passwd_shell_SOURCES = banner.c passwd-shell.c shellutil.c shellutil.h
-passwd_shell_LDADD = @LDAP_LIBLUTIL_LA@ @LDAP_LIBRELDAP_LA@
+passwd_shell_LDADD = $(LDAP_LIBLUTIL_LA) $(LDAP_LIBRELDAP_LA)

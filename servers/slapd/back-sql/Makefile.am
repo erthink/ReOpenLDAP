@@ -43,8 +43,8 @@ back_sql_la_SOURCES = add.c api.c back-sql.h banner.c bind.c \
 	operational.c proto-sql.h schema-map.c search.c sql-wrap.c \
 	util.c
 
-AM_CPPFLAGS += @SQL_INCLUDES@
-back_sql_la_LIBADD = @SQL_LIBS@
+AM_CPPFLAGS += $(SQL_INCLUDES)
+back_sql_la_LIBADD = $(SQL_LIBS)
 
 EXTRA_DIST = docs/install docs/platforms docs/bugs docs/todo \
 	docs/concept rdbms_depend/README \

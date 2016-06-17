@@ -48,31 +48,31 @@ u_banner.c: Makefile
 endif
 
 ldapsearch_SOURCES = common.c ldapsearch.c s_banner.c common.h
-ldapsearch_LDADD = @LDAP_LIBLUTIL_LA@ @LDAP_LIBRELDAP_LA@
+ldapsearch_LDADD = $(LDAP_LIBLUTIL_LA) $(LDAP_LIBRELDAP_LA)
 
 ldapmodify_SOURCES = common.c ldapmodify.c m_banner.c common.h
-ldapmodify_LDADD = @LDAP_LIBLUTIL_LA@ @LDAP_LIBRELDAP_LA@
+ldapmodify_LDADD = $(LDAP_LIBLUTIL_LA) $(LDAP_LIBRELDAP_LA)
 
 ldapdelete_SOURCES = common.c ldapdelete.c d_banner.c common.h
-ldapdelete_LDADD = @LDAP_LIBLUTIL_LA@ @LDAP_LIBRELDAP_LA@
+ldapdelete_LDADD = $(LDAP_LIBLUTIL_LA) $(LDAP_LIBRELDAP_LA)
 
 ldapmodrdn_SOURCES = common.c ldapmodrdn.c r_banner.c common.h
-ldapmodrdn_LDADD = @LDAP_LIBLUTIL_LA@ @LDAP_LIBRELDAP_LA@
+ldapmodrdn_LDADD = $(LDAP_LIBLUTIL_LA) $(LDAP_LIBRELDAP_LA)
 
 ldappasswd_SOURCES = common.c ldappasswd.c p_banner.c common.h
-ldappasswd_LDADD = @LDAP_LIBLUTIL_LA@ @LDAP_LIBRELDAP_LA@
+ldappasswd_LDADD = $(LDAP_LIBLUTIL_LA) $(LDAP_LIBRELDAP_LA)
 
 ldapwhoami_SOURCES = common.c ldapwhoami.c w_banner.c common.h
-ldapwhoami_LDADD = @LDAP_LIBLUTIL_LA@ @LDAP_LIBRELDAP_LA@
+ldapwhoami_LDADD = $(LDAP_LIBLUTIL_LA) $(LDAP_LIBRELDAP_LA)
 
 ldapcompare_SOURCES = common.c ldapcompare.c c_banner.c common.h
-ldapcompare_LDADD = @LDAP_LIBLUTIL_LA@ @LDAP_LIBRELDAP_LA@
+ldapcompare_LDADD = $(LDAP_LIBLUTIL_LA) $(LDAP_LIBRELDAP_LA)
 
 ldapexop_SOURCES = common.c ldapexop.c e_banner.c common.h
-ldapexop_LDADD = @LDAP_LIBLUTIL_LA@ @LDAP_LIBRELDAP_LA@
+ldapexop_LDADD = $(LDAP_LIBLUTIL_LA) $(LDAP_LIBRELDAP_LA)
 
 ldapurl_SOURCES = ldapurl.c u_banner.c common.h
-ldapurl_LDADD = @LDAP_LIBLUTIL_LA@ @LDAP_LIBRELDAP_LA@
+ldapurl_LDADD = $(LDAP_LIBLUTIL_LA) $(LDAP_LIBRELDAP_LA)
 
 install-exec-hook:
 	$(RM) $(DESTDIR)$(bindir)/ldapadd$(EXEEXT) && \

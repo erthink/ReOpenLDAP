@@ -43,5 +43,5 @@ back_ndb_la_SOURCES = add.cpp back-ndb.h banner.c bind.cpp \
 	compare.cpp config.cpp delete.cpp init.cpp modify.cpp \
 	modrdn.cpp ndbio.cpp proto-ndb.h search.cpp tools.cpp
 
-AM_CPPFLAGS += @NDB_INCLUDES@
-back_ndb_la_LIBADD = @NDB_LIBS@
+AM_CPPFLAGS += $(NDB_INCLUDES)
+back_ndb_la_LIBADD = $(NDB_LIBS)

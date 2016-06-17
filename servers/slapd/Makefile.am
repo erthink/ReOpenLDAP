@@ -154,7 +154,7 @@ if NDB_DYNAMIC
 backends_DYNAMIC += ndb
 else
 backends_BUILTIN += ndb
-slapd_LDADD += back-ndb/back_ndb.la
+slapd_LDADD += back-ndb/back_ndb.la -lstdc++
 endif
 endif
 
@@ -214,6 +214,127 @@ endif
 
 #########################################
 
+if BUILD_ACCESSLOG
+if ! ACCESSLOG_DYNAMIC
+overlays_BUILTIN += accesslog
+endif
+endif
+
+if BUILD_AUDITLOG
+if ! AUDITLOG_DYNAMIC
+overlays_BUILTIN += auditlog
+endif
+endif
+
+if BUILD_COLLECT
+if ! COLLECT_DYNAMIC
+overlays_BUILTIN += collect
+endif
+endif
+
+if BUILD_CONSTRAINT
+if ! CONSTRAINT_DYNAMIC
+overlays_BUILTIN += constraint
+endif
+endif
+
+if BUILD_DDS
+if ! DDS_DYNAMIC
+overlays_BUILTIN += dds
+endif
+endif
+
+if BUILD_DEREF
+if ! DEREF_DYNAMIC
+overlays_BUILTIN += deref
+endif
+endif
+
+if BUILD_DYNGROUP
+if ! DYNGROUP_DYNAMIC
+overlays_BUILTIN += dyngroup
+endif
+endif
+
+if BUILD_DYNLIST
+if ! DYNLIST_DYNAMIC
+overlays_BUILTIN += dynlist
+endif
+endif
+
+if BUILD_MEMBEROF
+if ! MEMBEROF_DYNAMIC
+overlays_BUILTIN += memberof
+endif
+endif
+
+if BUILD_PPOLICY
+if ! PPOLICY_DYNAMIC
+overlays_BUILTIN += ppolicy
+endif
+endif
+
+if BUILD_PCACHE
+if ! PCACHE_DYNAMIC
+overlays_BUILTIN += pcache
+endif
+endif
+
+if BUILD_REFINT
+if ! REFINT_DYNAMIC
+overlays_BUILTIN += refint
+endif
+endif
+
+if BUILD_RETCODE
+if ! RETCODE_DYNAMIC
+overlays_BUILTIN += retcode
+endif
+endif
+
+if BUILD_RWM
+if ! RWM_DYNAMIC
+overlays_BUILTIN += rwm
+endif
+endif
+
+if BUILD_SEQMOD
+if ! SEQMOD_DYNAMIC
+overlays_BUILTIN += seqmod
+endif
+endif
+
+if BUILD_SSSVLV
+if ! SSSVLV_DYNAMIC
+overlays_BUILTIN += sssvlv
+endif
+endif
+
+if BUILD_SYNCPROV
+if ! SYNCPROV_DYNAMIC
+overlays_BUILTIN += syncprov
+endif
+endif
+
+if BUILD_TRANSLUCENT
+if ! TRANSLUCENT_DYNAMIC
+overlays_BUILTIN += translucent
+endif
+endif
+
+if BUILD_UNIQUE
+if ! UNIQUE_DYNAMIC
+overlays_BUILTIN += unique
+endif
+endif
+
+if BUILD_VALSORT
+if ! VALSORT_DYNAMIC
+overlays_BUILTIN += valsort
+endif
+endif
+
+#########################################
 BUILT_SOURCES = builtin.c
 CLEANFILES += builtin.c
 nodist_slapd_SOURCES = builtin.c
@@ -246,7 +367,7 @@ builtin.c: Makefile
 		|| exit 1;
 	echo "/*-----------------------------------------*/" >> $@ && \
 	for OV in $(overlays_BUILTIN); do \
-		echo "extern OV_init $${OV}_back_initialize;" >> $@ \
+		echo "extern OV_init $${OV}_over_initialize;" >> $@ \
 		|| exit 1; \
 	done; \
 	echo 'OverlayInit slap_oinfo[] = {' >>$@ || exit 1;

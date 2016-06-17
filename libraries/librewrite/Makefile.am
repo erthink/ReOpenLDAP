@@ -29,7 +29,7 @@ banner.c: Makefile
 	$(MKBANNER) 'librewrite' > $@
 endif
 
-librewrite_la_LIBADD = @LDAP_LIBRELDAP_LA@ @LDAP_LIBLUTIL_LA@
+librewrite_la_LIBADD = $(LDAP_LIBRELDAP_LA) $(LDAP_LIBLUTIL_LA)
 
 librewrite_la_SOURCES = banner.c config.c context.c info.c \
 	ldapmap.c map.c params.c rule.c session.c subst.c var.c xmap.c \

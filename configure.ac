@@ -182,6 +182,10 @@ AC_PROG_INSTALL
 AC_PROG_LN_S
 AC_PROG_MAKE_SET
 AM_PROG_CC_C_O
+AC_PROG_SED
+AC_PROG_GREP
+AC_PROG_MKDIR_P
+AC_PROG_EGREP
 AM_CONDITIONAL(COMPILER_IS_GCC, test "x$GCC" = "xyes")
 PKG_PROG_PKG_CONFIG
 AC_LIBTOOL_DLOPEN
@@ -569,7 +573,6 @@ ICU_LIBS=
 SLAPD_SLP_LIBS=
 SLAPD_GMP_LIBS=
 
-
 dnl ================================================================
 dnl Checks for programs
 
@@ -586,14 +589,14 @@ if test $ol_enable_perl != no ; then
 
 	else
 		PERL_CPPFLAGS="`$PERLBIN -MExtUtils::Embed -e ccopts`"
-		PERL_LIBS="`$PERLBIN -MExtUtils::Embed -e ldopts -- | tr -s '[:space:]' '\n' | grep -e '^-l' -e '^-L' | sed -e 's/^-L /-L/g' -e 's/^-l /-l/g' | grep -v '^-lc'`"
+		PERL_LIBS="`$PERLBIN -MExtUtils::Embed -e ldopts | tr -s '[[:space:]]' '\n' | grep -e '^-l' -e '^-L' | sed -e 's/^-L /-L/g' -e 's/^-l /-l/g' | grep -v '^-lc' | tr '\n' ' '`"
+		if test -z "$PERL_CPPFLAGS" -o -z "$PERL_LIBS"; then
+			AC_MSG_ERROR([could not fetch perl libs or options])
+		fi
 		dnl should check perl version
 		ol_link_perl=yes
 	fi
 fi
-
-AC_PROG_CPP
-OL_MSVC
 
 dnl ----------------------------------------------------------------
 dnl Checks for file extensions
@@ -1382,6 +1385,16 @@ esac
 if test $ol_with_yielding_select = yes ; then
 	AC_DEFINE(HAVE_YIELDING_SELECT,1,
 		[define if select implicitly yields])
+fi
+
+AC_CHECK_FUNCS([clock_gettime])
+if test $ac_cv_func_clock_gettime = no; then
+	AC_CHECK_LIB(rt, clock_gettime,[ac_cv_func_clock_gettime="yes"])
+	if test $ac_cv_func_clock_gettime = yes; then
+		LTHREAD_LIBS="$LTHREAD_LIBS -lrt"
+		AC_DEFINE(HAVE_CLOCK_GETTIME, 1,
+			[Define to 1 if you have the `clock_gettime' function.])
+	fi
 fi
 
 if test $ol_link_threads != no ; then

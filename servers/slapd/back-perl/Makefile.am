@@ -43,5 +43,5 @@ back_perl_la_SOURCES = add.c banner.c bind.c close.c compare.c \
 	config.c delete.c init.c modify.c modrdn.c perl_back.h \
 	proto-perl.h search.c
 
-AM_CPPFLAGS += @PERL_CPPFLAGS@
-back_perl_la_LIBADD = @PERL_LIBS@
+AM_CPPFLAGS += $(PERL_CPPFLAGS)
+back_perl_la_LIBADD = $(PERL_LIBS)

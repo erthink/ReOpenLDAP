@@ -2688,7 +2688,7 @@ loop:
 					Debug( LDAP_DEBUG_CONNS,
 						"daemon: socket troube on %d\n",
 						fd );
-					if (connections_socket_troube(fd) < 0) {
+					if (connections_socket_trouble(fd) < 0) {
 #ifdef HAVE_EPOLL
 						/* Don't keep reporting the hangup */
 						ldap_pvt_thread_mutex_lock( &slap_daemon[tid].sd_mutex );

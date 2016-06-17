@@ -45,5 +45,5 @@ back_bdb_la_SOURCES = add.c attr.c back-bdb.h banner.c bind.c \
 	nextid.c operational.c proto-bdb.h referral.c search.c tools.c \
 	trans.c
 
-back_bdb_la_CFLAGS = -UBDB_HIER @BDB_INCLUDES@
-back_bdb_la_LIBADD = @BDB_LIBS@
+back_bdb_la_CFLAGS = -UBDB_HIER $(BDB_INCLUDES)
+back_bdb_la_LIBADD = $(BDB_LIBS)

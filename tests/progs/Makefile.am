@@ -24,32 +24,32 @@ noinst_PROGRAMS = ldif_filter slapd_addel slapd_bind \
 
 AM_CPPFLAGS = -I$(top_srcdir)/include
 
-LIBS = $(LDAP_LIBRELDAP_LA) $(LDAP_LIBLUTIL_LA) \
+slap_LIBS = $(LDAP_LIBRELDAP_LA) $(LDAP_LIBLUTIL_LA) \
 	 $(LUTIL_LIBS) $(SECURITY_LIBS)
 
 ldif_filter_SOURCES = ldif-filter.c
-ldif_filter_LDADD = $(LIBS)
+ldif_filter_LDADD = $(slap_LIBS)
 
 slapd_addel_SOURCES = slapd-addel.c slapd-common.c slapd-common.h
-slapd_addel_LDADD = $(LIBS)
+slapd_addel_LDADD = $(slap_LIBS)
 
 slapd_bind_SOURCES = slapd-bind.c slapd-common.c slapd-common.h
-slapd_bind_LDADD = $(LIBS)
+slapd_bind_LDADD = $(slap_LIBS)
 
 slapd_modify_SOURCES = slapd-modify.c slapd-common.c slapd-common.h
-slapd_modify_LDADD = $(LIBS)
+slapd_modify_LDADD = $(slap_LIBS)
 
 slapd_modrdn_SOURCES = slapd-modrdn.c slapd-common.c slapd-common.h
-slapd_modrdn_LDADD = $(LIBS)
+slapd_modrdn_LDADD = $(slap_LIBS)
 
 slapd_mtread_SOURCES = slapd-mtread.c slapd-common.c slapd-common.h
-slapd_mtread_LDADD = $(LIBS)
+slapd_mtread_LDADD = $(slap_LIBS)
 
 slapd_read_SOURCES = slapd-read.c slapd-common.c slapd-common.h
-slapd_read_LDADD = $(LIBS)
+slapd_read_LDADD = $(slap_LIBS)
 
 slapd_search_SOURCES = slapd-search.c slapd-common.c slapd-common.h
-slapd_search_LDADD = $(LIBS)
+slapd_search_LDADD = $(slap_LIBS)
 
 slapd_tester_SOURCES = slapd-tester.c slapd-common.c slapd-common.h
-slapd_tester_LDADD = $(LIBS)
+slapd_tester_LDADD = $(slap_LIBS)

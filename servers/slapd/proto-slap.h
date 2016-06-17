@@ -853,7 +853,7 @@ LDAP_SLAPD_F (void) connection_closing LDAP_P((
 LDAP_SLAPD_F (int) connection_valid LDAP_P(( Connection *c ));
 LDAP_SLAPD_F (const char *) connection_state2str LDAP_P(( int state ))
 	__attribute__((const));
-int connections_socket_troube(ber_socket_t s);
+int connections_socket_trouble(ber_socket_t s);
 
 LDAP_SLAPD_F (int) connection_read_activate LDAP_P((ber_socket_t s));
 LDAP_SLAPD_F (int) connection_write LDAP_P((ber_socket_t s));

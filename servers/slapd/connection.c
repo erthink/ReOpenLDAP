@@ -371,7 +371,7 @@ static void connection_return( Connection *c )
 	ldap_pvt_thread_mutex_unlock( &c->c_mutex );
 }
 
-int connections_socket_troube(ber_socket_t s)
+int connections_socket_trouble(ber_socket_t s)
 {
 	int rc = -1;
 	Connection *c = connection_get(s);
