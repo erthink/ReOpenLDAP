@@ -47,6 +47,14 @@ flag_dynamic=0
 flag_publish=1
 PREV_RELEASE=""
 
+if [ -e configure.ac ]; then
+	notice "info: saw modern ./configure.ac"
+	modern_configure=1
+else
+	notice "info: NOT saw modern ./configure.ac"
+	modern_configure=0
+fi
+
 while grep -q '^--' <<< "$1"; do
 	case "$1" in
 	--prev-release)
@@ -338,13 +346,18 @@ else
 
 	sed -e 's/ -lrt/ -Wl,--no-as-needed,-lrt/g' -i ${LIBMDBX_DIR}/Makefile
 
-	if [ -z "${TEAMCITY_PROCESS_FLOW_ID}" ]; then
+	if [ $modern_configure -eq 0 -a -z "${TEAMCITY_PROCESS_FLOW_ID}" ]; then
 		make depend \
 			|| failure "make-deps"
 	fi
 fi
 
-PACKAGE="$(grep VERSION= Makefile | cut -d ' ' -f 2)"
+if [ $modern_configure -eq 0 ]; then
+	PACKAGE="$(grep VERSION= Makefile | cut -d ' ' -f 2)"
+else
+	PACKAGE="$(build/BRANDING --version)"
+fi
+
 echo "PACKAGE: $PACKAGE"
 
 if [ -d .git ]; then
@@ -400,7 +413,7 @@ find ${PREFIX} -name '*.a' -o -name '*.la' | xargs -r rm \
 	|| failure "sweep-1"
 find ${PREFIX} -type d -empty | xargs -r rm -r \
 	|| failure "sweep-2"
-rm -r ${PREFIX}/var ${PREFIX}/include && ln -s /var ${PREFIX}/ \
+rm -rf ${PREFIX}/var ${PREFIX}/include && ln -s /var ${PREFIX}/ \
 	|| failure "sweep-3"
 
 step_finish "sweep"

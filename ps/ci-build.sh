@@ -40,17 +40,15 @@ configure() {
 	${srcdir}/configure "$@" > configure.log
 }
 
-flag_autoconf=1
+flag_autoconf=0
 flag_dist=0
-if [ -s configure.ac ]; then
+flag_insrc=1
+if [ -e configure.ac ]; then
 	notice "info: saw modern ./configure.ac"
 	modern_configure=1
-	flag_insrc=0
 else
 	notice "info: NOT saw modern ./configure.ac"
 	modern_configure=0
-	flag_autoconf=0
-	flag_insrc=1
 fi
 
 flag_debug=0
@@ -129,6 +127,7 @@ for arg in "$@"; do
 	--no-clean | --do-not-clean)
 		flag_clean=0
 		flag_dist=0
+		flag_autoconf=0
 		;;
 	--size)
 		flag_O=-Os
@@ -276,11 +275,7 @@ elif grep -q clang <<< "$CC"; then
 fi
 
 if [ $flag_debug -ne 0 ]; then
-	if grep -q gcc <<< "$CC" ; then
-		CFLAGS+=" -Og"
-	else
-		CFLAGS+=" -O0"
-	fi
+	CFLAGS+=" -O0"
 else
 	CFLAGS+=" ${flag_O}"
 fi
@@ -438,7 +433,7 @@ if [ ! -s ${build}/Makefile ]; then
 
 	find ${build} -name Makefile | xargs -r sed -i 's/-Wall -ggdb3/-Wall -Werror -ggdb3/g' || failure "prepare"
 
-	if [ -z "${TEAMCITY_PROCESS_FLOW_ID}" ]; then
+	if [ $modern_configure -eq 0 -a -z "${TEAMCITY_PROCESS_FLOW_ID}" ]; then
 		make -C ${build} -j 1 -l $lalim depend \
 			|| notice "notice: 'make depend' now obsolete"
 	fi
@@ -453,6 +448,8 @@ export CFLAGS CXXFLAGS
 make -C ${build} -j $ncpu -l $lalim \
 	&& make -j $ncpu -l $lalim -C ${LIBMDBX_DIR} \
 		all $(find ${LIBMDBX_DIR} -name 'mtest*.c' | xargs -n 1 -r -I '{}' basename '{}' .c) || failure "build"
+
+export LDAP_SRC=$(readlink -f ${srcdir}) LDAP_BUILD=$(readlink -f ${build})
 
 for m in $(find contrib/slapd-modules -name Makefile -printf '%h\n'); do
 	if [ -e $m/BROKEN ]; then
