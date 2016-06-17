@@ -139,6 +139,10 @@ while grep -q '^--' <<< "$1"; do
 	shift
 done
 
+if [ $flag_lto -ne 0 ]; then
+	notice "warning: LTO-mode temporary disabled"
+	flag_lto=0
+fi
 
 ##############################################################################
 
