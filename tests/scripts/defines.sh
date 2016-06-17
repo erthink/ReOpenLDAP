@@ -34,7 +34,7 @@
 # LY: kill all slapd running in the current session
 pkill -SIGKILL -s 0 -u $EUID slapd
 TESTWD=$(pwd)
-umask 077
+umask 0002
 
 #LY: man enabled overlays & backends
 declare -A AC_conf
