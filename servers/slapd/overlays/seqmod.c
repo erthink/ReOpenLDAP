@@ -35,12 +35,12 @@
  * OpenLDAP Software.
  */
 
-#include "portable.h"
+#include "reldap.h"
 
 #ifdef SLAPD_OVER_SEQMOD
 
 #include "slap.h"
-#include "config.h"
+#include "slapconfig.h"
 
 /* This overlay serializes concurrent attempts to modify a single entry */
 
@@ -200,7 +200,7 @@ seqmod_db_close(
 static slap_overinst 		seqmod;
 
 int
-seqmod_initialize()
+seqmod_over_initialize()
 {
 	seqmod.on_bi.bi_type = "seqmod";
 	seqmod.on_bi.bi_db_open = seqmod_db_open;
@@ -214,11 +214,7 @@ seqmod_initialize()
 }
 
 #if SLAPD_OVER_SEQMOD == SLAPD_MOD_DYNAMIC
-int
-init_module( int argc, char *argv[] )
-{
-	return seqmod_initialize();
-}
+SLAP_OVERLAY_INIT_MODULE(seqmod)
 #endif /* SLAPD_OVER_SEQMOD == SLAPD_MOD_DYNAMIC */
 
 #endif /* defined(SLAPD_OVER_SEQMOD) */

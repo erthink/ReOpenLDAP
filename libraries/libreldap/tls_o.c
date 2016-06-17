@@ -34,11 +34,11 @@
 /* ACKNOWLEDGEMENTS: Rewritten by Howard Chu
  */
 
-#include "portable.h"
+#include "reldap.h"
 
 #ifdef HAVE_OPENSSL
 
-#include "ldap_config.h"
+#include "ldap_dirs.h"
 
 #include <stdio.h>
 
@@ -51,6 +51,7 @@
 #include <ac/unistd.h>
 #include <ac/param.h>
 #include <ac/dirent.h>
+#include <ac/localize.h>
 
 #include "ldap-int.h"
 #include "ldap-tls.h"

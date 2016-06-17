@@ -35,7 +35,7 @@
  * This work was developed by Pierangelo Masarati for inclusion
  * in OpenLDAP Software */
 
-#include "portable.h"
+#include "reldap.h"
 
 #include <stdio.h>
 #include <ac/stdlib.h>

@@ -1,5 +1,5 @@
 #!/bin/bash
-# $ReOpenLDAP$
+## $ReOpenLDAP$
 ## Copyright (c) 2015,2016 Leonid Yuriev <leo@yuriev.ru>.
 ## Copyright (c) 2015,2016 Peter-Service R&D LLC <http://billing.ru/>.
 ##
@@ -32,7 +32,7 @@
 ## <http://www.OpenLDAP.org/license.html>.
 
 echo "running defines.sh"
-. $SRCDIR/scripts/defines.sh
+. ${TOP_SRCDIR}/tests/scripts/defines.sh
 
 echo "### This test requires the LDAP backend and the rwm overlay."
 echo "### If available, and explicitly requested, it can use SASL bind;"
@@ -40,24 +40,19 @@ echo "### note that SASL must be properly set up, and the requested"
 echo "### mechanism must be available.  Define SLAPD_USE_SASL={yes|<mech>},"
 echo "### with \"yes\" defaulting to DIGEST-MD5 to enable SASL authc[/authz]."
 
-if test $BACKLDAP = "ldapno" ; then
+if test ${AC_conf[ldap]} = no ; then
 	echo "LDAP backend not available, test skipped"
 	exit 0
 fi
 
-if test $RWM = "rwmno" ; then
+if test ${AC_conf[rwm]} = no ; then
 	echo "Rewrite/remap overlay not available, test skipped"
 	exit 0
 fi
 
-if test $THREADS = "threadsno" ; then
-	echo "Need threads support, test skipped"
-	exit 0
-fi
-
-if test $WITH_SASL = "yes" ; then
-	if test $USE_SASL != "no" ; then
-		if test $USE_SASL = "yes" ; then
+if test ${AC_conf[sasl]} = yes ; then
+	if test $USE_SASL != no ; then
+		if test $USE_SASL = yes ; then
 			MECH="DIGEST-MD5"
 		else
 			MECH="$USE_SASL"
@@ -73,7 +68,7 @@ fi
 mkdir -p $TESTDIR $DBDIR1 $DBDIR2
 
 echo "Running slapadd to build slapd database..."
-. $CONFFILTER $BACKEND $MONITORDB < $IDASSERTCONF > $ADDCONF
+config_filter $BACKEND ${AC_conf[monitor]} < $IDASSERTCONF > $ADDCONF
 $SLAPADD -f $ADDCONF -l $LDIFIDASSERT1 -n 1
 RC=$?
 if test $RC != 0 ; then
@@ -88,7 +83,7 @@ if test $RC != 0 ; then
 fi
 
 echo "Starting slapd on TCP/IP port $PORT..."
-. $CONFFILTER $BACKEND $MONITORDB < $IDASSERTCONF > $CONF1
+config_filter $BACKEND ${AC_conf[monitor]} < $IDASSERTCONF > $CONF1
 $SLAPD -f $CONF1 -h $URI1 $TIMING > $LOG1 2>&1 &
 PID=$!
 if test $WAIT != 0 ; then
@@ -222,7 +217,7 @@ if test $? != 0 ; then
 	exit 1
 fi
 
-if test $USE_SASL != "no" ; then
+if test $USE_SASL != no ; then
 	ID="it/jaj"
 	BASE="o=Example,c=US"
 	echo "Testing ldapsearch as $ID for \"$BASE\" with SASL bind and identity assertion..."

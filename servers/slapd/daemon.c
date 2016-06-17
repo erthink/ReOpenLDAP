@@ -42,7 +42,7 @@
  * is provided ``as is'' without express or implied warranty.
  */
 
-#include "portable.h"
+#include "reldap.h"
 
 #include <stdio.h>
 
@@ -60,10 +60,10 @@
 #include "ldap_rq.h"
 
 /* LY: needed by config_keepalive() */
-#include "config.h"
+#include "slapconfig.h"
 
-/* LY: for ldap_pvt_tcpkeepalive() from libldap */
-#include "../../../libraries/libreldap/ldap-int.h"
+/* LY: for ldap_pvt_tcpkeepalive() from libreldap */
+#include "../../libraries/libreldap/ldap-int.h"
 
 #if defined(HAVE_SYS_EPOLL_H) && defined(HAVE_EPOLL)
 # include <sys/epoll.h>
@@ -2826,7 +2826,7 @@ slapd_daemon( void )
 	return 0;
 }
 
-RETSIGTYPE
+void
 slap_sig_shutdown( int sig )
 {
 	int save_errno = errno;
@@ -2863,7 +2863,7 @@ slap_sig_shutdown( int sig )
 	errno = save_errno;
 }
 
-RETSIGTYPE
+void
 slap_sig_wake( int sig )
 {
 	int save_errno = errno;

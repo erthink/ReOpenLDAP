@@ -37,7 +37,7 @@
  * Corporation for inclusion in OpenLDAP Software.
  */
 
-#include "portable.h"
+#include "reldap.h"
 
 #if SLAPD_BDB || SLAPD_HDB
 

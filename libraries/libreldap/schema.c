@@ -36,16 +36,15 @@
  *	schema definitions
  */
 
-#include "portable.h"
+#include "reldap.h"
 
 #include <stdio.h>
 #include <ac/stdlib.h>
-
 #include <ac/string.h>
 #include <ac/time.h>
+#include <ac/localize.h>
 
 #include "ldap-int.h"
-
 #include <ldap_schema.h>
 
 static const char EndOfInput[] = "end of input";

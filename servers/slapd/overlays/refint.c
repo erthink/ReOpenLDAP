@@ -37,7 +37,7 @@
  * OpenLDAP Software.  This work was sponsored by Hewlett-Packard.
  */
 
-#include "portable.h"
+#include "reldap.h"
 
 /* This module maintains referential integrity for a set of
  * DN-valued attributes by searching for all references to a given
@@ -56,7 +56,7 @@
 #include <ac/socket.h>
 
 #include "slap.h"
-#include "config.h"
+#include "slapconfig.h"
 #include "ldap_rq.h"
 
 static slap_overinst refint;
@@ -1086,7 +1086,7 @@ refint_preop(
 ** it expects to be called automagically during dynamic module initialization
 */
 
-int refint_initialize() {
+int refint_over_initialize() {
 	int rc;
 
 	mr_dnSubtreeMatch = mr_find( "dnSubtreeMatch" );
@@ -1112,10 +1112,8 @@ int refint_initialize() {
 	return(overlay_register(&refint));
 }
 
-#if SLAPD_OVER_REFINT == SLAPD_MOD_DYNAMIC && defined(PIC)
-int init_module(int argc, char *argv[]) {
-	return refint_initialize();
-}
+#if SLAPD_OVER_REFINT == SLAPD_MOD_DYNAMIC
+SLAP_OVERLAY_INIT_MODULE(refint)
 #endif
 
 #endif /* SLAPD_OVER_REFINT */

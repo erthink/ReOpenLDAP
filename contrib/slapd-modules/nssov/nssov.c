@@ -45,7 +45,7 @@
 #define SLAPD_OVER_NSSOV SLAPD_MOD_DYNAMIC
 #endif
 
-#include "../slapd/config.h"	/* not nss-ldapd config.h */
+#include "../slapd/slapconfig.h"	/* not nss-ldapd slapconfig.h */
 
 #include "lutil.h"
 

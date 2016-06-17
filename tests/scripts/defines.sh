@@ -1,5 +1,5 @@
 #!/bin/bash
-# $ReOpenLDAP$
+## $ReOpenLDAP$
 ## Copyright (c) 2015,2016 Leonid Yuriev <leo@yuriev.ru>.
 ## Copyright (c) 2015,2016 Peter-Service R&D LLC <http://billing.ru/>.
 ##
@@ -31,41 +31,41 @@
 ## top-level directory of the distribution or, alternatively, at
 ## <http://www.OpenLDAP.org/license.html>.
 
-umask 077
+# LY: kill all slapd running in the current session
 pkill -SIGKILL -s 0 -u $EUID slapd
+TESTWD=$(pwd)
+umask 077
 
-TESTWD=`pwd`
-
-# backends
-MONITORDB=${AC_monitor-no}
-BACKLDAP=${AC_ldap-ldapno}
-BACKMETA=${AC_meta-metano}
-BACKRELAY=${AC_relay-relayno}
-BACKSQL=${AC_sql-sqlno}
-	RDBMS=${SLAPD_USE_SQL-rdbmsno}
-	RDBMSWRITE=${SLAPD_USE_SQLWRITE-no}
-
-# overlays
-ACCESSLOG=${AC_accesslog-accesslogno}
-CONSTRAINT=${AC_constraint-constraintno}
-DDS=${AC_dds-ddsno}
-DYNLIST=${AC_dynlist-dynlistno}
-MEMBEROF=${AC_memberof-memberofno}
-PROXYCACHE=${AC_pcache-pcacheno}
-PPOLICY=${AC_ppolicy-ppolicyno}
-REFINT=${AC_refint-refintno}
-RETCODE=${AC_retcode-retcodeno}
-RWM=${AC_rwm-rwmno}
-SYNCPROV=${AC_syncprov-syncprovno}
-TRANSLUCENT=${AC_translucent-translucentno}
-UNIQUE=${AC_unique-uniqueno}
-VALSORT=${AC_valsort-valsortno}
+#LY: man enabled overlays & backends
+declare -A AC_conf
+for i in $AC_SLAPD_OVERLAYS_LIST $AC_SLAPD_BACKENDS_LIST; do
+	if grep -q " $i " <<< " $AC_SLAPD_DYNAMIC_OVERLAYS $AC_SLAPD_DYNAMIC_BACKENDS "; then
+		AC_conf[$i]=mod
+	elif grep -q " $i " <<< " $AC_SLAPD_STATIC_OVERLAYS $AC_SLAPD_STATIC_BACKENDS "; then
+		AC_conf[$i]=yes
+	else
+		AC_conf[$i]=no
+	fi
+done
 
 # misc
-WITH_SASL=${AC_WITH_SASL-no}
+AC_conf[aci]=${AC_ACI_ENABLED-no}
+AC_conf[tls]=${AC_WITH_TLS-no}
 USE_SASL=${SLAPD_USE_SASL-no}
-ACI=${AC_ACI_ENABLED-acino}
-THREADS=${AC_THREADS-threadsno}
+if [ $USE_SASL = no ]; then
+	AC_conf[sasl]=no
+else
+	AC_conf[sasl]=${AC_WITH_SASL-no}
+fi
+TB="" TN=""
+if test -t 1 ; then
+	TB=`echo -e "%B" 2>/dev/null`
+	TN=`echo -e "%b" 2>/dev/null`
+fi
+
+# sql-backed
+RDBMS=${SLAPD_USE_SQL-rdbmsno}
+RDBMSWRITE=${SLAPD_USE_SQLWRITE-no}
 
 function update_TESTDIR {
 	TESTDIR=$1
@@ -155,19 +155,20 @@ function update_TESTDIR {
 }
 
 # dirs
-PROGDIR=./progs
-DATADIR=${USER_DATADIR-./testdata}
+PROGDIR=${TOP_BUILDDIR}/tests/progs
+DATADIR=${USER_DATADIR-${TOP_SRCDIR}/tests/testdata}
 BASE_TESTDIR=${USER_TESTDIR-$TESTWD/testrun}
 update_TESTDIR $BASE_TESTDIR
+SLAPD=${TOP_BUILDDIR}/servers/slapd/slapd
+CLIENTDIR=${TOP_BUILDDIR}/clients/tools
+DRAINDIR=${TOP_SRCDIR}/tests
 
 SCHEMADIR=${USER_SCHEMADIR-./schema}
 case "$SCHEMADIR" in
-.*)	ABS_SCHEMADIR="$TESTWD/$SCHEMADIR" ;;
-*)  ABS_SCHEMADIR="$SCHEMADIR" ;;
+	./*)	ABS_SCHEMADIR="${TOP_BUILDDIR}/tests/$SCHEMADIR" ;;
+	*)	ABS_SCHEMADIR="$SCHEMADIR" ;;
 esac
 
-CLIENTDIR=../clients/tools
-#CLIENTDIR=/usr/local/bin
 SQLCONCURRENCYDIR=$DATADIR/sql-concurrency
 
 # conf
@@ -184,7 +185,7 @@ SRMASTERCONF=$DATADIR/slapd-syncrepl-master.conf
 DSRMASTERCONF=$DATADIR/slapd-deltasync-master.conf
 DSRSLAVECONF=$DATADIR/slapd-deltasync-slave.conf
 PPOLICYCONF=$DATADIR/slapd-ppolicy.conf
-PROXYCACHECONF=$DATADIR/slapd-proxycache.conf
+PROXYCACHECONF=$DATADIR/slapd-pcache.conf
 CACHEMASTERCONF=$DATADIR/slapd-cache-master.conf
 R1SRSLAVECONF=$DATADIR/slapd-syncrepl-slave-refresh1.conf
 R2SRSLAVECONF=$DATADIR/slapd-syncrepl-slave-refresh2.conf
@@ -228,18 +229,12 @@ PASSWDCONF=$DATADIR/slapd-passwd.conf
 UNDOCONF=$DATADIR/slapd-config-undo.conf
 NAKEDCONF=$DATADIR/slapd-config-naked.conf
 VALREGEXCONF=$DATADIR/slapd-valregex.conf
-
 DYNAMICCONF=$DATADIR/slapd-dynamic.ldif
 
 
 # args
 TOOLARGS="-x $LDAP_TOOLARGS"
 TOOLPROTO="-P 3"
-
-# cmds
-CONFFILTER=$SRCDIR/scripts/conf.sh
-
-MONITORDATA=$SRCDIR/scripts/monitor_data.sh
 SYNCREPL_RETRY="1 +"
 
 if [ -n "$USE_VALGRIND" ] && [ "$USE_VALGRIND" -ne 0 ]; then
@@ -276,14 +271,14 @@ else
 fi
 
 SLAP_VERBOSE=${SLAP_VERBOSE-none}
-SLAPADD="$TIMEOUT_S $VALGRIND_CMD $TESTWD/../servers/slapd/slapd -Ta -d $SLAP_VERBOSE"
-SLAPCAT="$TIMEOUT_S $VALGRIND_CMD $TESTWD/../servers/slapd/slapd -Tc -d $SLAP_VERBOSE"
-SLAPINDEX="$TIMEOUT_S $VALGRIND_CMD $TESTWD/../servers/slapd/slapd -Ti -d $SLAP_VERBOSE"
-SLAPMODIFY="$TIMEOUT_S $VALGRIND_CMD $TESTWD/../servers/slapd/slapd -Tm -d $SLAP_VERBOSE"
-SLAPPASSWD="$TIMEOUT_S $VALGRIND_CMD $TESTWD/../servers/slapd/slapd -Tpasswd"
+SLAPADD="$TIMEOUT_S $VALGRIND_CMD $SLAPD -Ta -d $SLAP_VERBOSE"
+SLAPCAT="$TIMEOUT_S $VALGRIND_CMD $SLAPD -Tc -d $SLAP_VERBOSE"
+SLAPINDEX="$TIMEOUT_S $VALGRIND_CMD $SLAPD -Ti -d $SLAP_VERBOSE"
+SLAPMODIFY="$TIMEOUT_S $VALGRIND_CMD $SLAPD -Tm -d $SLAP_VERBOSE"
+SLAPPASSWD="$TIMEOUT_S $VALGRIND_CMD $SLAPD -Tpasswd"
 
 unset DIFF_OPTIONS
-SLAPDMTREAD=$PROGDIR/slapd-mtread
+SLAPDMTREAD=$PROGDIR/slapd_mtread
 LVL=${SLAPD_DEBUG-sync,stats,args,trace,conns}
 LOCALHOST=localhost
 BASEPORT=${SLAPD_BASEPORT-9010}
@@ -292,8 +287,8 @@ DIFF="diff -i"
 CMP="diff -i -Z"
 BCMP="diff -iB"
 CMPOUT=/dev/null
-SLAPD="$TIMEOUT_L $VALGRIND_CMD $TESTWD/../servers/slapd/slapd -D -s0 -d $LVL"
-SLAPD_HUGE="$TIMEOUT_H $VALGRIND_CMD $TESTWD/../servers/slapd/slapd -D -s0 -d $LVL"
+SLAPD="$TIMEOUT_L $VALGRIND_CMD $SLAPD -D -s0 -d $LVL"
+SLAPD_HUGE="$TIMEOUT_H $VALGRIND_CMD $SLAPD -D -s0 -d $LVL"
 LDAPPASSWD="$TIMEOUT_S $VALGRIND_EX_CMD $CLIENTDIR/ldappasswd $TOOLARGS"
 LDAPSASLSEARCH="$TIMEOUT_S $VALGRIND_EX_CMD $CLIENTDIR/ldapsearch $TOOLPROTO $LDAP_TOOLARGS -LLL"
 LDAPSEARCH="$TIMEOUT_S $VALGRIND_EX_CMD $CLIENTDIR/ldapsearch $TOOLPROTO $TOOLARGS -LLL"
@@ -305,10 +300,10 @@ LDAPMODRDN="$TIMEOUT_S $VALGRIND_EX_CMD $CLIENTDIR/ldapmodrdn $TOOLPROTO $TOOLAR
 LDAPWHOAMI="$TIMEOUT_S $VALGRIND_EX_CMD $CLIENTDIR/ldapwhoami $TOOLARGS"
 LDAPCOMPARE="$TIMEOUT_S $VALGRIND_EX_CMD $CLIENTDIR/ldapcompare $TOOLARGS"
 LDAPEXOP="$TIMEOUT_S $VALGRIND_EX_CMD $CLIENTDIR/ldapexop $TOOLARGS"
-SLAPDTESTER="$TIMEOUT_H $PROGDIR/slapd-tester"
+SLAPDTESTER="$TIMEOUT_H $PROGDIR/slapd_tester"
 
 function ldif-filter-unwrap {
-	grep -v ^== | $PROGDIR/ldif-filter "$@" | sed -n -e 'H; ${ x; s/\n//; s/\n //g; p}'
+	grep -v ^== | $PROGDIR/ldif_filter "$@" | sed -n -e 'H; ${ x; s/\n//; s/\n //g; p}'
 }
 
 LDIFFILTER=ldif-filter-unwrap
@@ -405,7 +400,7 @@ MONITOROUT4=$DATADIR/monitor4.out
 
 
 # original outputs for cmp
-PROXYCACHEOUT=$DATADIR/proxycache.out
+PROXYCACHEOUT=$DATADIR/pcache.out
 REFERRALOUT=$DATADIR/referrals.out
 SEARCHOUTMASTER=$DATADIR/search.out.master
 SEARCHOUTX=$DATADIR/search.out.xsearch
@@ -444,7 +439,6 @@ DYNLISTOUT=$DATADIR/dynlist.out
 DDSOUT=$DATADIR/dds.out
 MEMBEROFOUT=$DATADIR/memberof.out
 MEMBEROFREFINTOUT=$DATADIR/memberof-refint.out
-SHTOOL="$SRCDIR/../build/shtool"
 
 function teamcity_msg {
 	if [ -n "${TEAMCITY_PROCESS_FLOW_ID}" ]; then
@@ -529,7 +523,7 @@ function failure {
 function safepath {
 	local arg
 	# LY: readlink/realpath from RHEL6 support only one filename.
-	local buildroot=$(readlink -f $([ -n "${TESTING_ROOT}" ] && echo "${TESTING_ROOT}" || echo "../${SRCDIR}"))
+	local buildroot=$(readlink -f $([ -n "${TESTING_ROOT}" ] && echo "${TESTING_ROOT}" || echo "${TOP_BUILDDIR}"))
 	for arg in "$@"; do
 		local r=$(realpath --relative-to ${buildroot} $arg 2>/dev/null | sed -e 's|/\./|/|g' -e 's|^\./||g')
 		# LY: realpath from RHEL6 don't support '--relative-to' option,
@@ -545,9 +539,9 @@ function safepath {
 function collect_coredumps {
 	wait
 	local id=${1:-xxx-$(date '+%F.%H%M%S.%N')}
-	local cores="$(find -L ../${SRCDIR}/tests -type f -size +0 -name core -o -name 'valgrind-log*.core.*')"
-	local sans="$(find -L ../${SRCDIR}/tests -type f -size +0 -name 'tsan-log*' -o -name 'asan-log*')"
-	local vags="$(find -L ../${SRCDIR}/tests -type f -size +0 -regextype posix-egrep -regex '.*/valgrind-log.[0-9]+$')"
+	local cores="$(find -L ${DRAINDIR} -type f -size +0 -name core -o -name 'valgrind-log*.core.*')"
+	local sans="$(find -L ${DRAINDIR} -type f -size +0 -name 'tsan-log*' -o -name 'asan-log*')"
+	local vags="$(find -L ${DRAINDIR} -type f -size +0 -regextype posix-egrep -regex '.*/valgrind-log.[0-9]+$')"
 	local rc=0
 	if [ -n "${cores}" -o -n "${sans}" -o -n "${vags}" ]; then
 		if [ -n "${cores}" ]; then
@@ -562,9 +556,9 @@ function collect_coredumps {
 
 		local dir n c target
 		if [ -n "${TEST_NOOK}" ]; then
-			dir="../${SRCDIR}/${TEST_NOOK}"
+			dir="${TOP_BUILDDIR}/${TEST_NOOK}"
 		else
-			dir="../${SRCDIR}/@cores-n-sans"
+			dir="${TOP_BUILDDIR}/@cores-n-sans"
 		fi
 
 		mkdir -p "$dir" || failure "failed: mkdir -p '$dir'"
@@ -576,7 +570,7 @@ function collect_coredumps {
 				n=$((n-1))
 			done
 			mv "$c" "${target}" || failure "failed: mv '$c' '${target}'"
-			gdb -q ../${SRCDIR}/servers/slapd/slapd -c "${target}" << EOF |& tee -a "${target}-gdb" | sed -n '/[Cc]ore was generated by/,+42p' >&2
+			gdb -q ${SLAPD} -c "${target}" << EOF |& tee -a "${target}-gdb" | sed -n '/[Cc]ore was generated by/,+42p' >&2
 bt
 info thread
 thread apply all bt full
@@ -651,8 +645,8 @@ function collect_test {
 	wait
 	local id=${1:-xxx-$(date '+%F.%H%M%S.%N')}
 	local failed=${2:-yes}
-	local from="../${SRCDIR}/tests/testrun"
-	local status="../${SRCDIR}/@successful.log"
+	local from="${TOP_BUILDDIR}/tests/testrun"
+	local status="${TOP_BUILDDIR}/@successful.log"
 
 	if [ -n "$1" -a "$failed" = "no" -a -s $status ] && grep -q -- "$id" $status; then
 		echo "Skipping a result(s) collecting of successful $id (already have)" >&2
@@ -664,9 +658,9 @@ function collect_test {
 
 		local dir n target
 		if [ -n "${TEST_NOOK}" ]; then
-			dir="../${SRCDIR}/${TEST_NOOK}/$id.dump"
+			dir="${TOP_BUILDDIR}/${TEST_NOOK}/$id.dump"
 		else
-			dir="../${SRCDIR}/@dumps/$id.dump"
+			dir="${TOP_BUILDDIR}/@dumps/$id.dump"
 		fi
 
 		wanna_free=1000
@@ -714,8 +708,8 @@ function wait_syncrepl {
 		if [ "$RC" -ne 0 ]; then
 			echo "ldapsearch failed at provider ($RC, csn=$provider_csn)!"
 			sleep 1
-			local cores="$(find -L ../${SRCDIR}/tests -type f -name core)"
-			local sans="$(find -L ../${SRCDIR}/tests -type f -name 'tsan-log*' -o -name 'asan-log*')"
+			local cores="$(find -L ${DRAINDIR} -type f -name core)"
+			local sans="$(find -L ${DRAINDIR} -type f -name 'tsan-log*' -o -name 'asan-log*')"
 			if [ -z "${cores}" -a -z "${sans}" ]; then
 				dumpservers
 			else
@@ -732,8 +726,8 @@ function wait_syncrepl {
 		if [ "$RC" -ne 0 -a "$RC" -ne 32 -a "$RC" -ne 34 ]; then
 			echo "ldapsearch failed at consumer ($RC, csn=$consumer_csn)!"
 			sleep 1
-			local cores="$(find -L ../${SRCDIR}/tests -type f -name core)"
-			local sans="$(find -L ../${SRCDIR}/tests -type f -name 'tsan-log*' -o -name 'asan-log*')"
+			local cores="$(find -L ${DRAINDIR} -type f -name core)"
+			local sans="$(find -L ${DRAINDIR} -type f -name 'tsan-log*' -o -name 'asan-log*')"
 			if [ -z "${cores}" -a -z "${sans}" ]; then
 				dumpservers
 			else
@@ -784,5 +778,113 @@ function check_running {
 		echo "ldapsearch failed! ($RC, $(date --rfc-3339=ns))"
 		killservers
 		exit $RC
+	fi
+}
+
+function config_filter {
+	if [ -z "$BACKEND" -o -z "$BACKENDTYPE" -o -z "$INDEXDB" -o -z "$MAINDB" ]; then
+		echo "undefined BACKEND / BACKENDTYPE / INDEXDB / MAINDB" >&2
+		exit 1
+	fi
+
+	local sasl_mech
+	if [ $USE_SASL = no ] ; then
+		sasl_mech=
+	else
+		if [ $USE_SASL = yes ] ; then
+			USE_SASL=DIGEST-MD5
+		fi
+		sasl_mech="\"saslmech=$USE_SASL\""
+	fi
+
+	local monitor
+	if [ ${AC_conf[monitor]} != no ]; then
+		monitor=enabled
+	else
+		monitor=disabled
+	fi
+
+	sed -e "s/@BACKEND@/${BACKEND}/g"			\
+		-e "s/^#be=${BACKEND}#//g"			\
+		-e "/^#~/s/^#[^#]*~${BACKEND}~[^#]*#/#omit: /g"	\
+			-e "s/^#~[^#]*~#//g"			\
+		-e "s/@RELAY@/${RELAY}/g"			\
+		-e "s/^#relay=${RELAY}#//g"			\
+		-e "s/^#be-type=${BACKENDTYPE}#//g"		\
+		-e "s/^#ldap=${AC_conf[ldap]}#//g"		\
+		-e "s/^#meta=${AC_conf[meta]}#//g"		\
+		-e "s/^#relay=${AC_conf[relay]}#//g"		\
+		-e "s/^#sql=${AC_conf[sql]}#//g"		\
+			-e "s/^#${RDBMS}#//g"			\
+		-e "s/^#accesslog=${AC_conf[accesslog]}#//g"	\
+		-e "s/^#dds=${AC_conf[dds]}#//g"		\
+		-e "s/^#dynlist=${AC_conf[dynlist]}#//g"	\
+		-e "s/^#memberof=${AC_conf[memberof]}#//g"	\
+		-e "s/^#pcache=${AC_conf[pcache]}#//g"	\
+		-e "s/^#ppolicy=${AC_conf[ppolicy]}#//g"	\
+		-e "s/^#refint=${AC_conf[refint]}#//g"		\
+		-e "s/^#retcode=${AC_conf[retcode]}#//g"	\
+		-e "s/^#rwm=${AC_conf[rwm]}#//g"		\
+		-e "s/^#syncprov=${AC_conf[syncprov]}#//g"	\
+		-e "s/^#translucent=${AC_conf[translucent]}#//g"\
+		-e "s/^#unique=${AC_conf[unique]}#//g"		\
+		-e "s/^#valsort=${AC_conf[valsort]}#//g"	\
+		-e "s/^#${INDEXDB}#//g"				\
+		-e "s/^#${MAINDB}#//g"				\
+		-e "s/^#monitor=${AC_conf[monitor]}#//g"	\
+		-e "s/^#monitor=${monitor}#//g"			\
+		-e "s/^#sasl=${AC_conf[sasl]}#//g"		\
+		-e "s/^#aci=${AC_conf[aci]}#//g"		\
+		-e "s;@URI1@;${URI1};g"				\
+		-e "s;@URI2@;${URI2};g"				\
+		-e "s;@URI3@;${URI3};g"				\
+		-e "s;@URI4@;${URI4};g"				\
+		-e "s;@URI5@;${URI5};g"				\
+		-e "s;@URI6@;${URI6};g"				\
+		-e "s;@PORT1@;${PORT1};g"			\
+		-e "s;@PORT2@;${PORT2};g"			\
+		-e "s;@PORT3@;${PORT3};g"			\
+		-e "s;@PORT4@;${PORT4};g"			\
+		-e "s;@PORT5@;${PORT5};g"			\
+		-e "s;@PORT6@;${PORT6};g"			\
+		-e "s/@SASL_MECH@/${sasl_mech}/g"		\
+		-e "s;@TESTDIR@;${TESTDIR};g"			\
+		-e "s;@DATADIR@;${DATADIR};g"			\
+		-e "s;@SCHEMADIR@;${SCHEMADIR};g"
+}
+
+function monitor_data {
+	[ $# = 2 ] || failure "monitor_data args"
+
+	local SRCDIR="$1"
+	local DSTDIR="$2"
+
+	echo "MONITORDB ${AC_conf[monitor]}"
+	echo "SRCDIR $SRCDIR"
+	echo "DSTDIR $DSTDIR"
+	echo "pwd `pwd`"
+
+	# copy test data
+	cp "$SRCDIR"/do_* "$DSTDIR"
+	if test ${AC_conf[monitor]} != no ; then
+
+		# add back-monitor testing data
+		cat >> "$DSTDIR/do_search.0" << EOF
+cn=Monitor
+(objectClass=*)
+cn=Monitor
+(objectClass=*)
+cn=Monitor
+(objectClass=*)
+cn=Monitor
+(objectClass=*)
+EOF
+
+		cat >> "$DSTDIR/do_read.0" << EOF
+cn=Backend 1,cn=Backends,cn=Monitor
+cn=Entries,cn=Statistics,cn=Monitor
+cn=Database 1,cn=Databases,cn=Monitor
+EOF
+
 	fi
 }

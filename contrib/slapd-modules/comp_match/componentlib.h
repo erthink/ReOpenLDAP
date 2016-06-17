@@ -12,7 +12,7 @@
 #ifndef _H_COMPONENT_MODULE
 #define _H_COMPONENT_MODULE
 
-#include "portable.h"
+#include "reldap.h"
 #include <ac/string.h>
 #include <ac/socket.h>
 #include <ldap_pvt.h>

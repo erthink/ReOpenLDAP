@@ -37,7 +37,7 @@
  * OpenLDAP Software.  This work was sponsored by Hewlett-Packard.
  */
 
-#include "portable.h"
+#include "reldap.h"
 
 #ifdef SLAPD_OVER_TRANSLUCENT
 
@@ -49,7 +49,7 @@
 #include "slap.h"
 #include "lutil.h"
 
-#include "config.h"
+#include "slapconfig.h"
 
 /* config block */
 typedef struct translucent_info {
@@ -1392,7 +1392,7 @@ translucent_db_destroy( BackendDB *be, ConfigReply *cr )
 **
 */
 
-int translucent_initialize() {
+int translucent_over_initialize() {
 
 	int rc;
 
@@ -1421,10 +1421,8 @@ int translucent_initialize() {
 	return(overlay_register(&translucent));
 }
 
-#if SLAPD_OVER_TRANSLUCENT == SLAPD_MOD_DYNAMIC && defined(PIC)
-int init_module(int argc, char *argv[]) {
-	return translucent_initialize();
-}
+#if SLAPD_OVER_TRANSLUCENT == SLAPD_MOD_DYNAMIC
+SLAP_OVERLAY_INIT_MODULE(translucent)
 #endif
 
 #endif /* SLAPD_OVER_TRANSLUCENT */

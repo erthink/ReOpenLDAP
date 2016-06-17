@@ -49,8 +49,7 @@
 #ifndef _LDAP_DEFAULTS_H
 #define _LDAP_DEFAULTS_H
 
-
-#include <ldap_config.h>
+#include <ldap_dirs.h>
 
 #define LDAP_CONF_FILE	 LDAP_SYSCONFDIR LDAP_DIRSEP "ldap.conf"
 #define LDAP_USERRC_FILE "ldaprc"
@@ -85,4 +84,4 @@
 #	define SLAPD_BIGLOCK_TRACELATENCY 0
 #endif
 
-#endif /* _LDAP_CONFIG_H */
+#endif /* _LDAP_DEFAULTS_H */

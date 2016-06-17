@@ -37,7 +37,7 @@
  * available works (as noted below).
  */
 
-#include "portable.h"
+#include "reldap.h"
 
 #include <ac/string.h>
 #include <ac/time.h>

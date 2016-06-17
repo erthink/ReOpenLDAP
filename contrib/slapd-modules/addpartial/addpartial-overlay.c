@@ -47,7 +47,7 @@
  * build entire records than to determine the changes (i.e. a database).
  */
 
-#include "portable.h"
+#include "reldap.h"
 #include "slap.h"
 
 static int collect_error_msg_cb( Operation *op, SlapReply *rs);

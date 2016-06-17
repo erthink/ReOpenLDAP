@@ -40,7 +40,7 @@
 #include <perl.h>
 #undef _	/* #defined by both Perl and ac/localize.h */
 
-#include "portable.h"
+#include "reldap.h"
 
 #include "slap.h"
 

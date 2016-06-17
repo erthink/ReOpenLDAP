@@ -1,5 +1,5 @@
 #!/bin/bash
-# $ReOpenLDAP$
+## $ReOpenLDAP$
 ## Copyright (c) 2015,2016 Leonid Yuriev <leo@yuriev.ru>.
 ## Copyright (c) 2015,2016 Peter-Service R&D LLC <http://billing.ru/>.
 ##
@@ -36,7 +36,7 @@ echo "Using $RELAY backend..."
 
 echo "Starting slapd on TCP/IP port $PORT1..."
 echo "======== Starting slapd with $RELAY backend ========" > $LOG1
-. $CONFFILTER $BACKEND $MONITORDB < $RELAYCONF > $CONF1
+config_filter $BACKEND ${AC_conf[monitor]} < $RELAYCONF > $CONF1
 $SLAPD -f $CONF1 -h $URI1 $TIMING >> $LOG1 2>&1 &
 PID=$!
 if test $WAIT != 0 ; then

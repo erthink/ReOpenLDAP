@@ -1,5 +1,5 @@
 #!/bin/bash
-# $ReOpenLDAP$
+## $ReOpenLDAP$
 ## Copyright (c) 2015,2016 Leonid Yuriev <leo@yuriev.ru>.
 ## Copyright (c) 2015,2016 Peter-Service R&D LLC <http://billing.ru/>.
 ##
@@ -40,7 +40,7 @@ if [ $# -eq 1 ]; then
 	BDB2=$1; shift
 fi
 
-. $SRCDIR/scripts/defines.sh $SRCDIR $BDB2
+. ${TOP_SRCDIR}/tests/scripts/defines.sh $SRCDIR $BDB2
 
 # Sample NIS database in LDIF format
 NIS_LDIF=$SRCDIR/data/nis_sample.ldif

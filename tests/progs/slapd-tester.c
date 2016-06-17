@@ -35,7 +35,7 @@
  * in OpenLDAP Software.
  */
 
-#include "portable.h"
+#include "reldap.h"
 
 #include <stdio.h>
 
@@ -58,12 +58,12 @@
 #include "lber_pvt.h"
 #include "slapd-common.h"
 
-#define SEARCHCMD		"slapd-search"
-#define READCMD			"slapd-read"
-#define ADDCMD			"slapd-addel"
-#define MODRDNCMD		"slapd-modrdn"
-#define MODIFYCMD		"slapd-modify"
-#define BINDCMD			"slapd-bind"
+#define SEARCHCMD		"slapd_search"
+#define READCMD			"slapd_read"
+#define ADDCMD			"slapd_addel"
+#define MODRDNCMD		"slapd_modrdn"
+#define MODIFYCMD		"slapd_modify"
+#define BINDCMD			"slapd_bind"
 #define MAXARGS      		100
 #define MAXREQS			5000
 #define LOOPS			100

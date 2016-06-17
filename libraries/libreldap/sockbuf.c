@@ -32,7 +32,7 @@
  * <http://www.OpenLDAP.org/license.html>.
  */
 
-#include "portable.h"
+#include "reldap.h"
 
 #include <stdio.h>
 
@@ -502,7 +502,7 @@ sb_stream_close( Sockbuf_IO_Desc *sbiod )
 		ber_socket_t fd = sbiod->sbiod_sb->sb_fd;
 		sbiod->sbiod_sb->sb_fd = AC_SOCKET_INVALID;
 		ber_pvt_log_printf( LDAP_DEBUG_CONNS, sbiod->sbiod_sb->sb_debug,
-			"liblber: closing stream-socket %d\n", fd );
+			"libreldap: closing stream-socket %d\n", fd );
 		tcp_close( fd );
 	}
    return 0;
@@ -929,7 +929,7 @@ sb_dgram_close( Sockbuf_IO_Desc *sbiod )
 		ber_socket_t fd = sbiod->sbiod_sb->sb_fd;
 		sbiod->sbiod_sb->sb_fd = AC_SOCKET_INVALID;
 		ber_pvt_log_printf( LDAP_DEBUG_CONNS, sbiod->sbiod_sb->sb_debug,
-			"liblber: closing dgram-socket %d\n", fd );
+			"libreldap: closing dgram-socket %d\n", fd );
 		tcp_close( fd );
 	}
 	return 0;

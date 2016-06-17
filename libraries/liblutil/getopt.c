@@ -38,7 +38,7 @@
  *   Howard Chu
  */
 
-#include "portable.h"
+#include "reldap.h"
 
 #ifndef HAVE_GETOPT
 

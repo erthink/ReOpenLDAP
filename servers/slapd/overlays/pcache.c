@@ -37,9 +37,9 @@
  * in OpenLDAP Software and subsequently rewritten by Howard Chu.
  */
 
-#include "portable.h"
+#include "reldap.h"
 
-#ifdef SLAPD_OVER_PROXYCACHE
+#ifdef SLAPD_OVER_PCACHE
 
 #include <stdio.h>
 
@@ -53,7 +53,7 @@
 
 #include "../back-monitor/back-monitor.h"
 
-#include "config.h"
+#include "slapconfig.h"
 
 #ifdef LDAP_DEVEL
 /*
@@ -5686,11 +5686,8 @@ static char *obsolete_names[] = {
 	NULL
 };
 
-#if SLAPD_OVER_PROXYCACHE == SLAPD_MOD_DYNAMIC
-static
-#endif /* SLAPD_OVER_PROXYCACHE == SLAPD_MOD_DYNAMIC */
 int
-pcache_initialize()
+pcache_over_initialize()
 {
 	int i, code;
 	struct berval debugbv = BER_BVC("pcache");
@@ -5794,10 +5791,8 @@ pcache_initialize()
 	return overlay_register( &pcache );
 }
 
-#if SLAPD_OVER_PROXYCACHE == SLAPD_MOD_DYNAMIC
-int init_module(int argc, char *argv[]) {
-	return pcache_initialize();
-}
+#if SLAPD_OVER_PCACHE == SLAPD_MOD_DYNAMIC
+SLAP_OVERLAY_INIT_MODULE(pcache)
 #endif
 
-#endif	/* defined(SLAPD_OVER_PROXYCACHE) */
+#endif	/* defined(SLAPD_OVER_PCACHE) */

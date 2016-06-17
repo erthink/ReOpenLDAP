@@ -41,7 +41,7 @@
  * is provided ``as is'' without express or implied warranty.
  */
 
-#include "portable.h"
+#include "reldap.h"
 
 #include <stdio.h>
 
@@ -73,7 +73,7 @@
 #endif /* __linux__ */
 
 #ifdef LDAP_SIGCHLD
-static RETSIGTYPE wait4child( int sig );
+static void wait4child( int sig );
 #endif
 
 typedef int (MainFunc) LDAP_P(( int argc, char *argv[] ));
@@ -1002,7 +1002,7 @@ destroy:
 		ch_free( scp );
 	}
 
-#ifdef SLAPD_MODULES
+#ifdef SLAPD_DYNAMIC_MODULES
 	module_kill();
 #endif
 
@@ -1076,7 +1076,7 @@ stop:
  *  Catch and discard terminated child processes, to avoid zombies.
  */
 
-static RETSIGTYPE
+static void
 wait4child( int sig )
 {
     int save_errno = errno;

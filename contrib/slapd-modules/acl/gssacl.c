@@ -30,7 +30,7 @@
  * <http://www.OpenLDAP.org/license.html>.
  */
 
-#include <portable.h>
+#include <reldap.h>
 
 /* Need dynacl... */
 #if ! SLAP_DYNACL

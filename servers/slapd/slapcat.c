@@ -38,7 +38,7 @@
  *    Jong Hyuk Choi
  */
 
-#include "portable.h"
+#include "reldap.h"
 
 #include <stdio.h>
 
@@ -52,7 +52,7 @@
 
 static volatile sig_atomic_t gotsig;
 
-static RETSIGTYPE
+static void
 slapcat_sig( int sig )
 {
 	gotsig=1;

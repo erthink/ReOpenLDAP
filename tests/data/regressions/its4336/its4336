@@ -1,5 +1,5 @@
 #!/bin/bash
-# $ReOpenLDAP$
+## $ReOpenLDAP$
 ## Copyright (c) 2015,2016 Leonid Yuriev <leo@yuriev.ru>.
 ## Copyright (c) 2015,2016 Peter-Service R&D LLC <http://billing.ru/>.
 ##
@@ -34,12 +34,12 @@
 echo "running defines.sh"
 . $SRCDIR/scripts/defines.sh
 
-if test $BACKLDAP = "ldapno" ; then
+if test ${AC_conf[ldap]} = no ; then
 	echo "LDAP backend not available, test skipped"
 	exit 0
 fi
 
-if test $RETCODE = retcodeno; then
+if test ${AC_conf[retcode]} = no; then
 	echo "Retcode overlay not available, test skipped"
 	exit 0
 fi
@@ -50,7 +50,7 @@ ITS=4336
 ITSDIR=$DATADIR/regressions/its$ITS
 
 echo "Running slapadd to build slapd database..."
-. $CONFFILTER $BACKEND $MONITORDB < $RETCODECONF > $CONF1
+config_filter $BACKEND ${AC_conf[monitor]} < $RETCODECONF > $CONF1
 $SLAPADD -f $CONF1 -l $LDIFORDERED
 RC=$?
 if test $RC != 0 ; then
@@ -88,7 +88,7 @@ if test $RC != 0 ; then
 fi
 
 echo "Starting chain slapd on TCP/IP port $PORT2..."
-. $CONFFILTER $BACKEND $MONITORDB < $ITSDIR/slapd.conf > $CONF2
+config_filter $BACKEND ${AC_conf[monitor]} < $ITSDIR/slapd.conf > $CONF2
 $SLAPD -f $CONF2 -h $URI2 $TIMING > $LOG2 2>&1 &
 PROXYPID=$!
 if test $WAIT != 0 ; then

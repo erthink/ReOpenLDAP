@@ -42,7 +42,7 @@
  *    Pierangelo Masarati
  */
 
-#include "portable.h"
+#include "reldap.h"
 
 #include <stdio.h>
 
@@ -952,7 +952,7 @@ int slap_tool_destroy( void )
 		if ( slap_destroy())
 			rc = EXIT_FAILURE;
 	}
-#ifdef SLAPD_MODULES
+#ifdef SLAPD_DYNAMIC_MODULES
 	if ( slapMode == SLAP_SERVER_MODE ) {
 	/* always false. just pulls in necessary symbol references. */
 		lutil_uuidstr(NULL, 0);

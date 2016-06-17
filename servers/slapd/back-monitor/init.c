@@ -37,18 +37,18 @@
  * in OpenLDAP Software.
  */
 
-#include "portable.h"
+#include "reldap.h"
 
 #include <stdio.h>
 #include <ac/string.h>
 
 #include <lutil.h>
 #include "slap.h"
-#include "config.h"
+#include "slapconfig.h"
 #include "lber_pvt.h"
 #include "back-monitor.h"
 
-#include "config.h"
+#include "slapconfig.h"
 
 #undef INTEGRATE_CORE_SCHEMA
 

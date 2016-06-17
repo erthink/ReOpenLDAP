@@ -42,14 +42,14 @@
  *   Christian Manal
  */
 
-#include "portable.h"
+#include "reldap.h"
 
 #include <stdio.h>
 
 #include <ac/string.h>
 
 #include "slap.h"
-#include "config.h"
+#include "slapconfig.h"
 #include "lutil.h"
 
 #ifndef SLAPD_MEMBEROF_ATTR

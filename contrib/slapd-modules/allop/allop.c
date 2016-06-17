@@ -51,13 +51,13 @@ allop-URI	<ldapURI>
  * is assumed.
  */
 
-#include "portable.h"
+#include "reldap.h"
 
 #include <stdio.h>
 #include <ac/string.h>
 
 #include "slap.h"
-#include "config.h"
+#include "slapconfig.h"
 
 typedef struct allop_t {
 	struct berval	ao_ndn;

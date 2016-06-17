@@ -191,6 +191,15 @@ can be easily distinguished.
 #ifndef __BACKSQL_H__
 #define __BACKSQL_H__
 
+/* LY: workaround/fuse for sqltypes.h */
+#ifdef PTR
+#	ifdef _ANSIDECL_H
+#		undef PTR
+#	else
+#		warning PTR is defined
+#	endif
+#endif /* PTR */
+
 /* former sql-types.h */
 #include <sql.h>
 #include <sqlext.h>
@@ -646,4 +655,3 @@ typedef struct backsql_info {
 #endif /* ! BACKSQL_ARBITRARY_KEY */
 
 #endif /* __BACKSQL_H__ */
-

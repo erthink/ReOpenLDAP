@@ -39,7 +39,7 @@
  * LDAPv3 Turn Operation Request
  */
 
-#include "portable.h"
+#include "reldap.h"
 
 #include <stdio.h>
 #include <ac/stdlib.h>

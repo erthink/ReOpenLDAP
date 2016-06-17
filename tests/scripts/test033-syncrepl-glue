@@ -1,5 +1,5 @@
 #!/bin/bash
-# $ReOpenLDAP$ */
+## $ReOpenLDAP$
 ## Copyright (c) 2015,2016 Leonid Yuriev <leo@yuriev.ru>.
 ## Copyright (c) 2015,2016 Peter-Service R&D LLC <http://billing.ru/>.
 ##
@@ -32,9 +32,9 @@
 ## <http://www.OpenLDAP.org/license.html>.
 
 echo "running defines.sh"
-. $SRCDIR/scripts/defines.sh
+. ${TOP_SRCDIR}/tests/scripts/defines.sh
 
-if test $SYNCPROV = syncprovno; then
+if test ${AC_conf[syncprov]} = no; then
 	echo "Syncrepl provider overlay not available, test skipped"
 	exit 0
 fi
@@ -42,7 +42,7 @@ fi
 mkdir -p $TESTDIR $DBDIR1A $DBDIR1B $DBDIR1C $DBDIR2A $DBDIR2B
 
 echo "Running slapadd to build glued slapd databases..."
-. $CONFFILTER $BACKEND $MONITORDB < $GLUECONF > $CONF1
+config_filter $BACKEND ${AC_conf[monitor]} < $GLUECONF > $CONF1
 $SLAPADD -f $CONF1 -l $LDIFORDERED > $SLAPADDLOG1 2>&1
 RC=$?
 if test $RC != 0 ; then
@@ -54,7 +54,7 @@ rm -rf $DBDIR1A/* $DBDIR1B/*
 cp -pr $DBDIR1C $DBDIR2C
 
 echo "Starting slapd 1 on TCP/IP port $PORT1..."
-. $CONFFILTER $BACKEND $MONITORDB < $GLUESYNCCONF1 > $CONF1
+config_filter $BACKEND ${AC_conf[monitor]} < $GLUESYNCCONF1 > $CONF1
 $SLAPD -f $CONF1 -h $URI1 $TIMING > $LOG1 2>&1 &
 PID=$!
 if test $WAIT != 0 ; then
@@ -65,7 +65,7 @@ KILLPIDS="$PID"
 check_running 1 first
 
 echo "Starting slapd 2 on TCP/IP port $PORT2..."
-. $CONFFILTER $BACKEND $MONITORDB < $GLUESYNCCONF2 > $CONF2
+config_filter $BACKEND ${AC_conf[monitor]} < $GLUESYNCCONF2 > $CONF2
 $SLAPD -f $CONF2 -h $URI2 $TIMING > $LOG2 2>&1 &
 PID=$!
 if test $WAIT != 0 ; then

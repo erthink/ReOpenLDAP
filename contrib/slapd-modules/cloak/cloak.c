@@ -37,7 +37,7 @@
  * inclusion in OpenLDAP Software.
  */
 
-#include "portable.h"
+#include "reldap.h"
 
 #ifdef SLAPD_OVER_CLOAK
 
@@ -48,7 +48,7 @@
 
 #include "lutil.h"
 #include "slap.h"
-#include "config.h"
+#include "slapconfig.h"
 
 enum { CLOAK_ATTR = 1 };
 

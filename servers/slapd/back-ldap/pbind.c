@@ -37,7 +37,7 @@
  * in OpenLDAP Software.
  */
 
-#include "portable.h"
+#include "reldap.h"
 
 #include <stdio.h>
 
@@ -47,7 +47,7 @@
 #include "lutil.h"
 #include "slap.h"
 #include "back-ldap.h"
-#include "config.h"
+#include "slapconfig.h"
 
 static BackendInfo	*lback;
 

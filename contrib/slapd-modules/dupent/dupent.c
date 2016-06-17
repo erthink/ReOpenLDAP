@@ -42,7 +42,7 @@
  * <http://tools.ietf.org/id/draft-ietf-ldapext-ldapv3-dupent-08.txt>
  */
 
-#include "portable.h"
+#include "reldap.h"
 
 /* define SLAPD_OVER_DUPENT=2 to build as run-time loadable module */
 #ifdef SLAPD_OVER_DUPENT

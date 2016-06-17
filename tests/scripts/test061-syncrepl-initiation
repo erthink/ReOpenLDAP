@@ -1,5 +1,5 @@
 #!/bin/bash
-# $ReOpenLDAP$
+## $ReOpenLDAP$
 ## Copyright (c) 2015,2016 Leonid Yuriev <leo@yuriev.ru>.
 ## Copyright (c) 2015,2016 Peter-Service R&D LLC <http://billing.ru/>.
 ##
@@ -39,11 +39,11 @@
 # the forwarder is restarted between add/delete of entries on the provider.
 
 echo "Running defines.sh"
-. $SRCDIR/scripts/defines.sh
+. ${TOP_SRCDIR}/tests/scripts/defines.sh
 
 test "x$INITIATION_RACE_TESTS" = "x" && INITIATION_RACE_TESTS=3
 
-if test $SYNCPROV = syncprovno; then
+if test ${AC_conf[syncprov]} = no; then
 	echo "Syncrepl provider overlay not available, test skipped"
 	exit 0
 fi
@@ -178,7 +178,7 @@ EOF
 done
 
 syncprov_module=''
-[ "$AC_syncprov" = syncprovmod ] && syncprov_module="
+[ ${AC_conf[syncprov]} = mod ] && syncprov_module="
 dn: cn=module,cn=config
 objectClass: olcModuleList
 cn: module

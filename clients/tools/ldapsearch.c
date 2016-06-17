@@ -54,7 +54,7 @@
  *   Kurt D. Zeilenga
  */
 
-#include "portable.h"
+#include "reldap.h"
 
 #include <stdio.h>
 
@@ -90,7 +90,7 @@
 #include "common.h"
 
 static LDAP		*ld = NULL;
-static void main_exit(int rc) LDAP_GCCATTR((noreturn));
+static void main_exit(int rc) __attribute__((noreturn));
 
 #if !LDAP_DEPRECATED
 /*

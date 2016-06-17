@@ -37,7 +37,7 @@
  * in OpenLDAP Software.
  */
 
-#include "portable.h"
+#include "reldap.h"
 
 #include <stdio.h>
 
@@ -46,7 +46,7 @@
 #include <ac/string.h>
 
 #include "slap.h"
-#include "config.h"
+#include "slapconfig.h"
 #include "proto-dnssrv.h"
 
 int

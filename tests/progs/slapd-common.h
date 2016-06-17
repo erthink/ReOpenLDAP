@@ -38,6 +38,8 @@
 #ifndef SLAPD_COMMON_H
 #define SLAPD_COMMON_H
 
+#include <ac/localize.h>
+
 typedef enum {
 	TESTER_TESTER,
 	TESTER_ADDEL,

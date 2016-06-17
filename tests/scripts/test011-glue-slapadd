@@ -1,5 +1,5 @@
 #!/bin/bash
-# $ReOpenLDAP$
+## $ReOpenLDAP$
 ## Copyright (c) 2015,2016 Leonid Yuriev <leo@yuriev.ru>.
 ## Copyright (c) 2015,2016 Peter-Service R&D LLC <http://billing.ru/>.
 ##
@@ -32,12 +32,12 @@
 ## <http://www.OpenLDAP.org/license.html>.
 
 echo "running defines.sh"
-. $SRCDIR/scripts/defines.sh
+. ${TOP_SRCDIR}/tests/scripts/defines.sh
 
 mkdir -p $TESTDIR $DBDIR1A $DBDIR1B $DBDIR1C
 
 echo "Running slapadd to build glued slapd databases..."
-. $CONFFILTER $BACKEND $MONITORDB < $GLUECONF > $CONF1
+config_filter $BACKEND ${AC_conf[monitor]} < $GLUECONF > $CONF1
 $SLAPADD -f $CONF1 -l $LDIFORDERED > $SLAPADDLOG1 2>&1
 RC=$?
 if test $RC != 0 ; then

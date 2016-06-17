@@ -33,7 +33,7 @@
  * <http://www.OpenLDAP.org/license.html>.
  */
 
-#include "portable.h"
+#include "reldap.h"
 
 #include <stdio.h>
 
@@ -41,7 +41,7 @@
 #include <ac/socket.h>
 
 #include "slap.h"
-#include "config.h"
+#include "slapconfig.h"
 #include "../back-ldap/back-ldap.h"
 #include "back-meta.h"
 

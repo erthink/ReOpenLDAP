@@ -36,7 +36,7 @@
  * This work was originally developed by the Emmanuel Dreyfus for
  * inclusion in OpenLDAP Software.
  */
-#include "portable.h"
+#include "reldap.h"
 
 #ifdef SLAPD_OVER_NOPS
 
@@ -47,7 +47,7 @@
 
 #include "lutil.h"
 #include "slap.h"
-#include "config.h"
+#include "slapconfig.h"
 
 /* static ConfigDriver nops_cf_gen;
  static int nops_cf_gen( ConfigArgs *c ) { return 0; } */

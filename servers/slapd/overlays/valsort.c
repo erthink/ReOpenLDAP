@@ -41,7 +41,7 @@
  * This overlay sorts the values of multi-valued attributes when returning
  * them in a search response.
  */
-#include "portable.h"
+#include "reldap.h"
 
 #ifdef SLAPD_OVER_VALSORT
 
@@ -51,7 +51,7 @@
 #include <ac/ctype.h>
 
 #include "slap.h"
-#include "config.h"
+#include "slapconfig.h"
 #include "lutil.h"
 
 #define	VALSORT_ASCEND	0
@@ -558,7 +558,7 @@ valsort_parseCtrl(
 
 static slap_overinst valsort;
 
-int valsort_initialize( void )
+int valsort_over_initialize( void )
 {
 	int rc;
 
@@ -590,9 +590,7 @@ int valsort_initialize( void )
 }
 
 #if SLAPD_OVER_VALSORT == SLAPD_MOD_DYNAMIC
-int init_module( int argc, char *argv[]) {
-	return valsort_initialize();
-}
+SLAP_OVERLAY_INIT_MODULE(valsort)
 #endif
 
 #endif /* SLAPD_OVER_VALSORT */

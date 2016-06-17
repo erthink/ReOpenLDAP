@@ -1,5 +1,5 @@
 #!/bin/bash
-# $ReOpenLDAP$
+## $ReOpenLDAP$
 ## Copyright (c) 2015,2016 Leonid Yuriev <leo@yuriev.ru>.
 ## Copyright (c) 2015,2016 Peter-Service R&D LLC <http://billing.ru/>.
 ##
@@ -31,13 +31,7 @@
 ## top-level directory of the distribution or, alternatively, at
 ## <http://www.OpenLDAP.org/license.html>.
 
-. $SRCDIR/scripts/defines.sh
-
-TB="" TN=""
-if test -t 1 ; then
-	TB=`$SHTOOL echo -e "%B" 2>/dev/null`
-	TN=`$SHTOOL echo -e "%b" 2>/dev/null`
-fi
+. ${TOP_SRCDIR}/tests/scripts/defines.sh
 
 SLEEPTIME=10
 
@@ -66,7 +60,7 @@ echo "###"
 
 echo ">>>>> Executing all LDAP tests for $BACKEND"
 
-for CMD in $SRCDIR/scripts/sql-test*; do
+for CMD in ${TOP_SRCDIR}/tests/scripts/sql-test*; do
 	# remove cruft from prior test
 	if test $PRESERVE = yes ; then
 		/bin/rm -rf testrun/db.*

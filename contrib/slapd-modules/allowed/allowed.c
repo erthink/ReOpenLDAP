@@ -57,7 +57,7 @@
  *   in filters or in compare
  */
 
-#include "portable.h"
+#include "reldap.h"
 
 /* define SLAPD_OVER_ALLOWED=2 to build as run-time loadable module */
 #ifdef SLAPD_OVER_ALLOWED

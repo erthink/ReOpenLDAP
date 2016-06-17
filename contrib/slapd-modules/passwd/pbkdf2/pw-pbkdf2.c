@@ -36,7 +36,7 @@
 
 #define _GNU_SOURCE
 
-#include "portable.h"
+#include "reldap.h"
 #include <ac/string.h>
 #include "lber_pvt.h"
 #include "lutil.h"

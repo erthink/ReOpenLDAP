@@ -34,9 +34,7 @@ int slap_limit_memory_get() {return 0;}
 /* TODO: add libelf detection to configure. */
 #define HAVE_LIBELF 1
 
-#ifndef _GNU_SOURCE
-#	define _GNU_SOURCE
-#endif
+#include "reldap.h"
 
 #include <unistd.h>
 #include <signal.h>
@@ -58,9 +56,8 @@ int slap_limit_memory_get() {return 0;}
 #include <sys/time.h>
 #include <sys/resource.h>
 
-#include "portable.h"
 #include "slap.h"
-#include "config.h"
+#include "slapconfig.h"
 #include "ac/errno.h"
 
 /* LY: avoid collision with slapd memory checking. */

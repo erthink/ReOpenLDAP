@@ -40,7 +40,7 @@
  * of the "LDAP Content Sync Operation" (RFC 4533)
  */
 
-#include "portable.h"
+#include "reldap.h"
 
 #include <ac/time.h>
 

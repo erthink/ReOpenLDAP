@@ -1,5 +1,5 @@
 #!/bin/bash
-# $ReOpenLDAP$
+## $ReOpenLDAP$
 ## Copyright (c) 2015,2016 Leonid Yuriev <leo@yuriev.ru>.
 ## Copyright (c) 2015,2016 Peter-Service R&D LLC <http://billing.ru/>.
 ##
@@ -36,7 +36,7 @@ echo "running defines.sh"
 
 echo ""
 
-if test $BACKMETA = metano ; then
+if test ${AC_conf[meta]} = no ; then
 	echo "meta backend not available, test skipped"
 	exit 0
 fi
@@ -82,7 +82,7 @@ if test "$BACKEND" = "bdb" || test "$BACKEND" = "hdb" ; then
 fi
 
 echo "Starting slapd on TCP/IP port $PORT1..."
-. $CONFFILTER $BACKEND $MONITORDB < $CONF > $CONF1
+config_filter $BACKEND ${AC_conf[monitor]} < $CONF > $CONF1
 $SLAPD -f $CONF1 -h $URI1 $TIMING > $LOG1 2>&1 &
 PID=$!
 if test $WAIT != 0 ; then
@@ -138,7 +138,7 @@ if test $RC != 0 ; then
 fi
 
 echo "Starting slapd on TCP/IP port $PORT2..."
-. $CONFFILTER $BACKEND $MONITORDB < $METACONF2 > $CONF2
+config_filter $BACKEND ${AC_conf[monitor]} < $METACONF2 > $CONF2
 $SLAPD -f $CONF2 -h $URI2 $TIMING > $LOG2 2>&1 &
 PID=$!
 if test $WAIT != 0 ; then
@@ -177,7 +177,7 @@ if test $RC != 0 ; then
 fi
 
 echo "Starting slapd on TCP/IP port $PORT3..."
-. $CONFFILTER $BACKEND $MONITORDB < $ITSCONF > $CONF3
+config_filter $BACKEND ${AC_conf[monitor]} < $ITSCONF > $CONF3
 $SLAPD -f $CONF3 -h $URI3 $TIMING > $LOG3 2>&1 &
 PID=$!
 if test $WAIT != 0 ; then

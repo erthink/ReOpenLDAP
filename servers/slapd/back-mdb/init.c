@@ -32,7 +32,7 @@
  * <http://www.OpenLDAP.org/license.html>.
  */
 
-#include "portable.h"
+#include "reldap.h"
 
 #include <stdio.h>
 #include <ac/string.h>
@@ -43,7 +43,7 @@
 #include "back-mdb.h"
 #include <lutil.h>
 #include <ldap_rq.h>
-#include "config.h"
+#include "slapconfig.h"
 
 static const struct berval mdmi_databases[] = {
 	BER_BVC("ad2i"),
@@ -649,7 +649,7 @@ mdb_back_initialize(
 	return rc;
 }
 
-#if	(SLAPD_MDB == SLAPD_MOD_DYNAMIC)
+#if	(SLAPD_MDBX == SLAPD_MOD_DYNAMIC)
 
 SLAP_BACKEND_INIT_MODULE( mdb )
 
