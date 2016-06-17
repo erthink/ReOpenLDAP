@@ -40,8 +40,8 @@ API_AGE=10
 VERSION="${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH_LEVEL}"
 VERSION_NUMBER=$(bc <<< "${VERSION_MAJOR} * 10000 + ${VERSION_MINOR} * 100 + ${VERSION_PATCH_LEVEL}")
 
-RELEASE_DATE="$(date --date=@$(git show --no-patch --format='%ct' HEAD) -u --iso-8601)"
-RELEASE_STAMP="g$(git show --no-patch --abbrev=12 --format=%h HEAD)-t$(git show --no-patch --abbrev=16 --format=%t HEAD)"
+RELEASE_DATE="$(date --date=@$(git show -s --format='%ct' HEAD) -u --iso-8601)"
+RELEASE_STAMP="g$(git show -s --abbrev=12 --format=%h HEAD)-t$(git show -s --abbrev=16 --format=%t HEAD)"
 
 PACKAGE_TITLE="${PACKAGE} ${VERSION}-${RELEASE_TYPE}"
 PACKAGE_CAPTION=$(tr [:upper:] [:lower:] <<< "${PACKAGE}-${VERSION}-${RELEASE_TYPE}")

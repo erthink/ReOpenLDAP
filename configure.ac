@@ -93,6 +93,7 @@ AC_CANONICAL_TARGET([])
 
 # LY: +check-news
 AM_INIT_AUTOMAKE([subdir-objects --warnings=no-portability --warnings=error dist-xz no-dist-gzip])
+AM_MAINTAINER_MODE([disable])
 LT_CONFIG_LTDL_DIR([build/libltdl])
 LT_INIT([dlopen])
 LTDL_INIT([recursive])
