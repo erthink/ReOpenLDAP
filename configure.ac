@@ -667,7 +667,6 @@ AC_CHECK_HEADERS(	\
 	grp.h		\
 	inttypes.h	\
 	io.h		\
-	libelf.h	\
 	libutil.h	\
 	limits.h	\
 	locale.h	\
@@ -790,6 +789,23 @@ fi
 
 dnl ----------------------------------------------------------------
 OL_STRERROR
+
+dnl ----------------------------------------------------------------
+
+AC_CHECK_HEADERS(bfd.h libelf.h gelf.h)
+AC_CHECK_LIB(elf, elf_begin, have_libelf=yes)
+AC_CHECK_LIB(bfd, bfd_openr, have_libbfd=yes)
+
+if test "$ac_cv_header_libelf_h" = yes -a "$ac_cv_header_gelf_h" = yes -a "$have_libelf" = yes; then
+	AC_DEFINE(HAVE_LIBELF,1,[define 1 if you have libelf])
+	SLAPD_LIBS="$SLAPD_LIBS -lelf"
+	if test "$ac_cv_header_bfd_h" = yes -a "$have_libbfd" = yes; then
+		AC_DEFINE(HAVE_LIBBFD,1,[define 1 if you have libbfd])
+		SLAPD_LIBS="$SLAPD_LIBS -lbfd"
+	fi
+else
+	AC_MSG_WARN([libelf not found, backtrace feature would be disabled])
+fi
 
 dnl ----------------------------------------------------------------
 dnl require POSIX regex

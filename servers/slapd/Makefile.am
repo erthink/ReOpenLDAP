@@ -383,8 +383,7 @@ builtin.c: Makefile
 # LY: TODO += BUILD_REWRITE ?
 slapd_LDADD += $(LDAP_LIBREWRITE_LA)
 slapd_LDADD += $(LDAP_LIBRELDAP_LA) $(LDAP_LIBLUTIL_LA) $(LDAP_LIBLUNICODE_LA)
-# LY: TODO += -lelf
-slapd_LDADD += $(SLAPD_LIBS) -lelf
+slapd_LDADD += $(SLAPD_LIBS)
 
 slapd_SOURCES = abandon.c aci.c acl.c aclparse.c ad.c add.c \
 	alock.c at.c attr.c ava.c backend.c backglue.c backover.c \

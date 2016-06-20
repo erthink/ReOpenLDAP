@@ -31,9 +31,6 @@ int slap_limit_coredump_get() {return 0;}
 int slap_limit_memory_get() {return 0;}
 #else /* __linux__ */
 
-/* TODO: add libelf detection to configure. */
-#define HAVE_LIBELF 1
-
 #include "reldap.h"
 
 #include <unistd.h>
