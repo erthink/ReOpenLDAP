@@ -30,10 +30,7 @@
 # top-level directory of the distribution or, alternatively, at
 # <http://www.OpenLDAP.org/license.html>.
 
-LDAP_SRC = ../../..
-LDAP_BUILD = $(LDAP_SRC)
-LDAP_INC = -I$(LDAP_BUILD)/include -I$(LDAP_SRC)/include -I$(LDAP_SRC)/servers/slapd
-LDAP_LIB = $(LDAP_BUILD)/libraries/libreldap/libreldap.la
+include ../contrib-mod.mk
 
 SSL_INC =
 SSL_LIB = -lcrypto
@@ -41,9 +38,6 @@ SSL_LIB = -lcrypto
 HEIMDAL_INC = -I/usr/heimdal/include
 HEIMDAL_LIB = -L/usr/heimdal/lib -lkrb5 -lkadm5srv
 
-LIBTOOL = $(LDAP_BUILD)/libtool
-CC ?= gcc
-CFLAGS ?= -g -O2 -Wall -Werror
 # Omit DO_KRB5, DO_SAMBA or DO_SHADOW if you don't want to support it.
 DEFS = -DDO_KRB5 -DDO_SAMBA -DDO_SHADOW
 INCS = $(LDAP_INC) $(HEIMDAL_INC) $(SSL_INC)

@@ -34,8 +34,6 @@
  * This work was initially developed by HAMANO Tsukasa <hamano@osstech.co.jp>
  */
 
-#define _GNU_SOURCE
-
 #include "reldap.h"
 #include <ac/string.h>
 #include "lber_pvt.h"
