@@ -282,7 +282,7 @@ add_symlist (const lt_dlsymlist *symlist)
 	  if (symlist[1].name && STREQ (symlist[1].name, "@INIT@"))
 	    {
 	      void (*init_symlist)(void);
-	      *(void **)(&init_symlist) = symlist[1].address;
+	      init_symlist = (void (*)(void))(symlist[1].address);
 	      (*init_symlist)();
 	    }
 	}
