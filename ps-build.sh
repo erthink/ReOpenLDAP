@@ -314,6 +314,7 @@ else
 	echo "CFLAGS		= ${CFLAGS}"
 	echo "PATH		= ${PATH}"
 	echo "LD		= $(readlink -f $(which ld)) ${LDFLAGS}"
+	echo "LIBS		= ${LIBS}"
 	echo "TOOLCHAIN	= $CC $CXX $AR $NM $RANLIB"
 	export CC CXX CFLAGS LDFLAGS LIBS CXXFLAGS="$CFLAGS"
 
