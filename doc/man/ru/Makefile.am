@@ -19,7 +19,6 @@
 
 MAINT_CHARSET = utf8
 SUFFIXES = .soelim .man.in .man
-SOELIM ?= soelim -r
 
 mandir_ru = $(mandir)/ru
 man1dir = $(mandir_ru)/man1
@@ -32,7 +31,7 @@ man7dir = $(mandir_ru)/man7
 man8dir = $(mandir_ru)/man8
 
 .soelim.man.in:
-	$(MKDIR_P) $(@D) && $(SOELIM) -I $(<D) $< | $(FIXUP_DIST) > $@
+	$(MKDIR_P) $(@D) && $(SOELIM_R) -I $(<D) $< | $(FIXUP_DIST) > $@
 
 .man.in.man:
 	$(MKDIR_P) $(@D) && $(FIXUP_DIRS) $< > $@

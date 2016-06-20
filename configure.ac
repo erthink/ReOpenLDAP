@@ -853,7 +853,7 @@ if test $have_uuid = no ; then
 fi
 
 if test $have_uuid = no ; then
-	AC_MSG_ERROR([*** uuid support not found (this typically means the uuid development package is missing)])
+	AC_MSG_ERROR([uuid support not found (this typically means the uuid development package is missing)])
 fi
 
 dnl ----------------------------------------------------------------
@@ -2555,14 +2555,28 @@ AC_SUBST(WITH_ACI_ENABLED)
 if test $enable_shared = yes; then
 	AC_DEFINE(RELDAP_LIBS_SHARED,1,[--enable-shared=yes])
 fi
-RELDAP_LIBS_SHARED=$enable_shared
-AC_SUBST(RELDAP_LIBS_SHARED)
+#RELDAP_LIBS_SHARED=$enable_shared
+#AC_SUBST(RELDAP_LIBS_SHARED)
 
 AM_CONDITIONAL([BEHIND_CURTIAN], [test -x $ac_aux_dir/mkbanner -a -x $ac_aux_dir/BRANDING])
 if test -x $ac_aux_dir/mkbanner -a -x $ac_aux_dir/BRANDING; then
-    AC_DEFINE_UNQUOTED(SLAPD_BEHIND_CURTIAN,1,[Maintaiter mode])
-    SLAPD_MAINTAINER_DIR="$(pwd)"
-    AC_DEFINE_UNQUOTED(SLAPD_MAINTAINER_DIR,"$SLAPD_MAINTAINER_DIR",[Maintaiter directory])
+	AC_DEFINE_UNQUOTED(SLAPD_BEHIND_CURTIAN,1,[Maintaiter mode])
+	SLAPD_MAINTAINER_DIR="$(pwd)"
+	AC_DEFINE_UNQUOTED(SLAPD_MAINTAINER_DIR,"$SLAPD_MAINTAINER_DIR",[Maintaiter directory])
+
+	AC_CHECK_PROGS(SOELIM, roffpp gsoelim soelim)
+	if test -z "$SOELIM"; then
+		AC_MSG_ERROR([could not locate roffpp/gsoelim/soelim])
+	fi
+	if ! $SOELIM -I. </dev/null >/dev/null 2>/dev/null; then
+		AC_MSG_ERROR([$SOELIM does not support -I option])
+	fi
+	if $SOELIM -r </dev/null >/dev/null 2>/dev/null; then
+		SOELIM_R="$SOELIM -r"
+	else
+		SOELIM_R=$SOELIM
+	fi
+	AC_SUBST(SOELIM_R)
 else
     SLAPD_MAINTAINER_DIR=""
 fi
