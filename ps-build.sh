@@ -156,7 +156,19 @@ echo "PREFIX: $PREFIX"
 
 if [ -d .git ]; then
 	git fetch origin --prune --tags || [ -n "$(git tag)" ] || failure "git fetch"
-	BUILD_ID=$(git describe --abbrev=15 --always --long --tags | sed -e "s/^.\+-\([0-9]\+-g[0-9a-f]\+\)\$/.${BUILD_NUMBER}-\1/" -e "s/^\([0-9a-f]\+\)\$/.${BUILD_NUMBER}-g\1/")$(git show --abbrev=15 --format=-t%t | head -n 1)
+	if [ -n "$PREV_RELEASE" ]; then
+		 git describe --abbrev=0 --all "$PREV_RELEASE" > /dev/null \
+			|| failure "invalid prev-release ref '$PREV_RELEASE'"
+		 git tag | grep -v "^$PREV_RELEASE" | xargs -r git tag -d
+	elif [ "$(git describe --abbrev=0 --tags)" != "$(git describe --exact-match --abbrev=0 --tags 2>/dev/null)" ]; then
+		PREV_RELEASE="$(git describe --abbrev=0 --tags)"
+	else
+		PREV_RELEASE="$(git describe --abbrev=0 --tags HEAD~)"
+	fi
+	[ -n "$PREV_RELEASE" ] || failure "previous release?"
+	echo "PREVIOUS RELEASE: $PREV_RELEASE"
+
+	BUILD_ID=$(git describe --abbrev=15 --always --long --tags | sed -e "s/^.\+-\([0-9]\+-g[0-9a-f]\+\)\$/.${BUILD_NUMBER}-\1/" -e "s/^\([0-9a-f]\+\)\$/.${BUILD_NUMBER}-g\1/")$(git show -s --abbrev=15 --format=-t%t | head -n 1)
 elif [ -n "$BUILD_VCS_NUMBER" ]; then
 	notice "No git repository, using BUILD_VCS_NUMBER from Teamcity"
 	BUILD_ID=".g${BUILD_VCS_NUMBER}"
@@ -366,17 +378,6 @@ fi
 echo "PACKAGE: $PACKAGE"
 
 if [ -d .git ]; then
-	if [ -n "$PREV_RELEASE" ]; then
-		 git describe --abbrev=0 --all "$PREV_RELEASE" > /dev/null \
-			|| failure "invalid prev-release ref '$PREV_RELEASE'"
-	elif [ "$(git describe --abbrev=0 --tags)" != "$(git describe --exact-match --abbrev=0 --tags 2>/dev/null)" ]; then
-		PREV_RELEASE="$(git describe --abbrev=0 --tags)"
-	else
-		PREV_RELEASE="$(git describe --abbrev=0 --tags HEAD~)"
-	fi
-	[ -n "$PREV_RELEASE" ] || failure "previous release?"
-	echo "PREVIOUS RELEASE: $PREV_RELEASE"
-
 	(git log --no-merges --dense --date=short --pretty=format:"%ad %s" "$PREV_RELEASE".. \
 		| tr -s ' ' ' ' | grep -v ' ITS#[0-9]\{4\}$' | sort -r | uniq -u \
 		&& /bin/echo -e "\nPackage version: $PACKAGE\nSource code tag: $(git describe --abbrev=15 --long --always --tags)" ) > ${PREFIX}/changelog.txt \
