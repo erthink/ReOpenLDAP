@@ -367,6 +367,8 @@ else
 	notice "No git repository, unable to provide changelog.txt" 2>&1 | tee ${PREFIX}/changelog.txt >&2
 fi
 
+[ -s releasenotes.txt ] && cp releasenotes.txt ${PREFIX}/
+
 step_finish "configure"
 echo "======================================================================="
 step_begin "build mdbx-tools"
