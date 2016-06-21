@@ -344,7 +344,6 @@ else
 
 	configure \
 		--prefix=${PREFIX} ${DYNAMIC} \
-		--enable-dynacl --enable-ldap \
 		--enable-overlays --disable-bdb --disable-hdb \
 		--enable-debug --with-gnu-ld --without-cyrus-sasl \
 		--disable-spasswd --disable-lmpasswd \
