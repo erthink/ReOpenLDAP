@@ -175,6 +175,8 @@ backends_DYNAMIC += perl
 else
 backends_BUILTIN += perl
 slapd_LDADD += back-perl/back_perl.la
+# LY: workaround for buggy libtool
+slapd_LDFLAGS += $(PERL_RDIR)
 endif
 endif
 

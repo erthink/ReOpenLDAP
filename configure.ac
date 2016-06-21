@@ -558,6 +558,8 @@ NDB_INCLUDES=
 
 PERL_LIBS=
 PERL_CPPFLAGS=
+PERL_LDFLAGS=
+PERL_RDIR=
 
 SQL_LIBS=
 SQL_INCLUDES=
@@ -589,10 +591,12 @@ if test $ol_enable_perl != no ; then
 
 	else
 		PERL_CPPFLAGS="`$PERLBIN -MExtUtils::Embed -e ccopts`"
-		PERL_LIBS="`$PERLBIN -MExtUtils::Embed -e ldopts | tr -s '[[:space:]]' '\n' | grep -e '^-l' -e '^-L' | sed -e 's/^-L /-L/g' -e 's/^-l /-l/g' | grep -v '^-lc' | tr '\n' ' '`"
+		PERL_LIBS="`$PERLBIN -MExtUtils::Embed -e ldopts | sed -e 's/^-L /-L/g' -e 's/^-l /-l/g' | tr -s '[[:space:]]' '\n' | grep -e '^-l' -e '^-L' | grep -v '^-lc' | tr '\n' ' '`"
+		PERL_LDFLAGS="`$PERLBIN -MExtUtils::Embed -e ldopts | sed -e 's/^-L /-L/g' -e 's/^-l /-l/g' | tr -s '[[:space:]]' '\n' | grep -v -e '^-l' -e '^-L' | tr '\n' ' '`"
 		if test -z "$PERL_CPPFLAGS" -o -z "$PERL_LIBS"; then
 			AC_MSG_ERROR([could not fetch perl libs or options])
 		fi
+		PERL_RDIR="`echo $PERL_LDFLAGS | tr '[[:space:]]' '\n' | grep -- '-Wl,-rpath,' | sed 's/-Wl,-rpath,/-R/'`"
 		dnl should check perl version
 		ol_link_perl=yes
 	fi
@@ -2742,7 +2746,9 @@ AC_SUBST(NDB_LIBS)
 AC_SUBST(NDB_INCLUDES)
 
 AC_SUBST(PERL_CPPFLAGS)
+AC_SUBST(PERL_LDFLAGS)
 AC_SUBST(PERL_LIBS)
+AC_SUBST(PERL_RDIR)
 
 AC_SUBST(SQL_LIBS)
 AC_SUBST(SQL_INCLUDES)

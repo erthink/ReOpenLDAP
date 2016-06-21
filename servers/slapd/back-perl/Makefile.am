@@ -21,7 +21,7 @@
 
 pkglib_LTLIBRARIES =
 noinst_LTLIBRARIES =
-back_perl_la_LDFLAGS = -module
+back_perl_la_LDFLAGS = -module $(PERL_RDIR) $(PERL_LDFLAGS)
 AM_CPPFLAGS = -DSLAPD_IMPORT -I$(srcdir)/.. -I$(top_srcdir)/include
 EXTRA_DIST = README SampleLDAP.pm
 
