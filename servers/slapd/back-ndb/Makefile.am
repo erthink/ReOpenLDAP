@@ -21,7 +21,7 @@
 
 pkglib_LTLIBRARIES =
 noinst_LTLIBRARIES =
-back_ndb_la_LDFLAGS = -module
+back_ndb_la_LDFLAGS = -module $(NDB_RDIR) $(NDB_LDFLAGS)
 AM_CPPFLAGS = -DSLAPD_IMPORT -I$(srcdir)/.. -I$(top_srcdir)/include
 EXTRA_DIST = attrsets.conf
 

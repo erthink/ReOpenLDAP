@@ -155,6 +155,8 @@ backends_DYNAMIC += ndb
 else
 backends_BUILTIN += ndb
 slapd_LDADD += back-ndb/back_ndb.la -lstdc++
+# LY: workaround for buggy libtool
+slapd_LDFLAGS += $(NDB_RDIR)
 endif
 endif
 

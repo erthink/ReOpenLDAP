@@ -555,6 +555,8 @@ BDB_INCLUDES=
 
 NDB_LIBS=
 NDB_INCLUDES=
+NDB_LDFLAGS=
+NDB_RDIR=
 
 PERL_LIBS=
 PERL_CPPFLAGS=
@@ -1643,7 +1645,7 @@ if test $ol_enable_ndb != no ; then
 	)
 	CPPFLAGS="$save_CPPFLAGS"
 
-	SQL_LIB=`$MYSQL --libs_r`
+	SQL_LIB="`$MYSQL --libs_r`"
 	NDB_LIBS="$SQL_LIB -lndbclient -lstdc++"
 
 	save_LDFLAGS="$LDFLAGS"
@@ -1654,6 +1656,16 @@ if test $ol_enable_ndb != no ; then
 	],[-lstdc++])
 	LIBS="$save_LIBS"
 	LDFLAGS="$save_LDFLAGS"
+
+	AC_MSG_CHECKING([ndb library present in ld.so search path])
+	NDB_LIBDIR="`$MYSQL --libs_r | sed 's/^-L /-L/g' | tr '[[:space:]]' '\n' | grep ^-L | sed 's/^-L//'`"
+	if ldconfig -v 2>/dev/null | grep -q "^$NDB_LIBDIR:"; then
+		AC_MSG_RESULT(yes)
+	else
+		AC_MSG_RESULT(no, -rpath option will be passed to linker)
+		NDB_LDFLAGS="$NDB_LDFLAGS -Wl,-rpath,$NDB_LIBDIR"
+		NDB_RDIR="$NDB_RDIR -R$NDB_LIBDIR"
+	fi
 fi
 
 dnl ----------------------------------------------------------------
@@ -2744,6 +2756,8 @@ AC_SUBST(BDB_INCLUDES)
 
 AC_SUBST(NDB_LIBS)
 AC_SUBST(NDB_INCLUDES)
+AC_SUBST(NDB_LDFLAGS)
+AC_SUBST(NDB_RDIR)
 
 AC_SUBST(PERL_CPPFLAGS)
 AC_SUBST(PERL_LDFLAGS)
