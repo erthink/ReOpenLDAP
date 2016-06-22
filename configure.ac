@@ -572,7 +572,7 @@ SASL_LIBS=
 TLS_LIBS=
 SLAPI_LIBS=
 AUTH_LIBS=
-ICU_LIBS=
+#ICU_LIBS=
 
 SLAPD_SLP_LIBS=
 SLAPD_GMP_LIBS=
@@ -1668,14 +1668,18 @@ if test $ol_enable_ndb != no ; then
 	fi
 fi
 
-dnl ----------------------------------------------------------------
-dnl International Components for Unicode
-OL_ICU
-if test "$ol_icu" = no ; then
-	AC_MSG_WARN([ICU not available])
-else
-	ICU_LIBS="$ol_icu"
-fi
+#dnl ----------------------------------------------------------------
+#
+# LY: libuci was never used ever, including in the original OpenLDAP. (2.4.x, 2.5.x).
+#
+#dnl International Components for Unicode
+#OL_ICU
+#if test "$ol_icu" = no ; then
+#	AC_MSG_WARN([ICU not available])
+#else
+#	ICU_LIBS="$ol_icu"
+#fi
+
 dnl ----------------------------------------------------------------
 dnl
 dnl Check for Cyrus SASL
@@ -2773,7 +2777,7 @@ AC_SUBST(SASL_LIBS)
 AC_SUBST(TLS_LIBS)
 AC_SUBST(SLAPI_LIBS)
 AC_SUBST(AUTH_LIBS)
-AC_SUBST(ICU_LIBS)
+#AC_SUBST(ICU_LIBS)
 
 AC_SUBST(SLAPD_SLP_LIBS)
 AC_SUBST(SLAPD_GMP_LIBS)
@@ -2790,7 +2794,7 @@ AC_SUBST(LDAP_LIBLUTIL_LA)
 SECURITY_LIBS="${SASL_LIBS} ${KRB_LIBS} ${TLS_LIBS} ${AUTH_LIBS}"
 AC_SUBST(SECURITY_LIBS)
 
-SLAPD_LIBS="$SLAPD_LIBS $SLAPD_SLP_LIBS $SLAPD_GMP_LIBS $ICU_LIBS"
+SLAPD_LIBS="$SLAPD_LIBS $SLAPD_SLP_LIBS $SLAPD_GMP_LIBS"
 AC_SUBST(SLAPD_LIBS)
 
 dnl ----------------------------------------------------------------
