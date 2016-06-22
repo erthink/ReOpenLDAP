@@ -33,10 +33,12 @@
 
 USAGE="$0 [-b <backend>] [-c] [-k] [-l #] [-p] [-s {ro|rp}] [-u] [-w] <script>"
 
-# configure generated
-export SRCDIR="@abs_srcdir@"
-export TOP_SRCDIR="@abs_top_srcdir@"
-export TOP_BUILDDIR="@abs_top_builddir@"
+#LY: Doing run-time conversion relative paths to absolute.
+#    This allows cross-testing, e.g. to build in one
+#    chroot-environment, but going tests in another.
+export SRCDIR="$(readlink -f @srcdir@)"
+export TOP_SRCDIR="$(readlink -f @top_srcdir@)"
+export TOP_BUILDDIR="$(readlink -f @top_builddir@)"
 export LN_S="@LN_S@"
 export EGREP_CMD="@EGREP@"
 
