@@ -195,7 +195,7 @@ if [ -s Makefile ]; then
 else
 	LDFLAGS="-Wl,--as-needed,-Bsymbolic,--gc-sections,-O,-zignore"
 	CFLAGS="-Wall -ggdb3 -DPS_COMPAT_RHEL6=1"
-	LIBS="-Wl,--no-as-needed,-lrt"
+	LIBS="-Wl,--no-as-needed,-lrt,--as-needed"
 
 	if [ $flag_hide -ne 0 ]; then
 		CFLAGS+=" -fvisibility=hidden"
