@@ -177,7 +177,7 @@ libexec_PROGRAMS = slapd$(EXEEXT)
 @SLAPD_DYNAMIC_FALSE@	$(am__append_53) $(am__append_57) \
 @SLAPD_DYNAMIC_FALSE@	$(am__append_62) $(am__append_66) \
 @SLAPD_DYNAMIC_FALSE@	$(am__append_68) $(am__DEPENDENCIES_3) \
-@SLAPD_DYNAMIC_FALSE@	$(am__DEPENDENCIES_2) \
+@SLAPD_DYNAMIC_FALSE@	$(am__DEPENDENCIES_4) \
 @SLAPD_DYNAMIC_FALSE@	$(am__DEPENDENCIES_2) \
 @SLAPD_DYNAMIC_FALSE@	$(am__DEPENDENCIES_2) \
 @SLAPD_DYNAMIC_FALSE@	$(am__DEPENDENCIES_2) \
@@ -205,6 +205,7 @@ libexec_PROGRAMS = slapd$(EXEEXT)
 @BUILD_UNIQUE_TRUE@@UNIQUE_DYNAMIC_FALSE@am__append_90 = unique
 @BUILD_VALSORT_TRUE@@VALSORT_DYNAMIC_FALSE@am__append_91 = valsort
 @BEHIND_CURTIAN_TRUE@am__append_92 = banner.c
+@BUILD_REWRITE_TRUE@am__append_93 = $(LDAP_LIBREWRITE_LA)
 subdir = servers/slapd
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/build/m4/ax_pthread.m4 \
@@ -261,6 +262,7 @@ slapd_OBJECTS = $(am_slapd_OBJECTS) $(nodist_slapd_OBJECTS)
 @BUILD_NDB_TRUE@@NDB_DYNAMIC_FALSE@	back-ndb/back_ndb.la
 am__DEPENDENCIES_2 =
 @SLAPD_DYNAMIC_TRUE@am__DEPENDENCIES_3 = $(am__DEPENDENCIES_2)
+@BUILD_REWRITE_TRUE@am__DEPENDENCIES_4 = $(am__DEPENDENCIES_2)
 AM_V_lt = $(am__v_lt_@AM_V@)
 am__v_lt_ = $(am__v_lt_@AM_DEFAULT_V@)
 am__v_lt_0 = --silent
@@ -636,15 +638,13 @@ overlays_BUILTIN = $(am__append_72) $(am__append_73) $(am__append_74) \
 	$(am__append_90) $(am__append_91)
 overlays_DYNAMIC = 
 AM_CPPFLAGS = -I${top_srcdir}/include $(am__append_69)
-
-# LY: TODO += BUILD_REWRITE ?
 slapd_LDADD = overlays/liboverlays_builtin.la $(am__append_4) \
 	$(am__append_8) $(am__append_12) $(am__append_16) \
 	$(am__append_20) $(am__append_24) $(am__append_28) \
 	$(am__append_32) $(am__append_36) $(am__append_40) \
 	$(am__append_44) $(am__append_48) $(am__append_53) \
 	$(am__append_57) $(am__append_62) $(am__append_66) \
-	$(am__append_68) $(am__append_71) $(LDAP_LIBREWRITE_LA) \
+	$(am__append_68) $(am__append_71) $(am__append_93) \
 	$(LDAP_LIBRELDAP_LA) $(LDAP_LIBLUTIL_LA) \
 	$(LDAP_LIBLUNICODE_LA) $(SLAPD_LIBS)
 slapd_LDFLAGS = $(am__append_49) $(am__append_58) $(am__append_70)

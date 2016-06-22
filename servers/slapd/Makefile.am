@@ -384,8 +384,10 @@ builtin.c: Makefile
 	&& echo '};' >> $@ \
 		|| exit 1;
 
-# LY: TODO += BUILD_REWRITE ?
+if BUILD_REWRITE
 slapd_LDADD += $(LDAP_LIBREWRITE_LA)
+endif
+
 slapd_LDADD += $(LDAP_LIBRELDAP_LA) $(LDAP_LIBLUTIL_LA) $(LDAP_LIBLUNICODE_LA)
 slapd_LDADD += $(SLAPD_LIBS)
 

@@ -13,8 +13,6 @@
 # PARTICULAR PURPOSE.
 
 @SET_MAKE@
-
-# Libraries Makefile for ReOpenLDAP
 VPATH = @srcdir@
 am__is_gnu_make = { \
   if test -z '$(MAKELEVEL)'; then \
@@ -90,6 +88,7 @@ POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
 target_triplet = @target@
+@BUILD_REWRITE_TRUE@am__append_1 = librewrite
 subdir = libraries
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/build/m4/ax_pthread.m4 \
@@ -397,7 +396,7 @@ top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 DIST_SUBDIRS = liblunicode liblutil libreldap librewrite
-SUBDIRS = liblunicode liblutil libreldap librewrite
+SUBDIRS = liblunicode liblutil libreldap $(am__append_1)
 all: all-recursive
 
 .SUFFIXES:

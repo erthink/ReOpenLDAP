@@ -1,4 +1,3 @@
-# Libraries Makefile for ReOpenLDAP
 ## $ReOpenLDAP$
 ## Copyright (c) 2015,2016 Leonid Yuriev <leo@yuriev.ru>.
 ## Copyright (c) 2015,2016 Peter-Service R&D LLC <http://billing.ru/>.
@@ -18,18 +17,10 @@
 ## You should have received a copy of the GNU Affero General Public License
 ## along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ##
-## ---
-##
-## Copyright 1998-2014 The OpenLDAP Foundation.
-## All rights reserved.
-##
-## Redistribution and use in source and binary forms, with or without
-## modification, are permitted only as authorized by the OpenLDAP
-## Public License.
-##
-## A copy of this license is available in the file LICENSE in the
-## top-level directory of the distribution or, alternatively, at
-## <http://www.OpenLDAP.org/license.html>.
 
 DIST_SUBDIRS = liblunicode liblutil libreldap librewrite
-SUBDIRS = liblunicode liblutil libreldap librewrite
+SUBDIRS = liblunicode liblutil libreldap
+
+if BUILD_REWRITE
+SUBDIRS += librewrite
+endif
