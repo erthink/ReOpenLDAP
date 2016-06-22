@@ -118,7 +118,7 @@ static void backtrace_cleanup(void)
 	}
 }
 
-#ifdef HAVE_LIBBFD
+#if defined(HAVE_LIBBFD) && !defined(PS_COMPAT_RHEL6)
 static int is_bfd_symbols_available(void) {
 	char name_buf[PATH_MAX];
 	int n = readlink("/proc/self/exe", name_buf, sizeof(name_buf) - 1);
