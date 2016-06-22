@@ -159,11 +159,6 @@ LDAP_V(int)	ldap_debug;
 LDAP_V(int)	ldap_syslog;
 LDAP_V(int)	ldap_syslog_level;
 
-#ifdef HAVE_EBCDIC
-#define syslog	_ldap_eb_syslog
-LDAP_F(void) _ldap_eb_syslog(int pri, const char *fmt, ...);
-#endif /* HAVE_EBCDIC */
-
 #endif /* LDAP_SYSLOG */
 
 

@@ -184,13 +184,6 @@ void bdb_errcall( const DB_ENV *env, const char *pfx, const char * msg );
 void bdb_msgcall( const DB_ENV *env, const char * msg );
 #endif
 
-#ifdef HAVE_EBCDIC
-#define ebcdic_dberror				BDB_SYMBOL(ebcdic_dberror)
-
-char *ebcdic_dberror( int rc );
-#define db_strerror(x)	ebcdic_dberror(x)
-#endif
-
 /*
  * filterentry.c
  */

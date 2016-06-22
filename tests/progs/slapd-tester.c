@@ -1092,20 +1092,6 @@ fork_child( char *prog, char **args )
 
 	switch ( pid = fork() ) {
 	case 0:		/* child */
-#ifdef HAVE_EBCDIC
-		/* The __LIBASCII execvp only handles ASCII "prog",
-		 * we still need to translate the arg vec ourselves.
-		 */
-		{ char *arg2[MAXREQS];
-		int i;
-
-		for (i=0; args[i]; i++) {
-			arg2[i] = ArgDup(args[i]);
-			__atoe(arg2[i]);
-		}
-		arg2[i] = NULL;
-		args = arg2; }
-#endif
 		execvp( prog, args );
 		tester_perror( "execvp", NULL );
 		{ int i;

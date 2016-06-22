@@ -189,9 +189,6 @@ bdb_db_cache(
 	strcpy( file, db->bdi_name.bv_val );
 	strcpy( file+db->bdi_name.bv_len, BDB_SUFFIX );
 
-#ifdef HAVE_EBCDIC
-	__atoe( file );
-#endif
 	flags = DB_CREATE | DB_THREAD;
 #ifdef DB_AUTO_COMMIT
 	if ( !( slapMode & SLAP_TOOL_QUICK ))

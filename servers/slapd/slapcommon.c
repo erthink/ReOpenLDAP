@@ -581,21 +581,12 @@ slap_tool_init(
 #if defined(LDAP_SYSLOG) && defined(LDAP_DEBUG)
 	if ( start_syslog ) {
 		char *logName;
-#ifdef HAVE_EBCDIC
-		logName = ch_strdup( progname );
-		__atoe( logName );
-#else
 		logName = (char *)progname;
-#endif
 
 #ifdef LOG_LOCAL4
 		openlog( logName, OPENLOG_OPTIONS, syslogUser );
 #elif defined LOG_DEBUG
 		openlog( logName, OPENLOG_OPTIONS );
-#endif
-#ifdef HAVE_EBCDIC
-		free( logName );
-		logName = NULL;
 #endif
 	}
 #endif /* LDAP_DEBUG && LDAP_SYSLOG */

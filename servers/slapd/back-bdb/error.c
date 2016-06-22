@@ -46,35 +46,12 @@ void bdb_errcall( const char *pfx, char * msg )
 void bdb_errcall( const DB_ENV *env, const char *pfx, const char * msg )
 #endif
 {
-#ifdef HAVE_EBCDIC
-	if ( msg[0] > 0x7f )
-		__etoa( msg );
-#endif
 	Debug( LDAP_DEBUG_ANY, "bdb(%s): %s\n", pfx, msg );
 }
 
 #if DB_VERSION_FULL >= 0x04030000
 void bdb_msgcall( const DB_ENV *env, const char *msg )
 {
-#ifdef HAVE_EBCDIC
-	if ( msg[0] > 0x7f )
-		__etoa( msg );
-#endif
 	Debug( LDAP_DEBUG_TRACE, "bdb: %s\n", msg );
-}
-#endif
-
-#ifdef HAVE_EBCDIC
-
-#undef db_strerror
-
-/* Not re-entrant! */
-char *ebcdic_dberror( int rc )
-{
-	static char msg[1024];
-
-	strcpy( msg, db_strerror( rc ) );
-	__etoa( msg );
-	return msg;
 }
 #endif

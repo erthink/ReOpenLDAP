@@ -54,10 +54,6 @@
 #include "ldap_pvt.h"
 #include "lber_pvt.h"
 
-#ifdef HAVE_EBCDIC
-int _trans_argv = 1;
-#endif
-
 char* lutil_progname( const char* name, int argc, char *argv[] )
 {
 	char *progname;
@@ -66,37 +62,11 @@ char* lutil_progname( const char* name, int argc, char *argv[] )
 		return (char *)name;
 	}
 
-#ifdef HAVE_EBCDIC
-	if (_trans_argv) {
-		int i;
-		for (i=0; i<argc; i++) __etoa(argv[i]);
-		_trans_argv = 0;
-	}
-#endif
 	LUTIL_SLASHPATH( argv[0] );
 	progname = strrchr ( argv[0], *LDAP_DIRSEP );
 	progname = progname ? &progname[1] : argv[0];
 	return progname;
 }
-
-#if 0
-size_t lutil_gentime( char *s, size_t smax, const struct tm *tm )
-{
-	size_t ret;
-#ifdef HAVE_EBCDIC
-/* We've been compiling in ASCII so far, but we want EBCDIC now since
- * strftime only understands EBCDIC input.
- */
-#pragma convlit(suspend)
-#endif
-	ret = strftime( s, smax, "%Y%m%d%H%M%SZ", tm );
-#ifdef HAVE_EBCDIC
-#pragma convlit(resume)
-	__etoa( s );
-#endif
-	return ret;
-}
-#endif
 
 size_t lutil_localtime( char *s, size_t smax, const struct tm *tm, long delta )
 {
@@ -107,17 +77,7 @@ size_t lutil_localtime( char *s, size_t smax, const struct tm *tm, long delta )
 		return 0;
 	}
 
-#ifdef HAVE_EBCDIC
-/* We've been compiling in ASCII so far, but we want EBCDIC now since
- * strftime only understands EBCDIC input.
- */
-#pragma convlit(suspend)
-#endif
 	ret = strftime( s, smax, "%Y%m%d%H%M%SZ", tm );
-#ifdef HAVE_EBCDIC
-#pragma convlit(resume)
-	__etoa( s );
-#endif
 	if ( delta == 0 || ret == 0 ) {
 		return ret;
 	}

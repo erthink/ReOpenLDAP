@@ -706,20 +706,12 @@ unhandled_option:;
 #if defined(LDAP_DEBUG) && defined(LDAP_SYSLOG)
 	{
 		char *logName;
-#ifdef HAVE_EBCDIC
-		logName = ch_strdup( serverName );
-		__atoe( logName );
-#else
 		logName = serverName;
-#endif
 
 #ifdef LOG_LOCAL4
 		openlog( logName, OPENLOG_OPTIONS, syslogUser );
 #elif defined LOG_DEBUG
 		openlog( logName, OPENLOG_OPTIONS );
-#endif
-#ifdef HAVE_EBCDIC
-		free( logName );
 #endif
 	}
 #endif /* LDAP_DEBUG && LDAP_SYSLOG */
