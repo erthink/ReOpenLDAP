@@ -1592,7 +1592,7 @@ connection_input( Connection *conn , conn_readinfo *cri )
 	void *ctx;
 
 	if ( conn->c_currentber == NULL &&
-		( conn->c_currentber = ber_alloc()) == NULL )
+		( conn->c_currentber = ber_alloc_t(0)) == NULL )
 	{
 		Debug( LDAP_DEBUG_ANY, "ber_alloc failed\n" );
 		return -1;

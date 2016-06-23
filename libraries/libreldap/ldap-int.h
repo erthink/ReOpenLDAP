@@ -115,9 +115,7 @@
 
 #endif /* LDAP_DEBUG */
 
-#define LDAP_DEPRECATED 1
 #include "ldap.h"
-
 #include "ldap_pvt.h"
 
 LDAP_BEGIN_DECL

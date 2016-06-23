@@ -92,6 +92,7 @@ POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
 target_triplet = @target@
+@LDAP_DEPRECATED_TRUE@am__append_1 = deprecated.c
 check_PROGRAMS = check/apitest$(EXEEXT) check/dntest$(EXEEXT) \
 	check/dtest$(EXEEXT) check/etest$(EXEEXT) check/ftest$(EXEEXT) \
 	check/idtest$(EXEEXT) check/test$(EXEEXT) \
@@ -149,8 +150,23 @@ LTLIBRARIES = $(pkglib_LTLIBRARIES)
 am__DEPENDENCIES_1 =
 libreldap_la_DEPENDENCIES = $(am__DEPENDENCIES_1) \
 	$(am__DEPENDENCIES_1) $(am__DEPENDENCIES_1)
+am__libreldap_la_SOURCES_DIST = abandon.c add.c addentry.c assertion.c \
+	banner.c bprint.c cancel.c charray.c compare.c controls.c \
+	cyrus.c dds.c debug.c decode.c delete.c deref.c dnssrv.c \
+	encode.c error.c extended.c fetch.c filter.c free.c getattr.c \
+	getdn.c getentry.c getvalues.c gssapi.c hipagut.c init.c io.c \
+	lber_options.c ldap_options.c ldap_sync.c ldif.c memory.c \
+	messages.c modify.c modrdn.c open.c os-ip.c os-local.c \
+	pagectrl.c passwd.c posix.c ppolicy.c print.c references.c \
+	request.c result.c rmutex.c rq.c sasl.c schema.c search.c \
+	sockbuf.c sort.c sortctrl.c stctrl.c stdio.c string.c t61.c \
+	threads.c tls2.c tls_g.c tls_m.c tls_o.c tpool.c turn.c txn.c \
+	unbind.c url.c utf-8.c utf-8-conv.c util-int.c vlvctrl.c \
+	whoami.c crutch.c lber-int.h ldap-int.h ldap-tls.h \
+	deprecated.c
+@LDAP_DEPRECATED_TRUE@am__objects_1 = deprecated.lo
 am_libreldap_la_OBJECTS = abandon.lo add.lo addentry.lo assertion.lo \
-	banner.lo bind.lo bprint.lo cancel.lo charray.lo compare.lo \
+	banner.lo bprint.lo cancel.lo charray.lo compare.lo \
 	controls.lo cyrus.lo dds.lo debug.lo decode.lo delete.lo \
 	deref.lo dnssrv.lo encode.lo error.lo extended.lo fetch.lo \
 	filter.lo free.lo getattr.lo getdn.lo getentry.lo getvalues.lo \
@@ -158,11 +174,12 @@ am_libreldap_la_OBJECTS = abandon.lo add.lo addentry.lo assertion.lo \
 	ldap_options.lo ldap_sync.lo ldif.lo memory.lo messages.lo \
 	modify.lo modrdn.lo open.lo os-ip.lo os-local.lo pagectrl.lo \
 	passwd.lo posix.lo ppolicy.lo print.lo references.lo \
-	request.lo result.lo rmutex.lo rq.lo sasl.lo sbind.lo \
-	schema.lo search.lo sockbuf.lo sort.lo sortctrl.lo stctrl.lo \
-	stdio.lo string.lo t61.lo threads.lo tls2.lo tls_g.lo tls_m.lo \
-	tls_o.lo tpool.lo turn.lo txn.lo unbind.lo url.lo utf-8.lo \
-	utf-8-conv.lo util-int.lo vlvctrl.lo whoami.lo crutch.lo
+	request.lo result.lo rmutex.lo rq.lo sasl.lo schema.lo \
+	search.lo sockbuf.lo sort.lo sortctrl.lo stctrl.lo stdio.lo \
+	string.lo t61.lo threads.lo tls2.lo tls_g.lo tls_m.lo tls_o.lo \
+	tpool.lo turn.lo txn.lo unbind.lo url.lo utf-8.lo \
+	utf-8-conv.lo util-int.lo vlvctrl.lo whoami.lo crutch.lo \
+	$(am__objects_1)
 libreldap_la_OBJECTS = $(am_libreldap_la_OBJECTS)
 AM_V_lt = $(am__v_lt_@AM_V@)
 am__v_lt_ = $(am__v_lt_@AM_DEFAULT_V@)
@@ -239,9 +256,10 @@ am__v_CCLD_1 =
 SOURCES = $(libreldap_la_SOURCES) check/apitest.c check/avltest.c \
 	check/dntest.c check/dtest.c check/etest.c check/ftest.c \
 	check/idtest.c check/tavltest.c check/test.c check/urltest.c
-DIST_SOURCES = $(libreldap_la_SOURCES) check/apitest.c check/avltest.c \
-	check/dntest.c check/dtest.c check/etest.c check/ftest.c \
-	check/idtest.c check/tavltest.c check/test.c check/urltest.c
+DIST_SOURCES = $(am__libreldap_la_SOURCES_DIST) check/apitest.c \
+	check/avltest.c check/dntest.c check/dtest.c check/etest.c \
+	check/ftest.c check/idtest.c check/tavltest.c check/test.c \
+	check/urltest.c
 am__can_run_installinfo = \
   case $$AM_UPDATE_INFO_DIR in \
     n|no|NO) false;; \
@@ -483,22 +501,22 @@ libreldap_la_LDFLAGS = -no-undefined -export-dynamic \
 	-release $(API_LIB_RELEASE) -version-info $(API_LIB_VERSION) \
 	-weak libldap.la -weak liblber.la
 
-libreldap_la_SOURCES = abandon.c add.c addentry.c assertion.c \
-	banner.c bind.c bprint.c cancel.c charray.c compare.c \
-	controls.c cyrus.c dds.c debug.c decode.c delete.c deref.c \
-	dnssrv.c encode.c error.c extended.c fetch.c filter.c free.c \
-	getattr.c getdn.c getentry.c getvalues.c gssapi.c hipagut.c \
-	init.c io.c lber_options.c ldap_options.c ldap_sync.c ldif.c \
-	memory.c messages.c modify.c modrdn.c open.c os-ip.c os-local.c \
+libreldap_la_SOURCES = abandon.c add.c addentry.c assertion.c banner.c \
+	bprint.c cancel.c charray.c compare.c controls.c cyrus.c dds.c \
+	debug.c decode.c delete.c deref.c dnssrv.c encode.c error.c \
+	extended.c fetch.c filter.c free.c getattr.c getdn.c \
+	getentry.c getvalues.c gssapi.c hipagut.c init.c io.c \
+	lber_options.c ldap_options.c ldap_sync.c ldif.c memory.c \
+	messages.c modify.c modrdn.c open.c os-ip.c os-local.c \
 	pagectrl.c passwd.c posix.c ppolicy.c print.c references.c \
-	request.c result.c rmutex.c rq.c sasl.c sbind.c schema.c \
-	search.c sockbuf.c sort.c sortctrl.c stctrl.c stdio.c string.c \
-	t61.c threads.c tls2.c tls_g.c tls_m.c tls_o.c tpool.c turn.c \
-	txn.c unbind.c url.c utf-8.c utf-8-conv.c util-int.c vlvctrl.c \
-	whoami.c crutch.c lber-int.h ldap-int.h ldap-tls.h
+	request.c result.c rmutex.c rq.c sasl.c schema.c search.c \
+	sockbuf.c sort.c sortctrl.c stctrl.c stdio.c string.c t61.c \
+	threads.c tls2.c tls_g.c tls_m.c tls_o.c tpool.c turn.c txn.c \
+	unbind.c url.c utf-8.c utf-8-conv.c util-int.c vlvctrl.c \
+	whoami.c crutch.c lber-int.h ldap-int.h ldap-tls.h \
+	$(am__append_1)
 
-
-# LY: append-hack CFLAGS to avoid lost symver tags by LTO.
+# LY: append-hack CFLAGS to avoid lost symver's tags by LTO.
 nolto_CFLAGS := $(CFLAGS) $$(echo "$(CFLAGS)" | grep -q ' -flto' && echo '-fno-lto') -save-temps
 libreldap_la_LIBADD = $(SASL_LIBS) $(SECURITY_LIBS) $(LTHREAD_LIBS)
 CHECK_LIBS = ../liblutil/liblutil.la libreldap.la
@@ -676,7 +694,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/addentry.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/assertion.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/banner.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/bind.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/bprint.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/cancel.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/charray.Plo@am__quote@
@@ -688,6 +705,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/debug.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/decode.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/delete.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/deprecated.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/deref.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/dnssrv.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/encode.Plo@am__quote@
@@ -726,7 +744,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/rmutex.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/rq.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/sasl.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/sbind.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/schema.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/search.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/sockbuf.Plo@am__quote@
@@ -1032,7 +1049,8 @@ uninstall-am: uninstall-pkglibLTLIBRARIES uninstall-sysconfDATA
 
 @BEHIND_CURTIAN_TRUE@banner.c: Makefile
 @BEHIND_CURTIAN_TRUE@	$(MKBANNER) --name 'libreldap' --global 'libreldap' > $@
-libreldap_la-crutch.o libreldap_la-crutch.lo crutch.o crutch.lo: CFLAGS=$(nolto_CFLAGS)
+libreldap_la-crutch.o libreldap_la-crutch.lo crutch.o crutch.lo: CFLAGS = $(nolto_CFLAGS)
+@LDAP_DEPRECATED_TRUE@libreldap_la-deprecated.o libreldap_la-deprecated.lo deprecated.o deprecated.lo: CFLAGS += -Wno-deprecated-declarations
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.

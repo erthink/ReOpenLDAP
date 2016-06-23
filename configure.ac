@@ -337,14 +337,17 @@ dnl ----------------------------------------------------------------
 dnl General "enable" options
 dnl set default to traditional to enable the original debug style
 OL_ARG_ENABLE(debug,[  --enable-debug 	  enable debugging], yes, [no yes traditional])dnl
-AM_CONDITIONAL([SLAPD_DEBUG], [test x$debug = xtrue])
 OL_ARG_ENABLE(syslog,[  --enable-syslog	  enable syslog support], auto)dnl
-AM_CONDITIONAL([SLAPD_SYSLOG], [test x$syslog = xtrue])
 OL_ARG_ENABLE(proctitle,[  --enable-proctitle	  enable proctitle support], yes)dnl
 dnl OL_ARG_ENABLE(referrals,[  --enable-referrals	  enable LDAPv2+ Referrals (experimental)], no)dnl
 ol_enable_referrals=${ol_enable_referrals-no}
 OL_ARG_ENABLE(ipv6,[  --enable-ipv6 	  enable IPv6 support], auto)dnl
 OL_ARG_ENABLE(local,[  --enable-local	  enable AF_LOCAL (AF_UNIX) socket support], auto)dnl
+OL_ARG_ENABLE(deprecated,[  --enable-deprecated 	  enable deprecated interfaces of libreldap], no, [no yes])dnl
+
+AM_CONDITIONAL([SLAPD_DEBUG], [test "$debug" = yes])
+AM_CONDITIONAL([SLAPD_SYSLOG], [test "$syslog" = yes])
+AM_CONDITIONAL([LDAP_DEPRECATED], [test "$deprecated" = yes])
 
 dnl ----------------------------------------------------------------
 dnl General "with" options

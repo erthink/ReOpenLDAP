@@ -1139,7 +1139,7 @@ dds_op_extended( Operation *op, SlapReply *rs )
 			BerElementBuffer	berbuf;
 			BerElement		*ber = (BerElement *)&berbuf;
 
-			ber_init_w_nullc( ber, LBER_USE_DER );
+			ber_init2( ber, NULL, LBER_USE_DER );
 
 			rc = ber_printf( ber, "{tiN}", LDAP_TAG_EXOP_REFRESH_RES_TTL, (int)ttl );
 
@@ -1951,7 +1951,7 @@ dds_over_initialize()
 }
 
 #if SLAPD_OVER_DDS == SLAPD_MOD_DYNAMIC
-REOPEN_EXPORT_F(int)
+__reldap_exportable int
 dds_ReOpenLDAP_modinit( int argc, char *argv[] )
 {
 	int	rc, i;

@@ -33,8 +33,6 @@ The
 and
 .BR ldap_sort_strcasecmp ()
 are deprecated.
-.LP
-.so Deprecated
 .SH SEE ALSO
 .BR ldap (3)
 .SH ACKNOWLEDGEMENTS

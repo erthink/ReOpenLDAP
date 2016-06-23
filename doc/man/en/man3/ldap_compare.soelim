@@ -90,8 +90,6 @@ are deprecated in favor of
 and
 .BR ldap_compare_ext_s (),
 respectively.
-.LP
-.so Deprecated
 .SH SEE ALSO
 .BR ldap (3),
 .BR ldap_error (3)

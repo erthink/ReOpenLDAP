@@ -154,8 +154,6 @@ and
 routines are deprecated in favor of the
 .B ldap_search_ext_s()
 routine.
-.LP
-.so Deprecated
 .SH SEE ALSO
 .BR ldap (3),
 .BR ldap_result (3),

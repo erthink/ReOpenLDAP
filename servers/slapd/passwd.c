@@ -498,7 +498,7 @@ struct berval * slap_passwd_return(
 	Debug( LDAP_DEBUG_TRACE, "slap_passwd_return: %ld\n",
 		(long) cred->bv_len );
 
-	ber_init_w_nullc( ber, LBER_USE_DER );
+	ber_init2( ber, NULL, LBER_USE_DER );
 
 	rc = ber_printf( ber, "{tON}",
 		LDAP_TAG_EXOP_MODIFY_PASSWD_GEN, cred );

@@ -68,40 +68,6 @@
  * (Source: RFC 4511)
  */
 
-/*
- * ldap_add - initiate an ldap add operation.  Parameters:
- *
- *	ld		LDAP descriptor
- *	dn		DN of the entry to add
- *	mods		List of attributes for the entry.  This is a null-
- *			terminated array of pointers to LDAPMod structures.
- *			only the type and values in the structures need be
- *			filled in.
- *
- * Example:
- *	LDAPMod	*attrs[] = {
- *			{ 0, "cn", { "babs jensen", "babs", 0 } },
- *			{ 0, "sn", { "jensen", 0 } },
- *			{ 0, "objectClass", { "person", 0 } },
- *			0
- *		}
- *	msgid = ldap_add( ld, dn, attrs );
- */
-int
-ldap_add( LDAP *ld, LDAP_CONST char *dn, LDAPMod **attrs )
-{
-	int rc;
-	int msgid = 0;
-
-	rc = ldap_add_ext( ld, dn, attrs, NULL, NULL, &msgid );
-
-	if ( rc != LDAP_SUCCESS )
-		return -1;
-
-	return msgid;
-}
-
-
 BerElement *
 ldap_build_add_req(
 	LDAP *ld,
@@ -270,10 +236,4 @@ ldap_add_ext_s(
 		return( ld->ld_errno );
 
 	return( ldap_result2error( ld, res, 1 ) );
-}
-
-int
-ldap_add_s( LDAP *ld, LDAP_CONST char *dn, LDAPMod **attrs )
-{
-	return ldap_add_ext_s( ld, dn, attrs, NULL, NULL );
 }

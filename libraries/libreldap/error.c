@@ -40,7 +40,7 @@
 #include <ac/string.h>
 #include <ac/time.h>
 #include <ac/localize.h>
-#include "ac/errno.h"
+#include <ac/errno.h>
 
 #include "ldap-int.h"
 
@@ -210,40 +210,6 @@ ldap_err2string( int err )
 	return _(m);
 }
 
-/* deprecated */
-void
-ldap_perror( LDAP *ld, LDAP_CONST char *str )
-{
-    int i;
-
-	assert( ld != NULL );
-	assert( LDAP_VALID( ld ) );
-	assert( str != NULL );
-
-	fprintf( stderr, "%s: %s (%d)\n",
-		str ? str : "ldap_perror",
-		ldap_err2string( ld->ld_errno ),
-		ld->ld_errno );
-
-	if ( ld->ld_matched != NULL && ld->ld_matched[0] != '\0' ) {
-		fprintf( stderr, _("\tmatched DN: %s\n"), ld->ld_matched );
-	}
-
-	if ( ld->ld_error != NULL && ld->ld_error[0] != '\0' ) {
-		fprintf( stderr, _("\tadditional info: %s\n"), ld->ld_error );
-	}
-
-	if ( ld->ld_referrals != NULL && ld->ld_referrals[0] != NULL) {
-		fprintf( stderr, _("\treferrals:\n") );
-		for (i=0; ld->ld_referrals[i]; i++) {
-			fprintf( stderr, _("\t\t%s\n"), ld->ld_referrals[i] );
-		}
-	}
-
-	fflush( stderr );
-}
-
-/* deprecated */
 int
 ldap_result2error( LDAP *ld, LDAPMessage *r, int freeit )
 {

@@ -866,6 +866,8 @@ PTHREAD_LIBS
 PTHREAD_CC
 ax_pthread_config
 PERLBIN
+LDAP_DEPRECATED_FALSE
+LDAP_DEPRECATED_TRUE
 SLAPD_SYSLOG_FALSE
 SLAPD_SYSLOG_TRUE
 SLAPD_DEBUG_FALSE
@@ -1057,6 +1059,7 @@ enable_syslog
 enable_proctitle
 enable_ipv6
 enable_local
+enable_deprecated
 with_cyrus_sasl
 with_fetch
 with_tls
@@ -1786,6 +1789,7 @@ Optional Features:
   --enable-proctitle	  enable proctitle support [yes]
   --enable-ipv6 	  enable IPv6 support [auto]
   --enable-local	  enable AF_LOCAL (AF_UNIX) socket support [auto]
+  --enable-deprecated 	  enable deprecated interfaces of libreldap no|yes [no]
 
 SLAPD (Standalone LDAP Daemon) Options:
   --enable-slapd	  enable building slapd [yes]
@@ -14081,9 +14085,9 @@ VERSION_MINOR=0
 
 VERSION_PATCH=1
 
-RELEASE_DATE=2016-06-22
+RELEASE_DATE=2016-06-23
 
-RELEASE_STAMP=g50462b34802e-t8bf50196c454af02
+RELEASE_STAMP=gd8bfbd5e32bf-t1fe0eb7d0a218047
 
 API_LIB_RELEASE=1.0
 
@@ -19201,14 +19205,6 @@ else
 fi
 
 # end --enable-debug
- if test x$debug = xtrue; then
-  SLAPD_DEBUG_TRUE=
-  SLAPD_DEBUG_FALSE='#'
-else
-  SLAPD_DEBUG_TRUE='#'
-  SLAPD_DEBUG_FALSE=
-fi
-
 # OpenLDAP --enable-syslog
 
 	# Check whether --enable-syslog was given.
@@ -19230,14 +19226,6 @@ else
 fi
 
 # end --enable-syslog
- if test x$syslog = xtrue; then
-  SLAPD_SYSLOG_TRUE=
-  SLAPD_SYSLOG_FALSE='#'
-else
-  SLAPD_SYSLOG_TRUE='#'
-  SLAPD_SYSLOG_FALSE=
-fi
-
 # OpenLDAP --enable-proctitle
 
 	# Check whether --enable-proctitle was given.
@@ -19302,6 +19290,52 @@ else
 fi
 
 # end --enable-local
+# OpenLDAP --enable-deprecated
+
+	# Check whether --enable-deprecated was given.
+if test "${enable_deprecated+set}" = set; then :
+  enableval=$enable_deprecated;
+	ol_arg=invalid
+	for ol_val in no yes ; do
+		if test "$enableval" = "$ol_val" ; then
+			ol_arg="$ol_val"
+		fi
+	done
+	if test "$ol_arg" = "invalid" ; then
+		as_fn_error $? "bad value $enableval for --enable-deprecated" "$LINENO" 5
+	fi
+	ol_enable_deprecated="$ol_arg"
+
+else
+  	ol_enable_deprecated=no
+fi
+
+# end --enable-deprecated
+
+ if test "$debug" = yes; then
+  SLAPD_DEBUG_TRUE=
+  SLAPD_DEBUG_FALSE='#'
+else
+  SLAPD_DEBUG_TRUE='#'
+  SLAPD_DEBUG_FALSE=
+fi
+
+ if test "$syslog" = yes; then
+  SLAPD_SYSLOG_TRUE=
+  SLAPD_SYSLOG_FALSE='#'
+else
+  SLAPD_SYSLOG_TRUE='#'
+  SLAPD_SYSLOG_FALSE=
+fi
+
+ if test "$deprecated" = yes; then
+  LDAP_DEPRECATED_TRUE=
+  LDAP_DEPRECATED_FALSE='#'
+else
+  LDAP_DEPRECATED_TRUE='#'
+  LDAP_DEPRECATED_FALSE=
+fi
+
 
 # OpenLDAP --with-cyrus_sasl
 
@@ -33048,6 +33082,10 @@ Usually this means the macro was only invoked conditionally." "$LINENO" 5
 fi
 if test -z "${SLAPD_SYSLOG_TRUE}" && test -z "${SLAPD_SYSLOG_FALSE}"; then
   as_fn_error $? "conditional \"SLAPD_SYSLOG\" was never defined.
+Usually this means the macro was only invoked conditionally." "$LINENO" 5
+fi
+if test -z "${LDAP_DEPRECATED_TRUE}" && test -z "${LDAP_DEPRECATED_FALSE}"; then
+  as_fn_error $? "conditional \"LDAP_DEPRECATED\" was never defined.
 Usually this means the macro was only invoked conditionally." "$LINENO" 5
 fi
 

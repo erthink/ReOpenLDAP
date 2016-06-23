@@ -101,26 +101,6 @@ ldap_abandon_ext(
 }
 
 
-/*
- * ldap_abandon - perform an ldap abandon operation. Parameters:
- *
- *	ld		LDAP descriptor
- *	msgid		The message id of the operation to abandon
- *
- * ldap_abandon returns 0 if everything went ok, -1 otherwise.
- *
- * Example:
- *	ldap_abandon( ld, msgid );
- */
-int
-ldap_abandon( LDAP *ld, int msgid )
-{
-	Debug( LDAP_DEBUG_TRACE, "ldap_abandon %d\n", msgid );
-	return ldap_abandon_ext( ld, msgid, NULL, NULL ) == LDAP_SUCCESS
-		? 0 : -1;
-}
-
-
 int
 ldap_pvt_discard(
 	LDAP *ld,

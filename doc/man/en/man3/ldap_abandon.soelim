@@ -76,9 +76,6 @@ The
 routine is deprecated in favor of the
 .B ldap_abandon_ext()
 routine.
-.LP
-.so Deprecated
-
 .SH SEE ALSO
 .BR ldap (3),
 .BR ldap_error (3),

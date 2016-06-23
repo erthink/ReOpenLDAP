@@ -401,27 +401,6 @@ ldap_control_dup( const LDAPControl *c )
 }
 
 /*
- * Find a LDAPControl - deprecated
- */
-LDAPControl *
-ldap_find_control(
-	LDAP_CONST char *oid,
-	LDAPControl **ctrls )
-{
-	if( ctrls == NULL || *ctrls == NULL ) {
-		return NULL;
-	}
-
-	for( ; *ctrls != NULL; ctrls++ ) {
-		if( strcmp( (*ctrls)->ldctl_oid, oid ) == 0 ) {
-			return *ctrls;
-		}
-	}
-
-	return NULL;
-}
-
-/*
  * Find a LDAPControl
  */
 LDAPControl *
@@ -449,44 +428,6 @@ ldap_control_find(
 	}
 
 	return NULL;
-}
-
-/*
- * Create a LDAPControl, optionally from ber - deprecated
- */
-int
-ldap_create_control(
-	LDAP_CONST char *requestOID,
-	BerElement *ber,
-	int iscritical,
-	LDAPControl **ctrlp )
-{
-	LDAPControl *ctrl;
-
-	assert( requestOID != NULL );
-	assert( ctrlp != NULL );
-
-	ctrl = (LDAPControl *) LDAP_MALLOC( sizeof(LDAPControl) );
-	if ( ctrl == NULL ) {
-		return LDAP_NO_MEMORY;
-	}
-
-	BER_BVZERO(&ctrl->ldctl_value);
-	if ( ber && ( ber_flatten2( ber, &ctrl->ldctl_value, 1 ) == -1 )) {
-		LDAP_FREE( ctrl );
-		return LDAP_NO_MEMORY;
-	}
-
-	ctrl->ldctl_oid = LDAP_STRDUP( requestOID );
-	ctrl->ldctl_iscritical = iscritical;
-
-	if ( requestOID != NULL && ctrl->ldctl_oid == NULL ) {
-		ldap_control_free( ctrl );
-		return LDAP_NO_MEMORY;
-	}
-
-	*ctrlp = ctrl;
-	return LDAP_SUCCESS;
 }
 
 /*

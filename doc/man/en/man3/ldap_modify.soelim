@@ -147,8 +147,6 @@ routines are deprecated in favor of the
 and
 .B ldap_modify_ext_s()
 routines, respectively.
-.LP
-.so Deprecated
 .SH SEE ALSO
 .BR ldap (3),
 .BR ldap_error (3),

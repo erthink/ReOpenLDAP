@@ -190,42 +190,6 @@ ldap_modify_ext( LDAP *ld,
 	return( *msgidp < 0 ? ld->ld_errno : LDAP_SUCCESS );
 }
 
-/*
- * ldap_modify - initiate an ldap modify operation.
- *
- * Parameters:
- *
- *	ld		LDAP descriptor
- *	dn		DN of the object to modify
- *	mods		List of modifications to make.  This is null-terminated
- *			array of struct ldapmod's, specifying the modifications
- *			to perform.
- *
- * Example:
- *	LDAPMod	*mods[] = {
- *			{ LDAP_MOD_ADD, "cn", { "babs jensen", "babs", 0 } },
- *			{ LDAP_MOD_REPLACE, "sn", { "babs jensen", "babs", 0 } },
- *			{ LDAP_MOD_DELETE, "ou", 0 },
- *			{ LDAP_MOD_INCREMENT, "uidNumber, { "1", 0 } }
- *			0
- *		}
- *	msgid = ldap_modify( ld, dn, mods );
- */
-int
-ldap_modify( LDAP *ld, LDAP_CONST char *dn, LDAPMod **mods )
-{
-	int rc, msgid;
-
-	Debug( LDAP_DEBUG_TRACE, "ldap_modify\n" );
-
-	rc = ldap_modify_ext( ld, dn, mods, NULL, NULL, &msgid );
-
-	if ( rc != LDAP_SUCCESS )
-		return -1;
-
-	return msgid;
-}
-
 int
 ldap_modify_ext_s( LDAP *ld, LDAP_CONST char *dn,
 	LDAPMod **mods, LDAPControl **sctrl, LDAPControl **cctrl )
@@ -243,10 +207,4 @@ ldap_modify_ext_s( LDAP *ld, LDAP_CONST char *dn,
 		return( ld->ld_errno );
 
 	return( ldap_result2error( ld, res, 1 ) );
-}
-
-int
-ldap_modify_s( LDAP *ld, LDAP_CONST char *dn, LDAPMod **mods )
-{
-	return ldap_modify_ext_s( ld, dn, mods, NULL, NULL );
 }

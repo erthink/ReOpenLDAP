@@ -135,7 +135,7 @@ done:;
 	return rc;
 }
 
-REOPEN_EXPORT_F(int)
+__reldap_exportable int
 term_module()
 {
 	return ldap_pvt_thread_mutex_destroy( &libradius_mutex );

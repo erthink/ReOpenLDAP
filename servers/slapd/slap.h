@@ -3410,7 +3410,7 @@ struct ComponentSyntaxInfo {
 
 #define SLAP_BACKEND_INIT_MODULE(be) \
 	static BackendInfo bi;	\
-	REOPEN_EXPORT_F(int) \
+	__reldap_exportable int \
 	back_ ## be ## _ReOpenLDAP_modinit( int argc, char *argv[] ) \
 	{ \
 		bi.bi_type = #be ; \
@@ -3422,7 +3422,7 @@ struct ComponentSyntaxInfo {
 	}
 
 #define SLAP_OVERLAY_INIT_MODULE(ov) \
-	REOPEN_EXPORT_F(int) \
+	__reldap_exportable int \
 	ov ## _ReOpenLDAP_modinit( int argc, char *argv[] ) \
 	{ \
 		int rc = ov ## _over_initialize( ); \

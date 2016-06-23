@@ -19,7 +19,7 @@
  *
  * ---
  *
- * Copyright 1998-2014 The OpenLDAP Foundation.
+ * Portions Copyright 1998-2014 The OpenLDAP Foundation.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -70,6 +70,44 @@
 
 #endif /* no prototypes */
 
+#ifndef __has_feature
+#	define __has_feature(x) (0)
+#endif
+
+#ifndef __reldap_exportable
+#	if defined(__GNUC__)
+#		if !defined(__clang__)
+#			define __reldap_exportable __attribute__((visibility("default"),externally_visible))
+#		else
+#			define __reldap_exportable __attribute__((visibility("default")))
+#		endif
+#	else
+#		define __reldap_exportable
+#	endif
+#endif /* __reldap_exportable */
+
+#ifndef __reldap_deprecated
+#	if defined(__attribute_deprecated__)
+#		define __reldap_deprecated __attribute_deprecated__
+#	elif defined(__deprecated)
+#		define __reldap_deprecated __deprecated
+#	elif defined(__GNUC__)
+#		define __reldap_deprecated __attribute__((__deprecated__))
+#	else
+#		define __reldap_deprecated
+#	endif
+#endif /* __reldap_deprecated */
+
+#ifndef __reldap_deprecated_msg
+#	if __has_feature(attribute_deprecated_with_message)
+#		define __reldap_deprecated_msg(msg) __attribute__((__deprecated__(msg)))
+#   elif defined(__GNUC__) && __GNUC_PREREQ(4,5)
+#		define __reldap_deprecated_msg(msg) __attribute__((__deprecated__(msg)))
+#	else
+#		define __reldap_deprecated_msg(msg) __reldap_deprecated
+#	endif
+#endif /* __reldap_deprecated_msg */
+
 /* -------------------------------------------------------------------------- */
 
 /*
@@ -118,43 +156,28 @@
  * procedure, slapd never implicitly imports symbols from dynamic backends.
  */
 
-#ifndef __ldso_exportable
-#	if defined(__GNUC__)
-#		if !defined(__clang__)
-#			define __ldso_exportable __attribute__((visibility("default"),externally_visible))
-#		else
-#			define __ldso_exportable __attribute__((visibility("default")))
-#		endif
-#	else
-#		define __ldso_exportable
-#	endif
-#endif /* __ldso_exportable */
-
-#define REOPEN_EXPORT_F(type)	__ldso_exportable type
-#define REOPEN_EXPORT_V(type)	extern __ldso_exportable type
-
 /* RELDAP library */
 #if defined(RELDAP_LIBRARY) && \
 	(defined(RELDAP_LIBS_SHARED) || defined(SLAPD_DYNAMIC))
-#	define LDAP_F(type)		REOPEN_EXPORT_F(type)
-#	define LDAP_V(type)		REOPEN_EXPORT_V(type)
-#	define LDAP_LDIF_F(type)	REOPEN_EXPORT_F(type)
-#	define LDAP_LDIF_V(type)	REOPEN_EXPORT_V(type)
-#	define LBER_F(type)	REOPEN_EXPORT_F(type)
-#	define LBER_V(type)	REOPEN_EXPORT_V(type)
+#	define LDAP_F(type)		__reldap_exportable type
+#	define LDAP_V(type)		extern __reldap_exportable type
+#	define LDAP_LDIF_F(type)	__reldap_exportable type
+#	define LDAP_LDIF_V(type)	extern __reldap_exportable type
+#	define LBER_F(type)		__reldap_exportable type
+#	define LBER_V(type)		extern __reldap_exportable type
 #else
 #	define LDAP_F(type)		type
 #	define LDAP_V(type)		extern type
 #	define LDAP_LDIF_F(type)	type
 #	define LDAP_LDIF_V(type)	extern type
-#	define LBER_F(type)	type
-#	define LBER_V(type)	extern type
+#	define LBER_F(type)		type
+#	define LBER_V(type)		extern type
 #endif
 
 /* LUNICODE library */
 #if defined(SLAPD_DYNAMIC) && !defined(SLAPD_IMPORT)
-#	define LDAP_LUNICODE_F(type)	REOPEN_EXPORT_F(type)
-#	define LDAP_LUNICODE_V(type)	REOPEN_EXPORT_V(type)
+#	define LDAP_LUNICODE_F(type)	__reldap_exportable type
+#	define LDAP_LUNICODE_V(type)	extern __reldap_exportable type
 #else
 #	define LDAP_LUNICODE_F(type)	type
 #	define LDAP_LUNICODE_V(type)	extern type
@@ -162,10 +185,10 @@
 
 /* LUTIL libraries */
 #if defined(SLAPD_DYNAMIC) && !defined(SLAPD_IMPORT)
-#	define LDAP_LUTIL_F(type)	REOPEN_EXPORT_F(type)
-#	define LDAP_LUTIL_V(type)	REOPEN_EXPORT_V(type)
-#	define LDAP_AVL_F(type)		REOPEN_EXPORT_F(type)
-#	define LDAP_AVL_V(type)		REOPEN_EXPORT_V(type)
+#	define LDAP_LUTIL_F(type)	__reldap_exportable type
+#	define LDAP_LUTIL_V(type)	extern __reldap_exportable type
+#	define LDAP_AVL_F(type)		__reldap_exportable type
+#	define LDAP_AVL_V(type)		extern __reldap_exportable type
 #else
 #	define LDAP_LUTIL_F(type)	type
 #	define LDAP_LUTIL_V(type)	extern type
@@ -175,8 +198,8 @@
 
 /* REWRITE library */
 #if defined(SLAPD_DYNAMIC) && !defined(SLAPD_IMPORT)
-#	define LDAP_REWRITE_F(type)	REOPEN_EXPORT_F(type)
-#	define LDAP_REWRITE_V(type)	REOPEN_EXPORT_V(type)
+#	define LDAP_REWRITE_F(type)	__reldap_exportable type
+#	define LDAP_REWRITE_V(type)	extern __reldap_exportable type
 #else
 #	define LDAP_REWRITE_F(type)	type
 #	define LDAP_REWRITE_V(type)	extern type
@@ -184,8 +207,8 @@
 
 /* SLAPD (as a dynamic library exporting symbols) */
 #if defined(SLAPD_DYNAMIC) && !defined(SLAPD_IMPORT)
-#	define LDAP_SLAPD_F(type)	REOPEN_EXPORT_F(type)
-#	define LDAP_SLAPD_V(type)	REOPEN_EXPORT_V(type)
+#	define LDAP_SLAPD_F(type)	__reldap_exportable type
+#	define LDAP_SLAPD_V(type)	extern __reldap_exportable type
 #else
 #	define LDAP_SLAPD_F(type)	type
 #	define LDAP_SLAPD_V(type)	extern type
@@ -193,8 +216,8 @@
 
 /* RESLAPI library */
 #if defined(SLAPI_LIBRARY)
-#	define LDAP_SLAPI_F(type)	REOPEN_EXPORT_F(type)
-#	define LDAP_SLAPI_V(type)	REOPEN_EXPORT_V(type)
+#	define LDAP_SLAPI_F(type)	__reldap_exportable type
+#	define LDAP_SLAPI_V(type)	extern __reldap_exportable type
 #else
 #	define LDAP_SLAPI_F(type)	type
 #	define LDAP_SLAPI_V(type)	extern type

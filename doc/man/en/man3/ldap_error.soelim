@@ -234,10 +234,6 @@ Indicates the library has detected a loop in its processing.
 .TP
 .SM LDAP_REFERRAL_LIMIT_EXCEEDED
 Indicates the referral limit has been exceeded.
-
-.SH DEPRECATED
-.so Deprecated
-
 .SH SEE ALSO
 .BR ldap (3),
 .SH ACKNOWLEDGEMENTS

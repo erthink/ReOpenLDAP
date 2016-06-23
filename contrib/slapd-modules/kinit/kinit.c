@@ -276,7 +276,7 @@ int init_module(int argc, char *argv[]) {
 	return kinit_initialize();
 }
 
-REOPEN_EXPORT_F(int)
+__reldap_exportable int
 term_module() {
 	if (principal)
 		ch_free(principal);
