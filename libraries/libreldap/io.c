@@ -213,14 +213,10 @@ ber_free_buf( BerElement *ber )
 void
 ber_free( BerElement *ber, int freebuf )
 {
-	if(unlikely( ber == NULL )) {
-		LDAP_MEMORY_ASSERT( ber != NULL );
-		return;
+	if (likely( ber != NULL )) {
+		if ( freebuf ) ber_free_buf( ber );
+		ber_memfree_x( (char *) ber, ber->ber_memctx );
 	}
-
-	if( freebuf ) ber_free_buf( ber );
-
-	ber_memfree_x( (char *) ber, ber->ber_memctx );
 }
 
 int

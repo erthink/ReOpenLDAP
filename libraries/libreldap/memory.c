@@ -53,10 +53,6 @@
  * But it should be enabled by an experienced developer as it causes
  * the inclusion of numerous assert()'s due overall poor code quality
  * in the LDAP's world.
- *
- * If LDAP_MEMORY_DEBUG > 1, that includes
- * asserts known to break both slapd and current clients.
- *
  */
 #	include <lber_hipagut.h>
 #	define BER_MEM_VALID(p, s) lber_hug_memchk_ensure(p, 0)
@@ -77,9 +73,8 @@ BerMemoryFunctions *ber_int_memory_fns = NULL;
 void
 ber_memfree_x( void *p, void *ctx )
 {
-	if( p == NULL ) {
+	if (unlikely( p == NULL ))
 		return;
-	}
 
 	if( ber_int_memory_fns == NULL || ctx == NULL ) {
 #if LDAP_MEMORY_DEBUG > 0
@@ -94,7 +89,6 @@ ber_memfree_x( void *p, void *ctx )
 
 		free( p );
 	} else {
-		LDAP_MEMORY_ASSERT( ber_int_memory_fns->bmf_free != 0 );
 		(*ber_int_memory_fns->bmf_free)( p, ctx );
 	}
 }
@@ -110,9 +104,8 @@ ber_memvfree_x( void **vec, void *ctx )
 {
 	int	i;
 
-	if( vec == NULL ) {
+	if (unlikely ( vec == NULL ))
 		return;
-	}
 
 	for ( i = 0; vec[i] != NULL; i++ ) {
 		ber_memfree_x( vec[i], ctx );
@@ -132,12 +125,10 @@ ber_memalloc_x( ber_len_t s, void *ctx )
 {
 	void *p;
 
-	if( s == 0 ) {
-		LDAP_MEMORY_ASSERT( s != 0 );
+	if (unlikely( s == 0 ))
 		return NULL;
-	}
 
-	if( ber_int_memory_fns == NULL || ctx == NULL ) {
+	if ( ber_int_memory_fns == NULL || ctx == NULL ) {
 		size_t bytes = s;
 #if LDAP_MEMORY_DEBUG > 0
 		bytes += LBER_HUG_MEMCHK_OVERHEAD;
@@ -166,7 +157,7 @@ ber_memalloc_x( ber_len_t s, void *ctx )
 		p = (*ber_int_memory_fns->bmf_malloc)( s, ctx );
 	}
 
-	if( p == NULL ) {
+	if (unlikely( p == NULL )) {
 		ber_errno = LBER_ERROR_MEMORY;
 		return p;
 	}
@@ -190,10 +181,8 @@ ber_memcalloc_x( ber_len_t n, ber_len_t s, void *ctx )
 {
 	void *p;
 
-	if( n == 0 || s == 0 ) {
-		LDAP_MEMORY_ASSERT( n != 0 && s != 0);
+	if (unlikely( n == 0 || s == 0 ))
 		return NULL;
-	}
 
 	if( ber_int_memory_fns == NULL || ctx == NULL ) {
 #if LDAP_MEMORY_DEBUG > 0
@@ -252,9 +241,8 @@ void *
 ber_memrealloc_x( void* p, ber_len_t s, void *ctx )
 {
 	/* realloc(NULL,s) -> malloc(s) */
-	if( p == NULL ) {
+	if (unlikely( p == NULL ))
 		return ber_memalloc_x( s, ctx );
-	}
 
 	/* realloc(p,0) -> free(p) */
 	if( s == 0 ) {
@@ -316,9 +304,8 @@ ber_memrealloc( void* p, ber_len_t s )
 void
 ber_bvfree_x( struct berval *bv, void *ctx )
 {
-	if( bv == NULL ) {
+	if (unlikely( bv == NULL ))
 		return;
-	}
 
 	BER_MEM_VALID( bv, 0 );
 
@@ -340,9 +327,8 @@ ber_bvecfree_x( struct berval **bv, void *ctx )
 {
 	int	i;
 
-	if( bv == NULL ) {
+	if (unlikely( bv == NULL ))
 		return;
-	}
 
 	BER_MEM_VALID( bv, 0 );
 
@@ -367,7 +353,7 @@ int
 ber_bvecadd_x( struct berval ***bvec, struct berval *bv, void *ctx )
 {
 	ber_len_t i;
-	struct berval **new;
+	struct berval **dup;
 
 	if( *bvec == NULL ) {
 		if( bv == NULL ) {
@@ -398,13 +384,13 @@ ber_bvecadd_x( struct berval ***bvec, struct berval *bv, void *ctx )
 		return i;
 	}
 
-	new = ber_memrealloc_x( *bvec, (i+2) * sizeof(struct berval *), ctx);
+	dup = ber_memrealloc_x( *bvec, (i+2) * sizeof(struct berval *), ctx);
 
-	if( new == NULL ) {
+	if( dup == NULL ) {
 		return -1;
 	}
 
-	*bvec = new;
+	*bvec = dup;
 
 	(*bvec)[i++] = bv;
 	(*bvec)[i] = NULL;
@@ -422,38 +408,38 @@ struct berval *
 ber_dupbv_x(
 	struct berval *dst, const struct berval *src, void *ctx )
 {
-	struct berval *new;
+	struct berval *dup;
 
-	if( src == NULL ) {
+	if (unlikely( src == NULL )) {
 		ber_errno = LBER_ERROR_PARAM;
 		return NULL;
 	}
 
 	if ( dst ) {
-		new = dst;
+		dup = dst;
 	} else {
-		if(( new = ber_memalloc_x( sizeof(struct berval), ctx )) == NULL ) {
+		if(( dup = ber_memalloc_x( sizeof(struct berval), ctx )) == NULL ) {
 			return NULL;
 		}
 	}
 
 	if ( src->bv_val == NULL ) {
-		new->bv_val = NULL;
-		new->bv_len = 0;
-		return new;
+		dup->bv_val = NULL;
+		dup->bv_len = 0;
+		return dup;
 	}
 
-	if(( new->bv_val = ber_memalloc_x( src->bv_len + 1, ctx )) == NULL ) {
+	if(( dup->bv_val = ber_memalloc_x( src->bv_len + 1, ctx )) == NULL ) {
 		if ( !dst )
-			ber_memfree_x( new, ctx );
+			ber_memfree_x( dup, ctx );
 		return NULL;
 	}
 
-	memcpy( new->bv_val, src->bv_val, src->bv_len );
-	new->bv_val[src->bv_len] = '\0';
-	new->bv_len = src->bv_len;
+	memcpy( dup->bv_val, src->bv_val, src->bv_len );
+	dup->bv_val[src->bv_len] = '\0';
+	dup->bv_len = src->bv_len;
 
-	return new;
+	return dup;
 }
 
 struct berval *
@@ -475,36 +461,34 @@ ber_str2bv_x(
 	LDAP_CONST char *s, ber_len_t len, int dup, struct berval *bv,
 	void *ctx)
 {
-	struct berval *new;
+	struct berval *ret;
 
-	if( s == NULL ) {
+	if (unlikely( s == NULL )) {
 		ber_errno = LBER_ERROR_PARAM;
 		return NULL;
 	}
 
 	if( bv ) {
-		new = bv;
-	} else {
-		if(( new = ber_memalloc_x( sizeof(struct berval), ctx )) == NULL ) {
-			return NULL;
-		}
+		ret = bv;
+	} else if(( ret = ber_memalloc_x( sizeof(struct berval), ctx )) == NULL ) {
+		return NULL;
 	}
 
-	new->bv_len = len ? len : strlen( s );
+	ret->bv_len = len ? len : strlen( s );
 	if ( dup ) {
-		if ( (new->bv_val = ber_memalloc_x( new->bv_len+1, ctx )) == NULL ) {
+		if ( (ret->bv_val = ber_memalloc_x( ret->bv_len+1, ctx )) == NULL ) {
 			if ( !bv )
-				ber_memfree_x( new, ctx );
+				ber_memfree_x( ret, ctx );
 			return NULL;
 		}
 
-		memcpy( new->bv_val, s, new->bv_len );
-		new->bv_val[new->bv_len] = '\0';
+		memcpy( ret->bv_val, s, ret->bv_len );
+		ret->bv_val[ret->bv_len] = '\0';
 	} else {
-		new->bv_val = (char *) s;
+		ret->bv_val = (char *) s;
 	}
 
-	return( new );
+	return ret;
 }
 
 struct berval *
@@ -519,37 +503,36 @@ ber_mem2bv_x(
 	LDAP_CONST char *s, ber_len_t len, int dup, struct berval *bv,
 	void *ctx)
 {
-	struct berval *new;
+	struct berval *ret;
 
-	if( s == NULL ) {
+	if (unlikely( s == NULL )) {
 		ber_errno = LBER_ERROR_PARAM;
 		return NULL;
 	}
 
 	if( bv ) {
-		new = bv;
+		ret = bv;
 	} else {
-		if(( new = ber_memalloc_x( sizeof(struct berval), ctx )) == NULL ) {
+		if(( ret = ber_memalloc_x( sizeof(struct berval), ctx )) == NULL ) {
 			return NULL;
 		}
 	}
 
-	new->bv_len = len;
+	ret->bv_len = len;
 	if ( dup ) {
-		if ( (new->bv_val = ber_memalloc_x( new->bv_len+1, ctx )) == NULL ) {
-			if ( !bv ) {
-				ber_memfree_x( new, ctx );
-			}
+		if ( (ret->bv_val = ber_memalloc_x( ret->bv_len+1, ctx )) == NULL ) {
+			if ( !bv )
+				ber_memfree_x( ret, ctx );
 			return NULL;
 		}
 
-		memcpy( new->bv_val, s, new->bv_len );
-		new->bv_val[new->bv_len] = '\0';
+		memcpy( ret->bv_val, s, ret->bv_len );
+		ret->bv_val[ret->bv_len] = '\0';
 	} else {
-		new->bv_val = (char *) s;
+		ret->bv_val = (char *) s;
 	}
 
-	return( new );
+	return ret;
 }
 
 struct berval *
@@ -565,9 +548,7 @@ ber_strdup_x( LDAP_CONST char *s, void *ctx )
 	char    *p;
 	size_t	len;
 
-	LDAP_MEMORY_ASSERT(s != NULL);			/* bv damn better point to something */
-
-	if( s == NULL ) {
+	if (unlikely( s == NULL )) {
 		ber_errno = LBER_ERROR_PARAM;
 		return NULL;
 	}
@@ -602,9 +583,7 @@ ber_strndup_x( LDAP_CONST char *s, ber_len_t l, void *ctx )
 	char    *p;
 	size_t	len;
 
-	LDAP_MEMORY_ASSERT(s != NULL);			/* bv damn better point to something */
-
-	if( s == NULL ) {
+	if (unlikely( s == NULL )) {
 		ber_errno = LBER_ERROR_PARAM;
 		return NULL;
 	}
@@ -632,9 +611,6 @@ ber_strndup( LDAP_CONST char *s, ber_len_t l )
 struct berval *
 ber_bvreplace_x( struct berval *dst, LDAP_CONST struct berval *src, void *ctx )
 {
-	LDAP_MEMORY_ASSERT( dst != NULL );
-	LDAP_MEMORY_ASSERT( !BER_BVISNULL( src ) );
-
 	if ( BER_BVISNULL( dst ) || dst->bv_len < src->bv_len ) {
 		dst->bv_val = ber_memrealloc_x( dst->bv_val, src->bv_len + 1, ctx );
 	}
@@ -681,7 +657,7 @@ int
 ber_bvarray_dup_x( BerVarray *dst, BerVarray src, void *ctx )
 {
 	int i, j;
-	BerVarray new;
+	BerVarray dup;
 
 	if ( !src ) {
 		*dst = NULL;
@@ -689,18 +665,18 @@ ber_bvarray_dup_x( BerVarray *dst, BerVarray src, void *ctx )
 	}
 
 	for (i=0; !BER_BVISNULL( &src[i] ); i++) ;
-	new = ber_memalloc_x(( i+1 ) * sizeof(BerValue), ctx );
-	if ( !new )
+	dup = ber_memalloc_x(( i+1 ) * sizeof(BerValue), ctx );
+	if ( !dup )
 		return -1;
 	for (j=0; j<i; j++) {
-		ber_dupbv_x( &new[j], &src[j], ctx );
-		if ( BER_BVISNULL( &new[j] )) {
-			ber_bvarray_free_x( new, ctx );
+		ber_dupbv_x( &dup[j], &src[j], ctx );
+		if ( BER_BVISNULL( &dup[j] )) {
+			ber_bvarray_free_x( dup, ctx );
 			return -1;
 		}
 	}
-	BER_BVZERO( &new[j] );
-	*dst = new;
+	BER_BVZERO( &dup[j] );
+	*dst = dup;
 	return 0;
 }
 
