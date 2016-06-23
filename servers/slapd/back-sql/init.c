@@ -671,9 +671,6 @@ backsql_db_close(
 }
 
 #if SLAPD_SQL == SLAPD_MOD_DYNAMIC
-
-/* conditionally define the init_module() function */
 SLAP_BACKEND_INIT_MODULE( sql )
-
 #endif /* SLAPD_SQL == SLAPD_MOD_DYNAMIC */
 

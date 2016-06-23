@@ -483,10 +483,7 @@ meta_back_db_destroy(
 }
 
 #if SLAPD_META == SLAPD_MOD_DYNAMIC
-
-/* conditionally define the init_module() function */
 SLAP_BACKEND_INIT_MODULE( meta )
-
 #endif /* SLAPD_META == SLAPD_MOD_DYNAMIC */
 
 

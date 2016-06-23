@@ -1081,11 +1081,6 @@ refint_preop(
 	return SLAP_CB_CONTINUE;
 }
 
-/*
-** init_module is last so the symbols resolve "for free" --
-** it expects to be called automagically during dynamic module initialization
-*/
-
 int refint_over_initialize() {
 	int rc;
 

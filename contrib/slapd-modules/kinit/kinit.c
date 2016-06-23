@@ -263,7 +263,8 @@ kinit_initialize(void)
 }
 
 #if SLAPD_MOD_KINIT == SLAPD_MOD_DYNAMIC
-int init_module(int argc, char *argv[]) {
+SLAP_OVERLAY_ENTRY(kinit, modinit) (int argc, char *argv[])
+{
 	if (argc > 0) {
 		principal = ch_strdup(argv[0]);
 	}
@@ -276,8 +277,8 @@ int init_module(int argc, char *argv[]) {
 	return kinit_initialize();
 }
 
-__reldap_exportable int
-term_module() {
+SLAP_OVERLAY_ENTRY(kinit, modterm) (void)
+{
 	if (principal)
 		ch_free(principal);
 	if (kt_name)

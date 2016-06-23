@@ -771,6 +771,7 @@ totp_initialize(void)
 	return overlay_register(&totp);
 }
 
-int init_module(int argc, char *argv[]) {
+SLAP_OVERLAY_ENTRY(pw_totp, modinit) ( int argc, char *argv[] )
+{
 	return totp_initialize();
 }

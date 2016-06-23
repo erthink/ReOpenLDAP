@@ -125,9 +125,6 @@ dnssrv_back_db_destroy(
 }
 
 #if SLAPD_DNSSRV == SLAPD_MOD_DYNAMIC
-
-/* conditionally define the init_module() function */
 SLAP_BACKEND_INIT_MODULE( dnssrv )
-
 #endif /* SLAPD_DNSSRV == SLAPD_MOD_DYNAMIC */
 

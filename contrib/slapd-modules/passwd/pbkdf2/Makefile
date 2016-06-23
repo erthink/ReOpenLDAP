@@ -31,7 +31,7 @@ include ../../contrib-mod.mk
 INCS = $(LDAP_INC)
 LIBS = $(LDAP_LIB) -lcrypto
 
-PROGRAMS = pw-pbkdf2.la
+PROGRAMS = pw_pbkdf2.la
 LTVER = 0:0:0
 
 #prefix=/usr/local
@@ -51,7 +51,7 @@ moduledir = $(libexecdir)$(ldap_subdir)
 
 all:		$(PROGRAMS)
 
-pw-pbkdf2.la: pw-pbkdf2.lo
+pw_pbkdf2.la: pw-pbkdf2.lo
 	$(LIBTOOL) --mode=link $(CC) $(CFLAGS) -version-info $(LTVER) \
 	-rpath $(moduledir) -module -o $@ $? $(LIBS)
 

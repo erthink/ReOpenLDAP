@@ -31,7 +31,7 @@ DEFS =
 INCS = $(LDAP_INC)
 LIBS = $(LDAP_LIB)
 
-PROGRAMS = pw-totp.la
+PROGRAMS = pw_totp.la
 LTVER = 0:0:0
 
 prefix=/usr/local
@@ -49,7 +49,7 @@ moduledir = $(libexecdir)$(ldap_subdir)
 
 all:		$(PROGRAMS)
 
-pw-totp.la:	slapd-totp.lo
+pw_totp.la:	slapd-totp.lo
 	$(LIBTOOL) --mode=link $(CC) $(CFLAGS) -version-info $(LTVER) \
 	-rpath $(moduledir) -module -o $@ $? $(LIBS)
 

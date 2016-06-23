@@ -121,9 +121,6 @@ shell_back_db_destroy(
 }
 
 #if SLAPD_SHELL == SLAPD_MOD_DYNAMIC
-
-/* conditionally define the init_module() function */
 SLAP_BACKEND_INIT_MODULE( shell )
-
 #endif /* SLAPD_SHELL == SLAPD_MOD_DYNAMIC */
 

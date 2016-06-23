@@ -4067,7 +4067,7 @@ config_tls_cleanup(ConfigArgs *c) {
 			/* The ctx's refcount is bumped up here */
 			ldap_pvt_tls_get_option( slap_tls_ld, LDAP_OPT_X_TLS_CTX, &slap_tls_ctx );
 			/* This is a no-op if it's already loaded */
-			load_extop( &slap_EXOP_START_TLS, 0, starttls_extop );
+			extop_register( &slap_EXOP_START_TLS, 0, starttls_extop );
 		} else {
 			if ( rc == LDAP_NOT_SUPPORTED )
 				rc = LDAP_UNWILLING_TO_PERFORM;

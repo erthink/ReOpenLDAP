@@ -93,7 +93,7 @@ LDAP_SLAPD_F (void) rs_send_cleanup LDAP_P(( SlapReply *rs ));
  */
 #ifdef SLAP_DYNACL
 #ifdef SLAPD_ACI_ENABLED
-LDAP_SLAPD_F (int) dynacl_aci_init LDAP_P(( void ));
+LDAP_SLAPD_F (int) aci_over_initialize LDAP_P(( void ));
 #endif /* SLAPD_ACI_ENABLED */
 #endif /* SLAP_DYNACL */
 
@@ -1184,13 +1184,14 @@ typedef int (SLAP_EXTOP_MAIN_FN) LDAP_P(( Operation *op, SlapReply *rs ));
 typedef int (SLAP_EXTOP_GETOID_FN) LDAP_P((
 	int index, struct berval *oid, int blen ));
 
-LDAP_SLAPD_F (int) load_extop2 LDAP_P((
-	const struct berval *ext_oid,
-	slap_mask_t flags,
-	SLAP_EXTOP_MAIN_FN *ext_main,
-	unsigned tmpflags ));
-#define load_extop(ext_oid, flags, ext_main) \
-	load_extop2((ext_oid), (flags), (ext_main), 0)
+LDAP_SLAPD_F (int) extop_register_ex LDAP_P((
+	const struct berval *exop_oid,
+	slap_mask_t exop_flags,
+	SLAP_EXTOP_MAIN_FN *exop_main,
+	unsigned do_not_replace ));
+
+#define extop_register(exop_oid, exop_flags, exop_main) \
+	   extop_register_ex((exop_oid), (exop_flags), (exop_main), 0)
 
 LDAP_SLAPD_F (int) extops_init LDAP_P(( void ));
 
@@ -1511,21 +1512,17 @@ LDAP_SLAPD_F( void ) slap_modlist_free( LDAPModList *ml );
 LDAP_SLAPD_F (int) module_init LDAP_P(( void ));
 LDAP_SLAPD_F (int) module_kill LDAP_P(( void ));
 
-LDAP_SLAPD_F (int) load_null_module(
-	const void *module, const char *file_name);
-LDAP_SLAPD_F (int) load_extop_module(
-	const void *module, const char *file_name);
-
 LDAP_SLAPD_F (int) module_load LDAP_P((
 	const char* file_name,
 	int argc, char *argv[] ));
 LDAP_SLAPD_F (int) module_path LDAP_P(( const char* path ));
 LDAP_SLAPD_F (int) module_unload LDAP_P(( const char* file_name ));
 
-LDAP_SLAPD_F (void *) module_handle LDAP_P(( const char* file_name ));
+typedef struct module module_t;
 
+LDAP_SLAPD_F (module_t *) module_handle LDAP_P(( const char* file_name ));
 LDAP_SLAPD_F (void *) module_resolve LDAP_P((
-	const void *module, const char *name));
+	const module_t *module, const char *name));
 
 #endif /* SLAPD_DYNAMIC_MODULES */
 

@@ -32,7 +32,7 @@ DEFS =
 INCS = $(LDAP_INC)
 LIBS = $(LDAP_LIB)
 
-PROGRAMS = pw-sha2.la
+PROGRAMS = pw_sha2.la
 LTVER = 0:0:0
 
 prefix=/usr/local
@@ -50,7 +50,7 @@ moduledir = $(libexecdir)$(ldap_subdir)
 
 all:		$(PROGRAMS)
 
-pw-sha2.la:	slapd-sha2.lo sha2.lo
+pw_sha2.la:	slapd-sha2.lo sha2.lo
 	$(LIBTOOL) --mode=link $(CC) $(CFLAGS) -version-info $(LTVER) \
 	-rpath $(moduledir) -module -o $@ $? $(LIBS)
 

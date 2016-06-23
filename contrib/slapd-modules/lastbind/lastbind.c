@@ -286,7 +286,8 @@ int lastbind_initialize()
 }
 
 #if SLAPD_OVER_LASTBIND == SLAPD_MOD_DYNAMIC
-int init_module(int argc, char *argv[]) {
+SLAP_OVERLAY_ENTRY(lastbind, modinit) ( int argc, char *argv[] )
+{
 	return lastbind_initialize();
 }
 #endif

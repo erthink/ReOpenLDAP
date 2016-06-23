@@ -3408,11 +3408,18 @@ struct ComponentSyntaxInfo {
 
 #endif /* LDAP_COMP_MATCH */
 
-#define SLAP_BACKEND_INIT_MODULE(be) \
-	static BackendInfo bi;	\
+#define SLAP_BACKEND_ENTRY(be, item) \
 	__reldap_exportable int \
-	back_ ## be ## _ReOpenLDAP_modinit( int argc, char *argv[] ) \
+	back_ ## be ## _ReOpenLDAP_ ## item
+
+#define SLAP_OVERLAY_ENTRY(ov, item) \
+	__reldap_exportable int \
+	ov ## _ReOpenLDAP_ ## item
+
+#define SLAP_BACKEND_INIT_MODULE(be) \
+	SLAP_BACKEND_ENTRY(be, modinit) ( int argc, char *argv[] ) \
 	{ \
+		static BackendInfo bi; \
 		bi.bi_type = #be ; \
 		bi.bi_init = be ## _back_initialize; \
 		int rc = backend_add( &bi ); \
@@ -3422,8 +3429,7 @@ struct ComponentSyntaxInfo {
 	}
 
 #define SLAP_OVERLAY_INIT_MODULE(ov) \
-	__reldap_exportable int \
-	ov ## _ReOpenLDAP_modinit( int argc, char *argv[] ) \
+	SLAP_OVERLAY_ENTRY(ov, modinit) ( int argc, char *argv[] ) \
 	{ \
 		int rc = ov ## _over_initialize( ); \
 		Debug( rc ? LDAP_DEBUG_ANY : LDAP_DEBUG_TRACE, \

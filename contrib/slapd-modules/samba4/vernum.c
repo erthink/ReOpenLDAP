@@ -463,8 +463,7 @@ vernum_initialize(void)
 }
 
 #if SLAPD_OVER_VERNUM == SLAPD_MOD_DYNAMIC
-int
-init_module( int argc, char *argv[] )
+SLAP_OVERLAY_ENTRY(vernum, modinit) ( int argc, char *argv[] )
 {
 	return vernum_initialize();
 }

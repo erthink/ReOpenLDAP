@@ -665,8 +665,7 @@ rdnval_initialize(void)
 }
 
 #if SLAPD_OVER_RDNVAL == SLAPD_MOD_DYNAMIC
-int
-init_module( int argc, char *argv[] )
+SLAP_OVERLAY_ENTRY(rdnval, modinit) ( int argc, char *argv[] )
 {
 	return rdnval_initialize();
 }

@@ -47,27 +47,53 @@ typedef int (*MODULE_LOAD_FN)(
 	const char *filename);
 typedef int (*MODULE_TERM_FN)(void);
 
-
-struct module_regtable_t {
-	char *type;
-	MODULE_LOAD_FN proc;
-} module_regtable[] = {
-		{ "null", load_null_module },
-#ifdef SLAPD_EXTERNAL_EXTENSIONS
-		{ "extension", load_extop_module },
-#endif
-		{ NULL, NULL }
-};
-
-typedef struct module_loaded_t {
-	struct module_loaded_t *next;
+typedef struct module {
+	struct module_t *next;
 	lt_dlhandle lib;
 	char name[1];
-} module_loaded_t;
+} module_t;
 
-module_loaded_t *module_list = NULL;
+module_t *module_list = NULL;
 
-static int module_int_unload (module_loaded_t *module);
+void *module_resolve (const module_t* module, const char *item)
+{
+	char entry[64];
+	if (module == NULL || item == NULL)
+		return(NULL);
+
+	const char* file_basename = safe_basename(module->name);
+	len = strcspn(file_basename, ".<>?;:'\"[]{}`~!@#%^&*()-=\\|		");
+	if (len < 1 || len > 32) {
+		Debug( LDAP_DEBUG_ANY, "module_resolve: (%s) invalid module name\n",
+			file_basename );
+		return -1;
+	}
+
+	snprintf(entry, sizeof(entry), "%.*s_ReOpenLDAP_%s",
+		len, file_basename, item);
+
+	return lt_dlsym(((module_t *)module)->lib, entry);
+}
+
+static const char* safe_basename(const char* path) {
+	const char *slash = strrchr(path, '/');
+	return slash ? slash + 1 : path;
+}
+
+module_t* module_handle( const char *file_name )
+{
+	module_t *module;
+	file_name = safe_basename(file_name);
+
+	for ( module = module_list; module; module= module->next ) {
+		if ( !strcmp( safe_basename(module->name), file_name )) {
+			return module;
+		}
+	}
+	return NULL;
+}
+
+static int module_int_unload (module_t *module);
 
 int module_init (void)
 {
@@ -95,35 +121,14 @@ int module_kill (void)
 	if (lt_dlexit()) {
 		const char *error = lt_dlerror();
 		Debug(LDAP_DEBUG_ANY, "lt_dlexit failed: %s\n", error);
-
 		return -1;
 	}
 	return 0;
 }
 
-static const char* safe_basename(const char* path) {
-	const char *slash = strrchr(path, '/');
-	return slash ? slash + 1 : path;
-}
-
-void * module_handle( const char *file_name )
-{
-	module_loaded_t *module;
-	file_name = safe_basename(file_name);
-
-	for ( module = module_list; module; module= module->next ) {
-		if ( !strcmp( safe_basename(module->name), file_name )) {
-			return module;
-		}
-	}
-	return NULL;
-}
-
 int module_unload( const char *file_name )
 {
-	module_loaded_t *module;
-
-	module = module_handle( file_name );
+	module_t *module = module_handle( file_name );
 	if ( module ) {
 		module_int_unload( module );
 		return 0;
@@ -133,9 +138,9 @@ int module_unload( const char *file_name )
 
 int module_load(const char* file_name, int argc, char *argv[])
 {
-	module_loaded_t *module;
+	module_t *module;
 	const char *error;
-	int rc, len;
+	int rc;
 	MODULE_INIT_FN initialize;
 
 	module = module_handle( file_name );
@@ -146,12 +151,6 @@ int module_load(const char* file_name, int argc, char *argv[])
 	}
 
 	const char* file_basename = safe_basename(file_name);
-	len = strcspn(file_basename, ".<>?;:'\"[]{}`~!@#%^&*()-=\\|		");
-	if (len < 1 || len > 32) {
-		Debug( LDAP_DEBUG_ANY, "module_load: (%s) invalid module name\n",
-			file_basename );
-		return -1;
-	}
 
 	/* If loading a backend, see if we already have it */
 	if ( !strncasecmp( file_basename, "back_", 5 )) {
@@ -178,8 +177,7 @@ int module_load(const char* file_name, int argc, char *argv[])
 		}
 	}
 
-	module = (module_loaded_t *)ch_calloc(1, sizeof(module_loaded_t) +
-		strlen(file_name));
+	module = (module_t *)ch_calloc(1, sizeof(module_t) + strlen(file_name));
 	if (module == NULL) {
 		Debug(LDAP_DEBUG_ANY, "module_load failed: (%s) out of memory\n", file_name);
 		return -1;
@@ -202,11 +200,8 @@ int module_load(const char* file_name, int argc, char *argv[])
 
 	Debug(LDAP_DEBUG_CONFIG, "loaded module %s\n", file_name);
 
-	char entry[64];
-	snprintf(entry, sizeof(entry), "%.*s_ReOpenLDAP_modinit",
-		len, file_basename);
-
-	if ((initialize = lt_dlsym(module->lib, entry)) == NULL) {
+	initialize = module_resolve(module, "modinit");
+	if (initialize == NULL) {
 		Debug(LDAP_DEBUG_ANY, "module %s: no %s() function found\n",
 			file_name, entry);
 
@@ -273,16 +268,9 @@ int module_path(const char *path)
 	return lt_dlsetsearchpath( path );
 }
 
-void *module_resolve (const void *module, const char *name)
+static int module_int_unload (module_t *module)
 {
-	if (module == NULL || name == NULL)
-		return(NULL);
-	return(lt_dlsym(((module_loaded_t *)module)->lib, name));
-}
-
-static int module_int_unload (module_loaded_t *module)
-{
-	module_loaded_t *mod;
+	module_t *mod;
 	MODULE_TERM_FN terminate;
 
 	if (module != NULL) {
@@ -299,9 +287,9 @@ static int module_int_unload (module_loaded_t *module)
 		}
 
 		/* call module's terminate routine, if present */
-		if ((terminate = lt_dlsym(module->lib, "term_module"))) {
+		terminate = module_resolve(module, "modterm");
+		if (terminate)
 			terminate();
-		}
 
 		/* close the library and free the memory */
 		lt_dlclose(module->lib);
@@ -310,46 +298,5 @@ static int module_int_unload (module_loaded_t *module)
 	return 0;
 }
 
-int load_null_module (const void *module, const char *file_name)
-{
-	return 0;
-}
-
-#ifdef SLAPD_EXTERNAL_EXTENSIONS
-int
-load_extop_module (
-	const void *module,
-	const char *file_name
-)
-{
-	SLAP_EXTOP_MAIN_FN *ext_main;
-	SLAP_EXTOP_GETOID_FN *ext_getoid;
-	struct berval oid;
-	int rc;
-
-	ext_main = (SLAP_EXTOP_MAIN_FN *)module_resolve(module, "ext_main");
-	if (ext_main == NULL) {
-		return(-1);
-	}
-
-	ext_getoid = module_resolve(module, "ext_getoid");
-	if (ext_getoid == NULL) {
-		return(-1);
-	}
-
-	rc = (ext_getoid)(0, &oid, 256);
-	if (rc != 0) {
-		return(rc);
-	}
-	if (oid.bv_val == NULL || oid.bv_len == 0) {
-		return(-1);
-	}
-
-	/* FIXME: this is broken, and no longer needed,
-	 * as a module can call load_extop() itself... */
-	rc = load_extop( &oid, ext_main );
-	return rc;
-}
-#endif /* SLAPD_EXTERNAL_EXTENSIONS */
 #endif /* SLAPD_DYNAMIC_MODULES */
 

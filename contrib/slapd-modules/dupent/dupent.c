@@ -565,8 +565,7 @@ dupent_initialize( void )
 }
 
 #if SLAPD_OVER_DUPENT == SLAPD_MOD_DYNAMIC
-int
-init_module( int argc, char *argv[] )
+SLAP_OVERLAY_ENTRY(dupent, modinit) ( int argc, char *argv[] )
 {
 	return dupent_initialize();
 }

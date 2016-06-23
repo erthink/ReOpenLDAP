@@ -468,8 +468,7 @@ pguid_initialize(void)
 }
 
 #if SLAPD_OVER_PGUID == SLAPD_MOD_DYNAMIC
-int
-init_module( int argc, char *argv[] )
+SLAP_OVERLAY_ENTRY(pguid, modinit) ( int argc, char *argv[] )
 {
 	return pguid_initialize();
 }

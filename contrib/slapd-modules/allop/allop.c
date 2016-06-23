@@ -260,8 +260,7 @@ allop_init()
 	return overlay_register( &allop );
 }
 
-int
-init_module( int argc, char *argv[] )
+SLAP_OVERLAY_ENTRY(alltop, modinit) ( int argc, char *argv[] )
 {
 	return allop_init();
 }

@@ -185,8 +185,5 @@ perl_back_xs_init(PERL_BACK_XS_INIT_PARAMS)
 }
 
 #if SLAPD_PERL == SLAPD_MOD_DYNAMIC
-
-/* conditionally define the init_module() function */
 SLAP_BACKEND_INIT_MODULE( perl )
-
 #endif /* SLAPD_PERL == SLAPD_MOD_DYNAMIC */

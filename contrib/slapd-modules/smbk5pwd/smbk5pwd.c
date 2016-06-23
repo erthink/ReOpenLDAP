@@ -1184,7 +1184,8 @@ smbk5pwd_initialize(void)
 }
 
 #if SLAPD_OVER_SMBK5PWD == SLAPD_MOD_DYNAMIC
-int init_module(int argc, char *argv[]) {
+SLAP_OVERLAY_ENTRY(smbk5pwd, modinit) ( int argc, char *argv[] )
+{
 	return smbk5pwd_initialize();
 }
 #endif

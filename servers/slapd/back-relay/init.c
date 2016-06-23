@@ -267,8 +267,5 @@ relay_back_db_destroy( Backend *be, ConfigReply *cr)
 }
 
 #if SLAPD_RELAY == SLAPD_MOD_DYNAMIC
-
-/* conditionally define the init_module() function */
 SLAP_BACKEND_INIT_MODULE( relay )
-
 #endif /* SLAPD_RELAY == SLAPD_MOD_DYNAMIC */

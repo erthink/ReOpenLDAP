@@ -40,6 +40,7 @@
 #include "lutil.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include "slap.h"
 
 #ifdef HAVE_OPENSSL
 #include <openssl/evp.h>
@@ -441,7 +442,8 @@ static int pbkdf2_check(
 	return rc?LUTIL_PASSWD_ERR:LUTIL_PASSWD_OK;
 }
 
-int init_module(int argc, char *argv[]) {
+SLAP_OVERLAY_ENTRY(pw_pbkdf2, modinit) ( int argc, char *argv[] )
+{
 	int rc;
 	rc = lutil_passwd_add((struct berval *)&pbkdf2_scheme,
 						  pbkdf2_check, pbkdf2_encrypt);

@@ -5712,7 +5712,7 @@ pcache_over_initialize()
 #endif /* PCACHE_CONTROL_PRIVDB */
 
 #ifdef PCACHE_EXOP_QUERY_DELETE
-	code = load_extop2( (struct berval *)&pcache_exop_QUERY_DELETE,
+	code = extop_register_ex( (struct berval *)&pcache_exop_QUERY_DELETE,
 		SLAP_EXOP_WRITES|SLAP_EXOP_HIDE, pcache_exop_query_delete,
 		0 );
 	if ( code != LDAP_SUCCESS ) {

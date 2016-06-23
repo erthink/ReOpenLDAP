@@ -1449,11 +1449,6 @@ unique_modrdn(
 	return rc;
 }
 
-/*
-** init_module is last so the symbols resolve "for free" --
-** it expects to be called automagically during dynamic module initialization
-*/
-
 int
 unique_over_initialize()
 {

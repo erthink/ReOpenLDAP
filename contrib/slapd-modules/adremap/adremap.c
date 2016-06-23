@@ -657,7 +657,8 @@ int adremap_initialize()
 }
 
 #if SLAPD_OVER_ADREMAP == SLAPD_MOD_DYNAMIC
-int init_module(int argc, char *argv[]) {
+SLAP_OVERLAY_ENTRY(adremap, modinit) ( int argc, char *argv[] )
+{
 	return adremap_initialize();
 }
 #endif

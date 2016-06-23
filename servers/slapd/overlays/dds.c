@@ -1916,7 +1916,7 @@ dds_over_initialize()
 	}
 
 	if ( !do_not_load_exop ) {
-		rc = load_extop2( (struct berval *)&slap_EXOP_REFRESH,
+		rc = extop_register_ex( (struct berval *)&slap_EXOP_REFRESH,
 			SLAP_EXOP_WRITES|SLAP_EXOP_HIDE, slap_exop_refresh,
 			!do_not_replace_exop );
 		if ( rc != LDAP_SUCCESS ) {
@@ -1951,8 +1951,7 @@ dds_over_initialize()
 }
 
 #if SLAPD_OVER_DDS == SLAPD_MOD_DYNAMIC
-__reldap_exportable int
-dds_ReOpenLDAP_modinit( int argc, char *argv[] )
+SLAP_OVERLAY_ENTRY(dds, modinit) ( int argc, char *argv[] )
 {
 	int	rc, i;
 

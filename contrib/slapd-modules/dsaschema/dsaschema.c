@@ -57,10 +57,7 @@
 
 #include <ldap.h>
 #include <ldap_schema.h>
-
-extern int at_add(LDAPAttributeType *at, const char **err);
-extern int oc_add(LDAPObjectClass *oc, int user, const char **err);
-extern int cr_add(LDAPContentRule *cr, int user, const char **err);
+#include "slap.h"
 
 #define ARGS_STEP 512
 
@@ -73,8 +70,6 @@ static char **cargv = NULL;
 static int cargv_size = 0;
 static int cargc = 0;
 static char *strtok_quote_ptr;
-
-int init_module(int argc, char *argv[]);
 
 static int dsaschema_parse_at(const char *fname, int lineno, char *line, char **argv)
 {
@@ -95,7 +90,7 @@ static int dsaschema_parse_at(const char *fname, int lineno, char *line, char **
 		return 1;
 	}
 
-	code = at_add(at, &err);
+	code = at_add(at, 0, NULL, NULL, &err);
 	if (code) {
 		fprintf(stderr, "%s: line %d: %s: \"%s\"\n",
 			fname, lineno, ldap_scherr2str(code), err);
@@ -127,7 +122,7 @@ static int dsaschema_parse_oc(const char *fname, int lineno, char *line, char **
 		return 1;
 	}
 
-	code = oc_add(oc, 0, &err);
+	code = oc_add(oc, 0, NULL, NULL, &err);
 	if (code) {
 		fprintf(stderr, "%s: line %d: %s: \"%s\"\n",
 			fname, lineno, ldap_scherr2str(code), err);
@@ -158,7 +153,7 @@ static int dsaschema_parse_cr(const char *fname, int lineno, char *line, char **
 		return 1;
 	}
 
-	code = cr_add(cr, 0, &err);
+	code = cr_add(cr, 0, NULL, &err);
 	if (code) {
 		fprintf(stderr, "%s: line %d: %s: \"%s\"\n",
 			fname, lineno, ldap_scherr2str(code), err);
@@ -278,22 +273,6 @@ static int dsaschema_read_config(const char *fname, int depth)
 
 	return 0;
 }
-
-int init_module(int argc, char *argv[])
-{
-	int i;
-	int rc = 0;
-
-	for (i = 0; i < argc; i++) {
-		rc = dsaschema_read_config(argv[i], 0);
-		if (rc != 0) {
-			break;
-		}
-	}
-
-	return rc;
-}
-
 
 static int
 fp_parse_line(
@@ -451,4 +430,19 @@ fp_getline_init( int *lineno )
 {
 	*lineno = -1;
 	buf[0] = '\0';
+}
+
+SLAP_OVERLAY_ENTRY(dsascheme, modinit) ( int argc, char *argv[] )
+{
+	int i;
+	int rc = 0;
+
+	for (i = 0; i < argc; i++) {
+		rc = dsaschema_read_config(argv[i], 0);
+		if (rc != 0) {
+			break;
+		}
+	}
+
+	return rc;
 }

@@ -481,8 +481,5 @@ null_back_initialize( BackendInfo *bi )
 }
 
 #if SLAPD_NULL == SLAPD_MOD_DYNAMIC
-
-/* conditionally define the init_module() function */
 SLAP_BACKEND_INIT_MODULE( null )
-
 #endif /* SLAPD_NULL == SLAPD_MOD_DYNAMIC */

@@ -2244,8 +2244,7 @@ autogroup_initialize(void)
 	return overlay_register( &autogroup );
 }
 
-int
-init_module( int argc, char *argv[] )
+SLAP_OVERLAY_ENTRY(autogroup, modinit) ( int argc, char *argv[] )
 {
 	return autogroup_initialize();
 }

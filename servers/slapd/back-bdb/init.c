@@ -854,7 +854,6 @@ bdb_back_initialize(
 #if	(SLAPD_BDB == SLAPD_MOD_DYNAMIC && !defined(BDB_HIER)) || \
 	(SLAPD_HDB == SLAPD_MOD_DYNAMIC && defined(BDB_HIER))
 
-/* conditionally define the init_module() function */
 #ifdef BDB_HIER
 SLAP_BACKEND_INIT_MODULE( hdb )
 #else /* !BDB_HIER */

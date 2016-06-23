@@ -359,7 +359,7 @@ int addpartial_init()
     return (overlay_register(&addpartial));
 }
 
-int init_module(int argc, char *argv[])
+SLAP_OVERLAY_ENTRY(addpartial, modinit) ( int argc, char *argv[] )
 {
     return addpartial_init();
 }
