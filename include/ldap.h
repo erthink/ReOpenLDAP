@@ -1386,7 +1386,7 @@ ldap_parse_result LDAP_P((
 	int				freeit ));
 
 LBER_F( const char * )
-lber_strerror_safe(int err);
+lber_strerror(int err);
 
 LDAP_F( char * )
 ldap_err2string LDAP_P((
