@@ -36,7 +36,7 @@
  * in OpenLDAP Software.
  */
 
-#include "portable.h"
+#include "reldap.h"
 
 #include <stdio.h>
 
@@ -108,8 +108,5 @@ sock_back_db_destroy(
 }
 
 #if SLAPD_SOCK == SLAPD_MOD_DYNAMIC
-
-/* conditionally define the init_module() function */
 SLAP_BACKEND_INIT_MODULE( sock )
-
 #endif /* SLAPD_SOCK == SLAPD_MOD_DYNAMIC */

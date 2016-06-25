@@ -35,7 +35,7 @@
  * OpenLDAP Software.
  */
 
-#include "portable.h"
+#include "reldap.h"
 
 #include <stdio.h>
 #include <ac/stdlib.h>
@@ -65,10 +65,12 @@ int ldap_parse_whoami(
 
 	rc = ldap_parse_extended_result( ld, res, &retoid, authzid, 0 );
 
+#ifdef LDAP_DEVEL
 	if( rc != LDAP_SUCCESS ) {
 		ldap_perror( ld, "ldap_parse_whoami" );
 		return rc;
 	}
+#endif /* LDAP_DEVEL */
 
 	ber_memfree( retoid );
 	return rc;

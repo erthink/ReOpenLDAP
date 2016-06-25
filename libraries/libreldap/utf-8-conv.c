@@ -56,7 +56,7 @@
  * All functions return -1 if the character or string cannot be converted.
  */
 
-#include "portable.h"
+#include "reldap.h"
 
 #if SIZEOF_WCHAR_T >= 4
 /* These routines assume ( sizeof(wchar_t) >= 4 ) */

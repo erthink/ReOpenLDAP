@@ -42,7 +42,7 @@
  * and a lossy translation from UTF-8 to T.61.
  */
 
-#include "portable.h"
+#include "reldap.h"
 
 #include <stdio.h>
 

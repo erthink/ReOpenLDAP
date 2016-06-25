@@ -1,5 +1,5 @@
 #!/bin/bash
-# $ReOpenLDAP$
+## $ReOpenLDAP$
 ## Copyright (c) 2015,2016 Leonid Yuriev <leo@yuriev.ru>.
 ## Copyright (c) 2015,2016 Peter-Service R&D LLC <http://billing.ru/>.
 ##
@@ -32,9 +32,9 @@
 ## <http://www.OpenLDAP.org/license.html>.
 
 echo "running defines.sh"
-. $SRCDIR/scripts/defines.sh
+. ${TOP_SRCDIR}/tests/scripts/defines.sh
 
-if test $SYNCPROV = syncprovno; then
+if test ${AC_conf[syncprov]} = no; then
 	echo "Syncrepl provider overlay not available, test skipped"
 	exit 0
 fi
@@ -51,7 +51,7 @@ mkdir -p $TESTDIR $DBDIR1 $DBDIR2 $DBDIR3 $DBDIR4 $DBDIR5 $DBDIR6
 #
 
 echo "Starting master slapd on TCP/IP port $PORT1..."
-. $CONFFILTER $BACKEND $MONITORDB < $SRMASTERCONF > $CONF1
+config_filter $BACKEND ${AC_conf[monitor]} < $SRMASTERCONF > $CONF1
 $SLAPD -f $CONF1 -h $URI1 $TIMING > $LOG1 2>&1 &
 PID=$!
 if test $WAIT != 0 ; then
@@ -72,7 +72,7 @@ if test $RC != 0 ; then
 fi
 
 echo "Starting R1-slave slapd on TCP/IP port $PORT2..."
-. $CONFFILTER $BACKEND $MONITORDB < $R1SRSLAVECONF > $CONF2
+config_filter $BACKEND ${AC_conf[monitor]} < $R1SRSLAVECONF > $CONF2
 $SLAPD -f $CONF2 -h $URI2 $TIMING > $LOG2 2>&1 &
 SLAVEPID=$!
 if test $WAIT != 0 ; then
@@ -83,7 +83,7 @@ KILLPIDS="$KILLPIDS $SLAVEPID"
 check_running 2 R1-slave
 
 echo "Starting R2-slave slapd on TCP/IP port $PORT3..."
-. $CONFFILTER $BACKEND $MONITORDB < $R2SRSLAVECONF > $CONF3
+config_filter $BACKEND ${AC_conf[monitor]} < $R2SRSLAVECONF > $CONF3
 $SLAPD -f $CONF3 -h $URI3 $TIMING > $LOG3 2>&1 &
 SLAVEPID=$!
 if test $WAIT != 0 ; then
@@ -94,7 +94,7 @@ KILLPIDS="$KILLPIDS $SLAVEPID"
 check_running 3 R2-slave
 
 echo "Starting P1-slave slapd on TCP/IP port $PORT4..."
-. $CONFFILTER $BACKEND $MONITORDB < $P1SRSLAVECONF > $CONF4
+config_filter $BACKEND ${AC_conf[monitor]} < $P1SRSLAVECONF > $CONF4
 $SLAPD -f $CONF4 -h $URI4 $TIMING > $LOG4 2>&1 &
 SLAVEPID=$!
 if test $WAIT != 0 ; then
@@ -105,7 +105,7 @@ KILLPIDS="$KILLPIDS $SLAVEPID"
 check_running 4 P1-slave
 
 echo "Starting P2 slave slapd on TCP/IP port $PORT5..."
-. $CONFFILTER $BACKEND $MONITORDB < $P2SRSLAVECONF > $CONF5
+config_filter $BACKEND ${AC_conf[monitor]} < $P2SRSLAVECONF > $CONF5
 $SLAPD -f $CONF5 -h $URI5 $TIMING > $LOG5 2>&1 &
 SLAVEPID=$!
 if test $WAIT != 0 ; then
@@ -116,7 +116,7 @@ KILLPIDS="$KILLPIDS $SLAVEPID"
 check_running 5 P2-slave
 
 echo "Starting P3 slave slapd on TCP/IP port $PORT6..."
-. $CONFFILTER $BACKEND $MONITORDB < $P3SRSLAVECONF > $CONF6
+config_filter $BACKEND ${AC_conf[monitor]} < $P3SRSLAVECONF > $CONF6
 $SLAPD -f $CONF6 -h $URI6 $TIMING > $LOG6 2>&1 &
 SLAVEPID=$!
 if test $WAIT != 0 ; then

@@ -1794,7 +1794,7 @@ LDAP_TAILQ_HEAD( be_pcl, slap_csn_entry );
 #define	SLAP_MAX_CIDS	32	/* Maximum number of supported controls */
 #endif
 
-struct ConfigOCs;	/* config.h */
+struct ConfigOCs;	/* slapconfig.h */
 
 
 #define RURW_LOCK_MAXTHREADS	(sizeof(size_t) * 8)
@@ -2077,7 +2077,7 @@ typedef int (BI_config) LDAP_P((BackendInfo *bi,
 	const char *fname, int lineno,
 	int argc, char **argv));
 
-typedef struct config_reply_s ConfigReply; /* config.h */
+typedef struct config_reply_s ConfigReply; /* slapconfig.h */
 typedef int (BI_db_func) LDAP_P((Backend *bd, ConfigReply *cr));
 typedef BI_db_func BI_db_init;
 typedef BI_db_func BI_db_open;
@@ -3408,15 +3408,33 @@ struct ComponentSyntaxInfo {
 
 #endif /* LDAP_COMP_MATCH */
 
-#define SLAP_BACKEND_INIT_MODULE(b) \
-	static BackendInfo bi;	\
-	int \
-	init_module( int argc, char *argv[] ) \
+#define SLAP_BACKEND_ENTRY(be, item) \
+	__reldap_exportable int \
+	back_ ## be ## _ReOpenLDAP_ ## item
+
+#define SLAP_OVERLAY_ENTRY(ov, item) \
+	__reldap_exportable int \
+	ov ## _ReOpenLDAP_ ## item
+
+#define SLAP_BACKEND_INIT_MODULE(be) \
+	SLAP_BACKEND_ENTRY(be, modinit) ( int argc, char *argv[] ) \
 	{ \
-		bi.bi_type = #b ; \
-		bi.bi_init = b ## _back_initialize; \
-		backend_add( &bi ); \
-		return 0; \
+		static BackendInfo bi; \
+		bi.bi_type = #be ; \
+		bi.bi_init = be ## _back_initialize; \
+		int rc = backend_add( &bi ); \
+		Debug( rc ? LDAP_DEBUG_ANY : LDAP_DEBUG_TRACE, \
+			"module %s: %s() rc = %d\n", #be, __FUNCTION__, rc ); \
+		return rc; \
+	}
+
+#define SLAP_OVERLAY_INIT_MODULE(ov) \
+	SLAP_OVERLAY_ENTRY(ov, modinit) ( int argc, char *argv[] ) \
+	{ \
+		int rc = ov ## _over_initialize( ); \
+		Debug( rc ? LDAP_DEBUG_ANY : LDAP_DEBUG_TRACE, \
+			"module %s: %s() rc = %d\n", #ov, __FUNCTION__, rc ); \
+		return rc; \
 	}
 
 typedef int (OV_init)(void);

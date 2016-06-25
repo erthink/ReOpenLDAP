@@ -47,11 +47,12 @@
  * for inclusion in OpenLDAP software.
  */
 
-#include "portable.h"
+#include "reldap.h"
 
 #include <ac/stdlib.h>
 #include <stdio.h>
 #include <ac/unistd.h>
+#include <ac/localize.h>
 
 #include "ldap.h"
 #include "ldap_pvt.h"

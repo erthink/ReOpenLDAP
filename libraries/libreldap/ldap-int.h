@@ -115,9 +115,7 @@
 
 #endif /* LDAP_DEBUG */
 
-#define LDAP_DEPRECATED 1
 #include "ldap.h"
-
 #include "ldap_pvt.h"
 
 LDAP_BEGIN_DECL
@@ -426,7 +424,7 @@ struct ldap_common {
 #define	ld_nabandoned		ldc->ldc_nabandoned
 #define	ld_abandoned		ldc->ldc_abandoned
 
-	/* unused by libldap */
+	/* unused by libreldap */
 	LDAPCache	*ldc_cache;	/* non-null if cache is initialized */
 #define	ld_cache		ldc->ldc_cache
 
@@ -662,7 +660,7 @@ LDAP_F (void) ldap_int_utils_init LDAP_P(( void ));
 /*
  * in print.c
  */
-LDAP_F (int) ldap_log_printf LDAP_P((LDAP *ld, int level, const char *fmt, ...)) LDAP_GCCATTR((format(printf, 3, 4)));
+LDAP_F (int) ldap_log_printf LDAP_P((LDAP *ld, int level, const char *fmt, ...)) __attribute__((format(printf, 3, 4)));
 
 /*
  * in cache.c

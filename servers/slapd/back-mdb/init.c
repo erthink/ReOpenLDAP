@@ -32,7 +32,7 @@
  * <http://www.OpenLDAP.org/license.html>.
  */
 
-#include "portable.h"
+#include "reldap.h"
 
 #include <stdio.h>
 #include <ac/string.h>
@@ -43,7 +43,7 @@
 #include "back-mdb.h"
 #include <lutil.h>
 #include <ldap_rq.h>
-#include "config.h"
+#include "slapconfig.h"
 
 static const struct berval mdmi_databases[] = {
 	BER_BVC("ad2i"),
@@ -301,13 +301,7 @@ mdb_db_open( BackendDB *be, ConfigReply *cr )
 	}
 #endif /* MDBX_LIFORECLAIM */
 
-#ifdef HAVE_EBCDIC
-	strcpy( path, mdb->mi_dbenv_home );
-	__atoe( path );
-	dbhome = path;
-#else
 	dbhome = mdb->mi_dbenv_home;
-#endif
 
 	Debug( LDAP_DEBUG_TRACE,
 		LDAP_XSTRING(mdb_db_open) ": database \"%s\": "
@@ -570,17 +564,6 @@ mdb_back_initialize(
 	{	/* version check */
 		int major, minor, patch, ver;
 		char *version = mdb_version( &major, &minor, &patch );
-#ifdef HAVE_EBCDIC
-		char v2[1024];
-
-		/* All our stdio does an ASCII to EBCDIC conversion on
-		 * the output. Strings from the MDB library are already
-		 * in EBCDIC; we have to go back and forth...
-		 */
-		strcpy( v2, version );
-		__etoa( v2 );
-		version = v2;
-#endif
 		ver = (major << 24) | (minor << 16) | patch;
 		if( ver != MDB_VERSION_FULL ) {
 			/* fail if a versions don't match */
@@ -649,7 +632,7 @@ mdb_back_initialize(
 	return rc;
 }
 
-#if	(SLAPD_MDB == SLAPD_MOD_DYNAMIC)
+#if	(SLAPD_MDBX == SLAPD_MOD_DYNAMIC)
 
 SLAP_BACKEND_INIT_MODULE( mdb )
 

@@ -42,7 +42,7 @@
  * is provided ``as is'' without express or implied warranty.
  */
 
-#include "portable.h"
+#include "reldap.h"
 
 #ifdef SLAPD_ACI_ENABLED
 
@@ -974,32 +974,6 @@ dynacl_aci_mask(
 	return 0;
 }
 
-/* need to register this at some point */
-static slap_dynacl_t	dynacl_aci = {
-	"aci",
-	dynacl_aci_parse,
-	dynacl_aci_unparse,
-	dynacl_aci_mask,
-	NULL,
-	NULL,
-	NULL
-};
-
-int
-dynacl_aci_init( void )
-{
-	int	rc;
-
-	rc = aci_init();
-
-	if ( rc == 0 ) {
-		rc = slap_dynacl_register( &dynacl_aci );
-	}
-
-	return rc;
-}
-
-
 /* ACI syntax validation */
 
 /*
@@ -1836,16 +1810,29 @@ OpenLDAPaciNormalize(
 	return OpenLDAPaciPrettyNormal( val, out, ctx, 1 );
 }
 
-#if SLAPD_ACI_ENABLED == SLAPD_MOD_DYNAMIC
-/*
- * FIXME: need config and Makefile.am code to ease building
- * as dynamic module
- */
+/* need to register this at some point */
+static slap_dynacl_t dynacl_aci = {
+	"aci",
+	dynacl_aci_parse,
+	dynacl_aci_unparse,
+	dynacl_aci_mask,
+	NULL,
+	NULL,
+	NULL
+};
+
 int
-init_module( int argc, char *argv[] )
+aci_over_initialize( void )
 {
-	return dynacl_aci_init();
+	int rc = aci_init();
+	if ( rc == LDAP_SUCCESS )
+		rc = slap_dynacl_register( &dynacl_aci );
+
+	return rc;
 }
+
+#if SLAPD_ACI_ENABLED == SLAPD_MOD_DYNAMIC
+SLAP_BACKEND_INIT_MODULE( aci )
 #endif /* SLAPD_ACI_ENABLED == SLAPD_MOD_DYNAMIC */
 
 #endif /* SLAPD_ACI_ENABLED */

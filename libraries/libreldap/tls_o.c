@@ -34,11 +34,11 @@
 /* ACKNOWLEDGEMENTS: Rewritten by Howard Chu
  */
 
-#include "portable.h"
+#include "reldap.h"
 
 #ifdef HAVE_OPENSSL
 
-#include "ldap_config.h"
+#include "ldap_dirs.h"
 
 #include <stdio.h>
 
@@ -51,6 +51,7 @@
 #include <ac/unistd.h>
 #include <ac/param.h>
 #include <ac/dirent.h>
+#include <ac/localize.h>
 
 #include "ldap-int.h"
 #include "ldap-tls.h"
@@ -154,16 +155,7 @@ static int
 tlso_init( void )
 {
 	struct ldapoptions *lo = LDAP_INT_GLOBAL_OPT();
-#ifdef HAVE_EBCDIC
-	{
-		char *file = LDAP_STRDUP( lo->ldo_tls_randfile );
-		if ( file ) __atoe( file );
-		(void) tlso_seed_PRNG( file );
-		LDAP_FREE( file );
-	}
-#else
 	(void) tlso_seed_PRNG( lo->ldo_tls_randfile );
-#endif
 
 	SSL_load_error_strings();
 	SSL_library_init();
@@ -969,12 +961,6 @@ tlso_info_cb( const SSL *ssl, int where, int ret )
 		op = "undefined";
 	}
 
-#ifdef HAVE_EBCDIC
-	if ( state ) {
-		state = LDAP_STRDUP( state );
-		__etoa( state );
-	}
-#endif
 	if ( where & SSL_CB_LOOP ) {
 		Debug( LDAP_DEBUG_TRACE,
 			   "TLS trace: %s:%s\n",
@@ -984,23 +970,9 @@ tlso_info_cb( const SSL *ssl, int where, int ret )
 		char *atype = (char *) SSL_alert_type_string_long( ret );
 		char *adesc = (char *) SSL_alert_desc_string_long( ret );
 		op = ( where & SSL_CB_READ ) ? "read" : "write";
-#ifdef HAVE_EBCDIC
-		if ( atype ) {
-			atype = LDAP_STRDUP( atype );
-			__etoa( atype );
-		}
-		if ( adesc ) {
-			adesc = LDAP_STRDUP( adesc );
-			__etoa( adesc );
-		}
-#endif
 		Debug( LDAP_DEBUG_TRACE,
 			   "TLS trace: SSL3 alert %s:%s:%s\n",
 			   op, atype, adesc );
-#ifdef HAVE_EBCDIC
-		if ( atype ) LDAP_FREE( atype );
-		if ( adesc ) LDAP_FREE( adesc );
-#endif
 	} else if ( where & SSL_CB_EXIT ) {
 		if ( ret == 0 ) {
 			Debug( LDAP_DEBUG_TRACE,
@@ -1012,9 +984,6 @@ tlso_info_cb( const SSL *ssl, int where, int ret )
 				   op, state );
 		}
 	}
-#ifdef HAVE_EBCDIC
-	if ( state ) LDAP_FREE( state );
-#endif
 }
 
 static int
@@ -1043,14 +1012,6 @@ tlso_verify_cb( int ok, X509_STORE_CTX *ctx )
 	sname = X509_NAME_oneline( subject, NULL, 0 );
 	iname = X509_NAME_oneline( issuer, NULL, 0 );
 	if ( !ok ) certerr = (char *)X509_verify_cert_error_string( errnum );
-#ifdef HAVE_EBCDIC
-	if ( sname ) __etoa( sname );
-	if ( iname ) __etoa( iname );
-	if ( certerr ) {
-		certerr = LDAP_STRDUP( certerr );
-		__etoa( certerr );
-	}
-#endif
 	Debug( LDAP_DEBUG_TRACE,
 		   "TLS certificate verification: depth: %d, err: %d, subject: %s,",
 		   errdepth, errnum,
@@ -1065,9 +1026,6 @@ tlso_verify_cb( int ok, X509_STORE_CTX *ctx )
 		CRYPTO_free ( sname );
 	if ( iname )
 		CRYPTO_free ( iname );
-#ifdef HAVE_EBCDIC
-	if ( certerr ) LDAP_FREE( certerr );
-#endif
 	return ok;
 }
 
@@ -1089,18 +1047,8 @@ tlso_report_error( void )
 
 	while ( ( l = ERR_get_error_line( &file, &line ) ) != 0 ) {
 		ERR_error_string_n( l, buf, sizeof( buf ) );
-#ifdef HAVE_EBCDIC
-		if ( file ) {
-			file = LDAP_STRDUP( file );
-			__etoa( (char *)file );
-		}
-		__etoa( buf );
-#endif
 		Debug( LDAP_DEBUG_ANY, "TLS: %s %s:%d\n",
 			buf, file, line );
-#ifdef HAVE_EBCDIC
-		if ( file ) LDAP_FREE( (void *)file );
-#endif
 	}
 }
 

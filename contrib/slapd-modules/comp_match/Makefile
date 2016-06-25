@@ -33,10 +33,7 @@
 # top-level directory of the distribution or, alternatively, at
 # <http://www.OpenLDAP.org/license.html>.
 
-LDAP_SRC = ../../..
-LDAP_BUILD = $(LDAP_SRC)
-LDAP_INC = -I$(LDAP_BUILD)/include -I$(LDAP_SRC)/include -I$(LDAP_SRC)/servers/slapd
-LDAP_LIB = $(LDAP_BUILD)/libraries/libreldap/libreldap.la
+include ../contrib-mod.mk
 
 SNACC_LIB = casn1
 
@@ -44,9 +41,6 @@ SSL_DIR = /usr/local
 SSL_INC = -I$(SSL_DIR)/include/openssl
 SSL_LIB = -lcrypto -L$(SSL_DIR)/lib
 
-LIBTOOL = $(LDAP_BUILD)/libtool
-CC ?= gcc
-CFLAGS ?= -g -O2 -Wall -Werror
 DEFS = -DLDAP_COMPONENT
 INCS = $(LDAP_INC) $(SSL_INC)
 LIBS = $(LDAP_LIB) $(SNACC_LIB) $(SSL_LIB)

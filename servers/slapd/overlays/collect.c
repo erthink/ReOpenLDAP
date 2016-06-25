@@ -37,7 +37,7 @@
  * in OpenLDAP Software.
  */
 
-#include "portable.h"
+#include "reldap.h"
 
 #ifdef SLAPD_OVER_COLLECT
 
@@ -47,7 +47,7 @@
 #include <ac/socket.h>
 
 #include "slap.h"
-#include "config.h"
+#include "slapconfig.h"
 
 #include "lutil.h"
 
@@ -433,7 +433,7 @@ collect_response( Operation *op, SlapReply *rs )
 
 static slap_overinst collect;
 
-int collect_initialize() {
+int collect_over_initialize() {
 	int code;
 
 	collect.on_bi.bi_type = "collect";
@@ -449,9 +449,7 @@ int collect_initialize() {
 }
 
 #if SLAPD_OVER_COLLECT == SLAPD_MOD_DYNAMIC
-int init_module(int argc, char *argv[]) {
-	return collect_initialize();
-}
+SLAP_OVERLAY_INIT_MODULE(collect)
 #endif
 
 #endif /* SLAPD_OVER_COLLECT */

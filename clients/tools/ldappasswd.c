@@ -51,7 +51,7 @@
  * by Kurt D. Zeilenga (based on other OpenLDAP client tools).
  */
 
-#include "portable.h"
+#include "reldap.h"
 
 #include <stdio.h>
 

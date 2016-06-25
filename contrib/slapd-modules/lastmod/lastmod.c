@@ -36,7 +36,7 @@
  * OpenLDAP Software.
  */
 
-#include "portable.h"
+#include "reldap.h"
 
 #ifdef SLAPD_OVER_LASTMOD
 
@@ -971,8 +971,7 @@ lastmod_initialize()
 }
 
 #if SLAPD_OVER_LASTMOD == SLAPD_MOD_DYNAMIC
-int
-init_module( int argc, char *argv[] )
+SLAP_OVERLAY_ENTRY(lastmod, modinit) ( int argc, char *argv[] )
 {
 	return lastmod_initialize();
 }

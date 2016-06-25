@@ -38,7 +38,7 @@
  * by Raphael Ouazana.
  */
 
-#include "portable.h"
+#include "reldap.h"
 
 #ifdef SLAPD_OVER_SSSVLV
 
@@ -51,7 +51,7 @@
 
 #include "slap.h"
 #include "lutil.h"
-#include "config.h"
+#include "slapconfig.h"
 
 #include "../../../libraries/libreldap/lber-int.h"	/* ber_rewind */
 
@@ -1391,7 +1391,7 @@ static int sssvlv_db_destroy(
 
 static slap_overinst sssvlv;
 
-int sssvlv_initialize()
+int sssvlv_over_initialize()
 {
 	int rc;
 
@@ -1417,10 +1417,7 @@ int sssvlv_initialize()
 }
 
 #if SLAPD_OVER_SSSVLV == SLAPD_MOD_DYNAMIC
-int init_module( int argc, char *argv[])
-{
-	return sssvlv_initialize();
-}
+SLAP_OVERLAY_INIT_MODULE(sssvlv)
 #endif
 
 #endif /* SLAPD_OVER_SSSVLV */

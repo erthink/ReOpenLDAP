@@ -34,7 +34,7 @@
  * All rights reserved.
  */
 
-#include "portable.h"
+#include "reldap.h"
 
 #include <stdio.h>
 #ifdef HAVE_LIMITS_H
@@ -67,47 +67,6 @@ int ldap_open_defconn( LDAP *ld )
 	++ld->ld_defconn->lconn_refcnt;	/* so it never gets closed/freed */
 	return 0;
 }
-
-/*
- * ldap_open - initialize and connect to an ldap server.  A magic cookie to
- * be used for future communication is returned on success, NULL on failure.
- * "host" may be a space-separated list of hosts or IP addresses
- *
- * Example:
- *	LDAP	*ld;
- *	ld = ldap_open( hostname, port );
- */
-
-LDAP *
-ldap_open( LDAP_CONST char *host, int port )
-{
-	int rc;
-	LDAP		*ld;
-
-	Debug( LDAP_DEBUG_TRACE, "ldap_open(%s, %d)\n",
-		host, port );
-
-	ld = ldap_init( host, port );
-	if ( ld == NULL ) {
-		return( NULL );
-	}
-
-	LDAP_MUTEX_LOCK( &ld->ld_conn_mutex );
-	rc = ldap_open_defconn( ld );
-	LDAP_MUTEX_UNLOCK( &ld->ld_conn_mutex );
-
-	if( rc < 0 ) {
-		ldap_ld_free( ld, 0, NULL, NULL );
-		ld = NULL;
-	}
-
-	Debug( LDAP_DEBUG_TRACE, "ldap_open: %s\n",
-		ld != NULL ? "succeeded" : "failed" );
-
-	return ld;
-}
-
-
 
 int
 ldap_create( LDAP **ldp )
@@ -246,7 +205,6 @@ ldap_init( LDAP_CONST char *defhost, int defport )
 
 	return( ld );
 }
-
 
 int
 ldap_initialize( LDAP **ldp, LDAP_CONST char *url )

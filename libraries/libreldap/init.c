@@ -31,7 +31,7 @@
  * <http://www.OpenLDAP.org/license.html>.
  */
 
-#include "portable.h"
+#include "reldap.h"
 
 #include <stdio.h>
 #include <ac/stdlib.h>
@@ -482,16 +482,14 @@ static void openldap_ldap_init_w_env(
 	}
 }
 
-#if defined(__GNUC__)
 /* Declare this function as a destructor so that it will automatically be
- * invoked either at program exit (if libldap is a static library) or
- * at unload time (if libldap is a dynamic library).
+ * invoked either at program exit (if libreldap is a static library) or
+ * at unload time (if libreldap is a dynamic library).
  *
  * Sorry, don't know how to handle this for non-GCC environments.
  */
 static void ldap_int_destroy_global_options(void)
 	__attribute__ ((destructor));
-#endif
 
 static void
 ldap_int_destroy_global_options(void)

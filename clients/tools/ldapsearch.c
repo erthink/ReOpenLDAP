@@ -54,7 +54,7 @@
  *   Kurt D. Zeilenga
  */
 
-#include "portable.h"
+#include "reldap.h"
 
 #include <stdio.h>
 
@@ -90,25 +90,7 @@
 #include "common.h"
 
 static LDAP		*ld = NULL;
-static void main_exit(int rc) LDAP_GCCATTR((noreturn));
-
-#if !LDAP_DEPRECATED
-/*
- * NOTE: we use this deprecated function only because
- * we want ldapsearch to provide some client-side sorting
- * capability.
- */
-/* from ldap.h */
-typedef int (LDAP_SORT_AD_CMP_PROC) LDAP_P(( /* deprecated */
-	LDAP_CONST char *left,
-	LDAP_CONST char *right ));
-
-LDAP_F( int )	/* deprecated */
-ldap_sort_entries LDAP_P(( LDAP *ld,
-	LDAPMessage **chain,
-	LDAP_CONST char *attr,
-	LDAP_SORT_AD_CMP_PROC *cmp ));
-#endif
+static void main_exit(int rc) __attribute__((noreturn));
 
 static int scope = LDAP_SCOPE_SUBTREE;
 static int deref = -1;
@@ -1649,7 +1631,16 @@ print_entry(
 	rc = ldap_get_dn_ber( ld, entry, &ber, &bv );
 
 	if ( ldif < 2 ) {
-		ufn = ldap_dn2ufn( bv.bv_val );
+		/* ufn = ldap_dn2ufn( bv.bv_val ); */
+		ufn = NULL;
+		rc = ldap_dn_normalize( bv.bv_val, LDAP_DN_FORMAT_LDAP,
+			&ufn, LDAP_DN_FORMAT_UFN );
+		if( rc != LDAP_SUCCESS ) {
+			fprintf(stderr, _("print_entry: %d\n"), rc );
+			tool_perror( "ldap_dn_normalize", rc, NULL, NULL, NULL, NULL );
+			main_exit( EXIT_FAILURE );
+		}
+
 		tool_write_ldif( LDIF_PUT_COMMENT, NULL, ufn, ufn ? strlen( ufn ) : 0 );
 	}
 	tool_write_ldif( LDIF_PUT_VALUE, "dn", bv.bv_val, bv.bv_len );
@@ -1668,7 +1659,14 @@ print_entry(
 
 	if ( includeufn ) {
 		if( ufn == NULL ) {
-			ufn = ldap_dn2ufn( bv.bv_val );
+			/* ufn = ldap_dn2ufn( bv.bv_val ); */
+			rc = ldap_dn_normalize( bv.bv_val, LDAP_DN_FORMAT_LDAP,
+				&ufn, LDAP_DN_FORMAT_UFN );
+			if( rc != LDAP_SUCCESS ) {
+				fprintf(stderr, _("print_entry: %d\n"), rc );
+				tool_perror( "ldap_dn_normalize", rc, NULL, NULL, NULL, NULL );
+				main_exit( EXIT_FAILURE );
+			}
 		}
 		tool_write_ldif( LDIF_PUT_VALUE, "ufn", ufn, ufn ? strlen( ufn ) : 0 );
 	}

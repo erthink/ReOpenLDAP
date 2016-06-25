@@ -1,5 +1,5 @@
 #!/bin/bash
-# $ReOpenLDAP$
+## $ReOpenLDAP$
 ## Copyright (c) 2015,2016 Leonid Yuriev <leo@yuriev.ru>.
 ## Copyright (c) 2015,2016 Peter-Service R&D LLC <http://billing.ru/>.
 ##
@@ -32,13 +32,13 @@
 ## <http://www.OpenLDAP.org/license.html>.
 
 echo "running defines.sh"
-. $SRCDIR/scripts/defines.sh
+. ${TOP_SRCDIR}/tests/scripts/defines.sh
 
-if test $SYNCPROV = syncprovno; then
+if test ${AC_conf[syncprov]} = no; then
 	echo "Syncrepl provider overlay not available, test skipped"
 	exit 0
 fi
-if test $ACCESSLOG = accesslogno; then
+if test ${AC_conf[accesslog]} = no; then
 	echo "Accesslog overlay not available, test skipped"
 	exit 0
 fi
@@ -103,17 +103,17 @@ olcServerID: $n
 
 EOF
 
-if [ "$SYNCPROV" = syncprovmod -o "$ACCESSLOG" = accesslogmod ]; then
+if [ ${AC_conf[syncprov]} = mod -o ${AC_conf[accesslog]} = mod ]; then
   cat <<EOF >> $TMP
 dn: cn=module,cn=config
 objectClass: olcModuleList
 cn: module
 olcModulePath: $TESTWD/../servers/slapd/overlays
 EOF
-  if [ "$SYNCPROV" = syncprovmod ]; then
+  if [ ${AC_conf[syncprov]} = mod ]; then
   echo "olcModuleLoad: syncprov.la" >> $TMP
   fi
-  if [ "$ACCESSLOG" = accesslogmod ]; then
+  if [ ${AC_conf[accesslog]} = mod ]; then
   echo "olcModuleLoad: accesslog.la" >> $TMP
   fi
   echo "" >> $TMP

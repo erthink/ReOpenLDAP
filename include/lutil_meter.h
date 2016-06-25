@@ -39,7 +39,7 @@
 #ifndef _LUTIL_METER_H
 #define _LUTIL_METER_H
 
-#include "portable.h"
+#include "reldap.h"
 
 #include <limits.h>
 #include <stdio.h>
@@ -47,6 +47,8 @@
 
 #include <ac/stdlib.h>
 #include <ac/time.h>
+
+LDAP_BEGIN_DECL
 
 typedef struct {
 	int (*display_open) (void **datap);
@@ -71,18 +73,20 @@ typedef struct {
 	size_t last_position;
 } lutil_meter_t;
 
-extern const lutil_meter_display_t lutil_meter_text_display;
-extern const lutil_meter_estimator_t lutil_meter_linear_estimator;
+LDAP_LUTIL_V(const lutil_meter_display_t) lutil_meter_text_display;
+LDAP_LUTIL_V(const lutil_meter_estimator_t) lutil_meter_linear_estimator;
 
-extern int lutil_meter_open (
+LDAP_LUTIL_F(int) lutil_meter_open (
 	lutil_meter_t *lutil_meter,
 	const lutil_meter_display_t *display,
 	const lutil_meter_estimator_t *estimator,
 	size_t goal_value);
-extern int lutil_meter_update (
+LDAP_LUTIL_F(int) lutil_meter_update (
 	lutil_meter_t *lutil_meter,
 	size_t position,
 	int force);
-extern int lutil_meter_close (lutil_meter_t *lutil_meter);
+LDAP_LUTIL_F(int) lutil_meter_close (lutil_meter_t *lutil_meter);
+
+LDAP_END_DECL
 
 #endif /* _LUTIL_METER_H */

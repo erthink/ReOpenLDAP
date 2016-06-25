@@ -37,7 +37,7 @@
  * for inclusion in OpenLDAP Software.
  */
 
-#include "portable.h"
+#include "reldap.h"
 
 #ifdef SLAPD_OVER_DEREF
 
@@ -47,7 +47,7 @@
 #include "ac/socket.h"
 
 #include "slap.h"
-#include "config.h"
+#include "slapconfig.h"
 
 #include "lutil.h"
 
@@ -579,7 +579,7 @@ deref_db_destroy( BackendDB *be, ConfigReply *cr)
 #endif /* SLAP_CONFIG_DELETE */
 
 int
-deref_initialize(void)
+deref_over_initialize(void)
 {
 	deref.on_bi.bi_type = "deref";
 	deref.on_bi.bi_db_init = deref_db_init;
@@ -593,11 +593,7 @@ deref_initialize(void)
 }
 
 #if SLAPD_OVER_DEREF == SLAPD_MOD_DYNAMIC
-int
-init_module( int argc, char *argv[] )
-{
-	return deref_initialize();
-}
+SLAP_OVERLAY_INIT_MODULE(deref)
 #endif /* SLAPD_OVER_DEREF == SLAPD_MOD_DYNAMIC */
 
 #endif /* SLAPD_OVER_DEREF */

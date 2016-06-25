@@ -65,7 +65,7 @@
  * 4. This notice may not be removed or altered.
  */
 
-#include "portable.h"
+#include "reldap.h"
 
 #include <stdio.h>
 

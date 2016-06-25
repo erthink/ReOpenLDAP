@@ -159,11 +159,6 @@ LDAP_V(int)	ldap_debug;
 LDAP_V(int)	ldap_syslog;
 LDAP_V(int)	ldap_syslog_level;
 
-#ifdef HAVE_EBCDIC
-#define syslog	_ldap_eb_syslog
-LDAP_F(void) _ldap_eb_syslog(int pri, const char *fmt, ...);
-#endif /* HAVE_EBCDIC */
-
 #endif /* LDAP_SYSLOG */
 
 
@@ -205,15 +200,15 @@ LDAP_F(void) _ldap_eb_syslog(int pri, const char *fmt, ...);
 	Log( (level), ldap_syslog_level, __VA_ARGS__ )
 
 
-/* Actually now in liblber/debug.c */
+/* Actually now in libreldap/debug.c */
 LDAP_LUTIL_F(int) ldap_debug_file LDAP_P(( FILE *file ));
 
 LDAP_LUTIL_F(void) ldap_debug_log LDAP_P((
 	int debug, int level,
-	const char* fmt, ... )) LDAP_GCCATTR((format(printf, 3, 4)));
+	const char* fmt, ... )) __attribute__((format(printf, 3, 4)));
 
 LDAP_LUTIL_F(void) ldap_debug_print LDAP_P((
-	const char* fmt, ... )) LDAP_GCCATTR((format(printf, 1, 2)));
+	const char* fmt, ... )) __attribute__((format(printf, 1, 2)));
 
 LDAP_LUTIL_F(void) ldap_debug_va LDAP_P((
 	const char* fmt, va_list args ));

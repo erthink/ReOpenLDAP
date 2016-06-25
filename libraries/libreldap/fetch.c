@@ -36,7 +36,7 @@
  * inclusion in OpenLDAP Software.
  */
 
-#include "portable.h"
+#include "reldap.h"
 
 #include <stdio.h>
 
@@ -52,7 +52,7 @@
 
 #include "lber_pvt.h"
 #include "ldap_pvt.h"
-#include "ldap_config.h"
+#include "ldap_dirs.h"
 #include "ldif.h"
 
 FILE *

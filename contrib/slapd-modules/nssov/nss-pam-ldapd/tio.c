@@ -20,7 +20,7 @@
    02110-1301 USA
 */
 
-#include "portable.h"
+#include "reldap.h"
 
 #ifdef HAVE_STDINT_H
 #include <stdint.h>

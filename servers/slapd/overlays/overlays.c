@@ -37,7 +37,7 @@
  * OpenLDAP Software.
  */
 
-#include "portable.h"
+#include "reldap.h"
 
 #include "slap.h"
 

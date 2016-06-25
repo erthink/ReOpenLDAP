@@ -1,5 +1,5 @@
 #!/bin/bash
-# $ReOpenLDAP$
+## $ReOpenLDAP$
 ## Copyright (c) 2015,2016 Leonid Yuriev <leo@yuriev.ru>.
 ## Copyright (c) 2015,2016 Peter-Service R&D LLC <http://billing.ru/>.
 ##
@@ -32,7 +32,7 @@
 ## <http://www.OpenLDAP.org/license.html>.
 
 echo "running defines.sh"
-. $SRCDIR/scripts/defines.sh
+. ${TOP_SRCDIR}/tests/scripts/defines.sh
 
 echo "### This test requires the ldap backend and glue overlay."
 echo "### If available, and explicitly requested, it can use SASL bind;"
@@ -40,14 +40,14 @@ echo "### note that SASL must be properly set up, and the requested"
 echo "### mechanism must be available.  Define SLAPD_USE_SASL={yes|<mech>},"
 echo "### with \"yes\" defaulting to DIGEST-MD5 to enable SASL authc[/authz]."
 
-if test $BACKLDAP = "ldapno" ; then
+if test ${AC_conf[ldap]} = no ; then
 	echo "LDAP backend not available, test skipped"
 	exit 0
 fi
 
-if test $WITH_SASL = "yes" ; then
-	if test $USE_SASL != "no" ; then
-		if test $USE_SASL = "yes" ; then
+if test ${AC_conf[sasl]} = yes ; then
+	if test $USE_SASL != no ; then
+		if test $USE_SASL = yes ; then
 			MECH="DIGEST-MD5"
 		else
 			MECH="$USE_SASL"
@@ -63,7 +63,7 @@ fi
 mkdir -p $TESTDIR $DBDIR1 $DBDIR2 $DBDIR3
 
 echo "Running slapadd to build slapd database..."
-. $CONFFILTER $BACKEND $MONITORDB < $LDAPGLUECONF1 > $ADDCONF
+config_filter $BACKEND ${AC_conf[monitor]} < $LDAPGLUECONF1 > $ADDCONF
 $SLAPADD -f $ADDCONF -l $LDIFLDAPGLUE1
 RC=$?
 if test $RC != 0 ; then
@@ -71,7 +71,7 @@ if test $RC != 0 ; then
 	exit $RC
 fi
 
-. $CONFFILTER $BACKEND $MONITORDB < $LDAPGLUECONF2 > $ADDCONF
+config_filter $BACKEND ${AC_conf[monitor]} < $LDAPGLUECONF2 > $ADDCONF
 $SLAPADD -f $ADDCONF -l $LDIFLDAPGLUE2
 RC=$?
 if test $RC != 0 ; then
@@ -79,7 +79,7 @@ if test $RC != 0 ; then
 	exit $RC
 fi
 
-. $CONFFILTER $BACKEND $MONITORDB < $LDAPGLUECONF3 > $ADDCONF
+config_filter $BACKEND ${AC_conf[monitor]} < $LDAPGLUECONF3 > $ADDCONF
 $SLAPADD -f $ADDCONF -l $LDIFLDAPGLUE3
 RC=$?
 if test $RC != 0 ; then
@@ -88,7 +88,7 @@ if test $RC != 0 ; then
 fi
 
 echo "Starting local slapd on TCP/IP port $PORT1..."
-. $CONFFILTER $BACKEND $MONITORDB < $LDAPGLUECONF1 > $CONF1
+config_filter $BACKEND ${AC_conf[monitor]} < $LDAPGLUECONF1 > $CONF1
 $SLAPD -f $CONF1 -h $URI1 $TIMING > $LOG1 2>&1 &
 PID1=$!
 if test $WAIT != 0 ; then
@@ -97,7 +97,7 @@ if test $WAIT != 0 ; then
 fi
 
 echo "Starting remote slapd 1 on TCP/IP port $PORT2..."
-. $CONFFILTER $BACKEND $MONITORDB < $LDAPGLUECONF2 > $CONF2
+config_filter $BACKEND ${AC_conf[monitor]} < $LDAPGLUECONF2 > $CONF2
 $SLAPD -f $CONF2 -h $URI2 $TIMING > $LOG2 2>&1 &
 PID2=$!
 if test $WAIT != 0 ; then
@@ -106,7 +106,7 @@ if test $WAIT != 0 ; then
 fi
 
 echo "Starting remote slapd 2 on TCP/IP port $PORT3..."
-. $CONFFILTER $BACKEND $MONITORDB < $LDAPGLUECONF3 > $CONF3
+config_filter $BACKEND ${AC_conf[monitor]} < $LDAPGLUECONF3 > $CONF3
 $SLAPD -f $CONF3 -h $URI3 $TIMING > $LOG3 2>&1 &
 PID3=$!
 if test $WAIT != 0 ; then
@@ -170,7 +170,7 @@ if test $? != 0 ; then
 fi
 
 # FIXME: this cannot work as is, because SASL bind cannot be proxied!
-if test $USE_SASL != "no" ; then
+if test $USE_SASL != no ; then
 	ID="bjorn"
 	BASE="dc=example,dc=com"
 	echo "Testing ldapsearch as $ID for \"$BASE\" with SASL bind and identity assertion..."

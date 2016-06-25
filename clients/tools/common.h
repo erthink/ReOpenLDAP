@@ -40,6 +40,8 @@
 #ifndef _CLIENT_TOOLS_COMMON_H_
 #define _CLIENT_TOOLS_COMMON_H_
 
+#include <ac/localize.h>
+
 LDAP_BEGIN_DECL
 
 typedef enum tool_type_t {
@@ -120,12 +122,12 @@ extern struct berval	*vlvContext;
 extern struct timeval	nettimeout;
 
 /* Defined in common.c, set in main() */
-extern const char	__Version[];
+extern const char	_Version[];
 
 /* Defined in main program */
 extern const char	options[];
 
-void usage LDAP_P(( void )) LDAP_GCCATTR((noreturn));
+void usage LDAP_P(( void )) __attribute__((noreturn));
 int handle_private_option LDAP_P(( int i ));
 
 /* Defined in common.c */
@@ -136,7 +138,7 @@ LDAP *tool_conn_setup LDAP_P(( int dont, void (*private_setup)( LDAP * ) ));
 void tool_bind LDAP_P(( LDAP * ));
 void tool_unbind LDAP_P(( LDAP * ));
 void tool_destroy LDAP_P(( void ));
-void tool_exit LDAP_P(( LDAP *ld, int status )) LDAP_GCCATTR((noreturn));
+void tool_exit LDAP_P(( LDAP *ld, int status )) __attribute__((noreturn));
 void tool_server_controls LDAP_P(( LDAP *, LDAPControl *, int ));
 int tool_check_abandon LDAP_P(( LDAP *ld, int msgid ));
 void tool_perror LDAP_P((

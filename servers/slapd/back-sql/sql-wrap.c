@@ -39,7 +39,7 @@
  * Pierangelo Masarati and Mark Adamson.
  */
 
-#include "portable.h"
+#include "reldap.h"
 
 #include <stdio.h>
 #include "ac/string.h"

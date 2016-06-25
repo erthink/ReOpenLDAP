@@ -38,10 +38,10 @@
  *    Luke Howard
  */
 
-#include "portable.h"
+#include "reldap.h"
 #include "ldap_pvt_thread.h"
 #include "slap.h"
-#include "config.h"
+#include "slapconfig.h"
 #include "slapi.h"
 #include "lutil.h"
 

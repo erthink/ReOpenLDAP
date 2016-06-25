@@ -1,5 +1,5 @@
 #!/bin/bash
-# $ReOpenLDAP$
+## $ReOpenLDAP$
 ## Copyright (c) 2015,2016 Leonid Yuriev <leo@yuriev.ru>.
 ## Copyright (c) 2015,2016 Peter-Service R&D LLC <http://billing.ru/>.
 ##
@@ -32,9 +32,9 @@
 ## <http://www.OpenLDAP.org/license.html>.
 
 echo "running defines.sh"
-. $SRCDIR/scripts/defines.sh
+. ${TOP_SRCDIR}/tests/scripts/defines.sh
 
-if test $CONSTRAINT = constraintno; then
+if test ${AC_conf[constraint]} = no; then
 	echo "Constraint overlay not available, test skipped"
 	exit 0
 fi
@@ -83,7 +83,7 @@ olcModuleLoad: back_$BACKEND.la
 EOF
 fi
 
-if [ "$CONSTRAINT" = constraintmod ]; then
+if [ ${AC_conf[constraint]} = mod ]; then
 	cat >> $TESTDIR/config.ldif <<EOF
 
 dn: cn=module,cn=config
@@ -165,7 +165,7 @@ if test $RC != 0 ; then
 fi
 
 echo "Running constraint tests..."
-for ldif in $SRCDIR/data/constraint/{*ok*,*fail*}.ldif; do
+for ldif in ${TOP_SRCDIR}/tests/data/constraint/{*ok*,*fail*}.ldif; do
 	### reload
 	$LDAPDELETE -D "$MANAGERDN" -H $URI1 -w $PASSWD "$USERDN" > $LOG2 2>&1
 	RC=$?

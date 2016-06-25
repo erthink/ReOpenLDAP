@@ -37,7 +37,7 @@
  * Steve Omrani.
  */
 
-#include <portable.h>
+#include <reldap.h>
 #include <stdio.h>
 #include <ac/string.h>
 #include <ac/stdarg.h>
@@ -46,7 +46,7 @@
 #include <ac/errno.h>
 
 #include <ldap.h>
-#include <ldap_config.h>
+#include <ldap_dirs.h>
 #include <slap.h>
 #include <slapi.h>
 

@@ -38,14 +38,14 @@
  * Pierangelo Masarati.
  */
 
-#include "portable.h"
+#include "reldap.h"
 
 #include <stdio.h>
 #include <sys/types.h>
 #include "ac/string.h"
 
 #include "slap.h"
-#include "config.h"
+#include "slapconfig.h"
 #include "proto-sql.h"
 
 int
@@ -671,9 +671,6 @@ backsql_db_close(
 }
 
 #if SLAPD_SQL == SLAPD_MOD_DYNAMIC
-
-/* conditionally define the init_module() function */
 SLAP_BACKEND_INIT_MODULE( sql )
-
 #endif /* SLAPD_SQL == SLAPD_MOD_DYNAMIC */
 

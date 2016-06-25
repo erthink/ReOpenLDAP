@@ -1,0 +1,139 @@
+.TH SLAPO-MEMBEROF 5 "@RELEASE_DATE@" "ReOpenLDAP @VERSION@"
+.\" $ReOpenLDAP$
+.\" Copyright (c) 2015,2016 Leonid Yuriev <leo@yuriev.ru>.
+.\" Copyright (c) 2015,2016 Peter-Service R&D LLC <http://billing.ru/>.
+.\"
+.\" This file is part of ReOpenLDAP.
+.\"
+.\" ReOpenLDAP is free software; you can redistribute it and/or modify it under
+.\" the terms of the GNU Affero General Public License as published by
+.\" the Free Software Foundation; either version 3 of the License, or
+.\" (at your option) any later version.
+.\"
+.\" ReOpenLDAP is distributed in the hope that it will be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+.\" GNU Affero General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU Affero General Public License
+.\" along with this program.  If not, see <http://www.gnu.org/licenses/>.
+.\"
+.\" ---
+.\"
+.\" Copyright 1998-2014 The OpenLDAP Foundation, All Rights Reserved.
+.\" Copying restrictions apply.  See the COPYRIGHT file.
+.SH НАЗВАНИЕ
+slapo\-memberof \- Наложение slapd обратного членства в группе
+.SH СИНТАКСИС
+@SYSCONFDIR@/slapd.conf
+.SH ОПИСАНИЕ
+Наложение
+.BR slapd (8)
+.B memberof
+позволяет автоматически поддерживать обратное членство в группе.
+Всякий раз при модификации записи-группы записи её членов при необходимости изменяются так,
+чтобы атрибут "является членом того-то" (имеющий в качестве значения DN) записи-члена получал значение DN записи-группы.
+
+.SH КОНФИГУРАЦИЯ
+Специфичные для наложения
+.B memberof
+директивы конфигурации должны иметь префикс
+.BR memberof\- ,
+во избежание потенциальных конфликтов с директивами базы данных, к которой применяется это наложение,
+или с другими наложениями, применяемыми к той же базе данных.
+
+.TP
+.B overlay memberof
+Эта директива добавляет наложение memberof к текущей базе данных; подробнее смотрите в
+.BR slapd.conf (5).
+
+.LP
+Далее следуют директивы конфигурации наложения memberof, определяемые в
+.BR slapd.conf .
+
+.TP
+.BI memberof\-group\-oc \ <group-oc>
+Значение
+.IR <group-oc> \ -
+это имя объектного класса, на который срабатывает обновление обратного членства в группе.
+По умолчанию - \fIgroupOfNames\fP.
+
+.TP
+.BI memberof\-member\-ad \ <member-ad>
+Значение
+.IR <member-ad> \ -
+это имя атрибута, содержащего имена членов в групповом объекте;
+этот атрибут должен иметь в качестве значения DN.
+По умолчанию - \fImember\fP.
+
+.TP
+.BI memberof\-memberof\-ad \ <memberof-ad>
+Значение
+.IR <memberof-ad> \ -
+это имя атрибута, содержащего имена групп, членами которых является запись;
+этот атрибут должен иметь в качестве значения DN.
+Его содержимое автоматически обновляется наложением \fBmemberOf\fP.
+По умолчанию - \fImemberOf\fP.
+
+.TP
+.BI memberof\-dn \ <dn>
+Значение
+.I <dn>
+содержит DN, использующееся в качестве \fImodifiersName\fP
+для внутренних модификаций, выполняемых для обновления обратного членства в группе.
+По умолчанию - \fIrootdn\fP базы данных, к которой применяется наложение.
+
+.TP
+.BI "memberof\-dangling {" ignore ", " drop ", " error "}"
+Эта директива определяет поведение наложения, когда во время модификации
+оно сталкивается с никуда не указывающими ссылками. Значение по умолчанию -
+.IR ignore ,
+в этом случае такие ссылки будут проигнорированы. Другие варианты:
+.IR drop ,
+когда модификации, затрагивающие битые ссылки, будут отброшены, и
+.IR error ,
+когда модификации, затрагивающие битые ссылки, приведут к возникновению ошибки.
+
+.TP
+.BI memberof\-dangling\-error \ <error-code>
+Если значение директивы
+.BR memberof\-dangling
+установлено в
+.IR error ,
+этот параметр конфигурации может быть использован для модификации кода ответа,
+возвращаемого в случае нарушения. Значение по умолчанию - "constraint violation",
+но некоторые реализации могут возвращать вместо этого "no such object".
+
+.TP
+.BI "memberof\-refint {" true "|" FALSE "}"
+Эта директива определяет, будет ли данное наложение пытаться сохранить целостность
+связанных данных или нет. Если значение директивы установлено в
+.IR TRUE ,
+то в случае модификации записи, содержащей значения атрибута "является членом того-то",
+также будут модифицированы соответствующие группы.
+
+.LP
+Наложение memberof может использоваться с любыми механизмами манипуляции данными,
+обеспечивающими полную функциональность чтения-записи, но главным образом
+оно предназначено для использования с механизмами локального хранения данных.
+Выполняемые наложением операции по поддержанию обратного членства в группах
+являются внутренними для того сервера, на котором оно настроено, и никогда не реплицируются.
+Если требуется, чтобы атрибуты memberOf поддерживались на серверах-репликах,
+эти серверы следует сконфигурировать так, чтобы у них были настроены свои собственные
+экземпляры наложения memberof.
+
+.SH ФАЙЛЫ
+.TP
+@SYSCONFDIR@/slapd.conf
+конфигурационный файл slapd по умолчанию
+.SH СМОТРИТЕ ТАКЖЕ
+.BR slapd.conf (5),
+.BR slapd\-config (5),
+.BR slapd (8).
+Наложение
+.BR slapo\-memberof (5)
+поддерживает динамическую конфигурацию через
+.BR back-config .
+.SH ПРИЗНАНИЕ ЗАСЛУГ
+.P
+Этот модуль был написан в 2005 году Pierangelo Masarati для SysNet s.n.c.

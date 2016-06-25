@@ -44,7 +44,7 @@
  * this routine is NOT thread-safe.
  */
 
-#include "portable.h"
+#include "reldap.h"
 
 #include <stdio.h>
 #include <ac/stdlib.h>

@@ -1,5 +1,5 @@
 #!/bin/bash
-# $ReOpenLDAP$
+## $ReOpenLDAP$
 ## Copyright (c) 2015,2016 Leonid Yuriev <leo@yuriev.ru>.
 ## Copyright (c) 2015,2016 Peter-Service R&D LLC <http://billing.ru/>.
 ##
@@ -32,7 +32,7 @@
 ## <http://www.OpenLDAP.org/license.html>.
 
 echo "running defines.sh"
-. $SRCDIR/scripts/defines.sh
+. ${TOP_SRCDIR}/tests/scripts/defines.sh
 
 #
 # Test default referral
@@ -41,7 +41,7 @@ echo "running defines.sh"
 mkdir -p $TESTDIR $DBDIR1 $DBDIR2
 
 echo "Running slapadd to build slapd database..."
-. $CONFFILTER $BACKEND $MONITORDB < $CONF > $CONF1
+config_filter $BACKEND ${AC_conf[monitor]} < $CONF > $CONF1
 $SLAPADD -f $CONF1 -l $LDIFORDERED
 RC=$?
 if test $RC != 0 ; then
@@ -58,7 +58,7 @@ if test $WAIT != 0 ; then
 fi
 
 echo "Starting slave slapd on TCP/IP port $PORT2..."
-. $CONFFILTER $BACKEND $MONITORDB < $REFSLAVECONF > $CONF2
+config_filter $BACKEND ${AC_conf[monitor]} < $REFSLAVECONF > $CONF2
 $SLAPD -n slave -f $CONF2 -h $URI2 $TIMING > $LOG2 2>&1 &
 SLAVEPID=$!
 if test $WAIT != 0 ; then

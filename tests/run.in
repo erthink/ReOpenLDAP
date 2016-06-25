@@ -1,5 +1,5 @@
 #!/bin/bash
-# $ReOpenLDAP$
+## $ReOpenLDAP$
 ## Copyright (c) 2015,2016 Leonid Yuriev <leo@yuriev.ru>.
 ## Copyright (c) 2015,2016 Peter-Service R&D LLC <http://billing.ru/>.
 ##
@@ -33,69 +33,40 @@
 
 USAGE="$0 [-b <backend>] [-c] [-k] [-l #] [-p] [-s {ro|rp}] [-u] [-w] <script>"
 
-# configure generated
-SRCDIR="@srcdir@"
-TOPSRCDIR="@top_srcdir@"
-LN_S="@LN_S@"
-EGREP_CMD="@EGREP@"
+#LY: Doing run-time conversion relative paths to absolute.
+#    This allows cross-testing, e.g. to build in one
+#    chroot-environment, but going tests in another.
+export SRCDIR="$(readlink -f @srcdir@)"
+export TOP_SRCDIR="$(readlink -f @top_srcdir@)"
+export TOP_BUILDDIR="$(readlink -f @top_builddir@)"
+export LN_S="@LN_S@"
+export EGREP_CMD="@EGREP@"
 
-export SRCDIR TOPSRCDIR LN_S EGREP_CMD
+#LY: note SLAPD_OVERLAYS_LIST >= SLAPD_OVERLAYS_LIST + SLAPD_STATIC_OVERLAYS
+export AC_SLAPD_OVERLAYS_LIST="@SLAPD_OVERLAYS_LIST@"
+export AC_SLAPD_DYNAMIC_OVERLAYS="@SLAPD_DYNAMIC_OVERLAYS@"
+export AC_SLAPD_STATIC_OVERLAYS="@SLAPD_STATIC_OVERLAYS@"
 
-# backends known to ./run -b <backend> (used to deduce $BACKENDTYPE)
-AC_bdb=@BUILD_BDB@
-AC_hdb=@BUILD_HDB@
-AC_ldif=yes
-AC_mdb=@BUILD_MDB@
-AC_null=@BUILD_NULL@
-
-# other backends
-AC_ldap=ldap@BUILD_LDAP@
-AC_meta=meta@BUILD_META@
-AC_monitor=@BUILD_MONITOR@
-AC_relay=relay@BUILD_RELAY@
-AC_sql=sql@BUILD_SQL@
-
-# overlays
-AC_accesslog=accesslog@BUILD_ACCESSLOG@
-AC_constraint=constraint@BUILD_CONSTRAINT@
-AC_dds=dds@BUILD_DDS@
-AC_dynlist=dynlist@BUILD_DYNLIST@
-AC_memberof=memberof@BUILD_MEMBEROF@
-AC_pcache=pcache@BUILD_PROXYCACHE@
-AC_ppolicy=ppolicy@BUILD_PPOLICY@
-AC_refint=refint@BUILD_REFINT@
-AC_retcode=retcode@BUILD_RETCODE@
-AC_translucent=translucent@BUILD_TRANSLUCENT@
-AC_unique=unique@BUILD_UNIQUE@
-AC_rwm=rwm@BUILD_RWM@
-AC_syncprov=syncprov@BUILD_SYNCPROV@
-AC_valsort=valsort@BUILD_VALSORT@
+#LY: note SLAPD_BACKENDS_LIST >= SLAPD_BACKENDS_LIST + SLAPD_BACKENDS_OVERLAYS
+export AC_SLAPD_BACKENDS_LIST="@SLAPD_BACKENDS_LIST@"
+export AC_SLAPD_DYNAMIC_BACKENDS="@SLAPD_DYNAMIC_BACKENDS@"
+export AC_SLAPD_STATIC_BACKENDS="@SLAPD_STATIC_BACKENDS@"
 
 # misc
-AC_WITH_SASL=@WITH_SASL@
-AC_WITH_TLS=@WITH_TLS@
-AC_WITH_MODULES_ENABLED=@WITH_MODULES_ENABLED@
-AC_ACI_ENABLED=aci@WITH_ACI_ENABLED@
-AC_THREADS=threads@BUILD_THREAD@
-AC_LIBS_DYNAMIC=lib@BUILD_LIBS_DYNAMIC@
+export AC_WITH_SASL=@WITH_SASL@
+export AC_WITH_TLS=@WITH_TLS@
+export AC_ACI_ENABLED=@WITH_ACI_ENABLED@
 
-# sanitize
-if test "${AC_ldap}" = "ldapmod" && test "${AC_LIBS_DYNAMIC}" = "static" ; then
-	AC_ldap="ldapno"
-fi
-if test "${AC_meta}" = "metamod" && test "${AC_LIBS_DYNAMIC}" = "static" ; then
-	AC_meta="metano"
-fi
+## sanitize
+#if test "${AC_ldap}" = "ldapmod" && test "${AC_LIBS_DYNAMIC}" = "static" ; then
+#	AC_ldap="ldapno"
+#fi
+#if test "${AC_meta}" = "metamod" && test "${AC_LIBS_DYNAMIC}" = "static" ; then
+#	AC_meta="metano"
+#fi
 
-export AC_bdb AC_hdb AC_ldap AC_mdb AC_meta AC_monitor AC_null AC_relay AC_sql \
-	AC_accesslog AC_constraint AC_dds AC_dynlist AC_memberof AC_pcache AC_ppolicy \
-	AC_refint AC_retcode AC_rwm AC_unique AC_syncprov AC_translucent \
-	AC_valsort \
-	AC_WITH_SASL AC_WITH_TLS AC_WITH_MODULES_ENABLED AC_ACI_ENABLED \
-	AC_THREADS AC_LIBS_DYNAMIC
-
-if test ! -x ../servers/slapd/slapd ; then
-	echo "Could not locate slapd(8)"
+if test ! -x ${TOP_BUILDDIR}/servers/slapd/slapd ; then
+	echo "Could not locate slapd( $TOP_BUILDDIR )"
 	exit 1
 fi
 
@@ -171,9 +142,9 @@ while test $# -gt 0 ; do
 done
 
 if test -z "$BACKEND" ; then
-	for b in bdb hdb mdb ; do
-		if eval "test \"\$AC_$b\" != no" ; then
-			BACKEND=$b
+	for be in mdb bdb hdb ; do
+		if grep -q " $be " <<< " @SLAPD_DYNAMIC_BACKENDS@ @SLAPD_STATIC_BACKENDS@ "; then
+			BACKEND=$be
 			break
 		fi
 	done
@@ -183,8 +154,11 @@ if test -z "$BACKEND" ; then
 	fi
 fi
 
-BACKENDTYPE=`eval 'echo $AC_'$BACKEND`
-if test "x$BACKENDTYPE" = "x" ; then
+if grep -q " $BACKEND " <<< " @SLAPD_DYNAMIC_BACKENDS@ "; then
+	BACKENDTYPE="mod"
+elif grep -q " $BACKEND " <<< " @SLAPD_STATIC_BACKENDS@ "; then
+	BACKENDTYPE="static"
+else
 	BACKENDTYPE="unknown"
 fi
 
@@ -192,7 +166,7 @@ fi
 # maindb: main storage backend.  Currently index,limits,mode,paged results.
 INDEXDB=noindexdb MAINDB=nomaindb
 case $BACKEND in
-	bdb|hdb|mdb) INDEXDB=indexdb MAINDB=maindb ;;
+	mdb|bdb|hdb) INDEXDB=indexdb MAINDB=maindb ;;
 	ndb) INDEXDB=indexdb ;;
 esac
 
@@ -204,7 +178,7 @@ if test $# = 0 ; then
 fi
 
 # need defines.sh for the definitions of the directories
-. $SRCDIR/scripts/defines.sh
+. $SRCDIR/scripts/defines.sh || exit 1
 
 SCRIPTDIR="${SRCDIR}/scripts"
 SCRIPTNAME="$1"
@@ -225,7 +199,13 @@ if test ! -r ${DATADIR}/test.ldif ; then
 	${LN_S} ${SRCDIR}/data ${DATADIR}
 fi
 if test ! -r ${SCHEMADIR}/core.schema ; then
-	${LN_S} ${TOPSRCDIR}/servers/slapd/schema ${SCHEMADIR}
+	${LN_S} ${TOP_SRCDIR}/servers/slapd/schema ${SCHEMADIR}
+fi
+
+echo "TESTDIR=$TESTDIR"
+if [ -z "$TESTDIR" ]; then
+	echo "TESTDIR ?" >&2
+	exit 1
 fi
 
 if test -d ${TESTDIR} ; then
@@ -272,7 +252,7 @@ while [ $COUNTER -le $LOOP ]; do
 		echo "Cleaning up test run directory from this run."
 		find -H ${TESTDIR} -maxdepth 1 -mindepth 1 | xargs rm -rf || exit $?
 		echo "Cleaning up symlinks."
-		/bin/rm -f ${DATADIR} ${SCHEMADIR}
+		rm -f ${DATADIR} ${SCHEMADIR}
 	fi
 
 	if [ $RC -ne 0 ]; then

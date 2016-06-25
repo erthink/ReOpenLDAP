@@ -42,7 +42,7 @@
  * is provided ``as is'' without express or implied warranty.
  */
 
-#include "portable.h"
+#include "reldap.h"
 
 #include <stdio.h>
 
@@ -109,7 +109,7 @@ slap_init( int mode, const char *name )
 
 	slap_op_init();
 
-#ifdef SLAPD_MODULES
+#ifdef SLAPD_DYNAMIC_MODULES
 	if ( module_init() != 0 ) {
 		slap_debug |= LDAP_DEBUG_NONE;
 		Debug( LDAP_DEBUG_ANY,

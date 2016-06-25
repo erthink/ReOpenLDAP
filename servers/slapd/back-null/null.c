@@ -36,13 +36,13 @@
  * in OpenLDAP Software.
  */
 
-#include "portable.h"
+#include "reldap.h"
 
 #include <stdio.h>
 #include <ac/string.h>
 
 #include "slap.h"
-#include "config.h"
+#include "slapconfig.h"
 
 typedef struct null_info {
 	int	ni_bind_allowed;
@@ -481,8 +481,5 @@ null_back_initialize( BackendInfo *bi )
 }
 
 #if SLAPD_NULL == SLAPD_MOD_DYNAMIC
-
-/* conditionally define the init_module() function */
 SLAP_BACKEND_INIT_MODULE( null )
-
 #endif /* SLAPD_NULL == SLAPD_MOD_DYNAMIC */

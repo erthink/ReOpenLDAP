@@ -30,7 +30,7 @@
  * <http://www.OpenLDAP.org/license.html>.
  */
 
-#include <portable.h>
+#include <reldap.h>
 
 /* Need dynacl... */
 #if ! SLAP_DYNACL
@@ -286,12 +286,10 @@ static struct slap_dynacl_t gssattr_dynacl = {
 	gssattr_dynacl_destroy
 };
 
-int
-init_module( int argc, char *argv[] )
+SLAP_OVERLAY_ENTRY(gssacl, modinit) ( int argc, char *argv[] )
 {
 	return slap_dynacl_register( &gssattr_dynacl );
 }
-
 
 static int
 regex_matches(

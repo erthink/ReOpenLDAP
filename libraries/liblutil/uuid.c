@@ -48,7 +48,7 @@
  * that LDAP cares about.  It generates a new uuid and returns it in
  * in string form.
  */
-#include "portable.h"
+#include "reldap.h"
 
 #include <limits.h>
 #include <stdio.h>

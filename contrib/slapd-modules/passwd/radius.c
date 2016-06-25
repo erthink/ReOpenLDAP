@@ -31,7 +31,7 @@
  * <http://www.OpenLDAP.org/license.html>.
  */
 
-#include "portable.h"
+#include "reldap.h"
 
 #include <stdio.h>
 
@@ -135,14 +135,12 @@ done:;
 	return rc;
 }
 
-int
-term_module()
+SLAP_OVERLAY_ENTRY(pw_radius, modterm)
 {
 	return ldap_pvt_thread_mutex_destroy( &libradius_mutex );
 }
 
-int
-init_module( int argc, char *argv[] )
+SLAP_OVERLAY_ENTRY(pw_radius, modinit) (int argc, char *argv[])
 {
 	int	i;
 

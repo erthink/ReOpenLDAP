@@ -40,7 +40,7 @@
 #ifndef _ALOCK_H_
 #define _ALOCK_H_
 
-#include "portable.h"
+#include "reldap.h"
 #include <ac/time.h>
 #include <ac/unistd.h>
 

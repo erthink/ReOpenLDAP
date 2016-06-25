@@ -1,8 +1,8 @@
 The ReOpenLDAP build environment relies on non-standard versions of
 configuration tools:
-	Autoconf 2.13.1
-	Automake 1.4a
-	Libtool 1.4.3
+	Autoconf 2.69
+	Automake 1.15
+	Libtool 2.4
 
 The autoconf/automake releases used are available at:
 	ftp://ftp.openldap.org/pub/tools/

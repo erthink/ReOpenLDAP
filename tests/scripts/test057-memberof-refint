@@ -1,5 +1,5 @@
 #!/bin/bash
-# $ReOpenLDAP$
+## $ReOpenLDAP$
 ## Copyright (c) 2015,2016 Leonid Yuriev <leo@yuriev.ru>.
 ## Copyright (c) 2015,2016 Peter-Service R&D LLC <http://billing.ru/>.
 ##
@@ -33,14 +33,14 @@
 ## <http://www.OpenLDAP.org/license.html>.
 
 echo "running defines.sh"
-. $SRCDIR/scripts/defines.sh
+. ${TOP_SRCDIR}/tests/scripts/defines.sh
 
-if test $MEMBEROF = memberofno; then
+if test ${AC_conf[memberof]} = no; then
 	echo "Memberof overlay not available, test skipped"
 	exit 0
 fi
 
-if test $REFINT = refintno; then
+if test ${AC_conf[refint]} = no; then
 	echo "Referential Integrity overlay not available, test skipped"
 	exit 0
 fi
@@ -56,7 +56,7 @@ $SLAPPASSWD -g -n >$CONFIGPWF
 echo "rootpw `$SLAPPASSWD -T $CONFIGPWF`" >$TESTDIR/configpw.conf
 
 echo "Starting slapd on TCP/IP port $PORT1..."
-. $CONFFILTER $BACKEND $MONITORDB < $NAKEDCONF > $CONF1
+config_filter $BACKEND ${AC_conf[monitor]} < $NAKEDCONF > $CONF1
 $SLAPD -f $CONF1 -F $TESTDIR/confdir -h $URI1 $TIMING > $LOG1 2>&1 &
 PID=$!
 if test $WAIT != 0 ; then
@@ -76,7 +76,7 @@ bdb | hdb) bdbInclude="" ;;
 null) nullExclude="# " ;;
 esac
 
-if [ "$MEMBEROF" = memberofmod ]; then
+if [ ${AC_conf[memberof]} = mod ]; then
 	echo "Inserting memberof overlay on provider..."
 	$LDAPADD -D cn=config -H $URI1 -y $CONFIGPWF <<EOF > $TESTOUT 2>&1
 dn: cn=module,cn=config

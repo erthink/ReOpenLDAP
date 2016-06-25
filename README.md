@@ -1,32 +1,32 @@
 ReOpenLDAP is...
 =================
-1. The fork of OpenLDAP under AGPL version 3,
-   but with respect the original OpenLDAP license.
-2. With a few new features, mostly for highload and multi-master clustering.
-3. With additional bug fixing and code quality improvement.
+1. A fork of OpenLDAP licensed under AGPL version 3
+   in a manner consistent with the original OpenLDAP license
+2. A number of new features, most of which deal with highload and multi-master clustering
+3. Bug fixing and code quality improvement
 
-*But no Windows, no Mac OS, no FreeBSD, no Solaris, no HP-UX, just __only Linux__!*
-
-
-##### Currently ReOpenLDAP operates in telco industry throughout Russia:
- * few 2x2 multi-master clusters
- * up to ~100 millions records, up to ~100 Gb data
- * up to ~10K updates per second, up to ~25K searches.
-
-Now no anyone other LDAP-server that could provide this
-(replication fails, not reaches required performance,
-or just crashes).
+*But no Windows, Mac OS, FreeBSD, Solaris or HP-UX; just __only Linux__!*
 
 
-The Changes
+##### ReOpenLDAP is currently running in telcos across Russia:
+ * Several 2x2 multi-master clusters
+ * Up to ~100 million records, up to ~100 GB of data
+ * Up to ~10K updates per second, up to ~25K searches
+
+No other LDAP server can provide this level of performance now
+(due to replication failures, inadequate performance
+or high risk of a crash).
+
+
+Change List
 -----------------
 
-Below is the list of changes from point-of-view of ReOpenLDAP project.
-For description of the new features please see man-page for slapd.conf.
-For a changes merged from OpenLDAP project please see the `CHANGES.OpenLDAP` file.
+Below is a list of changes made within the ReOpenLDAP project.
+For a description of the new features, please see the man page for slapd.conf.
+For the changes merged from OpenLDAP project, please see the CHANGES.OpenLDAP file.
 
 #### Features (major):
- * multi-master replication is working, properly and robustly (seems no any other LDAP-server that could do this)
+ * multi-master replication is working properly and robustly (it seems no other LDAP server can do this)
  * `reopenldap [iddqd] [idkfa] [idclip]`
  * `quorum { [vote-sids ...] [vote-rids ...] [auto-sids] [auto-rids] [require-sids ...] [require-rids ...] [all-links] }`
  * `quorum limit-concurrent-refresh`
@@ -42,8 +42,8 @@ For a changes merged from OpenLDAP project please see the `CHANGES.OpenLDAP` fil
  * `memory-limit <mbytes>`
  * checkpoints by volume-of-changes and periodically in seconds
  * syncrepl's `requirecheckpresent` option
- * `keepalive <idle>:<probes>:<interval>` for incomming connections
- * builtin memory checker, including ls-malloc
+ * `keepalive <idle>:<probes>:<interval>` for incoming connections
+ * built-in memory checker, including ls-malloc
  * ready for AddressSanitizer and Valgrind
  * ready for LTO (Link-Time Optimization) by GCC/clang
 

@@ -25,19 +25,13 @@
 # modification, are permitted only as authorized by the OpenLDAP
 # Public License.
 
-LDAP_SRC = ../../..
-LDAP_BUILD = $(LDAP_SRC)
-LDAP_INC = -I$(LDAP_BUILD)/include -I$(LDAP_SRC)/include -I$(LDAP_SRC)/servers/slapd
-LDAP_LIB = $(LDAP_BUILD)/libraries/libreldap/libreldap.la
+include ../contrib-mod.mk
 
-LIBTOOL = $(LDAP_BUILD)/libtool
-CC ?= gcc
-CFLAGS ?= -g -O2 -Wall -Werror
 DEFS =
 INCS = $(LDAP_INC)
 LIBS = $(LDAP_LIB)
 
-PROGRAMS = pw-kerberos.la pw-netscape.la pw-radius.la pw-apr1.la
+PROGRAMS = pw_kerberos.la pw_netscape.la pw_radius.la pw_apr1.la
 LTVER = 0:0:0
 
 prefix=/usr/local
@@ -55,19 +49,19 @@ moduledir = $(libexecdir)$(ldap_subdir)
 
 all: $(PROGRAMS)
 
-pw-kerberos.la:	kerberos.lo
+pw_kerberos.la:	kerberos.lo
 	$(LIBTOOL) --mode=link $(CC) $(CFLAGS) -version-info $(LTVER) \
 	-rpath $(moduledir) -module -o $@ $? -lkrb5
 
-pw-netscape.la:	netscape.lo
+pw_netscape.la:	netscape.lo
 	$(LIBTOOL) --mode=link $(CC) $(CFLAGS) -version-info $(LTVER) \
 	-rpath $(moduledir) -module -o $@ $?
 
-pw-radius.la:	radius.lo
+pw_radius.la:	radius.lo
 	$(LIBTOOL) --mode=link $(CC) $(CFLAGS) -version-info $(LTVER) \
 	-rpath $(moduledir) -module -o $@ $? -lradius
 
-pw-apr1.la:	apr1.lo
+pw_apr1.la:	apr1.lo
 	$(LIBTOOL) --mode=link $(CC) $(CFLAGS) -version-info $(LTVER) \
 	-rpath $(moduledir) -module -o $@ $?
 

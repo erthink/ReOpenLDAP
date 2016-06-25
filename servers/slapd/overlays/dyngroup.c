@@ -37,7 +37,7 @@
  * OpenLDAP Software.
  */
 
-#include "portable.h"
+#include "reldap.h"
 
 #ifdef SLAPD_OVER_DYNGROUP
 
@@ -48,7 +48,7 @@
 
 #include "lutil.h"
 #include "slap.h"
-#include "config.h"
+#include "slapconfig.h"
 
 /* This overlay extends the Compare operation to detect members of a
  * dynamic group. It has no effect on any other operations. It must
@@ -221,7 +221,7 @@ static slap_overinst dyngroup;
  * initialized and registered by some other function inside slapd.
  */
 
-int dyngroup_initialize() {
+int dyngroup_over_initialize() {
 	int code;
 
 	dyngroup.on_bi.bi_type = "dyngroup";
@@ -236,11 +236,7 @@ int dyngroup_initialize() {
 }
 
 #if SLAPD_OVER_DYNGROUP == SLAPD_MOD_DYNAMIC
-int
-init_module( int argc, char *argv[] )
-{
-	return dyngroup_initialize();
-}
+SLAP_OVERLAY_INIT_MODULE(dyngroup)
 #endif
 
 #endif /* defined(SLAPD_OVER_DYNGROUP) */

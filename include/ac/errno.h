@@ -55,8 +55,8 @@
 #define _AC_ERRNO_UNKNOWN "unknown error"
 
 #ifdef HAVE_STRERROR_R
-	__extern_C const char* lber_strerror_safe(int err);
-#	define	STRERROR(e) lber_strerror_safe(e)
+	__extern_C const char* lber_strerror(int err);
+#	define	STRERROR(e) lber_strerror(e)
 #elif defined(HAVE_SYS_ERRLIST)
 	/* this is thread safe */
 #	define	STRERROR(e) ( (e) > -1 && (e) < sys_nerr \

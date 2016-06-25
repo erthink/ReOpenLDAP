@@ -108,7 +108,7 @@ struct ldentry {
 
 
 #ifdef LDAP_DEBUG
-void	debug_printf(const char *, ...) LDAP_GCCATTR((format(printf, 1, 2)));
+void	debug_printf(const char *, ...) __attribute__((format(printf, 1, 2)));
 #else /* LDAP_DEBUG */
 #define	debug_printf	(void) /* Ignore "arguments" */
 #endif /* LDAP_DEBUG */

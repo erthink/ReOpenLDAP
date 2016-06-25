@@ -48,18 +48,18 @@
  * -llutil by Kurt D. Zeilenga and subsequently rewritten by Howard Chu.
  */
 
-#include "portable.h"
+#include "reldap.h"
 
 #include <stdio.h>
 
 #include <ac/stdlib.h>
-
 #include <ac/ctype.h>
 #include <ac/signal.h>
 #include <ac/string.h>
 #include <ac/termios.h>
 #include <ac/time.h>
 #include <ac/unistd.h>
+#include <ac/localize.h>
 
 #ifndef HAVE_GETPASSPHRASE
 
@@ -90,7 +90,7 @@ lutil_getpass( const char *prompt )
 #if defined(HAVE_TERMIOS_H) || defined(HAVE_SGTTY_H)
 	TERMIO_TYPE ttyb;
 	TERMFLAG_TYPE flags = 0;
-	RETSIGTYPE (*sig)( int sig ) = NULL;
+	void (*sig)( int sig ) = NULL;
 #endif
 
 	if( prompt == NULL ) prompt = _("Password: ");

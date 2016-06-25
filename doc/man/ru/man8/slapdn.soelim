@@ -1,0 +1,126 @@
+.TH SLAPDN 8C "@RELEASE_DATE@" "ReOpenLDAP @VERSION@"
+.\" $ReOpenLDAP$
+.\" Copyright (c) 2015,2016 Leonid Yuriev <leo@yuriev.ru>.
+.\" Copyright (c) 2015,2016 Peter-Service R&D LLC <http://billing.ru/>.
+.\"
+.\" This file is part of ReOpenLDAP.
+.\"
+.\" ReOpenLDAP is free software; you can redistribute it and/or modify it under
+.\" the terms of the GNU Affero General Public License as published by
+.\" the Free Software Foundation; either version 3 of the License, or
+.\" (at your option) any later version.
+.\"
+.\" ReOpenLDAP is distributed in the hope that it will be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+.\" GNU Affero General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU Affero General Public License
+.\" along with this program.  If not, see <http://www.gnu.org/licenses/>.
+.\"
+.\" ---
+.\"
+.\" Copyright 2004-2014 The OpenLDAP Foundation All Rights Reserved.
+.\" Copying restrictions apply.  See COPYRIGHT/LICENSE.
+.SH НАЗВАНИЕ
+slapdn \- проверка списка представленных в виде строк LDAP DN на основе синтаксиса схемы данных
+.SH СИНТАКСИС
+.B @SBINDIR@/slapdn
+[\c
+.BI \-d \ debug-level\fR]
+[\c
+.BI \-f \ slapd.conf\fR]
+[\c
+.BI \-F \ confdir\fR]
+[\c
+.BR \-N | \-P ]
+[\c
+.BI \-o \ option\fR[ = value\fR]]
+[\c
+.BR \-v ]
+.IR DN \ [...]
+.LP
+.SH ОПИСАНИЕ
+.LP
+.B slapdn
+используется для проверки соответствия DN схеме данных,
+определённой в
+.BR slapd (8)
+и загруженной через
+.BR slapd.conf (5).
+Утилита открывает конфигурационный файл
+.BR slapd.conf (5)
+или базу данных slapd\-config (5), считывает определение схемы данных,
+а затем анализирует заданный в командной строке список
+.IR DN .
+.LP
+.SH ПАРАМЕТРЫ
+.TP
+.BI \-d \ debug-level
+Включает вывод отладочных сообщений в соответствии с указанным уровнем
+.IR debug-level ;
+подробнее смотрите в
+.BR slapd (8).
+.TP
+.BI \-f \ slapd.conf
+Определяет альтернативный файл
+.BR slapd.conf (5).
+.TP
+.BI \-F \ confdir
+Определяет конфигурационную директорию.
+Если указаны сразу и
+.B \-f
+и
+.BR \-F ,
+конфигурационный файл будет прочтён, переконвертирован в формат
+конфигурационной директории и записан в указанную директорию.
+Если не указан ни один из этих параметров, будет предпринята
+попытка прочитать конфигурационную директорию по умолчанию,
+а затем использовать конфигурационный файл по умолчанию.
+Если существует конфигурационная директория в правильном формате,
+то конфигурационный файл игнорируется.
+.TP
+.BI \-N
+Выводить только нормализованную форму \fIDN\fP, пригодную для использования
+в инструментах нормализации; несовместим с параметром
+.BR \-P .
+.TP
+.BI \-o \ option\fR[ = value\fR]
+Определяет опцию
+.I option
+с необязательным значением
+.IR value .
+Возможные опции/значения общего назначения:
+.LP
+.nf
+              syslog=<subsystems>  (смотрите `\-s' в slapd(8))
+              syslog\-level=<level> (смотрите `\-S' в slapd(8))
+              syslog\-user=<user>   (смотрите `\-l' в slapd(8))
+
+.fi
+.TP
+.BI \-P
+Выводить только облагороженную форму \fIDN\fP, пригодную для использования
+в инструментах проверки и облагораживания; несовместим с параметром
+.BR \-N .
+.TP
+.B \-v
+Включает режим подробного вывода.
+.SH ПРИМЕРЫ
+Для проверки
+.B DN
+выполните команду:
+.LP
+.nf
+.ft tt
+	@SBINDIR@/slapdn \-f /@SYSCONFDIR@/slapd.conf \-v DN
+.ft
+.fi
+.SH "СМОТРИТЕ ТАКЖЕ"
+.BR ldap (3),
+.BR slapd (8),
+.BR slaptest (8)
+.LP
+"Руководство администратора OpenLDAP" (http://www.OpenLDAP.org/doc/admin/, http://pro-ldap.ru/tr/admin24/).
+.SH "ПРИЗНАНИЕ ЗАСЛУГ"
+.so ../Project

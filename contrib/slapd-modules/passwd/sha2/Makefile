@@ -25,20 +25,14 @@
 # modification, are permitted only as authorized by the OpenLDAP
 # Public License.
 
-LDAP_SRC = ../../../..
-LDAP_BUILD = $(LDAP_SRC)
-LDAP_INC = -I$(LDAP_BUILD)/include -I$(LDAP_SRC)/include -I$(LDAP_SRC)/servers/slapd
-LDAP_LIB = $(LDAP_BUILD)/libraries/libreldap/libreldap.la
+include ../../contrib-mod.mk
 
-LIBTOOL = $(LDAP_BUILD)/libtool
-CC ?= gcc
-CFLAGS ?= -g -O2 -Wall -Werror
 DEFS =
 #DEFS = -DSLAPD_SHA2_DEBUG
 INCS = $(LDAP_INC)
 LIBS = $(LDAP_LIB)
 
-PROGRAMS = pw-sha2.la
+PROGRAMS = pw_sha2.la
 LTVER = 0:0:0
 
 prefix=/usr/local
@@ -56,7 +50,7 @@ moduledir = $(libexecdir)$(ldap_subdir)
 
 all:		$(PROGRAMS)
 
-pw-sha2.la:	slapd-sha2.lo sha2.lo
+pw_sha2.la:	slapd-sha2.lo sha2.lo
 	$(LIBTOOL) --mode=link $(CC) $(CFLAGS) -version-info $(LTVER) \
 	-rpath $(moduledir) -module -o $@ $? $(LIBS)
 

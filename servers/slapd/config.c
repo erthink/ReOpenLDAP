@@ -42,7 +42,7 @@
  * is provided ``as is'' without express or implied warranty.
  */
 
-#include "portable.h"
+#include "reldap.h"
 
 #include <stdio.h>
 
@@ -66,7 +66,7 @@
 #endif
 #include "lutil.h"
 #include "lutil_ldap.h"
-#include "config.h"
+#include "slapconfig.h"
 
 #define	LUTIL_ATOULX	lutil_atoulx
 #define	Z	"z"

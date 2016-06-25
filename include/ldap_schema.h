@@ -370,7 +370,7 @@ ldap_matchingruleuse2bv LDAP_P((
 
 LDAP_F( char * )
 ldap_scherr2str LDAP_P((
-	int code )) LDAP_GCCATTR((const));
+	int code )) __attribute__((const));
 
 LDAP_END_DECL
 

@@ -39,7 +39,7 @@
  * Masarati.
  */
 
-#include "portable.h"
+#include "reldap.h"
 
 #include <stdio.h>
 
@@ -47,7 +47,7 @@
 #include <ac/socket.h>
 
 #include "slap.h"
-#include "config.h"
+#include "slapconfig.h"
 #include "back-ldap.h"
 
 static const ldap_extra_t ldap_extra = {
@@ -372,9 +372,6 @@ ldap_back_db_destroy( Backend *be, ConfigReply *cr )
 }
 
 #if SLAPD_LDAP == SLAPD_MOD_DYNAMIC
-
-/* conditionally define the init_module() function */
 SLAP_BACKEND_INIT_MODULE( ldap )
-
 #endif /* SLAPD_LDAP == SLAPD_MOD_DYNAMIC */
 

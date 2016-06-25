@@ -34,7 +34,7 @@
  * All rights reserved.
  */
 
-#include "portable.h"
+#include "reldap.h"
 
 #include <stdio.h>
 
@@ -202,7 +202,7 @@ ldap_pvt_search_s(
 		/* error(-1) or timeout(0) */
 		if ( ld->ld_errno == LDAP_TIMEOUT ) {
 			/* cleanup request */
-			(void) ldap_abandon( ld, msgid );
+			(void) ldap_abandon_ext( ld, msgid, NULL, NULL );
 			ld->ld_errno = LDAP_TIMEOUT;
 		}
 		return( ld->ld_errno );
@@ -214,54 +214,6 @@ ldap_pvt_search_s(
 
 	return( ldap_result2error( ld, *res, 0 ) );
 }
-
-/*
- * ldap_search - initiate an ldap search operation.
- *
- * Parameters:
- *
- *	ld		LDAP descriptor
- *	base		DN of the base object
- *	scope		the search scope - one of
- *				LDAP_SCOPE_BASE (baseObject),
- *			    LDAP_SCOPE_ONELEVEL (oneLevel),
- *				LDAP_SCOPE_SUBTREE (subtree), or
- *				LDAP_SCOPE_SUBORDINATE (children) -- OpenLDAP extension
- *	filter		a string containing the search filter
- *			(e.g., "(|(cn=bob)(sn=bob))")
- *	attrs		list of attribute types to return for matches
- *	attrsonly	1 => attributes only 0 => attributes and values
- *
- * Example:
- *	char	*attrs[] = { "mail", "title", 0 };
- *	msgid = ldap_search( ld, "dc=example,dc=com", LDAP_SCOPE_SUBTREE, "cn~=bob",
- *	    attrs, attrsonly );
- */
-int
-ldap_search(
-	LDAP *ld, LDAP_CONST char *base, int scope, LDAP_CONST char *filter,
-	char **attrs, int attrsonly )
-{
-	BerElement	*ber;
-	ber_int_t	id;
-
-	Debug( LDAP_DEBUG_TRACE, "ldap_search\n" );
-
-	assert( ld != NULL );
-	assert( LDAP_VALID( ld ) );
-
-	ber = ldap_build_search_req( ld, base, scope, filter, attrs,
-	    attrsonly, NULL, NULL, -1, -1, -1, &id );
-
-	if ( ber == NULL ) {
-		return( -1 );
-	}
-
-
-	/* send the message */
-	return ( ldap_send_initial_request( ld, LDAP_REQ_SEARCH, base, ber, id ));
-}
-
 
 BerElement *
 ldap_build_search_req(
@@ -408,56 +360,6 @@ ldap_build_search_req(
 	}
 
 	return( ber );
-}
-
-int
-ldap_search_st(
-	LDAP *ld, LDAP_CONST char *base, int scope,
-	LDAP_CONST char *filter, char **attrs,
-	int attrsonly, struct timeval *timeout, LDAPMessage **res )
-{
-	int	msgid;
-
-    *res = NULL;
-
-	if ( (msgid = ldap_search( ld, base, scope, filter, attrs, attrsonly ))
-	    == -1 )
-		return( ld->ld_errno );
-
-	if ( ldap_result( ld, msgid, LDAP_MSG_ALL, timeout, res ) == -1 || !*res )
-		return( ld->ld_errno );
-
-	if ( ld->ld_errno == LDAP_TIMEOUT ) {
-		(void) ldap_abandon( ld, msgid );
-		ld->ld_errno = LDAP_TIMEOUT;
-		return( ld->ld_errno );
-	}
-
-	return( ldap_result2error( ld, *res, 0 ) );
-}
-
-int
-ldap_search_s(
-	LDAP *ld,
-	LDAP_CONST char *base,
-	int scope,
-	LDAP_CONST char *filter,
-	char **attrs,
-	int attrsonly,
-	LDAPMessage **res )
-{
-	int	msgid;
-
-    *res = NULL;
-
-	if ( (msgid = ldap_search( ld, base, scope, filter, attrs, attrsonly ))
-	    == -1 )
-		return( ld->ld_errno );
-
-	if ( ldap_result( ld, msgid, LDAP_MSG_ALL, (struct timeval *) NULL, res ) == -1 || !*res )
-		return( ld->ld_errno );
-
-	return( ldap_result2error( ld, *res, 0 ) );
 }
 
 static char escape[128] = {

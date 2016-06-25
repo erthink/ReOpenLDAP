@@ -50,7 +50,7 @@
  *     Kurt D. Zeilenga
  */
 
-#include "portable.h"
+#include "reldap.h"
 
 #include <stdio.h>
 

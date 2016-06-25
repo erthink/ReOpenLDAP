@@ -39,7 +39,7 @@
  * Hewlett-Packard.
  */
 
-#include "portable.h"
+#include "reldap.h"
 
 #ifdef SLAPD_OVER_UNIQUE
 
@@ -49,7 +49,7 @@
 #include <ac/socket.h>
 
 #include "slap.h"
-#include "config.h"
+#include "slapconfig.h"
 
 #define UNIQUE_DEFAULT_URI ("ldap:///??sub")
 
@@ -1449,13 +1449,8 @@ unique_modrdn(
 	return rc;
 }
 
-/*
-** init_module is last so the symbols resolve "for free" --
-** it expects to be called automagically during dynamic module initialization
-*/
-
 int
-unique_initialize()
+unique_over_initialize()
 {
 	int rc;
 
@@ -1476,10 +1471,8 @@ unique_initialize()
 	return(overlay_register(&unique));
 }
 
-#if SLAPD_OVER_UNIQUE == SLAPD_MOD_DYNAMIC && defined(PIC)
-int init_module(int argc, char *argv[]) {
-	return unique_initialize();
-}
+#if SLAPD_OVER_UNIQUE == SLAPD_MOD_DYNAMIC
+SLAP_OVERLAY_INIT_MODULE(unique)
 #endif
 
 #endif /* SLAPD_OVER_UNIQUE */

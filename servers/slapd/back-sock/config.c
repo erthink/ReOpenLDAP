@@ -36,7 +36,7 @@
  * in OpenLDAP Software. Dynamic config support by Howard Chu.
  */
 
-#include "portable.h"
+#include "reldap.h"
 
 #include <stdio.h>
 
@@ -44,7 +44,7 @@
 #include <ac/socket.h>
 
 #include "slap.h"
-#include "config.h"
+#include "slapconfig.h"
 #include "back-sock.h"
 
 static ConfigDriver bs_cf_gen;

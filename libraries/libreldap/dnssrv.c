@@ -35,7 +35,7 @@
  * locate LDAP servers using DNS SRV records.
  * Location code based on MIT Kerberos KDC location code.
  */
-#include "portable.h"
+#include "reldap.h"
 
 #include <stdio.h>
 

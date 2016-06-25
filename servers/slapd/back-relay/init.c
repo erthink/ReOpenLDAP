@@ -37,13 +37,13 @@
  * in OpenLDAP Software.
  */
 
-#include "portable.h"
+#include "reldap.h"
 
 #include <stdio.h>
 #include <ac/string.h>
 
 #include "slap.h"
-#include "config.h"
+#include "slapconfig.h"
 #include "back-relay.h"
 
 static ConfigDriver relay_back_cf;
@@ -267,8 +267,5 @@ relay_back_db_destroy( Backend *be, ConfigReply *cr)
 }
 
 #if SLAPD_RELAY == SLAPD_MOD_DYNAMIC
-
-/* conditionally define the init_module() function */
 SLAP_BACKEND_INIT_MODULE( relay )
-
 #endif /* SLAPD_RELAY == SLAPD_MOD_DYNAMIC */

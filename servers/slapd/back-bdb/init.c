@@ -32,7 +32,7 @@
  * <http://www.OpenLDAP.org/license.html>.
  */
 
-#include "portable.h"
+#include "reldap.h"
 
 #include <stdio.h>
 #include <ac/string.h>
@@ -44,7 +44,7 @@
 #include <lutil.h>
 #include <ldap_rq.h>
 #include "alock.h"
-#include "config.h"
+#include "slapconfig.h"
 
 static const struct bdbi_database {
 	char *file;
@@ -260,13 +260,7 @@ bdb_db_open( BackendDB *be, ConfigReply *cr )
 		goto fail;
 	}
 
-#ifdef HAVE_EBCDIC
-	strcpy( path, bdb->bi_dbenv_home );
-	__atoe( path );
-	dbhome = path;
-#else
 	dbhome = bdb->bi_dbenv_home;
-#endif
 
 	/* If existing environment is clean but doesn't support
 	 * currently requested modes, remove it.
@@ -495,23 +489,12 @@ shm_retry:
 #endif
 		}
 
-#ifdef HAVE_EBCDIC
-		strcpy( path, bdbi_databases[i].file );
-		__atoe( path );
-		rc = DB_OPEN( db->bdi_db,
-			path,
-		/*	bdbi_databases[i].name, */ NULL,
-			bdbi_databases[i].type,
-			bdbi_databases[i].flags | flags,
-			bdb->bi_dbenv_mode );
-#else
 		rc = DB_OPEN( db->bdi_db,
 			bdbi_databases[i].file,
 		/*	bdbi_databases[i].name, */ NULL,
 			bdbi_databases[i].type,
 			bdbi_databases[i].flags | flags,
 			bdb->bi_dbenv_mode );
-#endif
 
 		if ( rc != 0 ) {
 			snprintf( cr->msg, sizeof(cr->msg), "database \"%s\": "
@@ -789,17 +772,6 @@ bdb_back_initialize(
 	{	/* version check */
 		int major, minor, patch, ver;
 		char *version = db_version( &major, &minor, &patch );
-#ifdef HAVE_EBCDIC
-		char v2[1024];
-
-		/* All our stdio does an ASCII to EBCDIC conversion on
-		 * the output. Strings from the BDB library are already
-		 * in EBCDIC; we have to go back and forth...
-		 */
-		strcpy( v2, version );
-		__etoa( v2 );
-		version = v2;
-#endif
 
 		ver = (major << 24) | (minor << 16) | patch;
 		if( ver != DB_VERSION_FULL ) {
@@ -882,7 +854,6 @@ bdb_back_initialize(
 #if	(SLAPD_BDB == SLAPD_MOD_DYNAMIC && !defined(BDB_HIER)) || \
 	(SLAPD_HDB == SLAPD_MOD_DYNAMIC && defined(BDB_HIER))
 
-/* conditionally define the init_module() function */
 #ifdef BDB_HIER
 SLAP_BACKEND_INIT_MODULE( hdb )
 #else /* !BDB_HIER */

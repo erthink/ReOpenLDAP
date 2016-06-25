@@ -32,7 +32,7 @@
  * <http://www.OpenLDAP.org/license.html>.
  */
 
-#include "portable.h"
+#include "reldap.h"
 
 #include <stdio.h>
 
@@ -42,7 +42,7 @@
 
 #include "slap.h"
 #include "lutil.h"
-#include "config.h"
+#include "slapconfig.h"
 
 static LDAP_STAILQ_HEAD(OidMacroList, OidMacro) om_list
 	= LDAP_STAILQ_HEAD_INITIALIZER(om_list);

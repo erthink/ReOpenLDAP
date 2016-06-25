@@ -43,7 +43,7 @@
  */
 
 
-#include "portable.h"
+#include "reldap.h"
 
 #include <stdio.h>
 
@@ -52,7 +52,7 @@
 #include <sys/stat.h>
 
 #include "slap.h"
-#include "config.h"
+#include "slapconfig.h"
 #include "lutil.h"
 #include "lber_pvt.h"
 
@@ -133,7 +133,7 @@ int backend_init(void)
 		return 0;
 	}
 
-#ifdef SLAPD_MODULES
+#ifdef SLAPD_DYNAMIC_MODULES
 	return 0;
 #else
 
@@ -141,7 +141,7 @@ int backend_init(void)
 		"backend_init: failed\n" );
 
 	return rc;
-#endif /* SLAPD_MODULES */
+#endif /* SLAPD_DYNAMIC_MODULES */
 }
 
 int backend_add(BackendInfo *aBackendInfo)
