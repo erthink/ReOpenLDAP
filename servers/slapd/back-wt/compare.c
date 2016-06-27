@@ -41,9 +41,7 @@
 
 #include <stdio.h>
 #include <ac/string.h>
-
 #include "back-wt.h"
-#include "config.h"
 
 int
 wt_compare( Operation *op, SlapReply *rs )
@@ -51,18 +49,16 @@ wt_compare( Operation *op, SlapReply *rs )
     struct wt_info *wi = (struct wt_info *) op->o_bd->be_private;
 	Entry *e = NULL;
 	int manageDSAit = get_manageDSAit( op );
-	int rc;
 	wt_ctx *wc = NULL;
 
 	Debug( LDAP_DEBUG_ARGS, "==> " LDAP_XSTRING(wt_compare) ": %s\n",
-		   op->o_req_dn.bv_val, 0, 0 );
+		   op->o_req_dn.bv_val );
 
 	wc = wt_ctx_get(op, wi);
 	if( !wc ){
 		Debug( LDAP_DEBUG_ANY,
 			   LDAP_XSTRING(wt_compare)
-			   ": wt_ctx_get failed\n",
-			   0, 0, 0 );
+			   ": wt_ctx_get failed\n" );
 		rs->sr_err = LDAP_OTHER;
 		rs->sr_text = "internal error";
         send_ldap_result( op, rs );
@@ -129,7 +125,7 @@ wt_compare( Operation *op, SlapReply *rs )
 			rs->sr_matched = e->e_name.bv_val;
 		}
 
-		Debug( LDAP_DEBUG_TRACE, "entry is referral\n", 0, 0, 0 );
+		Debug( LDAP_DEBUG_TRACE, "entry is referral\n" );
 
 		send_ldap_result( op, rs );
 

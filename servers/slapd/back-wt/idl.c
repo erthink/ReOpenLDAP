@@ -41,7 +41,6 @@
 
 #include <stdio.h>
 #include <ac/string.h>
-
 #include "back-wt.h"
 #include "idl.h"
 
@@ -210,6 +209,7 @@ int wt_idl_insert( ID *ids, ID id )
 	return 0;
 }
 
+#if 0
 static int wt_idl_delete( ID *ids, ID id )
 {
 	unsigned x;
@@ -255,7 +255,7 @@ static int wt_idl_delete( ID *ids, ID id )
 		}
 
 	} else {
-		memove( &ids[x], &ids[x+1], (1+ids[0]-x) * sizeof(ID) );
+		memmove( &ids[x], &ids[x+1], (1+ids[0]-x) * sizeof(ID) );
 	}
 
 #if IDL_DEBUG > 1
@@ -266,21 +266,7 @@ static int wt_idl_delete( ID *ids, ID id )
 
 	return 0;
 }
-
-static char *
-wt_show_key(
-	char		*buf,
-	void		*val,
-	size_t		len )
-{
-	if ( len == 4 /* LUTIL_HASH_BYTES */ ) {
-		unsigned char *c = val;
-		sprintf( buf, "[%02x%02x%02x%02x]", c[0], c[1], c[2], c[3] );
-		return buf;
-	} else {
-		return val;
-	}
-}
+#endif
 
 /*
  * idl_intersection - return a = a intersection b

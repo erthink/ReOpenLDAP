@@ -50,8 +50,7 @@ wt_db_init( BackendDB *be, ConfigReply *cr )
 	struct wt_info *wi;
 
 	Debug( LDAP_DEBUG_TRACE,
-		   LDAP_XSTRING(wt_db_init) ": Initializing wt backend\n",
-		   0, 0, 0 );
+		   LDAP_XSTRING(wt_db_init) ": Initializing wt backend\n" );
 
 	/* allocate backend-database-specific stuff */
     wi = ch_calloc( 1, sizeof(struct wt_info) );
@@ -79,14 +78,13 @@ wt_db_open( BackendDB *be, ConfigReply *cr )
 
 	if ( be->be_suffix == NULL ) {
 		Debug( LDAP_DEBUG_ANY,
-			   LDAP_XSTRING(wt_db_open) ": need suffix.\n",
-			   1, 0, 0 );
+			   LDAP_XSTRING(wt_db_open) ": need suffix.\n" );
 		return -1;
 	}
 
 	Debug( LDAP_DEBUG_ARGS,
 		   LDAP_XSTRING(wt_db_open) ": \"%s\"\n",
-		   be->be_suffix[0].bv_val, 0, 0 );
+		   be->be_suffix[0].bv_val );
 
 	/* Check existence of home. Any error means trouble */
 	rc = stat( wi->wi_dbenv_home, &st );
@@ -114,7 +112,7 @@ wt_db_open( BackendDB *be, ConfigReply *cr )
 		Debug( LDAP_DEBUG_ANY,
 			   LDAP_XSTRING(wt_db_open) ": database \"%s\": "
 			   "cannot open session: \"%s\"\n",
-			   be->be_suffix[0].bv_val, wiredtiger_strerror(rc), 0);
+			   be->be_suffix[0].bv_val, wiredtiger_strerror(rc) );
 		return -1;
 	}
 
@@ -127,7 +125,7 @@ wt_db_open( BackendDB *be, ConfigReply *cr )
 		Debug( LDAP_DEBUG_ANY,
 			   LDAP_XSTRING(wt_db_open) ": database \"%s\": "
 			   "cannot create entry table: \"%s\"\n",
-			   be->be_suffix[0].bv_val, wiredtiger_strerror(rc), 0);
+			   be->be_suffix[0].bv_val, wiredtiger_strerror(rc) );
 		return -1;
 	}
 
@@ -140,7 +138,7 @@ wt_db_open( BackendDB *be, ConfigReply *cr )
 		Debug( LDAP_DEBUG_ANY,
 			   LDAP_XSTRING(wt_db_open) ": database \"%s\": "
 			   "cannot create entry table: \"%s\"\n",
-			   be->be_suffix[0].bv_val, wiredtiger_strerror(rc), 0);
+			   be->be_suffix[0].bv_val, wiredtiger_strerror(rc) );
 		return -1;
 	}
 
@@ -150,7 +148,7 @@ wt_db_open( BackendDB *be, ConfigReply *cr )
 		Debug( LDAP_DEBUG_ANY,
 			   LDAP_XSTRING(wt_db_open) ": database \"%s\": "
 			   "cannot create dn index: \"%s\"\n",
-			   be->be_suffix[0].bv_val, wiredtiger_strerror(rc), 0);
+			   be->be_suffix[0].bv_val, wiredtiger_strerror(rc) );
 		return -1;
 	}
 
@@ -159,7 +157,7 @@ wt_db_open( BackendDB *be, ConfigReply *cr )
 		Debug( LDAP_DEBUG_ANY,
 			   LDAP_XSTRING(wt_db_open) ": database \"%s\": "
 			   "cannot create pid index: \"%s\"\n",
-			   be->be_suffix[0].bv_val, wiredtiger_strerror(rc), 0);
+			   be->be_suffix[0].bv_val, wiredtiger_strerror(rc) );
 		return -1;
 	}
 
@@ -168,7 +166,7 @@ wt_db_open( BackendDB *be, ConfigReply *cr )
 		Debug( LDAP_DEBUG_ANY,
 			   LDAP_XSTRING(wt_db_open) ": database \"%s\": "
 			   "cannot create revdn index: \"%s\"\n",
-			   be->be_suffix[0].bv_val, wiredtiger_strerror(rc), 0);
+			   be->be_suffix[0].bv_val, wiredtiger_strerror(rc) );
 		return -1;
 	}
 
@@ -179,7 +177,7 @@ wt_db_open( BackendDB *be, ConfigReply *cr )
 				  be->be_suffix[0].bv_val, wiredtiger_strerror(rc), rc );
         Debug( LDAP_DEBUG_ANY,
 			   LDAP_XSTRING(wt_db_open) ": %s\n",
-			   cr->msg, 0, 0 );
+			   cr->msg );
 		return rc;
 	}
 
@@ -201,7 +199,7 @@ wt_db_close( BackendDB *be, ConfigReply *cr )
 		Debug( LDAP_DEBUG_ANY,
 			   LDAP_XSTRING(wt_db_close)
 			   ": cannot close database (%d).\n",
-			   errno, 0, 0);
+			   errno );
 		return -1;
 	}
 
@@ -234,7 +232,7 @@ wt_db_destroy( Backend *be, ConfigReply *cr )
 int
 wt_back_initialize( BackendInfo *bi )
 {
-	static char *controls[] = {
+	static const char *controls[] = {
 		LDAP_CONTROL_ASSERT,
 		LDAP_CONTROL_MANAGEDSAIT,
 		LDAP_CONTROL_NOOP,
@@ -249,8 +247,7 @@ wt_back_initialize( BackendInfo *bi )
 	/* initialize the database system */
 	Debug( LDAP_DEBUG_TRACE,
 		   LDAP_XSTRING(wt_back_initialize)
-		   ": initialize WiredTiger backend\n",
-		   0, 0, 0 );
+		   ": initialize WiredTiger backend\n" );
 
 	bi->bi_flags |=
 		SLAP_BFLAG_INCREMENT |
@@ -263,7 +260,7 @@ wt_back_initialize( BackendInfo *bi )
 	{ /* version check */
 		Debug( LDAP_DEBUG_TRACE,
 			   LDAP_XSTRING(wt_back_initialize) ": %s\n",
-			   wiredtiger_version(NULL, NULL, NULL), 0, 0 );
+			   wiredtiger_version(NULL, NULL, NULL) );
 	}
 
 	bi->bi_open = 0;

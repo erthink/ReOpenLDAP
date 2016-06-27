@@ -61,7 +61,7 @@ static ConfigTable wtcfg[] = {
 	  "EQUALITY caseIgnoreMatch "
 	  "SYNTAX OMsDirectoryString SINGLE-VALUE )", NULL, NULL },
     { "wtconfig", "config", 2, 2, 0, ARG_STRING|ARG_MAGIC|WT_CONFIG,
-	  wt_cf_gen, "( OLcfgDbAt:13.1 NAME 'olcWtConfig' "
+	  wt_cf_gen, "( OLcfgDbAt:13.2 NAME 'olcWtConfig' "
 	  "DESC 'Configuration for WiredTiger' "
 	  "EQUALITY caseIgnoreMatch "
 	  "SYNTAX OMsDirectoryString SINGLE-VALUE )", NULL, NULL },
@@ -75,7 +75,7 @@ static ConfigTable wtcfg[] = {
 };
 
 static ConfigOCs wtocs[] = {
-	{ "( OLcfgDbOc:9.1 "
+	{ "( OLcfgDbOc:13.1 "
 	  "NAME 'olcWtConfig' "
 	  "DESC 'Wt backend ocnfiguration' "
 	  "SUP olcDatabaseConfig "
@@ -90,6 +90,7 @@ static void *
 wt_online_index( void *ctx, void *arg )
 {
 	// Not implement yet
+	return NULL;
 }
 
 /* Cleanup loose ends after Modify completes */

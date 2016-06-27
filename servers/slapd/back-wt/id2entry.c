@@ -38,7 +38,6 @@
  */
 
 #include "back-wt.h"
-//#include "config.h"
 
 static int wt_id2entry_put(
 	Operation *op,
@@ -64,7 +63,7 @@ static int wt_id2entry_put(
 		Debug( LDAP_DEBUG_ANY,
 			   LDAP_XSTRING(wt_id2entry_put)
 			   ": open_cursor failed: %s (%d)\n",
-			   wiredtiger_strerror(rc), rc, 0 );
+			   wiredtiger_strerror(rc), rc );
 		goto done;
 	}
 	cursor->set_key(cursor, e->e_id);
@@ -74,7 +73,7 @@ static int wt_id2entry_put(
 		Debug( LDAP_DEBUG_ANY,
 			   LDAP_XSTRING(wt_id2entry_put)
 			   ": insert failed: %s (%d)\n",
-			   wiredtiger_strerror(rc), rc, 0 );
+			   wiredtiger_strerror(rc), rc );
 		goto done;
 	}
 
@@ -115,7 +114,7 @@ int wt_id2entry_delete(
 		Debug( LDAP_DEBUG_ANY,
 			   LDAP_XSTRING(wt_id2entry_delete)
 			   ": open_cursor failed: %s (%d)\n",
-			   wiredtiger_strerror(rc), rc, 0 );
+			   wiredtiger_strerror(rc), rc );
 		goto done;
 	}
 	cursor->set_key(cursor, e->e_id);
@@ -124,7 +123,7 @@ int wt_id2entry_delete(
 		Debug( LDAP_DEBUG_ANY,
 			   LDAP_XSTRING(wt_id2entry_delete)
 			   ": remove failed: %s (%d)\n",
-			   wiredtiger_strerror(rc), rc, 0 );
+			   wiredtiger_strerror(rc), rc );
 		goto done;
 	}
 
@@ -138,7 +137,8 @@ done:
 int wt_id2entry( BackendDB *be,
 				 WT_SESSION *session,
 				 ID id,
-				 Entry **ep ){
+				 Entry **ep )
+{
 	int rc;
 	WT_CURSOR *cursor = NULL;
 	WT_ITEM item;
@@ -152,7 +152,7 @@ int wt_id2entry( BackendDB *be,
 		Debug( LDAP_DEBUG_ANY,
 			   LDAP_XSTRING(wt_id2entry)
 			   ": open_cursor failed: %s (%d)\n",
-			   wiredtiger_strerror(rc), rc, 0 );
+			   wiredtiger_strerror(rc), rc );
 		goto done;
 	}
 
@@ -175,8 +175,7 @@ int wt_id2entry( BackendDB *be,
 	if ( rc ) {
 		Debug( LDAP_DEBUG_ANY,
 			   LDAP_XSTRING(wt_id2entry)
-			   ": entry decode error: %s (%d)\n",
-			   rc, 0, 0 );
+			   ": entry decode error: %s (%d)\n", wiredtiger_strerror(rc), rc );
 		goto done;
 	}
 	e->e_id = id;
@@ -221,6 +220,7 @@ int wt_entry_return(
 	}
 
 	entry_free( e );
+	return 0;
 }
 
 int wt_entry_release(
@@ -228,7 +228,7 @@ int wt_entry_release(
 	Entry *e,
 	int rw )
 {
-	struct wt_info *wi = (struct wt_info *) op->o_bd->be_private;
+	/* struct wt_info *wi = (struct wt_info *) op->o_bd->be_private; */
 	return wt_entry_return( e );
 }
 

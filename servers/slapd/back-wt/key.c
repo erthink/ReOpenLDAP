@@ -42,7 +42,6 @@
 #include <stdio.h>
 #include <ac/string.h>
 #include "back-wt.h"
-//#include "config.h"
 #include "idl.h"
 
 /* read a key */
@@ -62,7 +61,7 @@ wt_key_read(
 	WT_ITEM key2;
 	ID id;
 
-	Debug( LDAP_DEBUG_TRACE, "=> key_read\n", 0, 0, 0 );
+	Debug( LDAP_DEBUG_TRACE, "=> key_read\n" );
 
 	WT_IDL_ZERO(ids);
 
@@ -73,7 +72,7 @@ wt_key_read(
 		Debug( LDAP_DEBUG_ANY,
 			   LDAP_XSTRING(wt_key_read)
 			   ": search_near failed: %s (%d)\n",
-			   wiredtiger_strerror(rc), rc, 0 );
+			   wiredtiger_strerror(rc), rc );
 		goto done;
 	}
 
@@ -83,7 +82,7 @@ wt_key_read(
 			Debug( LDAP_DEBUG_ANY,
 				   LDAP_XSTRING(wt_key_read)
 				   ": get_key failed: %s (%d)\n",
-				   wiredtiger_strerror(rc), rc, 0 );
+				   wiredtiger_strerror(rc), rc );
 			break;
 		}
 
@@ -109,11 +108,10 @@ wt_key_read(
 
 done:
 	if( rc != LDAP_SUCCESS ) {
-		Debug( LDAP_DEBUG_TRACE, "<= wt_key_read: failed (%d)\n",
-			   rc, 0, 0 );
+		Debug( LDAP_DEBUG_TRACE, "<= wt_key_read: failed (%d)\n", rc );
 	} else {
 		Debug( LDAP_DEBUG_TRACE, "<= wt_key_read %ld candidates\n",
-			   (long) WT_IDL_N(ids), 0, 0 );
+			   (long) WT_IDL_N(ids) );
 	}
 
 	return rc;
@@ -133,7 +131,7 @@ wt_key_change(
 	WT_ITEM item;
 
 	Debug( LDAP_DEBUG_TRACE, "=> key_change(%s,%lx)\n",
-		   op == SLAP_INDEX_ADD_OP ? "ADD":"DELETE", (long) id, 0 );
+		   op == SLAP_INDEX_ADD_OP ? "ADD":"DELETE", (long) id );
 
 	bv2ITEM(k, &item);
 	cursor->set_key(cursor, &item, id);
@@ -152,11 +150,11 @@ wt_key_change(
 		Debug( LDAP_DEBUG_ANY,
 			   LDAP_XSTRING(wt_key_change)
 			   ": error: %s (%d)\n",
-			   wiredtiger_strerror(rc), rc, 0);
+			   wiredtiger_strerror(rc), rc );
 		return rc;
 	}
 
-	Debug( LDAP_DEBUG_TRACE, "<= key_change %d\n", rc, 0, 0 );
+	Debug( LDAP_DEBUG_TRACE, "<= key_change %d\n", rc );
 
 	return rc;
 }

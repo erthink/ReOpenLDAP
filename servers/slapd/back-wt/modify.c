@@ -39,8 +39,8 @@
 #include "reldap.h"
 
 #include <stdio.h>
+#include <ac/string.h>
 #include "back-wt.h"
-//#include "config.h"
 
 static struct berval scbva[] = {
 	BER_BVC("glue"),
@@ -103,7 +103,7 @@ int wt_modify_internal(
 	int			got_delete;
 
 	Debug( LDAP_DEBUG_TRACE, "wt_modify_internal: 0x%08lx: %s\n",
-		   e->e_id, e->e_dn, 0);
+		   e->e_id, e->e_dn );
 
 	if ( !acl_check_modlist( op, e, modlist )) {
 		return LDAP_INSUFFICIENT_ACCESS;
@@ -153,12 +153,12 @@ int wt_modify_internal(
 		case LDAP_MOD_ADD:
 			Debug(LDAP_DEBUG_ARGS,
 				  "wt_modify_internal: add %s\n",
-				  mod->sm_desc->ad_cname.bv_val, 0, 0);
+				  mod->sm_desc->ad_cname.bv_val );
 			err = modify_add_values( e, mod, get_permissiveModify(op),
 									 text, textbuf, textlen );
 			if( err != LDAP_SUCCESS ) {
 				Debug(LDAP_DEBUG_ARGS, "wt_modify_internal: %d %s\n",
-					  err, *text, 0);
+					  err, *text );
 			}
 			break;
 
@@ -168,52 +168,52 @@ int wt_modify_internal(
 				break;
 			}
 
-			Debug(LDAP_DEBUG_ARGS,
+			Debug( LDAP_DEBUG_ARGS,
 				  "wt_modify_internal: delete %s\n",
-				  mod->sm_desc->ad_cname.bv_val, 0, 0);
+				  mod->sm_desc->ad_cname.bv_val );
 			err = modify_delete_values( e, mod, get_permissiveModify(op),
 										text, textbuf, textlen );
 			if( err != LDAP_SUCCESS ) {
-				Debug(LDAP_DEBUG_ARGS,
-					  "wt_modify_internal: %d %s\n", err, *text, 0);
+				Debug( LDAP_DEBUG_ARGS,
+					  "wt_modify_internal: %d %s\n", err, *text );
 			} else {
 				got_delete = 1;
 			}
 			break;
 
 		case LDAP_MOD_REPLACE:
-			Debug(LDAP_DEBUG_ARGS,
+			Debug( LDAP_DEBUG_ARGS,
 				  "wt_modify_internal: replace %s\n",
-				  mod->sm_desc->ad_cname.bv_val, 0, 0);
+				  mod->sm_desc->ad_cname.bv_val );
 			err = modify_replace_values( e, mod, get_permissiveModify(op),
 										 text, textbuf, textlen );
 			if( err != LDAP_SUCCESS ) {
-				Debug(LDAP_DEBUG_ARGS,
-					  "wt_modify_internal: %d %s\n", err, *text, 0);
+				Debug( LDAP_DEBUG_ARGS,
+					  "wt_modify_internal: %d %s\n", err, *text );
 			} else {
 				got_delete = 1;
 			}
 			break;
 
 		case LDAP_MOD_INCREMENT:
-			Debug(LDAP_DEBUG_ARGS,
+			Debug( LDAP_DEBUG_ARGS,
 				  "wt_modify_internal: increment %s\n",
-				  mod->sm_desc->ad_cname.bv_val, 0, 0);
+				  mod->sm_desc->ad_cname.bv_val );
 			err = modify_increment_values( e, mod, get_permissiveModify(op),
 										   text, textbuf, textlen );
 			if( err != LDAP_SUCCESS ) {
-				Debug(LDAP_DEBUG_ARGS,
+				Debug( LDAP_DEBUG_ARGS,
 					  "wt_modify_internal: %d %s\n",
-					  err, *text, 0);
+					  err, *text );
 			} else {
 				got_delete = 1;
 			}
 			break;
 
 		case SLAP_MOD_SOFTADD:
-			Debug(LDAP_DEBUG_ARGS,
+			Debug( LDAP_DEBUG_ARGS,
 				  "wt_modify_internal: softadd %s\n",
-				  mod->sm_desc->ad_cname.bv_val, 0, 0);
+				  mod->sm_desc->ad_cname.bv_val );
 			/* Avoid problems in index_add_mods()
 			 * We need to add index if necessary.
 			 */
@@ -230,14 +230,14 @@ int wt_modify_internal(
 
 			if( err != LDAP_SUCCESS ) {
 				Debug(LDAP_DEBUG_ARGS, "wt_modify_internal: %d %s\n",
-					err, *text, 0);
+					err, *text);
 			}
 			break;
 
 		case SLAP_MOD_SOFTDEL:
 			Debug(LDAP_DEBUG_ARGS,
 				  "wt_modify_internal: softdel %s\n",
-				  mod->sm_desc->ad_cname.bv_val, 0, 0);
+				  mod->sm_desc->ad_cname.bv_val);
 			/* Avoid problems in index_delete_mods()
 			 * We need to add index if necessary.
 			 */
@@ -256,7 +256,7 @@ int wt_modify_internal(
 
 			if( err != LDAP_SUCCESS ) {
 				Debug(LDAP_DEBUG_ARGS, "wt_modify_internal: %d %s\n",
-					  err, *text, 0);
+					  err, *text);
 			}
 			break;
 
@@ -269,7 +269,7 @@ int wt_modify_internal(
 
 			Debug(LDAP_DEBUG_ARGS,
 				  "wt_modify_internal: add_if_not_present %s\n",
-				  mod->sm_desc->ad_cname.bv_val, 0, 0);
+				  mod->sm_desc->ad_cname.bv_val);
 			/* Avoid problems in index_add_mods()
 			 * We need to add index if necessary.
 			 */
@@ -282,17 +282,17 @@ int wt_modify_internal(
 
 			if( err != LDAP_SUCCESS ) {
 				Debug(LDAP_DEBUG_ARGS, "wt_modify_internal: %d %s\n",
-					  err, *text, 0);
+					  err, *text);
 			}
 			break;
 
 		default:
 			Debug(LDAP_DEBUG_ANY, "wt_modify_internal: invalid op %d\n",
-				  mod->sm_op, 0, 0);
+				  mod->sm_op);
 			*text = "Invalid modify operation";
 			err = LDAP_OTHER;
 			Debug(LDAP_DEBUG_ARGS, "wt_modify_internal: %d %s\n",
-				  err, *text, 0);
+				  err, *text);
 		}
 
 		if ( err != LDAP_SUCCESS ) {
@@ -332,8 +332,7 @@ int wt_modify_internal(
 
 		if ( rc != LDAP_SUCCESS ) {
 			Debug( LDAP_DEBUG_ANY,
-				"entry failed schema check: %s\n",
-				*text, 0, 0 );
+				"entry failed schema check: %s\n", *text );
 		}
 
 		/* if NOOP then silently revert to saved attrs */
@@ -386,7 +385,7 @@ int wt_modify_internal(
 				if ( rc != LDAP_SUCCESS ) {
 					Debug( LDAP_DEBUG_ANY,
 						   "%s: attribute \"%s\" index delete failure\n",
-						   op->o_log_prefix, ap->a_desc->ad_cname.bv_val, 0 );
+						   op->o_log_prefix, ap->a_desc->ad_cname.bv_val );
 					attrs_free( e->e_attrs );
 					e->e_attrs = save_attrs;
 				}
@@ -449,7 +448,7 @@ int wt_modify_internal(
 			if ( rc != LDAP_SUCCESS ) {
 				Debug( LDAP_DEBUG_ANY,
 				       "%s: attribute \"%s\" index add failure\n",
-					   op->o_log_prefix, ap->a_desc->ad_cname.bv_val, 0 );
+					   op->o_log_prefix, ap->a_desc->ad_cname.bv_val );
 				attrs_free( e->e_attrs );
 				e->e_attrs = save_attrs;
 				return rc;
@@ -479,7 +478,7 @@ wt_modify( Operation *op, SlapReply *rs )
 	int rc;
 
 	Debug( LDAP_DEBUG_ARGS, LDAP_XSTRING(wt_modify) ": %s\n",
-		   op->o_req_dn.bv_val, 0, 0 );
+		   op->o_req_dn.bv_val );
 
 #ifdef LDAP_X_TXN
 	if( op->o_txnSpec && txn_preop( op, rs ))
@@ -492,8 +491,7 @@ wt_modify( Operation *op, SlapReply *rs )
 	if( !wc ){
         Debug( LDAP_DEBUG_ANY,
 			   LDAP_XSTRING(wt_add)
-			   ": wt_ctx_get failed\n",
-			   0, 0, 0 );
+			   ": wt_ctx_get failed\n" );
 		rs->sr_err = LDAP_OTHER;
 		rs->sr_text = "internal error";
         send_ldap_result( op, rs );
@@ -517,15 +515,14 @@ wt_modify( Operation *op, SlapReply *rs )
 		Debug( LDAP_DEBUG_ARGS,
 			   "<== " LDAP_XSTRING(wt_delete)
 			   ": no such object %s\n",
-			   op->o_req_dn.bv_val, 0, 0);
+			   op->o_req_dn.bv_val );
 		/* TODO: lookup referrals */
 		rs->sr_err = LDAP_NO_SUCH_OBJECT;
 		goto return_results;
 	default:
 		Debug( LDAP_DEBUG_ANY,
 			   LDAP_XSTRING(wt_modify)
-			   ": wt_dn2entry failed (%d)\n",
-			   rc, 0, 0 );
+			   ": wt_dn2entry failed (%d)\n", rc );
 		rs->sr_err = LDAP_OTHER;
 		rs->sr_text = "internal error";
 		goto return_results;
@@ -536,8 +533,7 @@ wt_modify( Operation *op, SlapReply *rs )
 		rs->sr_ref = get_entry_referrals( op, e );
 
 		Debug( LDAP_DEBUG_TRACE,
-			   LDAP_XSTRING(wt_modify) ": entry is referral\n",
-			   0, 0, 0 );
+			   LDAP_XSTRING(wt_modify) ": entry is referral\n" );
 
 		rs->sr_err = LDAP_REFERRAL;
 		rs->sr_matched = e->e_name.bv_val;
@@ -564,7 +560,7 @@ wt_modify( Operation *op, SlapReply *rs )
 		{
 			Debug( LDAP_DEBUG_TRACE,
 				"<=- " LDAP_XSTRING(wt_modify) ": pre-read "
-				"failed!\n", 0, 0, 0 );
+				"failed!\n" );
 			if ( op->o_preread & SLAP_CONTROL_CRITICAL ) {
 				/* FIXME: is it correct to abort
 				 * operation if control fails? */
@@ -578,13 +574,13 @@ wt_modify( Operation *op, SlapReply *rs )
 	if( rc ) {
 		Debug( LDAP_DEBUG_TRACE,
 			   LDAP_XSTRING(wt_add) ": begin_transaction failed: %s (%d)\n",
-			   wiredtiger_strerror(rc), rc, 0 );
+			   wiredtiger_strerror(rc), rc );
 		rs->sr_err = LDAP_OTHER;
 		rs->sr_text = "begin_transaction failed";
 		goto return_results;
 	}
 	Debug( LDAP_DEBUG_TRACE, LDAP_XSTRING(wt_modify) ": session id: %p\n",
-		   wc->session, 0, 0 );
+		   wc->session );
 
 	/* Modify the entry */
 	dummy = *e;
@@ -593,7 +589,7 @@ wt_modify( Operation *op, SlapReply *rs )
 	if( rs->sr_err != LDAP_SUCCESS ) {
 		Debug( LDAP_DEBUG_TRACE,
 			   LDAP_XSTRING(wt_modify) ": modify failed (%d)\n",
-			   rs->sr_err, 0, 0 );
+			   rs->sr_err );
 		/* Only free attrs if they were dup'd.  */
 		if ( dummy.e_attrs == e->e_attrs ) dummy.e_attrs = NULL;
 		goto return_results;
@@ -604,7 +600,7 @@ wt_modify( Operation *op, SlapReply *rs )
 	if ( rs->sr_err != 0 ) {
 		Debug( LDAP_DEBUG_TRACE,
 			   LDAP_XSTRING(wt_modify) ": id2entry update failed " "(%d)\n",
-			   rs->sr_err, 0, 0 );
+			   rs->sr_err );
 		if ( rs->sr_err == LDAP_ADMINLIMIT_EXCEEDED ) {
 			rs->sr_text = "entry too big";
 		} else {
@@ -628,7 +624,7 @@ wt_modify( Operation *op, SlapReply *rs )
 		Debug( LDAP_DEBUG_TRACE,
 			   "<== " LDAP_XSTRING(wt_modify)
 			   ": commit failed: %s (%d)\n",
-			   wiredtiger_strerror(rc), rc, 0 );
+			   wiredtiger_strerror(rc), rc );
 		rs->sr_err = LDAP_OTHER;
 		rs->sr_text = "commit failed";
 		goto return_results;
@@ -649,7 +645,7 @@ wt_modify( Operation *op, SlapReply *rs )
 		{
 			Debug( LDAP_DEBUG_TRACE,
 				   "<=- " LDAP_XSTRING(wt_modify)
-				   ": post-read failed!\n", 0, 0, 0 );
+				   ": post-read failed!\n" );
 			if ( op->o_postread & SLAP_CONTROL_CRITICAL ) {
 				/* FIXME: is it correct to abort
 				 * operation if control fails? */

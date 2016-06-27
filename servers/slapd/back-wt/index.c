@@ -40,8 +40,8 @@
 #include "reldap.h"
 
 #include <stdio.h>
+#include <ac/string.h>
 #include "back-wt.h"
-//#include "config.h"
 
 static char presence_keyval[] = {0,0};
 static struct berval presence_key = BER_BVC(presence_keyval);
@@ -98,8 +98,7 @@ int wt_index_param(
 	struct berval *prefixp )
 {
 	AttrInfo *ai;
-	int rc;
-	slap_mask_t mask, type = 0;
+	slap_mask_t mask;
 
 	ai = wt_index_mask( be, desc, prefixp );
 
@@ -111,7 +110,6 @@ int wt_index_param(
 
 	switch( ftype ) {
 	case LDAP_FILTER_PRESENT:
-		type = SLAP_INDEX_PRESENT;
 		if( IS_SLAP_INDEX( mask, SLAP_INDEX_PRESENT ) ) {
 			*prefixp = presence_key;
 			*maskp = mask;
@@ -120,7 +118,6 @@ int wt_index_param(
 		break;
 
 	case LDAP_FILTER_APPROX:
-		type = SLAP_INDEX_APPROX;
 		if ( desc->ad_type->sat_approx ) {
 			if( IS_SLAP_INDEX( mask, SLAP_INDEX_APPROX ) ) {
 				*maskp = mask;
@@ -133,7 +130,6 @@ int wt_index_param(
 		/* fall thru */
 
 	case LDAP_FILTER_EQUALITY:
-		type = SLAP_INDEX_EQUALITY;
 		if( IS_SLAP_INDEX( mask, SLAP_INDEX_EQUALITY ) ) {
 			*maskp = mask;
 			return LDAP_SUCCESS;
@@ -141,7 +137,6 @@ int wt_index_param(
 		break;
 
 	case LDAP_FILTER_SUBSTRINGS:
-		type = SLAP_INDEX_SUBSTR;
 		if( IS_SLAP_INDEX( mask, SLAP_INDEX_SUBSTR ) ) {
 			*maskp = mask;
 			return LDAP_SUCCESS;
@@ -166,10 +161,10 @@ static int indexer(
 	int opid,
 	slap_mask_t mask )
 {
-	int rc, i;
+	int rc = LDAP_SUCCESS, i;
 	struct berval *keys;
 	WT_CURSOR *cursor = NULL;
-	WT_SESSION *session = wc->session;
+	/* WT_SESSION *session = wc->session; */
 	assert( mask != 0 );
 
 	cursor = wt_ctx_index_cursor(wc, atname, 1);
@@ -177,7 +172,7 @@ static int indexer(
 		Debug( LDAP_DEBUG_ANY,
 			   LDAP_XSTRING(indexer)
 			   ": open index cursor failed: %s\n",
-			   atname->bv_val, 0, 0 );
+			   atname->bv_val );
 		goto done;
 	}
 
@@ -270,7 +265,7 @@ static int index_at_values(
 	ID id,
 	int opid )
 {
-	int rc;
+	int rc = LDAP_SUCCESS;
 	slap_mask_t mask = 0;
 	int ixop = opid;
 	AttrInfo *ai = NULL;
@@ -356,13 +351,11 @@ int wt_index_values(
 	ID id,
 	int opid )
 {
-	int rc;
-
 	/* Never index ID 0 */
 	if ( id == 0 )
 		return 0;
 
-	rc = index_at_values( op, wc, desc,
+	int rc = index_at_values( op, wc, desc,
 						  desc->ad_type, &desc->ad_tags,
 						  vals, id, opid );
 
@@ -372,7 +365,6 @@ int wt_index_values(
 int
 wt_index_entry( Operation *op, wt_ctx *wc, int opid, Entry *e )
 {
-	int rc;
 	Attribute *ap = e->e_attrs;
 
 	if ( e->e_id == 0 )
@@ -383,7 +375,7 @@ wt_index_entry( Operation *op, wt_ctx *wc, int opid, Entry *e )
 		   (long) e->e_id, e->e_dn ? e->e_dn : "" );
 
 	for ( ; ap != NULL; ap = ap->a_next ) {
-		rc = wt_index_values( op, wc, ap->a_desc,
+		int rc = wt_index_values( op, wc, ap->a_desc,
 							  ap->a_nvals, e->e_id, opid );
 		if( rc != LDAP_SUCCESS ) {
 			Debug( LDAP_DEBUG_TRACE,

@@ -38,7 +38,7 @@
  */
 
 #include "back-wt.h"
-//#include "slapconfig.h"
+#include "slapconfig.h"
 
 /* Find the ad, return -1 if not found,
  * set point for insertion if ins is non-NULL
@@ -85,7 +85,7 @@ ainfo_insert( struct wt_info *wi, AttrInfo *a )
 	wi->wi_attrs = ch_realloc( wi->wi_attrs, ( wi->wi_nattrs+1 ) *
 							   sizeof( AttrInfo * ));
 	if ( x < wi->wi_nattrs )
-		memove( &wi->wi_attrs[x+1], &wi->wi_attrs[x],
+		memmove( &wi->wi_attrs[x+1], &wi->wi_attrs[x],
 				   ( wi->wi_nattrs - x ) * sizeof( AttrInfo *));
 	wi->wi_attrs[x] = a;
 	wi->wi_nattrs++;
@@ -291,7 +291,7 @@ fail:
 		}
 
 		Debug( LDAP_DEBUG_CONFIG, "index %s 0x%04lx\n",
-			ad->ad_cname.bv_val, mask, 0 );
+			ad->ad_cname.bv_val, mask );
 
 		a = (AttrInfo *) ch_malloc( sizeof(AttrInfo) );
 

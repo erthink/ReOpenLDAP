@@ -44,8 +44,35 @@ LDAP_BEGIN_DECL
 
 #define WT_UCTYPE  "WT"
 
+/*
+ * attr.c
+ */
+
 AttrInfo *wt_attr_mask( struct wt_info *wi, AttributeDescription *desc );
 void wt_attr_flush( struct wt_info *wi );
+int wt_attr_index_config(
+	struct wt_info	*wi,
+	const char		*fname,
+	int			lineno,
+	int			argc,
+	char		**argv,
+	struct		config_reply_s *c_reply);
+
+void wt_attr_index_destroy( struct wt_info *wi );
+
+/*
+ * filterindex.c
+ */
+
+int
+wt_filter_candidates(
+	Operation *op,
+	wt_ctx *wc,
+	Filter *f,
+	ID *ids,
+	ID *tmp,
+	ID *stack );
+
 
 /*
  * id2entry.c
@@ -60,15 +87,35 @@ BI_entry_get_rw wt_entry_get;
 int wt_entry_return(Entry *e);
 int wt_entry_release(Operation *op, Entry *e, int rw);
 
+int
+wt_dn2id_has_children(
+	Operation *op,
+	WT_SESSION *session,
+	ID id );
+
+int wt_id2entry( BackendDB *be,
+				 WT_SESSION *session,
+				 ID id,
+				 Entry **ep );
+
 /*
  * idl.c
  */
 
 unsigned wt_idl_search( ID *ids, ID id );
+int wt_idl_append_one( ID *ids, ID id );
 
 ID wt_idl_first( ID *ids, ID *cursor );
 ID wt_idl_next( ID *ids, ID *cursor );
 
+int
+wt_idl_intersection(
+	ID *a,
+	ID *b );
+int
+wt_idl_union(
+	ID	*a,
+	ID	*b );
 
 /*
  * index.c
@@ -79,6 +126,26 @@ int wt_index_entry LDAP_P(( Operation *op, wt_ctx *wc, int r, Entry *e ));
 	wt_index_entry((op),(t),SLAP_INDEX_ADD_OP,(e))
 #define wt_index_entry_del(op,t,e) \
 	wt_index_entry((op),(t),SLAP_INDEX_DELETE_OP,(e))
+
+int wt_index_values(
+	Operation *op,
+	wt_ctx *wc,
+	AttributeDescription *desc,
+	BerVarray vals,
+	ID id,
+	int opid );
+
+int wt_index_param(
+	Backend *be,
+	AttributeDescription *desc,
+	int ftype,
+	slap_mask_t *maskp,
+	struct berval *prefixp );
+
+AttrInfo *wt_index_mask(
+	Backend *be,
+	AttributeDescription *desc,
+	struct berval *atname );
 
 /*
  * key.c
@@ -145,6 +212,15 @@ wt_dn2id_delete(
 	WT_SESSION *session,
 	struct berval *ndn);
 
+int
+wt_dn2idl(
+	Operation *op,
+	WT_SESSION *session,
+	struct berval *ndn,
+	Entry *e,
+	ID *ids,
+	ID *stack);
+
 /*
  * dn2entry.c
  */
@@ -178,9 +254,7 @@ extern BI_op_bind           wt_bind;
 extern BI_op_compare        wt_compare;
 extern BI_op_delete         wt_delete;
 extern BI_op_delete         wt_modify;
-
 extern BI_op_search         wt_search;
-
 extern BI_operational       wt_operational;
 
 /* tools.c */
@@ -193,6 +267,8 @@ extern BI_tool_entry_put     wt_tool_entry_put;
 extern BI_tool_entry_reindex wt_tool_entry_reindex;
 extern BI_tool_dn2id_get     wt_tool_dn2id_get;
 extern BI_tool_entry_modify  wt_tool_entry_modify;
+
+int wt_entry_header(WT_ITEM *item, EntryHeader *eh);
 
 LDAP_END_DECL
 

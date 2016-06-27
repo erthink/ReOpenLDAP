@@ -42,7 +42,6 @@
 #include <stdio.h>
 #include <ac/string.h>
 #include "back-wt.h"
-//#include "config.h"
 
 int wt_next_id(BackendDB *be, ID *out){
     struct wt_info *wi = (struct wt_info *) be->be_private;
@@ -61,7 +60,7 @@ int wt_last_id( BackendDB *be, WT_SESSION *session, ID *out )
 		Debug( LDAP_DEBUG_ANY,
 			   LDAP_XSTRING(wt_last_id)
 			   ": open_cursor failed: %s (%d)\n",
-			   wiredtiger_strerror(rc), rc, 0 );
+			   wiredtiger_strerror(rc), rc );
 		return rc;
     }
 
@@ -73,7 +72,7 @@ int wt_last_id( BackendDB *be, WT_SESSION *session, ID *out )
 			Debug( LDAP_DEBUG_ANY,
 				   LDAP_XSTRING(wt_last_id)
 				   ": get_key failed: %s (%d)\n",
-				   wiredtiger_strerror(rc), rc, 0 );
+				   wiredtiger_strerror(rc), rc );
 			return rc;
 		}
 		*out = id;
@@ -86,7 +85,7 @@ int wt_last_id( BackendDB *be, WT_SESSION *session, ID *out )
 		Debug( LDAP_DEBUG_ANY,
 			   LDAP_XSTRING(wt_last_id)
 			   ": prev failed: %s (%d)\n",
-			   wiredtiger_strerror(rc), rc, 0 );
+			   wiredtiger_strerror(rc), rc );
     }
 
     rc = cursor->close(cursor);
@@ -94,7 +93,7 @@ int wt_last_id( BackendDB *be, WT_SESSION *session, ID *out )
 		Debug( LDAP_DEBUG_ANY,
 			   LDAP_XSTRING(wt_last_id)
 			   ": close failed: %s (%d)\n",
-			   wiredtiger_strerror(rc), rc, 0 );
+			   wiredtiger_strerror(rc), rc );
 		return rc;
     }
 
