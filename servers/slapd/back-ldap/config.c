@@ -39,7 +39,7 @@
  * Masarati.
  */
 
-#include "portable.h"
+#include "reldap.h"
 
 #include <stdio.h>
 
@@ -48,7 +48,7 @@
 #include <ac/socket.h>
 
 #include "slap.h"
-#include "config.h"
+#include "slapconfig.h"
 #include "back-ldap.h"
 #include "lutil.h"
 #include "ldif.h"
@@ -2062,7 +2062,7 @@ done_url:;
 	case LDAP_BACK_CFG_WHOAMI:
 		if ( c->argc == 1 || c->value_int ) {
 			li->li_flags |= LDAP_BACK_F_PROXY_WHOAMI;
-			load_extop( (struct berval *)&slap_EXOP_WHOAMI,
+			extop_register( (struct berval *)&slap_EXOP_WHOAMI,
 					0, ldap_back_exop_whoami );
 
 		} else {

@@ -45,16 +45,15 @@
  * and distributed as part of U-MICH LDAP.
  */
 
-#include "portable.h"
+#include "reldap.h"
 
 #include <stdio.h>
-
 #include <ac/stdlib.h>
 #include <ac/ctype.h>
-
 #include <ac/string.h>
 #include <ac/socket.h>
 #include <ac/time.h>
+#include <ac/localize.h>
 
 #include "ldap_log.h"
 #include "lber_pvt.h"

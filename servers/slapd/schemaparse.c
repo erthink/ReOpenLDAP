@@ -32,7 +32,7 @@
  * <http://www.OpenLDAP.org/license.html>.
  */
 
-#include "portable.h"
+#include "reldap.h"
 
 #include <stdio.h>
 
@@ -42,7 +42,7 @@
 
 #include "slap.h"
 #include "ldap_schema.h"
-#include "config.h"
+#include "slapconfig.h"
 
 static void		oc_usage(void);
 static void		at_usage(void);

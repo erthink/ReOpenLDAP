@@ -34,7 +34,7 @@
  * All rights reserved.
  */
 
-#include "portable.h"
+#include "reldap.h"
 
 #include <stdio.h>
 
@@ -158,35 +158,4 @@ ldap_delete_ext_s(
 		return( ld->ld_errno );
 
 	return( ldap_result2error( ld, res, 1 ) );
-}
-/*
- * ldap_delete - initiate an ldap (and X.500) delete operation. Parameters:
- *
- *	ld		LDAP descriptor
- *	dn		DN of the object to delete
- *
- * Example:
- *	msgid = ldap_delete( ld, dn );
- */
-int
-ldap_delete( LDAP *ld, LDAP_CONST char *dn )
-{
-	int msgid = 0;
-
-	/*
-	 * A delete request looks like this:
-	 *	DelRequet ::= DistinguishedName,
-	 */
-
-	Debug( LDAP_DEBUG_TRACE, "ldap_delete\n" );
-
-	return ldap_delete_ext( ld, dn, NULL, NULL, &msgid ) == LDAP_SUCCESS
-		? msgid : -1 ;
-}
-
-
-int
-ldap_delete_s( LDAP *ld, LDAP_CONST char *dn )
-{
-	return ldap_delete_ext_s( ld, dn, NULL, NULL );
 }

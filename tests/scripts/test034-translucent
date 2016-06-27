@@ -1,5 +1,5 @@
 #!/bin/bash
-# $ReOpenLDAP$
+## $ReOpenLDAP$
 ## Copyright (c) 2015,2016 Leonid Yuriev <leo@yuriev.ru>.
 ## Copyright (c) 2015,2016 Peter-Service R&D LLC <http://billing.ru/>.
 ##
@@ -32,18 +32,18 @@
 ## <http://www.OpenLDAP.org/license.html>.
 
 echo "running defines.sh"
-. $SRCDIR/scripts/defines.sh
+. ${TOP_SRCDIR}/tests/scripts/defines.sh
 
 PERSONAL="(objectClass=inetOrgPerson)"
 NOWHERE="/dev/null"
 FAILURE="additional info:"
 
-if test $TRANSLUCENT = translucentno ; then
+if test ${AC_conf[translucent]} = no ; then
 	echo "Translucent Proxy overlay not available, test skipped"
 	exit 0
 fi
 
-if test $AC_ldap = ldapno ; then
+if test ${AC_conf[ldap]} = no ; then
 	echo "Translucent Proxy overlay requires back-ldap backend, test skipped"
 	exit 0
 fi
@@ -54,13 +54,13 @@ mkdir -p $TESTDIR $DBDIR1
 $SLAPPASSWD -g -n >$CONFIGPWF
 echo "rootpw `$SLAPPASSWD -T $CONFIGPWF`" >$TESTDIR/configpw.conf
 
-if test $MONITORDB != no ; then
+if test ${AC_conf[monitor]} != no ; then
 	DBIX=2
 else
 	DBIX=1
 fi
 
-. $CONFFILTER $BACKEND $MONITORDB < $TRANSLUCENTREMOTECONF > $CONF1
+config_filter $BACKEND ${AC_conf[monitor]} < $TRANSLUCENTREMOTECONF > $CONF1
 echo "Running slapadd to build remote slapd database..."
 $SLAPADD -f $CONF1 -l $LDIFTRANSLUCENTCONFIG
 RC=$?
@@ -83,7 +83,7 @@ check_running 1 remote
 # configure frontside
 mkdir -p $DBDIR2
 
-. $CONFFILTER $BACKEND $MONITORDB < $TRANSLUCENTLOCALCONF > $CONF2
+config_filter $BACKEND ${AC_conf[monitor]} < $TRANSLUCENTLOCALCONF > $CONF2
 
 echo "Starting local slapd on TCP/IP port $PORT2..."
 $SLAPD -f $CONF2 -h $URI2 $TIMING > $LOG2 2>&1 &

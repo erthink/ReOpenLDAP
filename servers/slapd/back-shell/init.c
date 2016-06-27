@@ -46,7 +46,7 @@
  * (as part of U-MICH LDAP).
  */
 
-#include "portable.h"
+#include "reldap.h"
 
 #include <stdio.h>
 
@@ -54,7 +54,7 @@
 
 #include "slap.h"
 
-#include "config.h"
+#include "slapconfig.h"
 
 #include "shell.h"
 
@@ -121,9 +121,6 @@ shell_back_db_destroy(
 }
 
 #if SLAPD_SHELL == SLAPD_MOD_DYNAMIC
-
-/* conditionally define the init_module() function */
 SLAP_BACKEND_INIT_MODULE( shell )
-
 #endif /* SLAPD_SHELL == SLAPD_MOD_DYNAMIC */
 

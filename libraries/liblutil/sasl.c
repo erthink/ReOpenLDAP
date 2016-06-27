@@ -31,7 +31,7 @@
  * <http://www.OpenLDAP.org/license.html>.
  */
 
-#include "portable.h"
+#include "reldap.h"
 
 #ifdef HAVE_CYRUS_SASL
 
@@ -39,6 +39,7 @@
 #include <ac/stdlib.h>
 #include <ac/string.h>
 #include <ac/unistd.h>
+#include <ac/localize.h>
 
 #ifdef HAVE_SASL_SASL_H
 #include <sasl/sasl.h>

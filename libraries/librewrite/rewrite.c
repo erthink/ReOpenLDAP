@@ -35,7 +35,7 @@
  * inclusion in OpenLDAP Software.
  */
 
-#include <portable.h>
+#include <reldap.h>
 
 #include <ac/stdlib.h>
 #include <ac/string.h>

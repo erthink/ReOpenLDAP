@@ -35,7 +35,7 @@
  * OpenLDAP Software.
  */
 
-#include "portable.h"
+#include "reldap.h"
 
 #include <stdio.h>
 #include <ac/stdlib.h>
@@ -95,7 +95,9 @@ int ldap_parse_verify_credentials(
 	rc = ldap_parse_extended_result(ld, res, &retoid, &retdata, 0);
 
 	if( rc != LDAP_SUCCESS ) {
+#ifdef LDAP_DEVEL
 		ldap_perror(ld, "ldap_parse_verify_credentials");
+#endif /* LDAP_DEVEL */
 		return rc;
 	}
 

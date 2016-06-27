@@ -45,7 +45,7 @@
 /* LY: one more rebus - this turnoff 'free' to 'ch_free' substitution. */
 #define CH_FREE 1
 
-#include "portable.h"
+#include "reldap.h"
 
 #include <stdio.h>
 

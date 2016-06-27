@@ -57,7 +57,7 @@
  *   in filters or in compare
  */
 
-#include "portable.h"
+#include "reldap.h"
 
 /* define SLAPD_OVER_ALLOWED=2 to build as run-time loadable module */
 #ifdef SLAPD_OVER_ALLOWED
@@ -459,7 +459,7 @@ register_at( char *def, AttributeDescription **rad, int dupok )
 		return code;
 	}
 
-	code = at_add( at, 0, NULL, &err );
+	code = at_add( at, 0, NULL, NULL, &err );
 	if ( code ) {
 		if ( code == SLAP_SCHERR_ATTR_DUP && dupok ) {
 			freeit = 1;
@@ -515,8 +515,7 @@ aa_initialize( void )
 }
 
 #if SLAPD_OVER_ALLOWED == SLAPD_MOD_DYNAMIC
-int
-init_module( int argc, char *argv[] )
+SLAP_OVERLAY_ENTRY(allowed, modinit) ( int argc, char *argv[] )
 {
 	return aa_initialize();
 }

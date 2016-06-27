@@ -42,7 +42,7 @@
  * is provided ``as is'' without express or implied warranty.
  */
 
-#include "portable.h"
+#include "reldap.h"
 
 #include <stdio.h>
 
@@ -685,7 +685,7 @@ send_ldap_response(
 	else
 #endif
 	{
-		ber_init_w_nullc( ber, LBER_USE_DER );
+		ber_init2( ber, NULL, LBER_USE_DER );
 		ber_set_option( ber, LBER_OPT_BER_MEMCTX, &op->o_tmpmemctx );
 	}
 
@@ -1648,7 +1648,7 @@ slap_send_search_reference( Operation *op, SlapReply *rs )
 	} else
 #endif
 	{
-		ber_init_w_nullc( ber, LBER_USE_DER );
+		ber_init2( ber, NULL, LBER_USE_DER );
 		ber_set_option( ber, LBER_OPT_BER_MEMCTX, &op->o_tmpmemctx );
 	}
 

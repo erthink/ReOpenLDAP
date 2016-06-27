@@ -39,10 +39,9 @@
  * based on back-meta module for inclusion in OpenLDAP Software.
  * This work was sponsored by Ericsson. */
 
-#include "portable.h"
+#include "reldap.h"
 
 #include <stdio.h>
-
 #include <ac/errno.h>
 #include <ac/socket.h>
 #include <ac/string.h>

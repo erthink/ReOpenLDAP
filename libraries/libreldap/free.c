@@ -39,7 +39,7 @@
  *           link in lots of extra code when not using certain features
  */
 
-#include "portable.h"
+#include "reldap.h"
 
 #include <stdio.h>
 #include <ac/stdlib.h>

@@ -49,8 +49,8 @@
 
 LDAP_BEGIN_DECL
 
-struct config_args_s;	/* config.h */
-struct config_reply_s;	/* config.h */
+struct config_args_s;	/* slapconfig.h */
+struct config_reply_s;	/* slapconfig.h */
 
 /*
  * rurwlock.c
@@ -93,7 +93,7 @@ LDAP_SLAPD_F (void) rs_send_cleanup LDAP_P(( SlapReply *rs ));
  */
 #ifdef SLAP_DYNACL
 #ifdef SLAPD_ACI_ENABLED
-LDAP_SLAPD_F (int) dynacl_aci_init LDAP_P(( void ));
+LDAP_SLAPD_F (int) aci_over_initialize LDAP_P(( void ));
 #endif /* SLAPD_ACI_ENABLED */
 #endif /* SLAP_DYNACL */
 
@@ -372,16 +372,16 @@ LDAP_SLAPD_F (Attribute *) attrs_dup LDAP_P(( Attribute *a ));
 LDAP_SLAPD_F (int) attr_init LDAP_P(( void ));
 LDAP_SLAPD_F (int) attr_destroy LDAP_P(( void ));
 
-void slap_backtrace_debug(void);
-void slap_backtrace_debug_ex(int skip, int deep, const char *caption);
-void slap_backtrace_log(void *array[], int nentries, const char *caption);
-void slap_backtrace_set_enable( int value );
-int slap_backtrace_get_enable();
-void slap_backtrace_set_dir(const char* path );
-int slap_limit_coredump_set(int mbytes);
-int slap_limit_memory_set(int mbytes);
-int slap_limit_coredump_get();
-int slap_limit_memory_get();
+LDAP_SLAPD_F(void) slap_backtrace_debug(void);
+LDAP_SLAPD_F(void) slap_backtrace_debug_ex(int skip, int deep, const char *caption);
+LDAP_SLAPD_F(void) slap_backtrace_log(void *array[], int nentries, const char *caption);
+LDAP_SLAPD_F(void) slap_backtrace_set_enable( int value );
+LDAP_SLAPD_F(int) slap_backtrace_get_enable();
+LDAP_SLAPD_F(void) slap_backtrace_set_dir(const char* path );
+LDAP_SLAPD_F(int) slap_limit_coredump_set(int mbytes);
+LDAP_SLAPD_F(int) slap_limit_memory_set(int mbytes);
+LDAP_SLAPD_F(int) slap_limit_coredump_get();
+LDAP_SLAPD_F(int) slap_limit_memory_get();
 
 /*
  * ava.c
@@ -867,8 +867,8 @@ LDAP_SLAPD_F (void) connection_closing LDAP_P((
 	Connection *c, const char *why ));
 LDAP_SLAPD_F (int) connection_valid LDAP_P(( Connection *c ));
 LDAP_SLAPD_F (const char *) connection_state2str LDAP_P(( int state ))
-	LDAP_GCCATTR((const));
-int connections_socket_troube(ber_socket_t s);
+	__attribute__((const));
+int connections_socket_trouble(ber_socket_t s);
 
 LDAP_SLAPD_F (int) connection_read_activate LDAP_P((ber_socket_t s));
 LDAP_SLAPD_F (int) connection_write LDAP_P((ber_socket_t s));
@@ -924,27 +924,27 @@ LDAP_SLAPD_F (ContentRule *) cr_bvfind LDAP_P((
 LDAP_SLAPD_V( int ) slap_serverID;
 LDAP_SLAPD_V( const struct berval ) slap_ldapsync_bv;
 LDAP_SLAPD_V( const struct berval ) slap_ldapsync_cn_bv;
-LDAP_SLAPD_F (int) slap_get_commit_csn LDAP_P(( Operation *, struct berval *maxcsn ));
-LDAP_SLAPD_F (int) slap_graduate_commit_csn LDAP_P(( Operation * ));
-LDAP_SLAPD_F (Entry *) slap_create_context_csn_entry LDAP_P(( Backend *, struct berval *));
-LDAP_SLAPD_F (int) slap_get_csn LDAP_P(( Operation *, struct berval * ));
-LDAP_SLAPD_F (void) slap_queue_csn LDAP_P(( Operation *, struct berval * ));
-LDAP_SLAPD_F (void) slap_free_commit_csn_list LDAP_P(( struct be_pcl *list ));
-void slap_op_csn_free( Operation *op );
-void slap_op_csn_clean( Operation *op );
-void slap_op_csn_assign( Operation *op, BerValue *csn );
+LDAP_SLAPD_F(int) slap_get_commit_csn LDAP_P(( Operation *, struct berval *maxcsn ));
+LDAP_SLAPD_F(int) slap_graduate_commit_csn LDAP_P(( Operation * ));
+LDAP_SLAPD_F(Entry *) slap_create_context_csn_entry LDAP_P(( Backend *, struct berval *));
+LDAP_SLAPD_F(int) slap_get_csn LDAP_P(( Operation *, struct berval * ));
+LDAP_SLAPD_F(void) slap_queue_csn LDAP_P(( Operation *, struct berval * ));
+LDAP_SLAPD_F(void) slap_free_commit_csn_list LDAP_P(( struct be_pcl *list ));
+LDAP_SLAPD_F(void) slap_op_csn_free( Operation *op );
+LDAP_SLAPD_F(void) slap_op_csn_clean( Operation *op );
+LDAP_SLAPD_F(void) slap_op_csn_assign( Operation *op, BerValue *csn );
 
 /*
  * quorum.c
  */
 
-void quorum_global_init();
-void quorum_global_destroy();
-void quorum_be_destroy(BackendDB *bd);
-void quorum_notify_self_sid();
-void quorum_add_rid(BackendDB *bd, void* key, int rid);
-void quorum_remove_rid(BackendDB *bd, void* key);
-void quorum_notify_sid(BackendDB *bd, void* key, int sid);
+LDAP_SLAPD_F(void) quorum_global_init();
+LDAP_SLAPD_F(void) quorum_global_destroy();
+LDAP_SLAPD_F(void) quorum_be_destroy(BackendDB *bd);
+LDAP_SLAPD_F(void) quorum_notify_self_sid();
+LDAP_SLAPD_F(void) quorum_add_rid(BackendDB *bd, void* key, int rid);
+LDAP_SLAPD_F(void) quorum_remove_rid(BackendDB *bd, void* key);
+LDAP_SLAPD_F(void) quorum_notify_sid(BackendDB *bd, void* key, int sid);
 
 #define QS_DIRTY	0
 #define QS_DEAD		1
@@ -952,13 +952,13 @@ void quorum_notify_sid(BackendDB *bd, void* key, int sid);
 #define QS_READY	3
 #define QS_PROCESS	4
 #define QS_MAX		5
-void quorum_notify_status(BackendDB *bd, void* key, int status);
+LDAP_SLAPD_F(void) quorum_notify_status(BackendDB *bd, void* key, int status);
 
-int quorum_query(BackendDB *bd);
-void quorum_notify_csn(BackendDB *bd, int csnsid);
-int quorum_syncrepl_gate(BackendDB *bd, void *instance_key, int in);
-int quorum_query_status(BackendDB *bd, int running_only, BerValue*, Operation *op);
-int quorum_syncrepl_maxrefresh(BackendDB *bd);
+LDAP_SLAPD_F(int) quorum_query(BackendDB *bd);
+LDAP_SLAPD_F(void) quorum_notify_csn(BackendDB *bd, int csnsid);
+LDAP_SLAPD_F(int) quorum_syncrepl_gate(BackendDB *bd, void *instance_key, int in);
+LDAP_SLAPD_F(int) quorum_query_status(BackendDB *bd, int running_only, BerValue*, Operation *op);
+LDAP_SLAPD_F(int) quorum_syncrepl_maxrefresh(BackendDB *bd);
 
 /*
  * daemon.c
@@ -971,8 +971,8 @@ LDAP_SLAPD_F (Listener **)	slapd_get_listeners LDAP_P((void));
 LDAP_SLAPD_F (void) slapd_remove LDAP_P((ber_socket_t s, Sockbuf *sb,
 	int wasactive, int wake, int locked ));
 
-LDAP_SLAPD_F (RETSIGTYPE) slap_sig_shutdown LDAP_P((int sig));
-LDAP_SLAPD_F (RETSIGTYPE) slap_sig_wake LDAP_P((int sig));
+LDAP_SLAPD_F (void) slap_sig_shutdown LDAP_P((int sig));
+LDAP_SLAPD_F (void) slap_sig_wake LDAP_P((int sig));
 LDAP_SLAPD_F (void) slap_wake_listener LDAP_P((void));
 
 LDAP_SLAPD_F (void) slap_suspend_listeners LDAP_P((void));
@@ -991,16 +991,16 @@ LDAP_SLAPD_F (slap_time_t) slapd_get_writetime LDAP_P((void));
 
 #ifdef __SANITIZE_THREAD__
 
-int get_shutdown();
-int get_gentle_shutdown();
-int get_abrupt_shutdown();
-int set_shutdown(int v);
-int set_gentle_shutdown(int v);
-int set_abrupt_shutdown(int v);
+LDAP_SLAPD_F(int) get_shutdown();
+LDAP_SLAPD_F(int) get_gentle_shutdown();
+LDAP_SLAPD_F(int) get_abrupt_shutdown();
+LDAP_SLAPD_F(int) set_shutdown(int v);
+LDAP_SLAPD_F(int) set_gentle_shutdown(int v);
+LDAP_SLAPD_F(int) set_abrupt_shutdown(int v);
 
 #else
 
-extern volatile sig_atomic_t
+LDAP_SLAPD_V(volatile sig_atomic_t)
 	_slapd_shutdown, _slapd_gentle_shutdown, _slapd_abrupt_shutdown;
 
 static __inline
@@ -1204,13 +1204,15 @@ typedef int (SLAP_EXTOP_MAIN_FN) LDAP_P(( Operation *op, SlapReply *rs ));
 typedef int (SLAP_EXTOP_GETOID_FN) LDAP_P((
 	int index, struct berval *oid, int blen ));
 
-LDAP_SLAPD_F (int) load_extop2 LDAP_P((
-	const struct berval *ext_oid,
-	slap_mask_t flags,
-	SLAP_EXTOP_MAIN_FN *ext_main,
-	unsigned tmpflags ));
-#define load_extop(ext_oid, flags, ext_main) \
-	load_extop2((ext_oid), (flags), (ext_main), 0)
+LDAP_SLAPD_F (int) extop_register_ex LDAP_P((
+	const struct berval *exop_oid,
+	slap_mask_t exop_flags,
+	SLAP_EXTOP_MAIN_FN *exop_main,
+	unsigned do_not_replace ));
+
+#define extop_register(exop_oid, exop_flags, exop_main) \
+	   extop_register_ex((exop_oid), (exop_flags), (exop_main), 0)
+
 LDAP_SLAPD_F (int) unload_extop LDAP_P((
 	const struct berval *ext_oid,
 	SLAP_EXTOP_MAIN_FN *ext_main,
@@ -1323,81 +1325,81 @@ LDAP_SLAPD_F (int) slap_build_syncUUID_set LDAP_P((
 LDAP_SLAPD_F (int) slap_check_same_server LDAP_P((
 				BackendDB *bd, int sid));
 
-int slap_csn_verify_lite( const BerValue *csn );
-int slap_csn_verify_full( const BerValue *csn );
-int slap_csn_match( const BerValue *a, const BerValue *b );
-int slap_csn_compare_sr( const BerValue *a, const BerValue *b );
-int slap_csn_compare_ts( const BerValue *a, const BerValue *b );
-int slap_csn_get_sid( const BerValue *csn );
-void slap_csn_shift( BerValue *csn, int delta_points );
+LDAP_SLAPD_F(int) slap_csn_verify_lite( const BerValue *csn );
+LDAP_SLAPD_F(int) slap_csn_verify_full( const BerValue *csn );
+LDAP_SLAPD_F(int) slap_csn_match( const BerValue *a, const BerValue *b );
+LDAP_SLAPD_F(int) slap_csn_compare_sr( const BerValue *a, const BerValue *b );
+LDAP_SLAPD_F(int) slap_csn_compare_ts( const BerValue *a, const BerValue *b );
+LDAP_SLAPD_F(int) slap_csn_get_sid( const BerValue *csn );
+LDAP_SLAPD_F(void) slap_csn_shift( BerValue *csn, int delta_points );
 
-int slap_csns_validate_and_sort( BerVarray vals );
-int slap_csns_match( BerVarray a, BerVarray b );
-int slap_csns_length( BerVarray vals );
-int slap_csns_compare( BerVarray next, BerVarray base );
-void slap_csns_debug( const char *prefix, const BerVarray csns );
-void slap_csns_backward_debug(
+LDAP_SLAPD_F(int) slap_csns_validate_and_sort( BerVarray vals );
+LDAP_SLAPD_F(int) slap_csns_match( BerVarray a, BerVarray b );
+LDAP_SLAPD_F(int) slap_csns_length( BerVarray vals );
+LDAP_SLAPD_F(int) slap_csns_compare( BerVarray next, BerVarray base );
+LDAP_SLAPD_F(void) slap_csns_debug( const char *prefix, const BerVarray csns );
+LDAP_SLAPD_F(void) slap_csns_backward_debug(
 	const char *prefix,
 	const BerVarray current,
 	const BerVarray next );
 
-void slap_cookie_verify( const struct sync_cookie * );
-void slap_cookie_init( struct sync_cookie * );
-void slap_cookie_clean_all( struct sync_cookie * );
-void slap_cookie_clean_csns( struct sync_cookie *, void *memctx );
-void slap_cookie_copy(
+LDAP_SLAPD_F(void) slap_cookie_verify( const struct sync_cookie * );
+LDAP_SLAPD_F(void) slap_cookie_init( struct sync_cookie * );
+LDAP_SLAPD_F(void) slap_cookie_clean_all( struct sync_cookie * );
+LDAP_SLAPD_F(void) slap_cookie_clean_csns( struct sync_cookie *, void *memctx );
+LDAP_SLAPD_F(void) slap_cookie_copy(
 	struct sync_cookie *dst,
 	const struct sync_cookie *src );
-void slap_cookie_move(
+LDAP_SLAPD_F(void) slap_cookie_move(
 	struct sync_cookie *dst,
 	struct sync_cookie *src );
-int slap_cookie_merge(
+LDAP_SLAPD_F(int) slap_cookie_merge(
 	BackendDB *bd,
 	struct sync_cookie *dst,
 	const struct sync_cookie *src );
-void slap_cookie_free( struct sync_cookie *, int free_cookie );
-void slap_cookie_fetch(
+LDAP_SLAPD_F(void) slap_cookie_free( struct sync_cookie *, int free_cookie );
+LDAP_SLAPD_F(void) slap_cookie_fetch(
 		struct sync_cookie *dst,
 		BerVarray src );
-int slap_cookie_pull(
+LDAP_SLAPD_F(int) slap_cookie_pull(
 	struct sync_cookie *dst,
 	BerVarray src,
 	int consume );
-int slap_cookie_merge_csn(
+LDAP_SLAPD_F(int) slap_cookie_merge_csn(
 	BackendDB *bd,
 	struct sync_cookie *dst,
 	int sid,
 	BerValue *src );
-int slap_cookie_compare_csn(
+LDAP_SLAPD_F(int) slap_cookie_compare_csn(
 	const struct sync_cookie *cookie,
 	BerValue *csn );
-int slap_cookie_parse(
+LDAP_SLAPD_F(int) slap_cookie_parse(
 	struct sync_cookie *dst,
 	const BerValue *src,
 	void *memctx );
-int slap_cookie_stubself( struct sync_cookie *dst );
-void slap_cookie_compose(
+LDAP_SLAPD_F(int) slap_cookie_stubself( struct sync_cookie *dst );
+LDAP_SLAPD_F(void) slap_cookie_compose(
 	BerValue *dst,
 	BerVarray csns,
 	int rid,
 	int sid,
 	void *memctx );
-void slap_cookie_debug( const char *prefix, const struct sync_cookie *sc );
-void slap_cookie_debug_pair( const char *prefix,
+LDAP_SLAPD_F(void) slap_cookie_debug( const char *prefix, const struct sync_cookie *sc );
+LDAP_SLAPD_F(void) slap_cookie_debug_pair( const char *prefix,
 	 const char* x_name, const struct sync_cookie *x_cookie,
 	 const char* y_name, const struct sync_cookie *y_cookie, int y_marker);
-void slap_cookie_backward_debug(
+LDAP_SLAPD_F(void) slap_cookie_backward_debug(
 	const char *prefix,
 	const struct sync_cookie* current,
 	const struct sync_cookie* next );
-int slap_cookie_merge_csnset(
+LDAP_SLAPD_F(int) slap_cookie_merge_csnset(
 	BackendDB *bd,
 	struct sync_cookie *dst,
 	BerVarray src );
-int slap_cookie_compare_csnset(
+LDAP_SLAPD_F(int) slap_cookie_compare_csnset(
 	struct sync_cookie *base,
 	BerVarray next );
-int slap_cookie_is_sid_here(const struct sync_cookie *cookie, int sid);
+LDAP_SLAPD_F(int) slap_cookie_is_sid_here(const struct sync_cookie *cookie, int sid);
 
 /*
  * limits.c
@@ -1531,15 +1533,10 @@ LDAP_SLAPD_F( void ) slap_modlist_free( LDAPModList *ml );
 /*
  * module.c
  */
-#ifdef SLAPD_MODULES
+#ifdef SLAPD_DYNAMIC_MODULES
 
 LDAP_SLAPD_F (int) module_init LDAP_P(( void ));
 LDAP_SLAPD_F (int) module_kill LDAP_P(( void ));
-
-LDAP_SLAPD_F (int) load_null_module(
-	const void *module, const char *file_name);
-LDAP_SLAPD_F (int) load_extop_module(
-	const void *module, const char *file_name);
 
 LDAP_SLAPD_F (int) module_load LDAP_P((
 	const char* file_name,
@@ -1547,12 +1544,13 @@ LDAP_SLAPD_F (int) module_load LDAP_P((
 LDAP_SLAPD_F (int) module_path LDAP_P(( const char* path ));
 LDAP_SLAPD_F (int) module_unload LDAP_P(( const char* file_name ));
 
-LDAP_SLAPD_F (void *) module_handle LDAP_P(( const char* file_name ));
+typedef struct module module_t;
 
+LDAP_SLAPD_F (module_t *) module_handle LDAP_P(( const char* file_name ));
 LDAP_SLAPD_F (void *) module_resolve LDAP_P((
-	const void *module, const char *name));
+	const module_t *module, const char *name));
 
-#endif /* SLAPD_MODULES */
+#endif /* SLAPD_DYNAMIC_MODULES */
 
 /* mr.c */
 LDAP_SLAPD_F (MatchingRule *) mr_bvfind LDAP_P((struct berval *mrname));
@@ -2026,7 +2024,7 @@ LDAP_SLAPD_F (int) parse_oc LDAP_P((
 	struct config_args_s *ca, ObjectClass **soc, ObjectClass *prev ));
 LDAP_SLAPD_F (int) parse_at LDAP_P((
 	struct config_args_s *ca, AttributeType **sat, AttributeType *prev ));
-LDAP_SLAPD_F (char *) scherr2str LDAP_P((int code)) LDAP_GCCATTR((const));
+LDAP_SLAPD_F (char *) scherr2str LDAP_P((int code)) __attribute__((const));
 LDAP_SLAPD_F (int) dscompare LDAP_P(( const char *s1, const char *s2del,
 	char delim ));
 LDAP_SLAPD_F (int) parse_syn LDAP_P((

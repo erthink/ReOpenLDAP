@@ -37,7 +37,7 @@
  * in OpenLDAP Software.
  */
 
-#include "portable.h"
+#include "reldap.h"
 
 #include <stdio.h>
 
@@ -46,7 +46,7 @@
 #include <ac/string.h>
 
 #include "slap.h"
-#include "config.h"
+#include "slapconfig.h"
 #include "proto-dnssrv.h"
 
 int
@@ -125,9 +125,6 @@ dnssrv_back_db_destroy(
 }
 
 #if SLAPD_DNSSRV == SLAPD_MOD_DYNAMIC
-
-/* conditionally define the init_module() function */
 SLAP_BACKEND_INIT_MODULE( dnssrv )
-
 #endif /* SLAPD_DNSSRV == SLAPD_MOD_DYNAMIC */
 

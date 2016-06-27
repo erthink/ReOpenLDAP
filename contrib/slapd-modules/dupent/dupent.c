@@ -42,7 +42,7 @@
  * <http://tools.ietf.org/id/draft-ietf-ldapext-ldapv3-dupent-08.txt>
  */
 
-#include "portable.h"
+#include "reldap.h"
 
 /* define SLAPD_OVER_DUPENT=2 to build as run-time loadable module */
 #ifdef SLAPD_OVER_DUPENT
@@ -565,8 +565,7 @@ dupent_initialize( void )
 }
 
 #if SLAPD_OVER_DUPENT == SLAPD_MOD_DYNAMIC
-int
-init_module( int argc, char *argv[] )
+SLAP_OVERLAY_ENTRY(dupent, modinit) ( int argc, char *argv[] )
 {
 	return dupent_initialize();
 }

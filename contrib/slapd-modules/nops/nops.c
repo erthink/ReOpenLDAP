@@ -36,7 +36,7 @@
  * This work was originally developed by the Emmanuel Dreyfus for
  * inclusion in OpenLDAP Software.
  */
-#include "portable.h"
+#include "reldap.h"
 
 #ifdef SLAPD_OVER_NOPS
 
@@ -47,7 +47,7 @@
 
 #include "lutil.h"
 #include "slap.h"
-#include "config.h"
+#include "slapconfig.h"
 
 /* static ConfigDriver nops_cf_gen;
  static int nops_cf_gen( ConfigArgs *c ) { return 0; } */
@@ -174,10 +174,7 @@ nops_modify( Operation *op, SlapReply *rs )
 
 static slap_overinst nops_ovl;
 
-#if SLAPD_OVER_NOPS == SLAPD_MOD_DYNAMIC
-static
-#endif
-int
+static int
 nops_initialize( void ) {
 	nops_ovl.on_bi.bi_type = "nops";
 	nops_ovl.on_bi.bi_op_modify = nops_modify;
@@ -185,7 +182,8 @@ nops_initialize( void ) {
 }
 
 #if SLAPD_OVER_NOPS == SLAPD_MOD_DYNAMIC
-int init_module(int argc, char *argv[]) {
+SLAP_OVERLAY_ENTRY(nops, modinit) ( int argc, char *argv[] )
+{
 	return nops_initialize();
 }
 #endif

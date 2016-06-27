@@ -37,12 +37,12 @@
  * WiredTiger is a product of MongoDB Inc.
  */
 
-#include "portable.h"
+#include "reldap.h"
 
 #include <stdio.h>
 #include <ac/string.h>
 #include "back-wt.h"
-#include "config.h"
+#include "slapconfig.h"
 
 static int
 wt_db_init( BackendDB *be, ConfigReply *cr )
@@ -311,10 +311,7 @@ wt_back_initialize( BackendInfo *bi )
 }
 
 #if SLAPD_WT == SLAPD_MOD_DYNAMIC
-
-/* conditionally define the init_module() function */
 SLAP_BACKEND_INIT_MODULE( wt )
-
 #endif /* SLAPD_WT == SLAPD_MOD_DYNAMIC */
 
 /*

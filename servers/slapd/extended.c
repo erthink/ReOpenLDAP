@@ -47,7 +47,7 @@
  *
  */
 
-#include "portable.h"
+#include "reldap.h"
 
 #include <stdio.h>
 
@@ -61,8 +61,8 @@ static struct extop_list {
 	struct extop_list *next;
 	struct berval oid;
 	slap_mask_t flags;
-	SLAP_EXTOP_MAIN_FN *ext_main;
-} *supp_ext_list = NULL;
+	SLAP_EXTOP_MAIN_FN *exop_main;
+} *supp_exop_list = NULL;
 
 static SLAP_EXTOP_MAIN_FN whoami_extop;
 
@@ -74,7 +74,7 @@ static SLAP_EXTOP_MAIN_FN whoami_extop;
 static struct {
 	const struct berval *oid;
 	slap_mask_t flags;
-	SLAP_EXTOP_MAIN_FN *ext_main;
+	SLAP_EXTOP_MAIN_FN *exop_main;
 } builtin_extops[] = {
 #ifdef LDAP_X_TXN
 	{ &slap_EXOP_TXN_START, 0, txn_start_extop },
@@ -98,7 +98,7 @@ get_supported_extop (int index)
 	/* linear scan is slow, but this way doesn't force a
 	 * big change on root_dse.c, where this routine is used.
 	 */
-	for (ext = supp_ext_list; ext != NULL && --index >= 0; ext = ext->next) {
+	for (ext = supp_exop_list; ext != NULL && --index >= 0; ext = ext->next) {
 		; /* empty */
 	}
 
@@ -118,7 +118,7 @@ int exop_root_dse_info( Entry *e )
 	vals[1].bv_val = NULL;
 	vals[1].bv_len = 0;
 
-	for (ext = supp_ext_list; ext != NULL; ext = ext->next) {
+	for (ext = supp_exop_list; ext != NULL; ext = ext->next) {
 		if( ext->flags & SLAP_EXOP_HIDE ) continue;
 
 		vals[0] = ext->oid;
@@ -215,7 +215,7 @@ fe_extended( Operation *op, SlapReply *rs )
 {
 	struct extop_list	*ext = NULL;
 
-	ext = find_extop(supp_ext_list, &op->ore_reqoid );
+	ext = find_extop(supp_exop_list, &op->ore_reqoid );
 	if ( ext == NULL ) {
 		Debug( LDAP_DEBUG_ANY, "%s do_extended: unsupported operation \"%s\"\n",
 			op->o_log_prefix, op->ore_reqoid.bv_val );
@@ -232,7 +232,7 @@ fe_extended( Operation *op, SlapReply *rs )
 	{ /* start of OpenLDAP extended operation */
 		BackendDB	*bd = op->o_bd;
 
-		rs->sr_err = (ext->ext_main)( op, rs );
+		rs->sr_err = (ext->exop_main)( op, rs );
 
 		if( rs->sr_err != SLAPD_ABANDON ) {
 			if ( rs->sr_err == LDAP_REFERRAL && rs->sr_ref == NULL ) {
@@ -268,104 +268,104 @@ done:;
 }
 
 int
-load_extop2(
-	const struct berval *ext_oid,
-	slap_mask_t ext_flags,
-	SLAP_EXTOP_MAIN_FN *ext_main,
-	unsigned flags )
+extop_register_ex(
+	const struct berval *exop_oid,
+	slap_mask_t exop_flags,
+	SLAP_EXTOP_MAIN_FN *exop_main,
+	unsigned do_not_replace )
 {
 	struct berval		oidm = BER_BVNULL;
 	struct extop_list	*ext;
 	int			insertme = 0;
 
-	if ( !ext_main ) {
+	if ( !exop_main ) {
 		return -1;
 	}
 
-	if ( ext_oid == NULL || BER_BVISNULL( ext_oid ) ||
-		BER_BVISEMPTY( ext_oid ) )
+	if ( exop_oid == NULL || BER_BVISNULL( exop_oid ) ||
+		BER_BVISEMPTY( exop_oid ) )
 	{
 		return -1;
 	}
 
-	if ( numericoidValidate( NULL, (struct berval *)ext_oid ) !=
+	if ( numericoidValidate( NULL, (struct berval *)exop_oid ) !=
 		LDAP_SUCCESS )
 	{
-		oidm.bv_val = oidm_find( ext_oid->bv_val );
+		oidm.bv_val = oidm_find( exop_oid->bv_val );
 		if ( oidm.bv_val == NULL ) {
 			return -1;
 		}
 		oidm.bv_len = strlen( oidm.bv_val );
-		ext_oid = &oidm;
+		exop_oid = &oidm;
 	}
 
-	for ( ext = supp_ext_list; ext; ext = ext->next ) {
-		if ( bvmatch( ext_oid, &ext->oid ) ) {
-			if ( flags == 1 ) {
+	for ( ext = supp_exop_list; ext; ext = ext->next ) {
+		if ( bvmatch( exop_oid, &ext->oid ) ) {
+			if ( do_not_replace != 0 ) {
 				break;
 			}
 			return -1;
 		}
 	}
 
-	if ( flags == 0 || ext == NULL ) {
-		ext = ch_calloc( 1, sizeof(struct extop_list) + ext_oid->bv_len + 1 );
+	if ( do_not_replace == 0 || ext == NULL ) {
+		ext = ch_calloc( 1, sizeof(struct extop_list) + exop_oid->bv_len + 1 );
 		if ( ext == NULL ) {
 			return(-1);
 		}
 
 		ext->oid.bv_val = (char *)(ext + 1);
-		memcpy( ext->oid.bv_val, ext_oid->bv_val, ext_oid->bv_len );
-		ext->oid.bv_len = ext_oid->bv_len;
+		memcpy( ext->oid.bv_val, exop_oid->bv_val, exop_oid->bv_len );
+		ext->oid.bv_len = exop_oid->bv_len;
 		ext->oid.bv_val[ext->oid.bv_len] = '\0';
 
 		insertme = 1;
 	}
 
-	ext->flags = ext_flags;
-	ext->ext_main = ext_main;
+	ext->flags = exop_flags;
+	ext->exop_main = exop_main;
 
 	if ( insertme ) {
-		ext->next = supp_ext_list;
-		supp_ext_list = ext;
+		ext->next = supp_exop_list;
+		supp_exop_list = ext;
 	}
 
-	return(0);
+	return 0;
 }
 
 int
 unload_extop(
-	const struct berval *ext_oid,
-	SLAP_EXTOP_MAIN_FN *ext_main,
+	const struct berval *exop_oid,
+	SLAP_EXTOP_MAIN_FN *exop_main,
 	unsigned flags )
 {
 	struct berval		oidm = BER_BVNULL;
 	struct extop_list	*ext, **extp;
 
 	/* oid must be given */
-	if ( ext_oid == NULL || BER_BVISNULL( ext_oid ) ||
-		BER_BVISEMPTY( ext_oid ) )
+	if ( exop_oid == NULL || BER_BVISNULL( exop_oid ) ||
+		BER_BVISEMPTY( exop_oid ) )
 	{
 		return -1;
 	}
 
 	/* if it's not an oid, check if it's a macto */
-	if ( numericoidValidate( NULL, (struct berval *)ext_oid ) !=
+	if ( numericoidValidate( NULL, (struct berval *)exop_oid ) !=
 		LDAP_SUCCESS )
 	{
-		oidm.bv_val = oidm_find( ext_oid->bv_val );
+		oidm.bv_val = oidm_find( exop_oid->bv_val );
 		if ( oidm.bv_val == NULL ) {
 			return -1;
 		}
 		oidm.bv_len = strlen( oidm.bv_val );
-		ext_oid = &oidm;
+		exop_oid = &oidm;
 	}
 
 	/* lookup the oid */
-	for ( extp = &supp_ext_list; *extp; extp = &(*extp)->next ) {
-		if ( bvmatch( ext_oid, &(*extp)->oid ) ) {
+	for ( extp = &supp_exop_list; *extp; extp = &(*extp)->next ) {
+		if ( bvmatch( exop_oid, &(*extp)->oid ) ) {
 			/* if ext_main is given, only remove if it matches */
-			if ( ext_main != NULL && (*extp)->ext_main != ext_main ) {
+			if ( exop_main != NULL && (*extp)->exop_main != exop_main ) {
 				return -1;
 			}
 			break;
@@ -390,12 +390,12 @@ extops_init (void)
 	int i;
 
 	for ( i = 0; builtin_extops[i].oid != NULL; i++ ) {
-		load_extop( (struct berval *)builtin_extops[i].oid,
+		extop_register( (struct berval *)builtin_extops[i].oid,
 			builtin_extops[i].flags,
-			builtin_extops[i].ext_main );
+			builtin_extops[i].exop_main );
 	}
 
-	return(0);
+	return 0;
 }
 
 int
@@ -404,11 +404,11 @@ extops_destroy (void)
 	struct extop_list *ext;
 
 	/* we allocated the memory, so we have to free it, too. */
-	while ((ext = supp_ext_list) != NULL) {
-		supp_ext_list = ext->next;
+	while ((ext = supp_exop_list) != NULL) {
+		supp_exop_list = ext->next;
 		ch_free(ext);
 	}
-	return(0);
+	return 0;
 }
 
 static struct extop_list *
@@ -420,7 +420,7 @@ find_extop( struct extop_list *list, struct berval *oid )
 		if (bvmatch(&ext->oid, oid))
 			return(ext);
 	}
-	return(NULL);
+	return NULL;
 }
 
 

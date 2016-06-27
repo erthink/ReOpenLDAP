@@ -32,7 +32,7 @@
  * <http://www.OpenLDAP.org/license.html>.
  */
 
-#include "portable.h"
+#include "reldap.h"
 
 #include <stdio.h>
 #include <ac/stdlib.h>
@@ -228,59 +228,6 @@ ldap_parse_pageresponse_control(
 
 		if ( countp != NULL ) {
 			*countp = (unsigned long)count;
-		}
-	}
-
-	return ld->ld_errno;
-}
-
-/* ---------------------------------------------------------------------------
-    ldap_parse_page_control
-
-    Decode a page control.
-
-    ld          (IN) An LDAP session handle
-    ctrls       (IN) Response controls
-    count      (OUT) The number of entries in the page.
-    cookie     (OUT) Opaque cookie.  Use ldap_memfree() to
-                     free the bv_val member of this structure.
-
-   ---------------------------------------------------------------------------*/
-
-int
-ldap_parse_page_control(
-	LDAP		*ld,
-	LDAPControl	**ctrls,
-	ber_int_t *countp,
-	struct berval	**cookiep )
-{
-	LDAPControl *c;
-	struct berval	cookie;
-
-	if ( cookiep == NULL ) {
-		ld->ld_errno = LDAP_PARAM_ERROR;
-		return ld->ld_errno;
-	}
-
-	if ( ctrls == NULL ) {
-		ld->ld_errno =  LDAP_CONTROL_NOT_FOUND;
-		return ld->ld_errno;
-	}
-
-	c = ldap_control_find( LDAP_CONTROL_PAGEDRESULTS, ctrls, NULL );
-	if ( c == NULL ) {
-		/* No page control was found. */
-		ld->ld_errno = LDAP_CONTROL_NOT_FOUND;
-		return ld->ld_errno;
-	}
-
-	ld->ld_errno = ldap_parse_pageresponse_control( ld, c, countp, &cookie );
-	if ( ld->ld_errno == LDAP_SUCCESS ) {
-		*cookiep = LDAP_MALLOC( sizeof( struct berval ) );
-		if ( *cookiep == NULL ) {
-			ld->ld_errno = LDAP_NO_MEMORY;
-		} else {
-			**cookiep = cookie;
 		}
 	}
 

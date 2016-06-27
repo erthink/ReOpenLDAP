@@ -37,23 +37,19 @@
  * in OpenLDAP Software.
  */
 
-#include "portable.h"
+#include "reldap.h"
 
 #include <stdio.h>
-
 #include "ac/stdlib.h"
-
 #include "ac/ctype.h"
 #include "ac/string.h"
 #include "ac/socket.h"
 #include "ac/unistd.h"
-
 #include "lber.h"
 #include "ldif.h"
 #include "lutil.h"
 #include "lutil_meter.h"
 #include <sys/stat.h>
-
 #include "slapcommon.h"
 
 extern int slap_DN_strict;	/* dn.c */

@@ -1,5 +1,5 @@
 #!/bin/bash
-# $ReOpenLDAP$
+## $ReOpenLDAP$
 ## Copyright (c) 2015,2016 Leonid Yuriev <leo@yuriev.ru>.
 ## Copyright (c) 2015,2016 Peter-Service R&D LLC <http://billing.ru/>.
 ##
@@ -32,16 +32,16 @@
 ## <http://www.OpenLDAP.org/license.html>.
 
 echo "running defines.sh"
-. $SRCDIR/scripts/defines.sh
+. ${TOP_SRCDIR}/tests/scripts/defines.sh
 
 echo ""
 
-if test $BACKMETA = metano ; then
+if test ${AC_conf[meta]} = no ; then
 	echo "meta backend not available, test skipped"
 	exit 0
 fi
 
-if test $BACKLDAP = ldapno ; then
+if test ${AC_conf[ldap]} = no ; then
 	echo "ldap backend not available, test skipped"
 	exit 0
 fi
@@ -73,7 +73,7 @@ if test "$BACKEND" = "bdb" || test "$BACKEND" = "hdb" ; then
 fi
 
 echo "Starting slapd on TCP/IP port $PORT1..."
-. $CONFFILTER $BACKEND $MONITORDB < $METACONF1 > $CONF1
+config_filter $BACKEND ${AC_conf[monitor]} < $METACONF1 > $CONF1
 echo " = $SLAPD_HUGE -f $CONF1 -h $URI1 $TIMING"
 $SLAPD_HUGE -f $CONF1 -h $URI1 $TIMING |& gzip > $LOG1.gz &
 PID=$(jobs -p | tail -1)
@@ -95,7 +95,7 @@ if test $RC != 0 ; then
 fi
 
 echo "Starting slapd on TCP/IP port $PORT2..."
-. $CONFFILTER $BACKEND $MONITORDB < $METACONF2 > $CONF2
+config_filter $BACKEND ${AC_conf[monitor]} < $METACONF2 > $CONF2
 echo " = $SLAPD_HUGE -f $CONF2 -h $URI2 $TIMING"
 $SLAPD_HUGE -f $CONF2 -h $URI2 $TIMING |& gzip > $LOG2.gz &
 PID=$(jobs -p | tail -1)
@@ -117,7 +117,7 @@ if test $RC != 0 ; then
 fi
 
 echo "Starting slapd on TCP/IP port $PORT3..."
-. $CONFFILTER $BACKEND $MONITORDB < $METACONF > $CONF3
+config_filter $BACKEND ${AC_conf[monitor]} < $METACONF > $CONF3
 echo " = $SLAPD_HUGE -f $CONF3 -h $URI3 $TIMING"
 $SLAPD_HUGE -f $CONF3 -h $URI3 $TIMING |& gzip > $LOG3.gz &
 PID=$(jobs -p | tail -1)
@@ -160,7 +160,7 @@ done
 
 # fix test data to include back-monitor, if available
 # NOTE: copies do_* files from $TESTDIR/$DATADIR to $TESTDIR
-$MONITORDATA "$MONITORDB" "$TESTDIR/$DATADIR" "$TESTDIR"
+monitor_data "$TESTDIR/$DATADIR" "$TESTDIR"
 
 BINDDN="cn=Manager,o=Local"
 PASSWD="secret"

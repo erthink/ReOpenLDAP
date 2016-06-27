@@ -36,16 +36,15 @@
  *	schema definitions
  */
 
-#include "portable.h"
+#include "reldap.h"
 
 #include <stdio.h>
 #include <ac/stdlib.h>
-
 #include <ac/string.h>
 #include <ac/time.h>
+#include <ac/localize.h>
 
 #include "ldap-int.h"
-
 #include <ldap_schema.h>
 
 static const char EndOfInput[] = "end of input";
@@ -1851,7 +1850,7 @@ ldap_matchingruleuse_free( LDAPMatchingRuleUse * mru )
 	LDAP_FREE(mru->mru_oid);
 	if (mru->mru_names) LDAP_VFREE(mru->mru_names);
 	if (mru->mru_desc) LDAP_FREE(mru->mru_desc);
-	if (mru->mru_applies_oids) LDAP_VFREE(mru->mru_applies_oids);
+	if (mru->mru_applies_oids) ldap_charray_free(mru->mru_applies_oids);
 	free_extensions(mru->mru_extensions);
 	LDAP_FREE(mru);
 }

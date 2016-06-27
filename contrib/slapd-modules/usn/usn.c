@@ -36,17 +36,15 @@
  * OpenLDAP Software.
  */
 
-#include "portable.h"
+#include "reldap.h"
 
 #ifdef SLAPD_OVER_USN
 
 #include <stdio.h>
-
 #include <ac/string.h>
 #include <ac/socket.h>
-
 #include "slap.h"
-#include "config.h"
+#include "slapconfig.h"
 
 /* This overlay intercepts write operations and adds a Microsoft-style
  * USN to the target entry.
@@ -337,8 +335,7 @@ usn_init( void )
 }
 
 #if SLAPD_OVER_USN == SLAPD_MOD_DYNAMIC
-int
-init_module( int argc, char *argv[] )
+SLAP_OVERLAY_ENTRY(usn, modinit) ( int argc, char *argv[] )
 {
 	return usn_init();
 }

@@ -42,10 +42,10 @@
  * must be instantiated as a global overlay
  */
 
-#include "portable.h"
+#include "reldap.h"
 
 #include "slap.h"
-#include "config.h"
+#include "slapconfig.h"
 #include "lutil.h"
 #include "ac/string.h"
 
@@ -398,8 +398,7 @@ authzid_initialize( void )
 	return overlay_register( &authzid );
 }
 
-int
-init_module( int argc, char *argv[] )
+SLAP_OVERLAY_ENTRY(authzid, modinit) ( int argc, char *argv[] )
 {
 	return authzid_initialize();
 }

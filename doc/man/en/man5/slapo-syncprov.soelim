@@ -1,0 +1,206 @@
+.TH SLAPO-SYNCPROV 5 "@RELEASE_DATE@" "ReOpenLDAP @VERSION@"
+.\" $ReOpenLDAP$
+.\" Copyright (c) 2015,2016 Leonid Yuriev <leo@yuriev.ru>.
+.\" Copyright (c) 2015,2016 Peter-Service R&D LLC <http://billing.ru/>.
+.\"
+.\" This file is part of ReOpenLDAP.
+.\"
+.\" ReOpenLDAP is free software; you can redistribute it and/or modify it under
+.\" the terms of the GNU Affero General Public License as published by
+.\" the Free Software Foundation; either version 3 of the License, or
+.\" (at your option) any later version.
+.\"
+.\" ReOpenLDAP is distributed in the hope that it will be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+.\" GNU Affero General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU Affero General Public License
+.\" along with this program.  If not, see <http://www.gnu.org/licenses/>.
+.\"
+.\" ---
+.\"
+.\" Copyright 2004-2014 The OpenLDAP Foundation All Rights Reserved.
+.\" Copying restrictions apply.  See COPYRIGHT/LICENSE.
+.SH NAME
+slapo\-syncprov \- Sync Provider overlay to slapd
+.SH SYNOPSIS
+@SYSCONFDIR@/slapd.conf
+.SH DESCRIPTION
+The Sync Provider overlay implements the provider-side support for the
+LDAP Content Synchronization (RFC4533) as well as syncrepl replication
+support.  The overlay
+can be used with any backend that maintains entryCSN and entryUUID
+attributes for its entries. It also creates a contextCSN attribute in
+the root entry of the database.
+
+The contextCSN is updated for every write operation performed against the
+database. To reduce database contention, the contextCSN is only updated in
+memory. The value is written to the database on server shutdown and read into
+memory on startup, and maintained in memory thereafter. Checkpoints may be
+configured to write the contextCSN into the underlying database to minimize
+recovery time after an unclean shutdown.
+
+On databases that support inequality indexing, it is helpful to set an
+eq index on the entryCSN attribute when using this overlay.
+.SH CONFIGURATION
+These
+.B slapd.conf
+options apply to the Sync Provider overlay.
+They should appear after the
+.B overlay
+directive.
+.TP
+.B syncprov\-checkpoint <ops> <minutes>
+After a write operation has succeeded, write the contextCSN to the underlying
+database if
+.B <ops>
+write operations or more than
+.B <minutes>
+time have passed
+since the last checkpoint. Checkpointing is disabled by default.
+.TP
+.B syncprov\-sessionlog <ops>
+Configures an in-memory session log for recording information about write
+operations made on the database.  The
+.B <ops>
+specifies the number of operations that are recorded in the log. All write
+operations (except Adds) are recorded in the log.
+When using the session log, it is helpful to set an eq index on the
+entryUUID attribute in the underlying database.
+.TP
+.B syncprov\-nopresent TRUE | FALSE
+Specify that the Present phase of refreshing should be skipped. This value
+should only be set TRUE for a syncprov instance on top of a log database
+(such as one managed by the accesslog overlay).
+The default is FALSE.
+.TP
+.B syncprov\-reloadhint TRUE | FALSE
+Specify that the overlay should honor the reloadHint flag in the Sync
+Control. In OpenLDAP releases 2.3.11 and earlier the syncrepl consumer did
+not properly set this flag, so the overlay must ignore it. This option
+should be set TRUE when working with newer releases that properly support
+this flag. It must be set TRUE when using the accesslog overlay for
+delta-based syncrepl replication support.  The default is FALSE.
+.TP
+.B syncprov\-showstatus { none | running | all }
+.RS
+Specifies when an additional substitute value will be added for the
+contextCSN attribute to indicate the currently relevant
+synchroniztaion/replication status across all the configured
+syncrepl replication consumers for the database
+corresponding to the current syncprov overlay. Such an additional
+value is added by the LDAP server only in response
+to a request that involves retrieving the contextCSN attribute;
+it indicates the synchronization/replication status at the time of the
+request and is never saved to the database. See below
+for the value format.
+.LP
+\fINote:\fP
+The LDAP Content Synchronization protocol (RFC4533) has a flaw.
+This flaw may occur in multi-master mode with three or more masters,
+causing a delete operation to be ignored if an add or modify
+operation is following it. So, there may be a situation where
+LDAP instances that participate in replication have matching sets of
+contextCSN values, which may result in there being entries that get deleted
+from the replication provider but remain on the replication consumers
+and are never deleted by the replication/synchronization mechanism.
+To prevent this situation, ReOpenLDAP, when synchronizing in
+multi-master mode, does an additional check to see
+if the existing entries match. However, this cannot be
+tracked down only by looking at the set of contextCSN values
+as, due to the protocol flaw described above, these values may
+not change. An additional substitute value for the contextCSN attribute
+allows for tracking the actual status of the synchronization process,
+both in normal mode and when an additional content check is done.
+.TP
+.B none
+No additional contextCSN is ever added.
+In this mode, OpenLDAP works as it used to work originally.
+.RE
+.RS
+.TP
+.B running
+An additional contextCSN value is added if there are
+active outgoing connections from syncrepl replication
+consumers for which synchronization has not been finished yet.
+But syncrepl instances that failed to reconnect to their
+syncprov replication providers are not taken into account.
+This mode is enabled by default.
+.RE
+.RS
+.TP
+.B all
+An additional contextCSN value is added if there is at least
+one syncrepl instance with unfinished or unsuccessful
+synchronization, including failed attempts to connect
+to syncprov replication providers.
+.LP
+The contextCSN value \fIformat\fP is as follows:
+.B YYYYMMDDHHMMSS.ttttttZ#xxxxxx#SID#ABC.DE
+.RE
+.RS
+.TP
+.B A
+A hexadecimal digit that shows the number of
+syncrepl instances which failed to connect to
+syncprov replication providers (DEAD).
+If greater than 15, it is assumed to be 0xF.
+.TP
+.B B
+A hexadecimal digit that shows the number of
+syncrepl instances that have not started synchronization yet or that
+failed to synchronize after connecting to
+a syncprov replication provider (DIRTY).
+If greater than 15, it is assumed to be 0xF.
+.TP
+.B C
+A hexadecimal digit that shows the number of syncrepl
+instances that have connected to syncprov replication
+providers but have not yet completed the initial
+content synchronization or an additional check
+of the existing entries (REFRESH).
+If greater than 15, it is assumed to be 0xF.
+.TP
+.B D
+A hexadecimal digit that shows the number of syncrepl
+instances that have connected to syncprov replication providers,
+have completed the initial synchronization and are now
+processing the latest update from the
+syncprov replication provider (PROCESS).
+If greater than 15, it is assumed to be 0xF.
+.TP
+.B E
+A hexadecimal digit that shows the number of syncrepl
+instances that have finished synchronizing and processing
+the latest updates from the
+syncprov replication provider (READY).
+If greater than 15, it is assumed to be 0xF.
+.TP
+.B SID
+A local server identifier (serverID) in hexadecimal format.
+.TP
+.B xxxxxx
+Ensures a unique checksum for
+the local identifiers (RID) of every
+syncrepl instance configured for a given database.
+.TP
+.B YYYYMMDDHHMMSS.tttttt
+A timestamp (down to the millisecond) that shows
+the time of the latest status update that is reflected
+in the contextCSN value that has been added.
+.TP
+.RE
+.RE
+.TP
+.SH FILES
+.TP
+@SYSCONFDIR@/slapd.conf
+default slapd configuration file
+.SH SEE ALSO
+.BR slapd.conf (5),
+.BR slapd\-config (5),
+.BR slapo\-accesslog (5).
+OpenLDAP Administrator's Guide.
+.SH ACKNOWLEDGEMENTS
+.so ../Project

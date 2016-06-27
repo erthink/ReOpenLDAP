@@ -37,12 +37,12 @@
  * WiredTiger is a product of MongoDB Inc.
  */
 
-#include "portable.h"
+#include "reldap.h"
 
 #include <stdio.h>
 #include <ac/string.h>
 #include "back-wt.h"
-#include "config.h"
+//#include "config.h"
 
 int wt_next_id(BackendDB *be, ID *out){
     struct wt_info *wi = (struct wt_info *) be->be_private;

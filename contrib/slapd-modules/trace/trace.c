@@ -36,7 +36,7 @@
  * OpenLDAP Software.
  */
 
-#include "portable.h"
+#include "reldap.h"
 
 #ifdef SLAPD_OVER_TRACE
 
@@ -267,8 +267,7 @@ trace_initialize()
 }
 
 #if SLAPD_OVER_TRACE == SLAPD_MOD_DYNAMIC
-int
-init_module( int argc, char *argv[] )
+SLAP_OVERLAY_ENTRY(trace, modinit) ( int argc, char *argv[] )
 {
 	return trace_initialize();
 }

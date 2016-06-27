@@ -33,7 +33,7 @@
  * <http://www.OpenLDAP.org/license.html>.
  */
 
-#include "portable.h"
+#include "reldap.h"
 
 #ifdef SLAPD_OVER_RWM
 
@@ -42,7 +42,7 @@
 #include <ac/string.h>
 
 #include "slap.h"
-#include "config.h"
+#include "slapconfig.h"
 #include "lutil.h"
 #include "rwm.h"
 
@@ -2711,11 +2711,8 @@ rwm_db_destroy(
 
 static slap_overinst rwm = { { NULL } };
 
-#if SLAPD_OVER_RWM == SLAPD_MOD_DYNAMIC
-static
-#endif /* SLAPD_OVER_RWM == SLAPD_MOD_DYNAMIC */
 int
-rwm_initialize( void )
+rwm_over_initialize( void )
 {
 	int		rc;
 
@@ -2766,11 +2763,7 @@ rwm_initialize( void )
 }
 
 #if SLAPD_OVER_RWM == SLAPD_MOD_DYNAMIC
-int
-init_module( int argc, char *argv[] )
-{
-	return rwm_initialize();
-}
+SLAP_OVERLAY_INIT_MODULE(rwm)
 #endif /* SLAPD_OVER_RWM == SLAPD_MOD_DYNAMIC */
 
 #endif /* SLAPD_OVER_RWM */

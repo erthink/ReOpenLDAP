@@ -115,9 +115,7 @@
 
 #endif /* LDAP_DEBUG */
 
-#define LDAP_DEPRECATED 1
 #include "ldap.h"
-
 #include "ldap_pvt.h"
 
 LDAP_BEGIN_DECL
@@ -665,7 +663,7 @@ LDAP_F (void) ldap_int_utils_init LDAP_P(( void ));
 /*
  * in print.c
  */
-LDAP_F (int) ldap_log_printf LDAP_P((LDAP *ld, int level, const char *fmt, ...)) LDAP_GCCATTR((format(printf, 3, 4)));
+LDAP_F (int) ldap_log_printf LDAP_P((LDAP *ld, int level, const char *fmt, ...)) __attribute__((format(printf, 3, 4)));
 
 /*
  * in controls.c

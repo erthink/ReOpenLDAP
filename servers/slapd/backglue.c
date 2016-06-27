@@ -44,7 +44,7 @@
  *  -- Howard Chu
  */
 
-#include "portable.h"
+#include "reldap.h"
 
 #include <stdio.h>
 
@@ -54,7 +54,7 @@
 #define SLAPD_TOOLS
 #include "slap.h"
 #include "lutil.h"
-#include "config.h"
+#include "slapconfig.h"
 
 typedef struct gluenode {
 	BackendDB *gn_be;

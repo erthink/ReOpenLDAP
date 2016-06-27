@@ -1,5 +1,5 @@
 #!/bin/bash
-# $ReOpenLDAP$
+## $ReOpenLDAP$
 ## Copyright (c) 2015,2016 Leonid Yuriev <leo@yuriev.ru>.
 ## Copyright (c) 2015,2016 Peter-Service R&D LLC <http://billing.ru/>.
 ##
@@ -138,9 +138,9 @@ fi
 #exit 0
 
 echo "running defines.sh"
-. $SRCDIR/scripts/defines.sh
+. ${TOP_SRCDIR}/tests/scripts/defines.sh
 
-if test $SYNCPROV = syncprovno; then
+if test ${AC_conf[syncprov]} = no; then
 	echo "Syncrepl provider overlay not available, test skipped"
 	exit 0
 fi
@@ -316,7 +316,7 @@ EOF
 done
 
 echo "Adding database config on central-master..."
-if [ "$SYNCPROV" = syncprovmod ]; then
+if [ ${AC_conf[syncprov]} = mod ]; then
 	$LDAPADD -D cn=config -H $URI1 -y $CONFIGPWF <<EOF >> $TESTOUT 2>&1
 dn: cn=module,cn=config
 objectClass: olcModuleList
@@ -410,7 +410,7 @@ if test $RC != 0 ; then
 fi
 
 echo "Adding database config on site1-master..."
-if [ "$SYNCPROV" = syncprovmod ]; then
+if [ ${AC_conf[syncprov]} = mod ]; then
 	$LDAPADD -D cn=config -H $URI2 -y $CONFIGPWF <<EOF >> $TESTOUT 2>&1
 dn: cn=module,cn=config
 objectClass: olcModuleList
@@ -483,7 +483,7 @@ if test $RC != 0 ; then
 fi
 
 echo "Adding database config on site2-master..."
-if [ "$SYNCPROV" = syncprovmod ]; then
+if [ ${AC_conf[syncprov]} = mod ]; then
 	$LDAPADD -D cn=config -H $URI3 -y $CONFIGPWF <<EOF >> $TESTOUT 2>&1
 dn: cn=module,cn=config
 objectClass: olcModuleList

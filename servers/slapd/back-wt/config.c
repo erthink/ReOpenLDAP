@@ -37,13 +37,12 @@
  * WiredTiger is a product of MongoDB Inc.
  */
 
-#include "portable.h"
+#include "reldap.h"
 
 #include <stdio.h>
 #include <ac/string.h>
 #include "back-wt.h"
-#include "config.h"
-
+#include "slapconfig.h"
 #include "lutil.h"
 #include "ldap_rq.h"
 

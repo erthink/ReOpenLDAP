@@ -32,11 +32,7 @@
  * <http://www.OpenLDAP.org/license.html>.
  */
 
-#ifndef _GNU_SOURCE
-#define _GNU_SOURCE 1			/* Needed for glibc struct ucred */
-#endif
-
-#include "portable.h"
+#include "reldap.h"
 
 #ifndef HAVE_GETPEEREID
 

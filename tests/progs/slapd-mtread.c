@@ -41,7 +41,7 @@
  * If -M is enabled, then M threads will also perform write operations.
  */
 
-#include "portable.h"
+#include "reldap.h"
 
 #include <stdio.h>
 #include "ldap_pvt_thread.h"

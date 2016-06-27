@@ -39,7 +39,7 @@
  * Masarati.
  */
 
-#include "portable.h"
+#include "reldap.h"
 
 #include <stdio.h>
 #include <ac/string.h>
@@ -50,7 +50,7 @@
 #include "lutil.h"
 #include "back-ldap.h"
 
-#include "config.h"
+#include "slapconfig.h"
 
 static ObjectClass		*oc_olmLDAPDatabase;
 static ObjectClass		*oc_olmLDAPConnection;

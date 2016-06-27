@@ -1,5 +1,5 @@
 #!/bin/bash
-# $ReOpenLDAP$
+## $ReOpenLDAP$
 ## Copyright (c) 2015,2016 Leonid Yuriev <leo@yuriev.ru>.
 ## Copyright (c) 2015,2016 Peter-Service R&D LLC <http://billing.ru/>.
 ##
@@ -32,9 +32,9 @@
 ## <http://www.OpenLDAP.org/license.html>.
 
 echo "running defines.sh"
-. $SRCDIR/scripts/defines.sh
+. ${TOP_SRCDIR}/tests/scripts/defines.sh
 
-if test $MONITORDB = "no" ; then
+if test ${AC_conf[monitor]} = "no" ; then
 	echo "Monitor backend not available, test skipped"
 	exit 0
 fi
@@ -42,7 +42,7 @@ fi
 mkdir -p $TESTDIR $DBDIR1
 
 echo "Starting slapd on TCP/IP port $PORT..."
-. $CONFFILTER $BACKEND $MONITORDB < $SCHEMACONF > $CONF1
+config_filter $BACKEND ${AC_conf[monitor]} < $SCHEMACONF > $CONF1
 $SLAPD -f $CONF1 -h $URI1 $TIMING > $LOG1 2>&1 &
 PID=$!
 if test $WAIT != 0 ; then
@@ -79,7 +79,7 @@ localrewrite='s/=127\.0\.0\.1:/=LOCAL:/; s/=\[::1\]:/=LOCAL:/'
 echo "Filtering ldapsearch results..."
 sed -e "$localrewrite" < $SEARCHOUT | $LDIFFILTER > $SEARCHFLT
 echo "Filtering expected data..."
-. $CONFFILTER < $MONITOROUT1 | sed -e "$localrewrite" | $LDIFFILTER > $LDIFFLT
+config_filter < $MONITOROUT1 | sed -e "$localrewrite" | $LDIFFILTER > $LDIFFLT
 echo "Comparing filter output..."
 $CMP $SEARCHFLT $LDIFFLT > $CMPOUT
 

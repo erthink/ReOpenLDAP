@@ -42,7 +42,7 @@
  * is provided ``as is'' without express or implied warranty.
  */
 
-#include "portable.h"
+#include "reldap.h"
 
 #include <stdio.h>
 
@@ -64,10 +64,10 @@
 #endif
 
 /* LY: needed by config_keepalive() */
-#include "config.h"
+#include "slapconfig.h"
 
 /* LY: for ldap_pvt_tcpkeepalive() from libreldap */
-#include "../../../libraries/libreldap/ldap-int.h"
+#include "../../libraries/libreldap/ldap-int.h"
 
 #if defined(HAVE_SYS_EPOLL_H) && defined(HAVE_EPOLL)
 # include <sys/epoll.h>
@@ -2712,7 +2712,7 @@ loop:
 					Debug( LDAP_DEBUG_CONNS,
 						"daemon: socket troube on %d\n",
 						fd );
-					if (connections_socket_troube(fd) < 0) {
+					if (connections_socket_trouble(fd) < 0) {
 #ifdef HAVE_EPOLL
 						/* Don't keep reporting the hangup */
 						ldap_pvt_thread_mutex_lock( &slap_daemon[tid].sd_mutex );
@@ -2850,7 +2850,7 @@ slapd_daemon( void )
 	return 0;
 }
 
-RETSIGTYPE
+void
 slap_sig_shutdown( int sig )
 {
 	int save_errno = errno;
@@ -2887,7 +2887,7 @@ slap_sig_shutdown( int sig )
 	errno = save_errno;
 }
 
-RETSIGTYPE
+void
 slap_sig_wake( int sig )
 {
 	int save_errno = errno;

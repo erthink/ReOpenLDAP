@@ -38,7 +38,7 @@
  */
 
 #include "back-wt.h"
-#include "config.h"
+//#include "config.h"
 
 static int wt_id2entry_put(
 	Operation *op,

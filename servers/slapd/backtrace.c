@@ -31,12 +31,7 @@ int slap_limit_coredump_get() {return 0;}
 int slap_limit_memory_get() {return 0;}
 #else /* __linux__ */
 
-/* TODO: add libelf detection to configure. */
-#define HAVE_LIBELF 1
-
-#ifndef _GNU_SOURCE
-#	define _GNU_SOURCE
-#endif
+#include "reldap.h"
 
 #include <unistd.h>
 #include <signal.h>
@@ -58,9 +53,8 @@ int slap_limit_memory_get() {return 0;}
 #include <sys/time.h>
 #include <sys/resource.h>
 
-#include "portable.h"
 #include "slap.h"
-#include "config.h"
+#include "slapconfig.h"
 #include "ac/errno.h"
 
 /* LY: avoid collision with slapd memory checking. */
@@ -124,7 +118,7 @@ static void backtrace_cleanup(void)
 	}
 }
 
-#ifdef HAVE_LIBBFD
+#if defined(HAVE_LIBBFD) && !defined(PS_COMPAT_RHEL6)
 static int is_bfd_symbols_available(void) {
 	char name_buf[PATH_MAX];
 	int n = readlink("/proc/self/exe", name_buf, sizeof(name_buf) - 1);

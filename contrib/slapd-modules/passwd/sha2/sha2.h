@@ -53,7 +53,7 @@
 #ifndef __SHA2_H__
 #define __SHA2_H__
 
-#include "portable.h"
+#include "reldap.h"
 
 #ifdef HAVE_INTTYPES_H
 #  define SHA2_USE_INTTYPES_H 1

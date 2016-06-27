@@ -37,7 +37,7 @@
  * OpenLDAP Software.
  */
 
-#include "portable.h"
+#include "reldap.h"
 
 #ifdef SLAPD_OVER_ACCESSLOG
 
@@ -47,7 +47,7 @@
 #include <ac/ctype.h>
 
 #include "slap.h"
-#include "config.h"
+#include "slapconfig.h"
 #include "lutil.h"
 #include "ldap_rq.h"
 
@@ -2350,7 +2350,7 @@ accesslog_db_open(
 	return 0;
 }
 
-int accesslog_initialize()
+int accesslog_over_initialize()
 {
 	int i, rc;
 
@@ -2426,11 +2426,7 @@ int accesslog_initialize()
 }
 
 #if SLAPD_OVER_ACCESSLOG == SLAPD_MOD_DYNAMIC
-int
-init_module( int argc, char *argv[] )
-{
-	return accesslog_initialize();
-}
+SLAP_OVERLAY_INIT_MODULE(accesslog)
 #endif
 
 #endif /* SLAPD_OVER_ACCESSLOG */

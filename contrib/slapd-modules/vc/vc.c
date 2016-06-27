@@ -41,7 +41,7 @@
  * no spec yet
  */
 
-#include "portable.h"
+#include "reldap.h"
 
 #include "slap.h"
 #include "ac/string.h"
@@ -438,7 +438,7 @@ vc_initialize( void )
 {
 	int rc;
 
-	rc = load_extop2( (struct berval *)&vc_exop_oid_bv,
+	rc = extop_register_ex( (struct berval *)&vc_exop_oid_bv,
 		SLAP_EXOP_HIDE, vc_exop, 0 );
 	if ( rc != LDAP_SUCCESS ) {
 		Debug( LDAP_DEBUG_ANY,
@@ -451,8 +451,7 @@ vc_initialize( void )
 	return rc;
 }
 
-int
-init_module( int argc, char *argv[] )
+SLAP_OVERLAY_ENTRY(vc, modinit) ( int argc, char *argv[] )
 {
 	return vc_initialize();
 }

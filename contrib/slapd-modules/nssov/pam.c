@@ -821,7 +821,7 @@ int pam_pwmod(nssov_info *ni,TFILE *fp,Operation *op,uid_t calleruid)
 	SlapReply rs = {REP_RESULT};
 	slap_callback cb = {0};
 
-	ber_init_w_nullc(ber, LBER_USE_DER);
+	ber_init2(ber, NULL, LBER_USE_DER);
 	ber_printf(ber, "{");
 	if (!BER_BVISEMPTY(&pi.dn))
 		ber_printf(ber, "tO", LDAP_TAG_EXOP_MODIFY_PASSWD_ID,

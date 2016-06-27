@@ -104,7 +104,7 @@
  *   See the index_substr_* keywords in slapd.conf(5).
  */
 
-#include "portable.h"
+#include "reldap.h"
 
 #include <stdio.h>
 #ifdef HAVE_LIMITS_H

@@ -38,7 +38,7 @@
  * This work was subsequently modified by Pierangelo Masarati.
  */
 
-#include "portable.h"
+#include "reldap.h"
 
 #include <stdio.h>
 
@@ -48,7 +48,7 @@
 #include "lutil.h"
 #include "slap.h"
 #include "back-ldap.h"
-#include "config.h"
+#include "slapconfig.h"
 
 #ifdef LDAP_CONTROL_X_CHAINING_BEHAVIOR
 #define SLAP_CHAINING_DEFAULT				LDAP_CHAINING_PREFERRED

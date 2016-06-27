@@ -58,7 +58,7 @@
 #undef PACKAGE_TARNAME
 #undef PACKAGE_VERSION
 
-#include "portable.h"
+#include "reldap.h"
 #include "slap.h"
 #include <ac/string.h>
 

@@ -50,7 +50,7 @@
  *
  */
 
-#include "portable.h"
+#include "reldap.h"
 
 #include <stdio.h>
 
@@ -395,8 +395,11 @@ ldap_pvt_sasl_getmechs ( LDAP *ld, char **pmechlist )
 
 	Debug( LDAP_DEBUG_TRACE, "ldap_pvt_sasl_getmech\n" );
 
-	rc = ldap_search_s( ld, "", LDAP_SCOPE_BASE,
-		NULL, attrs, 0, &res );
+	/* rc = ldap_search_s( ld, "", LDAP_SCOPE_BASE,
+		NULL, attrs, 0, &res ); */
+
+	rc = ldap_search_ext_s( ld, "", LDAP_SCOPE_BASE,
+		NULL, attrs, 0, NULL, NULL, NULL, 0, &res );
 
 	if ( rc != LDAP_SUCCESS ) {
 		return ld->ld_errno;

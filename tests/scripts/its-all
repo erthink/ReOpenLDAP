@@ -1,5 +1,5 @@
 #!/bin/bash
-# $ReOpenLDAP$
+## $ReOpenLDAP$
 ## Copyright (c) 2015,2016 Leonid Yuriev <leo@yuriev.ru>.
 ## Copyright (c) 2015,2016 Peter-Service R&D LLC <http://billing.ru/>.
 ##
@@ -31,13 +31,7 @@
 ## top-level directory of the distribution or, alternatively, at
 ## <http://www.OpenLDAP.org/license.html>.
 
-. $SRCDIR/scripts/defines.sh
-
-TB="" TN=""
-if test -t 1 ; then
-	TB=`$SHTOOL echo -e "%B" 2>/dev/null`
-	TN=`$SHTOOL echo -e "%b" 2>/dev/null`
-fi
+. ${TOP_SRCDIR}/tests/scripts/defines.sh
 
 teamcity_msg "testSuiteStarted name='all LDAP ITS regression tests'"
 
@@ -50,7 +44,7 @@ echo "###"
 
 echo ">>>>> Executing all LDAP ITS regression tests"
 
-for CMD in $SRCDIR/data/regressions/its*/its*; do
+for CMD in ${TOP_SRCDIR}/tests/data/regressions/its*/its*; do
 	# remove cruft from prior test
 	if test $PRESERVE = yes ; then
 		/bin/rm -rf testrun/db.*

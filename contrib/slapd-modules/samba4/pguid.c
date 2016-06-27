@@ -37,7 +37,7 @@
  * for inclusion in OpenLDAP Software.
  */
 
-#include "portable.h"
+#include "reldap.h"
 
 #ifdef SLAPD_OVER_PGUID
 
@@ -47,7 +47,7 @@
 #include "ac/socket.h"
 
 #include "slap.h"
-#include "config.h"
+#include "slapconfig.h"
 
 #include "lutil.h"
 
@@ -468,8 +468,7 @@ pguid_initialize(void)
 }
 
 #if SLAPD_OVER_PGUID == SLAPD_MOD_DYNAMIC
-int
-init_module( int argc, char *argv[] )
+SLAP_OVERLAY_ENTRY(pguid, modinit) ( int argc, char *argv[] )
 {
 	return pguid_initialize();
 }

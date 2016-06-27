@@ -32,7 +32,7 @@
  * <http://www.OpenLDAP.org/license.html>.
  */
 
-#include "portable.h"
+#include "reldap.h"
 
 #include <stdio.h>
 
@@ -132,9 +132,6 @@ passwd_back_db_init(
 }
 
 #if SLAPD_PASSWD == SLAPD_MOD_DYNAMIC
-
-/* conditionally define the init_module() function */
 SLAP_BACKEND_INIT_MODULE( passwd )
-
 #endif /* SLAPD_PASSWD == SLAPD_MOD_DYNAMIC */
 

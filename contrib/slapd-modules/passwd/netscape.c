@@ -39,6 +39,8 @@
 #include "lutil_md5.h"
 #include <ac/string.h>
 
+#include <slap.h>
+
 static LUTIL_PASSWD_CHK_FUNC chk_ns_mta_md5;
 static const struct berval scheme = BER_BVC("{NS-MTA-MD5}");
 
@@ -94,6 +96,6 @@ static int chk_ns_mta_md5(
 		(char *)buffer, sizeof(buffer)) ? LUTIL_PASSWD_ERR : LUTIL_PASSWD_OK;
 }
 
-int init_module(int argc, char *argv[]) {
+SLAP_OVERLAY_ENTRY(pw_netscape, modinit) ( int argc, char *argv[] )
 	return lutil_passwd_add( (struct berval *)&scheme, chk_ns_mta_md5, NULL );
 }

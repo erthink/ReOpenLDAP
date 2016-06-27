@@ -36,7 +36,7 @@
  * in OpenLDAP software.
  */
 
-#include "portable.h"
+#include "reldap.h"
 #include "lutil_meter.h"
 
 #include <ac/string.h>

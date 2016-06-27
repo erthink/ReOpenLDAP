@@ -46,7 +46,7 @@
  * 	Juan C. Gomez
  */
 
-#include "portable.h"
+#include "reldap.h"
 
 #include <stdio.h>
 
@@ -175,66 +175,6 @@ ldap_rename(
 	return LDAP_SUCCESS;
 }
 
-
-/*
- * ldap_rename2 - initiate an ldap (and X.500) modifyDN operation. Parameters:
- *	(LDAP V3 MODIFYDN REQUEST)
- *	ld		LDAP descriptor
- *	dn		DN of the object to modify
- *	newrdn		RDN to give the object
- *	deleteoldrdn	nonzero means to delete old rdn values from the entry
- *	newSuperior	DN of the new parent if applicable
- *
- * ldap_rename2 uses a U-Mich Style API.  It returns the msgid.
- */
-
-int
-ldap_rename2(
-	LDAP *ld,
-	LDAP_CONST char *dn,
-	LDAP_CONST char *newrdn,
-	LDAP_CONST char *newSuperior,
-	int deleteoldrdn )
-{
-	int msgid = 0;
-	int rc;
-
-	Debug( LDAP_DEBUG_TRACE, "ldap_rename2\n" );
-
-	rc = ldap_rename( ld, dn, newrdn, newSuperior,
-		deleteoldrdn, NULL, NULL, &msgid );
-
-	return rc == LDAP_SUCCESS ? msgid : -1;
-}
-
-
-/*
- * ldap_modrdn2 - initiate an ldap modifyRDN operation. Parameters:
- *
- *	ld		LDAP descriptor
- *	dn		DN of the object to modify
- *	newrdn		RDN to give the object
- *	deleteoldrdn	nonzero means to delete old rdn values from the entry
- *
- * Example:
- *	msgid = ldap_modrdn( ld, dn, newrdn );
- */
-int
-ldap_modrdn2( LDAP *ld,
-	LDAP_CONST char *dn,
-	LDAP_CONST char *newrdn,
-	int deleteoldrdn )
-{
-	return ldap_rename2( ld, dn, newrdn, NULL, deleteoldrdn );
-}
-
-int
-ldap_modrdn( LDAP *ld, LDAP_CONST char *dn, LDAP_CONST char *newrdn )
-{
-	return( ldap_rename2( ld, dn, newrdn, NULL, 1 ) );
-}
-
-
 int
 ldap_rename_s(
 	LDAP *ld,
@@ -265,26 +205,3 @@ ldap_rename_s(
 	return ldap_result2error( ld, res, 1 );
 }
 
-int
-ldap_rename2_s(
-	LDAP *ld,
-	LDAP_CONST char *dn,
-	LDAP_CONST char *newrdn,
-	LDAP_CONST char *newSuperior,
-	int deleteoldrdn )
-{
-	return ldap_rename_s( ld, dn, newrdn, newSuperior,
-		deleteoldrdn, NULL, NULL );
-}
-
-int
-ldap_modrdn2_s( LDAP *ld, LDAP_CONST char *dn, LDAP_CONST char *newrdn, int deleteoldrdn )
-{
-	return ldap_rename_s( ld, dn, newrdn, NULL, deleteoldrdn, NULL, NULL );
-}
-
-int
-ldap_modrdn_s( LDAP *ld, LDAP_CONST char *dn, LDAP_CONST char *newrdn )
-{
-	return ldap_rename_s( ld, dn, newrdn, NULL, 1, NULL, NULL );
-}

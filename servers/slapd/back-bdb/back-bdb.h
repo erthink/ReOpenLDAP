@@ -35,7 +35,7 @@
 #ifndef _BACK_BDB_H_
 #define _BACK_BDB_H_
 
-#include <portable.h>
+#include <reldap.h>
 #include "slap.h"
 #include <db.h>
 #include "alock.h"

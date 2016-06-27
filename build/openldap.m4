@@ -339,13 +339,13 @@ dnl --------------------------------------------------------------------
 dnl Get major and minor version from <db.h>
 AC_DEFUN([OL_BDB_HEADER_VERSION],
 [AC_CACHE_CHECK([for Berkeley DB major version in db.h], [ol_cv_bdb_major],[
-	AC_LANG_CONFTEST([
+	AC_LANG_CONFTEST([AC_LANG_SOURCE([
 #include <db.h>
 #ifndef DB_VERSION_MAJOR
 #	define DB_VERSION_MAJOR 1
 #endif
 __db_version DB_VERSION_MAJOR
-])
+])])
 	set X `eval "$ac_cpp -P conftest.$ac_ext" | $EGREP __db_version` none none
 	ol_cv_bdb_major=${3}
 ])
@@ -355,13 +355,13 @@ esac
 
 dnl Determine minor version
 AC_CACHE_CHECK([for Berkeley DB minor version in db.h], [ol_cv_bdb_minor],[
-	AC_LANG_CONFTEST([
+	AC_LANG_CONFTEST([AC_LANG_SOURCE([
 #include <db.h>
 #ifndef DB_VERSION_MINOR
 #	define DB_VERSION_MINOR 0
 #endif
 __db_version DB_VERSION_MINOR
-])
+])])
 	set X `eval "$ac_cpp -P conftest.$ac_ext" | $EGREP __db_version` none none
 	ol_cv_bdb_minor=${3}
 ])
@@ -696,7 +696,7 @@ AC_DEFUN([OL_PTHREAD_TEST_FUNCTION],[[
 ]])
 
 AC_DEFUN([OL_PTHREAD_TEST_PROGRAM],
-AC_LANG_SOURCE([OL_PTHREAD_TEST_INCLUDES
+[AC_LANG_SOURCE([OL_PTHREAD_TEST_INCLUDES
 
 int main(argc, argv)
 	int argc;
@@ -704,7 +704,7 @@ int main(argc, argv)
 {
 OL_PTHREAD_TEST_FUNCTION
 }
-]))
+])])
 dnl --------------------------------------------------------------------
 AC_DEFUN([OL_PTHREAD_TRY], [# Pthread try link: $1 ($2)
 if test "$ol_link_threads" = no ; then
@@ -1150,28 +1150,3 @@ AC_DEFUN([OL_SSL_COMPAT],
 #endif
 	], [ol_cv_ssl_crl_compat=yes], [ol_cv_ssl_crl_compat=no])])
 ])
-dnl
-dnl ===========================================================================
-dnl Check for some custom valgrind modules
-AC_ARG_ENABLE(valgrind,
-  AS_HELP_STRING([--disable-valgrind],
-		 [Disable valgrind support]),
-  [use_valgrind=$enableval], [use_valgrind=yes])
-
-if test "x$use_valgrind" = "xyes"; then
-    PKG_CHECK_MODULES(VALGRIND, valgrind, [
-	    _save_CFLAGS="$CFLAGS"
-	    _save_CPPFLAGS="$CPPFLAGS"
-	    CFLAGS="$CFLAGS $VALGRIND_CFLAGS"
-	    CPPFLAGS="$CPPFLAGS $VALGRIND_CFLAGS"
-	    AC_CHECK_HEADER([valgrind.h], [AC_DEFINE([HAVE_VALGRIND], [1],
-			    [Define to 1 if you have Valgrind])])
-	    AC_CHECK_HEADER([lockdep.h], [AC_DEFINE([HAVE_LOCKDEP], [1],
-			    [Define to 1 if you have the Valgrind lockdep tool])])
-	    AC_CHECK_HEADER([memfault.h], [AC_DEFINE([HAVE_MEMFAULT], [1],
-			    [Define to 1 if you have the Valgrind memfault tool])])
-	    CAIRO_CFLAGS="$VALGRIND_CFLAGS $CAIRO_CFLAGS"
-	    CFLAGS="$_save_CFLAGS"
-	    CPPFLAGS="$_save_CPPFLAGS"
-	], AC_MSG_RESULT(no))
-fi

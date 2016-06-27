@@ -40,8 +40,7 @@
 #ifndef _BACK_WT_H_
 #define _BACK_WT_H_
 
-#include <portable.h>
-
+#include "reldap.h"
 #include <ac/errno.h>
 #include <sys/stat.h>
 

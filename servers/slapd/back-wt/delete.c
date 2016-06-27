@@ -37,13 +37,13 @@
  * WiredTiger is a product of MongoDB Inc.
  */
 
-#include "portable.h"
+#include "reldap.h"
 
 #include <stdio.h>
 #include <ac/string.h>
 
 #include "back-wt.h"
-#include "config.h"
+//#include "config.h"
 
 int
 wt_delete( Operation *op, SlapReply *rs )

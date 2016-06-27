@@ -31,7 +31,7 @@
  * <http://www.OpenLDAP.org/license.html>.
  */
 
-#include "portable.h"
+#include "reldap.h"
 
 #include <stdio.h>
 
@@ -125,23 +125,3 @@ void ldap_debug_va( const char* fmt, va_list vl )
 	fputs( buffer, stderr );
 	ldap_debug_unlock();
 }
-
-#if defined(HAVE_EBCDIC) && defined(LDAP_SYSLOG)
-#undef syslog
-void _ldap_eb_syslog( int pri, const char *fmt, ... )
-{
-	char buffer[4096];
-	va_list vl;
-
-	va_start( vl, fmt );
-	vsnprintf( buffer, sizeof(buffer), fmt, vl );
-	buffer[sizeof(buffer)-1] = '\0';
-
-	/* The syslog function appears to only work with pure EBCDIC */
-	__atoe(buffer);
-#pragma convlit(suspend)
-	syslog( pri, "%s", buffer );
-#pragma convlit(resume)
-	va_end( vl );
-}
-#endif

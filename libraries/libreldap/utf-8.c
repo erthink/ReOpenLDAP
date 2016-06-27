@@ -41,7 +41,7 @@
  * These routines are not optimized.
  */
 
-#include "portable.h"
+#include "reldap.h"
 
 #include <stdio.h>
 

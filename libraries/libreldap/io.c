@@ -46,7 +46,7 @@
  * (as part of U-MICH LDAP).
  */
 
-#include "portable.h"
+#include "reldap.h"
 
 #include <stdio.h>
 
@@ -213,22 +213,10 @@ ber_free_buf( BerElement *ber )
 void
 ber_free( BerElement *ber, int freebuf )
 {
-	if(unlikely( ber == NULL )) {
-		LDAP_MEMORY_ASSERT( ber != NULL );
-		return;
+	if (likely( ber != NULL )) {
+		if ( freebuf ) ber_free_buf( ber );
+		ber_memfree_x( (char *) ber, ber->ber_memctx );
 	}
-
-	if( freebuf ) ber_free_buf( ber );
-
-	ber_memfree_x( (char *) ber, ber->ber_memctx );
-}
-
-int
-ber_flush( Sockbuf *sb, BerElement *ber, int freeit )
-{
-	return ber_flush2( sb, ber,
-		freeit ? LBER_FLUSH_FREE_ON_SUCCESS
-			: LBER_FLUSH_FREE_NEVER );
 }
 
 int
@@ -297,18 +285,6 @@ ber_alloc_t( int options )
 }
 
 BerElement *
-ber_alloc( void )	/* deprecated */
-{
-	return ber_alloc_t( 0 );
-}
-
-BerElement *
-der_alloc( void )	/* deprecated */
-{
-	return ber_alloc_t( LBER_USE_DER );
-}
-
-BerElement *
 ber_dup( BerElement *ber )
 {
 	BerElement	*new;
@@ -325,7 +301,6 @@ ber_dup( BerElement *ber )
 	assert( LBER_VALID( new ) );
 	return( new );
 }
-
 
 void
 ber_init2( BerElement *ber, struct berval *bv, int options )
@@ -345,13 +320,6 @@ ber_init2( BerElement *ber, struct berval *bv, int options )
 	}
 
 	assert( LBER_VALID( ber ) );
-}
-
-/* OLD U-Mich ber_init() */
-void
-ber_init_w_nullc( BerElement *ber, int options )
-{
-	ber_init2( ber, NULL, options );
 }
 
 /* New C-API ber_init() */

@@ -38,7 +38,7 @@
  */
 
 #include "back-wt.h"
-#include "config.h"
+//#include "slapconfig.h"
 
 /* Find the ad, return -1 if not found,
  * set point for insertion if ins is non-NULL

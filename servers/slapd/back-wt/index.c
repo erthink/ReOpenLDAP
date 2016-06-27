@@ -37,11 +37,11 @@
  * WiredTiger is a product of MongoDB Inc.
  */
 
-#include "portable.h"
+#include "reldap.h"
 
 #include <stdio.h>
 #include "back-wt.h"
-#include "config.h"
+//#include "config.h"
 
 static char presence_keyval[] = {0,0};
 static struct berval presence_key = BER_BVC(presence_keyval);

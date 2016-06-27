@@ -34,7 +34,7 @@
 
 /* Functions to overlay other modules over a backend. */
 
-#include "portable.h"
+#include "reldap.h"
 
 #include <stdio.h>
 
@@ -43,7 +43,7 @@
 
 #define SLAPD_TOOLS
 #include "slap.h"
-#include "config.h"
+#include "slapconfig.h"
 
 static slap_overinst *overlays;
 

@@ -35,7 +35,7 @@
 #ifndef _H_SLAPD_COMPONENT
 #define _H_SLAPD_COMPONENT
 
-#include "portable.h"
+#include "reldap.h"
 
 #include <ac/string.h>
 #include <ac/socket.h>

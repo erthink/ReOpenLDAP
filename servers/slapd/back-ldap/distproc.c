@@ -38,7 +38,7 @@
  * Based on back-ldap and slapo-chain, developed by Howard Chu
  */
 
-#include "portable.h"
+#include "reldap.h"
 
 #include <stdio.h>
 
@@ -51,7 +51,7 @@
 
 #include "back-ldap.h"
 
-#include "config.h"
+#include "slapconfig.h"
 
 /*
  * From <draft-sermersheim-ldap-distproc>
@@ -968,7 +968,7 @@ distproc_initialize( void )
 	/* Make sure we don't exceed the bits reserved for userland */
 	config_check_userland( DP_LAST );
 
-	rc = load_extop( (struct berval *)&slap_EXOP_CHAINEDREQUEST,
+	rc = extop_register( (struct berval *)&slap_EXOP_CHAINEDREQUEST,
 		SLAP_EXOP_HIDE, ldap_exop_chained_request );
 	if ( rc != LDAP_SUCCESS ) {
 		Debug( LDAP_DEBUG_ANY, "slapd-distproc: "

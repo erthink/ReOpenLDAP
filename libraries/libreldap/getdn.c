@@ -34,7 +34,7 @@
  * All rights reserved.
  */
 
-#include "portable.h"
+#include "reldap.h"
 
 #include <stdio.h>
 
@@ -170,22 +170,6 @@ ldap_get_dn_ber( LDAP *ld, LDAPMessage *entry, BerElement **berout,
 }
 
 /*
- * RFC 1823 ldap_dn2ufn
- */
-char *
-ldap_dn2ufn( LDAP_CONST char *dn )
-{
-	char	*out = NULL;
-
-	Debug( LDAP_DEBUG_TRACE, "ldap_dn2ufn\n" );
-
-	( void )ldap_dn_normalize( dn, LDAP_DN_FORMAT_LDAP,
-		&out, LDAP_DN_FORMAT_UFN );
-
-	return( out );
-}
-
-/*
  * RFC 1823 ldap_explode_dn
  */
 char **
@@ -310,44 +294,6 @@ error_return:;
 	LBER_VFREE( values );
 	ldap_rdnfree( tmpRDN );
 	return( NULL );
-}
-
-char *
-ldap_dn2dcedn( LDAP_CONST char *dn )
-{
-	char	*out = NULL;
-
-	Debug( LDAP_DEBUG_TRACE, "ldap_dn2dcedn\n" );
-
-	( void )ldap_dn_normalize( dn, LDAP_DN_FORMAT_LDAP,
-				   &out, LDAP_DN_FORMAT_DCE );
-
-	return( out );
-}
-
-char *
-ldap_dcedn2dn( LDAP_CONST char *dce )
-{
-	char	*out = NULL;
-
-	Debug( LDAP_DEBUG_TRACE, "ldap_dcedn2dn\n" );
-
-	( void )ldap_dn_normalize( dce, LDAP_DN_FORMAT_DCE, &out, LDAP_DN_FORMAT_LDAPV3 );
-
-	return( out );
-}
-
-char *
-ldap_dn2ad_canonical( LDAP_CONST char *dn )
-{
-	char	*out = NULL;
-
-	Debug( LDAP_DEBUG_TRACE, "ldap_dn2ad_canonical\n" );
-
-	( void )ldap_dn_normalize( dn, LDAP_DN_FORMAT_LDAP,
-		       &out, LDAP_DN_FORMAT_AD_CANONICAL );
-
-	return( out );
 }
 
 /*
@@ -3314,4 +3260,3 @@ int ldap_dn2bv_x( LDAPDN dn, struct berval *bv, unsigned flags, void *ctx )
 return_results:;
 	return( rc );
 }
-

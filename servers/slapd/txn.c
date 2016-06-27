@@ -32,16 +32,13 @@
  * <http://www.OpenLDAP.org/license.html>.
  */
 
-#include "portable.h"
+#include "reldap.h"
 
 #include <stdio.h>
-
 #include <ac/socket.h>
 #include <ac/string.h>
 #include <ac/unistd.h>
-
 #include "slap.h"
-
 #include <lber_pvt.h>
 #include <lutil.h>
 
@@ -285,7 +282,7 @@ int txn_end_extop(
 				BerElementBuffer berbuf;
 				BerElement *ber = (BerElement *)&berbuf;
 
-				ber_init_w_nullc( ber, LBER_USE_DER );
+				ber_init2( ber, NULL, LBER_USE_DER );
 				ber_printf( ber, "{i", o->o_msgid );
 				if ( cb.sc_private )
 					txn_put_ctrls( op, ber, cb.sc_private );
@@ -302,7 +299,7 @@ int txn_end_extop(
 			BerElementBuffer berbuf;
 			BerElement *ber = (BerElement *)&berbuf;
 
-			ber_init_w_nullc( ber, LBER_USE_DER );
+			ber_init2( ber, NULL, LBER_USE_DER );
 			ber_printf( ber, "{" );
 			txn_put_ctrls( op, ber, cb.sc_private );
 			ber_printf( ber, "}" );

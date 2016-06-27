@@ -19,7 +19,7 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "portable.h"
+#include "reldap.h"
 
 #include "slap.h"
 #include "proto-slap.h"

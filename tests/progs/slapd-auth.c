@@ -35,12 +35,10 @@
  * in OpenLDAP Software.
  */
 
-#include "portable.h"
+#include "reldap.h"
 
 #include <stdio.h>
-
 #include <ac/stdlib.h>
-
 #include <ac/ctype.h>
 #include <ac/param.h>
 #include <ac/socket.h>
@@ -69,7 +67,7 @@ static void
 usage( char *name )
 {
 	fprintf( stderr, "usage: %s -H <uri> -b <baseDN> -w <passwd> -t <seconds> -r lo:hi\n\t"
-		"[-R %:lo:hi] [-f <filter-template>] [-n <threads>] [-D <bindDN>] [-i <seconds>]\n",
+		"[-R %%:lo:hi] [-f <filter-template>] [-n <threads>] [-D <bindDN>] [-i <seconds>]\n",
 			name );
 	exit( EXIT_FAILURE );
 }
@@ -78,8 +76,8 @@ static char *filter = "(uid=user.%d)";
 
 static char hname[1024];
 static char *uri = "ldap:///";
-static char	*base;
-static char	*pass;
+static char *base;
+static char *pass;
 static char *binder;
 
 static int tdur, r1per, r1lo, r1hi, r2per, r2lo, r2hi;
@@ -216,7 +214,7 @@ my_task( void *my_num )
 	r1binds[tid] = 0;
 
 	for (;;) {
-		char dn[BUFSIZ], *ptr, fstr[256];
+		char dn[BUFSIZ], fstr[256];
 		int j, isr1;
 
 		if ( finish )
@@ -243,7 +241,6 @@ my_task( void *my_num )
 		while (( rc=ldap_result( sld, LDAP_RES_ANY, LDAP_MSG_ONE, NULL, &res )) >0){
 			BerElement *ber;
 			struct berval bv;
-			char *ptr;
 			int done = 0;
 
 			for (msg = ldap_first_message( sld, res ); msg;
@@ -275,8 +272,8 @@ my_task( void *my_num )
 			r2binds[tid]++;
 	}
 
-	ldap_unbind( sld );
-	ldap_unbind( ld );
+	ldap_unbind_ext( sld, NULL, NULL );
+	ldap_unbind_ext( ld, NULL, NULL );
 
 	return NULL;
 }
@@ -296,7 +293,7 @@ do_time( )
 	printf("%s(tid)\tdeltaT\tauth1\tauth2\trate1\trate2\tRate1+2\n", hname);
 	srand(getpid());
 
-	prevt = start = time(0L);
+	prevt = start = ldap_time_steady();
 
 	for ( i = 0; i<threads; i++ ) {
 		ldap_pvt_thread_t thr;
@@ -310,7 +307,7 @@ do_time( )
 
 		select(0, NULL, NULL, NULL, &tv);
 
-		now = time(0L);
+		now = ldap_time_steady();
 
 		dt = now - prevt;
 		prevt = now;

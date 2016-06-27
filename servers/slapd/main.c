@@ -41,7 +41,7 @@
  * is provided ``as is'' without express or implied warranty.
  */
 
-#include "portable.h"
+#include "reldap.h"
 
 #include <stdio.h>
 
@@ -73,7 +73,7 @@
 #endif /* __linux__ */
 
 #ifdef LDAP_SIGCHLD
-static RETSIGTYPE wait4child( int sig );
+static void wait4child( int sig );
 #endif
 
 typedef int (MainFunc) LDAP_P(( int argc, char *argv[] ));
@@ -707,20 +707,12 @@ unhandled_option:;
 #if defined(LDAP_DEBUG) && defined(LDAP_SYSLOG)
 	{
 		char *logName;
-#ifdef HAVE_EBCDIC
-		logName = ch_strdup( serverName );
-		__atoe( logName );
-#else
 		logName = serverName;
-#endif
 
 #ifdef LOG_LOCAL4
 		openlog( logName, OPENLOG_OPTIONS, syslogUser );
 #elif defined LOG_DEBUG
 		openlog( logName, OPENLOG_OPTIONS );
-#endif
-#ifdef HAVE_EBCDIC
-		free( logName );
 #endif
 	}
 #endif /* LDAP_DEBUG && LDAP_SYSLOG */
@@ -855,7 +847,7 @@ unhandled_option:;
 		if( rc == 0 ) {
 			/* The ctx's refcount is bumped up here */
 			ldap_pvt_tls_get_option( slap_tls_ld, LDAP_OPT_X_TLS_CTX, &slap_tls_ctx );
-			load_extop( &slap_EXOP_START_TLS, 0, starttls_extop );
+			extop_register( &slap_EXOP_START_TLS, 0, starttls_extop );
 		} else if ( rc != LDAP_NOT_SUPPORTED ) {
 			Debug( LDAP_DEBUG_ANY,
 			    "main: TLS init def ctx failed: %d\n",
@@ -1003,7 +995,7 @@ destroy:
 		ch_free( scp );
 	}
 
-#ifdef SLAPD_MODULES
+#ifdef SLAPD_DYNAMIC_MODULES
 	module_kill();
 #endif
 
@@ -1077,7 +1069,7 @@ stop:
  *  Catch and discard terminated child processes, to avoid zombies.
  */
 
-static RETSIGTYPE
+static void
 wait4child( int sig )
 {
     int save_errno = errno;

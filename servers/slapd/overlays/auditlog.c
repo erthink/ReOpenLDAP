@@ -37,7 +37,7 @@
  * OpenLDAP Software.  This work was sponsored by Hewlett-Packard.
  */
 
-#include "portable.h"
+#include "reldap.h"
 
 #ifdef SLAPD_OVER_AUDITLOG
 
@@ -47,7 +47,7 @@
 #include <ac/ctype.h>
 
 #include "slap.h"
-#include "config.h"
+#include "slapconfig.h"
 #include "ldif.h"
 
 typedef struct auditlog_data {
@@ -232,7 +232,7 @@ auditlog_db_destroy(
 	return 0;
 }
 
-int auditlog_initialize() {
+int auditlog_over_initialize() {
 	int rc;
 
 	auditlog.on_bi.bi_type = "auditlog";
@@ -247,12 +247,8 @@ int auditlog_initialize() {
 	return overlay_register(&auditlog);
 }
 
-#if SLAPD_OVER_AUDITLOG == SLAPD_MOD_DYNAMIC && defined(PIC)
-int
-init_module( int argc, char *argv[] )
-{
-	return auditlog_initialize();
-}
+#if SLAPD_OVER_AUDITLOG == SLAPD_MOD_DYNAMIC
+SLAP_OVERLAY_INIT_MODULE(auditlog)
 #endif
 
 #endif /* SLAPD_OVER_AUDITLOG */

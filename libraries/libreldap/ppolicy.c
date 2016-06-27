@@ -38,7 +38,7 @@
  * This work was sponsored by the Hewlett-Packard Company.
  */
 
-#include "portable.h"
+#include "reldap.h"
 
 #include <stdio.h>
 #include <ac/stdlib.h>

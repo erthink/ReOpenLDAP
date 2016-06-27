@@ -47,12 +47,10 @@
  * in OpenLDAP Software based, in part, on other client tools.
  */
 
-#include "portable.h"
+#include "reldap.h"
 
 #include <stdio.h>
-
 #include <ac/stdlib.h>
-
 #include <ac/ctype.h>
 #include <ac/socket.h>
 #include <ac/string.h>

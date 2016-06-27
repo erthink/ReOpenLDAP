@@ -41,13 +41,12 @@
  * fix a race by SATOH Fumiyasu @ OSS Technology, Inc.
  */
 
-#include "portable.h"
-
+#include "reldap.h"
 #include <ac/string.h>
-
 #include "lber_pvt.h"
 #include "lutil.h"
 #include "sha2.h"
+#include "slap.h"
 
 #ifdef SLAPD_SHA2_DEBUG
 #include <stdio.h>
@@ -509,7 +508,8 @@ const struct berval sha384scheme = BER_BVC("{SHA384}");
 const struct berval ssha512scheme = BER_BVC("{SSHA512}");
 const struct berval sha512scheme = BER_BVC("{SHA512}");
 
-int init_module(int argc, char *argv[]) {
+SLAP_OVERLAY_ENTRY(pw_sha2, modinit) ( int argc, char *argv[] )
+{
 	int result = 0;
 	result = lutil_passwd_add( (struct berval *)&ssha256scheme, chk_ssha256, hash_ssha256 );
 	if (result != 0) return result;

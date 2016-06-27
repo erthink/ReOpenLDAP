@@ -39,10 +39,9 @@
  * based on back-meta module for inclusion in OpenLDAP Software.
  * This work was sponsored by Ericsson. */
 
-#include "portable.h"
+#include "reldap.h"
 
 #include <stdio.h>
-
 #include <ac/socket.h>
 #include <ac/string.h>
 #include <ac/time.h>
@@ -53,7 +52,6 @@
 #include "back-asyncmeta.h"
 #include "../../../libraries/libreldap/lber-int.h"
 #include "lutil.h"
-
 
 LDAPControl **asyncmeta_copy_controls(Operation *op)
 {

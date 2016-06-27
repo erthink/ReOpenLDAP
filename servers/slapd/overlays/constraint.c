@@ -17,7 +17,7 @@
  * Authors: Neil Dunbar <neil.dunbar@hp.com>
  *			Emmannuel Dreyfus <manu@netbsd.org>
  */
-#include "portable.h"
+#include "reldap.h"
 
 #ifdef SLAPD_OVER_CONSTRAINT
 
@@ -29,7 +29,7 @@
 
 #include "lutil.h"
 #include "slap.h"
-#include "config.h"
+#include "slapconfig.h"
 
 /*
  * This overlay limits the values which can be placed into an
@@ -1196,11 +1196,8 @@ constraint_destroy(
 
 static slap_overinst constraint_ovl;
 
-#if SLAPD_OVER_CONSTRAINT == SLAPD_MOD_DYNAMIC
-static
-#endif
 int
-constraint_initialize( void ) {
+constraint_over_initialize( void ) {
 	int rc;
 
 	constraint_ovl.on_bi.bi_type = "constraint";
@@ -1219,9 +1216,7 @@ constraint_initialize( void ) {
 }
 
 #if SLAPD_OVER_CONSTRAINT == SLAPD_MOD_DYNAMIC
-int init_module(int argc, char *argv[]) {
-	return constraint_initialize();
-}
+SLAP_OVERLAY_INIT_MODULE(constraint)
 #endif
 
 #endif /* defined(SLAPD_OVER_CONSTRAINT) */

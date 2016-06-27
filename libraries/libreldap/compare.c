@@ -34,7 +34,7 @@
  * All rights reserved.
  */
 
-#include "portable.h"
+#include "reldap.h"
 
 #include <stdio.h>
 
@@ -146,33 +146,6 @@ ldap_compare_ext(
 	return ( *msgidp < 0 ? ld->ld_errno : LDAP_SUCCESS );
 }
 
-/*
- * ldap_compare_ext - perform an ldap extended compare operation.  The dn
- * of the entry to compare to and the attribute and value to compare (in
- * attr and value) are supplied.  The msgid of the response is returned.
- *
- * Example:
- *	msgid = ldap_compare( ld, "c=us@cn=bob", "userPassword", "secret" )
- */
-int
-ldap_compare(
-	LDAP *ld,
-	LDAP_CONST char *dn,
-	LDAP_CONST char *attr,
-	LDAP_CONST char *value )
-{
-	int msgid = 0;
-	struct berval bvalue;
-
-	assert( value != NULL );
-
-	bvalue.bv_val = (char *) value;
-	bvalue.bv_len = (value == NULL) ? 0 : strlen( value );
-
-	return ldap_compare_ext( ld, dn, attr, &bvalue, NULL, NULL, &msgid ) == LDAP_SUCCESS
-		? msgid : -1;
-}
-
 int
 ldap_compare_ext_s(
 	LDAP *ld,
@@ -195,21 +168,4 @@ ldap_compare_ext_s(
 		return( ld->ld_errno );
 
 	return( ldap_result2error( ld, res, 1 ) );
-}
-
-int
-ldap_compare_s(
-	LDAP *ld,
-	LDAP_CONST char *dn,
-	LDAP_CONST char *attr,
-	LDAP_CONST char *value )
-{
-	struct berval bvalue;
-
-	assert( value != NULL );
-
-	bvalue.bv_val = (char *) value;
-	bvalue.bv_len = (value == NULL) ? 0 : strlen( value );
-
-	return ldap_compare_ext_s( ld, dn, attr, &bvalue, NULL, NULL );
 }

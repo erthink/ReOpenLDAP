@@ -69,10 +69,9 @@
  * Credits for the original code go to the author, Howard Chu.
  */
 
-#include "portable.h"
+#include "reldap.h"
 
 #include <stdio.h>
-
 #include <ac/string.h>
 #include <ac/socket.h>
 

@@ -36,11 +36,11 @@
  * and Stanford University (stanford.edu).
  */
 
-#include "portable.h"
+#include "reldap.h"
 
 #ifdef HAVE_GNUTLS
 
-#include "ldap_config.h"
+#include "ldap_dirs.h"
 
 #include <stdio.h>
 

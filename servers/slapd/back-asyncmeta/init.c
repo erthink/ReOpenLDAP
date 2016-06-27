@@ -38,15 +38,14 @@
  * based on back-meta module for inclusion in OpenLDAP Software.
  * This work was sponsored by Ericsson. */
 
-#include "portable.h"
+#include "reldap.h"
 
 #include <stdio.h>
-
 #include <ac/string.h>
 #include <ac/socket.h>
 
 #include "slap.h"
-#include "config.h"
+#include "slapconfig.h"
 #include "../back-ldap/back-ldap.h"
 #include "back-asyncmeta.h"
 
@@ -513,8 +512,5 @@ asyncmeta_back_db_destroy(
 }
 
 #if SLAPD_ASYNCMETA == SLAPD_MOD_DYNAMIC
-
-/* conditionally define the init_module() function */
 SLAP_BACKEND_INIT_MODULE( asyncmeta )
-
 #endif /* SLAPD_ASYNCMETA == SLAPD_MOD_DYNAMIC */
