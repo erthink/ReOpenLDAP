@@ -54,7 +54,7 @@
 #define SUFFIXM_CTX	"<suffix massage>"
 #endif
 
-#if defined(SLAPD_MDB) && defined(LDAP_X_TXN)
+#if defined(SLAPD_MDBX) && defined(LDAP_X_TXN)
 BI_op_txn mdb_txn;
 #endif
 
@@ -832,6 +832,7 @@ static int syncrepl_resync_begin( syncinfo_t *si ) {
 	si->si_refreshDone = 0;
 	si->si_refreshBeg = 0;
 #ifdef LDAP_X_TXN
+	assert(si->si_refreshTxn == NULL);
 	si->si_refreshCount = 0;
 	si->si_refreshTxn = NULL;
 #endif /* LDAP_X_TXN */
@@ -1455,6 +1456,7 @@ syncrepl_process(
 
 		if ( ldap_pvt_thread_pool_pausing( &connection_pool )) {
 			if ( si->si_refreshCount ) {
+				assert(si->si_refreshTxn != NULL);
 				LDAP_SLIST_REMOVE( &op->o_extra, si->si_refreshTxn, OpExtra, oe_next );
 				op->o_bd->bd_info->bi_op_txn( op, SLAP_TXN_COMMIT, &si->si_refreshTxn );
 				si->si_refreshCount = 0;
@@ -3137,26 +3139,30 @@ syncrepl_entry(
 			op->o_lazyCommit = SLAP_CONTROL_NONCRITICAL;
 #ifdef LDAP_X_TXN
 		if ( si->si_refreshCount == 500 ) {
+			assert(si->si_refreshTxn != NULL);
 			LDAP_SLIST_REMOVE( &op->o_extra, si->si_refreshTxn, OpExtra, oe_next );
 			op->o_bd->bd_info->bi_op_txn( op, SLAP_TXN_COMMIT, &si->si_refreshTxn );
 			si->si_refreshCount = 0;
 			si->si_refreshTxn = NULL;
 		}
 		if (op->o_bd->bd_info->bi_op_txn
-#ifdef SLAPD_MDB
+#ifdef SLAPD_MDBX
 				/* LY: TODO: deadlock is possible between write-mutex
 				 * inside MDB-backend and syncprov_info_t.si_resp_mutex. */
 				&& (
-#if SLAPD_MDB != SLAPD_MOD_DYNAMIC
+#if SLAPD_MDBX != SLAPD_MOD_DYNAMIC
 	op->o_bd->bd_info->bi_op_txn != mdb_txn ||
 #endif
 				( quorum_syncrepl_maxrefresh(op->o_bd) == 1
 				/* LY: TODO: support for bi_op_txn() in biglock */
 				&& op->o_bd->bd_biglock_mode <= SLAPD_BIGLOCK_NONE ))
-#endif /* SLAPD_MDB */
+#endif /* SLAPD_MDBX */
 				) {
-			if ( !si->si_refreshCount )
+			if ( !si->si_refreshCount ) {
+				assert(si->si_refreshTxn == NULL);
 				op->o_bd->bd_info->bi_op_txn( op, SLAP_TXN_BEGIN, &si->si_refreshTxn );
+			}
+			assert(si->si_refreshTxn != NULL);
 			si->si_refreshCount++;
 		}
 #endif /* LDAP_X_TXN */

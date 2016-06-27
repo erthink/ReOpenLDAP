@@ -644,7 +644,5 @@ mdb_back_initialize(
 }
 
 #if	(SLAPD_MDBX == SLAPD_MOD_DYNAMIC)
-
 SLAP_BACKEND_INIT_MODULE( mdb )
-
-#endif /* SLAPD_MDB == SLAPD_MOD_DYNAMIC */
+#endif /* SLAPD_MDBX == SLAPD_MOD_DYNAMIC */
