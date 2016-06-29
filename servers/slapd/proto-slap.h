@@ -1213,10 +1213,10 @@ LDAP_SLAPD_F (int) extop_register_ex LDAP_P((
 #define extop_register(exop_oid, exop_flags, exop_main) \
 	   extop_register_ex((exop_oid), (exop_flags), (exop_main), 0)
 
-LDAP_SLAPD_F (int) unload_extop LDAP_P((
+LDAP_SLAPD_F (int) extop_unregister LDAP_P((
 	const struct berval *ext_oid,
 	SLAP_EXTOP_MAIN_FN *ext_main,
-	unsigned tmpflags ));
+	unsigned unused_flags ));
 
 LDAP_SLAPD_F (int) extops_init LDAP_P(( void ));
 

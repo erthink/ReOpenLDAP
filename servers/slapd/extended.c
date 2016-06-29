@@ -334,13 +334,14 @@ extop_register_ex(
 }
 
 int
-unload_extop(
+extop_unregister(
 	const struct berval *exop_oid,
 	SLAP_EXTOP_MAIN_FN *exop_main,
-	unsigned flags )
+	unsigned unused_flags )
 {
 	struct berval		oidm = BER_BVNULL;
 	struct extop_list	*ext, **extp;
+	(void) unused_flags;
 
 	/* oid must be given */
 	if ( exop_oid == NULL || BER_BVISNULL( exop_oid ) ||
@@ -380,7 +381,6 @@ unload_extop(
 	*extp = (*extp)->next;
 
 	ch_free( ext );
-
 	return 0;
 }
 
