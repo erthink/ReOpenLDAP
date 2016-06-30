@@ -2245,6 +2245,7 @@ fi
 
 if test "$ol_enable_meta" != no ; then
 	ol_enable_slapd=yes
+	ol_enable_rewrite=yes
 	if test "$ol_enable_meta" = mod ; then
 		SLAPD_DYNAMIC_BACKENDS="$SLAPD_DYNAMIC_BACKENDS meta"
 		MFLAG=SLAPD_MOD_DYNAMIC
@@ -2498,6 +2499,7 @@ if test "$ol_enable_retcode" != no ; then
 fi
 
 if test "$ol_enable_rwm" != no ; then
+	ol_enable_rewrite=yes
 	if test "$ol_enable_rwm" = mod ; then
 		MFLAG=SLAPD_MOD_DYNAMIC
 		SLAPD_DYNAMIC_OVERLAYS="$SLAPD_DYNAMIC_OVERLAYS rwm"
@@ -2630,8 +2632,7 @@ if test $ol_enable_modules != no -o $ol_enable_slapi != no; then
 	AC_DEFINE(SLAPD_DYNAMIC,1,[define to export symbols from slapd])
 fi
 
-AM_CONDITIONAL([BUILD_REWRITE],
-	[test $ol_enable_rewrite != no -o $ol_enable_meta != no -o $ol_enable_rwm != no])
+AM_CONDITIONAL([BUILD_REWRITE], [test $ol_enable_rewrite != no])
 
 AM_CONDITIONAL([BUILD_LDIF], [true])
 AM_CONDITIONAL([LDIF_DYNAMIC], [false])

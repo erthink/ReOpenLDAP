@@ -1,4 +1,4 @@
-# Makefile.in for LDAP -lldap
+# Makefile.in for LDAP -lreldap
 ## $ReOpenLDAP$
 ## Copyright (c) 2015,2016 Leonid Yuriev <leo@yuriev.ru>.
 ## Copyright (c) 2015,2016 Peter-Service R&D LLC <http://billing.ru/>.
