@@ -30,7 +30,8 @@ overlays_BUILTIN =
 overlays_DYNAMIC =
 
 AM_CPPFLAGS = -I${top_srcdir}/include
-libexec_PROGRAMS = slapd
+sbin_PROGRAMS = slapd
+slaptools = slapadd slapcat slapdn slapindex slappasswd slaptest slapauth slapacl slapschema slapmodify
 slapd_LDADD = overlays/liboverlays_builtin.la
 slapd_LDFLAGS =
 
@@ -451,6 +452,13 @@ slapd.conf: $(srcdir)/slapd.conf.in Makefile
 	$(FIXUP_DIST) $< | $(FIXUP_DIRS) >> $@
 
 EXTRA_DIST += $(schema_files)
+
+install-exec-hook:
+	(cd $(sbindir) && \
+		$(RM) -f $(slaptools) && \
+		for T in $(slaptools); do \
+			$(LN_S) slapd$(EXEEXT) $${T}$(EXEEXT) || exit 1; \
+		done)
 
 install-data-hook:
 	$(MKDIR_P) $(sysconfdir)/schema && \

@@ -18,6 +18,17 @@ No other LDAP server can provide this level of performance now
 or high risk of a crash).
 
 
+ReOpenLDAP preamble
+-------------------
+
+We consider that the original OpenLDAP project was failed
+due the following reasons:
+ - disregard for support by community and code clarity.
+ - giant technical debt and incredible low code quality.
+ - unreasonable desire to support the wide range of
+   an obsolete archaic systems and compilers.
+
+
 Change List
 -----------------
 

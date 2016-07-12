@@ -14103,9 +14103,9 @@ VERSION_MINOR=0
 
 VERSION_PATCH=0
 
-RELEASE_DATE=2016-06-27
+RELEASE_DATE=2016-06-29
 
-RELEASE_STAMP=g665deaef2c4f-t26d782abff2d618b
+RELEASE_STAMP=ga8aa43dc9099-ted24f45a08676488
 
 API_LIB_RELEASE=2.0
 
@@ -32412,7 +32412,7 @@ $as_echo "#define SLAPD_DYNAMIC 1" >>confdefs.h
 
 fi
 
- if test $ol_enable_rewrite != no -o $ol_enable_meta != no -o $ol_enable_rwm != no; then
+ if test $ol_enable_rewrite != no; then
   BUILD_REWRITE_TRUE=
   BUILD_REWRITE_FALSE='#'
 else

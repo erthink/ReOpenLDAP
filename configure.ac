@@ -2695,8 +2695,7 @@ if test $ol_enable_modules != no -o $ol_enable_slapi != no; then
 	AC_DEFINE(SLAPD_DYNAMIC,1,[define to export symbols from slapd])
 fi
 
-AM_CONDITIONAL([BUILD_REWRITE],
-	[test $ol_enable_rewrite != no -o $ol_enable_meta != no -o $ol_enable_rwm != no])
+AM_CONDITIONAL([BUILD_REWRITE], [test $ol_enable_rewrite != no])
 
 AM_CONDITIONAL([BUILD_LDIF], [true])
 AM_CONDITIONAL([LDIF_DYNAMIC], [false])
