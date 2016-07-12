@@ -14,7 +14,7 @@
 
 @SET_MAKE@
 
-# Makefile.in for LDAP -lldap
+# Makefile.in for LDAP -lreldap
 
 
 VPATH = @srcdir@
