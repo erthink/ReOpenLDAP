@@ -90,7 +90,7 @@ POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
 target_triplet = @target@
-libexec_PROGRAMS = slapd$(EXEEXT)
+sbin_PROGRAMS = slapd$(EXEEXT)
 @BUILD_LDIF_TRUE@am__append_1 = back-ldif
 @BUILD_LDIF_TRUE@@LDIF_DYNAMIC_TRUE@am__append_2 = ldif
 @BUILD_LDIF_TRUE@@LDIF_DYNAMIC_FALSE@am__append_3 = ldif
@@ -226,8 +226,8 @@ CONFIG_HEADER = $(top_builddir)/reldap_autoconf.h \
 	$(top_builddir)/include/lber_types.h
 CONFIG_CLEAN_FILES =
 CONFIG_CLEAN_VPATH_FILES =
-am__installdirs = "$(DESTDIR)$(libexecdir)" "$(DESTDIR)$(sysconfdir)"
-PROGRAMS = $(libexec_PROGRAMS)
+am__installdirs = "$(DESTDIR)$(sbindir)" "$(DESTDIR)$(sysconfdir)"
+PROGRAMS = $(sbin_PROGRAMS)
 am_slapd_OBJECTS = abandon.$(OBJEXT) aci.$(OBJEXT) acl.$(OBJEXT) \
 	aclparse.$(OBJEXT) ad.$(OBJEXT) add.$(OBJEXT) alock.$(OBJEXT) \
 	at.$(OBJEXT) attr.$(OBJEXT) ava.$(OBJEXT) backend.$(OBJEXT) \
@@ -638,6 +638,7 @@ overlays_BUILTIN = $(am__append_72) $(am__append_73) $(am__append_74) \
 	$(am__append_90) $(am__append_91)
 overlays_DYNAMIC = 
 AM_CPPFLAGS = -I${top_srcdir}/include $(am__append_69)
+slaptools = slapadd slapcat slapdn slapindex slappasswd slaptest slapauth slapacl slapschema
 slapd_LDADD = overlays/liboverlays_builtin.la $(am__append_4) \
 	$(am__append_8) $(am__append_12) $(am__append_16) \
 	$(am__append_20) $(am__append_24) $(am__append_28) \
@@ -719,12 +720,12 @@ $(top_srcdir)/configure: @MAINTAINER_MODE_TRUE@ $(am__configure_deps)
 $(ACLOCAL_M4): @MAINTAINER_MODE_TRUE@ $(am__aclocal_m4_deps)
 	cd $(top_builddir) && $(MAKE) $(AM_MAKEFLAGS) am--refresh
 $(am__aclocal_m4_deps):
-install-libexecPROGRAMS: $(libexec_PROGRAMS)
+install-sbinPROGRAMS: $(sbin_PROGRAMS)
 	@$(NORMAL_INSTALL)
-	@list='$(libexec_PROGRAMS)'; test -n "$(libexecdir)" || list=; \
+	@list='$(sbin_PROGRAMS)'; test -n "$(sbindir)" || list=; \
 	if test -n "$$list"; then \
-	  echo " $(MKDIR_P) '$(DESTDIR)$(libexecdir)'"; \
-	  $(MKDIR_P) "$(DESTDIR)$(libexecdir)" || exit 1; \
+	  echo " $(MKDIR_P) '$(DESTDIR)$(sbindir)'"; \
+	  $(MKDIR_P) "$(DESTDIR)$(sbindir)" || exit 1; \
 	fi; \
 	for p in $$list; do echo "$$p $$p"; done | \
 	sed 's/$(EXEEXT)$$//' | \
@@ -744,24 +745,24 @@ install-libexecPROGRAMS: $(libexec_PROGRAMS)
 	while read type dir files; do \
 	    if test "$$dir" = .; then dir=; else dir=/$$dir; fi; \
 	    test -z "$$files" || { \
-	    echo " $(INSTALL_PROGRAM_ENV) $(LIBTOOL) $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=install $(INSTALL_PROGRAM) $$files '$(DESTDIR)$(libexecdir)$$dir'"; \
-	    $(INSTALL_PROGRAM_ENV) $(LIBTOOL) $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=install $(INSTALL_PROGRAM) $$files "$(DESTDIR)$(libexecdir)$$dir" || exit $$?; \
+	    echo " $(INSTALL_PROGRAM_ENV) $(LIBTOOL) $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=install $(INSTALL_PROGRAM) $$files '$(DESTDIR)$(sbindir)$$dir'"; \
+	    $(INSTALL_PROGRAM_ENV) $(LIBTOOL) $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=install $(INSTALL_PROGRAM) $$files "$(DESTDIR)$(sbindir)$$dir" || exit $$?; \
 	    } \
 	; done
 
-uninstall-libexecPROGRAMS:
+uninstall-sbinPROGRAMS:
 	@$(NORMAL_UNINSTALL)
-	@list='$(libexec_PROGRAMS)'; test -n "$(libexecdir)" || list=; \
+	@list='$(sbin_PROGRAMS)'; test -n "$(sbindir)" || list=; \
 	files=`for p in $$list; do echo "$$p"; done | \
 	  sed -e 'h;s,^.*/,,;s/$(EXEEXT)$$//;$(transform)' \
 	      -e 's/$$/$(EXEEXT)/' \
 	`; \
 	test -n "$$list" || exit 0; \
-	echo " ( cd '$(DESTDIR)$(libexecdir)' && rm -f" $$files ")"; \
-	cd "$(DESTDIR)$(libexecdir)" && rm -f $$files
+	echo " ( cd '$(DESTDIR)$(sbindir)' && rm -f" $$files ")"; \
+	cd "$(DESTDIR)$(sbindir)" && rm -f $$files
 
-clean-libexecPROGRAMS:
-	@list='$(libexec_PROGRAMS)'; test -n "$$list" || exit 0; \
+clean-sbinPROGRAMS:
+	@list='$(sbin_PROGRAMS)'; test -n "$$list" || exit 0; \
 	echo " rm -f" $$list; \
 	rm -f $$list || exit $$?; \
 	test -n "$(EXEEXT)" || exit 0; \
@@ -1080,7 +1081,7 @@ check: $(BUILT_SOURCES)
 all-am: Makefile $(PROGRAMS) $(DATA)
 installdirs: installdirs-recursive
 installdirs-am:
-	for dir in "$(DESTDIR)$(libexecdir)" "$(DESTDIR)$(sysconfdir)"; do \
+	for dir in "$(DESTDIR)$(sbindir)" "$(DESTDIR)$(sysconfdir)"; do \
 	  test -z "$$dir" || $(MKDIR_P) "$$dir"; \
 	done
 install: $(BUILT_SOURCES)
@@ -1118,7 +1119,7 @@ maintainer-clean-generic:
 	-test -z "$(BUILT_SOURCES)" || rm -f $(BUILT_SOURCES)
 clean: clean-recursive
 
-clean-am: clean-generic clean-libexecPROGRAMS clean-libtool \
+clean-am: clean-generic clean-libtool clean-sbinPROGRAMS \
 	mostlyclean-am
 
 distclean: distclean-recursive
@@ -1146,8 +1147,9 @@ install-dvi: install-dvi-recursive
 
 install-dvi-am:
 
-install-exec-am: install-libexecPROGRAMS install-sysconfDATA
-
+install-exec-am: install-sbinPROGRAMS install-sysconfDATA
+	@$(NORMAL_INSTALL)
+	$(MAKE) $(AM_MAKEFLAGS) install-exec-hook
 install-html: install-html-recursive
 
 install-html-am:
@@ -1186,28 +1188,28 @@ ps: ps-recursive
 
 ps-am:
 
-uninstall-am: uninstall-libexecPROGRAMS uninstall-sysconfDATA
+uninstall-am: uninstall-sbinPROGRAMS uninstall-sysconfDATA
 	@$(NORMAL_INSTALL)
 	$(MAKE) $(AM_MAKEFLAGS) uninstall-hook
 .MAKE: $(am__recursive_targets) all check install install-am \
-	install-data-am install-strip uninstall-am
+	install-data-am install-exec-am install-strip uninstall-am
 
 .PHONY: $(am__recursive_targets) CTAGS GTAGS TAGS all all-am check \
-	check-am clean clean-generic clean-libexecPROGRAMS \
-	clean-libtool cscopelist-am ctags ctags-am distclean \
-	distclean-compile distclean-generic distclean-libtool \
-	distclean-tags distdir dvi dvi-am html html-am info info-am \
-	install install-am install-data install-data-am \
-	install-data-hook install-dvi install-dvi-am install-exec \
-	install-exec-am install-html install-html-am install-info \
-	install-info-am install-libexecPROGRAMS install-man \
-	install-pdf install-pdf-am install-ps install-ps-am \
-	install-strip install-sysconfDATA installcheck installcheck-am \
-	installdirs installdirs-am maintainer-clean \
-	maintainer-clean-generic mostlyclean mostlyclean-compile \
-	mostlyclean-generic mostlyclean-libtool pdf pdf-am ps ps-am \
-	tags tags-am uninstall uninstall-am uninstall-hook \
-	uninstall-libexecPROGRAMS uninstall-sysconfDATA
+	check-am clean clean-generic clean-libtool clean-sbinPROGRAMS \
+	cscopelist-am ctags ctags-am distclean distclean-compile \
+	distclean-generic distclean-libtool distclean-tags distdir dvi \
+	dvi-am html html-am info info-am install install-am \
+	install-data install-data-am install-data-hook install-dvi \
+	install-dvi-am install-exec install-exec-am install-exec-hook \
+	install-html install-html-am install-info install-info-am \
+	install-man install-pdf install-pdf-am install-ps \
+	install-ps-am install-sbinPROGRAMS install-strip \
+	install-sysconfDATA installcheck installcheck-am installdirs \
+	installdirs-am maintainer-clean maintainer-clean-generic \
+	mostlyclean mostlyclean-compile mostlyclean-generic \
+	mostlyclean-libtool pdf pdf-am ps ps-am tags tags-am uninstall \
+	uninstall-am uninstall-hook uninstall-sbinPROGRAMS \
+	uninstall-sysconfDATA
 
 .PRECIOUS: Makefile
 
@@ -1258,6 +1260,13 @@ slapd.conf: $(srcdir)/slapd.conf.in Makefile
 	@echo "Making $@" && $(RM) $@ && \
 	echo "# Generated from $< on `date --rfc-3339=seconds --utc`" > $@ && \
 	$(FIXUP_DIST) $< | $(FIXUP_DIRS) >> $@
+
+install-exec-hook:
+	(cd $(sbindir) && \
+		$(RM) -f $(slaptools) && \
+		for T in $(slaptools); do \
+			$(LN_S) slapd$(EXEEXT) $${T}$(EXEEXT) || exit 1; \
+		done)
 
 install-data-hook:
 	$(MKDIR_P) $(sysconfdir)/schema && \
