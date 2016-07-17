@@ -42,13 +42,15 @@ configure() {
 
 flag_autoconf=0
 flag_dist=0
-flag_insrc=1
 if [ -e configure.ac ]; then
 	notice "info: saw modern ./configure.ac"
 	modern_configure=1
+	flag_insrc=0
 else
 	notice "info: NOT saw modern ./configure.ac"
 	modern_configure=0
+	flag_autoconf=0
+	flag_insrc=1
 fi
 
 flag_debug=0
