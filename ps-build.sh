@@ -139,7 +139,6 @@ while grep -q '^--' <<< "$1"; do
 	shift
 done
 
-
 ##############################################################################
 
 step_begin "prepare"
@@ -398,7 +397,7 @@ step_finish "build mdbx-tools"
 echo "======================================================================="
 step_begin "build reopenldap"
 
-make -k \
+make -k && make -C tests/progs \
 	|| failure "build-2"
 
 step_finish "build reopenldap"

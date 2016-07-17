@@ -446,6 +446,7 @@ fi
 export CFLAGS CXXFLAGS
 
 make -C ${build} -j $ncpu -l $lalim \
+	&& make -C ${build}/tests/progs -j $ncpu -l $lalim \
 	&& make -j $ncpu -l $lalim -C ${LIBMDBX_DIR} \
 		all $(find ${LIBMDBX_DIR} -name 'mtest*.c' | xargs -n 1 -r -I '{}' basename '{}' .c) || failure "build"
 
