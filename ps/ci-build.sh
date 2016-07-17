@@ -191,11 +191,6 @@ for arg in "$@"; do
 	esac
 done
 
-if [ $flag_lto -ne 0 ]; then
-	notice "warning: LTO-mode temporary disabled"
-	flag_lto=0
-fi
-
 #======================================================================
 
 if [ $flag_dynamic -ne 0 ]; then
