@@ -1,5 +1,5 @@
 #!/bin/bash
-# $ReOpenLDAP$
+## $ReOpenLDAP$
 ## Copyright (c) 2015,2016 Leonid Yuriev <leo@yuriev.ru>.
 ## Copyright (c) 2015,2016 Peter-Service R&D LLC <http://billing.ru/>.
 ##
@@ -38,9 +38,9 @@ case "$BACKEND" in ldif | null)
 esac
 
 echo "running defines.sh"
-. $SRCDIR/scripts/defines.sh
+. ${TOP_SRCDIR}/tests/scripts/defines.sh
 
-if test "$ACI" = "acino" ; then
+if test ${AC_conf[aci]} = no ; then
 	echo "ACI not enabled, test skipped"
 	exit 0
 fi
@@ -48,7 +48,7 @@ fi
 mkdir -p $TESTDIR $DBDIR1
 
 echo "Running slapadd to build slapd database..."
-. $CONFFILTER $BACKEND $MONITORDB < $ACICONF > $CONF1
+config_filter $BACKEND ${AC_conf[monitor]} < $ACICONF > $CONF1
 $SLAPADD -f $CONF1 -l $LDIFORDERED
 RC=$?
 if test $RC != 0 ; then

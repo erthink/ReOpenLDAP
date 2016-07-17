@@ -36,14 +36,14 @@
  * OpenLDAP Software.
  */
 
-#include "portable.h"
+#include "reldap.h"
 
 #ifdef SLAPD_OVER_SYNCPROV
 
 #include <ac/string.h>
 #include "lutil.h"
 #include "slap.h"
-#include "config.h"
+#include "slapconfig.h"
 #include "ldap_rq.h"
 
 /* A modify request on a particular entry */
@@ -4009,7 +4009,7 @@ static int syncprov_parseCtrl (
 static slap_overinst 		syncprov;
 
 int
-syncprov_initialize()
+syncprov_over_initialize()
 {
 	int rc;
 
@@ -4051,11 +4051,7 @@ syncprov_initialize()
 }
 
 #if SLAPD_OVER_SYNCPROV == SLAPD_MOD_DYNAMIC
-int
-init_module( int argc, char *argv[] )
-{
-	return syncprov_initialize();
-}
+SLAP_OVERLAY_INIT_MODULE(syncprov)
 #endif /* SLAPD_OVER_SYNCPROV == SLAPD_MOD_DYNAMIC */
 
 #endif /* defined(SLAPD_OVER_SYNCPROV) */

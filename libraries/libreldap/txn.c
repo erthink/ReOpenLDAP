@@ -39,7 +39,7 @@
  * LDAPv3 Transactions (draft-zeilenga-ldap-txn)
  */
 
-#include "portable.h"
+#include "reldap.h"
 
 #include <stdio.h>
 #include <ac/stdlib.h>

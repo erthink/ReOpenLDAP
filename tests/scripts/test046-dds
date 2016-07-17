@@ -1,5 +1,5 @@
 #!/bin/bash
-# $ReOpenLDAP$
+## $ReOpenLDAP$
 ## Copyright (c) 2015,2016 Leonid Yuriev <leo@yuriev.ru>.
 ## Copyright (c) 2015,2016 Peter-Service R&D LLC <http://billing.ru/>.
 ##
@@ -32,7 +32,7 @@
 ## <http://www.OpenLDAP.org/license.html>.
 
 echo "running defines.sh"
-. $SRCDIR/scripts/defines.sh
+. ${TOP_SRCDIR}/tests/scripts/defines.sh
 
 case $BACKEND in ldif | null)
 	# LDIF lacks ACL support, NULL cannot hold dynamic entries
@@ -40,7 +40,7 @@ case $BACKEND in ldif | null)
         exit 0
 esac
 
-if test $DDS = ddsno; then
+if test ${AC_conf[dds]} = no; then
 	echo "Dynamic Directory Services overlay not available, test skipped"
 	exit 0
 fi
@@ -48,7 +48,7 @@ fi
 mkdir -p $TESTDIR $DBDIR1
 
 echo "Running slapadd to build slapd database..."
-. $CONFFILTER $BACKEND $MONITORDB < $MCONF > $ADDCONF
+config_filter $BACKEND ${AC_conf[monitor]} < $MCONF > $ADDCONF
 $SLAPADD -f $ADDCONF -l $LDIFORDERED
 RC=$?
 if test $RC != 0 ; then
@@ -57,7 +57,7 @@ if test $RC != 0 ; then
 fi
 
 echo "Running slapindex to index slapd database..."
-. $CONFFILTER $BACKEND $MONITORDB < $DDSCONF > $CONF1
+config_filter $BACKEND ${AC_conf[monitor]} < $DDSCONF > $CONF1
 $SLAPINDEX -f $CONF1
 RC=$?
 if test $RC != 0 ; then

@@ -34,7 +34,7 @@
  * All rights reserved.
  */
 
-#include "portable.h"
+#include "reldap.h"
 
 #include <stdio.h>
 #include <ac/stdlib.h>
@@ -78,15 +78,6 @@ ldap_unbind_ext_s(
 {
 	return ldap_unbind_ext( ld, sctrls, cctrls );
 }
-
-int
-ldap_unbind( LDAP *ld )
-{
-	Debug( LDAP_DEBUG_TRACE, "ldap_unbind\n" );
-
-	return( ldap_unbind_ext( ld, NULL, NULL ) );
-}
-
 
 int
 ldap_ld_free(
@@ -267,12 +258,6 @@ int
 ldap_destroy( LDAP *ld )
 {
 	return ( ldap_ld_free( ld, 1, NULL, NULL ) );
-}
-
-int
-ldap_unbind_s( LDAP *ld )
-{
-	return( ldap_unbind_ext( ld, NULL, NULL ) );
 }
 
 /* FIXME: this function is called only by ldap_free_connection(),

@@ -624,11 +624,6 @@ meta_back_controls_add(
 	LDAPControl	***pctrls );
 
 extern int
-back_meta_LTX_init_module(
-	int			argc,
-	char			*argv[] );
-
-extern int
 meta_back_conn_cmp(
 	const void		*c1,
 	const void		*c2 );

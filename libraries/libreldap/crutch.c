@@ -19,7 +19,7 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "portable.h"
+#include "reldap.h"
 
 #include <unistd.h>
 #include <string.h>
@@ -86,7 +86,7 @@ void* ber_memcpy_safe(void* dest, const void* src, size_t n) {
 	return memcpy(dest, src, n);
 }
 
-__cold __attribute__((weak))
+__cold __attribute__((weak)) __reldap_exportable
 void __ldap_assert_fail(
 		const char* assertion,
 		const char* file,

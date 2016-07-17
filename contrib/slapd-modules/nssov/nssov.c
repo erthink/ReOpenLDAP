@@ -45,7 +45,7 @@
 #define SLAPD_OVER_NSSOV SLAPD_MOD_DYNAMIC
 #endif
 
-#include "../slapd/config.h"	/* not nss-ldapd config.h */
+#include "../slapd/slapconfig.h"	/* not nss-ldapd slapconfig.h */
 
 #include "lutil.h"
 
@@ -1009,8 +1009,7 @@ nssov_initialize( void )
 }
 
 #if SLAPD_OVER_NSSOV == SLAPD_MOD_DYNAMIC
-int
-init_module( int argc, char *argv[] )
+SLAP_OVERLAY_ENTRY(nssov, modinit) ( int argc, char *argv[] )
 {
 	return nssov_initialize();
 }

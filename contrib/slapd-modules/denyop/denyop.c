@@ -36,7 +36,7 @@
  * OpenLDAP Software.
  */
 
-#include "portable.h"
+#include "reldap.h"
 
 #ifdef SLAPD_OVER_DENYOP
 
@@ -269,8 +269,7 @@ denyop_initialize( void )
 }
 
 #if SLAPD_OVER_DENYOP == SLAPD_MOD_DYNAMIC
-int
-init_module( int argc, char *argv[] )
+SLAP_OVERLAY_ENTRY(denyop, modinit) ( int argc, char *argv[] )
 {
 	return denyop_initialize();
 }

@@ -37,7 +37,7 @@
  * in OpenLDAP Software.
  */
 
-#include "portable.h"
+#include "reldap.h"
 
 #ifdef SLAPD_OVER_RETCODE
 
@@ -49,7 +49,7 @@
 #include <ac/socket.h>
 
 #include "slap.h"
-#include "config.h"
+#include "slapconfig.h"
 #include "lutil.h"
 #include "ldif.h"
 
@@ -1411,11 +1411,8 @@ retcode_db_destroy( BackendDB *be, ConfigReply *cr )
 	return 0;
 }
 
-#if SLAPD_OVER_RETCODE == SLAPD_MOD_DYNAMIC
-static
-#endif /* SLAPD_OVER_RETCODE == SLAPD_MOD_DYNAMIC */
 int
-retcode_initialize( void )
+retcode_over_initialize( void )
 {
 	int		i, code;
 
@@ -1567,11 +1564,7 @@ retcode_initialize( void )
 }
 
 #if SLAPD_OVER_RETCODE == SLAPD_MOD_DYNAMIC
-int
-init_module( int argc, char *argv[] )
-{
-	return retcode_initialize();
-}
+SLAP_OVERLAY_INIT_MODULE(retcode)
 #endif /* SLAPD_OVER_RETCODE == SLAPD_MOD_DYNAMIC */
 
 #endif /* SLAPD_OVER_RETCODE */

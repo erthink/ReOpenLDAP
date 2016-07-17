@@ -46,7 +46,7 @@
  * (as part of U-MICH LDAP).
  */
 
-#include "portable.h"
+#include "reldap.h"
 
 #include <stdio.h>
 

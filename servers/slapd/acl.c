@@ -42,7 +42,7 @@
  * is provided ``as is'' without express or implied warranty.
  */
 
-#include "portable.h"
+#include "reldap.h"
 
 #include <stdio.h>
 
@@ -2509,7 +2509,7 @@ static int (*acl_init_func[])( void ) = {
 #ifdef SLAP_DYNACL
 	/* TODO: remove when ACI will only be dynamic */
 #if SLAPD_ACI_ENABLED == SLAPD_MOD_STATIC
-	dynacl_aci_init,
+	aci_over_initialize,
 #endif /* SLAPD_ACI_ENABLED */
 #endif /* SLAP_DYNACL */
 

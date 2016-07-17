@@ -490,13 +490,13 @@ LBER_F( int )
 ber_flush LDAP_P((
 	Sockbuf *sb,
 	BerElement *ber,
-	int freeit )); /* DEPRECATED */
+	int freeit )) __reldap_deprecated_msg("use ber_flush2");
 
 LBER_F( BerElement * )
-ber_alloc LDAP_P(( void )); /* DEPRECATED */
+ber_alloc LDAP_P(( void )) __reldap_deprecated_msg("use ber_alloc_t(0)");
 
 LBER_F( BerElement * )
-der_alloc LDAP_P(( void )); /* DEPRECATED */
+der_alloc LDAP_P(( void )) __reldap_deprecated_msg("use ber_alloc_t(LBER_USE_DER)");
 
 LBER_F( BerElement * )
 ber_alloc_t LDAP_P((
@@ -519,9 +519,9 @@ ber_init2 LDAP_P((
 	int options ));
 
 LBER_F( void )
-ber_init_w_nullc LDAP_P((	/* DEPRECATED */
+ber_init_w_nullc LDAP_P((
 	BerElement *ber,
-	int options ));
+	int options )) __reldap_deprecated_msg("use ber_init2");
 
 LBER_F( void )
 ber_reset LDAP_P((

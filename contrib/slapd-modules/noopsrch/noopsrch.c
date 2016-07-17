@@ -36,7 +36,7 @@
  * in OpenLDAP Software.
  */
 
-#include "portable.h"
+#include "reldap.h"
 
 /* define SLAPD_OVER_NOOPSRCH=2 to build as run-time loadable module */
 #ifdef SLAPD_OVER_NOOPSRCH
@@ -245,13 +245,9 @@ noopsrch_db_destroy( BackendDB *be, ConfigReply *cr )
 	return 0;
 }
 
-#if SLAPD_OVER_NOOPSRCH == SLAPD_MOD_DYNAMIC
-static
-#endif /* SLAPD_OVER_NOOPSRCH == SLAPD_MOD_DYNAMIC */
-int
+static int
 noopsrch_initialize( void )
 {
-
 	noopsrch.on_bi.bi_type = "noopsrch";
 
 	noopsrch.on_bi.bi_db_init = noopsrch_db_init;
@@ -262,8 +258,7 @@ noopsrch_initialize( void )
 }
 
 #if SLAPD_OVER_NOOPSRCH == SLAPD_MOD_DYNAMIC
-int
-init_module( int argc, char *argv[] )
+SLAP_OVERLAY_ENTRY(noopsrch, modinit) ( int argc, char *argv[] )
 {
 	return noopsrch_initialize();
 }

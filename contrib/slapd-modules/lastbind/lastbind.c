@@ -35,7 +35,7 @@
  * This work is loosely derived from the ppolicy overlay.
  */
 
-#include "portable.h"
+#include "reldap.h"
 
 /*
  * This file implements an overlay that stores the timestamp of the
@@ -55,7 +55,7 @@
 #include <ac/time.h>
 #include <ac/string.h>
 #include <ac/ctype.h>
-#include "config.h"
+#include "slapconfig.h"
 
 /* Per-instance configuration information */
 typedef struct lastbind_info {
@@ -286,7 +286,8 @@ int lastbind_initialize()
 }
 
 #if SLAPD_OVER_LASTBIND == SLAPD_MOD_DYNAMIC
-int init_module(int argc, char *argv[]) {
+SLAP_OVERLAY_ENTRY(lastbind, modinit) ( int argc, char *argv[] )
+{
 	return lastbind_initialize();
 }
 #endif

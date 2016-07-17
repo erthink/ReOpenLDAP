@@ -33,7 +33,7 @@
  */
 
 /*
- * This header is to be included by portable.h to ensure
+ * This header is to be included by reldap.h to ensure
  * tweaking of FD_SETSIZE is done early enough to be effective.
  */
 

@@ -56,7 +56,7 @@ typedef void (*BER_LOG_FN)(FILE *file,
 
 LBER_V (BER_ERRNO_FN) ber_int_errno_fn;
 
-#if LDAP_MEMORY_DEBUG > 1
+#if LDAP_MEMORY_DEBUG > 0
 #	define LDAP_MEMORY_ASSERT(expr) assert(expr)
 #else
 #	define LDAP_MEMORY_ASSERT(expr) __noop()

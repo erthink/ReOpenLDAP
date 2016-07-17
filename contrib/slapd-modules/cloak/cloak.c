@@ -37,7 +37,7 @@
  * inclusion in OpenLDAP Software.
  */
 
-#include "portable.h"
+#include "reldap.h"
 
 #ifdef SLAPD_OVER_CLOAK
 
@@ -48,7 +48,7 @@
 
 #include "lutil.h"
 #include "slap.h"
-#include "config.h"
+#include "slapconfig.h"
 
 enum { CLOAK_ATTR = 1 };
 
@@ -343,10 +343,7 @@ static ConfigOCs cloakocs[] = {
 	{ NULL, 0, NULL }
 };
 
-#if SLAPD_OVER_CLOAK == SLAPD_MOD_DYNAMIC
-static
-#endif
-int
+static int
 cloak_initialize( void ) {
 	int rc;
 	cloak_ovl.on_bi.bi_type = "cloak";
@@ -362,7 +359,8 @@ cloak_initialize( void ) {
 }
 
 #if SLAPD_OVER_CLOAK == SLAPD_MOD_DYNAMIC
-int init_module(int argc, char *argv[]) {
+SLAP_OVERLAY_ENTRY(cloak, modinit) ( int argc, char *argv[] )
+{
 	return cloak_initialize();
 }
 #endif

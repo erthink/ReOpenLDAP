@@ -40,7 +40,7 @@
  *   Kurt D. Zeilenga (additional common argument and control support)
  */
 
-#include "portable.h"
+#include "reldap.h"
 
 #include <stdio.h>
 
@@ -239,7 +239,7 @@ st_value( LDAP *ld, struct berval *value )
 }
 #endif /* LDAP_CONTROL_X_SESSION_TRACKING */
 
-RETSIGTYPE
+void
 do_sig( int sig )
 {
 	gotintr = abcan;
@@ -1088,7 +1088,7 @@ tool_args( int argc, char **argv )
 
 		if (version) {
 			fprintf( stderr, "%s: %s\t(LDAP library: %s %d)\n",
-				prog, __Version,
+				prog, _Version,
 				LDAP_VENDOR_NAME, LDAP_VENDOR_VERSION );
 			if (version > 1) exit( EXIT_SUCCESS );
 		}
@@ -2299,7 +2299,7 @@ void tool_print_ctrls(
 
 		/* FIXME: there might be cases where a control has NULL OID;
 		 * this makes little sense, especially when returned by the
-		 * server, but libldap happily allows it */
+		 * server, but libreldap happily allows it */
 		if ( ctrls[i]->ldctl_oid == NULL ) {
 			continue;
 		}

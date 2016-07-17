@@ -53,7 +53,7 @@
  * were adapted for inclusion in OpenLDAP Software by Kurt D. Zeilenga.
  */
 
-#include "portable.h"
+#include "reldap.h"
 
 #include <ac/stdlib.h>
 #include <ac/ctype.h>

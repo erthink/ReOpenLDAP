@@ -42,14 +42,14 @@
  *   Christian Manal
  */
 
-#include "portable.h"
+#include "reldap.h"
 
 #include <stdio.h>
 
 #include <ac/string.h>
 
 #include "slap.h"
-#include "config.h"
+#include "slapconfig.h"
 #include "lutil.h"
 
 #ifndef SLAPD_MEMBEROF_ATTR
@@ -2244,8 +2244,7 @@ autogroup_initialize(void)
 	return overlay_register( &autogroup );
 }
 
-int
-init_module( int argc, char *argv[] )
+SLAP_OVERLAY_ENTRY(autogroup, modinit) ( int argc, char *argv[] )
 {
 	return autogroup_initialize();
 }

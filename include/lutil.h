@@ -253,16 +253,6 @@ lutil_uuidstr_from_normalized(
  * its type has not been defined through another header file.
  */
 
-#ifdef HAVE_EBCDIC
-/* Generally this has only been used to put '\n' to stdout. We need to
- * make sure it is output in EBCDIC.
- */
-#undef putchar
-#undef putc
-#define putchar(c)     putc((c), stdout)
-#define putc(c,fp)     do { char x=(c); __atoe_l(&x,1); putc(x,fp); } while(0)
-#endif
-
 LDAP_LUTIL_F (int)
 lutil_atoix( int *v, const char *s, int x );
 

@@ -36,7 +36,7 @@
  * in OpenLDAP Software, sponsored by SysNet s.r.l.
  */
 
-#include "portable.h"
+#include "reldap.h"
 
 #ifdef SLAPD_OVER_MEMBEROF
 
@@ -46,7 +46,7 @@
 #include "ac/socket.h"
 
 #include "slap.h"
-#include "config.h"
+#include "slapconfig.h"
 #include "lutil.h"
 
 /*
@@ -2135,11 +2135,8 @@ static struct {
 	{ NULL }
 };
 
-#if SLAPD_OVER_MEMBEROF == SLAPD_MOD_DYNAMIC
-static
-#endif /* SLAPD_OVER_MEMBEROF == SLAPD_MOD_DYNAMIC */
 int
-memberof_initialize( void )
+memberof_over_initialize( void )
 {
 	int			code, i;
 
@@ -2173,11 +2170,7 @@ memberof_initialize( void )
 }
 
 #if SLAPD_OVER_MEMBEROF == SLAPD_MOD_DYNAMIC
-int
-init_module( int argc, char *argv[] )
-{
-	return memberof_initialize();
-}
+SLAP_OVERLAY_INIT_MODULE(memberof)
 #endif /* SLAPD_OVER_MEMBEROF == SLAPD_MOD_DYNAMIC */
 
 #endif /* SLAPD_OVER_MEMBEROF */

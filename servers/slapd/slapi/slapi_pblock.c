@@ -38,7 +38,7 @@
  *   Luke Howard
  */
 
-#include "portable.h"
+#include "reldap.h"
 #include <slap.h>
 #include <slapi.h>
 

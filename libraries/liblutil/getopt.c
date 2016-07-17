@@ -38,7 +38,7 @@
  *   Howard Chu
  */
 
-#include "portable.h"
+#include "reldap.h"
 
 #ifndef HAVE_GETOPT
 
@@ -62,10 +62,6 @@ int optind = 1;
 int optopt;
 char * optarg;
 
-#ifdef HAVE_EBCDIC
-extern int _trans_argv;
-#endif
-
 static void ERR (char * const argv[], const char * s, char c)
 {
 #ifdef DF_TRACE_DEBUG
@@ -79,9 +75,6 @@ printf("DF_TRACE_DEBUG: 	static void ERR () in getopt.c\n");
 		ptr = lutil_strncopy(ptr, s, sizeof(outbuf)-2 -(ptr-outbuf));
 		*ptr++ = c;
 		*ptr++ = '\n';
-#ifdef HAVE_EBCDIC
-		__atoe_l(outbuf, ptr - outbuf);
-#endif
 		(void) write(STDERR_FILENO,outbuf,ptr - outbuf);
 	}
 }
@@ -96,13 +89,6 @@ int getopt (int argc, char * const argv [], const char * opts)
 printf("DF_TRACE_DEBUG: 	int getopt () in getopt.c\n");
 #endif
 
-#ifdef HAVE_EBCDIC
-	if (_trans_argv) {
-		int i;
-		for (i=0; i<argc; i++) __etoa(argv[i]);
-		_trans_argv = 0;
-	}
-#endif
 	if (sp == 1)
 	{
 		if (optind >= argc || argv[optind][0] != sw

@@ -57,7 +57,7 @@
  *   in filters or in compare
  */
 
-#include "portable.h"
+#include "reldap.h"
 
 /* define SLAPD_OVER_ALLOWED=2 to build as run-time loadable module */
 #ifdef SLAPD_OVER_ALLOWED
@@ -441,52 +441,6 @@ done_ce:;
 
 static slap_overinst aa;
 
-#if LDAP_VENDOR_VERSION_MINOR != X && LDAP_VENDOR_VERSION_MINOR <= 3
-/* backport register_at() from HEAD, to allow building with OL <= 2.3 */
-static int
-register_at( char *def, AttributeDescription **rad, int dupok )
-{
-	LDAPAttributeType *at;
-	int code, freeit = 0;
-	const char *err;
-	AttributeDescription *ad = NULL;
-
-	at = ldap_str2attributetype( def, &code, &err, LDAP_SCHEMA_ALLOW_ALL );
-	if ( !at ) {
-		Debug( LDAP_DEBUG_ANY,
-			"register_at: AttributeType \"%s\": %s, %s\n",
-				def, ldap_scherr2str(code), err );
-		return code;
-	}
-
-	code = at_add( at, 0, NULL, &err );
-	if ( code ) {
-		if ( code == SLAP_SCHERR_ATTR_DUP && dupok ) {
-			freeit = 1;
-
-		} else {
-			ldap_attributetype_free( at );
-			Debug( LDAP_DEBUG_ANY,
-				"register_at: AttributeType \"%s\": %s, %s\n",
-				def, scherr2str(code), err );
-			return code;
-		}
-	}
-	code = slap_str2ad( at->at_names[0], &ad, &err );
-	if ( freeit || code ) {
-		ldap_attributetype_free( at );
-	} else {
-		ldap_memfree( at );
-	}
-	if ( code ) {
-		Debug( LDAP_DEBUG_ANY, "register_at: AttributeType \"%s\": %s\n",
-			def, err );
-	}
-	if ( rad ) *rad = ad;
-	return code;
-}
-#endif
-
 #if SLAPD_OVER_ALLOWED == SLAPD_MOD_DYNAMIC
 static
 #endif /* SLAPD_OVER_ALLOWED == SLAPD_MOD_DYNAMIC */
@@ -515,8 +469,7 @@ aa_initialize( void )
 }
 
 #if SLAPD_OVER_ALLOWED == SLAPD_MOD_DYNAMIC
-int
-init_module( int argc, char *argv[] )
+SLAP_OVERLAY_ENTRY(allowed, modinit) ( int argc, char *argv[] )
 {
 	return aa_initialize();
 }

@@ -1,5 +1,5 @@
 #!/bin/bash
-# $ReOpenLDAP$
+## $ReOpenLDAP$
 ## Copyright (c) 2015,2016 Leonid Yuriev <leo@yuriev.ru>.
 ## Copyright (c) 2015,2016 Peter-Service R&D LLC <http://billing.ru/>.
 ##
@@ -32,9 +32,9 @@
 ## <http://www.OpenLDAP.org/license.html>.
 
 echo "running defines.sh"
-. $SRCDIR/scripts/defines.sh
+. ${TOP_SRCDIR}/tests/scripts/defines.sh
 
-if test $SYNCPROV = syncprovno; then
+if test ${AC_conf[syncprov]} = no; then
 	echo "Syncrepl provider overlay not available, test skipped"
 	exit 0
 fi
@@ -116,7 +116,7 @@ check_running 1 1
 
 echo "Inserting syncprov overlay on server 1..."
 echo "" > $TMP
-if [ "$SYNCPROV" = syncprovmod ]; then
+if [ ${AC_conf[syncprov]} = mod ]; then
 cat <<EOF >> $TMP
 dn: cn=module,cn=config
 changetype: add

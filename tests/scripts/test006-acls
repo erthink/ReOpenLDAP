@@ -1,5 +1,5 @@
 #!/bin/bash
-# $ReOpenLDAP$
+## $ReOpenLDAP$
 ## Copyright (c) 2015,2016 Leonid Yuriev <leo@yuriev.ru>.
 ## Copyright (c) 2015,2016 Peter-Service R&D LLC <http://billing.ru/>.
 ##
@@ -37,12 +37,12 @@ case "$BACKEND" in ldif | null)
 esac
 
 echo "running defines.sh"
-. $SRCDIR/scripts/defines.sh
+. ${TOP_SRCDIR}/tests/scripts/defines.sh
 
 mkdir -p $TESTDIR $DBDIR1
 
 echo "Running slapadd to build slapd database..."
-. $CONFFILTER $BACKEND $MONITORDB < $ACLCONF > $CONF1
+config_filter $BACKEND ${AC_conf[monitor]} < $ACLCONF > $CONF1
 $SLAPADD -f $CONF1 -l $LDIFORDERED
 RC=$?
 if test $RC != 0 ; then

@@ -36,7 +36,7 @@
  * in OpenLDAP Software.
  */
 
-#include "portable.h"
+#include "reldap.h"
 
 #include <stdio.h>
 
@@ -234,7 +234,7 @@ slappasswd( int argc, char *argv[] )
 
 	slapMode = SLAP_TOOL_MODE;
 
-#ifdef SLAPD_MODULES
+#ifdef SLAPD_DYNAMIC_MODULES
 	if ( module_init() != 0 ) {
 		fprintf( stderr, "%s: module_init failed\n", progname );
 		rc = EXIT_FAILURE;
@@ -300,7 +300,7 @@ print_pw:;
 	printf( "%s%s" , hash.bv_val, newline );
 
 destroy:;
-#ifdef SLAPD_MODULES
+#ifdef SLAPD_DYNAMIC_MODULES
 	module_kill();
 #endif
 	lutil_passwd_destroy();

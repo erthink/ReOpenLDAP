@@ -76,7 +76,7 @@ ber_pvt_log_printf LDAP_P((
 	int errlvl,
 	int loglvl,
 	const char *fmt,
-	... )) LDAP_GCCATTR((format(printf, 3, 4)));
+	... )) __attribute__((format(printf, 3, 4)));
 
 /*
  * sockbuf.c

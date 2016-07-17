@@ -35,7 +35,7 @@
  * inclusion in OpenLDAP Software.
  */
 
-#include <portable.h>
+#include <reldap.h>
 
 #include <stdio.h>
 
@@ -43,7 +43,6 @@
 #include <pwd.h>
 #endif
 
-#define LDAP_DEPRECATED 1
 #include "rewrite-int.h"
 #include "rewrite-map.h"
 
@@ -385,7 +384,7 @@ rewrite_xmap_apply(
 		LDAPMessage *res = NULL, *entry;
 		LDAPURLDesc *lud = ( LDAPURLDesc * )map->lm_args;
 		int attrsonly = 0;
-		char **values;
+		struct berval **values;
 
 		assert( lud != NULL );
 
@@ -405,16 +404,20 @@ rewrite_xmap_apply(
 		if ( strcasecmp( lud->lud_attrs[ 0 ], "dn" ) == 0 ) {
 			attrsonly = 1;
 		}
-		rc = ldap_search_s( ld, lud->lud_dn, lud->lud_scope,
-				filter, lud->lud_attrs, attrsonly, &res );
+
+		/* rc = ldap_search_s( ld, lud->lud_dn, lud->lud_scope,
+				filter, lud->lud_attrs, attrsonly, &res ); */
+		rc = ldap_search_ext_s( ld, lud->lud_dn, lud->lud_scope,
+				filter, lud->lud_attrs, attrsonly, NULL, NULL, NULL, 0, &res );
+
 		if ( rc != LDAP_SUCCESS ) {
-			ldap_unbind( ld );
+			ldap_unbind_ext( ld, NULL, NULL );
 			rc = REWRITE_ERR;
 			goto rc_return;
 		}
 
 		if ( ldap_count_entries( ld, res ) != 1 ) {
-			ldap_unbind( ld );
+			ldap_unbind_ext( ld, NULL, NULL );
 			rc = REWRITE_ERR;
 			goto rc_return;
 		}
@@ -422,7 +425,7 @@ rewrite_xmap_apply(
 		entry = ldap_first_entry( ld, res );
 		if ( entry == NULL ) {
 			ldap_msgfree( res );
-			ldap_unbind( ld );
+			ldap_unbind_ext( ld, NULL, NULL );
 			rc = REWRITE_ERR;
 			goto rc_return;
 		}
@@ -430,16 +433,16 @@ rewrite_xmap_apply(
 			val->bv_val = ldap_get_dn( ld, entry );
 
 		} else {
-			values = ldap_get_values( ld, entry,
+			values = ldap_get_values_len(ld, entry,
 					lud->lud_attrs[0] );
 			if ( values != NULL ) {
-				val->bv_val = strdup( values[ 0 ] );
-				ldap_value_free( values );
+				val->bv_val = strdup( values[ 0 ]->bv_val );
+				ldap_value_free_len( values );
 			}
 		}
 
 		ldap_msgfree( res );
-		ldap_unbind( ld );
+		ldap_unbind_ext( ld, NULL, NULL );
 
 		if ( val->bv_val == NULL ) {
 			rc = REWRITE_ERR;

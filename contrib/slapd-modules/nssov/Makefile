@@ -30,24 +30,11 @@
 # top-level directory of the distribution or, alternatively, at
 # <http://www.OpenLDAP.org/license.html>.
 
-# Path to the ReOpenLDAP source tree
-LDAP_SRC=../../..
+include ../contrib-mod.mk
 
-# Path to the ReOpenLDAP object tree - same as above unless
-# you're doing out-of-tree builds.
-LDAP_BUILD=$(LDAP_SRC)
-
-LDAP_INC = -I$(LDAP_BUILD)/include -I$(LDAP_SRC)/include -I$(LDAP_SRC)/servers/slapd
-LDAP_LIB = $(LDAP_BUILD)/libraries/libreldap/libreldap.la
-
-NLDAPD_INC=-Inss-pam-ldapd
-
-LIBTOOL = $(LDAP_BUILD)/libtool
-CC ?= gcc
-CFLAGS ?= -g -O2 -Wall -Werror
 CFLAGS += -Wno-error=address
 DEFS =
-INCS = $(LDAP_INC) $(NLDAPD_INC)
+INCS = $(LDAP_INC) -Inss-pam-ldapd
 LIBS = $(LDAP_LIB)
 
 prefix=/usr/local

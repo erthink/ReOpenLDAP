@@ -1,5 +1,5 @@
 #!/bin/bash
-# $ReOpenLDAP$
+## $ReOpenLDAP$
 ## Copyright (c) 2015,2016 Leonid Yuriev <leo@yuriev.ru>.
 ## Copyright (c) 2015,2016 Peter-Service R&D LLC <http://billing.ru/>.
 ##
@@ -32,12 +32,12 @@
 ## <http://www.OpenLDAP.org/license.html>.
 
 echo "running defines.sh"
-. $SRCDIR/scripts/defines.sh
+. ${TOP_SRCDIR}/tests/scripts/defines.sh
 
 mkdir -p $TESTDIR $DBDIR2
 
 echo "Starting slapd on TCP/IP port $PORT2..."
-. $CONFFILTER $BACKEND < $CONFTWO > $CONF2
+config_filter $BACKEND < $CONFTWO > $CONF2
 $SLAPD -f $CONF2 -h $URI2 $TIMING > $LOG2 2>&1 &
 PID=$!
 sleep 0.1

@@ -35,7 +35,7 @@
 
 LDAP_BEGIN_DECL
 
-/* Can be done twice in libldap_r.  See libldap_r/ldap_thr_debug.h. */
+/* Can be done twice in libreldap.  See libreldap/ldap_thr_debug.h. */
 LDAP_F(int) ldap_int_thread_initialize LDAP_P(( void ));
 LDAP_F(int) ldap_int_thread_destroy    LDAP_P(( void ));
 

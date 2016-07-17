@@ -41,7 +41,7 @@
  * is provided ``as is'' without express or implied warranty.
  */
 
-#include "portable.h"
+#include "reldap.h"
 
 #include <stdio.h>
 #ifdef HAVE_LIMITS_H
@@ -371,7 +371,7 @@ static void connection_return( Connection *c )
 	ldap_pvt_thread_mutex_unlock( &c->c_mutex );
 }
 
-int connections_socket_troube(ber_socket_t s)
+int connections_socket_trouble(ber_socket_t s)
 {
 	int rc = -1;
 	Connection *c = connection_get(s);
@@ -1592,7 +1592,7 @@ connection_input( Connection *conn , conn_readinfo *cri )
 	void *ctx;
 
 	if ( conn->c_currentber == NULL &&
-		( conn->c_currentber = ber_alloc()) == NULL )
+		( conn->c_currentber = ber_alloc_t(0)) == NULL )
 	{
 		Debug( LDAP_DEBUG_ANY, "ber_alloc failed\n" );
 		return -1;

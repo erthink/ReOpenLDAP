@@ -39,7 +39,7 @@
  * Masarati.
  */
 
-#include "portable.h"
+#include "reldap.h"
 
 #ifdef SLAPD_OVER_RWM
 

@@ -46,7 +46,7 @@
  * (as part of U-MICH LDAP).
  */
 
-#include "portable.h"
+#include "reldap.h"
 
 #include <stdio.h>
 
@@ -55,7 +55,7 @@
 
 #include "slap.h"
 #include "shell.h"
-#include "config.h"
+#include "slapconfig.h"
 
 static ConfigDriver shell_cf;
 

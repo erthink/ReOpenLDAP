@@ -36,7 +36,7 @@
  * in OpenLDAP Software.
  */
 
-#include "portable.h"
+#include "reldap.h"
 #include <stdio.h>
 #include <ac/string.h>
 #include <sys/types.h>
@@ -47,7 +47,7 @@
 #include <ac/unistd.h>
 #include "slap.h"
 #include "lutil.h"
-#include "config.h"
+#include "slapconfig.h"
 
 struct ldif_tool {
 	Entry	**entries;			/* collected by bi_tool_entry_first() */

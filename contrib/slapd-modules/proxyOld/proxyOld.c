@@ -33,7 +33,7 @@
  * <http://www.OpenLDAP.org/license.html>.
  */
 
-#include <portable.h>
+#include <reldap.h>
 
 #include <slap.h>
 
@@ -139,7 +139,8 @@ done:
 	return rc;
 }
 
-int init_module(int argc, char *argv[]) {
+SLAP_OVERLAY_ENTRY(proxyOld, modinit) ( int argc, char *argv[] )
+{
 	return register_supported_control( LDAP_CONTROL_PROXY_AUTHZ05,
 		SLAP_CTRL_GLOBAL|SLAP_CTRL_HIDE|SLAP_CTRL_ACCESS, proxyOld_extops,
 		proxyOld_parse, NULL );

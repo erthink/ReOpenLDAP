@@ -43,7 +43,7 @@
  * is provided ``as is'' without express or implied warranty.
  */
 
-#include "portable.h"
+#include "reldap.h"
 
 #include <stdio.h>
 

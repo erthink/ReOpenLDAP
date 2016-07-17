@@ -34,7 +34,7 @@
  * <http://www.OpenLDAP.org/license.html>.
  */
 
-#include "portable.h"
+#include "reldap.h"
 
 #include <stdio.h>
 
@@ -45,7 +45,7 @@
 #include "slap.h"
 #include "lutil_ldap.h"
 
-#include "config.h"
+#include "slapconfig.h"
 
 #include "ldap_rq.h"
 
@@ -1079,7 +1079,6 @@ syncrepl_process(
 				rc = syncrepl_eat_cookie( si, ber, /*"{"*/ "m}", &syncCookie, NULL, 1 );
 				if ( rc )
 					goto done;
-
 				si->si_too_old = compare_cookies(&si->si_syncCookie, &syncCookie) < 0;
 			}
 
@@ -2057,7 +2056,7 @@ syncrepl_op_modify( Operation *op, SlapReply *rs )
 	OpExtra *oex;
 	syncinfo_t *si;
 	Entry *e;
-	int rc, match = 0;
+	int rc, match;
 	Modifications *mod, *newlist;
 
 	LDAP_SLIST_FOREACH( oex, &op->o_extra, oe_next ) {
@@ -2082,6 +2081,18 @@ syncrepl_op_modify( Operation *op, SlapReply *rs )
 	if ( !mod )
 		return SLAP_CB_CONTINUE;
 
+	ldap_pvt_thread_mutex_lock( &si->si_cookieState->cs_mutex );
+	match = slap_cookie_compare_csn( &si->si_cookieState->cs_cookie, &mod->sml_nvalues[0] );
+	ldap_pvt_thread_mutex_unlock( &si->si_cookieState->cs_mutex );
+	if (match < 0) {
+		Debug( LDAP_DEBUG_SYNC, "syncrepl_op_modify: %s entryCSN too old, ignoring %s (%s)\n",
+			si->si_ridtxt, mod->sml_nvalues[0].bv_val, op->o_req_dn.bv_val );
+		slap_graduate_commit_csn( op );
+		/* tell accesslog this was a failure */
+		rs->sr_err = LDAP_TYPE_OR_VALUE_EXISTS;
+		return LDAP_SUCCESS;
+	}
+
 	rc = overlay_entry_get_ov( op, &op->o_req_ndn, NULL, NULL, 0, &e, on );
 	if ( rc == 0 ) {
 		Attribute *a;
@@ -2095,6 +2106,7 @@ syncrepl_op_modify( Operation *op, SlapReply *rs )
 	}
 	/* equal? Should never happen */
 	if ( match == 0 ) {
+		slap_graduate_commit_csn( op );
 		/* tell accesslog this was a failure */
 		rs->sr_err = LDAP_TYPE_OR_VALUE_EXISTS;
 		return LDAP_SUCCESS;

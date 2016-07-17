@@ -1,4 +1,4 @@
-/* template.c -- example OpenLDAP source file */
+/* template.c -- example ReOpenLDAP source file */
 /* $ReOpenLDAP$ */
 /* Copyright (c) 2015,2016 Leonid Yuriev <leo@yuriev.ru>.
  * Copyright (c) 2015,2016 Peter-Service R&D LLC <http://billing.ru/>.
@@ -20,7 +20,7 @@
  *
  * ---
  *
- * Copyright YEAR The OpenLDAP Foundation.
+ * Copyright 2015 The OpenLDAP Foundation.
  * Portions Copyright YEAR Secondary Rights Holder.
  * Portions Copyright YEAR Another Rights Holder.
  * All rights reserved.
@@ -33,12 +33,8 @@
  * top-level directory of the distribution or, alternatively, at
  * <http://www.OpenLDAP.org/license.html>.
  */
-/* Additional (custom) notices (where necessary).
- *  Please consult Kurt Zeilenga <kurt@openldap.org> before adding
- *  additional notices.
- */
 /* ACKNOWLEDGEMENTS:
  * This work was initially developed by Jane Doe for inclusion in
- * OpenLDAP Software.  Additional significant contributors include:
+ * ReOpenLDAP Software.  Additional significant contributors include:
  *   John Doe
  */

@@ -50,7 +50,7 @@
  *  We also tolerate URLs that look like: <ldapurl> and <URL:ldapurl>
  */
 
-#include "portable.h"
+#include "reldap.h"
 
 #include <stdio.h>
 

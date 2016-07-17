@@ -38,7 +38,7 @@
  * This is an implementation of recursive mutexes.
  */
 
-#include "portable.h"
+#include "reldap.h"
 
 #include <ac/stdlib.h>
 
