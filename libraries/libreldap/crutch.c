@@ -86,7 +86,7 @@ void* ber_memcpy_safe(void* dest, const void* src, size_t n) {
 	return memcpy(dest, src, n);
 }
 
-__cold __attribute__((weak))
+__cold __attribute__((weak)) __reldap_exportable
 void __ldap_assert_fail(
 		const char* assertion,
 		const char* file,
