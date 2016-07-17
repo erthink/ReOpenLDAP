@@ -69,8 +69,19 @@ flag_tsan=0
 flag_hide=1
 flag_dynamic=0
 
+flag_nodeps=0
+if [ -n "${TEAMCITY_PROCESS_FLOW_ID}" ]; then
+	flag_nodeps=1
+fi
+
 for arg in "$@"; do
 	case "$arg" in
+	--deps)
+		flag_nodeps=0
+		;;
+	--no-deps)
+		flag_nodeps=1
+		;;
 	--dist)
 		flag_dist=1
 		flag_clean=1
@@ -425,6 +436,7 @@ if [ ! -s ${build}/Makefile ]; then
 	# autoscan && libtoolize --force --automake --copy && aclocal -I build && autoheader && autoconf && automake --add-missing --copy
 	mkdir -p ${build} && \
 	( cd ${build} && configure \
+			$(if [ $modern_configure -ne 0 -a $flag_nodeps -ne 0 ]; then echo "--disable-dependency-tracking"; fi) \
 			--prefix=$(pwd)/@install_here ${DYNAMIC} \
 			--with-tls --enable-debug $BACKENDS --enable-overlays=${MOD} $NDB_CONFIG \
 			--enable-rewrite --enable-dynacl --enable-aci --enable-slapi \
@@ -435,9 +447,9 @@ if [ ! -s ${build}/Makefile ]; then
 
 	find ${build} -name Makefile | xargs -r sed -i 's/-Wall -ggdb3/-Wall -Werror -ggdb3/g' || failure "prepare"
 
-	if [ $modern_configure -eq 0 -a -z "${TEAMCITY_PROCESS_FLOW_ID}" ]; then
+	if [ $modern_configure -eq 0 -a $flag_nodeps -eq 0 ]; then
 		make -C ${build} -j 1 -l $lalim depend \
-			|| notice "notice: 'make depend' now obsolete"
+			|| faulire "'make depend'"
 	fi
 fi
 

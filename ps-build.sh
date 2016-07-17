@@ -47,6 +47,11 @@ flag_dynamic=0
 flag_publish=1
 PREV_RELEASE=""
 
+flag_nodeps=0
+if [ -n "${TEAMCITY_PROCESS_FLOW_ID}" ]; then
+	flag_nodeps=1
+fi
+
 if [ -e configure.ac ]; then
 	notice "info: saw modern ./configure.ac"
 	modern_configure=1
@@ -57,6 +62,12 @@ fi
 
 while grep -q '^--' <<< "$1"; do
 	case "$1" in
+	--deps)
+		flag_nodeps=0
+		;;
+	--no-deps)
+		flag_nodeps=1
+		;;
 	--prev-release)
 		PREV_RELEASE="$2"
 		shift ;;
@@ -338,6 +349,7 @@ else
 	fi
 
 	configure \
+		$(if [ $modern_configure -ne 0 -a $flag_nodeps -ne 0 ]; then echo "--disable-dependency-tracking"; fi) \
 		--prefix=${PREFIX} ${DYNAMIC} \
 		--enable-overlays --disable-bdb --disable-hdb \
 		--enable-debug --with-gnu-ld --without-cyrus-sasl \
@@ -357,7 +369,7 @@ else
 
 	sed -e 's/ -lrt/ -Wl,--no-as-needed,-lrt/g' -i ${LIBMDBX_DIR}/Makefile
 
-	if [ $modern_configure -eq 0 -a -z "${TEAMCITY_PROCESS_FLOW_ID}" ]; then
+	if [ $modern_configure -eq 0 -a $flag_nodeps -eq 0 ]; then
 		make depend \
 			|| failure "make-deps"
 	fi
