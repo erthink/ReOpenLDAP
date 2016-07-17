@@ -342,10 +342,16 @@ else
 
 	if [ $flag_dynamic -ne 0 ]; then
 		MOD=mod
-		DYNAMIC="--enable-dynamic --enable-shared --enable-modules"
+		DYNAMIC="--enable-shared --disable-static --enable-modules"
+		if [ $modern_configure -eq 0 ]; then
+			DYNAMIC+=" --enable-dynamic"
+		fi
 	else
 		MOD=yes
-		DYNAMIC="--disable-shared --enable-static --disable-dynamic"
+		DYNAMIC="--disable-shared --enable-static --disable-modules"
+		if [ $modern_configure -eq 0 ]; then
+			DYNAMIC+=" --disable-dynamic"
+		fi
 	fi
 
 	configure \
