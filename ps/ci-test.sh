@@ -1,6 +1,7 @@
 #!/bin/bash
 
 N=${1:-42}
+[ -d _build ] && cd _build
 TESTING_ROOT=$(readlink -f $(pwd))
 TMP=
 ulimit -c unlimited

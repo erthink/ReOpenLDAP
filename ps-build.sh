@@ -47,8 +47,27 @@ flag_dynamic=0
 flag_publish=1
 PREV_RELEASE=""
 
+flag_nodeps=0
+if [ -n "${TEAMCITY_PROCESS_FLOW_ID}" ]; then
+	flag_nodeps=1
+fi
+
+if [ -e configure.ac ]; then
+	notice "info: saw modern ./configure.ac"
+	modern_configure=1
+else
+	notice "info: NOT saw modern ./configure.ac"
+	modern_configure=0
+fi
+
 while grep -q '^--' <<< "$1"; do
 	case "$1" in
+	--deps)
+		flag_nodeps=0
+		;;
+	--no-deps)
+		flag_nodeps=1
+		;;
 	--prev-release)
 		PREV_RELEASE="$2"
 		shift ;;
@@ -131,7 +150,6 @@ while grep -q '^--' <<< "$1"; do
 	shift
 done
 
-
 ##############################################################################
 
 step_begin "prepare"
@@ -199,7 +217,7 @@ if [ -s Makefile ]; then
 else
 	LDFLAGS="-Wl,--as-needed,-Bsymbolic,--gc-sections,-O,-zignore"
 	CFLAGS="-Wall -ggdb3 -DPS_COMPAT_RHEL6=1"
-	LIBS="-Wl,--no-as-needed,-lrt"
+	LIBS="-Wl,--no-as-needed,-lrt,--as-needed"
 
 	if [ $flag_hide -ne 0 ]; then
 		CFLAGS+=" -fvisibility=hidden"
@@ -318,18 +336,26 @@ else
 	echo "CFLAGS		= ${CFLAGS}"
 	echo "PATH		= ${PATH}"
 	echo "LD		= $(readlink -f $(which ld)) ${LDFLAGS}"
+	echo "LIBS		= ${LIBS}"
 	echo "TOOLCHAIN	= $CC $CXX $AR $NM $RANLIB"
 	export CC CXX CFLAGS LDFLAGS LIBS CXXFLAGS="$CFLAGS"
 
 	if [ $flag_dynamic -ne 0 ]; then
 		MOD=mod
-		DYNAMIC="--enable-dynamic --enable-shared --enable-modules"
+		DYNAMIC="--enable-shared --disable-static --enable-modules"
+		if [ $modern_configure -eq 0 ]; then
+			DYNAMIC+=" --enable-dynamic"
+		fi
 	else
 		MOD=yes
-		DYNAMIC="--disable-shared --enable-static --disable-dynamic"
+		DYNAMIC="--disable-shared --enable-static --disable-modules"
+		if [ $modern_configure -eq 0 ]; then
+			DYNAMIC+=" --disable-dynamic"
+		fi
 	fi
 
 	configure \
+		$(if [ $modern_configure -ne 0 -a $flag_nodeps -ne 0 ]; then echo "--disable-dependency-tracking"; fi) \
 		--prefix=${PREFIX} ${DYNAMIC} \
 		--enable-overlays --disable-bdb --disable-hdb \
 		--enable-debug --with-gnu-ld --without-cyrus-sasl \
@@ -349,13 +375,18 @@ else
 
 	sed -e 's/ -lrt/ -Wl,--no-as-needed,-lrt/g' -i ${LIBMDBX_DIR}/Makefile
 
-	if [ -z "${TEAMCITY_PROCESS_FLOW_ID}" ]; then
+	if [ $modern_configure -eq 0 -a $flag_nodeps -eq 0 ]; then
 		make depend \
 			|| failure "make-deps"
 	fi
 fi
 
-PACKAGE="$(grep VERSION= Makefile | cut -d ' ' -f 2)"
+if [ $modern_configure -eq 0 ]; then
+	PACKAGE="$(grep VERSION= Makefile | cut -d ' ' -f 2)"
+else
+	PACKAGE="$(build/BRANDING --version)"
+fi
+
 echo "PACKAGE: $PACKAGE"
 
 if [ -d .git ]; then
@@ -384,7 +415,7 @@ step_finish "build mdbx-tools"
 echo "======================================================================="
 step_begin "build reopenldap"
 
-make -k \
+make -k && make -C tests/progs \
 	|| failure "build-2"
 
 step_finish "build reopenldap"
@@ -402,7 +433,7 @@ find ${PREFIX} -name '*.a' -o -name '*.la' | xargs -r rm \
 	|| failure "sweep-1"
 find ${PREFIX} -type d -empty | xargs -r rm -r \
 	|| failure "sweep-2"
-rm -r ${PREFIX}/var ${PREFIX}/include && ln -s /var ${PREFIX}/ \
+rm -rf ${PREFIX}/var ${PREFIX}/include && ln -s /var ${PREFIX}/ \
 	|| failure "sweep-3"
 
 step_finish "sweep"

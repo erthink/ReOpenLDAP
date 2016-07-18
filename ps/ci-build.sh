@@ -3,6 +3,8 @@
 ncpu=$((grep processor /proc/cpuinfo || echo ?) | wc -l)
 lalim=$((ncpu*4))
 
+srcdir=$(pwd)
+
 [ -n "$CIBUZZ_PID4" ] && echo $BASHPID > $CIBUZZ_PID4
 
 teamcity_sync() {
@@ -35,27 +37,72 @@ step_finish() {
 
 configure() {
 	echo "CONFIGURE	= $*"
-	./configure "$@" > configure.log
+	${srcdir}/configure "$@" > configure.log
 }
 
+flag_autoconf=0
+flag_dist=0
+if [ -e configure.ac ]; then
+	notice "info: saw modern ./configure.ac"
+	modern_configure=1
+	flag_insrc=0
+else
+	notice "info: NOT saw modern ./configure.ac"
+	modern_configure=0
+	flag_autoconf=0
+	flag_insrc=1
+fi
 
 flag_debug=0
 flag_check=1
 flag_clean=1
-flag_lto=1
+flag_lto=0
 flag_O=-O2
 flag_clang=0
 flag_bdb=1
-flag_mdb=1
+flag_mdbx=1
 flag_wt=0
 flag_ndb=1
 flag_valgrind=0
 flag_asan=0
 flag_tsan=0
-flag_hide=0
+flag_hide=1
 flag_dynamic=0
+
+flag_nodeps=0
+if [ -n "${TEAMCITY_PROCESS_FLOW_ID}" ]; then
+	flag_nodeps=1
+fi
+
 for arg in "$@"; do
 	case "$arg" in
+	--deps)
+		flag_nodeps=0
+		;;
+	--no-deps)
+		flag_nodeps=1
+		;;
+	--dist)
+		flag_dist=1
+		flag_clean=1
+		flag_autoconf=1
+		;;
+	--no-dist)
+		flag_dist=0
+		;;
+	--insrc | --in-source-build)
+		flag_insrc=1
+		;;
+	--no-insrc | --out-source-build)
+		flag_insrc=0
+		;;
+	--autoconf)
+		flag_autoconf=1
+		;;
+	--no-autoconf)
+		flag_autoconf=0
+		flag_dist=0
+		;;
 	--hide)
 		flag_hide=1
 		;;
@@ -87,11 +134,13 @@ for arg in "$@"; do
 	--no-lto)
 		flag_lto=0
 		;;
-	--do-clean)
+	--clean | --do-clean)
 		flag_clean=1
 		;;
-	--do-not-clean)
+	--no-clean | --do-not-clean)
 		flag_clean=0
+		flag_dist=0
+		flag_autoconf=0
 		;;
 	--size)
 		flag_O=-Os
@@ -102,11 +151,11 @@ for arg in "$@"; do
 	--clang)
 		flag_clang=1
 		;;
-	--with-mdb)
-		flag_mdb=1
+	--with-mdbx)
+		flag_mdbx=1
 		;;
-	--without-mdb)
-		flag_mdb=0
+	--without-mdbx)
+		flag_mdbx=0
 		;;
 	--with-bdb)
 		flag_bdb=1
@@ -159,54 +208,52 @@ done
 
 if [ $flag_dynamic -ne 0 ]; then
 	MOD=mod
-	DYNAMIC="--enable-dynamic --enable-shared --enable-modules"
+	DYNAMIC="--enable-shared --disable-static --enable-modules"
+	if [ $modern_configure -eq 0 ]; then
+		DYNAMIC+=" --enable-dynamic"
+	fi
 else
 	MOD=yes
-	DYNAMIC="--disable-shared"
+	DYNAMIC="--disable-shared --enable-static --disable-modules"
+	if [ $modern_configure -eq 0 ]; then
+		DYNAMIC+=" --disable-dynamic"
+	fi
 fi
 
 BACKENDS="--enable-backends=${MOD}"
-#    --enable-bdb	  enable Berkeley DB backend no|yes|mod [yes]
-#    --enable-dnssrv	  enable dnssrv backend no|yes|mod [no]
-#    --enable-hdb	  enable Hierarchical DB backend no|yes|mod [yes]
-#    --enable-ldap	  enable ldap backend no|yes|mod [no]
-#    --enable-mdb	  enable mdb database backend no|yes|mod [yes]
-#    --enable-meta	  enable metadirectory backend no|yes|mod [no]
-#    --enable-monitor	  enable monitor backend no|yes|mod [yes]
-#    --enable-ndb	  enable MySQL NDB Cluster backend no|yes|mod [no]
-#    --enable-null	  enable null backend no|yes|mod [no]
-#    --enable-passwd	  enable passwd backend no|yes|mod [no]
-#    --enable-perl	  enable perl backend no|yes|mod [no]
-#    --enable-relay  	  enable relay backend no|yes|mod [yes]
-#    --enable-shell	  enable shell backend no|yes|mod [no]
-#    --enable-sock	  enable sock backend no|yes|mod [no]
-#    --enable-sql	  enable sql backend no|yes|mod [no]
 
-NBD="--disable-ndb"
+#======================================================================
+
+NDB_CONFIG="--disable-ndb"
+NDB_PATH_ADD=
+NDB_LDFLAGS=
+NDB_INCLUDES=
 if [ $flag_ndb -ne 0 ]; then
 	MYSQL_CLUSTER="$(find -L /opt /usr/local -maxdepth 2 -name 'mysql-cluster*' -type d | sort -r | head -1)"
 	if [ -n "${MYSQL_CLUSTER}" -a -x ${MYSQL_CLUSTER}/bin/mysql_config ]; then
-		echo "MYSQL_CLUSTER	= ${MYSQL_CLUSTER}"
-		PATH=${MYSQL_CLUSTER}/bin:$PATH
+		echo "MYSQL_CLUSTER	= $MYSQL_CLUSTER"
+		NDB_PATH_ADD=${MYSQL_CLUSTER}/bin:
 	fi
-	MYSQL_CONFIG="$(which mysql_config)"
+	MYSQL_CONFIG="$(PATH=$NDB_PATH_ADD$PATH which mysql_config)"
 	if [ -n "${MYSQL_CONFIG}" ]; then
-		echo "MYSQL_CONFIG	= ${MYSQL_CONFIG}"
-		MYSQL_NDB_API="$(${MYSQL_CONFIG} --include | sed 's|-I/|/|g')/storage/ndb/ndbapi/NdbApi.hpp"
+		echo "MYSQL_CONFIG	= $MYSQL_CONFIG"
+		MYSQL_NDB_API="$($MYSQL_CONFIG --include | sed 's|-I/|/|g')/storage/ndb/ndbapi/NdbApi.hpp"
 		if [ -s "${MYSQL_NDB_API}" ]; then
-			echo "MYSQL_NDB_API	= ${MYSQL_NDB_API}"
-			MYSQL_NDB_RPATH="$(${MYSQL_CONFIG} --libs_r | sed -n 's|-L\(/\S\+\)\s.*$|\1|p')"
-			echo "MYSQL_NDB_RPATH	= ${MYSQL_NDB_RPATH}"
-			LDFLAGS="-Wl,-rpath,${MYSQL_NDB_RPATH}"
-			NBD="--enable-ndb=${MOD}"
+			echo "MYSQL_NDB_API	= $MYSQL_NDB_API"
+			NDB_RPATH="$($MYSQL_CONFIG --libs_r | sed -n 's|-L\(/\S\+\)\s.*$|\1|p')"
+			echo "NDB_RPATH	= $NDB_RPATH"
+			NDB_INCLUDES="$($MYSQL_CONFIG --include)"
+			NDB_LDFLAGS="-Wl,-rpath,${NDB_RPATH}"
+			NDB_CONFIG="--enable-ndb=${MOD}"
 		fi
 	fi
 fi
 
-IODBC=$([ -d /usr/include/iodbc ] && echo "-I/usr/include/iodbc")
+IODBC_INCLUDES=$([ -d /usr/include/iodbc ] && echo "-I/usr/include/iodbc")
 
 #======================================================================
 
+CPPFLAGS=
 CFLAGS="-Wall -ggdb3 -gdwarf-4"
 if [ $flag_hide -ne 0 ]; then
 	CFLAGS+=" -fvisibility=hidden"
@@ -248,11 +295,7 @@ elif grep -q clang <<< "$CC"; then
 fi
 
 if [ $flag_debug -ne 0 ]; then
-	if grep -q gcc <<< "$CC" ; then
-		CFLAGS+=" -Og"
-	else
-		CFLAGS+=" -O0"
-	fi
+	CFLAGS+=" -O0"
 else
 	CFLAGS+=" ${flag_O}"
 fi
@@ -321,12 +364,20 @@ if [ $flag_tsan -ne 0 ]; then
 	fi
 fi
 
-if [ -n "$IODBC" ]; then
-	CFLAGS+=" $IODBC"
+if [ $modern_configure -ne 0 ]; then
+	notice "info: expect modern configure"
+	MDBX_NICK=mdbx
+else
+	notice "info: care for old configure"
+	PATH=${NDB_PATH_ADD}$PATH
+	CPPFLAGS+=" $IODBC_INCLUDES $NDB_INCLUDES"
+	LDFLAGS+=" $NDB_LDFLAGS"
+	MDBX_NICK=mdb
 fi
 
-export CC CXX CFLAGS LDFLAGS CXXFLAGS="$CFLAGS"
+export CC CXX CFLAGS CPPFLAGS LDFLAGS CXXFLAGS="$CFLAGS"
 echo "CFLAGS		= ${CFLAGS}"
+echo "CPPFLAGS	= ${CPPFLAGS}"
 echo "PATH		= ${PATH}"
 echo "LD		= $(readlink -f $(which ld)) ${LDFLAGS}"
 echo "TOOLCHAIN	= $CC $CXX $AR $NM $RANLIB"
@@ -334,32 +385,78 @@ echo "TOOLCHAIN	= $CC $CXX $AR $NM $RANLIB"
 #======================================================================
 
 if [ $flag_clean -ne 0 ]; then
+	notice "info: cleaning"
 	git clean -x -f -d -e ./ps -e .ccache/ -e tests/testrun/ -e times.log >/dev/null || failure "cleanup"
 	git submodule foreach --recursive git clean -x -f -d >/dev/null || failure "cleanup-submodules"
 fi
 
+#======================================================================
+
+if [ $flag_autoconf -ne 0 ]; then
+	if [ $modern_configure -ne 0 ]; then
+		if [ -n "$(which autoreconf)" ] && autoreconf --version | grep -q 'autoreconf (GNU Autoconf) 2\.69'; then
+			notice "info: use autoreconf"
+			autoreconf --force --install --include=build || failure "autoreconf"
+		elif [ -n "$(which autoreconf-2.69)" ]; then
+			notice "info: use autoreconf-2.69"
+			autoreconf-2.69 --force --install --include=build || failure "autoreconf-2.69"
+		elif [ -n "$(which autoreconf2.69)" ]; then
+			notice "info: use autoreconf2.69"
+			autoreconf2.69 --force --install --include=build || failure "autoreconf2.69"
+		else
+			notice "warning: no autoreconf-2.69, skip autoreconf"
+		fi
+	else
+		notice "warning: unable autoreconf"
+	fi
+fi
+
+#======================================================================
+
+if [ $flag_dist -ne 0 ]; then
+	if [ $modern_configure -ne 0 ]; then
+		notice "info: make dist"
+		./configure || failure "configure dist"
+		make dist || failure "make dist"
+		dist=$(ls *.tar.* | sed 's/^\(.\+\)\.tar\..\+$/\1/g')
+		tar xaf *.tar.* || failure "untar dist"
+		[ -n "$dist" ] && [ -d "$dist" ] && cd "$dist" || failure "dir dist"
+		srcdir=$(pwd)
+	else
+		notice "warning: unable 'make dist'"
+	fi
+fi
+
+#======================================================================
+
 LIBMDBX_DIR=$([ -d libraries/liblmdb ] && echo "libraries/liblmdb" || echo "libraries/libmdbx")
 
-if [ ! -s Makefile ]; then
+if [ $flag_insrc -ne 0 ]; then
+	notice "info: in-source build"
+	build="$srcdir"
+else
+	notice "info: out-of-source build"
+	build="$(pwd)/_build"
+fi
+
+if [ ! -s ${build}/Makefile ]; then
 	# autoscan && libtoolize --force --automake --copy && aclocal -I build && autoheader && autoconf && automake --add-missing --copy
-	configure \
+	mkdir -p ${build} && \
+	( cd ${build} && configure \
+			$(if [ $modern_configure -ne 0 -a $flag_nodeps -ne 0 ]; then echo "--disable-dependency-tracking"; fi) \
 			--prefix=$(pwd)/@install_here ${DYNAMIC} \
-			--with-tls --enable-debug $BACKENDS --enable-overlays=${MOD} $NBD \
+			--with-tls --enable-debug $BACKENDS --enable-overlays=${MOD} $NDB_CONFIG \
 			--enable-rewrite --enable-dynacl --enable-aci --enable-slapi \
-			$(if [ $flag_mdb -eq 0 ]; then echo "--disable-mdb"; else echo "--enable-mdb=${MOD}"; fi) \
+			$(if [ $flag_mdbx -eq 0 ]; then echo "--disable-${MDBX_NICK}"; else echo "--enable-${MDBX_NICK}=${MOD}"; fi) \
 			$(if [ $flag_bdb -eq 0 ]; then echo "--disable-bdb --disable-hdb"; else echo "--enable-bdb=${MOD} --enable-hdb=${MOD}"; fi) \
 			$(if [ $flag_wt -eq 0 ]; then echo "--disable-wt"; else echo "--enable-wt=${MOD}"; fi) \
-		|| failure "configure"
+	) || failure "configure"
 
-	if [ -e ${LIBMDBX_DIR}/mdbx.h ]; then
-		find ./ -name Makefile | xargs -r sed -i 's/-Wall -ggdb3/-Wall -Werror -ggdb3/g' || failure "prepare"
-	else
-		find ./ -name Makefile | grep -v liblmdb | xargs -r sed -i 's/-Wall -ggdb3/-Wall -Werror -ggdb3/g' || failure "prepare"
-	fi
+	find ${build} -name Makefile | xargs -r sed -i 's/-Wall -ggdb3/-Wall -Werror -ggdb3/g' || failure "prepare"
 
-	if [ -z "${TEAMCITY_PROCESS_FLOW_ID}" ]; then
-		make -j 1 -l $lalim depend \
-			|| failure "depends"
+	if [ $modern_configure -eq 0 -a $flag_nodeps -eq 0 ]; then
+		make -C ${build} -j 1 -l $lalim depend \
+			|| faulire "'make depend'"
 	fi
 fi
 
@@ -369,9 +466,12 @@ if [ -e ${LIBMDBX_DIR}/mdbx.h ]; then
 fi
 export CFLAGS CXXFLAGS
 
-make -j $ncpu -l $lalim \
+make -C ${build} -j $ncpu -l $lalim \
+	&& make -C ${build}/tests/progs -j $ncpu -l $lalim \
 	&& make -j $ncpu -l $lalim -C ${LIBMDBX_DIR} \
 		all $(find ${LIBMDBX_DIR} -name 'mtest*.c' | xargs -n 1 -r -I '{}' basename '{}' .c) || failure "build"
+
+export LDAP_SRC=$(readlink -f ${srcdir}) LDAP_BUILD=$(readlink -f ${build})
 
 for m in $(find contrib/slapd-modules -name Makefile -printf '%h\n'); do
 	if [ -e $m/BROKEN ]; then
@@ -383,6 +483,6 @@ for m in $(find contrib/slapd-modules -name Makefile -printf '%h\n'); do
 	fi
 done
 
-make install
+make -C ${build} install
 
 echo "DONE"
