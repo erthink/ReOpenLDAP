@@ -402,17 +402,6 @@ fi
 
 step_finish "configure"
 echo "======================================================================="
-step_begin "build mdbx-tools"
-
-mkdir -p ${PREFIX}/bin && \
-(cd ${LIBMDBX_DIR} && make -k all && \
-	(cp mdbx_chk mdbx_copy mdbx_stat -t ${PREFIX}/bin/ \
-	|| cp mdb_chk mdb_copy mdb_stat -t ${PREFIX}/bin/) \
-) \
-	|| failure "build-1"
-
-step_finish "build mdbx-tools"
-echo "======================================================================="
 step_begin "build reopenldap"
 
 make -k && make -C tests/progs \
@@ -427,6 +416,20 @@ make -k install \
 
 step_finish "install"
 echo "======================================================================="
+
+if [ ! -x ${PREFIX}/bin/mdbx_chk ]; then
+	step_begin "build mdbx-tools"
+	mkdir -p ${PREFIX}/bin && \
+	(cd ${LIBMDBX_DIR} && make -k all && \
+		(cp mdbx_chk mdbx_copy mdbx_stat -t ${PREFIX}/bin/ \
+		|| cp mdb_chk mdb_copy mdb_stat -t ${PREFIX}/bin/) \
+	) \
+		|| failure "build-1"
+
+	step_finish "build mdbx-tools"
+	echo "======================================================================="
+fi
+
 step_begin "sweep"
 
 find ${PREFIX} -name '*.a' -o -name '*.la' | xargs -r rm \
