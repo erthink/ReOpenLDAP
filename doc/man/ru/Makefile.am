@@ -31,9 +31,11 @@ man7dir = $(mandir_ru)/man7
 man8dir = $(mandir_ru)/man8
 
 .soelim.man.in:
+	@if $(AM_V_P); then set -x; else echo "  SOELIM   $@"; fi; \
 	$(MKDIR_P) $(@D) && $(SOELIM_R) -I $(<D) $< | $(FIXUP_DIST) > $@
 
 .man.in.man:
+	@if $(AM_V_P); then set -x; else echo "  FIXUP    $@"; fi; \
 	$(MKDIR_P) $(@D) && $(FIXUP_DIRS) $< > $@
 
 man_links = man5/slapd-bdb.5.links man1/ldapmodify.1.links
@@ -72,11 +74,13 @@ man8_MANS = man8/slapcat.man man8/slappasswd.man \
 	man8/slaptest.man man8/slapd.man
 
 install-data-hook:
+	@if $(AM_V_P); then set -x; else echo "  LN       $$(cat `find $(srcdir) -name '*.links'`)"; fi; \
 	(cd $(srcdir) && find . -name '*.links' -exec \
 		sh -c 'xargs -I "#" -n 1 -r sh -c "cd $(mandir_ru)/$$(dirname {}) && ln -s -f -T $$(basename {} .links) #" < $(srcdir)/{}' \
 		\;)
 
 uninstall-hook:
+	@if $(AM_V_P); then set -x; else echo "  RM       $$(cat `find $(srcdir) -name '*.links'`)"; fi; \
 	(cd $(srcdir) && find . -name '*.links' -exec \
 		sh -c 'xargs -I "#" -n 1 -r sh -c "rm -f $(mandir_ru)/$$(dirname {})/#" < $(srcdir)/{}' \
 		\;)

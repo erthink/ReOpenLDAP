@@ -663,6 +663,7 @@ ltdl_LIBOBJS
 am__EXEEXT_FALSE
 am__EXEEXT_TRUE
 LTLIBOBJS
+AM_MAKEFLAGS
 SECURITY_LIBS
 LDAP_LIBLUTIL_LA
 LDAP_LIBLUNICODE_LA
@@ -887,6 +888,9 @@ CXXFLAGS
 CXX
 FIXUP_DIRS
 FIXUP_DIST
+MKBANNER_VERBOSE_1
+MKBANNER_VERBOSE_0
+MKBANNER_VERBOSE_
 MKBANNER
 API_LIB_VERSION
 API_LIB_RELEASE
@@ -3914,6 +3918,45 @@ END
     as_fn_error $? "Your 'rm' program is bad, sorry." "$LINENO" 5
   fi
 fi
+
+# Check whether --enable-silent-rules was given.
+if test "${enable_silent_rules+set}" = set; then :
+  enableval=$enable_silent_rules;
+fi
+
+case $enable_silent_rules in # (((
+  yes) AM_DEFAULT_VERBOSITY=0;;
+   no) AM_DEFAULT_VERBOSITY=1;;
+    *) AM_DEFAULT_VERBOSITY=0;;
+esac
+am_make=${MAKE-make}
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking whether $am_make supports nested variables" >&5
+$as_echo_n "checking whether $am_make supports nested variables... " >&6; }
+if ${am_cv_make_support_nested_variables+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  if $as_echo 'TRUE=$(BAR$(V))
+BAR0=false
+BAR1=true
+V=1
+am__doit:
+	@$(TRUE)
+.PHONY: am__doit' | $am_make -f - >/dev/null 2>&1; then
+  am_cv_make_support_nested_variables=yes
+else
+  am_cv_make_support_nested_variables=no
+fi
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $am_cv_make_support_nested_variables" >&5
+$as_echo "$am_cv_make_support_nested_variables" >&6; }
+if test $am_cv_make_support_nested_variables = yes; then
+    AM_V='$(V)'
+  AM_DEFAULT_V='$(AM_DEFAULT_VERBOSITY)'
+else
+  AM_V=$AM_DEFAULT_VERBOSITY
+  AM_DEFAULT_V=$AM_DEFAULT_VERBOSITY
+fi
+AM_BACKSLASH='\'
 
 
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether to enable maintainer-specific portions of Makefiles" >&5
@@ -14085,9 +14128,9 @@ VERSION_MINOR=1
 
 VERSION_PATCH=2
 
-RELEASE_DATE=2016-07-17
+RELEASE_DATE=2016-07-20
 
-RELEASE_STAMP=g8cd6646697be-t89cc70d0b74150f1
+RELEASE_STAMP=g6d21b609167f-taf12f51cf6346c72
 
 API_LIB_RELEASE=1.1
 
@@ -14145,7 +14188,14 @@ cat >>confdefs.h <<_ACEOF
 _ACEOF
 
 
-MKBANNER="\$(top_srcdir)/build/mkbanner --version '$VERSION'"
+MKBANNER_CMD="\$(top_srcdir)/build/mkbanner --version '$VERSION'"
+MKBANNER="\$(MKBANNER_VERBOSE_\$(V))"
+MKBANNER_VERBOSE_="\$(MKBANNER_VERBOSE_\$(AM_DEFAULT_VERBOSITY))"
+MKBANNER_VERBOSE_0="@echo '  GEN      \$@' && ${MKBANNER_CMD}"
+MKBANNER_VERBOSE_1="${MKBANNER_CMD}"
+
+
+
 
 
 FIXUP_DIST="\$(SED) \
@@ -32892,6 +32942,11 @@ if test "${with_xxinstall+set}" = set; then :
   withval=$with_xxinstall;
 fi
 
+
+
+if test $AM_DEFAULT_VERBOSITY -eq 0; then
+	AM_MAKEFLAGS="${AM_MAKEFLAGS} --no-print-directory"
+fi
 
 
 ac_config_files="$ac_config_files Makefile build/libltdl/Makefile include/Makefile libraries/Makefile libraries/liblunicode/Makefile libraries/liblutil/Makefile libraries/libreldap/Makefile libraries/librewrite/Makefile clients/Makefile clients/tools/Makefile servers/Makefile servers/slapd/Makefile servers/slapd/slapi/Makefile servers/slapd/overlays/Makefile servers/slapd/back-ldif/Makefile servers/slapd/back-monitor/Makefile servers/slapd/back-mdb/Makefile servers/slapd/back-null/Makefile servers/slapd/back-ldap/Makefile servers/slapd/back-meta/Makefile servers/slapd/back-relay/Makefile servers/slapd/back-sock/Makefile servers/slapd/back-bdb/Makefile servers/slapd/back-hdb/Makefile servers/slapd/back-dnssrv/Makefile servers/slapd/back-ndb/Makefile servers/slapd/back-passwd/Makefile servers/slapd/back-perl/Makefile servers/slapd/back-shell/Makefile servers/slapd/shell-backends/Makefile servers/slapd/back-sql/Makefile doc/man/Makefile doc/man/ru/Makefile doc/man/en/Makefile"
