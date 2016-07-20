@@ -384,7 +384,7 @@ fi
 if [ $modern_configure -eq 0 ]; then
 	PACKAGE="$(grep VERSION= Makefile | cut -d ' ' -f 2)"
 else
-	PACKAGE="$(build/BRANDING --version)"
+	PACKAGE="$(build/BRANDING --version)-$(build/BRANDING --stamp)"
 fi
 
 echo "PACKAGE: $PACKAGE"
