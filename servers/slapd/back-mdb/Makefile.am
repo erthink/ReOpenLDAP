@@ -21,6 +21,7 @@
 
 pkglib_LTLIBRARIES =
 noinst_LTLIBRARIES = libmdbx.la
+bin_PROGRAMS = mdbx_stat mdbx_copy mdbx_dump mdbx_load mdbx_chk
 back_mdb_la_LDFLAGS = -module
 AM_CPPFLAGS = -DSLAPD_IMPORT -I$(srcdir)/.. -I$(top_srcdir)/include
 
@@ -50,15 +51,10 @@ EXTRA_DIST = ../../../libraries/libmdbx/barriers.h \
 	../../../libraries/libmdbx/lmdb.h \
 	../../../libraries/libmdbx/Makefile\
 	../../../libraries/libmdbx/mdb.c \
-	../../../libraries/libmdbx/mdb_chk.c \
 	../../../libraries/libmdbx/mdb_copy.1 \
-	../../../libraries/libmdbx/mdb_copy.c \
 	../../../libraries/libmdbx/mdb_dump.1 \
-	../../../libraries/libmdbx/mdb_dump.c \
 	../../../libraries/libmdbx/mdb_load.1 \
-	../../../libraries/libmdbx/mdb_load.c \
 	../../../libraries/libmdbx/mdb_stat.1 \
-	../../../libraries/libmdbx/mdb_stat.c \
 	../../../libraries/libmdbx/mdbx.h \
 	../../../libraries/libmdbx/midl.c \
 	../../../libraries/libmdbx/midl.h \
@@ -72,3 +68,15 @@ back_mdb_la_SOURCES = add.c attr.c banner.c bind.c compare.c \
 
 back_mdb_la_CFLAGS = -I$(srcdir)/.. -I$(top_srcdir)/libraries/libmdbx
 back_mdb_la_LIBADD = libmdbx.la
+
+mdbx_chk_SOURCES = ../../../libraries/libmdbx/mdb_chk.c
+mdbx_copy_SOURCES = ../../../libraries/libmdbx/mdb_copy.c
+mdbx_dump_SOURCES = ../../../libraries/libmdbx/mdb_dump.c
+mdbx_load_SOURCES = ../../../libraries/libmdbx/mdb_load.c
+mdbx_stat_SOURCES = ../../../libraries/libmdbx/mdb_stat.c
+
+mdbx_chk_LDADD = libmdbx.la
+mdbx_copy_LDADD = libmdbx.la
+mdbx_dump_LDADD = libmdbx.la
+mdbx_load_LDADD = libmdbx.la
+mdbx_stat_LDADD = libmdbx.la
