@@ -93,6 +93,7 @@ AC_CANONICAL_TARGET([])
 
 # LY: +check-news
 AM_INIT_AUTOMAKE([subdir-objects --warnings=no-portability --warnings=error dist-xz no-dist-gzip])
+AM_SILENT_RULES([yes])
 AM_MAINTAINER_MODE([disable])
 LT_CONFIG_LTDL_DIR([build/libltdl])
 LT_INIT([dlopen])
@@ -131,8 +132,15 @@ AC_DEFINE_UNQUOTED(RELEASE_STAMP,"$RELEASE_STAMP",[Digest stamp])
 AC_DEFINE_UNQUOTED(API_LIB_RELEASE,"$API_LIB_RELEASE",[API version])
 AC_DEFINE_UNQUOTED(API_LIB_VERSION,"$API_LIB_VERSION",[so-lib version])
 
-MKBANNER="\$(top_srcdir)/build/mkbanner --version '$VERSION'"
+MKBANNER_CMD="\$(top_srcdir)/build/mkbanner --version '$VERSION'"
+MKBANNER="\$(MKBANNER_VERBOSE_\$(V))"
+MKBANNER_VERBOSE_="\$(MKBANNER_VERBOSE_\$(AM_DEFAULT_VERBOSITY))"
+MKBANNER_VERBOSE_0="@echo '  GEN      \$@' && ${MKBANNER_CMD}"
+MKBANNER_VERBOSE_1="${MKBANNER_CMD}"
 AC_SUBST(MKBANNER)
+AC_SUBST(MKBANNER_VERBOSE_)
+AC_SUBST(MKBANNER_VERBOSE_0)
+AC_SUBST(MKBANNER_VERBOSE_1)
 
 FIXUP_DIST="\$(SED) \
 	-e 's|@PACKAGE[@]|\$(PACKAGE)|Ig' \
@@ -2885,6 +2893,11 @@ See INSTALL file for further details.])
 dnl ----------------------------------------------------------------
 dnl final output
 dnl
+
+if test $AM_DEFAULT_VERBOSITY -eq 0; then
+	AM_MAKEFLAGS="${AM_MAKEFLAGS} --no-print-directory"
+fi
+AC_SUBST(AM_MAKEFLAGS)
 
 AC_CONFIG_FILES(
 	Makefile

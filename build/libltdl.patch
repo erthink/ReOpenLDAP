@@ -1,0 +1,13 @@
+diff --git b/build/libltdl/loaders/preopen.c a/build/libltdl/loaders/preopen.c
+index 139e373..6e45a2f 100644
+--- b/build/libltdl/loaders/preopen.c
++++ a/build/libltdl/loaders/preopen.c
+@@ -282,7 +282,7 @@ add_symlist (const lt_dlsymlist *symlist)
+ 	  if (symlist[1].name && STREQ (symlist[1].name, "@INIT@"))
+ 	    {
+ 	      void (*init_symlist)(void);
+-	      *(void **)(&init_symlist) = symlist[1].address;
++	      init_symlist = (void (*)(void))(symlist[1].address);
+ 	      (*init_symlist)();
+ 	    }
+ 	}

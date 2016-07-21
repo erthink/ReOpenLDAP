@@ -88,9 +88,16 @@ tests/run
 libraries/libmdbx/.dirstamp
 libraries/libreldap/crutch.i
 libraries/libreldap/crutch.s
+libraries/libreldap/check/.dirstamp
+libraries/libreldap/check/apitest
 reldap_autoconf.h
 libtool
 servers/slapd/back-bdb/.dirstamp
+servers/slapd/back-mdb/mdbx_chk
+servers/slapd/back-mdb/mdbx_copy
+servers/slapd/back-mdb/mdbx_dump
+servers/slapd/back-mdb/mdbx_load
+servers/slapd/back-mdb/mdbx_stat
 servers/slapd/slapd.conf
 servers/slapd/slapd.ldif
 tests/progs/ldif_filter
@@ -102,3 +109,7 @@ tests/progs/slapd_mtread
 tests/progs/slapd_read
 tests/progs/slapd_search
 tests/progs/slapd_tester
+tests/core
+
+@dumps/
+@successful.log

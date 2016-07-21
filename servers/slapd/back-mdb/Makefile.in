@@ -16,6 +16,7 @@
 
 # Makefile.in for back-mdb
 
+
 VPATH = @srcdir@
 am__is_gnu_make = { \
   if test -z '$(MAKELEVEL)'; then \
@@ -91,6 +92,8 @@ POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
 target_triplet = @target@
+bin_PROGRAMS = mdbx_stat$(EXEEXT) mdbx_copy$(EXEEXT) \
+	mdbx_dump$(EXEEXT) mdbx_load$(EXEEXT) mdbx_chk$(EXEEXT)
 @MDBX_DYNAMIC_TRUE@am__append_1 = back_mdb.la
 @MDBX_DYNAMIC_TRUE@am__append_2 = -export-dynamic \
 @MDBX_DYNAMIC_TRUE@	-release $(API_LIB_RELEASE) -version-info $(API_LIB_VERSION)
@@ -143,7 +146,7 @@ am__uninstall_files_from_dir = { \
     || { echo " ( cd '$$dir' && rm -f" $$files ")"; \
          $(am__cd) "$$dir" && rm -f $$files; }; \
   }
-am__installdirs = "$(DESTDIR)$(pkglibdir)"
+am__installdirs = "$(DESTDIR)$(pkglibdir)" "$(DESTDIR)$(bindir)"
 LTLIBRARIES = $(noinst_LTLIBRARIES) $(pkglib_LTLIBRARIES)
 back_mdb_la_DEPENDENCIES = libmdbx.la
 am_back_mdb_la_OBJECTS = back_mdb_la-add.lo back_mdb_la-attr.lo \
@@ -175,6 +178,22 @@ libmdbx_la_OBJECTS = $(am_libmdbx_la_OBJECTS)
 libmdbx_la_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) \
 	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(libmdbx_la_CFLAGS) \
 	$(CFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
+PROGRAMS = $(bin_PROGRAMS)
+am_mdbx_chk_OBJECTS = ../../../libraries/libmdbx/mdb_chk.$(OBJEXT)
+mdbx_chk_OBJECTS = $(am_mdbx_chk_OBJECTS)
+mdbx_chk_DEPENDENCIES = libmdbx.la
+am_mdbx_copy_OBJECTS = ../../../libraries/libmdbx/mdb_copy.$(OBJEXT)
+mdbx_copy_OBJECTS = $(am_mdbx_copy_OBJECTS)
+mdbx_copy_DEPENDENCIES = libmdbx.la
+am_mdbx_dump_OBJECTS = ../../../libraries/libmdbx/mdb_dump.$(OBJEXT)
+mdbx_dump_OBJECTS = $(am_mdbx_dump_OBJECTS)
+mdbx_dump_DEPENDENCIES = libmdbx.la
+am_mdbx_load_OBJECTS = ../../../libraries/libmdbx/mdb_load.$(OBJEXT)
+mdbx_load_OBJECTS = $(am_mdbx_load_OBJECTS)
+mdbx_load_DEPENDENCIES = libmdbx.la
+am_mdbx_stat_OBJECTS = ../../../libraries/libmdbx/mdb_stat.$(OBJEXT)
+mdbx_stat_OBJECTS = $(am_mdbx_stat_OBJECTS)
+mdbx_stat_DEPENDENCIES = libmdbx.la
 AM_V_P = $(am__v_P_@AM_V@)
 am__v_P_ = $(am__v_P_@AM_DEFAULT_V@)
 am__v_P_0 = false
@@ -209,8 +228,12 @@ AM_V_CCLD = $(am__v_CCLD_@AM_V@)
 am__v_CCLD_ = $(am__v_CCLD_@AM_DEFAULT_V@)
 am__v_CCLD_0 = @echo "  CCLD    " $@;
 am__v_CCLD_1 = 
-SOURCES = $(back_mdb_la_SOURCES) $(libmdbx_la_SOURCES)
-DIST_SOURCES = $(back_mdb_la_SOURCES) $(libmdbx_la_SOURCES)
+SOURCES = $(back_mdb_la_SOURCES) $(libmdbx_la_SOURCES) \
+	$(mdbx_chk_SOURCES) $(mdbx_copy_SOURCES) $(mdbx_dump_SOURCES) \
+	$(mdbx_load_SOURCES) $(mdbx_stat_SOURCES)
+DIST_SOURCES = $(back_mdb_la_SOURCES) $(libmdbx_la_SOURCES) \
+	$(mdbx_chk_SOURCES) $(mdbx_copy_SOURCES) $(mdbx_dump_SOURCES) \
+	$(mdbx_load_SOURCES) $(mdbx_stat_SOURCES)
 am__can_run_installinfo = \
   case $$AM_UPDATE_INFO_DIR in \
     n|no|NO) false;; \
@@ -240,6 +263,7 @@ DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
 ACLOCAL = @ACLOCAL@
 AMTAR = @AMTAR@
 AM_DEFAULT_VERBOSITY = @AM_DEFAULT_VERBOSITY@
+AM_MAKEFLAGS = @AM_MAKEFLAGS@
 API_LIB_RELEASE = @API_LIB_RELEASE@
 API_LIB_VERSION = @API_LIB_VERSION@
 AR = @AR@
@@ -314,6 +338,9 @@ MAINT = @MAINT@
 MAKEINFO = @MAKEINFO@
 MANIFEST_TOOL = @MANIFEST_TOOL@
 MKBANNER = @MKBANNER@
+MKBANNER_VERBOSE_ = @MKBANNER_VERBOSE_@
+MKBANNER_VERBOSE_0 = @MKBANNER_VERBOSE_0@
+MKBANNER_VERBOSE_1 = @MKBANNER_VERBOSE_1@
 MKDIR_P = @MKDIR_P@
 MYSQL = @MYSQL@
 NDB_INCLUDES = @NDB_INCLUDES@
@@ -465,15 +492,10 @@ EXTRA_DIST = ../../../libraries/libmdbx/barriers.h \
 	../../../libraries/libmdbx/lmdb.h \
 	../../../libraries/libmdbx/Makefile\
 	../../../libraries/libmdbx/mdb.c \
-	../../../libraries/libmdbx/mdb_chk.c \
 	../../../libraries/libmdbx/mdb_copy.1 \
-	../../../libraries/libmdbx/mdb_copy.c \
 	../../../libraries/libmdbx/mdb_dump.1 \
-	../../../libraries/libmdbx/mdb_dump.c \
 	../../../libraries/libmdbx/mdb_load.1 \
-	../../../libraries/libmdbx/mdb_load.c \
 	../../../libraries/libmdbx/mdb_stat.1 \
-	../../../libraries/libmdbx/mdb_stat.c \
 	../../../libraries/libmdbx/mdbx.h \
 	../../../libraries/libmdbx/midl.c \
 	../../../libraries/libmdbx/midl.h \
@@ -487,6 +509,16 @@ back_mdb_la_SOURCES = add.c attr.c banner.c bind.c compare.c \
 
 back_mdb_la_CFLAGS = -I$(srcdir)/.. -I$(top_srcdir)/libraries/libmdbx
 back_mdb_la_LIBADD = libmdbx.la
+mdbx_chk_SOURCES = ../../../libraries/libmdbx/mdb_chk.c
+mdbx_copy_SOURCES = ../../../libraries/libmdbx/mdb_copy.c
+mdbx_dump_SOURCES = ../../../libraries/libmdbx/mdb_dump.c
+mdbx_load_SOURCES = ../../../libraries/libmdbx/mdb_load.c
+mdbx_stat_SOURCES = ../../../libraries/libmdbx/mdb_stat.c
+mdbx_chk_LDADD = libmdbx.la
+mdbx_copy_LDADD = libmdbx.la
+mdbx_dump_LDADD = libmdbx.la
+mdbx_load_LDADD = libmdbx.la
+mdbx_stat_LDADD = libmdbx.la
 all: $(BUILT_SOURCES)
 	$(MAKE) $(AM_MAKEFLAGS) all-am
 
@@ -582,6 +614,90 @@ back_mdb.la: $(back_mdb_la_OBJECTS) $(back_mdb_la_DEPENDENCIES) $(EXTRA_back_mdb
 
 libmdbx.la: $(libmdbx_la_OBJECTS) $(libmdbx_la_DEPENDENCIES) $(EXTRA_libmdbx_la_DEPENDENCIES) 
 	$(AM_V_CCLD)$(libmdbx_la_LINK)  $(libmdbx_la_OBJECTS) $(libmdbx_la_LIBADD) $(LIBS)
+install-binPROGRAMS: $(bin_PROGRAMS)
+	@$(NORMAL_INSTALL)
+	@list='$(bin_PROGRAMS)'; test -n "$(bindir)" || list=; \
+	if test -n "$$list"; then \
+	  echo " $(MKDIR_P) '$(DESTDIR)$(bindir)'"; \
+	  $(MKDIR_P) "$(DESTDIR)$(bindir)" || exit 1; \
+	fi; \
+	for p in $$list; do echo "$$p $$p"; done | \
+	sed 's/$(EXEEXT)$$//' | \
+	while read p p1; do if test -f $$p \
+	 || test -f $$p1 \
+	  ; then echo "$$p"; echo "$$p"; else :; fi; \
+	done | \
+	sed -e 'p;s,.*/,,;n;h' \
+	    -e 's|.*|.|' \
+	    -e 'p;x;s,.*/,,;s/$(EXEEXT)$$//;$(transform);s/$$/$(EXEEXT)/' | \
+	sed 'N;N;N;s,\n, ,g' | \
+	$(AWK) 'BEGIN { files["."] = ""; dirs["."] = 1 } \
+	  { d=$$3; if (dirs[d] != 1) { print "d", d; dirs[d] = 1 } \
+	    if ($$2 == $$4) files[d] = files[d] " " $$1; \
+	    else { print "f", $$3 "/" $$4, $$1; } } \
+	  END { for (d in files) print "f", d, files[d] }' | \
+	while read type dir files; do \
+	    if test "$$dir" = .; then dir=; else dir=/$$dir; fi; \
+	    test -z "$$files" || { \
+	    echo " $(INSTALL_PROGRAM_ENV) $(LIBTOOL) $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=install $(INSTALL_PROGRAM) $$files '$(DESTDIR)$(bindir)$$dir'"; \
+	    $(INSTALL_PROGRAM_ENV) $(LIBTOOL) $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=install $(INSTALL_PROGRAM) $$files "$(DESTDIR)$(bindir)$$dir" || exit $$?; \
+	    } \
+	; done
+
+uninstall-binPROGRAMS:
+	@$(NORMAL_UNINSTALL)
+	@list='$(bin_PROGRAMS)'; test -n "$(bindir)" || list=; \
+	files=`for p in $$list; do echo "$$p"; done | \
+	  sed -e 'h;s,^.*/,,;s/$(EXEEXT)$$//;$(transform)' \
+	      -e 's/$$/$(EXEEXT)/' \
+	`; \
+	test -n "$$list" || exit 0; \
+	echo " ( cd '$(DESTDIR)$(bindir)' && rm -f" $$files ")"; \
+	cd "$(DESTDIR)$(bindir)" && rm -f $$files
+
+clean-binPROGRAMS:
+	@list='$(bin_PROGRAMS)'; test -n "$$list" || exit 0; \
+	echo " rm -f" $$list; \
+	rm -f $$list || exit $$?; \
+	test -n "$(EXEEXT)" || exit 0; \
+	list=`for p in $$list; do echo "$$p"; done | sed 's/$(EXEEXT)$$//'`; \
+	echo " rm -f" $$list; \
+	rm -f $$list
+../../../libraries/libmdbx/mdb_chk.$(OBJEXT):  \
+	../../../libraries/libmdbx/$(am__dirstamp) \
+	../../../libraries/libmdbx/$(DEPDIR)/$(am__dirstamp)
+
+mdbx_chk$(EXEEXT): $(mdbx_chk_OBJECTS) $(mdbx_chk_DEPENDENCIES) $(EXTRA_mdbx_chk_DEPENDENCIES) 
+	@rm -f mdbx_chk$(EXEEXT)
+	$(AM_V_CCLD)$(LINK) $(mdbx_chk_OBJECTS) $(mdbx_chk_LDADD) $(LIBS)
+../../../libraries/libmdbx/mdb_copy.$(OBJEXT):  \
+	../../../libraries/libmdbx/$(am__dirstamp) \
+	../../../libraries/libmdbx/$(DEPDIR)/$(am__dirstamp)
+
+mdbx_copy$(EXEEXT): $(mdbx_copy_OBJECTS) $(mdbx_copy_DEPENDENCIES) $(EXTRA_mdbx_copy_DEPENDENCIES) 
+	@rm -f mdbx_copy$(EXEEXT)
+	$(AM_V_CCLD)$(LINK) $(mdbx_copy_OBJECTS) $(mdbx_copy_LDADD) $(LIBS)
+../../../libraries/libmdbx/mdb_dump.$(OBJEXT):  \
+	../../../libraries/libmdbx/$(am__dirstamp) \
+	../../../libraries/libmdbx/$(DEPDIR)/$(am__dirstamp)
+
+mdbx_dump$(EXEEXT): $(mdbx_dump_OBJECTS) $(mdbx_dump_DEPENDENCIES) $(EXTRA_mdbx_dump_DEPENDENCIES) 
+	@rm -f mdbx_dump$(EXEEXT)
+	$(AM_V_CCLD)$(LINK) $(mdbx_dump_OBJECTS) $(mdbx_dump_LDADD) $(LIBS)
+../../../libraries/libmdbx/mdb_load.$(OBJEXT):  \
+	../../../libraries/libmdbx/$(am__dirstamp) \
+	../../../libraries/libmdbx/$(DEPDIR)/$(am__dirstamp)
+
+mdbx_load$(EXEEXT): $(mdbx_load_OBJECTS) $(mdbx_load_DEPENDENCIES) $(EXTRA_mdbx_load_DEPENDENCIES) 
+	@rm -f mdbx_load$(EXEEXT)
+	$(AM_V_CCLD)$(LINK) $(mdbx_load_OBJECTS) $(mdbx_load_LDADD) $(LIBS)
+../../../libraries/libmdbx/mdb_stat.$(OBJEXT):  \
+	../../../libraries/libmdbx/$(am__dirstamp) \
+	../../../libraries/libmdbx/$(DEPDIR)/$(am__dirstamp)
+
+mdbx_stat$(EXEEXT): $(mdbx_stat_OBJECTS) $(mdbx_stat_DEPENDENCIES) $(EXTRA_mdbx_stat_DEPENDENCIES) 
+	@rm -f mdbx_stat$(EXEEXT)
+	$(AM_V_CCLD)$(LINK) $(mdbx_stat_OBJECTS) $(mdbx_stat_LDADD) $(LIBS)
 
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT)
@@ -592,6 +708,11 @@ distclean-compile:
 	-rm -f *.tab.c
 
 @AMDEP_TRUE@@am__include@ @am__quote@../../../libraries/libmdbx/$(DEPDIR)/libmdbx_la-mdbx.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@../../../libraries/libmdbx/$(DEPDIR)/mdb_chk.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@../../../libraries/libmdbx/$(DEPDIR)/mdb_copy.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@../../../libraries/libmdbx/$(DEPDIR)/mdb_dump.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@../../../libraries/libmdbx/$(DEPDIR)/mdb_load.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@../../../libraries/libmdbx/$(DEPDIR)/mdb_stat.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/back_mdb_la-add.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/back_mdb_la-attr.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/back_mdb_la-banner.Plo@am__quote@
@@ -900,9 +1021,9 @@ distdir: $(DISTFILES)
 check-am: all-am
 check: $(BUILT_SOURCES)
 	$(MAKE) $(AM_MAKEFLAGS) check-am
-all-am: Makefile $(LTLIBRARIES)
+all-am: Makefile $(LTLIBRARIES) $(PROGRAMS)
 installdirs:
-	for dir in "$(DESTDIR)$(pkglibdir)"; do \
+	for dir in "$(DESTDIR)$(pkglibdir)" "$(DESTDIR)$(bindir)"; do \
 	  test -z "$$dir" || $(MKDIR_P) "$$dir"; \
 	done
 install: $(BUILT_SOURCES)
@@ -941,8 +1062,8 @@ maintainer-clean-generic:
 	-test -z "$(BUILT_SOURCES)" || rm -f $(BUILT_SOURCES)
 clean: clean-am
 
-clean-am: clean-generic clean-libtool clean-noinstLTLIBRARIES \
-	clean-pkglibLTLIBRARIES mostlyclean-am
+clean-am: clean-binPROGRAMS clean-generic clean-libtool \
+	clean-noinstLTLIBRARIES clean-pkglibLTLIBRARIES mostlyclean-am
 
 distclean: distclean-am
 	-rm -rf ../../../libraries/libmdbx/$(DEPDIR) ./$(DEPDIR)
@@ -968,7 +1089,7 @@ install-dvi: install-dvi-am
 
 install-dvi-am:
 
-install-exec-am: install-pkglibLTLIBRARIES
+install-exec-am: install-binPROGRAMS install-pkglibLTLIBRARIES
 
 install-html: install-html-am
 
@@ -1008,15 +1129,16 @@ ps: ps-am
 
 ps-am:
 
-uninstall-am: uninstall-pkglibLTLIBRARIES
+uninstall-am: uninstall-binPROGRAMS uninstall-pkglibLTLIBRARIES
 
 .MAKE: all check install install-am install-strip
 
-.PHONY: CTAGS GTAGS TAGS all all-am check check-am clean clean-generic \
-	clean-libtool clean-noinstLTLIBRARIES clean-pkglibLTLIBRARIES \
-	cscopelist-am ctags ctags-am distclean distclean-compile \
-	distclean-generic distclean-libtool distclean-tags distdir dvi \
-	dvi-am html html-am info info-am install install-am \
+.PHONY: CTAGS GTAGS TAGS all all-am check check-am clean \
+	clean-binPROGRAMS clean-generic clean-libtool \
+	clean-noinstLTLIBRARIES clean-pkglibLTLIBRARIES cscopelist-am \
+	ctags ctags-am distclean distclean-compile distclean-generic \
+	distclean-libtool distclean-tags distdir dvi dvi-am html \
+	html-am info info-am install install-am install-binPROGRAMS \
 	install-data install-data-am install-dvi install-dvi-am \
 	install-exec install-exec-am install-html install-html-am \
 	install-info install-info-am install-man install-pdf \
@@ -1025,7 +1147,7 @@ uninstall-am: uninstall-pkglibLTLIBRARIES
 	installdirs maintainer-clean maintainer-clean-generic \
 	mostlyclean mostlyclean-compile mostlyclean-generic \
 	mostlyclean-libtool pdf pdf-am ps ps-am tags tags-am uninstall \
-	uninstall-am uninstall-pkglibLTLIBRARIES
+	uninstall-am uninstall-binPROGRAMS uninstall-pkglibLTLIBRARIES
 
 .PRECIOUS: Makefile
 

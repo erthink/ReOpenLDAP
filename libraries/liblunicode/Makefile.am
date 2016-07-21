@@ -35,6 +35,7 @@ nodist_ucgendat_SOURCES = ucgendat.c
 ucgendat_CPPFLAGS = -DSKIP_LDAP_AC_INCLUDES $(AM_CPPFLAGS)
 
 uctable.h: ucgendat$(EXEEXT) UnicodeData.txt CompositionExclusions.txt
+	@if $(AM_V_P); then set -x; else echo "  GEN      $@"; fi; \
 	./ucgendat$(EXEEXT) $(srcdir)/UnicodeData.txt -x $(srcdir)/CompositionExclusions.txt \
 		|| ($(RM) $@; exit 1)
 

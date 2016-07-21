@@ -37,6 +37,7 @@ CLEANFILES = ldap_dirs.h
 EXTRA_DIST = ldap_dirs.h.in
 
 ldap_dirs.h: $(srcdir)/ldap_dirs.h.in Makefile
-	@echo "Making $@" && $(RM) $@ && \
+	@if $(AM_V_P); then set -x; else echo "  GEN      $@"; fi; \
+	$(RM) $@ && \
 	echo "/* Generated from $< on `date --rfc-3339=seconds --utc` */" > $@ && \
 	$(FIXUP_DIST) $< | $(FIXUP_DIRS) >> $@
