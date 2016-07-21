@@ -440,11 +440,11 @@ dist_man5_MANS = man5/slapd-config.man.in man5/slapd.backends.man.in \
 	man5/slapo-valsort.man.in man5/slapd-relay.man.in man5/slapd.conf.man.in \
 	man5/slapo-ppolicy.man.in man5/slapo-syncprov.man.in man5/slapd-dnssrv.man.in \
 	man5/slapd-ldif.man.in man5/slapo-chain.man.in man5/slapd-bdb.man.in \
-	man5/slapd.access.man.in
+	man5/slapd.access.man.in man5/slapd-asyncmeta.man.in man5/slapd-wt.man.in
 
 dist_man8_MANS = man8/slapcat.man.in man8/slappasswd.man.in man8/slapacl.man.in \
 	man8/slapschema.man.in man8/slapadd.man.in man8/slapindex.man.in man8/slapdn.man.in \
-	man8/slapauth.man.in man8/slaptest.man.in man8/slapd.man.in
+	man8/slapauth.man.in man8/slaptest.man.in man8/slapd.man.in man8/slapmodify.man.in
 
 man1_MANS = man1/ldapmodify.man man1/ldapcompare.man \
 	man1/ldapsearch.man man1/ldapdelete.man man1/ldapwhoami.man \
@@ -482,11 +482,11 @@ man5_MANS = man5/slapd-config.man man5/slapd.backends.man \
 	man5/slapo-valsort.man man5/slapd-relay.man man5/slapd.conf.man \
 	man5/slapo-ppolicy.man man5/slapo-syncprov.man man5/slapd-dnssrv.man \
 	man5/slapd-ldif.man man5/slapo-chain.man man5/slapd-bdb.man \
-	man5/slapd.access.man
+	man5/slapd.access.man man5/slapd-asyncmeta.man man5/slapd-wt.man
 
 man8_MANS = man8/slapcat.man man8/slappasswd.man man8/slapacl.man \
 	man8/slapschema.man man8/slapadd.man man8/slapindex.man man8/slapdn.man \
-	man8/slapauth.man man8/slaptest.man man8/slapd.man
+	man8/slapauth.man man8/slaptest.man man8/slapd.man man8/slapmodify.man
 
 all: all-am
 

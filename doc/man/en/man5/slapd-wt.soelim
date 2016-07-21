@@ -1,4 +1,4 @@
-.TH SLAPD-WT 5 "RELEASEDATE" "ReOpenLDAP LDVERSION"
+.TH SLAPD-WT 5 "@RELEASE_DATE@" "ReOpenLDAP @VERSION@"
 .\" $ReOpenLDAP$
 .\" Copyright (c) 2015,2016 Leonid Yuriev <leo@yuriev.ru>.
 .\" Copyright (c) 2015,2016 Peter-Service R&D LLC <http://billing.ru/>.
@@ -25,7 +25,7 @@
 .SH NAME
 slapd\-wt \- WiredTiger backend to slapd
 .SH SYNOPSIS
-.B ETCDIR/slapd.conf
+.B @SYSCONFDIR@/slapd.conf
 .SH DESCRIPTION
 The \fBwt\fP backend to
 .BR slapd (8)
@@ -51,7 +51,7 @@ Specify WiredTiger home directory that containing this database and
 associated indexes live.
 A separate directory must be specified for each database.
 The default is
-.BR LOCALSTATEDIR/openldap\-data .
+.BR @LOCALSTATEDIR@/reopenldap\-data .
 .TP
 \fBwtconfig \fR{\fBcreate\fR,\fBcache_size=512M\fR,\fBasync=(enabled)\fR}
 Specify configuration for wiredtiger, This parameter is pass to
@@ -93,7 +93,7 @@ backend honors access control semantics as indicated in
 .BR slapd.access (5).
 .SH FILES
 .TP
-.B ETCDIR/slapd.conf
+.B @SYSCONFDIR@/slapd.conf
 default
 .B slapd
 configuration file
@@ -107,4 +107,5 @@ configuration file
 WiredTiger documentation.
 .SH ACKNOWLEDGEMENTS
 .so ../Project
+.SH AUTHOR
 Written by HAMANO Tsukasa <hamano@osstech.co.jp>.

@@ -1,4 +1,4 @@
-.TH SLAPMODIFY 8C "RELEASEDATE" "ReOpenLDAP LDVERSION"
+.TH SLAPMODIFY 8C "@RELEASE_DATE@" "ReOpenLDAP @VERSION@"
 .\" $ReOpenLDAP$
 .\" Copyright (c) 2015,2016 Leonid Yuriev <leo@yuriev.ru>.
 .\" Copyright (c) 2015,2016 Peter-Service R&D LLC <http://billing.ru/>.
@@ -25,7 +25,7 @@
 .SH NAME
 slapmodify \- Modify entries in a SLAPD database
 .SH SYNOPSIS
-.B SBINDIR/slapmodify
+.B @SBINDIR@/slapmodify
 [\c
 .BI \-b \ suffix\fR]
 [\c
