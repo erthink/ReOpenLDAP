@@ -206,21 +206,22 @@ done
 
 #======================================================================
 
+CONFIGURE_ARGS=
 if [ $flag_dynamic -ne 0 ]; then
 	MOD=mod
-	DYNAMIC="--enable-shared --disable-static --enable-modules"
+	CONFIGURE_ARGS+=" --enable-shared --disable-static --enable-modules"
 	if [ $modern_configure -eq 0 ]; then
-		DYNAMIC+=" --enable-dynamic"
+		CONFIGURE_ARGS+=" --enable-dynamic"
 	fi
 else
 	MOD=yes
-	DYNAMIC="--disable-shared --enable-static --disable-modules"
+	CONFIGURE_ARGS+=" --disable-shared --enable-static --disable-modules"
 	if [ $modern_configure -eq 0 ]; then
-		DYNAMIC+=" --disable-dynamic"
+		CONFIGURE_ARGS+=" --disable-dynamic"
 	fi
 fi
 
-BACKENDS="--enable-backends=${MOD}"
+CONFIGURE_ARGS+=" --enable-backends=${MOD}"
 
 #======================================================================
 
@@ -335,7 +336,12 @@ if [ $flag_lto -ne 0 ]; then
 fi
 
 if [ $flag_check -ne 0 ]; then
-	CFLAGS+=" -DLDAP_MEMORY_CHECK -DLDAP_MEMORY_DEBUG -fstack-protector-all"
+	CFLAGS+=" -fstack-protector-all"
+	if [ $modern_configure -ne 0 ]; then
+		CONFIGURE_ARGS+=" --enable-check=default --enable-hipagut=yes"
+	else
+		CFLAGS+=" -DLDAP_MEMORY_CHECK -DLDAP_MEMORY_DEBUG"
+	fi
 else
 	CFLAGS+=" -fstack-protector"
 fi
@@ -444,8 +450,8 @@ if [ ! -s ${build}/Makefile ]; then
 	mkdir -p ${build} && \
 	( cd ${build} && configure \
 			$(if [ $modern_configure -ne 0 -a $flag_nodeps -ne 0 ]; then echo "--disable-dependency-tracking"; fi) \
-			--prefix=$(pwd)/@install_here ${DYNAMIC} \
-			--with-tls --enable-debug $BACKENDS --enable-overlays=${MOD} $NDB_CONFIG \
+			--prefix=$(pwd)/@install_here --with-tls --enable-debug \
+			$CONFIGURE_ARGS --enable-overlays=${MOD} $NDB_CONFIG \
 			--enable-rewrite --enable-dynacl --enable-aci --enable-slapi \
 			$(if [ $flag_mdbx -eq 0 ]; then echo "--disable-${MDBX_NICK}"; else echo "--enable-${MDBX_NICK}=${MOD}"; fi) \
 			$(if [ $flag_bdb -eq 0 ]; then echo "--disable-bdb --disable-hdb"; else echo "--enable-bdb=${MOD} --enable-hdb=${MOD}"; fi) \

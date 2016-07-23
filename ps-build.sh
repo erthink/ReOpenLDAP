@@ -150,6 +150,8 @@ while grep -q '^--' <<< "$1"; do
 	shift
 done
 
+CONFIGURE_ARGS=
+
 ##############################################################################
 
 step_begin "prepare"
@@ -258,7 +260,6 @@ else
 		CFLAGS+=" -Wno-pointer-bool-conversion"
 	fi
 
-
 	if [ $flag_debug -ne 0 ]; then
 		if grep -q gcc <<< "$CC" ; then
 			CFLAGS+=" -Og"
@@ -304,7 +305,12 @@ else
 	fi
 
 	if [ $flag_check -ne 0 ]; then
-		CFLAGS+=" -DLDAP_MEMORY_CHECK -DLDAP_MEMORY_DEBUG -fstack-protector-all"
+		CFLAGS+=" -fstack-protector-all"
+		if [ $modern_configure -ne 0 ]; then
+			CONFIGURE_ARGS+=" --enable-check=default --enable-hipagut=yes"
+		else
+			CFLAGS+=" -DLDAP_MEMORY_CHECK -DLDAP_MEMORY_DEBUG"
+		fi
 	else
 		CFLAGS+=" -fstack-protector"
 	fi
@@ -342,25 +348,26 @@ else
 
 	if [ $flag_dynamic -ne 0 ]; then
 		MOD=mod
-		DYNAMIC="--enable-shared --disable-static --enable-modules"
+		CONFIGURE_ARGS+=" --enable-shared --disable-static --enable-modules"
 		if [ $modern_configure -eq 0 ]; then
-			DYNAMIC+=" --enable-dynamic"
+			CONFIGURE_ARGS+=" --enable-dynamic"
 		fi
 	else
 		MOD=yes
-		DYNAMIC="--disable-shared --enable-static --disable-modules"
+		CONFIGURE_ARGS+=" --disable-shared --enable-static --disable-modules"
 		if [ $modern_configure -eq 0 ]; then
-			DYNAMIC+=" --disable-dynamic"
+			CONFIGURE_ARGS+=" --disable-dynamic"
 		fi
 	fi
 
 	configure \
 		$(if [ $modern_configure -ne 0 -a $flag_nodeps -ne 0 ]; then echo "--disable-dependency-tracking"; fi) \
-		--prefix=${PREFIX} ${DYNAMIC} \
-		--enable-overlays --disable-bdb --disable-hdb \
+		--prefix=${PREFIX} --enable-overlays --disable-bdb --disable-hdb \
 		--enable-debug --with-gnu-ld --without-cyrus-sasl \
 		--disable-spasswd --disable-lmpasswd \
-		--without-tls --disable-rwm --disable-relay || failure "configure"
+		--without-tls --disable-rwm --disable-relay \
+		--enable-mdb=${MOD} \
+		$CONFIGURE_ARGS || failure "configure"
 
 	find ./ -name Makefile -type f | xargs sed -e "s/STRIP = -s/STRIP =/g;s/\(VERSION= .\+\)/\1${BUILD_ID}/g" -i \
 		|| failure "fixup build-id"
