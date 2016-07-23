@@ -1064,6 +1064,9 @@ enable_proctitle
 enable_ipv6
 enable_local
 enable_deprecated
+enable_experimental
+enable_check
+enable_hipagut
 with_cyrus_sasl
 with_fetch
 with_tls
@@ -1788,12 +1791,15 @@ Optional Features:
                           speeds up one-time build
   --disable-libtool-lock  avoid locking (might break parallel builds)
   --enable-ltdl-install   install libltdl
-  --enable-debug 	  enable debugging no|yes|traditional [yes]
-  --enable-syslog	  enable syslog support [auto]
-  --enable-proctitle	  enable proctitle support [yes]
-  --enable-ipv6 	  enable IPv6 support [auto]
-  --enable-local	  enable AF_LOCAL (AF_UNIX) socket support [auto]
-  --enable-deprecated 	  enable deprecated interfaces of libreldap no|yes [no]
+  --enable-debug          enable debug logging no|yes|traditional [yes]
+  --enable-syslog         enable syslog support [auto]
+  --enable-proctitle      enable proctitle support [yes]
+  --enable-ipv6           enable IPv6 support [auto]
+  --enable-local          enable AF_LOCAL (AF_UNIX) socket support [auto]
+  --enable-deprecated     enable deprecated interfaces of libreldap no|yes [no]
+  --enable-experimental   enable experimental and developing features no|yes [no]
+  --enable-check          enable internal checking and assertions no|yes|always|default [no]
+  --enable-hipagut        enable internal memory allocation debugger no|yes|always|extra [no]
 
 SLAPD (Standalone LDAP Daemon) Options:
   --enable-slapd	  enable building slapd [yes]
@@ -14128,9 +14134,9 @@ VERSION_MINOR=1
 
 VERSION_PATCH=2
 
-RELEASE_DATE=2016-07-20
+RELEASE_DATE=2016-07-23
 
-RELEASE_STAMP=g6d21b609167f-taf12f51cf6346c72
+RELEASE_STAMP=g431be870ceac-t1b93bb421413cd43
 
 API_LIB_RELEASE=1.1
 
@@ -19361,6 +19367,162 @@ else
 fi
 
 # end --enable-deprecated
+# OpenLDAP --enable-experimental
+
+	# Check whether --enable-experimental was given.
+if test "${enable_experimental+set}" = set; then :
+  enableval=$enable_experimental;
+	ol_arg=invalid
+	for ol_val in no yes ; do
+		if test "$enableval" = "$ol_val" ; then
+			ol_arg="$ol_val"
+		fi
+	done
+	if test "$ol_arg" = "invalid" ; then
+		as_fn_error $? "bad value $enableval for --enable-experimental" "$LINENO" 5
+	fi
+	ol_enable_experimental="$ol_arg"
+
+else
+  	ol_enable_experimental=no
+fi
+
+# end --enable-experimental
+# OpenLDAP --enable-check
+
+	# Check whether --enable-check was given.
+if test "${enable_check+set}" = set; then :
+  enableval=$enable_check;
+	ol_arg=invalid
+	for ol_val in no yes always default ; do
+		if test "$enableval" = "$ol_val" ; then
+			ol_arg="$ol_val"
+		fi
+	done
+	if test "$ol_arg" = "invalid" ; then
+		as_fn_error $? "bad value $enableval for --enable-check" "$LINENO" 5
+	fi
+	ol_enable_check="$ol_arg"
+
+else
+  	ol_enable_check=no
+fi
+
+# end --enable-check
+# OpenLDAP --enable-hipagut
+
+	# Check whether --enable-hipagut was given.
+if test "${enable_hipagut+set}" = set; then :
+  enableval=$enable_hipagut;
+	ol_arg=invalid
+	for ol_val in no yes always extra ; do
+		if test "$enableval" = "$ol_val" ; then
+			ol_arg="$ol_val"
+		fi
+	done
+	if test "$ol_arg" = "invalid" ; then
+		as_fn_error $? "bad value $enableval for --enable-hipagut" "$LINENO" 5
+	fi
+	ol_enable_hipagut="$ol_arg"
+
+else
+  	ol_enable_hipagut=no
+fi
+
+# end --enable-hipagut
+
+case $ol_enable_experimental in
+    yes)
+
+$as_echo "#define LDAP_EXPERIMENTAL 1" >>confdefs.h
+
+	;;
+    no)
+
+$as_echo "#define LDAP_EXPERIMENTAL 0" >>confdefs.h
+
+	;;
+    *)
+	{ { $as_echo "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
+$as_echo "$as_me: error: in \`$ac_pwd':" >&2;}
+as_fn_error $? "invalid --enable-experimental value '$ol_enable_experimental'
+See \`config.log' for more details" "$LINENO" 5; }
+	;;
+esac
+
+case $ol_enable_check in
+    yes)
+
+cat >>confdefs.h <<_ACEOF
+#define LDAP_CHECK 1 /* available */
+_ACEOF
+
+	;;
+    default)
+
+cat >>confdefs.h <<_ACEOF
+#define LDAP_CHECK 2 /* enabled */
+_ACEOF
+
+	;;
+    always)
+
+cat >>confdefs.h <<_ACEOF
+#define LDAP_CHECK 3 /* always */
+_ACEOF
+
+	;;
+    no)
+
+cat >>confdefs.h <<_ACEOF
+#define LDAP_CHECK 0 /* disabled */
+_ACEOF
+
+	;;
+    *)
+	{ { $as_echo "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
+$as_echo "$as_me: error: in \`$ac_pwd':" >&2;}
+as_fn_error $? "invalid --enable-check value '$ol_enable_check'
+See \`config.log' for more details" "$LINENO" 5; }
+	;;
+esac
+
+case $ol_enable_hipagut in
+    yes)
+
+cat >>confdefs.h <<_ACEOF
+#define LDAP_MEMORY_DEBUG 1 /* available */
+_ACEOF
+
+	;;
+    always)
+
+cat >>confdefs.h <<_ACEOF
+#define LDAP_MEMORY_DEBUG 2 /* always */
+_ACEOF
+
+	;;
+    extra)
+
+cat >>confdefs.h <<_ACEOF
+#define LDAP_MEMORY_DEBUG 3 /* extra */
+_ACEOF
+
+	;;
+    no)
+
+cat >>confdefs.h <<_ACEOF
+#define LDAP_MEMORY_DEBUG 0 /* disabled */
+_ACEOF
+
+	;;
+    *)
+	{ { $as_echo "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
+$as_echo "$as_me: error: in \`$ac_pwd':" >&2;}
+as_fn_error $? "invalid --enable-hipagut value '$ol_enable_hipagut'
+See \`config.log' for more details" "$LINENO" 5; }
+	;;
+esac
 
  if test "$debug" = yes; then
   SLAPD_DEBUG_TRUE=
