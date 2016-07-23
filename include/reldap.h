@@ -260,7 +260,7 @@ LDAP_LUTIL_V(int) reopenldap_flags;
 #define reopenldap_mode_righteous() \
 	likely((reopenldap_flags & REOPENLDAP_FLAG_IDDQD) != 0)
 #define reopenldap_mode_check() \
-	unlikely((reopenldap_flags & REOPENLDAP_FLAG_IDKFA) != 0)
+	unlikely(LDAP_CHECK > 2 || (reopenldap_flags & REOPENLDAP_FLAG_IDKFA) != 0)
 #define reopenldap_mode_strict() \
 	likely((reopenldap_flags & REOPENLDAP_FLAG_IDCLIP) != 0)
 #define reopenldap_mode_jitter() \

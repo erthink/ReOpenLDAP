@@ -585,7 +585,11 @@ void* lber_hug_realloc_commit ( size_t old_size,
 
 #endif /* LDAP_MEMORY_DEBUG */
 
-int reopenldap_flags;
+int reopenldap_flags
+#if LDAP_CHECK > 1
+	= REOPENLDAP_FLAG_IDKFA
+#endif
+	;
 
 void __attribute__((constructor)) reopenldap_flags_init() {
 	int flags = reopenldap_flags;
