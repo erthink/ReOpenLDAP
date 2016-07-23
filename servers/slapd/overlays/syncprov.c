@@ -383,7 +383,6 @@ syncprov_done_ctrl(
 static int
 syncprov_sendinfo(
 	Operation	*op,
-	SlapReply	*rs,
 	int			type,
 	struct berval *cookie,
 	int			refreshDone,
@@ -393,6 +392,7 @@ syncprov_sendinfo(
 	BerElementBuffer berbuf;
 	BerElement *ber = (BerElement *)&berbuf;
 	struct berval rspdata;
+	SlapReply rs = { REP_INTERMEDIATE };
 
 	int ret;
 	int n = 0;
@@ -454,14 +454,13 @@ syncprov_sendinfo(
 		Debug( LDAP_DEBUG_TRACE,
 			"syncprov_sendinfo: ber_flatten2 failed (%d)\n",
 			ret );
-		send_ldap_error( op, rs, LDAP_OTHER, "internal error" );
+		send_ldap_error( op, &rs, LDAP_OTHER, "internal error" );
 		return LDAP_OTHER;
 	}
 
-	rs->sr_rspoid = LDAP_SYNC_INFO;
-	rs->sr_rspdata = &rspdata;
-	send_ldap_intermediate( op, rs );
-	rs->sr_rspdata = NULL;
+	rs.sr_rspoid = LDAP_SYNC_INFO;
+	rs.sr_rspdata = &rspdata;
+	send_ldap_intermediate( op, &rs );
 	ber_free_buf( ber );
 
 	return LDAP_SUCCESS;
@@ -696,7 +695,7 @@ findpres_cb( Operation *op, SlapReply *rs )
 		if ( pc->num ) {
 			pc->uuids[pc->num].bv_val = NULL;
 			pc->uuids[pc->num].bv_len = 0;
-			pc->rc = syncprov_sendinfo( op, rs, LDAP_TAG_SYNC_ID_SET, NULL,
+			pc->rc = syncprov_sendinfo( op, LDAP_TAG_SYNC_ID_SET, NULL,
 				0, pc->uuids, 0 );
 			pc->num = 0;
 			pc->last = (char *)(pc->uuids + SLAP_SYNCUUID_SET_SIZE+1);
@@ -1171,8 +1170,7 @@ syncprov_playback_locked( Operation *op, syncops *so )
 				|| (slap_tsan__read_int(&so->s_flags) & PS_DEAD)) {
 			rc = SLAPD_ABANDON;
 		} else if ( rl->rl_mode == LDAP_SYNC_NEW_COOKIE ) {
-			SlapReply rs = { REP_INTERMEDIATE };
-			rc = syncprov_sendinfo( op, &rs, LDAP_TAG_SYNC_NEW_COOKIE,
+			rc = syncprov_sendinfo( op, LDAP_TAG_SYNC_NEW_COOKIE,
 				&rl->rl_info->ri_cookie, 0, NULL, 0 );
 		} else {
 			rc = syncprov_sendresp( op, rl->rl_info, so, rl->rl_mode );
@@ -1934,8 +1932,8 @@ playlog_cb( Operation *op, SlapReply *rs )
 }
 
 /* enter with sl->sl_mutex locked, release before returning */
-static void
-syncprov_playlog( Operation *op, SlapReply *rs, sessionlog *sl,
+static int
+syncprov_playlog( Operation *op, sessionlog *sl,
 	sync_control *srs, BerVarray ctxcsn, int numcsns, int *sids )
 {
 	slap_overinst		*on = (slap_overinst *)op->o_bd->bd_info;
@@ -1944,10 +1942,11 @@ syncprov_playlog( Operation *op, SlapReply *rs, sessionlog *sl,
 	char cbuf[LDAP_PVT_CSNSTR_BUFSIZE];
 	BerVarray uuids;
 	struct berval delcsn[2];
+	int rc = LDAP_SUCCESS;
 
 	if ( !sl->sl_num ) {
 		ldap_pvt_thread_mutex_unlock( &sl->sl_mutex );
-		return;
+		return rc;
 	}
 
 	num = sl->sl_num;
@@ -2096,13 +2095,14 @@ syncprov_playlog( Operation *op, SlapReply *rs, sessionlog *sl,
 		}
 
 		uuids[ndel].bv_val = NULL;
-		syncprov_sendinfo( op, rs, LDAP_TAG_SYNC_ID_SET,
+		rc = syncprov_sendinfo( op, LDAP_TAG_SYNC_ID_SET,
 			delcsn[0].bv_len ? &cookie : NULL, 0, uuids, 1 );
 		if ( delcsn[0].bv_len ) {
 			op->o_tmpfree( cookie.bv_val, op->o_tmpmemctx );
 		}
 	}
 	op->o_tmpfree( uuids, op->o_tmpmemctx );
+	return rc;
 }
 
 static int
@@ -2810,7 +2810,7 @@ syncprov_search_response( Operation *op, SlapReply *rs )
 				op->o_tmpfree( cookie.bv_val, op->o_tmpmemctx );
 		} else {
 			/* It's RefreshAndPersist, transition to Persist phase */
-			rs->sr_err = syncprov_sendinfo( op, rs, ( ss->ss_flags & SS_PRESENT ) ?
+			rs->sr_err = syncprov_sendinfo( op, ( ss->ss_flags & SS_PRESENT ) ?
 				LDAP_TAG_SYNC_REFRESH_PRESENT : LDAP_TAG_SYNC_REFRESH_DELETE,
 				BER_BVISNULL(&cookie) ? NULL : &cookie,
 				1, NULL, 0 );
@@ -3161,7 +3161,7 @@ no_change:
 			if ( do_play ) {
 				do_present = 0;
 				/* mutex is unlocked in playlog */
-				syncprov_playlog( op, rs, sl, srs, ctxcsn, numcsns, sids );
+				rs->sr_err = syncprov_playlog( op, sl, srs, ctxcsn, numcsns, sids );
 			} else {
 				ldap_pvt_thread_mutex_unlock( &sl->sl_mutex );
 			}

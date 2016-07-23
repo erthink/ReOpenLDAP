@@ -656,7 +656,7 @@ dn2entry_retry:
 	stoptime = op->o_time + op->ors_tlimit;
 
 	base = e;
-
+	assert( rs->sr_entry == NULL );
 	e = NULL;
 
 	/* select candidates */
