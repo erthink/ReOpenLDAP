@@ -1918,7 +1918,7 @@ filter2template(
 	struct			berval *fstr )
 {
 	AttributeDescription *ad;
-	int len, ret;
+	int len, MAY_UNUSED ret;
 
 	switch ( f->f_choice ) {
 	case LDAP_FILTER_EQUALITY:

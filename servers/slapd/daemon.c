@@ -131,13 +131,13 @@ static volatile int waking;
 #ifdef NO_THREADS
 #define WAKE_LISTENER(l,w)	do { \
 	if ((w) && ++waking < 5) { \
-		int ignore ALLOW_UNUSED = tcp_write( SLAP_FD2SOCK(wake_sds[l][1]), "0", 1 ); \
+		int ignore MAY_UNUSED = tcp_write( SLAP_FD2SOCK(wake_sds[l][1]), "0", 1 ); \
 	} \
 } while (0)
 #else /* ! NO_THREADS */
 #define WAKE_LISTENER(l,w)	do { \
 	if (w) { \
-		int ignore ALLOW_UNUSED = tcp_write( SLAP_FD2SOCK(wake_sds[l][1]), "0", 1 ); \
+		int ignore MAY_UNUSED = tcp_write( SLAP_FD2SOCK(wake_sds[l][1]), "0", 1 ); \
 	} \
 } while (0)
 #endif /* ! NO_THREADS */
@@ -2252,9 +2252,9 @@ loop:
 	while ( !slapd_shutdown ) {
 		ber_socket_t		i;
 		int			ns;
-		int			nwriters ALLOW_UNUSED;
+		int			nwriters MAY_UNUSED;
 		int			at;
-		ber_socket_t		nfds ALLOW_UNUSED;
+		ber_socket_t		nfds MAY_UNUSED;
 #if SLAP_EVENTS_ARE_INDEXED
 		ber_socket_t		nrfds, nwfds;
 #endif /* SLAP_EVENTS_ARE_INDEXED */
@@ -2649,7 +2649,7 @@ loop:
 				if ( fd == wake_sds[tid][0] ) {
 					char c[BUFSIZ];
 					waking = 0;
-					int ignore ALLOW_UNUSED = tcp_read( SLAP_FD2SOCK(wake_sds[tid][0]), c, sizeof(c) );
+					int ignore MAY_UNUSED = tcp_read( SLAP_FD2SOCK(wake_sds[tid][0]), c, sizeof(c) );
 					continue;
 				}
 

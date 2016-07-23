@@ -944,7 +944,7 @@ meta_back_get_candidate(
 		Operation	op2 = *op;
 		SlapReply	rs2 = { REP_RESULT };
 		slap_callback	cb2 = { 0 };
-		int		rc ALLOW_UNUSED;
+		int		rc MAY_UNUSED;
 
 		/* try to get a unique match for the request ndn
 		 * among the multiple candidates available */
@@ -1393,8 +1393,8 @@ retry_lock:;
 	}
 
 	if ( op_type == META_OP_REQUIRE_SINGLE ) {
-		metatarget_t		*mt ALLOW_UNUSED = NULL;
-		metasingleconn_t	*msc ALLOW_UNUSED = NULL;
+		metatarget_t		*mt MAY_UNUSED = NULL;
+		metasingleconn_t	*msc MAY_UNUSED = NULL;
 
 		int			j;
 
@@ -1820,7 +1820,7 @@ meta_back_release_conn_lock(
 			}
 
 		} else if ( LDAP_BACK_CONN_CACHED( mc ) ) {
-			metaconn_t	*tmpmc;
+			metaconn_t	*tmpmc MAY_UNUSED;
 
 			tmpmc = avl_delete( &mi->mi_conninfo.lai_tree,
 				( caddr_t )mc, meta_back_conndnmc_cmp );

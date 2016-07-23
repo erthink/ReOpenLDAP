@@ -219,7 +219,7 @@ kinit_initialize(void)
 {
 	Log( LDAP_DEBUG_TRACE, LDAP_LEVEL_DEBUG, "kinit_initialize\n" );
 	krb5_error_code rc;
-	struct re_s *task ALLOW_UNUSED = NULL;
+	struct re_s *task MAY_UNUSED = NULL;
 
 	kid = ch_calloc(1, sizeof(kinit_data) );
 

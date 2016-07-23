@@ -6386,7 +6386,7 @@ __config_back_modrdn( Operation *op, SlapReply *rs )
 		}
 		op->oq_modrdn = modr;
 	} else {
-		CfEntryInfo *ce2, *cebase ALLOW_UNUSED, **cprev, **cbprev, *ceold;
+		CfEntryInfo *ce2, *cebase MAY_UNUSED, **cprev, **cbprev, *ceold;
 		req_modrdn_s modr = op->oq_modrdn;
 		int i;
 

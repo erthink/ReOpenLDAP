@@ -310,7 +310,7 @@ static void scope_chunk_free( void *key, void *data )
 
 static ID2 *scope_chunk_get( Operation *op )
 {
-	struct mdb_info *mdb ALLOW_UNUSED = (struct mdb_info *) op->o_bd->be_private;
+	struct mdb_info *mdb MAY_UNUSED = (struct mdb_info *) op->o_bd->be_private;
 	ID2 *ret = NULL;
 
 	ldap_pvt_thread_pool_getkey( op->o_threadctx, (void *)scope_chunk_get,
@@ -327,7 +327,7 @@ static ID2 *scope_chunk_get( Operation *op )
 
 static void scope_chunk_ret( Operation *op, ID2 *scopes )
 {
-	struct mdb_info *mdb ALLOW_UNUSED = (struct mdb_info *) op->o_bd->be_private;
+	struct mdb_info *mdb MAY_UNUSED = (struct mdb_info *) op->o_bd->be_private;
 	void *ret = NULL;
 
 	ldap_pvt_thread_pool_getkey( op->o_threadctx, (void *)scope_chunk_get,
@@ -1244,7 +1244,7 @@ done:
 
 bailout:
 	if ( moi == &opinfo || --moi->moi_ref < 1 ) {
-		int rc2 = mdb_txn_reset( moi->moi_txn );
+		int MAY_UNUSED rc2 = mdb_txn_reset( moi->moi_txn );
 		assert(rc2 == MDB_SUCCESS);
 		if ( moi->moi_oe.oe_key )
 			LDAP_SLIST_REMOVE( &op->o_extra, &moi->moi_oe, OpExtra, oe_next );

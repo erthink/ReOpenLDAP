@@ -436,6 +436,7 @@ rewrite_session_destroy(
 	ldap_pvt_thread_rdwr_wunlock( &info->li_cookies_mutex );
 #endif /* USE_REWRITE_LDAP_PVT_THREADS */
 
+	(void) count;
 	return REWRITE_SUCCESS;
 }
 

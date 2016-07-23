@@ -393,7 +393,7 @@ ldap_send_server_request(
 	{
 		BerElement tmpber = *ber;
 		ber_int_t	bint;
-		ber_tag_t	tag, rtag ALLOW_UNUSED;
+		ber_tag_t	tag, rtag MAY_UNUSED;
 
 		ber_reset( &tmpber, 1 );
 		rtag = ber_scanf( &tmpber, "{it", /*}*/ &bint, &tag );

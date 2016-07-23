@@ -203,7 +203,7 @@ ldap_back_conn_delete( ldapinfo_t *li, ldapconn_t *lc )
 		}
 
 	} else {
-		ldapconn_t	*tmplc = NULL;
+		ldapconn_t	*tmplc MAY_UNUSED = NULL;
 
 		if ( LDAP_BACK_CONN_CACHED( lc ) ) {
 			assert( !LDAP_BACK_CONN_TAINTED( lc ) );
@@ -2261,7 +2261,7 @@ ldap_back_proxy_authz_bind(
 	struct berval		*bindcred )
 {
 	ldapinfo_t	*li = (ldapinfo_t *)op->o_bd->be_private;
-	struct berval	ndn ALLOW_UNUSED;
+	struct berval	ndn MAY_UNUSED;
 	int		msgid;
 	int		rc;
 

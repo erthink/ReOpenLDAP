@@ -970,7 +970,7 @@ unhandled_option:;
 	Debug( LDAP_DEBUG_ANY, "slapd starting\n" );
 
 	if ( !no_detach ) {
-		int ignore ALLOW_UNUSED = write( waitfds[1], "1", 1 );
+		int ignore MAY_UNUSED = write( waitfds[1], "1", 1 );
 		close( waitfds[1] );
 	}
 

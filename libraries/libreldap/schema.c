@@ -2999,7 +2999,7 @@ ldap_str2structurerule( LDAP_CONST char * s,
 	int seen_nameform = 0;
 	LDAPStructureRule * sr;
 	char ** ext_vals;
-	const char * savepos ALLOW_UNUSED;
+	const char * savepos MAY_UNUSED;
 
 	if ( !s ) {
 		*code = LDAP_SCHERR_EMPTY;
@@ -3185,7 +3185,7 @@ ldap_str2nameform( LDAP_CONST char * s,
 	int seen_may = 0;
 	LDAPNameForm * nf;
 	char ** ext_vals;
-	const char * savepos  ALLOW_UNUSED;
+	const char * savepos  MAY_UNUSED;
 
 	if ( !s ) {
 		*code = LDAP_SCHERR_EMPTY;
