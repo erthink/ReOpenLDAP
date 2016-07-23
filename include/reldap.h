@@ -211,19 +211,6 @@
 
 /* -------------------------------------------------------------------------- */
 
-#ifdef HAVE_EBCDIC
-	/* ASCII/EBCDIC converting replacements for stdio funcs
-	 * vsnprintf and snprintf are used too, but they are already
-	 * checked by the configure script
-	 */
-#	define fputs ber_pvt_fputs
-#	define fgets ber_pvt_fgets
-#	define printf ber_pvt_printf
-#	define fprintf ber_pvt_fprintf
-#	define vfprintf ber_pvt_vfprintf
-#	define vsprintf ber_pvt_vsprintf
-#endif
-
 #ifndef LDAP_CHECK
 #	ifdef NDEBUG
 #		define LDAP_CHECK 0
