@@ -1751,10 +1751,11 @@ LDAP_SLAPD_F (int) get_alias_dn LDAP_P((
 #		define rs_assert_(file, line, func, cond) rs_assert__(file, line, cond)
 #	endif /* __GNUC__ */
 
-LDAP_SLAPD_V(int)  rs_suppress_assert;
 LDAP_SLAPD_F(void) rs_assert_(const char*, unsigned, const char*, const char*);
-#	define RS_ASSERT(cond) ((rs_suppress_assert > 0 || (cond)) \
-		? (void) 0 : rs_assert_(__FILE__, __LINE__, RS_FUNC_, #cond))
+#	define RS_ASSERT(cond) do { \
+		if (reopenldap_mode_check() && unlikely(!(cond))) \
+			rs_assert_(__FILE__, __LINE__, RS_FUNC_, #cond); \
+	} while(0)
 #else
 #	define RS_ASSERT(cond)		((void) 0)
 #	define rs_assert_ok(rs)		((void) (rs))
