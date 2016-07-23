@@ -55,23 +55,23 @@
 
 #include "slapconfig.h"
 
-#ifdef LDAP_DEVEL
-/*
- * Control that allows to access the private DB
- * instead of the public one
- */
-#define	PCACHE_CONTROL_PRIVDB		"1.3.6.1.4.1.4203.666.11.9.5.1"
+#if LDAP_EXPERIMENTAL > 0
+	/*
+	 * Control that allows to access the private DB
+	 * instead of the public one
+	 */
+#	define	PCACHE_CONTROL_PRIVDB		"1.3.6.1.4.1.4203.666.11.9.5.1"
 
-/*
- * Extended Operation that allows to remove a query from the cache
- */
-#define PCACHE_EXOP_QUERY_DELETE	"1.3.6.1.4.1.4203.666.11.9.6.1"
+	/*
+	 * Extended Operation that allows to remove a query from the cache
+	 */
+#	define PCACHE_EXOP_QUERY_DELETE	"1.3.6.1.4.1.4203.666.11.9.6.1"
 
-/*
- * Monitoring
- */
-#define PCACHE_MONITOR
-#endif
+	/*
+	 * Monitoring
+	 */
+#	define PCACHE_MONITOR
+#endif /* LDAP_EXPERIMENTAL > 0 */
 
 /* query cache structs */
 /* query */

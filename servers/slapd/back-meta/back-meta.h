@@ -45,9 +45,9 @@
 #ifndef SLAPD_META_H
 #define SLAPD_META_H
 
-#ifdef LDAP_DEVEL
-#define SLAPD_META_CLIENT_PR 1
-#endif /* LDAP_DEVEL */
+#if LDAP_EXPERIMENTAL > 0
+#	define SLAPD_META_CLIENT_PR 1
+#endif /* LDAP_EXPERIMENTAL */
 
 #include "proto-meta.h"
 
@@ -717,4 +717,3 @@ extern LDAP_URLLIST_PROC	meta_back_default_urllist;
 LDAP_END_DECL
 
 #endif /* SLAPD_META_H */
-

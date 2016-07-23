@@ -80,16 +80,16 @@
 
 LDAP_BEGIN_DECL
 
-#ifdef LDAP_DEVEL
-#define LDAP_COLLECTIVE_ATTRIBUTES
-#define LDAP_COMP_MATCH
-#define LDAP_SYNC_TIMESTAMP
-#define SLAP_CONTROL_X_WHATFAILED
-#define SLAP_CONFIG_DELETE
-#ifndef SLAP_SCHEMA_EXPOSE
-#define SLAP_SCHEMA_EXPOSE
-#endif
-#endif
+#if LDAP_EXPERIMENTAL > 0
+#	define LDAP_COLLECTIVE_ATTRIBUTES
+#	define LDAP_COMP_MATCH
+#	define LDAP_SYNC_TIMESTAMP
+#	define SLAP_CONTROL_X_WHATFAILED
+#	define SLAP_CONFIG_DELETE
+#	ifndef SLAP_SCHEMA_EXPOSE
+#		define SLAP_SCHEMA_EXPOSE
+#	endif
+#endif /* LDAP_EXPERIMENTAL > 0 */
 
 #define LDAP_DYNAMIC_OBJECTS
 #define SLAP_CONTROL_X_TREE_DELETE LDAP_CONTROL_X_TREE_DELETE
@@ -97,7 +97,7 @@ LDAP_BEGIN_DECL
 #define SLAP_DISTPROC
 
 #ifdef ENABLE_REWRITE
-#define SLAP_AUTH_REWRITE	1 /* use librewrite for sasl-regexp */
+#	define SLAP_AUTH_REWRITE	1 /* use librewrite for sasl-regexp */
 #endif
 
 /*
@@ -3128,13 +3128,15 @@ struct Listener {
 	ber_socket_t sl_sd;
 	Sockaddr sl_sa;
 #define sl_addr	sl_sa.sa_in_addr
-#ifdef LDAP_DEVEL
-#define LDAP_TCP_BUFFER
-#endif
+
+#if LDAP_EXPERIMENTAL > 0
+#	define LDAP_TCP_BUFFER
+#endif /* LDAP_EXPERIMENTAL */
+
 #ifdef LDAP_TCP_BUFFER
 	int	sl_tcp_rmem;	/* custom TCP read buffer size */
 	int	sl_tcp_wmem;	/* custom TCP write buffer size */
-#endif
+#endif /* LDAP_TCP_BUFFER */
 };
 
 /*

@@ -211,18 +211,15 @@
 
 /* -------------------------------------------------------------------------- */
 
+#ifndef LDAP_EXPERIMENTAL
+#	define LDAP_EXPERIMENTAL 0
+#endif
+
 #ifndef LDAP_CHECK
 #	ifdef NDEBUG
 #		define LDAP_CHECK 0
 #	else
 #		define LDAP_CHECK 1
-#	endif
-#endif
-
-/* LY: TODO clarify this */
-#ifndef LDAP_REL_ENG
-#	if (LDAP_VENDOR_VERSION == 000000) && !defined(LDAP_DEVEL)
-#		define LDAP_DEVEL
 #	endif
 #endif
 

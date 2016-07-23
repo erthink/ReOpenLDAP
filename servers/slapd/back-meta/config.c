@@ -53,9 +53,9 @@
 #include "../back-ldap/back-ldap.h"
 #include "back-meta.h"
 
-#ifdef LDAP_DEVEL
-#define SLAP_AUTH_DN	1
-#endif
+#if LDAP_EXPERIMENTAL > 0
+#	define SLAP_AUTH_DN	1
+#endif /* LDAP_EXPERIMENTAL > 0 */
 
 static ConfigDriver meta_back_cf_gen;
 static ConfigLDAPadd meta_ldadd;
@@ -3350,4 +3350,3 @@ suffix_massage_config(
 	return 0;
 }
 #endif /* ENABLE_REWRITE */
-
