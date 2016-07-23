@@ -77,7 +77,7 @@ ber_get_option(
 			 * using the lber_set_option() function during startup.
 			 * The counter is not accurate for multithreaded ldap applications.
 			 */
-#if LDAP_MEMORY_DEBUG > 0
+#if LDAP_MEMORY_DEBUG > 2
 			* (int *) outvalue = lber_hug_memchk_info.mi_inuse_bytes;
 			return LBER_OPT_SUCCESS;
 #else
