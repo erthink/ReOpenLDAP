@@ -1738,24 +1738,30 @@ LDAP_SLAPD_F (int) get_alias_dn LDAP_P((
 /*
  * result.c
  */
-#if USE_RS_ASSERT /*defined(USE_RS_ASSERT)?(USE_RS_ASSERT):defined(LDAP_TEST)*/
-#ifdef __GNUC__
-# define RS_FUNC_	__FUNCTION__
-#elif defined(__STDC_VERSION__) && (__STDC_VERSION__) >= 199901L
-# define RS_FUNC_	__func__
-#else
-# define rs_assert_(file, line, func, cond) rs_assert__(file, line, cond)
+#ifndef USE_RS_ASSERT
+#	define USE_RS_ASSERT LDAP_CHECK
 #endif
+
+#if USE_RS_ASSERT
+#	ifdef __GNUC__
+#		define RS_FUNC_	__FUNCTION__
+#	elif defined(__STDC_VERSION__) && (__STDC_VERSION__) >= 199901L
+#		define RS_FUNC_	__func__
+#	else
+#		define rs_assert_(file, line, func, cond) rs_assert__(file, line, cond)
+#	endif /* __GNUC__ */
+
 LDAP_SLAPD_V(int)  rs_suppress_assert;
 LDAP_SLAPD_F(void) rs_assert_(const char*, unsigned, const char*, const char*);
-# define RS_ASSERT(cond)		((rs_suppress_assert > 0 || (cond)) \
-	? (void) 0 : rs_assert_(__FILE__, __LINE__, RS_FUNC_, #cond))
+#	define RS_ASSERT(cond) ((rs_suppress_assert > 0 || (cond)) \
+		? (void) 0 : rs_assert_(__FILE__, __LINE__, RS_FUNC_, #cond))
 #else
-# define RS_ASSERT(cond)		((void) 0)
-# define rs_assert_ok(rs)		((void) (rs))
-# define rs_assert_ready(rs)	((void) (rs))
-# define rs_assert_done(rs)		((void) (rs))
-#endif
+#	define RS_ASSERT(cond)		((void) 0)
+#	define rs_assert_ok(rs)		((void) (rs))
+#	define rs_assert_ready(rs)	((void) (rs))
+#	define rs_assert_done(rs)	((void) (rs))
+#endif /* USE_RS_ASSERT */
+
 LDAP_SLAPD_F (void) (rs_assert_ok)		LDAP_P(( const SlapReply *rs ));
 LDAP_SLAPD_F (void) (rs_assert_ready)	LDAP_P(( const SlapReply *rs ));
 LDAP_SLAPD_F (void) (rs_assert_done)	LDAP_P(( const SlapReply *rs ));

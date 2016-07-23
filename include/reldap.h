@@ -224,13 +224,18 @@
 #	define vsprintf ber_pvt_vsprintf
 #endif
 
+#ifndef LDAP_CHECK
+#	ifdef NDEBUG
+#		define LDAP_CHECK 0
+#	else
+#		define LDAP_CHECK 1
+#	endif
+#endif
+
 /* LY: TODO clarify this */
 #ifndef LDAP_REL_ENG
 #	if (LDAP_VENDOR_VERSION == 000000) && !defined(LDAP_DEVEL)
 #		define LDAP_DEVEL
-#	endif
-#	if defined(LDAP_DEVEL) && !defined(LDAP_TEST)
-#		define LDAP_TEST
 #	endif
 #endif
 
@@ -256,13 +261,7 @@ __extern_C void __assert_fail(
 		const char* function) __nothrow __noreturn;
 
 #ifndef LDAP_ASSERT_CHECK
-#	if defined(LDAP_DEBUG)
-#		define LDAP_ASSERT_CHECK LDAP_DEBUG
-#	elif defined(NDEBUG)
-#		define LDAP_ASSERT_CHECK 0
-#	else
-#		define LDAP_ASSERT_CHECK 1
-#	endif
+#	define LDAP_ASSERT_CHECK LDAP_CHECK
 #endif
 
 /* LY: ReOpenLDAP operation mode global flags */
