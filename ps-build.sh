@@ -224,7 +224,7 @@ else
 	if [ $flag_hide -ne 0 ]; then
 		CFLAGS+=" -fvisibility=hidden"
 		if [ $flag_asan -ne 0 -o $flag_tsan -ne 0 ] && [ $flag_lto -ne 0 ]; then
-			notice "*** LTO will be disabled for ASAN/TSN with --hide"
+			notice "*** LTO will be disabled for ASAN/TSAN with --hide"
 			flag_lto=0
 		fi
 	fi
