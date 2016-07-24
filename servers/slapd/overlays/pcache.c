@@ -880,6 +880,7 @@ merge_entry(
 
 	slap_biglock_t *bl = slap_biglock_get(op->o_bd);
 	slap_biglock_acquire(bl);
+	ber_tag_t tag = op->o_tag;
 
 	op->o_tag = LDAP_REQ_ADD;
 	op->o_protocol = LDAP_VERSION3;
@@ -918,6 +919,7 @@ merge_entry(
 		rc = 1;
 	}
 
+	op->o_tag = tag;
 	slap_biglock_release(bl);
 	return rc;
 }
@@ -3364,6 +3366,7 @@ refresh_merge( Operation *op, SlapReply *rs )
 				SlapReply rs2 = { REP_RESULT };
 				struct berval dn = op->o_req_dn;
 				struct berval ndn = op->o_req_ndn;
+				ber_tag_t tag = op->o_tag;
 				op->o_tag = LDAP_REQ_MODIFY;
 				op->orm_modlist = mods;
 				op->o_req_dn = rs->sr_entry->e_name;
@@ -3375,6 +3378,7 @@ refresh_merge( Operation *op, SlapReply *rs )
 				slap_mods_free( mods, 1 );
 				op->o_req_dn = dn;
 				op->o_req_ndn = ndn;
+				op->o_tag = tag;
 			}
 		}
 
