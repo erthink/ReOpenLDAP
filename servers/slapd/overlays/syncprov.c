@@ -882,7 +882,10 @@ again:
 			Debug( LDAP_DEBUG_SYNC,
 				"syncprov-findcsn: sid %d, pivot %s, not-found\n",
 				srs->sr_state.sid, pivot->bv_val );
-			rc = LDAP_NO_SUCH_OBJECT;
+			if (rc == LDAP_SUCCESS)
+				rc = LDAP_NO_SUCH_OBJECT;
+		} else {
+			rc = LDAP_SUCCESS;
 		}
 		break;
 	case FIND_PRESENT:
@@ -2863,7 +2866,7 @@ syncprov_search_response( Operation *op, SlapReply *rs )
 				srs->sr_state.sid, srs->sr_jammed ? " jammed" : "",
 				(ss->ss_flags & SS_PRESENT) ? "" : " no-present" );
 			send_ldap_error(op, rs,
-				LDAP_SYNC_REFRESH_REQUIRED, "unable to provide robust sync");
+				LDAP_SYNC_REFRESH_REQUIRED, "unable to provide robust sync (jammed)");
 		}
 		if ( rs->sr_err != LDAP_SUCCESS ) {
 			/* LY: return error if have, otherwise just continue */
@@ -3171,7 +3174,7 @@ no_change:
 		if ( rc != LDAP_SUCCESS ) {
 			if ( rc != LDAP_NO_SUCH_OBJECT ) {
 				rs->sr_err = rc;
-				rs->sr_text = "unable to provide robust sync";
+				rs->sr_text = "unable to provide robust sync (find-csn failed)";
 				goto bailout;
 			}
 			/* No, so a reload is required */
@@ -3200,7 +3203,7 @@ shortcut:
 	if ( do_present ) {
 		rs->sr_err = syncprov_findcsn( op, FIND_PRESENT, &pivot_csn );
 		if ( rs->sr_err != LDAP_SUCCESS ) {
-			rs->sr_text = "unable to provide robust sync";
+			rs->sr_text = "unable to provide robust sync (find-presend failed)";
 			goto bailout;
 		}
 	}
@@ -3290,7 +3293,7 @@ shortcut:
 		rs->sr_err = LDAP_SUCCESS;
 		if (srs->sr_jammed) {
 			rs->sr_err = LDAP_SYNC_REFRESH_REQUIRED;
-			rs->sr_text = "unable to provide robust sync";
+			rs->sr_text = "unable to provide robust sync (no-changes, jammed)";
 		}
 		send_ldap_result( op, rs );
 		return rs->sr_err;
