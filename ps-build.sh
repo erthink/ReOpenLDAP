@@ -242,9 +242,9 @@ else
 
 	if [ -z "$CXX" ]; then
 		if grep -q clang <<< "$CC"; then
-			CXX=clang++$([ -n "$CC_VER_SUFF" ] && echo "-$CC_VER_SUFF")
+			CXX=clang++$CC_VER_SUFF
 		elif grep -q gcc <<< "$CC"; then
-			CXX=g++$([ -n "$CC_VER_SUFF" ] && echo "-$CC_VER_SUFF")
+			CXX=g++$CC_VER_SUFF
 		else
 			CXX=c++
 		fi
@@ -256,6 +256,9 @@ else
 		LLVM_VERSION="$($CC --version | sed -n 's/.\+ version \([0-9]\.[0-9]\)\.[0-9]-.*/\1/p')"
 		echo "LLVM_VERSION	= $LLVM_VERSION"
 		LTO_PLUGIN="/usr/lib/llvm-${LLVM_VERSION}/lib/LLVMgold.so"
+		if [ ! -e $LTO_PLUGIN -a $CC = 'clang' ]; then
+			LTO_PLUGIN=/usr/lib/LLVMgold.so
+		fi
 		echo "LTO_PLUGIN	= $LTO_PLUGIN"
 		CFLAGS+=" -Wno-pointer-bool-conversion"
 	fi
@@ -276,7 +279,7 @@ else
 			notice "*** GCC Link-Time Optimization (LTO) will be used"
 			CFLAGS+=" -flto=jobserver -fno-fat-lto-objects -fuse-linker-plugin -fwhole-program"
 			export AR=gcc-ar$CC_VER_SUFF NM=gcc-nm$CC_VER_SUFF RANLIB=gcc-ranlib$CC_VER_SUFF
-		elif grep -q clang <<< "$CC" && [ -n "$LLVM_VERSION" -a -e "$LTO_PLUGIN" -a -n "$(which ld.gold)" ]; then
+		elif grep -q clang <<< "$CC" && [ -e "$LTO_PLUGIN" -a -n "$(which ld.gold)" ]; then
 			notice "*** CLANG Link-Time Optimization (LTO) will be used"
 			HERE=$(readlink -f $(dirname $0))
 
