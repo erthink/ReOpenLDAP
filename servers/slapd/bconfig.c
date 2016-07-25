@@ -3724,8 +3724,8 @@ config_loglevel(ConfigArgs *c) {
 
 	if (c->op == SLAP_CONFIG_EMIT) {
 		/* Get default or commandline slapd setting */
-		if ( ldap_syslog && !config_syslog )
-			config_syslog = ldap_syslog;
+		if ( slap_syslog_mask && !config_syslog )
+			config_syslog = slap_syslog_mask;
 		return loglevel2bvarray( config_syslog, &c->rvalue_vals );
 
 	} else if ( c->op == LDAP_MOD_DELETE ) {
@@ -3735,9 +3735,11 @@ config_loglevel(ConfigArgs *c) {
 			i = verb_to_mask( c->line, loglevel_ops );
 			config_syslog &= ~loglevel_ops[i].mask;
 		}
+#ifdef LDAP_SYSLOG
 		if ( slapMode & SLAP_SERVER_MODE ) {
-			ldap_syslog = config_syslog;
+			slap_syslog_mask = config_syslog;
 		}
+#endif /* LDAP_SYSLOG */
 		return 0;
 	}
 
@@ -3765,10 +3767,12 @@ config_loglevel(ConfigArgs *c) {
 		else
 			config_syslog = 0;
 	}
+#ifdef LDAP_SYSLOG
 	if ( slapMode & SLAP_SERVER_MODE ) {
-		ldap_syslog = config_syslog;
+		slap_syslog_mask = config_syslog;
 	}
-	return(0);
+#endif /* LDAP_SYSLOG */
+	return 0;
 }
 
 static int

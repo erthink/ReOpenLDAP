@@ -318,7 +318,7 @@ ldap_build_search_req(
 	}
 
 #ifdef LDAP_DEBUG
-	if ( ldap_debug & LDAP_DEBUG_ARGS ) {
+	if ( DebugTest(LDAP_DEBUG_ARGS) ) {
 		char	buf[ BUFSIZ ], *ptr = " *";
 
 		if ( attrs != NULL ) {

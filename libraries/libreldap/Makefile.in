@@ -157,13 +157,12 @@ am__libreldap_la_SOURCES_DIST = abandon.c add.c addentry.c assertion.c \
 	getdn.c getentry.c getvalues.c gssapi.c hipagut.c init.c io.c \
 	lber_options.c ldap_options.c ldap_sync.c ldif.c memory.c \
 	messages.c modify.c modrdn.c open.c os-ip.c os-local.c \
-	pagectrl.c passwd.c posix.c ppolicy.c print.c references.c \
-	request.c result.c rmutex.c rq.c sasl.c schema.c search.c \
-	sockbuf.c sort.c sortctrl.c stctrl.c stdio.c string.c t61.c \
-	threads.c tls2.c tls_g.c tls_m.c tls_o.c tpool.c turn.c txn.c \
-	unbind.c url.c utf-8.c utf-8-conv.c util-int.c vlvctrl.c \
-	whoami.c crutch.c lber-int.h ldap-int.h ldap-tls.h \
-	deprecated.c
+	pagectrl.c passwd.c posix.c ppolicy.c references.c request.c \
+	result.c rmutex.c rq.c sasl.c schema.c search.c sockbuf.c \
+	sort.c sortctrl.c stctrl.c stdio.c string.c t61.c threads.c \
+	tls2.c tls_g.c tls_m.c tls_o.c tpool.c turn.c txn.c unbind.c \
+	url.c utf-8.c utf-8-conv.c util-int.c vlvctrl.c whoami.c \
+	crutch.c lber-int.h ldap-int.h ldap-tls.h deprecated.c
 @LDAP_DEPRECATED_TRUE@am__objects_1 = deprecated.lo
 am_libreldap_la_OBJECTS = abandon.lo add.lo addentry.lo assertion.lo \
 	banner.lo bprint.lo cancel.lo charray.lo compare.lo \
@@ -173,13 +172,12 @@ am_libreldap_la_OBJECTS = abandon.lo add.lo addentry.lo assertion.lo \
 	gssapi.lo hipagut.lo init.lo io.lo lber_options.lo \
 	ldap_options.lo ldap_sync.lo ldif.lo memory.lo messages.lo \
 	modify.lo modrdn.lo open.lo os-ip.lo os-local.lo pagectrl.lo \
-	passwd.lo posix.lo ppolicy.lo print.lo references.lo \
-	request.lo result.lo rmutex.lo rq.lo sasl.lo schema.lo \
-	search.lo sockbuf.lo sort.lo sortctrl.lo stctrl.lo stdio.lo \
-	string.lo t61.lo threads.lo tls2.lo tls_g.lo tls_m.lo tls_o.lo \
-	tpool.lo turn.lo txn.lo unbind.lo url.lo utf-8.lo \
-	utf-8-conv.lo util-int.lo vlvctrl.lo whoami.lo crutch.lo \
-	$(am__objects_1)
+	passwd.lo posix.lo ppolicy.lo references.lo request.lo \
+	result.lo rmutex.lo rq.lo sasl.lo schema.lo search.lo \
+	sockbuf.lo sort.lo sortctrl.lo stctrl.lo stdio.lo string.lo \
+	t61.lo threads.lo tls2.lo tls_g.lo tls_m.lo tls_o.lo tpool.lo \
+	turn.lo txn.lo unbind.lo url.lo utf-8.lo utf-8-conv.lo \
+	util-int.lo vlvctrl.lo whoami.lo crutch.lo $(am__objects_1)
 libreldap_la_OBJECTS = $(am_libreldap_la_OBJECTS)
 AM_V_lt = $(am__v_lt_@AM_V@)
 am__v_lt_ = $(am__v_lt_@AM_DEFAULT_V@)
@@ -511,13 +509,12 @@ libreldap_la_SOURCES = abandon.c add.c addentry.c assertion.c banner.c \
 	getentry.c getvalues.c gssapi.c hipagut.c init.c io.c \
 	lber_options.c ldap_options.c ldap_sync.c ldif.c memory.c \
 	messages.c modify.c modrdn.c open.c os-ip.c os-local.c \
-	pagectrl.c passwd.c posix.c ppolicy.c print.c references.c \
-	request.c result.c rmutex.c rq.c sasl.c schema.c search.c \
-	sockbuf.c sort.c sortctrl.c stctrl.c stdio.c string.c t61.c \
-	threads.c tls2.c tls_g.c tls_m.c tls_o.c tpool.c turn.c txn.c \
-	unbind.c url.c utf-8.c utf-8-conv.c util-int.c vlvctrl.c \
-	whoami.c crutch.c lber-int.h ldap-int.h ldap-tls.h \
-	$(am__append_1)
+	pagectrl.c passwd.c posix.c ppolicy.c references.c request.c \
+	result.c rmutex.c rq.c sasl.c schema.c search.c sockbuf.c \
+	sort.c sortctrl.c stctrl.c stdio.c string.c t61.c threads.c \
+	tls2.c tls_g.c tls_m.c tls_o.c tpool.c turn.c txn.c unbind.c \
+	url.c utf-8.c utf-8-conv.c util-int.c vlvctrl.c whoami.c \
+	crutch.c lber-int.h ldap-int.h ldap-tls.h $(am__append_1)
 
 # LY: append-hack CFLAGS to avoid lost symver's tags by LTO.
 nolto_CFLAGS := $(CFLAGS) $$(echo "$(CFLAGS)" | grep -q ' -flto' && echo '-fno-lto') -save-temps
@@ -740,7 +737,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/passwd.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/posix.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ppolicy.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/print.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/references.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/request.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/result.Plo@am__quote@

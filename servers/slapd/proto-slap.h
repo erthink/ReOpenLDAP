@@ -1269,6 +1269,7 @@ extern pthread_mutex_t slap_sync_cookie_mutex;
 LDAP_SLAPD_V( struct slap_sync_cookie_s ) slap_sync_cookie;
 LDAP_SLAPD_V( void * ) slap_tls_ctx;
 LDAP_SLAPD_V( LDAP * ) slap_tls_ld;
+LDAP_SLAPD_F(void) slap_set_debug_level(int mask);
 
 /*
  * index.c
@@ -1406,7 +1407,7 @@ LDAP_SLAPD_F (int) lock_fclose LDAP_P(( FILE *fp, FILE *lfp ));
 LDAP_SLAPD_F (int)
 parse_debug_level LDAP_P(( const char *arg, int *levelp, char ***unknowns ));
 LDAP_SLAPD_F (int)
-parse_syslog_level LDAP_P(( const char *arg, int *levelp ));
+parse_syslog_severity LDAP_P(( const char *arg, int *severity ));
 LDAP_SLAPD_F (int)
 parse_syslog_user LDAP_P(( const char *arg, int *syslogUser ));
 LDAP_SLAPD_F (int)
@@ -2216,7 +2217,6 @@ LDAP_SLAPD_V (char *)	global_realm;
 LDAP_SLAPD_V (char *)	sasl_host;
 LDAP_SLAPD_V (char *)	slap_sasl_auxprops;
 LDAP_SLAPD_V (char **)	default_passwd_hash;
-LDAP_SLAPD_V (int)		ldap_syslog;
 LDAP_SLAPD_V (struct berval)	default_search_base;
 LDAP_SLAPD_V (struct berval)	default_search_nbase;
 

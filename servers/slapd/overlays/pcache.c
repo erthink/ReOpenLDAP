@@ -5241,7 +5241,7 @@ pcache_exop_query_delete(
 	unsigned	len;
 	ber_tag_t	tag = LBER_DEFAULT;
 
-	if ( LogTest( LDAP_DEBUG_STATS ) ) {
+	if ( DebugTest( LDAP_DEBUG_STATS ) ) {
 		uuidp = &uuid;
 	}
 
@@ -5252,7 +5252,7 @@ pcache_exop_query_delete(
 		return rs->sr_err;
 	}
 
-	if ( LogTest( LDAP_DEBUG_STATS ) ) {
+	if ( DebugTest( LDAP_DEBUG_STATS ) ) {
 		assert( !BER_BVISNULL( &op->o_req_ndn ) );
 		len = snprintf( buf, sizeof( buf ), " dn=\"%s\"", op->o_req_ndn.bv_val );
 

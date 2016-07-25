@@ -112,7 +112,7 @@ meta_back_bind( Operation *op, SlapReply *rs )
 	 * invalidCredentials */
 	mc = meta_back_getconn( op, rs, NULL, LDAP_BACK_BIND_DONTSEND );
 	if ( !mc ) {
-		if ( LogTest( LDAP_DEBUG_ANY ) ) {
+		if ( DebugTest( LDAP_DEBUG_ANY ) ) {
 			char	buf[ SLAP_TEXT_BUFLEN ];
 
 			snprintf( buf, sizeof( buf ),
@@ -715,7 +715,7 @@ meta_back_dobind(
 		isroot = 1;
 	}
 
-	if ( LogTest( LDAP_DEBUG_TRACE ) ) {
+	if ( DebugTest( LDAP_DEBUG_TRACE ) ) {
 		char buf[STRLENOF("4294967295U") + 1] = { 0 };
 		mi->mi_ldap_extra->connid2str( &mc->mc_base, buf, sizeof(buf) );
 
@@ -855,7 +855,7 @@ retry_ok:;
 	}
 
 done:;
-	if ( LogTest( LDAP_DEBUG_TRACE ) ) {
+	if ( DebugTest( LDAP_DEBUG_TRACE ) ) {
 		char buf[STRLENOF("4294967295U") + 1] = { 0 };
 		mi->mi_ldap_extra->connid2str( &mc->mc_base, buf, sizeof(buf) );
 
@@ -1207,7 +1207,7 @@ retry:;
 
 				rs->sr_err = slap_map_api2result( rs );
 
-				if ( LogTest( LDAP_DEBUG_ANY ) ) {
+				if ( DebugTest( LDAP_DEBUG_ANY ) ) {
 					char	buf[ SLAP_TEXT_BUFLEN ];
 
 					snprintf( buf, sizeof( buf ),

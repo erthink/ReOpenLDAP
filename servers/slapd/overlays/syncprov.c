@@ -891,7 +891,7 @@ again:
 	case FIND_PRESENT:
 		if ( rc == LDAP_SUCCESS )
 			rc = pcookie.rc;
-		if ( LogTest( LDAP_DEBUG_SYNC ) ) {
+		if ( DebugTest( LDAP_DEBUG_SYNC ) ) {
 			ldap_pvt_thread_rdwr_rlock( &si->si_csn_rwlock );
 			Debug( LDAP_DEBUG_SYNC,
 				"syncprov-findpresent: sid %d, pivot %s, find-present %u, rc %d\n",
@@ -2978,7 +2978,7 @@ syncprov_op_search( Operation *op, SlapReply *rs )
 	}
 	dirty = si->si_dirty;
 
-	if ( LogTest( LDAP_DEBUG_SYNC ) ) {
+	if ( DebugTest( LDAP_DEBUG_SYNC ) ) {
 		ldap_debug_print(
 			"syncprov-search: %srid=%03x, sid=%03x, hint %d, srs %p, sop %p\n",
 			so ? "PERSISTENT, " : "",

@@ -742,7 +742,6 @@ read_config_file(const char *fname, ConfigArgs *cf, ConfigTable *cft)
 	init_config_argv( c );
 
 	if ( stat( fname, &s ) != 0 ) {
-		ldap_syslog = 1;
 		Debug(LDAP_DEBUG_ANY,
 		    "could not stat config file \"%s\": %s (%d)\n",
 			fname, STRERROR(errno), errno);
@@ -751,7 +750,6 @@ read_config_file(const char *fname, ConfigArgs *cf, ConfigTable *cft)
 	}
 
 	if ( !S_ISREG( s.st_mode ) ) {
-		ldap_syslog = 1;
 		Debug(LDAP_DEBUG_ANY,
 		    "regular file expected, got \"%s\"\n",
 		    fname );
@@ -761,7 +759,6 @@ read_config_file(const char *fname, ConfigArgs *cf, ConfigTable *cft)
 
 	fp = fopen( fname, "r" );
 	if ( fp == NULL ) {
-		ldap_syslog = 1;
 		Debug(LDAP_DEBUG_ANY,
 		    "could not open config file \"%s\": %s (%d)\n",
 			fname, STRERROR(errno), errno);

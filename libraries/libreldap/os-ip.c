@@ -68,18 +68,7 @@ int ldap_int_inet4or6 = AF_INET;
 #  endif
 #endif
 
-#ifdef LDAP_DEBUG
-
-#define osip_debug(ld,...) \
-do { \
-	ldap_log_printf(NULL, LDAP_DEBUG_TRACE, __VA_ARGS__); \
-} while(0)
-
-#else
-
-#define osip_debug(ld,fmt,...) ((void)0)
-
-#endif /* LDAP_DEBUG */
+#define osip_debug(ld,...) Debug(LDAP_DEBUG_TRACE, __VA_ARGS__)
 
 static void
 ldap_pvt_set_errno(int err)

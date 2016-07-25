@@ -2731,7 +2731,7 @@ loop:
 		connections_shutdown( 0 );
 	}
 
-	if ( LogTest( LDAP_DEBUG_ANY )) {
+	if ( DebugTest( LDAP_DEBUG_ANY )) {
 		int t = ldap_pvt_thread_pool_backload( &connection_pool );
 		Debug( LDAP_DEBUG_ANY,
 			"slapd shutdown: waiting for %d operations/tasks to finish\n",

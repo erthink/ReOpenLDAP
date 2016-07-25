@@ -42,7 +42,7 @@ libreldap_la_SOURCES = abandon.c add.c addentry.c assertion.c \
 	getattr.c getdn.c getentry.c getvalues.c gssapi.c hipagut.c \
 	init.c io.c lber_options.c ldap_options.c ldap_sync.c ldif.c \
 	memory.c messages.c modify.c modrdn.c open.c os-ip.c os-local.c \
-	pagectrl.c passwd.c posix.c ppolicy.c print.c references.c \
+	pagectrl.c passwd.c posix.c ppolicy.c references.c \
 	request.c result.c rmutex.c rq.c sasl.c schema.c \
 	search.c sockbuf.c sort.c sortctrl.c stctrl.c stdio.c string.c \
 	t61.c threads.c tls2.c tls_g.c tls_m.c tls_o.c tpool.c turn.c \

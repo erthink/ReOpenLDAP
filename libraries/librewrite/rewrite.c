@@ -51,10 +51,6 @@
 #include <lutil.h>
 #include <ldap.h>
 
-int ldap_debug;
-int ldap_syslog;
-int ldap_syslog_level;
-
 static void
 apply(
 		FILE *fin,

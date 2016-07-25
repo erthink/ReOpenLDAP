@@ -873,7 +873,7 @@ backsql_add_attr(
 		}
 
 #ifdef LDAP_DEBUG
-		if ( LogTest( LDAP_DEBUG_TRACE ) ) {
+		if ( DebugTest( LDAP_DEBUG_TRACE ) ) {
 			snprintf( logbuf, sizeof( logbuf ), "val[%lu], id=" BACKSQL_IDNUMFMT,
 					i, new_keyval );
 			Debug( LDAP_DEBUG_TRACE, "   backsql_add_attr(\"%s\"): "
@@ -1401,7 +1401,7 @@ backsql_add( Operation *op, SlapReply *rs )
 		goto done;
 	}
 
-	if ( LogTest( LDAP_DEBUG_TRACE ) ) {
+	if ( DebugTest( LDAP_DEBUG_TRACE ) ) {
 		char buf[ SLAP_TEXT_BUFLEN ];
 
 		snprintf( buf, sizeof(buf),

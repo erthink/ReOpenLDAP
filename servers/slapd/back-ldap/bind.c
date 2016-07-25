@@ -1122,7 +1122,7 @@ retry_lock:
 
 		ldap_pvt_thread_mutex_unlock( &li->li_conninfo.lai_mutex );
 
-		if ( LogTest( LDAP_DEBUG_TRACE ) ) {
+		if ( DebugTest( LDAP_DEBUG_TRACE ) ) {
 			char	buf[ SLAP_TEXT_BUFLEN ];
 
 			snprintf( buf, sizeof( buf ),
@@ -1191,7 +1191,7 @@ retry_lock:
 			ldap_pvt_thread_mutex_unlock( &li->li_conninfo.lai_mutex );
 		}
 
-		if ( LogTest( LDAP_DEBUG_TRACE ) ) {
+		if ( DebugTest( LDAP_DEBUG_TRACE ) ) {
 			char	buf[ SLAP_TEXT_BUFLEN ];
 
 			snprintf( buf, sizeof( buf ),

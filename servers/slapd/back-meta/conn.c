@@ -318,7 +318,7 @@ meta_back_init_one_conn(
 				dont_retry = ( ri->ri_num[ ri->ri_idx ] == SLAP_RETRYNUM_TAIL
 					|| ldap_time_steady() < ri->ri_last + ri->ri_interval[ ri->ri_idx ] );
 				if ( !dont_retry ) {
-					if ( LogTest( LDAP_DEBUG_ANY ) ) {
+					if ( DebugTest( LDAP_DEBUG_ANY ) ) {
 						char	buf[ SLAP_TEXT_BUFLEN ];
 
 						snprintf( buf, sizeof( buf ),
@@ -741,7 +741,7 @@ meta_back_retry(
 	if ( mc->mc_refcnt == 1 ) {
 		struct berval save_cred;
 
-		if ( LogTest( LDAP_DEBUG_ANY ) ) {
+		if ( DebugTest( LDAP_DEBUG_ANY ) ) {
 			char	buf[ SLAP_TEXT_BUFLEN ];
 
 			/* this lock is required; however,
@@ -1247,7 +1247,7 @@ retry_lock:;
 					LDAP_BACK_CONN_TAINTED_SET( mc );
 					LDAP_BACK_CONN_CACHED_CLEAR( mc );
 
-					if ( LogTest( LDAP_DEBUG_TRACE ) ) {
+					if ( DebugTest( LDAP_DEBUG_TRACE ) ) {
 						char buf[STRLENOF("4294967295U") + 1] = { 0 };
 						mi->mi_ldap_extra->connid2str( &mc->mc_base, buf, sizeof(buf) );
 
@@ -1739,7 +1739,7 @@ done:;
 
 			default:
 				LDAP_BACK_CONN_CACHED_CLEAR( mc );
-				if ( LogTest( LDAP_DEBUG_ANY ) ) {
+				if ( DebugTest( LDAP_DEBUG_ANY ) ) {
 					char buf[STRLENOF("4294967295U") + 1] = { 0 };
 					mi->mi_ldap_extra->connid2str( &mc->mc_base, buf, sizeof(buf) );
 
@@ -1760,7 +1760,7 @@ done:;
 			}
 		}
 
-		if ( LogTest( LDAP_DEBUG_TRACE ) ) {
+		if ( DebugTest( LDAP_DEBUG_TRACE ) ) {
 			char buf[STRLENOF("4294967295U") + 1] = { 0 };
 			mi->mi_ldap_extra->connid2str( &mc->mc_base, buf, sizeof(buf) );
 
@@ -1770,7 +1770,7 @@ done:;
 		}
 
 	} else {
-		if ( LogTest( LDAP_DEBUG_TRACE ) ) {
+		if ( DebugTest( LDAP_DEBUG_TRACE ) ) {
 			char buf[STRLENOF("4294967295U") + 1] = { 0 };
 			mi->mi_ldap_extra->connid2str( &mc->mc_base, buf, sizeof(buf) );
 
@@ -1881,7 +1881,7 @@ meta_back_quarantine(
 			break;
 
 		case LDAP_BACK_FQ_RETRYING:
-			if ( LogTest( LDAP_DEBUG_ANY ) ) {
+			if ( DebugTest( LDAP_DEBUG_ANY ) ) {
 				char	buf[ SLAP_TEXT_BUFLEN ];
 
 				snprintf( buf, sizeof( buf ),
