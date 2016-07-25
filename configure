@@ -14134,9 +14134,9 @@ VERSION_MINOR=1
 
 VERSION_PATCH=2
 
-RELEASE_DATE=2016-07-23
+RELEASE_DATE=2016-07-24
 
-RELEASE_STAMP=g431be870ceac-t1b93bb421413cd43
+RELEASE_STAMP=g68a5dfdb0c1a-tce9e0215d7d1f863
 
 API_LIB_RELEASE=1.1
 
@@ -36070,3 +36070,13 @@ if test -n "$ac_unrecognized_opts" && test "$enable_option_checking" != no; then
 $as_echo "$as_me: WARNING: unrecognized options: $ac_unrecognized_opts" >&2;}
 fi
 
+
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking 'libtool' for support LTO (Link Time Optimization)" >&5
+$as_echo_n "checking 'libtool' for support LTO (Link Time Optimization)... " >&6; }
+if sed -i -e 's/pic_flag_for_symtable=$/&\$(echo -- "\$LTCFLAGS" | grep -q -w -- "-flto" \&\& echo -n -- " -fno-lto")/' libtool; then
+	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: done patching" >&5
+$as_echo "done patching" >&6; }
+else
+	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: something went wrong, not supported" >&5
+$as_echo "something went wrong, not supported" >&6; }
+fi

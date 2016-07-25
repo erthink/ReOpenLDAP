@@ -2918,3 +2918,10 @@ if test -x $ac_aux_dir/BRANDING; then
 fi
 
 AC_OUTPUT
+
+AC_MSG_CHECKING(['libtool' for support LTO (Link Time Optimization)])
+if sed -i -e 's/pic_flag_for_symtable=$/&\$(echo -- "\$LTCFLAGS" | grep -q -w -- "-flto" \&\& echo -n -- " -fno-lto")/' libtool; then
+	AC_MSG_RESULT([done patching])
+else
+	AC_MSG_RESULT([something went wrong, not supported])
+fi
