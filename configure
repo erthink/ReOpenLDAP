@@ -695,7 +695,6 @@ SLAPD_DYNAMIC_OVERLAYS
 SLAPD_STATIC_OVERLAYS
 SLAPD_DYNAMIC_BACKENDS
 SLAPD_STATIC_BACKENDS
-WRAP_LIBS
 LUTIL_LIBS
 LTHREAD_LIBS
 SLAPD_LIBS
@@ -14134,9 +14133,9 @@ VERSION_MINOR=1
 
 VERSION_PATCH=2
 
-RELEASE_DATE=2016-07-24
+RELEASE_DATE=2016-07-25
 
-RELEASE_STAMP=g68a5dfdb0c1a-tce9e0215d7d1f863
+RELEASE_STAMP=gc89ecdcb0642-t62ff689f3ec1fad0
 
 API_LIB_RELEASE=1.1
 
@@ -20924,6 +20923,7 @@ AUTH_LIBS=
 
 SLAPD_SLP_LIBS=
 SLAPD_GMP_LIBS=
+SLAPD_TCPWRAP_LIBS=
 
 
 ol_link_perl=no
@@ -29445,13 +29445,12 @@ done
 
 $as_echo "#define HAVE_TCPD 1" >>confdefs.h
 
-		WRAP_LIBS="-lwrap"
+		SLAPD_TCPWRAP_LIBS="$SLAPD_TCPWRAP_LIBS -lwrap"
 	elif test $ol_enable_wrappers = yes ; then
 		as_fn_error $? "could not find TCP wrappers, select apppropriate options or disable" "$LINENO" 5
 	else
 		{ $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: could not find TCP wrappers, support disabled" >&5
 $as_echo "$as_me: WARNING: could not find TCP wrappers, support disabled" >&2;}
-		WRAP_LIBS=""
 	fi
 fi
 
@@ -33077,7 +33076,6 @@ fi
 
 
 
-
 #AC_SUBST(ICU_LIBS)
 
 
@@ -33095,7 +33093,7 @@ LDAP_LIBLUTIL_LA="\${top_builddir}/libraries/liblutil/liblutil.la"
 SECURITY_LIBS="${SASL_LIBS} ${KRB_LIBS} ${TLS_LIBS} ${AUTH_LIBS}"
 
 
-SLAPD_LIBS="$SLAPD_LIBS $SLAPD_SLP_LIBS $SLAPD_GMP_LIBS"
+SLAPD_LIBS="$SLAPD_LIBS $SLAPD_SLP_LIBS $SLAPD_GMP_LIBS $SLAPD_TCPWRAP_LIBS"
 
 
 

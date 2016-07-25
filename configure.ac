@@ -638,6 +638,7 @@ AUTH_LIBS=
 
 SLAPD_SLP_LIBS=
 SLAPD_GMP_LIBS=
+SLAPD_TCPWRAP_LIBS=
 
 dnl ================================================================
 dnl Checks for programs
@@ -1601,12 +1602,11 @@ hosts_access(req)
 
 	if test $have_wrappers = yes ; then
 		AC_DEFINE(HAVE_TCPD,1, [define if you have -lwrap])
-		WRAP_LIBS="-lwrap"
+		SLAPD_TCPWRAP_LIBS="$SLAPD_TCPWRAP_LIBS -lwrap"
 	elif test $ol_enable_wrappers = yes ; then
 		AC_MSG_ERROR([could not find TCP wrappers, select apppropriate options or disable])
 	else
 		AC_MSG_WARN([could not find TCP wrappers, support disabled])
-		WRAP_LIBS=""
 	fi
 fi
 
@@ -2809,7 +2809,6 @@ AM_CONDITIONAL([BUILD_SLAPI], [test $ol_enable_slapi != no])
 AC_SUBST(SLAPD_LIBS)
 AC_SUBST(LTHREAD_LIBS)
 AC_SUBST(LUTIL_LIBS)
-AC_SUBST(WRAP_LIBS)
 
 AC_SUBST(SLAPD_STATIC_BACKENDS)
 AC_SUBST(SLAPD_DYNAMIC_BACKENDS)
@@ -2857,7 +2856,7 @@ AC_SUBST(LDAP_LIBLUTIL_LA)
 SECURITY_LIBS="${SASL_LIBS} ${KRB_LIBS} ${TLS_LIBS} ${AUTH_LIBS}"
 AC_SUBST(SECURITY_LIBS)
 
-SLAPD_LIBS="$SLAPD_LIBS $SLAPD_SLP_LIBS $SLAPD_GMP_LIBS"
+SLAPD_LIBS="$SLAPD_LIBS $SLAPD_SLP_LIBS $SLAPD_GMP_LIBS $SLAPD_TCPWRAP_LIBS"
 AC_SUBST(SLAPD_LIBS)
 
 dnl ----------------------------------------------------------------

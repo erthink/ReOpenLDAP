@@ -1950,7 +1950,7 @@ slap_listener(
 			ldap_pvt_thread_mutex_lock( &sd_tcpd_mutex );
 			rc = hosts_ctl("slapd",
 				dnsname != NULL ? dnsname : SLAP_STRING_UNKNOWN,
-				peeraddr,
+				(char *) peeraddr,
 				SLAP_STRING_UNKNOWN );
 			ldap_pvt_thread_mutex_unlock( &sd_tcpd_mutex );
 			if ( !rc ) {

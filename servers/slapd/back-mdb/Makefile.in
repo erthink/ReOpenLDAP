@@ -405,7 +405,6 @@ VERSION_PATCH = @VERSION_PATCH@
 WITH_ACI_ENABLED = @WITH_ACI_ENABLED@
 WITH_SASL = @WITH_SASL@
 WITH_TLS = @WITH_TLS@
-WRAP_LIBS = @WRAP_LIBS@
 abs_builddir = @abs_builddir@
 abs_srcdir = @abs_srcdir@
 abs_top_builddir = @abs_top_builddir@
