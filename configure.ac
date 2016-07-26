@@ -97,7 +97,6 @@ AM_SILENT_RULES([yes])
 AM_MAINTAINER_MODE([disable])
 LT_CONFIG_LTDL_DIR([build/libltdl])
 LT_INIT([dlopen])
-LTDL_INIT([recursive])
 
 AC_SUBST(PACKAGE)
 AC_SUBST(VERSION)
@@ -356,6 +355,20 @@ OL_ARG_ENABLE(experimental,[  --enable-experimental   enable experimental and de
 OL_ARG_ENABLE(check,[  --enable-check          enable internal checking and assertions], no, [no yes always default])dnl
 OL_ARG_ENABLE(hipagut,[  --enable-hipagut        enable internal memory allocation debugger], no, [no yes always extra])dnl
 
+if test -a $ac_aux_dir/../tests/scripts/valgrind.supp; then
+	AX_VALGRIND_DFLT([memcheck sgcheck], [on])
+	AX_VALGRIND_CHECK
+	if test $enable_valgrind = yes; then
+		AC_DEFINE(HAVE_VALGRIND,1,[define if you have Valgrind])
+		AC_CHECK_HEADER([valgrind/memcheck.h])
+		if test "$ac_cv_header_valgrind_memcheck_h" = yes; then
+			AC_DEFINE(USE_VALGRIND,1,[define to enable interaction with Valgrind])
+		else
+			AC_MSG_WARN([valgrind/memcheck.h required for Valgrind complete support.])
+		fi
+	fi
+fi
+
 case $ol_enable_experimental in
     yes)
 	AC_DEFINE(LDAP_EXPERIMENTAL,1,[define as 0 to disable experimantal/developing features])
@@ -425,6 +438,7 @@ OL_ARG_WITH(mp,
 OL_ARG_WITH(odbc,
 	[  --with-odbc             with specific ODBC support iodbc|unixodbc|auto],
 	auto, [auto iodbc unixodbc] )
+
 
 dnl ----------------------------------------------------------------
 dnl Server options
@@ -548,6 +562,7 @@ OL_ARG_ENABLE(valsort,[    --enable-valsort      Value Sorting overlay],
 dnl ----------------------------------------------------------------
 AC_ARG_ENABLE(xxliboptions,[
 Library Generation & Linking Options])
+LTDL_INIT([recursive])
 AC_ENABLE_STATIC
 AC_ENABLE_SHARED
 
@@ -1074,11 +1089,11 @@ if test $ol_link_tls = no ; then
 
 		if test $ac_cv_header_gnutls_gnutls_h = yes ; then
 			AC_PREPROC_IFELSE([AC_LANG_SOURCE(
-                               [[#include <gnutls/gnutls.h>]
+				[[#include <gnutls/gnutls.h>]
 [#if GNUTLS_VERSION_NUMBER < 0x020c00]
 [#error "GnuTLS 2.12.0 or newer required"]
 [#endif]])],
-                                       , [AC_MSG_FAILURE([GnuTLS is too old])])
+				, [AC_MSG_FAILURE([GnuTLS is too old])])
 
 			AC_CHECK_LIB(gnutls, gnutls_init,
 				[have_gnutls=yes], [have_gnutls=no])
@@ -2437,14 +2452,14 @@ if test "$ol_enable_auditlog" != no ; then
 fi
 
 if test "$ol_enable_collect" != no ; then
-        if test "$ol_enable_collect" = mod ; then
-                MFLAG=SLAPD_MOD_DYNAMIC
-                SLAPD_DYNAMIC_OVERLAYS="$SLAPD_DYNAMIC_OVERLAYS collect"
-        else
-                MFLAG=SLAPD_MOD_STATIC
-                SLAPD_STATIC_OVERLAYS="$SLAPD_STATIC_OVERLAYS collect"
-        fi
-        AC_DEFINE_UNQUOTED(SLAPD_OVER_COLLECT,$MFLAG,[define for Collect overlay])
+	if test "$ol_enable_collect" = mod ; then
+		MFLAG=SLAPD_MOD_DYNAMIC
+		SLAPD_DYNAMIC_OVERLAYS="$SLAPD_DYNAMIC_OVERLAYS collect"
+	else
+		MFLAG=SLAPD_MOD_STATIC
+		SLAPD_STATIC_OVERLAYS="$SLAPD_STATIC_OVERLAYS collect"
+	fi
+	AC_DEFINE_UNQUOTED(SLAPD_OVER_COLLECT,$MFLAG,[define for Collect overlay])
 fi
 
 if test "$ol_enable_constraint" != no ; then
@@ -2677,8 +2692,9 @@ if test -x $ac_aux_dir/mkbanner -a -x $ac_aux_dir/BRANDING; then
 		SOELIM_R=$SOELIM
 	fi
 	AC_SUBST(SOELIM_R)
+
 else
-    SLAPD_MAINTAINER_DIR=""
+	SLAPD_MAINTAINER_DIR=""
 fi
 AC_SUBST(SLAPD_MAINTAINER_DIR)
 

@@ -862,6 +862,9 @@
 /* Define to 1 if you have the <uuid/uuid.h> header file. */
 #undef HAVE_UUID_UUID_H
 
+/* define if you have Valgrind */
+#undef HAVE_VALGRIND
+
 /* Define to 1 if you have the `vprintf' function. */
 #undef HAVE_VPRINTF
 
@@ -1208,6 +1211,9 @@
 
 /* define to use 'long long' for MP */
 #undef USE_MP_LONG_LONG
+
+/* define to enable interaction with Valgrind */
+#undef USE_VALGRIND
 
 /* Version number of package */
 #undef VERSION

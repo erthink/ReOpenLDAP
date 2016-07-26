@@ -91,6 +91,7 @@ target_triplet = @target@
 subdir = tests
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/build/m4/ax_pthread.m4 \
+	$(top_srcdir)/build/m4/ax_valgrind_check.m4 \
 	$(top_srcdir)/build/m4/libtool.m4 \
 	$(top_srcdir)/build/m4/ltargz.m4 \
 	$(top_srcdir)/build/m4/ltdl.m4 \
@@ -223,6 +224,10 @@ ECHO_C = @ECHO_C@
 ECHO_N = @ECHO_N@
 ECHO_T = @ECHO_T@
 EGREP = @EGREP@
+ENABLE_VALGRIND_drd = @ENABLE_VALGRIND_drd@
+ENABLE_VALGRIND_helgrind = @ENABLE_VALGRIND_helgrind@
+ENABLE_VALGRIND_memcheck = @ENABLE_VALGRIND_memcheck@
+ENABLE_VALGRIND_sgcheck = @ENABLE_VALGRIND_sgcheck@
 EXEEXT = @EXEEXT@
 FGREP = @FGREP@
 FIXUP_DIRS = @FIXUP_DIRS@
@@ -327,6 +332,8 @@ SQL_INCLUDES = @SQL_INCLUDES@
 SQL_LIBS = @SQL_LIBS@
 STRIP = @STRIP@
 TLS_LIBS = @TLS_LIBS@
+VALGRIND = @VALGRIND@
+VALGRIND_ENABLED = @VALGRIND_ENABLED@
 VERSION = @VERSION@
 VERSION_MAJOR = @VERSION_MAJOR@
 VERSION_MINOR = @VERSION_MINOR@
@@ -398,9 +405,13 @@ target_vendor = @target_vendor@
 top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
+valgrind_enabled_tools = @valgrind_enabled_tools@
+valgrind_tools = @valgrind_tools@
 SUBDIRS = progs
 RUN = $(builddir)/run
 BACKENDS = $(SLAPD_DYNAMIC_BACKENDS) $(SLAPD_STATIC_BACKENDS)
+VALGRIND_SUPPRESSIONS_FILES = scripts/valgrind.supp
+EXTRA_DIST = scripts/valgrind.supp
 all: all-recursive
 
 .SUFFIXES:
@@ -715,7 +726,9 @@ uninstall-am:
 
 .PRECIOUS: Makefile
 
-check test: $(BACKENDS)
+check test check-TESTS: $(BACKENDS)
+
+@VALGRIND_CHECK_RULES@
 
 clean-local:
 	-$(RM) -r testrun configpw configpw.conf *gmon *core

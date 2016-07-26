@@ -98,6 +98,7 @@ bin_PROGRAMS = ldapsearch$(EXEEXT) ldapmodify$(EXEEXT) \
 subdir = clients/tools
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/build/m4/ax_pthread.m4 \
+	$(top_srcdir)/build/m4/ax_valgrind_check.m4 \
 	$(top_srcdir)/build/m4/libtool.m4 \
 	$(top_srcdir)/build/m4/ltargz.m4 \
 	$(top_srcdir)/build/m4/ltdl.m4 \
@@ -258,6 +259,10 @@ ECHO_C = @ECHO_C@
 ECHO_N = @ECHO_N@
 ECHO_T = @ECHO_T@
 EGREP = @EGREP@
+ENABLE_VALGRIND_drd = @ENABLE_VALGRIND_drd@
+ENABLE_VALGRIND_helgrind = @ENABLE_VALGRIND_helgrind@
+ENABLE_VALGRIND_memcheck = @ENABLE_VALGRIND_memcheck@
+ENABLE_VALGRIND_sgcheck = @ENABLE_VALGRIND_sgcheck@
 EXEEXT = @EXEEXT@
 FGREP = @FGREP@
 FIXUP_DIRS = @FIXUP_DIRS@
@@ -362,6 +367,8 @@ SQL_INCLUDES = @SQL_INCLUDES@
 SQL_LIBS = @SQL_LIBS@
 STRIP = @STRIP@
 TLS_LIBS = @TLS_LIBS@
+VALGRIND = @VALGRIND@
+VALGRIND_ENABLED = @VALGRIND_ENABLED@
 VERSION = @VERSION@
 VERSION_MAJOR = @VERSION_MAJOR@
 VERSION_MINOR = @VERSION_MINOR@
@@ -433,6 +440,8 @@ target_vendor = @target_vendor@
 top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
+valgrind_enabled_tools = @valgrind_enabled_tools@
+valgrind_tools = @valgrind_tools@
 AM_CPPFLAGS = -I$(top_srcdir)/include
 @BEHIND_CURTIAN_TRUE@BUILT_SOURCES = s_banner.c m_banner.c d_banner.c r_banner.c \
 @BEHIND_CURTIAN_TRUE@	p_banner.c w_banner.c c_banner.c e_banner.c u_banner.c
