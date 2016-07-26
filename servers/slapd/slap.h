@@ -45,6 +45,8 @@
 #ifndef _SLAP_H_
 #define _SLAP_H_
 
+#define SLAP_INSIDE
+
 #include "ldap_defaults.h"
 
 #include <stdio.h>
@@ -64,12 +66,7 @@
 #	include <execinfo.h>
 #endif
 
-#ifndef ldap_debug
-#define ldap_debug slap_debug
-#endif
-
 #include "ldap_log.h"
-
 #include <ldap.h>
 #include <ldap_schema.h>
 
@@ -101,7 +98,7 @@ LDAP_BEGIN_DECL
 #endif
 
 #ifdef ENABLE_REWRITE
-#define SLAP_AUTH_REWRITE	1 /* use librewrite for sasl-regexp */
+#	define SLAP_AUTH_REWRITE	1 /* use librewrite for sasl-regexp */
 #endif
 
 /*
@@ -236,8 +233,6 @@ LDAP_BEGIN_DECL
 #define SLAPD_ROLE_CLASS		"organizationalRole"
 
 #define SLAPD_TOP_OID			"2.5.6.0"
-
-LDAP_SLAPD_V (int) slap_debug;
 
 typedef unsigned long slap_mask_t;
 
@@ -3142,8 +3137,8 @@ struct Connection {
 #endif /* LOG_LOCAL4 */
 
 #define Statslog( level, ... )	\
-	Log( (level), ldap_syslog_level, __VA_ARGS__ )
-#define StatslogTest( level ) LogTest(level)
+	Log( (level), slap_syslog_severity, __VA_ARGS__ )
+#define StatslogTest( level ) DebugTest(level)
 
 /*
  * listener; need to access it from monitor backend
@@ -3167,7 +3162,7 @@ struct Listener {
 #ifdef LDAP_TCP_BUFFER
 	int	sl_tcp_rmem;	/* custom TCP read buffer size */
 	int	sl_tcp_wmem;	/* custom TCP write buffer size */
-#endif
+#endif /* LDAP_TCP_BUFFER */
 };
 
 /*

@@ -37,7 +37,6 @@
 #include "nssov.h"
 #include "lutil.h"
 
-#undef ldap_debug	/* silence a warning in ldap-int.h */
 #include "../../../libraries/libreldap/ldap-int.h"	/* for ldap_ld_free */
 
 static int ppolicy_cid;

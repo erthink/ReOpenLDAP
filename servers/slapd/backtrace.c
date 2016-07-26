@@ -242,12 +242,17 @@ void backtrace_sigaction(int signum, siginfo_t *info, void* ptr) {
 	size = backtrace(array, 42);
 
 	/* Get the address at the time the signal was raised */
-#if defined(__i386__)
-	caller_address = (void *) uc->uc_mcontext.gregs[REG_EIP]; // EIP: x86 specific
-#elif defined(__x86_64__)
-	caller_address = (void *) uc->uc_mcontext.gregs[REG_RIP]; // RIP: x86_64 specific
-#else
-#	error Unsupported architecture.
+#if defined(REG_RIP)
+	caller_address = (void *) uc->uc_mcontext.gregs[REG_RIP];
+#elif defined(REG_EIP)
+	caller_address = (void *) uc->uc_mcontext.gregs[REG_EIP];
+#elif defined(__arm__)
+	caller_address = (void *) uc->uc_mcontext.arm_pc;
+#elif defined(__mips__)
+	caller_address = (void *) uc->uc_mcontext.sc_pc;
+#else /* TODO support more arch(s) */
+#	warning Unsupported architecture.
+	caller_address = NULL;
 #endif
 
 	int should_die = 0;

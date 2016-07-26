@@ -1477,7 +1477,7 @@ ndb_entry_del_info(
 	NdbArgs *NA
 )
 {
-	struct ndb_info *ni ALLOW_UNUSED = (struct ndb_info *) be->be_private;
+	struct ndb_info *ni MAY_UNUSED = (struct ndb_info *) be->be_private;
 	const NdbDictionary::Dictionary *myDict = NA->ndb->getDictionary();
 	const NdbDictionary::Table *myTable = myDict->getTable( DN2ID_TABLE );
 	NdbOperation *myop;
@@ -1501,7 +1501,7 @@ ndb_next_id(
 	ID *id
 )
 {
-	struct ndb_info *ni ALLOW_UNUSED = (struct ndb_info *) be->be_private;
+	struct ndb_info *ni MAY_UNUSED = (struct ndb_info *) be->be_private;
 	const NdbDictionary::Dictionary *myDict = ndb->getDictionary();
 	const NdbDictionary::Table *myTable = myDict->getTable( NEXTID_TABLE );
 	Uint64 nid = 0;
@@ -1572,7 +1572,7 @@ ndb_entry_get(
 	int rw,
 	Entry **ent )
 {
-	struct ndb_info *ni ALLOW_UNUSED = (struct ndb_info *) op->o_bd->be_private;
+	struct ndb_info *ni MAY_UNUSED = (struct ndb_info *) op->o_bd->be_private;
 	NdbArgs NA;
 	Entry e = {0};
 	int rc;

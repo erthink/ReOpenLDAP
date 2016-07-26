@@ -95,7 +95,7 @@ monitor_subsys_log_open(
 {
 	BerVarray	bva = NULL;
 
-	if ( loglevel2bvarray( ldap_syslog, &bva ) == 0 && bva != NULL ) {
+	if ( loglevel2bvarray( slap_syslog_mask, &bva ) == 0 && bva != NULL ) {
 		monitor_info_t	*mi;
 		Entry		*e;
 
@@ -127,7 +127,7 @@ monitor_subsys_log_modify(
 {
 	monitor_info_t	*mi = ( monitor_info_t * )op->o_bd->be_private;
 	int		rc = LDAP_OTHER;
-	int		newlevel = ldap_syslog;
+	int		newlevel = slap_syslog_mask;
 	Attribute	*save_attrs;
 	Modifications	*modlist = op->orm_modlist;
 	Modifications	*ml;
@@ -206,18 +206,12 @@ monitor_subsys_log_modify(
 			goto cleanup;
 		}
 
+#ifdef LDAP_SYSLOG
 		/*
 		 * Do we need to protect this with a mutex?
 		 */
-		ldap_syslog = newlevel;
-
-#if 0	/* debug rather than log */
-		slap_debug = newlevel;
-		lutil_set_debug_level( "slapd", slap_debug );
-		ber_set_option(NULL, LBER_OPT_DEBUG_LEVEL, &slap_debug);
-		ldap_set_option(NULL, LDAP_OPT_DEBUG_LEVEL, &slap_debug);
-		ldif_debug = slap_debug;
-#endif
+		slap_syslog_mask = newlevel;
+#endif /* LDAP_SYSLOG */
 	}
 
 cleanup:;

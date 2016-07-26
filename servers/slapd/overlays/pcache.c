@@ -878,6 +878,7 @@ merge_entry(
 
 	slap_biglock_t *bl = slap_biglock_get(op->o_bd);
 	slap_biglock_acquire(bl);
+	ber_tag_t tag = op->o_tag;
 
 	op->o_tag = LDAP_REQ_ADD;
 	op->o_protocol = LDAP_VERSION3;
@@ -916,6 +917,7 @@ merge_entry(
 		rc = 1;
 	}
 
+	op->o_tag = tag;
 	slap_biglock_release(bl);
 	return rc;
 }
@@ -1916,7 +1918,7 @@ filter2template(
 	struct			berval *fstr )
 {
 	AttributeDescription *ad;
-	int len, ret;
+	int len, MAY_UNUSED ret;
 
 	switch ( f->f_choice ) {
 	case LDAP_FILTER_EQUALITY:
@@ -3361,6 +3363,7 @@ refresh_merge( Operation *op, SlapReply *rs )
 				SlapReply rs2 = { REP_RESULT };
 				struct berval dn = op->o_req_dn;
 				struct berval ndn = op->o_req_ndn;
+				ber_tag_t tag = op->o_tag;
 				op->o_tag = LDAP_REQ_MODIFY;
 				op->orm_modlist = mods;
 				op->o_req_dn = rs->sr_entry->e_name;
@@ -3372,6 +3375,7 @@ refresh_merge( Operation *op, SlapReply *rs )
 				slap_mods_free( mods, 1 );
 				op->o_req_dn = dn;
 				op->o_req_ndn = ndn;
+				op->o_tag = tag;
 			}
 		}
 
@@ -5234,7 +5238,7 @@ pcache_exop_query_delete(
 	unsigned	len;
 	ber_tag_t	tag = LBER_DEFAULT;
 
-	if ( LogTest( LDAP_DEBUG_STATS ) ) {
+	if ( DebugTest( LDAP_DEBUG_STATS ) ) {
 		uuidp = &uuid;
 	}
 
@@ -5245,7 +5249,7 @@ pcache_exop_query_delete(
 		return rs->sr_err;
 	}
 
-	if ( LogTest( LDAP_DEBUG_STATS ) ) {
+	if ( DebugTest( LDAP_DEBUG_STATS ) ) {
 		assert( !BER_BVISNULL( &op->o_req_ndn ) );
 		len = snprintf( buf, sizeof( buf ), " dn=\"%s\"", op->o_req_ndn.bv_val );
 
@@ -5477,7 +5481,7 @@ pcache_monitor_free(
 	const char	*text;
 	char		textbuf[ SLAP_TEXT_BUFLEN ];
 
-	int		rc ALLOW_UNUSED;
+	int		rc MAY_UNUSED;
 
 	/* NOTE: if slap_shutdown != 0, priv might have already been freed */
 	*priv = NULL;

@@ -60,7 +60,7 @@ ndb_back_add(Operation *op, SlapReply *rs )
 #ifdef NDB_RETRY
 	int		num_retries = 0;
 #endif
-	int		success ALLOW_UNUSED;
+	int		success MAY_UNUSED;
 
 	LDAPControl **postread_ctrl = NULL;
 	LDAPControl *ctrls[SLAP_MAX_RESPONSE_CONTROLS];

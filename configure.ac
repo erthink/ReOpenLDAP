@@ -344,14 +344,64 @@ AC_SUBST(ldap_subdir)dnl
 dnl ----------------------------------------------------------------
 dnl General "enable" options
 dnl set default to traditional to enable the original debug style
-OL_ARG_ENABLE(debug,[  --enable-debug 	  enable debugging], yes, [no yes traditional])dnl
-OL_ARG_ENABLE(syslog,[  --enable-syslog	  enable syslog support], auto)dnl
-OL_ARG_ENABLE(proctitle,[  --enable-proctitle	  enable proctitle support], yes)dnl
-dnl OL_ARG_ENABLE(referrals,[  --enable-referrals	  enable LDAPv2+ Referrals (experimental)], no)dnl
-ol_enable_referrals=${ol_enable_referrals-no}
-OL_ARG_ENABLE(ipv6,[  --enable-ipv6 	  enable IPv6 support], auto)dnl
-OL_ARG_ENABLE(local,[  --enable-local	  enable AF_LOCAL (AF_UNIX) socket support], auto)dnl
-OL_ARG_ENABLE(deprecated,[  --enable-deprecated 	  enable deprecated interfaces of libreldap], no, [no yes])dnl
+OL_ARG_ENABLE(debug,[  --enable-debug          enable debug logging], yes, [no yes traditional])dnl
+OL_ARG_ENABLE(syslog,[  --enable-syslog         enable syslog support], auto)dnl
+OL_ARG_ENABLE(proctitle,[  --enable-proctitle      enable proctitle support], yes)dnl
+OL_ARG_ENABLE(referrals,[  --enable-referrals      enable LDAPv2+ Referrals (experimental)], no)dnl
+OL_ARG_ENABLE(ipv6,[  --enable-ipv6           enable IPv6 support], auto)dnl
+OL_ARG_ENABLE(local,[  --enable-local          enable AF_LOCAL (AF_UNIX) socket support], auto)dnl
+OL_ARG_ENABLE(deprecated,[  --enable-deprecated     enable deprecated interfaces of libreldap], no, [no yes])dnl
+OL_ARG_ENABLE(experimental,[  --enable-experimental   enable experimental and developing features], no, [no yes])dnl
+OL_ARG_ENABLE(check,[  --enable-check          enable internal checking and assertions], no, [no yes always default])dnl
+OL_ARG_ENABLE(hipagut,[  --enable-hipagut        enable internal memory allocation debugger], no, [no yes always extra])dnl
+
+case $ol_enable_experimental in
+    yes)
+	AC_DEFINE(LDAP_EXPERIMENTAL,1,[define as 0 to disable experimantal/developing features])
+	;;
+    no)
+	AC_DEFINE(LDAP_EXPERIMENTAL,0,[define as 1 to enable experimantal/developing features])
+	;;
+    *)
+	AC_MSG_FAILURE([invalid --enable-experimental value '$ol_enable_experimental'])
+	;;
+esac
+
+case $ol_enable_check in
+    yes)
+	AC_DEFINE_UNQUOTED(LDAP_CHECK,1 /* available */,[define as 2 to enable runtime checking by default])
+	;;
+    default)
+	AC_DEFINE_UNQUOTED(LDAP_CHECK,2 /* enabled */,[define as 3 to always runtime checking])
+	;;
+    always)
+	AC_DEFINE_UNQUOTED(LDAP_CHECK,3 /* always */,[define as 0 to disable runtime checking])
+	;;
+    no)
+	AC_DEFINE_UNQUOTED(LDAP_CHECK,0 /* disabled */,[define as 1 to enable runtime checking])
+	;;
+    *)
+	AC_MSG_FAILURE([invalid --enable-check value '$ol_enable_check'])
+	;;
+esac
+
+case $ol_enable_hipagut in
+    yes)
+	AC_DEFINE_UNQUOTED(LDAP_MEMORY_DEBUG,1 /* available */,[define as 2 to enable runtime checking by default])
+	;;
+    always)
+	AC_DEFINE_UNQUOTED(LDAP_MEMORY_DEBUG,2 /* always */,[define as 3 to always runtime checking with stats])
+	;;
+    extra)
+	AC_DEFINE_UNQUOTED(LDAP_MEMORY_DEBUG,3 /* extra */,[define as 0 to disable runtime checking])
+	;;
+    no)
+	AC_DEFINE_UNQUOTED(LDAP_MEMORY_DEBUG,0 /* disabled */,[define as 1 to enable runtime checking])
+	;;
+    *)
+	AC_MSG_FAILURE([invalid --enable-hipagut value '$ol_enable_hipagut'])
+	;;
+esac
 
 AM_CONDITIONAL([SLAPD_DEBUG], [test "$debug" = yes])
 AM_CONDITIONAL([SLAPD_SYSLOG], [test "$syslog" = yes])
@@ -600,6 +650,7 @@ AUTH_LIBS=
 
 SLAPD_SLP_LIBS=
 SLAPD_GMP_LIBS=
+SLAPD_TCPWRAP_LIBS=
 
 dnl ================================================================
 dnl Checks for programs
@@ -1563,12 +1614,11 @@ hosts_access(req)
 
 	if test $have_wrappers = yes ; then
 		AC_DEFINE(HAVE_TCPD,1, [define if you have -lwrap])
-		WRAP_LIBS="-lwrap"
+		SLAPD_TCPWRAP_LIBS="$SLAPD_TCPWRAP_LIBS -lwrap"
 	elif test $ol_enable_wrappers = yes ; then
 		AC_MSG_ERROR([could not find TCP wrappers, select apppropriate options or disable])
 	else
 		AC_MSG_WARN([could not find TCP wrappers, support disabled])
-		WRAP_LIBS=""
 	fi
 fi
 
@@ -2826,7 +2876,6 @@ AM_CONDITIONAL([BUILD_SLAPI], [test $ol_enable_slapi != no])
 AC_SUBST(SLAPD_LIBS)
 AC_SUBST(LTHREAD_LIBS)
 AC_SUBST(LUTIL_LIBS)
-AC_SUBST(WRAP_LIBS)
 
 AC_SUBST(SLAPD_STATIC_BACKENDS)
 AC_SUBST(SLAPD_DYNAMIC_BACKENDS)
@@ -2879,7 +2928,7 @@ AC_SUBST(LDAP_LIBLUTIL_LA)
 SECURITY_LIBS="${SASL_LIBS} ${KRB_LIBS} ${TLS_LIBS} ${AUTH_LIBS}"
 AC_SUBST(SECURITY_LIBS)
 
-SLAPD_LIBS="$SLAPD_LIBS $SLAPD_SLP_LIBS $SLAPD_GMP_LIBS"
+SLAPD_LIBS="$SLAPD_LIBS $SLAPD_SLP_LIBS $SLAPD_GMP_LIBS $SLAPD_TCPWRAP_LIBS"
 AC_SUBST(SLAPD_LIBS)
 
 AC_SUBST(WT_INCS)
@@ -2945,3 +2994,10 @@ if test -x $ac_aux_dir/BRANDING; then
 fi
 
 AC_OUTPUT
+
+AC_MSG_CHECKING(['libtool' for support LTO (Link Time Optimization)])
+if sed -i -e 's/pic_flag_for_symtable=$/&\$(echo -- "\$LTCFLAGS" | grep -q -w -- "-flto" \&\& echo -n -- " -fno-lto")/' libtool; then
+	AC_MSG_RESULT([done patching])
+else
+	AC_MSG_RESULT([something went wrong, not supported])
+fi

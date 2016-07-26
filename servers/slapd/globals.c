@@ -39,7 +39,8 @@
 #include "lber_pvt.h"
 
 #include "slap.h"
-
+#include "ldap_log.h"
+#include "ldif.h"
 
 /*
  * Global variables, in general, should be declared in the file
@@ -194,22 +195,6 @@ retry:
 	op->o_callback = NULL;
 }
 
-/* LY: override weak from libreldap */
-int ldap_log_printf(void *ld, int loglvl, const char *fmt, ... )
-{
-	(void) ld;
-
-	if ( ldap_debug & loglvl ) {
-		va_list vl;
-
-		va_start( vl, fmt );
-		ldap_debug_va( fmt, vl);
-		va_end( vl );
-		return 1;
-	}
-	return 0;
-}
-
 /* LY: override weaks from libreldap */
 void ber_error_print( LDAP_CONST char *str )
 {
@@ -224,7 +209,7 @@ int ber_pvt_log_output(
 {
 	(void) subsystem;
 	(void) level;
-	if (LogTest(LDAP_DEBUG_BER)) {
+	if (DebugTest(LDAP_DEBUG_BER)) {
 		va_list vl;
 
 		va_start( vl, fmt );
@@ -243,4 +228,16 @@ LDAP_SLAPD_F(void) __ldap_assert_fail(
 {
 	slap_backtrace_debug();
 	__assert_fail(assertion, file, line, function);
+}
+
+void slap_set_debug_level(int mask)
+{
+#ifdef LDAP_DEBUG
+	ldap_debug_lock();
+	slap_debug_mask = mask;
+	ber_set_option(NULL, LBER_OPT_DEBUG_LEVEL, &mask);
+	ldap_set_option(NULL, LDAP_OPT_DEBUG_LEVEL, &mask);
+	ldif_debug = mask;
+	ldap_debug_unlock();
+#endif /* LDAP_DEBUG */
 }

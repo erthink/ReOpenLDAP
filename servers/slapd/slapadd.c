@@ -420,10 +420,7 @@ slapadd( int argc, char **argv )
 	(void)slap_tool_update_ctxcsn_init();
 
 	if ( enable_meter
-#ifdef LDAP_DEBUG
-		/* tools default to "none" */
-		&& slap_debug == LDAP_DEBUG_NONE
-#endif
+		&& (slap_debug_mask & LDAP_DEBUG_NONE)
 		&& !fstat ( fileno ( ldiffp->fp ), &stat_buf )
 		&& S_ISREG(stat_buf.st_mode) ) {
 		enable_meter = !lutil_meter_open(

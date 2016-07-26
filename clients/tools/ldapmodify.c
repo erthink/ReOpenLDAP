@@ -153,7 +153,7 @@ int
 handle_private_option( int i )
 {
 	char	*control, *cvalue;
-	int		crit ALLOW_UNUSED;
+	int		crit MAY_UNUSED;
 
 	switch ( i ) {
 	case 'E': /* modify extensions */

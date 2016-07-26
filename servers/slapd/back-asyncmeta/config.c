@@ -52,9 +52,7 @@
 #include "../back-ldap/back-ldap.h"
 #include "back-asyncmeta.h"
 
-#ifdef LDAP_DEVEL
 #define SLAP_AUTH_DN	1
-#endif
 
 static ConfigDriver asyncmeta_back_cf_gen;
 static ConfigLDAPadd asyncmeta_ldadd;

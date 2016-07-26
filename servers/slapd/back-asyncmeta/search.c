@@ -628,7 +628,7 @@ asyncmeta_back_search( Operation *op, SlapReply *rs )
 
 	initial_candidates = ncandidates;
 
-	if ( LogTest( LDAP_DEBUG_TRACE ) ) {
+	if ( DebugTest( LDAP_DEBUG_TRACE ) ) {
 		char	cnd[ SLAP_TEXT_BUFLEN ];
 		int	c;
 

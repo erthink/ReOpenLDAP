@@ -393,7 +393,7 @@ ldap_send_server_request(
 	{
 		BerElement tmpber = *ber;
 		ber_int_t	bint;
-		ber_tag_t	tag, rtag ALLOW_UNUSED;
+		ber_tag_t	tag, rtag MAY_UNUSED;
 
 		ber_reset( &tmpber, 1 );
 		rtag = ber_scanf( &tmpber, "{it", /*}*/ &bint, &tag );
@@ -1646,9 +1646,9 @@ re_encode_request( LDAP *ld,
 	}
 
 #ifdef LDAP_DEBUG
-	if ( ldap_debug & LDAP_DEBUG_PACKETS ) {
+	if ( DebugTest(LDAP_DEBUG_PACKETS) ) {
 		Debug( LDAP_DEBUG_ANY, "re_encode_request new request is:\n" );
-		ber_log_dump( LDAP_DEBUG_BER, ldap_debug, ber, 0 );
+		ber_log_dump( LDAP_DEBUG_BER, ldap_debug_mask, ber, 0 );
 	}
 #endif /* LDAP_DEBUG */
 

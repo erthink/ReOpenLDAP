@@ -49,7 +49,7 @@ monitor_entry_update(
 	Entry 			*e
 )
 {
-	monitor_info_t	*mi = ( monitor_info_t * )op->o_bd->be_private;
+	monitor_info_t MAY_UNUSED *mi = ( monitor_info_t * )op->o_bd->be_private;
 	monitor_entry_t *mp;
 
 	int		rc = SLAP_CB_CONTINUE;
@@ -92,7 +92,7 @@ monitor_entry_create(
 	Entry			*e_parent,
 	Entry			**ep )
 {
-	monitor_info_t	*mi = ( monitor_info_t * )op->o_bd->be_private;
+	monitor_info_t MAY_UNUSED *mi = ( monitor_info_t * )op->o_bd->be_private;
 	monitor_entry_t *mp;
 
 	int		rc = SLAP_CB_CONTINUE;
@@ -122,7 +122,7 @@ monitor_entry_modify(
 	Entry 			*e
 )
 {
-	monitor_info_t	*mi = ( monitor_info_t * )op->o_bd->be_private;
+	monitor_info_t MAY_UNUSED *mi = ( monitor_info_t * )op->o_bd->be_private;
 	monitor_entry_t *mp;
 
 	int		rc = SLAP_CB_CONTINUE;

@@ -38,12 +38,13 @@
 
 #include "lber-int.h"
 
-#ifdef LDAP_MEMORY_TRACE
+/* LY: With respect to http://en.wikipedia.org/wiki/Fail-fast */
+#if LDAP_MEMORY_DEBUG
+
+#if LDAP_MEMORY_DEBUG > 3
 #	include <stdio.h>
 #endif
 
-/* LY: With respect to http://en.wikipedia.org/wiki/Fail-fast */
-#if LDAP_MEMORY_DEBUG
 /*
  * LDAP_MEMORY_DEBUG should be enabled for properly memory handling,
  * durability and data consistency.
@@ -79,7 +80,7 @@ ber_memfree_x( void *p, void *ctx )
 	if( ber_int_memory_fns == NULL || ctx == NULL ) {
 #if LDAP_MEMORY_DEBUG > 0
 		p = lber_hug_memchk_drown(p, LIBC_MEM_TAG);
-#ifdef LDAP_MEMORY_TRACE
+#if LDAP_MEMORY_DEBUG > 3
 		struct lber_hug_memchk *mh = p;
 		fprintf(stderr, "%p.%zu -f- %zu ber_memfree %zu\n",
 			mh, mh->hm_sequence, mh->hm_length,
@@ -144,7 +145,7 @@ ber_memalloc_x( ber_len_t s, void *ctx )
 		if (p) {
 			p = lber_hug_memchk_setup(p, s,
 				LIBC_MEM_TAG, LBER_HUG_POISON_DEFAULT);
-#ifdef LDAP_MEMORY_TRACE
+#if LDAP_MEMORY_DEBUG > 3
 			struct lber_hug_memchk *mh = LBER_HUG_CHUNK(p);
 			fprintf(stderr, "%p.%zu -a- %zu ber_memalloc %zu\n",
 				mh, mh->hm_sequence, mh->hm_length,
@@ -209,7 +210,7 @@ ber_memcalloc_x( ber_len_t n, ber_len_t s, void *ctx )
 		if (p) {
 			p = lber_hug_memchk_setup(p, payload_bytes,
 				LIBC_MEM_TAG, LBER_HUG_POISON_CALLOC_ALREADY);
-#ifdef LDAP_MEMORY_TRACE
+#if LDAP_MEMORY_DEBUG > 3
 			struct lber_hug_memchk *mh = LBER_HUG_CHUNK(p);
 			fprintf(stderr, "%p.%zu -a- %zu ber_memcalloc %zu\n",
 				mh, mh->hm_sequence, mh->hm_length,
@@ -271,7 +272,7 @@ ber_memrealloc_x( void* p, ber_len_t s, void *ctx )
 #if LDAP_MEMORY_DEBUG > 0
 		if (p) {
 			p = lber_hug_realloc_commit(old_size, p, LIBC_MEM_TAG, s);
-#ifdef LDAP_MEMORY_TRACE
+#if LDAP_MEMORY_DEBUG > 3
 			struct lber_hug_memchk *mh = LBER_HUG_CHUNK(p);
 			fprintf(stderr, "%p.%zu -a- %zu ber_memrealloc %zu\n",
 				mh, mh->hm_sequence, mh->hm_length,

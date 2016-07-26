@@ -1119,7 +1119,7 @@ asyncmeta_handle_search_msg(LDAPMessage *res, a_metaconn_t *mc, bm_context_t *bc
 
 			sres = slap_map_api2result( rs );
 
-			if ( LogTest( LDAP_DEBUG_TRACE | LDAP_DEBUG_ANY ) ) {
+			if ( DebugTest( LDAP_DEBUG_TRACE | LDAP_DEBUG_ANY ) ) {
 				char buf[ SLAP_TEXT_BUFLEN ];
 				snprintf( buf, sizeof( buf ),
 					  "%s asyncmeta_search_result[%d] "

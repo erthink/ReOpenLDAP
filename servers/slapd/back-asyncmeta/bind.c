@@ -114,7 +114,7 @@ asyncmeta_back_bind( Operation *op, SlapReply *rs )
 	 * invalidCredentials */
 	mc = asyncmeta_getconn( op, rs, candidates, NULL, LDAP_BACK_BIND_DONTSEND, 1 );
 	if ( !mc ) {
-		if ( LogTest( LDAP_DEBUG_ANY ) ) {
+		if ( DebugTest( LDAP_DEBUG_ANY ) ) {
 			char	buf[ SLAP_TEXT_BUFLEN ];
 
 			snprintf( buf, sizeof( buf ),
@@ -991,7 +991,7 @@ retry:;
 
 				rs->sr_err = slap_map_api2result( rs );
 
-				if ( LogTest( LDAP_DEBUG_ANY ) ) {
+				if ( DebugTest( LDAP_DEBUG_ANY ) ) {
 					char	buf[ SLAP_TEXT_BUFLEN ];
 
 					snprintf( buf, sizeof( buf ),
@@ -1951,7 +1951,7 @@ retry_dobind:
 	}
 	/* need to retry */
 	retries--;
-	if ( LogTest( LDAP_DEBUG_ANY ) ) {
+	if ( DebugTest( LDAP_DEBUG_ANY ) ) {
 		char	buf[ SLAP_TEXT_BUFLEN ];
 
 		/* this lock is required; however,

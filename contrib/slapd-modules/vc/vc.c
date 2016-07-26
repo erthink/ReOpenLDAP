@@ -407,7 +407,7 @@ done:;
 
 		} else {
 			if ( conn->conn != NULL ) {
-				vc_conn_t *tmp ALLOW_UNUSED;
+				vc_conn_t *tmp MAY_UNUSED;
 
 				ldap_pvt_thread_mutex_lock( &vc_mutex );
 				tmp = avl_delete( &vc_tree, (caddr_t)conn, vc_conn_cmp );

@@ -136,7 +136,7 @@ mdb_monitor_update(
 	Entry		*e,
 	void		*priv )
 {
-	struct mdb_info *mdb ALLOW_UNUSED = (struct mdb_info *) priv;
+	struct mdb_info *mdb MAY_UNUSED = (struct mdb_info *) priv;
 
 #ifdef MDB_MONITOR_IDX
 	mdb_monitor_idx_entry_add( mdb, e );
@@ -168,7 +168,7 @@ mdb_monitor_free(
 	const char	*text;
 	char		textbuf[ SLAP_TEXT_BUFLEN ];
 
-	int		i, rc ALLOW_UNUSED;
+	int		i, rc MAY_UNUSED;
 
 	/* NOTE: if slap_shutdown != 0, priv might have already been freed */
 	*priv = NULL;
@@ -277,7 +277,7 @@ mdb_monitor_initialize( void )
 int
 mdb_monitor_db_init( BackendDB *be )
 {
-	struct mdb_info	*mdb ALLOW_UNUSED = (struct mdb_info *) be->be_private;
+	struct mdb_info	*mdb MAY_UNUSED = (struct mdb_info *) be->be_private;
 
 	if ( mdb_monitor_initialize() == LDAP_SUCCESS ) {
 		/* monitoring in back-mdb is on by default */

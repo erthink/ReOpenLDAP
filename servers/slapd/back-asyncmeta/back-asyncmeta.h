@@ -49,9 +49,9 @@
 #error "--enable-rewrite is required!"
 #endif
 
-#ifdef LDAP_DEVEL
-#define SLAPD_META_CLIENT_PR 1
-#endif /* LDAP_DEVEL */
+#if LDAP_EXPERIMENTAL > 0
+#	define SLAPD_META_CLIENT_PR 1
+#endif /* LDAP_EXPERIMENTAL */
 
 #include "proto-asyncmeta.h"
 

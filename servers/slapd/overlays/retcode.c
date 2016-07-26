@@ -1269,7 +1269,7 @@ retcode_db_open( BackendDB *be, ConfigReply *cr)
 
 	for ( rdi = rd->rd_item; rdi; rdi = rdi->rdi_next ) {
 		LDAPRDN			rdn = NULL;
-		int			rc, j;
+		int	MAY_UNUSED rc, j;
 		char*			p;
 		struct berval		val[ 3 ];
 		char			buf[ SLAP_TEXT_BUFLEN ];

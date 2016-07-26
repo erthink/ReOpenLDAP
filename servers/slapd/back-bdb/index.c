@@ -100,7 +100,7 @@ int bdb_index_param(
 {
 	AttrInfo *ai;
 	int rc;
-	slap_mask_t mask, type ALLOW_UNUSED = 0;
+	slap_mask_t mask, type MAY_UNUSED = 0;
 	DB *db;
 
 	ai = bdb_index_mask( be, desc, prefixp );

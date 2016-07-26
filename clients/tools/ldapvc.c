@@ -109,7 +109,7 @@ handle_private_option( int i )
 {
 	switch ( i ) {
 		char	*control, *cvalue;
-		int	crit ALLOW_UNUSED;
+		int	crit MAY_UNUSED;
 	case 'E': /* vc extension */
 		if( protocol == LDAP_VERSION2 ) {
 			fprintf( stderr, _("%s: -E incompatible with LDAPv%d\n"),

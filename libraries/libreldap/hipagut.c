@@ -177,6 +177,12 @@ static __forceinline unsigned canary() {
     return ticks ^ (ticks >> 32);
 }
 
+#if LDAP_MEMORY_DEBUG > 0
+
+#if LDAP_MEMORY_DEBUG == 1
+unsigned lber_hug_nasty_disabled;
+#endif /* LDAP_MEMORY_DEBUG == 1 */
+
 static __forceinline uint32_t linear_congruential(uint32_t value) {
 	return value * 1664525u + 1013904223u;
 }
@@ -225,8 +231,6 @@ __hot __flatten void lber_hug_setup(lber_hug_t* self, const unsigned n42) {
 	}
 }
 
-unsigned lber_hug_nasty_disabled;
-
 __hot __flatten ATTRIBUTE_NO_SANITIZE_ADDRESS
 int lber_hug_probe(const lber_hug_t* self, const unsigned n42) {
 	if (unlikely(lber_hug_nasty_disabled == LBER_HUG_DISABLED))
@@ -260,19 +264,12 @@ int lber_hug_probe_link(const lber_hug_t* slave, const lber_hug_t* master) {
 	return lber_hug_probe(slave, unaligned_load(master->opaque) >> 32);
 }
 
-/* -------------------------------------------------------------------------- */
-
-#if LDAP_MEMORY_DEBUG > 0
-
+#if LDAP_MEMORY_DEBUG > 2
 struct _lber_hug_memchk_info lber_hug_memchk_info __cache_aligned;
+#endif /* LDAP_MEMORY_DEBUG > 2 */
 
 unsigned lber_hug_memchk_poison_alloc;
 unsigned lber_hug_memchk_poison_free;
-unsigned lber_hug_memchk_trace_disabled
-#ifndef LDAP_MEMORY_TRACE
-	= LBER_HUG_DISABLED
-#endif
-	;
 
 #define MEMCHK_TAG_HEADER	header
 #define MEMCHK_TAG_BOTTOM	bottom
@@ -414,11 +411,11 @@ __hot __flatten void* lber_hug_memchk_setup(
 	void* payload = LBER_HUG_PAYLOAD(memchunk);
 
 	size_t sequence = LBER_HUG_DISABLED;
-	if (unlikely(lber_hug_memchk_trace_disabled != LBER_HUG_DISABLED)) {
-		sequence = __sync_fetch_and_add(&lber_hug_memchk_info.mi_sequence, 1);
-		__sync_fetch_and_add(&lber_hug_memchk_info.mi_inuse_chunks, 1);
-		__sync_fetch_and_add(&lber_hug_memchk_info.mi_inuse_bytes, payload_size);
-	}
+#if LDAP_MEMORY_DEBUG > 2
+	sequence = __sync_fetch_and_add(&lber_hug_memchk_info.mi_sequence, 1);
+	__sync_fetch_and_add(&lber_hug_memchk_info.mi_inuse_chunks, 1);
+	__sync_fetch_and_add(&lber_hug_memchk_info.mi_inuse_bytes, payload_size);
+#endif /* LDAP_MEMORY_DEBUG > 2 */
 
 	assert(tag != 0);
 	LBER_HUG_SETUP(memchunk->hm_guard_head, MEMCHK_TAG_HEADER, tag);
@@ -461,10 +458,10 @@ __hot __flatten void* lber_hug_memchk_drown(void* payload, unsigned tag) {
 	LBER_HUG_DROWN_ASIDE(memchunk,
 		payload_size + sizeof(struct lber_hug_memchk));
 
-	if (unlikely(lber_hug_memchk_trace_disabled != LBER_HUG_DISABLED)) {
-		__sync_fetch_and_sub(&lber_hug_memchk_info.mi_inuse_chunks, 1);
-		__sync_fetch_and_sub(&lber_hug_memchk_info.mi_inuse_bytes, payload_size);
-	}
+#if LDAP_MEMORY_DEBUG > 2
+	__sync_fetch_and_sub(&lber_hug_memchk_info.mi_inuse_chunks, 1);
+	__sync_fetch_and_sub(&lber_hug_memchk_info.mi_inuse_bytes, payload_size);
+#endif /* LDAP_MEMORY_DEBUG > 2 */
 
 	if (lber_hug_memchk_poison_free != LBER_HUG_POISON_DISABLED)
 		memset(payload, (char) lber_hug_memchk_poison_free, payload_size);
@@ -554,17 +551,17 @@ void* lber_hug_realloc_commit ( size_t old_size,
 		unsigned tag,
 		size_t new_size ) {
 	void* new_payload = LBER_HUG_PAYLOAD(new_memchunk);
-	size_t sequence = LBER_HUG_DISABLED;
 
 	LDAP_ENSURE(VALGRIND_CHECK_MEM_IS_ADDRESSABLE(new_memchunk,
 		new_size + LBER_HUG_MEMCHK_OVERHEAD) == 0);
 	LDAP_ENSURE(ASAN_REGION_IS_POISONED(new_memchunk,
 		new_size + LBER_HUG_MEMCHK_OVERHEAD) == 0);
 
-	if (unlikely(lber_hug_memchk_trace_disabled != LBER_HUG_DISABLED)) {
-		sequence = __sync_fetch_and_add(&lber_hug_memchk_info.mi_sequence, 1);
-		__sync_fetch_and_add(&lber_hug_memchk_info.mi_inuse_bytes, new_size - old_size);
-	}
+	size_t sequence = LBER_HUG_DISABLED;
+#if LDAP_MEMORY_DEBUG > 2
+	sequence = __sync_fetch_and_add(&lber_hug_memchk_info.mi_sequence, 1);
+	__sync_fetch_and_add(&lber_hug_memchk_info.mi_inuse_bytes, new_size - old_size);
+#endif /* LDAP_MEMORY_DEBUG > 2 */
 
 	LBER_HUG_SETUP(new_memchunk->hm_guard_head, MEMCHK_TAG_HEADER, tag);
 	new_memchunk->hm_length = new_size;
@@ -589,10 +586,10 @@ void* lber_hug_realloc_commit ( size_t old_size,
 #endif /* LDAP_MEMORY_DEBUG */
 
 int reopenldap_flags
-#if (LDAP_MEMORY_DEBUG > 1) || (LDAP_DEBUG > 1)
-		= REOPENLDAP_FLAG_IDKFA
+#if LDAP_CHECK > 1
+	= REOPENLDAP_FLAG_IDKFA
 #endif
-		;
+	;
 
 void __attribute__((constructor)) reopenldap_flags_init() {
 	int flags = reopenldap_flags;
@@ -607,25 +604,44 @@ void __attribute__((constructor)) reopenldap_flags_init() {
 	reopenldap_flags_setup(flags);
 }
 
-void reopenldap_flags_setup(int flags) {
+__cold void reopenldap_flags_setup(int flags) {
 	reopenldap_flags = flags & (REOPENLDAP_FLAG_IDDQD
 								| REOPENLDAP_FLAG_IDKFA
 								| REOPENLDAP_FLAG_IDCLIP
 								| REOPENLDAP_FLAG_JITTER);
 
 #if LDAP_MEMORY_DEBUG > 0
-	if (reopenldap_mode_check()) {
-		lber_hug_nasty_disabled = 0;
-#ifdef LDAP_MEMORY_TRACE
-		lber_hug_memchk_trace_disabled = 0;
-#endif /* LDAP_MEMORY_TRACE */
-		lber_hug_memchk_poison_alloc = 0xCC;
-		lber_hug_memchk_poison_free = 0xDD;
-	} else {
-		lber_hug_nasty_disabled = LBER_HUG_DISABLED;
-		lber_hug_memchk_trace_disabled = LBER_HUG_DISABLED;
-		lber_hug_memchk_poison_alloc = 0;
-		lber_hug_memchk_poison_free = 0;
+
+#if LDAP_MEMORY_DEBUG == 1
+	lber_hug_nasty_disabled = reopenldap_mode_check() ? 0 : LBER_HUG_DISABLED;
+#endif /* LDAP_MEMORY_DEBUG == 1 */
+
+	const char *poison_alloc = getenv("REOPENLDAP_POISON_ALLOC");
+	lber_hug_memchk_poison_alloc = (lber_hug_nasty_disabled == LBER_HUG_DISABLED)
+			? LBER_HUG_POISON_DISABLED : 0xCC;
+	if (poison_alloc) {
+		if (*poison_alloc == 0 || strcasecmp(poison_alloc, "disabled") == 0)
+			lber_hug_memchk_poison_alloc = LBER_HUG_POISON_DISABLED;
+		else {
+			char *end;
+			unsigned long val = strtoul(poison_alloc, &end, 16);
+			if (*end == 0)
+				lber_hug_memchk_poison_alloc = val;
+		}
+	}
+
+	const char *poison_free = getenv("REOPENLDAP_POISON_FREE");
+	lber_hug_memchk_poison_free = (lber_hug_nasty_disabled == LBER_HUG_DISABLED)
+			? LBER_HUG_POISON_DISABLED : 0xDD;
+	if (poison_free) {
+		if (*poison_free == 0 || strcasecmp(poison_free, "disabled") == 0)
+			lber_hug_memchk_poison_free = LBER_HUG_POISON_DISABLED;
+		else {
+			char *end;
+			unsigned long val = strtoul(poison_free, &end, 16);
+			if (*end == 0)
+				lber_hug_memchk_poison_free = val;
+		}
 	}
 #endif /* LDAP_MEMORY_DEBUG */
 }

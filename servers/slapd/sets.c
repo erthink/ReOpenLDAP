@@ -375,7 +375,7 @@ done:;
 	if ( rset ) slap_set_dispose( cp, rset, SLAP_SET_RREF2REF( op_flags ) );
 
 done2:;
-	if ( LogTest( LDAP_DEBUG_ACL ) ) {
+	if ( DebugTest( LDAP_DEBUG_ACL ) ) {
 		if ( !set || BER_BVISNULL( set ) ) {
 			Debug( LDAP_DEBUG_ACL, "  ACL set: empty\n" );
 		} else {

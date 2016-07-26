@@ -72,7 +72,7 @@ slapmodify( int argc, char **argv )
 	OperationBuffer opbuf;
 	Operation *op;
 
-	int checkvals ALLOW_UNUSED, ldifrc;
+	int checkvals MAY_UNUSED, ldifrc;
 	unsigned long lineno, nextline;
 	int lmax;
 	int rc = EXIT_SUCCESS;
@@ -132,8 +132,7 @@ slapmodify( int argc, char **argv )
 
 	if ( enable_meter
 #ifdef LDAP_DEBUG
-		/* tools default to "none" */
-		&& slap_debug == LDAP_DEBUG_NONE
+		&& (slap_debug_mask & LDAP_DEBUG_NONE)
 #endif
 		&& !fstat ( fileno ( ldiffp->fp ), &stat_buf )
 		&& S_ISREG(stat_buf.st_mode) ) {
@@ -156,7 +155,7 @@ slapmodify( int argc, char **argv )
 		LDIFRecord lr;
 		struct berval ndn = BER_BVNULL;
 		int n;
-		int is_oc ALLOW_UNUSED = 0;
+		int is_oc MAY_UNUSED = 0;
 		int local_rc;
 		char *request = "(unknown)";
 

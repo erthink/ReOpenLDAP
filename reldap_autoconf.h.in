@@ -904,8 +904,17 @@
 /* define to LDAP VENDOR VERSION */
 #undef LDAP_API_FEATURE_X_OPENLDAP_V2_REFERRALS
 
+/* define as 1 to enable runtime checking */
+#undef LDAP_CHECK
+
 /* define this to add debugging code */
 #undef LDAP_DEBUG
+
+/* define as 1 to enable experimantal/developing features */
+#undef LDAP_EXPERIMENTAL
+
+/* define as 1 to enable runtime checking */
+#undef LDAP_MEMORY_DEBUG
 
 /* define to support PF_INET6 */
 #undef LDAP_PF_INET6

@@ -201,7 +201,7 @@ ldap_back_conn_delete( ldapinfo_t *li, ldapconn_t *lc )
 		}
 
 	} else {
-		ldapconn_t	*tmplc = NULL;
+		ldapconn_t	*tmplc MAY_UNUSED = NULL;
 
 		if ( LDAP_BACK_CONN_CACHED( lc ) ) {
 			assert( !LDAP_BACK_CONN_TAINTED( lc ) );
@@ -1120,7 +1120,7 @@ retry_lock:
 
 		ldap_pvt_thread_mutex_unlock( &li->li_conninfo.lai_mutex );
 
-		if ( LogTest( LDAP_DEBUG_TRACE ) ) {
+		if ( DebugTest( LDAP_DEBUG_TRACE ) ) {
 			char	buf[ SLAP_TEXT_BUFLEN ];
 
 			snprintf( buf, sizeof( buf ),
@@ -1189,7 +1189,7 @@ retry_lock:
 			ldap_pvt_thread_mutex_unlock( &li->li_conninfo.lai_mutex );
 		}
 
-		if ( LogTest( LDAP_DEBUG_TRACE ) ) {
+		if ( DebugTest( LDAP_DEBUG_TRACE ) ) {
 			char	buf[ SLAP_TEXT_BUFLEN ];
 
 			snprintf( buf, sizeof( buf ),
@@ -2259,7 +2259,7 @@ ldap_back_proxy_authz_bind(
 	struct berval		*bindcred )
 {
 	ldapinfo_t	*li = (ldapinfo_t *)op->o_bd->be_private;
-	struct berval	ndn ALLOW_UNUSED;
+	struct berval	ndn MAY_UNUSED;
 	int		msgid;
 	int		rc;
 

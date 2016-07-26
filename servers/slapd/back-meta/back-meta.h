@@ -715,4 +715,3 @@ extern LDAP_URLLIST_PROC	meta_back_default_urllist;
 LDAP_END_DECL
 
 #endif /* SLAPD_META_H */
-

@@ -67,54 +67,7 @@
 #undef TV2MILLISEC
 #define TV2MILLISEC(tv) (((tv)->tv_sec * 1000) + ((tv)->tv_usec/1000))
 
-/*
- * Support needed if the library is running in the kernel
- */
-#if LDAP_INT_IN_KERNEL
-	/*
-	 * Platform specific function to return a pointer to the
-	 * process-specific global options.
-	 *
-	 * This function should perform the following functions:
-	 *  Allocate and initialize a global options struct on a per process basis
-	 *  Use callers process identifier to return its global options struct
-	 *  Note: Deallocate structure when the process exits
-	 */
-#	define LDAP_INT_GLOBAL_OPT() ldap_int_global_opt()
-	struct ldapoptions *ldap_int_global_opt(void);
-#else
-#	define LDAP_INT_GLOBAL_OPT() (&ldap_int_global_options)
-#endif
-
-#ifndef ldap_debug
-#	define ldap_debug	((LDAP_INT_GLOBAL_OPT())->ldo_debug)
-#endif
-
 #include "ldap_log.h"
-
-#undef Debug
-
-#ifdef LDAP_DEBUG
-
-#define DebugTest( level ) \
-	( ldap_debug & level )
-
-#define Debug( level, ... ) \
-	do { if ( ldap_debug & level ) \
-	ldap_log_printf( NULL, (level), __VA_ARGS__ ); \
-	} while ( 0 )
-
-#define LDAP_Debug( subsystem, level, ... )\
-	ldap_log_printf( NULL, (level), __VA_ARGS__ )
-
-#else
-
-#define DebugTest( level )                          (0 == 1)
-#define Debug( level, fmt, ... )                    ((void)0)
-#define LDAP_Debug( subsystem, level, fmt, ... )    ((void)0)
-
-#endif /* LDAP_DEBUG */
-
 #include "ldap.h"
 #include "ldap_pvt.h"
 
@@ -600,6 +553,7 @@ LDAP_F (BerElement *) ldap_build_extended_req LDAP_P((
  */
 
 LDAP_V ( struct ldapoptions ) ldap_int_global_options;
+#define LDAP_INT_GLOBAL_OPT() (&ldap_int_global_options)
 
 LDAP_F ( void ) ldap_int_initialize LDAP_P((struct ldapoptions *, int *));
 LDAP_F ( void ) ldap_int_initialize_global_options LDAP_P((
@@ -661,9 +615,12 @@ LDAP_F (void) ldap_int_utils_init LDAP_P(( void ));
 
 
 /*
- * in print.c
+ * in cache.c
  */
-LDAP_F (int) ldap_log_printf LDAP_P((LDAP *ld, int level, const char *fmt, ...)) __attribute__((format(printf, 3, 4)));
+LDAP_F (void) ldap_add_request_to_cache LDAP_P(( LDAP *ld, ber_tag_t msgtype,
+        BerElement *request ));
+LDAP_F (void) ldap_add_result_to_cache LDAP_P(( LDAP *ld, LDAPMessage *result ));
+LDAP_F (int) ldap_check_cache LDAP_P(( LDAP *ld, ber_tag_t msgtype, BerElement *request ));
 
 /*
  * in controls.c

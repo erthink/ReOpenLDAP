@@ -294,7 +294,7 @@ wait4msg(
 	rc = LDAP_MSG_X_KEEP_LOOKING;
 	while ( rc == LDAP_MSG_X_KEEP_LOOKING ) {
 #ifdef LDAP_DEBUG
-		if ( ldap_debug & LDAP_DEBUG_TRACE ) {
+		if ( DebugTest(LDAP_DEBUG_TRACE) ) {
 			Debug( LDAP_DEBUG_TRACE, "wait4msg continue ld %p msgid %d all %d\n",
 				(void *)ld, msgid, all );
 			ldap_dump_connection( ld, ld->ld_conns, 1 );

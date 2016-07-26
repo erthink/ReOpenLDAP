@@ -989,7 +989,7 @@ void slap_csns_backward_debug(
 	const BerVarray current,
 	const BerVarray next )
 {
-	if ( LogTest( LDAP_DEBUG_SYNC ) ) {
+	if ( DebugTest( LDAP_DEBUG_SYNC ) ) {
 		ldap_debug_print("%s: %s > %s\n", prefix, "current", "next" );
 		slap_csns_debug( "current", current );
 		slap_csns_debug( "next", next );
@@ -1001,7 +1001,7 @@ void slap_cookie_backward_debug(const char *prefix,
 	const struct sync_cookie *current,
 	const struct sync_cookie *next )
 {
-	if ( LogTest( LDAP_DEBUG_SYNC ) ) {
+	if ( DebugTest( LDAP_DEBUG_SYNC ) ) {
 		ldap_debug_print("%s (COOKIE BACKWARD): %s > %s\n", prefix, "current", "next" );
 		slap_cookie_debug_pair(prefix, "current", current, "next", next, -1);
 		slap_backtrace_debug();
