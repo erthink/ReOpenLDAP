@@ -19,10 +19,11 @@
 #
 
 CONTRIB_DIR 	:= $(dir $(lastword $(MAKEFILE_LIST)))
-LDAP_SRC	?= $(CONTRIB_DIR)/../../
+LDAP_SRC	?= $(CONTRIB_DIR)/../..
 LDAP_BUILD	?= $(LDAP_SRC)
-LDAP_INC	?= -I$(LDAP_BUILD)/include -I$(LDAP_SRC)/include -I$(LDAP_SRC)/servers/slapd
-LDAP_LIB	?= $(LDAP_BUILD)/libraries/libreldap/libreldap.la
-LIBTOOL		?= $(LDAP_BUILD)/libtool
+LDAP_INC	:= -I$(LDAP_BUILD)/include -I$(LDAP_SRC)/include -I$(LDAP_SRC)/servers/slapd
+LDAP_LIB	:= $(LDAP_BUILD)/libraries/libreldap/libreldap.la
+LIBTOOL		:= $(LDAP_BUILD)/libtool
 CC		?= gcc
+CXX		?= g++
 CFLAGS		?= -g -O2 -Wall -Werror
