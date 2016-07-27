@@ -2054,5 +2054,3 @@ int mode)
 	t->comp_desc->cd_all_match = (allcomponent_matching_func*)MatchingComponentAuthorityKeyIdentifier;
 	return LDAP_SUCCESS;
 }  /* GDecAuthorityKeyIdentifier*/
-
-

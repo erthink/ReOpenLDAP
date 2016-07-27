@@ -31,21 +31,16 @@
  * <http://www.OpenLDAP.org/license.html>.
  */
 
+#include <reldap.h>
+#include <slap.h>
 #include <unistd.h>
-
 #include <lber.h>
 #include <lber_pvt.h>	/* BER_BVC definition */
 #include "lutil.h"
 #include <ac/string.h>
 
-#ifdef HAVE_KRB5
 #include <krb5.h>
-#elif defined(HAVE_KRB4)
-#include <krb.h>
-#endif
-
-/* From <ldap_pvt.h> */
-LDAP_F( char *) ldap_pvt_get_fqdn LDAP_P(( char * ));
+#include <ldap_pvt.h>
 
 static LUTIL_PASSWD_CHK_FUNC chk_kerberos;
 static const struct berval scheme = BER_BVC("{KERBEROS}");
@@ -81,7 +76,6 @@ static int chk_kerberos(
 
 	rtn = LUTIL_PASSWD_ERR;
 
-#ifdef HAVE_KRB5 /* HAVE_HEIMDAL_KRB5 */
 	{
 /* Portions:
  * Copyright (c) 1997, 1998, 1999 Kungliga Tekniska H\xf6gskolan
@@ -188,36 +182,6 @@ static int chk_kerberos(
 
 		rtn = ret ? LUTIL_PASSWD_ERR : LUTIL_PASSWD_OK;
 	}
-#elif	defined(HAVE_KRB4)
-	{
-		/* Borrowed from Heimdal kpopper */
-/* Portions:
- * Copyright (c) 1989 Regents of the University of California.
- * All rights reserved.  The Berkeley software License Agreement
- * specifies the terms and conditions for redistribution.
- */
-
-		int status;
-		char lrealm[REALM_SZ];
-		char tkt[MAXHOSTNAMELEN];
-
-		status = krb_get_lrealm(lrealm,1);
-		if (status == KFAILURE) {
-			return LUTIL_PASSWD_ERR;
-		}
-
-		snprintf(tkt, sizeof(tkt), "%s_slapd.%u",
-			TKT_ROOT, (unsigned)getpid());
-		krb_set_tkt_string (tkt);
-
-		status = krb_verify_user( passwd->bv_val, "", lrealm,
-			cred->bv_val, 1, "ldap");
-
-		dest_tkt(); /* no point in keeping the tickets */
-
-		return status == KFAILURE ? LUTIL_PASSWD_ERR : LUTIL_PASSWD_OK;
-	}
-#endif
 
 	return rtn;
 }

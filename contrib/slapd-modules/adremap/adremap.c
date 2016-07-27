@@ -42,8 +42,6 @@
  *	   e.g. generate memberUid based on member
  */
 
-#ifdef SLAPD_OVER_ADREMAP
-
 #include <ldap.h>
 #include "lutil.h"
 #include "slap.h"
@@ -639,7 +637,8 @@ adremap_db_destroy(
 
 static slap_overinst adremap;
 
-int adremap_initialize()
+static int
+adremap_initialize()
 {
 	int code;
 
@@ -656,11 +655,7 @@ int adremap_initialize()
 	return overlay_register( &adremap );
 }
 
-#if SLAPD_OVER_ADREMAP == SLAPD_MOD_DYNAMIC
 SLAP_OVERLAY_ENTRY(adremap, modinit) ( int argc, char *argv[] )
 {
 	return adremap_initialize();
 }
-#endif
-
-#endif	/* defined(SLAPD_OVER_ADREMAP) */

@@ -9,7 +9,7 @@ extension of access control within slapd.
 
 To use the acl-posixgroup plugin, add:
 
-moduleload acl-posixgroup.so
+moduleload contrib-posixgroup.so
 
 to your slapd configuration file; it requires "nis.schema" to be loaded.
 It is configured using
@@ -20,11 +20,6 @@ access to <what>
 The default is "exact"; in case of "expand", "<dnpat>" results from
 the expansion of submatches in the "<what>" portion.  "<level>|<priv(s)>"
 describe the level of privilege this rule can assume.
-
-Use Makefile to compile this plugin or use a command line similar to:
-
-gcc -shared -I../../../include -I../../../servers/slapd -Wall -g \
-	-o acl-posixgroup.so posixgroup.c
 
 ---
 Copyright (c) 2015,2016 Leonid Yuriev <leo@yuriev.ru>.

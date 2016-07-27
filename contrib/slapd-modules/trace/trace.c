@@ -38,8 +38,6 @@
 
 #include "reldap.h"
 
-#ifdef SLAPD_OVER_TRACE
-
 #include <stdio.h>
 
 #include <ac/string.h>
@@ -239,7 +237,7 @@ trace_db_destroy(
 
 static slap_overinst 		trace;
 
-int
+static int
 trace_initialize()
 {
 	trace.on_bi.bi_type = "trace";
@@ -266,11 +264,7 @@ trace_initialize()
 	return overlay_register( &trace );
 }
 
-#if SLAPD_OVER_TRACE == SLAPD_MOD_DYNAMIC
 SLAP_OVERLAY_ENTRY(trace, modinit) ( int argc, char *argv[] )
 {
 	return trace_initialize();
 }
-#endif /* SLAPD_OVER_TRACE == SLAPD_MOD_DYNAMIC */
-
-#endif /* defined(SLAPD_OVER_TRACE) */

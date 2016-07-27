@@ -44,6 +44,10 @@
 #include <ldap.h>
 #include "slap.h"
 
+#ifndef LDAP_COMP_MATCH
+#	error LDAP_COMP_MATCH is required for component-matching
+#endif
+
 typedef enum { ASN_BASIC, ASN_COMPOSITE } AsnType;
 /*
  * Decoder Modes

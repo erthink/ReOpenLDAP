@@ -3245,5 +3245,3 @@ int mode)
 	t->comp_desc->cd_all_match = (allcomponent_matching_func*)MatchingComponentCertificate;
 	return LDAP_SUCCESS;
 }  /* GDecCertificate*/
-
-

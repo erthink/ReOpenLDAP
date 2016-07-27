@@ -24,7 +24,7 @@ they cannot be used in search filters, they cannot be used in ACLs, ...
 Usage: add to slapd.conf(5)
 
 
-moduleload	path/to/allowed.so
+moduleload	contrib-allowed.so
 overlay		allowed
 
 or add
@@ -42,13 +42,6 @@ objectClass: olcOverlayConfig
 olcOverlay: {0}allowed
 
 if it's supposed to be global.
-
-    --- o --- o --- o ---
-
-Use Makefile to compile this plugin or use a command line similar to:
-
-gcc -shared -I../../../include -I../../../servers/slapd -Wall -g \
-	-o allowed.so allowed.c
 
 ---
 Copyright (c) 2015,2016 Leonid Yuriev <leo@yuriev.ru>.

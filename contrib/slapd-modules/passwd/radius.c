@@ -32,9 +32,7 @@
  */
 
 #include "reldap.h"
-
 #include <stdio.h>
-
 #include <lber.h>
 #include <lber_pvt.h>	/* BER_BVC definition */
 #include "lutil.h"

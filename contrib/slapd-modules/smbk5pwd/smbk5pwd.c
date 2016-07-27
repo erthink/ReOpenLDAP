@@ -40,12 +40,6 @@
 
 #include <reldap.h>
 
-#ifndef SLAPD_OVER_SMBK5PWD
-#define SLAPD_OVER_SMBK5PWD SLAPD_MOD_DYNAMIC
-#endif
-
-#ifdef SLAPD_OVER_SMBK5PWD
-
 #include <slap.h>
 #include <ac/errno.h>
 #include <ac/string.h>
@@ -62,7 +56,8 @@
 
 #include <krb5.h>
 #include <kadm5/admin.h>
-#include <hdb.h>
+#include <heimdal/hdb.h>
+#include <kadm5/private.h>
 
 #ifndef HDB_INTERFACE_VERSION
 #define	HDB_MASTER_KEY_SET	master_key_set
@@ -482,7 +477,7 @@ static int smbk5pwd_exop_passwd(
 		}
 
 		ret = hdb_generate_key_set_password(context, ent.principal,
-			qpw->rs_new.bv_val, &ent.keys.val, &nkeys);
+			qpw->rs_new.bv_val, NULL, 0, &ent.keys.val, &nkeys);
 		ent.keys.len = nkeys;
 		hdb_seal_keys(context, db, &ent);
 		krb5_free_principal( context, ent.principal );
@@ -852,7 +847,7 @@ smbk5pwd_cf_func( ConfigArgs *c )
 		if ( c->value_int < 0 ) {
 			Debug( LDAP_DEBUG_ANY, "%s: smbk5pwd: "
 				"<%s> invalid negative value \"%d\".",
-				c->log, c->argv[ 0 ] );
+				c->log, c->argv[ 0 ], c->value_int );
 			return 1;
 		}
 		pi->smb_must_change = c->value_int;
@@ -870,7 +865,7 @@ smbk5pwd_cf_func( ConfigArgs *c )
                 if ( c->value_int < 0 ) {
                         Debug( LDAP_DEBUG_ANY, "%s: smbk5pwd: "
                                 "<%s> invalid negative value \"%d\".",
-                                c->log, c->argv[ 0 ] );
+								c->log, c->argv[ 0 ], c->value_int );
                         return 1;
                 }
                 pi->smb_can_change = c->value_int;
@@ -1154,7 +1149,7 @@ smbk5pwd_db_destroy(BackendDB *be, ConfigReply *cr)
 	return 0;
 }
 
-int
+static int
 smbk5pwd_initialize(void)
 {
 	int		rc;
@@ -1183,11 +1178,7 @@ smbk5pwd_initialize(void)
 	return overlay_register( &smbk5pwd );
 }
 
-#if SLAPD_OVER_SMBK5PWD == SLAPD_MOD_DYNAMIC
 SLAP_OVERLAY_ENTRY(smbk5pwd, modinit) ( int argc, char *argv[] )
 {
 	return smbk5pwd_initialize();
 }
-#endif
-
-#endif /* defined(SLAPD_OVER_SMBK5PWD) */

@@ -675,8 +675,6 @@ AUTH_LIBS
 SLAPI_LIBS
 TLS_LIBS
 SASL_LIBS
-KRB5_LIBS
-KRB4_LIBS
 SQL_INCLUDES
 SQL_LIBS
 PERL_RDIR
@@ -698,6 +696,10 @@ SLAPD_STATIC_BACKENDS
 LUTIL_LIBS
 LTHREAD_LIBS
 SLAPD_LIBS
+CONTRIB_BROKEN_FALSE
+CONTRIB_BROKEN_TRUE
+CONTRIB_FALSE
+CONTRIB_TRUE
 VALSORT_DYNAMIC_FALSE
 VALSORT_DYNAMIC_TRUE
 BUILD_VALSORT_FALSE
@@ -838,6 +840,8 @@ MONITOR_DYNAMIC_FALSE
 MONITOR_DYNAMIC_TRUE
 BUILD_MONITOR_FALSE
 BUILD_MONITOR_TRUE
+SLAPD_DYNACL_FALSE
+SLAPD_DYNACL_TRUE
 BUILD_SLAPI_FALSE
 BUILD_SLAPI_TRUE
 LDIF_DYNAMIC_FALSE
@@ -866,6 +870,10 @@ PTHREAD_LIBS
 PTHREAD_CC
 ax_pthread_config
 PERLBIN
+KRB5_LIBS
+KRB5_CFLAGS
+HEIMDAL_LIBS
+HEIMDAL_CFLAGS
 LTDLOPEN
 LT_CONFIG_H
 CONVENIENCE_LTDL_FALSE
@@ -884,6 +892,8 @@ INCLTDL
 LTDLINCL
 LTDLDEPS
 LIBLTDL
+LDAP_EXPERIMENTAL_FALSE
+LDAP_EXPERIMENTAL_TRUE
 LDAP_DEPRECATED_FALSE
 LDAP_DEPRECATED_TRUE
 SLAPD_SYSLOG_FALSE
@@ -1066,13 +1076,14 @@ enable_libtool_lock
 with_subdir
 enable_debug
 enable_syslog
+enable_contrib
+enable_experimental
+enable_check
+enable_hipagut
 enable_proctitle
 enable_ipv6
 enable_local
 enable_deprecated
-enable_experimental
-enable_check
-enable_hipagut
 enable_valgrind
 enable_valgrind_memcheck
 enable_valgrind_helgrind
@@ -1160,7 +1171,11 @@ CCC
 CXXCPP
 PKG_CONFIG
 PKG_CONFIG_PATH
-PKG_CONFIG_LIBDIR'
+PKG_CONFIG_LIBDIR
+HEIMDAL_CFLAGS
+HEIMDAL_LIBS
+KRB5_CFLAGS
+KRB5_LIBS'
 
 
 # Initialize some variables set by options.
@@ -1807,13 +1822,14 @@ Optional Features:
   --disable-libtool-lock  avoid locking (might break parallel builds)
   --enable-debug          enable debug logging no|yes|traditional [yes]
   --enable-syslog         enable syslog support [auto]
+  --enable-contrib        enable extra plugins and overlays no|yes|broken [no]
+  --enable-experimental   enable experimental and developing features no|yes [no]
+  --enable-check          enable internal checking and assertions no|yes|always|default [no]
+  --enable-hipagut        enable internal memory allocation debugger no|yes|always|extra [no]
   --enable-proctitle      enable proctitle support [yes]
   --enable-ipv6           enable IPv6 support [auto]
   --enable-local          enable AF_LOCAL (AF_UNIX) socket support [auto]
   --enable-deprecated     enable deprecated interfaces of libreldap no|yes [no]
-  --enable-experimental   enable experimental and developing features no|yes [no]
-  --enable-check          enable internal checking and assertions no|yes|always|default [no]
-  --enable-hipagut        enable internal memory allocation debugger no|yes|always|extra [no]
   --enable-valgrind       Whether to enable Valgrind on the unit tests
   --disable-valgrind-memcheck
                           Whether to skip memcheck during the Valgrind tests
@@ -1831,7 +1847,7 @@ SLAPD (Standalone LDAP Daemon) Options:
     --enable-crypt	  enable crypt(3) passwords [no]
     --enable-lmpasswd	  enable LAN Manager passwords [no]
     --enable-spasswd	  enable (Cyrus) SASL password verification [no]
-    --enable-modules	  enable dynamic module support [no]
+    --enable-modules	  enable dynamic module support [yes]
     --enable-rewrite	  enable DN rewriting in back-ldap and rwm overlay [auto]
     --enable-rlookups	  enable reverse lookups of client hostnames [no]
     --enable-slapi        enable SLAPI support (experimental) [no]
@@ -1925,6 +1941,12 @@ Some influential environment variables:
               directories to add to pkg-config's search path
   PKG_CONFIG_LIBDIR
               path overriding pkg-config's built-in search path
+  HEIMDAL_CFLAGS
+              C compiler flags for HEIMDAL, overriding pkg-config
+  HEIMDAL_LIBS
+              linker flags for HEIMDAL, overriding pkg-config
+  KRB5_CFLAGS C compiler flags for KRB5, overriding pkg-config
+  KRB5_LIBS   linker flags for KRB5, overriding pkg-config
 
 Use these variables to override the choices made by `configure' or to help
 it to find libraries and programs with nonstandard names/locations.
@@ -13083,9 +13105,9 @@ VERSION_MINOR=1
 
 VERSION_PATCH=2
 
-RELEASE_DATE=2016-07-27
+RELEASE_DATE=2016-07-28
 
-RELEASE_STAMP=g34643f59bc08-t0bee702389ebef54
+RELEASE_STAMP=g7566b37a3e62-tc8e9ed41decfaa78
 
 API_LIB_RELEASE=1.1
 
@@ -18231,6 +18253,90 @@ else
 fi
 
 # end --enable-syslog
+# OpenLDAP --enable-contrib
+
+	# Check whether --enable-contrib was given.
+if test "${enable_contrib+set}" = set; then :
+  enableval=$enable_contrib;
+	ol_arg=invalid
+	for ol_val in no yes broken ; do
+		if test "$enableval" = "$ol_val" ; then
+			ol_arg="$ol_val"
+		fi
+	done
+	if test "$ol_arg" = "invalid" ; then
+		as_fn_error $? "bad value $enableval for --enable-contrib" "$LINENO" 5
+	fi
+	ol_enable_contrib="$ol_arg"
+
+else
+  	ol_enable_contrib=${ol_enable_contrib:-no}
+fi
+
+# end --enable-contrib
+# OpenLDAP --enable-experimental
+
+	# Check whether --enable-experimental was given.
+if test "${enable_experimental+set}" = set; then :
+  enableval=$enable_experimental;
+	ol_arg=invalid
+	for ol_val in no yes ; do
+		if test "$enableval" = "$ol_val" ; then
+			ol_arg="$ol_val"
+		fi
+	done
+	if test "$ol_arg" = "invalid" ; then
+		as_fn_error $? "bad value $enableval for --enable-experimental" "$LINENO" 5
+	fi
+	ol_enable_experimental="$ol_arg"
+
+else
+  	ol_enable_experimental=no
+fi
+
+# end --enable-experimental
+# OpenLDAP --enable-check
+
+	# Check whether --enable-check was given.
+if test "${enable_check+set}" = set; then :
+  enableval=$enable_check;
+	ol_arg=invalid
+	for ol_val in no yes always default ; do
+		if test "$enableval" = "$ol_val" ; then
+			ol_arg="$ol_val"
+		fi
+	done
+	if test "$ol_arg" = "invalid" ; then
+		as_fn_error $? "bad value $enableval for --enable-check" "$LINENO" 5
+	fi
+	ol_enable_check="$ol_arg"
+
+else
+  	ol_enable_check=no
+fi
+
+# end --enable-check
+# OpenLDAP --enable-hipagut
+
+	# Check whether --enable-hipagut was given.
+if test "${enable_hipagut+set}" = set; then :
+  enableval=$enable_hipagut;
+	ol_arg=invalid
+	for ol_val in no yes always extra ; do
+		if test "$enableval" = "$ol_val" ; then
+			ol_arg="$ol_val"
+		fi
+	done
+	if test "$ol_arg" = "invalid" ; then
+		as_fn_error $? "bad value $enableval for --enable-hipagut" "$LINENO" 5
+	fi
+	ol_enable_hipagut="$ol_arg"
+
+else
+  	ol_enable_hipagut=no
+fi
+
+# end --enable-hipagut
 # OpenLDAP --enable-proctitle
 
 	# Check whether --enable-proctitle was given.
@@ -18316,69 +18422,6 @@ else
 fi
 
 # end --enable-deprecated
-# OpenLDAP --enable-experimental
-
-	# Check whether --enable-experimental was given.
-if test "${enable_experimental+set}" = set; then :
-  enableval=$enable_experimental;
-	ol_arg=invalid
-	for ol_val in no yes ; do
-		if test "$enableval" = "$ol_val" ; then
-			ol_arg="$ol_val"
-		fi
-	done
-	if test "$ol_arg" = "invalid" ; then
-		as_fn_error $? "bad value $enableval for --enable-experimental" "$LINENO" 5
-	fi
-	ol_enable_experimental="$ol_arg"
-
-else
-  	ol_enable_experimental=no
-fi
-
-# end --enable-experimental
-# OpenLDAP --enable-check
-
-	# Check whether --enable-check was given.
-if test "${enable_check+set}" = set; then :
-  enableval=$enable_check;
-	ol_arg=invalid
-	for ol_val in no yes always default ; do
-		if test "$enableval" = "$ol_val" ; then
-			ol_arg="$ol_val"
-		fi
-	done
-	if test "$ol_arg" = "invalid" ; then
-		as_fn_error $? "bad value $enableval for --enable-check" "$LINENO" 5
-	fi
-	ol_enable_check="$ol_arg"
-
-else
-  	ol_enable_check=no
-fi
-
-# end --enable-check
-# OpenLDAP --enable-hipagut
-
-	# Check whether --enable-hipagut was given.
-if test "${enable_hipagut+set}" = set; then :
-  enableval=$enable_hipagut;
-	ol_arg=invalid
-	for ol_val in no yes always extra ; do
-		if test "$enableval" = "$ol_val" ; then
-			ol_arg="$ol_val"
-		fi
-	done
-	if test "$ol_arg" = "invalid" ; then
-		as_fn_error $? "bad value $enableval for --enable-hipagut" "$LINENO" 5
-	fi
-	ol_enable_hipagut="$ol_arg"
-
-else
-  	ol_enable_hipagut=no
-fi
-
-# end --enable-hipagut
 
 if test -a $ac_aux_dir/../tests/scripts/valgrind.supp; then
 
@@ -18788,6 +18831,9 @@ MOSTLYCLEANFILES += $(valgrind_log_files)
 
 
 	if test $enable_valgrind = yes; then
+#		PKG_CHECK_MODULES(VALGRIND, valgrind, valgrind_found=yes, valgrind_found=no)
+#		AC_SUBST(VALGRIND_LIBS)
+#		AC_SUBST(VALGRIND_CFLAGS)
 
 $as_echo "#define HAVE_VALGRIND 1" >>confdefs.h
 
@@ -18901,7 +18947,7 @@ See \`config.log' for more details" "$LINENO" 5; }
 	;;
 esac
 
- if test "$debug" = yes; then
+ if test "$ol_enable_debug" = yes; then
   SLAPD_DEBUG_TRUE=
   SLAPD_DEBUG_FALSE='#'
 else
@@ -18909,7 +18955,7 @@ else
   SLAPD_DEBUG_FALSE=
 fi
 
- if test "$syslog" = yes; then
+ if test "$ol_enable_syslog" = yes; then
   SLAPD_SYSLOG_TRUE=
   SLAPD_SYSLOG_FALSE='#'
 else
@@ -18917,12 +18963,20 @@ else
   SLAPD_SYSLOG_FALSE=
 fi
 
- if test "$deprecated" = yes; then
+ if test "$ol_enable_deprecated" = yes; then
   LDAP_DEPRECATED_TRUE=
   LDAP_DEPRECATED_FALSE='#'
 else
   LDAP_DEPRECATED_TRUE='#'
   LDAP_DEPRECATED_FALSE=
+fi
+
+ if test "$ol_enable_experimental" = yes; then
+  LDAP_EXPERIMENTAL_TRUE=
+  LDAP_EXPERIMENTAL_FALSE='#'
+else
+  LDAP_EXPERIMENTAL_TRUE='#'
+  LDAP_EXPERIMENTAL_FALSE=
 fi
 
 
@@ -19227,7 +19281,7 @@ if test "${enable_modules+set}" = set; then :
 	ol_enable_modules="$ol_arg"
 
 else
-  	ol_enable_modules=no
+  	ol_enable_modules=yes
 fi
 
 # end --enable-modules
@@ -21293,13 +21347,123 @@ fi
 for o in $slapd_features $slapd_backends $slapd_overlays; do
 	eval "ol_value=\$ol_enable_$o"
 	if test $ol_enable_slapd = no -a $ol_value != no; then
-		{ $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: slapd disabled, therefore --enable-$o=$ol_value unavailable " >&5
-$as_echo "$as_me: WARNING: slapd disabled, therefore --enable-$o=$ol_value unavailable " >&2;}
+		as_fn_error $? "slapd disabled, therefore --enable-$o=$ol_value unavailable " "$LINENO" 5
 	elif test $ol_enable_modules = no -a $ol_value = mod; then
-		{ $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: dynamic modules disabled, therefore --enable-$o=$ol_value unavailable " >&5
-$as_echo "$as_me: WARNING: dynamic modules disabled, therefore --enable-$o=$ol_value unavailable " >&2;}
+		as_fn_error $? "dynamic modules disabled, therefore --enable-$o=$ol_value unavailable " "$LINENO" 5
 	fi
 done
+
+if test $ol_enable_contrib != no; then
+	if test $ol_enable_slapd = no ; then
+		as_fn_error $? "slapd disabled, therefore --enable-contrib unavailable " "$LINENO" 5
+	else
+		if test $ol_enable_modules = no; then
+			{ $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: dynamic modules disabled, therefore contrib-overlays unavailable " >&5
+$as_echo "$as_me: WARNING: dynamic modules disabled, therefore contrib-overlays unavailable " >&2;}
+		fi
+		if test $ol_enable_slapi = no; then
+			{ $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: SLAPI disabled, therefore slapi contrib-pluginus unavailable " >&5
+$as_echo "$as_me: WARNING: SLAPI disabled, therefore slapi contrib-pluginus unavailable " >&2;}
+		fi
+		if test $ol_enable_dynacl = no; then
+			{ $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: dynamic ACL disabled, therefore acl contrib-pluginus unavailable " >&5
+$as_echo "$as_me: WARNING: dynamic ACL disabled, therefore acl contrib-pluginus unavailable " >&2;}
+		fi
+	fi
+
+pkg_failed=no
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for HEIMDAL" >&5
+$as_echo_n "checking for HEIMDAL... " >&6; }
+
+if test -n "$HEIMDAL_CFLAGS"; then
+    pkg_cv_HEIMDAL_CFLAGS="$HEIMDAL_CFLAGS"
+ elif test -n "$PKG_CONFIG"; then
+    if test -n "$PKG_CONFIG" && \
+    { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"heimdal-krb5 heimdal-kadm-server\""; } >&5
+  ($PKG_CONFIG --exists --print-errors "heimdal-krb5 heimdal-kadm-server") 2>&5
+  ac_status=$?
+  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+  test $ac_status = 0; }; then
+  pkg_cv_HEIMDAL_CFLAGS=`$PKG_CONFIG --cflags "heimdal-krb5 heimdal-kadm-server" 2>/dev/null`
+		      test "x$?" != "x0" && pkg_failed=yes
+else
+  pkg_failed=yes
+fi
+ else
+    pkg_failed=untried
+fi
+if test -n "$HEIMDAL_LIBS"; then
+    pkg_cv_HEIMDAL_LIBS="$HEIMDAL_LIBS"
+ elif test -n "$PKG_CONFIG"; then
+    if test -n "$PKG_CONFIG" && \
+    { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"heimdal-krb5 heimdal-kadm-server\""; } >&5
+  ($PKG_CONFIG --exists --print-errors "heimdal-krb5 heimdal-kadm-server") 2>&5
+  ac_status=$?
+  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+  test $ac_status = 0; }; then
+  pkg_cv_HEIMDAL_LIBS=`$PKG_CONFIG --libs "heimdal-krb5 heimdal-kadm-server" 2>/dev/null`
+		      test "x$?" != "x0" && pkg_failed=yes
+else
+  pkg_failed=yes
+fi
+ else
+    pkg_failed=untried
+fi
+
+
+
+if test $pkg_failed = yes; then
+   	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+
+if $PKG_CONFIG --atleast-pkgconfig-version 0.20; then
+        _pkg_short_errors_supported=yes
+else
+        _pkg_short_errors_supported=no
+fi
+        if test $_pkg_short_errors_supported = yes; then
+	        HEIMDAL_PKG_ERRORS=`$PKG_CONFIG --short-errors --print-errors --cflags --libs "heimdal-krb5 heimdal-kadm-server" 2>&1`
+        else
+	        HEIMDAL_PKG_ERRORS=`$PKG_CONFIG --print-errors --cflags --libs "heimdal-krb5 heimdal-kadm-server" 2>&1`
+        fi
+	# Put the nasty error message in config.log where it belongs
+	echo "$HEIMDAL_PKG_ERRORS" >&5
+
+	as_fn_error $? "Package requirements (heimdal-krb5 heimdal-kadm-server) were not met:
+
+$HEIMDAL_PKG_ERRORS
+
+Consider adjusting the PKG_CONFIG_PATH environment variable if you
+installed software in a non-standard prefix.
+
+Alternatively, you may set the environment variables HEIMDAL_CFLAGS
+and HEIMDAL_LIBS to avoid the need to call pkg-config.
+See the pkg-config man page for more details." "$LINENO" 5
+elif test $pkg_failed = untried; then
+     	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+	{ { $as_echo "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
+$as_echo "$as_me: error: in \`$ac_pwd':" >&2;}
+as_fn_error $? "The pkg-config script could not be found or is too old.  Make sure it
+is in your PATH or set the PKG_CONFIG environment variable to the full
+path to pkg-config.
+
+Alternatively, you may set the environment variables HEIMDAL_CFLAGS
+and HEIMDAL_LIBS to avoid the need to call pkg-config.
+See the pkg-config man page for more details.
+
+To get pkg-config, see <http://pkg-config.freedesktop.org/>.
+See \`config.log' for more details" "$LINENO" 5; }
+else
+	HEIMDAL_CFLAGS=$pkg_cv_HEIMDAL_CFLAGS
+	HEIMDAL_LIBS=$pkg_cv_HEIMDAL_LIBS
+        { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
+
+fi
+
+
+fi
 
 if test $ol_enable_slapd != no ; then
 	be=
@@ -21311,7 +21475,6 @@ if test $ol_enable_slapd != no ; then
 		fi
 	done
 	if test -z "$be"; then
-#		AC_MSG_ERROR([slapd requires a backend])
 		{ $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: no backend specified, slapd will be used ldif" >&5
 $as_echo "$as_me: WARNING: no backend specified, slapd will be used ldif" >&2;}
 	fi
@@ -21366,17 +21529,90 @@ PERL_RDIR=
 SQL_LIBS=
 SQL_INCLUDES=
 
-KRB4_LIBS=
-KRB5_LIBS=
 SASL_LIBS=
 TLS_LIBS=
 SLAPI_LIBS=
 AUTH_LIBS=
+
 #ICU_LIBS=
 
 SLAPD_SLP_LIBS=
 SLAPD_GMP_LIBS=
 SLAPD_TCPWRAP_LIBS=
+
+
+pkg_failed=no
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for KRB5" >&5
+$as_echo_n "checking for KRB5... " >&6; }
+
+if test -n "$KRB5_CFLAGS"; then
+    pkg_cv_KRB5_CFLAGS="$KRB5_CFLAGS"
+ elif test -n "$PKG_CONFIG"; then
+    if test -n "$PKG_CONFIG" && \
+    { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"krb5\""; } >&5
+  ($PKG_CONFIG --exists --print-errors "krb5") 2>&5
+  ac_status=$?
+  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+  test $ac_status = 0; }; then
+  pkg_cv_KRB5_CFLAGS=`$PKG_CONFIG --cflags "krb5" 2>/dev/null`
+		      test "x$?" != "x0" && pkg_failed=yes
+else
+  pkg_failed=yes
+fi
+ else
+    pkg_failed=untried
+fi
+if test -n "$KRB5_LIBS"; then
+    pkg_cv_KRB5_LIBS="$KRB5_LIBS"
+ elif test -n "$PKG_CONFIG"; then
+    if test -n "$PKG_CONFIG" && \
+    { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"krb5\""; } >&5
+  ($PKG_CONFIG --exists --print-errors "krb5") 2>&5
+  ac_status=$?
+  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+  test $ac_status = 0; }; then
+  pkg_cv_KRB5_LIBS=`$PKG_CONFIG --libs "krb5" 2>/dev/null`
+		      test "x$?" != "x0" && pkg_failed=yes
+else
+  pkg_failed=yes
+fi
+ else
+    pkg_failed=untried
+fi
+
+
+
+if test $pkg_failed = yes; then
+   	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+
+if $PKG_CONFIG --atleast-pkgconfig-version 0.20; then
+        _pkg_short_errors_supported=yes
+else
+        _pkg_short_errors_supported=no
+fi
+        if test $_pkg_short_errors_supported = yes; then
+	        KRB5_PKG_ERRORS=`$PKG_CONFIG --short-errors --print-errors --cflags --libs "krb5" 2>&1`
+        else
+	        KRB5_PKG_ERRORS=`$PKG_CONFIG --print-errors --cflags --libs "krb5" 2>&1`
+        fi
+	# Put the nasty error message in config.log where it belongs
+	echo "$KRB5_PKG_ERRORS" >&5
+
+	krb5_found=no
+elif test $pkg_failed = untried; then
+     	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+	krb5_found=no
+else
+	KRB5_CFLAGS=$pkg_cv_KRB5_CFLAGS
+	KRB5_LIBS=$pkg_cv_KRB5_LIBS
+        { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
+	krb5_found=yes
+fi
+
+
 
 
 ol_link_perl=no
@@ -22994,6 +23230,10 @@ fi
 
 
 have_uuid=no
+#PKG_CHECK_MODULES(UUID, uuid, have_uuid=yes, have_uuid=no)
+#AC_SUBST(UUID_LIBS)
+#AC_SUBST(UUID_CFLAGS)
+
 for ac_header in sys/uuid.h
 do :
   ac_fn_c_check_header_mongrel "$LINENO" "sys/uuid.h" "ac_cv_header_sys_uuid_h" "$ac_includes_default"
@@ -23686,6 +23926,10 @@ fi
 
 ol_link_tls=no
 if test $ol_with_tls = openssl || test $ol_with_tls = auto ; then
+#	PKG_CHECK_MODULES(CRYPTO, libcrypto libssl, ssl_found=yes, ssl_found=no)
+#	AC_SUBST(CRYPTO_LIBS)
+#	AC_SUBST(CRYPTO_CFLAGS)
+
 	for ac_header in openssl/ssl.h
 do :
   ac_fn_c_check_header_mongrel "$LINENO" "openssl/ssl.h" "ac_cv_header_openssl_ssl_h" "$ac_includes_default"
@@ -30237,6 +30481,10 @@ WITH_SASL=no
 ol_link_sasl=no
 ol_link_spasswd=no
 if test $ol_with_cyrus_sasl != no ; then
+#	PKG_CHECK_MODULES(SASL, libsasl2, sasl_found=yes, sasl_found=no)
+#	AC_SUBST(SASL_LIBS)
+#	AC_SUBST(SASL_CFLAGS)
+
 	for ac_header in sasl/sasl.h sasl.h
 do :
   as_ac_Header=`$as_echo "ac_cv_header_$ac_header" | $as_tr_sh`
@@ -32898,6 +33146,14 @@ else
   BUILD_SLAPI_FALSE=
 fi
 
+ if test $ol_enable_dynacl != no; then
+  SLAPD_DYNACL_TRUE=
+  SLAPD_DYNACL_FALSE='#'
+else
+  SLAPD_DYNACL_TRUE='#'
+  SLAPD_DYNACL_FALSE=
+fi
+
 
 #dnl backends
 	 if test $ol_enable_monitor != no; then
@@ -33496,7 +33752,21 @@ else
 fi
 
 
+ if test "ol_enable_contrib" != no; then
+  CONTRIB_TRUE=
+  CONTRIB_FALSE='#'
+else
+  CONTRIB_TRUE='#'
+  CONTRIB_FALSE=
+fi
 
+ if test "ol_enable_contrib" = broken; then
+  CONTRIB_BROKEN_TRUE=
+  CONTRIB_BROKEN_FALSE='#'
+else
+  CONTRIB_BROKEN_TRUE='#'
+  CONTRIB_BROKEN_FALSE=
+fi
 
 
 
@@ -33544,7 +33814,7 @@ LDAP_LIBLUTIL_LA="\${top_builddir}/libraries/liblutil/liblutil.la"
 
 
 
-SECURITY_LIBS="${SASL_LIBS} ${KRB_LIBS} ${TLS_LIBS} ${AUTH_LIBS}"
+SECURITY_LIBS="${SASL_LIBS} ${TLS_LIBS} ${AUTH_LIBS}"
 
 
 SLAPD_LIBS="$SLAPD_LIBS $SLAPD_SLP_LIBS $SLAPD_GMP_LIBS $SLAPD_TCPWRAP_LIBS"
@@ -33563,7 +33833,7 @@ if test $AM_DEFAULT_VERBOSITY -eq 0; then
 fi
 
 
-ac_config_files="$ac_config_files Makefile build/libltdl/Makefile include/Makefile libraries/Makefile libraries/liblunicode/Makefile libraries/liblutil/Makefile libraries/libreldap/Makefile libraries/librewrite/Makefile clients/Makefile clients/tools/Makefile servers/Makefile servers/slapd/Makefile servers/slapd/slapi/Makefile servers/slapd/overlays/Makefile servers/slapd/back-ldif/Makefile servers/slapd/back-monitor/Makefile servers/slapd/back-mdb/Makefile servers/slapd/back-null/Makefile servers/slapd/back-ldap/Makefile servers/slapd/back-meta/Makefile servers/slapd/back-relay/Makefile servers/slapd/back-sock/Makefile servers/slapd/back-bdb/Makefile servers/slapd/back-hdb/Makefile servers/slapd/back-dnssrv/Makefile servers/slapd/back-ndb/Makefile servers/slapd/back-passwd/Makefile servers/slapd/back-perl/Makefile servers/slapd/back-shell/Makefile servers/slapd/shell-backends/Makefile servers/slapd/back-sql/Makefile doc/man/Makefile doc/man/ru/Makefile doc/man/en/Makefile"
+ac_config_files="$ac_config_files Makefile build/libltdl/Makefile include/Makefile libraries/Makefile libraries/liblunicode/Makefile libraries/liblutil/Makefile libraries/libreldap/Makefile libraries/librewrite/Makefile clients/Makefile clients/tools/Makefile servers/Makefile servers/slapd/Makefile servers/slapd/slapi/Makefile servers/slapd/overlays/Makefile servers/slapd/back-ldif/Makefile servers/slapd/back-monitor/Makefile servers/slapd/back-mdb/Makefile servers/slapd/back-null/Makefile servers/slapd/back-ldap/Makefile servers/slapd/back-meta/Makefile servers/slapd/back-relay/Makefile servers/slapd/back-sock/Makefile servers/slapd/back-bdb/Makefile servers/slapd/back-hdb/Makefile servers/slapd/back-dnssrv/Makefile servers/slapd/back-ndb/Makefile servers/slapd/back-passwd/Makefile servers/slapd/back-perl/Makefile servers/slapd/back-shell/Makefile servers/slapd/shell-backends/Makefile servers/slapd/back-sql/Makefile doc/man/Makefile doc/man/ru/Makefile doc/man/en/Makefile contrib/Makefile contrib/slapi-plugins/Makefile contrib/slapd-tools/Makefile contrib/slapd-modules/Makefile"
 
 
 if test -x $ac_aux_dir/BRANDING; then
@@ -33738,6 +34008,10 @@ if test -z "${LDAP_DEPRECATED_TRUE}" && test -z "${LDAP_DEPRECATED_FALSE}"; then
   as_fn_error $? "conditional \"LDAP_DEPRECATED\" was never defined.
 Usually this means the macro was only invoked conditionally." "$LINENO" 5
 fi
+if test -z "${LDAP_EXPERIMENTAL_TRUE}" && test -z "${LDAP_EXPERIMENTAL_FALSE}"; then
+  as_fn_error $? "conditional \"LDAP_EXPERIMENTAL\" was never defined.
+Usually this means the macro was only invoked conditionally." "$LINENO" 5
+fi
 if test -z "${INSTALL_LTDL_TRUE}" && test -z "${INSTALL_LTDL_FALSE}"; then
   as_fn_error $? "conditional \"INSTALL_LTDL\" was never defined.
 Usually this means the macro was only invoked conditionally." "$LINENO" 5
@@ -33790,6 +34064,10 @@ Usually this means the macro was only invoked conditionally." "$LINENO" 5
 fi
 if test -z "${BUILD_SLAPI_TRUE}" && test -z "${BUILD_SLAPI_FALSE}"; then
   as_fn_error $? "conditional \"BUILD_SLAPI\" was never defined.
+Usually this means the macro was only invoked conditionally." "$LINENO" 5
+fi
+if test -z "${SLAPD_DYNACL_TRUE}" && test -z "${SLAPD_DYNACL_FALSE}"; then
+  as_fn_error $? "conditional \"SLAPD_DYNACL\" was never defined.
 Usually this means the macro was only invoked conditionally." "$LINENO" 5
 fi
 if test -z "${BUILD_MONITOR_TRUE}" && test -z "${BUILD_MONITOR_FALSE}"; then
@@ -34070,6 +34348,14 @@ Usually this means the macro was only invoked conditionally." "$LINENO" 5
 fi
 if test -z "${VALSORT_DYNAMIC_TRUE}" && test -z "${VALSORT_DYNAMIC_FALSE}"; then
   as_fn_error $? "conditional \"VALSORT_DYNAMIC\" was never defined.
+Usually this means the macro was only invoked conditionally." "$LINENO" 5
+fi
+if test -z "${CONTRIB_TRUE}" && test -z "${CONTRIB_FALSE}"; then
+  as_fn_error $? "conditional \"CONTRIB\" was never defined.
+Usually this means the macro was only invoked conditionally." "$LINENO" 5
+fi
+if test -z "${CONTRIB_BROKEN_TRUE}" && test -z "${CONTRIB_BROKEN_FALSE}"; then
+  as_fn_error $? "conditional \"CONTRIB_BROKEN\" was never defined.
 Usually this means the macro was only invoked conditionally." "$LINENO" 5
 fi
 
@@ -35085,6 +35371,10 @@ do
     "doc/man/Makefile") CONFIG_FILES="$CONFIG_FILES doc/man/Makefile" ;;
     "doc/man/ru/Makefile") CONFIG_FILES="$CONFIG_FILES doc/man/ru/Makefile" ;;
     "doc/man/en/Makefile") CONFIG_FILES="$CONFIG_FILES doc/man/en/Makefile" ;;
+    "contrib/Makefile") CONFIG_FILES="$CONFIG_FILES contrib/Makefile" ;;
+    "contrib/slapi-plugins/Makefile") CONFIG_FILES="$CONFIG_FILES contrib/slapi-plugins/Makefile" ;;
+    "contrib/slapd-tools/Makefile") CONFIG_FILES="$CONFIG_FILES contrib/slapd-tools/Makefile" ;;
+    "contrib/slapd-modules/Makefile") CONFIG_FILES="$CONFIG_FILES contrib/slapd-modules/Makefile" ;;
     "tests/Makefile") CONFIG_FILES="$CONFIG_FILES tests/Makefile" ;;
     "tests/progs/Makefile") CONFIG_FILES="$CONFIG_FILES tests/progs/Makefile" ;;
     "tests/run") CONFIG_FILES="$CONFIG_FILES tests/run" ;;

@@ -88,8 +88,9 @@ POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
 target_triplet = @target@
-@SLAPD_DYNAMIC_TRUE@am__append_1 = build/libltdl
-@BEHIND_CURTIAN_TRUE@am__append_2 = tests
+@CONTRIB_TRUE@am__append_1 = contrib
+@SLAPD_DYNAMIC_TRUE@am__append_2 = build/libltdl
+@BEHIND_CURTIAN_TRUE@am__append_3 = tests
 subdir = .
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/build/m4/ax_pthread.m4 \
@@ -261,13 +262,15 @@ FGREP = @FGREP@
 FIXUP_DIRS = @FIXUP_DIRS@
 FIXUP_DIST = @FIXUP_DIST@
 GREP = @GREP@
+HEIMDAL_CFLAGS = @HEIMDAL_CFLAGS@
+HEIMDAL_LIBS = @HEIMDAL_LIBS@
 INCLTDL = @INCLTDL@
 INSTALL = @INSTALL@
 INSTALL_DATA = @INSTALL_DATA@
 INSTALL_PROGRAM = @INSTALL_PROGRAM@
 INSTALL_SCRIPT = @INSTALL_SCRIPT@
 INSTALL_STRIP_PROGRAM = @INSTALL_STRIP_PROGRAM@
-KRB4_LIBS = @KRB4_LIBS@
+KRB5_CFLAGS = @KRB5_CFLAGS@
 KRB5_LIBS = @KRB5_LIBS@
 LD = @LD@
 LDAP_LIBLUNICODE_LA = @LDAP_LIBLUNICODE_LA@
@@ -436,9 +439,9 @@ top_srcdir = @top_srcdir@
 valgrind_enabled_tools = @valgrind_enabled_tools@
 valgrind_tools = @valgrind_tools@
 ACLOCAL_AMFLAGS = -I build/m4
-DIST_SUBDIRS = include libraries clients servers doc/man build/libltdl
+DIST_SUBDIRS = include libraries clients servers doc/man build/libltdl contrib
 SUBDIRS = include libraries clients servers doc/man $(am__append_1) \
-	$(am__append_2)
+	$(am__append_2) $(am__append_3)
 EXTRA_DIST = build/stub
 all: reldap_autoconf.h
 	$(MAKE) $(AM_MAKEFLAGS) all-recursive

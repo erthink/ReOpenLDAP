@@ -37,6 +37,10 @@
  * revision 42, as noted.
  *
  */
+
+#include <reldap.h>
+#include <slap.h>
+
 #include <lber.h>
 #include <lber_pvt.h>
 #include "lutil.h"

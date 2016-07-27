@@ -351,7 +351,8 @@ static int collect_error_msg_cb( Operation *op, SlapReply *rs)
     return LDAP_SUCCESS;
 }
 
-int addpartial_init()
+static int
+addpartial_init()
 {
     addpartial.on_bi.bi_type = "addpartial";
     addpartial.on_bi.bi_op_add = addpartial_add;

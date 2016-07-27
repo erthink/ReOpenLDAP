@@ -149,40 +149,27 @@ LTLIBRARIES = $(noinst_LTLIBRARIES) $(pkglib_LTLIBRARIES)
 am__DEPENDENCIES_1 =
 back_hdb_la_DEPENDENCIES = $(am__DEPENDENCIES_1)
 am__dirstamp = $(am__leading_dot)dirstamp
-am_back_hdb_la_OBJECTS = ../back-bdb/back_hdb_la-add.lo \
-	../back-bdb/back_hdb_la-attr.lo back_hdb_la-banner.lo \
-	../back-bdb/back_hdb_la-bind.lo \
-	../back-bdb/back_hdb_la-cache.lo \
-	../back-bdb/back_hdb_la-compare.lo \
-	../back-bdb/back_hdb_la-config.lo \
-	../back-bdb/back_hdb_la-dbcache.lo \
-	../back-bdb/back_hdb_la-delete.lo \
-	../back-bdb/back_hdb_la-dn2entry.lo \
-	../back-bdb/back_hdb_la-dn2id.lo \
-	../back-bdb/back_hdb_la-error.lo \
-	../back-bdb/back_hdb_la-extended.lo \
-	../back-bdb/back_hdb_la-filterindex.lo \
-	../back-bdb/back_hdb_la-id2entry.lo \
-	../back-bdb/back_hdb_la-idl.lo \
-	../back-bdb/back_hdb_la-index.lo \
-	../back-bdb/back_hdb_la-init.lo ../back-bdb/back_hdb_la-key.lo \
-	../back-bdb/back_hdb_la-modify.lo \
-	../back-bdb/back_hdb_la-modrdn.lo \
-	../back-bdb/back_hdb_la-monitor.lo \
-	../back-bdb/back_hdb_la-nextid.lo \
-	../back-bdb/back_hdb_la-operational.lo \
-	../back-bdb/back_hdb_la-referral.lo \
-	../back-bdb/back_hdb_la-search.lo \
-	../back-bdb/back_hdb_la-tools.lo \
-	../back-bdb/back_hdb_la-trans.lo
+am_back_hdb_la_OBJECTS = ../back-bdb/add.lo ../back-bdb/attr.lo \
+	banner.lo ../back-bdb/bind.lo ../back-bdb/cache.lo \
+	../back-bdb/compare.lo ../back-bdb/config.lo \
+	../back-bdb/dbcache.lo ../back-bdb/delete.lo \
+	../back-bdb/dn2entry.lo ../back-bdb/dn2id.lo \
+	../back-bdb/error.lo ../back-bdb/extended.lo \
+	../back-bdb/filterindex.lo ../back-bdb/id2entry.lo \
+	../back-bdb/idl.lo ../back-bdb/index.lo ../back-bdb/init.lo \
+	../back-bdb/key.lo ../back-bdb/modify.lo ../back-bdb/modrdn.lo \
+	../back-bdb/monitor.lo ../back-bdb/nextid.lo \
+	../back-bdb/operational.lo ../back-bdb/referral.lo \
+	../back-bdb/search.lo ../back-bdb/tools.lo \
+	../back-bdb/trans.lo
 back_hdb_la_OBJECTS = $(am_back_hdb_la_OBJECTS)
 AM_V_lt = $(am__v_lt_@AM_V@)
 am__v_lt_ = $(am__v_lt_@AM_DEFAULT_V@)
 am__v_lt_0 = --silent
 am__v_lt_1 = 
 back_hdb_la_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) \
-	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(back_hdb_la_CFLAGS) \
-	$(CFLAGS) $(back_hdb_la_LDFLAGS) $(LDFLAGS) -o $@
+	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) \
+	$(back_hdb_la_LDFLAGS) $(LDFLAGS) -o $@
 @HDB_DYNAMIC_FALSE@am_back_hdb_la_rpath =
 @HDB_DYNAMIC_TRUE@am_back_hdb_la_rpath = -rpath $(pkglibdir)
 AM_V_P = $(am__v_P_@AM_V@)
@@ -289,13 +276,15 @@ FGREP = @FGREP@
 FIXUP_DIRS = @FIXUP_DIRS@
 FIXUP_DIST = @FIXUP_DIST@
 GREP = @GREP@
+HEIMDAL_CFLAGS = @HEIMDAL_CFLAGS@
+HEIMDAL_LIBS = @HEIMDAL_LIBS@
 INCLTDL = @INCLTDL@
 INSTALL = @INSTALL@
 INSTALL_DATA = @INSTALL_DATA@
 INSTALL_PROGRAM = @INSTALL_PROGRAM@
 INSTALL_SCRIPT = @INSTALL_SCRIPT@
 INSTALL_STRIP_PROGRAM = @INSTALL_STRIP_PROGRAM@
-KRB4_LIBS = @KRB4_LIBS@
+KRB5_CFLAGS = @KRB5_CFLAGS@
 KRB5_LIBS = @KRB5_LIBS@
 LD = @LD@
 LDAP_LIBLUNICODE_LA = @LDAP_LIBLUNICODE_LA@
@@ -466,7 +455,9 @@ valgrind_tools = @valgrind_tools@
 pkglib_LTLIBRARIES = $(am__append_1)
 noinst_LTLIBRARIES = $(am__append_3)
 back_hdb_la_LDFLAGS = -module $(am__append_2)
-AM_CPPFLAGS = -DSLAPD_IMPORT -I$(srcdir)/.. -I$(top_srcdir)/include
+AM_CPPFLAGS = -DSLAPD_IMPORT -I$(srcdir)/.. -I$(top_srcdir)/include \
+	-DBDB_HIER=1 $(BDB_INCLUDES)
+
 @BEHIND_CURTIAN_TRUE@BUILT_SOURCES = banner.c
 back_hdb_la_SOURCES = ../back-bdb/add.c ../back-bdb/attr.c \
 	../back-bdb/back-bdb.h banner.c ../back-bdb/bind.c \
@@ -481,7 +472,6 @@ back_hdb_la_SOURCES = ../back-bdb/add.c ../back-bdb/attr.c \
 	../back-bdb/proto-bdb.h ../back-bdb/referral.c \
 	../back-bdb/search.c ../back-bdb/tools.c ../back-bdb/trans.c
 
-back_hdb_la_CFLAGS = -DBDB_HIER=1 $(BDB_INCLUDES)
 back_hdb_la_LIBADD = $(BDB_LIBS)
 all: $(BUILT_SOURCES)
 	$(MAKE) $(AM_MAKEFLAGS) all-am
@@ -569,59 +559,59 @@ clean-pkglibLTLIBRARIES:
 ../back-bdb/$(DEPDIR)/$(am__dirstamp):
 	@$(MKDIR_P) ../back-bdb/$(DEPDIR)
 	@: > ../back-bdb/$(DEPDIR)/$(am__dirstamp)
-../back-bdb/back_hdb_la-add.lo: ../back-bdb/$(am__dirstamp) \
+../back-bdb/add.lo: ../back-bdb/$(am__dirstamp) \
 	../back-bdb/$(DEPDIR)/$(am__dirstamp)
-../back-bdb/back_hdb_la-attr.lo: ../back-bdb/$(am__dirstamp) \
+../back-bdb/attr.lo: ../back-bdb/$(am__dirstamp) \
 	../back-bdb/$(DEPDIR)/$(am__dirstamp)
-../back-bdb/back_hdb_la-bind.lo: ../back-bdb/$(am__dirstamp) \
+../back-bdb/bind.lo: ../back-bdb/$(am__dirstamp) \
 	../back-bdb/$(DEPDIR)/$(am__dirstamp)
-../back-bdb/back_hdb_la-cache.lo: ../back-bdb/$(am__dirstamp) \
+../back-bdb/cache.lo: ../back-bdb/$(am__dirstamp) \
 	../back-bdb/$(DEPDIR)/$(am__dirstamp)
-../back-bdb/back_hdb_la-compare.lo: ../back-bdb/$(am__dirstamp) \
+../back-bdb/compare.lo: ../back-bdb/$(am__dirstamp) \
 	../back-bdb/$(DEPDIR)/$(am__dirstamp)
-../back-bdb/back_hdb_la-config.lo: ../back-bdb/$(am__dirstamp) \
+../back-bdb/config.lo: ../back-bdb/$(am__dirstamp) \
 	../back-bdb/$(DEPDIR)/$(am__dirstamp)
-../back-bdb/back_hdb_la-dbcache.lo: ../back-bdb/$(am__dirstamp) \
+../back-bdb/dbcache.lo: ../back-bdb/$(am__dirstamp) \
 	../back-bdb/$(DEPDIR)/$(am__dirstamp)
-../back-bdb/back_hdb_la-delete.lo: ../back-bdb/$(am__dirstamp) \
+../back-bdb/delete.lo: ../back-bdb/$(am__dirstamp) \
 	../back-bdb/$(DEPDIR)/$(am__dirstamp)
-../back-bdb/back_hdb_la-dn2entry.lo: ../back-bdb/$(am__dirstamp) \
+../back-bdb/dn2entry.lo: ../back-bdb/$(am__dirstamp) \
 	../back-bdb/$(DEPDIR)/$(am__dirstamp)
-../back-bdb/back_hdb_la-dn2id.lo: ../back-bdb/$(am__dirstamp) \
+../back-bdb/dn2id.lo: ../back-bdb/$(am__dirstamp) \
 	../back-bdb/$(DEPDIR)/$(am__dirstamp)
-../back-bdb/back_hdb_la-error.lo: ../back-bdb/$(am__dirstamp) \
+../back-bdb/error.lo: ../back-bdb/$(am__dirstamp) \
 	../back-bdb/$(DEPDIR)/$(am__dirstamp)
-../back-bdb/back_hdb_la-extended.lo: ../back-bdb/$(am__dirstamp) \
+../back-bdb/extended.lo: ../back-bdb/$(am__dirstamp) \
 	../back-bdb/$(DEPDIR)/$(am__dirstamp)
-../back-bdb/back_hdb_la-filterindex.lo: ../back-bdb/$(am__dirstamp) \
+../back-bdb/filterindex.lo: ../back-bdb/$(am__dirstamp) \
 	../back-bdb/$(DEPDIR)/$(am__dirstamp)
-../back-bdb/back_hdb_la-id2entry.lo: ../back-bdb/$(am__dirstamp) \
+../back-bdb/id2entry.lo: ../back-bdb/$(am__dirstamp) \
 	../back-bdb/$(DEPDIR)/$(am__dirstamp)
-../back-bdb/back_hdb_la-idl.lo: ../back-bdb/$(am__dirstamp) \
+../back-bdb/idl.lo: ../back-bdb/$(am__dirstamp) \
 	../back-bdb/$(DEPDIR)/$(am__dirstamp)
-../back-bdb/back_hdb_la-index.lo: ../back-bdb/$(am__dirstamp) \
+../back-bdb/index.lo: ../back-bdb/$(am__dirstamp) \
 	../back-bdb/$(DEPDIR)/$(am__dirstamp)
-../back-bdb/back_hdb_la-init.lo: ../back-bdb/$(am__dirstamp) \
+../back-bdb/init.lo: ../back-bdb/$(am__dirstamp) \
 	../back-bdb/$(DEPDIR)/$(am__dirstamp)
-../back-bdb/back_hdb_la-key.lo: ../back-bdb/$(am__dirstamp) \
+../back-bdb/key.lo: ../back-bdb/$(am__dirstamp) \
 	../back-bdb/$(DEPDIR)/$(am__dirstamp)
-../back-bdb/back_hdb_la-modify.lo: ../back-bdb/$(am__dirstamp) \
+../back-bdb/modify.lo: ../back-bdb/$(am__dirstamp) \
 	../back-bdb/$(DEPDIR)/$(am__dirstamp)
-../back-bdb/back_hdb_la-modrdn.lo: ../back-bdb/$(am__dirstamp) \
+../back-bdb/modrdn.lo: ../back-bdb/$(am__dirstamp) \
 	../back-bdb/$(DEPDIR)/$(am__dirstamp)
-../back-bdb/back_hdb_la-monitor.lo: ../back-bdb/$(am__dirstamp) \
+../back-bdb/monitor.lo: ../back-bdb/$(am__dirstamp) \
 	../back-bdb/$(DEPDIR)/$(am__dirstamp)
-../back-bdb/back_hdb_la-nextid.lo: ../back-bdb/$(am__dirstamp) \
+../back-bdb/nextid.lo: ../back-bdb/$(am__dirstamp) \
 	../back-bdb/$(DEPDIR)/$(am__dirstamp)
-../back-bdb/back_hdb_la-operational.lo: ../back-bdb/$(am__dirstamp) \
+../back-bdb/operational.lo: ../back-bdb/$(am__dirstamp) \
 	../back-bdb/$(DEPDIR)/$(am__dirstamp)
-../back-bdb/back_hdb_la-referral.lo: ../back-bdb/$(am__dirstamp) \
+../back-bdb/referral.lo: ../back-bdb/$(am__dirstamp) \
 	../back-bdb/$(DEPDIR)/$(am__dirstamp)
-../back-bdb/back_hdb_la-search.lo: ../back-bdb/$(am__dirstamp) \
+../back-bdb/search.lo: ../back-bdb/$(am__dirstamp) \
 	../back-bdb/$(DEPDIR)/$(am__dirstamp)
-../back-bdb/back_hdb_la-tools.lo: ../back-bdb/$(am__dirstamp) \
+../back-bdb/tools.lo: ../back-bdb/$(am__dirstamp) \
 	../back-bdb/$(DEPDIR)/$(am__dirstamp)
-../back-bdb/back_hdb_la-trans.lo: ../back-bdb/$(am__dirstamp) \
+../back-bdb/trans.lo: ../back-bdb/$(am__dirstamp) \
 	../back-bdb/$(DEPDIR)/$(am__dirstamp)
 
 back_hdb.la: $(back_hdb_la_OBJECTS) $(back_hdb_la_DEPENDENCIES) $(EXTRA_back_hdb_la_DEPENDENCIES) 
@@ -635,34 +625,34 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
-@AMDEP_TRUE@@am__include@ @am__quote@../back-bdb/$(DEPDIR)/back_hdb_la-add.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@../back-bdb/$(DEPDIR)/back_hdb_la-attr.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@../back-bdb/$(DEPDIR)/back_hdb_la-bind.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@../back-bdb/$(DEPDIR)/back_hdb_la-cache.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@../back-bdb/$(DEPDIR)/back_hdb_la-compare.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@../back-bdb/$(DEPDIR)/back_hdb_la-config.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@../back-bdb/$(DEPDIR)/back_hdb_la-dbcache.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@../back-bdb/$(DEPDIR)/back_hdb_la-delete.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@../back-bdb/$(DEPDIR)/back_hdb_la-dn2entry.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@../back-bdb/$(DEPDIR)/back_hdb_la-dn2id.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@../back-bdb/$(DEPDIR)/back_hdb_la-error.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@../back-bdb/$(DEPDIR)/back_hdb_la-extended.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@../back-bdb/$(DEPDIR)/back_hdb_la-filterindex.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@../back-bdb/$(DEPDIR)/back_hdb_la-id2entry.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@../back-bdb/$(DEPDIR)/back_hdb_la-idl.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@../back-bdb/$(DEPDIR)/back_hdb_la-index.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@../back-bdb/$(DEPDIR)/back_hdb_la-init.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@../back-bdb/$(DEPDIR)/back_hdb_la-key.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@../back-bdb/$(DEPDIR)/back_hdb_la-modify.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@../back-bdb/$(DEPDIR)/back_hdb_la-modrdn.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@../back-bdb/$(DEPDIR)/back_hdb_la-monitor.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@../back-bdb/$(DEPDIR)/back_hdb_la-nextid.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@../back-bdb/$(DEPDIR)/back_hdb_la-operational.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@../back-bdb/$(DEPDIR)/back_hdb_la-referral.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@../back-bdb/$(DEPDIR)/back_hdb_la-search.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@../back-bdb/$(DEPDIR)/back_hdb_la-tools.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@../back-bdb/$(DEPDIR)/back_hdb_la-trans.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/back_hdb_la-banner.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@../back-bdb/$(DEPDIR)/add.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@../back-bdb/$(DEPDIR)/attr.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@../back-bdb/$(DEPDIR)/bind.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@../back-bdb/$(DEPDIR)/cache.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@../back-bdb/$(DEPDIR)/compare.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@../back-bdb/$(DEPDIR)/config.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@../back-bdb/$(DEPDIR)/dbcache.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@../back-bdb/$(DEPDIR)/delete.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@../back-bdb/$(DEPDIR)/dn2entry.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@../back-bdb/$(DEPDIR)/dn2id.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@../back-bdb/$(DEPDIR)/error.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@../back-bdb/$(DEPDIR)/extended.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@../back-bdb/$(DEPDIR)/filterindex.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@../back-bdb/$(DEPDIR)/id2entry.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@../back-bdb/$(DEPDIR)/idl.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@../back-bdb/$(DEPDIR)/index.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@../back-bdb/$(DEPDIR)/init.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@../back-bdb/$(DEPDIR)/key.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@../back-bdb/$(DEPDIR)/modify.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@../back-bdb/$(DEPDIR)/modrdn.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@../back-bdb/$(DEPDIR)/monitor.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@../back-bdb/$(DEPDIR)/nextid.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@../back-bdb/$(DEPDIR)/operational.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@../back-bdb/$(DEPDIR)/referral.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@../back-bdb/$(DEPDIR)/search.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@../back-bdb/$(DEPDIR)/tools.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@../back-bdb/$(DEPDIR)/trans.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/banner.Plo@am__quote@
 
 .c.o:
 @am__fastdepCC_TRUE@	$(AM_V_CC)depbase=`echo $@ | sed 's|[^/]*$$|$(DEPDIR)/&|;s|\.o$$||'`;\
@@ -687,202 +677,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='$<' object='$@' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LTCOMPILE) -c -o $@ $<
-
-../back-bdb/back_hdb_la-add.lo: ../back-bdb/add.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(back_hdb_la_CFLAGS) $(CFLAGS) -MT ../back-bdb/back_hdb_la-add.lo -MD -MP -MF ../back-bdb/$(DEPDIR)/back_hdb_la-add.Tpo -c -o ../back-bdb/back_hdb_la-add.lo `test -f '../back-bdb/add.c' || echo '$(srcdir)/'`../back-bdb/add.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) ../back-bdb/$(DEPDIR)/back_hdb_la-add.Tpo ../back-bdb/$(DEPDIR)/back_hdb_la-add.Plo
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='../back-bdb/add.c' object='../back-bdb/back_hdb_la-add.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(back_hdb_la_CFLAGS) $(CFLAGS) -c -o ../back-bdb/back_hdb_la-add.lo `test -f '../back-bdb/add.c' || echo '$(srcdir)/'`../back-bdb/add.c
-
-../back-bdb/back_hdb_la-attr.lo: ../back-bdb/attr.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(back_hdb_la_CFLAGS) $(CFLAGS) -MT ../back-bdb/back_hdb_la-attr.lo -MD -MP -MF ../back-bdb/$(DEPDIR)/back_hdb_la-attr.Tpo -c -o ../back-bdb/back_hdb_la-attr.lo `test -f '../back-bdb/attr.c' || echo '$(srcdir)/'`../back-bdb/attr.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) ../back-bdb/$(DEPDIR)/back_hdb_la-attr.Tpo ../back-bdb/$(DEPDIR)/back_hdb_la-attr.Plo
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='../back-bdb/attr.c' object='../back-bdb/back_hdb_la-attr.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(back_hdb_la_CFLAGS) $(CFLAGS) -c -o ../back-bdb/back_hdb_la-attr.lo `test -f '../back-bdb/attr.c' || echo '$(srcdir)/'`../back-bdb/attr.c
-
-back_hdb_la-banner.lo: banner.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(back_hdb_la_CFLAGS) $(CFLAGS) -MT back_hdb_la-banner.lo -MD -MP -MF $(DEPDIR)/back_hdb_la-banner.Tpo -c -o back_hdb_la-banner.lo `test -f 'banner.c' || echo '$(srcdir)/'`banner.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/back_hdb_la-banner.Tpo $(DEPDIR)/back_hdb_la-banner.Plo
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='banner.c' object='back_hdb_la-banner.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(back_hdb_la_CFLAGS) $(CFLAGS) -c -o back_hdb_la-banner.lo `test -f 'banner.c' || echo '$(srcdir)/'`banner.c
-
-../back-bdb/back_hdb_la-bind.lo: ../back-bdb/bind.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(back_hdb_la_CFLAGS) $(CFLAGS) -MT ../back-bdb/back_hdb_la-bind.lo -MD -MP -MF ../back-bdb/$(DEPDIR)/back_hdb_la-bind.Tpo -c -o ../back-bdb/back_hdb_la-bind.lo `test -f '../back-bdb/bind.c' || echo '$(srcdir)/'`../back-bdb/bind.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) ../back-bdb/$(DEPDIR)/back_hdb_la-bind.Tpo ../back-bdb/$(DEPDIR)/back_hdb_la-bind.Plo
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='../back-bdb/bind.c' object='../back-bdb/back_hdb_la-bind.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(back_hdb_la_CFLAGS) $(CFLAGS) -c -o ../back-bdb/back_hdb_la-bind.lo `test -f '../back-bdb/bind.c' || echo '$(srcdir)/'`../back-bdb/bind.c
-
-../back-bdb/back_hdb_la-cache.lo: ../back-bdb/cache.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(back_hdb_la_CFLAGS) $(CFLAGS) -MT ../back-bdb/back_hdb_la-cache.lo -MD -MP -MF ../back-bdb/$(DEPDIR)/back_hdb_la-cache.Tpo -c -o ../back-bdb/back_hdb_la-cache.lo `test -f '../back-bdb/cache.c' || echo '$(srcdir)/'`../back-bdb/cache.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) ../back-bdb/$(DEPDIR)/back_hdb_la-cache.Tpo ../back-bdb/$(DEPDIR)/back_hdb_la-cache.Plo
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='../back-bdb/cache.c' object='../back-bdb/back_hdb_la-cache.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(back_hdb_la_CFLAGS) $(CFLAGS) -c -o ../back-bdb/back_hdb_la-cache.lo `test -f '../back-bdb/cache.c' || echo '$(srcdir)/'`../back-bdb/cache.c
-
-../back-bdb/back_hdb_la-compare.lo: ../back-bdb/compare.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(back_hdb_la_CFLAGS) $(CFLAGS) -MT ../back-bdb/back_hdb_la-compare.lo -MD -MP -MF ../back-bdb/$(DEPDIR)/back_hdb_la-compare.Tpo -c -o ../back-bdb/back_hdb_la-compare.lo `test -f '../back-bdb/compare.c' || echo '$(srcdir)/'`../back-bdb/compare.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) ../back-bdb/$(DEPDIR)/back_hdb_la-compare.Tpo ../back-bdb/$(DEPDIR)/back_hdb_la-compare.Plo
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='../back-bdb/compare.c' object='../back-bdb/back_hdb_la-compare.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(back_hdb_la_CFLAGS) $(CFLAGS) -c -o ../back-bdb/back_hdb_la-compare.lo `test -f '../back-bdb/compare.c' || echo '$(srcdir)/'`../back-bdb/compare.c
-
-../back-bdb/back_hdb_la-config.lo: ../back-bdb/config.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(back_hdb_la_CFLAGS) $(CFLAGS) -MT ../back-bdb/back_hdb_la-config.lo -MD -MP -MF ../back-bdb/$(DEPDIR)/back_hdb_la-config.Tpo -c -o ../back-bdb/back_hdb_la-config.lo `test -f '../back-bdb/config.c' || echo '$(srcdir)/'`../back-bdb/config.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) ../back-bdb/$(DEPDIR)/back_hdb_la-config.Tpo ../back-bdb/$(DEPDIR)/back_hdb_la-config.Plo
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='../back-bdb/config.c' object='../back-bdb/back_hdb_la-config.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(back_hdb_la_CFLAGS) $(CFLAGS) -c -o ../back-bdb/back_hdb_la-config.lo `test -f '../back-bdb/config.c' || echo '$(srcdir)/'`../back-bdb/config.c
-
-../back-bdb/back_hdb_la-dbcache.lo: ../back-bdb/dbcache.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(back_hdb_la_CFLAGS) $(CFLAGS) -MT ../back-bdb/back_hdb_la-dbcache.lo -MD -MP -MF ../back-bdb/$(DEPDIR)/back_hdb_la-dbcache.Tpo -c -o ../back-bdb/back_hdb_la-dbcache.lo `test -f '../back-bdb/dbcache.c' || echo '$(srcdir)/'`../back-bdb/dbcache.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) ../back-bdb/$(DEPDIR)/back_hdb_la-dbcache.Tpo ../back-bdb/$(DEPDIR)/back_hdb_la-dbcache.Plo
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='../back-bdb/dbcache.c' object='../back-bdb/back_hdb_la-dbcache.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(back_hdb_la_CFLAGS) $(CFLAGS) -c -o ../back-bdb/back_hdb_la-dbcache.lo `test -f '../back-bdb/dbcache.c' || echo '$(srcdir)/'`../back-bdb/dbcache.c
-
-../back-bdb/back_hdb_la-delete.lo: ../back-bdb/delete.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(back_hdb_la_CFLAGS) $(CFLAGS) -MT ../back-bdb/back_hdb_la-delete.lo -MD -MP -MF ../back-bdb/$(DEPDIR)/back_hdb_la-delete.Tpo -c -o ../back-bdb/back_hdb_la-delete.lo `test -f '../back-bdb/delete.c' || echo '$(srcdir)/'`../back-bdb/delete.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) ../back-bdb/$(DEPDIR)/back_hdb_la-delete.Tpo ../back-bdb/$(DEPDIR)/back_hdb_la-delete.Plo
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='../back-bdb/delete.c' object='../back-bdb/back_hdb_la-delete.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(back_hdb_la_CFLAGS) $(CFLAGS) -c -o ../back-bdb/back_hdb_la-delete.lo `test -f '../back-bdb/delete.c' || echo '$(srcdir)/'`../back-bdb/delete.c
-
-../back-bdb/back_hdb_la-dn2entry.lo: ../back-bdb/dn2entry.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(back_hdb_la_CFLAGS) $(CFLAGS) -MT ../back-bdb/back_hdb_la-dn2entry.lo -MD -MP -MF ../back-bdb/$(DEPDIR)/back_hdb_la-dn2entry.Tpo -c -o ../back-bdb/back_hdb_la-dn2entry.lo `test -f '../back-bdb/dn2entry.c' || echo '$(srcdir)/'`../back-bdb/dn2entry.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) ../back-bdb/$(DEPDIR)/back_hdb_la-dn2entry.Tpo ../back-bdb/$(DEPDIR)/back_hdb_la-dn2entry.Plo
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='../back-bdb/dn2entry.c' object='../back-bdb/back_hdb_la-dn2entry.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(back_hdb_la_CFLAGS) $(CFLAGS) -c -o ../back-bdb/back_hdb_la-dn2entry.lo `test -f '../back-bdb/dn2entry.c' || echo '$(srcdir)/'`../back-bdb/dn2entry.c
-
-../back-bdb/back_hdb_la-dn2id.lo: ../back-bdb/dn2id.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(back_hdb_la_CFLAGS) $(CFLAGS) -MT ../back-bdb/back_hdb_la-dn2id.lo -MD -MP -MF ../back-bdb/$(DEPDIR)/back_hdb_la-dn2id.Tpo -c -o ../back-bdb/back_hdb_la-dn2id.lo `test -f '../back-bdb/dn2id.c' || echo '$(srcdir)/'`../back-bdb/dn2id.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) ../back-bdb/$(DEPDIR)/back_hdb_la-dn2id.Tpo ../back-bdb/$(DEPDIR)/back_hdb_la-dn2id.Plo
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='../back-bdb/dn2id.c' object='../back-bdb/back_hdb_la-dn2id.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(back_hdb_la_CFLAGS) $(CFLAGS) -c -o ../back-bdb/back_hdb_la-dn2id.lo `test -f '../back-bdb/dn2id.c' || echo '$(srcdir)/'`../back-bdb/dn2id.c
-
-../back-bdb/back_hdb_la-error.lo: ../back-bdb/error.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(back_hdb_la_CFLAGS) $(CFLAGS) -MT ../back-bdb/back_hdb_la-error.lo -MD -MP -MF ../back-bdb/$(DEPDIR)/back_hdb_la-error.Tpo -c -o ../back-bdb/back_hdb_la-error.lo `test -f '../back-bdb/error.c' || echo '$(srcdir)/'`../back-bdb/error.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) ../back-bdb/$(DEPDIR)/back_hdb_la-error.Tpo ../back-bdb/$(DEPDIR)/back_hdb_la-error.Plo
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='../back-bdb/error.c' object='../back-bdb/back_hdb_la-error.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(back_hdb_la_CFLAGS) $(CFLAGS) -c -o ../back-bdb/back_hdb_la-error.lo `test -f '../back-bdb/error.c' || echo '$(srcdir)/'`../back-bdb/error.c
-
-../back-bdb/back_hdb_la-extended.lo: ../back-bdb/extended.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(back_hdb_la_CFLAGS) $(CFLAGS) -MT ../back-bdb/back_hdb_la-extended.lo -MD -MP -MF ../back-bdb/$(DEPDIR)/back_hdb_la-extended.Tpo -c -o ../back-bdb/back_hdb_la-extended.lo `test -f '../back-bdb/extended.c' || echo '$(srcdir)/'`../back-bdb/extended.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) ../back-bdb/$(DEPDIR)/back_hdb_la-extended.Tpo ../back-bdb/$(DEPDIR)/back_hdb_la-extended.Plo
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='../back-bdb/extended.c' object='../back-bdb/back_hdb_la-extended.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(back_hdb_la_CFLAGS) $(CFLAGS) -c -o ../back-bdb/back_hdb_la-extended.lo `test -f '../back-bdb/extended.c' || echo '$(srcdir)/'`../back-bdb/extended.c
-
-../back-bdb/back_hdb_la-filterindex.lo: ../back-bdb/filterindex.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(back_hdb_la_CFLAGS) $(CFLAGS) -MT ../back-bdb/back_hdb_la-filterindex.lo -MD -MP -MF ../back-bdb/$(DEPDIR)/back_hdb_la-filterindex.Tpo -c -o ../back-bdb/back_hdb_la-filterindex.lo `test -f '../back-bdb/filterindex.c' || echo '$(srcdir)/'`../back-bdb/filterindex.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) ../back-bdb/$(DEPDIR)/back_hdb_la-filterindex.Tpo ../back-bdb/$(DEPDIR)/back_hdb_la-filterindex.Plo
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='../back-bdb/filterindex.c' object='../back-bdb/back_hdb_la-filterindex.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(back_hdb_la_CFLAGS) $(CFLAGS) -c -o ../back-bdb/back_hdb_la-filterindex.lo `test -f '../back-bdb/filterindex.c' || echo '$(srcdir)/'`../back-bdb/filterindex.c
-
-../back-bdb/back_hdb_la-id2entry.lo: ../back-bdb/id2entry.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(back_hdb_la_CFLAGS) $(CFLAGS) -MT ../back-bdb/back_hdb_la-id2entry.lo -MD -MP -MF ../back-bdb/$(DEPDIR)/back_hdb_la-id2entry.Tpo -c -o ../back-bdb/back_hdb_la-id2entry.lo `test -f '../back-bdb/id2entry.c' || echo '$(srcdir)/'`../back-bdb/id2entry.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) ../back-bdb/$(DEPDIR)/back_hdb_la-id2entry.Tpo ../back-bdb/$(DEPDIR)/back_hdb_la-id2entry.Plo
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='../back-bdb/id2entry.c' object='../back-bdb/back_hdb_la-id2entry.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(back_hdb_la_CFLAGS) $(CFLAGS) -c -o ../back-bdb/back_hdb_la-id2entry.lo `test -f '../back-bdb/id2entry.c' || echo '$(srcdir)/'`../back-bdb/id2entry.c
-
-../back-bdb/back_hdb_la-idl.lo: ../back-bdb/idl.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(back_hdb_la_CFLAGS) $(CFLAGS) -MT ../back-bdb/back_hdb_la-idl.lo -MD -MP -MF ../back-bdb/$(DEPDIR)/back_hdb_la-idl.Tpo -c -o ../back-bdb/back_hdb_la-idl.lo `test -f '../back-bdb/idl.c' || echo '$(srcdir)/'`../back-bdb/idl.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) ../back-bdb/$(DEPDIR)/back_hdb_la-idl.Tpo ../back-bdb/$(DEPDIR)/back_hdb_la-idl.Plo
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='../back-bdb/idl.c' object='../back-bdb/back_hdb_la-idl.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(back_hdb_la_CFLAGS) $(CFLAGS) -c -o ../back-bdb/back_hdb_la-idl.lo `test -f '../back-bdb/idl.c' || echo '$(srcdir)/'`../back-bdb/idl.c
-
-../back-bdb/back_hdb_la-index.lo: ../back-bdb/index.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(back_hdb_la_CFLAGS) $(CFLAGS) -MT ../back-bdb/back_hdb_la-index.lo -MD -MP -MF ../back-bdb/$(DEPDIR)/back_hdb_la-index.Tpo -c -o ../back-bdb/back_hdb_la-index.lo `test -f '../back-bdb/index.c' || echo '$(srcdir)/'`../back-bdb/index.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) ../back-bdb/$(DEPDIR)/back_hdb_la-index.Tpo ../back-bdb/$(DEPDIR)/back_hdb_la-index.Plo
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='../back-bdb/index.c' object='../back-bdb/back_hdb_la-index.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(back_hdb_la_CFLAGS) $(CFLAGS) -c -o ../back-bdb/back_hdb_la-index.lo `test -f '../back-bdb/index.c' || echo '$(srcdir)/'`../back-bdb/index.c
-
-../back-bdb/back_hdb_la-init.lo: ../back-bdb/init.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(back_hdb_la_CFLAGS) $(CFLAGS) -MT ../back-bdb/back_hdb_la-init.lo -MD -MP -MF ../back-bdb/$(DEPDIR)/back_hdb_la-init.Tpo -c -o ../back-bdb/back_hdb_la-init.lo `test -f '../back-bdb/init.c' || echo '$(srcdir)/'`../back-bdb/init.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) ../back-bdb/$(DEPDIR)/back_hdb_la-init.Tpo ../back-bdb/$(DEPDIR)/back_hdb_la-init.Plo
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='../back-bdb/init.c' object='../back-bdb/back_hdb_la-init.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(back_hdb_la_CFLAGS) $(CFLAGS) -c -o ../back-bdb/back_hdb_la-init.lo `test -f '../back-bdb/init.c' || echo '$(srcdir)/'`../back-bdb/init.c
-
-../back-bdb/back_hdb_la-key.lo: ../back-bdb/key.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(back_hdb_la_CFLAGS) $(CFLAGS) -MT ../back-bdb/back_hdb_la-key.lo -MD -MP -MF ../back-bdb/$(DEPDIR)/back_hdb_la-key.Tpo -c -o ../back-bdb/back_hdb_la-key.lo `test -f '../back-bdb/key.c' || echo '$(srcdir)/'`../back-bdb/key.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) ../back-bdb/$(DEPDIR)/back_hdb_la-key.Tpo ../back-bdb/$(DEPDIR)/back_hdb_la-key.Plo
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='../back-bdb/key.c' object='../back-bdb/back_hdb_la-key.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(back_hdb_la_CFLAGS) $(CFLAGS) -c -o ../back-bdb/back_hdb_la-key.lo `test -f '../back-bdb/key.c' || echo '$(srcdir)/'`../back-bdb/key.c
-
-../back-bdb/back_hdb_la-modify.lo: ../back-bdb/modify.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(back_hdb_la_CFLAGS) $(CFLAGS) -MT ../back-bdb/back_hdb_la-modify.lo -MD -MP -MF ../back-bdb/$(DEPDIR)/back_hdb_la-modify.Tpo -c -o ../back-bdb/back_hdb_la-modify.lo `test -f '../back-bdb/modify.c' || echo '$(srcdir)/'`../back-bdb/modify.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) ../back-bdb/$(DEPDIR)/back_hdb_la-modify.Tpo ../back-bdb/$(DEPDIR)/back_hdb_la-modify.Plo
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='../back-bdb/modify.c' object='../back-bdb/back_hdb_la-modify.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(back_hdb_la_CFLAGS) $(CFLAGS) -c -o ../back-bdb/back_hdb_la-modify.lo `test -f '../back-bdb/modify.c' || echo '$(srcdir)/'`../back-bdb/modify.c
-
-../back-bdb/back_hdb_la-modrdn.lo: ../back-bdb/modrdn.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(back_hdb_la_CFLAGS) $(CFLAGS) -MT ../back-bdb/back_hdb_la-modrdn.lo -MD -MP -MF ../back-bdb/$(DEPDIR)/back_hdb_la-modrdn.Tpo -c -o ../back-bdb/back_hdb_la-modrdn.lo `test -f '../back-bdb/modrdn.c' || echo '$(srcdir)/'`../back-bdb/modrdn.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) ../back-bdb/$(DEPDIR)/back_hdb_la-modrdn.Tpo ../back-bdb/$(DEPDIR)/back_hdb_la-modrdn.Plo
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='../back-bdb/modrdn.c' object='../back-bdb/back_hdb_la-modrdn.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(back_hdb_la_CFLAGS) $(CFLAGS) -c -o ../back-bdb/back_hdb_la-modrdn.lo `test -f '../back-bdb/modrdn.c' || echo '$(srcdir)/'`../back-bdb/modrdn.c
-
-../back-bdb/back_hdb_la-monitor.lo: ../back-bdb/monitor.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(back_hdb_la_CFLAGS) $(CFLAGS) -MT ../back-bdb/back_hdb_la-monitor.lo -MD -MP -MF ../back-bdb/$(DEPDIR)/back_hdb_la-monitor.Tpo -c -o ../back-bdb/back_hdb_la-monitor.lo `test -f '../back-bdb/monitor.c' || echo '$(srcdir)/'`../back-bdb/monitor.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) ../back-bdb/$(DEPDIR)/back_hdb_la-monitor.Tpo ../back-bdb/$(DEPDIR)/back_hdb_la-monitor.Plo
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='../back-bdb/monitor.c' object='../back-bdb/back_hdb_la-monitor.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(back_hdb_la_CFLAGS) $(CFLAGS) -c -o ../back-bdb/back_hdb_la-monitor.lo `test -f '../back-bdb/monitor.c' || echo '$(srcdir)/'`../back-bdb/monitor.c
-
-../back-bdb/back_hdb_la-nextid.lo: ../back-bdb/nextid.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(back_hdb_la_CFLAGS) $(CFLAGS) -MT ../back-bdb/back_hdb_la-nextid.lo -MD -MP -MF ../back-bdb/$(DEPDIR)/back_hdb_la-nextid.Tpo -c -o ../back-bdb/back_hdb_la-nextid.lo `test -f '../back-bdb/nextid.c' || echo '$(srcdir)/'`../back-bdb/nextid.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) ../back-bdb/$(DEPDIR)/back_hdb_la-nextid.Tpo ../back-bdb/$(DEPDIR)/back_hdb_la-nextid.Plo
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='../back-bdb/nextid.c' object='../back-bdb/back_hdb_la-nextid.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(back_hdb_la_CFLAGS) $(CFLAGS) -c -o ../back-bdb/back_hdb_la-nextid.lo `test -f '../back-bdb/nextid.c' || echo '$(srcdir)/'`../back-bdb/nextid.c
-
-../back-bdb/back_hdb_la-operational.lo: ../back-bdb/operational.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(back_hdb_la_CFLAGS) $(CFLAGS) -MT ../back-bdb/back_hdb_la-operational.lo -MD -MP -MF ../back-bdb/$(DEPDIR)/back_hdb_la-operational.Tpo -c -o ../back-bdb/back_hdb_la-operational.lo `test -f '../back-bdb/operational.c' || echo '$(srcdir)/'`../back-bdb/operational.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) ../back-bdb/$(DEPDIR)/back_hdb_la-operational.Tpo ../back-bdb/$(DEPDIR)/back_hdb_la-operational.Plo
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='../back-bdb/operational.c' object='../back-bdb/back_hdb_la-operational.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(back_hdb_la_CFLAGS) $(CFLAGS) -c -o ../back-bdb/back_hdb_la-operational.lo `test -f '../back-bdb/operational.c' || echo '$(srcdir)/'`../back-bdb/operational.c
-
-../back-bdb/back_hdb_la-referral.lo: ../back-bdb/referral.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(back_hdb_la_CFLAGS) $(CFLAGS) -MT ../back-bdb/back_hdb_la-referral.lo -MD -MP -MF ../back-bdb/$(DEPDIR)/back_hdb_la-referral.Tpo -c -o ../back-bdb/back_hdb_la-referral.lo `test -f '../back-bdb/referral.c' || echo '$(srcdir)/'`../back-bdb/referral.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) ../back-bdb/$(DEPDIR)/back_hdb_la-referral.Tpo ../back-bdb/$(DEPDIR)/back_hdb_la-referral.Plo
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='../back-bdb/referral.c' object='../back-bdb/back_hdb_la-referral.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(back_hdb_la_CFLAGS) $(CFLAGS) -c -o ../back-bdb/back_hdb_la-referral.lo `test -f '../back-bdb/referral.c' || echo '$(srcdir)/'`../back-bdb/referral.c
-
-../back-bdb/back_hdb_la-search.lo: ../back-bdb/search.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(back_hdb_la_CFLAGS) $(CFLAGS) -MT ../back-bdb/back_hdb_la-search.lo -MD -MP -MF ../back-bdb/$(DEPDIR)/back_hdb_la-search.Tpo -c -o ../back-bdb/back_hdb_la-search.lo `test -f '../back-bdb/search.c' || echo '$(srcdir)/'`../back-bdb/search.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) ../back-bdb/$(DEPDIR)/back_hdb_la-search.Tpo ../back-bdb/$(DEPDIR)/back_hdb_la-search.Plo
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='../back-bdb/search.c' object='../back-bdb/back_hdb_la-search.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(back_hdb_la_CFLAGS) $(CFLAGS) -c -o ../back-bdb/back_hdb_la-search.lo `test -f '../back-bdb/search.c' || echo '$(srcdir)/'`../back-bdb/search.c
-
-../back-bdb/back_hdb_la-tools.lo: ../back-bdb/tools.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(back_hdb_la_CFLAGS) $(CFLAGS) -MT ../back-bdb/back_hdb_la-tools.lo -MD -MP -MF ../back-bdb/$(DEPDIR)/back_hdb_la-tools.Tpo -c -o ../back-bdb/back_hdb_la-tools.lo `test -f '../back-bdb/tools.c' || echo '$(srcdir)/'`../back-bdb/tools.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) ../back-bdb/$(DEPDIR)/back_hdb_la-tools.Tpo ../back-bdb/$(DEPDIR)/back_hdb_la-tools.Plo
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='../back-bdb/tools.c' object='../back-bdb/back_hdb_la-tools.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(back_hdb_la_CFLAGS) $(CFLAGS) -c -o ../back-bdb/back_hdb_la-tools.lo `test -f '../back-bdb/tools.c' || echo '$(srcdir)/'`../back-bdb/tools.c
-
-../back-bdb/back_hdb_la-trans.lo: ../back-bdb/trans.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(back_hdb_la_CFLAGS) $(CFLAGS) -MT ../back-bdb/back_hdb_la-trans.lo -MD -MP -MF ../back-bdb/$(DEPDIR)/back_hdb_la-trans.Tpo -c -o ../back-bdb/back_hdb_la-trans.lo `test -f '../back-bdb/trans.c' || echo '$(srcdir)/'`../back-bdb/trans.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) ../back-bdb/$(DEPDIR)/back_hdb_la-trans.Tpo ../back-bdb/$(DEPDIR)/back_hdb_la-trans.Plo
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='../back-bdb/trans.c' object='../back-bdb/back_hdb_la-trans.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(back_hdb_la_CFLAGS) $(CFLAGS) -c -o ../back-bdb/back_hdb_la-trans.lo `test -f '../back-bdb/trans.c' || echo '$(srcdir)/'`../back-bdb/trans.c
 
 mostlyclean-libtool:
 	-rm -f *.lo

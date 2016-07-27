@@ -22,7 +22,8 @@
 pkglib_LTLIBRARIES =
 noinst_LTLIBRARIES =
 back_hdb_la_LDFLAGS = -module
-AM_CPPFLAGS = -DSLAPD_IMPORT -I$(srcdir)/.. -I$(top_srcdir)/include
+AM_CPPFLAGS = -DSLAPD_IMPORT -I$(srcdir)/.. -I$(top_srcdir)/include \
+	-DBDB_HIER=1 $(BDB_INCLUDES)
 
 if HDB_DYNAMIC
 pkglib_LTLIBRARIES += back_hdb.la
@@ -51,5 +52,4 @@ back_hdb_la_SOURCES = ../back-bdb/add.c ../back-bdb/attr.c \
 	../back-bdb/proto-bdb.h ../back-bdb/referral.c \
 	../back-bdb/search.c ../back-bdb/tools.c ../back-bdb/trans.c
 
-back_hdb_la_CFLAGS = -DBDB_HIER=1 $(BDB_INCLUDES)
 back_hdb_la_LIBADD = $(BDB_LIBS)

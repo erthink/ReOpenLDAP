@@ -5,25 +5,25 @@ APR1 MD5 and BSD/Paul Henning Kamp MD5 mechanisms are also included.
 
 To use the Kerberos plugin, add:
 
-moduleload pw-kerberos.so
+moduleload contrib-pw-kerberos.so
 
 to your slapd configuration file.
 
 To use the Netscape plugin, add:
 
-moduleload pw-netscape.so
+moduleload contrib-pw-netscape.so
 
 to your slapd configuration file.
 
 To use the APR1/BSD/MD5 plugin, add:
 
-moduleload pw-apr1.so
+moduleload contrib-pw-apr1.so
 
 to your slapd configuration file.
 
 To use the RADIUS plugin, add:
 
-moduleload pw-radius.so
+moduleload contrib-pw-radius.so
 
 to your slapd configuration file; optionally, the path to a configuration
 file can be appended in the form

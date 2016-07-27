@@ -11,6 +11,8 @@
 #ifndef _H_ASN_MODULE
 #define _H_ASN_MODULE
 
+#include <snacc/c/asn-incl.h>
+
 typedef enum { BER, GSER } EncRulesType;
 
 typedef enum AsnTypeId {
@@ -53,5 +55,10 @@ typedef enum AsnTypeId {
 	/* ASN.1 Type End */
 	ASNTYPE_END
 } AsnTypeId;
+
+typedef GeneralString BMPString;
+typedef GeneralString UniversalString;
+typedef GeneralString UTF8String;
+typedef AsnOid AsnRelativeOid;
 
 #endif

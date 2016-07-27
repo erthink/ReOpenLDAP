@@ -18,34 +18,4 @@
 ## along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ##
 
-ACLOCAL_AMFLAGS = -I build/m4
-
-DIST_SUBDIRS = include libraries clients servers doc/man build/libltdl contrib
-SUBDIRS = include libraries clients servers doc/man
-
-EXTRA_DIST = build/stub
-
-if CONTRIB
-SUBDIRS += contrib
-endif
-
-if SLAPD_DYNAMIC
-SUBDIRS += build/libltdl
-endif
-
-am__tar = $${TAR-tar} cof - "$$tardir"
-if BEHIND_CURTIAN
-SUBDIRS += tests
-test:
-	$(MAKE) -C tests check
-
-dist-hook:
-	find $(distdir) -type f | xargs -r \
-		sed -i 's/\$$ReOpenLDAP\$$/$$ $(RELEASE_STAMP) | $(RELEASE_DATE) | $(shell $(srcdir)/build/BRANDING --title) $$/g' && \
-	find $(distdir) -name Makefile.am -exec sh -c 'ln -sfr -T $(distdir)/build/stub {}' \; && \
-	ln -sfr -T $(distdir)/build/stub $(distdir)/configure.ac && \
-	find $(distdir) -type f | xargs -r \
-		touch -r $(distdir)/configure && \
-	find $(distdir) -type d -empty -exec rmdir {} \;
-
-endif
+EXTRA_DIST = README statslog

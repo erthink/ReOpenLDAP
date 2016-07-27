@@ -38,8 +38,6 @@
 
 #include "reldap.h"
 
-#ifdef SLAPD_OVER_LASTMOD
-
 #include <stdio.h>
 
 #include <ac/string.h>
@@ -948,7 +946,7 @@ lastmod_db_destroy(
 
 static slap_overinst 		lastmod;
 
-int
+static int
 lastmod_initialize()
 {
 	lastmod.on_bi.bi_type = "lastmod";
@@ -970,11 +968,7 @@ lastmod_initialize()
 	return overlay_register( &lastmod );
 }
 
-#if SLAPD_OVER_LASTMOD == SLAPD_MOD_DYNAMIC
 SLAP_OVERLAY_ENTRY(lastmod, modinit) ( int argc, char *argv[] )
 {
 	return lastmod_initialize();
 }
-#endif /* SLAPD_OVER_LASTMOD == SLAPD_MOD_DYNAMIC */
-
-#endif /* defined(SLAPD_OVER_LASTMOD) */

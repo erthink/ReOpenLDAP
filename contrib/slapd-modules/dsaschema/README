@@ -30,13 +30,9 @@ attributes).
 
 To use the plugin, add:
 
-moduleload dsaschema.so
+moduleload contrib-dsaschema.so
 	/etc/reopenldap/schema/foo1.schema
 	...etc...
 	/etc/reopenldap/schema/fooN.schema
 
 to your slapd configuration file.
-
-Use Makefile to compile this plugin or use a command line similar to:
-
-gcc -shared -I../../../include -Wall -g -o dsaschema.so dsaschema.c

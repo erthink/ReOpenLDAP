@@ -247,7 +247,7 @@ allop_op_search( Operation *op, SlapReply *rs )
 
 static slap_overinst 		allop;
 
-int
+static int
 allop_init()
 {
 	allop.on_bi.bi_type = "allop";

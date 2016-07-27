@@ -58,10 +58,6 @@
  */
 
 #include "reldap.h"
-
-/* define SLAPD_OVER_ALLOWED=2 to build as run-time loadable module */
-#ifdef SLAPD_OVER_ALLOWED
-
 #include "slap.h"
 
 /*
@@ -441,10 +437,7 @@ done_ce:;
 
 static slap_overinst aa;
 
-#if SLAPD_OVER_ALLOWED == SLAPD_MOD_DYNAMIC
-static
-#endif /* SLAPD_OVER_ALLOWED == SLAPD_MOD_DYNAMIC */
-int
+static int
 aa_initialize( void )
 {
 	int i;
@@ -468,11 +461,7 @@ aa_initialize( void )
 	return overlay_register( &aa );
 }
 
-#if SLAPD_OVER_ALLOWED == SLAPD_MOD_DYNAMIC
 SLAP_OVERLAY_ENTRY(allowed, modinit) ( int argc, char *argv[] )
 {
 	return aa_initialize();
 }
-#endif /* SLAPD_OVER_ALLOWED == SLAPD_MOD_DYNAMIC */
-
-#endif /* SLAPD_OVER_ALLOWED */

@@ -2216,8 +2216,7 @@ autogroup_db_destroy(
 	return 0;
 }
 
-static
-int
+static int
 autogroup_initialize(void)
 {
 	int		rc = 0;

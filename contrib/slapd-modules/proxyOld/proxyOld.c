@@ -34,9 +34,7 @@
  */
 
 #include <reldap.h>
-
 #include <slap.h>
-
 #include <lber.h>
 /*
 #include <lber_pvt.h>
