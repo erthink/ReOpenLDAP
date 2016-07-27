@@ -48,25 +48,30 @@ typedef int (*MODULE_LOAD_FN)(
 typedef int (*MODULE_TERM_FN)(void);
 
 typedef struct module {
-	struct module_t *next;
+	struct module *next;
 	lt_dlhandle lib;
 	char name[1];
 } module_t;
 
 module_t *module_list = NULL;
 
-void *module_resolve (const module_t* module, const char *item)
+static const char* safe_basename(const char* path) {
+	const char *slash = strrchr(path, '/');
+	return slash ? slash + 1 : path;
+}
+
+void *module_resolve( const module_t* module, const char *item )
 {
 	char entry[64];
 	if (module == NULL || item == NULL)
 		return(NULL);
 
 	const char* file_basename = safe_basename(module->name);
-	len = strcspn(file_basename, ".<>?;:'\"[]{}`~!@#%^&*()-=\\|		");
+	int len = strcspn(file_basename, ".<>?;:'\"[]{}`~!@#%^&*()-=\\|		");
 	if (len < 1 || len > 32) {
 		Debug( LDAP_DEBUG_ANY, "module_resolve: (%s) invalid module name\n",
 			file_basename );
-		return -1;
+		return NULL;
 	}
 
 	snprintf(entry, sizeof(entry), "%.*s_ReOpenLDAP_%s",
@@ -75,17 +80,12 @@ void *module_resolve (const module_t* module, const char *item)
 	return lt_dlsym(((module_t *)module)->lib, entry);
 }
 
-static const char* safe_basename(const char* path) {
-	const char *slash = strrchr(path, '/');
-	return slash ? slash + 1 : path;
-}
-
 module_t* module_handle( const char *file_name )
 {
 	module_t *module;
 	file_name = safe_basename(file_name);
 
-	for ( module = module_list; module; module= module->next ) {
+	for ( module = module_list; module; module = module->next ) {
 		if ( !strcmp( safe_basename(module->name), file_name )) {
 			return module;
 		}
@@ -203,63 +203,29 @@ int module_load(const char* file_name, int argc, char *argv[])
 	initialize = module_resolve(module, "modinit");
 	if (initialize == NULL) {
 		Debug(LDAP_DEBUG_ANY, "module %s: no %s() function found\n",
-			file_name, entry);
+			file_name, "modinit");
 
 		lt_dlclose(module->lib);
 		ch_free(module);
 		return -1;
 	}
 
-	/* The imported init_module() routine passes back the type of
-	 * module (i.e., which part of slapd it should be hooked into)
-	 * or -1 for error.  If it passes back 0, then you get the
-	 * old behavior (i.e., the library is loaded and not hooked
-	 * into anything).
-	 *
-	 * It might be better if the conf file could specify the type
-	 * of module.  That way, a single module could support multiple
-	 * type of hooks. This could be done by using something like:
-	 *
-	 *    moduleload extension /usr/local/reopenldap/whatever.so
-	 *
-	 * then we'd search through module_regtable for a matching
-	 * module type, and hook in there.
-	 */
+	/* The imported initmod() routine passes back result code,
+	 * non-zero of which indicates an error. */
 	rc = initialize(argc, argv);
 	if (rc == -1) {
-		Debug(LDAP_DEBUG_ANY, "module %s: init_module() failed\n",
-			file_name);
+		Debug(LDAP_DEBUG_ANY, "module %s: modinit() failed, error code %d\n",
+			file_name, rc);
 
 		lt_dlclose(module->lib);
 		ch_free(module);
-		return rc;
-	}
-
-	if (rc >= (int)(sizeof(module_regtable) / sizeof(struct module_regtable_t))
-		|| module_regtable[rc].proc == NULL)
-	{
-		Debug(LDAP_DEBUG_ANY, "module %s: unknown registration type (%d)\n",
-			file_name, rc);
-
-		module_int_unload(module);
-		return -1;
-	}
-
-	rc = (module_regtable[rc].proc)(module, file_name);
-	if (rc != 0) {
-		Debug(LDAP_DEBUG_ANY, "module %s: %s module could not be registered\n",
-			file_name, module_regtable[rc].type);
-
-		module_int_unload(module);
 		return rc;
 	}
 
 	module->next = module_list;
 	module_list = module;
 
-	Debug(LDAP_DEBUG_CONFIG, "module %s: %s module registered\n",
-		file_name, module_regtable[rc].type);
-
+	Debug(LDAP_DEBUG_CONFIG, "module %s: registered\n", file_name);
 	return 0;
 }
 
@@ -270,32 +236,39 @@ int module_path(const char *path)
 
 static int module_int_unload (module_t *module)
 {
-	module_t *mod;
-	MODULE_TERM_FN terminate;
+	int rc = -1;
 
 	if (module != NULL) {
-		/* remove module from tracking list */
-		if (module_list == module) {
-			module_list = module->next;
+		/* call module's terminate routine, if present */
+		MODULE_TERM_FN  terminate = module_resolve(module, "modterm");
+		rc = terminate ? terminate() : 0;
+
+		if (rc != 0) {
+			Debug(LDAP_DEBUG_ANY,
+				  "module %s: could not be unloaded, error code %d\n",
+				  module->name, rc);
 		} else {
-			for (mod = module_list; mod; mod = mod->next) {
-				if (mod->next == module) {
-					mod->next = module->next;
-					break;
+			/* remove module from tracking list */
+			if (module_list == module) {
+				module_list = module->next;
+			} else {
+				module_t *mod;
+				for (mod = module_list; mod; mod = mod->next) {
+					if (mod->next == module) {
+						mod->next = module->next;
+						break;
+					}
 				}
 			}
+
+			/* close the library and free the memory */
+			lt_dlclose(module->lib);
+			ch_free(module);
+
+			Debug(LDAP_DEBUG_CONFIG, "module %s: unloaded\n", module->name);
 		}
-
-		/* call module's terminate routine, if present */
-		terminate = module_resolve(module, "modterm");
-		if (terminate)
-			terminate();
-
-		/* close the library and free the memory */
-		lt_dlclose(module->lib);
-		ch_free(module);
 	}
-	return 0;
+	return rc;
 }
 
 #endif /* SLAPD_DYNAMIC_MODULES */
