@@ -13083,9 +13083,9 @@ VERSION_MINOR=1
 
 VERSION_PATCH=2
 
-RELEASE_DATE=2016-07-26
+RELEASE_DATE=2016-07-27
 
-RELEASE_STAMP=g02bb2697b251-t11c66c70f0974c3c
+RELEASE_STAMP=gd349730eabc8-tf75c317ca361fa14
 
 API_LIB_RELEASE=1.1
 
@@ -36529,7 +36529,7 @@ fi
 
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking 'libtool' for support LTO (Link Time Optimization)" >&5
 $as_echo_n "checking 'libtool' for support LTO (Link Time Optimization)... " >&6; }
-if sed -i -e 's/pic_flag_for_symtable=$/&\$(echo -- "\$LTCFLAGS" | grep -q -w -- "-flto" \&\& echo -n -- " -fno-lto")/' libtool; then
+if sed -i -e 's/\$pic_flag_for_symtable /&`echo -- "\$LTCFLAGS" | grep -q -w -- "-flto" \&\& echo -n "-fno-lto "`/' libtool; then
 	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: done patching" >&5
 $as_echo "done patching" >&6; }
 else
