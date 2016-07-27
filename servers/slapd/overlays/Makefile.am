@@ -38,45 +38,45 @@ BUILT_SOURCES += accesslog_banner.c auditlog_banner.c \
 	unique_banner.c
 
 accesslog_banner.c: Makefile
-	$(MKBANNER) --name overlay_accesslog --global 'overlay-accesslog' > $@
+	$(MKBANNER) --name overlay_accesslog --global 'overlay-accesslog' > $@ || $(RM) $@
 auditlog_banner.c: Makefile
-	$(MKBANNER) --name overlay_auditlog --global 'overlay-auditlog' > $@
+	$(MKBANNER) --name overlay_auditlog --global 'overlay-auditlog' > $@ || $(RM) $@
 collect_banner.c: Makefile
-	$(MKBANNER) --name overlay_collect --global 'overlay-collect' > $@
+	$(MKBANNER) --name overlay_collect --global 'overlay-collect' > $@ || $(RM) $@
 valsort_banner.c: Makefile
-	$(MKBANNER) --name overlay_valsort --global 'overlay-valsort' > $@
+	$(MKBANNER) --name overlay_valsort --global 'overlay-valsort' > $@ || $(RM) $@
 constraint_banner.c: Makefile
-	$(MKBANNER) --name overlay_constraint --global 'overlay-constraint' > $@
+	$(MKBANNER) --name overlay_constraint --global 'overlay-constraint' > $@ || $(RM) $@
 dds_banner.c: Makefile
-	$(MKBANNER) --name overlay_dds --global 'overlay-dds' > $@
+	$(MKBANNER) --name overlay_dds --global 'overlay-dds' > $@ || $(RM) $@
 deref_banner.c: Makefile
-	$(MKBANNER) --name overlay_deref --global 'overlay-deref' > $@
+	$(MKBANNER) --name overlay_deref --global 'overlay-deref' > $@ || $(RM) $@
 dyngroup_banner.c: Makefile
-	$(MKBANNER) --name overlay_dyngroup --global 'overlay-dyngroup' > $@
+	$(MKBANNER) --name overlay_dyngroup --global 'overlay-dyngroup' > $@ || $(RM) $@
 dynlist_banner.c: Makefile
-	$(MKBANNER) --name overlay_dynlist --global 'overlay-dynlist' > $@
+	$(MKBANNER) --name overlay_dynlist --global 'overlay-dynlist' > $@ || $(RM) $@
 memberof_banner.c: Makefile
-	$(MKBANNER) --name overlay_memberof --global 'overlay-memberof' > $@
+	$(MKBANNER) --name overlay_memberof --global 'overlay-memberof' > $@ || $(RM) $@
 ppolicy_banner.c: Makefile
-	$(MKBANNER) --name overlay_ppolicy --global 'overlay-ppolicy' > $@
+	$(MKBANNER) --name overlay_ppolicy --global 'overlay-ppolicy' > $@ || $(RM) $@
 pcache_banner.c: Makefile
-	$(MKBANNER) --name overlay_pcache --global 'overlay-pcache' > $@
+	$(MKBANNER) --name overlay_pcache --global 'overlay-pcache' > $@ || $(RM) $@
 refint_banner.c: Makefile
-	$(MKBANNER) --name overlay_refint --global 'overlay-refint' > $@
+	$(MKBANNER) --name overlay_refint --global 'overlay-refint' > $@ || $(RM) $@
 retcode_banner.c: Makefile
-	$(MKBANNER) --name overlay_retcode --global 'overlay-retcode' > $@
+	$(MKBANNER) --name overlay_retcode --global 'overlay-retcode' > $@ || $(RM) $@
 rwm_banner.c: Makefile
-	$(MKBANNER) --name overlay_rwm --global 'overlay-rwm' > $@
+	$(MKBANNER) --name overlay_rwm --global 'overlay-rwm' > $@ || $(RM) $@
 seqmod_banner.c: Makefile
-	$(MKBANNER) --name overlay_seqmod --global 'overlay-seqmod' > $@
+	$(MKBANNER) --name overlay_seqmod --global 'overlay-seqmod' > $@ || $(RM) $@
 sssvlv_banner.c: Makefile
-	$(MKBANNER) --name overlay_sssvlv --global 'overlay-sssvlv' > $@
+	$(MKBANNER) --name overlay_sssvlv --global 'overlay-sssvlv' > $@ || $(RM) $@
 syncprov_banner.c: Makefile
-	$(MKBANNER) --name overlay_syncprov --global 'overlay-syncprov' > $@
+	$(MKBANNER) --name overlay_syncprov --global 'overlay-syncprov' > $@ || $(RM) $@
 translucent_banner.c: Makefile
-	$(MKBANNER) --name overlay_translucent --global 'overlay-translucent' > $@
+	$(MKBANNER) --name overlay_translucent --global 'overlay-translucent' > $@ || $(RM) $@
 unique_banner.c: Makefile
-	$(MKBANNER) --name overlay_unique --global 'overlay-unique' > $@
+	$(MKBANNER) --name overlay_unique --global 'overlay-unique' > $@ || $(RM) $@
 endif
 
 if BUILD_ACCESSLOG

@@ -1226,7 +1226,7 @@ uninstall-am: uninstall-sbinPROGRAMS uninstall-sysconfDATA
 .PRECIOUS: Makefile
 
 @BEHIND_CURTIAN_TRUE@banner.c: Makefile
-@BEHIND_CURTIAN_TRUE@	$(MKBANNER) --name SLAPD --global 'slapd' > $@
+@BEHIND_CURTIAN_TRUE@	$(MKBANNER) --name SLAPD --global 'slapd' > $@ || $(RM) $@
 
 builtin.c: Makefile
 	@if $(AM_V_P); then set -x; else echo -n "  GEN      $@"; fi; \

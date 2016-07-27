@@ -347,7 +347,7 @@ nodist_slapd_SOURCES = builtin.c
 if BEHIND_CURTIAN
 BUILT_SOURCES += banner.c
 banner.c: Makefile
-	$(MKBANNER) --name SLAPD --global 'slapd' > $@
+	$(MKBANNER) --name SLAPD --global 'slapd' > $@ || $(RM) $@
 endif
 
 builtin.c: Makefile

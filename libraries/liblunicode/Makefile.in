@@ -744,7 +744,7 @@ uninstall-am:
 
 
 @BEHIND_CURTIAN_TRUE@banner.c: Makefile
-@BEHIND_CURTIAN_TRUE@	$(MKBANNER) 'liblunicode' > $@
+@BEHIND_CURTIAN_TRUE@	$(MKBANNER) --name lunicode 'liblunicode' > $@ || $(RM) $@
 
 @BEHIND_CURTIAN_TRUE@uctable.h: ucgendat$(EXEEXT) UnicodeData.txt CompositionExclusions.txt
 @BEHIND_CURTIAN_TRUE@	@if $(AM_V_P); then set -x; else echo "  GEN      $@"; fi; \

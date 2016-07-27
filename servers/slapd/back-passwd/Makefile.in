@@ -783,7 +783,7 @@ uninstall-am: uninstall-pkglibLTLIBRARIES
 .PRECIOUS: Makefile
 
 @BEHIND_CURTIAN_TRUE@banner.c: Makefile
-@BEHIND_CURTIAN_TRUE@	$(MKBANNER) --name backend_passwd --global 'backend-passwd' > $@
+@BEHIND_CURTIAN_TRUE@	$(MKBANNER) --name backend_passwd --global 'backend-passwd' > $@ || $(RM) $@
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.

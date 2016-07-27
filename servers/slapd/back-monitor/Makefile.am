@@ -36,7 +36,7 @@ endif
 if BEHIND_CURTIAN
 BUILT_SOURCES = banner.c
 banner.c: Makefile
-	$(MKBANNER) --name backend_monitor --global 'backend-monitor' > $@
+	$(MKBANNER) --name backend_monitor --global 'backend-monitor' > $@ || $(RM) $@
 endif
 
 back_monitor_la_SOURCES = backend.c banner.c bind.c cache.c \

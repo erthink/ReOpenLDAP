@@ -35,7 +35,7 @@ endif
 if BEHIND_CURTIAN
 BUILT_SOURCES = banner.c
 banner.c: Makefile
-	$(MKBANNER) --name backend_ldif --global 'backend-ldif' > $@
+	$(MKBANNER) --name backend_ldif --global 'backend-ldif' > $@ || $(RM) $@
 endif
 
 back_ldif_la_SOURCES = banner.c ldif.c

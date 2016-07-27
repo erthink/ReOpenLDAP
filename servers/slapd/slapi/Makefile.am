@@ -33,7 +33,7 @@ libreslapi_la_DEPENDENCIES = $(LTDLDEPS)
 if BEHIND_CURTIAN
 BUILT_SOURCES = banner.c
 banner.c: Makefile
-	$(MKBANNER) --name SLAPI --global 'libreslapi' > $@
+	$(MKBANNER) --name SLAPI --global 'libreslapi' > $@ || $(RM) $@
 endif
 
 libreslapi_la_SOURCES = banner.c plugin.c printmsg.c slapi_dn.c \

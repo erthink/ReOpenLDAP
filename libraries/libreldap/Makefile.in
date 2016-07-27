@@ -1056,7 +1056,7 @@ uninstall-am: uninstall-pkglibLTLIBRARIES uninstall-sysconfDATA
 .PRECIOUS: Makefile
 
 @BEHIND_CURTIAN_TRUE@banner.c: Makefile
-@BEHIND_CURTIAN_TRUE@	$(MKBANNER) --name 'libreldap' --global 'libreldap' > $@
+@BEHIND_CURTIAN_TRUE@	$(MKBANNER) --name reldap --global 'libreldap' > $@ || $(RM) $@
 libreldap_la-crutch.o libreldap_la-crutch.lo crutch.o crutch.lo: CFLAGS = $(nolto_CFLAGS)
 @LDAP_DEPRECATED_TRUE@libreldap_la-deprecated.o libreldap_la-deprecated.lo deprecated.o deprecated.lo: CFLAGS += -Wno-deprecated-declarations
 

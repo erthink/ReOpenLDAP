@@ -778,7 +778,7 @@ uninstall-am: uninstall-pkglibLTLIBRARIES
 .PRECIOUS: Makefile
 
 @BEHIND_CURTIAN_TRUE@banner.c: Makefile
-@BEHIND_CURTIAN_TRUE@	$(MKBANNER) --name backend_ldif --global 'backend-ldif' > $@
+@BEHIND_CURTIAN_TRUE@	$(MKBANNER) --name backend_ldif --global 'backend-ldif' > $@ || $(RM) $@
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.

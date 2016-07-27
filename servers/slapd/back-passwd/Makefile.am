@@ -35,7 +35,7 @@ endif
 if BEHIND_CURTIAN
 BUILT_SOURCES = banner.c
 banner.c: Makefile
-	$(MKBANNER) --name backend_passwd --global 'backend-passwd' > $@
+	$(MKBANNER) --name backend_passwd --global 'backend-passwd' > $@ || $(RM) $@
 endif
 
 back_passwd_la_SOURCES = back-passwd.h banner.c config.c init.c \

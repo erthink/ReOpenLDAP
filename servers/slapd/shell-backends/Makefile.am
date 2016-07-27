@@ -25,7 +25,7 @@ AM_CPPFLAGS = -I$(top_srcdir)/include
 if BEHIND_CURTIAN
 BUILT_SOURCES = banner.c
 banner.c: Makefile
-	$(MKBANNER) --name passwd_shell --global 'passwd-shell' > $@
+	$(MKBANNER) --name passwd_shell --global 'passwd-shell' > $@ || $(RM) $@
 endif
 
 passwd_shell_SOURCES = banner.c passwd-shell.c shellutil.c shellutil.h

@@ -25,53 +25,36 @@ bin_PROGRAMS = ldapsearch ldapmodify ldapdelete ldapmodrdn \
 AM_CPPFLAGS = -I$(top_srcdir)/include
 
 if BEHIND_CURTIAN
-BUILT_SOURCES = s_banner.c m_banner.c d_banner.c r_banner.c \
-	p_banner.c w_banner.c c_banner.c e_banner.c u_banner.c
-s_banner.c: Makefile
-	$(MKBANNER) --global 'ldapsearch' > $@
-m_banner.c: Makefile
-	$(MKBANNER) --global 'ldapmodify' > $@
-d_banner.c: Makefile
-	$(MKBANNER) --global 'ldapdelete' > $@
-r_banner.c: Makefile
-	$(MKBANNER) --global 'ldapmodrdn' > $@
-p_banner.c: Makefile
-	$(MKBANNER) --global 'ldappasswd' > $@
-w_banner.c: Makefile
-	$(MKBANNER) --global 'ldapwhoami' > $@
-c_banner.c: Makefile
-	$(MKBANNER) --global 'ldapcompare' > $@
-e_banner.c: Makefile
-	$(MKBANNER) --global 'ldapexop' > $@
-u_banner.c: Makefile
-	$(MKBANNER) --global 'ldapurl' > $@
+BUILT_SOURCES = banner.c
+banner.c: Makefile
+	$(MKBANNER) --global 'ldaptools' > $@ || $(RM) $@
 endif
 
-ldapsearch_SOURCES = common.c ldapsearch.c s_banner.c common.h
+ldapsearch_SOURCES = common.c ldapsearch.c banner.c common.h
 ldapsearch_LDADD = $(LDAP_LIBLUTIL_LA) $(LDAP_LIBRELDAP_LA)
 
-ldapmodify_SOURCES = common.c ldapmodify.c m_banner.c common.h
+ldapmodify_SOURCES = common.c ldapmodify.c banner.c common.h
 ldapmodify_LDADD = $(LDAP_LIBLUTIL_LA) $(LDAP_LIBRELDAP_LA)
 
-ldapdelete_SOURCES = common.c ldapdelete.c d_banner.c common.h
+ldapdelete_SOURCES = common.c ldapdelete.c banner.c common.h
 ldapdelete_LDADD = $(LDAP_LIBLUTIL_LA) $(LDAP_LIBRELDAP_LA)
 
-ldapmodrdn_SOURCES = common.c ldapmodrdn.c r_banner.c common.h
+ldapmodrdn_SOURCES = common.c ldapmodrdn.c banner.c common.h
 ldapmodrdn_LDADD = $(LDAP_LIBLUTIL_LA) $(LDAP_LIBRELDAP_LA)
 
-ldappasswd_SOURCES = common.c ldappasswd.c p_banner.c common.h
+ldappasswd_SOURCES = common.c ldappasswd.c banner.c common.h
 ldappasswd_LDADD = $(LDAP_LIBLUTIL_LA) $(LDAP_LIBRELDAP_LA)
 
-ldapwhoami_SOURCES = common.c ldapwhoami.c w_banner.c common.h
+ldapwhoami_SOURCES = common.c ldapwhoami.c banner.c common.h
 ldapwhoami_LDADD = $(LDAP_LIBLUTIL_LA) $(LDAP_LIBRELDAP_LA)
 
-ldapcompare_SOURCES = common.c ldapcompare.c c_banner.c common.h
+ldapcompare_SOURCES = common.c ldapcompare.c banner.c common.h
 ldapcompare_LDADD = $(LDAP_LIBLUTIL_LA) $(LDAP_LIBRELDAP_LA)
 
-ldapexop_SOURCES = common.c ldapexop.c e_banner.c common.h
+ldapexop_SOURCES = common.c ldapexop.c banner.c common.h
 ldapexop_LDADD = $(LDAP_LIBLUTIL_LA) $(LDAP_LIBRELDAP_LA)
 
-ldapurl_SOURCES = ldapurl.c u_banner.c common.h
+ldapurl_SOURCES = ldapurl.c banner.c common.h
 ldapurl_LDADD = $(LDAP_LIBLUTIL_LA) $(LDAP_LIBRELDAP_LA)
 
 install-exec-hook:

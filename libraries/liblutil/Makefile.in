@@ -729,7 +729,7 @@ uninstall-am:
 .PRECIOUS: Makefile
 
 @BEHIND_CURTIAN_TRUE@banner.c: Makefile
-@BEHIND_CURTIAN_TRUE@	$(MKBANNER) 'liblutil' > $@
+@BEHIND_CURTIAN_TRUE@	$(MKBANNER) --name lutil 'liblutil' > $@ || $(RM) $@
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.

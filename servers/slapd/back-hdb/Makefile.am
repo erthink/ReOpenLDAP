@@ -35,7 +35,7 @@ endif
 if BEHIND_CURTIAN
 BUILT_SOURCES = banner.c
 banner.c: Makefile
-	$(MKBANNER) --name backend_hdb --global 'backend-hdb' > $@
+	$(MKBANNER) --name backend_hdb --global 'backend-hdb' > $@ || $(RM) $@
 endif
 
 back_hdb_la_SOURCES = ../back-bdb/add.c ../back-bdb/attr.c \
