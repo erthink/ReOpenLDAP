@@ -68,6 +68,9 @@ flag_asan=0
 flag_tsan=0
 flag_hide=1
 flag_dynamic=1
+flag_exper=1
+flag_contrib=1
+flag_slapi=1
 
 flag_nodeps=0
 if [ -n "${TEAMCITY_PROCESS_FLOW_ID}" ]; then
@@ -76,6 +79,26 @@ fi
 
 for arg in "$@"; do
 	case "$arg" in
+	--contrib)
+		flag_contrib=1
+		flag_exper=1
+		flag_slapi=1
+		;;
+	--no-contrib)
+		flag_contrib=0
+		;;
+	--slapi)
+		flag_slapi=1
+		;;
+	--no-slapi)
+		flag_slapi=0
+		;;
+	--exper*)
+		flag_exper=1
+		;;
+	--no-exper*)
+		flag_exper=0
+		;;
 	--deps)
 		flag_nodeps=0
 		;;
@@ -207,6 +230,25 @@ done
 #======================================================================
 
 CONFIGURE_ARGS=
+
+if [ $flag_contrib -ne 0 ]; then
+	CONFIGURE_ARGS+=" --enable-contrib"
+else
+	CONFIGURE_ARGS+=" --disable-contrib"
+fi
+
+if [ $flag_exper -ne 0 ]; then
+	CONFIGURE_ARGS+=" --enable-experimental"
+else
+	CONFIGURE_ARGS+=" --disable-experimental"
+fi
+
+if [ $flag_slapi -ne 0 ]; then
+	CONFIGURE_ARGS+=" --enable-slapi"
+else
+	CONFIGURE_ARGS+=" --disable-slapi"
+fi
+
 if [ $flag_dynamic -ne 0 ]; then
 	MOD=mod
 	CONFIGURE_ARGS+=" --enable-shared --disable-static --enable-modules"
@@ -375,7 +417,7 @@ fi
 
 if [ $modern_configure -ne 0 ]; then
 	notice "info: expect modern configure"
-	MDBX_NICK=mdbx
+	MDBX_NICK=mdb
 else
 	notice "info: care for old configure"
 	PATH=${NDB_PATH_ADD}$PATH
@@ -455,7 +497,7 @@ if [ ! -s ${build}/Makefile ]; then
 			$(if [ $modern_configure -ne 0 -a $flag_nodeps -ne 0 ]; then echo "--disable-dependency-tracking"; fi) \
 			--prefix=$(pwd)/@install_here --with-tls --enable-debug \
 			$CONFIGURE_ARGS --enable-overlays=${MOD} $NDB_CONFIG \
-			--enable-rewrite --enable-dynacl --enable-aci --enable-slapi \
+			--enable-rewrite --enable-dynacl --enable-aci \
 			$(if [ $flag_mdbx -eq 0 ]; then echo "--disable-${MDBX_NICK}"; else echo "--enable-${MDBX_NICK}=${MOD}"; fi) \
 			$(if [ $flag_bdb -eq 0 ]; then echo "--disable-bdb --disable-hdb"; else echo "--enable-bdb=${MOD} --enable-hdb=${MOD}"; fi) \
 			$(if [ $flag_wt -eq 0 ]; then echo "--disable-wt"; else echo "--enable-wt=${MOD}"; fi) \
@@ -480,17 +522,19 @@ make -C ${build} -j $ncpu -l $lalim \
 	&& make -j $ncpu -l $lalim -C ${LIBMDBX_DIR} \
 		all $(find ${LIBMDBX_DIR} -name 'mtest*.c' | xargs -n 1 -r -I '{}' basename '{}' .c) || failure "build"
 
-export LDAP_SRC=$(readlink -f ${srcdir}) LDAP_BUILD=$(readlink -f ${build})
+if [ $flag_exper -ne 0 -a $modern_configure -eq 0 ]; then
+	export LDAP_SRC=$(readlink -f ${srcdir}) LDAP_BUILD=$(readlink -f ${build})
 
-for m in $(find contrib/slapd-modules -name Makefile -printf '%h\n'); do
-	if [ -e $m/BROKEN ]; then
-		echo "----------- EXTENTIONS: $m - expecting is BROKEN"
-		make -j $ncpu -l $lalim -C $m &>$m/build.log && failure "contrib-module '$m' is NOT broken as expected"
-	else
-		echo "----------- EXTENTIONS: $m - expecting is NOT broken"
-		make -j $ncpu -l $lalim -C $m || failure "contrib-module '$m' is BROKEN"
-	fi
-done
+	for m in $(find contrib/slapd-modules -name Makefile -printf '%h\n'); do
+		if [ -e $m/BROKEN ]; then
+			echo "----------- EXTENTIONS: $m - expecting is BROKEN"
+			make -j $ncpu -l $lalim -C $m &>$m/build.log && failure "contrib-module '$m' is NOT broken as expected"
+		else
+			echo "----------- EXTENTIONS: $m - expecting is NOT broken"
+			make -j $ncpu -l $lalim -C $m || failure "contrib-module '$m' is BROKEN"
+		fi
+	done
+fi
 
 make -C ${build} install
 
