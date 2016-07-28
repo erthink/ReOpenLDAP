@@ -152,7 +152,7 @@ contrib_nssov_la_SOURCES = banner.c nssov/alias.c nssov/ether.c nssov/group.c \
 	nssov/nssov.c nssov/nssov.h nssov/nss-pam-ldapd/attrs.h \
 	nssov/nss-pam-ldapd/nslcd.h nssov/nss-pam-ldapd/nslcd-prot.h \
 	nssov/nss-pam-ldapd/tio.c nssov/nss-pam-ldapd/tio.h
-contrib_nssov_la_CFLAGS = -Wno-error=address -Inssov/nss-pam-ldapd
+contrib_nssov_la_CFLAGS = -Wno-error=address -I$(srcdir)/nssov/nss-pam-ldapd
 #nssov/slapo-nssov.5
 
 EXTRA_DIST += passwd/README \

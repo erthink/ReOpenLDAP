@@ -846,7 +846,7 @@ contrib_nssov_la_SOURCES = banner.c nssov/alias.c nssov/ether.c nssov/group.c \
 	nssov/nss-pam-ldapd/nslcd.h nssov/nss-pam-ldapd/nslcd-prot.h \
 	nssov/nss-pam-ldapd/tio.c nssov/nss-pam-ldapd/tio.h
 
-contrib_nssov_la_CFLAGS = -Wno-error=address -Inssov/nss-pam-ldapd
+contrib_nssov_la_CFLAGS = -Wno-error=address -I$(srcdir)/nssov/nss-pam-ldapd
 contrib_pw_apr1_la_SOURCES = banner.c passwd/apr1.c
 contrib_pw_apr1_la_LDFLAGS = -module -export-dynamic \
 	-release $(API_LIB_RELEASE) -version-info $(API_LIB_VERSION)
