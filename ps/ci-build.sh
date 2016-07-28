@@ -445,7 +445,9 @@ fi
 
 if [ $flag_autoconf -ne 0 ]; then
 	if [ $modern_configure -ne 0 ]; then
-		if [ -n "$(which autoreconf)" ] && autoreconf --version | grep -q 'autoreconf (GNU Autoconf) 2\.69'; then
+		if [ -s ./bootstrap.sh ]; then
+			./bootstrap.sh
+		elif [ -n "$(which autoreconf)" ] && autoreconf --version | grep -q 'autoreconf (GNU Autoconf) 2\.69'; then
 			notice "info: use autoreconf"
 			autoreconf --force --install --include=build || failure "autoreconf"
 		elif [ -n "$(which autoreconf-2.69)" ]; then
@@ -491,7 +493,6 @@ else
 fi
 
 if [ ! -s ${build}/Makefile ]; then
-	# autoscan && libtoolize --force --automake --copy && aclocal -I build && autoheader && autoconf && automake --add-missing --copy
 	mkdir -p ${build} && \
 	( cd ${build} && configure \
 			$(if [ $modern_configure -ne 0 -a $flag_nodeps -ne 0 ]; then echo "--disable-dependency-tracking"; fi) \
