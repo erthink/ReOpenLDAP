@@ -19,3 +19,16 @@
 ##
 
 EXTRA_DIST = addrdnvalues/README
+pkglib_LTLIBRARIES = slapiplugin-addrdnvalues.la
+AM_CPPFLAGS = -I$(top_srcdir)/include
+BUILT_SOURCES =
+
+if BEHIND_CURTIAN
+BUILT_SOURCES += banner.c
+banner.c: Makefile
+	$(MKBANNER) --name contrib_slapi_plugins --global 'contrib-slapi-plugins' > $@ || $(RM) $@
+endif
+
+slapiplugin_addrdnvalues_la_LDFLAGS = -module -export-dynamic \
+	-release $(API_LIB_RELEASE) -version-info $(API_LIB_VERSION)
+slapiplugin_addrdnvalues_la_SOURCES = ./addrdnvalues/addrdnvalues.c banner.c

@@ -919,5 +919,15 @@ typedef struct slapi_plugindesc {
 #define SLAPI_PLUGIN_VERSION_03         "03"
 #define SLAPI_PLUGIN_CURRENT_VERSION    SLAPI_PLUGIN_VERSION_03
 
+#ifdef __GNUC__
+#	ifndef __clang__
+#		define SLAPI_PLUGIN_ENTRY __attribute__((visibility("default"),externally_visible))
+#	else
+#		define SLAPI_PLUGIN_ENTRY __attribute__((visibility("default")))
+#	endif
+#else
+#	define SLAPI_PLUGIN_ENTRY
+#endif
+
 #endif /* _SLAPI_PLUGIN_H */
 
