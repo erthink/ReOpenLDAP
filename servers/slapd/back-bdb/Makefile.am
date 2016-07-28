@@ -22,8 +22,7 @@
 pkglib_LTLIBRARIES =
 noinst_LTLIBRARIES =
 back_bdb_la_LDFLAGS = -module
-AM_CPPFLAGS = -DSLAPD_IMPORT -I$(srcdir)/.. -I$(top_srcdir)/include \
-	-UBDB_HIER $(BDB_INCLUDES)
+AM_CPPFLAGS = -DSLAPD_IMPORT -I$(srcdir)/.. -I$(top_srcdir)/include $(BDB_INCLUDES)
 
 if BDB_DYNAMIC
 pkglib_LTLIBRARIES += back_bdb.la
@@ -47,3 +46,4 @@ back_bdb_la_SOURCES = add.c attr.c back-bdb.h banner.c bind.c \
 	trans.c
 
 back_bdb_la_LIBADD = $(BDB_LIBS)
+back_bdb_la_CFLAGS = -UBDB_HIER
