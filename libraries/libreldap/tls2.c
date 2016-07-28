@@ -782,7 +782,7 @@ ldap_int_tls_start ( LDAP *ld, LDAPConn *conn, LDAPURLDesc *srv )
 	void *ssl;
 	int ret;
 #ifdef LDAP_USE_NON_BLOCKING_TLS
-	struct timeval start_time_tv, tv, tv0;
+	struct timeval start_time_tv, tv, tv0 = {0};
 	ber_socket_t	sd = AC_SOCKET_ERROR;
 #endif /* LDAP_USE_NON_BLOCKING_TLS */
 
@@ -814,7 +814,6 @@ ldap_int_tls_start ( LDAP *ld, LDAPConn *conn, LDAPURLDesc *srv )
 		tv0 = tv;
 		ldap_timeval( &start_time_tv );
 	}
-
 #endif /* LDAP_USE_NON_BLOCKING_TLS */
 
 	ld->ld_errno = LDAP_SUCCESS;
