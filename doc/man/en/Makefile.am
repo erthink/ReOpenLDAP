@@ -57,14 +57,13 @@ man_links = man3/ldap_first_entry.3.links \
 	man5/slapd-sock.5.links man5/slapd-bdb.5.links \
 	man1/ldapmodify.1.links
 
-EXTRA_DIST = $(man_links)
-
-dist_man1_MANS = man1/ldapmodify.man.in man1/ldapcompare.man.in \
+EXTRA_DIST = $(man_links) \
+	man1/ldapmodify.man.in man1/ldapcompare.man.in \
 	man1/ldapsearch.man.in man1/ldapdelete.man.in man1/ldapwhoami.man.in \
 	man1/ldappasswd.man.in man1/ldapurl.man.in man1/ldapexop.man.in \
-	man1/ldapmodrdn.man.in
-
-dist_man3_MANS = man3/ldap_get_option.man.in man3/ldap_dup.man.in man3/ldap_modify.man.in \
+	man1/ldapmodrdn.man.in \
+	\
+	man3/ldap_get_option.man.in man3/ldap_dup.man.in man3/ldap_modify.man.in \
 	man3/lber-encode.man.in man3/ldap_result.man.in man3/ldap_memory.man.in \
 	man3/lber-sockbuf.man.in man3/ldap_parse_reference.man.in \
 	man3/ldap_error.man.in man3/ldap_delete.man.in man3/ldap_tls.man.in \
@@ -78,9 +77,9 @@ dist_man3_MANS = man3/ldap_get_option.man.in man3/ldap_dup.man.in man3/ldap_modi
 	man3/lber-types.man.in man3/lber-decode.man.in \
 	man3/ldap_first_attribute.man.in man3/ldap_url.man.in man3/ldap_bind.man.in \
 	man3/ldap_abandon.man.in man3/ldap_rename.man.in \
-	man3/ldap_parse_vlv_control.man.in man3/lber-memory.man.in
-
-dist_man5_MANS = man5/slapd-config.man.in man5/slapd.backends.man.in \
+	man3/ldap_parse_vlv_control.man.in man3/lber-memory.man.in \
+	\
+	man5/slapd-config.man.in man5/slapd.backends.man.in \
 	man5/slapo-accesslog.man.in man5/slapo-memberof.man.in man5/ldif.man.in \
 	man5/slapo-dyngroup.man.in man5/slapo-dds.man.in man5/slapd-perl.man.in \
 	man5/slapo-pcache.man.in man5/slapd-monitor.man.in \
@@ -95,9 +94,9 @@ dist_man5_MANS = man5/slapd-config.man.in man5/slapd.backends.man.in \
 	man5/slapo-valsort.man.in man5/slapd-relay.man.in man5/slapd.conf.man.in \
 	man5/slapo-ppolicy.man.in man5/slapo-syncprov.man.in man5/slapd-dnssrv.man.in \
 	man5/slapd-ldif.man.in man5/slapo-chain.man.in man5/slapd-bdb.man.in \
-	man5/slapd.access.man.in
-
-dist_man8_MANS = man8/slapcat.man.in man8/slappasswd.man.in man8/slapacl.man.in \
+	man5/slapd.access.man.in \
+	\
+	man8/slapcat.man.in man8/slappasswd.man.in man8/slapacl.man.in \
 	man8/slapschema.man.in man8/slapadd.man.in man8/slapindex.man.in man8/slapdn.man.in \
 	man8/slapauth.man.in man8/slaptest.man.in man8/slapd.man.in
 

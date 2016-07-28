@@ -158,10 +158,9 @@ am__uninstall_files_from_dir = { \
 am__installdirs = "$(DESTDIR)$(man1dir)" "$(DESTDIR)$(man5dir)" \
 	"$(DESTDIR)$(man8dir)"
 NROFF = nroff
-MANS = $(dist_man1_MANS) $(dist_man5_MANS) $(dist_man8_MANS) $(man1_MANS) $(man5_MANS) $(man8_MANS)
+MANS = $(man1_MANS) $(man5_MANS) $(man8_MANS)
 am__tagged_files = $(HEADERS) $(SOURCES) $(TAGS_FILES) $(LISP)
-am__DIST_COMMON = $(dist_man1_MANS) $(dist_man5_MANS) \
-	$(dist_man8_MANS) $(srcdir)/Makefile.in
+am__DIST_COMMON = $(srcdir)/Makefile.in
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
 ACLOCAL = @ACLOCAL@
 AMTAR = @AMTAR@
@@ -393,19 +392,19 @@ man6dir = $(mandir_ru)/man6
 man7dir = $(mandir_ru)/man7
 man8dir = $(mandir_ru)/man8
 man_links = man5/slapd-bdb.5.links man1/ldapmodify.1.links
-EXTRA_DIST = $(man_links)
-dist_man1_MANS = man1/ldapmodify.man.in man1/ldapcompare.man.in \
+EXTRA_DIST = $(man_links) \
+	man1/ldapmodify.man.in man1/ldapcompare.man.in \
 	man1/ldapsearch.man.in man1/ldapdelete.man.in man1/ldapwhoami.man.in \
 	man1/ldappasswd.man.in man1/ldapurl.man.in man1/ldapexop.man.in \
-	man1/ldapmodrdn.man.in
-
-dist_man5_MANS = man5/slapd-config.man.in man5/slapo-accesslog.man.in \
+	man1/ldapmodrdn.man.in \
+	\
+	man5/slapd-config.man.in man5/slapo-accesslog.man.in \
 	man5/slapo-memberof.man.in man5/ldif.man.in man5/ldap.conf.man.in \
 	man5/slapd.plugin.man.in man5/slapd-mdb.man.in man5/slapd.conf.man.in \
 	man5/slapo-ppolicy.man.in man5/slapo-syncprov.man.in \
-	man5/slapd-bdb.man.in man5/slapd.access.man.in
-
-dist_man8_MANS = man8/slapcat.man.in man8/slappasswd.man.in \
+	man5/slapd-bdb.man.in man5/slapd.access.man.in \
+	\
+	man8/slapcat.man.in man8/slappasswd.man.in \
 	man8/slapacl.man.in man8/slapschema.man.in man8/slapadd.man.in \
 	man8/slapindex.man.in man8/slapdn.man.in man8/slapauth.man.in \
 	man8/slaptest.man.in man8/slapd.man.in
@@ -465,9 +464,9 @@ mostlyclean-libtool:
 
 clean-libtool:
 	-rm -rf .libs _libs
-install-man1: $(dist_man1_MANS) $(man1_MANS)
+install-man1: $(man1_MANS)
 	@$(NORMAL_INSTALL)
-	@list1='$(dist_man1_MANS) $(man1_MANS)'; \
+	@list1='$(man1_MANS)'; \
 	list2=''; \
 	test -n "$(man1dir)" \
 	  && test -n "`echo $$list1$$list2`" \
@@ -501,14 +500,14 @@ install-man1: $(dist_man1_MANS) $(man1_MANS)
 
 uninstall-man1:
 	@$(NORMAL_UNINSTALL)
-	@list='$(dist_man1_MANS) $(man1_MANS)'; test -n "$(man1dir)" || exit 0; \
+	@list='$(man1_MANS)'; test -n "$(man1dir)" || exit 0; \
 	files=`{ for i in $$list; do echo "$$i"; done; \
 	} | sed -e 's,.*/,,;h;s,.*\.,,;s,^[^1][0-9a-z]*$$,1,;x' \
 	      -e 's,\.[0-9a-z]*$$,,;$(transform);G;s,\n,.,'`; \
 	dir='$(DESTDIR)$(man1dir)'; $(am__uninstall_files_from_dir)
-install-man5: $(dist_man5_MANS) $(man5_MANS)
+install-man5: $(man5_MANS)
 	@$(NORMAL_INSTALL)
-	@list1='$(dist_man5_MANS) $(man5_MANS)'; \
+	@list1='$(man5_MANS)'; \
 	list2=''; \
 	test -n "$(man5dir)" \
 	  && test -n "`echo $$list1$$list2`" \
@@ -542,14 +541,14 @@ install-man5: $(dist_man5_MANS) $(man5_MANS)
 
 uninstall-man5:
 	@$(NORMAL_UNINSTALL)
-	@list='$(dist_man5_MANS) $(man5_MANS)'; test -n "$(man5dir)" || exit 0; \
+	@list='$(man5_MANS)'; test -n "$(man5dir)" || exit 0; \
 	files=`{ for i in $$list; do echo "$$i"; done; \
 	} | sed -e 's,.*/,,;h;s,.*\.,,;s,^[^5][0-9a-z]*$$,5,;x' \
 	      -e 's,\.[0-9a-z]*$$,,;$(transform);G;s,\n,.,'`; \
 	dir='$(DESTDIR)$(man5dir)'; $(am__uninstall_files_from_dir)
-install-man8: $(dist_man8_MANS) $(man8_MANS)
+install-man8: $(man8_MANS)
 	@$(NORMAL_INSTALL)
-	@list1='$(dist_man8_MANS) $(man8_MANS)'; \
+	@list1='$(man8_MANS)'; \
 	list2=''; \
 	test -n "$(man8dir)" \
 	  && test -n "`echo $$list1$$list2`" \
@@ -583,7 +582,7 @@ install-man8: $(dist_man8_MANS) $(man8_MANS)
 
 uninstall-man8:
 	@$(NORMAL_UNINSTALL)
-	@list='$(dist_man8_MANS) $(man8_MANS)'; test -n "$(man8dir)" || exit 0; \
+	@list='$(man8_MANS)'; test -n "$(man8dir)" || exit 0; \
 	files=`{ for i in $$list; do echo "$$i"; done; \
 	} | sed -e 's,.*/,,;h;s,.*\.,,;s,^[^8][0-9a-z]*$$,8,;x' \
 	      -e 's,\.[0-9a-z]*$$,,;$(transform);G;s,\n,.,'`; \

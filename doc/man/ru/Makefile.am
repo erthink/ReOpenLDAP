@@ -39,20 +39,20 @@ man8dir = $(mandir_ru)/man8
 	$(MKDIR_P) $(@D) && $(FIXUP_DIRS) $< > $@
 
 man_links = man5/slapd-bdb.5.links man1/ldapmodify.1.links
-EXTRA_DIST = $(man_links)
 
-dist_man1_MANS = man1/ldapmodify.man.in man1/ldapcompare.man.in \
+EXTRA_DIST = $(man_links) \
+	man1/ldapmodify.man.in man1/ldapcompare.man.in \
 	man1/ldapsearch.man.in man1/ldapdelete.man.in man1/ldapwhoami.man.in \
 	man1/ldappasswd.man.in man1/ldapurl.man.in man1/ldapexop.man.in \
-	man1/ldapmodrdn.man.in
-
-dist_man5_MANS = man5/slapd-config.man.in man5/slapo-accesslog.man.in \
+	man1/ldapmodrdn.man.in \
+	\
+	man5/slapd-config.man.in man5/slapo-accesslog.man.in \
 	man5/slapo-memberof.man.in man5/ldif.man.in man5/ldap.conf.man.in \
 	man5/slapd.plugin.man.in man5/slapd-mdb.man.in man5/slapd.conf.man.in \
 	man5/slapo-ppolicy.man.in man5/slapo-syncprov.man.in \
-	man5/slapd-bdb.man.in man5/slapd.access.man.in
-
-dist_man8_MANS = man8/slapcat.man.in man8/slappasswd.man.in \
+	man5/slapd-bdb.man.in man5/slapd.access.man.in \
+	\
+	man8/slapcat.man.in man8/slappasswd.man.in \
 	man8/slapacl.man.in man8/slapschema.man.in man8/slapadd.man.in \
 	man8/slapindex.man.in man8/slapdn.man.in man8/slapauth.man.in \
 	man8/slaptest.man.in man8/slapd.man.in
