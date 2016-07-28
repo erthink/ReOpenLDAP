@@ -66,16 +66,19 @@ void *module_resolve( const module_t* module, const char *item )
 	if (module == NULL || item == NULL)
 		return(NULL);
 
-	const char* file_basename = safe_basename(module->name);
-	int len = strcspn(file_basename, ".<>?;:'\"[]{}`~!@#%^&*()=\\|		");
+	const char* modname = safe_basename(module->name);
+	if (strncmp(modname, "contrib-", 8) == 0)
+		modname += 8;
+
+	int len = strcspn(modname, ".<>?;:'\"[]{}`~!@#%^&*()=\\|		");
 	if (len < 1 || len > 32) {
 		Debug( LDAP_DEBUG_ANY, "module_resolve: (%s) invalid module name\n",
-			file_basename );
+			modname );
 		return NULL;
 	}
 
 	snprintf(entry, sizeof(entry), "%.*s_ReOpenLDAP_%s",
-		len, file_basename, item);
+		len, modname, item);
 
 	char *hyphen;
 	for ( hyphen = entry; *hyphen; ++hyphen ) {
@@ -156,11 +159,13 @@ int module_load(const char* file_name, int argc, char *argv[])
 		return -1;
 	}
 
-	const char* file_basename = safe_basename(file_name);
+	const char* modname = safe_basename(file_name);
+	if (strncmp(modname, "contrib-", 8) == 0)
+		modname += 8;
 
 	/* If loading a backend, see if we already have it */
-	if ( !strncasecmp( file_basename, "back_", 5 )) {
-		char *name = (char *)file_basename + 5;
+	if ( !strncasecmp( modname, "back_", 5 )) {
+		char *name = (char *)modname + 5;
 		char *dot = strchr( name, '.');
 		if (dot) *dot = '\0';
 		rc = backend_info( name ) != NULL;
@@ -172,9 +177,9 @@ int module_load(const char* file_name, int argc, char *argv[])
 		}
 	} else {
 		/* check for overlays too */
-		char *dot = strchr( file_basename, '.' );
+		char *dot = strchr( modname, '.' );
 		if ( dot ) *dot = '\0';
-		rc = overlay_find( file_basename ) != NULL;
+		rc = overlay_find( modname ) != NULL;
 		if ( dot ) *dot = '.';
 		if ( rc ) {
 			Debug( LDAP_DEBUG_CONFIG, "module_load: (%s) already present (static)\n",
