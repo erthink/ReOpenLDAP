@@ -357,7 +357,8 @@ OL_ARG_ENABLE(local,[  --enable-local          enable AF_LOCAL (AF_UNIX) socket 
 OL_ARG_ENABLE(deprecated,[  --enable-deprecated     enable deprecated interfaces of libreldap], no, [no yes])dnl
 
 if test -a $ac_aux_dir/../tests/scripts/valgrind.supp; then
-	AX_VALGRIND_DFLT([memcheck sgcheck], [on])
+	AX_VALGRIND_DFLT([memcheck], [on])
+	VALGRIND_SUPPRESSIONS_FILES=tests/scripts/valgrind.supp
 	AX_VALGRIND_CHECK
 	if test $enable_valgrind = yes; then
 #		PKG_CHECK_MODULES(VALGRIND, valgrind, valgrind_found=yes, valgrind_found=no)
@@ -371,6 +372,9 @@ if test -a $ac_aux_dir/../tests/scripts/valgrind.supp; then
 			AC_MSG_WARN([valgrind/memcheck.h required for Valgrind complete support.])
 		fi
 	fi
+else
+	AX_VALGRIND_DFLT([memcheck], [off])
+	AX_VALGRIND_CHECK
 fi
 
 case $ol_enable_experimental in
