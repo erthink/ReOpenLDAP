@@ -67,7 +67,7 @@ flag_valgrind=0
 flag_asan=0
 flag_tsan=0
 flag_hide=1
-flag_dynamic=0
+flag_dynamic=1
 
 flag_nodeps=0
 if [ -n "${TEAMCITY_PROCESS_FLOW_ID}" ]; then
