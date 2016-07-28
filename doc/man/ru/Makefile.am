@@ -74,14 +74,14 @@ man8_MANS = man8/slapcat.man man8/slappasswd.man \
 	man8/slaptest.man man8/slapd.man
 
 install-data-hook:
-	@if $(AM_V_P); then set -x; else echo "  LN       $$(cat `find $(srcdir) -name '*.links'`)"; fi; \
-	(cd $(srcdir) && find . -name '*.links' -exec \
+	@if $(AM_V_P); then set -x; else echo "  LN       $(man_links)"; fi; \
+	(cd $(srcdir) && echo $(man_links) | tr -s '[:space:]' '\n' | xargs -r -n 1 -I {} \
 		sh -c 'xargs -I "#" -n 1 -r sh -c "cd $(mandir_ru)/$$(dirname {}) && ln -s -f -T $$(basename {} .links) #" < $(srcdir)/{}' \
 		\;)
 
 uninstall-hook:
-	@if $(AM_V_P); then set -x; else echo "  RM       $$(cat `find $(srcdir) -name '*.links'`)"; fi; \
-	(cd $(srcdir) && find . -name '*.links' -exec \
+	@if $(AM_V_P); then set -x; else echo "  RM       $(man_links)"; fi; \
+	(cd $(srcdir) && echo $(man_links) | tr -s '[:space:]' '\n' | xargs -r -n 1 -I {} \
 		sh -c 'xargs -I "#" -n 1 -r sh -c "rm -f $(mandir_ru)/$$(dirname {})/#" < $(srcdir)/{}' \
-		\;)
-	find $(mandir_ru) -type d -empty -exec rmdir {} \;
+		\;); \
+	find $(mandir_ru) -depth -type d -empty -exec rmdir {} \;

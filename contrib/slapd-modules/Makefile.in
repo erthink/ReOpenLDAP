@@ -91,7 +91,6 @@ host_triplet = @host@
 target_triplet = @target@
 @BEHIND_CURTIAN_TRUE@am__append_1 = banner.c
 @SLAPD_DYNACL_TRUE@am__append_2 = contrib-posixgroup.la contrib-gssacl.la
-#cloak/slapo-cloak.5
 
 # LY: Requires an obsolete version of libsnacc and
 # some functions which were removed from slapd few years ago.
@@ -153,7 +152,7 @@ am__uninstall_files_from_dir = { \
     || { echo " ( cd '$$dir' && rm -f" $$files ")"; \
          $(am__cd) "$$dir" && rm -f $$files; }; \
   }
-am__installdirs = "$(DESTDIR)$(pkglibdir)"
+am__installdirs = "$(DESTDIR)$(pkglibdir)" "$(DESTDIR)$(man5dir)"
 LTLIBRARIES = $(pkglib_LTLIBRARIES)
 contrib_addpartial_la_LIBADD =
 am__dirstamp = $(am__leading_dot)dirstamp
@@ -508,6 +507,9 @@ am__can_run_installinfo = \
     n|no|NO) false;; \
     *) (install-info --version) >/dev/null 2>&1;; \
   esac
+man5dir = $(mandir)/man5
+NROFF = nroff
+MANS = $(man5_MANS)
 am__tagged_files = $(HEADERS) $(SOURCES) $(TAGS_FILES) $(LISP)
 # Read a list of newline-separated strings from the standard input,
 # and print each of them once, without duplicates.  Input order is
@@ -748,19 +750,17 @@ top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 valgrind_enabled_tools = @valgrind_enabled_tools@
 valgrind_tools = @valgrind_tools@
-#adremap/slapo-adremap.5
-#allop/slapo-allop.5
-#nops/slapo-nops.5
-#nssov/slapo-nssov.5
 EXTRA_DIST = README acl/README.gssacl acl/README.posixgroup \
-	addpartial/README allop/README allowed/README autogroup/README \
-	$(am__append_3) dsaschema/README kinit/README nssov/README \
-	nssov/ldapns.schema nssov/nss-pam-ldapd/README passwd/README \
-	passwd/apr1-atol.pl passwd/apr1-ltoa.pl passwd/pbkdf2/README \
-	passwd/sha2/README passwd/totp/README proxyOld/README \
-	samba4/README smbk5pwd/README
-#lastbind/slapo-lastbind.5
-#lastmod/slapo-lastmod.5
+	addpartial/README adremap/slapo-adremap.man.in allop/README \
+	allop/slapo-allop.man.in allowed/README autogroup/README \
+	cloak/slapo-cloak.man.in $(am__append_3) dsaschema/README \
+	kinit/README lastbind/slapo-lastbind.man.in \
+	lastmod/slapo-lastmod.man.in nops/slapo-nops.man.in \
+	nssov/README nssov/ldapns.schema nssov/nss-pam-ldapd/README \
+	nssov/slapo-nssov.man.in passwd/README passwd/apr1-atol.pl \
+	passwd/apr1-ltoa.pl passwd/pbkdf2/README passwd/sha2/README \
+	passwd/totp/README proxyOld/README samba4/README \
+	smbk5pwd/README $(man_links)
 pkglib_LTLIBRARIES = $(am__append_2) contrib-addpartial.la \
 	contrib-adremap.la contrib-allop.la contrib-allowed.la \
 	contrib-autogroup.la contrib-cloak.la $(am__append_4) \
@@ -774,6 +774,11 @@ pkglib_LTLIBRARIES = $(am__append_2) contrib-addpartial.la \
 	contrib-trace.la
 AM_CPPFLAGS = -DSLAPD_IMPORT -I$(top_srcdir)/servers/slapd -I$(top_srcdir)/include
 BUILT_SOURCES = $(am__append_1)
+man_links = 
+man5_MANS = adremap/slapo-adremap.man allop/slapo-allop.man \
+	cloak/slapo-cloak.man lastbind/slapo-lastbind.man \
+	lastmod/slapo-lastmod.man nops/slapo-nops.man \
+	nssov/slapo-nssov.man
 @SLAPD_DYNACL_TRUE@contrib_posixgroup_la_LDFLAGS = -module -export-dynamic \
 @SLAPD_DYNACL_TRUE@	-release $(API_LIB_RELEASE) -version-info $(API_LIB_VERSION)
 
@@ -924,11 +929,13 @@ contrib_trace_la_LDFLAGS = -module -export-dynamic \
 	-release $(API_LIB_RELEASE) -version-info $(API_LIB_VERSION)
 
 contrib_trace_la_SOURCES = trace/trace.c banner.c
+MAINT_CHARSET = utf8
+SUFFIXES = .soelim .man.in .man
 all: $(BUILT_SOURCES)
 	$(MAKE) $(AM_MAKEFLAGS) all-am
 
 .SUFFIXES:
-.SUFFIXES: .c .lo .o .obj
+.SUFFIXES: .soelim .man.in .man .c .lo .o .obj
 $(srcdir)/Makefile.in: @MAINTAINER_MODE_TRUE@ $(srcdir)/Makefile.am  $(am__configure_deps)
 	@for dep in $?; do \
 	  case '$(am__configure_deps)' in \
@@ -1692,6 +1699,47 @@ clean-libtool:
 	-rm -rf samba4/.libs samba4/_libs
 	-rm -rf smbk5pwd/.libs smbk5pwd/_libs
 	-rm -rf trace/.libs trace/_libs
+install-man5: $(man5_MANS)
+	@$(NORMAL_INSTALL)
+	@list1='$(man5_MANS)'; \
+	list2=''; \
+	test -n "$(man5dir)" \
+	  && test -n "`echo $$list1$$list2`" \
+	  || exit 0; \
+	echo " $(MKDIR_P) '$(DESTDIR)$(man5dir)'"; \
+	$(MKDIR_P) "$(DESTDIR)$(man5dir)" || exit 1; \
+	{ for i in $$list1; do echo "$$i"; done;  \
+	if test -n "$$list2"; then \
+	  for i in $$list2; do echo "$$i"; done \
+	    | sed -n '/\.5[a-z]*$$/p'; \
+	fi; \
+	} | while read p; do \
+	  if test -f $$p; then d=; else d="$(srcdir)/"; fi; \
+	  echo "$$d$$p"; echo "$$p"; \
+	done | \
+	sed -e 'n;s,.*/,,;p;h;s,.*\.,,;s,^[^5][0-9a-z]*$$,5,;x' \
+	      -e 's,\.[0-9a-z]*$$,,;$(transform);G;s,\n,.,' | \
+	sed 'N;N;s,\n, ,g' | { \
+	list=; while read file base inst; do \
+	  if test "$$base" = "$$inst"; then list="$$list $$file"; else \
+	    echo " $(INSTALL_DATA) '$$file' '$(DESTDIR)$(man5dir)/$$inst'"; \
+	    $(INSTALL_DATA) "$$file" "$(DESTDIR)$(man5dir)/$$inst" || exit $$?; \
+	  fi; \
+	done; \
+	for i in $$list; do echo "$$i"; done | $(am__base_list) | \
+	while read files; do \
+	  test -z "$$files" || { \
+	    echo " $(INSTALL_DATA) $$files '$(DESTDIR)$(man5dir)'"; \
+	    $(INSTALL_DATA) $$files "$(DESTDIR)$(man5dir)" || exit $$?; }; \
+	done; }
+
+uninstall-man5:
+	@$(NORMAL_UNINSTALL)
+	@list='$(man5_MANS)'; test -n "$(man5dir)" || exit 0; \
+	files=`{ for i in $$list; do echo "$$i"; done; \
+	} | sed -e 's,.*/,,;h;s,.*\.,,;s,^[^5][0-9a-z]*$$,5,;x' \
+	      -e 's,\.[0-9a-z]*$$,,;$(transform);G;s,\n,.,'`; \
+	dir='$(DESTDIR)$(man5dir)'; $(am__uninstall_files_from_dir)
 
 ID: $(am__tagged_files)
 	$(am__define_uniq_tagged_files); mkid -fID $$unique
@@ -1778,9 +1826,9 @@ distdir: $(DISTFILES)
 check-am: all-am
 check: $(BUILT_SOURCES)
 	$(MAKE) $(AM_MAKEFLAGS) check-am
-all-am: Makefile $(LTLIBRARIES)
+all-am: Makefile $(LTLIBRARIES) $(MANS)
 installdirs:
-	for dir in "$(DESTDIR)$(pkglibdir)"; do \
+	for dir in "$(DESTDIR)$(pkglibdir)" "$(DESTDIR)$(man5dir)"; do \
 	  test -z "$$dir" || $(MKDIR_P) "$$dir"; \
 	done
 install: $(BUILT_SOURCES)
@@ -1890,8 +1938,9 @@ info: info-am
 
 info-am:
 
-install-data-am:
-
+install-data-am: install-man
+	@$(NORMAL_INSTALL)
+	$(MAKE) $(AM_MAKEFLAGS) install-data-hook
 install-dvi: install-dvi-am
 
 install-dvi-am:
@@ -1906,7 +1955,7 @@ install-info: install-info-am
 
 install-info-am:
 
-install-man:
+install-man: install-man5
 
 install-pdf: install-pdf-am
 
@@ -1936,29 +1985,55 @@ ps: ps-am
 
 ps-am:
 
-uninstall-am: uninstall-pkglibLTLIBRARIES
+uninstall-am: uninstall-man uninstall-pkglibLTLIBRARIES
+	@$(NORMAL_INSTALL)
+	$(MAKE) $(AM_MAKEFLAGS) uninstall-hook
+uninstall-man: uninstall-man5
 
-.MAKE: all check install install-am install-strip
+.MAKE: all check install install-am install-data-am install-strip \
+	uninstall-am
 
 .PHONY: CTAGS GTAGS TAGS all all-am check check-am clean clean-generic \
 	clean-libtool clean-pkglibLTLIBRARIES cscopelist-am ctags \
 	ctags-am distclean distclean-compile distclean-generic \
 	distclean-libtool distclean-tags distdir dvi dvi-am html \
 	html-am info info-am install install-am install-data \
-	install-data-am install-dvi install-dvi-am install-exec \
-	install-exec-am install-html install-html-am install-info \
-	install-info-am install-man install-pdf install-pdf-am \
-	install-pkglibLTLIBRARIES install-ps install-ps-am \
-	install-strip installcheck installcheck-am installdirs \
-	maintainer-clean maintainer-clean-generic mostlyclean \
-	mostlyclean-compile mostlyclean-generic mostlyclean-libtool \
-	pdf pdf-am ps ps-am tags tags-am uninstall uninstall-am \
-	uninstall-pkglibLTLIBRARIES
+	install-data-am install-data-hook install-dvi install-dvi-am \
+	install-exec install-exec-am install-html install-html-am \
+	install-info install-info-am install-man install-man5 \
+	install-pdf install-pdf-am install-pkglibLTLIBRARIES \
+	install-ps install-ps-am install-strip installcheck \
+	installcheck-am installdirs maintainer-clean \
+	maintainer-clean-generic mostlyclean mostlyclean-compile \
+	mostlyclean-generic mostlyclean-libtool pdf pdf-am ps ps-am \
+	tags tags-am uninstall uninstall-am uninstall-hook \
+	uninstall-man uninstall-man5 uninstall-pkglibLTLIBRARIES
 
 .PRECIOUS: Makefile
 
 @BEHIND_CURTIAN_TRUE@banner.c: Makefile
 @BEHIND_CURTIAN_TRUE@	$(MKBANNER) --name contrib_modules --global 'contrib-modules' > $@ || $(RM) $@
+
+.soelim.man.in:
+	@if $(AM_V_P); then set -x; else echo "  SOELIM   $@"; fi; \
+	$(MKDIR_P) $(@D) && $(SOELIM_R) -I $(<D) $< | $(FIXUP_DIST) > $@
+
+.man.in.man:
+	@if $(AM_V_P); then set -x; else echo "  FIXUP    $@"; fi; \
+	$(MKDIR_P) $(@D) && $(FIXUP_DIRS) $< > $@
+
+install-data-hook:
+	@if $(AM_V_P); then set -x; else echo "  LN       $(man_links)"; fi; \
+	(cd $(srcdir) && echo $(man_links) | tr -s '[:space:]' '\n' | xargs -r -n 1 -I {} \
+		sh -c 'xargs -I "#" -n 1 -r sh -c "cd $(mandir_en)/$$(dirname {}) && ln -s -f -T $$(basename {} .links) #" < $(srcdir)/{}' \
+		\;)
+
+uninstall-hook:
+	@if $(AM_V_P); then set -x; else echo "  RM       $(man_links)"; fi; \
+	(cd $(srcdir) && echo $(man_links) | tr -s '[:space:]' '\n' | xargs -r -n 1 -I {} \
+		sh -c 'xargs -I "#" -n 1 -r sh -c "rm -f $(mandir_en)/$$(dirname {})/#" < $(srcdir)/{}' \
+		\;); \
+	find $(mandir) -depth -type d -empty -exec rmdir {} \;
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.

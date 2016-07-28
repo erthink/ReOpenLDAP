@@ -29,6 +29,9 @@ banner.c: Makefile
 	$(MKBANNER) --name contrib_modules --global 'contrib-modules' > $@ || $(RM) $@
 endif
 
+man_links =
+man5_MANS =
+
 EXTRA_DIST += acl/README.gssacl acl/README.posixgroup
 if SLAPD_DYNACL
 pkglib_LTLIBRARIES += contrib-posixgroup.la contrib-gssacl.la
@@ -40,7 +43,7 @@ contrib_gssacl_la_LDFLAGS = -module -export-dynamic \
 contrib_gssacl_la_SOURCES = acl/gssacl.c banner.c
 endif
 
-EXTRA_DIST += addpartial/README
+EXTRA_DIST += addpartial/README adremap/slapo-adremap.man.in
 pkglib_LTLIBRARIES += contrib-addpartial.la
 contrib_addpartial_la_LDFLAGS = -module -export-dynamic \
 	-release $(API_LIB_RELEASE) -version-info $(API_LIB_VERSION)
@@ -50,14 +53,14 @@ pkglib_LTLIBRARIES += contrib-adremap.la
 contrib_adremap_la_LDFLAGS = -module -export-dynamic \
 	-release $(API_LIB_RELEASE) -version-info $(API_LIB_VERSION)
 contrib_adremap_la_SOURCES = adremap/adremap.c banner.c
-#adremap/slapo-adremap.5
+man5_MANS += adremap/slapo-adremap.man
 
-EXTRA_DIST += allop/README
+EXTRA_DIST += allop/README allop/slapo-allop.man.in
 pkglib_LTLIBRARIES += contrib-allop.la
 contrib_allop_la_LDFLAGS = -module -export-dynamic \
 	-release $(API_LIB_RELEASE) -version-info $(API_LIB_VERSION)
 contrib_allop_la_SOURCES = allop/allop.c banner.c
-#allop/slapo-allop.5
+man5_MANS += allop/slapo-allop.man
 
 EXTRA_DIST += allowed/README
 pkglib_LTLIBRARIES += contrib-allowed.la
@@ -71,11 +74,12 @@ contrib_autogroup_la_LDFLAGS = -module -export-dynamic \
 	-release $(API_LIB_RELEASE) -version-info $(API_LIB_VERSION)
 contrib_autogroup_la_SOURCES = autogroup/autogroup.c banner.c
 
+EXTRA_DIST += cloak/slapo-cloak.man.in
 pkglib_LTLIBRARIES += contrib-cloak.la
 contrib_cloak_la_LDFLAGS = -module -export-dynamic \
 	-release $(API_LIB_RELEASE) -version-info $(API_LIB_VERSION)
 contrib_cloak_la_SOURCES = cloak/cloak.c banner.c
-#cloak/slapo-cloak.5
+man5_MANS += cloak/slapo-cloak.man
 
 if CONTRIB_BROKEN
 # LY: Requires an obsolete version of libsnacc and
@@ -119,30 +123,34 @@ contrib_kinit_la_LDFLAGS = -module -export-dynamic \
 contrib_kinit_la_SOURCES = kinit/kinit.c banner.c
 contrib_kinit_la_LIBADD = $(KRB5_LIBS)
 
+EXTRA_DIST += lastbind/slapo-lastbind.man.in
 pkglib_LTLIBRARIES += contrib-lastbind.la
 contrib_lastbind_la_LDFLAGS = -module -export-dynamic \
 	-release $(API_LIB_RELEASE) -version-info $(API_LIB_VERSION)
 contrib_lastbind_la_SOURCES = lastbind/lastbind.c banner.c
-#lastbind/slapo-lastbind.5
+man5_MANS += lastbind/slapo-lastbind.man
 
+EXTRA_DIST += lastmod/slapo-lastmod.man.in
 pkglib_LTLIBRARIES += contrib-lastmod.la
 contrib_lastmod_la_LDFLAGS = -module -export-dynamic \
 	-release $(API_LIB_RELEASE) -version-info $(API_LIB_VERSION)
 contrib_lastmod_la_SOURCES = lastmod/lastmod.c banner.c
-#lastmod/slapo-lastmod.5
+man5_MANS += lastmod/slapo-lastmod.man
 
 pkglib_LTLIBRARIES += contrib-noopsrch.la
 contrib_noopsrch_la_LDFLAGS = -module -export-dynamic \
 	-release $(API_LIB_RELEASE) -version-info $(API_LIB_VERSION)
 contrib_noopsrch_la_SOURCES = noopsrch/noopsrch.c banner.c
 
+EXTRA_DIST += nops/slapo-nops.man.in
 pkglib_LTLIBRARIES += contrib-nops.la
 contrib_nops_la_LDFLAGS = -module -export-dynamic \
 	-release $(API_LIB_RELEASE) -version-info $(API_LIB_VERSION)
 contrib_nops_la_SOURCES = nops/nops.c banner.c
-#nops/slapo-nops.5
+man5_MANS += nops/slapo-nops.man
 
-EXTRA_DIST += nssov/README nssov/ldapns.schema nssov/nss-pam-ldapd/README
+EXTRA_DIST += nssov/README nssov/ldapns.schema \
+	nssov/nss-pam-ldapd/README nssov/slapo-nssov.man.in
 pkglib_LTLIBRARIES += contrib-nssov.la
 contrib_nssov_la_LDFLAGS = -module -export-dynamic \
 	-release $(API_LIB_RELEASE) -version-info $(API_LIB_VERSION)
@@ -153,7 +161,7 @@ contrib_nssov_la_SOURCES = banner.c nssov/alias.c nssov/ether.c nssov/group.c \
 	nssov/nss-pam-ldapd/nslcd.h nssov/nss-pam-ldapd/nslcd-prot.h \
 	nssov/nss-pam-ldapd/tio.c nssov/nss-pam-ldapd/tio.h
 contrib_nssov_la_CFLAGS = -Wno-error=address -I$(srcdir)/nssov/nss-pam-ldapd
-#nssov/slapo-nssov.5
+man5_MANS += nssov/slapo-nssov.man
 
 EXTRA_DIST += passwd/README \
 	passwd/apr1-atol.pl passwd/apr1-ltoa.pl
@@ -240,3 +248,29 @@ pkglib_LTLIBRARIES += contrib-trace.la
 contrib_trace_la_LDFLAGS = -module -export-dynamic \
 	-release $(API_LIB_RELEASE) -version-info $(API_LIB_VERSION)
 contrib_trace_la_SOURCES = trace/trace.c banner.c
+
+
+MAINT_CHARSET = utf8
+SUFFIXES = .soelim .man.in .man
+EXTRA_DIST += $(man_links)
+
+.soelim.man.in:
+	@if $(AM_V_P); then set -x; else echo "  SOELIM   $@"; fi; \
+	$(MKDIR_P) $(@D) && $(SOELIM_R) -I $(<D) $< | $(FIXUP_DIST) > $@
+
+.man.in.man:
+	@if $(AM_V_P); then set -x; else echo "  FIXUP    $@"; fi; \
+	$(MKDIR_P) $(@D) && $(FIXUP_DIRS) $< > $@
+
+install-data-hook:
+	@if $(AM_V_P); then set -x; else echo "  LN       $(man_links)"; fi; \
+	(cd $(srcdir) && echo $(man_links) | tr -s '[:space:]' '\n' | xargs -r -n 1 -I {} \
+		sh -c 'xargs -I "#" -n 1 -r sh -c "cd $(mandir_en)/$$(dirname {}) && ln -s -f -T $$(basename {} .links) #" < $(srcdir)/{}' \
+		\;)
+
+uninstall-hook:
+	@if $(AM_V_P); then set -x; else echo "  RM       $(man_links)"; fi; \
+	(cd $(srcdir) && echo $(man_links) | tr -s '[:space:]' '\n' | xargs -r -n 1 -I {} \
+		sh -c 'xargs -I "#" -n 1 -r sh -c "rm -f $(mandir_en)/$$(dirname {})/#" < $(srcdir)/{}' \
+		\;); \
+	find $(mandir) -depth -type d -empty -exec rmdir {} \;
