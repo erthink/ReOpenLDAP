@@ -47,11 +47,11 @@ typedef int (*MODULE_LOAD_FN)(
 	const char *filename);
 typedef int (*MODULE_TERM_FN)(void);
 
-typedef struct module {
+struct module {
 	struct module *next;
 	lt_dlhandle lib;
 	char name[1];
-} module_t;
+};
 
 module_t *module_list = NULL;
 
