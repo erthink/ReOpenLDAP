@@ -216,7 +216,7 @@ int txn_end_extop(
 		rc = LDAP_SUCCESS;;
 	}
 
-drain:
+/*drain:*/
 	/* drain txn ops list */
 
 settled:
