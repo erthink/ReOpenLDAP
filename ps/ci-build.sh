@@ -68,7 +68,7 @@ flag_asan=0
 flag_tsan=0
 flag_hide=1
 flag_dynamic=1
-flag_exper=1
+flag_exper=0
 flag_contrib=1
 flag_slapi=1
 
