@@ -508,7 +508,7 @@ const struct berval sha384scheme = BER_BVC("{SHA384}");
 const struct berval ssha512scheme = BER_BVC("{SSHA512}");
 const struct berval sha512scheme = BER_BVC("{SHA512}");
 
-SLAP_OVERLAY_ENTRY(pw_sha2, modinit) ( int argc, char *argv[] )
+SLAP_MODULE_ENTRY(pw_sha2, modinit) ( int argc, char *argv[] )
 {
 	int result = 0;
 	result = lutil_passwd_add( (struct berval *)&ssha256scheme, chk_ssha256, hash_ssha256 );

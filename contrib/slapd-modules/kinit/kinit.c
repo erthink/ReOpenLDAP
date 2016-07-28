@@ -255,7 +255,7 @@ kinit_initialize(void)
 	return rc;
 }
 
-SLAP_OVERLAY_ENTRY(kinit, modinit) (int argc, char *argv[])
+SLAP_MODULE_ENTRY(kinit, modinit) (int argc, char *argv[])
 {
 	if (argc > 0) {
 		principal = ch_strdup(argv[0]);
@@ -269,7 +269,7 @@ SLAP_OVERLAY_ENTRY(kinit, modinit) (int argc, char *argv[])
 	return kinit_initialize();
 }
 
-SLAP_OVERLAY_ENTRY(kinit, modterm) (void)
+SLAP_MODULE_ENTRY(kinit, modterm) (void)
 {
 	if (principal)
 		ch_free(principal);

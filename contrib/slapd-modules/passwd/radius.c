@@ -133,12 +133,12 @@ done:;
 	return rc;
 }
 
-SLAP_OVERLAY_ENTRY(pw_radius, modterm)
+SLAP_MODULE_ENTRY(pw_radius, modterm)
 {
 	return ldap_pvt_thread_mutex_destroy( &libradius_mutex );
 }
 
-SLAP_OVERLAY_ENTRY(pw_radius, modinit) (int argc, char *argv[])
+SLAP_MODULE_ENTRY(pw_radius, modinit) (int argc, char *argv[])
 {
 	int	i;
 

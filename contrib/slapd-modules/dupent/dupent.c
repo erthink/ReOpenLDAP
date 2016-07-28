@@ -556,7 +556,7 @@ dupent_initialize( void )
 	return overlay_register( &dupent );
 }
 
-SLAP_OVERLAY_ENTRY(dupent, modinit) ( int argc, char *argv[] )
+SLAP_MODULE_ENTRY(dupent, modinit) ( int argc, char *argv[] )
 {
 	return dupent_initialize();
 }

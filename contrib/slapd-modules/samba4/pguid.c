@@ -465,7 +465,7 @@ pguid_initialize(void)
 	return overlay_register( &pguid );
 }
 
-SLAP_OVERLAY_ENTRY(pguid, modinit) ( int argc, char *argv[] )
+SLAP_MODULE_ENTRY(pguid, modinit) ( int argc, char *argv[] )
 {
 	return pguid_initialize();
 }

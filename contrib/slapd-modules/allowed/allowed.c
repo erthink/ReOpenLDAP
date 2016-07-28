@@ -461,7 +461,7 @@ aa_initialize( void )
 	return overlay_register( &aa );
 }
 
-SLAP_OVERLAY_ENTRY(allowed, modinit) ( int argc, char *argv[] )
+SLAP_MODULE_ENTRY(allowed, modinit) ( int argc, char *argv[] )
 {
 	return aa_initialize();
 }

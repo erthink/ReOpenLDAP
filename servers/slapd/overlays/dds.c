@@ -1951,7 +1951,7 @@ dds_over_initialize()
 }
 
 #if SLAPD_OVER_DDS == SLAPD_MOD_DYNAMIC
-SLAP_OVERLAY_ENTRY(dds, modinit) ( int argc, char *argv[] )
+SLAP_MODULE_ENTRY(dds, modinit) ( int argc, char *argv[] )
 {
 	int	rc, i;
 

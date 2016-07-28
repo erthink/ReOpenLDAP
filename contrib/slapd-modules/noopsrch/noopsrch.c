@@ -254,7 +254,7 @@ noopsrch_initialize( void )
 	return overlay_register( &noopsrch );
 }
 
-SLAP_OVERLAY_ENTRY(noopsrch, modinit) ( int argc, char *argv[] )
+SLAP_MODULE_ENTRY(noopsrch, modinit) ( int argc, char *argv[] )
 {
 	return noopsrch_initialize();
 }

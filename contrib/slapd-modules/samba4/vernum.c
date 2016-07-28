@@ -460,7 +460,7 @@ vernum_initialize(void)
 	return overlay_register( &vernum );
 }
 
-SLAP_OVERLAY_ENTRY(vernum, modinit) ( int argc, char *argv[] )
+SLAP_MODULE_ENTRY(vernum, modinit) ( int argc, char *argv[] )
 {
 	return vernum_initialize();
 }

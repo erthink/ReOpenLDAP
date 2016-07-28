@@ -330,7 +330,7 @@ static struct slap_dynacl_t gssattr_dynacl = {
 	gssattr_dynacl_destroy
 };
 
-SLAP_OVERLAY_ENTRY(gssacl, modinit) ( int argc, char *argv[] )
+SLAP_MODULE_ENTRY(gssacl, modinit) ( int argc, char *argv[] )
 {
 	return slap_dynacl_register( &gssattr_dynacl );
 }

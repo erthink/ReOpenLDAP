@@ -266,7 +266,7 @@ denyop_initialize( void )
 	return overlay_register( &denyop );
 }
 
-SLAP_OVERLAY_ENTRY(denyop, modinit) ( int argc, char *argv[] )
+SLAP_MODULE_ENTRY(denyop, modinit) ( int argc, char *argv[] )
 {
 	return denyop_initialize();
 }

@@ -803,7 +803,7 @@ extern test_membership_func* is_aliased_attribute;
 extern get_component_info_func* get_component_description;
 extern component_encoder_func* component_encoder;
 
-SLAP_OVERLAY_ENTRY(compmatch, modinit) ( int argc, char *argv[] )
+SLAP_MODULE_ENTRY(compmatch, modinit) ( int argc, char *argv[] )
 {
 	/*
 	 * Initialize function pointers in slapd

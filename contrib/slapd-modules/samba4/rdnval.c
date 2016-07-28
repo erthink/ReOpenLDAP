@@ -662,7 +662,7 @@ rdnval_initialize(void)
 	return overlay_register( &rdnval );
 }
 
-SLAP_OVERLAY_ENTRY(rdnval, modinit) ( int argc, char *argv[] )
+SLAP_MODULE_ENTRY(rdnval, modinit) ( int argc, char *argv[] )
 {
 	return rdnval_initialize();
 }

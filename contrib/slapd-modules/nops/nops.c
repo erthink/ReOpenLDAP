@@ -179,7 +179,7 @@ nops_initialize( void ) {
 	return overlay_register( &nops_ovl );
 }
 
-SLAP_OVERLAY_ENTRY(nops, modinit) ( int argc, char *argv[] )
+SLAP_MODULE_ENTRY(nops, modinit) ( int argc, char *argv[] )
 {
 	return nops_initialize();
 }

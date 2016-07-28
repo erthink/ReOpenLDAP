@@ -1178,7 +1178,7 @@ smbk5pwd_initialize(void)
 	return overlay_register( &smbk5pwd );
 }
 
-SLAP_OVERLAY_ENTRY(smbk5pwd, modinit) ( int argc, char *argv[] )
+SLAP_MODULE_ENTRY(smbk5pwd, modinit) ( int argc, char *argv[] )
 {
 	return smbk5pwd_initialize();
 }

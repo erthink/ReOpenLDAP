@@ -246,7 +246,7 @@ static int hash_bsdmd5(
 	return hash_phk(scheme, &magic_bsdmd5, passwd, hash, text);
 }
 
-SLAP_OVERLAY_ENTRY(pw_arp1, modinit) ( int argc, char *argv[] )
+SLAP_MODULE_ENTRY(pw_arp1, modinit) ( int argc, char *argv[] )
 {
 	int rc;
 	rc = lutil_passwd_add((struct berval *) &scheme_apr1, chk_apr1, hash_apr1);

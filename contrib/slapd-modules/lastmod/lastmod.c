@@ -968,7 +968,7 @@ lastmod_initialize()
 	return overlay_register( &lastmod );
 }
 
-SLAP_OVERLAY_ENTRY(lastmod, modinit) ( int argc, char *argv[] )
+SLAP_MODULE_ENTRY(lastmod, modinit) ( int argc, char *argv[] )
 {
 	return lastmod_initialize();
 }

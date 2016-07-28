@@ -95,7 +95,7 @@ static int chk_ns_mta_md5(
 		(char *)buffer, sizeof(buffer)) ? LUTIL_PASSWD_ERR : LUTIL_PASSWD_OK;
 }
 
-SLAP_OVERLAY_ENTRY(pw_netscape, modinit) ( int argc, char *argv[] )
+SLAP_MODULE_ENTRY(pw_netscape, modinit) ( int argc, char *argv[] )
 {
 	return lutil_passwd_add( (struct berval *)&scheme, chk_ns_mta_md5, NULL );
 }

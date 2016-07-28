@@ -264,7 +264,7 @@ trace_initialize()
 	return overlay_register( &trace );
 }
 
-SLAP_OVERLAY_ENTRY(trace, modinit) ( int argc, char *argv[] )
+SLAP_MODULE_ENTRY(trace, modinit) ( int argc, char *argv[] )
 {
 	return trace_initialize();
 }

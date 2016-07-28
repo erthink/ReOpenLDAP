@@ -655,7 +655,7 @@ adremap_initialize()
 	return overlay_register( &adremap );
 }
 
-SLAP_OVERLAY_ENTRY(adremap, modinit) ( int argc, char *argv[] )
+SLAP_MODULE_ENTRY(adremap, modinit) ( int argc, char *argv[] )
 {
 	return adremap_initialize();
 }

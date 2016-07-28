@@ -442,7 +442,7 @@ static int pbkdf2_check(
 	return rc?LUTIL_PASSWD_ERR:LUTIL_PASSWD_OK;
 }
 
-SLAP_OVERLAY_ENTRY(pw_pbkdf2, modinit) ( int argc, char *argv[] )
+SLAP_MODULE_ENTRY(pw_pbkdf2, modinit) ( int argc, char *argv[] )
 {
 	int rc;
 	rc = lutil_passwd_add((struct berval *)&pbkdf2_scheme,

@@ -186,7 +186,7 @@ static int chk_kerberos(
 	return rtn;
 }
 
-SLAP_OVERLAY_ENTRY(pw_kerberos, modinit) ( int argc, char *argv[] )
+SLAP_MODULE_ENTRY(pw_kerberos, modinit) ( int argc, char *argv[] )
 {
 	return lutil_passwd_add( (struct berval *)&scheme, chk_kerberos, NULL );
 }

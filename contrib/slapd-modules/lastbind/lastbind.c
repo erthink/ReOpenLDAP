@@ -284,7 +284,7 @@ lastbind_initialize()
 	return overlay_register( &lastbind );
 }
 
-SLAP_OVERLAY_ENTRY(lastbind, modinit) ( int argc, char *argv[] )
+SLAP_MODULE_ENTRY(lastbind, modinit) ( int argc, char *argv[] )
 {
 	return lastbind_initialize();
 }

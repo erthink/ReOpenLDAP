@@ -356,7 +356,7 @@ cloak_initialize( void ) {
 	return overlay_register( &cloak_ovl );
 }
 
-SLAP_OVERLAY_ENTRY(cloak, modinit) ( int argc, char *argv[] )
+SLAP_MODULE_ENTRY(cloak, modinit) ( int argc, char *argv[] )
 {
 	return cloak_initialize();
 }
