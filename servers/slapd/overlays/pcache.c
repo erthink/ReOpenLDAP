@@ -5484,7 +5484,7 @@ pcache_monitor_free(
 	const char	*text;
 	char		textbuf[ SLAP_TEXT_BUFLEN ];
 
-	int		rc;
+	int		rc MAY_UNUSED;
 
 	/* NOTE: if slap_shutdown != 0, priv might have already been freed */
 	*priv = NULL;
@@ -5586,8 +5586,7 @@ pcache_monitor_db_open( BackendDB *be )
 		if ( warning++ == 0 ) {
 			Debug( LDAP_DEBUG_ANY, "pcache_monitor_db_open: "
 				"monitoring disabled; "
-				"configure monitor database to enable\n",
-				0, 0, 0 );
+				"configure monitor database to enable\n" );
 		}
 
 		return 0;
