@@ -67,7 +67,7 @@ void *module_resolve( const module_t* module, const char *item )
 		return(NULL);
 
 	const char* file_basename = safe_basename(module->name);
-	int len = strcspn(file_basename, ".<>?;:'\"[]{}`~!@#%^&*()-=\\|		");
+	int len = strcspn(file_basename, ".<>?;:'\"[]{}`~!@#%^&*()=\\|		");
 	if (len < 1 || len > 32) {
 		Debug( LDAP_DEBUG_ANY, "module_resolve: (%s) invalid module name\n",
 			file_basename );
@@ -76,6 +76,12 @@ void *module_resolve( const module_t* module, const char *item )
 
 	snprintf(entry, sizeof(entry), "%.*s_ReOpenLDAP_%s",
 		len, file_basename, item);
+
+	char *hyphen;
+	for ( hyphen = entry; *hyphen; ++hyphen ) {
+		if ( *hyphen == '-' )
+			*hyphen = '_';
+	}
 
 	return lt_dlsym(((module_t *)module)->lib, entry);
 }
