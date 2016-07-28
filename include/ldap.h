@@ -1383,8 +1383,9 @@ ldap_result2error LDAP_P((
 LDAP_F( void )
 ldap_perror LDAP_P((
 	LDAP *ld,
-	LDAP_CONST char *s )) __reldap_deprecated_msg("use ldap_err2string");
+	LDAP_CONST char *s )) __reldap_deprecated_msg("use ldap_err2string or ldap_debug_perror");
 
+LDAP_F(void) ldap_debug_perror( LDAP *ld, LDAP_CONST char *str );
 
 /*
  * gssapi.c:

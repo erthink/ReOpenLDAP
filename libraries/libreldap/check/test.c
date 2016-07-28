@@ -398,7 +398,7 @@ main( int argc, char **argv )
 				    "value? " )) == NULL )
 					break;
 				if ( (id = ldap_add( ld, dn, attrs )) == -1 )
-					ldap_perror( ld, "ldap_add" );
+					ldap_debug_perror( ld, "ldap_add" );
 				else
 					printf( "Add initiated with id %d\n",
 					    id );
@@ -408,7 +408,7 @@ main( int argc, char **argv )
 				get_line( line, sizeof(line), stdin, "msgid? " );
 				id = atoi( line );
 				if ( ldap_abandon( ld, id ) != 0 )
-					ldap_perror( ld, "ldap_abandon" );
+					ldap_debug_perror( ld, "ldap_abandon" );
 				else
 					printf( "Abandon successful\n" );
 				break;
@@ -430,7 +430,7 @@ main( int argc, char **argv )
 
 			if ( ldap_bind( ld, dn, passwd, method ) == -1 ) {
 				fprintf( stderr, "ldap_bind failed\n" );
-				ldap_perror( ld, "ldap_bind" );
+				ldap_debug_perror( ld, "ldap_bind" );
 			} else {
 				printf( "Bind initiated\n" );
 				bound = 1;
@@ -451,7 +451,7 @@ main( int argc, char **argv )
 			if ( ldap_bind_s( ld, dn, passwd, method ) !=
 			    LDAP_SUCCESS ) {
 				fprintf( stderr, "ldap_bind_s failed\n" );
-				ldap_perror( ld, "ldap_bind_s" );
+				ldap_debug_perror( ld, "ldap_bind_s" );
 			} else {
 				printf( "Bind successful\n" );
 				bound = 1;
@@ -465,7 +465,7 @@ main( int argc, char **argv )
 			get_line( value, sizeof(value), stdin, "value? " );
 
 			if ( (id = ldap_compare( ld, dn, attr, value )) == -1 )
-				ldap_perror( ld, "ldap_compare" );
+				ldap_debug_perror( ld, "ldap_compare" );
 			else
 				printf( "Compare initiated with id %d\n", id );
 			break;
@@ -512,7 +512,7 @@ main( int argc, char **argv )
 				    == NULL )
 					break;
 				if ( (id = ldap_modify( ld, dn, mods )) == -1 )
-					ldap_perror( ld, "ldap_modify" );
+					ldap_debug_perror( ld, "ldap_modify" );
 				else
 					printf( "Modify initiated with id %d\n",
 					    id );
@@ -521,7 +521,7 @@ main( int argc, char **argv )
 				strcat( dn, dnsuffix );
 				get_line( rdn, sizeof(rdn), stdin, "newrdn? " );
 				if ( (id = ldap_modrdn( ld, dn, rdn )) == -1 )
-					ldap_perror( ld, "ldap_modrdn" );
+					ldap_debug_perror( ld, "ldap_modrdn" );
 				else
 					printf( "Modrdn initiated with id %d\n",
 					    id );
@@ -552,7 +552,7 @@ main( int argc, char **argv )
 					all = atoi( line );
 				if (( msgtype = ldap_result( ld, id, all,
 				    &timeout, &res )) < 1 ) {
-					ldap_perror( ld, "ldap_result" );
+					ldap_debug_perror( ld, "ldap_result" );
 					break;
 				}
 				printf( "\nresult: msgtype %d msgid %d\n",
@@ -565,7 +565,7 @@ main( int argc, char **argv )
 				get_line( dn, sizeof(dn), stdin, "dn? " );
 				strcat( dn, dnsuffix );
 				if ( (id = ldap_delete( ld, dn )) == -1 )
-					ldap_perror( ld, "ldap_delete" );
+					ldap_debug_perror( ld, "ldap_delete" );
 				else
 					printf( "Remove initiated with id %d\n",
 					    id );
@@ -592,7 +592,7 @@ main( int argc, char **argv )
 
 			    if (( id = ldap_search( ld, dn, scope, filter,
 				    types, attrsonly  )) == -1 ) {
-				ldap_perror( ld, "ldap_search" );
+				ldap_debug_perror( ld, "ldap_search" );
 			    } else {
 				printf( "Search initiated with id %d\n", id );
 			    }
@@ -743,7 +743,7 @@ static void
 print_ldap_result( LDAP *ld, LDAPMessage *lm, const char *s )
 {
 	ldap_result2error( ld, lm, 1 );
-	ldap_perror( ld, s );
+	ldap_debug_perror( ld, s );
 /*
 	if ( ld->ld_error != NULL && *ld->ld_error != '\0' )
 		fprintf( stderr, "Additional info: %s\n", ld->ld_error );
