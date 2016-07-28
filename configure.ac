@@ -588,7 +588,7 @@ if test $ol_enable_contrib != no; then
 		AC_MSG_ERROR([slapd disabled, therefore --enable-contrib unavailable ])
 	else
 		if test $ol_enable_modules = no; then
-			AC_MSG_WARN([dynamic modules disabled, therefore contrib-overlays unavailable ])
+			AC_MSG_ERROR([dynamic modules disabled, therefore contrib-overlays unavailable ])
 		fi
 		if test $ol_enable_slapi = no; then
 			AC_MSG_WARN([SLAPI disabled, therefore slapi contrib-pluginus unavailable ])
@@ -597,10 +597,20 @@ if test $ol_enable_contrib != no; then
 			AC_MSG_WARN([dynamic ACL disabled, therefore acl contrib-pluginus unavailable ])
 		fi
 	fi
-	PKG_CHECK_MODULES(HEIMDAL, heimdal-krb5 heimdal-kadm-server)
+
+	if test $ol_enable_contrib = broken -a $ol_enable_experimental != yes; then
+		AC_MSG_WARN([experimental features disabled, therefore broken-contrib-modules unavailable ])
+	fi
+
+	PKG_CHECK_MODULES(HEIMDAL, heimdal-krb5 heimdal-kadm-server, heimdal_found=yes, heimdal_found=no)
+	if test $heimdal_found != yes; then
+		AC_MSG_WARN([$HEIMDAL_PKG_ERRORS, therefore depended contrib-modules unavailable ])
+	fi
+
 	AC_SUBST(HEIMDAL_LIBS)
 	AC_SUBST(HEIMDAL_CFLAGS)
 fi
+AM_CONDITIONAL([HEIMDAL_AVAIL], [test "$heimdal_found" = yes])
 
 if test $ol_enable_slapd != no ; then
 	be=

@@ -872,6 +872,8 @@ ax_pthread_config
 PERLBIN
 KRB5_LIBS
 KRB5_CFLAGS
+HEIMDAL_AVAIL_FALSE
+HEIMDAL_AVAIL_TRUE
 HEIMDAL_LIBS
 HEIMDAL_CFLAGS
 LTDLOPEN
@@ -13107,7 +13109,7 @@ VERSION_PATCH=2
 
 RELEASE_DATE=2016-07-28
 
-RELEASE_STAMP=gefc4f8a7bb2f-tbd3d06bfd3f33e8f
+RELEASE_STAMP=g87d7b8e90410-td6ca264555ffb5ac
 
 API_LIB_RELEASE=1.1
 
@@ -21358,8 +21360,7 @@ if test $ol_enable_contrib != no; then
 		as_fn_error $? "slapd disabled, therefore --enable-contrib unavailable " "$LINENO" 5
 	else
 		if test $ol_enable_modules = no; then
-			{ $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: dynamic modules disabled, therefore contrib-overlays unavailable " >&5
-$as_echo "$as_me: WARNING: dynamic modules disabled, therefore contrib-overlays unavailable " >&2;}
+			as_fn_error $? "dynamic modules disabled, therefore contrib-overlays unavailable " "$LINENO" 5
 		fi
 		if test $ol_enable_slapi = no; then
 			{ $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: SLAPI disabled, therefore slapi contrib-pluginus unavailable " >&5
@@ -21370,6 +21371,12 @@ $as_echo "$as_me: WARNING: SLAPI disabled, therefore slapi contrib-pluginus unav
 $as_echo "$as_me: WARNING: dynamic ACL disabled, therefore acl contrib-pluginus unavailable " >&2;}
 		fi
 	fi
+
+	if test $ol_enable_contrib = broken -a $ol_enable_experimental != yes; then
+		{ $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: experimental features disabled, therefore broken-contrib-modules unavailable " >&5
+$as_echo "$as_me: WARNING: experimental features disabled, therefore broken-contrib-modules unavailable " >&2;}
+	fi
+
 
 pkg_failed=no
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for HEIMDAL" >&5
@@ -21429,41 +21436,34 @@ fi
 	# Put the nasty error message in config.log where it belongs
 	echo "$HEIMDAL_PKG_ERRORS" >&5
 
-	as_fn_error $? "Package requirements (heimdal-krb5 heimdal-kadm-server) were not met:
-
-$HEIMDAL_PKG_ERRORS
-
-Consider adjusting the PKG_CONFIG_PATH environment variable if you
-installed software in a non-standard prefix.
-
-Alternatively, you may set the environment variables HEIMDAL_CFLAGS
-and HEIMDAL_LIBS to avoid the need to call pkg-config.
-See the pkg-config man page for more details." "$LINENO" 5
+	heimdal_found=no
 elif test $pkg_failed = untried; then
      	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
-	{ { $as_echo "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
-$as_echo "$as_me: error: in \`$ac_pwd':" >&2;}
-as_fn_error $? "The pkg-config script could not be found or is too old.  Make sure it
-is in your PATH or set the PKG_CONFIG environment variable to the full
-path to pkg-config.
-
-Alternatively, you may set the environment variables HEIMDAL_CFLAGS
-and HEIMDAL_LIBS to avoid the need to call pkg-config.
-See the pkg-config man page for more details.
-
-To get pkg-config, see <http://pkg-config.freedesktop.org/>.
-See \`config.log' for more details" "$LINENO" 5; }
+	heimdal_found=no
 else
 	HEIMDAL_CFLAGS=$pkg_cv_HEIMDAL_CFLAGS
 	HEIMDAL_LIBS=$pkg_cv_HEIMDAL_LIBS
         { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
 $as_echo "yes" >&6; }
+	heimdal_found=yes
+fi
+	if test $heimdal_found != yes; then
+		{ $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: $HEIMDAL_PKG_ERRORS, therefore depended contrib-modules unavailable " >&5
+$as_echo "$as_me: WARNING: $HEIMDAL_PKG_ERRORS, therefore depended contrib-modules unavailable " >&2;}
+	fi
+
+
 
 fi
-
-
+ if test "$heimdal_found" = yes; then
+  HEIMDAL_AVAIL_TRUE=
+  HEIMDAL_AVAIL_FALSE='#'
+else
+  HEIMDAL_AVAIL_TRUE='#'
+  HEIMDAL_AVAIL_FALSE=
 fi
+
 
 if test $ol_enable_slapd != no ; then
 	be=
@@ -34037,6 +34037,10 @@ LT_CONFIG_H=reldap_autoconf.h
     ltdl_LTLIBOBJS=$_ltdl_ltlibobjs
 
 
+if test -z "${HEIMDAL_AVAIL_TRUE}" && test -z "${HEIMDAL_AVAIL_FALSE}"; then
+  as_fn_error $? "conditional \"HEIMDAL_AVAIL\" was never defined.
+Usually this means the macro was only invoked conditionally." "$LINENO" 5
+fi
 
 if test -z "${BEHIND_CURTIAN_TRUE}" && test -z "${BEHIND_CURTIAN_FALSE}"; then
   as_fn_error $? "conditional \"BEHIND_CURTIAN\" was never defined.

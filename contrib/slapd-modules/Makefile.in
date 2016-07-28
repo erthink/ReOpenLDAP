@@ -100,8 +100,11 @@ target_triplet = @target@
 @CONTRIB_BROKEN_TRUE@@LDAP_EXPERIMENTAL_TRUE@	comp_match/authorityKeyIdentifier.asn comp_match/certificate.asn1
 
 @CONTRIB_BROKEN_TRUE@@LDAP_EXPERIMENTAL_TRUE@am__append_4 = contrib-compmatch.la
+@HEIMDAL_AVAIL_TRUE@am__append_5 = contrib-pw-kerberos.la
+
 # LY: Requires an obsolete RADIUS-client library
-@CONTRIB_BROKEN_TRUE@am__append_5 = contrib-pw-radius.la
+@CONTRIB_BROKEN_TRUE@am__append_6 = contrib-pw-radius.la
+@HEIMDAL_AVAIL_TRUE@am__append_7 = contrib-smbk5pwd.la
 subdir = contrib/slapd-modules
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/build/m4/ax_pthread.m4 \
@@ -340,14 +343,19 @@ contrib_pw_apr1_la_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC \
 	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CCLD) \
 	$(AM_CFLAGS) $(CFLAGS) $(contrib_pw_apr1_la_LDFLAGS) \
 	$(LDFLAGS) -o $@
-contrib_pw_kerberos_la_DEPENDENCIES = $(am__DEPENDENCIES_1)
-am_contrib_pw_kerberos_la_OBJECTS = contrib_pw_kerberos_la-banner.lo \
-	passwd/contrib_pw_kerberos_la-kerberos.lo
+@HEIMDAL_AVAIL_TRUE@contrib_pw_kerberos_la_DEPENDENCIES =  \
+@HEIMDAL_AVAIL_TRUE@	$(am__DEPENDENCIES_1)
+am__contrib_pw_kerberos_la_SOURCES_DIST = banner.c passwd/kerberos.c
+@HEIMDAL_AVAIL_TRUE@am_contrib_pw_kerberos_la_OBJECTS =  \
+@HEIMDAL_AVAIL_TRUE@	contrib_pw_kerberos_la-banner.lo \
+@HEIMDAL_AVAIL_TRUE@	passwd/contrib_pw_kerberos_la-kerberos.lo
 contrib_pw_kerberos_la_OBJECTS = $(am_contrib_pw_kerberos_la_OBJECTS)
 contrib_pw_kerberos_la_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC \
 	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CCLD) \
 	$(contrib_pw_kerberos_la_CFLAGS) $(CFLAGS) \
 	$(contrib_pw_kerberos_la_LDFLAGS) $(LDFLAGS) -o $@
+@HEIMDAL_AVAIL_TRUE@am_contrib_pw_kerberos_la_rpath = -rpath \
+@HEIMDAL_AVAIL_TRUE@	$(pkglibdir)
 contrib_pw_netscape_la_LIBADD =
 am_contrib_pw_netscape_la_OBJECTS = banner.lo passwd/netscape.lo
 contrib_pw_netscape_la_OBJECTS = $(am_contrib_pw_netscape_la_OBJECTS)
@@ -395,14 +403,18 @@ contrib_rdnval_la_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC \
 	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CCLD) \
 	$(AM_CFLAGS) $(CFLAGS) $(contrib_rdnval_la_LDFLAGS) $(LDFLAGS) \
 	-o $@
-contrib_smbk5pwd_la_DEPENDENCIES = $(am__DEPENDENCIES_1)
-am_contrib_smbk5pwd_la_OBJECTS = contrib_smbk5pwd_la-banner.lo \
-	smbk5pwd/contrib_smbk5pwd_la-smbk5pwd.lo
+@HEIMDAL_AVAIL_TRUE@contrib_smbk5pwd_la_DEPENDENCIES =  \
+@HEIMDAL_AVAIL_TRUE@	$(am__DEPENDENCIES_1)
+am__contrib_smbk5pwd_la_SOURCES_DIST = banner.c smbk5pwd/smbk5pwd.c
+@HEIMDAL_AVAIL_TRUE@am_contrib_smbk5pwd_la_OBJECTS =  \
+@HEIMDAL_AVAIL_TRUE@	contrib_smbk5pwd_la-banner.lo \
+@HEIMDAL_AVAIL_TRUE@	smbk5pwd/contrib_smbk5pwd_la-smbk5pwd.lo
 contrib_smbk5pwd_la_OBJECTS = $(am_contrib_smbk5pwd_la_OBJECTS)
 contrib_smbk5pwd_la_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC \
 	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CCLD) \
 	$(contrib_smbk5pwd_la_CFLAGS) $(CFLAGS) \
 	$(contrib_smbk5pwd_la_LDFLAGS) $(LDFLAGS) -o $@
+@HEIMDAL_AVAIL_TRUE@am_contrib_smbk5pwd_la_rpath = -rpath $(pkglibdir)
 contrib_trace_la_LIBADD =
 am_contrib_trace_la_OBJECTS = trace/trace.lo banner.lo
 contrib_trace_la_OBJECTS = $(am_contrib_trace_la_OBJECTS)
@@ -483,12 +495,13 @@ DIST_SOURCES = $(contrib_addpartial_la_SOURCES) \
 	$(contrib_pguid_la_SOURCES) \
 	$(am__contrib_posixgroup_la_SOURCES_DIST) \
 	$(contrib_proxyOld_la_SOURCES) $(contrib_pw_apr1_la_SOURCES) \
-	$(contrib_pw_kerberos_la_SOURCES) \
+	$(am__contrib_pw_kerberos_la_SOURCES_DIST) \
 	$(contrib_pw_netscape_la_SOURCES) \
 	$(contrib_pw_pbkdf2_la_SOURCES) \
 	$(am__contrib_pw_radius_la_SOURCES_DIST) \
 	$(contrib_pw_sha2_la_SOURCES) $(contrib_pw_totp_la_SOURCES) \
-	$(contrib_rdnval_la_SOURCES) $(contrib_smbk5pwd_la_SOURCES) \
+	$(contrib_rdnval_la_SOURCES) \
+	$(am__contrib_smbk5pwd_la_SOURCES_DIST) \
 	$(contrib_trace_la_SOURCES) $(contrib_vernum_la_SOURCES)
 am__can_run_installinfo = \
   case $$AM_UPDATE_INFO_DIR in \
@@ -754,11 +767,11 @@ pkglib_LTLIBRARIES = $(am__append_2) contrib-addpartial.la \
 	contrib-denyop.la contrib-dsaschema.la contrib-dupent.la \
 	contrib-kinit.la contrib-lastbind.la contrib-lastmod.la \
 	contrib-noopsrch.la contrib-nops.la contrib-nssov.la \
-	contrib-pw-kerberos.la contrib-pw-netscape.la \
-	contrib-pw-apr1.la $(am__append_5) contrib-pw-pbkdf2.la \
-	contrib-pw-sha2.la contrib-pw-totp.la contrib-proxyOld.la \
-	contrib-pguid.la contrib-rdnval.la contrib-vernum.la \
-	contrib-smbk5pwd.la contrib-trace.la
+	contrib-pw-apr1.la $(am__append_5) contrib-pw-netscape.la \
+	$(am__append_6) contrib-pw-pbkdf2.la contrib-pw-sha2.la \
+	contrib-pw-totp.la contrib-proxyOld.la contrib-pguid.la \
+	contrib-rdnval.la contrib-vernum.la $(am__append_7) \
+	contrib-trace.la
 AM_CPPFLAGS = -DSLAPD_IMPORT -I$(top_srcdir)/servers/slapd -I$(top_srcdir)/include
 BUILT_SOURCES = $(am__append_1)
 @SLAPD_DYNACL_TRUE@contrib_posixgroup_la_LDFLAGS = -module -export-dynamic \
@@ -851,11 +864,11 @@ contrib_pw_apr1_la_SOURCES = banner.c passwd/apr1.c
 contrib_pw_apr1_la_LDFLAGS = -module -export-dynamic \
 	-release $(API_LIB_RELEASE) -version-info $(API_LIB_VERSION)
 
-contrib_pw_kerberos_la_SOURCES = banner.c passwd/kerberos.c
-contrib_pw_kerberos_la_CFLAGS = -Wno-deprecated-declarations $(HEIMDAL_CFLAGS)
-contrib_pw_kerberos_la_LIBADD = $(HEIMDAL_LIBS)
-contrib_pw_kerberos_la_LDFLAGS = -module -export-dynamic \
-	-release $(API_LIB_RELEASE) -version-info $(API_LIB_VERSION)
+@HEIMDAL_AVAIL_TRUE@contrib_pw_kerberos_la_SOURCES = banner.c passwd/kerberos.c
+@HEIMDAL_AVAIL_TRUE@contrib_pw_kerberos_la_CFLAGS = -Wno-deprecated-declarations $(HEIMDAL_CFLAGS)
+@HEIMDAL_AVAIL_TRUE@contrib_pw_kerberos_la_LIBADD = $(HEIMDAL_LIBS)
+@HEIMDAL_AVAIL_TRUE@contrib_pw_kerberos_la_LDFLAGS = -module -export-dynamic \
+@HEIMDAL_AVAIL_TRUE@	-release $(API_LIB_RELEASE) -version-info $(API_LIB_VERSION)
 
 contrib_pw_netscape_la_SOURCES = banner.c passwd/netscape.c
 contrib_pw_netscape_la_LDFLAGS = -module -export-dynamic \
@@ -898,14 +911,14 @@ contrib_vernum_la_LDFLAGS = -module -export-dynamic \
 	-release $(API_LIB_RELEASE) -version-info $(API_LIB_VERSION)
 
 contrib_vernum_la_SOURCES = samba4/vernum.c banner.c
-contrib_smbk5pwd_la_LDFLAGS = -module -export-dynamic \
-	-release $(API_LIB_RELEASE) -version-info $(API_LIB_VERSION)
+@HEIMDAL_AVAIL_TRUE@contrib_smbk5pwd_la_LDFLAGS = -module -export-dynamic \
+@HEIMDAL_AVAIL_TRUE@	-release $(API_LIB_RELEASE) -version-info $(API_LIB_VERSION)
 
-contrib_smbk5pwd_la_SOURCES = banner.c smbk5pwd/smbk5pwd.c
-contrib_smbk5pwd_la_LIBADD = $(HEIMDAL_LIBS)
+@HEIMDAL_AVAIL_TRUE@contrib_smbk5pwd_la_SOURCES = banner.c smbk5pwd/smbk5pwd.c
+@HEIMDAL_AVAIL_TRUE@contrib_smbk5pwd_la_LIBADD = $(HEIMDAL_LIBS)
 # Omit DO_KRB5, DO_SAMBA or DO_SHADOW if you don't want to support it.
-contrib_smbk5pwd_la_CFLAGS = -DDO_KRB5 -DDO_SAMBA -DDO_SHADOW \
-	-Wno-deprecated-declarations $(HEIMDAL_CFLAGS)
+@HEIMDAL_AVAIL_TRUE@contrib_smbk5pwd_la_CFLAGS = -DDO_KRB5 -DDO_SAMBA -DDO_SHADOW \
+@HEIMDAL_AVAIL_TRUE@	-Wno-deprecated-declarations $(HEIMDAL_CFLAGS)
 
 contrib_trace_la_LDFLAGS = -module -export-dynamic \
 	-release $(API_LIB_RELEASE) -version-info $(API_LIB_VERSION)
@@ -1250,7 +1263,7 @@ passwd/contrib_pw_kerberos_la-kerberos.lo: passwd/$(am__dirstamp) \
 	passwd/$(DEPDIR)/$(am__dirstamp)
 
 contrib-pw-kerberos.la: $(contrib_pw_kerberos_la_OBJECTS) $(contrib_pw_kerberos_la_DEPENDENCIES) $(EXTRA_contrib_pw_kerberos_la_DEPENDENCIES) 
-	$(AM_V_CCLD)$(contrib_pw_kerberos_la_LINK) -rpath $(pkglibdir) $(contrib_pw_kerberos_la_OBJECTS) $(contrib_pw_kerberos_la_LIBADD) $(LIBS)
+	$(AM_V_CCLD)$(contrib_pw_kerberos_la_LINK) $(am_contrib_pw_kerberos_la_rpath) $(contrib_pw_kerberos_la_OBJECTS) $(contrib_pw_kerberos_la_LIBADD) $(LIBS)
 passwd/netscape.lo: passwd/$(am__dirstamp) \
 	passwd/$(DEPDIR)/$(am__dirstamp)
 
@@ -1311,7 +1324,7 @@ smbk5pwd/contrib_smbk5pwd_la-smbk5pwd.lo: smbk5pwd/$(am__dirstamp) \
 	smbk5pwd/$(DEPDIR)/$(am__dirstamp)
 
 contrib-smbk5pwd.la: $(contrib_smbk5pwd_la_OBJECTS) $(contrib_smbk5pwd_la_DEPENDENCIES) $(EXTRA_contrib_smbk5pwd_la_DEPENDENCIES) 
-	$(AM_V_CCLD)$(contrib_smbk5pwd_la_LINK) -rpath $(pkglibdir) $(contrib_smbk5pwd_la_OBJECTS) $(contrib_smbk5pwd_la_LIBADD) $(LIBS)
+	$(AM_V_CCLD)$(contrib_smbk5pwd_la_LINK) $(am_contrib_smbk5pwd_la_rpath) $(contrib_smbk5pwd_la_OBJECTS) $(contrib_smbk5pwd_la_LIBADD) $(LIBS)
 trace/$(am__dirstamp):
 	@$(MKDIR_P) trace
 	@: > trace/$(am__dirstamp)

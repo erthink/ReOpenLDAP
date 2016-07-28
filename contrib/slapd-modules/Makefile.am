@@ -157,18 +157,25 @@ contrib_nssov_la_CFLAGS = -Wno-error=address -I$(srcdir)/nssov/nss-pam-ldapd
 
 EXTRA_DIST += passwd/README \
 	passwd/apr1-atol.pl passwd/apr1-ltoa.pl
-pkglib_LTLIBRARIES += contrib-pw-kerberos.la contrib-pw-netscape.la contrib-pw-apr1.la
+pkglib_LTLIBRARIES += contrib-pw-apr1.la
 contrib_pw_apr1_la_SOURCES = banner.c passwd/apr1.c
 contrib_pw_apr1_la_LDFLAGS = -module -export-dynamic \
 	-release $(API_LIB_RELEASE) -version-info $(API_LIB_VERSION)
+
+if HEIMDAL_AVAIL
+pkglib_LTLIBRARIES += contrib-pw-kerberos.la
 contrib_pw_kerberos_la_SOURCES = banner.c passwd/kerberos.c
 contrib_pw_kerberos_la_CFLAGS = -Wno-deprecated-declarations $(HEIMDAL_CFLAGS)
 contrib_pw_kerberos_la_LIBADD = $(HEIMDAL_LIBS)
 contrib_pw_kerberos_la_LDFLAGS = -module -export-dynamic \
 	-release $(API_LIB_RELEASE) -version-info $(API_LIB_VERSION)
+endif
+
+pkglib_LTLIBRARIES += contrib-pw-netscape.la
 contrib_pw_netscape_la_SOURCES = banner.c passwd/netscape.c
 contrib_pw_netscape_la_LDFLAGS = -module -export-dynamic \
 	-release $(API_LIB_RELEASE) -version-info $(API_LIB_VERSION)
+
 if CONTRIB_BROKEN
 # LY: Requires an obsolete RADIUS-client library
 pkglib_LTLIBRARIES += contrib-pw-radius.la
@@ -218,6 +225,7 @@ contrib_vernum_la_LDFLAGS = -module -export-dynamic \
 contrib_vernum_la_SOURCES = samba4/vernum.c banner.c
 
 EXTRA_DIST += smbk5pwd/README
+if HEIMDAL_AVAIL
 pkglib_LTLIBRARIES += contrib-smbk5pwd.la
 contrib_smbk5pwd_la_LDFLAGS = -module -export-dynamic \
 	-release $(API_LIB_RELEASE) -version-info $(API_LIB_VERSION)
@@ -226,6 +234,7 @@ contrib_smbk5pwd_la_LIBADD = $(HEIMDAL_LIBS)
 # Omit DO_KRB5, DO_SAMBA or DO_SHADOW if you don't want to support it.
 contrib_smbk5pwd_la_CFLAGS = -DDO_KRB5 -DDO_SAMBA -DDO_SHADOW \
 	-Wno-deprecated-declarations $(HEIMDAL_CFLAGS)
+endif
 
 pkglib_LTLIBRARIES += contrib-trace.la
 contrib_trace_la_LDFLAGS = -module -export-dynamic \
