@@ -40,8 +40,13 @@ API_AGE=10
 VERSION="${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH_LEVEL}"
 VERSION_NUMBER=$(bc <<< "${VERSION_MAJOR} * 10000 + ${VERSION_MINOR} * 100 + ${VERSION_PATCH_LEVEL}")
 
-RELEASE_DATE="$(date --date=@$(git show -s --format='%ct' HEAD) -u --iso-8601)"
-RELEASE_STAMP="g$(git show -s --abbrev=12 --format=%h HEAD)-t$(git show -s --abbrev=16 --format=%t HEAD)"
+function RELEASE_DATE_CMD {
+	date --date=@$(git show -s --format=%ct HEAD) -u --iso-8601
+}
+
+function RELEASE_STAMP_CMD {
+	echo "g$(git show -s --abbrev=12 --format=%h HEAD)-t$(git show -s --abbrev=16 --format=%t HEAD)"
+}
 
 PACKAGE_TITLE="${PACKAGE} ${VERSION}-${RELEASE_TYPE}"
 PACKAGE_CAPTION=$(tr [:upper:] [:lower:] <<< "${PACKAGE}-${VERSION}-${RELEASE_TYPE}")
@@ -57,8 +62,8 @@ if [ $# = 0 ]; then
 	echo "***********************************************************************"
 	echo "PACKAGE	= ${PACKAGE_TITLE}"
 	echo "VERSION	= ${API_LIB_VERSION} / ${VERSION_NUMBER}"
-	echo "DATE	= ${RELEASE_DATE}"
-	echo "STAMP	= ${RELEASE_STAMP}"
+	echo "DATE	= $(RELEASE_DATE_CMD)"
+	echo "STAMP	= $(RELEASE_STAMP_CMD)"
 	echo "WHOWHERE= ${WHOWHERE}"
 	echo "***********************************************************************"
 else
@@ -101,10 +106,10 @@ else
 				echo "$VERSION_PATCH_LEVEL"
 				shift ;;
 			--date)
-				echo "$RELEASE_DATE"
+				echo "$(RELEASE_DATE_CMD)"
 				shift ;;
 			--stamp)
-				echo "$RELEASE_STAMP"
+				echo "$(RELEASE_STAMP_CMD)"
 				shift ;;
 			--api)
 				echo "$API_LIB_RELEASE"
