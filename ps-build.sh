@@ -230,8 +230,7 @@ if [ $flag_dist -ne 0 ]; then
 	[ -s Makefile ] || CFLAGS=-std=gnu99 ./configure || failure "configure dist"
 	make dist || failure "make dist"
 	dist=$(ls *.tar.* | sed 's/^\(.\+\)\.tar\..\+$/\1/g')
-	[ -n "$dist" ] && tar xaf *.tar.* || failure "untar dist"
-	echo "tar caf $FILE $dist"
+	[ -n "$dist" ] && tar xaf *.tar.* && rm *.tar.* || failure "untar dist"
 	tar caf $FILE $dist || failure "tar dist"
 	SUBDIR=$dist
 	[ -d "$SUBDIR" ] && cd "$SUBDIR" || failure "chdir dist"
@@ -438,7 +437,7 @@ make -k || failure "build"
 step_finish "build reopenldap"
 ##############################################################################
 step_begin "install"
-make -k install || failure "install"
+make -k install && cd $HERE || failure "install"
 step_finish "install"
 ##############################################################################
 step_begin "sweep"
