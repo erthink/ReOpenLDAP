@@ -1,7 +1,7 @@
 TOTP ReOpenLDAP support
 ----------------------
 
-slapd-totp.c provides support for RFC 6238 TOTP Time-based One
+contrib-pw-totp.c provides support for RFC 6238 TOTP Time-based One
 Time Passwords in ReOpenLDAP using SHA-1, SHA-256, and SHA-512.
 For instance, one could have the LDAP attribute:
 
@@ -13,16 +13,17 @@ which encodes the key '12345678901234567890'.
 Building
 --------
 
-1) Customize the LDAP_SRC variable in Makefile to point to the ReOpenLDAP
+1) configure --enable-modules --enable-contrib
+Customize the LDAP_SRC variable in Makefile to point to the ReOpenLDAP
 source root.
 
-2) Run 'make' to produce slapd-totp.so
+2) Run 'make' to produce contrib-pw-totp.so
 
-3) Copy slapd-totp.so somewhere permanent.
+3) Run 'make install'
 
 4) Edit your slapd.conf (eg. /etc/ldap/slapd.conf), and add:
 
-moduleload ...path/to/slapd-sha2.so
+moduleload contrib-pw-totp.so
 
 5) This module replaces the function of the slapo-lastbind overlay. You
 cannot use that overlay on the same database as this one.

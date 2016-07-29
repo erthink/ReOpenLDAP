@@ -1269,6 +1269,7 @@ extern pthread_mutex_t slap_sync_cookie_mutex;
 LDAP_SLAPD_V( struct slap_sync_cookie_s ) slap_sync_cookie;
 LDAP_SLAPD_V( void * ) slap_tls_ctx;
 LDAP_SLAPD_V( LDAP * ) slap_tls_ld;
+LDAP_SLAPD_F(void) slap_set_debug_level(int mask);
 
 /*
  * index.c
@@ -1406,7 +1407,7 @@ LDAP_SLAPD_F (int) lock_fclose LDAP_P(( FILE *fp, FILE *lfp ));
 LDAP_SLAPD_F (int)
 parse_debug_level LDAP_P(( const char *arg, int *levelp, char ***unknowns ));
 LDAP_SLAPD_F (int)
-parse_syslog_level LDAP_P(( const char *arg, int *levelp ));
+parse_syslog_severity LDAP_P(( const char *arg, int *severity ));
 LDAP_SLAPD_F (int)
 parse_syslog_user LDAP_P(( const char *arg, int *syslogUser ));
 LDAP_SLAPD_F (int)
@@ -1738,24 +1739,31 @@ LDAP_SLAPD_F (int) get_alias_dn LDAP_P((
 /*
  * result.c
  */
-#if USE_RS_ASSERT /*defined(USE_RS_ASSERT)?(USE_RS_ASSERT):defined(LDAP_TEST)*/
-#ifdef __GNUC__
-# define RS_FUNC_	__FUNCTION__
-#elif defined(__STDC_VERSION__) && (__STDC_VERSION__) >= 199901L
-# define RS_FUNC_	__func__
-#else
-# define rs_assert_(file, line, func, cond) rs_assert__(file, line, cond)
+#ifndef USE_RS_ASSERT
+#	define USE_RS_ASSERT LDAP_CHECK
 #endif
-LDAP_SLAPD_V(int)  rs_suppress_assert;
+
+#if USE_RS_ASSERT
+#	ifdef __GNUC__
+#		define RS_FUNC_	__FUNCTION__
+#	elif defined(__STDC_VERSION__) && (__STDC_VERSION__) >= 199901L
+#		define RS_FUNC_	__func__
+#	else
+#		define rs_assert_(file, line, func, cond) rs_assert__(file, line, cond)
+#	endif /* __GNUC__ */
+
 LDAP_SLAPD_F(void) rs_assert_(const char*, unsigned, const char*, const char*);
-# define RS_ASSERT(cond)		((rs_suppress_assert > 0 || (cond)) \
-	? (void) 0 : rs_assert_(__FILE__, __LINE__, RS_FUNC_, #cond))
+#	define RS_ASSERT(cond) do { \
+		if (reopenldap_mode_check() && unlikely(!(cond))) \
+			rs_assert_(__FILE__, __LINE__, RS_FUNC_, #cond); \
+	} while(0)
 #else
-# define RS_ASSERT(cond)		((void) 0)
-# define rs_assert_ok(rs)		((void) (rs))
-# define rs_assert_ready(rs)	((void) (rs))
-# define rs_assert_done(rs)		((void) (rs))
-#endif
+#	define RS_ASSERT(cond)		((void) 0)
+#	define rs_assert_ok(rs)		((void) (rs))
+#	define rs_assert_ready(rs)	((void) (rs))
+#	define rs_assert_done(rs)	((void) (rs))
+#endif /* USE_RS_ASSERT */
+
 LDAP_SLAPD_F (void) (rs_assert_ok)		LDAP_P(( const SlapReply *rs ));
 LDAP_SLAPD_F (void) (rs_assert_ready)	LDAP_P(( const SlapReply *rs ));
 LDAP_SLAPD_F (void) (rs_assert_done)	LDAP_P(( const SlapReply *rs ));
@@ -2209,7 +2217,6 @@ LDAP_SLAPD_V (char *)	global_realm;
 LDAP_SLAPD_V (char *)	sasl_host;
 LDAP_SLAPD_V (char *)	slap_sasl_auxprops;
 LDAP_SLAPD_V (char **)	default_passwd_hash;
-LDAP_SLAPD_V (int)		ldap_syslog;
 LDAP_SLAPD_V (struct berval)	default_search_base;
 LDAP_SLAPD_V (struct berval)	default_search_nbase;
 

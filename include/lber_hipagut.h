@@ -26,22 +26,21 @@
 #include <stddef.h>
 #include <ldap_cdefs.h>
 
-#if defined(LDAP_MEMORY_TRACE) && !defined(LDAP_MEMORY_DEBUG)
-#	define LDAP_MEMORY_DEBUG 1
-#	define HIPAGUT_ASSERT_CHECK 1
-#endif
-
+/* LDAP_MEMORY_DEBUG - control checking/debugging of memory allocation:
+ *  = 0	- completely disabled;
+ *  = 1 - enabled in code, but by default disabled in run time,
+ *		  e.g. may be enabled by 'reopenldap idkfa'
+ *        or REOPENLDAP_FORCE_IDKFA in environment;
+ *  = 2 - enabled in code and always enabled in run time;
+ *  = 3 - enabled, moreover provide memory usage statistics
+ *        via LBER_OPT_MEMORY_INUSE.
+ */
 #ifndef LDAP_MEMORY_DEBUG
-#	ifdef LDAP_DEBUG
-#		define LDAP_MEMORY_DEBUG 1
-#		define HIPAGUT_ASSERT_CHECK 1
-#	else
-#		define LDAP_MEMORY_DEBUG 0
-#	endif
+#	define LDAP_MEMORY_DEBUG 0
 #endif
 
 /* ----------------------------------------------------------------------------
- * LY: Originally calles "Hipagut" = sister in law, nurse
+ * LY: Originally (in 1Hippeus) calles "Hipagut" = sister in law, nurse
  * (Tagalog language, Philippines). */
 
 LDAP_BEGIN_DECL
@@ -155,7 +154,7 @@ LBER_F(int) lber_hug_probe_link LDAP_P((
 		lber_hug_throw(#master "~" #base "[" #offset "]"); \
     while (0)
 
-#if HIPAGUT_ASSERT_CHECK
+#if LDAP_MEMORY_DEBUG > 0
 #   define LBER_HUG_ASSERT(gizmo, label, tag)  \
 		LBER_HUG_ENSURE(gizmo, label, tag)
 #   define LBER_HUG_ASSERT_ASIDE(base, label, tag, offset) \
@@ -173,19 +172,23 @@ LBER_F(int) lber_hug_probe_link LDAP_P((
 		do {} while (0)
 #   define LBER_HUG_ASSERT_LINK_ASIDE(base, master, offset) \
 		do {} while (0)
-#endif /* HIPAGUT_ASSERT_CHECK */
-
-#define LBER_HUG_DISABLED 0xfea51b1eu /* feasible */
-LBER_V(unsigned) lber_hug_nasty_disabled;
+#endif /* LDAP_MEMORY_DEBUG > 0 */
 
 /* -------------------------------------------------------------------------- */
 
 #if LDAP_MEMORY_DEBUG > 0
 
+#define LBER_HUG_DISABLED 0xfea51b1eu /* feasible */
+#if LDAP_MEMORY_DEBUG == 1
+LBER_V(unsigned) lber_hug_nasty_disabled;
+#else
+#	define lber_hug_nasty_disabled 0
+#endif /* LDAP_MEMORY_DEBUG == 1 */
+
 LBER_V(unsigned) lber_hug_memchk_poison_alloc;
 LBER_V(unsigned) lber_hug_memchk_poison_free;
-LBER_V(unsigned) lber_hug_memchk_trace_disabled;
 
+#if LDAP_MEMORY_DEBUG > 2
 struct _lber_hug_memchk_info {
 	volatile size_t mi_inuse_bytes;
 	volatile size_t mi_inuse_chunks;
@@ -193,6 +196,7 @@ struct _lber_hug_memchk_info {
 };
 
 LBER_V(struct _lber_hug_memchk_info) lber_hug_memchk_info;
+#endif /* LDAP_MEMORY_DEBUG > 2 */
 
 struct lber_hug_memchk {
 	LBER_HUG_DECLARE(hm_guard_head);

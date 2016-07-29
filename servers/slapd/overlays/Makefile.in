@@ -141,6 +141,7 @@ target_triplet = @target@
 subdir = servers/slapd/overlays
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/build/m4/ax_pthread.m4 \
+	$(top_srcdir)/build/m4/ax_valgrind_check.m4 \
 	$(top_srcdir)/build/m4/libtool.m4 \
 	$(top_srcdir)/build/m4/ltargz.m4 \
 	$(top_srcdir)/build/m4/ltdl.m4 \
@@ -579,18 +580,24 @@ ECHO_C = @ECHO_C@
 ECHO_N = @ECHO_N@
 ECHO_T = @ECHO_T@
 EGREP = @EGREP@
+ENABLE_VALGRIND_drd = @ENABLE_VALGRIND_drd@
+ENABLE_VALGRIND_helgrind = @ENABLE_VALGRIND_helgrind@
+ENABLE_VALGRIND_memcheck = @ENABLE_VALGRIND_memcheck@
+ENABLE_VALGRIND_sgcheck = @ENABLE_VALGRIND_sgcheck@
 EXEEXT = @EXEEXT@
 FGREP = @FGREP@
 FIXUP_DIRS = @FIXUP_DIRS@
 FIXUP_DIST = @FIXUP_DIST@
 GREP = @GREP@
+HEIMDAL_CFLAGS = @HEIMDAL_CFLAGS@
+HEIMDAL_LIBS = @HEIMDAL_LIBS@
 INCLTDL = @INCLTDL@
 INSTALL = @INSTALL@
 INSTALL_DATA = @INSTALL_DATA@
 INSTALL_PROGRAM = @INSTALL_PROGRAM@
 INSTALL_SCRIPT = @INSTALL_SCRIPT@
 INSTALL_STRIP_PROGRAM = @INSTALL_STRIP_PROGRAM@
-KRB4_LIBS = @KRB4_LIBS@
+KRB5_CFLAGS = @KRB5_CFLAGS@
 KRB5_LIBS = @KRB5_LIBS@
 LD = @LD@
 LDAP_LIBLUNICODE_LA = @LDAP_LIBLUNICODE_LA@
@@ -683,6 +690,8 @@ SQL_INCLUDES = @SQL_INCLUDES@
 SQL_LIBS = @SQL_LIBS@
 STRIP = @STRIP@
 TLS_LIBS = @TLS_LIBS@
+VALGRIND = @VALGRIND@
+VALGRIND_ENABLED = @VALGRIND_ENABLED@
 VERSION = @VERSION@
 VERSION_MAJOR = @VERSION_MAJOR@
 VERSION_MINOR = @VERSION_MINOR@
@@ -691,7 +700,6 @@ VERSION_PATCH = @VERSION_PATCH@
 WITH_ACI_ENABLED = @WITH_ACI_ENABLED@
 WITH_SASL = @WITH_SASL@
 WITH_TLS = @WITH_TLS@
-WRAP_LIBS = @WRAP_LIBS@
 abs_builddir = @abs_builddir@
 abs_srcdir = @abs_srcdir@
 abs_top_builddir = @abs_top_builddir@
@@ -755,6 +763,8 @@ target_vendor = @target_vendor@
 top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
+valgrind_enabled_tools = @valgrind_enabled_tools@
+valgrind_tools = @valgrind_tools@
 noinst_LTLIBRARIES = liboverlays_builtin.la
 pkglib_LTLIBRARIES = $(am__append_2) $(am__append_4) $(am__append_6) \
 	$(am__append_8) $(am__append_10) $(am__append_12) \
@@ -1295,45 +1305,45 @@ uninstall-am: uninstall-pkglibLTLIBRARIES
 @BEHIND_CURTIAN_TRUE@	unique_banner.c
 
 @BEHIND_CURTIAN_TRUE@accesslog_banner.c: Makefile
-@BEHIND_CURTIAN_TRUE@	$(MKBANNER) --name overlay_accesslog --global 'overlay-accesslog' > $@
+@BEHIND_CURTIAN_TRUE@	$(MKBANNER) --name overlay_accesslog --global 'overlay-accesslog' > $@ || $(RM) $@
 @BEHIND_CURTIAN_TRUE@auditlog_banner.c: Makefile
-@BEHIND_CURTIAN_TRUE@	$(MKBANNER) --name overlay_auditlog --global 'overlay-auditlog' > $@
+@BEHIND_CURTIAN_TRUE@	$(MKBANNER) --name overlay_auditlog --global 'overlay-auditlog' > $@ || $(RM) $@
 @BEHIND_CURTIAN_TRUE@collect_banner.c: Makefile
-@BEHIND_CURTIAN_TRUE@	$(MKBANNER) --name overlay_collect --global 'overlay-collect' > $@
+@BEHIND_CURTIAN_TRUE@	$(MKBANNER) --name overlay_collect --global 'overlay-collect' > $@ || $(RM) $@
 @BEHIND_CURTIAN_TRUE@valsort_banner.c: Makefile
-@BEHIND_CURTIAN_TRUE@	$(MKBANNER) --name overlay_valsort --global 'overlay-valsort' > $@
+@BEHIND_CURTIAN_TRUE@	$(MKBANNER) --name overlay_valsort --global 'overlay-valsort' > $@ || $(RM) $@
 @BEHIND_CURTIAN_TRUE@constraint_banner.c: Makefile
-@BEHIND_CURTIAN_TRUE@	$(MKBANNER) --name overlay_constraint --global 'overlay-constraint' > $@
+@BEHIND_CURTIAN_TRUE@	$(MKBANNER) --name overlay_constraint --global 'overlay-constraint' > $@ || $(RM) $@
 @BEHIND_CURTIAN_TRUE@dds_banner.c: Makefile
-@BEHIND_CURTIAN_TRUE@	$(MKBANNER) --name overlay_dds --global 'overlay-dds' > $@
+@BEHIND_CURTIAN_TRUE@	$(MKBANNER) --name overlay_dds --global 'overlay-dds' > $@ || $(RM) $@
 @BEHIND_CURTIAN_TRUE@deref_banner.c: Makefile
-@BEHIND_CURTIAN_TRUE@	$(MKBANNER) --name overlay_deref --global 'overlay-deref' > $@
+@BEHIND_CURTIAN_TRUE@	$(MKBANNER) --name overlay_deref --global 'overlay-deref' > $@ || $(RM) $@
 @BEHIND_CURTIAN_TRUE@dyngroup_banner.c: Makefile
-@BEHIND_CURTIAN_TRUE@	$(MKBANNER) --name overlay_dyngroup --global 'overlay-dyngroup' > $@
+@BEHIND_CURTIAN_TRUE@	$(MKBANNER) --name overlay_dyngroup --global 'overlay-dyngroup' > $@ || $(RM) $@
 @BEHIND_CURTIAN_TRUE@dynlist_banner.c: Makefile
-@BEHIND_CURTIAN_TRUE@	$(MKBANNER) --name overlay_dynlist --global 'overlay-dynlist' > $@
+@BEHIND_CURTIAN_TRUE@	$(MKBANNER) --name overlay_dynlist --global 'overlay-dynlist' > $@ || $(RM) $@
 @BEHIND_CURTIAN_TRUE@memberof_banner.c: Makefile
-@BEHIND_CURTIAN_TRUE@	$(MKBANNER) --name overlay_memberof --global 'overlay-memberof' > $@
+@BEHIND_CURTIAN_TRUE@	$(MKBANNER) --name overlay_memberof --global 'overlay-memberof' > $@ || $(RM) $@
 @BEHIND_CURTIAN_TRUE@ppolicy_banner.c: Makefile
-@BEHIND_CURTIAN_TRUE@	$(MKBANNER) --name overlay_ppolicy --global 'overlay-ppolicy' > $@
+@BEHIND_CURTIAN_TRUE@	$(MKBANNER) --name overlay_ppolicy --global 'overlay-ppolicy' > $@ || $(RM) $@
 @BEHIND_CURTIAN_TRUE@pcache_banner.c: Makefile
-@BEHIND_CURTIAN_TRUE@	$(MKBANNER) --name overlay_pcache --global 'overlay-pcache' > $@
+@BEHIND_CURTIAN_TRUE@	$(MKBANNER) --name overlay_pcache --global 'overlay-pcache' > $@ || $(RM) $@
 @BEHIND_CURTIAN_TRUE@refint_banner.c: Makefile
-@BEHIND_CURTIAN_TRUE@	$(MKBANNER) --name overlay_refint --global 'overlay-refint' > $@
+@BEHIND_CURTIAN_TRUE@	$(MKBANNER) --name overlay_refint --global 'overlay-refint' > $@ || $(RM) $@
 @BEHIND_CURTIAN_TRUE@retcode_banner.c: Makefile
-@BEHIND_CURTIAN_TRUE@	$(MKBANNER) --name overlay_retcode --global 'overlay-retcode' > $@
+@BEHIND_CURTIAN_TRUE@	$(MKBANNER) --name overlay_retcode --global 'overlay-retcode' > $@ || $(RM) $@
 @BEHIND_CURTIAN_TRUE@rwm_banner.c: Makefile
-@BEHIND_CURTIAN_TRUE@	$(MKBANNER) --name overlay_rwm --global 'overlay-rwm' > $@
+@BEHIND_CURTIAN_TRUE@	$(MKBANNER) --name overlay_rwm --global 'overlay-rwm' > $@ || $(RM) $@
 @BEHIND_CURTIAN_TRUE@seqmod_banner.c: Makefile
-@BEHIND_CURTIAN_TRUE@	$(MKBANNER) --name overlay_seqmod --global 'overlay-seqmod' > $@
+@BEHIND_CURTIAN_TRUE@	$(MKBANNER) --name overlay_seqmod --global 'overlay-seqmod' > $@ || $(RM) $@
 @BEHIND_CURTIAN_TRUE@sssvlv_banner.c: Makefile
-@BEHIND_CURTIAN_TRUE@	$(MKBANNER) --name overlay_sssvlv --global 'overlay-sssvlv' > $@
+@BEHIND_CURTIAN_TRUE@	$(MKBANNER) --name overlay_sssvlv --global 'overlay-sssvlv' > $@ || $(RM) $@
 @BEHIND_CURTIAN_TRUE@syncprov_banner.c: Makefile
-@BEHIND_CURTIAN_TRUE@	$(MKBANNER) --name overlay_syncprov --global 'overlay-syncprov' > $@
+@BEHIND_CURTIAN_TRUE@	$(MKBANNER) --name overlay_syncprov --global 'overlay-syncprov' > $@ || $(RM) $@
 @BEHIND_CURTIAN_TRUE@translucent_banner.c: Makefile
-@BEHIND_CURTIAN_TRUE@	$(MKBANNER) --name overlay_translucent --global 'overlay-translucent' > $@
+@BEHIND_CURTIAN_TRUE@	$(MKBANNER) --name overlay_translucent --global 'overlay-translucent' > $@ || $(RM) $@
 @BEHIND_CURTIAN_TRUE@unique_banner.c: Makefile
-@BEHIND_CURTIAN_TRUE@	$(MKBANNER) --name overlay_unique --global 'overlay-unique' > $@
+@BEHIND_CURTIAN_TRUE@	$(MKBANNER) --name overlay_unique --global 'overlay-unique' > $@ || $(RM) $@
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.

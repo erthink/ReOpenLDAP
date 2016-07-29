@@ -851,13 +851,12 @@ bdb_back_initialize(
 	return rc;
 }
 
-#if	(SLAPD_BDB == SLAPD_MOD_DYNAMIC && !defined(BDB_HIER)) || \
-	(SLAPD_HDB == SLAPD_MOD_DYNAMIC && defined(BDB_HIER))
-
 #ifdef BDB_HIER
-SLAP_BACKEND_INIT_MODULE( hdb )
-#else /* !BDB_HIER */
-SLAP_BACKEND_INIT_MODULE( bdb )
-#endif /* !BDB_HIER */
-
-#endif /* SLAPD_[BH]DB == SLAPD_MOD_DYNAMIC */
+#	if SLAPD_HDB == SLAPD_MOD_DYNAMIC
+		SLAP_BACKEND_INIT_MODULE( hdb )
+#	endif
+#else
+#	if SLAPD_BDB == SLAPD_MOD_DYNAMIC
+		SLAP_BACKEND_INIT_MODULE( bdb )
+#	endif
+#endif /* BDB_HIER */

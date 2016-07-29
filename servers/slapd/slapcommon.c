@@ -65,13 +65,13 @@ static FILE *leakfile;
 
 static LDIFFP dummy;
 
-#if defined(LDAP_SYSLOG) && defined(LDAP_DEBUG)
+#if LDAP_SYSLOG
 int start_syslog;
 static char **syslog_unknowns;
 #ifdef LOG_LOCAL4
 static int syslogUser = SLAP_DEFAULT_SYSLOG_USER;
 #endif /* LOG_LOCAL4 */
-#endif /* LDAP_DEBUG && LDAP_SYSLOG */
+#endif /* LDAP_SYSLOG */
 
 static void
 usage( int tool, const char *progname )
@@ -188,15 +188,15 @@ parse_slapopt( int tool, int *mode )
 	} else if ( strncasecmp( optarg, "authzDN", len ) == 0 ) {
 		ber_str2bv( p, 0, 1, &authzDN );
 
-#if defined(LDAP_SYSLOG) && defined(LDAP_DEBUG)
+#ifdef LDAP_SYSLOG
 	} else if ( strncasecmp( optarg, "syslog", len ) == 0 ) {
-		if ( parse_debug_level( p, &ldap_syslog, &syslog_unknowns ) ) {
+		if ( parse_debug_level( p, &slap_syslog_mask, &syslog_unknowns ) ) {
 			return -1;
 		}
 		start_syslog = 1;
 
-	} else if ( strncasecmp( optarg, "syslog-level", len ) == 0 ) {
-		if ( parse_syslog_level( p, &ldap_syslog_level ) ) {
+	} else if ( strncasecmp( optarg, "syslog-severity", len ) == 0 ) {
+		if ( parse_syslog_severity( p, &slap_syslog_severity ) ) {
 			return -1;
 		}
 		start_syslog = 1;
@@ -208,7 +208,7 @@ parse_slapopt( int tool, int *mode )
 		}
 		start_syslog = 1;
 #endif /* LOG_LOCAL4 */
-#endif /* LDAP_DEBUG && LDAP_SYSLOG */
+#endif /* LDAP_SYSLOG */
 
 	} else if ( strncasecmp( optarg, "schema-check", len ) == 0 ) {
 		switch ( tool ) {
@@ -304,13 +304,9 @@ slap_tool_init(
 	int use_glue = 1;
 	int writer;
 
-#ifdef LDAP_DEBUG
-	/* tools default to "none", so that at least LDAP_DEBUG_ANY
-	 * messages show up; use -d 0 to reset */
-	slap_debug = LDAP_DEBUG_NONE;
-	ldif_debug = slap_debug;
-#endif
-	ldap_syslog = 0;
+#ifdef LDAP_SYSLOG
+	slap_syslog_mask = 0;
+#endif /* LDAP_SYSLOG */
 
 #ifdef CSRIMALLOC
 	leakfilename = malloc( strlen( progname ) + STRLENOF( ".leak" ) + 1 );
@@ -387,24 +383,17 @@ slap_tool_init(
 			break;
 
 		case 'd': {	/* turn on debugging */
-			int	level = 0;
+			int	mask = 0;
 
-			if ( parse_debug_level( optarg, &level, &debug_unknowns ) ) {
+			if ( parse_debug_level( optarg, &mask, &debug_unknowns ) ) {
 				usage( tool, progname );
 			}
 #ifdef LDAP_DEBUG
-			if ( level == 0 ) {
-				/* allow to reset log level */
-				slap_debug = 0;
-
-			} else {
-				slap_debug |= level;
-			}
+			slap_set_debug_level(mask);
 #else
-			if ( level != 0 )
-				fputs( "must compile with LDAP_DEBUG for debugging\n",
-				       stderr );
-#endif
+			if ( mask != 0 || debug_unknowns )
+				fputs( "must configure with --enable-debug for debugging\n", stderr );
+#endif /* LDAP_DEBUG */
 			} break;
 
 		case 'D':
@@ -512,7 +501,9 @@ slap_tool_init(
 
 		case 'Q':
 			quiet++;
-			slap_debug = 0;
+#ifdef LDAP_DEBUG
+			slap_debug_mask = 0;
+#endif /* LDAP_DEBUG */
 			break;
 
 		case 'q':	/* turn on quick */
@@ -578,7 +569,7 @@ slap_tool_init(
 		}
 	}
 
-#if defined(LDAP_SYSLOG) && defined(LDAP_DEBUG)
+#ifdef LDAP_SYSLOG
 	if ( start_syslog ) {
 		char *logName;
 		logName = (char *)progname;
@@ -587,9 +578,9 @@ slap_tool_init(
 		openlog( logName, OPENLOG_OPTIONS, syslogUser );
 #elif defined LOG_DEBUG
 		openlog( logName, OPENLOG_OPTIONS );
-#endif
+#endif /* LOG_LOCAL4 */
 	}
-#endif /* LDAP_DEBUG && LDAP_SYSLOG */
+#endif /* LDAP_SYSLOG */
 
 	switch ( tool ) {
 	case SLAPCAT:
@@ -681,22 +672,14 @@ slap_tool_init(
 	}
 
 	if ( debug_unknowns ) {
-		rc = parse_debug_unknowns( debug_unknowns, &slap_debug );
+		int mask = LDAP_DEBUG_NONE;
+		rc = parse_debug_unknowns( debug_unknowns, &mask );
+		slap_set_debug_level(mask);
 		ldap_charray_free( debug_unknowns );
 		debug_unknowns = NULL;
 		if ( rc )
 			exit( EXIT_FAILURE );
 	}
-
-#if defined(LDAP_SYSLOG) && defined(LDAP_DEBUG)
-	if ( syslog_unknowns ) {
-		rc = parse_debug_unknowns( syslog_unknowns, &ldap_syslog );
-		ldap_charray_free( syslog_unknowns );
-		syslog_unknowns = NULL;
-		if ( rc )
-			exit( EXIT_FAILURE );
-	}
-#endif
 
 	at_oc_cache = 1;
 

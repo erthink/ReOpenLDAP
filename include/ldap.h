@@ -283,6 +283,9 @@ typedef struct ldapcontrol {
 /*	non-standard track controls */
 #define LDAP_CONTROL_PAGEDRESULTS	"1.2.840.113556.1.4.319"   /* RFC 2696 */
 
+#define LDAP_CONTROL_AUTHZID_REQUEST    "2.16.840.1.113730.4.16"   /* RFC 3829 */
+#define LDAP_CONTROL_AUTHZID_RESPONSE   "2.16.840.1.113730.4.15"   /* RFC 3829 */
+
 /* LDAP Content Synchronization Operation -- RFC 4533 */
 #define LDAP_SYNC_OID			"1.3.6.1.4.1.4203.1.9.1"
 #define LDAP_CONTROL_SYNC		LDAP_SYNC_OID ".1"
@@ -426,13 +429,13 @@ typedef struct ldapcontrol {
 #define LDAP_URLEXT_X_SEARCHEDSUBTREE	"x-searchedSubtree"
 #define LDAP_URLEXT_X_FAILEDNAME	"x-failedName"
 
-#ifdef LDAP_DEVEL
-#define LDAP_X_TXN						"1.3.6.1.4.1.4203.666.11.7" /* tmp */
-#define LDAP_EXOP_X_TXN_START			LDAP_X_TXN ".1"
-#define LDAP_CONTROL_X_TXN_SPEC			LDAP_X_TXN ".2"
-#define LDAP_EXOP_X_TXN_END				LDAP_X_TXN ".3"
-#define LDAP_EXOP_X_TXN_ABORTED_NOTICE	LDAP_X_TXN ".4"
-#endif
+#if LDAP_EXPERIMENTAL > 0
+#	define LDAP_X_TXN				"1.3.6.1.4.1.4203.666.11.7" /* tmp */
+#	define LDAP_EXOP_X_TXN_START			LDAP_X_TXN ".1"
+#	define LDAP_CONTROL_X_TXN_SPEC			LDAP_X_TXN ".2"
+#	define LDAP_EXOP_X_TXN_END			LDAP_X_TXN ".3"
+#	define LDAP_EXOP_X_TXN_ABORTED_NOTICE		LDAP_X_TXN ".4"
+#endif /* LDAP_EXPERIMENTAL */
 
 /* LDAP Features */
 #define LDAP_FEATURE_ALL_OP_ATTRS	"1.3.6.1.4.1.4203.1.5.1"	/* RFC 3673 */
@@ -1383,8 +1386,9 @@ ldap_result2error LDAP_P((
 LDAP_F( void )
 ldap_perror LDAP_P((
 	LDAP *ld,
-	LDAP_CONST char *s )) __reldap_deprecated_msg("use ldap_err2string");
+	LDAP_CONST char *s )) __reldap_deprecated_msg("use ldap_err2string or ldap_debug_perror");
 
+LDAP_F(void) ldap_debug_perror( LDAP *ld, LDAP_CONST char *str );
 
 /*
  * gssapi.c:

@@ -3,3 +3,4 @@ ld_errno.3
 ldap_result2error.3
 ldap_errlist.3
 ldap_err2string.3
+ldap_debug_perror.3

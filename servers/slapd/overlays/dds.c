@@ -543,8 +543,8 @@ dds_op_modify( Operation *op, SlapReply *rs )
 
 		/* the value of the entryTtl is saved for later checks */
 		if ( a != NULL ) {
-			unsigned long	ttl;
-			int		rc;
+			unsigned long ttl;
+			int	MAY_UNUSED rc;
 
 			bv_entryTtl.bv_len = a->a_nvals[ 0 ].bv_len;
 			memcpy( bv_entryTtl.bv_val, a->a_nvals[ 0 ].bv_val, bv_entryTtl.bv_len );
@@ -1865,7 +1865,7 @@ done:;
 	}
 	op->o_bd = bd;
 
-        return rs->sr_err;
+	return rs->sr_err;
 }
 
 static slap_overinst dds;
@@ -1951,7 +1951,7 @@ dds_over_initialize()
 }
 
 #if SLAPD_OVER_DDS == SLAPD_MOD_DYNAMIC
-SLAP_OVERLAY_ENTRY(dds, modinit) ( int argc, char *argv[] )
+SLAP_MODULE_ENTRY(dds, modinit) ( int argc, char *argv[] )
 {
 	int	rc, i;
 

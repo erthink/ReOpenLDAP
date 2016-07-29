@@ -2409,9 +2409,9 @@ int accesslog_over_initialize()
 				"accesslog_init: register_at failed\n" );
 			return -1;
 		}
-#ifndef LDAP_DEVEL
+#if ! LDAP_EXPERIMENTAL
 		(*lattrs[i].ad)->ad_type->sat_flags |= SLAP_AT_HIDE;
-#endif
+#endif /* LDAP_EXPERIMENTAL */
 	}
 
 	for ( i=0; locs[i].ot; i++ ) {
@@ -2423,9 +2423,9 @@ int accesslog_over_initialize()
 				"accesslog_init: register_oc failed\n" );
 			return -1;
 		}
-#ifndef LDAP_DEVEL
+#if ! LDAP_EXPERIMENTAL
 		(*locs[i].oc)->soc_flags |= SLAP_OC_HIDE;
-#endif
+#endif /* LDAP_EXPERIMENTAL */
 	}
 
 	return overlay_register(&accesslog);

@@ -385,7 +385,7 @@ bdb_entryinfo_add_internal(
 		ei->bei_rdn.bv_val = NULL;
 #endif
 	} else {
-		int rc ALLOW_UNUSED;
+		int rc MAY_UNUSED;
 
 		bdb->bi_cache.c_eiused++;
 		ber_dupbv( &ei2->bei_nrdn, &ei->bei_nrdn );

@@ -262,8 +262,8 @@ elif [ -n "${TEAMCITY_PROCESS_FLOW_ID}" ]; then
 	SYNCREPL_WAIT=${SYNCREPL_WAIT-10}
 else
 	# LY: take in account -O0
-	TIMEOUT_S="timeout -s SIGXCPU 30s"
-	TIMEOUT_L="timeout -s SIGXCPU 1m"
+	TIMEOUT_S="timeout -s SIGXCPU 45s"
+	TIMEOUT_L="timeout -s SIGXCPU 2m"
 	TIMEOUT_H="timeout -s SIGXCPU 5m"
 	SLEEP0=${SLEEP0-0.1}
 	SLEEP1=${SLEEP1-1}

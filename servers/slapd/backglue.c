@@ -621,7 +621,7 @@ glue_op_search ( Operation *op, SlapReply *rs )
 							if ( gs.ctrls[c] != NULL ) {
 								BerElementBuffer berbuf;
 								BerElement	*ber = (BerElement *)&berbuf;
-								ber_tag_t	tag;
+								ber_tag_t	MAY_UNUSED tag;
 								ber_int_t	size;
 								struct berval	cookie, value;
 

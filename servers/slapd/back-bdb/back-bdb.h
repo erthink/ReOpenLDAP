@@ -175,9 +175,9 @@ struct bdb_db_pgsize {
 	int	bdp_size;
 };
 
-#ifdef LDAP_DEVEL
-#define BDB_MONITOR_IDX
-#endif /* LDAP_DEVEL */
+#if LDAP_EXPERIMENTAL > 0
+#	define BDB_MONITOR_IDX
+#endif /* LDAP_EXPERIMENTAL */
 
 typedef struct bdb_monitor_t {
 	void		*bdm_cb;

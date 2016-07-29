@@ -66,6 +66,7 @@ usage(const char *s)
 {
 	fprintf(stderr,
 		"Usage: %s [options]\n"
+		"  -d debuglevel"
 		"  -c format\tcrypt(3) salt format\n"
 		"  -g\t\tgenerate random password\n"
 		"  -h hash\tpassword scheme\n"
@@ -131,18 +132,30 @@ slappasswd( int argc, char *argv[] )
 	char		*newline = "\n";
 	struct berval passwd = BER_BVNULL;
 	struct berval hash;
+	char **debug_unknowns = NULL;
 
-#ifdef LDAP_DEBUG
-	/* tools default to "none", so that at least LDAP_DEBUG_ANY
-	 * messages show up; use -d 0 to reset */
-	slap_debug = LDAP_DEBUG_NONE;
-#endif
-	ldap_syslog = 0;
+#ifdef LDAP_SYSLOG
+	slap_syslog_mask = 0;
+#endif /* LDAP_SYSLOG */
 
 	while( (i = getopt( argc, argv,
 		"c:d:gh:no:s:T:vu" )) != EOF )
 	{
 		switch (i) {
+		case 'd': {	/* turn on debugging */
+			int	mask = 0;
+
+			if ( parse_debug_level( optarg, &mask, &debug_unknowns ) ) {
+				usage( progname );
+			}
+#ifdef LDAP_DEBUG
+			slap_set_debug_level(mask);
+#else
+			if ( mask != 0 || debug_unknowns )
+				fputs( "must configure with --enable-debug for debugging\n", stderr );
+#endif
+			} break;
+
 		case 'c':	/* crypt salt format */
 			if (scheme == default_scheme)
 				scheme = ch_strdup("{CRYPT}");
@@ -230,6 +243,16 @@ slappasswd( int argc, char *argv[] )
 
 	if( argc - optind != 0 ) {
 		usage( progname );
+	}
+
+	if ( debug_unknowns ) {
+		int mask = LDAP_DEBUG_NONE;
+		rc = parse_debug_unknowns( debug_unknowns, &mask );
+		slap_set_debug_level(mask);
+		ldap_charray_free( debug_unknowns );
+		debug_unknowns = NULL;
+		if ( rc )
+			goto destroy;
 	}
 
 	slapMode = SLAP_TOOL_MODE;

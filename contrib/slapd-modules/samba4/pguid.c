@@ -39,8 +39,6 @@
 
 #include "reldap.h"
 
-#ifdef SLAPD_OVER_PGUID
-
 #include <stdio.h>
 
 #include "ac/string.h"
@@ -435,7 +433,7 @@ static struct {
 	{ NULL }
 };
 
-int
+static int
 pguid_initialize(void)
 {
 	int code, i;
@@ -467,11 +465,7 @@ pguid_initialize(void)
 	return overlay_register( &pguid );
 }
 
-#if SLAPD_OVER_PGUID == SLAPD_MOD_DYNAMIC
-SLAP_OVERLAY_ENTRY(pguid, modinit) ( int argc, char *argv[] )
+SLAP_MODULE_ENTRY(pguid, modinit) ( int argc, char *argv[] )
 {
 	return pguid_initialize();
 }
-#endif /* SLAPD_OVER_PGUID == SLAPD_MOD_DYNAMIC */
-
-#endif /* SLAPD_OVER_PGUID */

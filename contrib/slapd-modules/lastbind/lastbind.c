@@ -46,8 +46,6 @@
  * only be updated if it is older than a given number of seconds.
  */
 
-#ifdef SLAPD_OVER_LASTBIND
-
 #include <ldap.h>
 #include "lutil.h"
 #include "slap.h"
@@ -256,7 +254,8 @@ lastbind_db_close(
 
 static slap_overinst lastbind;
 
-int lastbind_initialize()
+static int
+lastbind_initialize()
 {
 	int i, code;
 
@@ -285,11 +284,7 @@ int lastbind_initialize()
 	return overlay_register( &lastbind );
 }
 
-#if SLAPD_OVER_LASTBIND == SLAPD_MOD_DYNAMIC
-SLAP_OVERLAY_ENTRY(lastbind, modinit) ( int argc, char *argv[] )
+SLAP_MODULE_ENTRY(lastbind, modinit) ( int argc, char *argv[] )
 {
 	return lastbind_initialize();
 }
-#endif
-
-#endif	/* defined(SLAPD_OVER_LASTBIND) */

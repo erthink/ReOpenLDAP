@@ -432,7 +432,7 @@ fp_getline_init( int *lineno )
 	buf[0] = '\0';
 }
 
-SLAP_OVERLAY_ENTRY(dsascheme, modinit) ( int argc, char *argv[] )
+SLAP_MODULE_ENTRY(dsascheme, modinit) ( int argc, char *argv[] )
 {
 	int i;
 	int rc = 0;

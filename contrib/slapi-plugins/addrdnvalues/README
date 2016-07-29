@@ -4,15 +4,9 @@ the entry. This is necessary for compliance with some "broken" clients.
 
 To use the plugin, add:
 
-plugin preoperation libaddrdnvalues-plugin.so addrdnvalues_preop_init
+plugin preoperation slapiplugin-addrdnvalues.so addrdnvalues_preop_init
 
 to your slapd configuration file.
-
-No Makefile is provided. Use a command line similar to:
-
-gcc -shared -I../../../include -Wall -g -o libaddrdnvalues-plugin.so addrdnvalues.c
-
-to compile this plugin.
 
 ---
 Copyright (c) 2015,2016 Leonid Yuriev <leo@yuriev.ru>.

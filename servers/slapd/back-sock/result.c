@@ -96,7 +96,7 @@ sock_read_and_send_results(
 		}
 
 		if ( strncasecmp( line, "CONTINUE", 8 ) == 0 ) {
-			struct sockinfo	*si = (struct sockinfo *) op->o_bd->be_private;
+			struct sockinfo	*si MAY_UNUSED = (struct sockinfo *) op->o_bd->be_private;
 			/* Only valid when operating as an overlay! */
 			assert( si->si_ops != 0 );
 			rs->sr_err = SLAP_CB_CONTINUE;

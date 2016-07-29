@@ -35,7 +35,7 @@ endif
 if BEHIND_CURTIAN
 BUILT_SOURCES = banner.c
 banner.c: Makefile
-	$(MKBANNER) --name backend_meta --global 'backend-meta' > $@
+	$(MKBANNER) --name backend_meta --global 'backend-meta' > $@ || $(RM) $@
 endif
 
 back_meta_la_SOURCES = add.c back-meta.h banner.c bind.c \

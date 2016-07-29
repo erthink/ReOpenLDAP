@@ -25,11 +25,6 @@
 
 #include <string.h>
 
-#ifndef SLAPD_COMP_MATCH
-#define SLAPD_COMP_MATCH SLAPD_MOD_DYNAMIC
-#endif
-
-#ifdef SLAPD_COMP_MATCH
 /*
  * Matching function : BIT STRING
  */
@@ -2366,5 +2361,3 @@ ConvertRDNSequence2RFC2253( irRDNSequence *in, struct berval* out ) {
 	out->bv_len =pos;
 	return LDAP_SUCCESS;
 }
-
-#endif

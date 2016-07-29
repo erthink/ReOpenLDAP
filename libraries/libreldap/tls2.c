@@ -61,9 +61,9 @@ static tls_impl *tls_imp = &ldap_int_tls_impl;
 
 #endif /* HAVE_TLS */
 
-#ifdef LDAP_DEVEL
-#define LDAP_USE_NON_BLOCKING_TLS
-#endif /* LDAP_DEVEL */
+#if LDAP_EXPERIMENTAL > 0
+#	define LDAP_USE_NON_BLOCKING_TLS
+#endif /* LDAP_EXPERIMENTAL */
 
 /* RFC2459 minimum required set of supported attribute types
  * in a certificate DN
@@ -782,7 +782,7 @@ ldap_int_tls_start ( LDAP *ld, LDAPConn *conn, LDAPURLDesc *srv )
 	void *ssl;
 	int ret;
 #ifdef LDAP_USE_NON_BLOCKING_TLS
-	struct timeval start_time_tv, tv, tv0;
+	struct timeval start_time_tv, tv, tv0 = {0};
 	ber_socket_t	sd = AC_SOCKET_ERROR;
 #endif /* LDAP_USE_NON_BLOCKING_TLS */
 
@@ -814,7 +814,6 @@ ldap_int_tls_start ( LDAP *ld, LDAPConn *conn, LDAPURLDesc *srv )
 		tv0 = tv;
 		ldap_timeval( &start_time_tv );
 	}
-
 #endif /* LDAP_USE_NON_BLOCKING_TLS */
 
 	ld->ld_errno = LDAP_SUCCESS;

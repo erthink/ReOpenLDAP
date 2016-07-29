@@ -109,7 +109,8 @@ typedef struct syncops {
 #define	OS_REF_PREPARE		0x0800
 #define	OS_REF_ABANDON		0x1000
 #define	OS_REF_UNLINK		0x2000
-#define	OS_REF_MASK			0x3F00
+#define OS_REF_CLOSE		0x4000
+#define	OS_REF_MASK			0x7F00
 
 #define	PS_TASK_QUEUED		OS_REF_PLAYBACK
 
@@ -383,7 +384,6 @@ syncprov_done_ctrl(
 static int
 syncprov_sendinfo(
 	Operation	*op,
-	SlapReply	*rs,
 	int			type,
 	struct berval *cookie,
 	int			refreshDone,
@@ -393,6 +393,7 @@ syncprov_sendinfo(
 	BerElementBuffer berbuf;
 	BerElement *ber = (BerElement *)&berbuf;
 	struct berval rspdata;
+	SlapReply rs = { REP_INTERMEDIATE };
 
 	int ret;
 	int n = 0;
@@ -454,14 +455,13 @@ syncprov_sendinfo(
 		Debug( LDAP_DEBUG_TRACE,
 			"syncprov_sendinfo: ber_flatten2 failed (%d)\n",
 			ret );
-		send_ldap_error( op, rs, LDAP_OTHER, "internal error" );
+		send_ldap_error( op, &rs, LDAP_OTHER, "internal error" );
 		return LDAP_OTHER;
 	}
 
-	rs->sr_rspoid = LDAP_SYNC_INFO;
-	rs->sr_rspdata = &rspdata;
-	send_ldap_intermediate( op, rs );
-	rs->sr_rspdata = NULL;
+	rs.sr_rspoid = LDAP_SYNC_INFO;
+	rs.sr_rspdata = &rspdata;
+	send_ldap_intermediate( op, &rs );
 	ber_free_buf( ber );
 
 	return LDAP_SUCCESS;
@@ -531,7 +531,7 @@ syncprov_findbase( Operation *op, fbase_cookie *fc )
 		slap_callback cb = {0};
 		Operation fop;
 		SlapReply frs = { REP_RESULT };
-		int rc ALLOW_UNUSED;
+		int rc MAY_UNUSED;
 
 		fc->fss->s_flags ^= PS_FIND_BASE;
 		ldap_pvt_thread_mutex_unlock( &fc->fss->s_mutex );
@@ -696,7 +696,7 @@ findpres_cb( Operation *op, SlapReply *rs )
 		if ( pc->num ) {
 			pc->uuids[pc->num].bv_val = NULL;
 			pc->uuids[pc->num].bv_len = 0;
-			pc->rc = syncprov_sendinfo( op, rs, LDAP_TAG_SYNC_ID_SET, NULL,
+			pc->rc = syncprov_sendinfo( op, LDAP_TAG_SYNC_ID_SET, NULL,
 				0, pc->uuids, 0 );
 			pc->num = 0;
 			pc->last = (char *)(pc->uuids + SLAP_SYNCUUID_SET_SIZE+1);
@@ -728,7 +728,7 @@ syncprov_findcsn( Operation *op, find_csn_t mode, struct berval *pivot )
 	Filter cf;
 	AttributeAssertion eq = ATTRIBUTEASSERTION_INIT;
 	fpres_cookie pcookie;
-	sync_control *srs ALLOW_UNUSED = NULL;
+	sync_control *srs MAY_UNUSED = NULL;
 	struct slap_limits_set fc_limits;
 	int i, rc = LDAP_SUCCESS, findcsn_retry = 1;
 	int maxid = -1;
@@ -883,13 +883,16 @@ again:
 			Debug( LDAP_DEBUG_SYNC,
 				"syncprov-findcsn: sid %d, pivot %s, not-found\n",
 				srs->sr_state.sid, pivot->bv_val );
-			rc = LDAP_NO_SUCH_OBJECT;
+			if (rc == LDAP_SUCCESS)
+				rc = LDAP_NO_SUCH_OBJECT;
+		} else {
+			rc = LDAP_SUCCESS;
 		}
 		break;
 	case FIND_PRESENT:
 		if ( rc == LDAP_SUCCESS )
 			rc = pcookie.rc;
-		if ( LogTest( LDAP_DEBUG_SYNC ) ) {
+		if ( DebugTest( LDAP_DEBUG_SYNC ) ) {
 			ldap_pvt_thread_rdwr_rlock( &si->si_csn_rwlock );
 			Debug( LDAP_DEBUG_SYNC,
 				"syncprov-findpresent: sid %d, pivot %s, find-present %u, rc %d\n",
@@ -1124,7 +1127,7 @@ syncprov_sendresp( Operation *op, resinfo *ri, syncops *so, int mode )
 		/* fallthru */
 	case LDAP_SYNC_MODIFY:
 		if (ri->ri_csn.bv_len) {
-			Attribute* a = attr_find( ri->ri_e->e_attrs, slap_schema.si_ad_entryCSN );
+			Attribute* MAY_UNUSED a = attr_find( ri->ri_e->e_attrs, slap_schema.si_ad_entryCSN );
 			assert( a && slap_csn_match( &ri->ri_csn, a->a_nvals ));
 		}
 		rs.sr_attrs = op->ors_attrs;
@@ -1171,8 +1174,7 @@ syncprov_playback_locked( Operation *op, syncops *so )
 				|| (slap_tsan__read_int(&so->s_flags) & PS_DEAD)) {
 			rc = SLAPD_ABANDON;
 		} else if ( rl->rl_mode == LDAP_SYNC_NEW_COOKIE ) {
-			SlapReply rs = { REP_INTERMEDIATE };
-			rc = syncprov_sendinfo( op, &rs, LDAP_TAG_SYNC_NEW_COOKIE,
+			rc = syncprov_sendinfo( op, LDAP_TAG_SYNC_NEW_COOKIE,
 				&rl->rl_info->ri_cookie, 0, NULL, 0 );
 		} else {
 			rc = syncprov_sendresp( op, rl->rl_info, so, rl->rl_mode );
@@ -1736,7 +1738,7 @@ syncprov_op_cleanup( Operation *op, SlapReply *rs )
 		if ( mt->mt_mods ) {
 			ldap_pvt_thread_mutex_unlock( &mt->mt_mutex );
 		} else {
-			void* removed;
+			void* MAY_UNUSED removed;
 			ldap_pvt_thread_mutex_unlock( &mt->mt_mutex );
 			ldap_pvt_thread_mutex_lock( &si->si_mods_mutex );
 			removed = avl_delete( &si->si_mods, mt, sp_avl_cmp );
@@ -1934,8 +1936,8 @@ playlog_cb( Operation *op, SlapReply *rs )
 }
 
 /* enter with sl->sl_mutex locked, release before returning */
-static void
-syncprov_playlog( Operation *op, SlapReply *rs, sessionlog *sl,
+static int
+syncprov_playlog( Operation *op, sessionlog *sl,
 	sync_control *srs, BerVarray ctxcsn, int numcsns, int *sids )
 {
 	slap_overinst		*on = (slap_overinst *)op->o_bd->bd_info;
@@ -1944,10 +1946,11 @@ syncprov_playlog( Operation *op, SlapReply *rs, sessionlog *sl,
 	char cbuf[LDAP_PVT_CSNSTR_BUFSIZE];
 	BerVarray uuids;
 	struct berval delcsn[2];
+	int rc = LDAP_SUCCESS;
 
 	if ( !sl->sl_num ) {
 		ldap_pvt_thread_mutex_unlock( &sl->sl_mutex );
-		return;
+		return rc;
 	}
 
 	num = sl->sl_num;
@@ -2041,7 +2044,7 @@ syncprov_playlog( Operation *op, SlapReply *rs, sessionlog *sl,
 
 	if ( mmods ) {
 		Operation fop;
-		int rc ALLOW_UNUSED;
+		int rc MAY_UNUSED;
 		Filter mf, af;
 		AttributeAssertion eq = ATTRIBUTEASSERTION_INIT;
 		slap_callback cb = {0};
@@ -2096,13 +2099,14 @@ syncprov_playlog( Operation *op, SlapReply *rs, sessionlog *sl,
 		}
 
 		uuids[ndel].bv_val = NULL;
-		syncprov_sendinfo( op, rs, LDAP_TAG_SYNC_ID_SET,
+		rc = syncprov_sendinfo( op, LDAP_TAG_SYNC_ID_SET,
 			delcsn[0].bv_len ? &cookie : NULL, 0, uuids, 1 );
 		if ( delcsn[0].bv_len ) {
 			op->o_tmpfree( cookie.bv_val, op->o_tmpmemctx );
 		}
 	}
 	op->o_tmpfree( uuids, op->o_tmpmemctx );
+	return rc;
 }
 
 static int
@@ -2527,7 +2531,7 @@ retry:
 			}
 			ldap_pvt_thread_mutex_unlock( &mt->mt_mutex );
 		} else {
-			int avl_err;
+			int MAY_UNUSED avl_err;
 			/* Record that we're modifying this entry now */
 			mt = ch_malloc( sizeof(modtarget) );
 			mt->mt_mods = mi;
@@ -2810,7 +2814,7 @@ syncprov_search_response( Operation *op, SlapReply *rs )
 				op->o_tmpfree( cookie.bv_val, op->o_tmpmemctx );
 		} else {
 			/* It's RefreshAndPersist, transition to Persist phase */
-			rs->sr_err = syncprov_sendinfo( op, rs, ( ss->ss_flags & SS_PRESENT ) ?
+			rs->sr_err = syncprov_sendinfo( op, ( ss->ss_flags & SS_PRESENT ) ?
 				LDAP_TAG_SYNC_REFRESH_PRESENT : LDAP_TAG_SYNC_REFRESH_DELETE,
 				BER_BVISNULL(&cookie) ? NULL : &cookie,
 				1, NULL, 0 );
@@ -2863,7 +2867,7 @@ syncprov_search_response( Operation *op, SlapReply *rs )
 				srs->sr_state.sid, srs->sr_jammed ? " jammed" : "",
 				(ss->ss_flags & SS_PRESENT) ? "" : " no-present" );
 			send_ldap_error(op, rs,
-				LDAP_SYNC_REFRESH_REQUIRED, "unable to provide robust sync");
+				LDAP_SYNC_REFRESH_REQUIRED, "unable to provide robust sync (jammed)");
 		}
 		if ( rs->sr_err != LDAP_SUCCESS ) {
 			/* LY: return error if have, otherwise just continue */
@@ -2975,7 +2979,7 @@ syncprov_op_search( Operation *op, SlapReply *rs )
 	}
 	dirty = si->si_dirty;
 
-	if ( LogTest( LDAP_DEBUG_SYNC ) ) {
+	if ( DebugTest( LDAP_DEBUG_SYNC ) ) {
 		ldap_debug_print(
 			"syncprov-search: %srid=%03x, sid=%03x, hint %d, srs %p, sop %p\n",
 			so ? "PERSISTENT, " : "",
@@ -3161,7 +3165,7 @@ no_change:
 			if ( do_play ) {
 				do_present = 0;
 				/* mutex is unlocked in playlog */
-				syncprov_playlog( op, rs, sl, srs, ctxcsn, numcsns, sids );
+				rs->sr_err = syncprov_playlog( op, sl, srs, ctxcsn, numcsns, sids );
 			} else {
 				ldap_pvt_thread_mutex_unlock( &sl->sl_mutex );
 			}
@@ -3171,7 +3175,7 @@ no_change:
 		if ( rc != LDAP_SUCCESS ) {
 			if ( rc != LDAP_NO_SUCH_OBJECT ) {
 				rs->sr_err = rc;
-				rs->sr_text = "unable to provide robust sync";
+				rs->sr_text = "unable to provide robust sync (find-csn failed)";
 				goto bailout;
 			}
 			/* No, so a reload is required */
@@ -3200,7 +3204,7 @@ shortcut:
 	if ( do_present ) {
 		rs->sr_err = syncprov_findcsn( op, FIND_PRESENT, &pivot_csn );
 		if ( rs->sr_err != LDAP_SUCCESS ) {
-			rs->sr_text = "unable to provide robust sync";
+			rs->sr_text = "unable to provide robust sync (find-presend failed)";
 			goto bailout;
 		}
 	}
@@ -3290,7 +3294,7 @@ shortcut:
 		rs->sr_err = LDAP_SUCCESS;
 		if (srs->sr_jammed) {
 			rs->sr_err = LDAP_SYNC_REFRESH_REQUIRED;
-			rs->sr_text = "unable to provide robust sync";
+			rs->sr_text = "unable to provide robust sync (no-changes, jammed)";
 		}
 		send_ldap_result( op, rs );
 		return rs->sr_err;
@@ -3749,9 +3753,6 @@ syncprov_db_close(
 {
 	slap_overinst   *on = (slap_overinst *) be->bd_info;
 	syncprov_info_t *si = (syncprov_info_t *)on->on_bi.bi_private;
-#ifdef SLAP_CONFIG_DELETE
-	syncops *so, *sonext;
-#endif /* SLAP_CONFIG_DELETE */
 
 	if ( slapMode & SLAP_TOOL_MODE ) {
 		return 0;

@@ -44,9 +44,6 @@
 
 #include "reldap.h"
 
-/* define SLAPD_OVER_DUPENT=2 to build as run-time loadable module */
-#ifdef SLAPD_OVER_DUPENT
-
 /*
  * The macros
  *
@@ -539,10 +536,7 @@ dupent_op_search( Operation *op, SlapReply *rs )
 	return SLAP_CB_CONTINUE;
 }
 
-#if SLAPD_OVER_DUPENT == SLAPD_MOD_DYNAMIC
-static
-#endif /* SLAPD_OVER_DUPENT == SLAPD_MOD_DYNAMIC */
-int
+static int
 dupent_initialize( void )
 {
 	int rc;
@@ -558,17 +552,11 @@ dupent_initialize( void )
 	}
 
 	dupent.on_bi.bi_type = "dupent";
-
 	dupent.on_bi.bi_op_search = dupent_op_search;
-
 	return overlay_register( &dupent );
 }
 
-#if SLAPD_OVER_DUPENT == SLAPD_MOD_DYNAMIC
-SLAP_OVERLAY_ENTRY(dupent, modinit) ( int argc, char *argv[] )
+SLAP_MODULE_ENTRY(dupent, modinit) ( int argc, char *argv[] )
 {
 	return dupent_initialize();
 }
-#endif /* SLAPD_OVER_DUPENT == SLAPD_MOD_DYNAMIC */
-
-#endif /* SLAPD_OVER_DUPENT */

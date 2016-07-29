@@ -520,7 +520,7 @@ syncrepl_process_search(
 
 	slap_cookie_clean_all( &si->si_syncCookie_in );
 	syncrepl_cookie_pull( op, si );
-	if ( LogTest( LDAP_DEBUG_SYNC ) ) {
+	if ( DebugTest( LDAP_DEBUG_SYNC ) ) {
 		slap_cookie_debug( "refresh-begin-cookie", &si->si_syncCookie );
 	}
 	if ( si->si_syncCookie.numcsns > 0 ) {
@@ -731,7 +731,7 @@ syncrepl_start(
 			slap_cookie_move( &si->si_syncCookie, &sc->sci_cookie );
 			ch_free( sc );
 			si->si_keep_cookie4search = 1;
-			if ( LogTest( LDAP_DEBUG_SYNC ) ) {
+			if ( DebugTest( LDAP_DEBUG_SYNC ) ) {
 				slap_cookie_debug( "cmdline-cookie", &si->si_syncCookie );
 			}
 		} else {
@@ -812,7 +812,7 @@ compare_cookies( struct sync_cookie *local, struct sync_cookie *remote )
 		}
 	}
 
-	if ( LogTest( LDAP_DEBUG_SYNC ) ) {
+	if ( DebugTest( LDAP_DEBUG_SYNC ) ) {
 		slap_cookie_debug_pair("compare-cookie", "local", local, "remote", remote, lead);
 	}
 	return lead;
@@ -2253,7 +2253,7 @@ syncrepl_message_to_op(
 	size_t textlen = sizeof txtbuf;
 
 	struct berval	bdn, dn = BER_BVNULL, ndn;
-	struct berval	bv, bv2 ALLOW_UNUSED, *bvals = NULL;
+	struct berval	bv, bv2 MAY_UNUSED, *bvals = NULL;
 	struct berval	rdn = BER_BVNULL, sup = BER_BVNULL,
 		prdn = BER_BVNULL, nrdn = BER_BVNULL,
 		psup = BER_BVNULL, nsup = BER_BVNULL;
@@ -2583,7 +2583,7 @@ syncrepl_message_to_entry(
 	char txtbuf[SLAP_TEXT_BUFLEN];
 	size_t textlen = sizeof txtbuf;
 
-	struct berval	bdn = BER_BVNULL, dn, ndn, bv2 ALLOW_UNUSED;
+	struct berval	bdn = BER_BVNULL, dn, ndn, bv2 MAY_UNUSED;
 	int		rc, is_ctx;
 
 	*modlist = NULL;
@@ -3052,7 +3052,7 @@ syncrepl_entry(
 	cb.sc_response = null_callback;
 	cb.sc_private = si;
 
-	if ( LogTest( LDAP_DEBUG_SYNC ) ) {
+	if ( DebugTest( LDAP_DEBUG_SYNC ) ) {
 		Debug( LDAP_DEBUG_SYNC,
 			"syncrepl_entry: %s %s, %s, uuid %s,\n\tincoming-csn %s, present-csn %s\n",
 			si->si_ridtxt, ldap_sync_state2str(syncstate),
@@ -3632,7 +3632,7 @@ static int syncrepl_del_nonpresent(
 		which = -1;
 	}
 
-	if ( LogTest( LDAP_DEBUG_SYNC ) ) {
+	if ( DebugTest( LDAP_DEBUG_SYNC ) ) {
 		slap_cookie_debug_pair( "del_nonpresent",
 			"local", &si->si_syncCookie,
 			"target", sc, which );
@@ -4128,7 +4128,7 @@ syncrepl_cookie_push(
 	/* find any CSNs in the syncCookie that are newer than the cookieState */
 	lead = slap_cookie_merge( si->si_be, &sc, syncCookie );
 
-	if ( LogTest( LDAP_DEBUG_SYNC ) ) {
+	if ( DebugTest( LDAP_DEBUG_SYNC ) ) {
 		slap_cookie_debug_pair( "push",
 			"current", &si->si_cookieState->cs_cookie,
 			"next", &sc, lead );

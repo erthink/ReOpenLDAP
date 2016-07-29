@@ -243,7 +243,7 @@ main(int argc, char **argv)
 
 		rc = ldap_abandon_ext( ld, 0, NULL, NULL );
 		if( rc != LDAP_SERVER_DOWN ) {
-			ldap_perror( ld, "ldap_abandon");
+			ldap_debug_perror( ld, "ldap_abandon");
 			return EXIT_FAILURE;
 		}
 

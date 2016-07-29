@@ -45,17 +45,17 @@
 #	endif
 #endif /* __CLANG_PREREQ */
 
-#ifndef ALLOW_UNUSED
+#ifndef MAY_UNUSED
 #	ifdef ATTRIBUTE_UNUSED
-#		define ALLOW_UNUSED ATTRIBUTE_UNUSED
+#		define MAY_UNUSED ATTRIBUTE_UNUSED
 #	elif __has_attribute(__unused__)
-#		define ALLOW_UNUSED __attribute__((__unused__))
+#		define MAY_UNUSED __attribute__((__unused__))
 #	elif __has_attribute(unused)
-#		define ALLOW_UNUSED __attribute__((unused))
+#		define MAY_UNUSED __attribute__((unused))
 #	else
-#		define ALLOW_UNUSED __attribute__((__unused__))
+#		define MAY_UNUSED __attribute__((__unused__))
 #	endif
-#endif /* ALLOW_UNUSED */
+#endif /* MAY_UNUSED */
 
 #if !defined(__thread) && (defined(_MSC_VER) || defined(__DMC__))
 #	define __thread __declspec(thread)
@@ -211,26 +211,15 @@
 
 /* -------------------------------------------------------------------------- */
 
-#ifdef HAVE_EBCDIC
-	/* ASCII/EBCDIC converting replacements for stdio funcs
-	 * vsnprintf and snprintf are used too, but they are already
-	 * checked by the configure script
-	 */
-#	define fputs ber_pvt_fputs
-#	define fgets ber_pvt_fgets
-#	define printf ber_pvt_printf
-#	define fprintf ber_pvt_fprintf
-#	define vfprintf ber_pvt_vfprintf
-#	define vsprintf ber_pvt_vsprintf
+#ifndef LDAP_EXPERIMENTAL
+#	define LDAP_EXPERIMENTAL 0
 #endif
 
-/* LY: TODO clarify this */
-#ifndef LDAP_REL_ENG
-#	if (LDAP_VENDOR_VERSION == 000000) && !defined(LDAP_DEVEL)
-#		define LDAP_DEVEL
-#	endif
-#	if defined(LDAP_DEVEL) && !defined(LDAP_TEST)
-#		define LDAP_TEST
+#ifndef LDAP_CHECK
+#	ifdef NDEBUG
+#		define LDAP_CHECK 0
+#	else
+#		define LDAP_CHECK 1
 #	endif
 #endif
 
@@ -256,13 +245,7 @@ __extern_C void __assert_fail(
 		const char* function) __nothrow __noreturn;
 
 #ifndef LDAP_ASSERT_CHECK
-#	if defined(LDAP_DEBUG)
-#		define LDAP_ASSERT_CHECK LDAP_DEBUG
-#	elif defined(NDEBUG)
-#		define LDAP_ASSERT_CHECK 0
-#	else
-#		define LDAP_ASSERT_CHECK 1
-#	endif
+#	define LDAP_ASSERT_CHECK LDAP_CHECK
 #endif
 
 /* LY: ReOpenLDAP operation mode global flags */
@@ -277,7 +260,7 @@ LDAP_LUTIL_V(int) reopenldap_flags;
 #define reopenldap_mode_righteous() \
 	likely((reopenldap_flags & REOPENLDAP_FLAG_IDDQD) != 0)
 #define reopenldap_mode_check() \
-	unlikely((reopenldap_flags & REOPENLDAP_FLAG_IDKFA) != 0)
+	unlikely(LDAP_CHECK > 2 || (reopenldap_flags & REOPENLDAP_FLAG_IDKFA) != 0)
 #define reopenldap_mode_strict() \
 	likely((reopenldap_flags & REOPENLDAP_FLAG_IDCLIP) != 0)
 #define reopenldap_mode_jitter() \

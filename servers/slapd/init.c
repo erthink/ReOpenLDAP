@@ -60,19 +60,17 @@
  * thread (after they are initialized) - no need to protect them with a mutex.
  */
 #ifdef LDAP_DEBUG
-LDAP_SLAPD_V(int) slap_debug;
-int slap_debug;
-#endif
+/* LY: debug level, controlled only by '-d' command line option */
+LDAP_SLAPD_V(int) slap_debug_mask;
+int slap_debug_mask = LDAP_DEBUG_NONE;
+#endif /* LDAP_DEBUG */
 
-#ifdef LDAP_DEBUG
-LDAP_SLAPD_V(int) ldap_syslog;
-int ldap_syslog = LDAP_DEBUG_STATS;
-#endif
-
-#ifdef LOG_DEBUG
-LDAP_SLAPD_V(int) ldap_syslog_level;
-int ldap_syslog_level = LOG_DEBUG;
-#endif
+#ifdef LDAP_SYSLOG
+/* LY: syslog debug level, controlled by 'loglevel' in slapd.conf */
+int slap_syslog_mask = LDAP_DEBUG_NONE;
+/* LY: syslog severity for debug messages, controlled by 'syslog-severity' in slapd.conf */
+int slap_syslog_severity = LOG_DEBUG;
+#endif /* LDAP_SYSLOG */
 
 BerVarray default_referral = NULL;
 
@@ -97,7 +95,6 @@ slap_init( int mode, const char *name )
 
 	if ( slapMode != SLAP_UNDEFINED_MODE ) {
 		/* Make sure we write something to stderr */
-		slap_debug |= LDAP_DEBUG_NONE;
 		Debug( LDAP_DEBUG_ANY,
 		 "%s init: init called twice (old=%d, new=%d)\n",
 		 name, slapMode, mode );
@@ -111,7 +108,6 @@ slap_init( int mode, const char *name )
 
 #ifdef SLAPD_DYNAMIC_MODULES
 	if ( module_init() != 0 ) {
-		slap_debug |= LDAP_DEBUG_NONE;
 		Debug( LDAP_DEBUG_ANY,
 		    "%s: module_init failed\n",
 			name );
@@ -120,7 +116,6 @@ slap_init( int mode, const char *name )
 #endif
 
 	if ( slap_schema_init( ) != 0 ) {
-		slap_debug |= LDAP_DEBUG_NONE;
 		Debug( LDAP_DEBUG_ANY,
 		    "%s: slap_schema_init failed\n",
 		    name );
@@ -130,7 +125,6 @@ slap_init( int mode, const char *name )
 	quorum_global_init();
 
 	if ( filter_init() != 0 ) {
-		slap_debug |= LDAP_DEBUG_NONE;
 		Debug( LDAP_DEBUG_ANY,
 		    "%s: filter_init failed\n",
 		    name );
@@ -138,7 +132,6 @@ slap_init( int mode, const char *name )
 	}
 
 	if ( entry_init() != 0 ) {
-		slap_debug |= LDAP_DEBUG_NONE;
 		Debug( LDAP_DEBUG_ANY,
 		    "%s: entry_init failed\n",
 		    name );
@@ -179,7 +172,6 @@ slap_init( int mode, const char *name )
 		break;
 
 	default:
-		slap_debug |= LDAP_DEBUG_NONE;
 		Debug( LDAP_DEBUG_ANY,
 			"%s init: undefined mode (%d).\n", name, mode );
 
@@ -188,7 +180,6 @@ slap_init( int mode, const char *name )
 	}
 
 	if ( slap_controls_init( ) != 0 ) {
-		slap_debug |= LDAP_DEBUG_NONE;
 		Debug( LDAP_DEBUG_ANY,
 		    "%s: slap_controls_init failed\n",
 		    name );
@@ -196,7 +187,6 @@ slap_init( int mode, const char *name )
 	}
 
 	if ( frontend_init() ) {
-		slap_debug |= LDAP_DEBUG_NONE;
 		Debug( LDAP_DEBUG_ANY,
 		    "%s: frontend_init failed\n",
 		    name );
@@ -204,7 +194,6 @@ slap_init( int mode, const char *name )
 	}
 
 	if ( overlay_init() ) {
-		slap_debug |= LDAP_DEBUG_NONE;
 		Debug( LDAP_DEBUG_ANY,
 		    "%s: overlay_init failed\n",
 		    name );
@@ -212,7 +201,6 @@ slap_init( int mode, const char *name )
 	}
 
 	if ( glue_sub_init() ) {
-		slap_debug |= LDAP_DEBUG_NONE;
 		Debug( LDAP_DEBUG_ANY,
 		    "%s: glue/subordinate init failed\n",
 		    name );
@@ -221,7 +209,6 @@ slap_init( int mode, const char *name )
 	}
 
 	if ( acl_init() ) {
-		slap_debug |= LDAP_DEBUG_NONE;
 		Debug( LDAP_DEBUG_ANY,
 		    "%s: acl_init failed\n",
 		    name );

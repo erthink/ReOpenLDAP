@@ -1463,6 +1463,7 @@ AC_SUBST([am__untar])
 ]) # _AM_PROG_TAR
 
 m4_include([build/m4/ax_pthread.m4])
+m4_include([build/m4/ax_valgrind_check.m4])
 m4_include([build/m4/libtool.m4])
 m4_include([build/m4/ltargz.m4])
 m4_include([build/m4/ltdl.m4])

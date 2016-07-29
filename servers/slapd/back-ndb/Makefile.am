@@ -36,7 +36,7 @@ endif
 if BEHIND_CURTIAN
 BUILT_SOURCES = banner.c
 banner.c: Makefile
-	$(MKBANNER) --name backend_ndb --global 'backend-ndb' > $@
+	$(MKBANNER) --name backend_ndb --global 'backend-ndb' > $@ || $(RM) $@
 endif
 
 back_ndb_la_SOURCES = add.cpp back-ndb.h banner.c bind.cpp \

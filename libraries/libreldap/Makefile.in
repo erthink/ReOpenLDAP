@@ -101,6 +101,7 @@ check_PROGRAMS = check/apitest$(EXEEXT) check/dntest$(EXEEXT) \
 subdir = libraries/libreldap
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/build/m4/ax_pthread.m4 \
+	$(top_srcdir)/build/m4/ax_valgrind_check.m4 \
 	$(top_srcdir)/build/m4/libtool.m4 \
 	$(top_srcdir)/build/m4/ltargz.m4 \
 	$(top_srcdir)/build/m4/ltdl.m4 \
@@ -157,13 +158,12 @@ am__libreldap_la_SOURCES_DIST = abandon.c add.c addentry.c assertion.c \
 	getdn.c getentry.c getvalues.c gssapi.c hipagut.c init.c io.c \
 	lber_options.c ldap_options.c ldap_sync.c ldif.c memory.c \
 	messages.c modify.c modrdn.c open.c os-ip.c os-local.c \
-	pagectrl.c passwd.c posix.c ppolicy.c print.c references.c \
-	request.c result.c rmutex.c rq.c sasl.c schema.c search.c \
-	sockbuf.c sort.c sortctrl.c stctrl.c stdio.c string.c t61.c \
-	threads.c tls2.c tls_g.c tls_m.c tls_o.c tpool.c turn.c txn.c \
-	unbind.c url.c utf-8.c utf-8-conv.c util-int.c vlvctrl.c \
-	whoami.c crutch.c lber-int.h ldap-int.h ldap-tls.h \
-	deprecated.c
+	pagectrl.c passwd.c posix.c ppolicy.c references.c request.c \
+	result.c rmutex.c rq.c sasl.c schema.c search.c sockbuf.c \
+	sort.c sortctrl.c stctrl.c stdio.c string.c t61.c threads.c \
+	tls2.c tls_g.c tls_m.c tls_o.c tpool.c turn.c txn.c unbind.c \
+	url.c utf-8.c utf-8-conv.c util-int.c vlvctrl.c whoami.c \
+	crutch.c lber-int.h ldap-int.h ldap-tls.h deprecated.c
 @LDAP_DEPRECATED_TRUE@am__objects_1 = deprecated.lo
 am_libreldap_la_OBJECTS = abandon.lo add.lo addentry.lo assertion.lo \
 	banner.lo bprint.lo cancel.lo charray.lo compare.lo \
@@ -173,13 +173,12 @@ am_libreldap_la_OBJECTS = abandon.lo add.lo addentry.lo assertion.lo \
 	gssapi.lo hipagut.lo init.lo io.lo lber_options.lo \
 	ldap_options.lo ldap_sync.lo ldif.lo memory.lo messages.lo \
 	modify.lo modrdn.lo open.lo os-ip.lo os-local.lo pagectrl.lo \
-	passwd.lo posix.lo ppolicy.lo print.lo references.lo \
-	request.lo result.lo rmutex.lo rq.lo sasl.lo schema.lo \
-	search.lo sockbuf.lo sort.lo sortctrl.lo stctrl.lo stdio.lo \
-	string.lo t61.lo threads.lo tls2.lo tls_g.lo tls_m.lo tls_o.lo \
-	tpool.lo turn.lo txn.lo unbind.lo url.lo utf-8.lo \
-	utf-8-conv.lo util-int.lo vlvctrl.lo whoami.lo crutch.lo \
-	$(am__objects_1)
+	passwd.lo posix.lo ppolicy.lo references.lo request.lo \
+	result.lo rmutex.lo rq.lo sasl.lo schema.lo search.lo \
+	sockbuf.lo sort.lo sortctrl.lo stctrl.lo stdio.lo string.lo \
+	t61.lo threads.lo tls2.lo tls_g.lo tls_m.lo tls_o.lo tpool.lo \
+	turn.lo txn.lo unbind.lo url.lo utf-8.lo utf-8-conv.lo \
+	util-int.lo vlvctrl.lo whoami.lo crutch.lo $(am__objects_1)
 libreldap_la_OBJECTS = $(am_libreldap_la_OBJECTS)
 AM_V_lt = $(am__v_lt_@AM_V@)
 am__v_lt_ = $(am__v_lt_@AM_DEFAULT_V@)
@@ -320,18 +319,24 @@ ECHO_C = @ECHO_C@
 ECHO_N = @ECHO_N@
 ECHO_T = @ECHO_T@
 EGREP = @EGREP@
+ENABLE_VALGRIND_drd = @ENABLE_VALGRIND_drd@
+ENABLE_VALGRIND_helgrind = @ENABLE_VALGRIND_helgrind@
+ENABLE_VALGRIND_memcheck = @ENABLE_VALGRIND_memcheck@
+ENABLE_VALGRIND_sgcheck = @ENABLE_VALGRIND_sgcheck@
 EXEEXT = @EXEEXT@
 FGREP = @FGREP@
 FIXUP_DIRS = @FIXUP_DIRS@
 FIXUP_DIST = @FIXUP_DIST@
 GREP = @GREP@
+HEIMDAL_CFLAGS = @HEIMDAL_CFLAGS@
+HEIMDAL_LIBS = @HEIMDAL_LIBS@
 INCLTDL = @INCLTDL@
 INSTALL = @INSTALL@
 INSTALL_DATA = @INSTALL_DATA@
 INSTALL_PROGRAM = @INSTALL_PROGRAM@
 INSTALL_SCRIPT = @INSTALL_SCRIPT@
 INSTALL_STRIP_PROGRAM = @INSTALL_STRIP_PROGRAM@
-KRB4_LIBS = @KRB4_LIBS@
+KRB5_CFLAGS = @KRB5_CFLAGS@
 KRB5_LIBS = @KRB5_LIBS@
 LD = @LD@
 LDAP_LIBLUNICODE_LA = @LDAP_LIBLUNICODE_LA@
@@ -424,6 +429,8 @@ SQL_INCLUDES = @SQL_INCLUDES@
 SQL_LIBS = @SQL_LIBS@
 STRIP = @STRIP@
 TLS_LIBS = @TLS_LIBS@
+VALGRIND = @VALGRIND@
+VALGRIND_ENABLED = @VALGRIND_ENABLED@
 VERSION = @VERSION@
 VERSION_MAJOR = @VERSION_MAJOR@
 VERSION_MINOR = @VERSION_MINOR@
@@ -432,7 +439,6 @@ VERSION_PATCH = @VERSION_PATCH@
 WITH_ACI_ENABLED = @WITH_ACI_ENABLED@
 WITH_SASL = @WITH_SASL@
 WITH_TLS = @WITH_TLS@
-WRAP_LIBS = @WRAP_LIBS@
 abs_builddir = @abs_builddir@
 abs_srcdir = @abs_srcdir@
 abs_top_builddir = @abs_top_builddir@
@@ -496,6 +502,8 @@ target_vendor = @target_vendor@
 top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
+valgrind_enabled_tools = @valgrind_enabled_tools@
+valgrind_tools = @valgrind_tools@
 pkglib_LTLIBRARIES = libreldap.la
 sysconf_DATA = ldap.conf
 EXTRA_DIST = ldap.conf
@@ -512,13 +520,12 @@ libreldap_la_SOURCES = abandon.c add.c addentry.c assertion.c banner.c \
 	getentry.c getvalues.c gssapi.c hipagut.c init.c io.c \
 	lber_options.c ldap_options.c ldap_sync.c ldif.c memory.c \
 	messages.c modify.c modrdn.c open.c os-ip.c os-local.c \
-	pagectrl.c passwd.c posix.c ppolicy.c print.c references.c \
-	request.c result.c rmutex.c rq.c sasl.c schema.c search.c \
-	sockbuf.c sort.c sortctrl.c stctrl.c stdio.c string.c t61.c \
-	threads.c tls2.c tls_g.c tls_m.c tls_o.c tpool.c turn.c txn.c \
-	unbind.c url.c utf-8.c utf-8-conv.c util-int.c vlvctrl.c \
-	whoami.c crutch.c lber-int.h ldap-int.h ldap-tls.h \
-	$(am__append_1)
+	pagectrl.c passwd.c posix.c ppolicy.c references.c request.c \
+	result.c rmutex.c rq.c sasl.c schema.c search.c sockbuf.c \
+	sort.c sortctrl.c stctrl.c stdio.c string.c t61.c threads.c \
+	tls2.c tls_g.c tls_m.c tls_o.c tpool.c turn.c txn.c unbind.c \
+	url.c utf-8.c utf-8-conv.c util-int.c vlvctrl.c whoami.c \
+	crutch.c lber-int.h ldap-int.h ldap-tls.h $(am__append_1)
 
 # LY: append-hack CFLAGS to avoid lost symver's tags by LTO.
 nolto_CFLAGS := $(CFLAGS) $$(echo "$(CFLAGS)" | grep -q ' -flto' && echo '-fno-lto') -save-temps
@@ -741,7 +748,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/passwd.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/posix.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ppolicy.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/print.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/references.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/request.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/result.Plo@am__quote@
@@ -1052,7 +1058,7 @@ uninstall-am: uninstall-pkglibLTLIBRARIES uninstall-sysconfDATA
 .PRECIOUS: Makefile
 
 @BEHIND_CURTIAN_TRUE@banner.c: Makefile
-@BEHIND_CURTIAN_TRUE@	$(MKBANNER) --name 'libreldap' --global 'libreldap' > $@
+@BEHIND_CURTIAN_TRUE@	$(MKBANNER) --name reldap --global 'libreldap' > $@ || $(RM) $@
 libreldap_la-crutch.o libreldap_la-crutch.lo crutch.o crutch.lo: CFLAGS = $(nolto_CFLAGS)
 @LDAP_DEPRECATED_TRUE@libreldap_la-deprecated.o libreldap_la-deprecated.lo deprecated.o deprecated.lo: CFLAGS += -Wno-deprecated-declarations
 

@@ -31,14 +31,13 @@
  * <http://www.OpenLDAP.org/license.html>.
  */
 
+#include "reldap.h"
 #include <unistd.h>
-
 #include <lber.h>
 #include <lber_pvt.h>
 #include "lutil.h"
 #include "lutil_md5.h"
 #include <ac/string.h>
-
 #include <slap.h>
 
 static LUTIL_PASSWD_CHK_FUNC chk_ns_mta_md5;
@@ -96,6 +95,7 @@ static int chk_ns_mta_md5(
 		(char *)buffer, sizeof(buffer)) ? LUTIL_PASSWD_ERR : LUTIL_PASSWD_OK;
 }
 
-SLAP_OVERLAY_ENTRY(pw_netscape, modinit) ( int argc, char *argv[] )
+SLAP_MODULE_ENTRY(pw_netscape, modinit) ( int argc, char *argv[] )
+{
 	return lutil_passwd_add( (struct berval *)&scheme, chk_ns_mta_md5, NULL );
 }

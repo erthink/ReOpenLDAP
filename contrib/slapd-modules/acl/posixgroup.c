@@ -37,7 +37,7 @@
 /* Need dynacl... */
 #if ! SLAP_DYNACL
 #	error "Run-time loadable ACL support (--enable-dynacl) is required for acl-posixgroup plugin!"
-#else
+#endif
 
 #include <ac/string.h>
 #include <slap.h>
@@ -339,9 +339,7 @@ static struct slap_dynacl_t pg_dynacl = {
 	pg_dynacl_destroy
 };
 
-SLAP_OVERLAY_ENTRY(posixgroup, modinit) ( int argc, char *argv[] )
+SLAP_MODULE_ENTRY(posixgroup, modinit) ( int argc, char *argv[] )
 {
 	return slap_dynacl_register( &pg_dynacl );
 }
-
-#endif /* SLAP_DYNACL */

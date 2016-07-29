@@ -311,7 +311,7 @@ down:;
 			ldap_pvt_thread_mutex_lock( &mi->mi_conninfo.lai_mutex );
 
 			assert( mc->mc_refcnt > 0 );
-			if ( LogTest( LDAP_DEBUG_ANY ) ) {
+			if ( DebugTest( LDAP_DEBUG_ANY ) ) {
 				char	buf[ SLAP_TEXT_BUFLEN ];
 
 				/* this lock is required; however,
@@ -811,7 +811,7 @@ meta_back_search( Operation *op, SlapReply *rs )
 			timeout = 0;
 	int		rc = 0, sres = LDAP_SUCCESS;
 	char		*matched = NULL;
-	int		last ALLOW_UNUSED = 0, ncandidates = 0,
+	int		last MAY_UNUSED = 0, ncandidates = 0,
 			initial_candidates = 0, candidate_match = 0,
 			needbind = 0;
 	ldap_back_send_t	sendok = LDAP_BACK_SENDERR;
@@ -952,7 +952,7 @@ getconn:;
 
 	initial_candidates = ncandidates;
 
-	if ( LogTest( LDAP_DEBUG_TRACE ) ) {
+	if ( DebugTest( LDAP_DEBUG_TRACE ) ) {
 		char	cnd[ SLAP_TEXT_BUFLEN ];
 		int	c;
 
@@ -1532,7 +1532,7 @@ really_bad:;
 
 					sres = slap_map_api2result( rs );
 
-					if ( LogTest( LDAP_DEBUG_TRACE | LDAP_DEBUG_ANY ) ) {
+					if ( DebugTest( LDAP_DEBUG_TRACE | LDAP_DEBUG_ANY ) ) {
 						snprintf( buf, sizeof( buf ),
 							"%s meta_back_search[%ld] "
 							"match=\"%s\" err=%ld",

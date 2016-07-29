@@ -36,7 +36,7 @@ endif
 if BEHIND_CURTIAN
 BUILT_SOURCES = banner.c
 banner.c: Makefile
-	$(MKBANNER) --name backend_mdbx --global 'backend-mdbx' > $@
+	$(MKBANNER) --name backend_mdbx --global 'backend-mdbx' > $@ || $(RM) $@
 endif
 
 libmdbx_la_CFLAGS = -DNDEBUG=1 -DMDB_DEBUG=0

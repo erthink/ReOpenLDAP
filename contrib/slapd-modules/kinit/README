@@ -7,20 +7,13 @@ the Kerberos libraries. (Heimdal support might come later)
 
 To use the overlay just load it into the slapd process:
 
-    moduleload </path/to>/kinit.so <principal> </path/to/key.tab>
+    moduleload contrib-kinit.so <principal> </path/to/key.tab>
 
 The module accepts two arguments. The first one being the principal for which
 to request the TGT (it defaults to "ldap/<your hostname>@<DEFAULTREALM>")
 and the second one is the path to the keytab file to use for
 authentication, defaulting to whatever your system wide kerberos settings
 default to).
-
-Use Makefile or the following commands should work to
-build it from inside the unpacked slapd sources, provided the required KRB5
-header files and libaries are installed on your system:
-
-    gcc -fPIC -c -I ../../../include/ -I ../../../servers/slapd kinit.c
-    gcc -shared -o kinit.so kinit.o -lkrb5
 
 ---
 opyright (c) 2015,2016 Leonid Yuriev <leo@yuriev.ru>.

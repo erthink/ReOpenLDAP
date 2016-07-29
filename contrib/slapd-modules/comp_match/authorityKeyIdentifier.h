@@ -1,5 +1,5 @@
 
-#include "asn-incl.h"
+#include "asn.h"
 /*
  *    authorityKeyIdentifier.h
  *    "AuthorityKeyIdentifierDefinition" ASN.1 module encode/decode/extracting/matching/free C src.
@@ -10,8 +10,6 @@
 
 #ifndef _authorityKeyIdentifier_h_
 #define _authorityKeyIdentifier_h_
-
-
 
 
 #ifdef __cplusplus

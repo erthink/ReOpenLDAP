@@ -72,18 +72,7 @@
 #include "ldap-int.h"
 #include "ldap_defaults.h"
 
-#ifdef LDAP_DEBUG
-
-#define oslocal_debug(ld,...) \
-do { \
-	ldap_log_printf(ld, LDAP_DEBUG_TRACE, __VA_ARGS__); \
-} while(0)
-
-#else
-
-#define oslocal_debug(ld,fmt,...) ((void)0)
-
-#endif /* LDAP_DEBUG */
+#define oslocal_debug(ld,...) Debug(LDAP_DEBUG_TRACE, __VA_ARGS__)
 
 static void
 ldap_pvt_set_errno(int err)
@@ -167,7 +156,7 @@ ldap_pvt_is_socket_ready(LDAP *ld, int s)
 		== AC_SOCKET_ERROR )
 	{
 		/* XXX: needs to be replace with ber_stream_read() */
-		int ignore ALLOW_UNUSED = read(s, &ch, 1);
+		int ignore MAY_UNUSED = read(s, &ch, 1);
 		TRACE;
 		return -1;
 	}

@@ -646,7 +646,7 @@ static int
 check_password_quality( struct berval *cred, PassPolicy *pp, LDAPPasswordPolicyError *err, Entry *e, char **txt )
 {
 	int rc = LDAP_SUCCESS, ok = LDAP_SUCCESS;
-	char *ptr ALLOW_UNUSED;
+	char *ptr MAY_UNUSED;
 	struct berval sch;
 
 	assert( cred != NULL );

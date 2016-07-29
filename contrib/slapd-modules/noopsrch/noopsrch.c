@@ -38,9 +38,6 @@
 
 #include "reldap.h"
 
-/* define SLAPD_OVER_NOOPSRCH=2 to build as run-time loadable module */
-#ifdef SLAPD_OVER_NOOPSRCH
-
 /*
  * Control OID
  */
@@ -257,11 +254,7 @@ noopsrch_initialize( void )
 	return overlay_register( &noopsrch );
 }
 
-#if SLAPD_OVER_NOOPSRCH == SLAPD_MOD_DYNAMIC
-SLAP_OVERLAY_ENTRY(noopsrch, modinit) ( int argc, char *argv[] )
+SLAP_MODULE_ENTRY(noopsrch, modinit) ( int argc, char *argv[] )
 {
 	return noopsrch_initialize();
 }
-#endif /* SLAPD_OVER_NOOPSRCH == SLAPD_MOD_DYNAMIC */
-
-#endif /* SLAPD_OVER_NOOPSRCH */

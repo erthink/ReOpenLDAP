@@ -826,14 +826,7 @@ ldap_url_parse_ext( LDAP_CONST char *url_in, LDAPURLDesc **ludpp, unsigned flags
 		return LDAP_URL_ERR_PARAM;
 	}
 
-#ifndef LDAP_INT_IN_KERNEL
-	/* Global options may not be created yet
-	 * We can't test if the global options are initialized
-	 * because a call to LDAP_INT_GLOBAL_OPT() will try to allocate
-	 * the options and cause infinite recursion
-	 */
 	Debug( LDAP_DEBUG_TRACE, "ldap_url_parse_ext(%s)\n", url_in );
-#endif
 
 	*ludpp = NULL;	/* pessimistic */
 

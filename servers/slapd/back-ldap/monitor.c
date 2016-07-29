@@ -1092,7 +1092,7 @@ ldap_back_monitor_db_close( BackendDB *be )
 		paused = slap_biglock_pool_pause(be);
 	if ( li && !BER_BVISNULL( &li->li_monitor_info.lmi_ndn ) ) {
 		BackendInfo		*mi;
-		monitor_extra_t		*mbe ALLOW_UNUSED;
+		monitor_extra_t		*mbe MAY_UNUSED;
 		monitor_subsys_t	*mss = li->li_monitor_info.lmi_mss;
 
 		if (mss) {

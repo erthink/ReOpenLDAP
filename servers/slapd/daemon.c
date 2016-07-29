@@ -131,13 +131,13 @@ static volatile int waking;
 #ifdef NO_THREADS
 #define WAKE_LISTENER(l,w)	do { \
 	if ((w) && ++waking < 5) { \
-		int ignore ALLOW_UNUSED = tcp_write( SLAP_FD2SOCK(wake_sds[l][1]), "0", 1 ); \
+		int ignore MAY_UNUSED = tcp_write( SLAP_FD2SOCK(wake_sds[l][1]), "0", 1 ); \
 	} \
 } while (0)
 #else /* ! NO_THREADS */
 #define WAKE_LISTENER(l,w)	do { \
 	if (w) { \
-		int ignore ALLOW_UNUSED = tcp_write( SLAP_FD2SOCK(wake_sds[l][1]), "0", 1 ); \
+		int ignore MAY_UNUSED = tcp_write( SLAP_FD2SOCK(wake_sds[l][1]), "0", 1 ); \
 	} \
 } while (0)
 #endif /* ! NO_THREADS */
@@ -1950,7 +1950,7 @@ slap_listener(
 			ldap_pvt_thread_mutex_lock( &sd_tcpd_mutex );
 			rc = hosts_ctl("slapd",
 				dnsname != NULL ? dnsname : SLAP_STRING_UNKNOWN,
-				peeraddr,
+				(char *) peeraddr,
 				SLAP_STRING_UNKNOWN );
 			ldap_pvt_thread_mutex_unlock( &sd_tcpd_mutex );
 			if ( !rc ) {
@@ -2252,9 +2252,9 @@ loop:
 	while ( !slapd_shutdown ) {
 		ber_socket_t		i;
 		int			ns;
-		int			nwriters ALLOW_UNUSED;
+		int			nwriters MAY_UNUSED;
 		int			at;
-		ber_socket_t		nfds ALLOW_UNUSED;
+		ber_socket_t		nfds MAY_UNUSED;
 #if SLAP_EVENTS_ARE_INDEXED
 		ber_socket_t		nrfds, nwfds;
 #endif /* SLAP_EVENTS_ARE_INDEXED */
@@ -2649,7 +2649,7 @@ loop:
 				if ( fd == wake_sds[tid][0] ) {
 					char c[BUFSIZ];
 					waking = 0;
-					int ignore ALLOW_UNUSED = tcp_read( SLAP_FD2SOCK(wake_sds[tid][0]), c, sizeof(c) );
+					int ignore MAY_UNUSED = tcp_read( SLAP_FD2SOCK(wake_sds[tid][0]), c, sizeof(c) );
 					continue;
 				}
 
@@ -2731,7 +2731,7 @@ loop:
 		connections_shutdown( 0 );
 	}
 
-	if ( LogTest( LDAP_DEBUG_ANY )) {
+	if ( DebugTest( LDAP_DEBUG_ANY )) {
 		int t = ldap_pvt_thread_pool_backload( &connection_pool );
 		Debug( LDAP_DEBUG_ANY,
 			"slapd shutdown: waiting for %d operations/tasks to finish\n",

@@ -35,7 +35,7 @@
 /* Need dynacl... */
 #if ! SLAP_DYNACL
 #	error "Run-time loadable ACL support (--enable-dynacl) is required for acl-gssacl plugin!"
-#else
+#endif
 
 #include <ac/string.h>
 #include <slap.h>
@@ -278,19 +278,6 @@ gssattr_dynacl_destroy(
 	return 0;
 }
 
-static struct slap_dynacl_t gssattr_dynacl = {
-	"gss",
-	gssattr_dynacl_parse,
-	gssattr_dynacl_unparse,
-	gssattr_dynacl_mask,
-	gssattr_dynacl_destroy
-};
-
-SLAP_OVERLAY_ENTRY(gssacl, modinit) ( int argc, char *argv[] )
-{
-	return slap_dynacl_register( &gssattr_dynacl );
-}
-
 static int
 regex_matches(
 	struct berval	*pat,		/* pattern to expand and match against */
@@ -335,4 +322,15 @@ regex_matches(
 	return( !rc );
 }
 
-#endif /* SLAP_DYNACL */
+static struct slap_dynacl_t gssattr_dynacl = {
+	"gss",
+	gssattr_dynacl_parse,
+	gssattr_dynacl_unparse,
+	gssattr_dynacl_mask,
+	gssattr_dynacl_destroy
+};
+
+SLAP_MODULE_ENTRY(gssacl, modinit) ( int argc, char *argv[] )
+{
+	return slap_dynacl_register( &gssattr_dynacl );
+}

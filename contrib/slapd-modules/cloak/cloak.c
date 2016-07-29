@@ -39,8 +39,6 @@
 
 #include "reldap.h"
 
-#ifdef SLAPD_OVER_CLOAK
-
 #include <stdio.h>
 
 #include "ac/string.h"
@@ -358,12 +356,7 @@ cloak_initialize( void ) {
 	return overlay_register( &cloak_ovl );
 }
 
-#if SLAPD_OVER_CLOAK == SLAPD_MOD_DYNAMIC
-SLAP_OVERLAY_ENTRY(cloak, modinit) ( int argc, char *argv[] )
+SLAP_MODULE_ENTRY(cloak, modinit) ( int argc, char *argv[] )
 {
 	return cloak_initialize();
 }
-#endif
-
-#endif /* defined(SLAPD_OVER_CLOAK) */
-

@@ -20,10 +20,14 @@
 
 ACLOCAL_AMFLAGS = -I build/m4
 
-DIST_SUBDIRS = include libraries clients servers doc/man build/libltdl
+DIST_SUBDIRS = include libraries clients servers doc/man build/libltdl contrib
 SUBDIRS = include libraries clients servers doc/man
 
 EXTRA_DIST = build/stub
+
+if CONTRIB
+SUBDIRS += contrib
+endif
 
 if SLAPD_DYNAMIC
 SUBDIRS += build/libltdl

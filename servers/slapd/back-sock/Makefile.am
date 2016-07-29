@@ -36,7 +36,7 @@ endif
 if BEHIND_CURTIAN
 BUILT_SOURCES = banner.c
 banner.c: Makefile
-	$(MKBANNER) --name backend_sock --global 'backend-sock' > $@
+	$(MKBANNER) --name backend_sock --global 'backend-sock' > $@ || $(RM) $@
 endif
 
 back_sock_la_SOURCES = add.c back-sock.h banner.c bind.c compare.c \

@@ -1951,10 +1951,10 @@ parse_acl(
 
 	} else {
 #ifdef LDAP_DEBUG
-		if ( slap_debug & LDAP_DEBUG_ACL ) {
+		if ( slap_debug_mask & LDAP_DEBUG_ACL ) {
 			print_acl( be, a );
 		}
-#endif
+#endif /* LDAP_DEBUG */
 
 		if ( a->acl_access == NULL ) {
 			Debug( LDAP_DEBUG_ANY, "%s: line %d: "

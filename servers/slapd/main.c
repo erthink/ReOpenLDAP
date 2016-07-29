@@ -174,7 +174,7 @@ struct option_helper {
 	{ BER_BVNULL, 0, NULL, NULL }
 };
 
-#if defined(LDAP_DEBUG) && defined(LDAP_SYSLOG)
+#ifdef LDAP_SYSLOG
 #ifdef LOG_LOCAL4
 int
 parse_syslog_user( const char *arg, int *syslogUser )
@@ -212,7 +212,7 @@ parse_syslog_user( const char *arg, int *syslogUser )
 #endif /* LOG_LOCAL4 */
 
 int
-parse_syslog_level( const char *arg, int *levelp )
+parse_syslog_severity( const char *arg, int *severity )
 {
 	static slap_verbmasks	str2syslog_level[] = {
 		{ BER_BVC( "EMERG" ),	LOG_EMERG },
@@ -233,8 +233,7 @@ parse_syslog_level( const char *arg, int *levelp )
 		return 1;
 	}
 
-	*levelp = str2syslog_level[ i ].mask;
-
+	*severity = str2syslog_level[ i ].mask;
 	return 0;
 }
 #endif /* LDAP_DEBUG && LDAP_SYSLOG */
@@ -509,7 +508,7 @@ int main( int argc, char **argv )
 			break;
 
 		case 'd': {	/* set debug level and 'do not detach' flag */
-			int	level = 0;
+			int	mask = 0;
 
 			if ( strcmp( optarg, "?" ) == 0 ) {
 				check |= CHECK_LOGLEVEL;
@@ -517,16 +516,15 @@ int main( int argc, char **argv )
 			}
 
 			no_detach = 1;
-			if ( parse_debug_level( optarg, &level, &debug_unknowns ) ) {
+			if ( parse_debug_level( optarg, &mask, &debug_unknowns ) ) {
 				goto destroy;
 			}
 #ifdef LDAP_DEBUG
-			slap_debug |= level;
+			slap_set_debug_level(mask);
 #else
-			if ( level != 0 )
-				fputs( "must compile with LDAP_DEBUG for debugging\n",
-				       stderr );
-#endif
+			if ( mask != 0 || debug_unknowns )
+				fputs( "must configure with --enable-debug for debugging\n", stderr );
+#endif /* LDAP_DEBUG */
 			} break;
 
 		case 'f':	/* read config file */
@@ -567,23 +565,30 @@ int main( int argc, char **argv )
 			if ( BER_BVISNULL( &option_helpers[i].oh_name ) ) {
 				goto unhandled_option;
 			}
-			break;
-		}
+		} break;
 
-		case 's':	/* set syslog level */
+		case 's': {	/* set syslog level */
+			int mask = 0;
+
 			if ( strcmp( optarg, "?" ) == 0 ) {
 				check |= CHECK_LOGLEVEL;
 				break;
 			}
 
-			if ( parse_debug_level( optarg, &ldap_syslog, &syslog_unknowns ) ) {
+			if ( parse_debug_level( optarg, &mask, &syslog_unknowns ) ) {
 				goto destroy;
 			}
-			break;
+#ifdef LDAP_SYSLOG
+			slap_syslog_mask = mask;
+#else
+			if ( mask != 0 || syslog_unknowns )
+				fputs( "must configure with --enable-syslog for syslog\n", stderr );
+#endif /* LDAP_SYSLOG */
+		} break;
 
-#if defined(LDAP_DEBUG) && defined(LDAP_SYSLOG)
+#ifdef LDAP_SYSLOG
 		case 'S':
-			if ( parse_syslog_level( optarg, &ldap_syslog_level ) ) {
+			if ( parse_syslog_severity( optarg, &slap_syslog_severity ) ) {
 				goto destroy;
 			}
 			break;
@@ -594,8 +599,8 @@ int main( int argc, char **argv )
 				goto destroy;
 			}
 			break;
-#endif
-#endif /* LDAP_DEBUG && LDAP_SYSLOG */
+#endif /* LOG_LOCAL4 */
+#endif /* LDAP_SYSLOG */
 
 #ifdef HAVE_CHROOT
 		case 'r':
@@ -679,10 +684,6 @@ unhandled_option:;
 	if ( optind != argc )
 		goto unhandled_option;
 
-	ber_set_option(NULL, LBER_OPT_DEBUG_LEVEL, &slap_debug);
-	ldap_set_option(NULL, LDAP_OPT_DEBUG_LEVEL, &slap_debug);
-	ldif_debug = slap_debug;
-
 	if ( version ) {
 		fprintf( stderr, "%s\n", Versionstr );
 		if ( version > 2 ) {
@@ -703,7 +704,7 @@ unhandled_option:;
 		if ( version > 1 ) goto stop;
 	}
 
-#if defined(LDAP_DEBUG) && defined(LDAP_SYSLOG)
+#ifdef LDAP_SYSLOG
 	{
 		char *logName;
 		logName = serverName;
@@ -714,7 +715,7 @@ unhandled_option:;
 		openlog( logName, OPENLOG_OPTIONS );
 #endif
 	}
-#endif /* LDAP_DEBUG && LDAP_SYSLOG */
+#endif /* LDAP_SYSLOG */
 
 	Debug( LDAP_DEBUG_ANY, "%s", Versionstr );
 
@@ -785,14 +786,21 @@ unhandled_option:;
 	}
 
 	if ( debug_unknowns ) {
-		rc = parse_debug_unknowns( debug_unknowns, &slap_debug );
+		int mask = LDAP_DEBUG_NONE;
+		rc = parse_debug_unknowns( debug_unknowns, &mask );
+		slap_set_debug_level(mask);
 		ldap_charray_free( debug_unknowns );
 		debug_unknowns = NULL;
 		if ( rc )
 			goto destroy;
 	}
+
 	if ( syslog_unknowns ) {
-		rc = parse_debug_unknowns( syslog_unknowns, &ldap_syslog );
+		int mask = LDAP_DEBUG_NONE;
+		rc = parse_debug_unknowns( syslog_unknowns, &mask );
+#ifdef LDAP_SYSLOG
+		slap_syslog_mask = mask;
+#endif /* LDAP_SYSLOG */
 		ldap_charray_free( syslog_unknowns );
 		syslog_unknowns = NULL;
 		if ( rc )
@@ -970,7 +978,7 @@ unhandled_option:;
 	Debug( LDAP_DEBUG_ANY, "slapd starting\n" );
 
 	if ( !no_detach ) {
-		int ignore ALLOW_UNUSED = write( waitfds[1], "1", 1 );
+		int ignore MAY_UNUSED = write( waitfds[1], "1", 1 );
 		close( waitfds[1] );
 	}
 

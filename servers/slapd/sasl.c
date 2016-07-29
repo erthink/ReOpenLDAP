@@ -32,6 +32,7 @@
  */
 
 #include "reldap.h"
+#include "slap.h"
 
 #include <stdio.h>
 #ifdef HAVE_LIMITS_H
@@ -43,8 +44,6 @@
 
 #include <lber.h>
 #include <ldap_log.h>
-
-#include "slap.h"
 
 #ifdef ENABLE_REWRITE
 #include <rewrite.h>

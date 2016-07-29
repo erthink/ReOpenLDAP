@@ -47,6 +47,10 @@
 #include <ac/socket.h>
 #include <ac/string.h>
 
+#if LDAP_EXPERIMENTAL > 0
+#	define SLAP_AUTH_DN 1
+#endif /* LDAP_EXPERIMENTAL > 0 */
+
 #define AVL_INTERNAL
 #include "slap.h"
 #include "back-ldap.h"
@@ -54,10 +58,6 @@
 #include "lutil_ldap.h"
 
 #define LDAP_CONTROL_OBSOLETE_PROXY_AUTHZ	"2.16.840.1.113730.3.4.12"
-
-#ifdef LDAP_DEVEL
-#define SLAP_AUTH_DN 1
-#endif
 
 #if LDAP_BACK_PRINT_CONNTREE > 0
 
@@ -203,7 +203,7 @@ ldap_back_conn_delete( ldapinfo_t *li, ldapconn_t *lc )
 		}
 
 	} else {
-		ldapconn_t	*tmplc = NULL;
+		ldapconn_t	*tmplc MAY_UNUSED = NULL;
 
 		if ( LDAP_BACK_CONN_CACHED( lc ) ) {
 			assert( !LDAP_BACK_CONN_TAINTED( lc ) );
@@ -1122,7 +1122,7 @@ retry_lock:
 
 		ldap_pvt_thread_mutex_unlock( &li->li_conninfo.lai_mutex );
 
-		if ( LogTest( LDAP_DEBUG_TRACE ) ) {
+		if ( DebugTest( LDAP_DEBUG_TRACE ) ) {
 			char	buf[ SLAP_TEXT_BUFLEN ];
 
 			snprintf( buf, sizeof( buf ),
@@ -1191,7 +1191,7 @@ retry_lock:
 			ldap_pvt_thread_mutex_unlock( &li->li_conninfo.lai_mutex );
 		}
 
-		if ( LogTest( LDAP_DEBUG_TRACE ) ) {
+		if ( DebugTest( LDAP_DEBUG_TRACE ) ) {
 			char	buf[ SLAP_TEXT_BUFLEN ];
 
 			snprintf( buf, sizeof( buf ),
@@ -2261,7 +2261,7 @@ ldap_back_proxy_authz_bind(
 	struct berval		*bindcred )
 {
 	ldapinfo_t	*li = (ldapinfo_t *)op->o_bd->be_private;
-	struct berval	ndn ALLOW_UNUSED;
+	struct berval	ndn MAY_UNUSED;
 	int		msgid;
 	int		rc;
 

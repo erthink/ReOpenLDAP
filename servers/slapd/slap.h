@@ -45,6 +45,8 @@
 #ifndef _SLAP_H_
 #define _SLAP_H_
 
+#define SLAP_INSIDE
+
 #include "ldap_defaults.h"
 
 #include <stdio.h>
@@ -64,12 +66,7 @@
 #	include <execinfo.h>
 #endif
 
-#ifndef ldap_debug
-#define ldap_debug slap_debug
-#endif
-
 #include "ldap_log.h"
-
 #include <ldap.h>
 #include <ldap_schema.h>
 
@@ -80,16 +77,16 @@
 
 LDAP_BEGIN_DECL
 
-#ifdef LDAP_DEVEL
-#define LDAP_COLLECTIVE_ATTRIBUTES
-#define LDAP_COMP_MATCH
-#define LDAP_SYNC_TIMESTAMP
-#define SLAP_CONTROL_X_WHATFAILED
-#define SLAP_CONFIG_DELETE
-#ifndef SLAP_SCHEMA_EXPOSE
-#define SLAP_SCHEMA_EXPOSE
-#endif
-#endif
+#if LDAP_EXPERIMENTAL > 0
+#	define LDAP_COLLECTIVE_ATTRIBUTES
+#	define LDAP_COMP_MATCH
+#	define LDAP_SYNC_TIMESTAMP
+#	define SLAP_CONTROL_X_WHATFAILED
+#	define SLAP_CONFIG_DELETE
+#	ifndef SLAP_SCHEMA_EXPOSE
+#		define SLAP_SCHEMA_EXPOSE
+#	endif
+#endif /* LDAP_EXPERIMENTAL > 0 */
 
 #define LDAP_DYNAMIC_OBJECTS
 #define SLAP_CONTROL_X_TREE_DELETE LDAP_CONTROL_X_TREE_DELETE
@@ -97,7 +94,7 @@ LDAP_BEGIN_DECL
 #define SLAP_DISTPROC
 
 #ifdef ENABLE_REWRITE
-#define SLAP_AUTH_REWRITE	1 /* use librewrite for sasl-regexp */
+#	define SLAP_AUTH_REWRITE	1 /* use librewrite for sasl-regexp */
 #endif
 
 /*
@@ -232,8 +229,6 @@ LDAP_BEGIN_DECL
 #define SLAPD_ROLE_CLASS		"organizationalRole"
 
 #define SLAPD_TOP_OID			"2.5.6.0"
-
-LDAP_SLAPD_V (int) slap_debug;
 
 typedef unsigned long slap_mask_t;
 
@@ -3107,8 +3102,8 @@ struct Connection {
 #endif /* LOG_LOCAL4 */
 
 #define Statslog( level, ... )	\
-	Log( (level), ldap_syslog_level, __VA_ARGS__ )
-#define StatslogTest( level ) LogTest(level)
+	Log( (level), slap_syslog_severity, __VA_ARGS__ )
+#define StatslogTest( level ) DebugTest(level)
 
 /*
  * listener; need to access it from monitor backend
@@ -3128,13 +3123,15 @@ struct Listener {
 	ber_socket_t sl_sd;
 	Sockaddr sl_sa;
 #define sl_addr	sl_sa.sa_in_addr
-#ifdef LDAP_DEVEL
-#define LDAP_TCP_BUFFER
-#endif
+
+#if LDAP_EXPERIMENTAL > 0
+#	define LDAP_TCP_BUFFER
+#endif /* LDAP_EXPERIMENTAL */
+
 #ifdef LDAP_TCP_BUFFER
 	int	sl_tcp_rmem;	/* custom TCP read buffer size */
 	int	sl_tcp_wmem;	/* custom TCP write buffer size */
-#endif
+#endif /* LDAP_TCP_BUFFER */
 };
 
 /*
@@ -3412,7 +3409,7 @@ struct ComponentSyntaxInfo {
 	__reldap_exportable int \
 	back_ ## be ## _ReOpenLDAP_ ## item
 
-#define SLAP_OVERLAY_ENTRY(ov, item) \
+#define SLAP_MODULE_ENTRY(ov, item) \
 	__reldap_exportable int \
 	ov ## _ReOpenLDAP_ ## item
 
@@ -3429,7 +3426,7 @@ struct ComponentSyntaxInfo {
 	}
 
 #define SLAP_OVERLAY_INIT_MODULE(ov) \
-	SLAP_OVERLAY_ENTRY(ov, modinit) ( int argc, char *argv[] ) \
+	SLAP_MODULE_ENTRY(ov, modinit) ( int argc, char *argv[] ) \
 	{ \
 		int rc = ov ## _over_initialize( ); \
 		Debug( rc ? LDAP_DEBUG_ANY : LDAP_DEBUG_TRACE, \

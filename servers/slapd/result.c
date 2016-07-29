@@ -151,7 +151,7 @@ slap_req2res( ber_tag_t tag )
 }
 
 /* SlapReply debugging, prodo-slap.h overrides it in OpenLDAP releases */
-#if defined(LDAP_TEST) || (defined(USE_RS_ASSERT) && (USE_RS_ASSERT))
+#if USE_RS_ASSERT > 0
 
 int rs_suppress_assert = 0;
 
@@ -197,19 +197,19 @@ void
 			((1 << REP_SEARCH) | (1 << REP_SEARCHREF) |
 			 (1 << REP_RESULT) | (1 << REP_GLUE_RESULT)) );
 	}
-#if defined(USE_RS_ASSERT) && (USE_RS_ASSERT) > 1 /* TODO: Enable when safe */
+#if USE_RS_ASSERT > 1 /* TODO: Enable when safe */
 	if ( (flags & (REP_MATCHED_MASK | REP_REF_MASK | REP_CTRLS_MASK)) ) {
 		RS_ASSERT( !(flags & REP_MATCHED_MASK) || rs->sr_matched );
 		RS_ASSERT( !(flags & REP_CTRLS_MASK  ) || rs->sr_ctrls   );
 		/* Note: LDAP_REFERRAL + !sr_ref is OK, becomes LDAP_NO_SUCH_OBJECT */
 	}
-#if (USE_RS_ASSERT) > 2
+#if USE_RS_ASSERT > 2
 	if ( rs->sr_err == LDAP_SUCCESS ) {
 		RS_ASSERT( rs->sr_text == NULL );
 		RS_ASSERT( rs->sr_matched == NULL );
 	}
-#endif
-#endif
+#endif /* USE_RS_ASSERT > 2 */
+#endif /* USE_RS_ASSERT > 1 */
 }
 
 /* Ready for calling a new backend operation */
@@ -217,33 +217,34 @@ void
 (rs_assert_ready)( const SlapReply *rs )
 {
 	RS_ASSERT( !rs->sr_entry   );
-#if defined(USE_RS_ASSERT) && (USE_RS_ASSERT) > 1 /* TODO: Enable when safe */
+#if USE_RS_ASSERT > 1 /* TODO: Enable when safe */
 	RS_ASSERT( !rs->sr_text    );
 	RS_ASSERT( !rs->sr_ref     );
 	RS_ASSERT( !rs->sr_matched );
 	RS_ASSERT( !rs->sr_ctrls   );
 	RS_ASSERT( !rs->sr_flags   );
-#if (USE_RS_ASSERT) > 2
+#if USE_RS_ASSERT > 2
 	RS_ASSERT( rs->sr_err == LDAP_SUCCESS );
-#endif
-#else
+#endif /* USE_RS_ASSERT > 2 */
+
+#else /* USE_RS_ASSERT > 1 */
 	RS_ASSERT( !(rs->sr_flags & REP_ENTRY_MASK) );
-#endif
+#endif /* ! USE_RS_ASSERT > 1 */
 }
 
 /* Backend operation done */
 void
 (rs_assert_done)( const SlapReply *rs )
 {
-#if defined(USE_RS_ASSERT) && (USE_RS_ASSERT) > 1 /* TODO: Enable when safe */
+#if USE_RS_ASSERT > 1 /* TODO: Enable when safe */
 	RS_ASSERT( !(rs->sr_flags & ~(REP_ENTRY_MODIFIABLE|REP_NO_OPERATIONALS)) );
 	rs_assert_ok( rs );
 #else
 	RS_ASSERT( !(rs->sr_flags & REP_ENTRY_MUSTFLUSH) );
-#endif
+#endif /* ! USE_RS_ASSERT > 1 */
 }
 
-#endif /* LDAP_TEST || USE_RS_ASSERT */
+#endif /* USE_RS_ASSERT */
 
 /* Reset a used SlapReply whose contents has been flushed (freed/released) */
 void

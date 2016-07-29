@@ -105,7 +105,7 @@ static unsigned long tlso_thread_self( void )
 
 	/* force an error if the ldap_pvt_thread_t type is too large */
 	enum { ok = sizeof( ldap_pvt_thread_t ) <= sizeof( unsigned long ) };
-	typedef struct { int dummy: ok ? 1 : -1; } Check[ok ? 1 : -1] ALLOW_UNUSED;
+	typedef struct { int dummy: ok ? 1 : -1; } Check[ok ? 1 : -1] MAY_UNUSED;
 
 	return (unsigned long) ldap_pvt_thread_self();
 }

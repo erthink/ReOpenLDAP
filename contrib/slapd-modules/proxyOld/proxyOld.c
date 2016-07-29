@@ -34,9 +34,7 @@
  */
 
 #include <reldap.h>
-
 #include <slap.h>
-
 #include <lber.h>
 /*
 #include <lber_pvt.h>
@@ -139,7 +137,7 @@ done:
 	return rc;
 }
 
-SLAP_OVERLAY_ENTRY(proxyOld, modinit) ( int argc, char *argv[] )
+SLAP_MODULE_ENTRY(proxyOld, modinit) ( int argc, char *argv[] )
 {
 	return register_supported_control( LDAP_CONTROL_PROXY_AUTHZ05,
 		SLAP_CTRL_GLOBAL|SLAP_CTRL_HIDE|SLAP_CTRL_ACCESS, proxyOld_extops,
