@@ -227,7 +227,7 @@ step_begin "distrib"
 # LY: '.tgz' could be just changed to 'zip' or '.tar.gz', transparently
 FILE="reopenldap.$PACKAGE-src.tgz"
 if [ $flag_dist -ne 0 ]; then
-	[ -s Makefile ] || ./configure || failure "configure dist"
+	[ -s Makefile ] || CFLAGS=-std=gnu99 ./configure || failure "configure dist"
 	make dist || failure "make dist"
 	dist=$(ls *.tar.* | sed 's/^\(.\+\)\.tar\..\+$/\1/g')
 	[ -n "$dist" ] && tar xaf *.tar.* || failure "untar dist"
@@ -259,7 +259,7 @@ if [ -s Makefile ]; then
 	notice "Makefile present, skip configure"
 else
 	LDFLAGS="-Wl,--as-needed,-Bsymbolic,--gc-sections,-O,-zignore"
-	CFLAGS="-Wall -ggdb3 -DPS_COMPAT_RHEL6=1"
+	CFLAGS="-std=gnu99 -Wall -ggdb3 -DPS_COMPAT_RHEL6=1"
 	LIBS="-Wl,--no-as-needed,-lrt,--as-needed"
 
 	if [ $flag_hide -ne 0 ]; then
