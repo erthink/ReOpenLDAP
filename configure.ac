@@ -345,7 +345,7 @@ dnl General "enable" options
 dnl set default to traditional to enable the original debug style
 OL_ARG_ENABLE(debug,[  --enable-debug          enable debug logging], yes, [no yes traditional])dnl
 OL_ARG_ENABLE(syslog,[  --enable-syslog         enable syslog support], auto)dnl
-OL_ARG_ENABLE(contrib,[  --enable-contrib        enable extra plugins and overlays], no, [no yes broken], ol_enable_contrib)dnl
+OL_ARG_ENABLE(contrib,[  --enable-contrib        enable extra plugins and overlays], no, [no yes broken])dnl
 OL_ARG_ENABLE(experimental,[  --enable-experimental   enable experimental and developing features], no, [no yes])dnl
 OL_ARG_ENABLE(check,[  --enable-check          enable internal checking and assertions], no, [no yes always default])dnl
 OL_ARG_ENABLE(hipagut,[  --enable-hipagut        enable internal memory allocation debugger], no, [no yes always extra])dnl
@@ -2874,8 +2874,8 @@ AM_CONDITIONAL([SLAPD_DYNACL], [test $ol_enable_dynacl != no])
 	AM_CONDITIONAL([BUILD_VALSORT], [test $ol_enable_valsort != no])
 	AM_CONDITIONAL([VALSORT_DYNAMIC], [test $ol_enable_valsort = mod])
 
-AM_CONDITIONAL([CONTRIB], [test "ol_enable_contrib" != no])
-AM_CONDITIONAL([CONTRIB_BROKEN], [test "ol_enable_contrib" = broken])
+AM_CONDITIONAL([CONTRIB], [test "$ol_enable_contrib" != no])
+AM_CONDITIONAL([CONTRIB_BROKEN], [test "$ol_enable_contrib" = broken])
 
 AC_SUBST(SLAPD_LIBS)
 AC_SUBST(LTHREAD_LIBS)

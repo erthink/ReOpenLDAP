@@ -13109,9 +13109,9 @@ VERSION_MINOR=1
 
 VERSION_PATCH=2
 
-RELEASE_DATE=2016-07-28
+RELEASE_DATE=2016-07-29
 
-RELEASE_STAMP=gb29259267e19-t21e43e3f0de2cb29
+RELEASE_STAMP=g021129abbeaa-t7abb4cbb6650ad45
 
 API_LIB_RELEASE=1.1
 
@@ -18274,7 +18274,7 @@ if test "${enable_contrib+set}" = set; then :
 	ol_enable_contrib="$ol_arg"
 
 else
-  	ol_enable_contrib=${ol_enable_contrib:-no}
+  	ol_enable_contrib=no
 fi
 
 # end --enable-contrib
@@ -34162,7 +34162,7 @@ else
 fi
 
 
- if test "ol_enable_contrib" != no; then
+ if test "$ol_enable_contrib" != no; then
   CONTRIB_TRUE=
   CONTRIB_FALSE='#'
 else
@@ -34170,7 +34170,7 @@ else
   CONTRIB_FALSE=
 fi
 
- if test "ol_enable_contrib" = broken; then
+ if test "$ol_enable_contrib" = broken; then
   CONTRIB_BROKEN_TRUE=
   CONTRIB_BROKEN_FALSE='#'
 else
