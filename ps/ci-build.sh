@@ -56,7 +56,7 @@ fi
 flag_debug=0
 flag_check=1
 flag_clean=1
-flag_lto=0
+flag_lto=1
 flag_O=-O2
 flag_clang=0
 flag_bdb=1
@@ -67,7 +67,10 @@ flag_valgrind=0
 flag_asan=0
 flag_tsan=0
 flag_hide=1
-flag_dynamic=0
+flag_dynamic=1
+flag_exper=0
+flag_contrib=1
+flag_slapi=1
 
 flag_nodeps=0
 if [ -n "${TEAMCITY_PROCESS_FLOW_ID}" ]; then
@@ -76,6 +79,26 @@ fi
 
 for arg in "$@"; do
 	case "$arg" in
+	--contrib)
+		flag_contrib=1
+		flag_exper=1
+		flag_slapi=1
+		;;
+	--no-contrib)
+		flag_contrib=0
+		;;
+	--slapi)
+		flag_slapi=1
+		;;
+	--no-slapi)
+		flag_slapi=0
+		;;
+	--exper*)
+		flag_exper=1
+		;;
+	--no-exper*)
+		flag_exper=0
+		;;
 	--deps)
 		flag_nodeps=0
 		;;
@@ -206,21 +229,41 @@ done
 
 #======================================================================
 
+CONFIGURE_ARGS=
+
+if [ $flag_contrib -ne 0 ]; then
+	CONFIGURE_ARGS+=" --enable-contrib"
+else
+	CONFIGURE_ARGS+=" --disable-contrib"
+fi
+
+if [ $flag_exper -ne 0 ]; then
+	CONFIGURE_ARGS+=" --enable-experimental"
+else
+	CONFIGURE_ARGS+=" --disable-experimental"
+fi
+
+if [ $flag_slapi -ne 0 ]; then
+	CONFIGURE_ARGS+=" --enable-slapi"
+else
+	CONFIGURE_ARGS+=" --disable-slapi"
+fi
+
 if [ $flag_dynamic -ne 0 ]; then
 	MOD=mod
-	DYNAMIC="--enable-shared --disable-static --enable-modules"
+	CONFIGURE_ARGS+=" --enable-shared --disable-static --enable-modules"
 	if [ $modern_configure -eq 0 ]; then
-		DYNAMIC+=" --enable-dynamic"
+		CONFIGURE_ARGS+=" --enable-dynamic"
 	fi
 else
 	MOD=yes
-	DYNAMIC="--disable-shared --enable-static --disable-modules"
+	CONFIGURE_ARGS+=" --disable-shared --enable-static --disable-modules"
 	if [ $modern_configure -eq 0 ]; then
-		DYNAMIC+=" --disable-dynamic"
+		CONFIGURE_ARGS+=" --disable-dynamic"
 	fi
 fi
 
-BACKENDS="--enable-backends=${MOD}"
+CONFIGURE_ARGS+=" --enable-backends=${MOD}"
 
 #======================================================================
 
@@ -258,7 +301,7 @@ CFLAGS="-Wall -ggdb3 -gdwarf-4"
 if [ $flag_hide -ne 0 ]; then
 	CFLAGS+=" -fvisibility=hidden"
 	if [ $flag_asan -ne 0 -o $flag_tsan -ne 0 ] && [ $flag_lto -ne 0 ]; then
-		notice "*** LTO will be disabled for ASAN/TSN with --hide"
+		notice "*** LTO will be disabled for ASAN/TSAN with --hide"
 		flag_lto=0
 	fi
 fi
@@ -276,9 +319,9 @@ CC_VER_SUFF=$(sed -nre 's/^(gcc|clang)-(.*)/-\2/p' <<< "$CC")
 
 if [ -z "$CXX" ]; then
 	if grep -q clang <<< "$CC"; then
-		CXX=clang++$([ -n "$CC_VER_SUFF" ] && echo "-$CC_VER_SUFF")
+		CXX=clang++$CC_VER_SUFF
 	elif grep -q gcc <<< "$CC"; then
-		CXX=g++$([ -n "$CC_VER_SUFF" ] && echo "-$CC_VER_SUFF")
+		CXX=g++$CC_VER_SUFF
 	else
 		CXX=c++
 	fi
@@ -290,6 +333,9 @@ elif grep -q clang <<< "$CC"; then
 	LLVM_VERSION="$($CC --version | sed -n 's/.\+ version \([0-9]\.[0-9]\)\.[0-9]-.*/\1/p')"
 	echo "LLVM_VERSION	= $LLVM_VERSION"
 	LTO_PLUGIN="/usr/lib/llvm-${LLVM_VERSION}/lib/LLVMgold.so"
+	if [ ! -e $LTO_PLUGIN -a $CC = 'clang' ]; then
+		LTO_PLUGIN=/usr/lib/LLVMgold.so
+	fi
 	echo "LTO_PLUGIN	= $LTO_PLUGIN"
 	CFLAGS+=" -Wno-pointer-bool-conversion"
 fi
@@ -306,7 +352,7 @@ if [ $flag_lto -ne 0 ]; then
 		notice "*** GCC Link-Time Optimization (LTO) will be used"
 		CFLAGS+=" -flto=jobserver -fno-fat-lto-objects -fuse-linker-plugin -fwhole-program"
 		export AR=gcc-ar$CC_VER_SUFF NM=gcc-nm$CC_VER_SUFF RANLIB=gcc-ranlib$CC_VER_SUFF
-	elif grep -q clang <<< "$CC" && [ -n "$LLVM_VERSION" -a -e "$LTO_PLUGIN" -a -n "$(which ld.gold)" ]; then
+	elif grep -q clang <<< "$CC" && [ -e "$LTO_PLUGIN" -a -n "$(which ld.gold)" ]; then
 		notice "*** CLANG Link-Time Optimization (LTO) will be used"
 		HERE=$(readlink -f $(dirname $0))
 
@@ -335,7 +381,12 @@ if [ $flag_lto -ne 0 ]; then
 fi
 
 if [ $flag_check -ne 0 ]; then
-	CFLAGS+=" -DLDAP_MEMORY_CHECK -DLDAP_MEMORY_DEBUG -fstack-protector-all"
+	CFLAGS+=" -fstack-protector-all"
+	if [ $modern_configure -ne 0 ]; then
+		CONFIGURE_ARGS+=" --enable-check=default --enable-hipagut=yes"
+	else
+		CFLAGS+=" -DLDAP_MEMORY_CHECK -DLDAP_MEMORY_DEBUG"
+	fi
 else
 	CFLAGS+=" -fstack-protector"
 fi
@@ -366,7 +417,7 @@ fi
 
 if [ $modern_configure -ne 0 ]; then
 	notice "info: expect modern configure"
-	MDBX_NICK=mdbx
+	MDBX_NICK=mdb
 else
 	notice "info: care for old configure"
 	PATH=${NDB_PATH_ADD}$PATH
@@ -394,7 +445,9 @@ fi
 
 if [ $flag_autoconf -ne 0 ]; then
 	if [ $modern_configure -ne 0 ]; then
-		if [ -n "$(which autoreconf)" ] && autoreconf --version | grep -q 'autoreconf (GNU Autoconf) 2\.69'; then
+		if [ -s ./bootstrap.sh ]; then
+			./bootstrap.sh
+		elif [ -n "$(which autoreconf)" ] && autoreconf --version | grep -q 'autoreconf (GNU Autoconf) 2\.69'; then
 			notice "info: use autoreconf"
 			autoreconf --force --install --include=build || failure "autoreconf"
 		elif [ -n "$(which autoreconf-2.69)" ]; then
@@ -440,13 +493,12 @@ else
 fi
 
 if [ ! -s ${build}/Makefile ]; then
-	# autoscan && libtoolize --force --automake --copy && aclocal -I build && autoheader && autoconf && automake --add-missing --copy
 	mkdir -p ${build} && \
 	( cd ${build} && configure \
 			$(if [ $modern_configure -ne 0 -a $flag_nodeps -ne 0 ]; then echo "--disable-dependency-tracking"; fi) \
-			--prefix=$(pwd)/@install_here ${DYNAMIC} \
-			--with-tls --enable-debug $BACKENDS --enable-overlays=${MOD} $NDB_CONFIG \
-			--enable-rewrite --enable-dynacl --enable-aci --enable-slapi \
+			--prefix=$(pwd)/@install_here --with-tls --enable-debug \
+			$CONFIGURE_ARGS --enable-overlays=${MOD} $NDB_CONFIG \
+			--enable-rewrite --enable-dynacl --enable-aci \
 			$(if [ $flag_mdbx -eq 0 ]; then echo "--disable-${MDBX_NICK}"; else echo "--enable-${MDBX_NICK}=${MOD}"; fi) \
 			$(if [ $flag_bdb -eq 0 ]; then echo "--disable-bdb --disable-hdb"; else echo "--enable-bdb=${MOD} --enable-hdb=${MOD}"; fi) \
 			$(if [ $flag_wt -eq 0 ]; then echo "--disable-wt"; else echo "--enable-wt=${MOD}"; fi) \
@@ -467,21 +519,23 @@ fi
 export CFLAGS CXXFLAGS
 
 make -C ${build} -j $ncpu -l $lalim \
-	&& make -C ${build}/tests/progs -j $ncpu -l $lalim \
+	&& ([ ! -d ${build}/tests/progs ] || make -C ${build}/tests/progs -j $ncpu -l $lalim) \
 	&& make -j $ncpu -l $lalim -C ${LIBMDBX_DIR} \
 		all $(find ${LIBMDBX_DIR} -name 'mtest*.c' | xargs -n 1 -r -I '{}' basename '{}' .c) || failure "build"
 
-export LDAP_SRC=$(readlink -f ${srcdir}) LDAP_BUILD=$(readlink -f ${build})
+if [ $flag_exper -ne 0 -a $modern_configure -eq 0 ]; then
+	export LDAP_SRC=$(readlink -f ${srcdir}) LDAP_BUILD=$(readlink -f ${build})
 
-for m in $(find contrib/slapd-modules -name Makefile -printf '%h\n'); do
-	if [ -e $m/BROKEN ]; then
-		echo "----------- EXTENTIONS: $m - expecting is BROKEN"
-		make -j $ncpu -l $lalim -C $m &>$m/build.log && failure "contrib-module '$m' is NOT broken as expected"
-	else
-		echo "----------- EXTENTIONS: $m - expecting is NOT broken"
-		make -j $ncpu -l $lalim -C $m || failure "contrib-module '$m' is BROKEN"
-	fi
-done
+	for m in $(find contrib/slapd-modules -name Makefile -printf '%h\n'); do
+		if [ -e $m/BROKEN ]; then
+			echo "----------- EXTENTIONS: $m - expecting is BROKEN"
+			make -j $ncpu -l $lalim -C $m &>$m/build.log && failure "contrib-module '$m' is NOT broken as expected"
+		else
+			echo "----------- EXTENTIONS: $m - expecting is NOT broken"
+			make -j $ncpu -l $lalim -C $m || failure "contrib-module '$m' is BROKEN"
+		fi
+	done
+fi
 
 make -C ${build} install
 

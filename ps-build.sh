@@ -18,6 +18,8 @@ notice() {
 }
 
 step_begin() {
+	[ -z "${TEAMCITY_PROCESS_FLOW_ID}" ] \
+		&& echo ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> $1"
 	echo "##teamcity[blockOpened name='$1']"
 	#echo "##teamcity[progressStart '$1']"
 }
@@ -26,12 +28,16 @@ step_finish() {
 	teamcity_sync
 	#echo "##teamcity[progressEnd '$1']"
 	echo "##teamcity[blockClosed name='$1']"
+	[ -z "${TEAMCITY_PROCESS_FLOW_ID}" ] \
+		&& echo "<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< $1"
 }
 
 configure() {
 	echo "CONFIGURE	= $*"
 	./configure "$@" > configure.log
 }
+
+##############################################################################
 
 flag_debug=0
 flag_check=0
@@ -46,22 +52,25 @@ flag_hide=1
 flag_dynamic=0
 flag_publish=1
 PREV_RELEASE=""
+HERE=$(pwd)
+SUBDIR=
 
 flag_nodeps=0
 if [ -n "${TEAMCITY_PROCESS_FLOW_ID}" ]; then
 	flag_nodeps=1
 fi
 
-if [ -e configure.ac ]; then
-	notice "info: saw modern ./configure.ac"
-	modern_configure=1
-else
-	notice "info: NOT saw modern ./configure.ac"
-	modern_configure=0
-fi
+[ -s build/BRANDING ] || failure "modern ./configure.ac required"
+flag_dist=1
 
 while grep -q '^--' <<< "$1"; do
 	case "$1" in
+	--dist)
+		flag_dist=1
+		;;
+	--no-dist)
+		flag_dist=0
+		;;
 	--deps)
 		flag_nodeps=0
 		;;
@@ -150,6 +159,8 @@ while grep -q '^--' <<< "$1"; do
 	shift
 done
 
+CONFIGURE_ARGS=
+
 ##############################################################################
 
 step_begin "prepare"
@@ -160,7 +171,7 @@ echo "BUILD_NUMBER: $BUILD_NUMBER"
 PREFIX="$(readlink -m ${2:-$(pwd)/install_prefix_as_the_second_parameter})/reopenldap"
 echo "PREFIX: $PREFIX"
 
-if [ -d .git ]; then
+if [ -d $HERE/.git ]; then
 	git fetch origin --prune --tags || [ -n "$(git tag)" ] || failure "git fetch"
 	if [ -n "$PREV_RELEASE" ]; then
 		 git describe --abbrev=0 --all "$PREV_RELEASE" > /dev/null \
@@ -184,12 +195,15 @@ else
 fi
 echo "BUILD_ID: $BUILD_ID"
 
+PACKAGE="$(build/BRANDING --version)-$(build/BRANDING --stamp)"
+echo "PACKAGE: $PACKAGE"
+
 step_finish "prepare"
-echo "======================================================================="
+##############################################################################
 step_begin "cleanup"
 
 if [ $flag_clean -ne 0 ]; then
-	if [ -d .git ]; then
+	if [ -d $HERE/.git ]; then
 		git clean -x -f -d -q -e '*.pdf' \
 			$( \
 				[ -d .ccache ] && echo " -e .ccache/"; \
@@ -207,7 +221,36 @@ if [ -n "${PREFIX}" ]; then
 fi
 
 step_finish "cleanup"
-echo "======================================================================="
+##############################################################################
+step_begin "distrib"
+
+# LY: '.tgz' could be just changed to 'zip' or '.tar.gz', transparently
+FILE="reopenldap.$PACKAGE-src.tgz"
+if [ $flag_dist -ne 0 ]; then
+	[ -s Makefile ] || CFLAGS=-std=gnu99 ./configure || failure "configure dist"
+	make dist || failure "make dist"
+	dist=$(ls *.tar.* | sed 's/^\(.\+\)\.tar\..\+$/\1/g')
+	[ -n "$dist" ] && tar xaf *.tar.* || failure "untar dist"
+	echo "tar caf $FILE $dist"
+	tar caf $FILE $dist || failure "tar dist"
+	SUBDIR=$dist
+	[ -d "$SUBDIR" ] && cd "$SUBDIR" || failure "chdir dist"
+else
+	if [ -d $HERE/.git ]; then
+		git archive --prefix=reopenldap.$PACKAGE-sources/ -o $FILE HEAD || failure "sources"
+	else
+		notice "No git repository, unable to provide $FILE"
+	fi
+fi
+
+if [ -s $FILE ]; then
+	[ -n "$2" ] && [ $flag_publish -ne 0 ] \
+		&& echo "##teamcity[publishArtifacts '$FILE']" \
+		|| echo "Skip publishing of artifact ($(ls -hs $FILE))" >&2
+fi
+
+step_finish "distrib"
+##############################################################################
 step_begin "configure"
 
 LIBMDBX_DIR=$([ -d libraries/liblmdb ] && echo "libraries/liblmdb" || echo "libraries/libmdbx")
@@ -216,13 +259,13 @@ if [ -s Makefile ]; then
 	notice "Makefile present, skip configure"
 else
 	LDFLAGS="-Wl,--as-needed,-Bsymbolic,--gc-sections,-O,-zignore"
-	CFLAGS="-Wall -ggdb3 -DPS_COMPAT_RHEL6=1"
+	CFLAGS="-std=gnu99 -Wall -ggdb3 -DPS_COMPAT_RHEL6=1"
 	LIBS="-Wl,--no-as-needed,-lrt,--as-needed"
 
 	if [ $flag_hide -ne 0 ]; then
 		CFLAGS+=" -fvisibility=hidden"
 		if [ $flag_asan -ne 0 -o $flag_tsan -ne 0 ] && [ $flag_lto -ne 0 ]; then
-			notice "*** LTO will be disabled for ASAN/TSN with --hide"
+			notice "*** LTO will be disabled for ASAN/TSAN with --hide"
 			flag_lto=0
 		fi
 	fi
@@ -240,9 +283,9 @@ else
 
 	if [ -z "$CXX" ]; then
 		if grep -q clang <<< "$CC"; then
-			CXX=clang++$([ -n "$CC_VER_SUFF" ] && echo "-$CC_VER_SUFF")
+			CXX=clang++$CC_VER_SUFF
 		elif grep -q gcc <<< "$CC"; then
-			CXX=g++$([ -n "$CC_VER_SUFF" ] && echo "-$CC_VER_SUFF")
+			CXX=g++$CC_VER_SUFF
 		else
 			CXX=c++
 		fi
@@ -254,10 +297,12 @@ else
 		LLVM_VERSION="$($CC --version | sed -n 's/.\+ version \([0-9]\.[0-9]\)\.[0-9]-.*/\1/p')"
 		echo "LLVM_VERSION	= $LLVM_VERSION"
 		LTO_PLUGIN="/usr/lib/llvm-${LLVM_VERSION}/lib/LLVMgold.so"
+		if [ ! -e $LTO_PLUGIN -a $CC = 'clang' ]; then
+			LTO_PLUGIN=/usr/lib/LLVMgold.so
+		fi
 		echo "LTO_PLUGIN	= $LTO_PLUGIN"
 		CFLAGS+=" -Wno-pointer-bool-conversion"
 	fi
-
 
 	if [ $flag_debug -ne 0 ]; then
 		if grep -q gcc <<< "$CC" ; then
@@ -275,7 +320,7 @@ else
 			notice "*** GCC Link-Time Optimization (LTO) will be used"
 			CFLAGS+=" -flto=jobserver -fno-fat-lto-objects -fuse-linker-plugin -fwhole-program"
 			export AR=gcc-ar$CC_VER_SUFF NM=gcc-nm$CC_VER_SUFF RANLIB=gcc-ranlib$CC_VER_SUFF
-		elif grep -q clang <<< "$CC" && [ -n "$LLVM_VERSION" -a -e "$LTO_PLUGIN" -a -n "$(which ld.gold)" ]; then
+		elif grep -q clang <<< "$CC" && [ -e "$LTO_PLUGIN" -a -n "$(which ld.gold)" ]; then
 			notice "*** CLANG Link-Time Optimization (LTO) will be used"
 			HERE=$(readlink -f $(dirname $0))
 
@@ -304,7 +349,8 @@ else
 	fi
 
 	if [ $flag_check -ne 0 ]; then
-		CFLAGS+=" -DLDAP_MEMORY_CHECK -DLDAP_MEMORY_DEBUG -fstack-protector-all"
+		CFLAGS+=" -fstack-protector-all"
+		CONFIGURE_ARGS+=" --enable-check=default --enable-hipagut=yes"
 	else
 		CFLAGS+=" -fstack-protector"
 	fi
@@ -342,25 +388,20 @@ else
 
 	if [ $flag_dynamic -ne 0 ]; then
 		MOD=mod
-		DYNAMIC="--enable-shared --disable-static --enable-modules"
-		if [ $modern_configure -eq 0 ]; then
-			DYNAMIC+=" --enable-dynamic"
-		fi
+		CONFIGURE_ARGS+=" --enable-shared --disable-static --enable-modules"
 	else
 		MOD=yes
-		DYNAMIC="--disable-shared --enable-static --disable-modules"
-		if [ $modern_configure -eq 0 ]; then
-			DYNAMIC+=" --disable-dynamic"
-		fi
+		CONFIGURE_ARGS+=" --disable-shared --enable-static --disable-modules"
 	fi
 
 	configure \
-		$(if [ $modern_configure -ne 0 -a $flag_nodeps -ne 0 ]; then echo "--disable-dependency-tracking"; fi) \
-		--prefix=${PREFIX} ${DYNAMIC} \
-		--enable-overlays --disable-bdb --disable-hdb \
+		$(if [ $flag_nodeps -ne 0 ]; then echo "--disable-dependency-tracking"; fi) \
+		--prefix=${PREFIX} --enable-overlays --disable-bdb --disable-hdb \
 		--enable-debug --with-gnu-ld --without-cyrus-sasl \
 		--disable-spasswd --disable-lmpasswd \
-		--without-tls --disable-rwm --disable-relay || failure "configure"
+		--without-tls --disable-rwm --disable-relay \
+		--enable-mdb=${MOD} \
+		$CONFIGURE_ARGS || failure "configure"
 
 	find ./ -name Makefile -type f | xargs sed -e "s/STRIP = -s/STRIP =/g;s/\(VERSION= .\+\)/\1${BUILD_ID}/g" -i \
 		|| failure "fixup build-id"
@@ -374,22 +415,9 @@ else
 	fi
 
 	sed -e 's/ -lrt/ -Wl,--no-as-needed,-lrt/g' -i ${LIBMDBX_DIR}/Makefile
-
-	if [ $modern_configure -eq 0 -a $flag_nodeps -eq 0 ]; then
-		make depend \
-			|| failure "make-deps"
-	fi
 fi
 
-if [ $modern_configure -eq 0 ]; then
-	PACKAGE="$(grep VERSION= Makefile | cut -d ' ' -f 2)"
-else
-	PACKAGE="$(build/BRANDING --version)-$(build/BRANDING --stamp)"
-fi
-
-echo "PACKAGE: $PACKAGE"
-
-if [ -d .git ]; then
+if [ -d $HERE/.git ]; then
 	(git log --no-merges --dense --date=short --pretty=format:"%ad %s" "$PREV_RELEASE".. \
 		| tr -s ' ' ' ' | grep -v ' ITS#[0-9]\{4\}$' | sort -r | uniq -u \
 		&& /bin/echo -e "\nPackage version: $PACKAGE\nSource code tag: $(git describe --abbrev=15 --long --always --tags)" ) > ${PREFIX}/changelog.txt \
@@ -401,35 +429,18 @@ fi
 [ -s releasenotes.txt ] && cp releasenotes.txt ${PREFIX}/
 
 step_finish "configure"
-echo "======================================================================="
+##############################################################################
 step_begin "build reopenldap"
 
-make -k && make -C tests/progs \
-	|| failure "build-2"
+make -k || failure "build"
+[ ! -d tests/progs ] || make -C tests/progs || failure "build-tests"
 
 step_finish "build reopenldap"
-echo "======================================================================="
+##############################################################################
 step_begin "install"
-
-make -k install \
-	|| failure "install"
-
+make -k install || failure "install"
 step_finish "install"
-echo "======================================================================="
-
-if [ ! -x ${PREFIX}/bin/mdbx_chk ]; then
-	step_begin "build mdbx-tools"
-	mkdir -p ${PREFIX}/bin && \
-	(cd ${LIBMDBX_DIR} && make -k all && \
-		(cp mdbx_chk mdbx_copy mdbx_stat -t ${PREFIX}/bin/ \
-		|| cp mdb_chk mdb_copy mdb_stat -t ${PREFIX}/bin/) \
-	) \
-		|| failure "build-1"
-
-	step_finish "build mdbx-tools"
-	echo "======================================================================="
-fi
-
+##############################################################################
 step_begin "sweep"
 
 find ${PREFIX} -name '*.a' -o -name '*.la' | xargs -r rm \
@@ -440,20 +451,8 @@ rm -rf ${PREFIX}/var ${PREFIX}/include && ln -s /var ${PREFIX}/ \
 	|| failure "sweep-3"
 
 step_finish "sweep"
-echo "======================================================================="
-
+##############################################################################
 step_begin "packaging"
-
-# LY: '.tgz' could be just changed to 'zip' or '.tar.gz', transparently
-FILE="reopenldap.$PACKAGE-src.tgz"
-if [ -d .git ]; then
-	git archive --prefix=reopenldap.$PACKAGE-sources/ -o $FILE HEAD \
-		&& ([ -n "$2" ] && [ $flag_publish -ne 0 ] && echo "##teamcity[publishArtifacts '$FILE']" \
-			|| echo "Skip publishing of artifact ($(ls -hs $FILE))" >&2) \
-		|| failure "sources"
-else
-	notice "No git repository, unable to provide $FILE"
-fi
 
 FILE="reopenldap.$PACKAGE.tar.xz"
 tar -caf $FILE --owner=root -C ${PREFIX}/.. reopenldap \
@@ -462,3 +461,4 @@ tar -caf $FILE --owner=root -C ${PREFIX}/.. reopenldap \
 		|| echo "Skip publishing of artifact ($(ls -hs $FILE))" >&2) \
 	|| failure "tar"
 step_finish "packaging"
+exit 0
