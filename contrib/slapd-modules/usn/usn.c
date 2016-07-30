@@ -332,7 +332,7 @@ usn_init( void )
 	return overlay_register( &usn );
 }
 
-SLAP_OVERLAY_ENTRY(usn, modinit) ( int argc, char *argv[] )
+SLAP_MODULE_ENTRY(usn, modinit) ( int argc, char *argv[] )
 {
 	return usn_init();
 }

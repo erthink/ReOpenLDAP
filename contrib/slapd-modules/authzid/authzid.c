@@ -398,7 +398,7 @@ authzid_initialize( void )
 	return overlay_register( &authzid );
 }
 
-SLAP_OVERLAY_ENTRY(authzid, modinit) ( int argc, char *argv[] )
+SLAP_MODULE_ENTRY(authzid, modinit) ( int argc, char *argv[] )
 {
 	return authzid_initialize();
 }

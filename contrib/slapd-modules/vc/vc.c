@@ -451,7 +451,7 @@ vc_initialize( void )
 	return rc;
 }
 
-SLAP_OVERLAY_ENTRY(vc, modinit) ( int argc, char *argv[] )
+SLAP_MODULE_ENTRY(vc, modinit) ( int argc, char *argv[] )
 {
 	return vc_initialize();
 }
