@@ -95,9 +95,7 @@ int ldap_parse_verify_credentials(
 	rc = ldap_parse_extended_result(ld, res, &retoid, &retdata, 0);
 
 	if( rc != LDAP_SUCCESS ) {
-#if LDAP_EXPERIMENTAL > 0
-		ldap_perror(ld, "ldap_parse_verify_credentials");
-#endif /* LDAP_EXPERIMENTAL */
+		ldap_debug_perror(ld, "ldap_parse_verify_credentials");
 		return rc;
 	}
 
