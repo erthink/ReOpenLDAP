@@ -418,7 +418,7 @@ else
 fi
 
 if [ -d $HERE/.git ]; then
-	(git log --no-merges --dense --date=short --pretty=format:"%ad %s" "$PREV_RELEASE".. \
+	(git log --no-merges --dense --date=short --pretty=format:"%cd %s" "$PREV_RELEASE".. \
 		| tr -s ' ' ' ' | grep -v ' ITS#[0-9]\{4\}$' | sort -r | uniq -u \
 		&& /bin/echo -e "\nPackage version: $PACKAGE\nSource code tag: $(git describe --abbrev=15 --long --always --tags)" ) > ${PREFIX}/changelog.txt \
 	|| failure "changelog"
