@@ -38,8 +38,6 @@
 
 #include "reldap.h"
 
-#ifdef SLAPD_OVER_USN
-
 #include <stdio.h>
 #include <ac/string.h>
 #include <ac/socket.h>
@@ -305,7 +303,7 @@ usn_db_destroy(
 
 static slap_overinst usn;
 
-int
+static int
 usn_init( void )
 {
 	int i, code;
@@ -334,11 +332,7 @@ usn_init( void )
 	return overlay_register( &usn );
 }
 
-#if SLAPD_OVER_USN == SLAPD_MOD_DYNAMIC
 SLAP_OVERLAY_ENTRY(usn, modinit) ( int argc, char *argv[] )
 {
 	return usn_init();
 }
-#endif /* SLAPD_OVER_USN == SLAPD_MOD_DYNAMIC */
-
-#endif /* defined(SLAPD_OVER_USN) */

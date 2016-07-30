@@ -68,6 +68,11 @@ contrib_allowed_la_LDFLAGS = -module -export-dynamic \
 	-release $(API_LIB_RELEASE) -version-info $(API_LIB_VERSION)
 contrib_allowed_la_SOURCES = allowed/allowed.c banner.c
 
+pkglib_LTLIBRARIES += contrib-authzid.la
+contrib_authzid_la_LDFLAGS = -module -export-dynamic \
+	-release $(API_LIB_RELEASE) -version-info $(API_LIB_VERSION)
+contrib_authzid_la_SOURCES = authzid/authzid.c banner.c
+
 EXTRA_DIST += autogroup/README
 pkglib_LTLIBRARIES += contrib-autogroup.la
 contrib_autogroup_la_LDFLAGS = -module -export-dynamic \
@@ -249,6 +254,16 @@ contrib_trace_la_LDFLAGS = -module -export-dynamic \
 	-release $(API_LIB_RELEASE) -version-info $(API_LIB_VERSION)
 contrib_trace_la_SOURCES = trace/trace.c banner.c
 
+EXTRA_DIST += usn/README
+pkglib_LTLIBRARIES += contrib-usn.la
+contrib_usn_la_LDFLAGS = -module -export-dynamic \
+	-release $(API_LIB_RELEASE) -version-info $(API_LIB_VERSION)
+contrib_usn_la_SOURCES = usn/usn.c banner.c
+
+pkglib_LTLIBRARIES += contrib-vc.la
+contrib_vc_la_LDFLAGS = -module -export-dynamic \
+	-release $(API_LIB_RELEASE) -version-info $(API_LIB_VERSION)
+contrib_vc_la_SOURCES = vc/vc.c banner.c
 
 MAINT_CHARSET = utf8
 SUFFIXES = .soelim .man.in .man

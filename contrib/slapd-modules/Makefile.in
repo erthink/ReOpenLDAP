@@ -188,6 +188,13 @@ contrib_allowed_la_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC \
 	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CCLD) \
 	$(AM_CFLAGS) $(CFLAGS) $(contrib_allowed_la_LDFLAGS) \
 	$(LDFLAGS) -o $@
+contrib_authzid_la_LIBADD =
+am_contrib_authzid_la_OBJECTS = authzid/authzid.lo banner.lo
+contrib_authzid_la_OBJECTS = $(am_contrib_authzid_la_OBJECTS)
+contrib_authzid_la_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC \
+	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CCLD) \
+	$(AM_CFLAGS) $(CFLAGS) $(contrib_authzid_la_LDFLAGS) \
+	$(LDFLAGS) -o $@
 contrib_autogroup_la_LIBADD =
 am_contrib_autogroup_la_OBJECTS = autogroup/autogroup.lo banner.lo
 contrib_autogroup_la_OBJECTS = $(am_contrib_autogroup_la_OBJECTS)
@@ -421,6 +428,19 @@ contrib_trace_la_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC \
 	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CCLD) \
 	$(AM_CFLAGS) $(CFLAGS) $(contrib_trace_la_LDFLAGS) $(LDFLAGS) \
 	-o $@
+contrib_usn_la_LIBADD =
+am_contrib_usn_la_OBJECTS = usn/usn.lo banner.lo
+contrib_usn_la_OBJECTS = $(am_contrib_usn_la_OBJECTS)
+contrib_usn_la_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC \
+	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CCLD) \
+	$(AM_CFLAGS) $(CFLAGS) $(contrib_usn_la_LDFLAGS) $(LDFLAGS) -o \
+	$@
+contrib_vc_la_LIBADD =
+am_contrib_vc_la_OBJECTS = vc/vc.lo banner.lo
+contrib_vc_la_OBJECTS = $(am_contrib_vc_la_OBJECTS)
+contrib_vc_la_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) \
+	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) \
+	$(contrib_vc_la_LDFLAGS) $(LDFLAGS) -o $@
 contrib_vernum_la_LIBADD =
 am_contrib_vernum_la_OBJECTS = samba4/vernum.lo banner.lo
 contrib_vernum_la_OBJECTS = $(am_contrib_vernum_la_OBJECTS)
@@ -464,14 +484,15 @@ am__v_CCLD_0 = @echo "  CCLD    " $@;
 am__v_CCLD_1 = 
 SOURCES = $(contrib_addpartial_la_SOURCES) \
 	$(contrib_adremap_la_SOURCES) $(contrib_allop_la_SOURCES) \
-	$(contrib_allowed_la_SOURCES) $(contrib_autogroup_la_SOURCES) \
-	$(contrib_cloak_la_SOURCES) $(contrib_compmatch_la_SOURCES) \
-	$(contrib_denyop_la_SOURCES) $(contrib_dsaschema_la_SOURCES) \
-	$(contrib_dupent_la_SOURCES) $(contrib_gssacl_la_SOURCES) \
-	$(contrib_kinit_la_SOURCES) $(contrib_lastbind_la_SOURCES) \
-	$(contrib_lastmod_la_SOURCES) $(contrib_noopsrch_la_SOURCES) \
-	$(contrib_nops_la_SOURCES) $(contrib_nssov_la_SOURCES) \
-	$(contrib_pguid_la_SOURCES) $(contrib_posixgroup_la_SOURCES) \
+	$(contrib_allowed_la_SOURCES) $(contrib_authzid_la_SOURCES) \
+	$(contrib_autogroup_la_SOURCES) $(contrib_cloak_la_SOURCES) \
+	$(contrib_compmatch_la_SOURCES) $(contrib_denyop_la_SOURCES) \
+	$(contrib_dsaschema_la_SOURCES) $(contrib_dupent_la_SOURCES) \
+	$(contrib_gssacl_la_SOURCES) $(contrib_kinit_la_SOURCES) \
+	$(contrib_lastbind_la_SOURCES) $(contrib_lastmod_la_SOURCES) \
+	$(contrib_noopsrch_la_SOURCES) $(contrib_nops_la_SOURCES) \
+	$(contrib_nssov_la_SOURCES) $(contrib_pguid_la_SOURCES) \
+	$(contrib_posixgroup_la_SOURCES) \
 	$(contrib_proxyOld_la_SOURCES) $(contrib_pw_apr1_la_SOURCES) \
 	$(contrib_pw_kerberos_la_SOURCES) \
 	$(contrib_pw_netscape_la_SOURCES) \
@@ -479,11 +500,12 @@ SOURCES = $(contrib_addpartial_la_SOURCES) \
 	$(contrib_pw_radius_la_SOURCES) $(contrib_pw_sha2_la_SOURCES) \
 	$(contrib_pw_totp_la_SOURCES) $(contrib_rdnval_la_SOURCES) \
 	$(contrib_smbk5pwd_la_SOURCES) $(contrib_trace_la_SOURCES) \
+	$(contrib_usn_la_SOURCES) $(contrib_vc_la_SOURCES) \
 	$(contrib_vernum_la_SOURCES)
 DIST_SOURCES = $(contrib_addpartial_la_SOURCES) \
 	$(contrib_adremap_la_SOURCES) $(contrib_allop_la_SOURCES) \
-	$(contrib_allowed_la_SOURCES) $(contrib_autogroup_la_SOURCES) \
-	$(contrib_cloak_la_SOURCES) \
+	$(contrib_allowed_la_SOURCES) $(contrib_authzid_la_SOURCES) \
+	$(contrib_autogroup_la_SOURCES) $(contrib_cloak_la_SOURCES) \
 	$(am__contrib_compmatch_la_SOURCES_DIST) \
 	$(contrib_denyop_la_SOURCES) $(contrib_dsaschema_la_SOURCES) \
 	$(contrib_dupent_la_SOURCES) \
@@ -501,7 +523,8 @@ DIST_SOURCES = $(contrib_addpartial_la_SOURCES) \
 	$(contrib_pw_sha2_la_SOURCES) $(contrib_pw_totp_la_SOURCES) \
 	$(contrib_rdnval_la_SOURCES) \
 	$(am__contrib_smbk5pwd_la_SOURCES_DIST) \
-	$(contrib_trace_la_SOURCES) $(contrib_vernum_la_SOURCES)
+	$(contrib_trace_la_SOURCES) $(contrib_usn_la_SOURCES) \
+	$(contrib_vc_la_SOURCES) $(contrib_vernum_la_SOURCES)
 am__can_run_installinfo = \
   case $$AM_UPDATE_INFO_DIR in \
     n|no|NO) false;; \
@@ -766,18 +789,18 @@ EXTRA_DIST = README acl/README.gssacl acl/README.posixgroup \
 	nssov/slapo-nssov.man.in passwd/README passwd/apr1-atol.pl \
 	passwd/apr1-ltoa.pl passwd/pbkdf2/README passwd/sha2/README \
 	passwd/totp/README proxyOld/README samba4/README \
-	smbk5pwd/README $(man_links)
+	smbk5pwd/README usn/README $(man_links)
 pkglib_LTLIBRARIES = $(am__append_2) contrib-addpartial.la \
 	contrib-adremap.la contrib-allop.la contrib-allowed.la \
-	contrib-autogroup.la contrib-cloak.la $(am__append_4) \
-	contrib-denyop.la contrib-dsaschema.la contrib-dupent.la \
-	contrib-kinit.la contrib-lastbind.la contrib-lastmod.la \
-	contrib-noopsrch.la contrib-nops.la contrib-nssov.la \
-	contrib-pw-apr1.la $(am__append_5) contrib-pw-netscape.la \
-	$(am__append_6) contrib-pw-pbkdf2.la contrib-pw-sha2.la \
-	contrib-pw-totp.la contrib-proxyOld.la contrib-pguid.la \
-	contrib-rdnval.la contrib-vernum.la $(am__append_7) \
-	contrib-trace.la
+	contrib-authzid.la contrib-autogroup.la contrib-cloak.la \
+	$(am__append_4) contrib-denyop.la contrib-dsaschema.la \
+	contrib-dupent.la contrib-kinit.la contrib-lastbind.la \
+	contrib-lastmod.la contrib-noopsrch.la contrib-nops.la \
+	contrib-nssov.la contrib-pw-apr1.la $(am__append_5) \
+	contrib-pw-netscape.la $(am__append_6) contrib-pw-pbkdf2.la \
+	contrib-pw-sha2.la contrib-pw-totp.la contrib-proxyOld.la \
+	contrib-pguid.la contrib-rdnval.la contrib-vernum.la \
+	$(am__append_7) contrib-trace.la contrib-usn.la contrib-vc.la
 AM_CPPFLAGS = -DSLAPD_IMPORT -I$(top_srcdir)/servers/slapd -I$(top_srcdir)/include
 BUILT_SOURCES = $(am__append_1)
 man_links = 
@@ -809,6 +832,10 @@ contrib_allowed_la_LDFLAGS = -module -export-dynamic \
 	-release $(API_LIB_RELEASE) -version-info $(API_LIB_VERSION)
 
 contrib_allowed_la_SOURCES = allowed/allowed.c banner.c
+contrib_authzid_la_LDFLAGS = -module -export-dynamic \
+	-release $(API_LIB_RELEASE) -version-info $(API_LIB_VERSION)
+
+contrib_authzid_la_SOURCES = authzid/authzid.c banner.c
 contrib_autogroup_la_LDFLAGS = -module -export-dynamic \
 	-release $(API_LIB_RELEASE) -version-info $(API_LIB_VERSION)
 
@@ -935,6 +962,14 @@ contrib_trace_la_LDFLAGS = -module -export-dynamic \
 	-release $(API_LIB_RELEASE) -version-info $(API_LIB_VERSION)
 
 contrib_trace_la_SOURCES = trace/trace.c banner.c
+contrib_usn_la_LDFLAGS = -module -export-dynamic \
+	-release $(API_LIB_RELEASE) -version-info $(API_LIB_VERSION)
+
+contrib_usn_la_SOURCES = usn/usn.c banner.c
+contrib_vc_la_LDFLAGS = -module -export-dynamic \
+	-release $(API_LIB_RELEASE) -version-info $(API_LIB_VERSION)
+
+contrib_vc_la_SOURCES = vc/vc.c banner.c
 MAINT_CHARSET = utf8
 SUFFIXES = .soelim .man.in .man
 all: $(BUILT_SOURCES)
@@ -1049,6 +1084,17 @@ allowed/allowed.lo: allowed/$(am__dirstamp) \
 
 contrib-allowed.la: $(contrib_allowed_la_OBJECTS) $(contrib_allowed_la_DEPENDENCIES) $(EXTRA_contrib_allowed_la_DEPENDENCIES) 
 	$(AM_V_CCLD)$(contrib_allowed_la_LINK) -rpath $(pkglibdir) $(contrib_allowed_la_OBJECTS) $(contrib_allowed_la_LIBADD) $(LIBS)
+authzid/$(am__dirstamp):
+	@$(MKDIR_P) authzid
+	@: > authzid/$(am__dirstamp)
+authzid/$(DEPDIR)/$(am__dirstamp):
+	@$(MKDIR_P) authzid/$(DEPDIR)
+	@: > authzid/$(DEPDIR)/$(am__dirstamp)
+authzid/authzid.lo: authzid/$(am__dirstamp) \
+	authzid/$(DEPDIR)/$(am__dirstamp)
+
+contrib-authzid.la: $(contrib_authzid_la_OBJECTS) $(contrib_authzid_la_DEPENDENCIES) $(EXTRA_contrib_authzid_la_DEPENDENCIES) 
+	$(AM_V_CCLD)$(contrib_authzid_la_LINK) -rpath $(pkglibdir) $(contrib_authzid_la_OBJECTS) $(contrib_authzid_la_LIBADD) $(LIBS)
 autogroup/$(am__dirstamp):
 	@$(MKDIR_P) autogroup
 	@: > autogroup/$(am__dirstamp)
@@ -1348,6 +1394,26 @@ trace/trace.lo: trace/$(am__dirstamp) trace/$(DEPDIR)/$(am__dirstamp)
 
 contrib-trace.la: $(contrib_trace_la_OBJECTS) $(contrib_trace_la_DEPENDENCIES) $(EXTRA_contrib_trace_la_DEPENDENCIES) 
 	$(AM_V_CCLD)$(contrib_trace_la_LINK) -rpath $(pkglibdir) $(contrib_trace_la_OBJECTS) $(contrib_trace_la_LIBADD) $(LIBS)
+usn/$(am__dirstamp):
+	@$(MKDIR_P) usn
+	@: > usn/$(am__dirstamp)
+usn/$(DEPDIR)/$(am__dirstamp):
+	@$(MKDIR_P) usn/$(DEPDIR)
+	@: > usn/$(DEPDIR)/$(am__dirstamp)
+usn/usn.lo: usn/$(am__dirstamp) usn/$(DEPDIR)/$(am__dirstamp)
+
+contrib-usn.la: $(contrib_usn_la_OBJECTS) $(contrib_usn_la_DEPENDENCIES) $(EXTRA_contrib_usn_la_DEPENDENCIES) 
+	$(AM_V_CCLD)$(contrib_usn_la_LINK) -rpath $(pkglibdir) $(contrib_usn_la_OBJECTS) $(contrib_usn_la_LIBADD) $(LIBS)
+vc/$(am__dirstamp):
+	@$(MKDIR_P) vc
+	@: > vc/$(am__dirstamp)
+vc/$(DEPDIR)/$(am__dirstamp):
+	@$(MKDIR_P) vc/$(DEPDIR)
+	@: > vc/$(DEPDIR)/$(am__dirstamp)
+vc/vc.lo: vc/$(am__dirstamp) vc/$(DEPDIR)/$(am__dirstamp)
+
+contrib-vc.la: $(contrib_vc_la_OBJECTS) $(contrib_vc_la_DEPENDENCIES) $(EXTRA_contrib_vc_la_DEPENDENCIES) 
+	$(AM_V_CCLD)$(contrib_vc_la_LINK) -rpath $(pkglibdir) $(contrib_vc_la_OBJECTS) $(contrib_vc_la_LIBADD) $(LIBS)
 samba4/vernum.lo: samba4/$(am__dirstamp) \
 	samba4/$(DEPDIR)/$(am__dirstamp)
 
@@ -1366,6 +1432,8 @@ mostlyclean-compile:
 	-rm -f allop/*.lo
 	-rm -f allowed/*.$(OBJEXT)
 	-rm -f allowed/*.lo
+	-rm -f authzid/*.$(OBJEXT)
+	-rm -f authzid/*.lo
 	-rm -f autogroup/*.$(OBJEXT)
 	-rm -f autogroup/*.lo
 	-rm -f cloak/*.$(OBJEXT)
@@ -1408,6 +1476,10 @@ mostlyclean-compile:
 	-rm -f smbk5pwd/*.lo
 	-rm -f trace/*.$(OBJEXT)
 	-rm -f trace/*.lo
+	-rm -f usn/*.$(OBJEXT)
+	-rm -f usn/*.lo
+	-rm -f vc/*.$(OBJEXT)
+	-rm -f vc/*.lo
 
 distclean-compile:
 	-rm -f *.tab.c
@@ -1423,6 +1495,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@adremap/$(DEPDIR)/adremap.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@allop/$(DEPDIR)/allop.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@allowed/$(DEPDIR)/allowed.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@authzid/$(DEPDIR)/authzid.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@autogroup/$(DEPDIR)/autogroup.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@cloak/$(DEPDIR)/cloak.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@comp_match/$(DEPDIR)/contrib_compmatch_la-asn_to_syn_mr.Plo@am__quote@
@@ -1467,6 +1540,8 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@samba4/$(DEPDIR)/vernum.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@smbk5pwd/$(DEPDIR)/contrib_smbk5pwd_la-smbk5pwd.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@trace/$(DEPDIR)/trace.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@usn/$(DEPDIR)/usn.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@vc/$(DEPDIR)/vc.Plo@am__quote@
 
 .c.o:
 @am__fastdepCC_TRUE@	$(AM_V_CC)depbase=`echo $@ | sed 's|[^/]*$$|$(DEPDIR)/&|;s|\.o$$||'`;\
@@ -1684,6 +1759,7 @@ clean-libtool:
 	-rm -rf adremap/.libs adremap/_libs
 	-rm -rf allop/.libs allop/_libs
 	-rm -rf allowed/.libs allowed/_libs
+	-rm -rf authzid/.libs authzid/_libs
 	-rm -rf autogroup/.libs autogroup/_libs
 	-rm -rf cloak/.libs cloak/_libs
 	-rm -rf comp_match/.libs comp_match/_libs
@@ -1705,6 +1781,8 @@ clean-libtool:
 	-rm -rf samba4/.libs samba4/_libs
 	-rm -rf smbk5pwd/.libs smbk5pwd/_libs
 	-rm -rf trace/.libs trace/_libs
+	-rm -rf usn/.libs usn/_libs
+	-rm -rf vc/.libs vc/_libs
 install-man5: $(man5_MANS)
 	@$(NORMAL_INSTALL)
 	@list1='$(man5_MANS)'; \
@@ -1874,6 +1952,8 @@ distclean-generic:
 	-rm -f allop/$(am__dirstamp)
 	-rm -f allowed/$(DEPDIR)/$(am__dirstamp)
 	-rm -f allowed/$(am__dirstamp)
+	-rm -f authzid/$(DEPDIR)/$(am__dirstamp)
+	-rm -f authzid/$(am__dirstamp)
 	-rm -f autogroup/$(DEPDIR)/$(am__dirstamp)
 	-rm -f autogroup/$(am__dirstamp)
 	-rm -f cloak/$(DEPDIR)/$(am__dirstamp)
@@ -1916,6 +1996,10 @@ distclean-generic:
 	-rm -f smbk5pwd/$(am__dirstamp)
 	-rm -f trace/$(DEPDIR)/$(am__dirstamp)
 	-rm -f trace/$(am__dirstamp)
+	-rm -f usn/$(DEPDIR)/$(am__dirstamp)
+	-rm -f usn/$(am__dirstamp)
+	-rm -f vc/$(DEPDIR)/$(am__dirstamp)
+	-rm -f vc/$(am__dirstamp)
 
 maintainer-clean-generic:
 	@echo "This command is intended for maintainers to use"
@@ -1927,7 +2011,7 @@ clean-am: clean-generic clean-libtool clean-pkglibLTLIBRARIES \
 	mostlyclean-am
 
 distclean: distclean-am
-	-rm -rf ./$(DEPDIR) acl/$(DEPDIR) addpartial/$(DEPDIR) adremap/$(DEPDIR) allop/$(DEPDIR) allowed/$(DEPDIR) autogroup/$(DEPDIR) cloak/$(DEPDIR) comp_match/$(DEPDIR) denyop/$(DEPDIR) dsaschema/$(DEPDIR) dupent/$(DEPDIR) kinit/$(DEPDIR) lastbind/$(DEPDIR) lastmod/$(DEPDIR) noopsrch/$(DEPDIR) nops/$(DEPDIR) nssov/$(DEPDIR) nssov/nss-pam-ldapd/$(DEPDIR) passwd/$(DEPDIR) passwd/pbkdf2/$(DEPDIR) passwd/sha2/$(DEPDIR) passwd/totp/$(DEPDIR) proxyOld/$(DEPDIR) samba4/$(DEPDIR) smbk5pwd/$(DEPDIR) trace/$(DEPDIR)
+	-rm -rf ./$(DEPDIR) acl/$(DEPDIR) addpartial/$(DEPDIR) adremap/$(DEPDIR) allop/$(DEPDIR) allowed/$(DEPDIR) authzid/$(DEPDIR) autogroup/$(DEPDIR) cloak/$(DEPDIR) comp_match/$(DEPDIR) denyop/$(DEPDIR) dsaschema/$(DEPDIR) dupent/$(DEPDIR) kinit/$(DEPDIR) lastbind/$(DEPDIR) lastmod/$(DEPDIR) noopsrch/$(DEPDIR) nops/$(DEPDIR) nssov/$(DEPDIR) nssov/nss-pam-ldapd/$(DEPDIR) passwd/$(DEPDIR) passwd/pbkdf2/$(DEPDIR) passwd/sha2/$(DEPDIR) passwd/totp/$(DEPDIR) proxyOld/$(DEPDIR) samba4/$(DEPDIR) smbk5pwd/$(DEPDIR) trace/$(DEPDIR) usn/$(DEPDIR) vc/$(DEPDIR)
 	-rm -f Makefile
 distclean-am: clean-am distclean-compile distclean-generic \
 	distclean-tags
@@ -1974,7 +2058,7 @@ install-ps-am:
 installcheck-am:
 
 maintainer-clean: maintainer-clean-am
-	-rm -rf ./$(DEPDIR) acl/$(DEPDIR) addpartial/$(DEPDIR) adremap/$(DEPDIR) allop/$(DEPDIR) allowed/$(DEPDIR) autogroup/$(DEPDIR) cloak/$(DEPDIR) comp_match/$(DEPDIR) denyop/$(DEPDIR) dsaschema/$(DEPDIR) dupent/$(DEPDIR) kinit/$(DEPDIR) lastbind/$(DEPDIR) lastmod/$(DEPDIR) noopsrch/$(DEPDIR) nops/$(DEPDIR) nssov/$(DEPDIR) nssov/nss-pam-ldapd/$(DEPDIR) passwd/$(DEPDIR) passwd/pbkdf2/$(DEPDIR) passwd/sha2/$(DEPDIR) passwd/totp/$(DEPDIR) proxyOld/$(DEPDIR) samba4/$(DEPDIR) smbk5pwd/$(DEPDIR) trace/$(DEPDIR)
+	-rm -rf ./$(DEPDIR) acl/$(DEPDIR) addpartial/$(DEPDIR) adremap/$(DEPDIR) allop/$(DEPDIR) allowed/$(DEPDIR) authzid/$(DEPDIR) autogroup/$(DEPDIR) cloak/$(DEPDIR) comp_match/$(DEPDIR) denyop/$(DEPDIR) dsaschema/$(DEPDIR) dupent/$(DEPDIR) kinit/$(DEPDIR) lastbind/$(DEPDIR) lastmod/$(DEPDIR) noopsrch/$(DEPDIR) nops/$(DEPDIR) nssov/$(DEPDIR) nssov/nss-pam-ldapd/$(DEPDIR) passwd/$(DEPDIR) passwd/pbkdf2/$(DEPDIR) passwd/sha2/$(DEPDIR) passwd/totp/$(DEPDIR) proxyOld/$(DEPDIR) samba4/$(DEPDIR) smbk5pwd/$(DEPDIR) trace/$(DEPDIR) usn/$(DEPDIR) vc/$(DEPDIR)
 	-rm -f Makefile
 maintainer-clean-am: distclean-am maintainer-clean-generic
 

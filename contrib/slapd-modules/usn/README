@@ -4,7 +4,7 @@ normally used by Microsoft ActiveDirectory.
 
 To use the overlay, add:
 
-	moduleload <path to>usn.so
+	moduleload contrib-usn.so
 	...
 
 	database mdb
@@ -13,11 +13,6 @@ To use the overlay, add:
 
 to your slapd configuration file. The schema definitions for the
 two USN attributes are hardcoded in this overlay.
-
-Use Makefile to compile this plugin or use a command line similar to:
-
-	gcc -c -I ../../include/ -I ../../servers/slapd -DSLAPD_OVER_USN=SLAPD_MOD_DYNAMIC usn.c
-	gcc -shared -o usn.so usn.o
 
 This overlay is only set up to be built as a dynamically loaded module.
 On most platforms, in order for the module to be usable, all of the
