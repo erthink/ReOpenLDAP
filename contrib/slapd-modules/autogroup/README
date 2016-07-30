@@ -28,7 +28,7 @@ CONFIGURATION
 
     # slapd.conf:
 
-    moduleload /path/to/autogroup.so
+    moduleload contrib-autogroup.so
         Loads the overlay (OpenLDAP must be built with --enable-modules).
 
     overlay autogroup
@@ -64,7 +64,7 @@ EXAMPLE
     ### slapd.conf
     include /path/to/dyngroup.schema
     # ...
-    moduleload /path/to/autogroup.so
+    moduleload contrib-autogroup.so
     # ...
 
     database <database>
@@ -77,8 +77,8 @@ EXAMPLE
     ### slapd.conf
     include /path/to/dyngroup.schema
     # ...
-    moduleload /path/to/autogroup.so
-    moduleload /path/to/memberof.so
+    moduleload contrib-autogroup.so
+    moduleload contrib-memberof.so
     # ...
 
     database <database>

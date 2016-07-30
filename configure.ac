@@ -97,7 +97,6 @@ AM_SILENT_RULES([yes])
 AM_MAINTAINER_MODE([disable])
 LT_CONFIG_LTDL_DIR([build/libltdl])
 LT_INIT([dlopen])
-LTDL_INIT([recursive])
 
 AC_SUBST(PACKAGE)
 AC_SUBST(VERSION)
@@ -346,14 +345,36 @@ dnl General "enable" options
 dnl set default to traditional to enable the original debug style
 OL_ARG_ENABLE(debug,[  --enable-debug          enable debug logging], yes, [no yes traditional])dnl
 OL_ARG_ENABLE(syslog,[  --enable-syslog         enable syslog support], auto)dnl
+OL_ARG_ENABLE(contrib,[  --enable-contrib        enable extra plugins and overlays], no, [no yes broken])dnl
+OL_ARG_ENABLE(experimental,[  --enable-experimental   enable experimental and developing features], no, [no yes])dnl
+OL_ARG_ENABLE(check,[  --enable-check          enable internal checking and assertions], no, [no yes always default])dnl
+OL_ARG_ENABLE(hipagut,[  --enable-hipagut        enable internal memory allocation debugger], no, [no yes always extra])dnl
 OL_ARG_ENABLE(proctitle,[  --enable-proctitle      enable proctitle support], yes)dnl
 OL_ARG_ENABLE(referrals,[  --enable-referrals      enable LDAPv2+ Referrals (experimental)], no)dnl
 OL_ARG_ENABLE(ipv6,[  --enable-ipv6           enable IPv6 support], auto)dnl
 OL_ARG_ENABLE(local,[  --enable-local          enable AF_LOCAL (AF_UNIX) socket support], auto)dnl
 OL_ARG_ENABLE(deprecated,[  --enable-deprecated     enable deprecated interfaces of libreldap], no, [no yes])dnl
-OL_ARG_ENABLE(experimental,[  --enable-experimental   enable experimental and developing features], no, [no yes])dnl
-OL_ARG_ENABLE(check,[  --enable-check          enable internal checking and assertions], no, [no yes always default])dnl
-OL_ARG_ENABLE(hipagut,[  --enable-hipagut        enable internal memory allocation debugger], no, [no yes always extra])dnl
+
+if test -a $ac_aux_dir/../tests/scripts/valgrind.supp; then
+	AX_VALGRIND_DFLT([memcheck], [on])
+	VALGRIND_SUPPRESSIONS_FILES=tests/scripts/valgrind.supp
+	AX_VALGRIND_CHECK
+	if test $enable_valgrind = yes; then
+#		PKG_CHECK_MODULES(VALGRIND, valgrind, valgrind_found=yes, valgrind_found=no)
+#		AC_SUBST(VALGRIND_LIBS)
+#		AC_SUBST(VALGRIND_CFLAGS)
+		AC_DEFINE(HAVE_VALGRIND,1,[define if you have Valgrind])
+		AC_CHECK_HEADER([valgrind/memcheck.h])
+		if test "$ac_cv_header_valgrind_memcheck_h" = yes; then
+			AC_DEFINE(USE_VALGRIND,1,[define to enable interaction with Valgrind])
+		else
+			AC_MSG_WARN([valgrind/memcheck.h required for Valgrind complete support.])
+		fi
+	fi
+else
+	AX_VALGRIND_DFLT([memcheck], [off])
+	AX_VALGRIND_CHECK
+fi
 
 case $ol_enable_experimental in
     yes)
@@ -403,9 +424,10 @@ case $ol_enable_hipagut in
 	;;
 esac
 
-AM_CONDITIONAL([SLAPD_DEBUG], [test "$debug" = yes])
-AM_CONDITIONAL([SLAPD_SYSLOG], [test "$syslog" = yes])
-AM_CONDITIONAL([LDAP_DEPRECATED], [test "$deprecated" = yes])
+AM_CONDITIONAL([SLAPD_DEBUG], [test "$ol_enable_debug" = yes])
+AM_CONDITIONAL([SLAPD_SYSLOG], [test "$ol_enable_syslog" = yes])
+AM_CONDITIONAL([LDAP_DEPRECATED], [test "$ol_enable_deprecated" = yes])
+AM_CONDITIONAL([LDAP_EXPERIMENTAL], [test "$ol_enable_experimental" = yes])
 
 dnl ----------------------------------------------------------------
 dnl General "with" options
@@ -425,6 +447,7 @@ OL_ARG_WITH(odbc,
 	[  --with-odbc             with specific ODBC support iodbc|unixodbc|auto],
 	auto, [auto iodbc unixodbc] )
 
+
 dnl ----------------------------------------------------------------
 dnl Server options
 dnl ----------------------------------------------------------------
@@ -443,7 +466,7 @@ OL_ARG_ENABLE(cleartext,[    --enable-cleartext	  enable cleartext passwords], y
 OL_ARG_ENABLE(crypt,[    --enable-crypt	  enable crypt(3) passwords], no)dnl
 OL_ARG_ENABLE(lmpasswd,[    --enable-lmpasswd	  enable LAN Manager passwords], no)dnl
 OL_ARG_ENABLE(spasswd,[    --enable-spasswd	  enable (Cyrus) SASL password verification], no)dnl
-OL_ARG_ENABLE(modules,[    --enable-modules	  enable dynamic module support], no)dnl
+OL_ARG_ENABLE(modules,[    --enable-modules	  enable dynamic module support], yes)dnl
 OL_ARG_ENABLE(rewrite,[    --enable-rewrite	  enable DN rewriting in back-ldap and rwm overlay], auto)dnl
 OL_ARG_ENABLE(rlookups,[    --enable-rlookups	  enable reverse lookups of client hostnames], no)dnl
 OL_ARG_ENABLE(slapi,[    --enable-slapi        enable SLAPI support (experimental)], no)dnl
@@ -551,6 +574,7 @@ OL_ARG_ENABLE(valsort,[    --enable-valsort      Value Sorting overlay],
 dnl ----------------------------------------------------------------
 AC_ARG_ENABLE(xxliboptions,[
 Library Generation & Linking Options])
+LTDL_INIT([recursive])
 AC_ENABLE_STATIC
 AC_ENABLE_SHARED
 
@@ -560,11 +584,40 @@ dnl ----------------------------------------------------------------
 for o in $slapd_features $slapd_backends $slapd_overlays; do
 	eval "ol_value=\$ol_enable_$o"
 	if test $ol_enable_slapd = no -a $ol_value != no; then
-		AC_MSG_WARN([slapd disabled, therefore --enable-$o=$ol_value unavailable ])
+		AC_MSG_ERROR([slapd disabled, therefore --enable-$o=$ol_value unavailable ])
 	elif test $ol_enable_modules = no -a $ol_value = mod; then
-		AC_MSG_WARN([dynamic modules disabled, therefore --enable-$o=$ol_value unavailable ])
+		AC_MSG_ERROR([dynamic modules disabled, therefore --enable-$o=$ol_value unavailable ])
 	fi
 done
+
+if test $ol_enable_contrib != no; then
+	if test $ol_enable_slapd = no ; then
+		AC_MSG_ERROR([slapd disabled, therefore --enable-contrib unavailable ])
+	else
+		if test $ol_enable_modules = no; then
+			AC_MSG_ERROR([dynamic modules disabled, therefore contrib-overlays unavailable ])
+		fi
+		if test $ol_enable_slapi = no; then
+			AC_MSG_WARN([SLAPI disabled, therefore slapi contrib-pluginus unavailable ])
+		fi
+		if test $ol_enable_dynacl = no; then
+			AC_MSG_WARN([dynamic ACL disabled, therefore acl contrib-pluginus unavailable ])
+		fi
+	fi
+
+	if test $ol_enable_contrib = broken -a $ol_enable_experimental != yes; then
+		AC_MSG_WARN([experimental features disabled, therefore broken-contrib-modules unavailable ])
+	fi
+
+	PKG_CHECK_MODULES(HEIMDAL, heimdal-krb5 heimdal-kadm-server, heimdal_found=yes, heimdal_found=no)
+	if test $heimdal_found != yes; then
+		AC_MSG_WARN([$HEIMDAL_PKG_ERRORS, therefore depended contrib-modules unavailable ])
+	fi
+
+	AC_SUBST(HEIMDAL_LIBS)
+	AC_SUBST(HEIMDAL_CFLAGS)
+fi
+AM_CONDITIONAL([HEIMDAL_AVAIL], [test "$heimdal_found" = yes])
 
 if test $ol_enable_slapd != no ; then
 	be=
@@ -576,7 +629,6 @@ if test $ol_enable_slapd != no ; then
 		fi
 	done
 	if test -z "$be"; then
-#		AC_MSG_ERROR([slapd requires a backend])
 		AC_MSG_WARN([no backend specified, slapd will be used ldif])
 	fi
 fi
@@ -640,17 +692,20 @@ WT_LIBDIR=
 SQL_LIBS=
 SQL_INCLUDES=
 
-KRB4_LIBS=
-KRB5_LIBS=
 SASL_LIBS=
 TLS_LIBS=
 SLAPI_LIBS=
 AUTH_LIBS=
+
 #ICU_LIBS=
 
 SLAPD_SLP_LIBS=
 SLAPD_GMP_LIBS=
 SLAPD_TCPWRAP_LIBS=
+
+PKG_CHECK_MODULES(KRB5, krb5, krb5_found=yes, krb5_found=no)
+AC_SUBST(KRB5_LIBS)
+AC_SUBST(KRB5_CFLAGS)
 
 dnl ================================================================
 dnl Checks for programs
@@ -912,6 +967,10 @@ dnl ----------------------------------------------------------------
 dnl UUID Support
 
 have_uuid=no
+#PKG_CHECK_MODULES(UUID, uuid, have_uuid=yes, have_uuid=no)
+#AC_SUBST(UUID_LIBS)
+#AC_SUBST(UUID_CFLAGS)
+
 AC_CHECK_HEADERS(sys/uuid.h)
 dnl The HAVE_UUID_TO_STR code path also needs uuid_create
 if test $ac_cv_header_sys_uuid_h = yes ; then
@@ -1040,6 +1099,10 @@ fi
 
 ol_link_tls=no
 if test $ol_with_tls = openssl || test $ol_with_tls = auto ; then
+#	PKG_CHECK_MODULES(CRYPTO, libcrypto libssl, ssl_found=yes, ssl_found=no)
+#	AC_SUBST(CRYPTO_LIBS)
+#	AC_SUBST(CRYPTO_CFLAGS)
+
 	AC_CHECK_HEADERS(openssl/ssl.h)
 
 	if test $ac_cv_header_openssl_ssl_h = yes ; then
@@ -1790,6 +1853,10 @@ WITH_SASL=no
 ol_link_sasl=no
 ol_link_spasswd=no
 if test $ol_with_cyrus_sasl != no ; then
+#	PKG_CHECK_MODULES(SASL, libsasl2, sasl_found=yes, sasl_found=no)
+#	AC_SUBST(SASL_LIBS)
+#	AC_SUBST(SASL_CFLAGS)
+
 	AC_CHECK_HEADERS(sasl/sasl.h sasl.h)
 
 	if test $ac_cv_header_sasl_sasl_h = yes ||
@@ -2502,14 +2569,14 @@ if test "$ol_enable_auditlog" != no ; then
 fi
 
 if test "$ol_enable_collect" != no ; then
-        if test "$ol_enable_collect" = mod ; then
-                MFLAG=SLAPD_MOD_DYNAMIC
-                SLAPD_DYNAMIC_OVERLAYS="$SLAPD_DYNAMIC_OVERLAYS collect"
-        else
-                MFLAG=SLAPD_MOD_STATIC
-                SLAPD_STATIC_OVERLAYS="$SLAPD_STATIC_OVERLAYS collect"
-        fi
-        AC_DEFINE_UNQUOTED(SLAPD_OVER_COLLECT,$MFLAG,[define for Collect overlay])
+	if test "$ol_enable_collect" = mod ; then
+		MFLAG=SLAPD_MOD_DYNAMIC
+		SLAPD_DYNAMIC_OVERLAYS="$SLAPD_DYNAMIC_OVERLAYS collect"
+	else
+		MFLAG=SLAPD_MOD_STATIC
+		SLAPD_STATIC_OVERLAYS="$SLAPD_STATIC_OVERLAYS collect"
+	fi
+	AC_DEFINE_UNQUOTED(SLAPD_OVER_COLLECT,$MFLAG,[define for Collect overlay])
 fi
 
 if test "$ol_enable_constraint" != no ; then
@@ -2739,8 +2806,9 @@ if test -x $ac_aux_dir/mkbanner -a -x $ac_aux_dir/BRANDING; then
 		SOELIM_R=$SOELIM
 	fi
 	AC_SUBST(SOELIM_R)
+
 else
-    SLAPD_MAINTAINER_DIR=""
+	SLAPD_MAINTAINER_DIR=""
 fi
 AC_SUBST(SLAPD_MAINTAINER_DIR)
 
@@ -2759,6 +2827,7 @@ AM_CONDITIONAL([BUILD_LDIF], [true])
 AM_CONDITIONAL([LDIF_DYNAMIC], [false])
 
 AM_CONDITIONAL([BUILD_SLAPI], [test $ol_enable_slapi != no])
+AM_CONDITIONAL([SLAPD_DYNACL], [test $ol_enable_dynacl != no])
 
 #dnl backends
 	AM_CONDITIONAL([BUILD_MONITOR], [test $ol_enable_monitor != no])
@@ -2873,6 +2942,9 @@ AM_CONDITIONAL([BUILD_SLAPI], [test $ol_enable_slapi != no])
 	AM_CONDITIONAL([BUILD_VALSORT], [test $ol_enable_valsort != no])
 	AM_CONDITIONAL([VALSORT_DYNAMIC], [test $ol_enable_valsort = mod])
 
+AM_CONDITIONAL([CONTRIB], [test "$ol_enable_contrib" != no])
+AM_CONDITIONAL([CONTRIB_BROKEN], [test "$ol_enable_contrib" = broken])
+
 AC_SUBST(SLAPD_LIBS)
 AC_SUBST(LTHREAD_LIBS)
 AC_SUBST(LUTIL_LIBS)
@@ -2905,8 +2977,6 @@ AC_SUBST(WT_LIBDIR)
 AC_SUBST(SQL_LIBS)
 AC_SUBST(SQL_INCLUDES)
 
-AC_SUBST(KRB4_LIBS)
-AC_SUBST(KRB5_LIBS)
 AC_SUBST(SASL_LIBS)
 AC_SUBST(TLS_LIBS)
 AC_SUBST(SLAPI_LIBS)
@@ -2925,7 +2995,7 @@ AC_SUBST(LDAP_LIBREWRITE_LA)
 AC_SUBST(LDAP_LIBLUNICODE_LA)
 AC_SUBST(LDAP_LIBLUTIL_LA)
 
-SECURITY_LIBS="${SASL_LIBS} ${KRB_LIBS} ${TLS_LIBS} ${AUTH_LIBS}"
+SECURITY_LIBS="${SASL_LIBS} ${TLS_LIBS} ${AUTH_LIBS}"
 AC_SUBST(SECURITY_LIBS)
 
 SLAPD_LIBS="$SLAPD_LIBS $SLAPD_SLP_LIBS $SLAPD_GMP_LIBS $SLAPD_TCPWRAP_LIBS"
@@ -2986,6 +3056,11 @@ AC_CONFIG_FILES(
 	doc/man/Makefile
 	doc/man/ru/Makefile
 	doc/man/en/Makefile
+
+	contrib/Makefile
+	contrib/slapi-plugins/Makefile
+	contrib/slapd-tools/Makefile
+	contrib/slapd-modules/Makefile
 )
 
 if test -x $ac_aux_dir/BRANDING; then
@@ -2996,7 +3071,7 @@ fi
 AC_OUTPUT
 
 AC_MSG_CHECKING(['libtool' for support LTO (Link Time Optimization)])
-if sed -i -e 's/pic_flag_for_symtable=$/&\$(echo -- "\$LTCFLAGS" | grep -q -w -- "-flto" \&\& echo -n -- " -fno-lto")/' libtool; then
+if sed -i -e 's/\$pic_flag_for_symtable /&`echo -- "\$LTCFLAGS" | grep -q -w -- "-flto" \&\& echo -n "-fno-lto "`/' libtool; then
 	AC_MSG_RESULT([done patching])
 else
 	AC_MSG_RESULT([something went wrong, not supported])

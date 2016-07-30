@@ -38,8 +38,6 @@
  */
 #include "reldap.h"
 
-#ifdef SLAPD_OVER_NOPS
-
 #include <stdio.h>
 
 #include <ac/string.h>
@@ -181,12 +179,7 @@ nops_initialize( void ) {
 	return overlay_register( &nops_ovl );
 }
 
-#if SLAPD_OVER_NOPS == SLAPD_MOD_DYNAMIC
-SLAP_OVERLAY_ENTRY(nops, modinit) ( int argc, char *argv[] )
+SLAP_MODULE_ENTRY(nops, modinit) ( int argc, char *argv[] )
 {
 	return nops_initialize();
 }
-#endif
-
-#endif /* defined(SLAPD_OVER_NOPS) */
-

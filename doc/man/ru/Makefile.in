@@ -91,6 +91,7 @@ target_triplet = @target@
 subdir = doc/man/ru
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/build/m4/ax_pthread.m4 \
+	$(top_srcdir)/build/m4/ax_valgrind_check.m4 \
 	$(top_srcdir)/build/m4/libtool.m4 \
 	$(top_srcdir)/build/m4/ltargz.m4 \
 	$(top_srcdir)/build/m4/ltdl.m4 \
@@ -157,10 +158,9 @@ am__uninstall_files_from_dir = { \
 am__installdirs = "$(DESTDIR)$(man1dir)" "$(DESTDIR)$(man5dir)" \
 	"$(DESTDIR)$(man8dir)"
 NROFF = nroff
-MANS = $(dist_man1_MANS) $(dist_man5_MANS) $(dist_man8_MANS) $(man1_MANS) $(man5_MANS) $(man8_MANS)
+MANS = $(man1_MANS) $(man5_MANS) $(man8_MANS)
 am__tagged_files = $(HEADERS) $(SOURCES) $(TAGS_FILES) $(LISP)
-am__DIST_COMMON = $(dist_man1_MANS) $(dist_man5_MANS) \
-	$(dist_man8_MANS) $(srcdir)/Makefile.in
+am__DIST_COMMON = $(srcdir)/Makefile.in
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
 ACLOCAL = @ACLOCAL@
 AMTAR = @AMTAR@
@@ -195,18 +195,24 @@ ECHO_C = @ECHO_C@
 ECHO_N = @ECHO_N@
 ECHO_T = @ECHO_T@
 EGREP = @EGREP@
+ENABLE_VALGRIND_drd = @ENABLE_VALGRIND_drd@
+ENABLE_VALGRIND_helgrind = @ENABLE_VALGRIND_helgrind@
+ENABLE_VALGRIND_memcheck = @ENABLE_VALGRIND_memcheck@
+ENABLE_VALGRIND_sgcheck = @ENABLE_VALGRIND_sgcheck@
 EXEEXT = @EXEEXT@
 FGREP = @FGREP@
 FIXUP_DIRS = @FIXUP_DIRS@
 FIXUP_DIST = @FIXUP_DIST@
 GREP = @GREP@
+HEIMDAL_CFLAGS = @HEIMDAL_CFLAGS@
+HEIMDAL_LIBS = @HEIMDAL_LIBS@
 INCLTDL = @INCLTDL@
 INSTALL = @INSTALL@
 INSTALL_DATA = @INSTALL_DATA@
 INSTALL_PROGRAM = @INSTALL_PROGRAM@
 INSTALL_SCRIPT = @INSTALL_SCRIPT@
 INSTALL_STRIP_PROGRAM = @INSTALL_STRIP_PROGRAM@
-KRB4_LIBS = @KRB4_LIBS@
+KRB5_CFLAGS = @KRB5_CFLAGS@
 KRB5_LIBS = @KRB5_LIBS@
 LD = @LD@
 LDAP_LIBLUNICODE_LA = @LDAP_LIBLUNICODE_LA@
@@ -300,6 +306,8 @@ SQL_INCLUDES = @SQL_INCLUDES@
 SQL_LIBS = @SQL_LIBS@
 STRIP = @STRIP@
 TLS_LIBS = @TLS_LIBS@
+VALGRIND = @VALGRIND@
+VALGRIND_ENABLED = @VALGRIND_ENABLED@
 VERSION = @VERSION@
 VERSION_MAJOR = @VERSION_MAJOR@
 VERSION_MINOR = @VERSION_MINOR@
@@ -376,6 +384,8 @@ target_vendor = @target_vendor@
 top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
+valgrind_enabled_tools = @valgrind_enabled_tools@
+valgrind_tools = @valgrind_tools@
 MAINT_CHARSET = utf8
 SUFFIXES = .soelim .man.in .man
 mandir_ru = $(mandir)/ru
@@ -388,19 +398,19 @@ man6dir = $(mandir_ru)/man6
 man7dir = $(mandir_ru)/man7
 man8dir = $(mandir_ru)/man8
 man_links = man5/slapd-bdb.5.links man1/ldapmodify.1.links
-EXTRA_DIST = $(man_links)
-dist_man1_MANS = man1/ldapmodify.man.in man1/ldapcompare.man.in \
+EXTRA_DIST = $(man_links) \
+	man1/ldapmodify.man.in man1/ldapcompare.man.in \
 	man1/ldapsearch.man.in man1/ldapdelete.man.in man1/ldapwhoami.man.in \
 	man1/ldappasswd.man.in man1/ldapurl.man.in man1/ldapexop.man.in \
-	man1/ldapmodrdn.man.in
-
-dist_man5_MANS = man5/slapd-config.man.in man5/slapo-accesslog.man.in \
+	man1/ldapmodrdn.man.in \
+	\
+	man5/slapd-config.man.in man5/slapo-accesslog.man.in \
 	man5/slapo-memberof.man.in man5/ldif.man.in man5/ldap.conf.man.in \
 	man5/slapd.plugin.man.in man5/slapd-mdb.man.in man5/slapd.conf.man.in \
 	man5/slapo-ppolicy.man.in man5/slapo-syncprov.man.in \
-	man5/slapd-bdb.man.in man5/slapd.access.man.in
-
-dist_man8_MANS = man8/slapcat.man.in man8/slappasswd.man.in \
+	man5/slapd-bdb.man.in man5/slapd.access.man.in \
+	\
+	man8/slapcat.man.in man8/slappasswd.man.in \
 	man8/slapacl.man.in man8/slapschema.man.in man8/slapadd.man.in \
 	man8/slapindex.man.in man8/slapdn.man.in man8/slapauth.man.in \
 	man8/slaptest.man.in man8/slapd.man.in
@@ -460,9 +470,9 @@ mostlyclean-libtool:
 
 clean-libtool:
 	-rm -rf .libs _libs
-install-man1: $(dist_man1_MANS) $(man1_MANS)
+install-man1: $(man1_MANS)
 	@$(NORMAL_INSTALL)
-	@list1='$(dist_man1_MANS) $(man1_MANS)'; \
+	@list1='$(man1_MANS)'; \
 	list2=''; \
 	test -n "$(man1dir)" \
 	  && test -n "`echo $$list1$$list2`" \
@@ -496,14 +506,14 @@ install-man1: $(dist_man1_MANS) $(man1_MANS)
 
 uninstall-man1:
 	@$(NORMAL_UNINSTALL)
-	@list='$(dist_man1_MANS) $(man1_MANS)'; test -n "$(man1dir)" || exit 0; \
+	@list='$(man1_MANS)'; test -n "$(man1dir)" || exit 0; \
 	files=`{ for i in $$list; do echo "$$i"; done; \
 	} | sed -e 's,.*/,,;h;s,.*\.,,;s,^[^1][0-9a-z]*$$,1,;x' \
 	      -e 's,\.[0-9a-z]*$$,,;$(transform);G;s,\n,.,'`; \
 	dir='$(DESTDIR)$(man1dir)'; $(am__uninstall_files_from_dir)
-install-man5: $(dist_man5_MANS) $(man5_MANS)
+install-man5: $(man5_MANS)
 	@$(NORMAL_INSTALL)
-	@list1='$(dist_man5_MANS) $(man5_MANS)'; \
+	@list1='$(man5_MANS)'; \
 	list2=''; \
 	test -n "$(man5dir)" \
 	  && test -n "`echo $$list1$$list2`" \
@@ -537,14 +547,14 @@ install-man5: $(dist_man5_MANS) $(man5_MANS)
 
 uninstall-man5:
 	@$(NORMAL_UNINSTALL)
-	@list='$(dist_man5_MANS) $(man5_MANS)'; test -n "$(man5dir)" || exit 0; \
+	@list='$(man5_MANS)'; test -n "$(man5dir)" || exit 0; \
 	files=`{ for i in $$list; do echo "$$i"; done; \
 	} | sed -e 's,.*/,,;h;s,.*\.,,;s,^[^5][0-9a-z]*$$,5,;x' \
 	      -e 's,\.[0-9a-z]*$$,,;$(transform);G;s,\n,.,'`; \
 	dir='$(DESTDIR)$(man5dir)'; $(am__uninstall_files_from_dir)
-install-man8: $(dist_man8_MANS) $(man8_MANS)
+install-man8: $(man8_MANS)
 	@$(NORMAL_INSTALL)
-	@list1='$(dist_man8_MANS) $(man8_MANS)'; \
+	@list1='$(man8_MANS)'; \
 	list2=''; \
 	test -n "$(man8dir)" \
 	  && test -n "`echo $$list1$$list2`" \
@@ -578,7 +588,7 @@ install-man8: $(dist_man8_MANS) $(man8_MANS)
 
 uninstall-man8:
 	@$(NORMAL_UNINSTALL)
-	@list='$(dist_man8_MANS) $(man8_MANS)'; test -n "$(man8dir)" || exit 0; \
+	@list='$(man8_MANS)'; test -n "$(man8dir)" || exit 0; \
 	files=`{ for i in $$list; do echo "$$i"; done; \
 	} | sed -e 's,.*/,,;h;s,.*\.,,;s,^[^8][0-9a-z]*$$,8,;x' \
 	      -e 's,\.[0-9a-z]*$$,,;$(transform);G;s,\n,.,'`; \
@@ -755,17 +765,17 @@ uninstall-man: uninstall-man1 uninstall-man5 uninstall-man8
 	$(MKDIR_P) $(@D) && $(FIXUP_DIRS) $< > $@
 
 install-data-hook:
-	@if $(AM_V_P); then set -x; else echo "  LN       $$(cat `find $(srcdir) -name '*.links'`)"; fi; \
-	(cd $(srcdir) && find . -name '*.links' -exec \
+	@if $(AM_V_P); then set -x; else echo "  LN       $(man_links)"; fi; \
+	(cd $(srcdir) && echo $(man_links) | tr -s '[:space:]' '\n' | xargs -r -n 1 -I {} \
 		sh -c 'xargs -I "#" -n 1 -r sh -c "cd $(mandir_ru)/$$(dirname {}) && ln -s -f -T $$(basename {} .links) #" < $(srcdir)/{}' \
 		\;)
 
 uninstall-hook:
-	@if $(AM_V_P); then set -x; else echo "  RM       $$(cat `find $(srcdir) -name '*.links'`)"; fi; \
-	(cd $(srcdir) && find . -name '*.links' -exec \
+	@if $(AM_V_P); then set -x; else echo "  RM       $(man_links)"; fi; \
+	(cd $(srcdir) && echo $(man_links) | tr -s '[:space:]' '\n' | xargs -r -n 1 -I {} \
 		sh -c 'xargs -I "#" -n 1 -r sh -c "rm -f $(mandir_ru)/$$(dirname {})/#" < $(srcdir)/{}' \
-		\;)
-	find $(mandir_ru) -type d -empty -exec rmdir {} \;
+		\;); \
+	find $(mandir_ru) -depth -type d -empty -exec rmdir {} \;
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.

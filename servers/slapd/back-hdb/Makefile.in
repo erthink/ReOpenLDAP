@@ -99,6 +99,7 @@ target_triplet = @target@
 subdir = servers/slapd/back-hdb
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/build/m4/ax_pthread.m4 \
+	$(top_srcdir)/build/m4/ax_valgrind_check.m4 \
 	$(top_srcdir)/build/m4/libtool.m4 \
 	$(top_srcdir)/build/m4/ltargz.m4 \
 	$(top_srcdir)/build/m4/ltdl.m4 \
@@ -279,18 +280,24 @@ ECHO_C = @ECHO_C@
 ECHO_N = @ECHO_N@
 ECHO_T = @ECHO_T@
 EGREP = @EGREP@
+ENABLE_VALGRIND_drd = @ENABLE_VALGRIND_drd@
+ENABLE_VALGRIND_helgrind = @ENABLE_VALGRIND_helgrind@
+ENABLE_VALGRIND_memcheck = @ENABLE_VALGRIND_memcheck@
+ENABLE_VALGRIND_sgcheck = @ENABLE_VALGRIND_sgcheck@
 EXEEXT = @EXEEXT@
 FGREP = @FGREP@
 FIXUP_DIRS = @FIXUP_DIRS@
 FIXUP_DIST = @FIXUP_DIST@
 GREP = @GREP@
+HEIMDAL_CFLAGS = @HEIMDAL_CFLAGS@
+HEIMDAL_LIBS = @HEIMDAL_LIBS@
 INCLTDL = @INCLTDL@
 INSTALL = @INSTALL@
 INSTALL_DATA = @INSTALL_DATA@
 INSTALL_PROGRAM = @INSTALL_PROGRAM@
 INSTALL_SCRIPT = @INSTALL_SCRIPT@
 INSTALL_STRIP_PROGRAM = @INSTALL_STRIP_PROGRAM@
-KRB4_LIBS = @KRB4_LIBS@
+KRB5_CFLAGS = @KRB5_CFLAGS@
 KRB5_LIBS = @KRB5_LIBS@
 LD = @LD@
 LDAP_LIBLUNICODE_LA = @LDAP_LIBLUNICODE_LA@
@@ -384,6 +391,8 @@ SQL_INCLUDES = @SQL_INCLUDES@
 SQL_LIBS = @SQL_LIBS@
 STRIP = @STRIP@
 TLS_LIBS = @TLS_LIBS@
+VALGRIND = @VALGRIND@
+VALGRIND_ENABLED = @VALGRIND_ENABLED@
 VERSION = @VERSION@
 VERSION_MAJOR = @VERSION_MAJOR@
 VERSION_MINOR = @VERSION_MINOR@
@@ -460,10 +469,12 @@ target_vendor = @target_vendor@
 top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
+valgrind_enabled_tools = @valgrind_enabled_tools@
+valgrind_tools = @valgrind_tools@
 pkglib_LTLIBRARIES = $(am__append_1)
 noinst_LTLIBRARIES = $(am__append_3)
 back_hdb_la_LDFLAGS = -module $(am__append_2)
-AM_CPPFLAGS = -DSLAPD_IMPORT -I$(srcdir)/.. -I$(top_srcdir)/include
+AM_CPPFLAGS = -DSLAPD_IMPORT -I$(srcdir)/.. -I$(top_srcdir)/include $(BDB_INCLUDES)
 @BEHIND_CURTIAN_TRUE@BUILT_SOURCES = banner.c
 back_hdb_la_SOURCES = ../back-bdb/add.c ../back-bdb/attr.c \
 	../back-bdb/back-bdb.h banner.c ../back-bdb/bind.c \
@@ -478,8 +489,8 @@ back_hdb_la_SOURCES = ../back-bdb/add.c ../back-bdb/attr.c \
 	../back-bdb/proto-bdb.h ../back-bdb/referral.c \
 	../back-bdb/search.c ../back-bdb/tools.c ../back-bdb/trans.c
 
-back_hdb_la_CFLAGS = -DBDB_HIER=1 $(BDB_INCLUDES)
 back_hdb_la_LIBADD = $(BDB_LIBS)
+back_hdb_la_CFLAGS = -DBDB_HIER
 all: $(BUILT_SOURCES)
 	$(MAKE) $(AM_MAKEFLAGS) all-am
 
@@ -1103,7 +1114,7 @@ uninstall-am: uninstall-pkglibLTLIBRARIES
 .PRECIOUS: Makefile
 
 @BEHIND_CURTIAN_TRUE@banner.c: Makefile
-@BEHIND_CURTIAN_TRUE@	$(MKBANNER) --name backend_hdb --global 'backend-hdb' > $@
+@BEHIND_CURTIAN_TRUE@	$(MKBANNER) --name backend_hdb --global 'backend-hdb' > $@ || $(RM) $@
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.

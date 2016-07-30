@@ -39,8 +39,6 @@
 
 #include "reldap.h"
 
-#ifdef SLAPD_OVER_RDNVAL
-
 #include <stdio.h>
 
 #include "ac/string.h"
@@ -625,7 +623,7 @@ static struct {
 	{ NULL }
 };
 
-int
+static int
 rdnval_initialize(void)
 {
 	int code, i;
@@ -664,11 +662,7 @@ rdnval_initialize(void)
 	return overlay_register( &rdnval );
 }
 
-#if SLAPD_OVER_RDNVAL == SLAPD_MOD_DYNAMIC
-SLAP_OVERLAY_ENTRY(rdnval, modinit) ( int argc, char *argv[] )
+SLAP_MODULE_ENTRY(rdnval, modinit) ( int argc, char *argv[] )
 {
 	return rdnval_initialize();
 }
-#endif /* SLAPD_OVER_RDNVAL == SLAPD_MOD_DYNAMIC */
-
-#endif /* SLAPD_OVER_RDNVAL */

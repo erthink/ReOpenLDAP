@@ -35,7 +35,7 @@ endif
 if BEHIND_CURTIAN
 BUILT_SOURCES = banner.c
 banner.c: Makefile
-	$(MKBANNER) --name backend_dnssrv --global 'backend-dnssrv' > $@
+	$(MKBANNER) --name backend_dnssrv --global 'backend-dnssrv' > $@ || $(RM) $@
 endif
 
 back_dnssrv_la_SOURCES = banner.c bind.c compare.c config.c \

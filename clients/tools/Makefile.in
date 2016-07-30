@@ -98,6 +98,7 @@ bin_PROGRAMS = ldapsearch$(EXEEXT) ldapmodify$(EXEEXT) \
 subdir = clients/tools
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/build/m4/ax_pthread.m4 \
+	$(top_srcdir)/build/m4/ax_valgrind_check.m4 \
 	$(top_srcdir)/build/m4/libtool.m4 \
 	$(top_srcdir)/build/m4/ltargz.m4 \
 	$(top_srcdir)/build/m4/ltdl.m4 \
@@ -118,7 +119,7 @@ CONFIG_CLEAN_VPATH_FILES =
 am__installdirs = "$(DESTDIR)$(bindir)"
 PROGRAMS = $(bin_PROGRAMS)
 am_ldapcompare_OBJECTS = common.$(OBJEXT) ldapcompare.$(OBJEXT) \
-	c_banner.$(OBJEXT)
+	banner.$(OBJEXT)
 ldapcompare_OBJECTS = $(am_ldapcompare_OBJECTS)
 am__DEPENDENCIES_1 =
 ldapcompare_DEPENDENCIES = $(am__DEPENDENCIES_1) $(am__DEPENDENCIES_1)
@@ -127,38 +128,37 @@ am__v_lt_ = $(am__v_lt_@AM_DEFAULT_V@)
 am__v_lt_0 = --silent
 am__v_lt_1 = 
 am_ldapdelete_OBJECTS = common.$(OBJEXT) ldapdelete.$(OBJEXT) \
-	d_banner.$(OBJEXT)
+	banner.$(OBJEXT)
 ldapdelete_OBJECTS = $(am_ldapdelete_OBJECTS)
 ldapdelete_DEPENDENCIES = $(am__DEPENDENCIES_1) $(am__DEPENDENCIES_1)
 am_ldapexop_OBJECTS = common.$(OBJEXT) ldapexop.$(OBJEXT) \
-	e_banner.$(OBJEXT)
+	banner.$(OBJEXT)
 ldapexop_OBJECTS = $(am_ldapexop_OBJECTS)
 ldapexop_DEPENDENCIES = $(am__DEPENDENCIES_1) $(am__DEPENDENCIES_1)
 am_ldapmodify_OBJECTS = common.$(OBJEXT) ldapmodify.$(OBJEXT) \
-	m_banner.$(OBJEXT)
+	banner.$(OBJEXT)
 ldapmodify_OBJECTS = $(am_ldapmodify_OBJECTS)
 ldapmodify_DEPENDENCIES = $(am__DEPENDENCIES_1) $(am__DEPENDENCIES_1)
 am_ldapmodrdn_OBJECTS = common.$(OBJEXT) ldapmodrdn.$(OBJEXT) \
-	r_banner.$(OBJEXT)
+	banner.$(OBJEXT)
 ldapmodrdn_OBJECTS = $(am_ldapmodrdn_OBJECTS)
 ldapmodrdn_DEPENDENCIES = $(am__DEPENDENCIES_1) $(am__DEPENDENCIES_1)
 am_ldappasswd_OBJECTS = common.$(OBJEXT) ldappasswd.$(OBJEXT) \
-	p_banner.$(OBJEXT)
+	banner.$(OBJEXT)
 ldappasswd_OBJECTS = $(am_ldappasswd_OBJECTS)
 ldappasswd_DEPENDENCIES = $(am__DEPENDENCIES_1) $(am__DEPENDENCIES_1)
 am_ldapsearch_OBJECTS = common.$(OBJEXT) ldapsearch.$(OBJEXT) \
-	s_banner.$(OBJEXT)
+	banner.$(OBJEXT)
 ldapsearch_OBJECTS = $(am_ldapsearch_OBJECTS)
 ldapsearch_DEPENDENCIES = $(am__DEPENDENCIES_1) $(am__DEPENDENCIES_1)
-am_ldapurl_OBJECTS = ldapurl.$(OBJEXT) u_banner.$(OBJEXT)
+am_ldapurl_OBJECTS = ldapurl.$(OBJEXT) banner.$(OBJEXT)
 ldapurl_OBJECTS = $(am_ldapurl_OBJECTS)
 ldapurl_DEPENDENCIES = $(am__DEPENDENCIES_1) $(am__DEPENDENCIES_1)
-am_ldapvc_OBJECTS = common.$(OBJEXT) ldapvc.$(OBJEXT) \
-	v_banner.$(OBJEXT)
+am_ldapvc_OBJECTS = common.$(OBJEXT) ldapvc.$(OBJEXT) banner.$(OBJEXT)
 ldapvc_OBJECTS = $(am_ldapvc_OBJECTS)
 ldapvc_DEPENDENCIES = $(am__DEPENDENCIES_1) $(am__DEPENDENCIES_1)
 am_ldapwhoami_OBJECTS = common.$(OBJEXT) ldapwhoami.$(OBJEXT) \
-	w_banner.$(OBJEXT)
+	banner.$(OBJEXT)
 ldapwhoami_OBJECTS = $(am_ldapwhoami_OBJECTS)
 ldapwhoami_DEPENDENCIES = $(am__DEPENDENCIES_1) $(am__DEPENDENCIES_1)
 AM_V_P = $(am__v_P_@AM_V@)
@@ -264,18 +264,24 @@ ECHO_C = @ECHO_C@
 ECHO_N = @ECHO_N@
 ECHO_T = @ECHO_T@
 EGREP = @EGREP@
+ENABLE_VALGRIND_drd = @ENABLE_VALGRIND_drd@
+ENABLE_VALGRIND_helgrind = @ENABLE_VALGRIND_helgrind@
+ENABLE_VALGRIND_memcheck = @ENABLE_VALGRIND_memcheck@
+ENABLE_VALGRIND_sgcheck = @ENABLE_VALGRIND_sgcheck@
 EXEEXT = @EXEEXT@
 FGREP = @FGREP@
 FIXUP_DIRS = @FIXUP_DIRS@
 FIXUP_DIST = @FIXUP_DIST@
 GREP = @GREP@
+HEIMDAL_CFLAGS = @HEIMDAL_CFLAGS@
+HEIMDAL_LIBS = @HEIMDAL_LIBS@
 INCLTDL = @INCLTDL@
 INSTALL = @INSTALL@
 INSTALL_DATA = @INSTALL_DATA@
 INSTALL_PROGRAM = @INSTALL_PROGRAM@
 INSTALL_SCRIPT = @INSTALL_SCRIPT@
 INSTALL_STRIP_PROGRAM = @INSTALL_STRIP_PROGRAM@
-KRB4_LIBS = @KRB4_LIBS@
+KRB5_CFLAGS = @KRB5_CFLAGS@
 KRB5_LIBS = @KRB5_LIBS@
 LD = @LD@
 LDAP_LIBLUNICODE_LA = @LDAP_LIBLUNICODE_LA@
@@ -369,6 +375,8 @@ SQL_INCLUDES = @SQL_INCLUDES@
 SQL_LIBS = @SQL_LIBS@
 STRIP = @STRIP@
 TLS_LIBS = @TLS_LIBS@
+VALGRIND = @VALGRIND@
+VALGRIND_ENABLED = @VALGRIND_ENABLED@
 VERSION = @VERSION@
 VERSION_MAJOR = @VERSION_MAJOR@
 VERSION_MINOR = @VERSION_MINOR@
@@ -445,30 +453,29 @@ target_vendor = @target_vendor@
 top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
+valgrind_enabled_tools = @valgrind_enabled_tools@
+valgrind_tools = @valgrind_tools@
 AM_CPPFLAGS = -I$(top_srcdir)/include
-@BEHIND_CURTIAN_TRUE@BUILT_SOURCES = s_banner.c m_banner.c d_banner.c r_banner.c \
-@BEHIND_CURTIAN_TRUE@	p_banner.c w_banner.c c_banner.c e_banner.c u_banner.c \
-@BEHIND_CURTIAN_TRUE@	v_banner.c
-
-ldapsearch_SOURCES = common.c ldapsearch.c s_banner.c common.h
+@BEHIND_CURTIAN_TRUE@BUILT_SOURCES = banner.c
+ldapsearch_SOURCES = common.c ldapsearch.c banner.c common.h
 ldapsearch_LDADD = $(LDAP_LIBLUTIL_LA) $(LDAP_LIBRELDAP_LA)
-ldapmodify_SOURCES = common.c ldapmodify.c m_banner.c common.h
+ldapmodify_SOURCES = common.c ldapmodify.c banner.c common.h
 ldapmodify_LDADD = $(LDAP_LIBLUTIL_LA) $(LDAP_LIBRELDAP_LA)
-ldapdelete_SOURCES = common.c ldapdelete.c d_banner.c common.h
+ldapdelete_SOURCES = common.c ldapdelete.c banner.c common.h
 ldapdelete_LDADD = $(LDAP_LIBLUTIL_LA) $(LDAP_LIBRELDAP_LA)
-ldapmodrdn_SOURCES = common.c ldapmodrdn.c r_banner.c common.h
+ldapmodrdn_SOURCES = common.c ldapmodrdn.c banner.c common.h
 ldapmodrdn_LDADD = $(LDAP_LIBLUTIL_LA) $(LDAP_LIBRELDAP_LA)
-ldappasswd_SOURCES = common.c ldappasswd.c p_banner.c common.h
+ldappasswd_SOURCES = common.c ldappasswd.c banner.c common.h
 ldappasswd_LDADD = $(LDAP_LIBLUTIL_LA) $(LDAP_LIBRELDAP_LA)
-ldapwhoami_SOURCES = common.c ldapwhoami.c w_banner.c common.h
+ldapwhoami_SOURCES = common.c ldapwhoami.c banner.c common.h
 ldapwhoami_LDADD = $(LDAP_LIBLUTIL_LA) $(LDAP_LIBRELDAP_LA)
-ldapcompare_SOURCES = common.c ldapcompare.c c_banner.c common.h
+ldapcompare_SOURCES = common.c ldapcompare.c banner.c common.h
 ldapcompare_LDADD = $(LDAP_LIBLUTIL_LA) $(LDAP_LIBRELDAP_LA)
-ldapexop_SOURCES = common.c ldapexop.c e_banner.c common.h
+ldapexop_SOURCES = common.c ldapexop.c banner.c common.h
 ldapexop_LDADD = $(LDAP_LIBLUTIL_LA) $(LDAP_LIBRELDAP_LA)
-ldapurl_SOURCES = ldapurl.c u_banner.c common.h
+ldapurl_SOURCES = ldapurl.c banner.c common.h
 ldapurl_LDADD = $(LDAP_LIBLUTIL_LA) $(LDAP_LIBRELDAP_LA)
-ldapvc_SOURCES = common.c ldapvc.c v_banner.c common.h
+ldapvc_SOURCES = common.c ldapvc.c banner.c common.h
 ldapvc_LDADD = $(LDAP_LIBLUTIL_LA) $(LDAP_LIBRELDAP_LA)
 all: $(BUILT_SOURCES)
 	$(MAKE) $(AM_MAKEFLAGS) all-am
@@ -600,10 +607,8 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/c_banner.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/banner.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/common.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/d_banner.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/e_banner.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ldapcompare.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ldapdelete.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ldapexop.Po@am__quote@
@@ -614,13 +619,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ldapurl.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ldapvc.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ldapwhoami.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/m_banner.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/p_banner.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/r_banner.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/s_banner.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/u_banner.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/v_banner.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/w_banner.Po@am__quote@
 
 .c.o:
 @am__fastdepCC_TRUE@	$(AM_V_CC)depbase=`echo $@ | sed 's|[^/]*$$|$(DEPDIR)/&|;s|\.o$$||'`;\
@@ -864,27 +862,8 @@ uninstall-am: uninstall-binPROGRAMS
 
 .PRECIOUS: Makefile
 
-
-@BEHIND_CURTIAN_TRUE@s_banner.c: Makefile
-@BEHIND_CURTIAN_TRUE@	$(MKBANNER) --global 'ldapsearch' > $@
-@BEHIND_CURTIAN_TRUE@m_banner.c: Makefile
-@BEHIND_CURTIAN_TRUE@	$(MKBANNER) --global 'ldapmodify' > $@
-@BEHIND_CURTIAN_TRUE@d_banner.c: Makefile
-@BEHIND_CURTIAN_TRUE@	$(MKBANNER) --global 'ldapdelete' > $@
-@BEHIND_CURTIAN_TRUE@r_banner.c: Makefile
-@BEHIND_CURTIAN_TRUE@	$(MKBANNER) --global 'ldapmodrdn' > $@
-@BEHIND_CURTIAN_TRUE@p_banner.c: Makefile
-@BEHIND_CURTIAN_TRUE@	$(MKBANNER) --global 'ldappasswd' > $@
-@BEHIND_CURTIAN_TRUE@w_banner.c: Makefile
-@BEHIND_CURTIAN_TRUE@	$(MKBANNER) --global 'ldapwhoami' > $@
-@BEHIND_CURTIAN_TRUE@c_banner.c: Makefile
-@BEHIND_CURTIAN_TRUE@	$(MKBANNER) --global 'ldapcompare' > $@
-@BEHIND_CURTIAN_TRUE@e_banner.c: Makefile
-@BEHIND_CURTIAN_TRUE@	$(MKBANNER) --global 'ldapexop' > $@
-@BEHIND_CURTIAN_TRUE@u_banner.c: Makefile
-@BEHIND_CURTIAN_TRUE@	$(MKBANNER) --global 'ldapurl' > $@
-@BEHIND_CURTIAN_TRUE@v_banner.c: Makefile
-@BEHIND_CURTIAN_TRUE@	$(MKBANNER) --global 'ldapvc' > $@
+@BEHIND_CURTIAN_TRUE@banner.c: Makefile
+@BEHIND_CURTIAN_TRUE@	$(MKBANNER) --global 'ldaptools' > $@ || $(RM) $@
 
 install-exec-hook:
 	@if $(AM_V_P); then set -x; else echo "  LN       ldapmodify -> ldapadd"; fi; \

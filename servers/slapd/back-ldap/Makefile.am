@@ -35,7 +35,7 @@ endif
 if BEHIND_CURTIAN
 BUILT_SOURCES = banner.c
 banner.c: Makefile
-	$(MKBANNER) --name backend_ldap --global 'backend-ldap' > $@
+	$(MKBANNER) --name backend_ldap --global 'backend-ldap' > $@ || $(RM) $@
 endif
 
 back_ldap_la_SOURCES = add.c back-ldap.h banner.c bind.c \

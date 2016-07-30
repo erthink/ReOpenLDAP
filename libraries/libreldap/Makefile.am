@@ -28,7 +28,7 @@ AM_CPPFLAGS = -DRELDAP_LIBRARY -DLDAP_R_COMPILE -I$(top_srcdir)/include
 if BEHIND_CURTIAN
 BUILT_SOURCES = banner.c
 banner.c: Makefile
-	$(MKBANNER) --name 'libreldap' --global 'libreldap' > $@
+	$(MKBANNER) --name reldap --global 'libreldap' > $@ || $(RM) $@
 endif
 
 libreldap_la_LDFLAGS = -no-undefined -export-dynamic \

@@ -3440,7 +3440,7 @@ struct ComponentSyntaxInfo {
 	__reldap_exportable int \
 	back_ ## be ## _ReOpenLDAP_ ## item
 
-#define SLAP_OVERLAY_ENTRY(ov, item) \
+#define SLAP_MODULE_ENTRY(ov, item) \
 	__reldap_exportable int \
 	ov ## _ReOpenLDAP_ ## item
 
@@ -3457,7 +3457,7 @@ struct ComponentSyntaxInfo {
 	}
 
 #define SLAP_OVERLAY_INIT_MODULE(ov) \
-	SLAP_OVERLAY_ENTRY(ov, modinit) ( int argc, char *argv[] ) \
+	SLAP_MODULE_ENTRY(ov, modinit) ( int argc, char *argv[] ) \
 	{ \
 		int rc = ov ## _over_initialize( ); \
 		Debug( rc ? LDAP_DEBUG_ANY : LDAP_DEBUG_TRACE, \

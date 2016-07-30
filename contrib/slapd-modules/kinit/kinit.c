@@ -32,13 +32,6 @@
  */
 
 #include <reldap.h>
-
-#ifndef SLAPD_MOD_KINIT
-#define SLAPD_MOD_KINIT SLAPD_MOD_DYNAMIC
-#endif
-
-#ifdef SLAPD_MOD_KINIT
-
 #include <slap.h>
 #include "ldap_rq.h"
 #include <ac/errno.h>
@@ -214,7 +207,7 @@ kinit_qtask( void *ctx, void *arg )
 	return NULL;
 }
 
-int
+static int
 kinit_initialize(void)
 {
 	Log( LDAP_DEBUG_TRACE, LDAP_LEVEL_DEBUG, "kinit_initialize\n" );
@@ -262,8 +255,7 @@ kinit_initialize(void)
 	return rc;
 }
 
-#if SLAPD_MOD_KINIT == SLAPD_MOD_DYNAMIC
-SLAP_OVERLAY_ENTRY(kinit, modinit) (int argc, char *argv[])
+SLAP_MODULE_ENTRY(kinit, modinit) (int argc, char *argv[])
 {
 	if (argc > 0) {
 		principal = ch_strdup(argv[0]);
@@ -277,7 +269,7 @@ SLAP_OVERLAY_ENTRY(kinit, modinit) (int argc, char *argv[])
 	return kinit_initialize();
 }
 
-SLAP_OVERLAY_ENTRY(kinit, modterm) (void)
+SLAP_MODULE_ENTRY(kinit, modterm) (void)
 {
 	if (principal)
 		ch_free(principal);
@@ -308,6 +300,3 @@ SLAP_OVERLAY_ENTRY(kinit, modterm) (void)
 	}
 	return 0;
 }
-#endif
-
-#endif /* SLAPD_MOD_KINIT */

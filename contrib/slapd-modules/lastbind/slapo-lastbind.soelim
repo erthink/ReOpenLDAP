@@ -1,12 +1,30 @@
-.TH SLAPO-LASTBIND 5 "RELEASEDATE" "ReOpenLDAP LDVERSION"
+.TH SLAPO-LASTBIND 5 "@RELEASE_DATE@" "ReOpenLDAP @VERSION@"
+.\" $ReOpenLDAP$
 .\" Copyright (c) 2015,2016 Leonid Yuriev <leo@yuriev.ru>.
 .\" Copyright (c) 2015,2016 Peter-Service R&D LLC <http://billing.ru/>.
+.\"
+.\" This file is part of ReOpenLDAP.
+.\"
+.\" ReOpenLDAP is free software; you can redistribute it and/or modify it under
+.\" the terms of the GNU Affero General Public License as published by
+.\" the Free Software Foundation; either version 3 of the License, or
+.\" (at your option) any later version.
+.\"
+.\" ReOpenLDAP is distributed in the hope that it will be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+.\" GNU Affero General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU Affero General Public License
+.\" along with this program.  If not, see <http://www.gnu.org/licenses/>.
+.\"
+.\" ---
+.\"
 .\" Copyright 2009 Jonathan Clarke, All Rights Reserved.
-.\" $ReOpenLDAP$
 .SH NAME
 slapo-lastbind \- lastbind overlay to slapd
 .SH SYNOPSIS
-ETCDIR/slapd.conf
+@SYSCONFDIR@/slapd.conf
 .SH DESCRIPTION
 The
 .B lastbind
@@ -84,7 +102,7 @@ if compiled as a run-time module;
 
 .SH FILES
 .TP
-ETCDIR/slapd.conf
+@SYSCONFDIR@/slapd.conf
 default slapd configuration file
 .SH SEE ALSO
 .BR slapd.conf (5),
@@ -93,7 +111,7 @@ The
 .BR slapo-lastbind (5)
 overlay supports dynamic configuration via
 .BR back-config.
-.SH ACKNOWLEDGEMENTS
-.P
+.SH AUTHOR
 This module was written in 2009 by Jonathan Clarke. It is loosely
 derived from the password policy overlay.
+.so ../man.footer

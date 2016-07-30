@@ -286,8 +286,7 @@ typedef struct ldapcontrol {
 
 /*	non-standard track controls */
 #define LDAP_CONTROL_PAGEDRESULTS	"1.2.840.113556.1.4.319"   /* RFC 2696 */
-
-#define LDAP_CONTROL_AUTHZID_REQUEST	"2.16.840.1.113730.4.16"   /* RFC 3829 */
+#define LDAP_CONTROL_AUTHZID_REQUEST    "2.16.840.1.113730.4.16"   /* RFC 3829 */
 #define LDAP_CONTROL_AUTHZID_RESPONSE   "2.16.840.1.113730.4.15"   /* RFC 3829 */
 
 /* LDAP Content Synchronization Operation -- RFC 4533 */
@@ -1402,8 +1401,9 @@ ldap_result2error LDAP_P((
 LDAP_F( void )
 ldap_perror LDAP_P((
 	LDAP *ld,
-	LDAP_CONST char *s )) __reldap_deprecated_msg("use ldap_err2string");
+	LDAP_CONST char *s )) __reldap_deprecated_msg("use ldap_err2string or ldap_debug_perror");
 
+LDAP_F(void) ldap_debug_perror( LDAP *ld, LDAP_CONST char *str );
 
 /*
  * gssapi.c:

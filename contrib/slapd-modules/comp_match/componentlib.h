@@ -13,12 +13,17 @@
 #define _H_COMPONENT_MODULE
 
 #include "reldap.h"
+#include <slap.h>
+
+#ifndef LDAP_COMP_MATCH
+#	error contrib-compmatch requires LDAP_COMP_MATCH
+#endif
+
 #include <ac/string.h>
 #include <ac/socket.h>
 #include <ldap_pvt.h>
 #include "lutil.h"
 #include <ldap.h>
-#include <slap.h>
 #include <component.h>
 
 #include <snacc/c/snacc.h>

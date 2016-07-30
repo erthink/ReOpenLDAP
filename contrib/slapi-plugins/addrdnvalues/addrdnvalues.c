@@ -45,7 +45,7 @@
 
 #include <slapi-plugin.h>
 
-int addrdnvalues_preop_init(Slapi_PBlock *pb);
+SLAPI_PLUGIN_ENTRY int addrdnvalues_preop_init(Slapi_PBlock *pb);
 
 static Slapi_PluginDesc pluginDescription = {
 	"addrdnvalues-plugin",
@@ -90,4 +90,3 @@ int addrdnvalues_preop_init(Slapi_PBlock *pb)
 
 	return 0;
 }
-

@@ -26,7 +26,7 @@ AM_CPPFLAGS = -I$(top_srcdir)/include
 if BEHIND_CURTIAN
 BUILT_SOURCES = banner.c
 banner.c: Makefile
-	$(MKBANNER) 'librewrite' > $@
+	$(MKBANNER) --name rewrite 'librewrite' > $@ || $(RM) $@
 endif
 
 librewrite_la_LIBADD = $(LDAP_LIBRELDAP_LA) $(LDAP_LIBLUTIL_LA)

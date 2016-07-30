@@ -2216,8 +2216,7 @@ autogroup_db_destroy(
 	return 0;
 }
 
-static
-int
+static int
 autogroup_initialize(void)
 {
 	int		rc = 0;
@@ -2244,7 +2243,7 @@ autogroup_initialize(void)
 	return overlay_register( &autogroup );
 }
 
-SLAP_OVERLAY_ENTRY(autogroup, modinit) ( int argc, char *argv[] )
+SLAP_MODULE_ENTRY(autogroup, modinit) ( int argc, char *argv[] )
 {
 	return autogroup_initialize();
 }

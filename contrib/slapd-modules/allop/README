@@ -4,18 +4,12 @@ that do not make use of the RFC3673 allOp ("+") in the requested
 attribute list, but expect all operational attributes to be returned.
 Usage: add to slapd.conf(5)
 
-moduleload	path/to/allop.so
-
+moduleload	contrib-allop.so
 overlay		allop
 allop-URI	<ldapURI>
 
 if the allop-URI is not given, the rootDSE, i.e. "ldap:///??base",
 is assumed.
-
-Use Makefile to compile this plugin or use a command line similar to:
-
-gcc -shared -I../../../include -I../../../servers/slapd -Wall -g \
-	-o allop.so allop.c
 
 ---
 Copyright (c) 2015,2016 Leonid Yuriev <leo@yuriev.ru>.

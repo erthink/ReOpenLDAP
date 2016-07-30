@@ -49,6 +49,7 @@
 #include "ldap_defaults.h"
 #include "lber.h"
 #include "ldap_pvt.h"
+#include "ldap-int.h"
 
 #include <unistd.h>
 #include <sys/syscall.h>
@@ -124,4 +125,37 @@ void ldap_debug_va( const char* fmt, va_list vl )
 	}
 	fputs( buffer, stderr );
 	ldap_debug_unlock();
+}
+
+void ldap_debug_perror( LDAP *ld, LDAP_CONST char *str )
+{
+	assert( ld != NULL );
+	assert( LDAP_VALID( ld ) );
+	assert( str != NULL );
+
+	ldap_debug_lock();
+
+	ldap_debug_print( "%s: %s (%d)\n",
+		str ? str : "ldap_debug_perror",
+		ldap_err2string( ld->ld_errno ),
+		ld->ld_errno );
+
+	if ( ld->ld_matched != NULL && ld->ld_matched[0] != '\0' ) {
+		ldap_debug_print( "\tmatched DN: %s\n", ld->ld_matched );
+	}
+
+	if ( ld->ld_error != NULL && ld->ld_error[0] != '\0' ) {
+		ldap_debug_print( "\tadditional info: %s\n", ld->ld_error );
+	}
+
+	if ( ld->ld_referrals != NULL && ld->ld_referrals[0] != NULL) {
+		int i;
+		ldap_debug_print( "\treferrals:\n" );
+		for (i = 0; ld->ld_referrals[i]; i++) {
+			ldap_debug_print( "\t\t%s\n", ld->ld_referrals[i] );
+		}
+	}
+
+	ldap_debug_unlock();
+	fflush( stderr );
 }

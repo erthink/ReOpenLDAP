@@ -24,10 +24,6 @@
 
 #include <string.h>
 
-#ifndef SLAPD_COMP_MATCH
-#define SLAPD_COMP_MATCH SLAPD_MOD_DYNAMIC
-#endif
-
 /*
  * Attribute and MatchingRule aliasing table
  */
@@ -794,8 +790,6 @@ comp_component_encoder ( void* mem_op, ComponentSyntaxInfo* csi , struct berval*
 	return LDAP_SUCCESS;
 }
 
-#if SLAPD_COMP_MATCH == SLAPD_MOD_DYNAMIC
-
 #include "certificate.h"
 
 extern convert_attr_to_comp_func* attr_converter;
@@ -809,7 +803,7 @@ extern test_membership_func* is_aliased_attribute;
 extern get_component_info_func* get_component_description;
 extern component_encoder_func* component_encoder;
 
-SLAP_OVERLAY_ENTRY(compmatch, modinit) ( int argc, char *argv[] )
+SLAP_MODULE_ENTRY(compmatch, modinit) ( int argc, char *argv[] )
 {
 	/*
 	 * Initialize function pointers in slapd
@@ -835,5 +829,3 @@ SLAP_OVERLAY_ENTRY(compmatch, modinit) ( int argc, char *argv[] )
 	init_component_description_table ();
 	return 0;
 }
-
-#endif /* SLAPD_PASSWD */

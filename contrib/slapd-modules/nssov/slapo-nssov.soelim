@@ -1,13 +1,31 @@
-.TH SLAPO-NSSOV 5 "RELEASEDATE" "ReOpenLDAP LDVERSION"
+.TH SLAPO-NSSOV 5 "@RELEASE_DATE@" "ReOpenLDAP @VERSION@"
+.\" $ReOpenLDAP$
 .\" Copyright (c) 2015,2016 Leonid Yuriev <leo@yuriev.ru>.
 .\" Copyright (c) 2015,2016 Peter-Service R&D LLC <http://billing.ru/>.
-.\" Copyright 1998-2014 The OpenLDAP Foundation, All Rights Reserved.
-.\" Copying restrictions apply.  See the COPYRIGHT file.
-.\" $ReOpenLDAP$
+.\"
+.\" This file is part of ReOpenLDAP.
+.\"
+.\" ReOpenLDAP is free software; you can redistribute it and/or modify it under
+.\" the terms of the GNU Affero General Public License as published by
+.\" the Free Software Foundation; either version 3 of the License, or
+.\" (at your option) any later version.
+.\"
+.\" ReOpenLDAP is distributed in the hope that it will be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+.\" GNU Affero General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU Affero General Public License
+.\" along with this program.  If not, see <http://www.gnu.org/licenses/>.
+.\"
+.\" ---
+.\"
+.\" Copyright 1998-2014 The OpenLDAP Foundation All Rights Reserved.
+.\" Copying restrictions apply.  See COPYRIGHT/LICENSE.
 .SH NAME
 slapo-nssov \- NSS and PAM requests through a local Unix Domain socket
 .SH SYNOPSIS
-ETCDIR/slapd.conf
+@SYSCONFDIR@/slapd.conf
 .SH DESCRIPTION
 The
 .B nssov
@@ -44,7 +62,7 @@ across multiple flat files. As such, there is no client-side configuration at
 all for the NSS/PAM stub libraries. (The stubs talk to the server via a Unix
 domain socket whose path is hardcoded to NSLCDPATH). As a side benefit,
 this can finally eliminate the perpetual confusion between ReOpenLDAP's
-ldap.conf file in ETCDIR/ldap.conf and the similarly named files typically
+ldap.conf file in @SYSCONFDIR@/ldap.conf and the similarly named files typically
 used by pam_ldap and nss_ldap.
 .LP
 User authentication is performed by internal simple Binds. User authorization
@@ -304,7 +322,7 @@ and
 services should have their logins recorded.
 .SH FILES
 .TP
-ETCDIR/slapd.conf
+@SYSCONFDIR@/slapd.conf
 default slapd configuration file
 .SH SEE ALSO
 .BR slapd.conf (5),
@@ -316,3 +334,4 @@ default slapd configuration file
 .SH AUTHOR
 Howard Chu, inspired by nss-ldapd by Arthur de Jong and pam_ldap by Luke Howard
 Enhancements by Ted C. Cheng, Symas Corp.
+.so ../man.footer

@@ -39,20 +39,20 @@ man8dir = $(mandir_ru)/man8
 	$(MKDIR_P) $(@D) && $(FIXUP_DIRS) $< > $@
 
 man_links = man5/slapd-bdb.5.links man1/ldapmodify.1.links
-EXTRA_DIST = $(man_links)
 
-dist_man1_MANS = man1/ldapmodify.man.in man1/ldapcompare.man.in \
+EXTRA_DIST = $(man_links) \
+	man1/ldapmodify.man.in man1/ldapcompare.man.in \
 	man1/ldapsearch.man.in man1/ldapdelete.man.in man1/ldapwhoami.man.in \
 	man1/ldappasswd.man.in man1/ldapurl.man.in man1/ldapexop.man.in \
-	man1/ldapmodrdn.man.in
-
-dist_man5_MANS = man5/slapd-config.man.in man5/slapo-accesslog.man.in \
+	man1/ldapmodrdn.man.in \
+	\
+	man5/slapd-config.man.in man5/slapo-accesslog.man.in \
 	man5/slapo-memberof.man.in man5/ldif.man.in man5/ldap.conf.man.in \
 	man5/slapd.plugin.man.in man5/slapd-mdb.man.in man5/slapd.conf.man.in \
 	man5/slapo-ppolicy.man.in man5/slapo-syncprov.man.in \
-	man5/slapd-bdb.man.in man5/slapd.access.man.in
-
-dist_man8_MANS = man8/slapcat.man.in man8/slappasswd.man.in \
+	man5/slapd-bdb.man.in man5/slapd.access.man.in \
+	\
+	man8/slapcat.man.in man8/slappasswd.man.in \
 	man8/slapacl.man.in man8/slapschema.man.in man8/slapadd.man.in \
 	man8/slapindex.man.in man8/slapdn.man.in man8/slapauth.man.in \
 	man8/slaptest.man.in man8/slapd.man.in
@@ -74,14 +74,14 @@ man8_MANS = man8/slapcat.man man8/slappasswd.man \
 	man8/slaptest.man man8/slapd.man
 
 install-data-hook:
-	@if $(AM_V_P); then set -x; else echo "  LN       $$(cat `find $(srcdir) -name '*.links'`)"; fi; \
-	(cd $(srcdir) && find . -name '*.links' -exec \
+	@if $(AM_V_P); then set -x; else echo "  LN       $(man_links)"; fi; \
+	(cd $(srcdir) && echo $(man_links) | tr -s '[:space:]' '\n' | xargs -r -n 1 -I {} \
 		sh -c 'xargs -I "#" -n 1 -r sh -c "cd $(mandir_ru)/$$(dirname {}) && ln -s -f -T $$(basename {} .links) #" < $(srcdir)/{}' \
 		\;)
 
 uninstall-hook:
-	@if $(AM_V_P); then set -x; else echo "  RM       $$(cat `find $(srcdir) -name '*.links'`)"; fi; \
-	(cd $(srcdir) && find . -name '*.links' -exec \
+	@if $(AM_V_P); then set -x; else echo "  RM       $(man_links)"; fi; \
+	(cd $(srcdir) && echo $(man_links) | tr -s '[:space:]' '\n' | xargs -r -n 1 -I {} \
 		sh -c 'xargs -I "#" -n 1 -r sh -c "rm -f $(mandir_ru)/$$(dirname {})/#" < $(srcdir)/{}' \
-		\;)
-	find $(mandir_ru) -type d -empty -exec rmdir {} \;
+		\;); \
+	find $(mandir_ru) -depth -type d -empty -exec rmdir {} \;

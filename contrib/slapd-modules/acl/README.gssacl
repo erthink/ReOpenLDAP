@@ -5,7 +5,7 @@ based on GSS naming extensions attributes.
 
 To use the acl-gssacl plugin, add:
 
-moduleload acl-gssacl.so
+moduleload contrib-gssacl.so
 
 to your slapd configuration file.
 It is configured using
@@ -16,11 +16,6 @@ access to <what>
 The default is "exact"; in case of "expand", "<valpat>" results from
 the expansion of submatches in the "<what>" portion.  "<level>|<priv(s)>"
 describe the level of privilege this rule can assume.
-
-Use Makefile to compile this plugin or use a command line similar to:
-
-gcc -shared -I../../../include -I../../../servers/slapd -Wall -g \
-	-o acl-gssacl.so gssacl.c
 
 
 ---

@@ -39,8 +39,6 @@
 
 #include "reldap.h"
 
-#ifdef SLAPD_OVER_VERNUM
-
 #include <stdio.h>
 
 #include "ac/string.h"
@@ -429,7 +427,7 @@ static struct {
 	{ NULL }
 };
 
-int
+static int
 vernum_initialize(void)
 {
 	int code, i;
@@ -462,11 +460,7 @@ vernum_initialize(void)
 	return overlay_register( &vernum );
 }
 
-#if SLAPD_OVER_VERNUM == SLAPD_MOD_DYNAMIC
-SLAP_OVERLAY_ENTRY(vernum, modinit) ( int argc, char *argv[] )
+SLAP_MODULE_ENTRY(vernum, modinit) ( int argc, char *argv[] )
 {
 	return vernum_initialize();
 }
-#endif /* SLAPD_OVER_VERNUM == SLAPD_MOD_DYNAMIC */
-
-#endif /* SLAPD_OVER_VERNUM */

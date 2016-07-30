@@ -26,7 +26,7 @@ AM_CPPFLAGS = -I$(top_srcdir)/include
 if BEHIND_CURTIAN
 BUILT_SOURCES = banner.c
 banner.c: Makefile
-	$(MKBANNER) 'liblutil' > $@
+	$(MKBANNER) --name lutil 'liblutil' > $@ || $(RM) $@
 endif
 
 liblutil_la_SOURCES = avl.c banner.c base64.c detach.c \

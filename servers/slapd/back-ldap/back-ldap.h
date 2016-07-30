@@ -251,6 +251,7 @@ typedef struct slap_idassert_t {
 #define LDAP_BACK_AUTH_DN_AUTHZID			(0x100U)
 #define LDAP_BACK_AUTH_DN_WHOAMI			(0x200U)
 #define LDAP_BACK_AUTH_DN_MASK				(LDAP_BACK_AUTH_DN_AUTHZID|LDAP_BACK_AUTH_DN_WHOAMI)
+
 #define	li_idassert_flags	li_idassert.si_flags
 
 	BerVarray	si_authz;

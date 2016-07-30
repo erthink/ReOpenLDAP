@@ -28,7 +28,7 @@ if BEHIND_CURTIAN
 BUILT_SOURCES += banner.c uctable.h
 
 banner.c: Makefile
-	$(MKBANNER) 'liblunicode' > $@
+	$(MKBANNER) --name lunicode 'liblunicode' > $@ || $(RM) $@
 
 noinst_PROGRAMS = ucgendat
 nodist_ucgendat_SOURCES = ucgendat.c

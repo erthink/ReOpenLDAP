@@ -21,7 +21,11 @@
 SUBDIRS = progs
 RUN = $(builddir)/run
 BACKENDS = $(SLAPD_DYNAMIC_BACKENDS) $(SLAPD_STATIC_BACKENDS)
-check test: $(BACKENDS)
+check test check-TESTS: $(BACKENDS)
+
+@VALGRIND_CHECK_RULES@
+VALGRIND_SUPPRESSIONS_FILES = scripts/valgrind.supp
+EXTRA_DIST = scripts/valgrind.supp
 
 clean-local:
 	-$(RM) -r testrun configpw configpw.conf *gmon *core

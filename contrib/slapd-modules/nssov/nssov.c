@@ -1009,7 +1009,7 @@ nssov_initialize( void )
 }
 
 #if SLAPD_OVER_NSSOV == SLAPD_MOD_DYNAMIC
-SLAP_OVERLAY_ENTRY(nssov, modinit) ( int argc, char *argv[] )
+SLAP_MODULE_ENTRY(nssov, modinit) ( int argc, char *argv[] )
 {
 	return nssov_initialize();
 }

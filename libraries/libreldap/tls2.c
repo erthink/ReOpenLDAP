@@ -871,7 +871,6 @@ ldap_int_tls_start ( LDAP *ld, LDAPConn *conn, LDAPURLDesc *srv )
 		tv0 = tv;
 		ldap_timeval( &start_time_tv );
 	}
-
 #endif /* LDAP_USE_NON_BLOCKING_TLS */
 
 	ld->ld_errno = LDAP_SUCCESS;

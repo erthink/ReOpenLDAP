@@ -18,7 +18,7 @@ To use the overlay, add:
 
 	include <path to>nis.schema
 
-	moduleload <path to>nssov.so
+	moduleload contrib-nssov.so
 	...
 
 	database hdb

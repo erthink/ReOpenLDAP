@@ -64,11 +64,9 @@ int ldap_parse_whoami(
 	*authzid = NULL;
 
 	rc = ldap_parse_extended_result( ld, res, &retoid, authzid, 0 );
-
-#if LDAP_EXPERIMENTAL > 0
-	if( rc != LDAP_SUCCESS )
-		ldap_perror( ld, "ldap_parse_whoami" );
-#endif /* LDAP_EXPERIMENTAL */
+	if( rc != LDAP_SUCCESS ) {
+		ldap_debug_perror( ld, "ldap_parse_whoami" );
+	}
 
 	ber_memfree( retoid );
 	return rc;

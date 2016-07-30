@@ -38,8 +38,6 @@
 
 #include "reldap.h"
 
-#ifdef SLAPD_OVER_DENYOP
-
 #include <stdio.h>
 
 #include <ac/string.h>
@@ -244,7 +242,7 @@ denyop_destroy(
 
 static slap_overinst denyop;
 
-int
+static int
 denyop_initialize( void )
 {
 	memset( &denyop, 0, sizeof( slap_overinst ) );
@@ -268,11 +266,7 @@ denyop_initialize( void )
 	return overlay_register( &denyop );
 }
 
-#if SLAPD_OVER_DENYOP == SLAPD_MOD_DYNAMIC
-SLAP_OVERLAY_ENTRY(denyop, modinit) ( int argc, char *argv[] )
+SLAP_MODULE_ENTRY(denyop, modinit) ( int argc, char *argv[] )
 {
 	return denyop_initialize();
 }
-#endif /* SLAPD_OVER_DENYOP == SLAPD_MOD_DYNAMIC */
-
-#endif /* defined(SLAPD_OVER_DENYOP) */
