@@ -34,7 +34,7 @@
 echo "running defines.sh"
 . $SRCDIR/scripts/defines.sh
 
-if test $SYNCPROV = syncprovno; then
+if [ ${AC_conf[syncprov]} = no ]; then
 	echo "Syncrepl provider overlay not available, test skipped"
 	exit 0
 fi
@@ -70,7 +70,7 @@ cd $TESTWD
 check_running 1
 
 echo "Inserting syncprov overlay ..."
-if [ "$SYNCPROV" = syncprovmod ]; then
+if [ ${AC_conf[syncprov]} = mod ]; then
 	$LDAPADD -D cn=config -H $URI1 -y $CONFIGPWF <<EOF > $TESTOUT 2>&1
 dn: cn=module,cn=config
 objectClass: olcModuleList

@@ -40,7 +40,7 @@
 echo "running defines.sh"
 . $SRCDIR/scripts/defines.sh
 
-if test $SYNCPROV = syncprovno; then
+if [ ${AC_conf[syncprov]} = no ]; then
 	echo "Syncrepl provider overlay not available, test skipped"
 	exit 0
 fi
@@ -63,7 +63,7 @@ KILLPIDS=
 
 $SLAPPASSWD -g -n >$CONFIGPWF
 
-if test x"$SYNCMODE" = x ; then
+if [ -z "$SYNCMODE" ]; then
 	SYNCMODE=rp
 fi
 case "$SYNCMODE" in
@@ -192,7 +192,7 @@ EOF
 done
 
 echo "Adding databases on provider..."
-if [ "$SYNCPROV" = syncprovmod ]; then
+if [ ${AC_conf[syncprov]} = mod ]; then
 	$LDAPADD -D cn=config -H $URI1 -y $CONFIGPWF <<EOF >> $TESTOUT 2>&1
 dn: cn=module,cn=config
 objectClass: olcModuleList
@@ -258,7 +258,7 @@ if test $RC != 0 ; then
 fi
 
 echo "Adding databases on provider2..."
-if [ "$SYNCPROV" = syncprovmod ]; then
+if [ ${AC_conf[syncprov]} = mod ]; then
 	$LDAPADD -D cn=config -H $URI2 -y $CONFIGPWF <<EOF >> $TESTOUT 2>&1
 dn: cn=module,cn=config
 objectClass: olcModuleList
@@ -367,7 +367,7 @@ changetype: modify
 add: olcSyncRepl
 olcSyncRepl: rid=1 provider=$URI2 searchbase="ou=ou1,$BASEDN"
   binddn="$MANAGERDN" bindmethod=simple credentials=$PASSWD
-  $SYNCTYPE retry="3 5 300 5" timeout=1
+  $SYNCTYPE retry="$SYNCREPL_RETRY" timeout=1
 
 EOF
 RC=$?
@@ -384,7 +384,7 @@ changetype: modify
 add: olcSyncRepl
 olcSyncRepl: rid=1 provider=$URI1 searchbase="$BASEDN"
   binddn="$MANAGERDN" bindmethod=simple credentials=$PASSWD
-  $SYNCTYPE retry="3 5 300 5" timeout=1
+  $SYNCTYPE retry="$SYNCREPL_RETRY" timeout=1
 
 EOF
 RC=$?
