@@ -315,14 +315,14 @@ __hot __flatten size_t lber_hug_memchk_size(const void* payload, unsigned tag) {
 }
 
 #define VALGRIND_CLOSE(memchunk) do { \
-		ASAN_POISON_MEMORY_REGION( \
-			(char *) memchunk + sizeof(*memchunk) + memchunk->hm_length, \
-			sizeof(struct lber_hipagut)); \
-		ASAN_POISON_MEMORY_REGION(memchunk, sizeof(*memchunk)); \
 		VALGRIND_MAKE_MEM_NOACCESS( \
 			(char *) memchunk + sizeof(*memchunk) + memchunk->hm_length, \
 			sizeof(struct lber_hipagut)); \
 		VALGRIND_MAKE_MEM_NOACCESS(memchunk, sizeof(*memchunk)); \
+		ASAN_POISON_MEMORY_REGION( \
+			(char *) memchunk + sizeof(*memchunk) + memchunk->hm_length, \
+			sizeof(struct lber_hipagut)); \
+		ASAN_POISON_MEMORY_REGION(memchunk, sizeof(*memchunk)); \
 	} while(0)
 
 #define VALGRIND_OPEN(memchunk) do { \
