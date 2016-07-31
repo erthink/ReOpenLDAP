@@ -355,7 +355,9 @@ else
 	fi
 
 	if [ $flag_valgrind -ne 0 ]; then
-		CFLAGS+=" -DUSE_VALGRIND"
+		CONFIGURE_ARGS+=" --enable-valgrind"
+	else
+		CONFIGURE_ARGS+=" --disable-valgrind"
 	fi
 
 	if [ $flag_asan -ne 0 ]; then

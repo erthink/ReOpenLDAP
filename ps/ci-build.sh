@@ -392,7 +392,15 @@ else
 fi
 
 if [ $flag_valgrind -ne 0 ]; then
-	CFLAGS+=" -DUSE_VALGRIND"
+	if [ $modern_configure -ne 0 ]; then
+		CONFIGURE_ARGS+=" --enable-valgrind"
+	else
+		CFLAGS+=" -DUSE_VALGRIND"
+	fi
+else
+	if [ $modern_configure -ne 0 ]; then
+		CONFIGURE_ARGS+=" --disable-valgrind"
+	fi
 fi
 
 if [ $flag_asan -ne 0 ]; then
