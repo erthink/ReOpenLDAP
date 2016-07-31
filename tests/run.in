@@ -57,6 +57,15 @@ export AC_WITH_SASL=@WITH_SASL@
 export AC_WITH_TLS=@WITH_TLS@
 export AC_ACI_ENABLED=@WITH_ACI_ENABLED@
 
+#valgrind
+export AC_VALGRIND_ENABLED=@VALGRIND_ENABLED@
+export AC_VALGRIND=@VALGRIND@
+export AC_ENABLE_VALGRIND_drd=@ENABLE_VALGRIND_drd@
+export AC_ENABLE_VALGRIND_helgrind=@ENABLE_VALGRIND_helgrind@
+export AC_ENABLE_VALGRIND_memcheck=@ENABLE_VALGRIND_memcheck@
+export AC_ENABLE_VALGRIND_sgcheck=@ENABLE_VALGRIND_sgcheck@
+export AC_VALGRIND_SUPPRESSIONS_FILES="$(readlink -f @srcdir@/@VALGRIND_SUPPRESSIONS_FILES@)"
+
 ## sanitize
 #if test "${AC_ldap}" = "ldapmod" && test "${AC_LIBS_DYNAMIC}" = "static" ; then
 #	AC_ldap="ldapno"
