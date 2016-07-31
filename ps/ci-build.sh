@@ -83,6 +83,7 @@ for arg in "$@"; do
 		flag_contrib=1
 		flag_exper=1
 		flag_slapi=1
+		flag_dynamic=1
 		;;
 	--no-contrib)
 		flag_contrib=0
@@ -138,6 +139,7 @@ for arg in "$@"; do
 		;;
 	--no-dynamic)
 		flag_dynamic=0
+		flag_contrib=0
 		;;
 	--debug)
 		flag_debug=1
