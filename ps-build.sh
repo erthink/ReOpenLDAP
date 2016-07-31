@@ -364,7 +364,10 @@ else
 		if grep -q clang <<< "$CC"; then
 			CFLAGS+=" -fsanitize=address -D__SANITIZE_ADDRESS__=1 -pthread"
 		elif $CC -v 2>&1 | grep -q -e 'gcc version [5-9]'; then
-			CFLAGS+=" -fsanitize=address -D__SANITIZE_ADDRESS__=1 -static-libasan -pthread"
+			CFLAGS+=" -fsanitize=address -D__SANITIZE_ADDRESS__=1 -pthread"
+			if [ $flag_dynamic -eq 0 ]; then
+				CFLAGS+=" -static-libasan"
+			fi
 		else
 			notice "*** AddressSanitizer is unusable"
 		fi
@@ -374,7 +377,10 @@ else
 		if grep -q clang <<< "$CC"; then
 			CFLAGS+=" -fsanitize=thread -D__SANITIZE_THREAD__=1"
 		elif $CC -v 2>&1 | grep -q -e 'gcc version [5-9]'; then
-			CFLAGS+=" -fsanitize=thread -D__SANITIZE_THREAD__=1 -static-libtsan"
+			CFLAGS+=" -fsanitize=thread -D__SANITIZE_THREAD__=1"
+			if [ $flag_dynamic -eq 0 ]; then
+				CFLAGS+=" -static-libtsan"
+			fi
 		else
 			notice "*** ThreadSanitizer is unusable"
 		fi
