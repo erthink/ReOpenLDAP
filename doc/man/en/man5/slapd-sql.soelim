@@ -23,7 +23,7 @@
 .\" Copyright 1998-2014 The OpenLDAP Foundation All Rights Reserved.
 .\" Copying restrictions apply.  See COPYRIGHT/LICENSE.
 .SH NAME
-slapd\-sql \- experimantal (unreliable) SQL backend to slapd
+slapd\-sql \- experimental (unreliable) SQL backend to slapd
 .SH SYNOPSIS
 @SYSCONFDIR@/slapd.conf
 .SH DESCRIPTION

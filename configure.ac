@@ -379,10 +379,10 @@ fi
 
 case $ol_enable_experimental in
     yes)
-	AC_DEFINE(LDAP_EXPERIMENTAL,1,[define as 0 to disable experimantal/developing features])
+	AC_DEFINE(LDAP_EXPERIMENTAL,1,[define as 0 to disable experimental/developing features])
 	;;
     no)
-	AC_DEFINE(LDAP_EXPERIMENTAL,0,[define as 1 to enable experimantal/developing features])
+	AC_DEFINE(LDAP_EXPERIMENTAL,0,[define as 1 to enable experimental/developing features])
 	;;
     *)
 	AC_MSG_FAILURE([invalid --enable-experimental value '$ol_enable_experimental'])

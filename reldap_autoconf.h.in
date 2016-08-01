@@ -910,7 +910,7 @@
 /* define this to add debugging code */
 #undef LDAP_DEBUG
 
-/* define as 1 to enable experimantal/developing features */
+/* define as 1 to enable experimental/developing features */
 #undef LDAP_EXPERIMENTAL
 
 /* define as 1 to enable runtime checking */
