@@ -502,7 +502,7 @@ slap_tool_init(
 		case 'Q':
 			quiet++;
 #ifdef LDAP_DEBUG
-			slap_debug_mask = 0;
+			slap_set_debug_level(0);
 #endif /* LDAP_DEBUG */
 			break;
 
@@ -1223,4 +1223,3 @@ slap_tool_entry_check(
 
 	return LDAP_SUCCESS;
 }
-

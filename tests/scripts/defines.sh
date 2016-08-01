@@ -144,12 +144,14 @@ function update_TESTDIR {
 
 	VALGRIND_CMD=""
 	VALGRIND_EX_CMD=""
-	if [ -n "$USE_VALGRIND" ] && [ "$USE_VALGRIND" -ne 0 ]; then
-		VALGRIND_CMD="valgrind --leak-check=full $VALGRIND_OPTIONS"
-		if [ "$USE_VALGRIND" -gt 2 ]; then
-			VALGRIND_EX_CMD="valgrind --leak-check=full $VALGRIND_OPTIONS"
-		elif [ "$USE_VALGRIND" -gt 1 ]; then
-			VALGRIND_EX_CMD="valgrind --leak-check=summary $VALGRIND_OPTIONS"
+	if [ "$AC_VALGRIND_ENABLED" = yes -a -n "$WITH_VALGRIND" ]; then
+		if [ $WITH_VALGRIND -gt 0 ]; then
+			VALGRIND_CMD="${AC_VALGRIND} --leak-check=full $VALGRIND_OPTIONS"
+		fi
+		if [ $WITH_VALGRIND -gt 2 ]; then
+			VALGRIND_EX_CMD="${AC_VALGRIND} --leak-check=full $VALGRIND_OPTIONS"
+		elif [ $WITH_VALGRIND -gt 1 ]; then
+			VALGRIND_EX_CMD="${AC_VALGRIND} --leak-check=summary $VALGRIND_OPTIONS"
 		fi
 	fi
 }
@@ -237,7 +239,8 @@ TOOLARGS="-x $LDAP_TOOLARGS"
 TOOLPROTO="-P 3"
 SYNCREPL_RETRY="1 +"
 
-if [ -n "$USE_VALGRIND" ] && [ "$USE_VALGRIND" -ne 0 ]; then
+if [ -n "$VALGRIND_CMD" ]; then
+	# LY: extra time for Valgrind's virtualization
 	TIMEOUT_S="timeout -s SIGXCPU 5m"
 	TIMEOUT_L="timeout -s SIGXCPU 45m"
 	TIMEOUT_H="timeout -s SIGXCPU 120m"
@@ -246,6 +249,7 @@ if [ -n "$USE_VALGRIND" ] && [ "$USE_VALGRIND" -ne 0 ]; then
 	SYNCREPL_WAIT=${SYNCREPL_WAIT-30}
 	pkill -SIGKILL -s 0 -u $EUID memcheck-*
 elif [ -n "$CIBUZZ_PID4" ]; then
+	# LY: extra time for running on busy machine
 	TIMEOUT_S="timeout -s SIGXCPU 3m"
 	TIMEOUT_L="timeout -s SIGXCPU 10m"
 	TIMEOUT_H="timeout -s SIGXCPU 30m"
