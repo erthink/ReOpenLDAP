@@ -83,6 +83,7 @@ for arg in "$@"; do
 		flag_contrib=1
 		flag_exper=1
 		flag_slapi=1
+		flag_dynamic=1
 		;;
 	--no-contrib)
 		flag_contrib=0
@@ -138,6 +139,7 @@ for arg in "$@"; do
 		;;
 	--no-dynamic)
 		flag_dynamic=0
+		flag_contrib=0
 		;;
 	--debug)
 		flag_debug=1
@@ -392,14 +394,25 @@ else
 fi
 
 if [ $flag_valgrind -ne 0 ]; then
-	CFLAGS+=" -DUSE_VALGRIND"
+	if [ $modern_configure -ne 0 ]; then
+		CONFIGURE_ARGS+=" --enable-valgrind"
+	else
+		CFLAGS+=" -DUSE_VALGRIND"
+	fi
+else
+	if [ $modern_configure -ne 0 ]; then
+		CONFIGURE_ARGS+=" --disable-valgrind"
+	fi
 fi
 
 if [ $flag_asan -ne 0 ]; then
 	if grep -q clang <<< "$CC"; then
 		CFLAGS+=" -fsanitize=address -D__SANITIZE_ADDRESS__=1 -pthread"
 	elif $CC -v 2>&1 | grep -q -e 'gcc version [5-9]'; then
-		CFLAGS+=" -fsanitize=address -D__SANITIZE_ADDRESS__=1 -static-libasan -pthread"
+		CFLAGS+=" -fsanitize=address -D__SANITIZE_ADDRESS__=1 -pthread"
+		if [ $flag_dynamic -eq 0 ]; then
+			CFLAGS+=" -static-libasan"
+		fi
 	else
 		notice "*** AddressSanitizer is unusable"
 	fi
@@ -409,7 +422,10 @@ if [ $flag_tsan -ne 0 ]; then
 	if grep -q clang <<< "$CC"; then
 		CFLAGS+=" -fsanitize=thread -D__SANITIZE_THREAD__=1"
 	elif $CC -v 2>&1 | grep -q -e 'gcc version [5-9]'; then
-		CFLAGS+=" -fsanitize=thread -D__SANITIZE_THREAD__=1 -static-libtsan"
+		CFLAGS+=" -fsanitize=thread -D__SANITIZE_THREAD__=1"
+		if [ $flag_dynamic -eq 0 ]; then
+			CFLAGS+=" -static-libtsan"
+		fi
 	else
 		notice "*** ThreadSanitizer is unusable"
 	fi
