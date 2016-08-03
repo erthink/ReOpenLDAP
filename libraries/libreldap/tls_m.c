@@ -56,6 +56,7 @@
 #include <ac/unistd.h>
 #include <ac/param.h>
 #include <ac/dirent.h>
+#include <ac/localize.h>
 
 #include "ldap-int.h"
 #include "ldap-tls.h"
@@ -937,7 +938,8 @@ tlsm_get_pin(PK11SlotInfo *slot, PRBool retry, tlsm_ctx *ctx)
 				 token_name ? token_name : DEFAULT_TOKEN_NAME );
 			echoOff( infd );
 		}
-		fgets( (char*)phrase, sizeof(phrase), stdin );
+		if ( !fgets( (char*)phrase, sizeof(phrase), stdin ) )
+			return NULL;
 		if ( isTTY ) {
 			fprintf( stdout, "\n" );
 			echoOn( infd );
