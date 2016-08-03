@@ -1159,28 +1159,15 @@ if test $ol_link_tls = no ; then
 	fi
 fi
 
-dnl NOTE: caller must specify -I/path/to/nspr4 and -I/path/to/nss3
-dnl and -L/path/to/nspr4 libs and -L/path/to/nss3 libs if those libs
-dnl are not in the default system location
 if test $ol_link_tls = no ; then
 	if test $ol_with_tls = moznss || test $ol_with_tls = auto ; then
-		have_moznss=no
-		AC_CHECK_HEADERS([nssutil.h])
-		if test "$ac_cv_header_nssutil_h" = yes ; then
-			AC_CHECK_LIB([nss3], [NSS_Initialize],
-						 [ have_moznss=yes ], [ have_moznss=no ])
-		fi
-
-		if test "$have_moznss" = yes ; then
+		PKG_CHECK_MODULES(MOZNSS, [nss nspr], [have_moznss=yes], [have_moznss=no])
+		if test $have_moznss = yes ; then
 			ol_with_tls=moznss
 			ol_link_tls=yes
-			AC_DEFINE(HAVE_MOZNSS, 1,
-					  [define if you have MozNSS])
-			TLS_LIBS="-lssl3 -lsmime3 -lnss3 -lnssutil3 -lplds4 -lplc4 -lnspr4"
-		else
-			if test $ol_with_tls = moznss ; then
-			AC_MSG_ERROR([MozNSS not found - please specify the location to the NSPR and NSS header files in CPPFLAGS and the location to the NSPR and NSS libraries in LDFLAGS (if not in the system location)])
-			fi
+			AC_DEFINE(HAVE_MOZNSS, 1, [define if you have MozNSS])
+			TLS_LIBS="$MOZNSS_LIBS"
+			CFLAGS="$CFLAGS $MOZNSS_CFLAGS"
 		fi
 	fi
 fi
