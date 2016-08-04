@@ -195,6 +195,17 @@ contrib_autogroup_la_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC \
 	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CCLD) \
 	$(AM_CFLAGS) $(CFLAGS) $(contrib_autogroup_la_LDFLAGS) \
 	$(LDFLAGS) -o $@
+am__DEPENDENCIES_1 =
+contrib_check_password_la_DEPENDENCIES = $(am__DEPENDENCIES_1)
+am_contrib_check_password_la_OBJECTS =  \
+	check_password/contrib_check_password_la-check_password.lo \
+	contrib_check_password_la-banner.lo
+contrib_check_password_la_OBJECTS =  \
+	$(am_contrib_check_password_la_OBJECTS)
+contrib_check_password_la_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC \
+	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CCLD) \
+	$(contrib_check_password_la_CFLAGS) $(CFLAGS) \
+	$(contrib_check_password_la_LDFLAGS) $(LDFLAGS) -o $@
 contrib_cloak_la_LIBADD =
 am_contrib_cloak_la_OBJECTS = cloak/cloak.lo banner.lo
 contrib_cloak_la_OBJECTS = $(am_contrib_cloak_la_OBJECTS)
@@ -202,7 +213,6 @@ contrib_cloak_la_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC \
 	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CCLD) \
 	$(AM_CFLAGS) $(CFLAGS) $(contrib_cloak_la_LDFLAGS) $(LDFLAGS) \
 	-o $@
-am__DEPENDENCIES_1 =
 @CONTRIB_BROKEN_TRUE@@LDAP_EXPERIMENTAL_TRUE@contrib_compmatch_la_DEPENDENCIES = $(am__DEPENDENCIES_1)
 am__contrib_compmatch_la_SOURCES_DIST = banner.c comp_match/asn.h \
 	comp_match/asn_to_syn_mr.c comp_match/authorityKeyIdentifier.c \
@@ -465,6 +475,7 @@ am__v_CCLD_1 =
 SOURCES = $(contrib_addpartial_la_SOURCES) \
 	$(contrib_adremap_la_SOURCES) $(contrib_allop_la_SOURCES) \
 	$(contrib_allowed_la_SOURCES) $(contrib_autogroup_la_SOURCES) \
+	$(contrib_check_password_la_SOURCES) \
 	$(contrib_cloak_la_SOURCES) $(contrib_compmatch_la_SOURCES) \
 	$(contrib_denyop_la_SOURCES) $(contrib_dsaschema_la_SOURCES) \
 	$(contrib_dupent_la_SOURCES) $(contrib_gssacl_la_SOURCES) \
@@ -483,6 +494,7 @@ SOURCES = $(contrib_addpartial_la_SOURCES) \
 DIST_SOURCES = $(contrib_addpartial_la_SOURCES) \
 	$(contrib_adremap_la_SOURCES) $(contrib_allop_la_SOURCES) \
 	$(contrib_allowed_la_SOURCES) $(contrib_autogroup_la_SOURCES) \
+	$(contrib_check_password_la_SOURCES) \
 	$(contrib_cloak_la_SOURCES) \
 	$(am__contrib_compmatch_la_SOURCES_DIST) \
 	$(contrib_denyop_la_SOURCES) $(contrib_dsaschema_la_SOURCES) \
@@ -551,6 +563,11 @@ CCDEPMODE = @CCDEPMODE@
 CFLAGS = @CFLAGS@
 CPP = @CPP@
 CPPFLAGS = @CPPFLAGS@
+CRACKLIB_CFLAGS = @CRACKLIB_CFLAGS@
+
+# Where to look for the CrackLib dictionaries
+CRACKLIB_DICTPATH = @CRACKLIB_DICTPATH@
+CRACKLIB_LIBS = @CRACKLIB_LIBS@
 CXX = @CXX@
 CXXCPP = @CXXCPP@
 CXXDEPMODE = @CXXDEPMODE@
@@ -620,6 +637,8 @@ MKBANNER_VERBOSE_ = @MKBANNER_VERBOSE_@
 MKBANNER_VERBOSE_0 = @MKBANNER_VERBOSE_0@
 MKBANNER_VERBOSE_1 = @MKBANNER_VERBOSE_1@
 MKDIR_P = @MKDIR_P@
+MOZNSS_CFLAGS = @MOZNSS_CFLAGS@
+MOZNSS_LIBS = @MOZNSS_LIBS@
 MYSQL = @MYSQL@
 NDB_INCLUDES = @NDB_INCLUDES@
 NDB_LDFLAGS = @NDB_LDFLAGS@
@@ -753,6 +772,7 @@ valgrind_tools = @valgrind_tools@
 EXTRA_DIST = README acl/README.gssacl acl/README.posixgroup \
 	addpartial/README adremap/slapo-adremap.man.in allop/README \
 	allop/slapo-allop.man.in allowed/README autogroup/README \
+	check_password/README check_password/check_password.conf \
 	cloak/slapo-cloak.man.in $(am__append_3) dsaschema/README \
 	kinit/README lastbind/slapo-lastbind.man.in \
 	lastmod/slapo-lastmod.man.in nops/slapo-nops.man.in \
@@ -763,15 +783,15 @@ EXTRA_DIST = README acl/README.gssacl acl/README.posixgroup \
 	smbk5pwd/README $(man_links)
 pkglib_LTLIBRARIES = $(am__append_2) contrib-addpartial.la \
 	contrib-adremap.la contrib-allop.la contrib-allowed.la \
-	contrib-autogroup.la contrib-cloak.la $(am__append_4) \
-	contrib-denyop.la contrib-dsaschema.la contrib-dupent.la \
-	contrib-kinit.la contrib-lastbind.la contrib-lastmod.la \
-	contrib-noopsrch.la contrib-nops.la contrib-nssov.la \
-	contrib-pw-apr1.la $(am__append_5) contrib-pw-netscape.la \
-	$(am__append_6) contrib-pw-pbkdf2.la contrib-pw-sha2.la \
-	contrib-pw-totp.la contrib-proxyOld.la contrib-pguid.la \
-	contrib-rdnval.la contrib-vernum.la $(am__append_7) \
-	contrib-trace.la
+	contrib-autogroup.la contrib-check_password.la \
+	contrib-cloak.la $(am__append_4) contrib-denyop.la \
+	contrib-dsaschema.la contrib-dupent.la contrib-kinit.la \
+	contrib-lastbind.la contrib-lastmod.la contrib-noopsrch.la \
+	contrib-nops.la contrib-nssov.la contrib-pw-apr1.la \
+	$(am__append_5) contrib-pw-netscape.la $(am__append_6) \
+	contrib-pw-pbkdf2.la contrib-pw-sha2.la contrib-pw-totp.la \
+	contrib-proxyOld.la contrib-pguid.la contrib-rdnval.la \
+	contrib-vernum.la $(am__append_7) contrib-trace.la
 AM_CPPFLAGS = -DSLAPD_IMPORT -I$(top_srcdir)/servers/slapd -I$(top_srcdir)/include
 BUILT_SOURCES = $(am__append_1)
 man_links = 
@@ -807,6 +827,17 @@ contrib_autogroup_la_LDFLAGS = -module -export-dynamic \
 	-release $(API_LIB_RELEASE) -version-info $(API_LIB_VERSION)
 
 contrib_autogroup_la_SOURCES = autogroup/autogroup.c banner.c
+CHECKPASSWD_CONFIGFILE = @sysconfdir@/check_password.conf
+contrib_check_password_la_LDFLAGS = -module -export-dynamic \
+	-release $(API_LIB_RELEASE) -version-info $(API_LIB_VERSION)
+
+contrib_check_password_la_SOURCES = check_password/check_password.c banner.c
+contrib_check_password_la_CFLAGS = -Wno-deprecated-declarations $(CRACK_CFLAGS) \
+    -DCRACKLIB_DICTPATH="\"$(CRACKLIB_DICTPATH)\"" \
+    -DCHECKPASSWD_CONFIGFILE="\"$(CHECKPASSWD_CONFIGFILE)\"" \
+    -DCHECKPASSWD_DEBUG=1
+
+contrib_check_password_la_LIBADD = $(CRACKLIB_LIBS)
 contrib_cloak_la_LDFLAGS = -module -export-dynamic \
 	-release $(API_LIB_RELEASE) -version-info $(API_LIB_VERSION)
 
@@ -1054,6 +1085,18 @@ autogroup/autogroup.lo: autogroup/$(am__dirstamp) \
 
 contrib-autogroup.la: $(contrib_autogroup_la_OBJECTS) $(contrib_autogroup_la_DEPENDENCIES) $(EXTRA_contrib_autogroup_la_DEPENDENCIES) 
 	$(AM_V_CCLD)$(contrib_autogroup_la_LINK) -rpath $(pkglibdir) $(contrib_autogroup_la_OBJECTS) $(contrib_autogroup_la_LIBADD) $(LIBS)
+check_password/$(am__dirstamp):
+	@$(MKDIR_P) check_password
+	@: > check_password/$(am__dirstamp)
+check_password/$(DEPDIR)/$(am__dirstamp):
+	@$(MKDIR_P) check_password/$(DEPDIR)
+	@: > check_password/$(DEPDIR)/$(am__dirstamp)
+check_password/contrib_check_password_la-check_password.lo:  \
+	check_password/$(am__dirstamp) \
+	check_password/$(DEPDIR)/$(am__dirstamp)
+
+contrib-check_password.la: $(contrib_check_password_la_OBJECTS) $(contrib_check_password_la_DEPENDENCIES) $(EXTRA_contrib_check_password_la_DEPENDENCIES) 
+	$(AM_V_CCLD)$(contrib_check_password_la_LINK) -rpath $(pkglibdir) $(contrib_check_password_la_OBJECTS) $(contrib_check_password_la_LIBADD) $(LIBS)
 cloak/$(am__dirstamp):
 	@$(MKDIR_P) cloak
 	@: > cloak/$(am__dirstamp)
@@ -1362,6 +1405,8 @@ mostlyclean-compile:
 	-rm -f allowed/*.lo
 	-rm -f autogroup/*.$(OBJEXT)
 	-rm -f autogroup/*.lo
+	-rm -f check_password/*.$(OBJEXT)
+	-rm -f check_password/*.lo
 	-rm -f cloak/*.$(OBJEXT)
 	-rm -f cloak/*.lo
 	-rm -f comp_match/*.$(OBJEXT)
@@ -1407,6 +1452,7 @@ distclean-compile:
 	-rm -f *.tab.c
 
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/banner.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/contrib_check_password_la-banner.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/contrib_compmatch_la-banner.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/contrib_nssov_la-banner.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/contrib_pw_kerberos_la-banner.Plo@am__quote@
@@ -1418,6 +1464,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@allop/$(DEPDIR)/allop.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@allowed/$(DEPDIR)/allowed.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@autogroup/$(DEPDIR)/autogroup.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@check_password/$(DEPDIR)/contrib_check_password_la-check_password.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@cloak/$(DEPDIR)/cloak.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@comp_match/$(DEPDIR)/contrib_compmatch_la-asn_to_syn_mr.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@comp_match/$(DEPDIR)/contrib_compmatch_la-authorityKeyIdentifier.Plo@am__quote@
@@ -1485,6 +1532,20 @@ distclean-compile:
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='$<' object='$@' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LTCOMPILE) -c -o $@ $<
+
+check_password/contrib_check_password_la-check_password.lo: check_password/check_password.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(contrib_check_password_la_CFLAGS) $(CFLAGS) -MT check_password/contrib_check_password_la-check_password.lo -MD -MP -MF check_password/$(DEPDIR)/contrib_check_password_la-check_password.Tpo -c -o check_password/contrib_check_password_la-check_password.lo `test -f 'check_password/check_password.c' || echo '$(srcdir)/'`check_password/check_password.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) check_password/$(DEPDIR)/contrib_check_password_la-check_password.Tpo check_password/$(DEPDIR)/contrib_check_password_la-check_password.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='check_password/check_password.c' object='check_password/contrib_check_password_la-check_password.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(contrib_check_password_la_CFLAGS) $(CFLAGS) -c -o check_password/contrib_check_password_la-check_password.lo `test -f 'check_password/check_password.c' || echo '$(srcdir)/'`check_password/check_password.c
+
+contrib_check_password_la-banner.lo: banner.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(contrib_check_password_la_CFLAGS) $(CFLAGS) -MT contrib_check_password_la-banner.lo -MD -MP -MF $(DEPDIR)/contrib_check_password_la-banner.Tpo -c -o contrib_check_password_la-banner.lo `test -f 'banner.c' || echo '$(srcdir)/'`banner.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/contrib_check_password_la-banner.Tpo $(DEPDIR)/contrib_check_password_la-banner.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='banner.c' object='contrib_check_password_la-banner.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(contrib_check_password_la_CFLAGS) $(CFLAGS) -c -o contrib_check_password_la-banner.lo `test -f 'banner.c' || echo '$(srcdir)/'`banner.c
 
 contrib_compmatch_la-banner.lo: banner.c
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(contrib_compmatch_la_CFLAGS) $(CFLAGS) -MT contrib_compmatch_la-banner.lo -MD -MP -MF $(DEPDIR)/contrib_compmatch_la-banner.Tpo -c -o contrib_compmatch_la-banner.lo `test -f 'banner.c' || echo '$(srcdir)/'`banner.c
@@ -1679,6 +1740,7 @@ clean-libtool:
 	-rm -rf allop/.libs allop/_libs
 	-rm -rf allowed/.libs allowed/_libs
 	-rm -rf autogroup/.libs autogroup/_libs
+	-rm -rf check_password/.libs check_password/_libs
 	-rm -rf cloak/.libs cloak/_libs
 	-rm -rf comp_match/.libs comp_match/_libs
 	-rm -rf denyop/.libs denyop/_libs
@@ -1870,6 +1932,8 @@ distclean-generic:
 	-rm -f allowed/$(am__dirstamp)
 	-rm -f autogroup/$(DEPDIR)/$(am__dirstamp)
 	-rm -f autogroup/$(am__dirstamp)
+	-rm -f check_password/$(DEPDIR)/$(am__dirstamp)
+	-rm -f check_password/$(am__dirstamp)
 	-rm -f cloak/$(DEPDIR)/$(am__dirstamp)
 	-rm -f cloak/$(am__dirstamp)
 	-rm -f comp_match/$(DEPDIR)/$(am__dirstamp)
@@ -1921,7 +1985,7 @@ clean-am: clean-generic clean-libtool clean-pkglibLTLIBRARIES \
 	mostlyclean-am
 
 distclean: distclean-am
-	-rm -rf ./$(DEPDIR) acl/$(DEPDIR) addpartial/$(DEPDIR) adremap/$(DEPDIR) allop/$(DEPDIR) allowed/$(DEPDIR) autogroup/$(DEPDIR) cloak/$(DEPDIR) comp_match/$(DEPDIR) denyop/$(DEPDIR) dsaschema/$(DEPDIR) dupent/$(DEPDIR) kinit/$(DEPDIR) lastbind/$(DEPDIR) lastmod/$(DEPDIR) noopsrch/$(DEPDIR) nops/$(DEPDIR) nssov/$(DEPDIR) nssov/nss-pam-ldapd/$(DEPDIR) passwd/$(DEPDIR) passwd/pbkdf2/$(DEPDIR) passwd/sha2/$(DEPDIR) passwd/totp/$(DEPDIR) proxyOld/$(DEPDIR) samba4/$(DEPDIR) smbk5pwd/$(DEPDIR) trace/$(DEPDIR)
+	-rm -rf ./$(DEPDIR) acl/$(DEPDIR) addpartial/$(DEPDIR) adremap/$(DEPDIR) allop/$(DEPDIR) allowed/$(DEPDIR) autogroup/$(DEPDIR) check_password/$(DEPDIR) cloak/$(DEPDIR) comp_match/$(DEPDIR) denyop/$(DEPDIR) dsaschema/$(DEPDIR) dupent/$(DEPDIR) kinit/$(DEPDIR) lastbind/$(DEPDIR) lastmod/$(DEPDIR) noopsrch/$(DEPDIR) nops/$(DEPDIR) nssov/$(DEPDIR) nssov/nss-pam-ldapd/$(DEPDIR) passwd/$(DEPDIR) passwd/pbkdf2/$(DEPDIR) passwd/sha2/$(DEPDIR) passwd/totp/$(DEPDIR) proxyOld/$(DEPDIR) samba4/$(DEPDIR) smbk5pwd/$(DEPDIR) trace/$(DEPDIR)
 	-rm -f Makefile
 distclean-am: clean-am distclean-compile distclean-generic \
 	distclean-tags
@@ -1968,7 +2032,7 @@ install-ps-am:
 installcheck-am:
 
 maintainer-clean: maintainer-clean-am
-	-rm -rf ./$(DEPDIR) acl/$(DEPDIR) addpartial/$(DEPDIR) adremap/$(DEPDIR) allop/$(DEPDIR) allowed/$(DEPDIR) autogroup/$(DEPDIR) cloak/$(DEPDIR) comp_match/$(DEPDIR) denyop/$(DEPDIR) dsaschema/$(DEPDIR) dupent/$(DEPDIR) kinit/$(DEPDIR) lastbind/$(DEPDIR) lastmod/$(DEPDIR) noopsrch/$(DEPDIR) nops/$(DEPDIR) nssov/$(DEPDIR) nssov/nss-pam-ldapd/$(DEPDIR) passwd/$(DEPDIR) passwd/pbkdf2/$(DEPDIR) passwd/sha2/$(DEPDIR) passwd/totp/$(DEPDIR) proxyOld/$(DEPDIR) samba4/$(DEPDIR) smbk5pwd/$(DEPDIR) trace/$(DEPDIR)
+	-rm -rf ./$(DEPDIR) acl/$(DEPDIR) addpartial/$(DEPDIR) adremap/$(DEPDIR) allop/$(DEPDIR) allowed/$(DEPDIR) autogroup/$(DEPDIR) check_password/$(DEPDIR) cloak/$(DEPDIR) comp_match/$(DEPDIR) denyop/$(DEPDIR) dsaschema/$(DEPDIR) dupent/$(DEPDIR) kinit/$(DEPDIR) lastbind/$(DEPDIR) lastmod/$(DEPDIR) noopsrch/$(DEPDIR) nops/$(DEPDIR) nssov/$(DEPDIR) nssov/nss-pam-ldapd/$(DEPDIR) passwd/$(DEPDIR) passwd/pbkdf2/$(DEPDIR) passwd/sha2/$(DEPDIR) passwd/totp/$(DEPDIR) proxyOld/$(DEPDIR) samba4/$(DEPDIR) smbk5pwd/$(DEPDIR) trace/$(DEPDIR)
 	-rm -f Makefile
 maintainer-clean-am: distclean-am maintainer-clean-generic
 
@@ -2027,6 +2091,8 @@ install-data-hook:
 	(cd $(srcdir) && echo $(man_links) | tr -s '[:space:]' '\n' | xargs -r -n 1 -I {} \
 		sh -c 'xargs -I "#" -n 1 -r sh -c "cd $(mandir_en)/$$(dirname {}) && ln -s -f -T $$(basename {} .links) #" < $(srcdir)/{}' \
 		\;)
+	@if $(AM_V_P); then set -x; else echo "  INSTALL  check_password.conf"; fi; \
+	$(MKDIR_P) $(sysconfdir) && $(INSTALL) -t $(sysconfdir) -m 0444 $(srcdir)/check_password/check_password.conf
 
 uninstall-hook:
 	@if $(AM_V_P); then set -x; else echo "  RM       $(man_links)"; fi; \
@@ -2034,6 +2100,8 @@ uninstall-hook:
 		sh -c 'xargs -I "#" -n 1 -r sh -c "rm -f $(mandir_en)/$$(dirname {})/#" < $(srcdir)/{}' \
 		\;); \
 	find $(mandir) -depth -type d -empty -exec rmdir {} \;
+	@if $(AM_V_P); then set -x; else echo "  RM       check_password.conf"; fi; \
+	$(RM) -f $(sysconfdir)/check_password.conf
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.

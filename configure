@@ -869,11 +869,16 @@ PTHREAD_CFLAGS
 PTHREAD_LIBS
 PTHREAD_CC
 ax_pthread_config
+MOZNSS_LIBS
+MOZNSS_CFLAGS
 PERLBIN
 KRB5_LIBS
 KRB5_CFLAGS
 HEIMDAL_AVAIL_FALSE
 HEIMDAL_AVAIL_TRUE
+CRACKLIB_DICTPATH
+CRACKLIB_CFLAGS
+CRACKLIB_LIBS
 HEIMDAL_LIBS
 HEIMDAL_CFLAGS
 LTDLOPEN
@@ -1177,7 +1182,9 @@ PKG_CONFIG_LIBDIR
 HEIMDAL_CFLAGS
 HEIMDAL_LIBS
 KRB5_CFLAGS
-KRB5_LIBS'
+KRB5_LIBS
+MOZNSS_CFLAGS
+MOZNSS_LIBS'
 
 
 # Initialize some variables set by options.
@@ -1951,6 +1958,9 @@ Some influential environment variables:
               linker flags for HEIMDAL, overriding pkg-config
   KRB5_CFLAGS C compiler flags for KRB5, overriding pkg-config
   KRB5_LIBS   linker flags for KRB5, overriding pkg-config
+  MOZNSS_CFLAGS
+              C compiler flags for MOZNSS, overriding pkg-config
+  MOZNSS_LIBS linker flags for MOZNSS, overriding pkg-config
 
 Use these variables to override the choices made by `configure' or to help
 it to find libraries and programs with nonstandard names/locations.
@@ -13109,9 +13119,9 @@ VERSION_MINOR=2
 
 VERSION_PATCH=0
 
-RELEASE_DATE=2016-07-31
+RELEASE_DATE=2016-08-07
 
-RELEASE_STAMP=g375b53ecafed-t83a3c3a93e952d47
+RELEASE_STAMP=gc2a5d453a3f8-td1384361a394fa59
 
 API_LIB_RELEASE=1.2
 
@@ -21865,6 +21875,83 @@ $as_echo "$as_me: WARNING: $HEIMDAL_PKG_ERRORS, therefore depended contrib-modul
 
 
 
+	CRACKLIB_LIBS=
+	CRACKLIB_CFLAGS=
+	CRACKLIB_DICTPATH=
+	for ac_header in crack.h
+do :
+  as_ac_Header=`$as_echo "ac_cv_header_$ac_header" | $as_tr_sh`
+ac_fn_c_check_header_mongrel "$LINENO" "$ac_header" "$as_ac_Header" "$ac_includes_default"
+if eval test \"x\$"$as_ac_Header"\" = x"yes"; then :
+  cat >>confdefs.h <<_ACEOF
+#define `$as_echo "HAVE_$ac_header" | $as_tr_cpp` 1
+_ACEOF
+
+fi
+
+done
+
+	if test $ac_cv_header_crack_h = yes; then
+		{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for FascistCheck in -lcrack" >&5
+$as_echo_n "checking for FascistCheck in -lcrack... " >&6; }
+if ${ac_cv_lib_crack_FascistCheck+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lcrack  $LIBS"
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char FascistCheck ();
+int
+main ()
+{
+return FascistCheck ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_lib_crack_FascistCheck=yes
+else
+  ac_cv_lib_crack_FascistCheck=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_crack_FascistCheck" >&5
+$as_echo "$ac_cv_lib_crack_FascistCheck" >&6; }
+if test "x$ac_cv_lib_crack_FascistCheck" = xyes; then :
+  have_cracklib=yes
+else
+  have_cracklib=false
+fi
+
+		if test $have_cracklib = yes; then
+			CRACKLIB_LIBS=-lcrack
+
+$as_echo "#define HAVE_CRACKLIB 1" >>confdefs.h
+
+		else
+			{ $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: libcrack is needed for contrib-check_password module " >&5
+$as_echo "$as_me: WARNING: libcrack is needed for contrib-check_password module " >&2;}
+		fi
+	fi
+	if test -s "/usr/share/cracklib/pw_dict"; then
+		CRACKLIB_DICTPATH="/usr/share/cracklib/pw_dict"
+	else
+		CRACKLIB_DICTPATH="/var/cache/cracklib/cracklib_dict"
+	fi
+
+
+
 fi
  if test "$heimdal_found" = yes; then
   HEIMDAL_AVAIL_TRUE=
@@ -24594,75 +24681,85 @@ fi
 
 if test $ol_link_tls = no ; then
 	if test $ol_with_tls = moznss || test $ol_with_tls = auto ; then
-		have_moznss=no
-		for ac_header in nssutil.h
-do :
-  ac_fn_c_check_header_mongrel "$LINENO" "nssutil.h" "ac_cv_header_nssutil_h" "$ac_includes_default"
-if test "x$ac_cv_header_nssutil_h" = xyes; then :
-  cat >>confdefs.h <<_ACEOF
-#define HAVE_NSSUTIL_H 1
-_ACEOF
 
-fi
+pkg_failed=no
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for MOZNSS" >&5
+$as_echo_n "checking for MOZNSS... " >&6; }
 
-done
-
-		if test "$ac_cv_header_nssutil_h" = yes ; then
-			{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for NSS_Initialize in -lnss3" >&5
-$as_echo_n "checking for NSS_Initialize in -lnss3... " >&6; }
-if ${ac_cv_lib_nss3_NSS_Initialize+:} false; then :
-  $as_echo_n "(cached) " >&6
+if test -n "$MOZNSS_CFLAGS"; then
+    pkg_cv_MOZNSS_CFLAGS="$MOZNSS_CFLAGS"
+ elif test -n "$PKG_CONFIG"; then
+    if test -n "$PKG_CONFIG" && \
+    { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"nss nspr\""; } >&5
+  ($PKG_CONFIG --exists --print-errors "nss nspr") 2>&5
+  ac_status=$?
+  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+  test $ac_status = 0; }; then
+  pkg_cv_MOZNSS_CFLAGS=`$PKG_CONFIG --cflags "nss nspr" 2>/dev/null`
+		      test "x$?" != "x0" && pkg_failed=yes
 else
-  ac_check_lib_save_LIBS=$LIBS
-LIBS="-lnss3  $LIBS"
-cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-/* Override any GCC internal prototype to avoid an error.
-   Use char because int might match the return type of a GCC
-   builtin and then its argument prototype would still apply.  */
-#ifdef __cplusplus
-extern "C"
-#endif
-char NSS_Initialize ();
-int
-main ()
-{
-return NSS_Initialize ();
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_link "$LINENO"; then :
-  ac_cv_lib_nss3_NSS_Initialize=yes
+  pkg_failed=yes
+fi
+ else
+    pkg_failed=untried
+fi
+if test -n "$MOZNSS_LIBS"; then
+    pkg_cv_MOZNSS_LIBS="$MOZNSS_LIBS"
+ elif test -n "$PKG_CONFIG"; then
+    if test -n "$PKG_CONFIG" && \
+    { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"nss nspr\""; } >&5
+  ($PKG_CONFIG --exists --print-errors "nss nspr") 2>&5
+  ac_status=$?
+  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+  test $ac_status = 0; }; then
+  pkg_cv_MOZNSS_LIBS=`$PKG_CONFIG --libs "nss nspr" 2>/dev/null`
+		      test "x$?" != "x0" && pkg_failed=yes
 else
-  ac_cv_lib_nss3_NSS_Initialize=no
+  pkg_failed=yes
 fi
-rm -f core conftest.err conftest.$ac_objext \
-    conftest$ac_exeext conftest.$ac_ext
-LIBS=$ac_check_lib_save_LIBS
+ else
+    pkg_failed=untried
 fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_nss3_NSS_Initialize" >&5
-$as_echo "$ac_cv_lib_nss3_NSS_Initialize" >&6; }
-if test "x$ac_cv_lib_nss3_NSS_Initialize" = xyes; then :
-   have_moznss=yes
+
+
+
+if test $pkg_failed = yes; then
+   	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+
+if $PKG_CONFIG --atleast-pkgconfig-version 0.20; then
+        _pkg_short_errors_supported=yes
 else
-   have_moznss=no
+        _pkg_short_errors_supported=no
 fi
+        if test $_pkg_short_errors_supported = yes; then
+	        MOZNSS_PKG_ERRORS=`$PKG_CONFIG --short-errors --print-errors --cflags --libs "nss nspr" 2>&1`
+        else
+	        MOZNSS_PKG_ERRORS=`$PKG_CONFIG --print-errors --cflags --libs "nss nspr" 2>&1`
+        fi
+	# Put the nasty error message in config.log where it belongs
+	echo "$MOZNSS_PKG_ERRORS" >&5
 
-		fi
-
-		if test "$have_moznss" = yes ; then
+	have_moznss=no
+elif test $pkg_failed = untried; then
+     	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+	have_moznss=no
+else
+	MOZNSS_CFLAGS=$pkg_cv_MOZNSS_CFLAGS
+	MOZNSS_LIBS=$pkg_cv_MOZNSS_LIBS
+        { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
+	have_moznss=yes
+fi
+		if test $have_moznss = yes ; then
 			ol_with_tls=moznss
 			ol_link_tls=yes
 
 $as_echo "#define HAVE_MOZNSS 1" >>confdefs.h
 
-			TLS_LIBS="-lssl3 -lsmime3 -lnss3 -lnssutil3 -lplds4 -lplc4 -lnspr4"
-		else
-			if test $ol_with_tls = moznss ; then
-			as_fn_error $? "MozNSS not found - please specify the location to the NSPR and NSS header files in CPPFLAGS and the location to the NSPR and NSS libraries in LDFLAGS (if not in the system location)" "$LINENO" 5
-			fi
+			TLS_LIBS="$MOZNSS_LIBS"
+			CFLAGS="$CFLAGS $MOZNSS_CFLAGS"
 		fi
 	fi
 fi

@@ -74,6 +74,20 @@ contrib_autogroup_la_LDFLAGS = -module -export-dynamic \
 	-release $(API_LIB_RELEASE) -version-info $(API_LIB_VERSION)
 contrib_autogroup_la_SOURCES = autogroup/autogroup.c banner.c
 
+# Where to look for the CrackLib dictionaries
+CRACKLIB_DICTPATH=@CRACKLIB_DICTPATH@
+CHECKPASSWD_CONFIGFILE=@sysconfdir@/check_password.conf
+EXTRA_DIST += check_password/README check_password/check_password.conf
+pkglib_LTLIBRARIES += contrib-check_password.la
+contrib_check_password_la_LDFLAGS = -module -export-dynamic \
+	-release $(API_LIB_RELEASE) -version-info $(API_LIB_VERSION)
+contrib_check_password_la_SOURCES = check_password/check_password.c banner.c
+contrib_check_password_la_CFLAGS = -Wno-deprecated-declarations $(CRACK_CFLAGS) \
+    -DCRACKLIB_DICTPATH="\"$(CRACKLIB_DICTPATH)\"" \
+    -DCHECKPASSWD_CONFIGFILE="\"$(CHECKPASSWD_CONFIGFILE)\"" \
+    -DCHECKPASSWD_DEBUG=1
+contrib_check_password_la_LIBADD = $(CRACKLIB_LIBS)
+
 EXTRA_DIST += cloak/slapo-cloak.man.in
 pkglib_LTLIBRARIES += contrib-cloak.la
 contrib_cloak_la_LDFLAGS = -module -export-dynamic \
@@ -267,6 +281,8 @@ install-data-hook:
 	(cd $(srcdir) && echo $(man_links) | tr -s '[:space:]' '\n' | xargs -r -n 1 -I {} \
 		sh -c 'xargs -I "#" -n 1 -r sh -c "cd $(mandir_en)/$$(dirname {}) && ln -s -f -T $$(basename {} .links) #" < $(srcdir)/{}' \
 		\;)
+	@if $(AM_V_P); then set -x; else echo "  INSTALL  check_password.conf"; fi; \
+	$(MKDIR_P) $(sysconfdir) && $(INSTALL) -t $(sysconfdir) -m 0444 $(srcdir)/check_password/check_password.conf
 
 uninstall-hook:
 	@if $(AM_V_P); then set -x; else echo "  RM       $(man_links)"; fi; \
@@ -274,3 +290,5 @@ uninstall-hook:
 		sh -c 'xargs -I "#" -n 1 -r sh -c "rm -f $(mandir_en)/$$(dirname {})/#" < $(srcdir)/{}' \
 		\;); \
 	find $(mandir) -depth -type d -empty -exec rmdir {} \;
+	@if $(AM_V_P); then set -x; else echo "  RM       check_password.conf"; fi; \
+	$(RM) -f $(sysconfdir)/check_password.conf

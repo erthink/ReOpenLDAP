@@ -610,9 +610,30 @@ if test $ol_enable_contrib != no; then
 	if test $heimdal_found != yes; then
 		AC_MSG_WARN([$HEIMDAL_PKG_ERRORS, therefore depended contrib-modules unavailable ])
 	fi
-
 	AC_SUBST(HEIMDAL_LIBS)
 	AC_SUBST(HEIMDAL_CFLAGS)
+
+	CRACKLIB_LIBS=
+	CRACKLIB_CFLAGS=
+	CRACKLIB_DICTPATH=
+	AC_CHECK_HEADERS( crack.h )
+	if test $ac_cv_header_crack_h = yes; then
+		AC_CHECK_LIB(crack, FascistCheck, [have_cracklib=yes], [have_cracklib=false])
+		if test $have_cracklib = yes; then
+			CRACKLIB_LIBS=-lcrack
+			AC_DEFINE(HAVE_CRACKLIB, 1, [define if you have cracklib])
+		else
+			AC_MSG_WARN([libcrack is needed for contrib-check_password module ])
+		fi
+	fi
+	if test -s "/usr/share/cracklib/pw_dict"; then
+		CRACKLIB_DICTPATH="/usr/share/cracklib/pw_dict"
+	else
+		CRACKLIB_DICTPATH="/var/cache/cracklib/cracklib_dict"
+	fi
+	AC_SUBST(CRACKLIB_LIBS)
+	AC_SUBST(CRACKLIB_CFLAGS)
+	AC_SUBST(CRACKLIB_DICTPATH)
 fi
 AM_CONDITIONAL([HEIMDAL_AVAIL], [test "$heimdal_found" = yes])
 
