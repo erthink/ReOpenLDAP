@@ -1571,6 +1571,7 @@ tlsm_get_certdb_prefix( const char *certdir, char **realcertdir, char **prefix )
 {
 	char sep = PR_GetDirectorySeparator();
 	char *ptr = NULL;
+	const char *chkpath = NULL;
 	struct PRFileInfo prfi;
 	PRStatus prc;
 
@@ -1581,8 +1582,16 @@ tlsm_get_certdb_prefix( const char *certdir, char **realcertdir, char **prefix )
 		return;
 	}
 
-	prc = PR_GetFileInfo( certdir, &prfi );
+	/* ignore database type prefix (e.g. sql:, dbm:) if provided */
+	chkpath = strchr( certdir, ':' );
+	if ( chkpath != NULL ) {
+		chkpath += 1;
+	} else {
+		chkpath = certdir;
+	}
+
 	/* if certdir exists (file or directory) then it cannot specify a prefix */
+	prc = PR_GetFileInfo( chkpath, &prfi );
 	if ( prc == PR_SUCCESS ) {
 		return;
 	}
