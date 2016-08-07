@@ -2515,5 +2515,26 @@ ldap_parse_deref_control LDAP_P((
 	LDAPControl	**ctrls,
 	LDAPDerefRes	**drp ));
 
+/*
+ * hacks for NTLM
+ */
+#define LDAP_AUTH_NTLM_REQUEST	((ber_tag_t) 0x8aU)
+#define LDAP_AUTH_NTLM_RESPONSE	((ber_tag_t) 0x8bU)
+LDAP_F( int )
+ldap_ntlm_bind LDAP_P((
+	LDAP		*ld,
+	LDAP_CONST char	*dn,
+	ber_tag_t	tag,
+	struct berval	*cred,
+	LDAPControl	**sctrls,
+	LDAPControl	**cctrls,
+	int		*msgidp ));
+LDAP_F( int )
+ldap_parse_ntlm_bind_result LDAP_P((
+	LDAP		*ld,
+	LDAPMessage	*res,
+	struct berval	*challenge));
+
+
 LDAP_END_DECL
 #endif /* _LDAP_H */
