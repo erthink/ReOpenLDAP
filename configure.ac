@@ -871,6 +871,16 @@ AC_CHECK_HEADERS( sys/ucred.h, [], [],
 #include <sys/param.h>
 #endif
 ])
+dnl Check whether ucred is defined without _GNU_SOURCE
+AC_MSG_CHECKING(for struct ucred)
+AC_TRY_LINK([
+#include <sys/ucred.h>
+#include <sys/socket.h>
+],[
+struct ucred sucred; sucred.pid=0;
+],[has_ucred=yes],[has_ucred=no])
+AC_MSG_RESULT($has_ucred)
+if test ${has_ucred} = no ; then CFLAGS="$CFLAGS -D_GNU_SOURCE"; fi
 
 dnl ----------------------------------------------------------------
 dnl Checks for libraries

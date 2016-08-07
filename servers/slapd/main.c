@@ -914,7 +914,7 @@ unhandled_option:;
 	mal_leaktrace(1);
 #endif
 
-	if ( slapd_pid_file != NULL ) {
+	if ( (check != CHECK_CONFIG) && (slapd_pid_file != NULL) ) {
 		FILE *fp = fopen( slapd_pid_file, "w" );
 
 		if ( fp == NULL ) {
@@ -936,7 +936,7 @@ unhandled_option:;
 		slapd_pid_file_unlink = 1;
 	}
 
-	if ( slapd_args_file != NULL ) {
+	if ( (check != CHECK_CONFIG) && (slapd_args_file != NULL) ) {
 		FILE *fp = fopen( slapd_args_file, "w" );
 
 		if ( fp == NULL ) {

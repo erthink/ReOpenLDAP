@@ -369,9 +369,6 @@ static void openldap_ldap_init_w_userconf(const char *file)
 	if(path != NULL) {
 		LDAP_FREE(path);
 	}
-
-	/* try file */
-	openldap_ldap_init_w_conf(file, 1);
 }
 
 static void openldap_ldap_init_w_env(
