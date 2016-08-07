@@ -587,6 +587,16 @@ for o in $slapd_features $slapd_backends $slapd_overlays; do
 	fi
 done
 
+PKG_CHECK_MODULES(KRB5, krb5 krb5-gssapi, krb5_found=yes, krb5_found=no)
+AC_SUBST(KRB5_LIBS)
+AC_SUBST(KRB5_CFLAGS)
+AM_CONDITIONAL([KRB5_AVAIL], [test $krb5_found = yes])
+
+PKG_CHECK_MODULES(HEIMDAL, heimdal-krb5 heimdal-kadm-server, heimdal_found=yes, heimdal_found=no)
+AC_SUBST(HEIMDAL_LIBS)
+AC_SUBST(HEIMDAL_CFLAGS)
+AM_CONDITIONAL([HEIMDAL_AVAIL], [test $heimdal_found = yes])
+
 if test $ol_enable_contrib != no; then
 	if test $ol_enable_slapd = no ; then
 		AC_MSG_ERROR([slapd disabled, therefore --enable-contrib unavailable ])
@@ -606,12 +616,9 @@ if test $ol_enable_contrib != no; then
 		AC_MSG_WARN([experimental features disabled, therefore broken-contrib-modules unavailable ])
 	fi
 
-	PKG_CHECK_MODULES(HEIMDAL, heimdal-krb5 heimdal-kadm-server, heimdal_found=yes, heimdal_found=no)
 	if test $heimdal_found != yes; then
 		AC_MSG_WARN([$HEIMDAL_PKG_ERRORS, therefore depended contrib-modules unavailable ])
 	fi
-	AC_SUBST(HEIMDAL_LIBS)
-	AC_SUBST(HEIMDAL_CFLAGS)
 
 	CRACKLIB_LIBS=
 	CRACKLIB_CFLAGS=
@@ -623,7 +630,7 @@ if test $ol_enable_contrib != no; then
 			CRACKLIB_LIBS=-lcrack
 			AC_DEFINE(HAVE_CRACKLIB, 1, [define if you have cracklib])
 		else
-			AC_MSG_WARN([libcrack is needed for contrib-check_password module ])
+			AC_MSG_WARN([libcrack-devel is needed for 'check_password' contrib-module ])
 		fi
 	fi
 	if test -s "/usr/share/cracklib/pw_dict"; then
@@ -634,8 +641,11 @@ if test $ol_enable_contrib != no; then
 	AC_SUBST(CRACKLIB_LIBS)
 	AC_SUBST(CRACKLIB_CFLAGS)
 	AC_SUBST(CRACKLIB_DICTPATH)
+
+	if test $krb5_found != yes; then
+		AC_MSG_WARN([krb5-devel is needed for 'gssacl' contrib-module ])
+	fi
 fi
-AM_CONDITIONAL([HEIMDAL_AVAIL], [test "$heimdal_found" = yes])
 
 if test $ol_enable_slapd != no ; then
 	be=
@@ -711,10 +721,6 @@ AUTH_LIBS=
 SLAPD_SLP_LIBS=
 SLAPD_GMP_LIBS=
 SLAPD_TCPWRAP_LIBS=
-
-PKG_CHECK_MODULES(KRB5, krb5, krb5_found=yes, krb5_found=no)
-AC_SUBST(KRB5_LIBS)
-AC_SUBST(KRB5_CFLAGS)
 
 dnl ================================================================
 dnl Checks for programs

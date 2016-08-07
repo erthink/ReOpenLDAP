@@ -872,15 +872,17 @@ ax_pthread_config
 MOZNSS_LIBS
 MOZNSS_CFLAGS
 PERLBIN
-KRB5_LIBS
-KRB5_CFLAGS
-HEIMDAL_AVAIL_FALSE
-HEIMDAL_AVAIL_TRUE
 CRACKLIB_DICTPATH
 CRACKLIB_CFLAGS
 CRACKLIB_LIBS
+HEIMDAL_AVAIL_FALSE
+HEIMDAL_AVAIL_TRUE
 HEIMDAL_LIBS
 HEIMDAL_CFLAGS
+KRB5_AVAIL_FALSE
+KRB5_AVAIL_TRUE
+KRB5_LIBS
+KRB5_CFLAGS
 LTDLOPEN
 LT_CONFIG_H
 CONVENIENCE_LTDL_FALSE
@@ -1179,10 +1181,10 @@ CXXCPP
 PKG_CONFIG
 PKG_CONFIG_PATH
 PKG_CONFIG_LIBDIR
-HEIMDAL_CFLAGS
-HEIMDAL_LIBS
 KRB5_CFLAGS
 KRB5_LIBS
+HEIMDAL_CFLAGS
+HEIMDAL_LIBS
 MOZNSS_CFLAGS
 MOZNSS_LIBS'
 
@@ -1952,12 +1954,12 @@ Some influential environment variables:
               directories to add to pkg-config's search path
   PKG_CONFIG_LIBDIR
               path overriding pkg-config's built-in search path
+  KRB5_CFLAGS C compiler flags for KRB5, overriding pkg-config
+  KRB5_LIBS   linker flags for KRB5, overriding pkg-config
   HEIMDAL_CFLAGS
               C compiler flags for HEIMDAL, overriding pkg-config
   HEIMDAL_LIBS
               linker flags for HEIMDAL, overriding pkg-config
-  KRB5_CFLAGS C compiler flags for KRB5, overriding pkg-config
-  KRB5_LIBS   linker flags for KRB5, overriding pkg-config
   MOZNSS_CFLAGS
               C compiler flags for MOZNSS, overriding pkg-config
   MOZNSS_LIBS linker flags for MOZNSS, overriding pkg-config
@@ -13121,7 +13123,7 @@ VERSION_PATCH=0
 
 RELEASE_DATE=2016-08-07
 
-RELEASE_STAMP=gc2a5d453a3f8-td1384361a394fa59
+RELEASE_STAMP=g83e5ebb8fc8e-t0dc746b5e4942f98
 
 API_LIB_RELEASE=1.2
 
@@ -21775,27 +21777,87 @@ for o in $slapd_features $slapd_backends $slapd_overlays; do
 	fi
 done
 
-if test $ol_enable_contrib != no; then
-	if test $ol_enable_slapd = no ; then
-		as_fn_error $? "slapd disabled, therefore --enable-contrib unavailable " "$LINENO" 5
-	else
-		if test $ol_enable_modules = no; then
-			as_fn_error $? "dynamic modules disabled, therefore contrib-overlays unavailable " "$LINENO" 5
-		fi
-		if test $ol_enable_slapi = no; then
-			{ $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: SLAPI disabled, therefore slapi contrib-pluginus unavailable " >&5
-$as_echo "$as_me: WARNING: SLAPI disabled, therefore slapi contrib-pluginus unavailable " >&2;}
-		fi
-		if test $ol_enable_dynacl = no; then
-			{ $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: dynamic ACL disabled, therefore acl contrib-pluginus unavailable " >&5
-$as_echo "$as_me: WARNING: dynamic ACL disabled, therefore acl contrib-pluginus unavailable " >&2;}
-		fi
-	fi
 
-	if test $ol_enable_contrib = broken -a $ol_enable_experimental != yes; then
-		{ $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: experimental features disabled, therefore broken-contrib-modules unavailable " >&5
-$as_echo "$as_me: WARNING: experimental features disabled, therefore broken-contrib-modules unavailable " >&2;}
-	fi
+pkg_failed=no
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for KRB5" >&5
+$as_echo_n "checking for KRB5... " >&6; }
+
+if test -n "$KRB5_CFLAGS"; then
+    pkg_cv_KRB5_CFLAGS="$KRB5_CFLAGS"
+ elif test -n "$PKG_CONFIG"; then
+    if test -n "$PKG_CONFIG" && \
+    { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"krb5 krb5-gssapi\""; } >&5
+  ($PKG_CONFIG --exists --print-errors "krb5 krb5-gssapi") 2>&5
+  ac_status=$?
+  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+  test $ac_status = 0; }; then
+  pkg_cv_KRB5_CFLAGS=`$PKG_CONFIG --cflags "krb5 krb5-gssapi" 2>/dev/null`
+		      test "x$?" != "x0" && pkg_failed=yes
+else
+  pkg_failed=yes
+fi
+ else
+    pkg_failed=untried
+fi
+if test -n "$KRB5_LIBS"; then
+    pkg_cv_KRB5_LIBS="$KRB5_LIBS"
+ elif test -n "$PKG_CONFIG"; then
+    if test -n "$PKG_CONFIG" && \
+    { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"krb5 krb5-gssapi\""; } >&5
+  ($PKG_CONFIG --exists --print-errors "krb5 krb5-gssapi") 2>&5
+  ac_status=$?
+  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+  test $ac_status = 0; }; then
+  pkg_cv_KRB5_LIBS=`$PKG_CONFIG --libs "krb5 krb5-gssapi" 2>/dev/null`
+		      test "x$?" != "x0" && pkg_failed=yes
+else
+  pkg_failed=yes
+fi
+ else
+    pkg_failed=untried
+fi
+
+
+
+if test $pkg_failed = yes; then
+   	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+
+if $PKG_CONFIG --atleast-pkgconfig-version 0.20; then
+        _pkg_short_errors_supported=yes
+else
+        _pkg_short_errors_supported=no
+fi
+        if test $_pkg_short_errors_supported = yes; then
+	        KRB5_PKG_ERRORS=`$PKG_CONFIG --short-errors --print-errors --cflags --libs "krb5 krb5-gssapi" 2>&1`
+        else
+	        KRB5_PKG_ERRORS=`$PKG_CONFIG --print-errors --cflags --libs "krb5 krb5-gssapi" 2>&1`
+        fi
+	# Put the nasty error message in config.log where it belongs
+	echo "$KRB5_PKG_ERRORS" >&5
+
+	krb5_found=no
+elif test $pkg_failed = untried; then
+     	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+	krb5_found=no
+else
+	KRB5_CFLAGS=$pkg_cv_KRB5_CFLAGS
+	KRB5_LIBS=$pkg_cv_KRB5_LIBS
+        { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
+	krb5_found=yes
+fi
+
+
+ if test $krb5_found = yes; then
+  KRB5_AVAIL_TRUE=
+  KRB5_AVAIL_FALSE='#'
+else
+  KRB5_AVAIL_TRUE='#'
+  KRB5_AVAIL_FALSE=
+fi
+
 
 
 pkg_failed=no
@@ -21868,12 +21930,43 @@ else
 $as_echo "yes" >&6; }
 	heimdal_found=yes
 fi
+
+
+ if test $heimdal_found = yes; then
+  HEIMDAL_AVAIL_TRUE=
+  HEIMDAL_AVAIL_FALSE='#'
+else
+  HEIMDAL_AVAIL_TRUE='#'
+  HEIMDAL_AVAIL_FALSE=
+fi
+
+
+if test $ol_enable_contrib != no; then
+	if test $ol_enable_slapd = no ; then
+		as_fn_error $? "slapd disabled, therefore --enable-contrib unavailable " "$LINENO" 5
+	else
+		if test $ol_enable_modules = no; then
+			as_fn_error $? "dynamic modules disabled, therefore contrib-overlays unavailable " "$LINENO" 5
+		fi
+		if test $ol_enable_slapi = no; then
+			{ $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: SLAPI disabled, therefore slapi contrib-pluginus unavailable " >&5
+$as_echo "$as_me: WARNING: SLAPI disabled, therefore slapi contrib-pluginus unavailable " >&2;}
+		fi
+		if test $ol_enable_dynacl = no; then
+			{ $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: dynamic ACL disabled, therefore acl contrib-pluginus unavailable " >&5
+$as_echo "$as_me: WARNING: dynamic ACL disabled, therefore acl contrib-pluginus unavailable " >&2;}
+		fi
+	fi
+
+	if test $ol_enable_contrib = broken -a $ol_enable_experimental != yes; then
+		{ $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: experimental features disabled, therefore broken-contrib-modules unavailable " >&5
+$as_echo "$as_me: WARNING: experimental features disabled, therefore broken-contrib-modules unavailable " >&2;}
+	fi
+
 	if test $heimdal_found != yes; then
 		{ $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: $HEIMDAL_PKG_ERRORS, therefore depended contrib-modules unavailable " >&5
 $as_echo "$as_me: WARNING: $HEIMDAL_PKG_ERRORS, therefore depended contrib-modules unavailable " >&2;}
 	fi
-
-
 
 	CRACKLIB_LIBS=
 	CRACKLIB_CFLAGS=
@@ -21940,8 +22033,8 @@ fi
 $as_echo "#define HAVE_CRACKLIB 1" >>confdefs.h
 
 		else
-			{ $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: libcrack is needed for contrib-check_password module " >&5
-$as_echo "$as_me: WARNING: libcrack is needed for contrib-check_password module " >&2;}
+			{ $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: libcrack-devel is needed for 'check_password' contrib-module " >&5
+$as_echo "$as_me: WARNING: libcrack-devel is needed for 'check_password' contrib-module " >&2;}
 		fi
 	fi
 	if test -s "/usr/share/cracklib/pw_dict"; then
@@ -21952,15 +22045,12 @@ $as_echo "$as_me: WARNING: libcrack is needed for contrib-check_password module 
 
 
 
-fi
- if test "$heimdal_found" = yes; then
-  HEIMDAL_AVAIL_TRUE=
-  HEIMDAL_AVAIL_FALSE='#'
-else
-  HEIMDAL_AVAIL_TRUE='#'
-  HEIMDAL_AVAIL_FALSE=
-fi
 
+	if test $krb5_found != yes; then
+		{ $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: krb5-devel is needed for 'gssacl' contrib-module " >&5
+$as_echo "$as_me: WARNING: krb5-devel is needed for 'gssacl' contrib-module " >&2;}
+	fi
+fi
 
 if test $ol_enable_slapd != no ; then
 	be=
@@ -22036,80 +22126,6 @@ AUTH_LIBS=
 SLAPD_SLP_LIBS=
 SLAPD_GMP_LIBS=
 SLAPD_TCPWRAP_LIBS=
-
-
-pkg_failed=no
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for KRB5" >&5
-$as_echo_n "checking for KRB5... " >&6; }
-
-if test -n "$KRB5_CFLAGS"; then
-    pkg_cv_KRB5_CFLAGS="$KRB5_CFLAGS"
- elif test -n "$PKG_CONFIG"; then
-    if test -n "$PKG_CONFIG" && \
-    { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"krb5\""; } >&5
-  ($PKG_CONFIG --exists --print-errors "krb5") 2>&5
-  ac_status=$?
-  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
-  test $ac_status = 0; }; then
-  pkg_cv_KRB5_CFLAGS=`$PKG_CONFIG --cflags "krb5" 2>/dev/null`
-		      test "x$?" != "x0" && pkg_failed=yes
-else
-  pkg_failed=yes
-fi
- else
-    pkg_failed=untried
-fi
-if test -n "$KRB5_LIBS"; then
-    pkg_cv_KRB5_LIBS="$KRB5_LIBS"
- elif test -n "$PKG_CONFIG"; then
-    if test -n "$PKG_CONFIG" && \
-    { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"krb5\""; } >&5
-  ($PKG_CONFIG --exists --print-errors "krb5") 2>&5
-  ac_status=$?
-  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
-  test $ac_status = 0; }; then
-  pkg_cv_KRB5_LIBS=`$PKG_CONFIG --libs "krb5" 2>/dev/null`
-		      test "x$?" != "x0" && pkg_failed=yes
-else
-  pkg_failed=yes
-fi
- else
-    pkg_failed=untried
-fi
-
-
-
-if test $pkg_failed = yes; then
-   	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
-$as_echo "no" >&6; }
-
-if $PKG_CONFIG --atleast-pkgconfig-version 0.20; then
-        _pkg_short_errors_supported=yes
-else
-        _pkg_short_errors_supported=no
-fi
-        if test $_pkg_short_errors_supported = yes; then
-	        KRB5_PKG_ERRORS=`$PKG_CONFIG --short-errors --print-errors --cflags --libs "krb5" 2>&1`
-        else
-	        KRB5_PKG_ERRORS=`$PKG_CONFIG --print-errors --cflags --libs "krb5" 2>&1`
-        fi
-	# Put the nasty error message in config.log where it belongs
-	echo "$KRB5_PKG_ERRORS" >&5
-
-	krb5_found=no
-elif test $pkg_failed = untried; then
-     	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
-$as_echo "no" >&6; }
-	krb5_found=no
-else
-	KRB5_CFLAGS=$pkg_cv_KRB5_CFLAGS
-	KRB5_LIBS=$pkg_cv_KRB5_LIBS
-        { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
-$as_echo "yes" >&6; }
-	krb5_found=yes
-fi
-
-
 
 
 ol_link_perl=no
@@ -34548,6 +34564,10 @@ LT_CONFIG_H=reldap_autoconf.h
     ltdl_LTLIBOBJS=$_ltdl_ltlibobjs
 
 
+if test -z "${KRB5_AVAIL_TRUE}" && test -z "${KRB5_AVAIL_FALSE}"; then
+  as_fn_error $? "conditional \"KRB5_AVAIL\" was never defined.
+Usually this means the macro was only invoked conditionally." "$LINENO" 5
+fi
 if test -z "${HEIMDAL_AVAIL_TRUE}" && test -z "${HEIMDAL_AVAIL_FALSE}"; then
   as_fn_error $? "conditional \"HEIMDAL_AVAIL\" was never defined.
 Usually this means the macro was only invoked conditionally." "$LINENO" 5

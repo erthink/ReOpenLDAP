@@ -34,13 +34,18 @@ man5_MANS =
 
 EXTRA_DIST += acl/README.gssacl acl/README.posixgroup
 if SLAPD_DYNACL
-pkglib_LTLIBRARIES += contrib-posixgroup.la contrib-gssacl.la
+pkglib_LTLIBRARIES += contrib-posixgroup.la
 contrib_posixgroup_la_LDFLAGS = -module -export-dynamic \
 	-release $(API_LIB_RELEASE) -version-info $(API_LIB_VERSION)
 contrib_posixgroup_la_SOURCES = acl/posixgroup.c banner.c
+if KRB5_AVAIL
+pkglib_LTLIBRARIES += contrib-gssacl.la
 contrib_gssacl_la_LDFLAGS = -module -export-dynamic \
 	-release $(API_LIB_RELEASE) -version-info $(API_LIB_VERSION)
 contrib_gssacl_la_SOURCES = acl/gssacl.c banner.c
+contrib_gssacl_la_CFLAGS = $(KRB5_CFLAGS)
+contrib_gssacl_la_LIBADD = $(KRB5_LIBS)
+endif
 endif
 
 EXTRA_DIST += addpartial/README adremap/slapo-adremap.man.in
