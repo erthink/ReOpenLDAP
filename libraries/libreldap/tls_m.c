@@ -1747,6 +1747,8 @@ tlsm_deferred_init( void *arg )
 	NSSInitContext *initctx = NULL;
 	PK11SlotInfo *certdb_slot = NULL;
 #endif
+	SSLVersionRange range;
+	SSLProtocolVariant variant;
 	SECStatus rc;
 	int done = 0;
 
@@ -1928,6 +1930,16 @@ tlsm_deferred_init( void *arg )
 				return -1;
 			}
 		}
+
+		/*
+		 * Set the SSL version range.  MozNSS SSL versions are the same as openldap's:
+		 *
+		 * SSL_LIBRARY_VERSION_TLS_1_* are equivalent to LDAP_OPT_X_TLS_PROTOCOL_TLS1_*
+		 */
+		SSL_VersionRangeGetSupported(ssl_variant_stream, &range); /* this sets the max */
+		range.min = lt->lt_protocol_min ? lt->lt_protocol_min : range.min;
+		variant = ssl_variant_stream;
+		SSL_VersionRangeSetDefault(variant, &range);
 
 		NSS_SetDomesticPolicy();
 
