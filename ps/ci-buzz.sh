@@ -152,6 +152,12 @@ for ((n=0; n < N; n++)); do
 				build_opt=
 				;;
 		esac
+		if [ $n -lt 4 ]; then
+			build_opt+=" --dynamic"
+		else
+			# LY: avoid timeout-failures due libtool runtime linking under higload
+			build_opt+=" --no-dynamic"
+		fi
 		echo "launching $n of $branch, with nice $nice and... $build_opt"
 		dir=$TOP/@$n.$branch
 		tmp=$(readlink -f ${RAM}/$n.$branch)
