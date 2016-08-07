@@ -789,9 +789,7 @@ ldap_pvt_tls_set_option( LDAP *ld, int option, void *arg )
 int
 ldap_int_tls_start ( LDAP *ld, LDAPConn *conn, LDAPURLDesc *srv )
 {
-	Sockbuf *sb;
 	char *host;
-	void *ssl;
 	int ret;
 #ifdef LDAP_USE_NON_BLOCKING_TLS
 	struct timeval start_time_tv, tv, tv0 = {0};
@@ -801,7 +799,6 @@ ldap_int_tls_start ( LDAP *ld, LDAPConn *conn, LDAPURLDesc *srv )
 	if ( !conn )
 		return LDAP_PARAM_ERROR;
 
-	sb = conn->lconn_sb;
 	if( srv ) {
 		host = srv->lud_host;
 	} else {
@@ -816,6 +813,7 @@ ldap_int_tls_start ( LDAP *ld, LDAPConn *conn, LDAPURLDesc *srv )
 	(void) tls_init( tls_imp );
 
 #ifdef LDAP_USE_NON_BLOCKING_TLS
+	Sockbuf *sb = conn->lconn_sb;
 	/*
 	 * Use non-blocking io during SSL Handshake when a timeout is configured
 	 */
