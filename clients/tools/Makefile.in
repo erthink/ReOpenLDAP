@@ -829,8 +829,10 @@ ps: ps-am
 ps-am:
 
 uninstall-am: uninstall-binPROGRAMS
-
-.MAKE: all check install install-am install-exec-am install-strip
+	@$(NORMAL_INSTALL)
+	$(MAKE) $(AM_MAKEFLAGS) uninstall-hook
+.MAKE: all check install install-am install-exec-am install-strip \
+	uninstall-am
 
 .PHONY: CTAGS GTAGS TAGS all all-am check check-am clean \
 	clean-binPROGRAMS clean-generic clean-libtool cscopelist-am \
@@ -845,7 +847,7 @@ uninstall-am: uninstall-binPROGRAMS
 	maintainer-clean maintainer-clean-generic mostlyclean \
 	mostlyclean-compile mostlyclean-generic mostlyclean-libtool \
 	pdf pdf-am ps ps-am tags tags-am uninstall uninstall-am \
-	uninstall-binPROGRAMS
+	uninstall-binPROGRAMS uninstall-hook
 
 .PRECIOUS: Makefile
 
@@ -856,6 +858,10 @@ install-exec-hook:
 	@if $(AM_V_P); then set -x; else echo "  LN       ldapmodify -> ldapadd"; fi; \
 	$(RM) $(DESTDIR)$(bindir)/ldapadd$(EXEEXT) && \
 	$(LN_S) $(DESTDIR)$(bindir)/ldapmodify$(EXEEXT) $(DESTDIR)$(bindir)/ldapadd$(EXEEXT)
+
+uninstall-hook:
+	@if $(AM_V_P); then set -x; else echo "  RM       ldapadd"; fi; \
+	$(RM) -f $(DESTDIR)$(bindir)/ldapadd
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.

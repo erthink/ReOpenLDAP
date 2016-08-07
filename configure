@@ -13123,7 +13123,7 @@ VERSION_PATCH=0
 
 RELEASE_DATE=2016-08-07
 
-RELEASE_STAMP=g69a44082dea7-t03feee52ac5e2239
+RELEASE_STAMP=g318f6f456e14-tff5667f7fab234d2
 
 API_LIB_RELEASE=1.2
 
@@ -22781,6 +22781,34 @@ fi
 
 done
 
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for struct ucred" >&5
+$as_echo_n "checking for struct ucred... " >&6; }
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+#include <sys/ucred.h>
+#include <sys/socket.h>
+
+int
+main ()
+{
+
+struct ucred sucred; sucred.pid=0;
+
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  has_ucred=yes
+else
+  has_ucred=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $has_ucred" >&5
+$as_echo "$has_ucred" >&6; }
+if test ${has_ucred} = no ; then CFLAGS="$CFLAGS -D_GNU_SOURCE"; fi
 
 
 for ac_func in sigaction sigset
