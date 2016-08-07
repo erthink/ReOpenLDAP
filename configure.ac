@@ -1624,8 +1624,6 @@ if test $ol_enable_bdb/$ol_enable_hdb != no/no; then
 		BDB_LIBS="$BDB_LIBS $ol_cv_lib_db"
 	fi
 
-	SLAPD_LIBS="$SLAPD_LIBS \$(BDB_LIBS)"
-
 	ol_link_bdb=yes
 fi
 
