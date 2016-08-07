@@ -89,13 +89,13 @@ void *module_resolve( const module_t* module, const char *item )
 	return lt_dlsym(((module_t *)module)->lib, entry);
 }
 
-module_t* module_handle( const char *file_name )
+module_t* module_handle( const char *filename )
 {
 	module_t *module;
-	file_name = safe_basename(file_name);
+	filename = safe_basename(filename);
 
 	for ( module = module_list; module; module = module->next ) {
-		if ( !strcmp( safe_basename(module->name), file_name )) {
+		if ( !strcmp( safe_basename(module->name), filename )) {
 			return module;
 		}
 	}
@@ -135,9 +135,9 @@ int module_kill (void)
 	return 0;
 }
 
-int module_unload( const char *file_name )
+int module_unload( const char *filename )
 {
-	module_t *module = module_handle( file_name );
+	module_t *module = module_handle( filename );
 	if ( module ) {
 		module_int_unload( module );
 		return 0;
@@ -145,21 +145,35 @@ int module_unload( const char *file_name )
 	return -1;	/* not found */
 }
 
-int module_load(const char* file_name, int argc, char *argv[])
+static lt_dlhandle slapd_lt_dlopenext_global( const char *filename )
+{
+	lt_dlhandle handle = 0;
+	lt_dladvise advise;
+
+	if (!lt_dladvise_init (&advise) && !lt_dladvise_ext (&advise)
+			&& !lt_dladvise_global (&advise))
+		handle = lt_dlopenadvise (filename, advise);
+
+	lt_dladvise_destroy (&advise);
+
+	return handle;
+}
+
+int module_load(const char* filename, int argc, char *argv[])
 {
 	module_t *module;
 	const char *error;
 	int rc;
 	MODULE_INIT_FN initialize;
 
-	module = module_handle( file_name );
+	module = module_handle( filename );
 	if ( module ) {
 		Debug( LDAP_DEBUG_ANY, "module_load: (%s) already loaded\n",
 			module->name );
 		return -1;
 	}
 
-	const char* modname = safe_basename(file_name);
+	const char* modname = safe_basename(filename);
 	if (strncmp(modname, "contrib-", 8) == 0)
 		modname += 8;
 
@@ -172,7 +186,7 @@ int module_load(const char* file_name, int argc, char *argv[])
 		if (dot) *dot = '.';
 		if ( rc ) {
 			Debug( LDAP_DEBUG_CONFIG, "module_load: (%s) already present (static)\n",
-				file_name );
+				filename );
 			return 0;
 		}
 	} else {
@@ -183,38 +197,38 @@ int module_load(const char* file_name, int argc, char *argv[])
 		if ( dot ) *dot = '.';
 		if ( rc ) {
 			Debug( LDAP_DEBUG_CONFIG, "module_load: (%s) already present (static)\n",
-				file_name );
+				filename );
 			return 0;
 		}
 	}
 
-	module = (module_t *)ch_calloc(1, sizeof(module_t) + strlen(file_name));
+	module = (module_t *)ch_calloc(1, sizeof(module_t) + strlen(filename));
 	if (module == NULL) {
-		Debug(LDAP_DEBUG_ANY, "module_load failed: (%s) out of memory\n", file_name);
+		Debug(LDAP_DEBUG_ANY, "module_load failed: (%s) out of memory\n", filename);
 		return -1;
 	}
-	strcpy( module->name, file_name );
+	strcpy( module->name, filename );
 
 	/*
 	 * The result of lt_dlerror(), when called, must be cached prior
 	 * to calling Debug. This is because Debug is a macro that expands
 	 * into multiple function calls.
 	 */
-	if ((module->lib = lt_dlopenext(file_name)) == NULL) {
+	if ((module->lib = slapd_lt_dlopenext_global(filename)) == NULL) {
 		error = lt_dlerror();
-		Debug(LDAP_DEBUG_ANY, "lt_dlopenext failed: (%s) %s\n", file_name,
+		Debug(LDAP_DEBUG_ANY, "lt_dlopenext failed: (%s) %s\n", filename,
 			error);
 
 		ch_free(module);
 		return -1;
 	}
 
-	Debug(LDAP_DEBUG_CONFIG, "loaded module %s\n", file_name);
+	Debug(LDAP_DEBUG_CONFIG, "loaded module %s\n", filename);
 
 	initialize = module_resolve(module, "modinit");
 	if (initialize == NULL) {
 		Debug(LDAP_DEBUG_ANY, "module %s: no %s() function found\n",
-			file_name, "modinit");
+			filename, "modinit");
 
 		lt_dlclose(module->lib);
 		ch_free(module);
@@ -226,7 +240,7 @@ int module_load(const char* file_name, int argc, char *argv[])
 	rc = initialize(argc, argv);
 	if (rc == -1) {
 		Debug(LDAP_DEBUG_ANY, "module %s: modinit() failed, error code %d\n",
-			file_name, rc);
+			filename, rc);
 
 		lt_dlclose(module->lib);
 		ch_free(module);
@@ -236,7 +250,7 @@ int module_load(const char* file_name, int argc, char *argv[])
 	module->next = module_list;
 	module_list = module;
 
-	Debug(LDAP_DEBUG_CONFIG, "module %s: registered\n", file_name);
+	Debug(LDAP_DEBUG_CONFIG, "module %s: registered\n", filename);
 	return 0;
 }
 

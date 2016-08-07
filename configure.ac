@@ -587,6 +587,16 @@ for o in $slapd_features $slapd_backends $slapd_overlays; do
 	fi
 done
 
+PKG_CHECK_MODULES(KRB5, krb5 krb5-gssapi, krb5_found=yes, krb5_found=no)
+AC_SUBST(KRB5_LIBS)
+AC_SUBST(KRB5_CFLAGS)
+AM_CONDITIONAL([KRB5_AVAIL], [test $krb5_found = yes])
+
+PKG_CHECK_MODULES(HEIMDAL, heimdal-krb5 heimdal-kadm-server, heimdal_found=yes, heimdal_found=no)
+AC_SUBST(HEIMDAL_LIBS)
+AC_SUBST(HEIMDAL_CFLAGS)
+AM_CONDITIONAL([HEIMDAL_AVAIL], [test $heimdal_found = yes])
+
 if test $ol_enable_contrib != no; then
 	if test $ol_enable_slapd = no ; then
 		AC_MSG_ERROR([slapd disabled, therefore --enable-contrib unavailable ])
@@ -606,15 +616,36 @@ if test $ol_enable_contrib != no; then
 		AC_MSG_WARN([experimental features disabled, therefore broken-contrib-modules unavailable ])
 	fi
 
-	PKG_CHECK_MODULES(HEIMDAL, heimdal-krb5 heimdal-kadm-server, heimdal_found=yes, heimdal_found=no)
 	if test $heimdal_found != yes; then
 		AC_MSG_WARN([$HEIMDAL_PKG_ERRORS, therefore depended contrib-modules unavailable ])
 	fi
 
-	AC_SUBST(HEIMDAL_LIBS)
-	AC_SUBST(HEIMDAL_CFLAGS)
+	CRACKLIB_LIBS=
+	CRACKLIB_CFLAGS=
+	CRACKLIB_DICTPATH=
+	AC_CHECK_HEADERS( crack.h )
+	if test $ac_cv_header_crack_h = yes; then
+		AC_CHECK_LIB(crack, FascistCheck, [have_cracklib=yes], [have_cracklib=false])
+		if test $have_cracklib = yes; then
+			CRACKLIB_LIBS=-lcrack
+			AC_DEFINE(HAVE_CRACKLIB, 1, [define if you have cracklib])
+		else
+			AC_MSG_WARN([libcrack-devel is needed for 'check_password' contrib-module ])
+		fi
+	fi
+	if test -s "/usr/share/cracklib/pw_dict"; then
+		CRACKLIB_DICTPATH="/usr/share/cracklib/pw_dict"
+	else
+		CRACKLIB_DICTPATH="/var/cache/cracklib/cracklib_dict"
+	fi
+	AC_SUBST(CRACKLIB_LIBS)
+	AC_SUBST(CRACKLIB_CFLAGS)
+	AC_SUBST(CRACKLIB_DICTPATH)
+
+	if test $krb5_found != yes; then
+		AC_MSG_WARN([krb5-devel is needed for 'gssacl' contrib-module ])
+	fi
 fi
-AM_CONDITIONAL([HEIMDAL_AVAIL], [test "$heimdal_found" = yes])
 
 if test $ol_enable_slapd != no ; then
 	be=
@@ -690,10 +721,6 @@ AUTH_LIBS=
 SLAPD_SLP_LIBS=
 SLAPD_GMP_LIBS=
 SLAPD_TCPWRAP_LIBS=
-
-PKG_CHECK_MODULES(KRB5, krb5, krb5_found=yes, krb5_found=no)
-AC_SUBST(KRB5_LIBS)
-AC_SUBST(KRB5_CFLAGS)
 
 dnl ================================================================
 dnl Checks for programs
@@ -1159,28 +1186,15 @@ if test $ol_link_tls = no ; then
 	fi
 fi
 
-dnl NOTE: caller must specify -I/path/to/nspr4 and -I/path/to/nss3
-dnl and -L/path/to/nspr4 libs and -L/path/to/nss3 libs if those libs
-dnl are not in the default system location
 if test $ol_link_tls = no ; then
 	if test $ol_with_tls = moznss || test $ol_with_tls = auto ; then
-		have_moznss=no
-		AC_CHECK_HEADERS([nssutil.h])
-		if test "$ac_cv_header_nssutil_h" = yes ; then
-			AC_CHECK_LIB([nss3], [NSS_Initialize],
-						 [ have_moznss=yes ], [ have_moznss=no ])
-		fi
-
-		if test "$have_moznss" = yes ; then
+		PKG_CHECK_MODULES(MOZNSS, [nss nspr], [have_moznss=yes], [have_moznss=no])
+		if test $have_moznss = yes ; then
 			ol_with_tls=moznss
 			ol_link_tls=yes
-			AC_DEFINE(HAVE_MOZNSS, 1,
-					  [define if you have MozNSS])
-			TLS_LIBS="-lssl3 -lsmime3 -lnss3 -lnssutil3 -lplds4 -lplc4 -lnspr4"
-		else
-			if test $ol_with_tls = moznss ; then
-			AC_MSG_ERROR([MozNSS not found - please specify the location to the NSPR and NSS header files in CPPFLAGS and the location to the NSPR and NSS libraries in LDFLAGS (if not in the system location)])
-			fi
+			AC_DEFINE(HAVE_MOZNSS, 1, [define if you have MozNSS])
+			TLS_LIBS="$MOZNSS_LIBS"
+			CFLAGS="$CFLAGS $MOZNSS_CFLAGS"
 		fi
 	fi
 fi
