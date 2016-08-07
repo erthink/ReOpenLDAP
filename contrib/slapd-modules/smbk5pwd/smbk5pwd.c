@@ -75,19 +75,19 @@ static AttributeDescription *ad_krb5KeyVersionNumber;
 static AttributeDescription *ad_krb5PrincipalName;
 static AttributeDescription *ad_krb5ValidEnd;
 static ObjectClass *oc_krb5KDCEntry;
-#endif
+#endif /* DO_KRB5 */
 
 #ifdef DO_SAMBA
 #ifdef HAVE_GNUTLS
-#include <nettle/des.h>
-#include <nettle/md4.h>
-typedef unsigned char DES_cblock[8];
+#	include <nettle/des.h>
+#	include <nettle/md4.h>
+	typedef unsigned char DES_cblock[8];
 #elif HAVE_OPENSSL
-#include <openssl/des.h>
-#include <openssl/md4.h>
+#	include <openssl/des.h>
+#	include <openssl/md4.h>
 #else
-#error Unsupported crypto backend.
-#endif
+#	error Unsupported crypto backend.
+#endif /* HAVE_GNUTLS / HAVE_OPENSSL */
 #include "ldap_utf8.h"
 
 static AttributeDescription *ad_sambaLMPassword;
@@ -96,12 +96,12 @@ static AttributeDescription *ad_sambaPwdLastSet;
 static AttributeDescription *ad_sambaPwdMustChange;
 static AttributeDescription *ad_sambaPwdCanChange;
 static ObjectClass *oc_sambaSamAccount;
-#endif
+#endif /* DO_SAMBA */
 
 #ifdef DO_SHADOW
 static AttributeDescription *ad_shadowLastChange;
 static ObjectClass *oc_shadowAccount;
-#endif
+#endif /* DO_SHADOW */
 
 /* Per-instance configuration information */
 typedef struct smbk5pwd_t {

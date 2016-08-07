@@ -233,15 +233,17 @@ contrib_vernum_la_LDFLAGS = -module -export-dynamic \
 contrib_vernum_la_SOURCES = samba4/vernum.c banner.c
 
 EXTRA_DIST += smbk5pwd/README
-if HEIMDAL_AVAIL
 pkglib_LTLIBRARIES += contrib-smbk5pwd.la
 contrib_smbk5pwd_la_LDFLAGS = -module -export-dynamic \
 	-release $(API_LIB_RELEASE) -version-info $(API_LIB_VERSION)
 contrib_smbk5pwd_la_SOURCES = banner.c smbk5pwd/smbk5pwd.c
-contrib_smbk5pwd_la_LIBADD = $(HEIMDAL_LIBS)
+contrib_smbk5pwd_la_LIBADD = $(SECURITY_LIBS)
 # Omit DO_KRB5, DO_SAMBA or DO_SHADOW if you don't want to support it.
-contrib_smbk5pwd_la_CFLAGS = -DDO_KRB5 -DDO_SAMBA -DDO_SHADOW \
-	-Wno-deprecated-declarations $(HEIMDAL_CFLAGS)
+contrib_smbk5pwd_la_CFLAGS = -DDO_SAMBA -DDO_SHADOW \
+	-Wno-deprecated-declarations
+if HEIMDAL_AVAIL
+contrib_smbk5pwd_la_CFLAGS += -DDO_KRB5 $(HEIMDAL_CFLAGS)
+contrib_smbk5pwd_la_LIBADD += $(HEIMDAL_LIBS)
 endif
 
 pkglib_LTLIBRARIES += contrib-trace.la
