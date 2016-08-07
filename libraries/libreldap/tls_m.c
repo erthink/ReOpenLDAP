@@ -57,6 +57,7 @@
 #include <ac/param.h>
 #include <ac/dirent.h>
 #include <ac/localize.h>
+#include <ac/regex.h>
 
 #include "ldap-int.h"
 #include "ldap-tls.h"
@@ -137,9 +138,7 @@ static const PRIOMethods tlsm_PR_methods;
 
 #define PEM_LIBRARY	"nsspem"
 #define PEM_MODULE	"PEM"
-/* hash files for use with cacertdir have this file name suffix */
-#define PEM_CA_HASH_FILE_SUFFIX	".0"
-#define PEM_CA_HASH_FILE_SUFFIX_LEN 2
+#define PEM_CA_HASH_FILE_REGEX "^[0-9a-f]{8}\\.[0-9]+$"
 
 static SECMODModule *pem_module;
 
@@ -1490,6 +1489,7 @@ tlsm_init_ca_certs( tlsm_ctx *ctx, const char *cacertfile, const char *cacertdir
 		PRDir *dir;
 		PRDirEntry *entry;
 		PRStatus fistatus = PR_FAILURE;
+		regex_t hashfile_re;
 
 		memset( &fi, 0, sizeof(fi) );
 		fistatus = PR_GetFileInfo( cacertdir, &fi );
@@ -1519,25 +1519,34 @@ tlsm_init_ca_certs( tlsm_ctx *ctx, const char *cacertfile, const char *cacertdir
 			goto done;
 		}
 
+		if ( regcomp( &hashfile_re, PEM_CA_HASH_FILE_REGEX, REG_NOSUB|REG_EXTENDED ) != 0 ) {
+			Debug( LDAP_DEBUG_ANY, "TLS: cannot compile regex for CA hash files matching\n" );
+			goto done;
+		}
+
 		do {
 			entry = PR_ReadDir( dir, PR_SKIP_BOTH | PR_SKIP_HIDDEN );
 			if ( ( NULL != entry ) && ( NULL != entry->name ) ) {
 				char *fullpath = NULL;
-				char *ptr;
+				int match;
 
-				ptr = PL_strrstr( entry->name, PEM_CA_HASH_FILE_SUFFIX );
-				if ( ( ptr == NULL ) || ( *(ptr + PEM_CA_HASH_FILE_SUFFIX_LEN) != '\0' ) ) {
+				match = regexec( &hashfile_re, entry->name, 0, NULL, 0 );
+				if ( match == REG_NOMATCH ) {
 					Debug( LDAP_DEBUG_TRACE,
-						   "TLS: file %s does not end in [%s] - does not appear to be a CA certificate "
-						   "directory file with a properly hashed file name - skipping.\n",
-						   entry->name, PEM_CA_HASH_FILE_SUFFIX );
+						"TLS: skipping '%s' - filename does not have expected format "
+						"(certificate hash with numeric suffix)\n", entry->name );
+					continue;
+				} else if ( match != 0 ) {
+					Debug( LDAP_DEBUG_ANY,
+						"TLS: cannot execute regex for CA hash file matching (%d).\n", match );
 					continue;
 				}
+
 				fullpath = PR_smprintf( "%s/%s", cacertdir, entry->name );
 				if ( !tlsm_add_cert_from_file( ctx, fullpath, isca ) ) {
 					Debug( LDAP_DEBUG_TRACE,
-						   "TLS: loaded CA certificate file %s from CA certificate directory %s.\n",
-						   fullpath, cacertdir );
+						"TLS: loaded CA certificate file %s from CA certificate directory %s.\n",
+						fullpath, cacertdir );
 				} else {
 					errcode = PR_GetError();
 					Debug( LDAP_DEBUG_TRACE,
@@ -1548,6 +1557,7 @@ tlsm_init_ca_certs( tlsm_ctx *ctx, const char *cacertfile, const char *cacertdir
 				PR_smprintf_free( fullpath );
 			}
 		} while ( NULL != entry );
+		regfree ( &hashfile_re );
 		PR_CloseDir( dir );
 	}
 done:
