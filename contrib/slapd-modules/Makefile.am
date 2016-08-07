@@ -286,16 +286,16 @@ EXTRA_DIST += $(man_links)
 install-data-hook:
 	@if $(AM_V_P); then set -x; else echo "  LN       $(man_links)"; fi; \
 	(cd $(srcdir) && echo $(man_links) | tr -s '[:space:]' '\n' | xargs -r -n 1 -I {} \
-		sh -c 'xargs -I "#" -n 1 -r sh -c "cd $(mandir_en)/$$(dirname {}) && ln -s -f -T $$(basename {} .links) #" < $(srcdir)/{}' \
+		sh -c 'xargs -I "#" -n 1 -r sh -c "cd $(DESTDIR)$(mandir)/$$(dirname {}) && ln -s -f -T $$(basename {} .links) #" < $(srcdir)/{}' \
 		\;)
 	@if $(AM_V_P); then set -x; else echo "  INSTALL  check_password.conf"; fi; \
-	$(MKDIR_P) $(sysconfdir) && $(INSTALL) -t $(sysconfdir) -m 0444 $(srcdir)/check_password/check_password.conf
+	$(MKDIR_P) $(DESTDIR)$(sysconfdir) && $(INSTALL) -t $(DESTDIR)$(sysconfdir) -m 0444 $(srcdir)/check_password/check_password.conf
 
 uninstall-hook:
 	@if $(AM_V_P); then set -x; else echo "  RM       $(man_links)"; fi; \
 	(cd $(srcdir) && echo $(man_links) | tr -s '[:space:]' '\n' | xargs -r -n 1 -I {} \
-		sh -c 'xargs -I "#" -n 1 -r sh -c "rm -f $(mandir_en)/$$(dirname {})/#" < $(srcdir)/{}' \
+		sh -c 'xargs -I "#" -n 1 -r sh -c "rm -f $(DESTDIR)$(mandir)/$$(dirname {})/#" < $(srcdir)/{}' \
 		\;); \
-	find $(mandir) -depth -type d -empty -exec rmdir {} \;
+	find $(DESTDIR)$(mandir) -depth -type d -empty -exec rmdir {} \;
 	@if $(AM_V_P); then set -x; else echo "  RM       check_password.conf"; fi; \
-	$(RM) -f $(sysconfdir)/check_password.conf
+	$(RM) -f $(DESTDIR)$(sysconfdir)/check_password.conf
