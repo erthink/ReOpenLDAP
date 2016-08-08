@@ -307,6 +307,12 @@ AH_BOTTOM([
 #	include <endian.h>
 #endif
 
+/* LY: TLS which is enabled due configure */
+#define RELDAP_TLS_NONE		0 /* None, --with-tls=no */
+#define RELDAP_TLS_MOZNSS	1 /* Mozilla NSS, --with-tls=moznss */
+#define RELDAP_TLS_GNUTLS	2 /* GnuTLS, --with-tls=gnutls */
+#define RELDAP_TLS_OPENSSL	3 /* OpenSSL, --with-tls=openssl */
+
 #endif /* RELDAP_AUTOCONF_H */
 /* end of reldap_autoconf.h.post */])
 
@@ -711,8 +717,12 @@ PERL_RDIR=
 SQL_LIBS=
 SQL_INCLUDES=
 
-SASL_LIBS=
 TLS_LIBS=
+TLS_CFLAGS=
+TLS_FALLBACK_LIBS=
+TLS_FALLBACK_CFLAGS=
+
+SASL_LIBS=
 SLAPI_LIBS=
 AUTH_LIBS=
 
@@ -1118,108 +1128,122 @@ fi
 dnl ----------------------------------------------------------------
 dnl TLS/SSL
 
-if test $ol_with_tls = yes ; then
-	ol_with_tls=auto
+PKG_CHECK_MODULES(OPENSSL, [openssl libssl], openssl_found=yes, openssl_found=no)
+AC_SUBST(OPENSSL_LIBS)
+AC_SUBST(OPENSSL_CFLAGS)
+AM_CONDITIONAL([OPENSSL_AVAIL], [test $openssl_found = yes])
+if test $openssl_found = yes; then
+    AC_DEFINE(HAVE_OPENSSL, 1, [define if you have OpenSSL])
+    AC_CHECK_HEADERS(openssl/ssl.h)
+    AC_CHECK_HEADERS(ssl.h)
 fi
 
-ol_link_tls=no
-if test $ol_with_tls = openssl || test $ol_with_tls = auto ; then
-#	PKG_CHECK_MODULES(CRYPTO, libcrypto libssl, ssl_found=yes, ssl_found=no)
-#	AC_SUBST(CRYPTO_LIBS)
-#	AC_SUBST(CRYPTO_CFLAGS)
+PKG_CHECK_MODULES(GNUTLS, [gnutls >= 2.12], gnutls_found=yes, gnutls_found=no)
+AC_SUBST(GNUTLS_LIBS)
+AC_SUBST(GNUTLS_CFLAGS)
+AM_CONDITIONAL([GNUTLS_AVAIL], [test $gnutls_found = yes])
+if test $gnutls_found = yes; then
+    AC_DEFINE(HAVE_GNUTLS, 1, [define if you have GnuTLS])
+    AC_CHECK_HEADERS(gnutls/gnutls.h)
+fi
 
-	AC_CHECK_HEADERS(openssl/ssl.h)
+PKG_CHECK_MODULES(MOZNSS, [nss nspr], [moznss_found=yes], [moznss_found=no])
+AC_SUBST(MOZNSS_LIBS)
+AC_SUBST(MOZNSS_CFLAGS)
+AM_CONDITIONAL([MOZNSS_AVAIL], [test $moznss_found = yes])
+if test $moznss_found = yes; then
+    AC_DEFINE(HAVE_MOZNSS, 1, [define if you have Mozill NSS])
+fi
 
-	if test $ac_cv_header_openssl_ssl_h = yes ; then
-		AC_CHECK_LIB(ssl, SSL_library_init,
-			[have_openssl=yes
-			need_rsaref=no], [have_openssl=no],
-			[-lcrypto])
+AM_CONDITIONAL([TLS_FALLBACK_AVAIL], [test $gnutls_found = yes -o $openssl_found = yes])
 
-		if test $have_openssl = no ; then
-			AC_CHECK_LIB(ssl, ssl3_accept,
-				[have_openssl=yes
-				need_rsaref=yes], [have_openssl=no],
-				[-lcrypto -lRSAglue -lrsaref])
-		fi
+if test $ol_with_tls = yes -o $ol_with_tls = auto; then
+    if test $moznss_found = yes; then
+	ol_with_tls=moznss
+    elif test $gnutls_found = yes; then
+	ol_with_tls=gnutls
+    elif test $openssl_found = yes; then
+	ol_with_tls=openssl
+    elif test $ol_with_tls = auto; then
+	AC_MSG_WARN([TLS data protection not supported!])
+	ol_with_tls=no
+    else
+	AC_MSG_FAILURE([Not found Mozilla NSS, OpenSSL or GnuTLS for --with-tls=yes])
+    fi
+fi
 
-		if test $have_openssl = yes ; then
-			ol_with_tls=openssl
-			ol_link_tls=yes
-
-			AC_DEFINE(HAVE_OPENSSL, 1,
-				[define if you have OpenSSL])
-
-			if test $need_rsaref = yes; then
-				AC_DEFINE(HAVE_RSAREF, 1,
-					[define if OpenSSL needs RSAref])
-
-				TLS_LIBS="-lssl -lcrypto -lRSAglue -lrsaref"
-			else
-				TLS_LIBS="-lssl -lcrypto"
-			fi
-
-			OL_SSL_COMPAT
-			if test $ol_cv_ssl_crl_compat = yes ; then
-				AC_DEFINE(HAVE_OPENSSL_CRL, 1,
-					[define if you have OpenSSL with CRL checking capability])
-			fi
-		fi
+case $ol_with_tls in
+    no)
+	ol_link_tls=no
+	AC_DEFINE(RELDAP_TLS, RELDAP_TLS_NONE, [configured TLS/SSL support])
+	if test $gnutls_found = yes; then
+		AC_DEFINE(RELDAP_TLS_FALLBACK, RELDAP_TLS_GNUTLS, [fallback TLS/SSL support])
+		TLS_FALLBACK_LIBS="$GNUTLS_LIBS"
+		TLS_FALLBACK_CFLAGS="$GNUTLS_CFLAGS"
+	elif test $openssl_found = yes; then
+		AC_DEFINE(RELDAP_TLS_FALLBACK, RELDAP_TLS_OPENSSL, [fallback TLS/SSL support])
+		TLS_FALLBACK_LIBS="$OPENSSL_LIBS"
+		TLS_FALLBACK_CFLAGS="$OPENSSL_CFLAGS"
+	else
+		AC_DEFINE(RELDAP_TLS_FALLBACK, RELDAP_TLS_NONE, [fallback TLS/SSL support])
 	fi
-fi
-
-if test $ol_link_tls = no ; then
-	if test $ol_with_tls = gnutls || test $ol_with_tls = auto ; then
-		AC_CHECK_HEADERS(gnutls/gnutls.h)
-
-		if test $ac_cv_header_gnutls_gnutls_h = yes ; then
-			AC_PREPROC_IFELSE([AC_LANG_SOURCE(
-				[[#include <gnutls/gnutls.h>]
-[#if GNUTLS_VERSION_NUMBER < 0x020c00]
-[#error "GnuTLS 2.12.0 or newer required"]
-[#endif]])],
-				, [AC_MSG_FAILURE([GnuTLS is too old])])
-
-			AC_CHECK_LIB(gnutls, gnutls_init,
-				[have_gnutls=yes], [have_gnutls=no])
-
-			if test $have_gnutls = yes ; then
-				ol_with_tls=gnutls
-				ol_link_tls=yes
-
-				TLS_LIBS="-lgnutls"
-
-				AC_DEFINE(HAVE_GNUTLS, 1,
-					[define if you have GNUtls])
-			fi
-		fi
+	;;
+    moznss)
+	ol_link_tls=yes
+	TLS_LIBS="$MOZNSS_LIBS"
+	TLS_CFLAGS="$MOZNSS_CFLAGS"
+	AC_DEFINE(RELDAP_TLS, RELDAP_TLS_MOZNSS, [configured TLS/SSL support])
+	if test $gnutls_found = yes; then
+		AC_DEFINE(RELDAP_TLS_FALLBACK, RELDAP_TLS_GNUTLS, [fallback TLS/SSL support])
+		TLS_FALLBACK_LIBS="$GNUTLS_LIBS"
+		TLS_FALLBACK_CFLAGS="$GNUTLS_CFLAGS"
+	elif test $openssl_found = yes; then
+		AC_DEFINE(RELDAP_TLS_FALLBACK, RELDAP_TLS_OPENSSL, [fallback TLS/SSL support])
+		TLS_FALLBACK_LIBS="$OPENSSL_LIBS"
+		TLS_FALLBACK_CFLAGS="$OPENSSL_CFLAGS"
+	else
+		AC_DEFINE(RELDAP_TLS_FALLBACK, RELDAP_TLS_NONE, [fallback TLS/SSL support])
 	fi
-fi
-
-if test $ol_link_tls = no ; then
-	if test $ol_with_tls = moznss || test $ol_with_tls = auto ; then
-		PKG_CHECK_MODULES(MOZNSS, [nss nspr], [have_moznss=yes], [have_moznss=no])
-		if test $have_moznss = yes ; then
-			ol_with_tls=moznss
-			ol_link_tls=yes
-			AC_DEFINE(HAVE_MOZNSS, 1, [define if you have MozNSS])
-			TLS_LIBS="$MOZNSS_LIBS"
-			CFLAGS="$CFLAGS $MOZNSS_CFLAGS"
-		fi
+	;;
+    gnutls)
+	#AC_PREPROC_IFELSE([AC_LANG_SOURCE(
+	#	[[#include <gnutls/gnutls.h>]
+	#	[#if GNUTLS_VERSION_NUMBER < 0x020c00]
+	#	[#error "GnuTLS 2.12.0 or newer required"]
+	#	[#endif]])],
+	#	    , [AC_MSG_FAILURE([GnuTLS is too old])])
+	ol_link_tls=yes
+	AC_DEFINE(RELDAP_TLS, RELDAP_TLS_GNUTLS, [configured TLS/SSL support])
+	AC_DEFINE(RELDAP_TLS_FALLBACK, RELDAP_TLS_GNUTLS, [fallback TLS/SSL support])
+	TLS_LIBS="$GNUTLS_LIBS"
+	TLS_CFLAGS="$GNUTLS_CFLAGS"
+	TLS_FALLBACK_LIBS="$GNUTLS_LIBS"
+	TLS_FALLBACK_CFLAGS="$GNUTLS_CFLAGS"
+	;;
+    openssl)
+	ol_link_tls=yes
+	OL_SSL_COMPAT
+	if test $ol_cv_ssl_crl_compat = yes ; then
+		AC_DEFINE(HAVE_OPENSSL_CRL, 1,
+			[define if you have OpenSSL with CRL checking USE_OPENSSLcapability])
 	fi
-fi
+	AC_DEFINE(RELDAP_TLS, RELDAP_TLS_OPENSSL, [configured TLS/SSL support])
+	AC_DEFINE(RELDAP_TLS_FALLBACK, RELDAP_TLS_OPENSSL, [fallback TLS/SSL support])
+	TLS_LIBS="$OPENSSL_LIBS"
+	TLS_CFLAGS="$OPENSSL_CFLAGS"
+	TLS_FALLBACK_LIBS="$OPENSSL_LIBS"
+	TLS_FALLBACK_CFLAGS="$OPENSSL_CFLAGS"
+	;;
+    *)
+	AC_MSG_FAILURE([invalid --with-tls value '$ol_with_tls'])
+	;;
+esac
 
 WITH_TLS=no
 if test $ol_link_tls = yes ; then
-	AC_DEFINE(HAVE_TLS, 1, [define if you have TLS])
+	AC_DEFINE(WITH_TLS, 1, [define if you enabled TLS])
 	WITH_TLS=yes
-elif test $ol_with_tls = auto ; then
-	AC_MSG_WARN([Could not locate TLS/SSL package])
-	AC_MSG_WARN([TLS data protection not supported!])
-elif test $ol_with_tls != no ; then
-	AC_MSG_ERROR([Could not locate TLS/SSL package])
-else
-	AC_MSG_WARN([TLS data protection not supported!])
+	CFLAGS="$CFLAGS $TLS_CFLAGS"
 fi
 
 dnl ----------------------------------------------------------------
@@ -2742,9 +2766,6 @@ AC_SUBST(WITH_TLS)
 AC_SUBST(WITH_ACI_ENABLED)
 
 AM_CONDITIONAL([TLS_ENABLED], [test $ol_link_tls = yes])
-AM_CONDITIONAL([TLS_OPENSSL], [test $ol_with_tls = openssl])
-AM_CONDITIONAL([TLS_GNUTLS], [test $ol_with_tls = gnutls])
-AM_CONDITIONAL([TLS_MOZNSS], [test $ol_with_tls = moznss])
 
 if test $enable_shared = yes; then
 	AC_DEFINE(RELDAP_LIBS_SHARED,1,[--enable-shared=yes])
@@ -2931,8 +2952,12 @@ AC_SUBST(PERL_RDIR)
 AC_SUBST(SQL_LIBS)
 AC_SUBST(SQL_INCLUDES)
 
-AC_SUBST(SASL_LIBS)
 AC_SUBST(TLS_LIBS)
+AC_SUBST(TLS_CFLAGS)
+AC_SUBST(TLS_FALLBACK_LIBS)
+AC_SUBST(TLS_FALLBACK_CFLAGS)
+
+AC_SUBST(SASL_LIBS)
 AC_SUBST(SLAPI_LIBS)
 AC_SUBST(AUTH_LIBS)
 #AC_SUBST(ICU_LIBS)

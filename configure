@@ -673,8 +673,11 @@ SLAPD_GMP_LIBS
 SLAPD_SLP_LIBS
 AUTH_LIBS
 SLAPI_LIBS
-TLS_LIBS
 SASL_LIBS
+TLS_FALLBACK_CFLAGS
+TLS_FALLBACK_LIBS
+TLS_CFLAGS
+TLS_LIBS
 SQL_INCLUDES
 SQL_LIBS
 PERL_RDIR
@@ -859,12 +862,6 @@ SOELIM_R
 SOELIM
 BEHIND_CURTIAN_FALSE
 BEHIND_CURTIAN_TRUE
-TLS_MOZNSS_FALSE
-TLS_MOZNSS_TRUE
-TLS_GNUTLS_FALSE
-TLS_GNUTLS_TRUE
-TLS_OPENSSL_FALSE
-TLS_OPENSSL_TRUE
 TLS_ENABLED_FALSE
 TLS_ENABLED_TRUE
 WITH_ACI_ENABLED
@@ -877,8 +874,20 @@ PTHREAD_CFLAGS
 PTHREAD_LIBS
 PTHREAD_CC
 ax_pthread_config
+TLS_FALLBACK_AVAIL_FALSE
+TLS_FALLBACK_AVAIL_TRUE
+MOZNSS_AVAIL_FALSE
+MOZNSS_AVAIL_TRUE
 MOZNSS_LIBS
 MOZNSS_CFLAGS
+GNUTLS_AVAIL_FALSE
+GNUTLS_AVAIL_TRUE
+GNUTLS_LIBS
+GNUTLS_CFLAGS
+OPENSSL_AVAIL_FALSE
+OPENSSL_AVAIL_TRUE
+OPENSSL_LIBS
+OPENSSL_CFLAGS
 PERLBIN
 CRACKLIB_DICTPATH
 CRACKLIB_CFLAGS
@@ -1193,6 +1202,10 @@ KRB5_CFLAGS
 KRB5_LIBS
 HEIMDAL_CFLAGS
 HEIMDAL_LIBS
+OPENSSL_CFLAGS
+OPENSSL_LIBS
+GNUTLS_CFLAGS
+GNUTLS_LIBS
 MOZNSS_CFLAGS
 MOZNSS_LIBS'
 
@@ -1968,6 +1981,13 @@ Some influential environment variables:
               C compiler flags for HEIMDAL, overriding pkg-config
   HEIMDAL_LIBS
               linker flags for HEIMDAL, overriding pkg-config
+  OPENSSL_CFLAGS
+              C compiler flags for OPENSSL, overriding pkg-config
+  OPENSSL_LIBS
+              linker flags for OPENSSL, overriding pkg-config
+  GNUTLS_CFLAGS
+              C compiler flags for GNUTLS, overriding pkg-config
+  GNUTLS_LIBS linker flags for GNUTLS, overriding pkg-config
   MOZNSS_CFLAGS
               C compiler flags for MOZNSS, overriding pkg-config
   MOZNSS_LIBS linker flags for MOZNSS, overriding pkg-config
@@ -13131,7 +13151,7 @@ VERSION_PATCH=0
 
 RELEASE_DATE=2016-08-08
 
-RELEASE_STAMP=gcada295b2bac-ta2d066a116f7a1d6
+RELEASE_STAMP=g2103fa9e3ba5-t91296364ff94eca3
 
 API_LIB_RELEASE=1.2
 
@@ -22124,8 +22144,12 @@ PERL_RDIR=
 SQL_LIBS=
 SQL_INCLUDES=
 
-SASL_LIBS=
 TLS_LIBS=
+TLS_CFLAGS=
+TLS_FALLBACK_LIBS=
+TLS_FALLBACK_CFLAGS=
+
+SASL_LIBS=
 SLAPI_LIBS=
 AUTH_LIBS=
 
@@ -24469,17 +24493,92 @@ done
 fi
 
 
-if test $ol_with_tls = yes ; then
-	ol_with_tls=auto
+
+pkg_failed=no
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for OPENSSL" >&5
+$as_echo_n "checking for OPENSSL... " >&6; }
+
+if test -n "$OPENSSL_CFLAGS"; then
+    pkg_cv_OPENSSL_CFLAGS="$OPENSSL_CFLAGS"
+ elif test -n "$PKG_CONFIG"; then
+    if test -n "$PKG_CONFIG" && \
+    { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"openssl libssl\""; } >&5
+  ($PKG_CONFIG --exists --print-errors "openssl libssl") 2>&5
+  ac_status=$?
+  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+  test $ac_status = 0; }; then
+  pkg_cv_OPENSSL_CFLAGS=`$PKG_CONFIG --cflags "openssl libssl" 2>/dev/null`
+		      test "x$?" != "x0" && pkg_failed=yes
+else
+  pkg_failed=yes
+fi
+ else
+    pkg_failed=untried
+fi
+if test -n "$OPENSSL_LIBS"; then
+    pkg_cv_OPENSSL_LIBS="$OPENSSL_LIBS"
+ elif test -n "$PKG_CONFIG"; then
+    if test -n "$PKG_CONFIG" && \
+    { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"openssl libssl\""; } >&5
+  ($PKG_CONFIG --exists --print-errors "openssl libssl") 2>&5
+  ac_status=$?
+  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+  test $ac_status = 0; }; then
+  pkg_cv_OPENSSL_LIBS=`$PKG_CONFIG --libs "openssl libssl" 2>/dev/null`
+		      test "x$?" != "x0" && pkg_failed=yes
+else
+  pkg_failed=yes
+fi
+ else
+    pkg_failed=untried
 fi
 
-ol_link_tls=no
-if test $ol_with_tls = openssl || test $ol_with_tls = auto ; then
-#	PKG_CHECK_MODULES(CRYPTO, libcrypto libssl, ssl_found=yes, ssl_found=no)
-#	AC_SUBST(CRYPTO_LIBS)
-#	AC_SUBST(CRYPTO_CFLAGS)
 
-	for ac_header in openssl/ssl.h
+
+if test $pkg_failed = yes; then
+   	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+
+if $PKG_CONFIG --atleast-pkgconfig-version 0.20; then
+        _pkg_short_errors_supported=yes
+else
+        _pkg_short_errors_supported=no
+fi
+        if test $_pkg_short_errors_supported = yes; then
+	        OPENSSL_PKG_ERRORS=`$PKG_CONFIG --short-errors --print-errors --cflags --libs "openssl libssl" 2>&1`
+        else
+	        OPENSSL_PKG_ERRORS=`$PKG_CONFIG --print-errors --cflags --libs "openssl libssl" 2>&1`
+        fi
+	# Put the nasty error message in config.log where it belongs
+	echo "$OPENSSL_PKG_ERRORS" >&5
+
+	openssl_found=no
+elif test $pkg_failed = untried; then
+     	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+	openssl_found=no
+else
+	OPENSSL_CFLAGS=$pkg_cv_OPENSSL_CFLAGS
+	OPENSSL_LIBS=$pkg_cv_OPENSSL_LIBS
+        { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
+	openssl_found=yes
+fi
+
+
+ if test $openssl_found = yes; then
+  OPENSSL_AVAIL_TRUE=
+  OPENSSL_AVAIL_FALSE='#'
+else
+  OPENSSL_AVAIL_TRUE='#'
+  OPENSSL_AVAIL_FALSE=
+fi
+
+if test $openssl_found = yes; then
+
+$as_echo "#define HAVE_OPENSSL 1" >>confdefs.h
+
+    for ac_header in openssl/ssl.h
 do :
   ac_fn_c_check_header_mongrel "$LINENO" "openssl/ssl.h" "ac_cv_header_openssl_ssl_h" "$ac_includes_default"
 if test "x$ac_cv_header_openssl_ssl_h" = xyes; then :
@@ -24491,159 +24590,106 @@ fi
 
 done
 
-
-	if test $ac_cv_header_openssl_ssl_h = yes ; then
-		{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for SSL_library_init in -lssl" >&5
-$as_echo_n "checking for SSL_library_init in -lssl... " >&6; }
-if ${ac_cv_lib_ssl_SSL_library_init+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-  ac_check_lib_save_LIBS=$LIBS
-LIBS="-lssl -lcrypto $LIBS"
-cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-/* Override any GCC internal prototype to avoid an error.
-   Use char because int might match the return type of a GCC
-   builtin and then its argument prototype would still apply.  */
-#ifdef __cplusplus
-extern "C"
-#endif
-char SSL_library_init ();
-int
-main ()
-{
-return SSL_library_init ();
-  ;
-  return 0;
-}
+    for ac_header in ssl.h
+do :
+  ac_fn_c_check_header_mongrel "$LINENO" "ssl.h" "ac_cv_header_ssl_h" "$ac_includes_default"
+if test "x$ac_cv_header_ssl_h" = xyes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_SSL_H 1
 _ACEOF
-if ac_fn_c_try_link "$LINENO"; then :
-  ac_cv_lib_ssl_SSL_library_init=yes
+
+fi
+
+done
+
+fi
+
+
+pkg_failed=no
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for GNUTLS" >&5
+$as_echo_n "checking for GNUTLS... " >&6; }
+
+if test -n "$GNUTLS_CFLAGS"; then
+    pkg_cv_GNUTLS_CFLAGS="$GNUTLS_CFLAGS"
+ elif test -n "$PKG_CONFIG"; then
+    if test -n "$PKG_CONFIG" && \
+    { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"gnutls >= 2.12\""; } >&5
+  ($PKG_CONFIG --exists --print-errors "gnutls >= 2.12") 2>&5
+  ac_status=$?
+  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+  test $ac_status = 0; }; then
+  pkg_cv_GNUTLS_CFLAGS=`$PKG_CONFIG --cflags "gnutls >= 2.12" 2>/dev/null`
+		      test "x$?" != "x0" && pkg_failed=yes
 else
-  ac_cv_lib_ssl_SSL_library_init=no
+  pkg_failed=yes
 fi
-rm -f core conftest.err conftest.$ac_objext \
-    conftest$ac_exeext conftest.$ac_ext
-LIBS=$ac_check_lib_save_LIBS
+ else
+    pkg_failed=untried
 fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_ssl_SSL_library_init" >&5
-$as_echo "$ac_cv_lib_ssl_SSL_library_init" >&6; }
-if test "x$ac_cv_lib_ssl_SSL_library_init" = xyes; then :
-  have_openssl=yes
-			need_rsaref=no
+if test -n "$GNUTLS_LIBS"; then
+    pkg_cv_GNUTLS_LIBS="$GNUTLS_LIBS"
+ elif test -n "$PKG_CONFIG"; then
+    if test -n "$PKG_CONFIG" && \
+    { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"gnutls >= 2.12\""; } >&5
+  ($PKG_CONFIG --exists --print-errors "gnutls >= 2.12") 2>&5
+  ac_status=$?
+  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+  test $ac_status = 0; }; then
+  pkg_cv_GNUTLS_LIBS=`$PKG_CONFIG --libs "gnutls >= 2.12" 2>/dev/null`
+		      test "x$?" != "x0" && pkg_failed=yes
 else
-  have_openssl=no
+  pkg_failed=yes
+fi
+ else
+    pkg_failed=untried
 fi
 
 
-		if test $have_openssl = no ; then
-			{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for ssl3_accept in -lssl" >&5
-$as_echo_n "checking for ssl3_accept in -lssl... " >&6; }
-if ${ac_cv_lib_ssl_ssl3_accept+:} false; then :
-  $as_echo_n "(cached) " >&6
+
+if test $pkg_failed = yes; then
+   	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+
+if $PKG_CONFIG --atleast-pkgconfig-version 0.20; then
+        _pkg_short_errors_supported=yes
 else
-  ac_check_lib_save_LIBS=$LIBS
-LIBS="-lssl -lcrypto -lRSAglue -lrsaref $LIBS"
-cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
+        _pkg_short_errors_supported=no
+fi
+        if test $_pkg_short_errors_supported = yes; then
+	        GNUTLS_PKG_ERRORS=`$PKG_CONFIG --short-errors --print-errors --cflags --libs "gnutls >= 2.12" 2>&1`
+        else
+	        GNUTLS_PKG_ERRORS=`$PKG_CONFIG --print-errors --cflags --libs "gnutls >= 2.12" 2>&1`
+        fi
+	# Put the nasty error message in config.log where it belongs
+	echo "$GNUTLS_PKG_ERRORS" >&5
 
-/* Override any GCC internal prototype to avoid an error.
-   Use char because int might match the return type of a GCC
-   builtin and then its argument prototype would still apply.  */
-#ifdef __cplusplus
-extern "C"
-#endif
-char ssl3_accept ();
-int
-main ()
-{
-return ssl3_accept ();
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_link "$LINENO"; then :
-  ac_cv_lib_ssl_ssl3_accept=yes
+	gnutls_found=no
+elif test $pkg_failed = untried; then
+     	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+	gnutls_found=no
 else
-  ac_cv_lib_ssl_ssl3_accept=no
+	GNUTLS_CFLAGS=$pkg_cv_GNUTLS_CFLAGS
+	GNUTLS_LIBS=$pkg_cv_GNUTLS_LIBS
+        { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
+	gnutls_found=yes
 fi
-rm -f core conftest.err conftest.$ac_objext \
-    conftest$ac_exeext conftest.$ac_ext
-LIBS=$ac_check_lib_save_LIBS
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_ssl_ssl3_accept" >&5
-$as_echo "$ac_cv_lib_ssl_ssl3_accept" >&6; }
-if test "x$ac_cv_lib_ssl_ssl3_accept" = xyes; then :
-  have_openssl=yes
-				need_rsaref=yes
+
+
+ if test $gnutls_found = yes; then
+  GNUTLS_AVAIL_TRUE=
+  GNUTLS_AVAIL_FALSE='#'
 else
-  have_openssl=no
+  GNUTLS_AVAIL_TRUE='#'
+  GNUTLS_AVAIL_FALSE=
 fi
 
-		fi
+if test $gnutls_found = yes; then
 
-		if test $have_openssl = yes ; then
-			ol_with_tls=openssl
-			ol_link_tls=yes
+$as_echo "#define HAVE_GNUTLS 1" >>confdefs.h
 
-
-$as_echo "#define HAVE_OPENSSL 1" >>confdefs.h
-
-
-			if test $need_rsaref = yes; then
-
-$as_echo "#define HAVE_RSAREF 1" >>confdefs.h
-
-
-				TLS_LIBS="-lssl -lcrypto -lRSAglue -lrsaref"
-			else
-				TLS_LIBS="-lssl -lcrypto"
-			fi
-
-			{ $as_echo "$as_me:${as_lineno-$LINENO}: checking OpenSSL library version (CRL checking capability)" >&5
-$as_echo_n "checking OpenSSL library version (CRL checking capability)... " >&6; }
-if ${ol_cv_ssl_crl_compat+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-
-		cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-#ifdef HAVE_OPENSSL_SSL_H
-#include <openssl/ssl.h>
-#endif
-
-/* Require 0.9.7d+ */
-#if OPENSSL_VERSION_NUMBER >= 0x0090704fL
-	char *__ssl_compat = "0.9.7d";
-#endif
-
-_ACEOF
-if (eval "$ac_cpp conftest.$ac_ext") 2>&5 |
-  $EGREP "__ssl_compat" >/dev/null 2>&1; then :
-  ol_cv_ssl_crl_compat=yes
-else
-  ol_cv_ssl_crl_compat=no
-fi
-rm -f conftest*
-
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ol_cv_ssl_crl_compat" >&5
-$as_echo "$ol_cv_ssl_crl_compat" >&6; }
-
-			if test $ol_cv_ssl_crl_compat = yes ; then
-
-$as_echo "#define HAVE_OPENSSL_CRL 1" >>confdefs.h
-
-			fi
-		fi
-	fi
-fi
-
-if test $ol_link_tls = no ; then
-	if test $ol_with_tls = gnutls || test $ol_with_tls = auto ; then
-		for ac_header in gnutls/gnutls.h
+    for ac_header in gnutls/gnutls.h
 do :
   ac_fn_c_check_header_mongrel "$LINENO" "gnutls/gnutls.h" "ac_cv_header_gnutls_gnutls_h" "$ac_includes_default"
 if test "x$ac_cv_header_gnutls_gnutls_h" = xyes; then :
@@ -24655,84 +24701,8 @@ fi
 
 done
 
-
-		if test $ac_cv_header_gnutls_gnutls_h = yes ; then
-			cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-#include <gnutls/gnutls.h>
-#if GNUTLS_VERSION_NUMBER < 0x020c00
-#error "GnuTLS 2.12.0 or newer required"
-#endif
-_ACEOF
-if ac_fn_c_try_cpp "$LINENO"; then :
-
-else
-  { { $as_echo "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
-$as_echo "$as_me: error: in \`$ac_pwd':" >&2;}
-as_fn_error $? "GnuTLS is too old
-See \`config.log' for more details" "$LINENO" 5; }
-fi
-rm -f conftest.err conftest.i conftest.$ac_ext
-
-			{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for gnutls_init in -lgnutls" >&5
-$as_echo_n "checking for gnutls_init in -lgnutls... " >&6; }
-if ${ac_cv_lib_gnutls_gnutls_init+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-  ac_check_lib_save_LIBS=$LIBS
-LIBS="-lgnutls  $LIBS"
-cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-/* Override any GCC internal prototype to avoid an error.
-   Use char because int might match the return type of a GCC
-   builtin and then its argument prototype would still apply.  */
-#ifdef __cplusplus
-extern "C"
-#endif
-char gnutls_init ();
-int
-main ()
-{
-return gnutls_init ();
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_link "$LINENO"; then :
-  ac_cv_lib_gnutls_gnutls_init=yes
-else
-  ac_cv_lib_gnutls_gnutls_init=no
-fi
-rm -f core conftest.err conftest.$ac_objext \
-    conftest$ac_exeext conftest.$ac_ext
-LIBS=$ac_check_lib_save_LIBS
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_gnutls_gnutls_init" >&5
-$as_echo "$ac_cv_lib_gnutls_gnutls_init" >&6; }
-if test "x$ac_cv_lib_gnutls_gnutls_init" = xyes; then :
-  have_gnutls=yes
-else
-  have_gnutls=no
 fi
 
-
-			if test $have_gnutls = yes ; then
-				ol_with_tls=gnutls
-				ol_link_tls=yes
-
-				TLS_LIBS="-lgnutls"
-
-
-$as_echo "#define HAVE_GNUTLS 1" >>confdefs.h
-
-			fi
-		fi
-	fi
-fi
-
-if test $ol_link_tls = no ; then
-	if test $ol_with_tls = moznss || test $ol_with_tls = auto ; then
 
 pkg_failed=no
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for MOZNSS" >&5
@@ -24792,46 +24762,194 @@ fi
 	# Put the nasty error message in config.log where it belongs
 	echo "$MOZNSS_PKG_ERRORS" >&5
 
-	have_moznss=no
+	moznss_found=no
 elif test $pkg_failed = untried; then
      	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
-	have_moznss=no
+	moznss_found=no
 else
 	MOZNSS_CFLAGS=$pkg_cv_MOZNSS_CFLAGS
 	MOZNSS_LIBS=$pkg_cv_MOZNSS_LIBS
         { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
 $as_echo "yes" >&6; }
-	have_moznss=yes
+	moznss_found=yes
 fi
-		if test $have_moznss = yes ; then
-			ol_with_tls=moznss
-			ol_link_tls=yes
+
+
+ if test $moznss_found = yes; then
+  MOZNSS_AVAIL_TRUE=
+  MOZNSS_AVAIL_FALSE='#'
+else
+  MOZNSS_AVAIL_TRUE='#'
+  MOZNSS_AVAIL_FALSE=
+fi
+
+if test $moznss_found = yes; then
 
 $as_echo "#define HAVE_MOZNSS 1" >>confdefs.h
 
-			TLS_LIBS="$MOZNSS_LIBS"
-			CFLAGS="$CFLAGS $MOZNSS_CFLAGS"
-		fi
-	fi
 fi
+
+ if test $gnutls_found = yes -o $openssl_found = yes; then
+  TLS_FALLBACK_AVAIL_TRUE=
+  TLS_FALLBACK_AVAIL_FALSE='#'
+else
+  TLS_FALLBACK_AVAIL_TRUE='#'
+  TLS_FALLBACK_AVAIL_FALSE=
+fi
+
+
+if test $ol_with_tls = yes -o $ol_with_tls = auto; then
+    if test $moznss_found = yes; then
+	ol_with_tls=moznss
+    elif test $gnutls_found = yes; then
+	ol_with_tls=gnutls
+    elif test $openssl_found = yes; then
+	ol_with_tls=openssl
+    elif test $ol_with_tls = auto; then
+	{ $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: TLS data protection not supported!" >&5
+$as_echo "$as_me: WARNING: TLS data protection not supported!" >&2;}
+	ol_with_tls=no
+    else
+	{ { $as_echo "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
+$as_echo "$as_me: error: in \`$ac_pwd':" >&2;}
+as_fn_error $? "Not found Mozilla NSS, OpenSSL or GnuTLS for --with-tls=yes
+See \`config.log' for more details" "$LINENO" 5; }
+    fi
+fi
+
+case $ol_with_tls in
+    no)
+	ol_link_tls=no
+
+$as_echo "#define RELDAP_TLS RELDAP_TLS_NONE" >>confdefs.h
+
+	if test $gnutls_found = yes; then
+
+$as_echo "#define RELDAP_TLS_FALLBACK RELDAP_TLS_GNUTLS" >>confdefs.h
+
+		TLS_FALLBACK_LIBS="$GNUTLS_LIBS"
+		TLS_FALLBACK_CFLAGS="$GNUTLS_CFLAGS"
+	elif test $openssl_found = yes; then
+
+$as_echo "#define RELDAP_TLS_FALLBACK RELDAP_TLS_OPENSSL" >>confdefs.h
+
+		TLS_FALLBACK_LIBS="$OPENSSL_LIBS"
+		TLS_FALLBACK_CFLAGS="$OPENSSL_CFLAGS"
+	else
+
+$as_echo "#define RELDAP_TLS_FALLBACK RELDAP_TLS_NONE" >>confdefs.h
+
+	fi
+	;;
+    moznss)
+	ol_link_tls=yes
+	TLS_LIBS="$MOZNSS_LIBS"
+	TLS_CFLAGS="$MOZNSS_CFLAGS"
+
+$as_echo "#define RELDAP_TLS RELDAP_TLS_MOZNSS" >>confdefs.h
+
+	if test $gnutls_found = yes; then
+
+$as_echo "#define RELDAP_TLS_FALLBACK RELDAP_TLS_GNUTLS" >>confdefs.h
+
+		TLS_FALLBACK_LIBS="$GNUTLS_LIBS"
+		TLS_FALLBACK_CFLAGS="$GNUTLS_CFLAGS"
+	elif test $openssl_found = yes; then
+
+$as_echo "#define RELDAP_TLS_FALLBACK RELDAP_TLS_OPENSSL" >>confdefs.h
+
+		TLS_FALLBACK_LIBS="$OPENSSL_LIBS"
+		TLS_FALLBACK_CFLAGS="$OPENSSL_CFLAGS"
+	else
+
+$as_echo "#define RELDAP_TLS_FALLBACK RELDAP_TLS_NONE" >>confdefs.h
+
+	fi
+	;;
+    gnutls)
+	#AC_PREPROC_IFELSE([AC_LANG_SOURCE(
+	#	[[#include <gnutls/gnutls.h>]
+	#	[#if GNUTLS_VERSION_NUMBER < 0x020c00]
+	#	[#error "GnuTLS 2.12.0 or newer required"]
+	#	[#endif]])],
+	#	    , [AC_MSG_FAILURE([GnuTLS is too old])])
+	ol_link_tls=yes
+
+$as_echo "#define RELDAP_TLS RELDAP_TLS_GNUTLS" >>confdefs.h
+
+
+$as_echo "#define RELDAP_TLS_FALLBACK RELDAP_TLS_GNUTLS" >>confdefs.h
+
+	TLS_LIBS="$GNUTLS_LIBS"
+	TLS_CFLAGS="$GNUTLS_CFLAGS"
+	TLS_FALLBACK_LIBS="$GNUTLS_LIBS"
+	TLS_FALLBACK_CFLAGS="$GNUTLS_CFLAGS"
+	;;
+    openssl)
+	ol_link_tls=yes
+	{ $as_echo "$as_me:${as_lineno-$LINENO}: checking OpenSSL library version (CRL checking capability)" >&5
+$as_echo_n "checking OpenSSL library version (CRL checking capability)... " >&6; }
+if ${ol_cv_ssl_crl_compat+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+
+		cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+#ifdef HAVE_OPENSSL_SSL_H
+#include <openssl/ssl.h>
+#endif
+
+/* Require 0.9.7d+ */
+#if OPENSSL_VERSION_NUMBER >= 0x0090704fL
+	char *__ssl_compat = "0.9.7d";
+#endif
+
+_ACEOF
+if (eval "$ac_cpp conftest.$ac_ext") 2>&5 |
+  $EGREP "__ssl_compat" >/dev/null 2>&1; then :
+  ol_cv_ssl_crl_compat=yes
+else
+  ol_cv_ssl_crl_compat=no
+fi
+rm -f conftest*
+
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ol_cv_ssl_crl_compat" >&5
+$as_echo "$ol_cv_ssl_crl_compat" >&6; }
+
+	if test $ol_cv_ssl_crl_compat = yes ; then
+
+$as_echo "#define HAVE_OPENSSL_CRL 1" >>confdefs.h
+
+	fi
+
+$as_echo "#define RELDAP_TLS RELDAP_TLS_OPENSSL" >>confdefs.h
+
+
+$as_echo "#define RELDAP_TLS_FALLBACK RELDAP_TLS_OPENSSL" >>confdefs.h
+
+	TLS_LIBS="$OPENSSL_LIBS"
+	TLS_CFLAGS="$OPENSSL_CFLAGS"
+	TLS_FALLBACK_LIBS="$OPENSSL_LIBS"
+	TLS_FALLBACK_CFLAGS="$OPENSSL_CFLAGS"
+	;;
+    *)
+	{ { $as_echo "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
+$as_echo "$as_me: error: in \`$ac_pwd':" >&2;}
+as_fn_error $? "invalid --with-tls value '$ol_with_tls'
+See \`config.log' for more details" "$LINENO" 5; }
+	;;
+esac
 
 WITH_TLS=no
 if test $ol_link_tls = yes ; then
 
-$as_echo "#define HAVE_TLS 1" >>confdefs.h
+$as_echo "#define WITH_TLS 1" >>confdefs.h
 
 	WITH_TLS=yes
-elif test $ol_with_tls = auto ; then
-	{ $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: Could not locate TLS/SSL package" >&5
-$as_echo "$as_me: WARNING: Could not locate TLS/SSL package" >&2;}
-	{ $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: TLS data protection not supported!" >&5
-$as_echo "$as_me: WARNING: TLS data protection not supported!" >&2;}
-elif test $ol_with_tls != no ; then
-	as_fn_error $? "Could not locate TLS/SSL package" "$LINENO" 5
-else
-	{ $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: TLS data protection not supported!" >&5
-$as_echo "$as_me: WARNING: TLS data protection not supported!" >&2;}
+	CFLAGS="$CFLAGS $TLS_CFLAGS"
 fi
 
 if test $ol_enable_lmpasswd != no; then
@@ -33561,30 +33679,6 @@ else
   TLS_ENABLED_FALSE=
 fi
 
- if test $ol_with_tls = openssl; then
-  TLS_OPENSSL_TRUE=
-  TLS_OPENSSL_FALSE='#'
-else
-  TLS_OPENSSL_TRUE='#'
-  TLS_OPENSSL_FALSE=
-fi
-
- if test $ol_with_tls = gnutls; then
-  TLS_GNUTLS_TRUE=
-  TLS_GNUTLS_FALSE='#'
-else
-  TLS_GNUTLS_TRUE='#'
-  TLS_GNUTLS_FALSE=
-fi
-
- if test $ol_with_tls = moznss; then
-  TLS_MOZNSS_TRUE=
-  TLS_MOZNSS_FALSE='#'
-else
-  TLS_MOZNSS_TRUE='#'
-  TLS_MOZNSS_FALSE=
-fi
-
 
 if test $enable_shared = yes; then
 
@@ -34390,6 +34484,10 @@ fi
 
 
 
+
+
+
+
 #AC_SUBST(ICU_LIBS)
 
 
@@ -34639,21 +34737,25 @@ if test -z "${HEIMDAL_AVAIL_TRUE}" && test -z "${HEIMDAL_AVAIL_FALSE}"; then
   as_fn_error $? "conditional \"HEIMDAL_AVAIL\" was never defined.
 Usually this means the macro was only invoked conditionally." "$LINENO" 5
 fi
+if test -z "${OPENSSL_AVAIL_TRUE}" && test -z "${OPENSSL_AVAIL_FALSE}"; then
+  as_fn_error $? "conditional \"OPENSSL_AVAIL\" was never defined.
+Usually this means the macro was only invoked conditionally." "$LINENO" 5
+fi
+if test -z "${GNUTLS_AVAIL_TRUE}" && test -z "${GNUTLS_AVAIL_FALSE}"; then
+  as_fn_error $? "conditional \"GNUTLS_AVAIL\" was never defined.
+Usually this means the macro was only invoked conditionally." "$LINENO" 5
+fi
+if test -z "${MOZNSS_AVAIL_TRUE}" && test -z "${MOZNSS_AVAIL_FALSE}"; then
+  as_fn_error $? "conditional \"MOZNSS_AVAIL\" was never defined.
+Usually this means the macro was only invoked conditionally." "$LINENO" 5
+fi
+if test -z "${TLS_FALLBACK_AVAIL_TRUE}" && test -z "${TLS_FALLBACK_AVAIL_FALSE}"; then
+  as_fn_error $? "conditional \"TLS_FALLBACK_AVAIL\" was never defined.
+Usually this means the macro was only invoked conditionally." "$LINENO" 5
+fi
 
 if test -z "${TLS_ENABLED_TRUE}" && test -z "${TLS_ENABLED_FALSE}"; then
   as_fn_error $? "conditional \"TLS_ENABLED\" was never defined.
-Usually this means the macro was only invoked conditionally." "$LINENO" 5
-fi
-if test -z "${TLS_OPENSSL_TRUE}" && test -z "${TLS_OPENSSL_FALSE}"; then
-  as_fn_error $? "conditional \"TLS_OPENSSL\" was never defined.
-Usually this means the macro was only invoked conditionally." "$LINENO" 5
-fi
-if test -z "${TLS_GNUTLS_TRUE}" && test -z "${TLS_GNUTLS_FALSE}"; then
-  as_fn_error $? "conditional \"TLS_GNUTLS\" was never defined.
-Usually this means the macro was only invoked conditionally." "$LINENO" 5
-fi
-if test -z "${TLS_MOZNSS_TRUE}" && test -z "${TLS_MOZNSS_FALSE}"; then
-  as_fn_error $? "conditional \"TLS_MOZNSS\" was never defined.
 Usually this means the macro was only invoked conditionally." "$LINENO" 5
 fi
 if test -z "${BEHIND_CURTIAN_TRUE}" && test -z "${BEHIND_CURTIAN_FALSE}"; then

@@ -756,7 +756,7 @@ unhandled_option:;
 	extops_init();
 	lutil_passwd_init();
 
-#ifdef HAVE_TLS
+#ifdef WITH_TLS
 	rc = ldap_create( &slap_tls_ld );
 	if ( rc ) {
 		goto destroy;
@@ -836,7 +836,7 @@ unhandled_option:;
 		goto destroy;
 	}
 
-#ifdef HAVE_TLS
+#ifdef WITH_TLS
 	rc = ldap_pvt_tls_init();
 	if( rc != 0) {
 		Debug( LDAP_DEBUG_ANY,
@@ -1030,7 +1030,7 @@ stop:
 
 	lutil_passwd_destroy();
 
-#ifdef HAVE_TLS
+#ifdef WITH_TLS
 	if ( slap_tls_ld ) {
 		ldap_pvt_tls_ctx_free( slap_tls_ctx );
 		ldap_unbind_ext( slap_tls_ld, NULL, NULL );

@@ -51,7 +51,7 @@
 
 #include "ldap-int.h"
 
-#ifdef HAVE_TLS
+#ifdef WITH_TLS
 
 #include "ldap-tls.h"
 
@@ -59,7 +59,7 @@ static tls_impl *tls_imp = &ldap_int_tls_impl;
 #define HAS_TLS( sb )	ber_sockbuf_ctrl( sb, LBER_SB_OPT_HAS_IO, \
 				(void *)tls_imp->ti_sbio )
 
-#endif /* HAVE_TLS */
+#endif /* WITH_TLS */
 
 #if LDAP_EXPERIMENTAL > 0
 #	define LDAP_USE_NON_BLOCKING_TLS
@@ -92,7 +92,7 @@ static oid_name oids[] = {
 	{ BER_BVNULL, BER_BVNULL }
 };
 
-#ifdef HAVE_TLS
+#ifdef WITH_TLS
 
 void
 ldap_pvt_tls_ctx_free ( void *c )
@@ -932,7 +932,7 @@ ldap_pvt_tls_get_my_dn( void *s, struct berval *dn, LDAPDN_rewrite_dummy *func, 
 		rc = ldap_X509dn2bv(&der_dn, dn, (LDAPDN_rewrite_func *)func, flags );
 	return rc;
 }
-#endif /* HAVE_TLS */
+#endif /* WITH_TLS */
 
 int
 ldap_start_tls( LDAP *ld,
@@ -947,7 +947,7 @@ ldap_start_tls( LDAP *ld,
 int
 ldap_install_tls( LDAP *ld )
 {
-#ifndef HAVE_TLS
+#ifndef WITH_TLS
 	return LDAP_NOT_SUPPORTED;
 #else
 	if ( ldap_tls_inplace( ld ) ) {
@@ -963,7 +963,7 @@ ldap_start_tls_s ( LDAP *ld,
 	LDAPControl **serverctrls,
 	LDAPControl **clientctrls )
 {
-#ifndef HAVE_TLS
+#ifndef WITH_TLS
 	return LDAP_NOT_SUPPORTED;
 #else
 	int rc;

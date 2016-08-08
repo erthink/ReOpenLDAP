@@ -52,7 +52,7 @@
 #include <ac/unistd.h>
 
 #if defined(SLAPD_LMHASH)
-#if defined(HAVE_OPENSSL)
+#if RELDAP_TLS == RELDAP_TLS_OPENSSL
 #	include <openssl/des.h>
 
 
@@ -62,7 +62,7 @@ typedef des_key_schedule des_context;
 #define des_failed(encrypted) 0
 #define des_finish(key, schedule)
 
-#elif defined(HAVE_MOZNSS)
+#elif RELDAP_TLS == RELDAP_TLS_MOZNSS
 /*
   hack hack hack
   We need to define this here so that nspr/obsolete/protypes.h will not be included

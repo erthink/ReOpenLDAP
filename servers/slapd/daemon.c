@@ -1234,7 +1234,7 @@ slap_open_listener(
 	l.sl_mute = 0;
 	l.sl_busy = 0;
 
-#ifndef HAVE_TLS
+#ifndef WITH_TLS
 	if( ldap_pvt_url_scheme2tls( lud->lud_scheme ) ) {
 		Debug( LDAP_DEBUG_ANY, "daemon: TLS not supported (%s)\n",
 			url );
@@ -1244,13 +1244,13 @@ slap_open_listener(
 
 	if(! lud->lud_port ) lud->lud_port = LDAP_PORT;
 
-#else /* HAVE_TLS */
+#else /* WITH_TLS */
 	l.sl_is_tls = ldap_pvt_url_scheme2tls( lud->lud_scheme );
 
 	if(! lud->lud_port ) {
 		lud->lud_port = l.sl_is_tls ? LDAPS_PORT : LDAP_PORT;
 	}
-#endif /* HAVE_TLS */
+#endif /* WITH_TLS */
 
 #ifdef LDAP_TCP_BUFFER
 	l.sl_tcp_rmem = 0;
@@ -1967,7 +1967,7 @@ slap_listener(
 #endif /* HAVE_TCPD */
 	}
 
-#ifdef HAVE_TLS
+#ifdef WITH_TLS
 	if ( sl->sl_is_tls ) cflag |= CONN_IS_TLS;
 #endif
 	c = connection_init(sfd, sl,

@@ -37,7 +37,7 @@
 
 #include "reldap.h"
 
-#ifdef HAVE_MOZNSS
+#if RELDAP_TLS == RELDAP_TLS_MOZNSS
 
 #include "ldap_dirs.h"
 
@@ -3411,11 +3411,4 @@ tls_impl ldap_int_tls_impl = {
 	0
 };
 
-#endif /* HAVE_MOZNSS */
-/*
-  emacs settings
-  Local Variables:
-  indent-tabs-mode: t
-  tab-width: 4
-  End:
-*/
+#endif /* RELDAP_TLS == RELDAP_TLS_MOZNSS */

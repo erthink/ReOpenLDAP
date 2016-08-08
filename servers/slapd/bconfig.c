@@ -165,7 +165,7 @@ static ConfigDriver config_updateref;
 static ConfigDriver config_extra_attrs;
 static ConfigDriver config_include;
 static ConfigDriver config_obsolete;
-#ifdef HAVE_TLS
+#ifdef WITH_TLS
 static ConfigDriver config_tls_option;
 static ConfigDriver config_tls_config;
 #endif
@@ -693,7 +693,7 @@ static ConfigTable config_back_cf_table[] = {
 		&config_timelimit, "( OLcfgGlAt:67 NAME 'olcTimeLimit' "
 			"SYNTAX OMsDirectoryString )", NULL, NULL },
 	{ "TLSCACertificateFile", NULL, 2, 2, 0,
-#ifdef HAVE_TLS
+#ifdef WITH_TLS
 		CFG_TLS_CA_FILE|ARG_STRING|ARG_MAGIC, &config_tls_option,
 #else
 		ARG_IGNORED, NULL,
@@ -701,7 +701,7 @@ static ConfigTable config_back_cf_table[] = {
 		"( OLcfgGlAt:68 NAME 'olcTLSCACertificateFile' "
 			"SYNTAX OMsDirectoryString SINGLE-VALUE )", NULL, NULL },
 	{ "TLSCACertificatePath", NULL,	2, 2, 0,
-#ifdef HAVE_TLS
+#ifdef WITH_TLS
 		CFG_TLS_CA_PATH|ARG_STRING|ARG_MAGIC, &config_tls_option,
 #else
 		ARG_IGNORED, NULL,
@@ -709,7 +709,7 @@ static ConfigTable config_back_cf_table[] = {
 		"( OLcfgGlAt:69 NAME 'olcTLSCACertificatePath' "
 			"SYNTAX OMsDirectoryString SINGLE-VALUE )", NULL, NULL },
 	{ "TLSCertificateFile", NULL, 2, 2, 0,
-#ifdef HAVE_TLS
+#ifdef WITH_TLS
 		CFG_TLS_CERT_FILE|ARG_STRING|ARG_MAGIC, &config_tls_option,
 #else
 		ARG_IGNORED, NULL,
@@ -717,7 +717,7 @@ static ConfigTable config_back_cf_table[] = {
 		"( OLcfgGlAt:70 NAME 'olcTLSCertificateFile' "
 			"SYNTAX OMsDirectoryString SINGLE-VALUE )", NULL, NULL },
 	{ "TLSCertificateKeyFile", NULL, 2, 2, 0,
-#ifdef HAVE_TLS
+#ifdef WITH_TLS
 		CFG_TLS_CERT_KEY|ARG_STRING|ARG_MAGIC, &config_tls_option,
 #else
 		ARG_IGNORED, NULL,
@@ -725,7 +725,7 @@ static ConfigTable config_back_cf_table[] = {
 		"( OLcfgGlAt:71 NAME 'olcTLSCertificateKeyFile' "
 			"SYNTAX OMsDirectoryString SINGLE-VALUE )", NULL, NULL },
 	{ "TLSCipherSuite",	NULL, 2, 2, 0,
-#ifdef HAVE_TLS
+#ifdef WITH_TLS
 		CFG_TLS_CIPHER|ARG_STRING|ARG_MAGIC, &config_tls_option,
 #else
 		ARG_IGNORED, NULL,
@@ -733,7 +733,7 @@ static ConfigTable config_back_cf_table[] = {
 		"( OLcfgGlAt:72 NAME 'olcTLSCipherSuite' "
 			"SYNTAX OMsDirectoryString SINGLE-VALUE )", NULL, NULL },
 	{ "TLSCRLCheck", NULL, 2, 2, 0,
-#if defined(HAVE_TLS) && defined(HAVE_OPENSSL_CRL)
+#if defined(WITH_TLS) && defined(HAVE_OPENSSL_CRL)
 		CFG_TLS_CRLCHECK|ARG_STRING|ARG_MAGIC, &config_tls_config,
 #else
 		ARG_IGNORED, NULL,
@@ -741,7 +741,7 @@ static ConfigTable config_back_cf_table[] = {
 		"( OLcfgGlAt:73 NAME 'olcTLSCRLCheck' "
 			"SYNTAX OMsDirectoryString SINGLE-VALUE )", NULL, NULL },
 	{ "TLSCRLFile", NULL, 2, 2, 0,
-#if defined(HAVE_GNUTLS)
+#ifdef WITH_TLS
 		CFG_TLS_CRL_FILE|ARG_STRING|ARG_MAGIC, &config_tls_option,
 #else
 		ARG_IGNORED, NULL,
@@ -749,7 +749,7 @@ static ConfigTable config_back_cf_table[] = {
 		"( OLcfgGlAt:82 NAME 'olcTLSCRLFile' "
 			"SYNTAX OMsDirectoryString SINGLE-VALUE )", NULL, NULL },
 	{ "TLSRandFile", NULL, 2, 2, 0,
-#ifdef HAVE_TLS
+#ifdef WITH_TLS
 		CFG_TLS_RAND|ARG_STRING|ARG_MAGIC, &config_tls_option,
 #else
 		ARG_IGNORED, NULL,
@@ -757,7 +757,7 @@ static ConfigTable config_back_cf_table[] = {
 		"( OLcfgGlAt:74 NAME 'olcTLSRandFile' "
 			"SYNTAX OMsDirectoryString SINGLE-VALUE )", NULL, NULL },
 	{ "TLSVerifyClient", NULL, 2, 2, 0,
-#ifdef HAVE_TLS
+#ifdef WITH_TLS
 		CFG_TLS_VERIFY|ARG_STRING|ARG_MAGIC, &config_tls_config,
 #else
 		ARG_IGNORED, NULL,
@@ -765,7 +765,7 @@ static ConfigTable config_back_cf_table[] = {
 		"( OLcfgGlAt:75 NAME 'olcTLSVerifyClient' "
 			"SYNTAX OMsDirectoryString SINGLE-VALUE )", NULL, NULL },
 	{ "TLSDHParamFile", NULL, 2, 2, 0,
-#ifdef HAVE_TLS
+#ifdef WITH_TLS
 		CFG_TLS_DH_FILE|ARG_STRING|ARG_MAGIC, &config_tls_option,
 #else
 		ARG_IGNORED, NULL,
@@ -773,7 +773,7 @@ static ConfigTable config_back_cf_table[] = {
 		"( OLcfgGlAt:77 NAME 'olcTLSDHParamFile' "
 			"SYNTAX OMsDirectoryString SINGLE-VALUE )", NULL, NULL },
 	{ "TLSProtocolMin",	NULL, 2, 2, 0,
-#ifdef HAVE_TLS
+#ifdef WITH_TLS
 		CFG_TLS_PROTOCOL_MIN|ARG_STRING|ARG_MAGIC, &config_tls_config,
 #else
 		ARG_IGNORED, NULL,
@@ -4058,7 +4058,7 @@ config_include(ConfigArgs *c) {
 	return(rc);
 }
 
-#ifdef HAVE_TLS
+#ifdef WITH_TLS
 static int
 config_tls_cleanup(ConfigArgs *c) {
 	int rc = 0;

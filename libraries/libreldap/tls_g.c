@@ -38,7 +38,7 @@
 
 #include "reldap.h"
 
-#ifdef HAVE_GNUTLS
+#if RELDAP_TLS == RELDAP_TLS_GNUTLS
 
 #include "ldap_dirs.h"
 
@@ -951,4 +951,4 @@ tls_impl ldap_int_tls_impl = {
 	0
 };
 
-#endif /* HAVE_GNUTLS */
+#endif /* RELDAP_TLS == RELDAP_TLS_GNUTLS */

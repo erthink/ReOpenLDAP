@@ -2039,7 +2039,7 @@ int slapi_is_connection_ssl( Slapi_PBlock *pb, int *isSSL )
 	if ( pb->pb_conn == NULL )
 		return LDAP_PARAM_ERROR;
 
-#ifdef HAVE_TLS
+#ifdef WITH_TLS
 	*isSSL = pb->pb_conn->c_is_tls;
 #else
 	*isSSL = 0;

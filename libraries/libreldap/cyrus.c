@@ -427,9 +427,9 @@ ldap_int_sasl_bind(
 		const char *pmech = NULL;
 		sasl_conn_t	*oldctx;
 		ber_socket_t		sd;
-#ifdef HAVE_TLS
+#ifdef WITH_TLS
 		void	*ssl;
-#endif /* HAVE_TLS */
+#endif /* WITH_TLS */
 
 		rc = 0;
 		LDAP_MUTEX_LOCK( &ld->ld_conn_mutex );
@@ -501,7 +501,7 @@ ldap_int_sasl_bind(
 
 		ctx = ld->ld_defconn->lconn_sasl_authctx;
 
-#ifdef HAVE_TLS
+#ifdef WITH_TLS
 		/* Check for TLS */
 		ssl = ldap_pvt_tls_sb_ctx( ld->ld_defconn->lconn_sb );
 		if ( ssl ) {
@@ -515,7 +515,7 @@ ldap_int_sasl_bind(
 			(void) ldap_int_sasl_external( ld, ld->ld_defconn, authid.bv_val, fac );
 			LDAP_FREE( authid.bv_val );
 		}
-#endif /* HAVE_TLS */
+#endif /* WITH_TLS */
 
 		/* Check for local */
 		if ( ldap_pvt_url_scheme2proto(

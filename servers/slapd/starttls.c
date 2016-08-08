@@ -42,7 +42,7 @@
 
 const struct berval slap_EXOP_START_TLS = BER_BVC(LDAP_EXOP_START_TLS);
 
-#ifdef HAVE_TLS
+#ifdef WITH_TLS
 int
 starttls_extop ( Operation *op, SlapReply *rs )
 {
@@ -127,4 +127,4 @@ done:
 	return rc;
 }
 
-#endif	/* HAVE_TLS */
+#endif	/* WITH_TLS */

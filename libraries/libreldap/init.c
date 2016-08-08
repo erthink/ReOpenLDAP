@@ -139,7 +139,7 @@ static const struct ol_attribute {
 	{0, ATTR_GSSAPI,"GSSAPI_ALLOW_REMOTE_PRINCIPAL",NULL,	LDAP_OPT_X_GSSAPI_ALLOW_REMOTE_PRINCIPAL},
 #endif
 
-#ifdef HAVE_TLS
+#ifdef WITH_TLS
 	{1, ATTR_TLS,	"TLS_CERT",			NULL,	LDAP_OPT_X_TLS_CERTFILE},
 	{1, ATTR_TLS,	"TLS_KEY",			NULL,	LDAP_OPT_X_TLS_KEYFILE},
   	{0, ATTR_TLS,	"TLS_CACERT",		NULL,	LDAP_OPT_X_TLS_CACERTFILE},
@@ -298,7 +298,7 @@ static void openldap_ldap_init_w_conf(
 #endif
 				break;
 			case ATTR_TLS:
-#ifdef HAVE_TLS
+#ifdef WITH_TLS
 			   	ldap_int_tls_config( NULL, attrs[i].offset, opt );
 #endif
 				break;
@@ -453,7 +453,7 @@ static void openldap_ldap_init_w_env(
 #endif
 			break;
 		case ATTR_TLS:
-#ifdef HAVE_TLS
+#ifdef WITH_TLS
 		   	ldap_int_tls_config( NULL, attrs[i].offset, value );
 #endif
 		   	break;
@@ -503,7 +503,7 @@ ldap_int_destroy_global_options(void)
 		gopts->ldo_defludp = NULL;
 	}
 
-#if defined(HAVE_TLS) || defined(HAVE_CYRUS_SASL)
+#if defined(WITH_TLS) || defined(HAVE_CYRUS_SASL)
 	if ( ldap_int_hostname ) {
 		LDAP_FREE( ldap_int_hostname );
 		ldap_int_hostname = NULL;
@@ -515,7 +515,7 @@ ldap_int_destroy_global_options(void)
 		gopts->ldo_def_sasl_authcid = NULL;
 	}
 #endif
-#ifdef HAVE_TLS
+#ifdef WITH_TLS
 	ldap_int_tls_destroy( gopts );
 #endif
 }
@@ -587,7 +587,7 @@ void ldap_int_initialize_global_options( struct ldapoptions *gopts, int *dbglvl 
 		SASL_SEC_NOPLAINTEXT | SASL_SEC_NOANONYMOUS;
 #endif
 
-#ifdef HAVE_TLS
+#ifdef WITH_TLS
 	gopts->ldo_tls_connect_cb = NULL;
 	gopts->ldo_tls_connect_arg = NULL;
 	gopts->ldo_tls_require_cert = LDAP_OPT_X_TLS_DEMAND;
@@ -601,7 +601,7 @@ void ldap_int_initialize_global_options( struct ldapoptions *gopts, int *dbglvl 
    	return;
 }
 
-#if defined(HAVE_TLS) || defined(HAVE_CYRUS_SASL)
+#if defined(WITH_TLS) || defined(HAVE_CYRUS_SASL)
 char * ldap_int_hostname = NULL;
 #endif
 
@@ -619,7 +619,7 @@ void ldap_int_initialize( struct ldapoptions *gopts, int *dbglvl )
 
 	ldap_int_utils_init();
 
-#if defined(HAVE_TLS) || defined(HAVE_CYRUS_SASL)
+#if defined(WITH_TLS) || defined(HAVE_CYRUS_SASL)
 	LDAP_MUTEX_LOCK( &ldap_int_hostname_mutex );
 	{
 		char	*name = ldap_int_hostname;

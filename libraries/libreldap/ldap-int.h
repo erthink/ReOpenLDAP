@@ -123,7 +123,7 @@ struct ldapmsg {
 	slap_time_t	lm_time;	/* used to maintain cache */
 };
 
-#ifdef HAVE_TLS
+#ifdef WITH_TLS
 struct ldaptls {
 	char		*lt_certfile;
 	char		*lt_keyfile;
@@ -209,7 +209,7 @@ struct ldapoptions {
 #define	LDAP_LDO_CONNECTIONLESS_NULLARG
 #endif
 
-#ifdef HAVE_TLS
+#ifdef WITH_TLS
    	/* tls context */
    	void		*ldo_tls_ctx;
 	LDAP_TLS_CONNECT_CB	*ldo_tls_connect_cb;
@@ -660,7 +660,7 @@ LDAP_F (int) ldap_connect_to_host( LDAP *ld, Sockbuf *sb,
 LDAP_F (int) ldap_int_poll( LDAP *ld, ber_socket_t s,
 	struct timeval *tvp, int wr );
 
-#if defined(HAVE_TLS) || defined(HAVE_CYRUS_SASL)
+#if defined(WITH_TLS) || defined(HAVE_CYRUS_SASL)
 LDAP_V (char *) ldap_int_hostname;
 LDAP_F (char *) ldap_host_connected_to( Sockbuf *sb,
 	const char *host );

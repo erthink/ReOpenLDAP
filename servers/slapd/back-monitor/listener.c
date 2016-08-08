@@ -109,7 +109,7 @@ monitor_subsys_listener_init(
 		attr_merge_normalize_one( e, slap_schema.si_ad_labeledURI,
 				&l[ i ]->sl_url, NULL );
 
-#ifdef HAVE_TLS
+#ifdef WITH_TLS
 		if ( l[ i ]->sl_is_tls ) {
 			struct berval bv;
 
@@ -117,7 +117,7 @@ monitor_subsys_listener_init(
 			attr_merge_normalize_one( e, mi->mi_ad_monitoredInfo,
 					&bv, NULL );
 		}
-#endif /* HAVE_TLS */
+#endif /* WITH_TLS */
 #ifdef LDAP_CONNECTIONLESS
 		if ( l[ i ]->sl_is_udp ) {
 			struct berval bv;
@@ -126,7 +126,7 @@ monitor_subsys_listener_init(
 			attr_merge_normalize_one( e, mi->mi_ad_monitoredInfo,
 					&bv, NULL );
 		}
-#endif /* HAVE_TLS */
+#endif /* WITH_TLS */
 
 		mp = monitor_entrypriv_create();
 		if ( mp == NULL ) {
