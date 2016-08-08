@@ -55,7 +55,6 @@
 #if RELDAP_TLS == RELDAP_TLS_OPENSSL
 #	include <openssl/des.h>
 
-
 typedef des_cblock des_key;
 typedef des_cblock des_data_block;
 typedef des_key_schedule des_context;
@@ -676,7 +675,7 @@ static int chk_md5(
 
 #ifdef SLAPD_LMHASH
 
-#if defined(HAVE_OPENSSL)
+#if RELDAP_TLS == RELDAP_TLS_OPENSSL
 
 /*
  * abstract away setting the parity.
@@ -688,8 +687,7 @@ des_set_key_and_parity( des_key *key, unsigned char *keyData)
     des_set_odd_parity( key );
 }
 
-
-#elif defined(HAVE_MOZNSS)
+#elif RELDAP_TLS == RELDAP_TLS_MOZNSS
 
 /*
  * implement MozNSS wrappers for the openSSL calls
