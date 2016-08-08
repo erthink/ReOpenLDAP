@@ -213,11 +213,14 @@ contrib_pw_radius_la_LIBADD = -lradius
 endif
 
 EXTRA_DIST += passwd/pbkdf2/README
+# TODO: support MozNSS
+if ! TLS_MOZNSS
 pkglib_LTLIBRARIES += contrib-pw-pbkdf2.la
 contrib_pw_pbkdf2_la_LDFLAGS = -module -export-dynamic \
 	-release $(API_LIB_RELEASE) -version-info $(API_LIB_VERSION)
 contrib_pw_pbkdf2_la_SOURCES = passwd/pbkdf2/pw-pbkdf2.c banner.c
 contrib_pw_pbkdf2_la_LIBADD = $(SECURITY_LIBS)
+endif
 
 EXTRA_DIST += passwd/sha2/README
 pkglib_LTLIBRARIES += contrib-pw-sha2.la
@@ -227,11 +230,14 @@ contrib_pw_sha2_la_SOURCES = banner.c passwd/sha2/sha2.h \
 	passwd/sha2/sha2.c passwd/sha2/slapd-sha2.c
 
 EXTRA_DIST += passwd/totp/README
+# TODO: support MozNSS
+if ! TLS_MOZNSS
 pkglib_LTLIBRARIES += contrib-pw-totp.la
 contrib_pw_totp_la_LDFLAGS = -module -export-dynamic \
 	-release $(API_LIB_RELEASE) -version-info $(API_LIB_VERSION)
 contrib_pw_totp_la_SOURCES = banner.c passwd/totp/slapd-totp.c
 contrib_pw_totp_la_LIBADD = $(SECURITY_LIBS)
+endif
 
 EXTRA_DIST += proxyOld/README
 pkglib_LTLIBRARIES += contrib-proxyOld.la
@@ -252,6 +258,8 @@ contrib_vernum_la_LDFLAGS = -module -export-dynamic \
 contrib_vernum_la_SOURCES = samba4/vernum.c banner.c
 
 EXTRA_DIST += smbk5pwd/README
+# TODO: support MozNSS
+if ! TLS_MOZNSS
 pkglib_LTLIBRARIES += contrib-smbk5pwd.la
 contrib_smbk5pwd_la_LDFLAGS = -module -export-dynamic \
 	-release $(API_LIB_RELEASE) -version-info $(API_LIB_VERSION)
@@ -263,6 +271,7 @@ contrib_smbk5pwd_la_CFLAGS = -DDO_SAMBA -DDO_SHADOW \
 if HEIMDAL_AVAIL
 contrib_smbk5pwd_la_CFLAGS += -DDO_KRB5 $(HEIMDAL_CFLAGS)
 contrib_smbk5pwd_la_LIBADD += $(HEIMDAL_LIBS)
+endif
 endif
 
 pkglib_LTLIBRARIES += contrib-trace.la

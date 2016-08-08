@@ -859,6 +859,14 @@ SOELIM_R
 SOELIM
 BEHIND_CURTIAN_FALSE
 BEHIND_CURTIAN_TRUE
+TLS_MOZNSS_FALSE
+TLS_MOZNSS_TRUE
+TLS_GNUTLS_FALSE
+TLS_GNUTLS_TRUE
+TLS_OPENSSL_FALSE
+TLS_OPENSSL_TRUE
+TLS_ENABLED_FALSE
+TLS_ENABLED_TRUE
 WITH_ACI_ENABLED
 WITH_TLS
 WITH_SASL
@@ -13121,9 +13129,9 @@ VERSION_MINOR=2
 
 VERSION_PATCH=0
 
-RELEASE_DATE=2016-08-07
+RELEASE_DATE=2016-08-08
 
-RELEASE_STAMP=g9d3041aed19f-t52c85ba40c288502
+RELEASE_STAMP=gcada295b2bac-ta2d066a116f7a1d6
 
 API_LIB_RELEASE=1.2
 
@@ -33545,6 +33553,39 @@ fi
 
 
 
+ if test $ol_link_tls = yes; then
+  TLS_ENABLED_TRUE=
+  TLS_ENABLED_FALSE='#'
+else
+  TLS_ENABLED_TRUE='#'
+  TLS_ENABLED_FALSE=
+fi
+
+ if test $ol_with_tls = openssl; then
+  TLS_OPENSSL_TRUE=
+  TLS_OPENSSL_FALSE='#'
+else
+  TLS_OPENSSL_TRUE='#'
+  TLS_OPENSSL_FALSE=
+fi
+
+ if test $ol_with_tls = gnutls; then
+  TLS_GNUTLS_TRUE=
+  TLS_GNUTLS_FALSE='#'
+else
+  TLS_GNUTLS_TRUE='#'
+  TLS_GNUTLS_FALSE=
+fi
+
+ if test $ol_with_tls = moznss; then
+  TLS_MOZNSS_TRUE=
+  TLS_MOZNSS_FALSE='#'
+else
+  TLS_MOZNSS_TRUE='#'
+  TLS_MOZNSS_FALSE=
+fi
+
+
 if test $enable_shared = yes; then
 
 $as_echo "#define RELDAP_LIBS_SHARED 1" >>confdefs.h
@@ -34599,6 +34640,22 @@ if test -z "${HEIMDAL_AVAIL_TRUE}" && test -z "${HEIMDAL_AVAIL_FALSE}"; then
 Usually this means the macro was only invoked conditionally." "$LINENO" 5
 fi
 
+if test -z "${TLS_ENABLED_TRUE}" && test -z "${TLS_ENABLED_FALSE}"; then
+  as_fn_error $? "conditional \"TLS_ENABLED\" was never defined.
+Usually this means the macro was only invoked conditionally." "$LINENO" 5
+fi
+if test -z "${TLS_OPENSSL_TRUE}" && test -z "${TLS_OPENSSL_FALSE}"; then
+  as_fn_error $? "conditional \"TLS_OPENSSL\" was never defined.
+Usually this means the macro was only invoked conditionally." "$LINENO" 5
+fi
+if test -z "${TLS_GNUTLS_TRUE}" && test -z "${TLS_GNUTLS_FALSE}"; then
+  as_fn_error $? "conditional \"TLS_GNUTLS\" was never defined.
+Usually this means the macro was only invoked conditionally." "$LINENO" 5
+fi
+if test -z "${TLS_MOZNSS_TRUE}" && test -z "${TLS_MOZNSS_FALSE}"; then
+  as_fn_error $? "conditional \"TLS_MOZNSS\" was never defined.
+Usually this means the macro was only invoked conditionally." "$LINENO" 5
+fi
 if test -z "${BEHIND_CURTIAN_TRUE}" && test -z "${BEHIND_CURTIAN_FALSE}"; then
   as_fn_error $? "conditional \"BEHIND_CURTIAN\" was never defined.
 Usually this means the macro was only invoked conditionally." "$LINENO" 5

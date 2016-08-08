@@ -104,8 +104,14 @@ target_triplet = @target@
 
 # LY: Requires an obsolete RADIUS-client library
 @CONTRIB_BROKEN_TRUE@am__append_7 = contrib-pw-radius.la
-@HEIMDAL_AVAIL_TRUE@am__append_8 = -DDO_KRB5 $(HEIMDAL_CFLAGS)
-@HEIMDAL_AVAIL_TRUE@am__append_9 = $(HEIMDAL_LIBS)
+# TODO: support MozNSS
+@TLS_MOZNSS_FALSE@am__append_8 = contrib-pw-pbkdf2.la
+# TODO: support MozNSS
+@TLS_MOZNSS_FALSE@am__append_9 = contrib-pw-totp.la
+# TODO: support MozNSS
+@TLS_MOZNSS_FALSE@am__append_10 = contrib-smbk5pwd.la
+@HEIMDAL_AVAIL_TRUE@@TLS_MOZNSS_FALSE@am__append_11 = -DDO_KRB5 $(HEIMDAL_CFLAGS)
+@HEIMDAL_AVAIL_TRUE@@TLS_MOZNSS_FALSE@am__append_12 = $(HEIMDAL_LIBS)
 subdir = contrib/slapd-modules
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/build/m4/ax_pthread.m4 \
@@ -376,13 +382,18 @@ contrib_pw_netscape_la_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC \
 	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CCLD) \
 	$(AM_CFLAGS) $(CFLAGS) $(contrib_pw_netscape_la_LDFLAGS) \
 	$(LDFLAGS) -o $@
-contrib_pw_pbkdf2_la_DEPENDENCIES = $(am__DEPENDENCIES_1)
-am_contrib_pw_pbkdf2_la_OBJECTS = passwd/pbkdf2/pw-pbkdf2.lo banner.lo
+@TLS_MOZNSS_FALSE@contrib_pw_pbkdf2_la_DEPENDENCIES =  \
+@TLS_MOZNSS_FALSE@	$(am__DEPENDENCIES_1)
+am__contrib_pw_pbkdf2_la_SOURCES_DIST = passwd/pbkdf2/pw-pbkdf2.c \
+	banner.c
+@TLS_MOZNSS_FALSE@am_contrib_pw_pbkdf2_la_OBJECTS =  \
+@TLS_MOZNSS_FALSE@	passwd/pbkdf2/pw-pbkdf2.lo banner.lo
 contrib_pw_pbkdf2_la_OBJECTS = $(am_contrib_pw_pbkdf2_la_OBJECTS)
 contrib_pw_pbkdf2_la_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC \
 	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CCLD) \
 	$(AM_CFLAGS) $(CFLAGS) $(contrib_pw_pbkdf2_la_LDFLAGS) \
 	$(LDFLAGS) -o $@
+@TLS_MOZNSS_FALSE@am_contrib_pw_pbkdf2_la_rpath = -rpath $(pkglibdir)
 contrib_pw_radius_la_DEPENDENCIES =
 am__contrib_pw_radius_la_SOURCES_DIST = banner.c passwd/radius.c
 @CONTRIB_BROKEN_TRUE@am_contrib_pw_radius_la_OBJECTS = banner.lo \
@@ -402,13 +413,18 @@ contrib_pw_sha2_la_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC \
 	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CCLD) \
 	$(AM_CFLAGS) $(CFLAGS) $(contrib_pw_sha2_la_LDFLAGS) \
 	$(LDFLAGS) -o $@
-contrib_pw_totp_la_DEPENDENCIES = $(am__DEPENDENCIES_1)
-am_contrib_pw_totp_la_OBJECTS = banner.lo passwd/totp/slapd-totp.lo
+@TLS_MOZNSS_FALSE@contrib_pw_totp_la_DEPENDENCIES =  \
+@TLS_MOZNSS_FALSE@	$(am__DEPENDENCIES_1)
+am__contrib_pw_totp_la_SOURCES_DIST = banner.c \
+	passwd/totp/slapd-totp.c
+@TLS_MOZNSS_FALSE@am_contrib_pw_totp_la_OBJECTS = banner.lo \
+@TLS_MOZNSS_FALSE@	passwd/totp/slapd-totp.lo
 contrib_pw_totp_la_OBJECTS = $(am_contrib_pw_totp_la_OBJECTS)
 contrib_pw_totp_la_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC \
 	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CCLD) \
 	$(AM_CFLAGS) $(CFLAGS) $(contrib_pw_totp_la_LDFLAGS) \
 	$(LDFLAGS) -o $@
+@TLS_MOZNSS_FALSE@am_contrib_pw_totp_la_rpath = -rpath $(pkglibdir)
 contrib_rdnval_la_LIBADD =
 am_contrib_rdnval_la_OBJECTS = samba4/rdnval.lo banner.lo
 contrib_rdnval_la_OBJECTS = $(am_contrib_rdnval_la_OBJECTS)
@@ -416,16 +432,20 @@ contrib_rdnval_la_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC \
 	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CCLD) \
 	$(AM_CFLAGS) $(CFLAGS) $(contrib_rdnval_la_LDFLAGS) $(LDFLAGS) \
 	-o $@
-@HEIMDAL_AVAIL_TRUE@am__DEPENDENCIES_2 = $(am__DEPENDENCIES_1)
-contrib_smbk5pwd_la_DEPENDENCIES = $(am__DEPENDENCIES_1) \
-	$(am__DEPENDENCIES_2)
-am_contrib_smbk5pwd_la_OBJECTS = contrib_smbk5pwd_la-banner.lo \
-	smbk5pwd/contrib_smbk5pwd_la-smbk5pwd.lo
+@HEIMDAL_AVAIL_TRUE@@TLS_MOZNSS_FALSE@am__DEPENDENCIES_2 =  \
+@HEIMDAL_AVAIL_TRUE@@TLS_MOZNSS_FALSE@	$(am__DEPENDENCIES_1)
+@TLS_MOZNSS_FALSE@contrib_smbk5pwd_la_DEPENDENCIES =  \
+@TLS_MOZNSS_FALSE@	$(am__DEPENDENCIES_1) $(am__DEPENDENCIES_2)
+am__contrib_smbk5pwd_la_SOURCES_DIST = banner.c smbk5pwd/smbk5pwd.c
+@TLS_MOZNSS_FALSE@am_contrib_smbk5pwd_la_OBJECTS =  \
+@TLS_MOZNSS_FALSE@	contrib_smbk5pwd_la-banner.lo \
+@TLS_MOZNSS_FALSE@	smbk5pwd/contrib_smbk5pwd_la-smbk5pwd.lo
 contrib_smbk5pwd_la_OBJECTS = $(am_contrib_smbk5pwd_la_OBJECTS)
 contrib_smbk5pwd_la_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC \
 	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CCLD) \
 	$(contrib_smbk5pwd_la_CFLAGS) $(CFLAGS) \
 	$(contrib_smbk5pwd_la_LDFLAGS) $(LDFLAGS) -o $@
+@TLS_MOZNSS_FALSE@am_contrib_smbk5pwd_la_rpath = -rpath $(pkglibdir)
 contrib_trace_la_LIBADD =
 am_contrib_trace_la_OBJECTS = trace/trace.lo banner.lo
 contrib_trace_la_OBJECTS = $(am_contrib_trace_la_OBJECTS)
@@ -510,10 +530,12 @@ DIST_SOURCES = $(contrib_addpartial_la_SOURCES) \
 	$(contrib_proxyOld_la_SOURCES) $(contrib_pw_apr1_la_SOURCES) \
 	$(am__contrib_pw_kerberos_la_SOURCES_DIST) \
 	$(contrib_pw_netscape_la_SOURCES) \
-	$(contrib_pw_pbkdf2_la_SOURCES) \
+	$(am__contrib_pw_pbkdf2_la_SOURCES_DIST) \
 	$(am__contrib_pw_radius_la_SOURCES_DIST) \
-	$(contrib_pw_sha2_la_SOURCES) $(contrib_pw_totp_la_SOURCES) \
-	$(contrib_rdnval_la_SOURCES) $(contrib_smbk5pwd_la_SOURCES) \
+	$(contrib_pw_sha2_la_SOURCES) \
+	$(am__contrib_pw_totp_la_SOURCES_DIST) \
+	$(contrib_rdnval_la_SOURCES) \
+	$(am__contrib_smbk5pwd_la_SOURCES_DIST) \
 	$(contrib_trace_la_SOURCES) $(contrib_vernum_la_SOURCES)
 am__can_run_installinfo = \
   case $$AM_UPDATE_INFO_DIR in \
@@ -790,9 +812,9 @@ pkglib_LTLIBRARIES = $(am__append_2) $(am__append_3) \
 	contrib-kinit.la contrib-lastbind.la contrib-lastmod.la \
 	contrib-noopsrch.la contrib-nops.la contrib-nssov.la \
 	contrib-pw-apr1.la $(am__append_6) contrib-pw-netscape.la \
-	$(am__append_7) contrib-pw-pbkdf2.la contrib-pw-sha2.la \
-	contrib-pw-totp.la contrib-proxyOld.la contrib-pguid.la \
-	contrib-rdnval.la contrib-vernum.la contrib-smbk5pwd.la \
+	$(am__append_7) $(am__append_8) contrib-pw-sha2.la \
+	$(am__append_9) contrib-proxyOld.la contrib-pguid.la \
+	contrib-rdnval.la contrib-vernum.la $(am__append_10) \
 	contrib-trace.la
 AM_CPPFLAGS = -DSLAPD_IMPORT -I$(top_srcdir)/servers/slapd -I$(top_srcdir)/include
 BUILT_SOURCES = $(am__append_1)
@@ -919,22 +941,22 @@ contrib_pw_netscape_la_LDFLAGS = -module -export-dynamic \
 @CONTRIB_BROKEN_TRUE@	-release $(API_LIB_RELEASE) -version-info $(API_LIB_VERSION)
 
 @CONTRIB_BROKEN_TRUE@contrib_pw_radius_la_LIBADD = -lradius
-contrib_pw_pbkdf2_la_LDFLAGS = -module -export-dynamic \
-	-release $(API_LIB_RELEASE) -version-info $(API_LIB_VERSION)
+@TLS_MOZNSS_FALSE@contrib_pw_pbkdf2_la_LDFLAGS = -module -export-dynamic \
+@TLS_MOZNSS_FALSE@	-release $(API_LIB_RELEASE) -version-info $(API_LIB_VERSION)
 
-contrib_pw_pbkdf2_la_SOURCES = passwd/pbkdf2/pw-pbkdf2.c banner.c
-contrib_pw_pbkdf2_la_LIBADD = $(SECURITY_LIBS)
+@TLS_MOZNSS_FALSE@contrib_pw_pbkdf2_la_SOURCES = passwd/pbkdf2/pw-pbkdf2.c banner.c
+@TLS_MOZNSS_FALSE@contrib_pw_pbkdf2_la_LIBADD = $(SECURITY_LIBS)
 contrib_pw_sha2_la_LDFLAGS = -module -export-dynamic \
 	-release $(API_LIB_RELEASE) -version-info $(API_LIB_VERSION)
 
 contrib_pw_sha2_la_SOURCES = banner.c passwd/sha2/sha2.h \
 	passwd/sha2/sha2.c passwd/sha2/slapd-sha2.c
 
-contrib_pw_totp_la_LDFLAGS = -module -export-dynamic \
-	-release $(API_LIB_RELEASE) -version-info $(API_LIB_VERSION)
+@TLS_MOZNSS_FALSE@contrib_pw_totp_la_LDFLAGS = -module -export-dynamic \
+@TLS_MOZNSS_FALSE@	-release $(API_LIB_RELEASE) -version-info $(API_LIB_VERSION)
 
-contrib_pw_totp_la_SOURCES = banner.c passwd/totp/slapd-totp.c
-contrib_pw_totp_la_LIBADD = $(SECURITY_LIBS)
+@TLS_MOZNSS_FALSE@contrib_pw_totp_la_SOURCES = banner.c passwd/totp/slapd-totp.c
+@TLS_MOZNSS_FALSE@contrib_pw_totp_la_LIBADD = $(SECURITY_LIBS)
 contrib_proxyOld_la_LDFLAGS = -module -export-dynamic \
 	-release $(API_LIB_RELEASE) -version-info $(API_LIB_VERSION)
 
@@ -951,14 +973,16 @@ contrib_vernum_la_LDFLAGS = -module -export-dynamic \
 	-release $(API_LIB_RELEASE) -version-info $(API_LIB_VERSION)
 
 contrib_vernum_la_SOURCES = samba4/vernum.c banner.c
-contrib_smbk5pwd_la_LDFLAGS = -module -export-dynamic \
-	-release $(API_LIB_RELEASE) -version-info $(API_LIB_VERSION)
+@TLS_MOZNSS_FALSE@contrib_smbk5pwd_la_LDFLAGS = -module -export-dynamic \
+@TLS_MOZNSS_FALSE@	-release $(API_LIB_RELEASE) -version-info $(API_LIB_VERSION)
 
-contrib_smbk5pwd_la_SOURCES = banner.c smbk5pwd/smbk5pwd.c
-contrib_smbk5pwd_la_LIBADD = $(SECURITY_LIBS) $(am__append_9)
+@TLS_MOZNSS_FALSE@contrib_smbk5pwd_la_SOURCES = banner.c smbk5pwd/smbk5pwd.c
+@TLS_MOZNSS_FALSE@contrib_smbk5pwd_la_LIBADD = $(SECURITY_LIBS) \
+@TLS_MOZNSS_FALSE@	$(am__append_12)
 # Omit DO_KRB5, DO_SAMBA or DO_SHADOW if you don't want to support it.
-contrib_smbk5pwd_la_CFLAGS = -DDO_SAMBA -DDO_SHADOW \
-	-Wno-deprecated-declarations $(am__append_8)
+@TLS_MOZNSS_FALSE@contrib_smbk5pwd_la_CFLAGS = -DDO_SAMBA -DDO_SHADOW \
+@TLS_MOZNSS_FALSE@	-Wno-deprecated-declarations \
+@TLS_MOZNSS_FALSE@	$(am__append_11)
 contrib_trace_la_LDFLAGS = -module -export-dynamic \
 	-release $(API_LIB_RELEASE) -version-info $(API_LIB_VERSION)
 
@@ -1333,7 +1357,7 @@ passwd/pbkdf2/pw-pbkdf2.lo: passwd/pbkdf2/$(am__dirstamp) \
 	passwd/pbkdf2/$(DEPDIR)/$(am__dirstamp)
 
 contrib-pw-pbkdf2.la: $(contrib_pw_pbkdf2_la_OBJECTS) $(contrib_pw_pbkdf2_la_DEPENDENCIES) $(EXTRA_contrib_pw_pbkdf2_la_DEPENDENCIES) 
-	$(AM_V_CCLD)$(contrib_pw_pbkdf2_la_LINK) -rpath $(pkglibdir) $(contrib_pw_pbkdf2_la_OBJECTS) $(contrib_pw_pbkdf2_la_LIBADD) $(LIBS)
+	$(AM_V_CCLD)$(contrib_pw_pbkdf2_la_LINK) $(am_contrib_pw_pbkdf2_la_rpath) $(contrib_pw_pbkdf2_la_OBJECTS) $(contrib_pw_pbkdf2_la_LIBADD) $(LIBS)
 passwd/radius.lo: passwd/$(am__dirstamp) \
 	passwd/$(DEPDIR)/$(am__dirstamp)
 
@@ -1362,7 +1386,7 @@ passwd/totp/slapd-totp.lo: passwd/totp/$(am__dirstamp) \
 	passwd/totp/$(DEPDIR)/$(am__dirstamp)
 
 contrib-pw-totp.la: $(contrib_pw_totp_la_OBJECTS) $(contrib_pw_totp_la_DEPENDENCIES) $(EXTRA_contrib_pw_totp_la_DEPENDENCIES) 
-	$(AM_V_CCLD)$(contrib_pw_totp_la_LINK) -rpath $(pkglibdir) $(contrib_pw_totp_la_OBJECTS) $(contrib_pw_totp_la_LIBADD) $(LIBS)
+	$(AM_V_CCLD)$(contrib_pw_totp_la_LINK) $(am_contrib_pw_totp_la_rpath) $(contrib_pw_totp_la_OBJECTS) $(contrib_pw_totp_la_LIBADD) $(LIBS)
 samba4/rdnval.lo: samba4/$(am__dirstamp) \
 	samba4/$(DEPDIR)/$(am__dirstamp)
 
@@ -1378,7 +1402,7 @@ smbk5pwd/contrib_smbk5pwd_la-smbk5pwd.lo: smbk5pwd/$(am__dirstamp) \
 	smbk5pwd/$(DEPDIR)/$(am__dirstamp)
 
 contrib-smbk5pwd.la: $(contrib_smbk5pwd_la_OBJECTS) $(contrib_smbk5pwd_la_DEPENDENCIES) $(EXTRA_contrib_smbk5pwd_la_DEPENDENCIES) 
-	$(AM_V_CCLD)$(contrib_smbk5pwd_la_LINK) -rpath $(pkglibdir) $(contrib_smbk5pwd_la_OBJECTS) $(contrib_smbk5pwd_la_LIBADD) $(LIBS)
+	$(AM_V_CCLD)$(contrib_smbk5pwd_la_LINK) $(am_contrib_smbk5pwd_la_rpath) $(contrib_smbk5pwd_la_OBJECTS) $(contrib_smbk5pwd_la_LIBADD) $(LIBS)
 trace/$(am__dirstamp):
 	@$(MKDIR_P) trace
 	@: > trace/$(am__dirstamp)

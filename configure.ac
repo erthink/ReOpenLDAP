@@ -2741,6 +2741,11 @@ AC_SUBST(WITH_SASL)
 AC_SUBST(WITH_TLS)
 AC_SUBST(WITH_ACI_ENABLED)
 
+AM_CONDITIONAL([TLS_ENABLED], [test $ol_link_tls = yes])
+AM_CONDITIONAL([TLS_OPENSSL], [test $ol_with_tls = openssl])
+AM_CONDITIONAL([TLS_GNUTLS], [test $ol_with_tls = gnutls])
+AM_CONDITIONAL([TLS_MOZNSS], [test $ol_with_tls = moznss])
+
 if test $enable_shared = yes; then
 	AC_DEFINE(RELDAP_LIBS_SHARED,1,[--enable-shared=yes])
 fi
