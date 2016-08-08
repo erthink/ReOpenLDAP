@@ -36,7 +36,7 @@
 
 #include "reldap.h"
 
-#ifdef HAVE_OPENSSL
+#if RELDAP_TLS == RELDAP_TLS_OPENSSL
 
 #include "ldap_dirs.h"
 
@@ -1163,4 +1163,4 @@ tls_impl ldap_int_tls_impl = {
 	0
 };
 
-#endif /* HAVE_OPENSSL */
+#endif /* RELDAP_TLS == RELDAP_TLS_OPENSSL */

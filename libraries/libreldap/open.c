@@ -126,7 +126,7 @@ ldap_create( LDAP **ldp )
 		? LDAP_STRDUP( gopts->ldo_def_sasl_authzid ) : NULL;
 #endif
 
-#ifdef HAVE_TLS
+#ifdef WITH_TLS
 	/* We explicitly inherit the SSL_CTX, don't need the names/paths. Leave
 	 * them empty to allow new SSL_CTX's to be created from scratch.
 	 */
@@ -415,7 +415,7 @@ ldap_int_open_connection(
 	if( proto == LDAP_PROTO_UDP ) return 0;
 #endif
 
-#ifdef HAVE_TLS
+#ifdef WITH_TLS
 	if (rc == 0 && ( ld->ld_options.ldo_tls_mode == LDAP_OPT_X_TLS_HARD ||
 		strcmp( srv->lud_scheme, "ldaps" ) == 0 ))
 	{
@@ -545,7 +545,7 @@ ldap_int_check_async_open( LDAP *ld, ber_socket_t sd )
 		return rc;
 	}
 
-#ifdef HAVE_TLS
+#ifdef WITH_TLS
 	if ( ld->ld_options.ldo_tls_mode == LDAP_OPT_X_TLS_HARD ||
 		!strcmp( ld->ld_defconn->lconn_server->lud_scheme, "ldaps" )) {
 

@@ -221,7 +221,7 @@ ldap_ld_free(
 	}
 #endif
 
-#ifdef HAVE_TLS
+#ifdef WITH_TLS
 	ldap_int_tls_destroy( &ld->ld_options );
 #endif
 

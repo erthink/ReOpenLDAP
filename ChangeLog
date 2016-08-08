@@ -1,7 +1,7 @@
 New Features
 ~~~~~~~~~~~~
 2016-07-28 `configure --enable-contrib` for build contributes modules and plugins.
-2016-07-28 `configure --enable-experimantal` for experimental and developing features.
+2016-07-28 `configure --enable-experimental` for experimental and developing features.
 2016-07-27 'configure --enable-valgrind' for testing with Valgrind Memory Debugger.
 2016-07-24 `configure --enable-check --enable-hipagut` for builtin runtime checking.
 2016-06-17 reopenldap: use automake-1.15 and autoconf-2.69.

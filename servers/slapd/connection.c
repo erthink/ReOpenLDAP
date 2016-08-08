@@ -404,7 +404,7 @@ Connection * connection_init(
 	assert( dnsname != NULL );
 	assert( peername != NULL );
 
-#ifndef HAVE_TLS
+#ifndef WITH_TLS
 	assert( !( flags & CONN_IS_TLS ));
 #endif
 
@@ -606,7 +606,7 @@ Connection * connection_init(
 	c->c_ssf = c->c_transport_ssf = ssf;
 	c->c_tls_ssf = 0;
 
-#ifdef HAVE_TLS
+#ifdef WITH_TLS
 	if ( flags & CONN_IS_TLS ) {
 		c->c_is_tls = 1;
 		c->c_needs_tls_accept = 1;
@@ -1453,7 +1453,7 @@ connection_read( ber_socket_t s, conn_readinfo *cri )
 		"connection_read(%d): checking for input on id=%lu\n",
 		s, c->c_connid );
 
-#ifdef HAVE_TLS
+#ifdef WITH_TLS
 	if ( c->c_is_tls && c->c_needs_tls_accept ) {
 		rc = ldap_pvt_tls_accept( c->c_sb, slap_tls_ctx );
 		if ( rc < 0 ) {
@@ -2039,7 +2039,7 @@ int connection_write(ber_socket_t s)
 
 	slapd_clr_write( s, 0 );
 
-#ifdef HAVE_TLS
+#ifdef WITH_TLS
 	if ( c->c_is_tls && c->c_needs_tls_accept ) {
 		connection_return( c );
 		connection_read_activate( s );

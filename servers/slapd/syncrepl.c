@@ -656,7 +656,7 @@ syncrepl_start(
 	int	rc;
 	int cmdline_cookie_found = 0;
 	struct sync_cookie_item	*sc = NULL;
-#ifdef HAVE_TLS
+#ifdef WITH_TLS
 	void	*ssl;
 #endif
 
@@ -681,13 +681,13 @@ syncrepl_start(
 		op->o_sasl_ssf = 0;
 		op->o_tls_ssf = 0;
 		op->o_transport_ssf = 0;
-#ifdef HAVE_TLS
+#ifdef WITH_TLS
 		if ( ldap_get_option( si->si_ld, LDAP_OPT_X_TLS_SSL_CTX, &ssl )
 			== LDAP_SUCCESS && ssl != NULL )
 		{
 			op->o_tls_ssf = ldap_pvt_tls_get_strength( ssl );
 		}
-#endif /* HAVE_TLS */
+#endif /* WITH_TLS */
 		{
 			ber_len_t ssf; /* ITS#5403, 3864 LDAP_OPT_X_SASL_SSF probably ought
 							  to use sasl_ssf_t but currently uses ber_len_t */
@@ -5148,7 +5148,7 @@ parse_syncrepl_line(
 		{
 			val = c->argv[ i ] + STRLENOF( PROVIDERSTR "=" );
 			ber_str2bv( val, 0, 1, &si->si_bindconf.sb_uri );
-#ifdef HAVE_TLS
+#ifdef WITH_TLS
 			if ( ldap_is_ldaps_url( val ))
 				si->si_bindconf.sb_tls_do_init = 1;
 #endif
@@ -5680,7 +5680,7 @@ add_syncrepl(
 		ldap_free_urldesc( lud );
 	}
 
-#ifdef HAVE_TLS
+#ifdef WITH_TLS
 	/* Use main slapd defaults */
 	bindconf_tls_defaults( &si->si_bindconf );
 #endif

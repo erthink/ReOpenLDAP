@@ -219,6 +219,11 @@ get_filter(
 					"type=%s (%d)\n",
 					op->o_connid, type.bv_val, err );
 
+				/* LY: but make a whole backtrace, instead of. */
+				static volatile int once;
+				if (once == 0 && __sync_fetch_and_add(&once, 1) == 0)
+					slap_backtrace_debug();
+
 				err = LDAP_SUCCESS;
 				f.f_desc = slap_bv2tmp_ad( &type, op->o_tmpmemctx );
 			}

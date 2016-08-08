@@ -304,6 +304,9 @@ description).  The default is
 specifies the maximum security layer receive buffer
 size allowed.  0 disables security layers.  The default is 65536.
 .RE
+.TP
+.B SASL_NOCANON <on/true/yes/off/false/no>
+Do not perform reverse DNS lookups to canonicalize SASL host names. The default is off.
 .SH GSSAPI OPTIONS
 If ReOpenLDAP is built with Generic Security Services Application Programming Interface support,
 there are more options you can specify.
@@ -337,6 +340,7 @@ certificates in separate individual files. The
 .B TLS_CACERT
 is always used before
 .B TLS_CACERTDIR.
+The specified directory must be managed with the OpenSSL c_rehash utility.
 This parameter is ignored with GnuTLS.
 
 When using Mozilla NSS, <path> may contain a Mozilla NSS cert/key

@@ -939,7 +939,7 @@ int slap_tool_destroy( void )
 	quorum_global_destroy();
 	schema_destroy();
 	lutil_passwd_destroy();
-#ifdef HAVE_TLS
+#ifdef WITH_TLS
 	ldap_pvt_tls_destroy();
 #endif
 	config_destroy();

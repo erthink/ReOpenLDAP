@@ -87,21 +87,21 @@ typedef struct ldapconn_base_t {
 						&& (LDAP_BACK_CONN2PRIV((lc)) >= LDAP_BACK_PCONN_BIND))
 #define LDAP_BACK_PCONN_ISTLS(lc)	(LDAP_BACK_PCONN_ISPRIV((lc)) \
 						&& (LDAP_BACK_CONN2PRIV((lc)) & LDAP_BACK_PCONN_TLS))
-#ifdef HAVE_TLS
+#ifdef WITH_TLS
 #define	LDAP_BACK_PCONN_ROOTDN_SET(lc, op) \
 	((lc)->lc_conn = (void *)((op)->o_conn->c_is_tls ? (void *) LDAP_BACK_PCONN_ROOTDN_TLS : (void *) LDAP_BACK_PCONN_ROOTDN))
 #define	LDAP_BACK_PCONN_ANON_SET(lc, op) \
 	((lc)->lc_conn = (void *)((op)->o_conn->c_is_tls ? (void *) LDAP_BACK_PCONN_ANON_TLS : (void *) LDAP_BACK_PCONN_ANON))
 #define	LDAP_BACK_PCONN_BIND_SET(lc, op) \
 	((lc)->lc_conn = (void *)((op)->o_conn->c_is_tls ? (void *) LDAP_BACK_PCONN_BIND_TLS : (void *) LDAP_BACK_PCONN_BIND))
-#else /* ! HAVE_TLS */
+#else /* ! WITH_TLS */
 #define	LDAP_BACK_PCONN_ROOTDN_SET(lc, op) \
 	((lc)->lc_conn = (void *)LDAP_BACK_PCONN_ROOTDN)
 #define	LDAP_BACK_PCONN_ANON_SET(lc, op) \
 	((lc)->lc_conn = (void *)LDAP_BACK_PCONN_ANON)
 #define	LDAP_BACK_PCONN_BIND_SET(lc, op) \
 	((lc)->lc_conn = (void *)LDAP_BACK_PCONN_BIND)
-#endif /* ! HAVE_TLS */
+#endif /* ! WITH_TLS */
 #define	LDAP_BACK_PCONN_SET(lc, op) \
 	(BER_BVISEMPTY(&(op)->o_ndn) ? \
 		LDAP_BACK_PCONN_ANON_SET((lc), (op)) : LDAP_BACK_PCONN_ROOTDN_SET((lc), (op)))

@@ -42,16 +42,16 @@
 #include <stdlib.h>
 #include "slap.h"
 
-#ifdef HAVE_OPENSSL
-#include <openssl/evp.h>
-#elif HAVE_GNUTLS
-#include <nettle/pbkdf2.h>
-#include <nettle/hmac.h>
-typedef void (*pbkdf2_hmac_update)(void *, unsigned, const uint8_t *);
-typedef void (*pbkdf2_hmac_digest)(void *, unsigned, uint8_t *);
+#if RELDAP_TLS_FALLBACK == RELDAP_TLS_GNUTLS
+#	include <nettle/pbkdf2.h>
+#	include <nettle/hmac.h>
+	typedef void (*pbkdf2_hmac_update)(void *, unsigned, const uint8_t *);
+	typedef void (*pbkdf2_hmac_digest)(void *, unsigned, uint8_t *);
+#elif RELDAP_TLS_FALLBACK == RELDAP_TLS_OPENSSL
+#	include <openssl/evp.h>
 #else
-#error Unsupported crypto backend.
-#endif
+#	error Unsupported crypto backend.
+#endif /* RELDAP_TLS_FALLBACKL */
 
 #define PBKDF2_ITERATION 10000
 #define PBKDF2_SALT_SIZE 16
@@ -167,9 +167,10 @@ static int pbkdf2_encrypt(
 	struct berval dk;
 	int iteration = PBKDF2_ITERATION;
 	int rc;
-#ifdef HAVE_OPENSSL
+#if RELDAP_TLS_FALLBACK == RELDAP_TLS_OPENSSL
 	const EVP_MD *md;
-#elif HAVE_GNUTLS
+#endif
+#if RELDAP_TLS_FALLBACK == RELDAP_TLS_GNUTLS
 	struct hmac_sha1_ctx sha1_ctx;
 	struct hmac_sha256_ctx sha256_ctx;
 	struct hmac_sha512_ctx sha512_ctx;
@@ -182,7 +183,7 @@ static int pbkdf2_encrypt(
 	salt.bv_len = sizeof(salt_value);
 	dk.bv_val = (char *)dk_value;
 
-#ifdef HAVE_OPENSSL
+#if RELDAP_TLS_FALLBACK == RELDAP_TLS_OPENSSL
 	if(!ber_bvcmp(scheme, &pbkdf2_scheme)){
 		dk.bv_len = PBKDF2_SHA1_DK_SIZE;
 		md = EVP_sha1();
@@ -198,7 +199,8 @@ static int pbkdf2_encrypt(
 	}else{
 		return LUTIL_PASSWD_ERR;
 	}
-#elif HAVE_GNUTLS
+#endif
+#if RELDAP_TLS_FALLBACK == RELDAP_TLS_GNUTLS
 	if(!ber_bvcmp(scheme, &pbkdf2_scheme)){
 		dk.bv_len = PBKDF2_SHA1_DK_SIZE;
 		current_ctx = &sha1_ctx;
@@ -232,13 +234,14 @@ static int pbkdf2_encrypt(
 		return LUTIL_PASSWD_ERR;
 	}
 
-#ifdef HAVE_OPENSSL
+#if RELDAP_TLS_FALLBACK == RELDAP_TLS_OPENSSL
 	if(!PKCS5_PBKDF2_HMAC(passwd->bv_val, passwd->bv_len,
 						  (unsigned char *)salt.bv_val, salt.bv_len,
 						  iteration, md, dk.bv_len, dk_value)){
 		return LUTIL_PASSWD_ERR;
 	}
-#elif HAVE_GNUTLS
+#endif
+#if RELDAP_TLS_FALLBACK == RELDAP_TLS_GNUTLS
 	PBKDF2(current_ctx, current_hmac_update, current_hmac_digest,
 						  dk.bv_len, iteration,
 						  salt.bv_len, (const uint8_t *) salt.bv_val,
@@ -290,9 +293,10 @@ static int pbkdf2_check(
 	char dk_b64[LUTIL_BASE64_ENCODE_LEN(PBKDF2_MAX_DK_SIZE) + 1];
 	unsigned char input_dk_value[PBKDF2_MAX_DK_SIZE];
 	size_t dk_len;
-#ifdef HAVE_OPENSSL
+#if RELDAP_TLS_FALLBACK == RELDAP_TLS_OPENSSL
 	const EVP_MD *md;
-#elif HAVE_GNUTLS
+#endif
+#if RELDAP_TLS_FALLBACK == RELDAP_TLS_GNUTLS
 	struct hmac_sha1_ctx sha1_ctx;
 	struct hmac_sha256_ctx sha256_ctx;
 	struct hmac_sha512_ctx sha512_ctx;
@@ -307,7 +311,7 @@ static int pbkdf2_check(
 	printf("  Input Cred:\t%s\n", cred->bv_val);
 #endif
 
-#ifdef HAVE_OPENSSL
+#if RELDAP_TLS_FALLBACK == RELDAP_TLS_OPENSSL
 	if(!ber_bvcmp(scheme, &pbkdf2_scheme)){
 		dk_len = PBKDF2_SHA1_DK_SIZE;
 		md = EVP_sha1();
@@ -323,7 +327,8 @@ static int pbkdf2_check(
 	}else{
 		return LUTIL_PASSWD_ERR;
 	}
-#elif HAVE_GNUTLS
+#endif
+#if RELDAP_TLS_FALLBACK == RELDAP_TLS_GNUTLS
 	if(!ber_bvcmp(scheme, &pbkdf2_scheme)){
 		dk_len = PBKDF2_SHA1_DK_SIZE;
 		current_ctx = &sha1_ctx;
@@ -401,13 +406,14 @@ static int pbkdf2_check(
 		return LUTIL_PASSWD_ERR;
 	}
 
-#ifdef HAVE_OPENSSL
+#if RELDAP_TLS_FALLBACK == RELDAP_TLS_OPENSSL
 	if(!PKCS5_PBKDF2_HMAC(cred->bv_val, cred->bv_len,
 						  salt_value, PBKDF2_SALT_SIZE,
 						  iteration, md, dk_len, input_dk_value)){
 		return LUTIL_PASSWD_ERR;
 	}
-#elif HAVE_GNUTLS
+#endif
+#if RELDAP_TLS_FALLBACK == RELDAP_TLS_GNUTLS
 	PBKDF2(current_ctx, current_hmac_update, current_hmac_digest,
 						  dk_len, iteration,
 						  PBKDF2_SALT_SIZE, salt_value,

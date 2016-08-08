@@ -9,7 +9,7 @@ Briefly:
 
 New:
  + `configure --enable-contrib` for build contributes modules and plugins.
- + `configure --enable-experimantal` for experimental and developing features.
+ + `configure --enable-experimental` for experimental and developing features.
  + 'configure --enable-valgrind' for testing with Valgrind Memory Debugger.
  + `configure --enable-check --enable-hipagut` for builtin runtime checking.
  * Now '--enable-debug' and '--enable-syslog' are completely independent of each other.

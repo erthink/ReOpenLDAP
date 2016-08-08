@@ -157,7 +157,7 @@ am__libreldap_la_SOURCES_DIST = abandon.c add.c addentry.c assertion.c \
 	encode.c error.c extended.c fetch.c filter.c free.c getattr.c \
 	getdn.c getentry.c getvalues.c gssapi.c hipagut.c init.c io.c \
 	lber_options.c ldap_options.c ldap_sync.c ldif.c memory.c \
-	messages.c modify.c modrdn.c open.c os-ip.c os-local.c \
+	messages.c modify.c modrdn.c open.c ntlm.c os-ip.c os-local.c \
 	pagectrl.c passwd.c posix.c ppolicy.c references.c request.c \
 	result.c rmutex.c rq.c sasl.c schema.c search.c sockbuf.c \
 	sort.c sortctrl.c stctrl.c stdio.c string.c t61.c threads.c \
@@ -172,13 +172,14 @@ am_libreldap_la_OBJECTS = abandon.lo add.lo addentry.lo assertion.lo \
 	filter.lo free.lo getattr.lo getdn.lo getentry.lo getvalues.lo \
 	gssapi.lo hipagut.lo init.lo io.lo lber_options.lo \
 	ldap_options.lo ldap_sync.lo ldif.lo memory.lo messages.lo \
-	modify.lo modrdn.lo open.lo os-ip.lo os-local.lo pagectrl.lo \
-	passwd.lo posix.lo ppolicy.lo references.lo request.lo \
-	result.lo rmutex.lo rq.lo sasl.lo schema.lo search.lo \
-	sockbuf.lo sort.lo sortctrl.lo stctrl.lo stdio.lo string.lo \
-	t61.lo threads.lo tls2.lo tls_g.lo tls_m.lo tls_o.lo tpool.lo \
-	turn.lo txn.lo unbind.lo url.lo utf-8.lo utf-8-conv.lo \
-	util-int.lo vlvctrl.lo whoami.lo crutch.lo $(am__objects_1)
+	modify.lo modrdn.lo open.lo ntlm.lo os-ip.lo os-local.lo \
+	pagectrl.lo passwd.lo posix.lo ppolicy.lo references.lo \
+	request.lo result.lo rmutex.lo rq.lo sasl.lo schema.lo \
+	search.lo sockbuf.lo sort.lo sortctrl.lo stctrl.lo stdio.lo \
+	string.lo t61.lo threads.lo tls2.lo tls_g.lo tls_m.lo tls_o.lo \
+	tpool.lo turn.lo txn.lo unbind.lo url.lo utf-8.lo \
+	utf-8-conv.lo util-int.lo vlvctrl.lo whoami.lo crutch.lo \
+	$(am__objects_1)
 libreldap_la_OBJECTS = $(am_libreldap_la_OBJECTS)
 AM_V_lt = $(am__v_lt_@AM_V@)
 am__v_lt_ = $(am__v_lt_@AM_DEFAULT_V@)
@@ -305,6 +306,9 @@ CCDEPMODE = @CCDEPMODE@
 CFLAGS = @CFLAGS@
 CPP = @CPP@
 CPPFLAGS = @CPPFLAGS@
+CRACKLIB_CFLAGS = @CRACKLIB_CFLAGS@
+CRACKLIB_DICTPATH = @CRACKLIB_DICTPATH@
+CRACKLIB_LIBS = @CRACKLIB_LIBS@
 CXX = @CXX@
 CXXCPP = @CXXCPP@
 CXXDEPMODE = @CXXDEPMODE@
@@ -327,6 +331,8 @@ EXEEXT = @EXEEXT@
 FGREP = @FGREP@
 FIXUP_DIRS = @FIXUP_DIRS@
 FIXUP_DIST = @FIXUP_DIST@
+GNUTLS_CFLAGS = @GNUTLS_CFLAGS@
+GNUTLS_LIBS = @GNUTLS_LIBS@
 GREP = @GREP@
 HEIMDAL_CFLAGS = @HEIMDAL_CFLAGS@
 HEIMDAL_LIBS = @HEIMDAL_LIBS@
@@ -374,6 +380,8 @@ MKBANNER_VERBOSE_ = @MKBANNER_VERBOSE_@
 MKBANNER_VERBOSE_0 = @MKBANNER_VERBOSE_0@
 MKBANNER_VERBOSE_1 = @MKBANNER_VERBOSE_1@
 MKDIR_P = @MKDIR_P@
+MOZNSS_CFLAGS = @MOZNSS_CFLAGS@
+MOZNSS_LIBS = @MOZNSS_LIBS@
 MYSQL = @MYSQL@
 NDB_INCLUDES = @NDB_INCLUDES@
 NDB_LDFLAGS = @NDB_LDFLAGS@
@@ -383,6 +391,8 @@ NM = @NM@
 NMEDIT = @NMEDIT@
 OBJDUMP = @OBJDUMP@
 OBJEXT = @OBJEXT@
+OPENSSL_CFLAGS = @OPENSSL_CFLAGS@
+OPENSSL_LIBS = @OPENSSL_LIBS@
 OTOOL = @OTOOL@
 OTOOL64 = @OTOOL64@
 PACKAGE = @PACKAGE@
@@ -428,6 +438,9 @@ SOELIM_R = @SOELIM_R@
 SQL_INCLUDES = @SQL_INCLUDES@
 SQL_LIBS = @SQL_LIBS@
 STRIP = @STRIP@
+TLS_CFLAGS = @TLS_CFLAGS@
+TLS_FALLBACK_CFLAGS = @TLS_FALLBACK_CFLAGS@
+TLS_FALLBACK_LIBS = @TLS_FALLBACK_LIBS@
 TLS_LIBS = @TLS_LIBS@
 VALGRIND = @VALGRIND@
 VALGRIND_ENABLED = @VALGRIND_ENABLED@
@@ -519,7 +532,7 @@ libreldap_la_SOURCES = abandon.c add.c addentry.c assertion.c banner.c \
 	extended.c fetch.c filter.c free.c getattr.c getdn.c \
 	getentry.c getvalues.c gssapi.c hipagut.c init.c io.c \
 	lber_options.c ldap_options.c ldap_sync.c ldif.c memory.c \
-	messages.c modify.c modrdn.c open.c os-ip.c os-local.c \
+	messages.c modify.c modrdn.c open.c ntlm.c os-ip.c os-local.c \
 	pagectrl.c passwd.c posix.c ppolicy.c references.c request.c \
 	result.c rmutex.c rq.c sasl.c schema.c search.c sockbuf.c \
 	sort.c sortctrl.c stctrl.c stdio.c string.c t61.c threads.c \
@@ -741,6 +754,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/messages.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/modify.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/modrdn.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ntlm.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/open.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/os-ip.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/os-local.Plo@am__quote@

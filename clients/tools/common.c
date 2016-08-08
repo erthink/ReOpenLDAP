@@ -268,7 +268,7 @@ tool_destroy( void )
 		sasl_client_done();
 #	endif
 #endif
-#ifdef HAVE_TLS
+#ifdef WITH_TLS
 	ldap_pvt_tls_destroy();
 #endif
 
@@ -1031,7 +1031,7 @@ tool_args( int argc, char **argv )
 #endif
 			break;
 		case 'Z':
-#ifdef HAVE_TLS
+#ifdef WITH_TLS
 			use_tls++;
 #else
 			fprintf( stderr, "%s: not compiled with TLS support\n", prog );
@@ -1144,7 +1144,7 @@ tool_args( int argc, char **argv )
 			fprintf( stderr, "%s: -e/-M incompatible with LDAPv2\n", prog );
 			exit( EXIT_FAILURE );
 		}
-#ifdef HAVE_TLS
+#ifdef WITH_TLS
 		if( use_tls ) {
 			fprintf( stderr, "%s: -Z incompatible with LDAPv2\n", prog );
 			exit( EXIT_FAILURE );

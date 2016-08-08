@@ -70,8 +70,8 @@ extern int h_errno;
 #ifndef LDAP_R_COMPILE
 # undef HAVE_REENTRANT_FUNCTIONS
 # undef HAVE_CTIME_R
-# undef HAVE_GETHOSTBYNAME_R
-# undef HAVE_GETHOSTBYADDR_R
+/* # undef HAVE_GETHOSTBYNAME_R */
+/* # undef HAVE_GETHOSTBYADDR_R */
 
 #else
 # include <ldap_pvt_thread.h>
@@ -147,7 +147,7 @@ ldap_pvt_csnstr(char *buf, size_t len, unsigned int replica, unsigned int mod)
 #define BUFSTART (1024-32)
 #define BUFMAX (32*1024-32)
 
-#if defined(LDAP_R_COMPILE)
+#if defined(LDAP_R_COMPILE) || defined(HAVE_GETHOSTBYNAME_R) && defined(HAVE_GETHOSTBYADDR_R)
 static char *safe_realloc( char **buf, int len );
 
 #if !(defined(HAVE_GETHOSTBYNAME_R) && defined(HAVE_GETHOSTBYADDR_R))

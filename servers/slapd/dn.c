@@ -1293,13 +1293,13 @@ dnIsOneLevelRDN( struct berval *rdn )
 	return 1;
 }
 
-#ifdef HAVE_TLS
+#ifdef WITH_TLS
 static SLAP_CERT_MAP_FN *DNX509PeerNormalizeCertMap = NULL;
 #endif
 
 int register_certificate_map_function(SLAP_CERT_MAP_FN *fn)
 {
-#ifdef HAVE_TLS
+#ifdef WITH_TLS
 	if ( DNX509PeerNormalizeCertMap == NULL ) {
 		DNX509PeerNormalizeCertMap = fn;
 		return 0;
@@ -1325,7 +1325,7 @@ dnX509normalize( void *x509_name, struct berval *out )
 	return rc;
 }
 
-#ifdef HAVE_TLS
+#ifdef WITH_TLS
 /*
  * Get the TLS session's peer's DN into a normalized LDAP DN
  */

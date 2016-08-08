@@ -421,6 +421,9 @@ CCDEPMODE = @CCDEPMODE@
 CFLAGS = @CFLAGS@
 CPP = @CPP@
 CPPFLAGS = @CPPFLAGS@
+CRACKLIB_CFLAGS = @CRACKLIB_CFLAGS@
+CRACKLIB_DICTPATH = @CRACKLIB_DICTPATH@
+CRACKLIB_LIBS = @CRACKLIB_LIBS@
 CXX = @CXX@
 CXXCPP = @CXXCPP@
 CXXDEPMODE = @CXXDEPMODE@
@@ -443,6 +446,8 @@ EXEEXT = @EXEEXT@
 FGREP = @FGREP@
 FIXUP_DIRS = @FIXUP_DIRS@
 FIXUP_DIST = @FIXUP_DIST@
+GNUTLS_CFLAGS = @GNUTLS_CFLAGS@
+GNUTLS_LIBS = @GNUTLS_LIBS@
 GREP = @GREP@
 HEIMDAL_CFLAGS = @HEIMDAL_CFLAGS@
 HEIMDAL_LIBS = @HEIMDAL_LIBS@
@@ -490,6 +495,8 @@ MKBANNER_VERBOSE_ = @MKBANNER_VERBOSE_@
 MKBANNER_VERBOSE_0 = @MKBANNER_VERBOSE_0@
 MKBANNER_VERBOSE_1 = @MKBANNER_VERBOSE_1@
 MKDIR_P = @MKDIR_P@
+MOZNSS_CFLAGS = @MOZNSS_CFLAGS@
+MOZNSS_LIBS = @MOZNSS_LIBS@
 MYSQL = @MYSQL@
 NDB_INCLUDES = @NDB_INCLUDES@
 NDB_LDFLAGS = @NDB_LDFLAGS@
@@ -499,6 +506,8 @@ NM = @NM@
 NMEDIT = @NMEDIT@
 OBJDUMP = @OBJDUMP@
 OBJEXT = @OBJEXT@
+OPENSSL_CFLAGS = @OPENSSL_CFLAGS@
+OPENSSL_LIBS = @OPENSSL_LIBS@
 OTOOL = @OTOOL@
 OTOOL64 = @OTOOL64@
 PACKAGE = @PACKAGE@
@@ -544,6 +553,9 @@ SOELIM_R = @SOELIM_R@
 SQL_INCLUDES = @SQL_INCLUDES@
 SQL_LIBS = @SQL_LIBS@
 STRIP = @STRIP@
+TLS_CFLAGS = @TLS_CFLAGS@
+TLS_FALLBACK_CFLAGS = @TLS_FALLBACK_CFLAGS@
+TLS_FALLBACK_LIBS = @TLS_FALLBACK_LIBS@
 TLS_LIBS = @TLS_LIBS@
 VALGRIND = @VALGRIND@
 VALGRIND_ENABLED = @VALGRIND_ENABLED@
@@ -1276,7 +1288,7 @@ slapd.conf: $(srcdir)/slapd.conf.in Makefile
 
 install-exec-hook:
 	@if $(AM_V_P); then set -x; else echo "  INSTALL  slaptools"; fi; \
-	(cd $(sbindir) && \
+	(cd $(DESTDIR)$(sbindir) && \
 		$(RM) -f $(slaptools) && \
 		for T in $(slaptools); do \
 			$(LN_S) slapd$(EXEEXT) $${T}$(EXEEXT) || exit 1; \
@@ -1284,17 +1296,17 @@ install-exec-hook:
 
 install-data-hook:
 	@if $(AM_V_P); then set -x; else echo "  INSTALL  schema"; fi; \
-	$(MKDIR_P) $(sysconfdir)/schema && \
-		(cd $(srcdir) && $(INSTALL) -t $(sysconfdir)/schema -m 0444 $(schema_files))
+	$(MKDIR_P) $(DESTDIR)$(sysconfdir)/schema && \
+		(cd $(srcdir) && $(INSTALL) -t $(DESTDIR)$(sysconfdir)/schema -m 0444 $(schema_files))
 
 uninstall-hook:
 	@if $(AM_V_P); then set -x; else echo "  UNINSTALL slaptools & schema"; fi; \
-	(cd $(sbindir) && \
+	(cd $(DESTDIR)$(sbindir) && \
 		$(RM) -f $(slaptools) && \
 		for T in $(slaptools); do \
 			$(RM) -f $${T}$(EXEEXT) || exit 1; \
 		done) && \
-	(cd $(sysconfdir) && rm -f $(schema_files)) && rmdir $(sysconfdir)/schema
+	(cd $(DESTDIR)$(sysconfdir) && $(RM) -f $(schema_files)) && rmdir $(DESTDIR)$(sysconfdir)/schema
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.
