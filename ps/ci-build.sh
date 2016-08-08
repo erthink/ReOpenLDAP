@@ -71,14 +71,29 @@ flag_dynamic=1
 flag_exper=0
 flag_contrib=1
 flag_slapi=1
+flag_tls=1
 
 flag_nodeps=0
 if [ -n "${TEAMCITY_PROCESS_FLOW_ID}" ]; then
 	flag_nodeps=1
 fi
 
+CONFIGURE_ARGS="--enable-crypt --enable-spasswd --enable-passwd"
+#" --enable-slp"
+
 for arg in "$@"; do
 	case "$arg" in
+	--no-tls | --with-tls=no)
+		CONFIGURE_ARGS+=" --with-tls=no"
+		flag_tls=0
+		;;
+	--with-tls=*)
+		CONFIGURE_ARGS+=" $arg"
+		if [ $arg != "--with-tls=gnutls" ]; then
+			 CONFIGURE_ARGS+=" --enable-lmpasswd"
+		fi
+		flag_tls=0
+		;;
 	--contrib)
 		flag_contrib=1
 		flag_exper=1
@@ -231,7 +246,9 @@ done
 
 #======================================================================
 
-CONFIGURE_ARGS=
+if [ $flag_tls -ne 0 ]; then
+	CONFIGURE_ARGS+=" --with-tls=yes --enable-lmpasswd"
+fi
 
 if [ $flag_contrib -ne 0 ]; then
 	CONFIGURE_ARGS+=" --enable-contrib"
@@ -512,7 +529,7 @@ if [ ! -s ${build}/Makefile ]; then
 	mkdir -p ${build} && \
 	( cd ${build} && configure \
 			$(if [ $modern_configure -ne 0 -a $flag_nodeps -ne 0 ]; then echo "--disable-dependency-tracking"; fi) \
-			--prefix=$(pwd)/@install_here --with-tls --enable-debug \
+			--prefix=$(pwd)/@install_here --enable-debug \
 			$CONFIGURE_ARGS --enable-overlays=${MOD} $NDB_CONFIG \
 			--enable-rewrite --enable-dynacl --enable-aci \
 			$(if [ $flag_mdbx -eq 0 ]; then echo "--disable-${MDBX_NICK}"; else echo "--enable-${MDBX_NICK}=${MOD}"; fi) \

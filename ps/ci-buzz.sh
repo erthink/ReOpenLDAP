@@ -1,20 +1,9 @@
 #!/bin/bash
 
-N=$1
-shift
-branch_list="$@"
-
-if [ -z "$N" ]; then N=10; fi
-if [ -z "$branch_list" ]; then branch_list="devel master"; fi
-
-build="ps/ci-build.sh"
-test="ps/ci-test.sh"
-build_args="--without-bdb --do-not-clean"
-test_args="42"
-
 TOP=$(pwd)/@ci-buzz.pool
 RAM=$TOP/ramfs
 MAINPID=$$
+
 function timestamp {
 	date +'%F %T'
 }
@@ -47,6 +36,33 @@ function failure {
 	cleanup
 	exit 1
 }
+
+flag_mode_tls=0
+while grep -q '^--' <<< "$1"; do
+	case "$1" in
+	--check-tls)
+		flag_mode_tls=1
+		;;
+	*)
+		failure "unknown option '$1'"
+		;;
+	esac
+	shift
+done
+
+
+
+N=$1
+shift
+branch_list="$@"
+
+if [ -z "$N" ]; then N=10; fi
+if [ -z "$branch_list" ]; then branch_list="devel master"; fi
+
+build="ps/ci-build.sh"
+test="ps/ci-test.sh"
+build_args="--without-bdb --do-not-clean"
+test_args="42"
 
 mkdir -p $TOP || failure "mkdir -p $TOP"
 rm -rf $TOP/@* || failure  "rm -rf $TOP/@*"
@@ -135,28 +151,54 @@ for ((n=0; n < N; n++)); do
 	for branch in $branch_list; do
 		nice=$((1 + order % 20))
 		delay=$((order * 113))
-		case $((n % 4)) in
-			0)
-				build_opt="--no-lto --asan"
-				;;
-			1)
-				build_opt="--no-lto --debug"
-				;;
-			2)
-				build_opt="--size --no-check --lto"
-				;;
-			3)
-				build_opt="--speed --check --lto"
-				;;
-			*)
-				build_opt=
-				;;
-		esac
-		if [ $n -lt 4 ]; then
-			build_opt+=" --dynamic"
+		if [ $flag_mode_tls -ne 0 ]; then
+			build_opt="--lto --asan --no-dynamic --insrc"
+			if [ $n -lt 4 ]; then
+				build_opt+=" --speed"
+			else
+				build_opt+=" --size --check"
+			fi
+			case $((n % 4)) in
+				0)
+					build_opt+=" --with-tls=no"
+					;;
+				1)
+					build_opt+=" --with-tls=moznss"
+					;;
+				2)
+					build_opt+=" --with-tls=gnutls"
+					;;
+				3)
+					build_opt+=" --with-tls=openssl"
+					;;
+				*)
+					failure "Oops"
+					;;
+			esac
 		else
-			# LY: avoid timeout-failures due libtool runtime linking under higload
-			build_opt+=" --no-dynamic"
+			case $((n % 4)) in
+				0)
+					build_opt="--no-lto --asan"
+					;;
+				1)
+					build_opt="--no-lto --debug"
+					;;
+				2)
+					build_opt="--size --no-check --lto"
+					;;
+				3)
+					build_opt="--speed --check --lto"
+					;;
+				*)
+					failure "Oops"
+					;;
+			esac
+			if [ $n -lt 4 ]; then
+				build_opt+=" --dynamic"
+			else
+				# LY: avoid timeout-failures due libtool runtime linking under higload
+				build_opt+=" --no-dynamic"
+			fi
 		fi
 		echo "launching $n of $branch, with nice $nice and... $build_opt"
 		dir=$TOP/@$n.$branch
