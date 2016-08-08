@@ -195,6 +195,7 @@ tlsm_thr_init( void )
 
 #endif /* LDAP_R_COMPILE */
 
+#if 0 /* LY: unused now */
 static const char *
 tlsm_dump_cipher_info(PRFileDesc *fd)
 {
@@ -222,6 +223,7 @@ tlsm_dump_cipher_info(PRFileDesc *fd)
 
 	return "";
 }
+#endif /* #if 0, unused */
 
 /* Cipher definitions */
 typedef struct {
@@ -2801,7 +2803,7 @@ tlsm_session_chkhost( LDAP *ld, tls_session *session, const char *name_in )
 	tlsm_session *s = (tlsm_session *)session;
 	CERTCertificate *cert;
 	const char *name, *domain = NULL, *ptr;
-	int ret, ntype = IS_DNS, nlen, dlen;
+	int ret, ntype = IS_DNS, nlen, dlen = 0;
 #ifdef LDAP_PF_INET6
 	struct in6_addr addr;
 #else
