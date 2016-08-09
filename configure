@@ -13151,7 +13151,7 @@ VERSION_PATCH=0
 
 RELEASE_DATE=2016-08-09
 
-RELEASE_STAMP=gead481f30a0f-ta36d467152e96969
+RELEASE_STAMP=gdac1351cf874-t7768344b6b4b81f9
 
 API_LIB_RELEASE=1.2
 
@@ -22099,12 +22099,6 @@ if test $ol_enable_meta/$ol_enable_ldap = yes/no ; then
 	as_fn_error $? "--enable-meta requires --enable-ldap" "$LINENO" 5
 fi
 
-if test $ol_enable_lmpasswd = yes ; then
-	if test $ol_with_tls != openssl -a $ol_with_tls != moznss ; then
-		as_fn_error $? "LAN Manager passwords require --with-tls=openssl or --with-tls=moznss" "$LINENO" 5
-	fi
-fi
-
 if test $ol_enable_spasswd = yes ; then
 	if test $ol_with_cyrus_sasl = no ; then
 		as_fn_error $? "options require --with-cyrus-sasl" "$LINENO" 5
@@ -24802,13 +24796,13 @@ fi
 if test $ol_with_tls = yes -o $ol_with_tls = auto; then
     if test $moznss_found = yes; then
 	ol_with_tls=moznss
-    elif test $gnutls_found = yes; then
+    elif test $gnutls_found = yes -a $ol_enable_lmpasswd != yes; then
 	ol_with_tls=gnutls
     elif test $openssl_found = yes; then
 	ol_with_tls=openssl
     elif test $ol_with_tls = auto; then
-	{ $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: TLS data protection not supported!" >&5
-$as_echo "$as_me: WARNING: TLS data protection not supported!" >&2;}
+	{ $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: No suitable TLS package for data protection!" >&5
+$as_echo "$as_me: WARNING: No suitable TLS package for data protection!" >&2;}
 	ol_with_tls=no
     else
 	{ { $as_echo "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
@@ -24816,6 +24810,12 @@ $as_echo "$as_me: error: in \`$ac_pwd':" >&2;}
 as_fn_error $? "Not found Mozilla NSS, OpenSSL or GnuTLS for --with-tls=yes
 See \`config.log' for more details" "$LINENO" 5; }
     fi
+fi
+
+if test $ol_enable_lmpasswd = yes ; then
+	if test $ol_with_tls != openssl -a $ol_with_tls != moznss ; then
+		as_fn_error $? "LAN Manager passwords require --with-tls=openssl or --with-tls=moznss" "$LINENO" 5
+	fi
 fi
 
 case $ol_with_tls in

@@ -671,12 +671,6 @@ if test $ol_enable_meta/$ol_enable_ldap = yes/no ; then
 	AC_MSG_ERROR([--enable-meta requires --enable-ldap])
 fi
 
-if test $ol_enable_lmpasswd = yes ; then
-	if test $ol_with_tls != openssl -a $ol_with_tls != moznss ; then
-		AC_MSG_ERROR([LAN Manager passwords require --with-tls=openssl or --with-tls=moznss])
-	fi
-fi
-
 if test $ol_enable_spasswd = yes ; then
 	if test $ol_with_cyrus_sasl = no ; then
 		AC_MSG_ERROR([options require --with-cyrus-sasl])
@@ -1160,16 +1154,22 @@ AM_CONDITIONAL([TLS_FALLBACK_AVAIL], [test $gnutls_found = yes -o $openssl_found
 if test $ol_with_tls = yes -o $ol_with_tls = auto; then
     if test $moznss_found = yes; then
 	ol_with_tls=moznss
-    elif test $gnutls_found = yes; then
+    elif test $gnutls_found = yes -a $ol_enable_lmpasswd != yes; then
 	ol_with_tls=gnutls
     elif test $openssl_found = yes; then
 	ol_with_tls=openssl
     elif test $ol_with_tls = auto; then
-	AC_MSG_WARN([TLS data protection not supported!])
+	AC_MSG_WARN([No suitable TLS package for data protection!])
 	ol_with_tls=no
     else
 	AC_MSG_FAILURE([Not found Mozilla NSS, OpenSSL or GnuTLS for --with-tls=yes])
     fi
+fi
+
+if test $ol_enable_lmpasswd = yes ; then
+	if test $ol_with_tls != openssl -a $ol_with_tls != moznss ; then
+		AC_MSG_ERROR([LAN Manager passwords require --with-tls=openssl or --with-tls=moznss])
+	fi
 fi
 
 case $ol_with_tls in
