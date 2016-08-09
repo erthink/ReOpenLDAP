@@ -672,8 +672,8 @@ if test $ol_enable_meta/$ol_enable_ldap = yes/no ; then
 fi
 
 if test $ol_enable_lmpasswd = yes ; then
-	if test $ol_with_tls = no ; then
-		AC_MSG_ERROR([LAN Manager passwords require OpenSSL])
+	if test $ol_with_tls != openssl -a $ol_with_tls != moznss ; then
+		AC_MSG_ERROR([LAN Manager passwords require --with-tls=openssl or --with-tls=moznss])
 	fi
 fi
 
