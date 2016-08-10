@@ -55,7 +55,13 @@ if [ -n "$NOEXIT" ]; then
 	echo "Result	Test" > $RESULTS
 fi
 
-for CMD in ${TOP_SRCDIR}/tests/scripts/test*; do
+if [ -n "$CIBUZZ_PID4" -o -n "$RANDOM_ORDER" ]; then
+	TEST_LIST_CMD=$(ls ${TOP_SRCDIR}/tests/scripts/test* | sort --random-sort)
+else
+	TEST_LIST_CMD=${TOP_SRCDIR}/tests/scripts/test*
+fi
+
+for CMD in $TEST_LIST_CMD; do
 
 	TESTNO=$(sed -n 's/^.*\/test\([0-9]\+\)-.*/\1/p' <<< "$CMD")
 	if [ 0"$TESTNO" -lt 0 ]; then continue; fi
