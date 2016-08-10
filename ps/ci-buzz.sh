@@ -50,8 +50,6 @@ while grep -q '^--' <<< "$1"; do
 	shift
 done
 
-
-
 N=$1
 shift
 branch_list="$@"
@@ -61,7 +59,7 @@ if [ -z "$branch_list" ]; then branch_list="devel master"; fi
 
 build="ps/ci-build.sh"
 test="ps/ci-test.sh"
-build_args="--without-bdb --do-not-clean"
+build_args="--without-bdb --do-not-clean --insrc"
 test_args="42"
 
 mkdir -p $TOP || failure "mkdir -p $TOP"
@@ -124,6 +122,58 @@ function doit_build {
 	fi
 }
 
+function make_build_opt {
+	if [ $flag_mode_tls -ne 0 ]; then
+		build_opt="--lto --asan --no-dynamic"
+		if [ $n -lt 4 ]; then
+			build_opt+=" --speed"
+		else
+			build_opt+=" --size --check"
+		fi
+		case $((n % 4)) in
+			0)
+				build_opt+=" --with-tls=no"
+				;;
+			1)
+				build_opt+=" --with-tls=moznss"
+				;;
+			2)
+				build_opt+=" --with-tls=gnutls"
+				;;
+			3)
+				build_opt+=" --with-tls=openssl"
+				;;
+			*)
+				failure "Oops"
+				;;
+		esac
+	else
+		case $((n % 4)) in
+			0)
+				build_opt="--no-lto --asan"
+				;;
+			1)
+				build_opt="--no-lto --debug"
+				;;
+			2)
+				build_opt="--size --no-check --lto"
+				;;
+			3)
+				build_opt="--speed --check --lto"
+				;;
+			*)
+				failure "Oops"
+				;;
+		esac
+		if [ $n -lt 4 ]; then
+			build_opt+=" --dynamic"
+		else
+			# LY: avoid timeout-failures due libtool runtime linking under higload
+			build_opt+=" --no-dynamic"
+		fi
+	fi
+}
+
 function doit_test {
 	local branch=$1
 	local nice=$2
@@ -149,58 +199,9 @@ started=$(date +%s)
 order=0
 for ((n=0; n < N; n++)); do
 	for branch in $branch_list; do
-		nice=$((1 + order % 20))
 		delay=$((order * 113))
-		if [ $flag_mode_tls -ne 0 ]; then
-			build_opt="--lto --asan --no-dynamic --insrc"
-			if [ $n -lt 4 ]; then
-				build_opt+=" --speed"
-			else
-				build_opt+=" --size --check"
-			fi
-			case $((n % 4)) in
-				0)
-					build_opt+=" --with-tls=no"
-					;;
-				1)
-					build_opt+=" --with-tls=moznss"
-					;;
-				2)
-					build_opt+=" --with-tls=gnutls"
-					;;
-				3)
-					build_opt+=" --with-tls=openssl"
-					;;
-				*)
-					failure "Oops"
-					;;
-			esac
-		else
-			case $((n % 4)) in
-				0)
-					build_opt="--no-lto --asan"
-					;;
-				1)
-					build_opt="--no-lto --debug"
-					;;
-				2)
-					build_opt="--size --no-check --lto"
-					;;
-				3)
-					build_opt="--speed --check --lto"
-					;;
-				*)
-					failure "Oops"
-					;;
-			esac
-			if [ $n -lt 4 ]; then
-				build_opt+=" --dynamic"
-			else
-				# LY: avoid timeout-failures due libtool runtime linking under higload
-				build_opt+=" --no-dynamic"
-			fi
-		fi
-		echo "launching $n of $branch, with nice $nice and... $build_opt"
+		make_build_opt
+		echo "launching $n of $branch with $build_opt"
 		dir=$TOP/@$n.$branch
 		tmp=$(readlink -f ${RAM}/$n.$branch)
 		mkdir -p $dir || failure "mkdir -p $dir"
@@ -209,7 +210,7 @@ for ((n=0; n < N; n++)); do
 		rm -rf $tmp $dir/tmp && mkdir -p $tmp && ln -s $tmp $dir/tmp || failure "mkdir -p $tmp"
 		( \
 			( sleep $delay && cd $dir \
-				&& doit_build $branch $nice $build_opt \
+				&& doit_build $branch 15 $build_opt \
 			) >$dir/out.log 2>$dir/err.log </dev/null; \
 			wait; echo "$(timestamp) *** fihished" >$dir/status \
 		) &
@@ -226,35 +227,15 @@ for ((n=0; n < N; n++)); do
 		dir=$TOP/@$n.$branch
 		[ -e $dir/build.ok ] || continue
 
-		delay=$((order * 47))
-		case $((n % 4)) in
-			0)
-				#build_opt="--no-lto --asan"
-				nice=1
-				;;
-			1)
-				#build_opt="--no-lto --debug"
-				nice=2
-				;;
-			2)
-				#build_opt="--size --no-check --lto"
-				nice=3
-				;;
-			3)
-				#build_opt="--speed --check --lto"
-				nice=4
-				;;
-			*)
-				#build_opt=
-				nice=5
-				;;
-		esac
+		delay=$((order * 17))
+		nice=$((n % 4 + 1))
+		make_build_opt
 
-		echo "launching $n of $branch, with nice $nice..."
+		echo "launching $n of $branch, with nice $nice and with $build_opt"
 		tmp=$(readlink -f ${RAM}/$n.$branch)
 		mkdir -p $dir || failure "mkdir -p $dir"
 
-		echo "delay $delay seconds, nice $nice..." >$dir/status
+		echo "delay $delay seconds, nice $nice and with $build_opt..." >$dir/status
 		rm -rf $tmp $dir/tmp && mkdir -p $tmp && ln -s $tmp $dir/tmp || failure "mkdir -p $tmp"
 		( \
 			( sleep $delay && cd $dir \
