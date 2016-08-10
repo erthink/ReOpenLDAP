@@ -122,6 +122,11 @@ else
 	IONICE=""
 fi
 
+echo "*********** $(date --rfc-3339=ns)"
+# LY: run slapd to complete libtool runtime-linking
+${TESTING_ROOT}/servers/slapd/slapd -VVV 2>&1
+echo "*********** $(date --rfc-3339=ns)"
+
 export TESTING_ROOT
 for n in $(seq 1 $N); do
 	echo "##teamcity[blockOpened name='Round $n of $N']"
@@ -176,6 +181,7 @@ for n in $(seq 1 $N); do
 	echo "##teamcity[blockClosed name='Round $n of $N']"
 done
 
+echo "*********** $(date --rfc-3339=ns)"
 echo "##teamcity[buildStatus text='Tests passed']"
 find ./@ci-test-* -name all.log | xargs -r grep ' completed OK for '
 find ./@ci-test-* -name all.log | xargs -r grep ' failed for ' >&2
