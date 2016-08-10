@@ -127,7 +127,7 @@ monitor_subsys_thread_init(
 #ifndef NO_THREADS
 	monitor_info_t	*mi;
 	monitor_entry_t	*mp;
-	Entry		*e, **ep, *e_thread;
+	Entry		*e, **ep, *e_thread = NULL;
 	int		i;
 
 	ms->mss_update = monitor_subsys_thread_update;
@@ -144,6 +144,7 @@ monitor_subsys_thread_init(
 	mp = ( monitor_entry_t * )e_thread->e_private;
 	mp->mp_children = NULL;
 	ep = &mp->mp_children;
+	int rc = -1;
 
 	for ( i = 0; !BER_BVISNULL( &mt[ i ].rdn ); i++ ) {
 		static char	buf[ BACKMONITOR_BUFSIZE ];
@@ -163,7 +164,7 @@ monitor_subsys_thread_init(
 				"unable to create entry \"%s,%s\"\n",
 				mt[ i ].rdn.bv_val,
 				ms->mss_ndn.bv_val );
-			return( -1 );
+			goto bailout;
 		}
 
 		/* NOTE: reference to the normalized DN of the entry,
@@ -179,7 +180,6 @@ monitor_subsys_thread_init(
 				mt[ i ].param, (void *)&state ) == 0 )
 			{
 				ber_str2bv( state, 0, 0, &bv );
-
 			} else {
 				BER_BVSTR( &bv, "unknown" );
 			}
@@ -206,7 +206,7 @@ monitor_subsys_thread_init(
 
 		mp = monitor_entrypriv_create();
 		if ( mp == NULL ) {
-			return -1;
+			goto bailout;
 		}
 		e->e_private = ( void * )mp;
 		mp->mp_info = ms;
@@ -219,17 +219,20 @@ monitor_subsys_thread_init(
 				"unable to add entry \"%s,%s\"\n",
 				mt[ i ].rdn.bv_val,
 				ms->mss_dn.bv_val );
-			return( -1 );
+			goto bailout;
 		}
 
 		*ep = e;
 		ep = &mp->mp_next;
 	}
 
+	rc = 0;
+
+bailout:
 	monitor_cache_release( mi, e_thread );
 
 #endif /* ! NO_THREADS */
-	return( 0 );
+	return rc;
 }
 
 #ifndef NO_THREADS

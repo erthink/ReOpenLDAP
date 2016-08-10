@@ -99,12 +99,13 @@ monitor_subsys_sent_init(
 			"monitor_subsys_sent_init: "
 			"unable to get entry \"%s\"\n",
 			ms->mss_ndn.bv_val );
-		return( -1 );
+		return -1;
 	}
 
 	mp = ( monitor_entry_t * )e_sent->e_private;
 	mp->mp_children = NULL;
 	ep = &mp->mp_children;
+	int rc = -1;
 
 	for ( i = 0; i < MONITOR_SENT_LAST; i++ ) {
 		struct berval		nrdn, bv;
@@ -120,7 +121,7 @@ monitor_subsys_sent_init(
 				"unable to create entry \"%s,%s\"\n",
 				monitor_sent[ i ].rdn.bv_val,
 				ms->mss_ndn.bv_val );
-			return( -1 );
+			goto bailout;
 		}
 
 		/* steal normalized RDN */
@@ -132,7 +133,7 @@ monitor_subsys_sent_init(
 
 		mp = monitor_entrypriv_create();
 		if ( mp == NULL ) {
-			return -1;
+			goto bailout;
 		}
 		e->e_private = ( void * )mp;
 		mp->mp_info = ms;
@@ -145,16 +146,18 @@ monitor_subsys_sent_init(
 				"unable to add entry \"%s,%s\"\n",
 				monitor_sent[ i ].rdn.bv_val,
 				ms->mss_ndn.bv_val );
-			return( -1 );
+			goto bailout;
 		}
 
 		*ep = e;
 		ep = &mp->mp_next;
 	}
 
-	monitor_cache_release( mi, e_sent );
+	rc = 0;
 
-	return( 0 );
+bailout:
+	monitor_cache_release( mi, e_sent );
+	return rc;
 }
 
 static int

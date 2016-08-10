@@ -598,7 +598,7 @@ monitor_subsys_database_init(
 			"monitor_subsys_database_init: "
 			"unable to get entry \"%s\"\n",
 			ms->mss_ndn.bv_val );
-		return( -1 );
+		return -1;
 	}
 
 	(void)init_readOnly( mi, e_database, frontendDB->be_restrictops );
@@ -612,7 +612,7 @@ monitor_subsys_database_init(
 	rc = monitor_subsys_database_init_one( mi, frontendDB,
 		ms, ms_backend, ms_overlay, &bv, e_database, &ep );
 	if ( rc != 0 ) {
-		return rc;
+		goto bailout;
 	}
 
 	i = -1;
@@ -622,19 +622,22 @@ monitor_subsys_database_init(
 		bv.bv_val = buf;
 		bv.bv_len = snprintf( buf, sizeof( buf ), "cn=Database %d", ++i );
 		if ( bv.bv_len >= sizeof( buf ) ) {
-			return -1;
+			rc = -1;
+			goto bailout;
 		}
 
 		rc = monitor_subsys_database_init_one( mi, be,
 			ms, ms_backend, ms_overlay, &bv, e_database, &ep );
 		if ( rc != 0 ) {
-			return rc;
+			goto bailout;
 		}
 	}
 
-	monitor_cache_release( mi, e_database );
+	rc = 0;
 
-	return( 0 );
+bailout:
+	monitor_cache_release( mi, e_database );
+	return rc;
 }
 
 /*
