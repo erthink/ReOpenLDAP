@@ -545,4 +545,3 @@ monitor_subsys_conn_create(
 
 	return rc;
 }
-
