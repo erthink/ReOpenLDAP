@@ -13149,9 +13149,9 @@ VERSION_MINOR=2
 
 VERSION_PATCH=0
 
-RELEASE_DATE=2016-08-09
+RELEASE_DATE=2016-08-14
 
-RELEASE_STAMP=gdac1351cf874-t7768344b6b4b81f9
+RELEASE_STAMP=g045198085f93-tadc1ee5dec0d2026
 
 API_LIB_RELEASE=1.2
 
@@ -24843,12 +24843,16 @@ $as_echo "#define RELDAP_TLS_FALLBACK RELDAP_TLS_NONE" >>confdefs.h
 	fi
 	;;
     moznss)
-	ol_link_tls=yes
-	TLS_LIBS="$MOZNSS_LIBS"
-	TLS_CFLAGS="$MOZNSS_CFLAGS"
+	if test $moznss_found != yes; then
+		as_fn_error $? "$MOZNSS_PKG_ERRORS, therefore --with-tls=moznss unavailable" "$LINENO" 5
+	else
+		ol_link_tls=yes
+		TLS_LIBS="$MOZNSS_LIBS"
+		TLS_CFLAGS="$MOZNSS_CFLAGS"
 
 $as_echo "#define RELDAP_TLS RELDAP_TLS_MOZNSS" >>confdefs.h
 
+	fi
 	if test $gnutls_found = yes; then
 
 $as_echo "#define RELDAP_TLS_FALLBACK RELDAP_TLS_GNUTLS" >>confdefs.h
@@ -24868,27 +24872,35 @@ $as_echo "#define RELDAP_TLS_FALLBACK RELDAP_TLS_NONE" >>confdefs.h
 	fi
 	;;
     gnutls)
-	#AC_PREPROC_IFELSE([AC_LANG_SOURCE(
-	#	[[#include <gnutls/gnutls.h>]
-	#	[#if GNUTLS_VERSION_NUMBER < 0x020c00]
-	#	[#error "GnuTLS 2.12.0 or newer required"]
-	#	[#endif]])],
-	#	    , [AC_MSG_FAILURE([GnuTLS is too old])])
-	ol_link_tls=yes
+	if test $gnutls_found != yes; then
+		as_fn_error $? "$GNUTLS_PKG_ERRORS, therefore --with-tls=gnutls unavailable" "$LINENO" 5
+	else
+		#AC_PREPROC_IFELSE([AC_LANG_SOURCE(
+		#	[[#include <gnutls/gnutls.h>]
+		#	[#if GNUTLS_VERSION_NUMBER < 0x020c00]
+		#	[#error "GnuTLS 2.12.0 or newer required"]
+		#	[#endif]])],
+		#	    , [AC_MSG_FAILURE([GnuTLS is too old])])
+		ol_link_tls=yes
 
 $as_echo "#define RELDAP_TLS RELDAP_TLS_GNUTLS" >>confdefs.h
 
+		TLS_LIBS="$GNUTLS_LIBS"
+		TLS_CFLAGS="$GNUTLS_CFLAGS"
+
+		TLS_FALLBACK_LIBS="$GNUTLS_LIBS"
+		TLS_FALLBACK_CFLAGS="$GNUTLS_CFLAGS"
 
 $as_echo "#define RELDAP_TLS_FALLBACK RELDAP_TLS_GNUTLS" >>confdefs.h
 
-	TLS_LIBS="$GNUTLS_LIBS"
-	TLS_CFLAGS="$GNUTLS_CFLAGS"
-	TLS_FALLBACK_LIBS="$GNUTLS_LIBS"
-	TLS_FALLBACK_CFLAGS="$GNUTLS_CFLAGS"
+	fi
 	;;
     openssl)
-	ol_link_tls=yes
-	{ $as_echo "$as_me:${as_lineno-$LINENO}: checking OpenSSL library version (CRL checking capability)" >&5
+	if test $openssl_found != yes; then
+		as_fn_error $? "$OPENSSL_PKG_ERRORS, therefore --with-tls=openssl unavailable" "$LINENO" 5
+	else
+		ol_link_tls=yes
+		{ $as_echo "$as_me:${as_lineno-$LINENO}: checking OpenSSL library version (CRL checking capability)" >&5
 $as_echo_n "checking OpenSSL library version (CRL checking capability)... " >&6; }
 if ${ol_cv_ssl_crl_compat+:} false; then :
   $as_echo_n "(cached) " >&6
@@ -24919,21 +24931,23 @@ fi
 { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ol_cv_ssl_crl_compat" >&5
 $as_echo "$ol_cv_ssl_crl_compat" >&6; }
 
-	if test $ol_cv_ssl_crl_compat = yes ; then
+		if test $ol_cv_ssl_crl_compat = yes ; then
 
 $as_echo "#define HAVE_OPENSSL_CRL 1" >>confdefs.h
 
-	fi
+		fi
 
 $as_echo "#define RELDAP_TLS RELDAP_TLS_OPENSSL" >>confdefs.h
+
+		TLS_LIBS="$OPENSSL_LIBS"
+		TLS_CFLAGS="$OPENSSL_CFLAGS"
 
 
 $as_echo "#define RELDAP_TLS_FALLBACK RELDAP_TLS_OPENSSL" >>confdefs.h
 
-	TLS_LIBS="$OPENSSL_LIBS"
-	TLS_CFLAGS="$OPENSSL_CFLAGS"
-	TLS_FALLBACK_LIBS="$OPENSSL_LIBS"
-	TLS_FALLBACK_CFLAGS="$OPENSSL_CFLAGS"
+		TLS_FALLBACK_LIBS="$OPENSSL_LIBS"
+		TLS_FALLBACK_CFLAGS="$OPENSSL_CFLAGS"
+	fi
 	;;
     *)
 	{ { $as_echo "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
