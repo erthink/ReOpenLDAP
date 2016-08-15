@@ -84,6 +84,7 @@ monitor_subsys_overlay_init(
 	mp = ( monitor_entry_t * )e_overlay->e_private;
 	mp->mp_children = NULL;
 	ep = &mp->mp_children;
+	int rc = -1;
 
 	for ( on = overlay_next( NULL ), i = 0; on; on = overlay_next( on ), i++ ) {
 		char 		buf[ BACKMONITOR_BUFSIZE ];
@@ -101,7 +102,7 @@ monitor_subsys_overlay_init(
 				"monitor_subsys_overlay_init: "
 				"unable to create entry \"cn=Overlay %d,%s\"\n",
 				i, ms->mss_ndn.bv_val );
-			return( -1 );
+			goto bailout;
 		}
 		ber_str2bv( on->on_bi.bi_type, 0, 0, &bv );
 		attr_merge_normalize_one( e, mi->mi_ad_monitoredInfo, &bv, NULL );
@@ -132,7 +133,7 @@ monitor_subsys_overlay_init(
 
 		mp = monitor_entrypriv_create();
 		if ( mp == NULL ) {
-			return -1;
+			goto bailout;
 		}
 		e->e_private = ( void * )mp;
 		mp->mp_info = ms;
@@ -144,15 +145,17 @@ monitor_subsys_overlay_init(
 				"monitor_subsys_overlay_init: "
 				"unable to add entry \"cn=Overlay %d,%s\"\n",
 				i, ms->mss_ndn.bv_val );
-			return( -1 );
+			goto bailout;
 		}
 
 		*ep = e;
 		ep = &mp->mp_next;
 	}
 
-	monitor_cache_release( mi, e_overlay );
+	rc = 0;
 
-	return( 0 );
+bailout:
+	monitor_cache_release( mi, e_overlay );
+	return rc;
 }
 

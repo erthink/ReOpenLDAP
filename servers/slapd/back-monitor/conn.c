@@ -66,7 +66,7 @@ monitor_subsys_conn_init(
 	monitor_subsys_t	*ms )
 {
 	monitor_info_t	*mi;
-	Entry		*e, **ep, *e_conn;
+	Entry		*e, **ep, *e_conn = NULL;
 	monitor_entry_t	*mp;
 	char		buf[ BACKMONITOR_BUFSIZE ];
 	struct berval	bv;
@@ -89,6 +89,7 @@ monitor_subsys_conn_init(
 	mp = ( monitor_entry_t * )e_conn->e_private;
 	mp->mp_children = NULL;
 	ep = &mp->mp_children;
+	int rc = -1;
 
 	/*
 	 * Max file descriptors
@@ -102,7 +103,7 @@ monitor_subsys_conn_init(
 			"monitor_subsys_conn_init: "
 			"unable to create entry \"%s,%s\"\n",
 			bv.bv_val, ms->mss_ndn.bv_val );
-		return( -1 );
+		goto bailout;
 	}
 
 	if ( dtblsize ) {
@@ -129,7 +130,7 @@ monitor_subsys_conn_init(
 			"monitor_subsys_conn_init: "
 			"unable to add entry \"cn=Total,%s\"\n",
 			ms->mss_ndn.bv_val );
-		return( -1 );
+		goto bailout;
 	}
 
 	*ep = e;
@@ -147,7 +148,7 @@ monitor_subsys_conn_init(
 			"monitor_subsys_conn_init: "
 			"unable to create entry \"cn=Total,%s\"\n",
 			ms->mss_ndn.bv_val );
-		return( -1 );
+		goto bailout;
 	}
 
 	BER_BVSTR( &bv, "-1" );
@@ -155,7 +156,7 @@ monitor_subsys_conn_init(
 
 	mp = monitor_entrypriv_create();
 	if ( mp == NULL ) {
-		return -1;
+		goto bailout;
 	}
 	e->e_private = ( void * )mp;
 	mp->mp_info = ms;
@@ -168,7 +169,7 @@ monitor_subsys_conn_init(
 			"monitor_subsys_conn_init: "
 			"unable to add entry \"cn=Total,%s\"\n",
 			ms->mss_ndn.bv_val );
-		return( -1 );
+		goto bailout;
 	}
 
 	*ep = e;
@@ -186,7 +187,7 @@ monitor_subsys_conn_init(
 			"monitor_subsys_conn_init: "
 			"unable to create entry \"cn=Current,%s\"\n",
 			ms->mss_ndn.bv_val );
-		return( -1 );
+		goto bailout;
 	}
 
 	BER_BVSTR( &bv, "0" );
@@ -194,7 +195,7 @@ monitor_subsys_conn_init(
 
 	mp = monitor_entrypriv_create();
 	if ( mp == NULL ) {
-		return -1;
+		goto bailout;
 	}
 	e->e_private = ( void * )mp;
 	mp->mp_info = ms;
@@ -207,15 +208,16 @@ monitor_subsys_conn_init(
 			"monitor_subsys_conn_init: "
 			"unable to add entry \"cn=Current,%s\"\n",
 			ms->mss_ndn.bv_val );
-		return( -1 );
+		goto bailout;
 	}
 
 	*ep = e;
 	ep = &mp->mp_next;
+	rc = 0;
 
+bailout:
 	monitor_cache_release( mi, e_conn );
-
-	return( 0 );
+	return rc;
 }
 
 static int
@@ -543,4 +545,3 @@ monitor_subsys_conn_create(
 
 	return rc;
 }
-

@@ -75,7 +75,9 @@ typedef unsigned char des_data_block[8];
 typedef PK11Context *des_context[1];
 #define DES_ENCRYPT CKA_ENCRYPT
 
-#endif
+#else
+#	error Unsupported crypto backend.
+#endif /* RELDAP_TLS */
 
 #endif /* SLAPD_LMHASH */
 

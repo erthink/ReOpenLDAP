@@ -288,13 +288,12 @@ static int module_int_unload (module_t *module)
 
 			/* close the library and free the memory */
 			lt_dlclose(module->lib);
-			ch_free(module);
 
 			Debug(LDAP_DEBUG_CONFIG, "module %s: unloaded\n", module->name);
+			ch_free(module);
 		}
 	}
 	return rc;
 }
 
 #endif /* SLAPD_DYNAMIC_MODULES */
-

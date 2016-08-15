@@ -102,6 +102,7 @@ monitor_subsys_rww_init(
 	mp = ( monitor_entry_t * )e_conn->e_private;
 	mp->mp_children = NULL;
 	ep = &mp->mp_children;
+	int rc = -1;
 
 	for ( i = 0; i < MONITOR_RWW_LAST; i++ ) {
 		struct berval		nrdn, bv;
@@ -114,7 +115,7 @@ monitor_subsys_rww_init(
 				"monitor_subsys_rww_init: "
 				"unable to create entry \"cn=Read,%s\"\n",
 				ms->mss_ndn.bv_val );
-			return( -1 );
+			goto bailout;
 		}
 
 		/* steal normalized RDN */
@@ -126,7 +127,7 @@ monitor_subsys_rww_init(
 
 		mp = monitor_entrypriv_create();
 		if ( mp == NULL ) {
-			return -1;
+			goto bailout;
 		}
 		e->e_private = ( void * )mp;
 		mp->mp_info = ms;
@@ -139,16 +140,18 @@ monitor_subsys_rww_init(
 				"unable to add entry \"%s,%s\"\n",
 				monitor_rww[ i ].rdn.bv_val,
 				ms->mss_ndn.bv_val );
-			return( -1 );
+			goto bailout;
 		}
 
 		*ep = e;
 		ep = &mp->mp_next;
 	}
 
-	monitor_cache_release( mi, e_conn );
+	rc = 0;
 
-	return( 0 );
+bailout:
+	monitor_cache_release( mi, e_conn );
+	return rc;
 }
 
 static int

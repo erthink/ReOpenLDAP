@@ -13149,9 +13149,9 @@ VERSION_MINOR=2
 
 VERSION_PATCH=0
 
-RELEASE_DATE=2016-08-08
+RELEASE_DATE=2016-08-14
 
-RELEASE_STAMP=g2103fa9e3ba5-t91296364ff94eca3
+RELEASE_STAMP=g045198085f93-tadc1ee5dec0d2026
 
 API_LIB_RELEASE=1.2
 
@@ -22099,12 +22099,6 @@ if test $ol_enable_meta/$ol_enable_ldap = yes/no ; then
 	as_fn_error $? "--enable-meta requires --enable-ldap" "$LINENO" 5
 fi
 
-if test $ol_enable_lmpasswd = yes ; then
-	if test $ol_with_tls = no ; then
-		as_fn_error $? "LAN Manager passwords require OpenSSL" "$LINENO" 5
-	fi
-fi
-
 if test $ol_enable_spasswd = yes ; then
 	if test $ol_with_cyrus_sasl = no ; then
 		as_fn_error $? "options require --with-cyrus-sasl" "$LINENO" 5
@@ -24802,13 +24796,13 @@ fi
 if test $ol_with_tls = yes -o $ol_with_tls = auto; then
     if test $moznss_found = yes; then
 	ol_with_tls=moznss
-    elif test $gnutls_found = yes; then
+    elif test $gnutls_found = yes -a $ol_enable_lmpasswd != yes; then
 	ol_with_tls=gnutls
     elif test $openssl_found = yes; then
 	ol_with_tls=openssl
     elif test $ol_with_tls = auto; then
-	{ $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: TLS data protection not supported!" >&5
-$as_echo "$as_me: WARNING: TLS data protection not supported!" >&2;}
+	{ $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: No suitable TLS package for data protection!" >&5
+$as_echo "$as_me: WARNING: No suitable TLS package for data protection!" >&2;}
 	ol_with_tls=no
     else
 	{ { $as_echo "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
@@ -24816,6 +24810,12 @@ $as_echo "$as_me: error: in \`$ac_pwd':" >&2;}
 as_fn_error $? "Not found Mozilla NSS, OpenSSL or GnuTLS for --with-tls=yes
 See \`config.log' for more details" "$LINENO" 5; }
     fi
+fi
+
+if test $ol_enable_lmpasswd = yes ; then
+	if test $ol_with_tls != openssl -a $ol_with_tls != moznss ; then
+		as_fn_error $? "LAN Manager passwords require --with-tls=openssl or --with-tls=moznss" "$LINENO" 5
+	fi
 fi
 
 case $ol_with_tls in
@@ -24843,12 +24843,16 @@ $as_echo "#define RELDAP_TLS_FALLBACK RELDAP_TLS_NONE" >>confdefs.h
 	fi
 	;;
     moznss)
-	ol_link_tls=yes
-	TLS_LIBS="$MOZNSS_LIBS"
-	TLS_CFLAGS="$MOZNSS_CFLAGS"
+	if test $moznss_found != yes; then
+		as_fn_error $? "$MOZNSS_PKG_ERRORS, therefore --with-tls=moznss unavailable" "$LINENO" 5
+	else
+		ol_link_tls=yes
+		TLS_LIBS="$MOZNSS_LIBS"
+		TLS_CFLAGS="$MOZNSS_CFLAGS"
 
 $as_echo "#define RELDAP_TLS RELDAP_TLS_MOZNSS" >>confdefs.h
 
+	fi
 	if test $gnutls_found = yes; then
 
 $as_echo "#define RELDAP_TLS_FALLBACK RELDAP_TLS_GNUTLS" >>confdefs.h
@@ -24868,27 +24872,35 @@ $as_echo "#define RELDAP_TLS_FALLBACK RELDAP_TLS_NONE" >>confdefs.h
 	fi
 	;;
     gnutls)
-	#AC_PREPROC_IFELSE([AC_LANG_SOURCE(
-	#	[[#include <gnutls/gnutls.h>]
-	#	[#if GNUTLS_VERSION_NUMBER < 0x020c00]
-	#	[#error "GnuTLS 2.12.0 or newer required"]
-	#	[#endif]])],
-	#	    , [AC_MSG_FAILURE([GnuTLS is too old])])
-	ol_link_tls=yes
+	if test $gnutls_found != yes; then
+		as_fn_error $? "$GNUTLS_PKG_ERRORS, therefore --with-tls=gnutls unavailable" "$LINENO" 5
+	else
+		#AC_PREPROC_IFELSE([AC_LANG_SOURCE(
+		#	[[#include <gnutls/gnutls.h>]
+		#	[#if GNUTLS_VERSION_NUMBER < 0x020c00]
+		#	[#error "GnuTLS 2.12.0 or newer required"]
+		#	[#endif]])],
+		#	    , [AC_MSG_FAILURE([GnuTLS is too old])])
+		ol_link_tls=yes
 
 $as_echo "#define RELDAP_TLS RELDAP_TLS_GNUTLS" >>confdefs.h
 
+		TLS_LIBS="$GNUTLS_LIBS"
+		TLS_CFLAGS="$GNUTLS_CFLAGS"
+
+		TLS_FALLBACK_LIBS="$GNUTLS_LIBS"
+		TLS_FALLBACK_CFLAGS="$GNUTLS_CFLAGS"
 
 $as_echo "#define RELDAP_TLS_FALLBACK RELDAP_TLS_GNUTLS" >>confdefs.h
 
-	TLS_LIBS="$GNUTLS_LIBS"
-	TLS_CFLAGS="$GNUTLS_CFLAGS"
-	TLS_FALLBACK_LIBS="$GNUTLS_LIBS"
-	TLS_FALLBACK_CFLAGS="$GNUTLS_CFLAGS"
+	fi
 	;;
     openssl)
-	ol_link_tls=yes
-	{ $as_echo "$as_me:${as_lineno-$LINENO}: checking OpenSSL library version (CRL checking capability)" >&5
+	if test $openssl_found != yes; then
+		as_fn_error $? "$OPENSSL_PKG_ERRORS, therefore --with-tls=openssl unavailable" "$LINENO" 5
+	else
+		ol_link_tls=yes
+		{ $as_echo "$as_me:${as_lineno-$LINENO}: checking OpenSSL library version (CRL checking capability)" >&5
 $as_echo_n "checking OpenSSL library version (CRL checking capability)... " >&6; }
 if ${ol_cv_ssl_crl_compat+:} false; then :
   $as_echo_n "(cached) " >&6
@@ -24919,21 +24931,23 @@ fi
 { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ol_cv_ssl_crl_compat" >&5
 $as_echo "$ol_cv_ssl_crl_compat" >&6; }
 
-	if test $ol_cv_ssl_crl_compat = yes ; then
+		if test $ol_cv_ssl_crl_compat = yes ; then
 
 $as_echo "#define HAVE_OPENSSL_CRL 1" >>confdefs.h
 
-	fi
+		fi
 
 $as_echo "#define RELDAP_TLS RELDAP_TLS_OPENSSL" >>confdefs.h
+
+		TLS_LIBS="$OPENSSL_LIBS"
+		TLS_CFLAGS="$OPENSSL_CFLAGS"
 
 
 $as_echo "#define RELDAP_TLS_FALLBACK RELDAP_TLS_OPENSSL" >>confdefs.h
 
-	TLS_LIBS="$OPENSSL_LIBS"
-	TLS_CFLAGS="$OPENSSL_CFLAGS"
-	TLS_FALLBACK_LIBS="$OPENSSL_LIBS"
-	TLS_FALLBACK_CFLAGS="$OPENSSL_CFLAGS"
+		TLS_FALLBACK_LIBS="$OPENSSL_LIBS"
+		TLS_FALLBACK_CFLAGS="$OPENSSL_CFLAGS"
+	fi
 	;;
     *)
 	{ { $as_echo "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5

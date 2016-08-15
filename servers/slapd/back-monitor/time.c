@@ -62,7 +62,7 @@ monitor_subsys_time_init(
 {
 	monitor_info_t	*mi;
 
-	Entry		*e, **ep, *e_time;
+	Entry		*e, **ep, *e_time = 0;
 	monitor_entry_t	*mp;
 	struct berval	bv, value;
 
@@ -78,12 +78,13 @@ monitor_subsys_time_init(
 			"monitor_subsys_time_init: "
 			"unable to get entry \"%s\"\n",
 			ms->mss_ndn.bv_val );
-		return( -1 );
+		return -1;
 	}
 
 	mp = ( monitor_entry_t * )e_time->e_private;
 	mp->mp_children = NULL;
 	ep = &mp->mp_children;
+	int rc = -1;
 
 	BER_BVSTR( &bv, "cn=Start" );
 	e = monitor_entry_stub( &ms->mss_dn, &ms->mss_ndn, &bv,
@@ -93,14 +94,14 @@ monitor_subsys_time_init(
 			"monitor_subsys_time_init: "
 			"unable to create entry \"%s,%s\"\n",
 			bv.bv_val, ms->mss_ndn.bv_val );
-		return( -1 );
+		goto bailout;
 	}
 	attr_merge_normalize_one( e, mi->mi_ad_monitorTimestamp,
 		&mi->mi_startTime, NULL );
 
 	mp = monitor_entrypriv_create();
 	if ( mp == NULL ) {
-		return -1;
+		goto bailout;
 	}
 	e->e_private = ( void * )mp;
 	mp->mp_info = ms;
@@ -112,7 +113,7 @@ monitor_subsys_time_init(
 			"monitor_subsys_time_init: "
 			"unable to add entry \"%s,%s\"\n",
 			bv.bv_val, ms->mss_ndn.bv_val );
-		return( -1 );
+		goto bailout;
 	}
 
 	*ep = e;
@@ -129,14 +130,14 @@ monitor_subsys_time_init(
 			"monitor_subsys_time_init: "
 			"unable to create entry \"%s,%s\"\n",
 			bv.bv_val, ms->mss_ndn.bv_val );
-		return( -1 );
+		goto bailout;
 	}
 	attr_merge_normalize_one( e, mi->mi_ad_monitorTimestamp,
 		&mi->mi_startTime, NULL );
 
 	mp = monitor_entrypriv_create();
 	if ( mp == NULL ) {
-		return -1;
+		goto bailout;
 	}
 	e->e_private = ( void * )mp;
 	mp->mp_info = ms;
@@ -148,7 +149,7 @@ monitor_subsys_time_init(
 			"monitor_subsys_time_init: "
 			"unable to add entry \"%s,%s\"\n",
 			bv.bv_val, ms->mss_ndn.bv_val );
-		return( -1 );
+		goto bailout;
 	}
 
 	*ep = e;
@@ -165,7 +166,7 @@ monitor_subsys_time_init(
 			"monitor_subsys_time_init: "
 			"unable to create entry \"%s,%s\"\n",
 			bv.bv_val, ms->mss_ndn.bv_val );
-		return( -1 );
+		goto bailout;
 	}
 	BER_BVSTR( &value, "0" );
 	attr_merge_normalize_one( e, mi->mi_ad_monitoredInfo,
@@ -173,7 +174,7 @@ monitor_subsys_time_init(
 
 	mp = monitor_entrypriv_create();
 	if ( mp == NULL ) {
-		return -1;
+		goto bailout;
 	}
 	e->e_private = ( void * )mp;
 	mp->mp_info = ms;
@@ -185,15 +186,16 @@ monitor_subsys_time_init(
 			"monitor_subsys_time_init: "
 			"unable to add entry \"%s,%s\"\n",
 			bv.bv_val, ms->mss_ndn.bv_val );
-		return( -1 );
+		goto bailout;
 	}
 
 	*ep = e;
 	ep = &mp->mp_next;
+	rc = 0;
 
+bailout:
 	monitor_cache_release( mi, e_time );
-
-	return( 0 );
+	return rc;
 }
 
 static int

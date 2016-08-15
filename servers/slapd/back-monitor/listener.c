@@ -52,7 +52,7 @@ monitor_subsys_listener_init(
 )
 {
 	monitor_info_t	*mi;
-	Entry		*e_listener, **ep;
+	Entry		*e_listener = NULL, **ep;
 	int		i;
 	monitor_entry_t	*mp;
 	Listener	**l;
@@ -77,9 +77,10 @@ monitor_subsys_listener_init(
 			"monitor_subsys_listener_init: "
 			"unable to get entry \"%s\"\n",
 			ms->mss_ndn.bv_val );
-		return( -1 );
+		return -1;
 	}
 
+	int rc = 1;
 	mp = ( monitor_entry_t * )e_listener->e_private;
 	mp->mp_children = NULL;
 	ep = &mp->mp_children;
@@ -100,7 +101,7 @@ monitor_subsys_listener_init(
 				"monitor_subsys_listener_init: "
 				"unable to create entry \"cn=Listener %d,%s\"\n",
 				i, ms->mss_ndn.bv_val );
-			return( -1 );
+			goto bailout;
 		}
 
 		attr_merge_normalize_one( e, mi->mi_ad_monitorConnectionLocalAddress,
@@ -130,7 +131,7 @@ monitor_subsys_listener_init(
 
 		mp = monitor_entrypriv_create();
 		if ( mp == NULL ) {
-			return -1;
+			goto bailout;
 		}
 		e->e_private = ( void * )mp;
 		mp->mp_info = ms;
@@ -142,15 +143,17 @@ monitor_subsys_listener_init(
 				"monitor_subsys_listener_init: "
 				"unable to add entry \"cn=Listener %d,%s\"\n",
 				i, ms->mss_ndn.bv_val );
-			return( -1 );
+			goto bailout;
 		}
 
 		*ep = e;
 		ep = &mp->mp_next;
 	}
 
-	monitor_cache_release( mi, e_listener );
+	rc = 0;
 
-	return( 0 );
+bailout:
+	monitor_cache_release( mi, e_listener );
+	return rc;
 }
 
