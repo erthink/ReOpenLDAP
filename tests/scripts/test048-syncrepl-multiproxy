@@ -63,6 +63,7 @@ mkdir -p $TESTDIR $DBDIR1 $DBDIR2 $DBDIR3
 
 echo "Starting master slapd on TCP/IP port $PORT1..."
 config_filter $BACKEND ${AC_conf[monitor]} < $PLSRMASTERCONF > $CONF1
+sed -e 's/\(^syncrepl\)\|\(^overlay\tsyncprov\)/biglock\t\tlocal\n&/' -i $CONF1
 $SLAPD -f $CONF1 -h $URI1 $TIMING > $LOG1 2>&1 &
 MASTERPID=$!
 if test $WAIT != 0 ; then
