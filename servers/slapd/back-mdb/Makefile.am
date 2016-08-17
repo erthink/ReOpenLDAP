@@ -39,7 +39,11 @@ banner.c: Makefile
 	$(MKBANNER) --name backend_mdbx --global 'backend-mdbx' > $@ || $(RM) $@
 endif
 
+if SLAPD_DEBUG
+libmdbx_la_CFLAGS = -UNDEBUG -DMDB_DEBUG=2
+else
 libmdbx_la_CFLAGS = -DNDEBUG=1 -DMDB_DEBUG=0
+endif
 libmdbx_la_LIBADD = $(LTHREAD_LIBS)
 libmdbx_la_SOURCES = ../../../libraries/libmdbx/mdbx.c
 
