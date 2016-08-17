@@ -430,14 +430,14 @@ ber_int_sb_destroy( Sockbuf *sb )
 ber_slen_t
 ber_int_sb_read( Sockbuf *sb, void *buf, ber_len_t len )
 {
-	ber_slen_t		ret;
+	ber_slen_t		ret = -1;
 
 	assert( buf != NULL );
 	assert( sb != NULL);
 	assert( sb->sb_iod != NULL );
 	assert( SOCKBUF_VALID( sb ) );
 
-	for (;;) {
+	while (sb->sb_iod != NULL) {
 		ret = sb->sb_iod->sbiod_io->sbi_read( sb->sb_iod, buf, len );
 
 #ifdef EINTR
@@ -452,14 +452,14 @@ ber_int_sb_read( Sockbuf *sb, void *buf, ber_len_t len )
 ber_slen_t
 ber_int_sb_write( Sockbuf *sb, void *buf, ber_len_t len )
 {
-	ber_slen_t		ret;
+	ber_slen_t		ret = -1;
 
 	assert( buf != NULL );
 	assert( sb != NULL);
 	assert( sb->sb_iod != NULL );
 	assert( SOCKBUF_VALID( sb ) );
 
-	for (;;) {
+	while (sb->sb_iod != NULL) {
 		ret = sb->sb_iod->sbiod_io->sbi_write( sb->sb_iod, buf, len );
 
 #ifdef EINTR
