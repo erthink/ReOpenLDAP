@@ -342,24 +342,24 @@ static long send_ldap_ber(
 {
 	Connection *conn = op->o_conn;
 	ber_len_t bytes;
-	long ret = 0;
+	long ret = -1;
 
 	ber_get_option( ber, LBER_OPT_BER_BYTES_TO_WRITE, &bytes );
 
-	/* write only one pdu at a time - wait til it's our turn */
 	ldap_pvt_thread_mutex_lock( &conn->c_mutex );
 	ldap_pvt_thread_mutex_lock( &conn->c_write1_mutex );
 
-	if (( slap_get_op_abandon(op) && !slap_get_op_cancel(op) ) || !connection_valid( conn ) ||
-		conn->c_writers < 0 ) {
+	if (( slap_get_op_abandon(op) && !slap_get_op_cancel(op) )
+			|| !connection_valid( conn ) || conn->c_writers < 0 ) {
 		ldap_pvt_thread_mutex_unlock( &conn->c_write1_mutex );
 		ldap_pvt_thread_mutex_unlock( &conn->c_mutex );
-		return 0;
+		return ret;
 	}
 
 	conn->c_writers++;
 	ldap_pvt_thread_mutex_unlock( &conn->c_mutex );
 
+	/* write only one pdu at a time - wait til it's our turn */
 	while ( conn->c_writers > 0 && conn->c_writing ) {
 		ldap_pvt_thread_cond_wait( &conn->c_write1_cv, &conn->c_write1_mutex );
 	}
@@ -371,14 +371,14 @@ static long send_ldap_ber(
 			ldap_pvt_thread_cond_signal( &conn->c_write1_cv );
 		conn->c_writers++;
 		ldap_pvt_thread_mutex_unlock( &conn->c_write1_mutex );
-		return 0;
+		return ret;
 	}
 
 	/* Our turn */
 	conn->c_writing = 1;
 
 	/* write the pdu */
-	while( 1 ) {
+	while( conn->c_conn_state >= SLAP_C_ACTIVE ) {
 		int err;
 
 		if ( ber_flush2( conn->c_sb, ber, LBER_FLUSH_FREE_NEVER ) == 0 ) {

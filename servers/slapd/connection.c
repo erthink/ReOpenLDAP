@@ -939,15 +939,17 @@ connection_close( Connection *c )
 	assert( c->c_conn_state == SLAP_C_CLOSING );
 
 	/* NOTE: c_mutex should be locked by caller */
+	connection_wake_writers( c );
 
-	if ( !LDAP_STAILQ_EMPTY(&c->c_ops) ||
-		!LDAP_STAILQ_EMPTY(&c->c_pending_ops) )
-	{
+	if ( !LDAP_STAILQ_EMPTY(&c->c_ops)
+			|| !LDAP_STAILQ_EMPTY(&c->c_pending_ops)
+			|| c->c_writing ) {
 		Debug( LDAP_DEBUG_CONNS,
-			"connection_close: deferring conn=%lu sd=%d (c_ops %s, c_pending_ops %s)\n",
+			"connection_close: deferring conn=%lu sd=%d (c_ops %s, c_pending_ops %s, writers %d, writing %d)\n",
 			c->c_connid, c->c_sd,
 			LDAP_STAILQ_EMPTY(&c->c_ops) ? "empty" : "still",
-			LDAP_STAILQ_EMPTY(&c->c_pending_ops) ? "empty" : "still"
+			LDAP_STAILQ_EMPTY(&c->c_pending_ops) ? "empty" : "still",
+			c->c_writers, c->c_writing
 		);
 		return;
 	}
