@@ -53,7 +53,7 @@ The module may be defined with slapd.conf parameter "modulepath".
 USAGE
 -----
 To use this module you need to add objectClass pwdPolicyChecker with an 
-attribute 'pwdCheckModule: check_password.so' to a password policy entry.
+attribute 'pwdCheckModule: check_password.la' to a password policy entry.
 
 The module depends on a working cracklib installation including wordlist files.
 If the wordlist files are not readable, the cracklib check will be skipped
@@ -103,7 +103,7 @@ Typical user message from ldappasswd(5):
 A more detailed message is written to the server log.
 
 Server log:
-  check_password_quality: module error: (check_password.so)
+  check_password_quality: module error: (check_password.la)
   Password for dn=".." does not pass required number of strength checks (2 of 3)
 
 
@@ -165,7 +165,7 @@ USAGE
 =====
 Add objectClass 'pwdPolicyChecker' with an attribute
 
-   pwdCheckModule: contrib-check_password.so
+   pwdCheckModule: contrib-check_password.la
 
 to a password policy entry.
 

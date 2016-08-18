@@ -5,7 +5,7 @@ based on GSS naming extensions attributes.
 
 To use the acl-gssacl plugin, add:
 
-moduleload contrib-gssacl.so
+moduleload contrib-gssacl.la
 
 to your slapd configuration file.
 It is configured using
