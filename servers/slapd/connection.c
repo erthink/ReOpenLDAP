@@ -68,27 +68,15 @@
 /* protected by connections_mutex */
 static ldap_pvt_thread_mutex_t connections_mutex;
 static Connection *connections = NULL;
-static volatile long conn_evo_head, conn_evo_tail;
+static volatile long conn_evo_pending, conn_evo_head, conn_evo_tail;
 static ldap_pvt_thread_cond_t connections_evo_cond;
+static void* connections_evo_commit( void* ctx, void* argv );
+static void connections_evo_kick( const int already_locked );
 
 static ldap_pvt_thread_mutex_t conn_nextid_mutex;
 static unsigned long conn_nextid = SLAPD_SYNC_SYNCCONN_OFFSET;
 
 static const char conn_lost_str[] = "connection lost";
-
-static void* connections_evo_kick( void* ctx, void* argv )
-{
-	long evo = (long) argv;
-	(void) ctx;
-
-	ldap_pvt_thread_mutex_lock( &connections_mutex );
-	if (evo - conn_evo_tail > 0) {
-		conn_evo_tail = evo;
-		ldap_pvt_thread_cond_broadcast(&connections_evo_cond);
-	}
-	ldap_pvt_thread_mutex_unlock( &connections_mutex );
-	return NULL;
-}
 
 const char *
 connection_state2str( int state )
@@ -538,8 +526,7 @@ Connection * connection_init(
 		ldap_pvt_thread_mutex_lock( &connections_mutex );
 		c->c_conn_state = SLAP_C_CLIENT;
 		c->c_struct_state = SLAP_C_USED;
-		ldap_pvt_thread_pool_submit( &connection_pool,
-			connections_evo_kick, (void*) ++conn_evo_head );
+		connections_evo_kick( 1 );
 		ldap_pvt_thread_mutex_unlock( &connections_mutex );
 		c->c_close_reason = "?";			/* should never be needed */
 		ber_sockbuf_ctrl( c->c_sb, LBER_SB_OPT_SET_FD, &sfd );
@@ -620,8 +607,7 @@ Connection * connection_init(
 	ldap_pvt_thread_mutex_lock( &connections_mutex );
 	c->c_conn_state = SLAP_C_INACTIVE;
 	c->c_struct_state = SLAP_C_USED;
-	ldap_pvt_thread_pool_submit( &connection_pool,
-		connections_evo_kick, (void*) ++conn_evo_head );
+	connections_evo_kick( 1 );
 	ldap_pvt_thread_mutex_unlock( &connections_mutex );
 	c->c_close_reason = "?";			/* should never be needed */
 
@@ -651,11 +637,7 @@ Connection * connection_init(
 			"conn=%ld fd=%ld ACCEPT from %s (%s)\n",
 			id, (long) s, peername, listener->sl_name.bv_val );
 
-	ldap_pvt_thread_mutex_lock( &connections_mutex );
-	ldap_pvt_thread_pool_submit( &connection_pool,
-		connections_evo_kick, (void*) ++conn_evo_head );
-	ldap_pvt_thread_mutex_unlock( &connections_mutex );
-
+	connections_evo_kick( 0 );
 	return c;
 }
 
@@ -777,8 +759,7 @@ connection_destroy( Connection *c )
 	ldap_pvt_thread_mutex_lock( &connections_mutex );
 	c->c_conn_state = SLAP_C_INVALID;
 	c->c_struct_state = SLAP_C_UNUSED;
-	ldap_pvt_thread_pool_submit( &connection_pool,
-		connections_evo_kick, (void*) ++conn_evo_head );
+	connections_evo_kick( 1 );
 	ldap_pvt_thread_mutex_unlock( &connections_mutex );
 
 	/* c must be fully reset by this point; when we call slapd_remove
@@ -901,6 +882,7 @@ void connection_closing( Connection *c, const char *why )
 	if ( c->c_struct_state != SLAP_C_USED ) return;
 
 	assert( c->c_conn_state != SLAP_C_INVALID );
+	connections_evo_kick( 0 );
 
 	/* c_mutex must be locked by caller */
 
@@ -2239,32 +2221,75 @@ connection_assign_nextid( Connection *conn )
 	ldap_pvt_thread_mutex_unlock( &conn_nextid_mutex );
 }
 
+static void connections_evo_kick( const int already_locked )
+{
+	if (! already_locked)
+		ldap_pvt_thread_mutex_lock( &connections_mutex );
+
+	++conn_evo_pending;
+	long evo = ++conn_evo_head;
+
+	ldap_pvt_thread_pool_submit( &connection_pool,
+		connections_evo_commit, (void*) evo );
+
+	if (! already_locked)
+		ldap_pvt_thread_mutex_unlock( &connections_mutex );
+}
+
+static void* connections_evo_commit( void* ctx, void* argv )
+{
+	long evo = (long) argv;
+	(void) ctx;
+
+	ldap_pvt_thread_mutex_lock( &connections_mutex );
+
+	assert(conn_evo_pending > 0);
+	if (conn_evo_pending)
+		conn_evo_pending -= 1;
+
+	if (evo - conn_evo_tail > 0)
+		conn_evo_tail = evo;
+
+	if (conn_evo_pending == 0 || conn_evo_tail == evo)
+		ldap_pvt_thread_cond_broadcast(&connections_evo_cond);
+
+	ldap_pvt_thread_mutex_unlock( &connections_mutex );
+	return NULL;
+}
+
 int
 connections_tpool_sync(BackendDB *be)
 {
-	int crutch;
+	(void) be;
 
-	for(crutch = 0; crutch < 42; ++crutch) {
+	ldap_pvt_thread_mutex_lock( &connections_mutex );
+	long evo = conn_evo_head;
+	int i, rc = -1;
 
-		if (conn_evo_head == conn_evo_tail)
-			return 0;
+	for(i = 0; i < 42; ++i) {
 
-		if (ldap_pvt_thread_pool_pausing( &connection_pool ) || slapd_shutdown )
+		if (conn_evo_pending == 0) {
+			rc = 0;
 			break;
+		}
+
+		if (i >= 3 && conn_evo_tail - evo >= 0) {
+			rc = 1;
+			break;
+		}
 
 		int value = 0;
-		if (ldap_pvt_thread_pool_query( &connection_pool,
-			LDAP_PVT_THREAD_POOL_PARAM_ACTIVE, &value ) < 0 || value < 2)
+		if (ldap_pvt_thread_pool_pausing( &connection_pool )
+				|| slapd_shutdown
+				|| ldap_pvt_thread_pool_query( &connection_pool,
+					LDAP_PVT_THREAD_POOL_PARAM_ACTIVE, &value ) < 0
+				|| value < 2
+				|| EINTR == ldap_pvt_thread_cond_timedwait(
+					42, &connections_evo_cond, &connections_mutex )) {
 			break;
-
-		ldap_pvt_thread_mutex_lock( &connections_mutex );
-		int rc = 0;
-		if (conn_evo_head != conn_evo_tail)
-			rc = ldap_pvt_thread_cond_timedwait( 42, &connections_evo_cond, &connections_mutex );
-		ldap_pvt_thread_mutex_unlock( &connections_mutex );
-		if (rc == EINTR)
-			break;
+		}
 	}
 
-	return -1;
+	ldap_pvt_thread_mutex_unlock( &connections_mutex );
+	return rc;
 }
