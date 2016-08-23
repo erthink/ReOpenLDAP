@@ -68,10 +68,6 @@
 /* protected by connections_mutex */
 static ldap_pvt_thread_mutex_t connections_mutex;
 static Connection *connections = NULL;
-static volatile long conn_evo_pending, conn_evo_head, conn_evo_tail;
-static ldap_pvt_thread_cond_t connections_evo_cond;
-static void* connections_evo_commit( void* ctx, void* argv );
-static void connections_evo_kick( const int already_locked );
 
 static ldap_pvt_thread_mutex_t conn_nextid_mutex;
 static unsigned long conn_nextid = SLAPD_SYNC_SYNCCONN_OFFSET;
@@ -131,7 +127,6 @@ int connections_init(void)
 	/* should check return of every call */
 	ldap_pvt_thread_mutex_init( &connections_mutex );
 	ldap_pvt_thread_mutex_init( &conn_nextid_mutex );
-	ldap_pvt_thread_cond_init( &connections_evo_cond );
 
 	connections = (Connection *) ch_calloc( dtblsize, sizeof(Connection) );
 
@@ -190,7 +185,6 @@ int connections_destroy(void)
 	free( connections );
 	connections = NULL;
 
-	ldap_pvt_thread_cond_destroy( &connections_evo_cond );
 	ldap_pvt_thread_mutex_destroy( &connections_mutex );
 	ldap_pvt_thread_mutex_destroy( &conn_nextid_mutex );
 	return 0;
@@ -526,7 +520,6 @@ Connection * connection_init(
 		ldap_pvt_thread_mutex_lock( &connections_mutex );
 		c->c_conn_state = SLAP_C_CLIENT;
 		c->c_struct_state = SLAP_C_USED;
-		connections_evo_kick( 1 );
 		ldap_pvt_thread_mutex_unlock( &connections_mutex );
 		c->c_close_reason = "?";			/* should never be needed */
 		ber_sockbuf_ctrl( c->c_sb, LBER_SB_OPT_SET_FD, &sfd );
@@ -607,7 +600,6 @@ Connection * connection_init(
 	ldap_pvt_thread_mutex_lock( &connections_mutex );
 	c->c_conn_state = SLAP_C_INACTIVE;
 	c->c_struct_state = SLAP_C_USED;
-	connections_evo_kick( 1 );
 	ldap_pvt_thread_mutex_unlock( &connections_mutex );
 	c->c_close_reason = "?";			/* should never be needed */
 
@@ -637,7 +629,6 @@ Connection * connection_init(
 			"conn=%ld fd=%ld ACCEPT from %s (%s)\n",
 			id, (long) s, peername, listener->sl_name.bv_val );
 
-	connections_evo_kick( 0 );
 	return c;
 }
 
@@ -686,6 +677,7 @@ connection_destroy( Connection *c )
 	assert( c != NULL );
 
 	ldap_pvt_thread_mutex_lock( &connections_mutex );
+
 	assert( c->c_struct_state != SLAP_C_UNUSED );
 	assert( c->c_struct_state != SLAP_C_PENDING );
 	assert( c->c_conn_state != SLAP_C_INVALID );
@@ -759,7 +751,6 @@ connection_destroy( Connection *c )
 	ldap_pvt_thread_mutex_lock( &connections_mutex );
 	c->c_conn_state = SLAP_C_INVALID;
 	c->c_struct_state = SLAP_C_UNUSED;
-	connections_evo_kick( 1 );
 	ldap_pvt_thread_mutex_unlock( &connections_mutex );
 
 	/* c must be fully reset by this point; when we call slapd_remove
@@ -882,7 +873,6 @@ void connection_closing( Connection *c, const char *why )
 	if ( c->c_struct_state != SLAP_C_USED ) return;
 
 	assert( c->c_conn_state != SLAP_C_INVALID );
-	connections_evo_kick( 0 );
 
 	/* c_mutex must be locked by caller */
 
@@ -2219,77 +2209,4 @@ connection_assign_nextid( Connection *conn )
 	ldap_pvt_thread_mutex_lock( &conn_nextid_mutex );
 	conn->c_connid = conn_nextid++;
 	ldap_pvt_thread_mutex_unlock( &conn_nextid_mutex );
-}
-
-static void connections_evo_kick( const int already_locked )
-{
-	if (! already_locked)
-		ldap_pvt_thread_mutex_lock( &connections_mutex );
-
-	++conn_evo_pending;
-	long evo = ++conn_evo_head;
-
-	ldap_pvt_thread_pool_submit( &connection_pool,
-		connections_evo_commit, (void*) evo );
-
-	if (! already_locked)
-		ldap_pvt_thread_mutex_unlock( &connections_mutex );
-}
-
-static void* connections_evo_commit( void* ctx, void* argv )
-{
-	long evo = (long) argv;
-	(void) ctx;
-
-	ldap_pvt_thread_mutex_lock( &connections_mutex );
-
-	assert(conn_evo_pending > 0);
-	if (conn_evo_pending)
-		conn_evo_pending -= 1;
-
-	if (evo - conn_evo_tail > 0)
-		conn_evo_tail = evo;
-
-	if (conn_evo_pending == 0 || conn_evo_tail == evo)
-		ldap_pvt_thread_cond_broadcast(&connections_evo_cond);
-
-	ldap_pvt_thread_mutex_unlock( &connections_mutex );
-	return NULL;
-}
-
-int
-connections_tpool_sync(BackendDB *be)
-{
-	(void) be;
-
-	ldap_pvt_thread_mutex_lock( &connections_mutex );
-	long evo = conn_evo_head;
-	int i, rc = -1;
-
-	for(i = 0; i < 42; ++i) {
-
-		if (conn_evo_pending == 0) {
-			rc = 0;
-			break;
-		}
-
-		if (i >= 3 && conn_evo_tail - evo >= 0) {
-			rc = 1;
-			break;
-		}
-
-		int value = 0;
-		if (ldap_pvt_thread_pool_pausing( &connection_pool )
-				|| slapd_shutdown
-				|| ldap_pvt_thread_pool_query( &connection_pool,
-					LDAP_PVT_THREAD_POOL_PARAM_ACTIVE, &value ) < 0
-				|| value < 2
-				|| EINTR == ldap_pvt_thread_cond_timedwait(
-					42, &connections_evo_cond, &connections_mutex )) {
-			break;
-		}
-	}
-
-	ldap_pvt_thread_mutex_unlock( &connections_mutex );
-	return rc;
 }
