@@ -348,8 +348,7 @@ AC_SUBST(ldap_subdir)dnl
 
 dnl ----------------------------------------------------------------
 dnl General "enable" options
-dnl set default to traditional to enable the original debug style
-OL_ARG_ENABLE(debug,[  --enable-debug          enable debug logging], yes, [no yes traditional])dnl
+OL_ARG_ENABLE(debug,[  --enable-debug          enable debug logging], yes, [no yes])dnl
 OL_ARG_ENABLE(syslog,[  --enable-syslog         enable syslog support], auto)dnl
 OL_ARG_ENABLE(contrib,[  --enable-contrib        enable extra plugins and overlays], no, [no yes broken])dnl
 OL_ARG_ENABLE(experimental,[  --enable-experimental   enable experimental and developing features], no, [no yes])dnl
@@ -2295,10 +2294,6 @@ dnl ----------------------------------------------------------------
 dnl Sort out defines
 
 if test "$ol_enable_debug" != no ; then
-	if test "$ol_enable_debug" = traditional; then
-		AC_DEFINE(OLD_DEBUG,1,
-			[define to use the original debug style])
-	fi
 	AC_DEFINE(LDAP_DEBUG,1,
 		[define this to add debugging code])
 fi

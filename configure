@@ -1852,7 +1852,7 @@ Optional Features:
   --disable-dependency-tracking
                           speeds up one-time build
   --disable-libtool-lock  avoid locking (might break parallel builds)
-  --enable-debug          enable debug logging no|yes|traditional [yes]
+  --enable-debug          enable debug logging no|yes [yes]
   --enable-syslog         enable syslog support [auto]
   --enable-contrib        enable extra plugins and overlays no|yes|broken [no]
   --enable-experimental   enable experimental and developing features no|yes [no]
@@ -13149,9 +13149,9 @@ VERSION_MINOR=2
 
 VERSION_PATCH=0
 
-RELEASE_DATE=2016-08-18
+RELEASE_DATE=2016-08-23
 
-RELEASE_STAMP=gffddb16782c5-t536cd0071a4e4f65
+RELEASE_STAMP=gd8d2a07a0ab1-tfa1c822d24a05d6d
 
 API_LIB_RELEASE=1.2
 
@@ -18261,7 +18261,7 @@ fi
 if test "${enable_debug+set}" = set; then :
   enableval=$enable_debug;
 	ol_arg=invalid
-	for ol_val in no yes traditional ; do
+	for ol_val in no yes ; do
 		if test "$enableval" = "$ol_val" ; then
 			ol_arg="$ol_val"
 		fi
@@ -33031,11 +33031,6 @@ fi
 
 
 if test "$ol_enable_debug" != no ; then
-	if test "$ol_enable_debug" = traditional; then
-
-$as_echo "#define OLD_DEBUG 1" >>confdefs.h
-
-	fi
 
 $as_echo "#define LDAP_DEBUG 1" >>confdefs.h
 

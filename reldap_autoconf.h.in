@@ -974,9 +974,6 @@
 /* Define if dlsym() requires a leading underscore in symbol names. */
 #undef NEED_USCORE
 
-/* define to use the original debug style */
-#undef OLD_DEBUG
-
 /* Name of package */
 #undef PACKAGE
 
