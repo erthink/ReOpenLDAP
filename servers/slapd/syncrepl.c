@@ -3067,8 +3067,25 @@ syncrepl_entry(
 	}
 
 	if ( syncCookie->numcsns && dni.csn_incomming.bv_val ) {
-		assert( syncCookie->numcsns == 1 );
-		assert( slap_csn_match( &dni.csn_incomming, syncCookie->ctxcsn ) );
+		if (syncCookie->numcsns != 1 && reopenldap_mode_righteous()) {
+			Debug( LDAP_DEBUG_ANY, "syncrepl_entry: csn-in-cookie != 1 (%d)\n", syncCookie->numcsns );
+			rc = LDAP_PROTOCOL_ERROR;
+			goto done;
+		}
+		if (! slap_csn_match( &dni.csn_incomming, syncCookie->ctxcsn )) {
+			Debug( LDAP_DEBUG_ANY, "syncrepl: in.entryCSN %s != in.cookieCSN %s, is biglock enabled on syncprov side?!\n",
+				  dni.csn_incomming.bv_val, syncCookie->ctxcsn->bv_val );
+			if (reopenldap_mode_strict()) {
+				rc = LDAP_PROTOCOL_ERROR;
+				goto done;
+			}
+			if (reopenldap_mode_righteous()) {
+				Debug( LDAP_DEBUG_SYNC, "syncrepl_entry: override wrong in.cookieCSN %s by in.entryCSN %s\n",
+					  syncCookie->ctxcsn->bv_val, dni.csn_incomming.bv_val );
+				LDAP_ENSURE(dni.csn_incomming.bv_len == syncCookie->ctxcsn->bv_len);
+				memcpy(syncCookie->ctxcsn->bv_val, dni.csn_incomming.bv_val, dni.csn_incomming.bv_len);
+			}
+		}
 	}
 
 	if (syncstate != LDAP_SYNC_DELETE || syncUUID[0].bv_len != 16) {

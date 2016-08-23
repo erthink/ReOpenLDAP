@@ -1095,7 +1095,7 @@ syncprov_sendresp( Operation *op, resinfo *ri, syncops *so, int mode )
 	rs.sr_flags = REP_CTRLS_MUSTBEFREED;
 	unsigned char *u = (void*) ri->ri_uuid.bv_val;
 
-	Debug( LDAP_DEBUG_SYNC, "syncprov_send_resp: %s, %s, to=%03x, "
+	Debug( LDAP_DEBUG_SYNC, "syncprov_sendresp: %s, %s, to=%03x, "
 		"%02x%02x%02x%02x-%02x%02x-%02x%02x-%02x%02x-%02x%02x%02x%02x%02x%02x, "
 		"%s\n",
 		ldap_sync_state2str(mode),
@@ -1103,6 +1103,26 @@ syncprov_sendresp( Operation *op, resinfo *ri, syncops *so, int mode )
 		so->s_sid,
 		u[0], u[1], u[2], u[3], u[4], u[5], u[6], u[7], u[8], u[9], u[10], u[11], u[12], u[13], u[14], u[15],
 		ri->ri_csn.bv_val );
+
+	if (mode != LDAP_SYNC_DELETE && ! ri->ri_isref && ri->ri_csn.bv_len) {
+		Attribute* a = attr_find( ri->ri_e->e_attrs, slap_schema.si_ad_entryCSN );
+
+		if (a && ! slap_csn_match( &ri->ri_csn, a->a_nvals )) {
+			Debug( LDAP_DEBUG_ANY, "syncprov: send_resp: out.entryCSN %s != out.cookieCSN %s, is biglock enabled?!\n",
+				  a->a_nvals->bv_val, ri->ri_csn.bv_val );
+			if (reopenldap_mode_strict()) {
+				send_ldap_error(op, &rs,
+					LDAP_OTHER, "syncprov: out.entryCSN != out.cookieCSN, is biglock enabled?!");
+				return SLAPD_DISCONNECT;
+			}
+			if (reopenldap_mode_righteous()) {
+				Debug( LDAP_DEBUG_SYNC, "syncprov_sendresp: override wrong out.cookieCSN %s by out.entryCSN %s\n",
+					  ri->ri_csn.bv_val, a->a_nvals->bv_val );
+				LDAP_ENSURE(a->a_nvals->bv_len == ri->ri_csn.bv_len);
+				memcpy(ri->ri_csn.bv_val, a->a_nvals->bv_val, a->a_nvals->bv_len);
+			}
+		}
+	}
 
 	e_uuid.e_attrs = &a_uuid;
 	a_uuid.a_desc = slap_schema.si_ad_entryUUID;
@@ -1126,10 +1146,6 @@ syncprov_sendresp( Operation *op, resinfo *ri, syncops *so, int mode )
 		}
 		/* fallthru */
 	case LDAP_SYNC_MODIFY:
-		if (ri->ri_csn.bv_len) {
-			Attribute* MAY_UNUSED a = attr_find( ri->ri_e->e_attrs, slap_schema.si_ad_entryCSN );
-			assert( a && slap_csn_match( &ri->ri_csn, a->a_nvals ));
-		}
 		rs.sr_attrs = op->ors_attrs;
 		rs.sr_err = send_search_entry( op, &rs );
 		break;
