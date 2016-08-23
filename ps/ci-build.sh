@@ -402,12 +402,14 @@ fi
 if [ $flag_check -ne 0 ]; then
 	CFLAGS+=" -fstack-protector-all"
 	if [ $modern_configure -ne 0 ]; then
-		CONFIGURE_ARGS+=" --enable-check=default --enable-hipagut=yes"
+		CONFIGURE_ARGS+=" --enable-check=default --enable-hipagut=yes --enable-debug=extra"
 	else
 		CFLAGS+=" -DLDAP_MEMORY_CHECK -DLDAP_MEMORY_DEBUG"
+		CONFIGURE_ARGS+=" --enable-debug"
 	fi
 else
 	CFLAGS+=" -fstack-protector"
+	CONFIGURE_ARGS+=" --enable-debug"
 fi
 
 if [ $flag_valgrind -ne 0 ]; then
@@ -529,7 +531,7 @@ if [ ! -s ${build}/Makefile ]; then
 	mkdir -p ${build} && \
 	( cd ${build} && configure \
 			$(if [ $modern_configure -ne 0 -a $flag_nodeps -ne 0 ]; then echo "--disable-dependency-tracking"; fi) \
-			--prefix=$(pwd)/@install_here --enable-debug \
+			--prefix=$(pwd)/@install_here \
 			$CONFIGURE_ARGS --enable-overlays=${MOD} $NDB_CONFIG \
 			--enable-rewrite --enable-dynacl --enable-aci \
 			$(if [ $flag_mdbx -eq 0 ]; then echo "--disable-${MDBX_NICK}"; else echo "--enable-${MDBX_NICK}=${MOD}"; fi) \
