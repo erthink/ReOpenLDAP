@@ -1852,7 +1852,7 @@ Optional Features:
   --disable-dependency-tracking
                           speeds up one-time build
   --disable-libtool-lock  avoid locking (might break parallel builds)
-  --enable-debug          enable debug logging no|yes [yes]
+  --enable-debug          enable debug logging no|yes|extra [yes]
   --enable-syslog         enable syslog support [auto]
   --enable-contrib        enable extra plugins and overlays no|yes|broken [no]
   --enable-experimental   enable experimental and developing features no|yes [no]
@@ -13151,7 +13151,7 @@ VERSION_PATCH=0
 
 RELEASE_DATE=2016-08-23
 
-RELEASE_STAMP=gd8d2a07a0ab1-tfa1c822d24a05d6d
+RELEASE_STAMP=g7e8ace3b808b-t931adaca610c16b2
 
 API_LIB_RELEASE=1.2
 
@@ -18261,7 +18261,7 @@ fi
 if test "${enable_debug+set}" = set; then :
   enableval=$enable_debug;
 	ol_arg=invalid
-	for ol_val in no yes ; do
+	for ol_val in no yes extra ; do
 		if test "$enableval" = "$ol_val" ; then
 			ol_arg="$ol_val"
 		fi
@@ -19399,7 +19399,7 @@ See \`config.log' for more details" "$LINENO" 5; }
 	;;
 esac
 
- if test "$ol_enable_debug" = yes; then
+ if test "$ol_enable_debug" != no; then
   SLAPD_DEBUG_TRUE=
   SLAPD_DEBUG_FALSE='#'
 else
@@ -19407,7 +19407,7 @@ else
   SLAPD_DEBUG_FALSE=
 fi
 
- if test "$ol_enable_syslog" = yes; then
+ if test "$ol_enable_syslog" != no; then
   SLAPD_SYSLOG_TRUE=
   SLAPD_SYSLOG_FALSE='#'
 else
@@ -19415,7 +19415,7 @@ else
   SLAPD_SYSLOG_FALSE=
 fi
 
- if test "$ol_enable_deprecated" = yes; then
+ if test "$ol_enable_deprecated" != no; then
   LDAP_DEPRECATED_TRUE=
   LDAP_DEPRECATED_FALSE='#'
 else
@@ -19423,7 +19423,7 @@ else
   LDAP_DEPRECATED_FALSE=
 fi
 
- if test "$ol_enable_experimental" = yes; then
+ if test "$ol_enable_experimental" != no; then
   LDAP_EXPERIMENTAL_TRUE=
   LDAP_EXPERIMENTAL_FALSE='#'
 else
@@ -33030,12 +33030,28 @@ $as_echo "#define vsnprintf ber_pvt_vsnprintf" >>confdefs.h
 fi
 
 
-if test "$ol_enable_debug" != no ; then
+case $ol_enable_debug in
+    yes)
 
 $as_echo "#define LDAP_DEBUG 1" >>confdefs.h
 
-fi
-if test "$ol_enable_syslog" = yes ; then
+	;;
+    extra)
+
+$as_echo "#define LDAP_DEBUG 2" >>confdefs.h
+
+	;;
+    no)
+	;;
+    *)
+	{ { $as_echo "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
+$as_echo "$as_me: error: in \`$ac_pwd':" >&2;}
+as_fn_error $? "invalid --enable-debug value '$ol_enable_debug'
+See \`config.log' for more details" "$LINENO" 5; }
+	;;
+esac
+
+if test "$ol_enable_syslog" != no ; then
 
 $as_echo "#define LDAP_SYSLOG 1" >>confdefs.h
 

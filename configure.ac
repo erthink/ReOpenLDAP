@@ -348,7 +348,7 @@ AC_SUBST(ldap_subdir)dnl
 
 dnl ----------------------------------------------------------------
 dnl General "enable" options
-OL_ARG_ENABLE(debug,[  --enable-debug          enable debug logging], yes, [no yes])dnl
+OL_ARG_ENABLE(debug,[  --enable-debug          enable debug logging], yes, [no yes extra])dnl
 OL_ARG_ENABLE(syslog,[  --enable-syslog         enable syslog support], auto)dnl
 OL_ARG_ENABLE(contrib,[  --enable-contrib        enable extra plugins and overlays], no, [no yes broken])dnl
 OL_ARG_ENABLE(experimental,[  --enable-experimental   enable experimental and developing features], no, [no yes])dnl
@@ -430,10 +430,10 @@ case $ol_enable_hipagut in
 	;;
 esac
 
-AM_CONDITIONAL([SLAPD_DEBUG], [test "$ol_enable_debug" = yes])
-AM_CONDITIONAL([SLAPD_SYSLOG], [test "$ol_enable_syslog" = yes])
-AM_CONDITIONAL([LDAP_DEPRECATED], [test "$ol_enable_deprecated" = yes])
-AM_CONDITIONAL([LDAP_EXPERIMENTAL], [test "$ol_enable_experimental" = yes])
+AM_CONDITIONAL([SLAPD_DEBUG], [test "$ol_enable_debug" != no])
+AM_CONDITIONAL([SLAPD_SYSLOG], [test "$ol_enable_syslog" != no])
+AM_CONDITIONAL([LDAP_DEPRECATED], [test "$ol_enable_deprecated" != no])
+AM_CONDITIONAL([LDAP_EXPERIMENTAL], [test "$ol_enable_experimental" != no])
 
 dnl ----------------------------------------------------------------
 dnl General "with" options
@@ -2293,17 +2293,25 @@ fi
 dnl ----------------------------------------------------------------
 dnl Sort out defines
 
-if test "$ol_enable_debug" != no ; then
-	AC_DEFINE(LDAP_DEBUG,1,
-		[define this to add debugging code])
-fi
-if test "$ol_enable_syslog" = yes ; then
-	AC_DEFINE(LDAP_SYSLOG,1,
-		[define this to add syslog code])
+case $ol_enable_debug in
+    yes)
+	AC_DEFINE(LDAP_DEBUG,1,[define this to add debugging code])
+	;;
+    extra)
+	AC_DEFINE(LDAP_DEBUG,2,[define this to add debugging code])
+	;;
+    no)
+	;;
+    *)
+	AC_MSG_FAILURE([invalid --enable-debug value '$ol_enable_debug'])
+	;;
+esac
+
+if test "$ol_enable_syslog" != no ; then
+	AC_DEFINE(LDAP_SYSLOG,1,[define this to add syslog code])
 fi
 if test "$ol_enable_proctitle" != no ; then
-	AC_DEFINE(LDAP_PROCTITLE,1,
-		[define this for LDAP process title support])
+	AC_DEFINE(LDAP_PROCTITLE,1,[define this for LDAP process title support])
 fi
 if test "$ol_enable_referrals" != no ; then
 	AC_DEFINE(LDAP_API_FEATURE_X_OPENLDAP_V2_REFERRALS,LDAP_VENDOR_VERSION,
