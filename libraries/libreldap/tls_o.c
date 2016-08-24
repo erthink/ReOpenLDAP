@@ -417,13 +417,16 @@ tlso_session_upflags( Sockbuf *sb, tls_session *sess, int rc )
 }
 
 static char *
-tlso_session_errmsg( tls_session *sess, int rc, char *buf, size_t len )
+tlso_session_errmsg( tls_session *sess, int xrc, char *buf, size_t len )
 {
 	char err[256] = "";
 	const char *certerr=NULL;
 	tlso_session *s = (tlso_session *)sess;
 
-	rc = ERR_peek_error();
+	int rc = ERR_peek_error();
+	if (! rc)
+		rc = xrc;
+
 	if ( rc ) {
 		ERR_error_string_n( rc, err, sizeof(err) );
 		if ( ( ERR_GET_LIB(rc) == ERR_LIB_SSL ) &&
