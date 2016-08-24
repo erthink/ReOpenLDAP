@@ -64,3 +64,4 @@ For the changes merged from OpenLDAP project, please see the CHANGES.OpenLDAP fi
  * removed ~5K warnings from GCC/clang
  * removed ~1K warnings from ThreadSanitizer (a data race detector)
  * removed most of memory leaks (tests could be passed under Valgrind)
+ * checked by PVS-Studio, see https://github.com/ReOpen/ReOpenLDAP/issues/107
