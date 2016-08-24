@@ -208,7 +208,7 @@ int mdb_tool_entry_close(
 		unsigned i;
 		fprintf( stderr, "Error, entries missing!\n");
 		for (i=0; i<nholes; i++) {
-			fprintf(stderr, "  entry %ld: %s\n",
+			fprintf(stderr, "  entry %zd: %s\n",
 				holes[i].id, holes[i].dn.bv_val);
 		}
 		nholes = 0;
