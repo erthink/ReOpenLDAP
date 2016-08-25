@@ -1,3 +1,107 @@
+v1.1.3, 2016-08-??
+==================
+
+Briefly:
+ 1) Imported all relevant fixes from RedHat, ALT Linux and Dedian/Ubuntu.
+ 2) Checked with PVS-Studio static analyser.
+ 3) More fixes especially for TLS and Mozilla NSS.
+
+New:
+ ! reopenldap LICENSE note.
+ + configure: --enable-debug=extra.
+ + libreldap: NTLM bind support.
+ + contrib: add check_password module.
+ + contrib: allow build smbk5pwd without heimdal-kerberos.
+ + libreldap: Support TLSv1.3 and later.
+
+Documentation:
+ * docs: fixed readme's module-names for contrib (.so -> .la)
+ * mdbx: comment MDB_page, rename mp_ksize.
+ * mdbx: VALID_FLAGS, mm_last_pg, mt_loose_count.
+ + man: fixed SASL_NOCANON option missing in ldap.conf manual page.
+
+Major and Security bugs:
+ * slapd: fixed #104, check for writers while close the connection.
+ * slapd: fixed #103, stop glue-search on errors.
+ * libreldap: MozNSS fixed CVE-2015-3276 (RHEL#1238322).
+ * libreldap: TLS do not reuse tls_session if hostname check fails (RHEL#852476).
+ * slapd: Switch to lt_dlopenadvise() to get RTLD_GLOBAL set (RHEL#960048, Dedian#327585).
+ * libreldap: reentrant gethostby() (RHEL#179730).
+ * libreldap: MozNSS ignore certdb database type prefix when checking existence of the directory (RHEL#857373).
+
+Minor bugs:
+ * slapd: fixed compare pointer with '\0' in syn_add().
+ * slapd: fixed indereferenced pointer in fe_acl_group().
+ * libreldap: fixed overwriting a parameter in tlso_session_errmsg().
+ * slapd: fixed recurring check in register_matching_rule().
+ + syncprov/syncrepl: more for #105, two workarounds.
+ * mdbx: fixed mdb_dump tool and other issues detected by PVS-Studio.
+ * mdbx: fixed assertions when debug enabled for various open/sync modes.
+ * slapd: fixed use-after-free in debug/syslog message on module unloaded.
+ * monitor-backend: fixed cache-release on errors.
+ - slapd: don't create pid-file for config-check mode.
+ + libreldap: "tls_reqcert never" by default for ldap.conf
+ - libreldap: Disables opening of ldaprc file in current directory (RHEL#38402).
+ * libreldap: MozNSS update list of supported cipher suites.
+ * libreldap: MozNSS better file name matching for hashed CA certificate directory (RHEL#852786).
+ * libreldap: MozNSS free PK11 slot (RHEL#929357).
+ * libreldap: MozNSS load certificates from certdb, fallback to PEM (RHEL#857455).
+ * slapd: fixed loglevel2bvarray() for config-backend.
+ * libreldap: LDAPI SASL fix (RHEL#960222).
+ * libreldap: use AI_ADDRCONFIG if defined in the environment (RHEL#835013).
+ * libreldap: fixed false-positive ASAN-trap when Valgrind also enabled.
+
+Performance:
+ * slapd: fixed major typo in rurw_r_unlock() which could cause performance degradation.
+
+Build:
+ + mdbx: adds Makefile deps from mdbx.c
+ * tests: fixed lt-exe-name for coredump collection.
+ + backend-mdb: enable debug for libmdbx if --enable-debug.
+ * mdbx: make ci-target without NDEBUG and with MDB_DEBUG=2.
+ + mdbx: allow CC=xyz for ci-target rules.
+ * configure: fixed cases when corresponding to --with-tls=xyz package not available.
+ + configure: take in account --enable-lmpasswd for TLS choice.
+ * configure: workaround for --enable-lmpasswd with GnuTLS (ITS#6232).
+ * liblutils: fixed build with --enable-lmpasswd.
+ * libreldap: fixed warnings when Mozilla NSS used.
+ * configure: rework TLS detection (Mozilla NSS, GnuTLS, OpenSSL).
+ * libreldap: fixed build --with-tls=gnutls.
+ - contrib: don't build passwd/totp, passwd/pbkdf2 and smbk5pwd with --with-tls=moznss.
+ + automake: install lber_types.h and ldap_features.h
+ * automake: fixed $(DESTDIR) for install/uninstall hooks.
+ * automake: fixed ldapadd tool uninstall.
+ * configure: Check whether ucred is defined without _GNU_SOURCE.
+ * slapd: don't link with BerkeleyDB, but bdb/hdb backends only.
+ * configure: checking for krb5-gssapi for contrib-gssacl.
+ * configure: Use pkg-config for Mozilla NSS library detection.
+ * libreldap: fixed build in case --with-tls=moznss.
+
+Cosmetics:
+ * fixed printf format in mdb-backend and liblunicode.
+ * fixed minor typo in print_vlv() for ldif-output.
+ * fixed 'experimantal' typo ;)
+ * slap-tools: fixed set debug-level.
+
+Other:
+ + backend-mdb: turn MDBX's debugging depending on --enable-debug=xyz.
+ * reopenldap: use LDAP_DEBUG instead of !NDEBUG.
+ - reopenldap: remove obsolete OLD_DEBUG.
+ * tests: more for #92 (mtread).
+ * tests: adds biglock to test048-syncrepl-multiproxy.
+ * slapd: refine biglock for passwd_extop().
+ * tests: fixed #105, adds biglock to test054-syncrepl-parallel-load.
+ * libreldap: more worarounds for #104.
+ * slapd: show 'glue' like a static overlay.
+ * mdbx: fixed copyright timestamps.
+ * mdbx: check assertions depending on NDEBUG.
+ * contrib/check_password: fixed default values usage.
+ * tests: support RANDOM_ORDER for load balancing.
+ * libreldap: TLS fixed unused warnings.
+ * slapd: backtrace for CLM-166490.
+ * tests: use Valgrind from configure.
+
+
 v1.1.2, 2016-07-30
 ==================
 
@@ -18,28 +122,28 @@ Documentation:
  - man: minor cleanup 'deprecated' libreldap functions.
 
 Major bugs:
- * syncprov: fix find-csn error handling.
+ * syncprov: fixed find-csn error handling.
 
 Minor bugs:
  * slapd: accept module/plugin name with hyphen.
- * syncprov: fix RS_ASSERT failure inside mdb-search.
+ * syncprov: fixed RS_ASSERT failure inside mdb-search.
  * slapd: result-asserts (RS_ASSERT) now controlled by mode 'check/idkfa'.
- * pcache: fix RS_ASSERT failure.
- * mdbx: backport - ITS#8209 fix MDB_CP_COMPACT.
+ * pcache: fixed RS_ASSERT failure.
+ * mdbx: backport - ITS#8209 fixed MDB_CP_COMPACT.
 
 Performance: none
 
 Build:
- * slapd: fix old gcc's double typedef error.
- * slapd: fix bdb/hdb backends build distinction.
- * contrib: fix out-of-source build.
+ * slapd: fixed old gcc's double typedef error.
+ * slapd: fixed bdb/hdb backends build distinction.
+ * contrib: fixed out-of-source build.
  * configure: build contrib-modiles conditionaly if 'heimdal' package not available.
- * slapd: fix warning with --enable-experimental.
- * pcache: fix build with --enable-experimental.
- * slapd: fix dynamic module support.
+ * slapd: fixed warning with --enable-experimental.
+ * pcache: fixed build with --enable-experimental.
+ * slapd: fixed dynamic module support.
  + configure: refine libtool patch for LTO.
  * build: fixup banner-versioning for tools and libs.
- * slapd: fix build with --enable-wrappers.
+ * slapd: fixed build with --enable-wrappers.
  * all: fixup 'unused' vars, in case assert-checking disabled.
  + build: silencing make by default.
  + build: mbdx-tools within mdb-backend.
@@ -80,13 +184,13 @@ Documentation:
 
 Major bugs:
  + slapd: rurw-locking for config-backend.
- * syncprov: fix syncprov_findbase() race with backover's hacks.
+ * syncprov: fixed syncprov_findbase() race with backover's hacks.
  * syncprov: bypass 'dead' items in syncprov_playback_locked().
- * syncprov: fix syncprov_playback_locked() segfault.
- * syncprov: fix syncprov_matchops() race with backover's hacks.
- * syncprov: fix rare syncprov_unlink_syncop() deadlock with abandon.
- * slapd: fix deadlock in connections_shutdown().
- ! overlays: fix a lot of segfaults (callback initialization).
+ * syncprov: fixed syncprov_playback_locked() segfault.
+ * syncprov: fixed syncprov_matchops() race with backover's hacks.
+ * syncprov: fixed rare syncprov_unlink_syncop() deadlock with abandon.
+ * slapd: fixed deadlock in connections_shutdown().
+ ! overlays: fixed a lot of segfaults (callback initialization).
 
 Minor bugs:
  * install: hotfix slaptools install, sbin instead of libexec.
@@ -95,39 +199,39 @@ Minor bugs:
  * reopenldap: hotfix 'derived from' copy-paste error.
  * mdbx: backport - mdb_env_setup_locks() Plug mutexattr leak on error.
  * mdbx: backport - ITS#8339 Solaris 10/11 robust mutex fixes.
- * libreldap: fix PR_GetUniqueIdentity() for ReOpenLDAP.
+ * libreldap: fixed PR_GetUniqueIdentity() for ReOpenLDAP.
  * liblber: don't trap ber_memcpy_safe() when dst == src.
  * syncprov: kicks the connection from syncprov_unlink_syncop().
  * slapd: reschedule from connection_closing().
  * slapd: connections_socket_troube() and EPOLLERR|EPOLLHUP.
  + slapd: 2-stage for connection_abandon().
  * syncprov: rework cancellation path in syncprov_matchops().
- * syncprov: fix invalid status ContextCSN.
- * slapd: fix handling idle/write timeouts.
+ * syncprov: fixed invalid status ContextCSN.
+ * slapd: fixed handling idle/write timeouts.
  * accesslog: backport - ITS#8423 check for pause in accesslog_purge.
  * mdbx: backport - ITS#8424 init cursor in mdb_env_cwalk.
 
 Performance: none
 
 Build:
- + contrib-modules: fix build, contrib-mod.mk
- * configure: fix 'pointers aliasing' for libltdl.
+ + contrib-modules: fixed build, contrib-mod.mk
+ * configure: fixed 'pointers aliasing' for libltdl.
  * configure: check for libbfd and libelf for backtrace.
  * configure: check for 'soelim' and 'soelim -r'.
  * configure: build librewrite only if rwm-overlay or meta-backed is enabled.
  + configure: PERL_LDFLAGS and PERL_RDIR (rpath) for perl-backend.
  + configure: NDB_LDFLAGS and NDB_RDIR (rpath) for ndb-backend.
- * reopenldap: fix build parts by C++ (back-ndb).
- * mdbx: fix build by clang (missing-field-initializers).
- * slapd: fix build ASAN + dynamic + visibility=hidden.
- * libreldap: fix 'msgid' may be used uninitialized in ldap_modify_*().
+ * reopenldap: fixed build parts by C++ (back-ndb).
+ * mdbx: fixed build by clang (missing-field-initializers).
+ * slapd: fixed build ASAN + dynamic + visibility=hidden.
+ * libreldap: fixed 'msgid' may be used uninitialized in ldap_modify_*().
  * configure: error if libuuid is missing.
- * libreldap: fix build by clang.
- * shell-backends: fix passwd-shell tool building.
+ * libreldap: fixed build by clang.
+ * shell-backends: fixed passwd-shell tool building.
  + contrib/acl: checking for --enable-dynacl.
- * slapd: fix keepalive-related typo in slap_listener().
- * libldap: fix typo ';' in ldap_pvt_tcpkeepalive().
- * libldap: fix build with GnuTLS (error at @wanna_steady_or_not).
+ * slapd: fixed keepalive-related typo in slap_listener().
+ * libldap: fixed typo ';' in ldap_pvt_tcpkeepalive().
+ * libldap: fixed build with GnuTLS (error at @wanna_steady_or_not).
 
 Cosmetics:
  * syncrepl: cleanup rebus-like error codes.
