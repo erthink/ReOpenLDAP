@@ -62,7 +62,9 @@ mdb_id_compare( const MDB_val *a, const MDB_val *b )
 static void
 mdbx_debug(int type, const char *function, int line, const char *msg, va_list args)
 {
-#ifdef LDAP_DEBUG < 2
+#if LDAP_DEBUG > 1
+	int level = LDAP_DEBUG_ANY;
+#else
 	int level = 0;
 
 	if (type & MDBX_DBG_ASSERT)
@@ -73,8 +75,6 @@ mdbx_debug(int type, const char *function, int line, const char *msg, va_list ar
 
 	if (type & (MDBX_DBG_TRACE | MDBX_DBG_EXTRA))
 		level |= LDAP_DEBUG_TRACE;
-#else
-	int level = LDAP_DEBUG_ANY;
 #endif /* LDAP_DEBUG */
 
 	if (DebugTest(level))
@@ -162,7 +162,7 @@ mdb_db_init( BackendDB *be, ConfigReply *cr )
 
 	if (reopenldap_mode_check())
 		flags |= MDBX_DBG_ASSERT;
-#	ifdef LDAP_DEBUG > 1
+#	if LDAP_DEBUG > 1
 		flags |= MDBX_DBG_PRINT | MDBX_DBG_TRACE;
 #	endif /* LDAP_DEBUG > 1 */
 #	if LDAP_DEBUG > 2
