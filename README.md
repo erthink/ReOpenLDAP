@@ -28,6 +28,7 @@ due the following reasons:
  - unreasonable desire to support the wide range of
    an obsolete archaic systems and compilers.
 
+<a href="https://scan.coverity.com/projects/reopen-reopenldap"><img alt="Coverity Scan Build Status" src="https://scan.coverity.com/projects/6972/badge.svg"/></a>
 
 Change List
 -----------------
