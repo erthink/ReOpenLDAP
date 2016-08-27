@@ -664,6 +664,7 @@ am__EXEEXT_FALSE
 am__EXEEXT_TRUE
 LTLIBOBJS
 AM_MAKEFLAGS
+SLAPD_LIBS
 SECURITY_LIBS
 LDAP_LIBLUTIL_LA
 LDAP_LIBLUNICODE_LA
@@ -674,6 +675,7 @@ SLAPD_SLP_LIBS
 AUTH_LIBS
 SLAPI_LIBS
 SASL_LIBS
+GSSAPI_LIBS
 TLS_FALLBACK_CFLAGS
 TLS_FALLBACK_LIBS
 TLS_CFLAGS
@@ -698,7 +700,6 @@ SLAPD_DYNAMIC_BACKENDS
 SLAPD_STATIC_BACKENDS
 LUTIL_LIBS
 LTHREAD_LIBS
-SLAPD_LIBS
 CONTRIB_BROKEN_FALSE
 CONTRIB_BROKEN_TRUE
 CONTRIB_FALSE
@@ -862,8 +863,11 @@ SOELIM_R
 SOELIM
 BEHIND_CURTIAN_FALSE
 BEHIND_CURTIAN_TRUE
+WITH_GSSAPI_FALSE
+WITH_GSSAPI_TRUE
 TLS_ENABLED_FALSE
 TLS_ENABLED_TRUE
+WITH_GSSAPI
 WITH_ACI_ENABLED
 WITH_TLS
 WITH_SASL
@@ -1116,6 +1120,7 @@ enable_valgrind_helgrind
 enable_valgrind_drd
 enable_valgrind_sgcheck
 with_cyrus_sasl
+with_gssapi
 with_fetch
 with_tls
 with_yielding_select
@@ -1945,6 +1950,7 @@ Optional Packages:
                           compiler's sysroot if not specified).
   --with-subdir=DIR       change default subdirectory used for installs
   --with-cyrus-sasl	  with Cyrus SASL support [auto]
+  --with-gssapi		  with GSSAPI support [auto]
   --with-fetch		  with fetch(3) URL support [auto]
   --with-tls		  with TLS/SSL support auto|openssl|gnutls|moznss [auto]
   --with-yielding-select  with implicitly yielding select [auto]
@@ -13149,9 +13155,9 @@ VERSION_MINOR=2
 
 VERSION_PATCH=0
 
-RELEASE_DATE=2016-08-23
+RELEASE_DATE=2016-08-27
 
-RELEASE_STAMP=g7e8ace3b808b-t931adaca610c16b2
+RELEASE_STAMP=ge7e3eddfb3d7-t68131d0c8b36e01c
 
 API_LIB_RELEASE=1.2
 
@@ -19453,6 +19459,27 @@ else
 fi
 # end --with-cyrus_sasl
 
+# OpenLDAP --with-gssapi
+
+# Check whether --with-gssapi was given.
+if test "${with_gssapi+set}" = set; then :
+  withval=$with_gssapi;
+	ol_arg=invalid
+	for ol_val in auto yes no  ; do
+		if test "$withval" = "$ol_val" ; then
+			ol_arg="$ol_val"
+		fi
+	done
+	if test "$ol_arg" = "invalid" ; then
+		as_fn_error $? "bad value $withval for --with-gssapi" "$LINENO" 5
+	fi
+	ol_with_gssapi="$ol_arg"
+
+else
+  	ol_with_gssapi="auto"
+fi
+# end --with-gssapi
+
 # OpenLDAP --with-fetch
 
 # Check whether --with-fetch was given.
@@ -22143,6 +22170,7 @@ TLS_CFLAGS=
 TLS_FALLBACK_LIBS=
 TLS_FALLBACK_CFLAGS=
 
+GSSAPI_LIBS=
 SASL_LIBS=
 SLAPI_LIBS=
 AUTH_LIBS=
@@ -24964,6 +24992,208 @@ $as_echo "#define WITH_TLS 1" >>confdefs.h
 
 	WITH_TLS=yes
 	CFLAGS="$CFLAGS $TLS_CFLAGS"
+fi
+
+ol_link_gssapi=no
+
+case $ol_with_gssapi in yes | auto)
+	ol_header_gssapi=no
+	for ac_header in gssapi/gssapi.h
+do :
+  ac_fn_c_check_header_mongrel "$LINENO" "gssapi/gssapi.h" "ac_cv_header_gssapi_gssapi_h" "$ac_includes_default"
+if test "x$ac_cv_header_gssapi_gssapi_h" = xyes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_GSSAPI_GSSAPI_H 1
+_ACEOF
+
+fi
+
+done
+
+	if test $ac_cv_header_gssapi_gssapi_h = yes ; then
+		ol_header_gssapi=yes
+	else
+		for ac_header in gssapi.h
+do :
+  ac_fn_c_check_header_mongrel "$LINENO" "gssapi.h" "ac_cv_header_gssapi_h" "$ac_includes_default"
+if test "x$ac_cv_header_gssapi_h" = xyes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_GSSAPI_H 1
+_ACEOF
+
+fi
+
+done
+
+		if test $ac_cv_header_gssapi_h = yes ; then
+			ol_header_gssapi=yes
+		fi
+	fi
+
+	if test $ol_header_gssapi = yes ; then
+						{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for gss_wrap in -lgssapi" >&5
+$as_echo_n "checking for gss_wrap in -lgssapi... " >&6; }
+if ${ac_cv_lib_gssapi_gss_wrap+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lgssapi  $LIBS"
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char gss_wrap ();
+int
+main ()
+{
+return gss_wrap ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_lib_gssapi_gss_wrap=yes
+else
+  ac_cv_lib_gssapi_gss_wrap=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_gssapi_gss_wrap" >&5
+$as_echo "$ac_cv_lib_gssapi_gss_wrap" >&6; }
+if test "x$ac_cv_lib_gssapi_gss_wrap" = xyes; then :
+  ol_link_gssapi=yes;GSSAPI_LIBS="-lgssapi"
+else
+  ol_link_gssapi=no
+fi
+
+		if test $ol_link_gssapi != yes ; then
+			{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for gss_wrap in -lgssapi_krb5" >&5
+$as_echo_n "checking for gss_wrap in -lgssapi_krb5... " >&6; }
+if ${ac_cv_lib_gssapi_krb5_gss_wrap+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lgssapi_krb5  $LIBS"
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char gss_wrap ();
+int
+main ()
+{
+return gss_wrap ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_lib_gssapi_krb5_gss_wrap=yes
+else
+  ac_cv_lib_gssapi_krb5_gss_wrap=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_gssapi_krb5_gss_wrap" >&5
+$as_echo "$ac_cv_lib_gssapi_krb5_gss_wrap" >&6; }
+if test "x$ac_cv_lib_gssapi_krb5_gss_wrap" = xyes; then :
+  ol_link_gssapi=yes;GSSAPI_LIBS="-lgssapi_krb5"
+else
+  ol_link_gssapi=no
+fi
+
+		fi
+		if test $ol_link_gssapi != yes ; then
+			{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for gss_wrap in -lgss" >&5
+$as_echo_n "checking for gss_wrap in -lgss... " >&6; }
+if ${ac_cv_lib_gss_gss_wrap+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lgss  $LIBS"
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char gss_wrap ();
+int
+main ()
+{
+return gss_wrap ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_lib_gss_gss_wrap=yes
+else
+  ac_cv_lib_gss_gss_wrap=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_gss_gss_wrap" >&5
+$as_echo "$ac_cv_lib_gss_gss_wrap" >&6; }
+if test "x$ac_cv_lib_gss_gss_wrap" = xyes; then :
+  ol_link_gssapi=yes;GSSAPI_LIBS="-lgss"
+else
+  ol_link_gssapi=no
+fi
+
+		fi
+	fi
+
+	;;
+esac
+
+WITH_GSSAPI=no
+if test $ol_link_gssapi = yes; then
+
+$as_echo "#define HAVE_GSSAPI 1" >>confdefs.h
+
+	WITH_GSSAPI=yes
+
+				saveLIBS="$LIBS"
+	LIBS="$LIBS $GSSAPI_LIBS"
+	for ac_func in gss_oid_to_str
+do :
+  ac_fn_c_check_func "$LINENO" "gss_oid_to_str" "ac_cv_func_gss_oid_to_str"
+if test "x$ac_cv_func_gss_oid_to_str" = xyes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_GSS_OID_TO_STR 1
+_ACEOF
+
+fi
+done
+
+	LIBS="$saveLIBS"
+elif test $ol_with_gssapi = auto ; then
+	{ $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: Could not locate GSSAPI package" >&5
+$as_echo "$as_me: WARNING: Could not locate GSSAPI package" >&2;}
+	{ $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: GSSAPI authentication not supported!" >&5
+$as_echo "$as_me: WARNING: GSSAPI authentication not supported!" >&2;}
+elif test $ol_with_gssapi = yes ; then
+	as_fn_error $? "GSSAPI detection failed" "$LINENO" 5
 fi
 
 if test $ol_enable_lmpasswd != no; then
@@ -33696,12 +33926,21 @@ fi
 
 
 
+
  if test $ol_link_tls = yes; then
   TLS_ENABLED_TRUE=
   TLS_ENABLED_FALSE='#'
 else
   TLS_ENABLED_TRUE='#'
   TLS_ENABLED_FALSE=
+fi
+
+ if test $ol_with_gssapi = yes; then
+  WITH_GSSAPI_TRUE=
+  WITH_GSSAPI_FALSE='#'
+else
+  WITH_GSSAPI_TRUE='#'
+  WITH_GSSAPI_FALSE=
 fi
 
 
@@ -34527,7 +34766,7 @@ LDAP_LIBLUTIL_LA="\${top_builddir}/libraries/liblutil/liblutil.la"
 
 
 
-SECURITY_LIBS="${SASL_LIBS} ${TLS_LIBS} ${AUTH_LIBS}"
+SECURITY_LIBS="$SASL_LIBS $GSSAPI_LIBS $TLS_LIBS $AUTH_LIBS"
 
 
 SLAPD_LIBS="$SLAPD_LIBS $SLAPD_SLP_LIBS $SLAPD_GMP_LIBS $SLAPD_TCPWRAP_LIBS"
@@ -34781,6 +35020,10 @@ fi
 
 if test -z "${TLS_ENABLED_TRUE}" && test -z "${TLS_ENABLED_FALSE}"; then
   as_fn_error $? "conditional \"TLS_ENABLED\" was never defined.
+Usually this means the macro was only invoked conditionally." "$LINENO" 5
+fi
+if test -z "${WITH_GSSAPI_TRUE}" && test -z "${WITH_GSSAPI_FALSE}"; then
+  as_fn_error $? "conditional \"WITH_GSSAPI\" was never defined.
 Usually this means the macro was only invoked conditionally." "$LINENO" 5
 fi
 if test -z "${BEHIND_CURTIAN_TRUE}" && test -z "${BEHIND_CURTIAN_FALSE}"; then
