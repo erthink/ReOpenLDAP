@@ -341,7 +341,7 @@ certificates in separate individual files. The
 is always used before
 .B TLS_CACERTDIR.
 The specified directory must be managed with the OpenSSL c_rehash utility.
-This parameter is ignored with GnuTLS.
+This parameter is ignored with GnuTLS. On Debian reopenldap is linked against GnuTLS.
 
 When using Mozilla NSS, <path> may contain a Mozilla NSS cert/key
 database.  If <path> contains a Mozilla NSS cert/key database and
@@ -452,7 +452,7 @@ This parameter is ignored with GnuTLS.
 Specifies the file to obtain random bits from when /dev/[u]random is
 not available. Generally set to the name of the EGD/PRNGD socket.
 The environment variable RANDFILE can also be used to specify the filename.
-This parameter is ignored with GnuTLS and Mozilla NSS.
+This parameter is ignored with GnuTLS and Mozilla NSS. On Debian reopenldap is linked against GnuTLS.
 .TP
 .B TLS_REQCERT <level>
 Specifies what checks to perform on server certificates in a TLS session,
@@ -485,7 +485,7 @@ Specifies if the Certificate Revocation List (CRL) of the CA should be
 used to verify if the server certificates have not been revoked. This
 requires
 .B TLS_CACERTDIR
-parameter to be set. This parameter is ignored with GnuTLS and Mozilla NSS.
+parameter to be set. This parameter is ignored with GnuTLS and Mozilla NSS. On Debian reopenldap is linked against GnuTLS.
 .B <level>
 can be specified as one of the following keywords:
 .RS
