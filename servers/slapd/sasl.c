@@ -1179,26 +1179,6 @@ int slap_sasl_init( void )
 #endif
 
 #ifdef HAVE_CYRUS_SASL
-#ifdef HAVE_SASL_VERSION
-	/* stringify the version number, sasl.h doesn't do it for us */
-#define	VSTR0(maj, min, pat)	#maj "." #min "." #pat
-#define	VSTR(maj, min, pat)	VSTR0(maj, min, pat)
-#define	SASL_VERSION_STRING	VSTR(SASL_VERSION_MAJOR, SASL_VERSION_MINOR, \
-				SASL_VERSION_STEP)
-
-	sasl_version( NULL, &rc );
-	if ( ((rc >> 16) != ((SASL_VERSION_MAJOR << 8)|SASL_VERSION_MINOR)) ||
-		(rc & 0xffff) < SASL_VERSION_STEP)
-	{
-		char version[sizeof("xxx.xxx.xxxxx")];
-		sprintf( version, "%u.%d.%d", (unsigned)rc >> 24, (rc >> 16) & 0xff,
-			rc & 0xffff );
-		Debug( LDAP_DEBUG_ANY, "slap_sasl_init: SASL library version mismatch:"
-			" expected %s, got %s\n",
-			SASL_VERSION_STRING, version );
-		return -1;
-	}
-#endif
 
 	sasl_set_mutex(
 		ldap_pvt_sasl_mutex_new,
