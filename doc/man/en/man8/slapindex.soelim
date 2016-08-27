@@ -168,6 +168,10 @@ Your
 should not be running (at least, not in read-write
 mode) when you do this to ensure consistency of the database.
 .LP
+slapindex ought to be run as the user specified for
+.BR slapd (8)
+to ensure correct database permissions.
+.LP
 This command provides ample opportunity for the user to obtain
 and drink their favorite beverage.
 .SH EXAMPLES

@@ -439,6 +439,8 @@ dnl ----------------------------------------------------------------
 dnl General "with" options
 OL_ARG_WITH(cyrus_sasl,[  --with-cyrus-sasl	  with Cyrus SASL support],
 	auto, [auto yes no] )
+OL_ARG_WITH(gssapi,[  --with-gssapi		  with GSSAPI support],
+	auto, [auto yes no] )
 OL_ARG_WITH(fetch,[  --with-fetch		  with fetch(3) URL support],
 	auto, [auto yes no] )
 OL_ARG_WITH(tls,[  --with-tls		  with TLS/SSL support auto|openssl|gnutls|moznss],
@@ -715,6 +717,7 @@ TLS_CFLAGS=
 TLS_FALLBACK_LIBS=
 TLS_FALLBACK_CFLAGS=
 
+GSSAPI_LIBS=
 SASL_LIBS=
 SLAPI_LIBS=
 AUTH_LIBS=
@@ -1257,6 +1260,62 @@ if test $ol_link_tls = yes ; then
 	AC_DEFINE(WITH_TLS, 1, [define if you enabled TLS])
 	WITH_TLS=yes
 	CFLAGS="$CFLAGS $TLS_CFLAGS"
+fi
+
+dnl ----------------------------------------------------------------
+dnl GSSAPI
+ol_link_gssapi=no
+
+case $ol_with_gssapi in yes | auto)
+	ol_header_gssapi=no
+	AC_CHECK_HEADERS(gssapi/gssapi.h)
+	if test $ac_cv_header_gssapi_gssapi_h = yes ; then
+		ol_header_gssapi=yes
+	else
+		AC_CHECK_HEADERS(gssapi.h)
+		if test $ac_cv_header_gssapi_h = yes ; then
+			ol_header_gssapi=yes
+		fi
+	fi
+
+	if test $ol_header_gssapi = yes ; then
+		dnl## we check for gss_wrap
+		dnl## as it's new to the GSSAPI V2 API
+		AC_CHECK_LIB(gssapi, gss_wrap,
+			[ol_link_gssapi=yes;GSSAPI_LIBS="-lgssapi"],
+			[ol_link_gssapi=no])
+		if test $ol_link_gssapi != yes ; then
+			AC_CHECK_LIB(gssapi_krb5, gss_wrap,
+				[ol_link_gssapi=yes;GSSAPI_LIBS="-lgssapi_krb5"],
+				[ol_link_gssapi=no])
+		fi
+		if test $ol_link_gssapi != yes ; then
+			AC_CHECK_LIB(gss, gss_wrap,
+				[ol_link_gssapi=yes;GSSAPI_LIBS="-lgss"],
+				[ol_link_gssapi=no])
+		fi
+	fi
+
+	;;
+esac
+
+WITH_GSSAPI=no
+if test $ol_link_gssapi = yes; then
+	AC_DEFINE(HAVE_GSSAPI, 1, [define if you have GSSAPI])
+	WITH_GSSAPI=yes
+
+	dnl## not every gssapi has gss_oid_to_str()
+	dnl## as it's not defined in the GSSAPI V2 API
+	dnl## anymore
+	saveLIBS="$LIBS"
+	LIBS="$LIBS $GSSAPI_LIBS"
+	AC_CHECK_FUNCS(gss_oid_to_str)
+	LIBS="$saveLIBS"
+elif test $ol_with_gssapi = auto ; then
+	AC_MSG_WARN([Could not locate GSSAPI package])
+	AC_MSG_WARN([GSSAPI authentication not supported!])
+elif test $ol_with_gssapi = yes ; then
+	AC_MSG_ERROR([GSSAPI detection failed])
 fi
 
 dnl ----------------------------------------------------------------
@@ -2781,8 +2840,10 @@ dnl ----------------------------------------------------------------
 AC_SUBST(WITH_SASL)
 AC_SUBST(WITH_TLS)
 AC_SUBST(WITH_ACI_ENABLED)
+AC_SUBST(WITH_GSSAPI)
 
 AM_CONDITIONAL([TLS_ENABLED], [test $ol_link_tls = yes])
+AM_CONDITIONAL([WITH_GSSAPI], [test $ol_with_gssapi = yes])
 
 if test $enable_shared = yes; then
 	AC_DEFINE(RELDAP_LIBS_SHARED,1,[--enable-shared=yes])
@@ -2942,7 +3003,6 @@ AM_CONDITIONAL([SLAPD_DYNACL], [test $ol_enable_dynacl != no])
 AM_CONDITIONAL([CONTRIB], [test "$ol_enable_contrib" != no])
 AM_CONDITIONAL([CONTRIB_BROKEN], [test "$ol_enable_contrib" = broken])
 
-AC_SUBST(SLAPD_LIBS)
 AC_SUBST(LTHREAD_LIBS)
 AC_SUBST(LUTIL_LIBS)
 
@@ -2974,6 +3034,7 @@ AC_SUBST(TLS_CFLAGS)
 AC_SUBST(TLS_FALLBACK_LIBS)
 AC_SUBST(TLS_FALLBACK_CFLAGS)
 
+AC_SUBST(GSSAPI_LIBS)
 AC_SUBST(SASL_LIBS)
 AC_SUBST(SLAPI_LIBS)
 AC_SUBST(AUTH_LIBS)
@@ -2991,7 +3052,7 @@ AC_SUBST(LDAP_LIBREWRITE_LA)
 AC_SUBST(LDAP_LIBLUNICODE_LA)
 AC_SUBST(LDAP_LIBLUTIL_LA)
 
-SECURITY_LIBS="${SASL_LIBS} ${TLS_LIBS} ${AUTH_LIBS}"
+SECURITY_LIBS="$SASL_LIBS $GSSAPI_LIBS $TLS_LIBS $AUTH_LIBS"
 AC_SUBST(SECURITY_LIBS)
 
 SLAPD_LIBS="$SLAPD_LIBS $SLAPD_SLP_LIBS $SLAPD_GMP_LIBS $SLAPD_TCPWRAP_LIBS"

@@ -415,8 +415,11 @@ ldap_gssapi_get_rootdse_infos (
 
 	Debug( LDAP_DEBUG_TRACE, "ldap_gssapi_get_rootdse_infos\n" );
 
-	rc = ldap_search_s( ld, "", LDAP_SCOPE_BASE,
-		NULL, attrs, 0, &res );
+	/* rc = ldap_search_s( ld, "", LDAP_SCOPE_BASE,
+		NULL, attrs, 0, &res ); */
+
+	rc = ldap_search_ext_s( ld, "", LDAP_SCOPE_BASE,
+		NULL, attrs, 0, NULL, NULL, NULL, 0, &res );
 
 	if ( rc != LDAP_SUCCESS ) {
 		return ld->ld_errno;

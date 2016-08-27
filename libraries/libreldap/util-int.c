@@ -261,9 +261,7 @@ int ldap_pvt_get_hname(
 	int rc;
 #if defined( HAVE_GETNAMEINFO )
 
-	LDAP_MUTEX_LOCK( &ldap_int_resolv_mutex );
 	rc = getnameinfo( sa, len, name, namelen, NULL, 0, 0 );
-	LDAP_MUTEX_UNLOCK( &ldap_int_resolv_mutex );
 	if ( rc ) *err = (char *)AC_GAI_STRERROR( rc );
 	return rc;
 

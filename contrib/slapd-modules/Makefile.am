@@ -259,7 +259,7 @@ contrib_vernum_la_LDFLAGS = -module -export-dynamic \
 	-release $(API_LIB_RELEASE) -version-info $(API_LIB_VERSION)
 contrib_vernum_la_SOURCES = samba4/vernum.c banner.c
 
-EXTRA_DIST += smbk5pwd/README
+EXTRA_DIST += smbk5pwd/README smbk5pwd/slapo-smbk5pwd.man.in
 # TODO: support MozNSS
 pkglib_LTLIBRARIES += contrib-smbk5pwd.la
 contrib_smbk5pwd_la_LDFLAGS = -module -export-dynamic \
@@ -276,6 +276,7 @@ if HEIMDAL_AVAIL
 contrib_smbk5pwd_la_CFLAGS += -DDO_KRB5 $(HEIMDAL_CFLAGS)
 contrib_smbk5pwd_la_LIBADD += $(HEIMDAL_LIBS)
 endif
+man5_MANS += smbk5pwd/slapo-smbk5pwd.man
 
 pkglib_LTLIBRARIES += contrib-trace.la
 contrib_trace_la_LDFLAGS = -module -export-dynamic \

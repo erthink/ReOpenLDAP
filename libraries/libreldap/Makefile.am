@@ -58,7 +58,7 @@ libreldap_la_SOURCES += deprecated.c
 libreldap_la-deprecated.o libreldap_la-deprecated.lo deprecated.o deprecated.lo: CFLAGS += -Wno-deprecated-declarations
 endif
 
-libreldap_la_LIBADD = $(SASL_LIBS) $(SECURITY_LIBS) $(LTHREAD_LIBS)
+libreldap_la_LIBADD = $(SECURITY_LIBS) $(LTHREAD_LIBS)
 
 CHECK_LIBS = ../liblutil/liblutil.la libreldap.la
 check_PROGRAMS = check/apitest check/dntest check/dtest check/etest check/ftest \

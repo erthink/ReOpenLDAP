@@ -51,12 +51,13 @@
 
 #include <ldap_dirs.h>
 
-#define LDAP_CONF_FILE	 LDAP_SYSCONFDIR LDAP_DIRSEP "ldap.conf"
+#define LDAP_CONF_FILE	LDAP_SYSCONFDIR LDAP_DIRSEP "ldap.conf"
 #define LDAP_USERRC_FILE "ldaprc"
-#define LDAP_ENV_PREFIX "LDAP"
+#define LDAP_ENV_PREFIX	"LDAP"
+#define SASL_CONFIGPATH	LDAP_SYSCONFDIR LDAP_DIRSEP "sasl2"
 
 /* default ldapi:// socket */
-#define LDAPI_SOCK LDAP_RUNDIR LDAP_DIRSEP "run" LDAP_DIRSEP "ldapi"
+#define LDAPI_SOCK LDAP_RUNDIR LDAP_DIRSEP "run" LDAP_DIRSEP "slapd" LDAP_DIRSEP "ldapi"
 
 /*
  * SLAPD DEFINITIONS
@@ -79,6 +80,7 @@
 #define SLAPD_SCHEMA_DN			"cn=Subschema"
 	/* dn of the default "monitor" subentry */
 #define SLAPD_MONITOR_DN		"cn=Monitor"
+
 
 #ifndef SLAPD_BIGLOCK_TRACELATENCY
 #	define SLAPD_BIGLOCK_TRACELATENCY 0

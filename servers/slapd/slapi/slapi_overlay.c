@@ -949,7 +949,7 @@ int slapi_over_config( BackendDB *be, ConfigReply *cr )
 		ldap_pvt_thread_mutex_init( &slapi_printmessage_mutex );
 
 		if ( slapi_log_file == NULL )
-			slapi_log_file = slapi_ch_strdup( LDAP_RUNDIR LDAP_DIRSEP "errors" );
+			slapi_log_file = slapi_ch_strdup( LDAP_RUNDIR LDAP_DIRSEP "log" LDAP_DIRSEP "slapi-errors" );
 
 		rc = slapi_int_init_object_extensions();
 		if ( rc != 0 )
