@@ -1134,12 +1134,41 @@ static const rewrite_mapper slapd_mapper = {
 };
 #endif
 
+#ifdef HAVE_CYRUS_SASL
+static int
+slap_sasl_getconfpath( void * context, char ** path )
+{
+	char * sasl_default_configpath;
+	size_t len;
+	(void) context;
+
+#if SASL_VERSION_MAJOR >= 2
+	sasl_default_configpath = "/usr/lib/sasl2";
+#else
+	sasl_default_configpath = "/usr/lib/sasl";
+#endif
+
+	len = strlen(SASL_CONFIGPATH) + 1 /* colon */ +
+		strlen(sasl_default_configpath) + 1 /* \0 */;
+	*path = malloc( len );
+	if ( *path == NULL )
+		return SASL_FAIL;
+
+	if (snprintf( *path, len, "%s:%s", SASL_CONFIGPATH,
+				sasl_default_configpath ) != len-1 )
+		return SASL_FAIL;
+
+	return SASL_OK;
+}
+#endif
+
 int slap_sasl_init( void )
 {
 #ifdef HAVE_CYRUS_SASL
 	int rc;
 	static sasl_callback_t server_callbacks[] = {
 		{ SASL_CB_LOG, (slap_sasl_cb_ft)&slap_sasl_log, NULL },
+		{ SASL_CB_GETCONFPATH, (slap_sasl_cb_ft)&slap_sasl_getconfpath, NULL },
 		{ SASL_CB_GETOPT, (slap_sasl_cb_ft)&slap_sasl_getopt, NULL },
 		{ SASL_CB_LIST_END, NULL, NULL }
 	};
