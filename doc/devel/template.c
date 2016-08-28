@@ -20,7 +20,7 @@
  *
  * ---
  *
- * Copyright 2015 The OpenLDAP Foundation.
+ * Copyright 2014 The OpenLDAP Foundation.
  * Portions Copyright YEAR Secondary Rights Holder.
  * Portions Copyright YEAR Another Rights Holder.
  * All rights reserved.
