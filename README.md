@@ -1,9 +1,11 @@
 ReOpenLDAP is...
 =================
 1. Also known as "TelcoLDAP" - is the telco-oriented fork of OpenLDAP
-   under AGPL version 3 in a manner consistent with the original OpenLDAP license
-2. A number of new features, most of which deal with highload and multi-master clustering
-3. Bug fixing and code quality improvement
+   under AGPL in a manner consistent with the original OpenLDAP license.
+   Please see the [LICENSE](LICENSE) file included in the root directory
+   of the source tree for extended license details.
+2. A number of new features, most of which deal with highload and multi-master clustering.
+3. Bug fixing and code quality improvement.
 
 *But no Windows, Mac OS, FreeBSD, Solaris or HP-UX; just __only Linux__!*
 
@@ -28,7 +30,6 @@ due the following reasons:
  - unreasonable desire to support the wide range of
    an obsolete archaic systems and compilers.
 
-<a href="https://scan.coverity.com/projects/reopen-reopenldap"><img alt="Coverity Scan Build Status" src="https://scan.coverity.com/projects/6972/badge.svg"/></a>
 
 Change List
 -----------------
@@ -65,4 +66,5 @@ For the changes merged from OpenLDAP project, please see the CHANGES.OpenLDAP fi
  * removed ~5K warnings from GCC/clang
  * removed ~1K warnings from ThreadSanitizer (a data race detector)
  * removed most of memory leaks (tests could be passed under Valgrind)
+ * checked by <a href="https://scan.coverity.com/projects/reopen-reopenldap"><img alt="Coverity Scan Build Status" src="https://scan.coverity.com/projects/6972/badge.svg"/></a>
  * checked by PVS-Studio, see https://github.com/ReOpen/ReOpenLDAP/issues/107
