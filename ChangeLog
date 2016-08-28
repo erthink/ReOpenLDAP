@@ -1,10 +1,15 @@
-New Features
-~~~~~~~~~~~~
+New features and Compatibility breaking
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2016-08-30 v1.1.3
+2016-08-28 `configure --with-gssapi=auto/yes/no`.
+2016-08-28 slapi: use /var/log/slapi-errors.
+2016-08-28 slapd: move the ldapi socket to /var/run/slapd from /var/run.
 2016-08-23 reopenldap LICENSE note.
 2016-08-24 `configure: --enable-debug=extra`.
 2016-08-07 libreldap: NTLM bind support.
 2016-08-07 contrib: add check_password module.
 2016-08-07 contrib: allow build smbk5pwd without heimdal-kerberos.
+2016-08-07 libreldap: Disables opening of ldaprc file in current directory (RHEL#38402).
 2016-08-07 libreldap: Support TLSv1.3 and later.
 2016-07-30 v1.1.2
 2016-07-28 `configure --enable-contrib` for build contributes modules and plugins.
@@ -32,8 +37,8 @@ New Features
 2015-02-24 slapd: ReOpenLDAP cheat-codes id-dqd, id-kfa.
 2015-02-18 slapd: 'biglock' feature.
 2015-01-21 test: use Valgrind for all LDAP-tools.
-2015-01-21 liblder, slapd: use Hipagut memory checker, include sl-allocator.
-2015-01-21 liblber: added "Hipagut" memory checker (imported partialy from 1Hippeus).
+2015-01-20 liblder, slapd: use Hipagut memory checker, include sl-allocator.
+2015-01-10 liblber: added "Hipagut" memory checker (imported partialy from 1Hippeus).
 2014-??-?? slapd: stack backtrace on SIGSEGV/SIGABRT.
 2014-??-?? slapd: ITS#7974 oom-handler feature.
 2014-??-?? slapd: ITS#7974 dreamcatcher feature (early & finally txn-detach).
@@ -43,6 +48,12 @@ New Features
 
 Documentation
 ~~~~~~~~~~~~~
+2016-08-30 v1.1.3
+2016-08-28 man: added page for contrib/smbk5pwd.
+2016-08-28 man: note for ldap.conf that on Debian is linked against GnuTLS.
+2016-08-28 doc: added preamble to devel/README.
+2016-08-28 man: remove refer to <ldap_log.h>
+2016-08-28 man: note olcAuthzRegex needs restart (ITS6035).
 2016-08-18 docs: fixed readme's module-names for contrib (.so -> .la)
 2016-08-04 mdbx: comment MDB_page, rename mp_ksize.
 2016-08-04 mdbx: VALID_FLAGS, mm_last_pg, mt_loose_count.
@@ -75,6 +86,7 @@ Documentation
 
 Major and Security Bugs
 ~~~~~~~~~~~~~~~~~~~~~~~
+2016-08-30 v1.1.3
 2016-08-23 slapd: check for writers while close the connection (fixed #104).
 2016-08-23 slapd: fixed #103, stop glue-search on errors.
 2016-08-07 libreldap: MozNSS fixed CVE-2015-3276 (RHEL#1238322).
@@ -146,9 +158,17 @@ Major and Security Bugs
 2015-02-18 syncrepl: use biglock for delete-non-present.
 2015-02-18 ndb-backend: fix 'uninitialized' bugs (SIGSEGV).
 2015-01-21 libldap: ITS#8028 fix SIGSEGV in ldap_new_connection.
+2015-01-18 slapd: memory leak/double-free in vr-filter.
+2015-01-18 slapd-syncprov: fix search-cleanup callback.
+2015-01-17 slapd-syncprov: fix SIGSEGV on error from backend or other overlay (missing cleanup callback).
+2015-01-16 slapd: ITS#8022 don't skip TLS init for 'ldaps://' targets.
+2015-01-16 slapd: ITS#8022 an async connect may still succeed immediately.
+2015-01-15 ITS#8013 fix rare SIGSEGV in test_filter().
+2015-01-12 ITS#5452, ITS#8012 fix syncops list iteration and detaching on freed.
 
 Minor Bugs
 ~~~~~~~~~~
+2016-08-30 v1.1.3
 2016-08-24 slapd: fixed compare pointer with '\0' in syn_add().
 2016-08-24 slapd: fixed indereferenced pointer in fe_acl_group().
 2016-08-24 libreldap: fixed overwriting a parameter in tlso_session_errmsg().
@@ -454,9 +474,14 @@ Minor Bugs
 2015-01-22 meta-backend: fix wrong logging (missing '%s' in format string).
 2015-01-22 bdb/hdb-backend: fix handling BDB_PGSIZE for CONFIG-EMIT.
 2015-01-21 deref-overlay: ITS#8027 require non-empty AttributeList.
+2015-01-16 ITS#8016 return errmsg for unknown envflags.
+2015-01-14 ITS#8014 plug onetime leak in slapadd -w
+2015-01-13 ITS#8011 few corrections for lmdb-backend.
 
 Performance
 ~~~~~~~~~~~
+2016-08-30 v1.1.3
+2016-08-28 libreldap: remove resolv-mutex around getnameinfo() and getnameinfo() (Debian#340601).
 2016-08-24 slapd: fixed major typo in rurw_r_unlock() which could cause performance degradation.
 2016-07-30 v1.1.2
 2016-07-12 v1.1.1
@@ -501,7 +526,11 @@ Performance
 
 Build
 ~~~~~
-2016-08-23 mdbx: adds Makefile deps from mdbx.c
+2016-08-30 v1.1.3
+2016-08-28 configure: added `--with-gssapi=auto/yes/no`.
+2016-08-25 mdbx: fixed CC and XCFLAGS in 'ci' make-target rules.
+2016-08-24 mdbx: fixed 'clean' make-target typo.
+2016-08-23 mdbx: added Makefile deps from mdbx.c
 2016-08-18 tests: fixed lt-exe-name for coredump collection.
 2016-08-18 backend-mdb: enable debug for libmdbx if --enable-debug.
 2016-08-18 mdbx: make ci-target without NDEBUG and with MDB_DEBUG=2.
@@ -568,8 +597,11 @@ Build
 
 Cosmetics
 ~~~~~~~~~
+2016-08-30 v1.1.3
+2016-08-28 slapindex: print a warning if it's run as root.
 2016-08-24 fixed printf format in mdb-backend and liblunicode.
 2016-08-24 clients: fixed minor typo in print_vlv().
+2016-08-21 mdbx: minor fix mdb_page_list() message.
 2016-08-01 all: fixed 'experimantal' typo ;)
 2016-07-31 slap-tools: fixed set debug-level.
 2016-07-30 v1.1.2
@@ -585,11 +617,21 @@ Cosmetics
 
 Other
 ~~~~~
+2016-08-30 v1.1.3
+2016-08-28 reopenldap AUTHORS and CONTRIBUTION.
+2016-08-28 reopenldap: fix copyright timestamps.
+2016-08-28 libreldap: fixed deprecated ldap_search_s() in case --with-gssapi=yes.
+2016-08-28 libreldap, slapd: don't second-guess SASL ABI (Debian#546885).
+2016-08-28 slapd: added LDAP_SYSCONFDIR/sasl2 to the SASL configuration search path.
+2016-08-28 backend-bdb: don't second-guess BDB ABI (Debian#651333).
+2016-08-28 libreldap: added /etc/ssl/certs/ca-certificates.crt for ldap.conf
+2016-08-26 reopenldap: added Coverity scan build status.
+2016-08-25 mdbx: fix usage of __attribute__((format(gnu_printf, ...)) for clang.
 2016-08-24 backend-mdb: turn MDBX's debugging depending on --enable-debug=xyz.
 2016-08-24 reopenldap: use LDAP_DEBUG instead of !NDEBUG.
 2016-08-24 reopenldap: remove obsolete OLD_DEBUG.
 2016-08-23 tests: more for #92 (mtread).
-2016-08-23 tests: adds biglock to test048-syncrepl-multiproxy.
+2016-08-23 tests: added biglock to test048-syncrepl-multiproxy.
 2016-08-23 slapd: refine biglock for passwd_extop().
 2016-08-23 tests: fixed #105, adds biglock to test054-syncrepl-parallel-load.
 2016-08-23 libreldap: more for #104.
@@ -678,27 +720,17 @@ Other
 2015-04-21 slapd-syncrepl: always advertise self-sid in sync-cookie if ServerID defined.
 2015-04-16 contrib-modules: ITS#8097 nssov update to protocol version 2.
 2015-04-05 libldap: ITS#8093 add LDAP_X_CONNECTING error string.
-
-Early fixes
-~~~~~~~~~~~
 2015-01-19 all: fixed more than 60 errors detected by 'coverity'.
 2015-01-18 slapd: refine Valgrind usage for memory-pools.
-2015-01-18 slapd: memory leak/double-free in vr-filter.
-2015-01-18 slapd-syncprov: fix search-cleanup callback.
-2015-01-17 slapd-syncprov: fix SIGSEGV on error from backend or other overlay (missing cleanup callback).
-2015-01-16 slapd: ITS#8022 don't skip TLS init for 'ldaps://' targets.
-2015-01-16 slapd: ITS#8022 an async connect may still succeed immediately.
-2015-01-15 fix: return rc-status instead of just REWRITE_SUCCESS.
-2015-01-15 fix: read/write ignored result.
 2015-01-15 fix: missing braces in boolean/bitwise.
-2015-01-15 fix: check rc-status in collect_response() and accesslog_op_mod().
-2015-01-15 fix: assert-check epoll_ctl() result.
-2015-01-15 ITS#8016 return errmsg for unknown envflags.
-2015-01-15 ITS#8015 replace memcpy() by memmove() for overlapped src & dst.
-2015-01-15 ITS#8014 plug onetime leak in slapadd -w
-2015-01-15 ITS#8013 fix rare SIGSEGV in test_filter().
-2015-01-15 ITS#8011 few corrections for lmdb-backend.
-2015-01-15 ITS#5452, ITS#8012 fix syncops list iteration and detaching on freed.
+2015-01-12 ITS#8015 replace memcpy() by memmove() for overlapped src & dst.
+2015-01-11 fix: return rc-status instead of just REWRITE_SUCCESS.
+2015-01-10 fix: assert-check epoll_ctl() result.
+2015-01-09 fix: read/write ignored result.
+2015-01-08 fix: check rc-status in collect_response() and accesslog_op_mod().
+
+Early fixes (before forking)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 2014-??-?? ITS#8006 Use rootdn consistently on internal ops.
 2014-??-?? ITS#8003 fix off-by-one in LDIF length.
 2014-??-?? ITS#8001 fix ldap_sync_initialize.

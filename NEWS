@@ -1,21 +1,32 @@
-v1.1.3, 2016-08-??
+v1.1.3, 2016-08-30
 ==================
 
 Briefly:
- 1) Imported all relevant fixes from RedHat, ALT Linux and Dedian/Ubuntu.
- 2) Checked with PVS-Studio static analyser.
- 3) More fixes especially for TLS and Mozilla NSS.
+ 1) Imported all relevant patches from RedHat, ALT Linux and Dedian/Ubuntu.
+ 2) More fixes especially for TLS and Mozilla NSS.
+ 3) Checked with PVS-Studio static analyser (first 10 defects were shown and fixed).
+    Checking with Coverity static analyser also was started, but unfortunately it is
+    a lot of false-positives (pending fixing).
 
-New:
+New features and Compatibility breaking:
+ + configure --with-gssapi=auto/yes/no.
+ * slapi: use `/var/log/slapi-errors` instead of `/var/errors`.
+ ! slapd: move the ldapi socket to `/var/run/slapd` from `/var/run`.
  ! reopenldap LICENSE note.
- + configure: --enable-debug=extra.
+ + configure --enable-debug=extra.
  + libreldap: NTLM bind support.
- + contrib: add check_password module.
+ + contrib: added check_password module.
  + contrib: allow build smbk5pwd without heimdal-kerberos.
+ ! libreldap: Disables opening of `ldaprc` file in current directory (RHEL#38402).
  + libreldap: Support TLSv1.3 and later.
 
 Documentation:
- * docs: fixed readme's module-names for contrib (.so -> .la)
+ + man: added page for contrib/smbk5pwd.
+ * man: note for ldap.conf that on Debian is linked against GnuTLS.
+ + doc: added preamble to devel/README.
+ - man: remove refer to <ldap_log.h>
+ * man: note olcAuthzRegex needs restart (ITS6035).
+ * doc: fixed readme's module-names for contrib (.so -> .la)
  * mdbx: comment MDB_page, rename mp_ksize.
  * mdbx: VALID_FLAGS, mm_last_pg, mt_loose_count.
  + man: fixed SASL_NOCANON option missing in ldap.conf manual page.
@@ -52,10 +63,14 @@ Minor bugs:
  * libreldap: fixed false-positive ASAN-trap when Valgrind also enabled.
 
 Performance:
+ - libreldap: remove resolv-mutex around getnameinfo() and getnameinfo() (Debian#340601).
  * slapd: fixed major typo in rurw_r_unlock() which could cause performance degradation.
 
 Build:
- + mdbx: adds Makefile deps from mdbx.c
+ + configure: added `--with-gssapi=auto/yes/no`.
+ * mdbx: fixed CC and XCFLAGS in 'ci' make-target rules.
+ * mdbx: fixed 'clean' make-target typo.
+ * mdbx: fixed Makefile deps from mdbx.c
  * tests: fixed lt-exe-name for coredump collection.
  + backend-mdb: enable debug for libmdbx if --enable-debug.
  * mdbx: make ci-target without NDEBUG and with MDB_DEBUG=2.
@@ -78,17 +93,28 @@ Build:
  * libreldap: fixed build in case --with-tls=moznss.
 
 Cosmetics:
+ + slapindex: print a warning if it's run as root.
  * fixed printf format in mdb-backend and liblunicode.
  * fixed minor typo in print_vlv() for ldif-output.
+ * mdbx: minor fix mdb_page_list() message
  * fixed 'experimantal' typo ;)
  * slap-tools: fixed set debug-level.
 
 Other:
+ + reopenldap AUTHORS and CONTRIBUTION.
+ * reopenldap: fix copyright timestamps.
+ * libreldap: fixed deprecated ldap_search_s() in case --with-gssapi=yes.
+ - libreldap, slapd: don't second-guess SASL ABI (Debian#546885).
+ + slapd: added LDAP_SYSCONFDIR/sasl2 to the SASL configuration search path.
+ - backend-bdb: don't second-guess BDB ABI (Debian#651333).
+ + libreldap: added /etc/ssl/certs/ca-certificates.crt for ldap.conf
+ + reopenldap: added Coverity scan build status.
+ * mdbx: fix usage of __attribute__((format(gnu_printf, ...)) for clang.
  + backend-mdb: turn MDBX's debugging depending on --enable-debug=xyz.
  * reopenldap: use LDAP_DEBUG instead of !NDEBUG.
  - reopenldap: remove obsolete OLD_DEBUG.
  * tests: more for #92 (mtread).
- * tests: adds biglock to test048-syncrepl-multiproxy.
+ * tests: added biglock to test048-syncrepl-multiproxy.
  * slapd: refine biglock for passwd_extop().
  * tests: fixed #105, adds biglock to test054-syncrepl-parallel-load.
  * libreldap: more worarounds for #104.
