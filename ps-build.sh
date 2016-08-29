@@ -456,6 +456,8 @@ find ${PREFIX} -type d -empty | xargs -r rm -r \
 	|| failure "sweep-2"
 rm -rf ${PREFIX}/var ${PREFIX}/include && ln -s /var ${PREFIX}/ \
 	|| failure "sweep-3"
+chmod -R u+w ${PREFIX}/etc/schema \
+	|| failure "sweep-4"
 
 step_finish "sweep"
 ##############################################################################
