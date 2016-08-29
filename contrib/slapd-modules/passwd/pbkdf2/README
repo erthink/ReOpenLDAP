@@ -26,7 +26,7 @@ First, You need to configure and build ReOpenLDAP.
 
 In slapd.conf:
 
-    moduleload contrib-pw-pbkdf2.so
+    moduleload contrib-pw-pbkdf2.la
 
 You can also tell ReOpenLDAP to use the schemes when processing LDAP
 Password Modify Extended Operations, thanks to the password-hash
@@ -42,7 +42,7 @@ or
 
 You can get hash to use slappasswd.
 
-    $ slappasswd -o module-load=contrib-pw-pbkdf2.so -h {PBKDF2} -s secret
+    $ slappasswd -o module-load=contrib-pw-pbkdf2.la -h {PBKDF2} -s secret
     {PBKDF2}60000$Y6ZHtTTbeUgpIbIW0QDmDA$j/aU7jFKUSbH4UobNQDm9OEIwuw
 
 A quick way to test whether it's working is to customize the rootdn and

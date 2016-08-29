@@ -20,7 +20,7 @@
  *
  * ---
  *
- * Copyright 2007-2014 The OpenLDAP Foundation.
+ * Copyright 2007-2015 The OpenLDAP Foundation.
  * Portions Copyright 2007 Michał Szulczyński.
  * Portions Copyright 2009 Howard Chu.
  * All rights reserved.

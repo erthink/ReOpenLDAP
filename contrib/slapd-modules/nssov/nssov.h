@@ -20,7 +20,7 @@
  *
  * ---
  *
- * Copyright 2008-2014 The OpenLDAP Foundation.
+ * Copyright 2008-2015 The OpenLDAP Foundation.
  * Portions Copyright 2008 Howard Chu.
  * Portions Copyright 2013 Ted C. Cheng, Symas Corp.
  * All rights reserved.

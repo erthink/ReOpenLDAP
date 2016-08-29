@@ -41,8 +41,8 @@ libreldap_la_SOURCES = abandon.c add.c addentry.c assertion.c \
 	dnssrv.c encode.c error.c extended.c fetch.c filter.c free.c \
 	getattr.c getdn.c getentry.c getvalues.c gssapi.c hipagut.c \
 	init.c io.c lber_options.c ldap_options.c ldap_sync.c ldif.c \
-	memory.c messages.c modify.c modrdn.c open.c os-ip.c os-local.c \
-	pagectrl.c passwd.c posix.c ppolicy.c references.c \
+	memory.c messages.c modify.c modrdn.c open.c ntlm.c os-ip.c \
+	os-local.c pagectrl.c passwd.c posix.c ppolicy.c references.c \
 	request.c result.c rmutex.c rq.c sasl.c schema.c \
 	search.c sockbuf.c sort.c sortctrl.c stctrl.c stdio.c string.c \
 	t61.c threads.c tls2.c tls_g.c tls_m.c tls_o.c tpool.c turn.c \
@@ -58,7 +58,7 @@ libreldap_la_SOURCES += deprecated.c
 libreldap_la-deprecated.o libreldap_la-deprecated.lo deprecated.o deprecated.lo: CFLAGS += -Wno-deprecated-declarations
 endif
 
-libreldap_la_LIBADD = $(SASL_LIBS) $(SECURITY_LIBS) $(LTHREAD_LIBS)
+libreldap_la_LIBADD = $(SECURITY_LIBS) $(LTHREAD_LIBS)
 
 CHECK_LIBS = ../liblutil/liblutil.la libreldap.la
 check_PROGRAMS = check/apitest check/dntest check/dtest check/etest check/ftest \

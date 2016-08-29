@@ -591,21 +591,14 @@ ldap_connect_to_host(LDAP *ld, Sockbuf *sb,
 
 #if defined( HAVE_GETADDRINFO ) && defined( HAVE_INET_NTOP )
 	memset( &hints, '\0', sizeof(hints) );
-#ifdef USE_AI_ADDRCONFIG /* FIXME: configure test needed */
-	/* Use AI_ADDRCONFIG only on systems where its known to be needed. */
+#ifdef AI_ADDRCONFIG
 	hints.ai_flags = AI_ADDRCONFIG;
 #endif
 	hints.ai_family = ldap_int_inet4or6;
 	hints.ai_socktype = socktype;
 	snprintf(serv, sizeof serv, "%d", port );
 
-	/* most getaddrinfo(3) use non-threadsafe resolver libraries */
-	LDAP_MUTEX_LOCK(&ldap_int_resolv_mutex);
-
 	err = getaddrinfo( host, serv, &hints, &res );
-
-	LDAP_MUTEX_UNLOCK(&ldap_int_resolv_mutex);
-
 	if ( err != 0 ) {
 		osip_debug(ld, "ldap_connect_to_host: getaddrinfo failed: %s\n",
 			AC_GAI_STRERROR(err));

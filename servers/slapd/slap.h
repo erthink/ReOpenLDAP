@@ -1648,7 +1648,7 @@ typedef struct slap_bindconf {
 	struct berval sb_authcId;
 	struct berval sb_authzId;
 	slap_keepalive sb_keepalive;
-#ifdef HAVE_TLS
+#ifdef WITH_TLS
 	void *sb_tls_ctx;
 	char *sb_tls_cert;
 	char *sb_tls_key;
@@ -3045,7 +3045,7 @@ struct Connection {
 #ifdef LDAP_CONNECTIONLESS
 	char	c_is_udp;		/* true if this is (C)LDAP over UDP */
 #endif
-#ifdef HAVE_TLS
+#ifdef WITH_TLS
 	char	c_is_tls;		/* true if this LDAP over raw TLS */
 	char	c_needs_tls_accept;	/* true if SSL_accept should be called */
 #endif
@@ -3112,7 +3112,7 @@ struct Listener {
 	struct berval sl_url;
 	struct berval sl_name;
 	mode_t	sl_perms;
-#ifdef HAVE_TLS
+#ifdef WITH_TLS
 	int		sl_is_tls;
 #endif
 #ifdef LDAP_CONNECTIONLESS

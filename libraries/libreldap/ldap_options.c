@@ -411,7 +411,7 @@ ldap_get_option(
 		break;
 
 	default:
-#ifdef HAVE_TLS
+#ifdef WITH_TLS
 		if ( ldap_pvt_tls_get_option( ld, option, outvalue ) == 0 ) {
 			rc = LDAP_OPT_SUCCESS;
 			break;
@@ -801,7 +801,7 @@ ldap_set_option(
 		break;
 
 	default:
-#ifdef HAVE_TLS
+#ifdef WITH_TLS
 		if ( ldap_pvt_tls_set_option( ld, option, (void *)invalue ) == 0 ) {
 			LDAP_MUTEX_UNLOCK( &lo->ldo_mutex );
 			return ( LDAP_OPT_SUCCESS );

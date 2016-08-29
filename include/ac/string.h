@@ -42,7 +42,7 @@ __extern_C LDAP_F(char*) ldap_pvt_strtok(char *str, const char *delim, char **po
 
 /* LY: engaging overlap checking for memcpy */
 #ifndef LDAP_SAFEMEMCPY
-#	if LDAP_ASSERT_CHECK || LDAP_DEBUG || ! defined(NDEBUG)
+#	if LDAP_ASSERT_CHECK || LDAP_DEBUG
 #		define LDAP_SAFEMEMCPY 1
 #	else
 #		define LDAP_SAFEMEMCPY 0

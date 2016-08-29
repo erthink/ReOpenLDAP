@@ -61,3 +61,7 @@ install-exec-hook:
 	@if $(AM_V_P); then set -x; else echo "  LN       ldapmodify -> ldapadd"; fi; \
 	$(RM) $(DESTDIR)$(bindir)/ldapadd$(EXEEXT) && \
 	$(LN_S) $(DESTDIR)$(bindir)/ldapmodify$(EXEEXT) $(DESTDIR)$(bindir)/ldapadd$(EXEEXT)
+
+uninstall-hook:
+	@if $(AM_V_P); then set -x; else echo "  RM       ldapadd"; fi; \
+	$(RM) -f $(DESTDIR)$(bindir)/ldapadd

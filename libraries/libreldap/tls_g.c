@@ -20,7 +20,7 @@
  *
  * ---
  *
- * Copyright 2008-2014 The OpenLDAP Foundation.
+ * Copyright 2008-2016 The OpenLDAP Foundation.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -38,7 +38,7 @@
 
 #include "reldap.h"
 
-#ifdef HAVE_GNUTLS
+#if RELDAP_TLS == RELDAP_TLS_GNUTLS
 
 #include "ldap_dirs.h"
 
@@ -53,6 +53,7 @@
 #include <ac/unistd.h>
 #include <ac/param.h>
 #include <ac/dirent.h>
+#include <ac/localize.h>
 #include <sys/stat.h>
 #include <fcntl.h>
 
@@ -751,7 +752,7 @@ tlsg_sb_setup( Sockbuf_IO_Desc *sbiod, void *arg )
 		return -1;
 	}
 
-	gnutls_transport_set_ptr( session->session, (gnutls_transport_ptr)p );
+	gnutls_transport_set_ptr( session->session, (gnutls_transport_ptr_t) p );
 	gnutls_transport_set_pull_function( session->session, tlsg_recv );
 	gnutls_transport_set_push_function( session->session, tlsg_send );
 	p->session = session;
@@ -950,4 +951,4 @@ tls_impl ldap_int_tls_impl = {
 	0
 };
 
-#endif /* HAVE_GNUTLS */
+#endif /* RELDAP_TLS == RELDAP_TLS_GNUTLS */

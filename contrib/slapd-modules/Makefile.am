@@ -34,13 +34,18 @@ man5_MANS =
 
 EXTRA_DIST += acl/README.gssacl acl/README.posixgroup
 if SLAPD_DYNACL
-pkglib_LTLIBRARIES += contrib-posixgroup.la contrib-gssacl.la
+pkglib_LTLIBRARIES += contrib-posixgroup.la
 contrib_posixgroup_la_LDFLAGS = -module -export-dynamic \
 	-release $(API_LIB_RELEASE) -version-info $(API_LIB_VERSION)
 contrib_posixgroup_la_SOURCES = acl/posixgroup.c banner.c
+if KRB5_AVAIL
+pkglib_LTLIBRARIES += contrib-gssacl.la
 contrib_gssacl_la_LDFLAGS = -module -export-dynamic \
 	-release $(API_LIB_RELEASE) -version-info $(API_LIB_VERSION)
 contrib_gssacl_la_SOURCES = acl/gssacl.c banner.c
+contrib_gssacl_la_CFLAGS = $(KRB5_CFLAGS)
+contrib_gssacl_la_LIBADD = $(KRB5_LIBS)
+endif
 endif
 
 EXTRA_DIST += addpartial/README adremap/slapo-adremap.man.in
@@ -73,6 +78,20 @@ pkglib_LTLIBRARIES += contrib-autogroup.la
 contrib_autogroup_la_LDFLAGS = -module -export-dynamic \
 	-release $(API_LIB_RELEASE) -version-info $(API_LIB_VERSION)
 contrib_autogroup_la_SOURCES = autogroup/autogroup.c banner.c
+
+# Where to look for the CrackLib dictionaries
+CRACKLIB_DICTPATH=@CRACKLIB_DICTPATH@
+CHECKPASSWD_CONFIGFILE=@sysconfdir@/check_password.conf
+EXTRA_DIST += check_password/README check_password/check_password.conf
+pkglib_LTLIBRARIES += contrib-check_password.la
+contrib_check_password_la_LDFLAGS = -module -export-dynamic \
+	-release $(API_LIB_RELEASE) -version-info $(API_LIB_VERSION)
+contrib_check_password_la_SOURCES = check_password/check_password.c banner.c
+contrib_check_password_la_CFLAGS = -Wno-deprecated-declarations $(CRACK_CFLAGS) \
+    -DCRACKLIB_DICTPATH="\"$(CRACKLIB_DICTPATH)\"" \
+    -DCHECKPASSWD_CONFIGFILE="\"$(CHECKPASSWD_CONFIGFILE)\"" \
+    -DCHECKPASSWD_DEBUG=1
+contrib_check_password_la_LIBADD = $(CRACKLIB_LIBS)
 
 EXTRA_DIST += cloak/slapo-cloak.man.in
 pkglib_LTLIBRARIES += contrib-cloak.la
@@ -194,11 +213,15 @@ contrib_pw_radius_la_LIBADD = -lradius
 endif
 
 EXTRA_DIST += passwd/pbkdf2/README
+# TODO: support MozNSS
+if TLS_FALLBACK_AVAIL
 pkglib_LTLIBRARIES += contrib-pw-pbkdf2.la
 contrib_pw_pbkdf2_la_LDFLAGS = -module -export-dynamic \
 	-release $(API_LIB_RELEASE) -version-info $(API_LIB_VERSION)
 contrib_pw_pbkdf2_la_SOURCES = passwd/pbkdf2/pw-pbkdf2.c banner.c
-contrib_pw_pbkdf2_la_LIBADD = $(SECURITY_LIBS)
+contrib_pw_pbkdf2_la_CFLAGS = $(TLS_FALLBACK_CFLAGS)
+contrib_pw_pbkdf2_la_LIBADD = $(TLS_FALLBACK_LIBS)
+endif
 
 EXTRA_DIST += passwd/sha2/README
 pkglib_LTLIBRARIES += contrib-pw-sha2.la
@@ -208,11 +231,15 @@ contrib_pw_sha2_la_SOURCES = banner.c passwd/sha2/sha2.h \
 	passwd/sha2/sha2.c passwd/sha2/slapd-sha2.c
 
 EXTRA_DIST += passwd/totp/README
+# TODO: support MozNSS
+if TLS_FALLBACK_AVAIL
 pkglib_LTLIBRARIES += contrib-pw-totp.la
 contrib_pw_totp_la_LDFLAGS = -module -export-dynamic \
 	-release $(API_LIB_RELEASE) -version-info $(API_LIB_VERSION)
 contrib_pw_totp_la_SOURCES = banner.c passwd/totp/slapd-totp.c
-contrib_pw_totp_la_LIBADD = $(SECURITY_LIBS)
+contrib_pw_totp_la_CFLAGS = $(TLS_FALLBACK_CFLAGS)
+contrib_pw_totp_la_LIBADD = $(TLS_FALLBACK_LIBS)
+endif
 
 EXTRA_DIST += proxyOld/README
 pkglib_LTLIBRARIES += contrib-proxyOld.la
@@ -232,17 +259,24 @@ contrib_vernum_la_LDFLAGS = -module -export-dynamic \
 	-release $(API_LIB_RELEASE) -version-info $(API_LIB_VERSION)
 contrib_vernum_la_SOURCES = samba4/vernum.c banner.c
 
-EXTRA_DIST += smbk5pwd/README
-if HEIMDAL_AVAIL
+EXTRA_DIST += smbk5pwd/README smbk5pwd/slapo-smbk5pwd.man.in
+# TODO: support MozNSS
 pkglib_LTLIBRARIES += contrib-smbk5pwd.la
 contrib_smbk5pwd_la_LDFLAGS = -module -export-dynamic \
 	-release $(API_LIB_RELEASE) -version-info $(API_LIB_VERSION)
 contrib_smbk5pwd_la_SOURCES = banner.c smbk5pwd/smbk5pwd.c
-contrib_smbk5pwd_la_LIBADD = $(HEIMDAL_LIBS)
 # Omit DO_KRB5, DO_SAMBA or DO_SHADOW if you don't want to support it.
-contrib_smbk5pwd_la_CFLAGS = -DDO_KRB5 -DDO_SAMBA -DDO_SHADOW \
-	-Wno-deprecated-declarations $(HEIMDAL_CFLAGS)
+contrib_smbk5pwd_la_CFLAGS = -DDO_SHADOW -Wno-deprecated-declarations
+contrib_smbk5pwd_la_LIBADD =
+if TLS_FALLBACK_AVAIL
+contrib_smbk5pwd_la_CFLAGS += $(TLS_FALLBACK_CFLAGS) -DDO_SAMBA
+contrib_smbk5pwd_la_LIBADD += $(TLS_FALLBACK_LIBS)
 endif
+if HEIMDAL_AVAIL
+contrib_smbk5pwd_la_CFLAGS += -DDO_KRB5 $(HEIMDAL_CFLAGS)
+contrib_smbk5pwd_la_LIBADD += $(HEIMDAL_LIBS)
+endif
+man5_MANS += smbk5pwd/slapo-smbk5pwd.man
 
 pkglib_LTLIBRARIES += contrib-trace.la
 contrib_trace_la_LDFLAGS = -module -export-dynamic \
@@ -265,12 +299,16 @@ EXTRA_DIST += $(man_links)
 install-data-hook:
 	@if $(AM_V_P); then set -x; else echo "  LN       $(man_links)"; fi; \
 	(cd $(srcdir) && echo $(man_links) | tr -s '[:space:]' '\n' | xargs -r -n 1 -I {} \
-		sh -c 'xargs -I "#" -n 1 -r sh -c "cd $(mandir_en)/$$(dirname {}) && ln -s -f -T $$(basename {} .links) #" < $(srcdir)/{}' \
+		sh -c 'xargs -I "#" -n 1 -r sh -c "cd $(DESTDIR)$(mandir)/$$(dirname {}) && ln -s -f -T $$(basename {} .links) #" < $(srcdir)/{}' \
 		\;)
+	@if $(AM_V_P); then set -x; else echo "  INSTALL  check_password.conf"; fi; \
+	$(MKDIR_P) $(DESTDIR)$(sysconfdir) && $(INSTALL) -t $(DESTDIR)$(sysconfdir) -m 0444 $(srcdir)/check_password/check_password.conf
 
 uninstall-hook:
 	@if $(AM_V_P); then set -x; else echo "  RM       $(man_links)"; fi; \
 	(cd $(srcdir) && echo $(man_links) | tr -s '[:space:]' '\n' | xargs -r -n 1 -I {} \
-		sh -c 'xargs -I "#" -n 1 -r sh -c "rm -f $(mandir_en)/$$(dirname {})/#" < $(srcdir)/{}' \
+		sh -c 'xargs -I "#" -n 1 -r sh -c "rm -f $(DESTDIR)$(mandir)/$$(dirname {})/#" < $(srcdir)/{}' \
 		\;); \
-	find $(mandir) -depth -type d -empty -exec rmdir {} \;
+	find $(DESTDIR)$(mandir) -depth -type d -empty -exec rmdir {} \;
+	@if $(AM_V_P); then set -x; else echo "  RM       check_password.conf"; fi; \
+	$(RM) -f $(DESTDIR)$(sysconfdir)/check_password.conf

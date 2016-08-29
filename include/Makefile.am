@@ -19,7 +19,7 @@
 ##
 
 pkginclude_HEADERS = lber.h ldap_cdefs.h ldap.h ldap_schema.h \
-	ldap_utf8.h ldif.h slapi-plugin.h
+	ldap_utf8.h ldif.h slapi-plugin.h lber_types.h ldap_features.h
 
 noinst_HEADERS = ac/alloca.h ac/bytes.h ac/crypt.h ac/ctype.h \
 	ac/dirent.h ac/errno.h ac/fdset.h ac/localize.h ac/param.h \

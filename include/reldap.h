@@ -216,10 +216,10 @@
 #endif
 
 #ifndef LDAP_CHECK
-#	ifdef NDEBUG
-#		define LDAP_CHECK 0
-#	else
+#	ifdef LDAP_DEBUG
 #		define LDAP_CHECK 1
+#	else
+#		define LDAP_CHECK 0
 #	endif
 #endif
 

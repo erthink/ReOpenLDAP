@@ -137,6 +137,11 @@ glue_op_response ( Operation *op, SlapReply *rs )
 			rs->sr_err == LDAP_TIMELIMIT_EXCEEDED ||
 			rs->sr_err == LDAP_ADMINLIMIT_EXCEEDED ||
 			rs->sr_err == LDAP_NO_SUCH_OBJECT ||
+			rs->sr_err == SLAPD_ABANDON ||
+			rs->sr_err == LDAP_CANCELLED ||
+			rs->sr_err == LDAP_UNAVAILABLE ||
+			rs->sr_err == LDAP_OTHER ||
+			rs->sr_err == LDAP_BUSY ||
 			gs->err != LDAP_SUCCESS)
 			gs->err = rs->sr_err;
 		if (gs->err == LDAP_SUCCESS && gs->matched) {
@@ -546,7 +551,6 @@ glue_op_search ( Operation *op, SlapReply *rs )
 				dn_match(&op->o_bd->be_nsuffix[0], &ndn))
 			{
 				rs->sr_err = glue_sub_search( op, rs, b0, on );
-
 			} else if (scope0 == LDAP_SCOPE_SUBTREE &&
 				dnIsSuffix(&op->o_bd->be_nsuffix[0], &ndn))
 			{
@@ -579,6 +583,11 @@ glue_op_search ( Operation *op, SlapReply *rs )
 #ifdef LDAP_CONTROL_X_CHAINING_BEHAVIOR
 			case LDAP_X_CANNOT_CHAIN:
 #endif /* LDAP_CONTROL_X_CHAINING_BEHAVIOR */
+			case SLAPD_ABANDON:
+			case LDAP_CANCELLED:
+			case LDAP_UNAVAILABLE:
+			case LDAP_OTHER:
+			case LDAP_BUSY:
 				goto end_of_loop;
 
 			case LDAP_SUCCESS:
@@ -711,6 +720,10 @@ glue_op_search ( Operation *op, SlapReply *rs )
 				}
 
 			default:
+				Debug( LDAP_DEBUG_NONE,
+					"glue_op_search: sub-search gs.err %d, rs->sr_err %d\n",
+					gs.err, rs->sr_err );
+				assert( rs->sr_entry == NULL );
 				break;
 			}
 		}

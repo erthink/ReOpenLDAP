@@ -58,34 +58,6 @@ LDAP_BEGIN_DECL
  *
  */
 
-/*
- * The "OLD_DEBUG" means that all logging occurs at LOG_DEBUG
- */
-
-#ifdef OLD_DEBUG
-/* original behavior: all logging occurs at the same severity level */
-#if defined(LDAP_DEBUG) && defined(LDAP_SYSLOG)
-#	define LDAP_LEVEL_EMERG	slap_syslog_severity
-#	define LDAP_LEVEL_ALERT	slap_syslog_severity
-#	define LDAP_LEVEL_CRIT		slap_syslog_severity
-#	define LDAP_LEVEL_ERR		slap_syslog_severity
-#	define LDAP_LEVEL_WARNING	slap_syslog_severity
-#	define LDAP_LEVEL_NOTICE	slap_syslog_severity
-#	define LDAP_LEVEL_INFO		slap_syslog_severity
-#	define LDAP_LEVEL_DEBUG	slap_syslog_severity
-#else /* !LDAP_DEBUG || !LDAP_SYSLOG */
-#	define LDAP_LEVEL_EMERG	(7)
-#	define LDAP_LEVEL_ALERT	(7)
-#	define LDAP_LEVEL_CRIT		(7)
-#	define LDAP_LEVEL_ERR		(7)
-#	define LDAP_LEVEL_WARNING	(7)
-#	define LDAP_LEVEL_NOTICE	(7)
-#	define LDAP_LEVEL_INFO		(7)
-#	define LDAP_LEVEL_DEBUG	(7)
-#endif /* !LDAP_DEBUG || !LDAP_SYSLOG */
-
-#else /* ! OLD_DEBUG */
-
 /* map syslog onto LDAP severity levels */
 #ifdef LOG_DEBUG
 #	define LDAP_LEVEL_EMERG	LOG_EMERG
@@ -106,7 +78,6 @@ LDAP_BEGIN_DECL
 #	define LDAP_LEVEL_INFO		(6)
 #	define LDAP_LEVEL_DEBUG	(7)
 #endif /* ! LOG_DEBUG */
-#endif /* ! OLD_DEBUG */
 
 #if 0 /* (yet) unused */
 #	define LDAP_LEVEL_ENTRY	(0x08)	/* log function entry points */

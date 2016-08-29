@@ -434,7 +434,7 @@ EXTRA_DIST += $(schema_files)
 
 install-exec-hook:
 	@if $(AM_V_P); then set -x; else echo "  INSTALL  slaptools"; fi; \
-	(cd $(sbindir) && \
+	(cd $(DESTDIR)$(sbindir) && \
 		$(RM) -f $(slaptools) && \
 		for T in $(slaptools); do \
 			$(LN_S) slapd$(EXEEXT) $${T}$(EXEEXT) || exit 1; \
@@ -442,14 +442,14 @@ install-exec-hook:
 
 install-data-hook:
 	@if $(AM_V_P); then set -x; else echo "  INSTALL  schema"; fi; \
-	$(MKDIR_P) $(sysconfdir)/schema && \
-		(cd $(srcdir) && $(INSTALL) -t $(sysconfdir)/schema -m 0444 $(schema_files))
+	$(MKDIR_P) $(DESTDIR)$(sysconfdir)/schema && \
+		(cd $(srcdir) && $(INSTALL) -t $(DESTDIR)$(sysconfdir)/schema -m 0444 $(schema_files))
 
 uninstall-hook:
 	@if $(AM_V_P); then set -x; else echo "  UNINSTALL slaptools & schema"; fi; \
-	(cd $(sbindir) && \
+	(cd $(DESTDIR)$(sbindir) && \
 		$(RM) -f $(slaptools) && \
 		for T in $(slaptools); do \
 			$(RM) -f $${T}$(EXEEXT) || exit 1; \
 		done) && \
-	(cd $(sysconfdir) && rm -f $(schema_files)) && rmdir $(sysconfdir)/schema
+	(cd $(DESTDIR)$(sysconfdir) && $(RM) -f $(schema_files)) && rmdir $(DESTDIR)$(sysconfdir)/schema

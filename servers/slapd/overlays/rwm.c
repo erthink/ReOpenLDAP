@@ -20,7 +20,7 @@
  *
  * ---
  *
- * Copyright 2003-2014 The OpenLDAP Foundation.
+ * Copyright 2003-2015 The OpenLDAP Foundation.
  * Portions Copyright 2003 Pierangelo Masarati.
  * All rights reserved.
  *

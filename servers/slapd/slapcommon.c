@@ -20,7 +20,7 @@
  *
  * ---
  *
- * Copyright 1998-2014 The OpenLDAP Foundation.
+ * Copyright 1998-2015 The OpenLDAP Foundation.
  * Portions Copyright 1998-2003 Kurt D. Zeilenga.
  * Portions Copyright 2003 IBM Corporation.
  * All rights reserved.
@@ -502,7 +502,7 @@ slap_tool_init(
 		case 'Q':
 			quiet++;
 #ifdef LDAP_DEBUG
-			slap_debug_mask = 0;
+			slap_set_debug_level(0);
 #endif /* LDAP_DEBUG */
 			break;
 
@@ -939,7 +939,7 @@ int slap_tool_destroy( void )
 	quorum_global_destroy();
 	schema_destroy();
 	lutil_passwd_destroy();
-#ifdef HAVE_TLS
+#ifdef WITH_TLS
 	ldap_pvt_tls_destroy();
 #endif
 	config_destroy();
@@ -1223,4 +1223,3 @@ slap_tool_entry_check(
 
 	return LDAP_SUCCESS;
 }
-

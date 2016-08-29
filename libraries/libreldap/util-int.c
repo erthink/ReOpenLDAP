@@ -19,7 +19,7 @@
  *
  * ---
  *
- * Copyright 1998-2014 The OpenLDAP Foundation.
+ * Copyright 1998-2015 The OpenLDAP Foundation.
  * Portions Copyright 1998 A. Hartgers.
  * All rights reserved.
  *
@@ -70,8 +70,8 @@ extern int h_errno;
 #ifndef LDAP_R_COMPILE
 # undef HAVE_REENTRANT_FUNCTIONS
 # undef HAVE_CTIME_R
-# undef HAVE_GETHOSTBYNAME_R
-# undef HAVE_GETHOSTBYADDR_R
+/* # undef HAVE_GETHOSTBYNAME_R */
+/* # undef HAVE_GETHOSTBYADDR_R */
 
 #else
 # include <ldap_pvt_thread.h>
@@ -147,7 +147,7 @@ ldap_pvt_csnstr(char *buf, size_t len, unsigned int replica, unsigned int mod)
 #define BUFSTART (1024-32)
 #define BUFMAX (32*1024-32)
 
-#if defined(LDAP_R_COMPILE)
+#if defined(LDAP_R_COMPILE) || defined(HAVE_GETHOSTBYNAME_R) && defined(HAVE_GETHOSTBYADDR_R)
 static char *safe_realloc( char **buf, int len );
 
 #if !(defined(HAVE_GETHOSTBYNAME_R) && defined(HAVE_GETHOSTBYADDR_R))
@@ -261,9 +261,7 @@ int ldap_pvt_get_hname(
 	int rc;
 #if defined( HAVE_GETNAMEINFO )
 
-	LDAP_MUTEX_LOCK( &ldap_int_resolv_mutex );
 	rc = getnameinfo( sa, len, name, namelen, NULL, 0, 0 );
-	LDAP_MUTEX_UNLOCK( &ldap_int_resolv_mutex );
 	if ( rc ) *err = (char *)AC_GAI_STRERROR( rc );
 	return rc;
 

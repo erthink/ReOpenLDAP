@@ -92,28 +92,6 @@ int ldap_int_sasl_init( void )
 	/* XXX not threadsafe */
 	static int sasl_initialized = 0;
 
-#ifdef HAVE_SASL_VERSION
-	/* stringify the version number, sasl.h doesn't do it for us */
-#define VSTR0(maj, min, pat)	#maj "." #min "." #pat
-#define VSTR(maj, min, pat)	VSTR0(maj, min, pat)
-#define SASL_VERSION_STRING	VSTR(SASL_VERSION_MAJOR, SASL_VERSION_MINOR, \
-				SASL_VERSION_STEP)
-	{ int rc;
-	sasl_version( NULL, &rc );
-	if ( ((rc >> 16) != ((SASL_VERSION_MAJOR << 8)|SASL_VERSION_MINOR)) ||
-		(rc & 0xffff) < SASL_VERSION_STEP) {
-		char version[sizeof("xxx.xxx.xxxxx")];
-		sprintf( version, "%u.%d.%d", (unsigned)rc >> 24, (rc >> 16) & 0xff,
-			rc & 0xffff );
-
-		Debug( LDAP_DEBUG_ANY,
-		"ldap_int_sasl_init: SASL library version mismatch:"
-		" expected " SASL_VERSION_STRING ","
-		" got %s\n", version );
-		return -1;
-	}
-	}
-#endif
 	if ( sasl_initialized ) {
 		return 0;
 	}
@@ -427,9 +405,9 @@ ldap_int_sasl_bind(
 		const char *pmech = NULL;
 		sasl_conn_t	*oldctx;
 		ber_socket_t		sd;
-#ifdef HAVE_TLS
+#ifdef WITH_TLS
 		void	*ssl;
-#endif /* HAVE_TLS */
+#endif /* WITH_TLS */
 
 		rc = 0;
 		LDAP_MUTEX_LOCK( &ld->ld_conn_mutex );
@@ -471,17 +449,29 @@ ldap_int_sasl_bind(
 			char *saslhost;
 			int nocanon = (int)LDAP_BOOL_GET( &ld->ld_options,
 				LDAP_BOOL_SASL_NOCANON );
+			char my_hostname[HOST_NAME_MAX + 1];
+			int free_saslhost = 0;
 
 			/* If we don't need to canonicalize just use the host
 			 * from the LDAP URI.
+			 * Always use the result of gethostname() for LDAPI.
 			 */
-			if ( nocanon )
+			if (ld->ld_defconn->lconn_server->lud_scheme != NULL &&
+					strcmp("ldapi", ld->ld_defconn->lconn_server->lud_scheme) == 0) {
+				rc = gethostname(my_hostname, HOST_NAME_MAX + 1);
+				if (rc == 0) {
+					  saslhost = my_hostname;
+				} else {
+					  saslhost = "localhost";
+				}
+			} else if ( nocanon )
 				saslhost = ld->ld_defconn->lconn_server->lud_host;
-			else
-				saslhost = ldap_host_connected_to( ld->ld_defconn->lconn_sb,
-				"localhost" );
+			else {
+				saslhost = ldap_host_connected_to( ld->ld_defconn->lconn_sb, "localhost" );
+				free_saslhost = 1;
+			}
 			rc = ldap_int_sasl_open( ld, ld->ld_defconn, saslhost );
-			if ( !nocanon )
+			if ( free_saslhost )
 				LDAP_FREE( saslhost );
 		}
 
@@ -489,7 +479,7 @@ ldap_int_sasl_bind(
 
 		ctx = ld->ld_defconn->lconn_sasl_authctx;
 
-#ifdef HAVE_TLS
+#ifdef WITH_TLS
 		/* Check for TLS */
 		ssl = ldap_pvt_tls_sb_ctx( ld->ld_defconn->lconn_sb );
 		if ( ssl ) {
@@ -503,7 +493,7 @@ ldap_int_sasl_bind(
 			(void) ldap_int_sasl_external( ld, ld->ld_defconn, authid.bv_val, fac );
 			LDAP_FREE( authid.bv_val );
 		}
-#endif /* HAVE_TLS */
+#endif /* WITH_TLS */
 
 		/* Check for local */
 		if ( ldap_pvt_url_scheme2proto(

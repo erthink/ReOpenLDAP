@@ -61,7 +61,7 @@ static const char *defhash[] = {
 	NULL
 };
 
-static int nolock_passwd_extop(
+int passwd_extop(
 	Operation *op,
 	SlapReply *rs )
 {
@@ -76,6 +76,7 @@ static int nolock_passwd_extop(
 	BackendDB *op_be;
 	int freenewpw = 0;
 	struct berval dn = BER_BVNULL, ndn = BER_BVNULL;
+	slap_biglock_t *bl = NULL;
 
 	assert( ber_bvcmp( &slap_EXOP_MODIFY_PASSWD, &op->ore_reqoid ) == 0 );
 
@@ -167,6 +168,9 @@ static int nolock_passwd_extop(
 	if ( SLAP_GLUE_INSTANCE( op->o_bd )) {
 		op->o_bd = select_backend( &op->o_req_ndn, 0 );
 	}
+
+	bl = slap_biglock_get(op->o_bd);
+	slap_biglock_acquire(bl);
 
 	if (backend_check_restrictions( op, rs,
 			(struct berval *)&slap_EXOP_MODIFY_PASSWD ) != LDAP_SUCCESS) {
@@ -325,6 +329,8 @@ old_good:
 	op->oq_extended = qext;
 
 error_return:;
+	slap_biglock_release(bl);
+
 	if ( qpw->rs_mods ) {
 		slap_mods_free( qpw->rs_mods, 1 );
 	}
@@ -340,19 +346,6 @@ error_return:;
 		BER_BVZERO( &op->o_req_ndn );
 	}
 
-	return rc;
-}
-
-int passwd_extop(
-	Operation *op,
-	SlapReply *rs )
-{
-	int rc;
-	slap_biglock_t *bl = slap_biglock_get(op->o_bd);
-
-	slap_biglock_acquire(bl);
-	rc = nolock_passwd_extop(op, rs);
-	slap_biglock_release(bl);
 	return rc;
 }
 

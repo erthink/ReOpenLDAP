@@ -128,7 +128,7 @@ NSSOV_HANDLE(
 	struct berval filter;
 	/* no parameters to read */
 	BER_BVZERO(&cbp.name);,
-	Debug(LDAP_DEBUG,"nssov_alias_all()\n");,
+	Debug(LDAP_DEBUG_TRACE,"nssov_alias_all()\n");,
 	NSLCD_ACTION_ALIAS_ALL,
 	(filter=cbp.mi->mi_filter,0)
 )

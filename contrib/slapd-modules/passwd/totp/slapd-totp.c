@@ -20,7 +20,7 @@
  *
  * ---
  *
- * Copyright 2015-2014 The OpenLDAP Foundation.
+ * Copyright 2015-2015 The OpenLDAP Foundation.
  * Portions Copyright 2015-2016 by Howard Chu, Symas Corp.
  * All rights reserved.
  *
@@ -51,40 +51,41 @@
 /* include socket.h to get sys/types.h and/or winsock2.h */
 #include <ac/socket.h>
 
-#if HAVE_OPENSSL
-#include <openssl/sha.h>
-#include <openssl/hmac.h>
+#if RELDAP_TLS_FALLBACK == RELDAP_TLS_GNUTLS
+#	include <nettle/hmac.h>
 
-#define TOTP_SHA512_DIGEST_LENGTH	SHA512_DIGEST_LENGTH
-#define TOTP_SHA1	EVP_sha1()
-#define TOTP_SHA256	EVP_sha256()
-#define TOTP_SHA512	EVP_sha512()
-#define TOTP_HMAC_CTX	HMAC_CTX
+#	define TOTP_SHA512_DIGEST_LENGTH	SHA512_DIGEST_SIZE
+#	define TOTP_SHA1	&nettle_sha1
+#	define TOTP_SHA256	&nettle_sha256
+#	define TOTP_SHA512	&nettle_sha512
+#	define TOTP_HMAC_CTX	struct hmac_sha512_ctx
 
-#define HMAC_setup(ctx, key, len, hash)	HMAC_CTX_init(&ctx); HMAC_Init_ex(&ctx, key, len, hash, 0)
-#define HMAC_crunch(ctx, buf, len)	HMAC_Update(&ctx, buf, len)
-#define HMAC_finish(ctx, dig, dlen)	HMAC_Final(&ctx, dig, &dlen); HMAC_CTX_cleanup(&ctx)
+#	define HMAC_setup(ctx, key, len, hash)	\
+		const struct nettle_hash *h=hash;\
+		hmac_set_key(&ctx.outer, &ctx.inner, &ctx.state, h, len, key)
+#	define HMAC_crunch(ctx, buf, len)	hmac_update(&ctx.state, h, len, buf)
+#	define HMAC_finish(ctx, dig, dlen) \
+		hmac_digest(&ctx.outer, &ctx.inner, &ctx.state, h, h->digest_size, dig);\
+		dlen = h->digest_size
 
-#elif HAVE_GNUTLS
-#include <nettle/hmac.h>
+#elif RELDAP_TLS_FALLBACK == RELDAP_TLS_OPENSSL
 
-#define TOTP_SHA512_DIGEST_LENGTH	SHA512_DIGEST_SIZE
-#define TOTP_SHA1	&nettle_sha1
-#define TOTP_SHA256	&nettle_sha256
-#define TOTP_SHA512	&nettle_sha512
-#define TOTP_HMAC_CTX	struct hmac_sha512_ctx
+#	include <openssl/sha.h>
+#	include <openssl/hmac.h>
 
-#define HMAC_setup(ctx, key, len, hash)	\
-	const struct nettle_hash *h=hash;\
-	hmac_set_key(&ctx.outer, &ctx.inner, &ctx.state, h, len, key)
-#define HMAC_crunch(ctx, buf, len)	hmac_update(&ctx.state, h, len, buf)
-#define HMAC_finish(ctx, dig, dlen) \
-	hmac_digest(&ctx.outer, &ctx.inner, &ctx.state, h, h->digest_size, dig);\
-	dlen = h->digest_size
+#	define TOTP_SHA512_DIGEST_LENGTH	SHA512_DIGEST_LENGTH
+#	define TOTP_SHA1	EVP_sha1()
+#	define TOTP_SHA256	EVP_sha256()
+#	define TOTP_SHA512	EVP_sha512()
+#	define TOTP_HMAC_CTX	HMAC_CTX
+
+#	define HMAC_setup(ctx, key, len, hash)	HMAC_CTX_init(&ctx); HMAC_Init_ex(&ctx, key, len, hash, 0)
+#	define HMAC_crunch(ctx, buf, len)	HMAC_Update(&ctx, buf, len)
+#	define HMAC_finish(ctx, dig, dlen)	HMAC_Final(&ctx, dig, &dlen); HMAC_CTX_cleanup(&ctx)
 
 #else
-# error Unsupported crypto backend.
-#endif
+#	error Unsupported crypto backend.
+#endif /* RELDAP_TLS_FALLBACKL */
 
 #include "slap.h"
 #include "slapconfig.h"

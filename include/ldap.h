@@ -194,6 +194,7 @@ LDAP_BEGIN_DECL
 #define LDAP_OPT_X_TLS_PROTOCOL_TLS1_0		((3 << 8) + 1)
 #define LDAP_OPT_X_TLS_PROTOCOL_TLS1_1		((3 << 8) + 2)
 #define LDAP_OPT_X_TLS_PROTOCOL_TLS1_2		((3 << 8) + 3)
+#define LDAP_OPT_X_TLS_PROTOCOL_TLS1_3		((3 << 8) + 4)
 
 /* OpenLDAP SASL options */
 #define LDAP_OPT_X_SASL_MECH			0x6100
@@ -2513,6 +2514,27 @@ ldap_parse_deref_control LDAP_P((
 	LDAP		*ld,
 	LDAPControl	**ctrls,
 	LDAPDerefRes	**drp ));
+
+/*
+ * hacks for NTLM
+ */
+#define LDAP_AUTH_NTLM_REQUEST	((ber_tag_t) 0x8aU)
+#define LDAP_AUTH_NTLM_RESPONSE	((ber_tag_t) 0x8bU)
+LDAP_F( int )
+ldap_ntlm_bind LDAP_P((
+	LDAP		*ld,
+	LDAP_CONST char	*dn,
+	ber_tag_t	tag,
+	struct berval	*cred,
+	LDAPControl	**sctrls,
+	LDAPControl	**cctrls,
+	int		*msgidp ));
+LDAP_F( int )
+ldap_parse_ntlm_bind_result LDAP_P((
+	LDAP		*ld,
+	LDAPMessage	*res,
+	struct berval	*challenge));
+
 
 LDAP_END_DECL
 #endif /* _LDAP_H */

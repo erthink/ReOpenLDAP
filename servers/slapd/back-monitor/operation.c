@@ -109,6 +109,7 @@ monitor_subsys_ops_init(
 	mp = ( monitor_entry_t * )e_op->e_private;
 	mp->mp_children = NULL;
 	ep = &mp->mp_children;
+	int rc = -1;
 
 	for ( i = 0; i < SLAP_OP_LAST; i++ ) {
 		struct berval	rdn;
@@ -127,7 +128,7 @@ monitor_subsys_ops_init(
 				"unable to create entry \"%s,%s\"\n",
 				monitor_op[ i ].rdn.bv_val,
 				ms->mss_ndn.bv_val );
-			return( -1 );
+			goto bailout;
 		}
 
 		BER_BVSTR( &bv, "0" );
@@ -140,7 +141,7 @@ monitor_subsys_ops_init(
 
 		mp = monitor_entrypriv_create();
 		if ( mp == NULL ) {
-			return -1;
+			goto bailout;
 		}
 		e->e_private = ( void * )mp;
 		mp->mp_info = ms;
@@ -153,16 +154,18 @@ monitor_subsys_ops_init(
 				"unable to add entry \"%s,%s\"\n",
 				monitor_op[ i ].rdn.bv_val,
 				ms->mss_ndn.bv_val );
-			return( -1 );
+			goto bailout;
 		}
 
 		*ep = e;
 		ep = &mp->mp_next;
 	}
 
-	monitor_cache_release( mi, e_op );
+	rc = 0;
 
-	return( 0 );
+bailout:
+	monitor_cache_release( mi, e_op );
+	return rc;
 }
 
 static int

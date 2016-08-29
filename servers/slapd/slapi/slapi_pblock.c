@@ -581,7 +581,7 @@ pblock_get( Slapi_PBlock *pb, int param, void **value )
 	case SLAPI_CONN_AUTHMETHOD: /* XXX should return SASL mech */
 		PBLOCK_ASSERT_CONN( pb );
 		*((char **)value) = pblock_get_authtype( &pb->pb_conn->c_authz,
-#ifdef HAVE_TLS
+#ifdef WITH_TLS
 							 pb->pb_conn->c_is_tls
 #else
 							 0

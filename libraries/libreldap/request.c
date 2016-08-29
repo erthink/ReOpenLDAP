@@ -19,7 +19,7 @@
  *
  * ---
  *
- * Copyright 1998-2014 The OpenLDAP Foundation.
+ * Copyright 1998-2015 The OpenLDAP Foundation.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -430,7 +430,7 @@ ldap_send_server_request(
 	return( msgid );
 }
 
-#ifdef HAVE_TLS
+#ifdef WITH_TLS
 /* return 0 if no StartTLS ext, 1 if present, 2 if critical */
 static int
 find_tls_ext( LDAPURLDesc *srv )
@@ -456,7 +456,7 @@ find_tls_ext( LDAPURLDesc *srv )
 	}
 	return 0;
 }
-#endif /* HAVE_TLS */
+#endif /* WITH_TLS */
 
 /*
  * always protected by conn_mutex
@@ -543,7 +543,7 @@ ldap_new_connection( LDAP *ld, LDAPURLDesc **srvlist, int use_ldsb,
 	ld->ld_conns = lc;
 
 	if ( connect ) {
-#ifdef HAVE_TLS
+#ifdef WITH_TLS
 		if ( lc->lconn_server->lud_exts ) {
 			int rc, ext = find_tls_ext( lc->lconn_server );
 			if ( ext ) {
@@ -1158,7 +1158,7 @@ ldap_chase_v3referrals( LDAP *ld, LDAPRequest *lr, char **refs, int sref, char *
 
 		if( srv->lud_crit_exts ) {
 			int ok = 0;
-#ifdef HAVE_TLS
+#ifdef WITH_TLS
 			/* If StartTLS is the only critical ext, OK. */
 			if ( find_tls_ext( srv ) == 2 && srv->lud_crit_exts == 1 )
 				ok = 1;
