@@ -206,32 +206,35 @@ get_filter(
 			break;
 		}
 
+		*text = NULL;
 		f.f_desc = NULL;
 		err = slap_bv2ad( &type, &f.f_desc, text );
 
-		if( err != LDAP_SUCCESS ) {
+		if ( err == LDAP_UNDEFINED_TYPE ) {
+			/* allow undefined attrs to be "proxied" (ITS#3959) */
 			f.f_choice |= SLAPD_FILTER_UNDEFINED;
-			int rc2 = slap_bv2undef_ad( &type, &f.f_desc, text,
+			err = slap_bv2undef_ad( &type, &f.f_desc, text,
 				SLAP_AD_PROXIED|SLAP_AD_NOINSERT );
+		}
 
-			if ( rc2 != LDAP_SUCCESS ) {
-				/* unrecognized attribute description or other error */
-				Debug( LDAP_DEBUG_ANY,
-					"get_filter: conn %lu unknown attribute type=%s"
-					" (%s, %d/%d, ber %d)\n",
-					op->o_connid, type.bv_val, *text, err, rc2, ber_rc );
-
-				/* LY: but make a whole backtrace, instead of. */
-				static volatile int once;
-				if (once == 0 && __sync_fetch_and_add(&once, 1) == 0) {
-					slap_backtrace_debug();
-					break;
-				}
-
-				err = LDAP_SUCCESS;
-				f.f_desc = slap_bv2tmp_ad( &type, op->o_tmpmemctx );
+		if ( err != LDAP_SUCCESS ) {
+			if ( err != LDAP_UNDEFINED_TYPE ) {
+				/* syntax or other syntax-related error */
+				Debug( LDAP_DEBUG_FILTER,
+					"get_filter: conn %lu invalid filter-preset attribute %s (%s, %d)\n",
+					op->o_connid, type.bv_val, *text, err );
+				assert( *text != NULL );
+				break;
 			}
+
+			/* unrecognized attribute description or other error */
+			Debug( LDAP_DEBUG_ANY,
+				"get_filter: conn %lu unknown attribute type=%s (%s, %d)\n",
+				op->o_connid, type.bv_val, *text, err );
+
+			f.f_desc = slap_bv2tmp_ad( &type, op->o_tmpmemctx );
 			*text = NULL;
+			err = LDAP_SUCCESS;
 		}
 
 		assert( f.f_desc != NULL );
@@ -375,50 +378,46 @@ get_ssa(
 {
 	ber_tag_t	tag;
 	ber_len_t	len;
-	int	rc, ber_rc;
+	int	rc;
 	struct berval desc, value, nvalue;
 	char		*last;
 	SubstringsAssertion ssa;
 
-	*text = "error decoding filter";
-
 	Debug( LDAP_DEBUG_FILTER, "begin get_ssa\n" );
-	ber_rc = ber_scanf( ber, "{m" /*}*/, &desc );
-	if ( ber_rc == LBER_ERROR ) {
+	if ( ber_scanf( ber, "{m" /*}*/, &desc ) == LBER_ERROR ) {
+		*text = "error decoding filter";
 		return SLAPD_DISCONNECT;
 	}
-
-	*text = NULL;
 
 	ssa.sa_desc = NULL;
 	ssa.sa_initial.bv_val = NULL;
 	ssa.sa_any = NULL;
 	ssa.sa_final.bv_val = NULL;
 
+	*text = NULL;
 	rc = slap_bv2ad( &desc, &ssa.sa_desc, text );
+	if ( rc == LDAP_UNDEFINED_TYPE ) {
+		/* allow undefined attrs to be "proxied" (ITS#3959) */
+		f->f_choice |= SLAPD_FILTER_UNDEFINED;
+		rc = slap_bv2undef_ad( &desc, &ssa.sa_desc, text,
+			SLAP_AD_PROXIED|SLAP_AD_NOINSERT );
+	}
 
 	if( rc != LDAP_SUCCESS ) {
-		f->f_choice |= SLAPD_FILTER_UNDEFINED;
-		int rc2 = slap_bv2undef_ad( &desc, &ssa.sa_desc, text,
-			SLAP_AD_PROXIED|SLAP_AD_NOINSERT );
-
-		if( rc2 != LDAP_SUCCESS ) {
-			if ( desc.bv_val && *desc.bv_val /* LY: zap worthless */ ) {
-				Debug( LDAP_DEBUG_ANY,
-					"get_ssa: conn %lu unknown attribute type=%s"
-					" (%s, %d/%d, ber %d)\n",
-					op->o_connid, desc.bv_val, *text, rc, rc2, ber_rc );
-			} else {
-				/* LY: but make a whole backtrace, instead of. */
-				static volatile int once;
-				if (once == 0 && __sync_fetch_and_add(&once, 1) == 0) {
-					slap_backtrace_debug();
-					goto return_error;
-				}
-			}
-
-			ssa.sa_desc = slap_bv2tmp_ad( &desc, op->o_tmpmemctx );
+		if ( rc != LDAP_UNDEFINED_TYPE ) {
+			/* syntax or other syntax-related error */
+			Debug( LDAP_DEBUG_FILTER,
+				"get_ssa: conn %lu invalid filter-preset attribute %s (%s, %d)\n",
+				op->o_connid, desc.bv_val, *text, rc );
+			assert( *text != NULL );
+			return rc;
 		}
+
+		Debug( LDAP_DEBUG_ANY,
+			"get_ssa: conn %lu unknown attribute type=%s (%s, %d)\n",
+			op->o_connid, desc.bv_val, *text, rc );
+
+		ssa.sa_desc = slap_bv2tmp_ad( &desc, op->o_tmpmemctx );
 	}
 
 	rc = LDAP_PROTOCOL_ERROR;
