@@ -20,7 +20,7 @@
  *
  * ---
  *
- * Copyright 2008-2014 The OpenLDAP Foundation.
+ * Copyright 2008-2015 The OpenLDAP Foundation.
  * Copyright 2008 by Howard Chu, Symas Corp.
  * All rights reserved.
  *

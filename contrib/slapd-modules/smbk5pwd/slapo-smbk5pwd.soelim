@@ -20,7 +20,7 @@
 .\"
 .\" ---
 .\"
-.\" Copyright 1998-2014 The OpenLDAP Foundation All Rights Reserved.
+.\" Copyright 1998-2015 The OpenLDAP Foundation All Rights Reserved.
 .\" Copying restrictions apply.  See COPYRIGHT/LICENSE.
 .SH NAME
 slapo-smbk5pwd \- Samba & Kerberos password sync overlay to slapd
