@@ -196,9 +196,11 @@ get_filter(
 
 	case LDAP_FILTER_PRESENT: {
 		struct berval type;
+		int ber_rc;
 
 		Debug( LDAP_DEBUG_FILTER, "PRESENT\n" );
-		if ( ber_scanf( ber, "m", &type ) == LBER_ERROR ) {
+		ber_rc = ber_scanf( ber, "m", &type );
+		if ( ber_rc == LBER_ERROR ) {
 			err = SLAPD_DISCONNECT;
 			*text = "error decoding filter";
 			break;
@@ -209,20 +211,22 @@ get_filter(
 
 		if( err != LDAP_SUCCESS ) {
 			f.f_choice |= SLAPD_FILTER_UNDEFINED;
-			err = slap_bv2undef_ad( &type, &f.f_desc, text,
+			int rc2 = slap_bv2undef_ad( &type, &f.f_desc, text,
 				SLAP_AD_PROXIED|SLAP_AD_NOINSERT );
 
-			if ( err != LDAP_SUCCESS ) {
+			if ( rc2 != LDAP_SUCCESS ) {
 				/* unrecognized attribute description or other error */
 				Debug( LDAP_DEBUG_ANY,
-					"get_filter: conn %lu unknown attribute "
-					"type=%s (%d)\n",
-					op->o_connid, type.bv_val, err );
+					"get_filter: conn %lu unknown attribute type=%s"
+					" (%s, %d/%d, ber %d)\n",
+					op->o_connid, type.bv_val, *text, err, rc2, ber_rc );
 
 				/* LY: but make a whole backtrace, instead of. */
 				static volatile int once;
-				if (once == 0 && __sync_fetch_and_add(&once, 1) == 0)
+				if (once == 0 && __sync_fetch_and_add(&once, 1) == 0) {
 					slap_backtrace_debug();
+					break;
+				}
 
 				err = LDAP_SUCCESS;
 				f.f_desc = slap_bv2tmp_ad( &type, op->o_tmpmemctx );
@@ -371,7 +375,7 @@ get_ssa(
 {
 	ber_tag_t	tag;
 	ber_len_t	len;
-	int	rc;
+	int	rc, ber_rc;
 	struct berval desc, value, nvalue;
 	char		*last;
 	SubstringsAssertion ssa;
@@ -379,7 +383,8 @@ get_ssa(
 	*text = "error decoding filter";
 
 	Debug( LDAP_DEBUG_FILTER, "begin get_ssa\n" );
-	if ( ber_scanf( ber, "{m" /*}*/, &desc ) == LBER_ERROR ) {
+	ber_rc = ber_scanf( ber, "{m" /*}*/, &desc );
+	if ( ber_rc == LBER_ERROR ) {
 		return SLAPD_DISCONNECT;
 	}
 
@@ -400,13 +405,16 @@ get_ssa(
 		if( rc2 != LDAP_SUCCESS ) {
 			if ( desc.bv_val && *desc.bv_val /* LY: zap worthless */ ) {
 				Debug( LDAP_DEBUG_ANY,
-					"get_ssa: conn %lu unknown attribute type=%s (%d, %d)\n",
-					op->o_connid, desc.bv_val, rc, rc2 );
+					"get_ssa: conn %lu unknown attribute type=%s"
+					" (%s, %d/%d, ber %d)\n",
+					op->o_connid, desc.bv_val, *text, rc, rc2, ber_rc );
 			} else {
 				/* LY: but make a whole backtrace, instead of. */
 				static volatile int once;
-				if (once == 0 && __sync_fetch_and_add(&once, 1) == 0)
+				if (once == 0 && __sync_fetch_and_add(&once, 1) == 0) {
 					slap_backtrace_debug();
+					goto return_error;
+				}
 			}
 
 			ssa.sa_desc = slap_bv2tmp_ad( &desc, op->o_tmpmemctx );
