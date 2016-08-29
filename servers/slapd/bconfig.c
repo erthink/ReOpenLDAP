@@ -20,7 +20,7 @@
  *
  * ---
  *
- * Copyright 2005-2014 The OpenLDAP Foundation.
+ * Copyright 2005-2015 The OpenLDAP Foundation.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -7775,7 +7775,6 @@ config_back_initialize( BackendInfo *bi )
 	bi->bi_tool_entry_get = config_tool_entry_get;
 	bi->bi_tool_entry_put = config_tool_entry_put;
 
-	ca.argv = argv;
 	argv[ 0 ] = "slapd";
 	ca.argv = argv;
 	ca.argc = 3;

@@ -19,7 +19,7 @@
  *
  * ---
  *
- * Copyright 1998-2014 The OpenLDAP Foundation.
+ * Copyright 1998-2015 The OpenLDAP Foundation.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -687,11 +687,10 @@ unhandled_option:;
 	if ( version ) {
 		fprintf( stderr, "%s\n", Versionstr );
 		if ( version > 2 ) {
-			if ( slap_oinfo[0].ov_type ) {
-				fprintf( stderr, "Included static overlays:\n");
-				for ( i= 0 ; slap_oinfo[i].ov_type; i++ ) {
-					fprintf( stderr, "    %s\n", slap_oinfo[i].ov_type );
-				}
+			fprintf( stderr, "Included static overlays:\n");
+			fprintf( stderr, "    %s\n", "glue" );
+			for ( i= 0 ; slap_oinfo[i].ov_type; i++ ) {
+				fprintf( stderr, "    %s\n", slap_oinfo[i].ov_type );
 			}
 			if ( slap_binfo[0].bi_type ) {
 				fprintf( stderr, "Included static backends:\n");

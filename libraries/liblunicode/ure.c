@@ -19,7 +19,7 @@
  *
  * ---
  *
- * Copyright 1998-2014 The OpenLDAP Foundation.
+ * Copyright 1998-2015 The OpenLDAP Foundation.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -1862,7 +1862,7 @@ ure_write_dfa(ure_dfa_t dfa, FILE *out)
      */
     for (i = 0, sym = dfa->syms; i < dfa->nsyms; i++, sym++) {
         if (sym->type == _URE_CCLASS || sym->type == _URE_NCCLASS) {
-            fprintf(out, "C%hd = ", sym->id);
+            fprintf(out, "C%hu = ", sym->id);
             if (sym->sym.ccl.ranges_used > 0) {
                 putc('[', out);
                 if (sym->type == _URE_NCCLASS)
@@ -1877,7 +1877,7 @@ ure_write_dfa(ure_dfa_t dfa, FILE *out)
                     if (sym->props & (1 << k)) {
                         if (h != 0)
                           putc(',', out);
-                        fprintf(out, "%hd", (ucs2_t) (k + 1));
+                        fprintf(out, "%hu", (ucs2_t) (k + 1));
                         h = 1;
                     }
                 }
@@ -1915,7 +1915,7 @@ ure_write_dfa(ure_dfa_t dfa, FILE *out)
     }
 
     for (i = 0, sp = dfa->states; i < dfa->nstates; i++, sp++) {
-        fprintf(out, "S%hd = ", i);
+        fprintf(out, "S%hu = ", i);
         if (sp->accepting) {
             fprintf(out, "1 ");
             if (sp->ntrans)
@@ -1949,10 +1949,10 @@ ure_write_dfa(ure_dfa_t dfa, FILE *out)
                 break;
               case _URE_CCLASS:
               case _URE_NCCLASS:
-                fprintf(out, "[C%hd] ", sym->id);
+                fprintf(out, "[C%hu] ", sym->id);
                 break;
             }
-            fprintf(out, "S%hd", sp->trans[j].next_state);
+            fprintf(out, "S%hu", sp->trans[j].next_state);
             if (j + 1 < sp->ntrans)
               putc(' ', out);
         }

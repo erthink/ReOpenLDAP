@@ -145,7 +145,7 @@ void rurw_r_unlock(rurw_lock_t *p) {
 	assert(s->state.r > 0 && p->rurw_readers > 0);
 	s->state.r -= 1;
 	if (s->state.r == 0) {
-		if (s->state.r == 0)
+		if (s->state.w == 0)
 			s->thr = 0;
 		p->rurw_readers -= 1;
 	}

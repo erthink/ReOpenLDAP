@@ -20,7 +20,7 @@
 .\"
 .\" ---
 .\"
-.\" Copyright 1998-2014 The OpenLDAP Foundation All Rights Reserved.
+.\" Copyright 1998-2015 The OpenLDAP Foundation All Rights Reserved.
 .\" Copying restrictions apply.  See COPYRIGHT/LICENSE.
 .SH NAME
 slapd\-config \- configuration backend to slapd
@@ -429,6 +429,10 @@ values can be specified to allow for multiple matching
 and replacement patterns. The matching patterns are checked in the order they
 appear in the attribute, stopping at the first successful match.
 
+Note that changes to
+.B olcAuthzRegexp
+take effect the next time the server is started, not immediately upon
+changing the configuration.
 .\".B Caution:
 .\"Because the plus sign + is a character recognized by the regular expression engine,
 .\"and it will appear in names that include a REALM, be careful to escape the

@@ -6,7 +6,7 @@ New installations should not use this code.
 
 To use the module, add:
 
-	moduleload contrib-proxyOld.so
+	moduleload contrib-proxyOld.la
 	...
 
 to your slapd configuration file. Since this is an obsolete feature,

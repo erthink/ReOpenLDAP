@@ -53,6 +53,7 @@ mkdir -p $TESTDIR $DBDIR1 $DBDIR4
 
 echo "Starting provider slapd on TCP/IP port $PORT1..."
 config_filter $BACKEND ${AC_conf[monitor]} < $SRMASTERCONF > $CONF1
+sed -e 's/^overlay\tsyncprov/biglock\t\tlocal\n&/' -i $CONF1
 $SLAPD -f $CONF1 -h $URI1 $TIMING > $LOG1 2>&1 &
 PID=$!
 if test $WAIT != 0 ; then
@@ -74,6 +75,7 @@ fi
 
 echo "Starting consumer slapd on TCP/IP port $PORT4..."
 config_filter $BACKEND ${AC_conf[monitor]} < $P1SRSLAVECONF > $CONF4
+sed -e 's/^overlay\tsyncprov/biglock\t\tlocal\n&/' -i $CONF4
 $SLAPD -f $CONF4 -h $URI4 $TIMING > $LOG4 2>&1 &
 SLAVEPID=$!
 if test $WAIT != 0 ; then

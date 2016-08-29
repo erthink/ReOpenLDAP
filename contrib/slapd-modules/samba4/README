@@ -32,7 +32,7 @@ under ReOpenLDAP's development OID arc.  This OID is temporary.
 
 To use the overlay, add:
 
-	moduleload contrib-rdnval.so
+	moduleload contrib-rdnval.la
 	...
 
 	database <whatever>

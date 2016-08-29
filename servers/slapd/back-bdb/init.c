@@ -20,7 +20,7 @@
  *
  * ---
  *
- * Copyright 2000-2014 The OpenLDAP Foundation.
+ * Copyright 2000-2015 The OpenLDAP Foundation.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -770,19 +770,8 @@ bdb_back_initialize(
 	bi->bi_controls = controls;
 
 	{	/* version check */
-		int major, minor, patch, ver;
+		int major, minor, patch;
 		char *version = db_version( &major, &minor, &patch );
-
-		ver = (major << 24) | (minor << 16) | patch;
-		if( ver != DB_VERSION_FULL ) {
-			/* fail if a versions don't match */
-			Debug( LDAP_DEBUG_ANY,
-				LDAP_XSTRING(bdb_back_initialize) ": "
-				"BDB library version mismatch:"
-				" expected " DB_VERSION_STRING ","
-				" got %s\n", version );
-			return -1;
-		}
 
 		Debug( LDAP_DEBUG_TRACE, LDAP_XSTRING(bdb_back_initialize)
 			": %s\n", version );

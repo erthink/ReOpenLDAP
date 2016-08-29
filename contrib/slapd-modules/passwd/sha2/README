@@ -27,13 +27,13 @@ For initial testing you might also want to edit DEFS to define
 SLAPD_SHA2_DEBUG, which enables logging to stderr (don't leave this on
 in production, as it prints passwords in cleartext).
 
-2) Run 'make' to produce contrib-pw-sha2.so
+2) Run 'make' to produce contrib-pw-sha2.la
 
 3) Run 'make install'
 
 4) Edit your slapd.conf (eg. /etc/ldap/slapd.conf), and add:
 
-moduleload contrib-pwd-sha2.so
+moduleload contrib-pwd-sha2.la
 
 5) Restart slapd.
 

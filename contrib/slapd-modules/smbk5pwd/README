@@ -22,7 +22,7 @@ To use the overlay, add:
 	include <path to>/krb5-kdc.schema
 	include <path to>/samba.schema
 
-	moduleload contrib-smbk5pwd.so
+	moduleload contrib-smbk5pwd.la
 	...
 
 	database bdb

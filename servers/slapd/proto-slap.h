@@ -19,7 +19,7 @@
  *
  * ---
  *
- * Copyright 1998-2014 The OpenLDAP Foundation.
+ * Copyright 1998-2015 The OpenLDAP Foundation.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -824,7 +824,6 @@ LDAP_SLAPD_F (int) connections_shutdown LDAP_P((int gentle_shutdown_only));
 LDAP_SLAPD_F (int) connections_destroy LDAP_P((void));
 LDAP_SLAPD_F (int) connections_timeout_idle LDAP_P((slap_time_t));
 LDAP_SLAPD_F (void) connections_drop LDAP_P((void));
-LDAP_SLAPD_F (int) connections_tpool_sync(BackendDB *be);
 
 LDAP_SLAPD_F (Connection *) connection_client_setup LDAP_P((
 	ber_socket_t s,

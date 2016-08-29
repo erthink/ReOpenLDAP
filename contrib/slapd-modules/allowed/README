@@ -24,7 +24,7 @@ they cannot be used in search filters, they cannot be used in ACLs, ...
 Usage: add to slapd.conf(5)
 
 
-moduleload	contrib-allowed.so
+moduleload	contrib-allowed.la
 overlay		allowed
 
 or add

@@ -9,7 +9,7 @@ extension of access control within slapd.
 
 To use the acl-posixgroup plugin, add:
 
-moduleload contrib-posixgroup.so
+moduleload contrib-posixgroup.la
 
 to your slapd configuration file; it requires "nis.schema" to be loaded.
 It is configured using

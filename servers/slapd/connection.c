@@ -19,7 +19,7 @@
  *
  * ---
  *
- * Copyright 1998-2014 The OpenLDAP Foundation.
+ * Copyright 1998-2015 The OpenLDAP Foundation.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -68,27 +68,11 @@
 /* protected by connections_mutex */
 static ldap_pvt_thread_mutex_t connections_mutex;
 static Connection *connections = NULL;
-static volatile long conn_evo_head, conn_evo_tail;
-static ldap_pvt_thread_cond_t connections_evo_cond;
 
 static ldap_pvt_thread_mutex_t conn_nextid_mutex;
 static unsigned long conn_nextid = SLAPD_SYNC_SYNCCONN_OFFSET;
 
 static const char conn_lost_str[] = "connection lost";
-
-static void* connections_evo_kick( void* ctx, void* argv )
-{
-	long evo = (long) argv;
-	(void) ctx;
-
-	ldap_pvt_thread_mutex_lock( &connections_mutex );
-	if (evo - conn_evo_tail > 0) {
-		conn_evo_tail = evo;
-		ldap_pvt_thread_cond_broadcast(&connections_evo_cond);
-	}
-	ldap_pvt_thread_mutex_unlock( &connections_mutex );
-	return NULL;
-}
 
 const char *
 connection_state2str( int state )
@@ -143,7 +127,6 @@ int connections_init(void)
 	/* should check return of every call */
 	ldap_pvt_thread_mutex_init( &connections_mutex );
 	ldap_pvt_thread_mutex_init( &conn_nextid_mutex );
-	ldap_pvt_thread_cond_init( &connections_evo_cond );
 
 	connections = (Connection *) ch_calloc( dtblsize, sizeof(Connection) );
 
@@ -202,7 +185,6 @@ int connections_destroy(void)
 	free( connections );
 	connections = NULL;
 
-	ldap_pvt_thread_cond_destroy( &connections_evo_cond );
 	ldap_pvt_thread_mutex_destroy( &connections_mutex );
 	ldap_pvt_thread_mutex_destroy( &conn_nextid_mutex );
 	return 0;
@@ -538,8 +520,6 @@ Connection * connection_init(
 		ldap_pvt_thread_mutex_lock( &connections_mutex );
 		c->c_conn_state = SLAP_C_CLIENT;
 		c->c_struct_state = SLAP_C_USED;
-		ldap_pvt_thread_pool_submit( &connection_pool,
-			connections_evo_kick, (void*) ++conn_evo_head );
 		ldap_pvt_thread_mutex_unlock( &connections_mutex );
 		c->c_close_reason = "?";			/* should never be needed */
 		ber_sockbuf_ctrl( c->c_sb, LBER_SB_OPT_SET_FD, &sfd );
@@ -620,8 +600,6 @@ Connection * connection_init(
 	ldap_pvt_thread_mutex_lock( &connections_mutex );
 	c->c_conn_state = SLAP_C_INACTIVE;
 	c->c_struct_state = SLAP_C_USED;
-	ldap_pvt_thread_pool_submit( &connection_pool,
-		connections_evo_kick, (void*) ++conn_evo_head );
 	ldap_pvt_thread_mutex_unlock( &connections_mutex );
 	c->c_close_reason = "?";			/* should never be needed */
 
@@ -650,11 +628,6 @@ Connection * connection_init(
 		Statslog( LDAP_DEBUG_STATS,
 			"conn=%ld fd=%ld ACCEPT from %s (%s)\n",
 			id, (long) s, peername, listener->sl_name.bv_val );
-
-	ldap_pvt_thread_mutex_lock( &connections_mutex );
-	ldap_pvt_thread_pool_submit( &connection_pool,
-		connections_evo_kick, (void*) ++conn_evo_head );
-	ldap_pvt_thread_mutex_unlock( &connections_mutex );
 
 	return c;
 }
@@ -704,6 +677,7 @@ connection_destroy( Connection *c )
 	assert( c != NULL );
 
 	ldap_pvt_thread_mutex_lock( &connections_mutex );
+
 	assert( c->c_struct_state != SLAP_C_UNUSED );
 	assert( c->c_struct_state != SLAP_C_PENDING );
 	assert( c->c_conn_state != SLAP_C_INVALID );
@@ -777,8 +751,6 @@ connection_destroy( Connection *c )
 	ldap_pvt_thread_mutex_lock( &connections_mutex );
 	c->c_conn_state = SLAP_C_INVALID;
 	c->c_struct_state = SLAP_C_UNUSED;
-	ldap_pvt_thread_pool_submit( &connection_pool,
-		connections_evo_kick, (void*) ++conn_evo_head );
 	ldap_pvt_thread_mutex_unlock( &connections_mutex );
 
 	/* c must be fully reset by this point; when we call slapd_remove
@@ -939,15 +911,17 @@ connection_close( Connection *c )
 	assert( c->c_conn_state == SLAP_C_CLOSING );
 
 	/* NOTE: c_mutex should be locked by caller */
+	connection_wake_writers( c );
 
-	if ( !LDAP_STAILQ_EMPTY(&c->c_ops) ||
-		!LDAP_STAILQ_EMPTY(&c->c_pending_ops) )
-	{
+	if ( !LDAP_STAILQ_EMPTY(&c->c_ops)
+			|| !LDAP_STAILQ_EMPTY(&c->c_pending_ops)
+			|| c->c_writing ) {
 		Debug( LDAP_DEBUG_CONNS,
-			"connection_close: deferring conn=%lu sd=%d (c_ops %s, c_pending_ops %s)\n",
+			"connection_close: deferring conn=%lu sd=%d (c_ops %s, c_pending_ops %s, writers %d, writing %d)\n",
 			c->c_connid, c->c_sd,
 			LDAP_STAILQ_EMPTY(&c->c_ops) ? "empty" : "still",
-			LDAP_STAILQ_EMPTY(&c->c_pending_ops) ? "empty" : "still"
+			LDAP_STAILQ_EMPTY(&c->c_pending_ops) ? "empty" : "still",
+			c->c_writers, c->c_writing
 		);
 		return;
 	}
@@ -2235,34 +2209,4 @@ connection_assign_nextid( Connection *conn )
 	ldap_pvt_thread_mutex_lock( &conn_nextid_mutex );
 	conn->c_connid = conn_nextid++;
 	ldap_pvt_thread_mutex_unlock( &conn_nextid_mutex );
-}
-
-int
-connections_tpool_sync(BackendDB *be)
-{
-	int crutch;
-
-	for(crutch = 0; crutch < 42; ++crutch) {
-
-		if (conn_evo_head == conn_evo_tail)
-			return 0;
-
-		if (ldap_pvt_thread_pool_pausing( &connection_pool ) || slapd_shutdown )
-			break;
-
-		int value = 0;
-		if (ldap_pvt_thread_pool_query( &connection_pool,
-			LDAP_PVT_THREAD_POOL_PARAM_ACTIVE, &value ) < 0 || value < 2)
-			break;
-
-		ldap_pvt_thread_mutex_lock( &connections_mutex );
-		int rc = 0;
-		if (conn_evo_head != conn_evo_tail)
-			rc = ldap_pvt_thread_cond_timedwait( 42, &connections_evo_cond, &connections_mutex );
-		ldap_pvt_thread_mutex_unlock( &connections_mutex );
-		if (rc == EINTR)
-			break;
-	}
-
-	return -1;
 }

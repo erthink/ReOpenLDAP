@@ -615,6 +615,7 @@ FIXUP_DIST = @FIXUP_DIST@
 GNUTLS_CFLAGS = @GNUTLS_CFLAGS@
 GNUTLS_LIBS = @GNUTLS_LIBS@
 GREP = @GREP@
+GSSAPI_LIBS = @GSSAPI_LIBS@
 HEIMDAL_CFLAGS = @HEIMDAL_CFLAGS@
 HEIMDAL_LIBS = @HEIMDAL_LIBS@
 INCLTDL = @INCLTDL@
@@ -731,6 +732,7 @@ VERSION_MINOR = @VERSION_MINOR@
 VERSION_NUMBER = @VERSION_NUMBER@
 VERSION_PATCH = @VERSION_PATCH@
 WITH_ACI_ENABLED = @WITH_ACI_ENABLED@
+WITH_GSSAPI = @WITH_GSSAPI@
 WITH_SASL = @WITH_SASL@
 WITH_TLS = @WITH_TLS@
 abs_builddir = @abs_builddir@
@@ -809,7 +811,7 @@ EXTRA_DIST = README acl/README.gssacl acl/README.posixgroup \
 	nssov/slapo-nssov.man.in passwd/README passwd/apr1-atol.pl \
 	passwd/apr1-ltoa.pl passwd/pbkdf2/README passwd/sha2/README \
 	passwd/totp/README proxyOld/README samba4/README \
-	smbk5pwd/README $(man_links)
+	smbk5pwd/README smbk5pwd/slapo-smbk5pwd.man.in $(man_links)
 # TODO: support MozNSS
 pkglib_LTLIBRARIES = $(am__append_2) $(am__append_3) \
 	contrib-addpartial.la contrib-adremap.la contrib-allop.la \
@@ -829,7 +831,7 @@ man_links =
 man5_MANS = adremap/slapo-adremap.man allop/slapo-allop.man \
 	cloak/slapo-cloak.man lastbind/slapo-lastbind.man \
 	lastmod/slapo-lastmod.man nops/slapo-nops.man \
-	nssov/slapo-nssov.man
+	nssov/slapo-nssov.man smbk5pwd/slapo-smbk5pwd.man
 @SLAPD_DYNACL_TRUE@contrib_posixgroup_la_LDFLAGS = -module -export-dynamic \
 @SLAPD_DYNACL_TRUE@	-release $(API_LIB_RELEASE) -version-info $(API_LIB_VERSION)
 

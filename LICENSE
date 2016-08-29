@@ -1,3 +1,29 @@
+Note: This project pending for dual/combo licensing. We assume to
+clarify terms and resolve all issues with "OpenLDAP Public License"
+to provide clean AGPL.
+
+In general:
+
+ - It is nearly nothing changes if you are using ReOpenLDAP
+   without your own modifications. Because source code of the
+   ReOpenLDAP is already publically available on Github.
+
+ - Source code and contributions, that originate from the OpenLDAP
+   project, are still left under the "OpenLDAP Public License".
+   This is similar relation between the "OpenLDAP  Public License"
+   with the original license from the University of Michigan, USA.
+
+ - The modifications and contributions of the ReOpenLDAP are
+   under AGPL terms, except that were ported from the OpenLDAP project.
+
+ - Future modifications of the ReOpenLDAP itself (but NOT the OpenLDAP)
+   and/or other contributions should be under AGPL terms.
+
+ - Copyright's timestamps in the source files would be fixed
+   step by step.
+
+***********************************************************************
+
                     GNU AFFERO GENERAL PUBLIC LICENSE
                        Version 3, 19 November 2007
 
@@ -709,3 +735,14 @@ OpenLDAP is a registered trademark of the OpenLDAP Foundation.
 Copyright 1999-2003 The OpenLDAP Foundation, Redwood City,
 California, USA.  All Rights Reserved.  Permission to copy and
 distribute verbatim copies of this document is granted.
+
+---
+
+Original license from Regents of the University of Michigan, USA.
+
+Redistribution and use in source and binary forms are permitted
+provided that this notice is preserved and that due credit is given
+to the University of Michigan at Ann Arbor.  The name of the
+University may not be used to endorse or promote products derived
+from this software without specific prior written permission.  This
+software is provided ``as is'' without express or implied warranty.

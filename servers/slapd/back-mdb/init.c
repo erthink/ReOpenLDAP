@@ -20,7 +20,7 @@
  *
  * ---
  *
- * Copyright 2000-2014 The OpenLDAP Foundation.
+ * Copyright 2000-2016 The OpenLDAP Foundation.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -62,6 +62,9 @@ mdb_id_compare( const MDB_val *a, const MDB_val *b )
 static void
 mdbx_debug(int type, const char *function, int line, const char *msg, va_list args)
 {
+#if LDAP_DEBUG > 1
+	int level = LDAP_DEBUG_ANY;
+#else
 	int level = 0;
 
 	if (type & MDBX_DBG_ASSERT)
@@ -70,8 +73,9 @@ mdbx_debug(int type, const char *function, int line, const char *msg, va_list ar
 	if (type & MDBX_DBG_PRINT)
 		level |= LDAP_DEBUG_NONE;
 
-	if (type & MDBX_DBG_TRACE)
+	if (type & (MDBX_DBG_TRACE | MDBX_DBG_EXTRA))
 		level |= LDAP_DEBUG_TRACE;
+#endif /* LDAP_DEBUG */
 
 	if (DebugTest(level))
 		ldap_debug_va(msg, args);
@@ -155,13 +159,15 @@ mdb_db_init( BackendDB *be, ConfigReply *cr )
 #if MDBX_MODE_ENABLED
 	unsigned flags = mdbx_setup_debug(MDBX_DBG_DNT, mdbx_debug, MDBX_DBG_DNT);
 	flags &= ~(MDBX_DBG_TRACE | MDBX_DBG_EXTRA | MDBX_DBG_ASSERT);
-	if (reopenldap_mode_check())
-		flags |=
-#	if LDAP_DEBUG > 2
-				MDBX_DBG_TRACE | MDBX_DBG_EXTRA |
-#	endif /* LDAP_DEBUG > 2 */
-				MDBX_DBG_ASSERT;
 
+	if (reopenldap_mode_check())
+		flags |= MDBX_DBG_ASSERT;
+#	if LDAP_DEBUG > 1
+		flags |= MDBX_DBG_PRINT | MDBX_DBG_TRACE;
+#	endif /* LDAP_DEBUG > 1 */
+#	if LDAP_DEBUG > 2
+		flags |= MDBX_DBG_EXTRA;
+#	endif /* LDAP_DEBUG > 2 */
 	mdbx_setup_debug(flags, (MDBX_debug_func*) MDBX_DBG_DNT, MDBX_DBG_DNT);
 #endif /* MDBX_MODE_ENABLED */
 

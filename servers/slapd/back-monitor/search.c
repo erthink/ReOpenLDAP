@@ -190,9 +190,6 @@ monitor_back_search( Operation *op, SlapReply *rs )
 
 	Debug( LDAP_DEBUG_TRACE, "=> monitor_back_search\n" );
 
-	/* LY: complete/flush all scheduled work before processing,
-	 * to avoid https://github.com/ReOpen/ReOpenLDAP/issues/92 */
-	connections_tpool_sync(op->o_bd);
 
 	/* get entry with reader lock */
 	monitor_cache_dn2entry( op, rs, &op->o_req_ndn, &e, &matched );

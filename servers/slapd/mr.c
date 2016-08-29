@@ -319,15 +319,14 @@ register_matching_rule(
 		if (( def->mrd_usage & SLAP_MR_EQUALITY ) &&
 			(( def->mrd_usage & SLAP_MR_SUBTYPE_MASK ) == SLAP_MR_NONE ))
 		{
-			if (( def->mrd_usage & SLAP_MR_EQUALITY ) &&
-				(( def->mrd_usage & SLAP_MR_SUBTYPE_MASK ) != SLAP_MR_NONE ))
+			if ( SLAP_MR_EQUALITY_APPROX !=
+				( amr->smr_usage & (SLAP_MR_EQUALITY | SLAP_MR_SUBTYPE_MASK )) )
 			{
 				Debug( LDAP_DEBUG_ANY, "register_matching_rule: "
 						"inappropriate (approx) association %s for %s\n",
 					def->mrd_associated, def->mrd_desc );
 				return -1;
 			}
-
 		} else if (!( amr->smr_usage & SLAP_MR_EQUALITY )) {
 				Debug( LDAP_DEBUG_ANY, "register_matching_rule: "
 					"inappropriate (equalilty) association %s for %s\n",
@@ -345,7 +344,6 @@ register_matching_rule(
 
 		return -1;
 	}
-
 
 	code = mr_add( mr, def, amr, &err );
 

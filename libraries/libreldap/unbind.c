@@ -19,7 +19,7 @@
  *
  * ---
  *
- * Copyright 1998-2014 The OpenLDAP Foundation.
+ * Copyright 1998-2015 The OpenLDAP Foundation.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -245,9 +245,7 @@ ldap_ld_free(
 	ldap_pvt_thread_mutex_destroy( &ld->ld_ldopts_mutex );
 	ldap_pvt_thread_mutex_destroy( &ld->ld_ldcmutex );
 #endif
-#ifndef NDEBUG
 	LDAP_TRASH(ld);
-#endif
 	LDAP_FREE( (char *) ld->ldc );
 	LDAP_FREE( (char *) ld );
 

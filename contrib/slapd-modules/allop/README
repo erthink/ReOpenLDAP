@@ -4,7 +4,7 @@ that do not make use of the RFC3673 allOp ("+") in the requested
 attribute list, but expect all operational attributes to be returned.
 Usage: add to slapd.conf(5)
 
-moduleload	contrib-allop.so
+moduleload	contrib-allop.la
 overlay		allop
 allop-URI	<ldapURI>
 

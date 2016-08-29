@@ -7,7 +7,7 @@ the Kerberos libraries. (Heimdal support might come later)
 
 To use the overlay just load it into the slapd process:
 
-    moduleload contrib-kinit.so <principal> </path/to/key.tab>
+    moduleload contrib-kinit.la <principal> </path/to/key.tab>
 
 The module accepts two arguments. The first one being the principal for which
 to request the TGT (it defaults to "ldap/<your hostname>@<DEFAULTREALM>")

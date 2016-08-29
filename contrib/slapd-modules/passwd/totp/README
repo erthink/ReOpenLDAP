@@ -17,13 +17,13 @@ Building
 Customize the LDAP_SRC variable in Makefile to point to the ReOpenLDAP
 source root.
 
-2) Run 'make' to produce contrib-pw-totp.so
+2) Run 'make' to produce contrib-pw-totp.la
 
 3) Run 'make install'
 
 4) Edit your slapd.conf (eg. /etc/ldap/slapd.conf), and add:
 
-moduleload contrib-pw-totp.so
+moduleload contrib-pw-totp.la
 
 5) This module replaces the function of the slapo-lastbind overlay. You
 cannot use that overlay on the same database as this one.
@@ -79,7 +79,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 ---
 
-Copyright 2014 The OpenLDAP Foundation.
+Copyright 2015 The OpenLDAP Foundation.
 Portions Copyright 2015 by Howard Chu, Symas Corp.
 All rights reserved.
 

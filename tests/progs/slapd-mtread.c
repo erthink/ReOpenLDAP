@@ -352,6 +352,13 @@ main( int argc, char **argv )
 		do_conn( uri, manager, &passwd, &lds[i], nobind, retries, i );
 	}
 
+	if (strcasestr(entry, "cn=Monitor") != 0) {
+		/* LY: Workaround for https://github.com/ReOpen/ReOpenLDAP/issues/92
+		 * Give a time to slapd and monitor-backend for completion closed connections. */
+		tester_error( "Wait for completion closed connections" );
+		sleep(1);
+	}
+
 	ldap_pvt_thread_initialize();
 
 	snprintf(outstr, BUFSIZ, "MT Test Start: conns: %d (%s)", noconns, uri);
@@ -697,8 +704,7 @@ do_random( LDAP *ld,
 		}
 
 		for ( i = 0; i < innerloop; i++ ) {
-			int	r = ((double)nvalues)*rand()/(RAND_MAX + 1.0);
-
+			int	r = lrand48() % nvalues;
 			do_read( ld, values[ r ],
 				srchattrs, noattrs, nobind, 1, maxretries,
 				delay, force, chaserefs, idx );
@@ -754,7 +760,7 @@ do_random2( LDAP *ld,
 	ftail++;
 
 	for ( i = 0; i < innerloop; i++ ) {
-		int	r = ((double)range)*rand()/(RAND_MAX + 1.0);
+		int	r = lo + lrand48() % range;
 		sprintf(fbuf, "%.*s%d%s", flen, filter, r, ftail);
 
 		rc = ldap_search_ext_s( ld, sbase, LDAP_SCOPE_SUBTREE,
