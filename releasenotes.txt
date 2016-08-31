@@ -1,16 +1,22 @@
-Product:      OPENLDAP_6.0
+﻿Product:      OPENLDAP_6.0
 Version:      6.0.0
-Release Date: 30.08.2016
+Release Date: 31.08.2016
 
 Release Notes:
 -------------------------------------------------------------------------
 Version 6.0.0:
-+ Добавлены новые опции configure: --enable-check --enable-hipagut --enable-valgrind --enable-experimantal --enable-contrib.
++ Добавлены новые опции configure: --enable-check --enable-hipagut --enable-valgrind --enable-experimental --enable-contrib -with-gssapi=auto/yes/no.
++ Обеспечена поддержка TLS v1.3.
 * Опции configure '--enable-debug' и '--enable-syslog' теперь полностью взаимно независимы.
+* Устранена причина редких падений при разрыве соединений, см https://github.com/ReOpen/ReOpenLDAP/issues/104.
+* Импортированы исправления от RedHat, Debian и ATL Linux: CVE-2015-3276, RHEL#852476, RHEL#960048, Dedian#327585, RHEL#179730, RHEL#857373,
+  RHEL#38402, RHEL#852786, RHEL#929357, RHEL#857455, RHEL#960222, RHEL#835013, Debian#340601, Debian#651333, Debian#546885, ITS#6232.
+* CLM-166490 Устранена неверная диагностика при недопустимом синтаксисе в фильтре LDAP-запроса.
+* Устранены ошибки выявленные при проверке статическим анализатором PVS-Studio.
 * Исправлены ошибки замеченные при включении RS_ASSERT (дополнительные проверки результата запросов).
 * В оверлее syncprov устранена ошибка при поиске отметки EntryCSN c конкретным значением.
 + Обработка ошибок во внутренних процедурах утилиты mdbx_copy (ITS#8209).
-+ Дополнена англоязычная man-станица для опции `syncprov-showstatus`.
++ Дополнена англоязычная man-страница для опции `syncprov-showstatus`.
 * Устранено зацикливание механизма репликации при синхронизации содержимого в режиме delta-multi-master (ITS#8432).
 * Переход на актуальные версии autoconf-2.69 и automake-1.15 (полностью переделаны configure и система сборки).
 * Актуализированы данные о лицензии и авторских правах.
