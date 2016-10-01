@@ -535,6 +535,13 @@ add_title(uint32_t code)
      */
     cases[2] = code;
 
+    /*
+     * If the upper case character is not present, then make it the same as
+     * the title case.
+     */
+    if (cases[0] == 0)
+      cases[0] = code;
+
     if (title_used == title_size) {
         if (title_size == 0)
           title = (_case_t *) malloc(sizeof(_case_t) << 3);
@@ -817,7 +824,7 @@ read_cdata(FILE *in)
 {
     uint32_t i, lineno, skip, code, ccl_code;
     short wnum, neg, number[2], compat;
-    char line[512], *s, *e;
+    char line[512], *s, *e, *first_prop;
 
     lineno = skip = 0;
     while (fgets(line, sizeof(line), in)) {
@@ -962,6 +969,7 @@ read_cdata(FILE *in)
         }
         for (e = s; *e && *e != ';'; e++) ;
 
+        first_prop = s;
         ordered_range_insert(code, s, e - s);
 
         /*
@@ -1108,7 +1116,7 @@ read_cdata(FILE *in)
             if (*s == ';')
               s++;
         }
-        if (cases[0] && cases[1])
+        if (!strncmp(first_prop,"Lt",2) && (cases[0] || cases[1]))
           /*
            * Add the upper and lower mappings for a title case character.
            */
