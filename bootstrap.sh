@@ -1,7 +1,7 @@
 #!/bin/bash
 rm -rf tests/testrun/*
 
-if [ -z "$AUTORECONF"]; then
+if [ -z "$AUTORECONF" ]; then
 	if [ -n "$(which autoreconf)" ] && autoreconf --version | grep -q 'autoreconf (GNU Autoconf) 2\.69'; then
 		AUTORECONF=$(which autoreconf)
 	elif [ -n "$(which autoreconf-2.69)" ]; then
