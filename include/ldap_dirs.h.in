@@ -80,5 +80,8 @@
 #ifndef LDAP_LOCALEDIR
 #	define LDAP_LOCALEDIR	"@localedir@"
 #endif
+#ifndef LDAP_VARDIR
+#	define LDAP_VARDIR	"@localstatedir@"
+#endif
 
 #endif /* _LDAP_DIRS_H */

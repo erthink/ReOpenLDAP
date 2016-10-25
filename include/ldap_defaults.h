@@ -56,8 +56,10 @@
 #define LDAP_ENV_PREFIX	"LDAP"
 #define SASL_CONFIGPATH	LDAP_SYSCONFDIR LDAP_DIRSEP "sasl2"
 
-/* default ldapi:// socket */
-#define LDAPI_SOCK LDAP_RUNDIR LDAP_DIRSEP "run" LDAP_DIRSEP "slapd" LDAP_DIRSEP "ldapi"
+#ifndef LDAPI_SOCK
+	/* default ldapi:// socket */
+#	define LDAPI_SOCK LDAP_RUNDIR LDAP_DIRSEP "slapd" LDAP_DIRSEP "ldapi"
+#endif
 
 /*
  * SLAPD DEFINITIONS
@@ -65,7 +67,7 @@
 	/* location of the default slapd config file */
 #define SLAPD_DEFAULT_CONFIGFILE	LDAP_SYSCONFDIR LDAP_DIRSEP "slapd.conf"
 #define SLAPD_DEFAULT_CONFIGDIR		LDAP_SYSCONFDIR LDAP_DIRSEP "slapd.d"
-#define SLAPD_DEFAULT_DB_DIR		LDAP_RUNDIR LDAP_DIRSEP "openldap-data"
+#define SLAPD_DEFAULT_DB_DIR		LDAP_VARDIR LDAP_DIRSEP "reopenldap-data"
 #define SLAPD_DEFAULT_DB_MODE		0600
 #define SLAPD_DEFAULT_UCDATA		LDAP_DATADIR LDAP_DIRSEP "ucdata"
 	/* default max deref depth for aliases */
