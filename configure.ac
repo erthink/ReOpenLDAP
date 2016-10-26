@@ -431,6 +431,7 @@ case $ol_enable_hipagut in
 esac
 
 AM_CONDITIONAL([SLAPD_DEBUG], [test "$ol_enable_debug" != no])
+AM_CONDITIONAL([SLAPD_DEBUG_EXTRA], [test "$ol_enable_debug" = extra])
 AM_CONDITIONAL([SLAPD_SYSLOG], [test "$ol_enable_syslog" != no])
 AM_CONDITIONAL([LDAP_DEPRECATED], [test "$ol_enable_deprecated" != no])
 AM_CONDITIONAL([LDAP_EXPERIMENTAL], [test "$ol_enable_experimental" != no])

@@ -40,7 +40,11 @@ banner.c: Makefile
 endif
 
 if SLAPD_DEBUG
+if SLAPD_DEBUG_EXTRA
 libmdbx_la_CFLAGS = -UNDEBUG -DMDB_DEBUG=2
+else
+libmdbx_la_CFLAGS = -UNDEBUG -DMDB_DEBUG=1
+endif
 else
 libmdbx_la_CFLAGS = -DNDEBUG=1 -DMDB_DEBUG=0
 endif

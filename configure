@@ -928,6 +928,8 @@ LDAP_DEPRECATED_FALSE
 LDAP_DEPRECATED_TRUE
 SLAPD_SYSLOG_FALSE
 SLAPD_SYSLOG_TRUE
+SLAPD_DEBUG_EXTRA_FALSE
+SLAPD_DEBUG_EXTRA_TRUE
 SLAPD_DEBUG_FALSE
 SLAPD_DEBUG_TRUE
 VALGRIND_CHECK_RULES
@@ -13157,7 +13159,7 @@ VERSION_PATCH=3
 
 RELEASE_DATE=2016-10-26
 
-RELEASE_STAMP=gbf1bae935f9b-tec14bd00f83e1e35
+RELEASE_STAMP=g9ff29fd0f9ab-t21c2ff4ee5bb2ead
 
 API_LIB_RELEASE=1.1
 
@@ -19411,6 +19413,14 @@ esac
 else
   SLAPD_DEBUG_TRUE='#'
   SLAPD_DEBUG_FALSE=
+fi
+
+ if test "$ol_enable_debug" = extra; then
+  SLAPD_DEBUG_EXTRA_TRUE=
+  SLAPD_DEBUG_EXTRA_FALSE='#'
+else
+  SLAPD_DEBUG_EXTRA_TRUE='#'
+  SLAPD_DEBUG_EXTRA_FALSE=
 fi
 
  if test "$ol_enable_syslog" != no; then
@@ -34972,6 +34982,10 @@ Usually this means the macro was only invoked conditionally." "$LINENO" 5
 fi
 if test -z "${SLAPD_DEBUG_TRUE}" && test -z "${SLAPD_DEBUG_FALSE}"; then
   as_fn_error $? "conditional \"SLAPD_DEBUG\" was never defined.
+Usually this means the macro was only invoked conditionally." "$LINENO" 5
+fi
+if test -z "${SLAPD_DEBUG_EXTRA_TRUE}" && test -z "${SLAPD_DEBUG_EXTRA_FALSE}"; then
+  as_fn_error $? "conditional \"SLAPD_DEBUG_EXTRA\" was never defined.
 Usually this means the macro was only invoked conditionally." "$LINENO" 5
 fi
 if test -z "${SLAPD_SYSLOG_TRUE}" && test -z "${SLAPD_SYSLOG_FALSE}"; then
