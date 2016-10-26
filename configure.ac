@@ -630,7 +630,7 @@ if test $ol_enable_contrib != no; then
 	CRACKLIB_LIBS=
 	CRACKLIB_CFLAGS=
 	CRACKLIB_DICTPATH=
-	AC_CHECK_HEADERS( crack.h )
+	AC_CHECK_HEADERS(crack.h)
 	if test $ac_cv_header_crack_h = yes; then
 		AC_CHECK_LIB(crack, FascistCheck, [have_cracklib=yes], [have_cracklib=false])
 		if test $have_cracklib = yes; then
@@ -1130,8 +1130,10 @@ AC_SUBST(OPENSSL_CFLAGS)
 AM_CONDITIONAL([OPENSSL_AVAIL], [test $openssl_found = yes])
 if test $openssl_found = yes; then
     AC_DEFINE(HAVE_OPENSSL, 1, [define if you have OpenSSL])
-    AC_CHECK_HEADERS(openssl/ssl.h)
-    AC_CHECK_HEADERS(ssl.h)
+    AC_CHECK_HEADERS([openssl/ssl.h ssl.h])
+    if test $ac_cv_header_openssl_ssl_h != yes -a $ac_cv_header_ssl_h != yes; then
+	AC_MSG_ERROR([could not locate openssl/ssl.h or ssl.h])
+    fi
 fi
 
 PKG_CHECK_MODULES(GNUTLS, [gnutls >= 2.12], gnutls_found=yes, gnutls_found=no)
@@ -1141,6 +1143,9 @@ AM_CONDITIONAL([GNUTLS_AVAIL], [test $gnutls_found = yes])
 if test $gnutls_found = yes; then
     AC_DEFINE(HAVE_GNUTLS, 1, [define if you have GnuTLS])
     AC_CHECK_HEADERS(gnutls/gnutls.h)
+    if test $ac_cv_header_gnutls_gnutls_h != yes; then
+	AC_MSG_ERROR([could not locate gnutls/gnutls.h])
+    fi
 fi
 
 PKG_CHECK_MODULES(MOZNSS, [nss nspr], [moznss_found=yes], [moznss_found=no])
@@ -1149,6 +1154,17 @@ AC_SUBST(MOZNSS_CFLAGS)
 AM_CONDITIONAL([MOZNSS_AVAIL], [test $moznss_found = yes])
 if test $moznss_found = yes; then
     AC_DEFINE(HAVE_MOZNSS, 1, [define if you have Mozill NSS])
+    save_CFLAGS=$CFLAGS
+    CFLAGS="$CFLAGS $MOZNSS_CFLAGS"
+    AC_CHECK_HEADERS([nspr/nspr.h nspr4/nspr.h])
+    if test $ac_cv_header_nspr_nspr_h != yes -a $ac_cv_header_nspr4_nspr_h != yes; then
+	AC_MSG_ERROR([could not locate nspr/nspr.h or nspr4/nspr.h])
+    fi
+    AC_CHECK_HEADERS([nss/nss.h nss3/nss.h])
+     if test $ac_cv_header_nss_nss_h != yes -a $ac_cv_header_nss3_nss_h != yes; then
+	AC_MSG_ERROR([could not locate nss/nss.h or nss3/nss.h])
+    fi
+   CFLAGS=$save_CFLAGS
 fi
 
 AM_CONDITIONAL([TLS_FALLBACK_AVAIL], [test $gnutls_found = yes -o $openssl_found = yes])
@@ -2197,8 +2213,7 @@ if test $ol_with_mp = long || test $ol_with_mp = auto ; then
 	fi
 fi
 if test $ol_with_mp = bignum || test $ol_with_mp = auto ; then
-	AC_CHECK_HEADERS(openssl/bn.h)
-	AC_CHECK_HEADERS(openssl/crypto.h)
+	AC_CHECK_HEADERS(openssl/bn.h openssl/crypto.h)
 	if test "$ac_cv_header_openssl_bn_h" = "yes" &&
 		test "$ac_cv_header_openssl_crypto_h" = "yes" &&
 		test "$ol_with_tls" = "found" ; then

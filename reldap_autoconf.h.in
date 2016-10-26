@@ -482,6 +482,18 @@
 /* define if strerror_r returns char* instead of int */
 #undef HAVE_NONPOSIX_STRERROR_R
 
+/* Define to 1 if you have the <nspr4/nspr.h> header file. */
+#undef HAVE_NSPR4_NSPR_H
+
+/* Define to 1 if you have the <nspr/nspr.h> header file. */
+#undef HAVE_NSPR_NSPR_H
+
+/* Define to 1 if you have the <nss3/nss.h> header file. */
+#undef HAVE_NSS3_NSS_H
+
+/* Define to 1 if you have the <nss/nss.h> header file. */
+#undef HAVE_NSS_NSS_H
+
 /* Define to 1 if you have the `opendir' function. */
 #undef HAVE_OPENDIR
 

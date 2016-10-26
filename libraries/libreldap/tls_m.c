@@ -66,20 +66,40 @@
 #define READ_PASSWORD_FROM_FILE
 
 #ifdef READ_PASSWORD_FROM_STDIN
-#include <termios.h> /* for echo on/off */
+#	include <termios.h> /* for echo on/off */
 #endif
 
-#include <nspr/nspr.h>
-#include <nspr/private/pprio.h>
-#include <nss/nss.h>
-#include <nss/ssl.h>
-#include <nss/sslerr.h>
-#include <nss/sslproto.h>
-#include <nss/pk11pub.h>
-#include <nss/secerr.h>
-#include <nss/keyhi.h>
-#include <nss/secmod.h>
-#include <nss/cert.h>
+#ifdef HAVE_NSPR_NSPR_H
+#	include <nspr/nspr.h>
+#	include <nspr/private/pprio.h>
+#elif defined(HAVE_NSPR4_NSPR_H)
+#	include <nspr4/nspr.h>
+#	include <nspr4/private/pprio.h>
+#else
+#	include <nspr.h>
+#endif
+
+#ifdef HAVE_NSS3_NSS_H
+#	include <nss3/nss.h>
+#	include <nss3/ssl.h>
+#	include <nss3/sslerr.h>
+#	include <nss3/sslproto.h>
+#	include <nss3/pk11pub.h>
+#	include <nss3/secerr.h>
+#	include <nss3/keyhi.h>
+#	include <nss3/secmod.h>
+#	include <nss3/cert.h>
+#else
+#	include <nss/nss.h>
+#	include <nss/ssl.h>
+#	include <nss/sslerr.h>
+#	include <nss/sslproto.h>
+#	include <nss/pk11pub.h>
+#	include <nss/secerr.h>
+#	include <nss/keyhi.h>
+#	include <nss/secmod.h>
+#	include <nss/cert.h>
+#endif
 
 #undef NSS_VERSION_INT
 #define	NSS_VERSION_INT	((NSS_VMAJOR << 24) | (NSS_VMINOR << 16) | \

@@ -60,8 +60,13 @@
 #include "ldap-int.h"
 #include "ldap-tls.h"
 
-#include <gnutls/gnutls.h>
-#include <gnutls/x509.h>
+#ifdef HAVE_GNUTLS_GNUTLS_H
+#	include <gnutls/gnutls.h>
+#	include <gnutls/x509.h>
+#else
+#	include <gnutls.h>
+#	include <x509.h>
+#endif
 
 typedef struct tlsg_ctx {
 	gnutls_certificate_credentials_t cred;

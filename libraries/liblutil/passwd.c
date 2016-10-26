@@ -69,7 +69,13 @@ typedef des_key_schedule des_context;
   one in lutil_sha1.h to blow up
 */
 #define PROTYPES_H 1
+
+#ifdef HAVE_NSS3_NSS_H
+#	include <nss3/pk11pub.h>
+#else
 #	include <nss/pk11pub.h>
+#endif
+
 typedef PK11SymKey *des_key;
 typedef unsigned char des_data_block[8];
 typedef PK11Context *des_context[1];
@@ -1278,4 +1284,3 @@ static int hash_clear(
 	return LUTIL_PASSWD_OK;
 }
 #endif
-

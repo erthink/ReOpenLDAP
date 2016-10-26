@@ -13155,7 +13155,7 @@ VERSION_MINOR=1
 
 VERSION_PATCH=3
 
-RELEASE_DATE=2016-07-30
+RELEASE_DATE=2016-10-26
 
 RELEASE_STAMP=gbf1bae935f9b-tec14bd00f83e1e35
 
@@ -22028,11 +22028,10 @@ $as_echo "$as_me: WARNING: $HEIMDAL_PKG_ERRORS, therefore depended contrib-modul
 	CRACKLIB_DICTPATH=
 	for ac_header in crack.h
 do :
-  as_ac_Header=`$as_echo "ac_cv_header_$ac_header" | $as_tr_sh`
-ac_fn_c_check_header_mongrel "$LINENO" "$ac_header" "$as_ac_Header" "$ac_includes_default"
-if eval test \"x\$"$as_ac_Header"\" = x"yes"; then :
+  ac_fn_c_check_header_mongrel "$LINENO" "crack.h" "ac_cv_header_crack_h" "$ac_includes_default"
+if test "x$ac_cv_header_crack_h" = xyes; then :
   cat >>confdefs.h <<_ACEOF
-#define `$as_echo "HAVE_$ac_header" | $as_tr_cpp` 1
+#define HAVE_CRACK_H 1
 _ACEOF
 
 fi
@@ -24600,30 +24599,22 @@ if test $openssl_found = yes; then
 
 $as_echo "#define HAVE_OPENSSL 1" >>confdefs.h
 
-    for ac_header in openssl/ssl.h
+    for ac_header in openssl/ssl.h ssl.h
 do :
-  ac_fn_c_check_header_mongrel "$LINENO" "openssl/ssl.h" "ac_cv_header_openssl_ssl_h" "$ac_includes_default"
-if test "x$ac_cv_header_openssl_ssl_h" = xyes; then :
+  as_ac_Header=`$as_echo "ac_cv_header_$ac_header" | $as_tr_sh`
+ac_fn_c_check_header_mongrel "$LINENO" "$ac_header" "$as_ac_Header" "$ac_includes_default"
+if eval test \"x\$"$as_ac_Header"\" = x"yes"; then :
   cat >>confdefs.h <<_ACEOF
-#define HAVE_OPENSSL_SSL_H 1
+#define `$as_echo "HAVE_$ac_header" | $as_tr_cpp` 1
 _ACEOF
 
 fi
 
 done
 
-    for ac_header in ssl.h
-do :
-  ac_fn_c_check_header_mongrel "$LINENO" "ssl.h" "ac_cv_header_ssl_h" "$ac_includes_default"
-if test "x$ac_cv_header_ssl_h" = xyes; then :
-  cat >>confdefs.h <<_ACEOF
-#define HAVE_SSL_H 1
-_ACEOF
-
-fi
-
-done
-
+    if test $ac_cv_header_openssl_ssl_h != yes -a $ac_cv_header_ssl_h != yes; then
+	as_fn_error $? "could not locate openssl/ssl.h or ssl.h" "$LINENO" 5
+    fi
 fi
 
 
@@ -24723,6 +24714,9 @@ fi
 
 done
 
+    if test $ac_cv_header_gnutls_gnutls_h != yes; then
+	as_fn_error $? "could not locate gnutls/gnutls.h" "$LINENO" 5
+    fi
 fi
 
 
@@ -24810,6 +24804,41 @@ if test $moznss_found = yes; then
 
 $as_echo "#define HAVE_MOZNSS 1" >>confdefs.h
 
+    save_CFLAGS=$CFLAGS
+    CFLAGS="$CFLAGS $MOZNSS_CFLAGS"
+    for ac_header in nspr/nspr.h nspr4/nspr.h
+do :
+  as_ac_Header=`$as_echo "ac_cv_header_$ac_header" | $as_tr_sh`
+ac_fn_c_check_header_mongrel "$LINENO" "$ac_header" "$as_ac_Header" "$ac_includes_default"
+if eval test \"x\$"$as_ac_Header"\" = x"yes"; then :
+  cat >>confdefs.h <<_ACEOF
+#define `$as_echo "HAVE_$ac_header" | $as_tr_cpp` 1
+_ACEOF
+
+fi
+
+done
+
+    if test $ac_cv_header_nspr_nspr_h != yes -a $ac_cv_header_nspr4_nspr_h != yes; then
+	as_fn_error $? "could not locate nspr/nspr.h or nspr4/nspr.h" "$LINENO" 5
+    fi
+    for ac_header in nss/nss.h nss3/nss.h
+do :
+  as_ac_Header=`$as_echo "ac_cv_header_$ac_header" | $as_tr_sh`
+ac_fn_c_check_header_mongrel "$LINENO" "$ac_header" "$as_ac_Header" "$ac_includes_default"
+if eval test \"x\$"$as_ac_Header"\" = x"yes"; then :
+  cat >>confdefs.h <<_ACEOF
+#define `$as_echo "HAVE_$ac_header" | $as_tr_cpp` 1
+_ACEOF
+
+fi
+
+done
+
+     if test $ac_cv_header_nss_nss_h != yes -a $ac_cv_header_nss3_nss_h != yes; then
+	as_fn_error $? "could not locate nss/nss.h or nss3/nss.h" "$LINENO" 5
+    fi
+   CFLAGS=$save_CFLAGS
 fi
 
  if test $gnutls_found = yes -o $openssl_found = yes; then
@@ -32778,24 +32807,13 @@ $as_echo "#define USE_MP_LONG 1" >>confdefs.h
 	fi
 fi
 if test $ol_with_mp = bignum || test $ol_with_mp = auto ; then
-	for ac_header in openssl/bn.h
+	for ac_header in openssl/bn.h openssl/crypto.h
 do :
-  ac_fn_c_check_header_mongrel "$LINENO" "openssl/bn.h" "ac_cv_header_openssl_bn_h" "$ac_includes_default"
-if test "x$ac_cv_header_openssl_bn_h" = xyes; then :
+  as_ac_Header=`$as_echo "ac_cv_header_$ac_header" | $as_tr_sh`
+ac_fn_c_check_header_mongrel "$LINENO" "$ac_header" "$as_ac_Header" "$ac_includes_default"
+if eval test \"x\$"$as_ac_Header"\" = x"yes"; then :
   cat >>confdefs.h <<_ACEOF
-#define HAVE_OPENSSL_BN_H 1
-_ACEOF
-
-fi
-
-done
-
-	for ac_header in openssl/crypto.h
-do :
-  ac_fn_c_check_header_mongrel "$LINENO" "openssl/crypto.h" "ac_cv_header_openssl_crypto_h" "$ac_includes_default"
-if test "x$ac_cv_header_openssl_crypto_h" = xyes; then :
-  cat >>confdefs.h <<_ACEOF
-#define HAVE_OPENSSL_CRYPTO_H 1
+#define `$as_echo "HAVE_$ac_header" | $as_tr_cpp` 1
 _ACEOF
 
 fi
