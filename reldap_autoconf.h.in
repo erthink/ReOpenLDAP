@@ -1038,6 +1038,9 @@
 /* Digest stamp */
 #undef RELEASE_STAMP
 
+/* BuildId suffix for Version */
+#undef REOPENLDAP_BUILDID_SUFFIX
+
 /* Name of the Package */
 #undef REOPENLDAP_PACKAGE
 
@@ -1361,6 +1364,10 @@
 #define RELDAP_TLS_MOZNSS	1 /* Mozilla NSS, --with-tls=moznss */
 #define RELDAP_TLS_GNUTLS	2 /* GnuTLS, --with-tls=gnutls */
 #define RELDAP_TLS_OPENSSL	3 /* OpenSSL, --with-tls=openssl */
+
+#ifndef REOPENLDAP_BUILDID_SUFFIX
+#	define REOPENLDAP_BUILDID_SUFFIX ""
+#endif
 
 #endif /* RELDAP_AUTOCONF_H */
 /* end of reldap_autoconf.h.post */
