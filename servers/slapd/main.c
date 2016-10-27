@@ -107,10 +107,9 @@ static struct {
  * it's own LOCAL for syslogging and must have its own pid/args files
  */
 
-#ifndef HAVE_MKVERSION
 const char Versionstr[] =
-	REOPENLDAP_PACKAGE " " REOPENLDAP_VERSION " Standalone LDAP Server (slapd)";
-#endif
+	REOPENLDAP_PACKAGE " " REOPENLDAP_VERSION " (" RELEASE_DATE ", " RELEASE_STAMP "), " \
+	"Standalone LDAP Server (slapd).";
 
 extern OverlayInit slap_oinfo[];
 extern BackendInfo slap_binfo[];
