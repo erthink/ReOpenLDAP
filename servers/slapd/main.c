@@ -108,7 +108,8 @@ static struct {
  */
 
 const char Versionstr[] =
-	REOPENLDAP_PACKAGE " " REOPENLDAP_VERSION " (" RELEASE_DATE ", " RELEASE_STAMP "), " \
+	REOPENLDAP_PACKAGE " " REOPENLDAP_VERSION REOPENLDAP_BUILDID_SUFFIX \
+	" (" RELEASE_DATE ", " RELEASE_STAMP "), " \
 	"Standalone LDAP Server (slapd).";
 
 extern OverlayInit slap_oinfo[];

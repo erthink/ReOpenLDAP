@@ -93,6 +93,8 @@ cat << __EOF__
  * <http://www.OpenLDAP.org/license.html>.
  */
 
+#include "reldap_autoconf.h"
+
 ${MODE} const char ${NAME}_Copyright[] =
 "The ReOpenLDAP Project <$PACKAGE_URL>.\n"
 "GNU AFFERO GENERAL PUBLIC LICENSE Version 3.\n"
@@ -113,7 +115,7 @@ ${MODE} const char ${NAME}_Copyright[] =
 "All rights reserved. COPYING RESTRICTIONS APPLY.\n";
 
 ${MODE} const char ${NAME}_Version[] =
-"@(#) \$$PACKAGE: $APPLICATION $VERSION (" __DATE__ " " __TIME__ ") \$\n"
+"@(#) \$$PACKAGE: $APPLICATION $VERSION" REOPENLDAP_BUILDID_SUFFIX " (" __DATE__ " " __TIME__ ") \$\n"
 "\t$WHOWHERE $STAMP\n";
 
 __EOF__

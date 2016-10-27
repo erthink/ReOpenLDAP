@@ -313,6 +313,10 @@ AH_BOTTOM([
 #define RELDAP_TLS_GNUTLS	2 /* GnuTLS, --with-tls=gnutls */
 #define RELDAP_TLS_OPENSSL	3 /* OpenSSL, --with-tls=openssl */
 
+#ifndef REOPENLDAP_BUILDID_SUFFIX
+#	define REOPENLDAP_BUILDID_SUFFIX ""
+#endif
+
 #endif /* RELDAP_AUTOCONF_H */
 /* end of reldap_autoconf.h.post */])
 
@@ -345,6 +349,21 @@ esac
 ])dnl
 
 AC_SUBST(ldap_subdir)dnl
+
+REOPENLDAP_BUILDID_SUFFIX=
+AC_ARG_WITH(buildid,
+	[  --with-buildid=SUFFIX   specifies optional build-id suffix for version],
+[case "$withval" in
+	no)
+		REOPENLDAP_BUILDID_SUFFIX=""
+		;;
+	*)
+		REOPENLDAP_BUILDID_SUFFIX="$withval"
+		;;
+esac
+])dnl
+AC_DEFINE_UNQUOTED(REOPENLDAP_BUILDID_SUFFIX, "${REOPENLDAP_BUILDID_SUFFIX}", [BuildId suffix for Version])
+AC_SUBST(REOPENLDAP_BUILDID_SUFFIX)
 
 dnl ----------------------------------------------------------------
 dnl General "enable" options
