@@ -5,12 +5,16 @@ OpenLDAP 2.4.45 Engineering
 	Fixed libldap GnuTLS use after free (ITS#8385)
 	Fixed slapd syncrepl filter handling (ITS#8413)
 	Fixed slapd syncrepl infinite looping mods with delta-sync MMR (ITS#8432)
+	Fixed slapd callback struct so older modules without writewait should function.
+                    Custom modules may need to be updated for sc_writewait callback (ITS#8435, already fixed in ReOpenLDAP)
 	Fixed slapo-accesslog to honor pauses during purge for cn=config update (ITS#8423)
-	Fixed slapo-relay to correctly initialize sc_writewait (ITS#8428)
+	Fixed slapd-meta uninitialized diagnostic message (ITS#8442, already fixed in ReOpenLDAP)
+	Fixed slapo-relay to correctly initialize sc_writewait (ITS#8428, already fixed in ReOpenLDAP)
 	Build Environment
 		Fix test008 to be portable (ITS#8414)
 	Contrib
 		Added passwd missing conversion scripts for apr1 (ITS#6826)
+		Fixed contrib modules where the writewait callback was not correctly initialized (ITS#8435)
 	Documentation
 		admin24 fixed tls_cipher_suite bindconf option (ITS#8099)
 		admin24 fixed typo cn=config to be slapd.d (ITS#8449)
