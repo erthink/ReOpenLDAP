@@ -1,3 +1,42 @@
+v1.1.4 (not yet released)
+=========================
+
+Briefly:
+ 1. Return to the original OpenLDAP Foundation license.
+ 2. More fixed for Mozilla NSS.
+ 3. Minor fixes for configure/build and so forth.
+
+New features and Compatibility breaking:
+ + configure --with-buildid=SUFFIX.
+ ! return to the original OpenLDAP Foundation license.
+ + moznss: support for <nspr4/nspr.h> and <nss3/nss.h>
+
+Documentation:
+ * man: fix typo (ITS#8185).
+
+Major and Security bugs: none
+
+Minor bugs:
+ ! reopenldap: fix LDAPI_SOCK, adds LDAP_VARDIR.
+ * mdbx: use O_CLOEXEC/FD_CLOEXEC for me_fd,env_copy as well (ITS#8505).
+ * mdbx: reset cursor EOF flag in cursor_set (ITS#8489).
+ * slapd: return error on invalid syntax filter-present (#108).
+
+Performance: none
+
+Build:
+ * ppolicy: fix libltdl's includes for ppolicy overlay.
+ * libltdl: move `build/libltdl` to the start of SUBDURS.
+ * mdbx: don't enable tracing for MDBX by --enable-debug.
+ * reopenldap: fix missing space in bootstrap.sh
+
+Cosmetics:
+ + slapd: adds RELEASE_DATE/STAMP to `slapd -V` output.
+ * mdbx: clarify fork's caveat (ITS#8505).
+
+Other:
+ * cleanup/refine AUTHORS file.
+
 v1.1.3, 2016-08-30
 ==================
 
