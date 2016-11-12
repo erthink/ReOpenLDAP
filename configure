@@ -5,28 +5,18 @@
 #
 # Report bugs to <https://github.com/ReOpen/ReOpenLDAP/issues>.
 #
-# Copyright (c) 2015,2016 Leonid Yuriev <leo@yuriev.ru>.
-# Copyright (c) 2015,2016 Peter-Service R&D LLC <http://billing.ru/>.
+# Copyright 1992-2016 ReOpenLDAP AUTHORS: please see AUTHORS file.
+# All rights reserved.
 #
-# This is part of ReOpenLDAP.
+# This file is part of ReOpenLDAP.
 #
-# ReOpenLDAP is free software; you can redistribute it and/or modify it under
-# the terms of the GNU Affero General Public License as published by
-# the Free Software Foundation; either version 3 of the License, or
-# (at your option) any later version.
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted only as authorized by the OpenLDAP
+# Public License.
 #
-# ReOpenLDAP is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU Affero General Public License for more details.
-#
-# You should have received a copy of the GNU Affero General Public License
-# along with this program.  If not, see <http://www.gnu.org/licenses/>.
-#
-# ---
-#
-# Copyright 1998-2014 The OpenLDAP Foundation. All rights reserved.
-# Restrictions apply, see COPYRIGHT and LICENSE files.
+# A copy of this license is available in the file LICENSE in the
+# top-level directory of the distribution or, alternatively, at
+# <http://www.OpenLDAP.org/license.html>.
 #
 #
 # Copyright (C) 1992-1996, 1998-2012 Free Software Foundation, Inc.
@@ -2077,28 +2067,18 @@ Copyright (C) 2012 Free Software Foundation, Inc.
 This configure script is free software; the Free Software Foundation
 gives unlimited permission to copy, distribute and modify it.
 
-Copyright (c) 2015,2016 Leonid Yuriev <leo@yuriev.ru>.
-Copyright (c) 2015,2016 Peter-Service R&D LLC <http://billing.ru/>.
+Copyright 1992-2016 ReOpenLDAP AUTHORS: please see AUTHORS file.
+All rights reserved.
 
-This is part of ReOpenLDAP.
+This file is part of ReOpenLDAP.
 
-ReOpenLDAP is free software; you can redistribute it and/or modify it under
-the terms of the GNU Affero General Public License as published by
-the Free Software Foundation; either version 3 of the License, or
-(at your option) any later version.
+Redistribution and use in source and binary forms, with or without
+modification, are permitted only as authorized by the OpenLDAP
+Public License.
 
-ReOpenLDAP is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program.  If not, see <http://www.gnu.org/licenses/>.
-
----
-
-Copyright 1998-2014 The OpenLDAP Foundation. All rights reserved.
-Restrictions apply, see COPYRIGHT and LICENSE files.
+A copy of this license is available in the file LICENSE in the
+top-level directory of the distribution or, alternatively, at
+<http://www.OpenLDAP.org/license.html>.
 _ACEOF
   exit
 fi
@@ -13162,7 +13142,7 @@ VERSION_PATCH=4
 
 RELEASE_DATE=2016-10-27
 
-RELEASE_STAMP=g23f47ce14ee3-td62edf7b036a960b
+RELEASE_STAMP=gf2139ab85ed3-t6f58cf2821fc0844
 
 API_LIB_RELEASE=1.1
 

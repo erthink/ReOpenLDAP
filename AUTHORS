@@ -72,7 +72,7 @@ Pavel Medvedev <pmedvedev@gmail.com>
 Peter Marschall <peter@adpm.de>
 Philip Guenther <guenther@sendmail.com>
 Philipp Storz <philipp.storz@bareos.com>
-Pierangelo Masarati <ando@openldap.org>
+Pierangelo Masarati <ando@openldap.org>, <ando@sys-net.it>
 Predrag "Pele" Balorda <pele@openldap.org>
 Quanah Gibson-Mount <quanah@openldap.org>
 Ralf Haferkamp <ralf@openldap.org>
@@ -98,4 +98,52 @@ Timothy Pearson <kb9vqf@pearsoncomputing.net>
 Tim Strobell <tim.strobell.ctr@nrl.navy.mil>
 Will Ballantyne <willb@openldap.org>
 W. Trevor King <wking@tremily.us>
-Regents of the University of Michigan, USA
+
+2015-2016 Peter-Service R&D LLC, <http://www.billing.ru/>.
+1998-2016 The OpenLDAP Foundation, <http://www.openldap.org/>.
+2007-2011 Suretec Systems Ltd.
+1999-2009 Symas Corporation.
+1997-2006 IBM Corporation.
+1998-2006 Net Boolean Incorporated.
+2002 F5 Networks, Inc.
+1992-1996 Regents of the University of Michigan, USA.
+
+1999-2011 PADL Software Pty Ltd.
+2007 Michał Szulczyński.
+
+2007-06-06 Michael Steinmann <msl@calivia.com>
+2008-01-30 Pierre-Yves Bonnetain <py.bonnetain@ba-cst.com>
+2009        Clement Oudot <clem.oudot@gmail.com> - LTB-project
+2009        Jerome HUET - LTB-project
+2008 Emmanuel Dreyfus
+2009 Jonathan Clarke <jonathan@phillipoux.net>
+
+2013 Ted C. Cheng, Symas Corp.
+2000-2001, Aaron D. Gifford, http://www.aarongifford.com/
+Jeff Turner
+Cédric Delfosse
+SATOH Fumiyasu @ OSS Technology, Inc.
+
+2009 Peter Marschall
+
+1997-2002 Computing Research Labs, New Mexico State University
+1996, 1998 by Internet Software Consortium.
+
+2000 John E. Schimmel, Mirapoint, Inc.
+1999, Juan C. Gomez
+Lars Uffman
+2006 Hans Leidekker
+Stefan Metzmacher <metze@sernet.de>
+1998 A. Hartgers.
+
+2000 Mark Adamson, Carnegie Mellon
+
+2003-2004 Hewlett-Packard Company.
+Neil Dunbar <neil.dunbar@hp.com>
+Emmannuel Dreyfus <manu@netbsd.org>
+
+Dmitry Kovalev.
+ * Portions Copyright 2004 Mark Adamson.
+
+John C. Quillan.
+ * Portions Copyright 2002 myinternet Limited

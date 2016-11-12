@@ -1,9 +1,8 @@
 /* $ReOpenLDAP$ */
-/* constraint.c - Overlay to constrain attributes to certain values */
-/*
- * Copyright 2003-2004 Hewlett-Packard Company
- * Copyright 2007 Emmanuel Dreyfus
+/* Copyright 2003-2016 ReOpenLDAP AUTHORS: please see AUTHORS file.
  * All rights reserved.
+ *
+ * This file is part of ReOpenLDAP.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted only as authorized by the OpenLDAP
@@ -13,10 +12,9 @@
  * top-level directory of the distribution or, alternatively, at
  * <http://www.OpenLDAP.org/license.html>.
  */
-/*
- * Authors: Neil Dunbar <neil.dunbar@hp.com>
- *			Emmannuel Dreyfus <manu@netbsd.org>
- */
+
+/* constraint.c - Overlay to constrain attributes to certain values */
+
 #include "reldap.h"
 
 #ifdef SLAPD_OVER_CONSTRAINT
@@ -1220,4 +1218,3 @@ SLAP_OVERLAY_INIT_MODULE(constraint)
 #endif
 
 #endif /* defined(SLAPD_OVER_CONSTRAINT) */
-

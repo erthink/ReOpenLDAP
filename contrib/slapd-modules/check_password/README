@@ -1,11 +1,22 @@
+ReOpenLDAP pwdChecker library
+-----------------------------
 
-check_password.c - ReOpenLDAP pwdChecker library
+Copyright 1992-2016 ReOpenLDAP AUTHORS: please see AUTHORS file.
+All rights reserved.
 
-2007-06-06 Michael Steinmann <msl@calivia.com>
-2008-01-30 Pierre-Yves Bonnetain <py.bonnetain@ba-cst.com>
-2009        Clement Oudot <clem.oudot@gmail.com> - LTB-project
-2009        Jerome HUET - LTB-project
+This file is part of ReOpenLDAP.
 
+Redistribution and use in source and binary forms, with or without
+modification, are permitted only as authorized by the OpenLDAP
+Public License.
+
+A copy of this license is available in the file LICENSE in the
+top-level directory of the distribution or, alternatively, at
+<http://www.OpenLDAP.org/license.html>.
+
+
+pwdPolicyChecker
+----------------
 check_password.c is an ReOpenLDAP pwdPolicyChecker module used to check the
 strength and quality of user-provided passwords.
 
@@ -36,7 +47,7 @@ Use the provided Makefile to build the module.
 
 Compilation constants :
 
-CONFIG_FILE : Path to the configuration file. 
+CONFIG_FILE : Path to the configuration file.
               Defaults to /etc/reopenldap/check_password.conf
 
 DEBUG : If defined, check_password will syslog() its actions.
@@ -52,7 +63,7 @@ The module may be defined with slapd.conf parameter "modulepath".
 
 USAGE
 -----
-To use this module you need to add objectClass pwdPolicyChecker with an 
+To use this module you need to add objectClass pwdPolicyChecker with an
 attribute 'pwdCheckModule: check_password.la' to a password policy entry.
 
 The module depends on a working cracklib installation including wordlist files.
@@ -171,6 +182,6 @@ to a password policy entry.
 
 The module depends on a working cracklib installation including wordlist files.
 If the wordlist files are not readable, the cracklib check will be skipped
-silently. 
+silently.
 
 But you can use this module without cracklib, just checks for syntatic checks.

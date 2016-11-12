@@ -1,9 +1,6 @@
 ReOpenLDAP is...
 =================
-1. Also known as "TelcoLDAP" - is the telco-oriented fork of OpenLDAP
-   under AGPL in a manner consistent with the original OpenLDAP license.
-   Please see the [LICENSE](LICENSE) file included in the root directory
-   of the source tree for extended license details.
+1. Also known as "TelcoLDAP" - is the telco-oriented fork of OpenLDAP.
 2. A number of new features, most of which deal with highload and multi-master clustering.
 3. Bug fixing and code quality improvement.
 

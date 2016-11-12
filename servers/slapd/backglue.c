@@ -1,27 +1,8 @@
-/* backglue.c - backend glue */
 /* $ReOpenLDAP$ */
-/* Copyright (c) 2015,2016 Leonid Yuriev <leo@yuriev.ru>.
- * Copyright (c) 2015,2016 Peter-Service R&D LLC <http://billing.ru/>.
+/* Copyright 1990-2016 ReOpenLDAP AUTHORS: please see AUTHORS file.
+ * All rights reserved.
  *
  * This file is part of ReOpenLDAP.
- *
- * ReOpenLDAP is free software; you can redistribute it and/or modify it under
- * the terms of the GNU Affero General Public License as published by
- * the Free Software Foundation; either version 3 of the License, or
- * (at your option) any later version.
- *
- * ReOpenLDAP is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- *
- * ---
- *
- * Copyright 2001-2014 The OpenLDAP Foundation.
- * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted only as authorized by the OpenLDAP
@@ -32,7 +13,8 @@
  * <http://www.OpenLDAP.org/license.html>.
  */
 
-/*
+/* backglue.c - backend glue.
+ *
  * Functions to glue a bunch of other backends into a single tree.
  * All of the glued backends must share a common suffix. E.g., you
  * can glue o=foo and ou=bar,o=foo but you can't glue o=foo and o=bar.

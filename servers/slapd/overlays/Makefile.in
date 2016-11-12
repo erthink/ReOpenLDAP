@@ -14,8 +14,6 @@
 
 @SET_MAKE@
 
-# Makefile.in for overlays
-
 VPATH = @srcdir@
 am__is_gnu_make = { \
   if test -z '$(MAKELEVEL)'; then \

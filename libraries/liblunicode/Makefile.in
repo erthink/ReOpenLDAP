@@ -14,8 +14,6 @@
 
 @SET_MAKE@
 
-# Makefile.in for LDAP -llunicode
-
 
 VPATH = @srcdir@
 am__is_gnu_make = { \
