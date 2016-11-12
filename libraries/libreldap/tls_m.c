@@ -1008,7 +1008,6 @@ tlsm_get_pin(PK11SlotInfo *slot, PRBool retry, tlsm_ctx *ctx)
 		int infd = PR_FileDesc2NativeHandle( PR_STDIN );
 		int isTTY = isatty( infd );
 		unsigned char phrase[200];
-		char *dummy;
 		/* Prompt for password */
 		if ( isTTY ) {
 			fprintf( stdout,
