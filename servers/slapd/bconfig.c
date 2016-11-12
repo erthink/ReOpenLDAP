@@ -1,27 +1,8 @@
-/* bconfig.c - the config backend */
 /* $ReOpenLDAP$ */
-/* Copyright (c) 2015,2016 Leonid Yuriev <leo@yuriev.ru>.
- * Copyright (c) 2015,2016 Peter-Service R&D LLC <http://billing.ru/>.
+/* Copyright 1990-2016 ReOpenLDAP AUTHORS: please see AUTHORS file.
+ * All rights reserved.
  *
  * This file is part of ReOpenLDAP.
- *
- * ReOpenLDAP is free software; you can redistribute it and/or modify it under
- * the terms of the GNU Affero General Public License as published by
- * the Free Software Foundation; either version 3 of the License, or
- * (at your option) any later version.
- *
- * ReOpenLDAP is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- *
- * ---
- *
- * Copyright 2005-2014 The OpenLDAP Foundation.
- * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted only as authorized by the OpenLDAP
@@ -31,6 +12,9 @@
  * top-level directory of the distribution or, alternatively, at
  * <http://www.OpenLDAP.org/license.html>.
  */
+
+/* bconfig.c - the config backend */
+
 /* ACKNOWLEDGEMENTS:
  * This work was originally developed by Howard Chu for inclusion
  * in OpenLDAP Software.
@@ -165,7 +149,7 @@ static ConfigDriver config_updateref;
 static ConfigDriver config_extra_attrs;
 static ConfigDriver config_include;
 static ConfigDriver config_obsolete;
-#ifdef HAVE_TLS
+#ifdef WITH_TLS
 static ConfigDriver config_tls_option;
 static ConfigDriver config_tls_config;
 #endif
@@ -733,7 +717,7 @@ static ConfigTable config_back_cf_table[] = {
 		&config_timelimit, "( OLcfgGlAt:67 NAME 'olcTimeLimit' "
 			"SYNTAX OMsDirectoryString )", NULL, NULL },
 	{ "TLSCACertificateFile", NULL, 2, 2, 0,
-#ifdef HAVE_TLS
+#ifdef WITH_TLS
 		CFG_TLS_CA_FILE|ARG_STRING|ARG_MAGIC, &config_tls_option,
 #else
 		ARG_IGNORED, NULL,
@@ -741,7 +725,7 @@ static ConfigTable config_back_cf_table[] = {
 		"( OLcfgGlAt:68 NAME 'olcTLSCACertificateFile' "
 			"SYNTAX OMsDirectoryString SINGLE-VALUE )", NULL, NULL },
 	{ "TLSCACertificatePath", NULL,	2, 2, 0,
-#ifdef HAVE_TLS
+#ifdef WITH_TLS
 		CFG_TLS_CA_PATH|ARG_STRING|ARG_MAGIC, &config_tls_option,
 #else
 		ARG_IGNORED, NULL,
@@ -749,7 +733,7 @@ static ConfigTable config_back_cf_table[] = {
 		"( OLcfgGlAt:69 NAME 'olcTLSCACertificatePath' "
 			"SYNTAX OMsDirectoryString SINGLE-VALUE )", NULL, NULL },
 	{ "TLSCertificateFile", NULL, 2, 2, 0,
-#ifdef HAVE_TLS
+#ifdef WITH_TLS
 		CFG_TLS_CERT_FILE|ARG_STRING|ARG_MAGIC, &config_tls_option,
 #else
 		ARG_IGNORED, NULL,
@@ -757,7 +741,7 @@ static ConfigTable config_back_cf_table[] = {
 		"( OLcfgGlAt:70 NAME 'olcTLSCertificateFile' "
 			"SYNTAX OMsDirectoryString SINGLE-VALUE )", NULL, NULL },
 	{ "TLSCertificateKeyFile", NULL, 2, 2, 0,
-#ifdef HAVE_TLS
+#ifdef WITH_TLS
 		CFG_TLS_CERT_KEY|ARG_STRING|ARG_MAGIC, &config_tls_option,
 #else
 		ARG_IGNORED, NULL,
@@ -765,7 +749,7 @@ static ConfigTable config_back_cf_table[] = {
 		"( OLcfgGlAt:71 NAME 'olcTLSCertificateKeyFile' "
 			"SYNTAX OMsDirectoryString SINGLE-VALUE )", NULL, NULL },
 	{ "TLSCipherSuite",	NULL, 2, 2, 0,
-#ifdef HAVE_TLS
+#ifdef WITH_TLS
 		CFG_TLS_CIPHER|ARG_STRING|ARG_MAGIC, &config_tls_option,
 #else
 		ARG_IGNORED, NULL,
@@ -773,7 +757,7 @@ static ConfigTable config_back_cf_table[] = {
 		"( OLcfgGlAt:72 NAME 'olcTLSCipherSuite' "
 			"SYNTAX OMsDirectoryString SINGLE-VALUE )", NULL, NULL },
 	{ "TLSCRLCheck", NULL, 2, 2, 0,
-#if defined(HAVE_TLS) && defined(HAVE_OPENSSL_CRL)
+#if defined(WITH_TLS) && defined(HAVE_OPENSSL_CRL)
 		CFG_TLS_CRLCHECK|ARG_STRING|ARG_MAGIC, &config_tls_config,
 #else
 		ARG_IGNORED, NULL,
@@ -781,7 +765,7 @@ static ConfigTable config_back_cf_table[] = {
 		"( OLcfgGlAt:73 NAME 'olcTLSCRLCheck' "
 			"SYNTAX OMsDirectoryString SINGLE-VALUE )", NULL, NULL },
 	{ "TLSCRLFile", NULL, 2, 2, 0,
-#if defined(HAVE_GNUTLS)
+#ifdef WITH_TLS
 		CFG_TLS_CRL_FILE|ARG_STRING|ARG_MAGIC, &config_tls_option,
 #else
 		ARG_IGNORED, NULL,
@@ -789,7 +773,7 @@ static ConfigTable config_back_cf_table[] = {
 		"( OLcfgGlAt:82 NAME 'olcTLSCRLFile' "
 			"SYNTAX OMsDirectoryString SINGLE-VALUE )", NULL, NULL },
 	{ "TLSRandFile", NULL, 2, 2, 0,
-#ifdef HAVE_TLS
+#ifdef WITH_TLS
 		CFG_TLS_RAND|ARG_STRING|ARG_MAGIC, &config_tls_option,
 #else
 		ARG_IGNORED, NULL,
@@ -797,7 +781,7 @@ static ConfigTable config_back_cf_table[] = {
 		"( OLcfgGlAt:74 NAME 'olcTLSRandFile' "
 			"SYNTAX OMsDirectoryString SINGLE-VALUE )", NULL, NULL },
 	{ "TLSVerifyClient", NULL, 2, 2, 0,
-#ifdef HAVE_TLS
+#ifdef WITH_TLS
 		CFG_TLS_VERIFY|ARG_STRING|ARG_MAGIC, &config_tls_config,
 #else
 		ARG_IGNORED, NULL,
@@ -805,7 +789,7 @@ static ConfigTable config_back_cf_table[] = {
 		"( OLcfgGlAt:75 NAME 'olcTLSVerifyClient' "
 			"SYNTAX OMsDirectoryString SINGLE-VALUE )", NULL, NULL },
 	{ "TLSDHParamFile", NULL, 2, 2, 0,
-#ifdef HAVE_TLS
+#ifdef WITH_TLS
 		CFG_TLS_DH_FILE|ARG_STRING|ARG_MAGIC, &config_tls_option,
 #else
 		ARG_IGNORED, NULL,
@@ -813,7 +797,7 @@ static ConfigTable config_back_cf_table[] = {
 		"( OLcfgGlAt:77 NAME 'olcTLSDHParamFile' "
 			"SYNTAX OMsDirectoryString SINGLE-VALUE )", NULL, NULL },
 	{ "TLSECName", NULL, 2, 2, 0,
-#ifdef HAVE_TLS
+#ifdef WITH_TLS
 		CFG_TLS_ECNAME|ARG_STRING|ARG_MAGIC, &config_tls_option,
 #else
 		ARG_IGNORED, NULL,
@@ -821,7 +805,7 @@ static ConfigTable config_back_cf_table[] = {
 		"( OLcfgGlAt:96 NAME 'olcTLSECName' "
 			"SYNTAX OMsDirectoryString SINGLE-VALUE )", NULL, NULL },
 	{ "TLSProtocolMin",	NULL, 2, 2, 0,
-#ifdef HAVE_TLS
+#ifdef WITH_TLS
 		CFG_TLS_PROTOCOL_MIN|ARG_STRING|ARG_MAGIC, &config_tls_config,
 #else
 		ARG_IGNORED, NULL,
@@ -3930,6 +3914,10 @@ loglevel2bvarray( int l, BerVarray *bva )
 		return value_add_one( bva, &bv );
 	}
 
+	if ( l == 0 ) {
+		return value_add_one( bva, ber_bvstr( "0" ) );
+	}
+
 	return mask_to_verbs( loglevel_ops, l, bva );
 }
 
@@ -4302,7 +4290,7 @@ config_include(ConfigArgs *c) {
 	return(rc);
 }
 
-#ifdef HAVE_TLS
+#ifdef WITH_TLS
 static int
 config_tls_cleanup(ConfigArgs *c) {
 	int rc = 0;
@@ -8078,7 +8066,6 @@ config_back_initialize( BackendInfo *bi )
 	bi->bi_tool_entry_modify = config_tool_entry_modify;
 	bi->bi_tool_entry_delete = config_tool_entry_delete;
 
-	ca.argv = argv;
 	argv[ 0 ] = "slapd";
 	ca.argv = argv;
 	ca.argc = 3;

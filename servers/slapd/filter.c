@@ -1,27 +1,8 @@
-/* filter.c - routines for parsing and dealing with filters */
 /* $ReOpenLDAP$ */
-/* Copyright (c) 2015,2016 Leonid Yuriev <leo@yuriev.ru>.
- * Copyright (c) 2015,2016 Peter-Service R&D LLC <http://billing.ru/>.
+/* Copyright 1990-2016 ReOpenLDAP AUTHORS: please see AUTHORS file.
+ * All rights reserved.
  *
  * This file is part of ReOpenLDAP.
- *
- * ReOpenLDAP is free software; you can redistribute it and/or modify it under
- * the terms of the GNU Affero General Public License as published by
- * the Free Software Foundation; either version 3 of the License, or
- * (at your option) any later version.
- *
- * ReOpenLDAP is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- *
- * ---
- *
- * Copyright 1998-2014 The OpenLDAP Foundation.
- * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted only as authorized by the OpenLDAP
@@ -31,16 +12,8 @@
  * top-level directory of the distribution or, alternatively, at
  * <http://www.OpenLDAP.org/license.html>.
  */
-/* Portions Copyright (c) 1995 Regents of the University of Michigan.
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms are permitted
- * provided that this notice is preserved and that due credit is given
- * to the University of Michigan at Ann Arbor. The name of the University
- * may not be used to endorse or promote products derived from this
- * software without specific prior written permission. This software
- * is provided ``as is'' without express or implied warranty.
- */
+
+/* filter.c - routines for parsing and dealing with filters */
 
 #include "reldap.h"
 
@@ -196,33 +169,45 @@ get_filter(
 
 	case LDAP_FILTER_PRESENT: {
 		struct berval type;
+		int ber_rc;
 
 		Debug( LDAP_DEBUG_FILTER, "PRESENT\n" );
-		if ( ber_scanf( ber, "m", &type ) == LBER_ERROR ) {
+		ber_rc = ber_scanf( ber, "m", &type );
+		if ( ber_rc == LBER_ERROR ) {
 			err = SLAPD_DISCONNECT;
 			*text = "error decoding filter";
 			break;
 		}
 
+		*text = NULL;
 		f.f_desc = NULL;
 		err = slap_bv2ad( &type, &f.f_desc, text );
 
-		if( err != LDAP_SUCCESS ) {
+		if ( err == LDAP_UNDEFINED_TYPE ) {
+			/* allow undefined attrs to be "proxied" (ITS#3959) */
 			f.f_choice |= SLAPD_FILTER_UNDEFINED;
 			err = slap_bv2undef_ad( &type, &f.f_desc, text,
 				SLAP_AD_PROXIED|SLAP_AD_NOINSERT );
+		}
 
-			if ( err != LDAP_SUCCESS ) {
-				/* unrecognized attribute description or other error */
-				Debug( LDAP_DEBUG_ANY,
-					"get_filter: conn %lu unknown attribute "
-					"type=%s (%d)\n",
-					op->o_connid, type.bv_val, err );
-
-				err = LDAP_SUCCESS;
-				f.f_desc = slap_bv2tmp_ad( &type, op->o_tmpmemctx );
+		if ( err != LDAP_SUCCESS ) {
+			if ( err != LDAP_UNDEFINED_TYPE ) {
+				/* syntax or other syntax-related error */
+				Debug( LDAP_DEBUG_FILTER,
+					"get_filter: conn %lu invalid filter-preset attribute %s (%s, %d)\n",
+					op->o_connid, type.bv_val, *text, err );
+				assert( *text != NULL );
+				break;
 			}
+
+			/* unrecognized attribute description or other error */
+			Debug( LDAP_DEBUG_ANY,
+				"get_filter: conn %lu unknown attribute type=%s (%s, %d)\n",
+				op->o_connid, type.bv_val, *text, err );
+
+			f.f_desc = slap_bv2tmp_ad( &type, op->o_tmpmemctx );
 			*text = NULL;
+			err = LDAP_SUCCESS;
 		}
 
 		assert( f.f_desc != NULL );
@@ -371,41 +356,41 @@ get_ssa(
 	char		*last;
 	SubstringsAssertion ssa;
 
-	*text = "error decoding filter";
-
 	Debug( LDAP_DEBUG_FILTER, "begin get_ssa\n" );
 	if ( ber_scanf( ber, "{m" /*}*/, &desc ) == LBER_ERROR ) {
+		*text = "error decoding filter";
 		return SLAPD_DISCONNECT;
 	}
-
-	*text = NULL;
 
 	ssa.sa_desc = NULL;
 	ssa.sa_initial.bv_val = NULL;
 	ssa.sa_any = NULL;
 	ssa.sa_final.bv_val = NULL;
 
+	*text = NULL;
 	rc = slap_bv2ad( &desc, &ssa.sa_desc, text );
+	if ( rc == LDAP_UNDEFINED_TYPE ) {
+		/* allow undefined attrs to be "proxied" (ITS#3959) */
+		f->f_choice |= SLAPD_FILTER_UNDEFINED;
+		rc = slap_bv2undef_ad( &desc, &ssa.sa_desc, text,
+			SLAP_AD_PROXIED|SLAP_AD_NOINSERT );
+	}
 
 	if( rc != LDAP_SUCCESS ) {
-		f->f_choice |= SLAPD_FILTER_UNDEFINED;
-		int rc2 = slap_bv2undef_ad( &desc, &ssa.sa_desc, text,
-			SLAP_AD_PROXIED|SLAP_AD_NOINSERT );
-
-		if( rc2 != LDAP_SUCCESS ) {
-			if ( desc.bv_val && *desc.bv_val /* LY: zap worthless */ ) {
-				Debug( LDAP_DEBUG_ANY,
-					"get_ssa: conn %lu unknown attribute type=%s (%d, %d)\n",
-					op->o_connid, desc.bv_val, rc, rc2 );
-			} else {
-				/* LY: but make a whole backtrace, instead of. */
-				static volatile int once;
-				if (once == 0 && __sync_fetch_and_add(&once, 1) == 0)
-					slap_backtrace_debug();
-			}
-
-			ssa.sa_desc = slap_bv2tmp_ad( &desc, op->o_tmpmemctx );
+		if ( rc != LDAP_UNDEFINED_TYPE ) {
+			/* syntax or other syntax-related error */
+			Debug( LDAP_DEBUG_FILTER,
+				"get_ssa: conn %lu invalid filter-preset attribute %s (%s, %d)\n",
+				op->o_connid, desc.bv_val, *text, rc );
+			assert( *text != NULL );
+			return rc;
 		}
+
+		Debug( LDAP_DEBUG_ANY,
+			"get_ssa: conn %lu unknown attribute type=%s (%s, %d)\n",
+			op->o_connid, desc.bv_val, *text, rc );
+
+		ssa.sa_desc = slap_bv2tmp_ad( &desc, op->o_tmpmemctx );
 	}
 
 	rc = LDAP_PROTOCOL_ERROR;

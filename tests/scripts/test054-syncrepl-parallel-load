@@ -1,27 +1,9 @@
 #!/bin/bash
 ## $ReOpenLDAP$
-## Copyright (c) 2015,2016 Leonid Yuriev <leo@yuriev.ru>.
-## Copyright (c) 2015,2016 Peter-Service R&D LLC <http://billing.ru/>.
+## Copyright 1998-2016 ReOpenLDAP AUTHORS: please see AUTHORS file.
+## All rights reserved.
 ##
 ## This file is part of ReOpenLDAP.
-##
-## ReOpenLDAP is free software; you can redistribute it and/or modify it under
-## the terms of the GNU Affero General Public License as published by
-## the Free Software Foundation; either version 3 of the License, or
-## (at your option) any later version.
-##
-## ReOpenLDAP is distributed in the hope that it will be useful,
-## but WITHOUT ANY WARRANTY; without even the implied warranty of
-## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-## GNU Affero General Public License for more details.
-##
-## You should have received a copy of the GNU Affero General Public License
-## along with this program.  If not, see <http://www.gnu.org/licenses/>.
-##
-## ---
-##
-## Copyright 1998-2014 The OpenLDAP Foundation.
-## All rights reserved.
 ##
 ## Redistribution and use in source and binary forms, with or without
 ## modification, are permitted only as authorized by the OpenLDAP
@@ -53,6 +35,7 @@ mkdir -p $TESTDIR $DBDIR1 $DBDIR4
 
 echo "Starting provider slapd on TCP/IP port $PORT1..."
 config_filter $BACKEND ${AC_conf[monitor]} < $SRMASTERCONF > $CONF1
+sed -e 's/^overlay\tsyncprov/biglock\t\tlocal\n&/' -i $CONF1
 $SLAPD -f $CONF1 -h $URI1 $TIMING > $LOG1 2>&1 &
 PID=$!
 if test $WAIT != 0 ; then
@@ -74,6 +57,7 @@ fi
 
 echo "Starting consumer slapd on TCP/IP port $PORT4..."
 config_filter $BACKEND ${AC_conf[monitor]} < $P1SRSLAVECONF > $CONF4
+sed -e 's/^overlay\tsyncprov/biglock\t\tlocal\n&/' -i $CONF4
 $SLAPD -f $CONF4 -h $URI4 $TIMING > $LOG4 2>&1 &
 SLAVEPID=$!
 if test $WAIT != 0 ; then

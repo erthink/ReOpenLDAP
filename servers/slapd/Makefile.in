@@ -174,47 +174,31 @@ sbin_PROGRAMS = slapd$(EXEEXT)
 @SLAPD_DYNAMIC_TRUE@am__append_77 = $(LTDLINCL)
 @SLAPD_DYNAMIC_TRUE@am__append_78 = -export-dynamic -dlopen self
 @SLAPD_DYNAMIC_TRUE@am__append_79 = $(LIBLTDL)
-@SLAPD_DYNAMIC_FALSE@slapd_DEPENDENCIES =  \
-@SLAPD_DYNAMIC_FALSE@	overlays/liboverlays_builtin.la \
-@SLAPD_DYNAMIC_FALSE@	$(am__append_4) $(am__append_8) \
-@SLAPD_DYNAMIC_FALSE@	$(am__append_12) $(am__append_16) \
-@SLAPD_DYNAMIC_FALSE@	$(am__append_20) $(am__append_24) \
-@SLAPD_DYNAMIC_FALSE@	$(am__append_28) $(am__append_32) \
-@SLAPD_DYNAMIC_FALSE@	$(am__append_36) $(am__append_40) \
-@SLAPD_DYNAMIC_FALSE@	$(am__append_44) $(am__append_48) \
-@SLAPD_DYNAMIC_FALSE@	$(am__DEPENDENCIES_1) $(am__append_57) \
-@SLAPD_DYNAMIC_FALSE@	$(am__append_61) $(am__append_66) \
-@SLAPD_DYNAMIC_FALSE@	$(am__append_70) $(am__append_74) \
-@SLAPD_DYNAMIC_FALSE@	$(am__append_76) $(am__DEPENDENCIES_3) \
-@SLAPD_DYNAMIC_FALSE@	$(am__DEPENDENCIES_4) \
-@SLAPD_DYNAMIC_FALSE@	$(am__DEPENDENCIES_2) \
-@SLAPD_DYNAMIC_FALSE@	$(am__DEPENDENCIES_2) \
-@SLAPD_DYNAMIC_FALSE@	$(am__DEPENDENCIES_2) \
-@SLAPD_DYNAMIC_FALSE@	$(am__DEPENDENCIES_2)
+@SLAPD_DYNAMIC_TRUE@am__append_80 = $(LTDLDEPS)
 
 #########################################
-@ACCESSLOG_DYNAMIC_FALSE@@BUILD_ACCESSLOG_TRUE@am__append_80 = accesslog
-@AUDITLOG_DYNAMIC_FALSE@@BUILD_AUDITLOG_TRUE@am__append_81 = auditlog
-@BUILD_COLLECT_TRUE@@COLLECT_DYNAMIC_FALSE@am__append_82 = collect
-@BUILD_CONSTRAINT_TRUE@@CONSTRAINT_DYNAMIC_FALSE@am__append_83 = constraint
-@BUILD_DDS_TRUE@@DDS_DYNAMIC_FALSE@am__append_84 = dds
-@BUILD_DEREF_TRUE@@DEREF_DYNAMIC_FALSE@am__append_85 = deref
-@BUILD_DYNGROUP_TRUE@@DYNGROUP_DYNAMIC_FALSE@am__append_86 = dyngroup
-@BUILD_DYNLIST_TRUE@@DYNLIST_DYNAMIC_FALSE@am__append_87 = dynlist
-@BUILD_MEMBEROF_TRUE@@MEMBEROF_DYNAMIC_FALSE@am__append_88 = memberof
-@BUILD_PPOLICY_TRUE@@PPOLICY_DYNAMIC_FALSE@am__append_89 = ppolicy
-@BUILD_PCACHE_TRUE@@PCACHE_DYNAMIC_FALSE@am__append_90 = pcache
-@BUILD_REFINT_TRUE@@REFINT_DYNAMIC_FALSE@am__append_91 = refint
-@BUILD_RETCODE_TRUE@@RETCODE_DYNAMIC_FALSE@am__append_92 = retcode
-@BUILD_RWM_TRUE@@RWM_DYNAMIC_FALSE@am__append_93 = rwm
-@BUILD_SEQMOD_TRUE@@SEQMOD_DYNAMIC_FALSE@am__append_94 = seqmod
-@BUILD_SSSVLV_TRUE@@SSSVLV_DYNAMIC_FALSE@am__append_95 = sssvlv
-@BUILD_SYNCPROV_TRUE@@SYNCPROV_DYNAMIC_FALSE@am__append_96 = syncprov
-@BUILD_TRANSLUCENT_TRUE@@TRANSLUCENT_DYNAMIC_FALSE@am__append_97 = translucent
-@BUILD_UNIQUE_TRUE@@UNIQUE_DYNAMIC_FALSE@am__append_98 = unique
-@BUILD_VALSORT_TRUE@@VALSORT_DYNAMIC_FALSE@am__append_99 = valsort
-@BEHIND_CURTIAN_TRUE@am__append_100 = banner.c
-@BUILD_REWRITE_TRUE@am__append_101 = $(LDAP_LIBREWRITE_LA)
+@ACCESSLOG_DYNAMIC_FALSE@@BUILD_ACCESSLOG_TRUE@am__append_81 = accesslog
+@AUDITLOG_DYNAMIC_FALSE@@BUILD_AUDITLOG_TRUE@am__append_82 = auditlog
+@BUILD_COLLECT_TRUE@@COLLECT_DYNAMIC_FALSE@am__append_83 = collect
+@BUILD_CONSTRAINT_TRUE@@CONSTRAINT_DYNAMIC_FALSE@am__append_84 = constraint
+@BUILD_DDS_TRUE@@DDS_DYNAMIC_FALSE@am__append_85 = dds
+@BUILD_DEREF_TRUE@@DEREF_DYNAMIC_FALSE@am__append_86 = deref
+@BUILD_DYNGROUP_TRUE@@DYNGROUP_DYNAMIC_FALSE@am__append_87 = dyngroup
+@BUILD_DYNLIST_TRUE@@DYNLIST_DYNAMIC_FALSE@am__append_88 = dynlist
+@BUILD_MEMBEROF_TRUE@@MEMBEROF_DYNAMIC_FALSE@am__append_89 = memberof
+@BUILD_PPOLICY_TRUE@@PPOLICY_DYNAMIC_FALSE@am__append_90 = ppolicy
+@BUILD_PCACHE_TRUE@@PCACHE_DYNAMIC_FALSE@am__append_91 = pcache
+@BUILD_REFINT_TRUE@@REFINT_DYNAMIC_FALSE@am__append_92 = refint
+@BUILD_RETCODE_TRUE@@RETCODE_DYNAMIC_FALSE@am__append_93 = retcode
+@BUILD_RWM_TRUE@@RWM_DYNAMIC_FALSE@am__append_94 = rwm
+@BUILD_SEQMOD_TRUE@@SEQMOD_DYNAMIC_FALSE@am__append_95 = seqmod
+@BUILD_SSSVLV_TRUE@@SSSVLV_DYNAMIC_FALSE@am__append_96 = sssvlv
+@BUILD_SYNCPROV_TRUE@@SYNCPROV_DYNAMIC_FALSE@am__append_97 = syncprov
+@BUILD_TRANSLUCENT_TRUE@@TRANSLUCENT_DYNAMIC_FALSE@am__append_98 = translucent
+@BUILD_UNIQUE_TRUE@@UNIQUE_DYNAMIC_FALSE@am__append_99 = unique
+@BUILD_VALSORT_TRUE@@VALSORT_DYNAMIC_FALSE@am__append_100 = valsort
+@BEHIND_CURTIAN_TRUE@am__append_101 = banner.c
+@BUILD_REWRITE_TRUE@am__append_102 = $(LDAP_LIBREWRITE_LA)
 subdir = servers/slapd
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/build/m4/ax_pthread.m4 \
@@ -431,6 +415,9 @@ CCDEPMODE = @CCDEPMODE@
 CFLAGS = @CFLAGS@
 CPP = @CPP@
 CPPFLAGS = @CPPFLAGS@
+CRACKLIB_CFLAGS = @CRACKLIB_CFLAGS@
+CRACKLIB_DICTPATH = @CRACKLIB_DICTPATH@
+CRACKLIB_LIBS = @CRACKLIB_LIBS@
 CXX = @CXX@
 CXXCPP = @CXXCPP@
 CXXDEPMODE = @CXXDEPMODE@
@@ -453,7 +440,10 @@ EXEEXT = @EXEEXT@
 FGREP = @FGREP@
 FIXUP_DIRS = @FIXUP_DIRS@
 FIXUP_DIST = @FIXUP_DIST@
+GNUTLS_CFLAGS = @GNUTLS_CFLAGS@
+GNUTLS_LIBS = @GNUTLS_LIBS@
 GREP = @GREP@
+GSSAPI_LIBS = @GSSAPI_LIBS@
 HEIMDAL_CFLAGS = @HEIMDAL_CFLAGS@
 HEIMDAL_LIBS = @HEIMDAL_LIBS@
 INCLTDL = @INCLTDL@
@@ -500,6 +490,8 @@ MKBANNER_VERBOSE_ = @MKBANNER_VERBOSE_@
 MKBANNER_VERBOSE_0 = @MKBANNER_VERBOSE_0@
 MKBANNER_VERBOSE_1 = @MKBANNER_VERBOSE_1@
 MKDIR_P = @MKDIR_P@
+MOZNSS_CFLAGS = @MOZNSS_CFLAGS@
+MOZNSS_LIBS = @MOZNSS_LIBS@
 MYSQL = @MYSQL@
 NDB_INCLUDES = @NDB_INCLUDES@
 NDB_LDFLAGS = @NDB_LDFLAGS@
@@ -509,6 +501,8 @@ NM = @NM@
 NMEDIT = @NMEDIT@
 OBJDUMP = @OBJDUMP@
 OBJEXT = @OBJEXT@
+OPENSSL_CFLAGS = @OPENSSL_CFLAGS@
+OPENSSL_LIBS = @OPENSSL_LIBS@
 OTOOL = @OTOOL@
 OTOOL64 = @OTOOL64@
 PACKAGE = @PACKAGE@
@@ -534,6 +528,7 @@ PTHREAD_LIBS = @PTHREAD_LIBS@
 RANLIB = @RANLIB@
 RELEASE_DATE = @RELEASE_DATE@
 RELEASE_STAMP = @RELEASE_STAMP@
+REOPENLDAP_BUILDID_SUFFIX = @REOPENLDAP_BUILDID_SUFFIX@
 SASL_LIBS = @SASL_LIBS@
 SECURITY_LIBS = @SECURITY_LIBS@
 SED = @SED@
@@ -555,6 +550,9 @@ SOELIM_R = @SOELIM_R@
 SQL_INCLUDES = @SQL_INCLUDES@
 SQL_LIBS = @SQL_LIBS@
 STRIP = @STRIP@
+TLS_CFLAGS = @TLS_CFLAGS@
+TLS_FALLBACK_CFLAGS = @TLS_FALLBACK_CFLAGS@
+TLS_FALLBACK_LIBS = @TLS_FALLBACK_LIBS@
 TLS_LIBS = @TLS_LIBS@
 VALGRIND = @VALGRIND@
 VALGRIND_ENABLED = @VALGRIND_ENABLED@
@@ -564,6 +562,7 @@ VERSION_MINOR = @VERSION_MINOR@
 VERSION_NUMBER = @VERSION_NUMBER@
 VERSION_PATCH = @VERSION_PATCH@
 WITH_ACI_ENABLED = @WITH_ACI_ENABLED@
+WITH_GSSAPI = @WITH_GSSAPI@
 WITH_SASL = @WITH_SASL@
 WITH_TLS = @WITH_TLS@
 WT_CFLAGS = @WT_CFLAGS@
@@ -661,13 +660,13 @@ backends_DYNAMIC = $(am__append_2) $(am__append_6) $(am__append_10) \
 	$(am__append_38) $(am__append_42) $(am__append_46) \
 	$(am__append_50) $(am__append_55) $(am__append_59) \
 	$(am__append_64) $(am__append_68) $(am__append_72)
-overlays_BUILTIN = $(am__append_80) $(am__append_81) $(am__append_82) \
-	$(am__append_83) $(am__append_84) $(am__append_85) \
-	$(am__append_86) $(am__append_87) $(am__append_88) \
-	$(am__append_89) $(am__append_90) $(am__append_91) \
-	$(am__append_92) $(am__append_93) $(am__append_94) \
-	$(am__append_95) $(am__append_96) $(am__append_97) \
-	$(am__append_98) $(am__append_99)
+overlays_BUILTIN = $(am__append_81) $(am__append_82) $(am__append_83) \
+	$(am__append_84) $(am__append_85) $(am__append_86) \
+	$(am__append_87) $(am__append_88) $(am__append_89) \
+	$(am__append_90) $(am__append_91) $(am__append_92) \
+	$(am__append_93) $(am__append_94) $(am__append_95) \
+	$(am__append_96) $(am__append_97) $(am__append_98) \
+	$(am__append_99) $(am__append_100)
 overlays_DYNAMIC = 
 AM_CPPFLAGS = -I${top_srcdir}/include $(am__append_77)
 slaptools = slapadd slapcat slapdn slapindex slappasswd slaptest slapauth slapacl slapschema slapmodify
@@ -678,16 +677,16 @@ slapd_LDADD = overlays/liboverlays_builtin.la $(am__append_4) \
 	$(am__append_44) $(am__append_48) $(am__append_52) \
 	$(am__append_57) $(am__append_61) $(am__append_66) \
 	$(am__append_70) $(am__append_74) $(am__append_76) \
-	$(am__append_79) $(am__append_101) $(LDAP_LIBRELDAP_LA) \
+	$(am__append_79) $(am__append_102) $(LDAP_LIBRELDAP_LA) \
 	$(LDAP_LIBLUTIL_LA) $(LDAP_LIBLUNICODE_LA) $(SLAPD_LIBS)
 slapd_LDFLAGS = $(am__append_53) $(am__append_62) $(am__append_78)
+slapd_DEPENDENCIES = $(am__append_80)
 EXTRA_DIST = slapd.ldif.in slapd.conf.in $(schema_files)
 CLEANFILES = slapd.ldif slapd.conf builtin.c
 sysconf_DATA = slapd.ldif slapd.conf
-@SLAPD_DYNAMIC_TRUE@slapd_DEPENDENCIES = $(LTDLDEPS)
 
 #########################################
-BUILT_SOURCES = builtin.c $(am__append_100)
+BUILT_SOURCES = builtin.c $(am__append_101)
 nodist_slapd_SOURCES = builtin.c
 slapd_SOURCES = abandon.c aci.c acl.c aclparse.c ad.c add.c \
 	alock.c at.c attr.c ava.c backend.c backglue.c backover.c \
@@ -1295,7 +1294,7 @@ slapd.conf: $(srcdir)/slapd.conf.in Makefile
 
 install-exec-hook:
 	@if $(AM_V_P); then set -x; else echo "  INSTALL  slaptools"; fi; \
-	(cd $(sbindir) && \
+	(cd $(DESTDIR)$(sbindir) && \
 		$(RM) -f $(slaptools) && \
 		for T in $(slaptools); do \
 			$(LN_S) slapd$(EXEEXT) $${T}$(EXEEXT) || exit 1; \
@@ -1303,17 +1302,17 @@ install-exec-hook:
 
 install-data-hook:
 	@if $(AM_V_P); then set -x; else echo "  INSTALL  schema"; fi; \
-	$(MKDIR_P) $(sysconfdir)/schema && \
-		(cd $(srcdir) && $(INSTALL) -t $(sysconfdir)/schema -m 0444 $(schema_files))
+	$(MKDIR_P) $(DESTDIR)$(sysconfdir)/schema && \
+		(cd $(srcdir) && $(INSTALL) -t $(DESTDIR)$(sysconfdir)/schema -m 0444 $(schema_files))
 
 uninstall-hook:
 	@if $(AM_V_P); then set -x; else echo "  UNINSTALL slaptools & schema"; fi; \
-	(cd $(sbindir) && \
+	(cd $(DESTDIR)$(sbindir) && \
 		$(RM) -f $(slaptools) && \
 		for T in $(slaptools); do \
 			$(RM) -f $${T}$(EXEEXT) || exit 1; \
 		done) && \
-	(cd $(sysconfdir) && rm -f $(schema_files)) && rmdir $(sysconfdir)/schema
+	(cd $(DESTDIR)$(sysconfdir) && $(RM) -f $(schema_files)) && rmdir $(DESTDIR)$(sysconfdir)/schema
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.

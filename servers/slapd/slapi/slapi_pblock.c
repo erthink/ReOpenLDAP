@@ -1,27 +1,8 @@
 /* $ReOpenLDAP$ */
-/* Copyright (c) 2015,2016 Leonid Yuriev <leo@yuriev.ru>.
- * Copyright (c) 2015,2016 Peter-Service R&D LLC <http://billing.ru/>.
+/* Copyright 2002-2016 ReOpenLDAP AUTHORS: please see AUTHORS file.
+ * All rights reserved.
  *
  * This file is part of ReOpenLDAP.
- *
- * ReOpenLDAP is free software; you can redistribute it and/or modify it under
- * the terms of the GNU Affero General Public License as published by
- * the Free Software Foundation; either version 3 of the License, or
- * (at your option) any later version.
- *
- * ReOpenLDAP is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- *
- * ---
- *
- * Copyright 2002-2014 The OpenLDAP Foundation.
- * Portions Copyright 1997,2002-2003 IBM Corporation.
- * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted only as authorized by the OpenLDAP
@@ -31,6 +12,7 @@
  * top-level directory of the distribution or, alternatively, at
  * <http://www.OpenLDAP.org/license.html>.
  */
+
 /* ACKNOWLEDGEMENTS:
  * This work was initially developed by IBM Corporation for use in
  * IBM products and subsequently ported to OpenLDAP Software by
@@ -581,7 +563,7 @@ pblock_get( Slapi_PBlock *pb, int param, void **value )
 	case SLAPI_CONN_AUTHMETHOD: /* XXX should return SASL mech */
 		PBLOCK_ASSERT_CONN( pb );
 		*((char **)value) = pblock_get_authtype( &pb->pb_conn->c_authz,
-#ifdef HAVE_TLS
+#ifdef WITH_TLS
 							 pb->pb_conn->c_is_tls
 #else
 							 0

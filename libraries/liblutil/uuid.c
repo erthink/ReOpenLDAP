@@ -1,28 +1,8 @@
-/* uuid.c -- Universally Unique Identifier routines */
 /* $ReOpenLDAP$ */
-/* Copyright (c) 2015,2016 Leonid Yuriev <leo@yuriev.ru>.
- * Copyright (c) 2015,2016 Peter-Service R&D LLC <http://billing.ru/>.
+/* Copyright 1992-2016 ReOpenLDAP AUTHORS: please see AUTHORS file.
+ * All rights reserved.
  *
  * This file is part of ReOpenLDAP.
- *
- * ReOpenLDAP is free software; you can redistribute it and/or modify it under
- * the terms of the GNU Affero General Public License as published by
- * the Free Software Foundation; either version 3 of the License, or
- * (at your option) any later version.
- *
- * ReOpenLDAP is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- *
- * ---
- *
- * Copyright 2000-2014 The OpenLDAP Foundation.
- * Portions Copyright 2000-2003 Kurt D. Zeilenga.
- * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted only as authorized by the OpenLDAP
@@ -32,22 +12,7 @@
  * top-level directory of the distribution or, alternatively, at
  * <http://www.OpenLDAP.org/license.html>.
  */
-/* Portions Copyright 2000, John E. Schimmel, All rights reserved.
- * This software is not subject to any license of Mirapoint, Inc.
- *
- * This is free software; you can redistribute and use it
- * under the same terms as OpenLDAP itself.
- */
-/* This work was initially developed by John E. Schimmel and adapted
- * for inclusion in OpenLDAP Software by Kurt D. Zeilenga.
- */
 
-/*
- * Sorry this file is so scary, but it needs to run on a wide range of
- * platforms.  The only exported routine is lutil_uuidstr() which is all
- * that LDAP cares about.  It generates a new uuid and returns it in
- * in string form.
- */
 #include "reldap.h"
 
 #include <limits.h>
@@ -67,21 +32,6 @@
 
 #include <lutil.h>
 
-/*
-** All we really care about is an ISO UUID string.  The format of a UUID is:
-**	field			octet		note
-**	time_low		0-3		low field of the timestamp
-**	time_mid		4-5		middle field of timestamp
-**	time_hi_and_version	6-7		high field of timestamp and
-**						version number
-**	clock_seq_hi_and_resv	8		high field of clock sequence
-**						and variant
-**	clock_seq_low		9		low field of clock sequence
-**	node			10-15		spacially unique identifier
-**
-** We use DCE version one, and the DCE variant.  Our unique identifier is
-** the first ethernet address on the system.
-*/
 size_t
 lutil_uuidstr( char *buf, size_t len )
 {

@@ -1,29 +1,8 @@
-/* syncrepl.c -- Replication Engine which uses the LDAP Sync protocol */
 /* $ReOpenLDAP$ */
-/* Copyright (c) 2015,2016 Leonid Yuriev <leo@yuriev.ru>.
- * Copyright (c) 2015,2016 Peter-Service R&D LLC <http://billing.ru/>.
+/* Copyright 2003-2016 ReOpenLDAP AUTHORS: please see AUTHORS file.
+ * All rights reserved.
  *
  * This file is part of ReOpenLDAP.
- *
- * ReOpenLDAP is free software; you can redistribute it and/or modify it under
- * the terms of the GNU Affero General Public License as published by
- * the Free Software Foundation; either version 3 of the License, or
- * (at your option) any later version.
- *
- * ReOpenLDAP is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- *
- * ---
- *
- * Copyright 2003-2014 The OpenLDAP Foundation.
- * Portions Copyright 2003 by IBM Corporation.
- * Portions Copyright 2003-2008 by Howard Chu, Symas Corporation.
- * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted only as authorized by the OpenLDAP
@@ -33,6 +12,8 @@
  * top-level directory of the distribution or, alternatively, at
  * <http://www.OpenLDAP.org/license.html>.
  */
+
+/* syncrepl.c -- Replication Engine which uses the LDAP Sync protocol */
 
 #include "reldap.h"
 
@@ -665,7 +646,7 @@ syncrepl_start(
 	int	rc;
 	int cmdline_cookie_found = 0;
 	struct sync_cookie_item	*sc = NULL;
-#ifdef HAVE_TLS
+#ifdef WITH_TLS
 	void	*ssl;
 #endif
 
@@ -690,13 +671,13 @@ syncrepl_start(
 		op->o_sasl_ssf = 0;
 		op->o_tls_ssf = 0;
 		op->o_transport_ssf = 0;
-#ifdef HAVE_TLS
+#ifdef WITH_TLS
 		if ( ldap_get_option( si->si_ld, LDAP_OPT_X_TLS_SSL_CTX, &ssl )
 			== LDAP_SUCCESS && ssl != NULL )
 		{
 			op->o_tls_ssf = ldap_pvt_tls_get_strength( ssl );
 		}
-#endif /* HAVE_TLS */
+#endif /* WITH_TLS */
 		{
 			ber_len_t ssf; /* ITS#5403, 3864 LDAP_OPT_X_SASL_SSF probably ought
 							  to use sasl_ssf_t but currently uses ber_len_t */
@@ -3104,8 +3085,25 @@ syncrepl_entry(
 	}
 
 	if ( syncCookie->numcsns && dni.csn_incomming.bv_val ) {
-		assert( syncCookie->numcsns == 1 );
-		assert( slap_csn_match( &dni.csn_incomming, syncCookie->ctxcsn ) );
+		if (syncCookie->numcsns != 1 && reopenldap_mode_righteous()) {
+			Debug( LDAP_DEBUG_ANY, "syncrepl_entry: csn-in-cookie != 1 (%d)\n", syncCookie->numcsns );
+			rc = LDAP_PROTOCOL_ERROR;
+			goto done;
+		}
+		if (! slap_csn_match( &dni.csn_incomming, syncCookie->ctxcsn )) {
+			Debug( LDAP_DEBUG_ANY, "syncrepl: in.entryCSN %s != in.cookieCSN %s, is biglock enabled on syncprov side?!\n",
+				  dni.csn_incomming.bv_val, syncCookie->ctxcsn->bv_val );
+			if (reopenldap_mode_strict()) {
+				rc = LDAP_PROTOCOL_ERROR;
+				goto done;
+			}
+			if (reopenldap_mode_righteous()) {
+				Debug( LDAP_DEBUG_SYNC, "syncrepl_entry: override wrong in.cookieCSN %s by in.entryCSN %s\n",
+					  syncCookie->ctxcsn->bv_val, dni.csn_incomming.bv_val );
+				LDAP_ENSURE(dni.csn_incomming.bv_len == syncCookie->ctxcsn->bv_len);
+				memcpy(syncCookie->ctxcsn->bv_val, dni.csn_incomming.bv_val, dni.csn_incomming.bv_len);
+			}
+		}
 	}
 
 	if (syncstate != LDAP_SYNC_DELETE || syncUUID[0].bv_len != 16) {
@@ -5220,7 +5218,7 @@ parse_syncrepl_line(
 		{
 			val = c->argv[ i ] + STRLENOF( PROVIDERSTR "=" );
 			ber_str2bv( val, 0, 1, &si->si_bindconf.sb_uri );
-#ifdef HAVE_TLS
+#ifdef WITH_TLS
 			if ( ldap_is_ldaps_url( val ))
 				si->si_bindconf.sb_tls_do_init = 1;
 #endif
@@ -5756,7 +5754,7 @@ add_syncrepl(
 		ldap_free_urldesc( lud );
 	}
 
-#ifdef HAVE_TLS
+#ifdef WITH_TLS
 	/* Use main slapd defaults */
 	bindconf_tls_defaults( &si->si_bindconf );
 #endif

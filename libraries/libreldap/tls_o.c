@@ -1,27 +1,8 @@
-/* tls_o.c - Handle tls/ssl using OpenSSL */
 /* $ReOpenLDAP$ */
-/* Copyright (c) 2015,2016 Leonid Yuriev <leo@yuriev.ru>.
- * Copyright (c) 2015,2016 Peter-Service R&D LLC <http://billing.ru/>.
+/* Copyright 1990-2016 ReOpenLDAP AUTHORS: please see AUTHORS file.
+ * All rights reserved.
  *
  * This file is part of ReOpenLDAP.
- *
- * ReOpenLDAP is free software; you can redistribute it and/or modify it under
- * the terms of the GNU Affero General Public License as published by
- * the Free Software Foundation; either version 3 of the License, or
- * (at your option) any later version.
- *
- * ReOpenLDAP is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- *
- * ---
- *
- * Copyright 2008-2014 The OpenLDAP Foundation.
- * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted only as authorized by the OpenLDAP
@@ -31,12 +12,11 @@
  * top-level directory of the distribution or, alternatively, at
  * <http://www.OpenLDAP.org/license.html>.
  */
-/* ACKNOWLEDGEMENTS: Rewritten by Howard Chu
- */
+/* ACKNOWLEDGEMENTS: Rewritten by Howard Chu */
 
 #include "reldap.h"
 
-#ifdef HAVE_OPENSSL
+#if RELDAP_TLS == RELDAP_TLS_OPENSSL
 
 #include "ldap_dirs.h"
 
@@ -448,13 +428,16 @@ tlso_session_upflags( Sockbuf *sb, tls_session *sess, int rc )
 }
 
 static char *
-tlso_session_errmsg( tls_session *sess, int rc, char *buf, size_t len )
+tlso_session_errmsg( tls_session *sess, int xrc, char *buf, size_t len )
 {
 	char err[256] = "";
 	const char *certerr=NULL;
 	tlso_session *s = (tlso_session *)sess;
 
-	rc = ERR_peek_error();
+	int rc = ERR_peek_error();
+	if (! rc)
+		rc = xrc;
+
 	if ( rc ) {
 		ERR_error_string_n( rc, err, sizeof(err) );
 		if ( ( ERR_GET_LIB(rc) == ERR_LIB_SSL ) &&
@@ -1242,4 +1225,4 @@ tls_impl ldap_int_tls_impl = {
 	0
 };
 
-#endif /* HAVE_OPENSSL */
+#endif /* RELDAP_TLS == RELDAP_TLS_OPENSSL */

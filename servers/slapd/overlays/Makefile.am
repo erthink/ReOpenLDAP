@@ -1,22 +1,16 @@
-# Makefile.in for overlays
 ## $ReOpenLDAP$
-## Copyright (c) 2015,2016 Leonid Yuriev <leo@yuriev.ru>.
-## Copyright (c) 2015,2016 Peter-Service R&D LLC <http://billing.ru/>.
+## Copyright 2016 ReOpenLDAP AUTHORS: please see AUTHORS file.
+## All rights reserved.
 ##
 ## This file is part of ReOpenLDAP.
 ##
-## ReOpenLDAP is free software; you can redistribute it and/or modify it under
-## the terms of the GNU Affero General Public License as published by
-## the Free Software Foundation; either version 3 of the License, or
-## (at your option) any later version.
+## Redistribution and use in source and binary forms, with or without
+## modification, are permitted only as authorized by the OpenLDAP
+## Public License.
 ##
-## ReOpenLDAP is distributed in the hope that it will be useful,
-## but WITHOUT ANY WARRANTY; without even the implied warranty of
-## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-## GNU Affero General Public License for more details.
-##
-## You should have received a copy of the GNU Affero General Public License
-## along with this program.  If not, see <http://www.gnu.org/licenses/>.
+## A copy of this license is available in the file LICENSE in the
+## top-level directory of the distribution or, alternatively, at
+## <http://www.OpenLDAP.org/license.html>.
 ##
 
 noinst_LTLIBRARIES = liboverlays_builtin.la
@@ -26,6 +20,9 @@ EXTRA_DIST = README
 
 AM_CPPFLAGS = -DSLAPD_IMPORT -I$(srcdir)/.. -I$(top_srcdir)/include
 liboverlays_builtin_la_SOURCES = overlays.c
+liboverlays_builtin_la_CPPFLAGS = $(AM_CPPFLAGS)
+liboverlays_builtin_la_LIBADD =
+liboverlays_builtin_la_DEPENDENCIES =
 
 if BEHIND_CURTIAN
 
@@ -184,8 +181,16 @@ pkglib_LTLIBRARIES += ppolicy.la
 ppolicy_la_LDFLAGS = -module -export-dynamic \
 	-release $(API_LIB_RELEASE) -version-info $(API_LIB_VERSION)
 ppolicy_la_SOURCES = ppolicy.c ppolicy_banner.c
+ppolicy_la_CPPFLAGS = $(LTDLINCL) $(AM_CPPFLAGS)
+ppolicy_la_LIBADD = $(LIBLTDL)
+ppolicy_la_DEPENDENCIES = $(LTDLDEPS)
 else
 liboverlays_builtin_la_SOURCES += ppolicy.c
+if SLAPD_DYNAMIC
+liboverlays_builtin_la_CPPFLAGS += $(LTDLINCL)
+liboverlays_builtin_la_LIBADD += $(LIBLTDL)
+liboverlays_builtin_la_DEPENDENCIES += $(LTDLDEPS)
+endif
 endif
 endif
 

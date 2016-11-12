@@ -1,27 +1,8 @@
-/* result.c - routines to send ldap results, errors, and referrals */
 /* $ReOpenLDAP$ */
-/* Copyright (c) 2015,2016 Leonid Yuriev <leo@yuriev.ru>.
- * Copyright (c) 2015,2016 Peter-Service R&D LLC <http://billing.ru/>.
+/* Copyright 1990-2016 ReOpenLDAP AUTHORS: please see AUTHORS file.
+ * All rights reserved.
  *
  * This file is part of ReOpenLDAP.
- *
- * ReOpenLDAP is free software; you can redistribute it and/or modify it under
- * the terms of the GNU Affero General Public License as published by
- * the Free Software Foundation; either version 3 of the License, or
- * (at your option) any later version.
- *
- * ReOpenLDAP is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- *
- * ---
- *
- * Copyright 1998-2014 The OpenLDAP Foundation.
- * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted only as authorized by the OpenLDAP
@@ -31,16 +12,8 @@
  * top-level directory of the distribution or, alternatively, at
  * <http://www.OpenLDAP.org/license.html>.
  */
-/* Portions Copyright (c) 1995 Regents of the University of Michigan.
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms are permitted
- * provided that this notice is preserved and that due credit is given
- * to the University of Michigan at Ann Arbor. The name of the University
- * may not be used to endorse or promote products derived from this
- * software without specific prior written permission. This software
- * is provided ``as is'' without express or implied warranty.
- */
+
+/* result.c - routines to send ldap results, errors, and referrals */
 
 #include "reldap.h"
 
@@ -360,25 +333,25 @@ static long send_ldap_ber(
 {
 	Connection *conn = op->o_conn;
 	ber_len_t bytes;
-	long ret = 0;
+	long ret = -1;
 	char *close_reason;
 
 	ber_get_option( ber, LBER_OPT_BER_BYTES_TO_WRITE, &bytes );
 
-	/* write only one pdu at a time - wait til it's our turn */
 	ldap_pvt_thread_mutex_lock( &conn->c_mutex );
 	ldap_pvt_thread_mutex_lock( &conn->c_write1_mutex );
 
-	if (( slap_get_op_abandon(op) && !slap_get_op_cancel(op) ) || !connection_valid( conn ) ||
-		conn->c_writers < 0 ) {
+	if (( slap_get_op_abandon(op) && !slap_get_op_cancel(op) )
+			|| !connection_valid( conn ) || conn->c_writers < 0 ) {
 		ldap_pvt_thread_mutex_unlock( &conn->c_write1_mutex );
 		ldap_pvt_thread_mutex_unlock( &conn->c_mutex );
-		return 0;
+		return ret;
 	}
 
 	conn->c_writers++;
 	ldap_pvt_thread_mutex_unlock( &conn->c_mutex );
 
+	/* write only one pdu at a time - wait til it's our turn */
 	while ( conn->c_writers > 0 && conn->c_writing ) {
 		ldap_pvt_thread_pool_idle( &connection_pool );
 		ldap_pvt_thread_cond_wait( &conn->c_write1_cv, &conn->c_write1_mutex );
@@ -392,14 +365,14 @@ static long send_ldap_ber(
 			ldap_pvt_thread_cond_signal( &conn->c_write1_cv );
 		conn->c_writers++;
 		ldap_pvt_thread_mutex_unlock( &conn->c_write1_mutex );
-		return 0;
+		return ret;
 	}
 
 	/* Our turn */
 	conn->c_writing = 1;
 
 	/* write the pdu */
-	while( 1 ) {
+	while( conn->c_conn_state >= SLAP_C_ACTIVE ) {
 		int err;
 
 		if ( ber_flush2( conn->c_sb, ber, LBER_FLUSH_FREE_NEVER ) == 0 ) {

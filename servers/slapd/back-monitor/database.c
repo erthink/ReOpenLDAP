@@ -1,37 +1,18 @@
-/* database.c - deals with database subsystem */
 /* $ReOpenLDAP$ */
-/* Copyright (c) 2015,2016 Leonid Yuriev <leo@yuriev.ru>.
- * Copyright (c) 2015,2016 Peter-Service R&D LLC <http://billing.ru/>.
+/* Copyright 2001-2016 ReOpenLDAP AUTHORS: please see AUTHORS file.
+ * All rights reserved.
  *
  * This file is part of ReOpenLDAP.
- *
- * ReOpenLDAP is free software; you can redistribute it and/or modify it under
- * the terms of the GNU Affero General Public License as published by
- * the Free Software Foundation; either version 3 of the License, or
- * (at your option) any later version.
- *
- * ReOpenLDAP is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- *
- * ---
- *
- * Copyright 2001-2014 The OpenLDAP Foundation.
- * Portions Copyright 2001-2003 Pierangelo Masarati.
- * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted only as authorized by the OpenLDAP
  * Public License.
  *
- * A copy of this license is available in file LICENSE in the
+ * A copy of this license is available in the file LICENSE in the
  * top-level directory of the distribution or, alternatively, at
  * <http://www.OpenLDAP.org/license.html>.
  */
+
 /* ACKNOWLEDGEMENTS:
  * This work was initially developed by Pierangelo Masarati for inclusion
  * in OpenLDAP Software.
@@ -598,7 +579,7 @@ monitor_subsys_database_init(
 			"monitor_subsys_database_init: "
 			"unable to get entry \"%s\"\n",
 			ms->mss_ndn.bv_val );
-		return( -1 );
+		return -1;
 	}
 
 	(void)init_readOnly( mi, e_database, frontendDB->be_restrictops );
@@ -612,7 +593,7 @@ monitor_subsys_database_init(
 	rc = monitor_subsys_database_init_one( mi, frontendDB,
 		ms, ms_backend, ms_overlay, &bv, e_database, &ep );
 	if ( rc != 0 ) {
-		return rc;
+		goto bailout;
 	}
 
 	i = -1;
@@ -622,19 +603,22 @@ monitor_subsys_database_init(
 		bv.bv_val = buf;
 		bv.bv_len = snprintf( buf, sizeof( buf ), "cn=Database %d", ++i );
 		if ( bv.bv_len >= sizeof( buf ) ) {
-			return -1;
+			rc = -1;
+			goto bailout;
 		}
 
 		rc = monitor_subsys_database_init_one( mi, be,
 			ms, ms_backend, ms_overlay, &bv, e_database, &ep );
 		if ( rc != 0 ) {
-			return rc;
+			goto bailout;
 		}
 	}
 
-	monitor_cache_release( mi, e_database );
+	rc = 0;
 
-	return( 0 );
+bailout:
+	monitor_cache_release( mi, e_database );
+	return rc;
 }
 
 /*

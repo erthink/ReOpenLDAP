@@ -1,37 +1,18 @@
-/* thread.c - deal with thread subsystem */
 /* $ReOpenLDAP$ */
-/* Copyright (c) 2015,2016 Leonid Yuriev <leo@yuriev.ru>.
- * Copyright (c) 2015,2016 Peter-Service R&D LLC <http://billing.ru/>.
+/* Copyright 2001-2016 ReOpenLDAP AUTHORS: please see AUTHORS file.
+ * All rights reserved.
  *
  * This file is part of ReOpenLDAP.
- *
- * ReOpenLDAP is free software; you can redistribute it and/or modify it under
- * the terms of the GNU Affero General Public License as published by
- * the Free Software Foundation; either version 3 of the License, or
- * (at your option) any later version.
- *
- * ReOpenLDAP is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- *
- * ---
- *
- * Copyright 2001-2014 The OpenLDAP Foundation.
- * Portions Copyright 2001-2003 Pierangelo Masarati.
- * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted only as authorized by the OpenLDAP
  * Public License.
  *
- * A copy of this license is available in file LICENSE in the
+ * A copy of this license is available in the file LICENSE in the
  * top-level directory of the distribution or, alternatively, at
  * <http://www.OpenLDAP.org/license.html>.
  */
+
 /* ACKNOWLEDGEMENTS:
  * This work was initially developed by Pierangelo Masarati for inclusion
  * in OpenLDAP Software.
@@ -127,7 +108,7 @@ monitor_subsys_thread_init(
 #ifndef NO_THREADS
 	monitor_info_t	*mi;
 	monitor_entry_t	*mp;
-	Entry		*e, **ep, *e_thread;
+	Entry		*e, **ep, *e_thread = NULL;
 	int		i;
 
 	ms->mss_update = monitor_subsys_thread_update;
@@ -144,6 +125,7 @@ monitor_subsys_thread_init(
 	mp = ( monitor_entry_t * )e_thread->e_private;
 	mp->mp_children = NULL;
 	ep = &mp->mp_children;
+	int rc = -1;
 
 	for ( i = 0; !BER_BVISNULL( &mt[ i ].rdn ); i++ ) {
 		static char	buf[ BACKMONITOR_BUFSIZE ];
@@ -163,7 +145,7 @@ monitor_subsys_thread_init(
 				"unable to create entry \"%s,%s\"\n",
 				mt[ i ].rdn.bv_val,
 				ms->mss_ndn.bv_val );
-			return( -1 );
+			goto bailout;
 		}
 
 		/* NOTE: reference to the normalized DN of the entry,
@@ -179,7 +161,6 @@ monitor_subsys_thread_init(
 				mt[ i ].param, (void *)&state ) == 0 )
 			{
 				ber_str2bv( state, 0, 0, &bv );
-
 			} else {
 				BER_BVSTR( &bv, "unknown" );
 			}
@@ -206,7 +187,7 @@ monitor_subsys_thread_init(
 
 		mp = monitor_entrypriv_create();
 		if ( mp == NULL ) {
-			return -1;
+			goto bailout;
 		}
 		e->e_private = ( void * )mp;
 		mp->mp_info = ms;
@@ -219,17 +200,20 @@ monitor_subsys_thread_init(
 				"unable to add entry \"%s,%s\"\n",
 				mt[ i ].rdn.bv_val,
 				ms->mss_dn.bv_val );
-			return( -1 );
+			goto bailout;
 		}
 
 		*ep = e;
 		ep = &mp->mp_next;
 	}
 
+	rc = 0;
+
+bailout:
 	monitor_cache_release( mi, e_thread );
 
 #endif /* ! NO_THREADS */
-	return( 0 );
+	return rc;
 }
 
 #ifndef NO_THREADS

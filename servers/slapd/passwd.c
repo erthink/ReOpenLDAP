@@ -1,27 +1,8 @@
-/* passwd.c - password extended operation routines */
 /* $ReOpenLDAP$ */
-/* Copyright (c) 2015,2016 Leonid Yuriev <leo@yuriev.ru>.
- * Copyright (c) 2015,2016 Peter-Service R&D LLC <http://billing.ru/>.
+/* Copyright 1990-2016 ReOpenLDAP AUTHORS: please see AUTHORS file.
+ * All rights reserved.
  *
  * This file is part of ReOpenLDAP.
- *
- * ReOpenLDAP is free software; you can redistribute it and/or modify it under
- * the terms of the GNU Affero General Public License as published by
- * the Free Software Foundation; either version 3 of the License, or
- * (at your option) any later version.
- *
- * ReOpenLDAP is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- *
- * ---
- *
- * Copyright 1998-2014 The OpenLDAP Foundation.
- * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted only as authorized by the OpenLDAP
@@ -31,6 +12,8 @@
  * top-level directory of the distribution or, alternatively, at
  * <http://www.OpenLDAP.org/license.html>.
  */
+
+/* passwd.c - password extended operation routines */
 
 #include "reldap.h"
 
@@ -61,7 +44,7 @@ static const char *defhash[] = {
 	NULL
 };
 
-static int nolock_passwd_extop(
+int passwd_extop(
 	Operation *op,
 	SlapReply *rs )
 {
@@ -76,6 +59,7 @@ static int nolock_passwd_extop(
 	BackendDB *op_be;
 	int freenewpw = 0;
 	struct berval dn = BER_BVNULL, ndn = BER_BVNULL;
+	slap_biglock_t *bl = NULL;
 
 	assert( ber_bvcmp( &slap_EXOP_MODIFY_PASSWD, &op->ore_reqoid ) == 0 );
 
@@ -167,6 +151,9 @@ static int nolock_passwd_extop(
 	if ( SLAP_GLUE_INSTANCE( op->o_bd )) {
 		op->o_bd = select_backend( &op->o_req_ndn, 0 );
 	}
+
+	bl = slap_biglock_get(op->o_bd);
+	slap_biglock_acquire(bl);
 
 	if (backend_check_restrictions( op, rs,
 			(struct berval *)&slap_EXOP_MODIFY_PASSWD ) != LDAP_SUCCESS) {
@@ -325,6 +312,8 @@ old_good:
 	op->oq_extended = qext;
 
 error_return:;
+	slap_biglock_release(bl);
+
 	if ( qpw->rs_mods ) {
 		slap_mods_free( qpw->rs_mods, 1 );
 	}
@@ -340,19 +329,6 @@ error_return:;
 		BER_BVZERO( &op->o_req_ndn );
 	}
 
-	return rc;
-}
-
-int passwd_extop(
-	Operation *op,
-	SlapReply *rs )
-{
-	int rc;
-	slap_biglock_t *bl = slap_biglock_get(op->o_bd);
-
-	slap_biglock_acquire(bl);
-	rc = nolock_passwd_extop(op, rs);
-	slap_biglock_release(bl);
 	return rc;
 }
 
@@ -643,4 +619,3 @@ void slap_passwd_init()
 	lutil_cryptptr = slapd_crypt;
 #endif
 }
-

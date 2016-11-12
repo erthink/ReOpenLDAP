@@ -1,29 +1,8 @@
-/* common.c - common routines for the ldap client tools */
 /* $ReOpenLDAP$ */
-/* Copyright (c) 2015,2016 Leonid Yuriev <leo@yuriev.ru>.
- * Copyright (c) 2015,2016 Peter-Service R&D LLC <http://billing.ru/>.
+/* Copyright 1992-2016 ReOpenLDAP AUTHORS: please see AUTHORS file.
+ * All rights reserved.
  *
  * This file is part of ReOpenLDAP.
- *
- * ReOpenLDAP is free software; you can redistribute it and/or modify it under
- * the terms of the GNU Affero General Public License as published by
- * the Free Software Foundation; either version 3 of the License, or
- * (at your option) any later version.
- *
- * ReOpenLDAP is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- *
- * ---
- *
- * Copyright 1998-2014 The OpenLDAP Foundation.
- * Portions Copyright 2003 Kurt D. Zeilenga.
- * Portions Copyright 2003 IBM Corporation.
- * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted only as authorized by the OpenLDAP
@@ -281,7 +260,7 @@ tool_destroy( void )
 		sasl_client_done();
 #	endif
 #endif
-#ifdef HAVE_TLS
+#ifdef WITH_TLS
 	ldap_pvt_tls_destroy();
 #endif
 
@@ -1101,7 +1080,7 @@ tool_args( int argc, char **argv )
 #endif
 			break;
 		case 'Z':
-#ifdef HAVE_TLS
+#ifdef WITH_TLS
 			use_tls++;
 #else
 			fprintf( stderr, "%s: not compiled with TLS support\n", prog );
@@ -1214,7 +1193,7 @@ tool_args( int argc, char **argv )
 			fprintf( stderr, "%s: -e/-M incompatible with LDAPv2\n", prog );
 			exit( EXIT_FAILURE );
 		}
-#ifdef HAVE_TLS
+#ifdef WITH_TLS
 		if( use_tls ) {
 			fprintf( stderr, "%s: -Z incompatible with LDAPv2\n", prog );
 			exit( EXIT_FAILURE );
@@ -2227,7 +2206,7 @@ print_vlv( LDAP *ld, LDAPControl *ctrl )
 			ber_memfree( bv.bv_val );
 
 		tool_write_ldif( ldif ? LDIF_PUT_COMMENT : LDIF_PUT_VALUE,
-			ldif ? "vlvResult" : "vlvResult", buf, rc );
+			ldif ? "vlvResult: " : "vlvResult", buf, rc );
 	}
 
 	return rc;

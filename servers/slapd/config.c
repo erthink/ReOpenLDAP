@@ -1,27 +1,8 @@
-/* config.c - configuration file handling routines */
 /* $ReOpenLDAP$ */
-/* Copyright (c) 2015,2016 Leonid Yuriev <leo@yuriev.ru>.
- * Copyright (c) 2015,2016 Peter-Service R&D LLC <http://billing.ru/>.
+/* Copyright 1990-2016 ReOpenLDAP AUTHORS: please see AUTHORS file.
+ * All rights reserved.
  *
  * This file is part of ReOpenLDAP.
- *
- * ReOpenLDAP is free software; you can redistribute it and/or modify it under
- * the terms of the GNU Affero General Public License as published by
- * the Free Software Foundation; either version 3 of the License, or
- * (at your option) any later version.
- *
- * ReOpenLDAP is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- *
- * ---
- *
- * Copyright 1998-2014 The OpenLDAP Foundation.
- * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted only as authorized by the OpenLDAP
@@ -31,16 +12,8 @@
  * top-level directory of the distribution or, alternatively, at
  * <http://www.OpenLDAP.org/license.html>.
  */
-/* Portions Copyright (c) 1995 Regents of the University of Michigan.
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms are permitted
- * provided that this notice is preserved and that due credit is given
- * to the University of Michigan at Ann Arbor. The name of the University
- * may not be used to endorse or promote products derived from this
- * software without specific prior written permission. This software
- * is provided ``as is'' without express or implied warranty.
- */
+
+/* config.c - configuration file handling routines */
 
 #include "reldap.h"
 
@@ -1259,7 +1232,7 @@ slap_ldap_response_code_register( struct berval *bv, int err )
 		&slap_ldap_response_code, bv, err );
 }
 
-#ifdef HAVE_TLS
+#ifdef WITH_TLS
 static slap_verbmasks tlskey[] = {
 	{ BER_BVC("no"),	SB_TLS_OFF },
 	{ BER_BVC("yes"),	SB_TLS_ON },
@@ -1401,7 +1374,7 @@ slap_sb_uri(
 		memcpy( val->bv_val, bc->sb_uri.bv_val, val->bv_len );
 	} else {
 		bc->sb_uri = *val;
-#ifdef HAVE_TLS
+#ifdef WITH_TLS
 		if ( ldap_is_ldaps_url( val->bv_val ))
 			bc->sb_tls_do_init = 1;
 #endif
@@ -1423,7 +1396,7 @@ static slap_cf_aux_table bindkey[] = {
 	{ BER_BVC("authcID="), offsetof(slap_bindconf, sb_authcId), 'b', 1, NULL },
 	{ BER_BVC("authzID="), offsetof(slap_bindconf, sb_authzId), 'b', 1, (slap_verbmasks *)authzNormalize },
 	{ BER_BVC("keepalive="), offsetof(slap_bindconf, sb_keepalive), 'x', 0, (slap_verbmasks *)slap_keepalive_parse },
-#ifdef HAVE_TLS
+#ifdef WITH_TLS
 	/* NOTE: replace "13" with the actual index
 	 * of the first TLS-related line */
 #define aux_TLS (bindkey+13)	/* beginning of TLS keywords */
@@ -1674,7 +1647,7 @@ slap_cf_aux_table_unparse( void *src, struct berval *bv, slap_cf_aux_table *tab0
 int
 slap_tls_get_config( LDAP *ld, int opt, char **val )
 {
-#ifdef HAVE_TLS
+#ifdef WITH_TLS
 	slap_verbmasks *keys;
 	int i, ival;
 
@@ -1711,7 +1684,7 @@ slap_tls_get_config( LDAP *ld, int opt, char **val )
 int
 bindconf_tls_parse( const char *word, slap_bindconf *bc )
 {
-#ifdef HAVE_TLS
+#ifdef WITH_TLS
 	if ( slap_cf_aux_table_parse( word, bc, aux_TLS, "tls config" ) == 0 ) {
 		bc->sb_tls_do_init = 1;
 		return 0;
@@ -1723,7 +1696,7 @@ bindconf_tls_parse( const char *word, slap_bindconf *bc )
 int
 bindconf_tls_unparse( slap_bindconf *bc, struct berval *bv )
 {
-#ifdef HAVE_TLS
+#ifdef WITH_TLS
 	return slap_cf_aux_table_unparse( bc, bv, aux_TLS );
 #endif
 	return -1;
@@ -1732,7 +1705,7 @@ bindconf_tls_unparse( slap_bindconf *bc, struct berval *bv )
 int
 bindconf_parse( const char *word, slap_bindconf *bc )
 {
-#ifdef HAVE_TLS
+#ifdef WITH_TLS
 	/* Detect TLS config changes explicitly */
 	if ( bindconf_tls_parse( word, bc ) == 0 ) {
 		return 0;
@@ -1780,7 +1753,7 @@ void bindconf_free( slap_bindconf *bc ) {
 		ch_free( bc->sb_authzId.bv_val );
 		BER_BVZERO( &bc->sb_authzId );
 	}
-#ifdef HAVE_TLS
+#ifdef WITH_TLS
 	if ( bc->sb_tls_cert ) {
 		ch_free( bc->sb_tls_cert );
 		bc->sb_tls_cert = NULL;
@@ -1825,7 +1798,7 @@ void bindconf_free( slap_bindconf *bc ) {
 void
 bindconf_tls_defaults( slap_bindconf *bc )
 {
-#ifdef HAVE_TLS
+#ifdef WITH_TLS
 	if ( bc->sb_tls_do_init ) {
 		if ( !bc->sb_tls_cacert )
 			ldap_pvt_tls_get_option( slap_tls_ld, LDAP_OPT_X_TLS_CACERTFILE,
@@ -1853,7 +1826,7 @@ bindconf_tls_defaults( slap_bindconf *bc )
 #endif
 }
 
-#ifdef HAVE_TLS
+#ifdef WITH_TLS
 static struct {
 	const char *key;
 	size_t offset;
@@ -2005,7 +1978,7 @@ slap_client_connect( LDAP **ldp, slap_bindconf *sb )
 	/* setting network keepalive options */
 	slap_client_keepalive(ld, &sb->sb_keepalive);
 
-#ifdef HAVE_TLS
+#ifdef WITH_TLS
 	if ( sb->sb_tls_do_init ) {
 		rc = bindconf_tls_set( sb, ld );
 

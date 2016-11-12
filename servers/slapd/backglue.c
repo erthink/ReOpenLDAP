@@ -1,27 +1,8 @@
-/* backglue.c - backend glue */
 /* $ReOpenLDAP$ */
-/* Copyright (c) 2015,2016 Leonid Yuriev <leo@yuriev.ru>.
- * Copyright (c) 2015,2016 Peter-Service R&D LLC <http://billing.ru/>.
+/* Copyright 1990-2016 ReOpenLDAP AUTHORS: please see AUTHORS file.
+ * All rights reserved.
  *
  * This file is part of ReOpenLDAP.
- *
- * ReOpenLDAP is free software; you can redistribute it and/or modify it under
- * the terms of the GNU Affero General Public License as published by
- * the Free Software Foundation; either version 3 of the License, or
- * (at your option) any later version.
- *
- * ReOpenLDAP is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- *
- * ---
- *
- * Copyright 2001-2014 The OpenLDAP Foundation.
- * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted only as authorized by the OpenLDAP
@@ -32,7 +13,8 @@
  * <http://www.OpenLDAP.org/license.html>.
  */
 
-/*
+/* backglue.c - backend glue.
+ *
  * Functions to glue a bunch of other backends into a single tree.
  * All of the glued backends must share a common suffix. E.g., you
  * can glue o=foo and ou=bar,o=foo but you can't glue o=foo and o=bar.
@@ -137,6 +119,11 @@ glue_op_response ( Operation *op, SlapReply *rs )
 			rs->sr_err == LDAP_TIMELIMIT_EXCEEDED ||
 			rs->sr_err == LDAP_ADMINLIMIT_EXCEEDED ||
 			rs->sr_err == LDAP_NO_SUCH_OBJECT ||
+			rs->sr_err == SLAPD_ABANDON ||
+			rs->sr_err == LDAP_CANCELLED ||
+			rs->sr_err == LDAP_UNAVAILABLE ||
+			rs->sr_err == LDAP_OTHER ||
+			rs->sr_err == LDAP_BUSY ||
 			gs->err != LDAP_SUCCESS)
 			gs->err = rs->sr_err;
 		if (gs->err == LDAP_SUCCESS && gs->matched) {
@@ -543,7 +530,6 @@ glue_op_search ( Operation *op, SlapReply *rs )
 				dn_match(&op->o_bd->be_nsuffix[0], &ndn))
 			{
 				rs->sr_err = glue_sub_search( op, rs, b0, on );
-
 			} else if (scope0 == LDAP_SCOPE_SUBTREE &&
 				dnIsSuffix(&op->o_bd->be_nsuffix[0], &ndn))
 			{
@@ -576,6 +562,11 @@ glue_op_search ( Operation *op, SlapReply *rs )
 #ifdef LDAP_CONTROL_X_CHAINING_BEHAVIOR
 			case LDAP_X_CANNOT_CHAIN:
 #endif /* LDAP_CONTROL_X_CHAINING_BEHAVIOR */
+			case SLAPD_ABANDON:
+			case LDAP_CANCELLED:
+			case LDAP_UNAVAILABLE:
+			case LDAP_OTHER:
+			case LDAP_BUSY:
 				goto end_of_loop;
 
 			case LDAP_SUCCESS:
@@ -708,6 +699,10 @@ glue_op_search ( Operation *op, SlapReply *rs )
 				}
 
 			default:
+				Debug( LDAP_DEBUG_NONE,
+					"glue_op_search: sub-search gs.err %d, rs->sr_err %d\n",
+					gs.err, rs->sr_err );
+				assert( rs->sr_entry == NULL );
 				break;
 			}
 		}

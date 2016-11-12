@@ -1,38 +1,18 @@
-/* slapcommon.c - common routine for the slap tools */
 /* $ReOpenLDAP$ */
-/* Copyright (c) 2015,2016 Leonid Yuriev <leo@yuriev.ru>.
- * Copyright (c) 2015,2016 Peter-Service R&D LLC <http://billing.ru/>.
+/* Copyright 1990-2016 ReOpenLDAP AUTHORS: please see AUTHORS file.
+ * All rights reserved.
  *
  * This file is part of ReOpenLDAP.
- *
- * ReOpenLDAP is free software; you can redistribute it and/or modify it under
- * the terms of the GNU Affero General Public License as published by
- * the Free Software Foundation; either version 3 of the License, or
- * (at your option) any later version.
- *
- * ReOpenLDAP is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- *
- * ---
- *
- * Copyright 1998-2014 The OpenLDAP Foundation.
- * Portions Copyright 1998-2003 Kurt D. Zeilenga.
- * Portions Copyright 2003 IBM Corporation.
- * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted only as authorized by the OpenLDAP
  * Public License.
  *
- * A copy of this license is available in file LICENSE in the
+ * A copy of this license is available in the file LICENSE in the
  * top-level directory of the distribution or, alternatively, at
  * <http://www.OpenLDAP.org/license.html>.
  */
+
 /* ACKNOWLEDGEMENTS:
  * This work was initially developed by Kurt Zeilenga for inclusion
  * in OpenLDAP Software.  Additional signficant contributors include
@@ -506,7 +486,7 @@ slap_tool_init(
 		case 'Q':
 			quiet++;
 #ifdef LDAP_DEBUG
-			slap_debug_mask = 0;
+			slap_set_debug_level(0);
 #endif /* LDAP_DEBUG */
 			break;
 
@@ -946,7 +926,7 @@ int slap_tool_destroy( void )
 	quorum_global_destroy();
 	schema_destroy();
 	lutil_passwd_destroy();
-#ifdef HAVE_TLS
+#ifdef WITH_TLS
 	ldap_pvt_tls_destroy();
 #endif
 	config_destroy();
@@ -1230,4 +1210,3 @@ slap_tool_entry_check(
 
 	return LDAP_SUCCESS;
 }
-

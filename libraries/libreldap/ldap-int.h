@@ -1,27 +1,8 @@
-/*  ldap-int.h - defines & prototypes internal to the LDAP library */
 /* $ReOpenLDAP$ */
-/* Copyright (c) 2015,2016 Leonid Yuriev <leo@yuriev.ru>.
- * Copyright (c) 2015,2016 Peter-Service R&D LLC <http://billing.ru/>.
+/* Copyright 1990-2016 ReOpenLDAP AUTHORS: please see AUTHORS file.
+ * All rights reserved.
  *
  * This file is part of ReOpenLDAP.
- *
- * ReOpenLDAP is free software; you can redistribute it and/or modify it under
- * the terms of the GNU Affero General Public License as published by
- * the Free Software Foundation; either version 3 of the License, or
- * (at your option) any later version.
- *
- * ReOpenLDAP is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- *
- * ---
- *
- * Copyright 1998-2014 The OpenLDAP Foundation.
- * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted only as authorized by the OpenLDAP
@@ -30,9 +11,6 @@
  * A copy of this license is available in the file LICENSE in the
  * top-level directory of the distribution or, alternatively, at
  * <http://www.OpenLDAP.org/license.html>.
- */
-/*  Portions Copyright (c) 1995 Regents of the University of Michigan.
- *  All rights reserved.
  */
 
 #ifndef	_LDAP_INT_H
@@ -123,7 +101,7 @@ struct ldapmsg {
 	slap_time_t	lm_time;	/* used to maintain cache */
 };
 
-#ifdef HAVE_TLS
+#ifdef WITH_TLS
 struct ldaptls {
 	char		*lt_certfile;
 	char		*lt_keyfile;
@@ -210,7 +188,7 @@ struct ldapoptions {
 #define	LDAP_LDO_CONNECTIONLESS_NULLARG
 #endif
 
-#ifdef HAVE_TLS
+#ifdef WITH_TLS
    	/* tls context */
    	void		*ldo_tls_ctx;
 	LDAP_TLS_CONNECT_CB	*ldo_tls_connect_cb;
@@ -663,7 +641,7 @@ LDAP_F (int) ldap_connect_to_host( LDAP *ld, Sockbuf *sb,
 LDAP_F (int) ldap_int_poll( LDAP *ld, ber_socket_t s,
 	struct timeval *tvp, int wr );
 
-#if defined(HAVE_TLS) || defined(HAVE_CYRUS_SASL)
+#if defined(WITH_TLS) || defined(HAVE_CYRUS_SASL)
 LDAP_V (char *) ldap_int_hostname;
 LDAP_F (char *) ldap_host_connected_to( Sockbuf *sb,
 	const char *host );

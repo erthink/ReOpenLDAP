@@ -1,27 +1,8 @@
-/* tls.c - Handle tls/ssl. */
 /* $ReOpenLDAP$ */
-/* Copyright (c) 2015,2016 Leonid Yuriev <leo@yuriev.ru>.
- * Copyright (c) 2015,2016 Peter-Service R&D LLC <http://billing.ru/>.
+/* Copyright 1990-2016 ReOpenLDAP AUTHORS: please see AUTHORS file.
+ * All rights reserved.
  *
  * This file is part of ReOpenLDAP.
- *
- * ReOpenLDAP is free software; you can redistribute it and/or modify it under
- * the terms of the GNU Affero General Public License as published by
- * the Free Software Foundation; either version 3 of the License, or
- * (at your option) any later version.
- *
- * ReOpenLDAP is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- *
- * ---
- *
- * Copyright 1998-2014 The OpenLDAP Foundation.
- * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted only as authorized by the OpenLDAP
@@ -31,8 +12,7 @@
  * top-level directory of the distribution or, alternatively, at
  * <http://www.OpenLDAP.org/license.html>.
  */
-/* ACKNOWLEDGEMENTS: restructured by Howard Chu.
- */
+/* ACKNOWLEDGEMENTS: restructured by Howard Chu. */
 
 #include "reldap.h"
 #include "ldap_dirs.h"
@@ -51,7 +31,7 @@
 
 #include "ldap-int.h"
 
-#ifdef HAVE_TLS
+#ifdef WITH_TLS
 
 #include "ldap-tls.h"
 
@@ -59,7 +39,7 @@ static tls_impl *tls_imp = &ldap_int_tls_impl;
 #define HAS_TLS( sb )	ber_sockbuf_ctrl( sb, LBER_SB_OPT_HAS_IO, \
 				(void *)tls_imp->ti_sbio )
 
-#endif /* HAVE_TLS */
+#endif /* WITH_TLS */
 
 #define LDAP_USE_NON_BLOCKING_TLS
 
@@ -90,7 +70,7 @@ static oid_name oids[] = {
 	{ BER_BVNULL, BER_BVNULL }
 };
 
-#ifdef HAVE_TLS
+#ifdef WITH_TLS
 
 void
 ldap_pvt_tls_ctx_free ( void *c )
@@ -299,7 +279,7 @@ update_flags( Sockbuf *sb, tls_session * ssl, int rc )
  */
 
 static int
-ldap_int_tls_connect( LDAP *ld, LDAPConn *conn )
+ldap_int_tls_connect( LDAP *ld, LDAPConn *conn, const char *host )
 {
 	Sockbuf *sb = conn->lconn_sb;
 	int	err;
@@ -339,6 +319,10 @@ ldap_int_tls_connect( LDAP *ld, LDAPConn *conn )
 	}
 
 	err = tls_imp->ti_session_connect( ld, ssl );
+
+	if ( err == 0 ) {
+		err = ldap_pvt_tls_check_hostname( ld, ssl, host );
+	}
 
 	if ( err < 0 )
 	{
@@ -463,7 +447,15 @@ ldap_pvt_tls_check_hostname( LDAP *ld, void *s, const char *name_in )
 {
 	tls_session *session = s;
 
-	return tls_imp->ti_session_chkhost( ld, session, name_in );
+	if (ld->ld_options.ldo_tls_require_cert != LDAP_OPT_X_TLS_NEVER &&
+	    ld->ld_options.ldo_tls_require_cert != LDAP_OPT_X_TLS_ALLOW) {
+		ld->ld_errno = tls_imp->ti_session_chkhost( ld, session, name_in );
+		if (ld->ld_errno != LDAP_SUCCESS) {
+			return ld->ld_errno;
+		}
+	}
+
+	return LDAP_SUCCESS;
 }
 
 int
@@ -834,9 +826,7 @@ ldap_pvt_tls_set_option( LDAP *ld, int option, void *arg )
 int
 ldap_int_tls_start ( LDAP *ld, LDAPConn *conn, LDAPURLDesc *srv )
 {
-	Sockbuf *sb;
 	char *host;
-	void *ssl;
 	int ret;
 #ifdef LDAP_USE_NON_BLOCKING_TLS
 	struct timeval start_time_tv, tv, tv0 = {0};
@@ -846,7 +836,6 @@ ldap_int_tls_start ( LDAP *ld, LDAPConn *conn, LDAPURLDesc *srv )
 	if ( !conn )
 		return LDAP_PARAM_ERROR;
 
-	sb = conn->lconn_sb;
 	if( srv ) {
 		host = srv->lud_host;
 	} else {
@@ -861,6 +850,7 @@ ldap_int_tls_start ( LDAP *ld, LDAPConn *conn, LDAPURLDesc *srv )
 	(void) tls_init( tls_imp );
 
 #ifdef LDAP_USE_NON_BLOCKING_TLS
+	Sockbuf *sb = conn->lconn_sb;
 	/*
 	 * Use non-blocking io during SSL Handshake when a timeout is configured
 	 */
@@ -874,7 +864,7 @@ ldap_int_tls_start ( LDAP *ld, LDAPConn *conn, LDAPURLDesc *srv )
 #endif /* LDAP_USE_NON_BLOCKING_TLS */
 
 	ld->ld_errno = LDAP_SUCCESS;
-	ret = ldap_int_tls_connect( ld, conn );
+	ret = ldap_int_tls_connect( ld, conn, host );
 
 #ifdef LDAP_USE_NON_BLOCKING_TLS
 	while ( ret > 0 ) { /* this should only happen for non-blocking io */
@@ -895,7 +885,7 @@ ldap_int_tls_start ( LDAP *ld, LDAPConn *conn, LDAPURLDesc *srv )
 		} else {
 			/* ldap_int_poll called ldap_pvt_ndelay_off */
 			ber_sockbuf_ctrl( ld->ld_sb, LBER_SB_OPT_SET_NONBLOCK, sb );
-			ret = ldap_int_tls_connect( ld, conn );
+			ret = ldap_int_tls_connect( ld, conn, host );
 			if ( ret > 0 ) { /* need to call tls_connect once more */
 				struct timeval curr_time_tv, delta_tv;
 
@@ -945,20 +935,6 @@ ldap_int_tls_start ( LDAP *ld, LDAPConn *conn, LDAPURLDesc *srv )
 		if ( ld->ld_errno == LDAP_SUCCESS )
 			ld->ld_errno = LDAP_CONNECT_ERROR;
 		return (ld->ld_errno);
-	}
-
-	ssl = ldap_pvt_tls_sb_ctx( sb );
-	assert( ssl != NULL );
-
-	/*
-	 * compare host with name(s) in certificate
-	 */
-	if (ld->ld_options.ldo_tls_require_cert != LDAP_OPT_X_TLS_NEVER &&
-	    ld->ld_options.ldo_tls_require_cert != LDAP_OPT_X_TLS_ALLOW) {
-		ld->ld_errno = ldap_pvt_tls_check_hostname( ld, ssl, host );
-		if (ld->ld_errno != LDAP_SUCCESS) {
-			return ld->ld_errno;
-		}
 	}
 
 	return LDAP_SUCCESS;
@@ -1021,7 +997,7 @@ ldap_pvt_tls_get_peercert( void *s, struct berval *der )
 	tls_session *session = s;
 	return tls_imp->ti_session_peercert( session, der );
 }
-#endif /* HAVE_TLS */
+#endif /* WITH_TLS */
 
 int
 ldap_start_tls( LDAP *ld,
@@ -1036,7 +1012,7 @@ ldap_start_tls( LDAP *ld,
 int
 ldap_install_tls( LDAP *ld )
 {
-#ifndef HAVE_TLS
+#ifndef WITH_TLS
 	return LDAP_NOT_SUPPORTED;
 #else
 	if ( ldap_tls_inplace( ld ) ) {
@@ -1052,7 +1028,7 @@ ldap_start_tls_s ( LDAP *ld,
 	LDAPControl **serverctrls,
 	LDAPControl **clientctrls )
 {
-#ifndef HAVE_TLS
+#ifndef WITH_TLS
 	return LDAP_NOT_SUPPORTED;
 #else
 	int rc;

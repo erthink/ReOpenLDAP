@@ -1,26 +1,8 @@
 /* $ReOpenLDAP$ */
-/* Copyright (c) 2015,2016 Leonid Yuriev <leo@yuriev.ru>.
- * Copyright (c) 2015,2016 Peter-Service R&D LLC <http://billing.ru/>.
+/* Copyright 1990-2016 ReOpenLDAP AUTHORS: please see AUTHORS file.
+ * All rights reserved.
  *
  * This file is part of ReOpenLDAP.
- *
- * ReOpenLDAP is free software; you can redistribute it and/or modify it under
- * the terms of the GNU Affero General Public License as published by
- * the Free Software Foundation; either version 3 of the License, or
- * (at your option) any later version.
- *
- * ReOpenLDAP is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- *
- * ---
- *
- * Copyright 1998-2014 The OpenLDAP Foundation.
- * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted only as authorized by the OpenLDAP
@@ -29,16 +11,6 @@
  * A copy of this license is available in the file LICENSE in the
  * top-level directory of the distribution or, alternatively, at
  * <http://www.OpenLDAP.org/license.html>.
- */
-/* Portions Copyright (c) 1995 Regents of the University of Michigan.
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms are permitted
- * provided that this notice is preserved and that due credit is given
- * to the University of Michigan at Ann Arbor. The name of the University
- * may not be used to endorse or promote products derived from this
- * software without specific prior written permission. This software
- * is provided ``as is'' without express or implied warranty.
  */
 
 #include "reldap.h"
@@ -408,7 +380,7 @@ Connection * connection_init(
 	assert( dnsname != NULL );
 	assert( peername != NULL );
 
-#ifndef HAVE_TLS
+#ifndef WITH_TLS
 	assert( !( flags & CONN_IS_TLS ));
 #endif
 
@@ -610,7 +582,7 @@ Connection * connection_init(
 	c->c_ssf = c->c_transport_ssf = ssf;
 	c->c_tls_ssf = 0;
 
-#ifdef HAVE_TLS
+#ifdef WITH_TLS
 	if ( flags & CONN_IS_TLS ) {
 		c->c_is_tls = 1;
 		c->c_needs_tls_accept = 1;
@@ -912,15 +884,17 @@ connection_close( Connection *c )
 	assert( c->c_conn_state == SLAP_C_CLOSING );
 
 	/* NOTE: c_mutex should be locked by caller */
+	connection_wake_writers( c );
 
-	if ( !LDAP_STAILQ_EMPTY(&c->c_ops) ||
-		!LDAP_STAILQ_EMPTY(&c->c_pending_ops) )
-	{
+	if ( !LDAP_STAILQ_EMPTY(&c->c_ops)
+			|| !LDAP_STAILQ_EMPTY(&c->c_pending_ops)
+			|| c->c_writing ) {
 		Debug( LDAP_DEBUG_CONNS,
-			"connection_close: deferring conn=%lu sd=%d (c_ops %s, c_pending_ops %s)\n",
+			"connection_close: deferring conn=%lu sd=%d (c_ops %s, c_pending_ops %s, writers %d, writing %d)\n",
 			c->c_connid, c->c_sd,
 			LDAP_STAILQ_EMPTY(&c->c_ops) ? "empty" : "still",
-			LDAP_STAILQ_EMPTY(&c->c_pending_ops) ? "empty" : "still"
+			LDAP_STAILQ_EMPTY(&c->c_pending_ops) ? "empty" : "still",
+			c->c_writers, c->c_writing
 		);
 		return;
 	}
@@ -1459,7 +1433,7 @@ connection_read( ber_socket_t s, conn_readinfo *cri )
 		"connection_read(%d): checking for input on id=%lu\n",
 		s, c->c_connid );
 
-#ifdef HAVE_TLS
+#ifdef WITH_TLS
 	if ( c->c_is_tls && c->c_needs_tls_accept ) {
 		rc = ldap_pvt_tls_accept( c->c_sb, slap_tls_ctx );
 		if ( rc < 0 ) {
@@ -2055,7 +2029,7 @@ int connection_write(ber_socket_t s)
 
 	slapd_clr_write( s, 0 );
 
-#ifdef HAVE_TLS
+#ifdef WITH_TLS
 	if ( c->c_is_tls && c->c_needs_tls_accept ) {
 		connection_return( c );
 		connection_read_activate( s );

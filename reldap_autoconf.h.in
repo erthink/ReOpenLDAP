@@ -2,28 +2,10 @@
 
 
 /* begin of reldap_autoconf.h.pre */
-/* Copyright (c) 2015,2016 Leonid Yuriev <leo@yuriev.ru>.
- * Copyright (c) 2015,2016 Peter-Service R&D LLC <http://billing.ru/>.
+/* Copyright 1992-2016 ReOpenLDAP AUTHORS: please see AUTHORS file.
+ * All rights reserved.
  *
  * This file is part of ReOpenLDAP.
- *
- * ReOpenLDAP is free software; you can redistribute it and/or modify it under
- * the terms of the GNU Affero General Public License as published by
- * the Free Software Foundation; either version 3 of the License, or
- * (at your option) any later version.
- *
- * ReOpenLDAP is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- *
- * ---
- *
- * Copyright 1998-2014 The OpenLDAP Foundation
- * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted only as authorized by the OpenLDAP
@@ -173,6 +155,12 @@
 
 /* Define to 1 if you have the <conio.h> header file. */
 #undef HAVE_CONIO_H
+
+/* define if you have cracklib */
+#undef HAVE_CRACKLIB
+
+/* Define to 1 if you have the <crack.h> header file. */
+#undef HAVE_CRACK_H
 
 /* define if crypt(3) is available */
 #undef HAVE_CRYPT
@@ -329,7 +317,7 @@
 /* Define to 1 if you have the `gmtime_r' function. */
 #undef HAVE_GMTIME_R
 
-/* define if you have GNUtls */
+/* define if you have GnuTLS */
 #undef HAVE_GNUTLS
 
 /* Define to 1 if you have the <gnutls/gnutls.h> header file. */
@@ -337,6 +325,18 @@
 
 /* Define to 1 if you have the <grp.h> header file. */
 #undef HAVE_GRP_H
+
+/* define if you have GSSAPI */
+#undef HAVE_GSSAPI
+
+/* Define to 1 if you have the <gssapi/gssapi.h> header file. */
+#undef HAVE_GSSAPI_GSSAPI_H
+
+/* Define to 1 if you have the <gssapi.h> header file. */
+#undef HAVE_GSSAPI_H
+
+/* Define to 1 if you have the `gss_oid_to_str' function. */
+#undef HAVE_GSS_OID_TO_STR
 
 /* Define to 1 if you have the `hstrerror' function. */
 #undef HAVE_HSTRERROR
@@ -452,7 +452,7 @@
 /* Define to 1 if you have the `mktemp' function. */
 #undef HAVE_MKTEMP
 
-/* define if you have MozNSS */
+/* define if you have Mozill NSS */
 #undef HAVE_MOZNSS
 
 /* Define to 1 if you have the <ndir.h> header file, and it defines `DIR'. */
@@ -464,8 +464,17 @@
 /* define if strerror_r returns char* instead of int */
 #undef HAVE_NONPOSIX_STRERROR_R
 
-/* Define to 1 if you have the <nssutil.h> header file. */
-#undef HAVE_NSSUTIL_H
+/* Define to 1 if you have the <nspr4/nspr.h> header file. */
+#undef HAVE_NSPR4_NSPR_H
+
+/* Define to 1 if you have the <nspr/nspr.h> header file. */
+#undef HAVE_NSPR_NSPR_H
+
+/* Define to 1 if you have the <nss3/nss.h> header file. */
+#undef HAVE_NSS3_NSS_H
+
+/* Define to 1 if you have the <nss/nss.h> header file. */
+#undef HAVE_NSS_NSS_H
 
 /* Define to 1 if you have the `opendir' function. */
 #undef HAVE_OPENDIR
@@ -476,7 +485,7 @@
 /* Define to 1 if you have the <openssl/bn.h> header file. */
 #undef HAVE_OPENSSL_BN_H
 
-/* define if you have OpenSSL with CRL checking capability */
+/* define if you have OpenSSL with CRL checking USE_OPENSSLcapability */
 #undef HAVE_OPENSSL_CRL
 
 /* Define to 1 if you have the <openssl/crypto.h> header file. */
@@ -560,9 +569,6 @@
 /* define if you have res_query() */
 #undef HAVE_RES_QUERY
 
-/* define if OpenSSL needs RSAref */
-#undef HAVE_RSAREF
-
 /* Define to 1 if you have the <sasl.h> header file. */
 #undef HAVE_SASL_H
 
@@ -643,6 +649,9 @@
 
 /* Define to 1 if you have the <sql.h> header file. */
 #undef HAVE_SQL_H
+
+/* Define to 1 if you have the <ssl.h> header file. */
+#undef HAVE_SSL_H
 
 /* Define to 1 if you have the <stddef.h> header file. */
 #undef HAVE_STDDEF_H
@@ -844,9 +853,6 @@
 /* Define to 1 if you have the `thr_yield' function. */
 #undef HAVE_THR_YIELD
 
-/* define if you have TLS */
-#undef HAVE_TLS
-
 /* Define to 1 if you have the <unistd.h> header file. */
 #undef HAVE_UNISTD_H
 
@@ -913,7 +919,7 @@
 /* define this to add debugging code */
 #undef LDAP_DEBUG
 
-/* define as 1 to enable experimantal/developing features */
+/* define as 1 to enable experimental/developing features */
 #undef LDAP_EXPERIMENTAL
 
 /* define as 1 to enable runtime checking */
@@ -977,9 +983,6 @@
 /* Define if dlsym() requires a leading underscore in symbol names. */
 #undef NEED_USCORE
 
-/* define to use the original debug style */
-#undef OLD_DEBUG
-
 /* Name of package */
 #undef PACKAGE
 
@@ -1008,11 +1011,20 @@
 /* --enable-shared=yes */
 #undef RELDAP_LIBS_SHARED
 
+/* configured TLS/SSL support */
+#undef RELDAP_TLS
+
+/* fallback TLS/SSL support */
+#undef RELDAP_TLS_FALLBACK
+
 /* Date of release */
 #undef RELEASE_DATE
 
 /* Digest stamp */
 #undef RELEASE_STAMP
+
+/* BuildId suffix for Version */
+#undef REOPENLDAP_BUILDID_SUFFIX
 
 /* Name of the Package */
 #undef REOPENLDAP_PACKAGE
@@ -1227,6 +1239,9 @@
 /* Version number of package */
 #undef VERSION
 
+/* define if you enabled TLS */
+#undef WITH_TLS
+
 /* Define WORDS_BIGENDIAN to 1 if your processor stores words with the most
    significant byte first (like Motorola and SPARC, unlike Intel). */
 #if defined AC_APPLE_UNIVERSAL_BUILD
@@ -1333,6 +1348,16 @@
 
 #ifdef HAVE_ENDIAN_H
 #	include <endian.h>
+#endif
+
+/* LY: TLS which is enabled due configure */
+#define RELDAP_TLS_NONE		0 /* None, --with-tls=no */
+#define RELDAP_TLS_MOZNSS	1 /* Mozilla NSS, --with-tls=moznss */
+#define RELDAP_TLS_GNUTLS	2 /* GnuTLS, --with-tls=gnutls */
+#define RELDAP_TLS_OPENSSL	3 /* OpenSSL, --with-tls=openssl */
+
+#ifndef REOPENLDAP_BUILDID_SUFFIX
+#	define REOPENLDAP_BUILDID_SUFFIX ""
 #endif
 
 #endif /* RELDAP_AUTOCONF_H */

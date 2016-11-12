@@ -1,27 +1,8 @@
-/* slap.h - stand alone ldap server include file */
 /* $ReOpenLDAP$ */
-/* Copyright (c) 2015,2016 Leonid Yuriev <leo@yuriev.ru>.
- * Copyright (c) 2015,2016 Peter-Service R&D LLC <http://billing.ru/>.
+/* Copyright 1990-2016 ReOpenLDAP AUTHORS: please see AUTHORS file.
+ * All rights reserved.
  *
  * This file is part of ReOpenLDAP.
- *
- * ReOpenLDAP is free software; you can redistribute it and/or modify it under
- * the terms of the GNU Affero General Public License as published by
- * the Free Software Foundation; either version 3 of the License, or
- * (at your option) any later version.
- *
- * ReOpenLDAP is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- *
- * ---
- *
- * Copyright 1998-2014 The OpenLDAP Foundation.
- * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted only as authorized by the OpenLDAP
@@ -31,16 +12,8 @@
  * top-level directory of the distribution or, alternatively, at
  * <http://www.OpenLDAP.org/license.html>.
  */
-/* Portions Copyright (c) 1995 Regents of the University of Michigan.
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms are permitted
- * provided that this notice is preserved and that due credit is given
- * to the University of Michigan at Ann Arbor. The name of the University
- * may not be used to endorse or promote products derived from this
- * software without specific prior written permission. This software
- * is provided ``as is'' without express or implied warranty.
- */
+
+/* slap.h - stand alone ldap server include file */
 
 #ifndef _SLAP_H_
 #define _SLAP_H_
@@ -1653,7 +1626,7 @@ typedef struct slap_bindconf {
 	struct berval sb_authcId;
 	struct berval sb_authzId;
 	slap_keepalive sb_keepalive;
-#ifdef HAVE_TLS
+#ifdef WITH_TLS
 	void *sb_tls_ctx;
 	char *sb_tls_cert;
 	char *sb_tls_key;
@@ -3079,7 +3052,7 @@ struct Connection {
 #ifdef LDAP_CONNECTIONLESS
 	char	c_is_udp;		/* true if this is (C)LDAP over UDP */
 #endif
-#ifdef HAVE_TLS
+#ifdef WITH_TLS
 	char	c_is_tls;		/* true if this LDAP over raw TLS */
 	char	c_needs_tls_accept;	/* true if SSL_accept should be called */
 #endif
@@ -3147,7 +3120,7 @@ struct Listener {
 	struct berval sl_url;
 	struct berval sl_name;
 	mode_t	sl_perms;
-#ifdef HAVE_TLS
+#ifdef WITH_TLS
 	int		sl_is_tls;
 #endif
 #ifdef LDAP_CONNECTIONLESS

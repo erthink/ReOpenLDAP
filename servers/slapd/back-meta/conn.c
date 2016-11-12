@@ -1,28 +1,8 @@
 /* $ReOpenLDAP$ */
-/* Copyright (c) 2015,2016 Leonid Yuriev <leo@yuriev.ru>.
- * Copyright (c) 2015,2016 Peter-Service R&D LLC <http://billing.ru/>.
+/* Copyright 1999-2016 ReOpenLDAP AUTHORS: please see AUTHORS file.
+ * All rights reserved.
  *
  * This file is part of ReOpenLDAP.
- *
- * ReOpenLDAP is free software; you can redistribute it and/or modify it under
- * the terms of the GNU Affero General Public License as published by
- * the Free Software Foundation; either version 3 of the License, or
- * (at your option) any later version.
- *
- * ReOpenLDAP is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- *
- * ---
- *
- * Copyright 1999-2014 The OpenLDAP Foundation.
- * Portions Copyright 2001-2003 Pierangelo Masarati.
- * Portions Copyright 1999-2003 Howard Chu.
- * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted only as authorized by the OpenLDAP
@@ -32,6 +12,7 @@
  * top-level directory of the distribution or, alternatively, at
  * <http://www.OpenLDAP.org/license.html>.
  */
+
 /* ACKNOWLEDGEMENTS:
  * This work was initially developed by the Howard Chu for inclusion
  * in OpenLDAP Software and subsequently enhanced by Pierangelo
@@ -45,7 +26,6 @@
 #include <ac/errno.h>
 #include <ac/socket.h>
 #include <ac/string.h>
-
 
 #define AVL_INTERNAL
 #include "slap.h"
@@ -298,10 +278,10 @@ meta_back_init_one_conn(
 	dncookie		dc;
 	int			isauthz = ( candidate == mc->mc_authz_target );
 	int			do_return = 0;
-#ifdef HAVE_TLS
+#ifdef WITH_TLS
 	int			is_ldaps = 0;
 	int			do_start_tls = 0;
-#endif /* HAVE_TLS */
+#endif /* WITH_TLS */
 
 	/* if the server is quarantined, and
 	 * - the current interval did not expire yet, or
@@ -412,9 +392,9 @@ retry_lock:;
 	 */
 	ldap_pvt_thread_mutex_lock( &mt->mt_uri_mutex );
 	rs->sr_err = ldap_initialize( &msc->msc_ld, mt->mt_uri );
-#ifdef HAVE_TLS
+#ifdef WITH_TLS
 	is_ldaps = ldap_is_ldaps_url( mt->mt_uri );
-#endif /* HAVE_TLS */
+#endif /* WITH_TLS */
 	ldap_pvt_thread_mutex_unlock( &mt->mt_uri_mutex );
 	if ( rs->sr_err != LDAP_SUCCESS ) {
 		goto error_return;
@@ -442,7 +422,7 @@ retry_lock:;
 
 	slap_client_keepalive(msc->msc_ld, &mt->mt_tls.sb_keepalive);
 
-#ifdef HAVE_TLS
+#ifdef WITH_TLS
 	{
 		slap_bindconf *sb = NULL;
 
@@ -592,7 +572,7 @@ retry:;
 			goto error_return;
 		}
 	}
-#endif /* HAVE_TLS */
+#endif /* WITH_TLS */
 
 	/*
 	 * Set the network timeout if set

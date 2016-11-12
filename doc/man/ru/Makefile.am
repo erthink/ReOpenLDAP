@@ -1,20 +1,15 @@
-## Copyright (c) 2015,2016 Leonid Yuriev <leo@yuriev.ru>.
-## Copyright (c) 2015,2016 Peter-Service R&D LLC <http://billing.ru/>.
+## Copyright 2016 ReOpenLDAP AUTHORS: please see AUTHORS file.
+## All rights reserved.
 ##
 ## This file is part of ReOpenLDAP.
 ##
-## ReOpenLDAP is free software; you can redistribute it and/or modify it under
-## the terms of the GNU Affero General Public License as published by
-## the Free Software Foundation; either version 3 of the License, or
-## (at your option) any later version.
+## Redistribution and use in source and binary forms, with or without
+## modification, are permitted only as authorized by the OpenLDAP
+## Public License.
 ##
-## ReOpenLDAP is distributed in the hope that it will be useful,
-## but WITHOUT ANY WARRANTY; without even the implied warranty of
-## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-## GNU Affero General Public License for more details.
-##
-## You should have received a copy of the GNU Affero General Public License
-## along with this program.  If not, see <http://www.gnu.org/licenses/>.
+## A copy of this license is available in the file LICENSE in the
+## top-level directory of the distribution or, alternatively, at
+## <http://www.OpenLDAP.org/license.html>.
 ##
 
 MAINT_CHARSET = utf8
@@ -76,12 +71,12 @@ man8_MANS = man8/slapcat.man man8/slappasswd.man \
 install-data-hook:
 	@if $(AM_V_P); then set -x; else echo "  LN       $(man_links)"; fi; \
 	(cd $(srcdir) && echo $(man_links) | tr -s '[:space:]' '\n' | xargs -r -n 1 -I {} \
-		sh -c 'xargs -I "#" -n 1 -r sh -c "cd $(mandir_ru)/$$(dirname {}) && ln -s -f -T $$(basename {} .links) #" < $(srcdir)/{}' \
+		sh -c 'xargs -I "#" -n 1 -r sh -c "cd $(DESTDIR)$(mandir_ru)/$$(dirname {}) && ln -s -f -T $$(basename {} .links) #" < $(srcdir)/{}' \
 		\;)
 
 uninstall-hook:
 	@if $(AM_V_P); then set -x; else echo "  RM       $(man_links)"; fi; \
 	(cd $(srcdir) && echo $(man_links) | tr -s '[:space:]' '\n' | xargs -r -n 1 -I {} \
-		sh -c 'xargs -I "#" -n 1 -r sh -c "rm -f $(mandir_ru)/$$(dirname {})/#" < $(srcdir)/{}' \
+		sh -c 'xargs -I "#" -n 1 -r sh -c "rm -f $(DESTDIR)$(mandir_ru)/$$(dirname {})/#" < $(srcdir)/{}' \
 		\;); \
-	find $(mandir_ru) -depth -type d -empty -exec rmdir {} \;
+	find $(DESTDIR)$(mandir_ru) -depth -type d -empty -exec rmdir {} \;

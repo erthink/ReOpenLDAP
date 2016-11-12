@@ -1,27 +1,8 @@
-/* tls_m.c - Handle tls/ssl using Mozilla NSS. */
 /* $ReOpenLDAP$ */
-/* Copyright (c) 2015,2016 Leonid Yuriev <leo@yuriev.ru>.
- * Copyright (c) 2015,2016 Peter-Service R&D LLC <http://billing.ru/>.
+/* Copyright 1990-2016 ReOpenLDAP AUTHORS: please see AUTHORS file.
+ * All rights reserved.
  *
  * This file is part of ReOpenLDAP.
- *
- * ReOpenLDAP is free software; you can redistribute it and/or modify it under
- * the terms of the GNU Affero General Public License as published by
- * the Free Software Foundation; either version 3 of the License, or
- * (at your option) any later version.
- *
- * ReOpenLDAP is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- *
- * ---
- *
- * Copyright 2008-2014 The OpenLDAP Foundation.
- * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted only as authorized by the OpenLDAP
@@ -37,7 +18,7 @@
 
 #include "reldap.h"
 
-#ifdef HAVE_MOZNSS
+#if RELDAP_TLS == RELDAP_TLS_MOZNSS
 
 #include "ldap_dirs.h"
 
@@ -56,6 +37,8 @@
 #include <ac/unistd.h>
 #include <ac/param.h>
 #include <ac/dirent.h>
+#include <ac/localize.h>
+#include <ac/regex.h>
 
 #include "ldap-int.h"
 #include "ldap-tls.h"
@@ -64,20 +47,40 @@
 #define READ_PASSWORD_FROM_FILE
 
 #ifdef READ_PASSWORD_FROM_STDIN
-#include <termios.h> /* for echo on/off */
+#	include <termios.h> /* for echo on/off */
 #endif
 
-#include <nspr/nspr.h>
-#include <nspr/private/pprio.h>
-#include <nss/nss.h>
-#include <nss/ssl.h>
-#include <nss/sslerr.h>
-#include <nss/sslproto.h>
-#include <nss/pk11pub.h>
-#include <nss/secerr.h>
-#include <nss/keyhi.h>
-#include <nss/secmod.h>
-#include <nss/cert.h>
+#ifdef HAVE_NSPR_NSPR_H
+#	include <nspr/nspr.h>
+#	include <nspr/private/pprio.h>
+#elif defined(HAVE_NSPR4_NSPR_H)
+#	include <nspr4/nspr.h>
+#	include <nspr4/private/pprio.h>
+#else
+#	include <nspr.h>
+#endif
+
+#ifdef HAVE_NSS3_NSS_H
+#	include <nss3/nss.h>
+#	include <nss3/ssl.h>
+#	include <nss3/sslerr.h>
+#	include <nss3/sslproto.h>
+#	include <nss3/pk11pub.h>
+#	include <nss3/secerr.h>
+#	include <nss3/keyhi.h>
+#	include <nss3/secmod.h>
+#	include <nss3/cert.h>
+#else
+#	include <nss/nss.h>
+#	include <nss/ssl.h>
+#	include <nss/sslerr.h>
+#	include <nss/sslproto.h>
+#	include <nss/pk11pub.h>
+#	include <nss/secerr.h>
+#	include <nss/keyhi.h>
+#	include <nss/secmod.h>
+#	include <nss/cert.h>
+#endif
 
 #undef NSS_VERSION_INT
 #define	NSS_VERSION_INT	((NSS_VMAJOR << 24) | (NSS_VMINOR << 16) | \
@@ -136,9 +139,7 @@ static const PRIOMethods tlsm_PR_methods;
 
 #define PEM_LIBRARY	"nsspem"
 #define PEM_MODULE	"PEM"
-/* hash files for use with cacertdir have this file name suffix */
-#define PEM_CA_HASH_FILE_SUFFIX	".0"
-#define PEM_CA_HASH_FILE_SUFFIX_LEN 2
+#define PEM_CA_HASH_FILE_REGEX "^[0-9a-f]{8}\\.[0-9]+$"
 
 static SECMODModule *pem_module;
 
@@ -195,6 +196,7 @@ tlsm_thr_init( void )
 
 #endif /* LDAP_R_COMPILE */
 
+#if 0 /* LY: unused now */
 static const char *
 tlsm_dump_cipher_info(PRFileDesc *fd)
 {
@@ -222,6 +224,7 @@ tlsm_dump_cipher_info(PRFileDesc *fd)
 
 	return "";
 }
+#endif /* #if 0, unused */
 
 /* Cipher definitions */
 typedef struct {
@@ -229,27 +232,34 @@ typedef struct {
 	int num;            /* The cipher id */
 	int attr;           /* cipher attributes: algorithms, etc */
 	int version;        /* protocol version valid for this cipher */
-	int bits;           /* bits of strength */
-	int alg_bits;       /* bits of the algorithm */
 	int strength;       /* LOW, MEDIUM, HIGH */
 	int enabled;        /* Enabled by default? */
 } cipher_properties;
 
 /* cipher attributes  */
-#define SSL_kRSA  0x00000001L
-#define SSL_aRSA  0x00000002L
-#define SSL_aDSS  0x00000004L
-#define SSL_DSS   SSL_aDSS
-#define SSL_eNULL 0x00000008L
-#define SSL_DES   0x00000010L
-#define SSL_3DES  0x00000020L
-#define SSL_RC4   0x00000040L
-#define SSL_RC2   0x00000080L
-#define SSL_AES   0x00000100L
-#define SSL_MD5   0x00000200L
-#define SSL_SHA1  0x00000400L
-#define SSL_SHA   SSL_SHA1
-#define SSL_RSA   (SSL_kRSA|SSL_aRSA)
+#define SSL_kRSA        0x00000001L
+#define SSL_aRSA        0x00000002L
+#define SSL_RSA         (SSL_kRSA|SSL_aRSA)
+#define SSL_aDSA        0x00000004L
+#define SSL_DSA         SSL_aDSA
+#define SSL_eNULL       0x00000008L
+#define SSL_DES         0x00000010L
+#define SSL_3DES        0x00000020L
+#define SSL_RC4         0x00000040L
+#define SSL_RC2         0x00000080L
+#define SSL_AES128      0x00000100L
+#define SSL_AES256      0x00000200L
+#define SSL_AES         (SSL_AES128|SSL_AES256)
+#define SSL_MD5         0x00000400L
+#define SSL_SHA1        0x00000800L
+#define SSL_kEDH        0x00001000L
+#define SSL_CAMELLIA128 0x00002000L
+#define SSL_CAMELLIA256 0x00004000L
+#define SSL_CAMELLIA    (SSL_CAMELLIA128|SSL_CAMELLIA256)
+#define SSL_SEED        0x00008000L
+#define SSL_kECDH       0x00010000L
+#define SSL_kECDHE      0x00020000L
+#define SSL_aECDSA      0x00040000L
 
 /* cipher strength */
 #define SSL_NULL      0x00000001L
@@ -266,29 +276,70 @@ typedef struct {
 
 /* Cipher translation */
 static cipher_properties ciphers_def[] = {
-	/* SSL 2 ciphers */
-	{"DES-CBC3-MD5", SSL_EN_DES_192_EDE3_CBC_WITH_MD5, SSL_kRSA|SSL_aRSA|SSL_3DES|SSL_MD5, SSL2, 168, 168, SSL_HIGH, SSL_ALLOWED},
-	{"RC2-CBC-MD5", SSL_EN_RC2_128_CBC_WITH_MD5, SSL_kRSA|SSL_aRSA|SSL_RC2|SSL_MD5, SSL2, 128, 128, SSL_MEDIUM, SSL_ALLOWED},
-	{"RC4-MD5", SSL_EN_RC4_128_WITH_MD5, SSL_kRSA|SSL_aRSA|SSL_RC4|SSL_MD5, SSL2, 128, 128, SSL_MEDIUM, SSL_ALLOWED},
-	{"DES-CBC-MD5", SSL_EN_DES_64_CBC_WITH_MD5, SSL_kRSA|SSL_aRSA|SSL_DES|SSL_MD5, SSL2, 56, 56, SSL_LOW, SSL_ALLOWED},
-	{"EXP-RC2-CBC-MD5", SSL_EN_RC2_128_CBC_EXPORT40_WITH_MD5, SSL_kRSA|SSL_aRSA|SSL_RC2|SSL_MD5, SSL2, 40, 128, SSL_EXPORT40, SSL_ALLOWED},
-	{"EXP-RC4-MD5", SSL_EN_RC4_128_EXPORT40_WITH_MD5, SSL_kRSA|SSL_aRSA|SSL_RC4|SSL_MD5, SSL2, 40, 128, SSL_EXPORT40, SSL_ALLOWED},
 
-	/* SSL3 ciphers */
-	{"RC4-MD5", SSL_RSA_WITH_RC4_128_MD5, SSL_kRSA|SSL_aRSA|SSL_RC4|SSL_MD5, SSL3, 128, 128, SSL_MEDIUM, SSL_ALLOWED},
-	{"RC4-SHA", SSL_RSA_WITH_RC4_128_SHA, SSL_kRSA|SSL_aRSA|SSL_RC4|SSL_SHA1, SSL3, 128, 128, SSL_MEDIUM, SSL_ALLOWED},
-	{"DES-CBC3-SHA", SSL_RSA_WITH_3DES_EDE_CBC_SHA, SSL_kRSA|SSL_aRSA|SSL_3DES|SSL_SHA1, SSL3, 168, 168, SSL_HIGH, SSL_ALLOWED},
-	{"DES-CBC-SHA", SSL_RSA_WITH_DES_CBC_SHA, SSL_kRSA|SSL_aRSA|SSL_DES|SSL_SHA1, SSL3, 56, 56, SSL_LOW, SSL_ALLOWED},
-	{"EXP-RC4-MD5", SSL_RSA_EXPORT_WITH_RC4_40_MD5, SSL_kRSA|SSL_aRSA|SSL_RC4|SSL_MD5, SSL3, 40, 128, SSL_EXPORT40, SSL_ALLOWED},
-	{"EXP-RC2-CBC-MD5", SSL_RSA_EXPORT_WITH_RC2_CBC_40_MD5, SSL_kRSA|SSL_aRSA|SSL_RC2|SSL_MD5, SSL3, 0, 0, SSL_EXPORT40, SSL_ALLOWED},
-	{"NULL-MD5", SSL_RSA_WITH_NULL_MD5, SSL_kRSA|SSL_aRSA|SSL_eNULL|SSL_MD5, SSL3, 0, 0, SSL_NULL, SSL_NOT_ALLOWED},
-	{"NULL-SHA", SSL_RSA_WITH_NULL_SHA, SSL_kRSA|SSL_aRSA|SSL_eNULL|SSL_SHA1, SSL3, 0, 0, SSL_NULL, SSL_NOT_ALLOWED},
+	/*
+	 * Use the same DEFAULT cipher list as OpenSSL, which is defined as: ALL:!aNULL:!eNULL:!SSLv2
+	 */
+
+	/* SSLv2 ciphers */
+	{"DES-CBC-MD5",     SSL_EN_DES_64_CBC_WITH_MD5,           SSL_kRSA|SSL_aRSA|SSL_DES|SSL_MD5,  SSL2, SSL_LOW,      SSL_NOT_ALLOWED},
+	{"DES-CBC3-MD5",    SSL_EN_DES_192_EDE3_CBC_WITH_MD5,     SSL_kRSA|SSL_aRSA|SSL_3DES|SSL_MD5, SSL2, SSL_HIGH,     SSL_NOT_ALLOWED},
+	{"RC2-CBC-MD5",     SSL_EN_RC2_128_CBC_WITH_MD5,          SSL_kRSA|SSL_aRSA|SSL_RC2|SSL_MD5,  SSL2, SSL_MEDIUM,   SSL_NOT_ALLOWED},
+	{"RC4-MD5",         SSL_EN_RC4_128_WITH_MD5,              SSL_kRSA|SSL_aRSA|SSL_RC4|SSL_MD5,  SSL2, SSL_MEDIUM,   SSL_NOT_ALLOWED},
+	{"EXP-RC2-CBC-MD5", SSL_EN_RC2_128_CBC_EXPORT40_WITH_MD5, SSL_kRSA|SSL_aRSA|SSL_RC2|SSL_MD5,  SSL2, SSL_EXPORT40, SSL_NOT_ALLOWED},
+	{"EXP-RC4-MD5",     SSL_EN_RC4_128_EXPORT40_WITH_MD5,     SSL_kRSA|SSL_aRSA|SSL_RC4|SSL_MD5,  SSL2, SSL_EXPORT40, SSL_NOT_ALLOWED},
+
+	/* SSLv3 ciphers */
+	{"NULL-MD5",             SSL_RSA_WITH_NULL_MD5,              SSL_kRSA|SSL_aRSA|SSL_eNULL|SSL_MD5,  SSL3, SSL_NULL,     SSL_NOT_ALLOWED},
+	{"NULL-SHA",             SSL_RSA_WITH_NULL_SHA,              SSL_kRSA|SSL_aRSA|SSL_eNULL|SSL_SHA1, SSL3, SSL_NULL,     SSL_NOT_ALLOWED},
+	{"DES-CBC-SHA",          SSL_RSA_WITH_DES_CBC_SHA,           SSL_kRSA|SSL_aRSA|SSL_DES|SSL_SHA1,   SSL3, SSL_LOW,      SSL_ALLOWED},
+	{"DES-CBC3-SHA",         SSL_RSA_WITH_3DES_EDE_CBC_SHA,      SSL_kRSA|SSL_aRSA|SSL_3DES|SSL_SHA1,  SSL3, SSL_HIGH,     SSL_ALLOWED},
+	{"RC4-MD5",              SSL_RSA_WITH_RC4_128_MD5,           SSL_kRSA|SSL_aRSA|SSL_RC4|SSL_MD5,    SSL3, SSL_MEDIUM,   SSL_ALLOWED},
+	{"RC4-SHA",              SSL_RSA_WITH_RC4_128_SHA,           SSL_kRSA|SSL_aRSA|SSL_RC4|SSL_SHA1,   SSL3, SSL_MEDIUM,   SSL_ALLOWED},
+	{"EXP-RC2-CBC-MD5",      SSL_RSA_EXPORT_WITH_RC2_CBC_40_MD5, SSL_kRSA|SSL_aRSA|SSL_RC2|SSL_MD5,    SSL3, SSL_EXPORT40, SSL_ALLOWED},
+	{"EXP-RC4-MD5",          SSL_RSA_EXPORT_WITH_RC4_40_MD5,     SSL_kRSA|SSL_aRSA|SSL_RC4|SSL_MD5,    SSL3, SSL_EXPORT40, SSL_ALLOWED},
+	{"EDH-RSA-DES-CBC-SHA",  SSL_DHE_RSA_WITH_DES_CBC_SHA,       SSL_kEDH|SSL_aRSA|SSL_DES|SSL_SHA1,   SSL3, SSL_LOW,      SSL_ALLOWED},
+	{"EDH-RSA-DES-CBC3-SHA", SSL_DHE_RSA_WITH_3DES_EDE_CBC_SHA,  SSL_kEDH|SSL_aRSA|SSL_3DES|SSL_SHA1,  SSL3, SSL_HIGH,     SSL_ALLOWED},
+	{"EDH-DSS-DES-CBC-SHA",  SSL_DHE_DSS_WITH_DES_CBC_SHA,       SSL_kEDH|SSL_aDSA|SSL_DES|SSL_SHA1,   SSL3, SSL_LOW,      SSL_ALLOWED},
+	{"EDH-DSS-DES-CBC3-SHA", SSL_DHE_DSS_WITH_3DES_EDE_CBC_SHA,  SSL_kEDH|SSL_aDSA|SSL_3DES|SSL_SHA1,  SSL3, SSL_HIGH,     SSL_ALLOWED},
 
 	/* TLSv1 ciphers */
-	{"EXP1024-DES-CBC-SHA", TLS_RSA_EXPORT1024_WITH_DES_CBC_SHA, SSL_kRSA|SSL_aRSA|SSL_DES|SSL_SHA, TLS1, 56, 56, SSL_EXPORT56, SSL_ALLOWED},
-	{"EXP1024-RC4-SHA", TLS_RSA_EXPORT1024_WITH_RC4_56_SHA, SSL_kRSA|SSL_aRSA|SSL_RC4|SSL_SHA, TLS1, 56, 56, SSL_EXPORT56, SSL_ALLOWED},
-	{"AES128-SHA", TLS_RSA_WITH_AES_128_CBC_SHA, SSL_kRSA|SSL_aRSA|SSL_AES|SSL_SHA, TLS1, 128, 128, SSL_HIGH, SSL_ALLOWED},
-	{"AES256-SHA", TLS_RSA_WITH_AES_256_CBC_SHA, SSL_kRSA|SSL_aRSA|SSL_AES|SSL_SHA, TLS1, 256, 256, SSL_HIGH, SSL_ALLOWED},
+	{"EXP1024-DES-CBC-SHA",      TLS_RSA_EXPORT1024_WITH_DES_CBC_SHA,   SSL_kRSA|SSL_aRSA|SSL_DES|SSL_SHA1,         TLS1, SSL_EXPORT56, SSL_ALLOWED},
+	{"EXP1024-RC4-SHA",          TLS_RSA_EXPORT1024_WITH_RC4_56_SHA,    SSL_kRSA|SSL_aRSA|SSL_RC4|SSL_SHA1,         TLS1, SSL_EXPORT56, SSL_ALLOWED},
+	{"SEED-SHA",                 TLS_RSA_WITH_SEED_CBC_SHA,             SSL_kRSA|SSL_aRSA|SSL_SEED|SSL_SHA1,        TLS1, SSL_MEDIUM,   SSL_ALLOWED},
+	{"AES128-SHA",               TLS_RSA_WITH_AES_128_CBC_SHA,          SSL_kRSA|SSL_aRSA|SSL_AES128|SSL_SHA1,      TLS1, SSL_HIGH,     SSL_ALLOWED},
+	{"AES256-SHA",               TLS_RSA_WITH_AES_256_CBC_SHA,          SSL_kRSA|SSL_aRSA|SSL_AES256|SSL_SHA1,      TLS1, SSL_HIGH,     SSL_ALLOWED},
+	{"CAMELLIA256-SHA",          TLS_RSA_WITH_CAMELLIA_256_CBC_SHA,     SSL_kRSA|SSL_aRSA|SSL_CAMELLIA|SSL_SHA1,    TLS1, SSL_HIGH,     SSL_ALLOWED},
+	{"CAMELLIA128-SHA",          TLS_RSA_WITH_CAMELLIA_128_CBC_SHA,     SSL_kRSA|SSL_aRSA|SSL_CAMELLIA|SSL_SHA1,    TLS1, SSL_HIGH,     SSL_ALLOWED},
+	{"DHE-RSA-AES128-SHA",       TLS_DHE_RSA_WITH_AES_128_CBC_SHA,      SSL_kEDH|SSL_aRSA|SSL_AES128|SSL_SHA1,      TLS1, SSL_HIGH,     SSL_ALLOWED},
+	{"DHE-RSA-AES256-SHA",       TLS_DHE_RSA_WITH_AES_256_CBC_SHA,      SSL_kEDH|SSL_aRSA|SSL_AES256|SSL_SHA1,      TLS1, SSL_HIGH,     SSL_ALLOWED},
+	{"DHE-RSA-CAMELLIA128-SHA",  TLS_DHE_RSA_WITH_CAMELLIA_128_CBC_SHA, SSL_kEDH|SSL_aRSA|SSL_CAMELLIA128|SSL_SHA1, TLS1, SSL_HIGH,     SSL_ALLOWED},
+	{"DHE-RSA-CAMELLIA256-SHA",  TLS_DHE_RSA_WITH_CAMELLIA_256_CBC_SHA, SSL_kEDH|SSL_aRSA|SSL_CAMELLIA256|SSL_SHA1, TLS1, SSL_HIGH,     SSL_ALLOWED},
+	{"DHE-DSS-RC4-SHA",          TLS_DHE_DSS_WITH_RC4_128_SHA,          SSL_kEDH|SSL_aDSA|SSL_RC4|SSL_SHA1,         TLS1, SSL_MEDIUM,   SSL_ALLOWED},
+	{"DHE-DSS-AES128-SHA",       TLS_DHE_DSS_WITH_AES_128_CBC_SHA,      SSL_kEDH|SSL_aDSA|SSL_AES128|SSL_SHA1,      TLS1, SSL_HIGH,     SSL_ALLOWED},
+	{"DHE-DSS-AES256-SHA",       TLS_DHE_DSS_WITH_AES_256_CBC_SHA,      SSL_kEDH|SSL_aDSA|SSL_AES256|SSL_SHA1,      TLS1, SSL_HIGH,     SSL_ALLOWED},
+	{"DHE-DSS-CAMELLIA128-SHA",  TLS_DHE_DSS_WITH_CAMELLIA_128_CBC_SHA, SSL_kEDH|SSL_aDSA|SSL_CAMELLIA128|SSL_SHA1, TLS1, SSL_HIGH,     SSL_ALLOWED},
+	{"DHE-DSS-CAMELLIA256-SHA",  TLS_DHE_DSS_WITH_CAMELLIA_256_CBC_SHA, SSL_kEDH|SSL_aDSA|SSL_CAMELLIA256|SSL_SHA1, TLS1, SSL_HIGH,     SSL_ALLOWED},
+	{"ECDH-RSA-NULL-SHA",        TLS_ECDH_RSA_WITH_NULL_SHA,            SSL_kECDH|SSL_aRSA|SSL_eNULL|SSL_SHA1,      TLS1, SSL_NULL,     SSL_NOT_ALLOWED},
+	{"ECDH-RSA-RC4-SHA",         TLS_ECDH_RSA_WITH_RC4_128_SHA,         SSL_kECDH|SSL_aRSA|SSL_RC4|SSL_SHA1,        TLS1, SSL_MEDIUM,   SSL_ALLOWED},
+	{"ECDH-RSA-DES-CBC3-SHA",    TLS_ECDH_RSA_WITH_3DES_EDE_CBC_SHA,    SSL_kECDH|SSL_aRSA|SSL_3DES|SSL_SHA1,       TLS1, SSL_HIGH,     SSL_ALLOWED},
+	{"ECDH-RSA-AES128-SHA",      TLS_ECDH_RSA_WITH_AES_128_CBC_SHA,     SSL_kECDH|SSL_aRSA|SSL_AES128|SSL_SHA1,     TLS1, SSL_HIGH,     SSL_ALLOWED},
+	{"ECDH-RSA-AES256-SHA",      TLS_ECDH_RSA_WITH_AES_256_CBC_SHA,     SSL_kECDH|SSL_aRSA|SSL_AES256|SSL_SHA1,     TLS1, SSL_HIGH,     SSL_ALLOWED},
+	{"ECDH-ECDSA-NULL-SHA",      TLS_ECDH_ECDSA_WITH_NULL_SHA,          SSL_kECDH|SSL_aECDSA|SSL_eNULL|SSL_SHA1,    TLS1, SSL_NULL,     SSL_NOT_ALLOWED},
+	{"ECDH-ECDSA-RC4-SHA",       TLS_ECDH_ECDSA_WITH_RC4_128_SHA,       SSL_kECDH|SSL_aECDSA|SSL_RC4|SSL_SHA1,      TLS1, SSL_MEDIUM,   SSL_ALLOWED},
+	{"ECDH-ECDSA-DES-CBC3-SHA",  TLS_ECDH_ECDSA_WITH_3DES_EDE_CBC_SHA,  SSL_kECDH|SSL_aECDSA|SSL_3DES|SSL_SHA1,     TLS1, SSL_HIGH,     SSL_ALLOWED},
+	{"ECDH-ECDSA-AES128-SHA",    TLS_ECDH_ECDSA_WITH_AES_128_CBC_SHA,   SSL_kECDH|SSL_aECDSA|SSL_AES128|SSL_SHA1,   TLS1, SSL_HIGH,     SSL_ALLOWED},
+	{"ECDH-ECDSA-AES256-SHA",    TLS_ECDH_ECDSA_WITH_AES_256_CBC_SHA,   SSL_kECDH|SSL_aECDSA|SSL_AES256|SSL_SHA1,   TLS1, SSL_HIGH,     SSL_ALLOWED},
+	{"ECDHE-RSA-NULL-SHA",       TLS_ECDHE_RSA_WITH_NULL_SHA,           SSL_kECDHE|SSL_aRSA|SSL_eNULL|SSL_SHA1,     TLS1, SSL_NULL,     SSL_NOT_ALLOWED},
+	{"ECDHE-RSA-RC4-SHA",        TLS_ECDHE_RSA_WITH_RC4_128_SHA,        SSL_kECDHE|SSL_aRSA|SSL_RC4|SSL_SHA1,       TLS1, SSL_MEDIUM,   SSL_ALLOWED},
+	{"ECDHE-RSA-DES-CBC3-SHA",   TLS_ECDHE_RSA_WITH_3DES_EDE_CBC_SHA,   SSL_kECDHE|SSL_aRSA|SSL_3DES|SSL_SHA1,      TLS1, SSL_HIGH,     SSL_ALLOWED},
+	{"ECDHE-RSA-AES128-SHA",     TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA,    SSL_kECDHE|SSL_aRSA|SSL_AES128|SSL_SHA1,    TLS1, SSL_HIGH,     SSL_ALLOWED},
+	{"ECDHE-RSA-AES256-SHA",     TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA,    SSL_kECDHE|SSL_aRSA|SSL_AES256|SSL_SHA1,    TLS1, SSL_HIGH,     SSL_ALLOWED},
+	{"ECDHE-ECDSA-NULL-SHA",     TLS_ECDHE_ECDSA_WITH_NULL_SHA,         SSL_kECDHE|SSL_aECDSA|SSL_eNULL|SSL_SHA1,   TLS1, SSL_NULL,     SSL_NOT_ALLOWED},
+	{"ECDHE-ECDSA-RC4-SHA",      TLS_ECDHE_ECDSA_WITH_RC4_128_SHA,      SSL_kECDHE|SSL_aECDSA|SSL_RC4|SSL_SHA1,     TLS1, SSL_MEDIUM,   SSL_ALLOWED},
+	{"ECDHE-ECDSA-DES-CBC3-SHA", TLS_ECDHE_ECDSA_WITH_3DES_EDE_CBC_SHA, SSL_kECDHE|SSL_aECDSA|SSL_3DES|SSL_SHA1,    TLS1, SSL_HIGH,     SSL_ALLOWED},
+	{"ECDHE-ECDSA-AES128-SHA",   TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA,  SSL_kECDHE|SSL_aECDSA|SSL_AES128|SSL_SHA1,  TLS1, SSL_HIGH,     SSL_ALLOWED},
+	{"ECDHE-ECDSA-AES256-SHA",   TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA,  SSL_kECDHE|SSL_aECDSA|SSL_AES256|SSL_SHA1,  TLS1, SSL_HIGH,     SSL_ALLOWED},
 };
 
 #define ciphernum (sizeof(ciphers_def)/sizeof(cipher_properties))
@@ -595,6 +646,10 @@ nss_parse_ciphers(const char *cipherstr, int cipher_list[ciphernum])
 					mask |= SSL_RSA;
 				} else if ((!strcmp(cipher, "NULL")) || (!strcmp(cipher, "eNULL"))) {
 					mask |= SSL_eNULL;
+				} else if (!strcmp(cipher, "AES128")) {
+					mask |= SSL_AES128;
+				} else if (!strcmp(cipher, "AES256")) {
+					mask |= SSL_AES256;
 				} else if (!strcmp(cipher, "AES")) {
 					mask |= SSL_AES;
 				} else if (!strcmp(cipher, "3DES")) {
@@ -609,6 +664,24 @@ nss_parse_ciphers(const char *cipherstr, int cipher_list[ciphernum])
 					mask |= SSL_MD5;
 				} else if ((!strcmp(cipher, "SHA")) || (!strcmp(cipher, "SHA1"))) {
 					mask |= SSL_SHA1;
+				} else if (!strcmp(cipher, "EDH")) {
+					mask |= SSL_kEDH;
+				} else if (!strcmp(cipher, "DSS")) {
+					mask |= SSL_aDSA;
+				} else if (!strcmp(cipher, "CAMELLIA128")) {
+					mask |= SSL_CAMELLIA128;
+				} else if (!strcmp(cipher, "CAMELLIA256")) {
+					mask |= SSL_CAMELLIA256;
+				} else if (!strcmp(cipher, "CAMELLIA")) {
+					mask |= SSL_CAMELLIA;
+				} else if (!strcmp(cipher, "SEED")) {
+					mask |= SSL_SEED;
+				} else if (!strcmp(cipher, "ECDH")) {
+					mask |= SSL_kECDH;
+				} else if (!strcmp(cipher, "ECDHE")) {
+					mask |= SSL_kECDHE;
+				} else if (!strcmp(cipher, "ECDSA")) {
+					mask |= SSL_aECDSA;
 				} else if (!strcmp(cipher, "SSLv2")) {
 					protocol |= SSL2;
 				} else if (!strcmp(cipher, "SSLv3")) {
@@ -639,18 +712,23 @@ nss_parse_ciphers(const char *cipherstr, int cipher_list[ciphernum])
 			 */
 			if (mask || strength || protocol) {
 				for (i=0; i<ciphernum; i++) {
-					if (((ciphers_def[i].attr & mask) ||
-						 (ciphers_def[i].strength & strength) ||
-						 (ciphers_def[i].version & protocol)) &&
-						(cipher_list[i] != -1)) {
-						/* Enable the NULL ciphers only if explicity
-						 * requested */
-						if (ciphers_def[i].attr & SSL_eNULL) {
-							if (mask & SSL_eNULL)
-								cipher_list[i] = action;
-						} else
+					/* if more than one mask is provided
+					 * then AND logic applies (to match openssl)
+					 */
+					if ( cipher_list[i] == -1 )
+						continue;
+					if ( mask && ! (ciphers_def[i].attr & mask) )
+						continue;
+					if ( strength && ! (ciphers_def[i].strength & strength) )
+						continue;
+					if ( protocol && ! (ciphers_def[i].version & protocol) )
+						continue;
+					/* Enable the NULL ciphers only if explicity requested */
+					if (ciphers_def[i].attr & SSL_eNULL) {
+						if (mask & SSL_eNULL)
 							cipher_list[i] = action;
-					}
+					} else
+						cipher_list[i] = action;
 				}
 			} else {
 				for (i=0; i<ciphernum; i++) {
@@ -938,8 +1016,8 @@ tlsm_get_pin(PK11SlotInfo *slot, PRBool retry, tlsm_ctx *ctx)
 				 token_name ? token_name : DEFAULT_TOKEN_NAME );
 			echoOff( infd );
 		}
-		dummy = fgets( (char*)phrase, sizeof(phrase), stdin );
-		(void) dummy;
+		if ( !fgets( (char*)phrase, sizeof(phrase), stdin ) )
+			return NULL;
 		if ( isTTY ) {
 			fprintf( stdout, "\n" );
 			echoOn( infd );
@@ -1362,7 +1440,7 @@ tlsm_ctx_load_private_key( tlsm_ctx *ctx )
 	/* prefer unlocked key, then key from opened certdb, then any other */
 	if ( unlocked_key )
 		ctx->tc_private_key = unlocked_key;
-	else if ( ctx->tc_certdb_slot )
+	else if ( ctx->tc_certdb_slot && !ctx->tc_using_pem )
 		ctx->tc_private_key = PK11_FindKeyByDERCert( ctx->tc_certdb_slot, ctx->tc_certificate, pin_arg );
 	else
 		ctx->tc_private_key = PK11_FindKeyByAnyCert( ctx->tc_certificate, pin_arg );
@@ -1490,6 +1568,7 @@ tlsm_init_ca_certs( tlsm_ctx *ctx, const char *cacertfile, const char *cacertdir
 		PRDir *dir;
 		PRDirEntry *entry;
 		PRStatus fistatus = PR_FAILURE;
+		regex_t hashfile_re;
 
 		memset( &fi, 0, sizeof(fi) );
 		fistatus = PR_GetFileInfo( cacertdir, &fi );
@@ -1519,25 +1598,34 @@ tlsm_init_ca_certs( tlsm_ctx *ctx, const char *cacertfile, const char *cacertdir
 			goto done;
 		}
 
+		if ( regcomp( &hashfile_re, PEM_CA_HASH_FILE_REGEX, REG_NOSUB|REG_EXTENDED ) != 0 ) {
+			Debug( LDAP_DEBUG_ANY, "TLS: cannot compile regex for CA hash files matching\n" );
+			goto done;
+		}
+
 		do {
 			entry = PR_ReadDir( dir, PR_SKIP_BOTH | PR_SKIP_HIDDEN );
 			if ( ( NULL != entry ) && ( NULL != entry->name ) ) {
 				char *fullpath = NULL;
-				char *ptr;
+				int match;
 
-				ptr = PL_strrstr( entry->name, PEM_CA_HASH_FILE_SUFFIX );
-				if ( ( ptr == NULL ) || ( *(ptr + PEM_CA_HASH_FILE_SUFFIX_LEN) != '\0' ) ) {
+				match = regexec( &hashfile_re, entry->name, 0, NULL, 0 );
+				if ( match == REG_NOMATCH ) {
 					Debug( LDAP_DEBUG_TRACE,
-						   "TLS: file %s does not end in [%s] - does not appear to be a CA certificate "
-						   "directory file with a properly hashed file name - skipping.\n",
-						   entry->name, PEM_CA_HASH_FILE_SUFFIX );
+						"TLS: skipping '%s' - filename does not have expected format "
+						"(certificate hash with numeric suffix)\n", entry->name );
+					continue;
+				} else if ( match != 0 ) {
+					Debug( LDAP_DEBUG_ANY,
+						"TLS: cannot execute regex for CA hash file matching (%d).\n", match );
 					continue;
 				}
+
 				fullpath = PR_smprintf( "%s/%s", cacertdir, entry->name );
 				if ( !tlsm_add_cert_from_file( ctx, fullpath, isca ) ) {
 					Debug( LDAP_DEBUG_TRACE,
-						   "TLS: loaded CA certificate file %s from CA certificate directory %s.\n",
-						   fullpath, cacertdir );
+						"TLS: loaded CA certificate file %s from CA certificate directory %s.\n",
+						fullpath, cacertdir );
 				} else {
 					errcode = PR_GetError();
 					Debug( LDAP_DEBUG_TRACE,
@@ -1548,6 +1636,7 @@ tlsm_init_ca_certs( tlsm_ctx *ctx, const char *cacertfile, const char *cacertdir
 				PR_smprintf_free( fullpath );
 			}
 		} while ( NULL != entry );
+		regfree ( &hashfile_re );
 		PR_CloseDir( dir );
 	}
 done:
@@ -1571,6 +1660,7 @@ tlsm_get_certdb_prefix( const char *certdir, char **realcertdir, char **prefix )
 {
 	char sep = PR_GetDirectorySeparator();
 	char *ptr = NULL;
+	const char *chkpath = NULL;
 	struct PRFileInfo prfi;
 	PRStatus prc;
 
@@ -1581,8 +1671,16 @@ tlsm_get_certdb_prefix( const char *certdir, char **realcertdir, char **prefix )
 		return;
 	}
 
-	prc = PR_GetFileInfo( certdir, &prfi );
+	/* ignore database type prefix (e.g. sql:, dbm:) if provided */
+	chkpath = strchr( certdir, ':' );
+	if ( chkpath != NULL ) {
+		chkpath += 1;
+	} else {
+		chkpath = certdir;
+	}
+
 	/* if certdir exists (file or directory) then it cannot specify a prefix */
+	prc = PR_GetFileInfo( chkpath, &prfi );
 	if ( prc == PR_SUCCESS ) {
 		return;
 	}
@@ -1840,8 +1938,6 @@ tlsm_deferred_init( void *arg )
 				}
 				return -1;
 			}
-
-			ctx->tc_using_pem = PR_TRUE;
 		}
 
 		/*
@@ -2212,6 +2308,8 @@ tlsm_deferred_ctx_init( void *arg )
 			       "TLS: warning: minimum TLS protocol level set to "
 			       "include SSLv2 - SSLv2 is insecure - do not use\n" );
 		}
+		PK11_FreeSlot( ctx->tc_certdb_slot );
+		ctx->tc_certdb_slot = NULL;
 	}
 	if ( SECSuccess != SSL_OptionSet( ctx->tc_model, SSL_ENABLE_SSL2, sslv2 ) ) {
  		Debug( LDAP_DEBUG_ANY,
@@ -2296,15 +2394,9 @@ tlsm_deferred_ctx_init( void *arg )
 
 	/* set up our cert and key, if any */
 	if ( lt->lt_certfile ) {
-		/* if using the PEM module, load the PEM file specified by lt_certfile */
-		/* otherwise, assume this is the name of a cert already in the db */
-		if ( ctx->tc_using_pem ) {
-			/* this sets ctx->tc_certificate to the correct value */
-			int rc = tlsm_add_cert_from_file( ctx, lt->lt_certfile, PR_FALSE );
-			if ( rc ) {
-				return rc;
-			}
-		} else {
+
+		/* first search in certdb (lt_certfile is nickname) */
+		if ( ctx->tc_certdb ) {
 			char *tmp_certname;
 
 			if ( tlsm_is_tokenname_certnick( lt->lt_certfile )) {
@@ -2324,8 +2416,31 @@ tlsm_deferred_ctx_init( void *arg )
 				Debug( LDAP_DEBUG_ANY,
 					   "TLS: error: the certificate '%s' could not be found in the database - error %d:%s.\n",
 					   lt->lt_certfile, errcode, PR_ErrorToString( errcode, PR_LANGUAGE_I_DEFAULT ) );
+			}
+		}
+
+		/* fallback to PEM module (lt_certfile is filename) */
+		if ( !ctx->tc_certificate ) {
+			if ( !pem_module && tlsm_init_pem_module() ) {
+				int pem_errcode = PORT_GetError();
+				Debug( LDAP_DEBUG_ANY,
+					   "TLS: fallback to PEM impossible, module cannot be loaded - error %d:%s.\n",
+					   pem_errcode, PR_ErrorToString( pem_errcode, PR_LANGUAGE_I_DEFAULT ) );
 				return -1;
 			}
+
+			/* this sets ctx->tc_certificate to the correct value */
+			if ( !tlsm_add_cert_from_file( ctx, lt->lt_certfile, PR_FALSE ) ) {
+				ctx->tc_using_pem = PR_TRUE;
+			}
+		}
+
+		if ( ctx->tc_certificate ) {
+			Debug( LDAP_DEBUG_ANY,
+				   "TLS: certificate '%s' successfully loaded from %s.\n", lt->lt_certfile,
+				   ctx->tc_using_pem ? "PEM file" : "moznss database" );
+		} else {
+			return -1;
 		}
 	}
 
@@ -2690,7 +2805,7 @@ tlsm_session_chkhost( LDAP *ld, tls_session *session, const char *name_in )
 	tlsm_session *s = (tlsm_session *)session;
 	CERTCertificate *cert;
 	const char *name, *domain = NULL, *ptr;
-	int ret, ntype = IS_DNS, nlen, dlen;
+	int ret, ntype = IS_DNS, nlen, dlen = 0;
 #ifdef LDAP_PF_INET6
 	struct in6_addr addr;
 #else
@@ -3377,11 +3492,4 @@ tls_impl ldap_int_tls_impl = {
 	0
 };
 
-#endif /* HAVE_MOZNSS */
-/*
-  emacs settings
-  Local Variables:
-  indent-tabs-mode: t
-  tab-width: 4
-  End:
-*/
+#endif /* RELDAP_TLS == RELDAP_TLS_MOZNSS */

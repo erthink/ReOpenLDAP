@@ -1,22 +1,16 @@
-# Makefile.in for LDAP -lreldap
 ## $ReOpenLDAP$
-## Copyright (c) 2015,2016 Leonid Yuriev <leo@yuriev.ru>.
-## Copyright (c) 2015,2016 Peter-Service R&D LLC <http://billing.ru/>.
+## Copyright 2016 ReOpenLDAP AUTHORS: please see AUTHORS file.
+## All rights reserved.
 ##
 ## This file is part of ReOpenLDAP.
 ##
-## ReOpenLDAP is free software; you can redistribute it and/or modify it under
-## the terms of the GNU Affero General Public License as published by
-## the Free Software Foundation; either version 3 of the License, or
-## (at your option) any later version.
+## Redistribution and use in source and binary forms, with or without
+## modification, are permitted only as authorized by the OpenLDAP
+## Public License.
 ##
-## ReOpenLDAP is distributed in the hope that it will be useful,
-## but WITHOUT ANY WARRANTY; without even the implied warranty of
-## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-## GNU Affero General Public License for more details.
-##
-## You should have received a copy of the GNU Affero General Public License
-## along with this program.  If not, see <http://www.gnu.org/licenses/>.
+## A copy of this license is available in the file LICENSE in the
+## top-level directory of the distribution or, alternatively, at
+## <http://www.OpenLDAP.org/license.html>.
 ##
 
 pkglib_LTLIBRARIES = libreldap.la
@@ -37,17 +31,17 @@ libreldap_la_LDFLAGS = -no-undefined -export-dynamic \
 
 libreldap_la_SOURCES = abandon.c add.c addentry.c assertion.c \
 	banner.c bprint.c cancel.c charray.c compare.c controls.c \
-	crutch.c cyrus.c dds.c debug.c decode.c delete.c deref.c \
-	dnssrv.c encode.c error.c extended.c fetch.c filter.c free.c \
-	getattr.c getdn.c getentry.c getvalues.c gssapi.c hipagut.c \
-	init.c io.c lber-int.h lber_options.c ldap-int.h ldap_options.c \
-	ldap_sync.c ldap-tls.h ldif.c ldifutil.c memory.c messages.c \
-	modify.c modrdn.c open.c os-ip.c os-local.c pagectrl.c passwd.c \
-	posix.c ppolicy.c references.c request.c result.c \
-	rmutex.c rq.c sasl.c schema.c search.c sockbuf.c sort.c \
-	sortctrl.c stctrl.c stdio.c string.c t61.c threads.c tls2.c \
-	tls_g.c tls_m.c tls_o.c tpool.c turn.c txn.c unbind.c url.c \
-	utf-8.c utf-8-conv.c util-int.c vc.c vlvctrl.c whoami.c
+	crutch.c cyrus.c dds.c debug.c decode.c delete.c deprecated.c \
+	deref.c dnssrv.c encode.c error.c extended.c fetch.c filter.c \
+	free.c getattr.c getdn.c getentry.c getvalues.c gssapi.c \
+	hipagut.c init.c io.c lber_options.c ldap_options.c ldap_sync.c \
+	ldif.c ldifutil.c memory.c messages.c modify.c modrdn.c ntlm.c \
+	open.c os-ip.c os-local.c pagectrl.c passwd.c posix.c ppolicy.c \
+	references.c request.c result.c rmutex.c rq.c sasl.c schema.c \
+	search.c sockbuf.c sort.c sortctrl.c stctrl.c stdio.c string.c \
+	t61.c threads.c tls2.c tls_g.c tls_m.c tls_o.c tpool.c turn.c \
+	txn.c unbind.c url.c utf-8.c utf-8-conv.c util-int.c vc.c \
+	vlvctrl.c whoami.c lber-int.h ldap-int.h ldap-tls.h
 
 # LY: append-hack CFLAGS to avoid lost symver's tags by LTO.
 nolto_CFLAGS := $(CFLAGS) $$(echo "$(CFLAGS)" | grep -q ' -flto' && echo '-fno-lto') -save-temps
@@ -58,7 +52,7 @@ libreldap_la_SOURCES += deprecated.c
 libreldap_la-deprecated.o libreldap_la-deprecated.lo deprecated.o deprecated.lo: CFLAGS += -Wno-deprecated-declarations
 endif
 
-libreldap_la_LIBADD = $(SASL_LIBS) $(SECURITY_LIBS) $(LTHREAD_LIBS)
+libreldap_la_LIBADD = $(SECURITY_LIBS) $(LTHREAD_LIBS)
 
 CHECK_LIBS = ../liblutil/liblutil.la libreldap.la
 check_PROGRAMS = check/apitest check/dntest check/dtest check/etest check/ftest \

@@ -1,28 +1,8 @@
-/* os-ip.c -- platform-specific TCP & UDP related code */
 /* $ReOpenLDAP$ */
-/* Copyright (c) 2015,2016 Leonid Yuriev <leo@yuriev.ru>.
- * Copyright (c) 2015,2016 Peter-Service R&D LLC <http://billing.ru/>.
+/* Copyright 1990-2016 ReOpenLDAP AUTHORS: please see AUTHORS file.
+ * All rights reserved.
  *
  * This file is part of ReOpenLDAP.
- *
- * ReOpenLDAP is free software; you can redistribute it and/or modify it under
- * the terms of the GNU Affero General Public License as published by
- * the Free Software Foundation; either version 3 of the License, or
- * (at your option) any later version.
- *
- * ReOpenLDAP is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- *
- * ---
- *
- * Copyright 1998-2014 The OpenLDAP Foundation.
- * Portions Copyright 1999 Lars Uffmann.
- * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted only as authorized by the OpenLDAP
@@ -32,12 +12,8 @@
  * top-level directory of the distribution or, alternatively, at
  * <http://www.OpenLDAP.org/license.html>.
  */
-/* Portions Copyright (c) 1995 Regents of the University of Michigan.
- * All rights reserved.
- */
-/* Significant additional contributors include:
- *    Lars Uffman
- */
+
+/* Significant additional contributors include:  Lars Uffman */
 
 #include "reldap.h"
 
@@ -591,21 +567,14 @@ ldap_connect_to_host(LDAP *ld, Sockbuf *sb,
 
 #if defined( HAVE_GETADDRINFO ) && defined( HAVE_INET_NTOP )
 	memset( &hints, '\0', sizeof(hints) );
-#ifdef USE_AI_ADDRCONFIG /* FIXME: configure test needed */
-	/* Use AI_ADDRCONFIG only on systems where its known to be needed. */
+#ifdef AI_ADDRCONFIG
 	hints.ai_flags = AI_ADDRCONFIG;
 #endif
 	hints.ai_family = ldap_int_inet4or6;
 	hints.ai_socktype = socktype;
 	snprintf(serv, sizeof serv, "%d", port );
 
-	/* most getaddrinfo(3) use non-threadsafe resolver libraries */
-	LDAP_MUTEX_LOCK(&ldap_int_resolv_mutex);
-
 	err = getaddrinfo( host, serv, &hints, &res );
-
-	LDAP_MUTEX_UNLOCK(&ldap_int_resolv_mutex);
-
 	if ( err != 0 ) {
 		osip_debug(ld, "ldap_connect_to_host: getaddrinfo failed: %s\n",
 			AC_GAI_STRERROR(err));

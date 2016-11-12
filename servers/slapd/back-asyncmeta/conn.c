@@ -146,10 +146,10 @@ asyncmeta_init_one_conn(
 	int			do_return = 0;
 	int                     nretries = 2;
 
-#ifdef HAVE_TLS
+#ifdef WITH_TLS
 	int			is_ldaps = 0;
 	int			do_start_tls = 0;
-#endif /* HAVE_TLS */
+#endif /* WITH_TLS */
 
 	/* if the server is quarantined, and
 	 * - the current interval did not expire yet, or
@@ -248,9 +248,9 @@ retry_lock:;
 	ldap_pvt_thread_mutex_lock( &mt->mt_uri_mutex );
 
 	rs->sr_err = ldap_initialize( &msc->msc_ld, mt->mt_uri );
-#ifdef HAVE_TLS
+#ifdef WITH_TLS
 	is_ldaps = ldap_is_ldaps_url( mt->mt_uri );
-#endif /* HAVE_TLS */
+#endif /* WITH_TLS */
 	ldap_pvt_thread_mutex_unlock( &mt->mt_uri_mutex );
 	if ( rs->sr_err != LDAP_SUCCESS ) {
 		goto error_return;
@@ -284,7 +284,7 @@ retry_lock:;
 
 	slap_client_keepalive(msc->msc_ld, &mt->mt_tls.sb_keepalive);
 
-#ifdef HAVE_TLS
+#ifdef WITH_TLS
 	{
 		slap_bindconf *sb = NULL;
 
@@ -428,7 +428,7 @@ retry:;
 			goto error_return;
 		}
 	}
-#endif /* HAVE_TLS */
+#endif /* WITH_TLS */
 
 	/*
 	 * Set the network timeout if set

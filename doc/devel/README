@@ -1,3 +1,29 @@
+Contributing
+------------
+
+Before contribute please see the LICENSE file included in the
+root directory of the source tree for extended license details.
+
+In general to contribute ReOpenLDAP you should accept AGPL
+terms for contributions.
+
+
+ReOpenLDAP preamble
+-------------------
+
+We consider that the original OpenLDAP project was failed
+due the following reasons:
+ - disregard for support by community and code clarity.
+ - giant technical debt and incredible low code quality.
+ - unreasonable desire to support the wide range of
+   an obsolete archaic systems and compilers.
+
+Therefore, expects the following TODO list will never be done
+or will never work properly.
+
+
+===============================================================
+
 The OpenLDAP Developer's FAQ is available at:
 	http://www.openldap.org/faq/index.cgi?file=4
 

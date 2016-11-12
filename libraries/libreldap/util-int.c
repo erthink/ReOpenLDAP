@@ -1,27 +1,8 @@
 /* $ReOpenLDAP$ */
-/* Copyright (c) 2015,2016 Leonid Yuriev <leo@yuriev.ru>.
- * Copyright (c) 2015,2016 Peter-Service R&D LLC <http://billing.ru/>.
+/* Copyright 1990-2016 ReOpenLDAP AUTHORS: please see AUTHORS file.
+ * All rights reserved.
  *
  * This file is part of ReOpenLDAP.
- *
- * ReOpenLDAP is free software; you can redistribute it and/or modify it under
- * the terms of the GNU Affero General Public License as published by
- * the Free Software Foundation; either version 3 of the License, or
- * (at your option) any later version.
- *
- * ReOpenLDAP is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- *
- * ---
- *
- * Copyright 1998-2014 The OpenLDAP Foundation.
- * Portions Copyright 1998 A. Hartgers.
- * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted only as authorized by the OpenLDAP
@@ -70,8 +51,8 @@ extern int h_errno;
 #ifndef LDAP_R_COMPILE
 # undef HAVE_REENTRANT_FUNCTIONS
 # undef HAVE_CTIME_R
-# undef HAVE_GETHOSTBYNAME_R
-# undef HAVE_GETHOSTBYADDR_R
+/* # undef HAVE_GETHOSTBYNAME_R */
+/* # undef HAVE_GETHOSTBYADDR_R */
 
 #else
 # include <ldap_pvt_thread.h>
@@ -147,7 +128,7 @@ ldap_pvt_csnstr(char *buf, size_t len, unsigned int replica, unsigned int mod)
 #define BUFSTART (1024-32)
 #define BUFMAX (32*1024-32)
 
-#if defined(LDAP_R_COMPILE)
+#if defined(LDAP_R_COMPILE) || defined(HAVE_GETHOSTBYNAME_R) && defined(HAVE_GETHOSTBYADDR_R)
 static char *safe_realloc( char **buf, int len );
 
 #if !(defined(HAVE_GETHOSTBYNAME_R) && defined(HAVE_GETHOSTBYADDR_R))
@@ -261,9 +242,7 @@ int ldap_pvt_get_hname(
 	int rc;
 #if defined( HAVE_GETNAMEINFO )
 
-	LDAP_MUTEX_LOCK( &ldap_int_resolv_mutex );
 	rc = getnameinfo( sa, len, name, namelen, NULL, 0, 0 );
-	LDAP_MUTEX_UNLOCK( &ldap_int_resolv_mutex );
 	if ( rc ) *err = (char *)AC_GAI_STRERROR( rc );
 	return rc;
 

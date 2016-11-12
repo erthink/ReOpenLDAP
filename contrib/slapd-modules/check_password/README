@@ -1,0 +1,187 @@
+ReOpenLDAP pwdChecker library
+-----------------------------
+
+Copyright 1992-2016 ReOpenLDAP AUTHORS: please see AUTHORS file.
+All rights reserved.
+
+This file is part of ReOpenLDAP.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted only as authorized by the OpenLDAP
+Public License.
+
+A copy of this license is available in the file LICENSE in the
+top-level directory of the distribution or, alternatively, at
+<http://www.OpenLDAP.org/license.html>.
+
+
+pwdPolicyChecker
+----------------
+check_password.c is an ReOpenLDAP pwdPolicyChecker module used to check the
+strength and quality of user-provided passwords.
+
+This module is used as an extension of the OpenLDAP password policy controls,
+see slapo-ppolicy(5) section pwdCheckModule.
+
+check_password.c will run a number of checks on the passwords to ensure minimum
+strength and quality requirements are met. Passwords that do not meet these
+requirements are rejected.
+
+
+Password checks
+---------------
+ - passwords shorter than 6 characters are rejected if cracklib is used (because
+   cracklib WILL reject them).
+
+ - syntactic checks controls how many different character classes are used
+   (lower, upper, digit and punctuation characters). The minimum number of
+   classes is defined in a configuration file. You can set the minimum for each
+   class.
+
+ - passwords are checked against cracklib if cracklib is enabled at compile
+   time. It can be disabled in configuration file.
+
+INSTALLATION
+------------
+Use the provided Makefile to build the module.
+
+Compilation constants :
+
+CONFIG_FILE : Path to the configuration file.
+              Defaults to /etc/reopenldap/check_password.conf
+
+DEBUG : If defined, check_password will syslog() its actions.
+
+Build dependencies
+cracklib header files (link with -lcrack). The Makefile does not look for
+cracklib; you may need to provide the paths manually.
+
+Install into the slapd server module path.  Change the installation
+path to match with the OpenLDAP module path in the Makefile.
+
+The module may be defined with slapd.conf parameter "modulepath".
+
+USAGE
+-----
+To use this module you need to add objectClass pwdPolicyChecker with an
+attribute 'pwdCheckModule: check_password.la' to a password policy entry.
+
+The module depends on a working cracklib installation including wordlist files.
+If the wordlist files are not readable, the cracklib check will be skipped
+silently.
+
+Note: pwdPolicyChecker modules are loaded on *every* password change operation.
+
+Configuration
+-------------
+The configuration file (/etc/openldap/check_password.conf by default) contains
+parameters for the module. If the file is not found, parameters are given their
+default value.
+
+The syntax of the file is :
+
+parameter value
+
+with spaces being delimiters. Parameter names ARE case sensitive (this may
+change in the future).
+
+Current parameters :
+
+-  useCracklib: integer. Default value: 1. Set it to 0 to disable cracklib verification.
+   It has no effect if cracklib is not included at compile time.
+
+-  minPoints: integer. Default value: 3. Minimum number of quality points a new
+   password must have to be accepted. One quality point is awarded for each character
+   class used in the password.
+
+- minUpper: integer. Defaut value: 0. Minimum upper characters expected.
+
+- minLower: integer. Defaut value: 0. Minimum lower characters expected.
+
+- minDigit: integer. Defaut value: 0. Minimum digit characters expected.
+
+- minPunct: integer. Defaut value: 0. Minimum punctuation characters expected.
+
+Logs
+----
+If a user password is rejected by an OpenLDAP pwdChecker module, the user will
+*not* get a detailed error message, this is by design.
+
+Typical user message from ldappasswd(5):
+  Result: Constraint violation (19)
+  Additional info: Password fails quality checking policy
+
+A more detailed message is written to the server log.
+
+Server log:
+  check_password_quality: module error: (check_password.la)
+  Password for dn=".." does not pass required number of strength checks (2 of 3)
+
+
+Caveats
+-------
+Runtime errors with this module (such as cracklib configuration problems) may
+bring down the slapd process.
+
+Use at your own risk.
+
+
+TODO
+----
+* use proper malloc function, see ITS#4998
+
+
+HISTORY
+-------
+* 2016-08-08 Leo Yuriev - Imported into ReOpenLDAP Project
+   - Apply RHEL/Fedora patch.
+
+* 2009-10-30 Clement OUDOT - LTB-project
+  Version 1.1
+   - Apply patch from Jerome HUET for minUpper/minLower/minDigit/minPunct
+
+* 2009-02-05 Clement Oudot <clem.oudot@gmail.com> - LINAGORA Group
+  Version 1.0.3
+  - Add useCracklib parameter in config file (with help of Pascal Pejac)
+  - Prefix log messages with "check_password: "
+  - Log what character type is found for quality checking
+
+* 2008-01-31 Pierre-Yves Bonnetain <py.bonnetain@ba-cst.com>
+  Version 1.0.2
+  - Several bug fixes.
+  - Add external config file
+
+* 2007-06-06 Michael Steinmann <msl@calivia.com>
+  Version 1.0.1
+  - add dn to error messages
+
+* 2007-06-02 Michael Steinmann <msl@calivia.com>
+  Version 1.0
+
+INSTALLATION
+============
+
+Build dependencies
+------------------
+cracklib with header files is needed. You may need to install
+corresponding package(s) manually.
+
+Build
+-----
+
+Use the configure with --enable-contrib. Then build and install ReOpenLDAP.
+
+
+USAGE
+=====
+Add objectClass 'pwdPolicyChecker' with an attribute
+
+   pwdCheckModule: contrib-check_password.la
+
+to a password policy entry.
+
+The module depends on a working cracklib installation including wordlist files.
+If the wordlist files are not readable, the cracklib check will be skipped
+silently.
+
+But you can use this module without cracklib, just checks for syntatic checks.

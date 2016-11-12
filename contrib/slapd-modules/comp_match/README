@@ -1,12 +1,16 @@
-Copyright 2004 Sang Seok Lim, IBM . All rights reserved.
+Copyright 1992-2016 ReOpenLDAP AUTHORS: please see AUTHORS file.
+All rights reserved.
 
-Redistribution and use in source and binary forms, with
-or without modification, are permitted only as authorized
-by the OpenLDAP Public License.
+This file is part of ReOpenLDAP.
 
-A copy of this license is available in the file LICENSE in
-the top-level directory of the distribution or, alternatively,
-at <http://www.OpenLDAP.org/license.html>.
+Redistribution and use in source and binary forms, with or without
+modification, are permitted only as authorized by the OpenLDAP
+Public License.
+
+A copy of this license is available in the file LICENSE in the
+top-level directory of the distribution or, alternatively, at
+<http://www.OpenLDAP.org/license.html>.
+
 
 This directory contains a Component Matching module and
 a X.509 Certificate example.  In order to understand Component

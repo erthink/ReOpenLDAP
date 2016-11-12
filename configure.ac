@@ -1,27 +1,7 @@
-dnl
-dnl Copyright (c) 2015,2016 Leonid Yuriev <leo@yuriev.ru>.
-dnl Copyright (c) 2015,2016 Peter-Service R&D LLC <http://billing.ru/>.
+dnl Copyright 1998-2016 ReOpenLDAP AUTHORS: please see AUTHORS file.
+dnl All rights reserved.
 dnl
 dnl This file is part of ReOpenLDAP.
-dnl
-dnl ReOpenLDAP is free software; you can redistribute it and/or modify it under
-dnl the terms of the GNU Affero General Public License as published by
-dnl the Free Software Foundation; either version 3 of the License, or
-dnl (at your option) any later version.
-dnl
-dnl ReOpenLDAP is distributed in the hope that it will be useful,
-dnl but WITHOUT ANY WARRANTY; without even the implied warranty of
-dnl MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-dnl GNU Affero General Public License for more details.
-dnl
-dnl You should have received a copy of the GNU Affero General Public License
-dnl along with this program.  If not, see <http://www.gnu.org/licenses/>.
-dnl
-dnl ---
-dnl
-dnl
-dnl Copyright 1998-2014 The OpenLDAP Foundation.
-dnl All rights reserved.
 dnl
 dnl Redistribution and use in source and binary forms, with or without
 dnl modification, are permitted only as authorized by the OpenLDAP
@@ -41,28 +21,18 @@ define([AC_LIBTOOL_LANG_F77_CONFIG], [:])dnl
 define([AC_LIBTOOL_LANG_GCJ_CONFIG], [:])dnl
 dnl ================================================================
 dnl Configure.in for ReOpenLDAP
-AC_COPYRIGHT([[Copyright (c) 2015,2016 Leonid Yuriev <leo@yuriev.ru>.
-Copyright (c) 2015,2016 Peter-Service R&D LLC <http://billing.ru/>.
+AC_COPYRIGHT([[Copyright 1992-2016 ReOpenLDAP AUTHORS: please see AUTHORS file.
+All rights reserved.
 
-This is part of ReOpenLDAP.
+This file is part of ReOpenLDAP.
 
-ReOpenLDAP is free software; you can redistribute it and/or modify it under
-the terms of the GNU Affero General Public License as published by
-the Free Software Foundation; either version 3 of the License, or
-(at your option) any later version.
+Redistribution and use in source and binary forms, with or without
+modification, are permitted only as authorized by the OpenLDAP
+Public License.
 
-ReOpenLDAP is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program.  If not, see <http://www.gnu.org/licenses/>.
-
----
-
-Copyright 1998-2014 The OpenLDAP Foundation. All rights reserved.
-Restrictions apply, see COPYRIGHT and LICENSE files.]])
+A copy of this license is available in the file LICENSE in the
+top-level directory of the distribution or, alternatively, at
+<http://www.OpenLDAP.org/license.html>.]])
 
 AC_PREREQ([2.69])dnl Required Autoconf version
 AC_REVISION([$Id: 8c9139400f1cfd3f68bc9b65828515fe85e91ee1 $])
@@ -208,28 +178,10 @@ dnl ----------------------------------------------------------------
 
 AH_TOP([
 /* begin of reldap_autoconf.h.pre */
-/* Copyright (c) 2015,2016 Leonid Yuriev <leo@yuriev.ru>.
- * Copyright (c) 2015,2016 Peter-Service R&D LLC <http://billing.ru/>.
+/* Copyright 1992-2016 ReOpenLDAP AUTHORS: please see AUTHORS file.
+ * All rights reserved.
  *
  * This file is part of ReOpenLDAP.
- *
- * ReOpenLDAP is free software; you can redistribute it and/or modify it under
- * the terms of the GNU Affero General Public License as published by
- * the Free Software Foundation; either version 3 of the License, or
- * (at your option) any later version.
- *
- * ReOpenLDAP is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- *
- * ---
- *
- * Copyright 1998-2014 The OpenLDAP Foundation
- * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted only as authorized by the OpenLDAP
@@ -307,6 +259,16 @@ AH_BOTTOM([
 #	include <endian.h>
 #endif
 
+/* LY: TLS which is enabled due configure */
+#define RELDAP_TLS_NONE		0 /* None, --with-tls=no */
+#define RELDAP_TLS_MOZNSS	1 /* Mozilla NSS, --with-tls=moznss */
+#define RELDAP_TLS_GNUTLS	2 /* GnuTLS, --with-tls=gnutls */
+#define RELDAP_TLS_OPENSSL	3 /* OpenSSL, --with-tls=openssl */
+
+#ifndef REOPENLDAP_BUILDID_SUFFIX
+#	define REOPENLDAP_BUILDID_SUFFIX ""
+#endif
+
 #endif /* RELDAP_AUTOCONF_H */
 /* end of reldap_autoconf.h.post */])
 
@@ -340,10 +302,24 @@ esac
 
 AC_SUBST(ldap_subdir)dnl
 
+REOPENLDAP_BUILDID_SUFFIX=
+AC_ARG_WITH(buildid,
+	[  --with-buildid=SUFFIX   specifies optional build-id suffix for version],
+[case "$withval" in
+	no)
+		REOPENLDAP_BUILDID_SUFFIX=""
+		;;
+	*)
+		REOPENLDAP_BUILDID_SUFFIX="$withval"
+		;;
+esac
+])dnl
+AC_DEFINE_UNQUOTED(REOPENLDAP_BUILDID_SUFFIX, "${REOPENLDAP_BUILDID_SUFFIX}", [BuildId suffix for Version])
+AC_SUBST(REOPENLDAP_BUILDID_SUFFIX)
+
 dnl ----------------------------------------------------------------
 dnl General "enable" options
-dnl set default to traditional to enable the original debug style
-OL_ARG_ENABLE(debug,[  --enable-debug          enable debug logging], yes, [no yes traditional])dnl
+OL_ARG_ENABLE(debug,[  --enable-debug          enable debug logging], yes, [no yes extra])dnl
 OL_ARG_ENABLE(syslog,[  --enable-syslog         enable syslog support], auto)dnl
 OL_ARG_ENABLE(contrib,[  --enable-contrib        enable extra plugins and overlays], no, [no yes broken])dnl
 OL_ARG_ENABLE(experimental,[  --enable-experimental   enable experimental and developing features], no, [no yes])dnl
@@ -378,10 +354,10 @@ fi
 
 case $ol_enable_experimental in
     yes)
-	AC_DEFINE(LDAP_EXPERIMENTAL,1,[define as 0 to disable experimantal/developing features])
+	AC_DEFINE(LDAP_EXPERIMENTAL,1,[define as 0 to disable experimental/developing features])
 	;;
     no)
-	AC_DEFINE(LDAP_EXPERIMENTAL,0,[define as 1 to enable experimantal/developing features])
+	AC_DEFINE(LDAP_EXPERIMENTAL,0,[define as 1 to enable experimental/developing features])
 	;;
     *)
 	AC_MSG_FAILURE([invalid --enable-experimental value '$ol_enable_experimental'])
@@ -424,14 +400,17 @@ case $ol_enable_hipagut in
 	;;
 esac
 
-AM_CONDITIONAL([SLAPD_DEBUG], [test "$ol_enable_debug" = yes])
-AM_CONDITIONAL([SLAPD_SYSLOG], [test "$ol_enable_syslog" = yes])
-AM_CONDITIONAL([LDAP_DEPRECATED], [test "$ol_enable_deprecated" = yes])
-AM_CONDITIONAL([LDAP_EXPERIMENTAL], [test "$ol_enable_experimental" = yes])
+AM_CONDITIONAL([SLAPD_DEBUG], [test "$ol_enable_debug" != no])
+AM_CONDITIONAL([SLAPD_DEBUG_EXTRA], [test "$ol_enable_debug" = extra])
+AM_CONDITIONAL([SLAPD_SYSLOG], [test "$ol_enable_syslog" != no])
+AM_CONDITIONAL([LDAP_DEPRECATED], [test "$ol_enable_deprecated" != no])
+AM_CONDITIONAL([LDAP_EXPERIMENTAL], [test "$ol_enable_experimental" != no])
 
 dnl ----------------------------------------------------------------
 dnl General "with" options
 OL_ARG_WITH(cyrus_sasl,[  --with-cyrus-sasl	  with Cyrus SASL support],
+	auto, [auto yes no] )
+OL_ARG_WITH(gssapi,[  --with-gssapi		  with GSSAPI support],
 	auto, [auto yes no] )
 OL_ARG_WITH(fetch,[  --with-fetch		  with fetch(3) URL support],
 	auto, [auto yes no] )
@@ -590,6 +569,16 @@ for o in $slapd_features $slapd_backends $slapd_overlays; do
 	fi
 done
 
+PKG_CHECK_MODULES(KRB5, krb5 krb5-gssapi, krb5_found=yes, krb5_found=no)
+AC_SUBST(KRB5_LIBS)
+AC_SUBST(KRB5_CFLAGS)
+AM_CONDITIONAL([KRB5_AVAIL], [test $krb5_found = yes])
+
+PKG_CHECK_MODULES(HEIMDAL, heimdal-krb5 heimdal-kadm-server, heimdal_found=yes, heimdal_found=no)
+AC_SUBST(HEIMDAL_LIBS)
+AC_SUBST(HEIMDAL_CFLAGS)
+AM_CONDITIONAL([HEIMDAL_AVAIL], [test $heimdal_found = yes])
+
 if test $ol_enable_contrib != no; then
 	if test $ol_enable_slapd = no ; then
 		AC_MSG_ERROR([slapd disabled, therefore --enable-contrib unavailable ])
@@ -609,15 +598,36 @@ if test $ol_enable_contrib != no; then
 		AC_MSG_WARN([experimental features disabled, therefore broken-contrib-modules unavailable ])
 	fi
 
-	PKG_CHECK_MODULES(HEIMDAL, heimdal-krb5 heimdal-kadm-server, heimdal_found=yes, heimdal_found=no)
 	if test $heimdal_found != yes; then
 		AC_MSG_WARN([$HEIMDAL_PKG_ERRORS, therefore depended contrib-modules unavailable ])
 	fi
 
-	AC_SUBST(HEIMDAL_LIBS)
-	AC_SUBST(HEIMDAL_CFLAGS)
+	CRACKLIB_LIBS=
+	CRACKLIB_CFLAGS=
+	CRACKLIB_DICTPATH=
+	AC_CHECK_HEADERS(crack.h)
+	if test $ac_cv_header_crack_h = yes; then
+		AC_CHECK_LIB(crack, FascistCheck, [have_cracklib=yes], [have_cracklib=false])
+		if test $have_cracklib = yes; then
+			CRACKLIB_LIBS=-lcrack
+			AC_DEFINE(HAVE_CRACKLIB, 1, [define if you have cracklib])
+		else
+			AC_MSG_WARN([libcrack-devel is needed for 'check_password' contrib-module ])
+		fi
+	fi
+	if test -s "/usr/share/cracklib/pw_dict"; then
+		CRACKLIB_DICTPATH="/usr/share/cracklib/pw_dict"
+	else
+		CRACKLIB_DICTPATH="/var/cache/cracklib/cracklib_dict"
+	fi
+	AC_SUBST(CRACKLIB_LIBS)
+	AC_SUBST(CRACKLIB_CFLAGS)
+	AC_SUBST(CRACKLIB_DICTPATH)
+
+	if test $krb5_found != yes; then
+		AC_MSG_WARN([krb5-devel is needed for 'gssacl' contrib-module ])
+	fi
 fi
-AM_CONDITIONAL([HEIMDAL_AVAIL], [test "$heimdal_found" = yes])
 
 if test $ol_enable_slapd != no ; then
 	be=
@@ -692,8 +702,13 @@ WT_LIBDIR=
 SQL_LIBS=
 SQL_INCLUDES=
 
-SASL_LIBS=
 TLS_LIBS=
+TLS_CFLAGS=
+TLS_FALLBACK_LIBS=
+TLS_FALLBACK_CFLAGS=
+
+GSSAPI_LIBS=
+SASL_LIBS=
 SLAPI_LIBS=
 AUTH_LIBS=
 
@@ -702,10 +717,6 @@ AUTH_LIBS=
 SLAPD_SLP_LIBS=
 SLAPD_GMP_LIBS=
 SLAPD_TCPWRAP_LIBS=
-
-PKG_CHECK_MODULES(KRB5, krb5, krb5_found=yes, krb5_found=no)
-AC_SUBST(KRB5_LIBS)
-AC_SUBST(KRB5_CFLAGS)
 
 dnl ================================================================
 dnl Checks for programs
@@ -856,6 +867,16 @@ AC_CHECK_HEADERS( sys/ucred.h, [], [],
 #include <sys/param.h>
 #endif
 ])
+dnl Check whether ucred is defined without _GNU_SOURCE
+AC_MSG_CHECKING(for struct ucred)
+AC_TRY_LINK([
+#include <sys/ucred.h>
+#include <sys/socket.h>
+],[
+struct ucred sucred; sucred.pid=0;
+],[has_ucred=yes],[has_ucred=no])
+AC_MSG_RESULT($has_ucred)
+if test ${has_ucred} = no ; then CFLAGS="$CFLAGS -D_GNU_SOURCE"; fi
 
 dnl ----------------------------------------------------------------
 dnl Checks for libraries
@@ -1093,121 +1114,214 @@ fi
 dnl ----------------------------------------------------------------
 dnl TLS/SSL
 
-if test $ol_with_tls = yes ; then
-	ol_with_tls=auto
+PKG_CHECK_MODULES(OPENSSL, [openssl libssl], openssl_found=yes, openssl_found=no)
+AC_SUBST(OPENSSL_LIBS)
+AC_SUBST(OPENSSL_CFLAGS)
+AM_CONDITIONAL([OPENSSL_AVAIL], [test $openssl_found = yes])
+if test $openssl_found = yes; then
+    AC_DEFINE(HAVE_OPENSSL, 1, [define if you have OpenSSL])
+    AC_CHECK_HEADERS([openssl/ssl.h ssl.h])
+    if test $ac_cv_header_openssl_ssl_h != yes -a $ac_cv_header_ssl_h != yes; then
+	AC_MSG_ERROR([could not locate openssl/ssl.h or ssl.h])
+    fi
 fi
 
-ol_link_tls=no
-if test $ol_with_tls = openssl || test $ol_with_tls = auto ; then
-#	PKG_CHECK_MODULES(CRYPTO, libcrypto libssl, ssl_found=yes, ssl_found=no)
-#	AC_SUBST(CRYPTO_LIBS)
-#	AC_SUBST(CRYPTO_CFLAGS)
+PKG_CHECK_MODULES(GNUTLS, [gnutls >= 2.12], gnutls_found=yes, gnutls_found=no)
+AC_SUBST(GNUTLS_LIBS)
+AC_SUBST(GNUTLS_CFLAGS)
+AM_CONDITIONAL([GNUTLS_AVAIL], [test $gnutls_found = yes])
+if test $gnutls_found = yes; then
+    AC_DEFINE(HAVE_GNUTLS, 1, [define if you have GnuTLS])
+    AC_CHECK_HEADERS(gnutls/gnutls.h)
+    if test $ac_cv_header_gnutls_gnutls_h != yes; then
+	AC_MSG_ERROR([could not locate gnutls/gnutls.h])
+    fi
+fi
 
-	AC_CHECK_HEADERS(openssl/ssl.h)
+PKG_CHECK_MODULES(MOZNSS, [nss nspr], [moznss_found=yes], [moznss_found=no])
+AC_SUBST(MOZNSS_LIBS)
+AC_SUBST(MOZNSS_CFLAGS)
+AM_CONDITIONAL([MOZNSS_AVAIL], [test $moznss_found = yes])
+if test $moznss_found = yes; then
+    AC_DEFINE(HAVE_MOZNSS, 1, [define if you have Mozill NSS])
+    save_CFLAGS=$CFLAGS
+    CFLAGS="$CFLAGS $MOZNSS_CFLAGS"
+    AC_CHECK_HEADERS([nspr/nspr.h nspr4/nspr.h])
+    if test $ac_cv_header_nspr_nspr_h != yes -a $ac_cv_header_nspr4_nspr_h != yes; then
+	AC_MSG_ERROR([could not locate nspr/nspr.h or nspr4/nspr.h])
+    fi
+    AC_CHECK_HEADERS([nss/nss.h nss3/nss.h])
+     if test $ac_cv_header_nss_nss_h != yes -a $ac_cv_header_nss3_nss_h != yes; then
+	AC_MSG_ERROR([could not locate nss/nss.h or nss3/nss.h])
+    fi
+   CFLAGS=$save_CFLAGS
+fi
 
-	if test $ac_cv_header_openssl_ssl_h = yes ; then
-		AC_CHECK_LIB(ssl, SSL_library_init,
-			[have_openssl=yes
-			need_rsaref=no], [have_openssl=no],
-			[-lcrypto])
+AM_CONDITIONAL([TLS_FALLBACK_AVAIL], [test $gnutls_found = yes -o $openssl_found = yes])
 
-		if test $have_openssl = no ; then
-			AC_CHECK_LIB(ssl, ssl3_accept,
-				[have_openssl=yes
-				need_rsaref=yes], [have_openssl=no],
-				[-lcrypto -lRSAglue -lrsaref])
-		fi
+if test $ol_with_tls = yes -o $ol_with_tls = auto; then
+    if test $moznss_found = yes; then
+	ol_with_tls=moznss
+    elif test $gnutls_found = yes -a $ol_enable_lmpasswd != yes; then
+	ol_with_tls=gnutls
+    elif test $openssl_found = yes; then
+	ol_with_tls=openssl
+    elif test $ol_with_tls = auto; then
+	AC_MSG_WARN([No suitable TLS package for data protection!])
+	ol_with_tls=no
+    else
+	AC_MSG_FAILURE([Not found Mozilla NSS, OpenSSL or GnuTLS for --with-tls=yes])
+    fi
+fi
 
-		if test $have_openssl = yes ; then
-			ol_with_tls=openssl
-			ol_link_tls=yes
-
-			AC_DEFINE(HAVE_OPENSSL, 1,
-				[define if you have OpenSSL])
-
-			if test $need_rsaref = yes; then
-				AC_DEFINE(HAVE_RSAREF, 1,
-					[define if OpenSSL needs RSAref])
-
-				TLS_LIBS="-lssl -lcrypto -lRSAglue -lrsaref"
-			else
-				TLS_LIBS="-lssl -lcrypto"
-			fi
-
-			OL_SSL_COMPAT
-			if test $ol_cv_ssl_crl_compat = yes ; then
-				AC_DEFINE(HAVE_OPENSSL_CRL, 1,
-					[define if you have OpenSSL with CRL checking capability])
-			fi
-		fi
+if test $ol_enable_lmpasswd = yes ; then
+	if test $ol_with_tls != openssl -a $ol_with_tls != moznss ; then
+		AC_MSG_ERROR([LAN Manager passwords require --with-tls=openssl or --with-tls=moznss])
 	fi
 fi
 
-if test $ol_link_tls = no ; then
-	if test $ol_with_tls = gnutls || test $ol_with_tls = auto ; then
-		AC_CHECK_HEADERS(gnutls/gnutls.h)
-
-		if test $ac_cv_header_gnutls_gnutls_h = yes ; then
-			AC_PREPROC_IFELSE([AC_LANG_SOURCE(
-				[[#include <gnutls/gnutls.h>]
-[#if GNUTLS_VERSION_NUMBER < 0x020c00]
-[#error "GnuTLS 2.12.0 or newer required"]
-[#endif]])],
-				, [AC_MSG_FAILURE([GnuTLS is too old])])
-
-			AC_CHECK_LIB(gnutls, gnutls_init,
-				[have_gnutls=yes], [have_gnutls=no])
-
-			if test $have_gnutls = yes ; then
-				ol_with_tls=gnutls
-				ol_link_tls=yes
-
-				TLS_LIBS="-lgnutls"
-
-				AC_DEFINE(HAVE_GNUTLS, 1,
-					[define if you have GNUtls])
-			fi
-		fi
+case $ol_with_tls in
+    no)
+	ol_link_tls=no
+	AC_DEFINE(RELDAP_TLS, RELDAP_TLS_NONE, [configured TLS/SSL support])
+	if test $gnutls_found = yes; then
+		AC_DEFINE(RELDAP_TLS_FALLBACK, RELDAP_TLS_GNUTLS, [fallback TLS/SSL support])
+		TLS_FALLBACK_LIBS="$GNUTLS_LIBS"
+		TLS_FALLBACK_CFLAGS="$GNUTLS_CFLAGS"
+	elif test $openssl_found = yes; then
+		AC_DEFINE(RELDAP_TLS_FALLBACK, RELDAP_TLS_OPENSSL, [fallback TLS/SSL support])
+		TLS_FALLBACK_LIBS="$OPENSSL_LIBS"
+		TLS_FALLBACK_CFLAGS="$OPENSSL_CFLAGS"
+	else
+		AC_DEFINE(RELDAP_TLS_FALLBACK, RELDAP_TLS_NONE, [fallback TLS/SSL support])
 	fi
-fi
-
-dnl NOTE: caller must specify -I/path/to/nspr4 and -I/path/to/nss3
-dnl and -L/path/to/nspr4 libs and -L/path/to/nss3 libs if those libs
-dnl are not in the default system location
-if test $ol_link_tls = no ; then
-	if test $ol_with_tls = moznss || test $ol_with_tls = auto ; then
-		have_moznss=no
-		AC_CHECK_HEADERS([nssutil.h])
-		if test "$ac_cv_header_nssutil_h" = yes ; then
-			AC_CHECK_LIB([nss3], [NSS_Initialize],
-						 [ have_moznss=yes ], [ have_moznss=no ])
-		fi
-
-		if test "$have_moznss" = yes ; then
-			ol_with_tls=moznss
-			ol_link_tls=yes
-			AC_DEFINE(HAVE_MOZNSS, 1,
-					  [define if you have MozNSS])
-			TLS_LIBS="-lssl3 -lsmime3 -lnss3 -lnssutil3 -lplds4 -lplc4 -lnspr4"
-		else
-			if test $ol_with_tls = moznss ; then
-			AC_MSG_ERROR([MozNSS not found - please specify the location to the NSPR and NSS header files in CPPFLAGS and the location to the NSPR and NSS libraries in LDFLAGS (if not in the system location)])
-			fi
-		fi
+	;;
+    moznss)
+	if test $moznss_found != yes; then
+		AC_MSG_ERROR([$MOZNSS_PKG_ERRORS, therefore --with-tls=moznss unavailable])
+	else
+		ol_link_tls=yes
+		TLS_LIBS="$MOZNSS_LIBS"
+		TLS_CFLAGS="$MOZNSS_CFLAGS"
+		AC_DEFINE(RELDAP_TLS, RELDAP_TLS_MOZNSS, [configured TLS/SSL support])
 	fi
-fi
+	if test $gnutls_found = yes; then
+		AC_DEFINE(RELDAP_TLS_FALLBACK, RELDAP_TLS_GNUTLS, [fallback TLS/SSL support])
+		TLS_FALLBACK_LIBS="$GNUTLS_LIBS"
+		TLS_FALLBACK_CFLAGS="$GNUTLS_CFLAGS"
+	elif test $openssl_found = yes; then
+		AC_DEFINE(RELDAP_TLS_FALLBACK, RELDAP_TLS_OPENSSL, [fallback TLS/SSL support])
+		TLS_FALLBACK_LIBS="$OPENSSL_LIBS"
+		TLS_FALLBACK_CFLAGS="$OPENSSL_CFLAGS"
+	else
+		AC_DEFINE(RELDAP_TLS_FALLBACK, RELDAP_TLS_NONE, [fallback TLS/SSL support])
+	fi
+	;;
+    gnutls)
+	if test $gnutls_found != yes; then
+		AC_MSG_ERROR([$GNUTLS_PKG_ERRORS, therefore --with-tls=gnutls unavailable])
+	else
+		#AC_PREPROC_IFELSE([AC_LANG_SOURCE(
+		#	[[#include <gnutls/gnutls.h>]
+		#	[#if GNUTLS_VERSION_NUMBER < 0x020c00]
+		#	[#error "GnuTLS 2.12.0 or newer required"]
+		#	[#endif]])],
+		#	    , [AC_MSG_FAILURE([GnuTLS is too old])])
+		ol_link_tls=yes
+		AC_DEFINE(RELDAP_TLS, RELDAP_TLS_GNUTLS, [configured TLS/SSL support])
+		TLS_LIBS="$GNUTLS_LIBS"
+		TLS_CFLAGS="$GNUTLS_CFLAGS"
+
+		TLS_FALLBACK_LIBS="$GNUTLS_LIBS"
+		TLS_FALLBACK_CFLAGS="$GNUTLS_CFLAGS"
+		AC_DEFINE(RELDAP_TLS_FALLBACK, RELDAP_TLS_GNUTLS, [fallback TLS/SSL support])
+	fi
+	;;
+    openssl)
+	if test $openssl_found != yes; then
+		AC_MSG_ERROR([$OPENSSL_PKG_ERRORS, therefore --with-tls=openssl unavailable])
+	else
+		ol_link_tls=yes
+		OL_SSL_COMPAT
+		if test $ol_cv_ssl_crl_compat = yes ; then
+			AC_DEFINE(HAVE_OPENSSL_CRL, 1,
+				[define if you have OpenSSL with CRL checking USE_OPENSSLcapability])
+		fi
+		AC_DEFINE(RELDAP_TLS, RELDAP_TLS_OPENSSL, [configured TLS/SSL support])
+		TLS_LIBS="$OPENSSL_LIBS"
+		TLS_CFLAGS="$OPENSSL_CFLAGS"
+
+		AC_DEFINE(RELDAP_TLS_FALLBACK, RELDAP_TLS_OPENSSL, [fallback TLS/SSL support])
+		TLS_FALLBACK_LIBS="$OPENSSL_LIBS"
+		TLS_FALLBACK_CFLAGS="$OPENSSL_CFLAGS"
+	fi
+	;;
+    *)
+	AC_MSG_FAILURE([invalid --with-tls value '$ol_with_tls'])
+	;;
+esac
 
 WITH_TLS=no
 if test $ol_link_tls = yes ; then
-	AC_DEFINE(HAVE_TLS, 1, [define if you have TLS])
+	AC_DEFINE(WITH_TLS, 1, [define if you enabled TLS])
 	WITH_TLS=yes
-elif test $ol_with_tls = auto ; then
-	AC_MSG_WARN([Could not locate TLS/SSL package])
-	AC_MSG_WARN([TLS data protection not supported!])
-elif test $ol_with_tls != no ; then
-	AC_MSG_ERROR([Could not locate TLS/SSL package])
-else
-	AC_MSG_WARN([TLS data protection not supported!])
+	CFLAGS="$CFLAGS $TLS_CFLAGS"
+fi
+
+dnl ----------------------------------------------------------------
+dnl GSSAPI
+ol_link_gssapi=no
+
+case $ol_with_gssapi in yes | auto)
+	ol_header_gssapi=no
+	AC_CHECK_HEADERS(gssapi/gssapi.h)
+	if test $ac_cv_header_gssapi_gssapi_h = yes ; then
+		ol_header_gssapi=yes
+	else
+		AC_CHECK_HEADERS(gssapi.h)
+		if test $ac_cv_header_gssapi_h = yes ; then
+			ol_header_gssapi=yes
+		fi
+	fi
+
+	if test $ol_header_gssapi = yes ; then
+		dnl## we check for gss_wrap
+		dnl## as it's new to the GSSAPI V2 API
+		AC_CHECK_LIB(gssapi, gss_wrap,
+			[ol_link_gssapi=yes;GSSAPI_LIBS="-lgssapi"],
+			[ol_link_gssapi=no])
+		if test $ol_link_gssapi != yes ; then
+			AC_CHECK_LIB(gssapi_krb5, gss_wrap,
+				[ol_link_gssapi=yes;GSSAPI_LIBS="-lgssapi_krb5"],
+				[ol_link_gssapi=no])
+		fi
+		if test $ol_link_gssapi != yes ; then
+			AC_CHECK_LIB(gss, gss_wrap,
+				[ol_link_gssapi=yes;GSSAPI_LIBS="-lgss"],
+				[ol_link_gssapi=no])
+		fi
+	fi
+
+	;;
+esac
+
+WITH_GSSAPI=no
+if test $ol_link_gssapi = yes; then
+	AC_DEFINE(HAVE_GSSAPI, 1, [define if you have GSSAPI])
+	WITH_GSSAPI=yes
+
+	dnl## not every gssapi has gss_oid_to_str()
+	dnl## as it's not defined in the GSSAPI V2 API
+	dnl## anymore
+	saveLIBS="$LIBS"
+	LIBS="$LIBS $GSSAPI_LIBS"
+	AC_CHECK_FUNCS(gss_oid_to_str)
+	LIBS="$saveLIBS"
+elif test $ol_with_gssapi = auto ; then
+	AC_MSG_WARN([Could not locate GSSAPI package])
+	AC_MSG_WARN([GSSAPI authentication not supported!])
+elif test $ol_with_gssapi = yes ; then
+	AC_MSG_ERROR([GSSAPI detection failed])
 fi
 
 dnl ----------------------------------------------------------------
@@ -1635,8 +1749,6 @@ if test $ol_enable_bdb/$ol_enable_hdb != no/no; then
 	if test $ol_cv_lib_db != yes ; then
 		BDB_LIBS="$BDB_LIBS $ol_cv_lib_db"
 	fi
-
-	SLAPD_LIBS="$SLAPD_LIBS \$(BDB_LIBS)"
 
 	ol_link_bdb=yes
 fi
@@ -2119,8 +2231,7 @@ if test $ol_with_mp = long || test $ol_with_mp = auto ; then
 	fi
 fi
 if test $ol_with_mp = bignum || test $ol_with_mp = auto ; then
-	AC_CHECK_HEADERS(openssl/bn.h)
-	AC_CHECK_HEADERS(openssl/crypto.h)
+	AC_CHECK_HEADERS(openssl/bn.h openssl/crypto.h)
 	if test "$ac_cv_header_openssl_bn_h" = "yes" &&
 		test "$ac_cv_header_openssl_crypto_h" = "yes" &&
 		test "$ol_with_tls" = "found" ; then
@@ -2274,21 +2385,25 @@ fi
 dnl ----------------------------------------------------------------
 dnl Sort out defines
 
-if test "$ol_enable_debug" != no ; then
-	if test "$ol_enable_debug" = traditional; then
-		AC_DEFINE(OLD_DEBUG,1,
-			[define to use the original debug style])
-	fi
-	AC_DEFINE(LDAP_DEBUG,1,
-		[define this to add debugging code])
-fi
-if test "$ol_enable_syslog" = yes ; then
-	AC_DEFINE(LDAP_SYSLOG,1,
-		[define this to add syslog code])
+case $ol_enable_debug in
+    yes)
+	AC_DEFINE(LDAP_DEBUG,1,[define this to add debugging code])
+	;;
+    extra)
+	AC_DEFINE(LDAP_DEBUG,2,[define this to add debugging code])
+	;;
+    no)
+	;;
+    *)
+	AC_MSG_FAILURE([invalid --enable-debug value '$ol_enable_debug'])
+	;;
+esac
+
+if test "$ol_enable_syslog" != no ; then
+	AC_DEFINE(LDAP_SYSLOG,1,[define this to add syslog code])
 fi
 if test "$ol_enable_proctitle" != no ; then
-	AC_DEFINE(LDAP_PROCTITLE,1,
-		[define this for LDAP process title support])
+	AC_DEFINE(LDAP_PROCTITLE,1,[define this for LDAP process title support])
 fi
 if test "$ol_enable_referrals" != no ; then
 	AC_DEFINE(LDAP_API_FEATURE_X_OPENLDAP_V2_REFERRALS,LDAP_VENDOR_VERSION,
@@ -2782,6 +2897,10 @@ dnl ----------------------------------------------------------------
 AC_SUBST(WITH_SASL)
 AC_SUBST(WITH_TLS)
 AC_SUBST(WITH_ACI_ENABLED)
+AC_SUBST(WITH_GSSAPI)
+
+AM_CONDITIONAL([TLS_ENABLED], [test $ol_link_tls = yes])
+AM_CONDITIONAL([WITH_GSSAPI], [test $ol_with_gssapi = yes])
 
 if test $enable_shared = yes; then
 	AC_DEFINE(RELDAP_LIBS_SHARED,1,[--enable-shared=yes])
@@ -2945,7 +3064,6 @@ AM_CONDITIONAL([SLAPD_DYNACL], [test $ol_enable_dynacl != no])
 AM_CONDITIONAL([CONTRIB], [test "$ol_enable_contrib" != no])
 AM_CONDITIONAL([CONTRIB_BROKEN], [test "$ol_enable_contrib" = broken])
 
-AC_SUBST(SLAPD_LIBS)
 AC_SUBST(LTHREAD_LIBS)
 AC_SUBST(LUTIL_LIBS)
 
@@ -2977,8 +3095,13 @@ AC_SUBST(WT_LIBDIR)
 AC_SUBST(SQL_LIBS)
 AC_SUBST(SQL_INCLUDES)
 
-AC_SUBST(SASL_LIBS)
 AC_SUBST(TLS_LIBS)
+AC_SUBST(TLS_CFLAGS)
+AC_SUBST(TLS_FALLBACK_LIBS)
+AC_SUBST(TLS_FALLBACK_CFLAGS)
+
+AC_SUBST(GSSAPI_LIBS)
+AC_SUBST(SASL_LIBS)
 AC_SUBST(SLAPI_LIBS)
 AC_SUBST(AUTH_LIBS)
 #AC_SUBST(ICU_LIBS)
@@ -2995,7 +3118,7 @@ AC_SUBST(LDAP_LIBREWRITE_LA)
 AC_SUBST(LDAP_LIBLUNICODE_LA)
 AC_SUBST(LDAP_LIBLUTIL_LA)
 
-SECURITY_LIBS="${SASL_LIBS} ${TLS_LIBS} ${AUTH_LIBS}"
+SECURITY_LIBS="$SASL_LIBS $GSSAPI_LIBS $TLS_LIBS $AUTH_LIBS"
 AC_SUBST(SECURITY_LIBS)
 
 SLAPD_LIBS="$SLAPD_LIBS $SLAPD_SLP_LIBS $SLAPD_GMP_LIBS $SLAPD_TCPWRAP_LIBS"

@@ -1,27 +1,9 @@
 dnl OpenLDAP Autoconf Macros
 dnl $ReOpenLDAP$
-dnl Copyright (c) 2015,2016 Leonid Yuriev <leo@yuriev.ru>.
-dnl Copyright (c) 2015,2016 Peter-Service R&D LLC <http://billing.ru/>.
+dnl Copyright 1998-2016 ReOpenLDAP AUTHORS: please see AUTHORS file.
+dnl All rights reserved.
 dnl
 dnl This file is part of ReOpenLDAP.
-dnl
-dnl ReOpenLDAP is free software; you can redistribute it and/or modify it under
-dnl the terms of the GNU Affero General Public License as published by
-dnl the Free Software Foundation; either version 3 of the License, or
-dnl (at your option) any later version.
-dnl
-dnl ReOpenLDAP is distributed in the hope that it will be useful,
-dnl but WITHOUT ANY WARRANTY; without even the implied warranty of
-dnl MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-dnl GNU Affero General Public License for more details.
-dnl
-dnl You should have received a copy of the GNU Affero General Public License
-dnl along with this program.  If not, see <http://www.gnu.org/licenses/>.
-dnl
-dnl ---
-dnl
-dnl Copyright 1998-2014 The OpenLDAP Foundation.
-dnl All rights reserved.
 dnl
 dnl Redistribution and use in source and binary forms, with or without
 dnl modification, are permitted only as authorized by the OpenLDAP

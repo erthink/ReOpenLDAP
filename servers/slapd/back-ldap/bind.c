@@ -1,29 +1,8 @@
-/* bind.c - ldap backend bind function */
 /* $ReOpenLDAP$ */
-/* Copyright (c) 2015,2016 Leonid Yuriev <leo@yuriev.ru>.
- * Copyright (c) 2015,2016 Peter-Service R&D LLC <http://billing.ru/>.
+/* Copyright 1999-2016 ReOpenLDAP AUTHORS: please see AUTHORS file.
+ * All rights reserved.
  *
  * This file is part of ReOpenLDAP.
- *
- * ReOpenLDAP is free software; you can redistribute it and/or modify it under
- * the terms of the GNU Affero General Public License as published by
- * the Free Software Foundation; either version 3 of the License, or
- * (at your option) any later version.
- *
- * ReOpenLDAP is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- *
- * ---
- *
- * Copyright 1999-2014 The OpenLDAP Foundation.
- * Portions Copyright 2000-2003 Pierangelo Masarati.
- * Portions Copyright 1999-2003 Howard Chu.
- * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted only as authorized by the OpenLDAP
@@ -33,6 +12,7 @@
  * top-level directory of the distribution or, alternatively, at
  * <http://www.OpenLDAP.org/license.html>.
  */
+
 /* ACKNOWLEDGEMENTS:
  * This work was initially developed by Howard Chu for inclusion
  * in OpenLDAP Software and subsequently enhanced by Pierangelo
@@ -540,7 +520,7 @@ ldap_back_freeconn( ldapinfo_t *li, ldapconn_t *lc, int dolock )
 	return 0;
 }
 
-#ifdef HAVE_TLS
+#ifdef WITH_TLS
 static int
 ldap_back_start_tls(
 	LDAP		*ld,
@@ -681,7 +661,7 @@ retry:;
 
 	return rc;
 }
-#endif /* HAVE_TLS */
+#endif /* WITH_TLS */
 
 static int
 ldap_back_prepare_conn( ldapconn_t *lc, Operation *op, SlapReply *rs, ldap_back_send_t sendok )
@@ -689,12 +669,12 @@ ldap_back_prepare_conn( ldapconn_t *lc, Operation *op, SlapReply *rs, ldap_back_
 	ldapinfo_t	*li = (ldapinfo_t *)op->o_bd->be_private;
 	int		version;
 	LDAP		*ld = NULL;
-#ifdef HAVE_TLS
+#ifdef WITH_TLS
 	int		is_tls = op->o_conn->c_is_tls;
 	int		flags = li->li_flags;
 	time_t		lctime = (time_t)(-1);
 	slap_bindconf *sb;
-#endif /* HAVE_TLS */
+#endif /* WITH_TLS */
 
 	ldap_pvt_thread_mutex_lock( &li->li_uri_mutex );
 	rs->sr_err = ldap_initialize( &ld, li->li_uri );
@@ -737,7 +717,7 @@ ldap_back_prepare_conn( ldapconn_t *lc, Operation *op, SlapReply *rs, ldap_back_
 	/* turn on network keepalive, if configured so */
 	slap_client_keepalive(ld, &li->li_tls.sb_keepalive);
 
-#ifdef HAVE_TLS
+#ifdef WITH_TLS
 	if ( LDAP_BACK_CONN_ISPRIV( lc ) ) {
 		/* See "rationale" comment in ldap_back_getconn() */
 		if ( li->li_acl_authmethod == LDAP_AUTH_NONE &&
@@ -782,11 +762,11 @@ ldap_back_prepare_conn( ldapconn_t *lc, Operation *op, SlapReply *rs, ldap_back_
 		/* only touch when activity actually took place... */
 		lctime = op->o_time;
 	}
-#endif /* HAVE_TLS */
+#endif /* WITH_TLS */
 
 	lc->lc_ld = ld;
 	lc->lc_refcnt = 1;
-#ifdef HAVE_TLS
+#ifdef WITH_TLS
 	if ( is_tls ) {
 		LDAP_BACK_CONN_ISTLS_SET( lc );
 	} else {
@@ -795,7 +775,7 @@ ldap_back_prepare_conn( ldapconn_t *lc, Operation *op, SlapReply *rs, ldap_back_
 	if ( lctime != (time_t)(-1) ) {
 		lc->lc_time = lctime;
 	}
-#endif /* HAVE_TLS */
+#endif /* WITH_TLS */
 
 error_return:;
 	if ( rs->sr_err != LDAP_SUCCESS ) {
@@ -1051,7 +1031,7 @@ retry_lock:
 			}
 		}
 
-#ifdef HAVE_TLS
+#ifdef WITH_TLS
 		/* if start TLS failed but it was not mandatory,
 		 * check if the non-TLS connection was already
 		 * in cache; in case, destroy the newly created
@@ -1083,7 +1063,7 @@ retry_lock:
 				goto done;
 			}
 		}
-#endif /* HAVE_TLS */
+#endif /* WITH_TLS */
 
 		/* Inserts the newly created ldapconn in the avl tree */
 		ldap_pvt_thread_mutex_lock( &li->li_conninfo.lai_mutex );
@@ -1201,9 +1181,9 @@ retry_lock:
 		}
 	}
 
-#ifdef HAVE_TLS
+#ifdef WITH_TLS
 done:;
-#endif /* HAVE_TLS */
+#endif /* WITH_TLS */
 
 	return lc;
 }
@@ -1657,7 +1637,7 @@ ldap_back_default_rebind( LDAP *ld, LDAP_CONST char *url, ber_tag_t request,
 {
 	ldapconn_t	*lc = (ldapconn_t *)params;
 
-#ifdef HAVE_TLS
+#ifdef WITH_TLS
 	/* ... otherwise we couldn't get here */
 	assert( lc != NULL );
 
@@ -1672,7 +1652,7 @@ ldap_back_default_rebind( LDAP *ld, LDAP_CONST char *url, ber_tag_t request,
 			return rc;
 		}
 	}
-#endif /* HAVE_TLS */
+#endif /* WITH_TLS */
 
 	/* FIXME: add checks on the URL/identity? */
 	/* TODO: would like to count this bind operation for monitoring

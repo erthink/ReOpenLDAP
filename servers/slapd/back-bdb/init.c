@@ -1,27 +1,8 @@
-/* init.c - initialize bdb backend */
 /* $ReOpenLDAP$ */
-/* Copyright (c) 2015,2016 Leonid Yuriev <leo@yuriev.ru>.
- * Copyright (c) 2015,2016 Peter-Service R&D LLC <http://billing.ru/>.
+/* Copyright 2000-2016 ReOpenLDAP AUTHORS: please see AUTHORS file.
+ * All rights reserved.
  *
  * This file is part of ReOpenLDAP.
- *
- * ReOpenLDAP is free software; you can redistribute it and/or modify it under
- * the terms of the GNU Affero General Public License as published by
- * the Free Software Foundation; either version 3 of the License, or
- * (at your option) any later version.
- *
- * ReOpenLDAP is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- *
- * ---
- *
- * Copyright 2000-2014 The OpenLDAP Foundation.
- * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted only as authorized by the OpenLDAP
@@ -770,19 +751,8 @@ bdb_back_initialize(
 	bi->bi_controls = controls;
 
 	{	/* version check */
-		int major, minor, patch, ver;
+		int major, minor, patch;
 		char *version = db_version( &major, &minor, &patch );
-
-		ver = (major << 24) | (minor << 16) | patch;
-		if( ver != DB_VERSION_FULL ) {
-			/* fail if a versions don't match */
-			Debug( LDAP_DEBUG_ANY,
-				LDAP_XSTRING(bdb_back_initialize) ": "
-				"BDB library version mismatch:"
-				" expected " DB_VERSION_STRING ","
-				" got %s\n", version );
-			return -1;
-		}
 
 		Debug( LDAP_DEBUG_TRACE, LDAP_XSTRING(bdb_back_initialize)
 			": %s\n", version );

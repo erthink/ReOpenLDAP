@@ -1,32 +1,14 @@
 /* $ReOpenLDAP$ */
-/* Copyright (c) 2015,2016 Leonid Yuriev <leo@yuriev.ru>.
- * Copyright (c) 2015,2016 Peter-Service R&D LLC <http://billing.ru/>.
+/* Copyright 2002-2016 ReOpenLDAP AUTHORS: please see AUTHORS file.
+ * All rights reserved.
  *
  * This file is part of ReOpenLDAP.
- *
- * ReOpenLDAP is free software; you can redistribute it and/or modify it under
- * the terms of the GNU Affero General Public License as published by
- * the Free Software Foundation; either version 3 of the License, or
- * (at your option) any later version.
- *
- * ReOpenLDAP is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- *
- * ---
- *
- * Copyright 1998-2014 The OpenLDAP Foundation.
- * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted only as authorized by the OpenLDAP
  * Public License.
  *
- * A copy of this license is available in file LICENSE in the
+ * A copy of this license is available in the file LICENSE in the
  * top-level directory of the distribution or, alternatively, at
  * <http://www.OpenLDAP.org/license.html>.
  */
@@ -1862,7 +1844,7 @@ ure_write_dfa(ure_dfa_t dfa, FILE *out)
      */
     for (i = 0, sym = dfa->syms; i < dfa->nsyms; i++, sym++) {
         if (sym->type == _URE_CCLASS || sym->type == _URE_NCCLASS) {
-            fprintf(out, "C%hd = ", sym->id);
+            fprintf(out, "C%hu = ", sym->id);
             if (sym->sym.ccl.ranges_used > 0) {
                 putc('[', out);
                 if (sym->type == _URE_NCCLASS)
@@ -1877,7 +1859,7 @@ ure_write_dfa(ure_dfa_t dfa, FILE *out)
                     if (sym->props & (1 << k)) {
                         if (h != 0)
                           putc(',', out);
-                        fprintf(out, "%hd", (ucs2_t) (k + 1));
+                        fprintf(out, "%hu", (ucs2_t) (k + 1));
                         h = 1;
                     }
                 }
@@ -1915,7 +1897,7 @@ ure_write_dfa(ure_dfa_t dfa, FILE *out)
     }
 
     for (i = 0, sp = dfa->states; i < dfa->nstates; i++, sp++) {
-        fprintf(out, "S%hd = ", i);
+        fprintf(out, "S%hu = ", i);
         if (sp->accepting) {
             fprintf(out, "1 ");
             if (sp->ntrans)
@@ -1949,10 +1931,10 @@ ure_write_dfa(ure_dfa_t dfa, FILE *out)
                 break;
               case _URE_CCLASS:
               case _URE_NCCLASS:
-                fprintf(out, "[C%hd] ", sym->id);
+                fprintf(out, "[C%hu] ", sym->id);
                 break;
             }
-            fprintf(out, "S%hd", sp->trans[j].next_state);
+            fprintf(out, "S%hu", sp->trans[j].next_state);
             if (j + 1 < sp->ntrans)
               putc(' ', out);
         }

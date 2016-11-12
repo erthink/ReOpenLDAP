@@ -1,28 +1,8 @@
-/* smbk5pwd.c - Overlay for managing Samba and Heimdal passwords */
 /* $ReOpenLDAP$ */
-/* Copyright (c) 2015,2016 Leonid Yuriev <leo@yuriev.ru>.
- * Copyright (c) 2015,2016 Peter-Service R&D LLC <http://billing.ru/>.
+/* Copyright 2004-2016 ReOpenLDAP AUTHORS: please see AUTHORS file.
+ * All rights reserved.
  *
  * This file is part of ReOpenLDAP.
- *
- * ReOpenLDAP is free software; you can redistribute it and/or modify it under
- * the terms of the GNU Affero General Public License as published by
- * the Free Software Foundation; either version 3 of the License, or
- * (at your option) any later version.
- *
- * ReOpenLDAP is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- *
- * ---
- *
- * Copyright 2004-2014 The OpenLDAP Foundation.
- * Portions Copyright 2004-2005 by Howard Chu, Symas Corp.
- * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted only as authorized by the OpenLDAP
@@ -32,11 +12,14 @@
  * top-level directory of the distribution or, alternatively, at
  * <http://www.OpenLDAP.org/license.html>.
  */
+
 /* ACKNOWLEDGEMENTS:
  * Support for table-driven configuration added by Pierangelo Masarati.
  * Support for sambaPwdMustChange and sambaPwdCanChange added by Marco D'Ettorre.
  * Support for shadowLastChange added by SATOH Fumiyasu @ OSS Technology, Inc.
  */
+
+/* smbk5pwd.c - Overlay for managing Samba and Heimdal passwords */
 
 #include <reldap.h>
 
@@ -75,19 +58,22 @@ static AttributeDescription *ad_krb5KeyVersionNumber;
 static AttributeDescription *ad_krb5PrincipalName;
 static AttributeDescription *ad_krb5ValidEnd;
 static ObjectClass *oc_krb5KDCEntry;
-#endif
+#endif /* DO_KRB5 */
+
 
 #ifdef DO_SAMBA
-#ifdef HAVE_GNUTLS
-#include <nettle/des.h>
-#include <nettle/md4.h>
-typedef unsigned char DES_cblock[8];
-#elif HAVE_OPENSSL
-#include <openssl/des.h>
-#include <openssl/md4.h>
+
+#if RELDAP_TLS_FALLBACK == RELDAP_TLS_GNUTLS
+#	include <nettle/des.h>
+#	include <nettle/md4.h>
+	typedef unsigned char DES_cblock[8];
+#elif RELDAP_TLS_FALLBACK == RELDAP_TLS_OPENSSL
+#	include <openssl/md4.h>
+#	include <openssl/des.h>
 #else
-#error Unsupported crypto backend.
-#endif
+#	error Unsupported crypto backend.
+#endif /* RELDAP_TLS_FALLBACKL */
+
 #include "ldap_utf8.h"
 
 static AttributeDescription *ad_sambaLMPassword;
@@ -96,12 +82,12 @@ static AttributeDescription *ad_sambaPwdLastSet;
 static AttributeDescription *ad_sambaPwdMustChange;
 static AttributeDescription *ad_sambaPwdCanChange;
 static ObjectClass *oc_sambaSamAccount;
-#endif
+#endif /* DO_SAMBA */
 
 #ifdef DO_SHADOW
 static AttributeDescription *ad_shadowLastChange;
 static ObjectClass *oc_shadowAccount;
-#endif
+#endif /* DO_SHADOW */
 
 /* Per-instance configuration information */
 typedef struct smbk5pwd_t {
@@ -166,7 +152,7 @@ static void lmPasswd_to_key(
 	k[6] = ((lpw[5]&0x3F)<<2) | (lpw[6]>>6);
 	k[7] = ((lpw[6]&0x7F)<<1);
 
-#ifdef HAVE_OPENSSL
+#if RELDAP_TLS_FALLBACK == RELDAP_TLS_OPENSSL
 	des_set_odd_parity( key );
 #endif
 }
@@ -204,9 +190,11 @@ static void lmhash(
 	DES_cblock key;
 	DES_cblock StdText = "KGS!@#$%";
 	DES_cblock hbuf[2];
-#ifdef HAVE_OPENSSL
+#if RELDAP_TLS_FALLBACK == RELDAP_TLS_OPENSSL
 	DES_key_schedule schedule;
-#elif defined(HAVE_GNUTLS)
+#endif
+
+#if RELDAP_TLS_FALLBACK == RELDAP_TLS_GNUTLS
 	struct des_ctx ctx;
 #endif
 
@@ -215,14 +203,15 @@ static void lmhash(
 	ldap_pvt_str2upper( UcasePassword );
 
 	lmPasswd_to_key( UcasePassword, &key );
-#ifdef HAVE_GNUTLS
+#if RELDAP_TLS_FALLBACK == RELDAP_TLS_GNUTLS
 	des_set_key( &ctx, key );
 	des_encrypt( &ctx, sizeof(key), hbuf[0], StdText );
 
 	lmPasswd_to_key( &UcasePassword[7], &key );
 	des_set_key( &ctx, key );
 	des_encrypt( &ctx, sizeof(key), hbuf[1], StdText );
-#elif defined(HAVE_OPENSSL)
+#endif
+#if RELDAP_TLS_FALLBACK == RELDAP_TLS_OPENSSL
 	des_set_key_unchecked( &key, schedule );
 	des_ecb_encrypt( &StdText, &hbuf[0], schedule , DES_ENCRYPT );
 
@@ -244,20 +233,22 @@ static void nthash(
 	 * 256 UCS2 characters, not 256 bytes...
 	 */
 	char hbuf[HASHLEN];
-#ifdef HAVE_OPENSSL
+#if RELDAP_TLS_FALLBACK == RELDAP_TLS_OPENSSL
 	MD4_CTX ctx;
-#elif defined(HAVE_GNUTLS)
+#endif
+#if RELDAP_TLS_FALLBACK == RELDAP_TLS_GNUTLS
 	struct md4_ctx ctx;
 #endif
 
 	if (passwd->bv_len > MAX_PWLEN*2)
 		passwd->bv_len = MAX_PWLEN*2;
 
-#ifdef HAVE_OPENSSL
+#if RELDAP_TLS_FALLBACK == RELDAP_TLS_OPENSSL
 	MD4_Init( &ctx );
 	MD4_Update( &ctx, passwd->bv_val, passwd->bv_len );
 	MD4_Final( (unsigned char *)hbuf, &ctx );
-#elif defined(HAVE_GNUTLS)
+#endif
+#if RELDAP_TLS_FALLBACK == RELDAP_TLS_GNUTLS
 	md4_init( &ctx );
 	md4_update( &ctx, passwd->bv_len, (unsigned char *)passwd->bv_val );
 	md4_digest( &ctx, sizeof(hbuf), (unsigned char *)hbuf );

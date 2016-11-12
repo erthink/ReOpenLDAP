@@ -1,26 +1,8 @@
 /* $ReOpenLDAP$ */
-/* Copyright (c) 2015,2016 Leonid Yuriev <leo@yuriev.ru>.
- * Copyright (c) 2015,2016 Peter-Service R&D LLC <http://billing.ru/>.
+/* Copyright 1990-2016 ReOpenLDAP AUTHORS: please see AUTHORS file.
+ * All rights reserved.
  *
  * This file is part of ReOpenLDAP.
- *
- * ReOpenLDAP is free software; you can redistribute it and/or modify it under
- * the terms of the GNU Affero General Public License as published by
- * the Free Software Foundation; either version 3 of the License, or
- * (at your option) any later version.
- *
- * ReOpenLDAP is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- *
- * ---
- *
- * Copyright 1998-2014 The OpenLDAP Foundation.
- * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted only as authorized by the OpenLDAP
@@ -29,31 +11,6 @@
  * A copy of this license is available in the file LICENSE in the
  * top-level directory of the distribution or, alternatively, at
  * <http://www.OpenLDAP.org/license.html>.
- */
-/* Portions Copyright (c) 1995 Regents of the University of Michigan.
- * All rights reserved.
- */
-/* This notice applies to changes, created by or for Novell, Inc.,
- * to preexisting works for which notices appear elsewhere in this file.
- *
- * Copyright (C) 1999, 2000 Novell, Inc. All Rights Reserved.
- *
- * THIS WORK IS SUBJECT TO U.S. AND INTERNATIONAL COPYRIGHT LAWS AND TREATIES.
- * USE, MODIFICATION, AND REDISTRIBUTION OF THIS WORK IS SUBJECT TO VERSION
- * 2.0.1 OF THE OPENLDAP PUBLIC LICENSE, A COPY OF WHICH IS AVAILABLE AT
- * HTTP://WWW.OPENLDAP.ORG/LICENSE.HTML OR IN THE FILE "LICENSE" IN THE
- * TOP-LEVEL DIRECTORY OF THE DISTRIBUTION. ANY USE OR EXPLOITATION OF THIS
- * WORK OTHER THAN AS AUTHORIZED IN VERSION 2.0.1 OF THE OPENLDAP PUBLIC
- * LICENSE, OR OTHER PRIOR WRITTEN CONSENT FROM NOVELL, COULD SUBJECT THE
- * PERPETRATOR TO CRIMINAL AND CIVIL LIABILITY.
- *---
- * Modification to OpenLDAP source by Novell, Inc.
- * April 2000 sfs  Added code to chase V3 referrals
- *  request.c - sending of ldap requests; handling of referrals
- *---
- * Note: A verbatim copy of version 2.0.1 of the OpenLDAP Public License
- * can be found in the file "build/LICENSE-2.0.1" in this distribution
- * of OpenLDAP Software.
  */
 
 #include "reldap.h"
@@ -430,7 +387,7 @@ ldap_send_server_request(
 	return( msgid );
 }
 
-#ifdef HAVE_TLS
+#ifdef WITH_TLS
 /* return 0 if no StartTLS ext, 1 if present, 2 if critical */
 static int
 find_tls_ext( LDAPURLDesc *srv )
@@ -456,7 +413,7 @@ find_tls_ext( LDAPURLDesc *srv )
 	}
 	return 0;
 }
-#endif /* HAVE_TLS */
+#endif /* WITH_TLS */
 
 /*
  * always protected by conn_mutex
@@ -543,7 +500,7 @@ ldap_new_connection( LDAP *ld, LDAPURLDesc **srvlist, int use_ldsb,
 	ld->ld_conns = lc;
 
 	if ( connect ) {
-#ifdef HAVE_TLS
+#ifdef WITH_TLS
 		if ( lc->lconn_server->lud_exts ) {
 			int rc, ext = find_tls_ext( lc->lconn_server );
 			if ( ext ) {
@@ -1158,7 +1115,7 @@ ldap_chase_v3referrals( LDAP *ld, LDAPRequest *lr, char **refs, int sref, char *
 
 		if( srv->lud_crit_exts ) {
 			int ok = 0;
-#ifdef HAVE_TLS
+#ifdef WITH_TLS
 			/* If StartTLS is the only critical ext, OK. */
 			if ( find_tls_ext( srv ) == 2 && srv->lud_crit_exts == 1 )
 				ok = 1;

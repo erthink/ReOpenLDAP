@@ -1,29 +1,22 @@
-.TH SLAPD 8C "@RELEASE_DATE@" "ReOpenLDAP @VERSION@"
 .\" $ReOpenLDAP$
-.\" Copyright (c) 2015,2016 Leonid Yuriev <leo@yuriev.ru>.
-.\" Copyright (c) 2015,2016 Peter-Service R&D LLC <http://billing.ru/>.
+.\" Copyright 1992-2016 ReOpenLDAP AUTHORS: please see AUTHORS file.
+.\" All rights reserved.
 .\"
 .\" This file is part of ReOpenLDAP.
 .\"
-.\" ReOpenLDAP is free software; you can redistribute it and/or modify it under
-.\" the terms of the GNU Affero General Public License as published by
-.\" the Free Software Foundation; either version 3 of the License, or
-.\" (at your option) any later version.
+.\" Redistribution and use in source and binary forms, with or without
+.\" modification, are permitted only as authorized by the OpenLDAP
+.\" Public License.
 .\"
-.\" ReOpenLDAP is distributed in the hope that it will be useful,
-.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
-.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-.\" GNU Affero General Public License for more details.
-.\"
-.\" You should have received a copy of the GNU Affero General Public License
-.\" along with this program.  If not, see <http://www.gnu.org/licenses/>.
-.\"
-.\" ---
-.\"
-.\" Copyright 1998-2014 The OpenLDAP Foundation All Rights Reserved.
-.\" Copying restrictions apply.  See COPYRIGHT/LICENSE.
+.\" A copy of this license is available in the file LICENSE in the
+.\" top-level directory of the distribution or, alternatively, at
+.\" <http://www.OpenLDAP.org/license.html>.
+
+.TH SLAPD 8C "@RELEASE_DATE@" "ReOpenLDAP @VERSION@"
+
 .SH NAME
 slapd \- Stand-alone LDAP Daemon
+
 .SH SYNOPSIS
 .B @LIBEXECDIR@/slapd
 [\c
@@ -55,6 +48,7 @@ slapd \- Stand-alone LDAP Daemon
 .BI \-g \ group\fR]
 [\c
 .BI \-c \ cookie\fR]
+
 .SH DESCRIPTION
 .LP
 .B Slapd
@@ -123,11 +117,10 @@ If this option is specified, even with a zero argument,
 will not fork or disassociate from the invoking terminal.  Some general
 operation and status messages are printed for any value of \fIdebug-level\fP.
 \fIdebug-level\fP is taken as a bit string, with each bit corresponding to a
-different kind of debugging information.  See <ldap_log.h> for details.
-Comma-separated arrays of friendly names can be specified to select
-debugging output of the corresponding debugging information.
-All the names recognized by the \fIloglevel\fP directive
-described in \fBslapd.conf\fP(5) are supported.
+different kind of debugging information.  Comma-separated arrays of friendly
+names can be specified to select debugging output of the corresponding
+debugging information.  All the names recognized by the \fIloglevel\fP
+directive described in \fBslapd.conf\fP(5) are supported.
 If \fIdebug-level\fP is \fB?\fP, a list of installed debug-levels is printed,
 and slapd exits.
 

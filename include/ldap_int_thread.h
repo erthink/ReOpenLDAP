@@ -1,37 +1,17 @@
-/* ldap_int_thread.h - ldap internal thread wrappers header file */
 /* $ReOpenLDAP$ */
-/* Copyright (c) 2015,2016 Leonid Yuriev <leo@yuriev.ru>.
- * Copyright (c) 2015,2016 Peter-Service R&D LLC <http://billing.ru/>.
+/* Copyright 1992-2016 ReOpenLDAP AUTHORS: please see AUTHORS file.
+ * All rights reserved.
  *
  * This file is part of ReOpenLDAP.
- *
- * ReOpenLDAP is free software; you can redistribute it and/or modify it under
- * the terms of the GNU Affero General Public License as published by
- * the Free Software Foundation; either version 3 of the License, or
- * (at your option) any later version.
- *
- * ReOpenLDAP is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- *
- * ---
- *
- * Copyright 1998-2014 The OpenLDAP Foundation.
- * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted only as authorized by the OpenLDAP
  * Public License.
  *
- * A copy of this license is available in file LICENSE in the
+ * A copy of this license is available in the file LICENSE in the
  * top-level directory of the distribution or, alternatively, at
  * <http://www.OpenLDAP.org/license.html>.
  */
-
 
 LDAP_BEGIN_DECL
 
@@ -298,7 +278,7 @@ typedef struct {
 	ldap_debug_usage_info_t	usage;
 } ldap_debug_thread_rdwr_t;
 
-#ifndef NDEBUG
+#ifdef LDAP_DEBUG
 #define	LDAP_INT_THREAD_ASSERT_MUTEX_OWNER(mutex) \
 	ldap_debug_thread_assert_mutex_owner( \
 		__FILE__, __LINE__, "owns(" #mutex ")", mutex )
@@ -307,7 +287,7 @@ LDAP_F(void) ldap_debug_thread_assert_mutex_owner LDAP_P((
 	int line,
 	LDAP_CONST char *msg,
 	ldap_debug_thread_mutex_t *mutex ));
-#endif /* NDEBUG */
+#endif /* LDAP_DEBUG */
 
 LDAP_END_DECL
 

@@ -1,27 +1,9 @@
 #!/bin/bash
 ## $ReOpenLDAP$
-## Copyright (c) 2015,2016 Leonid Yuriev <leo@yuriev.ru>.
-## Copyright (c) 2015,2016 Peter-Service R&D LLC <http://billing.ru/>.
+## Copyright 1998-2016 ReOpenLDAP AUTHORS: please see AUTHORS file.
+## All rights reserved.
 ##
 ## This file is part of ReOpenLDAP.
-##
-## ReOpenLDAP is free software; you can redistribute it and/or modify it under
-## the terms of the GNU Affero General Public License as published by
-## the Free Software Foundation; either version 3 of the License, or
-## (at your option) any later version.
-##
-## ReOpenLDAP is distributed in the hope that it will be useful,
-## but WITHOUT ANY WARRANTY; without even the implied warranty of
-## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-## GNU Affero General Public License for more details.
-##
-## You should have received a copy of the GNU Affero General Public License
-## along with this program.  If not, see <http://www.gnu.org/licenses/>.
-##
-## ---
-##
-## Copyright 1998-2014 The OpenLDAP Foundation.
-## All rights reserved.
 ##
 ## Redistribution and use in source and binary forms, with or without
 ## modification, are permitted only as authorized by the OpenLDAP
@@ -56,6 +38,15 @@ export AC_SLAPD_STATIC_BACKENDS="@SLAPD_STATIC_BACKENDS@"
 export AC_WITH_SASL=@WITH_SASL@
 export AC_WITH_TLS=@WITH_TLS@
 export AC_ACI_ENABLED=@WITH_ACI_ENABLED@
+
+#valgrind
+export AC_VALGRIND_ENABLED=@VALGRIND_ENABLED@
+export AC_VALGRIND=@VALGRIND@
+export AC_ENABLE_VALGRIND_drd=@ENABLE_VALGRIND_drd@
+export AC_ENABLE_VALGRIND_helgrind=@ENABLE_VALGRIND_helgrind@
+export AC_ENABLE_VALGRIND_memcheck=@ENABLE_VALGRIND_memcheck@
+export AC_ENABLE_VALGRIND_sgcheck=@ENABLE_VALGRIND_sgcheck@
+export AC_VALGRIND_SUPPRESSIONS_FILES="$(readlink -f @srcdir@/@VALGRIND_SUPPRESSIONS_FILES@)"
 
 ## sanitize
 #if test "${AC_ldap}" = "ldapmod" && test "${AC_LIBS_DYNAMIC}" = "static" ; then

@@ -1,27 +1,8 @@
-/* mr.c - routines to manage matching rule definitions */
 /* $ReOpenLDAP$ */
-/* Copyright (c) 2015,2016 Leonid Yuriev <leo@yuriev.ru>.
- * Copyright (c) 2015,2016 Peter-Service R&D LLC <http://billing.ru/>.
+/* Copyright 1990-2016 ReOpenLDAP AUTHORS: please see AUTHORS file.
+ * All rights reserved.
  *
  * This file is part of ReOpenLDAP.
- *
- * ReOpenLDAP is free software; you can redistribute it and/or modify it under
- * the terms of the GNU Affero General Public License as published by
- * the Free Software Foundation; either version 3 of the License, or
- * (at your option) any later version.
- *
- * ReOpenLDAP is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- *
- * ---
- *
- * Copyright 1998-2014 The OpenLDAP Foundation.
- * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted only as authorized by the OpenLDAP
@@ -31,6 +12,8 @@
  * top-level directory of the distribution or, alternatively, at
  * <http://www.OpenLDAP.org/license.html>.
  */
+
+/* mr.c - routines to manage matching rule definitions */
 
 #include "reldap.h"
 
@@ -319,15 +302,14 @@ register_matching_rule(
 		if (( def->mrd_usage & SLAP_MR_EQUALITY ) &&
 			(( def->mrd_usage & SLAP_MR_SUBTYPE_MASK ) == SLAP_MR_NONE ))
 		{
-			if (( def->mrd_usage & SLAP_MR_EQUALITY ) &&
-				(( def->mrd_usage & SLAP_MR_SUBTYPE_MASK ) != SLAP_MR_NONE ))
+			if ( SLAP_MR_EQUALITY_APPROX !=
+				( amr->smr_usage & (SLAP_MR_EQUALITY | SLAP_MR_SUBTYPE_MASK )) )
 			{
 				Debug( LDAP_DEBUG_ANY, "register_matching_rule: "
 						"inappropriate (approx) association %s for %s\n",
 					def->mrd_associated, def->mrd_desc );
 				return -1;
 			}
-
 		} else if (!( amr->smr_usage & SLAP_MR_EQUALITY )) {
 				Debug( LDAP_DEBUG_ANY, "register_matching_rule: "
 					"inappropriate (equalilty) association %s for %s\n",
@@ -345,7 +327,6 @@ register_matching_rule(
 
 		return -1;
 	}
-
 
 	code = mr_add( mr, def, amr, &err );
 

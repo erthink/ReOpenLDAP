@@ -1,35 +1,18 @@
 /* $ReOpenLDAP$ */
-/* Copyright (c) 2015,2016 Leonid Yuriev <leo@yuriev.ru>.
- * Copyright (c) 2015,2016 Peter-Service R&D LLC <http://billing.ru/>.
+/* Copyright 1999-2016 ReOpenLDAP AUTHORS: please see AUTHORS file.
+ * All rights reserved.
  *
  * This file is part of ReOpenLDAP.
- *
- * ReOpenLDAP is free software; you can redistribute it and/or modify it under
- * the terms of the GNU Affero General Public License as published by
- * the Free Software Foundation; either version 3 of the License, or
- * (at your option) any later version.
- *
- * ReOpenLDAP is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- *
- * ---
- *
- * Copyright 1999-2014 The OpenLDAP Foundation.
- * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted only as authorized by the OpenLDAP
  * Public License.
  *
- * A copy of this license is available in file LICENSE in the
+ * A copy of this license is available in the file LICENSE in the
  * top-level directory of the distribution or, alternatively, at
  * <http://www.OpenLDAP.org/license.html>.
  */
+
 /* ACKNOWLEDGEMENTS:
  * This work was initially developed by Kurt Spanier for inclusion
  * in OpenLDAP Software.
@@ -350,6 +333,13 @@ main( int argc, char **argv )
 	lds[0] = ld;
 	for(i = 1; i < noconns; i++) {
 		do_conn( uri, manager, &passwd, &lds[i], nobind, retries, i );
+	}
+
+	if (strcasestr(entry, "cn=Monitor") != 0) {
+		/* LY: Workaround for https://github.com/ReOpen/ReOpenLDAP/issues/92
+		 * Give a time to slapd and monitor-backend for completion closed connections. */
+		tester_error( "Wait for completion closed connections" );
+		sleep(1);
 	}
 
 	ldap_pvt_thread_initialize();
@@ -697,8 +687,7 @@ do_random( LDAP *ld,
 		}
 
 		for ( i = 0; i < innerloop; i++ ) {
-			int	r = ((double)nvalues)*rand()/(RAND_MAX + 1.0);
-
+			int	r = lrand48() % nvalues;
 			do_read( ld, values[ r ],
 				srchattrs, noattrs, nobind, 1, maxretries,
 				delay, force, chaserefs, idx );
@@ -754,7 +743,7 @@ do_random2( LDAP *ld,
 	ftail++;
 
 	for ( i = 0; i < innerloop; i++ ) {
-		int	r = ((double)range)*rand()/(RAND_MAX + 1.0);
+		int	r = lo + lrand48() % range;
 		sprintf(fbuf, "%.*s%d%s", flen, filter, r, ftail);
 
 		rc = ldap_search_ext_s( ld, sbase, LDAP_SCOPE_SUBTREE,

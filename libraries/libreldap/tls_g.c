@@ -1,27 +1,8 @@
-/* tls_g.c - Handle tls/ssl using GNUTLS. */
 /* $ReOpenLDAP$ */
-/* Copyright (c) 2015,2016 Leonid Yuriev <leo@yuriev.ru>.
- * Copyright (c) 2015,2016 Peter-Service R&D LLC <http://billing.ru/>.
+/* Copyright 1990-2016 ReOpenLDAP AUTHORS: please see AUTHORS file.
+ * All rights reserved.
  *
  * This file is part of ReOpenLDAP.
- *
- * ReOpenLDAP is free software; you can redistribute it and/or modify it under
- * the terms of the GNU Affero General Public License as published by
- * the Free Software Foundation; either version 3 of the License, or
- * (at your option) any later version.
- *
- * ReOpenLDAP is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- *
- * ---
- *
- * Copyright 2008-2014 The OpenLDAP Foundation.
- * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted only as authorized by the OpenLDAP
@@ -38,7 +19,7 @@
 
 #include "reldap.h"
 
-#ifdef HAVE_GNUTLS
+#if RELDAP_TLS == RELDAP_TLS_GNUTLS
 
 #include "ldap_dirs.h"
 
@@ -53,14 +34,20 @@
 #include <ac/unistd.h>
 #include <ac/param.h>
 #include <ac/dirent.h>
+#include <ac/localize.h>
 #include <sys/stat.h>
 #include <fcntl.h>
 
 #include "ldap-int.h"
 #include "ldap-tls.h"
 
-#include <gnutls/gnutls.h>
-#include <gnutls/x509.h>
+#ifdef HAVE_GNUTLS_GNUTLS_H
+#	include <gnutls/gnutls.h>
+#	include <gnutls/x509.h>
+#else
+#	include <gnutls.h>
+#	include <x509.h>
+#endif
 
 typedef struct tlsg_ctx {
 	gnutls_certificate_credentials_t cred;
@@ -802,7 +789,7 @@ tlsg_sb_setup( Sockbuf_IO_Desc *sbiod, void *arg )
 		return -1;
 	}
 
-	gnutls_transport_set_ptr( session->session, (gnutls_transport_ptr)p );
+	gnutls_transport_set_ptr( session->session, (gnutls_transport_ptr_t) p );
 	gnutls_transport_set_pull_function( session->session, tlsg_recv );
 	gnutls_transport_set_push_function( session->session, tlsg_send );
 	p->session = session;
@@ -1005,4 +992,4 @@ tls_impl ldap_int_tls_impl = {
 	0
 };
 
-#endif /* HAVE_GNUTLS */
+#endif /* RELDAP_TLS == RELDAP_TLS_GNUTLS */

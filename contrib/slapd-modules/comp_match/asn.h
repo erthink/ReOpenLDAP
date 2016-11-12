@@ -1,13 +1,23 @@
-/* Copyright 2004 IBM Corporation
+/* $ReOpenLDAP$ */
+/* Copyright 1992-2016 ReOpenLDAP AUTHORS: please see AUTHORS file.
  * All rights reserved.
- * Redisribution and use in source and binary forms, with or without
- * modification, are permitted only as  authorizd by the OpenLADP
+ *
+ * This file is part of ReOpenLDAP.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted only as authorized by the OpenLDAP
  * Public License.
+ *
+ * A copy of this license is available in the file LICENSE in the
+ * top-level directory of the distribution or, alternatively, at
+ * <http://www.OpenLDAP.org/license.html>.
  */
+
 /* ACKNOWLEDGEMENTS
  * This work originally developed by Sang Seok Lim
  * 2004/06/18	03:20:00	slim@OpenLDAP.org
  */
+
 #ifndef _H_ASN_MODULE
 #define _H_ASN_MODULE
 

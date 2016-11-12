@@ -1,26 +1,8 @@
 /* $ReOpenLDAP$ */
-/* Copyright (c) 2015,2016 Leonid Yuriev <leo@yuriev.ru>.
- * Copyright (c) 2015,2016 Peter-Service R&D LLC <http://billing.ru/>.
+/* Copyright 1992-2016 ReOpenLDAP AUTHORS: please see AUTHORS file.
+ * All rights reserved.
  *
  * This file is part of ReOpenLDAP.
- *
- * ReOpenLDAP is free software; you can redistribute it and/or modify it under
- * the terms of the GNU Affero General Public License as published by
- * the Free Software Foundation; either version 3 of the License, or
- * (at your option) any later version.
- *
- * ReOpenLDAP is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- *
- * ---
- *
- * Copyright 1998-2014 The OpenLDAP Foundation.
- * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted only as authorized by the OpenLDAP
@@ -52,9 +34,8 @@
 #include <ac/unistd.h>
 
 #if defined(SLAPD_LMHASH)
-#if defined(HAVE_OPENSSL)
+#if RELDAP_TLS == RELDAP_TLS_OPENSSL
 #	include <openssl/des.h>
-
 
 typedef des_cblock des_key;
 typedef des_cblock des_data_block;
@@ -62,7 +43,7 @@ typedef des_key_schedule des_context;
 #define des_failed(encrypted) 0
 #define des_finish(key, schedule)
 
-#elif defined(HAVE_MOZNSS)
+#elif RELDAP_TLS == RELDAP_TLS_MOZNSS
 /*
   hack hack hack
   We need to define this here so that nspr/obsolete/protypes.h will not be included
@@ -70,13 +51,21 @@ typedef des_key_schedule des_context;
   one in lutil_sha1.h to blow up
 */
 #define PROTYPES_H 1
+
+#ifdef HAVE_NSS3_NSS_H
+#	include <nss3/pk11pub.h>
+#else
 #	include <nss/pk11pub.h>
+#endif
+
 typedef PK11SymKey *des_key;
 typedef unsigned char des_data_block[8];
 typedef PK11Context *des_context[1];
 #define DES_ENCRYPT CKA_ENCRYPT
 
-#endif
+#else
+#	error Unsupported crypto backend.
+#endif /* RELDAP_TLS */
 
 #endif /* SLAPD_LMHASH */
 
@@ -676,7 +665,7 @@ static int chk_md5(
 
 #ifdef SLAPD_LMHASH
 
-#if defined(HAVE_OPENSSL)
+#if RELDAP_TLS == RELDAP_TLS_OPENSSL
 
 /*
  * abstract away setting the parity.
@@ -688,8 +677,7 @@ des_set_key_and_parity( des_key *key, unsigned char *keyData)
     des_set_odd_parity( key );
 }
 
-
-#elif defined(HAVE_MOZNSS)
+#elif RELDAP_TLS == RELDAP_TLS_MOZNSS
 
 /*
  * implement MozNSS wrappers for the openSSL calls
@@ -1278,4 +1266,3 @@ static int hash_clear(
 	return LUTIL_PASSWD_OK;
 }
 #endif
-

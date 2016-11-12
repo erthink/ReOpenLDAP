@@ -1,44 +1,16 @@
 /* $ReOpenLDAP$ */
-/* Copyright (c) 2015,2016 Leonid Yuriev <leo@yuriev.ru>.
- * Copyright (c) 2015,2016 Peter-Service R&D LLC <http://billing.ru/>.
+/* Copyright 1992-2016 ReOpenLDAP AUTHORS: please see AUTHORS file.
+ * All rights reserved.
  *
  * This file is part of ReOpenLDAP.
- *
- * ReOpenLDAP is free software; you can redistribute it and/or modify it under
- * the terms of the GNU Affero General Public License as published by
- * the Free Software Foundation; either version 3 of the License, or
- * (at your option) any later version.
- *
- * ReOpenLDAP is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- *
- * ---
- *
- * Copyright 1998-2014 The OpenLDAP Foundation.
- * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted only as authorized by the OpenLDAP
  * Public License.
  *
- * A copy of this license is available in file LICENSE in the
+ * A copy of this license is available in the file LICENSE in the
  * top-level directory of the distribution or, alternatively, at
  * <http://www.OpenLDAP.org/license.html>.
- */
-/* Portions Copyright (c) 1990 Regents of the University of Michigan.
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms are permitted
- * provided that this notice is preserved and that due credit is given
- * to the University of Michigan at Ann Arbor. The name of the University
- * may not be used to endorse or promote products derived from this
- * software without specific prior written permission. This software
- * is provided ``as is'' without express or implied warranty.
  */
 
 #ifndef LDAP_LOG_H
@@ -57,34 +29,6 @@ LDAP_BEGIN_DECL
  * debugging levels begin with LDAP_LEVEL_ENTRY
  *
  */
-
-/*
- * The "OLD_DEBUG" means that all logging occurs at LOG_DEBUG
- */
-
-#ifdef OLD_DEBUG
-/* original behavior: all logging occurs at the same severity level */
-#if defined(LDAP_DEBUG) && defined(LDAP_SYSLOG)
-#	define LDAP_LEVEL_EMERG	slap_syslog_severity
-#	define LDAP_LEVEL_ALERT	slap_syslog_severity
-#	define LDAP_LEVEL_CRIT		slap_syslog_severity
-#	define LDAP_LEVEL_ERR		slap_syslog_severity
-#	define LDAP_LEVEL_WARNING	slap_syslog_severity
-#	define LDAP_LEVEL_NOTICE	slap_syslog_severity
-#	define LDAP_LEVEL_INFO		slap_syslog_severity
-#	define LDAP_LEVEL_DEBUG	slap_syslog_severity
-#else /* !LDAP_DEBUG || !LDAP_SYSLOG */
-#	define LDAP_LEVEL_EMERG	(7)
-#	define LDAP_LEVEL_ALERT	(7)
-#	define LDAP_LEVEL_CRIT		(7)
-#	define LDAP_LEVEL_ERR		(7)
-#	define LDAP_LEVEL_WARNING	(7)
-#	define LDAP_LEVEL_NOTICE	(7)
-#	define LDAP_LEVEL_INFO		(7)
-#	define LDAP_LEVEL_DEBUG	(7)
-#endif /* !LDAP_DEBUG || !LDAP_SYSLOG */
-
-#else /* ! OLD_DEBUG */
 
 /* map syslog onto LDAP severity levels */
 #ifdef LOG_DEBUG
@@ -106,7 +50,6 @@ LDAP_BEGIN_DECL
 #	define LDAP_LEVEL_INFO		(6)
 #	define LDAP_LEVEL_DEBUG	(7)
 #endif /* ! LOG_DEBUG */
-#endif /* ! OLD_DEBUG */
 
 #if 0 /* (yet) unused */
 #	define LDAP_LEVEL_ENTRY	(0x08)	/* log function entry points */

@@ -1,27 +1,8 @@
-/* ad.c - routines for dealing with attribute descriptions */
 /* $ReOpenLDAP$ */
-/* Copyright (c) 2015,2016 Leonid Yuriev <leo@yuriev.ru>.
- * Copyright (c) 2015,2016 Peter-Service R&D LLC <http://billing.ru/>.
+/* Copyright 1990-2016 ReOpenLDAP AUTHORS: please see AUTHORS file.
+ * All rights reserved.
  *
  * This file is part of ReOpenLDAP.
- *
- * ReOpenLDAP is free software; you can redistribute it and/or modify it under
- * the terms of the GNU Affero General Public License as published by
- * the Free Software Foundation; either version 3 of the License, or
- * (at your option) any later version.
- *
- * ReOpenLDAP is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- *
- * ---
- *
- * Copyright 1998-2014 The OpenLDAP Foundation.
- * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted only as authorized by the OpenLDAP
@@ -31,6 +12,8 @@
  * top-level directory of the distribution or, alternatively, at
  * <http://www.OpenLDAP.org/license.html>.
  */
+
+/* ad.c - routines for dealing with attribute descriptions */
 
 #include "reldap.h"
 
@@ -179,7 +162,6 @@ int slap_bv2ad(
 	AttributeDescription **ad,
 	const char **text )
 {
-	int rtn = LDAP_UNDEFINED_TYPE;
 	AttributeDescription desc, *d2;
 	char *name, *options, *optn;
 	char *opt, *next;
@@ -197,13 +179,13 @@ int slap_bv2ad(
 
 	if( bv == NULL || BER_BVISNULL( bv ) || BER_BVISEMPTY( bv ) ) {
 		*text = "empty AttributeDescription";
-		return rtn;
+		return LDAP_INVALID_SYNTAX;
 	}
 
 	/* make sure description is IA5 */
 	if( ad_keystring( bv ) ) {
 		*text = "AttributeDescription contains inappropriate characters";
-		return rtn;
+		return LDAP_INVALID_SYNTAX;
 	}
 
 	/* find valid base attribute type; parse in place */
@@ -221,12 +203,12 @@ int slap_bv2ad(
 	desc.ad_type = at_bvfind( &desc.ad_cname );
 	if( desc.ad_type == NULL ) {
 		*text = "attribute type undefined";
-		return rtn;
+		return LDAP_UNDEFINED_TYPE;
 	}
 
 	if( is_at_operational( desc.ad_type ) && options != NULL ) {
 		*text = "operational attribute with options undefined";
-		return rtn;
+		return LDAP_INVALID_SYNTAX;
 	}
 
 	/*
@@ -243,7 +225,7 @@ int slap_bv2ad(
 
 		if( optlen == 0 ) {
 			*text = "zero length option is invalid";
-			return rtn;
+			return LDAP_INVALID_SYNTAX;
 
 		} else if ( optlen == STRLENOF("binary") &&
 			strncasecmp( opt, "binary", STRLENOF("binary") ) == 0 )
@@ -251,13 +233,13 @@ int slap_bv2ad(
 			/* binary option */
 			if( slap_ad_is_binary( &desc ) ) {
 				*text = "option \"binary\" specified multiple times";
-				return rtn;
+				return LDAP_INVALID_SYNTAX;
 			}
 
 			if( !slap_syntax_is_binary( desc.ad_type->sat_syntax )) {
 				/* not stored in binary, disallow option */
 				*text = "option \"binary\" not supported with type";
-				return rtn;
+				return LDAP_UNWILLING_TO_PERFORM;
 			}
 
 			desc.ad_flags |= SLAP_DESC_BINARY;
@@ -273,7 +255,7 @@ int slap_bv2ad(
 
 			if( ntags >= MAX_TAGGING_OPTIONS ) {
 				*text = "too many tagging options";
-				return rtn;
+				return LDAP_INVALID_SYNTAX;
 			}
 
 			/*
@@ -316,7 +298,7 @@ done:;
 
 		} else {
 			*text = "unrecognized option";
-			return rtn;
+			return LDAP_INVALID_SYNTAX;
 		}
 	}
 
@@ -325,7 +307,7 @@ done:;
 
 		if( tagslen > MAX_TAGS_LEN ) {
 			*text = "tagging options too long";
-			return rtn;
+			return LDAP_INVALID_SYNTAX;
 		}
 
 		desc.ad_tags.bv_val = tagbuf;
@@ -764,13 +746,13 @@ int slap_bv2undef_ad(
 
 	if( bv == NULL || bv->bv_len == 0 ) {
 		*text = "empty AttributeDescription";
-		return LDAP_UNDEFINED_TYPE;
+		return LDAP_INVALID_SYNTAX;
 	}
 
 	/* make sure description is IA5 */
 	if( ad_keystring( bv ) ) {
 		*text = "AttributeDescription contains inappropriate characters";
-		return LDAP_UNDEFINED_TYPE;
+		return LDAP_INVALID_SYNTAX;
 	}
 
 	/* use the appropriate type */
