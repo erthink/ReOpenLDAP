@@ -116,26 +116,29 @@ target_triplet = @target@
 @BUILD_MEMBEROF_TRUE@@MEMBEROF_DYNAMIC_FALSE@am__append_19 = memberof.c
 @BUILD_PPOLICY_TRUE@@PPOLICY_DYNAMIC_TRUE@am__append_20 = ppolicy.la
 @BUILD_PPOLICY_TRUE@@PPOLICY_DYNAMIC_FALSE@am__append_21 = ppolicy.c
-@BUILD_PCACHE_TRUE@@PCACHE_DYNAMIC_TRUE@am__append_22 = pcache.la
-@BUILD_PCACHE_TRUE@@PCACHE_DYNAMIC_FALSE@am__append_23 = pcache.c
-@BUILD_REFINT_TRUE@@REFINT_DYNAMIC_TRUE@am__append_24 = refint.la
-@BUILD_REFINT_TRUE@@REFINT_DYNAMIC_FALSE@am__append_25 = refint.c
-@BUILD_RETCODE_TRUE@@RETCODE_DYNAMIC_TRUE@am__append_26 = retcode.la
-@BUILD_RETCODE_TRUE@@RETCODE_DYNAMIC_FALSE@am__append_27 = retcode.c
-@BUILD_RWM_TRUE@@RWM_DYNAMIC_TRUE@am__append_28 = rwm.la
-@BUILD_RWM_TRUE@@RWM_DYNAMIC_FALSE@am__append_29 = rwm_banner.c rwm.c rwmconf.c rwmdn.c rwm.h rwmmap.c
-@BUILD_SEQMOD_TRUE@@SEQMOD_DYNAMIC_TRUE@am__append_30 = seqmod.la
-@BUILD_SEQMOD_TRUE@@SEQMOD_DYNAMIC_FALSE@am__append_31 = seqmod.c
-@BUILD_SSSVLV_TRUE@@SSSVLV_DYNAMIC_TRUE@am__append_32 = sssvlv.la
-@BUILD_SSSVLV_TRUE@@SSSVLV_DYNAMIC_FALSE@am__append_33 = sssvlv.c
-@BUILD_SYNCPROV_TRUE@@SYNCPROV_DYNAMIC_TRUE@am__append_34 = syncprov.la
-@BUILD_SYNCPROV_TRUE@@SYNCPROV_DYNAMIC_FALSE@am__append_35 = syncprov.c
-@BUILD_TRANSLUCENT_TRUE@@TRANSLUCENT_DYNAMIC_TRUE@am__append_36 = translucent.la
-@BUILD_TRANSLUCENT_TRUE@@TRANSLUCENT_DYNAMIC_FALSE@am__append_37 = translucent.c
-@BUILD_UNIQUE_TRUE@@UNIQUE_DYNAMIC_TRUE@am__append_38 = unique.la
-@BUILD_UNIQUE_TRUE@@UNIQUE_DYNAMIC_FALSE@am__append_39 = unique.c
-@BUILD_VALSORT_TRUE@@VALSORT_DYNAMIC_TRUE@am__append_40 = valsort.la
-@BUILD_VALSORT_TRUE@@VALSORT_DYNAMIC_FALSE@am__append_41 = valsort.c
+@BUILD_PPOLICY_TRUE@@PPOLICY_DYNAMIC_FALSE@@SLAPD_DYNAMIC_TRUE@am__append_22 = $(LTDLINCL)
+@BUILD_PPOLICY_TRUE@@PPOLICY_DYNAMIC_FALSE@@SLAPD_DYNAMIC_TRUE@am__append_23 = $(LIBLTDL)
+@BUILD_PPOLICY_TRUE@@PPOLICY_DYNAMIC_FALSE@@SLAPD_DYNAMIC_TRUE@am__append_24 = $(LTDLDEPS)
+@BUILD_PCACHE_TRUE@@PCACHE_DYNAMIC_TRUE@am__append_25 = pcache.la
+@BUILD_PCACHE_TRUE@@PCACHE_DYNAMIC_FALSE@am__append_26 = pcache.c
+@BUILD_REFINT_TRUE@@REFINT_DYNAMIC_TRUE@am__append_27 = refint.la
+@BUILD_REFINT_TRUE@@REFINT_DYNAMIC_FALSE@am__append_28 = refint.c
+@BUILD_RETCODE_TRUE@@RETCODE_DYNAMIC_TRUE@am__append_29 = retcode.la
+@BUILD_RETCODE_TRUE@@RETCODE_DYNAMIC_FALSE@am__append_30 = retcode.c
+@BUILD_RWM_TRUE@@RWM_DYNAMIC_TRUE@am__append_31 = rwm.la
+@BUILD_RWM_TRUE@@RWM_DYNAMIC_FALSE@am__append_32 = rwm_banner.c rwm.c rwmconf.c rwmdn.c rwm.h rwmmap.c
+@BUILD_SEQMOD_TRUE@@SEQMOD_DYNAMIC_TRUE@am__append_33 = seqmod.la
+@BUILD_SEQMOD_TRUE@@SEQMOD_DYNAMIC_FALSE@am__append_34 = seqmod.c
+@BUILD_SSSVLV_TRUE@@SSSVLV_DYNAMIC_TRUE@am__append_35 = sssvlv.la
+@BUILD_SSSVLV_TRUE@@SSSVLV_DYNAMIC_FALSE@am__append_36 = sssvlv.c
+@BUILD_SYNCPROV_TRUE@@SYNCPROV_DYNAMIC_TRUE@am__append_37 = syncprov.la
+@BUILD_SYNCPROV_TRUE@@SYNCPROV_DYNAMIC_FALSE@am__append_38 = syncprov.c
+@BUILD_TRANSLUCENT_TRUE@@TRANSLUCENT_DYNAMIC_TRUE@am__append_39 = translucent.la
+@BUILD_TRANSLUCENT_TRUE@@TRANSLUCENT_DYNAMIC_FALSE@am__append_40 = translucent.c
+@BUILD_UNIQUE_TRUE@@UNIQUE_DYNAMIC_TRUE@am__append_41 = unique.la
+@BUILD_UNIQUE_TRUE@@UNIQUE_DYNAMIC_FALSE@am__append_42 = unique.c
+@BUILD_VALSORT_TRUE@@VALSORT_DYNAMIC_TRUE@am__append_43 = valsort.la
+@BUILD_VALSORT_TRUE@@VALSORT_DYNAMIC_FALSE@am__append_44 = valsort.c
 subdir = servers/slapd/overlays
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/build/m4/ax_pthread.m4 \
@@ -280,43 +283,39 @@ dynlist_la_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) \
 	$(dynlist_la_LDFLAGS) $(LDFLAGS) -o $@
 @BUILD_DYNLIST_TRUE@@DYNLIST_DYNAMIC_TRUE@am_dynlist_la_rpath =  \
 @BUILD_DYNLIST_TRUE@@DYNLIST_DYNAMIC_TRUE@	-rpath $(pkglibdir)
-liboverlays_builtin_la_LIBADD =
+am__DEPENDENCIES_1 =
+@BUILD_PPOLICY_TRUE@@PPOLICY_DYNAMIC_FALSE@@SLAPD_DYNAMIC_TRUE@am__DEPENDENCIES_2 = $(am__DEPENDENCIES_1)
 am__liboverlays_builtin_la_SOURCES_DIST = overlays.c accesslog.c \
 	auditlog.c collect.c constraint.c dds.c deref.c dyngroup.c \
 	dynlist.c memberof.c ppolicy.c pcache.c refint.c retcode.c \
 	rwm_banner.c rwm.c rwmconf.c rwmdn.c rwm.h rwmmap.c seqmod.c \
 	sssvlv.c syncprov.c translucent.c unique.c valsort.c
-@ACCESSLOG_DYNAMIC_FALSE@@BUILD_ACCESSLOG_TRUE@am__objects_1 =  \
-@ACCESSLOG_DYNAMIC_FALSE@@BUILD_ACCESSLOG_TRUE@	accesslog.lo
-@AUDITLOG_DYNAMIC_FALSE@@BUILD_AUDITLOG_TRUE@am__objects_2 =  \
-@AUDITLOG_DYNAMIC_FALSE@@BUILD_AUDITLOG_TRUE@	auditlog.lo
-@BUILD_COLLECT_TRUE@@COLLECT_DYNAMIC_FALSE@am__objects_3 = collect.lo
-@BUILD_CONSTRAINT_TRUE@@CONSTRAINT_DYNAMIC_FALSE@am__objects_4 = constraint.lo
-@BUILD_DDS_TRUE@@DDS_DYNAMIC_FALSE@am__objects_5 = dds.lo
-@BUILD_DEREF_TRUE@@DEREF_DYNAMIC_FALSE@am__objects_6 = deref.lo
-@BUILD_DYNGROUP_TRUE@@DYNGROUP_DYNAMIC_FALSE@am__objects_7 =  \
-@BUILD_DYNGROUP_TRUE@@DYNGROUP_DYNAMIC_FALSE@	dyngroup.lo
-@BUILD_DYNLIST_TRUE@@DYNLIST_DYNAMIC_FALSE@am__objects_8 = dynlist.lo
-@BUILD_MEMBEROF_TRUE@@MEMBEROF_DYNAMIC_FALSE@am__objects_9 =  \
-@BUILD_MEMBEROF_TRUE@@MEMBEROF_DYNAMIC_FALSE@	memberof.lo
-@BUILD_PPOLICY_TRUE@@PPOLICY_DYNAMIC_FALSE@am__objects_10 =  \
-@BUILD_PPOLICY_TRUE@@PPOLICY_DYNAMIC_FALSE@	ppolicy.lo
-@BUILD_PCACHE_TRUE@@PCACHE_DYNAMIC_FALSE@am__objects_11 = pcache.lo
-@BUILD_REFINT_TRUE@@REFINT_DYNAMIC_FALSE@am__objects_12 = refint.lo
-@BUILD_RETCODE_TRUE@@RETCODE_DYNAMIC_FALSE@am__objects_13 =  \
-@BUILD_RETCODE_TRUE@@RETCODE_DYNAMIC_FALSE@	retcode.lo
-@BUILD_RWM_TRUE@@RWM_DYNAMIC_FALSE@am__objects_14 = rwm_banner.lo \
-@BUILD_RWM_TRUE@@RWM_DYNAMIC_FALSE@	rwm.lo rwmconf.lo rwmdn.lo \
-@BUILD_RWM_TRUE@@RWM_DYNAMIC_FALSE@	rwmmap.lo
-@BUILD_SEQMOD_TRUE@@SEQMOD_DYNAMIC_FALSE@am__objects_15 = seqmod.lo
-@BUILD_SSSVLV_TRUE@@SSSVLV_DYNAMIC_FALSE@am__objects_16 = sssvlv.lo
-@BUILD_SYNCPROV_TRUE@@SYNCPROV_DYNAMIC_FALSE@am__objects_17 =  \
-@BUILD_SYNCPROV_TRUE@@SYNCPROV_DYNAMIC_FALSE@	syncprov.lo
-@BUILD_TRANSLUCENT_TRUE@@TRANSLUCENT_DYNAMIC_FALSE@am__objects_18 = translucent.lo
-@BUILD_UNIQUE_TRUE@@UNIQUE_DYNAMIC_FALSE@am__objects_19 = unique.lo
-@BUILD_VALSORT_TRUE@@VALSORT_DYNAMIC_FALSE@am__objects_20 =  \
-@BUILD_VALSORT_TRUE@@VALSORT_DYNAMIC_FALSE@	valsort.lo
-am_liboverlays_builtin_la_OBJECTS = overlays.lo $(am__objects_1) \
+@ACCESSLOG_DYNAMIC_FALSE@@BUILD_ACCESSLOG_TRUE@am__objects_1 = liboverlays_builtin_la-accesslog.lo
+@AUDITLOG_DYNAMIC_FALSE@@BUILD_AUDITLOG_TRUE@am__objects_2 = liboverlays_builtin_la-auditlog.lo
+@BUILD_COLLECT_TRUE@@COLLECT_DYNAMIC_FALSE@am__objects_3 = liboverlays_builtin_la-collect.lo
+@BUILD_CONSTRAINT_TRUE@@CONSTRAINT_DYNAMIC_FALSE@am__objects_4 = liboverlays_builtin_la-constraint.lo
+@BUILD_DDS_TRUE@@DDS_DYNAMIC_FALSE@am__objects_5 = liboverlays_builtin_la-dds.lo
+@BUILD_DEREF_TRUE@@DEREF_DYNAMIC_FALSE@am__objects_6 = liboverlays_builtin_la-deref.lo
+@BUILD_DYNGROUP_TRUE@@DYNGROUP_DYNAMIC_FALSE@am__objects_7 = liboverlays_builtin_la-dyngroup.lo
+@BUILD_DYNLIST_TRUE@@DYNLIST_DYNAMIC_FALSE@am__objects_8 = liboverlays_builtin_la-dynlist.lo
+@BUILD_MEMBEROF_TRUE@@MEMBEROF_DYNAMIC_FALSE@am__objects_9 = liboverlays_builtin_la-memberof.lo
+@BUILD_PPOLICY_TRUE@@PPOLICY_DYNAMIC_FALSE@am__objects_10 = liboverlays_builtin_la-ppolicy.lo
+@BUILD_PCACHE_TRUE@@PCACHE_DYNAMIC_FALSE@am__objects_11 = liboverlays_builtin_la-pcache.lo
+@BUILD_REFINT_TRUE@@REFINT_DYNAMIC_FALSE@am__objects_12 = liboverlays_builtin_la-refint.lo
+@BUILD_RETCODE_TRUE@@RETCODE_DYNAMIC_FALSE@am__objects_13 = liboverlays_builtin_la-retcode.lo
+@BUILD_RWM_TRUE@@RWM_DYNAMIC_FALSE@am__objects_14 = liboverlays_builtin_la-rwm_banner.lo \
+@BUILD_RWM_TRUE@@RWM_DYNAMIC_FALSE@	liboverlays_builtin_la-rwm.lo \
+@BUILD_RWM_TRUE@@RWM_DYNAMIC_FALSE@	liboverlays_builtin_la-rwmconf.lo \
+@BUILD_RWM_TRUE@@RWM_DYNAMIC_FALSE@	liboverlays_builtin_la-rwmdn.lo \
+@BUILD_RWM_TRUE@@RWM_DYNAMIC_FALSE@	liboverlays_builtin_la-rwmmap.lo
+@BUILD_SEQMOD_TRUE@@SEQMOD_DYNAMIC_FALSE@am__objects_15 = liboverlays_builtin_la-seqmod.lo
+@BUILD_SSSVLV_TRUE@@SSSVLV_DYNAMIC_FALSE@am__objects_16 = liboverlays_builtin_la-sssvlv.lo
+@BUILD_SYNCPROV_TRUE@@SYNCPROV_DYNAMIC_FALSE@am__objects_17 = liboverlays_builtin_la-syncprov.lo
+@BUILD_TRANSLUCENT_TRUE@@TRANSLUCENT_DYNAMIC_FALSE@am__objects_18 = liboverlays_builtin_la-translucent.lo
+@BUILD_UNIQUE_TRUE@@UNIQUE_DYNAMIC_FALSE@am__objects_19 = liboverlays_builtin_la-unique.lo
+@BUILD_VALSORT_TRUE@@VALSORT_DYNAMIC_FALSE@am__objects_20 = liboverlays_builtin_la-valsort.lo
+am_liboverlays_builtin_la_OBJECTS =  \
+	liboverlays_builtin_la-overlays.lo $(am__objects_1) \
 	$(am__objects_2) $(am__objects_3) $(am__objects_4) \
 	$(am__objects_5) $(am__objects_6) $(am__objects_7) \
 	$(am__objects_8) $(am__objects_9) $(am__objects_10) \
@@ -348,11 +347,9 @@ pcache_la_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) \
 	$(pcache_la_LDFLAGS) $(LDFLAGS) -o $@
 @BUILD_PCACHE_TRUE@@PCACHE_DYNAMIC_TRUE@am_pcache_la_rpath = -rpath \
 @BUILD_PCACHE_TRUE@@PCACHE_DYNAMIC_TRUE@	$(pkglibdir)
-ppolicy_la_LIBADD =
 am__ppolicy_la_SOURCES_DIST = ppolicy.c ppolicy_banner.c
-@BUILD_PPOLICY_TRUE@@PPOLICY_DYNAMIC_TRUE@am_ppolicy_la_OBJECTS =  \
-@BUILD_PPOLICY_TRUE@@PPOLICY_DYNAMIC_TRUE@	ppolicy.lo \
-@BUILD_PPOLICY_TRUE@@PPOLICY_DYNAMIC_TRUE@	ppolicy_banner.lo
+@BUILD_PPOLICY_TRUE@@PPOLICY_DYNAMIC_TRUE@am_ppolicy_la_OBJECTS = ppolicy_la-ppolicy.lo \
+@BUILD_PPOLICY_TRUE@@PPOLICY_DYNAMIC_TRUE@	ppolicy_la-ppolicy_banner.lo
 ppolicy_la_OBJECTS = $(am_ppolicy_la_OBJECTS)
 ppolicy_la_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) \
 	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) \
@@ -782,10 +779,10 @@ noinst_LTLIBRARIES = liboverlays_builtin.la
 pkglib_LTLIBRARIES = $(am__append_2) $(am__append_4) $(am__append_6) \
 	$(am__append_8) $(am__append_10) $(am__append_12) \
 	$(am__append_14) $(am__append_16) $(am__append_18) \
-	$(am__append_20) $(am__append_22) $(am__append_24) \
-	$(am__append_26) $(am__append_28) $(am__append_30) \
-	$(am__append_32) $(am__append_34) $(am__append_36) \
-	$(am__append_38) $(am__append_40)
+	$(am__append_20) $(am__append_25) $(am__append_27) \
+	$(am__append_29) $(am__append_31) $(am__append_33) \
+	$(am__append_35) $(am__append_37) $(am__append_39) \
+	$(am__append_41) $(am__append_43)
 BUILT_SOURCES = $(am__append_1)
 EXTRA_DIST = README
 AM_CPPFLAGS = -DSLAPD_IMPORT -I$(srcdir)/.. -I$(top_srcdir)/include
@@ -793,10 +790,13 @@ liboverlays_builtin_la_SOURCES = overlays.c $(am__append_3) \
 	$(am__append_5) $(am__append_7) $(am__append_9) \
 	$(am__append_11) $(am__append_13) $(am__append_15) \
 	$(am__append_17) $(am__append_19) $(am__append_21) \
-	$(am__append_23) $(am__append_25) $(am__append_27) \
-	$(am__append_29) $(am__append_31) $(am__append_33) \
-	$(am__append_35) $(am__append_37) $(am__append_39) \
-	$(am__append_41)
+	$(am__append_26) $(am__append_28) $(am__append_30) \
+	$(am__append_32) $(am__append_34) $(am__append_36) \
+	$(am__append_38) $(am__append_40) $(am__append_42) \
+	$(am__append_44)
+liboverlays_builtin_la_CPPFLAGS = $(AM_CPPFLAGS) $(am__append_22)
+liboverlays_builtin_la_LIBADD = $(am__append_23)
+liboverlays_builtin_la_DEPENDENCIES = $(am__append_24)
 @ACCESSLOG_DYNAMIC_TRUE@@BUILD_ACCESSLOG_TRUE@accesslog_la_LDFLAGS = -module -export-dynamic \
 @ACCESSLOG_DYNAMIC_TRUE@@BUILD_ACCESSLOG_TRUE@	-release $(API_LIB_RELEASE) -version-info $(API_LIB_VERSION)
 
@@ -837,6 +837,9 @@ liboverlays_builtin_la_SOURCES = overlays.c $(am__append_3) \
 @BUILD_PPOLICY_TRUE@@PPOLICY_DYNAMIC_TRUE@	-release $(API_LIB_RELEASE) -version-info $(API_LIB_VERSION)
 
 @BUILD_PPOLICY_TRUE@@PPOLICY_DYNAMIC_TRUE@ppolicy_la_SOURCES = ppolicy.c ppolicy_banner.c
+@BUILD_PPOLICY_TRUE@@PPOLICY_DYNAMIC_TRUE@ppolicy_la_CPPFLAGS = $(LTDLINCL) $(AM_CPPFLAGS)
+@BUILD_PPOLICY_TRUE@@PPOLICY_DYNAMIC_TRUE@ppolicy_la_LIBADD = $(LIBLTDL)
+@BUILD_PPOLICY_TRUE@@PPOLICY_DYNAMIC_TRUE@ppolicy_la_DEPENDENCIES = $(LTDLDEPS)
 @BUILD_PCACHE_TRUE@@PCACHE_DYNAMIC_TRUE@pcache_la_LDFLAGS = -module -export-dynamic \
 @BUILD_PCACHE_TRUE@@PCACHE_DYNAMIC_TRUE@	-release $(API_LIB_RELEASE) -version-info $(API_LIB_VERSION) \
 @BUILD_PCACHE_TRUE@@PCACHE_DYNAMIC_TRUE@	-weak proxycache.la
@@ -1044,13 +1047,37 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/dyngroup_banner.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/dynlist.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/dynlist_banner.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/liboverlays_builtin_la-accesslog.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/liboverlays_builtin_la-auditlog.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/liboverlays_builtin_la-collect.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/liboverlays_builtin_la-constraint.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/liboverlays_builtin_la-dds.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/liboverlays_builtin_la-deref.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/liboverlays_builtin_la-dyngroup.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/liboverlays_builtin_la-dynlist.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/liboverlays_builtin_la-memberof.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/liboverlays_builtin_la-overlays.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/liboverlays_builtin_la-pcache.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/liboverlays_builtin_la-ppolicy.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/liboverlays_builtin_la-refint.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/liboverlays_builtin_la-retcode.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/liboverlays_builtin_la-rwm.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/liboverlays_builtin_la-rwm_banner.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/liboverlays_builtin_la-rwmconf.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/liboverlays_builtin_la-rwmdn.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/liboverlays_builtin_la-rwmmap.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/liboverlays_builtin_la-seqmod.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/liboverlays_builtin_la-sssvlv.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/liboverlays_builtin_la-syncprov.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/liboverlays_builtin_la-translucent.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/liboverlays_builtin_la-unique.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/liboverlays_builtin_la-valsort.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/memberof.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/memberof_banner.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/overlays.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/pcache.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/pcache_banner.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ppolicy.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ppolicy_banner.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ppolicy_la-ppolicy.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ppolicy_la-ppolicy_banner.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/refint.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/refint_banner.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/retcode.Plo@am__quote@
@@ -1096,6 +1123,195 @@ distclean-compile:
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='$<' object='$@' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LTCOMPILE) -c -o $@ $<
+
+liboverlays_builtin_la-overlays.lo: overlays.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(liboverlays_builtin_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT liboverlays_builtin_la-overlays.lo -MD -MP -MF $(DEPDIR)/liboverlays_builtin_la-overlays.Tpo -c -o liboverlays_builtin_la-overlays.lo `test -f 'overlays.c' || echo '$(srcdir)/'`overlays.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/liboverlays_builtin_la-overlays.Tpo $(DEPDIR)/liboverlays_builtin_la-overlays.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='overlays.c' object='liboverlays_builtin_la-overlays.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(liboverlays_builtin_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o liboverlays_builtin_la-overlays.lo `test -f 'overlays.c' || echo '$(srcdir)/'`overlays.c
+
+liboverlays_builtin_la-accesslog.lo: accesslog.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(liboverlays_builtin_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT liboverlays_builtin_la-accesslog.lo -MD -MP -MF $(DEPDIR)/liboverlays_builtin_la-accesslog.Tpo -c -o liboverlays_builtin_la-accesslog.lo `test -f 'accesslog.c' || echo '$(srcdir)/'`accesslog.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/liboverlays_builtin_la-accesslog.Tpo $(DEPDIR)/liboverlays_builtin_la-accesslog.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='accesslog.c' object='liboverlays_builtin_la-accesslog.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(liboverlays_builtin_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o liboverlays_builtin_la-accesslog.lo `test -f 'accesslog.c' || echo '$(srcdir)/'`accesslog.c
+
+liboverlays_builtin_la-auditlog.lo: auditlog.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(liboverlays_builtin_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT liboverlays_builtin_la-auditlog.lo -MD -MP -MF $(DEPDIR)/liboverlays_builtin_la-auditlog.Tpo -c -o liboverlays_builtin_la-auditlog.lo `test -f 'auditlog.c' || echo '$(srcdir)/'`auditlog.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/liboverlays_builtin_la-auditlog.Tpo $(DEPDIR)/liboverlays_builtin_la-auditlog.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='auditlog.c' object='liboverlays_builtin_la-auditlog.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(liboverlays_builtin_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o liboverlays_builtin_la-auditlog.lo `test -f 'auditlog.c' || echo '$(srcdir)/'`auditlog.c
+
+liboverlays_builtin_la-collect.lo: collect.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(liboverlays_builtin_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT liboverlays_builtin_la-collect.lo -MD -MP -MF $(DEPDIR)/liboverlays_builtin_la-collect.Tpo -c -o liboverlays_builtin_la-collect.lo `test -f 'collect.c' || echo '$(srcdir)/'`collect.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/liboverlays_builtin_la-collect.Tpo $(DEPDIR)/liboverlays_builtin_la-collect.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='collect.c' object='liboverlays_builtin_la-collect.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(liboverlays_builtin_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o liboverlays_builtin_la-collect.lo `test -f 'collect.c' || echo '$(srcdir)/'`collect.c
+
+liboverlays_builtin_la-constraint.lo: constraint.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(liboverlays_builtin_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT liboverlays_builtin_la-constraint.lo -MD -MP -MF $(DEPDIR)/liboverlays_builtin_la-constraint.Tpo -c -o liboverlays_builtin_la-constraint.lo `test -f 'constraint.c' || echo '$(srcdir)/'`constraint.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/liboverlays_builtin_la-constraint.Tpo $(DEPDIR)/liboverlays_builtin_la-constraint.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='constraint.c' object='liboverlays_builtin_la-constraint.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(liboverlays_builtin_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o liboverlays_builtin_la-constraint.lo `test -f 'constraint.c' || echo '$(srcdir)/'`constraint.c
+
+liboverlays_builtin_la-dds.lo: dds.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(liboverlays_builtin_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT liboverlays_builtin_la-dds.lo -MD -MP -MF $(DEPDIR)/liboverlays_builtin_la-dds.Tpo -c -o liboverlays_builtin_la-dds.lo `test -f 'dds.c' || echo '$(srcdir)/'`dds.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/liboverlays_builtin_la-dds.Tpo $(DEPDIR)/liboverlays_builtin_la-dds.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='dds.c' object='liboverlays_builtin_la-dds.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(liboverlays_builtin_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o liboverlays_builtin_la-dds.lo `test -f 'dds.c' || echo '$(srcdir)/'`dds.c
+
+liboverlays_builtin_la-deref.lo: deref.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(liboverlays_builtin_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT liboverlays_builtin_la-deref.lo -MD -MP -MF $(DEPDIR)/liboverlays_builtin_la-deref.Tpo -c -o liboverlays_builtin_la-deref.lo `test -f 'deref.c' || echo '$(srcdir)/'`deref.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/liboverlays_builtin_la-deref.Tpo $(DEPDIR)/liboverlays_builtin_la-deref.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='deref.c' object='liboverlays_builtin_la-deref.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(liboverlays_builtin_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o liboverlays_builtin_la-deref.lo `test -f 'deref.c' || echo '$(srcdir)/'`deref.c
+
+liboverlays_builtin_la-dyngroup.lo: dyngroup.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(liboverlays_builtin_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT liboverlays_builtin_la-dyngroup.lo -MD -MP -MF $(DEPDIR)/liboverlays_builtin_la-dyngroup.Tpo -c -o liboverlays_builtin_la-dyngroup.lo `test -f 'dyngroup.c' || echo '$(srcdir)/'`dyngroup.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/liboverlays_builtin_la-dyngroup.Tpo $(DEPDIR)/liboverlays_builtin_la-dyngroup.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='dyngroup.c' object='liboverlays_builtin_la-dyngroup.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(liboverlays_builtin_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o liboverlays_builtin_la-dyngroup.lo `test -f 'dyngroup.c' || echo '$(srcdir)/'`dyngroup.c
+
+liboverlays_builtin_la-dynlist.lo: dynlist.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(liboverlays_builtin_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT liboverlays_builtin_la-dynlist.lo -MD -MP -MF $(DEPDIR)/liboverlays_builtin_la-dynlist.Tpo -c -o liboverlays_builtin_la-dynlist.lo `test -f 'dynlist.c' || echo '$(srcdir)/'`dynlist.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/liboverlays_builtin_la-dynlist.Tpo $(DEPDIR)/liboverlays_builtin_la-dynlist.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='dynlist.c' object='liboverlays_builtin_la-dynlist.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(liboverlays_builtin_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o liboverlays_builtin_la-dynlist.lo `test -f 'dynlist.c' || echo '$(srcdir)/'`dynlist.c
+
+liboverlays_builtin_la-memberof.lo: memberof.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(liboverlays_builtin_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT liboverlays_builtin_la-memberof.lo -MD -MP -MF $(DEPDIR)/liboverlays_builtin_la-memberof.Tpo -c -o liboverlays_builtin_la-memberof.lo `test -f 'memberof.c' || echo '$(srcdir)/'`memberof.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/liboverlays_builtin_la-memberof.Tpo $(DEPDIR)/liboverlays_builtin_la-memberof.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='memberof.c' object='liboverlays_builtin_la-memberof.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(liboverlays_builtin_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o liboverlays_builtin_la-memberof.lo `test -f 'memberof.c' || echo '$(srcdir)/'`memberof.c
+
+liboverlays_builtin_la-ppolicy.lo: ppolicy.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(liboverlays_builtin_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT liboverlays_builtin_la-ppolicy.lo -MD -MP -MF $(DEPDIR)/liboverlays_builtin_la-ppolicy.Tpo -c -o liboverlays_builtin_la-ppolicy.lo `test -f 'ppolicy.c' || echo '$(srcdir)/'`ppolicy.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/liboverlays_builtin_la-ppolicy.Tpo $(DEPDIR)/liboverlays_builtin_la-ppolicy.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='ppolicy.c' object='liboverlays_builtin_la-ppolicy.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(liboverlays_builtin_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o liboverlays_builtin_la-ppolicy.lo `test -f 'ppolicy.c' || echo '$(srcdir)/'`ppolicy.c
+
+liboverlays_builtin_la-pcache.lo: pcache.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(liboverlays_builtin_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT liboverlays_builtin_la-pcache.lo -MD -MP -MF $(DEPDIR)/liboverlays_builtin_la-pcache.Tpo -c -o liboverlays_builtin_la-pcache.lo `test -f 'pcache.c' || echo '$(srcdir)/'`pcache.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/liboverlays_builtin_la-pcache.Tpo $(DEPDIR)/liboverlays_builtin_la-pcache.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='pcache.c' object='liboverlays_builtin_la-pcache.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(liboverlays_builtin_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o liboverlays_builtin_la-pcache.lo `test -f 'pcache.c' || echo '$(srcdir)/'`pcache.c
+
+liboverlays_builtin_la-refint.lo: refint.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(liboverlays_builtin_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT liboverlays_builtin_la-refint.lo -MD -MP -MF $(DEPDIR)/liboverlays_builtin_la-refint.Tpo -c -o liboverlays_builtin_la-refint.lo `test -f 'refint.c' || echo '$(srcdir)/'`refint.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/liboverlays_builtin_la-refint.Tpo $(DEPDIR)/liboverlays_builtin_la-refint.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='refint.c' object='liboverlays_builtin_la-refint.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(liboverlays_builtin_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o liboverlays_builtin_la-refint.lo `test -f 'refint.c' || echo '$(srcdir)/'`refint.c
+
+liboverlays_builtin_la-retcode.lo: retcode.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(liboverlays_builtin_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT liboverlays_builtin_la-retcode.lo -MD -MP -MF $(DEPDIR)/liboverlays_builtin_la-retcode.Tpo -c -o liboverlays_builtin_la-retcode.lo `test -f 'retcode.c' || echo '$(srcdir)/'`retcode.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/liboverlays_builtin_la-retcode.Tpo $(DEPDIR)/liboverlays_builtin_la-retcode.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='retcode.c' object='liboverlays_builtin_la-retcode.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(liboverlays_builtin_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o liboverlays_builtin_la-retcode.lo `test -f 'retcode.c' || echo '$(srcdir)/'`retcode.c
+
+liboverlays_builtin_la-rwm_banner.lo: rwm_banner.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(liboverlays_builtin_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT liboverlays_builtin_la-rwm_banner.lo -MD -MP -MF $(DEPDIR)/liboverlays_builtin_la-rwm_banner.Tpo -c -o liboverlays_builtin_la-rwm_banner.lo `test -f 'rwm_banner.c' || echo '$(srcdir)/'`rwm_banner.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/liboverlays_builtin_la-rwm_banner.Tpo $(DEPDIR)/liboverlays_builtin_la-rwm_banner.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='rwm_banner.c' object='liboverlays_builtin_la-rwm_banner.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(liboverlays_builtin_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o liboverlays_builtin_la-rwm_banner.lo `test -f 'rwm_banner.c' || echo '$(srcdir)/'`rwm_banner.c
+
+liboverlays_builtin_la-rwm.lo: rwm.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(liboverlays_builtin_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT liboverlays_builtin_la-rwm.lo -MD -MP -MF $(DEPDIR)/liboverlays_builtin_la-rwm.Tpo -c -o liboverlays_builtin_la-rwm.lo `test -f 'rwm.c' || echo '$(srcdir)/'`rwm.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/liboverlays_builtin_la-rwm.Tpo $(DEPDIR)/liboverlays_builtin_la-rwm.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='rwm.c' object='liboverlays_builtin_la-rwm.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(liboverlays_builtin_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o liboverlays_builtin_la-rwm.lo `test -f 'rwm.c' || echo '$(srcdir)/'`rwm.c
+
+liboverlays_builtin_la-rwmconf.lo: rwmconf.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(liboverlays_builtin_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT liboverlays_builtin_la-rwmconf.lo -MD -MP -MF $(DEPDIR)/liboverlays_builtin_la-rwmconf.Tpo -c -o liboverlays_builtin_la-rwmconf.lo `test -f 'rwmconf.c' || echo '$(srcdir)/'`rwmconf.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/liboverlays_builtin_la-rwmconf.Tpo $(DEPDIR)/liboverlays_builtin_la-rwmconf.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='rwmconf.c' object='liboverlays_builtin_la-rwmconf.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(liboverlays_builtin_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o liboverlays_builtin_la-rwmconf.lo `test -f 'rwmconf.c' || echo '$(srcdir)/'`rwmconf.c
+
+liboverlays_builtin_la-rwmdn.lo: rwmdn.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(liboverlays_builtin_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT liboverlays_builtin_la-rwmdn.lo -MD -MP -MF $(DEPDIR)/liboverlays_builtin_la-rwmdn.Tpo -c -o liboverlays_builtin_la-rwmdn.lo `test -f 'rwmdn.c' || echo '$(srcdir)/'`rwmdn.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/liboverlays_builtin_la-rwmdn.Tpo $(DEPDIR)/liboverlays_builtin_la-rwmdn.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='rwmdn.c' object='liboverlays_builtin_la-rwmdn.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(liboverlays_builtin_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o liboverlays_builtin_la-rwmdn.lo `test -f 'rwmdn.c' || echo '$(srcdir)/'`rwmdn.c
+
+liboverlays_builtin_la-rwmmap.lo: rwmmap.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(liboverlays_builtin_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT liboverlays_builtin_la-rwmmap.lo -MD -MP -MF $(DEPDIR)/liboverlays_builtin_la-rwmmap.Tpo -c -o liboverlays_builtin_la-rwmmap.lo `test -f 'rwmmap.c' || echo '$(srcdir)/'`rwmmap.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/liboverlays_builtin_la-rwmmap.Tpo $(DEPDIR)/liboverlays_builtin_la-rwmmap.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='rwmmap.c' object='liboverlays_builtin_la-rwmmap.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(liboverlays_builtin_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o liboverlays_builtin_la-rwmmap.lo `test -f 'rwmmap.c' || echo '$(srcdir)/'`rwmmap.c
+
+liboverlays_builtin_la-seqmod.lo: seqmod.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(liboverlays_builtin_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT liboverlays_builtin_la-seqmod.lo -MD -MP -MF $(DEPDIR)/liboverlays_builtin_la-seqmod.Tpo -c -o liboverlays_builtin_la-seqmod.lo `test -f 'seqmod.c' || echo '$(srcdir)/'`seqmod.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/liboverlays_builtin_la-seqmod.Tpo $(DEPDIR)/liboverlays_builtin_la-seqmod.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='seqmod.c' object='liboverlays_builtin_la-seqmod.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(liboverlays_builtin_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o liboverlays_builtin_la-seqmod.lo `test -f 'seqmod.c' || echo '$(srcdir)/'`seqmod.c
+
+liboverlays_builtin_la-sssvlv.lo: sssvlv.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(liboverlays_builtin_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT liboverlays_builtin_la-sssvlv.lo -MD -MP -MF $(DEPDIR)/liboverlays_builtin_la-sssvlv.Tpo -c -o liboverlays_builtin_la-sssvlv.lo `test -f 'sssvlv.c' || echo '$(srcdir)/'`sssvlv.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/liboverlays_builtin_la-sssvlv.Tpo $(DEPDIR)/liboverlays_builtin_la-sssvlv.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='sssvlv.c' object='liboverlays_builtin_la-sssvlv.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(liboverlays_builtin_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o liboverlays_builtin_la-sssvlv.lo `test -f 'sssvlv.c' || echo '$(srcdir)/'`sssvlv.c
+
+liboverlays_builtin_la-syncprov.lo: syncprov.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(liboverlays_builtin_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT liboverlays_builtin_la-syncprov.lo -MD -MP -MF $(DEPDIR)/liboverlays_builtin_la-syncprov.Tpo -c -o liboverlays_builtin_la-syncprov.lo `test -f 'syncprov.c' || echo '$(srcdir)/'`syncprov.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/liboverlays_builtin_la-syncprov.Tpo $(DEPDIR)/liboverlays_builtin_la-syncprov.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='syncprov.c' object='liboverlays_builtin_la-syncprov.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(liboverlays_builtin_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o liboverlays_builtin_la-syncprov.lo `test -f 'syncprov.c' || echo '$(srcdir)/'`syncprov.c
+
+liboverlays_builtin_la-translucent.lo: translucent.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(liboverlays_builtin_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT liboverlays_builtin_la-translucent.lo -MD -MP -MF $(DEPDIR)/liboverlays_builtin_la-translucent.Tpo -c -o liboverlays_builtin_la-translucent.lo `test -f 'translucent.c' || echo '$(srcdir)/'`translucent.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/liboverlays_builtin_la-translucent.Tpo $(DEPDIR)/liboverlays_builtin_la-translucent.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='translucent.c' object='liboverlays_builtin_la-translucent.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(liboverlays_builtin_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o liboverlays_builtin_la-translucent.lo `test -f 'translucent.c' || echo '$(srcdir)/'`translucent.c
+
+liboverlays_builtin_la-unique.lo: unique.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(liboverlays_builtin_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT liboverlays_builtin_la-unique.lo -MD -MP -MF $(DEPDIR)/liboverlays_builtin_la-unique.Tpo -c -o liboverlays_builtin_la-unique.lo `test -f 'unique.c' || echo '$(srcdir)/'`unique.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/liboverlays_builtin_la-unique.Tpo $(DEPDIR)/liboverlays_builtin_la-unique.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='unique.c' object='liboverlays_builtin_la-unique.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(liboverlays_builtin_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o liboverlays_builtin_la-unique.lo `test -f 'unique.c' || echo '$(srcdir)/'`unique.c
+
+liboverlays_builtin_la-valsort.lo: valsort.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(liboverlays_builtin_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT liboverlays_builtin_la-valsort.lo -MD -MP -MF $(DEPDIR)/liboverlays_builtin_la-valsort.Tpo -c -o liboverlays_builtin_la-valsort.lo `test -f 'valsort.c' || echo '$(srcdir)/'`valsort.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/liboverlays_builtin_la-valsort.Tpo $(DEPDIR)/liboverlays_builtin_la-valsort.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='valsort.c' object='liboverlays_builtin_la-valsort.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(liboverlays_builtin_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o liboverlays_builtin_la-valsort.lo `test -f 'valsort.c' || echo '$(srcdir)/'`valsort.c
+
+ppolicy_la-ppolicy.lo: ppolicy.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(ppolicy_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT ppolicy_la-ppolicy.lo -MD -MP -MF $(DEPDIR)/ppolicy_la-ppolicy.Tpo -c -o ppolicy_la-ppolicy.lo `test -f 'ppolicy.c' || echo '$(srcdir)/'`ppolicy.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/ppolicy_la-ppolicy.Tpo $(DEPDIR)/ppolicy_la-ppolicy.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='ppolicy.c' object='ppolicy_la-ppolicy.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(ppolicy_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o ppolicy_la-ppolicy.lo `test -f 'ppolicy.c' || echo '$(srcdir)/'`ppolicy.c
+
+ppolicy_la-ppolicy_banner.lo: ppolicy_banner.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(ppolicy_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT ppolicy_la-ppolicy_banner.lo -MD -MP -MF $(DEPDIR)/ppolicy_la-ppolicy_banner.Tpo -c -o ppolicy_la-ppolicy_banner.lo `test -f 'ppolicy_banner.c' || echo '$(srcdir)/'`ppolicy_banner.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/ppolicy_la-ppolicy_banner.Tpo $(DEPDIR)/ppolicy_la-ppolicy_banner.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='ppolicy_banner.c' object='ppolicy_la-ppolicy_banner.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(ppolicy_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o ppolicy_la-ppolicy_banner.lo `test -f 'ppolicy_banner.c' || echo '$(srcdir)/'`ppolicy_banner.c
 
 mostlyclean-libtool:
 	-rm -f *.lo
