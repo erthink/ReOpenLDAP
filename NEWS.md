@@ -17,6 +17,7 @@ Documentation:
 Major and Security bugs: none
 
 Minor bugs:
+ * mdbx: fix cursor tracking after mdb_cursor_del (ITS#8406).
  ! reopenldap: fix LDAPI_SOCK, adds LDAP_VARDIR.
  * mdbx: use O_CLOEXEC/FD_CLOEXEC for me_fd,env_copy as well (ITS#8505).
  * mdbx: reset cursor EOF flag in cursor_set (ITS#8489).
