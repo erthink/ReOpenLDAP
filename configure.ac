@@ -1,27 +1,7 @@
-dnl
-dnl Copyright (c) 2015,2016 Leonid Yuriev <leo@yuriev.ru>.
-dnl Copyright (c) 2015,2016 Peter-Service R&D LLC <http://billing.ru/>.
+dnl Copyright 1998-2016 ReOpenLDAP AUTHORS: please see AUTHORS file.
+dnl All rights reserved.
 dnl
 dnl This file is part of ReOpenLDAP.
-dnl
-dnl ReOpenLDAP is free software; you can redistribute it and/or modify it under
-dnl the terms of the GNU Affero General Public License as published by
-dnl the Free Software Foundation; either version 3 of the License, or
-dnl (at your option) any later version.
-dnl
-dnl ReOpenLDAP is distributed in the hope that it will be useful,
-dnl but WITHOUT ANY WARRANTY; without even the implied warranty of
-dnl MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-dnl GNU Affero General Public License for more details.
-dnl
-dnl You should have received a copy of the GNU Affero General Public License
-dnl along with this program.  If not, see <http://www.gnu.org/licenses/>.
-dnl
-dnl ---
-dnl
-dnl
-dnl Copyright 1998-2014 The OpenLDAP Foundation.
-dnl All rights reserved.
 dnl
 dnl Redistribution and use in source and binary forms, with or without
 dnl modification, are permitted only as authorized by the OpenLDAP
@@ -41,34 +21,24 @@ define([AC_LIBTOOL_LANG_F77_CONFIG], [:])dnl
 define([AC_LIBTOOL_LANG_GCJ_CONFIG], [:])dnl
 dnl ================================================================
 dnl Configure.in for ReOpenLDAP
-AC_COPYRIGHT([[Copyright (c) 2015,2016 Leonid Yuriev <leo@yuriev.ru>.
-Copyright (c) 2015,2016 Peter-Service R&D LLC <http://billing.ru/>.
+AC_COPYRIGHT([[Copyright 1992-2016 ReOpenLDAP AUTHORS: please see AUTHORS file.
+All rights reserved.
 
-This is part of ReOpenLDAP.
+This file is part of ReOpenLDAP.
 
-ReOpenLDAP is free software; you can redistribute it and/or modify it under
-the terms of the GNU Affero General Public License as published by
-the Free Software Foundation; either version 3 of the License, or
-(at your option) any later version.
+Redistribution and use in source and binary forms, with or without
+modification, are permitted only as authorized by the OpenLDAP
+Public License.
 
-ReOpenLDAP is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program.  If not, see <http://www.gnu.org/licenses/>.
-
----
-
-Copyright 1998-2014 The OpenLDAP Foundation. All rights reserved.
-Restrictions apply, see COPYRIGHT and LICENSE files.]])
+A copy of this license is available in the file LICENSE in the
+top-level directory of the distribution or, alternatively, at
+<http://www.OpenLDAP.org/license.html>.]])
 
 AC_PREREQ([2.69])dnl Required Autoconf version
 AC_REVISION([$Id: 8c9139400f1cfd3f68bc9b65828515fe85e91ee1 $])
 AC_INIT(
-	m4_esyscmd_s([build/BRANDING --title]),
-	m4_esyscmd_s([build/BRANDING --version]),
+	m4_esyscmd_s([build/BRANDING --package]),
+	m4_esyscmd_s([build/BRANDING --version-full]),
 	m4_esyscmd_s([build/BRANDING --bugs]),
 	m4_esyscmd_s([build/BRANDING --tarname]),
 	m4_esyscmd_s([build/BRANDING --url]))
@@ -208,28 +178,10 @@ dnl ----------------------------------------------------------------
 
 AH_TOP([
 /* begin of reldap_autoconf.h.pre */
-/* Copyright (c) 2015,2016 Leonid Yuriev <leo@yuriev.ru>.
- * Copyright (c) 2015,2016 Peter-Service R&D LLC <http://billing.ru/>.
+/* Copyright 1992-2016 ReOpenLDAP AUTHORS: please see AUTHORS file.
+ * All rights reserved.
  *
  * This file is part of ReOpenLDAP.
- *
- * ReOpenLDAP is free software; you can redistribute it and/or modify it under
- * the terms of the GNU Affero General Public License as published by
- * the Free Software Foundation; either version 3 of the License, or
- * (at your option) any later version.
- *
- * ReOpenLDAP is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- *
- * ---
- *
- * Copyright 1998-2014 The OpenLDAP Foundation
- * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted only as authorized by the OpenLDAP
@@ -313,6 +265,10 @@ AH_BOTTOM([
 #define RELDAP_TLS_GNUTLS	2 /* GnuTLS, --with-tls=gnutls */
 #define RELDAP_TLS_OPENSSL	3 /* OpenSSL, --with-tls=openssl */
 
+#ifndef REOPENLDAP_BUILDID_SUFFIX
+#	define REOPENLDAP_BUILDID_SUFFIX ""
+#endif
+
 #endif /* RELDAP_AUTOCONF_H */
 /* end of reldap_autoconf.h.post */])
 
@@ -345,6 +301,21 @@ esac
 ])dnl
 
 AC_SUBST(ldap_subdir)dnl
+
+REOPENLDAP_BUILDID_SUFFIX=
+AC_ARG_WITH(buildid,
+	[  --with-buildid=SUFFIX   specifies optional build-id suffix for version],
+[case "$withval" in
+	no)
+		REOPENLDAP_BUILDID_SUFFIX=""
+		;;
+	*)
+		REOPENLDAP_BUILDID_SUFFIX="$withval"
+		;;
+esac
+])dnl
+AC_DEFINE_UNQUOTED(REOPENLDAP_BUILDID_SUFFIX, "${REOPENLDAP_BUILDID_SUFFIX}", [BuildId suffix for Version])
+AC_SUBST(REOPENLDAP_BUILDID_SUFFIX)
 
 dnl ----------------------------------------------------------------
 dnl General "enable" options
@@ -431,6 +402,7 @@ case $ol_enable_hipagut in
 esac
 
 AM_CONDITIONAL([SLAPD_DEBUG], [test "$ol_enable_debug" != no])
+AM_CONDITIONAL([SLAPD_DEBUG_EXTRA], [test "$ol_enable_debug" = extra])
 AM_CONDITIONAL([SLAPD_SYSLOG], [test "$ol_enable_syslog" != no])
 AM_CONDITIONAL([LDAP_DEPRECATED], [test "$ol_enable_deprecated" != no])
 AM_CONDITIONAL([LDAP_EXPERIMENTAL], [test "$ol_enable_experimental" != no])
@@ -630,7 +602,7 @@ if test $ol_enable_contrib != no; then
 	CRACKLIB_LIBS=
 	CRACKLIB_CFLAGS=
 	CRACKLIB_DICTPATH=
-	AC_CHECK_HEADERS( crack.h )
+	AC_CHECK_HEADERS(crack.h)
 	if test $ac_cv_header_crack_h = yes; then
 		AC_CHECK_LIB(crack, FascistCheck, [have_cracklib=yes], [have_cracklib=false])
 		if test $have_cracklib = yes; then
@@ -1130,8 +1102,10 @@ AC_SUBST(OPENSSL_CFLAGS)
 AM_CONDITIONAL([OPENSSL_AVAIL], [test $openssl_found = yes])
 if test $openssl_found = yes; then
     AC_DEFINE(HAVE_OPENSSL, 1, [define if you have OpenSSL])
-    AC_CHECK_HEADERS(openssl/ssl.h)
-    AC_CHECK_HEADERS(ssl.h)
+    AC_CHECK_HEADERS([openssl/ssl.h ssl.h])
+    if test $ac_cv_header_openssl_ssl_h != yes -a $ac_cv_header_ssl_h != yes; then
+	AC_MSG_ERROR([could not locate openssl/ssl.h or ssl.h])
+    fi
 fi
 
 PKG_CHECK_MODULES(GNUTLS, [gnutls >= 2.12], gnutls_found=yes, gnutls_found=no)
@@ -1141,6 +1115,9 @@ AM_CONDITIONAL([GNUTLS_AVAIL], [test $gnutls_found = yes])
 if test $gnutls_found = yes; then
     AC_DEFINE(HAVE_GNUTLS, 1, [define if you have GnuTLS])
     AC_CHECK_HEADERS(gnutls/gnutls.h)
+    if test $ac_cv_header_gnutls_gnutls_h != yes; then
+	AC_MSG_ERROR([could not locate gnutls/gnutls.h])
+    fi
 fi
 
 PKG_CHECK_MODULES(MOZNSS, [nss nspr], [moznss_found=yes], [moznss_found=no])
@@ -1149,6 +1126,17 @@ AC_SUBST(MOZNSS_CFLAGS)
 AM_CONDITIONAL([MOZNSS_AVAIL], [test $moznss_found = yes])
 if test $moznss_found = yes; then
     AC_DEFINE(HAVE_MOZNSS, 1, [define if you have Mozill NSS])
+    save_CFLAGS=$CFLAGS
+    CFLAGS="$CFLAGS $MOZNSS_CFLAGS"
+    AC_CHECK_HEADERS([nspr/nspr.h nspr4/nspr.h])
+    if test $ac_cv_header_nspr_nspr_h != yes -a $ac_cv_header_nspr4_nspr_h != yes; then
+	AC_MSG_ERROR([could not locate nspr/nspr.h or nspr4/nspr.h])
+    fi
+    AC_CHECK_HEADERS([nss/nss.h nss3/nss.h])
+     if test $ac_cv_header_nss_nss_h != yes -a $ac_cv_header_nss3_nss_h != yes; then
+	AC_MSG_ERROR([could not locate nss/nss.h or nss3/nss.h])
+    fi
+   CFLAGS=$save_CFLAGS
 fi
 
 AM_CONDITIONAL([TLS_FALLBACK_AVAIL], [test $gnutls_found = yes -o $openssl_found = yes])
@@ -2197,8 +2185,7 @@ if test $ol_with_mp = long || test $ol_with_mp = auto ; then
 	fi
 fi
 if test $ol_with_mp = bignum || test $ol_with_mp = auto ; then
-	AC_CHECK_HEADERS(openssl/bn.h)
-	AC_CHECK_HEADERS(openssl/crypto.h)
+	AC_CHECK_HEADERS(openssl/bn.h openssl/crypto.h)
 	if test "$ac_cv_header_openssl_bn_h" = "yes" &&
 		test "$ac_cv_header_openssl_crypto_h" = "yes" &&
 		test "$ol_with_tls" = "found" ; then

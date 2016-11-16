@@ -14,8 +14,6 @@
 
 @SET_MAKE@
 
-# Makefile.in for back-mdb
-
 
 VPATH = @srcdir@
 am__is_gnu_make = { \
@@ -392,6 +390,7 @@ PTHREAD_LIBS = @PTHREAD_LIBS@
 RANLIB = @RANLIB@
 RELEASE_DATE = @RELEASE_DATE@
 RELEASE_STAMP = @RELEASE_STAMP@
+REOPENLDAP_BUILDID_SUFFIX = @REOPENLDAP_BUILDID_SUFFIX@
 SASL_LIBS = @SASL_LIBS@
 SECURITY_LIBS = @SECURITY_LIBS@
 SED = @SED@
@@ -498,8 +497,9 @@ noinst_LTLIBRARIES = libmdbx.la $(am__append_3)
 back_mdb_la_LDFLAGS = -module $(am__append_2)
 AM_CPPFLAGS = -DSLAPD_IMPORT -I$(srcdir)/.. -I$(top_srcdir)/include
 @BEHIND_CURTIAN_TRUE@BUILT_SOURCES = banner.c
+@SLAPD_DEBUG_EXTRA_FALSE@@SLAPD_DEBUG_TRUE@libmdbx_la_CFLAGS = -UNDEBUG -DMDB_DEBUG=1
+@SLAPD_DEBUG_EXTRA_TRUE@@SLAPD_DEBUG_TRUE@libmdbx_la_CFLAGS = -UNDEBUG -DMDB_DEBUG=2
 @SLAPD_DEBUG_FALSE@libmdbx_la_CFLAGS = -DNDEBUG=1 -DMDB_DEBUG=0
-@SLAPD_DEBUG_TRUE@libmdbx_la_CFLAGS = -UNDEBUG -DMDB_DEBUG=2
 libmdbx_la_LIBADD = $(LTHREAD_LIBS)
 libmdbx_la_SOURCES = ../../../libraries/libmdbx/mdbx.c
 

@@ -166,46 +166,31 @@ sbin_PROGRAMS = slapd$(EXEEXT)
 @SLAPD_DYNAMIC_TRUE@am__append_69 = $(LTDLINCL)
 @SLAPD_DYNAMIC_TRUE@am__append_70 = -export-dynamic -dlopen self
 @SLAPD_DYNAMIC_TRUE@am__append_71 = $(LIBLTDL)
-@SLAPD_DYNAMIC_FALSE@slapd_DEPENDENCIES =  \
-@SLAPD_DYNAMIC_FALSE@	overlays/liboverlays_builtin.la \
-@SLAPD_DYNAMIC_FALSE@	$(am__append_4) $(am__append_8) \
-@SLAPD_DYNAMIC_FALSE@	$(am__append_12) $(am__append_16) \
-@SLAPD_DYNAMIC_FALSE@	$(am__append_20) $(am__append_24) \
-@SLAPD_DYNAMIC_FALSE@	$(am__append_28) $(am__append_32) \
-@SLAPD_DYNAMIC_FALSE@	$(am__append_36) $(am__append_40) \
-@SLAPD_DYNAMIC_FALSE@	$(am__append_44) $(am__DEPENDENCIES_1) \
-@SLAPD_DYNAMIC_FALSE@	$(am__append_53) $(am__append_57) \
-@SLAPD_DYNAMIC_FALSE@	$(am__append_62) $(am__append_66) \
-@SLAPD_DYNAMIC_FALSE@	$(am__append_68) $(am__DEPENDENCIES_3) \
-@SLAPD_DYNAMIC_FALSE@	$(am__DEPENDENCIES_4) \
-@SLAPD_DYNAMIC_FALSE@	$(am__DEPENDENCIES_2) \
-@SLAPD_DYNAMIC_FALSE@	$(am__DEPENDENCIES_2) \
-@SLAPD_DYNAMIC_FALSE@	$(am__DEPENDENCIES_2) \
-@SLAPD_DYNAMIC_FALSE@	$(am__DEPENDENCIES_2)
+@SLAPD_DYNAMIC_TRUE@am__append_72 = $(LTDLDEPS)
 
 #########################################
-@ACCESSLOG_DYNAMIC_FALSE@@BUILD_ACCESSLOG_TRUE@am__append_72 = accesslog
-@AUDITLOG_DYNAMIC_FALSE@@BUILD_AUDITLOG_TRUE@am__append_73 = auditlog
-@BUILD_COLLECT_TRUE@@COLLECT_DYNAMIC_FALSE@am__append_74 = collect
-@BUILD_CONSTRAINT_TRUE@@CONSTRAINT_DYNAMIC_FALSE@am__append_75 = constraint
-@BUILD_DDS_TRUE@@DDS_DYNAMIC_FALSE@am__append_76 = dds
-@BUILD_DEREF_TRUE@@DEREF_DYNAMIC_FALSE@am__append_77 = deref
-@BUILD_DYNGROUP_TRUE@@DYNGROUP_DYNAMIC_FALSE@am__append_78 = dyngroup
-@BUILD_DYNLIST_TRUE@@DYNLIST_DYNAMIC_FALSE@am__append_79 = dynlist
-@BUILD_MEMBEROF_TRUE@@MEMBEROF_DYNAMIC_FALSE@am__append_80 = memberof
-@BUILD_PPOLICY_TRUE@@PPOLICY_DYNAMIC_FALSE@am__append_81 = ppolicy
-@BUILD_PCACHE_TRUE@@PCACHE_DYNAMIC_FALSE@am__append_82 = pcache
-@BUILD_REFINT_TRUE@@REFINT_DYNAMIC_FALSE@am__append_83 = refint
-@BUILD_RETCODE_TRUE@@RETCODE_DYNAMIC_FALSE@am__append_84 = retcode
-@BUILD_RWM_TRUE@@RWM_DYNAMIC_FALSE@am__append_85 = rwm
-@BUILD_SEQMOD_TRUE@@SEQMOD_DYNAMIC_FALSE@am__append_86 = seqmod
-@BUILD_SSSVLV_TRUE@@SSSVLV_DYNAMIC_FALSE@am__append_87 = sssvlv
-@BUILD_SYNCPROV_TRUE@@SYNCPROV_DYNAMIC_FALSE@am__append_88 = syncprov
-@BUILD_TRANSLUCENT_TRUE@@TRANSLUCENT_DYNAMIC_FALSE@am__append_89 = translucent
-@BUILD_UNIQUE_TRUE@@UNIQUE_DYNAMIC_FALSE@am__append_90 = unique
-@BUILD_VALSORT_TRUE@@VALSORT_DYNAMIC_FALSE@am__append_91 = valsort
-@BEHIND_CURTIAN_TRUE@am__append_92 = banner.c
-@BUILD_REWRITE_TRUE@am__append_93 = $(LDAP_LIBREWRITE_LA)
+@ACCESSLOG_DYNAMIC_FALSE@@BUILD_ACCESSLOG_TRUE@am__append_73 = accesslog
+@AUDITLOG_DYNAMIC_FALSE@@BUILD_AUDITLOG_TRUE@am__append_74 = auditlog
+@BUILD_COLLECT_TRUE@@COLLECT_DYNAMIC_FALSE@am__append_75 = collect
+@BUILD_CONSTRAINT_TRUE@@CONSTRAINT_DYNAMIC_FALSE@am__append_76 = constraint
+@BUILD_DDS_TRUE@@DDS_DYNAMIC_FALSE@am__append_77 = dds
+@BUILD_DEREF_TRUE@@DEREF_DYNAMIC_FALSE@am__append_78 = deref
+@BUILD_DYNGROUP_TRUE@@DYNGROUP_DYNAMIC_FALSE@am__append_79 = dyngroup
+@BUILD_DYNLIST_TRUE@@DYNLIST_DYNAMIC_FALSE@am__append_80 = dynlist
+@BUILD_MEMBEROF_TRUE@@MEMBEROF_DYNAMIC_FALSE@am__append_81 = memberof
+@BUILD_PPOLICY_TRUE@@PPOLICY_DYNAMIC_FALSE@am__append_82 = ppolicy
+@BUILD_PCACHE_TRUE@@PCACHE_DYNAMIC_FALSE@am__append_83 = pcache
+@BUILD_REFINT_TRUE@@REFINT_DYNAMIC_FALSE@am__append_84 = refint
+@BUILD_RETCODE_TRUE@@RETCODE_DYNAMIC_FALSE@am__append_85 = retcode
+@BUILD_RWM_TRUE@@RWM_DYNAMIC_FALSE@am__append_86 = rwm
+@BUILD_SEQMOD_TRUE@@SEQMOD_DYNAMIC_FALSE@am__append_87 = seqmod
+@BUILD_SSSVLV_TRUE@@SSSVLV_DYNAMIC_FALSE@am__append_88 = sssvlv
+@BUILD_SYNCPROV_TRUE@@SYNCPROV_DYNAMIC_FALSE@am__append_89 = syncprov
+@BUILD_TRANSLUCENT_TRUE@@TRANSLUCENT_DYNAMIC_FALSE@am__append_90 = translucent
+@BUILD_UNIQUE_TRUE@@UNIQUE_DYNAMIC_FALSE@am__append_91 = unique
+@BUILD_VALSORT_TRUE@@VALSORT_DYNAMIC_FALSE@am__append_92 = valsort
+@BEHIND_CURTIAN_TRUE@am__append_93 = banner.c
+@BUILD_REWRITE_TRUE@am__append_94 = $(LDAP_LIBREWRITE_LA)
 subdir = servers/slapd
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/build/m4/ax_pthread.m4 \
@@ -533,6 +518,7 @@ PTHREAD_LIBS = @PTHREAD_LIBS@
 RANLIB = @RANLIB@
 RELEASE_DATE = @RELEASE_DATE@
 RELEASE_STAMP = @RELEASE_STAMP@
+REOPENLDAP_BUILDID_SUFFIX = @REOPENLDAP_BUILDID_SUFFIX@
 SASL_LIBS = @SASL_LIBS@
 SECURITY_LIBS = @SECURITY_LIBS@
 SED = @SED@
@@ -657,13 +643,13 @@ backends_DYNAMIC = $(am__append_2) $(am__append_6) $(am__append_10) \
 	$(am__append_38) $(am__append_42) $(am__append_46) \
 	$(am__append_51) $(am__append_55) $(am__append_60) \
 	$(am__append_64)
-overlays_BUILTIN = $(am__append_72) $(am__append_73) $(am__append_74) \
-	$(am__append_75) $(am__append_76) $(am__append_77) \
-	$(am__append_78) $(am__append_79) $(am__append_80) \
-	$(am__append_81) $(am__append_82) $(am__append_83) \
-	$(am__append_84) $(am__append_85) $(am__append_86) \
-	$(am__append_87) $(am__append_88) $(am__append_89) \
-	$(am__append_90) $(am__append_91)
+overlays_BUILTIN = $(am__append_73) $(am__append_74) $(am__append_75) \
+	$(am__append_76) $(am__append_77) $(am__append_78) \
+	$(am__append_79) $(am__append_80) $(am__append_81) \
+	$(am__append_82) $(am__append_83) $(am__append_84) \
+	$(am__append_85) $(am__append_86) $(am__append_87) \
+	$(am__append_88) $(am__append_89) $(am__append_90) \
+	$(am__append_91) $(am__append_92)
 overlays_DYNAMIC = 
 AM_CPPFLAGS = -I${top_srcdir}/include $(am__append_69)
 slaptools = slapadd slapcat slapdn slapindex slappasswd slaptest slapauth slapacl slapschema
@@ -673,17 +659,17 @@ slapd_LDADD = overlays/liboverlays_builtin.la $(am__append_4) \
 	$(am__append_32) $(am__append_36) $(am__append_40) \
 	$(am__append_44) $(am__append_48) $(am__append_53) \
 	$(am__append_57) $(am__append_62) $(am__append_66) \
-	$(am__append_68) $(am__append_71) $(am__append_93) \
+	$(am__append_68) $(am__append_71) $(am__append_94) \
 	$(LDAP_LIBRELDAP_LA) $(LDAP_LIBLUTIL_LA) \
 	$(LDAP_LIBLUNICODE_LA) $(SLAPD_LIBS)
 slapd_LDFLAGS = $(am__append_49) $(am__append_58) $(am__append_70)
+slapd_DEPENDENCIES = $(am__append_72)
 EXTRA_DIST = slapd.ldif.in slapd.conf.in $(schema_files)
 CLEANFILES = slapd.ldif slapd.conf builtin.c
 sysconf_DATA = slapd.ldif slapd.conf
-@SLAPD_DYNAMIC_TRUE@slapd_DEPENDENCIES = $(LTDLDEPS)
 
 #########################################
-BUILT_SOURCES = builtin.c $(am__append_92)
+BUILT_SOURCES = builtin.c $(am__append_93)
 nodist_slapd_SOURCES = builtin.c
 slapd_SOURCES = abandon.c aci.c acl.c aclparse.c ad.c add.c \
 	alock.c at.c attr.c ava.c backend.c backglue.c backover.c \

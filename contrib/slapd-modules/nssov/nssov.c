@@ -1,29 +1,9 @@
 /* nssov.c - nss-ldap overlay for slapd */
 /* $ReOpenLDAP$ */
-/* Copyright (c) 2015,2016 Leonid Yuriev <leo@yuriev.ru>.
- * Copyright (c) 2015,2016 Peter-Service R&D LLC <http://billing.ru/>.
+/* Copyright 1992-2016 ReOpenLDAP AUTHORS: please see AUTHORS file.
+ * All rights reserved.
  *
  * This file is part of ReOpenLDAP.
- *
- * ReOpenLDAP is free software; you can redistribute it and/or modify it under
- * the terms of the GNU Affero General Public License as published by
- * the Free Software Foundation; either version 3 of the License, or
- * (at your option) any later version.
- *
- * ReOpenLDAP is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- *
- * ---
- *
- * Copyright 2008-2015 The OpenLDAP Foundation.
- * Portions Copyright 2008 by Howard Chu, Symas Corp.
- * Portions Copyright 2013 by Ted C. Cheng, Symas Corp.
- * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted only as authorized by the OpenLDAP
@@ -33,6 +13,7 @@
  * top-level directory of the distribution or, alternatively, at
  * <http://www.OpenLDAP.org/license.html>.
  */
+
 /* ACKNOWLEDGEMENTS:
  * This code references portions of the nss-ldapd package
  * written by Arthur de Jong. The nss-ldapd code was forked

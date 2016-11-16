@@ -2,28 +2,10 @@
 
 
 /* begin of reldap_autoconf.h.pre */
-/* Copyright (c) 2015,2016 Leonid Yuriev <leo@yuriev.ru>.
- * Copyright (c) 2015,2016 Peter-Service R&D LLC <http://billing.ru/>.
+/* Copyright 1992-2016 ReOpenLDAP AUTHORS: please see AUTHORS file.
+ * All rights reserved.
  *
  * This file is part of ReOpenLDAP.
- *
- * ReOpenLDAP is free software; you can redistribute it and/or modify it under
- * the terms of the GNU Affero General Public License as published by
- * the Free Software Foundation; either version 3 of the License, or
- * (at your option) any later version.
- *
- * ReOpenLDAP is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- *
- * ---
- *
- * Copyright 1998-2014 The OpenLDAP Foundation
- * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted only as authorized by the OpenLDAP
@@ -481,6 +463,18 @@
 
 /* define if strerror_r returns char* instead of int */
 #undef HAVE_NONPOSIX_STRERROR_R
+
+/* Define to 1 if you have the <nspr4/nspr.h> header file. */
+#undef HAVE_NSPR4_NSPR_H
+
+/* Define to 1 if you have the <nspr/nspr.h> header file. */
+#undef HAVE_NSPR_NSPR_H
+
+/* Define to 1 if you have the <nss3/nss.h> header file. */
+#undef HAVE_NSS3_NSS_H
+
+/* Define to 1 if you have the <nss/nss.h> header file. */
+#undef HAVE_NSS_NSS_H
 
 /* Define to 1 if you have the `opendir' function. */
 #undef HAVE_OPENDIR
@@ -1026,6 +1020,9 @@
 /* Digest stamp */
 #undef RELEASE_STAMP
 
+/* BuildId suffix for Version */
+#undef REOPENLDAP_BUILDID_SUFFIX
+
 /* Name of the Package */
 #undef REOPENLDAP_PACKAGE
 
@@ -1349,6 +1346,10 @@
 #define RELDAP_TLS_MOZNSS	1 /* Mozilla NSS, --with-tls=moznss */
 #define RELDAP_TLS_GNUTLS	2 /* GnuTLS, --with-tls=gnutls */
 #define RELDAP_TLS_OPENSSL	3 /* OpenSSL, --with-tls=openssl */
+
+#ifndef REOPENLDAP_BUILDID_SUFFIX
+#	define REOPENLDAP_BUILDID_SUFFIX ""
+#endif
 
 #endif /* RELDAP_AUTOCONF_H */
 /* end of reldap_autoconf.h.post */

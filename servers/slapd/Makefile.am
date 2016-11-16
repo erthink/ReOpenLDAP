@@ -1,21 +1,17 @@
 ## $ReOpenLDAP$
-## Copyright (c) 2015,2016 Leonid Yuriev <leo@yuriev.ru>.
-## Copyright (c) 2015,2016 Peter-Service R&D LLC <http://billing.ru/>.
+## Copyright 2016 ReOpenLDAP AUTHORS: please see AUTHORS file.
+## All rights reserved.
 ##
 ## This file is part of ReOpenLDAP.
 ##
-## ReOpenLDAP is free software; you can redistribute it and/or modify it under
-## the terms of the GNU Affero General Public License as published by
-## the Free Software Foundation; either version 3 of the License, or
-## (at your option) any later version.
+## Redistribution and use in source and binary forms, with or without
+## modification, are permitted only as authorized by the OpenLDAP
+## Public License.
 ##
-## ReOpenLDAP is distributed in the hope that it will be useful,
-## but WITHOUT ANY WARRANTY; without even the implied warranty of
-## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-## GNU Affero General Public License for more details.
+## A copy of this license is available in the file LICENSE in the
+## top-level directory of the distribution or, alternatively, at
+## <http://www.OpenLDAP.org/license.html>.
 ##
-## You should have received a copy of the GNU Affero General Public License
-## along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 DIST_SUBDIRS = overlays slapi back-bdb back-dnssrv back-hdb \
 	back-ldap back-ldif back-mdb back-meta back-monitor back-ndb \
@@ -34,6 +30,7 @@ sbin_PROGRAMS = slapd
 slaptools = slapadd slapcat slapdn slapindex slappasswd slaptest slapauth slapacl slapschema
 slapd_LDADD = overlays/liboverlays_builtin.la
 slapd_LDFLAGS =
+slapd_DEPENDENCIES =
 
 EXTRA_DIST = slapd.ldif.in slapd.conf.in
 CLEANFILES = slapd.ldif slapd.conf
@@ -214,7 +211,7 @@ if SLAPD_DYNAMIC
 AM_CPPFLAGS += $(LTDLINCL)
 slapd_LDFLAGS += -export-dynamic -dlopen self
 slapd_LDADD += $(LIBLTDL)
-slapd_DEPENDENCIES = $(LTDLDEPS)
+slapd_DEPENDENCIES += $(LTDLDEPS)
 endif
 
 #########################################

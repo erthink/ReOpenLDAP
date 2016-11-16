@@ -1,27 +1,8 @@
-/* tls_m.c - Handle tls/ssl using Mozilla NSS. */
 /* $ReOpenLDAP$ */
-/* Copyright (c) 2015,2016 Leonid Yuriev <leo@yuriev.ru>.
- * Copyright (c) 2015,2016 Peter-Service R&D LLC <http://billing.ru/>.
+/* Copyright 1990-2016 ReOpenLDAP AUTHORS: please see AUTHORS file.
+ * All rights reserved.
  *
  * This file is part of ReOpenLDAP.
- *
- * ReOpenLDAP is free software; you can redistribute it and/or modify it under
- * the terms of the GNU Affero General Public License as published by
- * the Free Software Foundation; either version 3 of the License, or
- * (at your option) any later version.
- *
- * ReOpenLDAP is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- *
- * ---
- *
- * Copyright 2008-2014 The OpenLDAP Foundation.
- * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted only as authorized by the OpenLDAP
@@ -66,20 +47,40 @@
 #define READ_PASSWORD_FROM_FILE
 
 #ifdef READ_PASSWORD_FROM_STDIN
-#include <termios.h> /* for echo on/off */
+#	include <termios.h> /* for echo on/off */
 #endif
 
-#include <nspr/nspr.h>
-#include <nspr/private/pprio.h>
-#include <nss/nss.h>
-#include <nss/ssl.h>
-#include <nss/sslerr.h>
-#include <nss/sslproto.h>
-#include <nss/pk11pub.h>
-#include <nss/secerr.h>
-#include <nss/keyhi.h>
-#include <nss/secmod.h>
-#include <nss/cert.h>
+#ifdef HAVE_NSPR_NSPR_H
+#	include <nspr/nspr.h>
+#	include <nspr/private/pprio.h>
+#elif defined(HAVE_NSPR4_NSPR_H)
+#	include <nspr4/nspr.h>
+#	include <nspr4/private/pprio.h>
+#else
+#	include <nspr.h>
+#endif
+
+#ifdef HAVE_NSS3_NSS_H
+#	include <nss3/nss.h>
+#	include <nss3/ssl.h>
+#	include <nss3/sslerr.h>
+#	include <nss3/sslproto.h>
+#	include <nss3/pk11pub.h>
+#	include <nss3/secerr.h>
+#	include <nss3/keyhi.h>
+#	include <nss3/secmod.h>
+#	include <nss3/cert.h>
+#else
+#	include <nss/nss.h>
+#	include <nss/ssl.h>
+#	include <nss/sslerr.h>
+#	include <nss/sslproto.h>
+#	include <nss/pk11pub.h>
+#	include <nss/secerr.h>
+#	include <nss/keyhi.h>
+#	include <nss/secmod.h>
+#	include <nss/cert.h>
+#endif
 
 #undef NSS_VERSION_INT
 #define	NSS_VERSION_INT	((NSS_VMAJOR << 24) | (NSS_VMINOR << 16) | \

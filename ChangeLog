@@ -1,5 +1,9 @@
 New features and Compatibility breaking
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2016-11-?? v1.1.4 (not yet released)
+2016-11-12 return to the original OpenLDAP Foundation license.
+2016-10-27 `configure: support for --with-buildid=SUFFIX`.
+2016-10-26 moznss: support for <nspr4/nspr.h> and <nss3/nss.h>.
 2016-08-30 v1.1.3
 2016-08-28 `configure --with-gssapi=auto/yes/no`.
 2016-08-28 slapi: use /var/log/slapi-errors.
@@ -48,6 +52,8 @@ New features and Compatibility breaking
 
 Documentation
 ~~~~~~~~~~~~~
+2016-11-?? v1.1.4 (not yet released)
+2016-10-25 man: fix typo (ITS#8185).
 2016-08-30 v1.1.3
 2016-08-28 man: added page for contrib/smbk5pwd.
 2016-08-28 man: note for ldap.conf that on Debian is linked against GnuTLS.
@@ -86,6 +92,7 @@ Documentation
 
 Major and Security Bugs
 ~~~~~~~~~~~~~~~~~~~~~~~
+2016-11-?? v1.1.4 (not yet released)
 2016-08-30 v1.1.3
 2016-08-23 slapd: check for writers while close the connection (fixed #104).
 2016-08-23 slapd: fixed #103, stop glue-search on errors.
@@ -168,6 +175,12 @@ Major and Security Bugs
 
 Minor Bugs
 ~~~~~~~~~~
+2016-11-?? v1.1.4 (not yet released)
+2016-11-13 mdbx: fix cursor tracking after mdb_cursor_del (ITS#8406).
+2016-10-26 reopenldap: fix LDAPI_SOCK, adds LDAP_VARDIR.
+2016-10-25 mdbx: use O_CLOEXEC/FD_CLOEXEC for me_fd,env_copy as well (ITS#8505).
+2016-09-06 mdbx: reset cursor EOF flag in cursor_set (ITS#8489).
+2016-08-29 slapd: return error on invalid syntax filter-present (#108).
 2016-08-30 v1.1.3
 2016-08-24 slapd: fixed compare pointer with '\0' in syn_add().
 2016-08-24 slapd: fixed indereferenced pointer in fe_acl_group().
@@ -480,6 +493,7 @@ Minor Bugs
 
 Performance
 ~~~~~~~~~~~
+2016-11-?? v1.1.4 (not yet released)
 2016-08-30 v1.1.3
 2016-08-28 libreldap: remove resolv-mutex around getnameinfo() and getnameinfo() (Debian#340601).
 2016-08-24 slapd: fixed major typo in rurw_r_unlock() which could cause performance degradation.
@@ -526,6 +540,11 @@ Performance
 
 Build
 ~~~~~
+2016-11-?? v1.1.4 (not yet released)
+2016-11-12 ppolicy: fix libltdl's includes for ppolicy overlay.
+2016-11-12 libltdl: move `build/libltdl` to the start of SUBDURS.
+2016-10-26 configure: don't enable tracing for MDBX by --enable-debug.
+2016-10-25 reopenldap: fix missing space in bootstrap.sh
 2016-08-30 v1.1.3
 2016-08-28 configure: added `--with-gssapi=auto/yes/no`.
 2016-08-25 mdbx: fixed CC and XCFLAGS in 'ci' make-target rules.
@@ -597,6 +616,9 @@ Build
 
 Cosmetics
 ~~~~~~~~~
+2016-11-?? v1.1.4 (not yet released)
+2016-10-27 slapd: adds RELEASE_DATE/STAMP to `slapd -V` output.
+2016-10-25 mdbx: clarify fork's caveat (ITS#8505).
 2016-08-30 v1.1.3
 2016-08-28 slapindex: print a warning if it's run as root.
 2016-08-24 fixed printf format in mdb-backend and liblunicode.
@@ -617,6 +639,8 @@ Cosmetics
 
 Other
 ~~~~~
+2016-11-?? v1.1.4 (not yet released)
+2016-11-12 reopenldap: cleanup/refine AUTHORS file.
 2016-08-30 v1.1.3
 2016-08-28 reopenldap AUTHORS and CONTRIBUTION.
 2016-08-28 reopenldap: fix copyright timestamps.

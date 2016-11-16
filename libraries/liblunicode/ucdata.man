@@ -1,7 +1,19 @@
+.\" $ReOpenLDAP$
+.\" Copyright 2002-2016 ReOpenLDAP AUTHORS: please see AUTHORS file.
+.\" All rights reserved.
 .\"
-.\" $Id: ucdata.man,v 1.5 2001/01/02 18:46:20 mleisher Exp $
+.\" This file is part of ReOpenLDAP.
 .\"
+.\" Redistribution and use in source and binary forms, with or without
+.\" modification, are permitted only as authorized by the OpenLDAP
+.\" Public License.
+.\"
+.\" A copy of this license is available in the file LICENSE in the
+.\" top-level directory of the distribution or, alternatively, at
+.\" <http://www.OpenLDAP.org/license.html>.
+
 .TH ucdata 3 "03 January 2001"
+
 .SH NAME
 ucdata \- package for providing Unicode/ISO10646 character information
 

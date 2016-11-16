@@ -89,8 +89,7 @@ build_triplet = @build@
 host_triplet = @host@
 target_triplet = @target@
 @CONTRIB_TRUE@am__append_1 = contrib
-@SLAPD_DYNAMIC_TRUE@am__append_2 = build/libltdl
-@BEHIND_CURTIAN_TRUE@am__append_3 = tests
+@BEHIND_CURTIAN_TRUE@am__append_2 = tests
 subdir = .
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/build/m4/ax_pthread.m4 \
@@ -351,6 +350,7 @@ PTHREAD_LIBS = @PTHREAD_LIBS@
 RANLIB = @RANLIB@
 RELEASE_DATE = @RELEASE_DATE@
 RELEASE_STAMP = @RELEASE_STAMP@
+REOPENLDAP_BUILDID_SUFFIX = @REOPENLDAP_BUILDID_SUFFIX@
 SASL_LIBS = @SASL_LIBS@
 SECURITY_LIBS = @SECURITY_LIBS@
 SED = @SED@
@@ -454,9 +454,12 @@ valgrind_enabled_tools = @valgrind_enabled_tools@
 valgrind_tools = @valgrind_tools@
 ACLOCAL_AMFLAGS = -I build/m4
 DIST_SUBDIRS = include libraries clients servers doc/man build/libltdl contrib
-SUBDIRS = include libraries clients servers doc/man $(am__append_1) \
-	$(am__append_2) $(am__append_3)
 EXTRA_DIST = build/stub
+@SLAPD_DYNAMIC_FALSE@SUBDIRS = include libraries clients servers \
+@SLAPD_DYNAMIC_FALSE@	doc/man $(am__append_1) $(am__append_2)
+@SLAPD_DYNAMIC_TRUE@SUBDIRS = build/libltdl include libraries clients \
+@SLAPD_DYNAMIC_TRUE@	servers doc/man $(am__append_1) \
+@SLAPD_DYNAMIC_TRUE@	$(am__append_2)
 all: reldap_autoconf.h
 	$(MAKE) $(AM_MAKEFLAGS) all-recursive
 

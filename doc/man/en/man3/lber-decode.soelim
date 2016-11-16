@@ -1,31 +1,25 @@
-.TH LBER_DECODE 3 "@RELEASE_DATE@" "ReOpenLDAP @VERSION@"
 .\" $ReOpenLDAP$
-.\" Copyright (c) 2015,2016 Leonid Yuriev <leo@yuriev.ru>.
-.\" Copyright (c) 2015,2016 Peter-Service R&D LLC <http://billing.ru/>.
+.\" Copyright 1992-2016 ReOpenLDAP AUTHORS: please see AUTHORS file.
+.\" All rights reserved.
 .\"
 .\" This file is part of ReOpenLDAP.
 .\"
-.\" ReOpenLDAP is free software; you can redistribute it and/or modify it under
-.\" the terms of the GNU Affero General Public License as published by
-.\" the Free Software Foundation; either version 3 of the License, or
-.\" (at your option) any later version.
+.\" Redistribution and use in source and binary forms, with or without
+.\" modification, are permitted only as authorized by the OpenLDAP
+.\" Public License.
 .\"
-.\" ReOpenLDAP is distributed in the hope that it will be useful,
-.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
-.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-.\" GNU Affero General Public License for more details.
-.\"
-.\" You should have received a copy of the GNU Affero General Public License
-.\" along with this program.  If not, see <http://www.gnu.org/licenses/>.
-.\"
-.\" ---
-.\"
-.\" Copyright 1998-2014 The OpenLDAP Foundation All Rights Reserved.
-.\" Copying restrictions apply.  See COPYRIGHT/LICENSE.
+.\" A copy of this license is available in the file LICENSE in the
+.\" top-level directory of the distribution or, alternatively, at
+.\" <http://www.OpenLDAP.org/license.html>.
+
+.TH LBER_DECODE 3 "@RELEASE_DATE@" "ReOpenLDAP @VERSION@"
+
 .SH NAME
 ber_get_next, ber_skip_tag, ber_peek_tag, ber_scanf, ber_get_int, ber_get_enum, ber_get_stringb, ber_get_stringa, ber_get_stringal, ber_get_stringbv, ber_get_null, ber_get_boolean, ber_get_bitstring, ber_first_element, ber_next_element \- ReOpenLDAP LBER simplified Basic Encoding Rules library routines for decoding
+
 .SH LIBRARY
 ReOpenLDAP LBER (libreldap, \-lreldap)
+
 .SH SYNOPSIS
 .B #include <lber.h>
 .LP
@@ -58,6 +52,7 @@ ReOpenLDAP LBER (libreldap, \-lreldap)
 .BI "ber_tag_t ber_first_element(BerElement *" ber ", ber_len_t *" len ", char **" cookie ");"
 .LP
 .BI "ber_tag_t ber_next_element(BerElement *" ber ", ber_len_t *" len ", const char *" cookie ");"
+
 .SH DESCRIPTION
 .LP
 These routines provide a subroutine interface to a simplified

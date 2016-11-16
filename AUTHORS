@@ -1,12 +1,17 @@
+Aaron D. Gifford, http://www.aarongifford.com/
+A. Hartgers.
 Alexey Naumov <alexey.naumov@gmail.com>
 Anil Kumar Kommuri <kkanil@openldap.org>
 Bart Hartgers <bart@openldap.org>
 Bastiaan Bakker <bastiaan@openldap.org>
 Ben Collins <bcollins@openldap.org>
 Ben Jencks <ben@bjencks.net>
+Carnegie Mellon
+Cédric Delfosse
 Chernin, Sergey <sergey.chernin@billing.ru>
 Chris Mikkelson <cmikk@qwest.net>
 Claude Brisson <claude.brisson@gmail.com>
+Clement Oudot <clem.oudot@gmail.com>, LTB-project
 Dave Storey <dave@openldap.org>
 David Adam <zanchey@ucc.gu.uwa.edu.au>
 David Barbour <dmbarbour@gmail.com>
@@ -17,7 +22,7 @@ Devin J. Pohly <djpohly@gmail.com>
 Dmitry Kovalev <mit@openldap.org>
 Egor Levintsa <admin@pro-ldap.ru>
 Emily Backes <ebackes@symas.com>
-Emmanuel Dreyfus <manu@openldap.org>
+Emmanuel Dreyfus <manu@openldap.org>, <manu@netbsd.org>
 Emmanuel Lécharny <elecharny@apache.org>
 Francis Swasey <Frank.Swasey@uvm.edu>
 Frederik Deweerdt <frederik.deweerdt@gmail.com>
@@ -25,6 +30,7 @@ Gary Williams <gwilliams@openldap.org>
 Gavin Henry <ghenry@openldap.org>
 Hallvard Breien Furuseth <hallvard@openldap.org>
 HAMANO Tsukasa <hamano@osstech.co.jp>
+Hans Leidekker
 Heiko Becker <heirecka@exherbo.org>
 Henning Schmiedehausen <hps@intermeta.de>
 HIRABAYASHI Satoshi <s_hira@nifty.com>
@@ -38,8 +44,12 @@ Jan Synacek <jsynacek@redhat.com>
 Jan Vcelak <jvcelak@redhat.com>
 Jean-Christophe DUBOIS <jcd@tribudubois.net>
 Jeffery Layton <jlayton@redhat.com>
+Jeff Turner
+Jerome HUET - LTB-project
+John E. Schimmel, Mirapoint, Inc.
 John Hewson <john@jahewson.com>
 John Quillan <quillan@openldap.org>
+Jonathan Clarke <jonathan@phillipoux.net>
 Jong Hyuk Choi <jongchoi@openldap.org>
 Jon Leichter <jon@openldap.org>
 Jorge Perez Burgos <jorge.perez.burgos@ericsson.com>
@@ -51,6 +61,7 @@ Kevin H. Patterson <kevpatt@khptech.com>
 Kurt Spanier <ksp@openldap.org>
 Kurt Zeilenga <kurt@openldap.org>
 Landry Breuil <breuil@craig.fr>
+Lars Uffman
 Leonid Yuriev <leo@yuriev.ru>
 Luca Bruno <luca.bruno@rocket-internet.de>
 Luca Scamoni <luca@openldap.org>
@@ -60,9 +71,12 @@ Mark Adamson <adamson@openldap.org>
 Mark Reynolds <mreynolds@redhat.com>
 Mark Valence <mrv@openldap.org>
 Mat Booth <github@matbooth.co.uk>
+Michael Steinmann <msl@calivia.com>
 Michael Stroeder <michael@stroeder.com>
+Michał Szulczyński.
 Mikko Auvinen <mikko.auvinen@vincit.fi>
 Nadezhda Ivanova <nivanova@symas.com>
+Neil Dunbar <neil.dunbar@hp.com>
 Ondřej Kuzník <ondra@mistotebe.net>
 Orivej Desh <orivej@gmx.fr>
 Oskari Timperi <oskari.timperi@iki.fi>
@@ -72,7 +86,8 @@ Pavel Medvedev <pmedvedev@gmail.com>
 Peter Marschall <peter@adpm.de>
 Philip Guenther <guenther@sendmail.com>
 Philipp Storz <philipp.storz@bareos.com>
-Pierangelo Masarati <ando@openldap.org>
+Pierangelo Masarati <ando@openldap.org>, <ando@sys-net.it>
+Pierre-Yves Bonnetain <py.bonnetain@ba-cst.com>
 Predrag "Pele" Balorda <pele@openldap.org>
 Quanah Gibson-Mount <quanah@openldap.org>
 Ralf Haferkamp <ralf@openldap.org>
@@ -82,15 +97,16 @@ Rich Megginson <rmeggins@redhat.com>
 Ryan Tandy <ryan@nardis.ca>
 Salvador Ortiz <sog@msg.com.mx>
 Sang Seok Lim <slim@openldap.org>
-SATOH Fumiyasu <fumiyas@osstech.co.jp>
-Sergey Chernin <sergey.chernin@gmail.com>
+SATOH Fumiyasu <fumiyas@osstech.co.jp>, OSS Technology, Inc.
 Sebastien Launay <sebastien@slaunay.fr>
+Sergey Chernin <sergey.chernin@gmail.com>
+Stefan Metzmacher <metze@sernet.de>
 Stef Walter <stefw@redhat.com>
 Steve Langasek <vorlon@debian.org>
 Steve Sonntag <vtag@openldap.org>
 Stig Venaas <venaas@openldap.org>
 Stuart Lynne <sl@openldap.org>
-Ted Cheng <tedcheng@symas.com>
+Ted Cheng <tedcheng@symas.com>, Symas Corp.
 Thomas Cort <linuxgeek@gmail.com>
 Tim Mooney <Tim.Mooney@ndsu.edu>
 Timo Teräs <timo.teras@iki.fi>
@@ -98,4 +114,17 @@ Timothy Pearson <kb9vqf@pearsoncomputing.net>
 Tim Strobell <tim.strobell.ctr@nrl.navy.mil>
 Will Ballantyne <willb@openldap.org>
 W. Trevor King <wking@tremily.us>
-Regents of the University of Michigan, USA
+
+2015-2016 Peter-Service R&D LLC, <http://www.billing.ru/>.
+1998-2016 The OpenLDAP Foundation, <http://www.openldap.org/>.
+2007-2011 Suretec Systems Ltd.
+1999-2009 Symas Corporation.
+1999-2011 PADL Software Pty Ltd.
+1997-2006 IBM Corporation.
+1998-2006 Net Boolean Incorporated.
+2003-2004 Hewlett-Packard Company.
+1997-2002 Computing Research Labs, New Mexico State University
+2002 F5 Networks, Inc.
+2002 myinternet Limited.
+1996, 1998 Internet Software Consortium.
+1992-1996 Regents of the University of Michigan, USA.
