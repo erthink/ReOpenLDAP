@@ -37,11 +37,9 @@
 #if RELDAP_TLS == RELDAP_TLS_OPENSSL
 #	include <openssl/des.h>
 
-typedef des_cblock des_key;
-typedef des_cblock des_data_block;
-typedef des_key_schedule des_context;
-#define des_failed(encrypted) 0
-#define des_finish(key, schedule)
+typedef DES_cblock des_key;
+typedef DES_cblock des_data_block;
+typedef DES_key_schedule des_context;
 
 #elif RELDAP_TLS == RELDAP_TLS_MOZNSS
 /*
@@ -60,7 +58,7 @@ typedef des_key_schedule des_context;
 
 typedef PK11SymKey *des_key;
 typedef unsigned char des_data_block[8];
-typedef PK11Context *des_context[1];
+typedef PK11Context* des_context;
 #define DES_ENCRYPT CKA_ENCRYPT
 
 #else
@@ -667,14 +665,27 @@ static int chk_md5(
 
 #if RELDAP_TLS == RELDAP_TLS_OPENSSL
 
+static int
+DES_failed(des_data_block *encrypted)
+{
+    return 0;
+}
+
+static void
+DES_finish(des_key *key, des_context *ctxt)
+{
+    (void) key;
+    (void) ctxt;
+}
+
 /*
  * abstract away setting the parity.
  */
 static void
-des_set_key_and_parity( des_key *key, unsigned char *keyData)
+DES_set_key_and_parity( des_key *key, unsigned char *keyData)
 {
     memcpy(key, keyData, 8);
-    des_set_odd_parity( key );
+    DES_set_odd_parity( key );
 }
 
 #elif RELDAP_TLS == RELDAP_TLS_MOZNSS
@@ -683,7 +694,7 @@ des_set_key_and_parity( des_key *key, unsigned char *keyData)
  * implement MozNSS wrappers for the openSSL calls
  */
 static void
-des_set_key_and_parity( des_key *key, unsigned char *keyData)
+DES_set_key_and_parity( des_key *key, unsigned char *keyData)
 {
     SECItem keyDataItem;
     PK11SlotInfo *slot;
@@ -705,31 +716,31 @@ des_set_key_and_parity( des_key *key, unsigned char *keyData)
 }
 
 static void
-des_set_key_unchecked( des_key *key, des_context ctxt )
+DES_set_key_unchecked( des_key *key, des_context *ctxt )
 {
-    ctxt[0] = NULL;
+    *ctxt = NULL;
 
     /* handle error conditions from previous call */
     if (!*key) {
 	return;
     }
 
-    ctxt[0] = PK11_CreateContextBySymKey(CKM_DES_ECB, CKA_ENCRYPT, *key, NULL);
+    *ctxt = PK11_CreateContextBySymKey(CKM_DES_ECB, CKA_ENCRYPT, *key, NULL);
 }
 
 static void
-des_ecb_encrypt( des_data_block *plain, des_data_block *encrypted,
-			des_context ctxt, int op)
+DES_ecb_encrypt( des_data_block *plain, des_data_block *encrypted,
+			des_context *ctxt, int op)
 {
     SECStatus rv;
     int size;
 
-    if (ctxt[0] == NULL) {
+    if (*ctxt == NULL) {
 	/* need to fail here...  */
 	memset(encrypted, 0, sizeof(des_data_block));
 	return;
     }
-    rv = PK11_CipherOp(ctxt[0], (unsigned char *)&encrypted[0],
+    rv = PK11_CipherOp(*ctxt, (unsigned char *)&encrypted[0],
 			&size, sizeof(des_data_block),
 			(unsigned char *)&plain[0], sizeof(des_data_block));
     if (rv != SECSuccess) {
@@ -741,23 +752,23 @@ des_ecb_encrypt( des_data_block *plain, des_data_block *encrypted,
 }
 
 static int
-des_failed(des_data_block *encrypted)
+DES_failed(des_data_block *encrypted)
 {
    static const des_data_block zero = { 0 };
    return memcmp(encrypted, zero, sizeof(zero)) == 0;
 }
 
 static void
-des_finish(des_key *key, des_context ctxt)
+DES_finish(des_key *key, des_context *ctxt)
 {
      if (*key) {
 	PK11_FreeSymKey(*key);
 	*key = NULL;
      }
-     if (ctxt[0]) {
-	PK11_Finalize(ctxt[0]);
-	PK11_DestroyContext(ctxt[0], PR_TRUE);
-	ctxt[0] = NULL;
+     if (*ctxt) {
+	PK11_Finalize(*ctxt);
+	PK11_DestroyContext(*ctxt, PR_TRUE);
+	*ctxt = NULL;
      }
 }
 
@@ -838,7 +849,7 @@ static void lmPasswd_to_key(
 	k[6] = ((lpw[5] & 0x3F) << 2) | (lpw[6] >> 6);
 	k[7] = ((lpw[6] & 0x7F) << 1);
 
-	des_set_key_and_parity( key, k );
+	DES_set_key_and_parity( key, k );
 }
 
 static int chk_lanman(
@@ -870,21 +881,21 @@ static int chk_lanman(
 	ldap_pvt_str2upper( UcasePassword );
 
 	lmPasswd_to_key( UcasePassword, &key );
-	des_set_key_unchecked( &key, schedule );
-	des_ecb_encrypt( &StdText, &PasswordHash1, schedule , DES_ENCRYPT );
+	DES_set_key_unchecked( &key, &schedule );
+	DES_ecb_encrypt( &StdText, &PasswordHash1, &schedule, DES_ENCRYPT );
 
-	if (des_failed(&PasswordHash1)) {
+	if (DES_failed(&PasswordHash1)) {
 	    return LUTIL_PASSWD_ERR;
 	}
 
 	lmPasswd_to_key( &UcasePassword[7], &key );
-	des_set_key_unchecked( &key, schedule );
-	des_ecb_encrypt( &StdText, &PasswordHash2, schedule , DES_ENCRYPT );
-	if (des_failed(&PasswordHash2)) {
+	DES_set_key_unchecked( &key, &schedule );
+	DES_ecb_encrypt( &StdText, &PasswordHash2, &schedule, DES_ENCRYPT );
+	if (DES_failed(&PasswordHash2)) {
 	    return LUTIL_PASSWD_ERR;
 	}
 
-	des_finish( &key, schedule );
+	DES_finish( &key, &schedule );
 
 	sprintf( PasswordHash, "%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x",
 		PasswordHash1[0],PasswordHash1[1],PasswordHash1[2],PasswordHash1[3],
@@ -1166,12 +1177,12 @@ static int hash_lanman(
 	ldap_pvt_str2upper( UcasePassword );
 
 	lmPasswd_to_key( UcasePassword, &key );
-	des_set_key_unchecked( &key, schedule );
-	des_ecb_encrypt( &StdText, &PasswordHash1, schedule , DES_ENCRYPT );
+	DES_set_key_unchecked( &key, &schedule );
+	DES_ecb_encrypt( &StdText, &PasswordHash1, &schedule, DES_ENCRYPT );
 
 	lmPasswd_to_key( &UcasePassword[7], &key );
-	des_set_key_unchecked( &key, schedule );
-	des_ecb_encrypt( &StdText, &PasswordHash2, schedule , DES_ENCRYPT );
+	DES_set_key_unchecked( &key, &schedule );
+	DES_ecb_encrypt( &StdText, &PasswordHash2, &schedule, DES_ENCRYPT );
 
 	sprintf( PasswordHash, "%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x",
 		PasswordHash1[0],PasswordHash1[1],PasswordHash1[2],PasswordHash1[3],

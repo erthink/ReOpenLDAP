@@ -153,7 +153,7 @@ static void lmPasswd_to_key(
 	k[7] = ((lpw[6]&0x7F)<<1);
 
 #if RELDAP_TLS_FALLBACK == RELDAP_TLS_OPENSSL
-	des_set_odd_parity( key );
+	DES_set_odd_parity( key );
 #endif
 }
 
@@ -212,12 +212,12 @@ static void lmhash(
 	des_encrypt( &ctx, sizeof(key), hbuf[1], StdText );
 #endif
 #if RELDAP_TLS_FALLBACK == RELDAP_TLS_OPENSSL
-	des_set_key_unchecked( &key, schedule );
-	des_ecb_encrypt( &StdText, &hbuf[0], schedule , DES_ENCRYPT );
+	DES_set_key_unchecked( &key, &schedule );
+	DES_ecb_encrypt( &StdText, &hbuf[0], &schedule, DES_ENCRYPT );
 
 	lmPasswd_to_key( &UcasePassword[7], &key );
-	des_set_key_unchecked( &key, schedule );
-	des_ecb_encrypt( &StdText, &hbuf[1], schedule , DES_ENCRYPT );
+	DES_set_key_unchecked( &key, &schedule );
+	DES_ecb_encrypt( &StdText, &hbuf[1], &schedule, DES_ENCRYPT );
 #endif
 
 	hexify( (char *)hbuf, hash );
