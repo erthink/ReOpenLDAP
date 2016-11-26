@@ -66,7 +66,7 @@ static int tlso_seed_PRNG( const char *randfile );
 /*
  * provide mutexes for the OpenSSL library.
  */
-#if OPENSSL_VERSION_NUMBER < 0x10100000L
+#if OPENSSL_VERSION_NUMBER < 0x10100000L || defined(LIBRESSL_VERSION_NUMBER)
 static ldap_pvt_thread_mutex_t	tlso_mutexes[CRYPTO_NUM_LOCKS];
 
 static void tlso_locking_cb( int mode, int type, const char *file, int line )
@@ -95,7 +95,7 @@ static unsigned long tlso_thread_self( void )
 
 static void tlso_thr_init( void )
 {
-#if OPENSSL_VERSION_NUMBER < 0x10100000L
+#if OPENSSL_VERSION_NUMBER < 0x10100000L || defined(LIBRESSL_VERSION_NUMBER)
 	int i;
 
 	for( i=0; i< CRYPTO_NUM_LOCKS ; i++ ) {
@@ -190,7 +190,7 @@ static void
 tlso_ctx_ref( tls_ctx *ctx )
 {
 	tlso_ctx *c = (tlso_ctx *)ctx;
-#if OPENSSL_VERSION_NUMBER < 0x10100000
+#if OPENSSL_VERSION_NUMBER < 0x10100000 || defined(LIBRESSL_VERSION_NUMBER)
 #define	SSL_CTX_up_ref(ctx)	CRYPTO_add( &(ctx->references), 1, CRYPTO_LOCK_SSL_CTX )
 #endif
 	SSL_CTX_up_ref( c );
@@ -444,7 +444,7 @@ tlso_session_my_dn( tls_session *sess, struct berval *der_dn )
 	if (!x) return LDAP_INVALID_CREDENTIALS;
 
 	xn = X509_get_subject_name(x);
-#if OPENSSL_VERSION_NUMBER < 0x10100000
+#if OPENSSL_VERSION_NUMBER < 0x10100000 || defined(LIBRESSL_VERSION_NUMBER)
 	der_dn->bv_len = i2d_X509_NAME( xn, NULL );
 	der_dn->bv_val = xn->bytes->data;
 #else
@@ -480,7 +480,7 @@ tlso_session_peer_dn( tls_session *sess, struct berval *der_dn )
 		return LDAP_INVALID_CREDENTIALS;
 
 	xn = X509_get_subject_name(x);
-#if OPENSSL_VERSION_NUMBER < 0x10100000
+#if OPENSSL_VERSION_NUMBER < 0x10100000 || defined(LIBRESSL_VERSION_NUMBER)
 	der_dn->bv_len = i2d_X509_NAME( xn, NULL );
 	der_dn->bv_val = xn->bytes->data;
 #else
@@ -569,7 +569,7 @@ tlso_session_chkhost( LDAP *ld, tls_session *sess, const char *name_in )
 				if (gn->type == GEN_DNS) {
 					if (ntype != IS_DNS) continue;
 
-#if OPENSSL_VERSION_NUMBER < 0x10100000L
+#if OPENSSL_VERSION_NUMBER < 0x10100000L || defined(LIBRESSL_VERSION_NUMBER)
 					sn = (char *) ASN1_STRING_data(gn->d.ia5);
 #else
 					sn = (char *) ASN1_STRING_get0_data(gn->d.ia5);
@@ -594,7 +594,7 @@ tlso_session_chkhost( LDAP *ld, tls_session *sess, const char *name_in )
 				} else if (gn->type == GEN_IPADD) {
 					if (ntype == IS_DNS) continue;
 
-#if OPENSSL_VERSION_NUMBER < 0x10100000L
+#if OPENSSL_VERSION_NUMBER < 0x10100000L || defined(LIBRESSL_VERSION_NUMBER)
 					sn = (char *) ASN1_STRING_data(gn->d.ia5);
 #else
 					sn = (char *) ASN1_STRING_get0_data(gn->d.ia5);
@@ -709,7 +709,7 @@ struct tls_data {
 
 static int
 tlso_bio_create( BIO *b ) {
-#if OPENSSL_VERSION_NUMBER < 0x10100000L
+#if OPENSSL_VERSION_NUMBER < 0x10100000L || defined(LIBRESSL_VERSION_NUMBER)
 	b->init = 1;
 	b->num = 0;
 	b->ptr = NULL;
@@ -727,7 +727,7 @@ tlso_bio_destroy( BIO *b )
 {
 	if ( b == NULL ) return 0;
 
-#if OPENSSL_VERSION_NUMBER < 0x10100000L
+#if OPENSSL_VERSION_NUMBER < 0x10100000L || defined(LIBRESSL_VERSION_NUMBER)
 	b->ptr = NULL;		/* sb_tls_remove() will free it */
 	b->init = 0;
 	b->flags = 0;
@@ -747,7 +747,7 @@ tlso_bio_read( BIO *b, char *buf, int len )
 
 	if ( buf == NULL || len <= 0 ) return 0;
 
-#if OPENSSL_VERSION_NUMBER < 0x10100000L
+#if OPENSSL_VERSION_NUMBER < 0x10100000L || defined(LIBRESSL_VERSION_NUMBER)
 	p = (struct tls_data *)b->ptr;
 #else
 	p = (struct tls_data *)BIO_get_data(b);
@@ -778,7 +778,7 @@ tlso_bio_write( BIO *b, const char *buf, int len )
 
 	if ( buf == NULL || len <= 0 ) return 0;
 
-#if OPENSSL_VERSION_NUMBER < 0x10100000L
+#if OPENSSL_VERSION_NUMBER < 0x10100000L || defined(LIBRESSL_VERSION_NUMBER)
 	p = (struct tls_data *)b->ptr;
 #else
 	p = (struct tls_data *)BIO_get_data(b);
@@ -823,7 +823,7 @@ tlso_bio_puts( BIO *b, const char *str )
 	return tlso_bio_write( b, str, strlen( str ) );
 }
 
-#if OPENSSL_VERSION_NUMBER < 0x10100000L
+#if OPENSSL_VERSION_NUMBER < 0x10100000L || defined(LIBRESSL_VERSION_NUMBER)
 static BIO_METHOD tlso_bio_method =
 {
 	( 100 | 0x400 ),		/* it's a source/sink BIO */
@@ -855,7 +855,7 @@ tlso_sb_setup( Sockbuf_IO_Desc *sbiod, void *arg )
 
 	p->session = arg;
 	p->sbiod = sbiod;
-#if OPENSSL_VERSION_NUMBER < 0x10100000L
+#if OPENSSL_VERSION_NUMBER < 0x10100000L || defined(LIBRESSL_VERSION_NUMBER)
 	bio = BIO_new( &tlso_bio_method );
 	bio->ptr = (void *)p;
 #else
@@ -894,7 +894,7 @@ tlso_sb_remove( Sockbuf_IO_Desc *sbiod )
 	p = (struct tls_data *)sbiod->sbiod_pvt;
 	SSL_free( p->session );
 	LBER_FREE( sbiod->sbiod_pvt );
-#if OPENSSL_VERSION_NUMBER >= 0x10100000L
+#if OPENSSL_VERSION_NUMBER >= 0x10100000L && !defined(LIBRESSL_VERSION_NUMBER)
 	if ( NULL != tlso_bio_method ) {
 		BIO_meth_free(tlso_bio_method);
 		tlso_bio_method = NULL;
@@ -1193,7 +1193,11 @@ tlso_seed_PRNG( const char *randfile )
 
 
 tls_impl ldap_int_tls_impl = {
+#ifdef LIBRESSL_VERSION_NUMBER
+	"LibreSSL",
+#else
 	"OpenSSL",
+#endif
 
 	tlso_init,
 	tlso_destroy,
