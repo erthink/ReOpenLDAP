@@ -44,6 +44,7 @@ For the changes merged from OpenLDAP project, please see the CHANGES.OpenLDAP fi
  * storage (mdbx): dreamcatcher & oom-handler (ITS#7974)
  * storage (mdbx): lifo & coalesce (ITS#7958)
  * storage (mdbx): steady & weak datasync
+ * bundled with all known contributed modules/overlays/plugins
 
 #### Features (minor):
  * `syncprov-showstatus { none | running | all }`
@@ -56,6 +57,7 @@ For the changes merged from OpenLDAP project, please see the CHANGES.OpenLDAP fi
  * built-in memory checker, including ls-malloc
  * ready for AddressSanitizer and Valgrind
  * ready for LTO (Link-Time Optimization) by GCC and clang
+ * support for OpenSSL 1.1.x, Mozilla NSS, GnuTLS and LibreSSL 2.5.x
 
 #### Fixes:
  * all from openldap/master and openldap/2.4 branches

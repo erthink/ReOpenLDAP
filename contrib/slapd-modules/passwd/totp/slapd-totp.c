@@ -59,12 +59,18 @@
 #	define TOTP_SHA1	EVP_sha1()
 #	define TOTP_SHA256	EVP_sha256()
 #	define TOTP_SHA512	EVP_sha512()
-#	define TOTP_HMAC_CTX	HMAC_CTX
 
-#	define HMAC_setup(ctx, key, len, hash)	HMAC_CTX_init(&ctx); HMAC_Init_ex(&ctx, key, len, hash, 0)
-#	define HMAC_crunch(ctx, buf, len)	HMAC_Update(&ctx, buf, len)
-#	define HMAC_finish(ctx, dig, dlen)	HMAC_Final(&ctx, dig, &dlen); HMAC_CTX_cleanup(&ctx)
-
+#	if OPENSSL_VERSION_NUMBER < 0x10100000L || defined(LIBRESSL_VERSION_NUMBER)
+#	       define TOTP_HMAC_CTX	HMAC_CTX
+#	       define HMAC_setup(ctx, key, len, hash)	HMAC_CTX_init(&ctx); HMAC_Init_ex(&ctx, key, len, hash, 0)
+#	       define HMAC_crunch(ctx, buf, len)	HMAC_Update(&ctx, buf, len)
+#	       define HMAC_finish(ctx, dig, dlen)	HMAC_Final(&ctx, dig, &dlen); HMAC_CTX_cleanup(&ctx)
+#	else
+#	       define TOTP_HMAC_CTX	HMAC_CTX*
+#	       define HMAC_setup(ctx, key, len, hash)	ctx = HMAC_CTX_new(); HMAC_Init_ex(ctx, key, len, hash, 0)
+#	       define HMAC_crunch(ctx, buf, len)	HMAC_Update(ctx, buf, len)
+#	       define HMAC_finish(ctx, dig, dlen)	HMAC_Final(ctx, dig, &dlen); HMAC_CTX_free(ctx)
+#	endif /* OPENSSL_VERSION_NUMBER < 0x10100000L */
 #else
 #	error Unsupported crypto backend.
 #endif /* RELDAP_TLS_FALLBACKL */

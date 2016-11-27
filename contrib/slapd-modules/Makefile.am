@@ -151,6 +151,12 @@ contrib_lastmod_la_LDFLAGS = -module -export-dynamic \
 contrib_lastmod_la_SOURCES = lastmod/lastmod.c banner.c
 man5_MANS += lastmod/slapo-lastmod.man
 
+EXTRA_DIST += mr_passthru/README.md
+pkglib_LTLIBRARIES += contrib-mr_passthru.la
+contrib_mr_passthru_la_LDFLAGS = -module -export-dynamic \
+	-release $(API_LIB_RELEASE) -version-info $(API_LIB_VERSION)
+contrib_mr_passthru_la_SOURCES = mr_passthru/mr_passthru.c banner.c
+
 pkglib_LTLIBRARIES += contrib-noopsrch.la
 contrib_noopsrch_la_LDFLAGS = -module -export-dynamic \
 	-release $(API_LIB_RELEASE) -version-info $(API_LIB_VERSION)
