@@ -66,6 +66,7 @@ static int tlso_seed_PRNG( const char *randfile );
 /*
  * provide mutexes for the OpenSSL library.
  */
+#if OPENSSL_VERSION_NUMBER < 0x10100000L || defined(LIBRESSL_VERSION_NUMBER)
 static ldap_pvt_thread_mutex_t	tlso_mutexes[CRYPTO_NUM_LOCKS];
 
 static void tlso_locking_cb( int mode, int type, const char *file, int line )
@@ -90,13 +91,20 @@ static unsigned long tlso_thread_self( void )
 	return (unsigned long) ldap_pvt_thread_self();
 }
 
+#endif /* OPENSSL_VERSION_NUMBER < 0x10100000L */
+
 static void tlso_thr_init( void )
 {
+#if OPENSSL_VERSION_NUMBER < 0x10100000L || defined(LIBRESSL_VERSION_NUMBER)
 	int i;
 
 	for( i=0; i< CRYPTO_NUM_LOCKS ; i++ ) {
 		ldap_pvt_thread_mutex_init( &tlso_mutexes[i] );
 	}
+#endif
+	/* Openssl 1.1.x don't used locking callback
+	 * and corresponding defines are no-ops.
+	 * Keep the subsequent lines for error detection. */
 	CRYPTO_set_locking_callback( tlso_locking_cb );
 	CRYPTO_set_id_callback( tlso_thread_self );
 }
@@ -159,7 +167,10 @@ tlso_destroy( void )
 #if OPENSSL_VERSION_NUMBER < 0x10000000
 	ERR_remove_state(0);
 #else
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
+	/* deprecated in openssl-1.1 */
 	ERR_remove_thread_state(NULL);
+#endif
 #endif
 	ERR_free_strings();
 
@@ -179,7 +190,7 @@ static void
 tlso_ctx_ref( tls_ctx *ctx )
 {
 	tlso_ctx *c = (tlso_ctx *)ctx;
-#if OPENSSL_VERSION_NUMBER < 0x10100000
+#if OPENSSL_VERSION_NUMBER < 0x10100000 || defined(LIBRESSL_VERSION_NUMBER)
 #define	SSL_CTX_up_ref(ctx)	CRYPTO_add( &(ctx->references), 1, CRYPTO_LOCK_SSL_CTX )
 #endif
 	SSL_CTX_up_ref( c );
@@ -464,14 +475,14 @@ tlso_session_my_dn( tls_session *sess, struct berval *der_dn )
 	if (!x) return LDAP_INVALID_CREDENTIALS;
 
 	xn = X509_get_subject_name(x);
-#if OPENSSL_VERSION_NUMBER < 0x10100000
+#if OPENSSL_VERSION_NUMBER < 0x10100000 || defined(LIBRESSL_VERSION_NUMBER)
 	der_dn->bv_len = i2d_X509_NAME( xn, NULL );
 	der_dn->bv_val = xn->bytes->data;
 #else
 	{
 		size_t len = 0;
 		der_dn->bv_val = NULL;
-		X509_NAME_get0_der( (const unsigned char **)&der_dn->bv_val, &len, xn );
+		X509_NAME_get0_der( xn, (const unsigned char **)&der_dn->bv_val, &len );
 		der_dn->bv_len = len;
 	}
 #endif
@@ -500,14 +511,14 @@ tlso_session_peer_dn( tls_session *sess, struct berval *der_dn )
 		return LDAP_INVALID_CREDENTIALS;
 
 	xn = X509_get_subject_name(x);
-#if OPENSSL_VERSION_NUMBER < 0x10100000
+#if OPENSSL_VERSION_NUMBER < 0x10100000 || defined(LIBRESSL_VERSION_NUMBER)
 	der_dn->bv_len = i2d_X509_NAME( xn, NULL );
 	der_dn->bv_val = xn->bytes->data;
 #else
 	{
 		size_t len = 0;
 		der_dn->bv_val = NULL;
-		X509_NAME_get0_der( (const unsigned char **)&der_dn->bv_val, &len, xn );
+		X509_NAME_get0_der( xn, (const unsigned char **)&der_dn->bv_val, &len );
 		der_dn->bv_len = len;
 	}
 #endif
@@ -589,7 +600,11 @@ tlso_session_chkhost( LDAP *ld, tls_session *sess, const char *name_in )
 				if (gn->type == GEN_DNS) {
 					if (ntype != IS_DNS) continue;
 
+#if OPENSSL_VERSION_NUMBER < 0x10100000L || defined(LIBRESSL_VERSION_NUMBER)
 					sn = (char *) ASN1_STRING_data(gn->d.ia5);
+#else
+					sn = (char *) ASN1_STRING_get0_data(gn->d.ia5);
+#endif
 					sl = ASN1_STRING_length(gn->d.ia5);
 
 					/* ignore empty */
@@ -610,7 +625,11 @@ tlso_session_chkhost( LDAP *ld, tls_session *sess, const char *name_in )
 				} else if (gn->type == GEN_IPADD) {
 					if (ntype == IS_DNS) continue;
 
+#if OPENSSL_VERSION_NUMBER < 0x10100000L || defined(LIBRESSL_VERSION_NUMBER)
 					sn = (char *) ASN1_STRING_data(gn->d.ia5);
+#else
+					sn = (char *) ASN1_STRING_get0_data(gn->d.ia5);
+#endif
 					sl = ASN1_STRING_length(gn->d.ia5);
 
 #ifdef LDAP_PF_INET6
@@ -765,10 +784,16 @@ struct tls_data {
 
 static int
 tlso_bio_create( BIO *b ) {
+#if OPENSSL_VERSION_NUMBER < 0x10100000L || defined(LIBRESSL_VERSION_NUMBER)
 	b->init = 1;
 	b->num = 0;
 	b->ptr = NULL;
 	b->flags = 0;
+#else
+	BIO_set_init(b, 1);
+	BIO_set_data(b, NULL);
+	BIO_clear_flags(b, ~0);
+#endif
 	return 1;
 }
 
@@ -777,9 +802,15 @@ tlso_bio_destroy( BIO *b )
 {
 	if ( b == NULL ) return 0;
 
+#if OPENSSL_VERSION_NUMBER < 0x10100000L || defined(LIBRESSL_VERSION_NUMBER)
 	b->ptr = NULL;		/* sb_tls_remove() will free it */
 	b->init = 0;
 	b->flags = 0;
+#else
+	BIO_set_data(b, NULL);
+	BIO_set_init(b, 0);
+	BIO_clear_flags(b, ~0);
+#endif
 	return 1;
 }
 
@@ -791,7 +822,11 @@ tlso_bio_read( BIO *b, char *buf, int len )
 
 	if ( buf == NULL || len <= 0 ) return 0;
 
+#if OPENSSL_VERSION_NUMBER < 0x10100000L || defined(LIBRESSL_VERSION_NUMBER)
 	p = (struct tls_data *)b->ptr;
+#else
+	p = (struct tls_data *)BIO_get_data(b);
+#endif
 
 	if ( p == NULL || p->sbiod == NULL ) {
 		return 0;
@@ -818,7 +853,11 @@ tlso_bio_write( BIO *b, const char *buf, int len )
 
 	if ( buf == NULL || len <= 0 ) return 0;
 
+#if OPENSSL_VERSION_NUMBER < 0x10100000L || defined(LIBRESSL_VERSION_NUMBER)
 	p = (struct tls_data *)b->ptr;
+#else
+	p = (struct tls_data *)BIO_get_data(b);
+#endif
 
 	if ( p == NULL || p->sbiod == NULL ) {
 		return 0;
@@ -859,6 +898,7 @@ tlso_bio_puts( BIO *b, const char *str )
 	return tlso_bio_write( b, str, strlen( str ) );
 }
 
+#if OPENSSL_VERSION_NUMBER < 0x10100000L || defined(LIBRESSL_VERSION_NUMBER)
 static BIO_METHOD tlso_bio_method =
 {
 	( 100 | 0x400 ),		/* it's a source/sink BIO */
@@ -871,6 +911,9 @@ static BIO_METHOD tlso_bio_method =
 	tlso_bio_create,
 	tlso_bio_destroy
 };
+#else
+static BIO_METHOD *tlso_bio_method = NULL;
+#endif
 
 static int
 tlso_sb_setup( Sockbuf_IO_Desc *sbiod, void *arg )
@@ -887,8 +930,29 @@ tlso_sb_setup( Sockbuf_IO_Desc *sbiod, void *arg )
 
 	p->session = arg;
 	p->sbiod = sbiod;
+#if OPENSSL_VERSION_NUMBER < 0x10100000L || defined(LIBRESSL_VERSION_NUMBER)
 	bio = BIO_new( &tlso_bio_method );
 	bio->ptr = (void *)p;
+#else
+	if ( NULL == tlso_bio_method ) {
+		tlso_bio_method = BIO_meth_new(( 100 | 0x400 ), "sockbuf glue");
+		if ( NULL == tlso_bio_method
+		     || !BIO_meth_set_write(tlso_bio_method, tlso_bio_write)
+		     || !BIO_meth_set_read(tlso_bio_method, tlso_bio_read)
+		     || !BIO_meth_set_puts(tlso_bio_method, tlso_bio_puts)
+		     || !BIO_meth_set_gets(tlso_bio_method, tlso_bio_gets)
+		     || !BIO_meth_set_ctrl(tlso_bio_method, tlso_bio_ctrl)
+		     || !BIO_meth_set_create(tlso_bio_method, tlso_bio_create)
+		     || !BIO_meth_set_destroy(tlso_bio_method, tlso_bio_destroy)) {
+			return -1;
+		}
+	}
+	bio = BIO_new(tlso_bio_method);
+	if ( NULL == bio ) {
+		return -1;
+	}
+	BIO_set_data(bio, (void *)p);
+#endif
 	SSL_set_bio( p->session, bio, bio );
 	sbiod->sbiod_pvt = p;
 	return 0;
@@ -905,6 +969,12 @@ tlso_sb_remove( Sockbuf_IO_Desc *sbiod )
 	p = (struct tls_data *)sbiod->sbiod_pvt;
 	SSL_free( p->session );
 	LBER_FREE( sbiod->sbiod_pvt );
+#if OPENSSL_VERSION_NUMBER >= 0x10100000L && !defined(LIBRESSL_VERSION_NUMBER)
+	if ( NULL != tlso_bio_method ) {
+		BIO_meth_free(tlso_bio_method);
+		tlso_bio_method = NULL;
+	}
+#endif
 	sbiod->sbiod_pvt = NULL;
 	return 0;
 }
@@ -1081,9 +1151,17 @@ tlso_verify_cb( int ok, X509_STORE_CTX *ctx )
 			certerr );
 	}
 	if ( sname )
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
 		CRYPTO_free ( sname );
+#else
+		OPENSSL_free ( sname );
+#endif
 	if ( iname )
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
 		CRYPTO_free ( iname );
+#else
+		OPENSSL_free ( iname );
+#endif
 	return ok;
 }
 
@@ -1190,7 +1268,11 @@ tlso_seed_PRNG( const char *randfile )
 
 
 tls_impl ldap_int_tls_impl = {
+#ifdef LIBRESSL_VERSION_NUMBER
+	"LibreSSL",
+#else
 	"OpenSSL",
+#endif
 
 	tlso_init,
 	tlso_destroy,

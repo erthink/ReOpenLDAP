@@ -79,6 +79,9 @@ else
 			--version)
 				echo "$VERSION"
 				shift ;;
+			--version-full)
+				echo "${VERSION}-${RELEASE_TYPE}"
+				shift ;;
 			--number)
 				echo "$VERSION_NUMBER"
 				shift ;;

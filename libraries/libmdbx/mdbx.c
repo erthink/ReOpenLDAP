@@ -53,8 +53,6 @@ mdbx_setup_debug(int flags, MDBX_debug_func* logger, long edge_txn) {
 static txnid_t __cold
 mdbx_oomkick(MDB_env *env, txnid_t oldest)
 {
-	mdb_debug("DB size maxed out");
-#if MDBX_MODE_ENABLED
 	int retry;
 	txnid_t snap;
 	mdb_debug("DB size maxed out");
@@ -107,10 +105,6 @@ mdbx_oomkick(MDB_env *env, txnid_t oldest)
 		/* LY: notify end of oom-loop */
 		env->me_oom_func(env, 0, 0, oldest, 0, -retry);
 	}
-#else
-	(void) oldest;
-	(void) mdb_reader_check(env, NULL);
-#endif /* MDBX_MODE_ENABLED */
 	return mdb_find_oldest(env, NULL);
 }
 
@@ -141,14 +135,40 @@ mdbx_env_get_oomfunc(MDB_env *env)
 		? env->me_oom_func : NULL;
 }
 
-struct mdb_walk_ctx {
+ATTRIBUTE_NO_SANITIZE_THREAD /* LY: avoid tsan-trap by me_txn, mm_last_pg and mt_next_pgno */
+int mdbx_txn_straggler(MDB_txn *txn, int *percent)
+{
+	MDB_env	*env;
+	MDB_meta *meta;
+	txnid_t lag;
+
+	if(unlikely(!txn))
+		return -EINVAL;
+
+	if(unlikely(txn->mt_signature != MDBX_MT_SIGNATURE))
+		return MDB_VERSION_MISMATCH;
+
+	if (unlikely(! txn->mt_u.reader))
+		return -1;
+
+	env = txn->mt_env;
+	meta = mdb_meta_head_r(env);
+	if (percent) {
+		size_t maxpg = env->me_maxpg;
+		size_t last = meta->mm_last_pg + 1;
+		if (env->me_txn)
+			last = env->me_txn0->mt_next_pgno;
+		*percent = (last * 100ull + maxpg / 2) / maxpg;
+	}
+	lag = meta->mm_txnid - txn->mt_u.reader->mr_txnid;
+	return (0 > (long) lag) ? ~0u >> 1: lag;
+}
+
+typedef struct mdb_walk_ctx {
 	MDB_txn *mw_txn;
 	void *mw_user;
 	MDBX_pgvisitor_func *mw_visitor;
-};
-
-typedef struct mdb_walk_ctx mdb_walk_ctx_t;
-
+} mdb_walk_ctx_t;
 
 /** Depth-first tree traversal. */
 static int __cold
@@ -160,7 +180,7 @@ mdb_env_walk(mdb_walk_ctx_t *ctx, const char* dbi, pgno_t pg, int flags, int dee
 	const char* type;
 
 	if (pg == P_INVALID)
-		return MDB_CORRUPTED;
+		return MDB_SUCCESS; /* empty db */
 
 	rc = mdb_page_get(ctx->mw_txn, pg, &mp, NULL);
 	if (rc)
@@ -292,9 +312,9 @@ mdbx_env_pgwalk(MDB_txn *txn, MDBX_pgvisitor_func* visitor, void* user)
 
 	rc = visitor(0, 2, user, "lmdb", "meta", 2, sizeof(MDB_meta)*2, PAGEHDRSZ*2,
 				 (txn->mt_env->me_psize - sizeof(MDB_meta) - PAGEHDRSZ) *2);
-	if (! rc && txn->mt_dbs[FREE_DBI].md_root != P_INVALID)
+	if (! rc)
 		rc = mdb_env_walk(&ctx, "free", txn->mt_dbs[FREE_DBI].md_root, 0, 0);
-	if (! rc && txn->mt_dbs[MAIN_DBI].md_root != P_INVALID)
+	if (! rc)
 		rc = mdb_env_walk(&ctx, "main", txn->mt_dbs[MAIN_DBI].md_root, 0, 0);
 	if (! rc)
 		rc = visitor(P_INVALID, 0, user, NULL, NULL, 0, 0, 0, 0);
