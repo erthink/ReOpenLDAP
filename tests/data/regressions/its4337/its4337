@@ -21,6 +21,11 @@ if test ${AC_conf[ldap]} = no ; then
 	exit 0
 fi
 
+if test $BACKEND != "bdb" ; then
+	echo "BDB backend not available, test skipped"
+	exit 0
+fi
+
 mkdir -p $TESTDIR $DBDIR1 $DBDIR2 $DBDIR3 $TESTDIR/slapd.d
 
 ITS=4337
