@@ -1,5 +1,5 @@
-v1.1.4 (not yet released)
-=========================
+v1.1.4 2016-11-30
+=================
 
 Briefly:
  1. Return to the original OpenLDAP Foundation license.
