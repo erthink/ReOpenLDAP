@@ -837,6 +837,7 @@ function config_filter {
 		-e "s;@PORT6@;${PORT6};g"			\
 		-e "s/@SASL_MECH@/${sasl_mech}/g"		\
 		-e "s;@TESTDIR@;${TESTDIR};g"			\
+		-e "s;@TESTWD@;${TESTWD};"			\
 		-e "s;@DATADIR@;${DATADIR};g"			\
 		-e "s;@SCHEMADIR@;${SCHEMADIR};g"
 }
