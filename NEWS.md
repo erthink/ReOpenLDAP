@@ -1,5 +1,5 @@
-v1.1.4 (not yet released)
-=========================
+v1.1.4 2016-11-30
+=================
 
 Briefly:
  1. Return to the original OpenLDAP Foundation license.
@@ -45,7 +45,7 @@ v1.1.3, 2016-08-30
 ==================
 
 Briefly:
- 1. Imported all relevant patches from RedHat, ALT Linux and Dedian/Ubuntu.
+ 1. Imported all relevant patches from RedHat, ALT Linux and Debian/Ubuntu.
  2. More fixes especially for TLS and Mozilla NSS.
  3. Checked with PVS-Studio static analyser (first 10 defects were shown and fixed).
     Checking with Coverity static analyser also was started, but unfortunately it is
@@ -79,7 +79,7 @@ Major and Security bugs:
  * slapd: fixed #103, stop glue-search on errors.
  * libreldap: MozNSS fixed CVE-2015-3276 (RHEL#1238322).
  * libreldap: TLS do not reuse tls_session if hostname check fails (RHEL#852476).
- * slapd: Switch to lt_dlopenadvise() to get RTLD_GLOBAL set (RHEL#960048, Dedian#327585).
+ * slapd: Switch to lt_dlopenadvise() to get RTLD_GLOBAL set (RHEL#960048, Debian#327585).
  * libreldap: reentrant gethostby() (RHEL#179730).
  * libreldap: MozNSS ignore certdb database type prefix when checking existence of the directory (RHEL#857373).
 
