@@ -100,7 +100,7 @@ Major and Security Bugs
 2016-08-23 slapd: fixed #103, stop glue-search on errors.
 2016-08-07 libreldap: MozNSS fixed CVE-2015-3276 (RHEL#1238322).
 2016-08-07 libreldap: TLS do not reuse tls_session if hostname check fails (RHEL#852476).
-2016-08-07 slapd: Switch to lt_dlopenadvise() to get RTLD_GLOBAL set (RHEL#960048, Dedian#327585).
+2016-08-07 slapd: Switch to lt_dlopenadvise() to get RTLD_GLOBAL set (RHEL#960048, Debian#327585).
 2016-08-07 libreldap: reentrant gethostby() (RHEL#179730).
 2016-08-07 libreldap: MozNSS ignore certdb database type prefix when checking existence of the directory (RHEL#857373).
 2016-07-30 v1.1.2
