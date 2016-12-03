@@ -374,24 +374,12 @@ fail:
 		Debug( LDAP_DEBUG_CONFIG, "index %s 0x%04lx\n",
 			ad->ad_cname.bv_val, mask );
 
-		a = (AttrInfo *) ch_malloc( sizeof(AttrInfo) );
-
-#ifdef LDAP_COMP_MATCH
-		a->ai_cr = NULL;
-#endif
-		a->ai_cursor = NULL;
-		a->ai_flist = NULL;
-		a->ai_clist = NULL;
-		a->ai_root = NULL;
+		a = (AttrInfo *) ch_calloc( 1, sizeof(AttrInfo) );
 		a->ai_desc = ad;
-		a->ai_dbi = 0;
-
 		if ( mdb->mi_flags & MDB_IS_OPEN ) {
-			a->ai_indexmask = 0;
 			a->ai_newmask = mask;
 		} else {
 			a->ai_indexmask = mask;
-			a->ai_newmask = 0;
 		}
 
 #ifdef LDAP_COMP_MATCH
