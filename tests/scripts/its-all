@@ -13,10 +13,6 @@
 ## top-level directory of the distribution or, alternatively, at
 ## <http://www.OpenLDAP.org/license.html>.
 
-. ${TOP_SRCDIR}/tests/scripts/defines.sh
-
-teamcity_msg "testSuiteStarted name='all LDAP ITS regression tests'"
-
 echo "#######################################################################"
 echo "###                                                                 ###"
 echo "### regression tests                                                ###"
@@ -24,30 +20,14 @@ echo "###                                                                 ###"
 echo "#######################################################################"
 echo "###"
 
-echo ">>>>> Executing all LDAP ITS regression tests"
+. ${TOP_SRCDIR}/tests/scripts/defines.sh
 
-for CMD in ${TOP_SRCDIR}/tests/data/regressions/its*/its*; do
-	# remove cruft from prior test
-	if test $PRESERVE = yes ; then
-		/bin/rm -rf testrun/db.*
-	else
-		/bin/rm -rf testrun
-	fi
+if [ -n "$CIBUZZ_PID4" -o -n "$RANDOM_ORDER" ]; then
+	TEST_LIST_CMD=$(ls ${TOP_SRCDIR}/tests/data/regressions/its*/its* | sort --random-sort)
+else
+	TEST_LIST_CMD=${TOP_SRCDIR}/tests/data/regressions/its*/its*
+fi
 
-	teamcity_msg "testStarted name='`basename $CMD`' captureStandardOutput='true'"
-	echo ">>>>> Starting ${TB}`basename $CMD`${TN} ..."
-	$CMD
-	RC=$?
-	if test $RC -eq 0 ; then
-		echo ">>>>> $CMD completed ${TB}OK${TN}."
-	else
-		echo ">>>>> $CMD ${TB}failed${TN} (exit $RC)"
-		teamcity_msg "testFailed name='`basename $CMD`'"
-		exit $RC
-	fi
+TESTSET='all LDAP ITS regression tests'
 
-	echo ""
-	teamcity_msg "testFinished name='`basename $CMD`'"
-done
-
-teamcity_msg "testSuiteFinished name='all LDAP ITS regression tests'"
+run_testset
