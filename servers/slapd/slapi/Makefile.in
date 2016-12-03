@@ -140,6 +140,8 @@ am__uninstall_files_from_dir = { \
 am__installdirs = "$(DESTDIR)$(pkglibdir)"
 LTLIBRARIES = $(pkglib_LTLIBRARIES)
 am__DEPENDENCIES_1 =
+libreslapi_la_DEPENDENCIES = $(am__DEPENDENCIES_1) \
+	$(am__DEPENDENCIES_1)
 am_libreslapi_la_OBJECTS = banner.lo plugin.lo printmsg.lo slapi_dn.lo \
 	slapi_ext.lo slapi_ops.lo slapi_overlay.lo slapi_pblock.lo \
 	slapi_utils.lo
@@ -456,7 +458,7 @@ AM_CPPFLAGS = -DSLAPI_LIBRARY -DSLAPD_IMPORT \
 	-I$(srcdir)/.. -I$(top_srcdir)/include $(LTDLINCL)
 
 libreslapi_la_LIBADD = $(SLAPI_LIBS) $(LIBLTDL)
-libreslapi_la_DEPENDENCIES = $(LTDLDEPS)
+EXTRA_libreslapi_la_DEPENDENCIES = $(LTDLDEPS)
 @BEHIND_CURTIAN_TRUE@BUILT_SOURCES = banner.c
 libreslapi_la_SOURCES = banner.c plugin.c printmsg.c slapi_dn.c \
 	slapi_ext.c slapi_ops.c slapi_overlay.c slapi_pblock.c \
