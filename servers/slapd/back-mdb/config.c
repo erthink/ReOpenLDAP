@@ -176,7 +176,7 @@ mdb_online_index( void *ctx, void *arg )
 	OperationBuffer opbuf;
 	Operation *op;
 
-	MDB_cursor *curs;
+	MDB_cursor *curs = NULL;
 	MDB_val key, data;
 	MDB_txn *txn;
 	ID id;
@@ -196,6 +196,7 @@ mdb_online_index( void *ctx, void *arg )
 		if ( slapd_shutdown )
 			break;
 
+		assert(curs == NULL);
 		rc = mdb_txn_begin( mdb->mi_dbenv, NULL, 0, &txn );
 		if ( rc )
 			break;
@@ -209,6 +210,9 @@ mdb_online_index( void *ctx, void *arg )
 			key.mv_data = &id;
 			rc = mdb_cursor_get( curs, &key, &data, MDB_SET_RANGE );
 			if ( rc ) {
+				mdb_cursor_close( curs );
+				curs = NULL;
+
 				mdb_txn_abort( txn );
 				if ( rc == MDB_NOTFOUND )
 					rc = 0;
@@ -219,6 +223,8 @@ mdb_online_index( void *ctx, void *arg )
 
 		rc = mdb_id2entry( op, curs, id, &e );
 		mdb_cursor_close( curs );
+		curs = NULL;
+
 		if ( rc ) {
 			mdb_txn_abort( txn );
 			if ( rc == MDB_NOTFOUND ) {
@@ -264,6 +270,7 @@ mdb_online_index( void *ctx, void *arg )
 	ldap_pvt_runqueue_remove( &slapd_rq, rtask );
 	ldap_pvt_thread_mutex_unlock( &slapd_rq.rq_mutex );
 
+	assert(curs == NULL);
 	return NULL;
 }
 
