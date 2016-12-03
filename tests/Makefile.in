@@ -743,7 +743,7 @@ uninstall-am:
 
 .PRECIOUS: Makefile
 
-check test check-TESTS: $(BACKENDS)
+check test check-TESTS: $(BACKENDS) regressions
 
 @VALGRIND_CHECK_RULES@
 

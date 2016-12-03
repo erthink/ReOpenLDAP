@@ -16,7 +16,7 @@
 SUBDIRS = progs
 RUN = $(builddir)/run
 BACKENDS = $(SLAPD_DYNAMIC_BACKENDS) $(SLAPD_STATIC_BACKENDS)
-check test check-TESTS: $(BACKENDS)
+check test check-TESTS: $(BACKENDS) regressions
 
 @VALGRIND_CHECK_RULES@
 VALGRIND_SUPPRESSIONS_FILES = scripts/valgrind.supp
