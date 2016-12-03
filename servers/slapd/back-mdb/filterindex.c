@@ -1071,7 +1071,6 @@ inequality_candidates(
 	struct berval prefix = {0, NULL};
 	struct berval *keys = NULL;
 	MatchingRule *mr;
-	MDB_cursor *cursor = NULL;
 
 	Debug( LDAP_DEBUG_TRACE, "=> mdb_inequality_candidates (%s)\n",
 			ava->aa_desc->ad_cname.bv_val );
@@ -1129,6 +1128,7 @@ inequality_candidates(
 		return 0;
 	}
 
+	MDB_cursor *cursor = NULL;
 	MDB_IDL_ZERO( ids );
 	while(1) {
 		rc = mdb_key_read( op->o_bd, rtxn, dbi, &keys[0], tmp, &cursor, gtorlt );
@@ -1155,11 +1155,12 @@ inequality_candidates(
 
 		if( op->ors_limit && op->ors_limit->lms_s_unchecked != -1 &&
 			MDB_IDL_N( ids ) >= (unsigned) op->ors_limit->lms_s_unchecked ) {
-			mdb_cursor_close( cursor );
 			break;
 		}
 	}
 	ber_bvarray_free_x( keys, op->o_tmpmemctx );
+	if (cursor)
+		mdb_cursor_close( cursor );
 
 	Debug( LDAP_DEBUG_TRACE,
 		"<= mdb_inequality_candidates: id=%ld, first=%ld, last=%ld\n",
