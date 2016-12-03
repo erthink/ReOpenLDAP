@@ -135,6 +135,47 @@ int mdb_tool_entry_open(
 	return 0;
 }
 
+static int mdb_tool_terminate_txn(BackendDB *be, MDB_txn *txn, int abort)
+{
+	struct mdb_info *mdb = (struct mdb_info *) be->be_private;
+
+	if( idcursor ) {
+		mdb_cursor_close( idcursor );
+		idcursor = NULL;
+	}
+
+	if( cursor ) {
+		mdb_cursor_close( cursor );
+		cursor = NULL;
+	}
+
+	for ( int i = 0; i < mdb->mi_nattrs; i++ ) {
+		if (mdb->mi_attrs[i]->ai_cursor) {
+			mdb_cursor_close( mdb->mi_attrs[i]->ai_cursor );
+			mdb->mi_attrs[i]->ai_cursor = NULL;
+		}
+	}
+
+	int rc;
+	if (abort)
+		rc = mdb_txn_abort( txn );
+	else {
+		rc = mdb_txn_commit( txn );
+		if (rc)
+			mdb_txn_abort( txn );
+	}
+	if (txn == mdb_tool_txn)
+		mdb_tool_txn = NULL;
+
+	return rc;
+}
+
+#define mdb_tool_txn_commit(be, txn) \
+	mdb_tool_terminate_txn(be, txn, 0)
+
+#define mdb_tool_txn_abort(be, txn) \
+	(void)mdb_tool_terminate_txn(be, txn, 1)
+
 int mdb_tool_entry_close(
 	BackendDB *be )
 {
@@ -173,16 +214,15 @@ int mdb_tool_entry_close(
 		cursor = NULL;
 	}
 	if( mdb_tool_txn ) {
-		int rc;
 		MDB_TOOL_IDL_FLUSH( be, mdb_tool_txn );
-		if (( rc = mdb_txn_commit( mdb_tool_txn ))) {
+		int rc = mdb_tool_txn_commit(be, mdb_tool_txn);
+		if (rc) {
 			Debug( LDAP_DEBUG_ANY,
 				LDAP_XSTRING(mdb_tool_entry_close) ": database %s: "
 				"txn_commit failed: %s (%d)\n",
 				be->be_suffix[0].bv_val, mdb_strerror(rc), rc );
 			return -1;
 		}
-		mdb_tool_txn = NULL;
 	}
 
 	if( nholes ) {
@@ -232,7 +272,7 @@ ID mdb_tool_entry_next(
 			return NOID;
 		rc = mdb_cursor_open( mdb_tool_txn, mdb->mi_id2entry, &cursor );
 		if ( rc ) {
-			mdb_txn_abort( mdb_tool_txn );
+			mdb_tool_txn_abort(be, mdb_tool_txn);
 			return NOID;
 		}
 	}
@@ -404,8 +444,7 @@ mdb_tool_entry_get( BackendDB *be, ID id )
 		struct mdb_info *mdb = (struct mdb_info *) be->be_private;
 		rc = mdb_cursor_open( mdb_tool_txn, mdb->mi_id2entry, &cursor );
 		if ( rc ) {
-			mdb_txn_abort( mdb_tool_txn );
-			mdb_tool_txn = NULL;
+			mdb_tool_txn_abort(be, mdb_tool_txn);
 			return NULL;
 		}
 	}
@@ -702,14 +741,9 @@ done:
 	if( rc == 0 ) {
 		mdb_writes++;
 		if ( mdb_writes >= mdb_writes_per_commit ) {
-			unsigned i;
 			MDB_TOOL_IDL_FLUSH( be, mdb_tool_txn );
-			rc = mdb_txn_commit( mdb_tool_txn );
-			for ( i=0; i<mdb->mi_nattrs; i++ )
-				mdb->mi_attrs[i]->ai_cursor = NULL;
+			rc = mdb_tool_txn_commit(be, mdb_tool_txn);
 			mdb_writes = 0;
-			mdb_tool_txn = NULL;
-			idcursor = NULL;
 			if( rc != 0 ) {
 				mdb->mi_numads = 0;
 				snprintf( text->bv_val, text->bv_len,
@@ -723,12 +757,7 @@ done:
 		}
 
 	} else {
-		unsigned i;
-		mdb_txn_abort( mdb_tool_txn );
-		mdb_tool_txn = NULL;
-		idcursor = NULL;
-		for ( i=0; i<mdb->mi_nattrs; i++ )
-			mdb->mi_attrs[i]->ai_cursor = NULL;
+		mdb_tool_txn_abort(be, mdb_tool_txn);
 		mdb_writes = 0;
 		snprintf( text->bv_val, text->bv_len,
 			"txn_aborted! %s (%d)",
@@ -874,12 +903,9 @@ done:
 		mdb_writes++;
 		if ( mdb_writes >= mdb_writes_per_commit ) {
 			MDB_val key;
-			unsigned i;
 			MDB_TOOL_IDL_FLUSH( be, txi );
-			rc = mdb_txn_commit( txi );
+			rc = mdb_tool_txn_commit(be, txi);
 			mdb_writes = 0;
-			for ( i=0; i<mi->mi_nattrs; i++ )
-				mi->mi_attrs[i]->ai_cursor = NULL;
 			if( rc != 0 ) {
 				Debug( LDAP_DEBUG_ANY,
 					"=> " LDAP_XSTRING(mdb_tool_entry_reindex)
@@ -887,8 +913,6 @@ done:
 					mdb_strerror(rc), rc );
 				e->e_id = NOID;
 			}
-			mdb_cursor_close( cursor );
-			cursor = NULL;
 			/* Must close the read txn to allow old pages to be reclaimed. */
 			mdb_txn_abort( mdb_tool_txn );
 			/* and then reopen it so that tool_entry_next still works. */
@@ -900,13 +924,8 @@ done:
 		}
 
 	} else {
-		unsigned i;
 		mdb_writes = 0;
-		mdb_cursor_close( cursor );
-		cursor = NULL;
-		mdb_txn_abort( txi );
-		for ( i=0; i<mi->mi_nattrs; i++ )
-			mi->mi_attrs[i]->ai_cursor = NULL;
+		mdb_tool_txn_abort(be, txi);
 		Debug( LDAP_DEBUG_ANY,
 			"=> " LDAP_XSTRING(mdb_tool_entry_reindex)
 			": txn_aborted! err=%d\n",
@@ -978,7 +997,7 @@ ID mdb_tool_entry_modify(
 
 done:
 	if( rc == 0 ) {
-		rc = mdb_txn_commit( mdb_tool_txn );
+		rc = mdb_tool_txn_commit(be, mdb_tool_txn);
 		if( rc != 0 ) {
 			mdb->mi_numads = 0;
 			snprintf( text->bv_val, text->bv_len,
@@ -991,7 +1010,7 @@ done:
 		}
 
 	} else {
-		mdb_txn_abort( mdb_tool_txn );
+		mdb_tool_txn_abort(be, mdb_tool_txn);
 		snprintf( text->bv_val, text->bv_len,
 			"txn_aborted! %s (%d)",
 			mdb_strerror(rc), rc );
@@ -1433,7 +1452,8 @@ pop:
 		if (writes == 1000) {
 			mdb_cursor_close(mc);
 			mc = NULL;
-			rc = mdb_txn_commit(mt);
+			rc = mdb_tool_txn_commit(be, mt);
+			mt = NULL;
 			if (rc) {
 				Debug(LDAP_DEBUG_ANY, "mdb_dn2id_upgrade: mdb_txn_commit failed, %s (%d)\n",
 					mdb_strerror(rc), rc );
@@ -1476,13 +1496,12 @@ leave:
 		mc = NULL;
 	}
 	if (mt) {
-		int r2;
-		r2 = mdb_txn_commit(mt);
-		if (r2) {
+		int err = mdb_tool_txn_commit(be, mt);
+		if (err) {
 			Debug(LDAP_DEBUG_ANY, "mdb_dn2id_upgrade: mdb_txn_commit(2) failed, %s (%d)\n",
-				mdb_strerror(r2), r2 );
+				mdb_strerror(err), err );
 			if (!rc)
-				rc = r2;
+				rc = err;
 		}
 	}
 	ch_free(num);
