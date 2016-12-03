@@ -888,6 +888,7 @@ done:
 				e->e_id = NOID;
 			}
 			mdb_cursor_close( cursor );
+			cursor = NULL;
 			/* Must close the read txn to allow old pages to be reclaimed. */
 			mdb_txn_abort( mdb_tool_txn );
 			/* and then reopen it so that tool_entry_next still works. */
@@ -1431,6 +1432,7 @@ pop:
 		writes++;
 		if (writes == 1000) {
 			mdb_cursor_close(mc);
+			mc = NULL;
 			rc = mdb_txn_commit(mt);
 			if (rc) {
 				Debug(LDAP_DEBUG_ANY, "mdb_dn2id_upgrade: mdb_txn_commit failed, %s (%d)\n",
@@ -1469,7 +1471,10 @@ pop:
 			break;
 	}
 leave:
-	mdb_cursor_close(mc);
+	if (mc) {
+		mdb_cursor_close(mc);
+		mc = NULL;
+	}
 	if (mt) {
 		int r2;
 		r2 = mdb_txn_commit(mt);
