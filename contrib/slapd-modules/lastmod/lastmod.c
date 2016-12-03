@@ -881,7 +881,7 @@ lastmod_db_open( BackendDB *be, ConfigReply *cr )
 	fprintf( stderr, "# entry:\n%s\n", buf );
 #endif
 
-	lmi->lmi_e = str2entry( buf );
+	lmi->lmi_e = str2entry( buf, NULL );
 	if ( lmi->lmi_e == NULL ) {
 		return -1;
 	}

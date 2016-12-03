@@ -424,14 +424,13 @@ root_dse_read_file( const char *fname )
 	usr_attr->e_attrs = NULL;
 
 	while(( ldifrc = ldif_read_record( fp, &lineno, &buf, &lmax )) > 0 ) {
-		Entry *e = str2entry( buf );
+		Entry *e = str2entry( buf, &rc );
 		Attribute *a;
 
 		if( e == NULL ) {
 			Debug( LDAP_DEBUG_ANY, "root_dse_read_file: "
 				"could not parse entry (file=\"%s\" line=%lu)\n",
 				fname, lineno );
-			rc = LDAP_OTHER;
 			break;
 		}
 

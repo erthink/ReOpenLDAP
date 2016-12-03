@@ -114,7 +114,7 @@ slapi_str2entry(
 	char		*s,
 	int		flags )
 {
-	return str2entry( s );
+	return str2entry( s, NULL );
 }
 
 char *
