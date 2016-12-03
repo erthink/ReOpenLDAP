@@ -3425,7 +3425,6 @@ test -n "$target_alias" &&
     NONENONEs,x,x, &&
   program_prefix=${target_alias}-
 
-# LY: +check-news
 am__api_version='1.15'
 
 # Find a good install program.  We prefer a C program (faster),
@@ -13140,9 +13139,9 @@ VERSION_MINOR=2
 
 VERSION_PATCH=0
 
-RELEASE_DATE=2016-12-01
+RELEASE_DATE=2016-12-03
 
-RELEASE_STAMP=g199b5c882c36-tc949f793036e4379
+RELEASE_STAMP=g25edce034534-t85c19bd348d21a75
 
 API_LIB_RELEASE=1.2
 

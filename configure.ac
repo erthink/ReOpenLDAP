@@ -61,8 +61,7 @@ dnl Determine host platform
 dnl		we try not to use this for much
 AC_CANONICAL_TARGET([])
 
-# LY: +check-news
-AM_INIT_AUTOMAKE([subdir-objects --warnings=no-portability --warnings=error dist-xz no-dist-gzip])
+AM_INIT_AUTOMAKE([subdir-objects --warnings=no-portability --warnings=error check-news dist-xz no-dist-gzip])
 AM_SILENT_RULES([yes])
 AM_MAINTAINER_MODE([disable])
 LT_CONFIG_LTDL_DIR([build/libltdl])

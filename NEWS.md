@@ -1,3 +1,12 @@
+1.2.0-Devel (not yet released)
+==============================
+
+Briefly:
+ 1. Packages for Fedora/RedHat/CentOS and Debian/Ubuntu.
+ 2. TBD.
+ 3. TBD.
+
+
 v1.1.4 2016-11-30
 =================
 
@@ -40,6 +49,7 @@ Cosmetics:
 
 Other:
  * cleanup/refine AUTHORS file.
+
 
 v1.1.3, 2016-08-30
 ==================
