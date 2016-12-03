@@ -41,8 +41,8 @@ else
 fi
 TB="" TN=""
 if test -t 1 ; then
-	TB=`echo -e "%B" 2>/dev/null`
-	TN=`echo -e "%b" 2>/dev/null`
+	TB=`(tput bold; tput smul) 2>/dev/null`
+	TN=`(tput rmul; tput sgr0) 2>/dev/null`
 fi
 
 # sql-backed
