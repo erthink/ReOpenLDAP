@@ -58,25 +58,7 @@ if test $WAIT != 0 ; then
 fi
 KILLPIDS="$PID"
 
-sleep 1
-
-echo "Using ldapsearch to check that provider slapd is running..."
-for i in 0 1 2 3 4 5; do
-	$LDAPSEARCH -s base -b "" -H $URI1 \
-		'objectclass=*' > /dev/null 2>&1
-	RC=$?
-	if test $RC = 0 ; then
-		break
-	fi
-	echo "Waiting 5 seconds for slapd to start..."
-	sleep 5
-done
-
-if test $RC != 0 ; then
-	echo "ldapsearch failed ($RC)!"
-	killservers
-	exit $RC
-fi
+check_running 1 provider
 
 echo "Starting consumer slapd on TCP/IP port $PORT2..."
 config_filter $BACKEND ${AC_conf[monitor]} < $ITSDIR/slapd-consumer.ldif > $CONFLDIF
@@ -96,25 +78,7 @@ if test $WAIT != 0 ; then
 fi
 KILLPIDS="$KILLPIDS $SLAVEPID"
 
-sleep 1
-
-echo "Using ldapsearch to check that consumer slapd is running..."
-for i in 0 1 2 3 4 5; do
-	$LDAPSEARCH -s base -b "" -H $URI2 \
-		'objectclass=*' > /dev/null 2>&1
-	RC=$?
-	if test $RC = 0 ; then
-		break
-	fi
-	echo "Waiting 5 seconds for slapd to start..."
-	sleep 5
-done
-
-if test $RC != 0 ; then
-	echo "ldapsearch failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
-	exit $RC
-fi
+check_running 2 consumer
 
 echo "Setting serverID on provider..."
 $LDAPMODIFY -D cn=config -H $URI1 -y $CONFIGPWF <<EOF >>$TESTOUT 2>&1
@@ -127,7 +91,7 @@ RC=$?
 
 if test $RC != 0 ; then
 	echo "ldapmodify failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -169,7 +133,7 @@ EOMODS
 RC=$?
 if test $RC != 0 ; then
 	echo "ldapadd failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -185,7 +149,7 @@ EOF
 	RC=$?
 	if test $RC != 0 ; then
 		echo "ldapadd failed for moduleLoad ($RC)!"
-		test $KILLSERVERS != no && kill -HUP $KILLPIDS
+		killservers
 		exit $RC
 	fi
 fi
@@ -220,7 +184,7 @@ EOF
 RC=$?
 if test $RC != 0 ; then
 	echo "ldapmodify failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -240,12 +204,13 @@ EOF
 RC=$?
 if test $RC != 0 ; then
 	echo "ldapmodify failed for olcSyncrepl configuration ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
-echo "Sleeping 10 seconds to allow replication to initiate..."
-sleep 10
+#echo "Sleeping 10 seconds to allow replication to initiate..."
+#sleep 10
+wait_syncrepl $PORT1 $PORT2 "" "" "-D $MANAGERDN -w $PASSWD"
 
 echo "Using ldapsearch to read all the entries from the provider..."
 $LDAPSEARCH -S "" -D $MANAGERDN -w $PASSWD -b "$BASEDN" -H $URI1 \
@@ -294,12 +259,13 @@ replace: cn
 cn: John Doe
 EOMODS
 
-echo "Sleeping 30 seconds to allow consumer to reconnect and replicate..."
-sleep 30
+#echo "Sleeping 30 seconds to allow consumer to reconnect and replicate..."
+#sleep 30
+wait_syncrepl $PORT1 $PORT2 "" "" "-D $MANAGERDN -w $PASSWD"
 
 echo "Using ldapsearch to read all the entries from the provider..."
 $LDAPSEARCH -S "" -D $MANAGERDN -w $PASSWD -b "$BASEDN" -H $URI1 \
-        '(objectclass=*)' '*' $OPATTRS > $MASTEROUT 2>&1
+	'(objectclass=*)' '*' $OPATTRS > $MASTEROUT 2>&1
 RC=$?
 
 if test $RC != 0 ; then
@@ -313,12 +279,12 @@ $LDAPSEARCH -S "" -D $MANAGERDN -w $PASSWD -b "$BASEDN" -H $URI2 \
 	'(objectclass=*)' '*' $OPATTRS > $SLAVEOUT 2>&1
 RC=$?
 
+killservers
+
 if test $RC != 0 ; then
         echo "ldapsearch failed at consumer ($RC)!"
-        test $KILLSERVERS != no && kill -HUP $KILLPIDS
         exit $RC
 fi
-
 
 echo "Filtering provider results..."
 $LDIFFILTER < $MASTEROUT > $MASTERFLT
@@ -330,15 +296,8 @@ $CMP $MASTERFLT $SLAVEFLT > $CMPOUT
 
 if test $? != 0 ; then
         echo "test failed - provider and consumer databases differ"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
         exit 1
 fi
 
-test $KILLSERVERS != no && kill -HUP $KILLPIDS
-
-echo
 echo ">>>>> Test succeeded"
-
-test $KILLSERVERS != no && wait
-
 exit 0

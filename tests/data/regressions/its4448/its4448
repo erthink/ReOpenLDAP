@@ -24,7 +24,7 @@ if test ${AC_conf[meta]} = no ; then
 fi
 
 # to be removed some time...
-if test "x$TEST_META" = "xno" ; then
+if test "$TEST_META" = no ; then
 	echo '### Test disabled by "TEST_META=no"; unset TEST_META to re-enable'
 	echo ""
 	exit 0
@@ -38,8 +38,6 @@ fi
 if test x$TESTLOOPS = x ; then
 	TESTLOOPS=50
 fi
-
-rm -rf $TESTDIR
 
 mkdir -p $TESTDIR $DBDIR1 $DBDIR2
 
@@ -72,25 +70,7 @@ if test $WAIT != 0 ; then
     read foo
 fi
 KILLPIDS="$PID"
-
-sleep 1
-
-echo "Using ldapsearch to check that slapd is running..."
-for i in 0 1 2 3 4 5; do
-	$LDAPSEARCH -s base -b "$MONITOR" -h $LOCALHOST -p $PORT1 \
-		'objectclass=*' > /dev/null 2>&1
-	RC=$?
-	if test $RC = 0 ; then
-		break
-	fi
-	echo "Waiting 5 seconds for slapd to start..."
-	sleep 5
-done
-if test $RC != 0 ; then
-	echo "ldapsearch failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
-	exit $RC
-fi
+check_running 1
 
 echo "Using ldapadd to populate the database..."
 $LDAPADD -D "$MANAGERDN" -h $LOCALHOST -p $PORT1 -w $PASSWD < \
@@ -98,7 +78,7 @@ $LDAPADD -D "$MANAGERDN" -h $LOCALHOST -p $PORT1 -w $PASSWD < \
 RC=$?
 if test $RC != 0 ; then
 	echo "ldapadd failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -115,7 +95,7 @@ EOMODS
 RC=$?
 if test $RC != 0 ; then
 	echo "ldapadd failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -128,25 +108,7 @@ if test $WAIT != 0 ; then
     read foo
 fi
 KILLPIDS="$KILLPIDS $PID"
-
-sleep 1
-
-echo "Using ldapsearch to check that slapd is running..."
-for i in 0 1 2 3 4 5; do
-	$LDAPSEARCH -s base -b "$MONITOR" -h $LOCALHOST -p $PORT2 \
-		'objectclass=*' > /dev/null 2>&1
-	RC=$?
-	if test $RC = 0 ; then
-		break
-	fi
-	echo "Waiting 5 seconds for slapd to start..."
-	sleep 5
-done
-if test $RC != 0 ; then
-	echo "ldapsearch failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
-	exit $RC
-fi
+check_running 2
 
 echo "Using ldapadd to populate the database..."
 $LDAPADD -D "$METAMANAGERDN" -h $LOCALHOST -p $PORT2 -w $PASSWD < \
@@ -154,7 +116,7 @@ $LDAPADD -D "$METAMANAGERDN" -h $LOCALHOST -p $PORT2 -w $PASSWD < \
 RC=$?
 if test $RC != 0 ; then
 	echo "ldapadd failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -167,25 +129,7 @@ if test $WAIT != 0 ; then
     read foo
 fi
 KILLPIDS="$KILLPIDS $PID"
-
-sleep 1
-
-echo "Using ldapsearch to check that slapd is running..."
-for i in 0 1 2 3 4 5; do
-	$LDAPSEARCH -s base -b "$MONITOR" -h $LOCALHOST -p $PORT3 \
-		'objectclass=*' > /dev/null 2>&1
-	RC=$?
-	if test $RC = 0 ; then
-		break
-	fi
-	echo "Waiting 5 seconds for slapd to start..."
-	sleep 5
-done
-if test $RC != 0 ; then
-	echo "ldapsearch failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
-	exit $RC
-fi
+check_running 3
 
 cat /dev/null > $SEARCHOUT
 
@@ -291,7 +235,7 @@ RC=$?
 
 if test $RC != 0 ; then
 	echo "slapd-tester failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -300,7 +244,7 @@ $LDAPSEARCH -S "" -b "$METABASEDN" -h $LOCALHOST -p $PORT3 \
 			'(objectClass=*)' > $SEARCHOUT 2>&1
 RC=$?
 
-test $KILLSERVERS != no && kill -HUP $KILLPIDS
+killservers
 
 if test $RC != 0 ; then
 	echo "ldapsearch failed ($RC)!"
@@ -320,7 +264,4 @@ if test $? != 0 ; then
 fi
 
 echo ">>>>> Test succeeded"
-
-test $KILLSERVERS != no && wait
-
 exit 0
