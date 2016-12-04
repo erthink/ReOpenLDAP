@@ -15,11 +15,11 @@ include: file://@TESTWD@/@SCHEMADIR@/cosine.ldif
 include: file://@TESTWD@/@SCHEMADIR@/inetorgperson.ldif
 include: file://@TESTWD@/@SCHEMADIR@/misc.ldif
 
-#mod#dn: cn=module{0},cn=config
-#mod#objectClass: olcModuleList
-#mod#cn: module{0}
-#mod#olcModulePath: @TESTWD@/../servers/slapd/back-@BACKEND@/
-#mod#olcModuleLoad: {0}back_@BACKEND@.la
+#be-type=mod#dn: cn=module{0},cn=config
+#be-type=mod#objectClass: olcModuleList
+#be-type=mod#cn: module{0}
+#be-type=mod#olcModulePath: @TESTWD@/../servers/slapd/back-@BACKEND@/
+#be-type=mod#olcModuleLoad: {0}back_@BACKEND@.la
 
 #monitor=mod#dn: cn=module{1},cn=config
 #monitor=mod#objectClass: olcModuleList
