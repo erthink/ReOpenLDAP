@@ -2129,7 +2129,7 @@ syncprov_op_response( Operation *op, SlapReply *rs )
 	if ( rs->sr_err != LDAP_SUCCESS )
 		return SLAP_CB_CONTINUE;
 
-		switch(op->o_tag) {
+	switch(op->o_tag) {
 		default:
 			oper = "???"; break;
 		case LDAP_REQ_ADD:
