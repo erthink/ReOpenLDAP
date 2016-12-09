@@ -228,8 +228,8 @@ $LDAPSEARCH -S "" -D $MANAGERDN -w $PASSWD -b "$BASEDN" -H $URI2 \
 	'(objectclass=*)' '*' $OPATTRS > $SLAVEOUT 2>&1
 RC=$?
 
-if test $RC == 0 ; then
-	echo "ldapsearch succeeded at consumer ($RC)!"
+if test $RC != 32 ; then
+	echo "ldapsearch should have failed with error 32.  Got $RC instead!"
 	echo "This is a regression of ITS8281"
 	killservers
 	exit $RC
@@ -282,8 +282,8 @@ RC=$?
 killservers
 
 if test $RC != 0 ; then
-        echo "ldapsearch failed at consumer ($RC)!"
-        exit $RC
+	echo "ldapsearch failed at consumer ($RC)!"
+	exit $RC
 fi
 
 echo "Filtering provider results..."
@@ -295,8 +295,8 @@ echo "Comparing retrieved entries from provider and consumer..."
 $CMP $MASTERFLT $SLAVEFLT > $CMPOUT
 
 if test $? != 0 ; then
-        echo "test failed - provider and consumer databases differ"
-        exit 1
+	echo "test failed - provider and consumer databases differ"
+	exit 1
 fi
 
 echo ">>>>> Test succeeded"
