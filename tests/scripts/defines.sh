@@ -886,7 +886,7 @@ function run_testset {
 
 	BACKEND_MODE=$BACKEND
 	if [ -n "$REOPENLDAP_MODE" ]; then
-		BACKEND_MODE="$BACKEND/$REOPENLDAP_MODE"
+		BACKEND_MODE="$BACKEND_MODE/$REOPENLDAP_MODE"
 	fi
 
 	if [ -n "$VALGRIND_CMD" -a "$BACKEND" != mdb ]; then
@@ -894,7 +894,7 @@ function run_testset {
 		exit 0
 	fi
 
-	teamcity_msg "testSuiteStarted name='all LDAP tests for $BACKEND_MODE'"
+	teamcity_msg "testSuiteStarted name='${TESTSET} for $BACKEND_MODE'"
 	echo ">>>>> Executing ${TESTSET} for $BACKEND_MODE"
 
 	if [ -n "$NOEXIT" ]; then
@@ -942,7 +942,7 @@ EOF
 				((SKIPCOUNT++))
 				echo "***** Skip long ${TB}$BCMD${TN} for $BACKEND_MODE"
 				echo
-				teamcity_msg "testIgnored name='$BCMD for $BACKEND_MODE'"
+				teamcity_msg "testIgnored name='$TEST_ID'"
 				continue
 			fi
 		fi
@@ -952,7 +952,7 @@ EOF
 				((SKIPCOUNT++))
 				echo "***** Skip non-syncrepl ${TB}$BCMD${TN} for $BACKEND_MODE"
 				echo
-				teamcity_msg "testIgnored name='$BCMD for $BACKEND_MODE'"
+				teamcity_msg "testIgnored name='$TEST_ID'"
 				continue
 			fi
 		fi
@@ -972,7 +972,7 @@ EOF
 				done
 			fi
 
-			teamcity_msg "testStarted name='$BCMD for $BACKEND_MODE' captureStandardOutput='true'"
+			teamcity_msg "testStarted name='$TEST_ID' captureStandardOutput='true'"
 			echo ">>>>> Starting ${TB}$BCMD${TN} for $BACKEND_MODE..."
 			cibuzz_report ">>> ${TEST_ITER}--${TEST_ID}"
 
@@ -996,7 +996,7 @@ EOF
 				cibuzz_report "=== ${TEST_ITER}--${TEST_ID} = $RC"
 				collect_test $TEST_ID yes
 				echo "<<<<< $BCMD ${TB}failed${TN} for $BACKEND_MODE (code $RC, $RC_EXT)"
-				teamcity_msg "testFailed name='$BCMD for $BACKEND_MODE' message='code $RC, $RC_EXT'"
+				teamcity_msg "testFailed name='$TEST_ID' message='code $RC, $RC_EXT'"
 				((FAILCOUNT++))
 
 				if [ -n "$NOEXIT" ]; then
@@ -1005,12 +1005,12 @@ EOF
 					exit $RC
 				fi
 			fi
-			teamcity_msg "testFinished name='$BCMD for $BACKEND_MODE'"
+			teamcity_msg "testFinished name='$TEST_ID'"
 		else
 			echo "***** Skipping ${TB}$BCMD${TN} for $BACKEND_MODE."
 			((SKIPCOUNT++))
 			RC="-"
-			teamcity_msg "testIgnored name='$BCMD for $BACKEND_MODE'"
+			teamcity_msg "testIgnored name='$TEST_ID'"
 		fi
 
 		if [ -n "$NOEXIT" ]; then
