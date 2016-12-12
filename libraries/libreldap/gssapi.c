@@ -42,7 +42,7 @@
 static char *
 gsserrstr(
 	char *buf,
-	ber_len_t buf_len,
+	size_t buf_len,
 	gss_OID mech,
 	int gss_rc,
 	OM_uint32 minor_status )
@@ -53,13 +53,8 @@ gsserrstr(
 	gss_buffer_desc minor_msg = GSS_C_EMPTY_BUFFER;
 	OM_uint32 msg_ctx = 0;
 
-	if (buf == NULL) {
+	if (buf == NULL || buf_len == 0)
 		return NULL;
-	}
-
-	if (buf_len == 0) {
-		return NULL;
-	}
 
 #ifdef HAVE_GSS_OID_TO_STR
 	gss_oid_to_str(&min2, mech, &mech_msg);
@@ -82,7 +77,6 @@ gsserrstr(
 	gss_release_buffer(&min2, &minor_msg);
 
 	buf[buf_len-1] = '\0';
-
 	return buf;
 }
 
@@ -371,7 +365,6 @@ map_gsserr2ldap(
 
 	return ld->ld_errno;
 }
-
 
 static int
 ldap_gssapi_get_rootdse_infos (

@@ -262,17 +262,16 @@ backsql_dn2id(
 	backsql_BindRowAsStrings_x( sth, &row, op->o_tmpmemctx );
 	rc = SQLFetch( sth );
 	if ( BACKSQL_SUCCESS( rc ) ) {
-		char	buf[ SLAP_TEXT_BUFLEN ];
-
-#ifdef LDAP_DEBUG
-		snprintf( buf, sizeof(buf),
-			"id=%s keyval=%s oc_id=%s dn=%s",
-			row.cols[ 0 ], row.cols[ 1 ],
-			row.cols[ 2 ], row.cols[ 3 ] );
-		Debug( LDAP_DEBUG_TRACE,
-			"   backsql_dn2id(\"%s\"): %s\n",
-			ndn->bv_val, buf );
-#endif /* LDAP_DEBUG */
+		if ( DebugTest( LDAP_DEBUG_TRACE ) ) {
+			char	buf[ SLAP_TEXT_BUFLEN ];
+			snprintf( buf, sizeof(buf),
+				"id=%s keyval=%s oc_id=%s dn=%s",
+				row.cols[ 0 ], row.cols[ 1 ],
+				row.cols[ 2 ], row.cols[ 3 ] );
+			Debug( LDAP_DEBUG_TRACE,
+				"   backsql_dn2id(\"%s\"): %s\n",
+				ndn->bv_val, buf );
+		}
 
 		res = LDAP_SUCCESS;
 		if ( id != NULL ) {
