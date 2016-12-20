@@ -1723,13 +1723,9 @@ mdb_pages_xkeep(MDB_cursor *mc, unsigned pflags, int all)
 	unsigned i, j;
 	int rc = MDB_SUCCESS, level;
 
-	/* Mark pages seen by cursors */
-	if (mc->mc_flags & C_UNTRACK)
-		mc = NULL;				/* will find mc in mt_cursors */
-	for (i = txn->mt_numdbs;; mc = txn->mt_cursors[--i]) {
-		for (; mc; mc=mc->mc_next) {
-			if (!(mc->mc_flags & C_INITIALIZED))
-				continue;
+	/* Mark pages seen by cursors: First m0, then tracked cursors */
+	for (i = txn->mt_numdbs;; ) {
+		if (mc->mc_flags & C_INITIALIZED) {
 			for (m3 = mc;; m3 = &mx->mx_cursor) {
 				mp = NULL;
 				for (j=0; j<m3->mc_snum; j++) {
@@ -1748,10 +1744,13 @@ mdb_pages_xkeep(MDB_cursor *mc, unsigned pflags, int all)
 					break;
 			}
 		}
-		if (i == 0)
-			break;
+		mc = mc->mc_next;
+		for (; !mc || mc == m0; mc = txn->mt_cursors[--i])
+			if (i == 0)
+				goto mark_done;
 	}
 
+mark_done:
 	if (all) {
 		/* Mark dirty root pages */
 		for (i=0; i<txn->mt_numdbs; i++) {
@@ -6865,13 +6864,8 @@ current:
 						 * parent txn, in case the user peeks at MDB_RESERVEd
 						 * or unused parts. Some users treat ovpages specially.
 						 */
-#if MDBX_MODE_ENABLED
-						/* LY: New page will contain only header from origin,
-						 * but no any payload */
-						memcpy(np, omp, PAGEHDRSZ);
-#else
 						size_t sz = (size_t) env->me_psize * ovpages, off;
-						if (!(flags & MDB_RESERVE)) {
+						if (MDBX_MODE_ENABLED || !(flags & MDB_RESERVE)) {
 							/* Skip the part where LMDB will put *data.
 							 * Copy end of page, adjusting alignment so
 							 * compiler may copy words instead of bytes.
@@ -6882,7 +6876,6 @@ current:
 							sz = PAGEHDRSZ;
 						}
 						memcpy(np, omp, sz); /* Copy whole or header of page */
-#endif /* MDBX_MODE_ENABLED */
 						omp = np;
 					}
 					SETDSZ(leaf, data->mv_size);
@@ -7727,7 +7720,10 @@ mdb_cursor_close(MDB_cursor *mc)
 	if (mc) {
 		mdb_ensure(NULL, mc->mc_signature == MDBX_MC_SIGNATURE);
 		if (!mc->mc_backup) {
-			/* remove from txn, if tracked */
+			/* Remove from txn, if tracked.
+			 * A read-only txn (!C_UNTRACK) may have been freed already,
+			 * so do not peek inside it.  Only write txns track cursors.
+			 */
 			if ((mc->mc_flags & C_UNTRACK) && mc->mc_txn->mt_cursors) {
 				MDB_cursor **prev = &mc->mc_txn->mt_cursors[mc->mc_dbi];
 				while (*prev && *prev != mc) prev = &(*prev)->mc_next;
@@ -8578,7 +8574,6 @@ mdb_del0(MDB_txn *txn, MDB_dbi dbi,
 		 * run out of space, triggering a split. We need this
 		 * cursor to be consistent until the end of the rebalance.
 		 */
-		mc.mc_flags |= C_UNTRACK;
 		mc.mc_next = txn->mt_cursors[dbi];
 		txn->mt_cursors[dbi] = &mc;
 		rc = mdb_cursor_del(&mc, flags);
@@ -8677,7 +8672,6 @@ mdb_page_split(MDB_cursor *mc, MDB_val *newkey, MDB_val *newdata, pgno_t newpgno
 		split_indx = newindx;
 		nkeys = 0;
 	} else {
-
 		split_indx = (nkeys+1) / 2;
 
 		if (IS_LEAF2(rp)) {
@@ -8837,7 +8831,7 @@ mdb_page_split(MDB_cursor *mc, MDB_val *newkey, MDB_val *newdata, pgno_t newpgno
 			} else {
 				/* find right page's left sibling */
 				mc->mc_ki[ptop] = mn.mc_ki[ptop];
-				mdb_cursor_sibling(mc, 0);
+				rc = mdb_cursor_sibling(mc, 0);
 			}
 		}
 	} else {
@@ -8845,8 +8839,11 @@ mdb_page_split(MDB_cursor *mc, MDB_val *newkey, MDB_val *newdata, pgno_t newpgno
 		rc = mdb_node_add(&mn, mn.mc_ki[ptop], &sepkey, NULL, rp->mp_pgno, 0);
 		mn.mc_top++;
 	}
-	if (unlikely(rc != MDB_SUCCESS))
+	if (unlikely(rc != MDB_SUCCESS)) {
+		if (rc == MDB_NOTFOUND) /* improper mdb_cursor_sibling() result */
+			rc = MDB_PROBLEM;
 		goto done;
+	}
 	if (nflags & MDB_APPEND) {
 		mc->mc_pg[mc->mc_top] = rp;
 		mc->mc_ki[mc->mc_top] = 0;
@@ -9075,6 +9072,14 @@ mdb_env_copythr(void *arg)
 	int toggle = 0, wsize, rc = 0;
 	int len;
 
+#ifdef SIGPIPE
+	sigset_t set;
+	sigemptyset(&set);
+	sigaddset(&set, SIGPIPE);
+	if ((rc = pthread_sigmask(SIG_BLOCK, &set, NULL)) != 0)
+		my->mc_error = rc;
+#endif
+
 	pthread_mutex_lock(&my->mc_mutex);
 	for(;;) {
 		while (!my->mc_new)
@@ -9089,6 +9094,15 @@ again:
 			len = write(my->mc_fd, ptr, wsize);
 			if (len < 0) {
 				rc = errno;
+#ifdef SIGPIPE
+				if (rc == EPIPE) {
+					/* Collect the pending SIGPIPE, otherwise at least OS X
+					 * gives it to the process on thread-exit (ITS#8504).
+					 */
+					int tmp;
+					sigwait(&set, &tmp);
+				}
+#endif
 				break;
 			} else if (len > 0) {
 				rc = MDB_SUCCESS;
