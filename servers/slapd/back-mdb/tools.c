@@ -213,6 +213,14 @@ int mdb_tool_entry_close(
 		mdb_cursor_close( cursor );
 		cursor = NULL;
 	}
+	{
+		struct mdb_info *mdb = be->be_private;
+		if ( mdb ) {
+			int i;
+			for (i=0; i<mdb->mi_nattrs; i++)
+				mdb->mi_attrs[i]->ai_cursor = NULL;
+		}
+	}
 	if( mdb_tool_txn ) {
 		MDB_TOOL_IDL_FLUSH( be, mdb_tool_txn );
 		int rc = mdb_tool_txn_commit(be, mdb_tool_txn);
