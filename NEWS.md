@@ -1,8 +1,8 @@
-1.2.0-Devel (not yet released)
-==============================
+1.1.5-ReleaseCandidate (not yet released)
+=========================================
 
 Briefly:
- 1. Packages for Fedora/RedHat/CentOS and Debian/Ubuntu.
+ 1. TBD.
  2. TBD.
  3. TBD.
 
