@@ -1353,7 +1353,6 @@ static int parseAssert (
 	LDAPControl *ctrl )
 {
 	BerElement	*ber;
-	struct berval	fstr = BER_BVNULL;
 
 	if ( op->o_assert != SLAP_CONTROL_NONE ) {
 		rs->sr_text = "assert control specified multiple times";
@@ -1394,13 +1393,13 @@ static int parseAssert (
 		return rs->sr_err;
 	}
 
-#ifdef LDAP_DEBUG
-	filter2bv_x( op, op->o_assertion, &fstr );
-
-	Debug( LDAP_DEBUG_ARGS, "parseAssert: conn %ld assert: %s\n",
-		op->o_connid, fstr.bv_len ? fstr.bv_val : "empty"  );
-	op->o_tmpfree( fstr.bv_val, op->o_tmpmemctx );
-#endif
+	if ( DebugTest( LDAP_DEBUG_ARGS ) ) {
+		struct berval	fstr = BER_BVNULL;
+		filter2bv_x( op, op->o_assertion, &fstr );
+		Debug( LDAP_DEBUG_ARGS, "parseAssert: conn %ld assert: %s\n",
+			op->o_connid, fstr.bv_len ? fstr.bv_val : "empty"  );
+		op->o_tmpfree( fstr.bv_val, op->o_tmpmemctx );
+	}
 
 	op->o_assert = ctrl->ldctl_iscritical
 		? SLAP_CONTROL_CRITICAL
@@ -1539,7 +1538,6 @@ static int parseValuesReturnFilter (
 	LDAPControl *ctrl )
 {
 	BerElement	*ber;
-	struct berval	fstr = BER_BVNULL;
 
 	if ( op->o_valuesreturnfilter != SLAP_CONTROL_NONE ) {
 		rs->sr_text = "valuesReturnFilter control specified multiple times";
@@ -1577,15 +1575,14 @@ static int parseValuesReturnFilter (
 		}
 		if( op->o_vrFilter != NULL) vrFilter_free( op, op->o_vrFilter );
 	}
-#ifdef LDAP_DEBUG
-	else {
-		vrFilter2bv( op, op->o_vrFilter, &fstr );
-	}
+	else if ( DebugTest( LDAP_DEBUG_ARGS ) ) {
+		struct berval	fstr = BER_BVNULL;
 
-	Debug( LDAP_DEBUG_ARGS, "	vrFilter: %s\n",
-		fstr.bv_len ? fstr.bv_val : "empty" );
-	op->o_tmpfree( fstr.bv_val, op->o_tmpmemctx );
-#endif
+		vrFilter2bv( op, op->o_vrFilter, &fstr );
+		Debug( LDAP_DEBUG_ARGS, "	vrFilter: %s\n",
+			fstr.bv_len ? fstr.bv_val : "empty" );
+		op->o_tmpfree( fstr.bv_val, op->o_tmpmemctx );
+	}
 
 	op->o_valuesreturnfilter = ctrl->ldctl_iscritical
 		? SLAP_CONTROL_CRITICAL

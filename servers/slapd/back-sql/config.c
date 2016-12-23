@@ -572,14 +572,13 @@ read_baseObject(
 	bi->sql_baseObject->e_attrs = NULL;
 
 	while (( ldifrc = ldif_read_record( fp, &lineno, &buf, &lmax )) > 0 ) {
-		Entry		*e = str2entry( buf );
+		Entry		*e = str2entry( buf, &rc );
 		Attribute	*a;
 
 		if( e == NULL ) {
 			fprintf( stderr, "back-sql baseObject: "
 					"could not parse entry (line=%lu)\n",
 					lineno );
-			rc = LDAP_OTHER;
 			break;
 		}
 
@@ -656,7 +655,7 @@ create_baseObject(
 				"in the \"parent\" column",
 			be->be_suffix[0].bv_val );
 
-	bi->sql_baseObject = str2entry( buf );
+	bi->sql_baseObject = str2entry( buf, NULL );
 	if ( bi->sql_baseObject == NULL ) {
 		Debug( LDAP_DEBUG_TRACE,
 			"<==backsql_db_config (%s line %d): "

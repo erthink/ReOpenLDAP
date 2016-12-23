@@ -86,17 +86,20 @@ entry_init(void)
 }
 
 Entry *
-str2entry( char *s )
+str2entry( char *s, int *rc )
 {
-	return str2entry2( s, 1 );
+	return str2entry2( s, 1, rc );
 }
 
 #define bvcasematch(bv1, bv2)	(ber_bvstrcasecmp(bv1, bv2) == 0)
 
 Entry *
-str2entry2( char *s, int checkvals )
+str2entry2( char *s, int checkvals, int *rc )
 {
-	int rc;
+	int dummy;
+	if (! rc)
+		rc = &dummy;
+
 	Entry		*e;
 	struct berval	*type, *vals, *nvals;
 	char 	*freeval;
@@ -122,6 +125,7 @@ str2entry2( char *s, int checkvals )
 	 * or newline.
 	 */
 
+	*rc = LDAP_OTHER;
 	Debug( LDAP_DEBUG_TRACE, "=> str2entry: \"%s\"\n",
 		s ? s : "NULL" );
 
@@ -130,7 +134,8 @@ str2entry2( char *s, int checkvals )
 	if( e == NULL ) {
 		Debug( LDAP_DEBUG_ANY,
 			"<= str2entry NULL (entry allocation failed)\n" );
-		return( NULL );
+		*rc = LDAP_NO_MEMORY;
+		return NULL;
 	}
 
 	/* initialize entry */
@@ -161,14 +166,16 @@ str2entry2( char *s, int checkvals )
 		if (i >= lines) {
 			Debug( LDAP_DEBUG_TRACE,
 				"<= str2entry ran past end of entry\n" );
+			*rc = LDAP_INVALID_SYNTAX;
 			goto fail;
 		}
 
-		rc = ldif_parse_line2( s, type+i, vals+i, &freev );
+		int err = ldif_parse_line2( s, type+i, vals+i, &freev );
 		freeval[i] = freev;
-		if ( rc ) {
+		if ( err ) {
 			Debug( LDAP_DEBUG_TRACE,
 				"<= str2entry NULL (parse_line)\n" );
+			*rc = LDAP_OTHER;
 			continue;
 		}
 
@@ -177,11 +184,12 @@ str2entry2( char *s, int checkvals )
 				Debug( LDAP_DEBUG_ANY, "str2entry: "
 					"entry %ld has multiple DNs \"%s\" and \"%s\"\n",
 					(long) e->e_id, e->e_dn, vals[i].bv_val );
+				*rc = LDAP_INVALID_SYNTAX;
 				goto fail;
 			}
 
-			rc = dnPrettyNormal( NULL, &vals[i], &e->e_name, &e->e_nname, NULL );
-			if( rc != LDAP_SUCCESS ) {
+			*rc = dnPrettyNormal( NULL, &vals[i], &e->e_name, &e->e_nname, NULL );
+			if( *rc != LDAP_SUCCESS ) {
 				Debug( LDAP_DEBUG_ANY, "str2entry: "
 					"entry %ld has invalid DN \"%s\"\n",
 					(long) e->e_id, vals[i].bv_val );
@@ -199,6 +207,7 @@ str2entry2( char *s, int checkvals )
 	if ( BER_BVISNULL( &e->e_name )) {
 		Debug( LDAP_DEBUG_ANY, "str2entry: entry %ld has no dn\n",
 			(long) e->e_id );
+		*rc = LDAP_INVALID_SYNTAX;
 		goto fail;
 	}
 
@@ -236,9 +245,9 @@ str2entry2( char *s, int checkvals )
 			ad_prev = ad;
 			if ( !ad || ( i<lines && !bvcasematch( type+i, &ad->ad_cname ))) {
 				ad = NULL;
-				rc = slap_bv2ad( type+i, &ad, &text );
+				*rc = slap_bv2ad( type+i, &ad, &text );
 
-				if( rc != LDAP_SUCCESS ) {
+				if( *rc != LDAP_SUCCESS ) {
 					int wtool = ( slapMode & (SLAP_TOOL_MODE|SLAP_TOOL_READONLY) ) == SLAP_TOOL_MODE;
 					Debug( wtool ? LDAP_DEBUG_ANY : LDAP_DEBUG_TRACE,
 						"<= str2entry: str2ad(%s): %s\n", type[i].bv_val, text );
@@ -246,8 +255,8 @@ str2entry2( char *s, int checkvals )
 						goto fail;
 					}
 
-					rc = slap_bv2undef_ad( type+i, &ad, &text, 0 );
-					if( rc != LDAP_SUCCESS ) {
+					*rc = slap_bv2undef_ad( type+i, &ad, &text, 0 );
+					if( *rc != LDAP_SUCCESS ) {
 						Debug( LDAP_DEBUG_ANY,
 							"<= str2entry: slap_str2undef_ad(%s): %s\n",
 								type[i].bv_val, text );
@@ -262,6 +271,7 @@ str2entry2( char *s, int checkvals )
 						"needs ';binary' transfer as per syntax %s\n",
 						ad->ad_cname.bv_val, 0,
 						ad->ad_type->sat_syntax->ssyn_oid );
+					*rc = LDAP_INVALID_SYNTAX;
 					goto fail;
 				}
 			}
@@ -301,10 +311,10 @@ str2entry2( char *s, int checkvals )
 				attr_cnt = 0;
 				/* FIXME: we only need this when migrating from an unsorted DB */
 				if ( atail->a_desc->ad_type->sat_flags & SLAP_AT_SORTED_VAL ) {
-					rc = slap_sort_vals( (Modifications *)atail, &text, &j, NULL );
-					if ( rc == LDAP_SUCCESS ) {
+					*rc = slap_sort_vals( (Modifications *)atail, &text, &j, NULL );
+					if ( *rc == LDAP_SUCCESS ) {
 						atail->a_flags |= SLAP_ATTR_SORTED_VALS;
-					} else if ( rc == LDAP_TYPE_OR_VALUE_EXISTS ) {
+					} else if ( *rc == LDAP_TYPE_OR_VALUE_EXISTS ) {
 						Debug( LDAP_DEBUG_ANY,
 							"str2entry: attributeType %s value #%d provided more than once\n",
 							atail->a_desc->ad_cname.bv_val, j );
@@ -319,21 +329,23 @@ str2entry2( char *s, int checkvals )
 					"str2entry: attributeType %s #%d: "
 					"no value\n",
 					ad->ad_cname.bv_val, attr_cnt );
+				*rc = LDAP_INVALID_SYNTAX;
 				goto fail;
 			}
 
 			if ( ad->ad_type->sat_equality &&
 				ad->ad_type->sat_equality->smr_normalize )
 			{
-				rc = ordered_value_normalize(
+				*rc = ordered_value_normalize(
 					SLAP_MR_VALUE_OF_ATTRIBUTE_SYNTAX,
 					ad,
 					ad->ad_type->sat_equality,
 					&vals[i], &nvals[i], NULL );
 
-				if ( rc ) {
+				if ( *rc ) {
 					Debug( LDAP_DEBUG_ANY,
-				   		"<= str2entry NULL (smr_normalize %s %d)\n", ad->ad_cname.bv_val, rc );
+						"<= str2entry NULL (smr_normalize %s='%s' %d)\n",
+						ad->ad_cname.bv_val, vals[i].bv_val, *rc );
 					goto fail;
 				}
 			}
@@ -346,9 +358,10 @@ str2entry2( char *s, int checkvals )
 	atail->a_next = NULL;
 	e->e_attrs = ahead.a_next;
 
+	*rc = LDAP_SUCCESS;
 	Debug(LDAP_DEBUG_TRACE, "<= str2entry(%s) -> 0x%lx\n",
 		e->e_dn, (unsigned long) e );
-	return( e );
+	return e;
 
 fail:
 	for ( i=0; i<lines; i++ ) {

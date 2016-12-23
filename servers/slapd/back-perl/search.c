@@ -67,7 +67,7 @@ perl_back_search(
 
 				buf = POPp;
 
-				if ( (e = str2entry( buf )) == NULL ) {
+				if ( (e = str2entry( buf, NULL )) == NULL ) {
 					Debug( LDAP_DEBUG_ANY, "str2entry(%s) failed\n", buf );
 
 				} else {

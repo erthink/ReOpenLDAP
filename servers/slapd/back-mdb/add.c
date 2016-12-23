@@ -32,7 +32,7 @@ mdb_add(Operation *op, SlapReply *rs )
 	AttributeDescription *entry = slap_schema.si_ad_entry;
 	MDB_txn		*txn = NULL;
 	MDB_cursor	*mc = NULL;
-	MDB_cursor	*mcd;
+	MDB_cursor	*mcd = NULL;
 	ID eid, pid = 0;
 	mdb_op_info opinfo = {{{ 0 }}}, *moi = &opinfo;
 	int subentry;
@@ -333,6 +333,7 @@ txnReturn:
 	/* dn2id index */
 	rs->sr_err = mdb_dn2id_add( op, mcd, mcd, pid, 1, 1, op->ora_e );
 	mdb_cursor_close( mcd );
+	mcd = NULL;
 	if ( rs->sr_err != 0 ) {
 		Debug( LDAP_DEBUG_TRACE,
 			LDAP_XSTRING(mdb_add) ": dn2id_add failed: %s (%d)\n",
@@ -388,6 +389,15 @@ txnReturn:
 		}
 	}
 
+	if (mcd) {
+		mdb_cursor_close( mcd );
+		mcd = NULL;
+	}
+	if (mc) {
+		mdb_cursor_close( mc );
+		mc = NULL;
+	}
+
 	if ( moi == &opinfo ) {
 		LDAP_SLIST_REMOVE( &op->o_extra, &opinfo.moi_oe, OpExtra, oe_next );
 		opinfo.moi_oe.oe_key = NULL;
@@ -423,6 +433,15 @@ txnReturn:
 	if( num_ctrls ) rs->sr_ctrls = ctrls;
 
 return_results:
+	if (mcd) {
+		mdb_cursor_close( mcd );
+		mcd = NULL;
+	}
+	if (mc) {
+		mdb_cursor_close( mc );
+		mc = NULL;
+	}
+
 	success = rs->sr_err;
 	send_ldap_result( op, rs );
 	rs_send_cleanup( rs );

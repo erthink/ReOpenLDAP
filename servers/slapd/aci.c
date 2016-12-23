@@ -805,10 +805,8 @@ dynacl_aci_mask(
 	AttributeDescription	*ad = ( AttributeDescription * )priv;
 	Attribute		*at;
 	slap_access_t		tgrant, tdeny, grant, deny;
-#ifdef LDAP_DEBUG
-	char			accessmaskbuf[ACCESSMASK_MAXLEN];
-	char			accessmaskbuf1[ACCESSMASK_MAXLEN];
-#endif /* LDAP_DEBUG */
+	char			accessmaskbuf[ACCESSMASK_MAXLEN] MAY_UNUSED;
+	char			accessmaskbuf1[ACCESSMASK_MAXLEN] MAY_UNUSED;
 
 	if ( BER_BVISEMPTY( &e->e_nname ) ) {
 		/* no ACIs in the root DSE */

@@ -774,7 +774,6 @@ backsql_add_attr(
 		int		prc = LDAP_SUCCESS;
 		/* first parameter #, parameter order */
 		SQLUSMALLINT	pno, po;
-		char		logbuf[ STRLENOF("val[], id=") + 2*LDAP_PVT_INTTYPE_CHARS(unsigned long)];
 
 		/*
 		 * Do not deal with the objectClass that is used
@@ -851,8 +850,8 @@ backsql_add_attr(
 			return rs->sr_err = LDAP_OTHER;
 		}
 
-#ifdef LDAP_DEBUG
 		if ( DebugTest( LDAP_DEBUG_TRACE ) ) {
+			char logbuf[ STRLENOF("val[], id=") + 2*LDAP_PVT_INTTYPE_CHARS(unsigned long)];
 			snprintf( logbuf, sizeof( logbuf ), "val[%lu], id=" BACKSQL_IDNUMFMT,
 					i, new_keyval );
 			Debug( LDAP_DEBUG_TRACE, "   backsql_add_attr(\"%s\"): "
@@ -860,7 +859,7 @@ backsql_add_attr(
 				op->ora_e->e_name.bv_val,
 				at_rec->bam_add_proc, logbuf );
 		}
-#endif
+
 		rc = SQLExecute( sth );
 		if ( rc == SQL_SUCCESS && prc == LDAP_SUCCESS ) {
 			rs->sr_err = LDAP_SUCCESS;

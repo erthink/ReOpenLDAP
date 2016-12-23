@@ -750,29 +750,33 @@ check test check-TESTS: $(BACKENDS)
 clean-local:
 	-$(RM) -r testrun configpw configpw.conf *gmon *core
 
-its regressions:
-	@echo "Testing (available) ITS regressions"
-	@$(RUN) its-all
-
 # LY: still not ready
 #ldif:
 #	@echo "Initiating LDAP tests for LDIF..."
-#	@$(RUN) -b $@ all
+#	@$(RUN) -b $@ all || exit $$?
+#	@echo "Testing (available) ITS regressions for LDIF..."
+#	@$(RUN) -b $@ its-all || exit $$?
 
 mdb mdbx:
-@BUILD_MDBX_TRUE@	@echo "Initiating LDAP tests for MDBX..."
-@BUILD_MDBX_TRUE@	@$(RUN) -b $@ all
-@BUILD_MDBX_FALSE@	@echo "run configure with --enable-mdbx to run MDBX tests"
+@BUILD_MDBX_TRUE@	@echo "Initiating LDAP tests for MDBX-backend..."
+@BUILD_MDBX_TRUE@	@$(RUN) -b $@ all || exit $$?
+@BUILD_MDBX_TRUE@	@echo "Testing (available) ITS regressions for MDBX-backend..."
+@BUILD_MDBX_TRUE@	@$(RUN) -b $@ its-all || exit $$?
+@BUILD_MDBX_FALSE@	@echo "run configure with --enable-mdbx to run MDBX-backend tests"
 
 bdb:
-@BUILD_BDB_TRUE@	@echo "Initiating LDAP tests for BDB..."
-@BUILD_BDB_TRUE@	@$(RUN) -b $@ all
-@BUILD_BDB_FALSE@	@echo "run configure with --enable-bdb to run BDB tests"
+@BUILD_BDB_TRUE@	@echo "Initiating LDAP tests for obsolete BDB-backend..."
+@BUILD_BDB_TRUE@	@$(RUN) -b $@ all || exit $$?
+@BUILD_BDB_TRUE@	@echo "Testing (available) ITS regressions for obsolete BDB-backend..."
+@BUILD_BDB_TRUE@	@$(RUN) -b $@ its-all || exit $$?
+@BUILD_BDB_FALSE@	@echo "run configure with --enable-bdb to run obsolete BDB-backend tests"
 
 hdb:
-@BUILD_HDB_TRUE@	@echo "Initiating LDAP tests for HDB..."
-@BUILD_HDB_TRUE@	@$(RUN) -b $@ all
-@BUILD_HDB_FALSE@	@echo "run configure with --enable-hdb to run HDB tests"
+@BUILD_HDB_TRUE@	@echo "Initiating LDAP tests for obsolete HDB-backend..."
+@BUILD_HDB_TRUE@	@$(RUN) -b $@ all || exit $$?
+@BUILD_HDB_TRUE@	@echo "Testing (available) ITS regressions for obsolete HDB-backend..."
+@BUILD_HDB_TRUE@	@$(RUN) -b $@ its-all || exit $$?
+@BUILD_HDB_FALSE@	@echo "run configure with --enable-hdb to run obsolete HDB-backend tests"
 
 # LY: TODO
 ldif dnssrv ldap meta monitor ndb null passwd perl relay shell sock sql:

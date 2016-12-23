@@ -61,8 +61,7 @@ dnl Determine host platform
 dnl		we try not to use this for much
 AC_CANONICAL_TARGET([])
 
-# LY: +check-news
-AM_INIT_AUTOMAKE([subdir-objects --warnings=no-portability --warnings=error dist-xz no-dist-gzip])
+AM_INIT_AUTOMAKE([subdir-objects --warnings=no-portability --warnings=error check-news dist-xz no-dist-gzip])
 AM_SILENT_RULES([yes])
 AM_MAINTAINER_MODE([disable])
 LT_CONFIG_LTDL_DIR([build/libltdl])
@@ -708,23 +707,32 @@ dnl Perl
 ol_link_perl=no
 if test $ol_enable_perl != no ; then
 	AC_PATH_PROG(PERLBIN, perl, /usr/bin/perl)
-
-	if test "no$PERLBIN" = "no" ; then
-		if test $ol_enable_perl = yes ; then
-			AC_MSG_ERROR([could not locate perl])
-		fi
-
-	else
-		PERL_CPPFLAGS="`$PERLBIN -MExtUtils::Embed -e ccopts`"
-		PERL_LIBS="`$PERLBIN -MExtUtils::Embed -e ldopts | sed -e 's/^-L /-L/g' -e 's/^-l /-l/g' | tr -s '[[:space:]]' '\n' | grep -e '^-l' -e '^-L' | grep -v '^-lc' | tr '\n' ' '`"
-		PERL_LDFLAGS="`$PERLBIN -MExtUtils::Embed -e ldopts | sed -e 's/^-L /-L/g' -e 's/^-l /-l/g' | tr -s '[[:space:]]' '\n' | grep -v -e '^-l' -e '^-L' | tr '\n' ' '`"
-		if test -z "$PERL_CPPFLAGS" -o -z "$PERL_LIBS"; then
-			AC_MSG_ERROR([could not fetch perl libs or options])
-		fi
-		PERL_RDIR="`echo $PERL_LDFLAGS | tr '[[:space:]]' '\n' | grep -- '-Wl,-rpath,' | sed 's/-Wl,-rpath,/-R/'`"
-		dnl should check perl version
-		ol_link_perl=yes
+	if test -z "$PERLBIN"; then
+		AC_MSG_ERROR([could not locate perl])
 	fi
+
+	PERL_CPPFLAGS="`$PERLBIN -MExtUtils::Embed -e ccopts`"
+	PERL_LIBS="`$PERLBIN -MExtUtils::Embed -e ldopts | sed -e 's/^-L /-L/g' -e 's/^-l /-l/g' | tr -s '[[:space:]]' '\n' | grep -e '^-l' | grep -v '^-lc$' | tr '\n' ' '`"
+	PERL_LDFLAGS="`$PERLBIN -MExtUtils::Embed -e ldopts | sed -e 's/^-L /-L/g' -e 's/^-l /-l/g' | tr -s '[[:space:]]' '\n' | grep -v -e '^-l' | tr '\n' ' '`"
+	if test -z "$PERL_CPPFLAGS" -o -z "$PERL_LIBS"; then
+		AC_MSG_ERROR([could not fetch perl libs or options])
+	fi
+	PERL_RDIR="`echo $PERL_LDFLAGS | tr '[[:space:]]' '\n' | grep -- '-Wl,-rpath,' | sed 's/-Wl,-rpath,/-R/'`"
+
+	save_LIBS=$LIBS
+	save_CFLAGS=$CFLAGS
+	save_LDFLAGS=$LDFLAGS
+	CFLAGS="$CFLAGS $PERL_CPPFLAGS"
+	LDFLAGS="$LDFLAGS $PERL_LDFLAGS"
+	AC_SEARCH_LIBS(perl_construct, [`echo $PERL_LIBS | sed 's/^-l//;s/ -l/ /g'`], [ol_link_perl=yes])
+	LDFLAGS=$save_LDFLAGS
+	CFLAGS=$save_CFLAGS
+	LIBS=$save_LIBS
+
+	if test $ol_link_perl = no -a $ol_enable_perl = yes ; then
+		AC_MSG_ERROR([libperl not found (libperl-dev installed?)])
+	fi
+	dnl should check perl version
 fi
 
 dnl ----------------------------------------------------------------
@@ -1133,10 +1141,10 @@ if test $moznss_found = yes; then
 	AC_MSG_ERROR([could not locate nspr/nspr.h or nspr4/nspr.h])
     fi
     AC_CHECK_HEADERS([nss/nss.h nss3/nss.h])
-     if test $ac_cv_header_nss_nss_h != yes -a $ac_cv_header_nss3_nss_h != yes; then
+    if test $ac_cv_header_nss_nss_h != yes -a $ac_cv_header_nss3_nss_h != yes; then
 	AC_MSG_ERROR([could not locate nss/nss.h or nss3/nss.h])
     fi
-   CFLAGS=$save_CFLAGS
+    CFLAGS=$save_CFLAGS
 fi
 
 AM_CONDITIONAL([TLS_FALLBACK_AVAIL], [test $gnutls_found = yes -o $openssl_found = yes])

@@ -22,7 +22,7 @@ AM_CPPFLAGS = -DSLAPI_LIBRARY -DSLAPD_IMPORT \
 	-I$(srcdir)/.. -I$(top_srcdir)/include $(LTDLINCL)
 
 libreslapi_la_LIBADD = $(SLAPI_LIBS) $(LIBLTDL)
-libreslapi_la_DEPENDENCIES = $(LTDLDEPS)
+EXTRA_libreslapi_la_DEPENDENCIES = $(LTDLDEPS)
 
 if BEHIND_CURTIAN
 BUILT_SOURCES = banner.c
