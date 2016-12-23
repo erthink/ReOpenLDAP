@@ -149,10 +149,12 @@ static int mdb_tool_terminate_txn(BackendDB *be, MDB_txn *txn, int abort)
 		cursor = NULL;
 	}
 
-	for ( int i = 0; i < mdb->mi_nattrs; i++ ) {
-		if (mdb->mi_attrs[i]->ai_cursor) {
-			mdb_cursor_close( mdb->mi_attrs[i]->ai_cursor );
-			mdb->mi_attrs[i]->ai_cursor = NULL;
+	if (mdb) {
+		for ( int i = 0; i < mdb->mi_nattrs; i++ ) {
+			if (mdb->mi_attrs[i]->ai_cursor) {
+				mdb_cursor_close( mdb->mi_attrs[i]->ai_cursor );
+				mdb->mi_attrs[i]->ai_cursor = NULL;
+			}
 		}
 	}
 
