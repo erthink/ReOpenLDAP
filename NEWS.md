@@ -1,5 +1,5 @@
-1.1.5-ReleaseCandidate (not yet released)
-=========================================
+v1.1.5 2016-12-30
+=================
 
 Briefly:
  1. Set of fixes for MDBX and mdb-backend.
@@ -15,7 +15,7 @@ Documentation:
  * mdbx: set of LMDB-0.9.19 updates (doxygen and comments).
  * man: `interval` keyword info (ITS#8538).
 
-Major and Security bugs: none
+Major and Security bugs: _none_
 
 Minor bugs:
  * mdbx: more for cursor tracking after deletion (ITS#8406).
@@ -31,7 +31,7 @@ Minor bugs:
  * backend-mdb: fix mdb_add() cursor leak.
  * backend-mdb: fix cursor leak.
 
-Performance: none
+Performance: _none_
 
 Build:
  * configure: checking for libperl.
