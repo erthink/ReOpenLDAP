@@ -5,7 +5,7 @@
 #
 # Report bugs to <https://github.com/ReOpen/ReOpenLDAP/issues>.
 #
-# Copyright 1992-2016 ReOpenLDAP AUTHORS: please see AUTHORS file.
+# Copyright 1992-2017 ReOpenLDAP AUTHORS: please see AUTHORS file.
 # All rights reserved.
 #
 # This file is part of ReOpenLDAP.
@@ -2067,7 +2067,7 @@ Copyright (C) 2012 Free Software Foundation, Inc.
 This configure script is free software; the Free Software Foundation
 gives unlimited permission to copy, distribute and modify it.
 
-Copyright 1992-2016 ReOpenLDAP AUTHORS: please see AUTHORS file.
+Copyright 1992-2017 ReOpenLDAP AUTHORS: please see AUTHORS file.
 All rights reserved.
 
 This file is part of ReOpenLDAP.

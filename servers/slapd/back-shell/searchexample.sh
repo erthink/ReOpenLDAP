@@ -1,6 +1,6 @@
 #! /bin/sh
 ## $ReOpenLDAP$
-## Copyright 1995-2016 ReOpenLDAP AUTHORS: please see AUTHORS file.
+## Copyright 1995-2017 ReOpenLDAP AUTHORS: please see AUTHORS file.
 ## All rights reserved.
 ##
 ## This file is part of ReOpenLDAP.

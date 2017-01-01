@@ -1,5 +1,5 @@
 /* $ReOpenLDAP$ */
-/* Copyright 2008-2016 ReOpenLDAP AUTHORS: please see AUTHORS file.
+/* Copyright 2008-2017 ReOpenLDAP AUTHORS: please see AUTHORS file.
  * All rights reserved.
  *
  * This file is part of ReOpenLDAP.
