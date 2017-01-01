@@ -5,7 +5,7 @@
 #
 # Report bugs to <https://github.com/ReOpen/ReOpenLDAP/issues>.
 #
-# Copyright 1992-2016 ReOpenLDAP AUTHORS: please see AUTHORS file.
+# Copyright 1992-2017 ReOpenLDAP AUTHORS: please see AUTHORS file.
 # All rights reserved.
 #
 # This file is part of ReOpenLDAP.
@@ -2067,7 +2067,7 @@ Copyright (C) 2012 Free Software Foundation, Inc.
 This configure script is free software; the Free Software Foundation
 gives unlimited permission to copy, distribute and modify it.
 
-Copyright 1992-2016 ReOpenLDAP AUTHORS: please see AUTHORS file.
+Copyright 1992-2017 ReOpenLDAP AUTHORS: please see AUTHORS file.
 All rights reserved.
 
 This file is part of ReOpenLDAP.
@@ -13139,9 +13139,9 @@ VERSION_MINOR=2
 
 VERSION_PATCH=0
 
-RELEASE_DATE=2016-12-14
+RELEASE_DATE=2017-01-01
 
-RELEASE_STAMP=g11ff8c4e1637-t6e0ed8a069697c70
+RELEASE_STAMP=ged12da4c39d2-t6bd99816aa84002d
 
 API_LIB_RELEASE=1.2
 
@@ -37169,7 +37169,6 @@ $as_echo X"$file" |
     cat <<_LT_EOF >> "$cfgfile"
 #! $SHELL
 # Generated automatically by $as_me ($PACKAGE) $VERSION
-# Libtool was configured on host `(hostname || uname -n) 2>/dev/null | sed 1q`:
 # NOTE: Changes made to this file will be lost: look at ltmain.sh.
 
 # Provide generalized library-building support services.

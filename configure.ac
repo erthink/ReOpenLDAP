@@ -1,4 +1,4 @@
-dnl Copyright 1998-2016 ReOpenLDAP AUTHORS: please see AUTHORS file.
+dnl Copyright 1998-2017 ReOpenLDAP AUTHORS: please see AUTHORS file.
 dnl All rights reserved.
 dnl
 dnl This file is part of ReOpenLDAP.
@@ -21,7 +21,7 @@ define([AC_LIBTOOL_LANG_F77_CONFIG], [:])dnl
 define([AC_LIBTOOL_LANG_GCJ_CONFIG], [:])dnl
 dnl ================================================================
 dnl Configure.in for ReOpenLDAP
-AC_COPYRIGHT([[Copyright 1992-2016 ReOpenLDAP AUTHORS: please see AUTHORS file.
+AC_COPYRIGHT([[Copyright 1992-2017 ReOpenLDAP AUTHORS: please see AUTHORS file.
 All rights reserved.
 
 This file is part of ReOpenLDAP.
@@ -177,7 +177,7 @@ dnl ----------------------------------------------------------------
 
 AH_TOP([
 /* begin of reldap_autoconf.h.pre */
-/* Copyright 1992-2016 ReOpenLDAP AUTHORS: please see AUTHORS file.
+/* Copyright 1992-2017 ReOpenLDAP AUTHORS: please see AUTHORS file.
  * All rights reserved.
  *
  * This file is part of ReOpenLDAP.

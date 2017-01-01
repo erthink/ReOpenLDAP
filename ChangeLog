@@ -1,5 +1,9 @@
 New features and Compatibility breaking
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2016-12-30 v1.1.5
+2016-12-03 ci: scripts from `ps/build` branch.
+2016-12-03 configure: adds `check-news` option.
+2016-12-04 build: add its-regressions to `make test` target.
 2016-11-30 v1.1.4
 2016-11-26 reopenldap: support for OpenSSL-1.1.x and LibreSSL-2.5.x (#115, #116).
 2016-11-26 contrib: added mr_passthru module.
@@ -54,6 +58,9 @@ New features and Compatibility breaking
 
 Documentation
 ~~~~~~~~~~~~~
+2016-12-30 v1.1.5
+2016-12-23 mdbx: set of LMDB-0.9.19 updates (doxygen and comments)
+2016-12-03 man: `interval` keyword info (ITS#8538).
 2016-11-30 v1.1.4
 2016-10-25 man: fix typo (ITS#8185).
 2016-08-30 v1.1.3
@@ -94,6 +101,7 @@ Documentation
 
 Major and Security Bugs
 ~~~~~~~~~~~~~~~~~~~~~~~
+2016-12-30 v1.1.5
 2016-11-30 v1.1.4
 2016-08-30 v1.1.3
 2016-08-23 slapd: check for writers while close the connection (fixed #104).
@@ -177,6 +185,19 @@ Major and Security Bugs
 
 Minor Bugs
 ~~~~~~~~~~
+2016-12-30 v1.1.5
+2016-11-30 mdbx: backport - more for cursor tracking after deletion (ITS#8406).
+2016-12-16 mdbx: backport - mdb_env_copyfd2(): Don't abort on SIGPIPE (ITS#8504).
+2016-12-15 mdbx: fix ov-pages copying in cursor_put().
+2016-12-11 mdbx: backport - catch mdb_cursor_sibling() error (ITS#7377).
+2016-12-10 mdbx: backport - mdb_dbi_open(): Protect mainDB cursors (ITS#8542).
+2016-12-03 backend-mdb: fix mdb_indexer() segfault after cursor closing.
+2016-12-03 backend-mdb: refine mdb_tool_xxx() cursor closing.
+2016-12-03 backend-mdb: fix mdb_idl_fetch_key() segfault after cursor closing.
+2016-12-03 backend-mdb: fix mdb_online_index() cursor leak.
+2016-12-03 backend-mdb: simplify mdb_attr_index_config() AttrInfo init.
+2016-12-03 backend-mdb: fix mdb_add() cursor leak.
+2016-12-03 backend-mdb: fix cursor leak.
 2016-11-30 v1.1.4
 2016-11-27 mdbx: avoid large '.data' section in mdbx_chk.
 2016-11-13 mdbx: fix cursor tracking after mdb_cursor_del (ITS#8406).
@@ -496,6 +517,7 @@ Minor Bugs
 
 Performance
 ~~~~~~~~~~~
+2016-12-30 v1.1.5
 2016-11-30 v1.1.4
 2016-08-30 v1.1.3
 2016-08-28 libreldap: remove resolv-mutex around getnameinfo() and getnameinfo() (Debian#340601).
@@ -543,6 +565,15 @@ Performance
 
 Build
 ~~~~~
+2016-12-30 v1.1.5
+2016-12-14 configure: checking for libperl.
+2016-12-13 reopenldap: fix `unused` warnings for `--disable-debug`.
+2016-12-04 build: add its-regressions to `make test` target.
+2016-12-04 reopenldap: fix GCC 6.x warnings (misleading indentation).
+2016-12-04 tests: refine ITS's regression tests.
+2016-12-03 build: fix automake xxx_DEPENDENCIES.
+2016-12-03 ci: scripts from `ps/build` branch.
+2016-12-03 configure: adds `check-news` option.
 2016-11-30 v1.1.4
 2016-11-12 ppolicy: fix libltdl's includes for ppolicy overlay.
 2016-11-12 libltdl: move `build/libltdl` to the start of SUBDURS.
@@ -619,6 +650,11 @@ Build
 
 Cosmetics
 ~~~~~~~~~
+2016-12-30 v1.1.5
+2016-12-03 tests: uses `tput` for change output color/contrast.
+2016-12-01 reopenldap: backport - changelog note for ITS#8525.
+2016-12-01 reopenldap: fix typos in NEWS/ChangeLog.
+2016-11-27 mdbx: fix typo.
 2016-11-30 v1.1.4
 2016-10-27 slapd: adds RELEASE_DATE/STAMP to `slapd -V` output.
 2016-10-25 mdbx: clarify fork's caveat (ITS#8505).
@@ -642,6 +678,23 @@ Cosmetics
 
 Other
 ~~~~~
+2016-12-30 v1.1.5
+2016-12-23 backend-mdb: backport - Fix its6794 test.
+2016-12-13 tests: refine running its-cases.
+2016-12-10 tests: backport - Specifically test for error 32 on the consumer.
+2016-12-10 mdbx: backport - Pass cursor to mdb_page_get(), mdb_node_read().
+2016-12-10 mdbx: backport - Cleanup: Add flag DB_DUPDATA, drop DB_DIRTY hack.
+2016-12-04 tests: fix its8521 config data.
+2016-12-04 slapd: fix build legacy backends after str2entry() changes.
+2016-12-04 tests: fix regression test for its8521.
+2016-12-04 slapd: return error from str2entry().
+2016-12-03 backend-mdb: mdb_tool_terminate_txn().
+2016-12-03 tests: split-put run_testset().
+2016-12-03 tests: backport - testcase for ITS#8521 regression.
+2016-12-03 mdbx: minor simplify mc_signature.
+2016-12-03 mdbx: backport - factor out refreshing sub-page pointers.
+2016-12-01 tests: backport - Fix regression test for ITS#4337 (ITS#8535).
+2016-12-01 tests: backport - Fix regression test to correctly load back-ldap if it is built as a module (ITS#8534).
 2016-11-30 v1.1.4
 2016-11-12 reopenldap: cleanup/refine AUTHORS file.
 2016-08-30 v1.1.3
