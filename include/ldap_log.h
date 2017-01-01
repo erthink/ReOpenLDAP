@@ -1,5 +1,5 @@
 /* $ReOpenLDAP$ */
-/* Copyright 1992-2016 ReOpenLDAP AUTHORS: please see AUTHORS file.
+/* Copyright 1992-2017 ReOpenLDAP AUTHORS: please see AUTHORS file.
  * All rights reserved.
  *
  * This file is part of ReOpenLDAP.
@@ -130,13 +130,11 @@ LDAP_BEGIN_DECL
 		if ( slap_syslog_mask & (level) ) \
 			syslog( LDAP_LEVEL_MASK((severity)), __VA_ARGS__ ); \
 	} while ( 0 )
-#elif defined(LDAP_DEBUG) && ! (defined(LDAP_SYSLOG) && defined(SLAP_INSIDE))
+#else
 #	define Log( level, severity, ... ) do { \
 			if ( ldap_debug_mask & (level) ) \
 				ldap_debug_print( __VA_ARGS__ ); \
 		} while ( 0 )
-#else /* ! defined(LDAP_DEBUG) && ! defined(LDAP_SYSLOG) */
-#	define Log( level, severity, fmt, ... ) __noop()
 #endif /* LDAP_DEBUG && LDAP_SYSLOG */
 
 #define Debug( level, ... )	\

@@ -1,6 +1,6 @@
 #!/bin/bash
 ## $ReOpenLDAP$
-## Copyright 1998-2016 ReOpenLDAP AUTHORS: please see AUTHORS file.
+## Copyright 1998-2017 ReOpenLDAP AUTHORS: please see AUTHORS file.
 ## All rights reserved.
 ##
 ## This file is part of ReOpenLDAP.
@@ -15,8 +15,6 @@
 
 echo "running defines.sh"
 . $SRCDIR/scripts/defines.sh
-
-rm -rf $TESTDIR
 
 mkdir -p $TESTDIR $DBDIR1A $DBDIR1B $DBDIR1C
 ITS=6794
@@ -40,23 +38,15 @@ if test $WAIT != 0 ; then
     read foo
 fi
 KILLPIDS="$PID"
+check_running 1
 
-sleep 1
+$LDAPSEARCH -b "$BASEDN" -h $LOCALHOST -p $PORT1 > $SEARCHOUT 2>&1
+RC=$?
 
-echo "Using ldapsearch to retrieve all the entries..."
-for i in 0 1 2 3 4 5; do
-	$LDAPSEARCH -b "$BASEDN" -h $LOCALHOST -p $PORT1 > $SEARCHOUT 2>&1
-	RC=$?
-	if test $RC = 0 ; then
-		break
-	fi
-	echo "Waiting 5 seconds for slapd to start..."
-	sleep 5
-done
+killservers
 
 if test $RC != 0 ; then
 	echo "ldapsearch failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
 	exit $RC
 fi
 
@@ -71,14 +61,8 @@ if test $? != 0 ; then
 	echo "comparison failed - database was not created correctly"
 	echo $SEARCHFLT $LDIFFLT
 	$DIFF $SEARCHFLT $LDIFFLT
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
 	exit 1
 fi
 
-test $KILLSERVERS != no && kill -HUP $KILLPIDS
-
 echo ">>>>> Test succeeded"
-
-test $KILLSERVERS != no && wait
-
 exit 0

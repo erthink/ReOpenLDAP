@@ -1,5 +1,5 @@
 /* $ReOpenLDAP$ */
-/* Copyright 2005-2016 ReOpenLDAP AUTHORS: please see AUTHORS file.
+/* Copyright 2005-2017 ReOpenLDAP AUTHORS: please see AUTHORS file.
  * All rights reserved.
  *
  * This file is part of ReOpenLDAP.
@@ -633,10 +633,9 @@ ldif_read_entry(
 	case LDAP_SUCCESS:
 		if ( entryp == NULL )
 			break;
-		*entryp = entry = str2entry( entry_as_string );
+		*entryp = entry = str2entry( entry_as_string, &rc );
 		SLAP_FREE( entry_as_string );
 		if ( entry == NULL ) {
-			rc = LDAP_OTHER;
 			if ( text != NULL )
 				*text = "internal error (cannot parse some entry file)";
 			break;

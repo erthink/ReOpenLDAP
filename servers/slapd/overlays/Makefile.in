@@ -285,6 +285,7 @@ dynlist_la_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) \
 @BUILD_DYNLIST_TRUE@@DYNLIST_DYNAMIC_TRUE@	-rpath $(pkglibdir)
 am__DEPENDENCIES_1 =
 @BUILD_PPOLICY_TRUE@@PPOLICY_DYNAMIC_FALSE@@SLAPD_DYNAMIC_TRUE@am__DEPENDENCIES_2 = $(am__DEPENDENCIES_1)
+liboverlays_builtin_la_DEPENDENCIES = $(am__DEPENDENCIES_2)
 am__liboverlays_builtin_la_SOURCES_DIST = overlays.c accesslog.c \
 	auditlog.c collect.c constraint.c dds.c deref.c dyngroup.c \
 	dynlist.c memberof.c ppolicy.c pcache.c refint.c retcode.c \
@@ -347,6 +348,7 @@ pcache_la_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) \
 	$(pcache_la_LDFLAGS) $(LDFLAGS) -o $@
 @BUILD_PCACHE_TRUE@@PCACHE_DYNAMIC_TRUE@am_pcache_la_rpath = -rpath \
 @BUILD_PCACHE_TRUE@@PCACHE_DYNAMIC_TRUE@	$(pkglibdir)
+@BUILD_PPOLICY_TRUE@@PPOLICY_DYNAMIC_TRUE@ppolicy_la_DEPENDENCIES = $(am__DEPENDENCIES_1)
 am__ppolicy_la_SOURCES_DIST = ppolicy.c ppolicy_banner.c
 @BUILD_PPOLICY_TRUE@@PPOLICY_DYNAMIC_TRUE@am_ppolicy_la_OBJECTS = ppolicy_la-ppolicy.lo \
 @BUILD_PPOLICY_TRUE@@PPOLICY_DYNAMIC_TRUE@	ppolicy_la-ppolicy_banner.lo
@@ -802,7 +804,7 @@ liboverlays_builtin_la_SOURCES = overlays.c $(am__append_3) \
 	$(am__append_44)
 liboverlays_builtin_la_CPPFLAGS = $(AM_CPPFLAGS) $(am__append_22)
 liboverlays_builtin_la_LIBADD = $(am__append_23)
-liboverlays_builtin_la_DEPENDENCIES = $(am__append_24)
+EXTRA_liboverlays_builtin_la_DEPENDENCIES = $(am__append_24)
 @ACCESSLOG_DYNAMIC_TRUE@@BUILD_ACCESSLOG_TRUE@accesslog_la_LDFLAGS = -module -export-dynamic \
 @ACCESSLOG_DYNAMIC_TRUE@@BUILD_ACCESSLOG_TRUE@	-release $(API_LIB_RELEASE) -version-info $(API_LIB_VERSION)
 
@@ -845,7 +847,7 @@ liboverlays_builtin_la_DEPENDENCIES = $(am__append_24)
 @BUILD_PPOLICY_TRUE@@PPOLICY_DYNAMIC_TRUE@ppolicy_la_SOURCES = ppolicy.c ppolicy_banner.c
 @BUILD_PPOLICY_TRUE@@PPOLICY_DYNAMIC_TRUE@ppolicy_la_CPPFLAGS = $(LTDLINCL) $(AM_CPPFLAGS)
 @BUILD_PPOLICY_TRUE@@PPOLICY_DYNAMIC_TRUE@ppolicy_la_LIBADD = $(LIBLTDL)
-@BUILD_PPOLICY_TRUE@@PPOLICY_DYNAMIC_TRUE@ppolicy_la_DEPENDENCIES = $(LTDLDEPS)
+@BUILD_PPOLICY_TRUE@@PPOLICY_DYNAMIC_TRUE@EXTRA_ppolicy_la_DEPENDENCIES = $(LTDLDEPS)
 @BUILD_PCACHE_TRUE@@PCACHE_DYNAMIC_TRUE@pcache_la_LDFLAGS = -module -export-dynamic \
 @BUILD_PCACHE_TRUE@@PCACHE_DYNAMIC_TRUE@	-release $(API_LIB_RELEASE) -version-info $(API_LIB_VERSION) \
 @BUILD_PCACHE_TRUE@@PCACHE_DYNAMIC_TRUE@	-weak proxycache.la

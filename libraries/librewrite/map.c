@@ -1,5 +1,5 @@
 /* $ReOpenLDAP$ */
-/* Copyright 2000-2016 ReOpenLDAP AUTHORS: please see AUTHORS file.
+/* Copyright 2000-2017 ReOpenLDAP AUTHORS: please see AUTHORS file.
  * All rights reserved.
  *
  * This file is part of ReOpenLDAP.
@@ -463,7 +463,6 @@ rewrite_map_apply(
 				val );
 		else
 			rc = REWRITE_ERR;
-			break;
 		break;
 	}
 

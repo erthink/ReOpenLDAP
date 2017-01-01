@@ -1,5 +1,5 @@
 /* $ReOpenLDAP$ */
-/* Copyright 1990-2016 ReOpenLDAP AUTHORS: please see AUTHORS file.
+/* Copyright 1990-2017 ReOpenLDAP AUTHORS: please see AUTHORS file.
  * All rights reserved.
  *
  * This file is part of ReOpenLDAP.
@@ -1797,6 +1797,8 @@ slap_listener(
 	/* newly accepted stream should not be in any of the FD SETS */
 	assert( SLAP_SOCK_NOT_ACTIVE( tid, sfd ));
 	ldap_pvt_thread_mutex_unlock( &slap_daemon[tid].sd_mutex );
+#else
+	(void) tid;
 #endif /* LDAP_DEBUG */
 
 #ifdef LDAP_PF_LOCAL

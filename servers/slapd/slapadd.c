@@ -1,5 +1,5 @@
 /* $ReOpenLDAP$ */
-/* Copyright 1990-2016 ReOpenLDAP AUTHORS: please see AUTHORS file.
+/* Copyright 1990-2017 ReOpenLDAP AUTHORS: please see AUTHORS file.
  * All rights reserved.
  *
  * This file is part of ReOpenLDAP.
@@ -106,7 +106,7 @@ again:
 			prev_DN_strict = slap_DN_strict;
 			slap_DN_strict = 0;
 		}
-		e = str2entry2( buf, checkvals );
+		e = str2entry2( buf, checkvals, NULL );
 		if ( !dbnum ) {
 			slap_DN_strict = prev_DN_strict;
 		}
@@ -344,7 +344,6 @@ slapadd( int argc, char **argv )
 {
 	char textbuf[SLAP_TEXT_BUFLEN] = { '\0' };
 	size_t textlen = sizeof textbuf;
-	Erec erec;
 	struct berval bvtext;
 	ldap_pvt_thread_t thr;
 	ID id;
@@ -420,6 +419,8 @@ slapadd( int argc, char **argv )
 		ldif_threaded = 1;
 	}
 
+	Erec erec;
+	erec.e = 0;
 	erec.nextline = 0;
 	erec.e = NULL;
 

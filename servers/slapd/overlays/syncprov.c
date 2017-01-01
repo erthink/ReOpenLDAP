@@ -1,5 +1,5 @@
 /* $ReOpenLDAP$ */
-/* Copyright 2004-2016 ReOpenLDAP AUTHORS: please see AUTHORS file.
+/* Copyright 2004-2017 ReOpenLDAP AUTHORS: please see AUTHORS file.
  * All rights reserved.
  *
  * This file is part of ReOpenLDAP.
@@ -2130,7 +2130,7 @@ syncprov_op_response( Operation *op, SlapReply *rs )
 	if ( rs->sr_err != LDAP_SUCCESS )
 		return SLAP_CB_CONTINUE;
 
-		switch(op->o_tag) {
+	switch(op->o_tag) {
 		default:
 			oper = "???"; break;
 		case LDAP_REQ_ADD:

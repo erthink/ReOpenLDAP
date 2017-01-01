@@ -10,19 +10,25 @@ OpenLDAP 2.4.45 Engineering
 	Fixed libldap GnuTLS use after free (ITS#8385)
 	Fixed slapd syncrepl filter handling (ITS#8413)
 	Fixed slapd syncrepl infinite looping mods with delta-sync MMR (ITS#8432)
-	Fixed slapd callback struct so older modules without writewait should function.
+	Fixed slapd callback struct so older modules without writewait should function (already fixed in ReOpenLDAP).
                     Custom modules may need to be updated for sc_writewait callback (ITS#8435, already fixed in ReOpenLDAP)
-	Fixed slapo-accesslog to honor pauses during purge for cn=config update (ITS#8423)
+	Fixed slapd-mdb so it passes ITS6794 regression test (ITS#6794, already fixed in ReOpenLDAP)
 	Fixed slapd-meta uninitialized diagnostic message (ITS#8442, already fixed in ReOpenLDAP)
+	Fixed slapo-accesslog to honor pauses during purge for cn=config update (ITS#8423)
 	Fixed slapo-relay to correctly initialize sc_writewait (ITS#8428, already fixed in ReOpenLDAP)
 	Build Environment
 		Fix test008 to be portable (ITS#8414)
+		Fix its4336 regression test (ITS#8534)
+		Fix its4337 regression test (ITS#8535)
+		Fix regression tests to execute on all backends (ITS#8539)
 	Contrib
 		Added passwd missing conversion scripts for apr1 (ITS#6826)
-		Fixed contrib modules where the writewait callback was not correctly initialized (ITS#8435)
+		Fixed contrib modules where the writewait callback was not correctly initialized (ITS#8435, already fixed in ReOpenLDAP)
+		Fixed smbk5pwd to build with newer OpenSSL releases (ITS#8525, already fixed in ReOpenLDAP)
 	Documentation
 		admin24 fixed tls_cipher_suite bindconf option (ITS#8099)
 		admin24 fixed typo cn=config to be slapd.d (ITS#8449)
+		Fixed slapd-config(5), slapd.conf(5) clarification on interval keyword for refreshAndPersist (ITS#8538)
 
 OpenLDAP 2.4.44 Release (2016/02/05)
 	Fixed slapd-bdb/hdb missing olcDbChecksum config attr (ITS#8337)

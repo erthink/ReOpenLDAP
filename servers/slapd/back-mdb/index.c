@@ -1,5 +1,5 @@
 /* $ReOpenLDAP$ */
-/* Copyright 2011-2016 ReOpenLDAP AUTHORS: please see AUTHORS file.
+/* Copyright 2011-2017 ReOpenLDAP AUTHORS: please see AUTHORS file.
  * All rights reserved.
  *
  * This file is part of ReOpenLDAP.
@@ -268,8 +268,11 @@ static int indexer(
 	}
 
 done:
-	if ( !(slapMode & SLAP_TOOL_QUICK))
+	if ( !(slapMode & SLAP_TOOL_QUICK)) {
+		if (mc == ai->ai_cursor)
+			ai->ai_cursor = NULL;
 		mdb_cursor_close( mc );
+	}
 	switch( rc ) {
 	/* The callers all know how to deal with these results */
 	case 0:

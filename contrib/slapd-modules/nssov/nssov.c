@@ -1,6 +1,6 @@
 /* nssov.c - nss-ldap overlay for slapd */
 /* $ReOpenLDAP$ */
-/* Copyright 1992-2016 ReOpenLDAP AUTHORS: please see AUTHORS file.
+/* Copyright 1992-2017 ReOpenLDAP AUTHORS: please see AUTHORS file.
  * All rights reserved.
  *
  * This file is part of ReOpenLDAP.

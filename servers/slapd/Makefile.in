@@ -258,6 +258,16 @@ slapd_OBJECTS = $(am_slapd_OBJECTS) $(nodist_slapd_OBJECTS)
 am__DEPENDENCIES_2 =
 @SLAPD_DYNAMIC_TRUE@am__DEPENDENCIES_3 = $(am__DEPENDENCIES_2)
 @BUILD_REWRITE_TRUE@am__DEPENDENCIES_4 = $(am__DEPENDENCIES_2)
+slapd_DEPENDENCIES = overlays/liboverlays_builtin.la $(am__append_4) \
+	$(am__append_8) $(am__append_12) $(am__append_16) \
+	$(am__append_20) $(am__append_24) $(am__append_28) \
+	$(am__append_32) $(am__append_36) $(am__append_40) \
+	$(am__append_44) $(am__append_48) $(am__DEPENDENCIES_1) \
+	$(am__append_57) $(am__append_61) $(am__append_66) \
+	$(am__append_70) $(am__append_74) $(am__append_76) \
+	$(am__DEPENDENCIES_3) $(am__DEPENDENCIES_4) \
+	$(am__DEPENDENCIES_2) $(am__DEPENDENCIES_2) \
+	$(am__DEPENDENCIES_2) $(am__DEPENDENCIES_2)
 AM_V_lt = $(am__v_lt_@AM_V@)
 am__v_lt_ = $(am__v_lt_@AM_DEFAULT_V@)
 am__v_lt_0 = --silent
@@ -680,7 +690,7 @@ slapd_LDADD = overlays/liboverlays_builtin.la $(am__append_4) \
 	$(am__append_79) $(am__append_102) $(LDAP_LIBRELDAP_LA) \
 	$(LDAP_LIBLUTIL_LA) $(LDAP_LIBLUNICODE_LA) $(SLAPD_LIBS)
 slapd_LDFLAGS = $(am__append_53) $(am__append_62) $(am__append_78)
-slapd_DEPENDENCIES = $(am__append_80)
+EXTRA_slapd_DEPENDENCIES = $(am__append_80)
 EXTRA_DIST = slapd.ldif.in slapd.conf.in $(schema_files)
 CLEANFILES = slapd.ldif slapd.conf builtin.c
 sysconf_DATA = slapd.ldif slapd.conf

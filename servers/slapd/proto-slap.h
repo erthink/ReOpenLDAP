@@ -1,5 +1,5 @@
 /* $ReOpenLDAP$ */
-/* Copyright 1990-2016 ReOpenLDAP AUTHORS: please see AUTHORS file.
+/* Copyright 1990-2017 ReOpenLDAP AUTHORS: please see AUTHORS file.
  * All rights reserved.
  *
  * This file is part of ReOpenLDAP.
@@ -1132,8 +1132,8 @@ LDAP_SLAPD_V (const Entry) slap_entry_root;
 LDAP_SLAPD_F (int) entry_init LDAP_P((void));
 LDAP_SLAPD_F (int) entry_destroy LDAP_P((void));
 
-LDAP_SLAPD_F (Entry *) str2entry LDAP_P(( char	*s ));
-LDAP_SLAPD_F (Entry *) str2entry2 LDAP_P(( char	*s, int checkvals ));
+LDAP_SLAPD_F (Entry *) str2entry LDAP_P(( char	*s, int *rc ));
+LDAP_SLAPD_F (Entry *) str2entry2 LDAP_P(( char	*s, int checkvals, int *rc ));
 LDAP_SLAPD_F (char *) entry2str LDAP_P(( Entry *e, int *len ));
 LDAP_SLAPD_F (char *) entry2str_wrap LDAP_P(( Entry *e, int *len, ber_len_t wrap ));
 

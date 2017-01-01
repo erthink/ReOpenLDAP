@@ -5,7 +5,7 @@
 #
 # Report bugs to <https://github.com/ReOpen/ReOpenLDAP/issues>.
 #
-# Copyright 1992-2016 ReOpenLDAP AUTHORS: please see AUTHORS file.
+# Copyright 1992-2017 ReOpenLDAP AUTHORS: please see AUTHORS file.
 # All rights reserved.
 #
 # This file is part of ReOpenLDAP.
@@ -2087,7 +2087,7 @@ Copyright (C) 2012 Free Software Foundation, Inc.
 This configure script is free software; the Free Software Foundation
 gives unlimited permission to copy, distribute and modify it.
 
-Copyright 1992-2016 ReOpenLDAP AUTHORS: please see AUTHORS file.
+Copyright 1992-2017 ReOpenLDAP AUTHORS: please see AUTHORS file.
 All rights reserved.
 
 This file is part of ReOpenLDAP.
@@ -3445,7 +3445,6 @@ test -n "$target_alias" &&
     NONENONEs,x,x, &&
   program_prefix=${target_alias}-
 
-# LY: +check-news
 am__api_version='1.15'
 
 # Find a good install program.  We prefer a C program (faster),
@@ -13160,9 +13159,9 @@ VERSION_MINOR=0
 
 VERSION_PATCH=0
 
-RELEASE_DATE=2016-12-01
+RELEASE_DATE=2017-01-01
 
-RELEASE_STAMP=g359306d4dac1-tc980360ad40b3e7e
+RELEASE_STAMP=g1ae29daab005-tbd36c7153d8997b7
 
 API_LIB_RELEASE=2.0
 
@@ -22335,23 +22334,87 @@ $as_echo "no" >&6; }
 fi
 
 
-
-	if test "no$PERLBIN" = "no" ; then
-		if test $ol_enable_perl = yes ; then
-			as_fn_error $? "could not locate perl" "$LINENO" 5
-		fi
-
-	else
-		PERL_CPPFLAGS="`$PERLBIN -MExtUtils::Embed -e ccopts`"
-		PERL_LIBS="`$PERLBIN -MExtUtils::Embed -e ldopts | sed -e 's/^-L /-L/g' -e 's/^-l /-l/g' | tr -s '[:space:]' '\n' | grep -e '^-l' -e '^-L' | grep -v '^-lc' | tr '\n' ' '`"
-		PERL_LDFLAGS="`$PERLBIN -MExtUtils::Embed -e ldopts | sed -e 's/^-L /-L/g' -e 's/^-l /-l/g' | tr -s '[:space:]' '\n' | grep -v -e '^-l' -e '^-L' | tr '\n' ' '`"
-		if test -z "$PERL_CPPFLAGS" -o -z "$PERL_LIBS"; then
-			as_fn_error $? "could not fetch perl libs or options" "$LINENO" 5
-		fi
-		PERL_RDIR="`echo $PERL_LDFLAGS | tr '[:space:]' '\n' | grep -- '-Wl,-rpath,' | sed 's/-Wl,-rpath,/-R/'`"
-				ol_link_perl=yes
+	if test -z "$PERLBIN"; then
+		as_fn_error $? "could not locate perl" "$LINENO" 5
 	fi
+
+	PERL_CPPFLAGS="`$PERLBIN -MExtUtils::Embed -e ccopts`"
+	PERL_LIBS="`$PERLBIN -MExtUtils::Embed -e ldopts | sed -e 's/^-L /-L/g' -e 's/^-l /-l/g' | tr -s '[:space:]' '\n' | grep -e '^-l' | grep -v '^-lc$' | tr '\n' ' '`"
+	PERL_LDFLAGS="`$PERLBIN -MExtUtils::Embed -e ldopts | sed -e 's/^-L /-L/g' -e 's/^-l /-l/g' | tr -s '[:space:]' '\n' | grep -v -e '^-l' | tr '\n' ' '`"
+	if test -z "$PERL_CPPFLAGS" -o -z "$PERL_LIBS"; then
+		as_fn_error $? "could not fetch perl libs or options" "$LINENO" 5
+	fi
+	PERL_RDIR="`echo $PERL_LDFLAGS | tr '[:space:]' '\n' | grep -- '-Wl,-rpath,' | sed 's/-Wl,-rpath,/-R/'`"
+
+	save_LIBS=$LIBS
+	save_CFLAGS=$CFLAGS
+	save_LDFLAGS=$LDFLAGS
+	CFLAGS="$CFLAGS $PERL_CPPFLAGS"
+	LDFLAGS="$LDFLAGS $PERL_LDFLAGS"
+	{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for library containing perl_construct" >&5
+$as_echo_n "checking for library containing perl_construct... " >&6; }
+if ${ac_cv_search_perl_construct+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_func_search_save_LIBS=$LIBS
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char perl_construct ();
+int
+main ()
+{
+return perl_construct ();
+  ;
+  return 0;
+}
+_ACEOF
+for ac_lib in '' `echo $PERL_LIBS | sed 's/^-l//;s/ -l/ /g'`; do
+  if test -z "$ac_lib"; then
+    ac_res="none required"
+  else
+    ac_res=-l$ac_lib
+    LIBS="-l$ac_lib  $ac_func_search_save_LIBS"
+  fi
+  if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_search_perl_construct=$ac_res
 fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext
+  if ${ac_cv_search_perl_construct+:} false; then :
+  break
+fi
+done
+if ${ac_cv_search_perl_construct+:} false; then :
+
+else
+  ac_cv_search_perl_construct=no
+fi
+rm conftest.$ac_ext
+LIBS=$ac_func_search_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_search_perl_construct" >&5
+$as_echo "$ac_cv_search_perl_construct" >&6; }
+ac_res=$ac_cv_search_perl_construct
+if test "$ac_res" != no; then :
+  test "$ac_res" = "none required" || LIBS="$ac_res $LIBS"
+  ol_link_perl=yes
+fi
+
+	LDFLAGS=$save_LDFLAGS
+	CFLAGS=$save_CFLAGS
+	LIBS=$save_LIBS
+
+	if test $ol_link_perl = no -a $ol_enable_perl = yes ; then
+		as_fn_error $? "libperl not found (libperl-dev installed?)" "$LINENO" 5
+	fi
+	fi
 
 
 
@@ -24946,10 +25009,10 @@ fi
 
 done
 
-     if test $ac_cv_header_nss_nss_h != yes -a $ac_cv_header_nss3_nss_h != yes; then
+    if test $ac_cv_header_nss_nss_h != yes -a $ac_cv_header_nss3_nss_h != yes; then
 	as_fn_error $? "could not locate nss/nss.h or nss3/nss.h" "$LINENO" 5
     fi
-   CFLAGS=$save_CFLAGS
+    CFLAGS=$save_CFLAGS
 fi
 
  if test $gnutls_found = yes -o $openssl_found = yes; then
@@ -37407,7 +37470,6 @@ $as_echo X"$file" |
     cat <<_LT_EOF >> "$cfgfile"
 #! $SHELL
 # Generated automatically by $as_me ($PACKAGE) $VERSION
-# Libtool was configured on host `(hostname || uname -n) 2>/dev/null | sed 1q`:
 # NOTE: Changes made to this file will be lost: look at ltmain.sh.
 
 # Provide generalized library-building support services.

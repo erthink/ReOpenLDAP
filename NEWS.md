@@ -1,3 +1,73 @@
+v1.1.5 2016-12-30
+=================
+
+Briefly:
+ 1. Set of fixes for MDBX and mdb-backend.
+ 2. Several fixes related to testing.
+ 3. Few fixes related to build and dependencies.
+
+New features and Compatibility breaking:
+ * ci: scripts from `ps/build` branch.
+ * configure: adds `check-news` option.
+ * build: add its-regressions to `make test` target.
+
+Documentation:
+ * mdbx: set of LMDB-0.9.19 updates (doxygen and comments).
+ * man: `interval` keyword info (ITS#8538).
+
+Major and Security bugs: _none_
+
+Minor bugs:
+ * mdbx: more for cursor tracking after deletion (ITS#8406).
+ * mdbx: mdb_env_copyfd2(): Don't abort on SIGPIPE (ITS#8504).
+ * mdbx: fix ov-pages copying in cursor_put().
+ * mdbx: catch mdb_cursor_sibling() error (ITS#7377).
+ * mdbx: mdb_dbi_open(): Protect mainDB cursors (ITS#8542).
+ * backend-mdb: fix mdb_indexer() segfault after cursor closing.
+ * backend-mdb: refine mdb_tool_xxx() cursor closing.
+ * backend-mdb: fix mdb_idl_fetch_key() segfault after cursor closing.
+ * backend-mdb: fix mdb_online_index() cursor leak.
+ * backend-mdb: simplify mdb_attr_index_config() AttrInfo init.
+ * backend-mdb: fix mdb_add() cursor leak.
+ * backend-mdb: fix cursor leak.
+
+Performance: _none_
+
+Build:
+ * configure: checking for libperl.
+ * reopenldap: fix `unused` warnings for `--disable-debug`.
+ * build: add its-regressions to `make test` target.
+ * reopenldap: fix GCC 6.x warnings (misleading indentation).
+ * tests: refine ITS's regression tests.
+ * build: fix automake xxx_DEPENDENCIES.
+ * ci: scripts from `ps/build` branch.
+ * configure: adds `check-news` option.
+
+Cosmetics:
+ * tests: uses `tput` for change output color/contrast.
+ * reopenldap: changelog note for ITS#8525.
+ * reopenldap: fix typos in NEWS/ChangeLog.
+ * mdbx: fix typo.
+
+Other:
+ * backend-mdb: Fix its6794 test.
+ * tests: refine running its-cases.
+ * tests: Specifically test for error 32 on the consumer.
+ * mdbx: Pass cursor to mdb_page_get(), mdb_node_read().
+ * mdbx: Cleanup: Add flag DB_DUPDATA, drop DB_DIRTY hack.
+ * tests: fix its8521 config data.
+ * slapd: fix build legacy backends after str2entry() changes.
+ * tests: fix regression test for its8521.
+ * slapd: return error from str2entry().
+ * backend-mdb: mdb_tool_terminate_txn().
+ * tests: split-put run_testset().
+ * tests: testcase for ITS#8521 regression.
+ * mdbx: minor simplify mc_signature.
+ * mdbx: factor out refreshing sub-page pointers.
+ * tests: Fix regression test for ITS#4337 (ITS#8535).
+ * tests: Fix regression test to correctly load back-ldap if it is built as a module (ITS#8534).
+
+
 v1.1.4 2016-11-30
 =================
 
@@ -40,6 +110,7 @@ Cosmetics:
 
 Other:
  * cleanup/refine AUTHORS file.
+
 
 v1.1.3, 2016-08-30
 ==================

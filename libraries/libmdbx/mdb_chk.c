@@ -1,8 +1,8 @@
 /* mdbx_chk.c - memory-mapped database check tool */
 
 /*
- * Copyright (c) 2015,2016 Leonid Yuriev <leo@yuriev.ru>.
- * Copyright (c) 2015,2016 Peter-Service R&D LLC.
+ * Copyright 2015-2017 Leonid Yuriev <leo@yuriev.ru>.
+ * Copyright 2015,2016 Peter-Service R&D LLC.
  *
  * This file is part of libmdbx.
  *
@@ -52,7 +52,7 @@ flagbit dbflags[] = {
 
 static volatile sig_atomic_t gotsignal;
 
-static void signal_hanlder( int sig ) {
+static void signal_handler( int sig ) {
 	(void) sig;
 	gotsignal = 1;
 }
@@ -660,13 +660,13 @@ int main(int argc, char *argv[])
 		usage(prog);
 
 #ifdef SIGPIPE
-	signal(SIGPIPE, signal_hanlder);
+	signal(SIGPIPE, signal_handler);
 #endif
 #ifdef SIGHUP
-	signal(SIGHUP, signal_hanlder);
+	signal(SIGHUP, signal_handler);
 #endif
-	signal(SIGINT, signal_hanlder);
-	signal(SIGTERM, signal_hanlder);
+	signal(SIGINT, signal_handler);
+	signal(SIGTERM, signal_handler);
 
 	envname = argv[optind];
 	print("Running mdbx_chk for '%s' in %s mode...\n",

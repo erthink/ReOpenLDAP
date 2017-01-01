@@ -1,6 +1,6 @@
 #!/bin/bash
 ## $ReOpenLDAP$
-## Copyright 1998-2016 ReOpenLDAP AUTHORS: please see AUTHORS file.
+## Copyright 1998-2017 ReOpenLDAP AUTHORS: please see AUTHORS file.
 ## All rights reserved.
 ##
 ## This file is part of ReOpenLDAP.
@@ -41,8 +41,8 @@ else
 fi
 TB="" TN=""
 if test -t 1 ; then
-	TB=`echo -e "%B" 2>/dev/null`
-	TN=`echo -e "%b" 2>/dev/null`
+	TB=`(tput bold; tput smul) 2>/dev/null`
+	TN=`(tput rmul; tput sgr0) 2>/dev/null`
 fi
 
 # sql-backed
@@ -837,6 +837,7 @@ function config_filter {
 		-e "s;@PORT6@;${PORT6};g"			\
 		-e "s/@SASL_MECH@/${sasl_mech}/g"		\
 		-e "s;@TESTDIR@;${TESTDIR};g"			\
+		-e "s;@TESTWD@;${TESTWD};"			\
 		-e "s;@DATADIR@;${DATADIR};g"			\
 		-e "s;@SCHEMADIR@;${SCHEMADIR};g"
 }
@@ -875,4 +876,165 @@ cn=Database 1,cn=Databases,cn=Monitor
 EOF
 
 	fi
+}
+
+function run_testset {
+	FAILCOUNT=0
+	SKIPCOUNT=0
+	SLEEPTIME=10
+	RESULTS=$TESTWD/results
+
+	BACKEND_MODE=$BACKEND
+	if [ -n "$REOPENLDAP_MODE" ]; then
+		BACKEND_MODE="$BACKEND_MODE/$REOPENLDAP_MODE"
+	fi
+
+	if [ -n "$VALGRIND_CMD" -a "$BACKEND" != mdb ]; then
+		echo ">>>>> Skip ${TESTSET} for $BACKEND_MODE under Valgrind"
+		exit 0
+	fi
+
+	teamcity_msg "testSuiteStarted name='${TESTSET} for $BACKEND_MODE'"
+	echo ">>>>> Executing ${TESTSET} for $BACKEND_MODE"
+
+	if [ -n "$NOEXIT" ]; then
+		echo "Result	Test" > $RESULTS
+	fi
+
+	for CMD in $TEST_LIST_CMD; do
+
+		TESTNO=$(sed -n 's/^.*\/test\([0-9]\+\)-.*/\1/p' <<< "$CMD")
+		if [ 0"$TESTNO" -lt 0 ]; then continue; fi
+
+		case "$CMD" in
+			*~)	continue;;
+			*.bak)	continue;;
+			*.orig)	continue;;
+			*.sav)	continue;;
+			*)	test -f "$CMD" || continue;;
+		esac
+
+		# remove cruft from prior test
+		if test $PRESERVE = yes ; then
+			/bin/rm -rf $TESTDIR/db.*
+		else
+			find -H ${TESTDIR} -maxdepth 1 -mindepth 1 | xargs rm -rf || exit $?
+		fi
+		if test $BACKEND = ndb ; then
+mysql --user root <<EOF
+	drop database if exists db_1;
+	drop database if exists db_2;
+	drop database if exists db_3;
+	drop database if exists db_4;
+	drop database if exists db_5;
+	drop database if exists db_6;
+EOF
+		fi
+
+		BCMD=`basename $CMD`
+		TEST_ID="$BCMD-$BACKEND"
+		if [ -n "$REOPENLDAP_MODE" ]; then
+			TEST_ID="$BCMD-$BACKEND-$REOPENLDAP_MODE"
+		fi
+
+		if [ -n "$SKIPLONG" ]; then
+			if echo $TEST_ID | grep -q -e 008 -e 036 -e 039 -e 058 -e 060; then
+				((SKIPCOUNT++))
+				echo "***** Skip long ${TB}$BCMD${TN} for $BACKEND_MODE"
+				echo
+				teamcity_msg "testIgnored name='$TEST_ID'"
+				continue
+			fi
+		fi
+
+		if [ -n "$REPLONLY" ]; then
+			if echo $BCMD | grep -q -v syncrepl; then
+				((SKIPCOUNT++))
+				echo "***** Skip non-syncrepl ${TB}$BCMD${TN} for $BACKEND_MODE"
+				echo
+				teamcity_msg "testIgnored name='$TEST_ID'"
+				continue
+			fi
+		fi
+
+		if [ -x "$CMD" ]; then
+			wanna_free=1000
+			if [ $(get_df_mb $TESTDIR) -lt $wanna_free ]; then
+				echo "***** Less than ${wanna_free}Mb space available in the $TESTDIR"
+				if [ -n "$NOEXIT" ]; then
+					RC=2
+					echo "(exit $RC)"
+					exit $RC
+				fi
+				cibuzz_report "=== waiting for space in $TESTDIR"
+				while [ $(get_df_mb $TESTDIR) -lt $wanna_free ]; do
+					sleep 5
+				done
+			fi
+
+			teamcity_msg "testStarted name='$TEST_ID' captureStandardOutput='true'"
+			echo ">>>>> Starting ${TB}$BCMD${TN} for $BACKEND_MODE..."
+			cibuzz_report ">>> ${TEST_ITER}--${TEST_ID}"
+
+			$CMD 2>&1 | tee $TESTDIR/main.log
+			RC=${PIPESTATUS[0]}
+			if [ ! -f $TESTDIR/main.log ]; then
+				echo "!!!!! Script deleted files, please fix it" >&2
+				exit 125
+			fi
+
+			RC_EXT="test-failure"
+			if ! collect_coredumps $TEST_ID; then
+				RC=134
+			fi
+
+			if test $RC -eq 0 ; then
+				cibuzz_report "<<< ${TEST_ITER}--${TEST_ID}"
+				[ -z "$NO_COLLECT_SUCCESS" ] && collect_test $TEST_ID no
+				echo "<<<<< $BCMD completed ${TB}OK${TN} for $BACKEND_MODE."
+			else
+				cibuzz_report "=== ${TEST_ITER}--${TEST_ID} = $RC"
+				collect_test $TEST_ID yes
+				echo "<<<<< $BCMD ${TB}failed${TN} for $BACKEND_MODE (code $RC, $RC_EXT)"
+				teamcity_msg "testFailed name='$TEST_ID' message='code $RC, $RC_EXT'"
+				((FAILCOUNT++))
+
+				if [ -n "$NOEXIT" ]; then
+					echo "Continuing."
+				else
+					exit $RC
+				fi
+			fi
+			teamcity_msg "testFinished name='$TEST_ID'"
+		else
+			echo "***** Skipping ${TB}$BCMD${TN} for $BACKEND_MODE."
+			((SKIPCOUNT++))
+			RC="-"
+			teamcity_msg "testIgnored name='$TEST_ID'"
+		fi
+
+		if [ -n "$NOEXIT" ]; then
+			echo "$RC	$TEST_ID" >> $RESULTS
+		fi
+		rm -rf $TESTDIR/* || failure "failed: cleanup $$TESTDIR/*"
+
+	#	echo ">>>>> waiting $SLEEPTIME seconds for things to exit"
+	#	sleep $SLEEPTIME
+		echo ""
+	done
+
+	RC=0
+	if [ -n "$NOEXIT" ]; then
+		if [ "$FAILCOUNT" -gt 0 ]; then
+			cat $RESULTS
+			echo "$FAILCOUNT tests for $BACKEND_MODE ${TB}failed${TN}. Please review the test log."
+			RC=2
+		else
+			echo "${TESTSET} for $BACKEND_MODE ${TB}succeeded${TN}."
+		fi
+	fi
+
+	echo "$SKIPCOUNT tests for $BACKEND_MODE were ${TB}skipped${TN}."
+	teamcity_msg "testSuiteFinished name='${TESTSET} for $BACKEND_MODE'"
+	exit $RC
 }

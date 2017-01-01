@@ -1,5 +1,5 @@
 /* $ReOpenLDAP$ */
-/* Copyright 1990-2016 ReOpenLDAP AUTHORS: please see AUTHORS file.
+/* Copyright 1990-2017 ReOpenLDAP AUTHORS: please see AUTHORS file.
  * All rights reserved.
  *
  * This file is part of ReOpenLDAP.
@@ -422,14 +422,13 @@ root_dse_read_file( const char *fname )
 	usr_attr->e_attrs = NULL;
 
 	while(( ldifrc = ldif_read_record( fp, &lineno, &buf, &lmax )) > 0 ) {
-		Entry *e = str2entry( buf );
+		Entry *e = str2entry( buf, &rc );
 		Attribute *a;
 
 		if( e == NULL ) {
 			Debug( LDAP_DEBUG_ANY, "root_dse_read_file: "
 				"could not parse entry (file=\"%s\" line=%lu)\n",
 				fname, lineno );
-			rc = LDAP_OTHER;
 			break;
 		}
 

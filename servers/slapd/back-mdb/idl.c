@@ -1,5 +1,5 @@
 /* $ReOpenLDAP$ */
-/* Copyright 2011-2016 ReOpenLDAP AUTHORS: please see AUTHORS file.
+/* Copyright 2011-2017 ReOpenLDAP AUTHORS: please see AUTHORS file.
  * All rights reserved.
  *
  * This file is part of ReOpenLDAP.
@@ -348,6 +348,8 @@ mdb_idl_fetch_key(
 				Debug( LDAP_DEBUG_ANY, "=> mdb_idl_fetch_key: "
 					"range size mismatch: expected %d, got %ld\n",
 					MDB_IDL_RANGE_SIZE, ids[0] );
+				if (saved_cursor && *saved_cursor == cursor )
+					*saved_cursor = NULL;
 				mdb_cursor_close( cursor );
 				return -1;
 			}
@@ -360,8 +362,11 @@ mdb_idl_fetch_key(
 		if ( !*saved_cursor )
 			*saved_cursor = cursor;
 	}
-	else
+	else {
+		if (saved_cursor && *saved_cursor == cursor )
+			*saved_cursor = NULL;
 		mdb_cursor_close( cursor );
+	}
 
 	if( rc == MDB_NOTFOUND ) {
 		return rc;

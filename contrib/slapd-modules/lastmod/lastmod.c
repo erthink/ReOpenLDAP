@@ -1,6 +1,6 @@
 /* lastmod.c - returns last modification info */
 /* $ReOpenLDAP$ */
-/* Copyright 1992-2016 ReOpenLDAP AUTHORS: please see AUTHORS file.
+/* Copyright 1992-2017 ReOpenLDAP AUTHORS: please see AUTHORS file.
  * All rights reserved.
  *
  * This file is part of ReOpenLDAP.
@@ -881,7 +881,7 @@ lastmod_db_open( BackendDB *be, ConfigReply *cr )
 	fprintf( stderr, "# entry:\n%s\n", buf );
 #endif
 
-	lmi->lmi_e = str2entry( buf );
+	lmi->lmi_e = str2entry( buf, NULL );
 	if ( lmi->lmi_e == NULL ) {
 		return -1;
 	}

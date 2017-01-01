@@ -1,5 +1,5 @@
 /* $ReOpenLDAP$ */
-/* Copyright 1999-2016 ReOpenLDAP AUTHORS: please see AUTHORS file.
+/* Copyright 1999-2017 ReOpenLDAP AUTHORS: please see AUTHORS file.
  * All rights reserved.
  *
  * This file is part of ReOpenLDAP.
@@ -67,7 +67,7 @@ perl_back_search(
 
 				buf = POPp;
 
-				if ( (e = str2entry( buf )) == NULL ) {
+				if ( (e = str2entry( buf, NULL )) == NULL ) {
 					Debug( LDAP_DEBUG_ANY, "str2entry(%s) failed\n", buf );
 
 				} else {

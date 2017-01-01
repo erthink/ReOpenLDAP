@@ -1,5 +1,5 @@
 ## $ReOpenLDAP$
-## Copyright 2016 ReOpenLDAP AUTHORS: please see AUTHORS file.
+## Copyright 2017 ReOpenLDAP AUTHORS: please see AUTHORS file.
 ## All rights reserved.
 ##
 ## This file is part of ReOpenLDAP.
@@ -30,7 +30,7 @@ sbin_PROGRAMS = slapd
 slaptools = slapadd slapcat slapdn slapindex slappasswd slaptest slapauth slapacl slapschema slapmodify
 slapd_LDADD = overlays/liboverlays_builtin.la
 slapd_LDFLAGS =
-slapd_DEPENDENCIES =
+EXTRA_slapd_DEPENDENCIES =
 
 EXTRA_DIST = slapd.ldif.in slapd.conf.in
 CLEANFILES = slapd.ldif slapd.conf
@@ -231,7 +231,7 @@ if SLAPD_DYNAMIC
 AM_CPPFLAGS += $(LTDLINCL)
 slapd_LDFLAGS += -export-dynamic -dlopen self
 slapd_LDADD += $(LIBLTDL)
-slapd_DEPENDENCIES += $(LTDLDEPS)
+EXTRA_slapd_DEPENDENCIES += $(LTDLDEPS)
 endif
 
 #########################################

@@ -1,5 +1,5 @@
 /* $ReOpenLDAP$ */
-/* Copyright 1990-2016 ReOpenLDAP AUTHORS: please see AUTHORS file.
+/* Copyright 1990-2017 ReOpenLDAP AUTHORS: please see AUTHORS file.
  * All rights reserved.
  *
  * This file is part of ReOpenLDAP.
@@ -85,7 +85,7 @@ read_and_send_results(
 				break;
 			}
 
-			if ( (rs->sr_entry = str2entry( buf )) == NULL ) {
+			if ( (rs->sr_entry = str2entry( buf, NULL )) == NULL ) {
 				Debug( LDAP_DEBUG_ANY, "str2entry(%s) failed\n",
 				    buf );
 			} else {

@@ -1,5 +1,5 @@
 ## $ReOpenLDAP$
-## Copyright 2016 ReOpenLDAP AUTHORS: please see AUTHORS file.
+## Copyright 2017 ReOpenLDAP AUTHORS: please see AUTHORS file.
 ## All rights reserved.
 ##
 ## This file is part of ReOpenLDAP.
@@ -22,7 +22,7 @@ AM_CPPFLAGS = -DSLAPD_IMPORT -I$(srcdir)/.. -I$(top_srcdir)/include
 liboverlays_builtin_la_SOURCES = overlays.c
 liboverlays_builtin_la_CPPFLAGS = $(AM_CPPFLAGS)
 liboverlays_builtin_la_LIBADD =
-liboverlays_builtin_la_DEPENDENCIES =
+EXTRA_liboverlays_builtin_la_DEPENDENCIES =
 
 if BEHIND_CURTIAN
 
@@ -183,13 +183,13 @@ ppolicy_la_LDFLAGS = -module -export-dynamic \
 ppolicy_la_SOURCES = ppolicy.c ppolicy_banner.c
 ppolicy_la_CPPFLAGS = $(LTDLINCL) $(AM_CPPFLAGS)
 ppolicy_la_LIBADD = $(LIBLTDL)
-ppolicy_la_DEPENDENCIES = $(LTDLDEPS)
+EXTRA_ppolicy_la_DEPENDENCIES = $(LTDLDEPS)
 else
 liboverlays_builtin_la_SOURCES += ppolicy.c
 if SLAPD_DYNAMIC
 liboverlays_builtin_la_CPPFLAGS += $(LTDLINCL)
 liboverlays_builtin_la_LIBADD += $(LIBLTDL)
-liboverlays_builtin_la_DEPENDENCIES += $(LTDLDEPS)
+EXTRA_liboverlays_builtin_la_DEPENDENCIES += $(LTDLDEPS)
 endif
 endif
 endif

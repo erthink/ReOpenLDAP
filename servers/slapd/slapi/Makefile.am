@@ -1,5 +1,5 @@
 ## $ReOpenLDAP$
-## Copyright 2016 ReOpenLDAP AUTHORS: please see AUTHORS file.
+## Copyright 2017 ReOpenLDAP AUTHORS: please see AUTHORS file.
 ## All rights reserved.
 ##
 ## This file is part of ReOpenLDAP.
@@ -22,7 +22,7 @@ AM_CPPFLAGS = -DSLAPI_LIBRARY -DSLAPD_IMPORT \
 	-I$(srcdir)/.. -I$(top_srcdir)/include $(LTDLINCL)
 
 libreslapi_la_LIBADD = $(SLAPI_LIBS) $(LIBLTDL)
-libreslapi_la_DEPENDENCIES = $(LTDLDEPS)
+EXTRA_libreslapi_la_DEPENDENCIES = $(LTDLDEPS)
 
 if BEHIND_CURTIAN
 BUILT_SOURCES = banner.c
