@@ -16,7 +16,7 @@
 DIST_SUBDIRS = overlays slapi back-bdb back-dnssrv back-hdb \
 	back-ldap back-ldif back-mdb back-meta back-monitor back-ndb \
 	back-null back-passwd back-perl back-relay back-shell back-sock \
-	back-sql shell-backends
+	back-sql shell-backends back-wt back-asyncmeta
 
 SUBDIRS	= overlays
 
