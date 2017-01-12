@@ -18,26 +18,26 @@ include: file://@TESTWD@/@SCHEMADIR@/misc.ldif
 include: file://@TESTWD@/@SCHEMADIR@/nis.ldif
 include: file://@TESTWD@/@SCHEMADIR@/dyngroup.ldif
 
-#mod#dn: cn=module{0},cn=config
-#mod#objectClass: olcModuleList
-#mod#cn: module{0}
-#mod#olcModulePath: @TESTWD@/../servers/slapd/back-@BACKEND@/
-#mod#olcModuleLoad: {0}back_@BACKEND@.la
+#be-type=mod#dn: cn=module{0},cn=config
+#be-type=mod#objectClass: olcModuleList
+#be-type=mod#cn: module{0}
+#be-type=mod#olcModulePath: @TESTWD@/../servers/slapd/back-@BACKEND@/
+#be-type=mod#olcModuleLoad: {0}back_@BACKEND@.la
 
-#monitormod#dn: cn=module{1},cn=config
-#monitormod#objectClass: olcModuleList
-#monitormod#cn: module{1}
-#monitormod#olcModulePath: @TESTWD@/../servers/slapd/back-monitor/
-#monitormod#olcModuleLoad: {0}back_monitor.la
+#monitor=mod#dn: cn=module{1},cn=config
+#monitor=mod#objectClass: olcModuleList
+#monitor=mod#cn: module{1}
+#monitor=mod#olcModulePath: @TESTWD@/../servers/slapd/back-monitor/
+#monitor=mod#olcModuleLoad: {0}back_monitor.la
 
-#memberofmod#dn: cn=module{2},cn=config
-#memberofmod#objectClass: olcModuleList
-#memberofmod#cn: module{2}
-#memberofmod#olcModulePath: @TESTWD@/../servers/slapd/overlays/
-#memberofmod#olcModuleLoad: {0}memberof.la
-#dynlistmod#olcModuleLoad: {1}dynlist.la
-#syncprovmod#olcModuleLoad: {2}syncprov.la
-#accesslogmod#olcModuleLoad: {3}accesslog.la
+#memberof=mod#dn: cn=module{2},cn=config
+#memberof=mod#objectClass: olcModuleList
+#memberof=mod#cn: module{2}
+#memberof=mod#olcModulePath: @TESTWD@/../servers/slapd/overlays/
+#memberof=mod#olcModuleLoad: {0}memberof.la
+#dynlist=mod#olcModuleLoad: {1}dynlist.la
+#syncprov=mod#olcModuleLoad: {2}syncprov.la
+#accesslog=mod#olcModuleLoad: {3}accesslog.la
 
 dn: olcDatabase={-1}frontend,cn=config
 objectClass: olcDatabaseConfig
@@ -97,7 +97,7 @@ olcSyncrepl: {2}rid=102 provider=@URI1@ binddn="cn=manager,dc=example,dc=com
 #indexdb#olcDbIndex: title pres,eq,sub
 #indexdb#olcDbIndex: givenName pres,eq,sub
 #indexdb#olcDbIndex: member
-#mdb#olcDbMaxSize: 33554432
+#be=mdb#olcDbMaxSize: 33554432
 
 dn: olcOverlay={0}dynlist,olcDatabase={1}@BACKEND@,cn=config
 objectClass: olcOverlayConfig
@@ -143,7 +143,7 @@ olcTimeLimit: unlimited
 olcDbIndex: default eq
 olcDbIndex: entryCSN,objectClass,reqEnd,reqResult,reqStart,reqDN
 #~null~#olcDbDirectory: @TESTDIR@/srv4/db.2
-#mdb#olcDbMaxSize: 33554432
+#be=mdb#olcDbMaxSize: 33554432
 
 dn: olcOverlay={0}syncprov,olcDatabase={2}@BACKEND@,cn=config
 objectClass: olcOverlayConfig

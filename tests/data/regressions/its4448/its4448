@@ -14,9 +14,7 @@
 ## <http://www.OpenLDAP.org/license.html>.
 
 echo "running defines.sh"
-. $SRCDIR/scripts/defines.sh
-
-echo ""
+. ${TOP_SRCDIR}/tests/scripts/defines.sh
 
 if test ${AC_conf[meta]} = no ; then
 	echo "meta backend not available, test skipped"

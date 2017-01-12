@@ -14,7 +14,7 @@
 ## <http://www.OpenLDAP.org/license.html>.
 
 echo "running defines.sh"
-. $SRCDIR/scripts/defines.sh
+. ${TOP_SRCDIR}/tests/scripts/defines.sh
 
 if test "$BACKEND" != "bdb" && test "$BACKEND" != "hdb" ; then
 	echo "Warning: this test is known to affect bdb and hdb, although it may impact other backends as well."

@@ -51,7 +51,7 @@ olcRootPW: secret
 #indexdb#olcDbIndex: default eq
 #indexdb#olcDbIndex: objectClass
 #indexdb#olcDbIndex: cn
-#mdb#olcDbMaxSize: 33554432
+#be=mdb#olcDbMaxSize: 33554432
 
 dn: olcDatabase={2}monitor,cn=config
 objectClass: olcDatabaseConfig

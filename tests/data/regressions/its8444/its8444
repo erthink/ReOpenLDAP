@@ -14,21 +14,21 @@
 ## <http://www.OpenLDAP.org/license.html>.
 
 echo "running defines.sh"
-. $SRCDIR/scripts/defines.sh
+. ${TOP_SRCDIR}/tests/scripts/defines.sh
 
-if test $SYNCPROV = syncprovno; then
+if test ${AC_conf[syncprov]} = no; then
 	echo "Syncrepl provider overlay not available, test skipped"
 	exit 0
 fi
-if test $ACCESSLOG = accesslogno; then
+if test ${AC_conf[accesslog]} = no; then
         echo "Accesslog overlay not available, test skipped"
         exit 0
 fi
-if test $DYNLIST = dynlistno; then
+if test ${AC_conf[dynlist]} = no; then
         echo "Accesslog overlay not available, test skipped"
         exit 0
 fi
-if test $MEMBEROF = memberofno; then
+if test ${AC_conf[memberof]} = no; then
         echo "Memberof overlay not available, test skipped"
         exit 0
 fi
@@ -54,18 +54,24 @@ ITSDIR=$DATADIR/regressions/its$ITS
 
 echo "Initializing server configurations..."
 
+KILLPIDS=
 n=1
 while [ $n -le $MMR ]; do
 	DBDIR=${XDIR}$n/db
 	CFDIR=${XDIR}$n/slapd.d
 
 	mkdir -p ${XDIR}$n $DBDIR.1 $DBDIR.2 $CFDIR
-	. $CONFFILTER $BACKEND $MONITORDB < $ITSDIR/slapd-provider${n}.ldif > $CONFLDIF
+	config_filter $BACKEND ${AC_conf[monitor]} < $ITSDIR/slapd-provider${n}.ldif > $CONFLDIF
 	$SLAPADD -F $CFDIR -n 0 -l $CONFLDIF
+	RC=$?
+	if test $RC != 0 ; then
+		echo "ldapadd(initial) failed ($RC)!"
+		killservers
+		exit $RC
+	fi
 	n=`expr $n + 1`
 done
 
-KILLPIDS=
 n=1
 while [ $n -le $MMR ]; do
 	MYURI=`eval echo '$URI'$n`
@@ -81,25 +87,7 @@ while [ $n -le $MMR ]; do
 		read foo
 	fi
 	KILLPIDS="$PID $KILLPIDS"
-	sleep 1
-
-	echo "Using ldapsearch to check that provider slapd is running..."
-	for i in 0 1 2 3 4 5; do
-		$LDAPSEARCH -s base -b "" -H $MYURI \
-			'objectclass=*' > /dev/null 2>&1
-		RC=$?
-		if test $RC = 0 ; then
-			break
-		fi
-		echo "Waiting 5 seconds for slapd to start..."
-		sleep 5
-	done
-
-	if test $RC != 0 ; then
-		echo "ldapsearch failed ($RC)!"
-		test $KILLSERVERS != no && kill -HUP $KILLPIDS
-		exit $RC
-	fi
+	check_running $n
 	n=`expr $n + 1`
 done
 
@@ -159,7 +147,7 @@ EOMODS
 RC=$?
 if test $RC != 0 ; then
 	echo "ldapadd failed ($RC)!"
-	test $KILLSERVERS != no && kill -HUP $KILLPIDS
+	killservers
 	exit $RC
 fi
 
@@ -181,9 +169,43 @@ member: cn=Elmer Fudd,ou=People,$BASEDN
 member: cn=Daffy Duck,ou=People,$BASEDN
 member: cn=Bugs Bunny,ou=People,$BASEDN
 EOF
-
+	RC=$?
+	if test $RC != 0 ; then
+		echo "ldapmodify(member-add) failed ($RC)!"
+		killservers
+		exit $RC
+	fi
 	sleep 3
-	
+
+	echo "Checking that members have memberOf present..."
+	new_members=( "cn=Jessica Rabbit,ou=People,$BASEDN" "cn=Elmer Fudd,ou=People,$BASEDN" "cn=Daffy Duck,ou=People,$BASEDN" "cn=Bugs Bunny,ou=People,$BASEDN")
+	for member in "${new_members[@]}"
+	do
+		n=1
+		while [ $n -le $MMR ]; do
+			>$SEARCHOUT
+			echo "# Searching member $member after removal from Cartoonia group, provider $n" >> $SEARCHOUT
+			MYURI=`eval echo '$URI'$n`
+			$LDAPSEARCH -S "" -b "$member" -s base -H $MYURI -D "cn=manager,$BASEDN" -w $PASSWD \
+			        '(objectClass=*)' 'memberOf' >> $SEARCHOUT 2>&1
+			RC=$?
+			if test $RC != 0 ; then
+			        echo "ldapsearch failed ($RC) on consumer $n!"
+				killservers
+			        exit $RC
+			fi
+			grep "memberOf:" $SEARCHOUT >/dev/null 2>&1
+			RC=$?
+
+			if test $RC != 0 ; then
+				echo "User add failed on consumer $n."
+				killservers
+				exit $RC
+			fi
+			n=`expr $n + 1`
+		done
+	done
+
 	echo "Deleting new members from the group..."
 	$LDAPMODIFY -H $URI1 \
 	        -D "cn=Manager,$BASEDN" -w $PASSWD \
@@ -196,6 +218,12 @@ member: cn=Elmer Fudd,ou=People,$BASEDN
 member: cn=Daffy Duck,ou=People,$BASEDN
 member: cn=Bugs Bunny,ou=People,$BASEDN
 EOF
+	RC=$?
+	if test $RC != 0 ; then
+		echo "ldapmodify(member-delete) failed ($RC)!"
+		killservers
+		exit $RC
+	fi
 	sleep 3
 
 	echo "Searching new members to see if they still have memberOf present..."
@@ -210,17 +238,18 @@ EOF
 			$LDAPSEARCH -S "" -b "$member" -s base -H $MYURI -D "cn=manager,$BASEDN" -w $PASSWD \
 			        '(objectClass=*)' 'memberOf' >> $SEARCHOUT 2>&1
 			RC=$?
+
 			if test $RC != 0 ; then
-			        echo "ldapsearch failed ($RC)!"
-			        test $KILLSERVERS != no && kill -HUP $KILLPIDS
+			        echo "ldapsearch failed ($RC) on consumer $n!"
+				killservers
 			        exit $RC
 			fi
 			grep "memberOf:" $SEARCHOUT >/dev/null 2>&1
 			RC=$?
-			
+
 			if test $RC != 1 ; then
-				echo "User delete failed on one or more consumer."
-				test $KILLSERVERS != no && kill -HUP $KILLPIDS
+				echo "User delete failed on consumer $n."
+				killservers
 				exit $RC
 			fi
 			n=`expr $n + 1`
@@ -241,6 +270,12 @@ dn: cn=Cartoonia,ou=Groups,$BASEDN
 changetype: delete
 EOF
 
+	RC=$?
+	if test $RC != 0 ; then
+		echo "ldapmodify(group-delete) failed ($RC)!"
+		killservers
+		exit $RC
+	fi
 	sleep 3
 
 	echo "Searching entire database on each provider after deleting Cartoonia group"
@@ -254,7 +289,7 @@ EOF
 		RC=$?
 		if test $RC != 0 ; then
 		        echo "ldapsearch failed ($RC)!"
-		        test $KILLSERVERS != no && kill -HUP $KILLPIDS
+			killservers
 		        exit $RC
 		fi
 		n=`expr $n + 1`
@@ -265,7 +300,7 @@ EOF
 
 	if test $RC != 1 ; then
 		echo "Group delete failed on one or more consumer."
-		test $KILLSERVERS != no && kill -HUP $KILLPIDS
+		killservers
 		exit $RC
 	fi
 
@@ -281,6 +316,12 @@ member: cn=Roger Rabbit,ou=People,$BASEDN
 member: cn=Baby Herman,ou=People,$BASEDN
 EOF
 
+	RC=$?
+	if test $RC != 0 ; then
+		echo "ldapmodify(group-add) failed ($RC)!"
+		killservers
+		exit $RC
+	fi
 	sleep 3
 
 	echo "Searching entire database on each provider after re-adding Cartoonia group"
@@ -295,15 +336,15 @@ EOF
 		RC=$?
 		if test $RC != 0 ; then
 		        echo "ldapsearch failed ($RC)!"
-		        test $KILLSERVERS != no && kill -HUP $KILLPIDS
+			killservers
 		        exit $RC
 		fi
 		grep "memberOf:" $SEARCHOUT >/dev/null 2>&1
 		RC=$?
-		
+
 		if test $RC != 0 ; then
 			echo "Group add failed on one or more consumer."
-			test $KILLSERVERS != no && kill -HUP $KILLPIDS
+			killservers
 			exit $RC
 		fi
 
@@ -312,10 +353,6 @@ EOF
 	modloop=`expr $modloop + 1`
 done
 
-test $KILLSERVERS != no && kill -HUP $KILLPIDS
-
+killservers
 echo ">>>>> Test succeeded"
-
-test $KILLSERVERS != no && wait
-
 exit 0
