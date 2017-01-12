@@ -46,6 +46,13 @@
 #include <ssl.h>
 #endif
 
+#if OPENSSL_VERSION_NUMBER >= 0x10100000 && !defined(LIBRESSL_VERSION_NUMBER)
+#define ERR_remove_thread_state(x)	/* deprecated, get rid of it */
+#define ASN1_STRING_data(x)	ASN1_STRING_get0_data(x)
+#define CRYPTO_free(x)	OPENSSL_free(x)
+#define CRYPTO_NUM_LOCKS	CRYPTO_num_locks()
+#endif
+
 typedef SSL_CTX tlso_ctx;
 typedef SSL tlso_session;
 
@@ -56,7 +63,7 @@ static void tlso_report_error( void );
 static void tlso_info_cb( const SSL *ssl, int where, int ret );
 static int tlso_verify_cb( int ok, X509_STORE_CTX *ctx );
 static int tlso_verify_ok( int ok, X509_STORE_CTX *ctx );
-#if OPENSSL_VERSION_NUMBER < 0x10100000
+#if OPENSSL_VERSION_NUMBER < 0x10100000 || defined(LIBRESSL_VERSION_NUMBER)
 static RSA * tlso_tmp_rsa_cb( SSL *ssl, int is_export, int key_length );
 #endif
 
@@ -102,7 +109,7 @@ static void tlso_thr_init( void )
 		ldap_pvt_thread_mutex_init( &tlso_mutexes[i] );
 	}
 #endif
-	/* Openssl 1.1.x don't used locking callback
+	/* OpenSSL 1.1.x don't used locking callback
 	 * and corresponding defines are no-ops.
 	 * Keep the subsequent lines for error detection. */
 	CRYPTO_set_locking_callback( tlso_locking_cb );
@@ -166,11 +173,9 @@ tlso_destroy( void )
 	EVP_cleanup();
 #if OPENSSL_VERSION_NUMBER < 0x10000000
 	ERR_remove_state(0);
-#else
-#if OPENSSL_VERSION_NUMBER < 0x10100000L
+#elif OPENSSL_VERSION_NUMBER < 0x10100000L || defined(LIBRESSL_VERSION_NUMBER)
 	/* deprecated in openssl-1.1 */
 	ERR_remove_thread_state(NULL);
-#endif
 #endif
 	ERR_free_strings();
 
@@ -344,7 +349,7 @@ tlso_ctx_init( struct ldapoptions *lo, struct ldaptls *lt, int is_server )
 	SSL_CTX_set_verify( ctx, i,
 		lo->ldo_tls_require_cert == LDAP_OPT_X_TLS_ALLOW ?
 		tlso_verify_ok : tlso_verify_cb );
-#if OPENSSL_VERSION_NUMBER < 0x10100000
+#if OPENSSL_VERSION_NUMBER < 0x10100000 || defined(LIBRESSL_VERSION_NUMBER)
 	SSL_CTX_set_tmp_rsa_callback( ctx, tlso_tmp_rsa_cb );
 #endif
 #ifdef HAVE_OPENSSL_CRL
@@ -707,18 +712,21 @@ struct tls_data {
 	Sockbuf_IO_Desc		*sbiod;
 };
 
+#if OPENSSL_VERSION_NUMBER < 0x10100000 || defined(LIBRESSL_VERSION_NUMBER)
+#	define BIO_set_init(b, x)	b->init = x
+#	define BIO_set_data(b, x)	b->ptr = x
+#	define BIO_clear_flags(b, x)	b->flags &= ~(x)
+#	define BIO_get_data(b)	b->ptr
+#endif
+
 static int
 tlso_bio_create( BIO *b ) {
 #if OPENSSL_VERSION_NUMBER < 0x10100000L || defined(LIBRESSL_VERSION_NUMBER)
-	b->init = 1;
 	b->num = 0;
-	b->ptr = NULL;
-	b->flags = 0;
-#else
+#endif
 	BIO_set_init(b, 1);
 	BIO_set_data(b, NULL);
 	BIO_clear_flags(b, ~0);
-#endif
 	return 1;
 }
 
@@ -727,15 +735,9 @@ tlso_bio_destroy( BIO *b )
 {
 	if ( b == NULL ) return 0;
 
-#if OPENSSL_VERSION_NUMBER < 0x10100000L || defined(LIBRESSL_VERSION_NUMBER)
-	b->ptr = NULL;		/* sb_tls_remove() will free it */
-	b->init = 0;
-	b->flags = 0;
-#else
-	BIO_set_data(b, NULL);
-	BIO_set_init(b, 0);
-	BIO_clear_flags(b, ~0);
-#endif
+	BIO_set_data( b, NULL );		/* sb_tls_remove() will free it */
+	BIO_set_init( b, 0 );
+	BIO_clear_flags( b, ~0 );
 	return 1;
 }
 
@@ -747,15 +749,9 @@ tlso_bio_read( BIO *b, char *buf, int len )
 
 	if ( buf == NULL || len <= 0 ) return 0;
 
-#if OPENSSL_VERSION_NUMBER < 0x10100000L || defined(LIBRESSL_VERSION_NUMBER)
-	p = (struct tls_data *)b->ptr;
-#else
 	p = (struct tls_data *)BIO_get_data(b);
-#endif
-
-	if ( p == NULL || p->sbiod == NULL ) {
+	if ( p == NULL || p->sbiod == NULL )
 		return 0;
-	}
 
 	ret = LBER_SBIOD_READ_NEXT( p->sbiod, buf, len );
 
@@ -778,15 +774,9 @@ tlso_bio_write( BIO *b, const char *buf, int len )
 
 	if ( buf == NULL || len <= 0 ) return 0;
 
-#if OPENSSL_VERSION_NUMBER < 0x10100000L || defined(LIBRESSL_VERSION_NUMBER)
-	p = (struct tls_data *)b->ptr;
-#else
 	p = (struct tls_data *)BIO_get_data(b);
-#endif
-
-	if ( p == NULL || p->sbiod == NULL ) {
+	if ( p == NULL || p->sbiod == NULL )
 		return 0;
-	}
 
 	ret = LBER_SBIOD_WRITE_NEXT( p->sbiod, (char *)buf, len );
 
@@ -857,7 +847,6 @@ tlso_sb_setup( Sockbuf_IO_Desc *sbiod, void *arg )
 	p->sbiod = sbiod;
 #if OPENSSL_VERSION_NUMBER < 0x10100000L || defined(LIBRESSL_VERSION_NUMBER)
 	bio = BIO_new( &tlso_bio_method );
-	bio->ptr = (void *)p;
 #else
 	if ( NULL == tlso_bio_method ) {
 		tlso_bio_method = BIO_meth_new(( 100 | 0x400 ), "sockbuf glue");
@@ -876,8 +865,8 @@ tlso_sb_setup( Sockbuf_IO_Desc *sbiod, void *arg )
 	if ( NULL == bio ) {
 		return -1;
 	}
-	BIO_set_data(bio, (void *)p);
 #endif
+	BIO_set_data( bio, p );
 	SSL_set_bio( p->session, bio, bio );
 	sbiod->sbiod_pvt = p;
 	return 0;
@@ -1076,17 +1065,9 @@ tlso_verify_cb( int ok, X509_STORE_CTX *ctx )
 			certerr );
 	}
 	if ( sname )
-#if OPENSSL_VERSION_NUMBER < 0x10100000L
 		CRYPTO_free ( sname );
-#else
-		OPENSSL_free ( sname );
-#endif
 	if ( iname )
-#if OPENSSL_VERSION_NUMBER < 0x10100000L
 		CRYPTO_free ( iname );
-#else
-		OPENSSL_free ( iname );
-#endif
 	return ok;
 }
 
@@ -1113,7 +1094,7 @@ tlso_report_error( void )
 	}
 }
 
-#if OPENSSL_VERSION_NUMBER < 0x10100000
+#if OPENSSL_VERSION_NUMBER < 0x10100000 || defined(LIBRESSL_VERSION_NUMBER)
 static RSA *
 tlso_tmp_rsa_cb( SSL *ssl, int is_export, int key_length )
 {
@@ -1190,7 +1171,6 @@ tlso_seed_PRNG( const char *randfile )
 
 	return 0;
 }
-
 
 tls_impl ldap_int_tls_impl = {
 #ifdef LIBRESSL_VERSION_NUMBER
