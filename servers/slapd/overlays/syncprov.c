@@ -2131,6 +2131,7 @@ syncprov_op_response( Operation *op, SlapReply *rs )
 
 	switch(op->o_tag) {
 		default:
+			LDAP_BUG();
 			oper = "???"; break;
 		case LDAP_REQ_ADD:
 			entry_dn = &op->ora_e->e_nname;
