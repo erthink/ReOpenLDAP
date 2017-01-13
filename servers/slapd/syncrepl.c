@@ -889,6 +889,7 @@ syncrepl_eat_cookie(
 		return rc;
 
 	if ( dst->numcsns == 0 && SLAP_MULTIMASTER( si->si_be )
+		&& si->si_syncdata != SYNCDATA_ACCESSLOG
 		&& ( reopenldap_mode_righteous() || reopenldap_mode_strict() ) ) {
 		Debug( LDAP_DEBUG_ANY, "syncrepl_cookie_take:"
 			"%s REJECT empty-cookie '%s'\n",
