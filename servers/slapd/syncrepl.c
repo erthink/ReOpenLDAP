@@ -1228,6 +1228,9 @@ syncrepl_process(
 			syncrepl_refresh_done( si, rc );
 
 			if ( rc == LDAP_SUCCESS && si->si_logstate == SYNCLOG_FALLBACK ) {
+				Debug( LDAP_DEBUG_SYNC,
+					"syncrepl_process: %s delta-sync recovered, back to LOGGING\n",
+					si->si_ridtxt );
 				si->si_logstate = SYNCLOG_LOGGING;
 				rc = LDAP_SYNC_REFRESH_REQUIRED;
 				slap_resume_listeners();
@@ -1617,7 +1620,7 @@ deleted:
 		rtask->interval.ns = 1;
 		ldap_pvt_runqueue_resched( &slapd_rq, rtask, 0 );
 		rc = 0;
-	} else if ( rc == SYNC_REFRESH_YIELD ) {
+	} else if ( rc == SYNC_REFRESH_YIELD || rc == LDAP_SYNC_REFRESH_REQUIRED ) {
 		rtask->interval.ns = ldap_from_seconds(1).ns / 100;
 		ldap_pvt_runqueue_resched( &slapd_rq, rtask, 0 );
 		rc = 0;
