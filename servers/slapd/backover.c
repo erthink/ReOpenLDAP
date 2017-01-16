@@ -739,6 +739,16 @@ cleanup:
 }
 
 static int
+over_op_func_cleanup( Operation *op, SlapReply *rs )
+{
+	slap_callback *cb = op->o_callback;
+	if ( rs->sr_type == REP_RESULT && cb != NULL) {
+		op->o_callback = cb->sc_next;
+		ch_free( cb );
+	}
+}
+
+static int
 over_op_func(
 	Operation *op,
 	SlapReply *rs,
@@ -765,7 +775,7 @@ over_op_func(
 		compiler_barrier();
 		op->o_bd = &db;
 	}
-	cb->sc_cleanup = NULL;
+	cb->sc_cleanup = over_op_func_cleanup;
 	cb->sc_response = over_back_response;
 	cb->sc_writewait = NULL;
 	cb->sc_next = op->o_callback;

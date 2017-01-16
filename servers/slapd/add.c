@@ -184,6 +184,11 @@ do_add( Operation *op, SlapReply *rs )
 	rc = slap_biglock_call_be( op_add, op, rs );
 	LDAP_SLIST_REMOVE(&op->o_extra, &oex.oe, OpExtra, oe_next);
 
+	if ( rc == SLAPD_ASYNCOP ) {
+		/* skip cleanup */
+		return rc;
+	}
+
 #ifdef LDAP_X_TXN
 	if ( rc == LDAP_X_TXN_SPECIFY_OKAY ) {
 		/* skip cleanup */
