@@ -55,8 +55,7 @@ ITSDIR=$DATADIR/regressions/its$ITS
 echo "Initializing server configurations..."
 
 KILLPIDS=
-n=1
-while [ $n -le $MMR ]; do
+for ((n=1; n<=$MMR; n++)); do
 	DBDIR=${XDIR}$n/db
 	CFDIR=${XDIR}$n/slapd.d
 
@@ -69,11 +68,9 @@ while [ $n -le $MMR ]; do
 		killservers
 		exit $RC
 	fi
-	n=`expr $n + 1`
 done
 
-n=1
-while [ $n -le $MMR ]; do
+for ((n=1; n<=$MMR; n++)); do
 	MYURI=`eval echo '$URI'$n`
 	MYLOG=`eval echo '$LOG'$n`
 	CFDIR=${XDIR}$n/slapd.d
@@ -88,7 +85,6 @@ while [ $n -le $MMR ]; do
 	fi
 	KILLPIDS="$PID $KILLPIDS"
 	check_running $n
-	n=`expr $n + 1`
 done
 
 echo "Populating database on first provider..."
@@ -155,9 +151,8 @@ echo "Sleeping 10 seconds to allow replication to initiate..."
 sleep 10
 
 echo "Looping 50 times adding and deleting members to the Cartoonia group..."
-modloop=1
-while [ $modloop -le 50 ]; do
-	echo "Adding new members to the group (${modloop}/50)..."
+for loop in {1..50}; do
+	echo "Adding new members to the group (${loop}/50)..."
 	$LDAPMODIFY -H $URI1 \
 	        -D "cn=Manager,$BASEDN" -w $PASSWD \
 	        >> $TESTOUT 2>&1 << EOF
@@ -179,10 +174,8 @@ EOF
 
 	echo "Checking that members have memberOf present..."
 	new_members=( "cn=Jessica Rabbit,ou=People,$BASEDN" "cn=Elmer Fudd,ou=People,$BASEDN" "cn=Daffy Duck,ou=People,$BASEDN" "cn=Bugs Bunny,ou=People,$BASEDN")
-	for member in "${new_members[@]}"
-	do
-		n=1
-		while [ $n -le $MMR ]; do
+	for member in "${new_members[@]}"; do
+		for ((n=1; n<=$MMR; n++)); do
 			>$SEARCHOUT
 			echo "# Searching member $member after removal from Cartoonia group, provider $n" >> $SEARCHOUT
 			MYURI=`eval echo '$URI'$n`
@@ -202,7 +195,6 @@ EOF
 				killservers
 				exit $RC
 			fi
-			n=`expr $n + 1`
 		done
 	done
 
@@ -228,10 +220,8 @@ EOF
 
 	echo "Searching new members to see if they still have memberOf present..."
 	new_members=( "cn=Jessica Rabbit,ou=People,$BASEDN" "cn=Elmer Fudd,ou=People,$BASEDN" "cn=Daffy Duck,ou=People,$BASEDN" "cn=Bugs Bunny,ou=People,$BASEDN")
-	for member in "${new_members[@]}"
-	do
-		n=1
-		while [ $n -le $MMR ]; do
+	for member in "${new_members[@]}"; do
+		for ((n=1; n<=$MMR; n++)); do
 			>$SEARCHOUT
 			echo "# Searching member $member after removal from Cartoonia group, provider $n" >> $SEARCHOUT
 			MYURI=`eval echo '$URI'$n`
@@ -252,17 +242,14 @@ EOF
 				killservers
 				exit $RC
 			fi
-			n=`expr $n + 1`
 		done
 	done
-	modloop=`expr $modloop + 1`
 done
 
 echo "Looping 50 times deleting and adding Cartoonia group..."
-modloop=1
-while [ $modloop -le 50 ]; do
+for loop in {1..50}; do
 	>$SEARCHOUT
-	echo "Running ldapdelete to remove a group (${modloop}/50)..."
+	echo "Running ldapdelete to remove a group (${loop}/50)..."
 	$LDAPMODIFY -H $URI1 \
 	        -D "cn=Manager,$BASEDN" -w $PASSWD \
 	        >> $TESTOUT 2>&1 << EOF
@@ -280,8 +267,7 @@ EOF
 
 	echo "Searching entire database on each provider after deleting Cartoonia group"
 
-	n=1
-	while [ $n -le $MMR ]; do
+	for ((n=1; n<=$MMR; n++)); do
 		echo "# Searching the entire database after deleting Cartoonia, provider $n" >> $SEARCHOUT
 		MYURI=`eval echo '$URI'$n`
 		$LDAPSEARCH -S "" -b "$BASEDN" -H $MYURI -D "cn=manager,$BASEDN" -w $PASSWD \
@@ -292,7 +278,6 @@ EOF
 			killservers
 		        exit $RC
 		fi
-		n=`expr $n + 1`
 	done
 
 	grep "cn=Cartoonia" $SEARCHOUT >/dev/null 2>&1
@@ -326,8 +311,7 @@ EOF
 
 	echo "Searching entire database on each provider after re-adding Cartoonia group"
 
-	n=1
-	while [ $n -le $MMR ]; do
+	for ((n=1; n<=$MMR; n++)); do
 		>$SEARCHOUT
 		echo "# Searching the entire database after re-adding Cartoonia, provider $n" >> $SEARCHOUT
 		MYURI=`eval echo '$URI'$n`
@@ -347,10 +331,7 @@ EOF
 			killservers
 			exit $RC
 		fi
-
-		n=`expr $n + 1`
 	done
-	modloop=`expr $modloop + 1`
 done
 
 killservers
