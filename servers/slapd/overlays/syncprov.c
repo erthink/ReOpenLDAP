@@ -260,7 +260,7 @@ syncprov_state_ctrl(
 
 	unsigned char *u = (void*) entryuuid_bv.bv_val;
 	Debug( LDAP_DEBUG_TRACE,
-		"syncprov_state_ctrl: rid=%03x, %s, %s, "
+		"syncprov_state_ctrl: rid=%03d, %s, %s, "
 		"%02x%02x%02x%02x-%02x%02x-%02x%02x-%02x%02x-%02x%02x%02x%02x%02x%02x, %s\n",
 		rid, ldap_sync_state2str(entry_sync_state), e->e_nname.bv_val,
 		u[0], u[1], u[2], u[3], u[4], u[5], u[6], u[7], u[8], u[9], u[10], u[11], u[12], u[13], u[14], u[15],
@@ -2982,7 +2982,7 @@ syncprov_op_search( Operation *op, SlapReply *rs )
 
 	if ( DebugTest( LDAP_DEBUG_SYNC ) ) {
 		ldap_debug_print(
-			"syncprov-search: %srid=%03x, sid=%03x, hint %d, srs %p, sop %p\n",
+			"syncprov-search: %srid=%03d, sid=%03d, hint %d, srs %p, sop %p\n",
 			so ? "PERSISTENT, " : "",
 			srs->sr_state.rid, srs->sr_state.sid, srs->sr_rhint,
 			srs, so );
