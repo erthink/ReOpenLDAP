@@ -147,8 +147,12 @@ if test $RC != 0 ; then
 	exit $RC
 fi
 
-echo "Sleeping 10 seconds to allow replication to initiate..."
-sleep 10
+#echo "Sleeping 10 seconds to allow replication to initiate..."
+#sleep 10
+for ((n=2; n<=$MMR; n++)); do
+	PORT=`eval echo '$PORT'$n`
+	wait_syncrepl $PORT1 $PORT base "" "-D $MANAGERDN -w $PASSWD"
+done
 
 echo "Looping 50 times adding and deleting members to the Cartoonia group..."
 for loop in {1..50}; do
@@ -170,7 +174,10 @@ EOF
 		killservers
 		exit $RC
 	fi
-	sleep 3
+	for ((n=2; n<=$MMR; n++)); do
+		PORT=`eval echo '$PORT'$n`
+		wait_syncrepl $PORT1 $PORT base "" "-D $MANAGERDN -w $PASSWD"
+	done
 
 	echo "Checking that members have memberOf present..."
 	new_members=( "cn=Jessica Rabbit,ou=People,$BASEDN" "cn=Elmer Fudd,ou=People,$BASEDN" "cn=Daffy Duck,ou=People,$BASEDN" "cn=Bugs Bunny,ou=People,$BASEDN")
@@ -216,7 +223,10 @@ EOF
 		killservers
 		exit $RC
 	fi
-	sleep 3
+	for ((n=2; n<=$MMR; n++)); do
+		PORT=`eval echo '$PORT'$n`
+		wait_syncrepl $PORT1 $PORT base "" "-D $MANAGERDN -w $PASSWD"
+	done
 
 	echo "Searching new members to see if they still have memberOf present..."
 	new_members=( "cn=Jessica Rabbit,ou=People,$BASEDN" "cn=Elmer Fudd,ou=People,$BASEDN" "cn=Daffy Duck,ou=People,$BASEDN" "cn=Bugs Bunny,ou=People,$BASEDN")
@@ -263,7 +273,10 @@ EOF
 		killservers
 		exit $RC
 	fi
-	sleep 3
+	for ((n=2; n<=$MMR; n++)); do
+		PORT=`eval echo '$PORT'$n`
+		wait_syncrepl $PORT1 $PORT base "" "-D $MANAGERDN -w $PASSWD"
+	done
 
 	echo "Searching entire database on each provider after deleting Cartoonia group"
 
@@ -307,7 +320,10 @@ EOF
 		killservers
 		exit $RC
 	fi
-	sleep 3
+	for ((n=2; n<=$MMR; n++)); do
+		PORT=`eval echo '$PORT'$n`
+		wait_syncrepl $PORT1 $PORT base "" "-D $MANAGERDN -w $PASSWD"
+	done
 
 	echo "Searching entire database on each provider after re-adding Cartoonia group"
 
