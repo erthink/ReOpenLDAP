@@ -43,6 +43,7 @@ echo "the accesslog DB when a group is deleted."
 echo "See http://www.openldap.org/its/index.cgi/?findid=8444 for more information."
 
 MMR=4
+NNN=137
 XDIR=$TESTDIR/srv
 
 mkdir -p $TESTDIR
@@ -154,9 +155,9 @@ for ((n=2; n<=$MMR; n++)); do
 	wait_syncrepl $PORT1 $PORT base "" "-D $MANAGERDN -w $PASSWD"
 done
 
-echo "Looping 50 times adding and deleting members to the Cartoonia group..."
-for loop in {1..50}; do
-	echo "Adding new members to the group (${loop}/50)..."
+echo "Looping $NNN times adding and deleting members to the Cartoonia group..."
+for ((loop=1; loop<=$NNN; loop++)); do
+	echo "Adding new members to the group (${loop}/$NNN)..."
 	$LDAPMODIFY -H $URI1 \
 	        -D "cn=Manager,$BASEDN" -w $PASSWD \
 	        >> $TESTOUT 2>&1 << EOF
@@ -256,10 +257,10 @@ EOF
 	done
 done
 
-echo "Looping 50 times deleting and adding Cartoonia group..."
-for loop in {1..50}; do
+echo "Looping $NNN times deleting and adding Cartoonia group..."
+for ((loop=1; loop<=$NNN; loop++)); do
 	>$SEARCHOUT
-	echo "Running ldapdelete to remove a group (${loop}/50)..."
+	echo "Running ldapdelete to remove a group (${loop}/$NNN)..."
 	$LDAPMODIFY -H $URI1 \
 	        -D "cn=Manager,$BASEDN" -w $PASSWD \
 	        >> $TESTOUT 2>&1 << EOF
