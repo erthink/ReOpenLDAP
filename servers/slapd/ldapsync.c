@@ -405,8 +405,10 @@ int slap_cookie_parse(
 	AttributeDescription *ad = slap_schema.si_ad_entryCSN;
 
 	slap_cookie_clean_all( dst );
+	if ( !src || src->bv_len == 0 )
+		return LDAP_SUCCESS;
 
-	if ( !src || src->bv_len <= STRLENOF( "rid=" ) )
+	if ( src->bv_len <= STRLENOF( "rid=" ) )
 		goto bailout;
 	if ( src->bv_len != strnlen( src->bv_val, src->bv_len ) )
 		goto bailout;
