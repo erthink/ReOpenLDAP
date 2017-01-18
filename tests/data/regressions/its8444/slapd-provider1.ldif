@@ -66,20 +66,20 @@ olcSyncrepl: {0}rid=100 provider=@URI2@ binddn="cn=manager,dc=example,dc=com
  " credentials=secret bindmethod=simple searchbase="dc=example,dc=com" logba
  se="cn=accesslog" logfilter="(&(objectClass=auditWriteObject)(reqResult=0))
  " filter="(objectClass=*)" schemachecking=off attrs="*,+" type=refreshAndPe
- rsist retry="60 +" tls_reqcert=never timeout=0 keepalive=240:10:30 syncdata
- =accesslog network-timeout=0 scope=sub interval=00:00:00:03
+ rsist retry="1 +" tls_reqcert=never timeout=0 keepalive=240:10:30 syncdata
+ =accesslog network-timeout=0 scope=sub interval=00:00:00:01
 olcSyncrepl: {1}rid=101 provider=@URI3@ binddn="cn=manager,dc=example,dc=com
  " credentials=secret bindmethod=simple searchbase="dc=example,dc=com" logba
  se="cn=accesslog" logfilter="(&(objectClass=auditWriteObject)(reqResult=0))
  " filter="(objectClass=*)" schemachecking=off attrs="*,+" type=refreshAndPe
- rsist retry="60 +" tls_reqcert=never timeout=0 keepalive=240:10:30 syncdata
- =accesslog network-timeout=0 scope=sub interval=00:00:00:03
+ rsist retry="1 +" tls_reqcert=never timeout=0 keepalive=240:10:30 syncdata
+ =accesslog network-timeout=0 scope=sub interval=00:00:00:01
 olcSyncrepl: {2}rid=102 provider=@URI4@ binddn="cn=manager,dc=example,dc=com
  " credentials=secret bindmethod=simple searchbase="dc=example,dc=com" logba
  se="cn=accesslog" logfilter="(&(objectClass=auditWriteObject)(reqResult=0))
  " filter="(objectClass=*)" schemachecking=off attrs="*,+" type=refreshAndPe
- rsist retry="60 +" tls_reqcert=never timeout=0 keepalive=240:10:30 syncdata
- =accesslog network-timeout=0 scope=sub interval=00:00:00:03
+ rsist retry="1 +" tls_reqcert=never timeout=0 keepalive=240:10:30 syncdata
+ =accesslog network-timeout=0 scope=sub interval=00:00:00:01
 #~null~#olcDbDirectory: @TESTDIR@/srv1/db.1
 #indexdb#olcDbIndex: default eq
 #indexdb#olcDbIndex: objectClass
