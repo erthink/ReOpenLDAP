@@ -3000,9 +3000,21 @@ syncprov_op_search( Operation *op, SlapReply *rs )
 		sessionlog *sl;
 		int i, j;
 
-		/* If we don't have any CSN of our own yet, bail out.
-		 */
+		/* If we don't have any CSN of our own yet, bail out. */
 		if ( !numcsns ) {
+			if ( op->o_sync_mode & SLAP_SYNC_PERSIST ) {
+				/* LY: У получателя есть cookie, а у локального провайдера еще нет.
+				 * Такое вполне может быть, если провайдер еще "чистый", но уже
+				 * получил запрос от работающего получателя в мульти-мастер
+				 * конфигурации, до того как сам был с кем-либо синхронизирован.
+				 *
+				 * В такой ситуации оптимальнее не прерывать синхронизацию,
+				 * а пропустить refresh-стадию (так как локальных данных еще нет)
+				 * и перейти к persistent-шагу, т.е. к отправке уведомлений о
+				 * последующих изменениях. */
+				assert( do_present == 0 && changed == 0 );
+				goto shortcut;
+			}
 			rs->sr_err = LDAP_UNWILLING_TO_PERFORM;
 			rs->sr_text = "consumer has state info but provider doesn't!";
 			goto bailout;
