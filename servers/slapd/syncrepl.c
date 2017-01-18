@@ -456,10 +456,19 @@ syncrepl_process_search(
 	ber_init2( ber, NULL, LBER_USE_DER );
 	ber_set_option( ber, LBER_OPT_BER_MEMCTX, &op->o_tmpmemctx );
 
+	slap_cookie_clean_all( &si->si_syncCookie_in );
+	syncrepl_cookie_pull( op, si );
+	if ( DebugTest( LDAP_DEBUG_SYNC ) ) {
+		slap_cookie_debug( "refresh-begin-cookie", &si->si_syncCookie );
+	}
+
 	/* If we're using a log but we have no state, then fallback to
 	 * normal mode for a full refresh.
 	 */
-	if ( si->si_syncdata && !si->si_syncCookie.numcsns ) {
+	if ( si->si_syncdata && si->si_logstate == SYNCLOG_LOGGING && !si->si_syncCookie.numcsns ) {
+		Debug( LDAP_DEBUG_SYNC,
+			"syncrepl_process_search: %s no-cookies for delta-sync, fallback to REFRESH\n",
+			si->si_ridtxt);
 		si->si_logstate = SYNCLOG_FALLBACK;
 	}
 
@@ -499,11 +508,6 @@ syncrepl_process_search(
 		si->si_type = si->si_ctype;
 	}
 
-	slap_cookie_clean_all( &si->si_syncCookie_in );
-	syncrepl_cookie_pull( op, si );
-	if ( DebugTest( LDAP_DEBUG_SYNC ) ) {
-		slap_cookie_debug( "refresh-begin-cookie", &si->si_syncCookie );
-	}
 	if ( si->si_syncCookie.numcsns > 0 ) {
 		BerValue cookie_str = BER_BVNULL;
 		slap_cookie_compose( &cookie_str, si->si_syncCookie.ctxcsn,
@@ -1088,7 +1092,7 @@ syncrepl_process(
 						ldap_abandon_ext( si->si_ld, si->si_msgid, NULL, NULL );
 						bdn.bv_val[bdn.bv_len] = '\0';
 						Debug( LDAP_DEBUG_SYNC,
-							"syncrepl_process: %s delta-sync lost sync on (%s), switching to REFRESH (%d)\n",
+							"syncrepl_process: %s delta-sync lost sync on (%s), fallback to REFRESH (%d)\n",
 							si->si_ridtxt, bdn.bv_val, rc );
 						rc = LDAP_SYNC_REFRESH_REQUIRED;
 						if (si->si_strict_refresh) {
@@ -1152,7 +1156,7 @@ syncrepl_process(
 				if ( si->si_logstate == SYNCLOG_LOGGING ) {
 					si->si_logstate = SYNCLOG_FALLBACK;
 					Debug( LDAP_DEBUG_SYNC,
-						"syncrepl_process: %s delta-sync lost sync, switching to REFRESH\n",
+						"syncrepl_process: %s delta-sync lost sync, fallback to REFRESH\n",
 						si->si_ridtxt );
 					if (si->si_strict_refresh) {
 						slap_suspend_listeners();
