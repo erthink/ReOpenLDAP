@@ -43,7 +43,7 @@ echo "the accesslog DB when a group is deleted."
 echo "See http://www.openldap.org/its/index.cgi/?findid=8444 for more information."
 
 MMR=4
-NNN=137
+NNN=42
 XDIR=$TESTDIR/srv
 
 mkdir -p $TESTDIR
@@ -77,9 +77,9 @@ for ((n=1; n<=$MMR; n++)); do
 	CFDIR=${XDIR}$n/slapd.d
 
 	echo "Starting provider slapd on TCP/IP URI $MYURI"
-	$SLAPD_HUGE -F $CFDIR -h $MYURI -d $LVL $TIMING > $MYLOG 2>&1 &
+	$SLAPD_HUGE -F $CFDIR -h $MYURI -d $LVL $TIMING |& gzip > $MYLOG.gz &
+	PID=$(jobs -p | tail -1)
 
-	PID=$!
 	if test $WAIT != 0 ; then
 		echo PID $PID
 		read foo
