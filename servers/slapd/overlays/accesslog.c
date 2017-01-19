@@ -1849,7 +1849,6 @@ static int accesslog_response(Operation *op, SlapReply *rs) {
 	op2.o_req_ndn = e->e_nname;
 	op2.ora_e = e;
 	op2.o_callback = &nullsc;
-	op2.o_csn = op->o_csn;
 	/* contextCSN updates may still reach here */
 	op2.o_dont_replicate = op->o_dont_replicate;
 

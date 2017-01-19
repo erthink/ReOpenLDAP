@@ -678,6 +678,7 @@ int slap_csn_verify_lite( const BerValue *csn )
 {
 	if ( unlikely(
 			csn->bv_len != 40 ||
+			csn->bv_val[0] < '0' ||
 			csn->bv_val[14] != '.' ||
 			csn->bv_val[21] != 'Z' ||
 			csn->bv_val[22] != '#' ||

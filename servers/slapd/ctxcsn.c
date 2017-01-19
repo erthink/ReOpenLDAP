@@ -46,7 +46,7 @@ int slap_serverID;
 void slap_op_csn_free( Operation *op )
 {
 	if ( !BER_BVISNULL( &op->o_csn ) ) {
-#if OP_CSN_CHECK
+#if OP_CSN_CRUTCH
 		assert(op->o_csn_master != NULL);
 		if (op->o_csn_master == op) {
 			op->o_tmpfree( op->o_csn.bv_val, op->o_tmpmemctx );
@@ -62,7 +62,7 @@ void slap_op_csn_free( Operation *op )
 void slap_op_csn_clean( Operation *op )
 {
 	if ( !BER_BVISNULL( &op->o_csn ) ) {
-#if OP_CSN_CHECK
+#if OP_CSN_CRUTCH
 		assert(op->o_csn_master != NULL);
 		if (op->o_csn_master == op) {
 			op->o_csn.bv_val[0] = 0;
@@ -80,7 +80,7 @@ void slap_op_csn_clean( Operation *op )
 
 void slap_op_csn_assign( Operation *op, BerValue *csn )
 {
-#if OP_CSN_CHECK
+#if OP_CSN_CRUTCH
 	assert(op->o_csn_master == op || op->o_csn_master == NULL);
 	if (op->o_csn_master != op)
 		BER_BVZERO( &op->o_csn );

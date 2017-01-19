@@ -599,6 +599,7 @@ int slap_add_opattrs(
 		} else {
 			csn = op->o_csn;
 		}
+
 		ptr = ber_bvchr( &csn, '#' );
 		if ( ptr ) {
 			timestamp.bv_len = STRLENOF("YYYYMMDDHHMMSSZ");

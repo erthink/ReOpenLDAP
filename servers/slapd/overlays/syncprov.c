@@ -2195,7 +2195,7 @@ syncprov_op_response( Operation *op, SlapReply *rs )
 					si->si_numops++;
 				} else {
 					Debug( LDAP_DEBUG_SYNC,
-						"syncprov_op_response: cookie-kept\n" );
+						"syncprov_op_response: cookie-kept (mod-context-csn '%s')\n", op->orm_modlist->sml_values->bv_val );
 				}
 			}
 			ldap_pvt_thread_rdwr_wunlock( &si->si_csn_rwlock );
@@ -2257,7 +2257,7 @@ syncprov_op_response( Operation *op, SlapReply *rs )
 			si->si_dirty = 0;
 		} else {
 			Debug( LDAP_DEBUG_SYNC,
-				"syncprov_op_response: cookie-kept\n" );
+				"syncprov_op_response: cookie-kept (maxcsn '%s')\n", maxcsn.bv_val );
 		}
 
 		/* Never checkpoint adding the context entry,

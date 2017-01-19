@@ -1728,7 +1728,6 @@ syncrepl_rewrite_dn(
 	rc = dnPrettyNormal( NULL, &bv, &dn, &ndn, op->o_tmpmemctx )
 #endif
 
-
 static slap_verbmasks modops[] = {
 	{ BER_BVC("add"), LDAP_REQ_ADD },
 	{ BER_BVC("delete"), LDAP_REQ_DELETE },
@@ -2073,7 +2072,7 @@ syncrepl_op_modify( Operation *op, SlapReply *rs )
 	ldap_pvt_thread_mutex_lock( &si->si_cookieState->cs_mutex );
 	match = slap_cookie_compare_csn( &si->si_cookieState->cs_cookie, &mod->sml_nvalues[0] );
 	ldap_pvt_thread_mutex_unlock( &si->si_cookieState->cs_mutex );
-	if (match < 0) {
+	if (match <= 0) {
 		Debug( LDAP_DEBUG_SYNC, "syncrepl_op_modify: %s entryCSN too old, ignoring %s (%s)\n",
 			si->si_ridtxt, mod->sml_nvalues[0].bv_val, op->o_req_dn.bv_val );
 		slap_graduate_commit_csn( op );
