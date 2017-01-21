@@ -335,11 +335,4 @@ and loosely inspired by syncrepl code in
 .SH ACKNOWLEDGEMENTS
 Initially developed by
 .BR "SysNet s.n.c."
-.B ReOpenLDAP
-is developed and maintained by The ReOpenLDAP Project (https://github.com/ReOpen/ReOpenLDAP).
-.B ReOpenLDAP
-is derived from OpenLDAP 2.4 Release.
-.B OpenLDAP
-is developed and maintained by The OpenLDAP Project (http://www.openldap.org/).
-.B OpenLDAP
-is derived from University of Michigan LDAP 3.3 Release.
+.so ../Project

@@ -93,6 +93,6 @@ a call to
 .nf
 .BR ldap (3)
 .BR "RFC 4516" " <http://www.rfc-editor.org/rfc/rfc4516.txt>"
-.SH ACKNOWLEDGEMENTS
 .fi
+.SH ACKNOWLEDGEMENTS
 .so ../Project
