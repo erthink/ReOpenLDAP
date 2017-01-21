@@ -79,10 +79,10 @@ static struct {
  * it's own LOCAL for syslogging and must have its own pid/args files
  */
 
-const char Versionstr[] =
+const char SlapdVersionStr[] =
 	REOPENLDAP_PACKAGE " " REOPENLDAP_VERSION REOPENLDAP_BUILDID_SUFFIX \
 	" (" RELEASE_DATE ", " RELEASE_STAMP "), " \
-	"Standalone LDAP Server (slapd).";
+	"Standalone LDAP Server (slapd)";
 
 extern OverlayInit slap_oinfo[];
 extern BackendInfo slap_binfo[];
@@ -657,7 +657,7 @@ unhandled_option:;
 		goto unhandled_option;
 
 	if ( version ) {
-		fprintf( stderr, "%s\n", Versionstr );
+		fprintf( stderr, "%s.\n", SlapdVersionStr );
 		if ( version > 2 ) {
 			fprintf( stderr, "Included static overlays:\n");
 			fprintf( stderr, "    %s\n", "glue" );
@@ -688,7 +688,7 @@ unhandled_option:;
 	}
 #endif /* LDAP_SYSLOG */
 
-	Debug( LDAP_DEBUG_ANY, "%s", Versionstr );
+	Debug( LDAP_DEBUG_ANY, "%s.\n", SlapdVersionStr );
 
 	global_host = ldap_pvt_get_fqdn( NULL );
 	ber_str2bv( global_host, 0, 0, &global_host_bv );
