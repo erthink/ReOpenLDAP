@@ -717,7 +717,7 @@ static ConfigTable config_back_cf_table[] = {
 		"( OLcfgGlAt:72 NAME 'olcTLSCipherSuite' "
 			"SYNTAX OMsDirectoryString SINGLE-VALUE )", NULL, NULL },
 	{ "TLSCRLCheck", NULL, 2, 2, 0,
-#if defined(WITH_TLS) && defined(HAVE_OPENSSL_CRL)
+#ifdef WITH_TLS
 		CFG_TLS_CRLCHECK|ARG_STRING|ARG_MAGIC, &config_tls_config,
 #else
 		ARG_IGNORED, NULL,
@@ -4082,9 +4082,7 @@ config_tls_option(ConfigArgs *c) {
 	case CFG_TLS_CA_PATH:	flag = LDAP_OPT_X_TLS_CACERTDIR;	break;
 	case CFG_TLS_CA_FILE:	flag = LDAP_OPT_X_TLS_CACERTFILE;	break;
 	case CFG_TLS_DH_FILE:	flag = LDAP_OPT_X_TLS_DHFILE;	break;
-#ifdef HAVE_GNUTLS
 	case CFG_TLS_CRL_FILE:	flag = LDAP_OPT_X_TLS_CRLFILE;	break;
-#endif
 	default:		Debug(LDAP_DEBUG_ANY, "%s: "
 					"unknown tls_option <0x%x>\n",
 					c->log, c->type);
@@ -4098,7 +4096,12 @@ config_tls_option(ConfigArgs *c) {
 	}
 	ch_free(c->value_string);
 	c->cleanup = config_tls_cleanup;
-	return(ldap_pvt_tls_set_option(ld, flag, c->argv[1]));
+	if (ldap_pvt_tls_set_option(ld, flag, c->argv[1]) != 0) {
+		Debug(LDAP_DEBUG_ANY, "%s: "
+			"unable to set LDAP_OPT_X_TLS-option <0x%x>\n",
+			c->log, flag );
+	}
+	return 0;
 }
 
 /* FIXME: this ought to be provided by libreldap */
