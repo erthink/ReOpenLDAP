@@ -128,7 +128,7 @@ if test $WAIT != 0 ; then
 	echo PID $PID
 	read foo
 fi
-check_running 1 provider ""
+check_running 1 provider
 
 echo "Adding basic structure..."
 $LDAPADD -D "$MANAGERDN" -H $URI1 -w $PASSWD -f $ROOTLDIF > $LOG2 2>&1

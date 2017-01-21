@@ -748,13 +748,14 @@ function wait_syncrepl {
 function check_running {
 	local port=$(($BASEPORT + $1))
 	local caption=$2
+	local extra=$3
 	local i
 	if [ -n "$caption" ]; then caption+=" "; fi
 	echo "Using ldapsearch to check that ${caption}slapd is running (port $port)..."
 	for i in $SLEEP0 0.5 1 2 3 4 5 5; do
 		echo "Waiting $i seconds for ${caption}slapd to start..."
 		sleep $i
-		$LDAPSEARCH -s base -b "$MONITOR" -h $LOCALHOST -p $port \
+		$LDAPSEARCH $extra -s base -b "$MONITOR" -h $LOCALHOST -p $port \
 			'(objectClass=*)' > /dev/null 2>&1
 		RC=$?
 		if test $RC = 0 ; then
