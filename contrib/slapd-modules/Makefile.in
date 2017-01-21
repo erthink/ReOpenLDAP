@@ -815,16 +815,16 @@ valgrind_tools = @valgrind_tools@
 EXTRA_DIST = README acl/README.gssacl acl/README.posixgroup \
 	addpartial/README adremap/slapo-adremap.man.in allop/README \
 	allop/slapo-allop.man.in allowed/README autogroup/README \
-	check_password/README check_password/check_password.conf \
-	cloak/slapo-cloak.man.in $(am__append_4) dsaschema/README \
-	kinit/README lastbind/slapo-lastbind.man.in \
-	lastmod/slapo-lastmod.man.in mr_passthru/README.md \
-	nops/slapo-nops.man.in nssov/README nssov/ldapns.schema \
-	nssov/nss-pam-ldapd/README nssov/slapo-nssov.man.in \
-	passwd/README passwd/apr1-atol.pl passwd/apr1-ltoa.pl \
-	passwd/pbkdf2/README passwd/sha2/README passwd/totp/README \
-	proxyOld/README samba4/README smbk5pwd/README \
-	smbk5pwd/slapo-smbk5pwd.man.in $(man_links)
+	autogroup/slapo-autogroup.man.in check_password/README \
+	check_password/check_password.conf cloak/slapo-cloak.man.in \
+	$(am__append_4) dsaschema/README kinit/README \
+	lastbind/slapo-lastbind.man.in lastmod/slapo-lastmod.man.in \
+	mr_passthru/README.md nops/slapo-nops.man.in nssov/README \
+	nssov/ldapns.schema nssov/nss-pam-ldapd/README \
+	nssov/slapo-nssov.man.in passwd/README passwd/apr1-atol.pl \
+	passwd/apr1-ltoa.pl passwd/pbkdf2/README passwd/sha2/README \
+	passwd/totp/README proxyOld/README samba4/README \
+	smbk5pwd/README smbk5pwd/slapo-smbk5pwd.man.in $(man_links)
 # TODO: support MozNSS
 pkglib_LTLIBRARIES = $(am__append_2) $(am__append_3) \
 	contrib-addpartial.la contrib-adremap.la contrib-allop.la \
@@ -842,9 +842,10 @@ AM_CPPFLAGS = -DSLAPD_IMPORT -I$(top_srcdir)/servers/slapd -I$(top_srcdir)/inclu
 BUILT_SOURCES = $(am__append_1)
 man_links = 
 man5_MANS = adremap/slapo-adremap.man allop/slapo-allop.man \
-	cloak/slapo-cloak.man lastbind/slapo-lastbind.man \
-	lastmod/slapo-lastmod.man nops/slapo-nops.man \
-	nssov/slapo-nssov.man smbk5pwd/slapo-smbk5pwd.man
+	autogroup/slapo-autogroup.man cloak/slapo-cloak.man \
+	lastbind/slapo-lastbind.man lastmod/slapo-lastmod.man \
+	nops/slapo-nops.man nssov/slapo-nssov.man \
+	smbk5pwd/slapo-smbk5pwd.man
 @SLAPD_DYNACL_TRUE@contrib_posixgroup_la_LDFLAGS = -module -export-dynamic \
 @SLAPD_DYNACL_TRUE@	-release $(API_LIB_RELEASE) -version-info $(API_LIB_VERSION)
 
