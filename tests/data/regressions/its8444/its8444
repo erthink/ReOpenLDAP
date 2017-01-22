@@ -185,7 +185,7 @@ EOF
 	for member in "${new_members[@]}"; do
 		for ((n=1; n<=$MMR; n++)); do
 			>$SEARCHOUT
-			echo "# Searching member $member after removal from Cartoonia group, provider $n" >> $SEARCHOUT
+			echo "# Searching member $member after adding to Cartoonia group, provider $n" >> $SEARCHOUT
 			MYURI=`eval echo '$URI'$n`
 			$LDAPSEARCH -S "" -b "$member" -s base -H $MYURI -D "cn=manager,$BASEDN" -w $PASSWD \
 			        '(objectClass=*)' 'memberOf' >> $SEARCHOUT 2>&1
