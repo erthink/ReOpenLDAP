@@ -72,6 +72,7 @@ flag_exper=0
 flag_contrib=1
 flag_slapi=1
 flag_tls=1
+flag_ci=1
 
 flag_nodeps=0
 if [ -n "${TEAMCITY_PROCESS_FLOW_ID}" ]; then
@@ -86,6 +87,16 @@ for arg in "$@"; do
 	--no-tls | --with-tls=no)
 		CONFIGURE_ARGS+=" --with-tls=no"
 		flag_tls=0
+		;;
+	--ci)
+		flag_ci=1
+		flag_check=1
+		flag_contrib=1
+		flag_exper=1
+		flag_slapi=1
+		flag_dynamic=1
+		flag_bdb=1
+		flag_mdb=1
 		;;
 	--with-tls=*)
 		CONFIGURE_ARGS+=" $arg"
@@ -245,6 +256,12 @@ for arg in "$@"; do
 done
 
 #======================================================================
+
+if [ $flag_ci -ne 0 ]; then
+	CONFIGURE_ARGS+=" --enable-rlookups --enable-slp --enable-wrappers"
+	CONFIGURE_ARGS+=" --enable-dynacl --enable-aci --enable-cleartext --enable-crypt --enable-lmpasswd --enable-spasswd --enable-rewrite"
+	CONFIGURE_ARGS+=" --enable-ldap --enable-meta --enable-relay --enable-sock --enable-dnssrv --enable-passwd --enable-perl --enable-shell --enable-sql"
+fi
 
 if [ $flag_tls -ne 0 ]; then
 	CONFIGURE_ARGS+=" --with-tls=yes --enable-lmpasswd"
