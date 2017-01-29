@@ -54,6 +54,7 @@ flag_publish=1
 PREV_RELEASE=""
 HERE=$(pwd)
 SUBDIR=
+ORIGIN=origin
 
 flag_nodeps=0
 if [ -n "${TEAMCITY_PROCESS_FLOW_ID}" ]; then
@@ -79,6 +80,9 @@ while grep -q '^--' <<< "$1"; do
 		;;
 	--prev-release)
 		PREV_RELEASE="$2"
+		shift ;;
+	--origin)
+		ORIGIN="$2"
 		shift ;;
 	--hide)
 		flag_hide=1
@@ -172,7 +176,7 @@ PREFIX="$(readlink -m ${2:-$(pwd)/install_prefix_as_the_second_parameter})/reope
 echo "PREFIX: $PREFIX"
 
 if [ -d $HERE/.git ]; then
-	git fetch origin --prune --tags || [ -n "$(git tag)" ] || failure "git fetch"
+	git fetch ${ORIGIN} --prune --tags || [ -n "$(git tag)" ] || failure "git fetch"
 	if [ -n "$PREV_RELEASE" ]; then
 		 git describe --abbrev=0 --all "$PREV_RELEASE" > /dev/null \
 			|| failure "invalid prev-release ref '$PREV_RELEASE'"
