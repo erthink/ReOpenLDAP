@@ -70,7 +70,7 @@ mdb_id2v_dupsort(
 {
 	AttributeDescription *ad = usrkey[2].mv_data;
 	struct berval bv1, bv2;
-	int rc, match, olen;
+	int match;
 	unsigned short s;
 	char *ptr;
 
@@ -86,11 +86,12 @@ mdb_id2v_dupsort(
 
 	if (ad) {
 		MatchingRule *mr = ad->ad_type->sat_equality;
-		rc = mr->smr_match(&match, SLAP_MR_EQUALITY
-		| SLAP_MR_VALUE_OF_ASSERTION_SYNTAX
-		| SLAP_MR_ASSERTED_VALUE_NORMALIZED_MATCH
-		| SLAP_MR_ATTRIBUTE_VALUE_NORMALIZED_MATCH,
-		ad->ad_type->sat_syntax, mr, &bv1, &bv2);
+		int rc = mr->smr_match(&match, SLAP_MR_EQUALITY
+			| SLAP_MR_VALUE_OF_ASSERTION_SYNTAX
+			| SLAP_MR_ASSERTED_VALUE_NORMALIZED_MATCH
+			| SLAP_MR_ATTRIBUTE_VALUE_NORMALIZED_MATCH,
+			ad->ad_type->sat_syntax, mr, &bv1, &bv2);
+		assert(rc == LDAP_SUCCESS);
 	} else {
 		match = ber_bvcmp(&bv1, &bv2);
 	}
@@ -161,7 +162,6 @@ int mdb_mval_del(Operation *op, MDB_cursor *mc, ID id, Attribute *a)
 {
 	struct mdb_info *mdb = (struct mdb_info *) op->o_bd->be_private;
 	MDB_val key, data[3];
-	char *ptr;
 	char ivk[ID2VKSZ];
 	unsigned i;
 	int rc = MDB_SUCCESS;
