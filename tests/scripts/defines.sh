@@ -941,7 +941,7 @@ EOF
 		fi
 
 		if [ -n "$SKIPLONG" ]; then
-			if echo $TEST_ID | grep -q -e 008 -e 036 -e 039 -e 058 -e 060; then
+			if echo $TEST_ID | grep -q -e 008 -e 036 -e 039 -e 058 -e 060 -e 8444; then
 				((SKIPCOUNT++))
 				echo "***** Skip long ${TB}$BCMD${TN} for $BACKEND_MODE"
 				echo
