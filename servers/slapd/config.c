@@ -1670,7 +1670,8 @@ slap_tls_get_config( LDAP *ld, int opt, char **val )
 	default:
 		return -1;
 	}
-	ldap_pvt_tls_get_option( ld, opt, &ival );
+	if (ldap_pvt_tls_get_option( ld, opt, &ival ))
+		return -1;
 	for (i=0; !BER_BVISNULL(&keys[i].word); i++) {
 		if (keys[i].mask == ival) {
 			*val = ch_strdup( keys[i].word.bv_val );
