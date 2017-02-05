@@ -79,8 +79,7 @@ if [ -n "${TEAMCITY_PROCESS_FLOW_ID}" ]; then
 	flag_nodeps=1
 fi
 
-CONFIGURE_ARGS="--enable-crypt --enable-spasswd --enable-passwd"
-#" --enable-slp"
+CONFIGURE_ARGS="--enable-crypt --enable-spasswd"
 
 for arg in "$@"; do
 	case "$arg" in
@@ -257,12 +256,6 @@ done
 
 #======================================================================
 
-if [ $flag_ci -ne 0 ]; then
-	CONFIGURE_ARGS+=" --enable-rlookups --enable-slp --enable-wrappers"
-	CONFIGURE_ARGS+=" --enable-dynacl --enable-aci --enable-cleartext --enable-crypt --enable-lmpasswd --enable-spasswd --enable-rewrite"
-	CONFIGURE_ARGS+=" --enable-ldap --enable-meta --enable-relay --enable-sock --enable-dnssrv --enable-passwd --enable-perl --enable-shell --enable-sql"
-fi
-
 if [ $flag_tls -ne 0 ]; then
 	CONFIGURE_ARGS+=" --with-tls=yes --enable-lmpasswd"
 fi
@@ -300,6 +293,12 @@ else
 fi
 
 CONFIGURE_ARGS+=" --enable-backends=${MOD}"
+
+if [ $flag_ci -ne 0 ]; then
+	CONFIGURE_ARGS+=" --enable-rlookups --enable-slp --enable-wrappers"
+	CONFIGURE_ARGS+=" --enable-dynacl --enable-aci --enable-cleartext --enable-crypt --enable-lmpasswd --enable-spasswd --enable-rewrite"
+#	CONFIGURE_ARGS+=" --enable-ldap --enable-meta --enable-relay --enable-sock --enable-dnssrv --enable-passwd --enable-perl --enable-shell --enable-sql"
+fi
 
 #======================================================================
 
