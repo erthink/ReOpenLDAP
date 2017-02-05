@@ -3117,10 +3117,10 @@ retry_add:;
 			op->ora_e = entry;
 			op->o_bd = si->si_wbe;
 
-			rc = op->o_bd->bd_info->bi_op_add( op, &rs_add );
 			Debug( LDAP_DEBUG_SYNC,
-					"syncrepl_entry: %s be_add %s (%d)\n",
-					si->si_ridtxt, op->o_req_dn.bv_val, rc );
+					"syncrepl_entry: %s be_add %s\n",
+					si->si_ridtxt, op->o_req_dn.bv_val );
+			rc = op->o_bd->bd_info->bi_op_add( op, &rs_add );
 			switch ( rs_add.sr_err ) {
 			case LDAP_SUCCESS:
 				if ( op->ora_e == entry ) {
