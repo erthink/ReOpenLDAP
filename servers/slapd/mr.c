@@ -46,7 +46,7 @@ mr_index_cmp(
 	const struct mindexrec	*mir2 = v_mir2;
 	int i = mir1->mir_name.bv_len - mir2->mir_name.bv_len;
 	if (i) return i;
-	return (strcasecmp( mir1->mir_name.bv_val, mir2->mir_name.bv_val ));
+	return strncasecmp( mir1->mir_name.bv_val, mir2->mir_name.bv_val, mir1->mir_name.bv_len );
 }
 
 static int
@@ -59,7 +59,7 @@ mr_index_name_cmp(
 	const struct mindexrec *mir  = v_mir;
 	int i = name->bv_len - mir->mir_name.bv_len;
 	if (i) return i;
-	return (strncasecmp( name->bv_val, mir->mir_name.bv_val, name->bv_len ));
+	return strncasecmp( name->bv_val, mir->mir_name.bv_val, name->bv_len );
 }
 
 MatchingRule *
@@ -123,7 +123,7 @@ mr_insert(
 			return SLAP_SCHERR_MR_DUP;
 		}
 		/* FIX: temporal consistency check */
-		mr_bvfind(&mir->mir_name);
+		assert(mr_bvfind(&mir->mir_name) != NULL);
 	}
 	if ( (names = smr->smr_names) ) {
 		while ( *names ) {
@@ -139,7 +139,7 @@ mr_insert(
 				return SLAP_SCHERR_MR_DUP;
 			}
 			/* FIX: temporal consistency check */
-			mr_bvfind(&mir->mir_name);
+			assert(mr_bvfind(&mir->mir_name) != NULL);
 			names++;
 		}
 	}
@@ -295,7 +295,6 @@ register_matching_rule(
 			Debug( LDAP_DEBUG_ANY, "register_matching_rule: "
 				"could not locate associated matching rule %s for %s\n",
 				def->mrd_associated, def->mrd_desc );
-
 			return -1;
 		}
 
