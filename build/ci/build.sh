@@ -96,6 +96,7 @@ for arg in "$@"; do
 		flag_dynamic=1
 		flag_bdb=1
 		flag_mdb=1
+		flag_valgrind=1
 		;;
 	--with-tls=*)
 		CONFIGURE_ARGS+=" $arg"
