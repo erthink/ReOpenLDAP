@@ -116,7 +116,7 @@ function update_TESTDIR {
 	MTREADOUT=$TESTDIR/mtread.out
 
 	#detect_deadlocks=1
-	export ASAN_OPTIONS="symbolize=1:allow_addr2line=1:report_globals=1:replace_str=1:replace_intrin=1:malloc_context_size=9:detect_leaks=${ASAN_DETECT_LEAKS-0}:abort_on_error:log_path=$TESTDIR/asan-log"
+	export ASAN_OPTIONS="symbolize=1:allow_addr2line=1:report_globals=1:replace_str=1:replace_intrin=1:malloc_context_size=9:detect_leaks=${ASAN_DETECT_LEAKS-0}:abort_on_error=1:log_path=$TESTDIR/asan-log"
 	export TSAN_OPTIONS="report_signal_unsafe=0:second_deadlock_stack=1:history_size=2:log_path=$TESTDIR/tsan-log"
 
 	VALGRIND_OPTIONS="--fair-sched=yes --quiet --log-file=$TESTDIR/valgrind-log.%p \
@@ -170,7 +170,9 @@ DSRMASTERCONF=$DATADIR/slapd-deltasync-master.conf
 DSRSLAVECONF=$DATADIR/slapd-deltasync-slave.conf
 PPOLICYCONF=$DATADIR/slapd-ppolicy.conf
 PROXYCACHECONF=$DATADIR/slapd-pcache.conf
+PROXYAUTHZCONF=$DATADIR/slapd-proxyauthz.conf
 CACHEMASTERCONF=$DATADIR/slapd-cache-master.conf
+PROXYAUTHZMASTERCONF=$DATADIR/slapd-cache-master-proxyauthz.conf
 R1SRSLAVECONF=$DATADIR/slapd-syncrepl-slave-refresh1.conf
 R2SRSLAVECONF=$DATADIR/slapd-syncrepl-slave-refresh2.conf
 P1SRSLAVECONF=$DATADIR/slapd-syncrepl-slave-persist1.conf
@@ -748,13 +750,14 @@ function wait_syncrepl {
 function check_running {
 	local port=$(($BASEPORT + $1))
 	local caption=$2
+	local extra=$3
 	local i
 	if [ -n "$caption" ]; then caption+=" "; fi
 	echo "Using ldapsearch to check that ${caption}slapd is running (port $port)..."
 	for i in $SLEEP0 0.5 1 2 3 4 5 5; do
 		echo "Waiting $i seconds for ${caption}slapd to start..."
 		sleep $i
-		$LDAPSEARCH -s base -b "$MONITOR" -h $LOCALHOST -p $port \
+		$LDAPSEARCH $extra -s base -b "$MONITOR" -h $LOCALHOST -p $port \
 			'(objectClass=*)' > /dev/null 2>&1
 		RC=$?
 		if test $RC = 0 ; then
@@ -938,7 +941,7 @@ EOF
 		fi
 
 		if [ -n "$SKIPLONG" ]; then
-			if echo $TEST_ID | grep -q -e 008 -e 036 -e 039 -e 058 -e 060; then
+			if echo $TEST_ID | grep -q -e 008 -e 036 -e 039 -e 058 -e 060 -e 8444; then
 				((SKIPCOUNT++))
 				echo "***** Skip long ${TB}$BCMD${TN} for $BACKEND_MODE"
 				echo

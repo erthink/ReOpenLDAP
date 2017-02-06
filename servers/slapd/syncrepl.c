@@ -465,10 +465,19 @@ syncrepl_process_search(
 	ber_init2( ber, NULL, LBER_USE_DER );
 	ber_set_option( ber, LBER_OPT_BER_MEMCTX, &op->o_tmpmemctx );
 
+	slap_cookie_clean_all( &si->si_syncCookie_in );
+	syncrepl_cookie_pull( op, si );
+	if ( DebugTest( LDAP_DEBUG_SYNC ) ) {
+		slap_cookie_debug( "refresh-begin-cookie", &si->si_syncCookie );
+	}
+
 	/* If we're using a log but we have no state, then fallback to
 	 * normal mode for a full refresh.
 	 */
-	if ( si->si_syncdata && !si->si_syncCookie.numcsns ) {
+	if ( si->si_syncdata && si->si_logstate == SYNCLOG_LOGGING && !si->si_syncCookie.numcsns ) {
+		Debug( LDAP_DEBUG_SYNC,
+			"syncrepl_process_search: %s no-cookies for delta-sync, fallback to REFRESH\n",
+			si->si_ridtxt);
 		si->si_logstate = SYNCLOG_FALLBACK;
 	}
 
@@ -508,11 +517,6 @@ syncrepl_process_search(
 		si->si_type = si->si_ctype;
 	}
 
-	slap_cookie_clean_all( &si->si_syncCookie_in );
-	syncrepl_cookie_pull( op, si );
-	if ( DebugTest( LDAP_DEBUG_SYNC ) ) {
-		slap_cookie_debug( "refresh-begin-cookie", &si->si_syncCookie );
-	}
 	if ( si->si_syncCookie.numcsns > 0 ) {
 		BerValue cookie_str = BER_BVNULL;
 		slap_cookie_compose( &cookie_str, si->si_syncCookie.ctxcsn,
@@ -919,6 +923,7 @@ syncrepl_eat_cookie(
 		return rc;
 
 	if ( dst->numcsns == 0 && SLAP_MULTIMASTER( si->si_be )
+		&& si->si_syncdata != SYNCDATA_ACCESSLOG
 		&& ( reopenldap_mode_righteous() || reopenldap_mode_strict() ) ) {
 		Debug( LDAP_DEBUG_ANY, "syncrepl_cookie_take:"
 			"%s REJECT empty-cookie '%s'\n",
@@ -1117,7 +1122,7 @@ syncrepl_process(
 						ldap_abandon_ext( si->si_ld, si->si_msgid, NULL, NULL );
 						bdn.bv_val[bdn.bv_len] = '\0';
 						Debug( LDAP_DEBUG_SYNC,
-							"syncrepl_process: %s delta-sync lost sync on (%s), switching to REFRESH (%d)\n",
+							"syncrepl_process: %s delta-sync lost sync on (%s), fallback to REFRESH (%d)\n",
 							si->si_ridtxt, bdn.bv_val, rc );
 						rc = LDAP_SYNC_REFRESH_REQUIRED;
 						if (si->si_strict_refresh) {
@@ -1181,7 +1186,7 @@ syncrepl_process(
 				if ( si->si_logstate == SYNCLOG_LOGGING ) {
 					si->si_logstate = SYNCLOG_FALLBACK;
 					Debug( LDAP_DEBUG_SYNC,
-						"syncrepl_process: %s delta-sync lost sync, switching to REFRESH\n",
+						"syncrepl_process: %s delta-sync lost sync, fallback to REFRESH\n",
 						si->si_ridtxt );
 					if (si->si_strict_refresh) {
 						slap_suspend_listeners();
@@ -1257,6 +1262,9 @@ syncrepl_process(
 			syncrepl_refresh_done( si, rc, op );
 
 			if ( rc == LDAP_SUCCESS && si->si_logstate == SYNCLOG_FALLBACK ) {
+				Debug( LDAP_DEBUG_SYNC,
+					"syncrepl_process: %s delta-sync recovered, back to LOGGING\n",
+					si->si_ridtxt );
 				si->si_logstate = SYNCLOG_LOGGING;
 				rc = LDAP_SYNC_REFRESH_REQUIRED;
 				slap_resume_listeners();
@@ -1653,7 +1661,7 @@ deleted:
 		rtask->interval.ns = 1;
 		ldap_pvt_runqueue_resched( &slapd_rq, rtask, 0 );
 		rc = 0;
-	} else if ( rc == SYNC_REFRESH_YIELD ) {
+	} else if ( rc == SYNC_REFRESH_YIELD || rc == LDAP_SYNC_REFRESH_REQUIRED ) {
 		rtask->interval.ns = ldap_from_seconds(1).ns / 100;
 		ldap_pvt_runqueue_resched( &slapd_rq, rtask, 0 );
 		rc = 0;
@@ -1756,7 +1764,6 @@ syncrepl_rewrite_dn(
 #define REWRITE_DN(si, bv, bv2, dn, ndn) \
 	rc = dnPrettyNormal( NULL, &bv, &dn, &ndn, op->o_tmpmemctx )
 #endif
-
 
 static slap_verbmasks modops[] = {
 	{ BER_BVC("add"), LDAP_REQ_ADD },
@@ -2102,7 +2109,7 @@ syncrepl_op_modify( Operation *op, SlapReply *rs )
 	ldap_pvt_thread_mutex_lock( &si->si_cookieState->cs_mutex );
 	match = slap_cookie_compare_csn( &si->si_cookieState->cs_cookie, &mod->sml_nvalues[0] );
 	ldap_pvt_thread_mutex_unlock( &si->si_cookieState->cs_mutex );
-	if (match < 0) {
+	if (match <= 0) {
 		Debug( LDAP_DEBUG_SYNC, "syncrepl_op_modify: %s entryCSN too old, ignoring %s (%s)\n",
 			si->si_ridtxt, mod->sml_nvalues[0].bv_val, op->o_req_dn.bv_val );
 		slap_graduate_commit_csn( op );
@@ -3181,10 +3188,10 @@ retry_add:;
 			op->ora_e = entry;
 			op->o_bd = si->si_wbe;
 
-			rc = op->o_bd->bd_info->bi_op_add( op, &rs_add );
 			Debug( LDAP_DEBUG_SYNC,
-					"syncrepl_entry: %s be_add %s (%d)\n",
-					si->si_ridtxt, op->o_req_dn.bv_val, rc );
+					"syncrepl_entry: %s be_add %s\n",
+					si->si_ridtxt, op->o_req_dn.bv_val );
+			rc = op->o_bd->bd_info->bi_op_add( op, &rs_add );
 			switch ( rs_add.sr_err ) {
 			case LDAP_SUCCESS:
 				if ( op->ora_e == entry ) {

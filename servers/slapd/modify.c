@@ -882,13 +882,10 @@ void slap_mods_opattrs(
 				csn.bv_val = csnbuf;
 				csn.bv_len = sizeof( csnbuf );
 				slap_get_csn( manage_ctxcsn ? op : NULL, &csn );
-
 			} else {
-				if ( manage_ctxcsn ) {
+				if ( manage_ctxcsn )
 					slap_queue_csn( op, &csn );
-				}
 			}
-
 		} else {
 			csn = op->o_csn;
 		}

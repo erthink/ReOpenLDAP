@@ -2857,7 +2857,10 @@ struct Operation {
 	BerElement	*o_res_ber;	/* ber of the CLDAP reply or readback control */
 	slap_callback *o_callback;	/* callback pointers */
 	LDAPControl	**o_ctrls;	 /* controls */
-#if OP_CSN_CHECK
+#ifndef OP_CSN_CRUTCH
+#	define OP_CSN_CRUTCH 1
+#endif
+#if OP_CSN_CRUTCH
 	struct Operation* o_csn_master;
 #endif
 	struct berval o_csn;

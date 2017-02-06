@@ -43,12 +43,13 @@ contrib_gssacl_la_LIBADD = $(KRB5_LIBS)
 endif
 endif
 
-EXTRA_DIST += addpartial/README adremap/slapo-adremap.man.in
+EXTRA_DIST += addpartial/README
 pkglib_LTLIBRARIES += contrib-addpartial.la
 contrib_addpartial_la_LDFLAGS = -module -export-dynamic \
 	-release $(API_LIB_RELEASE) -version-info $(API_LIB_VERSION)
 contrib_addpartial_la_SOURCES = addpartial/addpartial-overlay.c banner.c
 
+EXTRA_DIST += adremap/slapo-adremap.man.in
 pkglib_LTLIBRARIES += contrib-adremap.la
 contrib_adremap_la_LDFLAGS = -module -export-dynamic \
 	-release $(API_LIB_RELEASE) -version-info $(API_LIB_VERSION)
@@ -73,11 +74,12 @@ contrib_authzid_la_LDFLAGS = -module -export-dynamic \
 	-release $(API_LIB_RELEASE) -version-info $(API_LIB_VERSION)
 contrib_authzid_la_SOURCES = authzid/authzid.c banner.c
 
-EXTRA_DIST += autogroup/README
+EXTRA_DIST += autogroup/README autogroup/slapo-autogroup.man.in
 pkglib_LTLIBRARIES += contrib-autogroup.la
 contrib_autogroup_la_LDFLAGS = -module -export-dynamic \
 	-release $(API_LIB_RELEASE) -version-info $(API_LIB_VERSION)
 contrib_autogroup_la_SOURCES = autogroup/autogroup.c banner.c
+man5_MANS += autogroup/slapo-autogroup.man
 
 # Where to look for the CrackLib dictionaries
 CRACKLIB_DICTPATH=@CRACKLIB_DICTPATH@

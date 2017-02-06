@@ -14,9 +14,7 @@
 ## <http://www.OpenLDAP.org/license.html>.
 
 echo "running defines.sh"
-. $SRCDIR/scripts/defines.sh
-
-echo ""
+. ${TOP_SRCDIR}/tests/scripts/defines.sh
 
 if test ${AC_conf[meta]} = no ; then
 	echo "meta backend not available, test skipped"
@@ -63,8 +61,8 @@ fi
 
 echo "Starting slapd on TCP/IP port $PORT1..."
 config_filter $BACKEND ${AC_conf[monitor]} < $CONF > $CONF1
-$SLAPD -f $CONF1 -h $URI1 $TIMING > $LOG1 2>&1 &
-PID=$!
+$SLAPD -f $CONF1 -h $URI1 $TIMING |& gzip > $LOG1.gz &
+PID=$(jobs -p | tail -1)
 if test $WAIT != 0 ; then
     echo PID $PID
     read foo
@@ -101,8 +99,8 @@ fi
 
 echo "Starting slapd on TCP/IP port $PORT2..."
 config_filter $BACKEND ${AC_conf[monitor]} < $METACONF2 > $CONF2
-$SLAPD -f $CONF2 -h $URI2 $TIMING > $LOG2 2>&1 &
-PID=$!
+$SLAPD -f $CONF2 -h $URI2 $TIMING |& gzip > $LOG2.gz &
+PID=$(jobs -p | tail -1)
 if test $WAIT != 0 ; then
     echo PID $PID
     read foo
@@ -122,8 +120,8 @@ fi
 
 echo "Starting slapd on TCP/IP port $PORT3..."
 config_filter $BACKEND ${AC_conf[monitor]} < $ITSCONF > $CONF3
-$SLAPD -f $CONF3 -h $URI3 $TIMING > $LOG3 2>&1 &
-PID=$!
+$SLAPD -f $CONF3 -h $URI3 $TIMING |& gzip > $LOG3.gz &
+PID=$(jobs -p | tail -1)
 if test $WAIT != 0 ; then
     echo PID $PID
     read foo

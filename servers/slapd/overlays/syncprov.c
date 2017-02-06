@@ -260,7 +260,7 @@ syncprov_state_ctrl(
 
 	unsigned char *u = (void*) entryuuid_bv.bv_val;
 	Debug( LDAP_DEBUG_TRACE,
-		"syncprov_state_ctrl: rid=%03x, %s, %s, "
+		"syncprov_state_ctrl: rid=%03d, %s, %s, "
 		"%02x%02x%02x%02x-%02x%02x-%02x%02x-%02x%02x-%02x%02x%02x%02x%02x%02x, %s\n",
 		rid, ldap_sync_state2str(entry_sync_state), e->e_nname.bv_val,
 		u[0], u[1], u[2], u[3], u[4], u[5], u[6], u[7], u[8], u[9], u[10], u[11], u[12], u[13], u[14], u[15],
@@ -2132,6 +2132,7 @@ syncprov_op_response( Operation *op, SlapReply *rs )
 
 	switch(op->o_tag) {
 		default:
+			LDAP_BUG();
 			oper = "???"; break;
 		case LDAP_REQ_ADD:
 			entry_dn = &op->ora_e->e_nname;
@@ -2195,7 +2196,7 @@ syncprov_op_response( Operation *op, SlapReply *rs )
 					si->si_numops++;
 				} else {
 					Debug( LDAP_DEBUG_SYNC,
-						"syncprov_op_response: cookie-kept\n" );
+						"syncprov_op_response: cookie-kept (mod-context-csn '%s')\n", op->orm_modlist->sml_values->bv_val );
 				}
 			}
 			ldap_pvt_thread_rdwr_wunlock( &si->si_csn_rwlock );
@@ -2257,7 +2258,7 @@ syncprov_op_response( Operation *op, SlapReply *rs )
 			si->si_dirty = 0;
 		} else {
 			Debug( LDAP_DEBUG_SYNC,
-				"syncprov_op_response: cookie-kept\n" );
+				"syncprov_op_response: cookie-kept (maxcsn '%s')\n", maxcsn.bv_val );
 		}
 
 		/* Never checkpoint adding the context entry,
@@ -2982,7 +2983,7 @@ syncprov_op_search( Operation *op, SlapReply *rs )
 
 	if ( DebugTest( LDAP_DEBUG_SYNC ) ) {
 		ldap_debug_print(
-			"syncprov-search: %srid=%03x, sid=%03x, hint %d, srs %p, sop %p\n",
+			"syncprov-search: %srid=%03d, sid=%03d, hint %d, srs %p, sop %p\n",
 			so ? "PERSISTENT, " : "",
 			srs->sr_state.rid, srs->sr_state.sid, srs->sr_rhint,
 			srs, so );
@@ -3000,9 +3001,21 @@ syncprov_op_search( Operation *op, SlapReply *rs )
 		sessionlog *sl;
 		int i, j;
 
-		/* If we don't have any CSN of our own yet, bail out.
-		 */
+		/* If we don't have any CSN of our own yet, bail out. */
 		if ( !numcsns ) {
+			if ( op->o_sync_mode & SLAP_SYNC_PERSIST ) {
+				/* LY: У получателя есть cookie, а у локального провайдера еще нет.
+				 * Такое вполне может быть, если провайдер еще "чистый", но уже
+				 * получил запрос от работающего получателя в мульти-мастер
+				 * конфигурации, до того как сам был с кем-либо синхронизирован.
+				 *
+				 * В такой ситуации оптимальнее не прерывать синхронизацию,
+				 * а пропустить refresh-стадию (так как локальных данных еще нет)
+				 * и перейти к persistent-шагу, т.е. к отправке уведомлений о
+				 * последующих изменениях. */
+				assert( do_present == 0 && changed == 0 );
+				goto shortcut;
+			}
 			rs->sr_err = LDAP_UNWILLING_TO_PERFORM;
 			rs->sr_text = "consumer has state info but provider doesn't!";
 			goto bailout;

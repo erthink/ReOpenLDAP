@@ -1849,7 +1849,6 @@ static int accesslog_response(Operation *op, SlapReply *rs) {
 	op2.o_req_ndn = e->e_nname;
 	op2.ora_e = e;
 	op2.o_callback = &nullsc;
-	op2.o_csn = op->o_csn;
 	/* contextCSN updates may still reach here */
 	op2.o_dont_replicate = op->o_dont_replicate;
 
@@ -2285,6 +2284,7 @@ accesslog_db_root(
 		op->o_req_dn = e->e_name;
 		op->o_req_ndn = e->e_nname;
 		op->o_callback = &nullsc;
+		op->o_tag = LDAP_REQ_ADD;
 		SLAP_DBFLAGS( op->o_bd ) |= SLAP_DBFLAG_NOLASTMOD;
 		rc = slap_biglock_call_be( op_add, op, &rs );
 		if ( e == op->ora_e )

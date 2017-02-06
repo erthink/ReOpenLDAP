@@ -1,7 +1,7 @@
 /** @file lmdb.h
- *	@brief Reliable Lightning memory-mapped database library
+ *	@brief Extended Lightning memory-mapped database library
  *
- *	@mainpage	Reliable Lightning Memory-Mapped Database Manager (MDBX)
+ *	@mainpage	Extended Lightning Memory-Mapped Database Manager (MDBX)
  *
  *	@section intro_sec Introduction
  *	MDBX is a Btree-based database management library modeled loosely on the
@@ -209,7 +209,7 @@ typedef int mdb_filehandle_t;
 	MDB_VERINT(MDB_VERSION_MAJOR,MDB_VERSION_MINOR,MDB_VERSION_PATCH)
 
 /** The release date of this library version */
-#define MDB_VERSION_DATE	"2016-06-09"
+#define MDB_VERSION_DATE	"2016-12-28"
 
 /** A stringifier for the version info */
 #define MDB_VERSTR(a,b,c,d)	"MDBX " #a "." #b "." #c ": (" d ", https://github.com/ReOpen/libmdbx)"
@@ -354,7 +354,8 @@ typedef void (MDB_rel_func)(MDB_val *item, void *oldptr, void *newptr, void *rel
  * For mdb_cursor_del: remove all duplicate data items.
  */
 #define MDB_NODUPDATA	0x20
-/** For mdb_cursor_put: overwrite the current key/data pair */
+/** For mdb_cursor_put: overwrite the current key/data pair
+ *  MDBX allows this flag for mdb_put() for explicit overwrite/update without insertion. */
 #define MDB_CURRENT	0x40
 /** For put: Just reserve space for data, don't copy it. Return a
  * pointer to the reserved space.

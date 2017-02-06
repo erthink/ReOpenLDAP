@@ -72,20 +72,31 @@ flag_exper=0
 flag_contrib=1
 flag_slapi=1
 flag_tls=1
+flag_ci=0
 
 flag_nodeps=0
 if [ -n "${TEAMCITY_PROCESS_FLOW_ID}" ]; then
 	flag_nodeps=1
 fi
 
-CONFIGURE_ARGS="--enable-crypt --enable-spasswd --enable-passwd"
-#" --enable-slp"
+CONFIGURE_ARGS="--enable-crypt --enable-spasswd"
 
 for arg in "$@"; do
 	case "$arg" in
 	--no-tls | --with-tls=no)
 		CONFIGURE_ARGS+=" --with-tls=no"
 		flag_tls=0
+		;;
+	--ci)
+		flag_ci=1
+		flag_check=1
+		flag_contrib=1
+		flag_exper=1
+		flag_slapi=1
+		flag_dynamic=1
+		flag_bdb=1
+		flag_mdb=1
+		flag_valgrind=1
 		;;
 	--with-tls=*)
 		CONFIGURE_ARGS+=" $arg"
@@ -283,6 +294,15 @@ else
 fi
 
 CONFIGURE_ARGS+=" --enable-backends=${MOD}"
+
+if [ $flag_ci -ne 0 ]; then
+	CONFIGURE_ARGS+=" --enable-rlookups --enable-wrappers"
+	CONFIGURE_ARGS+=" --enable-dynacl --enable-aci --enable-cleartext --enable-crypt --enable-lmpasswd --enable-spasswd --enable-rewrite"
+
+## LY:	Вызывает ряд серьезных проблем на RHEL6/RHEL7, видимо дело в "росписи" памяти.
+#	CONFIGURE_ARGS+=" --enable-slp"
+
+fi
 
 #======================================================================
 

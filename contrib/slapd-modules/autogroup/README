@@ -78,7 +78,7 @@ EXAMPLE
     include /path/to/dyngroup.schema
     # ...
     moduleload contrib-autogroup.la
-    moduleload contrib-memberof.la
+    moduleload memberof.la
     # ...
 
     database <database>
@@ -103,8 +103,8 @@ CAVEATS
 
 ACKNOWLEDGEMENTS
     This module was originally written in 2007 by Michał Szulczyński. Further
-	enhancements were contributed by Howard Chu, Raphael Ouazana,
-	Norbert Pueschel, and Christian Manal.
+    enhancements were contributed by Howard Chu, Raphael Ouazana,
+    Norbert Pueschel, and Christian Manal.
 
 ---
 

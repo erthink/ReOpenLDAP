@@ -768,10 +768,12 @@ ldap_pvt_tls_set_option( LDAP *ld, int option, void *arg )
 		if ( lo->ldo_tls_ecname ) LDAP_FREE( lo->ldo_tls_ecname );
 		lo->ldo_tls_ecname = arg ? LDAP_STRDUP( (char *) arg ) : NULL;
 		return 0;
+#ifdef HAVE_GNUTLS
 	case LDAP_OPT_X_TLS_CRLFILE:	/* GnuTLS only */
 		if ( lo->ldo_tls_crlfile ) LDAP_FREE( lo->ldo_tls_crlfile );
 		lo->ldo_tls_crlfile = arg ? LDAP_STRDUP( (char *) arg ) : NULL;
 		return 0;
+#endif
 	case LDAP_OPT_X_TLS_REQUIRE_CERT:
 		if ( !arg ) return -1;
 		switch( *(int *) arg ) {

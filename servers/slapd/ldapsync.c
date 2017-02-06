@@ -405,8 +405,10 @@ int slap_cookie_parse(
 	AttributeDescription *ad = slap_schema.si_ad_entryCSN;
 
 	slap_cookie_clean_all( dst );
+	if ( !src || src->bv_len == 0 )
+		return LDAP_SUCCESS;
 
-	if ( !src || src->bv_len <= STRLENOF( "rid=" ) )
+	if ( src->bv_len <= STRLENOF( "rid=" ) )
 		goto bailout;
 	if ( src->bv_len != strnlen( src->bv_val, src->bv_len ) )
 		goto bailout;
@@ -676,6 +678,7 @@ int slap_csn_verify_lite( const BerValue *csn )
 {
 	if ( unlikely(
 			csn->bv_len != 40 ||
+			csn->bv_val[0] < '0' ||
 			csn->bv_val[14] != '.' ||
 			csn->bv_val[21] != 'Z' ||
 			csn->bv_val[22] != '#' ||

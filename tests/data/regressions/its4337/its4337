@@ -14,7 +14,7 @@
 ## <http://www.OpenLDAP.org/license.html>.
 
 echo "running defines.sh"
-. $SRCDIR/scripts/defines.sh
+. ${TOP_SRCDIR}/tests/scripts/defines.sh
 
 if test ${AC_conf[ldap]} = no ; then
 	echo "LDAP backend not available, test skipped"
