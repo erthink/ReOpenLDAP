@@ -143,10 +143,17 @@ static int mdb_tool_terminate_txn(BackendDB *be, MDB_txn *txn, int abort)
 		mdb_cursor_close( idcursor );
 		idcursor = NULL;
 	}
-
 	if( cursor ) {
 		mdb_cursor_close( cursor );
 		cursor = NULL;
+	}
+	if( mcd ) {
+		mdb_cursor_close( mcd );
+		mcd = NULL;
+	}
+	if( mcp ) {
+		mdb_cursor_close( mcp );
+		mcp = NULL;
 	}
 
 	if (mdb) {
@@ -215,12 +222,22 @@ int mdb_tool_entry_close(
 		mdb_cursor_close( cursor );
 		cursor = NULL;
 	}
+	if( mcd ) {
+		mdb_cursor_close( mcd );
+		mcd = NULL;
+	}
+	if( mcp ) {
+		mdb_cursor_close( mcp );
+		mcp = NULL;
+	}
 	{
 		struct mdb_info *mdb = be->be_private;
 		if ( mdb ) {
 			int i;
-			for (i=0; i<mdb->mi_nattrs; i++)
+			for (i=0; i<mdb->mi_nattrs; i++) {
+				mdb_cursor_close(mdb->mi_attrs[i]->ai_cursor);
 				mdb->mi_attrs[i]->ai_cursor = NULL;
+			}
 		}
 	}
 	if( mdb_tool_txn ) {
@@ -289,7 +306,6 @@ ID mdb_tool_entry_next(
 
 next:;
 	rc = mdb_cursor_get( cursor, &key, &data, MDB_NEXT );
-
 	if( rc ) {
 		return NOID;
 	}
@@ -924,13 +940,21 @@ done:
 				e->e_id = NOID;
 			}
 			/* Must close the read txn to allow old pages to be reclaimed. */
-			mdb_txn_abort( mdb_tool_txn );
+			if (mdb_tool_txn) {
+				rc = mdb_txn_abort( mdb_tool_txn );
+				assert(rc == MDB_SUCCESS);
+				mdb_tool_txn = NULL;
+			}
 			/* and then reopen it so that tool_entry_next still works. */
-			mdb_txn_begin( mi->mi_dbenv, NULL, MDB_RDONLY, &mdb_tool_txn );
-			mdb_cursor_open( mdb_tool_txn, mi->mi_id2entry, &cursor );
+			rc = mdb_txn_begin( mi->mi_dbenv, NULL, MDB_RDONLY, &mdb_tool_txn );
+			assert(rc == MDB_SUCCESS);
+			assert(cursor == NULL);
+			rc = mdb_cursor_open( mdb_tool_txn, mi->mi_id2entry, &cursor );
+			assert(rc == MDB_SUCCESS);
 			key.mv_data = &id;
 			key.mv_size = sizeof(ID);
-			mdb_cursor_get( cursor, &key, NULL, MDB_SET );
+			rc = mdb_cursor_get( cursor, &key, NULL, MDB_SET );
+			assert(rc == MDB_SUCCESS);
 		}
 
 	} else {
@@ -971,11 +995,6 @@ ID mdb_tool_entry_modify(
 		(long) e->e_id, e->e_dn );
 
 	mdb = (struct mdb_info *) be->be_private;
-
-	if( cursor ) {
-		mdb_cursor_close( cursor );
-		cursor = NULL;
-	}
 	if ( !mdb_tool_txn ) {
 		rc = mdb_txn_begin( mdb->mi_dbenv, NULL, 0, &mdb_tool_txn );
 		if( rc != 0 ) {
@@ -1029,8 +1048,6 @@ done:
 			text->bv_val );
 		e->e_id = NOID;
 	}
-	mdb_tool_txn = NULL;
-	idcursor = NULL;
 
 	return e->e_id;
 }
