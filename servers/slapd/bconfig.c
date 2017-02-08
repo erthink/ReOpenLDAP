@@ -3146,7 +3146,7 @@ config_biglock(ConfigArgs *c)
 		default:
 			return 1;
 		}
-		c->value_string = ch_strdup( str );
+		c->value_string = (char*) str;
 		return 0;
 	} else if ( c->op == LDAP_MOD_DELETE ) {
 		c->be->bd_biglock_mode = SLAPD_BIGLOCK_NONE;
