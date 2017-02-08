@@ -127,6 +127,7 @@ typedef struct tlsm_ctx {
 
 typedef PRFileDesc tlsm_session;
 
+static char *noforkenvvar;
 static int tlsm_ctx_count;
 #define TLSM_CERTDB_DESC_FMT "ldap(%d)"
 
@@ -2054,6 +2055,10 @@ tlsm_destroy( void )
 	ldap_pvt_thread_mutex_destroy( &tlsm_init_mutex );
 	ldap_pvt_thread_mutex_destroy( &tlsm_pem_mutex );
 #endif
+	if (noforkenvvar) {
+		PL_strfree(noforkenvvar);
+		noforkenvvar = NULL;
+	}
 }
 
 static struct ldaptls *
@@ -3234,7 +3239,7 @@ tlsm_init( void )
 	 */
 	if ( !nofork ) {
 		/* will leak one time */
-		char *noforkenvvar = PL_strdup( "NSS_STRICT_NOFORK=DISABLED" );
+		noforkenvvar = PL_strdup( "NSS_STRICT_NOFORK=DISABLED" );
 		PR_SetEnv( noforkenvvar );
 	}
 
