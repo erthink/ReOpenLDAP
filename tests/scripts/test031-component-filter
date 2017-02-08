@@ -19,7 +19,7 @@ echo "running defines.sh"
 ## If you use this script then
 ## Make sure that you turn on LDAP_COMP_MATCH in slapd source codes
 ## and --enable-modules is configured yes
-if test "$AC_WITH_MODULES_ENABLED" != "yes" ; then
+if test "$AC_SLAPD_DYNAMIC_MODULES" != "yes" ; then
         echo "dynamic module disabled, test skipped"
         exit 0
 fi
