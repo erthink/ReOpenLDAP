@@ -88,6 +88,9 @@ ldap_result(
 
 	Debug( LDAP_DEBUG_TRACE, "ldap_result ld %p msgid %d\n", (void *)ld, msgid );
 
+	if (ld->ld_errno == LDAP_LOCAL_ERROR || ld->ld_errno == LDAP_SERVER_DOWN)
+		return -1;
+
 	LDAP_MUTEX_LOCK( &ld->ld_res_mutex );
 	rc = wait4msg( ld, msgid, all, timeout, result );
 	LDAP_MUTEX_UNLOCK( &ld->ld_res_mutex );

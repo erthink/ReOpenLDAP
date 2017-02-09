@@ -1008,6 +1008,7 @@ log_cf_gen(ConfigArgs *c)
 					lb->lb_line.bv_val = (char *)(lb + 1);
 					lb->lb_line.bv_len = mbv.bv_len + ndn.bv_len + 3;
 					ptr = lutil_strcopy( lb->lb_line.bv_val, mbv.bv_val );
+					ch_free(mbv.bv_val);
 					*ptr++ = ' ';
 					*ptr++ = '"';
 					lb->lb_base.bv_val = ptr;

@@ -32,7 +32,7 @@ mdb_delete( Operation *op, SlapReply *rs )
 	AttributeDescription *children = slap_schema.si_ad_children;
 	AttributeDescription *entry = slap_schema.si_ad_entry;
 	MDB_txn		*txn = NULL;
-	MDB_cursor	*mc;
+	MDB_cursor	*mc = NULL;
 	mdb_op_info opinfo = {{{ 0 }}}, *moi = &opinfo;
 
 	LDAPControl **preread_ctrl = NULL;
@@ -294,6 +294,7 @@ mdb_delete( Operation *op, SlapReply *rs )
 	/* delete from dn2id */
 	rs->sr_err = mdb_dn2id_delete( op, mc, e->e_id, 1 );
 	mdb_cursor_close( mc );
+	mc = NULL;
 	if ( rs->sr_err != 0 ) {
 		Debug(LDAP_DEBUG_TRACE,
 			"<=- " LDAP_XSTRING(mdb_delete) ": dn2id failed: "
@@ -422,6 +423,7 @@ return_results:
 	send_ldap_result( op, rs );
 	rs_send_cleanup( rs );
 	slap_graduate_commit_csn( op );
+	mdb_cursor_close( mc );
 
 	if( preread_ctrl != NULL && (*preread_ctrl) != NULL ) {
 		slap_sl_free( (*preread_ctrl)->ldctl_value.bv_val, op->o_tmpmemctx );

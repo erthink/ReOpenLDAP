@@ -1237,6 +1237,7 @@ static const rewrite_mapper slapd_mapper = {
 #endif
 
 #ifdef HAVE_CYRUS_SASL
+static char* cyrus_path;
 static int
 slap_sasl_getconfpath( void * context, char ** path )
 {
@@ -1252,11 +1253,11 @@ slap_sasl_getconfpath( void * context, char ** path )
 
 	len = strlen(SASL_CONFIGPATH) + 1 /* colon */ +
 		strlen(sasl_default_configpath) + 1 /* \0 */;
-	*path = malloc( len );
+	*path = ber_memrealloc( cyrus_path, len );
 	if ( *path == NULL )
 		return SASL_FAIL;
 
-	if (snprintf( *path, len, "%s:%s", SASL_CONFIGPATH,
+	if (snprintf( cyrus_path = *path, len, "%s:%s", SASL_CONFIGPATH,
 				sasl_default_configpath ) != len-1 )
 		return SASL_FAIL;
 
@@ -1281,6 +1282,11 @@ int slap_sasl_init( void )
 #endif
 
 #ifdef HAVE_CYRUS_SASL
+
+	sasl_set_alloc(ber_memalloc,
+				ber_memcalloc,
+				ber_memrealloc,
+				ber_memfree);
 
 	sasl_set_mutex(
 		ldap_pvt_sasl_mutex_new,
@@ -1327,6 +1333,7 @@ int slap_sasl_destroy( void )
 #ifdef ENABLE_REWRITE
 	rewrite_mapper_unregister( &slapd_mapper );
 #endif
+
 #ifdef HAVE_CYRUS_SASL
 #	if SASL_VERSION_FULL < 0x020118
 		sasl_done();
@@ -1340,7 +1347,31 @@ int slap_sasl_destroy( void )
 		slap_dontUseCopy_propnames = NULL;
 	}
 #endif /* SLAP_AUXPROP_DONTUSECOPY */
+
+#if USE_VALGRIND
+	/* LY: Неоднозначная ситуация с этой утечкой:
+	 *
+	 *	- Cyrus вроде-бы должен освободить память самостоятельно
+	 *	  и возможно в каких-то ситуациях/версиях делает это,
+	 *	  но утечка воспроизводится достаточно регулярно.
+	 *
+	 *	- Однако, утечка в любом случае минорна и ни на что не влияет.
+	 *	  Причем, в случае корректного поведения Cyrus, повторное
+	 *	  освобождение приведет к гораздо более серьезным проблемам.
+	 *
+	 *	- Тем не менее, контрольные прогоны под Valgrind устойчиво
+	 *	  детектируют этот leak, что не позволяет автоматически
+	 *	  проверять отсутствие других утечек.
+	 *
+	 *	- Поэтому, "Соломоново решение" = освобождаем cyrus_path только
+	 *	  когда сконфигурировано использование Valgrind.
+	 */
+	ber_memfree(cyrus_path);
+	cyrus_path = NULL;
+#endif /* USE_VALGRIND */
+
 #endif /* HAVE_CYRUS_SASL */
+
 	free( sasl_host );
 	sasl_host = NULL;
 

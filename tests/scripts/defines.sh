@@ -120,9 +120,10 @@ function update_TESTDIR {
 	export TSAN_OPTIONS="report_signal_unsafe=0:second_deadlock_stack=1:history_size=2:log_path=$TESTDIR/tsan-log"
 
 	VALGRIND_OPTIONS="--fair-sched=yes --quiet --log-file=$TESTDIR/valgrind-log.%p \
-		--error-markers=@ --num-callers=41 --error-exitcode=43 \
-		--gen-suppressions=no --track-origins=yes --show-leak-kinds=all \
-		--trace-children=yes --suppressions=$TESTWD/scripts/valgrind.supp"
+		--error-markers=@ --num-callers=41 --errors-for-leak-kinds=definite \
+		--gen-suppressions=no --track-origins=yes --show-leak-kinds=definite \
+		--trace-children=yes --suppressions=$TESTWD/scripts/valgrind.supp \
+		--error-exitcode=${VALGRIND_ERRCODE:-43}"
 
 	VALGRIND_CMD=""
 	VALGRIND_EX_CMD=""
@@ -527,9 +528,10 @@ function safepath {
 function collect_coredumps {
 	wait
 	local id=${1:-xxx-$(date '+%F.%H%M%S.%N')}
-	local cores="$(find -L ${DRAINDIR} -type f -size +0 -name core -o -name 'valgrind-log*.core.*')"
-	local sans="$(find -L ${DRAINDIR} -type f -size +0 -name 'tsan-log*' -o -name 'asan-log*')"
-	local vags="$(find -L ${DRAINDIR} -type f -size +0 -regextype posix-egrep -regex '.*/valgrind-log.[0-9]+$')"
+	find -L ${DRAINDIR} -type f -size 0 '(' -name 'valgrind-log*' -o -name 'tsan-log*' -o -name 'asan-log*' ')' -delete
+	local cores="$(find -L ${DRAINDIR} -type f -size +0 '(' -name core -o -name 'valgrind-log*.core.*' ')' )"
+	local sans="$(find -L ${DRAINDIR} -type f -size +0 '(' -name 'tsan-log*' -o -name 'asan-log*' ')' )"
+	local vags="$(find -L ${DRAINDIR} -type f -size +0 '(' -regextype posix-egrep -regex '.*/valgrind-log.[0-9]+$' ')' )"
 	local rc=0
 	if [ -n "${cores}" -o -n "${sans}" -o -n "${vags}" ]; then
 		if [ -n "${cores}" ]; then

@@ -34,7 +34,7 @@ mdb_modrdn( Operation	*op, SlapReply *rs )
 	char textbuf[SLAP_TEXT_BUFLEN];
 	size_t textlen = sizeof textbuf;
 	MDB_txn		*txn = NULL;
-	MDB_cursor	*mc;
+	MDB_cursor	*mc = NULL;
 	struct mdb_op_info opinfo = {{{ 0 }}}, *moi = &opinfo;
 	Entry dummy = {0};
 
@@ -598,6 +598,7 @@ done:
 		mdb_entry_return( op, e );
 	}
 
+	mdb_cursor_close( mc );
 	if ( moi == &opinfo || --moi->moi_ref < 1 ) {
 		if ( txn != NULL )
 			mdb_txn_abort( txn );

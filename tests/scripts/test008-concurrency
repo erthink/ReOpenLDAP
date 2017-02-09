@@ -32,8 +32,8 @@ if test $RC != 0 ; then
 fi
 
 echo "Starting slapd on TCP/IP port $PORT1..."
-$SLAPD -f $CONF1 -h $URI1 $TIMING > $LOG1 2>&1 &
-PID=$!
+$SLAPD -f $CONF1 -h $URI1 $TIMING |& gzip > $LOG1.gz &
+PID=$(jobs -p | tail -1)
 if test $WAIT != 0 ; then
     echo PID $PID
     read foo
