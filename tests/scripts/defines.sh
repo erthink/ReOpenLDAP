@@ -528,9 +528,10 @@ function safepath {
 function collect_coredumps {
 	wait
 	local id=${1:-xxx-$(date '+%F.%H%M%S.%N')}
-	local cores="$(find -L ${DRAINDIR} -type f -size +0 -name core -o -name 'valgrind-log*.core.*')"
-	local sans="$(find -L ${DRAINDIR} -type f -size +0 -name 'tsan-log*' -o -name 'asan-log*')"
-	local vags="$(find -L ${DRAINDIR} -type f -size +0 -regextype posix-egrep -regex '.*/valgrind-log.[0-9]+$')"
+	find -L ${DRAINDIR} -type f -size 0 '(' -name 'valgrind-log*' -o -name 'tsan-log*' -o -name 'asan-log*' ')' -delete
+	local cores="$(find -L ${DRAINDIR} -type f -size +0 '(' -name core -o -name 'valgrind-log*.core.*' ')' )"
+	local sans="$(find -L ${DRAINDIR} -type f -size +0 '(' -name 'tsan-log*' -o -name 'asan-log*' ')' )"
+	local vags="$(find -L ${DRAINDIR} -type f -size +0 '(' -regextype posix-egrep -regex '.*/valgrind-log.[0-9]+$' ')' )"
 	local rc=0
 	if [ -n "${cores}" -o -n "${sans}" -o -n "${vags}" ]; then
 		if [ -n "${cores}" ]; then
