@@ -503,12 +503,6 @@ mdb_cf_gen( ConfigArgs *c )
 						rc = 0;
 					}
 					mdb->mi_dbenv_flags ^= mdb_envflags[i].mask;
-				} else {
-					/* unknown keyword */
-					snprintf( c->cr_msg, sizeof( c->cr_msg ), "%s: unknown keyword \"%s\"",
-						c->argv[0], c->argv[i] );
-					Debug( LDAP_DEBUG_CONFIG, "%s %s\n", c->log, c->cr_msg );
-					rc = 1;
 				}
 			}
 			break;
@@ -588,7 +582,7 @@ mdb_cf_gen( ConfigArgs *c )
 				fprintf( stderr, "%s: "
 					"unable to parse mode=\"%s\".\n",
 					c->log, c->argv[1] );
-				return 1;
+				return ARG_BAD_CONF;
 			}
 			mdb->mi_dbenv_mode = mode;
 
@@ -597,11 +591,11 @@ mdb_cf_gen( ConfigArgs *c )
 			int who, what, mode = 0;
 
 			if ( strlen( m ) != STRLENOF("-rwxrwxrwx") ) {
-				return 1;
+				return ARG_BAD_CONF;
 			}
 
 			if ( m[0] != '-' ) {
-				return 1;
+				return ARG_BAD_CONF;
 			}
 
 			m++;
@@ -610,7 +604,7 @@ mdb_cf_gen( ConfigArgs *c )
 					if ( m[0] == '-' ) {
 						continue;
 					} else if ( m[0] != "rwx"[what] ) {
-						return 1;
+						return ARG_BAD_CONF;
 					}
 					mode += ((1 << (2 - what)) << 3*(2 - who));
 				}
@@ -625,7 +619,7 @@ mdb_cf_gen( ConfigArgs *c )
 			fprintf( stderr, "%s: "
 				"invalid kbyte \"%s\" in \"checkpoint\".\n",
 				c->log, c->argv[1] );
-			return 1;
+			return ARG_BAD_CONF;
 		}
 		mdb->mi_txn_cp_kbyte = l;
 #ifdef MDBX_LIFORECLAIM
@@ -640,7 +634,7 @@ mdb_cf_gen( ConfigArgs *c )
 			fprintf( stderr, "%s: "
 				"invalid %s \"%s\" in \"checkpoint\".\n",
 				c->log, reopenldap_mode_righteous() ? "seconds" : "minutes", c->argv[2] );
-			return 1;
+			return ARG_BAD_CONF;
 		}
 		mdb->mi_txn_cp_period = l;
 		/* If we're in server mode and time-based checkpointing is enabled,
@@ -661,7 +655,7 @@ mdb_cf_gen( ConfigArgs *c )
 					fprintf( stderr, "%s: "
 						"\"checkpoint\" must occur after \"suffix\".\n",
 						c->log );
-					return 1;
+					return ARG_BAD_CONF;
 				}
 				ldap_pvt_thread_mutex_lock( &slapd_rq.rq_mutex );
 				mdb->mi_txn_cp_task = ldap_pvt_runqueue_insert( &slapd_rq,
@@ -679,14 +673,14 @@ mdb_cf_gen( ConfigArgs *c )
 			fprintf( stderr, "%s: "
 				"invalid lag \"%s\" in \"dreamcatcher\".\n",
 				c->log, c->argv[1] );
-			return 1;
+			return ARG_BAD_CONF;
 		}
 		mdb->mi_renew_lag = l;
 		if ( lutil_atolx( &l, c->argv[2], 0 ) != 0 || l < 0 || l > 100 ) {
 			fprintf( stderr, "%s: "
 				"invalid percentage \"%s\" in \"dreamcatcher\".\n",
 				c->log, c->argv[2] );
-			return 1;
+			return ARG_BAD_CONF;
 		}
 		mdb->mi_renew_percent = l;
 		} break;
@@ -763,7 +757,7 @@ mdb_cf_gen( ConfigArgs *c )
 				snprintf( c->cr_msg, sizeof( c->cr_msg ), "%s: unknown keyword \"%s\"",
 					c->argv[0], c->argv[i] );
 				Debug( LDAP_DEBUG_ANY, "%s %s\n", c->log, c->cr_msg );
-				return 1;
+				return ARG_BAD_CONF;
 			}
 		}
 		}
@@ -782,7 +776,7 @@ mdb_cf_gen( ConfigArgs *c )
 				snprintf( c->cr_msg, sizeof( c->cr_msg ), "%s: unknown keyword \"%s\"",
 					c->argv[0], c->argv[i] );
 				Debug( LDAP_DEBUG_ANY, "%s %s\n", c->log, c->cr_msg );
-				return 1;
+				return ARG_BAD_CONF;
 			}
 		}
 		}
@@ -793,7 +787,7 @@ mdb_cf_gen( ConfigArgs *c )
 		rc = mdb_attr_index_config( mdb, c->fname, c->lineno,
 			c->argc - 1, &c->argv[1], &c->reply);
 
-		if( rc != LDAP_SUCCESS ) return 1;
+		if( rc != LDAP_SUCCESS ) return ARG_BAD_CONF;
 		mdb->mi_flags |= MDB_OPEN_INDEX;
 		if ( mdb->mi_flags & MDB_IS_OPEN ) {
 			c->cleanup = mdb_cf_cleanup;
@@ -805,7 +799,7 @@ mdb_cf_gen( ConfigArgs *c )
 					fprintf( stderr, "%s: "
 						"\"index\" must occur after \"suffix\".\n",
 						c->log );
-					return 1;
+					return ARG_BAD_CONF;
 				}
 				ldap_pvt_thread_mutex_lock( &slapd_rq.rq_mutex );
 				mdb->mi_index_task = ldap_pvt_runqueue_insert( &slapd_rq, 36000,
