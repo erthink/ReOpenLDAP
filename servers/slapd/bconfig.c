@@ -3211,8 +3211,7 @@ config_reopenldap(ConfigArgs *c)
 	};
 
 	if (c->op == SLAP_CONFIG_EMIT) {
-		return mask_to_verbstring( reopenldap_ops, reopenldap_flags,
-			' ', &c->value_bv );
+		return config_verbmask2string( reopenldap_ops, reopenldap_flags,' ', c );
 	} else if ( c->op == LDAP_MOD_DELETE ) {
 		reopenldap_flags_setup( 0 );
 		return 0;

@@ -202,6 +202,8 @@ LDAP_SLAPD_V(int) config_parse_vals(ConfigTable *ct, ConfigArgs *c, int valx);
 LDAP_SLAPD_V(int) config_parse_add(ConfigTable *ct, ConfigArgs *c, int valx);
 LDAP_SLAPD_V(int) read_config_file(const char *fname, ConfigArgs *cf,
 	ConfigTable *cft );
+LDAP_SLAPD_V(int) config_verbmask2string(const slap_verbmasks *v, slap_mask_t m,
+	char delim, ConfigArgs *c);
 
 LDAP_SLAPD_V(ConfigTable*) config_find_keyword(ConfigTable *ct, ConfigArgs *c);
 LDAP_SLAPD_V(Entry*) config_build_entry( Operation *op, SlapReply *rs, CfEntryInfo *parent,

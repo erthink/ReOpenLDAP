@@ -973,6 +973,20 @@ mask_to_verbstring(const slap_verbmasks *v, slap_mask_t m0, char delim, struct b
 	return rc;
 }
 
+int
+config_verbmask2string(const slap_verbmasks *v, slap_mask_t m, char delim, ConfigArgs *c)
+{
+	struct berval value;
+	int rc = mask_to_verbstring(v, m, delim, &value);
+	if (rc)
+		return rc;
+
+	LDAP_ENSURE(value.bv_len < sizeof(c->log));
+	strncpy(c->value_string = c->log, value.bv_val, sizeof(c->log));
+	ch_free(value.bv_val);
+	return 0;
+}
+
 /* Parse a verbstring */
 int
 verbstring_to_mask(const slap_verbmasks *v, char *str, char delim, slap_mask_t *m) {

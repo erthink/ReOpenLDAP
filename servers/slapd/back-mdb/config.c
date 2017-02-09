@@ -404,8 +404,7 @@ mdb_cf_gen( ConfigArgs *c )
 
 #ifdef MDBX_LIFORECLAIM
 		case MDBX_OOMFLAGS:
-			rc = mask_to_verbstring( oom_flags, mdb->mi_oom_flags,
-				' ', &c->value_bv );
+			rc = config_verbmask2string( oom_flags, mdb->mi_oom_flags, ' ', c );
 			break;
 #endif /* MDBX_LIFORECLAIM */
 
