@@ -940,7 +940,7 @@ mask_to_verbs(const slap_verbmasks *v, slap_mask_t m, BerVarray *bva) {
 int
 mask_to_verbstring(const slap_verbmasks *v, slap_mask_t m0, char delim, struct berval *bv)
 {
-	int i, rc = 1;
+	int i, rc = ARG_BAD_CONF;
 
 	BER_BVZERO( bv );
 	if (m0) {
@@ -977,9 +977,8 @@ int
 config_verbmask2string(const slap_verbmasks *v, slap_mask_t m, char delim, ConfigArgs *c)
 {
 	struct berval value;
-	int rc = mask_to_verbstring(v, m, delim, &value);
-	if (rc)
-		return rc;
+	if (mask_to_verbstring(v, m, delim, &value))
+		return ARG_BAD_CONF;
 
 	LDAP_ENSURE(value.bv_len < sizeof(c->log));
 	strncpy(c->value_string = c->log, value.bv_val, sizeof(c->log));
