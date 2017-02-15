@@ -95,6 +95,14 @@ fi
 KILLPIDS="$KILLPIDS $CACHEPID"
 check_running 2 proxy
 
+# Check that the debug/loggin enabled
+grep -i "configure with --enable-debug for debugging" $LOG2 > /dev/null
+if test $RC = 0 ; then
+	echo "Debug messages unavailable, remaining test skipped..."
+	killservers
+	exit 0
+fi
+
 cat /dev/null > $SEARCHOUT
 
 echo "Making queries on the proxy cache..."
