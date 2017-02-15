@@ -148,10 +148,10 @@ function make_build_opt {
 	else
 		case $((n % 4)) in
 			0)
-				build_opt="--no-lto --asan"
+				build_opt="--no-lto --asan --slapi --contrib --exper"
 				;;
 			1)
-				build_opt="--no-lto --debug"
+				build_opt="--no-lto --debug --slapi --contrib --exper"
 				;;
 			2)
 				build_opt="--size --no-check --lto"
