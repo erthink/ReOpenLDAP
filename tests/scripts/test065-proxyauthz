@@ -86,7 +86,7 @@ config_filter < $PROXYAUTHZCONF | sed \
 	-e "s/@BTTR@/${PCACHEBTTR}/"			\
 	> $CONF2
 
-$SLAPD -f $CONF2 -h $URI2 -d $LVL -d pcache > $LOG2 2>&1 &
+$SLAPD -f $CONF2 -h $URI2 -d $LVL -d Cache > $LOG2 2>&1 &
 CACHEPID=$!
 if test $WAIT != 0 ; then
 	echo CACHEPID $CACHEPID

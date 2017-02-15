@@ -3539,8 +3539,8 @@ loglevel_init( void )
 		{ BER_BVC("Stats2"),	LDAP_DEBUG_STATS2 },
 		{ BER_BVC("Shell"),	LDAP_DEBUG_SHELL },
 		{ BER_BVC("Parse"),	LDAP_DEBUG_PARSE },
-#if 0	/* no longer used (nor supported) */
 		{ BER_BVC("Cache"),	LDAP_DEBUG_CACHE },
+#if 0	/* no longer used (nor supported) */
 		{ BER_BVC("Index"),	LDAP_DEBUG_INDEX },
 #endif
 		{ BER_BVC("Sync"),	LDAP_DEBUG_SYNC },
