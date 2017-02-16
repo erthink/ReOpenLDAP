@@ -3088,7 +3088,7 @@ bailout:
 		if ( srs->sr_state.numcsns != numcsns ) {
 			/* consumer doesn't have the right set of CSNs */
 			changed = SS_CHANGED;
-			slap_cookie_clean_csns( &srs->sr_state, op->o_tmpmemctx );
+			srs->sr_state.numcsns = 0; /* sr_state.ctxcsn is shared with pivot_csn */
 			Debug( LDAP_DEBUG_SYNC,
 				"syncprov_op_search: sid %03x, useless consumer-cookie\n",
 				srs->sr_state.sid );
@@ -3194,9 +3194,10 @@ no_change:
 				rs->sr_text = "sync cookie is stale";
 				goto bailout;
 			}
-			if (! reopenldap_mode_righteous())
+			if (! reopenldap_mode_righteous()) {
 				/* LY: Hm, why we should clean cookie in this case ? */
-				slap_cookie_clean_csns(&srs->sr_state, op->o_tmpmemctx);
+				srs->sr_state.numcsns = 0; /* sr_state.ctxcsn is shared with pivot_csn */
+			}
 		} else {
 			gotstate = 1;
 		}
