@@ -3568,30 +3568,19 @@ sp_cf_gen(ConfigArgs *c)
 		}
 		si->si_chktime *= 60;
 		break;
-	case SP_SESSL: {
-		sessionlog *sl;
-		int size = c->value_int;
-
-		if ( size < 0 ) {
+	case SP_SESSL:
+		if ( c->value_int < 0 ) {
 			snprintf( c->cr_msg, sizeof( c->cr_msg ), "%s size %d is negative",
-				c->argv[0], size );
+				c->argv[0], c->value_int );
 			Debug( LDAP_DEBUG_CONFIG|LDAP_DEBUG_NONE,
 				"%s: %s\n", c->log, c->cr_msg );
 			return ARG_BAD_CONF;
 		}
-		sl = si->si_logs;
-		if ( !sl ) {
-			sl = ch_malloc( sizeof( sessionlog ));
-			sl->sl_cookie.ctxcsn = NULL;
-			sl->sl_cookie.sids = NULL;
-			sl->sl_num = 0;
-			sl->sl_cookie.numcsns = 0;
-			sl->sl_head = sl->sl_tail = NULL;
-			ldap_pvt_thread_mutex_init( &sl->sl_mutex );
-			si->si_logs = sl;
+		if ( !si->si_logs ) {
+			si->si_logs = ch_calloc( 1, sizeof( sessionlog ));
+			ldap_pvt_thread_mutex_init( &si->si_logs->sl_mutex );
 		}
-		sl->sl_size = size;
-		}
+		si->si_logs->sl_size = c->value_int;
 		break;
 	case SP_NOPRES:
 		si->si_nopres = c->value_int;
