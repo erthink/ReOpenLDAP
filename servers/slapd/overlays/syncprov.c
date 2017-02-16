@@ -1837,92 +1837,89 @@ syncprov_add_slog( Operation *op )
 {
 	opcookie *opc = op->o_callback->sc_private;
 	slap_overinst *on = opc->son;
-	syncprov_info_t		*si = on->on_bi.bi_private;
-	sessionlog *sl;
+	syncprov_info_t	*si = on->on_bi.bi_private;
+	sessionlog *sl = si->si_logs;
 	slog_entry *se;
 
-	sl = si->si_logs;
-	{
-		if ( BER_BVISEMPTY( &op->o_csn ) ) {
-			/* During the syncrepl refresh phase we can receive operations
-			 * without a csn.  We cannot reliably determine the consumers
-			 * state with respect to such operations, so we ignore them and
-			 * wipe out anything in the log if we see them.
-			 */
-			ldap_pvt_thread_mutex_lock( &sl->sl_mutex );
-			while ( (se = sl->sl_head) != NULL ) {
-				sl->sl_head = se->se_next;
-				ch_free( se );
-			}
-			sl->sl_tail = NULL;
-			sl->sl_num = 0;
-			ldap_pvt_thread_mutex_unlock( &sl->sl_mutex );
-			return;
-		}
-
-		/* Allocate a record. UUIDs are not NUL-terminated. */
-		se = ch_malloc( sizeof( slog_entry ) + opc->suuid.bv_len +
-			op->o_csn.bv_len + 1 );
-		se->se_next = NULL;
-		se->se_tag = op->o_tag;
-
-		se->se_uuid.bv_val = (char *)(&se[1]);
-		memcpy( se->se_uuid.bv_val, opc->suuid.bv_val, opc->suuid.bv_len );
-		se->se_uuid.bv_len = opc->suuid.bv_len;
-
-		se->se_csn.bv_val = se->se_uuid.bv_val + opc->suuid.bv_len;
-		memcpy( se->se_csn.bv_val, op->o_csn.bv_val, op->o_csn.bv_len );
-		se->se_csn.bv_val[op->o_csn.bv_len] = '\0';
-		se->se_csn.bv_len = op->o_csn.bv_len;
-		se->se_sid = slap_csn_get_sid( &se->se_csn );
-
+	if ( BER_BVISEMPTY( &op->o_csn ) ) {
+		/* During the syncrepl refresh phase we can receive operations
+		 * without a csn.  We cannot reliably determine the consumers
+		 * state with respect to such operations, so we ignore them and
+		 * wipe out anything in the log if we see them.
+		 */
 		ldap_pvt_thread_mutex_lock( &sl->sl_mutex );
-		if ( sl->sl_head ) {
-			/* Keep the list in csn order. */
-			if ( slap_csn_compare_ts( &sl->sl_tail->se_csn, &se->se_csn ) <= 0 ) {
-				sl->sl_tail->se_next = se;
-				sl->sl_tail = se;
-			} else {
-				slog_entry **sep;
+		while ( (se = sl->sl_head) != NULL ) {
+			sl->sl_head = se->se_next;
+			ch_free( se );
+		}
+		sl->sl_tail = NULL;
+		sl->sl_num = 0;
+		ldap_pvt_thread_mutex_unlock( &sl->sl_mutex );
+		return;
+	}
 
-				for ( sep = &sl->sl_head; *sep; sep = &(*sep)->se_next ) {
-					if ( slap_csn_compare_ts( &se->se_csn, &(*sep)->se_csn ) < 0 ) {
-						se->se_next = *sep;
-						*sep = se;
-						break;
-					}
+	/* Allocate a record. UUIDs are not NUL-terminated. */
+	se = ch_malloc( sizeof( slog_entry ) + opc->suuid.bv_len +
+		op->o_csn.bv_len + 1 );
+	se->se_next = NULL;
+	se->se_tag = op->o_tag;
+
+	se->se_uuid.bv_val = (char *)(&se[1]);
+	memcpy( se->se_uuid.bv_val, opc->suuid.bv_val, opc->suuid.bv_len );
+	se->se_uuid.bv_len = opc->suuid.bv_len;
+
+	se->se_csn.bv_val = se->se_uuid.bv_val + opc->suuid.bv_len;
+	memcpy( se->se_csn.bv_val, op->o_csn.bv_val, op->o_csn.bv_len );
+	se->se_csn.bv_val[op->o_csn.bv_len] = '\0';
+	se->se_csn.bv_len = op->o_csn.bv_len;
+	se->se_sid = slap_csn_get_sid( &se->se_csn );
+
+	ldap_pvt_thread_mutex_lock( &sl->sl_mutex );
+	if ( sl->sl_head ) {
+		/* Keep the list in csn order. */
+		if ( slap_csn_compare_ts( &sl->sl_tail->se_csn, &se->se_csn ) <= 0 ) {
+			sl->sl_tail->se_next = se;
+			sl->sl_tail = se;
+		} else {
+			slog_entry **sep;
+
+			for ( sep = &sl->sl_head; *sep; sep = &(*sep)->se_next ) {
+				if ( slap_csn_compare_ts( &se->se_csn, &(*sep)->se_csn ) < 0 ) {
+					se->se_next = *sep;
+					*sep = se;
+					break;
 				}
 			}
-		} else {
-			sl->sl_head = se;
-			sl->sl_tail = se;
-			if ( !sl->sl_cookie.ctxcsn ) {
-				sl->sl_cookie.numcsns = 1;
-				sl->sl_cookie.ctxcsn = ch_malloc( 2*sizeof( struct berval ));
-				sl->sl_cookie.sids = ch_malloc( sizeof( int ));
-				sl->sl_cookie.sids[0] = se->se_sid;
-				ber_dupbv( sl->sl_cookie.ctxcsn, &se->se_csn );
-				BER_BVZERO( &sl->sl_cookie.ctxcsn[1] );
-			}
 		}
-		sl->sl_num++;
-		while ( sl->sl_num > sl->sl_size ) {
-			int i;
-			se = sl->sl_head;
-			sl->sl_head = se->se_next;
-			for ( i=0; i<sl->sl_cookie.numcsns; i++ )
-				if ( sl->sl_cookie.sids[i] >= se->se_sid )
-					break;
-			if  ( i == sl->sl_cookie.numcsns || sl->sl_cookie.sids[i] != se->se_sid ) {
-				slap_insert_csn_sids( &sl->sl_cookie, i, se->se_sid, &se->se_csn );
-			} else {
-				ber_bvreplace( &sl->sl_cookie.ctxcsn[i], &se->se_csn );
-			}
-			ch_free( se );
-			sl->sl_num--;
+	} else {
+		sl->sl_head = se;
+		sl->sl_tail = se;
+		if ( !sl->sl_cookie.ctxcsn ) {
+			sl->sl_cookie.numcsns = 1;
+			sl->sl_cookie.ctxcsn = ch_malloc( 2*sizeof( struct berval ));
+			sl->sl_cookie.sids = ch_malloc( sizeof( int ));
+			sl->sl_cookie.sids[0] = se->se_sid;
+			ber_dupbv( sl->sl_cookie.ctxcsn, &se->se_csn );
+			BER_BVZERO( &sl->sl_cookie.ctxcsn[1] );
 		}
-		ldap_pvt_thread_mutex_unlock( &sl->sl_mutex );
 	}
+	sl->sl_num++;
+	while ( sl->sl_num > sl->sl_size ) {
+		int i;
+		se = sl->sl_head;
+		sl->sl_head = se->se_next;
+		for ( i=0; i<sl->sl_cookie.numcsns; i++ )
+			if ( sl->sl_cookie.sids[i] >= se->se_sid )
+				break;
+		if  ( i == sl->sl_cookie.numcsns || sl->sl_cookie.sids[i] != se->se_sid ) {
+			slap_insert_csn_sids( &sl->sl_cookie, i, se->se_sid, &se->se_csn );
+		} else if ( slap_csn_compare_ts( &sl->sl_cookie.ctxcsn[i], &se->se_csn ) < 0 ) {
+			ber_bvreplace( &sl->sl_cookie.ctxcsn[i], &se->se_csn );
+		}
+		ch_free( se );
+		sl->sl_num--;
+	}
+	ldap_pvt_thread_mutex_unlock( &sl->sl_mutex );
 }
 
 /* Just set a flag if we found the matching entry */
