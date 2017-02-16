@@ -908,8 +908,8 @@ function run_testset {
 
 	for CMD in $TEST_LIST_CMD; do
 
-		TESTNO=$(sed -n 's/^.*\/test\([0-9]\+\)-.*/\1/p' <<< "$CMD")
-		if [ 0"$TESTNO" -lt 0 ]; then continue; fi
+		TESTNO=$(sed -n 's/^.*\/test\([0-9]\+\)-.*/\1/p;s/^.*\/its\([0-9]\+\)/\1/p' <<< "$CMD")
+		if [ 0"$TESTNO" -lt ${TESTNO_FROM:-0} ]; then continue; fi
 
 		case "$CMD" in
 			*~)	continue;;
