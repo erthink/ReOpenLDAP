@@ -3047,25 +3047,24 @@ syncprov_op_search( Operation *op, SlapReply *rs )
 				continue;
 			}
 
-			/* LY: Find the smallest CSN */
+			/* LY: Find the smallest consumer CSN */
 			if ( BER_BVISEMPTY( &pivot_csn )
 					|| slap_csn_compare_ts( &pivot_csn, &srs->sr_state.ctxcsn[i] ) > 0 ) {
 				pivot_csn = srs->sr_state.ctxcsn[i];
-				pivot_sid = sids[j];
+				pivot_sid = srs->sr_state.sids[i];
 			}
 			i++;
 		}
 
 		/* LY: comparison consumer's and provider's CSNs */
 		for ( i=0,j=0; i<srs->sr_state.numcsns; i++ ) {
-			int newer;
 			while ( srs->sr_state.sids[i] != sids[j] ) j++;
 			assert(j < numcsns);
-			newer = slap_csn_compare_ts( &srs->sr_state.ctxcsn[i], &ctxcsn[j] );
+			int cmp = slap_csn_compare_ts( &srs->sr_state.ctxcsn[i], &ctxcsn[j] );
 			/* If our state is newer, tell consumer about changes */
-			if ( newer < 0 ) {
+			if ( cmp < 0 ) {
 				changed = SS_CHANGED;
-			} else if ( newer > 0 && sids[j] == slap_serverID ) {
+			} else if ( cmp > 0 && sids[j] == slap_serverID ) {
 				/* our state is older, complain to consumer */
 				rs->sr_err = LDAP_UNWILLING_TO_PERFORM;
 				rs->sr_text = "consumer state is newer than provider!";
