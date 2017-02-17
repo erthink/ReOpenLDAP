@@ -12,7 +12,8 @@ Contributor Agreement
 Before contribute please see the LICENSE file included in the
 root directory of the source tree for extended license details.
 
-In general to contribute ReOpenLDAP you should accept AGPL
+In general to contribute ReOpenLDAP you should accept both [AGPL](https://en.wikipedia.org/wiki/GNU_Affero_General_Public_License)
+and [OpenLDAP Public Licens](https://raw.github.com/ReOpen/ReOpenLDAP/master/LICENSE)
 terms for contributions.
 
 
@@ -26,7 +27,7 @@ technical debt.
 Therefore, the requirements are minimal:
 
 1) for new modules it is recommended to use the
-   (Mongo Code Style)[https://github.com/mongodb/mongo/wiki/Server-Code-Style]
+   [LLVM Code Style](http://llvm.org/docs/CodingStandards.html).
 
 2) for patches just strive to minimize volume of changes without
    losing clarity of the code.
