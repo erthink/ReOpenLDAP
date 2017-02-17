@@ -123,14 +123,6 @@ typedef struct sync_control {
 	int sr_jammed;
 } sync_control;
 
-#ifndef o_sync /* moved back to slap.h */
-#	define	o_sync	o_ctrlflag[slap_cids.sc_LDAPsync]
-#endif
-
-#ifndef o_sync_mode /* o_sync_mode uses data bits of o_sync */
-#	define	o_sync_mode	o_ctrlflag[slap_cids.sc_LDAPsync]
-#endif
-
 #define SLAP_SYNC_NONE					(LDAP_SYNC_NONE<<SLAP_CONTROL_SHIFT)
 #define SLAP_SYNC_REFRESH				(LDAP_SYNC_REFRESH_ONLY<<SLAP_CONTROL_SHIFT)
 #define SLAP_SYNC_PERSIST				(LDAP_SYNC_RESERVED<<SLAP_CONTROL_SHIFT)
@@ -531,7 +523,7 @@ syncprov_findbase( Operation *op, fbase_cookie *fc )
 		cb.sc_response = findbase_cb;
 		cb.sc_private = fc;
 
-		fop.o_sync_mode = 0;	/* turn off sync mode */
+		fop.o_sync = 0;	/* turn off sync mode */
 		fop.o_managedsait = SLAP_CONTROL_CRITICAL;
 		fop.o_callback = &cb;
 		fop.o_tag = LDAP_REQ_SEARCH;
@@ -722,7 +714,7 @@ syncprov_findcsn( Operation *op, find_csn_t mode, struct berval *pivot )
 	}
 
 	slap_op_copy(op, &fop, NULL, NULL);
-	fop.o_sync_mode &= SLAP_CONTROL_MASK;	/* turn off sync_mode */
+	fop.o_sync &= SLAP_CONTROL_MASK;	/* turn off sync_mode */
 	/* We want pure entries, not referrals */
 	fop.o_managedsait = SLAP_CONTROL_CRITICAL;
 
@@ -2048,7 +2040,7 @@ syncprov_playlog( Operation *op, sessionlog *sl,
 
 		slap_op_copy(op, &fop, NULL, NULL);
 
-		fop.o_sync_mode = 0;
+		fop.o_sync = 0;
 		fop.o_callback = &cb;
 		fop.ors_limit = NULL;
 		fop.ors_tlimit = SLAP_NO_LIMIT;
@@ -2745,7 +2737,7 @@ syncprov_search_response( Operation *op, SlapReply *rs )
 			}
 
 			/* If not a persistent search */
-			if ( !(op->o_sync_mode & SLAP_SYNC_PERSIST) ) {
+			if ( !(op->o_sync & SLAP_SYNC_PERSIST) ) {
 				/* Make sure entry is less than the snapshot'd contextCSN */
 				for ( i=0; i<ss->ss_numcsns; i++ ) {
 					if ( sid == ss->ss_sids[i] && slap_csn_compare_ts( &entryCSN->a_nvals[0],
@@ -2800,7 +2792,7 @@ syncprov_search_response( Operation *op, SlapReply *rs )
 		/* Is this a regular refresh?
 		 * Note: refresh never gets here if there were no changes
 		 */
-		if ( !(op->o_sync_mode & SLAP_SYNC_PERSIST) ) {
+		if ( !(op->o_sync & SLAP_SYNC_PERSIST) ) {
 			rs->sr_ctrls = op->o_tmpalloc( sizeof(LDAPControl *)*2,
 				op->o_tmpmemctx );
 			rs->sr_ctrls[1] = NULL;
@@ -2892,7 +2884,7 @@ syncprov_op_search( Operation *op, SlapReply *rs )
 	int dirty = 0;
 	int rc;
 
-	if ( !(op->o_sync_mode & SLAP_SYNC_REFRESH) )
+	if ( !(op->o_sync & SLAP_SYNC_REFRESH) )
 		return SLAP_CB_CONTINUE;
 
 	if ( op->ors_deref & LDAP_DEREF_SEARCHING ) {
@@ -2901,7 +2893,7 @@ syncprov_op_search( Operation *op, SlapReply *rs )
 	}
 
 	srs = op->o_controls[slap_cids.sc_LDAPsync];
-	if ( op->o_sync_mode & SLAP_SYNC_PERSIST ) {
+	if ( op->o_sync & SLAP_SYNC_PERSIST ) {
 		fbase_cookie fc = {0};
 		opcookie opc = {0};
 		slap_callback sc = {0};
@@ -2935,7 +2927,7 @@ syncprov_op_search( Operation *op, SlapReply *rs )
 	ldap_pvt_thread_mutex_lock( &si->si_ops_mutex );
 
 	/* If this is a persistent search, set it up right away */
-	if ( op->o_sync_mode & SLAP_SYNC_PERSIST ) {
+	if ( op->o_sync & SLAP_SYNC_PERSIST ) {
 		while ( slap_tsan__read_int(&si->si_active) ) {
 			/* Wait for active mods to finish before proceeding, as they
 			 * may already have inspected the si_ops list looking for
@@ -2999,7 +2991,7 @@ syncprov_op_search( Operation *op, SlapReply *rs )
 
 		/* If we don't have any CSN of our own yet, bail out. */
 		if ( !numcsns ) {
-			if ( op->o_sync_mode & SLAP_SYNC_PERSIST ) {
+			if ( op->o_sync & SLAP_SYNC_PERSIST ) {
 				/* LY: У получателя есть cookie, а у локального провайдера еще нет.
 				 * Такое вполне может быть, если провайдер еще "чистый", но уже
 				 * получил запрос от работающего получателя в мульти-мастер
@@ -3114,7 +3106,7 @@ bailout:
 				goto shortcut;
 			}
 no_change:
-			if ( !(op->o_sync_mode & SLAP_SYNC_PERSIST) ) {
+			if ( !(op->o_sync & SLAP_SYNC_PERSIST) ) {
 				LDAPControl	*ctrls[2];
 				struct berval cookie = BER_BVNULL;
 
@@ -3996,7 +3988,7 @@ static int syncprov_parseCtrl (
 		? SLAP_CONTROL_CRITICAL
 		: SLAP_CONTROL_NONCRITICAL;
 
-	op->o_sync_mode |= mode;	/* o_sync_mode shares o_sync */
+	op->o_sync |= mode;
 
 	return LDAP_SUCCESS;
 }
