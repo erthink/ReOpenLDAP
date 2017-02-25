@@ -13140,9 +13140,9 @@ VERSION_MINOR=2
 
 VERSION_PATCH=0
 
-RELEASE_DATE=2017-02-08
+RELEASE_DATE=2017-02-22
 
-RELEASE_STAMP=gbf83709027fe-t8e1dec8a443c1456
+RELEASE_STAMP=g349be0b8f781-t74ec198ea2195620
 
 API_LIB_RELEASE=1.2
 
@@ -26141,6 +26141,16 @@ $as_echo "$ol_cv_pthread_create" >&6; }
 			ol_link_threads=posix
 			ol_link_pthreads=""
 		fi
+
+		ac_fn_c_check_decl "$LINENO" "PTHREAD_MUTEX_RECURSIVE" "ac_cv_have_decl_PTHREAD_MUTEX_RECURSIVE" "#include <pthread.h>
+"
+if test "x$ac_cv_have_decl_PTHREAD_MUTEX_RECURSIVE" = xyes; then :
+
+$as_echo "#define HAVE_PTHREAD_MUTEX_RECURSIVE /**/" >>confdefs.h
+
+fi
+
+
 
 		# Pthread try link: -kthread (ol_cv_pthread_kthread)
 if test "$ol_link_threads" = no ; then

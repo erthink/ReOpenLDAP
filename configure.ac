@@ -1405,6 +1405,11 @@ case $ol_with_threads in auto | yes | posix)
 			ol_link_pthreads=""
 		fi
 
+		AC_CHECK_DECL(PTHREAD_MUTEX_RECURSIVE,
+			AC_DEFINE(HAVE_PTHREAD_MUTEX_RECURSIVE, [], [Define if your pthreads implementation have PTHREAD_MUTEX_RECURSIVE]),
+			,[#include <pthread.h>])
+
+
 dnl		OL_PTHREAD_TRY([-mt],		[ol_cv_pthread_mt])
 		OL_PTHREAD_TRY([-kthread],	[ol_cv_pthread_kthread])
 		OL_PTHREAD_TRY([-pthread],	[ol_cv_pthread_pthread])

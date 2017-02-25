@@ -530,6 +530,9 @@
 /* Define to 1 if you have the `pthread_kill_other_threads_np' function. */
 #undef HAVE_PTHREAD_KILL_OTHER_THREADS_NP
 
+/* Define if your pthreads implementation have PTHREAD_MUTEX_RECURSIVE */
+#undef HAVE_PTHREAD_MUTEX_RECURSIVE
+
 /* Have PTHREAD_PRIO_INHERIT. */
 #undef HAVE_PTHREAD_PRIO_INHERIT
 
