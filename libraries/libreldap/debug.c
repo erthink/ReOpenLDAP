@@ -53,7 +53,7 @@ static void ldap_debug_lock_init(void) __attribute__((constructor))
 {
 	pthread_mutex_attr_t mutexattr;
 	LDAP_ENSURE(pthread_mutexattr_init(&mutexattr) == 0);
-	LDAP_ENSURE(pthread_mutexattr_settype(&mutexattr, PTHREAD_MUTEX_RECURSIVE_NP) == 0);
+	LDAP_ENSURE(pthread_mutexattr_settype(&mutexattr, PTHREAD_MUTEX_RECURSIVE) == 0);
 	LDAP_ENSURE(pthread_mutex_init(&debug_mutex, &mutexattr) == 0);
 }
 #endif /* PTHREAD_RECURSIVE_MUTEX_INITIALIZER */
