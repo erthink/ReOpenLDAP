@@ -607,7 +607,7 @@ comp_test_components( void* attr_nm, void* assert_nm, ComponentSyntaxInfo* csi_a
 
 	if ( !cr )
 		return comp_test_one_component ( attr_nm, assert_nm, csi_attr, ca );
-	/* Extracting the component refrenced by ca->ca_comp_ref */
+	/* Extracting the component referenced by ca->ca_comp_ref */
 	csi_attr = (ComponentSyntaxInfo*)csi_attr->csi_comp_desc->cd_extract_i( attr_nm, cr, csi_attr );
 	if ( !csi_attr ) return LDAP_INVALID_SYNTAX;
 	/* perform matching, considering the type of a Component Reference(CR)*/
@@ -637,7 +637,7 @@ comp_test_components( void* attr_nm, void* assert_nm, ComponentSyntaxInfo* csi_a
 		 * 1) If so, look up the corresponding decoder  in the mapping
 		 * table(OID to decoder) by <select>
 		 * and then decode the OCTET/BIT STRING with the decoder
-		 * Finially, extreact the target component with the remaining CR.
+		 * Finally, extract the target component with the remaining CR.
 		 * 2) If not, just return the current component, It SHOULD not be
 		 * extracted further, because the component MUST be BIT/OCTET
                  * string.
@@ -657,7 +657,7 @@ comp_test_components( void* attr_nm, void* assert_nm, ComponentSyntaxInfo* csi_a
 			if ( !odm || !odm->BER_Decode )
 				return  LDAP_PROTOCOL_ERROR;
 
-			/* current componet MUST be either BIT or OCTET STRING */
+			/* current component MUST be either BIT or OCTET STRING */
 			if ( csi_attr->csi_comp_desc->cd_type_id != BASICTYPE_BITSTRING ) {
 				bv.bv_val = ((ComponentBits*)csi_attr)->value.bits;
 				bv.bv_len = ((ComponentBits*)csi_attr)->value.bitLen;

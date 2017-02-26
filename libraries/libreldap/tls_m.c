@@ -724,7 +724,7 @@ nss_parse_ciphers(const char *cipherstr, int cipher_list[ciphernum])
 						continue;
 					if ( protocol && ! (ciphers_def[i].version & protocol) )
 						continue;
-					/* Enable the NULL ciphers only if explicity requested */
+					/* Enable the NULL ciphers only if explicitly requested */
 					if (ciphers_def[i].attr & SSL_eNULL) {
 						if (mask & SSL_eNULL)
 							cipher_list[i] = action;
@@ -1696,7 +1696,7 @@ tlsm_get_certdb_prefix( const char *certdir, char **realcertdir, char **prefix )
 }
 
 /*
- * Currently mutiple MozNSS contexts share one certificate storage. When the
+ * Currently multiple MozNSS contexts share one certificate storage. When the
  * certdb is being opened, only new certificates are added to the storage.
  * When different databases are used, conflicting nicknames make the
  * certificate lookup by the nickname impossible. In addition a token

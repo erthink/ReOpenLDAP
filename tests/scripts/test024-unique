@@ -327,7 +327,7 @@ givenName: Bill
 EOTUNIQ2
 RC=$?
 if test $RC != $RCODEconstraint ; then
-	echo "olcUniqueAttribtue single deletion hit the wrong value"
+	echo "olcUniqueAttribute single deletion hit the wrong value"
 	killservers
 	exit 2
 fi

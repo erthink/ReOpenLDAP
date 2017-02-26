@@ -938,7 +938,7 @@ AC_CHECK_FUNC(select, :, AC_MSG_ERROR([select() required.]))
 
 if test "${ac_cv_header_winsock_h}" != yes; then
 	dnl Select arg types
-	dnl (if this detection becomes permenent, it and the select() detection
+	dnl (if this detection becomes permanent, it and the select() detection
 	dnl should be done before the yielding select test)
 	AC_FUNC_SELECT_ARGTYPES
 fi
@@ -1544,7 +1544,7 @@ pthread_rwlock_t rwlock;
 			AC_DEFINE(HAVE_PTHREAD_DETACH,1,
 				[define if you have pthread_detach function])
 
-			dnl Check for setconcurreny functions
+			dnl Check for setconcurrency functions
 			AC_CHECK_FUNCS(	\
 				pthread_setconcurrency \
 				pthread_getconcurrency \
@@ -1821,7 +1821,7 @@ hosts_access(req)
 		AC_DEFINE(HAVE_TCPD,1, [define if you have -lwrap])
 		SLAPD_TCPWRAP_LIBS="$SLAPD_TCPWRAP_LIBS -lwrap"
 	elif test $ol_enable_wrappers = yes ; then
-		AC_MSG_ERROR([could not find TCP wrappers, select apppropriate options or disable])
+		AC_MSG_ERROR([could not find TCP wrappers, select appropriate options or disable])
 	else
 		AC_MSG_WARN([could not find TCP wrappers, support disabled])
 	fi
@@ -2893,7 +2893,6 @@ AC_SUBST(LDAP_LIBSLAPI_LA)
 
 dnl ----------------------------------------------------------------
 
-#AC_SUBST(LIBSRCS)
 AC_SUBST(WITH_SASL)
 AC_SUBST(WITH_TLS)
 AC_SUBST(WITH_ACI_ENABLED)
@@ -2905,8 +2904,6 @@ AM_CONDITIONAL([WITH_GSSAPI], [test $ol_with_gssapi = yes])
 if test $enable_shared = yes; then
 	AC_DEFINE(RELDAP_LIBS_SHARED,1,[--enable-shared=yes])
 fi
-#RELDAP_LIBS_SHARED=$enable_shared
-#AC_SUBST(RELDAP_LIBS_SHARED)
 
 AM_CONDITIONAL([BEHIND_CURTIAN], [test -x $ac_aux_dir/mkbanner -a -x $ac_aux_dir/BRANDING])
 if test -x $ac_aux_dir/mkbanner -a -x $ac_aux_dir/BRANDING; then

@@ -52,7 +52,7 @@ ber_get_option(
 			return LBER_OPT_SUCCESS;
 
 		case LBER_OPT_MEMORY_INUSE:
-			/* The memory inuse is a global variable on kernal implementations.
+			/* The memory inuse is a global variable on kernel implementations.
 			 * This means that memory debug is shared by all LDAP processes
 			 * so for this variable to have much meaning, only one LDAP process
 			 * should be running and memory inuse should be initialized to zero
@@ -146,10 +146,13 @@ ber_set_option(
 			return LBER_OPT_SUCCESS;
 
 		case LBER_OPT_MEMORY_INUSE:
-			/* The memory inuse is a global variable on "kernel" implementations.
-			 * This means that memory debug is shared by all LDAP threads.
-			 * In ReOpenLDAP this counter IS accurate for thread safe.
-			 * Therefore, no one should reset it. */
+			/* The memory inuse is a global variable on kernel implementations.
+			 * This means that memory debug is shared by all LDAP processes
+			 * so for this variable to have much meaning, only one LDAP process
+			 * should be running and memory inuse should be initialized to zero
+			 * using the lber_set_option() function during startup.
+			 * The counter is not accurate for multithreaded applications.
+			 */
 			return LBER_OPT_ERROR;
 		case LBER_OPT_MEMORY_FNS:
 			if ( ber_int_memory_fns == NULL )
