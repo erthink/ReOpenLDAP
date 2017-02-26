@@ -14,7 +14,7 @@
  */
 
 /* ACKNOWLEDGEMENTS:
- * This program was orignally developed by Kurt D. Zeilenga for inclusion in
+ * This program was originally developed by Kurt D. Zeilenga for inclusion in
  * OpenLDAP Software.
  */
 
