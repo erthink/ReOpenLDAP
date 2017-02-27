@@ -49,9 +49,9 @@ static pthread_mutex_t debug_mutex = PTHREAD_RECURSIVE_MUTEX_INITIALIZER;
 static pthread_mutex_t debug_mutex = PTHREAD_RECURSIVE_MUTEX_INITIALIZER_NP;
 #else
 static pthread_mutex_t debug_mutex;
-static void ldap_debug_lock_init(void) __attribute__((constructor))
+static __attribute__((constructor)) void ldap_debug_lock_init(void)
 {
-	pthread_mutex_attr_t mutexattr;
+	pthread_mutexattr_t mutexattr;
 	LDAP_ENSURE(pthread_mutexattr_init(&mutexattr) == 0);
 	LDAP_ENSURE(pthread_mutexattr_settype(&mutexattr, PTHREAD_MUTEX_RECURSIVE) == 0);
 	LDAP_ENSURE(pthread_mutex_init(&debug_mutex, &mutexattr) == 0);
@@ -75,7 +75,7 @@ void ldap_debug_unlock(void) {
 #else /* HAVE_PTHREAD_MUTEX_RECURSIVE */
 
 static ldap_pvt_thread_rmutex_t debug_mutex;
-static  __attribute__((constructor)) void ldap_debug_lock_init(void)
+static __attribute__((constructor)) void ldap_debug_lock_init(void)
 {
 	LDAP_ENSURE(ldap_pvt_thread_rmutex_init(&debug_mutex) == 0);
 }
