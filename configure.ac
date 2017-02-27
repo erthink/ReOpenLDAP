@@ -981,49 +981,26 @@ fi
 dnl ----------------------------------------------------------------
 dnl UUID Support
 
-have_uuid=no
-#PKG_CHECK_MODULES(UUID, uuid, have_uuid=yes, have_uuid=no)
-#AC_SUBST(UUID_LIBS)
+PKG_CHECK_MODULES(UUID, uuid, uuid_found=yes, uuid_found=no)
+AC_SUBST(UUID_LIBS)
 #AC_SUBST(UUID_CFLAGS)
-
-AC_CHECK_HEADERS(sys/uuid.h)
-dnl The HAVE_UUID_TO_STR code path also needs uuid_create
-if test $ac_cv_header_sys_uuid_h = yes ; then
-	save_LIBS="$LIBS"
-	AC_SEARCH_LIBS([uuid_to_str], [uuid], [have_uuid=yes], :)
-	AC_SEARCH_LIBS([uuid_create], [uuid], :, [have_uuid=no])
-	LIBS="$save_LIBS"
-
-	if test $have_uuid = yes ; then
-		AC_DEFINE(HAVE_UUID_TO_STR,1,
-			[define if you have uuid_to_str()])
-
-		test "$ac_cv_search_uuid_to_str" = "none required" || \
-			SLAPD_LIBS="$SLAPD_LIBS $ac_cv_search_uuid_to_str"
-	fi
-fi
-
-dnl Look for uuid_generate
-dnl The HAVE_UUID_GENERATE code path also needs uuid_unparse_lower
-if test $have_uuid = no ; then
+if test $uuid_found = yes ; then
 	AC_CHECK_HEADERS(uuid/uuid.h)
 	if test $ac_cv_header_uuid_uuid_h = yes ; then
 		save_LIBS="$LIBS"
+		LIBS="$LIBS $UUID_LIBS"
 		AC_SEARCH_LIBS([uuid_generate], [uuid], [have_uuid=yes], :)
 		AC_SEARCH_LIBS([uuid_unparse_lower], [uuid], :, [have_uuid=no])
 		LIBS="$save_LIBS"
 
-		if test $have_uuid = yes ; then
-			AC_DEFINE(HAVE_UUID_GENERATE,1,
-				[define if you have uuid_generate()])
-
-			test "$ac_cv_search_uuid_generate" = "none required" || \
-				SLAPD_LIBS="$SLAPD_LIBS $ac_cv_search_uuid_generate"
+		if test "$have_uuid" = "yes" ; then
+			AC_DEFINE(HAVE_UUID_GENERATE,1, [define if you have uuid_generate()])
+			SLAPD_LIBS="$SLAPD_LIBS $UUID_LIBS"
 		fi
 	fi
 fi
 
-if test $have_uuid = no ; then
+if test "$have_uuid" != "yes" ; then
 	AC_MSG_ERROR([uuid support not found (this typically means the uuid development package is missing)])
 fi
 

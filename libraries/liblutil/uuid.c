@@ -22,55 +22,17 @@
 #include <ac/stdlib.h>
 #include <ac/string.h>	/* get memcmp() */
 
-#ifdef HAVE_UUID_TO_STR
-#  include <sys/uuid.h>
-#elif defined( HAVE_UUID_GENERATE )
-#  include <uuid/uuid.h>
-#else
-# error "libuuid-dev installed?"
-#endif
-
+#include <uuid/uuid.h>
 #include <lutil.h>
 
 size_t
 lutil_uuidstr( char *buf, size_t len )
 {
-#ifdef HAVE_UUID_TO_STR
-	uuid_t uu = {0};
-	unsigned rc;
-	char *s;
-	size_t l;
-
-	uuid_create( &uu, &rc );
-	if ( rc != uuid_s_ok ) {
-		return 0;
-	}
-
-	uuid_to_str( &uu, &s, &rc );
-	if ( rc != uuid_s_ok ) {
-		return 0;
-	}
-
-	l = strlen( s );
-	if ( l >= len ) {
-		free( s );
-		return 0;
-	}
-
-	strncpy( buf, s, len );
-	free( s );
-
-	return l;
-
-#elif defined( HAVE_UUID_GENERATE )
 	uuid_t uu;
 
 	uuid_generate( uu );
 	uuid_unparse_lower( uu, buf );
 	return strlen( buf );
-#else
-	return buf[0] = 0;
-#endif
 }
 
 int
@@ -119,16 +81,6 @@ int
 main(int argc, char **argv)
 {
 	char buf1[8], buf2[64];
-
-#ifndef HAVE_UUID_TO_STR
-	unsigned char *p = lutil_eaddr();
-
-	if( p ) {
-		printf( "Ethernet Address: %02x:%02x:%02x:%02x:%02x:%02x\n",
-			(unsigned) p[0], (unsigned) p[1], (unsigned) p[2],
-			(unsigned) p[3], (unsigned) p[4], (unsigned) p[5]);
-	}
-#endif
 
 	if ( lutil_uuidstr( buf1, sizeof( buf1 ) ) ) {
 		printf( "UUID: %s\n", buf1 );

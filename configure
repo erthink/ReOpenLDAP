@@ -883,6 +883,8 @@ OPENSSL_AVAIL_FALSE
 OPENSSL_AVAIL_TRUE
 OPENSSL_LIBS
 OPENSSL_CFLAGS
+UUID_LIBS
+UUID_CFLAGS
 PERLBIN
 CRACKLIB_DICTPATH
 CRACKLIB_CFLAGS
@@ -1202,6 +1204,8 @@ KRB5_CFLAGS
 KRB5_LIBS
 HEIMDAL_CFLAGS
 HEIMDAL_LIBS
+UUID_CFLAGS
+UUID_LIBS
 OPENSSL_CFLAGS
 OPENSSL_LIBS
 GNUTLS_CFLAGS
@@ -1983,6 +1987,8 @@ Some influential environment variables:
               C compiler flags for HEIMDAL, overriding pkg-config
   HEIMDAL_LIBS
               linker flags for HEIMDAL, overriding pkg-config
+  UUID_CFLAGS C compiler flags for UUID, overriding pkg-config
+  UUID_LIBS   linker flags for UUID, overriding pkg-config
   OPENSSL_CFLAGS
               C compiler flags for OPENSSL, overriding pkg-config
   OPENSSL_LIBS
@@ -13142,7 +13148,7 @@ VERSION_PATCH=0
 
 RELEASE_DATE=2017-02-27
 
-RELEASE_STAMP=g9384750aa2e0-ta2f5ecb8ff5a1692
+RELEASE_STAMP=g6789427b6477-t94a7efcb4db4aebb
 
 API_LIB_RELEASE=1.2
 
@@ -23905,154 +23911,80 @@ if test "$ol_cv_c_posix_regex" = no ; then
 fi
 
 
-have_uuid=no
-#PKG_CHECK_MODULES(UUID, uuid, have_uuid=yes, have_uuid=no)
-#AC_SUBST(UUID_LIBS)
+
+pkg_failed=no
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for UUID" >&5
+$as_echo_n "checking for UUID... " >&6; }
+
+if test -n "$UUID_CFLAGS"; then
+    pkg_cv_UUID_CFLAGS="$UUID_CFLAGS"
+ elif test -n "$PKG_CONFIG"; then
+    if test -n "$PKG_CONFIG" && \
+    { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"uuid\""; } >&5
+  ($PKG_CONFIG --exists --print-errors "uuid") 2>&5
+  ac_status=$?
+  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+  test $ac_status = 0; }; then
+  pkg_cv_UUID_CFLAGS=`$PKG_CONFIG --cflags "uuid" 2>/dev/null`
+		      test "x$?" != "x0" && pkg_failed=yes
+else
+  pkg_failed=yes
+fi
+ else
+    pkg_failed=untried
+fi
+if test -n "$UUID_LIBS"; then
+    pkg_cv_UUID_LIBS="$UUID_LIBS"
+ elif test -n "$PKG_CONFIG"; then
+    if test -n "$PKG_CONFIG" && \
+    { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"uuid\""; } >&5
+  ($PKG_CONFIG --exists --print-errors "uuid") 2>&5
+  ac_status=$?
+  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+  test $ac_status = 0; }; then
+  pkg_cv_UUID_LIBS=`$PKG_CONFIG --libs "uuid" 2>/dev/null`
+		      test "x$?" != "x0" && pkg_failed=yes
+else
+  pkg_failed=yes
+fi
+ else
+    pkg_failed=untried
+fi
+
+
+
+if test $pkg_failed = yes; then
+   	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+
+if $PKG_CONFIG --atleast-pkgconfig-version 0.20; then
+        _pkg_short_errors_supported=yes
+else
+        _pkg_short_errors_supported=no
+fi
+        if test $_pkg_short_errors_supported = yes; then
+	        UUID_PKG_ERRORS=`$PKG_CONFIG --short-errors --print-errors --cflags --libs "uuid" 2>&1`
+        else
+	        UUID_PKG_ERRORS=`$PKG_CONFIG --print-errors --cflags --libs "uuid" 2>&1`
+        fi
+	# Put the nasty error message in config.log where it belongs
+	echo "$UUID_PKG_ERRORS" >&5
+
+	uuid_found=no
+elif test $pkg_failed = untried; then
+     	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+	uuid_found=no
+else
+	UUID_CFLAGS=$pkg_cv_UUID_CFLAGS
+	UUID_LIBS=$pkg_cv_UUID_LIBS
+        { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
+	uuid_found=yes
+fi
+
 #AC_SUBST(UUID_CFLAGS)
-
-for ac_header in sys/uuid.h
-do :
-  ac_fn_c_check_header_mongrel "$LINENO" "sys/uuid.h" "ac_cv_header_sys_uuid_h" "$ac_includes_default"
-if test "x$ac_cv_header_sys_uuid_h" = xyes; then :
-  cat >>confdefs.h <<_ACEOF
-#define HAVE_SYS_UUID_H 1
-_ACEOF
-
-fi
-
-done
-
-if test $ac_cv_header_sys_uuid_h = yes ; then
-	save_LIBS="$LIBS"
-	{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for library containing uuid_to_str" >&5
-$as_echo_n "checking for library containing uuid_to_str... " >&6; }
-if ${ac_cv_search_uuid_to_str+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-  ac_func_search_save_LIBS=$LIBS
-cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-/* Override any GCC internal prototype to avoid an error.
-   Use char because int might match the return type of a GCC
-   builtin and then its argument prototype would still apply.  */
-#ifdef __cplusplus
-extern "C"
-#endif
-char uuid_to_str ();
-int
-main ()
-{
-return uuid_to_str ();
-  ;
-  return 0;
-}
-_ACEOF
-for ac_lib in '' uuid; do
-  if test -z "$ac_lib"; then
-    ac_res="none required"
-  else
-    ac_res=-l$ac_lib
-    LIBS="-l$ac_lib  $ac_func_search_save_LIBS"
-  fi
-  if ac_fn_c_try_link "$LINENO"; then :
-  ac_cv_search_uuid_to_str=$ac_res
-fi
-rm -f core conftest.err conftest.$ac_objext \
-    conftest$ac_exeext
-  if ${ac_cv_search_uuid_to_str+:} false; then :
-  break
-fi
-done
-if ${ac_cv_search_uuid_to_str+:} false; then :
-
-else
-  ac_cv_search_uuid_to_str=no
-fi
-rm conftest.$ac_ext
-LIBS=$ac_func_search_save_LIBS
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_search_uuid_to_str" >&5
-$as_echo "$ac_cv_search_uuid_to_str" >&6; }
-ac_res=$ac_cv_search_uuid_to_str
-if test "$ac_res" != no; then :
-  test "$ac_res" = "none required" || LIBS="$ac_res $LIBS"
-  have_uuid=yes
-else
-  :
-fi
-
-	{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for library containing uuid_create" >&5
-$as_echo_n "checking for library containing uuid_create... " >&6; }
-if ${ac_cv_search_uuid_create+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-  ac_func_search_save_LIBS=$LIBS
-cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-/* Override any GCC internal prototype to avoid an error.
-   Use char because int might match the return type of a GCC
-   builtin and then its argument prototype would still apply.  */
-#ifdef __cplusplus
-extern "C"
-#endif
-char uuid_create ();
-int
-main ()
-{
-return uuid_create ();
-  ;
-  return 0;
-}
-_ACEOF
-for ac_lib in '' uuid; do
-  if test -z "$ac_lib"; then
-    ac_res="none required"
-  else
-    ac_res=-l$ac_lib
-    LIBS="-l$ac_lib  $ac_func_search_save_LIBS"
-  fi
-  if ac_fn_c_try_link "$LINENO"; then :
-  ac_cv_search_uuid_create=$ac_res
-fi
-rm -f core conftest.err conftest.$ac_objext \
-    conftest$ac_exeext
-  if ${ac_cv_search_uuid_create+:} false; then :
-  break
-fi
-done
-if ${ac_cv_search_uuid_create+:} false; then :
-
-else
-  ac_cv_search_uuid_create=no
-fi
-rm conftest.$ac_ext
-LIBS=$ac_func_search_save_LIBS
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_search_uuid_create" >&5
-$as_echo "$ac_cv_search_uuid_create" >&6; }
-ac_res=$ac_cv_search_uuid_create
-if test "$ac_res" != no; then :
-  test "$ac_res" = "none required" || LIBS="$ac_res $LIBS"
-  :
-else
-  have_uuid=no
-fi
-
-	LIBS="$save_LIBS"
-
-	if test $have_uuid = yes ; then
-
-$as_echo "#define HAVE_UUID_TO_STR 1" >>confdefs.h
-
-
-		test "$ac_cv_search_uuid_to_str" = "none required" || \
-			SLAPD_LIBS="$SLAPD_LIBS $ac_cv_search_uuid_to_str"
-	fi
-fi
-
-if test $have_uuid = no ; then
+if test $uuid_found = yes ; then
 	for ac_header in uuid/uuid.h
 do :
   ac_fn_c_check_header_mongrel "$LINENO" "uuid/uuid.h" "ac_cv_header_uuid_uuid_h" "$ac_includes_default"
@@ -24067,6 +23999,7 @@ done
 
 	if test $ac_cv_header_uuid_uuid_h = yes ; then
 		save_LIBS="$LIBS"
+		LIBS="$LIBS $UUID_LIBS"
 		{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for library containing uuid_generate" >&5
 $as_echo_n "checking for library containing uuid_generate... " >&6; }
 if ${ac_cv_search_uuid_generate+:} false; then :
@@ -24185,18 +24118,16 @@ fi
 
 		LIBS="$save_LIBS"
 
-		if test $have_uuid = yes ; then
+		if test "$have_uuid" = "yes" ; then
 
 $as_echo "#define HAVE_UUID_GENERATE 1" >>confdefs.h
 
-
-			test "$ac_cv_search_uuid_generate" = "none required" || \
-				SLAPD_LIBS="$SLAPD_LIBS $ac_cv_search_uuid_generate"
+			SLAPD_LIBS="$SLAPD_LIBS $UUID_LIBS"
 		fi
 	fi
 fi
 
-if test $have_uuid = no ; then
+if test "$have_uuid" != "yes" ; then
 	as_fn_error $? "uuid support not found (this typically means the uuid development package is missing)" "$LINENO" 5
 fi
 
