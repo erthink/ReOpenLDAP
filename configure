@@ -13140,9 +13140,9 @@ VERSION_MINOR=2
 
 VERSION_PATCH=0
 
-RELEASE_DATE=2017-02-22
+RELEASE_DATE=2017-02-27
 
-RELEASE_STAMP=g349be0b8f781-t74ec198ea2195620
+RELEASE_STAMP=g9384750aa2e0-ta2f5ecb8ff5a1692
 
 API_LIB_RELEASE=1.2
 
@@ -22849,6 +22849,10 @@ for ac_header in \
 	termios.h	\
 	unistd.h	\
 	utime.h		\
+	dirent.h	\
+	ndir.h		\
+	sys/ndir.h	\
+	sys/dir.h	\
 
 do :
   as_ac_Header=`$as_echo "ac_cv_header_$ac_header" | $as_tr_sh`
@@ -31706,7 +31710,13 @@ $as_echo "$as_me: WARNING: Strong authentication not supported!" >&2;}
 	fi
 fi
 
-if test $cross_compiling != yes && test "$ac_cv_mingw32" != yes ; then
+if test "$URANDOM_DEVICE" != "" ; then
+
+cat >>confdefs.h <<_ACEOF
+#define URANDOM_DEVICE "$URANDOM_DEVICE"
+_ACEOF
+
+elif test $cross_compiling != yes && test "$ac_cv_mingw32" != yes ; then
 	dev=no
 	if test -r /dev/urandom ; then
 		dev="/dev/urandom";
@@ -32894,8 +32904,7 @@ $as_echo "#define USE_MP_LONG 1" >>confdefs.h
 		as_fn_error $? "long unusable for multiple precision" "$LINENO" 5
 	fi
 fi
-if test $ol_with_mp = bignum || test $ol_with_mp = auto ; then
-	for ac_header in openssl/bn.h openssl/crypto.h
+for ac_header in openssl/bn.h openssl/crypto.h
 do :
   as_ac_Header=`$as_echo "ac_cv_header_$ac_header" | $as_tr_sh`
 ac_fn_c_check_header_mongrel "$LINENO" "$ac_header" "$as_ac_Header" "$ac_includes_default"
@@ -32908,6 +32917,7 @@ fi
 
 done
 
+if test $ol_with_mp = bignum || test $ol_with_mp = auto ; then
 	if test "$ac_cv_header_openssl_bn_h" = "yes" &&
 		test "$ac_cv_header_openssl_crypto_h" = "yes" &&
 		test "$ol_with_tls" = "found" ; then

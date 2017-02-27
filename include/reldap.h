@@ -22,7 +22,16 @@
 #	define __has_attribute(x) (0)
 #endif
 
-#if !defined(__GNUC__) || !__GNUC_PREREQ(4,2)
+#ifndef __GNUC_PREREQ
+#	if defined(__GNUC__) && defined(__GNUC_MINOR__)
+#		define __GNUC_PREREQ(maj,min) \
+			((__GNUC__ << 16) + __GNUC_MINOR__ >= ((maj) << 16) + (min))
+#	else
+#		define __GNUC_PREREQ(maj,min) 0
+#	endif
+#endif /* __GNUC_PREREQ */
+
+#if !__GNUC_PREREQ(4,2)
 	/* LY: Actualy ReOpenLDAP was not tested with compilers
 	 *     older than GCC 4.4 from RHEL6.
 	 * But you could remove this #error and try to continue at your own risk.

@@ -187,8 +187,7 @@
 /* Define to 1 if you have the <direct.h> header file. */
 #undef HAVE_DIRECT_H
 
-/* Define to 1 if you have the <dirent.h> header file, and it defines `DIR'.
-   */
+/* Define to 1 if you have the <dirent.h> header file. */
 #undef HAVE_DIRENT_H
 
 /* Define if you have the GNU dld library. */
@@ -455,7 +454,7 @@
 /* define if you have Mozill NSS */
 #undef HAVE_MOZNSS
 
-/* Define to 1 if you have the <ndir.h> header file, and it defines `DIR'. */
+/* Define to 1 if you have the <ndir.h> header file. */
 #undef HAVE_NDIR_H
 
 /* Define to 1 if you have the <netinet/tcp.h> header file. */
@@ -758,8 +757,7 @@
 /* Define to 1 if you have the <sys/devpoll.h> header file. */
 #undef HAVE_SYS_DEVPOLL_H
 
-/* Define to 1 if you have the <sys/dir.h> header file, and it defines `DIR'.
-   */
+/* Define to 1 if you have the <sys/dir.h> header file. */
 #undef HAVE_SYS_DIR_H
 
 /* Define to 1 if you have the <sys/dl.h> header file. */
@@ -786,8 +784,7 @@
 /* Define to 1 if you have the <sys/ioctl.h> header file. */
 #undef HAVE_SYS_IOCTL_H
 
-/* Define to 1 if you have the <sys/ndir.h> header file, and it defines `DIR'.
-   */
+/* Define to 1 if you have the <sys/ndir.h> header file. */
 #undef HAVE_SYS_NDIR_H
 
 /* Define to 1 if you have the <sys/param.h> header file. */

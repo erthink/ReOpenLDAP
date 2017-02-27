@@ -839,6 +839,10 @@ AC_CHECK_HEADERS(	\
 	termios.h	\
 	unistd.h	\
 	utime.h		\
+	dirent.h	\
+	ndir.h		\
+	sys/ndir.h	\
+	sys/dir.h	\
 )
 
 AC_CHECK_HEADERS( resolv.h, [], [],
@@ -1987,7 +1991,9 @@ fi
 
 dnl ----------------------------------------------------------------
 dnl Check for entropy sources
-if test $cross_compiling != yes && test "$ac_cv_mingw32" != yes ; then
+if test "$URANDOM_DEVICE" != "" ; then
+	AC_DEFINE_UNQUOTED(URANDOM_DEVICE,"$URANDOM_DEVICE",[set to urandom device])
+elif test $cross_compiling != yes && test "$ac_cv_mingw32" != yes ; then
 	dev=no
 	if test -r /dev/urandom ; then
 		dev="/dev/urandom";
@@ -2197,8 +2203,8 @@ if test $ol_with_mp = long || test $ol_with_mp = auto ; then
 		AC_MSG_ERROR([long unusable for multiple precision])
 	fi
 fi
+AC_CHECK_HEADERS(openssl/bn.h openssl/crypto.h)
 if test $ol_with_mp = bignum || test $ol_with_mp = auto ; then
-	AC_CHECK_HEADERS(openssl/bn.h openssl/crypto.h)
 	if test "$ac_cv_header_openssl_bn_h" = "yes" &&
 		test "$ac_cv_header_openssl_crypto_h" = "yes" &&
 		test "$ol_with_tls" = "found" ; then

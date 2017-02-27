@@ -44,7 +44,6 @@ int slap_limit_memory_get() {return 0;}
 #include <errno.h>
 #include <pthread.h>
 #include <sys/wait.h>
-#include <sys/time.h>
 #include <sys/resource.h>
 
 #include "slap.h"
