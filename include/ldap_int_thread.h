@@ -21,6 +21,9 @@ LDAP_F(int) ldap_int_thread_destroy    LDAP_P(( void ));
 
 LDAP_END_DECL
 
+LDAP_BEGIN_DECL
+typedef struct ldap_int_thread_rmutex_s * ldap_int_thread_rmutex_t;
+LDAP_END_DECL
 
 #ifndef _LDAP_INT_THREAD_H
 #define _LDAP_INT_THREAD_H
@@ -43,7 +46,9 @@ LDAP_END_DECL
 
 LDAP_BEGIN_DECL
 
+#define LDAP_THREAD_HAVE_NATIVE_RECURSIVE_MUTEX
 typedef pthread_t		ldap_int_thread_t;
+typedef pthread_mutex_t		ldap_int_thread_mutex_recursive_t;
 typedef pthread_mutex_t		ldap_int_thread_mutex_t;
 typedef pthread_cond_t		ldap_int_thread_cond_t;
 typedef pthread_key_t		ldap_int_thread_key_t;
@@ -94,6 +99,7 @@ LDAP_END_DECL
 LDAP_BEGIN_DECL
 
 typedef cthread_t		ldap_int_thread_t;
+typedef ldap_int_thread_rmutex_t		ldap_int_thread_mutex_recursive_t;
 typedef struct mutex		ldap_int_thread_mutex_t;
 typedef struct condition	ldap_int_thread_cond_t;
 typedef cthread_key_t		ldap_int_thread_key_t;
@@ -117,7 +123,9 @@ LDAP_END_DECL
 
 LDAP_BEGIN_DECL
 
+#define LDAP_THREAD_HAVE_NATIVE_RECURSIVE_MUTEX
 typedef pth_t		ldap_int_thread_t;
+typedef pth_mutex_t	ldap_int_thread_mutex_recursive_t;
 typedef pth_mutex_t	ldap_int_thread_mutex_t;
 typedef pth_cond_t	ldap_int_thread_cond_t;
 typedef pth_key_t	ldap_int_thread_key_t;
@@ -146,7 +154,9 @@ LDAP_END_DECL
 
 LDAP_BEGIN_DECL
 
+#define LDAP_THREAD_HAVE_NATIVE_RECURSIVE_MUTEX
 typedef thread_t		ldap_int_thread_t;
+typedef mutex_t			ldap_int_thread_mutex_recursive_t;
 typedef mutex_t			ldap_int_thread_mutex_t;
 typedef cond_t			ldap_int_thread_cond_t;
 typedef thread_key_t	ldap_int_thread_key_t;
@@ -181,7 +191,9 @@ LDAP_END_DECL
 
 LDAP_BEGIN_DECL
 
+#define LDAP_THREAD_HAVE_NATIVE_RECURSIVE_MUTEX
 typedef int			ldap_int_thread_t;
+typedef int			ldap_int_thread_mutex_recursive_t;
 typedef int			ldap_int_thread_mutex_t;
 typedef int			ldap_int_thread_cond_t;
 typedef int			ldap_int_thread_key_t;
@@ -215,8 +227,6 @@ LDAP_F(int) ldap_int_thread_pool_shutdown ( void );
 #ifndef LDAP_THREAD_HAVE_TPOOL
 typedef struct ldap_int_thread_pool_s * ldap_int_thread_pool_t;
 #endif
-
-typedef struct ldap_int_thread_rmutex_s * ldap_int_thread_rmutex_t;
 LDAP_END_DECL
 
 
