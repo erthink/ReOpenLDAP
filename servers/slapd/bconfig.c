@@ -4740,7 +4740,6 @@ config_rename_one( Operation *op, SlapReply *rs, Entry *e,
 	CfEntryInfo *parent, Attribute *a, struct berval *newrdn,
 	struct berval *nnewrdn, int use_ldif )
 {
-	char *ptr1;
 	int cnt, rc = 0;
 	struct berval odn, ondn;
 	const char *text = "";
@@ -4752,7 +4751,7 @@ config_rename_one( Operation *op, SlapReply *rs, Entry *e,
 	build_new_dn( &e->e_nname, &parent->ce_entry->e_nname, nnewrdn, NULL );
 
 	/* Replace attr */
-	rc = ldap_bv2rdn( &e->e_name, &rDN, &text, LDAP_DN_FORMAT_LDAP );
+	rc = ldap_bv2rdn( &e->e_name, &rDN, (char**) &text, LDAP_DN_FORMAT_LDAP );
 	if ( rc ) {
 		return rc;
 	}
@@ -6787,11 +6786,8 @@ config_build_entry( Operation *op, SlapReply *rs, CfEntryInfo *parent,
 {
 	Entry *e = entry_alloc();
 	CfEntryInfo *ce = ch_calloc( 1, sizeof(CfEntryInfo) );
-	struct berval val;
-	struct berval ad_name;
 	AttributeDescription *ad = NULL;
 	int cnt, rc;
-	char *ptr;
 	const char *text = "";
 	Attribute *oc_at;
 	struct berval pdn;
@@ -6827,7 +6823,7 @@ config_build_entry( Operation *op, SlapReply *rs, CfEntryInfo *parent,
 		attr_merge_normalize_one(e, slap_schema.si_ad_objectClass,
 			extra->co_name, NULL );
 
-	rc = ldap_bv2rdn( rdn, &rDN, &text, LDAP_DN_FORMAT_LDAP );
+	rc = ldap_bv2rdn( rdn, &rDN, (char**) &text, LDAP_DN_FORMAT_LDAP );
 	if ( rc ) {
 		goto fail;
 	}
