@@ -287,6 +287,16 @@ contrib_trace_la_LDFLAGS = -module -export-dynamic \
 contrib_trace_la_SOURCES = trace/trace.c banner.c
 
 
+EXTRA_DIST += passwd/argon2/README.md
+if LIBSODIUM_AVAIL
+pkglib_LTLIBRARIES += contrib-pw-argon2.la
+contrib_pw_argon2_la_CFLAGS = $(LIBSODIUM_CFLAGS)
+contrib_pw_argon2_la_LDFLAGS = -module -export-dynamic \
+	-release $(API_LIB_RELEASE) -version-info $(API_LIB_VERSION)
+contrib_pw_argon2_la_SOURCES = banner.c passwd/argon2/pw-argon2.c
+contrib_pw_argon2_la_LIBADD = $(LIBSODIUM_LIBS)
+endif
+
 MAINT_CHARSET = utf8
 SUFFIXES = .soelim .man.in .man
 EXTRA_DIST += $(man_links)

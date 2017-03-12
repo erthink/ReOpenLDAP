@@ -555,16 +555,7 @@ AC_ENABLE_STATIC
 AC_ENABLE_SHARED
 
 dnl ----------------------------------------------------------------
-# validate options
-
-for o in $slapd_features $slapd_backends $slapd_overlays; do
-	eval "ol_value=\$ol_enable_$o"
-	if test $ol_enable_slapd = no -a $ol_value != no; then
-		AC_MSG_ERROR([slapd disabled, therefore --enable-$o=$ol_value unavailable ])
-	elif test $ol_enable_modules = no -a $ol_value = mod; then
-		AC_MSG_ERROR([dynamic modules disabled, therefore --enable-$o=$ol_value unavailable ])
-	fi
-done
+# Kerberos and Heimdal
 
 PKG_CHECK_MODULES(KRB5, krb5 krb5-gssapi, krb5_found=yes, krb5_found=no)
 AC_SUBST(KRB5_LIBS)
@@ -575,6 +566,26 @@ PKG_CHECK_MODULES(HEIMDAL, heimdal-krb5 heimdal-kadm-server, heimdal_found=yes, 
 AC_SUBST(HEIMDAL_LIBS)
 AC_SUBST(HEIMDAL_CFLAGS)
 AM_CONDITIONAL([HEIMDAL_AVAIL], [test $heimdal_found = yes])
+
+dnl ----------------------------------------------------------------
+# libsodium (argon2 hash)
+
+PKG_CHECK_MODULES(LIBSODIUM, libsodium, libsodium_found=yes, libsodium_found=no)
+AC_SUBST(LIBSODIUM_LIBS)
+AC_SUBST(LIBSODIUM_CFLAGS)
+AM_CONDITIONAL([LIBSODIUM_AVAIL], [test $libsodium_found = yes])
+
+dnl ----------------------------------------------------------------
+# validate options
+
+for o in $slapd_features $slapd_backends $slapd_overlays; do
+	eval "ol_value=\$ol_enable_$o"
+	if test $ol_enable_slapd = no -a $ol_value != no; then
+		AC_MSG_ERROR([slapd disabled, therefore --enable-$o=$ol_value unavailable ])
+	elif test $ol_enable_modules = no -a $ol_value = mod; then
+		AC_MSG_ERROR([dynamic modules disabled, therefore --enable-$o=$ol_value unavailable ])
+	fi
+done
 
 if test $ol_enable_contrib != no; then
 	if test $ol_enable_slapd = no ; then
@@ -597,6 +608,10 @@ if test $ol_enable_contrib != no; then
 
 	if test $heimdal_found != yes; then
 		AC_MSG_WARN([$HEIMDAL_PKG_ERRORS, therefore depended contrib-modules unavailable ])
+	fi
+
+	if test $libsodium_found != yes; then
+		AC_MSG_WARN([$LIBSODIUM_PKG_ERRORS, therefore depended contrib-modules unavailable ])
 	fi
 
 	CRACKLIB_LIBS=
