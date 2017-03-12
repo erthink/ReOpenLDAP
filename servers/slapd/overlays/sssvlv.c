@@ -45,7 +45,7 @@
 #define LDAP_MATCHRULE_IDENTIFIER      0x80L
 #define LDAP_REVERSEORDER_IDENTIFIER   0x81L
 #define LDAP_ATTRTYPES_IDENTIFIER      0x80L
-#endif
+#endif /* LDAP_MATCHRULE_IDENTIFIER */
 
 /* draft-ietf-ldapext-ldapv3-vlv-09.txt: Virtual List Views
  */
@@ -56,7 +56,7 @@
 
 #define LDAP_VLV_SSS_MISSING	0x4C
 #define LDAP_VLV_RANGE_ERROR	0x4D
-#endif
+#endif /* LDAP_VLVBYINDEX_IDENTIFIER */
 
 #define SAFESTR(macro_str, macro_def) ((macro_str) ? (macro_str) : (macro_def))
 
@@ -72,7 +72,7 @@ typedef struct vlv_ctrl {
 	int	vc_offset;
 	int vc_count;
 	struct berval vc_value;
-	unsigned long vc_context;
+	size_t vc_context;
 } vlv_ctrl;
 
 typedef struct sort_key
@@ -109,14 +109,15 @@ typedef struct sort_op
 	Avlnode	*so_tree;
 	sort_ctrl *so_ctrl;
 	sssvlv_info *so_info;
-	int so_paged;
+	char so_paged;
+	char so_running;
+	char so_vlv;
 	int so_page_size;
 	int so_nentries;
-	int so_vlv;
 	int so_vlv_rc;
 	int so_vlv_target;
 	int so_session;
-	unsigned long so_vcontext;
+	size_t so_vcontext;
 } sort_op;
 
 /* There is only one conn table for all overlay instances */
@@ -347,10 +348,11 @@ static int find_session_by_so(
 	int conn_id,
 	sort_op *so )
 {
-	int sess_id;
-	if (so == NULL) {
+	assert(so != NULL);
+	if (so == NULL)
 		return -1;
-	}
+
+	int sess_id;
 	for (sess_id = 0; sess_id < svi_max_percon; sess_id++) {
 		if ( sort_conns[conn_id] && sort_conns[conn_id][sess_id] == so )
 			return sess_id;
@@ -362,9 +364,13 @@ static int find_session_by_so(
 static int find_session_by_context(
 	int svi_max_percon,
 	int conn_id,
-	unsigned long vc_context,
+	size_t vc_context,
 	PagedResultsCookie ps_cookie )
 {
+	assert(vc_context != 0 && conn_id >= 0);
+	if (vc_context == 0 || conn_id < 0)
+		return -1;
+
 	int sess_id;
 	for(sess_id = 0; sess_id < svi_max_percon; sess_id++) {
 		if( sort_conns[conn_id] && sort_conns[conn_id][sess_id] &&
@@ -395,7 +401,19 @@ static int find_next_session(
 
 static void free_sort_op( Connection *conn, sort_op *so )
 {
-	int sess_id;
+	ldap_pvt_thread_mutex_lock( &sort_conns_mutex );
+	int sess_id = find_session_by_so( so->so_info->svi_max_percon, conn->c_conn_idx, so );
+
+	assert(sess_id >= 0);
+	if (sess_id < 0 || ! so) {
+		ldap_pvt_thread_mutex_unlock( &sort_conns_mutex );
+		return;
+	}
+
+	sort_conns[conn->c_conn_idx][sess_id] = NULL;
+	so->so_info->svi_num--;
+	ldap_pvt_thread_mutex_unlock( &sort_conns_mutex );
+
 	if ( so->so_tree ) {
 		if ( so->so_paged > SLAP_CONTROL_IGNORED ) {
 			Avlnode *cur_node, *next_node;
@@ -413,26 +431,16 @@ static void free_sort_op( Connection *conn, sort_op *so )
 		so->so_tree = NULL;
 	}
 
-	ldap_pvt_thread_mutex_lock( &sort_conns_mutex );
-	sess_id = find_session_by_so( so->so_info->svi_max_percon, conn->c_conn_idx, so );
-	sort_conns[conn->c_conn_idx][sess_id] = NULL;
-	so->so_info->svi_num--;
-	ldap_pvt_thread_mutex_unlock( &sort_conns_mutex );
-
 	ch_free( so );
 }
 
 static void free_sort_ops( Connection *conn, sort_op **sos, int svi_max_percon )
 {
 	int sess_id;
-	sort_op *so;
-
 	for( sess_id = 0; sess_id < svi_max_percon ; sess_id++ ) {
-		so = sort_conns[conn->c_conn_idx][sess_id];
-		if ( so ) {
+		sort_op *so = sort_conns[conn->c_conn_idx][sess_id];
+		if ( so )
 			free_sort_op( conn, so );
-			sort_conns[conn->c_conn_idx][sess_id] = NULL;
-		}
 	}
 }
 
@@ -704,6 +712,8 @@ static void send_result(
 	if ( so->so_tree == NULL ) {
 		/* Search finished, so clean up */
 		free_sort_op( op->o_conn, so );
+	} else {
+		so->so_running = 0;
 	}
 }
 
@@ -782,10 +792,14 @@ static int sssvlv_op_response(
 	else if ( rs->sr_type == REP_RESULT ) {
 		/* Remove serversort response callback.
 		 * We don't want the entries that we are about to send to be
-		 * processed by serversort response again.
-		 */
-		if ( op->o_callback->sc_response == sssvlv_op_response ) {
-			op->o_callback = op->o_callback->sc_next;
+		 * processed by serversort response again. */
+		slap_callback **scp = &op->o_callback;
+		while ( *scp ) {
+			if ( (*scp)->sc_response == sssvlv_op_response ) {
+				*scp = (*scp)->sc_next;
+				break;
+			}
+			scp = &(*scp)->sc_next;
 		}
 
 		send_entry( op, rs, so );
@@ -802,8 +816,7 @@ static int sssvlv_op_search(
 	slap_overinst			*on			= (slap_overinst *)op->o_bd->bd_info;
 	sssvlv_info				*si			= on->on_bi.bi_private;
 	int						rc			= SLAP_CB_CONTINUE;
-	int	ok;
-	sort_op *so = NULL, so2;
+	int	ok, need_unlock = 0;
 	sort_ctrl *sc;
 	PagedResultsState *ps;
 	vlv_ctrl *vc;
@@ -811,13 +824,11 @@ static int sssvlv_op_search(
 
 	if ( op->o_ctrlflag[sss_cid] <= SLAP_CONTROL_IGNORED ) {
 		if ( op->o_ctrlflag[vlv_cid] > SLAP_CONTROL_IGNORED ) {
+			sort_op so; memset(&so, 0, sizeof(so));
+			so.so_vlv_rc = LDAP_VLV_SSS_MISSING;
+			so.so_vlv = op->o_ctrlflag[vlv_cid];
 			LDAPControl *ctrls[2];
-			so2.so_vcontext = 0;
-			so2.so_vlv_target = 0;
-			so2.so_nentries = 0;
-			so2.so_vlv_rc = LDAP_VLV_SSS_MISSING;
-			so2.so_vlv = op->o_ctrlflag[vlv_cid];
-			rc = pack_vlv_response_control( op, rs, &so2, ctrls );
+			rc = pack_vlv_response_control( op, rs, &so, ctrls );
 			if ( rc == LDAP_SUCCESS ) {
 				ctrls[1] = NULL;
 				slap_add_ctrls( op, rs, ctrls );
@@ -853,32 +864,39 @@ static int sssvlv_op_search(
 		goto leave;
 	}
 
-	ok = 1;
 	ldap_pvt_thread_mutex_lock( &sort_conns_mutex );
+	ok = need_unlock = 1;
+	sort_op *so = NULL;
+
 	/* Is there already a sort running on this conn? */
 	sess_id = find_session_by_context( si->svi_max_percon, op->o_conn->c_conn_idx, vc ? vc->vc_context : NO_VC_CONTEXT, ps ? ps->ps_cookie : NO_PS_COOKIE );
 	if ( sess_id >= 0 ) {
 		so = sort_conns[op->o_conn->c_conn_idx][sess_id];
-		/* Is it a continuation of a VLV search? */
-		if ( !vc || so->so_vlv <= SLAP_CONTROL_IGNORED ||
-			vc->vc_context != so->so_vcontext ) {
-			/* Is it a continuation of a paged search? */
-			if ( !ps || so->so_paged <= SLAP_CONTROL_IGNORED ||
-				op->o_conn->c_pagedresults_state.ps_cookie != ps->ps_cookie ) {
-				ok = 0;
-			} else if ( !ps->ps_size ) {
-			/* Abandoning current request */
+		if (so->so_running) {
+			ok = 0;
+			so = NULL;
+		} else {
+			/* Is it a continuation of a VLV search? */
+			if ( !vc || so->so_vlv <= SLAP_CONTROL_IGNORED ||
+					vc->vc_context != so->so_vcontext ) {
+				/* Is it a continuation of a paged search? */
+				if ( !ps || so->so_paged <= SLAP_CONTROL_IGNORED ||
+					op->o_conn->c_pagedresults_state.ps_cookie != ps->ps_cookie ) {
+					ok = 0;
+				} else if ( !ps->ps_size ) {
+					/* Abandoning current request */
+					ok = 0;
+					so->so_nentries = 0;
+					rs->sr_err = LDAP_SUCCESS;
+				}
+			}
+			if (( vc && so->so_paged > SLAP_CONTROL_IGNORED ) ||
+					( ps && so->so_vlv > SLAP_CONTROL_IGNORED )) {
+				/* changed from paged to vlv or vice versa, abandon */
 				ok = 0;
 				so->so_nentries = 0;
-				rs->sr_err = LDAP_SUCCESS;
+				rs->sr_err = LDAP_UNWILLING_TO_PERFORM;
 			}
-		}
-		if (( vc && so->so_paged > SLAP_CONTROL_IGNORED ) ||
-			( ps && so->so_vlv > SLAP_CONTROL_IGNORED )) {
-			/* changed from paged to vlv or vice versa, abandon */
-			ok = 0;
-			so->so_nentries = 0;
-			rs->sr_err = LDAP_UNWILLING_TO_PERFORM;
 		}
 	/* Are there too many running overall? */
 	} else if ( si->svi_num >= si->svi_max ) {
@@ -886,69 +904,89 @@ static int sssvlv_op_search(
 	} else if ( ( sess_id = find_next_session(si->svi_max_percon, op->o_conn->c_conn_idx ) ) < 0 ) {
 		ok = 0;
 	} else {
-		/* OK, this connection now has a sort running */
-		si->svi_num++;
-		sort_conns[op->o_conn->c_conn_idx][sess_id] = &so2;
-		sort_conns[op->o_conn->c_conn_idx][sess_id]->so_session = sess_id;
+		/* OK, this connection going a sort running as the sess_id */
 	}
-	ldap_pvt_thread_mutex_unlock( &sort_conns_mutex );
+
+	if (! ok || so != NULL) {
+		assert(need_unlock != 0);
+		ldap_pvt_thread_mutex_unlock( &sort_conns_mutex );
+		need_unlock = 0;
+	}
+
 	if ( ok ) {
 		/* If we're a global overlay, this check got bypassed */
-		if ( !op->ors_limit && limits_check( op, rs ))
+		if ( !op->ors_limit && limits_check( op, rs )) {
+			if (need_unlock) {
+				ldap_pvt_thread_mutex_unlock( &sort_conns_mutex );
+				need_unlock = 0;
+			}
+			if (so)
+				free_sort_op( op->o_conn, so );
 			return rs->sr_err;
+		}
 		/* are we continuing a VLV search? */
 		if ( so && vc && vc->vc_context ) {
+			assert(need_unlock == 0);
 			so->so_ctrl = sc;
 			send_list( op, rs, so );
 			send_result( op, rs, so );
 			rc = LDAP_SUCCESS;
 		/* are we continuing a paged search? */
 		} else if ( so && ps && ps->ps_cookie ) {
+			assert(need_unlock == 0);
 			so->so_ctrl = sc;
 			send_page( op, rs, so );
 			send_result( op, rs, so );
 			rc = LDAP_SUCCESS;
 		} else {
+			/* Install serversort response callback to handle a new search */
+			assert(need_unlock != 0);
+			assert(so == NULL);
+
+			so = ch_calloc( 1, sizeof(sort_op));
 			slap_callback *cb = op->o_tmpcalloc( 1, sizeof(slap_callback),
 				op->o_tmpmemctx );
-			/* Install serversort response callback to handle a new search */
-			if ( ps || vc ) {
-				so = ch_calloc( 1, sizeof(sort_op));
-			} else {
-				so = op->o_tmpcalloc( 1, sizeof(sort_op), op->o_tmpmemctx );
-			}
-			sort_conns[op->o_conn->c_conn_idx][sess_id] = so;
+			LDAP_ENSURE(so != NULL && cb != NULL); /* FIXME: LDAP_OTHER */
 
 			cb->sc_response		= sssvlv_op_response;
 			cb->sc_next			= op->o_callback;
 			cb->sc_private		= so;
 
-			so->so_tree = NULL;
+			assert(so->so_tree == NULL);
 			so->so_ctrl = sc;
 			so->so_info = si;
 			if ( ps ) {
 				so->so_paged = op->o_pagedresults;
 				so->so_page_size = ps->ps_size;
 				op->o_pagedresults = SLAP_CONTROL_IGNORED;
+				assert(so->so_page_size != 0);
 			} else {
-				so->so_paged = 0;
-				so->so_page_size = 0;
 				if ( vc ) {
 					so->so_vlv = op->o_ctrlflag[vlv_cid];
-					so->so_vlv_target = 0;
-					so->so_vlv_rc = 0;
+					assert(so->so_vlv_target == 0);
+					assert(so->so_vlv_rc == 0);
+					assert(so->so_vlv != SLAP_CONTROL_NONE);
 				} else {
-					so->so_vlv = SLAP_CONTROL_NONE;
+					assert(so->so_vlv == SLAP_CONTROL_NONE);
 				}
 			}
 			so->so_session = sess_id;
 			so->so_vlv = op->o_ctrlflag[vlv_cid];
-			so->so_vcontext = (unsigned long)so;
-			so->so_nentries = 0;
+			so->so_vcontext = (size_t)so;
+			assert(so->so_nentries == 0);
+			op->o_callback = cb;
 
-			op->o_callback		= cb;
+			assert(sess_id >= 0);
+			so->so_running = 1;
+			sort_conns[op->o_conn->c_conn_idx][sess_id]->so_session = sess_id;
+			sort_conns[op->o_conn->c_conn_idx][sess_id] = so;
+			si->svi_num++;
+			ldap_pvt_thread_mutex_unlock( &sort_conns_mutex );
+			need_unlock = 0;
 		}
+		assert(need_unlock == 0);
 	} else {
+		assert(need_unlock == 0);
 		if ( so && !so->so_nentries ) {
 			free_sort_op( op->o_conn, so );
 		} else {
@@ -956,10 +994,12 @@ static int sssvlv_op_search(
 			rs->sr_err = LDAP_BUSY;
 		}
 leave:
+		assert(need_unlock == 0);
 		rc = rs->sr_err;
 		send_ldap_result( op, rs );
 	}
 
+	assert(need_unlock == 0);
 	return rc;
 }
 
