@@ -943,20 +943,26 @@ dnl ----------------------------------------------------------------
 OL_STRERROR
 
 dnl ----------------------------------------------------------------
+# checks for backtrace feature
 
-AC_CHECK_HEADERS(bfd.h libelf.h gelf.h)
-AC_CHECK_LIB(elf, elf_begin, have_libelf=yes)
-AC_CHECK_LIB(bfd, bfd_openr, have_libbfd=yes)
+AC_CHECK_HEADERS(unistd.h signal.h fcntl.h execinfo.h ucontext.h sys/prctl.h sys/syscall.h sys/resource.h sys/wait.h linux/limits.h,,DONT_HAVE_ENOUGH4BACKTRACE=yes)
+if test "$DONT_HAVE_ENOUGH4BACKTRACE" != yes; then
+	AC_DEFINE(HAVE_ENOUGH4BACKTRACE,1,[define if target platform have enough for backtrace feature])
 
-if test "$ac_cv_header_libelf_h" = yes -a "$ac_cv_header_gelf_h" = yes -a "$have_libelf" = yes; then
-	AC_DEFINE(HAVE_LIBELF,1,[define 1 if you have libelf])
-	SLAPD_LIBS="$SLAPD_LIBS -lelf"
-	if test "$ac_cv_header_bfd_h" = yes -a "$have_libbfd" = yes; then
-		AC_DEFINE(HAVE_LIBBFD,1,[define 1 if you have libbfd])
-		SLAPD_LIBS="$SLAPD_LIBS -lbfd"
-	fi
-else
+	AC_CHECK_HEADERS(bfd.h libelf.h gelf.h)
+	AC_CHECK_LIB(elf, elf_begin, have_libelf=yes)
+	AC_CHECK_LIB(bfd, bfd_openr, have_libbfd=yes)
+
+	if test "$ac_cv_header_libelf_h" = yes -a "$ac_cv_header_gelf_h" = yes -a "$have_libelf" = yes; then
+		AC_DEFINE(HAVE_LIBELF,1,[define 1 if you have libelf])
+		SLAPD_LIBS="$SLAPD_LIBS -lelf"
+		if test "$ac_cv_header_bfd_h" = yes -a "$have_libbfd" = yes; then
+			AC_DEFINE(HAVE_LIBBFD,1,[define 1 if you have libbfd])
+			SLAPD_LIBS="$SLAPD_LIBS -lbfd"
+		fi
+	else
 	AC_MSG_WARN([libelf not found, backtrace feature would be disabled])
+fi
 fi
 
 dnl ----------------------------------------------------------------

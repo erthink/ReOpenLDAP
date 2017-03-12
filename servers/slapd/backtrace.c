@@ -15,17 +15,9 @@
 
 /* backtrace.c - stack backtrace routine */
 
-#ifndef __linux__
-void slap_backtrace_set_enable( int value ) {}
-int slap_backtrace_get_enable() {return 0;}
-void slap_backtrace_set_dir(const char* path ) {}
-int slap_limit_coredump_set(int mbytes) {return mbytes > 0;}
-int slap_limit_memory_set(int mbytes) {return mbytes > 0;}
-int slap_limit_coredump_get() {return 0;}
-int slap_limit_memory_get() {return 0;}
-#else /* __linux__ */
-
 #include "reldap.h"
+
+#ifdef HAVE_ENOUGH4BACKTRACE
 
 #include <unistd.h>
 #include <signal.h>
@@ -643,17 +635,6 @@ void slap_backtrace_set_enable( int value )
 }
 
 void __noinline
-slap_backtrace_debug(void) {
-	slap_backtrace_debug_ex(2, 42, "Backtrace");
-}
-
-void __noinline
-slap_backtrace_debug_ex(int skip, int deep, const char *caption) {
-	void **array = alloca(sizeof(void*) * (deep + skip));
-	slap_backtrace_log(array + skip, backtrace(array, deep + skip) - skip, caption);
-}
-
-void __noinline
 slap_backtrace_log(void *array[], int nentries, const char* caption)
 {
 	int i;
@@ -741,4 +722,26 @@ fallback:
 	ldap_debug_unlock();
 }
 
-#endif /* __linux__ */
+#else /* HAVE_ENOUGH4BACKTRACE */
+
+void slap_backtrace_set_enable( int value ) {}
+int slap_backtrace_get_enable() {return 0;}
+void slap_backtrace_set_dir(const char* path ) {}
+int slap_limit_coredump_set(int mbytes) {return mbytes > 0;}
+int slap_limit_memory_set(int mbytes) {return mbytes > 0;}
+int slap_limit_coredump_get() {return 0;}
+int slap_limit_memory_get() {return 0;}
+void slap_backtrace_log(void *array[], int nentries, const char* caption) {};
+
+#endif /* HAVE_ENOUGH4BACKTRACE */
+
+void
+slap_backtrace_debug(void) {
+	slap_backtrace_debug_ex(2, 42, "Backtrace");
+}
+
+void
+slap_backtrace_debug_ex(int skip, int deep, const char *caption) {
+	void **array = alloca(sizeof(void*) * (deep + skip));
+	slap_backtrace_log(array + skip, backtrace(array, deep + skip) - skip, caption);
+}
