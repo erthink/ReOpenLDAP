@@ -4740,9 +4740,10 @@ config_rename_one( Operation *op, SlapReply *rs, Entry *e,
 	CfEntryInfo *parent, Attribute *a, struct berval *newrdn,
 	struct berval *nnewrdn, int use_ldif )
 {
-	char *ptr1;
-	int rc = 0;
+	int cnt, rc = 0;
 	struct berval odn, ondn;
+	const char *text = "";
+	LDAPRDN rDN;
 
 	odn = e->e_name;
 	ondn = e->e_nname;
@@ -4750,19 +4751,41 @@ config_rename_one( Operation *op, SlapReply *rs, Entry *e,
 	build_new_dn( &e->e_nname, &parent->ce_entry->e_nname, nnewrdn, NULL );
 
 	/* Replace attr */
-	free( a->a_vals[0].bv_val );
-	ptr1 = strchr( newrdn->bv_val, '=' ) + 1;
-	a->a_vals[0].bv_len = newrdn->bv_len - (ptr1 - newrdn->bv_val);
-	a->a_vals[0].bv_val = ch_malloc( a->a_vals[0].bv_len + 1 );
-	strcpy( a->a_vals[0].bv_val, ptr1 );
-
-	if ( a->a_nvals != a->a_vals ) {
-		free( a->a_nvals[0].bv_val );
-		ptr1 = strchr( nnewrdn->bv_val, '=' ) + 1;
-		a->a_nvals[0].bv_len = nnewrdn->bv_len - (ptr1 - nnewrdn->bv_val);
-		a->a_nvals[0].bv_val = ch_malloc( a->a_nvals[0].bv_len + 1 );
-		strcpy( a->a_nvals[0].bv_val, ptr1 );
+	rc = ldap_bv2rdn( &e->e_name, &rDN, (char**) &text, LDAP_DN_FORMAT_LDAP );
+	if ( rc ) {
+		return rc;
 	}
+	for ( cnt = 0; rDN[cnt]; cnt++ ) {
+		AttributeDescription *ad = NULL;
+		LDAPAVA *ava = rDN[cnt];
+
+		rc = slap_bv2ad( &ava->la_attr, &ad, &text );
+		if ( rc ) {
+			break;
+		}
+
+		if ( ad != a->a_desc ) continue;
+
+		free( a->a_vals[0].bv_val );
+		ber_dupbv( &a->a_vals[0], &ava->la_value );
+		if ( a->a_nvals != a->a_vals ) {
+			free( a->a_nvals[0].bv_val );
+			rc = attr_normalize_one( ad, &ava->la_value, &a->a_nvals[0], NULL );
+			if ( rc ) {
+				break;
+			}
+		}
+
+		/* attributes with X-ORDERED 'SIBLINGS' are single-valued, we're done */
+		break;
+	}
+	/* the attribute must be present in rDN */
+	assert( rDN[cnt] );
+	ldap_rdnfree( rDN );
+	if ( rc ) {
+		return rc;
+	}
+
 	if ( use_ldif ) {
 		CfBackInfo *cfb = (CfBackInfo *)op->o_bd->be_private;
 		BackendDB *be = op->o_bd;
@@ -6763,16 +6786,14 @@ config_build_entry( Operation *op, SlapReply *rs, CfEntryInfo *parent,
 {
 	Entry *e = entry_alloc();
 	CfEntryInfo *ce = ch_calloc( 1, sizeof(CfEntryInfo) );
-	struct berval val;
-	struct berval ad_name;
 	AttributeDescription *ad = NULL;
-	int rc;
-	char *ptr;
+	int cnt, rc;
 	const char *text = "";
 	Attribute *oc_at;
 	struct berval pdn;
 	ObjectClass *oc;
 	CfEntryInfo *ceprev = NULL;
+	LDAPRDN rDN;
 
 	Debug( LDAP_DEBUG_TRACE, "config_build_entry: \"%s\"\n", rdn->bv_val);
 	e->e_private = ce;
@@ -6801,16 +6822,35 @@ config_build_entry( Operation *op, SlapReply *rs, CfEntryInfo *parent,
 	if ( extra )
 		attr_merge_normalize_one(e, slap_schema.si_ad_objectClass,
 			extra->co_name, NULL );
-	ptr = strchr(rdn->bv_val, '=');
-	ad_name.bv_val = rdn->bv_val;
-	ad_name.bv_len = ptr - rdn->bv_val;
-	rc = slap_bv2ad( &ad_name, &ad, &text );
+
+	rc = ldap_bv2rdn( rdn, &rDN, (char**) &text, LDAP_DN_FORMAT_LDAP );
 	if ( rc ) {
 		goto fail;
 	}
-	val.bv_val = ptr+1;
-	val.bv_len = rdn->bv_len - (val.bv_val - rdn->bv_val);
-	attr_merge_normalize_one(e, ad, &val, NULL );
+	for ( cnt = 0; rDN[cnt]; cnt++ ) {
+		LDAPAVA *ava = rDN[cnt];
+
+		ad = NULL;
+		rc = slap_bv2ad( &ava->la_attr, &ad, &text );
+		if ( rc ) {
+			break;
+		}
+		if ( !ad->ad_type->sat_equality ) {
+			rc = LDAP_CONSTRAINT_VIOLATION;
+			text = "attribute has no equality matching rule";
+			break;
+		}
+		if ( !ad->ad_type->sat_equality->smr_match ) {
+			rc = LDAP_CONSTRAINT_VIOLATION;
+			text = "attribute has unsupported equality matching rule";
+			break;
+		}
+		attr_merge_normalize_one(e, ad, &ava->la_value, NULL );
+	}
+	ldap_rdnfree( rDN );
+	if ( rc ) {
+		goto fail;
+	}
 
 	oc = main->co_oc;
 	c->table = main->co_type;

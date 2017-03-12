@@ -273,6 +273,7 @@ AH_BOTTOM([
 
 AC_CONFIG_HEADERS([reldap_autoconf.h])
 AC_CONFIG_HEADERS([include/ldap_features.h])
+AC_CONFIG_HEADERS([include/ldap_dirs.h])
 AC_CONFIG_HEADERS([include/lber_types.h])
 
 dnl ================================================================
@@ -554,16 +555,7 @@ AC_ENABLE_STATIC
 AC_ENABLE_SHARED
 
 dnl ----------------------------------------------------------------
-# validate options
-
-for o in $slapd_features $slapd_backends $slapd_overlays; do
-	eval "ol_value=\$ol_enable_$o"
-	if test $ol_enable_slapd = no -a $ol_value != no; then
-		AC_MSG_ERROR([slapd disabled, therefore --enable-$o=$ol_value unavailable ])
-	elif test $ol_enable_modules = no -a $ol_value = mod; then
-		AC_MSG_ERROR([dynamic modules disabled, therefore --enable-$o=$ol_value unavailable ])
-	fi
-done
+# Kerberos and Heimdal
 
 PKG_CHECK_MODULES(KRB5, krb5 krb5-gssapi, krb5_found=yes, krb5_found=no)
 AC_SUBST(KRB5_LIBS)
@@ -574,6 +566,26 @@ PKG_CHECK_MODULES(HEIMDAL, heimdal-krb5 heimdal-kadm-server, heimdal_found=yes, 
 AC_SUBST(HEIMDAL_LIBS)
 AC_SUBST(HEIMDAL_CFLAGS)
 AM_CONDITIONAL([HEIMDAL_AVAIL], [test $heimdal_found = yes])
+
+dnl ----------------------------------------------------------------
+# libsodium (argon2 hash)
+
+PKG_CHECK_MODULES(LIBSODIUM, libsodium, libsodium_found=yes, libsodium_found=no)
+AC_SUBST(LIBSODIUM_LIBS)
+AC_SUBST(LIBSODIUM_CFLAGS)
+AM_CONDITIONAL([LIBSODIUM_AVAIL], [test $libsodium_found = yes])
+
+dnl ----------------------------------------------------------------
+# validate options
+
+for o in $slapd_features $slapd_backends $slapd_overlays; do
+	eval "ol_value=\$ol_enable_$o"
+	if test $ol_enable_slapd = no -a $ol_value != no; then
+		AC_MSG_ERROR([slapd disabled, therefore --enable-$o=$ol_value unavailable ])
+	elif test $ol_enable_modules = no -a $ol_value = mod; then
+		AC_MSG_ERROR([dynamic modules disabled, therefore --enable-$o=$ol_value unavailable ])
+	fi
+done
 
 if test $ol_enable_contrib != no; then
 	if test $ol_enable_slapd = no ; then
@@ -596,6 +608,10 @@ if test $ol_enable_contrib != no; then
 
 	if test $heimdal_found != yes; then
 		AC_MSG_WARN([$HEIMDAL_PKG_ERRORS, therefore depended contrib-modules unavailable ])
+	fi
+
+	if test $libsodium_found != yes; then
+		AC_MSG_WARN([$LIBSODIUM_PKG_ERRORS, therefore depended contrib-modules unavailable ])
 	fi
 
 	CRACKLIB_LIBS=
@@ -839,6 +855,10 @@ AC_CHECK_HEADERS(	\
 	termios.h	\
 	unistd.h	\
 	utime.h		\
+	dirent.h	\
+	ndir.h		\
+	sys/ndir.h	\
+	sys/dir.h	\
 )
 
 AC_CHECK_HEADERS( resolv.h, [], [],
@@ -938,20 +958,26 @@ dnl ----------------------------------------------------------------
 OL_STRERROR
 
 dnl ----------------------------------------------------------------
+# checks for backtrace feature
 
-AC_CHECK_HEADERS(bfd.h libelf.h gelf.h)
-AC_CHECK_LIB(elf, elf_begin, have_libelf=yes)
-AC_CHECK_LIB(bfd, bfd_openr, have_libbfd=yes)
+AC_CHECK_HEADERS(unistd.h signal.h fcntl.h execinfo.h ucontext.h sys/prctl.h sys/syscall.h sys/resource.h sys/wait.h linux/limits.h,,DONT_HAVE_ENOUGH4BACKTRACE=yes)
+if test "$DONT_HAVE_ENOUGH4BACKTRACE" != yes; then
+	AC_DEFINE(HAVE_ENOUGH4BACKTRACE,1,[define if target platform have enough for backtrace feature])
 
-if test "$ac_cv_header_libelf_h" = yes -a "$ac_cv_header_gelf_h" = yes -a "$have_libelf" = yes; then
-	AC_DEFINE(HAVE_LIBELF,1,[define 1 if you have libelf])
-	SLAPD_LIBS="$SLAPD_LIBS -lelf"
-	if test "$ac_cv_header_bfd_h" = yes -a "$have_libbfd" = yes; then
-		AC_DEFINE(HAVE_LIBBFD,1,[define 1 if you have libbfd])
-		SLAPD_LIBS="$SLAPD_LIBS -lbfd"
-	fi
-else
+	AC_CHECK_HEADERS(bfd.h libelf.h gelf.h)
+	AC_CHECK_LIB(elf, elf_begin, have_libelf=yes)
+	AC_CHECK_LIB(bfd, bfd_openr, have_libbfd=yes)
+
+	if test "$ac_cv_header_libelf_h" = yes -a "$ac_cv_header_gelf_h" = yes -a "$have_libelf" = yes; then
+		AC_DEFINE(HAVE_LIBELF,1,[define 1 if you have libelf])
+		SLAPD_LIBS="$SLAPD_LIBS -lelf"
+		if test "$ac_cv_header_bfd_h" = yes -a "$have_libbfd" = yes; then
+			AC_DEFINE(HAVE_LIBBFD,1,[define 1 if you have libbfd])
+			SLAPD_LIBS="$SLAPD_LIBS -lbfd"
+		fi
+	else
 	AC_MSG_WARN([libelf not found, backtrace feature would be disabled])
+fi
 fi
 
 dnl ----------------------------------------------------------------
@@ -977,49 +1003,26 @@ fi
 dnl ----------------------------------------------------------------
 dnl UUID Support
 
-have_uuid=no
-#PKG_CHECK_MODULES(UUID, uuid, have_uuid=yes, have_uuid=no)
-#AC_SUBST(UUID_LIBS)
+PKG_CHECK_MODULES(UUID, uuid, uuid_found=yes, uuid_found=no)
+AC_SUBST(UUID_LIBS)
 #AC_SUBST(UUID_CFLAGS)
-
-AC_CHECK_HEADERS(sys/uuid.h)
-dnl The HAVE_UUID_TO_STR code path also needs uuid_create
-if test $ac_cv_header_sys_uuid_h = yes ; then
-	save_LIBS="$LIBS"
-	AC_SEARCH_LIBS([uuid_to_str], [uuid], [have_uuid=yes], :)
-	AC_SEARCH_LIBS([uuid_create], [uuid], :, [have_uuid=no])
-	LIBS="$save_LIBS"
-
-	if test $have_uuid = yes ; then
-		AC_DEFINE(HAVE_UUID_TO_STR,1,
-			[define if you have uuid_to_str()])
-
-		test "$ac_cv_search_uuid_to_str" = "none required" || \
-			SLAPD_LIBS="$SLAPD_LIBS $ac_cv_search_uuid_to_str"
-	fi
-fi
-
-dnl Look for uuid_generate
-dnl The HAVE_UUID_GENERATE code path also needs uuid_unparse_lower
-if test $have_uuid = no ; then
+if test $uuid_found = yes ; then
 	AC_CHECK_HEADERS(uuid/uuid.h)
 	if test $ac_cv_header_uuid_uuid_h = yes ; then
 		save_LIBS="$LIBS"
+		LIBS="$LIBS $UUID_LIBS"
 		AC_SEARCH_LIBS([uuid_generate], [uuid], [have_uuid=yes], :)
 		AC_SEARCH_LIBS([uuid_unparse_lower], [uuid], :, [have_uuid=no])
 		LIBS="$save_LIBS"
 
-		if test $have_uuid = yes ; then
-			AC_DEFINE(HAVE_UUID_GENERATE,1,
-				[define if you have uuid_generate()])
-
-			test "$ac_cv_search_uuid_generate" = "none required" || \
-				SLAPD_LIBS="$SLAPD_LIBS $ac_cv_search_uuid_generate"
+		if test "$have_uuid" = "yes" ; then
+			AC_DEFINE(HAVE_UUID_GENERATE,1, [define if you have uuid_generate()])
+			SLAPD_LIBS="$SLAPD_LIBS $UUID_LIBS"
 		fi
 	fi
 fi
 
-if test $have_uuid = no ; then
+if test "$have_uuid" != "yes" ; then
 	AC_MSG_ERROR([uuid support not found (this typically means the uuid development package is missing)])
 fi
 
@@ -1404,6 +1407,11 @@ case $ol_with_threads in auto | yes | posix)
 			ol_link_threads=posix
 			ol_link_pthreads=""
 		fi
+
+		AC_CHECK_DECL(PTHREAD_MUTEX_RECURSIVE,
+			AC_DEFINE(HAVE_PTHREAD_MUTEX_RECURSIVE, [], [Define if your pthreads implementation have PTHREAD_MUTEX_RECURSIVE]),
+			,[#include <pthread.h>])
+
 
 dnl		OL_PTHREAD_TRY([-mt],		[ol_cv_pthread_mt])
 		OL_PTHREAD_TRY([-kthread],	[ol_cv_pthread_kthread])
@@ -1982,7 +1990,9 @@ fi
 
 dnl ----------------------------------------------------------------
 dnl Check for entropy sources
-if test $cross_compiling != yes && test "$ac_cv_mingw32" != yes ; then
+if test "$URANDOM_DEVICE" != "" ; then
+	AC_DEFINE_UNQUOTED(URANDOM_DEVICE,"$URANDOM_DEVICE",[set to urandom device])
+elif test $cross_compiling != yes && test "$ac_cv_mingw32" != yes ; then
 	dev=no
 	if test -r /dev/urandom ; then
 		dev="/dev/urandom";
@@ -2192,8 +2202,8 @@ if test $ol_with_mp = long || test $ol_with_mp = auto ; then
 		AC_MSG_ERROR([long unusable for multiple precision])
 	fi
 fi
+AC_CHECK_HEADERS(openssl/bn.h openssl/crypto.h)
 if test $ol_with_mp = bignum || test $ol_with_mp = auto ; then
-	AC_CHECK_HEADERS(openssl/bn.h openssl/crypto.h)
 	if test "$ac_cv_header_openssl_bn_h" = "yes" &&
 		test "$ac_cv_header_openssl_crypto_h" = "yes" &&
 		test "$ol_with_tls" = "found" ; then
