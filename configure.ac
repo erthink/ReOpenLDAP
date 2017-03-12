@@ -273,6 +273,7 @@ AH_BOTTOM([
 
 AC_CONFIG_HEADERS([reldap_autoconf.h])
 AC_CONFIG_HEADERS([include/ldap_features.h])
+AC_CONFIG_HEADERS([include/ldap_dirs.h])
 AC_CONFIG_HEADERS([include/lber_types.h])
 
 dnl ================================================================
