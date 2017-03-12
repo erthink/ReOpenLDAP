@@ -111,6 +111,7 @@ am__CONFIG_DISTCLEAN_FILES = config.status config.cache config.log \
 mkinstalldirs = $(install_sh) -d
 CONFIG_HEADER = reldap_autoconf.h \
 	$(top_builddir)/include/ldap_features.h \
+	$(top_builddir)/include/ldap_dirs.h \
 	$(top_builddir)/include/lber_types.h
 CONFIG_CLEAN_FILES =
 CONFIG_CLEAN_VPATH_FILES =
@@ -291,6 +292,8 @@ LIBADD_SHL_LOAD = @LIBADD_SHL_LOAD@
 LIBLTDL = @LIBLTDL@
 LIBOBJS = @LIBOBJS@
 LIBS = @LIBS@
+LIBSODIUM_CFLAGS = @LIBSODIUM_CFLAGS@
+LIBSODIUM_LIBS = @LIBSODIUM_LIBS@
 LIBTOOL = @LIBTOOL@
 LIPO = @LIPO@
 LN_S = @LN_S@
