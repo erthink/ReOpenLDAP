@@ -5971,8 +5971,7 @@ config_syncrepl( ConfigArgs *c )
 								ldap_pvt_runqueue_stoptask( &slapd_rq, re );
 								isrunning = 1;
 							}
-							if ( ldap_pvt_thread_pool_retract( &connection_pool,
-									re->routine, re ) > 0 )
+							if ( ldap_pvt_thread_pool_retract( re->pool_cookie ) > 0 )
 								isrunning = 0;
 
 							ldap_pvt_runqueue_remove( &slapd_rq, re );
