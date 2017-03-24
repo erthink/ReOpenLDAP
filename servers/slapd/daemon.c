@@ -2672,7 +2672,7 @@ loop:
 		       "daemon: no active streams, shutdown initiated.\n" );
 	}
 
-	close_listeners( 0 );
+	close_listeners( 1 );
 
 	if ( !slapd_gentle_shutdown ) {
 		set_abrupt_shutdown( 1 );
