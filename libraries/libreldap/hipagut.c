@@ -19,12 +19,12 @@
 
 #include "reldap.h"
 
-#include <time.h>
-#include <unistd.h>
-#include <string.h>
+#include "ac/time.h"
+#include "ac/unistd.h"
+#include "ac/string.h"
+#include "ac/stdlib.h"
 #include <stdint.h>
 #include <sched.h>
-#include <stdlib.h>
 #include <pthread.h>
 
 #include "lber_hipagut.h"
