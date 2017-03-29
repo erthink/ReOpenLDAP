@@ -524,7 +524,7 @@ EXTRA_DIST = ../../../libraries/libmdbx/barriers.h \
 	../../../libraries/libmdbx/mdbx.h \
 	../../../libraries/libmdbx/midl.c \
 	../../../libraries/libmdbx/midl.h \
-	../../../libraries/libmdbx/reopen.h
+	../../../libraries/libmdbx/defs.h
 
 back_mdb_la_SOURCES = add.c attr.c banner.c bind.c compare.c \
 	config.c delete.c dn2entry.c dn2id.c extended.c filterindex.c \
