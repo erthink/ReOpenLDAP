@@ -12,7 +12,10 @@
  * top-level directory of the distribution or, alternatively, at
  * <http://www.OpenLDAP.org/license.html>.
  */
+
 /*
+ * Memory checker and other utils for bug detection (e.g. jitter).
+ *
  * Imported from 1Hippeus project at 2015-01-19.
  * Copyright (c) 2010-2014 Leonid Yuriev <leo@yuriev.ru>.
  */
@@ -32,6 +35,16 @@
 /* LY: only for self debugging
 #include <stdio.h> */
 
+#if !defined(UNALIGNED_OK) /* FIXME: detection by configure/cmake */
+#if defined(__i386) || defined(__x86_64__) || defined(_M_IX86) ||              \
+    defined(_M_X64) || defined(i386) || defined(_X86_) || defined(__i386__) || \
+    defined(_X86_64_)
+#define UNALIGNED_OK 1
+#else
+#define UNALIGNED_OK 0
+#endif
+#endif
+
 /* -------------------------------------------------------------------------- */
 
 static __inline
@@ -40,14 +53,14 @@ __attribute__((no_sanitize_address))
 #endif
 __attribute__((always_inline))
 uint64_t unaligned_load_noasan(const volatile void* ptr) {
-#if defined(__x86_64__) || defined(__i386__)
+#if UNALIGNED_OK
 	return *(const volatile uint64_t*) ptr;
 #else
 	uint64_t local;
 #	if defined(__GNUC__) || defined(__clang__)
-		__builtin_memcpy(&local, ptr, 8);
+		__builtin_memcpy(&local, (const void*) ptr, 8);
 #	else
-		memcpy(&local, ptr, 8);
+		memcpy(&local, (const void*) ptr, 8);
 #	endif /* __GNUC__ || __clang__ */
 	return local;
 #endif /* arch selector */
@@ -55,27 +68,27 @@ uint64_t unaligned_load_noasan(const volatile void* ptr) {
 
 static __forceinline
 uint64_t unaligned_load(const volatile void* ptr) {
-#if defined(__x86_64__) || defined(__i386__)
+#if UNALIGNED_OK
 	return *(const volatile uint64_t*) ptr;
 #else
 	uint64_t local;
 #	if defined(__GNUC__) || defined(__clang__)
-		__builtin_memcpy(&local, ptr, 8);
+		__builtin_memcpy(&local, (const void*) ptr, 8);
 #	else
-		memcpy(&local, ptr, 8);
+		memcpy(&local, (const void*) ptr, 8);
 #	endif /* __GNUC__ || __clang__ */
 	return local;
 #endif /* arch selector */
 }
 
 static __forceinline void unaligned_store(volatile void* ptr, uint64_t value) {
-#if defined(__x86_64__) || defined(__i386__)
+#if UNALIGNED_OK
 	*(volatile uint64_t*) ptr = value;
 #else
 #	if defined(__GNUC__) || defined(__clang__)
-		__builtin_memcpy(ptr, &value, ptr, 8);
+		__builtin_memcpy((void*) ptr, &value, 8);
 #	else
-		memcpy(ptr, &value, 8);
+		memcpy((void*) ptr, &value, 8);
 #	endif /* __GNUC__ || __clang__ */
 #endif /* arch selector */
 }
