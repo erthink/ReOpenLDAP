@@ -47,10 +47,7 @@
 #endif
 
 #if OPENSSL_VERSION_NUMBER >= 0x10100000 && !defined(LIBRESSL_VERSION_NUMBER)
-#define ERR_remove_thread_state(x)	/* deprecated, get rid of it */
 #define ASN1_STRING_data(x)	ASN1_STRING_get0_data(x)
-#define CRYPTO_free(x)	OPENSSL_free(x)
-#define CRYPTO_NUM_LOCKS	CRYPTO_num_locks()
 #endif
 
 typedef SSL_CTX tlso_ctx;
@@ -63,17 +60,16 @@ static void tlso_report_error( void );
 static void tlso_info_cb( const SSL *ssl, int where, int ret );
 static int tlso_verify_cb( int ok, X509_STORE_CTX *ctx );
 static int tlso_verify_ok( int ok, X509_STORE_CTX *ctx );
-#if OPENSSL_VERSION_NUMBER < 0x10100000 || defined(LIBRESSL_VERSION_NUMBER)
-static RSA * tlso_tmp_rsa_cb( SSL *ssl, int is_export, int key_length );
-#endif
-
 static int tlso_seed_PRNG( const char *randfile );
+#if OPENSSL_VERSION_NUMBER < 0x10100000 || defined(LIBRESSL_VERSION_NUMBER)
+/*
+ * OpenSSL 1.1 API and later has new locking code
+*/
+static RSA * tlso_tmp_rsa_cb( SSL *ssl, int is_export, int key_length );
 
-#ifdef LDAP_R_COMPILE
 /*
  * provide mutexes for the OpenSSL library.
  */
-#if OPENSSL_VERSION_NUMBER < 0x10100000L || defined(LIBRESSL_VERSION_NUMBER)
 static ldap_pvt_thread_mutex_t	tlso_mutexes[CRYPTO_NUM_LOCKS];
 
 static void tlso_locking_cb( int mode, int type, const char *file, int line )
@@ -97,7 +93,6 @@ static unsigned long tlso_thread_self( void )
 
 	return (unsigned long) ldap_pvt_thread_self();
 }
-
 #endif /* OPENSSL_VERSION_NUMBER < 0x10100000L */
 
 static void tlso_thr_init( void )
@@ -115,7 +110,6 @@ static void tlso_thr_init( void )
 	CRYPTO_set_locking_callback( tlso_locking_cb );
 	CRYPTO_set_id_callback( tlso_thread_self );
 }
-#endif /* LDAP_R_COMPILE */
 
 static STACK_OF(X509_NAME) *
 tlso_ca_list( char * bundle, char * dir )
@@ -152,9 +146,13 @@ tlso_init( void )
 	struct ldapoptions *lo = LDAP_INT_GLOBAL_OPT();
 	(void) tlso_seed_PRNG( lo->ldo_tls_randfile );
 
+#if OPENSSL_VERSION_NUMBER < 0x10100000L || defined(LIBRESSL_VERSION_NUMBER)
 	SSL_load_error_strings();
 	SSL_library_init();
 	OpenSSL_add_all_digests();
+#else
+	OPENSSL_init_ssl(0, NULL);
+#endif
 
 	/* FIXME: mod_ssl does this */
 	X509V3_add_standard_extensions();
@@ -170,6 +168,7 @@ tlso_destroy( void )
 {
 	struct ldapoptions *lo = LDAP_INT_GLOBAL_OPT();
 
+#if OPENSSL_VERSION_NUMBER < 0x10100000 || defined(LIBRESSL_VERSION_NUMBER)
 	EVP_cleanup();
 #if OPENSSL_VERSION_NUMBER < 0x10000000
 	ERR_remove_state(0);
@@ -178,6 +177,7 @@ tlso_destroy( void )
 	ERR_remove_thread_state(NULL);
 #endif
 	ERR_free_strings();
+#endif
 
 	if ( lo->ldo_tls_randfile ) {
 		LDAP_FREE( lo->ldo_tls_randfile );
@@ -1071,9 +1071,9 @@ tlso_verify_cb( int ok, X509_STORE_CTX *ctx )
 			certerr );
 	}
 	if ( sname )
-		CRYPTO_free ( sname );
+		OPENSSL_free ( sname );
 	if ( iname )
-		CRYPTO_free ( iname );
+		OPENSSL_free ( iname );
 	return ok;
 }
 
@@ -1204,13 +1204,7 @@ tls_impl ldap_int_tls_impl = {
 	tlso_session_strength,
 
 	&tlso_sbio,
-
-#ifdef LDAP_R_COMPILE
 	tlso_thr_init,
-#else
-	NULL,
-#endif
-
 	0
 };
 
