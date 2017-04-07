@@ -108,7 +108,7 @@ case $RC in
 0 )
 	echo "ldapsearch should have failed ($RC)!"
 	killservers
-	exit -1
+	exit 2
 	;;
 53)
 	;;

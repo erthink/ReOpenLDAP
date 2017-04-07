@@ -141,7 +141,7 @@ case $RC in
 0)
 	echo "ldapcompare returned success ($RC)!"
 	killservers
-	exit -1
+	exit 2
 	;;
 *)
 	echo "ldapcompare failed ($RC)!"
@@ -169,7 +169,7 @@ case $RC in
 0)
 	echo "ldapcompare returned success ($RC)!"
 	killservers
-	exit -1
+	exit 2
 	;;
 *)
 	echo "ldapcompare failed ($RC)!"
@@ -202,7 +202,7 @@ case $RC in
 0)
 	echo "ldapcompare returned success ($RC)!"
 	killservers
-	exit -1
+	exit 2
 	;;
 *)
 	echo "ldapcompare failed ($RC)"
@@ -228,7 +228,7 @@ case $RC in
 0)
 	echo "ldapcompare returned success ($RC)!"
 	killservers
-	exit -1
+	exit 2
 	;;
 *)
 	echo "ldapcompare failed ($RC)!"
@@ -310,7 +310,7 @@ case $RC in
 0)
 	echo "ldapcompare returned success ($RC)!"
 	killservers
-	exit -1
+	exit 2
 	;;
 *)
 	echo "ldapcompare failed ($RC)!"
@@ -338,7 +338,7 @@ case $RC in
 0)
 	echo "ldapcompare returned success ($RC)!"
 	killservers
-	exit -1
+	exit 2
 	;;
 *)
 	echo "ldapcompare failed ($RC)!"
@@ -440,7 +440,7 @@ case $RC in
 0)
 	echo "ldapcompare returned success ($RC)!"
 	killservers
-	exit -1
+	exit 2
 	;;
 *)
 	echo "ldapcompare failed ($RC)!"
@@ -468,7 +468,7 @@ case $RC in
 0)
 	echo "ldapcompare returned success ($RC)!"
 	killservers
-	exit -1
+	exit 2
 	;;
 *)
 	echo "ldapcompare failed ($RC)!"
@@ -496,7 +496,7 @@ case $RC in
 0)
 	echo "ldapcompare returned success ($RC)!"
 	killservers
-	exit -1
+	exit 2
 	;;
 *)
 	echo "ldapcompare failed ($RC)!"

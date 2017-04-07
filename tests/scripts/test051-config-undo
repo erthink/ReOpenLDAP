@@ -59,7 +59,7 @@ RC=$?
 if test $RC != 80 ; then
 	echo "invalid objectclass modify allowed ($RC)"
 	killservers
-	exit -1
+	exit 2
 fi
 
 $LDAPMODIFY -D cn=config -h $LOCALHOST -p $PORT1 -y $CONFIGPWF \
@@ -74,7 +74,7 @@ RC=$?
 if test $RC != 80 ; then
 	echo "invalid attributeType modify allowed ($RC)"
 	killservers
-	exit -1
+	exit 2
 fi
 
 echo Surveying the damage
@@ -89,7 +89,7 @@ RC=$?
 if test $RC != 0 ; then
     echo "schema destroyed by an unsuccessful operation"
     killservers
-    exit -1
+    exit 2
 fi
 
 killservers
