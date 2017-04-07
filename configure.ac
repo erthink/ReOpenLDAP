@@ -570,7 +570,7 @@ AM_CONDITIONAL([HEIMDAL_AVAIL], [test $heimdal_found = yes])
 dnl ----------------------------------------------------------------
 # libsodium (argon2 hash)
 
-PKG_CHECK_MODULES(LIBSODIUM, libsodium, libsodium_found=yes, libsodium_found=no)
+PKG_CHECK_MODULES(LIBSODIUM, [libsodium >= 1.0.9], libsodium_found=yes, libsodium_found=no)
 AC_SUBST(LIBSODIUM_LIBS)
 AC_SUBST(LIBSODIUM_CFLAGS)
 AM_CONDITIONAL([LIBSODIUM_AVAIL], [test $libsodium_found = yes])
