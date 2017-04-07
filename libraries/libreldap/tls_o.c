@@ -259,7 +259,7 @@ tlso_ctx_init( struct ldapoptions *lo, struct ldaptls *lt, int is_server )
 	if ( lo->ldo_tls_cacertfile == NULL && lo->ldo_tls_cacertdir == NULL ) {
 		if ( !SSL_CTX_set_default_verify_paths( ctx ) ) {
 			Debug( LDAP_DEBUG_ANY, "TLS: "
-				"could not use default certificate paths", 0, 0, 0 );
+				"could not use default certificate paths.\n" );
 			tlso_report_error();
 			return -1;
 		}
