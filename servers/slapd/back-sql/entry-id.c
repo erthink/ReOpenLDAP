@@ -487,7 +487,7 @@ backsql_has_children(
 	SQLHDBC			dbh,
 	struct berval		*dn )
 {
-	unsigned long	nchildren;
+	unsigned long	nchildren = 0;
 	int		rc;
 
 	rc = backsql_count_children( op, dbh, dn, &nchildren );

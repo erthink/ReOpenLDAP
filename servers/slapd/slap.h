@@ -3073,7 +3073,7 @@ struct Connection {
 	SEND_LDAP_INTERMEDIATE *c_send_ldap_intermediate;
 };
 
-#ifdef LOG_LOCAL4
+#if defined(LDAP_SYSLOG) && defined(LOG_LOCAL4)
 #	define SLAP_DEFAULT_SYSLOG_USER	LOG_LOCAL4
 #endif /* LOG_LOCAL4 */
 
