@@ -3130,6 +3130,7 @@ if test -x $ac_aux_dir/BRANDING; then
 	AC_CONFIG_COMMANDS([default],[[chmod +x tests/run]])
 fi
 
+AM_SUBST_NOTMAKE(COMMON_MK, "include ${top_srcdir}/build/common.mk")
 AC_SUBST(AM_CFLAGS, "\$(EXTRA_CFLAGS)")
 
 AC_OUTPUT
