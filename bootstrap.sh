@@ -13,8 +13,6 @@
 ## top-level directory of the distribution or, alternatively, at
 ## <http://www.OpenLDAP.org/license.html>.
 
-rm -rf tests/testrun/*
-
 if [ -z "$AUTORECONF" ]; then
 	if [ -n "$(which autoreconf)" ] && autoreconf --version | grep -q 'autoreconf (GNU Autoconf) 2\.69'; then
 		AUTORECONF=$(which autoreconf)
@@ -27,8 +25,10 @@ if [ -z "$AUTORECONF" ]; then
 	fi
 fi
 
+rm -rf tests/testrun/*
 if git clean -x -f -d -e tests/testrun \
 		&& $AUTORECONF --force --install --include=build \
+		&& patch -p1 -i build/ltmain.sh.patch \
 		&& patch -p1 -i build/libltdl.patch; then
 	echo "done"; exit 0
 else
