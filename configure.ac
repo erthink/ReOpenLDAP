@@ -139,6 +139,7 @@ FIXUP_DIRS="\$(SED) \
 AC_SUBST(FIXUP_DIRS)
 
 AC_LANG([C])
+AC_ARG_VAR(EXTRA_CFLAGS, [Extra build-time CFLAGS, e.g. -Wall -Werror])
 AC_PREFIX_DEFAULT("/opt/reopenldap")
 
 dnl ----------------------------------------------------------------
@@ -3128,6 +3129,8 @@ if test -x $ac_aux_dir/BRANDING; then
 	AC_CONFIG_FILES(tests/Makefile tests/progs/Makefile tests/run)
 	AC_CONFIG_COMMANDS([default],[[chmod +x tests/run]])
 fi
+
+AC_SUBST(AM_CFLAGS, "\$(EXTRA_CFLAGS)")
 
 AC_OUTPUT
 
