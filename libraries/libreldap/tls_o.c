@@ -112,7 +112,7 @@ static void tlso_thr_init( void )
 }
 
 static STACK_OF(X509_NAME) *
-tlso_ca_list( char * bundle, char * dir )
+tlso_ca_list( char * bundle, char * dir, X509 *cert )
 {
 	STACK_OF(X509_NAME) *ca_list = NULL;
 
@@ -134,6 +134,12 @@ tlso_ca_list( char * bundle, char * dir )
 		}
 	}
 #endif
+	if ( cert ) {
+		X509_NAME *xn = X509_get_subject_name( cert );
+		xn = X509_NAME_dup( xn );
+		if ( xn )
+			sk_X509_NAME_push( ca_list, xn );
+	}
 	return ca_list;
 }
 
@@ -256,7 +262,8 @@ tlso_ctx_init( struct ldapoptions *lo, struct ldaptls *lt, int is_server )
 		return -1;
 	}
 
-	if ( lo->ldo_tls_cacertfile == NULL && lo->ldo_tls_cacertdir == NULL ) {
+	if ( lo->ldo_tls_cacertfile == NULL && lo->ldo_tls_cacertdir == NULL &&
+		lo->ldo_tls_cacert.bv_val == NULL ) {
 		if ( !SSL_CTX_set_default_verify_paths( ctx ) ) {
 			Debug( LDAP_DEBUG_ANY, "TLS: "
 				"could not use default certificate paths.\n" );
@@ -264,7 +271,19 @@ tlso_ctx_init( struct ldapoptions *lo, struct ldaptls *lt, int is_server )
 			return -1;
 		}
 	} else {
-		if ( !SSL_CTX_load_verify_locations( ctx,
+		X509 *cert = NULL;
+		if ( lo->ldo_tls_cacert.bv_val ) {
+			const uint8_t *pp = (const uint8_t *) lo->ldo_tls_cacert.bv_val;
+			cert = d2i_X509( NULL, &pp, lo->ldo_tls_cacert.bv_len );
+			X509_STORE *store = SSL_CTX_get_cert_store( ctx );
+			if ( !X509_STORE_add_cert( store, cert )) {
+				Debug( LDAP_DEBUG_ANY, "TLS: "
+					"could not use CA certificate.\n" );
+				tlso_report_error();
+				return -1;
+			}
+		}
+		if (( lt->lt_cacertfile || lt->lt_cacertdir ) && !SSL_CTX_load_verify_locations( ctx,
 				lt->lt_cacertfile, lt->lt_cacertdir ) )
 		{
 			Debug( LDAP_DEBUG_ANY, "TLS: "
@@ -278,7 +297,7 @@ tlso_ctx_init( struct ldapoptions *lo, struct ldaptls *lt, int is_server )
 		if ( is_server ) {
 			STACK_OF(X509_NAME) *calist;
 			/* List of CA names to send to a client */
-			calist = tlso_ca_list( lt->lt_cacertfile, lt->lt_cacertdir );
+			calist = tlso_ca_list( lt->lt_cacertfile, lt->lt_cacertdir, cert );
 			if ( !calist ) {
 				Debug( LDAP_DEBUG_ANY, "TLS: "
 					"could not load client CA list (file:`%s',dir:`%s').\n",
@@ -290,21 +309,47 @@ tlso_ctx_init( struct ldapoptions *lo, struct ldaptls *lt, int is_server )
 
 			SSL_CTX_set_client_CA_list( ctx, calist );
 		}
+		if ( cert )
+			X509_free( cert );
 	}
 
+	if ( lo->ldo_tls_cert.bv_val )
+	{
+		const uint8_t *pp = (const uint8_t *) lo->ldo_tls_cert.bv_val;
+		X509 *cert = d2i_X509( NULL, &pp, lo->ldo_tls_cert.bv_len );
+		if ( !SSL_CTX_use_certificate( ctx, cert )) {
+			Debug( LDAP_DEBUG_ANY,
+				"TLS: could not use certificate.\n");
+			tlso_report_error();
+			return -1;
+		}
+		X509_free( cert );
+	} else
 	if ( lo->ldo_tls_certfile &&
 		!SSL_CTX_use_certificate_file( ctx,
 			lt->lt_certfile, SSL_FILETYPE_PEM ) )
 	{
 		Debug( LDAP_DEBUG_ANY,
-			"TLS: could not use certificate `%s'.\n",
+			"TLS: could not use certificate file `%s'.\n",
 			lo->ldo_tls_certfile);
 		tlso_report_error();
 		return -1;
 	}
 
 	/* Key validity is checked automatically if cert has already been set */
-	if ( lo->ldo_tls_keyfile &&
+	if ( lo->ldo_tls_key.bv_val )
+	{
+		const uint8_t *pp = (const uint8_t *) lo->ldo_tls_key.bv_val;
+		EVP_PKEY *pkey = d2i_AutoPrivateKey( NULL, &pp, lo->ldo_tls_key.bv_len );
+		if ( !SSL_CTX_use_PrivateKey( ctx, pkey ))
+		{
+			Debug( LDAP_DEBUG_ANY,
+				"TLS: could not use private key.\n");
+			tlso_report_error();
+			return -1;
+		}
+		EVP_PKEY_free( pkey );
+	} else if ( lo->ldo_tls_keyfile &&
 		!SSL_CTX_use_PrivateKey_file( ctx,
 			lt->lt_keyfile, SSL_FILETYPE_PEM ) )
 	{
