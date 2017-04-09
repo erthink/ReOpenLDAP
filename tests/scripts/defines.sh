@@ -812,6 +812,7 @@ function config_filter {
 		-e "s/^#sql=${AC_conf[sql]}#//g"		\
 			-e "s/^#${RDBMS}#//g"			\
 		-e "s/^#accesslog=${AC_conf[accesslog]}#//g"	\
+		-e "s/^#autoca=${AC_conf[autoca]}#//g"		\
 		-e "s/^#dds=${AC_conf[dds]}#//g"		\
 		-e "s/^#dynlist=${AC_conf[dynlist]}#//g"	\
 		-e "s/^#memberof=${AC_conf[memberof]}#//g"	\
