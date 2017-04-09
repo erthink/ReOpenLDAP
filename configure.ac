@@ -42,7 +42,7 @@ AC_INIT(
 	m4_esyscmd_s([build/BRANDING --bugs]),
 	m4_esyscmd_s([build/BRANDING --tarname]),
 	m4_esyscmd_s([build/BRANDING --url]))
-AC_CONFIG_MACRO_DIRS([build/m4])
+AC_CONFIG_MACRO_DIR([build/m4])
 dnl ----------------------------------------------------------------
 dnl OpenLDAP Autoconf Macros
 builtin(include, build/openldap.m4)

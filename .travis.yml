@@ -1,64 +1,67 @@
-# Config
-
 language: c
 sudo: false
 dist: trusty
-cache: bundler
 
-# Build matrix (2x compiler, 1x confopts)
 compiler:
-  - gcc
-  - clang
-
-env:
-  - LIBTOOL_SUPPRESS_DEFAULT=no
+- gcc
+- clang
 
 os:
-  - linux
+- linux
+
+env:
+  global:
+  - LIBTOOL_SUPPRESS_DEFAULT=no
+  - UPLOAD_DIR=_4upload
+  - TEST_NOOK="$UPLOAD_DIR/$TRAVIS_JOB_NUMBER-$TRAVIS_EVENT_TYPE-$TRAVIS_BRANCH$TRAVIS_TAG$TRAVIS_PULL_REQUEST_SLUG"
 
 addons:
   apt:
     sources:
-      - ubuntu-toolchain-r-test
+    - ubuntu-toolchain-r-test
     packages:
-      - uuid-dev
-      - libelf-dev
-      - krb5-multidev
-      - heimdal-multidev
-      - libcrack2-dev
-      - libsasl2-dev
-      - libperl-dev
-      - libtool
-      - libltdl-dev
-      - binutils-dev
-      - libssl-dev
-      - libgnutls-dev
-      - libwrap0-dev
-#      - libiodbc2-dev
-      - unixodbc-dev
-      - libslp-dev
-#      - libsodium-dev
-      - libdb-dev
-      - bc
-      - gdb
+    - uuid-dev
+    - libelf-dev
+    - krb5-multidev
+    - heimdal-multidev
+    - libcrack2-dev
+    - libsasl2-dev
+    - libperl-dev
+    - libtool
+    - libltdl-dev
+    - binutils-dev
+    - libssl-dev
+    - libgnutls-dev
+    - libwrap0-dev
+    - unixodbc-dev
+    - libslp-dev
+    - libdb-dev
+    - bc
+    - gdb
+
+before_script:
+#- echo $UPLOAD_HOST | ssh-keyscan -H -p $UPLOAD_PORT -f - >$HOME/.ssh/known_hosts 2>/dev/null
+#  && [ -s $HOME/.ssh/known_hosts ] || echo "failed" >&2
+- openssl aes-256-cbc -K $encrypted_1572229a40f3_key -iv $encrypted_1572229a40f3_iv
+  -in build/ci/upload_rsa.enc -out ~/.ssh/id_rsa -d && chmod 600 ~/.ssh/id_rsa
+- mkdir -p $UPLOAD_DIR $TEST_NOOK
 
 script:
-  - ./bootstrap.sh
-  - ./configure CFLAGS="-Ofast -ggdb3 -gdwarf-4" --prefix=$(pwd)/_install
-      --enable-check=always --enable-hipagut=always --enable-debug --disable-syslog
-      --enable-overlays --enable-contrib --enable-maintainer-mode
-      --enable-dynacl --enable-aci --enable-crypt --enable-lmpasswd --enable-spasswd
-      --enable-slapi --enable-rlookups --enable-slp --enable-wrappers
-      --enable-backends --disable-bdb --disable-hdb --disable-ndb
-  - make dist
-  - mkdir dist && (cd dist
-      && tar --strip-component=1 xaf ../*.tar.*
-      && ./configure CFLAGS=-Os EXTRA_CFLAGS="-Wall -Werror"
-        --enable-overlays=mod --enable-contrib --enable-experimental --enable-debug
-        --enable-dynacl --enable-aci --enable-crypt --enable-lmpasswd --enable-spasswd
-        --enable-slapi --enable-rlookups --enable-slp --enable-wrappers
-        --enable-backends=mod --disable-ndb --disable-dependency-tracking
-      && make CFLAGS="-Os -Wall -Werror"
-      && make install)
-  - make EXTRA_CFLAGS="-Wall -Werror" && make install
-  - ulimit -c unlimited && SKIPLONG=yes make test
+- ./bootstrap.sh --dont-cleanup || cp build/*.rej $UPLOAD_DIR/
+  && ./configure CFLAGS="-Ofast -ggdb3 -gdwarf-4" --prefix=$HOME/_install --enable-check=always
+  --enable-hipagut=always --enable-debug --disable-syslog --enable-overlays
+  --enable-maintainer-mode --enable-dynacl --enable-aci --enable-crypt --enable-lmpasswd
+  --enable-spasswd --enable-slapi --enable-rlookups --enable-slp --enable-wrappers
+  --enable-backends --disable-bdb --disable-hdb --disable-ndb --disable-modules
+- make dist
+  && mkdir _dist && (cd _dist && tar -xaf ../*.tar.* --strip=1 && ./configure --prefix=$HOME/_dist/_install
+  CFLAGS=-Os EXTRA_CFLAGS="-Wall -Werror" --enable-overlays=mod --enable-contrib --enable-experimental
+  --enable-debug --enable-dynacl --enable-aci --enable-crypt --enable-lmpasswd --enable-spasswd
+  --enable-slapi --enable-rlookups --enable-slp --enable-wrappers --enable-backends=mod
+  --disable-ndb --disable-dependency-tracking && make CFLAGS="-Os -Wall -Werror"
+  && make install)
+- make EXTRA_CFLAGS="-Wall -Werror" && make install
+  && ulimit -c unlimited && SKIPLONG=yes make test </dev/null
+
+after_failure: |
+  scp -o StrictHostKeyChecking=no -B -P $UPLOAD_PORT -rp $UPLOAD_DIR/* $UPLOAD_USER@$UPLOAD_HOST:~/$TRAVIS_REPO_SLUG/ 2>&1 | sed -n 's/^.*: \([^:]\+$\)/\1/p'
