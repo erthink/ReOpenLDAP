@@ -19,7 +19,8 @@ WORKDIR /opt/reopenldap
 
 VOLUME ["/var/lib/ldap"]
 
-COPY slapd.test.conf /opt/reopenldap/etc/
+RUN mkdir -p /opt/reopenldap/var/run && chown ldap.ldap -R /opt/reopenldap/var
+COPY slapd.test.conf /opt/reopenldap/etc/slapd.conf
 COPY entrypoint.sh /opt/reopenldap/
 
 EXPOSE 389
