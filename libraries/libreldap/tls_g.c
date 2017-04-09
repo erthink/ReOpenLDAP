@@ -242,8 +242,19 @@ tlsg_ctx_init( struct ldapoptions *lo, struct ldaptls *lt, int is_server )
 			GNUTLS_X509_FMT_PEM );
 		if ( rc < 0 ) return -1;
 	}
+	if (lo->ldo_tls_cacert.bv_val != NULL ) {
+		gnutls_datum_t buf;
+		buf.data = (unsigned char *)lo->ldo_tls_cacert.bv_val;
+		buf.size = lo->ldo_tls_cacert.bv_len;
+		rc = gnutls_certificate_set_x509_trust_mem(
+			ctx->cred,
+			&buf,
+			GNUTLS_X509_FMT_DER );
+		if ( rc < 0 ) return -1;
+	}
 
-	if ( lo->ldo_tls_certfile && lo->ldo_tls_keyfile ) {
+	if (( lo->ldo_tls_certfile && lo->ldo_tls_keyfile ) ||
+		( lo->ldo_tls_cert.bv_val && lo->ldo_tls_key.bv_val )) {
 		gnutls_x509_privkey_t key;
 		gnutls_datum_t buf;
 		gnutls_x509_crt_t certs[VERIFY_DEPTH];
@@ -257,18 +268,32 @@ tlsg_ctx_init( struct ldapoptions *lo, struct ldaptls *lt, int is_server )
 		 * not, we have to build it ourselves. So we have to
 		 * do some special checks here...
 		 */
-		rc = tlsg_getfile( lt->lt_keyfile, &buf );
-		if ( rc ) return -1;
-		rc = gnutls_x509_privkey_import( key, &buf,
-			GNUTLS_X509_FMT_PEM );
-		LDAP_FREE( buf.data );
+		if ( lo->ldo_tls_key.bv_val ) {
+			buf.data = (unsigned char *)lo->ldo_tls_key.bv_val;
+			buf.size = lo->ldo_tls_key.bv_len;
+			rc = gnutls_x509_privkey_import( key, &buf,
+				GNUTLS_X509_FMT_DER );
+		} else {
+			rc = tlsg_getfile( lt->lt_keyfile, &buf );
+			if ( rc ) return -1;
+			rc = gnutls_x509_privkey_import( key, &buf,
+				GNUTLS_X509_FMT_PEM );
+			LDAP_FREE( buf.data );
+		}
 		if ( rc < 0 ) return rc;
 
-		rc = tlsg_getfile( lt->lt_certfile, &buf );
-		if ( rc ) return -1;
-		rc = gnutls_x509_crt_list_import( certs, &max, &buf,
-			GNUTLS_X509_FMT_PEM, 0 );
-		LDAP_FREE( buf.data );
+		if ( lo->ldo_tls_cert.bv_val ) {
+			buf.data = (unsigned char *)lo->ldo_tls_cert.bv_val;
+			buf.size = lo->ldo_tls_cert.bv_len;
+			rc = gnutls_x509_crt_list_import( certs, &max, &buf,
+				GNUTLS_X509_FMT_DER, 0 );
+		} else {
+			rc = tlsg_getfile( lt->lt_certfile, &buf );
+			if ( rc ) return -1;
+			rc = gnutls_x509_crt_list_import( certs, &max, &buf,
+				GNUTLS_X509_FMT_PEM, 0 );
+			LDAP_FREE( buf.data );
+		}
 		if ( rc < 0 ) return rc;
 
 		/* If there's only one cert and it's not self-signed,
@@ -290,6 +315,10 @@ tlsg_ctx_init( struct ldapoptions *lo, struct ldaptls *lt, int is_server )
 	} else if ( lo->ldo_tls_certfile || lo->ldo_tls_keyfile ) {
 		Debug( LDAP_DEBUG_ANY,
 		       "TLS: only one of certfile and keyfile specified\n" );
+		return -1;
+	} else if ( lo->ldo_tls_cert.bv_val || lo->ldo_tls_key.bv_val ) {
+		Debug( LDAP_DEBUG_ANY,
+		       "TLS: only one of cert and key specified\n" );
 		return -1;
 	}
 
