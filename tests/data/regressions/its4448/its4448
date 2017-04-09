@@ -21,7 +21,6 @@ if test ${AC_conf[meta]} = no ; then
 	exit 0
 fi
 
-# to be removed some time...
 if test "$TEST_META" = no ; then
 	echo '### Test disabled by "TEST_META=no"; unset TEST_META to re-enable'
 	echo ""
@@ -32,6 +31,13 @@ else
 	echo "### the Issue Tracking System <http://www.openldap.org/its/>"
 	echo ""
 fi
+
+if [ "$TRAVIS" = yes ]; then
+	echo "### Skip for Travis-CI now (overload troubles)"
+	exit 0
+fi
+
+# to be removed some time...
 
 if test x$TESTLOOPS = x ; then
 	TESTLOOPS=50
