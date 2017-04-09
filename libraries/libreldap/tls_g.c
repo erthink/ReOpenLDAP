@@ -673,6 +673,68 @@ tlsg_session_strength( tls_session *session )
 	return gnutls_cipher_get_key_size( c ) * 8;
 }
 
+static int
+tlsg_session_unique( tls_session *sess, struct berval *buf, int is_server)
+{
+	tlsg_session *s = (tlsg_session *)sess;
+	gnutls_datum_t cb;
+	int rc;
+
+	rc = gnutls_session_channel_binding( s->session, GNUTLS_CB_TLS_UNIQUE, &cb );
+	if ( rc == 0 ) {
+		int len = cb.size;
+		if ( len > buf->bv_len )
+			len = buf->bv_len;
+		buf->bv_len = len;
+		memcpy( buf->bv_val, cb.data, len );
+		return len;
+	}
+	return 0;
+}
+
+static const char *
+tlsg_session_version( tls_session *sess )
+{
+	tlsg_session *s = (tlsg_session *)sess;
+	return gnutls_protocol_get_name(gnutls_protocol_get_version( s->session ));
+}
+
+static const char *
+tlsg_session_cipher( tls_session *sess )
+{
+	tlsg_session *s = (tlsg_session *)sess;
+	return gnutls_cipher_get_name(gnutls_cipher_get( s->session ));
+}
+
+static int
+tlsg_session_peercert( tls_session *sess, struct berval *der )
+{
+	tlsg_session *s = (tlsg_session *)sess;
+	const gnutls_datum_t *peer_cert_list;
+	unsigned int list_size;
+
+	peer_cert_list = gnutls_certificate_get_peers( s->session, &list_size );
+	if (!peer_cert_list)
+		return -1;
+	der->bv_len = peer_cert_list[0].size;
+	der->bv_val = LDAP_MALLOC( der->bv_len );
+	if (!der->bv_val)
+		return -1;
+	memcpy(der->bv_val, peer_cert_list[0].data, der->bv_len);
+	return 0;
+}
+
+/* suites is a string of colon-separated cipher suite names. */
+static int
+tlsg_parse_ciphers( tlsg_ctx *ctx, char *suites )
+{
+	const char *err;
+	int rc = gnutls_priority_init( &ctx->prios, suites, &err );
+	if ( rc )
+		ctx->prios = NULL;
+	return rc;
+}
+
 /* suites is a string of colon-separated cipher suite names. */
 static int
 tlsg_parse_ciphers( tlsg_ctx *ctx, char *suites )
@@ -925,6 +987,10 @@ tls_impl ldap_int_tls_impl = {
 	tlsg_session_peer_dn,
 	tlsg_session_chkhost,
 	tlsg_session_strength,
+	tlsg_session_unique,
+	tlsg_session_version,
+	tlsg_session_cipher,
+	tlsg_session_peercert,
 
 	&tlsg_sbio,
 

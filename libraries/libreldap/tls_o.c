@@ -754,6 +754,50 @@ tlso_session_strength( tls_session *sess )
 	return SSL_CIPHER_get_bits(SSL_get_current_cipher(s), NULL);
 }
 
+static int
+tlso_session_unique( tls_session *sess, struct berval *buf, int is_server)
+{
+	tlso_session *s = (tlso_session *)sess;
+
+	/* Usually the client sends the finished msg. But if the
+	 * session was resumed, the server sent the msg.
+	 */
+	if (SSL_session_reused(s) ^ !is_server)
+		buf->bv_len = SSL_get_finished(s, buf->bv_val, buf->bv_len);
+	else
+		buf->bv_len = SSL_get_peer_finished(s, buf->bv_val, buf->bv_len);
+	return buf->bv_len;
+}
+
+static const char *
+tlso_session_version( tls_session *sess )
+{
+	tlso_session *s = (tlso_session *)sess;
+	return SSL_get_version(s);
+}
+
+static const char *
+tlso_session_cipher( tls_session *sess )
+{
+	tlso_session *s = (tlso_session *)sess;
+	return SSL_CIPHER_get_name(SSL_get_current_cipher(s));
+}
+
+static int
+tlso_session_peercert( tls_session *sess, struct berval *der )
+{
+	tlso_session *s = (tlso_session *)sess;
+	unsigned char *ptr;
+	X509 *x = SSL_get_peer_certificate(s);
+	der->bv_len = i2d_X509(x, NULL);
+	der->bv_val = LDAP_MALLOC(der->bv_len);
+	if ( !der->bv_val )
+		return -1;
+	ptr = der->bv_val;
+	i2d_X509(x, &ptr);
+	return 0;
+}
+
 /*
  * TLS support for LBER Sockbufs
  */
@@ -1247,6 +1291,10 @@ tls_impl ldap_int_tls_impl = {
 	tlso_session_peer_dn,
 	tlso_session_chkhost,
 	tlso_session_strength,
+	tlso_session_unique,
+	tlso_session_version,
+	tlso_session_cipher,
+	tlso_session_peercert,
 
 	&tlso_sbio,
 	tlso_thr_init,
