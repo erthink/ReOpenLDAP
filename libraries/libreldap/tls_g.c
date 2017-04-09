@@ -735,17 +735,6 @@ tlsg_parse_ciphers( tlsg_ctx *ctx, char *suites )
 	return rc;
 }
 
-/* suites is a string of colon-separated cipher suite names. */
-static int
-tlsg_parse_ciphers( tlsg_ctx *ctx, char *suites )
-{
-	const char *err;
-	int rc = gnutls_priority_init( &ctx->prios, suites, &err );
-	if ( rc )
-		ctx->prios = NULL;
-	return rc;
-}
-
 /*
  * TLS support for LBER Sockbufs
  */

@@ -137,7 +137,9 @@ tlso_ca_list( char * bundle, char * dir, X509 *cert )
 	if ( cert ) {
 		X509_NAME *xn = X509_get_subject_name( cert );
 		xn = X509_NAME_dup( xn );
-		if ( xn )
+		if ( !ca_list )
+			ca_list = sk_X509_NAME_new_null();
+		if ( xn && ca_list )
 			sk_X509_NAME_push( ca_list, xn );
 	}
 	return ca_list;
@@ -787,13 +789,13 @@ static int
 tlso_session_peercert( tls_session *sess, struct berval *der )
 {
 	tlso_session *s = (tlso_session *)sess;
-	unsigned char *ptr;
+	uint8_t *ptr;
 	X509 *x = SSL_get_peer_certificate(s);
 	der->bv_len = i2d_X509(x, NULL);
 	der->bv_val = LDAP_MALLOC(der->bv_len);
 	if ( !der->bv_val )
 		return -1;
-	ptr = der->bv_val;
+	ptr = (uint8_t *)der->bv_val;
 	i2d_X509(x, &ptr);
 	return 0;
 }
