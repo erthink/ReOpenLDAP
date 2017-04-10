@@ -113,3 +113,6 @@ tests/core
 
 @dumps/
 @successful.log
+
+
+docker/slapd.test.conf
