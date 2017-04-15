@@ -498,7 +498,7 @@ OL_ARG_ENABLE(sql,[    --enable-sql	  enable sql backend],
 
 dnl ----------------------------------------------------------------
 dnl SLAPD Overlay Options
-slapd_overlays="accesslog auditlog collect constraint dds deref \
+slapd_overlays="accesslog auditlog autoca collect constraint dds deref \
 	dyngroup dynlist memberof ppolicy pcache refint \
 	retcode rwm seqmod sssvlv syncprov translucent unique \
 	valsort"
@@ -511,6 +511,8 @@ OL_ARG_ENABLE(overlays,[    --enable-overlays	  enable all available overlays],
 OL_ARG_ENABLE(accesslog,[    --enable-accesslog	  In-Directory Access Logging overlay],
 	no, [no yes mod], ol_enable_overlays)
 OL_ARG_ENABLE(auditlog,[    --enable-auditlog	  Audit Logging overlay],
+	no, [no yes mod], ol_enable_overlays)
+OL_ARG_ENABLE(autoca,[    --enable-autoca	  Automatic Certificate Authority overlay],
 	no, [no yes mod], ol_enable_overlays)
 OL_ARG_ENABLE(collect,[    --enable-collect	  Collect overlay],
 	no, [no yes mod], ol_enable_overlays)
@@ -2638,6 +2640,17 @@ if test "$ol_enable_auditlog" != no ; then
 	AC_DEFINE_UNQUOTED(SLAPD_OVER_AUDITLOG,$MFLAG,[define for Audit Logging overlay])
 fi
 
+if test "$ol_enable_autoca" != no ; then
+	if test "$ol_enable_autoca" = mod ; then
+		MFLAG=SLAPD_MOD_DYNAMIC
+		SLAPD_DYNAMIC_OVERLAYS="$SLAPD_DYNAMIC_OVERLAYS autoca"
+	else
+		MFLAG=SLAPD_MOD_STATIC
+		SLAPD_STATIC_OVERLAYS="$SLAPD_STATIC_OVERLAYS autoca"
+	fi
+	AC_DEFINE_UNQUOTED(SLAPD_OVER_AUTOCA,$MFLAG,[define for Automatic Certificate Authority overlay])
+fi
+
 if test "$ol_enable_collect" != no ; then
 	if test "$ol_enable_collect" = mod ; then
 		MFLAG=SLAPD_MOD_DYNAMIC
@@ -2961,6 +2974,9 @@ AM_CONDITIONAL([SLAPD_DYNACL], [test $ol_enable_dynacl != no])
 
 	AM_CONDITIONAL([BUILD_AUDITLOG], [test $ol_enable_auditlog != no])
 	AM_CONDITIONAL([AUDITLOG_DYNAMIC], [test $ol_enable_auditlog = mod])
+
+	AM_CONDITIONAL([BUILD_AUTOCA], [test $ol_enable_autoca != no])
+	AM_CONDITIONAL([AUTOCA_DYNAMIC], [test $ol_enable_autoca = mod])
 
 	AM_CONDITIONAL([BUILD_COLLECT], [test $ol_enable_collect != no])
 	AM_CONDITIONAL([COLLECT_DYNAMIC], [test $ol_enable_collect = mod])
