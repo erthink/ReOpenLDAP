@@ -243,17 +243,17 @@ elif [ -n "$CIBUZZ_PID4" ]; then
 	SYNCREPL_WAIT=${SYNCREPL_WAIT-30}
 elif [ -n "${TEAMCITY_PROCESS_FLOW_ID}" -o -n "${TRAVIS_BUILD_ID}" ]; then
 	# LY: under Teamcity, take in account ASAN/TSAN and nice
-	TIMEOUT_S="timeout -s SIGXCPU 1m"
-	TIMEOUT_L="timeout -s SIGXCPU 3m"
-	TIMEOUT_H="timeout -s SIGXCPU 9m"
+	TIMEOUT_S="timeout -s SIGXCPU 2m"
+	TIMEOUT_L="timeout -s SIGXCPU 7m"
+	TIMEOUT_H="timeout -s SIGXCPU 20m"
 	SLEEP0=${SLEEP0-0.3}
 	SLEEP1=${SLEEP1-2}
 	SYNCREPL_WAIT=${SYNCREPL_WAIT-10}
 else
 	# LY: take in account -O0
-	TIMEOUT_S="timeout -s SIGXCPU 45s"
-	TIMEOUT_L="timeout -s SIGXCPU 2m"
-	TIMEOUT_H="timeout -s SIGXCPU 5m"
+	TIMEOUT_S="timeout -s SIGXCPU 1m"
+	TIMEOUT_L="timeout -s SIGXCPU 5m"
+	TIMEOUT_H="timeout -s SIGXCPU 15m"
 	SLEEP0=${SLEEP0-0.1}
 	SLEEP1=${SLEEP1-1}
 	SYNCREPL_WAIT=${SYNCREPL_WAIT-5}
