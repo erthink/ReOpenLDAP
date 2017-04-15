@@ -738,13 +738,13 @@ if test $ol_enable_perl != no ; then
 	PERL_RDIR="`echo $PERL_LDFLAGS | tr '[[:space:]]' '\n' | grep -- '-Wl,-rpath,' | sed 's/-Wl,-rpath,/-R/'`"
 
 	save_LIBS=$LIBS
-	save_CFLAGS=$CFLAGS
+	save_CPPFLAGS=$CPPFLAGS
 	save_LDFLAGS=$LDFLAGS
-	CFLAGS="$CFLAGS $PERL_CPPFLAGS"
+	CPPFLAGS="$CPPFLAGS $PERL_CPPFLAGS"
 	LDFLAGS="$LDFLAGS $PERL_LDFLAGS"
 	AC_SEARCH_LIBS(perl_construct, [`echo $PERL_LIBS | sed 's/^-l//;s/ -l/ /g'`], [ol_link_perl=yes])
 	LDFLAGS=$save_LDFLAGS
-	CFLAGS=$save_CFLAGS
+	CPPFLAGS=$save_CPPFLAGS
 	LIBS=$save_LIBS
 
 	if test $ol_link_perl = no -a $ol_enable_perl = yes ; then
@@ -765,15 +765,15 @@ dnl Check for module support
 if test $ol_enable_modules != no -o $ol_enable_slapi != no; then
 	# The lt_dladvise_init symbol was added with libtool-2.2
 	if test yes != "$with_included_ltdl"; then
-		save_CFLAGS=$CFLAGS
+		save_CPPFLAGS=$CPPFLAGS
 		save_LDFLAGS=$LDFLAGS
-		CFLAGS="$CFLAGS $LTDLINCL"
+		CPPFLAGS="$CPPFLAGS $LTDLINCL"
 		LDFLAGS="$LDFLAGS $LIBLTDL"
 		AC_CHECK_LIB([ltdl], [lt_dladvise_init],
 			[],
 			[AC_MSG_ERROR([installed libltdl is too old])])
 		LDFLAGS=$save_LDFLAGS
-		CFLAGS=$save_CFLAGS
+		CPPFLAGS=$save_CPPFLAGS
 	fi
 else
 	for be in $slapd_backends; do
@@ -1115,10 +1115,10 @@ AC_SUBST(OPENSSL_CFLAGS)
 AM_CONDITIONAL([OPENSSL_AVAIL], [test $openssl_found = yes])
 if test $openssl_found = yes; then
     AC_DEFINE(HAVE_OPENSSL, 1, [define if you have OpenSSL])
-    save_CFLAGS=$CFLAGS
-    CFLAGS="$CFLAGS $OPENSSL_CFLAGS"
+    save_CPPFLAGS=$CPPFLAGS
+    CPPFLAGS="$CPPFLAGS $OPENSSL_CFLAGS"
     AC_CHECK_HEADERS([openssl/ssl.h ssl.h])
-    CFLAGS=$save_CFLAGS
+    CPPFLAGS=$save_CPPFLAGS
     if test $ac_cv_header_openssl_ssl_h != yes -a $ac_cv_header_ssl_h != yes; then
 	AC_MSG_ERROR([could not locate openssl/ssl.h or ssl.h])
     fi
@@ -1130,10 +1130,10 @@ AC_SUBST(GNUTLS_CFLAGS)
 AM_CONDITIONAL([GNUTLS_AVAIL], [test $gnutls_found = yes])
 if test $gnutls_found = yes; then
     AC_DEFINE(HAVE_GNUTLS, 1, [define if you have GnuTLS])
-    save_CFLAGS=$CFLAGS
-    CFLAGS="$CFLAGS $GNUTLS_CFLAGS"
+    save_CPPFLAGS=$CPPFLAGS
+    CPPFLAGS="$CPPFLAGS $GNUTLS_CFLAGS"
     AC_CHECK_HEADERS(gnutls/gnutls.h)
-    CFLAGS=$save_CFLAGS
+    CPPFLAGS=$save_CPPFLAGS
     if test $ac_cv_header_gnutls_gnutls_h != yes; then
 	AC_MSG_ERROR([could not locate gnutls/gnutls.h])
     fi
@@ -1145,8 +1145,8 @@ AC_SUBST(MOZNSS_CFLAGS)
 AM_CONDITIONAL([MOZNSS_AVAIL], [test $moznss_found = yes])
 if test $moznss_found = yes; then
     AC_DEFINE(HAVE_MOZNSS, 1, [define if you have Mozill NSS])
-    save_CFLAGS=$CFLAGS
-    CFLAGS="$CFLAGS $MOZNSS_CFLAGS"
+    save_CPPFLAGS=$CPPFLAGS
+    CPPFLAGS="$CPPFLAGS $MOZNSS_CFLAGS"
     AC_CHECK_HEADERS([nspr/nspr.h nspr4/nspr.h])
     if test $ac_cv_header_nspr_nspr_h != yes -a $ac_cv_header_nspr4_nspr_h != yes; then
 	AC_MSG_ERROR([could not locate nspr/nspr.h or nspr4/nspr.h])
@@ -1155,7 +1155,7 @@ if test $moznss_found = yes; then
     if test $ac_cv_header_nss_nss_h != yes -a $ac_cv_header_nss3_nss_h != yes; then
 	AC_MSG_ERROR([could not locate nss/nss.h or nss3/nss.h])
     fi
-    CFLAGS=$save_CFLAGS
+    CPPFLAGS=$save_CPPFLAGS
 fi
 
 AM_CONDITIONAL([TLS_FALLBACK_AVAIL], [test $gnutls_found = yes -o $openssl_found = yes])
