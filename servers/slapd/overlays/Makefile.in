@@ -89,7 +89,7 @@ POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
 target_triplet = @target@
-@BEHIND_CURTIAN_TRUE@am__append_1 = accesslog_banner.c auditlog_banner.c \
+@BEHIND_CURTIAN_TRUE@am__append_1 = accesslog_banner.c auditlog_banner.c autoca_banner.c \
 @BEHIND_CURTIAN_TRUE@	collect_banner.c valsort_banner.c constraint_banner.c \
 @BEHIND_CURTIAN_TRUE@	dds_banner.c deref_banner.c dyngroup_banner.c dynlist_banner.c \
 @BEHIND_CURTIAN_TRUE@	memberof_banner.c ppolicy_banner.c pcache_banner.c \
@@ -100,45 +100,47 @@ target_triplet = @target@
 @ACCESSLOG_DYNAMIC_FALSE@@BUILD_ACCESSLOG_TRUE@am__append_3 = accesslog.c
 @AUDITLOG_DYNAMIC_TRUE@@BUILD_AUDITLOG_TRUE@am__append_4 = auditlog.la
 @AUDITLOG_DYNAMIC_FALSE@@BUILD_AUDITLOG_TRUE@am__append_5 = auditlog.c
-@BUILD_COLLECT_TRUE@@COLLECT_DYNAMIC_TRUE@am__append_6 = collect.la
-@BUILD_COLLECT_TRUE@@COLLECT_DYNAMIC_FALSE@am__append_7 = collect.c
-@BUILD_CONSTRAINT_TRUE@@CONSTRAINT_DYNAMIC_TRUE@am__append_8 = constraint.la
-@BUILD_CONSTRAINT_TRUE@@CONSTRAINT_DYNAMIC_FALSE@am__append_9 = constraint.c
-@BUILD_DDS_TRUE@@DDS_DYNAMIC_TRUE@am__append_10 = dds.la
-@BUILD_DDS_TRUE@@DDS_DYNAMIC_FALSE@am__append_11 = dds.c
-@BUILD_DEREF_TRUE@@DEREF_DYNAMIC_TRUE@am__append_12 = deref.la
-@BUILD_DEREF_TRUE@@DEREF_DYNAMIC_FALSE@am__append_13 = deref.c
-@BUILD_DYNGROUP_TRUE@@DYNGROUP_DYNAMIC_TRUE@am__append_14 = dyngroup.la
-@BUILD_DYNGROUP_TRUE@@DYNGROUP_DYNAMIC_FALSE@am__append_15 = dyngroup.c
-@BUILD_DYNLIST_TRUE@@DYNLIST_DYNAMIC_TRUE@am__append_16 = dynlist.la
-@BUILD_DYNLIST_TRUE@@DYNLIST_DYNAMIC_FALSE@am__append_17 = dynlist.c
-@BUILD_MEMBEROF_TRUE@@MEMBEROF_DYNAMIC_TRUE@am__append_18 = memberof.la
-@BUILD_MEMBEROF_TRUE@@MEMBEROF_DYNAMIC_FALSE@am__append_19 = memberof.c
-@BUILD_PPOLICY_TRUE@@PPOLICY_DYNAMIC_TRUE@am__append_20 = ppolicy.la
-@BUILD_PPOLICY_TRUE@@PPOLICY_DYNAMIC_FALSE@am__append_21 = ppolicy.c
-@BUILD_PPOLICY_TRUE@@PPOLICY_DYNAMIC_FALSE@@SLAPD_DYNAMIC_TRUE@am__append_22 = $(LTDLINCL)
-@BUILD_PPOLICY_TRUE@@PPOLICY_DYNAMIC_FALSE@@SLAPD_DYNAMIC_TRUE@am__append_23 = $(LIBLTDL)
-@BUILD_PPOLICY_TRUE@@PPOLICY_DYNAMIC_FALSE@@SLAPD_DYNAMIC_TRUE@am__append_24 = $(LTDLDEPS)
-@BUILD_PCACHE_TRUE@@PCACHE_DYNAMIC_TRUE@am__append_25 = pcache.la
-@BUILD_PCACHE_TRUE@@PCACHE_DYNAMIC_FALSE@am__append_26 = pcache.c
-@BUILD_REFINT_TRUE@@REFINT_DYNAMIC_TRUE@am__append_27 = refint.la
-@BUILD_REFINT_TRUE@@REFINT_DYNAMIC_FALSE@am__append_28 = refint.c
-@BUILD_RETCODE_TRUE@@RETCODE_DYNAMIC_TRUE@am__append_29 = retcode.la
-@BUILD_RETCODE_TRUE@@RETCODE_DYNAMIC_FALSE@am__append_30 = retcode.c
-@BUILD_RWM_TRUE@@RWM_DYNAMIC_TRUE@am__append_31 = rwm.la
-@BUILD_RWM_TRUE@@RWM_DYNAMIC_FALSE@am__append_32 = rwm_banner.c rwm.c rwmconf.c rwmdn.c rwm.h rwmmap.c
-@BUILD_SEQMOD_TRUE@@SEQMOD_DYNAMIC_TRUE@am__append_33 = seqmod.la
-@BUILD_SEQMOD_TRUE@@SEQMOD_DYNAMIC_FALSE@am__append_34 = seqmod.c
-@BUILD_SSSVLV_TRUE@@SSSVLV_DYNAMIC_TRUE@am__append_35 = sssvlv.la
-@BUILD_SSSVLV_TRUE@@SSSVLV_DYNAMIC_FALSE@am__append_36 = sssvlv.c
-@BUILD_SYNCPROV_TRUE@@SYNCPROV_DYNAMIC_TRUE@am__append_37 = syncprov.la
-@BUILD_SYNCPROV_TRUE@@SYNCPROV_DYNAMIC_FALSE@am__append_38 = syncprov.c
-@BUILD_TRANSLUCENT_TRUE@@TRANSLUCENT_DYNAMIC_TRUE@am__append_39 = translucent.la
-@BUILD_TRANSLUCENT_TRUE@@TRANSLUCENT_DYNAMIC_FALSE@am__append_40 = translucent.c
-@BUILD_UNIQUE_TRUE@@UNIQUE_DYNAMIC_TRUE@am__append_41 = unique.la
-@BUILD_UNIQUE_TRUE@@UNIQUE_DYNAMIC_FALSE@am__append_42 = unique.c
-@BUILD_VALSORT_TRUE@@VALSORT_DYNAMIC_TRUE@am__append_43 = valsort.la
-@BUILD_VALSORT_TRUE@@VALSORT_DYNAMIC_FALSE@am__append_44 = valsort.c
+@AUTOCA_DYNAMIC_TRUE@@BUILD_AUTOCA_TRUE@am__append_6 = autoca.la
+@AUTOCA_DYNAMIC_FALSE@@BUILD_AUTOCA_TRUE@am__append_7 = autoca.c
+@BUILD_COLLECT_TRUE@@COLLECT_DYNAMIC_TRUE@am__append_8 = collect.la
+@BUILD_COLLECT_TRUE@@COLLECT_DYNAMIC_FALSE@am__append_9 = collect.c
+@BUILD_CONSTRAINT_TRUE@@CONSTRAINT_DYNAMIC_TRUE@am__append_10 = constraint.la
+@BUILD_CONSTRAINT_TRUE@@CONSTRAINT_DYNAMIC_FALSE@am__append_11 = constraint.c
+@BUILD_DDS_TRUE@@DDS_DYNAMIC_TRUE@am__append_12 = dds.la
+@BUILD_DDS_TRUE@@DDS_DYNAMIC_FALSE@am__append_13 = dds.c
+@BUILD_DEREF_TRUE@@DEREF_DYNAMIC_TRUE@am__append_14 = deref.la
+@BUILD_DEREF_TRUE@@DEREF_DYNAMIC_FALSE@am__append_15 = deref.c
+@BUILD_DYNGROUP_TRUE@@DYNGROUP_DYNAMIC_TRUE@am__append_16 = dyngroup.la
+@BUILD_DYNGROUP_TRUE@@DYNGROUP_DYNAMIC_FALSE@am__append_17 = dyngroup.c
+@BUILD_DYNLIST_TRUE@@DYNLIST_DYNAMIC_TRUE@am__append_18 = dynlist.la
+@BUILD_DYNLIST_TRUE@@DYNLIST_DYNAMIC_FALSE@am__append_19 = dynlist.c
+@BUILD_MEMBEROF_TRUE@@MEMBEROF_DYNAMIC_TRUE@am__append_20 = memberof.la
+@BUILD_MEMBEROF_TRUE@@MEMBEROF_DYNAMIC_FALSE@am__append_21 = memberof.c
+@BUILD_PPOLICY_TRUE@@PPOLICY_DYNAMIC_TRUE@am__append_22 = ppolicy.la
+@BUILD_PPOLICY_TRUE@@PPOLICY_DYNAMIC_FALSE@am__append_23 = ppolicy.c
+@BUILD_PPOLICY_TRUE@@PPOLICY_DYNAMIC_FALSE@@SLAPD_DYNAMIC_TRUE@am__append_24 = $(LTDLINCL)
+@BUILD_PPOLICY_TRUE@@PPOLICY_DYNAMIC_FALSE@@SLAPD_DYNAMIC_TRUE@am__append_25 = $(LIBLTDL)
+@BUILD_PPOLICY_TRUE@@PPOLICY_DYNAMIC_FALSE@@SLAPD_DYNAMIC_TRUE@am__append_26 = $(LTDLDEPS)
+@BUILD_PCACHE_TRUE@@PCACHE_DYNAMIC_TRUE@am__append_27 = pcache.la
+@BUILD_PCACHE_TRUE@@PCACHE_DYNAMIC_FALSE@am__append_28 = pcache.c
+@BUILD_REFINT_TRUE@@REFINT_DYNAMIC_TRUE@am__append_29 = refint.la
+@BUILD_REFINT_TRUE@@REFINT_DYNAMIC_FALSE@am__append_30 = refint.c
+@BUILD_RETCODE_TRUE@@RETCODE_DYNAMIC_TRUE@am__append_31 = retcode.la
+@BUILD_RETCODE_TRUE@@RETCODE_DYNAMIC_FALSE@am__append_32 = retcode.c
+@BUILD_RWM_TRUE@@RWM_DYNAMIC_TRUE@am__append_33 = rwm.la
+@BUILD_RWM_TRUE@@RWM_DYNAMIC_FALSE@am__append_34 = rwm_banner.c rwm.c rwmconf.c rwmdn.c rwm.h rwmmap.c
+@BUILD_SEQMOD_TRUE@@SEQMOD_DYNAMIC_TRUE@am__append_35 = seqmod.la
+@BUILD_SEQMOD_TRUE@@SEQMOD_DYNAMIC_FALSE@am__append_36 = seqmod.c
+@BUILD_SSSVLV_TRUE@@SSSVLV_DYNAMIC_TRUE@am__append_37 = sssvlv.la
+@BUILD_SSSVLV_TRUE@@SSSVLV_DYNAMIC_FALSE@am__append_38 = sssvlv.c
+@BUILD_SYNCPROV_TRUE@@SYNCPROV_DYNAMIC_TRUE@am__append_39 = syncprov.la
+@BUILD_SYNCPROV_TRUE@@SYNCPROV_DYNAMIC_FALSE@am__append_40 = syncprov.c
+@BUILD_TRANSLUCENT_TRUE@@TRANSLUCENT_DYNAMIC_TRUE@am__append_41 = translucent.la
+@BUILD_TRANSLUCENT_TRUE@@TRANSLUCENT_DYNAMIC_FALSE@am__append_42 = translucent.c
+@BUILD_UNIQUE_TRUE@@UNIQUE_DYNAMIC_TRUE@am__append_43 = unique.la
+@BUILD_UNIQUE_TRUE@@UNIQUE_DYNAMIC_FALSE@am__append_44 = unique.c
+@BUILD_VALSORT_TRUE@@VALSORT_DYNAMIC_TRUE@am__append_45 = valsort.la
+@BUILD_VALSORT_TRUE@@VALSORT_DYNAMIC_FALSE@am__append_46 = valsort.c
 subdir = servers/slapd/overlays
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/build/m4/ax_pthread.m4 \
@@ -218,6 +220,17 @@ auditlog_la_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) \
 @AUDITLOG_DYNAMIC_TRUE@@BUILD_AUDITLOG_TRUE@am_auditlog_la_rpath =  \
 @AUDITLOG_DYNAMIC_TRUE@@BUILD_AUDITLOG_TRUE@	-rpath \
 @AUDITLOG_DYNAMIC_TRUE@@BUILD_AUDITLOG_TRUE@	$(pkglibdir)
+autoca_la_LIBADD =
+am__autoca_la_SOURCES_DIST = autoca.c autoca_banner.c
+@AUTOCA_DYNAMIC_TRUE@@BUILD_AUTOCA_TRUE@am_autoca_la_OBJECTS =  \
+@AUTOCA_DYNAMIC_TRUE@@BUILD_AUTOCA_TRUE@	autoca.lo \
+@AUTOCA_DYNAMIC_TRUE@@BUILD_AUTOCA_TRUE@	autoca_banner.lo
+autoca_la_OBJECTS = $(am_autoca_la_OBJECTS)
+autoca_la_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) \
+	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) \
+	$(autoca_la_LDFLAGS) $(LDFLAGS) -o $@
+@AUTOCA_DYNAMIC_TRUE@@BUILD_AUTOCA_TRUE@am_autoca_la_rpath = -rpath \
+@AUTOCA_DYNAMIC_TRUE@@BUILD_AUTOCA_TRUE@	$(pkglibdir)
 collect_la_LIBADD =
 am__collect_la_SOURCES_DIST = collect.c collect_banner.c
 @BUILD_COLLECT_TRUE@@COLLECT_DYNAMIC_TRUE@am_collect_la_OBJECTS =  \
@@ -288,34 +301,35 @@ am__DEPENDENCIES_1 =
 @BUILD_PPOLICY_TRUE@@PPOLICY_DYNAMIC_FALSE@@SLAPD_DYNAMIC_TRUE@am__DEPENDENCIES_2 = $(am__DEPENDENCIES_1)
 liboverlays_builtin_la_DEPENDENCIES = $(am__DEPENDENCIES_2)
 am__liboverlays_builtin_la_SOURCES_DIST = overlays.c accesslog.c \
-	auditlog.c collect.c constraint.c dds.c deref.c dyngroup.c \
-	dynlist.c memberof.c ppolicy.c pcache.c refint.c retcode.c \
-	rwm_banner.c rwm.c rwmconf.c rwmdn.c rwm.h rwmmap.c seqmod.c \
-	sssvlv.c syncprov.c translucent.c unique.c valsort.c
+	auditlog.c autoca.c collect.c constraint.c dds.c deref.c \
+	dyngroup.c dynlist.c memberof.c ppolicy.c pcache.c refint.c \
+	retcode.c rwm_banner.c rwm.c rwmconf.c rwmdn.c rwm.h rwmmap.c \
+	seqmod.c sssvlv.c syncprov.c translucent.c unique.c valsort.c
 @ACCESSLOG_DYNAMIC_FALSE@@BUILD_ACCESSLOG_TRUE@am__objects_1 = liboverlays_builtin_la-accesslog.lo
 @AUDITLOG_DYNAMIC_FALSE@@BUILD_AUDITLOG_TRUE@am__objects_2 = liboverlays_builtin_la-auditlog.lo
-@BUILD_COLLECT_TRUE@@COLLECT_DYNAMIC_FALSE@am__objects_3 = liboverlays_builtin_la-collect.lo
-@BUILD_CONSTRAINT_TRUE@@CONSTRAINT_DYNAMIC_FALSE@am__objects_4 = liboverlays_builtin_la-constraint.lo
-@BUILD_DDS_TRUE@@DDS_DYNAMIC_FALSE@am__objects_5 = liboverlays_builtin_la-dds.lo
-@BUILD_DEREF_TRUE@@DEREF_DYNAMIC_FALSE@am__objects_6 = liboverlays_builtin_la-deref.lo
-@BUILD_DYNGROUP_TRUE@@DYNGROUP_DYNAMIC_FALSE@am__objects_7 = liboverlays_builtin_la-dyngroup.lo
-@BUILD_DYNLIST_TRUE@@DYNLIST_DYNAMIC_FALSE@am__objects_8 = liboverlays_builtin_la-dynlist.lo
-@BUILD_MEMBEROF_TRUE@@MEMBEROF_DYNAMIC_FALSE@am__objects_9 = liboverlays_builtin_la-memberof.lo
-@BUILD_PPOLICY_TRUE@@PPOLICY_DYNAMIC_FALSE@am__objects_10 = liboverlays_builtin_la-ppolicy.lo
-@BUILD_PCACHE_TRUE@@PCACHE_DYNAMIC_FALSE@am__objects_11 = liboverlays_builtin_la-pcache.lo
-@BUILD_REFINT_TRUE@@REFINT_DYNAMIC_FALSE@am__objects_12 = liboverlays_builtin_la-refint.lo
-@BUILD_RETCODE_TRUE@@RETCODE_DYNAMIC_FALSE@am__objects_13 = liboverlays_builtin_la-retcode.lo
-@BUILD_RWM_TRUE@@RWM_DYNAMIC_FALSE@am__objects_14 = liboverlays_builtin_la-rwm_banner.lo \
+@AUTOCA_DYNAMIC_FALSE@@BUILD_AUTOCA_TRUE@am__objects_3 = liboverlays_builtin_la-autoca.lo
+@BUILD_COLLECT_TRUE@@COLLECT_DYNAMIC_FALSE@am__objects_4 = liboverlays_builtin_la-collect.lo
+@BUILD_CONSTRAINT_TRUE@@CONSTRAINT_DYNAMIC_FALSE@am__objects_5 = liboverlays_builtin_la-constraint.lo
+@BUILD_DDS_TRUE@@DDS_DYNAMIC_FALSE@am__objects_6 = liboverlays_builtin_la-dds.lo
+@BUILD_DEREF_TRUE@@DEREF_DYNAMIC_FALSE@am__objects_7 = liboverlays_builtin_la-deref.lo
+@BUILD_DYNGROUP_TRUE@@DYNGROUP_DYNAMIC_FALSE@am__objects_8 = liboverlays_builtin_la-dyngroup.lo
+@BUILD_DYNLIST_TRUE@@DYNLIST_DYNAMIC_FALSE@am__objects_9 = liboverlays_builtin_la-dynlist.lo
+@BUILD_MEMBEROF_TRUE@@MEMBEROF_DYNAMIC_FALSE@am__objects_10 = liboverlays_builtin_la-memberof.lo
+@BUILD_PPOLICY_TRUE@@PPOLICY_DYNAMIC_FALSE@am__objects_11 = liboverlays_builtin_la-ppolicy.lo
+@BUILD_PCACHE_TRUE@@PCACHE_DYNAMIC_FALSE@am__objects_12 = liboverlays_builtin_la-pcache.lo
+@BUILD_REFINT_TRUE@@REFINT_DYNAMIC_FALSE@am__objects_13 = liboverlays_builtin_la-refint.lo
+@BUILD_RETCODE_TRUE@@RETCODE_DYNAMIC_FALSE@am__objects_14 = liboverlays_builtin_la-retcode.lo
+@BUILD_RWM_TRUE@@RWM_DYNAMIC_FALSE@am__objects_15 = liboverlays_builtin_la-rwm_banner.lo \
 @BUILD_RWM_TRUE@@RWM_DYNAMIC_FALSE@	liboverlays_builtin_la-rwm.lo \
 @BUILD_RWM_TRUE@@RWM_DYNAMIC_FALSE@	liboverlays_builtin_la-rwmconf.lo \
 @BUILD_RWM_TRUE@@RWM_DYNAMIC_FALSE@	liboverlays_builtin_la-rwmdn.lo \
 @BUILD_RWM_TRUE@@RWM_DYNAMIC_FALSE@	liboverlays_builtin_la-rwmmap.lo
-@BUILD_SEQMOD_TRUE@@SEQMOD_DYNAMIC_FALSE@am__objects_15 = liboverlays_builtin_la-seqmod.lo
-@BUILD_SSSVLV_TRUE@@SSSVLV_DYNAMIC_FALSE@am__objects_16 = liboverlays_builtin_la-sssvlv.lo
-@BUILD_SYNCPROV_TRUE@@SYNCPROV_DYNAMIC_FALSE@am__objects_17 = liboverlays_builtin_la-syncprov.lo
-@BUILD_TRANSLUCENT_TRUE@@TRANSLUCENT_DYNAMIC_FALSE@am__objects_18 = liboverlays_builtin_la-translucent.lo
-@BUILD_UNIQUE_TRUE@@UNIQUE_DYNAMIC_FALSE@am__objects_19 = liboverlays_builtin_la-unique.lo
-@BUILD_VALSORT_TRUE@@VALSORT_DYNAMIC_FALSE@am__objects_20 = liboverlays_builtin_la-valsort.lo
+@BUILD_SEQMOD_TRUE@@SEQMOD_DYNAMIC_FALSE@am__objects_16 = liboverlays_builtin_la-seqmod.lo
+@BUILD_SSSVLV_TRUE@@SSSVLV_DYNAMIC_FALSE@am__objects_17 = liboverlays_builtin_la-sssvlv.lo
+@BUILD_SYNCPROV_TRUE@@SYNCPROV_DYNAMIC_FALSE@am__objects_18 = liboverlays_builtin_la-syncprov.lo
+@BUILD_TRANSLUCENT_TRUE@@TRANSLUCENT_DYNAMIC_FALSE@am__objects_19 = liboverlays_builtin_la-translucent.lo
+@BUILD_UNIQUE_TRUE@@UNIQUE_DYNAMIC_FALSE@am__objects_20 = liboverlays_builtin_la-unique.lo
+@BUILD_VALSORT_TRUE@@VALSORT_DYNAMIC_FALSE@am__objects_21 = liboverlays_builtin_la-valsort.lo
 am_liboverlays_builtin_la_OBJECTS =  \
 	liboverlays_builtin_la-overlays.lo $(am__objects_1) \
 	$(am__objects_2) $(am__objects_3) $(am__objects_4) \
@@ -324,7 +338,7 @@ am_liboverlays_builtin_la_OBJECTS =  \
 	$(am__objects_11) $(am__objects_12) $(am__objects_13) \
 	$(am__objects_14) $(am__objects_15) $(am__objects_16) \
 	$(am__objects_17) $(am__objects_18) $(am__objects_19) \
-	$(am__objects_20)
+	$(am__objects_20) $(am__objects_21)
 liboverlays_builtin_la_OBJECTS = $(am_liboverlays_builtin_la_OBJECTS)
 memberof_la_LIBADD =
 am__memberof_la_SOURCES_DIST = memberof.c memberof_banner.c
@@ -496,17 +510,18 @@ am__v_CCLD_ = $(am__v_CCLD_@AM_DEFAULT_V@)
 am__v_CCLD_0 = @echo "  CCLD    " $@;
 am__v_CCLD_1 = 
 SOURCES = $(accesslog_la_SOURCES) $(auditlog_la_SOURCES) \
-	$(collect_la_SOURCES) $(constraint_la_SOURCES) \
-	$(dds_la_SOURCES) $(deref_la_SOURCES) $(dyngroup_la_SOURCES) \
-	$(dynlist_la_SOURCES) $(liboverlays_builtin_la_SOURCES) \
-	$(memberof_la_SOURCES) $(pcache_la_SOURCES) \
-	$(ppolicy_la_SOURCES) $(refint_la_SOURCES) \
-	$(retcode_la_SOURCES) $(rwm_la_SOURCES) $(seqmod_la_SOURCES) \
-	$(sssvlv_la_SOURCES) $(syncprov_la_SOURCES) \
-	$(translucent_la_SOURCES) $(unique_la_SOURCES) \
-	$(valsort_la_SOURCES)
+	$(autoca_la_SOURCES) $(collect_la_SOURCES) \
+	$(constraint_la_SOURCES) $(dds_la_SOURCES) $(deref_la_SOURCES) \
+	$(dyngroup_la_SOURCES) $(dynlist_la_SOURCES) \
+	$(liboverlays_builtin_la_SOURCES) $(memberof_la_SOURCES) \
+	$(pcache_la_SOURCES) $(ppolicy_la_SOURCES) \
+	$(refint_la_SOURCES) $(retcode_la_SOURCES) $(rwm_la_SOURCES) \
+	$(seqmod_la_SOURCES) $(sssvlv_la_SOURCES) \
+	$(syncprov_la_SOURCES) $(translucent_la_SOURCES) \
+	$(unique_la_SOURCES) $(valsort_la_SOURCES)
 DIST_SOURCES = $(am__accesslog_la_SOURCES_DIST) \
-	$(am__auditlog_la_SOURCES_DIST) $(am__collect_la_SOURCES_DIST) \
+	$(am__auditlog_la_SOURCES_DIST) $(am__autoca_la_SOURCES_DIST) \
+	$(am__collect_la_SOURCES_DIST) \
 	$(am__constraint_la_SOURCES_DIST) $(am__dds_la_SOURCES_DIST) \
 	$(am__deref_la_SOURCES_DIST) $(am__dyngroup_la_SOURCES_DIST) \
 	$(am__dynlist_la_SOURCES_DIST) \
@@ -789,10 +804,10 @@ noinst_LTLIBRARIES = liboverlays_builtin.la
 pkglib_LTLIBRARIES = $(am__append_2) $(am__append_4) $(am__append_6) \
 	$(am__append_8) $(am__append_10) $(am__append_12) \
 	$(am__append_14) $(am__append_16) $(am__append_18) \
-	$(am__append_20) $(am__append_25) $(am__append_27) \
+	$(am__append_20) $(am__append_22) $(am__append_27) \
 	$(am__append_29) $(am__append_31) $(am__append_33) \
 	$(am__append_35) $(am__append_37) $(am__append_39) \
-	$(am__append_41) $(am__append_43)
+	$(am__append_41) $(am__append_43) $(am__append_45)
 BUILT_SOURCES = $(am__append_1)
 EXTRA_DIST = README
 AM_CPPFLAGS = -DSLAPD_IMPORT -I$(srcdir)/.. -I$(top_srcdir)/include
@@ -800,13 +815,13 @@ liboverlays_builtin_la_SOURCES = overlays.c $(am__append_3) \
 	$(am__append_5) $(am__append_7) $(am__append_9) \
 	$(am__append_11) $(am__append_13) $(am__append_15) \
 	$(am__append_17) $(am__append_19) $(am__append_21) \
-	$(am__append_26) $(am__append_28) $(am__append_30) \
+	$(am__append_23) $(am__append_28) $(am__append_30) \
 	$(am__append_32) $(am__append_34) $(am__append_36) \
 	$(am__append_38) $(am__append_40) $(am__append_42) \
-	$(am__append_44)
-liboverlays_builtin_la_CPPFLAGS = $(AM_CPPFLAGS) $(am__append_22)
-liboverlays_builtin_la_LIBADD = $(am__append_23)
-EXTRA_liboverlays_builtin_la_DEPENDENCIES = $(am__append_24)
+	$(am__append_44) $(am__append_46)
+liboverlays_builtin_la_CPPFLAGS = $(AM_CPPFLAGS) $(am__append_24)
+liboverlays_builtin_la_LIBADD = $(am__append_25)
+EXTRA_liboverlays_builtin_la_DEPENDENCIES = $(am__append_26)
 @ACCESSLOG_DYNAMIC_TRUE@@BUILD_ACCESSLOG_TRUE@accesslog_la_LDFLAGS = -module -export-dynamic \
 @ACCESSLOG_DYNAMIC_TRUE@@BUILD_ACCESSLOG_TRUE@	-release $(API_LIB_RELEASE) -version-info $(API_LIB_VERSION)
 
@@ -815,6 +830,10 @@ EXTRA_liboverlays_builtin_la_DEPENDENCIES = $(am__append_24)
 @AUDITLOG_DYNAMIC_TRUE@@BUILD_AUDITLOG_TRUE@	-release $(API_LIB_RELEASE) -version-info $(API_LIB_VERSION)
 
 @AUDITLOG_DYNAMIC_TRUE@@BUILD_AUDITLOG_TRUE@auditlog_la_SOURCES = auditlog.c auditlog_banner.c
+@AUTOCA_DYNAMIC_TRUE@@BUILD_AUTOCA_TRUE@autoca_la_LDFLAGS = -module -export-dynamic \
+@AUTOCA_DYNAMIC_TRUE@@BUILD_AUTOCA_TRUE@	-release $(API_LIB_RELEASE) -version-info $(API_LIB_VERSION)
+
+@AUTOCA_DYNAMIC_TRUE@@BUILD_AUTOCA_TRUE@autoca_la_SOURCES = autoca.c autoca_banner.c
 @BUILD_COLLECT_TRUE@@COLLECT_DYNAMIC_TRUE@collect_la_LDFLAGS = -module -export-dynamic \
 @BUILD_COLLECT_TRUE@@COLLECT_DYNAMIC_TRUE@	-release $(API_LIB_RELEASE) -version-info $(API_LIB_VERSION)
 
@@ -978,6 +997,9 @@ accesslog.la: $(accesslog_la_OBJECTS) $(accesslog_la_DEPENDENCIES) $(EXTRA_acces
 auditlog.la: $(auditlog_la_OBJECTS) $(auditlog_la_DEPENDENCIES) $(EXTRA_auditlog_la_DEPENDENCIES) 
 	$(AM_V_CCLD)$(auditlog_la_LINK) $(am_auditlog_la_rpath) $(auditlog_la_OBJECTS) $(auditlog_la_LIBADD) $(LIBS)
 
+autoca.la: $(autoca_la_OBJECTS) $(autoca_la_DEPENDENCIES) $(EXTRA_autoca_la_DEPENDENCIES) 
+	$(AM_V_CCLD)$(autoca_la_LINK) $(am_autoca_la_rpath) $(autoca_la_OBJECTS) $(autoca_la_LIBADD) $(LIBS)
+
 collect.la: $(collect_la_OBJECTS) $(collect_la_DEPENDENCIES) $(EXTRA_collect_la_DEPENDENCIES) 
 	$(AM_V_CCLD)$(collect_la_LINK) $(am_collect_la_rpath) $(collect_la_OBJECTS) $(collect_la_LIBADD) $(LIBS)
 
@@ -1045,6 +1067,8 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/accesslog_banner.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/auditlog.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/auditlog_banner.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/autoca.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/autoca_banner.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/collect.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/collect_banner.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/constraint.Plo@am__quote@
@@ -1059,6 +1083,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/dynlist_banner.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/liboverlays_builtin_la-accesslog.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/liboverlays_builtin_la-auditlog.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/liboverlays_builtin_la-autoca.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/liboverlays_builtin_la-collect.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/liboverlays_builtin_la-constraint.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/liboverlays_builtin_la-dds.Plo@am__quote@
@@ -1154,6 +1179,13 @@ liboverlays_builtin_la-auditlog.lo: auditlog.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='auditlog.c' object='liboverlays_builtin_la-auditlog.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(liboverlays_builtin_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o liboverlays_builtin_la-auditlog.lo `test -f 'auditlog.c' || echo '$(srcdir)/'`auditlog.c
+
+liboverlays_builtin_la-autoca.lo: autoca.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(liboverlays_builtin_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT liboverlays_builtin_la-autoca.lo -MD -MP -MF $(DEPDIR)/liboverlays_builtin_la-autoca.Tpo -c -o liboverlays_builtin_la-autoca.lo `test -f 'autoca.c' || echo '$(srcdir)/'`autoca.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/liboverlays_builtin_la-autoca.Tpo $(DEPDIR)/liboverlays_builtin_la-autoca.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='autoca.c' object='liboverlays_builtin_la-autoca.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(liboverlays_builtin_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o liboverlays_builtin_la-autoca.lo `test -f 'autoca.c' || echo '$(srcdir)/'`autoca.c
 
 liboverlays_builtin_la-collect.lo: collect.c
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(liboverlays_builtin_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT liboverlays_builtin_la-collect.lo -MD -MP -MF $(DEPDIR)/liboverlays_builtin_la-collect.Tpo -c -o liboverlays_builtin_la-collect.lo `test -f 'collect.c' || echo '$(srcdir)/'`collect.c
@@ -1547,6 +1579,8 @@ uninstall-am: uninstall-pkglibLTLIBRARIES
 @BEHIND_CURTIAN_TRUE@	$(MKBANNER) --name overlay_accesslog --global 'overlay-accesslog' > $@ || $(RM) $@
 @BEHIND_CURTIAN_TRUE@auditlog_banner.c: Makefile
 @BEHIND_CURTIAN_TRUE@	$(MKBANNER) --name overlay_auditlog --global 'overlay-auditlog' > $@ || $(RM) $@
+@BEHIND_CURTIAN_TRUE@autoca_banner.c: Makefile
+@BEHIND_CURTIAN_TRUE@	$(MKBANNER) --name overlay_autoca --global 'overlay-autoca' > $@ || $(RM) $@
 @BEHIND_CURTIAN_TRUE@collect_banner.c: Makefile
 @BEHIND_CURTIAN_TRUE@	$(MKBANNER) --name overlay_collect --global 'overlay-collect' > $@ || $(RM) $@
 @BEHIND_CURTIAN_TRUE@valsort_banner.c: Makefile

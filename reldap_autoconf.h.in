@@ -1134,6 +1134,9 @@
 /* define for Audit Logging overlay */
 #undef SLAPD_OVER_AUDITLOG
 
+/* define for Automatic Certificate Authority overlay */
+#undef SLAPD_OVER_AUTOCA
+
 /* define for Collect overlay */
 #undef SLAPD_OVER_COLLECT
 

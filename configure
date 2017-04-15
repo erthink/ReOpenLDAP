@@ -768,6 +768,10 @@ COLLECT_DYNAMIC_FALSE
 COLLECT_DYNAMIC_TRUE
 BUILD_COLLECT_FALSE
 BUILD_COLLECT_TRUE
+AUTOCA_DYNAMIC_FALSE
+AUTOCA_DYNAMIC_TRUE
+BUILD_AUTOCA_FALSE
+BUILD_AUTOCA_TRUE
 AUDITLOG_DYNAMIC_FALSE
 AUDITLOG_DYNAMIC_TRUE
 BUILD_AUDITLOG_FALSE
@@ -1164,6 +1168,7 @@ enable_xxslapoverlays
 enable_overlays
 enable_accesslog
 enable_auditlog
+enable_autoca
 enable_collect
 enable_constraint
 enable_dds
@@ -1923,6 +1928,7 @@ SLAPD Overlay Options:
     --enable-overlays	  enable all available overlays no|yes|mod
     --enable-accesslog	  In-Directory Access Logging overlay no|yes|mod [no]
     --enable-auditlog	  Audit Logging overlay no|yes|mod [no]
+    --enable-autoca	  Automatic Certificate Authority overlay no|yes|mod [no]
     --enable-collect	  Collect overlay no|yes|mod [no]
     --enable-constraint	  Attribute Constraint overlay no|yes|mod [no]
     --enable-dds  	  Dynamic Directory Services overlay no|yes|mod [no]
@@ -13161,9 +13167,9 @@ VERSION_MINOR=2
 
 VERSION_PATCH=0
 
-RELEASE_DATE=2017-04-09
+RELEASE_DATE=2017-04-15
 
-RELEASE_STAMP=g64587cf7aa9b-tf6d35f818239c1c7
+RELEASE_STAMP=g39bb153625a4-t6f1a74e0d7182b3a
 
 API_LIB_RELEASE=1.2
 
@@ -21803,7 +21809,7 @@ fi
 
 # end --enable-sql
 
-slapd_overlays="accesslog auditlog collect constraint dds deref \
+slapd_overlays="accesslog auditlog autoca collect constraint dds deref \
 	dyngroup dynlist memberof ppolicy pcache refint \
 	retcode rwm seqmod sssvlv syncprov translucent unique \
 	valsort"
@@ -21876,6 +21882,28 @@ else
 fi
 
 # end --enable-auditlog
+
+# OpenLDAP --enable-autoca
+
+	# Check whether --enable-autoca was given.
+if test "${enable_autoca+set}" = set; then :
+  enableval=$enable_autoca;
+	ol_arg=invalid
+	for ol_val in no yes mod ; do
+		if test "$enableval" = "$ol_val" ; then
+			ol_arg="$ol_val"
+		fi
+	done
+	if test "$ol_arg" = "invalid" ; then
+		as_fn_error $? "bad value $enableval for --enable-autoca" "$LINENO" 5
+	fi
+	ol_enable_autoca="$ol_arg"
+
+else
+  	ol_enable_autoca=${ol_enable_overlays:-no}
+fi
+
+# end --enable-autoca
 
 # OpenLDAP --enable-collect
 
@@ -23917,9 +23945,9 @@ fi
 	PERL_RDIR="`echo $PERL_LDFLAGS | tr '[:space:]' '\n' | grep -- '-Wl,-rpath,' | sed 's/-Wl,-rpath,/-R/'`"
 
 	save_LIBS=$LIBS
-	save_CFLAGS=$CFLAGS
+	save_CPPFLAGS=$CPPFLAGS
 	save_LDFLAGS=$LDFLAGS
-	CFLAGS="$CFLAGS $PERL_CPPFLAGS"
+	CPPFLAGS="$CPPFLAGS $PERL_CPPFLAGS"
 	LDFLAGS="$LDFLAGS $PERL_LDFLAGS"
 	{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for library containing perl_construct" >&5
 $as_echo_n "checking for library containing perl_construct... " >&6; }
@@ -23978,7 +24006,7 @@ if test "$ac_res" != no; then :
 fi
 
 	LDFLAGS=$save_LDFLAGS
-	CFLAGS=$save_CFLAGS
+	CPPFLAGS=$save_CPPFLAGS
 	LIBS=$save_LIBS
 
 	if test $ol_link_perl = no -a $ol_enable_perl = yes ; then
@@ -23998,9 +24026,9 @@ _ACEOF
 if test $ol_enable_modules != no -o $ol_enable_slapi != no; then
 	# The lt_dladvise_init symbol was added with libtool-2.2
 	if test yes != "$with_included_ltdl"; then
-		save_CFLAGS=$CFLAGS
+		save_CPPFLAGS=$CPPFLAGS
 		save_LDFLAGS=$LDFLAGS
-		CFLAGS="$CFLAGS $LTDLINCL"
+		CPPFLAGS="$CPPFLAGS $LTDLINCL"
 		LDFLAGS="$LDFLAGS $LIBLTDL"
 		{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for lt_dladvise_init in -lltdl" >&5
 $as_echo_n "checking for lt_dladvise_init in -lltdl... " >&6; }
@@ -24050,7 +24078,7 @@ else
 fi
 
 		LDFLAGS=$save_LDFLAGS
-		CFLAGS=$save_CFLAGS
+		CPPFLAGS=$save_CPPFLAGS
 	fi
 else
 	for be in $slapd_backends; do
@@ -26218,12 +26246,12 @@ if test -n "$OPENSSL_CFLAGS"; then
     pkg_cv_OPENSSL_CFLAGS="$OPENSSL_CFLAGS"
  elif test -n "$PKG_CONFIG"; then
     if test -n "$PKG_CONFIG" && \
-    { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"openssl libssl\""; } >&5
-  ($PKG_CONFIG --exists --print-errors "openssl libssl") 2>&5
+    { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"openssl\""; } >&5
+  ($PKG_CONFIG --exists --print-errors "openssl") 2>&5
   ac_status=$?
   $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
   test $ac_status = 0; }; then
-  pkg_cv_OPENSSL_CFLAGS=`$PKG_CONFIG --cflags "openssl libssl" 2>/dev/null`
+  pkg_cv_OPENSSL_CFLAGS=`$PKG_CONFIG --cflags "openssl" 2>/dev/null`
 		      test "x$?" != "x0" && pkg_failed=yes
 else
   pkg_failed=yes
@@ -26235,12 +26263,12 @@ if test -n "$OPENSSL_LIBS"; then
     pkg_cv_OPENSSL_LIBS="$OPENSSL_LIBS"
  elif test -n "$PKG_CONFIG"; then
     if test -n "$PKG_CONFIG" && \
-    { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"openssl libssl\""; } >&5
-  ($PKG_CONFIG --exists --print-errors "openssl libssl") 2>&5
+    { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"openssl\""; } >&5
+  ($PKG_CONFIG --exists --print-errors "openssl") 2>&5
   ac_status=$?
   $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
   test $ac_status = 0; }; then
-  pkg_cv_OPENSSL_LIBS=`$PKG_CONFIG --libs "openssl libssl" 2>/dev/null`
+  pkg_cv_OPENSSL_LIBS=`$PKG_CONFIG --libs "openssl" 2>/dev/null`
 		      test "x$?" != "x0" && pkg_failed=yes
 else
   pkg_failed=yes
@@ -26261,9 +26289,9 @@ else
         _pkg_short_errors_supported=no
 fi
         if test $_pkg_short_errors_supported = yes; then
-	        OPENSSL_PKG_ERRORS=`$PKG_CONFIG --short-errors --print-errors --cflags --libs "openssl libssl" 2>&1`
+	        OPENSSL_PKG_ERRORS=`$PKG_CONFIG --short-errors --print-errors --cflags --libs "openssl" 2>&1`
         else
-	        OPENSSL_PKG_ERRORS=`$PKG_CONFIG --print-errors --cflags --libs "openssl libssl" 2>&1`
+	        OPENSSL_PKG_ERRORS=`$PKG_CONFIG --print-errors --cflags --libs "openssl" 2>&1`
         fi
 	# Put the nasty error message in config.log where it belongs
 	echo "$OPENSSL_PKG_ERRORS" >&5
@@ -26294,6 +26322,8 @@ if test $openssl_found = yes; then
 
 $as_echo "#define HAVE_OPENSSL 1" >>confdefs.h
 
+    save_CPPFLAGS=$CPPFLAGS
+    CPPFLAGS="$CPPFLAGS $OPENSSL_CFLAGS"
     for ac_header in openssl/ssl.h ssl.h
 do :
   as_ac_Header=`$as_echo "ac_cv_header_$ac_header" | $as_tr_sh`
@@ -26307,6 +26337,7 @@ fi
 
 done
 
+    CPPFLAGS=$save_CPPFLAGS
     if test $ac_cv_header_openssl_ssl_h != yes -a $ac_cv_header_ssl_h != yes; then
 	as_fn_error $? "could not locate openssl/ssl.h or ssl.h" "$LINENO" 5
     fi
@@ -26397,6 +26428,8 @@ if test $gnutls_found = yes; then
 
 $as_echo "#define HAVE_GNUTLS 1" >>confdefs.h
 
+    save_CPPFLAGS=$CPPFLAGS
+    CPPFLAGS="$CPPFLAGS $GNUTLS_CFLAGS"
     for ac_header in gnutls/gnutls.h
 do :
   ac_fn_c_check_header_mongrel "$LINENO" "gnutls/gnutls.h" "ac_cv_header_gnutls_gnutls_h" "$ac_includes_default"
@@ -26409,6 +26442,7 @@ fi
 
 done
 
+    CPPFLAGS=$save_CPPFLAGS
     if test $ac_cv_header_gnutls_gnutls_h != yes; then
 	as_fn_error $? "could not locate gnutls/gnutls.h" "$LINENO" 5
     fi
@@ -26499,8 +26533,8 @@ if test $moznss_found = yes; then
 
 $as_echo "#define HAVE_MOZNSS 1" >>confdefs.h
 
-    save_CFLAGS=$CFLAGS
-    CFLAGS="$CFLAGS $MOZNSS_CFLAGS"
+    save_CPPFLAGS=$CPPFLAGS
+    CPPFLAGS="$CPPFLAGS $MOZNSS_CFLAGS"
     for ac_header in nspr/nspr.h nspr4/nspr.h
 do :
   as_ac_Header=`$as_echo "ac_cv_header_$ac_header" | $as_tr_sh`
@@ -26533,7 +26567,7 @@ done
     if test $ac_cv_header_nss_nss_h != yes -a $ac_cv_header_nss3_nss_h != yes; then
 	as_fn_error $? "could not locate nss/nss.h or nss3/nss.h" "$LINENO" 5
     fi
-    CFLAGS=$save_CFLAGS
+    CPPFLAGS=$save_CPPFLAGS
 fi
 
  if test $gnutls_found = yes -o $openssl_found = yes; then
@@ -35364,6 +35398,21 @@ _ACEOF
 
 fi
 
+if test "$ol_enable_autoca" != no ; then
+	if test "$ol_enable_autoca" = mod ; then
+		MFLAG=SLAPD_MOD_DYNAMIC
+		SLAPD_DYNAMIC_OVERLAYS="$SLAPD_DYNAMIC_OVERLAYS autoca"
+	else
+		MFLAG=SLAPD_MOD_STATIC
+		SLAPD_STATIC_OVERLAYS="$SLAPD_STATIC_OVERLAYS autoca"
+	fi
+
+cat >>confdefs.h <<_ACEOF
+#define SLAPD_OVER_AUTOCA $MFLAG
+_ACEOF
+
+fi
+
 if test "$ol_enable_collect" != no ; then
 	if test "$ol_enable_collect" = mod ; then
 		MFLAG=SLAPD_MOD_DYNAMIC
@@ -36123,6 +36172,23 @@ fi
 else
   AUDITLOG_DYNAMIC_TRUE='#'
   AUDITLOG_DYNAMIC_FALSE=
+fi
+
+
+	 if test $ol_enable_autoca != no; then
+  BUILD_AUTOCA_TRUE=
+  BUILD_AUTOCA_FALSE='#'
+else
+  BUILD_AUTOCA_TRUE='#'
+  BUILD_AUTOCA_FALSE=
+fi
+
+	 if test $ol_enable_autoca = mod; then
+  AUTOCA_DYNAMIC_TRUE=
+  AUTOCA_DYNAMIC_FALSE='#'
+else
+  AUTOCA_DYNAMIC_TRUE='#'
+  AUTOCA_DYNAMIC_FALSE=
 fi
 
 
@@ -36937,6 +37003,14 @@ Usually this means the macro was only invoked conditionally." "$LINENO" 5
 fi
 if test -z "${AUDITLOG_DYNAMIC_TRUE}" && test -z "${AUDITLOG_DYNAMIC_FALSE}"; then
   as_fn_error $? "conditional \"AUDITLOG_DYNAMIC\" was never defined.
+Usually this means the macro was only invoked conditionally." "$LINENO" 5
+fi
+if test -z "${BUILD_AUTOCA_TRUE}" && test -z "${BUILD_AUTOCA_FALSE}"; then
+  as_fn_error $? "conditional \"BUILD_AUTOCA\" was never defined.
+Usually this means the macro was only invoked conditionally." "$LINENO" 5
+fi
+if test -z "${AUTOCA_DYNAMIC_TRUE}" && test -z "${AUTOCA_DYNAMIC_FALSE}"; then
+  as_fn_error $? "conditional \"AUTOCA_DYNAMIC\" was never defined.
 Usually this means the macro was only invoked conditionally." "$LINENO" 5
 fi
 if test -z "${BUILD_COLLECT_TRUE}" && test -z "${BUILD_COLLECT_FALSE}"; then
