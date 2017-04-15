@@ -1109,13 +1109,16 @@ fi
 dnl ----------------------------------------------------------------
 dnl TLS/SSL
 
-PKG_CHECK_MODULES(OPENSSL, [openssl libssl], openssl_found=yes, openssl_found=no)
+PKG_CHECK_MODULES(OPENSSL, [openssl], openssl_found=yes, openssl_found=no)
 AC_SUBST(OPENSSL_LIBS)
 AC_SUBST(OPENSSL_CFLAGS)
 AM_CONDITIONAL([OPENSSL_AVAIL], [test $openssl_found = yes])
 if test $openssl_found = yes; then
     AC_DEFINE(HAVE_OPENSSL, 1, [define if you have OpenSSL])
+    save_CFLAGS=$CFLAGS
+    CFLAGS="$CFLAGS $OPENSSL_CFLAGS"
     AC_CHECK_HEADERS([openssl/ssl.h ssl.h])
+    CFLAGS=$save_CFLAGS
     if test $ac_cv_header_openssl_ssl_h != yes -a $ac_cv_header_ssl_h != yes; then
 	AC_MSG_ERROR([could not locate openssl/ssl.h or ssl.h])
     fi
@@ -1127,7 +1130,10 @@ AC_SUBST(GNUTLS_CFLAGS)
 AM_CONDITIONAL([GNUTLS_AVAIL], [test $gnutls_found = yes])
 if test $gnutls_found = yes; then
     AC_DEFINE(HAVE_GNUTLS, 1, [define if you have GnuTLS])
+    save_CFLAGS=$CFLAGS
+    CFLAGS="$CFLAGS $GNUTLS_CFLAGS"
     AC_CHECK_HEADERS(gnutls/gnutls.h)
+    CFLAGS=$save_CFLAGS
     if test $ac_cv_header_gnutls_gnutls_h != yes; then
 	AC_MSG_ERROR([could not locate gnutls/gnutls.h])
     fi
