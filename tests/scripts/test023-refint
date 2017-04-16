@@ -69,24 +69,32 @@ if test $RC != 0 ; then
 	exit $RC
 fi
 
-sleep $SLEEP0
-echo "Using ldapsearch to check dependents new rdn..."
+prefix=
+for i in $SLEEP0 $SLEEP0 $SLEEP1 $SLEEP1 $SLEEP1; do
+	echo "${prefix}Sleep $i"
+	sleep $i
+	echo "${prefix}Using ldapsearch to check dependents new rdn..."
 
-$LDAPSEARCH -S "" -b "o=refint" -h $LOCALHOST -p $PORT1 > $SEARCHOUT 2>&1
+	$LDAPSEARCH -S "" -b "o=refint" -h $LOCALHOST -p $PORT1 > $SEARCHOUT 2>&1
 
-RC=$?
-	if test $RC != 0 ; then
-	echo "ldapsearch failed ($RC)!"
-	killservers
-	exit $RC
-fi
+	RC=$?
+		if test $RC != 0 ; then
+		echo "ldapsearch failed ($RC)!"
+		killservers
+		exit $RC
+	fi
 
-$EGREP_CMD "(manager|secretary):" $SEARCHOUT | sort > $SEARCHFLT 2>&1
+	$EGREP_CMD "(manager|secretary):" $SEARCHOUT | sort > $SEARCHFLT 2>&1
 
-echo "Comparing ldapsearch results against original..."
-$CMP $TESTOUT $SEARCHFLT > $CMPOUT
-
-if test $? != 0 ; then
+	echo "${prefix}Comparing ldapsearch results against original..."
+	$CMP $TESTOUT $SEARCHFLT > $CMPOUT
+	RC=$?
+	if [ $RC = 0 ]; then
+		break;
+	fi
+	prefix="Retry, "
+done
+if test $RC != 0 ; then
 	echo "comparison failed - modify operations did not complete correctly"
 	killservers
 	exit 1
@@ -107,20 +115,28 @@ if test $RC != 0 ; then
 	exit $RC
 fi
 
-sleep $SLEEP0
-echo "Using ldapsearch to verify dependents have been deleted..."
-$LDAPSEARCH -S "" -b "o=refint" -h $LOCALHOST -p $PORT1 > $SEARCHOUT 2>&1
+prefix=
+for i in $SLEEP0 $SLEEP0 $SLEEP1 $SLEEP1 $SLEEP1; do
+	echo "${prefix}Sleep $i"
+	sleep $i
+	echo "${prefix}Using ldapsearch to verify dependents have been deleted..."
+	$LDAPSEARCH -S "" -b "o=refint" -h $LOCALHOST -p $PORT1 > $SEARCHOUT 2>&1
 
-RC=$?
-if test $RC != 0 ; then
-	echo "ldapsearch failed ($RC)!"
-	killservers
-	exit $RC
-fi
+	RC=$?
+	if test $RC != 0 ; then
+		echo "ldapsearch failed ($RC)!"
+		killservers
+		exit $RC
+	fi
 
-$EGREP_CMD "(manager|secretary):" $SEARCHOUT > $SEARCHFLT 2>&1
+	$EGREP_CMD "(manager|secretary):" $SEARCHOUT > $SEARCHFLT 2>&1
 
-RC=`grep -c foster $SEARCHFLT`
+	RC=`grep -c foster $SEARCHFLT`
+	if [ $RC = 0 ]; then
+		break
+	fi
+	prefix="Retry, "
+done
 if test $RC != 0 ; then
 	echo "dependent modify failed - dependents were not deleted"
 	killservers
@@ -169,7 +185,12 @@ if test $RC != 0 ; then
 	exit $RC
 fi
 
-if test $BACKEND != "bdb" ; then
+if test $BACKEND = "bdb" ; then
+	echo "Skip the rest for $BACKEND"
+else
+	$LDAPSEARCH -S "" -b "o=refint" -h $LOCALHOST -p $PORT1 \
+		manager member secretary > ${SEARCHOUT}-0 2>&1
+
 	$LDAPMODIFY -v -D "$REFINTDN" -h $LOCALHOST -p $PORT1 -w $PASSWD > \
 		$TESTOUT 2>&1 << EDEL
 version: 1
@@ -192,19 +213,36 @@ EDEL
 		exit $RC
 	fi
 
-	sleep $SLEEP0
-	$LDAPSEARCH -S "" -b "o=refint" -h $LOCALHOST -p $PORT1 \
-		manager member secretary > $SEARCHOUT 2>&1
-	RC=$?
-	if test $RC != 0 ; then
-		echo "ldapsearch failed ($RC)!"
-		killservers
-		exit $RC
-	fi
+	prefix=
+	for i in $SLEEP0 $SLEEP0 $SLEEP1 $SLEEP1 $SLEEP1; do
+		echo "${prefix}Sleep $i"
+		sleep $i
 
-	$EGREP_CMD "(manager|member|secretary):" $SEARCHOUT \
-		| sed "s/ou=users/ou=people/g" | \
-		sort > $TESTOUT 2>&1
+		echo "${prefix}Using ldapsearch to verify dependents have been updated..."
+		$LDAPSEARCH -S "" -b "o=refint" -h $LOCALHOST -p $PORT1 \
+			manager member secretary > $SEARCHOUT 2>&1
+		RC=$?
+		if test $RC != 0 ; then
+			echo "ldapsearch failed ($RC)!"
+			killservers
+			exit $RC
+		fi
+
+		$EGREP_CMD "(manager|member|secretary):" $SEARCHOUT \
+			| sed "s/ou=users/ou=people/g" | \
+			sort > $TESTOUT 2>&1
+
+		RC=`cut -d ':' -f 1 $TESTOUT | sort -u | wc -l`
+		if [ $RC = 2 ]; then
+			break
+		fi
+		prefix="Retry, "
+	done
+	if [ $RC != 2 ]; then
+		echo "dependent modify failed - dependents were not updated"
+		killservers
+		exit 1
+	fi
 
 	echo "testing subtree rename"
 	$LDAPMODRDN -D "$REFINTDN" -r -h $LOCALHOST -p $PORT1 -w $PASSWD > \
@@ -216,26 +254,34 @@ EDEL
 		exit $RC
 	fi
 
-	sleep $SLEEP0
-	echo "Using ldapsearch to check dependents new rdn..."
+	prefix=
+	for i in $SLEEP0 $SLEEP0 $SLEEP1 $SLEEP1 $SLEEP1; do
+		echo "${prefix}Sleep $i"
+		sleep $i
 
-	$LDAPSEARCH -S "" -b "o=refint" -h $LOCALHOST -p $PORT1 \
-		manager member secretary > $SEARCHOUT 2>&1
+		echo "${prefix}Using ldapsearch to check dependents new rdn..."
+		$LDAPSEARCH -S "" -b "o=refint" -h $LOCALHOST -p $PORT1 \
+			manager member secretary > $SEARCHOUT 2>&1
 
-	RC=$?
-	if test $RC != 0 ; then
-		echo "ldapsearch failed ($RC)!"
-		killservers
-		exit $RC
-	fi
+		RC=$?
+		if test $RC != 0 ; then
+			echo "ldapsearch failed ($RC)!"
+			killservers
+			exit $RC
+		fi
 
-	$EGREP_CMD "(manager|member|secretary):" $SEARCHOUT \
-		| sort > $SEARCHFLT 2>&1
+		$EGREP_CMD "(manager|member|secretary):" $SEARCHOUT \
+			| sort > $SEARCHFLT 2>&1
 
-	echo "Comparing ldapsearch results against original..."
-	$CMP $TESTOUT $SEARCHFLT > $CMPOUT
-
-	if test $? != 0 ; then
+		echo "${prefix}Comparing ldapsearch results against original..."
+		$CMP ${TESTOUT} $SEARCHFLT > $CMPOUT
+		RC=$?
+		if [ $RC = 0 ]; then
+			break
+		fi
+		prefix="Retry, "
+	done
+	if [ $RC != 0 ]; then
 		echo "comparison failed - subtree rename operations did not complete correctly"
 		killservers
 		exit 1
