@@ -954,7 +954,7 @@ uninstall-am:
 .PRECIOUS: Makefile
 
 @BEHIND_CURTIAN_TRUE@test:
-@BEHIND_CURTIAN_TRUE@	$(MAKE) -C tests check
+@BEHIND_CURTIAN_TRUE@	$(MAKE) -C tests check </dev/null
 
 @BEHIND_CURTIAN_TRUE@dist-hook:
 @BEHIND_CURTIAN_TRUE@	find $(distdir) -type f | xargs -r \
