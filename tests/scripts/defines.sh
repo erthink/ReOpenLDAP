@@ -799,6 +799,7 @@ function config_filter {
 
 	sed -e "s/@BACKEND@/${BACKEND}/g"			\
 		-e "s/^#be=${BACKEND}#//g"			\
+		-e "s/^#be=${BACKEND},dbnosync=${DBNOSYNC:-no}#//g"\
 		-e "/^#~/s/^#[^#]*~${BACKEND}~[^#]*#/#omit: /g"	\
 			-e "s/^#~[^#]*~#//g"			\
 		-e "s/@RELAY@/${RELAY}/g"			\
