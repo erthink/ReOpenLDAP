@@ -55,7 +55,7 @@ if test "$BACKEND" = "bdb" || test "$BACKEND" = "hdb" ; then
 fi
 
 echo "Starting slapd on TCP/IP port $PORT1..."
-config_filter $BACKEND ${AC_conf[monitor]} < $METACONF1 > $CONF1
+DBNOSYNC=yes config_filter $BACKEND ${AC_conf[monitor]} < $METACONF1 > $CONF1
 echo "RUN: $SLAPD_HUGE -f $CONF1 -h $URI1 $TIMING"
 $SLAPD_HUGE -f $CONF1 -h $URI1 $TIMING |& gzip > $LOG1.gz &
 PID=$(jobs -p | tail -1)
@@ -77,7 +77,7 @@ if test $RC != 0 ; then
 fi
 
 echo "Starting slapd on TCP/IP port $PORT2..."
-config_filter $BACKEND ${AC_conf[monitor]} < $METACONF2 > $CONF2
+DBNOSYNC=yes config_filter $BACKEND ${AC_conf[monitor]} < $METACONF2 > $CONF2
 echo "RUN: $SLAPD_HUGE -f $CONF2 -h $URI2 $TIMING"
 $SLAPD_HUGE -f $CONF2 -h $URI2 $TIMING |& gzip > $LOG2.gz &
 PID=$(jobs -p | tail -1)
@@ -99,7 +99,7 @@ if test $RC != 0 ; then
 fi
 
 echo "Starting slapd on TCP/IP port $PORT3..."
-config_filter $BACKEND ${AC_conf[monitor]} < $METACONF > $CONF3
+DBNOSYNC=yes config_filter $BACKEND ${AC_conf[monitor]} < $METACONF > $CONF3
 echo "RUN: $SLAPD_HUGE -f $CONF3 -h $URI3 $TIMING"
 $SLAPD_HUGE -f $CONF3 -h $URI3 $TIMING |& gzip > $LOG3.gz &
 PID=$(jobs -p | tail -1)
