@@ -15,6 +15,7 @@
 
 # LY: kill all slapd running in the current session
 pkill -SIGKILL -s 0 -u $EUID slapd
+pkill -SIGKILL -s 0 -u $EUID lt-slapd
 TESTWD=$(pwd)
 umask 0002
 
