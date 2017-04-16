@@ -23,11 +23,17 @@
 echo "Running defines.sh"
 . ${TOP_SRCDIR}/tests/scripts/defines.sh
 
-test "x$INITIATION_RACE_TESTS" = "x" && INITIATION_RACE_TESTS=3
-
 if test ${AC_conf[syncprov]} = no; then
 	echo "Syncrepl provider overlay not available, test skipped"
 	exit 0
+fi
+
+if [ -n "${TEAMCITY_PROCESS_FLOW_ID}" -o -n "${TRAVIS_BUILD_ID}" ]; then
+	INITIATION_RACE_TESTS=1
+	nEntries=5
+else
+	INITIATION_RACE_TESTS=5
+	nEntries=13
 fi
 
 PROV_DIR=$TESTDIR/prov
@@ -291,8 +297,6 @@ done
 
 RACE_NUM=0
 ERROR=0
-
-nEntries=10
 
 addEnd=1
 delEnd=1
