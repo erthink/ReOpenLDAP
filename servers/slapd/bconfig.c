@@ -5717,7 +5717,7 @@ static int
 __config_back_add( Operation *op, SlapReply *rs )
 {
 	CfBackInfo *cfb;
-	int renumber;
+	int renumber, dopause = 1;
 	ConfigArgs ca;
 
 	if ( !access_allowed( op, op->ora_e, slap_schema.si_ad_entry,
@@ -5760,7 +5760,8 @@ __config_back_add( Operation *op, SlapReply *rs )
 	}
 
 	rurw_lock_deep_t state = cf_rdwr_retreat();
-	slap_biglock_pool_pause(op->o_bd);
+	if (slap_biglock_pool_pause(op->o_bd) < 0)
+		dopause = 0;
 	cf_rdwr_obtain(state);
 
 	/* Strategy:
@@ -5811,7 +5812,8 @@ __config_back_add( Operation *op, SlapReply *rs )
 	}
 
 out2:;
-	ldap_pvt_thread_pool_resume( &connection_pool );
+	if ( dopause )
+		ldap_pvt_thread_pool_resume( &connection_pool );
 
 out:;
 	{	int repl = op->o_dont_replicate;
@@ -6261,7 +6263,8 @@ __config_back_modify( Operation *op, SlapReply *rs )
 			goto out;
 		}
 		rurw_lock_deep_t state = cf_rdwr_retreat();
-		slap_biglock_pool_pause(op->o_bd);
+		if (slap_biglock_pool_pause(op->o_bd) < 0)
+			do_pause = 0;
 		cf_rdwr_obtain(state);
 	}
 
@@ -6317,7 +6320,7 @@ __config_back_modrdn( Operation *op, SlapReply *rs )
 	CfBackInfo *cfb;
 	CfEntryInfo *ce, *last;
 	struct berval rdn;
-	int ixold = -1, ixnew = -1;
+	int ixold = -1, ixnew = -1, dopause = 1;
 
 	cfb = (CfBackInfo *)op->o_bd->be_private;
 
@@ -6439,8 +6442,10 @@ __config_back_modrdn( Operation *op, SlapReply *rs )
 		rs->sr_err = SLAPD_ABANDON;
 		goto out;
 	}
+
 	rurw_lock_deep_t state = cf_rdwr_retreat();
-	slap_biglock_pool_pause(op->o_bd);
+	if (slap_biglock_pool_pause(op->o_bd) < 0)
+		dopause = 0;
 	cf_rdwr_obtain(state);
 
 	if ( ce->ce_type == Cft_Schema ) {
@@ -6508,7 +6513,8 @@ __config_back_modrdn( Operation *op, SlapReply *rs )
 		op->oq_modrdn = modr;
 	}
 
-	ldap_pvt_thread_pool_resume( &connection_pool );
+	if ( dopause )
+		ldap_pvt_thread_pool_resume( &connection_pool );
 out:
 	send_ldap_result( op, rs );
 	return rs->sr_err;
@@ -6528,6 +6534,7 @@ __config_back_delete( Operation *op, SlapReply *rs )
 #ifdef SLAP_CONFIG_DELETE
 	CfBackInfo *cfb;
 	CfEntryInfo *ce, *last, *ce2;
+	int dopause = 1;
 
 	cfb = (CfBackInfo *)op->o_bd->be_private;
 
@@ -6547,7 +6554,8 @@ __config_back_delete( Operation *op, SlapReply *rs )
 		int count, ixold;
 
 		rurw_lock_deep_t state = cf_rdwr_retreat();
-		slap_biglock_pool_pause(op->o_bd);
+		if (slap_biglock_pool_pause(op->o_bd) < 0)
+			dopause = 0;
 		cf_rdwr_obtain(state);
 
 		if ( ce->ce_type == Cft_Overlay ){
@@ -6568,7 +6576,7 @@ __config_back_delete( Operation *op, SlapReply *rs )
 			if ( !oc_at ) {
 				rs->sr_err = LDAP_OTHER;
 				rs->sr_text = "objectclass not found";
-				ldap_pvt_thread_pool_resume( &connection_pool );
+				if ( dopause ) ldap_pvt_thread_pool_resume( &connection_pool );
 				goto out;
 			}
 			for ( i=0; !BER_BVISNULL(&oc_at->a_nvals[i]); i++ ) {
@@ -6586,7 +6594,7 @@ __config_back_delete( Operation *op, SlapReply *rs )
 						/* FIXME: We should return a helpful error message
 						 * here */
 					}
-					ldap_pvt_thread_pool_resume( &connection_pool );
+					if ( dopause ) ldap_pvt_thread_pool_resume( &connection_pool );
 					goto out;
 				}
 				break;
@@ -6595,7 +6603,7 @@ __config_back_delete( Operation *op, SlapReply *rs )
 			if ( ce->ce_be == frontendDB || ce->ce_be == op->o_bd ){
 				rs->sr_err = LDAP_UNWILLING_TO_PERFORM;
 				rs->sr_text = "Cannot delete config or frontend database";
-				ldap_pvt_thread_pool_resume( &connection_pool );
+				if ( dopause ) ldap_pvt_thread_pool_resume( &connection_pool );
 				goto out;
 			}
 			if ( ce->ce_be->bd_info->bi_db_close ) {
@@ -6657,7 +6665,7 @@ __config_back_delete( Operation *op, SlapReply *rs )
 		ce->ce_entry->e_private=NULL;
 		entry_free(ce->ce_entry);
 		ch_free(ce);
-		ldap_pvt_thread_pool_resume( &connection_pool );
+		if ( dopause ) ldap_pvt_thread_pool_resume( &connection_pool );
 	} else {
 		rs->sr_err = LDAP_UNWILLING_TO_PERFORM;
 	}
