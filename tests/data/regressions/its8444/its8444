@@ -91,6 +91,8 @@ for ((n=1; n<=$MMR; n++)); do
 	fi
 	KILLPIDS="$PID $KILLPIDS"
 	check_running $n
+
+	issue121_crutch $n
 done
 
 echo "Populating database on first provider..."
