@@ -44,7 +44,7 @@ mkdir -p $TESTDIR $DBDIR1 $DBDIR2
 
 echo "Starting slapd on TCP/IP port $PORT1..."
 config_filter $BACKEND ${AC_conf[monitor]} < $METACONF1 > $CONF1
-echo " = $SLAPD_HUGE -f $CONF1 -h $URI1 $TIMING"
+echo "RUN: $SLAPD_HUGE -f $CONF1 -h $URI1 $TIMING"
 $SLAPD_HUGE -f $CONF1 -h $URI1 $TIMING |& gzip > $LOG1.gz &
 PID=$(jobs -p | tail -1)
 if test $WAIT != 0 ; then
@@ -66,7 +66,7 @@ fi
 
 echo "Starting slapd on TCP/IP port $PORT2..."
 config_filter $BACKEND ${AC_conf[monitor]} < $METACONF2 > $CONF2
-echo " = $SLAPD_HUGE -f $CONF2 -h $URI2 $TIMING"
+echo "RUN: $SLAPD_HUGE -f $CONF2 -h $URI2 $TIMING"
 $SLAPD_HUGE -f $CONF2 -h $URI2 $TIMING |& gzip > $LOG2.gz &
 PID=$(jobs -p | tail -1)
 if test $WAIT != 0 ; then
@@ -88,7 +88,7 @@ fi
 
 echo "Starting slapd on TCP/IP port $PORT3..."
 config_filter $BACKEND ${AC_conf[monitor]} < $GLUELDAPCONF > $CONF3
-echo " = $SLAPD_HUGE -f $CONF3 -h $URI3 $TIMING"
+echo "RUN: $SLAPD_HUGE -f $CONF3 -h $URI3 $TIMING"
 $SLAPD_HUGE -f $CONF3 -h $URI3 $TIMING |& gzip > $LOG3.gz &
 PID=$(jobs -p | tail -1)
 if test $WAIT != 0 ; then
@@ -100,28 +100,28 @@ check_running 3 thrid
 
 cat /dev/null > $SEARCHOUT
 
-mkdir -p $TESTDIR/$DATADIR
+mkdir -p $TESTDIR/tmpdata
 METABASEDN="o=Example,c=US"
 for f in $DATADIR/do_* ; do
-	sed -e "s;$BASEDN;$METABASEDN;" $f > $TESTDIR/$f
+	sed -e "s;$BASEDN;$METABASEDN;" $f > $TESTDIR/tmpdata/$(basename $f)
 done
 
 # add a read that matches only the local database, but selects
 # also the remote as candidate; this should be removed to compare
 # execution times with test008...
-for f in $TESTDIR/$DATADIR/do_read.* ; do
+for f in $TESTDIR/tmpdata/do_read.* ; do
 	echo "ou=Meta,$METABASEDN" >> $f
 done
 
 # add a read that matches a referral in the local database only,
 # but selects also the remote as candidate; this should be removed
 # to compare execution times with test008...
-for f in $TESTDIR/$DATADIR/do_read.* ; do
+for f in $TESTDIR/tmpdata/do_read.* ; do
 	echo "cn=Somewhere,ou=Meta,$METABASEDN" >> $f
 done
 
 # add a bind that resolves to a referral
-for f in $TESTDIR/$DATADIR/do_bind.* ; do
+for f in $TESTDIR/tmpdata/do_bind.* ; do
 	echo "cn=Foo,ou=Meta,$METABASEDN" >> $f
 	echo "bar" >> $f
 	echo "" >> $f
@@ -129,8 +129,8 @@ for f in $TESTDIR/$DATADIR/do_bind.* ; do
 done
 
 # fix test data to include back-monitor, if available
-# NOTE: copies do_* files from $TESTDIR/$DATADIR to $TESTDIR
-monitor_data "$TESTDIR/$DATADIR" "$TESTDIR"
+# NOTE: copies do_* files from $TESTDIR/tmpdata to $TESTDIR
+monitor_data "$TESTDIR/tmpdata" "$TESTDIR"
 
 echo "Using tester for concurrent server access..."
 BINDDN="cn=Manager,o=Local"

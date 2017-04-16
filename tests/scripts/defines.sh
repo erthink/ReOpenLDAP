@@ -849,15 +849,17 @@ function config_filter {
 }
 
 function monitor_data {
-	[ $# = 2 ] || failure "monitor_data args"
+	[ $# = 2 ] || failure "monitor_data srcdir dstdir"
 
-	local SRCDIR="$1"
-	local DSTDIR="$2"
+	local SRCDIR=$(readlink -e $1)
+	local DSTDIR=$(readlink -e $2)
 
 	echo "MONITORDB ${AC_conf[monitor]}"
 	echo "SRCDIR $SRCDIR"
 	echo "DSTDIR $DSTDIR"
 	echo "pwd `pwd`"
+
+	[ -d "$SRCDIR" -a -d "$DSTDIR" ] || failure "Invalid srcdir or dstdir"
 
 	# copy test data
 	cp "$SRCDIR"/do_* "$DSTDIR"

@@ -137,28 +137,28 @@ check_running 3
 
 cat /dev/null > $SEARCHOUT
 
-mkdir -p $TESTDIR/$DATADIR
+mkdir -p $TESTDIR/tmpdata
 METABASEDN="o=Example,c=US"
 #for f in $DATADIR/do_* ; do
-#	sed -e "s;$BASEDN;$METABASEDN;" $f > $TESTDIR/$f
+#	sed -e "s;$BASEDN;$METABASEDN;" $f > $TESTDIR/tmpdata/$(basename $f)
 #done
 
 # add a read that matches only the local database, but selects
 # also the remote as candidate; this should be removed to compare
 # execution times with test008...
-#for f in $TESTDIR/$DATADIR/do_read.* ; do
+#for f in $TESTDIR/tmpdata/do_read.* ; do
 #	echo "ou=Meta,$METABASEDN" >> $f
 #done
 
 # add a read that matches a referral in the local database only,
 # but selects also the remote as candidate; this should be removed
 # to compare execution times with test008...
-#for f in $TESTDIR/$DATADIR/do_read.* ; do
+#for f in $TESTDIR/tmpdata/do_read.* ; do
 #	echo "cn=Somewhere,ou=Meta,$METABASEDN" >> $f
 #done
 
 # add a bind that resolves to a referral
-#for f in $TESTDIR/$DATADIR/do_bind.* ; do
+#for f in $TESTDIR/tmpdata/do_bind.* ; do
 #	echo "cn=Foo,ou=Meta,$METABASEDN" >> $f
 #	echo "bar" >> $f
 #	echo "" >> $f
@@ -230,10 +230,10 @@ $METABASEDN
 (cn=Foo Bar)
 $METABASEDN
 (cn=Dan Aykroyd)" \
-> $TESTDIR/$DATADIR/do_search.0
+> $TESTDIR/tmpdata/do_search.0
 
 echo "Using tester for concurrent server access..."
-$SLAPDTESTER -P "$PROGDIR" -d "$TESTDIR/$DATADIR" -h $LOCALHOST -p $PORT3 \
+$SLAPDTESTER -P "$PROGDIR" -d "$TESTDIR/tmpdata" -h $LOCALHOST -p $PORT3 \
 	-D "cn=Manager,$METABASEDN" -w $PASSWD -l $TESTLOOPS -r 20 -FF
 RC=$?
 
