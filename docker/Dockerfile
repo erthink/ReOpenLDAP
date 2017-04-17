@@ -19,6 +19,8 @@ RUN apt-get update -qq && apt-get install -yqq build-essential\
 
 RUN mandb -u
 
+ENV PATH /opt/reopenldap/bin:/opt/reopenldap/sbin:$PATH
+
 WORKDIR /opt/reopenldap
 
 VOLUME ["/var/lib/ldap"]
