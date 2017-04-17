@@ -59,7 +59,7 @@ script:
 #	--enable-rlookups --enable-slp --enable-wrappers --enable-backends
 #	--disable-bdb --disable-hdb --disable-ndb --disable-modules
 - make --keep-going && make --keep-going install
-  && ulimit -c unlimited && make test </dev/null
+  && ulimit -c unlimited && SKIPLONG=yes make test </dev/null
 - make --keep-going dist
   && mkdir _dist && (cd _dist && tar -xaf ../*.tar.* --strip=1
   && ./configure CFLAGS=-Os --prefix=$HOME/_dist/_install
