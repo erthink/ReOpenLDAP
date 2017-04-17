@@ -51,7 +51,7 @@ static __inline
 #ifdef __SANITIZE_ADDRESS__
 __attribute__((no_sanitize_address))
 #endif
-__attribute__((always_inline))
+__attribute__((always_inline)) MAY_UNUSED
 uint64_t unaligned_load_noasan(const volatile void* ptr) {
 #if UNALIGNED_OK
 	return *(const volatile uint64_t*) ptr;
@@ -66,7 +66,7 @@ uint64_t unaligned_load_noasan(const volatile void* ptr) {
 #endif /* arch selector */
 }
 
-static __forceinline
+static __forceinline MAY_UNUSED
 uint64_t unaligned_load(const volatile void* ptr) {
 #if UNALIGNED_OK
 	return *(const volatile uint64_t*) ptr;
@@ -81,7 +81,8 @@ uint64_t unaligned_load(const volatile void* ptr) {
 #endif /* arch selector */
 }
 
-static __forceinline void unaligned_store(volatile void* ptr, uint64_t value) {
+static __forceinline MAY_UNUSED
+void unaligned_store(volatile void* ptr, uint64_t value) {
 #if UNALIGNED_OK
 	*(volatile uint64_t*) ptr = value;
 #else
