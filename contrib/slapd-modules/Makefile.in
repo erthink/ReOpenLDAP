@@ -112,6 +112,7 @@ target_triplet = @target@
 @TLS_FALLBACK_AVAIL_TRUE@am__append_11 = $(TLS_FALLBACK_LIBS)
 @HEIMDAL_AVAIL_TRUE@am__append_12 = -DDO_KRB5 $(HEIMDAL_CFLAGS)
 @HEIMDAL_AVAIL_TRUE@am__append_13 = $(HEIMDAL_LIBS)
+@LIBSODIUM_AVAIL_TRUE@am__append_14 = contrib-pw-argon2.la
 subdir = contrib/slapd-modules
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/build/m4/ax_pthread.m4 \
@@ -130,6 +131,7 @@ DIST_COMMON = $(srcdir)/Makefile.am $(am__DIST_COMMON)
 mkinstalldirs = $(install_sh) -d
 CONFIG_HEADER = $(top_builddir)/reldap_autoconf.h \
 	$(top_builddir)/include/ldap_features.h \
+	$(top_builddir)/include/ldap_dirs.h \
 	$(top_builddir)/include/lber_types.h
 CONFIG_CLEAN_FILES =
 CONFIG_CLEAN_VPATH_FILES =
@@ -377,6 +379,20 @@ contrib_pw_apr1_la_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC \
 	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CCLD) \
 	$(AM_CFLAGS) $(CFLAGS) $(contrib_pw_apr1_la_LDFLAGS) \
 	$(LDFLAGS) -o $@
+@LIBSODIUM_AVAIL_TRUE@contrib_pw_argon2_la_DEPENDENCIES =  \
+@LIBSODIUM_AVAIL_TRUE@	$(am__DEPENDENCIES_1)
+am__contrib_pw_argon2_la_SOURCES_DIST = banner.c \
+	passwd/argon2/pw-argon2.c
+@LIBSODIUM_AVAIL_TRUE@am_contrib_pw_argon2_la_OBJECTS =  \
+@LIBSODIUM_AVAIL_TRUE@	contrib_pw_argon2_la-banner.lo \
+@LIBSODIUM_AVAIL_TRUE@	passwd/argon2/contrib_pw_argon2_la-pw-argon2.lo
+contrib_pw_argon2_la_OBJECTS = $(am_contrib_pw_argon2_la_OBJECTS)
+contrib_pw_argon2_la_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC \
+	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CCLD) \
+	$(contrib_pw_argon2_la_CFLAGS) $(CFLAGS) \
+	$(contrib_pw_argon2_la_LDFLAGS) $(LDFLAGS) -o $@
+@LIBSODIUM_AVAIL_TRUE@am_contrib_pw_argon2_la_rpath = -rpath \
+@LIBSODIUM_AVAIL_TRUE@	$(pkglibdir)
 @HEIMDAL_AVAIL_TRUE@contrib_pw_kerberos_la_DEPENDENCIES =  \
 @HEIMDAL_AVAIL_TRUE@	$(am__DEPENDENCIES_1)
 am__contrib_pw_kerberos_la_SOURCES_DIST = banner.c passwd/kerberos.c
@@ -537,6 +553,7 @@ SOURCES = $(contrib_addpartial_la_SOURCES) \
 	$(contrib_nssov_la_SOURCES) $(contrib_pguid_la_SOURCES) \
 	$(contrib_posixgroup_la_SOURCES) \
 	$(contrib_proxyOld_la_SOURCES) $(contrib_pw_apr1_la_SOURCES) \
+	$(contrib_pw_argon2_la_SOURCES) \
 	$(contrib_pw_kerberos_la_SOURCES) \
 	$(contrib_pw_netscape_la_SOURCES) \
 	$(contrib_pw_pbkdf2_la_SOURCES) \
@@ -562,6 +579,7 @@ DIST_SOURCES = $(contrib_addpartial_la_SOURCES) \
 	$(contrib_nssov_la_SOURCES) $(contrib_pguid_la_SOURCES) \
 	$(am__contrib_posixgroup_la_SOURCES_DIST) \
 	$(contrib_proxyOld_la_SOURCES) $(contrib_pw_apr1_la_SOURCES) \
+	$(am__contrib_pw_argon2_la_SOURCES_DIST) \
 	$(am__contrib_pw_kerberos_la_SOURCES_DIST) \
 	$(contrib_pw_netscape_la_SOURCES) \
 	$(am__contrib_pw_pbkdf2_la_SOURCES_DIST) \
@@ -603,6 +621,7 @@ am__DIST_COMMON = $(srcdir)/Makefile.in $(top_srcdir)/build/depcomp \
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
 ACLOCAL = @ACLOCAL@
 AMTAR = @AMTAR@
+AM_CFLAGS = @AM_CFLAGS@
 AM_DEFAULT_VERBOSITY = @AM_DEFAULT_VERBOSITY@
 AM_MAKEFLAGS = @AM_MAKEFLAGS@
 API_LIB_RELEASE = @API_LIB_RELEASE@
@@ -644,6 +663,7 @@ ENABLE_VALGRIND_helgrind = @ENABLE_VALGRIND_helgrind@
 ENABLE_VALGRIND_memcheck = @ENABLE_VALGRIND_memcheck@
 ENABLE_VALGRIND_sgcheck = @ENABLE_VALGRIND_sgcheck@
 EXEEXT = @EXEEXT@
+EXTRA_CFLAGS = @EXTRA_CFLAGS@
 FGREP = @FGREP@
 FIXUP_DIRS = @FIXUP_DIRS@
 FIXUP_DIST = @FIXUP_DIST@
@@ -675,6 +695,8 @@ LIBADD_SHL_LOAD = @LIBADD_SHL_LOAD@
 LIBLTDL = @LIBLTDL@
 LIBOBJS = @LIBOBJS@
 LIBS = @LIBS@
+LIBSODIUM_CFLAGS = @LIBSODIUM_CFLAGS@
+LIBSODIUM_LIBS = @LIBSODIUM_LIBS@
 LIBTOOL = @LIBTOOL@
 LIPO = @LIPO@
 LN_S = @LN_S@
@@ -762,6 +784,8 @@ TLS_CFLAGS = @TLS_CFLAGS@
 TLS_FALLBACK_CFLAGS = @TLS_FALLBACK_CFLAGS@
 TLS_FALLBACK_LIBS = @TLS_FALLBACK_LIBS@
 TLS_LIBS = @TLS_LIBS@
+UUID_CFLAGS = @UUID_CFLAGS@
+UUID_LIBS = @UUID_LIBS@
 VALGRIND = @VALGRIND@
 VALGRIND_ENABLED = @VALGRIND_ENABLED@
 VERSION = @VERSION@
@@ -856,7 +880,7 @@ EXTRA_DIST = README acl/README.gssacl acl/README.posixgroup \
 	passwd/apr1-ltoa.pl passwd/pbkdf2/README passwd/sha2/README \
 	passwd/totp/README proxyOld/README samba4/README \
 	smbk5pwd/README smbk5pwd/slapo-smbk5pwd.man.in usn/README \
-	$(man_links)
+	passwd/argon2/README.md $(man_links)
 # TODO: support MozNSS
 pkglib_LTLIBRARIES = $(am__append_2) $(am__append_3) \
 	contrib-addpartial.la contrib-adremap.la contrib-allop.la \
@@ -870,7 +894,7 @@ pkglib_LTLIBRARIES = $(am__append_2) $(am__append_3) \
 	contrib-pw-sha2.la $(am__append_9) contrib-proxyOld.la \
 	contrib-pguid.la contrib-rdnval.la contrib-vernum.la \
 	contrib-smbk5pwd.la contrib-trace.la contrib-usn.la \
-	contrib-vc.la
+	contrib-vc.la $(am__append_14)
 AM_CPPFLAGS = -DSLAPD_IMPORT -I$(top_srcdir)/servers/slapd -I$(top_srcdir)/include
 BUILT_SOURCES = $(am__append_1)
 man_links = 
@@ -985,7 +1009,7 @@ contrib_nssov_la_SOURCES = banner.c nssov/alias.c nssov/ether.c nssov/group.c \
 	nssov/nss-pam-ldapd/nslcd.h nssov/nss-pam-ldapd/nslcd-prot.h \
 	nssov/nss-pam-ldapd/tio.c nssov/nss-pam-ldapd/tio.h
 
-contrib_nssov_la_CFLAGS = -Wno-error=address -I$(srcdir)/nssov/nss-pam-ldapd
+contrib_nssov_la_CFLAGS = -I$(srcdir)/nssov/nss-pam-ldapd
 contrib_pw_apr1_la_SOURCES = banner.c passwd/apr1.c
 contrib_pw_apr1_la_LDFLAGS = -module -export-dynamic \
 	-release $(API_LIB_RELEASE) -version-info $(API_LIB_VERSION)
@@ -1059,6 +1083,12 @@ contrib_vc_la_LDFLAGS = -module -export-dynamic \
 	-release $(API_LIB_RELEASE) -version-info $(API_LIB_VERSION)
 
 contrib_vc_la_SOURCES = vc/vc.c banner.c
+@LIBSODIUM_AVAIL_TRUE@contrib_pw_argon2_la_CFLAGS = $(LIBSODIUM_CFLAGS)
+@LIBSODIUM_AVAIL_TRUE@contrib_pw_argon2_la_LDFLAGS = -module -export-dynamic \
+@LIBSODIUM_AVAIL_TRUE@	-release $(API_LIB_RELEASE) -version-info $(API_LIB_VERSION)
+
+@LIBSODIUM_AVAIL_TRUE@contrib_pw_argon2_la_SOURCES = banner.c passwd/argon2/pw-argon2.c
+@LIBSODIUM_AVAIL_TRUE@contrib_pw_argon2_la_LIBADD = $(LIBSODIUM_LIBS)
 MAINT_CHARSET = utf8
 SUFFIXES = .soelim .man.in .man
 all: $(BUILT_SOURCES)
@@ -1431,6 +1461,18 @@ passwd/apr1.lo: passwd/$(am__dirstamp) \
 
 contrib-pw-apr1.la: $(contrib_pw_apr1_la_OBJECTS) $(contrib_pw_apr1_la_DEPENDENCIES) $(EXTRA_contrib_pw_apr1_la_DEPENDENCIES) 
 	$(AM_V_CCLD)$(contrib_pw_apr1_la_LINK) -rpath $(pkglibdir) $(contrib_pw_apr1_la_OBJECTS) $(contrib_pw_apr1_la_LIBADD) $(LIBS)
+passwd/argon2/$(am__dirstamp):
+	@$(MKDIR_P) passwd/argon2
+	@: > passwd/argon2/$(am__dirstamp)
+passwd/argon2/$(DEPDIR)/$(am__dirstamp):
+	@$(MKDIR_P) passwd/argon2/$(DEPDIR)
+	@: > passwd/argon2/$(DEPDIR)/$(am__dirstamp)
+passwd/argon2/contrib_pw_argon2_la-pw-argon2.lo:  \
+	passwd/argon2/$(am__dirstamp) \
+	passwd/argon2/$(DEPDIR)/$(am__dirstamp)
+
+contrib-pw-argon2.la: $(contrib_pw_argon2_la_OBJECTS) $(contrib_pw_argon2_la_DEPENDENCIES) $(EXTRA_contrib_pw_argon2_la_DEPENDENCIES) 
+	$(AM_V_CCLD)$(contrib_pw_argon2_la_LINK) $(am_contrib_pw_argon2_la_rpath) $(contrib_pw_argon2_la_OBJECTS) $(contrib_pw_argon2_la_LIBADD) $(LIBS)
 passwd/contrib_pw_kerberos_la-kerberos.lo: passwd/$(am__dirstamp) \
 	passwd/$(DEPDIR)/$(am__dirstamp)
 
@@ -1581,6 +1623,8 @@ mostlyclean-compile:
 	-rm -f nssov/nss-pam-ldapd/*.lo
 	-rm -f passwd/*.$(OBJEXT)
 	-rm -f passwd/*.lo
+	-rm -f passwd/argon2/*.$(OBJEXT)
+	-rm -f passwd/argon2/*.lo
 	-rm -f passwd/pbkdf2/*.$(OBJEXT)
 	-rm -f passwd/pbkdf2/*.lo
 	-rm -f passwd/sha2/*.$(OBJEXT)
@@ -1608,6 +1652,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/contrib_compmatch_la-banner.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/contrib_gssacl_la-banner.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/contrib_nssov_la-banner.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/contrib_pw_argon2_la-banner.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/contrib_pw_kerberos_la-banner.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/contrib_pw_pbkdf2_la-banner.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/contrib_pw_totp_la-banner.Plo@am__quote@
@@ -1655,6 +1700,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@passwd/$(DEPDIR)/contrib_pw_kerberos_la-kerberos.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@passwd/$(DEPDIR)/netscape.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@passwd/$(DEPDIR)/radius.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@passwd/argon2/$(DEPDIR)/contrib_pw_argon2_la-pw-argon2.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@passwd/pbkdf2/$(DEPDIR)/contrib_pw_pbkdf2_la-pw-pbkdf2.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@passwd/sha2/$(DEPDIR)/sha2.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@passwd/sha2/$(DEPDIR)/slapd-sha2.Plo@am__quote@
@@ -1874,6 +1920,20 @@ nssov/nss-pam-ldapd/contrib_nssov_la-tio.lo: nssov/nss-pam-ldapd/tio.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(contrib_nssov_la_CFLAGS) $(CFLAGS) -c -o nssov/nss-pam-ldapd/contrib_nssov_la-tio.lo `test -f 'nssov/nss-pam-ldapd/tio.c' || echo '$(srcdir)/'`nssov/nss-pam-ldapd/tio.c
 
+contrib_pw_argon2_la-banner.lo: banner.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(contrib_pw_argon2_la_CFLAGS) $(CFLAGS) -MT contrib_pw_argon2_la-banner.lo -MD -MP -MF $(DEPDIR)/contrib_pw_argon2_la-banner.Tpo -c -o contrib_pw_argon2_la-banner.lo `test -f 'banner.c' || echo '$(srcdir)/'`banner.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/contrib_pw_argon2_la-banner.Tpo $(DEPDIR)/contrib_pw_argon2_la-banner.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='banner.c' object='contrib_pw_argon2_la-banner.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(contrib_pw_argon2_la_CFLAGS) $(CFLAGS) -c -o contrib_pw_argon2_la-banner.lo `test -f 'banner.c' || echo '$(srcdir)/'`banner.c
+
+passwd/argon2/contrib_pw_argon2_la-pw-argon2.lo: passwd/argon2/pw-argon2.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(contrib_pw_argon2_la_CFLAGS) $(CFLAGS) -MT passwd/argon2/contrib_pw_argon2_la-pw-argon2.lo -MD -MP -MF passwd/argon2/$(DEPDIR)/contrib_pw_argon2_la-pw-argon2.Tpo -c -o passwd/argon2/contrib_pw_argon2_la-pw-argon2.lo `test -f 'passwd/argon2/pw-argon2.c' || echo '$(srcdir)/'`passwd/argon2/pw-argon2.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) passwd/argon2/$(DEPDIR)/contrib_pw_argon2_la-pw-argon2.Tpo passwd/argon2/$(DEPDIR)/contrib_pw_argon2_la-pw-argon2.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='passwd/argon2/pw-argon2.c' object='passwd/argon2/contrib_pw_argon2_la-pw-argon2.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(contrib_pw_argon2_la_CFLAGS) $(CFLAGS) -c -o passwd/argon2/contrib_pw_argon2_la-pw-argon2.lo `test -f 'passwd/argon2/pw-argon2.c' || echo '$(srcdir)/'`passwd/argon2/pw-argon2.c
+
 contrib_pw_kerberos_la-banner.lo: banner.c
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(contrib_pw_kerberos_la_CFLAGS) $(CFLAGS) -MT contrib_pw_kerberos_la-banner.lo -MD -MP -MF $(DEPDIR)/contrib_pw_kerberos_la-banner.Tpo -c -o contrib_pw_kerberos_la-banner.lo `test -f 'banner.c' || echo '$(srcdir)/'`banner.c
 @am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/contrib_pw_kerberos_la-banner.Tpo $(DEPDIR)/contrib_pw_kerberos_la-banner.Plo
@@ -1957,6 +2017,7 @@ clean-libtool:
 	-rm -rf nssov/.libs nssov/_libs
 	-rm -rf nssov/nss-pam-ldapd/.libs nssov/nss-pam-ldapd/_libs
 	-rm -rf passwd/.libs passwd/_libs
+	-rm -rf passwd/argon2/.libs passwd/argon2/_libs
 	-rm -rf passwd/pbkdf2/.libs passwd/pbkdf2/_libs
 	-rm -rf passwd/sha2/.libs passwd/sha2/_libs
 	-rm -rf passwd/totp/.libs passwd/totp/_libs
@@ -2169,6 +2230,8 @@ distclean-generic:
 	-rm -f nssov/nss-pam-ldapd/$(am__dirstamp)
 	-rm -f passwd/$(DEPDIR)/$(am__dirstamp)
 	-rm -f passwd/$(am__dirstamp)
+	-rm -f passwd/argon2/$(DEPDIR)/$(am__dirstamp)
+	-rm -f passwd/argon2/$(am__dirstamp)
 	-rm -f passwd/pbkdf2/$(DEPDIR)/$(am__dirstamp)
 	-rm -f passwd/pbkdf2/$(am__dirstamp)
 	-rm -f passwd/sha2/$(DEPDIR)/$(am__dirstamp)
@@ -2198,7 +2261,7 @@ clean-am: clean-generic clean-libtool clean-pkglibLTLIBRARIES \
 	mostlyclean-am
 
 distclean: distclean-am
-	-rm -rf ./$(DEPDIR) acl/$(DEPDIR) addpartial/$(DEPDIR) adremap/$(DEPDIR) allop/$(DEPDIR) allowed/$(DEPDIR) authzid/$(DEPDIR) autogroup/$(DEPDIR) check_password/$(DEPDIR) cloak/$(DEPDIR) comp_match/$(DEPDIR) denyop/$(DEPDIR) dsaschema/$(DEPDIR) dupent/$(DEPDIR) kinit/$(DEPDIR) lastbind/$(DEPDIR) lastmod/$(DEPDIR) mr_passthru/$(DEPDIR) noopsrch/$(DEPDIR) nops/$(DEPDIR) nssov/$(DEPDIR) nssov/nss-pam-ldapd/$(DEPDIR) passwd/$(DEPDIR) passwd/pbkdf2/$(DEPDIR) passwd/sha2/$(DEPDIR) passwd/totp/$(DEPDIR) proxyOld/$(DEPDIR) samba4/$(DEPDIR) smbk5pwd/$(DEPDIR) trace/$(DEPDIR) usn/$(DEPDIR) vc/$(DEPDIR)
+	-rm -rf ./$(DEPDIR) acl/$(DEPDIR) addpartial/$(DEPDIR) adremap/$(DEPDIR) allop/$(DEPDIR) allowed/$(DEPDIR) authzid/$(DEPDIR) autogroup/$(DEPDIR) check_password/$(DEPDIR) cloak/$(DEPDIR) comp_match/$(DEPDIR) denyop/$(DEPDIR) dsaschema/$(DEPDIR) dupent/$(DEPDIR) kinit/$(DEPDIR) lastbind/$(DEPDIR) lastmod/$(DEPDIR) mr_passthru/$(DEPDIR) noopsrch/$(DEPDIR) nops/$(DEPDIR) nssov/$(DEPDIR) nssov/nss-pam-ldapd/$(DEPDIR) passwd/$(DEPDIR) passwd/argon2/$(DEPDIR) passwd/pbkdf2/$(DEPDIR) passwd/sha2/$(DEPDIR) passwd/totp/$(DEPDIR) proxyOld/$(DEPDIR) samba4/$(DEPDIR) smbk5pwd/$(DEPDIR) trace/$(DEPDIR) usn/$(DEPDIR) vc/$(DEPDIR)
 	-rm -f Makefile
 distclean-am: clean-am distclean-compile distclean-generic \
 	distclean-tags
@@ -2245,7 +2308,7 @@ install-ps-am:
 installcheck-am:
 
 maintainer-clean: maintainer-clean-am
-	-rm -rf ./$(DEPDIR) acl/$(DEPDIR) addpartial/$(DEPDIR) adremap/$(DEPDIR) allop/$(DEPDIR) allowed/$(DEPDIR) authzid/$(DEPDIR) autogroup/$(DEPDIR) check_password/$(DEPDIR) cloak/$(DEPDIR) comp_match/$(DEPDIR) denyop/$(DEPDIR) dsaschema/$(DEPDIR) dupent/$(DEPDIR) kinit/$(DEPDIR) lastbind/$(DEPDIR) lastmod/$(DEPDIR) mr_passthru/$(DEPDIR) noopsrch/$(DEPDIR) nops/$(DEPDIR) nssov/$(DEPDIR) nssov/nss-pam-ldapd/$(DEPDIR) passwd/$(DEPDIR) passwd/pbkdf2/$(DEPDIR) passwd/sha2/$(DEPDIR) passwd/totp/$(DEPDIR) proxyOld/$(DEPDIR) samba4/$(DEPDIR) smbk5pwd/$(DEPDIR) trace/$(DEPDIR) usn/$(DEPDIR) vc/$(DEPDIR)
+	-rm -rf ./$(DEPDIR) acl/$(DEPDIR) addpartial/$(DEPDIR) adremap/$(DEPDIR) allop/$(DEPDIR) allowed/$(DEPDIR) authzid/$(DEPDIR) autogroup/$(DEPDIR) check_password/$(DEPDIR) cloak/$(DEPDIR) comp_match/$(DEPDIR) denyop/$(DEPDIR) dsaschema/$(DEPDIR) dupent/$(DEPDIR) kinit/$(DEPDIR) lastbind/$(DEPDIR) lastmod/$(DEPDIR) mr_passthru/$(DEPDIR) noopsrch/$(DEPDIR) nops/$(DEPDIR) nssov/$(DEPDIR) nssov/nss-pam-ldapd/$(DEPDIR) passwd/$(DEPDIR) passwd/argon2/$(DEPDIR) passwd/pbkdf2/$(DEPDIR) passwd/sha2/$(DEPDIR) passwd/totp/$(DEPDIR) proxyOld/$(DEPDIR) samba4/$(DEPDIR) smbk5pwd/$(DEPDIR) trace/$(DEPDIR) usn/$(DEPDIR) vc/$(DEPDIR)
 	-rm -f Makefile
 maintainer-clean-am: distclean-am maintainer-clean-generic
 
