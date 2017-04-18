@@ -177,7 +177,7 @@ RC=$?
 if test $RC != 19 ; then
 	echo "valsort check failed ($RC)!"
 	killservers
-	exit -1
+	exit 2
 fi
 
 $LDAPSEARCH -b "$VALSORTBASEDN" -h $LOCALHOST -p $PORT1 \

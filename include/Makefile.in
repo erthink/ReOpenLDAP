@@ -107,7 +107,7 @@ DIST_COMMON = $(srcdir)/Makefile.am $(noinst_HEADERS) \
 	$(pkginclude_HEADERS) $(am__DIST_COMMON)
 mkinstalldirs = $(install_sh) -d
 CONFIG_HEADER = $(top_builddir)/reldap_autoconf.h ldap_features.h \
-	lber_types.h
+	ldap_dirs.h lber_types.h
 CONFIG_CLEAN_FILES =
 CONFIG_CLEAN_VPATH_FILES =
 AM_V_P = $(am__v_P_@AM_V@)
@@ -159,7 +159,7 @@ am__uninstall_files_from_dir = { \
 am__installdirs = "$(DESTDIR)$(pkgincludedir)"
 HEADERS = $(noinst_HEADERS) $(pkginclude_HEADERS)
 am__tagged_files = $(HEADERS) $(SOURCES) $(TAGS_FILES) \
-	$(LISP)ldap_features.h.in lber_types.h.in
+	$(LISP)ldap_features.h.in ldap_dirs.h.in lber_types.h.in
 # Read a list of newline-separated strings from the standard input,
 # and print each of them once, without duplicates.  Input order is
 # *not* preserved.
@@ -179,10 +179,11 @@ am__define_uniq_tagged_files = \
 ETAGS = etags
 CTAGS = ctags
 am__DIST_COMMON = $(srcdir)/Makefile.in $(srcdir)/lber_types.h.in \
-	$(srcdir)/ldap_features.h.in
+	$(srcdir)/ldap_dirs.h.in $(srcdir)/ldap_features.h.in
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
 ACLOCAL = @ACLOCAL@
 AMTAR = @AMTAR@
+AM_CFLAGS = @AM_CFLAGS@
 AM_DEFAULT_VERBOSITY = @AM_DEFAULT_VERBOSITY@
 AM_MAKEFLAGS = @AM_MAKEFLAGS@
 API_LIB_RELEASE = @API_LIB_RELEASE@
@@ -222,6 +223,7 @@ ENABLE_VALGRIND_helgrind = @ENABLE_VALGRIND_helgrind@
 ENABLE_VALGRIND_memcheck = @ENABLE_VALGRIND_memcheck@
 ENABLE_VALGRIND_sgcheck = @ENABLE_VALGRIND_sgcheck@
 EXEEXT = @EXEEXT@
+EXTRA_CFLAGS = @EXTRA_CFLAGS@
 FGREP = @FGREP@
 FIXUP_DIRS = @FIXUP_DIRS@
 FIXUP_DIST = @FIXUP_DIST@
@@ -253,6 +255,8 @@ LIBADD_SHL_LOAD = @LIBADD_SHL_LOAD@
 LIBLTDL = @LIBLTDL@
 LIBOBJS = @LIBOBJS@
 LIBS = @LIBS@
+LIBSODIUM_CFLAGS = @LIBSODIUM_CFLAGS@
+LIBSODIUM_LIBS = @LIBSODIUM_LIBS@
 LIBTOOL = @LIBTOOL@
 LIPO = @LIPO@
 LN_S = @LN_S@
@@ -340,6 +344,8 @@ TLS_CFLAGS = @TLS_CFLAGS@
 TLS_FALLBACK_CFLAGS = @TLS_FALLBACK_CFLAGS@
 TLS_FALLBACK_LIBS = @TLS_FALLBACK_LIBS@
 TLS_LIBS = @TLS_LIBS@
+UUID_CFLAGS = @UUID_CFLAGS@
+UUID_LIBS = @UUID_LIBS@
 VALGRIND = @VALGRIND@
 VALGRIND_ENABLED = @VALGRIND_ENABLED@
 VERSION = @VERSION@
@@ -438,7 +444,7 @@ noinst_HEADERS = ac/alloca.h ac/bytes.h ac/crypt.h ac/ctype.h \
 BUILT_SOURCES = ldap_dirs.h
 CLEANFILES = ldap_dirs.h
 EXTRA_DIST = ldap_dirs.h.in
-all: $(BUILT_SOURCES) ldap_features.h lber_types.h
+all: $(BUILT_SOURCES) ldap_features.h ldap_dirs.h lber_types.h
 	$(MAKE) $(AM_MAKEFLAGS) all-am
 
 .SUFFIXES:
@@ -480,16 +486,20 @@ stamp-h2: $(srcdir)/ldap_features.h.in $(top_builddir)/config.status
 	@rm -f stamp-h2
 	cd $(top_builddir) && $(SHELL) ./config.status include/ldap_features.h
 
-lber_types.h: stamp-h3
-	@test -f $@ || rm -f stamp-h3
-	@test -f $@ || $(MAKE) $(AM_MAKEFLAGS) stamp-h3
-
-stamp-h3: $(srcdir)/lber_types.h.in $(top_builddir)/config.status
+stamp-h3: $(srcdir)/ldap_dirs.h.in $(top_builddir)/config.status
 	@rm -f stamp-h3
+	cd $(top_builddir) && $(SHELL) ./config.status include/ldap_dirs.h
+
+lber_types.h: stamp-h4
+	@test -f $@ || rm -f stamp-h4
+	@test -f $@ || $(MAKE) $(AM_MAKEFLAGS) stamp-h4
+
+stamp-h4: $(srcdir)/lber_types.h.in $(top_builddir)/config.status
+	@rm -f stamp-h4
 	cd $(top_builddir) && $(SHELL) ./config.status include/lber_types.h
 
 distclean-hdr:
-	-rm -f ldap_features.h stamp-h2 lber_types.h stamp-h3
+	-rm -f ldap_features.h stamp-h2 ldap_dirs.h stamp-h3 lber_types.h stamp-h4
 
 mostlyclean-libtool:
 	-rm -f *.lo
@@ -603,7 +613,7 @@ distdir: $(DISTFILES)
 check-am: all-am
 check: $(BUILT_SOURCES)
 	$(MAKE) $(AM_MAKEFLAGS) check-am
-all-am: Makefile $(HEADERS) ldap_features.h lber_types.h
+all-am: Makefile $(HEADERS) ldap_features.h ldap_dirs.h lber_types.h
 installdirs:
 	for dir in "$(DESTDIR)$(pkgincludedir)"; do \
 	  test -z "$$dir" || $(MKDIR_P) "$$dir"; \

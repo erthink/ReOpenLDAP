@@ -187,7 +187,7 @@ contrib_nssov_la_SOURCES = banner.c nssov/alias.c nssov/ether.c nssov/group.c \
 	nssov/nssov.c nssov/nssov.h nssov/nss-pam-ldapd/attrs.h \
 	nssov/nss-pam-ldapd/nslcd.h nssov/nss-pam-ldapd/nslcd-prot.h \
 	nssov/nss-pam-ldapd/tio.c nssov/nss-pam-ldapd/tio.h
-contrib_nssov_la_CFLAGS = -Wno-error=address -I$(srcdir)/nssov/nss-pam-ldapd
+contrib_nssov_la_CFLAGS = -I$(srcdir)/nssov/nss-pam-ldapd
 man5_MANS += nssov/slapo-nssov.man
 
 EXTRA_DIST += passwd/README \
@@ -301,6 +301,16 @@ pkglib_LTLIBRARIES += contrib-vc.la
 contrib_vc_la_LDFLAGS = -module -export-dynamic \
 	-release $(API_LIB_RELEASE) -version-info $(API_LIB_VERSION)
 contrib_vc_la_SOURCES = vc/vc.c banner.c
+
+EXTRA_DIST += passwd/argon2/README.md
+if LIBSODIUM_AVAIL
+pkglib_LTLIBRARIES += contrib-pw-argon2.la
+contrib_pw_argon2_la_CFLAGS = $(LIBSODIUM_CFLAGS)
+contrib_pw_argon2_la_LDFLAGS = -module -export-dynamic \
+	-release $(API_LIB_RELEASE) -version-info $(API_LIB_VERSION)
+contrib_pw_argon2_la_SOURCES = banner.c passwd/argon2/pw-argon2.c
+contrib_pw_argon2_la_LIBADD = $(LIBSODIUM_LIBS)
+endif
 
 MAINT_CHARSET = utf8
 SUFFIXES = .soelim .man.in .man

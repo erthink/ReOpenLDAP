@@ -2295,11 +2295,10 @@ monitor_back_db_open(
 	attr_merge_normalize( e, slap_schema.si_ad_description, desc, NULL );
 
 	const char* dollar = strchr(SlapdVersionStr, '$' );
-	bv.bv_val = (char*) (dollar ? dollar : SlapdVersionStr);
+	bv.bv_val = (char*) (dollar ? dollar+1 : SlapdVersionStr);
 	if ( bv.bv_val != NULL ) {
 		char	*end;
 
-		bv.bv_val++;
 		for ( ; bv.bv_val[ 0 ] == ' '; bv.bv_val++ )
 			;
 

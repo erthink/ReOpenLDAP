@@ -15,7 +15,7 @@
 ACLOCAL_AMFLAGS = -I build/m4
 
 DIST_SUBDIRS = include libraries clients servers doc/man build/libltdl contrib
-EXTRA_DIST = build/stub
+EXTRA_DIST = build/stub build/common.mk
 
 if SLAPD_DYNAMIC
 SUBDIRS = build/libltdl
@@ -33,7 +33,7 @@ am__tar = $${TAR-tar} cof - "$$tardir"
 if BEHIND_CURTIAN
 SUBDIRS += tests
 test:
-	$(MAKE) -C tests check
+	$(MAKE) -C tests check </dev/null
 
 dist-hook:
 	find $(distdir) -type f | xargs -r \

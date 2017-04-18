@@ -123,14 +123,6 @@ typedef struct sync_control {
 	int sr_jammed;
 } sync_control;
 
-#ifndef o_sync /* moved back to slap.h */
-#	define	o_sync	o_ctrlflag[slap_cids.sc_LDAPsync]
-#endif
-
-#ifndef o_sync_mode /* o_sync_mode uses data bits of o_sync */
-#	define	o_sync_mode	o_ctrlflag[slap_cids.sc_LDAPsync]
-#endif
-
 #define SLAP_SYNC_NONE					(LDAP_SYNC_NONE<<SLAP_CONTROL_SHIFT)
 #define SLAP_SYNC_REFRESH				(LDAP_SYNC_REFRESH_ONLY<<SLAP_CONTROL_SHIFT)
 #define SLAP_SYNC_PERSIST				(LDAP_SYNC_RESERVED<<SLAP_CONTROL_SHIFT)
@@ -531,7 +523,7 @@ syncprov_findbase( Operation *op, fbase_cookie *fc )
 		cb.sc_response = findbase_cb;
 		cb.sc_private = fc;
 
-		fop.o_sync_mode = 0;	/* turn off sync mode */
+		fop.o_sync = 0;	/* turn off sync mode */
 		fop.o_managedsait = SLAP_CONTROL_CRITICAL;
 		fop.o_callback = &cb;
 		fop.o_tag = LDAP_REQ_SEARCH;
@@ -722,7 +714,7 @@ syncprov_findcsn( Operation *op, find_csn_t mode, struct berval *pivot )
 	}
 
 	slap_op_copy(op, &fop, NULL, NULL);
-	fop.o_sync_mode &= SLAP_CONTROL_MASK;	/* turn off sync_mode */
+	fop.o_sync &= SLAP_CONTROL_MASK;	/* turn off sync_mode */
 	/* We want pure entries, not referrals */
 	fop.o_managedsait = SLAP_CONTROL_CRITICAL;
 
@@ -1838,92 +1830,89 @@ syncprov_add_slog( Operation *op )
 {
 	opcookie *opc = op->o_callback->sc_private;
 	slap_overinst *on = opc->son;
-	syncprov_info_t		*si = on->on_bi.bi_private;
-	sessionlog *sl;
+	syncprov_info_t	*si = on->on_bi.bi_private;
+	sessionlog *sl = si->si_logs;
 	slog_entry *se;
 
-	sl = si->si_logs;
-	{
-		if ( BER_BVISEMPTY( &op->o_csn ) ) {
-			/* During the syncrepl refresh phase we can receive operations
-			 * without a csn.  We cannot reliably determine the consumers
-			 * state with respect to such operations, so we ignore them and
-			 * wipe out anything in the log if we see them.
-			 */
-			ldap_pvt_thread_mutex_lock( &sl->sl_mutex );
-			while ( (se = sl->sl_head) != NULL ) {
-				sl->sl_head = se->se_next;
-				ch_free( se );
-			}
-			sl->sl_tail = NULL;
-			sl->sl_num = 0;
-			ldap_pvt_thread_mutex_unlock( &sl->sl_mutex );
-			return;
-		}
-
-		/* Allocate a record. UUIDs are not NUL-terminated. */
-		se = ch_malloc( sizeof( slog_entry ) + opc->suuid.bv_len +
-			op->o_csn.bv_len + 1 );
-		se->se_next = NULL;
-		se->se_tag = op->o_tag;
-
-		se->se_uuid.bv_val = (char *)(&se[1]);
-		memcpy( se->se_uuid.bv_val, opc->suuid.bv_val, opc->suuid.bv_len );
-		se->se_uuid.bv_len = opc->suuid.bv_len;
-
-		se->se_csn.bv_val = se->se_uuid.bv_val + opc->suuid.bv_len;
-		memcpy( se->se_csn.bv_val, op->o_csn.bv_val, op->o_csn.bv_len );
-		se->se_csn.bv_val[op->o_csn.bv_len] = '\0';
-		se->se_csn.bv_len = op->o_csn.bv_len;
-		se->se_sid = slap_csn_get_sid( &se->se_csn );
-
+	if ( BER_BVISEMPTY( &op->o_csn ) ) {
+		/* During the syncrepl refresh phase we can receive operations
+		 * without a csn.  We cannot reliably determine the consumers
+		 * state with respect to such operations, so we ignore them and
+		 * wipe out anything in the log if we see them.
+		 */
 		ldap_pvt_thread_mutex_lock( &sl->sl_mutex );
-		if ( sl->sl_head ) {
-			/* Keep the list in csn order. */
-			if ( slap_csn_compare_ts( &sl->sl_tail->se_csn, &se->se_csn ) <= 0 ) {
-				sl->sl_tail->se_next = se;
-				sl->sl_tail = se;
-			} else {
-				slog_entry **sep;
+		while ( (se = sl->sl_head) != NULL ) {
+			sl->sl_head = se->se_next;
+			ch_free( se );
+		}
+		sl->sl_tail = NULL;
+		sl->sl_num = 0;
+		ldap_pvt_thread_mutex_unlock( &sl->sl_mutex );
+		return;
+	}
 
-				for ( sep = &sl->sl_head; *sep; sep = &(*sep)->se_next ) {
-					if ( slap_csn_compare_ts( &se->se_csn, &(*sep)->se_csn ) < 0 ) {
-						se->se_next = *sep;
-						*sep = se;
-						break;
-					}
+	/* Allocate a record. UUIDs are not NUL-terminated. */
+	se = ch_malloc( sizeof( slog_entry ) + opc->suuid.bv_len +
+		op->o_csn.bv_len + 1 );
+	se->se_next = NULL;
+	se->se_tag = op->o_tag;
+
+	se->se_uuid.bv_val = (char *)(&se[1]);
+	memcpy( se->se_uuid.bv_val, opc->suuid.bv_val, opc->suuid.bv_len );
+	se->se_uuid.bv_len = opc->suuid.bv_len;
+
+	se->se_csn.bv_val = se->se_uuid.bv_val + opc->suuid.bv_len;
+	memcpy( se->se_csn.bv_val, op->o_csn.bv_val, op->o_csn.bv_len );
+	se->se_csn.bv_val[op->o_csn.bv_len] = '\0';
+	se->se_csn.bv_len = op->o_csn.bv_len;
+	se->se_sid = slap_csn_get_sid( &se->se_csn );
+
+	ldap_pvt_thread_mutex_lock( &sl->sl_mutex );
+	if ( sl->sl_head ) {
+		/* Keep the list in csn order. */
+		if ( slap_csn_compare_ts( &sl->sl_tail->se_csn, &se->se_csn ) <= 0 ) {
+			sl->sl_tail->se_next = se;
+			sl->sl_tail = se;
+		} else {
+			slog_entry **sep;
+
+			for ( sep = &sl->sl_head; *sep; sep = &(*sep)->se_next ) {
+				if ( slap_csn_compare_ts( &se->se_csn, &(*sep)->se_csn ) < 0 ) {
+					se->se_next = *sep;
+					*sep = se;
+					break;
 				}
 			}
-		} else {
-			sl->sl_head = se;
-			sl->sl_tail = se;
-			if ( !sl->sl_cookie.ctxcsn ) {
-				sl->sl_cookie.numcsns = 1;
-				sl->sl_cookie.ctxcsn = ch_malloc( 2*sizeof( struct berval ));
-				sl->sl_cookie.sids = ch_malloc( sizeof( int ));
-				sl->sl_cookie.sids[0] = se->se_sid;
-				ber_dupbv( sl->sl_cookie.ctxcsn, &se->se_csn );
-				BER_BVZERO( &sl->sl_cookie.ctxcsn[1] );
-			}
 		}
-		sl->sl_num++;
-		while ( sl->sl_num > sl->sl_size ) {
-			int i;
-			se = sl->sl_head;
-			sl->sl_head = se->se_next;
-			for ( i=0; i<sl->sl_cookie.numcsns; i++ )
-				if ( sl->sl_cookie.sids[i] >= se->se_sid )
-					break;
-			if  ( i == sl->sl_cookie.numcsns || sl->sl_cookie.sids[i] != se->se_sid ) {
-				slap_insert_csn_sids( &sl->sl_cookie, i, se->se_sid, &se->se_csn );
-			} else {
-				ber_bvreplace( &sl->sl_cookie.ctxcsn[i], &se->se_csn );
-			}
-			ch_free( se );
-			sl->sl_num--;
+	} else {
+		sl->sl_head = se;
+		sl->sl_tail = se;
+		if ( !sl->sl_cookie.ctxcsn ) {
+			sl->sl_cookie.numcsns = 1;
+			sl->sl_cookie.ctxcsn = ch_malloc( 2*sizeof( struct berval ));
+			sl->sl_cookie.sids = ch_malloc( sizeof( int ));
+			sl->sl_cookie.sids[0] = se->se_sid;
+			ber_dupbv( sl->sl_cookie.ctxcsn, &se->se_csn );
+			BER_BVZERO( &sl->sl_cookie.ctxcsn[1] );
 		}
-		ldap_pvt_thread_mutex_unlock( &sl->sl_mutex );
 	}
+	sl->sl_num++;
+	while ( sl->sl_num > sl->sl_size ) {
+		int i;
+		se = sl->sl_head;
+		sl->sl_head = se->se_next;
+		for ( i=0; i<sl->sl_cookie.numcsns; i++ )
+			if ( sl->sl_cookie.sids[i] >= se->se_sid )
+				break;
+		if  ( i == sl->sl_cookie.numcsns || sl->sl_cookie.sids[i] != se->se_sid ) {
+			slap_insert_csn_sids( &sl->sl_cookie, i, se->se_sid, &se->se_csn );
+		} else if ( slap_csn_compare_ts( &sl->sl_cookie.ctxcsn[i], &se->se_csn ) < 0 ) {
+			ber_bvreplace( &sl->sl_cookie.ctxcsn[i], &se->se_csn );
+		}
+		ch_free( se );
+		sl->sl_num--;
+	}
+	ldap_pvt_thread_mutex_unlock( &sl->sl_mutex );
 }
 
 /* Just set a flag if we found the matching entry */
@@ -2052,7 +2041,7 @@ syncprov_playlog( Operation *op, sessionlog *sl,
 
 		slap_op_copy(op, &fop, NULL, NULL);
 
-		fop.o_sync_mode = 0;
+		fop.o_sync = 0;
 		fop.o_callback = &cb;
 		fop.ors_limit = NULL;
 		fop.ors_tlimit = SLAP_NO_LIMIT;
@@ -2749,7 +2738,7 @@ syncprov_search_response( Operation *op, SlapReply *rs )
 			}
 
 			/* If not a persistent search */
-			if ( !(op->o_sync_mode & SLAP_SYNC_PERSIST) ) {
+			if ( !(op->o_sync & SLAP_SYNC_PERSIST) ) {
 				/* Make sure entry is less than the snapshot'd contextCSN */
 				for ( i=0; i<ss->ss_numcsns; i++ ) {
 					if ( sid == ss->ss_sids[i] && slap_csn_compare_ts( &entryCSN->a_nvals[0],
@@ -2804,7 +2793,7 @@ syncprov_search_response( Operation *op, SlapReply *rs )
 		/* Is this a regular refresh?
 		 * Note: refresh never gets here if there were no changes
 		 */
-		if ( !(op->o_sync_mode & SLAP_SYNC_PERSIST) ) {
+		if ( !(op->o_sync & SLAP_SYNC_PERSIST) ) {
 			rs->sr_ctrls = op->o_tmpalloc( sizeof(LDAPControl *)*2,
 				op->o_tmpmemctx );
 			rs->sr_ctrls[1] = NULL;
@@ -2896,7 +2885,7 @@ syncprov_op_search( Operation *op, SlapReply *rs )
 	int dirty = 0;
 	int rc;
 
-	if ( !(op->o_sync_mode & SLAP_SYNC_REFRESH) )
+	if ( !(op->o_sync & SLAP_SYNC_REFRESH) )
 		return SLAP_CB_CONTINUE;
 
 	if ( op->ors_deref & LDAP_DEREF_SEARCHING ) {
@@ -2905,7 +2894,7 @@ syncprov_op_search( Operation *op, SlapReply *rs )
 	}
 
 	srs = op->o_controls[slap_cids.sc_LDAPsync];
-	if ( op->o_sync_mode & SLAP_SYNC_PERSIST ) {
+	if ( op->o_sync & SLAP_SYNC_PERSIST ) {
 		fbase_cookie fc = {0};
 		opcookie opc = {0};
 		slap_callback sc = {0};
@@ -2939,7 +2928,7 @@ syncprov_op_search( Operation *op, SlapReply *rs )
 	ldap_pvt_thread_mutex_lock( &si->si_ops_mutex );
 
 	/* If this is a persistent search, set it up right away */
-	if ( op->o_sync_mode & SLAP_SYNC_PERSIST ) {
+	if ( op->o_sync & SLAP_SYNC_PERSIST ) {
 		while ( slap_tsan__read_int(&si->si_active) ) {
 			/* Wait for active mods to finish before proceeding, as they
 			 * may already have inspected the si_ops list looking for
@@ -3003,7 +2992,7 @@ syncprov_op_search( Operation *op, SlapReply *rs )
 
 		/* If we don't have any CSN of our own yet, bail out. */
 		if ( !numcsns ) {
-			if ( op->o_sync_mode & SLAP_SYNC_PERSIST ) {
+			if ( op->o_sync & SLAP_SYNC_PERSIST ) {
 				/* LY: У получателя есть cookie, а у локального провайдера еще нет.
 				 * Такое вполне может быть, если провайдер еще "чистый", но уже
 				 * получил запрос от работающего получателя в мульти-мастер
@@ -3051,25 +3040,24 @@ syncprov_op_search( Operation *op, SlapReply *rs )
 				continue;
 			}
 
-			/* LY: Find the smallest CSN */
+			/* LY: Find the smallest consumer CSN */
 			if ( BER_BVISEMPTY( &pivot_csn )
 					|| slap_csn_compare_ts( &pivot_csn, &srs->sr_state.ctxcsn[i] ) > 0 ) {
 				pivot_csn = srs->sr_state.ctxcsn[i];
-				pivot_sid = sids[j];
+				pivot_sid = srs->sr_state.sids[i];
 			}
 			i++;
 		}
 
 		/* LY: comparison consumer's and provider's CSNs */
 		for ( i=0,j=0; i<srs->sr_state.numcsns; i++ ) {
-			int newer;
 			while ( srs->sr_state.sids[i] != sids[j] ) j++;
 			assert(j < numcsns);
-			newer = slap_csn_compare_ts( &srs->sr_state.ctxcsn[i], &ctxcsn[j] );
+			int cmp = slap_csn_compare_ts( &srs->sr_state.ctxcsn[i], &ctxcsn[j] );
 			/* If our state is newer, tell consumer about changes */
-			if ( newer < 0 ) {
+			if ( cmp < 0 ) {
 				changed = SS_CHANGED;
-			} else if ( newer > 0 && sids[j] == slap_serverID ) {
+			} else if ( cmp > 0 && sids[j] == slap_serverID ) {
 				/* our state is older, complain to consumer */
 				rs->sr_err = LDAP_UNWILLING_TO_PERFORM;
 				rs->sr_text = "consumer state is newer than provider!";
@@ -3093,7 +3081,7 @@ bailout:
 		if ( srs->sr_state.numcsns != numcsns ) {
 			/* consumer doesn't have the right set of CSNs */
 			changed = SS_CHANGED;
-			slap_cookie_clean_csns( &srs->sr_state, op->o_tmpmemctx );
+			srs->sr_state.numcsns = 0; /* sr_state.ctxcsn is shared with pivot_csn */
 			Debug( LDAP_DEBUG_SYNC,
 				"syncprov_op_search: sid %03x, useless consumer-cookie\n",
 				srs->sr_state.sid );
@@ -3119,7 +3107,7 @@ bailout:
 				goto shortcut;
 			}
 no_change:
-			if ( !(op->o_sync_mode & SLAP_SYNC_PERSIST) ) {
+			if ( !(op->o_sync & SLAP_SYNC_PERSIST) ) {
 				LDAPControl	*ctrls[2];
 				struct berval cookie = BER_BVNULL;
 
@@ -3199,9 +3187,10 @@ no_change:
 				rs->sr_text = "sync cookie is stale";
 				goto bailout;
 			}
-			if (! reopenldap_mode_righteous())
+			if (! reopenldap_mode_righteous()) {
 				/* LY: Hm, why we should clean cookie in this case ? */
-				slap_cookie_clean_csns(&srs->sr_state, op->o_tmpmemctx);
+				srs->sr_state.numcsns = 0; /* sr_state.ctxcsn is shared with pivot_csn */
+			}
 		} else {
 			gotstate = 1;
 		}
@@ -3573,30 +3562,19 @@ sp_cf_gen(ConfigArgs *c)
 		}
 		si->si_chktime *= 60;
 		break;
-	case SP_SESSL: {
-		sessionlog *sl;
-		int size = c->value_int;
-
-		if ( size < 0 ) {
+	case SP_SESSL:
+		if ( c->value_int < 0 ) {
 			snprintf( c->cr_msg, sizeof( c->cr_msg ), "%s size %d is negative",
-				c->argv[0], size );
+				c->argv[0], c->value_int );
 			Debug( LDAP_DEBUG_CONFIG|LDAP_DEBUG_NONE,
 				"%s: %s\n", c->log, c->cr_msg );
 			return ARG_BAD_CONF;
 		}
-		sl = si->si_logs;
-		if ( !sl ) {
-			sl = ch_malloc( sizeof( sessionlog ));
-			sl->sl_cookie.ctxcsn = NULL;
-			sl->sl_cookie.sids = NULL;
-			sl->sl_num = 0;
-			sl->sl_cookie.numcsns = 0;
-			sl->sl_head = sl->sl_tail = NULL;
-			ldap_pvt_thread_mutex_init( &sl->sl_mutex );
-			si->si_logs = sl;
+		if ( !si->si_logs ) {
+			si->si_logs = ch_calloc( 1, sizeof( sessionlog ));
+			ldap_pvt_thread_mutex_init( &si->si_logs->sl_mutex );
 		}
-		sl->sl_size = size;
-		}
+		si->si_logs->sl_size = c->value_int;
 		break;
 	case SP_NOPRES:
 		si->si_nopres = c->value_int;
@@ -4011,7 +3989,7 @@ static int syncprov_parseCtrl (
 		? SLAP_CONTROL_CRITICAL
 		: SLAP_CONTROL_NONCRITICAL;
 
-	op->o_sync_mode |= mode;	/* o_sync_mode shares o_sync */
+	op->o_sync |= mode;
 
 	return LDAP_SUCCESS;
 }

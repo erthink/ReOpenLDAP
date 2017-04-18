@@ -40,6 +40,7 @@
 #include "lutil.h"
 #include "lutil_ldap.h"
 #include "slapconfig.h"
+#include "ldif.h"
 
 #define	LUTIL_ATOULX	lutil_atoulx
 #define	Z	"z"
@@ -112,6 +113,19 @@ ConfigTable *config_find_keyword(ConfigTable *Conf, ConfigArgs *c) {
 		if( (Conf[i].length && (!strncasecmp(c->argv[0], Conf[i].name, Conf[i].length))) ||
 			(!strcasecmp(c->argv[0], Conf[i].name)) ) break;
 	if ( !Conf[i].name ) return NULL;
+	if (( Conf[i].arg_type & ARGS_TYPES ) == ARG_BINARY ) {
+		size_t decode_len = LUTIL_BASE64_DECODE_LEN(c->linelen);
+		ch_free( c->tline );
+		c->tline = ch_malloc( decode_len+1 );
+		c->linelen = lutil_b64_pton( c->line, (uint8_t *) c->tline, decode_len );
+		if ( c->linelen < 0 )
+		{
+			ch_free( c->tline );
+			c->tline = NULL;
+			return NULL;
+		}
+		c->line = c->tline;
+	}
 	return Conf+i;
 }
 
@@ -196,6 +210,13 @@ int config_check_vals(ConfigTable *Conf, ConfigArgs *c, int check_only ) {
 		assert( c->argc == 2 );
 		if ( !check_only )
 			ber_str2bv( c->argv[1], 0, 1, &c->value_bv );
+	} else if(arg_type == ARG_BINARY) {
+		assert( c->argc == 2 );
+		if ( !check_only ) {
+			c->value_bv.bv_len = c->linelen;
+			c->value_bv.bv_val = ch_malloc( c->linelen );
+			memcpy( c->value_bv.bv_val, c->line, c->linelen );
+		}
 	} else if(arg_type == ARG_DN) {
 		struct berval bv;
 		assert( c->argc == 2 );
@@ -391,6 +412,7 @@ int config_set_vals(ConfigTable *Conf, ConfigArgs *c) {
 				break;
 				}
 			case ARG_BERVAL:
+			case ARG_BINARY:
 				*(struct berval *)ptr = c->value_bv;
 				break;
 			case ARG_ATDESC:
@@ -539,6 +561,10 @@ init_config_attrs(ConfigTable *ct) {
 			fprintf( stderr, "init_config_attrs: register_at failed\n" );
 			return code;
 		}
+		if (( ct[i].arg_type & ARGS_TYPES ) == ARG_BINARY ) {
+			ldif_must_b64_encode_register( ct[i].ad->ad_cname.bv_val,
+				ct[i].ad->ad_type->sat_oid );
+		}
 	}
 
 	return 0;
@@ -639,13 +665,15 @@ int
 config_parse_vals(ConfigTable *ct, ConfigArgs *c, int valx)
 {
 	int 	rc = 0;
+	int arg_type = ct->arg_type & ARGS_TYPES;
 
 	snprintf( c->log, sizeof( c->log ), "%s: value #%d",
 		ct->ad->ad_cname.bv_val, valx );
 	c->argc = 1;
 	c->argv[0] = ct->ad->ad_cname.bv_val;
 
-	if ( ( ct->arg_type & ARG_QUOTE ) && c->line[ 0 ] != '"' ) {
+	if ( (( ct->arg_type & ARG_QUOTE ) && c->line[ 0 ] != '"' ) ||
+		(arg_type == ARG_BERVAL || arg_type == ARG_BINARY)) {
 		c->argv[c->argc] = c->line;
 		c->argc++;
 		c->argv[c->argc] = NULL;
@@ -667,13 +695,15 @@ int
 config_parse_add(ConfigTable *ct, ConfigArgs *c, int valx)
 {
 	int	rc = 0;
+	int arg_type = ct->arg_type & ARGS_TYPES;
 
 	snprintf( c->log, sizeof( c->log ), "%s: value #%d",
 		ct->ad->ad_cname.bv_val, valx );
 	c->argc = 1;
 	c->argv[0] = ct->ad->ad_cname.bv_val;
 
-	if ( ( ct->arg_type & ARG_QUOTE ) && c->line[ 0 ] != '"' ) {
+	if ( (( ct->arg_type & ARG_QUOTE ) && c->line[ 0 ] != '"' ) ||
+		(arg_type == ARG_BERVAL || arg_type == ARG_BINARY)) {
 		c->argv[c->argc] = c->line;
 		c->argc++;
 		c->argv[c->argc] = NULL;
@@ -2268,6 +2298,7 @@ config_fp_parse_line(ConfigArgs *c)
 	int inquote = 0;
 
 	c->tline = ch_strdup(c->line);
+	c->linelen = strlen(c->line);
 	token = strtok_quote(c->tline, " \t", &quote_ptr, &inquote);
 
 	if(token) for(i = 0; hide[i]; i++) if(!strcasecmp(token, hide[i])) break;

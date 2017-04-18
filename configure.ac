@@ -42,7 +42,7 @@ AC_INIT(
 	m4_esyscmd_s([build/BRANDING --bugs]),
 	m4_esyscmd_s([build/BRANDING --tarname]),
 	m4_esyscmd_s([build/BRANDING --url]))
-AC_CONFIG_MACRO_DIRS([build/m4])
+AC_CONFIG_MACRO_DIR([build/m4])
 dnl ----------------------------------------------------------------
 dnl OpenLDAP Autoconf Macros
 builtin(include, build/openldap.m4)
@@ -139,6 +139,7 @@ FIXUP_DIRS="\$(SED) \
 AC_SUBST(FIXUP_DIRS)
 
 AC_LANG([C])
+AC_ARG_VAR(EXTRA_CFLAGS, [Extra build-time CFLAGS, e.g. -Wall -Werror])
 AC_PREFIX_DEFAULT("/opt/reopenldap")
 
 dnl ----------------------------------------------------------------
@@ -166,6 +167,7 @@ AM_CONDITIONAL(COMPILER_IS_GCC, test "x$GCC" = "xyes")
 PKG_PROG_PKG_CONFIG
 AC_LIBTOOL_DLOPEN
 AC_PROG_LIBTOOL
+LT_OUTPUT
 
 AC_DEFINE(_GNU_SOURCE, 1, [Enable GNU extensions.])
 AC_DEFINE(_ISOC99_SOURCE, 1, [Define to enforce ISO C99 compliance.])
@@ -273,6 +275,7 @@ AH_BOTTOM([
 
 AC_CONFIG_HEADERS([reldap_autoconf.h])
 AC_CONFIG_HEADERS([include/ldap_features.h])
+AC_CONFIG_HEADERS([include/ldap_dirs.h])
 AC_CONFIG_HEADERS([include/lber_types.h])
 
 dnl ================================================================
@@ -498,7 +501,7 @@ OL_ARG_ENABLE(wt,[    --enable-wt	  enable WiredTiger backend],
 
 dnl ----------------------------------------------------------------
 dnl SLAPD Overlay Options
-slapd_overlays="accesslog auditlog collect constraint dds deref \
+slapd_overlays="accesslog auditlog autoca collect constraint dds deref \
 	dyngroup dynlist memberof ppolicy pcache refint \
 	retcode rwm seqmod sssvlv syncprov translucent unique \
 	valsort"
@@ -511,6 +514,8 @@ OL_ARG_ENABLE(overlays,[    --enable-overlays	  enable all available overlays],
 OL_ARG_ENABLE(accesslog,[    --enable-accesslog	  In-Directory Access Logging overlay],
 	no, [no yes mod], ol_enable_overlays)
 OL_ARG_ENABLE(auditlog,[    --enable-auditlog	  Audit Logging overlay],
+	no, [no yes mod], ol_enable_overlays)
+OL_ARG_ENABLE(autoca,[    --enable-autoca	  Automatic Certificate Authority overlay],
 	no, [no yes mod], ol_enable_overlays)
 OL_ARG_ENABLE(collect,[    --enable-collect	  Collect overlay],
 	no, [no yes mod], ol_enable_overlays)
@@ -557,16 +562,7 @@ AC_ENABLE_STATIC
 AC_ENABLE_SHARED
 
 dnl ----------------------------------------------------------------
-# validate options
-
-for o in $slapd_features $slapd_backends $slapd_overlays; do
-	eval "ol_value=\$ol_enable_$o"
-	if test $ol_enable_slapd = no -a $ol_value != no; then
-		AC_MSG_ERROR([slapd disabled, therefore --enable-$o=$ol_value unavailable ])
-	elif test $ol_enable_modules = no -a $ol_value = mod; then
-		AC_MSG_ERROR([dynamic modules disabled, therefore --enable-$o=$ol_value unavailable ])
-	fi
-done
+# Kerberos and Heimdal
 
 PKG_CHECK_MODULES(KRB5, krb5 krb5-gssapi, krb5_found=yes, krb5_found=no)
 AC_SUBST(KRB5_LIBS)
@@ -577,6 +573,26 @@ PKG_CHECK_MODULES(HEIMDAL, heimdal-krb5 heimdal-kadm-server, heimdal_found=yes, 
 AC_SUBST(HEIMDAL_LIBS)
 AC_SUBST(HEIMDAL_CFLAGS)
 AM_CONDITIONAL([HEIMDAL_AVAIL], [test $heimdal_found = yes])
+
+dnl ----------------------------------------------------------------
+# libsodium (argon2 hash)
+
+PKG_CHECK_MODULES(LIBSODIUM, [libsodium >= 1.0.9], libsodium_found=yes, libsodium_found=no)
+AC_SUBST(LIBSODIUM_LIBS)
+AC_SUBST(LIBSODIUM_CFLAGS)
+AM_CONDITIONAL([LIBSODIUM_AVAIL], [test $libsodium_found = yes])
+
+dnl ----------------------------------------------------------------
+# validate options
+
+for o in $slapd_features $slapd_backends $slapd_overlays; do
+	eval "ol_value=\$ol_enable_$o"
+	if test $ol_enable_slapd = no -a $ol_value != no; then
+		AC_MSG_ERROR([slapd disabled, therefore --enable-$o=$ol_value unavailable ])
+	elif test $ol_enable_modules = no -a $ol_value = mod; then
+		AC_MSG_ERROR([dynamic modules disabled, therefore --enable-$o=$ol_value unavailable ])
+	fi
+done
 
 if test $ol_enable_contrib != no; then
 	if test $ol_enable_slapd = no ; then
@@ -599,6 +615,10 @@ if test $ol_enable_contrib != no; then
 
 	if test $heimdal_found != yes; then
 		AC_MSG_WARN([$HEIMDAL_PKG_ERRORS, therefore depended contrib-modules unavailable ])
+	fi
+
+	if test $libsodium_found != yes; then
+		AC_MSG_WARN([$LIBSODIUM_PKG_ERRORS, therefore depended contrib-modules unavailable ])
 	fi
 
 	CRACKLIB_LIBS=
@@ -738,13 +758,13 @@ if test $ol_enable_perl != no ; then
 	PERL_RDIR="`echo $PERL_LDFLAGS | tr '[[:space:]]' '\n' | grep -- '-Wl,-rpath,' | sed 's/-Wl,-rpath,/-R/'`"
 
 	save_LIBS=$LIBS
-	save_CFLAGS=$CFLAGS
+	save_CPPFLAGS=$CPPFLAGS
 	save_LDFLAGS=$LDFLAGS
-	CFLAGS="$CFLAGS $PERL_CPPFLAGS"
+	CPPFLAGS="$CPPFLAGS $PERL_CPPFLAGS"
 	LDFLAGS="$LDFLAGS $PERL_LDFLAGS"
 	AC_SEARCH_LIBS(perl_construct, [`echo $PERL_LIBS | sed 's/^-l//;s/ -l/ /g'`], [ol_link_perl=yes])
 	LDFLAGS=$save_LDFLAGS
-	CFLAGS=$save_CFLAGS
+	CPPFLAGS=$save_CPPFLAGS
 	LIBS=$save_LIBS
 
 	if test $ol_link_perl = no -a $ol_enable_perl = yes ; then
@@ -765,15 +785,15 @@ dnl Check for module support
 if test $ol_enable_modules != no -o $ol_enable_slapi != no; then
 	# The lt_dladvise_init symbol was added with libtool-2.2
 	if test yes != "$with_included_ltdl"; then
-		save_CFLAGS=$CFLAGS
+		save_CPPFLAGS=$CPPFLAGS
 		save_LDFLAGS=$LDFLAGS
-		CFLAGS="$CFLAGS $LTDLINCL"
+		CPPFLAGS="$CPPFLAGS $LTDLINCL"
 		LDFLAGS="$LDFLAGS $LIBLTDL"
 		AC_CHECK_LIB([ltdl], [lt_dladvise_init],
 			[],
 			[AC_MSG_ERROR([installed libltdl is too old])])
 		LDFLAGS=$save_LDFLAGS
-		CFLAGS=$save_CFLAGS
+		CPPFLAGS=$save_CPPFLAGS
 	fi
 else
 	for be in $slapd_backends; do
@@ -857,6 +877,10 @@ AC_CHECK_HEADERS(	\
 	termios.h	\
 	unistd.h	\
 	utime.h		\
+	dirent.h	\
+	ndir.h		\
+	sys/ndir.h	\
+	sys/dir.h	\
 )
 
 AC_CHECK_HEADERS( resolv.h, [], [],
@@ -956,20 +980,26 @@ dnl ----------------------------------------------------------------
 OL_STRERROR
 
 dnl ----------------------------------------------------------------
+# checks for backtrace feature
 
-AC_CHECK_HEADERS(bfd.h libelf.h gelf.h)
-AC_CHECK_LIB(elf, elf_begin, have_libelf=yes)
-AC_CHECK_LIB(bfd, bfd_openr, have_libbfd=yes)
+AC_CHECK_HEADERS(unistd.h signal.h fcntl.h execinfo.h ucontext.h sys/prctl.h sys/syscall.h sys/resource.h sys/wait.h linux/limits.h,,DONT_HAVE_ENOUGH4BACKTRACE=yes)
+if test "$DONT_HAVE_ENOUGH4BACKTRACE" != yes; then
+	AC_DEFINE(HAVE_ENOUGH4BACKTRACE,1,[define if target platform have enough for backtrace feature])
 
-if test "$ac_cv_header_libelf_h" = yes -a "$ac_cv_header_gelf_h" = yes -a "$have_libelf" = yes; then
-	AC_DEFINE(HAVE_LIBELF,1,[define 1 if you have libelf])
-	SLAPD_LIBS="$SLAPD_LIBS -lelf"
-	if test "$ac_cv_header_bfd_h" = yes -a "$have_libbfd" = yes; then
-		AC_DEFINE(HAVE_LIBBFD,1,[define 1 if you have libbfd])
-		SLAPD_LIBS="$SLAPD_LIBS -lbfd"
-	fi
-else
+	AC_CHECK_HEADERS(bfd.h libelf.h gelf.h)
+	AC_CHECK_LIB(elf, elf_begin, have_libelf=yes)
+	AC_CHECK_LIB(bfd, bfd_openr, have_libbfd=yes)
+
+	if test "$ac_cv_header_libelf_h" = yes -a "$ac_cv_header_gelf_h" = yes -a "$have_libelf" = yes; then
+		AC_DEFINE(HAVE_LIBELF,1,[define 1 if you have libelf])
+		SLAPD_LIBS="$SLAPD_LIBS -lelf"
+		if test "$ac_cv_header_bfd_h" = yes -a "$have_libbfd" = yes; then
+			AC_DEFINE(HAVE_LIBBFD,1,[define 1 if you have libbfd])
+			SLAPD_LIBS="$SLAPD_LIBS -lbfd"
+		fi
+	else
 	AC_MSG_WARN([libelf not found, backtrace feature would be disabled])
+fi
 fi
 
 dnl ----------------------------------------------------------------
@@ -995,49 +1025,26 @@ fi
 dnl ----------------------------------------------------------------
 dnl UUID Support
 
-have_uuid=no
-#PKG_CHECK_MODULES(UUID, uuid, have_uuid=yes, have_uuid=no)
-#AC_SUBST(UUID_LIBS)
+PKG_CHECK_MODULES(UUID, uuid, uuid_found=yes, uuid_found=no)
+AC_SUBST(UUID_LIBS)
 #AC_SUBST(UUID_CFLAGS)
-
-AC_CHECK_HEADERS(sys/uuid.h)
-dnl The HAVE_UUID_TO_STR code path also needs uuid_create
-if test $ac_cv_header_sys_uuid_h = yes ; then
-	save_LIBS="$LIBS"
-	AC_SEARCH_LIBS([uuid_to_str], [uuid], [have_uuid=yes], :)
-	AC_SEARCH_LIBS([uuid_create], [uuid], :, [have_uuid=no])
-	LIBS="$save_LIBS"
-
-	if test $have_uuid = yes ; then
-		AC_DEFINE(HAVE_UUID_TO_STR,1,
-			[define if you have uuid_to_str()])
-
-		test "$ac_cv_search_uuid_to_str" = "none required" || \
-			SLAPD_LIBS="$SLAPD_LIBS $ac_cv_search_uuid_to_str"
-	fi
-fi
-
-dnl Look for uuid_generate
-dnl The HAVE_UUID_GENERATE code path also needs uuid_unparse_lower
-if test $have_uuid = no ; then
+if test $uuid_found = yes ; then
 	AC_CHECK_HEADERS(uuid/uuid.h)
 	if test $ac_cv_header_uuid_uuid_h = yes ; then
 		save_LIBS="$LIBS"
+		LIBS="$LIBS $UUID_LIBS"
 		AC_SEARCH_LIBS([uuid_generate], [uuid], [have_uuid=yes], :)
 		AC_SEARCH_LIBS([uuid_unparse_lower], [uuid], :, [have_uuid=no])
 		LIBS="$save_LIBS"
 
-		if test $have_uuid = yes ; then
-			AC_DEFINE(HAVE_UUID_GENERATE,1,
-				[define if you have uuid_generate()])
-
-			test "$ac_cv_search_uuid_generate" = "none required" || \
-				SLAPD_LIBS="$SLAPD_LIBS $ac_cv_search_uuid_generate"
+		if test "$have_uuid" = "yes" ; then
+			AC_DEFINE(HAVE_UUID_GENERATE,1, [define if you have uuid_generate()])
+			SLAPD_LIBS="$SLAPD_LIBS $UUID_LIBS"
 		fi
 	fi
 fi
 
-if test $have_uuid = no ; then
+if test "$have_uuid" != "yes" ; then
 	AC_MSG_ERROR([uuid support not found (this typically means the uuid development package is missing)])
 fi
 
@@ -1122,13 +1129,16 @@ fi
 dnl ----------------------------------------------------------------
 dnl TLS/SSL
 
-PKG_CHECK_MODULES(OPENSSL, [openssl libssl], openssl_found=yes, openssl_found=no)
+PKG_CHECK_MODULES(OPENSSL, [openssl], openssl_found=yes, openssl_found=no)
 AC_SUBST(OPENSSL_LIBS)
 AC_SUBST(OPENSSL_CFLAGS)
 AM_CONDITIONAL([OPENSSL_AVAIL], [test $openssl_found = yes])
 if test $openssl_found = yes; then
     AC_DEFINE(HAVE_OPENSSL, 1, [define if you have OpenSSL])
+    save_CPPFLAGS=$CPPFLAGS
+    CPPFLAGS="$CPPFLAGS $OPENSSL_CFLAGS"
     AC_CHECK_HEADERS([openssl/ssl.h ssl.h])
+    CPPFLAGS=$save_CPPFLAGS
     if test $ac_cv_header_openssl_ssl_h != yes -a $ac_cv_header_ssl_h != yes; then
 	AC_MSG_ERROR([could not locate openssl/ssl.h or ssl.h])
     fi
@@ -1140,7 +1150,10 @@ AC_SUBST(GNUTLS_CFLAGS)
 AM_CONDITIONAL([GNUTLS_AVAIL], [test $gnutls_found = yes])
 if test $gnutls_found = yes; then
     AC_DEFINE(HAVE_GNUTLS, 1, [define if you have GnuTLS])
+    save_CPPFLAGS=$CPPFLAGS
+    CPPFLAGS="$CPPFLAGS $GNUTLS_CFLAGS"
     AC_CHECK_HEADERS(gnutls/gnutls.h)
+    CPPFLAGS=$save_CPPFLAGS
     if test $ac_cv_header_gnutls_gnutls_h != yes; then
 	AC_MSG_ERROR([could not locate gnutls/gnutls.h])
     fi
@@ -1152,8 +1165,8 @@ AC_SUBST(MOZNSS_CFLAGS)
 AM_CONDITIONAL([MOZNSS_AVAIL], [test $moznss_found = yes])
 if test $moznss_found = yes; then
     AC_DEFINE(HAVE_MOZNSS, 1, [define if you have Mozill NSS])
-    save_CFLAGS=$CFLAGS
-    CFLAGS="$CFLAGS $MOZNSS_CFLAGS"
+    save_CPPFLAGS=$CPPFLAGS
+    CPPFLAGS="$CPPFLAGS $MOZNSS_CFLAGS"
     AC_CHECK_HEADERS([nspr/nspr.h nspr4/nspr.h])
     if test $ac_cv_header_nspr_nspr_h != yes -a $ac_cv_header_nspr4_nspr_h != yes; then
 	AC_MSG_ERROR([could not locate nspr/nspr.h or nspr4/nspr.h])
@@ -1162,7 +1175,7 @@ if test $moznss_found = yes; then
     if test $ac_cv_header_nss_nss_h != yes -a $ac_cv_header_nss3_nss_h != yes; then
 	AC_MSG_ERROR([could not locate nss/nss.h or nss3/nss.h])
     fi
-    CFLAGS=$save_CFLAGS
+    CPPFLAGS=$save_CPPFLAGS
 fi
 
 AM_CONDITIONAL([TLS_FALLBACK_AVAIL], [test $gnutls_found = yes -o $openssl_found = yes])
@@ -1422,6 +1435,11 @@ case $ol_with_threads in auto | yes | posix)
 			ol_link_threads=posix
 			ol_link_pthreads=""
 		fi
+
+		AC_CHECK_DECL(PTHREAD_MUTEX_RECURSIVE,
+			AC_DEFINE(HAVE_PTHREAD_MUTEX_RECURSIVE, [], [Define if your pthreads implementation have PTHREAD_MUTEX_RECURSIVE]),
+			,[#include <pthread.h>])
+
 
 dnl		OL_PTHREAD_TRY([-mt],		[ol_cv_pthread_mt])
 		OL_PTHREAD_TRY([-kthread],	[ol_cv_pthread_kthread])
@@ -2028,7 +2046,9 @@ fi
 
 dnl ----------------------------------------------------------------
 dnl Check for entropy sources
-if test $cross_compiling != yes && test "$ac_cv_mingw32" != yes ; then
+if test "$URANDOM_DEVICE" != "" ; then
+	AC_DEFINE_UNQUOTED(URANDOM_DEVICE,"$URANDOM_DEVICE",[set to urandom device])
+elif test $cross_compiling != yes && test "$ac_cv_mingw32" != yes ; then
 	dev=no
 	if test -r /dev/urandom ; then
 		dev="/dev/urandom";
@@ -2238,8 +2258,8 @@ if test $ol_with_mp = long || test $ol_with_mp = auto ; then
 		AC_MSG_ERROR([long unusable for multiple precision])
 	fi
 fi
+AC_CHECK_HEADERS(openssl/bn.h openssl/crypto.h)
 if test $ol_with_mp = bignum || test $ol_with_mp = auto ; then
-	AC_CHECK_HEADERS(openssl/bn.h openssl/crypto.h)
 	if test "$ac_cv_header_openssl_bn_h" = "yes" &&
 		test "$ac_cv_header_openssl_crypto_h" = "yes" &&
 		test "$ol_with_tls" = "found" ; then
@@ -2691,6 +2711,17 @@ if test "$ol_enable_auditlog" != no ; then
 	AC_DEFINE_UNQUOTED(SLAPD_OVER_AUDITLOG,$MFLAG,[define for Audit Logging overlay])
 fi
 
+if test "$ol_enable_autoca" != no ; then
+	if test "$ol_enable_autoca" = mod ; then
+		MFLAG=SLAPD_MOD_DYNAMIC
+		SLAPD_DYNAMIC_OVERLAYS="$SLAPD_DYNAMIC_OVERLAYS autoca"
+	else
+		MFLAG=SLAPD_MOD_STATIC
+		SLAPD_STATIC_OVERLAYS="$SLAPD_STATIC_OVERLAYS autoca"
+	fi
+	AC_DEFINE_UNQUOTED(SLAPD_OVER_AUTOCA,$MFLAG,[define for Automatic Certificate Authority overlay])
+fi
+
 if test "$ol_enable_collect" != no ; then
 	if test "$ol_enable_collect" = mod ; then
 		MFLAG=SLAPD_MOD_DYNAMIC
@@ -3018,6 +3049,9 @@ AM_CONDITIONAL([SLAPD_DYNACL], [test $ol_enable_dynacl != no])
 	AM_CONDITIONAL([BUILD_AUDITLOG], [test $ol_enable_auditlog != no])
 	AM_CONDITIONAL([AUDITLOG_DYNAMIC], [test $ol_enable_auditlog = mod])
 
+	AM_CONDITIONAL([BUILD_AUTOCA], [test $ol_enable_autoca != no])
+	AM_CONDITIONAL([AUTOCA_DYNAMIC], [test $ol_enable_autoca = mod])
+
 	AM_CONDITIONAL([BUILD_COLLECT], [test $ol_enable_collect != no])
 	AM_CONDITIONAL([COLLECT_DYNAMIC], [test $ol_enable_collect = mod])
 
@@ -3202,6 +3236,9 @@ if test -x $ac_aux_dir/BRANDING; then
 	AC_CONFIG_FILES(tests/Makefile tests/progs/Makefile tests/run)
 	AC_CONFIG_COMMANDS([default],[[chmod +x tests/run]])
 fi
+
+AM_SUBST_NOTMAKE(COMMON_MK, "include ${top_srcdir}/build/common.mk")
+AC_SUBST(AM_CFLAGS, "\$(EXTRA_CFLAGS)")
 
 AC_OUTPUT
 

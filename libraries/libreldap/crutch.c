@@ -64,7 +64,7 @@
 
 /*----------------------------------------------------------------------------*/
 
-__hot __attribute_used__
+__hot __attribute__ ((__used__))
 void* ber_memcpy_safe(void* dest, const void* src, size_t n) {
 	long diff = (char*) dest - (char*) src;
 

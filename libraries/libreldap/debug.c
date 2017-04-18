@@ -38,9 +38,25 @@
 #include <pthread.h>
 #include <errno.h>
 
-static pthread_mutex_t debug_mutex = PTHREAD_RECURSIVE_MUTEX_INITIALIZER_NP;
 static FILE *log_file = NULL;
 static int debug_lastc = '\n';
+
+#ifdef HAVE_PTHREAD_MUTEX_RECURSIVE
+
+#if defined(PTHREAD_RECURSIVE_MUTEX_INITIALIZER)
+static pthread_mutex_t debug_mutex = PTHREAD_RECURSIVE_MUTEX_INITIALIZER;
+#elif defined(PTHREAD_RECURSIVE_MUTEX_INITIALIZER_NP)
+static pthread_mutex_t debug_mutex = PTHREAD_RECURSIVE_MUTEX_INITIALIZER_NP;
+#else
+static pthread_mutex_t debug_mutex;
+static __attribute__((constructor)) void ldap_debug_lock_init(void)
+{
+	pthread_mutexattr_t mutexattr;
+	LDAP_ENSURE(pthread_mutexattr_init(&mutexattr) == 0);
+	LDAP_ENSURE(pthread_mutexattr_settype(&mutexattr, PTHREAD_MUTEX_RECURSIVE) == 0);
+	LDAP_ENSURE(pthread_mutex_init(&debug_mutex, &mutexattr) == 0);
+}
+#endif /* PTHREAD_RECURSIVE_MUTEX_INITIALIZER */
 
 void ldap_debug_lock(void) {
 	LDAP_ENSURE(pthread_mutex_lock(&debug_mutex) == 0);
@@ -55,6 +71,30 @@ int ldap_debug_trylock(void) {
 void ldap_debug_unlock(void) {
 	LDAP_ENSURE(pthread_mutex_unlock(&debug_mutex) == 0);
 }
+
+#else /* HAVE_PTHREAD_MUTEX_RECURSIVE */
+
+static ldap_pvt_thread_rmutex_t debug_mutex;
+static __attribute__((constructor)) void ldap_debug_lock_init(void)
+{
+	LDAP_ENSURE(ldap_pvt_thread_rmutex_init(&debug_mutex) == 0);
+}
+
+void ldap_debug_lock(void) {
+	LDAP_ENSURE(ldap_pvt_thread_rmutex_lock(&debug_mutex, ldap_pvt_thread_self()) == 0);
+}
+
+int ldap_debug_trylock(void) {
+	int rc = ldap_pvt_thread_rmutex_trylock(&debug_mutex, ldap_pvt_thread_self());
+	LDAP_ENSURE(rc == 0 || rc == EBUSY);
+	return rc;
+}
+
+void ldap_debug_unlock(void) {
+	LDAP_ENSURE(ldap_pvt_thread_rmutex_unlock(&debug_mutex, ldap_pvt_thread_self()) == 0);
+}
+
+#endif /* ! HAVE_PTHREAD_MUTEX_RECURSIVE */
 
 int ldap_debug_file( FILE *file )
 {

@@ -113,7 +113,7 @@ case $RC in
 0)
 	echo "ldapmodify should have failed ($RC)!"
 	killservers
-	exit -1
+	exit 2
 	;;
 *)
 	echo "ldapmodify failed ($RC)!"
@@ -150,7 +150,7 @@ case $RC in
 0)
 	echo "ldapmodify should have failed ($RC)!"
 	killservers
-	exit -1
+	exit 2
 	;;
 *)
 	echo "ldapmodify failed ($RC)!"
@@ -174,7 +174,7 @@ case $RC in
 0)
 	echo "ldapmodify should have failed ($RC)!"
 	killservers
-	exit -1
+	exit 2
 	;;
 *)
 	echo "ldapmodify failed ($RC)!"
@@ -198,7 +198,7 @@ case $RC in
 0)
 	echo "ldapmodify should have failed ($RC)!"
 	killservers
-	exit -1
+	exit 2
 	;;
 *)
 	echo "ldapmodify failed ($RC)!"
@@ -240,7 +240,7 @@ case $RC in
 0)
 	echo "ldapmodify should have failed ($RC)!"
 	killservers
-	exit -1
+	exit 2
 	;;
 *)
 	echo "ldapmodify failed ($RC)!"
@@ -287,7 +287,7 @@ case $RC in
 0)
 	echo "ldapmodify should have failed ($RC)!"
 	killservers
-	exit -1
+	exit 2
 	;;
 *)
 	echo "ldapmodify failed ($RC)!"
@@ -335,7 +335,7 @@ case $RC in
 0)
 	echo "ldapmodify should have failed ($RC)!"
 	killservers
-	exit -1
+	exit 2
 	;;
 *)
 	echo "ldapmodify failed ($RC)!"
@@ -409,7 +409,7 @@ case $RC in
 0)
 	echo "ldapmodify should have failed ($RC)!"
 	killservers
-	exit -1
+	exit 2
 	;;
 *)
 	echo "ldapmodify failed ($RC)!"
@@ -447,7 +447,7 @@ case $RC in
 0)
 	echo "ldapmodify should have failed ($RC)!"
 	killservers
-	exit -1
+	exit 2
 	;;
 *)
 	echo "ldapmodify failed ($RC)!"
@@ -507,7 +507,7 @@ case $RC in
 0)
 	echo "ldapmodify should have failed ($RC)!"
 	killservers
-	exit -1
+	exit 2
 	;;
 *)
 	echo "ldapmodify failed ($RC)!"
@@ -530,7 +530,7 @@ case $RC in
 0)
 	echo "ldapmodify should have failed ($RC)!"
 	killservers
-	exit -1
+	exit 2
 	;;
 *)
 	echo "ldapmodify failed ($RC)!"
@@ -553,7 +553,7 @@ case $RC in
 0)
 	echo "ldapmodify should have failed ($RC)!"
 	killservers
-	exit -1
+	exit 2
 	;;
 *)
 	echo "ldapmodify failed ($RC)!"
@@ -595,7 +595,7 @@ case $RC in
 0)
 	echo "ldapmodify should have failed ($RC)!"
 	killservers
-	exit -1
+	exit 2
 	;;
 *)
 	echo "ldapmodify failed ($RC)!"

@@ -15,8 +15,18 @@
 
 # LY: kill all slapd running in the current session
 pkill -SIGKILL -s 0 -u $EUID slapd
+pkill -SIGKILL -s 0 -u $EUID lt-slapd
 TESTWD=$(pwd)
 umask 0002
+
+# FIXME
+function issue121_crutch() {
+	echo "Sleep $1*$SLEEP1 seconds - as a workaround for https://github.com/ReOpen/ReOpenLDAP/issues/121 (FIXME)"
+	local i
+	for ((i=0; i<=$1; i++)); do
+		sleep $SLEEP1
+	done
+}
 
 #LY: man enabled overlays & backends
 declare -A AC_conf
@@ -241,19 +251,19 @@ elif [ -n "$CIBUZZ_PID4" ]; then
 	SLEEP0=${SLEEP0-1}
 	SLEEP1=${SLEEP1-7}
 	SYNCREPL_WAIT=${SYNCREPL_WAIT-30}
-elif [ -n "${TEAMCITY_PROCESS_FLOW_ID}" ]; then
+elif [ -n "${TEAMCITY_PROCESS_FLOW_ID}" -o -n "${TRAVIS_BUILD_ID}" ]; then
 	# LY: under Teamcity, take in account ASAN/TSAN and nice
-	TIMEOUT_S="timeout -s SIGXCPU 1m"
-	TIMEOUT_L="timeout -s SIGXCPU 3m"
-	TIMEOUT_H="timeout -s SIGXCPU 9m"
+	TIMEOUT_S="timeout -s SIGXCPU 2m"
+	TIMEOUT_L="timeout -s SIGXCPU 7m"
+	TIMEOUT_H="timeout -s SIGXCPU 20m"
 	SLEEP0=${SLEEP0-0.3}
 	SLEEP1=${SLEEP1-2}
 	SYNCREPL_WAIT=${SYNCREPL_WAIT-10}
 else
 	# LY: take in account -O0
-	TIMEOUT_S="timeout -s SIGXCPU 45s"
-	TIMEOUT_L="timeout -s SIGXCPU 2m"
-	TIMEOUT_H="timeout -s SIGXCPU 5m"
+	TIMEOUT_S="timeout -s SIGXCPU 1m"
+	TIMEOUT_L="timeout -s SIGXCPU 5m"
+	TIMEOUT_H="timeout -s SIGXCPU 15m"
 	SLEEP0=${SLEEP0-0.1}
 	SLEEP1=${SLEEP1-1}
 	SYNCREPL_WAIT=${SYNCREPL_WAIT-5}
@@ -799,6 +809,7 @@ function config_filter {
 
 	sed -e "s/@BACKEND@/${BACKEND}/g"			\
 		-e "s/^#be=${BACKEND}#//g"			\
+		-e "s/^#be=${BACKEND},dbnosync=${DBNOSYNC:-no}#//g"\
 		-e "/^#~/s/^#[^#]*~${BACKEND}~[^#]*#/#omit: /g"	\
 			-e "s/^#~[^#]*~#//g"			\
 		-e "s/@RELAY@/${RELAY}/g"			\
@@ -810,6 +821,7 @@ function config_filter {
 		-e "s/^#sql=${AC_conf[sql]}#//g"		\
 			-e "s/^#${RDBMS}#//g"			\
 		-e "s/^#accesslog=${AC_conf[accesslog]}#//g"	\
+		-e "s/^#autoca=${AC_conf[autoca]}#//g"		\
 		-e "s/^#dds=${AC_conf[dds]}#//g"		\
 		-e "s/^#dynlist=${AC_conf[dynlist]}#//g"	\
 		-e "s/^#memberof=${AC_conf[memberof]}#//g"	\
@@ -848,15 +860,17 @@ function config_filter {
 }
 
 function monitor_data {
-	[ $# = 2 ] || failure "monitor_data args"
+	[ $# = 2 ] || failure "monitor_data srcdir dstdir"
 
-	local SRCDIR="$1"
-	local DSTDIR="$2"
+	local SRCDIR=$(readlink -e $1)
+	local DSTDIR=$(readlink -e $2)
 
 	echo "MONITORDB ${AC_conf[monitor]}"
 	echo "SRCDIR $SRCDIR"
 	echo "DSTDIR $DSTDIR"
 	echo "pwd `pwd`"
+
+	[ -d "$SRCDIR" -a -d "$DSTDIR" ] || failure "Invalid srcdir or dstdir"
 
 	# copy test data
 	cp "$SRCDIR"/do_* "$DSTDIR"
@@ -908,8 +922,8 @@ function run_testset {
 
 	for CMD in $TEST_LIST_CMD; do
 
-		TESTNO=$(sed -n 's/^.*\/test\([0-9]\+\)-.*/\1/p' <<< "$CMD")
-		if [ 0"$TESTNO" -lt 0 ]; then continue; fi
+		TESTNO=$(sed -n 's/^.*\/test\([0-9]\+\)-.*/\1/p;s/^.*\/its\([0-9]\+\)/\1/p' <<< "$CMD")
+		if [ 0"$TESTNO" -lt ${TESTNO_FROM:-0} ]; then continue; fi
 
 		case "$CMD" in
 			*~)	continue;;

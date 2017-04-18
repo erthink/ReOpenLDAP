@@ -1779,7 +1779,7 @@ echo "Checking contextCSN after modify of second-backend on site2-master..."
 # starts with an empty database.  Start site2 master first, then site2
 # search and finally central master so that the site2 search's syncrepl
 # connection has been set up when site2 master receives the database:
-echo "Stopping central-master and site2-servers to test start with emtpy db..."
+echo "Stopping central-master and site2-servers to test start with empty db..."
 killpids $SMC_PID $SM2_PID $SS2_PID
 KILLPIDS=`echo "$KILLPIDS " | sed -e "s/ $SMC_PID / /"`;
 KILLPIDS=`echo "$KILLPIDS " | sed -e "s/ $SM2_PID / /"`;

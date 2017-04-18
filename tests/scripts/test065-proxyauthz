@@ -86,7 +86,7 @@ config_filter < $PROXYAUTHZCONF | sed \
 	-e "s/@BTTR@/${PCACHEBTTR}/"			\
 	> $CONF2
 
-$SLAPD -f $CONF2 -h $URI2 -d $LVL -d pcache > $LOG2 2>&1 &
+$SLAPD -f $CONF2 -h $URI2 -d $LVL -d Cache > $LOG2 2>&1 &
 CACHEPID=$!
 if test $WAIT != 0 ; then
 	echo CACHEPID $CACHEPID
@@ -94,6 +94,14 @@ if test $WAIT != 0 ; then
 fi
 KILLPIDS="$KILLPIDS $CACHEPID"
 check_running 2 proxy
+
+# Check that the debug/loggin enabled
+grep -i "configure with --enable-debug for debugging" $LOG2 > /dev/null
+if test $RC = 0 ; then
+	echo "Debug messages unavailable, remaining test skipped..."
+	killservers
+	exit 0
+fi
 
 cat /dev/null > $SEARCHOUT
 

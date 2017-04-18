@@ -43,7 +43,12 @@ echo "the accesslog DB when a group is deleted."
 echo "See http://www.openldap.org/its/index.cgi/?findid=8444 for more information."
 
 MMR=4
-NNN=42
+if [ -n "${TEAMCITY_PROCESS_FLOW_ID}" -o -n "${TRAVIS_BUILD_ID}" ]; then
+	NNN=10
+else
+	NNN=42
+fi
+
 XDIR=$TESTDIR/srv
 
 mkdir -p $TESTDIR
@@ -86,6 +91,8 @@ for ((n=1; n<=$MMR; n++)); do
 	fi
 	KILLPIDS="$PID $KILLPIDS"
 	check_running $n
+
+	issue121_crutch $n
 done
 
 echo "Populating database on first provider..."
@@ -148,12 +155,45 @@ if test $RC != 0 ; then
 	exit $RC
 fi
 
-#echo "Sleeping 10 seconds to allow replication to initiate..."
-#sleep 10
+# wait for initial sync
 for ((n=2; n<=$MMR; n++)); do
 	PORT=`eval echo '$PORT'$n`
 	wait_syncrepl $PORT1 $PORT base "" "-D $MANAGERDN -w $PASSWD"
 done
+
+echo "Checking initial consistency..."
+for ((n=1; n<=$MMR; n++)); do
+	PORT=`eval echo '$PORT'$n`
+	URI=`eval echo '$URI'$n`
+
+	echo "Using ldapsearch to read all the entries from server $n..."
+	$LDAPSEARCH -S "" -b "$BASEDN" -D "$MANAGERDN" -H $URI -w $PASSWD  \
+		'objectclass=*' > $TESTDIR/server$n.out 2>&1
+	RC=$?
+
+	if [ $RC != 0 ]; then
+		echo "ldapsearch failed at server $n ($RC)!"
+		killservers
+		exit $RC
+	fi
+	$LDIFFILTER -s a < $TESTDIR/server$n.out > $TESTDIR/server$n.flt
+done
+
+for ((n=2; n<=$MMR; n++)); do
+	echo "Comparing retrieved entries from server 1 and server $n..."
+	$CMP $MASTERFLT $TESTDIR/server$n.flt > $CMPOUT
+	RC=$?
+
+	if [ $RC != 0 ]; then
+		break
+	fi
+done
+
+if [ $RC != 0 ]; then
+	echo "test failed - server 1 and server $n databases differ"
+	killservers
+	exit 1
+fi
 
 echo "Looping $NNN times adding and deleting members to the Cartoonia group..."
 for ((loop=1; loop<=$NNN; loop++)); do

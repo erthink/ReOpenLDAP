@@ -47,12 +47,15 @@
 /* LY: Please do not ask us for Windows support, just never!
  * But you can make a fork for Windows, or become maintainer for FreeBSD... */
 #ifndef __gnu_linux__
-#	warning "ReOpenMDBX supports only GNU Linux"
+#	warning "This version of ReOpenMDBX supports only GNU Linux"
 #endif
 
-#include <features.h>
+#include <stddef.h>
+#include <limits.h>
+#include "./lmdb.h"
+#include "./defs.h"
 
-#if !defined(__GNUC__) || !__GNUC_PREREQ(4,2)
+#if !__GNUC_PREREQ(4,2)
 	/* LY: Actualy ReOpenMDBX was not tested with compilers
 	 *     older than GCC 4.4 (from RHEL6).
 	 * But you could remove this #error and try to continue at your own risk.
@@ -61,7 +64,7 @@
 #	warning "ReOpenMDBX required at least GCC 4.2 compatible C/C++ compiler."
 #endif
 
-#if !defined(__GNU_LIBRARY__) || !__GLIBC_PREREQ(2,12)
+#if !__GLIBC_PREREQ(2,12)
 	/* LY: Actualy ReOpenMDBX was not tested with something
 	 *     older than glibc 2.12 (from RHEL6).
 	 * But you could remove this #error and try to continue at your own risk.
@@ -74,7 +77,6 @@
 #	undef NDEBUG
 #endif
 
-#include "./reopen.h"
 #include "./barriers.h"
 
 #include <sys/types.h>
@@ -88,8 +90,6 @@
 #include <fcntl.h>
 
 #include <errno.h>
-#include <limits.h>
-#include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -98,13 +98,38 @@
 #include <malloc.h>
 #include <pthread.h>
 
-#if !(defined(BYTE_ORDER) || defined(__BYTE_ORDER))
-#	include <netinet/in.h>
-#	include <resolv.h>	/* defines BYTE_ORDER on HPUX and Solaris */
-#endif
+/* -------------------------------------------------------------------------- */
+
+#ifdef __GLIBC__
+#	include <assert.h>
+#elif defined(NDEBUG)
+#	define assert(expr) ((void)0)
+#else
+#	define assert(expr)							\
+	do {									\
+		if (unlikely(!(expr)))						\
+			__assert_fail(#expr, __FILE__, __LINE__, mdbx_func_);	\
+	} while(0)
+#endif /* __GLIBC__ */
+
+/* Prototype should match libc runtime. ISO POSIX (2003) & LSB 3.1 */
+__extern_C void __assert_fail(
+		const char* assertion,
+		const char* file,
+		unsigned line,
+		const char* function) __nothrow __noreturn;
+
+/* -------------------------------------------------------------------------- */
 
 #ifndef _POSIX_SYNCHRONIZED_IO
 #	define fdatasync fsync
+#endif
+
+/* -------------------------------------------------------------------------- */
+
+#if !(defined(BYTE_ORDER) || defined(__BYTE_ORDER))
+#	include <netinet/in.h>
+#	include <resolv.h>	/* defines BYTE_ORDER on HPUX and Solaris */
 #endif
 
 #ifndef BYTE_ORDER
@@ -133,7 +158,16 @@
 #	define MISALIGNED_OK	1
 #endif
 
-#include "./lmdb.h"
+#ifndef CACHELINE_SIZE
+#	if defined(__ia64__) || defined(__ia64) || defined(_M_IA64)
+#		define CACHELINE_SIZE 128
+#	else
+#		define CACHELINE_SIZE 64
+#	endif
+#endif
+
+/* -------------------------------------------------------------------------- */
+
 #include "./midl.h"
 
 #if ! MDBX_MODE_ENABLED
@@ -190,9 +224,9 @@
  */
 #ifndef MDB_USE_ROBUST
 	/* Howard Chu: Android currently lacks Robust Mutex support */
-#	if defined(EOWNERDEAD) && !defined(ANDROID) \
+#	if defined(EOWNERDEAD) \
 	/* LY: glibc before 2.10 has a troubles with Robust Mutex too. */ \
-	&& __GLIBC_PREREQ(2,10)
+	&& ((__GLIBC_PREREQ(2,10) && !defined(ANDROID)) || defined(PTHREAD_MUTEX_ROBUST))
 #		define MDB_USE_ROBUST	1
 #	else
 #		define MDB_USE_ROBUST	0
@@ -2700,8 +2734,9 @@ mdb_cursors_eot(MDB_txn *txn, unsigned merge)
 
 	for (i = txn->mt_numdbs; --i >= 0; ) {
 		for (mc = cursors[i]; mc; mc = next) {
-			mdb_ensure(NULL, mc->mc_signature == MDBX_MC_SIGNATURE
-				|| mc->mc_signature == MDBX_MC_WAIT4EOT);
+			unsigned stage = mc->mc_signature;
+			mdb_ensure(NULL, stage == MDBX_MC_SIGNATURE
+				|| stage == MDBX_MC_WAIT4EOT);
 			next = mc->mc_next;
 			if ((bk = mc->mc_backup) != NULL) {
 				if (merge) {
@@ -2714,10 +2749,8 @@ mdb_cursors_eot(MDB_txn *txn, unsigned merge)
 					if ((mx = mc->mc_xcursor) != NULL)
 						mx->mx_cursor.mc_txn = bk->mc_txn;
 				} else {
-					/* Abort nested txn, but save current cursor's stage */
-					unsigned stage = mc->mc_signature;
+					/* Abort nested txn */
 					*mc = *bk;
-					mc->mc_signature = stage;
 					if ((mx = mc->mc_xcursor) != NULL)
 						*mx = *(MDB_xcursor *)(bk+1);
 				}
@@ -2725,11 +2758,12 @@ mdb_cursors_eot(MDB_txn *txn, unsigned merge)
 				bk->mc_signature = 0;
 				free(bk);
 			}
-			if (mc->mc_signature == MDBX_MC_WAIT4EOT) {
+			if (stage == MDBX_MC_WAIT4EOT) {
 				mc->mc_signature = 0;
 				free(mc);
 			} else {
 				mc->mc_signature = MDBX_MC_READY4CLOSE;
+				mc->mc_flags = 0 /* reset C_UNTRACK */;
 			}
 #else
 				mc = bk;
@@ -3244,7 +3278,12 @@ mdb_txn_reset(MDB_txn *txn)
 	if (unlikely(!(txn->mt_flags & MDB_TXN_RDONLY)))
 		return EINVAL;
 
+#if MDBX_MODE_ENABLED
+	/* LY: don't close DBI-handles in MDBX mode */
+	return mdb_txn_end(txn, MDB_END_RESET|MDB_END_UPDATE);
+#else
 	return mdb_txn_end(txn, MDB_END_RESET);
+#endif /* MDBX_MODE_ENABLED */
 }
 
 int
@@ -3255,6 +3294,12 @@ mdb_txn_abort(MDB_txn *txn)
 
 	if(unlikely(txn->mt_signature != MDBX_MT_SIGNATURE))
 		return MDB_VERSION_MISMATCH;
+
+#if MDBX_MODE_ENABLED
+	if (F_ISSET(txn->mt_flags, MDB_TXN_RDONLY))
+		/* LY: don't close DBI-handles in MDBX mode */
+		return mdb_txn_end(txn, MDB_END_ABORT|MDB_END_UPDATE|MDB_END_SLOT|MDB_END_FREE);
+#endif /* MDBX_MODE_ENABLED */
 
 	if (txn->mt_child)
 		mdb_txn_abort(txn->mt_child);
@@ -4661,7 +4706,7 @@ void mdbx_pthread_crutch_dtor(void)
 	 * деструкторы уже могли начать выполняться.
 	 * Уступая квант времени сразу после удаления ключа
 	 * мы даем им шанс завершиться. */
-	pthread_yield();
+	sched_yield(); sched_yield(); sched_yield();
 
 	mdbx_rthc_lock();
 	pid_t pid = getpid();
@@ -4680,11 +4725,12 @@ void mdbx_pthread_crutch_dtor(void)
 		 * Поэтому на каждой итерации уступаем квант времени,
 		 * в надежде что деструкторы успеют отработать. */
 		mdbx_rthc_unlock();
-		pthread_yield();
+		sched_yield(); sched_yield(); sched_yield();
 		mdbx_rthc_lock();
 	}
 	mdbx_rthc_unlock();
-	pthread_yield();
+
+	sched_yield(); sched_yield(); sched_yield();
 }
 #endif /* MDBX_USE_THREAD_ATEXIT */
 
@@ -5763,7 +5809,7 @@ mdb_page_search(MDB_cursor *mc, MDB_val *key, int flags)
 		return MDB_BAD_TXN;
 	} else {
 		/* Make sure we're using an up-to-date root */
-		if (*mc->mc_dbflag & DB_STALE) {
+		if (unlikely(*mc->mc_dbflag & DB_STALE)) {
 				MDB_cursor mc2;
 				if (unlikely(TXN_DBI_CHANGED(mc->mc_txn, mc->mc_dbi)))
 					return MDB_BAD_DBI;
@@ -7826,15 +7872,14 @@ mdb_cursor_init(MDB_cursor *mc, MDB_txn *txn, MDB_dbi dbi, MDB_xcursor *mx)
 	mc->mc_pg[0] = 0;
 	mc->mc_flags = 0;
 	mc->mc_ki[0] = 0;
+	mc->mc_xcursor = NULL;
 	if (txn->mt_dbs[dbi].md_flags & MDB_DUPSORT) {
 		mdb_tassert(txn, mx != NULL);
 		mx->mx_cursor.mc_signature = MDBX_MC_SIGNATURE;
 		mc->mc_xcursor = mx;
 		mdb_xcursor_init0(mc);
-	} else {
-		mc->mc_xcursor = NULL;
 	}
-	if (*mc->mc_dbflag & DB_STALE) {
+	if (unlikely(*mc->mc_dbflag & DB_STALE)) {
 		mdb_page_search(mc, NULL, MDB_PS_ROOTONLY);
 	}
 }
@@ -8757,14 +8802,17 @@ mdb_cursor_del0(MDB_cursor *mc)
 					}
 					if (mc->mc_db->md_flags & MDB_DUPSORT) {
 						MDB_node *node = NODEPTR(m3->mc_pg[m3->mc_top], m3->mc_ki[m3->mc_top]);
-						/* If this node is a fake page, it needs to be reinited
-						 * because its data has moved. But just reset mc_pg[0]
-						 * if the xcursor is already live.
+						/* If this node has dupdata, it may need to be reinited
+						 * because its data has moved.
+						 * If the xcursor was not initd it must be reinited.
+						 * Else if node points to a subDB, nothing is needed.
+						 * Else (xcursor was initd, not a subDB) needs mc_pg[0] reset.
 						 */
-						if ((node->mn_flags & (F_DUPDATA|F_SUBDATA)) == F_DUPDATA) {
-							if (m3->mc_xcursor->mx_cursor.mc_flags & C_INITIALIZED)
-								m3->mc_xcursor->mx_cursor.mc_pg[0] = NODEDATA(node);
-							else
+						if (node->mn_flags & F_DUPDATA) {
+							if (m3->mc_xcursor->mx_cursor.mc_flags & C_INITIALIZED) {
+								if (!(node->mn_flags & F_SUBDATA))
+									m3->mc_xcursor->mx_cursor.mc_pg[0] = NODEDATA(node);
+							} else
 								mdb_xcursor_init1(m3, node);
 						}
 					}
@@ -10226,7 +10274,7 @@ mdbx_stat(MDB_txn *txn, MDB_dbi dbi, MDBX_stat *arg, size_t bytes)
 	if (unlikely(txn->mt_flags & MDB_TXN_BLOCKED))
 		return MDB_BAD_TXN;
 
-	if (txn->mt_dbflags[dbi] & DB_STALE) {
+	if (unlikely(txn->mt_dbflags[dbi] & DB_STALE)) {
 		MDB_cursor mc;
 		MDB_xcursor mx;
 		/* Stale, must read the DB's root. cursor_init does it for us. */
@@ -10684,6 +10732,8 @@ mdb_mutex_failed(MDB_env *env, pthread_mutex_t *mutex, int rc)
 			pthread_mutex_unlock(mutex);
 		}
 	}
+#else
+	(void) mutex;
 #endif /* MDB_USE_ROBUST */
 	if (unlikely(rc)) {
 		mdb_debug("lock mutex failed, %s", mdb_strerror(rc));

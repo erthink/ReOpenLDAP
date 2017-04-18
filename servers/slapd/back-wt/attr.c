@@ -57,7 +57,7 @@ wt_attr_slot( struct wt_info *wi, AttributeDescription *ad, int *ins )
 static int
 ainfo_insert( struct wt_info *wi, AttrInfo *a )
 {
-	int x;
+	int x = INT_MAX;
 	int i = wt_attr_slot( wi, a->ai_desc, &x );
 
 	/* Is it a dup? */

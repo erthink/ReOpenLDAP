@@ -187,8 +187,7 @@
 /* Define to 1 if you have the <direct.h> header file. */
 #undef HAVE_DIRECT_H
 
-/* Define to 1 if you have the <dirent.h> header file, and it defines `DIR'.
-   */
+/* Define to 1 if you have the <dirent.h> header file. */
 #undef HAVE_DIRENT_H
 
 /* Define if you have the GNU dld library. */
@@ -224,6 +223,9 @@
 /* Define to 1 if you have the `endpwent' function. */
 #undef HAVE_ENDPWENT
 
+/* define if target platform have enough for backtrace feature */
+#undef HAVE_ENOUGH4BACKTRACE
+
 /* define if your system supports epoll */
 #undef HAVE_EPOLL
 
@@ -232,6 +234,9 @@
 
 /* Define to 1 if the system has the type `error_t'. */
 #undef HAVE_ERROR_T
+
+/* Define to 1 if you have the <execinfo.h> header file. */
+#undef HAVE_EXECINFO_H
 
 /* Define to 1 if you have the `fcntl' function. */
 #undef HAVE_FCNTL
@@ -413,6 +418,9 @@
 /* Define to 1 if you have the <limits.h> header file. */
 #undef HAVE_LIMITS_H
 
+/* Define to 1 if you have the <linux/limits.h> header file. */
+#undef HAVE_LINUX_LIMITS_H
+
 /* if you have LinuxThreads */
 #undef HAVE_LINUX_THREADS
 
@@ -455,7 +463,7 @@
 /* define if you have Mozill NSS */
 #undef HAVE_MOZNSS
 
-/* Define to 1 if you have the <ndir.h> header file, and it defines `DIR'. */
+/* Define to 1 if you have the <ndir.h> header file. */
 #undef HAVE_NDIR_H
 
 /* Define to 1 if you have the <netinet/tcp.h> header file. */
@@ -529,6 +537,9 @@
 
 /* Define to 1 if you have the `pthread_kill_other_threads_np' function. */
 #undef HAVE_PTHREAD_KILL_OTHER_THREADS_NP
+
+/* Define if your pthreads implementation have PTHREAD_MUTEX_RECURSIVE */
+#undef HAVE_PTHREAD_MUTEX_RECURSIVE
 
 /* Have PTHREAD_PRIO_INHERIT. */
 #undef HAVE_PTHREAD_PRIO_INHERIT
@@ -628,6 +639,9 @@
 
 /* Define to 1 if you have the `signal' function. */
 #undef HAVE_SIGNAL
+
+/* Define to 1 if you have the <signal.h> header file. */
+#undef HAVE_SIGNAL_H
 
 /* Define to 1 if you have the `sigset' function. */
 #undef HAVE_SIGSET
@@ -755,8 +769,7 @@
 /* Define to 1 if you have the <sys/devpoll.h> header file. */
 #undef HAVE_SYS_DEVPOLL_H
 
-/* Define to 1 if you have the <sys/dir.h> header file, and it defines `DIR'.
-   */
+/* Define to 1 if you have the <sys/dir.h> header file. */
 #undef HAVE_SYS_DIR_H
 
 /* Define to 1 if you have the <sys/dl.h> header file. */
@@ -783,8 +796,7 @@
 /* Define to 1 if you have the <sys/ioctl.h> header file. */
 #undef HAVE_SYS_IOCTL_H
 
-/* Define to 1 if you have the <sys/ndir.h> header file, and it defines `DIR'.
-   */
+/* Define to 1 if you have the <sys/ndir.h> header file. */
 #undef HAVE_SYS_NDIR_H
 
 /* Define to 1 if you have the <sys/param.h> header file. */
@@ -792,6 +804,9 @@
 
 /* Define to 1 if you have the <sys/poll.h> header file. */
 #undef HAVE_SYS_POLL_H
+
+/* Define to 1 if you have the <sys/prctl.h> header file. */
+#undef HAVE_SYS_PRCTL_H
 
 /* Define to 1 if you have the <sys/privgrp.h> header file. */
 #undef HAVE_SYS_PRIVGRP_H
@@ -807,6 +822,9 @@
 
 /* Define to 1 if you have the <sys/stat.h> header file. */
 #undef HAVE_SYS_STAT_H
+
+/* Define to 1 if you have the <sys/syscall.h> header file. */
+#undef HAVE_SYS_SYSCALL_H
 
 /* Define to 1 if you have the <sys/syslog.h> header file. */
 #undef HAVE_SYS_SYSLOG_H
@@ -826,13 +844,10 @@
 /* Define to 1 if you have the <sys/un.h> header file. */
 #undef HAVE_SYS_UN_H
 
-/* Define to 1 if you have the <sys/uuid.h> header file. */
-#undef HAVE_SYS_UUID_H
-
 /* Define to 1 if you have the <sys/vmount.h> header file. */
 #undef HAVE_SYS_VMOUNT_H
 
-/* Define to 1 if you have <sys/wait.h> that is POSIX.1 compatible. */
+/* Define to 1 if you have the <sys/wait.h> header file. */
 #undef HAVE_SYS_WAIT_H
 
 /* define if you have -lwrap */
@@ -853,6 +868,9 @@
 /* Define to 1 if you have the `thr_yield' function. */
 #undef HAVE_THR_YIELD
 
+/* Define to 1 if you have the <ucontext.h> header file. */
+#undef HAVE_UCONTEXT_H
+
 /* Define to 1 if you have the <unistd.h> header file. */
 #undef HAVE_UNISTD_H
 
@@ -861,9 +879,6 @@
 
 /* define if you have uuid_generate() */
 #undef HAVE_UUID_GENERATE
-
-/* define if you have uuid_to_str() */
-#undef HAVE_UUID_TO_STR
 
 /* Define to 1 if you have the <uuid/uuid.h> header file. */
 #undef HAVE_UUID_UUID_H
@@ -1124,6 +1139,9 @@
 
 /* define for Audit Logging overlay */
 #undef SLAPD_OVER_AUDITLOG
+
+/* define for Automatic Certificate Authority overlay */
+#undef SLAPD_OVER_AUTOCA
 
 /* define for Collect overlay */
 #undef SLAPD_OVER_COLLECT

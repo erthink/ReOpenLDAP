@@ -1199,7 +1199,7 @@ slap_open_listener(
 	LDAPURLDesc *lud;
 	unsigned short port;
 	int err, addrlen = 0;
-	struct sockaddr **sal, **psal;
+	struct sockaddr **sal = NULL, **psal;
 	int socktype = SOCK_STREAM;	/* default to COTS */
 	ber_socket_t s;
 
@@ -2378,8 +2378,8 @@ loop:
 					ldap_pvt_runqueue_runtask( &slapd_rq, rtask );
 					ldap_pvt_runqueue_resched( &slapd_rq, rtask, 0 );
 					ldap_pvt_thread_mutex_unlock( &slapd_rq.rq_mutex );
-					ldap_pvt_thread_pool_submit( &connection_pool,
-						rtask->routine, (void *) rtask );
+					ldap_pvt_thread_pool_submit2( &connection_pool,
+						rtask->routine, (void *) rtask, &rtask->pool_cookie );
 					ldap_pvt_thread_mutex_lock( &slapd_rq.rq_mutex );
 				}
 				rtask = ldap_pvt_runqueue_next_sched( &slapd_rq, &cat );

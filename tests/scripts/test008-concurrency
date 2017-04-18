@@ -23,7 +23,7 @@ fi
 mkdir -p $TESTDIR $DBDIR1
 
 echo "Running slapadd to build slapd database..."
-config_filter $BACKEND ${AC_conf[monitor]} < $CONF > $CONF1
+DBNOSYNC=yes config_filter $BACKEND ${AC_conf[monitor]} < $CONF > $CONF1
 $SLAPADD -f $CONF1 -l $LDIFORDERED -d -1 2> $SLAPADDLOG1
 RC=$?
 if test $RC != 0 ; then

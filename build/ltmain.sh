@@ -3269,7 +3269,7 @@ func_mode_compile ()
     # Get the compilation command and the source file.
     base_compile=
     srcfile=$nonopt  #  always keep a non-empty value in "srcfile"
-    suppress_opt=yes
+    suppress_opt=${LIBTOOL_SUPPRESS_DEFAULT:-yes}
     suppress_output=
     arg_mode=normal
     libobj=

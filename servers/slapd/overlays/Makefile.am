@@ -26,7 +26,7 @@ EXTRA_liboverlays_builtin_la_DEPENDENCIES =
 
 if BEHIND_CURTIAN
 
-BUILT_SOURCES += accesslog_banner.c auditlog_banner.c \
+BUILT_SOURCES += accesslog_banner.c auditlog_banner.c autoca_banner.c \
 	collect_banner.c valsort_banner.c constraint_banner.c \
 	dds_banner.c deref_banner.c dyngroup_banner.c dynlist_banner.c \
 	memberof_banner.c ppolicy_banner.c pcache_banner.c \
@@ -38,6 +38,8 @@ accesslog_banner.c: Makefile
 	$(MKBANNER) --name overlay_accesslog --global 'overlay-accesslog' > $@ || $(RM) $@
 auditlog_banner.c: Makefile
 	$(MKBANNER) --name overlay_auditlog --global 'overlay-auditlog' > $@ || $(RM) $@
+autoca_banner.c: Makefile
+	$(MKBANNER) --name overlay_autoca --global 'overlay-autoca' > $@ || $(RM) $@
 collect_banner.c: Makefile
 	$(MKBANNER) --name overlay_collect --global 'overlay-collect' > $@ || $(RM) $@
 valsort_banner.c: Makefile
@@ -95,6 +97,17 @@ auditlog_la_LDFLAGS = -module -export-dynamic \
 auditlog_la_SOURCES = auditlog.c auditlog_banner.c
 else
 liboverlays_builtin_la_SOURCES += auditlog.c
+endif
+endif
+
+if BUILD_AUTOCA
+if AUTOCA_DYNAMIC
+pkglib_LTLIBRARIES += autoca.la
+autoca_la_LDFLAGS = -module -export-dynamic \
+	-release $(API_LIB_RELEASE) -version-info $(API_LIB_VERSION)
+autoca_la_SOURCES = autoca.c autoca_banner.c
+else
+liboverlays_builtin_la_SOURCES += autoca.c
 endif
 endif
 

@@ -25,6 +25,10 @@
 #define NSLCD_SOCKET	NSLCD_PATH "/socket"
 #endif
 
+#ifdef __GNUC__
+#pragma GCC diagnostic ignored "-Waddress"
+#endif
+
 #include <stdio.h>
 
 #include "nslcd.h"
