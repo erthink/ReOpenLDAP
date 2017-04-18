@@ -37,6 +37,7 @@ addons:
     - unixodbc-dev
     - libslp-dev
     - libdb-dev
+    - libwiredtiger-dev
     - bc
     - gdb
 
