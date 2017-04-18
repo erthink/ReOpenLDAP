@@ -2979,6 +2979,79 @@ tlsm_session_strength( tls_session *session )
 	return rc ? 0 : keySize;
 }
 
+static int
+tlsm_session_unique( tls_session *sess, struct berval *buf, int is_server)
+{
+	/* Need upstream support https://bugzilla.mozilla.org/show_bug.cgi?id=563276 */
+	return 0;
+}
+
+/*
+ * Yet again, we're pasting in glue that MozNSS ought to provide itself.
+ *
+ * SSL_LIBRARY_VERSION_TLS_1_* are equivalent to LDAP_OPT_X_TLS_PROTOCOL_TLS1_*
+ */
+static struct {
+	const char *name;
+	int num;
+} pvers[] = {
+	{ "SSLv2", SSL_LIBRARY_VERSION_2 },
+	{ "SSLv3", SSL_LIBRARY_VERSION_3_0 },
+	{ "TLSv1", SSL_LIBRARY_VERSION_TLS_1_0 },
+	{ "TLSv1.1", SSL_LIBRARY_VERSION_TLS_1_1 },
+	{ "TLSv1.2", SSL_LIBRARY_VERSION_TLS_1_2 },
+	{ "TLSv1.3", SSL_LIBRARY_VERSION_TLS_1_3 },
+	{ NULL, 0 }
+};
+
+static const char *
+tlsm_session_version( tls_session *sess )
+{
+	tlsm_session *s = (tlsm_session *)sess;
+	SSLChannelInfo info;
+	int rc;
+	rc = SSL_GetChannelInfo( s, &info, sizeof( info ));
+	if ( rc == 0 ) {
+		int i;
+		for (i=0; pvers[i].name; i++)
+			if (pvers[i].num == info.protocolVersion)
+				return pvers[i].name;
+	}
+	return "unknown";
+}
+
+static const char *
+tlsm_session_cipher( tls_session *sess )
+{
+	tlsm_session *s = (tlsm_session *)sess;
+	SSLChannelInfo info;
+	int rc;
+	rc = SSL_GetChannelInfo( s, &info, sizeof( info ));
+	if ( rc == 0 ) {
+		SSLCipherSuiteInfo csinfo;
+		rc = SSL_GetCipherSuiteInfo( info.cipherSuite, &csinfo, sizeof( csinfo ));
+		if ( rc == 0 )
+			return csinfo.cipherSuiteName;
+	}
+	return "unknown";
+}
+
+static int
+tlsm_session_peercert( tls_session *sess, struct berval *der )
+{
+	tlsm_session *s = (tlsm_session *)sess;
+	CERTCertificate *cert;
+	cert = SSL_PeerCertificate( s );
+	if (!cert)
+		return -1;
+	der->bv_len = cert->derCert.len;
+	der->bv_val = LDAP_MALLOC( der->bv_len );
+	if (!der->bv_val)
+		return -1;
+	memcpy( der->bv_val, cert->derCert.data, der->bv_len );
+	return 0;
+}
+
 /*
  * TLS support for LBER Sockbufs
  */
@@ -3407,6 +3480,10 @@ tls_impl ldap_int_tls_impl = {
 	tlsm_session_peer_dn,
 	tlsm_session_chkhost,
 	tlsm_session_strength,
+	tlsm_session_unique,
+	tlsm_session_version,
+	tlsm_session_cipher,
+	tlsm_session_peercert,
 
 	&tlsm_sbio,
 

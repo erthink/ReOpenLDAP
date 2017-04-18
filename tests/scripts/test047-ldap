@@ -435,7 +435,7 @@ case $RC,$BACKEND in
 	0,*)
 		echo "Search should have failed ($RC)!"
 		killservers
-		exit -1
+		exit 2
 	;;
 	*)
 		echo "Search failed ($RC)!"
@@ -459,7 +459,7 @@ case $RC,$BACKEND in
 	0,*)
 		echo "Search should have failed ($RC)!"
 		killservers
-		exit -1
+		exit 2
 	;;
 	*)
 		echo "Search failed ($RC)!"
@@ -630,7 +630,7 @@ case $RC,$BACKEND in
 	0,*)
 		echo "WhoAmI should have failed ($RC)!"
 		killservers
-		exit -1
+		exit 2
 	;;
 	51,*)
 		echo "### Hit LDAP_BUSY problem; you may want to re-run the test"
@@ -655,7 +655,7 @@ case $RC,$BACKEND in
 	0,*)
 		echo "WhoAmI should have failed ($RC)!"
 		killservers
-		exit -1
+		exit 2
 	;;
 	51,*)
 		echo "### Hit LDAP_BUSY problem; you may want to re-run the test"
@@ -672,7 +672,7 @@ RC=$?
 #if test $RC != 6 ; then
 #	echo "Compare failed ($RC)!"
 #	killservers
-#	exit -1
+#	exit 2
 #fi
 case $RC,$BACKEND in
 	5,null)

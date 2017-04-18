@@ -156,7 +156,7 @@ case $RC in
 0)
 	echo "ldapadd should have failed ($RC)!"
 	killservers
-	exit -1
+	exit 2
 	;;
 19)
 	echo "ldapadd SHOULD failed ($RC)"
@@ -181,7 +181,7 @@ case $RC in
 0)
 	echo "ldapmodify should have failed ($RC)!"
 	killservers
-	exit -1
+	exit 2
 	;;
 65)
 	echo "ldapmodify SHOULD failed ($RC)"
@@ -206,7 +206,7 @@ case $RC in
 0)
 	echo "ldapmodify should have failed ($RC)!"
 	killservers
-	exit -1
+	exit 2
 	;;
 65)
 	echo "ldapmodify SHOULD failed ($RC)"
@@ -427,7 +427,7 @@ case $RC in
 0)
 	echo "ldapmodify should have failed ($RC)!"
 	killservers
-	exit -1
+	exit 2
 	;;
 50)
 	echo "ldapmodify SHOULD failed ($RC)"
@@ -458,7 +458,7 @@ RC=$?
 if test $RC = 0 ; then
 	echo "ldapexop should have failed ($RC)!"
 	killservers
-	exit -1
+	exit 2
 fi
 
 echo "Trying to refresh the meeting as $JAJDN (should fail)..."
@@ -469,7 +469,7 @@ RC=$?
 if test $RC = 0 ; then
 	echo "ldapexop should have failed ($RC)!"
 	killservers
-	exit -1
+	exit 2
 fi
 
 echo "Trying to delete the meeting as $BABSDN (should fail)..."
@@ -483,7 +483,7 @@ case $RC in
 0)
 	echo "ldapdelete should have failed ($RC)!"
 	killservers
-	exit -1
+	exit 2
 	;;
 50)
 	echo "ldapdelete SHOULD failed ($RC)"

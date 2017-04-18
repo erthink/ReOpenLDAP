@@ -21,7 +21,6 @@ if test ${AC_conf[meta]} = no ; then
 	exit 0
 fi
 
-# to be removed some time...
 if test "$TEST_META" = no ; then
 	echo '### Test disabled by "TEST_META=no"; unset TEST_META to re-enable'
 	echo ""
@@ -32,6 +31,13 @@ else
 	echo "### the Issue Tracking System <http://www.openldap.org/its/>"
 	echo ""
 fi
+
+if [ "$TRAVIS" = yes ]; then
+	echo "### Skip for Travis-CI now (overload troubles)"
+	exit 0
+fi
+
+# to be removed some time...
 
 if test x$TESTLOOPS = x ; then
 	TESTLOOPS=50
@@ -60,7 +66,7 @@ if test "$BACKEND" = "bdb" || test "$BACKEND" = "hdb" ; then
 fi
 
 echo "Starting slapd on TCP/IP port $PORT1..."
-config_filter $BACKEND ${AC_conf[monitor]} < $CONF > $CONF1
+DBNOSYNC=yes config_filter $BACKEND ${AC_conf[monitor]} < $CONF > $CONF1
 $SLAPD -f $CONF1 -h $URI1 $TIMING |& gzip > $LOG1.gz &
 PID=$(jobs -p | tail -1)
 if test $WAIT != 0 ; then
@@ -98,7 +104,7 @@ if test $RC != 0 ; then
 fi
 
 echo "Starting slapd on TCP/IP port $PORT2..."
-config_filter $BACKEND ${AC_conf[monitor]} < $METACONF2 > $CONF2
+DBNOSYNC=yes config_filter $BACKEND ${AC_conf[monitor]} < $METACONF2 > $CONF2
 $SLAPD -f $CONF2 -h $URI2 $TIMING |& gzip > $LOG2.gz &
 PID=$(jobs -p | tail -1)
 if test $WAIT != 0 ; then
@@ -131,28 +137,28 @@ check_running 3
 
 cat /dev/null > $SEARCHOUT
 
-mkdir -p $TESTDIR/$DATADIR
+mkdir -p $TESTDIR/tmpdata
 METABASEDN="o=Example,c=US"
 #for f in $DATADIR/do_* ; do
-#	sed -e "s;$BASEDN;$METABASEDN;" $f > $TESTDIR/$f
+#	sed -e "s;$BASEDN;$METABASEDN;" $f > $TESTDIR/tmpdata/$(basename $f)
 #done
 
 # add a read that matches only the local database, but selects
 # also the remote as candidate; this should be removed to compare
 # execution times with test008...
-#for f in $TESTDIR/$DATADIR/do_read.* ; do
+#for f in $TESTDIR/tmpdata/do_read.* ; do
 #	echo "ou=Meta,$METABASEDN" >> $f
 #done
 
 # add a read that matches a referral in the local database only,
 # but selects also the remote as candidate; this should be removed
 # to compare execution times with test008...
-#for f in $TESTDIR/$DATADIR/do_read.* ; do
+#for f in $TESTDIR/tmpdata/do_read.* ; do
 #	echo "cn=Somewhere,ou=Meta,$METABASEDN" >> $f
 #done
 
 # add a bind that resolves to a referral
-#for f in $TESTDIR/$DATADIR/do_bind.* ; do
+#for f in $TESTDIR/tmpdata/do_bind.* ; do
 #	echo "cn=Foo,ou=Meta,$METABASEDN" >> $f
 #	echo "bar" >> $f
 #	echo "" >> $f
@@ -224,10 +230,10 @@ $METABASEDN
 (cn=Foo Bar)
 $METABASEDN
 (cn=Dan Aykroyd)" \
-> $TESTDIR/$DATADIR/do_search.0
+> $TESTDIR/tmpdata/do_search.0
 
 echo "Using tester for concurrent server access..."
-$SLAPDTESTER -P "$PROGDIR" -d "$TESTDIR/$DATADIR" -h $LOCALHOST -p $PORT3 \
+$SLAPDTESTER -P "$PROGDIR" -d "$TESTDIR/tmpdata" -h $LOCALHOST -p $PORT3 \
 	-D "cn=Manager,$METABASEDN" -w $PASSWD -l $TESTLOOPS -r 20 -FF
 RC=$?
 

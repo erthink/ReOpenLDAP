@@ -222,6 +222,7 @@ am__distuninstallcheck_listfiles = $(distuninstallcheck_listfiles) \
 distcleancheck_listfiles = find . -type f -print
 ACLOCAL = @ACLOCAL@
 AMTAR = @AMTAR@
+AM_CFLAGS = @AM_CFLAGS@
 AM_DEFAULT_VERBOSITY = @AM_DEFAULT_VERBOSITY@
 AM_MAKEFLAGS = @AM_MAKEFLAGS@
 API_LIB_RELEASE = @API_LIB_RELEASE@
@@ -261,6 +262,7 @@ ENABLE_VALGRIND_helgrind = @ENABLE_VALGRIND_helgrind@
 ENABLE_VALGRIND_memcheck = @ENABLE_VALGRIND_memcheck@
 ENABLE_VALGRIND_sgcheck = @ENABLE_VALGRIND_sgcheck@
 EXEEXT = @EXEEXT@
+EXTRA_CFLAGS = @EXTRA_CFLAGS@
 FGREP = @FGREP@
 FIXUP_DIRS = @FIXUP_DIRS@
 FIXUP_DIST = @FIXUP_DIST@
@@ -460,7 +462,7 @@ valgrind_enabled_tools = @valgrind_enabled_tools@
 valgrind_tools = @valgrind_tools@
 ACLOCAL_AMFLAGS = -I build/m4
 DIST_SUBDIRS = include libraries clients servers doc/man build/libltdl contrib
-EXTRA_DIST = build/stub
+EXTRA_DIST = build/stub build/common.mk
 @SLAPD_DYNAMIC_FALSE@SUBDIRS = include libraries clients servers \
 @SLAPD_DYNAMIC_FALSE@	doc/man $(am__append_1) $(am__append_2)
 @SLAPD_DYNAMIC_TRUE@SUBDIRS = build/libltdl include libraries clients \
@@ -952,7 +954,7 @@ uninstall-am:
 .PRECIOUS: Makefile
 
 @BEHIND_CURTIAN_TRUE@test:
-@BEHIND_CURTIAN_TRUE@	$(MAKE) -C tests check
+@BEHIND_CURTIAN_TRUE@	$(MAKE) -C tests check </dev/null
 
 @BEHIND_CURTIAN_TRUE@dist-hook:
 @BEHIND_CURTIAN_TRUE@	find $(distdir) -type f | xargs -r \
