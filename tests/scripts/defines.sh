@@ -19,15 +19,6 @@ pkill -SIGKILL -s 0 -u $EUID lt-slapd
 TESTWD=$(pwd)
 umask 0002
 
-# FIXME
-function issue121_crutch() {
-	echo "Sleep $1*$SLEEP1 seconds - as a workaround for https://github.com/ReOpen/ReOpenLDAP/issues/121 (FIXME)"
-	local i
-	for ((i=0; i<=$1; i++)); do
-		sleep $SLEEP1
-	done
-}
-
 #LY: man enabled overlays & backends
 declare -A AC_conf
 for i in $AC_SLAPD_OVERLAYS_LIST $AC_SLAPD_BACKENDS_LIST; do
