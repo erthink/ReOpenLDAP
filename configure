@@ -1942,7 +1942,7 @@ SLAPD Backend Options:
     --enable-shell	  enable shell backend no|yes|mod [no]
     --enable-sock	  enable sock backend no|yes|mod [no]
     --enable-sql	  enable sql backend no|yes|mod [no]
-    --enable-wt	  enable WiredTiger backend no|yes|mod [no]
+    --enable-wt		  enable WiredTiger backend no|yes|mod [no]
 
 SLAPD Overlay Options:
     --enable-overlays	  enable all available overlays no|yes|mod

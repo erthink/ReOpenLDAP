@@ -496,7 +496,7 @@ OL_ARG_ENABLE(sock,[    --enable-sock	  enable sock backend],
 	no, [no yes mod], ol_enable_backends)dnl
 OL_ARG_ENABLE(sql,[    --enable-sql	  enable sql backend],
 	no, [no yes mod], ol_enable_backends)dnl
-OL_ARG_ENABLE(wt,[    --enable-wt	  enable WiredTiger backend],
+OL_ARG_ENABLE(wt,[    --enable-wt		  enable WiredTiger backend],
 	no, [no yes mod], ol_enable_backends)dnl
 
 dnl ----------------------------------------------------------------
