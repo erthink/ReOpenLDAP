@@ -145,6 +145,7 @@ authzid_conn_remove( Connection *c )
 	ldap_pvt_thread_mutex_unlock( &authzid_mutex );
 
 	assert( tmp == ac );
+	(void)tmp;
 	SLAP_FREE( ac );
 
 	return 0;
