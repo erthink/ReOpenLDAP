@@ -43,7 +43,7 @@ echo "the accesslog DB when a group is deleted."
 echo "See http://www.openldap.org/its/index.cgi/?findid=8444 for more information."
 
 MMR=4
-if [ -n "${TEAMCITY_PROCESS_FLOW_ID}" -o "${CI}" = yes ]; then
+if [ -n "$CI" ]; then
 	echo "Skip its8444, as a workaround for https://github.com/ReOpen/ReOpenLDAP/issues/121 (FIXME)"
 	exit 0
 	NNN=10

@@ -28,7 +28,7 @@ if test ${AC_conf[syncprov]} = no; then
 	exit 0
 fi
 
-if [ -n "${TEAMCITY_PROCESS_FLOW_ID}" -o "${CI}" = yes ]; then
+if [ -n "$CI" ]; then
 	INITIATION_RACE_TESTS=1
 	nEntries=5
 else

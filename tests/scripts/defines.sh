@@ -40,10 +40,19 @@ if [ $USE_SASL = no ]; then
 else
 	AC_conf[sasl]=${AC_WITH_SASL-no}
 fi
+
 TB="" TN=""
 if test -t 1 ; then
 	TB=`(tput bold; tput smul) 2>/dev/null`
 	TN=`(tput rmul; tput sgr0) 2>/dev/null`
+fi
+
+if [ -n "${TEAMCITY_PROCESS_FLOW_ID}" ]; then
+	CI=TEAMCITY
+elif [ -n "$TRAVIS" ]; then
+	CI=TRAVIS
+elif [ -n "$CIRCLECI" ]; then
+	CI=CIRCLE
 fi
 
 # sql-backed
@@ -242,8 +251,8 @@ elif [ -n "$CIBUZZ_PID4" ]; then
 	SLEEP0=${SLEEP0-1}
 	SLEEP1=${SLEEP1-7}
 	SYNCREPL_WAIT=${SYNCREPL_WAIT-30}
-elif [ -n "${TEAMCITY_PROCESS_FLOW_ID}" -o "${CI}" = yes ]; then
-	# LY: under Teamcity, take in account ASAN/TSAN and nice
+elif [ -n "$CI" ]; then
+	# LY: under CI, take in account ASAN/TSAN and nice
 	TIMEOUT_S="timeout -s SIGXCPU 2m"
 	TIMEOUT_L="timeout -s SIGXCPU 7m"
 	TIMEOUT_H="timeout -s SIGXCPU 20m"
@@ -1000,7 +1009,7 @@ EOF
 
 			if test $RC -eq 0 ; then
 				cibuzz_report "<<< ${TEST_ITER}--${TEST_ID}"
-				[ "$CI" != yes -a -z "$NO_COLLECT_SUCCESS" ] && collect_test $TEST_ID no
+				[ -z "$CI" -a -z "$NO_COLLECT_SUCCESS" ] && collect_test $TEST_ID no
 				echo "<<<<< $BCMD completed ${TB}OK${TN} for $BACKEND_MODE."
 			else
 				cibuzz_report "=== ${TEST_ITER}--${TEST_ID} = $RC"
