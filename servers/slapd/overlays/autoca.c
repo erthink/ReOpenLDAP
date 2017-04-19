@@ -55,8 +55,8 @@
 #define LBER_TAG_OID        ((ber_tag_t) 0x06UL)
 #define LBER_TAG_UTF8       ((ber_tag_t) 0x0cUL)
 
-#define KEYBITS	2048
-#define MIN_KEYBITS	512
+#define KEYBITS		3072
+#define MIN_KEYBITS	768
 
 #define ACA_SCHEMA_ROOT	"1.3.6.1.4.1.4203.666.11.11"
 
