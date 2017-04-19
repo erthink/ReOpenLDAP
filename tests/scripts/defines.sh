@@ -1000,7 +1000,7 @@ EOF
 
 			if test $RC -eq 0 ; then
 				cibuzz_report "<<< ${TEST_ITER}--${TEST_ID}"
-				[ -z "$NO_COLLECT_SUCCESS" ] && collect_test $TEST_ID no
+				[ "$CI" != yes -a -z "$NO_COLLECT_SUCCESS" ] && collect_test $TEST_ID no
 				echo "<<<<< $BCMD completed ${TB}OK${TN} for $BACKEND_MODE."
 			else
 				cibuzz_report "=== ${TEST_ITER}--${TEST_ID} = $RC"
