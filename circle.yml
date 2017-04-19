@@ -1,0 +1,42 @@
+machine:
+  timezone:
+    Europe/Moscow
+
+  environment:
+    LIBTOOL_SUPPRESS_DEFAULT: no
+    EXTRA_CFLAGS: "-Wall -Werror -ggdb3 -gdwarf-4"
+
+database:
+  override:
+
+dependencies:
+  pre:
+    - sudo apt update -q
+#   - sudo apt upgrade -y -q
+
+  post:
+    - sudo apt install -y -q
+      uuid-dev libelf-dev krb5-multidev heimdal-multidev libcrack2-dev
+      libsasl2-dev libperl-dev libtool libltdl-dev binutils-dev libssl-dev
+      libgnutls-dev libwrap0-dev unixodbc-dev libslp-dev libdb-dev bc gdb
+
+test:
+  override:
+    - ./bootstrap.sh --dont-cleanup || cp build/*.rej build/*.orig ${CIRCLE_ARTIFACTS}/
+      && ./configure CFLAGS=-Ofast --prefix=${HOME}/_install --enable-check=always
+      --enable-hipagut=always --enable-debug --disable-syslog --enable-overlays
+      --enable-maintainer-mode --enable-dynacl --enable-aci --enable-crypt --enable-lmpasswd
+      --enable-spasswd --enable-slapi
+      --enable-rlookups --enable-slp --enable-wrappers --enable-backends
+      --disable-bdb --disable-hdb --disable-ndb --disable-modules
+    - make --keep-going && make --keep-going install
+      && (ulimit -c unlimited && TEST_NOOK=${CIRCLE_ARTIFACTS} SKIPLONG=yes make test </dev/null
+      || echo "Ignore results for now...")
+    - make --keep-going dist
+      && mkdir _dist && (cd _dist && tar -xaf ../*.tar.* --strip=1
+      && ./configure CFLAGS=-Os --prefix=$HOME/_dist/_install
+      --enable-overlays=mod --enable-contrib --enable-experimental
+      --enable-debug --enable-dynacl --enable-aci --enable-crypt --enable-lmpasswd --enable-spasswd
+      --enable-slapi --enable-rlookups --enable-slp --enable-wrappers --enable-backends=mod
+      --disable-ndb --disable-dependency-tracking
+      && make --keep-going && make --keep-going install)
