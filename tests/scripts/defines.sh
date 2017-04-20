@@ -557,7 +557,9 @@ function collect_coredumps {
 		fi
 
 		local dir n c target
-		if [ -n "${TEST_NOOK}" ]; then
+		if grep -q '^/' <<< "${TEST_NOOK}"; then
+			dir="${TEST_NOOK}"
+		elif [ -n "${TEST_NOOK}" ]; then
 			dir="${TOP_BUILDDIR}/${TEST_NOOK}"
 		else
 			dir="${TOP_BUILDDIR}/@cores-n-sans"
@@ -659,7 +661,9 @@ function collect_test {
 		echo "Collect result(s) from $id..." >&2
 
 		local dir n target
-		if [ -n "${TEST_NOOK}" ]; then
+		if grep -q '^/' <<< "${TEST_NOOK}"; then
+			dir="${TEST_NOOK}/$id.dump"
+		elif [ -n "${TEST_NOOK}" ]; then
 			dir="${TOP_BUILDDIR}/${TEST_NOOK}/$id.dump"
 		else
 			dir="${TOP_BUILDDIR}/@dumps/$id.dump"
