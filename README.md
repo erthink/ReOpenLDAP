@@ -6,6 +6,7 @@ ReOpenLDAP is...
 
 *But no Windows, Mac OS, FreeBSD, Solaris or HP-UX; just __only Linux__!*
 
+[![Build Status](https://travis-ci.org/ReOpen/ReOpenLDAP.svg?branch=devel)](https://travis-ci.org/ReOpen/ReOpenLDAP)
 
 ##### ReOpenLDAP is currently running in telcos across Russia:
  * Several 2x2 multi-master clusters
