@@ -19,6 +19,7 @@ dependencies:
       uuid-dev libelf-dev krb5-multidev heimdal-multidev libcrack2-dev
       libsasl2-dev libperl-dev libtool libltdl-dev binutils-dev libssl-dev
       libgnutls-dev libwrap0-dev unixodbc-dev libslp-dev libdb-dev bc gdb
+#     libwiredtiger-dev
 
 compile:
   pre:
@@ -26,9 +27,8 @@ compile:
       && ./configure CFLAGS=-Ofast --prefix=${HOME}/_install --enable-check=always
       --enable-hipagut=always --enable-debug --disable-syslog --enable-overlays
       --enable-maintainer-mode --enable-dynacl --enable-aci --enable-crypt --enable-lmpasswd
-      --enable-spasswd --enable-slapi
-      --enable-rlookups --enable-slp --enable-wrappers --enable-backends
-      --disable-bdb --disable-hdb --disable-ndb --disable-modules
+      --enable-spasswd --enable-slapi --enable-rlookups --enable-slp --enable-wrappers
+      --enable-backends --disable-bdb --disable-hdb --disable-ndb --disable-wt
 
   override:
     - make --keep-going && make --keep-going install
@@ -40,7 +40,7 @@ compile:
       --enable-overlays=mod --enable-contrib --enable-experimental
       --enable-debug --enable-dynacl --enable-aci --enable-crypt --enable-lmpasswd --enable-spasswd
       --enable-slapi --enable-rlookups --enable-slp --enable-wrappers --enable-backends=mod
-      --disable-ndb --disable-dependency-tracking
+      --disable-wt --disable-ndb --disable-dependency-tracking
       && make --keep-going && make --keep-going install)
 
 test:
