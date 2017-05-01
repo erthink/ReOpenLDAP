@@ -15,6 +15,8 @@ env:
   - UPLOAD_DIR=_4upload
   - TEST_NOOK="$UPLOAD_DIR/$TRAVIS_JOB_NUMBER-$TRAVIS_EVENT_TYPE-$TRAVIS_BRANCH$TRAVIS_TAG$TRAVIS_PULL_REQUEST_SLUG"
   - EXTRA_CFLAGS="-Wall -Werror -ggdb3 -gdwarf-4"
+  - UPLOAD_CMD: >-
+    scp -o StrictHostKeyChecking=no -B -P $UPLOAD_PORT -rp $UPLOAD_DIR/* $UPLOAD_USER@$UPLOAD_HOST:~/$TRAVIS_REPO_SLUG/ 2>&1 | sed -n 's/^.*: \([^:]\+$\)/\1/p'
 
 addons:
   apt:
@@ -52,14 +54,11 @@ script:
   && ./configure CFLAGS=-Ofast --prefix=$HOME/_install --enable-check=always
   --enable-hipagut=always --enable-debug --disable-syslog --enable-overlays
   --enable-maintainer-mode --enable-dynacl --enable-aci --enable-crypt --enable-lmpasswd
-  --enable-spasswd --enable-slapi
-# FIXME:
-#	Временно выключенно, так как что-то из этого порождает проблеы с тестами.
-#	Может быть "rlookups", а может "slp" (были замечены падения на RHEL6 и RHEL7).
-#	--enable-rlookups --enable-slp --enable-wrappers --enable-backends
-#	--disable-bdb --disable-hdb --disable-ndb --disable-modules
+  --enable-spasswd --enable-slapi  --enable-rlookups --enable-slp --enable-wrappers
+  --enable-backends --disable-bdb --disable-hdb --disable-ndb --disable-modules
 - make --keep-going && make --keep-going install
   && ulimit -c unlimited && SKIPLONG=yes make test </dev/null
+  || (echo "Ignore test results for now..." && $UPLOAD_CMD)
 - make --keep-going dist
   && mkdir _dist && (cd _dist && tar -xaf ../*.tar.* --strip=1
   && ./configure CFLAGS=-Os --prefix=$HOME/_dist/_install
@@ -69,5 +68,4 @@ script:
   --disable-ndb --disable-dependency-tracking
   && make --keep-going && make --keep-going install)
 
-after_failure: |
-  scp -o StrictHostKeyChecking=no -B -P $UPLOAD_PORT -rp $UPLOAD_DIR/* $UPLOAD_USER@$UPLOAD_HOST:~/$TRAVIS_REPO_SLUG/ 2>&1 | sed -n 's/^.*: \([^:]\+$\)/\1/p'
+#after_failure: $UPLOAD_CMD
