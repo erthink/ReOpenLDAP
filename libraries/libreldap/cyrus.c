@@ -69,15 +69,9 @@ static const sasl_callback_t client_callbacks[] = {
 	{ SASL_CB_LIST_END, NULL, NULL }
 };
 
-int ldap_int_sasl_init( void )
+static int sasl_init_rc;
+static void ldap_sasl_init_once(void)
 {
-	/* XXX not threadsafe */
-	static int sasl_initialized = 0;
-
-	if ( sasl_initialized ) {
-		return 0;
-	}
-
 /* SASL 2 takes care of its own memory completely internally */
 #if SASL_VERSION_MAJOR < 2 && !defined(CSRIMALLOC)
 	sasl_set_alloc(
@@ -95,16 +89,24 @@ int ldap_int_sasl_init( void )
 		ldap_pvt_sasl_mutex_dispose );
 #endif
 
-	if ( sasl_client_init( NULL ) == SASL_OK ) {
-		sasl_initialized = 1;
-		return 0;
-	}
-
+	const int err = sasl_client_init( NULL );
+	if (err == SASL_OK ) {
+		assert(sasl_init_rc == 0);
+	} else {
+		sasl_init_rc = -1;
+		Debug(LDAP_DEBUG_ANY, "sasl_client_init(): sasl-error %i\n", err);
 #if SASL_VERSION_MAJOR < 2
-	/* A no-op to make sure we link with Cyrus 1.5 */
-	sasl_client_auth( NULL, NULL, NULL, 0, NULL, NULL );
+		/* A no-op to make sure we link with Cyrus 1.5 */
+		sasl_client_auth( NULL, NULL, NULL, 0, NULL, NULL );
 #endif
-	return -1;
+	}
+}
+
+int ldap_int_sasl_init( void )
+{
+	static pthread_once_t once_control = PTHREAD_ONCE_INIT;
+	int rc = pthread_once(&once_control, ldap_sasl_init_once);
+	return (rc == 0) ? sasl_init_rc : rc;
 }
 
 static void
