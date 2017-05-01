@@ -39,16 +39,14 @@
 #include "../../../libraries/libreldap/lber-int.h"	/* ber_rewind */
 
 /* RFC2891: Server Side Sorting
- * RFC2696: Paged Results
- */
+ * RFC2696: Paged Results */
 #ifndef LDAP_MATCHRULE_IDENTIFIER
 #define LDAP_MATCHRULE_IDENTIFIER      0x80L
 #define LDAP_REVERSEORDER_IDENTIFIER   0x81L
 #define LDAP_ATTRTYPES_IDENTIFIER      0x80L
 #endif /* LDAP_MATCHRULE_IDENTIFIER */
 
-/* draft-ietf-ldapext-ldapv3-vlv-09.txt: Virtual List Views
- */
+/* draft-ietf-ldapext-ldapv3-vlv-09.txt: Virtual List Views */
 #ifndef LDAP_VLVBYINDEX_IDENTIFIER
 #define LDAP_VLVBYINDEX_IDENTIFIER	   0xa0L
 #define LDAP_VLVBYVALUE_IDENTIFIER     0x81L
@@ -404,22 +402,22 @@ static void free_sort_op( Connection *conn, sort_op *so )
 	ldap_pvt_thread_mutex_lock( &sort_conns_mutex );
 	int sess_id = find_session_by_so( so->so_info->svi_max_percon, conn->c_conn_idx, so );
 
-	assert(sess_id >= 0);
 	if (sess_id < 0 || ! so) {
 		ldap_pvt_thread_mutex_unlock( &sort_conns_mutex );
 		return;
 	}
 
+	assert(sort_conns[conn->c_conn_idx][sess_id] == so);
+	assert(so->so_info->svi_num > 0);
 	sort_conns[conn->c_conn_idx][sess_id] = NULL;
 	so->so_info->svi_num--;
 	ldap_pvt_thread_mutex_unlock( &sort_conns_mutex );
 
 	if ( so->so_tree ) {
 		if ( so->so_paged > SLAP_CONTROL_IGNORED ) {
-			TAvlnode *cur_node, *next_node;
-			cur_node = so->so_tree;
+			TAvlnode *cur_node = so->so_tree;
 			while ( cur_node ) {
-				next_node = tavl_next( cur_node, TAVL_DIR_RIGHT );
+				TAvlnode *next_node = tavl_next( cur_node, TAVL_DIR_RIGHT );
 				ch_free( cur_node->avl_data );
 				ber_memfree( cur_node );
 
@@ -873,6 +871,7 @@ static int sssvlv_op_search(
 	if ( sess_id >= 0 ) {
 		so = sort_conns[op->o_conn->c_conn_idx][sess_id];
 		if (so->so_running) {
+			/* another thread is handling, response busy to client */
 			ok = 0;
 			so = NULL;
 		} else {
@@ -896,6 +895,10 @@ static int sssvlv_op_search(
 				ok = 0;
 				so->so_nentries = 0;
 				rs->sr_err = LDAP_UNWILLING_TO_PERFORM;
+			}
+			if ( ok ) {
+				/* occupy before mutex unlock */
+				so->so_running = 1;
 			}
 		}
 	/* Are there too many running overall? */
