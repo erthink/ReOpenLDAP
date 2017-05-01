@@ -211,16 +211,18 @@ contrib_pw_netscape_la_SOURCES = banner.c passwd/netscape.c
 contrib_pw_netscape_la_LDFLAGS = -module -export-dynamic \
 	-release $(API_LIB_RELEASE) -version-info $(API_LIB_VERSION)
 
+EXTRA_DIST += passwd/slapo-pw-radius.man.in
 if CONTRIB_BROKEN
-# LY: Requires an obsolete RADIUS-client library
+# FIXME: Requires an obsolete RADIUS-client library
 pkglib_LTLIBRARIES += contrib-pw-radius.la
 contrib_pw_radius_la_SOURCES = banner.c passwd/radius.c
 contrib_pw_radius_la_LDFLAGS = -module -export-dynamic \
 	-release $(API_LIB_RELEASE) -version-info $(API_LIB_VERSION)
 contrib_pw_radius_la_LIBADD = -lradius
+man5_MANS += passwd/slapo-pw-radius.man
 endif
 
-EXTRA_DIST += passwd/pbkdf2/README
+EXTRA_DIST += passwd/pbkdf2/README passwd/pbkdf2/slapo-pw-pbkdf2.man.in
 # TODO: support MozNSS
 if TLS_FALLBACK_AVAIL
 pkglib_LTLIBRARIES += contrib-pw-pbkdf2.la
@@ -229,16 +231,18 @@ contrib_pw_pbkdf2_la_LDFLAGS = -module -export-dynamic \
 contrib_pw_pbkdf2_la_SOURCES = passwd/pbkdf2/pw-pbkdf2.c banner.c
 contrib_pw_pbkdf2_la_CFLAGS = $(TLS_FALLBACK_CFLAGS)
 contrib_pw_pbkdf2_la_LIBADD = $(TLS_FALLBACK_LIBS)
+man5_MANS += passwd/pbkdf2/slapo-pw-pbkdf2.man
 endif
 
-EXTRA_DIST += passwd/sha2/README
+EXTRA_DIST += passwd/sha2/README passwd/sha2/slapo-pw-sha2.man.in
 pkglib_LTLIBRARIES += contrib-pw-sha2.la
 contrib_pw_sha2_la_LDFLAGS = -module -export-dynamic \
 	-release $(API_LIB_RELEASE) -version-info $(API_LIB_VERSION)
 contrib_pw_sha2_la_SOURCES = banner.c passwd/sha2/sha2.h \
 	passwd/sha2/sha2.c passwd/sha2/slapd-sha2.c
+man5_MANS += passwd/sha2/slapo-pw-sha2.man
 
-EXTRA_DIST += passwd/totp/README
+EXTRA_DIST += passwd/totp/README passwd/totp/slapo-totp.man.in
 # TODO: support MozNSS
 if TLS_FALLBACK_AVAIL
 pkglib_LTLIBRARIES += contrib-pw-totp.la
@@ -247,6 +251,7 @@ contrib_pw_totp_la_LDFLAGS = -module -export-dynamic \
 contrib_pw_totp_la_SOURCES = banner.c passwd/totp/slapd-totp.c
 contrib_pw_totp_la_CFLAGS = $(TLS_FALLBACK_CFLAGS)
 contrib_pw_totp_la_LIBADD = $(TLS_FALLBACK_LIBS)
+man5_MANS += passwd/totp/slapo-totp.man
 endif
 
 EXTRA_DIST += proxyOld/README

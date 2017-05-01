@@ -18,7 +18,7 @@
 slapo-smbk5pwd \- Samba & Kerberos password sync overlay to slapd
 
 .SH SYNOPSIS
-ETCDIR/slapd.conf
+@SYSCONFDIR@/slapd.conf
 .RS
 .LP
 include
@@ -155,7 +155,7 @@ and thus can be run-time loaded and configured via back-config.
 The layout of a slapd.d based, table-driven configuration entry looks like:
 .LP
 .EX
-        # {0}smbk5pwd, {1}bdb, config
+        # {0}smbk5pwd, {1}mdb, config
         dn: olcOverlay={0}smbk5pwd,olcDatabase={1}mdb,cn=config
         objectClass: olcOverlayConfig
         objectClass: olcSmbK5PwdConfig
@@ -180,7 +180,8 @@ seconds).
 .LP
 "OpenLDAP Administrator's Guide" (http://www.OpenLDAP.org/doc/admin/)
 .LP
+
 .SH AUTHOR
-This manual page has been writen by Peter Marschall based on the
+This manual page has been written by Peter Marschall based on the
 module's README file written by Howard Chu.
 .so ../man.footer

@@ -2415,7 +2415,7 @@ loop:
 				continue;
 			}
 
-			Debug( LDAP_DEBUG_CONNS,
+			Debug( LDAP_DEBUG_TRACE,
 				"daemon: " SLAP_EVENT_FNAME ": "
 				"listen=%d active_threads=%d tvp=%s\n",
 				lr->sl_sd, at, tvp == NULL ? "NULL" : "zero" );

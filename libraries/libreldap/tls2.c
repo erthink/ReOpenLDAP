@@ -153,23 +153,33 @@ ldap_pvt_tls_destroy( void )
  * Initialize a particular TLS implementation.
  * Called once per implementation.
  */
-static int
-tls_init(tls_impl *impl )
-{
-	static int tls_initialized = 0;
+static int tls_impl_init(tls_impl *ti) {
+	LDAP_MUTEX_LOCK( &tls_def_ctx_mutex );
 
-	if ( !tls_initialized++ ) {
+	if (ti->ti_inited == 0) {
 #ifdef LDAP_R_COMPILE
-		ldap_pvt_thread_mutex_init( &tls_def_ctx_mutex );
+		ti->ti_thr_init();
 #endif
+		const int err = ti->ti_tls_init();
+		if (err == 0) {
+			ti->ti_inited = 1;
+		} else {
+			ti->ti_inited = -1;
+			Debug(LDAP_DEBUG_ANY, "tls_impl_init(): failed, rc %i\n", err);
+		}
 	}
 
-	if ( impl->ti_inited++ ) return 0;
+	LDAP_MUTEX_UNLOCK( &tls_def_ctx_mutex );
+	return (ti->ti_inited == 1) ? 0 : -1;
+}
 
+static int global_tls_init_rc;
+static void global_tls_init_once(void)
+{
 #ifdef LDAP_R_COMPILE
-	impl->ti_thr_init();
+	ldap_pvt_thread_mutex_init( &tls_def_ctx_mutex );
 #endif
-	return impl->ti_tls_init();
+	global_tls_init_rc = tls_impl_init(tls_imp);
 }
 
 /*
@@ -178,7 +188,9 @@ tls_init(tls_impl *impl )
 int
 ldap_pvt_tls_init( void )
 {
-	return tls_init( tls_imp );
+	static pthread_once_t once_control = PTHREAD_ONCE_INIT;
+	int rc = pthread_once(&once_control, global_tls_init_once);
+	return (rc == 0) ? global_tls_init_rc : rc;
 }
 
 /*
@@ -194,7 +206,7 @@ ldap_int_tls_init_ctx( struct ldapoptions *lo, int is_server )
 	if ( lo->ldo_tls_ctx )
 		return 0;
 
-	tls_init( ti );
+	tls_impl_init( ti );
 
 	if ( is_server && !lts.lt_certfile && !lts.lt_keyfile &&
 		!lts.lt_cacertfile && !lts.lt_cacertdir &&
@@ -908,7 +920,7 @@ ldap_int_tls_start ( LDAP *ld, LDAPConn *conn, LDAPURLDesc *srv )
 	if( srv ) {
 		host = srv->lud_host;
 	} else {
- 		host = conn->lconn_server->lud_host;
+		host = conn->lconn_server->lud_host;
 	}
 
 	/* avoid NULL host */
@@ -916,7 +928,8 @@ ldap_int_tls_start ( LDAP *ld, LDAPConn *conn, LDAPURLDesc *srv )
 		host = "localhost";
 	}
 
-	(void) tls_init( tls_imp );
+	if (tls_impl_init( tls_imp ))
+		return ld->ld_errno = LDAP_LOCAL_ERROR;
 
 #ifdef LDAP_USE_NON_BLOCKING_TLS
 	Sockbuf *sb = conn->lconn_sb;

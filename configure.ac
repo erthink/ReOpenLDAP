@@ -165,6 +165,9 @@ AC_PROG_MKDIR_P
 AC_PROG_EGREP
 AM_CONDITIONAL(COMPILER_IS_GCC, test "x$GCC" = "xyes")
 PKG_PROG_PKG_CONFIG
+if test -z "$PKG_CONFIG"; then
+	AC_MSG_FAILURE([pkg-config tool is required for ReOpenLDAP, please install it])
+fi
 AC_LIBTOOL_DLOPEN
 AC_PROG_LIBTOOL
 LT_OUTPUT
@@ -1027,7 +1030,7 @@ dnl UUID Support
 
 PKG_CHECK_MODULES(UUID, uuid, uuid_found=yes, uuid_found=no)
 AC_SUBST(UUID_LIBS)
-#AC_SUBST(UUID_CFLAGS)
+AC_SUBST(UUID_CFLAGS)
 if test $uuid_found = yes ; then
 	AC_CHECK_HEADERS(uuid/uuid.h)
 	if test $ac_cv_header_uuid_uuid_h = yes ; then
@@ -1042,10 +1045,11 @@ if test $uuid_found = yes ; then
 			SLAPD_LIBS="$SLAPD_LIBS $UUID_LIBS"
 		fi
 	fi
-fi
-
-if test "$have_uuid" != "yes" ; then
-	AC_MSG_ERROR([uuid support not found (this typically means the uuid development package is missing)])
+	if test "$have_uuid" != "yes" ; then
+		AC_MSG_ERROR([uuid support not found (this typically means the uuid development package is missing)])
+	fi
+else
+	AC_MSG_ERROR([$UUID_PKG_ERRORS, therefore required UUID support unavailable])
 fi
 
 dnl ----------------------------------------------------------------
