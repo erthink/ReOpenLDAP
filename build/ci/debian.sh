@@ -2,9 +2,9 @@
 
 export EXTRA_CFLAGS="-Wall -Werror -ggdb3 -gdwarf-4"
 
-apt update -q
+sudo apt update -q
 
-apt install -y -q \
+sudo apt install -y -q \
 		build-essential pkg-config groff-base autoconf automake \
 		uuid-dev libelf-dev krb5-multidev heimdal-multidev libcrack2-dev \
 		libsasl2-dev libperl-dev libtool libltdl-dev binutils-dev libssl-dev \
