@@ -13167,9 +13167,9 @@ VERSION_MINOR=2
 
 VERSION_PATCH=0
 
-RELEASE_DATE=2017-04-25
+RELEASE_DATE=2017-05-01
 
-RELEASE_STAMP=g85e3f729015d-tc784ce4a878fe7f0
+RELEASE_STAMP=gf253f523a891-t5f6c4d6534050a92
 
 API_LIB_RELEASE=1.2
 
@@ -18216,6 +18216,12 @@ $as_echo "yes" >&6; }
 $as_echo "no" >&6; }
 		PKG_CONFIG=""
 	fi
+fi
+if test -z "$PKG_CONFIG"; then
+	{ { $as_echo "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
+$as_echo "$as_me: error: in \`$ac_pwd':" >&2;}
+as_fn_error $? "pkg-config tool is required for ReOpenLDAP, please install it
+See \`config.log' for more details" "$LINENO" 5; }
 fi
 enable_dlopen=yes
 
@@ -25693,7 +25699,7 @@ $as_echo "yes" >&6; }
 	uuid_found=yes
 fi
 
-#AC_SUBST(UUID_CFLAGS)
+
 if test $uuid_found = yes ; then
 	for ac_header in uuid/uuid.h
 do :
@@ -25835,10 +25841,11 @@ $as_echo "#define HAVE_UUID_GENERATE 1" >>confdefs.h
 			SLAPD_LIBS="$SLAPD_LIBS $UUID_LIBS"
 		fi
 	fi
-fi
-
-if test "$have_uuid" != "yes" ; then
-	as_fn_error $? "uuid support not found (this typically means the uuid development package is missing)" "$LINENO" 5
+	if test "$have_uuid" != "yes" ; then
+		as_fn_error $? "uuid support not found (this typically means the uuid development package is missing)" "$LINENO" 5
+	fi
+else
+	as_fn_error $? "$UUID_PKG_ERRORS, therefore required UUID support unavailable" "$LINENO" 5
 fi
 
 ol_cv_lib_resolver=no
