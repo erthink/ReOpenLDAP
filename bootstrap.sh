@@ -35,8 +35,8 @@ if [ -z "$AUTORECONF" ]; then
 fi
 
 if $AUTORECONF --force --install --include=build \
-		&& patch -p1 -i build/ltmain.sh.patch \
-		&& patch -p1 -i build/libltdl.patch; then
+		&& (patch -p1 -i build/ltmain.sh.patch || patch -p1 -i build/ltmain-old.sh.patch) \
+		&& (patch -p1 -i build/libltdl.patch || echo "Ignore build/libltdl patching errors"); then
 	echo "done"; exit 0
 else
 	echo "failed" >&2; exit 1
