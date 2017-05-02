@@ -28,16 +28,28 @@ if test ${AC_conf[rwm]} = no ; then
 	exit 0
 fi
 
-if test x$TESTLOOPS = x ; then
-	TESTLOOPS=50
+if [ -z "$TESTLOOPS" ]; then
+	if [ -n "$CI" ]; then
+		TESTLOOPS=12
+	else
+		TESTLOOPS=50
+	fi
 fi
 
-if test x$TESTOLOOPS = x ; then
-	TESTOLOOPS=1
+if [ -z "$TESTOLOOPS" ]; then
+	if [ -n "$CI" ]; then
+		TESTOLOOPS=1
+	else
+		TESTOLOOPS=3
+	fi
 fi
 
-if test x$TESTCHILDREN = x ; then
-	TESTCHILDREN=20
+if [ -z "$TESTCHILDREN" ]; then
+	if [ -n "$CI" ]; then
+		TESTCHILDREN=12
+	else
+		TESTCHILDREN=20
+	fi
 fi
 
 mkdir -p $TESTDIR $DBDIR1 $DBDIR2
