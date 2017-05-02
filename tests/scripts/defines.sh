@@ -713,7 +713,9 @@ function wait_syncrepl {
 	if [ -z "$base" ]; then base="$BASEDN"; else caption="$base "; fi
 	echo -n "Waiting while syncrepl replicates a changes (${caption}between $1 and $2)..."
 	sleep $SLEEP0
-	local t=$SLEEP0
+	local now=$(date +%s)
+	local start=$now
+	local timeout=$((now + SYNCREPL_WAIT))
 
 	while true; do
 
@@ -753,13 +755,14 @@ function wait_syncrepl {
 			exit $RC
 		fi
 
+		now=$(date +%s)
 		if [ "$provider_csn" == "$consumer_csn" ]; then
-			echo " Done in $t seconds"
+			echo " Done in $((now - start)) seconds"
 			return
 		fi
 
-		if [ $(echo "$t > $SYNCREPL_WAIT" | bc -q) == "1" ]; then
-			echo " Timeout $t seconds"
+		if [ $now -gt $timeout ]; then
+			echo " Timeout $((now - start)) seconds"
 			echo -n "Provider: "
 			$LDAPSEARCH -s $scope -b "$base" $extra -h $LOCALHOST -p $1 contextCSN
 			echo -n "Consumer: "
@@ -770,7 +773,6 @@ function wait_syncrepl {
 
 		#echo "  Waiting +SLEEP0 seconds for syncrepl to receive changes (from $1 to $2)..."
 		sleep $SLEEP0
-		t=$(echo "$SLEEP0 + $t" | bc -q)
 	done
 }
 
