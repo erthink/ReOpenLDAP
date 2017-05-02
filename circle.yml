@@ -49,7 +49,7 @@ test:
     - ulimit -c unlimited
     - mkdir -p $TEST_NOOK
   override:
-    - SKIPLONG=yes make test || echo "Ignore results for now..."
+    - make test || echo "Ignore results for now..."
   post:
     - if test "$(ls -A $TEST_NOOK)"; then tar caf ${CIRCLE_ARTIFACTS}/nook.tar.gz -C $TEST_NOOK .;
       else echo "No data for upload"; fi
