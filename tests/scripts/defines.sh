@@ -252,10 +252,17 @@ elif [ -n "$CIBUZZ_PID4" ]; then
 	SLEEP1=${SLEEP1-7}
 	SYNCREPL_WAIT=${SYNCREPL_WAIT-30}
 elif [ -n "$CI" ]; then
-	# LY: under CI, take in account ASAN/TSAN and nice
-	TIMEOUT_S="timeout -s SIGXCPU 2m"
-	TIMEOUT_L="timeout -s SIGXCPU 7m"
-	TIMEOUT_H="timeout -s SIGXCPU 20m"
+	if [ "$CI" = "TEAMCITY" ]; then
+		# LY: under Teamcity, take in account ASAN/TSAN and nice
+		TIMEOUT_S="timeout -s SIGXCPU 2m"
+		TIMEOUT_L="timeout -s SIGXCPU 7m"
+		TIMEOUT_H="timeout -s SIGXCPU 20m"
+	else
+		# LY: But disable timeouts for Travis/Circle as workaround coreutils sand docker bugs
+		TIMEOUT_S=""
+		TIMEOUT_L=""
+		TIMEOUT_H=""
+	fi
 	SLEEP0=${SLEEP0-0.3}
 	SLEEP1=${SLEEP1-2}
 	SYNCREPL_WAIT=${SYNCREPL_WAIT-10}
