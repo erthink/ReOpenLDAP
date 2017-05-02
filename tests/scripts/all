@@ -15,9 +15,7 @@
 
 . ${TOP_SRCDIR}/tests/scripts/defines.sh
 
-if [ -n "${TRAVIS_BUILD_ID}" ]; then
-	TEST_LIST_CMD=$(ls ${TOP_SRCDIR}/tests/scripts/test* | sort --random-sort | head -n 25)
-elif [ -n "$CIBUZZ_PID4" -o -n "$RANDOM_ORDER" ]; then
+if [ -n "$CIBUZZ_PID4" -o -n "$RANDOM_ORDER" ]; then
 	TEST_LIST_CMD=$(ls ${TOP_SRCDIR}/tests/scripts/test* | sort --random-sort)
 else
 	TEST_LIST_CMD=${TOP_SRCDIR}/tests/scripts/test*
