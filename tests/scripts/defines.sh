@@ -461,7 +461,11 @@ function teamcity_sleep {
 function safewait {
 	wait "$@"
 	local RC=$?
-	if [ $RC -gt 132 ]; then
+	if [ $RC -eq 124 -a -n "$TIMEOUT_S" ]; then
+		echo " timeout ($RC)"
+		sleep 3
+		exit $RC
+	elif [ $RC -gt 132 ]; then
 		echo " coredump/signal-$(($RC - 128))"
 		sleep 5
 		exit $RC
