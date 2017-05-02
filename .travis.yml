@@ -39,7 +39,6 @@ addons:
     - unixodbc-dev
     - libslp-dev
     - libdb-dev
-    - bc
     - gdb
 
 before_script:
