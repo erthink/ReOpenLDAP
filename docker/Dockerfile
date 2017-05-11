@@ -6,11 +6,13 @@ RUN useradd -m -d /var/lib/ldap -s /bin/false ldap
 ENV DEBIAN_FRONTEND noninteractive
 
 RUN apt-get update -qq && apt-get install -yqq --no-install-recommends build-essential\
-    git automake uuid-dev bc libelf-dev pkg-config libssl-dev libsasl2-dev\
-    groff file libltdl-dev libltdl7 libmagic1 libtool libkrb5-dev man ca-certificates &&\
-    mkdir /opt/reopenldap &&\
+    git automake uuid-dev bc libelf-dev pkg-config libssl-dev libsasl2-dev libperl-dev \
+    groff file libltdl-dev libltdl7 libmagic1 libtool libkrb5-dev man ca-certificates \
+    libdb-dev && mkdir /opt/reopenldap &&\
     git clone https://github.com/ReOpen/ReOpenLDAP.git /opt/reopenldap.source &&\
-    cd /opt/reopenldap.source && ./configure --prefix /opt/reopenldap &&\
+    cd /opt/reopenldap.source && ./configure --prefix /opt/reopenldap --enable-mdb \
+    --enable-hdb --enable-bdb --enable-ldap --enable-monitor --enable-null --enable-perl \
+    --enable-relay --enable-sock &&\
     make -j $(nproc) && make install && cd /opt/reopenldap && rm -rf /opt/reopenldap.source &&\
     apt-get remove -qq -y --purge automake build-essential libssl-dev libsasl2-dev git \
     groff imagemagick cpp gcc-4.9 cpp-4.9 libtool libmagic1 &&\
