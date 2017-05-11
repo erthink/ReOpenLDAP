@@ -171,7 +171,7 @@ typedef struct mdb_attrinfo {
 #ifdef LDAP_COMP_MATCH
 	ComponentReference* ai_cr; /*component indexing*/
 #endif
-	Avlnode *ai_root;		/* for tools */
+	TAvlnode *ai_root;		/* for tools */
 	void *ai_flist;		/* for tools */
 	void *ai_clist;		/* for tools */
 	MDB_cursor *ai_cursor;	/* for tools */

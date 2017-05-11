@@ -96,7 +96,7 @@ $CMP $SEARCHFLT $LDIFFLT > $CMPOUT
 if test $? != 0 ; then
 	echo "comparison failed - modrdn operations did not complete correctly"
 	killservers
-	exit -1
+	exit 2
 fi
 
 
@@ -123,7 +123,7 @@ $CMP $SEARCHFLT $LDIFFLT > $CMPOUT
 if test $? != 0 ; then
 	echo "comparison failed - modrdn operations did not complete correctly"
 	killservers
-	exit -1
+	exit 2
 fi
 
 # Ensure that you cannot find the entry for which the rdn was deleted as
@@ -142,7 +142,7 @@ $CMP $SEARCHOUT - < /dev/null > $CMPOUT
 if test $? != 0 ; then
 	echo "failure: ldapsearch found attribute that was to be removed!"
 	killservers
-	exit -1
+	exit 2
 fi
 
 echo "Using ldapsearch to retrieve all the entries..."
@@ -167,7 +167,7 @@ $CMP $SEARCHFLT $LDIFFLT > $CMPOUT
 if test $? != 0 ; then
 	echo "comparison failed - modrdn operations did not complete correctly"
 	killservers
-	exit -1
+	exit 2
 fi
 
 # Test that you can use modrdn with an attribute value which was previously
@@ -207,7 +207,7 @@ $CMP $SEARCHFLT $LDIFFLT > $CMPOUT
 if test $? != 0 ; then
 	echo "comparison failed - modrdn operations did not complete correctly"
 	killservers
-	exit -1
+	exit 2
 fi
 
 echo "Testing modrdn to another database (should fail with affectsMultipleDSAs)"
@@ -218,7 +218,7 @@ case $RC in
 0)
 	echo "ldapmodrdn succeeded, should have failed!"
 	killservers
-	exit -1
+	exit 2
 	;;
 71)
 	;;
@@ -239,7 +239,7 @@ case $RC in
 0)
 	echo "ldapmodrdn succeeded, should have failed!"
 	killservers
-	exit -1
+	exit 2
 	;;
 53)
 	;;

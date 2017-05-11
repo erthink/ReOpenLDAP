@@ -309,15 +309,15 @@ valsort_response( Operation *op, SlapReply *rs )
 
 			for (i=0; i<n; i++) {
 				char *ptr = ber_bvchr( &a->a_nvals[i], '{' );
-				char *end = NULL;
 				if ( !ptr ) {
 					Debug(LDAP_DEBUG_TRACE, "weights missing from attr %s "
 						"in entry %s\n", vi->vi_ad->ad_cname.bv_val,
 						rs->sr_entry->e_name.bv_val );
 					break;
 				}
+				char *end = NULL;
 				index[i] = strtol( ptr+1, &end, 0 );
-				if ( *end != '}' ) {
+				if ( !end || *end != '}' ) {
 					Debug(LDAP_DEBUG_TRACE, "weights misformatted "
 						"in entry %s\n",
 						rs->sr_entry->e_name.bv_val );
@@ -391,7 +391,6 @@ valsort_add( Operation *op, SlapReply *rs )
 
 	Attribute *a;
 	int i;
-	char *ptr, *end;
 
 	/* See if any weighted sorting applies to this entry */
 	for ( ;vi;vi=vi->vi_next ) {
@@ -403,7 +402,7 @@ valsort_add( Operation *op, SlapReply *rs )
 		if ( !a )
 			continue;
 		for (i=0; !BER_BVISNULL( &a->a_vals[i] ); i++) {
-			ptr = ber_bvchr(&a->a_vals[i], '{' );
+			char* ptr = ber_bvchr(&a->a_vals[i], '{' );
 			if ( !ptr ) {
 				Debug(LDAP_DEBUG_TRACE, "weight missing from attribute %s\n",
 					vi->vi_ad->ad_cname.bv_val);
@@ -411,14 +410,16 @@ valsort_add( Operation *op, SlapReply *rs )
 					"weight missing from attribute" );
 				return rs->sr_err;
 			}
-			strtol( ptr+1, &end, 0 );
-			if ( *end != '}' ) {
+			char *end = NULL;
+			long unused = strtol( ptr+1, &end, 0 );
+			if ( !end || *end != '}' ) {
 				Debug(LDAP_DEBUG_TRACE, "weight is misformatted in %s\n",
 					vi->vi_ad->ad_cname.bv_val);
 				send_ldap_error( op, rs, LDAP_CONSTRAINT_VIOLATION,
 					"weight is misformatted" );
 				return rs->sr_err;
 			}
+			(void) unused;
 		}
 	}
 	return SLAP_CB_CONTINUE;
@@ -432,7 +433,6 @@ valsort_modify( Operation *op, SlapReply *rs )
 
 	Modifications *ml;
 	int i;
-	char *ptr, *end;
 
 	/* See if any weighted sorting applies to this entry */
 	for ( ;vi;vi=vi->vi_next ) {
@@ -450,7 +450,7 @@ valsort_modify( Operation *op, SlapReply *rs )
 		if ( !ml )
 			continue;
 		for (i=0; !BER_BVISNULL( &ml->sml_values[i] ); i++) {
-			ptr = ber_bvchr(&ml->sml_values[i], '{' );
+			char *ptr = ber_bvchr(&ml->sml_values[i], '{' );
 			if ( !ptr ) {
 				Debug(LDAP_DEBUG_TRACE, "weight missing from attribute %s\n",
 					vi->vi_ad->ad_cname.bv_val);
@@ -458,14 +458,16 @@ valsort_modify( Operation *op, SlapReply *rs )
 					"weight missing from attribute" );
 				return rs->sr_err;
 			}
-			strtol( ptr+1, &end, 0 );
-			if ( *end != '}' ) {
+			char *end = NULL;
+			long unused = strtol( ptr+1, &end, 0 );
+			if ( !end || *end != '}' ) {
 				Debug(LDAP_DEBUG_TRACE, "weight is misformatted in %s\n",
 					vi->vi_ad->ad_cname.bv_val);
 				send_ldap_error( op, rs, LDAP_CONSTRAINT_VIOLATION,
 					"weight is misformatted" );
 				return rs->sr_err;
 			}
+			(void) unused;
 		}
 	}
 	return SLAP_CB_CONTINUE;

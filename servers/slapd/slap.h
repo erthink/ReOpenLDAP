@@ -964,6 +964,9 @@ struct slap_internal_schema {
 	AttributeDescription *si_ad_description;
 	AttributeDescription *si_ad_seeAlso;
 
+	/* privateKeys */
+	AttributeDescription *si_ad_x509PrivateKey;
+
 	/* Undefined Attribute Type */
 	AttributeType	*si_at_undefined;
 
@@ -3073,7 +3076,7 @@ struct Connection {
 	SEND_LDAP_INTERMEDIATE *c_send_ldap_intermediate;
 };
 
-#ifdef LOG_LOCAL4
+#if defined(LDAP_SYSLOG) && defined(LOG_LOCAL4)
 #	define SLAP_DEFAULT_SYSLOG_USER	LOG_LOCAL4
 #endif /* LOG_LOCAL4 */
 

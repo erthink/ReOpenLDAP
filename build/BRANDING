@@ -22,7 +22,7 @@ PACKAGE=ReOpenLDAP
 PACKAGE_URL="https://github.com/ReOpen/ReOpenLDAP/wiki"
 PACKAGE_BUGREPORT="https://github.com/ReOpen/ReOpenLDAP/issues"
 
-RELEASE_TYPE=Devel
+RELEASE_TYPE=ReleaseEngineering
 
 VERSION_MAJOR=1
 VERSION_MINOR=1
@@ -33,7 +33,7 @@ API_REVISON=7
 API_AGE=10
 
 VERSION="${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH_LEVEL}"
-VERSION_NUMBER=$(bc <<< "${VERSION_MAJOR} * 10000 + ${VERSION_MINOR} * 100 + ${VERSION_PATCH_LEVEL}")
+VERSION_NUMBER=$(expr ${VERSION_MAJOR} '*' 10000 + ${VERSION_MINOR} '*' 100 + ${VERSION_PATCH_LEVEL})
 
 function RELEASE_DATE_CMD {
 	date --date=@$(git show -s --format=%ct HEAD) -u --iso-8601

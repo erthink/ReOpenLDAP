@@ -47,12 +47,15 @@
 /* LY: Please do not ask us for Windows support, just never!
  * But you can make a fork for Windows, or become maintainer for FreeBSD... */
 #ifndef __gnu_linux__
-#	warning "ReOpenMDBX supports only GNU Linux"
+#	warning "This version of ReOpenMDBX supports only GNU Linux"
 #endif
 
-#include <features.h>
+#include <stddef.h>
+#include <limits.h>
+#include "./lmdb.h"
+#include "./defs.h"
 
-#if !defined(__GNUC__) || !__GNUC_PREREQ(4,2)
+#if !__GNUC_PREREQ(4,2)
 	/* LY: Actualy ReOpenMDBX was not tested with compilers
 	 *     older than GCC 4.4 (from RHEL6).
 	 * But you could remove this #error and try to continue at your own risk.
@@ -61,7 +64,7 @@
 #	warning "ReOpenMDBX required at least GCC 4.2 compatible C/C++ compiler."
 #endif
 
-#if !defined(__GNU_LIBRARY__) || !__GLIBC_PREREQ(2,12)
+#if !__GLIBC_PREREQ(2,12)
 	/* LY: Actualy ReOpenMDBX was not tested with something
 	 *     older than glibc 2.12 (from RHEL6).
 	 * But you could remove this #error and try to continue at your own risk.
@@ -74,7 +77,6 @@
 #	undef NDEBUG
 #endif
 
-#include "./reopen.h"
 #include "./barriers.h"
 
 #include <sys/types.h>
@@ -88,8 +90,6 @@
 #include <fcntl.h>
 
 #include <errno.h>
-#include <limits.h>
-#include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -98,13 +98,38 @@
 #include <malloc.h>
 #include <pthread.h>
 
-#if !(defined(BYTE_ORDER) || defined(__BYTE_ORDER))
-#	include <netinet/in.h>
-#	include <resolv.h>	/* defines BYTE_ORDER on HPUX and Solaris */
-#endif
+/* -------------------------------------------------------------------------- */
+
+#ifdef __GLIBC__
+#	include <assert.h>
+#elif defined(NDEBUG)
+#	define assert(expr) ((void)0)
+#else
+#	define assert(expr)							\
+	do {									\
+		if (unlikely(!(expr)))						\
+			__assert_fail(#expr, __FILE__, __LINE__, mdbx_func_);	\
+	} while(0)
+#endif /* __GLIBC__ */
+
+/* Prototype should match libc runtime. ISO POSIX (2003) & LSB 3.1 */
+__extern_C void __assert_fail(
+		const char* assertion,
+		const char* file,
+		unsigned line,
+		const char* function) __nothrow __noreturn;
+
+/* -------------------------------------------------------------------------- */
 
 #ifndef _POSIX_SYNCHRONIZED_IO
 #	define fdatasync fsync
+#endif
+
+/* -------------------------------------------------------------------------- */
+
+#if !(defined(BYTE_ORDER) || defined(__BYTE_ORDER))
+#	include <netinet/in.h>
+#	include <resolv.h>	/* defines BYTE_ORDER on HPUX and Solaris */
 #endif
 
 #ifndef BYTE_ORDER
@@ -133,7 +158,16 @@
 #	define MISALIGNED_OK	1
 #endif
 
-#include "./lmdb.h"
+#ifndef CACHELINE_SIZE
+#	if defined(__ia64__) || defined(__ia64) || defined(_M_IA64)
+#		define CACHELINE_SIZE 128
+#	else
+#		define CACHELINE_SIZE 64
+#	endif
+#endif
+
+/* -------------------------------------------------------------------------- */
+
 #include "./midl.h"
 
 #if ! MDBX_MODE_ENABLED
@@ -190,9 +224,9 @@
  */
 #ifndef MDB_USE_ROBUST
 	/* Howard Chu: Android currently lacks Robust Mutex support */
-#	if defined(EOWNERDEAD) && !defined(ANDROID) \
+#	if defined(EOWNERDEAD) \
 	/* LY: glibc before 2.10 has a troubles with Robust Mutex too. */ \
-	&& __GLIBC_PREREQ(2,10)
+	&& ((__GLIBC_PREREQ(2,10) && !defined(ANDROID)) || defined(PTHREAD_MUTEX_ROBUST))
 #		define MDB_USE_ROBUST	1
 #	else
 #		define MDB_USE_ROBUST	0
@@ -2864,23 +2898,22 @@ mdb_txn_renew0(MDB_txn *txn, unsigned flags)
 		}
 
 		while((env->me_flags & MDB_FATAL_ERROR) == 0) {
-			MDB_meta *meta = mdb_meta_head_r(txn->mt_env);
-			txnid_t lead = meta->mm_txnid;
+			MDB_meta * const meta = mdb_meta_head_r(txn->mt_env);
+			const txnid_t lead = meta->mm_txnid;
 			r->mr_txnid = lead;
 			mdbx_coherent_barrier();
 
-			txnid_t snap = txn->mt_env->me_txns->mti_txnid;
-			/* LY: Retry on a race, ITS#7970. */
-			if (likely(lead == snap)) {
-				txn->mt_txnid = lead;
-				txn->mt_next_pgno = meta->mm_last_pg+1;
-				/* Copy the DB info and flags */
-				memcpy(txn->mt_dbs, meta->mm_dbs, CORE_DBS * sizeof(MDB_db));
+			txn->mt_txnid = lead;
+			txn->mt_next_pgno = meta->mm_last_pg+1;
+			/* Copy the DB info and flags */
+			memcpy(txn->mt_dbs, meta->mm_dbs, CORE_DBS * sizeof(MDB_db));
 #if MDBX_MODE_ENABLED
-				txn->mt_canary = meta->mm_canary;
+			txn->mt_canary = meta->mm_canary;
 #endif
+			/* LY: Retry on a race, ITS#7970. */
+			const txnid_t snap = txn->mt_env->me_txns->mti_txnid;
+			if (likely(lead == snap))
 				break;
-			}
 		}
 
 		txn->mt_u.reader = r;
@@ -8768,14 +8801,17 @@ mdb_cursor_del0(MDB_cursor *mc)
 					}
 					if (mc->mc_db->md_flags & MDB_DUPSORT) {
 						MDB_node *node = NODEPTR(m3->mc_pg[m3->mc_top], m3->mc_ki[m3->mc_top]);
-						/* If this node is a fake page, it needs to be reinited
-						 * because its data has moved. But just reset mc_pg[0]
-						 * if the xcursor is already live.
+						/* If this node has dupdata, it may need to be reinited
+						 * because its data has moved.
+						 * If the xcursor was not initd it must be reinited.
+						 * Else if node points to a subDB, nothing is needed.
+						 * Else (xcursor was initd, not a subDB) needs mc_pg[0] reset.
 						 */
-						if ((node->mn_flags & (F_DUPDATA|F_SUBDATA)) == F_DUPDATA) {
-							if (m3->mc_xcursor->mx_cursor.mc_flags & C_INITIALIZED)
-								m3->mc_xcursor->mx_cursor.mc_pg[0] = NODEDATA(node);
-							else
+						if (node->mn_flags & F_DUPDATA) {
+							if (m3->mc_xcursor->mx_cursor.mc_flags & C_INITIALIZED) {
+								if (!(node->mn_flags & F_SUBDATA))
+									m3->mc_xcursor->mx_cursor.mc_pg[0] = NODEDATA(node);
+							} else
 								mdb_xcursor_init1(m3, node);
 						}
 					}
@@ -10695,6 +10731,8 @@ mdb_mutex_failed(MDB_env *env, pthread_mutex_t *mutex, int rc)
 			pthread_mutex_unlock(mutex);
 		}
 	}
+#else
+	(void) mutex;
 #endif /* MDB_USE_ROBUST */
 	if (unlikely(rc)) {
 		mdb_debug("lock mutex failed, %s", mdb_strerror(rc));

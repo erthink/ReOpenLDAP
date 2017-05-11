@@ -101,7 +101,7 @@ elif [ -n "${TEAMCITY_PROCESS_FLOW_ID}" ]; then
 		rm -rf ${TMP}/*
 	else
 		[ ! -e ${TMP} ] || rm -rf ${TMP} || failure "clean ${TMP}"
-		mkdir ${TMP} || failure "mkdir ${TMP}"
+		mkdir -p ${TMP} || failure "mkdir ${TMP}"
 	fi
 	ln -s ${TMP} tests/testrun || failure "link tests/testrun"
 else

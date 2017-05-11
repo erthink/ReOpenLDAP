@@ -101,18 +101,20 @@ target_triplet = @target@
 
 @CONTRIB_BROKEN_TRUE@@LDAP_EXPERIMENTAL_TRUE@am__append_5 = contrib-compmatch.la
 @HEIMDAL_AVAIL_TRUE@am__append_6 = contrib-pw-kerberos.la
-
-# LY: Requires an obsolete RADIUS-client library
+# FIXME: Requires an obsolete RADIUS-client library
 @CONTRIB_BROKEN_TRUE@am__append_7 = contrib-pw-radius.la
+@CONTRIB_BROKEN_TRUE@am__append_8 = passwd/slapo-pw-radius.man
 # TODO: support MozNSS
-@TLS_FALLBACK_AVAIL_TRUE@am__append_8 = contrib-pw-pbkdf2.la
+@TLS_FALLBACK_AVAIL_TRUE@am__append_9 = contrib-pw-pbkdf2.la
+@TLS_FALLBACK_AVAIL_TRUE@am__append_10 = passwd/pbkdf2/slapo-pw-pbkdf2.man
 # TODO: support MozNSS
-@TLS_FALLBACK_AVAIL_TRUE@am__append_9 = contrib-pw-totp.la
-@TLS_FALLBACK_AVAIL_TRUE@am__append_10 = $(TLS_FALLBACK_CFLAGS) -DDO_SAMBA
-@TLS_FALLBACK_AVAIL_TRUE@am__append_11 = $(TLS_FALLBACK_LIBS)
-@HEIMDAL_AVAIL_TRUE@am__append_12 = -DDO_KRB5 $(HEIMDAL_CFLAGS)
-@HEIMDAL_AVAIL_TRUE@am__append_13 = $(HEIMDAL_LIBS)
-@LIBSODIUM_AVAIL_TRUE@am__append_14 = contrib-pw-argon2.la
+@TLS_FALLBACK_AVAIL_TRUE@am__append_11 = contrib-pw-totp.la
+@TLS_FALLBACK_AVAIL_TRUE@am__append_12 = passwd/totp/slapo-totp.man
+@TLS_FALLBACK_AVAIL_TRUE@am__append_13 = $(TLS_FALLBACK_CFLAGS) -DDO_SAMBA
+@TLS_FALLBACK_AVAIL_TRUE@am__append_14 = $(TLS_FALLBACK_LIBS)
+@HEIMDAL_AVAIL_TRUE@am__append_15 = -DDO_KRB5 $(HEIMDAL_CFLAGS)
+@HEIMDAL_AVAIL_TRUE@am__append_16 = $(HEIMDAL_LIBS)
+@LIBSODIUM_AVAIL_TRUE@am__append_17 = contrib-pw-argon2.la
 subdir = contrib/slapd-modules
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/build/m4/ax_pthread.m4 \
@@ -597,6 +599,7 @@ am__DIST_COMMON = $(srcdir)/Makefile.in $(top_srcdir)/build/depcomp \
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
 ACLOCAL = @ACLOCAL@
 AMTAR = @AMTAR@
+AM_CFLAGS = @AM_CFLAGS@
 AM_DEFAULT_VERBOSITY = @AM_DEFAULT_VERBOSITY@
 AM_MAKEFLAGS = @AM_MAKEFLAGS@
 API_LIB_RELEASE = @API_LIB_RELEASE@
@@ -638,6 +641,7 @@ ENABLE_VALGRIND_helgrind = @ENABLE_VALGRIND_helgrind@
 ENABLE_VALGRIND_memcheck = @ENABLE_VALGRIND_memcheck@
 ENABLE_VALGRIND_sgcheck = @ENABLE_VALGRIND_sgcheck@
 EXEEXT = @EXEEXT@
+EXTRA_CFLAGS = @EXTRA_CFLAGS@
 FGREP = @FGREP@
 FIXUP_DIRS = @FIXUP_DIRS@
 FIXUP_DIST = @FIXUP_DIST@
@@ -845,10 +849,13 @@ EXTRA_DIST = README acl/README.gssacl acl/README.posixgroup \
 	mr_passthru/README.md nops/slapo-nops.man.in nssov/README \
 	nssov/ldapns.schema nssov/nss-pam-ldapd/README \
 	nssov/slapo-nssov.man.in passwd/README passwd/apr1-atol.pl \
-	passwd/apr1-ltoa.pl passwd/pbkdf2/README passwd/sha2/README \
-	passwd/totp/README proxyOld/README samba4/README \
-	smbk5pwd/README smbk5pwd/slapo-smbk5pwd.man.in \
-	passwd/argon2/README.md $(man_links)
+	passwd/apr1-ltoa.pl passwd/slapo-pw-radius.man.in \
+	passwd/pbkdf2/README passwd/pbkdf2/slapo-pw-pbkdf2.man.in \
+	passwd/sha2/README passwd/sha2/slapo-pw-sha2.man.in \
+	passwd/totp/README passwd/totp/slapo-totp.man.in \
+	proxyOld/README samba4/README smbk5pwd/README \
+	smbk5pwd/slapo-smbk5pwd.man.in passwd/argon2/README.md \
+	$(man_links)
 # TODO: support MozNSS
 pkglib_LTLIBRARIES = $(am__append_2) $(am__append_3) \
 	contrib-addpartial.la contrib-adremap.la contrib-allop.la \
@@ -858,18 +865,19 @@ pkglib_LTLIBRARIES = $(am__append_2) $(am__append_3) \
 	contrib-kinit.la contrib-lastbind.la contrib-lastmod.la \
 	contrib-mr_passthru.la contrib-noopsrch.la contrib-nops.la \
 	contrib-nssov.la contrib-pw-apr1.la $(am__append_6) \
-	contrib-pw-netscape.la $(am__append_7) $(am__append_8) \
-	contrib-pw-sha2.la $(am__append_9) contrib-proxyOld.la \
+	contrib-pw-netscape.la $(am__append_7) $(am__append_9) \
+	contrib-pw-sha2.la $(am__append_11) contrib-proxyOld.la \
 	contrib-pguid.la contrib-rdnval.la contrib-vernum.la \
-	contrib-smbk5pwd.la contrib-trace.la $(am__append_14)
+	contrib-smbk5pwd.la contrib-trace.la $(am__append_17)
 AM_CPPFLAGS = -DSLAPD_IMPORT -I$(top_srcdir)/servers/slapd -I$(top_srcdir)/include
 BUILT_SOURCES = $(am__append_1)
 man_links = 
 man5_MANS = adremap/slapo-adremap.man allop/slapo-allop.man \
 	autogroup/slapo-autogroup.man cloak/slapo-cloak.man \
 	lastbind/slapo-lastbind.man lastmod/slapo-lastmod.man \
-	nops/slapo-nops.man nssov/slapo-nssov.man \
-	smbk5pwd/slapo-smbk5pwd.man
+	nops/slapo-nops.man nssov/slapo-nssov.man $(am__append_8) \
+	$(am__append_10) passwd/sha2/slapo-pw-sha2.man \
+	$(am__append_12) smbk5pwd/slapo-smbk5pwd.man
 @SLAPD_DYNACL_TRUE@contrib_posixgroup_la_LDFLAGS = -module -export-dynamic \
 @SLAPD_DYNACL_TRUE@	-release $(API_LIB_RELEASE) -version-info $(API_LIB_VERSION)
 
@@ -1032,8 +1040,8 @@ contrib_smbk5pwd_la_LDFLAGS = -module -export-dynamic \
 contrib_smbk5pwd_la_SOURCES = banner.c smbk5pwd/smbk5pwd.c
 # Omit DO_KRB5, DO_SAMBA or DO_SHADOW if you don't want to support it.
 contrib_smbk5pwd_la_CFLAGS = -DDO_SHADOW -Wno-deprecated-declarations \
-	$(am__append_10) $(am__append_12)
-contrib_smbk5pwd_la_LIBADD = $(am__append_11) $(am__append_13)
+	$(am__append_13) $(am__append_15)
+contrib_smbk5pwd_la_LIBADD = $(am__append_14) $(am__append_16)
 contrib_trace_la_LDFLAGS = -module -export-dynamic \
 	-release $(API_LIB_RELEASE) -version-info $(API_LIB_VERSION)
 

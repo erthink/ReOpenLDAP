@@ -151,23 +151,33 @@ ldap_pvt_tls_destroy( void )
  * Initialize a particular TLS implementation.
  * Called once per implementation.
  */
-static int
-tls_init(tls_impl *impl )
-{
-	static int tls_initialized = 0;
+static int tls_impl_init(tls_impl *ti) {
+	LDAP_MUTEX_LOCK( &tls_def_ctx_mutex );
 
-	if ( !tls_initialized++ ) {
+	if (ti->ti_inited == 0) {
 #ifdef LDAP_R_COMPILE
-		ldap_pvt_thread_mutex_init( &tls_def_ctx_mutex );
+		ti->ti_thr_init();
 #endif
+		const int err = ti->ti_tls_init();
+		if (err == 0) {
+			ti->ti_inited = 1;
+		} else {
+			ti->ti_inited = -1;
+			Debug(LDAP_DEBUG_ANY, "tls_impl_init(): failed, rc %i\n", err);
+		}
 	}
 
-	if ( impl->ti_inited++ ) return 0;
+	LDAP_MUTEX_UNLOCK( &tls_def_ctx_mutex );
+	return (ti->ti_inited == 1) ? 0 : -1;
+}
 
+static int global_tls_init_rc;
+static void global_tls_init_once(void)
+{
 #ifdef LDAP_R_COMPILE
-	impl->ti_thr_init();
+	ldap_pvt_thread_mutex_init( &tls_def_ctx_mutex );
 #endif
-	return impl->ti_tls_init();
+	global_tls_init_rc = tls_impl_init(tls_imp);
 }
 
 /*
@@ -176,7 +186,9 @@ tls_init(tls_impl *impl )
 int
 ldap_pvt_tls_init( void )
 {
-	return tls_init( tls_imp );
+	static pthread_once_t once_control = PTHREAD_ONCE_INIT;
+	int rc = pthread_once(&once_control, global_tls_init_once);
+	return (rc == 0) ? global_tls_init_rc : rc;
 }
 
 /*
@@ -192,10 +204,12 @@ ldap_int_tls_init_ctx( struct ldapoptions *lo, int is_server )
 	if ( lo->ldo_tls_ctx )
 		return 0;
 
-	tls_init( ti );
+	tls_impl_init( ti );
 
 	if ( is_server && !lts.lt_certfile && !lts.lt_keyfile &&
-		!lts.lt_cacertfile && !lts.lt_cacertdir ) {
+		!lts.lt_cacertfile && !lts.lt_cacertdir &&
+		!lts.lt_cacert.bv_val && !lts.lt_cert.bv_val &&
+		!lts.lt_key.bv_val ) {
 		/* minimum configuration not provided */
 		return LDAP_NOT_SUPPORTED;
 	}
@@ -633,6 +647,79 @@ ldap_pvt_tls_get_option( LDAP *ld, int option, void *arg )
 	case LDAP_OPT_X_TLS_CONNECT_ARG:
 		*(void **)arg = lo->ldo_tls_connect_arg;
 		break;
+	case LDAP_OPT_X_TLS_VERSION: {
+		void *sess = NULL;
+		const char *retval = NULL;
+		if ( ld != NULL ) {
+			LDAPConn *conn = ld->ld_defconn;
+			if ( conn != NULL ) {
+				Sockbuf *sb = conn->lconn_sb;
+				sess = ldap_pvt_tls_sb_ctx( sb );
+				if ( sess != NULL )
+					retval = ldap_pvt_tls_get_version( sess );
+			}
+		}
+		*(char **)arg = retval ? LDAP_STRDUP( retval ) : NULL;
+		break;
+	}
+	case LDAP_OPT_X_TLS_CIPHER: {
+		void *sess = NULL;
+		const char *retval = NULL;
+		if ( ld != NULL ) {
+			LDAPConn *conn = ld->ld_defconn;
+			if ( conn != NULL ) {
+				Sockbuf *sb = conn->lconn_sb;
+				sess = ldap_pvt_tls_sb_ctx( sb );
+				if ( sess != NULL )
+					retval = ldap_pvt_tls_get_cipher( sess );
+			}
+		}
+		*(char **)arg = retval ? LDAP_STRDUP( retval ) : NULL;
+		break;
+	}
+	case LDAP_OPT_X_TLS_PEERCERT: {
+		void *sess = NULL;
+		struct berval *bv = arg;
+		bv->bv_len = 0;
+		bv->bv_val = NULL;
+		if ( ld != NULL ) {
+			LDAPConn *conn = ld->ld_defconn;
+			if ( conn != NULL ) {
+				Sockbuf *sb = conn->lconn_sb;
+				sess = ldap_pvt_tls_sb_ctx( sb );
+				if ( sess != NULL )
+					return ldap_pvt_tls_get_peercert( sess, bv );
+			}
+		}
+		break;
+	}
+	case LDAP_OPT_X_TLS_CACERT: {
+		struct berval *bv = arg;
+		if ( lo->ldo_tls_cacert.bv_val ) {
+			ber_dupbv( bv, &lo->ldo_tls_cacert );
+		} else {
+			BER_BVZERO( bv );
+		}
+		break;
+	}
+	case LDAP_OPT_X_TLS_CERT: {
+		struct berval *bv = arg;
+		if ( lo->ldo_tls_cert.bv_val ) {
+			ber_dupbv( bv, &lo->ldo_tls_cert );
+		} else {
+			BER_BVZERO( bv );
+		}
+		break;
+	}
+	case LDAP_OPT_X_TLS_KEY: {
+		struct berval *bv = arg;
+		if ( lo->ldo_tls_key.bv_val ) {
+			ber_dupbv( bv, &lo->ldo_tls_key );
+		} else {
+			BER_BVZERO( bv );
+		}
+		break;
+	}
 	default:
 		return -1;
 	}
@@ -762,6 +849,45 @@ ldap_pvt_tls_set_option( LDAP *ld, int option, void *arg )
 			ldap_pvt_tls_ctx_free( lo->ldo_tls_ctx );
 		lo->ldo_tls_ctx = NULL;
 		return ldap_int_tls_init_ctx( lo, *(int *)arg );
+	case LDAP_OPT_X_TLS_CACERT:
+		if ( lo->ldo_tls_cacert.bv_val )
+			LDAP_FREE( lo->ldo_tls_cacert.bv_val );
+		if ( arg ) {
+			lo->ldo_tls_cacert.bv_len = ((struct berval *)arg)->bv_len;
+			lo->ldo_tls_cacert.bv_val = LDAP_MALLOC( lo->ldo_tls_cacert.bv_len );
+			if ( !lo->ldo_tls_cacert.bv_val )
+				return -1;
+			memcpy( lo->ldo_tls_cacert.bv_val, ((struct berval *)arg)->bv_val, lo->ldo_tls_cacert.bv_len );
+		} else {
+			BER_BVZERO( &lo->ldo_tls_cacert );
+		}
+		break;
+	case LDAP_OPT_X_TLS_CERT:
+		if ( lo->ldo_tls_cert.bv_val )
+			LDAP_FREE( lo->ldo_tls_cert.bv_val );
+		if ( arg ) {
+			lo->ldo_tls_cert.bv_len = ((struct berval *)arg)->bv_len;
+			lo->ldo_tls_cert.bv_val = LDAP_MALLOC( lo->ldo_tls_cert.bv_len );
+			if ( !lo->ldo_tls_cert.bv_val )
+				return -1;
+			memcpy( lo->ldo_tls_cert.bv_val, ((struct berval *)arg)->bv_val, lo->ldo_tls_cert.bv_len );
+		} else {
+			BER_BVZERO( &lo->ldo_tls_cert );
+		}
+		break;
+	case LDAP_OPT_X_TLS_KEY:
+		if ( lo->ldo_tls_key.bv_val )
+			LDAP_FREE( lo->ldo_tls_key.bv_val );
+		if ( arg ) {
+			lo->ldo_tls_key.bv_len = ((struct berval *)arg)->bv_len;
+			lo->ldo_tls_key.bv_val = LDAP_MALLOC( lo->ldo_tls_key.bv_len );
+			if ( !lo->ldo_tls_key.bv_val )
+				return -1;
+			memcpy( lo->ldo_tls_key.bv_val, ((struct berval *)arg)->bv_val, lo->ldo_tls_key.bv_len );
+		} else {
+			BER_BVZERO( &lo->ldo_tls_key );
+		}
+		break;
 	default:
 		return -1;
 	}
@@ -784,7 +910,7 @@ ldap_int_tls_start ( LDAP *ld, LDAPConn *conn, LDAPURLDesc *srv )
 	if( srv ) {
 		host = srv->lud_host;
 	} else {
- 		host = conn->lconn_server->lud_host;
+		host = conn->lconn_server->lud_host;
 	}
 
 	/* avoid NULL host */
@@ -792,7 +918,8 @@ ldap_int_tls_start ( LDAP *ld, LDAPConn *conn, LDAPURLDesc *srv )
 		host = "localhost";
 	}
 
-	(void) tls_init( tls_imp );
+	if (tls_impl_init( tls_imp ))
+		return ld->ld_errno = LDAP_LOCAL_ERROR;
 
 #ifdef LDAP_USE_NON_BLOCKING_TLS
 	Sockbuf *sb = conn->lconn_sb;
@@ -913,6 +1040,34 @@ ldap_pvt_tls_get_my_dn( void *s, struct berval *dn, LDAPDN_rewrite_dummy *func, 
 	if ( rc == LDAP_SUCCESS )
 		rc = ldap_X509dn2bv(&der_dn, dn, (LDAPDN_rewrite_func *)func, flags );
 	return rc;
+}
+
+int
+ldap_pvt_tls_get_unique( void *s, struct berval *buf, int is_server )
+{
+	tls_session *session = s;
+	return tls_imp->ti_session_unique( session, buf, is_server );
+}
+
+const char *
+ldap_pvt_tls_get_version( void *s )
+{
+	tls_session *session = s;
+	return tls_imp->ti_session_version( session );
+}
+
+const char *
+ldap_pvt_tls_get_cipher( void *s )
+{
+	tls_session *session = s;
+	return tls_imp->ti_session_cipher( session );
+}
+
+int
+ldap_pvt_tls_get_peercert( void *s, struct berval *der )
+{
+	tls_session *session = s;
+	return tls_imp->ti_session_peercert( session, der );
 }
 #endif /* WITH_TLS */
 

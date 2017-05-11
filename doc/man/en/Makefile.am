@@ -85,7 +85,7 @@ EXTRA_DIST = $(man_links) \
 	man5/slapo-dynlist.man.in man5/slapd-sock.man.in man5/slapo-refint.man.in \
 	man5/slapo-pbind.man.in man5/slapd-mdb.man.in man5/slapo-sssvlv.man.in \
 	man5/slapd-shell.man.in man5/slapo-retcode.man.in man5/slapo-collect.man.in \
-	man5/slapo-auditlog.man.in man5/slapo-translucent.man.in \
+	man5/slapo-auditlog.man.in man5/slapo-autoca.man.in man5/slapo-translucent.man.in \
 	man5/slapo-valsort.man.in man5/slapd-relay.man.in man5/slapd.conf.man.in \
 	man5/slapo-ppolicy.man.in man5/slapo-syncprov.man.in man5/slapd-dnssrv.man.in \
 	man5/slapd-ldif.man.in man5/slapo-chain.man.in man5/slapd-bdb.man.in \
@@ -127,7 +127,7 @@ man5_MANS = man5/slapd-config.man man5/slapd.backends.man \
 	man5/slapo-dynlist.man man5/slapd-sock.man man5/slapo-refint.man \
 	man5/slapo-pbind.man man5/slapd-mdb.man man5/slapo-sssvlv.man \
 	man5/slapd-shell.man man5/slapo-retcode.man man5/slapo-collect.man \
-	man5/slapo-auditlog.man man5/slapo-translucent.man \
+	man5/slapo-auditlog.man man5/slapo-autoca.man man5/slapo-translucent.man \
 	man5/slapo-valsort.man man5/slapd-relay.man man5/slapd.conf.man \
 	man5/slapo-ppolicy.man man5/slapo-syncprov.man man5/slapd-dnssrv.man \
 	man5/slapd-ldif.man man5/slapo-chain.man man5/slapd-bdb.man \

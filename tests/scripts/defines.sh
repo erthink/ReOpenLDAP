@@ -15,6 +15,7 @@
 
 # LY: kill all slapd running in the current session
 pkill -SIGKILL -s 0 -u $EUID slapd
+pkill -SIGKILL -s 0 -u $EUID lt-slapd
 TESTWD=$(pwd)
 umask 0002
 
@@ -39,10 +40,19 @@ if [ $USE_SASL = no ]; then
 else
 	AC_conf[sasl]=${AC_WITH_SASL-no}
 fi
+
 TB="" TN=""
 if test -t 1 ; then
 	TB=`(tput bold; tput smul) 2>/dev/null`
 	TN=`(tput rmul; tput sgr0) 2>/dev/null`
+fi
+
+if [ -n "${TEAMCITY_PROCESS_FLOW_ID}" ]; then
+	CI=TEAMCITY
+elif [ -n "$TRAVIS" ]; then
+	CI=TRAVIS
+elif [ -n "$CIRCLECI" ]; then
+	CI=CIRCLE
 fi
 
 # sql-backed
@@ -241,19 +251,19 @@ elif [ -n "$CIBUZZ_PID4" ]; then
 	SLEEP0=${SLEEP0-1}
 	SLEEP1=${SLEEP1-7}
 	SYNCREPL_WAIT=${SYNCREPL_WAIT-30}
-elif [ -n "${TEAMCITY_PROCESS_FLOW_ID}" ]; then
-	# LY: under Teamcity, take in account ASAN/TSAN and nice
-	TIMEOUT_S="timeout -s SIGXCPU 1m"
-	TIMEOUT_L="timeout -s SIGXCPU 3m"
-	TIMEOUT_H="timeout -s SIGXCPU 9m"
+elif [ -n "$CI" ]; then
+	# LY: under CI, take in account ASAN/TSAN and nice
+	TIMEOUT_S="timeout -s SIGXCPU 2m"
+	TIMEOUT_L="timeout -s SIGXCPU 7m"
+	TIMEOUT_H="timeout -s SIGXCPU 20m"
 	SLEEP0=${SLEEP0-0.3}
 	SLEEP1=${SLEEP1-2}
 	SYNCREPL_WAIT=${SYNCREPL_WAIT-10}
 else
 	# LY: take in account -O0
-	TIMEOUT_S="timeout -s SIGXCPU 45s"
-	TIMEOUT_L="timeout -s SIGXCPU 2m"
-	TIMEOUT_H="timeout -s SIGXCPU 5m"
+	TIMEOUT_S="timeout -s SIGXCPU 1m"
+	TIMEOUT_L="timeout -s SIGXCPU 5m"
+	TIMEOUT_H="timeout -s SIGXCPU 15m"
 	SLEEP0=${SLEEP0-0.1}
 	SLEEP1=${SLEEP1-1}
 	SYNCREPL_WAIT=${SYNCREPL_WAIT-5}
@@ -268,7 +278,7 @@ SLAPPASSWD="$TIMEOUT_S $VALGRIND_CMD $SLAPD_SLAPD -Tpasswd"
 
 unset DIFF_OPTIONS
 SLAPDMTREAD=$PROGDIR/slapd_mtread
-LVL=${SLAPD_DEBUG-sync,stats,args,trace,conns}
+LVL=${SLAPD_DEBUG-sync,stats,args,conns}
 LOCALHOST=localhost
 BASEPORT=${SLAPD_BASEPORT-9010}
 # NOTE: -u/-c is not that portable...
@@ -547,7 +557,9 @@ function collect_coredumps {
 		fi
 
 		local dir n c target
-		if [ -n "${TEST_NOOK}" ]; then
+		if grep -q '^/' <<< "${TEST_NOOK}"; then
+			dir="${TEST_NOOK}"
+		elif [ -n "${TEST_NOOK}" ]; then
 			dir="${TOP_BUILDDIR}/${TEST_NOOK}"
 		else
 			dir="${TOP_BUILDDIR}/@cores-n-sans"
@@ -649,7 +661,9 @@ function collect_test {
 		echo "Collect result(s) from $id..." >&2
 
 		local dir n target
-		if [ -n "${TEST_NOOK}" ]; then
+		if grep -q '^/' <<< "${TEST_NOOK}"; then
+			dir="${TEST_NOOK}/$id.dump"
+		elif [ -n "${TEST_NOOK}" ]; then
 			dir="${TOP_BUILDDIR}/${TEST_NOOK}/$id.dump"
 		else
 			dir="${TOP_BUILDDIR}/@dumps/$id.dump"
@@ -799,6 +813,7 @@ function config_filter {
 
 	sed -e "s/@BACKEND@/${BACKEND}/g"			\
 		-e "s/^#be=${BACKEND}#//g"			\
+		-e "s/^#be=${BACKEND},dbnosync=${DBNOSYNC:-no}#//g"\
 		-e "/^#~/s/^#[^#]*~${BACKEND}~[^#]*#/#omit: /g"	\
 			-e "s/^#~[^#]*~#//g"			\
 		-e "s/@RELAY@/${RELAY}/g"			\
@@ -810,6 +825,7 @@ function config_filter {
 		-e "s/^#sql=${AC_conf[sql]}#//g"		\
 			-e "s/^#${RDBMS}#//g"			\
 		-e "s/^#accesslog=${AC_conf[accesslog]}#//g"	\
+		-e "s/^#autoca=${AC_conf[autoca]}#//g"		\
 		-e "s/^#dds=${AC_conf[dds]}#//g"		\
 		-e "s/^#dynlist=${AC_conf[dynlist]}#//g"	\
 		-e "s/^#memberof=${AC_conf[memberof]}#//g"	\
@@ -848,15 +864,17 @@ function config_filter {
 }
 
 function monitor_data {
-	[ $# = 2 ] || failure "monitor_data args"
+	[ $# = 2 ] || failure "monitor_data srcdir dstdir"
 
-	local SRCDIR="$1"
-	local DSTDIR="$2"
+	local SRCDIR=$(readlink -e $1)
+	local DSTDIR=$(readlink -e $2)
 
 	echo "MONITORDB ${AC_conf[monitor]}"
 	echo "SRCDIR $SRCDIR"
 	echo "DSTDIR $DSTDIR"
 	echo "pwd `pwd`"
+
+	[ -d "$SRCDIR" -a -d "$DSTDIR" ] || failure "Invalid srcdir or dstdir"
 
 	# copy test data
 	cp "$SRCDIR"/do_* "$DSTDIR"
@@ -995,7 +1013,7 @@ EOF
 
 			if test $RC -eq 0 ; then
 				cibuzz_report "<<< ${TEST_ITER}--${TEST_ID}"
-				[ -z "$NO_COLLECT_SUCCESS" ] && collect_test $TEST_ID no
+				[ -z "$CI" -a -z "$NO_COLLECT_SUCCESS" ] && collect_test $TEST_ID no
 				echo "<<<<< $BCMD completed ${TB}OK${TN} for $BACKEND_MODE."
 			else
 				cibuzz_report "=== ${TEST_ITER}--${TEST_ID} = $RC"

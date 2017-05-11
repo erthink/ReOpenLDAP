@@ -98,7 +98,7 @@ RC=$?
 if test $RC != $RCODEconstraint ; then
 	echo "unique check failed ($RC)!"
 	killservers
-	exit -1
+	exit 2
 fi
 
 # ITS#6641/8057
@@ -122,7 +122,7 @@ RC=$?
 if test $RC != $RCODEconstraint ; then
 	echo "unique check failed ($RC)!"
 	killservers
-	exit -1
+	exit 2
 fi
 
 # ITS#6641/8057
@@ -176,7 +176,7 @@ RC=$?
 if test $RC != 0 ; then
     echo "Initial configuration is not reported correctly."
     killservers
-    exit -1
+    exit 2
 fi
 
 echo Dynamically trying to add a URI with legacy attrs present...
@@ -191,7 +191,7 @@ RC=$?
 if test $RC != 80 ; then
 	echo "legacy and unique_uri allowed together"
 	killservers
-	exit -1
+	exit 2
 fi
 
 echo Dynamically trying to add legacy ignored attrs with legacy attrs present...
@@ -206,7 +206,7 @@ RC=$?
 if test $RC != 80 ; then
 	echo "legacy attrs and legacy ignore attrs allowed together"
 	killservers
-	exit -1
+	exit 2
 fi
 
 echo Verifying initial configuration intact...
@@ -216,7 +216,7 @@ RC=$?
 if test $RC != 0 ; then
     echo "Initial configuration damaged by unsuccessful modifies."
     killservers
-    exit -1
+    exit 2
 fi
 
 echo Dynamically removing legacy base...
@@ -230,7 +230,7 @@ RC=$?
 if test $RC != 0 ; then
 	echo "base removal failed"
 	killservers
-	exit -1
+	exit 2
 fi
 
 echo Verifying base removal...
@@ -249,7 +249,7 @@ RC=$?
 if test $RC != 0 ; then
     echo "Configuration damaged by base removal"
     killservers
-    exit -1
+    exit 2
 fi
 
 echo "Adding a non-unique record..."
@@ -272,7 +272,7 @@ RC=$?
 if test $RC != $RCODEconstraint ; then
 	echo "unique check failed ($RC)!"
 	killservers
-	exit -1
+	exit 2
 fi
 
 echo Trying a legacy base outside of the backend...
@@ -287,7 +287,7 @@ RC=$?
 if test $RC != 80 ; then
 	echo "out of backend scope base allowed"
 	killservers
-	exit -1
+	exit 2
 fi
 
 echo "Adding and removing attrs..."
@@ -306,7 +306,7 @@ RC=$?
 if test $RC != 0 ; then
 	echo "Unable to remove an attribute"
 	killservers
-	exit -1
+	exit 2
 fi
 
 echo "Verifying we removed the right attr..."
@@ -329,7 +329,7 @@ RC=$?
 if test $RC != $RCODEconstraint ; then
 	echo "olcUniqueAttribtue single deletion hit the wrong value"
 	killservers
-	exit -1
+	exit 2
 fi
 
 echo Removing legacy config and adding URIs...
@@ -347,7 +347,7 @@ RC=$?
 if test $RC != 0 ; then
 	echo "Reconfiguration to URIs failed"
 	killservers
-	exit -1
+	exit 2
 fi
 
 echo Dynamically retrieving second configuration...
@@ -366,7 +366,7 @@ RC=$?
 if test $RC != 0 ; then
     echo "Second configuration is not reported correctly."
     killservers
-    exit -1
+    exit 2
 fi
 
 echo "Adding a non-unique record..."
@@ -389,7 +389,7 @@ RC=$?
 if test $RC != $RCODEconstraint ; then
 	echo "unique check failed ($RC)!"
 	killservers
-	exit -1
+	exit 2
 fi
 
 echo Dynamically trying to add legacy base
@@ -404,7 +404,7 @@ RC=$?
 if test $RC != 80 ; then
 	echo "legacy base allowed with URIs"
 	killservers
-	exit -1
+	exit 2
 fi
 
 echo Dynamically trying to add legacy attrs
@@ -419,7 +419,7 @@ RC=$?
 if test $RC != 80 ; then
 	echo "legacy attributes allowed with URIs"
 	killservers
-	exit -1
+	exit 2
 fi
 
 echo Dynamically trying to add legacy strictness
@@ -434,7 +434,7 @@ RC=$?
 if test $RC != 80 ; then
 	echo "legacy strictness allowed with URIs"
 	killservers
-	exit -1
+	exit 2
 fi
 
 #echo ----------------------
@@ -450,7 +450,7 @@ RC=$?
 if test $RC != 80 ; then
 	echo "bad filter allowed"
 	killservers
-	exit -1
+	exit 2
 fi
 
 echo Verifying second configuration intact...
@@ -460,7 +460,7 @@ RC=$?
 if test $RC != 0 ; then
     echo "Second configuration damaged by rejected modifies."
     killservers
-    exit -1
+    exit 2
 fi
 
 #echo ----------------------
@@ -480,7 +480,7 @@ RC=$?
 if test $RC != 0 ; then
 	echo "unable to reconfigure"
 	killservers
-	exit -1
+	exit 2
 fi
 
 echo Dynamically retrieving third configuration...
@@ -500,7 +500,7 @@ RC=$?
 if test $RC != 0 ; then
     echo "Third configuration is not reported correctly."
     killservers
-    exit -1
+    exit 2
 fi
 
 echo "Adding a record unique in both domains if filtered..."
@@ -518,7 +518,7 @@ RC=$?
 if test $RC != 0 ; then
 	echo "unique check failed ($RC)!"
 	killservers
-	exit -1
+	exit 2
 fi
 
 echo "Adding a record unique in all domains because of filter conditions "
@@ -535,7 +535,22 @@ RC=$?
 if test $RC != 0 ; then
 	echo "spurious unique error ($RC)!"
 	killservers
-	exit -1
+	exit 2
+fi
+
+echo "Sending an empty modification"
+
+$LDAPMODIFY -D "$UNIQUEDN" -h $LOCALHOST -p $PORT1 -w $PASSWD > \
+	 $TESTOUT 2>&1 << EOF
+dn: uid=empty,ou=users,o=unique
+changetype: modify
+EOF
+
+RC=$?
+if test $RC != 0 ; then
+	echo "spurious unique error ($RC)!"
+	killservers
+	exit 2
 fi
 
 echo "Making a record non-unique"
@@ -551,7 +566,7 @@ RC=$?
 if test $RC != $RCODEconstraint ; then
 	echo "unique check failed ($RC)!"
 	killservers
-	exit -1
+	exit 2
 fi
 
 # ITS#6641/8057
@@ -568,7 +583,7 @@ RC=$?
 if test $RC != $RCODEconstraint ; then
 	echo "unique check failed ($RC)!"
 	killservers
-	exit -1
+	exit 2
 fi
 
 # ITS#6641/8057
@@ -618,7 +633,7 @@ RC=$?
 if test $RC != 0 ; then
 	echo "unique check failed ($RC)!"
 	killservers
-	exit -1
+	exit 2
 fi
 
 echo "Making the record non-unique with modrdn..."
@@ -629,7 +644,7 @@ RC=$?
 if test $RC != $RCODEconstraint ; then
 	echo "unique check failed ($RC)!"
 	killservers
-	exit -1
+	exit 2
 fi
 
 # ITS#6641/8057
@@ -641,7 +656,7 @@ RC=$?
 if test $RC != $RCODEconstraint ; then
 	echo "unique check failed ($RC)!"
 	killservers
-	exit -1
+	exit 2
 fi
 
 # ITS#6641/8057
@@ -681,7 +696,7 @@ RC=$?
 if test $RC != $RCODEconstraint ; then
 	echo "unique check failed ($RC)!"
 	killservers
-	exit -1
+	exit 2
 fi
 
 #echo ----------------------
@@ -697,7 +712,7 @@ RC=$?
 if test $RC != 0 ; then
 	echo "unable to reconfigure"
 	killservers
-	exit -1
+	exit 2
 fi
 
 echo Dynamically retrieving fourth configuration...
@@ -715,7 +730,7 @@ RC=$?
 if test $RC != 0 ; then
     echo "Fourth configuration is not reported correctly."
     killservers
-    exit -1
+    exit 2
 fi
 
 echo "Adding a record unique in the ignore-domain..."
@@ -734,7 +749,7 @@ RC=$?
 if test $RC != 0 ; then
 	echo "unique check failed ($RC)!"
 	killservers
-	exit -1
+	exit 2
 fi
 
 echo "Adding a record non-unique in the ignore-domain..."
@@ -753,7 +768,7 @@ RC=$?
 if test $RC != $RCODEconstraint ; then
 	echo "unique check failed ($RC)!"
 	killservers
-	exit -1
+	exit 2
 fi
 
 killservers
