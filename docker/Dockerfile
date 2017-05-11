@@ -31,8 +31,6 @@ COPY slapd.sample.conf /opt/reopenldap/etc/slapd.conf
 
 COPY entrypoint.sh /opt/reopenldap/
 
-USER "ldap"
-
 VOLUME ["/var/lib/reopenldap"]
 VOLUME ["/etc/reopenldap"]
 
