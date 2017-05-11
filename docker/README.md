@@ -12,19 +12,21 @@ docker build -t reopenldap docker/.
 
 If you want, you can customize build options with docker/Dockerfile.
 
-Note: I use one layer for install build depends and remove source files for same time. That's usefull for reduce docker-image size.
+Note: I use one layer for installing build-depends and remove sources files for same time. That's useful for reducing docker-image size.
 
-## Usage
+## Usage examples
 
 ### Server configuration
 
-#### Standalone
+Normally you want to write you own config file, you own certificates, run command and persistent storage for ldap DB. You can easy do it with this docker keys:
 
-#### Master-master replication
+```bash
+export CONF_DIR=~/ldap.conf
+export DB_DIR=~/ldap.db
+docker run -e REOPENLDAP_RUN_CMD="-4 -h ldap:/// -g ldap -u ldap -f /etc/reopenldap/slapd.newconf.conf -d1" -v $CONF_DIR:/etc/reopenldap -v $DB_DIR:/var/lib/reopenldap ixpict/reopenldap:latest
+```
 
-#### Master-slave replication
-
-### Ldap-tools
+NFS storage as persistent storage fo DB it's bad idea because you can't lock files.
 
 ### Man pages
 Just run something like that:
