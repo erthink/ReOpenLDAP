@@ -15,8 +15,7 @@ env:
   - UPLOAD_DIR=_4upload
   - TEST_NOOK="$UPLOAD_DIR/$TRAVIS_JOB_NUMBER-$TRAVIS_EVENT_TYPE-$TRAVIS_BRANCH$TRAVIS_TAG$TRAVIS_PULL_REQUEST_SLUG"
   - EXTRA_CFLAGS="-Wall -Werror -ggdb3 -gdwarf-4"
-  - UPLOAD_CMD: >-
-    scp -o StrictHostKeyChecking=no -B -P $UPLOAD_PORT -rp $UPLOAD_DIR/* $UPLOAD_USER@$UPLOAD_HOST:~/$TRAVIS_REPO_SLUG/ 2>&1 | sed -n 's/^.*: \([^:]\+$\)/\1/p'
+  - UPLOAD_CMD="[ ! -s ~/.ssh/id_rsa ] || scp -o StrictHostKeyChecking=no -B -P $UPLOAD_PORT -rp $UPLOAD_DIR/* $UPLOAD_USER@$UPLOAD_HOST:~/$TRAVIS_REPO_SLUG/ 2>&1 | cut -d ':' -f 2-"
 
 addons:
   apt:
@@ -43,10 +42,10 @@ addons:
     - gdb
 
 before_script:
-#- echo $UPLOAD_HOST | ssh-keyscan -H -p $UPLOAD_PORT -f - >$HOME/.ssh/known_hosts 2>/dev/null
-#  && [ -s $HOME/.ssh/known_hosts ] || echo "failed" >&2
-- openssl aes-256-cbc -K $encrypted_1572229a40f3_key -iv $encrypted_1572229a40f3_iv
-  -in build/ci/upload_rsa.enc -out ~/.ssh/id_rsa -d && chmod 600 ~/.ssh/id_rsa
+- if [ "$TRAVIS_PULL_REQUEST" = "false" ]; then
+    openssl aes-256-cbc -K $encrypted_1572229a40f3_key -iv $encrypted_1572229a40f3_iv
+    -in build/ci/upload_rsa.enc -out ~/.ssh/id_rsa -d && chmod 600 ~/.ssh/id_rsa;
+  fi
 - mkdir -p $TEST_NOOK
 
 script:
@@ -68,4 +67,4 @@ script:
   --disable-ndb --disable-dependency-tracking
   && make --keep-going && make --keep-going install)
 
-#after_failure: $UPLOAD_CMD
+after_failure: $UPLOAD_CMD
