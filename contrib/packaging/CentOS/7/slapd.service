@@ -1,0 +1,18 @@
+[Unit]
+Description=ReOpenLDAP Server Daemon
+After=syslog.target NetworkManager-wait-online.service
+Documentation=man:slapd
+Documentation=man:slapd-config
+Documentation=man:slapd-hdb
+Documentation=man:slapd-mdb
+
+[Service]
+Type=forking
+PIDFile=/var/run/reopenldap/slapd.pid
+Environment="SLAPD_URLS=ldap:/// ldapi://%2Fvar%2Frun%2Fldapi" "SLAPD_OPTIONS="
+EnvironmentFile=/etc/sysconfig/slapd
+ExecStartPre=/usr/libexec/reopenldap/check-config.sh
+ExecStart=/usr/sbin/slapd -u ldap -h ${SLAPD_URLS} $SLAPD_OPTIONS
+
+[Install]
+WantedBy=multi-user.target
