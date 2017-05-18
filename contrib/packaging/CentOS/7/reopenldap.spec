@@ -13,7 +13,7 @@ Summary:	The fork of OpenLDAP with a few new features (mostly for highload and m
 Group:		System Environment/Daemons
 License:	AGPLv3
 URL:		https://github.com/%{owner}/ReOpenLDAP
-Source0:	https://github.com/%{owner}/%{name}/archive/%{commit0}.tar.gz#/%{name}-%{shortcommit0}.tar.gz
+Source0:	https://github.com/%{owner}/%{name}/archive/%{commit0}.tar.gz
 
 BuildRequires:	cyrus-sasl-devel, krb5-devel, tcp_wrappers-devel, unixODBC-devel libuuid-devel elfutils-libelf-devel
 BuildRequires:	glibc-devel, libtool, libtool-ltdl-devel, groff, perl, perl-devel, perl(ExtUtils::Embed)
