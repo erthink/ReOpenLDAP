@@ -1,5 +1,9 @@
 %global systemctl_bin /usr/bin/systemctl
 %define packaging_dir contrib/packaging/CentOS/7
+%define owner %(git config --get remote.origin.url | sed -n -e 's!^git@github.com:\(.*\)\/.*$!\1!p')
+%global commit0 %(git log -n 1 --pretty=format:"%H")
+%global gittag0 v1.1.5
+%global shortcommit0 %(c=%{commit0}; echo ${c:0:7})
 
 Name:		reopenldap
 Version:	1.1.5
@@ -8,8 +12,8 @@ Summary:	The fork of OpenLDAP with a few new features (mostly for highload and m
 
 Group:		System Environment/Daemons
 License:	AGPLv3
-URL:		https://github.com/ReOpen/ReOpenLDAP
-Source0:	%{name}-%{version}.tar.gz
+URL:		https://github.com/%{owner}/ReOpenLDAP
+Source0:	https://github.com/%{owner}/%{name}/archive/%{commit0}.tar.gz#/%{name}-%{shortcommit0}.tar.gz
 
 BuildRequires:	cyrus-sasl-devel, krb5-devel, tcp_wrappers-devel, unixODBC-devel libuuid-devel elfutils-libelf-devel
 BuildRequires:	glibc-devel, libtool, libtool-ltdl-devel, groff, perl, perl-devel, perl(ExtUtils::Embed)
@@ -73,7 +77,8 @@ over the Internet. The openldap-clients package contains the client
 programs needed for accessing and modifying OpenLDAP directories.
 
 %prep
-%setup -q -n %{name}-%{version}
+%autosetup -n %{name}-%{commit0}
+#%setup -q -n %{name}-%{version}
 # alternative include paths for Mozilla NSS
 ln -s %{_includedir}/nss3 include/nss
 ln -s %{_includedir}/nspr4 include/nspr
