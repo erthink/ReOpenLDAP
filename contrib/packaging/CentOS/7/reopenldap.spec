@@ -1,13 +1,16 @@
 %global systemctl_bin /usr/bin/systemctl
 %define packaging_dir contrib/packaging/CentOS/7
-%define owner %(git config --get remote.origin.url | sed -n -e 's!^git@github.com:\(.*\)\/.*$!\1!p')
+%global owner_ssh %(git config --get remote.origin.url | sed -n -e 's!^git@github.com:\\(.*\\)\\/.*$!\\1!p')
+%global owner_https %(git config --get remote.origin.url | sed -n -e 's!^https://github.com/\\(.*\\)\\/.*$!\\1!p')
+%global owner %{owner_ssh}%{owner_https}
 %global commit0 %(git log -n 1 --pretty=format:"%H")
-%global gittag0 v1.1.5
+%global gittag0 %(git describe --abbrev=0 --tags)
+%global ver %(c=%{gittag0}; echo ${c:1})
 %global shortcommit0 %(c=%{commit0}; echo ${c:0:7})
 
-Name:		reopenldap
-Version:	1.1.5
-Release:	%{?dist}
+Name:		ReOpenLDAP
+Version:	%{ver}
+Release:	%{shortcommit0}%{?dist}
 Summary:	The fork of OpenLDAP with a few new features (mostly for highload and multi-master clustering), additional bug fixing and code quality improvement.
 
 Group:		System Environment/Daemons
@@ -78,7 +81,7 @@ programs needed for accessing and modifying OpenLDAP directories.
 
 %prep
 %autosetup -n %{name}-%{commit0}
-#%setup -q -n %{name}-%{version}
+#setup -q -n %{name}-%{commit0}
 # alternative include paths for Mozilla NSS
 ln -s %{_includedir}/nss3 include/nss
 ln -s %{_includedir}/nspr4 include/nspr
@@ -204,7 +207,7 @@ chmod 0644 %{buildroot}%{_libdir}/reopenldap/lib*.*a
 mkdir -p %{buildroot}%{_datadir}
 install -m 0755 -d %{buildroot}%{_datadir}/reopenldap-servers
 install -m 0644 %{packaging_dir}/slapd.ldif %{buildroot}%{_datadir}/reopenldap-servers/slapd.ldif
-install -m 0644 %{packaging_dir}/db_config.example %{buildroot}%{_datadir}/reopenldap-servers/DB_CONFIG.example
+install -m 0644 %{packaging_dir}/DB_CONFIG.example %{buildroot}%{_datadir}/reopenldap-servers/DB_CONFIG.example
 install -m 0700 -d %{buildroot}%{_sysconfdir}/openldap/slapd.d
 rm -f %{buildroot}%{_sysconfdir}/openldap/slapd.conf
 rm -f %{buildroot}%{_sysconfdir}/openldap/slapd.ldif
@@ -341,6 +344,7 @@ exit 0
 %{_unitdir}/slapd.service
 %{_bindir}/mdbx_*
 %{_datadir}/reopenldap-servers/
+%{_libdir}/reopenldap/autoca*.so*
 %{_libdir}/reopenldap/accesslog*.so*
 %{_libdir}/reopenldap/auditlog*.so*
 %{_libdir}/reopenldap/back_ldap*.so*
