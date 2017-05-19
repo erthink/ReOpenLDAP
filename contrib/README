@@ -44,7 +44,8 @@ Current contributions:
 		SLAPI plugins
 
         packaging/CentOS/7
-                Files required to perform RPM packaging for the whole project
+                Files required to perform RPM packaging for the whole project.
+
 
 OpenLDAP Contributing Guidelines are available at:
   <http://www.openldap.org/devel/contributing.html>.

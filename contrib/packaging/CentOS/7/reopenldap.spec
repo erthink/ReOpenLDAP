@@ -32,7 +32,6 @@ The fork of OpenLDAP with a few new features (mostly for highload and multi-mast
 Summary: LDAP development libraries and header files
 Group: Development/Libraries
 Requires: %{name}%{?_isa} = %{version}-%{release}, cyrus-sasl-devel%{?_isa}
-Provides: ldap-devel
 
 %description devel
 The openldap-devel package includes the development libraries and
@@ -55,7 +54,7 @@ BuildRequires: systemd-units
 BuildRequires: cracklib-devel
 Group: System Environment/Daemons
 # migrationtools (slapadd functionality):
-Provides: ldif2ldbm, ldap-server
+Provides: ldif2ldbm
 
 %description servers
 OpenLDAP is an open-source suite of LDAP (Lightweight Directory Access
@@ -220,6 +219,9 @@ mv %{buildroot}%{_sysconfdir}/openldap/schema/README README.schema
 rm -f %{buildroot}%{_libdir}/reopenldap/*.la
 rm -f %{buildroot}%{_mandir}/man5/ldif.5*
 rm -f %{buildroot}%{_mandir}/man5/ldap.conf.5*
+
+%clean
+rm -rf %{buildroot}
 
 %post
 /sbin/ldconfig
@@ -392,4 +394,6 @@ exit 0
 
 
 %changelog
-
+* Fri May 19 2017 Sergey Pechenko <s.pechenko@uiscom.ru> - 1.1.5-641ffb2.1
+- Initial bootstrapping ReOpenLDAP RPM specfile release. Based on contribution by Ivan Viktorov 
+(https://github.com/ReOpen/ReOpenLDAP/issues/33#issuecomment-249861076)
