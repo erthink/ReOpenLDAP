@@ -541,7 +541,7 @@ void slap_backtrace_set_dir( const char* path ) {
 int slap_limit_coredump_set(int mbytes) {
 	struct rlimit limit;
 
-	limit.rlim_cur = (mbytes > 0)
+	limit.rlim_cur = (mbytes >= 0)
 			? ((unsigned long) mbytes) << 20 : RLIM_INFINITY;
 	limit.rlim_max = RLIM_INFINITY;
 	return setrlimit(RLIMIT_CORE, &limit);
@@ -623,6 +623,9 @@ void slap_backtrace_set_enable( int value )
 		sigaction(SIGILL, &sa, NULL);
 		sigaction(SIGFPE, &sa, NULL);
 		sigaction(SIGABRT, &sa, NULL);
+#ifdef SLAPD_CI
+		sigaction(SIGALRM, &sa, NULL);
+#endif
 
 		sigaction(SIGXCPU, &sa, NULL);
 		sigaction(SIGXFSZ, &sa, NULL);

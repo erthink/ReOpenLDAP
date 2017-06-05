@@ -4,7 +4,7 @@ machine:
 
   environment:
     LIBTOOL_SUPPRESS_DEFAULT: no
-    EXTRA_CFLAGS: "-Wall -Werror -ggdb3 -gdwarf-4"
+    EXTRA_CFLAGS: "-Wall -Werror -ggdb3 -gdwarf-4 -DSLAPD_CI=555"
     TEST_NOOK: $(pwd)/_4upload
 
 database:

@@ -387,6 +387,13 @@ int main( int argc, char **argv )
 	slap_backtrace_set_enable( 1 );
 #endif
 
+#if defined(SLAPD_CI)
+	slap_limit_coredump_set( -1 /* unlimit */ );
+	slap_backtrace_set_enable( 1 );
+	if (SLAPD_CI > 0)
+		alarm(SLAPD_CI);
+#endif
+
 	slap_sl_mem_init();
 
 	(void) ldap_pvt_thread_initialize();
