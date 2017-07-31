@@ -2071,8 +2071,11 @@ syncrepl_op_modify( Operation *op, SlapReply *rs )
 		if ( mod->sml_desc == slap_schema.si_ad_entryCSN ) break;
 	}
 	/* FIXME: what should we do if entryCSN is missing from the mod? */
-	if ( !mod )
+	if ( !mod ) {
+		if (reopenldap_mode_strict())
+			return rs->sr_err = LDAP_PROTOCOL_ERROR;
 		return SLAP_CB_CONTINUE;
+	}
 
 	ldap_pvt_thread_mutex_lock( &si->si_cookieState->cs_mutex );
 	match = slap_cookie_compare_csn( &si->si_cookieState->cs_cookie, &mod->sml_nvalues[0] );
