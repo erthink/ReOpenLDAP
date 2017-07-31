@@ -116,7 +116,7 @@ file_read( const char *path, struct berval *bv )
 {
 	FILE		*fp;
 	ber_slen_t	rlen;
-	int		eof ALLOW_UNUSED;
+	int		eof MAY_UNUSED;
 
 	if (( fp = fopen( path, "r" )) == NULL ) {
 	    	perror( path );
@@ -275,7 +275,7 @@ main( int argc, char **argv )
 	char		**exdn;
 	static const char usage[] =
 		"usage: %s [-u] [-h host] [-d level] [-s dnsuffix] [-p port] [-t file] [-T file]\n";
-	int		bound ALLOW_UNUSED;
+	int		bound MAY_UNUSED;
 	int		all, scope, attrsonly;
 	LDAPMessage	*res;
 	LDAPMod		**mods, **attrs;
