@@ -51,7 +51,8 @@ test:
     - ulimit -c unlimited
     - mkdir -p $TEST_NOOK
   override:
-    - make test || echo "Ignore results for now..."
+    - make test
   post:
-    - if test "$(ls -A $TEST_NOOK)"; then tar caf ${CIRCLE_ARTIFACTS}/nook.tar.gz -C $TEST_NOOK .;
-      else echo "No data for upload"; fi
+    - ([ -n "$(ls -A $TEST_NOOK)" ] && tar caf ${CIRCLE_ARTIFACTS}/nook.tar.gz -C $TEST_NOOK .)
+      || ([ -n "$(ls -A tests/testrun)" ] && tar caf ${CIRCLE_ARTIFACTS}/testrun.tar.gz -C tests/testrun .)
+      || echo "No data for upload"
