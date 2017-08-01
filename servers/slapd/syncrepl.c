@@ -1430,9 +1430,25 @@ done:
 	slap_biglock_release(bl);
 
 	if ( rc != LDAP_SUCCESS ) {
+		const char* errstr = NULL;
+		switch(rc) {
+		case SYNC_PAUSED:
+			errstr = "syncrepl-paused";
+			break;
+		case SYNC_RETARDED:
+			errstr = "syncrepl-retarded";
+			break;
+		case SYNC_REFRESH_YIELD:
+			errstr = "syncrepl-yield";
+			break;
+		default:
+			errstr = ldap_err2string( rc );
+		}
+
 		Debug( LDAP_DEBUG_ANY,
 			"syncrepl_process: %s (%d) %s\n",
-			si->si_ridtxt, rc, ldap_err2string( rc ) );
+			si->si_ridtxt, rc, errstr );
+		(void) errstr;
 	}
 
 	if ( si->si_require_present && rc == LDAP_SUCCESS
