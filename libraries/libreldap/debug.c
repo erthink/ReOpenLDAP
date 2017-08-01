@@ -38,8 +38,20 @@
 #include <pthread.h>
 #include <errno.h>
 
+#define AUTOFLUSH_ENABLED 1
+#define AUTOFLUSH_STUFFED 2
+
 static FILE *log_file = NULL;
-static int debug_lastc = '\n';
+static short debug_lockdeep = 0;
+static char debug_lastc = '\n';
+static char debug_autoflush = AUTOFLUSH_ENABLED;
+
+static void debug_flush(void) {
+	if( log_file != NULL )
+		fflush( log_file );
+	fflush( stderr );
+	debug_autoflush &= AUTOFLUSH_ENABLED;
+}
 
 #ifdef HAVE_PTHREAD_MUTEX_RECURSIVE
 
@@ -58,20 +70,6 @@ static __attribute__((constructor)) void ldap_debug_lock_init(void)
 }
 #endif /* PTHREAD_RECURSIVE_MUTEX_INITIALIZER */
 
-void ldap_debug_lock(void) {
-	LDAP_ENSURE(pthread_mutex_lock(&debug_mutex) == 0);
-}
-
-int ldap_debug_trylock(void) {
-	int rc = pthread_mutex_trylock(&debug_mutex);
-	LDAP_ENSURE(rc == 0 || rc == EBUSY);
-	return rc;
-}
-
-void ldap_debug_unlock(void) {
-	LDAP_ENSURE(pthread_mutex_unlock(&debug_mutex) == 0);
-}
-
 #else /* HAVE_PTHREAD_MUTEX_RECURSIVE */
 
 static ldap_pvt_thread_rmutex_t debug_mutex;
@@ -80,21 +78,46 @@ static __attribute__((constructor)) void ldap_debug_lock_init(void)
 	LDAP_ENSURE(ldap_pvt_thread_rmutex_init(&debug_mutex) == 0);
 }
 
+#endif /* HAVE_PTHREAD_MUTEX_RECURSIVE */
+
 void ldap_debug_lock(void) {
+#ifdef HAVE_PTHREAD_MUTEX_RECURSIVE
+	LDAP_ENSURE(pthread_mutex_lock(&debug_mutex) == 0);
+#else
 	LDAP_ENSURE(ldap_pvt_thread_rmutex_lock(&debug_mutex, ldap_pvt_thread_self()) == 0);
+#endif /* HAVE_PTHREAD_MUTEX_RECURSIVE */
+
+	debug_lockdeep += 1;
 }
 
 int ldap_debug_trylock(void) {
+#ifdef HAVE_PTHREAD_MUTEX_RECURSIVE
+	int rc = pthread_mutex_trylock(&debug_mutex);
+#else
 	int rc = ldap_pvt_thread_rmutex_trylock(&debug_mutex, ldap_pvt_thread_self());
+#endif /* HAVE_PTHREAD_MUTEX_RECURSIVE */
+
 	LDAP_ENSURE(rc == 0 || rc == EBUSY);
+	if (rc == 0)
+		debug_lockdeep += 1;
 	return rc;
 }
 
 void ldap_debug_unlock(void) {
-	LDAP_ENSURE(ldap_pvt_thread_rmutex_unlock(&debug_mutex, ldap_pvt_thread_self()) == 0);
-}
+	if (debug_lockdeep > 0) {
+		debug_lockdeep -= 1;
+		if (debug_lockdeep == 0
+				&& debug_autoflush >= (AUTOFLUSH_ENABLED | AUTOFLUSH_STUFFED)
+				&& debug_lastc == '\n')
+			debug_flush();
+	}
 
-#endif /* ! HAVE_PTHREAD_MUTEX_RECURSIVE */
+#ifdef HAVE_PTHREAD_MUTEX_RECURSIVE
+	LDAP_ENSURE(pthread_mutex_unlock(&debug_mutex) == 0);
+#else
+	LDAP_ENSURE(ldap_pvt_thread_rmutex_unlock(&debug_mutex, ldap_pvt_thread_self()) == 0);
+#endif /* HAVE_PTHREAD_MUTEX_RECURSIVE */
+}
 
 int ldap_debug_file( FILE *file )
 {
@@ -115,12 +138,31 @@ void ldap_debug_print( const char *fmt, ... )
 	va_end( vl );
 }
 
+void ldap_debug_flush(void)
+{
+	ldap_debug_lock();
+	if (debug_autoflush & AUTOFLUSH_STUFFED)
+		debug_flush();
+	ldap_debug_unlock();
+}
+
+void ldap_debug_set_autoflush(int enable) {
+	ldap_debug_lock();
+	enable = enable ? AUTOFLUSH_ENABLED : 0;
+	if ((debug_autoflush ^ enable) & AUTOFLUSH_ENABLED) {
+		if (debug_autoflush == AUTOFLUSH_STUFFED)
+			debug_flush();
+		debug_autoflush ^= AUTOFLUSH_ENABLED;
+	}
+	ldap_debug_unlock();
+}
+
 void ldap_debug_va( const char* fmt, va_list vl )
 {
+	ldap_debug_lock();
+
 	char buffer[4096];
 	int len, off = 0;
-
-	ldap_debug_lock();
 	if (debug_lastc == '\n') {
 		struct timeval now;
 		struct tm tm;
@@ -137,15 +179,17 @@ void ldap_debug_va( const char* fmt, va_list vl )
 		assert(off > 0);
 	}
 	len = vsnprintf( buffer+off, sizeof(buffer)-off, fmt, vl );
-	if (len > sizeof(buffer)-off)
-		len = sizeof(buffer)-off;
-	debug_lastc = buffer[len+off-1];
-	buffer[sizeof(buffer)-1] = '\0';
-	if( log_file != NULL ) {
-		fputs( buffer, log_file );
-		fflush( log_file );
+	if (len > 0) {
+		if (len > sizeof(buffer)-off)
+			len = sizeof(buffer)-off;
+		debug_lastc = buffer[len+off-1];
+		buffer[sizeof(buffer)-1] = '\0';
+		if( log_file != NULL )
+			fputs( buffer, log_file );
+		fputs( buffer, stderr );
+		debug_autoflush |= AUTOFLUSH_STUFFED;
 	}
-	fputs( buffer, stderr );
+
 	ldap_debug_unlock();
 }
 
@@ -178,6 +222,6 @@ void ldap_debug_perror( LDAP *ld, LDAP_CONST char *str )
 		}
 	}
 
+	debug_flush();
 	ldap_debug_unlock();
-	fflush( stderr );
 }
