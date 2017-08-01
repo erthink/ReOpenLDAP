@@ -79,10 +79,6 @@ int mdb_modify_internal(
 	Modifications	*ml;
 	Attribute	*save_attrs;
 	Attribute 	*ap, *aold, *anew;
-	int			glue_attr_delete = 0;
-	int			softop = 0, chkpresent = 0;
-	int			got_delete;
-	int			a_flags;
 	MDB_cursor	*mvc = NULL;
 
 	Debug( LDAP_DEBUG_TRACE, "mdb_modify_internal: 0x%08lx: %s\n",
@@ -96,6 +92,7 @@ int mdb_modify_internal(
 	save_attrs = e->e_attrs;
 	e->e_attrs = attrs_dup( e->e_attrs );
 
+	int glue_attr_delete = 0;
 	for ( ml = modlist; ml != NULL; ml = ml->sml_next ) {
 		int match;
 		mod = &ml->sml_mod;
@@ -129,19 +126,17 @@ int mdb_modify_internal(
 	}
 
 	for ( ml = modlist; ml != NULL; ml = ml->sml_next ) {
-		mod = &ml->sml_mod;
-		got_delete = 0;
+		int	softop = 0, chkpresent = 0;
+		int	got_delete = 0;
 
+		mod = &ml->sml_mod;
 		aold = attr_find( e->e_attrs, mod->sm_desc );
+		int	a_flags = 0;
 		if (aold)
 			a_flags = aold->a_flags;
-		else
-			a_flags = 0;
 
 		switch ( mod->sm_op ) {
 		case LDAP_MOD_ADD:
-			softop = 0;
-			chkpresent = 0;
 			Debug(LDAP_DEBUG_ARGS,
 				"mdb_modify_internal: add %s\n",
 				mod->sm_desc->ad_cname.bv_val);
@@ -199,7 +194,6 @@ do_add:
 				break;
 			}
 
-			softop = 0;
 			Debug(LDAP_DEBUG_ARGS,
 				"mdb_modify_internal: delete %s\n",
 				mod->sm_desc->ad_cname.bv_val);

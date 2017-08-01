@@ -684,8 +684,7 @@ dn2entry_retry:
 		}
 	}
 
-	/* start cursor at beginning of candidates.
-	 */
+	/* start cursor at beginning of candidates. */
 	cursor = 0;
 
 	if ( candidates[0] == 0 ) {
