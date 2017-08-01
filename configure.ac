@@ -358,6 +358,7 @@ else
 	AX_VALGRIND_DFLT([memcheck], [off])
 	AX_VALGRIND_CHECK
 fi
+AC_SUBST(VALGRIND_SUPPRESSIONS_FILES)
 
 case $ol_enable_experimental in
     yes)
