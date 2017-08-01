@@ -4,7 +4,8 @@ machine:
 
   environment:
     LIBTOOL_SUPPRESS_DEFAULT: no
-    EXTRA_CFLAGS: "-Wall -Werror -ggdb3 -gdwarf-4 -DSLAPD_CI=555"
+    EXTRA_CFLAGS: "-Wall -Werror -ggdb3 -gdwarf-4"
+    SLAPD_TESTING_TIMEOUT: 555
     TEST_NOOK: $(pwd)/_4upload
 
 database:
@@ -29,6 +30,7 @@ compile:
       --enable-spasswd --enable-slapi
       --enable-rlookups --enable-slp --enable-wrappers --enable-backends
       --disable-bdb --disable-hdb --disable-ndb --disable-modules
+      --enable-ci
 
   override:
     - make --keep-going && make --keep-going install
