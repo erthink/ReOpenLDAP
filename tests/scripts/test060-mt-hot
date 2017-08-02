@@ -24,8 +24,12 @@ if test ${AC_conf[monitor]} = "no" ; then
 	exit 0
 fi
 
-if test x$TESTLOOPS = x ; then
-	TESTLOOPS=50
+if [ -z "$TESTLOOPS" ]; then
+	if [ -n "$CI" ]; then
+		TESTLOOPS=12
+	else
+		TESTLOOPS=50
+	fi
 fi
 
 mkdir -p $TESTDIR $DBDIR1

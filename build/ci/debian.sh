@@ -8,7 +8,7 @@ sudo apt install -y -q \
 		build-essential pkg-config groff-base autoconf automake \
 		uuid-dev libelf-dev krb5-multidev heimdal-multidev libcrack2-dev \
 		libsasl2-dev libperl-dev libtool libltdl-dev binutils-dev libssl-dev \
-		libgnutls-dev libwrap0-dev unixodbc-dev libslp-dev libdb-dev bc gdb \
+		libgnutls-dev libwrap0-dev unixodbc-dev libslp-dev libdb-dev gdb \
 	|| exit 1
 
 if [ -x ./configure ]; then

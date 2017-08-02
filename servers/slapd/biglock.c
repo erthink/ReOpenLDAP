@@ -121,7 +121,7 @@ slap_biglock_acquire(slap_biglock_t* bl) {
 		bl->bl_recursion = 1;
 
 #if SLAPD_BIGLOCK_TRACELATENCY > 0
-		bl->bl_timestamp_ns = ldap_now_ns();
+		bl->bl_timestamp_ns = ldap_now_steady_ns();
 #if SLAPD_BIGLOCK_TRACELATENCY == 1
 		bl->bl_backtrace[0] = __builtin_extract_return_addr(__builtin_return_address(0));
 #else
@@ -144,7 +144,7 @@ slap_biglock_release(slap_biglock_t* bl) {
 		Debug(LDAP_DEBUG_TRACE, "biglock: release %p\n", bl);
 
 #if SLAPD_BIGLOCK_TRACELATENCY > 0
-		uint64_t latency_ns = ldap_now_ns() - bl->bl_timestamp_ns;
+		uint64_t latency_ns = ldap_now_steady_ns() - bl->bl_timestamp_ns;
 		if (biglock_max_latency_ns < latency_ns) {
 			biglock_max_latency_ns = latency_ns;
 

@@ -179,28 +179,9 @@ retry:
 }
 
 /* LY: override weaks from libreldap */
-void ber_error_print( LDAP_CONST char *str )
+void ber_debug_print( LDAP_CONST char *str )
 {
 	Debug(LDAP_DEBUG_BER, "%s", str);
-}
-
-int ber_pvt_log_output(
-	const char *subsystem,
-	int level,
-	const char *fmt,
-	... )
-{
-	(void) subsystem;
-	(void) level;
-	if (DebugTest(LDAP_DEBUG_BER)) {
-		va_list vl;
-
-		va_start( vl, fmt );
-		ldap_debug_va( fmt, vl);
-		va_end( vl );
-		return 1;
-	}
-	return 0;
 }
 
 LDAP_SLAPD_F(void) __ldap_assert_fail(

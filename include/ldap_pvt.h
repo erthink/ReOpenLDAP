@@ -304,9 +304,7 @@ ldap_get_message_ber LDAP_P((
 
 /* open */
 LDAP_F (int) ldap_open_internal_connection LDAP_P((
-	struct ldap **ldp, ber_socket_t *fdp ));
-LDAP_F (int) ldap_init_fd LDAP_P((
-	ber_socket_t fd, int proto, LDAP_CONST char *url, struct ldap **ldp ));
+	struct ldap  **ldp, ber_socket_t *fdp ));
 
 /* sasl.c */
 LDAP_F (int) ldap_pvt_sasl_generic_install LDAP_P(( Sockbuf *sb,

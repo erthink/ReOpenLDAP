@@ -16,8 +16,12 @@
 echo "running defines.sh"
 . ${TOP_SRCDIR}/tests/scripts/defines.sh
 
-if test x$TESTLOOPS = x ; then
-	TESTLOOPS=50
+if [ -z "$TESTLOOPS" ]; then
+	if [ -n "$CI" ]; then
+		TESTLOOPS=12
+	else
+		TESTLOOPS=50
+	fi
 fi
 
 mkdir -p $TESTDIR $DBDIR1

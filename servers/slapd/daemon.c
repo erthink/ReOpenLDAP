@@ -301,7 +301,7 @@ static slap_daemon_st slap_daemon[SLAPD_MAX_DAEMON_THREADS];
 # define SLAP_EVENT_CLR_READ(i)		SLAP_EPOLL_EVENT_CLR((i), EPOLLIN)
 # define SLAP_EVENT_CLR_WRITE(i)	SLAP_EPOLL_EVENT_CLR((i), EPOLLOUT)
 
-# define SLAP_EPOLL_EVENT_CHK(i, mode)	(revents[(i)].events & mode)
+# define SLAP_EPOLL_EVENT_CHK(i, mode)	(revents[(i)].events & (mode))
 
 # define SLAP_EVENT_IS_READ(i)		SLAP_EPOLL_EVENT_CHK((i), EPOLLIN)
 # define SLAP_EVENT_IS_WRITE(i)		SLAP_EPOLL_EVENT_CHK((i), EPOLLOUT)
@@ -861,7 +861,7 @@ slapd_set_write( ber_socket_t s, int wake )
 		if (id)
 			ldap_pvt_thread_mutex_lock( &slap_daemon[0].sd_mutex );
 		if (! chk_writetime.ns)
-			chk_writetime = ldap_now();
+			chk_writetime = ldap_now_steady();
 		if (id)
 			ldap_pvt_thread_mutex_unlock( &slap_daemon[0].sd_mutex );
 	}
@@ -2011,7 +2011,6 @@ static void *
 slapd_daemon_task(
 	void *ptr )
 {
-	int l;
 	slap_time_t last_idle_check = {0};
 	int ebadf = 0;
 	int tid = (ldap_pvt_thread_t *) ptr - listener_tid;
@@ -2024,9 +2023,9 @@ slapd_daemon_task(
 
 	/* Init stuff done only by thread 0 */
 
-	last_idle_check = ldap_now();
+	last_idle_check = ldap_now_steady();
 
-	for ( l = 0; slap_listeners[l] != NULL; l++ ) {
+	for ( int l = 0; slap_listeners[l] != NULL; l++ ) {
 		if ( slap_listeners[l]->sl_sd == AC_SOCKET_INVALID ) continue;
 
 #ifdef LDAP_CONNECTIONLESS
@@ -2172,12 +2171,12 @@ slapd_daemon_task(
 			 * this and continue.
 			 */
 			if ( err == EADDRINUSE ) {
-				int i;
 				struct sockaddr_in sa = slap_listeners[l]->sl_sa.sa_in_addr;
 				struct sockaddr_in6 sa6;
 
 				if ( sa.sin_family == AF_INET &&
 				     sa.sin_addr.s_addr == htonl(INADDR_ANY) ) {
+					int i;
 					for ( i = 0 ; i < l; i++ ) {
 						sa6 = slap_listeners[i]->sl_sa.sa_in6_addr;
 						if ( sa6.sin6_family == AF_INET6 &&
@@ -2223,22 +2222,9 @@ loop:
 	/* initialization complete. Here comes the loop. */
 
 	while ( !slapd_shutdown ) {
-		ber_socket_t		i;
-		int			ns;
-		int			nwriters MAY_UNUSED;
-		int			at;
-		ber_socket_t		nfds MAY_UNUSED;
-#if SLAP_EVENTS_ARE_INDEXED
-		ber_socket_t		nrfds, nwfds;
-#endif /* SLAP_EVENTS_ARE_INDEXED */
 #define SLAPD_EBADF_LIMIT 16
-
-		slap_time_t			now, cat, tv, *tvp;
-		struct re_s*		rtask;
-
 		SLAP_EVENT_DECL;
-
-		now = ldap_now();
+		slap_time_t tv, now = ldap_now_steady();
 
 		tv.ns = 0;
 		if ( !tid ) {
@@ -2287,7 +2273,7 @@ loop:
 
 			if ( active == 0 ) {
 				if ( !tid ) {
-					for ( l=1; l<slapd_daemon_threads; l++ ) {
+					for ( int l=1; l<slapd_daemon_threads; l++ ) {
 						ldap_pvt_thread_mutex_lock( &slap_daemon[l].sd_mutex );
 						active += slap_daemon[l].sd_nactives;
 						ldap_pvt_thread_mutex_unlock( &slap_daemon[l].sd_mutex );
@@ -2299,15 +2285,15 @@ loop:
 					break;
 			}
 		}
-		at = 0;
 
 		ldap_pvt_thread_mutex_lock( &slap_daemon[tid].sd_mutex );
 
-		nwriters = slap_daemon[tid].sd_nwriters;
-
 		ldap_pvt_thread_mutex_lock( &tsan_mutex );
+#if SLAP_EVENTS_ARE_INDEXED
+		const int nwriters = slap_daemon[tid].sd_nwriters;
+#endif
 		if ( listening )
-		for ( l = 0; slap_listeners[l] != NULL; l++ ) {
+		for ( int l = 0; slap_listeners[l] != NULL; l++ ) {
 			Listener *lr = slap_listeners[l];
 
 			if ( lr->sl_sd == AC_SOCKET_INVALID ) continue;
@@ -2323,30 +2309,16 @@ loop:
 		ldap_pvt_thread_mutex_unlock( &tsan_mutex );
 
 		SLAP_EVENT_INIT(tid);
-
-		nfds = SLAP_EVENT_MAX(tid);
-
-		if (( chk_writetime.ns || global_idletimeout )
-				&& slap_daemon[tid].sd_nactives )
-			at = 1;
+		slap_time_t	*tvp = (tv.ns && slap_daemon[tid].sd_nactives)
+				? &tv : NULL;
 
 		ldap_pvt_thread_mutex_unlock( &slap_daemon[tid].sd_mutex );
-
-		if ( at
-#if defined(HAVE_YIELDING_SELECT) || defined(NO_THREADS)
-			&& tv.ns
-#endif /* HAVE_YIELDING_SELECT || NO_THREADS */
-			)
-		{
-			tvp = &tv;
-		} else {
-			tvp = NULL;
-		}
 
 		/* Only thread 0 handles runqueue */
 		if ( !tid ) {
 			ldap_pvt_thread_mutex_lock( &slapd_rq.rq_mutex );
-			rtask = ldap_pvt_runqueue_next_sched( &slapd_rq, &cat );
+			slap_time_t cat;
+			struct re_s* rtask = ldap_pvt_runqueue_next_sched( &slapd_rq, &cat );
 			while ( rtask && cat.ns && cat.ns <= now.ns ) {
 				if ( ldap_pvt_runqueue_isrunning( &slapd_rq, rtask )) {
 					ldap_pvt_runqueue_resched( &slapd_rq, rtask, 0 );
@@ -2377,7 +2349,7 @@ loop:
 		}
 
 		ldap_pvt_thread_mutex_lock( &tsan_mutex );
-		for ( l = 0; slap_listeners[l] != NULL; l++ ) {
+		for ( int l = 0; slap_listeners[l] != NULL; l++ ) {
 			Listener *lr = slap_listeners[l];
 
 			if ( lr->sl_sd == AC_SOCKET_INVALID ) {
@@ -2393,11 +2365,12 @@ loop:
 
 			Debug( LDAP_DEBUG_TRACE,
 				"daemon: " SLAP_EVENT_FNAME ": "
-				"listen=%d active_threads=%d tvp=%s\n",
-				lr->sl_sd, at, tvp == NULL ? "NULL" : "zero" );
+				"listen=%d tvp=%s%" PRIu64 "\n",
+				lr->sl_sd, tvp == NULL ? "NULL/" : "", tvp ? tvp->ns : 0 );
 		}
 		ldap_pvt_thread_mutex_unlock( &tsan_mutex );
 
+		int	ns;
 		SLAP_EVENT_WAIT( tid, tvp, &ns );
 		switch ( ns ) {
 		case -1: {	/* failure - try again */
@@ -2458,7 +2431,7 @@ loop:
 		 * like this too, even though it's a kludge.
 		 */
 		if ( listening )
-		for ( l = 0; slap_listeners[l] != NULL; l++ ) {
+		for ( int l = 0; slap_listeners[l] != NULL; l++ ) {
 			int rc;
 
 			if ( ns <= 0 ) break;
@@ -2485,9 +2458,10 @@ loop:
 		}
 
 		Debug( LDAP_DEBUG_CONNS, "daemon: activity on:" );
-		nrfds = 0;
-		nwfds = 0;
-		for ( i = 0; i < nfds; i++ ) {
+		const int nfds = SLAP_EVENT_MAX(tid);
+		int nrfds = 0;
+		int nwfds = 0;
+		for ( int i = 0; i < nfds; i++ ) {
 			int	r, w;
 
 			r = SLAP_EVENT_IS_READ( i );
@@ -2507,10 +2481,10 @@ loop:
 			}
 			if ( ns <= 0 ) break;
 		}
-		Debug( LDAP_DEBUG_CONNS, "\n" );
+		Debug( LDAP_DEBUG_CONNS, ".\n" );
 
 		/* loop through the writers */
-		for ( i = 0; nwfds > 0; i++ ) {
+		for ( int i = 0; nwfds > 0 && i < nfds; i++ ) {
 			ber_socket_t wd;
 			if ( ! SLAP_EVENT_IS_WRITE( i ) ) continue;
 			wd = i;
@@ -2539,7 +2513,7 @@ loop:
 			}
 		}
 
-		for ( i = 0; nrfds > 0; i++ ) {
+		for ( int i = 0; nrfds > 0 && i < nfds; i++ ) {
 			ber_socket_t rd;
 			if ( ! SLAP_EVENT_IS_READ( i ) ) continue;
 			rd = i;
@@ -2577,7 +2551,7 @@ loop:
 #ifdef LDAP_DEBUG
 		Debug( LDAP_DEBUG_CONNS, "daemon: activity on:" );
 
-		for ( i = 0; i < ns; i++ ) {
+		for ( int i = 0; i < ns; i++ ) {
 			int	r, w, fd;
 
 			/* Don't log listener events */
@@ -2601,10 +2575,10 @@ loop:
 				    r ? "r" : "", w ? "w" : "" );
 			}
 		}
-		Debug( LDAP_DEBUG_CONNS, "\n" );
+		Debug( LDAP_DEBUG_CONNS, ".\n" );
 #endif /* LDAP_DEBUG */
 
-		for ( i = 0; i < ns; i++ ) {
+		for ( int i = 0; i < ns; i++ ) {
 			int rc = 1, fd, w = 0, r = 0;
 
 			if ( SLAP_EVENT_IS_LISTENER( tid, i ) ) {
@@ -2751,6 +2725,8 @@ int
 slapd_daemon( void )
 {
 	int i, rc;
+
+	Debug( LDAP_DEBUG_ANY, "daemon: using " SLAP_EVENT_FNAME "\n" );
 
 #ifdef LDAP_CONNECTIONLESS
 	connectionless_init();
