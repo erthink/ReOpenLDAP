@@ -179,7 +179,7 @@ retry:
 }
 
 /* LY: override weaks from libreldap */
-void ber_error_print( LDAP_CONST char *str )
+void ber_debug_print( LDAP_CONST char *str )
 {
 	Debug(LDAP_DEBUG_BER, "%s", str);
 }
