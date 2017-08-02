@@ -427,7 +427,6 @@ do_base( char *uri, char *dn, struct berval *pass, char *base, char *filter, cha
 	struct berval *creds = NULL;
 	char *attrs[] = { LDAP_NO_ATTRS, NULL };
 	int ndns = 0;
-	struct timeval beg, end;
 	int version = LDAP_VERSION3;
 	char *nullstr = "";
 
@@ -522,8 +521,7 @@ novals:;
 		if ( done ) break;
 	}
 
-	ldap_timeval( &beg );
-
+	uint64_t beg_ns = ldap_now_ns();
 	if ( ndns == 0 ) {
 		tester_error( "No DNs" );
 		return 1;
@@ -563,16 +561,9 @@ novals:;
 		ld = NULL;
 	}
 
-	ldap_timeval( &end );
-	end.tv_usec -= beg.tv_usec;
-	if (end.tv_usec < 0 ) {
-		end.tv_usec += 1000000;
-		end.tv_sec -= 1;
-	}
-	end.tv_sec -= beg.tv_sec;
-
-	fprintf( stderr, "  PID=%ld - Bind done %d in %ld.%06ld seconds.\n",
-		(long) pid, i, (long) end.tv_sec, (long) end.tv_usec );
+	uint64_t end_ns = ldap_now_ns();
+	fprintf( stderr, "  PID=%ld - Bind done %d in %.06f seconds.\n",
+		(long) pid, i, (end_ns - beg_ns) * 1e-9);
 
 	if ( dns ) {
 		for ( i = 0; i < ndns; i++ ) {

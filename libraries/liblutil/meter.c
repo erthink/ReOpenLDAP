@@ -77,12 +77,12 @@ lutil_time_string (
 int
 lutil_get_now (double *now)
 {
-	struct timespec tv;
+	if (likely(now)) {
+		*now = ldap_now_ns() * 1e-9;
+		return 0;
+	}
 
-	assert( now );
-	ldap_timespec( &tv );
-	*now = ((double) tv.tv_sec) + (((double) tv.tv_nsec) / 1000000000.0);
-	return 0;
+	return -1;
 }
 
 int
