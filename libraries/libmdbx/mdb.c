@@ -4341,7 +4341,7 @@ mdb_env_create(MDB_env **env)
 }
 
 static int __cold
-mdb_env_map(MDB_env *env, void *addr, size_t usedsize)
+mdb_env_map(MDB_env *env, void *addr)
 {
 	unsigned flags = env->me_flags;
 
@@ -4378,12 +4378,6 @@ mdb_env_map(MDB_env *env, void *addr, size_t usedsize)
 #ifdef MADV_DONTDUMP
 	if (! (flags & MDBX_PAGEPERTURB)) {
 		(void) madvise(env->me_map, env->me_mapsize, MADV_DONTDUMP);
-	}
-#endif
-
-#ifdef MADV_REMOVE
-	if (flags & MDB_WRITEMAP) {
-		(void) madvise(env->me_map + usedsize, env->me_mapsize - usedsize, MADV_REMOVE);
 	}
 #endif
 
@@ -4439,7 +4433,7 @@ mdb_env_set_mapsize(MDB_env *env, size_t size)
 #endif
 		env->me_mapsize = size;
 		old = (env->me_flags & MDB_FIXEDMAP) ? env->me_map : NULL;
-		rc = mdb_env_map(env, old, usedsize);
+		rc = mdb_env_map(env, old);
 		if (rc)
 			return rc;
 	}
@@ -4557,8 +4551,7 @@ mdb_env_open2(MDB_env *env, MDB_meta *meta)
 		newenv = 0;
 	}
 
-	const size_t usedsize = (meta->mm_last_pg + 1) * env->me_psize;
-	rc = mdb_env_map(env, (flags & MDB_FIXEDMAP) ? meta->mm_address : NULL, usedsize);
+	rc = mdb_env_map(env, (flags & MDB_FIXEDMAP) ? meta->mm_address : NULL);
 	if (rc)
 		return rc;
 
@@ -6239,7 +6232,7 @@ mdb_cursor_prev(MDB_cursor *mc, MDB_val *key, MDB_val *data, MDB_cursor_op op)
 /** Set the cursor on a specific data item. */
 static int
 mdb_cursor_set(MDB_cursor *mc, MDB_val *key, MDB_val *data,
-	MDB_cursor_op op, int *exactp)
+    MDB_cursor_op op, int *exactp)
 {
 	int		 rc;
 	MDB_page	*mp;
@@ -8812,8 +8805,10 @@ mdb_cursor_del0(MDB_cursor *mc)
 							if (m3->mc_xcursor->mx_cursor.mc_flags & C_INITIALIZED) {
 								if (!(node->mn_flags & F_SUBDATA))
 									m3->mc_xcursor->mx_cursor.mc_pg[0] = NODEDATA(node);
-							} else
+							} else {
 								mdb_xcursor_init1(m3, node);
+								m3->mc_xcursor->mx_cursor.mc_flags |= C_DEL;
+							}
 						}
 					}
 				}
