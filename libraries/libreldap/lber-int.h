@@ -40,11 +40,6 @@ struct lber_options {
 	int			lbo_debug;
 };
 
-LBER_F( int ) ber_pvt_log_output(
-	const char *subsystem,
-	int level,
-	const char *fmt, ... );
-
 #define LBER_UNINITIALIZED		0x0
 #define LBER_INITIALIZED		0x1
 #define LBER_VALID_BERELEMENT	0x2

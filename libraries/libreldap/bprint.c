@@ -79,38 +79,6 @@ ber_error_print( LDAP_CONST char *data )
 
 BER_LOG_PRINT_FN ber_pvt_log_print = ber_error_print;
 
-/*
- * lber log
- */
-
-int __attribute__((weak))
-ber_pvt_log_output(
-	const char *subsystem,
-	int level,
-	const char *fmt,
-	... )
-{
-	char buf[1024];
-	va_list vl;
-	va_start( vl, fmt );
-
-	if ( ber_int_log_proc != NULL ) {
-		ber_int_log_proc( ber_pvt_err_file, subsystem, level, fmt, vl );
-
-	} else {
-		int level;
-		ber_get_option( NULL, LBER_OPT_BER_DEBUG, &level );
-		buf[sizeof(buf) - 1] = '\0';
-		vsnprintf( buf, sizeof(buf)-1, fmt, vl );
-		if ( ber_log_check( LDAP_DEBUG_BER, level ) ) {
-			(*ber_pvt_log_print)( buf );
-		}
-	}
-
-	va_end(vl);
-	return 1;
-}
-
 int ber_pvt_log_printf( int errlvl, int loglvl, const char *fmt, ... )
 {
 	char buf[1024];
@@ -132,20 +100,6 @@ int ber_pvt_log_printf( int errlvl, int loglvl, const char *fmt, ... )
 	(*ber_pvt_log_print)( buf );
 	return 1;
 }
-
-#if 0
-static int ber_log_puts(int errlvl, int loglvl, char *buf)
-{
-	assert( buf != NULL );
-
-	if ( !ber_log_check( errlvl, loglvl )) {
-		return 0;
-	}
-
-	(*ber_pvt_log_print)( buf );
-	return 1;
-}
-#endif
 
 /*
  * Print arbitrary stuff, for debugging.
