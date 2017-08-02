@@ -325,7 +325,7 @@ AC_SUBST(REOPENLDAP_BUILDID_SUFFIX)
 dnl ----------------------------------------------------------------
 dnl General "enable" options
 OL_ARG_ENABLE(debug,[  --enable-debug          enable debug logging], yes, [no yes extra])dnl
-OL_ARG_ENABLE(ci,[  --enable-ci          enable Continuous Integration stuff], no, [no yes])dnl
+OL_ARG_ENABLE(ci,[  --enable-ci             enable Continuous Integration stuff], no, [no yes])dnl
 OL_ARG_ENABLE(syslog,[  --enable-syslog         enable syslog support], auto)dnl
 OL_ARG_ENABLE(contrib,[  --enable-contrib        enable extra plugins and overlays], no, [no yes broken])dnl
 OL_ARG_ENABLE(experimental,[  --enable-experimental   enable experimental and developing features], no, [no yes])dnl
