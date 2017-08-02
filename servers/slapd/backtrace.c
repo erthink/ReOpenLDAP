@@ -262,10 +262,8 @@ void backtrace_sigaction(int signum, siginfo_t *info, void* ptr) {
 	}
 
 	char time_buf[64];
-	time_t t = ldap_time_steady();
+	time_t t = ldap_time_unsteady();
 	strftime(time_buf, sizeof(time_buf), "%F-%H%M%S", localtime(&t));
-
-	int debug_locked = (ldap_debug_trylock() == 0);
 
 	char name_buf[PATH_MAX];
 	int fd = -1;
@@ -483,8 +481,6 @@ void backtrace_sigaction(int signum, siginfo_t *info, void* ptr) {
 				/* LY: The trouble is that GDB should be READY, but no way to check it.
 				 * If we return from signal handler while GDB not ready the kernel just terminate us.
 				 * Assume that checking gdb_is_ready_for_backtrace == gdb_pid is enough. */
-				if (debug_locked)
-					ldap_debug_unlock();
 				return;
 			}
 
@@ -498,8 +494,6 @@ ballout:
 
 done:
 	if (should_die) {
-		if (debug_locked)
-			ldap_debug_unlock();
 		exit(EXIT_FAILURE);
 	}
 
@@ -514,8 +508,6 @@ done:
 		close(pipe_fd[1]);
 	dprintf(fd, "\n*** No reason for die, continue running.\n");
 	close(fd);
-	if (debug_locked)
-		ldap_debug_unlock();
 }
 
 static int enabled;
