@@ -67,5 +67,5 @@ script:
   && make --keep-going && make --keep-going install)
 
 after_failure:
-  [ -n "$(ls -A tests/testrun)" ] && tar caf $TEST_NOOK/testrun.tar.gz -C tests/testrun .
-  scp -o StrictHostKeyChecking=no -B -P $UPLOAD_PORT -rp $UPLOAD_DIR/* $UPLOAD_USER@$UPLOAD_HOST:~/$TRAVIS_REPO_SLUG/ 2>&1 | sed -n 's/^.*: \([^:]\+$\)/\1/p'
+- test -n "$(ls -A tests/testrun)" && tar caf $TEST_NOOK/testrun.tar.gz -C tests/testrun .
+- scp -o StrictHostKeyChecking=no -B -P $UPLOAD_PORT -rp $UPLOAD_DIR/* $UPLOAD_USER@$UPLOAD_HOST:~/$TRAVIS_REPO_SLUG/ 2>&1 | sed -n 's/^.*: \([^:]\+$\)/\1/p'
