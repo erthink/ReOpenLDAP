@@ -934,6 +934,7 @@ SLAPD_DEBUG_EXTRA_FALSE
 SLAPD_DEBUG_EXTRA_TRUE
 SLAPD_DEBUG_FALSE
 SLAPD_DEBUG_TRUE
+VALGRIND_SUPPRESSIONS_FILES
 VALGRIND_CHECK_RULES
 valgrind_enabled_tools
 valgrind_tools
@@ -1112,6 +1113,7 @@ enable_libtool_lock
 with_subdir
 with_buildid
 enable_debug
+enable_ci
 enable_syslog
 enable_contrib
 enable_experimental
@@ -1871,6 +1873,7 @@ Optional Features:
                           speeds up one-time build
   --disable-libtool-lock  avoid locking (might break parallel builds)
   --enable-debug          enable debug logging no|yes|extra [yes]
+  --enable-ci             enable Continuous Integration stuff no|yes [no]
   --enable-syslog         enable syslog support [auto]
   --enable-contrib        enable extra plugins and overlays no|yes|broken [no]
   --enable-experimental   enable experimental and developing features no|yes [no]
@@ -13167,9 +13170,9 @@ VERSION_MINOR=2
 
 VERSION_PATCH=0
 
-RELEASE_DATE=2017-05-01
+RELEASE_DATE=2017-08-02
 
-RELEASE_STAMP=gf253f523a891-t5f6c4d6534050a92
+RELEASE_STAMP=g96b43cb32900-tc98c2dd495d07a16
 
 API_LIB_RELEASE=1.2
 
@@ -19875,6 +19878,27 @@ else
 fi
 
 # end --enable-debug
+# OpenLDAP --enable-ci
+
+	# Check whether --enable-ci was given.
+if test "${enable_ci+set}" = set; then :
+  enableval=$enable_ci;
+	ol_arg=invalid
+	for ol_val in no yes ; do
+		if test "$enableval" = "$ol_val" ; then
+			ol_arg="$ol_val"
+		fi
+	done
+	if test "$ol_arg" = "invalid" ; then
+		as_fn_error $? "bad value $enableval for --enable-ci" "$LINENO" 5
+	fi
+	ol_enable_ci="$ol_arg"
+
+else
+	ol_enable_ci=no
+fi
+
+# end --enable-ci
 # OpenLDAP --enable-syslog
 
 	# Check whether --enable-syslog was given.
@@ -20904,6 +20928,7 @@ MOSTLYCLEANFILES += $(valgrind_log_files)
 
 
 fi
+
 
 case $ol_enable_experimental in
     yes)
@@ -35050,6 +35075,11 @@ as_fn_error $? "invalid --enable-debug value '$ol_enable_debug'
 See \`config.log' for more details" "$LINENO" 5; }
 	;;
 esac
+if test "$ol_enable_ci" != no ; then
+
+$as_echo "#define SLAPD_ENABLE_CI 1" >>confdefs.h
+
+fi
 
 if test "$ol_enable_syslog" != no ; then
 
