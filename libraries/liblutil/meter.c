@@ -78,7 +78,7 @@ int
 lutil_get_now (double *now)
 {
 	if (likely(now)) {
-		*now = ldap_now_ns() * 1e-9;
+		*now = ldap_now_steady_ns() * 1e-9;
 		return 0;
 	}
 

@@ -861,7 +861,7 @@ slapd_set_write( ber_socket_t s, int wake )
 		if (id)
 			ldap_pvt_thread_mutex_lock( &slap_daemon[0].sd_mutex );
 		if (! chk_writetime.ns)
-			chk_writetime = ldap_now();
+			chk_writetime = ldap_now_steady();
 		if (id)
 			ldap_pvt_thread_mutex_unlock( &slap_daemon[0].sd_mutex );
 	}
@@ -2023,7 +2023,7 @@ slapd_daemon_task(
 
 	/* Init stuff done only by thread 0 */
 
-	last_idle_check = ldap_now();
+	last_idle_check = ldap_now_steady();
 
 	for ( int l = 0; slap_listeners[l] != NULL; l++ ) {
 		if ( slap_listeners[l]->sl_sd == AC_SOCKET_INVALID ) continue;
@@ -2224,7 +2224,7 @@ loop:
 	while ( !slapd_shutdown ) {
 #define SLAPD_EBADF_LIMIT 16
 		SLAP_EVENT_DECL;
-		slap_time_t tv, now = ldap_now();
+		slap_time_t tv, now = ldap_now_steady();
 
 		tv.ns = 0;
 		if ( !tid ) {

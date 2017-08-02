@@ -249,7 +249,7 @@ ldap_send_server_request(
 
 			/* honor network timeout */
 			LDAP_MUTEX_LOCK( &ld->ld_options.ldo_mutex );
-			if ( ldap_now().ns - lc->lconn_created.ns <= ldap_from_timeval(&ld->ld_options.ldo_tm_net).ns )
+			if ( ldap_now_steady().ns - lc->lconn_created.ns <= ldap_from_timeval(&ld->ld_options.ldo_tm_net).ns )
 			{
 				/* caller will have to call again */
 				ld->ld_errno = LDAP_X_CONNECTING;
@@ -696,7 +696,7 @@ use_connection( LDAP *ld, LDAPConn *lc )
 {
 	LDAP_ASSERT_MUTEX_OWNER( &ld->ld_conn_mutex );
 	++lc->lconn_refcnt;
-	lc->lconn_lastused = ldap_now();
+	lc->lconn_lastused = ldap_now_steady();
 }
 
 
@@ -808,7 +808,7 @@ ldap_free_connection( LDAP *ld, LDAPConn *lc, int force, int unbind )
 			"ldap_free_connection: actually freed\n" );
 
 	} else {
-		lc->lconn_lastused = ldap_now();
+		lc->lconn_lastused = ldap_now_steady();
 		Debug( LDAP_DEBUG_TRACE, "ldap_free_connection: refcnt %d\n",
 				lc->lconn_refcnt );
 	}

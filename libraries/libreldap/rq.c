@@ -47,7 +47,7 @@ ldap_pvt_runqueue_insert_ns(
 	entry = (struct re_s *) LDAP_CALLOC( 1, sizeof( struct re_s ));
 	if ( entry ) {
 		entry->interval = interval;
-		entry->next_sched = ldap_now();
+		entry->next_sched = ldap_now_steady();
 		entry->routine = routine;
 		entry->arg = arg;
 		entry->tname = tname;
@@ -180,7 +180,7 @@ ldap_pvt_runqueue_resched(
 
 	entry->next_sched.ns = 0;
 	if ( !defer )
-		entry->next_sched.ns = ldap_now_ns() + entry->interval.ns;
+		entry->next_sched.ns = ldap_now_steady_ns() + entry->interval.ns;
 
 	if ( LDAP_STAILQ_EMPTY( &rq->task_list )) {
 		LDAP_STAILQ_INSERT_HEAD( &rq->task_list, entry, tnext );

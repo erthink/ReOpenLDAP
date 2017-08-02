@@ -734,7 +734,7 @@ __cold static int64_t clock_mono2real_delta() {
 	return best_delta;
 }
 
-__hot uint64_t ldap_now_ns(void) {
+__hot uint64_t ldap_now_steady_ns(void) {
 	LDAP_ENSURE(pthread_mutex_lock(&clock_mutex) == 0);
 
 	if (unlikely(!clock_mono2real_ns))
@@ -763,13 +763,13 @@ __hot uint64_t ldap_now_ns(void) {
 	return ns;
 }
 
-__hot void ldap_timespec(struct timespec *ts) {
-	uint64_t clock_now = ldap_now_ns();
+__hot void ldap_timespec_steady(struct timespec *ts) {
+	uint64_t clock_now = ldap_now_steady_ns();
 	ts->tv_sec = clock_now / 1000000000ul;
 	ts->tv_nsec = clock_now % 1000000000ul;
 }
 
-__hot unsigned ldap_timeval(struct timeval *tv) {
+__hot unsigned ldap_timeval_realtime(struct timeval *tv) {
 	LDAP_ENSURE(pthread_mutex_lock(&clock_mutex) == 0);
 
 	uint64_t us;
@@ -806,7 +806,7 @@ __hot unsigned ldap_timeval(struct timeval *tv) {
 }
 
 __hot time_t ldap_time_steady(void) {
-	return ldap_to_time( ldap_now() );
+	return ldap_to_time( ldap_now_steady() );
 }
 
 __hot time_t ldap_time_unsteady(void) {

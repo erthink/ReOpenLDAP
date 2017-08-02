@@ -68,7 +68,7 @@ mdbx_debug(int type, const char *function, int line, const char *msg, va_list ar
 static int
 mdb_oom_handler(MDB_env *env, int pid, void* thread_id, size_t txnid, unsigned gap, int retry)
 {
-	uint64_t now_ns = ldap_now_ns();
+	uint64_t now_ns = ldap_now_steady_ns();
 	struct mdb_info *mdb = mdb_env_get_userctx(env);
 
 	if (retry < 0) {

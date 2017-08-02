@@ -948,7 +948,7 @@ unhandled_option:;
 	 * FIXME: moved here from slapd_daemon_task()
 	 * because back-monitor db_open() needs it
 	 */
-	starttime = ldap_now();
+	starttime = ldap_now_steady();
 
 	connections_init();
 

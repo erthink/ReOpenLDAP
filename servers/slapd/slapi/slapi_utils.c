@@ -1950,8 +1950,8 @@ slapi_timer_current_time( void )
 {
 	ldap_pvt_thread_mutex_lock( &slapi_time_mutex );
 	if (unlikely(base_time_ns == 0))
-		base_time_ns = ldap_now_ns();
-	uint64_t ns = ldap_now_ns() - base_time_ns;
+		base_time_ns = ldap_now_steady_ns();
+	uint64_t ns = ldap_now_steady_ns() - base_time_ns;
 	ldap_pvt_thread_mutex_unlock( &slapi_time_mutex );
 
 	return ns / 1000;

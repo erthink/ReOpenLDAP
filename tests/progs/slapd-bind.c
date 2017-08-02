@@ -521,7 +521,7 @@ novals:;
 		if ( done ) break;
 	}
 
-	uint64_t beg_ns = ldap_now_ns();
+	uint64_t beg_ns = ldap_now_steady_ns();
 	if ( ndns == 0 ) {
 		tester_error( "No DNs" );
 		return 1;
@@ -561,7 +561,7 @@ novals:;
 		ld = NULL;
 	}
 
-	uint64_t end_ns = ldap_now_ns();
+	uint64_t end_ns = ldap_now_steady_ns();
 	fprintf( stderr, "  PID=%ld - Bind done %d in %.06f seconds.\n",
 		(long) pid, i, (end_ns - beg_ns) * 1e-9);
 

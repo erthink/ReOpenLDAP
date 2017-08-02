@@ -200,7 +200,7 @@ monitor_subsys_time_update(
 		Attribute	*a;
 		ber_len_t	len;
 
-		ldap_pvt_gmtime( ldap_now(), &tm );
+		ldap_pvt_gmtime( ldap_now_steady(), &tm );
 		lutil_gentime( tmbuf, sizeof( tmbuf ), &tm );
 
 		len = strlen( tmbuf );
@@ -226,7 +226,7 @@ monitor_subsys_time_update(
 			return rs->sr_err = LDAP_OTHER;
 		}
 
-		diff = (ldap_now().ns - starttime.ns) * 1e-9;
+		diff = (ldap_now_steady().ns - starttime.ns) * 1e-9;
 		bv.bv_len = snprintf( buf, sizeof( buf ), "%lu",
 			(unsigned long) diff );
 		bv.bv_val = buf;
