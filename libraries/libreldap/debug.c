@@ -168,7 +168,7 @@ void ldap_debug_va( const char* fmt, va_list vl )
 		struct tm tm;
 		long rc;
 
-		ldap_timeval_realtime(&now);
+		gettimeofday(&now, NULL);
 		/* LY: it is important to don't use extra spaces here, to avoid break a test(s). */
 		gmtime_r(&now.tv_sec, &tm);
 		off += strftime(buffer+off, sizeof(buffer)-off, "%y%m%d-%H:%M:%S", &tm);
