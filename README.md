@@ -6,7 +6,7 @@ ReOpenLDAP is...
 
 *But no Windows, Mac OS, FreeBSD, Solaris or HP-UX; just __only Linux__!*
 
-[![Build Status](https://travis-ci.org/ReOpen/ReOpenLDAP.svg?branch=devel)](https://travis-ci.org/ReOpen/ReOpenLDAP)
+[![Build Status](https://travis-ci.org/leo-yuriev/ReOpenLDAP.svg?branch=devel)](https://travis-ci.org/leo-yuriev/ReOpenLDAP)
 
 ##### ReOpenLDAP is currently running in telcos across Russia:
  * Several 2x2 multi-master clusters
@@ -66,5 +66,5 @@ For the changes merged from OpenLDAP project, please see the CHANGES.OpenLDAP fi
  * removed ~5K warnings from GCC/clang
  * removed ~1K warnings from ThreadSanitizer (a data race detector)
  * removed most of memory leaks (tests could be passed under Valgrind)
- * checked with PVS-Studio static analyser, [see details](https://github.com/ReOpen/ReOpenLDAP/issues/107)
+ * checked with PVS-Studio static analyser, [see details](https://github.com/leo-yuriev/ReOpenLDAP/issues/107)
  * <a href="https://scan.coverity.com/projects/reopen-reopenldap"><img alt="Coverity Scan Build Status" src="https://scan.coverity.com/projects/6972/badge.svg"/></a>

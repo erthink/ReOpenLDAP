@@ -990,7 +990,7 @@ syncrepl_process(
 		bl = slap_biglock_get(si->si_wbe);
 		/* LY: this is ugly solution, on other hand,
 		 * it is reasonable and necessary.
-		 * See https://github.com/ReOpen/ReOpenLDAP/issues/43
+		 * See https://github.com/leo-yuriev/ReOpenLDAP/issues/43
 		 */
 		slap_biglock_acquire(bl);
 
@@ -2520,7 +2520,7 @@ static int check_for_retard(syncinfo_t *si, struct sync_cookie *sc,
 {
 	int i, origin, rc = 0;
 
-	/* LY: This is fixes https://github.com/ReOpen/ReOpenLDAP/issues/43
+	/* LY: This is fixes https://github.com/leo-yuriev/ReOpenLDAP/issues/43
 	 * for most cases. */
 
 	if (SLAP_MULTIMASTER(si->si_be)) {
