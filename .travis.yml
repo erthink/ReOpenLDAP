@@ -55,7 +55,7 @@ script:
   --enable-maintainer-mode --enable-dynacl --enable-aci --enable-crypt --enable-lmpasswd
   --enable-spasswd --enable-slapi --enable-rlookups --enable-slp --enable-wrappers
   --enable-backends --disable-bdb --disable-hdb --disable-ndb --disable-modules
-  --enable-ci
+  --enable-ci --disable-wt
 - make --keep-going && make --keep-going install
   && ulimit -c unlimited && make test </dev/null
 - make --keep-going dist
