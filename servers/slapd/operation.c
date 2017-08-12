@@ -146,7 +146,7 @@ slap_op_time(time_t *t, int *nop)
 	struct timeval tv;
 	unsigned sametick;
 
-	sametick = ldap_timeval( &tv );
+	sametick = ldap_timeval_realtime( &tv );
 	*t = tv.tv_sec;
 	*nop = tv.tv_usec + sametick;
 }
