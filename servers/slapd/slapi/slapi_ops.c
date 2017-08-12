@@ -240,7 +240,7 @@ slapi_int_connection_init_pb( Slapi_PBlock *pb, ber_tag_t tag )
 
 	conn->c_protocol = LDAP_VERSION3;
 
-	conn->c_activitytime = conn->c_starttime = ldap_now();
+	conn->c_activitytime = conn->c_starttime = ldap_now_steady();
 
 	/*
 	 * A real connection ID is required, because syncrepl associates

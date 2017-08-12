@@ -153,6 +153,7 @@ function update_TESTDIR {
 PROGDIR=${TOP_BUILDDIR}/tests/progs
 DATADIR=${USER_DATADIR-${TOP_SRCDIR}/tests/testdata}
 BASE_TESTDIR=${USER_TESTDIR-$TESTWD/testrun}
+export SLAPD_TESTING_DIR=${BASE_TESTDIR}
 update_TESTDIR $BASE_TESTDIR
 SLAPD_SLAPD=${TOP_BUILDDIR}/servers/slapd/slapd
 CLIENTDIR=${TOP_BUILDDIR}/clients/tools
@@ -252,10 +253,17 @@ elif [ -n "$CIBUZZ_PID4" ]; then
 	SLEEP1=${SLEEP1-7}
 	SYNCREPL_WAIT=${SYNCREPL_WAIT-30}
 elif [ -n "$CI" ]; then
-	# LY: under CI, take in account ASAN/TSAN and nice
-	TIMEOUT_S="timeout -s SIGXCPU 2m"
-	TIMEOUT_L="timeout -s SIGXCPU 7m"
-	TIMEOUT_H="timeout -s SIGXCPU 20m"
+	if [ "$CI" = "TEAMCITY" ]; then
+		# LY: under Teamcity, take in account ASAN/TSAN and nice
+		TIMEOUT_S="timeout -s SIGXCPU 2m"
+		TIMEOUT_L="timeout -s SIGXCPU 7m"
+		TIMEOUT_H="timeout -s SIGXCPU 20m"
+	else
+		# LY: But disable timeouts for Travis/Circle as workaround coreutils sand docker bugs
+		TIMEOUT_S=""
+		TIMEOUT_L=""
+		TIMEOUT_H=""
+	fi
 	SLEEP0=${SLEEP0-0.3}
 	SLEEP1=${SLEEP1-2}
 	SYNCREPL_WAIT=${SYNCREPL_WAIT-10}
@@ -454,7 +462,11 @@ function teamcity_sleep {
 function safewait {
 	wait "$@"
 	local RC=$?
-	if [ $RC -gt 132 ]; then
+	if [ $RC -eq 124 -a -n "$TIMEOUT_S" ]; then
+		echo " timeout ($RC)"
+		sleep 3
+		exit $RC
+	elif [ $RC -gt 132 ]; then
 		echo " coredump/signal-$(($RC - 128))"
 		sleep 5
 		exit $RC
@@ -702,7 +714,9 @@ function wait_syncrepl {
 	if [ -z "$base" ]; then base="$BASEDN"; else caption="$base "; fi
 	echo -n "Waiting while syncrepl replicates a changes (${caption}between $1 and $2)..."
 	sleep $SLEEP0
-	local t=$SLEEP0
+	local now=$(date +%s)
+	local start=$now
+	local timeout=$((now + SYNCREPL_WAIT))
 
 	while true; do
 
@@ -742,13 +756,14 @@ function wait_syncrepl {
 			exit $RC
 		fi
 
+		now=$(date +%s)
 		if [ "$provider_csn" == "$consumer_csn" ]; then
-			echo " Done in $t seconds"
+			echo " Done in $((now - start)) seconds"
 			return
 		fi
 
-		if [ $(echo "$t > $SYNCREPL_WAIT" | bc -q) == "1" ]; then
-			echo " Timeout $t seconds"
+		if [ $now -gt $timeout ]; then
+			echo " Timeout $((now - start)) seconds"
 			echo -n "Provider: "
 			$LDAPSEARCH -s $scope -b "$base" $extra -h $LOCALHOST -p $1 contextCSN
 			echo -n "Consumer: "
@@ -759,7 +774,6 @@ function wait_syncrepl {
 
 		#echo "  Waiting +SLEEP0 seconds for syncrepl to receive changes (from $1 to $2)..."
 		sleep $SLEEP0
-		t=$(echo "$SLEEP0 + $t" | bc -q)
 	done
 }
 

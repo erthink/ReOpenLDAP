@@ -248,7 +248,7 @@ wait4msg(
 		tv0 = *timeout;
 		tv = *timeout;
 		tvp = &tv;
-		ldap_timeval( &start_time_tv );
+		ldap_timeval_realtime( &start_time_tv );
 	}
 
 	rc = LDAP_MSG_X_KEEP_LOOKING;
@@ -362,7 +362,7 @@ wait4msg(
 			if ( tvp == NULL )
 				continue;
 
-			ldap_timeval( &curr_time_tv );
+			ldap_timeval_realtime( &curr_time_tv );
 
 			/* delta_time = tmp_time - start_time */
 			delta_time_tv.tv_sec = curr_time_tv.tv_sec - start_time_tv.tv_sec;

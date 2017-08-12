@@ -334,7 +334,7 @@ static Connection* connection_get( ber_socket_t s )
 		if ( global_idletimeout > 0 )
 #endif /* ! SLAPD_MONITOR */
 		{
-			c->c_activitytime = ldap_now();
+			c->c_activitytime = ldap_now_steady();
 		}
 		ldap_pvt_thread_mutex_unlock( &connections_mutex );
 	}
@@ -487,7 +487,7 @@ Connection * connection_init(
 	if ( global_idletimeout > 0 )
 #endif /* ! SLAPD_MONITOR */
 	{
-		c->c_activitytime = c->c_starttime = ldap_now();
+		c->c_activitytime = c->c_starttime = ldap_now_steady();
 	}
 
 	if ( flags & CONN_IS_CLIENT ) {

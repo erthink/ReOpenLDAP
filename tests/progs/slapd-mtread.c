@@ -336,7 +336,7 @@ main( int argc, char **argv )
 	}
 
 	if (strcasestr(entry, "cn=Monitor") != 0) {
-		/* LY: Workaround for https://github.com/ReOpen/ReOpenLDAP/issues/92
+		/* LY: Workaround for https://github.com/leo-yuriev/ReOpenLDAP/issues/92
 		 * Give a time to slapd and monitor-backend for completion closed connections. */
 		tester_error( "Wait for completion closed connections" );
 		sleep(1);

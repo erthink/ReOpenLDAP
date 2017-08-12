@@ -35,6 +35,7 @@ build/missing
 configure.log
 .deps
 .dirstamp
+docker/slapd.test.conf
 @dumps/
 *.eml
 /include/lber_types.h

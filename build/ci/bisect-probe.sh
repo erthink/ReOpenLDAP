@@ -1,29 +1,44 @@
 #!/bin/bash
 
+function bailout() {
+	echo "BISECT-PROBE: $*"
+	exit 125
+}
+
+
 function probe() {
-	echo "****************************************************************************************** "
-	rm -rf @dumps
-	patch -p1 < .git/test-select.patch || exit 125
-	if make check; then
+	echo "******************************************************************************************"
+	#rm -rf @dumps
+	if [ -s .git/bisect-testno ]; then
+		sed -i -e "s|/test\*|/test$(cat .git/bisect-testno)\*|g" tests/scripts/all || bailout "sed-4-select-test"
+		rm -rf tests/data/regressions || bailout "rm-4-select-test"
+	fi
+
+	if make test; then
+		echo "******************************************************************************************"
 		echo "*** OK"
 		git checkout .
 	else
-		echo "*** FAIL"
+		echo "******************************************************************************************"
+		echo "*** FAIL ($counter of $N)"
 		git checkout .
+		echo "******************************************************************************************"
 		exit 1
 	fi
-	echo "****************************************************************************************** "
+	echo "******************************************************************************************"
 }
 
-N=${1:-1}
+N=${1:-5}
 shift
 
+[ -x ./configure ] || bailout "no-configure"
+
 if [ $# -eq 0 ]; then
-	.git/ci-build.sh --do-not-clean --no-lto || exit 125
+	.git/build.sh --no-lto --insrc --no-dynamic || bailout "build failed"
 else
-	git clean -f -x -d -e ./ps -e tests/testrun || exit 125
-	git submodule foreach --recursive git clean -x -f -d || exit 125
-	[ -f ./configure ] && ./configure "$@" && make depend && make -j4 || exit 125
+	git clean -f -x -d -e tests/testrun || bailout "git-clean failed"
+	git submodule foreach --recursive git clean -x -f -d || bailout "git-submoduleclean failed"
+	./configure "$@" && make -j4 || bailout "configure/make failed"
 fi
 
 last=unknown
@@ -33,6 +48,6 @@ while [ $counter -lt $N ]; do
 	echo "*** repeat-probe $counter of $N"
 	REOPENLDAP_FORCE_IDKFA=1 probe
 done
-echo "****************************************************************************************** "
+echo "******************************************************************************************"
 sleep 7
 exit 0

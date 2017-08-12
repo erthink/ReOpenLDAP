@@ -94,12 +94,12 @@ DETAILS:
    especially a modern. */
 #define GDB_SWITCH2GUILTY_THREAD 0
 
-static char* homedir;
+static char* backtrace_homedir;
 static void backtrace_cleanup(void)
 {
-	if (homedir) {
-		ch_free(homedir);
-		homedir = NULL;
+	if (backtrace_homedir) {
+		ch_free(backtrace_homedir);
+		backtrace_homedir = NULL;
 	}
 }
 
@@ -247,6 +247,7 @@ void backtrace_sigaction(int signum, siginfo_t *info, void* ptr) {
 		should_die = 1;
 		break;
 	case SIGABRT:
+	case SIGALRM:
 		if (info->si_pid == getpid())
 			should_die = 1;
 	case SIGBUS:
@@ -261,10 +262,8 @@ void backtrace_sigaction(int signum, siginfo_t *info, void* ptr) {
 	}
 
 	char time_buf[64];
-	time_t t = ldap_time_steady();
+	time_t t = ldap_time_unsteady();
 	strftime(time_buf, sizeof(time_buf), "%F-%H%M%S", localtime(&t));
-
-	int debug_locked = (ldap_debug_trylock() == 0);
 
 	char name_buf[PATH_MAX];
 	int fd = -1;
@@ -272,12 +271,12 @@ void backtrace_sigaction(int signum, siginfo_t *info, void* ptr) {
 #	undef snprintf
 #endif
 	if (snprintf(name_buf, sizeof(name_buf), "%s/slapd-backtrace.%s-%i.log%c",
-				 homedir ? homedir : ".", time_buf, getpid(), 0) > 0)
-		fd = open(name_buf, O_CREAT | O_EXCL | O_WRONLY, 0644);
+				 backtrace_homedir ? backtrace_homedir : ".", time_buf, getpid(), 0) > 0)
+		fd = open(name_buf, O_CREAT | O_EXCL | O_WRONLY | O_APPEND, 0644);
 
 	if (fd < 0) {
-		if (homedir)
-			fd = open(strrchr(name_buf, '/') + 1, O_CREAT | O_EXCL | O_WRONLY, 0644);
+		if (backtrace_homedir)
+			fd = open(strrchr(name_buf, '/') + 1, O_CREAT | O_EXCL | O_WRONLY | O_APPEND, 0644);
 		if (fd < 0)
 			fd = STDERR_FILENO;
 		dprintf(fd, "\n\n*** Unable create \"%s\": %s!", name_buf, STRERROR(errno));
@@ -482,8 +481,6 @@ void backtrace_sigaction(int signum, siginfo_t *info, void* ptr) {
 				/* LY: The trouble is that GDB should be READY, but no way to check it.
 				 * If we return from signal handler while GDB not ready the kernel just terminate us.
 				 * Assume that checking gdb_is_ready_for_backtrace == gdb_pid is enough. */
-				if (debug_locked)
-					ldap_debug_unlock();
 				return;
 			}
 
@@ -497,8 +494,6 @@ ballout:
 
 done:
 	if (should_die) {
-		if (debug_locked)
-			ldap_debug_unlock();
 		exit(EXIT_FAILURE);
 	}
 
@@ -513,8 +508,6 @@ done:
 		close(pipe_fd[1]);
 	dprintf(fd, "\n*** No reason for die, continue running.\n");
 	close(fd);
-	if (debug_locked)
-		ldap_debug_unlock();
 }
 
 static int enabled;
@@ -524,6 +517,15 @@ int slap_backtrace_get_enable() {
 }
 
 void slap_backtrace_set_dir( const char* path ) {
+#ifdef SLAPD_ENABLE_CI
+	if (backtrace_homedir) {
+		if (!path || strcmp(backtrace_homedir, path))
+			Log( LDAP_DEBUG_ANY, LDAP_LEVEL_NOTICE,
+				"Ignore changing of backtrace directory due SLAPD_ENABLE_CI.\n");
+		return;
+	}
+#endif /* SLAPD_ENABLE_CI */
+
 	backtrace_cleanup();
 	if (path) {
 		static char not_a_first_time;
@@ -534,14 +536,14 @@ void slap_backtrace_set_dir( const char* path ) {
 				abort();
 			}
 		}
-		homedir = ch_strdup(path);
+		backtrace_homedir = ch_strdup(path);
 	}
 }
 
 int slap_limit_coredump_set(int mbytes) {
 	struct rlimit limit;
 
-	limit.rlim_cur = (mbytes > 0)
+	limit.rlim_cur = (mbytes >= 0)
 			? ((unsigned long) mbytes) << 20 : RLIM_INFINITY;
 	limit.rlim_max = RLIM_INFINITY;
 	return setrlimit(RLIMIT_CORE, &limit);
@@ -613,6 +615,9 @@ void slap_backtrace_set_enable( int value )
 			sigdelset(&sa.sa_mask, SIGTRAP);
 			sigdelset(&sa.sa_mask, SIGTERM);
 		} else {
+#ifdef SLAPD_ENABLE_CI
+			Log( LDAP_DEBUG_ANY, LDAP_LEVEL_NOTICE, "Ignore disabling of backtrace due SLAPD_ENABLE_CI.\n");
+#endif /* SLAPD_ENABLE_CI */
 			sa.sa_handler = SIG_DFL;
 			sa.sa_flags = 0;
 			sigemptyset(&sa.sa_mask);
@@ -629,6 +634,8 @@ void slap_backtrace_set_enable( int value )
 
 		sa.sa_flags |= SA_RESTART;
 		sigaction(SIGTRAP, &sa, NULL);
+		/* allow use SIGALRM to make a backtrace */
+		sigaction(SIGALRM, &sa, NULL);
 
 		enabled = value ? 1 : -1;
 	}
@@ -724,14 +731,22 @@ fallback:
 
 #else /* HAVE_ENOUGH4BACKTRACE */
 
-void slap_backtrace_set_enable( int value ) {}
+#ifndef ENOSYS
+#define ENOSYS 38
+#endif
+
+void slap_backtrace_set_enable(int value) {(void)value;}
 int slap_backtrace_get_enable() {return 0;}
-void slap_backtrace_set_dir(const char* path ) {}
-int slap_limit_coredump_set(int mbytes) {return mbytes > 0;}
-int slap_limit_memory_set(int mbytes) {return mbytes > 0;}
+void slap_backtrace_set_dir(const char* path ) {(void)path;}
+int slap_limit_coredump_set(int mbytes) { if (mbytes == 0) return 0; errno = ENOSYS; return -1; }
+int slap_limit_memory_set(int mbytes) { if (mbytes == 0) return 0; errno = ENOSYS; return -1; }
 int slap_limit_coredump_get() {return 0;}
 int slap_limit_memory_get() {return 0;}
-void slap_backtrace_log(void *array[], int nentries, const char* caption) {};
+void slap_backtrace_log(void *array[], int nentries, const char* caption) {
+	(void)array;
+	(void)nentries;
+	(void)caption;
+}
 
 #endif /* HAVE_ENOUGH4BACKTRACE */
 
@@ -745,3 +760,48 @@ slap_backtrace_debug_ex(int skip, int deep, const char *caption) {
 	void **array = alloca(sizeof(void*) * (deep + skip));
 	slap_backtrace_log(array + skip, backtrace(array, deep + skip) - skip, caption);
 }
+
+#ifdef SLAPD_ENABLE_CI
+/* simplify testing for Continuous Integration */
+void slap_setup_ci(void) {
+	slap_limit_coredump_set( -1 /* unlimit */ );
+	slap_backtrace_set_enable(1);
+
+#ifdef __linux__
+	/* enable debugger attaching */
+	prctl(PR_SET_PTRACER, PR_SET_PTRACER_ANY, 0, 0, 0);
+#endif /* __linux__ */
+
+	/* set directory for backtraces */
+	const char* dir = getenv("SLAPD_TESTING_DIR");
+#ifdef SLAPD_TESTING_DIR
+	if (!dir)
+		dir = SLAPD_TESTING_DIR;
+#endif
+	if (dir) {
+		slap_backtrace_set_dir(dir);
+		Log( LDAP_DEBUG_ANY, LDAP_LEVEL_NOTICE, "Set backtrace directory to %s (due SLAPD_ENABLE_CI).\n", dir);
+	}
+
+	/* set alarm to dump backtraces */
+	long seconds = 0;
+#ifdef SLAPD_TESTING_TIMEOUT
+	seconds = SLAPD_TESTING_TIMEOUT;
+#endif
+	const char* timeout = getenv("SLAPD_TESTING_TIMEOUT");
+	if (timeout)
+		seconds = atol(timeout);
+	if (seconds > 0) {
+		Log( LDAP_DEBUG_ANY, LDAP_LEVEL_NOTICE, "Set testing timeout to %ld seconds (due SLAPD_ENABLE_CI).\n", seconds);
+		struct itimerval itimer;
+		itimer.it_interval.tv_sec = 42;
+		itimer.it_interval.tv_usec = 0;
+		itimer.it_value.tv_sec = seconds;
+		itimer.it_value.tv_usec = 0;
+		if (setitimer(ITIMER_REAL, &itimer, NULL)) {
+			perror("setitimer()");
+			abort();
+		}
+	}
+}
+#endif /* SLAPD_ENABLE_CI */

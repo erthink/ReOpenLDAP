@@ -61,7 +61,7 @@ dnl Determine host platform
 dnl		we try not to use this for much
 AC_CANONICAL_TARGET([])
 
-AM_INIT_AUTOMAKE([subdir-objects --warnings=no-portability --warnings=error dist-xz no-dist-gzip])
+AM_INIT_AUTOMAKE([subdir-objects --warnings=no-portability --warnings=error dist-xz tar-pax no-dist-gzip])
 AM_SILENT_RULES([yes])
 AM_MAINTAINER_MODE([disable])
 LT_CONFIG_LTDL_DIR([build/libltdl])
@@ -325,6 +325,7 @@ AC_SUBST(REOPENLDAP_BUILDID_SUFFIX)
 dnl ----------------------------------------------------------------
 dnl General "enable" options
 OL_ARG_ENABLE(debug,[  --enable-debug          enable debug logging], yes, [no yes extra])dnl
+OL_ARG_ENABLE(ci,[  --enable-ci             enable Continuous Integration stuff], no, [no yes])dnl
 OL_ARG_ENABLE(syslog,[  --enable-syslog         enable syslog support], auto)dnl
 OL_ARG_ENABLE(contrib,[  --enable-contrib        enable extra plugins and overlays], no, [no yes broken])dnl
 OL_ARG_ENABLE(experimental,[  --enable-experimental   enable experimental and developing features], no, [no yes])dnl
@@ -356,6 +357,7 @@ else
 	AX_VALGRIND_DFLT([memcheck], [off])
 	AX_VALGRIND_CHECK
 fi
+AC_SUBST(VALGRIND_SUPPRESSIONS_FILES)
 
 case $ol_enable_experimental in
     yes)
@@ -2430,6 +2432,9 @@ case $ol_enable_debug in
 	AC_MSG_FAILURE([invalid --enable-debug value '$ol_enable_debug'])
 	;;
 esac
+if test "$ol_enable_ci" != no ; then
+	AC_DEFINE(SLAPD_ENABLE_CI,1,[define this to simplify Continuous Integration testing])
+fi
 
 if test "$ol_enable_syslog" != no ; then
 	AC_DEFINE(LDAP_SYSLOG,1,[define this to add syslog code])

@@ -1020,7 +1020,7 @@ syncrepl_process(
 		bl = slap_biglock_get(si->si_wbe);
 		/* LY: this is ugly solution, on other hand,
 		 * it is reasonable and necessary.
-		 * See https://github.com/ReOpen/ReOpenLDAP/issues/43
+		 * See https://github.com/leo-yuriev/ReOpenLDAP/issues/43
 		 */
 		slap_biglock_acquire(bl);
 
@@ -1467,9 +1467,25 @@ done:
 	slap_biglock_release(bl);
 
 	if ( rc != LDAP_SUCCESS ) {
+		const char* errstr = NULL;
+		switch(rc) {
+		case SYNC_PAUSED:
+			errstr = "syncrepl-paused";
+			break;
+		case SYNC_RETARDED:
+			errstr = "syncrepl-retarded";
+			break;
+		case SYNC_REFRESH_YIELD:
+			errstr = "syncrepl-yield";
+			break;
+		default:
+			errstr = ldap_err2string( rc );
+		}
+
 		Debug( LDAP_DEBUG_ANY,
 			"syncrepl_process: %s (%d) %s\n",
-			si->si_ridtxt, rc, ldap_err2string( rc ) );
+			si->si_ridtxt, rc, errstr );
+		(void) errstr;
 	}
 
 	if ( si->si_require_present && rc == LDAP_SUCCESS
@@ -2108,8 +2124,11 @@ syncrepl_op_modify( Operation *op, SlapReply *rs )
 		if ( mod->sml_desc == slap_schema.si_ad_entryCSN ) break;
 	}
 	/* FIXME: what should we do if entryCSN is missing from the mod? */
-	if ( !mod )
+	if ( !mod ) {
+		if (reopenldap_mode_strict())
+			return rs->sr_err = LDAP_PROTOCOL_ERROR;
 		return SLAP_CB_CONTINUE;
+	}
 
 	ldap_pvt_thread_mutex_lock( &si->si_cookieState->cs_mutex );
 	match = slap_cookie_compare_csn( &si->si_cookieState->cs_cookie, &mod->sml_nvalues[0] );
@@ -2538,7 +2557,7 @@ static int check_for_retard(syncinfo_t *si, struct sync_cookie *sc,
 {
 	int i, origin, rc = 0;
 
-	/* LY: This is fixes https://github.com/ReOpen/ReOpenLDAP/issues/43
+	/* LY: This is fixes https://github.com/leo-yuriev/ReOpenLDAP/issues/43
 	 * for most cases. */
 
 	if (SLAP_MULTIMASTER(si->si_be)) {
