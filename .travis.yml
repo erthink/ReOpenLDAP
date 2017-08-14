@@ -9,6 +9,9 @@ compiler:
 os:
 - linux
 
+cache:
+  ccache: true
+
 env:
   global:
   - LIBTOOL_SUPPRESS_DEFAULT=no
@@ -46,6 +49,9 @@ before_script:
     -in build/ci/upload_rsa.enc -out ~/.ssh/id_rsa -d && chmod 600 ~/.ssh/id_rsa;
   fi
 - mkdir -p $TEST_NOOK
+- mkdir -p "${HOME}/bin"
+- ln -s "$(which ccache)" "${HOME}/bin/${CC}"
+- export PATH="${HOME}/bin:${PATH}"
 
 script:
 - ./bootstrap.sh --dont-cleanup || cp build/*.rej build/*.orig $TEST_NOOK/
