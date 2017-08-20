@@ -1512,6 +1512,10 @@ LDAP_F( LDAP * )
 ldap_dup LDAP_P((
 	LDAP *old ));
 
+LDAP_F( int )
+ldap_init_fd LDAP_P((
+	ber_socket_t fd, int proto, LDAP_CONST char *url, LDAP **ldp ));
+
 /*
  * in tls.c
  */

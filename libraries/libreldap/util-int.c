@@ -97,7 +97,7 @@ ldap_pvt_gettime( struct lutil_tm *ltm )
 	struct timeval tv;
 	struct tm tm;
 
-	ltm->tm_usub = ldap_timeval( &tv );
+	ltm->tm_usub = ldap_timeval_realtime( &tv );
 	gmtime_r( &tv.tv_sec, &tm );
 	ltm->tm_sec = tm.tm_sec;
 	ltm->tm_min = tm.tm_min;

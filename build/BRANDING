@@ -19,14 +19,14 @@ failure() {
 }
 
 PACKAGE=ReOpenLDAP
-PACKAGE_URL="https://github.com/ReOpen/ReOpenLDAP/wiki"
-PACKAGE_BUGREPORT="https://github.com/ReOpen/ReOpenLDAP/issues"
+PACKAGE_URL="https://github.com/leo-yuriev/ReOpenLDAP/wiki"
+PACKAGE_BUGREPORT="https://github.com/leo-yuriev/ReOpenLDAP/issues"
 
 RELEASE_TYPE=ReleaseEngineering
 
 VERSION_MAJOR=1
 VERSION_MINOR=1
-VERSION_PATCH_LEVEL=6
+VERSION_PATCH_LEVEL=7
 
 API_CURRENT=12
 API_REVISON=7

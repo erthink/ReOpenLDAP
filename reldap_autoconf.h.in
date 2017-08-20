@@ -1095,6 +1095,9 @@
 /* define to support dynamic modules */
 #undef SLAPD_DYNAMIC_MODULES
 
+/* define this to simplify Continuous Integration testing */
+#undef SLAPD_ENABLE_CI
+
 /* define to support HDB backend */
 #undef SLAPD_HDB
 

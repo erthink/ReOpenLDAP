@@ -38,7 +38,7 @@
 /*
  * server start time (should we use a struct timeval also in slapd?
  */
-static struct			timeval base_time;
+static uint64_t			base_time_ns;
 ldap_pvt_thread_mutex_t		slapi_hn_mutex;
 ldap_pvt_thread_mutex_t		slapi_time_mutex;
 
@@ -1948,26 +1948,13 @@ slapi_log_error(
 unsigned long
 slapi_timer_current_time( void )
 {
-	static int	first_time = 1;
-	struct timeval	now;
-	unsigned long	ret;
-
 	ldap_pvt_thread_mutex_lock( &slapi_time_mutex );
-	if (first_time) {
-		first_time = 0;
-		ldap_timeval( &base_time );
-	}
-	ldap_timeval( &now );
-	ret = ( now.tv_sec  - base_time.tv_sec ) * 1000000 +
-			(now.tv_usec - base_time.tv_usec);
+	if (unlikely(base_time_ns == 0))
+		base_time_ns = ldap_now_steady_ns();
+	uint64_t ns = ldap_now_steady_ns() - base_time_ns;
 	ldap_pvt_thread_mutex_unlock( &slapi_time_mutex );
 
-	return ret;
-
-	/*
-	 * Ain't it better?
-	return (ldap_time_steady() - starttime) * 1000000;
-	 */
+	return ns / 1000;
 }
 
 /*

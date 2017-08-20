@@ -159,6 +159,8 @@ LDAP_LUTIL_F(void) ldap_debug_va LDAP_P((
 LDAP_LUTIL_F(void) ldap_debug_lock(void);
 LDAP_LUTIL_F(int) ldap_debug_trylock(void);
 LDAP_LUTIL_F(void) ldap_debug_unlock(void);
+LDAP_LUTIL_F(void) ldap_debug_flush(void);
+LDAP_LUTIL_F(void) ldap_debug_set_autoflush(int enable);
 
 LDAP_END_DECL
 

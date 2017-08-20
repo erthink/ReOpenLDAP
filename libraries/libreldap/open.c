@@ -383,7 +383,7 @@ ldap_int_open_connection(
 			break;
 	}
 
-	conn->lconn_created = ldap_now();
+	conn->lconn_created = ldap_now_steady();
 
 #ifdef LDAP_DEBUG
 	ber_sockbuf_add_io( conn->lconn_sb, &ber_sockbuf_io_debug,

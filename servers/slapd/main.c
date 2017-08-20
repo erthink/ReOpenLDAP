@@ -387,6 +387,10 @@ int main( int argc, char **argv )
 	slap_backtrace_set_enable( 1 );
 #endif
 
+#ifdef SLAPD_ENABLE_CI
+	slap_setup_ci();
+#endif /* SLAPD_ENABLE_CI */
+
 	slap_sl_mem_init();
 
 	(void) ldap_pvt_thread_initialize();
@@ -427,8 +431,11 @@ int main( int argc, char **argv )
 		switch ( i ) {
 #ifdef __linux__
 		case 'D':
-			mallopt(M_CHECK_ACTION, 7);
+			/* turn on malloc checking */
+			mallopt(M_CHECK_ACTION, 3);
+			/* turn on malloc memory filling */
 			mallopt(M_PERTURB, 111);
+			/* enable debugger attaching */
 			prctl(PR_SET_PTRACER, PR_SET_PTRACER_ANY, 0, 0, 0);
 			break;
 #endif /* __linux__ */
@@ -879,6 +886,10 @@ unhandled_option:;
 		} else {
 			close( waitfds[0] );
 		}
+
+#ifdef SLAPD_ENABLE_CI
+		slap_setup_ci();
+#endif /* SLAPD_ENABLE_CI */
 	}
 
 #ifdef CSRIMALLOC
@@ -937,7 +948,7 @@ unhandled_option:;
 	 * FIXME: moved here from slapd_daemon_task()
 	 * because back-monitor db_open() needs it
 	 */
-	starttime = ldap_now();
+	starttime = ldap_now_steady();
 
 	connections_init();
 

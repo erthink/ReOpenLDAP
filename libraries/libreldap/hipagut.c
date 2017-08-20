@@ -31,6 +31,8 @@
 #include <pthread.h>
 
 #include "lber_hipagut.h"
+#include "ldap_log.h"
+#include "ldap-int.h"
 
 /* LY: only for self debugging
 #include <stdio.h> */
@@ -674,13 +676,11 @@ __hot void reopenldap_jitter(int probability_percent) {
 
 /*----------------------------------------------------------------------------*/
 
-static uint64_t clock_past, clock_past_us;
 #ifdef CLOCK_BOOTTIME
 static clockid_t clock_mono_id;
 #else
 #	define clock_mono_id CLOCK_MONOTONIC
 #endif /* CLOCK_BOOTTIME */
-static unsigned clock_us_subtick;
 static pthread_mutex_t clock_mutex = PTHREAD_MUTEX_INITIALIZER;
 static int64_t clock_mono2real_ns;
 
@@ -734,63 +734,70 @@ __cold static int64_t clock_mono2real_delta() {
 	return best_delta;
 }
 
-__hot uint64_t ldap_now_ns(void) {
-	uint64_t clock_now;
+__hot uint64_t ldap_now_steady_ns(void) {
+	LDAP_ENSURE(pthread_mutex_lock(&clock_mutex) == 0);
 
-	if (unlikely(!clock_mono2real_ns)) {
-		LDAP_ENSURE(pthread_mutex_lock(&clock_mutex) == 0);
-		if (!clock_mono2real_ns)
-			clock_mono2real_ns = clock_mono2real_delta();
-		LDAP_ENSURE(pthread_mutex_unlock(&clock_mutex) == 0);
+	if (unlikely(!clock_mono2real_ns))
+		clock_mono2real_ns = clock_mono2real_delta();
+
+	uint64_t ns = clock_ns(clock_mono_id) + clock_mono2real_ns;
+	static uint64_t previous;
+	if (unlikely(ns < previous)) {
+		Log(LDAP_DEBUG_ANY, LDAP_LEVEL_ERROR,
+			"Detected system steady-time adjusted backwards %e seconds\n",
+			(previous - ns) * 1e-9);
+		if (reopenldap_mode_strict()) {
+			Log(LDAP_DEBUG_ANY, LDAP_LEVEL_CRIT,
+				"Bailing out due %s-clock backwards in the strict mode.\n",
+				"steady");
+			abort();
+		}
 	}
 
-	if (reopenldap_mode_check())
-		LDAP_ENSURE(pthread_mutex_lock(&clock_mutex) == 0);
-
-	if (reopenldap_mode_righteous())
-		clock_now = clock_ns(clock_mono_id) + clock_mono2real_ns;
+	if (unlikely(ns == previous))
+		ns += 1;
 	else
-		clock_now = clock_ns(CLOCK_REALTIME);
+		previous = ns;
 
-	if (reopenldap_mode_check()) {
-		LDAP_ENSURE(clock_past < clock_now);
-		clock_past = clock_now;
-		LDAP_ENSURE(pthread_mutex_unlock(&clock_mutex) == 0);
-	}
-
-	return clock_now;
+	LDAP_ENSURE(pthread_mutex_unlock(&clock_mutex) == 0);
+	return ns;
 }
 
-__hot void ldap_timespec(struct timespec *ts) {
-	uint64_t clock_now = ldap_now_ns();
+__hot void ldap_timespec_steady(struct timespec *ts) {
+	uint64_t clock_now = ldap_now_steady_ns();
 	ts->tv_sec = clock_now / 1000000000ul;
 	ts->tv_nsec = clock_now % 1000000000ul;
 }
 
-__hot unsigned ldap_timeval(struct timeval *tv) {
-	uint64_t clock_now, us;
-	unsigned subtick;
-
+__hot unsigned ldap_timeval_realtime(struct timeval *tv) {
 	LDAP_ENSURE(pthread_mutex_lock(&clock_mutex) == 0);
-	if (unlikely(!clock_mono2real_ns))
-		clock_mono2real_ns = clock_mono2real_delta();
 
-	if (reopenldap_mode_righteous())
-		clock_now = clock_ns(clock_mono_id) + clock_mono2real_ns;
-	else
-		clock_now = clock_ns(CLOCK_REALTIME);
+	uint64_t us;
+	if (reopenldap_mode_righteous()) {
+		if (unlikely(!clock_mono2real_ns))
+			clock_mono2real_ns = clock_mono2real_delta();
+		us = (clock_ns(clock_mono_id) + clock_mono2real_ns) / 1000;
+	} else
+		us = clock_ns(CLOCK_REALTIME) / 1000;
 
-	if (reopenldap_mode_check()) {
-		LDAP_ENSURE(clock_past < clock_now);
-		clock_past = clock_now;
+	static uint64_t previous;
+	static unsigned previous_subtick;
+	if (unlikely(us < previous)) {
+		Log(LDAP_DEBUG_ANY, LDAP_LEVEL_WARNING,
+			"Detected system real-time adjusted backwards %e seconds\n",
+			(previous - us) * 1e-6);
+		if (reopenldap_mode_strict()) {
+			Log(LDAP_DEBUG_ANY, LDAP_LEVEL_CRIT,
+				"Bailing out due %s-clock backwards in the strict mode.\n",
+				"realtime");
+			abort();
+		}
+		us = previous;
 	}
 
-	us = clock_now / 1000u;
-	subtick = 0;
-	if (unlikely(clock_past_us == us))
-		subtick = clock_us_subtick + 1;
-	clock_us_subtick = subtick;
-	clock_past_us = us;
+	unsigned subtick = likely(previous != us) ? 0 : previous_subtick + 1;
+	previous = us;
+	previous_subtick = subtick;
 	LDAP_ENSURE(pthread_mutex_unlock(&clock_mutex) == 0);
 
 	tv->tv_sec = us / 1000000u;
@@ -799,7 +806,7 @@ __hot unsigned ldap_timeval(struct timeval *tv) {
 }
 
 __hot time_t ldap_time_steady(void) {
-	return ldap_to_time( ldap_now() );
+	return ldap_to_time( ldap_now_steady() );
 }
 
 __hot time_t ldap_time_unsteady(void) {

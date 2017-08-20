@@ -1398,7 +1398,7 @@ syncprov_op_abandon( Operation *op, SlapReply *rs )
 	syncops *so, **pso;
 
 	if (! si)
-		/* LY: workaround for https://github.com/ReOpen/ReOpenLDAP/issues/45 */
+		/* LY: workaround for https://github.com/leo-yuriev/ReOpenLDAP/issues/45 */
 		return SLAP_CB_CONTINUE;
 
 	ldap_pvt_thread_mutex_lock( &si->si_ops_mutex );
@@ -2648,7 +2648,7 @@ syncprov_detach_op( Operation *op, syncops *so, slap_overinst *on )
 	so->s_flags |= PS_IS_DETACHED;
 	slap_set_op_abandon(op, 1);
 	/* LY: Icing on the cake - this is a crutch/workaround
-	 * for https://github.com/ReOpen/ReOpenLDAP/issues/47 */
+	 * for https://github.com/leo-yuriev/ReOpenLDAP/issues/47 */
 	op->o_msgid += ~((~0u) >> 1);
 
 	/* Add op2 to conn so abandon will find us */
@@ -3836,7 +3836,7 @@ syncprov_db_destroy(
 	syncprov_info_t	*si = (syncprov_info_t *)on->on_bi.bi_private;
 
 	if ( si ) {
-		/* LY: workaround for https://github.com/ReOpen/ReOpenLDAP/issues/45 */
+		/* LY: workaround for https://github.com/leo-yuriev/ReOpenLDAP/issues/45 */
 		for(;;) {
 			int drained, paused = -1;
 

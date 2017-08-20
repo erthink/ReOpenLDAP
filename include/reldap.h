@@ -312,16 +312,16 @@ struct timeval;
 
 LDAP_F(time_t) ldap_time_steady(void);
 LDAP_F(time_t) ldap_time_unsteady(void);
-LDAP_F(void) ldap_timespec(struct timespec *);
-LDAP_F(unsigned) ldap_timeval(struct timeval *);
-LDAP_F(uint64_t) ldap_now_ns(void);
+LDAP_F(void) ldap_timespec_steady(struct timespec *);
+LDAP_F(unsigned) ldap_timeval_realtime(struct timeval *);
+LDAP_F(uint64_t) ldap_now_steady_ns(void);
 
 typedef struct {
 	uint64_t ns;
 } slap_time_t;
 
-#define ldap_now(void) ({ \
-	slap_time_t __t = { ldap_now_ns() }; \
+#define ldap_now_steady(void) ({ \
+	slap_time_t __t = { ldap_now_steady_ns() }; \
 	__t; \
 })
 

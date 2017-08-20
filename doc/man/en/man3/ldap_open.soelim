@@ -15,7 +15,7 @@
 .TH LDAP_OPEN 3 "@RELEASE_DATE@" "ReOpenLDAP @VERSION@"
 
 .SH NAME
-ldap_init, ldap_initialize, ldap_open \- Initialize the LDAP library and open a connection to an LDAP server
+ldap_init, ldap_initialize, ldap_open, ldap_init_fd \- Initialize the LDAP library and open a connection to an LDAP server
 
 .SH LIBRARY
 ReOpenLDAP LDAP (libreldap, \-lreldap)
@@ -57,9 +57,6 @@ LDAP *ld;
 LDAPURLDesc **urllist;
 LDAPURLDesc **url;
 void *params;
-.LP
-.ft B
-#include <ldap_pvt.h>
 .LP
 .ft B
 int ldap_init_fd(fd, proto, uri, ldp)

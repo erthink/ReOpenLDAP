@@ -355,6 +355,11 @@ LDAP_SLAPD_F(int) slap_limit_memory_set(int mbytes);
 LDAP_SLAPD_F(int) slap_limit_coredump_get();
 LDAP_SLAPD_F(int) slap_limit_memory_get();
 
+#ifdef SLAPD_ENABLE_CI
+/* simplify testing for Continuous Integration */
+LDAP_SLAPD_F(void) slap_setup_ci(void);
+#endif /* SLAPD_ENABLE_CI */
+
 /*
  * ava.c
  */
