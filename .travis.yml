@@ -9,6 +9,9 @@ compiler:
 os:
 - linux
 
+cache:
+  ccache: true
+
 env:
   global:
   - LIBTOOL_SUPPRESS_DEFAULT=no
@@ -41,11 +44,17 @@ addons:
     - gdb
 
 before_script:
-- if [ "$TRAVIS_PULL_REQUEST" = "false" ]; then
+- echo "111111111111111"
+- echo $encrypted_1572229a40f3_key
+- echo "2222222222222222"
+- if [ ! -z "$encrypted_1572229a40f3_key" ]; then
     openssl aes-256-cbc -K $encrypted_1572229a40f3_key -iv $encrypted_1572229a40f3_iv
     -in build/ci/upload_rsa.enc -out ~/.ssh/id_rsa -d && chmod 600 ~/.ssh/id_rsa;
   fi
 - mkdir -p $TEST_NOOK
+- mkdir -p "${HOME}/bin"
+- ln -s "$(which ccache)" "${HOME}/bin/${CC}"
+- export PATH="${HOME}/bin:${PATH}"
 
 script:
 - ./bootstrap.sh --dont-cleanup || cp build/*.rej build/*.orig $TEST_NOOK/
