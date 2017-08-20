@@ -38,9 +38,11 @@ configure.log
 docker/slapd.test.conf
 @dumps/
 *.eml
+*.in
 /include/lber_types.h
 /include/ldap_dirs.h
 /include/ldap_features.h
+INSTALL
 *.la
 libraries/liblunicode/ucgendat
 libraries/liblunicode/uctable.h
@@ -56,15 +58,12 @@ libtool
 .links
 *.lo
 Makefile
-Makefile.in
 *.man
-*.man.in
 *.o
 *.orig
 *.patch
 *.rej
 reldap_autoconf.h
-reldap_autoconf.h.in
 servers/slapd/back-bdb/.dirstamp
 servers/slapd/back-mdb/mdbx_chk
 servers/slapd/back-mdb/mdbx_copy
