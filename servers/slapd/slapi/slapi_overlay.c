@@ -45,11 +45,12 @@ slapi_over_pblock_new( Operation *op, SlapReply *rs )
 	Slapi_PBlock		*pb;
 
 	pb = slapi_pblock_new();
-	PBLOCK_ASSERT_OP( pb, op->o_tag );
 	pb->pb_op = op;
 	pb->pb_conn = op->o_conn;
 	pb->pb_rs = rs;
 	pb->pb_intop = 0;
+
+	PBLOCK_ASSERT_OP( pb, op->o_tag );
 
 	return pb;
 }
