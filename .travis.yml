@@ -41,7 +41,7 @@ addons:
     - gdb
 
 before_script:
-- if [ "$TRAVIS_PULL_REQUEST" = "false" ]; then
+- if [ ! -z "$encrypted_1572229a40f3_key" ]; then
     openssl aes-256-cbc -K $encrypted_1572229a40f3_key -iv $encrypted_1572229a40f3_iv
     -in build/ci/upload_rsa.enc -out ~/.ssh/id_rsa -d && chmod 600 ~/.ssh/id_rsa;
   fi
