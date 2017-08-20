@@ -804,11 +804,13 @@ entry_decode_dn( EntryHeader *eh, struct berval *dn, struct berval *ndn )
 		i = entry_getlen(&ptr);
 		ndn->bv_val = (char *) ptr;
 		ndn->bv_len = i;
+
 	}
 
 	Debug( LDAP_DEBUG_TRACE,
-		"entry_decode_dn: \"%s\"\n",
-		dn ? dn->bv_val : ndn->bv_val );
+		"entry_decode_dn: \"%s\", ndn: \"%s\"\n",
+		dn ? dn->bv_val : NULL,
+		ndn ? ndn->bv_val : NULL );
 
 	return 0;
 }

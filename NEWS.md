@@ -1,3 +1,207 @@
+v1.1.6 2017-08-12
+=================
+Briefly:
+ 1. A lot of bug fixing.
+ 2. Support for [musl-libc](https://www.musl-libc.org), fixes related to build and dependencies.
+ 3. Continuous Integration by [Travis-CI](https://travis-ci.org/leo-yuriev/ReOpenLDAP)
+    and [Circle-CI](https://circleci.com/gh/leo-yuriev/ReOpenLDAP).
+
+New features and Compatibility breaking:
+ * libreldap, mdbx: musl support.
+ * contrib: argon2 password hashing module (ITS#8575).
+ * libreldap: more for LibreSSL and OpenSSL 1.1.0c (ITS#8533, ITS#8353).
+ * overlays: backport - add AutoCA overlay.
+ * mdbx: support glibc < 2.18 for TLS cleanup on thread termination.
+ * libreldap: adds ldif_open_mem() (ITS#8603).
+ * slapd: backport - Add config support for binary values.
+ * libreldap: backport - Add options to use DER format cert+keys directly.
+ * proxy-cache, all: use LDAP_DEBUG_CACHE/Cache.
+ * mdbx: don't ignore `data` arg in mdb_del() for libfpta.
+ * mdbx: rework mdbx_replace() for libfpta.
+ * mdbx: add mdbx_dbi_open_ex() for libfpta.
+ * mdbx: add mdbx_is_dirty() for libfpta.
+ * mdbx: add MDBX_RESULT_FALSE and MDBX_RESULT_TRUE for libfpta.
+ * mdbx: zero-length key is not an error for MDBX.
+ * mdbx: MDBX_EMULTIVAL errcode for libfpta.
+ * mdbx: allows cursors to be free/reuse explicitly, regardless of transaction wr/ro type.
+ * mdbx: adds mdbx_get_ex() for libfpta.
+ * mdbx: adds mdbx_replace() for libfpta.
+ * mdbx: allows zero-length keys for libfpta.
+ * mdbx: rework MDB_CURRENT handling for libfpta.
+ * mdbx: adds mdbx_cursor_eof() for libfpta.
+ * mdbx: explicit overwrite support for mdbx_put().
+ * mdbx: add 'canary' support for libfpta.
+ * mdbx: 'attributes' support for Nexenta.
+
+Documentation:
+ * man: Fix wording to match examples (ITS#8123).
+ * man-contib: add man-pages for contrib overlays (ITS#8205).
+ * man: Note that non-zero serverID's are required for MMR, and that serverID 0 is specific to single master replication only (ITS#8635).
+ * man: Note that slapo-memberOf should not be used in a replicated environment (ITS#8613).
+ * doc: cleanup tabs in CHANGES.OpenLDAP
+ * doc: backport - Catalog of assigned OID arcs.
+ * man: backport - Fix VV option information (ITS#7177, ITS#6339).
+ * man: Further clarification around replication information (ITS#8253).
+ * Update CONTRIBUTING.md
+ * mdbx: notes about free/reuse cursors.
+ * slapd: refine note for Cyrus-SASL memleak.
+ * contrib: minor Update TOTP README (ITS#8513).
+ * man: backport - Add a manpage for slapo-autogroup (ITS#8569).
+ * man: backport - Grammar and escaping fixes (ITS#8544).
+ * man: backport - Clearly document rootdn requirement for the ppolicy overlay (ITS#8565).
+ * mdbx: rework README.
+
+Major and Security bugs:
+ * mdbx: backport - don't madvise(MADV_REMOVE).
+ * backend-mdb: fix double free on paged search with pagesize 0 (ITS#8655).
+ * reldap: retry gnutls_handshake after GNUTLS_E_AGAIN (ITS#8650).
+ * slapo-sssvlv: Cleanup double-free fix in sssvlv overlay (ITS#8592).
+ * libreldap: fix races around tls_init().
+ * libreldap: use pthread_once() for SASL init (fix Debian Bug #860947).
+ * mdbx: fix snap-state bug (backport).
+ * slapd: fix segfault (ITS#8631)
+ * libreldap: backport - Fixup cacert/cert/key options.
+ * libreldap: fix hipagut for ARM/ARM64 (and other where alignment is required).
+ * overlay-sssvlv: try to fix double-free in server side sort (ITS#8592, ITS#8368).
+ * libreldap: backport - Avoid hiding the error if user specified CA does not load (ITS#8529).
+ * syncrepl: fix refer to freed mem.
+ * slapd: backport - fix sasl SEGV rebind in same session (ITS#8568).
+ * mdbx: CHANGES for glibc bugs #21031 and #21032.
+
+Minor bugs:
+ * mdbx: backport - ITS#8699 more for cursor_del ITS#8622.
+ * slapd: avoid hang/crash the backtrace_sigaction().
+ * reopenldap: avoid deadlock/recursion in debug-output.
+ * syncrepl: LDAP_PROTOCOL_ERROR if entryCSN missing in 'IDCLIP' mode.
+ * mdbx: backport - fix mdbx_set_attr().
+ * mdbx: fix mdbx_txn_straggler() for write-txn (backport from devel).
+ * mdbx: fix crash on twice txn-end (backport from devel).
+ * reldap: check result of ldap_int_initialize in ldap_{get,set}_option (ITS#8648).
+ * slapd: backport - fix LDAP_TAILQ macro, nice bug since 2002 (ITS#8576).
+ * slapd, autoca-overlay: backport - Move privateKey schema into slapd.
+ * slapd: backport - Update accesslog format and syncrepl consumer (ITS#6545).
+ * libreldap: backport - Ensure that the deprecated API is not used when using OpenSSL 1.1 or later (ITS#8353, ITS#8533).
+ * unique-overlay: backport - Allow empty mods (ITS#8266).
+ * libutil, slapd: backport - Separate Avlnode and TAvlnode types (ITS#8625).
+ * libreldap, slapd: backport - Fixes for multiple threadpool queues.
+ * mdbx: backport - ITS#8622 fix xcursor after cursor_del.
+ * slapd: backport - Deal with rDN correctly (ITS#8574).
+ * syncprov: fix possibility of use freed `pivot_csn`.
+ * mdbx: fix cursor-untrack bug.
+ * slapd: fix memleaks from mask_to_verbstring().
+ * slapd: fix minor config-value_string memleak.
+ * libreldap: fix minor PL_strdup(noforkenvvar) memleak.
+ * slapd: workaround for Cyrus memleak.
+ * backend-mdb: fix cursor leaks (follow libmdbx API changes).
+ * libreldap: backport - Fail ldap_result if handle is already bad (ITS#8585).
+ * mdbx: fix losing a zero-length value of sorted-dups (for libfpta).
+ * slapd: fix slap_tls_get_config().
+ * slapd: fix mr_index_cmp() for match-rules.
+ * ci: fix static/dymanic for backends.
+ * mdbx: fix MDB_CURRENT for MDB_DUPSORT in mdbx_cursor_put() for libfpta.
+ * mdbx: fix LEAF2-pages handling in mdb_cursor_count().
+ * slapd: fix LDAP_OPT_X_TLS_CRLFILE.
+ * slapd: temporary fix for issue#120 (its8444).
+ * syncprov: bypass refresh for refrech-and-persist requests when no local cookies.
+ * syncprov: minor fix rid/sid debug output.
+ * slapd: don't treat an empty cookie string as the protocol violation.
+ * syncrepl: pull cookies before fallback to refresh from delta-mmr.
+ * mdbx: fix xflags inside mdb_cursor_put().
+ * mdbx: fix cursor EOF tricks.
+ * syncrepl: immediately schedule retry for LDAP_SYNC_REFRESH_REQUIRED.
+ * syncprov: LDAP_BUG() in op-responce if op-tag missing.
+ * accesslog: fix missing op-tag.
+ * syncrepl: allow empty sync-cookie for delta-mmr (accesslog).
+ * mdbx: fix mdb_cursor_last (ITS#8557).
+ * mdbx: backport - ITS#8558 fix mdb_load with escaped plaintext.
+ * mdbx: fix cursor_count() for libfpta.
+ * mdbx: mdb_chk - don't close dbi-handles, set_maxdbs() instead.
+ * mdbx: fix MDB_GET_CURRENT for dupsort's subcursor.
+
+Performance:
+ * mdbx: 'unlikely' for DB_STALE.
+ * mdbx: check __OPTIMIZE__ for __hot/__cold/__flatten.
+
+Build:
+ * configure: fix subst for VALGRIND_SUPPRESSIONS_FILES.
+ * configure: add '--enable-ci' option for Continuous Integration.
+ * bootstrap: add patch for old ltmain.sh versions.
+ * configure: check for pkg_config.
+ * configure: use CPPFLAGS while check headers.
+ * configure: use OPENSSL_CFLAGS and GNUTLS_CFLAG while check headers.
+ * build: add workaround for libtool `-no-suppress`.
+ * build: add `common.mk` (placeholder for now).
+ * build: add support for EXTRA_CFLAGS.
+ * slapd: fix gcc `-Ofast` warnings.
+ * build: check libsodium >= 1.0.9 for argon2.
+ * dist: use `expr` instead of `bc`.
+ * reopenldap: update automake's stuff for libmdbx changes.
+ * contrib: `-Wno-address` for nssov.
+ * slapd: checks and HAVE_ENOUGH4BACKTRACE for backtrace feature (compatibility).
+ * configure: add missing ldap_dir.h.in (oops).
+ * configure: libuuid by pkg-config.
+ * reopenldap: initial for cross-compilation.
+ * mdbx: adds -ffunction-sections for CFLAGS.
+ * mdbx: enable C99.
+
+Cosmetics:
+ * configure: fix message alignment (cosmetics).
+ * reopenldap: update links after move the repo.
+ * mdbx: update links after move the repo.
+ * ci: add Travis-CI status to README.md
+ * reopenldap: add TODO.md
+ * libreldap: backport - Fix minor typo (ITS#8643).
+ * back-monitor: fix monitoredInfo.
+ * reopenldap: fix 'emtpy' typos (ITS#8587).
+ * syncprov: refine 'syncprov-sessionlog' config.
+ * syncprov: minor renames (cosmetics).
+ * syncprov: refine add_slog (cosmetics).
+ * slapd: refine SlapdVersionStr.
+ * mdbx: remote extra LNs (cosmetics).
+ * mdbx: mdb_chk - cosmetics (no extra \n).
+
+Other:
+ * libreldap: rename ber_error_print() to ber_debug_print().
+ * reopenldap: rename ldap-time functions.
+ * libreldap: drop -ber_pvt_log_output().
+ * reopenldap: rework ldap-time functions.
+ * slapd: refine daemon event loop (still historically madness).
+ * reldap: add ldap_debug_flush(), refine debug-locking.
+ * syncrepl: clarity debug error-string.
+ * ci: add SLAPD_TESTING_DIR and SLAPD_TESTING_TIMEOUT.
+ * slapd: add slap_setup_ci() with engaged by '--enable-ci'.
+ * test: add regression test for ITS#8667.
+ * libreldap: move ldap_init_fd() definition to ldap.h
+ * slapo-valsort: fix 'unused result' warnings around strtol().
+ * slapd: log 'active_threads' on TRACE-level from daemon.
+ * autoca-overlay: tweaks length of keys.
+ * autoca-overlay: backport - Tweaks for OpenSSL 1.1 API deprecations.
+ * libreldap: add MAY_UNUSED to avoid warnings from Clang.
+ * libreldap: remove needless conds.
+ * test: add temporary workaround for issue#121.
+ * test: add `dbnosync` flag for its4448.
+ * slapd: backport - Tweak privateKeyValidate for PKCS#8.
+ * libreldap: backport - Add GnuTLS support for direct DER config of cacert/cert/key.
+ * autoca-overlay: squashed fixups.
+ * libreldap: backport - Add ldap_pvt_thread_pool_queues decl.
+ * slapd: backport - Fixup for binary config attrs.
+ * slapd: minor fixup pause handling in config-backend.
+ * slapd: backport - Support setting cacert/cert/key directly in cn=config entry.
+ * libreldap: fix debug-log warning.
+ * mdbx: don't close/lost DBI-handles on ro-txn renew/reset.
+ * mdbx: don't close DBI-handles from R/O txn_abort().
+ * slapd: use ARG_BAD_CONF for config().
+ * backend-mdb: use ARG_BAD_CONF for config().
+ * mdbx: more for robustness free/reuse of cursors.
+ * mdbx: minor simplify mdb_del0().
+ * mdbx: use MDB_SET_KEY inside mdbx_replace() for libfpta.
+ * mdbx: fix MDB_CURRENT for mdb_cursor_put() with MDB_DUPSORT.
+ * mdbx: refine mdbx_cursor_eof().
+ * mdbx: backport - Tweak cursor_next C_EOF check.
+ * mdbx: rework TLS cleanup on thread termination.
+ * mdbx: assert_fail() when `INDXSIZE(key) > nodemax`.
+
+
 v1.1.5 2016-12-30
 =================
 
