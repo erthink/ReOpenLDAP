@@ -100,13 +100,13 @@ ldap_parse_ntlm_bind_result(
 
 	Debug( LDAP_DEBUG_TRACE, "ldap_parse_ntlm_bind_result\n" );
 
-	assert( ld != NULL );
-	assert( LDAP_VALID( ld ) );
-	assert( res != NULL );
-
 	if ( ld == NULL || res == NULL ) {
 		return LDAP_PARAM_ERROR;
 	}
+
+        assert( ld != NULL );
+        assert( LDAP_VALID( ld ) );
+        assert( res != NULL );
 
 	if( res->lm_msgtype != LDAP_RES_BIND ) {
 		ld->ld_errno = LDAP_PARAM_ERROR;

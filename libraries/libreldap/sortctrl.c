@@ -279,9 +279,11 @@ ldap_create_sort_control_value(
 	ber_tag_t	tag;
 
 	assert( ld != NULL );
-	assert( LDAP_VALID( ld ) );
 
 	if ( ld == NULL ) return LDAP_PARAM_ERROR;
+
+	assert( LDAP_VALID( ld ) );
+
 	if ( keyList == NULL || value == NULL ) {
 		ld->ld_errno = LDAP_PARAM_ERROR;
 		return LDAP_PARAM_ERROR;
@@ -396,11 +398,12 @@ ldap_create_sort_control(
 	struct berval	value;
 
 	assert( ld != NULL );
-	assert( LDAP_VALID( ld ) );
 
 	if ( ld == NULL ) {
 		return LDAP_PARAM_ERROR;
 	}
+
+	assert( LDAP_VALID( ld ) );
 
 	if ( ctrlp == NULL ) {
 		ld->ld_errno = LDAP_PARAM_ERROR;
@@ -479,11 +482,12 @@ ldap_parse_sortresponse_control(
 	ber_len_t berLen;
 
 	assert( ld != NULL );
-	assert( LDAP_VALID( ld ) );
 
 	if (ld == NULL) {
 		return LDAP_PARAM_ERROR;
 	}
+
+	assert( LDAP_VALID( ld ) );
 
 	if (ctrl == NULL) {
 		ld->ld_errno =  LDAP_PARAM_ERROR;

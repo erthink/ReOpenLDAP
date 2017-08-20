@@ -41,10 +41,10 @@ addons:
     - gdb
 
 before_script:
-#- echo $UPLOAD_HOST | ssh-keyscan -H -p $UPLOAD_PORT -f - >$HOME/.ssh/known_hosts 2>/dev/null
-#  && [ -s $HOME/.ssh/known_hosts ] || echo "failed" >&2
-- openssl aes-256-cbc -K $encrypted_1572229a40f3_key -iv $encrypted_1572229a40f3_iv
-  -in build/ci/upload_rsa.enc -out ~/.ssh/id_rsa -d && chmod 600 ~/.ssh/id_rsa
+- if [ ! -z "$encrypted_1572229a40f3_key" ]; then
+    openssl aes-256-cbc -K $encrypted_1572229a40f3_key -iv $encrypted_1572229a40f3_iv
+    -in build/ci/upload_rsa.enc -out ~/.ssh/id_rsa -d && chmod 600 ~/.ssh/id_rsa;
+  fi
 - mkdir -p $TEST_NOOK
 
 script:
