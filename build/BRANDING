@@ -22,7 +22,7 @@ PACKAGE=ReOpenLDAP
 PACKAGE_URL="https://github.com/leo-yuriev/ReOpenLDAP/wiki"
 PACKAGE_BUGREPORT="https://github.com/leo-yuriev/ReOpenLDAP/issues"
 
-RELEASE_TYPE=DevelNext
+RELEASE_TYPE=Devel
 
 VERSION_MAJOR=1
 VERSION_MINOR=2
