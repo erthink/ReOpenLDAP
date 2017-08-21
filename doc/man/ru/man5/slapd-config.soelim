@@ -747,10 +747,10 @@ TCP-буферов чтения и записи, которые связываю
 .RS
 .TP
 .I OpenSSL:
-TLSCipherSuite HIGH:MEDIUM:+SSLv2
+olcTLSCipherSuite HIGH:MEDIUM:+SSLv2
 .TP
 .I GnuTLS:
-TLSCiphersuite SECURE256:!AES-128-CBC
+olcTLSCipherSuite SECURE256:!AES-128-CBC
 .RE
 
 Для проверки того, какие шифры доступны в данной спецификации OpenSSL, используйте команду:
