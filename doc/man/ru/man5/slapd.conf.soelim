@@ -1262,7 +1262,7 @@ RFC4533 это фазы наличия (present phase) и удаления (dele
 TLSCipherSuite HIGH:MEDIUM:+SSLv2
 .TP
 .I GnuTLS:
-TLSCiphersuite SECURE256:!AES-128-CBC
+TLSCipherSuite SECURE256:!AES-128-CBC
 .RE
 
 Для проверки того, какие шифры доступны в данной спецификации OpenSSL, используйте команду:
