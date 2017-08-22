@@ -1380,7 +1380,7 @@ in use (OpenSSL, GnuTLS, or Mozilla NSS).
 TLSCipherSuite HIGH:MEDIUM:+SSLv2
 .TP
 .I GnuTLS:
-TLSCiphersuite SECURE256:!AES-128-CBC
+TLSCipherSuite SECURE256:!AES-128-CBC
 .RE
 
 To check what ciphers a given spec selects in OpenSSL, use:
