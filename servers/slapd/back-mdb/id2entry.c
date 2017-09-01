@@ -139,7 +139,6 @@ int mdb_id2entry(
 	ID id,
 	Entry **e )
 {
-	struct mdb_info *mdb MAY_UNUSED = (struct mdb_info *) op->o_bd->be_private;
 	MDB_val key, data;
 	int rc = 0;
 
