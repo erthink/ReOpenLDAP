@@ -1,6 +1,33 @@
 OpenLDAP 2.4 Change Log
 
 OpenLDAP 2.4.46 Engineering
+	Fixed libldap connection delete callbacks when TLS fails to start (ITS#8717)
+	Fixed libldap to not reuse tls_session if TLS hostname check fails (ITS#7373)
+	Fixed libldap cross-compiling with OpenSSL 1.1 (ITS#8687)
+	Fixed libldap MozNSS CA certificate hash matching (ITS#7374)
+	Fixed libldap MozNSS with PEM certs when also using an NSS cert db (ITS#7389)
+	Fixed slapd Eventlog registry key creation on 64-bit Windows (ITS#8705)
+	Fixed slapd syncrepl deadlock when updating cookie (ITS#8752)
+	Fixed slapd syncrepl callback to always be last in the stack (ITS#8752)
+	Fixed slapd-ldap TLS connection timeout with high latency connections (ITS#8720)
+	Fixed slapd-ldap to ignore unknown schema when omit-unknown-schema is set (ITS#7520)
+	Fixed slapd-mdb with an optimization for long lived read transactions (ITS#8226)
+	Fixed slapd-meta assert when olcDbRewrite is modified (ITS#8404)
+	Fixed slapd-sock with LDAP_MOD_INCREMENT operations (ITS#8692)
+	Fixed slapo-accesslog cleanup to only occur on failed operations (ITS#8752)
+	Fixed slapo-dds entryTTL to actually decrease as per RFC 2589 (ITS#7100)
+	Fixed slapo-syncprov memory leak with delete operations (ITS#8690)
+	Fixed slapo-syncprov to not clear pending operation when checkpointing (ITS#8444)
+	Build Environment
+		Fixed Windows build with newer MINGW version (ITS#8697)
+		Fixed compiler warnings and removed unused variables (ITS#8578)
+	Contrib
+		Fixed ldapc++ Control structure (ITS#8583)
+	Documentation
+		Delete stub manpage for back-ldbm (ITS#8713)
+		Fixed ldap_bind(3) to mention the LDAP_SASL_SIMPLE mechanism (ITS#8121)
+		Fixed slapd-config(5) typo for olcTLSCipherSuite (ITS#8715)
+		Fixed slapo-syncprov(5) indexing requirements (ITS#5048)
 
 OpenLDAP 2.4.45 Release (2017/06/01)
 	Added slapd support for OpenSSL 1.1.0 series (ITS#8353, ITS#8533, ITS#8634)
