@@ -321,6 +321,8 @@ LDAP_F(void) ldap_pvt_tls_destroy(void);
 LDAP_F(int) ldap_pvt_tls_init(void);
 LDAP_F(int) ldap_pvt_tls_init_def_ctx(int is_server);
 LDAP_F(int) ldap_pvt_tls_accept(Sockbuf *sb, void *ctx_arg);
+LDAP_F(int)
+ldap_pvt_tls_connect(struct ldap *ld, Sockbuf *sb, const char *host);
 LDAP_F(int) ldap_pvt_tls_inplace(Sockbuf *sb);
 LDAP_F(void *) ldap_pvt_tls_sb_ctx(Sockbuf *sb);
 LDAP_F(void) ldap_pvt_tls_ctx_free(void *);
