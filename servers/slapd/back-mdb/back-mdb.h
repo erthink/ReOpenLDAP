@@ -54,7 +54,9 @@ LDAP_BEGIN_DECL
 /* Most users will never see this */
 #define DEFAULT_RTXN_SIZE	10000
 
-#define MDB_MONITOR_IDX
+#if LDAP_EXPERIMENTAL > 0
+#	define MDB_MONITOR_IDX 1
+#endif /* LDAP_EXPERIMENTAL > 0 */
 
 typedef struct mdb_monitor_t {
 	void		*mdm_cb;
