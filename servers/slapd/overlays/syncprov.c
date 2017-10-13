@@ -101,6 +101,7 @@ typedef struct syncops {
 	int		s_matchops_inuse;	/* reference count from matchops */
 	struct reslink *s_rl;
 	struct reslink *s_rltail;
+	void *s_pool_cookie;
 
 	Operation *s_op_safe, s_slap_op_copy;
 } syncops;
@@ -1231,8 +1232,8 @@ syncprov_playback_dequeue( void *ctx, void *arg )
 	ldap_pvt_thread_mutex_unlock( &so->s_mutex );
 
 	if (resubmit > 0)
-		ldap_pvt_thread_pool_submit( &connection_pool,
-			syncprov_playback_dequeue, so );
+		ldap_pvt_thread_pool_submit2( &connection_pool,
+			syncprov_playback_dequeue, so, &so->s_pool_cookie );
 	else
 		syncprov_unlink_syncop( so,
 				(resubmit < 0)
@@ -1248,8 +1249,8 @@ syncprov_playback_enqueue( syncops *so )
 {
 	assert(!(so->s_flags & OS_REF_PLAYBACK));
 	so->s_flags |= OS_REF_PLAYBACK;
-	ldap_pvt_thread_pool_submit( &connection_pool,
-		syncprov_playback_dequeue, so );
+	ldap_pvt_thread_pool_submit2( &connection_pool,
+		syncprov_playback_dequeue, so, &so->s_pool_cookie );
 }
 
 /* Queue a persistent search response */
@@ -3779,6 +3780,9 @@ syncprov_db_close(
 			si->si_ops = so->s_next;
 			so->s_next = so; /* LY: safely mark it as unlinked */
 			so->s_flags |= PS_DEAD | OS_REF_CLOSE;
+			if ( (so->s_flags & PS_TASK_QUEUED)
+					&& ldap_pvt_thread_pool_retract( so->s_pool_cookie ) > 0)
+				so->s_flags -= PS_TASK_QUEUED;
 			ldap_pvt_thread_mutex_unlock( &so->s_mutex );
 			ldap_pvt_thread_mutex_unlock( &si->si_ops_mutex );
 
