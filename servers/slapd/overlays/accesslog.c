@@ -1525,6 +1525,11 @@ static int accesslog_response(Operation *op, SlapReply *rs) {
 				break;
 			}
 		}
+#ifdef RMUTEX_DEBUG
+		Debug( LDAP_DEBUG_SYNC,
+			"accesslog_response: unlocking rmutex for tid %x\n",
+			op->o_tid );
+#endif
 		ldap_pvt_thread_rmutex_unlock( &li->li_op_rmutex, op->o_tid );
 	}
 
@@ -1999,7 +2004,17 @@ accesslog_op_mod( Operation *op, SlapReply *rs )
 		for ( cb2 = op->o_callback; cb2->sc_next; cb2 = cb2->sc_next );
 		cb2->sc_next = cb;
 
+#ifdef RMUTEX_DEBUG
+		Debug( LDAP_DEBUG_SYNC,
+			"accesslog_op_mod: locking rmutex for tid %x\n",
+			op->o_tid );
+#endif
 		ldap_pvt_thread_rmutex_lock( &li->li_op_rmutex, op->o_tid );
+#ifdef RMUTEX_DEBUG
+		Debug( LDAP_DEBUG_STATS,
+			"accesslog_op_mod: locked rmutex for tid %x\n",
+			op->o_tid );
+#endif
 		if ( li->li_oldf && ( op->o_tag == LDAP_REQ_DELETE ||
 			op->o_tag == LDAP_REQ_MODIFY ||
 			( op->o_tag == LDAP_REQ_MODRDN && li->li_oldattrs )))
