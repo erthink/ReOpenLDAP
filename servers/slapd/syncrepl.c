@@ -1429,7 +1429,7 @@ syncrepl_process(
 done:
 	slap_biglock_release(bl);
 
-	if ( rc != LDAP_SUCCESS ) {
+	if ( rc != LDAP_SUCCESS && rc != SYNC_DONE ) {
 		const char* errstr = NULL;
 		switch(rc) {
 		case SYNC_PAUSED:
