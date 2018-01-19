@@ -481,10 +481,6 @@ novals:;
 		{
 			break;
 		}
-
-		if ( config->delay ) {
-			sleep( config->delay );
-		}
 	}
 
 	if ( ld != NULL ) {
