@@ -608,6 +608,9 @@ void slap_backtrace_set_enable( int value )
 				}
 			}
 
+			/* enable debugger attaching */
+			prctl(PR_SET_PTRACER, PR_SET_PTRACER_ANY, 0, 0, 0);
+
 			sa.sa_sigaction = backtrace_sigaction;
 			sa.sa_flags = SA_SIGINFO;
 			sigfillset(&sa.sa_mask);
