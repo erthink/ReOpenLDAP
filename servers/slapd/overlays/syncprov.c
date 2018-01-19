@@ -148,6 +148,7 @@ typedef struct sessionlog {
 	struct sync_cookie sl_cookie;
 	int		sl_num;
 	int		sl_size;
+	int		sl_playing;
 	slog_entry *sl_head;
 	slog_entry *sl_tail;
 	ldap_pvt_thread_mutex_t sl_mutex;
@@ -1843,9 +1844,12 @@ syncprov_add_slog( Operation *op )
 		 * wipe out anything in the log if we see them.
 		 */
 		ldap_pvt_thread_mutex_lock( &sl->sl_mutex );
-		while ( (se = sl->sl_head) != NULL ) {
-			sl->sl_head = se->se_next;
-			ch_free( se );
+		if (!sl->sl_playing) {
+			/* can only do this if no one else is reading the log at the moment */
+			while ( (se = sl->sl_head) != NULL ) {
+				sl->sl_head = se->se_next;
+				ch_free( se );
+			}
 		}
 		sl->sl_tail = NULL;
 		sl->sl_num = 0;
@@ -1877,7 +1881,6 @@ syncprov_add_slog( Operation *op )
 			sl->sl_tail = se;
 		} else {
 			slog_entry **sep;
-
 			for ( sep = &sl->sl_head; *sep; sep = &(*sep)->se_next ) {
 				if ( slap_csn_compare_ts( &se->se_csn, &(*sep)->se_csn ) < 0 ) {
 					se->se_next = *sep;
@@ -1899,20 +1902,22 @@ syncprov_add_slog( Operation *op )
 		}
 	}
 	sl->sl_num++;
-	while ( sl->sl_num > sl->sl_size ) {
-		int i;
-		se = sl->sl_head;
-		sl->sl_head = se->se_next;
-		for ( i=0; i<sl->sl_cookie.numcsns; i++ )
-			if ( sl->sl_cookie.sids[i] >= se->se_sid )
-				break;
-		if  ( i == sl->sl_cookie.numcsns || sl->sl_cookie.sids[i] != se->se_sid ) {
-			slap_insert_csn_sids( &sl->sl_cookie, i, se->se_sid, &se->se_csn );
-		} else if ( slap_csn_compare_ts( &sl->sl_cookie.ctxcsn[i], &se->se_csn ) < 0 ) {
-			ber_bvreplace( &sl->sl_cookie.ctxcsn[i], &se->se_csn );
+	if (!sl->sl_playing) {
+		while ( sl->sl_num > sl->sl_size ) {
+			int i;
+			se = sl->sl_head;
+			sl->sl_head = se->se_next;
+			for ( i=0; i<sl->sl_cookie.numcsns; i++ )
+				if ( sl->sl_cookie.sids[i] >= se->se_sid )
+					break;
+			if  ( i == sl->sl_cookie.numcsns || sl->sl_cookie.sids[i] != se->se_sid ) {
+				slap_insert_csn_sids( &sl->sl_cookie, i, se->se_sid, &se->se_csn );
+			} else if ( slap_csn_compare_ts( &sl->sl_cookie.ctxcsn[i], &se->se_csn ) < 0 ) {
+				ber_bvreplace( &sl->sl_cookie.ctxcsn[i], &se->se_csn );
+			}
+			ch_free( se );
+			sl->sl_num--;
 		}
-		ch_free( se );
-		sl->sl_num--;
 	}
 	ldap_pvt_thread_mutex_unlock( &sl->sl_mutex );
 }
@@ -1948,6 +1953,8 @@ syncprov_playlog( Operation *op, sessionlog *sl,
 	num = sl->sl_num;
 	i = 0;
 	nmods = 0;
+	sl->sl_playing++;
+	ldap_pvt_thread_mutex_unlock( &sl->sl_mutex );
 
 	uuids = op->o_tmpalloc( (num+1) * sizeof( struct berval ) +
 		num * UUID_LEN, op->o_tmpmemctx );
@@ -2004,6 +2011,8 @@ syncprov_playlog( Operation *op, sessionlog *sl,
 		memcpy(uuids[j].bv_val, se->se_uuid.bv_val, UUID_LEN);
 		uuids[j].bv_len = UUID_LEN;
 	}
+	ldap_pvt_thread_mutex_lock( &sl->sl_mutex );
+	sl->sl_playing--;
 	ldap_pvt_thread_mutex_unlock( &sl->sl_mutex );
 
 	ndel = i;
