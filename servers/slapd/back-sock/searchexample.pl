@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w -T
 ## $ReOpenLDAP$
-## Copyright 2007-2017 ReOpenLDAP AUTHORS: please see AUTHORS file.
+## Copyright 2007-2018 ReOpenLDAP AUTHORS: please see AUTHORS file.
 ## All rights reserved.
 ##
 ## This file is part of ReOpenLDAP.

@@ -1,8 +1,8 @@
 /* mdb_stat.c - memory-mapped database status tool */
 
 /*
- * Copyright 2015-2017 Leonid Yuriev <leo@yuriev.ru>.
- * Copyright 2011-2017 Howard Chu, Symas Corp.
+ * Copyright 2015-2018 Leonid Yuriev <leo@yuriev.ru>.
+ * Copyright 2011-2018 Howard Chu, Symas Corp.
  * Copyright 2015,2016 Peter-Service R&D LLC.
  * All rights reserved.
  *
