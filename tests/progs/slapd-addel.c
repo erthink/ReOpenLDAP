@@ -174,7 +174,7 @@ main( int argc, char **argv )
 
 	}
 
-	if (( attrs == NULL ) || ( *attrs == '\0' )) {
+	if (( attrs == NULL ) || ( *attrs == NULL )) {
 
 		fprintf( stderr, "%s: invalid attrs in file \"%s\".\n",
 				argv[0], filename );
