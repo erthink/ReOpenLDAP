@@ -33,6 +33,10 @@ or obtained by writing to the Free Software Foundation, Inc.,
 #include "lt_system.h"
 #include "lt_dlloader.h"
 
+#if defined(__clang_major__) && __clang_major__ > 3
+#pragma clang diagnostic ignored "-Wconstant-logical-operand"
+#endif /* clang warnings */
+
 
 /* --- MANIFEST CONSTANTS --- */
 

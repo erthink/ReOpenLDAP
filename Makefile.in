@@ -111,7 +111,6 @@ am__CONFIG_DISTCLEAN_FILES = config.status config.cache config.log \
 mkinstalldirs = $(install_sh) -d
 CONFIG_HEADER = reldap_autoconf.h \
 	$(top_builddir)/include/ldap_features.h \
-	$(top_builddir)/include/ldap_dirs.h \
 	$(top_builddir)/include/lber_types.h
 CONFIG_CLEAN_FILES =
 CONFIG_CLEAN_VPATH_FILES =
@@ -639,12 +638,6 @@ distclean-tags:
 @BEHIND_CURTIAN_FALSE@dist-hook:
 
 distdir: $(DISTFILES)
-	@case `sed 15q $(srcdir)/NEWS` in \
-	*"$(VERSION)"*) : ;; \
-	*) \
-	  echo "NEWS not updated; not releasing" 1>&2; \
-	  exit 1;; \
-	esac
 	$(am__remove_distdir)
 	test -d "$(distdir)" || mkdir "$(distdir)"
 	@srcdirstrip=`echo "$(srcdir)" | sed 's/[].[^$$\\*]/\\\\&/g'`; \

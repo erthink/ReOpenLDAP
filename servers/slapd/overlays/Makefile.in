@@ -159,7 +159,6 @@ DIST_COMMON = $(srcdir)/Makefile.am $(am__DIST_COMMON)
 mkinstalldirs = $(install_sh) -d
 CONFIG_HEADER = $(top_builddir)/reldap_autoconf.h \
 	$(top_builddir)/include/ldap_features.h \
-	$(top_builddir)/include/ldap_dirs.h \
 	$(top_builddir)/include/lber_types.h
 CONFIG_CLEAN_FILES =
 CONFIG_CLEAN_VPATH_FILES =
