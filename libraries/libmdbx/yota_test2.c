@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2017 Leonid Yuriev <leo@yuriev.ru>.
+ * Copyright 2016-2018 Leonid Yuriev <leo@yuriev.ru>.
  * Copyright 2015 Vladimir Romanov <https://www.linkedin.com/in/vladimirromanov>, Yota Lab.
  *
  * This file is part of libmdbx.
