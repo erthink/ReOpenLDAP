@@ -30,9 +30,8 @@ noinst_HEADERS = ac/alloca.h ac/bytes.h ac/crypt.h ac/ctype.h \
 BUILT_SOURCES = ldap_dirs.h
 CLEANFILES = ldap_dirs.h
 EXTRA_DIST = ldap_dirs.h.in
-LDAP_DIRS = $(srcdir)/ldap_dirs.h.in
 
-ldap_dirs.h: $(LDAP_DIRS) Makefile
+ldap_dirs.h: $(srcdir)/ldap_dirs.h.in Makefile
 	@if $(AM_V_P); then set -x; else echo "  GEN      $@"; fi; \
 	$(RM) $@ && \
 	echo "/* Generated from $< on `date --rfc-3339=seconds --utc` */" > $@ && \
