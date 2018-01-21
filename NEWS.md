@@ -1,3 +1,36 @@
+v1.1.7 2018-MM-DD
+=================
+Briefly:
+ 1. The 'ldap dirs' bug fixed.
+    A `@variables@` macros were not replaced with actual configured paths (thanks to Dmitrii Zolotov).
+ 2. Few minor bug fixed.
+
+New features and Compatibility breaking:
+ * backend-ldap: use the configured exop timeout for StartTLS (ITS#8270).
+
+Documentation:
+ * man: Fix typo with olcTLSCipherSuite (ITS#8715).
+
+Major and Security bugs:
+ * build: fix 'ldap_dirs.h' issue (@variables@ are not replaced with paths on).
+
+Minor bugs:
+ * syncrepl: fix "syncrepl_process: rid=NNN (-45) Unknown API error".
+ * slapd: fix 'ptrace: Operation not permitted' from backtrace feature.
+
+Performance: _none_
+
+Build:
+ * build: patch 'libltdl' to avoid clang > 3.x warnings.
+ * travis-ci: allow build in forks
+
+Cosmetics:
+ * reopenldap: HNY!
+
+Other:
+ * reopenldap: add Dmitrii Zolotov into AUTHORS.
+
+
 v1.1.6 2017-08-12
 =================
 Briefly:

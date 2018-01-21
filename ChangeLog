@@ -1,5 +1,7 @@
 New features and Compatibility breaking
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2018-MM-DD v1.1.7
+2017-10-01 backend-ldap: import - use the configured exop timeout for StartTLS (ITS#8270).
 2017-08-12 v1.1.6
 2017-04-16 slapd: backport - Add config support for binary values.
 2017-04-16 libreldap: backport - Add options to use DER format cert+keys directly.
@@ -87,6 +89,8 @@ New features and Compatibility breaking
 
 Documentation
 ~~~~~~~~~~~~~
+2018-MM-DD v1.1.7
+2017-08-22 man: import - Fix typo with olcTLSCipherSuite (ITS#8715).
 2017-08-12 v1.1.6
 2017-04-26 man: Fix wording to match examples (ITS#8123).
 2017-04-26 man-contib: add man-pages for contrib overlays (ITS#8205).
@@ -148,6 +152,8 @@ Documentation
 
 Major and Security Bugs
 ~~~~~~~~~~~~~~~~~~~~~~~
+2018-MM-DD v1.1.7
+2017-10-01 build: fix 'ldap_dirs.h' issue (@variables@ are not replaced with paths on).
 2017-08-12 v1.1.6
 2017-07-26 mdbx: backport - don't madvise(MADV_REMOVE).
 2017-05-23 backend-mdb: fix double free on paged search with pagesize 0 (ITS#8655).
@@ -248,6 +254,9 @@ Major and Security Bugs
 
 Minor Bugs
 ~~~~~~~~~~
+2018-MM-DD v1.1.7
+2018-01-12 syncrepl: fix "syncrepl_process: rid=NNN (-45) Unknown API error".
+2018-01-19 slapd: fix 'ptrace: Operation not permitted' from backtrace feature.
 2017-08-12 v1.1.6
 2017-08-02 mdbx: backport - ITS#8699 more for cursor_del ITS#8622.
 2017-08-02 slapd: avoid hang/crash the backtrace_sigaction().
@@ -629,6 +638,7 @@ Minor Bugs
 
 Performance
 ~~~~~~~~~~~
+2018-MM-DD v1.1.7
 2017-08-12 v1.1.6
 2017-02-15 mdbx: 'unlikely' for DB_STALE.
 2017-01-27 mdbx: check __OPTIMIZE__ for __hot/__cold/__flatten.
@@ -680,6 +690,9 @@ Performance
 
 Build
 ~~~~~
+2018-MM-DD v1.1.7
+2018-01-12 build: patch 'libltdl' to avoid clang > 3.x warnings.
+2017-08-20 travis-ci: allow build in forks
 2017-08-12 v1.1.6
 2017-08-02 configure: fix subst for VALGRIND_SUPPRESSIONS_FILES.
 2017-08-02 configure: add '--enable-ci' option for Continuous Integration.
@@ -786,6 +799,8 @@ Build
 
 Cosmetics
 ~~~~~~~~~
+2018-MM-DD v1.1.7
+2018-01-21 reopenldap: HNY!
 2017-08-12 v1.1.6
 2017-08-02 configure: fix message alignment (cosmetics).
 2017-08-12 reopenldap: update links after move the repo.
@@ -829,6 +844,8 @@ Cosmetics
 
 Other
 ~~~~~
+2018-MM-DD v1.1.7
+2017-10-02 reopenldap: add Dmitrii Zolotov into AUTHORS.
 2017-08-12 v1.1.6
 2017-08-02 libreldap: rename ber_error_print() to ber_debug_print().
 2017-08-02 reopenldap: rename ldap-time functions.
