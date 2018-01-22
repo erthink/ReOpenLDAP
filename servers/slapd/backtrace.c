@@ -406,7 +406,8 @@ void backtrace_sigaction(int signum, siginfo_t *info, void* ptr) {
 
 	if (gdb_pid > 0) {
 		/* enable debugging */
-		prctl(PR_SET_PTRACER, gdb_pid /* PR_SET_PTRACER_ANY */, 0, 0, 0);
+		if (prctl(PR_SET_PTRACER, gdb_pid /* PR_SET_PTRACER_ANY */, 0, 0, 0) < 0)
+			dprintf(STDOUT_FILENO, "\n*** Sorry, prctl(PR_SET_PTRACER) for GDB failed: %s\n", STRERROR(errno));
 
 		close(pipe_fd[0]);
 		pipe_fd[0] = -1;
@@ -607,9 +608,6 @@ void slap_backtrace_set_enable( int value )
 					free(messages);
 				}
 			}
-
-			/* enable debugger attaching */
-			prctl(PR_SET_PTRACER, PR_SET_PTRACER_ANY, 0, 0, 0);
 
 			sa.sa_sigaction = backtrace_sigaction;
 			sa.sa_flags = SA_SIGINFO;
