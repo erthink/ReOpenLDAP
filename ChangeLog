@@ -153,6 +153,7 @@ Documentation
 Major and Security Bugs
 ~~~~~~~~~~~~~~~~~~~~~~~
 2018-MM-DD v1.1.7
+2018-01-22 overlay-sss: fix server-side-sort overlay segfault.
 2017-10-01 build: fix 'ldap_dirs.h' issue (@variables@ are not replaced with paths on).
 2017-08-12 v1.1.6
 2017-07-26 mdbx: backport - don't madvise(MADV_REMOVE).
@@ -255,6 +256,8 @@ Major and Security Bugs
 Minor Bugs
 ~~~~~~~~~~
 2018-MM-DD v1.1.7
+2018-01-22 overlay-constraint: fix comparison between pointer and zero character constant.
+2018-01-22 backend-mdb: fix "warning: '%s' directive output may be truncated..."
 2018-01-12 syncrepl: fix "syncrepl_process: rid=NNN (-45) Unknown API error".
 2018-01-19 slapd: fix 'ptrace: Operation not permitted' from backtrace feature.
 2017-08-12 v1.1.6
@@ -691,6 +694,7 @@ Performance
 Build
 ~~~~~
 2018-MM-DD v1.1.7
+2018-01-22 configure: note about EXTRA_CFLAGS.
 2018-01-12 build: patch 'libltdl' to avoid clang > 3.x warnings.
 2017-08-20 travis-ci: allow build in forks
 2017-08-12 v1.1.6
@@ -800,6 +804,7 @@ Build
 Cosmetics
 ~~~~~~~~~
 2018-MM-DD v1.1.7
+2018-01-22 contrib: move 'docker' dir into contrib.
 2018-01-21 reopenldap: HNY!
 2017-08-12 v1.1.6
 2017-08-02 configure: fix message alignment (cosmetics).
@@ -845,6 +850,8 @@ Cosmetics
 Other
 ~~~~~
 2018-MM-DD v1.1.7
+2018-01-22 tests: fix 'warning: comparison between pointer and zero character constant'.
+2018-01-22 slapd: check prctl(PR_SET_PTRACER) result while backtracing.
 2017-10-02 reopenldap: add Dmitrii Zolotov into AUTHORS.
 2017-08-12 v1.1.6
 2017-08-02 libreldap: rename ber_error_print() to ber_debug_print().

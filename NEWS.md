@@ -3,7 +3,8 @@ v1.1.7 2018-MM-DD
 Briefly:
  1. The 'ldap dirs' bug fixed.
     A `@variables@` macros were not replaced with actual configured paths (thanks to Dmitrii Zolotov).
- 2. Few minor bug fixed.
+ 2. Fix server-side-sort overlay segfault (thanks to Dmitrii Zolotov).
+ 3. Few minor bug and warnings fixed.
 
 New features and Compatibility breaking:
  * backend-ldap: use the configured exop timeout for StartTLS (ITS#8270).
@@ -12,9 +13,12 @@ Documentation:
  * man: Fix typo with olcTLSCipherSuite (ITS#8715).
 
 Major and Security bugs:
+ * overlay-sss: fix server-side-sort overlay segfault.
  * build: fix 'ldap_dirs.h' issue (@variables@ are not replaced with paths on).
 
 Minor bugs:
+ * overlay-constraint: fix comparison between pointer and zero character constant.
+ * backend-mdb: fix "warning: '%s' directive output may be truncated..."
  * syncrepl: fix "syncrepl_process: rid=NNN (-45) Unknown API error".
  * slapd: fix 'ptrace: Operation not permitted' from backtrace feature.
 
@@ -23,11 +27,15 @@ Performance: _none_
 Build:
  * build: patch 'libltdl' to avoid clang > 3.x warnings.
  * travis-ci: allow build in forks
+ * configure: note about EXTRA_CFLAGS.
 
 Cosmetics:
+ * contrib: move 'docker' dir into contrib.
  * reopenldap: HNY!
 
 Other:
+ * tests: fix 'warning: comparison between pointer and zero character constant'.
+ * slapd: check prctl(PR_SET_PTRACER) result while backtracing.
  * reopenldap: add Dmitrii Zolotov into AUTHORS.
 
 
