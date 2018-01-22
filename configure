@@ -1992,7 +1992,9 @@ Some influential environment variables:
               User-defined run-time library search path.
   CPP         C preprocessor
   EXTRA_CFLAGS
-              Extra build-time CFLAGS, e.g. -Wall -Werror
+              Extra build-time CFLAGS, e.g. -Wall -Werror. Alternatively, ones
+              can be specified or overridden by invocation 'make
+              EXTRA_CLAGS="a b c"'
   CXX         C++ compiler command
   CXXFLAGS    C++ compiler flags
   CXXCPP      C++ preprocessor
@@ -13255,9 +13257,9 @@ VERSION_MINOR=1
 
 VERSION_PATCH=7
 
-RELEASE_DATE=2018-01-21
+RELEASE_DATE=2018-01-22
 
-RELEASE_STAMP=ge31940fd9aec-t268db7c22052ef43
+RELEASE_STAMP=g38d6f7c66516-ta8bf1e3d9aca5820
 
 API_LIB_RELEASE=1.1
 
