@@ -139,7 +139,8 @@ FIXUP_DIRS="\$(SED) \
 AC_SUBST(FIXUP_DIRS)
 
 AC_LANG([C])
-AC_ARG_VAR(EXTRA_CFLAGS, [Extra build-time CFLAGS, e.g. -Wall -Werror])
+AC_ARG_VAR(EXTRA_CFLAGS, [Extra build-time CFLAGS, e.g. -Wall -Werror.
+		Alternatively, ones can be specified or overridden by invocation 'make EXTRA_CLAGS="a b c"'])
 AC_PREFIX_DEFAULT("/opt/reopenldap")
 
 dnl ----------------------------------------------------------------
