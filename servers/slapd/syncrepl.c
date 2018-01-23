@@ -897,7 +897,7 @@ syncrepl_eat_cookie(
 	if ( dst->numcsns == 0 && SLAP_MULTIMASTER( si->si_be )
 		&& si->si_syncdata != SYNCDATA_ACCESSLOG
 		&& ( reopenldap_mode_righteous() || reopenldap_mode_strict() ) ) {
-		Debug( LDAP_DEBUG_ANY, "syncrepl_cookie_take:"
+		Debug( LDAP_DEBUG_ANY, "syncrepl_cookie_take: "
 			"%s REJECT empty-cookie '%s'\n",
 			si->si_ridtxt, raw.bv_val );
 		return LDAP_UNWILLING_TO_PERFORM;
@@ -912,7 +912,7 @@ syncrepl_eat_cookie(
 	}
 
 	if ( vector < 0 ) {
-		Debug( LDAP_DEBUG_ANY, "syncrepl_cookie_take:"
+		Debug( LDAP_DEBUG_ANY, "syncrepl_cookie_take: "
 			"%s REJECT backward-cookie '%s'\n",
 			si->si_ridtxt, raw.bv_val );
 		return LDAP_UNWILLING_TO_PERFORM;
@@ -920,14 +920,14 @@ syncrepl_eat_cookie(
 
 	if ( vector == 0 && SLAP_MULTIMASTER( si->si_be )
 			&& reopenldap_mode_strict() ) {
-		Debug( LDAP_DEBUG_ANY, "syncrepl_cookie_take:"
+		Debug( LDAP_DEBUG_ANY, "syncrepl_cookie_take: "
 			"%s REJECT stalled-cookie '%s'\n",
 			si->si_ridtxt, raw.bv_val );
 		return LDAP_UNWILLING_TO_PERFORM;
 	}
 
 	if ( slap_check_same_server( si->si_be, dst->sid ) < 0 ) {
-		Debug( LDAP_DEBUG_ANY, "syncrepl_cookie_take:"
+		Debug( LDAP_DEBUG_ANY, "syncrepl_cookie_take: "
 			"%s provider has the same ServerID, cookie=%s\n",
 			si->si_ridtxt, raw.bv_val );
 		return LDAP_ASSERTION_FAILED;
