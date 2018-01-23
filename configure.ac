@@ -575,6 +575,24 @@ PKG_CHECK_MODULES(HEIMDAL, heimdal-krb5 heimdal-kadm-server, heimdal_found=yes, 
 AC_SUBST(HEIMDAL_LIBS)
 AC_SUBST(HEIMDAL_CFLAGS)
 AM_CONDITIONAL([HEIMDAL_AVAIL], [test $heimdal_found = yes])
+if test $heimdal_found == yes; then
+	AC_MSG_CHECKING([for hdb_generate_key_set_password() signature])
+	saved_cflags="$CFLAGS"
+	CFLAGS="$CFLAGS $HEIMDAL_CFLAGS"
+	AC_COMPILE_IFELSE(
+		[AC_LANG_PROGRAM(
+		[[#include <heimdal/hdb.h>]],
+		[[krb5_context context; krb5_principal principal; Key *key; size_t size;]
+		[krb5_error_code rc = hdb_generate_key_set_password(context, principal, "", &key, &size);]
+		[return (int) rc;]])
+		],[
+			AC_MSG_RESULT([modern])
+			AC_DEFINE(HAVE_MODERN_HDB_GENERATE_KEY_SET_PASSWORD, 1, [Does hdb_generate_key_set_password() signature is modern])
+		],[
+			AC_MSG_RESULT([legacy])
+	])
+	CFLAGS="$saved_cflags"
+fi
 
 dnl ----------------------------------------------------------------
 # libsodium (argon2 hash)
