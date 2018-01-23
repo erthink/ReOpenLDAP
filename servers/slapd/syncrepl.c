@@ -2407,6 +2407,9 @@ syncrepl_message_to_op(
 				Debug( LDAP_DEBUG_SYNC,
 					"syncrepl_message_to_op: %s be_add %s (%d)\n",
 					si->si_ridtxt, op->o_req_dn.bv_val, rc );
+				if (rc == LDAP_ALREADY_EXISTS) {
+					/* FIXME: check for glue-object and remove it */
+				}
 				do_graduate = 0;
 			}
 			if ( e == op->ora_e )
