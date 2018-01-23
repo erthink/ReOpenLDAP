@@ -372,7 +372,7 @@ slap_tool_init(
 			slap_set_debug_level(mask);
 #else
 			if ( mask != 0 || debug_unknowns )
-				fputs( "must configure with --enable-debug for debugging\n", stderr );
+				fputs( "must be configured with '--enable-debug' for debugging\n", stderr );
 #endif /* LDAP_DEBUG */
 			} break;
 

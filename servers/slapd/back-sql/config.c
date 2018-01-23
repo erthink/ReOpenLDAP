@@ -380,8 +380,8 @@ sql_cf_gen( ConfigArgs *c )
 	case BSQL_CONCAT_PATT:
 		if ( backsql_split_pattern( c->argv[ 1 ], &bi->sql_concat_func, 2 ) ) {
 			snprintf( c->cr_msg, sizeof( c->cr_msg ),
-				"%s: unable to parse pattern \"%s\"",
-				c->log, c->argv[ 1 ] );
+				"%.*s: unable to parse pattern \"%s\"",
+				(int) sizeof (c->cr_msg) - 32, c->log, c->argv[ 1 ] );
 			Debug( LDAP_DEBUG_ANY, "%s\n", c->cr_msg );
 			return -1;
 		}
@@ -446,7 +446,8 @@ sql_cf_gen( ConfigArgs *c )
 	case BSQL_BASE_OBJECT:
 		if ( c->be->be_nsuffix == NULL ) {
 			snprintf( c->cr_msg, sizeof( c->cr_msg ),
-				"%s: suffix must be set", c->log );
+				"%*.s: suffix must be set",
+				(int) sizeof (c->cr_msg) - 32, c->log );
 			Debug( LDAP_DEBUG_ANY, "%s\n", c->cr_msg );
 			rc = ARG_BAD_CONF;
 			break;
@@ -475,7 +476,8 @@ sql_cf_gen( ConfigArgs *c )
 
 		default:
 			snprintf( c->cr_msg, sizeof( c->cr_msg ),
-				"%s: trailing values in directive", c->log );
+				"%.*s: trailing values in directive",
+				(int) sizeof (c->cr_msg) - 32, c->log );
 			Debug( LDAP_DEBUG_ANY, "%s\n", c->cr_msg );
 			return 1;
 		}
@@ -484,7 +486,9 @@ sql_cf_gen( ConfigArgs *c )
 		if ( backsql_api_config( bi, c->argv[ 1 ], c->argc - 2, &c->argv[ 2 ] ) )
 		{
 			snprintf( c->cr_msg, sizeof( c->cr_msg ),
-				"%s: unable to load sql layer", c->log );
+				"%.*s: unable to load sql layer",
+				(int) sizeof (c->cr_msg) - 32,
+				c->log );
 			Debug( LDAP_DEBUG_ANY, "%s \"%s\"\n",
 				c->cr_msg, c->argv[1] );
 			return 1;

@@ -101,6 +101,7 @@ function update_TESTDIR {
 	SEARCHFLT=$TESTDIR/ldapsearch.flt
 	SEARCHFLT2=$TESTDIR/ldapsearch2.flt
 	LDIFFLT=$TESTDIR/ldif.flt
+	LDIFFLT2=$TESTDIR/ldif2.flt
 	TESTOUT=$TESTDIR/test.out
 	INITOUT=$TESTDIR/init.out
 	SERVER1OUT=$TESTDIR/server1.out

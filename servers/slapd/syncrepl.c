@@ -61,9 +61,11 @@ struct nonpresent_entry {
 
 typedef struct cookie_state {
 	ldap_pvt_thread_mutex_t	cs_mutex;
+	ldap_pvt_thread_cond_t cs_cond;
 	struct sync_cookie cs_cookie;
 	int cs_age;
 	volatile int cs_ref;
+	int cs_updating;
 } cookie_state;
 
 #define	SYNCDATA_DEFAULT	0	/* entries are plain LDAP entries */
@@ -180,7 +182,7 @@ static int syncrepl_op_modify( Operation *op, SlapReply *rs );
 /* callback functions */
 static int dn_callback( Operation *, SlapReply * );
 static int nonpresent_callback( Operation *, SlapReply * );
-static int null_callback( Operation *, SlapReply * );
+static int syncrepl_null_callback( Operation *, SlapReply * );
 
 static AttributeDescription *sync_descs[4];
 
@@ -895,7 +897,7 @@ syncrepl_eat_cookie(
 	if ( dst->numcsns == 0 && SLAP_MULTIMASTER( si->si_be )
 		&& si->si_syncdata != SYNCDATA_ACCESSLOG
 		&& ( reopenldap_mode_righteous() || reopenldap_mode_strict() ) ) {
-		Debug( LDAP_DEBUG_ANY, "syncrepl_cookie_take:"
+		Debug( LDAP_DEBUG_ANY, "syncrepl_cookie_take: "
 			"%s REJECT empty-cookie '%s'\n",
 			si->si_ridtxt, raw.bv_val );
 		return LDAP_UNWILLING_TO_PERFORM;
@@ -910,7 +912,7 @@ syncrepl_eat_cookie(
 	}
 
 	if ( vector < 0 ) {
-		Debug( LDAP_DEBUG_ANY, "syncrepl_cookie_take:"
+		Debug( LDAP_DEBUG_ANY, "syncrepl_cookie_take: "
 			"%s REJECT backward-cookie '%s'\n",
 			si->si_ridtxt, raw.bv_val );
 		return LDAP_UNWILLING_TO_PERFORM;
@@ -918,14 +920,14 @@ syncrepl_eat_cookie(
 
 	if ( vector == 0 && SLAP_MULTIMASTER( si->si_be )
 			&& reopenldap_mode_strict() ) {
-		Debug( LDAP_DEBUG_ANY, "syncrepl_cookie_take:"
+		Debug( LDAP_DEBUG_ANY, "syncrepl_cookie_take: "
 			"%s REJECT stalled-cookie '%s'\n",
 			si->si_ridtxt, raw.bv_val );
 		return LDAP_UNWILLING_TO_PERFORM;
 	}
 
 	if ( slap_check_same_server( si->si_be, dst->sid ) < 0 ) {
-		Debug( LDAP_DEBUG_ANY, "syncrepl_cookie_take:"
+		Debug( LDAP_DEBUG_ANY, "syncrepl_cookie_take: "
 			"%s provider has the same ServerID, cookie=%s\n",
 			si->si_ridtxt, raw.bv_val );
 		return LDAP_ASSERTION_FAILED;
@@ -2258,7 +2260,7 @@ syncrepl_message_to_op(
 	Modifications	*modlist = NULL;
 	logschema *ls;
 	SlapReply rs = { REP_RESULT };
-	slap_callback cb = { NULL, null_callback, NULL, NULL };
+	slap_callback cb = { NULL, syncrepl_null_callback, NULL, NULL };
 
 	const char	*text;
 	char txtbuf[SLAP_TEXT_BUFLEN];
@@ -2371,6 +2373,9 @@ syncrepl_message_to_op(
 	op->o_callback = &cb;
 	slap_op_time( &op->o_time, &op->o_tincr );
 
+	Debug( LDAP_DEBUG_SYNC, "syncrepl_message_to_op: %s tid %lx\n",
+		si->si_ridtxt, (long) op->o_tid );
+
 	switch( op->o_tag ) {
 	case LDAP_REQ_ADD:
 	case LDAP_REQ_MODIFY:
@@ -2402,6 +2407,9 @@ syncrepl_message_to_op(
 				Debug( LDAP_DEBUG_SYNC,
 					"syncrepl_message_to_op: %s be_add %s (%d)\n",
 					si->si_ridtxt, op->o_req_dn.bv_val, rc );
+				if (rc == LDAP_ALREADY_EXISTS) {
+					/* FIXME: check for glue-object and remove it */
+				}
 				do_graduate = 0;
 			}
 			if ( e == op->ora_e )
@@ -2949,8 +2957,8 @@ syncrepl_entry(
 	int do_graduate = 0;
 
 	Debug( LDAP_DEBUG_SYNC,
-		"syncrepl_entry: %s LDAP_RES_SEARCH_ENTRY, %s\n",
-		si->si_ridtxt, ldap_sync_state2str( syncstate ) );
+		"syncrepl_entry: %s LDAP_RES_SEARCH_ENTRY, %s, tid %lx\n",
+		si->si_ridtxt, ldap_sync_state2str( syncstate ), (long) op->o_tid );
 	assert(slap_biglock_owned(op->o_bd));
 	assert( BER_BVISEMPTY( &op->o_csn ) );
 
@@ -3061,7 +3069,7 @@ syncrepl_entry(
 		slap_sl_free( op->ors_filterstr.bv_val, op->o_tmpmemctx );
 	}
 
-	cb.sc_response = null_callback;
+	cb.sc_response = syncrepl_null_callback;
 	cb.sc_private = si;
 
 	if ( DebugTest( LDAP_DEBUG_SYNC ) ) {
@@ -3845,7 +3853,7 @@ static int syncrepl_del_nonpresent(
 			SlapReply rs_delete = {REP_RESULT};
 			op->o_tag = LDAP_REQ_DELETE;
 			op->o_callback = &cx.cb;
-			cx.cb.sc_response = null_callback;
+			cx.cb.sc_response = syncrepl_null_callback;
 			rc = op->o_bd->bd_info->bi_op_delete( op, &rs_delete );
 			Debug(rc ? LDAP_DEBUG_ANY : LDAP_DEBUG_SYNC,
 				"syncrepl_del_nonpresent: %s be_delete %s (%d)\n",
@@ -3896,7 +3904,7 @@ static int syncrepl_del_nonpresent(
 				op->o_delete_glue_parent = 0;
 				if ( !be_issuffix( be, &op->o_req_ndn ) ) {
 					slap_callback cb = { NULL };
-					cb.sc_response = null_callback;
+					cb.sc_response = syncrepl_null_callback;
 					dnParent( &op->o_req_ndn, &pdn );
 					op->o_req_dn = pdn;
 					op->o_req_ndn = pdn;
@@ -3970,7 +3978,7 @@ syncrepl_add_glue_ancestors(
 	assert(slap_biglock_owned(op->o_bd));
 	op->o_tag = LDAP_REQ_ADD;
 	op->o_callback = &cb;
-	cb.sc_response = null_callback;
+	cb.sc_response = syncrepl_null_callback;
 	cb.sc_private = NULL;
 
 	dn = e->e_name;
@@ -4098,7 +4106,7 @@ syncrepl_add_glue(
 
 	op->o_tag = LDAP_REQ_ADD;
 	op->o_callback = &cb;
-	cb.sc_response = null_callback;
+	cb.sc_response = syncrepl_null_callback;
 	cb.sc_private = NULL;
 
 	op->o_req_dn = e->e_name;
@@ -4128,6 +4136,8 @@ syncrepl_cookie_push(
 
 	ldap_pvt_thread_mutex_lock( &si->si_cookieState->cs_mutex );
 	assert(slap_biglock_owned(op->o_bd));
+	while ( si->si_cookieState->cs_updating )
+		ldap_pvt_thread_cond_wait( &si->si_cookieState->cs_cond, &si->si_cookieState->cs_mutex );
 
 #if 0
 	/* LY: Напоминалка, так как один раз я уже умудрился это забыть.
@@ -4193,7 +4203,7 @@ syncrepl_cookie_push(
 
 		op->o_bd = si->si_wbe;
 		op->o_tag = LDAP_REQ_MODIFY;
-		cb.sc_response = null_callback;
+		cb.sc_response = syncrepl_null_callback;
 		cb.sc_private = si;
 		op->o_callback = &cb;
 		op->o_req_dn = si->si_contextdn;
@@ -4206,6 +4216,8 @@ syncrepl_cookie_push(
 		op->orm_modlist = &mod;
 		op->orm_no_opattrs = 1;
 
+		si->si_cookieState->cs_updating = 1;
+		ldap_pvt_thread_mutex_unlock( &si->si_cookieState->cs_mutex );
 		slap_queue_csn( op, &si->si_syncCookie.ctxcsn[lead] );
 		rc = op->o_bd->bd_info->bi_op_modify( op, &rs_modify );
 
@@ -4228,6 +4240,7 @@ syncrepl_cookie_push(
 
 		op->orm_no_opattrs = 0;
 		op->o_dont_replicate = 0;
+		ldap_pvt_thread_mutex_lock( &si->si_cookieState->cs_mutex );
 
 		if ( rs_modify.sr_err == LDAP_SUCCESS ) {
 			slap_cookie_free( &si->si_cookieState->cs_cookie, 0 );
@@ -4262,6 +4275,8 @@ syncrepl_cookie_push(
 	assert( syncrepl_pull_contextCSN( op, si ) == 0 );
 #endif
 
+	si->si_cookieState->cs_updating = 0;
+	ldap_pvt_thread_cond_broadcast( &si->si_cookieState->cs_cond );
 	ldap_pvt_thread_mutex_unlock( &si->si_cookieState->cs_mutex );
 	return rc;
 }
@@ -4692,18 +4707,28 @@ nonpresent_callback(
 }
 
 static int
-null_callback(
-	Operation*	op,
-	SlapReply*	rs )
+syncrepl_null_callback(
+	Operation *op,
+	SlapReply *rs )
 {
+	/* If we're not the last callback in the chain, move to the end */
+	if ( op->o_callback->sc_next ) {
+		slap_callback **sc, *s1;
+		s1 = op->o_callback;
+		op->o_callback = op->o_callback->sc_next;
+		for ( sc = &op->o_callback; *sc; sc = &(*sc)->sc_next ) ;
+		*sc = s1;
+		s1->sc_next = NULL;
+		return SLAP_CB_CONTINUE;
+	}
 	if ( rs->sr_err != LDAP_SUCCESS &&
 		rs->sr_err != LDAP_REFERRAL &&
 		rs->sr_err != LDAP_ALREADY_EXISTS &&
 		rs->sr_err != LDAP_NO_SUCH_OBJECT &&
 		rs->sr_err != LDAP_NOT_ALLOWED_ON_NONLEAF )
 	{
-		Debug( LDAP_DEBUG_SYNC,
-			"null_callback : error code 0x%x\n",
+		Debug( LDAP_DEBUG_ANY,
+			"syncrepl_null_callback : error code 0x%x\n",
 			rs->sr_err );
 	}
 	return LDAP_SUCCESS;
@@ -4931,6 +4956,7 @@ syncinfo_free( syncinfo_t *sie, int free_all )
 			assert( before > 0 );
 			if ( before == 1 ) {
 				slap_cookie_free( &sie->si_cookieState->cs_cookie, 0 );
+				ldap_pvt_thread_cond_destroy( &sie->si_cookieState->cs_cond );
 				ldap_pvt_thread_mutex_destroy( &sie->si_cookieState->cs_mutex );
 				ch_free( sie->si_cookieState );
 			}
@@ -5737,6 +5763,7 @@ add_syncrepl(
 		} else {
 			si->si_cookieState = ch_calloc( 1, sizeof( cookie_state ));
 			ldap_pvt_thread_mutex_init( &si->si_cookieState->cs_mutex );
+			ldap_pvt_thread_cond_init( &si->si_cookieState->cs_cond );
 			si->si_cookieState->cs_ref = 1;
 			c->be->be_syncinfo = si;
 		}

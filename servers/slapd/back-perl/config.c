@@ -179,9 +179,9 @@ perl_cf(
 			if (SvTRUE(ERRSV)) {
 				STRLEN len;
 
-				snprintf( c->cr_msg, sizeof( c->cr_msg ), "%s: error %s",
-					c->log, SvPV(ERRSV, len ));
-				Debug( LDAP_DEBUG_ANY, "%s\n", c->cr_msg );
+				snprintf( c->cr_msg, sizeof( c->cr_msg ), "%.*s: error %s",
+					(int) sizeof( c->cr_msg ) - 16, c->log, SvPV(ERRSV, len ));
+				Debug( LDAP_DEBUG_ANY, "%s: error %s\n", c->log, SvPV(ERRSV, len ));
 				rc = 1;
 			} else {
 				dSP; ENTER; SAVETMPS;

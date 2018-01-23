@@ -485,7 +485,6 @@ static int mdb_tool_next_id(
 	struct berval *text,
 	int hole )
 {
-	struct mdb_info *mdb MAY_UNUSED = (struct mdb_info *) op->o_bd->be_private;
 	struct berval dn = e->e_name;
 	struct berval ndn = e->e_nname;
 	struct berval pdn, npdn, nmatched;
