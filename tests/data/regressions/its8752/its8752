@@ -134,18 +134,14 @@ for ((n=1; n<=$MMR; n++)); do
 	MYLOG=`eval echo '$LOG'$n`
 	MYCONF=`eval echo '$CONF'$n`
 	echo "Starting provider slapd on TCP/IP URI $MYURI"
-	DBNOSYNC=yes config_filter $BACKEND ${AC_conf[monitor]} < $ITSDIR/slapd.conf.mmr > $CONF
-	sed -e "s/MMR/$n/g" $CONF > $MYCONF
+	DBNOSYNC=yes config_filter $BACKEND ${AC_conf[monitor]} < $ITSDIR/slapd.conf.mmr | sed -e "s/MMR/$n/g" > $MYCONF
+
 	j=1
 	while [ $j -le $MMR ]; do
 		MMCURI=`eval echo '$URI'$j`
-		sed -e "s|MMC${j}|${MMCURI}|" $MYCONF > $CONF
-		mv $CONF $MYCONF
+		sed -ie "s|MMC${j}|${MMCURI}|" $MYCONF
 		j=`expr $j + 1`
 	done
-	if [ -f $CONF ]; then
-		rm -f $CONF
-	fi
 
 	$SLAPD_HUGE -f $MYCONF -h $MYURI -d $LVL $TIMING |& gzip > $MYLOG.gz &
 	PID=$(jobs -p | tail -1)
