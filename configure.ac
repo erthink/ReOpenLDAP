@@ -693,8 +693,6 @@ if test $ol_enable_spasswd = yes ; then
 	ol_with_cyrus_sasl=yes
 fi
 
-AC_MSG_RESULT(done)
-
 dnl ----------------------------------------------------------------
 dnl Initialize vars
 LTHREAD_LIBS=
@@ -3191,3 +3189,6 @@ if sed -i -e 's/\$pic_flag_for_symtable /&`echo -- "\$LTCFLAGS" | grep -q -w -- 
 else
 	AC_MSG_RESULT([something went wrong, not supported])
 fi
+
+dnl ----------------------------------------------------------------
+AC_MSG_RESULT(done)
