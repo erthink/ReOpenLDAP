@@ -1,5 +1,5 @@
 /* $ReOpenLDAP$ */
-/* Copyright 2004-2017 ReOpenLDAP AUTHORS: please see AUTHORS file.
+/* Copyright 2004-2018 ReOpenLDAP AUTHORS: please see AUTHORS file.
  * All rights reserved.
  *
  * This file is part of ReOpenLDAP.
@@ -1796,6 +1796,7 @@ syncprov_checkpoint( Operation *op, slap_overinst *on )
 	opm.o_bd->bd_info = on->on_info->oi_orig;
 	opm.o_managedsait = SLAP_CONTROL_NONCRITICAL;
 	opm.o_no_schema_check = 1;
+	opm.o_opid = -1;
 	opm.o_bd->bd_info->bi_op_modify( &opm, &rsm );
 
 	if ( rsm.sr_err == LDAP_NO_SUCH_OBJECT &&

@@ -1,5 +1,5 @@
 /* $ReOpenLDAP$ */
-/* Copyright 2008-2017 ReOpenLDAP AUTHORS: please see AUTHORS file.
+/* Copyright 2008-2018 ReOpenLDAP AUTHORS: please see AUTHORS file.
  * All rights reserved.
  *
  * This file is part of ReOpenLDAP.
@@ -223,15 +223,15 @@ ndb_cf_gen( ConfigArgs *c )
 		ber_str2bv( c->argv[1], 0, 0, &bv );
 		ai = ndb_ai_get( ni, &bv );
 		if ( !ai ) {
-			snprintf( c->cr_msg, sizeof( c->cr_msg ), "%s: invalid attr %s",
-				c->log, c->argv[1] );
+			snprintf( c->cr_msg, sizeof( c->cr_msg ), "%.*s: invalid attr %s",
+				(int) sizeof(c->cr_msg) - 64, c->log, c->argv[1] );
 			Debug( LDAP_DEBUG_ANY, "%s\n", c->cr_msg );
 			return -1;
 		}
 		for ( ln = ni->ni_attrlens; ln; ln = ln->ln_next ) {
 			if ( ln->ln_data == (void *)ai ) {
-				snprintf( c->cr_msg, sizeof( c->cr_msg ), "%s: attr len already set for %s",
-					c->log, c->argv[1] );
+				snprintf( c->cr_msg, sizeof( c->cr_msg ), "%.*s: attr len already set for %s",
+					(int) sizeof(c->cr_msg) - 32, c->log, c->argv[1] );
 				Debug( LDAP_DEBUG_ANY, "%s\n", c->cr_msg );
 				return -1;
 			}
@@ -249,15 +249,15 @@ ndb_cf_gen( ConfigArgs *c )
 		ber_str2bv( c->argv[1], 0, 0, &bv );
 		ai = ndb_ai_get( ni, &bv );
 		if ( !ai ) {
-			snprintf( c->cr_msg, sizeof( c->cr_msg ), "%s: invalid attr %s",
-				c->log, c->argv[1] );
+			snprintf( c->cr_msg, sizeof( c->cr_msg ), "%.*s: invalid attr %s",
+				(int) sizeof(c->cr_msg) - 32, c->log, c->argv[1] );
 			Debug( LDAP_DEBUG_ANY, "%s\n", c->cr_msg );
 			return -1;
 		}
 		for ( ln = ni->ni_attridxs; ln; ln = ln->ln_next ) {
 			if ( ln->ln_data == (void *)ai ) {
-				snprintf( c->cr_msg, sizeof( c->cr_msg ), "%s: attr index already set for %s",
-					c->log, c->argv[1] );
+				snprintf( c->cr_msg, sizeof( c->cr_msg ), "%.*s: attr index already set for %s",
+					(int) sizeof(c->cr_msg) - 32, c->log, c->argv[1] );
 				Debug( LDAP_DEBUG_ANY, "%s\n", c->cr_msg );
 				return -1;
 			}
@@ -278,11 +278,13 @@ ndb_cf_gen( ConfigArgs *c )
 		if ( rc ) {
 			if ( rc == LDAP_ALREADY_EXISTS ) {
 				snprintf( c->cr_msg, sizeof( c->cr_msg ),
-					"%s: attrset %s already defined",
+					"%.*s: attrset %s already defined",
+					(int) sizeof(c->cr_msg) - 32,
 					c->log, c->argv[1] );
 			} else {
 				snprintf( c->cr_msg, sizeof( c->cr_msg ),
-					"%s: invalid attrset %s (%d)",
+					"%.*s: invalid attrset %s (%d)",
+					(int) sizeof(c->cr_msg) - 32,
 					c->log, c->argv[1], rc );
 			}
 			Debug( LDAP_DEBUG_ANY, "%s\n", c->cr_msg );
@@ -299,14 +301,16 @@ ndb_cf_gen( ConfigArgs *c )
 		ber_str2bv( c->argv[1], 0, 0, &bv );
 		ai = ndb_ai_get( ni, &bv );
 		if ( !ai ) {
-			snprintf( c->cr_msg, sizeof( c->cr_msg ), "%s: invalid attr %s",
+			snprintf( c->cr_msg, sizeof( c->cr_msg ), "%.*s: invalid attr %s",
+				(int) sizeof(c->cr_msg) - 32,
 				c->log, c->argv[1] );
 			Debug( LDAP_DEBUG_ANY, "%s\n", c->cr_msg );
 			return -1;
 		}
 		for ( ln = ni->ni_attrblobs; ln; ln = ln->ln_next ) {
 			if ( ln->ln_data == (void *)ai ) {
-				snprintf( c->cr_msg, sizeof( c->cr_msg ), "%s: attr blob already set for %s",
+				snprintf( c->cr_msg, sizeof( c->cr_msg ), "%.*s: attr blob already set for %s",
+					(int) sizeof(c->cr_msg) - 32,
 					c->log, c->argv[1] );
 				Debug( LDAP_DEBUG_ANY, "%s\n", c->cr_msg );
 				return -1;

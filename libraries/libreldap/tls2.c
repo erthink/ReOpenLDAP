@@ -1,5 +1,5 @@
 /* $ReOpenLDAP$ */
-/* Copyright 1990-2017 ReOpenLDAP AUTHORS: please see AUTHORS file.
+/* Copyright 1990-2018 ReOpenLDAP AUTHORS: please see AUTHORS file.
  * All rights reserved.
  *
  * This file is part of ReOpenLDAP.
@@ -333,6 +333,10 @@ ldap_int_tls_connect( LDAP *ld, LDAPConn *conn, const char *host )
 	}
 
 	err = tls_imp->ti_session_connect( ld, ssl );
+
+	if ( err == 0 ) {
+		err = ldap_pvt_tls_check_hostname( ld, ssl, host );
+	}
 
 	if ( err == 0 ) {
 		err = ldap_pvt_tls_check_hostname( ld, ssl, host );
@@ -937,7 +941,7 @@ ldap_int_tls_start ( LDAP *ld, LDAPConn *conn, LDAPURLDesc *srv )
 	 * Use non-blocking io during SSL Handshake when a timeout is configured
 	 */
 	if ( ld->ld_options.ldo_tm_net.tv_sec >= 0 ) {
-		ber_sockbuf_ctrl( ld->ld_sb, LBER_SB_OPT_SET_NONBLOCK, sb );
+		ber_sockbuf_ctrl( sb, LBER_SB_OPT_SET_NONBLOCK, (void*)1 );
 		ber_sockbuf_ctrl( sb, LBER_SB_OPT_GET_FD, &sd );
 		tv = ld->ld_options.ldo_tm_net;
 		tv0 = tv;
@@ -966,7 +970,7 @@ ldap_int_tls_start ( LDAP *ld, LDAPConn *conn, LDAPURLDesc *srv )
 			break;
 		} else {
 			/* ldap_int_poll called ldap_pvt_ndelay_off */
-			ber_sockbuf_ctrl( ld->ld_sb, LBER_SB_OPT_SET_NONBLOCK, sb );
+			ber_sockbuf_ctrl( sb, LBER_SB_OPT_SET_NONBLOCK, (void*)1 );
 			ret = ldap_int_tls_connect( ld, conn, host );
 			if ( ret > 0 ) { /* need to call tls_connect once more */
 				struct timeval curr_time_tv, delta_tv;
@@ -1009,7 +1013,7 @@ ldap_int_tls_start ( LDAP *ld, LDAPConn *conn, LDAPURLDesc *srv )
 		}
 	}
 	if ( ld->ld_options.ldo_tm_net.tv_sec >= 0 ) {
-		ber_sockbuf_ctrl( ld->ld_sb, LBER_SB_OPT_SET_NONBLOCK, NULL );
+		ber_sockbuf_ctrl( sb, LBER_SB_OPT_SET_NONBLOCK, NULL );
 	}
 #endif /* LDAP_USE_NON_BLOCKING_TLS */
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2017 Leonid Yuriev <leo@yuriev.ru>.
+ * Copyright 2015-2018 Leonid Yuriev <leo@yuriev.ru>.
  * Copyright 2015,2016 Peter-Service R&D LLC.
  * All rights reserved.
  *
@@ -152,7 +152,8 @@ int mdbx_txn_straggler(MDB_txn *txn, int *percent)
 	env = txn->mt_env;
 	maxpg = env->me_maxpg;
 	if (unlikely((txn->mt_flags & MDB_RDONLY) == 0)) {
-		*percent = (int)((txn->mt_next_pgno * 100ull + maxpg / 2) / maxpg);
+		if (percent)
+			*percent = (int)((txn->mt_next_pgno * 100ull + maxpg / 2) / maxpg);
 		return -1;
 	}
 

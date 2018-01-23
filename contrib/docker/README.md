@@ -7,10 +7,10 @@ Clone the ReOpenLdap repository:
 ```bash
 git clone https://github.com/ReOpen/ReOpenLDAP.git
 cd ReOpenLDAP
-docker build -t reopenldap docker/.
+docker build -t reopenldap ./contrib/docker
 ```
 
-If you want, you can customize build options with docker/Dockerfile.
+If you want, you can customize build options with `contrib/docker/Dockerfile`.
 
 Note: I use one layer for installing build-depends and remove sources files for same time. That's useful for reducing docker-image size.
 

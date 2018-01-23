@@ -1,5 +1,5 @@
 /* $ReOpenLDAP$ */
-/* Copyright 2011-2017 ReOpenLDAP AUTHORS: please see AUTHORS file.
+/* Copyright 2011-2018 ReOpenLDAP AUTHORS: please see AUTHORS file.
  * All rights reserved.
  *
  * This file is part of ReOpenLDAP.
@@ -382,7 +382,6 @@ int mdb_id2entry(
 	ID id,
 	Entry **e )
 {
-	struct mdb_info *mdb MAY_UNUSED = (struct mdb_info *) op->o_bd->be_private;
 	MDB_val key, data;
 	int rc = 0;
 

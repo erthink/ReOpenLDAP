@@ -1,5 +1,5 @@
 /* $ReOpenLDAP$ */
-/* Copyright 2000-2017 ReOpenLDAP AUTHORS: please see AUTHORS file.
+/* Copyright 2000-2018 ReOpenLDAP AUTHORS: please see AUTHORS file.
  * All rights reserved.
  *
  * This file is part of ReOpenLDAP.
@@ -62,11 +62,9 @@ bdb_dn2id_add(
 	/* store it -- don't override */
 	rc = db->put( db, txn, &key, &data, DB_NOOVERWRITE );
 	if( rc != 0 ) {
-		char buf[ SLAP_TEXT_BUFLEN ];
-		snprintf( buf, sizeof( buf ), "%s => bdb_dn2id_add dn=\"%s\" ID=0x%lx",
-			op->o_log_prefix, e->e_name.bv_val, e->e_id );
-		Debug( LDAP_DEBUG_ANY, "%s: put failed: %s %d\n",
-			buf, db_strerror(rc), rc );
+		Debug( LDAP_DEBUG_ANY,
+			"%s => bdb_dn2id_add dn=\"%s\" ID=0x%lx: put failed: %s %d\n",
+			op->o_log_prefix, e->e_name.bv_val, e->e_id, db_strerror(rc), rc );
 		goto done;
 	}
 
@@ -78,8 +76,8 @@ bdb_dn2id_add(
 		rc = db->put( db, txn, &key, &data, DB_NOOVERWRITE );
 		if( rc != 0 ) {
 			Debug( LDAP_DEBUG_ANY,
-			"=> bdb_dn2id_add 0x%lx: subtree (%s) put failed: %d\n",
-			e->e_id, ptr.bv_val, rc );
+				"=> bdb_dn2id_add 0x%lx: subtree (%s) put failed: %d\n",
+				e->e_id, ptr.bv_val, rc );
 			goto done;
 		}
 
@@ -100,7 +98,7 @@ bdb_dn2id_add(
 		if( rc != 0 ) {
 			Debug( LDAP_DEBUG_ANY,
 				"=> bdb_dn2id_add 0x%lx: parent (%s) insert failed: %d\n",
-					e->e_id, ptr.bv_val, rc );
+				e->e_id, ptr.bv_val, rc );
 			goto done;
 		}
 	}
@@ -118,7 +116,7 @@ bdb_dn2id_add(
 		if( rc != 0 ) {
 			Debug( LDAP_DEBUG_ANY,
 				"=> bdb_dn2id_add 0x%lx: subtree (%s) insert failed: %d\n",
-					e->e_id, ptr.bv_val, rc );
+				e->e_id, ptr.bv_val, rc );
 			break;
 		}
 #ifdef BDB_MULTIPLE_SUFFIXES
@@ -183,8 +181,8 @@ bdb_dn2id_delete(
 		rc = bdb_idl_delete_key( op->o_bd, db, txn, &key, e->e_id );
 		if( rc != 0 ) {
 			Debug( LDAP_DEBUG_ANY,
-			"=> bdb_dn2id_delete 0x%lx: subtree (%s) delete failed: %d\n",
-			e->e_id, ptr.bv_val, rc );
+				"=> bdb_dn2id_delete 0x%lx: subtree (%s) delete failed: %d\n",
+				e->e_id, ptr.bv_val, rc );
 			goto done;
 		}
 

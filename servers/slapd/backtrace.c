@@ -1,5 +1,5 @@
 /* $ReOpenLDAP$ */
-/* Copyright 1990-2017 ReOpenLDAP AUTHORS: please see AUTHORS file.
+/* Copyright 1990-2018 ReOpenLDAP AUTHORS: please see AUTHORS file.
  * All rights reserved.
  *
  * This file is part of ReOpenLDAP.
@@ -406,7 +406,8 @@ void backtrace_sigaction(int signum, siginfo_t *info, void* ptr) {
 
 	if (gdb_pid > 0) {
 		/* enable debugging */
-		prctl(PR_SET_PTRACER, gdb_pid /* PR_SET_PTRACER_ANY */, 0, 0, 0);
+		if (prctl(PR_SET_PTRACER, gdb_pid /* PR_SET_PTRACER_ANY */, 0, 0, 0) < 0)
+			dprintf(STDOUT_FILENO, "\n*** Sorry, prctl(PR_SET_PTRACER) for GDB failed: %s\n", STRERROR(errno));
 
 		close(pipe_fd[0]);
 		pipe_fd[0] = -1;

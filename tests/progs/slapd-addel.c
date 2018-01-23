@@ -1,5 +1,5 @@
 /* $ReOpenLDAP$ */
-/* Copyright 1999-2017 ReOpenLDAP AUTHORS: please see AUTHORS file.
+/* Copyright 1999-2018 ReOpenLDAP AUTHORS: please see AUTHORS file.
  * All rights reserved.
  *
  * This file is part of ReOpenLDAP.
@@ -174,7 +174,7 @@ main( int argc, char **argv )
 
 	}
 
-	if (( attrs == NULL ) || ( *attrs == '\0' )) {
+	if (( attrs == NULL ) || ( *attrs == NULL )) {
 
 		fprintf( stderr, "%s: invalid attrs in file \"%s\".\n",
 				argv[0], filename );

@@ -1,6 +1,6 @@
 #!/bin/bash
 ## $ReOpenLDAP$
-## Copyright 1998-2017 ReOpenLDAP AUTHORS: please see AUTHORS file.
+## Copyright 1998-2018 ReOpenLDAP AUTHORS: please see AUTHORS file.
 ## All rights reserved.
 ##
 ## This file is part of ReOpenLDAP.
@@ -101,6 +101,7 @@ function update_TESTDIR {
 	SEARCHFLT=$TESTDIR/ldapsearch.flt
 	SEARCHFLT2=$TESTDIR/ldapsearch2.flt
 	LDIFFLT=$TESTDIR/ldif.flt
+	LDIFFLT2=$TESTDIR/ldif2.flt
 	TESTOUT=$TESTDIR/test.out
 	INITOUT=$TESTDIR/init.out
 	SERVER1OUT=$TESTDIR/server1.out

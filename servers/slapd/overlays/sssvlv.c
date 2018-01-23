@@ -1,5 +1,5 @@
 /* $ReOpenLDAP$ */
-/* Copyright 2009-2017 ReOpenLDAP AUTHORS: please see AUTHORS file.
+/* Copyright 2009-2018 ReOpenLDAP AUTHORS: please see AUTHORS file.
  * All rights reserved.
  *
  * This file is part of ReOpenLDAP.
@@ -981,7 +981,6 @@ static int sssvlv_op_search(
 
 			assert(sess_id >= 0);
 			so->so_running = 1;
-			sort_conns[op->o_conn->c_conn_idx][sess_id]->so_session = sess_id;
 			sort_conns[op->o_conn->c_conn_idx][sess_id] = so;
 			si->svi_num++;
 			ldap_pvt_thread_mutex_unlock( &sort_conns_mutex );

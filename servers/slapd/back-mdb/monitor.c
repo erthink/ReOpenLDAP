@@ -1,5 +1,5 @@
 /* $ReOpenLDAP$ */
-/* Copyright 2011-2017 ReOpenLDAP AUTHORS: please see AUTHORS file.
+/* Copyright 2011-2018 ReOpenLDAP AUTHORS: please see AUTHORS file.
  * All rights reserved.
  *
  * This file is part of ReOpenLDAP.
@@ -117,9 +117,8 @@ mdb_monitor_update(
 	Entry		*e,
 	void		*priv )
 {
-	struct mdb_info *mdb MAY_UNUSED = (struct mdb_info *) priv;
-
 #ifdef MDB_MONITOR_IDX
+	struct mdb_info		*mdb = (struct mdb_info *) priv;
 	mdb_monitor_idx_entry_add( mdb, e );
 #endif /* MDB_MONITOR_IDX */
 
@@ -145,11 +144,9 @@ mdb_monitor_free(
 {
 	struct berval	values[ 2 ];
 	Modification	mod = { 0 };
-
 	const char	*text;
 	char		textbuf[ SLAP_TEXT_BUFLEN ];
-
-	int		i, rc MAY_UNUSED;
+	int		i;
 
 	/* NOTE: if slap_shutdown != 0, priv might have already been freed */
 	*priv = NULL;
@@ -162,9 +159,10 @@ mdb_monitor_free(
 	values[ 0 ] = oc_olmMDBDatabase->soc_cname;
 	BER_BVZERO( &values[ 1 ] );
 
-	rc = modify_delete_values( e, &mod, 1, &text,
+	int rc = modify_delete_values( e, &mod, 1, &text,
 		textbuf, sizeof( textbuf ) );
 	/* don't care too much about return code... */
+	(void) rc;
 
 	/* remove attrs */
 	mod.sm_values = NULL;
@@ -258,7 +256,9 @@ mdb_monitor_initialize( void )
 int
 mdb_monitor_db_init( BackendDB *be )
 {
-	struct mdb_info	*mdb MAY_UNUSED = (struct mdb_info *) be->be_private;
+#ifdef MDB_MONITOR_IDX
+	struct mdb_info		*mdb = (struct mdb_info *) be->be_private;
+#endif /* MDB_MONITOR_IDX */
 
 	if ( mdb_monitor_initialize() == LDAP_SUCCESS ) {
 		/* monitoring in back-mdb is on by default */

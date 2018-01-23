@@ -1,5 +1,5 @@
 /* $ReOpenLDAP$ */
-/* Copyright 1990-2017 ReOpenLDAP AUTHORS: please see AUTHORS file.
+/* Copyright 1990-2018 ReOpenLDAP AUTHORS: please see AUTHORS file.
  * All rights reserved.
  *
  * This file is part of ReOpenLDAP.
@@ -405,6 +405,31 @@ ldap_int_open_connection(
 		--conn->lconn_refcnt;
 
 		if (rc != LDAP_SUCCESS) {
+			/* process connection callbacks */
+			{
+				struct ldapoptions *lo;
+				ldaplist *ll;
+				ldap_conncb *cb;
+
+				lo = &ld->ld_options;
+				LDAP_MUTEX_LOCK( &lo->ldo_mutex );
+				if ( lo->ldo_conn_cbs ) {
+					for ( ll=lo->ldo_conn_cbs; ll; ll=ll->ll_next ) {
+						cb = ll->ll_data;
+						cb->lc_del( ld, conn->lconn_sb, cb );
+					}
+				}
+				LDAP_MUTEX_UNLOCK( &lo->ldo_mutex );
+				lo = LDAP_INT_GLOBAL_OPT();
+				LDAP_MUTEX_LOCK( &lo->ldo_mutex );
+				if ( lo->ldo_conn_cbs ) {
+					for ( ll=lo->ldo_conn_cbs; ll; ll=ll->ll_next ) {
+						cb = ll->ll_data;
+						cb->lc_del( ld, conn->lconn_sb, cb );
+					}
+				}
+				LDAP_MUTEX_UNLOCK( &lo->ldo_mutex );
+			}
 			return -1;
 		}
 	}

@@ -21,6 +21,7 @@ David Bender <codehero@yahoo.com>
 David M. Syzdek <syzdek@bindlebinaries.com>
 David Wilson <dw@botanicus.net>
 Devin J. Pohly <djpohly@gmail.com>
+Dmitrii Zolotov <dzolotov@herzen.spb.ru>
 Dmitry Kovalev <mit@openldap.org>
 Egor Levintsa <admin@pro-ldap.ru>
 Emily Backes <ebackes@symas.com>
@@ -120,7 +121,7 @@ Tim Strobell <tim.strobell.ctr@nrl.navy.mil>
 Will Ballantyne <willb@openldap.org>
 W. Trevor King <wking@tremily.us>
 
-1998-2017 The OpenLDAP Foundation, <http://www.openldap.org/>.
+1998-2018 The OpenLDAP Foundation, <http://www.openldap.org/>.
 2015-2016 Peter-Service R&D LLC, <http://www.billing.ru/>.
 2007-2011 Suretec Systems Ltd.
 1999-2009 Symas Corporation.
@@ -131,5 +132,5 @@ W. Trevor King <wking@tremily.us>
 1997-2002 Computing Research Labs, New Mexico State University
 2002 F5 Networks, Inc.
 2002 myinternet Limited.
-1996, 1998 Internet Software Consortium.
+1996-1998 Internet Software Consortium.
 1992-1996 Regents of the University of Michigan, USA.

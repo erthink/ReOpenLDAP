@@ -1,5 +1,5 @@
 /* $ReOpenLDAP$ */
-/* Copyright 2011-2017 ReOpenLDAP AUTHORS: please see AUTHORS file.
+/* Copyright 2011-2018 ReOpenLDAP AUTHORS: please see AUTHORS file.
  * All rights reserved.
  *
  * This file is part of ReOpenLDAP.
@@ -720,9 +720,9 @@ mdb_cf_gen( ConfigArgs *c )
 		ch_free( testpath );
 		if ( !f ) {
 			snprintf( c->cr_msg, sizeof( c->cr_msg ), "%s: invalid path: %s",
-				c->log, STRERROR( errno ));
+				c->value_string, STRERROR( errno ));
 			Debug( LDAP_DEBUG_ANY, "%s\n", c->cr_msg );
-			return -1;
+			return ARG_BAD_CONF;
 		}
 
 		if ( mdb->mi_dbenv_home )

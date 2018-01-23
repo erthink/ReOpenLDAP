@@ -1,5 +1,5 @@
 /* $ReOpenLDAP$ */
-/* Copyright 2004-2017 ReOpenLDAP AUTHORS: please see AUTHORS file.
+/* Copyright 2004-2018 ReOpenLDAP AUTHORS: please see AUTHORS file.
  * All rights reserved.
  *
  * This file is part of ReOpenLDAP.
@@ -1525,6 +1525,11 @@ static int accesslog_response(Operation *op, SlapReply *rs) {
 				break;
 			}
 		}
+#ifdef RMUTEX_DEBUG
+		Debug( LDAP_DEBUG_SYNC,
+			"accesslog_response: unlocking rmutex for tid %x\n",
+			op->o_tid );
+#endif
 		ldap_pvt_thread_rmutex_unlock( &li->li_op_rmutex, op->o_tid );
 	}
 
@@ -1946,7 +1951,7 @@ accesslog_mod_cleanup( Operation *op, SlapReply *rs )
 
 	op->o_tmpfree( sc, op->o_tmpmemctx );
 
-	if ( on ) {
+	if ( on && rs->sr_err != LDAP_SUCCESS ) {
 		BackendInfo *bi = op->o_bd->bd_info;
 		op->o_bd->bd_info = (BackendInfo *)on;
 		accesslog_response( op, rs );
@@ -1993,13 +1998,23 @@ accesslog_op_mod( Operation *op, SlapReply *rs )
 	}
 
 	if ( doit ) {
-		slap_callback *cb = op->o_tmpcalloc( 1, sizeof( slap_callback ), op->o_tmpmemctx ), *cb2;
+		slap_callback *cb = op->o_tmpcalloc( 1, sizeof( slap_callback ), op->o_tmpmemctx );
 		cb->sc_cleanup = accesslog_mod_cleanup;
 		cb->sc_private = on;
-		for ( cb2 = op->o_callback; cb2->sc_next; cb2 = cb2->sc_next );
-		cb2->sc_next = cb;
+		cb->sc_next = op->o_callback;
+		op->o_callback = cb;
 
+#ifdef RMUTEX_DEBUG
+		Debug( LDAP_DEBUG_SYNC,
+			"accesslog_op_mod: locking rmutex for tid %x\n",
+			op->o_tid );
+#endif
 		ldap_pvt_thread_rmutex_lock( &li->li_op_rmutex, op->o_tid );
+#ifdef RMUTEX_DEBUG
+		Debug( LDAP_DEBUG_STATS,
+			"accesslog_op_mod: locked rmutex for tid %x\n",
+			op->o_tid );
+#endif
 		if ( li->li_oldf && ( op->o_tag == LDAP_REQ_DELETE ||
 			op->o_tag == LDAP_REQ_MODIFY ||
 			( op->o_tag == LDAP_REQ_MODRDN && li->li_oldattrs )))

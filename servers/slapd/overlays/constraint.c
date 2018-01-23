@@ -1,5 +1,5 @@
 /* $ReOpenLDAP$ */
-/* Copyright 2003-2017 ReOpenLDAP AUTHORS: please see AUTHORS file.
+/* Copyright 2003-2018 ReOpenLDAP AUTHORS: please see AUTHORS file.
  * All rights reserved.
  *
  * This file is part of ReOpenLDAP.
@@ -442,7 +442,7 @@ constraint_cf_gen( ConfigArgs *c )
 						}
 
 						if ( ap.restrict_lud->lud_attrs != NULL ) {
-							if ( ap.restrict_lud->lud_attrs[0] != '\0' ) {
+							if ( ap.restrict_lud->lud_attrs[0] && ap.restrict_lud->lud_attrs[0][0] != '\0' ) {
 								snprintf( c->cr_msg, sizeof( c->cr_msg ),
 									"%s %s: attrs not allowed in restrict URI %s\n",
 									c->argv[0], c->argv[1], arg);

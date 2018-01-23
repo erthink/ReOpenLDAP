@@ -1,4 +1,4 @@
-dnl Copyright 1998-2017 ReOpenLDAP AUTHORS: please see AUTHORS file.
+dnl Copyright 1998-2018 ReOpenLDAP AUTHORS: please see AUTHORS file.
 dnl All rights reserved.
 dnl
 dnl This file is part of ReOpenLDAP.
@@ -21,7 +21,7 @@ define([AC_LIBTOOL_LANG_F77_CONFIG], [:])dnl
 define([AC_LIBTOOL_LANG_GCJ_CONFIG], [:])dnl
 dnl ================================================================
 dnl Configure.in for ReOpenLDAP
-AC_COPYRIGHT([[Copyright 1992-2017 ReOpenLDAP AUTHORS: please see AUTHORS file.
+AC_COPYRIGHT([[Copyright 1992-2018 ReOpenLDAP AUTHORS: please see AUTHORS file.
 All rights reserved.
 
 This file is part of ReOpenLDAP.
@@ -139,7 +139,8 @@ FIXUP_DIRS="\$(SED) \
 AC_SUBST(FIXUP_DIRS)
 
 AC_LANG([C])
-AC_ARG_VAR(EXTRA_CFLAGS, [Extra build-time CFLAGS, e.g. -Wall -Werror])
+AC_ARG_VAR(EXTRA_CFLAGS, [Extra build-time CFLAGS, e.g. -Wall -Werror.
+		Alternatively, ones can be specified or overridden by invocation 'make EXTRA_CLAGS="a b c"'])
 AC_PREFIX_DEFAULT("/opt/reopenldap")
 
 dnl ----------------------------------------------------------------
@@ -182,7 +183,7 @@ dnl ----------------------------------------------------------------
 
 AH_TOP([
 /* begin of reldap_autoconf.h.pre */
-/* Copyright 1992-2017 ReOpenLDAP AUTHORS: please see AUTHORS file.
+/* Copyright 1992-2018 ReOpenLDAP AUTHORS: please see AUTHORS file.
  * All rights reserved.
  *
  * This file is part of ReOpenLDAP.
@@ -278,7 +279,6 @@ AH_BOTTOM([
 
 AC_CONFIG_HEADERS([reldap_autoconf.h])
 AC_CONFIG_HEADERS([include/ldap_features.h])
-AC_CONFIG_HEADERS([include/ldap_dirs.h])
 AC_CONFIG_HEADERS([include/lber_types.h])
 
 dnl ================================================================
@@ -578,6 +578,24 @@ PKG_CHECK_MODULES(HEIMDAL, heimdal-krb5 heimdal-kadm-server, heimdal_found=yes, 
 AC_SUBST(HEIMDAL_LIBS)
 AC_SUBST(HEIMDAL_CFLAGS)
 AM_CONDITIONAL([HEIMDAL_AVAIL], [test $heimdal_found = yes])
+if test $heimdal_found == yes; then
+	AC_MSG_CHECKING([for hdb_generate_key_set_password() signature])
+	saved_cflags="$CFLAGS"
+	CFLAGS="$CFLAGS $HEIMDAL_CFLAGS"
+	AC_COMPILE_IFELSE(
+		[AC_LANG_PROGRAM(
+		[[#include <heimdal/hdb.h>]],
+		[[krb5_context context; krb5_principal principal; Key *key; size_t size;]
+		[krb5_error_code rc = hdb_generate_key_set_password(context, principal, "", &key, &size);]
+		[return (int) rc;]])
+		],[
+			AC_MSG_RESULT([modern])
+			AC_DEFINE(HAVE_MODERN_HDB_GENERATE_KEY_SET_PASSWORD, 1, [Does hdb_generate_key_set_password() signature is modern])
+		],[
+			AC_MSG_RESULT([legacy])
+	])
+	CFLAGS="$saved_cflags"
+fi
 
 dnl ----------------------------------------------------------------
 # libsodium (argon2 hash)
@@ -687,8 +705,6 @@ if test $ol_enable_spasswd = yes ; then
 	fi
 	ol_with_cyrus_sasl=yes
 fi
-
-AC_MSG_RESULT(done)
 
 dnl ----------------------------------------------------------------
 dnl Initialize vars
@@ -3257,3 +3273,6 @@ if sed -i -e 's/\$pic_flag_for_symtable /&`echo -- "\$LTCFLAGS" | grep -q -w -- 
 else
 	AC_MSG_RESULT([something went wrong, not supported])
 fi
+
+dnl ----------------------------------------------------------------
+AC_MSG_RESULT(done)

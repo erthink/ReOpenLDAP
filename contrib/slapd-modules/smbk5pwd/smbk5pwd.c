@@ -1,5 +1,5 @@
 /* $ReOpenLDAP$ */
-/* Copyright 2004-2017 ReOpenLDAP AUTHORS: please see AUTHORS file.
+/* Copyright 2004-2018 ReOpenLDAP AUTHORS: please see AUTHORS file.
  * All rights reserved.
  *
  * This file is part of ReOpenLDAP.
@@ -467,8 +467,13 @@ static int smbk5pwd_exop_passwd(
 				op->o_log_prefix, e->e_name.bv_val );
 		}
 
+#ifdef HAVE_MODERN_HDB_GENERATE_KEY_SET_PASSWORD
+		ret = hdb_generate_key_set_password(context, ent.principal,
+			qpw->rs_new.bv_val, &ent.keys.val, &nkeys);
+#else
 		ret = hdb_generate_key_set_password(context, ent.principal,
 			qpw->rs_new.bv_val, NULL, 0, &ent.keys.val, &nkeys);
+#endif /* HAVE_MODERN_HDB_GENERATE_KEY_SET_PASSWORD */
 		ent.keys.len = nkeys;
 		hdb_seal_keys(context, db, &ent);
 		krb5_free_principal( context, ent.principal );

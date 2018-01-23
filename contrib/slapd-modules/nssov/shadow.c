@@ -1,6 +1,6 @@
 /* shadow.c - shadow account lookup routines */
 /* $ReOpenLDAP$ */
-/* Copyright 1992-2017 ReOpenLDAP AUTHORS: please see AUTHORS file.
+/* Copyright 1992-2018 ReOpenLDAP AUTHORS: please see AUTHORS file.
  * All rights reserved.
  *
  * This file is part of ReOpenLDAP.

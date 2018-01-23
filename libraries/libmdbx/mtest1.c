@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2017 Leonid Yuriev <leo@yuriev.ru>.
+ * Copyright 2015-2018 Leonid Yuriev <leo@yuriev.ru>.
  * Copyright 2015,2016 Peter-Service R&D LLC.
  * All rights reserved.
  *
@@ -20,6 +20,7 @@
 #include <unistd.h>
 #include <errno.h>
 #include <sys/stat.h>
+#include <sys/sysmacros.h>
 #include "mdbx.h"
 
 #define E(expr) CHECK((rc = (expr)) == MDB_SUCCESS, #expr)

@@ -1,5 +1,7 @@
 New features and Compatibility breaking
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2018-MM-DD v1.1.7
+2017-10-01 backend-ldap: import - use the configured exop timeout for StartTLS (ITS#8270).
 2017-08-12 v1.1.6
 2017-04-16 slapd: backport - Add config support for binary values.
 2017-04-16 libreldap: backport - Add options to use DER format cert+keys directly.
@@ -87,6 +89,11 @@ New features and Compatibility breaking
 
 Documentation
 ~~~~~~~~~~~~~
+2018-MM-DD v1.1.7
+2018-01-23 man: import - Note ldap_sasl_bind() can be used to make simple binds via the LDAP_SASL_SIMPLE mechanism (ITS#8121).
+2018-01-23 man: import - index on entryCSN is mandatory note (ITS#5048).
+2018-01-22 configure: note about EXTRA_CFLAGS.
+2017-08-22 man: import - Fix typo with olcTLSCipherSuite (ITS#8715).
 2017-08-12 v1.1.6
 2017-04-26 man: Fix wording to match examples (ITS#8123).
 2017-04-26 man-contib: add man-pages for contrib overlays (ITS#8205).
@@ -148,6 +155,9 @@ Documentation
 
 Major and Security Bugs
 ~~~~~~~~~~~~~~~~~~~~~~~
+2018-MM-DD v1.1.7
+2018-01-22 overlay-sss: fix server-side-sort overlay segfault.
+2017-10-01 build: fix 'ldap_dirs.h' issue (@variables@ are not replaced with paths on).
 2017-08-12 v1.1.6
 2017-07-26 mdbx: backport - don't madvise(MADV_REMOVE).
 2017-05-23 backend-mdb: fix double free on paged search with pagesize 0 (ITS#8655).
@@ -248,6 +258,23 @@ Major and Security Bugs
 
 Minor Bugs
 ~~~~~~~~~~
+2018-MM-DD v1.1.7
+2018-01-23 syncrepl: import - fix syncrepl deadlock from updateCookie (ITS#8752).
+2018-01-23 overlay-accesslog: import - cleanup should only be called on failures (ITS#8752).
+2018-01-23 syncrepl: import - fix syncrepl null_callback (ITS#8752).
+2018-01-23 backend-sock: import - let back-sock generate increment (ITS#8692).
+2018-01-23 libreldap: import - Fix non-blocking TLS with referrals (ITS#8167).
+2018-01-23 backend-mdb: import - fix/remove unused-variables (ITS#8578).
+2018-01-23 backend-meta: import - Fix an assertion failure during modify of olcDbRewrite in back-meta (ITS#8404).
+2018-01-23 backend-ldap: import - fix omit-unknown-schema changes (ITS#7520).
+2018-01-23 libreldap: import - do not reuse TLS_session if hostname check fails (ITS#7373).
+2018-01-23 overlay-dds: import - Update entryTtl behaviour to match RFC 2589 (ITS#7100).
+2018-01-23 libreldap: import - call connection delete callbacks (ITS#8717).
+2018-01-22 overlay-constraint: fix comparison between pointer and zero character constant.
+2018-01-22 backend-mdb: fix "warning: '%s' directive output may be truncated..."
+2018-01-12 syncrepl: fix "syncrepl_process: rid=NNN (-45) Unknown API error".
+2018-01-19 slapd: fix 'ptrace: Operation not permitted' from backtrace feature.
+2017-08-25 syncprov: import - ITS#8444 Do not clear the pending operation when checkpointing.
 2017-08-12 v1.1.6
 2017-08-02 mdbx: backport - ITS#8699 more for cursor_del ITS#8622.
 2017-08-02 slapd: avoid hang/crash the backtrace_sigaction().
@@ -629,6 +656,8 @@ Minor Bugs
 
 Performance
 ~~~~~~~~~~~
+2018-MM-DD v1.1.7
+2018-01-23 backend-mdb: import - optimization restart search txn (ITS#8226).
 2017-08-12 v1.1.6
 2017-02-15 mdbx: 'unlikely' for DB_STALE.
 2017-01-27 mdbx: check __OPTIMIZE__ for __hot/__cold/__flatten.
@@ -680,6 +709,19 @@ Performance
 
 Build
 ~~~~~
+2018-MM-DD v1.1.7
+2018-01-23 libmdbx: fix warning about <sys/sysmacros.h> for major macro (tests only).
+2018-01-23 configure, contrib/smbk5pwd: add check for modern hdb_generate_key_set_password().
+2018-01-23 backend-ndb: fix 'directive output may be truncated...'
+2018-01-23 ci: auto-bootstrap if ./configure not exists.
+2018-01-23 backend-bdb: fix 'directive output may be truncated writing'...
+2018-01-23 backend-sql: fix 'directive output may be truncated writing...'
+2018-01-23 backend-perl: fix 'directive output may be truncated writing...'
+2018-01-23 backend-meta: fix 'directive output may be truncated writing...'
+2018-01-23 libreldap: import - fix build if EGD not disabled in OpenSSL (ITS#8687).
+2018-01-21 backend-mdb: fix "warning: '%s' directive output may be truncated..."
+2018-01-12 build: patch 'libltdl' to avoid clang > 3.x warnings.
+2017-08-20 travis-ci: allow build in forks
 2017-08-12 v1.1.6
 2017-08-02 configure: fix subst for VALGRIND_SUPPRESSIONS_FILES.
 2017-08-02 configure: add '--enable-ci' option for Continuous Integration.
@@ -786,6 +828,14 @@ Build
 
 Cosmetics
 ~~~~~~~~~
+2018-MM-DD v1.1.7
+2018-01-23 syncrepl: minor logging spaces (cosmetics).
+2018-01-23 slapd: fix 'must be configured...' spelling.
+2018-01-23 configure: fix/move final 'done' message.
+2018-01-23 libreldap: import - Fix "errror" typo.
+2018-01-23 overlay-accesslog: import - additional debug info, thread ID of rmutex lockers (ITS#8752).
+2018-01-22 contrib: move 'docker' dir into contrib.
+2018-01-21 reopenldap: HNY!
 2017-08-12 v1.1.6
 2017-08-02 configure: fix message alignment (cosmetics).
 2017-08-12 reopenldap: update links after move the repo.
@@ -829,6 +879,14 @@ Cosmetics
 
 Other
 ~~~~~
+2018-MM-DD v1.1.7
+2018-01-23 tests: allow run its-regressions manually.
+2018-01-23 tests: import - Add regression test for MMR with accesslog (ITS#8752).
+2018-01-23 tests: import - Fix missing index on reqResult.
+2018-01-23 tests: import - Test for entryTtl reflecting time to live (ITS#7100).
+2018-01-22 tests: fix 'warning: comparison between pointer and zero character constant'.
+2018-01-22 slapd: check prctl(PR_SET_PTRACER) result while backtracing.
+2017-10-02 reopenldap: add Dmitrii Zolotov into AUTHORS.
 2017-08-12 v1.1.6
 2017-08-02 libreldap: rename ber_error_print() to ber_debug_print().
 2017-08-02 reopenldap: rename ldap-time functions.

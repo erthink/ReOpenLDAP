@@ -1,5 +1,5 @@
 /* $ReOpenLDAP$ */
-/* Copyright 1990-2017 ReOpenLDAP AUTHORS: please see AUTHORS file.
+/* Copyright 1990-2018 ReOpenLDAP AUTHORS: please see AUTHORS file.
  * All rights reserved.
  *
  * This file is part of ReOpenLDAP.
@@ -503,7 +503,7 @@ int main( int argc, char **argv )
 			slap_set_debug_level(mask);
 #else
 			if ( mask != 0 || debug_unknowns )
-				fputs( "must configure with --enable-debug for debugging\n", stderr );
+				fputs( "must be configured with '--enable-debug' for debugging\n", stderr );
 #endif /* LDAP_DEBUG */
 			} break;
 

@@ -1,5 +1,5 @@
 /* $ReOpenLDAP$ */
-/* Copyright 2000-2017 ReOpenLDAP AUTHORS: please see AUTHORS file.
+/* Copyright 2000-2018 ReOpenLDAP AUTHORS: please see AUTHORS file.
  * All rights reserved.
  *
  * This file is part of ReOpenLDAP.
@@ -822,8 +822,8 @@ bdb_cf_gen( ConfigArgs *c )
 		}
 		ch_free( testpath );
 		if ( !f ) {
-			snprintf( c->cr_msg, sizeof( c->cr_msg ), "%s: invalid path: %s",
-				c->log, STRERROR( errno ));
+			snprintf( c->cr_msg, sizeof( c->cr_msg ), "%.*s: invalid path: %s",
+				(int) sizeof(c->cr_msg) - 32, c->log, STRERROR( errno ));
 			Debug( LDAP_DEBUG_ANY, "%s\n", c->cr_msg );
 			return -1;
 		}
@@ -919,8 +919,8 @@ bdb_cf_gen( ConfigArgs *c )
 		s = atoi(c->argv[2]);
 		if ( s < 1 || s > 64 ) {
 			snprintf( c->cr_msg, sizeof( c->cr_msg ),
-				"%s: size must be > 0 and <= 64: %d",
-				c->log, s );
+				"%.*s: size must be > 0 and <= 64: %d",
+				(int) sizeof(c->cr_msg) - 32, c->log, s );
 			Debug( LDAP_DEBUG_ANY, "%s\n", c->cr_msg );
 			return -1;
 		}

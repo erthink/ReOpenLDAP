@@ -1,5 +1,5 @@
 /* $ReOpenLDAP$ */
-/* Copyright 2011-2017 ReOpenLDAP AUTHORS: please see AUTHORS file.
+/* Copyright 2011-2018 ReOpenLDAP AUTHORS: please see AUTHORS file.
  * All rights reserved.
  *
  * This file is part of ReOpenLDAP.
@@ -291,7 +291,6 @@ static void scope_chunk_free( void *key, void *data )
 
 static ID2 *scope_chunk_get( Operation *op )
 {
-	struct mdb_info *mdb MAY_UNUSED = (struct mdb_info *) op->o_bd->be_private;
 	ID2 *ret = NULL;
 
 	ldap_pvt_thread_pool_getkey( op->o_threadctx, (void *)scope_chunk_get,
@@ -308,7 +307,6 @@ static ID2 *scope_chunk_get( Operation *op )
 
 static void scope_chunk_ret( Operation *op, ID2 *scopes )
 {
-	struct mdb_info *mdb MAY_UNUSED = (struct mdb_info *) op->o_bd->be_private;
 	void *ret = NULL;
 
 	ldap_pvt_thread_pool_getkey( op->o_threadctx, (void *)scope_chunk_get,
@@ -1134,11 +1132,14 @@ loop_continue:
 		if ( !wwctx.flag && mdb->mi_rtxn_size ) {
 			wwctx.nentries++;
 			if ( wwctx.nentries >= mdb->mi_rtxn_size ) {
-				if ( moi == &opinfo ) {
-					Debug( LDAP_DEBUG_FILTER, "dreamcatcher: %u entries (> %u)\n", wwctx.nentries, mdb->mi_rtxn_size );
-					mdb_writewait( op, &cb );
-				} else
-					Debug( LDAP_DEBUG_ANY, "dreamcatcher: UNABLE %u entries (> %u)\n", wwctx.nentries, mdb->mi_rtxn_size );
+				if ( mdbx_txn_straggler( wwctx.txn, NULL ) > 0 ) {
+					if ( moi == &opinfo ) {
+						Debug( LDAP_DEBUG_FILTER, "dreamcatcher: %u entries (> %u)\n", wwctx.nentries, mdb->mi_rtxn_size );
+						mdb_writewait( op, &cb );
+					} else
+						Debug( LDAP_DEBUG_ANY, "dreamcatcher: UNABLE %u entries (> %u)\n", wwctx.nentries, mdb->mi_rtxn_size );
+				}
+				wwctx.nentries = 0;
 			}
 		}
 

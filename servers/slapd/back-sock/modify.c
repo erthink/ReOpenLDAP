@@ -1,5 +1,5 @@
 /* $ReOpenLDAP$ */
-/* Copyright 2007-2017 ReOpenLDAP AUTHORS: please see AUTHORS file.
+/* Copyright 2007-2018 ReOpenLDAP AUTHORS: please see AUTHORS file.
  * All rights reserved.
  *
  * This file is part of ReOpenLDAP.
@@ -84,6 +84,10 @@ sock_back_modify(
 
 		case LDAP_MOD_REPLACE:
 			fprintf( fp, "replace: %s\n", mod->sm_desc->ad_cname.bv_val );
+			break;
+
+		case LDAP_MOD_INCREMENT:
+			fprintf( fp, "increment: %s\n", mod->sm_desc->ad_cname.bv_val );
 			break;
 		}
 

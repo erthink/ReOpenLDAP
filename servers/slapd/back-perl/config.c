@@ -1,5 +1,5 @@
 /* $ReOpenLDAP$ */
-/* Copyright 1999-2017 ReOpenLDAP AUTHORS: please see AUTHORS file.
+/* Copyright 1999-2018 ReOpenLDAP AUTHORS: please see AUTHORS file.
  * All rights reserved.
  *
  * This file is part of ReOpenLDAP.
@@ -179,9 +179,9 @@ perl_cf(
 			if (SvTRUE(ERRSV)) {
 				STRLEN len;
 
-				snprintf( c->cr_msg, sizeof( c->cr_msg ), "%s: error %s",
-					c->log, SvPV(ERRSV, len ));
-				Debug( LDAP_DEBUG_ANY, "%s\n", c->cr_msg );
+				snprintf( c->cr_msg, sizeof( c->cr_msg ), "%.*s: error %s",
+					(int) sizeof( c->cr_msg ) - 16, c->log, SvPV(ERRSV, len ));
+				Debug( LDAP_DEBUG_ANY, "%s: error %s\n", c->log, SvPV(ERRSV, len ));
 				rc = 1;
 			} else {
 				dSP; ENTER; SAVETMPS;
