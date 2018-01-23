@@ -175,8 +175,8 @@ EOMODS
 done
 
 NNN=42000
-if [ -n "$CI" ]; then
-	NNN=1000
+if [ -n "$CI" -o -n "$CIBUZZ_PID4" ]; then
+	NNN=4200
 fi
 
 echo "Sleeping 30 seconds to ensure replication is reconciled between all nodes"
@@ -215,7 +215,7 @@ sn: $MYVAL
 EOMODS
 	RC=$?
 	if test $RC != 0 ; then
-		echo "ldapmodify failed ($RC)!"
+		echo "ldapmodify failed ($RC, $MYURI, $MYDN, $MYVAL)!"
 		killservers
 		exit $RC
 	fi
