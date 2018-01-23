@@ -89,11 +89,14 @@ echo "Verifying Administrative subordinate is not found..."
 grep "dn: ou=Administrative,dc=example,dc=com" $TESTDIR/slapcat.out >> $TESTOUT 2>&1
 RC=$?
 
+ITS8667_IGNORE_REASON="$CI"
+[ -n "$CIBUZZ_PID4" ] && ITS8667_IGNORE_REASON="BUZZ"
+
 if test $RC = 0 ; then
 	echo "test failed - Administrative subordinate found."
 	echo "This is a regression of ITS8667"
-	[ -n "$CI" ] \
-		&& echo "$CI: Ignore failure due a known issue (not yet fixed)." \
+	[ -n "$ITS8667_IGNORE_REASON" ] \
+		&& echo "$ITS8667_IGNORE_REASON: Ignore failure due a known issue (not yet fixed)." \
 		|| exit 1
 fi
 
@@ -104,8 +107,8 @@ RC=$?
 if test $RC = 0 ; then
 	echo "test failed - Accounting subordinate found."
 	echo "This is a regression of ITS8667"
-	[ -n "$CI" ] \
-		&& echo "$CI: Ignore failure due a known issue (not yet fixed)." \
+	[ -n "$ITS8667_IGNORE_REASON" ] \
+		&& echo "$ITS8667_IGNORE_REASON: Ignore failure due a known issue (not yet fixed)." \
 		|| exit 1
 fi
 
@@ -116,8 +119,8 @@ RC=$?
 if test $RC = 0 ; then
 	echo "test failed - Janitorial subordinate found."
 	echo "This is a regression of ITS8667"
-	[ -n "$CI" ] \
-		&& echo "$CI: Ignore failure due a known issue (not yet fixed)." \
+	[ -n "$ITS8667_IGNORE_REASON" ] \
+		&& echo "$ITS8667_IGNORE_REASON: Ignore failure due a known issue (not yet fixed)." \
 		|| exit 1
 fi
 
