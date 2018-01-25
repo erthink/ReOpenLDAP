@@ -34,7 +34,11 @@ DESCRIPTION
     processed millions of records without incident.
 
 BUILDING
-    A Makefile is included, please set your LDAP_SRC directory properly.
+
+    Run `configure --enable-modules --enable-contrib`
+    Run `make` to produce contrib-addpartial.la
+    Run `make install`
+
 
 INSTALLATION
     After compiling the addpartial overlay, add the following to your
