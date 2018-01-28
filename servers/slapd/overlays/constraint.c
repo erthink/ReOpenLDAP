@@ -15,6 +15,11 @@
 
 /* constraint.c - Overlay to constrain attributes to certain values */
 
+/* ACKNOWLEDGEMENTS:
+ * Authors: Neil Dunbar <neil.dunbar@hp.com>,
+ *          Emmanuel Dreyfus <manu@netbsd.org>
+ */
+
 #include "reldap.h"
 
 #ifdef SLAPD_OVER_CONSTRAINT
@@ -46,7 +51,7 @@
 /*
  * Linked list of attribute constraints which we should enforce.
  * This is probably a sub optimal structure - some form of sorted
- * array would be better if the number of attributes contrained is
+ * array would be better if the number of attributes constrained is
  * likely to be much bigger than 4 or 5. We stick with a list for
  * the moment.
  */

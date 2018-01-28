@@ -718,7 +718,7 @@ static ConfigTable config_back_cf_table[] = {
 			"SYNTAX OMsInteger SINGLE-VALUE )", NULL, NULL },
 	{ "timelimit", "limit", 2, 0, 0, ARG_MAY_DB|ARG_MAGIC,
 		&config_timelimit, "( OLcfgGlAt:67 NAME 'olcTimeLimit' "
-			"SYNTAX OMsDirectoryString )", NULL, NULL },
+			"SYNTAX OMsDirectoryString SINGLE-VALUE )", NULL, NULL },
 	{ "TLSCACertificate", NULL, 2, 2, 0,
 #ifdef WITH_TLS
 		CFG_TLS_CACERT|ARG_BINARY|ARG_MAGIC, &config_tls_option,
@@ -6707,7 +6707,7 @@ __config_back_modrdn( Operation *op, SlapReply *rs )
 		}
 		op->oq_modrdn = modr;
 	} else {
-		CfEntryInfo *ce2, *cebase MAY_UNUSED, **cprev, **cbprev, *ceold;
+		CfEntryInfo *ce2, *cebase __maybe_unused, **cprev, **cbprev, *ceold;
 		req_modrdn_s modr = op->oq_modrdn;
 		int i;
 

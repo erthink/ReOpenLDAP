@@ -1340,7 +1340,7 @@ parse_oids(const char **sp, int *code, const int allow_quoted)
 
 	/*
 	 * Strictly speaking, doing this here accepts whsp before the
-	 * ( at the begining of an oidlist, but this is harmless.  Also,
+	 * ( at the beginning of an oidlist, but this is harmless.  Also,
 	 * we are very liberal in what we accept as an OID.  Maybe
 	 * refine later.
 	 */
@@ -2981,7 +2981,7 @@ ldap_str2structurerule( LDAP_CONST char * s,
 	int seen_nameform = 0;
 	LDAPStructureRule * sr;
 	char ** ext_vals;
-	const char * savepos MAY_UNUSED;
+	const char * savepos __maybe_unused;
 
 	if ( !s ) {
 		*code = LDAP_SCHERR_EMPTY;
@@ -3167,7 +3167,7 @@ ldap_str2nameform( LDAP_CONST char * s,
 	int seen_may = 0;
 	LDAPNameForm * nf;
 	char ** ext_vals;
-	const char * savepos  MAY_UNUSED;
+	const char * savepos  __maybe_unused;
 
 	if ( !s ) {
 		*code = LDAP_SCHERR_EMPTY;

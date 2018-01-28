@@ -108,13 +108,13 @@ static volatile int waking;
 #ifdef NO_THREADS
 #define WAKE_LISTENER(l,w)	do { \
 	if ((w) && ++waking < 5) { \
-		int ignore MAY_UNUSED = tcp_write( SLAP_FD2SOCK(wake_sds[l][1]), "0", 1 ); \
+		int ignore __maybe_unused = tcp_write( SLAP_FD2SOCK(wake_sds[l][1]), "0", 1 ); \
 	} \
 } while (0)
 #else /* ! NO_THREADS */
 #define WAKE_LISTENER(l,w)	do { \
 	if (w) { \
-		int ignore MAY_UNUSED = tcp_write( SLAP_FD2SOCK(wake_sds[l][1]), "0", 1 ); \
+		int ignore __maybe_unused = tcp_write( SLAP_FD2SOCK(wake_sds[l][1]), "0", 1 ); \
 	} \
 } while (0)
 #endif /* ! NO_THREADS */
@@ -446,7 +446,7 @@ static slap_daemon_st slap_daemon[SLAPD_MAX_DAEMON_THREADS];
 	SLAP_DEVPOLL_SOCK_LX(t,(s)) = (l); \
 	SLAP_DEVPOLL_SOCK_FD(t,(s)) = (s); \
 	SLAP_DEVPOLL_SOCK_EV(t,(s)) = POLLIN; \
-	SLAP_DEVPOLL_WRITE_POLLFD(t,(s), &SLAP_DEVPOLL_SOCK_EP((s)), 1, "ADD", 1); \
+	SLAP_DEVPOLL_WRITE_POLLFD(t,(s), &SLAP_DEVPOLL_SOCK_EP(t, (s)), 1, "ADD", 1); \
 	slap_daemon[t].sd_nfds++; \
 } while (0)
 
@@ -481,8 +481,18 @@ static slap_daemon_st slap_daemon[SLAPD_MAX_DAEMON_THREADS];
 # define SLAP_EVENT_IS_WRITE(i)		SLAP_DEVPOLL_EVENT_CHK((i), POLLOUT)
 # define SLAP_EVENT_IS_ERROR(i)		SLAP_DEVPOLL_EVENT_CHK((i), (POLLERR | POLLHUP))
 
-# define SLAP_EVENT_IS_LISTENER(t,i)	SLAP_DEVPOLL_EV_LISTENER(SLAP_DEVPOLL_SOCK_LX(SLAP_EVENT_FD(t,(i))))
-# define SLAP_EVENT_LISTENER(t,i)		SLAP_DEVPOLL_SOCK_LX(SLAP_EVENT_FD(t,(i)))
+# define SLAP_EVENT_IS_LISTENER(t,i)	SLAP_DEVPOLL_EV_LISTENER(SLAP_DEVPOLL_SOCK_LX(t, SLAP_EVENT_FD(t,(i))))
+# define SLAP_EVENT_LISTENER(t,i)		SLAP_DEVPOLL_SOCK_LX(t, SLAP_EVENT_FD(t,(i)))
+
+# define SLAP_SOCK_DESTROY(t)		do { \
+	if ( slap_daemon[t].sd_pollfd != NULL ) { \
+		ch_free( slap_daemon[t].sd_pollfd ); \
+		slap_daemon[t].sd_pollfd = NULL; \
+		slap_daemon[t].sd_index = NULL; \
+		slap_daemon[t].sd_l = NULL; \
+		close( slap_daemon[t].sd_dpfd ); \
+	} \
+} while ( 0 )
 
 # define SLAP_SOCK_INIT(t)		do { \
 	slap_daemon[t].sd_pollfd = ch_calloc( 1, \
@@ -496,7 +506,7 @@ static slap_daemon_st slap_daemon[SLAPD_MAX_DAEMON_THREADS];
 		Debug( LDAP_DEBUG_ANY, "daemon: " SLAP_EVENT_FNAME ": " \
 			"open(\"" SLAP_EVENT_FNAME "\") failed errno=%d\n", \
 			errno ); \
-		SLAP_SOCK_DESTROY; \
+		SLAP_SOCK_DESTROY(t); \
 		return -1; \
 	} \
 	for ( i = 0; i < dtblsize; i++ ) { \
@@ -504,16 +514,6 @@ static slap_daemon_st slap_daemon[SLAPD_MAX_DAEMON_THREADS];
 		slap_daemon[t].sd_index[i] = -1; \
 	} \
 } while (0)
-
-# define SLAP_SOCK_DESTROY(t)		do { \
-	if ( slap_daemon[t].sd_pollfd != NULL ) { \
-		ch_free( slap_daemon[t].sd_pollfd ); \
-		slap_daemon[t].sd_pollfd = NULL; \
-		slap_daemon[t].sd_index = NULL; \
-		slap_daemon[t].sd_l = NULL; \
-		close( slap_daemon[t].sd_dpfd ); \
-	} \
-} while ( 0 )
 
 # define SLAP_EVENT_DECL		struct pollfd *revents
 
@@ -2617,7 +2617,7 @@ loop:
 				if ( fd == wake_sds[tid][0] ) {
 					char c[BUFSIZ];
 					waking = 0;
-					int ignore MAY_UNUSED = tcp_read( SLAP_FD2SOCK(wake_sds[tid][0]), c, sizeof(c) );
+					int ignore __maybe_unused = tcp_read( SLAP_FD2SOCK(wake_sds[tid][0]), c, sizeof(c) );
 					continue;
 				}
 
@@ -2692,7 +2692,7 @@ loop:
 		       "daemon: no active streams, shutdown initiated.\n" );
 	}
 
-	close_listeners( 0 );
+	close_listeners( 1 );
 
 	if ( !slapd_gentle_shutdown ) {
 		set_abrupt_shutdown( 1 );

@@ -117,7 +117,7 @@ ldap_parse_reference(
 free_and_return:
 
 	if( referralsp != NULL ) {
-		/* provide references regradless of return code */
+		/* provide references regardless of return code */
 		*referralsp = refs;
 
 	} else {

@@ -546,7 +546,7 @@ int mdb_entry_release(
 				assert( moi->moi_ref > 0 );
 				if (( moi->moi_flag & (MOI_FREEIT|MOI_KEEPER)) == MOI_FREEIT ) {
 					if ( --moi->moi_ref < 1 ) {
-						int MAY_UNUSED rc2 = mdb_txn_reset( moi->moi_txn );
+						int __maybe_unused rc2 = mdb_txn_reset( moi->moi_txn );
 						assert(rc2 == MDB_SUCCESS);
 						LDAP_SLIST_REMOVE( &op->o_extra, &moi->moi_oe, OpExtra, oe_next );
 						op->o_tmpfree( moi, op->o_tmpmemctx );

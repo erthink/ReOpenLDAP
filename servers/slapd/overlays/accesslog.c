@@ -77,7 +77,7 @@ typedef struct log_info {
 	struct berval li_uuid;
 	int li_success;
 	log_base *li_bases;
-	ldap_pvt_thread_rmutex_t li_op_rmutex;
+	ldap_int_thread_mutex_recursive_t li_op_rmutex;
 	ldap_pvt_thread_mutex_t li_log_mutex;
 } log_info;
 
@@ -1530,7 +1530,7 @@ static int accesslog_response(Operation *op, SlapReply *rs) {
 			"accesslog_response: unlocking rmutex for tid %x\n",
 			op->o_tid );
 #endif
-		ldap_pvt_thread_rmutex_unlock( &li->li_op_rmutex, op->o_tid );
+		ldap_pvt_thread_mutex_recursive_unlock( &li->li_op_rmutex );
 	}
 
 	/* ignore these internal reads */
@@ -2009,7 +2009,7 @@ accesslog_op_mod( Operation *op, SlapReply *rs )
 			"accesslog_op_mod: locking rmutex for tid %x\n",
 			op->o_tid );
 #endif
-		ldap_pvt_thread_rmutex_lock( &li->li_op_rmutex, op->o_tid );
+		ldap_pvt_thread_mutex_recursive_lock( &li->li_op_rmutex );
 #ifdef RMUTEX_DEBUG
 		Debug( LDAP_DEBUG_STATS,
 			"accesslog_op_mod: locked rmutex for tid %x\n",
@@ -2193,7 +2193,7 @@ accesslog_db_init(
 	log_info *li = ch_calloc(1, sizeof(log_info));
 
 	on->on_bi.bi_private = li;
-	ldap_pvt_thread_rmutex_init( &li->li_op_rmutex );
+	ldap_pvt_thread_mutex_recursive_init( &li->li_op_rmutex );
 	ldap_pvt_thread_mutex_init( &li->li_log_mutex );
 	return 0;
 }
@@ -2218,7 +2218,7 @@ accesslog_db_destroy(
 		ch_free( la );
 	}
 	ldap_pvt_thread_mutex_destroy( &li->li_log_mutex );
-	ldap_pvt_thread_rmutex_destroy( &li->li_op_rmutex );
+	ldap_pvt_thread_mutex_recursive_destroy( &li->li_op_rmutex );
 	free( li );
 	return LDAP_SUCCESS;
 }

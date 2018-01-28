@@ -1870,7 +1870,7 @@ ldif_tool_entry_modify( BackendDB *be, Entry *e, struct berval *text )
 static int
 ldif_tool_entry_delete( BackendDB *be, struct berval *ndn, struct berval *text )
 {
-	struct ldif_tool *tl MAY_UNUSED = &((struct ldif_info *) be->be_private)->li_tool;
+	struct ldif_tool *tl __maybe_unused = &((struct ldif_info *) be->be_private)->li_tool;
 	int rc = LDAP_SUCCESS;
 	const char *errmsg = NULL;
 	struct berval path;

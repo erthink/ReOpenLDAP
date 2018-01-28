@@ -207,6 +207,7 @@ typedef struct logschema {
 	struct berval ls_newRdn;
 	struct berval ls_delRdn;
 	struct berval ls_newSup;
+	struct berval ls_controls;
 } logschema;
 
 static logschema changelog_sc = {
@@ -215,7 +216,8 @@ static logschema changelog_sc = {
 	BER_BVC("changes"),
 	BER_BVC("newRDN"),
 	BER_BVC("deleteOldRDN"),
-	BER_BVC("newSuperior")
+	BER_BVC("newSuperior"),
+	BER_BVC("controls")
 };
 
 static logschema accesslog_sc = {
@@ -224,7 +226,8 @@ static logschema accesslog_sc = {
 	BER_BVC("reqMod"),
 	BER_BVC("reqNewRDN"),
 	BER_BVC("reqDeleteOldRDN"),
-	BER_BVC("reqNewSuperior")
+	BER_BVC("reqNewSuperior"),
+	BER_BVC("reqControls")
 };
 
 static slap_overinst syncrepl_ov;
@@ -460,7 +463,7 @@ syncrepl_process_search(
 	int rc;
 	int rhint;
 	char *base;
-	char **attrs, *lattrs[8];
+	char **attrs, *lattrs[9];
 	char *filter;
 	int attrsonly;
 	int scope;
@@ -498,8 +501,9 @@ syncrepl_process_search(
 		lattrs[3] = ls->ls_newRdn.bv_val;
 		lattrs[4] = ls->ls_delRdn.bv_val;
 		lattrs[5] = ls->ls_newSup.bv_val;
-		lattrs[6] = slap_schema.si_ad_entryCSN->ad_cname.bv_val;
-		lattrs[7] = NULL;
+		lattrs[6] = ls->ls_controls.bv_val;
+		lattrs[7] = slap_schema.si_ad_entryCSN->ad_cname.bv_val;
+		lattrs[8] = NULL;
 
 		rhint = 0;
 		base = si->si_logbase.bv_val;
@@ -2306,7 +2310,7 @@ syncrepl_message_to_op(
 	size_t textlen = sizeof txtbuf;
 
 	struct berval	bdn, dn = BER_BVNULL, ndn;
-	struct berval	bv, bv2 MAY_UNUSED, *bvals = NULL;
+	struct berval	bv, bv2 __maybe_unused, *bvals = NULL;
 	struct berval	rdn = BER_BVNULL, sup = BER_BVNULL,
 		prdn = BER_BVNULL, nrdn = BER_BVNULL,
 		psup = BER_BVNULL, nsup = BER_BVNULL;
@@ -2394,6 +2398,22 @@ syncrepl_message_to_op(
 			}
 		} else if ( !ber_bvstrcasecmp( &bv, &ls->ls_newSup ) ) {
 			sup = bvals[0];
+		} else if ( !ber_bvstrcasecmp( &bv, &ls->ls_controls ) ) {
+			int i;
+			struct berval rel_ctrl_bv;
+
+			(void)ber_str2bv( "{" LDAP_CONTROL_RELAX, 0, 0, &rel_ctrl_bv );
+			for ( i = 0; bvals[i].bv_val; i++ ) {
+				struct berval cbv, tmp;
+
+				ber_bvchr_post( &cbv, &bvals[i], '}' );
+				ber_bvchr_post( &tmp, &cbv, '{' );
+				ber_bvchr_pre( &cbv, &tmp, ' ' );
+				if ( cbv.bv_len == tmp.bv_len )		/* control w/o value */
+					ber_bvchr_pre( &cbv, &tmp, '}' );
+				if ( !ber_bvcmp( &cbv, &rel_ctrl_bv ) )
+					op->o_relax = SLAP_CONTROL_CRITICAL;
+			}
 		} else if ( !ber_bvstrcasecmp( &bv,
 			&slap_schema.si_ad_entryCSN->ad_cname ) )
 		{
@@ -2642,7 +2662,7 @@ syncrepl_message_to_entry(
 	char txtbuf[SLAP_TEXT_BUFLEN];
 	size_t textlen = sizeof txtbuf;
 
-	struct berval	bdn = BER_BVNULL, dn, ndn, bv2 MAY_UNUSED;
+	struct berval	bdn = BER_BVNULL, dn, ndn, bv2 __maybe_unused;
 	int		rc, is_ctx;
 
 	*modlist = NULL;

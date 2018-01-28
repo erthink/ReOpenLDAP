@@ -1897,7 +1897,7 @@ filter2template(
 	struct			berval *fstr )
 {
 	AttributeDescription *ad;
-	int len, MAY_UNUSED ret;
+	int len, __maybe_unused ret;
 
 	switch ( f->f_choice ) {
 	case LDAP_FILTER_EQUALITY:
@@ -5460,7 +5460,7 @@ pcache_monitor_free(
 	const char	*text;
 	char		textbuf[ SLAP_TEXT_BUFLEN ];
 
-	int		rc MAY_UNUSED;
+	int		rc __maybe_unused;
 
 	/* NOTE: if slap_shutdown != 0, priv might have already been freed */
 	*priv = NULL;

@@ -1526,6 +1526,9 @@ LDAP_F( int )
 ldap_init_fd LDAP_P((
 	ber_socket_t fd, int proto, LDAP_CONST char *url, LDAP **ldp ));
 
+LDAP_F( int )
+ldap_connect( LDAP *ld );
+
 /*
  * in tls.c
  */

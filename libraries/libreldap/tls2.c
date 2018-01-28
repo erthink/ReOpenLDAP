@@ -41,7 +41,11 @@ static tls_impl *tls_imp = &ldap_int_tls_impl;
 
 #endif /* WITH_TLS */
 
-#define LDAP_USE_NON_BLOCKING_TLS
+#if LDAP_EXPERIMENTAL > 0
+#	if RELDAP_TLS != RELDAP_TLS_MOZNSS
+#		define LDAP_USE_NON_BLOCKING_TLS
+#	endif
+#endif /* LDAP_EXPERIMENTAL */
 
 /* RFC2459 minimum required set of supported attribute types
  * in a certificate DN

@@ -112,7 +112,7 @@ perl_cf(
 )
 {
 	PerlBackend *pb = (PerlBackend *) c->be->be_private;
-	SV* loc_sv MAY_UNUSED;
+	SV* loc_sv __maybe_unused;
 	int count ;
 	int args;
 	int rc = 0;

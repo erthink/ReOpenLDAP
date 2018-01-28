@@ -263,7 +263,7 @@ ldap_pvt_is_socket_ready(LDAP *ld, int s)
 		== AC_SOCKET_ERROR )
 	{
 		/* XXX: needs to be replace with ber_stream_read() */
-		int ignore MAY_UNUSED = read(s, &ch, 1);
+		int ignore __maybe_unused = read(s, &ch, 1);
 		TRACE;
 		return -1;
 	}

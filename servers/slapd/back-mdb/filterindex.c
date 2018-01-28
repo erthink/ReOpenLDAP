@@ -519,7 +519,7 @@ base:
 		} else if ( mra->ma_rule && mra->ma_rule->smr_match ==
 			dnRelativeMatch && dnIsSuffix( &mra->ma_value,
 				op->o_bd->be_nsuffix )) {
-			int scope MAY_UNUSED;
+			int scope __maybe_unused;
 			if ( mra->ma_rule == slap_schema.si_mr_dnSuperiorMatch ) {
 				mdb_dn2sups( op, rtxn, &mra->ma_value, ids );
 				return 0;

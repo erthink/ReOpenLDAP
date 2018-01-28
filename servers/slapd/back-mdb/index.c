@@ -175,7 +175,7 @@ static int indexer(
 	struct berval *keys;
 	MDB_cursor *mc = ai->ai_cursor;
 	mdb_idl_keyfunc *keyfunc;
-	char *err  MAY_UNUSED;
+	char *err  __maybe_unused;
 
 	assert( mask != 0 );
 

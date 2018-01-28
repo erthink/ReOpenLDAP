@@ -89,7 +89,7 @@ static unsigned long tlso_thread_self( void )
 
 	/* force an error if the ldap_pvt_thread_t type is too large */
 	enum { ok = sizeof( ldap_pvt_thread_t ) <= sizeof( unsigned long ) };
-	typedef struct { int dummy: ok ? 1 : -1; } Check[ok ? 1 : -1] MAY_UNUSED;
+	typedef struct { int dummy: ok ? 1 : -1; } Check[ok ? 1 : -1] __maybe_unused;
 
 	return (unsigned long) ldap_pvt_thread_self();
 }
@@ -1178,7 +1178,7 @@ tlso_verify_cb( int ok, X509_STORE_CTX *ctx )
 	 */
 	subject = X509_get_subject_name( cert );
 	issuer = X509_get_issuer_name( cert );
-	/* X509_NAME_oneline, if passed a NULL buf, allocate memomry */
+	/* X509_NAME_oneline, if passed a NULL buf, allocate memory */
 	sname = X509_NAME_oneline( subject, NULL, 0 );
 	iname = X509_NAME_oneline( issuer, NULL, 0 );
 	if ( !ok ) certerr = (char *)X509_verify_cert_error_string( errnum );

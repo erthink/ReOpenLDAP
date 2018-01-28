@@ -200,7 +200,7 @@ bdb_monitor_free(
 	const char	*text;
 	char		textbuf[ SLAP_TEXT_BUFLEN ];
 
-	int		i, rc MAY_UNUSED;
+	int		i, rc __maybe_unused;
 
 	/* NOTE: if slap_shutdown != 0, priv might have already been freed */
 	*priv = NULL;

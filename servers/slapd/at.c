@@ -661,7 +661,7 @@ at_add(
 	*err = cname;
 
 	if ( !at->at_usage && at->at_no_user_mod ) {
-		/* user attribute must be modifable */
+		/* user attribute must be modifiable */
 		code = SLAP_SCHERR_ATTR_BAD_USAGE;
 		goto error_return;
 	}
@@ -727,7 +727,7 @@ at_add(
 	/*
 	 * Inherit definitions from superiors.  We only check the
 	 * direct superior since that one has already inherited from
-	 * its own superiorss
+	 * its own superiors
 	 */
 	if ( sat->sat_sup ) {
 		Syntax *syn = syn_find(sat->sat_sup->sat_syntax->ssyn_oid);

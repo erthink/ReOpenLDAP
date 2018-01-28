@@ -287,7 +287,7 @@ ppolicy_cf_default( ConfigArgs *c )
 		rc = 0;
 		break;
 	case SLAP_CONFIG_ADD:
-		/* fallthrough to LDAP_MOD_ADD */
+		/* fallthru to LDAP_MOD_ADD */
 	case LDAP_MOD_ADD:
 		Debug(LDAP_DEBUG_TRACE, "==> ppolicy_cf_default add\n");
 		if ( pi->def_policy.bv_val ) {
@@ -631,7 +631,7 @@ static int
 check_password_quality( struct berval *cred, PassPolicy *pp, LDAPPasswordPolicyError *err, Entry *e, char **txt )
 {
 	int rc = LDAP_SUCCESS, ok = LDAP_SUCCESS;
-	char *ptr MAY_UNUSED;
+	char *ptr __maybe_unused;
 	struct berval sch;
 
 	assert( cred != NULL );

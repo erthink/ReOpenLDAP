@@ -72,10 +72,10 @@ static __attribute__((constructor)) void ldap_debug_lock_init(void)
 
 #else /* HAVE_PTHREAD_MUTEX_RECURSIVE */
 
-static ldap_pvt_thread_rmutex_t debug_mutex;
+static ldap_int_thread_mutex_recursive_t debug_mutex;
 static __attribute__((constructor)) void ldap_debug_lock_init(void)
 {
-	LDAP_ENSURE(ldap_pvt_thread_rmutex_init(&debug_mutex) == 0);
+	LDAP_ENSURE(ldap_pvt_thread_mutex_recursive_init(&debug_mutex) == 0);
 }
 
 #endif /* HAVE_PTHREAD_MUTEX_RECURSIVE */
@@ -84,7 +84,7 @@ void ldap_debug_lock(void) {
 #ifdef HAVE_PTHREAD_MUTEX_RECURSIVE
 	LDAP_ENSURE(pthread_mutex_lock(&debug_mutex) == 0);
 #else
-	LDAP_ENSURE(ldap_pvt_thread_rmutex_lock(&debug_mutex, ldap_pvt_thread_self()) == 0);
+	LDAP_ENSURE(ldap_pvt_thread_mutex_recursive_lock(&debug_mutex) == 0);
 #endif /* HAVE_PTHREAD_MUTEX_RECURSIVE */
 
 	debug_lockdeep += 1;
@@ -94,7 +94,7 @@ int ldap_debug_trylock(void) {
 #ifdef HAVE_PTHREAD_MUTEX_RECURSIVE
 	int rc = pthread_mutex_trylock(&debug_mutex);
 #else
-	int rc = ldap_pvt_thread_rmutex_trylock(&debug_mutex, ldap_pvt_thread_self());
+	int rc = ldap_pvt_thread_mutex_recursive_trylock(&debug_mutex);
 #endif /* HAVE_PTHREAD_MUTEX_RECURSIVE */
 
 	LDAP_ENSURE(rc == 0 || rc == EBUSY);
@@ -115,7 +115,7 @@ void ldap_debug_unlock(void) {
 #ifdef HAVE_PTHREAD_MUTEX_RECURSIVE
 	LDAP_ENSURE(pthread_mutex_unlock(&debug_mutex) == 0);
 #else
-	LDAP_ENSURE(ldap_pvt_thread_rmutex_unlock(&debug_mutex, ldap_pvt_thread_self()) == 0);
+	LDAP_ENSURE(ldap_pvt_thread_mutex_recursive_unlock(&debug_mutex) == 0);
 #endif /* HAVE_PTHREAD_MUTEX_RECURSIVE */
 }
 

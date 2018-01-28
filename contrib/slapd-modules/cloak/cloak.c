@@ -1,4 +1,4 @@
-/* cloak.c - Overlay to hide some attribute except if explicitely requested */
+/* cloak.c - Overlay to hide some attribute except if explicitly requested */
 /* $ReOpenLDAP$ */
 /* Copyright 1992-2018 ReOpenLDAP AUTHORS: please see AUTHORS file.
  * All rights reserved.

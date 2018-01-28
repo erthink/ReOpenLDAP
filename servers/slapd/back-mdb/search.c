@@ -1229,7 +1229,7 @@ done:
 
 bailout:
 	if ( moi == &opinfo || --moi->moi_ref < 1 ) {
-		int MAY_UNUSED rc2 = mdb_txn_reset( moi->moi_txn );
+		int __maybe_unused rc2 = mdb_txn_reset( moi->moi_txn );
 		assert(rc2 == MDB_SUCCESS);
 		if ( moi->moi_oe.oe_key )
 			LDAP_SLIST_REMOVE( &op->o_extra, &moi->moi_oe, OpExtra, oe_next );

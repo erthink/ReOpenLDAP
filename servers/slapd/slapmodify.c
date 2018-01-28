@@ -53,7 +53,7 @@ slapmodify( int argc, char **argv )
 	OperationBuffer opbuf;
 	Operation *op;
 
-	int checkvals MAY_UNUSED, ldifrc;
+	int checkvals __maybe_unused, ldifrc;
 	unsigned long lineno, nextline;
 	int lmax;
 	int rc = EXIT_SUCCESS;
@@ -136,7 +136,7 @@ slapmodify( int argc, char **argv )
 		LDIFRecord lr;
 		struct berval ndn = BER_BVNULL;
 		int n;
-		int is_oc MAY_UNUSED = 0;
+		int is_oc __maybe_unused = 0;
 		int local_rc;
 		char *request = "(unknown)";
 

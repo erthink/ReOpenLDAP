@@ -168,7 +168,7 @@ usn_db_open(
 	Operation *op;
 	Entry *e = NULL;
 	Attribute *a;
-	int rc MAY_UNUSED;
+	int rc __maybe_unused;
 	void *thrctx = NULL;
 
 	thrctx = ldap_pvt_thread_pool_context();
