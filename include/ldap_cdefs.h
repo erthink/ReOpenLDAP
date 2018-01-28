@@ -53,9 +53,7 @@
 
 #endif /* no prototypes */
 
-#ifndef __has_feature
-#	define __has_feature(x) (0)
-#endif
+#define LDAP_GCCATTR(attrs)	__attribute__(attrs)
 
 #ifndef __reldap_exportable
 #	if defined(__GNUC__)

@@ -18,6 +18,10 @@
 
 #include "../reldap_autoconf.h"
 
+#ifndef __has_feature
+#	define __has_feature(x) (0)
+#endif
+
 #ifndef __has_attribute
 #	define __has_attribute(x) (0)
 #endif
