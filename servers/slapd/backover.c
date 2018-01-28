@@ -753,6 +753,7 @@ cleanup:
 	return rc;
 }
 
+#if 0 /* Not needed since callback uses tmpalloc */
 static int
 over_op_func_cleanup( Operation *op, SlapReply *rs )
 {
@@ -763,6 +764,9 @@ over_op_func_cleanup( Operation *op, SlapReply *rs )
 	}
 	return SLAP_CB_CONTINUE;
 }
+#else
+#	define over_op_func_cleanup NULL
+#endif
 
 static int
 over_op_func(
@@ -774,8 +778,6 @@ over_op_func(
 	slap_overinfo *oi;
 	slap_overinst *on;
 	BackendDB *be = op->o_bd, db;
-	slap_callback **sc;
-	slap_callback *cb;
 	int rc = SLAP_CB_CONTINUE;
 
 	/* FIXME: used to happen for instance during abandon
@@ -791,6 +793,8 @@ over_op_func(
 		compiler_barrier();
 		op->o_bd = &db;
 	}
+
+	slap_callback *cb = NULL;
 	if ( op->o_tag != LDAP_REQ_ABANDON && op->o_tag != LDAP_REQ_UNBIND ) {
 		cb = (slap_callback *)op->o_tmpcalloc( 1, sizeof(slap_callback), op->o_tmpmemctx );
 		cb->sc_cleanup = over_op_func_cleanup;
@@ -802,7 +806,8 @@ over_op_func(
 	}
 
 	rc = overlay_op_walk( op, rs, which, oi, on );
-	if ( rc != SLAPD_ASYNCOP && op->o_tag != LDAP_REQ_ABANDON && op->o_tag != LDAP_REQ_UNBIND ) {
+	if ( rc != SLAPD_ASYNCOP && cb != NULL ) {
+		slap_callback **sc;
 		for ( sc = &op->o_callback; *sc; sc = &(*sc)->sc_next ) {
 			if ( *sc == cb ) {
 				*sc = cb->sc_next;
