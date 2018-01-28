@@ -304,7 +304,8 @@ vc_exop(
 		connection_fake_init2( &conn->connbuf, &conn->opbuf, thrctx, 0 );
 		conn->op = &conn->opbuf.ob_op;
 		snprintf( conn->op->o_log_prefix, sizeof( conn->op->o_log_prefix ),
-			"%s VERIFYCREDENTIALS", op->o_log_prefix );
+			"%.*s VERIFYCREDENTIALS",
+			(int) sizeof( conn->op->o_log_prefix ) - 32, op->o_log_prefix );
 	}
 
 	conn->op->o_tag = LDAP_REQ_BIND;
