@@ -1,0 +1,73 @@
+.\" $ReOpenLDAP$
+.\" Copyright 1992-2018 ReOpenLDAP AUTHORS: please see AUTHORS file.
+.\" All rights reserved.
+.\"
+.\" This file is part of ReOpenLDAP.
+.\"
+.\" Redistribution and use in source and binary forms, with or without
+.\" modification, are permitted only as authorized by the OpenLDAP
+.\" Public License.
+.\"
+.\" A copy of this license is available in the file LICENSE in the
+.\" top-level directory of the distribution or, alternatively, at
+.\" <http://www.OpenLDAP.org/license.html>.
+
+.TH SLAPO-AUDITLOG 5 "@RELEASE_DATE@" "ReOpenLDAP @VERSION@"
+
+.SH НАЗВАНИЕ
+slapo\-auditlog \- наложение ведения журнала изменений для slapd
+
+.SH ОБЗОР
+@SYSCONFDIR@/slapd.conf
+.TP
+@SYSCONFDIR@/slapd.d
+
+.SH ОПИСАНИЕ
+Наложение ведения журнала изменений может быть использовано для записи всех изменений соответствующей
+базы данных механизма манипуляции данными в указанный файл журнала. Изменения выводятся в журнал в
+стандартном LDIF-формате с дополнительным заголовком-комментарием, в котором указываются отметка
+времени изменения и идентификационная сущность пользователя, произведшего данное изменение.
+.LP
+Для операций Add и Modify эта идентификационная сущность происходит от ассоциированного с данной
+операцией значения modifiersName. Обычно оно совпадает с идентификационной сущностью пользователя,
+от имени которого выполняется запрос, но может быть изменено другими наложениями для отражения иной
+информации.
+.SH КОНФИГУРАЦИЯ
+Приводимые ниже параметры
+.B slapd.conf
+применяются к наложению ведения журнала изменений. Они должны указываться после директивы
+.BR overlay .
+.TP
+.B auditlog <имя_файла>
+Определяет полный путь к файлу журнала.
+.TP
+.B olcAuditlogFile: <имя_файла>
+Данный вариант используется при конфигурации
+.BR cn=config .
+.SH ПРИМЕР
+Для добавления наложения auditlog в конфигурацию
+.B cn=config
+может использоваться такой LDIF (откорректируйте под свои настройки):
+.LP
+.RS
+.nf
+dn: olcOverlay=auditlog,olcDatabase={1}mdb,cn=config
+changetype: add
+objectClass: olcOverlayConfig
+objectClass: olcAuditLogConfig
+olcOverlay: auditlog
+olcAuditlogFile: /tmp/auditlog.ldif
+.fi
+.RE
+.LP
+.LP
+.SH ФАЙЛЫ
+.TP
+@SYSCONFDIR@/slapd.conf
+конфигурационный файл slapd по умолчанию.
+.TP
+@SYSCONFDIR@/slapd.d
+конфигурационная директория slapd по умолчанию.
+.SH СМОТРИТЕ ТАКЖЕ
+.BR slapd.conf (5),
+.BR slapd\-config(5).

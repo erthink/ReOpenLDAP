@@ -1,0 +1,66 @@
+.\" $ReOpenLDAP$
+.\" Copyright 1992-2018 ReOpenLDAP AUTHORS: please see AUTHORS file.
+.\" All rights reserved.
+.\"
+.\" This file is part of ReOpenLDAP.
+.\"
+.\" Redistribution and use in source and binary forms, with or without
+.\" modification, are permitted only as authorized by the OpenLDAP
+.\" Public License.
+.\"
+.\" A copy of this license is available in the file LICENSE in the
+.\" top-level directory of the distribution or, alternatively, at
+.\" <http://www.OpenLDAP.org/license.html>.
+
+.TH SLAPD-PASSWD 5 "@RELEASE_DATE@" "ReOpenLDAP @VERSION@"
+
+.SH НАЗВАНИЕ
+slapd\-passwd \- Механизм манипуляции данными по доступу к файлу /etc/passwd для slapd
+
+.SH ОБЗОР
+@SYSCONFDIR@/slapd.conf
+
+.SH ОПИСАНИЕ
+Механизм манипуляции данными для
+.BR slapd (8)
+PASSWD обеспечивает доступ к данным об учётных записях пользователей, перечисленным в системном файле
+.BR passwd (5).
+Данный механизм предоставляется только в демонстрационных целях. DN каждой записи выглядит так:
+"uid=<username>,<suffix>". Обратите внимание, что при поисковых запросах с диапазоном,
+отличным от base, происходит сканирование всего файла passwd, и такие запросы лучше всего подходят
+для хостов с небольшими файлами passwd.
+.SH КОНФИГУРАЦИЯ
+Приведённые ниже директивы
+.B slapd.conf
+применяются к базам данных механизма манипуляции данными PASSWD. То есть, они должны следовать за
+строкой "database passwd" и находиться до последующих строк "backend" или "database".
+Другие относящиеся к базам данных директивы описаны в man-странице
+.BR slapd.conf (5).
+.TP
+.B file <filename>
+Определяет альтернативный файл passwd для использования. Значение по умолчанию -
+.BR /etc/passwd .
+.SH КОНТРОЛЬ ДОСТУПА
+Механизм манипуляции данными
+.B passwd
+не соблюдает каких-либо семантик контроля доступа, описанных в man-странице
+.BR slapd.access (5).
+Выполняется только проверка доступа на чтение
+.B read (=r)
+для псевдо-атрибута
+.B entry
+и других значений атрибутов записей, возвращаемых операцией
+.BR search ,
+поскольку она выполняется механизмом frontend.
+
+.SH ФАЙЛЫ
+.TP
+@SYSCONFDIR@/slapd.conf
+конфигурационный файл slapd по умолчанию.
+.TP
+/etc/passwd
+user account information
+.SH СМОТРИТЕ ТАКЖЕ
+.BR slapd.conf (5),
+.BR slapd (8),
+.BR passwd (5).
