@@ -31,13 +31,10 @@
  *	see tpool.c for generic thread pool implementation
  */
 
-
 int ldap_pvt_thread_initialize( void )
 {
 	int rc;
 	static int init = 0;
-	ldap_pvt_thread_rmutex_t rm;
-	ldap_pvt_thread_t tid;
 
 	/* we only get one shot at this */
 	if( init++ ) return -1;
@@ -49,15 +46,6 @@ int ldap_pvt_thread_initialize( void )
 	rc = ldap_int_thread_pool_startup();
 	if( rc ) return rc;
 #endif
-
-	/* kludge to pull symbol definitions in */
-	ldap_pvt_thread_rmutex_init( &rm );
-	tid = ldap_pvt_thread_self();
-	ldap_pvt_thread_rmutex_lock( &rm, tid );
-	ldap_pvt_thread_rmutex_trylock( &rm, tid );
-	ldap_pvt_thread_rmutex_unlock( &rm, tid );
-	ldap_pvt_thread_rmutex_unlock( &rm, tid );
-	ldap_pvt_thread_rmutex_destroy( &rm );
 
 	return 0;
 }
