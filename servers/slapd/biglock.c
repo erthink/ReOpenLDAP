@@ -206,7 +206,7 @@ int slap_biglock_pool_pause ( BackendDB *bd ) {
 	if ( bl == NULL || ldap_pvt_thread_self() != get_owner(bl)) {
 		res = ldap_pvt_thread_pool_pause( &connection_pool );
 	} else {
-		int MAY_UNUSED rc, deep = bl->bl_recursion;
+		int __maybe_unused rc, deep = bl->bl_recursion;
 		assert(bl->bl_recursion > 0);
 		bl->bl_recursion = 0;
 		bl->_bl_owner = thread_null;
@@ -242,7 +242,7 @@ int slap_biglock_pool_pausecheck ( BackendDB *bd ) {
 	if ( bl == NULL || ldap_pvt_thread_self() != get_owner(bl)) {
 		res = ldap_pvt_thread_pool_pausecheck( &connection_pool );
 	} else {
-		int MAY_UNUSED rc, deep = bl->bl_recursion;
+		int __maybe_unused rc, deep = bl->bl_recursion;
 		assert(bl->bl_recursion > 0);
 		bl->bl_recursion = 0;
 		bl->_bl_owner = thread_null;

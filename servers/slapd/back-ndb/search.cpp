@@ -279,7 +279,7 @@ static int ndb_oc_search( Operation *op, SlapReply *rs, Ndb *ndb, NdbTransaction
 	NdbIndexOperation *ixop;
 	NdbScanFilter *sf = NULL;
 	struct berval *ocs;
-	NdbRecAttr *scanID, *scanOC MAY_UNUSED, *scanDN[NDB_MAX_RDNS];
+	NdbRecAttr *scanID, *scanOC __maybe_unused, *scanDN[NDB_MAX_RDNS];
 	char dnBuf[2048], *ptr;
 	NdbRdns rdns;
 	NdbArgs NA;
@@ -516,7 +516,7 @@ int ndb_back_search( Operation *op, SlapReply *rs )
 	Entry e = {0};
 	int rc, i, ocfilter, indexed;
 	struct berval matched;
-	NdbRecAttr *scanID, *scanOC MAY_UNUSED, *scanDN[NDB_MAX_RDNS];
+	NdbRecAttr *scanID, *scanOC __maybe_unused, *scanDN[NDB_MAX_RDNS];
 	char dnBuf[2048], *ptr;
 	char idbuf[2*sizeof(ID)];
 	char ocbuf[NDB_OC_BUFLEN];

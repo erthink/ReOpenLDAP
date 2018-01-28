@@ -102,13 +102,13 @@ static volatile int waking;
 #ifdef NO_THREADS
 #define WAKE_LISTENER(l,w)	do { \
 	if ((w) && ++waking < 5) { \
-		int ignore MAY_UNUSED = tcp_write( SLAP_FD2SOCK(wake_sds[l][1]), "0", 1 ); \
+		int ignore __maybe_unused = tcp_write( SLAP_FD2SOCK(wake_sds[l][1]), "0", 1 ); \
 	} \
 } while (0)
 #else /* ! NO_THREADS */
 #define WAKE_LISTENER(l,w)	do { \
 	if (w) { \
-		int ignore MAY_UNUSED = tcp_write( SLAP_FD2SOCK(wake_sds[l][1]), "0", 1 ); \
+		int ignore __maybe_unused = tcp_write( SLAP_FD2SOCK(wake_sds[l][1]), "0", 1 ); \
 	} \
 } while (0)
 #endif /* ! NO_THREADS */
@@ -2597,7 +2597,7 @@ loop:
 				if ( fd == wake_sds[tid][0] ) {
 					char c[BUFSIZ];
 					waking = 0;
-					int ignore MAY_UNUSED = tcp_read( SLAP_FD2SOCK(wake_sds[tid][0]), c, sizeof(c) );
+					int ignore __maybe_unused = tcp_read( SLAP_FD2SOCK(wake_sds[tid][0]), c, sizeof(c) );
 					continue;
 				}
 

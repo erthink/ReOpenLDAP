@@ -53,17 +53,17 @@
 #	endif
 #endif /* __CLANG_PREREQ */
 
-#ifndef MAY_UNUSED
+#ifndef __maybe_unused
 #	ifdef ATTRIBUTE_UNUSED
-#		define MAY_UNUSED ATTRIBUTE_UNUSED
+#		define __maybe_unused ATTRIBUTE_UNUSED
 #	elif __has_attribute(__unused__)
-#		define MAY_UNUSED __attribute__((__unused__))
+#		define __maybe_unused __attribute__((__unused__))
 #	elif __has_attribute(unused)
-#		define MAY_UNUSED __attribute__((unused))
+#		define __maybe_unused __attribute__((unused))
 #	else
-#		define MAY_UNUSED __attribute__((__unused__))
+#		define __maybe_unused __attribute__((__unused__))
 #	endif
-#endif /* MAY_UNUSED */
+#endif /* __maybe_unused */
 
 #if !defined(__thread) && (defined(_MSC_VER) || defined(__DMC__))
 #	define __thread __declspec(thread)

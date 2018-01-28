@@ -507,7 +507,7 @@ syncprov_findbase( Operation *op, fbase_cookie *fc )
 		slap_callback cb = {0};
 		Operation fop;
 		SlapReply frs = { REP_RESULT };
-		int rc MAY_UNUSED;
+		int rc __maybe_unused;
 
 		fc->fss->s_flags ^= PS_FIND_BASE;
 		ldap_pvt_thread_mutex_unlock( &fc->fss->s_mutex );
@@ -704,7 +704,7 @@ syncprov_findcsn( Operation *op, find_csn_t mode, struct berval *pivot )
 	Filter cf;
 	AttributeAssertion eq = ATTRIBUTEASSERTION_INIT;
 	fpres_cookie pcookie;
-	sync_control *srs MAY_UNUSED = NULL;
+	sync_control *srs __maybe_unused = NULL;
 	struct slap_limits_set fc_limits;
 	int i, rc = LDAP_SUCCESS, findcsn_retry = 1;
 	int maxid = -1;
@@ -1730,7 +1730,7 @@ syncprov_op_cleanup( Operation *op, SlapReply *rs )
 		if ( mt->mt_mods ) {
 			ldap_pvt_thread_mutex_unlock( &mt->mt_mutex );
 		} else {
-			void* MAY_UNUSED removed;
+			void* __maybe_unused removed;
 			ldap_pvt_thread_mutex_unlock( &mt->mt_mutex );
 			ldap_pvt_thread_mutex_lock( &si->si_mods_mutex );
 			removed = avl_delete( &si->si_mods, mt, sp_avl_cmp );
@@ -2034,7 +2034,7 @@ syncprov_playlog( Operation *op, sessionlog *sl,
 
 	if ( mmods ) {
 		Operation fop;
-		int rc MAY_UNUSED;
+		int rc __maybe_unused;
 		Filter mf, af;
 		AttributeAssertion eq = ATTRIBUTEASSERTION_INIT;
 		slap_callback cb = {0};
@@ -2522,7 +2522,7 @@ retry:
 			}
 			ldap_pvt_thread_mutex_unlock( &mt->mt_mutex );
 		} else {
-			int MAY_UNUSED avl_err;
+			int __maybe_unused avl_err;
 			/* Record that we're modifying this entry now */
 			mt = ch_malloc( sizeof(modtarget) );
 			mt->mt_mods = mi;

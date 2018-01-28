@@ -2267,7 +2267,7 @@ syncrepl_message_to_op(
 	size_t textlen = sizeof txtbuf;
 
 	struct berval	bdn, dn = BER_BVNULL, ndn;
-	struct berval	bv, bv2 MAY_UNUSED, *bvals = NULL;
+	struct berval	bv, bv2 __maybe_unused, *bvals = NULL;
 	struct berval	rdn = BER_BVNULL, sup = BER_BVNULL,
 		prdn = BER_BVNULL, nrdn = BER_BVNULL,
 		psup = BER_BVNULL, nsup = BER_BVNULL;
@@ -2603,7 +2603,7 @@ syncrepl_message_to_entry(
 	char txtbuf[SLAP_TEXT_BUFLEN];
 	size_t textlen = sizeof txtbuf;
 
-	struct berval	bdn = BER_BVNULL, dn, ndn, bv2 MAY_UNUSED;
+	struct berval	bdn = BER_BVNULL, dn, ndn, bv2 __maybe_unused;
 	int		rc, is_ctx;
 
 	*modlist = NULL;
