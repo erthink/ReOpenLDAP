@@ -112,8 +112,10 @@ retry:	/* transaction retry */
 	/* begin transaction */
 	{
 		int tflags = bdb->bi_db_opflags;
+#ifdef SLAP_CONTROL_X_LAZY_COMMIT
 		if ( get_lazyCommit( op ))
 			tflags |= DB_TXN_NOSYNC;
+#endif /* #ifdef SLAP_CONTROL_X_LAZY_COMMIT */
 		rs->sr_err = TXN_BEGIN( bdb->bi_dbenv, NULL, &ltid, tflags );
 	}
 	rs->sr_text = NULL;
