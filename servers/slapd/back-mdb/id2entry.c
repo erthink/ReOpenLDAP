@@ -727,8 +727,10 @@ mdb_opinfo_get( Operation *op, struct mdb_info *mdb, int rdonly, mdb_op_info **m
 			} else {
 				assert(slap_biglock_owned(op->o_bd));
 				int flag = 0;
+#ifdef SLAP_CONTROL_X_LAZY_COMMIT
 				if ( get_lazyCommit( op ))
 					flag |= MDB_NOMETASYNC; /* LY: TODO LAZY-SYNC */
+#endif /* #ifdef SLAP_CONTROL_X_LAZY_COMMIT */
 				rc = mdb_txn_begin( mdb->mi_dbenv, NULL, flag, &moi->moi_txn );
 				if (rc) {
 					Debug( LDAP_DEBUG_ANY, "mdb_opinfo_get: mdb_txn_begin() err %s(%d)\n",
