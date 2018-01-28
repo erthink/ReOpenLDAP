@@ -3185,7 +3185,9 @@ if test -x $ac_aux_dir/BRANDING; then
 fi
 
 AM_SUBST_NOTMAKE(COMMON_MK, "include ${top_srcdir}/build/common.mk")
-AC_SUBST(AM_CFLAGS, "\$(EXTRA_CFLAGS)")
+AC_SUBST(AM_EXTRA_CFLAGS, "\$(if \$(subst undefined,,\$(flavor EXTRA_CFLAGS)),\$(EXTRA_CFLAGS),${EXTRA_CFLAGS})")
+AC_SUBST(AM_CFLAGS, "\$(AM_EXTRA_CFLAGS)")
+AM_SUBST_NOTMAKE(EXTRA_CFLAGS)
 
 AC_OUTPUT
 
