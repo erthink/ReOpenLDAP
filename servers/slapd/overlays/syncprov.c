@@ -1523,14 +1523,14 @@ syncprov_matchops( Operation *op, opcookie *opc, int saveit )
 		/* Don't send ops back to the originator */
 		if ( op->o_tag != LDAP_REQ_DELETE
 				&& opc->osid > 0 && opc->osid == so->s_sid ) {
-			Debug( LDAP_DEBUG_SYNC, "syncprov_matchops: %s skipping original sid %03x\n",
+			Debug( LDAP_DEBUG_SYNC, "syncprov_matchops: %s skipping original sid 0x%03x\n",
 				op->o_bd->be_nsuffix->bv_val, opc->osid );
 			continue;
 		}
 
 		/* Don't send ops back to the messenger */
 		if ( opc->rsid > 0 && opc->rsid == so->s_sid ) {
-			Debug( LDAP_DEBUG_SYNC, "syncprov_matchops: %s skipping relayed sid %03x\n",
+			Debug( LDAP_DEBUG_SYNC, "syncprov_matchops: %s skipping relayed sid 0x%03x\n",
 				op->o_bd->be_nsuffix->bv_val, opc->rsid );
 			continue;
 		}
@@ -1619,7 +1619,7 @@ kill_locked:
 			ldap_pvt_thread_mutex_unlock( &so->s_mutex );
 		}
 
-		Debug( LDAP_DEBUG_TRACE, "syncprov_matchops: sid %03x fscope %d rc %d\n",
+		Debug( LDAP_DEBUG_TRACE, "syncprov_matchops: sid 0x%03x fscope %d rc %d\n",
 			so->s_sid, fc.fscope, rc );
 
 		assert(rc != SLAPD_ABANDON);
@@ -2668,7 +2668,7 @@ syncprov_refresh_end(syncprov_info_t *si, syncops *so)
 	so->s_flags -= PS_IS_REFRESHING;
 	si->si_prefresh -= 1;
 	Debug( LDAP_DEBUG_SYNC,
-		"syncprov-search: sid %03x, refresh-end\n",
+		"syncprov-search: sid 0x%03x, refresh-end\n",
 		so->s_sid );
 }
 
@@ -2686,7 +2686,7 @@ syncprov_search_cleanup( Operation *op, SlapReply *rs )
 		ldap_pvt_thread_mutex_lock( &op->o_conn->c_mutex );
 		if ( !slap_get_op_abandon(op) ) {
 			Debug( LDAP_DEBUG_SYNC,
-				"syncprov-search: sid %03x, refresh-abort, type %d, rc %d\n",
+				"syncprov-search: sid 0x%03x, refresh-abort, type %d, rc %d\n",
 				so->s_sid, rs->sr_type, rs->sr_err );
 			syncprov_unlink_syncop( so, OS_REF_OP_SEARCH, SO_LOCKED_CONN );
 		} else {
@@ -2732,7 +2732,7 @@ syncprov_search_response( Operation *op, SlapReply *rs )
 					/* LY: checking by SID is wrong, CSNs should be compared as below */
 					&& sid == srs->sr_state.sid && srs->sr_state.numcsns ) {
 				Debug( LDAP_DEBUG_SYNC,
-					"syncprov-response: sid %03x, Entry %s changed by peer, skip\n",
+					"syncprov-response: sid 0x%03x, Entry %s changed by peer, skip\n",
 					srs->sr_state.sid, rs->sr_entry->e_name.bv_val );
 				return LDAP_SUCCESS;
 			}
@@ -2744,7 +2744,7 @@ syncprov_search_response( Operation *op, SlapReply *rs )
 					if ( sid == ss->ss_sids[i] && slap_csn_compare_ts( &entryCSN->a_nvals[0],
 						&ss->ss_ctxcsn[i] ) > 0 ) {
 						Debug( LDAP_DEBUG_SYNC,
-							"syncprov-response: sid %03x, Entry %s, %s > snapshot %s, skip\n",
+							"syncprov-response: sid 0x%03x, Entry %s, %s > snapshot %s, skip\n",
 							srs->sr_state.sid,
 							rs->sr_entry->e_name.bv_val,
 							entryCSN->a_nvals[0].bv_val,
@@ -2854,7 +2854,7 @@ syncprov_search_response( Operation *op, SlapReply *rs )
 
 		if ( srs->sr_jammed && rs->sr_err == LDAP_SUCCESS ) {
 			Debug( LDAP_DEBUG_SYNC,
-				"syncprov-response: sid %03x,%s%s, force resync\n",
+				"syncprov-response: sid 0x%03x,%s%s, force resync\n",
 				srs->sr_state.sid, srs->sr_jammed ? " jammed" : "",
 				(ss->ss_flags & SS_PRESENT) ? "" : " no-present" );
 			send_ldap_error(op, rs,
@@ -3028,7 +3028,7 @@ syncprov_op_search( Operation *op, SlapReply *rs )
 			if ( j == numcsns || srs->sr_state.sids[i] != sids[j] ) {
 				char *tmp = srs->sr_state.ctxcsn[i].bv_val;
 				Debug( LDAP_DEBUG_SYNC,
-					"syncprov_op_search: sid %03x, drop consumer's[%d] %s\n",
+					"syncprov_op_search: sid 0x%03x, drop consumer's[%d] %s\n",
 					srs->sr_state.sid, i, tmp );
 				srs->sr_state.numcsns--;
 				for ( j=i; j<srs->sr_state.numcsns; j++ ) {
@@ -3062,8 +3062,10 @@ syncprov_op_search( Operation *op, SlapReply *rs )
 				rs->sr_err = LDAP_UNWILLING_TO_PERFORM;
 				rs->sr_text = "consumer state is newer than provider!";
 				Debug( LDAP_DEBUG_SYNC,
-					"syncprov_op_search: sid %03x, consumer's state is newer\n",
-					srs->sr_state.sid );
+					"syncprov_op_search: consumer sid 0x%03x state %s "
+					"is newer than provider 0x%03x state %s\n",
+					sids[i], srs->sr_state.ctxcsn[i].bv_val, slap_serverID,
+					ctxcsn[j].bv_val);
 bailout:
 				if ( ctxcsn )
 					ber_bvarray_free_x( ctxcsn, op->o_tmpmemctx );
@@ -3083,14 +3085,14 @@ bailout:
 			changed = SS_CHANGED;
 			srs->sr_state.numcsns = 0; /* sr_state.ctxcsn is shared with pivot_csn */
 			Debug( LDAP_DEBUG_SYNC,
-				"syncprov_op_search: sid %03x, useless consumer-cookie\n",
+				"syncprov_op_search: sid 0x%03x, useless consumer-cookie\n",
 				srs->sr_state.sid );
 			srs->sr_jammed = reopenldap_mode_strict();
 			goto shortcut;
 		}
 
 		Debug( LDAP_DEBUG_SYNC,
-			"syncprov_op_search: sid %03x, provider's state is %s%s, pivot %s\n",
+			"syncprov_op_search: sid 0x%03x, provider's state is %s%s, pivot %s\n",
 			srs->sr_state.sid, (changed == SS_CHANGED) ? "newer" : "the same",
 			dirty ? " and dirty" : "",
 			pivot_csn.bv_val );
@@ -3101,7 +3103,7 @@ bailout:
 					&& SLAP_MULTIMASTER( op->o_bd->bd_self )
 					&& !si->si_nopres && !si->si_logs ) {
 				Debug( LDAP_DEBUG_SYNC,
-					"syncprov_op_search: sid %03x, force present-check\n",
+					"syncprov_op_search: sid 0x%03x, force present-check\n",
 					 srs->sr_state.sid );
 				do_present = SS_PRESENT;
 				goto shortcut;
