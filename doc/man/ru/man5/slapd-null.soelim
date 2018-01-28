@@ -1,0 +1,83 @@
+.\" $ReOpenLDAP$
+.\" Copyright 1992-2018 ReOpenLDAP AUTHORS: please see AUTHORS file.
+.\" All rights reserved.
+.\"
+.\" This file is part of ReOpenLDAP.
+.\"
+.\" Redistribution and use in source and binary forms, with or without
+.\" modification, are permitted only as authorized by the OpenLDAP
+.\" Public License.
+.\"
+.\" A copy of this license is available in the file LICENSE in the
+.\" top-level directory of the distribution or, alternatively, at
+.\" <http://www.OpenLDAP.org/license.html>.
+
+.TH SLAPD-NULL 5 "@RELEASE_DATE@" "ReOpenLDAP @VERSION@"
+
+.SH НАЗВАНИЕ
+slapd\-null \- Механизм манипуляции данными для slapd Null
+
+.SH ОБЗОР
+@SYSCONFDIR@/slapd.conf
+
+.SH ОПИСАНИЕ
+Механизм манипуляции данными для
+.BR slapd (8)
+Null, несомненно, самая полезная часть
+.BR slapd :
+.br
+- Поисковые запросы возвращают код успешного завершения, но записей не возвращают.
+.br
+- Запросы compare возвращают compareFalse.
+.br
+- Запросы на обновление возвращают код успешного завершения (если не включен режим readonly),
+но ничего не делают.
+.br
+- Подсоединения не от имени rootdn заканчиваются неудачей, если в конфигурации базы данных не была
+указана директива "bind on".
+.br
+- Весьма интересно также поведение утилит
+.BR slapadd (8)
+и
+.BR slapcat (8).
+.br
+На создание данного механизма вдохновило устройство /dev/null.
+.SH КОНФИГУРАЦИЯ
+Приведённые ниже директивы
+.B slapd.conf
+применяются к базам данных механизма манипуляции данными NULL. То есть, они должны следовать за
+строкой "database null" и находиться до любых последующих строк "database".
+Другие относящиеся к базам данных директивы описаны в man-странице
+.BR slapd.conf (5).
+.TP
+.B bind <on/off>
+Позволяет производить подсоединения от имени любого DN в пределах суффикса базы данных,
+с любым паролем. Значение по умолчанию - "off".
+.TP
+.B dosearch <on/off>
+Если эта опция включена, одна единственная запись будет возвращаться в ответ на все поисковые запросы.
+DN этой записи будет совпадать с суффиксом базы данных. Значение по умолчанию - "off".
+.SH ПРИМЕР
+Вот возможный фрагмент файла slapd.conf с использованием механизма манипуляции данными Null:
+.LP
+.RS
+.nf
+database null
+suffix   "cn=Nothing"
+bind     on
+.fi
+.RE
+.SH КОНТРОЛЬ ДОСТУПА
+Механизм манипуляции данными
+.B null
+не соблюдает каких-либо семантик контроля доступа, описанных в man-странице
+.BR slapd.access (5).
+.SH ФАЙЛЫ
+.TP
+@SYSCONFDIR@/slapd.conf
+конфигурационный файл slapd по умолчанию.
+.SH СМОТРИТЕ ТАКЖЕ
+.BR slapd.conf (5),
+.BR slapd (8),
+.BR slapadd (8),
+.BR slapcat (8).
