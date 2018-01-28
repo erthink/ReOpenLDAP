@@ -746,6 +746,7 @@ over_op_func_cleanup( Operation *op, SlapReply *rs )
 		op->o_callback = cb->sc_next;
 		ch_free( cb );
 	}
+	return SLAP_CB_CONTINUE;
 }
 
 static int
