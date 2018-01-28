@@ -362,9 +362,8 @@ authzid_db_destroy( BackendDB *be, ConfigReply *cr )
 {
 #ifdef SLAP_CONFIG_DELETE
 	overlay_unregister_control( be, LDAP_CONTROL_AUTHZID_REQUEST );
-#endif /* SLAP_CONFIG_DELETE */
-
 	unregister_supported_control( LDAP_CONTROL_AUTHZID_REQUEST );
+#endif /* SLAP_CONFIG_DELETE */
 
 	return 0;
 }
