@@ -2006,8 +2006,8 @@ if test $ol_with_cyrus_sasl != no ; then
 
 		ac_save_LIBS="$LIBS"
 		LIBS="$LIBS $ol_link_sasl"
-		AC_CHECK_FUNC(sasl_version, [AC_DEFINE(HAVE_SASL_VERSION,1,
-			[define if your SASL library has sasl_version()])])
+		AC_CHECK_FUNC(sasl_version_info, [AC_DEFINE(HAVE_SASL_VERSION,1,
+			[define if your SASL library has sasl_version_info()])])
 		LIBS="$ac_save_LIBS"
 
 		WITH_SASL=yes

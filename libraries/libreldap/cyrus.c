@@ -74,6 +74,26 @@ static const sasl_callback_t client_callbacks[] = {
  */
 int ldap_int_sasl_init( void )
 {
+#ifdef HAVE_SASL_VERSION
+	const char *version_string = "?";
+	int version_major = 0;
+	int version_minor = 0;
+	int version_step = 0;
+	sasl_version_info( NULL, &version_string, &version_major, &version_minor, &version_step, NULL );
+	if ( version_major != SASL_VERSION_MAJOR || version_minor != SASL_VERSION_MINOR
+			|| version_step < SASL_VERSION_STEP) {
+		Debug( LDAP_DEBUG_ANY,
+		"ldap_int_sasl_init: SASL library version mismatch:"
+		" expected %d.%d.%d,"
+		" got %s (%d.%d.%d)\n",
+		SASL_VERSION_MAJOR, SASL_VERSION_MINOR, SASL_VERSION_STEP,
+		version_string, version_major, version_minor, version_step);
+#ifdef RELDAP_STRICT_SASL_VERSION
+		return -1;
+#endif
+	}
+#endif
+
 /* SASL 2 takes care of its own memory completely internally */
 #if SASL_VERSION_MAJOR < 2 && !defined(CSRIMALLOC)
 	sasl_set_alloc(
