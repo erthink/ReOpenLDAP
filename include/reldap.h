@@ -17,41 +17,7 @@
 #define _LDAP_REOPEN_H
 
 #include "../reldap_autoconf.h"
-
-#ifndef __has_feature
-#	define __has_feature(x) (0)
-#endif
-
-#ifndef __has_attribute
-#	define __has_attribute(x) (0)
-#endif
-
-#ifndef __GNUC_PREREQ
-#	if defined(__GNUC__) && defined(__GNUC_MINOR__)
-#		define __GNUC_PREREQ(maj,min) \
-			((__GNUC__ << 16) + __GNUC_MINOR__ >= ((maj) << 16) + (min))
-#	else
-#		define __GNUC_PREREQ(maj,min) 0
-#	endif
-#endif /* __GNUC_PREREQ */
-
-#if !__GNUC_PREREQ(4,2)
-	/* LY: Actualy ReOpenLDAP was not tested with compilers
-	 *     older than GCC 4.4 from RHEL6.
-	 * But you could remove this #error and try to continue at your own risk.
-	 * In such case please don't rise up an issues related ONLY to old compilers.
-	 */
-#	error "ReOpenLDAP required at least GCC 4.2 compatible C/C++ compiler."
-#endif
-
-#ifndef __CLANG_PREREQ
-#	ifdef __clang__
-#		define __CLANG_PREREQ(maj,min) \
-			((__clang_major__ << 16) + __clang_minor__ >= ((maj) << 16) + (min))
-#	else
-#		define __CLANG_PREREQ(maj,min) (0)
-#	endif
-#endif /* __CLANG_PREREQ */
+#include "ldap_cdefs.h"
 
 #ifndef __maybe_unused
 #	ifdef ATTRIBUTE_UNUSED
@@ -135,7 +101,7 @@
 #	else
 #		define __noreturn
 #	endif
-#endif
+#endif /* __noreturn */
 
 #ifndef __nothrow
 #	if defined(__GNUC__) || defined(__clang__)
@@ -145,7 +111,7 @@
 #	else
 #		define __nothrow
 #	endif
-#endif
+#endif /* __nothrow */
 
 #ifndef CACHELINE_SIZE
 #	if defined(__ia64__) || defined(__ia64) || defined(_M_IA64)
