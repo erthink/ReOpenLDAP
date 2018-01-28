@@ -151,7 +151,9 @@ typedef struct syncinfo_s {
 	char	si_require_present; /* requre preset-check phase on refresh */
 	char	si_syncdata;
 	char	si_logstate;
+#ifdef SLAP_CONTROL_X_LAZY_COMMIT
 	char	si_lazyCommit;
+#endif /* SLAP_CONTROL_X_LAZY_COMMIT */
 	char	si_too_old;
 	char	si_keep_cookie4search;
 	char	si_ridtxt[ STRLENOF("rid=999") + 1 ];
@@ -3172,8 +3174,10 @@ syncrepl_entry(
 	}
 
 	if ( !si->si_refreshDone ) {
+#ifdef SLAP_CONTROL_X_LAZY_COMMIT
 		if ( si->si_lazyCommit )
 			op->o_lazyCommit = SLAP_CONTROL_NONCRITICAL;
+#endif
 #ifdef LDAP_X_TXN
 		if ( si->si_refreshCount == 500 ) {
 			assert(si->si_refreshTxn != NULL);
@@ -5602,10 +5606,12 @@ parse_syncrepl_line(
 					STRLENOF( STRICT_REFRESH ) ) )
 		{
 			si->si_strict_refresh = 1;
+#ifdef SLAP_CONTROL_X_LAZY_COMMIT
 		} else if ( !strncasecmp( c->argv[ i ], LAZY_COMMIT,
 					STRLENOF( LAZY_COMMIT ) ) )
 		{
 			si->si_lazyCommit = 1;
+#endif /* SLAP_CONTROL_X_LAZY_COMMIT */
 		} else if ( !strncasecmp( c->argv[ i ], REQUIRE_PRESENT,
 					STRLENOF( REQUIRE_PRESENT ) ) )
 		{
@@ -6026,9 +6032,12 @@ syncrepl_unparse( syncinfo_t *si, struct berval *bv )
 		}
 	}
 
+#ifdef SLAP_CONTROL_X_LAZY_COMMIT
 	if ( si->si_lazyCommit ) {
 		ptr = lutil_strcopy( ptr, " " LAZY_COMMIT );
 	}
+#endif /*SLAP_CONTROL_X_LAZY_COMMIT */
+
 	if ( si->si_strict_refresh ) {
 		len = snprintf( ptr, WHATSLEFT, " " STRICT_REFRESH );
 		if ( WHATSLEFT <= len ) return;
