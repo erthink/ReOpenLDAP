@@ -217,7 +217,7 @@ tester_init( const char *pname, tester_t ptype )
 	};
 
 	pid = getpid();
-	srand( pid );
+	srand48( pid );
 	snprintf( progname, sizeof( progname ), "%s PID=%d", pname, pid );
 	progtype = ptype;
 

@@ -217,10 +217,7 @@ do_random( struct tester_conn_args *config, char *sbase, char *filter,
 		}
 
 		for ( i = 0; i < config->loops; i++ ) {
-#if 0	/* use high-order bits for better randomness (Numerical Recipes in "C") */
-			int	r = rand() % nvalues;
-#endif
-			int	r = ((double)nvalues)*rand()/(RAND_MAX + 1.0);
+			int	r = lrand48() % nvalues;
 
 			do_read( config, values[ r ], &ld,
 				srchattrs, noattrs, nobind, 1, force );

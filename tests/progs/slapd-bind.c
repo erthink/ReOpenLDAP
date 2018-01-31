@@ -436,10 +436,7 @@ novals:;
 	for ( i = 0; i < config->loops; i++ ) {
 		int		j;
 
-#if 0	/* use high-order bits for better randomness (Numerical Recipes in "C") */
-		j = rand() % ndns;
-#endif
-		j = ((double)ndns)*rand()/(RAND_MAX + 1.0);
+		j = lrand48() % ndns;
 
 		if ( creds && !BER_BVISEMPTY( &creds[j] ) ) {
 			config->pass = creds[j];

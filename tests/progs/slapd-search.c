@@ -251,10 +251,7 @@ do_random( struct tester_conn_args *config,
 
 		for ( i = 0; i < config->loops; i++ ) {
 			char	buf[ BUFSIZ ];
-#if 0	/* use high-order bits for better randomness (Numerical Recipes in "C") */
-			int	r = rand() % nvalues;
-#endif
-			int	r = ((double)nvalues)*rand()/(RAND_MAX + 1.0);
+			int	r = lrand48() % nvalues;
 
 			snprintf( buf, sizeof( buf ), "(%s=%s)", attr, values[ r ] );
 

@@ -896,7 +896,7 @@ main( int argc, char **argv )
 			int	jj = j % bnum;
 
 			if ( nextra ) {
-				int	n = ((double)nextra)*rand()/(RAND_MAX + 1.0);
+				int	n = lrand48() % nextra;
 				extra_t	*e;
 
 				for ( e = extra; n-- > 0; e = e->next )
