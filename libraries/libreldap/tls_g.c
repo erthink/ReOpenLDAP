@@ -761,7 +761,7 @@ tlsg_session_pinning( LDAP *ld, tls_session *sess, char *hashalg, struct berval 
 	gnutls_x509_crt_t crt;
 	gnutls_pubkey_t pubkey;
 	gnutls_datum_t key = {};
-	gnutls_digest_algorithm_t alg;
+	gnutls_digest_algorithm_t alg = GNUTLS_DIG_UNKNOWN;
 	struct berval keyhash;
 	size_t len;
 	int rc = -1;
