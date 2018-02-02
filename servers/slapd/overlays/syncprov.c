@@ -2737,16 +2737,6 @@ syncprov_search_response( Operation *op, SlapReply *rs )
 			int i, sid;
 			sid = slap_csn_get_sid( &entryCSN->a_nvals[0] );
 
-			/* Don't send changed entries back to the originator */
-			if ( ! reopenldap_mode_righteous()
-					/* LY: checking by SID is wrong, CSNs should be compared as below */
-					&& sid == srs->sr_state.sid && srs->sr_state.numcsns ) {
-				Debug( LDAP_DEBUG_SYNC,
-					"syncprov-response: sid 0x%03x, Entry %s changed by peer, skip\n",
-					srs->sr_state.sid, rs->sr_entry->e_name.bv_val );
-				return LDAP_SUCCESS;
-			}
-
 			/* If not a persistent search */
 			if ( !(op->o_sync & SLAP_SYNC_PERSIST) ) {
 				/* Make sure entry is less than the snapshot'd contextCSN */
