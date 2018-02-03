@@ -467,6 +467,7 @@ novals:;
 		(long) pid, base, filter, ndns );
 
 	/* Ok, got list of DNs, now start binding to each */
+	struct berval save_pass = config->pass;
 	for ( i = 0; i < config->loops; i++ ) {
 		int		j;
 
@@ -507,6 +508,7 @@ novals:;
 		}
 		free( creds );
 	}
+	config->pass = save_pass;
 
 	return 0;
 }
