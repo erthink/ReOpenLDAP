@@ -162,6 +162,7 @@ ldap_back_search(
 	char		**references = NULL;
 	int		remove_unknown_schema =
 				 LDAP_BACK_OMIT_UNKNOWN_SCHEMA (li);
+	const void* const origin_filter_data = op->ors_filterstr.bv_val;
 
 	rs_assert_ready( rs );
 	rs->sr_flags &= ~REP_ENTRY_MASK; /* paranoia, we can set rs = non-entry */
@@ -618,7 +619,7 @@ finish:;
 		ldap_back_quarantine( op, rs );
 	}
 
-	if ( filter.bv_val != op->ors_filterstr.bv_val ) {
+	if ( filter.bv_val != origin_filter_data ) {
 		op->o_tmpfree( filter.bv_val, op->o_tmpmemctx );
 	}
 
