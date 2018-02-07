@@ -1461,7 +1461,17 @@ accesslog_op2logop( Operation *op )
 	return LOG_EN_UNKNOWN;
 }
 
-static int accesslog_response(Operation *op, SlapReply *rs) {
+static int do_accesslog_response(Operation *op, SlapReply *rs, int need_unlock);
+
+static int accesslog_response_and_unlock(Operation *op, SlapReply *rs) {
+	return do_accesslog_response(op, rs, 1);
+}
+
+static int accesslog_response_dont_unlock(Operation *op, SlapReply *rs) {
+	return do_accesslog_response(op, rs, 0);
+}
+
+static int do_accesslog_response(Operation *op, SlapReply *rs, int need_unlock) {
 	slap_overinst *on = (slap_overinst *)op->o_bd->bd_info;
 	log_info *li = on->on_bi.bi_private;
 	Attribute *a, *last_attr;
@@ -1479,7 +1489,7 @@ static int accesslog_response(Operation *op, SlapReply *rs) {
 	SlapReply rs2 = {REP_RESULT};
 
 	if ( rs->sr_type != REP_RESULT && rs->sr_type != REP_EXTENDED )
-		return SLAP_CB_CONTINUE;
+		goto exit_continue;
 
 	logop = accesslog_op2logop( op );
 	lo = logops+logop+EN_OFFSET;
@@ -1493,7 +1503,7 @@ static int accesslog_response(Operation *op, SlapReply *rs) {
 				break;
 			}
 		if ( !i )
-			return SLAP_CB_CONTINUE;
+			goto exit_continue;
 	}
 
 	/* mutex and so were only set for write operations;
@@ -1510,7 +1520,7 @@ static int accesslog_response(Operation *op, SlapReply *rs) {
 				op->orm_modlist->sml_op != LDAP_MOD_REPLACE ||
 				op->orm_modlist->sml_desc != slap_schema.si_ad_contextCSN ) &&
 				op->orm_no_opattrs )
-			return SLAP_CB_CONTINUE;
+			goto exit_continue;
 		}
 
 		ldap_pvt_thread_mutex_lock( &li->li_log_mutex );
@@ -1525,18 +1535,20 @@ static int accesslog_response(Operation *op, SlapReply *rs) {
 				break;
 			}
 		}
+		if ( need_unlock ) {
 #ifdef RMUTEX_DEBUG
-		Debug( LDAP_DEBUG_SYNC,
-			"accesslog_response: unlocking rmutex for tid %x\n",
-			op->o_tid );
+			Debug( LDAP_DEBUG_SYNC,
+				"%s.%d: unlocking rmutex for tid %x\n",
+				__FUNCTION__, __LINE__, op->o_tid );
 #endif
-		ldap_pvt_thread_mutex_recursive_unlock( &li->li_op_rmutex );
+			ldap_pvt_thread_mutex_recursive_unlock( &li->li_op_rmutex );
+			need_unlock = 0;
+		}
 	}
 
 	/* ignore these internal reads */
-	if (( lo->mask & LOG_OP_READS ) && op->o_do_not_cache ) {
-		return SLAP_CB_CONTINUE;
-	}
+	if (( lo->mask & LOG_OP_READS ) && op->o_do_not_cache )
+		goto exit_continue;
 
 	if ( li->li_success && rs->sr_err != LDAP_SUCCESS )
 		goto done;
@@ -1644,7 +1656,7 @@ static int accesslog_response(Operation *op, SlapReply *rs) {
 
 			/* don't log the RDN mods; they're explicitly logged later */
 			if ( logop == LOG_EN_MODRDN &&
-			 	( m->sml_op == SLAP_MOD_SOFTADD ||
+				( m->sml_op == SLAP_MOD_SOFTADD ||
 				  m->sml_op == LDAP_MOD_DELETE ) )
 			{
 				continue;
@@ -1898,6 +1910,16 @@ done:
 	if ( lo->mask & LOG_OP_WRITES )
 		ldap_pvt_thread_mutex_unlock( &li->li_log_mutex );
 	if ( old ) entry_free( old );
+
+exit_continue:
+	if ( need_unlock ) {
+#ifdef RMUTEX_DEBUG
+		Debug( LDAP_DEBUG_SYNC,
+			"%s.%d: unlocking rmutex for tid %x\n",
+			__FUNCTION__, __LINE__, op->o_tid );
+#endif
+		ldap_pvt_thread_mutex_recursive_unlock( &li->li_op_rmutex );
+	}
 	return SLAP_CB_CONTINUE;
 }
 
@@ -1916,7 +1938,7 @@ accesslog_bind_resp( Operation *op, SlapReply *rs )
 	db = *be;
 	op->o_bd = &db;
 	db.bd_info = op->o_callback->sc_private;
-	rc = accesslog_response( op, rs );
+	rc = accesslog_response_dont_unlock( op, rs );
 	op->o_bd = be;
 	sc = op->o_callback;
 	op->o_callback = sc->sc_next;
@@ -1943,7 +1965,7 @@ accesslog_op_bind( Operation *op, SlapReply *rs )
 }
 
 static int
-accesslog_mod_cleanup( Operation *op, SlapReply *rs )
+accesslog_mod_cleanup_and_unlock( Operation *op, SlapReply *rs )
 {
 	slap_callback *sc = op->o_callback;
 	slap_overinst *on = sc->sc_private;
@@ -1954,8 +1976,16 @@ accesslog_mod_cleanup( Operation *op, SlapReply *rs )
 	if ( on && rs->sr_err != LDAP_SUCCESS ) {
 		BackendInfo *bi = op->o_bd->bd_info;
 		op->o_bd->bd_info = (BackendInfo *)on;
-		accesslog_response( op, rs );
+		accesslog_response_and_unlock( op, rs );
 		op->o_bd->bd_info = bi;
+	} else if (on) {
+		log_info *li = on->on_bi.bi_private;
+#ifdef RMUTEX_DEBUG
+		Debug( LDAP_DEBUG_SYNC,
+			"%s.%d: unlocking rmutex for tid %x\n",
+			__FUNCTION__, __LINE__, op->o_tid );
+#endif
+		ldap_pvt_thread_mutex_recursive_unlock( &li->li_op_rmutex );
 	}
 	return 0;
 }
@@ -1999,7 +2029,7 @@ accesslog_op_mod( Operation *op, SlapReply *rs )
 
 	if ( doit ) {
 		slap_callback *cb = op->o_tmpcalloc( 1, sizeof( slap_callback ), op->o_tmpmemctx );
-		cb->sc_cleanup = accesslog_mod_cleanup;
+		cb->sc_cleanup = accesslog_mod_cleanup_and_unlock;
 		cb->sc_private = on;
 		cb->sc_next = op->o_callback;
 		op->o_callback = cb;
@@ -2375,7 +2405,7 @@ int accesslog_over_initialize()
 	accesslog.on_bi.bi_op_unbind = accesslog_unbind;
 	accesslog.on_bi.bi_op_abandon = accesslog_abandon;
 	accesslog.on_bi.bi_operational = accesslog_operational;
-	accesslog.on_response = accesslog_response;
+	accesslog.on_response = accesslog_response_dont_unlock;
 
 	accesslog.on_bi.bi_cf_ocs = log_cfocs;
 

@@ -101,6 +101,7 @@ typedef struct syncops {
 	int		s_matchops_inuse;	/* reference count from matchops */
 	struct reslink *s_rl;
 	struct reslink *s_rltail;
+	void *s_pool_cookie;
 
 	Operation *s_op_safe, s_slap_op_copy;
 } syncops;
@@ -1231,8 +1232,8 @@ syncprov_playback_dequeue( void *ctx, void *arg )
 	ldap_pvt_thread_mutex_unlock( &so->s_mutex );
 
 	if (resubmit > 0)
-		ldap_pvt_thread_pool_submit( &connection_pool,
-			syncprov_playback_dequeue, so );
+		ldap_pvt_thread_pool_submit2( &connection_pool,
+			syncprov_playback_dequeue, so, &so->s_pool_cookie );
 	else
 		syncprov_unlink_syncop( so,
 				(resubmit < 0)
@@ -1248,8 +1249,8 @@ syncprov_playback_enqueue( syncops *so )
 {
 	assert(!(so->s_flags & OS_REF_PLAYBACK));
 	so->s_flags |= OS_REF_PLAYBACK;
-	ldap_pvt_thread_pool_submit( &connection_pool,
-		syncprov_playback_dequeue, so );
+	ldap_pvt_thread_pool_submit2( &connection_pool,
+		syncprov_playback_dequeue, so, &so->s_pool_cookie );
 }
 
 /* Queue a persistent search response */
@@ -2101,6 +2102,32 @@ syncprov_playlog( Operation *op, sessionlog *sl,
 }
 
 static int
+syncprov_new_ctxcsn_and_mayrwunlock( opcookie *opc, syncprov_info_t *si, BerVarray vals )
+{
+	int vector = slap_cookie_merge_csnset( NULL, &si->si_cookie, vals );
+	if ( vector <= 0 ) {
+		Debug( LDAP_DEBUG_SYNC, "syncprov_op_response: cookie-kept (mod-context-csn '%s')\n", vals->bv_val );
+	} else {
+		Debug( LDAP_DEBUG_SYNC, "syncprov_op_response: cookie-forward\n" );
+		si->si_dirty = 0;
+		si->si_numops++;
+		ldap_pvt_thread_rdwr_wunlock( &si->si_csn_rwlock );
+
+		ldap_pvt_thread_mutex_lock( &si->si_ops_mutex );
+		for ( syncops *ss = si->si_ops; ss; ss = ss->s_next ) {
+			/* Send the updated csn to all syncrepl consumers,
+			 * including the server from which it originated.
+			 * The syncrepl consumer and syncprov provider on
+			 * the originating server may be configured to store
+			 * their csn values in different entries. */
+			syncprov_qresp( opc, ss, LDAP_SYNC_NEW_COOKIE );
+		}
+		ldap_pvt_thread_mutex_unlock( &si->si_ops_mutex );
+	}
+	return vector;
+}
+
+static int
 syncprov_op_response( Operation *op, SlapReply *rs )
 {
 	opcookie *opc = op->o_callback->sc_private;
@@ -2169,43 +2196,25 @@ syncprov_op_response( Operation *op, SlapReply *rs )
 
 		/* Don't do any processing for consumer contextCSN updates */
 		if ( op->o_dont_replicate ) {
-			int vector = 0;
 			if ( op->o_tag == LDAP_REQ_MODIFY &&
 				op->orm_modlist->sml_op == LDAP_MOD_REPLACE &&
-				op->orm_modlist->sml_desc == slap_schema.si_ad_contextCSN ) {
+				op->orm_modlist->sml_desc == slap_schema.si_ad_contextCSN &&
+				0 < syncprov_new_ctxcsn_and_mayrwunlock(opc, si, op->orm_modlist->sml_values)) {
 				/* Catch contextCSN updates from syncrepl. We have to look at
 				 * all the attribute values, as there may be more than one csn
-				 * that changed, and only one can be passed in the csn queue.
-				 */
-				vector = slap_cookie_merge_csnset(
-					NULL, &si->si_cookie, op->orm_modlist->sml_values );
-				if ( vector > 0 ) {
-					Debug( LDAP_DEBUG_SYNC,
-						"syncprov_op_response: cookie-forward\n" );
-					si->si_dirty = 0;
-					si->si_numops++;
-				} else {
-					Debug( LDAP_DEBUG_SYNC,
-						"syncprov_op_response: cookie-kept (mod-context-csn '%s')\n", op->orm_modlist->sml_values->bv_val );
-				}
-			}
-			ldap_pvt_thread_rdwr_wunlock( &si->si_csn_rwlock );
-
-			if ( vector > 0 ) {
-				syncops *ss;
-				ldap_pvt_thread_mutex_lock( &si->si_ops_mutex );
-				for ( ss = si->si_ops; ss; ss = ss->s_next ) {
-					/* Send the updated csn to all syncrepl consumers,
-					 * including the server from which it originated.
-					 * The syncrepl consumer and syncprov provider on
-					 * the originating server may be configured to store
-					 * their csn values in different entries.
-					 */
-					syncprov_qresp( opc, ss, LDAP_SYNC_NEW_COOKIE );
-				}
-				ldap_pvt_thread_mutex_unlock( &si->si_ops_mutex );
+				 * that changed, and only one can be passed in the csn queue. */
+			} else {
+				ldap_pvt_thread_rdwr_wunlock( &si->si_csn_rwlock );
 			}
 			goto leave;
+		}
+
+		/* If we're adding the context entry, parse all of its contextCSNs */
+		if ( op->o_tag == LDAP_REQ_ADD &&
+			dn_match( &op->o_req_ndn, &si->si_contextdn )) {
+			Attribute *a = attr_find( op->ora_e->e_attrs, slap_schema.si_ad_contextCSN );
+			if (a && 0 < syncprov_new_ctxcsn_and_mayrwunlock(opc, si, a->a_vals ))
+				ldap_pvt_thread_rdwr_wlock( &si->si_csn_rwlock );
 		}
 
 		/* Update our context CSN */
@@ -3780,6 +3789,9 @@ syncprov_db_close(
 			si->si_ops = so->s_next;
 			so->s_next = so; /* LY: safely mark it as unlinked */
 			so->s_flags |= PS_DEAD | OS_REF_CLOSE;
+			if ( (so->s_flags & PS_TASK_QUEUED)
+					&& ldap_pvt_thread_pool_retract( so->s_pool_cookie ) > 0)
+				so->s_flags -= PS_TASK_QUEUED;
 			ldap_pvt_thread_mutex_unlock( &so->s_mutex );
 			ldap_pvt_thread_mutex_unlock( &si->si_ops_mutex );
 

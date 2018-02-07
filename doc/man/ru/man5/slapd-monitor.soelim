@@ -1,0 +1,130 @@
+.\" $ReOpenLDAP$
+.\" Copyright 1992-2018 ReOpenLDAP AUTHORS: please see AUTHORS file.
+.\" All rights reserved.
+.\"
+.\" This file is part of ReOpenLDAP.
+.\"
+.\" Redistribution and use in source and binary forms, with or without
+.\" modification, are permitted only as authorized by the OpenLDAP
+.\" Public License.
+.\"
+.\" A copy of this license is available in the file LICENSE in the
+.\" top-level directory of the distribution or, alternatively, at
+.\" <http://www.OpenLDAP.org/license.html>.
+
+.TH SLAPD-MONITOR 5 "@RELEASE_DATE@" "ReOpenLDAP @VERSION@"
+
+.SH НАЗВАНИЕ
+slapd\-monitor \- Механизм манипуляции данными мониторинга для slapd
+
+.SH ОБЗОР
+@SYSCONFDIR@/slapd.conf
+
+.SH ОПИСАНИЕ
+Механизм манипуляции данными для
+.BR slapd (8)
+.B monitor
+на самом деле не является реальной базой данных; если он активирован, база данных автоматически
+генерируется и динамически поддерживается демоном
+.BR slapd ,
+который помещает туда информацию о статусе своей работы.
+.LP
+Для получения всей информации мониторинга нужно выполнить поиск по поддереву с базовой записью
+cn=Monitor, запрашивая возвращение атрибутов "+" и "*". Механизм monitor генерирует в основном
+операционные атрибуты, а LDAP возвращает только те из них, которые были запрошены явно. Атрибут "+" -
+это расширение для запроса всех операционных атрибутов.
+.SH КОНФИГУРАЦИЯ
+Приведённые ниже директивы
+.B slapd.conf
+применяются к базам данных механизма манипуляции данными
+.BR monitor .
+То есть, они должны следовать за строкой "database monitor" и находиться до последующих строк
+"backend" или "database".
+.LP
+В отличие от большинства баз данных, база данных
+.B monitor
+может быть создана только один раз. Это означает, что строка "database monitor" может появиться в файле
+.BR slapd.conf (5)
+только однажды. Более того, суффикс этой базы данных не может быть явно задан с помощью директивы
+.BR suffix .
+Суффикс автоматически назначается как "\fIcn=Monitor\fP".
+.LP
+База данных
+.B monitor
+соблюдает директивы
+.B rootdn
+и
+.BR rootpw ,
+а также обычные директивы ACL, например, директиву
+.BR access .
+.\".LP
+.\"The following directives can be used:
+.\".TP
+.\".BI l \ <locality>
+.\"The additional argument \fI<locality>\fP,
+.\"a string, is added to the "\fIcn=Monitor\fP" entry as value of the
+.\".B l
+.\"attribute (Note: this may be subjected to changes).
+.LP
+Другие относящиеся к базам данных директивы описаны в man-странице
+.BR slapd.conf (5).
+.SH ИСПОЛЬЗОВАНИЕ
+Порядок использования:
+.TP
+1) включите механизм \fBmonitor\fP при выполнении скрипта configure:
+.LP
+.RS
+.nf
+configure \-\-enable\-monitor
+.fi
+.RE
+.TP
+2) активируйте базу данных \fBmonitor\fP в файле \fBslapd.conf\fP(5):
+.LP
+.RS
+.nf
+database monitor
+.fi
+.RE
+.TP
+3) для контроля доступа к этой базе данных добавьте ACL как описано в man-странице
+\fBslapd.access\fP(5), например:
+.LP
+.RS
+.nf
+access to dn.subtree="cn=Monitor"
+	by dn.exact="uid=Admin,dc=my,dc=org" write
+	by users read
+	by * none
+.fi
+.RE
+.TP
+4) убедитесь, что файл \fBcore.schema\fP загружен.
+Механизм манипуляции данными
+.B monitor
+использует некоторые стандартные типы атрибутов, которые при старте механизма должны быть уже
+определены.
+.SH КОНТРОЛЬ ДОСТУПА
+Механизм манипуляции данными
+.B monitor
+соблюдает семантики контроля доступа, указанные в man-странице
+.BR slapd.access (5),
+в том числе привилегию доступа
+.BR disclose ,
+на всех реализованных в настоящее время операциях.
+.SH ИЗВЕСТНЫЕ ОГРАНИЧЕНИЯ
+Механизм манипуляции данными
+.B monitor
+не соблюдает ограничения по размеру и времени в операциях search.
+.SH ФАЙЛЫ
+.TP
+.B @SYSCONFDIR@/slapd.conf
+конфигурационный файл slapd по умолчанию.
+.SH СМОТРИТЕ ТАКЖЕ
+.BR slapd.conf (5),
+.BR slapd\-config (5),
+.BR slapd.access (5),
+.BR slapd (8),
+.BR ldap (3).
+.SH "ПРИЗНАНИЕ ЗАСЛУГ"
+.so ../Project

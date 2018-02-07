@@ -180,8 +180,8 @@ slapschema \-a \\
 .B slapschema
 с механизмами
 .BR slapd\-mdb (5),
-.BR slapd\-hdb (5)
-.BR slapd\-bdb (5),
+.BR slapd\-hdb (5),
+.BR slapd\-bdb (5)
 и
 .BR slapd\-null (5)
 безопасно всегда.
@@ -201,6 +201,6 @@ slapschema \-a \\
 .BR ldif (5),
 .BR slapd (8)
 .LP
-"Руководство администратора OpenLDAP" (http://www.OpenLDAP.org/doc/admin/, http://pro-ldap.ru/tr/admin24/).
+"Руководство администратора OpenLDAP" (http://www.OpenLDAP.org/doc/admin/, https://pro-ldap.ru/tr/admin24/).
 .SH "ПРИЗНАНИЕ ЗАСЛУГ"
 .so ../Project

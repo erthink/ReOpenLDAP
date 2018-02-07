@@ -775,12 +775,10 @@ main( int argc, char **argv )
 	bargs[banum++] = bloops;
 	bargs[banum++] = "-L";
 	bargs[banum++] = outerloops;
-#if 0
 	bargs[banum++] = "-r";
 	bargs[banum++] = retries;
 	bargs[banum++] = "-t";
 	bargs[banum++] = delay;
-#endif
 	if ( friendly ) {
 		bargs[banum++] = friendlyOpt;
 	}
@@ -896,7 +894,7 @@ main( int argc, char **argv )
 			int	jj = j % bnum;
 
 			if ( nextra ) {
-				int	n = ((double)nextra)*rand()/(RAND_MAX + 1.0);
+				int	n = lrand48() % nextra;
 				extra_t	*e;
 
 				for ( e = extra; n-- > 0; e = e->next )

@@ -1240,6 +1240,8 @@ tlsm_auth_cert_handler(void *arg, PRFileDesc *fd,
 	return ret;
 }
 
+static PRCallOnceType tlsm_register_shutdown_callonce = {0,0};
+
 static SECStatus
 tlsm_nss_shutdown_cb( void *appData, void *nssData )
 {
@@ -1252,10 +1254,15 @@ tlsm_nss_shutdown_cb( void *appData, void *nssData )
 		SECMOD_DestroyModule( pem_module );
 		pem_module = NULL;
 	}
+
+	/* init callonce so it can be armed again for cases like persistent daemon with LDAP_OPT_X_TLS_NEWCTX */
+	tlsm_register_shutdown_callonce.initialized = 0;
+	tlsm_register_shutdown_callonce.inProgress = 0;
+	tlsm_register_shutdown_callonce.status = 0;
+
 	return rc;
 }
 
-static PRCallOnceType tlsm_register_shutdown_callonce = {0,0};
 static PRStatus PR_CALLBACK
 tlsm_register_nss_shutdown_cb( void )
 {
@@ -3484,6 +3491,7 @@ tls_impl ldap_int_tls_impl = {
 	tlsm_session_version,
 	tlsm_session_cipher,
 	tlsm_session_peercert,
+	NULL,
 
 	&tlsm_sbio,
 
