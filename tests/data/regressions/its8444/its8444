@@ -65,7 +65,7 @@ for ((n=1; n<=$MMR; n++)); do
 	CFDIR=${XDIR}$n/slapd.d
 
 	mkdir -p ${XDIR}$n $DBDIR.1 $DBDIR.2 $CFDIR
-	config_filter $BACKEND ${AC_conf[monitor]} < $ITSDIR/slapd-provider${n}.ldif > $CONFLDIF
+	DBNOSYNC=yes config_filter $BACKEND ${AC_conf[monitor]} < $ITSDIR/slapd-provider${n}.ldif > $CONFLDIF
 	$SLAPADD -F $CFDIR -n 0 -l $CONFLDIF
 	RC=$?
 	if test $RC != 0 ; then

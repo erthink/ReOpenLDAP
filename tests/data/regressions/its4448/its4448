@@ -125,7 +125,7 @@ if test $RC != 0 ; then
 fi
 
 echo "Starting slapd on TCP/IP port $PORT3..."
-config_filter $BACKEND ${AC_conf[monitor]} < $ITSCONF > $CONF3
+DBNOSYNC=yes config_filter $BACKEND ${AC_conf[monitor]} < $ITSCONF > $CONF3
 $SLAPD -f $CONF3 -h $URI3 $TIMING |& gzip > $LOG3.gz &
 PID=$(jobs -p | tail -1)
 if test $WAIT != 0 ; then

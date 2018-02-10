@@ -55,7 +55,7 @@ done
 
 KILLPIDS=
 echo "Starting slapd on TCP/IP port $PORT1..."
-config_filter $BACKEND ${AC_conf[monitor]} < $ITSDIR/slapd.conf > $CONF1
+DBNOSYNC=yes config_filter $BACKEND ${AC_conf[monitor]} < $ITSDIR/slapd.conf > $CONF1
 $SLAPD -f $CONF1 -h $URI1 -d $LVL $TIMING > $LOG1 2>&1 &
 PID=$!
 if test $WAIT != 0 ; then
