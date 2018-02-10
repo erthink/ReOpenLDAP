@@ -32,17 +32,7 @@ else
 	echo ""
 fi
 
-if [ "$TRAVIS" = yes ]; then
-	echo "### Skip for Travis-CI now (overload troubles)"
-	exit 0
-fi
-
-# to be removed some time...
-
-if test x$TESTLOOPS = x ; then
-	TESTLOOPS=50
-fi
-
+TESTLOOPS=${TESTLOOPS:-50}
 mkdir -p $TESTDIR $DBDIR1 $DBDIR2
 
 ITS=4448
