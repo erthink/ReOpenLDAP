@@ -136,11 +136,9 @@ for ((n=1; n<=$MMR; n++)); do
 	echo "Starting provider slapd on TCP/IP URI $MYURI"
 	DBNOSYNC=yes config_filter $BACKEND ${AC_conf[monitor]} < $ITSDIR/slapd.conf.mmr | sed -e "s/MMR/$n/g" > $MYCONF
 
-	j=1
-	while [ $j -le $MMR ]; do
+	for ((j=1; j<=$MMR; j++)); do
 		MMCURI=`eval echo '$URI'$j`
 		sed -ie "s|MMC${j}|${MMCURI}|" $MYCONF
-		j=`expr $j + 1`
 	done
 
 	$SLAPD_HUGE -f $MYCONF -h $MYURI -d $LVL $TIMING |& gzip > $MYLOG.gz &
@@ -171,7 +169,7 @@ EOMODS
 		killservers
 		exit $RC
 	fi
-	sleep 5
+	sleep $SLEEP1
 done
 
 NNN=42000
@@ -179,10 +177,10 @@ if [ -n "$CI" -o -n "$CIBUZZ_PID4" ]; then
 	NNN=4200
 fi
 
-echo "Sleeping 30 seconds to ensure replication is reconciled between all nodes"
+echo "Sleeping $SYNCREPL_WAIT seconds to ensure replication is reconciled between all nodes"
 echo "The next step of the test will perform $NNN random write operations and may take some time."
 echo "As this test is for a deadlock, it will take manual intervention to exit the test if one occurs."
-sleep 30
+sleep $SYNCREPL_WAIT
 
 echo "Starting random master/entry modifications..."
 DN1="cn=Elmer_Fudd,ou=People,$BASEDN"
