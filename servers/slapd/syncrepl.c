@@ -1235,6 +1235,8 @@ syncrepl_process(
 			}
 			if ( lead >= 0 && rc == LDAP_SUCCESS )
 				rc = syncrepl_cookie_push( si, op, &syncCookie );
+			if ( rc == LDAP_SUCCESS && si->si_syncCookie.numcsns == 0 )
+				rc = LDAP_UNWILLING_TO_PERFORM;
 			syncrepl_refresh_done( si, rc );
 
 			if ( rc == LDAP_SUCCESS && si->si_logstate == SYNCLOG_FALLBACK ) {
