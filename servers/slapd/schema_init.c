@@ -5548,7 +5548,10 @@ check_time_syntax (struct berval *val,
 				return LDAP_INVALID_SYNTAX;
 			}
 			for (end_num = p; end_num[-1] == '0'; --end_num) {
-				/* EMPTY */;
+				if (end_num[0] == 'Z' && end_num[1] == '\0'
+						&& val->bv_len == 22
+						&& end_num - fraction->bv_val == 7)
+					break;
 			}
 			c = end_num - fraction->bv_val;
 			if (c != 1) fraction->bv_len = c;
