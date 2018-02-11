@@ -51,6 +51,7 @@ static void presentlist_free( presentlist_t *list );
 #define SYNC_RETARDED		-43
 #define	SYNC_REFRESH_YIELD  -44
 #define SYNC_DONE			-45
+#define SYNC_NEED_RESTART	-46
 
 struct nonpresent_entry {
 	struct berval *npe_name;
@@ -845,7 +846,7 @@ static void syncrepl_refresh_done( syncinfo_t *si, int rc ) {
 }
 
 static void syncrepl_resync_end( syncinfo_t *si, int rc ) {
-	if (rc == SYNC_DONE) {
+	if (rc == SYNC_DONE || rc == SYNC_NEED_RESTART) {
 		rc = LDAP_SUCCESS;
 		syncrepl_refresh_done(si, rc);
 	} else if (rc != LDAP_SUCCESS)
@@ -1247,7 +1248,7 @@ syncrepl_process(
 						si->si_ridtxt );
 					si->si_logstate = SYNCLOG_LOGBASED;
 					slap_resume_listeners();
-					rc = LDAP_SYNC_REFRESH_REQUIRED;
+					rc = SYNC_NEED_RESTART;
 				}
 			}
 			goto done;
@@ -1453,6 +1454,9 @@ done:
 		case SYNC_DONE:
 			msgstr = "syncrepl-done (delta-sync session)";
 			break;
+		case SYNC_NEED_RESTART:
+			msgstr = "syncrepl-resume-logbased (delta-sync recovered)";
+			break;
 		default:
 			msgstr = ldap_err2string( rc );
 			log_level = LDAP_DEBUG_ANY;
@@ -1648,7 +1652,7 @@ deleted:
 	if ( dostop )
 		syncrepl_shutdown_io( si );
 
-	if ( rc == SYNC_PAUSED || rc == SYNC_REFRESH_YIELD ) {
+	if ( rc == SYNC_PAUSED || rc == SYNC_REFRESH_YIELD || rc == SYNC_NEED_RESTART ) {
 		rtask->interval.ns = 1;
 		ldap_pvt_runqueue_resched( &slapd_rq, rtask, 0 );
 		rtask->interval = ldap_from_seconds(si->si_interval);
