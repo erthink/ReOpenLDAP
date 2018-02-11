@@ -741,11 +741,11 @@ __hot uint64_t ldap_now_steady_ns(void) {
 		clock_mono2real_ns = clock_mono2real_delta();
 
 	uint64_t ns = clock_ns(clock_mono_id) + clock_mono2real_ns;
-	static uint64_t previous;
-	if (unlikely(ns < previous)) {
+	static uint64_t previous_clock, previous_returned;
+	if (unlikely(ns < previous_clock)) {
 		Log(LDAP_DEBUG_ANY, LDAP_LEVEL_ERROR,
 			"Detected system steady-time adjusted backwards %e seconds\n",
-			(previous - ns) * 1e-9);
+			(previous_clock - ns) * 1e-9);
 		if (reopenldap_mode_strict()) {
 			Log(LDAP_DEBUG_ANY, LDAP_LEVEL_CRIT,
 				"Bailing out due %s-clock backwards in the strict mode.\n",
@@ -753,11 +753,10 @@ __hot uint64_t ldap_now_steady_ns(void) {
 			abort();
 		}
 	}
+	previous_clock = ns;
 
-	if (unlikely(ns == previous))
-		ns += 1;
-	else
-		previous = ns;
+	ns = likely(ns > previous_returned) ? ns : previous_returned + 1;
+	previous_returned = ns;
 
 	LDAP_ENSURE(pthread_mutex_unlock(&clock_mutex) == 0);
 	return ns;
