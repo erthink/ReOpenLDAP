@@ -1644,13 +1644,10 @@ deleted:
 	if ( dostop )
 		syncrepl_shutdown_io( si );
 
-	if ( rc == SYNC_PAUSED ) {
+	if ( rc == SYNC_PAUSED || rc == SYNC_REFRESH_YIELD ) {
 		rtask->interval.ns = 1;
 		ldap_pvt_runqueue_resched( &slapd_rq, rtask, 0 );
-		rc = 0;
-	} else if ( rc == SYNC_REFRESH_YIELD || rc == LDAP_SYNC_REFRESH_REQUIRED ) {
-		rtask->interval.ns = ldap_from_seconds(1).ns / 100;
-		ldap_pvt_runqueue_resched( &slapd_rq, rtask, 0 );
+		rtask->interval = ldap_from_seconds(si->si_interval);
 		rc = 0;
 	} else if ( rc == LDAP_SUCCESS ) {
 		if ( si->si_type == LDAP_SYNC_REFRESH_ONLY ) {
