@@ -34,6 +34,8 @@ $SLAPPASSWD -g -n >$CONFIGPWF
 
 ITS=8667
 ITSDIR=$DATADIR/regressions/its$ITS
+ITS8667_IGNORE_REASON="$CI"
+[ -n "$CIBUZZ_PID4" ] && ITS8667_IGNORE_REASON="BUZZ"
 
 echo "Configuring slapd..."
 config_filter $BACKEND ${AC_conf[monitor]} < $ITSDIR/slapd.ldif > $CONFLDIF
@@ -88,9 +90,6 @@ fi
 echo "Verifying Administrative subordinate is not found..."
 grep "dn: ou=Administrative,dc=example,dc=com" $TESTDIR/slapcat.out >> $TESTOUT 2>&1
 RC=$?
-
-ITS8667_IGNORE_REASON="$CI"
-[ -n "$CIBUZZ_PID4" ] && ITS8667_IGNORE_REASON="BUZZ"
 
 if test $RC = 0 ; then
 	echo "test failed - Administrative subordinate found."

@@ -56,6 +56,8 @@ $SLAPPASSWD -g -n >$CONFIGPWF
 
 ITS=8444
 ITSDIR=$DATADIR/regressions/its$ITS
+ITS8444_IGNORE_REASON="$CI"
+[ -n "$CIBUZZ_PID4" ] && ITS8444_IGNORE_REASON="BUZZ"
 
 echo "Initializing server configurations..."
 
@@ -175,9 +177,6 @@ for ((n=1; n<=$MMR; n++)); do
 	fi
 	$LDIFFILTER -s a < $TESTDIR/server$n.out > $TESTDIR/server$n.flt
 done
-
-ITS8444_IGNORE_REASON="$CI"
-[ -n "$CIBUZZ_PID4" ] && ITS8444_IGNORE_REASON="BUZZ"
 
 for ((n=2; n<=$MMR; n++)); do
 	echo "Comparing retrieved entries from server 1 and server $n..."
