@@ -3174,7 +3174,9 @@ no_change:
 				ldap_pvt_thread_mutex_unlock( &sl->sl_mutex );
 			}
 		}
+
 		/* Is the CSN still present in the database? */
+retry_pivot:
 		rc = syncprov_findcsn( op, FIND_CSN, &pivot_csn );
 		if ( rc != LDAP_SUCCESS ) {
 			if ( rc != LDAP_NO_SUCH_OBJECT ) {
@@ -3182,6 +3184,25 @@ no_change:
 				rs->sr_text = "unable to provide robust sync (find-csn failed)";
 				goto bailout;
 			}
+
+			if ( changed == 0 ) {
+				/* Try find other csn in ascending order
+				 * if consumer's and provider's CSNs are the same. */
+				j = -1;
+				for (i = 0; i < srs->sr_state.numcsns; ++i) {
+					if ( slap_csn_compare_ts( &pivot_csn, &srs->sr_state.ctxcsn[i] ) < 0
+							&& (j < 0 || slap_csn_compare_ts( &srs->sr_state.ctxcsn[j], &srs->sr_state.ctxcsn[i]) > 0) )
+						j = i;
+				}
+				if (j >= 0) {
+					pivot_csn = srs->sr_state.ctxcsn[j];
+					pivot_sid = srs->sr_state.sids[j];
+					Debug( LDAP_DEBUG_SYNC,
+						"syncprov_op_search: try use %s as pivon-csn\n", pivot_csn.bv_val);
+					goto retry_pivot;
+				}
+			}
+
 			/* No, so a reload is required */
 			/* the 2.2 consumer doesn't send this hint */
 			if ( si->si_usehint && srs->sr_rhint == 0 ) {
