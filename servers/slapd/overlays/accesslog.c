@@ -609,11 +609,12 @@ log_old_lookup( Operation *op, SlapReply *rs )
 	if ( a ) {
 		ber_len_t len = a->a_nvals[0].bv_len;
 		/* Paranoid len check, normalized CSNs are always the same length */
-		if ( len > LDAP_PVT_CSNSTR_BUFSIZE )
-			len = LDAP_PVT_CSNSTR_BUFSIZE;
+		if ( len >= LDAP_PVT_CSNSTR_BUFSIZE )
+			len = LDAP_PVT_CSNSTR_BUFSIZE - 1;
 		if ( memcmp( a->a_nvals[0].bv_val, pd->csn.bv_val, len ) > 0 ) {
 			memcpy( pd->csn.bv_val, a->a_nvals[0].bv_val, len );
 			pd->csn.bv_len = len;
+			pd->csn.bv_val[len] = '\0';
 		}
 	}
 	if ( pd->used >= pd->slots ) {

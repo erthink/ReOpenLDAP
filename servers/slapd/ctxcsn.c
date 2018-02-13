@@ -79,6 +79,7 @@ void slap_op_csn_clean( Operation *op )
 
 void slap_op_csn_assign( Operation *op, BerValue *csn )
 {
+	assert(slap_csn_verify_full(csn));
 #if OP_CSN_CRUTCH
 	assert(op->o_csn_master == op || op->o_csn_master == NULL);
 	if (op->o_csn_master != op)
@@ -213,6 +214,7 @@ slap_create_context_csn_entry(
 	Backend *be,
 	struct berval *context_csn )
 {
+	assert(slap_csn_verify_full(context_csn));
 	Entry* e;
 	struct berval bv;
 
@@ -245,6 +247,7 @@ slap_queue_csn(
 	Operation *op,
 	struct berval *csn )
 {
+	assert(slap_csn_verify_full(csn));
 	struct slap_csn_entry *pending, *before;
 	BackendDB *be = op->o_bd->bd_self;
 	int sid = slap_csn_get_sid( csn );
