@@ -1,10 +1,10 @@
-v1.1.7 2018-MM-DD
-=================
+v1.1.7 2018-02-23, Red Army Soldier
+===================================
 Briefly:
- 1. The 'ldap dirs' bug fixed.
+ 1. Added more Russian man-pages (thanks to Egor Levintsa, http://pro-ldap.ru).
+ 2. The 'ldap dirs' bug fixed.
     A `@variables@` macros were not replaced with actual configured paths (thanks to Dmitrii Zolotov).
- 2. Fix server-side-sort overlay segfault (thanks to Dmitrii Zolotov).
- 3. Enough minor bug and warnings fixed.
+ 3. Fixed enough other bugs and warnings.
 
 New features and Compatibility breaking:
  * Public key pinning support (ITS#8753).
@@ -25,6 +25,9 @@ Major and Security bugs:
  * build: Fix 'ldap_dirs.h' issue (@variables@ are not replaced with paths on).
 
 Minor bugs:
+ * libmdbx: Fix cursor ops (squashed ITS#8722).
+ * overlay-dds: fix callbacks (invalid results or bug-check).
+ * slapd-schema: Don't strip pretty-trailing zeros while normalize time.
  * syncprov: Don't keep sl_mutex locked when playing the sessionlog (ITS#8486).
  * syncprov: Try other CSNs as pivot if consumer's and provider's sets are the same.
  * syncrepl: Add SYNC_NEED_RESTART code and handling.
@@ -56,6 +59,7 @@ Minor bugs:
  * slapd: Fix 'ptrace: Operation not permitted' from backtrace feature.
 
 Performance:
+ * accesslog: fix CSNs for purge logs.
  * backend-mdb: Optimize restart search txn (ITS#8226).
 
 Build:
@@ -73,6 +77,8 @@ Build:
  * configure: Note about EXTRA_CFLAGS.
 
 Cosmetics:
+ * tests: Update its8800 to be less different from openldap.
+ * tests: Enumerate its-ignore messages.
  * reopenldap: Sync CHANGES.OpenLDAP.
  * syncrepl: Refine loging, rename SYNCLOG_LOGBASED (cosmetics).
  * libmdbx: Sync CHANGES with LMDB.
@@ -84,6 +90,11 @@ Cosmetics:
  * reopenldap: HNY!
 
 Other:
+ * tests: skip its4336 regression for ldap-backend.
+ * tests: skip its4326 regression for ldap-backend.
+ * slapd-schema: use slap_csn_verify_full() for CSN validation.
+ * syncprov: rework contextCSN/si_cookie/maxcsn inside syncprov_op_response().
+ * libutil: add `const` to lutil_parsetime().
  * tests: ignore its8800 failures due known issue.
  * tests: move ignore-note to its number (cosmetics).
  * tests: rework/cleanup its8800 regression test.

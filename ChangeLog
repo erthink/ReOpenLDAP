@@ -1,6 +1,6 @@
 New features and Compatibility breaking
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-2018-MM-DD v1.1.7
+2018-02-23 v1.1.7
 2018-01-30 libreldap: import - Public key pinning support (ITS#8753).
 2018-01-28 libunicode: import - Allow to recognize title-case characters even if they do not have lower-case equivalents (ITS#8508).
 2018-01-28 libreldap: drop ldap_pvt_thread_rmutex.
@@ -93,7 +93,7 @@ New features and Compatibility breaking
 
 Documentation
 ~~~~~~~~~~~~~
-2018-MM-DD v1.1.7
+2018-02-23 v1.1.7
 2018-02-11 man, contrib: fix one more typo.
 2018-02-11 automake: add Russian man-pages.
 2018-01-30 man: import - Docs for reqEntryUUID (ITS#6656).
@@ -161,7 +161,7 @@ Documentation
 
 Major and Security Bugs
 ~~~~~~~~~~~~~~~~~~~~~~~
-2018-MM-DD v1.1.7
+2018-02-23 v1.1.7
 2018-02-05 back-ldap: fix search double-free and/or memory corruption.
 2018-01-22 overlay-sss: fix server-side-sort overlay segfault.
 2017-10-01 build: fix 'ldap_dirs.h' issue (@variables@ are not replaced with paths on).
@@ -265,7 +265,10 @@ Major and Security Bugs
 
 Minor Bugs
 ~~~~~~~~~~
-2018-MM-DD v1.1.7
+2018-02-23 v1.1.7
+2018-02-14 libmdbx: legacy - fix cursor ops (squashed ITS#8722).
+2018-02-13 overlay-dds: fix callbacks (invalid results or bug-check).
+2018-02-11 slapd-schema: don't strip pretty-trailing zeros while normalize time.
 2018-02-11 syncprov: import - Don't keep sl_mutex locked when playing the sessionlog (ITS#8486).
 2018-02-11 syncprov: Try other CSNs as pivot if consumer's and provider's sets are the same.
 2018-02-11 syncrepl: add SYNC_NEED_RESTART code and handling.
@@ -677,7 +680,8 @@ Minor Bugs
 
 Performance
 ~~~~~~~~~~~
-2018-MM-DD v1.1.7
+2018-02-23 v1.1.7
+2018-02-13 accesslog: fix CSNs for purge logs.
 2018-01-23 backend-mdb: import - optimization restart search txn (ITS#8226).
 2017-08-12 v1.1.6
 2017-02-15 mdbx: 'unlikely' for DB_STALE.
@@ -730,7 +734,7 @@ Performance
 
 Build
 ~~~~~
-2018-MM-DD v1.1.7
+2018-02-23 v1.1.7
 2018-01-31 libreldap: fix uninit warning for GNUTLS.
 2018-01-30 libreldap: import - Fix compilation with older versions of OpenSSL (ITS#8753, ITS#8774).
 2018-01-30 libreldap: fix HAVE_OPENSSL_CRL and HAVE_GNUTLS usage.
@@ -849,7 +853,11 @@ Build
 
 Cosmetics
 ~~~~~~~~~
-2018-MM-DD v1.1.7
+2018-02-23 v1.1.7
+2018-02-14 tests: update its8800 to be less different from openldap.
+2018-02-14 tests: enumerate its-ignore messages.
+2018-02-11 reopenldap: sync CHANGES.OpenLDAP (ITS#8486, ITS#8100).
+2018-02-11 libmdbx: legacy - sync CHANGES with LMDB (ITS#8622, ITS#8722).
 2018-02-11 reopenldap: sync CHANGES.OpenLDAP.
 2018-02-11 syncrepl: refine loging, rename SYNCLOG_LOGBASED (cosmetics).
 2018-02-10 libmdbx: legacy - sync CHANGES with LMDB.
@@ -902,7 +910,12 @@ Cosmetics
 
 Other
 ~~~~~
-2018-MM-DD v1.1.7
+2018-02-23 v1.1.7
+2018-02-14 tests: skip its4336 regression for ldap-backend.
+2018-02-14 tests: skip its4326 regression for ldap-backend.
+2018-02-14 slapd-schema: use slap_csn_verify_full() for CSN validation.
+2018-02-13 syncprov: rework contextCSN/si_cookie/maxcsn inside syncprov_op_response().
+2018-02-11 libutil: add `const` to lutil_parsetime().
 2018-02-11 tests: ignore its8800 failures due known issue.
 2018-02-11 tests: move ignore-note to its number (cosmetics).
 2018-02-11 tests: rework/cleanup its8800 regression test.
