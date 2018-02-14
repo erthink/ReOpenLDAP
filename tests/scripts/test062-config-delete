@@ -112,6 +112,15 @@ olcOverlay={0}syncprov,olcDatabase={0}config,cn=config
 EOF
 RC=$?
 
+if [ $RC = 53 ]; then
+	echo "Got 'Unwilling to perform ' (53)."
+	echo "Assume CONFIG_DELETE feature disabled (configure --disable-experimental ?)"
+	killpids $SEARCHPID
+	killservers
+	echo ">>>>> Test skipped"
+	exit 0
+fi
+
 if test $RC != 0 ; then
 	echo "ldapmodify failed for syncrepl config ($RC)!"
 	killpids $SEARCHPID
@@ -136,7 +145,7 @@ if test -f "$RCOUT" ; then
 		echo "Error: Backgrounded ldapsearch returned the wrong error code: $SEARCHRC"
 		RC=1
 	else
-		echo "Exit code correct."
+		echo "Exit code correct (52)."
 	fi
 else
 	echo "Backgrounded ldapsearch did not exit after overlay removal."
@@ -149,7 +158,7 @@ if test $RC != 0 ; then
 fi
 
 echo -n "Running a refreshOnly search, should fail..."
-for i in $(seq 1 50); do
+for ((i=1; n<=50; i++)); do
 	sleep 0.1
 	$LDAPSEARCH -D cn=config -H $URI1 -y $CONFIGPWF -bcn=config -E \!sync=ro > $SEARCHOUT 2>&1
 	RC=$?
@@ -157,6 +166,10 @@ for i in $(seq 1 50); do
 	case $RC in
 	53)
 		# LY: workaround for very high cpu load.
+		if [ $i = 1 ]; then
+			echo "Got 'Unwilling to perform' (53)"
+			echo "Assume very high CPU load, retry..."
+		fi
 		continue
 		;;
 	12)
