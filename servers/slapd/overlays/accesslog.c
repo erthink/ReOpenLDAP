@@ -609,11 +609,12 @@ log_old_lookup( Operation *op, SlapReply *rs )
 	if ( a ) {
 		ber_len_t len = a->a_nvals[0].bv_len;
 		/* Paranoid len check, normalized CSNs are always the same length */
-		if ( len > LDAP_PVT_CSNSTR_BUFSIZE )
-			len = LDAP_PVT_CSNSTR_BUFSIZE;
+		if ( len >= LDAP_PVT_CSNSTR_BUFSIZE )
+			len = LDAP_PVT_CSNSTR_BUFSIZE - 1;
 		if ( memcmp( a->a_nvals[0].bv_val, pd->csn.bv_val, len ) > 0 ) {
 			memcpy( pd->csn.bv_val, a->a_nvals[0].bv_val, len );
 			pd->csn.bv_len = len;
+			pd->csn.bv_val[len] = '\0';
 		}
 	}
 	if ( pd->used >= pd->slots ) {
@@ -1478,7 +1479,7 @@ static int do_accesslog_response(Operation *op, SlapReply *rs, int need_unlock) 
 	Modifications *m;
 	struct berval *b, uuid = BER_BVNULL;
 	int i;
-	int logop, do_graduate = 0;
+	int logop;
 	slap_verbmasks *lo;
 	Entry *e = NULL, *old = NULL, *e_uuid = NULL;
 	char timebuf[LDAP_LUTIL_GENTIME_BUFSIZE+8];
@@ -1893,7 +1894,6 @@ static int do_accesslog_response(Operation *op, SlapReply *rs, int need_unlock) 
 		if ( !BER_BVISEMPTY( &maxcsn ) ) {
 			BER_BVZERO( &op2.o_csn );
 			slap_queue_csn( &op2, &op->o_csn );
-			do_graduate = 1;
 		} else {
 			attr_merge_normalize_one( e, slap_schema.si_ad_entryCSN,
 				&op->o_csn, op->o_tmpmemctx );
@@ -1903,8 +1903,6 @@ static int do_accesslog_response(Operation *op, SlapReply *rs, int need_unlock) 
 	slap_biglock_call_be( op_add, &op2, &rs2 );
 	if ( e == op2.ora_e ) entry_free( e );
 	e = NULL;
-	if ( do_graduate )
-		slap_graduate_commit_csn( &op2 );
 
 done:
 	if ( lo->mask & LOG_OP_WRITES )

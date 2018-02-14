@@ -1,0 +1,167 @@
+#!/bin/bash
+## $ReOpenLDAP$
+## Copyright 1998-2018 ReOpenLDAP AUTHORS: please see AUTHORS file.
+## All rights reserved.
+##
+## This file is part of ReOpenLDAP.
+##
+## Redistribution and use in source and binary forms, with or without
+## modification, are permitted only as authorized by the OpenLDAP
+## Public License.
+##
+## A copy of this license is available in the file LICENSE in the
+## top-level directory of the distribution or, alternatively, at
+## <http://www.OpenLDAP.org/license.html>.
+
+echo "running defines.sh"
+. ${TOP_SRCDIR}/tests/scripts/defines.sh
+
+if test ${AC_conf[ppolicy]} = no; then
+	echo "Password policy overlay not available, test skipped"
+	exit 0
+fi
+if test ${AC_conf[syncprov]} = no; then
+	echo "Syncrepl provider overlay not available, test skipped"
+	exit 0
+fi
+if test ${AC_conf[accesslog]} = no; then
+	echo "Accesslog overlay not available, test skipped"
+	exit 0
+fi
+if test $BACKEND = ldif ; then
+	# Onelevel search does not return entries in order of creation or CSN.
+	echo "$BACKEND backend unsuitable for syncprov logdb, test skipped"
+	exit 0
+fi
+
+echo "This test tracks a case where changes are not refreshed when an old db is reloaded"
+echo "See http://www.openldap.org/its/index.cgi/?findid=8800 for more information."
+
+MMR=4
+XDIR=$TESTDIR/srv
+mkdir -p $TESTDIR
+$SLAPPASSWD -g -n >$CONFIGPWF
+
+ITS=8800
+ITSDIR=$DATADIR/regressions/its$ITS
+ITS8800_IGNORE_REASON="$CI"
+[ -n "$CIBUZZ_PID4" ] && ITS8800_IGNORE_REASON="BUZZ"
+
+for ((n=1; n<=$MMR; n++)); do
+	echo "Initializing server configuration for MMR$n..."
+	DBDIR=${XDIR}$n/db
+	CFDIR=${XDIR}$n/slapd.d
+
+	mkdir -p ${XDIR}$n $DBDIR.1 $DBDIR.2 $CFDIR
+	DBNOSYNC=yes config_filter $BACKEND ${AC_conf[monitor]} < $ITSDIR/slapd-provider${n}.ldif > $CONFLDIF
+
+	$SLAPADD -F $CFDIR -n 0 -l $CONFLDIF
+	$SLAPADD -F $CFDIR -q -b $BASEDN -l $ITSDIR/db.ldif
+done
+
+KILLPIDS=
+for ((n=1; n<=$MMR; n++)); do
+	MYURI=`eval echo '$URI'$n`
+	MYLOG=`eval echo '$LOG'$n`
+	CFDIR=${XDIR}$n/slapd.d
+
+	echo "Starting provider slapd on TCP/IP URI $MYURI"
+	$SLAPD -F $CFDIR -h $MYURI -d $LVL $TIMING > $MYLOG 2>&1 &
+
+	PID=$!
+	if test $WAIT != 0 ; then
+		echo PID $PID
+		read foo
+	fi
+	KILLPIDS="$PID $KILLPIDS"
+	[ $n = 1 ] && MPID="$PID"
+	check_running $n
+done
+
+# wait for sync
+for ((n=2; n<=$MMR; n++)); do
+	PORT=`eval echo '$PORT'$n`
+	wait_syncrepl $PORT1 $PORT base "" "-D $MANAGERDN -w $PASSWD"
+done
+
+echo "Looping failed authentications for 50 users 10 times each..."
+for ((user=250; user<=300; user++)); do
+	echo -n "user $user"
+	for ((auths=1; auths<=10; auths++)); do
+		$LDAPSEARCH -x -H $URI1 -D uid=user.$user,ou=user,dc=example,dc=com -w wrongpass uid=fred >/dev/null 2>&1
+		RC=$?
+		if test $RC = 0 ; then
+			echo "ldapsearch succeeded when it should have failed ($RC)!"
+			killservers
+			exit $RC
+		fi
+		echo -n "."
+	done
+	echo " done"
+done
+
+SYNCREPL_WAIT=$((SYNCREPL_WAIT * 2))
+echo -n "Sleeping $SYNCREPL_WAIT seconds to ensure consumers catch up..."
+sleep $SYNCREPL_WAIT
+echo "done"
+for ((n=2; n<=$MMR; n++)); do
+	PORT=`eval echo '$PORT'$n`
+	wait_syncrepl $PORT1 $PORT base "" "-D $MANAGERDN -w $PASSWD"
+done
+
+echo -n "Stopping MMR1 slapd..."
+kill -HUP $MPID && wait $MPID
+sleep $SLEEP1
+echo "done"
+KILLPIDS=`echo "$KILLPIDS " | sed -e "s/ $MPID / /"`;
+
+echo -n "Wiping primary and accesslog databases for MMR1..."
+DBDIR="$TESTDIR/srv1/db"
+CFDIR="$TESTDIR/srv1/slapd.d"
+mv $DBDIR.1 $DBDIR.1.orig
+mv $DBDIR.2 $DBDIR.2.orig
+mkdir -p $DBDIR.1 $DBDIR.2
+$SLAPADD -F $CFDIR -q -b $BASEDN -l $ITSDIR/db.ldif
+echo "done"
+
+echo "Starting provider1 slapd on TCP/IP URI $URI1"
+CFDIR="$TESTDIR/srv1/slapd.d"
+$SLAPD -F $CFDIR -h $URI1 -d $LVL $TIMING >> $LOG1 2>&1 &
+
+PID=$!
+if test $WAIT != 0 ; then
+	echo PID $PID
+	read foo
+fi
+check_running 1
+PIDS[1]=$PID
+KILLPIDS="$PID $KILLPIDS"
+
+SYNCREPL_WAIT=$((SYNCREPL_WAIT * 2))
+echo "Sleeping $SYNCREPL_WAIT seconds to allow databases to sync..."
+sleep $SYNCREPL_WAIT
+for ((n=2; n<=$MMR; n++)); do
+	PORT=`eval echo '$PORT'$n`
+	wait_syncrepl $PORT1 $PORT base "" "-D $MANAGERDN -w $PASSWD" $((SYNCREPL_WAIT * 2)) $SLEEP1
+done
+
+killservers
+echo "Comparing resulting databases..."
+for ((n=1; n<=$MMR; n++)); do
+	CFDIR=${XDIR}$n/slapd.d
+	$SLAPCAT -F $CFDIR -b $BASEDN -l $TESTDIR/finaldb-$n.ldif
+done
+
+for ((n=2; n<=$MMR; n++)); do
+	diff $TESTDIR/finaldb-1.ldif $TESTDIR/finaldb-$n.ldif > /dev/null 2>&1
+	RC=$?
+	if test $RC != 0 ; then
+		echo "ERROR: Final LDIF files differ"
+		[ -n "$ITS8800_IGNORE_REASON" ] \
+			&& echo "$ITS8800_IGNORE_REASON: Ignore 8800 failure due a known https://github.com/leo-yuriev/ReOpenLDAP/issues/121" \
+		|| exit $RC
+	fi
+done
+
+echo ">>>>> Test succeeded"
+exit 0
