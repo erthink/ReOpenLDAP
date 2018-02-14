@@ -99,6 +99,9 @@ Documentation
 2018-01-30 man: import - Docs for reqEntryUUID (ITS#6656).
 2018-01-28 man: added Russian man-pages.
 2018-01-25 contrib-moduled: cleanup obsolete notes about LDAP_SRC.
+2018-01-23 man: import - Note ldap_sasl_bind() can be used to make simple binds via the LDAP_SASL_SIMPLE mechanism (ITS#8121).
+2018-01-23 man: import - index on entryCSN is mandatory note (ITS#5048).
+2018-01-22 configure: note about EXTRA_CFLAGS.
 2017-08-22 man: import - Fix typo with olcTLSCipherSuite (ITS#8715).
 2017-08-12 v1.1.6
 2017-04-26 man: Fix wording to match examples (ITS#8123).
@@ -294,11 +297,23 @@ Minor Bugs
 2018-01-28 slapd: import - Avoid listener thread startup race (ITS#8725).
 2018-01-28 libreldap: import - plug ber leaks (ITS#8727).
 2018-01-28 backend-sock: import - Send out EXTENDED operation message from back-sock (ITS#8714).
+2018-01-23 syncrepl: import - fix syncrepl deadlock from updateCookie (ITS#8752).
+2018-01-23 overlay-accesslog: import - cleanup should only be called on failures (ITS#8752).
+2018-01-23 syncrepl: import - fix syncrepl null_callback (ITS#8752).
+2018-01-23 backend-sock: import - let back-sock generate increment (ITS#8692).
+2018-01-23 libreldap: import - Fix non-blocking TLS with referrals (ITS#8167).
+2018-01-23 backend-mdb: import - fix/remove unused-variables (ITS#8578).
+2018-01-23 backend-meta: import - Fix an assertion failure during modify of olcDbRewrite in back-meta (ITS#8404).
+2018-01-23 backend-ldap: import - fix omit-unknown-schema changes (ITS#7520).
+2018-01-23 libreldap: import - do not reuse TLS_session if hostname check fails (ITS#7373).
+2018-01-23 overlay-dds: import - Update entryTtl behaviour to match RFC 2589 (ITS#7100).
+2018-01-23 libreldap: import - call connection delete callbacks (ITS#8717).
 2018-01-22 overlay-constraint: fix comparison between pointer and zero character constant.
 2018-01-22 backend-mdb: fix "warning: '%s' directive output may be truncated..."
 2018-01-12 syncrepl: fix "syncrepl_process: rid=NNN (-45) Unknown API error".
 2018-01-19 slapd: fix 'ptrace: Operation not permitted' from backtrace feature.
 2017-10-01 backend-ldap: import - use the configured exop timeout for StartTLS (ITS#8270).
+2017-08-25 syncprov: import - ITS#8444 Do not clear the pending operation when checkpointing.
 2017-08-12 v1.1.6
 2017-08-02 mdbx: backport - ITS#8699 more for cursor_del ITS#8622.
 2017-08-02 slapd: avoid hang/crash the backtrace_sigaction().
@@ -748,7 +763,16 @@ Build
 2018-01-28 configure: fix EXTRA_CFLAGS substitution magic.
 2018-01-28 contrib-modules: refine totp for OpenSSL 1.1.0 compatibility.
 2018-01-28 slapd: import - add crypt_r() support (ITS#8719).
-2018-01-22 configure: note about EXTRA_CFLAGS.
+2018-01-23 libmdbx: fix warning about <sys/sysmacros.h> for major macro (tests only).
+2018-01-23 configure, contrib/smbk5pwd: add check for modern hdb_generate_key_set_password().
+2018-01-23 backend-ndb: fix 'directive output may be truncated...'
+2018-01-23 ci: auto-bootstrap if ./configure not exists.
+2018-01-23 backend-bdb: fix 'directive output may be truncated writing'...
+2018-01-23 backend-sql: fix 'directive output may be truncated writing...'
+2018-01-23 backend-perl: fix 'directive output may be truncated writing...'
+2018-01-23 backend-meta: fix 'directive output may be truncated writing...'
+2018-01-23 libreldap: import - fix build if EGD not disabled in OpenSSL (ITS#8687).
+2018-01-21 backend-mdb: fix "warning: '%s' directive output may be truncated..."
 2018-01-12 build: patch 'libltdl' to avoid clang > 3.x warnings.
 2017-08-20 travis-ci: allow build in forks
 2017-08-12 v1.1.6
@@ -869,6 +893,11 @@ Cosmetics
 2018-01-28 reopenldap: rename s/MAY_UNUSED/__maybe_unused/.
 2018-01-28 reopenldap: import - spelling fixes (ITS#8605).
 2018-01-28 syncprov: minor refine loging when the consumer has a newer cookie than the provider (ITS#8527).
+2018-01-23 syncrepl: minor logging spaces (cosmetics).
+2018-01-23 slapd: fix 'must be configured...' spelling.
+2018-01-23 configure: fix/move final 'done' message.
+2018-01-23 libreldap: import - Fix "errror" typo.
+2018-01-23 overlay-accesslog: import - additional debug info, thread ID of rmutex lockers (ITS#8752).
 2018-01-22 contrib: move 'docker' dir into contrib.
 2018-01-21 reopenldap: HNY!
 2017-08-12 v1.1.6
@@ -947,6 +976,10 @@ Other
 2018-01-28 libreldap: loging mismatching of SASL-version.
 2018-01-28 backend-mdb: import - temporary hack/workaround for hash collisions (ITS#8678).
 2018-01-28 libreldap: call ldap_int_sasl_init() from ldap_int_initialize().
+2018-01-23 tests: allow run its-regressions manually.
+2018-01-23 tests: import - Add regression test for MMR with accesslog (ITS#8752).
+2018-01-23 tests: import - Fix missing index on reqResult.
+2018-01-23 tests: import - Test for entryTtl reflecting time to live (ITS#7100).
 2018-01-22 tests: fix 'warning: comparison between pointer and zero character constant'.
 2018-01-22 slapd: check prctl(PR_SET_PTRACER) result while backtracing.
 2017-10-02 reopenldap: add Dmitrii Zolotov into AUTHORS.
