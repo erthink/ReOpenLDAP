@@ -192,7 +192,7 @@ if [ $RC != 0 ]; then
 	echo "test failed - server 1 and server $n databases differ"
 	killservers
 	[ -n "$ITS8444_IGNORE_REASON" ] \
-		&& echo "$ITS8444_IGNORE_REASON: Ignore failure due a known https://github.com/leo-yuriev/ReOpenLDAP/issues/121" \
+		&& echo "$ITS8444_IGNORE_REASON: Ignore 8444-1 failure due a known https://github.com/leo-yuriev/ReOpenLDAP/issues/121" \
 		|| exit 1
 fi
 
@@ -242,7 +242,7 @@ EOF
 			if test $RC != 0 ; then
 				echo "User add failed on consumer $n."
 				[ -n "$ITS8444_IGNORE_REASON" ] \
-					&& echo "$ITS8444_IGNORE_REASON: Ignore failure due a known https://github.com/leo-yuriev/ReOpenLDAP/issues/121" \
+					&& echo "$ITS8444_IGNORE_REASON: Ignore 8444-2 failure due a known https://github.com/leo-yuriev/ReOpenLDAP/issues/121" \
 					|| (killservers; exit $RC)
 			fi
 		done
@@ -293,7 +293,7 @@ EOF
 			if test $RC != 1 ; then
 				echo "User delete failed on consumer $n."
 				[ -n "$ITS8444_IGNORE_REASON" ] \
-					&& echo "$ITS8444_IGNORE_REASON: Ignore failure due a known https://github.com/leo-yuriev/ReOpenLDAP/issues/121" \
+					&& echo "$ITS8444_IGNORE_REASON: Ignore 8444-3 failure due a known https://github.com/leo-yuriev/ReOpenLDAP/issues/121" \
 					|| (killservers; exit 1)
 			fi
 		done
@@ -342,7 +342,7 @@ EOF
 	if test $RC != 1 ; then
 		echo "Group delete failed on one or more consumer ($RC)."
 		[ -n "$ITS8444_IGNORE_REASON" ] \
-			&& echo "$ITS8444_IGNORE_REASON: Ignore failure due a known https://github.com/leo-yuriev/ReOpenLDAP/issues/121" \
+			&& echo "$ITS8444_IGNORE_REASON: Ignore 8444-4 failure due a known https://github.com/leo-yuriev/ReOpenLDAP/issues/121" \
 			|| (killservers; exit 1)
 	fi
 
@@ -389,7 +389,7 @@ EOF
 		if test $RC != 0 ; then
 			echo "Group add failed on one or more consumer ($RC)."
 			[ -n "$ITS8444_IGNORE_REASON" ] \
-				&& echo "$ITS8444_IGNORE_REASON: Ignore failure due a known https://github.com/leo-yuriev/ReOpenLDAP/issues/121" \
+				&& echo "$ITS8444_IGNORE_REASON: Ignore 8444-5 failure due a known https://github.com/leo-yuriev/ReOpenLDAP/issues/121" \
 				|| (killservers; exit $RC)
 		fi
 	done

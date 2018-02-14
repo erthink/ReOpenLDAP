@@ -95,7 +95,7 @@ if test $RC = 0 ; then
 	echo "test failed - Administrative subordinate found."
 	echo "This is a regression of ITS8667"
 	[ -n "$ITS8667_IGNORE_REASON" ] \
-		&& echo "$ITS8667_IGNORE_REASON: Ignore failure due a known issue (not yet fixed)." \
+		&& echo "$ITS8667_IGNORE_REASON: Ignore 8667-1 failure due a known issue (not yet fixed)." \
 		|| exit 1
 fi
 
@@ -107,7 +107,7 @@ if test $RC = 0 ; then
 	echo "test failed - Accounting subordinate found."
 	echo "This is a regression of ITS8667"
 	[ -n "$ITS8667_IGNORE_REASON" ] \
-		&& echo "$ITS8667_IGNORE_REASON: Ignore failure due a known issue (not yet fixed)." \
+		&& echo "$ITS8667_IGNORE_REASON: Ignore 8667-2 failure due a known issue (not yet fixed)." \
 		|| exit 1
 fi
 
@@ -119,7 +119,7 @@ if test $RC = 0 ; then
 	echo "test failed - Janitorial subordinate found."
 	echo "This is a regression of ITS8667"
 	[ -n "$ITS8667_IGNORE_REASON" ] \
-		&& echo "$ITS8667_IGNORE_REASON: Ignore failure due a known issue (not yet fixed)." \
+		&& echo "$ITS8667_IGNORE_REASON: Ignore 8667-3 failure due a known issue (not yet fixed)." \
 		|| exit 1
 fi
 
