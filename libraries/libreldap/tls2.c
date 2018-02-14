@@ -561,7 +561,7 @@ ldap_pvt_tls_config( LDAP *ld, int option, const char *arg )
 		}
 		return ldap_pvt_tls_set_option( ld, option, &i );
 		}
-#if RELDAP_TLS_FALLBACK == RELDAP_TLS_OPENSSL && defined(HAVE_OPENSSL_CRL)
+#if RELDAP_TLS == RELDAP_TLS_OPENSSL && defined(HAVE_OPENSSL_CRL)
 	case LDAP_OPT_X_TLS_CRLCHECK:	/* OpenSSL only */
 		i = -1;
 		if ( strcasecmp( arg, "none" ) == 0 ) {
@@ -648,7 +648,7 @@ ldap_pvt_tls_get_option( LDAP *ld, int option, void *arg )
 	case LDAP_OPT_X_TLS_REQUIRE_CERT:
 		*(int *)arg = lo->ldo_tls_require_cert;
 		break;
-#if RELDAP_TLS_FALLBACK == RELDAP_TLS_OPENSSL && defined(HAVE_OPENSSL_CRL)
+#if RELDAP_TLS == RELDAP_TLS_OPENSSL && defined(HAVE_OPENSSL_CRL)
 	case LDAP_OPT_X_TLS_CRLCHECK:	/* OpenSSL only */
 		*(int *)arg = lo->ldo_tls_crlcheck;
 		break;
@@ -837,7 +837,7 @@ ldap_pvt_tls_set_option( LDAP *ld, int option, void *arg )
 		if ( lo->ldo_tls_ecname ) LDAP_FREE( lo->ldo_tls_ecname );
 		lo->ldo_tls_ecname = arg ? LDAP_STRDUP( (char *) arg ) : NULL;
 		return 0;
-#if RELDAP_TLS_FALLBACK == RELDAP_TLS_GNUTLS
+#if RELDAP_TLS == RELDAP_TLS_GNUTLS
 	case LDAP_OPT_X_TLS_CRLFILE:	/* GnuTLS only */
 		if ( lo->ldo_tls_crlfile ) LDAP_FREE( lo->ldo_tls_crlfile );
 		lo->ldo_tls_crlfile = arg ? LDAP_STRDUP( (char *) arg ) : NULL;
@@ -855,7 +855,7 @@ ldap_pvt_tls_set_option( LDAP *ld, int option, void *arg )
 			return 0;
 		}
 		return -1;
-#if RELDAP_TLS_FALLBACK == RELDAP_TLS_OPENSSL && defined(HAVE_OPENSSL_CRL)
+#if RELDAP_TLS == RELDAP_TLS_OPENSSL && defined(HAVE_OPENSSL_CRL)
 	case LDAP_OPT_X_TLS_CRLCHECK:	/* OpenSSL only */
 		if ( !arg ) return -1;
 		switch( *(int *) arg ) {

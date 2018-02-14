@@ -63,6 +63,7 @@ Performance:
  * backend-mdb: Optimize restart search txn (ITS#8226).
 
 Build:
+ * libreldap, slapd, contrib-modules: fix RELDAP_TLS/RELDAP_TLS_FALLBACK.
  * libreldap: Fix uninit warning for GNUTLS.
  * libreldap: Fix compilation with older versions of OpenSSL (ITS#8753, ITS#8774).
  * libreldap: Fix HAVE_OPENSSL_CRL and HAVE_GNUTLS usage.

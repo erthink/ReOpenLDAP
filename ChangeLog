@@ -735,6 +735,10 @@ Performance
 Build
 ~~~~~
 2018-02-23 v1.1.7
+2018-02-14 contrib-smbk5pwd: fix RELDAP_TLS/RELDAP_TLS_FALLBACK.
+2018-02-14 contrib-passwd-totp: fix RELDAP_TLS/RELDAP_TLS_FALLBACK.
+2018-02-14 contrib-passwd-pbkdf2: refine RELDAP_TLS/RELDAP_TLS_FALLBACK.
+2018-02-14 libreldap, slapd: fix RELDAP_TLS/RELDAP_TLS_FALLBACK.
 2018-01-31 libreldap: fix uninit warning for GNUTLS.
 2018-01-30 libreldap: import - Fix compilation with older versions of OpenSSL (ITS#8753, ITS#8774).
 2018-01-30 libreldap: fix HAVE_OPENSSL_CRL and HAVE_GNUTLS usage.

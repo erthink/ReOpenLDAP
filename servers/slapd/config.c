@@ -1452,7 +1452,7 @@ static slap_cf_aux_table bindkey[] = {
 	{ BER_BVC("tls_reqcert="), offsetof(slap_bindconf, sb_tls_reqcert), 's', 0, NULL },
 	{ BER_BVC("tls_cipher_suite="), offsetof(slap_bindconf, sb_tls_cipher_suite), 's', 0, NULL },
 	{ BER_BVC("tls_protocol_min="), offsetof(slap_bindconf, sb_tls_protocol_min), 's', 0, NULL },
-#if RELDAP_TLS_FALLBACK == RELDAP_TLS_OPENSSL && defined(HAVE_OPENSSL_CRL)
+#if RELDAP_TLS == RELDAP_TLS_OPENSSL && defined(HAVE_OPENSSL_CRL)
 	{ BER_BVC("tls_crlcheck="), offsetof(slap_bindconf, sb_tls_crlcheck), 's', 0, NULL },
 #endif /* HAVE_OPENSSL_CRL */
 #endif /* WITH_TLS */
@@ -1826,7 +1826,7 @@ void bindconf_free( slap_bindconf *bc ) {
 		ch_free( bc->sb_tls_protocol_min );
 		bc->sb_tls_protocol_min = NULL;
 	}
-#if RELDAP_TLS_FALLBACK == RELDAP_TLS_OPENSSL && defined(HAVE_OPENSSL_CRL)
+#if RELDAP_TLS == RELDAP_TLS_OPENSSL && defined(HAVE_OPENSSL_CRL)
 	if ( bc->sb_tls_crlcheck ) {
 		ch_free( bc->sb_tls_crlcheck );
 		bc->sb_tls_crlcheck = NULL;
@@ -1861,7 +1861,7 @@ bindconf_tls_defaults( slap_bindconf *bc )
 				&bc->sb_tls_cipher_suite );
 		if ( !bc->sb_tls_reqcert )
 			bc->sb_tls_reqcert = ch_strdup("demand");
-#if RELDAP_TLS_FALLBACK == RELDAP_TLS_OPENSSL && defined(HAVE_OPENSSL_CRL)
+#if RELDAP_TLS == RELDAP_TLS_OPENSSL && defined(HAVE_OPENSSL_CRL)
 		if ( !bc->sb_tls_crlcheck )
 			slap_tls_get_config( slap_tls_ld, LDAP_OPT_X_TLS_CRLCHECK,
 				&bc->sb_tls_crlcheck );
@@ -1927,7 +1927,7 @@ int bindconf_tls_set( slap_bindconf *bc, LDAP *ld )
 		} else
 			newctx = 1;
 	}
-#if RELDAP_TLS_FALLBACK == RELDAP_TLS_OPENSSL && defined(HAVE_OPENSSL_CRL)
+#if RELDAP_TLS == RELDAP_TLS_OPENSSL && defined(HAVE_OPENSSL_CRL)
 	if ( bc->sb_tls_crlcheck ) {
 		rc = ldap_pvt_tls_config( ld, LDAP_OPT_X_TLS_CRLCHECK,
 			bc->sb_tls_crlcheck );

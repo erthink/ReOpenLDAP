@@ -1641,7 +1641,7 @@ typedef struct slap_bindconf {
 	char *sb_tls_reqcert;
 	char *sb_tls_cipher_suite;
 	char *sb_tls_protocol_min;
-#if RELDAP_TLS_FALLBACK == RELDAP_TLS_OPENSSL && defined(HAVE_OPENSSL_CRL)
+#if RELDAP_TLS == RELDAP_TLS_OPENSSL && defined(HAVE_OPENSSL_CRL)
 	char *sb_tls_crlcheck;
 #endif /* HAVE_OPENSSL_CRL */
 	int sb_tls_do_init;
