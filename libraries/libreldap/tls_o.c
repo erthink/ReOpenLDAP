@@ -405,7 +405,7 @@ tlso_ctx_init( struct ldapoptions *lo, struct ldaptls *lt, int is_server )
 #if OPENSSL_VERSION_NUMBER < 0x10100000 || defined(LIBRESSL_VERSION_NUMBER)
 	SSL_CTX_set_tmp_rsa_callback( ctx, tlso_tmp_rsa_cb );
 #endif
-#if RELDAP_TLS_FALLBACK == RELDAP_TLS_OPENSSL && defined(HAVE_OPENSSL_CRL)
+#if defined(HAVE_OPENSSL_CRL)
 	if ( lo->ldo_tls_crlcheck ) {
 		X509_STORE *x509_s = SSL_CTX_get_cert_store( ctx );
 		if ( lo->ldo_tls_crlcheck == LDAP_OPT_X_TLS_CRL_PEER ) {
