@@ -21,6 +21,11 @@ if test ${AC_conf[ldap]} = no ; then
 	exit 0
 fi
 
+if test $BACKEND = "ldap" ; then
+	echo "LDAP backend not valid, test skipped"
+	exit 0
+fi
+
 mkdir -p $TESTDIR $DBDIR1 $DBDIR2
 
 ITS=4326
