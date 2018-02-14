@@ -56,7 +56,7 @@ for ((n=1; n<=$MMR; n++)); do
 	DBNOSYNC=yes config_filter $BACKEND ${AC_conf[monitor]} < $ITSDIR/slapd-provider${n}.ldif > $CONFLDIF
 
 	$SLAPADD -F $CFDIR -n 0 -l $CONFLDIF
-	$SLAPADD -F $CFDIR -q -b $BASEDN -l $ITSDIR/its8800db.ldif
+	$SLAPADD -F $CFDIR -q -b $BASEDN -l $ITSDIR/db.ldif
 done
 
 KILLPIDS=
@@ -74,7 +74,7 @@ for ((n=1; n<=$MMR; n++)); do
 		read foo
 	fi
 	KILLPIDS="$PID $KILLPIDS"
-	PIDS[$n]="$PID"
+	[ $n = 1 ] && MPID="$PID"
 	check_running $n
 done
 
@@ -110,14 +110,10 @@ for ((n=2; n<=$MMR; n++)); do
 done
 
 echo -n "Stopping MMR1 slapd..."
-kill -HUP "${PIDS[1]}"
-wait ${PIDS[1]}
+kill -HUP $MPID && wait $MPID
 sleep $SLEEP1
 echo "done"
-KILLPIDS=
-for ((n=2; n<=$MMR; n++)); do
-	KILLPIDS="${PIDS[$n]} $KILLPIDS"
-done
+KILLPIDS=`echo "$KILLPIDS " | sed -e "s/ $MPID / /"`;
 
 echo -n "Wiping primary and accesslog databases for MMR1..."
 DBDIR="$TESTDIR/srv1/db"
@@ -125,7 +121,7 @@ CFDIR="$TESTDIR/srv1/slapd.d"
 mv $DBDIR.1 $DBDIR.1.orig
 mv $DBDIR.2 $DBDIR.2.orig
 mkdir -p $DBDIR.1 $DBDIR.2
-$SLAPADD -F $CFDIR -q -b $BASEDN -l $ITSDIR/its8800db.ldif
+$SLAPADD -F $CFDIR -q -b $BASEDN -l $ITSDIR/db.ldif
 echo "done"
 
 echo "Starting provider1 slapd on TCP/IP URI $URI1"
