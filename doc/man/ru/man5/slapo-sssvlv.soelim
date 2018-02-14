@@ -1,0 +1,70 @@
+.\" $ReOpenLDAP$
+.\" Copyright 1992-2018 ReOpenLDAP AUTHORS: please see AUTHORS file.
+.\" All rights reserved.
+.\"
+.\" This file is part of ReOpenLDAP.
+.\"
+.\" Redistribution and use in source and binary forms, with or without
+.\" modification, are permitted only as authorized by the OpenLDAP
+.\" Public License.
+.\"
+.\" A copy of this license is available in the file LICENSE in the
+.\" top-level directory of the distribution or, alternatively, at
+.\" <http://www.OpenLDAP.org/license.html>.
+
+.TH SLAPO-SSSVLV 5 "@RELEASE_DATE@" "ReOpenLDAP @VERSION@"
+
+.SH НАЗВАНИЕ
+slapo\-sssvlv \- наложение сортировки на стороне сервера и просмотра виртуального списка для slapd
+
+.SH ОБЗОР
+@SYSCONFDIR@/slapd.conf
+
+.SH ОПИСАНИЕ
+Данное наложение реализует элемент управления LDAP сортировки на стороне сервера (Server Side Sorting)
+(RFC2891), а также элемент управления LDAP просмотра виртуального списка (Virtual List View). Оно
+также заменяет реализацию по умолчанию элемента управления LDAP PagedResults (RFC2696) так, чтобы он
+мог работать совместно с сортировкой. Наложение можно использовать с любым механизмом манипуляции
+данными, либо глобально для всех механизмов.
+
+Поскольку перед выполнением сортировки в памяти должен находиться полный результат выполнения запроса,
+обработка запросов с сортировкой может серьёзно влиять на использование памяти сервером. Поэтому для
+любого соединения установлен лимит на одновременное выполнение лишь ограниченного количества активных
+запросов с сортировкой. Кроме того, можно настроить дополнительные ограничения как описано ниже.
+
+.SH КОНФИГУРАЦИЯ
+Данные параметры конфигурации
+.B slapd.conf
+применяются к наложению SSSVLV. Они должны указываться после директивы
+.BR overlay .
+.TP
+.B sssvlv\-max <num>
+Задаёт максимальное количество одновременных запросов сортировки, разрешенных среди всех открытых
+соединений. По умолчанию - половина от общего количества потоков сервера.
+.TP
+.B sssvlv\-maxkeys <num>
+Задаёт максимальное количество ключей, которые разрешено использовать в запросе сортировки.
+Значение по умолчанию - 5.
+.TP
+.B sssvlv\-maxperconn <num>
+Задаёт максимальное количество одновременных поисковых запросов с постраничным выводом для одного
+соединения. Значение по умолчанию - 5. При этом остаётся в силе ограничение на количество одновременных
+запросов среди всех соединений, заданное директивой
+.B sssvlv-max.
+.SH ФАЙЛЫ
+.TP
+@SYSCONFDIR@/slapd.conf
+конфигурационный файл slapd по умолчанию.
+.TP
+@SYSCONFDIR@/slapd.d
+конфигурационная директория slapd по умолчанию.
+.SH СМОТРИТЕ ТАКЖЕ
+.BR slapd.conf (5),
+.BR slapd\-config (5).
+.LP
+"Руководство администратора OpenLDAP" (http://www.OpenLDAP.org/doc/admin/, https://pro-ldap.ru/tr/admin24/).
+.LP
+Предложения IETF по просмотрам виртуальных списков в LDAP изложены в документе IETF
+"draft-ietf-ldapext-ldapv3-vlv-09.txt", авторы D. Boreham, J. Sermersheim и A. Kashi.
+.SH АВТОР
+Howard Chu

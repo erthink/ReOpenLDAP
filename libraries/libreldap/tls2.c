@@ -42,7 +42,9 @@ static tls_impl *tls_imp = &ldap_int_tls_impl;
 #endif /* WITH_TLS */
 
 #if LDAP_EXPERIMENTAL > 0
-#	define LDAP_USE_NON_BLOCKING_TLS
+#	if RELDAP_TLS != RELDAP_TLS_MOZNSS
+#		define LDAP_USE_NON_BLOCKING_TLS
+#	endif
 #endif /* LDAP_EXPERIMENTAL */
 
 /* RFC2459 minimum required set of supported attribute types
@@ -132,6 +134,14 @@ ldap_int_tls_destroy( struct ldapoptions *lo )
 		LDAP_FREE( lo->ldo_tls_crlfile );
 		lo->ldo_tls_crlfile = NULL;
 	}
+	/* tls_pin_hashalg and tls_pin share the same buffer */
+	if ( lo->ldo_tls_pin_hashalg ) {
+		LDAP_FREE( lo->ldo_tls_pin_hashalg );
+		lo->ldo_tls_pin_hashalg = NULL;
+	} else {
+		LDAP_FREE( lo->ldo_tls_pin.bv_val );
+	}
+	BER_BVZERO( &lo->ldo_tls_pin );
 }
 
 /*
@@ -471,6 +481,18 @@ ldap_pvt_tls_check_hostname( LDAP *ld, void *s, const char *name_in )
 		}
 	}
 
+	/*
+	 * If instructed to do pinning, do it now
+	 */
+	if ( !BER_BVISNULL( &ld->ld_options.ldo_tls_pin ) ) {
+		ld->ld_errno = tls_imp->ti_session_pinning( ld, s,
+				ld->ld_options.ldo_tls_pin_hashalg,
+				&ld->ld_options.ldo_tls_pin );
+		if (ld->ld_errno != LDAP_SUCCESS) {
+			return ld->ld_errno;
+		}
+	}
+
 	return LDAP_SUCCESS;
 }
 
@@ -487,6 +509,7 @@ ldap_int_tls_config( LDAP *ld, int option, const char *arg )
 	case LDAP_OPT_X_TLS_RANDOM_FILE:
 	case LDAP_OPT_X_TLS_CIPHER_SUITE:
 	case LDAP_OPT_X_TLS_DHFILE:
+	case LDAP_OPT_X_TLS_PEERKEY_HASH:
 	case LDAP_OPT_X_TLS_CRLFILE:	/* GnuTLS only */
 		return ldap_pvt_tls_set_option( ld, option, (void *) arg );
 
@@ -534,7 +557,7 @@ ldap_int_tls_config( LDAP *ld, int option, const char *arg )
 		}
 		return ldap_pvt_tls_set_option( ld, option, &i );
 		}
-#ifdef HAVE_OPENSSL_CRL
+#if RELDAP_TLS == RELDAP_TLS_OPENSSL && defined(HAVE_OPENSSL_CRL)
 	case LDAP_OPT_X_TLS_CRLCHECK:	/* OpenSSL only */
 		i = -1;
 		if ( strcasecmp( arg, "none" ) == 0 ) {
@@ -548,7 +571,7 @@ ldap_int_tls_config( LDAP *ld, int option, const char *arg )
 			return ldap_pvt_tls_set_option( ld, option, &i );
 		}
 		return -1;
-#endif
+#endif /* HAVE_OPENSSL_CRL */
 	}
 	return -1;
 }
@@ -617,11 +640,11 @@ ldap_pvt_tls_get_option( LDAP *ld, int option, void *arg )
 	case LDAP_OPT_X_TLS_REQUIRE_CERT:
 		*(int *)arg = lo->ldo_tls_require_cert;
 		break;
-#ifdef HAVE_OPENSSL_CRL
+#if RELDAP_TLS == RELDAP_TLS_OPENSSL && defined(HAVE_OPENSSL_CRL)
 	case LDAP_OPT_X_TLS_CRLCHECK:	/* OpenSSL only */
 		*(int *)arg = lo->ldo_tls_crlcheck;
 		break;
-#endif
+#endif /* HAVE_OPENSSL_CRL */
 	case LDAP_OPT_X_TLS_CIPHER_SUITE:
 		*(char **)arg = lo->ldo_tls_ciphersuite ?
 			LDAP_STRDUP( lo->ldo_tls_ciphersuite ) : NULL;
@@ -802,12 +825,12 @@ ldap_pvt_tls_set_option( LDAP *ld, int option, void *arg )
 		if ( lo->ldo_tls_dhfile ) LDAP_FREE( lo->ldo_tls_dhfile );
 		lo->ldo_tls_dhfile = arg ? LDAP_STRDUP( (char *) arg ) : NULL;
 		return 0;
-#ifdef HAVE_GNUTLS
+#if RELDAP_TLS == RELDAP_TLS_GNUTLS
 	case LDAP_OPT_X_TLS_CRLFILE:	/* GnuTLS only */
 		if ( lo->ldo_tls_crlfile ) LDAP_FREE( lo->ldo_tls_crlfile );
 		lo->ldo_tls_crlfile = arg ? LDAP_STRDUP( (char *) arg ) : NULL;
 		return 0;
-#endif
+#endif /* RELDAP_TLS_GNUTLS */
 	case LDAP_OPT_X_TLS_REQUIRE_CERT:
 		if ( !arg ) return -1;
 		switch( *(int *) arg ) {
@@ -820,7 +843,7 @@ ldap_pvt_tls_set_option( LDAP *ld, int option, void *arg )
 			return 0;
 		}
 		return -1;
-#ifdef HAVE_OPENSSL_CRL
+#if RELDAP_TLS == RELDAP_TLS_OPENSSL && defined(HAVE_OPENSSL_CRL)
 	case LDAP_OPT_X_TLS_CRLCHECK:	/* OpenSSL only */
 		if ( !arg ) return -1;
 		switch( *(int *) arg ) {
@@ -831,7 +854,7 @@ ldap_pvt_tls_set_option( LDAP *ld, int option, void *arg )
 			return 0;
 		}
 		return -1;
-#endif
+#endif /* HAVE_OPENSSL_CRL */
 	case LDAP_OPT_X_TLS_CIPHER_SUITE:
 		if ( lo->ldo_tls_ciphersuite ) LDAP_FREE( lo->ldo_tls_ciphersuite );
 		lo->ldo_tls_ciphersuite = arg ? LDAP_STRDUP( (char *) arg ) : NULL;
@@ -892,6 +915,68 @@ ldap_pvt_tls_set_option( LDAP *ld, int option, void *arg )
 			BER_BVZERO( &lo->ldo_tls_key );
 		}
 		break;
+	case LDAP_OPT_X_TLS_PEERKEY_HASH: {
+		/* arg = "[hashalg:]pubkey_hash" */
+		struct berval bv;
+		char *p, *pin = arg;
+		int rc = LDAP_SUCCESS;
+
+		if ( !tls_imp->ti_session_pinning ) return -1;
+
+		if ( !pin ) {
+			if ( lo->ldo_tls_pin_hashalg ) {
+				LDAP_FREE( lo->ldo_tls_pin_hashalg );
+			} else if ( lo->ldo_tls_pin.bv_val ) {
+				LDAP_FREE( lo->ldo_tls_pin.bv_val );
+			}
+			lo->ldo_tls_pin_hashalg = NULL;
+			BER_BVZERO( &lo->ldo_tls_pin );
+			return rc;
+		}
+
+		pin = LDAP_STRDUP( pin );
+		p = strchr( pin, ':' );
+
+		/* pubkey (its hash) goes in bv, alg in p */
+		if ( p ) {
+			*p = '\0';
+			bv.bv_val = p+1;
+			p = pin;
+		} else {
+			bv.bv_val = pin;
+		}
+
+		bv.bv_len = strlen(bv.bv_val);
+		if ( ldap_int_decode_b64_inplace( &bv ) ) {
+			LDAP_FREE( pin );
+			return -1;
+		}
+
+		if ( ld != NULL ) {
+			LDAPConn *conn = ld->ld_defconn;
+			if ( conn != NULL ) {
+				Sockbuf *sb = conn->lconn_sb;
+				void *sess = ldap_pvt_tls_sb_ctx( sb );
+				if ( sess != NULL ) {
+					rc = tls_imp->ti_session_pinning( ld, sess, p, &bv );
+				}
+			}
+		}
+
+		if ( rc == LDAP_SUCCESS ) {
+			if ( lo->ldo_tls_pin_hashalg ) {
+				LDAP_FREE( lo->ldo_tls_pin_hashalg );
+			} else if ( lo->ldo_tls_pin.bv_val ) {
+				LDAP_FREE( lo->ldo_tls_pin.bv_val );
+			}
+			lo->ldo_tls_pin_hashalg = p;
+			lo->ldo_tls_pin = bv;
+		} else {
+			LDAP_FREE( pin );
+		}
+
+		return rc;
+	}
 	default:
 		return -1;
 	}

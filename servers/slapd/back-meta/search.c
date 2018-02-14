@@ -792,7 +792,7 @@ meta_back_search( Operation *op, SlapReply *rs )
 			timeout = 0;
 	int		rc = 0, sres = LDAP_SUCCESS;
 	char		*matched = NULL;
-	int		last MAY_UNUSED = 0, ncandidates = 0,
+	int		last __maybe_unused = 0, ncandidates = 0,
 			initial_candidates = 0, candidate_match = 0,
 			needbind = 0;
 	ldap_back_send_t	sendok = LDAP_BACK_SENDERR;

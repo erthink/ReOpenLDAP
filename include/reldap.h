@@ -17,49 +17,19 @@
 #define _LDAP_REOPEN_H
 
 #include "../reldap_autoconf.h"
+#include "ldap_cdefs.h"
 
-#ifndef __has_attribute
-#	define __has_attribute(x) (0)
-#endif
-
-#ifndef __GNUC_PREREQ
-#	if defined(__GNUC__) && defined(__GNUC_MINOR__)
-#		define __GNUC_PREREQ(maj,min) \
-			((__GNUC__ << 16) + __GNUC_MINOR__ >= ((maj) << 16) + (min))
-#	else
-#		define __GNUC_PREREQ(maj,min) 0
-#	endif
-#endif /* __GNUC_PREREQ */
-
-#if !__GNUC_PREREQ(4,2)
-	/* LY: Actualy ReOpenLDAP was not tested with compilers
-	 *     older than GCC 4.4 from RHEL6.
-	 * But you could remove this #error and try to continue at your own risk.
-	 * In such case please don't rise up an issues related ONLY to old compilers.
-	 */
-#	error "ReOpenLDAP required at least GCC 4.2 compatible C/C++ compiler."
-#endif
-
-#ifndef __CLANG_PREREQ
-#	ifdef __clang__
-#		define __CLANG_PREREQ(maj,min) \
-			((__clang_major__ << 16) + __clang_minor__ >= ((maj) << 16) + (min))
-#	else
-#		define __CLANG_PREREQ(maj,min) (0)
-#	endif
-#endif /* __CLANG_PREREQ */
-
-#ifndef MAY_UNUSED
+#ifndef __maybe_unused
 #	ifdef ATTRIBUTE_UNUSED
-#		define MAY_UNUSED ATTRIBUTE_UNUSED
+#		define __maybe_unused ATTRIBUTE_UNUSED
 #	elif __has_attribute(__unused__)
-#		define MAY_UNUSED __attribute__((__unused__))
+#		define __maybe_unused __attribute__((__unused__))
 #	elif __has_attribute(unused)
-#		define MAY_UNUSED __attribute__((unused))
+#		define __maybe_unused __attribute__((unused))
 #	else
-#		define MAY_UNUSED __attribute__((__unused__))
+#		define __maybe_unused __attribute__((__unused__))
 #	endif
-#endif /* MAY_UNUSED */
+#endif /* __maybe_unused */
 
 #if !defined(__thread) && (defined(_MSC_VER) || defined(__DMC__))
 #	define __thread __declspec(thread)
@@ -131,7 +101,7 @@
 #	else
 #		define __noreturn
 #	endif
-#endif
+#endif /* __noreturn */
 
 #ifndef __nothrow
 #	if defined(__GNUC__) || defined(__clang__)
@@ -141,7 +111,7 @@
 #	else
 #		define __nothrow
 #	endif
-#endif
+#endif /* __nothrow */
 
 #ifndef CACHELINE_SIZE
 #	if defined(__ia64__) || defined(__ia64) || defined(_M_IA64)

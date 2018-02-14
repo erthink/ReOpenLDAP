@@ -14,8 +14,6 @@ Building
 --------
 
 1) configure --enable-modules --enable-contrib
-Customize the LDAP_SRC variable in Makefile to point to the ReOpenLDAP
-source root.
 
 2) Run 'make' to produce contrib-pw-totp.la
 

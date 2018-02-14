@@ -25,16 +25,16 @@
 #include <stdlib.h>
 #include "slap.h"
 
-#if RELDAP_TLS_FALLBACK == RELDAP_TLS_GNUTLS
+#if RELDAP_TLS == RELDAP_TLS_OPENSSL || (RELDAP_TLS_FALLBACK == RELDAP_TLS_OPENSSL && RELDAP_TLS != RELDAP_TLS_GNUTLS)
+#	include <openssl/evp.h>
+#elif RELDAP_TLS == RELDAP_TLS_GNUTLS || RELDAP_TLS_FALLBACK == RELDAP_TLS_GNUTLS
 #	include <nettle/pbkdf2.h>
 #	include <nettle/hmac.h>
 	typedef void (*pbkdf2_hmac_update)(void *, unsigned, const uint8_t *);
 	typedef void (*pbkdf2_hmac_digest)(void *, unsigned, uint8_t *);
-#elif RELDAP_TLS_FALLBACK == RELDAP_TLS_OPENSSL
-#	include <openssl/evp.h>
 #else
 #	error Unsupported crypto backend.
-#endif /* RELDAP_TLS_FALLBACKL */
+#endif /* RELDAP_TLS */
 
 #define PBKDF2_ITERATION 10000
 #define PBKDF2_SALT_SIZE 16
@@ -150,23 +150,22 @@ static int pbkdf2_encrypt(
 	struct berval dk;
 	int iteration = PBKDF2_ITERATION;
 	int rc;
-#if RELDAP_TLS_FALLBACK == RELDAP_TLS_OPENSSL
+#if RELDAP_TLS == RELDAP_TLS_OPENSSL || (RELDAP_TLS_FALLBACK == RELDAP_TLS_OPENSSL && RELDAP_TLS != RELDAP_TLS_GNUTLS)
 	const EVP_MD *md;
-#endif
-#if RELDAP_TLS_FALLBACK == RELDAP_TLS_GNUTLS
+#elif RELDAP_TLS == RELDAP_TLS_GNUTLS || RELDAP_TLS_FALLBACK == RELDAP_TLS_GNUTLS
 	struct hmac_sha1_ctx sha1_ctx;
 	struct hmac_sha256_ctx sha256_ctx;
 	struct hmac_sha512_ctx sha512_ctx;
 	void * current_ctx = NULL;
 	pbkdf2_hmac_update current_hmac_update = NULL;
 	pbkdf2_hmac_digest current_hmac_digest = NULL;
-#endif
+#endif /* RELDAP_TLS */
 
 	salt.bv_val = (char *)salt_value;
 	salt.bv_len = sizeof(salt_value);
 	dk.bv_val = (char *)dk_value;
 
-#if RELDAP_TLS_FALLBACK == RELDAP_TLS_OPENSSL
+#if RELDAP_TLS == RELDAP_TLS_OPENSSL || (RELDAP_TLS_FALLBACK == RELDAP_TLS_OPENSSL && RELDAP_TLS != RELDAP_TLS_GNUTLS)
 	if(!ber_bvcmp(scheme, &pbkdf2_scheme)){
 		dk.bv_len = PBKDF2_SHA1_DK_SIZE;
 		md = EVP_sha1();
@@ -182,8 +181,7 @@ static int pbkdf2_encrypt(
 	}else{
 		return LUTIL_PASSWD_ERR;
 	}
-#endif
-#if RELDAP_TLS_FALLBACK == RELDAP_TLS_GNUTLS
+#elif RELDAP_TLS == RELDAP_TLS_GNUTLS || RELDAP_TLS_FALLBACK == RELDAP_TLS_GNUTLS
 	if(!ber_bvcmp(scheme, &pbkdf2_scheme)){
 		dk.bv_len = PBKDF2_SHA1_DK_SIZE;
 		current_ctx = &sha1_ctx;
@@ -211,25 +209,24 @@ static int pbkdf2_encrypt(
 	}else{
 		return LUTIL_PASSWD_ERR;
 	}
-#endif
+#endif /* RELDAP_TLS */
 
 	if(lutil_entropy((unsigned char *)salt.bv_val, salt.bv_len) < 0){
 		return LUTIL_PASSWD_ERR;
 	}
 
-#if RELDAP_TLS_FALLBACK == RELDAP_TLS_OPENSSL
+#if RELDAP_TLS == RELDAP_TLS_OPENSSL || (RELDAP_TLS_FALLBACK == RELDAP_TLS_OPENSSL && RELDAP_TLS != RELDAP_TLS_GNUTLS)
 	if(!PKCS5_PBKDF2_HMAC(passwd->bv_val, passwd->bv_len,
 						  (unsigned char *)salt.bv_val, salt.bv_len,
 						  iteration, md, dk.bv_len, dk_value)){
 		return LUTIL_PASSWD_ERR;
 	}
-#endif
-#if RELDAP_TLS_FALLBACK == RELDAP_TLS_GNUTLS
+#elif RELDAP_TLS == RELDAP_TLS_GNUTLS || RELDAP_TLS_FALLBACK == RELDAP_TLS_GNUTLS
 	PBKDF2(current_ctx, current_hmac_update, current_hmac_digest,
 						  dk.bv_len, iteration,
 						  salt.bv_len, (const uint8_t *) salt.bv_val,
 						  dk.bv_len, dk_value);
-#endif
+#endif /* RELDAP_TLS */
 
 #ifdef SLAPD_PBKDF2_DEBUG
 	printf("Encrypt for %s\n", scheme->bv_val);
@@ -248,13 +245,13 @@ static int pbkdf2_encrypt(
 		printf("%02x", dk_value[i]);
 	}
 	printf("\n");
-#endif
+#endif /* SLAPD_PBKDF2_DEBUG */
 
 	rc = pbkdf2_format(scheme, iteration, &salt, &dk, msg);
 
 #ifdef SLAPD_PBKDF2_DEBUG
 	printf("  Output:\t%s\n", msg->bv_val);
-#endif
+#endif /* SLAPD_PBKDF2_DEBUG */
 
 	return rc;
 }
@@ -276,25 +273,24 @@ static int pbkdf2_check(
 	char dk_b64[LUTIL_BASE64_ENCODE_LEN(PBKDF2_MAX_DK_SIZE) + 1];
 	unsigned char input_dk_value[PBKDF2_MAX_DK_SIZE];
 	size_t dk_len;
-#if RELDAP_TLS_FALLBACK == RELDAP_TLS_OPENSSL
+#if RELDAP_TLS == RELDAP_TLS_OPENSSL || (RELDAP_TLS_FALLBACK == RELDAP_TLS_OPENSSL && RELDAP_TLS != RELDAP_TLS_GNUTLS)
 	const EVP_MD *md;
-#endif
-#if RELDAP_TLS_FALLBACK == RELDAP_TLS_GNUTLS
+#elif RELDAP_TLS == RELDAP_TLS_GNUTLS || RELDAP_TLS_FALLBACK == RELDAP_TLS_GNUTLS
 	struct hmac_sha1_ctx sha1_ctx;
 	struct hmac_sha256_ctx sha256_ctx;
 	struct hmac_sha512_ctx sha512_ctx;
 	void * current_ctx = NULL;
 	pbkdf2_hmac_update current_hmac_update = NULL;
 	pbkdf2_hmac_digest current_hmac_digest = NULL;
-#endif
+#endif /* RELDAP_TLS */
 
 #ifdef SLAPD_PBKDF2_DEBUG
 	printf("Checking for %s\n", scheme->bv_val);
 	printf("  Stored Value:\t%s\n", passwd->bv_val);
 	printf("  Input Cred:\t%s\n", cred->bv_val);
-#endif
+#endif /* SLAPD_PBKDF2_DEBUG */
 
-#if RELDAP_TLS_FALLBACK == RELDAP_TLS_OPENSSL
+#if RELDAP_TLS == RELDAP_TLS_OPENSSL || (RELDAP_TLS_FALLBACK == RELDAP_TLS_OPENSSL && RELDAP_TLS != RELDAP_TLS_GNUTLS)
 	if(!ber_bvcmp(scheme, &pbkdf2_scheme)){
 		dk_len = PBKDF2_SHA1_DK_SIZE;
 		md = EVP_sha1();
@@ -310,8 +306,7 @@ static int pbkdf2_check(
 	}else{
 		return LUTIL_PASSWD_ERR;
 	}
-#endif
-#if RELDAP_TLS_FALLBACK == RELDAP_TLS_GNUTLS
+#elif RELDAP_TLS == RELDAP_TLS_GNUTLS || RELDAP_TLS_FALLBACK == RELDAP_TLS_GNUTLS
 	if(!ber_bvcmp(scheme, &pbkdf2_scheme)){
 		dk_len = PBKDF2_SHA1_DK_SIZE;
 		current_ctx = &sha1_ctx;
@@ -339,7 +334,7 @@ static int pbkdf2_check(
 	}else{
 		return LUTIL_PASSWD_ERR;
 	}
-#endif
+#endif /* RELDAP_TLS */
 
 	iteration = atoi(passwd->bv_val);
 	if(iteration < 1){
@@ -389,19 +384,18 @@ static int pbkdf2_check(
 		return LUTIL_PASSWD_ERR;
 	}
 
-#if RELDAP_TLS_FALLBACK == RELDAP_TLS_OPENSSL
+#if RELDAP_TLS == RELDAP_TLS_OPENSSL || (RELDAP_TLS_FALLBACK == RELDAP_TLS_OPENSSL && RELDAP_TLS != RELDAP_TLS_GNUTLS)
 	if(!PKCS5_PBKDF2_HMAC(cred->bv_val, cred->bv_len,
 						  salt_value, PBKDF2_SALT_SIZE,
 						  iteration, md, dk_len, input_dk_value)){
 		return LUTIL_PASSWD_ERR;
 	}
-#endif
-#if RELDAP_TLS_FALLBACK == RELDAP_TLS_GNUTLS
+#elif RELDAP_TLS == RELDAP_TLS_GNUTLS || RELDAP_TLS_FALLBACK == RELDAP_TLS_GNUTLS
 	PBKDF2(current_ctx, current_hmac_update, current_hmac_digest,
 						  dk_len, iteration,
 						  PBKDF2_SALT_SIZE, salt_value,
 						  dk_len, input_dk_value);
-#endif
+#endif /* RELDAP_TLS */
 
 	rc = memcmp(dk_value, input_dk_value, dk_len);
 #ifdef SLAPD_PBKDF2_DEBUG
@@ -427,7 +421,7 @@ static int pbkdf2_check(
 	}
 	printf("\n");
 	printf("  Result:\t%d\n", rc);
-#endif
+#endif /* SLAPD_PBKDF2_DEBUG */
 	return rc?LUTIL_PASSWD_ERR:LUTIL_PASSWD_OK;
 }
 

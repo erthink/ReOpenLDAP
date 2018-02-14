@@ -1,0 +1,65 @@
+.\" $ReOpenLDAP$
+.\" Copyright 1992-2018 ReOpenLDAP AUTHORS: please see AUTHORS file.
+.\" All rights reserved.
+.\"
+.\" This file is part of ReOpenLDAP.
+.\"
+.\" Redistribution and use in source and binary forms, with or without
+.\" modification, are permitted only as authorized by the OpenLDAP
+.\" Public License.
+.\"
+.\" A copy of this license is available in the file LICENSE in the
+.\" top-level directory of the distribution or, alternatively, at
+.\" <http://www.OpenLDAP.org/license.html>.
+
+.TH SLAPD-LDIF 5 "@RELEASE_DATE@" "ReOpenLDAP @VERSION@"
+
+.SH НАЗВАНИЕ
+slapd\-ldif \- Механизм манипуляции данными для slapd LDIF
+
+.SH ОБЗОР
+@SYSCONFDIR@/slapd.conf
+
+.SH ОПИСАНИЕ
+Механизм манипуляции данными для
+.BR slapd (8)
+LDIF является базовым механизмом для хранения данных, в котором записи хранятся в текстовых файлах
+в формате LDIF, а для создания древовидной структуры базы данных используется файловая система. Он
+позиционируется как нетребовательный к ресурсам, низкопроизводительный и простой в применении механизм,
+и используется внутренними структурами более высокого уровня для обеспечения постоянного хранения
+своих данных.
+.SH КОНФИГУРАЦИЯ
+Приведённые ниже директивы
+.B slapd.conf
+применяются к базам данных механизма манипуляции данными LDIF. То есть, они должны следовать за
+строкой "database ldif" и находиться до последующих строк "backend" или "database".
+Другие относящиеся к базам данных директивы описаны в man-странице
+.BR slapd.conf (5).
+.TP
+.B directory <директория>
+Указывает директорию, в которой будет начинаться дерево базы данных. Эта директория должна
+существовать и иметь соответствующие разрешения (rwx) для той идентификационной сущности,
+от имени которой выполняется slapd.
+.SH КОНТРОЛЬ ДОСТУПА
+Механизм манипуляции данными
+.B LDIF
+не соблюдает каких-либо семантик контроля доступа, описанных в man-странице
+.BR slapd.access (5).
+Выполняется только проверка доступа на чтение
+.B read (=r)
+для псевдо-атрибута
+.B entry
+и других значений атрибутов записей, возвращаемых операцией
+.BR search ,
+поскольку она выполняется механизмом frontend.
+.SH ФАЙЛЫ
+.TP
+@SYSCONFDIR@/slapd.conf
+конфигурационный файл slapd по умолчанию.
+.SH СМОТРИТЕ ТАКЖЕ
+.BR slapd.conf (5),
+.BR slapd\-config (5),
+.BR slapd (8),
+.BR ldif (5).
+.SH АВТОР
+Eric Stokes

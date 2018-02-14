@@ -207,6 +207,6 @@ slappasswd \- утилита паролей ReOpenLDAP
 .B RFC 4519\fP,
 .B RFC 3112
 .LP
-"Руководство администратора OpenLDAP" (http://www.OpenLDAP.org/doc/admin/, http://pro-ldap.ru/tr/admin24/).
+"Руководство администратора OpenLDAP" (http://www.OpenLDAP.org/doc/admin/, https://pro-ldap.ru/tr/admin24/).
 .SH "ПРИЗНАНИЕ ЗАСЛУГ"
 .so ../Project

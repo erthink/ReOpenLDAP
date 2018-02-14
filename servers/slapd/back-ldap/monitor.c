@@ -379,7 +379,7 @@ ldap_back_monitor_subsystem_destroy(
 
 /*
  * Connection monitoring subsystem:
- * Tries to mimick what the cn=connections,cn=monitor subsystem does
+ * Tries to mimic what the cn=connections,cn=monitor subsystem does
  * by creating volatile entries for each connection and populating them
  * according to the information attached to the connection.
  * At this moment the only exposed information is the DN used to bind it.
@@ -1005,7 +1005,7 @@ ldap_back_monitor_db_open( BackendDB *be )
 		rc = mbe->register_database( be, &li->li_monitor_info.lmi_ndn );
 		if ( rc != 0 ) {
 			Debug( LDAP_DEBUG_ANY, "ldap_back_monitor_db_open: "
-				"failed to register the databse with back-monitor\n" );
+				"failed to register the database with back-monitor\n" );
 		}
 	}
 	if ( BER_BVISNULL( &li->li_monitor_info.lmi_conn_rdn ) ) {
@@ -1072,7 +1072,7 @@ ldap_back_monitor_db_close( BackendDB *be )
 		paused = slap_biglock_pool_pause(be);
 	if ( li && !BER_BVISNULL( &li->li_monitor_info.lmi_ndn ) ) {
 		BackendInfo		*mi;
-		monitor_extra_t		*mbe MAY_UNUSED;
+		monitor_extra_t		*mbe __maybe_unused;
 		monitor_subsys_t	*mss = li->li_monitor_info.lmi_mss;
 
 		if (mss) {

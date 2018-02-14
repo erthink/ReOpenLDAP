@@ -45,12 +45,13 @@ static void presentlist_delete( presentlist_t *list, struct berval *syncUUID );
 static char *presentlist_find( presentlist_t *list, struct berval *syncUUID );
 static void presentlist_free( presentlist_t *list );
 
-/* LY: This should be different from any error-code in ldap.h,
+/* LY: This should be differ from any error-code in ldap.h,
  *	   the -42 seems good... */
 #define	SYNC_PAUSED         -42
 #define SYNC_RETARDED		-43
 #define	SYNC_REFRESH_YIELD  -44
 #define SYNC_DONE			-45
+#define SYNC_NEED_RESTART	-46
 
 struct nonpresent_entry {
 	struct berval *npe_name;
@@ -72,7 +73,7 @@ typedef struct cookie_state {
 #define	SYNCDATA_ACCESSLOG	1	/* entries are accesslog format */
 #define	SYNCDATA_CHANGELOG	2	/* entries are changelog format */
 
-#define	SYNCLOG_LOGGING		0	/* doing a log-based update */
+#define	SYNCLOG_LOGBASED	0	/* doing a log-based update */
 #define	SYNCLOG_FALLBACK	1	/* doing a full refresh */
 
 #define RETRYNUM_FOREVER	(-1)	/* retry forever */
@@ -196,6 +197,7 @@ typedef struct logschema {
 	struct berval ls_newRdn;
 	struct berval ls_delRdn;
 	struct berval ls_newSup;
+	struct berval ls_controls;
 } logschema;
 
 static logschema changelog_sc = {
@@ -204,7 +206,8 @@ static logschema changelog_sc = {
 	BER_BVC("changes"),
 	BER_BVC("newRDN"),
 	BER_BVC("deleteOldRDN"),
-	BER_BVC("newSuperior")
+	BER_BVC("newSuperior"),
+	BER_BVC("controls")
 };
 
 static logschema accesslog_sc = {
@@ -213,7 +216,8 @@ static logschema accesslog_sc = {
 	BER_BVC("reqMod"),
 	BER_BVC("reqNewRDN"),
 	BER_BVC("reqDeleteOldRDN"),
-	BER_BVC("reqNewSuperior")
+	BER_BVC("reqNewSuperior"),
+	BER_BVC("reqControls")
 };
 
 static slap_overinst syncrepl_ov;
@@ -449,7 +453,7 @@ syncrepl_process_search(
 	int rc;
 	int rhint;
 	char *base;
-	char **attrs, *lattrs[8];
+	char **attrs, *lattrs[9];
 	char *filter;
 	int attrsonly;
 	int scope;
@@ -467,7 +471,7 @@ syncrepl_process_search(
 	/* If we're using a log but we have no state, then fallback to
 	 * normal mode for a full refresh.
 	 */
-	if ( si->si_syncdata && si->si_logstate == SYNCLOG_LOGGING && !si->si_syncCookie.numcsns ) {
+	if ( si->si_syncdata && si->si_logstate == SYNCLOG_LOGBASED && !si->si_syncCookie.numcsns ) {
 		Debug( LDAP_DEBUG_SYNC,
 			"syncrepl_process_search: %s no-cookies for delta-sync, fallback to REFRESH\n",
 			si->si_ridtxt);
@@ -475,7 +479,7 @@ syncrepl_process_search(
 	}
 
 	/* Use the log parameters if we're in log mode */
-	if ( si->si_syncdata && si->si_logstate == SYNCLOG_LOGGING ) {
+	if ( si->si_syncdata && si->si_logstate == SYNCLOG_LOGBASED ) {
 		logschema *ls;
 		if ( si->si_syncdata == SYNCDATA_ACCESSLOG )
 			ls = &accesslog_sc;
@@ -487,8 +491,9 @@ syncrepl_process_search(
 		lattrs[3] = ls->ls_newRdn.bv_val;
 		lattrs[4] = ls->ls_delRdn.bv_val;
 		lattrs[5] = ls->ls_newSup.bv_val;
-		lattrs[6] = slap_schema.si_ad_entryCSN->ad_cname.bv_val;
-		lattrs[7] = NULL;
+		lattrs[6] = ls->ls_controls.bv_val;
+		lattrs[7] = slap_schema.si_ad_entryCSN->ad_cname.bv_val;
+		lattrs[8] = NULL;
 
 		rhint = 0;
 		base = si->si_logbase.bv_val;
@@ -834,14 +839,14 @@ static void syncrepl_refresh_done( syncinfo_t *si, int rc ) {
 		if ( si->si_refreshBeg ) {
 			Debug( LDAP_DEBUG_SYNC,
 				"syncrepl: refresh-%s %s, rc %d, take %d seconds\n",
-				rc ? "abort" : "done",
+				(rc != LDAP_SUCCESS) ? "abort" : "done",
 				si->si_ridtxt, rc, (int) (ldap_time_steady() - si->si_refreshBeg) );
 		}
 	}
 }
 
 static void syncrepl_resync_end( syncinfo_t *si, int rc ) {
-	if (rc == SYNC_DONE) {
+	if (rc == SYNC_DONE || rc == SYNC_NEED_RESTART) {
 		rc = LDAP_SUCCESS;
 		syncrepl_refresh_done(si, rc);
 	} else if (rc != LDAP_SUCCESS)
@@ -1080,7 +1085,7 @@ syncrepl_process(
 			}
 			op->o_controls[slap_cids.sc_LDAPsync] = &syncCookie;
 
-			if ( si->si_syncdata && si->si_logstate == SYNCLOG_LOGGING ) {
+			if ( si->si_syncdata && si->si_logstate == SYNCLOG_LOGBASED ) {
 				rc = syncrepl_message_to_op( si, op, msg );
 				if ( rc == LDAP_SUCCESS ) {
 					rc = syncrepl_cookie_push( si, op, &syncCookie );
@@ -1094,7 +1099,7 @@ syncrepl_process(
 						ldap_abandon_ext( si->si_ld, si->si_msgid, NULL, NULL );
 						bdn.bv_val[bdn.bv_len] = '\0';
 						Debug( LDAP_DEBUG_SYNC,
-							"syncrepl_process: %s delta-sync lost sync on (%s), fallback to REFRESH (%d)\n",
+							"syncrepl_process: %s delta-sync lost on (%s), fallback to REFRESH (%d)\n",
 							si->si_ridtxt, bdn.bv_val, rc );
 						rc = LDAP_SYNC_REFRESH_REQUIRED;
 						if (si->si_strict_refresh) {
@@ -1155,10 +1160,10 @@ syncrepl_process(
 			}
 #endif
 			if ( rc == LDAP_SYNC_REFRESH_REQUIRED ) {
-				if ( si->si_logstate == SYNCLOG_LOGGING ) {
+				if ( si->si_logstate == SYNCLOG_LOGBASED ) {
 					si->si_logstate = SYNCLOG_FALLBACK;
 					Debug( LDAP_DEBUG_SYNC,
-						"syncrepl_process: %s delta-sync lost sync, fallback to REFRESH\n",
+						"syncrepl_process: %s delta-sync lost, fallback to REFRESH\n",
 						si->si_ridtxt );
 					if (si->si_strict_refresh) {
 						slap_suspend_listeners();
@@ -1231,18 +1236,20 @@ syncrepl_process(
 			}
 			if ( lead >= 0 && rc == LDAP_SUCCESS )
 				rc = syncrepl_cookie_push( si, op, &syncCookie );
+			if ( rc == LDAP_SUCCESS && si->si_syncCookie.numcsns == 0 )
+				rc = LDAP_UNWILLING_TO_PERFORM;
 			syncrepl_refresh_done( si, rc );
 
-			if ( rc == LDAP_SUCCESS && si->si_logstate == SYNCLOG_FALLBACK ) {
-				Debug( LDAP_DEBUG_SYNC,
-					"syncrepl_process: %s delta-sync recovered, back to LOGGING\n",
-					si->si_ridtxt );
-				si->si_logstate = SYNCLOG_LOGGING;
-				rc = LDAP_SYNC_REFRESH_REQUIRED;
-				slap_resume_listeners();
-			} else if ( rc == LDAP_SUCCESS ) {
-				/* LY: test017-syncreplication-refresh */
+			if ( rc == LDAP_SUCCESS ) {
 				rc = SYNC_DONE;
+				if ( si->si_logstate == SYNCLOG_FALLBACK ) {
+					Debug( LDAP_DEBUG_SYNC,
+						"syncrepl_process: %s delta-sync recovered, back to LOGBASED\n",
+						si->si_ridtxt );
+					si->si_logstate = SYNCLOG_LOGBASED;
+					slap_resume_listeners();
+					rc = SYNC_NEED_RESTART;
+				}
 			}
 			goto done;
 		}
@@ -1431,26 +1438,34 @@ syncrepl_process(
 done:
 	slap_biglock_release(bl);
 
-	if ( rc != LDAP_SUCCESS && rc != SYNC_DONE ) {
-		const char* errstr = NULL;
+	if ( rc != LDAP_SUCCESS) {
+		const char* msgstr = NULL;
+		int log_level = LDAP_DEBUG_SYNC;
 		switch(rc) {
 		case SYNC_PAUSED:
-			errstr = "syncrepl-paused";
+			msgstr = "syncrepl-paused";
 			break;
 		case SYNC_RETARDED:
-			errstr = "syncrepl-retarded";
+			msgstr = "syncrepl-retarded";
 			break;
 		case SYNC_REFRESH_YIELD:
-			errstr = "syncrepl-yield";
+			msgstr = "syncrepl-yield";
+			break;
+		case SYNC_DONE:
+			msgstr = "syncrepl-done (delta-sync session)";
+			break;
+		case SYNC_NEED_RESTART:
+			msgstr = "syncrepl-resume-logbased (delta-sync recovered)";
 			break;
 		default:
-			errstr = ldap_err2string( rc );
+			msgstr = ldap_err2string( rc );
+			log_level = LDAP_DEBUG_ANY;
 		}
 
-		Debug( LDAP_DEBUG_ANY,
+		Debug( log_level,
 			"syncrepl_process: %s (%d) %s\n",
-			si->si_ridtxt, rc, errstr );
-		(void) errstr;
+			si->si_ridtxt, rc, msgstr );
+		(void) msgstr;
 	}
 
 	if ( si->si_require_present && rc == LDAP_SUCCESS
@@ -1605,8 +1620,7 @@ deleted:
 	if ( rc != SYNC_PAUSED && rc != SYNC_REFRESH_YIELD ) {
 		if ( abs(si->si_type) == LDAP_SYNC_REFRESH_AND_PERSIST ) {
 			/* If we succeeded, enable the connection for further listening.
-			 * If we failed, tear down the connection and reschedule.
-			 */
+			 * If we failed, tear down the connection and reschedule. */
 			if ( rc == LDAP_SUCCESS ) {
 				if ( si->si_conn ) {
 					connection_client_enable( si->si_conn );
@@ -1638,13 +1652,10 @@ deleted:
 	if ( dostop )
 		syncrepl_shutdown_io( si );
 
-	if ( rc == SYNC_PAUSED ) {
+	if ( rc == SYNC_PAUSED || rc == SYNC_REFRESH_YIELD || rc == SYNC_NEED_RESTART ) {
 		rtask->interval.ns = 1;
 		ldap_pvt_runqueue_resched( &slapd_rq, rtask, 0 );
-		rc = 0;
-	} else if ( rc == SYNC_REFRESH_YIELD || rc == LDAP_SYNC_REFRESH_REQUIRED ) {
-		rtask->interval.ns = ldap_from_seconds(1).ns / 100;
-		ldap_pvt_runqueue_resched( &slapd_rq, rtask, 0 );
+		rtask->interval = ldap_from_seconds(si->si_interval);
 		rc = 0;
 	} else if ( rc == LDAP_SUCCESS ) {
 		if ( si->si_type == LDAP_SYNC_REFRESH_ONLY ) {
@@ -2267,7 +2278,7 @@ syncrepl_message_to_op(
 	size_t textlen = sizeof txtbuf;
 
 	struct berval	bdn, dn = BER_BVNULL, ndn;
-	struct berval	bv, bv2 MAY_UNUSED, *bvals = NULL;
+	struct berval	bv, bv2 __maybe_unused, *bvals = NULL;
 	struct berval	rdn = BER_BVNULL, sup = BER_BVNULL,
 		prdn = BER_BVNULL, nrdn = BER_BVNULL,
 		psup = BER_BVNULL, nsup = BER_BVNULL;
@@ -2355,6 +2366,22 @@ syncrepl_message_to_op(
 			}
 		} else if ( !ber_bvstrcasecmp( &bv, &ls->ls_newSup ) ) {
 			sup = bvals[0];
+		} else if ( !ber_bvstrcasecmp( &bv, &ls->ls_controls ) ) {
+			int i;
+			struct berval rel_ctrl_bv;
+
+			(void)ber_str2bv( "{" LDAP_CONTROL_RELAX, 0, 0, &rel_ctrl_bv );
+			for ( i = 0; bvals[i].bv_val; i++ ) {
+				struct berval cbv, tmp;
+
+				ber_bvchr_post( &cbv, &bvals[i], '}' );
+				ber_bvchr_post( &tmp, &cbv, '{' );
+				ber_bvchr_pre( &cbv, &tmp, ' ' );
+				if ( cbv.bv_len == tmp.bv_len )		/* control w/o value */
+					ber_bvchr_pre( &cbv, &tmp, '}' );
+				if ( !ber_bvcmp( &cbv, &rel_ctrl_bv ) )
+					op->o_relax = SLAP_CONTROL_CRITICAL;
+			}
 		} else if ( !ber_bvstrcasecmp( &bv,
 			&slap_schema.si_ad_entryCSN->ad_cname ) )
 		{
@@ -2603,7 +2630,7 @@ syncrepl_message_to_entry(
 	char txtbuf[SLAP_TEXT_BUFLEN];
 	size_t textlen = sizeof txtbuf;
 
-	struct berval	bdn = BER_BVNULL, dn, ndn, bv2 MAY_UNUSED;
+	struct berval	bdn = BER_BVNULL, dn, ndn, bv2 __maybe_unused;
 	int		rc, is_ctx;
 
 	*modlist = NULL;

@@ -24,7 +24,7 @@
 
 #include <features.h>
 
-/* These are macros to use some gcc-specific flags in case the're available
+/* These are macros to use some gcc-specific flags in case they're available
    and otherwise define them to empty strings. This allows us to give
    the compiler some extra information.
    See http://gcc.gnu.org/onlinedocs/gcc/Attribute-Syntax.html

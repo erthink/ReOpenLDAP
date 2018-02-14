@@ -69,9 +69,31 @@ static const sasl_callback_t client_callbacks[] = {
 	{ SASL_CB_LIST_END, NULL, NULL }
 };
 
-static int sasl_init_rc;
-static void ldap_sasl_init_once(void)
+/*
+ * ldap_int_initialize is responsible for calling this only once.
+ */
+int ldap_int_sasl_init( void )
 {
+#ifdef HAVE_SASL_VERSION
+	const char *version_string = "?";
+	int version_major = 0;
+	int version_minor = 0;
+	int version_step = 0;
+	sasl_version_info( NULL, &version_string, &version_major, &version_minor, &version_step, NULL );
+	if ( version_major != SASL_VERSION_MAJOR || version_minor != SASL_VERSION_MINOR
+			|| version_step < SASL_VERSION_STEP) {
+		Debug( LDAP_DEBUG_ANY,
+		"ldap_int_sasl_init: SASL library version mismatch:"
+		" expected %d.%d.%d,"
+		" got %s (%d.%d.%d)\n",
+		SASL_VERSION_MAJOR, SASL_VERSION_MINOR, SASL_VERSION_STEP,
+		version_string, version_major, version_minor, version_step);
+#ifdef RELDAP_STRICT_SASL_VERSION
+		return -1;
+#endif
+	}
+#endif
+
 /* SASL 2 takes care of its own memory completely internally */
 #if SASL_VERSION_MAJOR < 2 && !defined(CSRIMALLOC)
 	sasl_set_alloc(
@@ -90,23 +112,15 @@ static void ldap_sasl_init_once(void)
 #endif
 
 	const int err = sasl_client_init( NULL );
-	if (err == SASL_OK ) {
-		assert(sasl_init_rc == 0);
-	} else {
-		sasl_init_rc = -1;
+	if (err != SASL_OK ) {
 		Debug(LDAP_DEBUG_ANY, "sasl_client_init(): sasl-error %i\n", err);
-#if SASL_VERSION_MAJOR < 2
-		/* A no-op to make sure we link with Cyrus 1.5 */
-		sasl_client_auth( NULL, NULL, NULL, 0, NULL, NULL );
-#endif
+		return -1;
 	}
-}
-
-int ldap_int_sasl_init( void )
-{
-	static pthread_once_t once_control = PTHREAD_ONCE_INIT;
-	int rc = pthread_once(&once_control, ldap_sasl_init_once);
-	return (rc == 0) ? sasl_init_rc : rc;
+#if SASL_VERSION_MAJOR < 2
+	/* A no-op to make sure we link with Cyrus 1.5 */
+	sasl_client_auth( NULL, NULL, NULL, 0, NULL, NULL );
+#endif
+	return 0;
 }
 
 static void
@@ -305,11 +319,6 @@ ldap_int_sasl_open(
 	assert( lc->lconn_sasl_authctx == NULL );
 
 	if ( host == NULL ) {
-		ld->ld_errno = LDAP_LOCAL_ERROR;
-		return ld->ld_errno;
-	}
-
-	if ( ldap_int_sasl_init() ) {
 		ld->ld_errno = LDAP_LOCAL_ERROR;
 		return ld->ld_errno;
 	}
@@ -904,8 +913,6 @@ int
 ldap_int_sasl_get_option( LDAP *ld, int option, void *arg )
 {
 	if ( option == LDAP_OPT_X_SASL_MECHLIST ) {
-		if ( ldap_int_sasl_init() )
-			return -1;
 		*(char ***)arg = (char **)sasl_global_listmech();
 		return 0;
 	}

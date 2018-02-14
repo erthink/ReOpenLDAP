@@ -43,6 +43,8 @@ extern int ldap_int_stackguard;
 #  define LDAP_INT_THREAD_MUTEXATTR_DEFAULT NULL
 #endif
 
+static pthread_mutexattr_t mutex_attr_recursive;
+
 #if HAVE_PTHREADS < 7
 #define ERRVAL(val)	((val) < 0 ? errno : 0)
 #else
@@ -60,9 +62,14 @@ static pthread_mutexattr_t* ldap_mutex_attr() {
 int
 ldap_int_thread_initialize( void )
 {
-	LDAP_ENSURE( pthread_mutexattr_init( &mutex_attr_errorcheck ) == 0 );
-	LDAP_ENSURE( pthread_mutexattr_settype( &mutex_attr_errorcheck, PTHREAD_MUTEX_ERRORCHECK ) == 0);
-	return 0;
+	int rc = pthread_mutexattr_init( &mutex_attr_errorcheck );
+	if (rc == 0) return rc;
+	rc = pthread_mutexattr_settype( &mutex_attr_errorcheck, PTHREAD_MUTEX_ERRORCHECK );
+	if (rc == 0) return rc;
+	rc = pthread_mutexattr_init(&mutex_attr_recursive);
+	if (rc == 0) return rc;
+	rc = pthread_mutexattr_settype(&mutex_attr_recursive, PTHREAD_MUTEX_RECURSIVE);
+	return rc;
 }
 
 int
@@ -73,6 +80,7 @@ ldap_int_thread_destroy( void )
 	pthread_kill_other_threads_np();
 #endif
 	LDAP_ENSURE( pthread_mutexattr_destroy( &mutex_attr_errorcheck ) == 0);
+	LDAP_ENSURE( pthread_mutexattr_destroy( &mutex_attr_recursive ) == 0);
 	return 0;
 }
 
@@ -385,6 +393,21 @@ ldap_pvt_thread_mutex_unlock( ldap_pvt_thread_mutex_t *mutex )
 	LDAP_JITTER(25);
 	return rc;
 }
+
+int
+ldap_pvt_thread_mutex_recursive_init( ldap_pvt_thread_mutex_t *mutex )
+{
+	return ERRVAL( pthread_mutex_init( mutex, &mutex_attr_recursive ) );
+}
+
+int ldap_pvt_thread_mutex_recursive_destroy( ldap_pvt_thread_mutex_recursive_t *mutex )
+	LDAP_GCCATTR((alias("ldap_pvt_thread_mutex_destroy")));
+int ldap_pvt_thread_mutex_recursive_lock( ldap_pvt_thread_mutex_recursive_t *mutex )
+	LDAP_GCCATTR((alias("ldap_pvt_thread_mutex_lock")));
+int ldap_pvt_thread_mutex_recursive_trylock( ldap_pvt_thread_mutex_recursive_t *mutex )
+	LDAP_GCCATTR((alias("ldap_pvt_thread_mutex_trylock")));
+int ldap_pvt_thread_mutex_recursive_unlock( ldap_pvt_thread_mutex_recursive_t *mutex )
+	LDAP_GCCATTR((alias("ldap_pvt_thread_mutex_unlock")));
 
 ldap_pvt_thread_t ldap_pvt_thread_self( void )
 {

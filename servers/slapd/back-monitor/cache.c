@@ -81,7 +81,7 @@ monitor_cache_add(
 	Entry		*e )
 {
 	monitor_cache_t	*mc;
-	monitor_entry_t	*mp MAY_UNUSED;
+	monitor_entry_t	*mp __maybe_unused;
 	int		rc;
 
 	assert( mi != NULL );
@@ -247,7 +247,7 @@ retry:;
 			monitor_cache_release( mi, pmc->mc_e );
 
 			if ( entryp == NULL ) {
-				monitor_cache_t MAY_UNUSED *tmpmc;
+				monitor_cache_t __maybe_unused *tmpmc;
 
 				tmp_mc.mc_ndn = *ndn;
 				tmpmc = avl_delete( &mi->mi_cache,

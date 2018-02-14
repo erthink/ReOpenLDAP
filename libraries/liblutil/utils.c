@@ -148,10 +148,10 @@ int lutil_tm2time( struct lutil_tm *tm, struct lutil_timet *tt )
 	return 0;
 }
 
-int lutil_parsetime( char *atm, struct lutil_tm *tm )
+int lutil_parsetime( const char *atm, struct lutil_tm *tm )
 {
 	while (atm && tm) {
-		char *ptr = atm;
+		const char *ptr = atm;
 		unsigned i, fracs;
 
 		/* Is the stamp reasonably long? */

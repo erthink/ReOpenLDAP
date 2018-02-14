@@ -130,7 +130,7 @@ rewrite_param_destroy(
 		struct rewrite_info *info
 )
 {
-	int count MAY_UNUSED;
+	int count __maybe_unused;
 
 	assert( info != NULL );
 

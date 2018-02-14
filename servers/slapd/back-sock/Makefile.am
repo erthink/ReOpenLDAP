@@ -35,4 +35,4 @@ endif
 
 back_sock_la_SOURCES = add.c back-sock.h banner.c bind.c compare.c \
 	config.c delete.c init.c modify.c modrdn.c opensock.c \
-	proto-sock.h result.c search.c unbind.c
+	proto-sock.h result.c search.c unbind.c extended.c

@@ -87,7 +87,6 @@ dds_expire_cb( Operation *op, SlapReply *rs )
 {
 	dds_cb_t	*dc = (dds_cb_t *)op->o_callback->sc_private;
 	dds_expire_t	*de;
-	int		rc;
 
 	switch ( rs->sr_type ) {
 	case REP_SEARCH:
@@ -102,19 +101,16 @@ dds_expire_cb( Operation *op, SlapReply *rs )
 		de->de_ndn.bv_val = (char *)&de[ 1 ];
 		memcpy( de->de_ndn.bv_val, rs->sr_entry->e_nname.bv_val,
 			rs->sr_entry->e_nname.bv_len + 1 );
-		rc = 0;
-		break;
+		return LDAP_SUCCESS;
 
 	case REP_SEARCHREF:
 	case REP_RESULT:
-		rc = rs->sr_err;
-		break;
+	case REP_EXTENDED:
+		return rs->sr_err;
 
 	default:
-		LDAP_BUG();
+		return SLAP_CB_CONTINUE;
 	}
-
-	return rc;
 }
 
 static int
@@ -526,7 +522,7 @@ dds_op_modify( Operation *op, SlapReply *rs )
 		/* the value of the entryTtl is saved for later checks */
 		if ( a != NULL ) {
 			unsigned long ttl;
-			int	MAY_UNUSED rc;
+			int	__maybe_unused rc;
 
 			bv_entryTtl.bv_len = a->a_nvals[ 0 ].bv_len;
 			memcpy( bv_entryTtl.bv_val, a->a_nvals[ 0 ].bv_val, bv_entryTtl.bv_len );
@@ -1660,20 +1656,10 @@ dds_count_cb( Operation *op, SlapReply *rs )
 {
 	int	*nump = (int *)op->o_callback->sc_private;
 
-	switch ( rs->sr_type ) {
-	case REP_SEARCH:
+	if ( rs->sr_type == REP_SEARCH)
 		(*nump)++;
-		break;
 
-	case REP_SEARCHREF:
-	case REP_RESULT:
-		break;
-
-	default:
-		LDAP_BUG();
-	}
-
-	return 0;
+	return SLAP_CB_CONTINUE;
 }
 
 /* count dynamic objects existing in the database at startup */
