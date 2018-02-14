@@ -63,16 +63,16 @@ static ObjectClass *oc_krb5KDCEntry;
 
 #ifdef DO_SAMBA
 
-#if RELDAP_TLS_FALLBACK == RELDAP_TLS_GNUTLS
+#if RELDAP_TLS == RELDAP_TLS_OPENSSL || (RELDAP_TLS_FALLBACK == RELDAP_TLS_OPENSSL && RELDAP_TLS != RELDAP_TLS_GNUTLS)
+#	include <openssl/md4.h>
+#	include <openssl/des.h>
+#elif RELDAP_TLS == RELDAP_TLS_GNUTLS || RELDAP_TLS_FALLBACK == RELDAP_TLS_GNUTLS
 #	include <nettle/des.h>
 #	include <nettle/md4.h>
 	typedef unsigned char DES_cblock[8];
-#elif RELDAP_TLS_FALLBACK == RELDAP_TLS_OPENSSL
-#	include <openssl/md4.h>
-#	include <openssl/des.h>
 #else
 #	error Unsupported crypto backend.
-#endif /* RELDAP_TLS_FALLBACKL */
+#endif /* RELDAP_TLS */
 
 #include "ldap_utf8.h"
 
@@ -152,9 +152,9 @@ static void lmPasswd_to_key(
 	k[6] = ((lpw[5]&0x3F)<<2) | (lpw[6]>>6);
 	k[7] = ((lpw[6]&0x7F)<<1);
 
-#if RELDAP_TLS_FALLBACK == RELDAP_TLS_OPENSSL
+#if RELDAP_TLS == RELDAP_TLS_OPENSSL || (RELDAP_TLS_FALLBACK == RELDAP_TLS_OPENSSL && RELDAP_TLS != RELDAP_TLS_GNUTLS)
 	DES_set_odd_parity( key );
-#endif
+#endif /* RELDAP_TLS */
 }
 
 #define MAX_PWLEN 256
@@ -190,35 +190,32 @@ static void lmhash(
 	DES_cblock key;
 	DES_cblock StdText = "KGS!@#$%";
 	DES_cblock hbuf[2];
-#if RELDAP_TLS_FALLBACK == RELDAP_TLS_OPENSSL
+#if RELDAP_TLS == RELDAP_TLS_OPENSSL || (RELDAP_TLS_FALLBACK == RELDAP_TLS_OPENSSL && RELDAP_TLS != RELDAP_TLS_GNUTLS)
 	DES_key_schedule schedule;
-#endif
-
-#if RELDAP_TLS_FALLBACK == RELDAP_TLS_GNUTLS
+#elif RELDAP_TLS == RELDAP_TLS_GNUTLS || RELDAP_TLS_FALLBACK == RELDAP_TLS_GNUTLS
 	struct des_ctx ctx;
-#endif
+#endif /* RELDAP_TLS */
 
 	strncpy( UcasePassword, passwd->bv_val, 14 );
 	UcasePassword[14] = '\0';
 	ldap_pvt_str2upper( UcasePassword );
 
 	lmPasswd_to_key( UcasePassword, &key );
-#if RELDAP_TLS_FALLBACK == RELDAP_TLS_GNUTLS
-	des_set_key( &ctx, key );
-	des_encrypt( &ctx, sizeof(key), hbuf[0], StdText );
-
-	lmPasswd_to_key( &UcasePassword[7], &key );
-	des_set_key( &ctx, key );
-	des_encrypt( &ctx, sizeof(key), hbuf[1], StdText );
-#endif
-#if RELDAP_TLS_FALLBACK == RELDAP_TLS_OPENSSL
+#if RELDAP_TLS == RELDAP_TLS_OPENSSL || (RELDAP_TLS_FALLBACK == RELDAP_TLS_OPENSSL && RELDAP_TLS != RELDAP_TLS_GNUTLS)
 	DES_set_key_unchecked( &key, &schedule );
 	DES_ecb_encrypt( &StdText, &hbuf[0], &schedule, DES_ENCRYPT );
 
 	lmPasswd_to_key( &UcasePassword[7], &key );
 	DES_set_key_unchecked( &key, &schedule );
 	DES_ecb_encrypt( &StdText, &hbuf[1], &schedule, DES_ENCRYPT );
-#endif
+#elif RELDAP_TLS == RELDAP_TLS_GNUTLS || RELDAP_TLS_FALLBACK == RELDAP_TLS_GNUTLS
+	des_set_key( &ctx, key );
+	des_encrypt( &ctx, sizeof(key), hbuf[0], StdText );
+
+	lmPasswd_to_key( &UcasePassword[7], &key );
+	des_set_key( &ctx, key );
+	des_encrypt( &ctx, sizeof(key), hbuf[1], StdText );
+#endif /* RELDAP_TLS */
 
 	hexify( (char *)hbuf, hash );
 }
@@ -233,26 +230,24 @@ static void nthash(
 	 * 256 UCS2 characters, not 256 bytes...
 	 */
 	char hbuf[HASHLEN];
-#if RELDAP_TLS_FALLBACK == RELDAP_TLS_OPENSSL
+#if RELDAP_TLS == RELDAP_TLS_OPENSSL || (RELDAP_TLS_FALLBACK == RELDAP_TLS_OPENSSL && RELDAP_TLS != RELDAP_TLS_GNUTLS)
 	MD4_CTX ctx;
-#endif
-#if RELDAP_TLS_FALLBACK == RELDAP_TLS_GNUTLS
+#elif RELDAP_TLS == RELDAP_TLS_GNUTLS || RELDAP_TLS_FALLBACK == RELDAP_TLS_GNUTLS
 	struct md4_ctx ctx;
-#endif
+#endif /* RELDAP_TLS */
 
 	if (passwd->bv_len > MAX_PWLEN*2)
 		passwd->bv_len = MAX_PWLEN*2;
 
-#if RELDAP_TLS_FALLBACK == RELDAP_TLS_OPENSSL
+#if RELDAP_TLS == RELDAP_TLS_OPENSSL || (RELDAP_TLS_FALLBACK == RELDAP_TLS_OPENSSL && RELDAP_TLS != RELDAP_TLS_GNUTLS)
 	MD4_Init( &ctx );
 	MD4_Update( &ctx, passwd->bv_val, passwd->bv_len );
 	MD4_Final( (unsigned char *)hbuf, &ctx );
-#endif
-#if RELDAP_TLS_FALLBACK == RELDAP_TLS_GNUTLS
+#elif RELDAP_TLS == RELDAP_TLS_GNUTLS || RELDAP_TLS_FALLBACK == RELDAP_TLS_GNUTLS
 	md4_init( &ctx );
 	md4_update( &ctx, passwd->bv_len, (unsigned char *)passwd->bv_val );
 	md4_digest( &ctx, sizeof(hbuf), (unsigned char *)hbuf );
-#endif
+#endif /* RELDAP_TLS */
 
 	hexify( hbuf, hash );
 }
@@ -1162,7 +1157,7 @@ smbk5pwd_initialize(void)
 	smbk5pwd.on_bi.bi_op_bind = smbk5pwd_op_bind;
 
 	lutil_passwd_add( (struct berval *)&k5key_scheme, k5key_chk, k5key_hash );
-#endif
+#endif /* DO_KRB5 */
 
 	smbk5pwd.on_bi.bi_cf_ocs = smbk5pwd_cfocs;
 
