@@ -272,7 +272,6 @@ Minor Bugs
 2018-02-14 libmdbx: legacy - fix cursor ops (squashed ITS#8722).
 2018-02-13 overlay-dds: fix callbacks (invalid results or bug-check).
 2018-02-11 slapd-schema: don't strip pretty-trailing zeros while normalize time.
-2018-02-11 syncprov: import - Don't keep sl_mutex locked when playing the sessionlog (ITS#8486).
 2018-02-11 syncprov: Try other CSNs as pivot if consumer's and provider's sets are the same.
 2018-02-11 syncrepl: add SYNC_NEED_RESTART code and handling.
 2018-02-11 syncrepl: fix resched-interval.
@@ -697,6 +696,7 @@ Performance
 ~~~~~~~~~~~
 2018-02-23 v1.1.7
 2018-02-13 accesslog: fix CSNs for purge logs.
+2018-02-11 syncprov: import - Don't keep sl_mutex locked when playing the sessionlog (ITS#8486).
 2018-01-23 backend-mdb: import - optimization restart search txn (ITS#8226).
 2017-08-12 v1.1.6
 2017-02-15 mdbx: 'unlikely' for DB_STALE.
