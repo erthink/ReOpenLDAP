@@ -1901,6 +1901,11 @@ static int do_accesslog_response(Operation *op, SlapReply *rs, int need_unlock) 
 	}
 
 	slap_biglock_call_be( op_add, &op2, &rs2 );
+	if ( rs2.sr_err != LDAP_SUCCESS ) {
+		Debug( LDAP_DEBUG_SYNC,
+			"accesslog_response: got result 0x%x adding log entry %s\n",
+			rs2.sr_err, op2.o_req_dn.bv_val );
+	}
 	if ( e == op2.ora_e ) entry_free( e );
 	e = NULL;
 
