@@ -62,6 +62,7 @@ v1.1.7 2018-02-23, Red Army Soldier
  * slapd: Fix 'ptrace: Operation not permitted' from backtrace feature.
 
 ### Performance:
+ * slapd: isolate tsan-mutexes under #ifdef __SANITIZE_THREAD__.
  * syncprov: Don't keep `sl_mutex` locked when playing the `sessionlog` (ITS#8486).
  * accesslog: Fix CSNs for purge logs.
  * backend-mdb: Optimize restart search txn (ITS#8226).
