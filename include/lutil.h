@@ -177,7 +177,7 @@ typedef struct lutil_timet {
 /* Parse a timestamp string into a structure */
 LDAP_LUTIL_F( int )
 lutil_parsetime LDAP_P((
-	char *atm, struct lutil_tm * ));
+	const char *atm, struct lutil_tm * ));
 
 /* Convert structured time to time in seconds since 1900 */
 LDAP_LUTIL_F( int )

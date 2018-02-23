@@ -29,13 +29,12 @@
 #define CTXCSN_ORDERING <
 
 struct slap_csn_entry {
+	Operation *ce_op;
 	struct berval ce_csn;
 	int ce_sid;
 #define SLAP_CSN_PENDING	1
 #define SLAP_CSN_COMMIT		2
 	int ce_state;
-	unsigned long ce_opid;
-	unsigned long ce_connid;
 	LDAP_TAILQ_ENTRY (slap_csn_entry) ce_csn_link;
 };
 
@@ -80,6 +79,7 @@ void slap_op_csn_clean( Operation *op )
 
 void slap_op_csn_assign( Operation *op, BerValue *csn )
 {
+	assert(slap_csn_verify_full(csn));
 #if OP_CSN_CRUTCH
 	assert(op->o_csn_master == op || op->o_csn_master == NULL);
 	if (op->o_csn_master != op)
@@ -108,7 +108,7 @@ slap_get_commit_csn(
 
 	self = NULL;
 	LDAP_TAILQ_FOREACH( csne, be->be_pending_csn_list, ce_csn_link ) {
-		if ( csne->ce_opid == op->o_opid && csne->ce_connid == op->o_connid ) {
+		if ( csne->ce_op == op) {
 			assert( sid < 0 || sid == csne->ce_sid );
 			self = csne;
 			csne->ce_state = SLAP_CSN_COMMIT;
@@ -128,10 +128,10 @@ slap_get_commit_csn(
 							&& slap_csn_compare_ts( &csne->ce_csn,
 								&committed_csne->ce_csn ) CTXCSN_ORDERING 0 ) {
 						Debug( LDAP_DEBUG_SYNC, "slap_get_commit_csn:"
-							"  next-pending %p (conn %ld, opid %ld) %s\n\t"
-							" prev-commited %p (conn %ld, opid %ld) %s\n",
-							csne, csne->ce_connid, csne->ce_opid, csne->ce_csn.bv_val,
-							committed_csne, committed_csne->ce_connid, committed_csne->ce_opid, committed_csne->ce_csn.bv_val
+							"  next-pending %p %s\n\t"
+							" prev-commited %p %s\n",
+							csne, csne->ce_csn.bv_val,
+							committed_csne, committed_csne->ce_csn.bv_val
 						);
 						assert( 0 );
 					}
@@ -178,9 +178,9 @@ slap_graduate_commit_csn( Operation *op )
 	ldap_pvt_thread_mutex_lock( &be->be_pcl_mutex );
 
 	LDAP_TAILQ_FOREACH( csne, be->be_pending_csn_list, ce_csn_link ) {
-		if ( csne->ce_opid == op->o_opid && csne->ce_connid == op->o_connid ) {
-			Debug( LDAP_DEBUG_SYNC, "slap_graduate_commit_csn: removing %p (conn %ld, opid %ld) %s, op %p\n",
-				csne, csne->ce_connid, csne->ce_opid, csne->ce_csn.bv_val, op );
+		if ( csne->ce_op == op) {
+			Debug( LDAP_DEBUG_SYNC, "slap_graduate_commit_csn: removing %p %s, op %p\n",
+				csne, csne->ce_csn.bv_val, op );
 			assert( csne->ce_state > 0 );
 			assert( slap_csn_match( &op->o_csn, &csne->ce_csn ) );
 			found = csne->ce_state;
@@ -214,6 +214,7 @@ slap_create_context_csn_entry(
 	Backend *be,
 	struct berval *context_csn )
 {
+	assert(slap_csn_verify_full(context_csn));
 	Entry* e;
 	struct berval bv;
 
@@ -246,6 +247,7 @@ slap_queue_csn(
 	Operation *op,
 	struct berval *csn )
 {
+	assert(slap_csn_verify_full(csn));
 	struct slap_csn_entry *pending, *before;
 	BackendDB *be = op->o_bd->bd_self;
 	int sid = slap_csn_get_sid( csn );
@@ -260,7 +262,7 @@ slap_queue_csn(
 				&& slap_csn_compare_ts( csn, &pending->ce_csn ) CTXCSN_ORDERING 0 )
 			before = pending;
 #endif
-		if ( pending->ce_opid == op->o_opid && pending->ce_connid == op->o_connid ) {
+		if ( pending->ce_op == op ) {
 			assert( pending->ce_sid == sid );
 			if ( reopenldap_mode_check() )
 				LDAP_BUG();
@@ -275,18 +277,17 @@ slap_queue_csn(
 		assert( BER_BVISEMPTY( &op->o_csn ));
 		slap_op_csn_assign( op, &pending->ce_csn );
 		pending->ce_sid = sid;
-		pending->ce_connid = op->o_connid;
-		pending->ce_opid = op->o_opid;
+		pending->ce_op = op;
 		pending->ce_state = SLAP_CSN_PENDING;
 		if ( before == NULL ) {
-			Debug( LDAP_DEBUG_SYNC, "slap_queue_csn: tail-queueing %p (conn %ld, opid %ld) %s, op %p\n",
-				   pending, pending->ce_connid, pending->ce_opid, pending->ce_csn.bv_val, op);
+			Debug( LDAP_DEBUG_SYNC, "slap_queue_csn: tail-queueing %p %s, op %p\n",
+				   pending, pending->ce_csn.bv_val, op);
 			LDAP_TAILQ_INSERT_TAIL( be->be_pending_csn_list, pending, ce_csn_link );
 		} else {
-			Debug( LDAP_DEBUG_SYNC, "slap_queue_csn: middle-queueing %p (conn %ld, opid %ld) %s, op %p\n"
-				   "\tbefore %p(conn %ld, opid %ld) %s\n",
-				   pending, pending->ce_connid, pending->ce_opid, pending->ce_csn.bv_val, op,
-				   before, before->ce_connid, before->ce_opid, before->ce_csn.bv_val);
+			Debug( LDAP_DEBUG_SYNC, "slap_queue_csn: middle-queueing %p %s, op %p\n"
+				   "\tbefore %p %s\n",
+				   pending, pending->ce_csn.bv_val, op,
+				   before, before->ce_csn.bv_val);
 			LDAP_TAILQ_INSERT_BEFORE( before, pending, ce_csn_link );
 		}
 #if OP_CSN_CHECK

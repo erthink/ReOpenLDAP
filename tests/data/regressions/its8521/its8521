@@ -41,7 +41,7 @@ ITS=8521
 ITSDIR=$DATADIR/regressions/its$ITS
 
 echo "Starting provider slapd on TCP/IP port $PORT1..."
-config_filter $BACKEND ${AC_conf[monitor]} < $ITSDIR/slapd-provider.ldif > $CONFLDIF
+DBNOSYNC=yes config_filter $BACKEND ${AC_conf[monitor]} < $ITSDIR/slapd-provider.ldif > $CONFLDIF
 $SLAPADD -F $CFPRO -n 0 -l $CONFLDIF
 RC=$?
 if test $RC != 0 ; then
@@ -61,7 +61,7 @@ KILLPIDS="$PID"
 check_running 1 provider
 
 echo "Starting consumer slapd on TCP/IP port $PORT2..."
-config_filter $BACKEND ${AC_conf[monitor]} < $ITSDIR/slapd-consumer.ldif > $CONFLDIF
+DBNOSYNC=yes config_filter $BACKEND ${AC_conf[monitor]} < $ITSDIR/slapd-consumer.ldif > $CONFLDIF
 $SLAPADD -F $CFCON -n 0 -l $CONFLDIF
 RC=$?
 if test $RC != 0 ; then

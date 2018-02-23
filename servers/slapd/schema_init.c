@@ -2249,7 +2249,7 @@ approxFilter(
 	return LDAP_SUCCESS;
 }
 
-/* Remove all spaces and '-' characters */
+/* Remove all spaces and '-' characters, unless the result would be empty */
 static int
 telephoneNumberNormalize(
 	slap_mask_t usage,
@@ -2263,8 +2263,11 @@ telephoneNumberNormalize(
 
 	assert( SLAP_MR_IS_VALUE_OF_SYNTAX( usage ) != 0 );
 
-	/* validator should have refused an empty string */
-	assert( !BER_BVISEMPTY( val ) );
+	/* Ensure q is big enough, though validator should have caught this */
+	if ( BER_BVISEMPTY( val )) {
+		BER_BVZERO( normalized );
+		return LDAP_INVALID_SYNTAX;
+	}
 
 	q = normalized->bv_val = slap_sl_malloc( val->bv_len + 1, ctx );
 
@@ -2273,15 +2276,12 @@ telephoneNumberNormalize(
 			*q++ = *p;
 		}
 	}
+	if ( q == normalized->bv_val ) {
+		*q++ = ' ';
+	}
 	*q = '\0';
 
 	normalized->bv_len = q - normalized->bv_val;
-
-	if( BER_BVISEMPTY( normalized ) ) {
-		slap_sl_free( normalized->bv_val, ctx );
-		BER_BVZERO( normalized );
-		return LDAP_INVALID_SYNTAX;
-	}
 
 	return LDAP_SUCCESS;
 }
@@ -5082,82 +5082,8 @@ csnValidate(
 	Syntax *syntax,
 	struct berval *in )
 {
-	struct berval	bv;
-	char		*ptr;
-	int		rc;
-
-	assert( in != NULL );
-	assert( !BER_BVISNULL( in ) );
-
-	if ( BER_BVISEMPTY( in ) ) {
-		return LDAP_INVALID_SYNTAX;
-	}
-
-	bv = *in;
-
-	ptr = ber_bvchr( &bv, '#' );
-	if ( ptr == NULL || ptr == &bv.bv_val[bv.bv_len] ) {
-		return LDAP_INVALID_SYNTAX;
-	}
-
-	bv.bv_len = ptr - bv.bv_val;
-	if ( bv.bv_len != STRLENOF( "YYYYmmddHHMMSS.uuuuuuZ" ) &&
-		bv.bv_len != STRLENOF( "YYYYmmddHHMMSSZ" ) )
-	{
-		return LDAP_INVALID_SYNTAX;
-	}
-
-	rc = generalizedTimeValidate( NULL, &bv );
-	if ( rc != LDAP_SUCCESS ) {
-		return rc;
-	}
-
-	bv.bv_val = ptr + 1;
-	bv.bv_len = in->bv_len - ( bv.bv_val - in->bv_val );
-
-	ptr = ber_bvchr( &bv, '#' );
-	if ( ptr == NULL || ptr == &in->bv_val[in->bv_len] ) {
-		return LDAP_INVALID_SYNTAX;
-	}
-
-	bv.bv_len = ptr - bv.bv_val;
-	if ( bv.bv_len != 6 ) {
-		return LDAP_INVALID_SYNTAX;
-	}
-
-	rc = hexValidate( NULL, &bv );
-	if ( rc != LDAP_SUCCESS ) {
-		return rc;
-	}
-
-	bv.bv_val = ptr + 1;
-	bv.bv_len = in->bv_len - ( bv.bv_val - in->bv_val );
-
-	ptr = ber_bvchr( &bv, '#' );
-	if ( ptr == NULL || ptr == &in->bv_val[in->bv_len] ) {
-		return LDAP_INVALID_SYNTAX;
-	}
-
-	bv.bv_len = ptr - bv.bv_val;
-	if ( bv.bv_len == 2 ) {
-		/* tolerate old 2-digit replica-id */
-		rc = hexValidate( NULL, &bv );
-
-	} else {
-		rc = sidValidate( NULL, &bv );
-	}
-	if ( rc != LDAP_SUCCESS ) {
-		return rc;
-	}
-
-	bv.bv_val = ptr + 1;
-	bv.bv_len = in->bv_len - ( bv.bv_val - in->bv_val );
-
-	if ( bv.bv_len != 6 ) {
-		return LDAP_INVALID_SYNTAX;
-	}
-
-	return hexValidate( NULL, &bv );
+	(void) syntax;
+	return slap_csn_verify_full(in) ? LDAP_SUCCESS : LDAP_INVALID_SYNTAX;
 }
 
 /* Normalize a CSN in OpenLDAP 2.1 format */
@@ -5548,7 +5474,10 @@ check_time_syntax (struct berval *val,
 				return LDAP_INVALID_SYNTAX;
 			}
 			for (end_num = p; end_num[-1] == '0'; --end_num) {
-				/* EMPTY */;
+				if (end_num[0] == 'Z' && end_num[1] == '\0'
+						&& val->bv_len == 22
+						&& end_num - fraction->bv_val == 7)
+					break;
 			}
 			c = end_num - fraction->bv_val;
 			if (c != 1) fraction->bv_len = c;

@@ -89,7 +89,7 @@ static unsigned long tlso_thread_self( void )
 
 	/* force an error if the ldap_pvt_thread_t type is too large */
 	enum { ok = sizeof( ldap_pvt_thread_t ) <= sizeof( unsigned long ) };
-	typedef struct { int dummy: ok ? 1 : -1; } Check[ok ? 1 : -1] MAY_UNUSED;
+	typedef struct { int dummy: ok ? 1 : -1; } Check[ok ? 1 : -1] __maybe_unused;
 
 	return (unsigned long) ldap_pvt_thread_self();
 }
@@ -405,7 +405,7 @@ tlso_ctx_init( struct ldapoptions *lo, struct ldaptls *lt, int is_server )
 #if OPENSSL_VERSION_NUMBER < 0x10100000 || defined(LIBRESSL_VERSION_NUMBER)
 	SSL_CTX_set_tmp_rsa_callback( ctx, tlso_tmp_rsa_cb );
 #endif
-#ifdef HAVE_OPENSSL_CRL
+#if defined(HAVE_OPENSSL_CRL)
 	if ( lo->ldo_tls_crlcheck ) {
 		X509_STORE *x509_s = SSL_CTX_get_cert_store( ctx );
 		if ( lo->ldo_tls_crlcheck == LDAP_OPT_X_TLS_CRL_PEER ) {
@@ -415,7 +415,7 @@ tlso_ctx_init( struct ldapoptions *lo, struct ldaptls *lt, int is_server )
 					X509_V_FLAG_CRL_CHECK | X509_V_FLAG_CRL_CHECK_ALL  );
 		}
 	}
-#endif
+#endif /* HAVE_OPENSSL_CRL */
 	return 0;
 }
 
@@ -800,6 +800,77 @@ tlso_session_peercert( tls_session *sess, struct berval *der )
 	return 0;
 }
 
+static int
+tlso_session_pinning( LDAP *ld, tls_session *sess, char *hashalg, struct berval *hash )
+{
+	tlso_session *s = (tlso_session *)sess;
+	char *tmp, digest[EVP_MAX_MD_SIZE];
+	struct berval key,
+				  keyhash = { .bv_val = digest, .bv_len = sizeof(digest) };
+	X509 *cert = SSL_get_peer_certificate(s);
+	int len, rc = LDAP_SUCCESS;
+
+	len = i2d_X509_PUBKEY( X509_get_X509_PUBKEY(cert), NULL );
+
+	key.bv_val = tmp = LDAP_MALLOC( len );
+	if ( !key.bv_val ) {
+		return -1;
+	}
+
+	key.bv_len = i2d_X509_PUBKEY( X509_get_X509_PUBKEY(cert), (unsigned char**) &tmp );
+
+	if ( hashalg ) {
+		const EVP_MD *md;
+		EVP_MD_CTX *mdctx;
+		unsigned int len = keyhash.bv_len;
+
+		md = EVP_get_digestbyname( hashalg );
+		if ( !md ) {
+			Debug( LDAP_DEBUG_TRACE, "tlso_session_pinning: "
+					"hash %s not recognised by OpenSSL\n", hashalg );
+			rc = -1;
+			goto done;
+		}
+
+#if OPENSSL_VERSION_NUMBER < 0x10100000 || defined(LIBRESSL_VERSION_NUMBER)
+		mdctx = EVP_MD_CTX_create();
+#else
+		mdctx = EVP_MD_CTX_new();
+#endif
+		if ( !mdctx ) {
+			rc = -1;
+			goto done;
+		}
+
+		EVP_DigestInit_ex( mdctx, md, NULL );
+		EVP_DigestUpdate( mdctx, key.bv_val, key.bv_len );
+		EVP_DigestFinal_ex( mdctx, (unsigned char *)keyhash.bv_val, &len );
+		keyhash.bv_len = len;
+#if OPENSSL_VERSION_NUMBER < 0x10100000 || defined(LIBRESSL_VERSION_NUMBER)
+		EVP_MD_CTX_destroy( mdctx );
+#else
+		EVP_MD_CTX_free( mdctx );
+#endif
+	} else {
+		keyhash = key;
+	}
+
+	if ( ber_bvcmp( hash, &keyhash ) ) {
+		rc = LDAP_CONNECT_ERROR;
+		Debug( LDAP_DEBUG_ANY, "tlso_session_pinning: "
+				"public key hash does not match provided pin.\n" );
+		if ( ld->ld_error ) {
+			LDAP_FREE( ld->ld_error );
+		}
+		ld->ld_error = LDAP_STRDUP(
+			"TLS: public key hash does not match provided pin" );
+	}
+
+done:
+	LDAP_FREE( key.bv_val );
+	return rc;
+}
+
 /*
  * TLS support for LBER Sockbufs
  */
@@ -1147,7 +1218,7 @@ tlso_verify_cb( int ok, X509_STORE_CTX *ctx )
 	 */
 	subject = X509_get_subject_name( cert );
 	issuer = X509_get_issuer_name( cert );
-	/* X509_NAME_oneline, if passed a NULL buf, allocate memomry */
+	/* X509_NAME_oneline, if passed a NULL buf, allocate memory */
 	sname = X509_NAME_oneline( subject, NULL, 0 );
 	iname = X509_NAME_oneline( issuer, NULL, 0 );
 	if ( !ok ) certerr = (char *)X509_verify_cert_error_string( errnum );
@@ -1239,11 +1310,13 @@ tlso_seed_PRNG( const char *randfile )
 		 * The fact is that when $HOME is NULL, .rnd is used.
 		 */
 		randfile = RAND_file_name( buffer, sizeof( buffer ) );
-
-	} else if (RAND_egd(randfile) > 0) {
+	}
+#ifndef OPENSSL_NO_EGD
+	else if (RAND_egd(randfile) > 0) {
 		/* EGD socket */
 		return 0;
 	}
+#endif
 
 	if (randfile == NULL) {
 		Debug( LDAP_DEBUG_ANY,
@@ -1297,6 +1370,7 @@ tls_impl ldap_int_tls_impl = {
 	tlso_session_version,
 	tlso_session_cipher,
 	tlso_session_peercert,
+	tlso_session_pinning,
 
 	&tlso_sbio,
 	tlso_thr_init,

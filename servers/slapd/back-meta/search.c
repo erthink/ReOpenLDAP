@@ -792,7 +792,7 @@ meta_back_search( Operation *op, SlapReply *rs )
 			timeout = 0;
 	int		rc = 0, sres = LDAP_SUCCESS;
 	char		*matched = NULL;
-	int		last MAY_UNUSED = 0, ncandidates = 0,
+	int		last __maybe_unused = 0, ncandidates = 0,
 			initial_candidates = 0, candidate_match = 0,
 			needbind = 0;
 	ldap_back_send_t	sendok = LDAP_BACK_SENDERR;
@@ -1389,7 +1389,6 @@ really_bad:;
 					}
 
 				} else if ( rc == LDAP_RES_SEARCH_RESULT ) {
-					char		buf[ SLAP_TEXT_BUFLEN ];
 					char		**references = NULL;
 					LDAPControl	**ctrls = NULL;
 
@@ -1514,18 +1513,17 @@ really_bad:;
 					sres = slap_map_api2result( rs );
 
 					if ( DebugTest( LDAP_DEBUG_TRACE | LDAP_DEBUG_ANY ) ) {
-						snprintf( buf, sizeof( buf ),
-							"%s meta_back_search[%ld] "
-							"match=\"%s\" err=%ld",
-							op->o_log_prefix, i,
-							candidates[ i ].sr_matched ? candidates[ i ].sr_matched : "",
-							(long) candidates[ i ].sr_err );
 						if ( candidates[ i ].sr_err == LDAP_SUCCESS ) {
-							Debug( LDAP_DEBUG_TRACE, "%s.\n", buf );
-
+							Debug( LDAP_DEBUG_TRACE,
+								"%s meta_back_search[%ld] match=\"%s\" SUCCESS\n",
+								op->o_log_prefix, i,
+								candidates[ i ].sr_matched ? candidates[ i ].sr_matched : "");
 						} else {
-							Debug( LDAP_DEBUG_ANY, "%s (%s) text=\"%s\".\n",
-								buf, ldap_err2string( candidates[ i ].sr_err ),
+							Debug( LDAP_DEBUG_ANY,
+								"%s meta_back_search[%ld] match=\"%s\" err=%ld (%s) text=\"%s\".\n",
+								op->o_log_prefix, i,
+								candidates[ i ].sr_matched ? candidates[ i ].sr_matched : "",
+								(long) candidates[ i ].sr_err, ldap_err2string( candidates[ i ].sr_err ),
 								candidates[ i ].sr_text ? candidates[i].sr_text : "" );
 						}
 					}
@@ -2146,15 +2144,11 @@ meta_send_entry(
 			if ( slap_bv2undef_ad( &mapped, &attr->a_desc, &text,
 				SLAP_AD_PROXIED ) != LDAP_SUCCESS )
 			{
-				char	buf[ SLAP_TEXT_BUFLEN ];
-
-				snprintf( buf, sizeof( buf ),
+				Debug( LDAP_DEBUG_ANY,
 					"%s meta_send_entry(\"%s\"): "
 					"slap_bv2undef_ad(%s): %s\n",
 					op->o_log_prefix, ent.e_name.bv_val,
-					mapped.bv_val, text );
-
-				Debug( LDAP_DEBUG_ANY, "%s", buf );
+					mapped.bv_val, text);
 				( void )ber_scanf( &ber, "x" /* [W] */ );
 				attr_free( attr );
 				continue;

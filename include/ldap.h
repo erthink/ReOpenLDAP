@@ -154,8 +154,9 @@ LDAP_BEGIN_DECL
 #define LDAP_OPT_X_TLS_CIPHER		0x6014	/* read-only */
 #define LDAP_OPT_X_TLS_PEERCERT		0x6015	/* read-only */
 #define LDAP_OPT_X_TLS_CACERT		0x6016
-#define LDAP_OPT_X_TLS_CERT		0x6017
-#define LDAP_OPT_X_TLS_KEY		0x6018
+#define LDAP_OPT_X_TLS_CERT			0x6017
+#define LDAP_OPT_X_TLS_KEY			0x6018
+#define LDAP_OPT_X_TLS_PEERKEY_HASH	0x6019
 
 #define LDAP_OPT_X_TLS_NEVER	0
 #define LDAP_OPT_X_TLS_HARD		1
@@ -1515,6 +1516,9 @@ ldap_dup LDAP_P((
 LDAP_F( int )
 ldap_init_fd LDAP_P((
 	ber_socket_t fd, int proto, LDAP_CONST char *url, LDAP **ldp ));
+
+LDAP_F( int )
+ldap_connect( LDAP *ld );
 
 /*
  * in tls.c

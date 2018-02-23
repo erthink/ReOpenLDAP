@@ -87,7 +87,6 @@ dds_expire_cb( Operation *op, SlapReply *rs )
 {
 	dds_cb_t	*dc = (dds_cb_t *)op->o_callback->sc_private;
 	dds_expire_t	*de;
-	int		rc;
 
 	switch ( rs->sr_type ) {
 	case REP_SEARCH:
@@ -102,19 +101,16 @@ dds_expire_cb( Operation *op, SlapReply *rs )
 		de->de_ndn.bv_val = (char *)&de[ 1 ];
 		memcpy( de->de_ndn.bv_val, rs->sr_entry->e_nname.bv_val,
 			rs->sr_entry->e_nname.bv_len + 1 );
-		rc = 0;
-		break;
+		return LDAP_SUCCESS;
 
 	case REP_SEARCHREF:
 	case REP_RESULT:
-		rc = rs->sr_err;
-		break;
+	case REP_EXTENDED:
+		return rs->sr_err;
 
 	default:
-		LDAP_BUG();
+		return SLAP_CB_CONTINUE;
 	}
-
-	return rc;
 }
 
 static int
@@ -526,7 +522,7 @@ dds_op_modify( Operation *op, SlapReply *rs )
 		/* the value of the entryTtl is saved for later checks */
 		if ( a != NULL ) {
 			unsigned long ttl;
-			int	MAY_UNUSED rc;
+			int	__maybe_unused rc;
 
 			bv_entryTtl.bv_len = a->a_nvals[ 0 ].bv_len;
 			memcpy( bv_entryTtl.bv_val, a->a_nvals[ 0 ].bv_val, bv_entryTtl.bv_len );
@@ -877,6 +873,72 @@ dds_op_rename( Operation *op, SlapReply *rs )
 		}
 	}
 
+	return SLAP_CB_CONTINUE;
+}
+
+/* entryTtl update for client */
+static int
+dds_response( Operation *op, SlapReply *rs )
+{
+	slap_overinst	*on = (slap_overinst *)op->o_bd->bd_info;
+	dds_info_t	*di = on->on_bi.bi_private;
+	int		rc;
+
+	if ( !DDS_OFF( di )
+	     && rs->sr_type == REP_SEARCH
+	     && attr_find( rs->sr_entry->e_attrs, slap_schema.si_ad_entryTtl ) )
+	{
+		BerVarray		vals = NULL;
+		struct lutil_tm		tm;
+		struct lutil_timet	tt;
+		char			ttlbuf[STRLENOF("31557600") + 1];
+		struct berval		ttlvalue;
+		time_t			ttl;
+		int			len;
+
+		/* User already has access to entryTtl, skip ACL checks on
+		 * entryExpireTimestamp */
+		rc = backend_attribute( op, NULL, &rs->sr_entry->e_nname,
+			ad_entryExpireTimestamp, &vals, ACL_NONE );
+		if ( rc != LDAP_SUCCESS ) {
+			return rc;
+		}
+
+		assert( vals[0].bv_val[vals[0].bv_len] == '\0' );
+		if ( lutil_parsetime( vals[0].bv_val, &tm ) ) {
+			goto done;
+		}
+
+		lutil_tm2time( &tm, &tt );
+		ttl = tt.tt_sec - op->o_time;
+		ttl = (ttl < 0) ? 0 : ttl;
+		assert( ttl <= DDS_RF2589_MAX_TTL );
+
+		len = snprintf( ttlbuf, sizeof(ttlbuf), "%ld", ttl );
+		if ( len < 0 )
+		{
+			goto done;
+		}
+		ttlvalue.bv_val = ttlbuf;
+		ttlvalue.bv_len = len;
+
+		rs_entry2modifiable( op, rs, on );
+
+		if ( attr_delete( &rs->sr_entry->e_attrs,
+				slap_schema.si_ad_entryTtl ) )
+		{
+			goto done;
+		}
+		if ( attr_merge_normalize_one( rs->sr_entry,
+				slap_schema.si_ad_entryTtl,
+				&ttlvalue, op->o_tmpmemctx ) )
+		{
+			goto done;
+		}
+
+done:;
+		ber_bvarray_free_x( vals, op->o_tmpmemctx );
+	}
 	return SLAP_CB_CONTINUE;
 }
 
@@ -1594,20 +1656,10 @@ dds_count_cb( Operation *op, SlapReply *rs )
 {
 	int	*nump = (int *)op->o_callback->sc_private;
 
-	switch ( rs->sr_type ) {
-	case REP_SEARCH:
+	if ( rs->sr_type == REP_SEARCH)
 		(*nump)++;
-		break;
 
-	case REP_SEARCHREF:
-	case REP_RESULT:
-		break;
-
-	default:
-		LDAP_BUG();
-	}
-
-	return 0;
+	return SLAP_CB_CONTINUE;
 }
 
 /* count dynamic objects existing in the database at startup */
@@ -1921,6 +1973,7 @@ dds_over_initialize()
 	dds.on_bi.bi_op_modify = dds_op_modify;
 	dds.on_bi.bi_op_modrdn = dds_op_rename;
 	dds.on_bi.bi_extended = dds_op_extended;
+	dds.on_response = dds_response;
 
 	dds.on_bi.bi_cf_ocs = dds_ocs;
 

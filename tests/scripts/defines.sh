@@ -101,6 +101,7 @@ function update_TESTDIR {
 	SEARCHFLT=$TESTDIR/ldapsearch.flt
 	SEARCHFLT2=$TESTDIR/ldapsearch2.flt
 	LDIFFLT=$TESTDIR/ldif.flt
+	LDIFFLT2=$TESTDIR/ldif2.flt
 	TESTOUT=$TESTDIR/test.out
 	INITOUT=$TESTDIR/init.out
 	SERVER1OUT=$TESTDIR/server1.out
@@ -710,13 +711,15 @@ function wait_syncrepl {
 	local scope=${3:-base}
 	local base=${4}
 	local extra=${5}
+	local limit_seconds=${6:-${SYNCREPL_WAIT}}
+	local iteration_pause=${7:-${SLEEP0}}
 	local caption=""
 	if [ -z "$base" ]; then base="$BASEDN"; else caption="$base "; fi
-	echo -n "Waiting while syncrepl replicates a changes (${caption}between $1 and $2)..."
-	sleep $SLEEP0
+	echo -n "Waiting while syncrepl replicates a changes (${caption}between $1 and $2, timeout $limit_seconds)..."
+	sleep $iteration_pause
 	local now=$(date +%s)
 	local start=$now
-	local timeout=$((now + SYNCREPL_WAIT))
+	local timeout=$((now + limit_seconds))
 
 	while true; do
 
@@ -773,7 +776,7 @@ function wait_syncrepl {
 		fi
 
 		#echo "  Waiting +SLEEP0 seconds for syncrepl to receive changes (from $1 to $2)..."
-		sleep $SLEEP0
+		sleep $iteration_pause
 	done
 }
 

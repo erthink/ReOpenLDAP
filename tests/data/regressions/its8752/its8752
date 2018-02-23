@@ -1,0 +1,224 @@
+#!/bin/bash
+## $ReOpenLDAP$
+## Copyright 1998-2018 ReOpenLDAP AUTHORS: please see AUTHORS file.
+## All rights reserved.
+##
+## This file is part of ReOpenLDAP.
+##
+## Redistribution and use in source and binary forms, with or without
+## modification, are permitted only as authorized by the OpenLDAP
+## Public License.
+##
+## A copy of this license is available in the file LICENSE in the
+## top-level directory of the distribution or, alternatively, at
+## <http://www.OpenLDAP.org/license.html>.
+
+echo "running defines.sh"
+. ${TOP_SRCDIR}/tests/scripts/defines.sh
+
+if test ${AC_conf[syncprov]} = no; then
+	echo "Syncrepl provider overlay not available, test skipped"
+	exit 0
+fi
+if test ${AC_conf[accesslog]} = no; then
+	echo "Accesslog overlay not available, test skipped"
+	exit 0
+fi
+if test $BACKEND = ldif ; then
+	# Onelevel search does not return entries in order of creation or CSN.
+	echo "$BACKEND backend unsuitable for syncprov logdb, test skipped"
+	exit 0
+fi
+
+dtest=`date +%N|sed s/...$//`
+
+if test $dtest = N; then
+	echo "nanosecond date values not supported, test skipped"
+	exit 0
+fi
+
+echo "This test tracks a case where slapd deadlocks during a significant write load"
+echo "See http://www.openldap.org/its/index.cgi/?findid=8752 for more information."
+
+MMR=4
+XDIR=$TESTDIR/srv
+
+mkdir -p $TESTDIR
+
+ITS=8752
+ITSDIR=$DATADIR/regressions/its$ITS
+
+for ((n=1; n<=$MMR; n++)); do
+	DBDIR=${XDIR}$n/db
+	mkdir -p ${XDIR}$n $DBDIR.1 $DBDIR.2
+done
+
+KILLPIDS=
+echo "Starting slapd on TCP/IP port $PORT1..."
+DBNOSYNC=yes config_filter $BACKEND ${AC_conf[monitor]} < $ITSDIR/slapd.conf > $CONF1
+$SLAPD -f $CONF1 -h $URI1 -d $LVL $TIMING > $LOG1 2>&1 &
+PID=$!
+if test $WAIT != 0 ; then
+	echo PID $PID
+	read foo
+fi
+KILLPIDS="$PID"
+check_running 1
+
+echo "Populating database on first provider..."
+$LDAPADD -D $MANAGERDN -H $URI1 -w $PASSWD << EOMODS >> $TESTOUT 2>&1
+dn: $BASEDN
+objectClass: organization
+objectClass: dcObject
+o: Example, Inc.
+dc: example
+
+dn: ou=People,$BASEDN
+objectClass: organizationalUnit
+ou: People
+
+dn: ou=Groups,$BASEDN
+objectClass: organizationalUnit
+ou: Groups
+
+dn: cn=Roger Rabbit,ou=People,$BASEDN
+objectClass: inetOrgPerson
+cn: Roger Rabbit
+sn: Rabbit
+
+dn: cn=Baby Herman,ou=People,$BASEDN
+objectClass: inetOrgPerson
+cn: Baby Herman
+sn: Herman
+
+dn: cn=Jessica_Rabbit,ou=People,$BASEDN
+objectClass: inetOrgPerson
+cn: Jessica_Rabbit
+sn: Rabbit
+
+dn: cn=Bugs_Bunny,ou=People,$BASEDN
+objectClass: inetOrgPerson
+cn: Bugs_Bunny
+sn: Bunny
+
+dn: cn=Daffy_Duck,ou=People,$BASEDN
+objectClass: inetOrgPerson
+cn: Daffy_Duck
+sn: Duck
+
+dn: cn=Elmer_Fudd,ou=People,$BASEDN
+objectClass: inetOrgPerson
+cn: Elmer_Fudd
+sn: Fudd
+
+dn: cn=Cartoonia,ou=Groups,$BASEDN
+objectClass: groupOfNames
+cn: Cartoonia
+member: cn=Roger Rabbit,ou=People,$BASEDN
+member: cn=Baby Herman,ou=People,$BASEDN
+EOMODS
+
+RC=$?
+if test $RC != 0 ; then
+	echo "ldapadd failed ($RC)!"
+	killservers
+	exit $RC
+fi
+
+echo "Stopping slapd and reworking configuration for MMR..."
+killservers
+
+KILLPIDS=
+for ((n=1; n<=$MMR; n++)); do
+	MYURI=`eval echo '$URI'$n`
+	MYLOG=`eval echo '$LOG'$n`
+	MYCONF=`eval echo '$CONF'$n`
+	echo "Starting provider slapd on TCP/IP URI $MYURI"
+	DBNOSYNC=yes config_filter $BACKEND ${AC_conf[monitor]} < $ITSDIR/slapd.conf.mmr | sed -e "s/MMR/$n/g" > $MYCONF
+
+	for ((j=1; j<=$MMR; j++)); do
+		MMCURI=`eval echo '$URI'$j`
+		sed -ie "s|MMC${j}|${MMCURI}|" $MYCONF
+	done
+
+	$SLAPD_HUGE -f $MYCONF -h $MYURI -d $LVL $TIMING |& gzip > $MYLOG.gz &
+	PID=$(jobs -p | tail -1)
+	if test $WAIT != 0 ; then
+		echo PID $PID
+		read foo
+	fi
+	KILLPIDS="$PID $KILLPIDS"
+	check_running $n
+done
+
+echo "Setting up accesslog on each master..."
+for ((n=1; n<=$MMR; n++)); do
+	echo "Modifying dn: cn=Elmer_Fudd,ou=People,dc=example,dc=com on master $n"
+	MYURI=`eval echo '$URI'$n`
+	$LDAPMODIFY -v -D "$MANAGERDN" -H $MYURI -w $PASSWD > \
+		$TESTOUT 2>&1 << EOMODS
+
+dn: cn=Elmer_Fudd,ou=People,$BASEDN
+changetype: modify
+replace: sn
+sn: Fudd
+EOMODS
+	RC=$?
+	if test $RC != 0 ; then
+		echo "ldapmodify failed ($RC)!"
+		killservers
+		exit $RC
+	fi
+	sleep $SLEEP1
+done
+
+NNN=42000
+if [ -n "$CI" -o -n "$CIBUZZ_PID4" ]; then
+	NNN=4200
+fi
+
+echo "Sleeping $SYNCREPL_WAIT seconds to ensure replication is reconciled between all nodes"
+echo "The next step of the test will perform $NNN random write operations and may take some time."
+echo "As this test is for a deadlock, it will take manual intervention to exit the test if one occurs."
+sleep $SYNCREPL_WAIT
+
+echo "Starting random master/entry modifications..."
+DN1="cn=Elmer_Fudd,ou=People,$BASEDN"
+VAL1="Fudd"
+
+DN2="cn=Jessica_Rabbit,ou=People,$BASEDN"
+VAL2="Rabbit"
+
+DN3="cn=Bugs_Bunny,ou=People,$BASEDN"
+VAL3="Bunny"
+
+DN4="cn=Daffy_Duck,ou=People,$BASEDN"
+VAL4="Duck"
+
+for ((n=1; n<=$NNN; n++)); do
+	rvalue=$(( RANDOM % 4 + 1 ))
+	MYURI=`eval echo '$URI'$rvalue`
+	rvalue=$(( RANDOM % 4 + 1 ))
+	MYDN=`eval echo '$DN'$rvalue`
+	rvalue=$(( RANDOM % 4 + 1 ))
+	MYVAL=`eval echo '$VAL'$rvalue`
+	(( n % 250 == 1 )) && echo "Modifying $MYURI entry $MYDN with value $MYVAL iteration $n of $NNN"
+	$LDAPMODIFY -v -D "$MANAGERDN" -H $MYURI -w $PASSWD > \
+		$TESTOUT 2>&1 << EOMODS
+
+dn: $MYDN
+changetype: modify
+replace: sn
+sn: $MYVAL
+EOMODS
+	RC=$?
+	if test $RC != 0 ; then
+		echo "ldapmodify failed ($RC, $MYURI, $MYDN, $MYVAL)!"
+		killservers
+		exit $RC
+	fi
+done
+
+killservers
+echo ">>>>> Test succeeded"
+exit 0

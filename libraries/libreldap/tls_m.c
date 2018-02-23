@@ -724,7 +724,7 @@ nss_parse_ciphers(const char *cipherstr, int cipher_list[ciphernum])
 						continue;
 					if ( protocol && ! (ciphers_def[i].version & protocol) )
 						continue;
-					/* Enable the NULL ciphers only if explicity requested */
+					/* Enable the NULL ciphers only if explicitly requested */
 					if (ciphers_def[i].attr & SSL_eNULL) {
 						if (mask & SSL_eNULL)
 							cipher_list[i] = action;
@@ -1240,6 +1240,8 @@ tlsm_auth_cert_handler(void *arg, PRFileDesc *fd,
 	return ret;
 }
 
+static PRCallOnceType tlsm_register_shutdown_callonce = {0,0};
+
 static SECStatus
 tlsm_nss_shutdown_cb( void *appData, void *nssData )
 {
@@ -1252,10 +1254,15 @@ tlsm_nss_shutdown_cb( void *appData, void *nssData )
 		SECMOD_DestroyModule( pem_module );
 		pem_module = NULL;
 	}
+
+	/* init callonce so it can be armed again for cases like persistent daemon with LDAP_OPT_X_TLS_NEWCTX */
+	tlsm_register_shutdown_callonce.initialized = 0;
+	tlsm_register_shutdown_callonce.inProgress = 0;
+	tlsm_register_shutdown_callonce.status = 0;
+
 	return rc;
 }
 
-static PRCallOnceType tlsm_register_shutdown_callonce = {0,0};
 static PRStatus PR_CALLBACK
 tlsm_register_nss_shutdown_cb( void )
 {
@@ -1696,7 +1703,7 @@ tlsm_get_certdb_prefix( const char *certdir, char **realcertdir, char **prefix )
 }
 
 /*
- * Currently mutiple MozNSS contexts share one certificate storage. When the
+ * Currently multiple MozNSS contexts share one certificate storage. When the
  * certdb is being opened, only new certificates are added to the storage.
  * When different databases are used, conflicting nicknames make the
  * certificate lookup by the nickname impossible. In addition a token
@@ -3484,6 +3491,7 @@ tls_impl ldap_int_tls_impl = {
 	tlsm_session_version,
 	tlsm_session_cipher,
 	tlsm_session_peercert,
+	NULL,
 
 	&tlsm_sbio,
 

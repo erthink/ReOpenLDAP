@@ -41,6 +41,11 @@ configure() {
 }
 
 flag_autoconf=0
+if [ ! -x configure ]; then
+	notice "info: NOT saw ./configure, will bootstrap"
+	flag_autoconf=1
+fi
+
 flag_dist=0
 if [ -e configure.ac ]; then
 	notice "info: saw modern ./configure.ac"
@@ -191,7 +196,6 @@ for arg in "$@"; do
 	--no-clean | --do-not-clean)
 		flag_clean=0
 		flag_dist=0
-		flag_autoconf=0
 		;;
 	--size)
 		flag_O=-Os

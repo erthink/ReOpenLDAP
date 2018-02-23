@@ -116,7 +116,7 @@ int MatchingComponentBool (char* oid, ComponentSyntaxInfo *a, ComponentSyntaxInf
 #define FreeComponentBool(v) NULL
 
 /*
- * ENUMERTED
+ * ENUMERATED
  */
 typedef struct ComponentEnum {
 	void* syntax;

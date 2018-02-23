@@ -502,7 +502,7 @@ int main( int argc, char **argv )
 			slap_set_debug_level(mask);
 #else
 			if ( mask != 0 || debug_unknowns )
-				fputs( "must configure with --enable-debug for debugging\n", stderr );
+				fputs( "must be configured with '--enable-debug' for debugging\n", stderr );
 #endif /* LDAP_DEBUG */
 			} break;
 
@@ -960,7 +960,7 @@ unhandled_option:;
 	Debug( LDAP_DEBUG_ANY, "slapd starting\n" );
 
 	if ( !no_detach ) {
-		int ignore MAY_UNUSED = write( waitfds[1], "1", 1 );
+		int ignore __maybe_unused = write( waitfds[1], "1", 1 );
 		close( waitfds[1] );
 	}
 

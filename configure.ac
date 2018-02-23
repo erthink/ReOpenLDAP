@@ -575,6 +575,24 @@ PKG_CHECK_MODULES(HEIMDAL, heimdal-krb5 heimdal-kadm-server, heimdal_found=yes, 
 AC_SUBST(HEIMDAL_LIBS)
 AC_SUBST(HEIMDAL_CFLAGS)
 AM_CONDITIONAL([HEIMDAL_AVAIL], [test $heimdal_found = yes])
+if test $heimdal_found == yes; then
+	AC_MSG_CHECKING([for hdb_generate_key_set_password() signature])
+	saved_cflags="$CFLAGS"
+	CFLAGS="$CFLAGS $HEIMDAL_CFLAGS"
+	AC_COMPILE_IFELSE(
+		[AC_LANG_PROGRAM(
+		[[#include <heimdal/hdb.h>]],
+		[[krb5_context context; krb5_principal principal; Key *key; size_t size;]
+		[krb5_error_code rc = hdb_generate_key_set_password(context, principal, "", &key, &size);]
+		[return (int) rc;]])
+		],[
+			AC_MSG_RESULT([modern])
+			AC_DEFINE(HAVE_MODERN_HDB_GENERATE_KEY_SET_PASSWORD, 1, [Does hdb_generate_key_set_password() signature is modern])
+		],[
+			AC_MSG_RESULT([legacy])
+	])
+	CFLAGS="$saved_cflags"
+fi
 
 dnl ----------------------------------------------------------------
 # libsodium (argon2 hash)
@@ -674,8 +692,6 @@ if test $ol_enable_spasswd = yes ; then
 	fi
 	ol_with_cyrus_sasl=yes
 fi
-
-AC_MSG_RESULT(done)
 
 dnl ----------------------------------------------------------------
 dnl Initialize vars
@@ -922,7 +938,7 @@ AC_CHECK_FUNC(select, :, AC_MSG_ERROR([select() required.]))
 
 if test "${ac_cv_header_winsock_h}" != yes; then
 	dnl Select arg types
-	dnl (if this detection becomes permenent, it and the select() detection
+	dnl (if this detection becomes permanent, it and the select() detection
 	dnl should be done before the yielding select test)
 	AC_FUNC_SELECT_ARGTYPES
 fi
@@ -1528,7 +1544,7 @@ pthread_rwlock_t rwlock;
 			AC_DEFINE(HAVE_PTHREAD_DETACH,1,
 				[define if you have pthread_detach function])
 
-			dnl Check for setconcurreny functions
+			dnl Check for setconcurrency functions
 			AC_CHECK_FUNCS(	\
 				pthread_setconcurrency \
 				pthread_getconcurrency \
@@ -1805,7 +1821,7 @@ hosts_access(req)
 		AC_DEFINE(HAVE_TCPD,1, [define if you have -lwrap])
 		SLAPD_TCPWRAP_LIBS="$SLAPD_TCPWRAP_LIBS -lwrap"
 	elif test $ol_enable_wrappers = yes ; then
-		AC_MSG_ERROR([could not find TCP wrappers, select apppropriate options or disable])
+		AC_MSG_ERROR([could not find TCP wrappers, select appropriate options or disable])
 	else
 		AC_MSG_WARN([could not find TCP wrappers, support disabled])
 	fi
@@ -1990,8 +2006,8 @@ if test $ol_with_cyrus_sasl != no ; then
 
 		ac_save_LIBS="$LIBS"
 		LIBS="$LIBS $ol_link_sasl"
-		AC_CHECK_FUNC(sasl_version, [AC_DEFINE(HAVE_SASL_VERSION,1,
-			[define if your SASL library has sasl_version()])])
+		AC_CHECK_FUNC(sasl_version_info, [AC_DEFINE(HAVE_SASL_VERSION,1,
+			[define if your SASL library has sasl_version_info()])])
 		LIBS="$ac_save_LIBS"
 
 		WITH_SASL=yes
@@ -2056,10 +2072,16 @@ if test $ol_enable_crypt != no ; then
 		AC_CHECK_LIB(crypt, crypt, [LUTIL_LIBS="$LUTIL_LIBS -lcrypt"
 			have_crypt=yes], [have_crypt=no])])
 
+	LIBS="$TLS_LIBS $LIBS"
+	AC_CHECK_LIB(crypt, crypt_r, [have_crypt_r=yes], [have_crypt_r=no])
+
 	LIBS="$save_LIBS"
 
 	if test $have_crypt = yes ; then
 		AC_DEFINE(HAVE_CRYPT,1, [define if crypt(3) is available])
+		if test $have_crypt_r = yes ; then
+			AC_DEFINE(HAVE_CRYPT_R, 1, [define if crypt_r() is also available])
+		fi
 	else
 		AC_MSG_WARN([could not find crypt])
 		if test $ol_enable_crypt = yes ; then
@@ -2871,7 +2893,6 @@ AC_SUBST(LDAP_LIBSLAPI_LA)
 
 dnl ----------------------------------------------------------------
 
-#AC_SUBST(LIBSRCS)
 AC_SUBST(WITH_SASL)
 AC_SUBST(WITH_TLS)
 AC_SUBST(WITH_ACI_ENABLED)
@@ -2883,8 +2904,6 @@ AM_CONDITIONAL([WITH_GSSAPI], [test $ol_with_gssapi = yes])
 if test $enable_shared = yes; then
 	AC_DEFINE(RELDAP_LIBS_SHARED,1,[--enable-shared=yes])
 fi
-#RELDAP_LIBS_SHARED=$enable_shared
-#AC_SUBST(RELDAP_LIBS_SHARED)
 
 AM_CONDITIONAL([BEHIND_CURTIAN], [test -x $ac_aux_dir/mkbanner -a -x $ac_aux_dir/BRANDING])
 if test -x $ac_aux_dir/mkbanner -a -x $ac_aux_dir/BRANDING; then
@@ -3163,7 +3182,9 @@ if test -x $ac_aux_dir/BRANDING; then
 fi
 
 AM_SUBST_NOTMAKE(COMMON_MK, "include ${top_srcdir}/build/common.mk")
-AC_SUBST(AM_CFLAGS, "\$(EXTRA_CFLAGS)")
+AC_SUBST(AM_EXTRA_CFLAGS, "\$(if \$(subst undefined,,\$(flavor EXTRA_CFLAGS)),\$(EXTRA_CFLAGS),${EXTRA_CFLAGS})")
+AC_SUBST(AM_CFLAGS, "\$(AM_EXTRA_CFLAGS)")
+AM_SUBST_NOTMAKE(EXTRA_CFLAGS)
 
 AC_OUTPUT
 
@@ -3173,3 +3194,6 @@ if sed -i -e 's/\$pic_flag_for_symtable /&`echo -- "\$LTCFLAGS" | grep -q -w -- 
 else
 	AC_MSG_RESULT([something went wrong, not supported])
 fi
+
+dnl ----------------------------------------------------------------
+AC_MSG_RESULT(done)

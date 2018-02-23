@@ -35,7 +35,22 @@
 
 static int
 ldap_build_entry( Operation *op, LDAPMessage *e, Entry *ent,
-	 struct berval *bdn );
+	 struct berval *bdn, int remove_unknown_schema );
+
+
+static ObjectClass *
+oc_bvfind_undef_ex( struct berval *ocname, int flag )
+{
+	ObjectClass	*oc	= oc_bvfind( ocname );
+
+	if ( oc || flag ) {
+		/* oc defined or remove-unknown-schema flag set */
+		return oc;
+	}
+
+	return oc_bvfind_undef( ocname );
+}
+
 
 /*
  * replaces (&) with (objectClass=*) and (|) with (!(objectClass=*))
@@ -145,6 +160,9 @@ ldap_back_search(
 	int		do_retry = 1, dont_retry = 0;
 	LDAPControl	**ctrls = NULL;
 	char		**references = NULL;
+	int		remove_unknown_schema =
+				 LDAP_BACK_OMIT_UNKNOWN_SCHEMA (li);
+	const void* const origin_filter_data = op->ors_filterstr.bv_val;
 
 	rs_assert_ready( rs );
 	rs->sr_flags &= ~REP_ENTRY_MASK; /* paranoia, we can set rs = non-entry */
@@ -352,7 +370,8 @@ retry:
 			do_retry = 0;
 
 			e = ldap_first_entry( lc->lc_ld, res );
-			rc = ldap_build_entry( op, e, &ent, &bdn );
+			rc = ldap_build_entry( op, e, &ent, &bdn,
+						remove_unknown_schema);
 			if ( rc == LDAP_SUCCESS ) {
 				ldap_get_entry_controls( lc->lc_ld, res, &rs->sr_ctrls );
 				rs->sr_entry = &ent;
@@ -600,7 +619,7 @@ finish:;
 		ldap_back_quarantine( op, rs );
 	}
 
-	if ( filter.bv_val != op->ors_filterstr.bv_val ) {
+	if ( filter.bv_val != origin_filter_data ) {
 		op->o_tmpfree( filter.bv_val, op->o_tmpmemctx );
 	}
 
@@ -658,7 +677,8 @@ ldap_build_entry(
 		Operation	*op,
 		LDAPMessage	*e,
 		Entry		*ent,
-		struct berval	*bdn )
+		struct berval	*bdn,
+		int remove_unknown_schema)
 {
 	struct berval	a;
 	BerElement	ber = *ldap_get_message_ber( e );
@@ -712,7 +732,7 @@ ldap_build_entry(
 				!= LDAP_SUCCESS )
 		{
 			if ( slap_bv2undef_ad( &a, &attr->a_desc, &text,
-				SLAP_AD_PROXIED ) != LDAP_SUCCESS )
+				 (remove_unknown_schema ? SLAP_AD_NOINSERT : SLAP_AD_PROXIED )) != LDAP_SUCCESS )
 			{
 				Debug( LDAP_DEBUG_ANY,
 					"%s ldap_build_entry: "
@@ -790,7 +810,8 @@ ldap_build_entry(
 
 				/* check if, by chance, it's an undefined objectClass */
 				if ( attr->a_desc == slap_schema.si_ad_objectClass &&
-						( oc = oc_bvfind_undef( &attr->a_vals[i] ) ) != NULL )
+						( oc = oc_bvfind_undef_ex( &attr->a_vals[i],
+								remove_unknown_schema ) ) != NULL )
 				{
 					ber_dupbv( &pval, &oc->soc_cname );
 					rc = LDAP_SUCCESS;
@@ -916,6 +937,8 @@ ldap_back_entry_get(
 	LDAPControl	**ctrls = NULL;
 	Operation op2 = *op;
 
+	int		remove_unknown_schema =
+				LDAP_BACK_OMIT_UNKNOWN_SCHEMA (li);
 	*ent = NULL;
 
 	/* Tell getconn this is a privileged op */
@@ -991,7 +1014,7 @@ retry:
 		goto cleanup;
 	}
 
-	rc = ldap_build_entry( op, e, *ent, &bdn );
+	rc = ldap_build_entry( op, e, *ent, &bdn, remove_unknown_schema );
 
 	if ( rc != LDAP_SUCCESS ) {
 		entry_free( *ent );

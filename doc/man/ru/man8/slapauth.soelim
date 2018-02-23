@@ -158,6 +158,6 @@ slapauth \- проверка списка представленных в вид
 .BR slapd (8),
 .BR slaptest (8)
 .LP
-"Руководство администратора OpenLDAP" (http://www.OpenLDAP.org/doc/admin/, http://pro-ldap.ru/tr/admin24/).
+"Руководство администратора OpenLDAP" (http://www.OpenLDAP.org/doc/admin/, https://pro-ldap.ru/tr/admin24/).
 .SH "ПРИЗНАНИЕ ЗАСЛУГ"
 .so ../Project

@@ -99,6 +99,9 @@ olcSyncrepl: {2}rid=101 provider=@URI1@ binddn="cn=manager,dc=example,dc=com
 #indexdb#olcDbIndex: givenName pres,eq,sub
 #indexdb#olcDbIndex: member
 #be=mdb#olcDbMaxSize: 33554432
+#be=mdb,dbnosync=yes#olcDbNosync: TRUE
+#be=bdb,dbnosync=yes#olcDbNosync: TRUE
+#be=hdb,dbnosync=yes#oldDbnosync: TRUE
 
 dn: olcOverlay={0}dynlist,olcDatabase={1}@BACKEND@,cn=config
 objectClass: olcOverlayConfig

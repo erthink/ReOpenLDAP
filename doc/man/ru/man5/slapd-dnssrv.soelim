@@ -1,0 +1,61 @@
+.\" $ReOpenLDAP$
+.\" Copyright 1992-2018 ReOpenLDAP AUTHORS: please see AUTHORS file.
+.\" All rights reserved.
+.\"
+.\" This file is part of ReOpenLDAP.
+.\"
+.\" Redistribution and use in source and binary forms, with or without
+.\" modification, are permitted only as authorized by the OpenLDAP
+.\" Public License.
+.\"
+.\" A copy of this license is available in the file LICENSE in the
+.\" top-level directory of the distribution or, alternatively, at
+.\" <http://www.OpenLDAP.org/license.html>.
+
+.TH SLAPD-DNSSRV 5 "@RELEASE_DATE@" "ReOpenLDAP @VERSION@"
+
+.SH НАЗВАНИЕ
+slapd\-dnssrv \- механизм манипуляции данными для slapd генерации отсылок на основании DNS SRV
+
+.SH СИНТАКСИС
+@SYSCONFDIR@/slapd.conf
+
+.SH ОПИСАНИЕ
+Механизм манипуляции данными для
+.BR slapd (8)
+DNSSRV предназначен для раздачи отсылок, основанных на содержащихся в системе доменных имён DNS
+ресурсных записях SRV.
+.LP
+Этот механизм манипуляции данными является экспериментальным.
+.SH КОНФИГУРАЦИЯ
+У механизма DNSSRV нет специфичных для самого механизма и его базы данных директив конфигурации. Он
+настраивается просто указанием директивы "database dnssrv", за которой следует директива suffix,
+например suffix "".
+.SH КОНТРОЛЬ ДОСТУПА
+Механизм манипуляции данными
+.B dnssrv
+не соблюдает каких-либо семантик ACL, описанных в man-странице
+.BR slapd.access (5).
+Фактически, этот механизм манипуляции данными реализует только операцию
+.BR search ,
+если используется элемент управления
+.B manageDSAit
+(RFC 3296), в противном случае для всех операций возвращается отсылка, когда это возможно и целесообразно,
+либо ошибка. В настоящее время нет способа проверять условия возвращения отсылок средствами ACL;
+контроль доступа не реализован, за исключением проверки доступа на чтение
+.B read (=r)
+возвращаемых записей, которая в действительности обеспечивается механизмом frontend. Однако следует
+иметь ввиду, что информация, возвращаемая этим механизмом манипуляции данными, собирается посредством DNS,
+то есть она является открытой по определению.
+.SH ФАЙЛЫ
+.TP
+@SYSCONFDIR@/slapd.conf
+конфигурационный файл slapd по умолчанию.
+.br
+.SH СМОТРИТЕ ТАКЖЕ
+\fB"Корневой сервис OpenLDAP, экспериментальный сервис отсылок LDAP"\fR [RFC 3088],
+.br
+\fB"Корневой сервис LDAP от OpenLDAP"\fR <http://www.openldap.org/faq/?file=393>,
+.br
+.BR slapd.conf (5),
+.BR slapd (8)

@@ -102,13 +102,13 @@ static volatile int waking;
 #ifdef NO_THREADS
 #define WAKE_LISTENER(l,w)	do { \
 	if ((w) && ++waking < 5) { \
-		int ignore MAY_UNUSED = tcp_write( SLAP_FD2SOCK(wake_sds[l][1]), "0", 1 ); \
+		int ignore __maybe_unused = tcp_write( SLAP_FD2SOCK(wake_sds[l][1]), "0", 1 ); \
 	} \
 } while (0)
 #else /* ! NO_THREADS */
 #define WAKE_LISTENER(l,w)	do { \
 	if (w) { \
-		int ignore MAY_UNUSED = tcp_write( SLAP_FD2SOCK(wake_sds[l][1]), "0", 1 ); \
+		int ignore __maybe_unused = tcp_write( SLAP_FD2SOCK(wake_sds[l][1]), "0", 1 ); \
 	} \
 } while (0)
 #endif /* ! NO_THREADS */
@@ -161,7 +161,9 @@ volatile sig_atomic_t _slapd_abrupt_shutdown = 0;
 static ldap_pvt_thread_mutex_t	sd_tcpd_mutex;
 #endif /* TCP Wrappers */
 
+#ifdef __SANITIZE_THREAD__
 static pthread_mutex_t tsan_mutex = PTHREAD_MUTEX_INITIALIZER;
+#endif
 
 typedef struct slap_daemon_st {
 	ldap_pvt_thread_mutex_t	sd_mutex;
@@ -440,7 +442,7 @@ static slap_daemon_st slap_daemon[SLAPD_MAX_DAEMON_THREADS];
 	SLAP_DEVPOLL_SOCK_LX(t,(s)) = (l); \
 	SLAP_DEVPOLL_SOCK_FD(t,(s)) = (s); \
 	SLAP_DEVPOLL_SOCK_EV(t,(s)) = POLLIN; \
-	SLAP_DEVPOLL_WRITE_POLLFD(t,(s), &SLAP_DEVPOLL_SOCK_EP((s)), 1, "ADD", 1); \
+	SLAP_DEVPOLL_WRITE_POLLFD(t,(s), &SLAP_DEVPOLL_SOCK_EP(t, (s)), 1, "ADD", 1); \
 	slap_daemon[t].sd_nfds++; \
 } while (0)
 
@@ -475,8 +477,18 @@ static slap_daemon_st slap_daemon[SLAPD_MAX_DAEMON_THREADS];
 # define SLAP_EVENT_IS_WRITE(i)		SLAP_DEVPOLL_EVENT_CHK((i), POLLOUT)
 # define SLAP_EVENT_IS_ERROR(i)		SLAP_DEVPOLL_EVENT_CHK((i), (POLLERR | POLLHUP))
 
-# define SLAP_EVENT_IS_LISTENER(t,i)	SLAP_DEVPOLL_EV_LISTENER(SLAP_DEVPOLL_SOCK_LX(SLAP_EVENT_FD(t,(i))))
-# define SLAP_EVENT_LISTENER(t,i)		SLAP_DEVPOLL_SOCK_LX(SLAP_EVENT_FD(t,(i)))
+# define SLAP_EVENT_IS_LISTENER(t,i)	SLAP_DEVPOLL_EV_LISTENER(SLAP_DEVPOLL_SOCK_LX(t, SLAP_EVENT_FD(t,(i))))
+# define SLAP_EVENT_LISTENER(t,i)		SLAP_DEVPOLL_SOCK_LX(t, SLAP_EVENT_FD(t,(i)))
+
+# define SLAP_SOCK_DESTROY(t)		do { \
+	if ( slap_daemon[t].sd_pollfd != NULL ) { \
+		ch_free( slap_daemon[t].sd_pollfd ); \
+		slap_daemon[t].sd_pollfd = NULL; \
+		slap_daemon[t].sd_index = NULL; \
+		slap_daemon[t].sd_l = NULL; \
+		close( slap_daemon[t].sd_dpfd ); \
+	} \
+} while ( 0 )
 
 # define SLAP_SOCK_INIT(t)		do { \
 	slap_daemon[t].sd_pollfd = ch_calloc( 1, \
@@ -490,7 +502,7 @@ static slap_daemon_st slap_daemon[SLAPD_MAX_DAEMON_THREADS];
 		Debug( LDAP_DEBUG_ANY, "daemon: " SLAP_EVENT_FNAME ": " \
 			"open(\"" SLAP_EVENT_FNAME "\") failed errno=%d\n", \
 			errno ); \
-		SLAP_SOCK_DESTROY; \
+		SLAP_SOCK_DESTROY(t); \
 		return -1; \
 	} \
 	for ( i = 0; i < dtblsize; i++ ) { \
@@ -498,16 +510,6 @@ static slap_daemon_st slap_daemon[SLAPD_MAX_DAEMON_THREADS];
 		slap_daemon[t].sd_index[i] = -1; \
 	} \
 } while (0)
-
-# define SLAP_SOCK_DESTROY(t)		do { \
-	if ( slap_daemon[t].sd_pollfd != NULL ) { \
-		ch_free( slap_daemon[t].sd_pollfd ); \
-		slap_daemon[t].sd_pollfd = NULL; \
-		slap_daemon[t].sd_index = NULL; \
-		slap_daemon[t].sd_l = NULL; \
-		close( slap_daemon[t].sd_dpfd ); \
-	} \
-} while ( 0 )
 
 # define SLAP_EVENT_DECL		struct pollfd *revents
 
@@ -749,9 +751,13 @@ slapd_add( ber_socket_t s, int isactive, Listener *sl, int id )
 
 	if ( isactive ) slap_daemon[id].sd_nactives++;
 
+#ifdef __SANITIZE_THREAD__
 	ldap_pvt_thread_mutex_lock( &tsan_mutex );
+#endif
 	SLAP_SOCK_ADD(id, s, sl);
+#ifdef __SANITIZE_THREAD__
 	ldap_pvt_thread_mutex_unlock( &tsan_mutex );
+#endif
 
 	Debug( LDAP_DEBUG_CONNS, "daemon: added %ldr%s listener=%p\n",
 		(long) s, isactive ? " (active)" : "", (void *)sl );
@@ -779,7 +785,9 @@ slapd_remove(
 	if ( !locked )
 		ldap_pvt_thread_mutex_lock( &slap_daemon[id].sd_mutex );
 
+#ifdef __SANITIZE_THREAD__
 	ldap_pvt_thread_mutex_lock( &tsan_mutex );
+#endif
 	assert( SLAP_SOCK_IS_ACTIVE( id, s ));
 
 	if ( wasactive ) slap_daemon[id].sd_nactives--;
@@ -823,7 +831,9 @@ slapd_remove(
 		 */
 		if ( slap_listeners[i] == NULL ) emfile = 0;
 	}
+#ifdef __SANITIZE_THREAD__
 	ldap_pvt_thread_mutex_unlock( &tsan_mutex );
+#endif
 	ldap_pvt_thread_mutex_unlock( &slap_daemon[id].sd_mutex );
 	WAKE_LISTENER(id, wake || slapd_gentle_shutdown);
 }
@@ -1730,10 +1740,14 @@ slap_listener(
 	/* Resume the listener FD to allow concurrent-processing of
 	 * additional incoming connections.
 	 */
+#ifdef __SANITIZE_THREAD__
 	ldap_pvt_thread_mutex_lock( &tsan_mutex );
+#endif
 	sl->sl_busy = 0;
 	WAKE_LISTENER(DAEMON_ID(sl->sl_sd),1);
+#ifdef __SANITIZE_THREAD__
 	ldap_pvt_thread_mutex_unlock( &tsan_mutex );
+#endif
 
 	if ( s == AC_SOCKET_INVALID ) {
 		int err = sock_errno();
@@ -1986,7 +2000,9 @@ slap_listener_activate(
 {
 	int rc;
 
+#ifdef __SANITIZE_THREAD__
 	ldap_pvt_thread_mutex_lock( &tsan_mutex );
+#endif
 	Debug( LDAP_DEBUG_TRACE, "slap_listener_activate(%d): %s%s\n",
 		sl->sl_sd, sl->sl_mute ? " muted" : "", sl->sl_busy ? " busy" : "" );
 
@@ -2003,7 +2019,9 @@ slap_listener_activate(
 		sl->sl_busy = 0; /* LY: ?! */
 	}
 
+#ifdef __SANITIZE_THREAD__
 	ldap_pvt_thread_mutex_unlock( &tsan_mutex );
+#endif
 	return rc;
 }
 
@@ -2288,7 +2306,9 @@ loop:
 
 		ldap_pvt_thread_mutex_lock( &slap_daemon[tid].sd_mutex );
 
+#ifdef __SANITIZE_THREAD__
 		ldap_pvt_thread_mutex_lock( &tsan_mutex );
+#endif
 #if SLAP_EVENTS_ARE_INDEXED
 		const int nwriters = slap_daemon[tid].sd_nwriters;
 #endif
@@ -2298,6 +2318,7 @@ loop:
 
 			if ( lr->sl_sd == AC_SOCKET_INVALID ) continue;
 			if ( DAEMON_ID( lr->sl_sd ) != tid ) continue;
+			if ( !SLAP_SOCK_IS_ACTIVE( tid, lr->sl_sd )) continue;
 
 			if ( lr->sl_mute || lr->sl_busy )
 			{
@@ -2306,7 +2327,9 @@ loop:
 				SLAP_SOCK_SET_READ( tid, lr->sl_sd );
 			}
 		}
+#ifdef __SANITIZE_THREAD__
 		ldap_pvt_thread_mutex_unlock( &tsan_mutex );
+#endif
 
 		SLAP_EVENT_INIT(tid);
 		slap_time_t	*tvp = (tv.ns && slap_daemon[tid].sd_nactives)
@@ -2348,7 +2371,9 @@ loop:
 			}
 		}
 
+#ifdef __SANITIZE_THREAD__
 		ldap_pvt_thread_mutex_lock( &tsan_mutex );
+#endif
 		for ( int l = 0; slap_listeners[l] != NULL; l++ ) {
 			Listener *lr = slap_listeners[l];
 
@@ -2368,7 +2393,9 @@ loop:
 				"listen=%d tvp=%s%" PRIu64 "\n",
 				lr->sl_sd, tvp == NULL ? "NULL/" : "", tvp ? tvp->ns : 0 );
 		}
+#ifdef __SANITIZE_THREAD__
 		ldap_pvt_thread_mutex_unlock( &tsan_mutex );
+#endif
 
 		int	ns;
 		SLAP_EVENT_WAIT( tid, tvp, &ns );
@@ -2596,7 +2623,7 @@ loop:
 				if ( fd == wake_sds[tid][0] ) {
 					char c[BUFSIZ];
 					waking = 0;
-					int ignore MAY_UNUSED = tcp_read( SLAP_FD2SOCK(wake_sds[tid][0]), c, sizeof(c) );
+					int ignore __maybe_unused = tcp_read( SLAP_FD2SOCK(wake_sds[tid][0]), c, sizeof(c) );
 					continue;
 				}
 
@@ -2671,7 +2698,7 @@ loop:
 		       "daemon: no active streams, shutdown initiated.\n" );
 	}
 
-	close_listeners( 0 );
+	close_listeners( 1 );
 
 	if ( !slapd_gentle_shutdown ) {
 		set_abrupt_shutdown( 1 );
@@ -2847,12 +2874,16 @@ void
 slap_suspend_listeners( void )
 {
 	int i;
+#ifdef __SANITIZE_THREAD__
 	ldap_pvt_thread_mutex_lock( &tsan_mutex );
+#endif
 	for (i=0; slap_listeners[i]; i++) {
 		slap_listeners[i]->sl_mute = 1;
 		listen( slap_listeners[i]->sl_sd, 0 );
 	}
+#ifdef __SANITIZE_THREAD__
 	ldap_pvt_thread_mutex_unlock( &tsan_mutex );
+#endif
 }
 
 /* Resume after a suspend */
@@ -2860,12 +2891,16 @@ void
 slap_resume_listeners( void )
 {
 	int i;
+#ifdef __SANITIZE_THREAD__
 	ldap_pvt_thread_mutex_lock( &tsan_mutex );
+#endif
 	for (i=0; slap_listeners[i]; i++) {
 		slap_listeners[i]->sl_mute = 0;
 		listen( slap_listeners[i]->sl_sd, SLAPD_LISTEN_BACKLOG );
 	}
+#ifdef __SANITIZE_THREAD__
 	ldap_pvt_thread_mutex_unlock( &tsan_mutex );
+#endif
 }
 
 void

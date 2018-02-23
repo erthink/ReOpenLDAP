@@ -88,7 +88,7 @@ ldap_pvt_close_socket(LDAP *ld, int s)
 #define TRACE do { \
 	char ebuf[128]; \
 	oslocal_debug(ld, \
-		"ldap_is_socket_ready: errror on socket %d: errno: %d (%s)\n", \
+		"ldap_is_socket_ready: error on socket %d: errno: %d (%s)\n", \
 		s, \
 		errno, \
 		AC_STRERROR_R(errno, ebuf, sizeof ebuf)); \
@@ -128,7 +128,7 @@ ldap_pvt_is_socket_ready(LDAP *ld, int s)
 		== AC_SOCKET_ERROR )
 	{
 		/* XXX: needs to be replace with ber_stream_read() */
-		int ignore MAY_UNUSED = read(s, &ch, 1);
+		int ignore __maybe_unused = read(s, &ch, 1);
 		TRACE;
 		return -1;
 	}
@@ -339,5 +339,5 @@ ldap_connect_to_path(LDAP *ld, Sockbuf *sb, LDAPURLDesc *srv, int async)
 	return rc;
 }
 #else
-static int dummy;
+static int dummy; /* generate also a warning: 'dummy' defined but not used (at least here) */
 #endif /* LDAP_PF_LOCAL */

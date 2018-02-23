@@ -1145,7 +1145,7 @@ slap_acl_mask(
 	i = 1;
 
 	for ( ; b != NULL; b = b->a_next, i++ ) {
-		slap_mask_t oldmask MAY_UNUSED, modmask;
+		slap_mask_t oldmask __maybe_unused, modmask;
 
 		ACL_INVALIDATE( modmask );
 

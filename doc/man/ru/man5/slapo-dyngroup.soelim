@@ -1,0 +1,61 @@
+.\" $ReOpenLDAP$
+.\" Copyright 1992-2018 ReOpenLDAP AUTHORS: please see AUTHORS file.
+.\" All rights reserved.
+.\"
+.\" This file is part of ReOpenLDAP.
+.\"
+.\" Redistribution and use in source and binary forms, with or without
+.\" modification, are permitted only as authorized by the OpenLDAP
+.\" Public License.
+.\"
+.\" A copy of this license is available in the file LICENSE in the
+.\" top-level directory of the distribution or, alternatively, at
+.\" <http://www.OpenLDAP.org/license.html>.
+
+.TH SLAPO-DYNGROUP 5 "@RELEASE_DATE@" "ReOpenLDAP @VERSION@"
+
+.SH НАЗВАНИЕ
+slapo\-dyngroup \- наложение динамических групп для slapd
+
+.SH ОБЗОР
+@SYSCONFDIR@/slapd.conf
+
+.SH ОПИСАНИЕ
+Наложение динамических групп позволяет клиентам использовать LDAP-операцию Compare для проверки
+членства в динамической группе сходным образом с выполнением подобной проверки в статической группе.
+Операция Compare, нацеленная на сравнение утверждения со значениями атрибута статического членства
+в группе, перехватывается, и сравнение происходит со значениями, возвращаемыми в результате поиска
+по URL из атрибута, указанного в настройках динамической группы.
+.LP
+Имейте ввиду, что такой перехват происходит, только если первоначальная операция Compare не возвращает
+результат LDAP_COMPARE_TRUE. То есть, если в группе имеются как статические, так и динамические члены,
+сначала будут проверены статические члены группы.
+.SH КОНФИГУРАЦИЯ
+Данная директива конфигурации
+.B slapd.conf
+применяется к наложению динамических групп. Она должна присутствовать после директивы
+.BR overlay .
+.TP
+.B attrpair <memberAttr> <URLattr>
+Определяет атрибуты, со значениями которых должно выполняться сравнение. Попытка выполнения операции
+Compare со значениями атрибута, указанного в
+.IR memberAttr ,
+приведёт к выполнению поиска записей по URL, получаемому из значения атрибута, указанного в аргументе
+.IR URLattr .
+Окончательное сравнение будет произведено с результатами, которые вернёт этот поиск.
+.SH ПРИМЕРЫ
+.nf
+  database bdb
+  ...
+  overlay dyngroup
+  attrpair member memberURL
+.fi
+.SH ФАЙЛЫ
+.TP
+@SYSCONFDIR@/slapd.conf
+конфигурационный файл slapd по умолчанию.
+.SH СМОТРИТЕ ТАКЖЕ
+.BR slapd.conf (5),
+.BR slapd\-config (5).
+.SH АВТОР
+Howard Chu

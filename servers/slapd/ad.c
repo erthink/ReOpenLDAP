@@ -537,7 +537,9 @@ int is_ad_subtype(
 	return is_ad_subtags( &sub->ad_tags, &super->ad_tags );
 }
 
+#ifdef __SANITIZE_THREAD__
 static pthread_mutex_t tsan_mutex = PTHREAD_MUTEX_INITIALIZER;
+#endif
 
 int ad_inlist(
 	AttributeDescription *desc,
@@ -613,7 +615,9 @@ int ad_inlist(
 		 * attributes which the class does not require/allow
 		 */
 		if ( !( slap_tsan__read_int(&attrs->an_flags) & SLAP_AN_OCINITED )) {
+#ifdef __SANITIZE_THREAD__
 			ldap_pvt_thread_mutex_lock( &tsan_mutex );
+#endif
 			if( !(attrs->an_flags & SLAP_AN_OCINITED) ) {
 				if ( attrs->an_name.bv_val ) {
 					switch( attrs->an_name.bv_val[0] ) {
@@ -638,7 +642,9 @@ int ad_inlist(
 				}
 				attrs->an_flags |= SLAP_AN_OCINITED;
 			}
+#ifdef __SANITIZE_THREAD__
 			ldap_pvt_thread_mutex_unlock( &tsan_mutex );
+#endif
 		}
 		oc = slap_tsan__read_ptr(&attrs->an_oc);
 		if( oc != NULL ) {

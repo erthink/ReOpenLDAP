@@ -124,6 +124,6 @@ slaptest \- проверка правильности конфигурации �
 .BR slapd (8),
 .BR slapdn (8)
 .LP
-"Руководство администратора OpenLDAP" (http://www.OpenLDAP.org/doc/admin/, http://pro-ldap.ru/tr/admin24/).
+"Руководство администратора OpenLDAP" (http://www.OpenLDAP.org/doc/admin/, https://pro-ldap.ru/tr/admin24/).
 .SH "ПРИЗНАНИЕ ЗАСЛУГ"
 .so ../Project

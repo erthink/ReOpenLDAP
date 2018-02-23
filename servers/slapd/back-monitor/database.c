@@ -113,7 +113,7 @@ monitor_subsys_overlay_init_one(
 	Entry			*e_overlay;
 	slap_overinst		*on2;
 	slap_overinfo		*oi = NULL;
-	BackendInfo		*bi MAY_UNUSED;
+	BackendInfo		*bi __maybe_unused;
 	monitor_entry_t		*mp_overlay;
 	struct berval		bv;
 

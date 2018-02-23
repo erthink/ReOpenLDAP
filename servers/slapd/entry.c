@@ -817,7 +817,7 @@ entry_decode_dn( EntryHeader *eh, struct berval *dn, struct berval *ndn )
 
 int entry_decode(EntryHeader *eh, Entry **e)
 {
-	int i, j, nattrs, nvals MAY_UNUSED;
+	int i, j, nattrs, nvals __maybe_unused;
 	int rc;
 	Attribute *a;
 	Entry *x;

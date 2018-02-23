@@ -35,7 +35,7 @@ failMatch(
 	void *assertedValue )
 {
 	int match;
-	struct berval *asserted MAY_UNUSED = (struct berval *) assertedValue;
+	struct berval *asserted __maybe_unused = (struct berval *) assertedValue;
 
 	assert( matchp != NULL );
 	assert( value != NULL );
