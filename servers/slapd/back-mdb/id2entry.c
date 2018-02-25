@@ -92,6 +92,7 @@ mdb_id2v_dupsort(
 			| SLAP_MR_ATTRIBUTE_VALUE_NORMALIZED_MATCH,
 			ad->ad_type->sat_syntax, mr, &bv1, &bv2);
 		assert(rc == LDAP_SUCCESS);
+		(void) rc;
 	} else {
 		match = ber_bvcmp(&bv1, &bv2);
 	}
