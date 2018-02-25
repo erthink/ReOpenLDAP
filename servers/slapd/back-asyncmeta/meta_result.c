@@ -229,15 +229,12 @@ asyncmeta_send_entry(
 			if ( slap_bv2undef_ad( &mapped, &attr->a_desc, &text,
 				SLAP_AD_PROXIED ) != LDAP_SUCCESS )
 			{
-				char	buf[ SLAP_TEXT_BUFLEN ];
-
-				snprintf( buf, sizeof( buf ),
+				Debug( LDAP_DEBUG_ANY,
 					"%s meta_send_entry(\"%s\"): "
 					"slap_bv2undef_ad(%s): %s\n",
 					op->o_log_prefix, ent.e_name.bv_val,
 					mapped.bv_val, text );
 
-				Debug( LDAP_DEBUG_ANY, "%s", buf );
 				( void )ber_scanf( &ber, "x" /* [W] */ );
 				op->o_tmpfree( attr, op->o_tmpmemctx );
 				continue;
@@ -1099,22 +1096,14 @@ asyncmeta_handle_search_msg(LDAPMessage *res, a_metaconn_t *mc, bm_context_t *bc
 
 			sres = slap_map_api2result( rs );
 
-			if ( DebugTest( LDAP_DEBUG_TRACE | LDAP_DEBUG_ANY ) ) {
-				char buf[ SLAP_TEXT_BUFLEN ];
-				snprintf( buf, sizeof( buf ),
-					  "%s asyncmeta_search_result[%d] "
-					  "match=\"%s\" err=%d",
-					  op.o_log_prefix, i,
-					  candidates[ i ].sr_matched ? candidates[ i ].sr_matched : "",
-					  candidates[ i ].sr_err );
-				if ( candidates[ i ].sr_err == LDAP_SUCCESS ) {
-					Debug( LDAP_DEBUG_TRACE, "%s.\n", buf );
-
-				} else {
-					Debug( LDAP_DEBUG_ANY, "%s (%s).\n",
-						   buf, ldap_err2string( candidates[ i ].sr_err ) );
-				}
-			}
+			Debug( (candidates[ i ].sr_err == LDAP_SUCCESS)
+				? LDAP_DEBUG_ANY : LDAP_DEBUG_TRACE,
+				"%s asyncmeta_search_result[%d] "
+				"match=\"%s\" err=%d (%s)\n",
+				op.o_log_prefix, i,
+				candidates[ i ].sr_matched ? candidates[ i ].sr_matched : "",
+				candidates[ i ].sr_err,
+				ldap_err2string( candidates[ i ].sr_err ) );
 
 			switch ( sres ) {
 			case LDAP_NO_SUCH_OBJECT:
