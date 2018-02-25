@@ -167,7 +167,9 @@ volatile sig_atomic_t _slapd_abrupt_shutdown = 0;
 static ldap_pvt_thread_mutex_t	sd_tcpd_mutex;
 #endif /* TCP Wrappers */
 
+#ifdef __SANITIZE_THREAD__
 static pthread_mutex_t tsan_mutex = PTHREAD_MUTEX_INITIALIZER;
+#endif
 
 typedef struct slap_daemon_st {
 	ldap_pvt_thread_mutex_t	sd_mutex;
@@ -755,9 +757,13 @@ slapd_add( ber_socket_t s, int isactive, Listener *sl, int id )
 
 	if ( isactive ) slap_daemon[id].sd_nactives++;
 
+#ifdef __SANITIZE_THREAD__
 	ldap_pvt_thread_mutex_lock( &tsan_mutex );
+#endif
 	SLAP_SOCK_ADD(id, s, sl);
+#ifdef __SANITIZE_THREAD__
 	ldap_pvt_thread_mutex_unlock( &tsan_mutex );
+#endif
 
 	Debug( LDAP_DEBUG_CONNS, "daemon: added %ldr%s listener=%p\n",
 		(long) s, isactive ? " (active)" : "", (void *)sl );
@@ -785,7 +791,9 @@ slapd_remove(
 	if ( !locked )
 		ldap_pvt_thread_mutex_lock( &slap_daemon[id].sd_mutex );
 
+#ifdef __SANITIZE_THREAD__
 	ldap_pvt_thread_mutex_lock( &tsan_mutex );
+#endif
 	assert( SLAP_SOCK_IS_ACTIVE( id, s ));
 
 	if ( wasactive ) slap_daemon[id].sd_nactives--;
@@ -829,7 +837,9 @@ slapd_remove(
 		 */
 		if ( slap_listeners[i] == NULL ) emfile = 0;
 	}
+#ifdef __SANITIZE_THREAD__
 	ldap_pvt_thread_mutex_unlock( &tsan_mutex );
+#endif
 	ldap_pvt_thread_mutex_unlock( &slap_daemon[id].sd_mutex );
 	WAKE_LISTENER(id, wake || slapd_gentle_shutdown);
 }
@@ -1748,10 +1758,14 @@ slap_listener(
 	/* Resume the listener FD to allow concurrent-processing of
 	 * additional incoming connections.
 	 */
+#ifdef __SANITIZE_THREAD__
 	ldap_pvt_thread_mutex_lock( &tsan_mutex );
+#endif
 	sl->sl_busy = 0;
 	WAKE_LISTENER(DAEMON_ID(sl->sl_sd),1);
+#ifdef __SANITIZE_THREAD__
 	ldap_pvt_thread_mutex_unlock( &tsan_mutex );
+#endif
 
 	if ( s == AC_SOCKET_INVALID ) {
 		int err = sock_errno();
@@ -2004,7 +2018,9 @@ slap_listener_activate(
 {
 	int rc;
 
+#ifdef __SANITIZE_THREAD__
 	ldap_pvt_thread_mutex_lock( &tsan_mutex );
+#endif
 	Debug( LDAP_DEBUG_TRACE, "slap_listener_activate(%d): %s%s\n",
 		sl->sl_sd, sl->sl_mute ? " muted" : "", sl->sl_busy ? " busy" : "" );
 
@@ -2021,7 +2037,9 @@ slap_listener_activate(
 		sl->sl_busy = 0; /* LY: ?! */
 	}
 
+#ifdef __SANITIZE_THREAD__
 	ldap_pvt_thread_mutex_unlock( &tsan_mutex );
+#endif
 	return rc;
 }
 
@@ -2308,7 +2326,9 @@ loop:
 
 		ldap_pvt_thread_mutex_lock( &slap_daemon[tid].sd_mutex );
 
+#ifdef __SANITIZE_THREAD__
 		ldap_pvt_thread_mutex_lock( &tsan_mutex );
+#endif
 #if SLAP_EVENTS_ARE_INDEXED
 		const int nwriters = slap_daemon[tid].sd_nwriters;
 #endif
@@ -2327,7 +2347,9 @@ loop:
 				SLAP_SOCK_SET_READ( tid, lr->sl_sd );
 			}
 		}
+#ifdef __SANITIZE_THREAD__
 		ldap_pvt_thread_mutex_unlock( &tsan_mutex );
+#endif
 
 		SLAP_EVENT_INIT(tid);
 		slap_time_t	*tvp = (tv.ns && slap_daemon[tid].sd_nactives)
@@ -2369,7 +2391,9 @@ loop:
 			}
 		}
 
+#ifdef __SANITIZE_THREAD__
 		ldap_pvt_thread_mutex_lock( &tsan_mutex );
+#endif
 		for ( int l = 0; slap_listeners[l] != NULL; l++ ) {
 			Listener *lr = slap_listeners[l];
 
@@ -2389,7 +2413,9 @@ loop:
 				"listen=%d tvp=%s%" PRIu64 "\n",
 				lr->sl_sd, tvp == NULL ? "NULL/" : "", tvp ? tvp->ns : 0 );
 		}
+#ifdef __SANITIZE_THREAD__
 		ldap_pvt_thread_mutex_unlock( &tsan_mutex );
+#endif
 
 		int	ns;
 		SLAP_EVENT_WAIT( tid, tvp, &ns );
@@ -2868,12 +2894,16 @@ void
 slap_suspend_listeners( void )
 {
 	int i;
+#ifdef __SANITIZE_THREAD__
 	ldap_pvt_thread_mutex_lock( &tsan_mutex );
+#endif
 	for (i=0; slap_listeners[i]; i++) {
 		slap_listeners[i]->sl_mute = 1;
 		listen( slap_listeners[i]->sl_sd, 0 );
 	}
+#ifdef __SANITIZE_THREAD__
 	ldap_pvt_thread_mutex_unlock( &tsan_mutex );
+#endif
 }
 
 /* Resume after a suspend */
@@ -2881,12 +2911,16 @@ void
 slap_resume_listeners( void )
 {
 	int i;
+#ifdef __SANITIZE_THREAD__
 	ldap_pvt_thread_mutex_lock( &tsan_mutex );
+#endif
 	for (i=0; slap_listeners[i]; i++) {
 		slap_listeners[i]->sl_mute = 0;
 		listen( slap_listeners[i]->sl_sd, SLAPD_LISTEN_BACKLOG );
 	}
+#ifdef __SANITIZE_THREAD__
 	ldap_pvt_thread_mutex_unlock( &tsan_mutex );
+#endif
 }
 
 void
