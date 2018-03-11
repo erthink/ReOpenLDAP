@@ -145,6 +145,7 @@ typedef struct syncinfo_s {
 	char	si_syncdata;
 	char	si_logstate;
 	char	si_too_old;
+	char	si_has_syncprov;
 	char	si_keep_cookie4search;
 	char	si_ridtxt[ STRLENOF("rid=999") + 1 ];
 	char	si_cutoff_csnbuf[ LDAP_PVT_CSNSTR_BUFSIZE ];
@@ -166,7 +167,7 @@ static int syncrepl_entry(
 					struct sync_cookie *syncCookie );
 static int syncrepl_cookie_push(
 					syncinfo_t *, Operation *,
-					struct sync_cookie * );
+					struct sync_cookie *, int need_save );
 static void syncrepl_cookie_pull(
 					Operation *op,
 					syncinfo_t *si );
@@ -606,6 +607,7 @@ syncrepl_pull_contextCSN(
 		}
 		if ( a.a_nvals != a.a_vals )
 			ber_bvarray_free( a.a_vals );
+		si->si_has_syncprov = 1;
 	}
 
 	return vector;
@@ -728,10 +730,9 @@ syncrepl_start(
 			}
 		} else {
 			ldap_pvt_thread_mutex_lock( &si->si_cookieState->cs_mutex );
-			if ( !si->si_cookieState->cs_cookie.numcsns ) {
-				/* get contextCSN shadow replica from database */
-				syncrepl_pull_contextCSN ( op, si );
-			}
+			/* Get contextCSN shadow replica from database */
+			/* Also look in syncprov overlay, if it was already active */
+			syncrepl_pull_contextCSN( op, si );
 			slap_cookie_copy( &si->si_syncCookie, &si->si_cookieState->cs_cookie );
 			si->si_cookieAge = si->si_cookieState->cs_age;
 			ldap_pvt_thread_mutex_unlock( &si->si_cookieState->cs_mutex );
@@ -1088,7 +1089,7 @@ syncrepl_process(
 			if ( si->si_syncdata && si->si_logstate == SYNCLOG_LOGBASED ) {
 				rc = syncrepl_message_to_op( si, op, msg );
 				if ( rc == LDAP_SUCCESS ) {
-					rc = syncrepl_cookie_push( si, op, &syncCookie );
+					rc = syncrepl_cookie_push( si, op, &syncCookie, 0 );
 				} else switch ( rc ) {
 					case LDAP_ALREADY_EXISTS:
 					case LDAP_NO_SUCH_OBJECT:
@@ -1116,7 +1117,7 @@ syncrepl_process(
 					rc = syncrepl_entry( si, op, entry, &modlist,
 						syncstate, syncUUID, &syncCookie );
 				if ( rc == LDAP_SUCCESS )
-					rc = syncrepl_cookie_push( si, op, &syncCookie );
+					rc = syncrepl_cookie_push( si, op, &syncCookie, 0 );
 				slap_mods_free( modlist, 1 );
 			}
 
@@ -1235,7 +1236,7 @@ syncrepl_process(
 				goto done;
 			}
 			if ( lead >= 0 && rc == LDAP_SUCCESS )
-				rc = syncrepl_cookie_push( si, op, &syncCookie );
+				rc = syncrepl_cookie_push( si, op, &syncCookie, 1 );
 			if ( rc == LDAP_SUCCESS && si->si_syncCookie.numcsns == 0 )
 				rc = LDAP_UNWILLING_TO_PERFORM;
 			syncrepl_refresh_done( si, rc );
@@ -1380,7 +1381,7 @@ syncrepl_process(
 				}
 
 				if ( lead >= 0 && rc == LDAP_SUCCESS )
-					rc = syncrepl_cookie_push( si, op, &syncCookie);
+					rc = syncrepl_cookie_push( si, op, &syncCookie, 1);
 
 				if ( refreshDone )
 					syncrepl_refresh_done( si, rc );
@@ -4153,7 +4154,8 @@ static int
 syncrepl_cookie_push(
 	syncinfo_t *si,
 	Operation *op,
-	struct sync_cookie *syncCookie )
+	struct sync_cookie *syncCookie,
+	int need_save )
 {
 	struct sync_cookie sc;
 	int rc, lead;
@@ -4237,7 +4239,10 @@ syncrepl_cookie_push(
 		op->o_req_ndn = si->si_contextdn;
 
 		/* update contextCSN */
-		op->o_dont_replicate = 1;
+		op->o_dont_replicate = !need_save;
+		/* avoid timestamp collisions */
+		if ( need_save )
+				slap_op_time( &op->o_time, &op->o_tincr );
 		mod.sml_numvals = si->si_syncCookie.numcsns;
 		mod.sml_values = si->si_syncCookie.ctxcsn;
 		op->orm_modlist = &mod;

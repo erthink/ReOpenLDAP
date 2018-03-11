@@ -2238,17 +2238,21 @@ syncprov_op_response( Operation *op, SlapReply *rs )
 		}
 
 		/* Don't do any processing for consumer contextCSN updates */
-		if ( op->o_dont_replicate ) {
+		if ( SLAPD_SYNC_IS_SYNCCONN( op->o_connid ) &&
+			op->o_tag == LDAP_REQ_MODIFY &&
+			op->orm_modlist->sml_op == LDAP_MOD_REPLACE &&
+			op->orm_modlist->sml_desc == slap_schema.si_ad_contextCSN ) {
 			/* Catch contextCSN updates from syncrepl. We have to look at
 			 * all the attribute values, as there may be more than one csn
 			 * that changed, and only one can be passed in the csn queue. */
-			if ( op->o_tag != LDAP_REQ_MODIFY ||
-					op->orm_modlist->sml_op != LDAP_MOD_REPLACE ||
-					op->orm_modlist->sml_desc != slap_schema.si_ad_contextCSN ||
-					!syncprov_new_ctxcsn_and_mayrwunlock(opc, si,
-						op->orm_modlist->sml_values, csn_changed)) {
+			if (!syncprov_new_ctxcsn_and_mayrwunlock(opc, si, op->orm_modlist->sml_values, csn_changed))
 				ldap_pvt_thread_rdwr_wunlock( &si->si_csn_rwlock );
-			}
+			goto leave;
+		}
+		if ( op->o_dont_replicate ) {
+			if ( csn_changed )
+				si->si_numops++;
+			ldap_pvt_thread_rdwr_wunlock( &si->si_csn_rwlock );
 			goto leave;
 		}
 
