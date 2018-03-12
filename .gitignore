@@ -23,7 +23,6 @@ docker/slapd.test.conf
 /include/lber_types.h
 /include/ldap_dirs.h
 /include/ldap_features.h
-INSTALL
 *.la
 libraries/liblunicode/ucgendat
 libraries/liblunicode/uctable.h
