@@ -53,12 +53,28 @@
 
 #endif /* no prototypes */
 
-#ifndef __has_feature
-#	define __has_feature(x) (0)
+#ifndef __has_attribute
+#   define __has_attribute(x) (0)
 #endif
 
-#ifndef __has_attribute
-#	define __has_attribute(x) (0)
+#ifndef __has_feature
+#   define __has_feature(x) (0)
+#endif
+
+#ifndef __has_extension
+#   define __has_extension(x) (0)
+#endif
+
+#ifndef __has_builtin
+#   define __has_builtin(x) (0)
+#endif
+
+#ifndef __has_warning
+#   define __has_warning(x) (0)
+#endif
+
+#ifndef __has_include
+#   define __has_include(x) (0)
 #endif
 
 #ifndef __GNUC_PREREQ
