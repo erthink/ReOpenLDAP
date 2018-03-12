@@ -543,21 +543,19 @@ lutil_str2bin( struct berval *in, struct berval *out, void *ctx )
 		return -1;
 
 	char *pin, *end;
-	int i, chunk, len, rc = 0, hex = 0;
+	int i, chunk, len, rc = 0;
 	/* Leading "0x" for hex input */
 	if ( in->bv_len > 2 && in->bv_val[0] == '0' &&
 		( in->bv_val[1] == 'x' || in->bv_val[1] == 'X' ) )
 	{
 		len = in->bv_len - 2;
 		pin = in->bv_val + 2;
-		hex = 1;
 	} else if ( in->bv_len > 3 && in->bv_val[0] == '\'' &&
 		in->bv_val[in->bv_len-2] == '\'' &&
 		in->bv_val[in->bv_len-1] == 'H' )
 	{
 		len = in->bv_len - 3;
 		pin = in->bv_val + 1;
-		hex = 1;
 	} else {
 	/* Decimal */
 #define	DECMAX	8	/* 8 digits at a time */
