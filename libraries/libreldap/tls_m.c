@@ -3091,12 +3091,12 @@ tlsm_PR_Close(PRFileDesc *fd)
 }
 
 static PRStatus PR_CALLBACK
-tlsm_PR_Shutdown(PRFileDesc *fd, PRShutdownHow how)
+tlsm_PR_Shutdown(PRFileDesc *fd, PRIntn how)
 {
 	int rc = PR_SUCCESS;
 
 	if ( fd->lower ) {
-		rc = PR_Shutdown( fd->lower, how );
+		rc = PR_Shutdown( fd->lower, (PRShutdownHow) how );
 	}
 
 	return rc;
@@ -3218,81 +3218,218 @@ tlsm_PR_GetSocketOption(PRFileDesc *fd, PRSocketOptionData *data)
 	return PR_SUCCESS;
 }
 
-static PRStatus PR_CALLBACK
-tlsm_PR_prs_unimp()
-{
-    PR_SetError(PR_NOT_IMPLEMENTED_ERROR, 0);
-    return PR_FAILURE;
+static PRInt32 PR_CALLBACK tlsm_PR_Available_unimp(PRFileDesc *fd) {
+  (void) fd;
+  PR_SetError(PR_NOT_IMPLEMENTED_ERROR, 0);
+  return -1;
 }
 
-static PRFileDesc * PR_CALLBACK
-tlsm_PR_pfd_unimp()
-{
-    PR_SetError(PR_NOT_IMPLEMENTED_ERROR, 0);
-    return NULL;
+static PRInt64 PR_CALLBACK tlsm_PR_Available64_unimp(PRFileDesc *fd) {
+  (void) fd;
+  PR_SetError(PR_NOT_IMPLEMENTED_ERROR, 0);
+  return -1;
 }
 
-static PRInt16 PR_CALLBACK
-tlsm_PR_i16_unimp()
-{
-    PR_SetError(PR_NOT_IMPLEMENTED_ERROR, 0);
-    return SECFailure;
+static PRStatus PR_CALLBACK tlsm_PR_Fsync_unimp(PRFileDesc *fd) {
+  (void) fd;
+  PR_SetError(PR_NOT_IMPLEMENTED_ERROR, 0);
+  return PR_FAILURE;
 }
 
-static PRInt32 PR_CALLBACK
-tlsm_PR_i32_unimp()
-{
-    PR_SetError(PR_NOT_IMPLEMENTED_ERROR, 0);
-    return SECFailure;
+static PROffset32 PR_CALLBACK tlsm_PR_Seek_unimp(PRFileDesc *fd, PROffset32 offset, PRSeekWhence how) {
+  (void) fd;
+  (void) offset;
+  (void) how;
+  PR_SetError(PR_NOT_IMPLEMENTED_ERROR, 0);
+  return -1;
 }
 
-static PRInt64 PR_CALLBACK
-tlsm_PR_i64_unimp()
-{
-    PRInt64 res;
+static PROffset64 PR_CALLBACK tlsm_PR_Seek64_unimp(PRFileDesc *fd, PROffset64 offset, PRSeekWhence how) {
+  (void) fd;
+  (void) offset;
+  (void) how;
+  PR_SetError(PR_NOT_IMPLEMENTED_ERROR, 0);
+  return -1;
+}
 
-    PR_SetError(PR_NOT_IMPLEMENTED_ERROR, 0);
-    LL_I2L(res, -1L);
-    return res;
+static PRStatus PR_CALLBACK tlsm_PR_FileInfo_unimp(PRFileDesc *fd, PRFileInfo *info) {
+  (void) fd;
+  (void) info;
+  PR_SetError(PR_NOT_IMPLEMENTED_ERROR, 0);
+  return PR_FAILURE;
+}
+
+static PRStatus PR_CALLBACK tlsm_PR_FileInfo64_unimp(PRFileDesc *fd, PRFileInfo64 *info) {
+  (void) fd;
+  (void) info;
+  PR_SetError(PR_NOT_IMPLEMENTED_ERROR, 0);
+  return PR_FAILURE;
+}
+
+static PRInt32 PR_CALLBACK tlsm_PR_Writev_unimp(PRFileDesc *fd, const PRIOVec *iov, PRInt32 iov_size, PRIntervalTime timeout) {
+  (void) fd;
+  (void) iov;
+  (void) iov_size;
+  (void) timeout;
+  PR_SetError(PR_NOT_IMPLEMENTED_ERROR, 0);
+  return PR_FAILURE;
+}
+
+static PRStatus PR_CALLBACK tlsm_PR_Connect_unimp( PRFileDesc *fd, const PRNetAddr *addr, PRIntervalTime timeout) {
+  (void) fd;
+  (void) addr;
+  (void) timeout;
+  PR_SetError(PR_NOT_IMPLEMENTED_ERROR, 0);
+  return PR_FAILURE;
+}
+
+static PRFileDesc* PR_CALLBACK tlsm_PR_Accept_unimp( PRFileDesc *fd, PRNetAddr *addr, PRIntervalTime timeout) {
+  (void) fd;
+  (void) addr;
+  (void) timeout;
+  PR_SetError(PR_NOT_IMPLEMENTED_ERROR, 0);
+  return NULL;
+}
+
+static PRStatus PR_CALLBACK tlsm_PR_Bind_unimp(PRFileDesc *fd, const PRNetAddr *addr) {
+  (void) fd;
+  (void) addr;
+  PR_SetError(PR_NOT_IMPLEMENTED_ERROR, 0);
+  return PR_FAILURE;
+}
+
+static PRStatus PR_CALLBACK tlsm_PR_Listen_unimp(PRFileDesc *fd, PRIntn backlog) {
+  (void) fd;
+  (void) backlog;
+  PR_SetError(PR_NOT_IMPLEMENTED_ERROR, 0);
+  return PR_FAILURE;
+}
+
+static PRInt32 PR_CALLBACK tlsm_PR_RecvFrom_unimp(PRFileDesc *fd, void *buf, PRInt32 amount, PRIntn flags, PRNetAddr *addr, PRIntervalTime timeout) {
+  (void) fd;
+  (void) buf;
+  (void) amount;
+  (void) flags;
+  (void) addr;
+  (void) timeout;
+  PR_SetError(PR_NOT_IMPLEMENTED_ERROR, 0);
+  return -1;
+}
+
+static PRInt32 PR_CALLBACK tlsm_PR_SendTo_unimp(PRFileDesc *fd, const void *buf, PRInt32 amount, PRIntn flags, const PRNetAddr *addr, PRIntervalTime timeout) {
+  (void) fd;
+  (void) buf;
+  (void) amount;
+  (void) flags;
+  (void) addr;
+  (void) timeout;
+  PR_SetError(PR_NOT_IMPLEMENTED_ERROR, 0);
+  return -1;
+}
+
+static PRInt16 PR_CALLBACK tlsm_PR_Poll_unimp(PRFileDesc *fd, PRInt16 in_flags, PRInt16 *out_flags) {
+  (void) fd;
+  (void) in_flags;
+  (void) out_flags;
+  PR_SetError(PR_NOT_IMPLEMENTED_ERROR, 0);
+  return -1;
+}
+
+static PRInt32 PR_CALLBACK tlsm_PR_AcceptRead_unimp(PRFileDesc *sd, PRFileDesc **nd, PRNetAddr **raddr, void *buf, PRInt32 amount, PRIntervalTime t) {
+  (void) sd;
+  (void) nd;
+  (void) raddr;
+  (void) buf;
+  (void) amount;
+  (void) t;
+  PR_SetError(PR_NOT_IMPLEMENTED_ERROR, 0);
+  return -1;
+}
+
+static PRInt32 PR_CALLBACK tlsm_PR_TransmitFile_unimp(PRFileDesc *sd, PRFileDesc *fd, const void *headers, PRInt32 hlen, PRTransmitFileFlags flags, PRIntervalTime t) {
+  (void) sd;
+  (void) fd;
+  (void) headers;
+  (void) hlen;
+  (void) flags;
+  (void) t;
+  PR_SetError(PR_NOT_IMPLEMENTED_ERROR, 0);
+  return -1;
+}
+
+static PRStatus PR_CALLBACK tlsm_PR_GetSockName_unimp(PRFileDesc *fd, PRNetAddr *addr) {
+  (void) fd;
+  (void) addr;
+  PR_SetError(PR_NOT_IMPLEMENTED_ERROR, 0);
+  return PR_FAILURE;
+}
+
+static PRStatus PR_CALLBACK tlsm_PR_SetSocketOption_unimp(PRFileDesc *fd, const PRSocketOptionData *data) {
+  (void) fd;
+  (void) data;
+  PR_SetError(PR_NOT_IMPLEMENTED_ERROR, 0);
+  return PR_FAILURE;
+}
+
+static PRInt32 PR_CALLBACK tlsm_PR_SendFile_unimp(PRFileDesc *networkSocket, PRSendFileData *sendData, PRTransmitFileFlags flags, PRIntervalTime timeout) {
+  (void) networkSocket;
+  (void) sendData;
+  (void) flags;
+  (void) timeout;
+  PR_SetError(PR_NOT_IMPLEMENTED_ERROR, 0);
+  return -1;
+}
+
+static PRStatus PR_CALLBACK tlsm_PR_ConnectContinue_unimp(PRFileDesc *fd, PRInt16 out_flags) {
+  (void) fd;
+  (void) out_flags;
+  PR_SetError(PR_NOT_IMPLEMENTED_ERROR, 0);
+  return PR_FAILURE;
+}
+
+static PRIntn PR_CALLBACK tlsm_PR_Reserved_unimp(PRFileDesc *fd) {
+  (void) fd;
+  PR_SetError(PR_NOT_IMPLEMENTED_ERROR, 0);
+  return -1;
 }
 
 static const PRIOMethods tlsm_PR_methods = {
     PR_DESC_LAYERED,
-    tlsm_PR_Close,			/* close        */
-    tlsm_PR_Read,			/* read         */
-    tlsm_PR_Write,			/* write        */
-    tlsm_PR_i32_unimp,		/* available    */
-    tlsm_PR_i64_unimp,		/* available64  */
-    tlsm_PR_prs_unimp,		/* fsync        */
-    tlsm_PR_i32_unimp,		/* seek         */
-    tlsm_PR_i64_unimp,		/* seek64       */
-    tlsm_PR_prs_unimp,		/* fileInfo     */
-    tlsm_PR_prs_unimp,		/* fileInfo64   */
-    tlsm_PR_i32_unimp,		/* writev       */
-    tlsm_PR_prs_unimp,		/* connect      */
-    tlsm_PR_pfd_unimp,		/* accept       */
-    tlsm_PR_prs_unimp,		/* bind         */
-    tlsm_PR_prs_unimp,		/* listen       */
-    (PRShutdownFN)tlsm_PR_Shutdown,			/* shutdown     */
-    tlsm_PR_Recv,			/* recv         */
-    tlsm_PR_Send,			/* send         */
-    tlsm_PR_i32_unimp,		/* recvfrom     */
-    tlsm_PR_i32_unimp,		/* sendto       */
-    (PRPollFN)tlsm_PR_i16_unimp,	/* poll         */
-    tlsm_PR_i32_unimp,		/* acceptread   */
-    tlsm_PR_i32_unimp,		/* transmitfile */
-    tlsm_PR_prs_unimp,		/* getsockname  */
-    tlsm_PR_GetPeerName,	/* getpeername  */
-    tlsm_PR_i32_unimp,		/* getsockopt   OBSOLETE */
-    tlsm_PR_i32_unimp,		/* setsockopt   OBSOLETE */
-    tlsm_PR_GetSocketOption,		/* getsocketoption   */
-    tlsm_PR_i32_unimp,		/* setsocketoption   */
-    tlsm_PR_i32_unimp,		/* Send a (partial) file with header/trailer*/
-    (PRConnectcontinueFN)tlsm_PR_prs_unimp,		/* connectcontinue */
-    tlsm_PR_i32_unimp,		/* reserved for future use */
-    tlsm_PR_i32_unimp,		/* reserved for future use */
-    tlsm_PR_i32_unimp,		/* reserved for future use */
-    tlsm_PR_i32_unimp		/* reserved for future use */
+    tlsm_PR_Close,
+    tlsm_PR_Read,
+    tlsm_PR_Write,
+    tlsm_PR_Available_unimp,
+    tlsm_PR_Available64_unimp,
+    tlsm_PR_Fsync_unimp,
+    tlsm_PR_Seek_unimp,
+    tlsm_PR_Seek64_unimp,
+    tlsm_PR_FileInfo_unimp,
+    tlsm_PR_FileInfo64_unimp,
+    tlsm_PR_Writev_unimp,
+    tlsm_PR_Connect_unimp,
+    tlsm_PR_Accept_unimp,
+    tlsm_PR_Bind_unimp,
+    tlsm_PR_Listen_unimp,
+    tlsm_PR_Shutdown,
+    tlsm_PR_Recv,
+    tlsm_PR_Send,
+    tlsm_PR_RecvFrom_unimp,
+    tlsm_PR_SendTo_unimp,
+    tlsm_PR_Poll_unimp,
+    tlsm_PR_AcceptRead_unimp,
+    tlsm_PR_TransmitFile_unimp,
+    tlsm_PR_GetSockName_unimp,
+    tlsm_PR_GetPeerName,
+    tlsm_PR_Reserved_unimp,	/* getsockopt   OBSOLETE */
+    tlsm_PR_Reserved_unimp,	/* setsockopt   OBSOLETE */
+    tlsm_PR_GetSocketOption,
+    tlsm_PR_SetSocketOption_unimp,
+    tlsm_PR_SendFile_unimp,
+    tlsm_PR_ConnectContinue_unimp,
+    tlsm_PR_Reserved_unimp,	/* reserved for future use */
+    tlsm_PR_Reserved_unimp,	/* reserved for future use */
+    tlsm_PR_Reserved_unimp,	/* reserved for future use */
+    tlsm_PR_Reserved_unimp	/* reserved for future use */
 };
 
 /*
