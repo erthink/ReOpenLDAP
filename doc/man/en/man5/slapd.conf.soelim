@@ -1064,7 +1064,7 @@ an interval defined in seconds allows more smooth out the load
 on the storage subsystem and helps reduce the amount of loss in case of emergency.
 .LP
 2) If \(lqgentle shutdown\(rq is turned on, it will be initiated
-not only by a SIGHUB signal, but by SIGTERM as well. Upon gentle shutdown initiation,
+not only by a SIGHUP signal, but by SIGTERM as well. Upon gentle shutdown initiation,
 5-second connection timeouts are set, unless they have already been set.
 Hence, once gentle shutdown is enabled, it will
 be always initiated, including when stopping the service with standard
