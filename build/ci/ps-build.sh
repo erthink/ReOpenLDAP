@@ -240,7 +240,7 @@ fi
 # LY: '.tgz' could be just changed to 'zip' or '.tar.gz', transparently
 FILE="reopenldap.$PACKAGE-src.tgz"
 if [ $flag_dist -ne 0 ]; then
-	[ -s Makefile ] || CFLAGS=-std=gnu99 ./configure || failure "configure dist"
+	[ -s Makefile ] || EXTRA_CFLAGS=-std=gnu99 ./configure || failure "configure dist"
 	make dist || failure "make dist"
 	dist=$(ls *.tar.* | sed 's/^\(.\+\)\.tar\..\+$/\1/g')
 	[ -n "$dist" ] && tar xaf *.tar.* && rm *.tar.* || failure "untar dist"
@@ -272,11 +272,11 @@ if [ -s Makefile ]; then
 	notice "Makefile present, skip configure"
 else
 	LDFLAGS="-Wl,--as-needed,-Bsymbolic,--gc-sections,-O,-zignore"
-	CFLAGS="-std=gnu99 -Wall -ggdb3 -DPS_COMPAT_RHEL6=1"
+	EXTRA_CFLAGS="-std=gnu99 -Wall -ggdb3 -DPS_COMPAT_RHEL6=1"
 	LIBS="-Wl,--no-as-needed,-lrt,--as-needed"
 
 	if [ $flag_hide -ne 0 ]; then
-		CFLAGS+=" -fvisibility=hidden"
+		EXTRA_CFLAGS+=" -fvisibility=hidden"
 		if [ $flag_asan -ne 0 -o $flag_tsan -ne 0 ] && [ $flag_lto -ne 0 ]; then
 			notice "*** LTO will be disabled for ASAN/TSAN with --hide"
 			flag_lto=0
@@ -305,7 +305,7 @@ else
 	fi
 
 	if grep -q gcc <<< "$CC"; then
-		CFLAGS+=" -fvar-tracking-assignments -gstrict-dwarf"
+		EXTRA_CFLAGS+=" -fvar-tracking-assignments -gstrict-dwarf"
 	elif grep -q clang <<< "$CC"; then
 		LLVM_VERSION="$($CC --version | sed -n 's/.\+ version \([0-9]\.[0-9]\)\.[0-9]-.*/\1/p')"
 		echo "LLVM_VERSION	= $LLVM_VERSION"
@@ -314,24 +314,24 @@ else
 			LTO_PLUGIN=/usr/lib/LLVMgold.so
 		fi
 		echo "LTO_PLUGIN	= $LTO_PLUGIN"
-		CFLAGS+=" -Wno-pointer-bool-conversion"
+		EXTRA_CFLAGS+=" -Wno-pointer-bool-conversion"
 	fi
 
 	if [ $flag_debug -ne 0 ]; then
 		if grep -q gcc <<< "$CC" ; then
-			CFLAGS+=" -Og"
+			EXTRA_CFLAGS+=" -Og"
 		else
-			CFLAGS+=" -O0"
+			EXTRA_CFLAGS+=" -O0"
 		fi
 	else
-		CFLAGS+=" ${flag_O}"
+		EXTRA_CFLAGS+=" ${flag_O}"
 	fi
 
 	if [ $flag_lto -ne 0 ]; then
 		if grep -q gcc <<< "$CC" && $CC -v 2>&1 | grep -q -i lto \
 		&& [ -n "$(which gcc-ar$CC_VER_SUFF)" -a -n "$(which gcc-nm$CC_VER_SUFF)" -a -n "$(which gcc-ranlib$CC_VER_SUFF)" ]; then
 			notice "*** GCC Link-Time Optimization (LTO) will be used"
-			CFLAGS+=" -flto=jobserver -fno-fat-lto-objects -fuse-linker-plugin -fwhole-program"
+			EXTRA_CFLAGS+=" -flto=jobserver -fno-fat-lto-objects -fuse-linker-plugin -fwhole-program"
 			export AR=gcc-ar$CC_VER_SUFF NM=gcc-nm$CC_VER_SUFF RANLIB=gcc-ranlib$CC_VER_SUFF
 		elif grep -q clang <<< "$CC" && [ -e "$LTO_PLUGIN" -a -n "$(which ld.gold)" ]; then
 			notice "*** CLANG Link-Time Optimization (LTO) will be used"
@@ -362,10 +362,10 @@ else
 	fi
 
 	if [ $flag_check -ne 0 ]; then
-		CFLAGS+=" -fstack-protector-all"
+		EXTRA_CFLAGS+=" -fstack-protector-all"
 		CONFIGURE_ARGS+=" --enable-check=default --enable-hipagut=yes"
 	else
-		CFLAGS+=" -fstack-protector"
+		EXTRA_CFLAGS+=" -fstack-protector"
 	fi
 
 	if [ $flag_valgrind -ne 0 ]; then
@@ -376,11 +376,11 @@ else
 
 	if [ $flag_asan -ne 0 ]; then
 		if grep -q clang <<< "$CC"; then
-			CFLAGS+=" -fsanitize=address -D__SANITIZE_ADDRESS__=1 -pthread"
+			EXTRA_CFLAGS+=" -fsanitize=address -D__SANITIZE_ADDRESS__=1 -pthread"
 		elif $CC -v 2>&1 | grep -q -e 'gcc version [5-9]'; then
-			CFLAGS+=" -fsanitize=address -D__SANITIZE_ADDRESS__=1 -pthread"
+			EXTRA_CFLAGS+=" -fsanitize=address -D__SANITIZE_ADDRESS__=1 -pthread"
 			if [ $flag_dynamic -eq 0 ]; then
-				CFLAGS+=" -static-libasan"
+				EXTRA_CFLAGS+=" -static-libasan"
 			fi
 		else
 			notice "*** AddressSanitizer is unusable"
@@ -389,23 +389,23 @@ else
 
 	if [ $flag_tsan -ne 0 ]; then
 		if grep -q clang <<< "$CC"; then
-			CFLAGS+=" -fsanitize=thread -D__SANITIZE_THREAD__=1"
+			EXTRA_CFLAGS+=" -fsanitize=thread -D__SANITIZE_THREAD__=1"
 		elif $CC -v 2>&1 | grep -q -e 'gcc version [5-9]'; then
-			CFLAGS+=" -fsanitize=thread -D__SANITIZE_THREAD__=1"
+			EXTRA_CFLAGS+=" -fsanitize=thread -D__SANITIZE_THREAD__=1"
 			if [ $flag_dynamic -eq 0 ]; then
-				CFLAGS+=" -static-libtsan"
+				EXTRA_CFLAGS+=" -static-libtsan"
 			fi
 		else
 			notice "*** ThreadSanitizer is unusable"
 		fi
 	fi
 
-	echo "CFLAGS		= ${CFLAGS}"
+	echo "EXTRA_CFLAGS		= ${EXTRA_CFLAGS}"
 	echo "PATH		= ${PATH}"
 	echo "LD		= $(readlink -f $(which ld)) ${LDFLAGS}"
 	echo "LIBS		= ${LIBS}"
 	echo "TOOLCHAIN	= $CC $CXX $AR $NM $RANLIB"
-	export CC CXX CFLAGS LDFLAGS LIBS CXXFLAGS="$CFLAGS"
+	export CC CXX EXTRA_CFLAGS LDFLAGS LIBS CXXFLAGS="$EXTRA_CFLAGS"
 
 	if [ $flag_dynamic -ne 0 ]; then
 		MOD=mod

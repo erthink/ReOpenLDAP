@@ -340,9 +340,9 @@ IODBC_INCLUDES=$([ -d /usr/include/iodbc ] && echo "-I/usr/include/iodbc")
 #======================================================================
 
 CPPFLAGS=
-CFLAGS="-Wall -ggdb3 -gdwarf-4"
+EXTRA_CFLAGS="-Wall -ggdb3 -gdwarf-4"
 if [ $flag_hide -ne 0 ]; then
-	CFLAGS+=" -fvisibility=hidden"
+	EXTRA_CFLAGS+=" -fvisibility=hidden"
 	if [ $flag_asan -ne 0 -o $flag_tsan -ne 0 ] && [ $flag_lto -ne 0 ]; then
 		notice "*** LTO will be disabled for ASAN/TSAN with --hide"
 		flag_lto=0
@@ -371,7 +371,7 @@ if [ -z "$CXX" ]; then
 fi
 
 if grep -q gcc <<< "$CC"; then
-	CFLAGS+=" -fvar-tracking-assignments"
+	EXTRA_CFLAGS+=" -fvar-tracking-assignments"
 elif grep -q clang <<< "$CC"; then
 	LLVM_VERSION="$($CC --version | sed -n 's/.\+ version \([0-9]\.[0-9]\)\.[0-9]-.*/\1/p')"
 	echo "LLVM_VERSION	= $LLVM_VERSION"
@@ -380,20 +380,20 @@ elif grep -q clang <<< "$CC"; then
 		LTO_PLUGIN=/usr/lib/LLVMgold.so
 	fi
 	echo "LTO_PLUGIN	= $LTO_PLUGIN"
-	CFLAGS+=" -Wno-pointer-bool-conversion"
+	EXTRA_CFLAGS+=" -Wno-pointer-bool-conversion"
 fi
 
 if [ $flag_debug -ne 0 ]; then
-	CFLAGS+=" -O0"
+	EXTRA_CFLAGS+=" -O0"
 else
-	CFLAGS+=" ${flag_O}"
+	EXTRA_CFLAGS+=" ${flag_O}"
 fi
 
 if [ $flag_lto -ne 0 ]; then
 	if grep -q gcc <<< "$CC" && $CC -v 2>&1 | grep -q -i lto \
 	&& [ -n "$(which gcc-ar$CC_VER_SUFF)" -a -n "$(which gcc-nm$CC_VER_SUFF)" -a -n "$(which gcc-ranlib$CC_VER_SUFF)" ]; then
 		notice "*** GCC Link-Time Optimization (LTO) will be used"
-		CFLAGS+=" -flto=jobserver -fno-fat-lto-objects -fuse-linker-plugin -fwhole-program"
+		EXTRA_CFLAGS+=" -flto=jobserver -fno-fat-lto-objects -fuse-linker-plugin -fwhole-program"
 		export AR=gcc-ar$CC_VER_SUFF NM=gcc-nm$CC_VER_SUFF RANLIB=gcc-ranlib$CC_VER_SUFF
 	elif grep -q clang <<< "$CC" && [ -e "$LTO_PLUGIN" -a -n "$(which ld.gold)" ]; then
 		notice "*** CLANG Link-Time Optimization (LTO) will be used"
@@ -424,15 +424,15 @@ if [ $flag_lto -ne 0 ]; then
 fi
 
 if [ $flag_check -ne 0 ]; then
-	CFLAGS+=" -fstack-protector-all"
+	EXTRA_CFLAGS+=" -fstack-protector-all"
 	if [ $modern_configure -ne 0 ]; then
 		CONFIGURE_ARGS+=" --enable-check=default --enable-hipagut=yes --enable-debug"
 	else
-		CFLAGS+=" -DLDAP_MEMORY_CHECK -DLDAP_MEMORY_DEBUG"
+		EXTRA_CFLAGS+=" -DLDAP_MEMORY_CHECK -DLDAP_MEMORY_DEBUG"
 		CONFIGURE_ARGS+=" --enable-debug"
 	fi
 else
-	CFLAGS+=" -fstack-protector"
+	EXTRA_CFLAGS+=" -fstack-protector"
 	CONFIGURE_ARGS+=" --disable-debug"
 fi
 
@@ -440,7 +440,7 @@ if [ $flag_valgrind -ne 0 ]; then
 	if [ $modern_configure -ne 0 ]; then
 		CONFIGURE_ARGS+=" --enable-valgrind"
 	else
-		CFLAGS+=" -DUSE_VALGRIND"
+		EXTRA_CFLAGS+=" -DUSE_VALGRIND"
 	fi
 else
 	if [ $modern_configure -ne 0 ]; then
@@ -450,11 +450,11 @@ fi
 
 if [ $flag_asan -ne 0 ]; then
 	if grep -q clang <<< "$CC"; then
-		CFLAGS+=" -fsanitize=address -D__SANITIZE_ADDRESS__=1 -pthread"
+		EXTRA_CFLAGS+=" -fsanitize=address -D__SANITIZE_ADDRESS__=1 -pthread"
 	elif $CC -v 2>&1 | grep -q -e 'gcc version [5-9]'; then
-		CFLAGS+=" -fsanitize=address -D__SANITIZE_ADDRESS__=1 -pthread"
+		EXTRA_CFLAGS+=" -fsanitize=address -D__SANITIZE_ADDRESS__=1 -pthread"
 		if [ $flag_dynamic -eq 0 ]; then
-			CFLAGS+=" -static-libasan"
+			EXTRA_CFLAGS+=" -static-libasan"
 		fi
 	else
 		notice "*** AddressSanitizer is unusable"
@@ -463,11 +463,11 @@ fi
 
 if [ $flag_tsan -ne 0 ]; then
 	if grep -q clang <<< "$CC"; then
-		CFLAGS+=" -fsanitize=thread -D__SANITIZE_THREAD__=1"
+		EXTRA_CFLAGS+=" -fsanitize=thread -D__SANITIZE_THREAD__=1"
 	elif $CC -v 2>&1 | grep -q -e 'gcc version [5-9]'; then
-		CFLAGS+=" -fsanitize=thread -D__SANITIZE_THREAD__=1"
+		EXTRA_CFLAGS+=" -fsanitize=thread -D__SANITIZE_THREAD__=1"
 		if [ $flag_dynamic -eq 0 ]; then
-			CFLAGS+=" -static-libtsan"
+			EXTRA_CFLAGS+=" -static-libtsan"
 		fi
 	else
 		notice "*** ThreadSanitizer is unusable"
@@ -485,8 +485,8 @@ else
 	MDBX_NICK=mdb
 fi
 
-export CC CXX CFLAGS CPPFLAGS LDFLAGS CXXFLAGS="$CFLAGS"
-echo "CFLAGS		= ${CFLAGS}"
+export CC CXX EXTRA_CFLAGS CPPFLAGS LDFLAGS CXXFLAGS="$EXTRA_CFLAGS"
+echo "EXTRA_CFLAGS	= ${EXTRA_CFLAGS}"
 echo "CPPFLAGS	= ${CPPFLAGS}"
 echo "PATH		= ${PATH}"
 echo "LD		= $(readlink -f $(which ld)) ${LDFLAGS}"
@@ -572,10 +572,10 @@ if [ ! -s ${build}/Makefile ]; then
 fi
 
 if [ -e ${LIBMDBX_DIR}/mdbx.h ]; then
-	CFLAGS="-Werror $CFLAGS"
+	EXTRA_CFLAGS="-Werror $EXTRA_CFLAGS"
 	CXXFLAGS="-Werror $CXXFLAGS"
 fi
-export CFLAGS CXXFLAGS
+export EXTRA_CFLAGS CXXFLAGS
 
 make -C ${build} -j $ncpu -l $lalim \
 	&& ([ ! -d ${build}/tests/progs ] || make -C ${build}/tests/progs -j $ncpu -l $lalim) \
