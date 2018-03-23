@@ -362,10 +362,9 @@ tlso_ctx_init( struct ldapoptions *lo, struct ldaptls *lt, int is_server )
 		return -1;
 	}
 
-	if ( lo->ldo_tls_dhfile ) {
-		DH *dh = NULL;
+	if ( is_server && lo->ldo_tls_dhfile ) {
+		DH *dh;
 		BIO *bio;
-		SSL_CTX_set_options( ctx, SSL_OP_SINGLE_DH_USE );
 
 		if (( bio=BIO_new_file( lt->lt_dhfile,"r" )) == NULL ) {
 			Debug( LDAP_DEBUG_ANY,
@@ -384,6 +383,38 @@ tlso_ctx_init( struct ldapoptions *lo, struct ldaptls *lt, int is_server )
 		}
 		BIO_free( bio );
 		SSL_CTX_set_tmp_dh( ctx, dh );
+		SSL_CTX_set_options( ctx, SSL_OP_SINGLE_DH_USE );
+		DH_free( dh );
+	}
+
+	if ( is_server && lo->ldo_tls_ecname ) {
+#ifdef OPENSSL_NO_EC
+		Debug( LDAP_DEBUG_ANY,
+			"TLS: Elliptic Curves not supported.\n" );
+		return -1;
+#else
+		EC_KEY *ecdh;
+
+		int nid = OBJ_sn2nid( lt->lt_ecname );
+		if ( nid == NID_undef ) {
+			Debug( LDAP_DEBUG_ANY,
+				"TLS: could not use EC name `%s'.\n",
+				lo->ldo_tls_ecname);
+			tlso_report_error();
+			return -1;
+		}
+		ecdh = EC_KEY_new_by_curve_name( nid );
+		if ( ecdh == NULL ) {
+			Debug( LDAP_DEBUG_ANY,
+				"TLS: could not generate key for EC name `%s'.\n",
+				lo->ldo_tls_ecname);
+			tlso_report_error();
+			return -1;
+		}
+		SSL_CTX_set_tmp_ecdh( ctx, ecdh );
+		SSL_CTX_set_options( ctx, SSL_OP_SINGLE_ECDH_USE );
+		EC_KEY_free( ecdh );
+#endif
 	}
 
 	if ( tlso_opt_trace ) {

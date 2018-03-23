@@ -51,6 +51,9 @@ static SLAP_CTRL_PARSE_FN parseSessionTracking;
 #ifdef SLAP_CONTROL_X_WHATFAILED
 static SLAP_CTRL_PARSE_FN parseWhatFailed;
 #endif
+#ifdef SLAP_CONTROL_X_LAZY_COMMIT
+static SLAP_CTRL_PARSE_FN parseLazyCommit;
+#endif
 
 #undef sc_mask /* avoid conflict with Irix 6.5 <sys/signal.h> */
 
@@ -225,6 +228,13 @@ static struct slap_control control_defs[] = {
 		SLAP_CTRL_GLOBAL|SLAP_CTRL_ACCESS|SLAP_CTRL_HIDE,
 		NULL, NULL,
 		parseWhatFailed, LDAP_SLIST_ENTRY_INITIALIZER(next) },
+#endif
+#ifdef SLAP_CONTROL_X_LAZY_COMMIT
+	{ LDAP_CONTROL_X_LAZY_COMMIT,
+		(int)offsetof(struct slap_control_ids, sc_lazyCommit),
+		SLAP_CTRL_GLOBAL|SLAP_CTRL_ACCESS|SLAP_CTRL_HIDE,
+		NULL, NULL,
+		parseLazyCommit, LDAP_SLIST_ENTRY_INITIALIZER(next) },
 #endif
 
 	{ NULL, 0, 0, NULL, 0, NULL, LDAP_SLIST_ENTRY_INITIALIZER(next) }
@@ -714,10 +724,21 @@ int slap_parse_ctrl(
 	return rc;
 }
 
-int get_ctrls(
+int
+get_ctrls(
 	Operation *op,
 	SlapReply *rs,
 	int sendres )
+{
+	return get_ctrls2( op, rs, sendres, LDAP_TAG_CONTROLS );
+}
+
+int
+get_ctrls2(
+	Operation *op,
+	SlapReply *rs,
+	int sendres,
+	ber_tag_t ctag )
 {
 	int nctrls = 0;
 	ber_tag_t tag;
@@ -743,7 +764,7 @@ int get_ctrls(
 		return rs->sr_err;
 	}
 
-	if(( tag = ber_peek_tag( ber, &len )) != LDAP_TAG_CONTROLS ) {
+	if(( tag = ber_peek_tag( ber, &len )) != ctag ) {
 		if( tag == LBER_ERROR ) {
 			rs->sr_err = SLAPD_DISCONNECT;
 			rs->sr_text = "unexpected data in PDU";
@@ -2137,5 +2158,29 @@ slap_ctrl_whatFailed_add(
 
 done:;
 	return rc;
+}
+#endif
+
+#ifdef SLAP_CONTROL_X_LAZY_COMMIT
+static int parseLazyCommit(
+	Operation *op,
+	SlapReply *rs,
+	LDAPControl *ctrl )
+{
+	if ( op->o_lazyCommit != SLAP_CONTROL_NONE ) {
+		rs->sr_text = "\"Lazy Commit?\" control specified multiple times";
+		return LDAP_PROTOCOL_ERROR;
+	}
+
+	if ( !BER_BVISNULL( &ctrl->ldctl_value )) {
+		rs->sr_text = "\"Lazy Commit?\" control value not absent";
+		return LDAP_PROTOCOL_ERROR;
+	}
+
+	op->o_lazyCommit = ctrl->ldctl_iscritical
+		? SLAP_CONTROL_CRITICAL
+		: SLAP_CONTROL_NONCRITICAL;
+
+	return LDAP_SUCCESS;
 }
 #endif

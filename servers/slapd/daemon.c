@@ -30,6 +30,10 @@
 
 #include "ldap_rq.h"
 
+#ifdef HAVE_POLL
+#include <poll.h>
+#endif
+
 /* LY: needed by config_keepalive() */
 #include "slapconfig.h"
 
@@ -96,7 +100,9 @@ static ldap_pvt_thread_t *listener_tid;
 static ber_socket_t wake_sds[SLAPD_MAX_DAEMON_THREADS][2];
 static int emfile;
 
+#ifdef SLAPD_WRITE_TIMEOUT
 static slap_time_t chk_writetime;
+#endif /* SLAPD_WRITE_TIMEOUT */
 
 static volatile int waking;
 #ifdef NO_THREADS
@@ -867,7 +873,9 @@ slapd_set_write( ber_socket_t s, int wake )
 		SLAP_SOCK_SET_WRITE( id, s );
 		slap_daemon[id].sd_nwriters++;
 	}
-	if (( wake & 2 ) && global_writetimeout && !chk_writetime.ns ) {
+
+#ifdef SLAPD_WRITE_TIMEOUT
+	if (( wake & 2 ) && global_writetimeout > 0 && !chk_writetime.ns ) {
 		if (id)
 			ldap_pvt_thread_mutex_lock( &slap_daemon[0].sd_mutex );
 		if (! chk_writetime.ns)
@@ -875,6 +883,7 @@ slapd_set_write( ber_socket_t s, int wake )
 		if (id)
 			ldap_pvt_thread_mutex_unlock( &slap_daemon[0].sd_mutex );
 	}
+#endif /* SLAPD_WRITE_TIMEOUT */
 
 	ldap_pvt_thread_mutex_unlock( &slap_daemon[id].sd_mutex );
 	WAKE_LISTENER(id,wake);
@@ -914,6 +923,7 @@ slapd_set_read( ber_socket_t s, int wake )
 		WAKE_LISTENER(id,wake);
 }
 
+#ifdef SLAPD_WRITE_TIMEOUT
 slap_time_t
 slapd_get_writetime()
 {
@@ -932,6 +942,7 @@ slapd_clr_writetime( slap_time_t old )
 		chk_writetime.ns = 0;
 	ldap_pvt_thread_mutex_unlock( &slap_daemon[0].sd_mutex );
 }
+#endif /* SLAPD_WRITE_TIMEOUT */
 
 static void
 slapd_close( ber_socket_t s )
@@ -939,6 +950,13 @@ slapd_close( ber_socket_t s )
 	Debug( LDAP_DEBUG_CONNS, "daemon: closing %ld\n",
 		(long) s );
 	tcp_close( SLAP_FD2SOCK(s) );
+}
+
+void
+slapd_shutsock( ber_socket_t s )
+{
+	Debug( LDAP_DEBUG_CONNS, "daemon: shutdown socket %ld\n", (long) s );
+	shutdown( SLAP_FD2SOCK(s), 2 );
 }
 
 static void
@@ -2248,16 +2266,18 @@ loop:
 		if ( !tid ) {
 			int check = 0;
 			/* Set the select timeout. */
-			if ( global_idletimeout && now.ns > last_idle_check.ns
+			if ( global_idletimeout > 0 && now.ns > last_idle_check.ns
 					+ ldap_from_seconds(global_idletimeout / SLAPD_IDLE_CHECK_LIMIT).ns ) {
 				check = 1;
 				tv = ldap_from_seconds(global_idletimeout / SLAPD_IDLE_CHECK_LIMIT);
 			}
+#ifdef SLAPD_WRITE_TIMEOUT
 			if ( chk_writetime.ns && now.ns > chk_writetime.ns ) {
 				check = 2;
 				if ( !tv.ns || tv.ns > ldap_from_seconds(global_writetimeout).ns )
 					tv = ldap_from_seconds(global_writetimeout);
 			}
+#endif /* SLAPD_WRITE_TIMEOUT */
 			if ( check ) {
 				connections_timeout_idle( now );
 				last_idle_check = now;
@@ -2792,9 +2812,9 @@ slapd_daemon( void )
 		}
 	}
 
-  	/* wait for the listener threads to complete */
+	/* wait for the listener threads to complete */
 	for ( i=0; i<slapd_daemon_threads; i++ )
-  		ldap_pvt_thread_join( listener_tid[i], (void *)NULL );
+		ldap_pvt_thread_join( listener_tid[i], (void *)NULL );
 
 	ch_free( listener_tid );
 	listener_tid = NULL;
@@ -2907,6 +2927,21 @@ void
 slap_wake_listener()
 {
 	WAKE_LISTENER(0,1);
+}
+
+/* return 0 on timeout, 1 on writer ready
+ * -1 on general error
+ */
+int
+slapd_wait_writer( ber_socket_t sd )
+{
+	struct pollfd fds;
+	int timeout = global_writetimeout ? global_writetimeout * 1000 : -1;
+
+	fds.fd = sd;
+	fds.events = POLLOUT;
+
+	return poll( &fds, 1, timeout );
 }
 
 int

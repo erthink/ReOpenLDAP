@@ -39,6 +39,7 @@ addons:
     - libslp-dev
     - libdb-dev
     - gdb
+#   - libwiredtiger-dev
 
 before_script:
 - if [ ! -z "$encrypted_1572229a40f3_key" ]; then
@@ -54,7 +55,7 @@ script:
   --enable-maintainer-mode --enable-dynacl --enable-aci --enable-crypt --enable-lmpasswd
   --enable-spasswd --enable-slapi --enable-rlookups --enable-slp --enable-wrappers
   --enable-backends --disable-bdb --disable-hdb --disable-ndb --disable-modules
-  --enable-ci
+  --enable-ci --disable-wt
 - make --keep-going && make --keep-going install
   && ulimit -c unlimited && make test </dev/null
 - make --keep-going dist
@@ -63,7 +64,7 @@ script:
   --enable-overlays=mod --enable-contrib --enable-experimental
   --enable-debug --enable-dynacl --enable-aci --enable-crypt --enable-lmpasswd --enable-spasswd
   --enable-slapi --enable-rlookups --enable-slp --enable-wrappers --enable-backends=mod
-  --disable-ndb --disable-dependency-tracking
+  --disable-ndb --disable-dependency-tracking --disable-wt
   && make --keep-going && make --keep-going install)
 
 after_failure:

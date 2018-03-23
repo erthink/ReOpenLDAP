@@ -30,6 +30,7 @@ static const struct berval mdmi_databases[] = {
 	BER_BVC("ad2i"),
 	BER_BVC("dn2i"),
 	BER_BVC("id2e"),
+	BER_BVC("id2v"),
 	BER_BVNULL
 };
 
@@ -164,6 +165,8 @@ mdb_db_init( BackendDB *be, ConfigReply *cr )
 
 	mdb->mi_mapsize = DEFAULT_MAPSIZE;
 	mdb->mi_rtxn_size = DEFAULT_RTXN_SIZE;
+	mdb->mi_multi_hi = UINT_MAX;
+	mdb->mi_multi_lo = UINT_MAX;
 
 	be->be_private = mdb;
 	be->be_cf_ocs = be->bd_info->bi_cf_ocs;
@@ -324,6 +327,8 @@ mdb_db_open( BackendDB *be, ConfigReply *cr )
 		} else {
 			if ( i == MDB_DN2ID )
 				flags |= MDBX_DUPSORT;
+			if ( i == MDB_ID2VAL )
+				flags ^= MDBX_INTEGERKEY|MDBX_DUPSORT;
 			if ( !(slapMode & SLAP_TOOL_READONLY) )
 				flags |= MDBX_CREATE;
 		}
@@ -332,7 +337,10 @@ mdb_db_open( BackendDB *be, ConfigReply *cr )
 		MDBX_cmp_func *datacmp = NULL;
 		if ( i == MDB_ID2ENTRY )
 			keycmp = mdb_id_compare;
-		else if (i == MDB_DN2ID)
+		else if ( i == MDB_ID2VAL ) {
+			keycmp = mdb_id2v_compare;
+			datacmp = mdb_id2v_dupsort;
+		} else if (i == MDB_DN2ID)
 			datacmp = mdb_dup_compare;
 
 		rc = mdbx_dbi_open_ex( txn,
@@ -575,6 +583,9 @@ mdb_back_initialize(
 	bi->bi_op_search = mdb_search;
 
 	bi->bi_op_unbind = 0;
+#ifdef LDAP_X_TXN
+	bi->bi_op_txn = mdb_txn;
+#endif
 
 	bi->bi_extended = mdb_extended;
 
@@ -599,6 +610,7 @@ mdb_back_initialize(
 	bi->bi_tool_sync = 0;
 	bi->bi_tool_dn2id_get = mdb_tool_dn2id_get;
 	bi->bi_tool_entry_modify = mdb_tool_entry_modify;
+	bi->bi_tool_entry_delete = mdb_tool_entry_delete;
 
 	bi->bi_connection_init = 0;
 	bi->bi_connection_destroy = 0;
@@ -609,7 +621,5 @@ mdb_back_initialize(
 }
 
 #if	(SLAPD_MDBX == SLAPD_MOD_DYNAMIC)
-
 SLAP_BACKEND_INIT_MODULE( mdb )
-
-#endif /* SLAPD_MDB == SLAPD_MOD_DYNAMIC */
+#endif /* SLAPD_MDBX == SLAPD_MOD_DYNAMIC */

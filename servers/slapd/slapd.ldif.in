@@ -81,6 +81,7 @@ dn: olcDatabase=mdb,cn=config
 objectClass: olcDatabaseConfig
 objectClass: olcMdbConfig
 olcDatabase: mdb
+olcDbMaxSize: 1073741824
 olcSuffix: dc=my-domain,dc=com
 olcRootDN: cn=Manager,dc=my-domain,dc=com
 # Cleartext passwords, especially for the rootdn, should

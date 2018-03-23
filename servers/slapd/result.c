@@ -28,6 +28,24 @@
 
 #include "slap.h"
 
+#if SLAP_STATS_ETIME
+#	define ETIME_SETUP \
+		struct timeval now; \
+		(void) gettimeofday( &now, NULL ); \
+		now.tv_sec -= op->o_time; \
+		now.tv_usec -= op->o_tincr; \
+		if ( now.tv_usec < 0 ) { \
+			--now.tv_sec; now.tv_usec += 1000000; \
+		}
+#	define ETIME_LOGFMT	"etime=%d.%06d "
+#	define StatslogEtime(lvl,fmt,pfx,tag,err,...) \
+		Statslog(lvl,fmt,pfx,tag,err,(int)now.tv_sec,(int)now.tv_usec,__VA_ARGS__)
+#else
+#	define ETIME_SETUP
+#	define ETIME_LOGFMT	""
+#	define StatslogEtime	Statslog
+#endif	/* SLAP_STATS_ETIME */
+
 const struct berval slap_dummy_bv = BER_BVNULL;
 
 int slap_null_cb( Operation *op, SlapReply *rs )
@@ -316,6 +334,7 @@ static long send_ldap_ber(
 	Connection *conn = op->o_conn;
 	ber_len_t bytes;
 	long ret = -1;
+	char *close_reason;
 
 	ber_get_option( ber, LBER_OPT_BER_BYTES_TO_WRITE, &bytes );
 
@@ -334,7 +353,9 @@ static long send_ldap_ber(
 
 	/* write only one pdu at a time - wait til it's our turn */
 	while ( conn->c_writers > 0 && conn->c_writing ) {
+		ldap_pvt_thread_pool_idle( &connection_pool );
 		ldap_pvt_thread_cond_wait( &conn->c_write1_cv, &conn->c_write1_mutex );
+		ldap_pvt_thread_pool_unidle( &connection_pool );
 	}
 
 	/* connection was closed under us */
@@ -371,29 +392,37 @@ static long send_ldap_ber(
 		    err, sock_errstr(err) );
 
 		if ( err != EWOULDBLOCK && err != EAGAIN ) {
+			close_reason = "connection lost on write";
+fail:
 			conn->c_writers--;
 			conn->c_writing = 0;
 			ldap_pvt_thread_mutex_unlock( &conn->c_write1_mutex );
 			ldap_pvt_thread_mutex_lock( &conn->c_mutex );
-			connection_closing( conn, "connection lost on write" );
-
+			connection_closing( conn, close_reason );
 			ldap_pvt_thread_mutex_unlock( &conn->c_mutex );
 			return -1;
 		}
 
 		/* wait for socket to be write-ready */
-		slap_writewait_play( op );
-		ldap_pvt_thread_mutex_lock( &conn->c_write2_mutex );
 		conn->c_writewaiter = 1;
-		slapd_set_write( conn->c_sd, 2 );
-
 		ldap_pvt_thread_mutex_unlock( &conn->c_write1_mutex );
 		ldap_pvt_thread_pool_idle( &connection_pool );
-		ldap_pvt_thread_cond_wait( &conn->c_write2_cv, &conn->c_write2_mutex );
+		slap_writewait_play( op );
+		err = slapd_wait_writer( conn->c_sd );
 		conn->c_writewaiter = 0;
-		ldap_pvt_thread_mutex_unlock( &conn->c_write2_mutex );
 		ldap_pvt_thread_pool_unidle( &connection_pool );
 		ldap_pvt_thread_mutex_lock( &conn->c_write1_mutex );
+		/* 0 is timeout, so we close it.
+		 * -1 is an error, close it.
+		 */
+		if ( err <= 0 ) {
+			if ( err == 0 )
+				close_reason = "writetimeout";
+			else
+				close_reason = "connection lost on writewait";
+			goto fail;
+		}
+
 		if ( conn->c_writers < 0 ) {
 			ret = 0;
 			break;
@@ -810,8 +839,9 @@ send_ldap_disconnect( Operation	*op, SlapReply *rs )
 	}
 
 	if ( send_ldap_response( op, rs ) == SLAP_CB_CONTINUE ) {
-		Statslog( LDAP_DEBUG_STATS,
-			"%s DISCONNECT tag=%lu err=%d text=%s\n",
+		ETIME_SETUP;
+		StatslogEtime( LDAP_DEBUG_STATS,
+			"%s DISCONNECT tag=%lu err=%d "ETIME_LOGFMT"text=%s\n",
 			op->o_log_prefix, rs->sr_tag, rs->sr_err,
 			rs->sr_text ? rs->sr_text : "" );
 	}
@@ -873,14 +903,15 @@ abandon:
 	}
 
 	if ( send_ldap_response( op, rs ) == SLAP_CB_CONTINUE ) {
+		ETIME_SETUP;
 		if ( op->o_tag == LDAP_REQ_SEARCH ) {
-			Statslog( LDAP_DEBUG_STATS,
-				"%s SEARCH RESULT tag=%lu err=%d nentries=%d text=%s\n",
+			StatslogEtime( LDAP_DEBUG_STATS,
+				"%s SEARCH RESULT tag=%lu err=%d "ETIME_LOGFMT"nentries=%d text=%s\n",
 				op->o_log_prefix, rs->sr_tag, rs->sr_err,
 				rs->sr_nentries, rs->sr_text ? rs->sr_text : "" );
 		} else {
-			Statslog( LDAP_DEBUG_STATS,
-				"%s RESULT tag=%lu err=%d text=%s\n",
+			StatslogEtime( LDAP_DEBUG_STATS,
+				"%s RESULT tag=%lu err=%d "ETIME_LOGFMT"text=%s\n",
 				op->o_log_prefix, rs->sr_tag, rs->sr_err,
 				rs->sr_text ? rs->sr_text : "" );
 		}
@@ -905,8 +936,9 @@ send_ldap_sasl( Operation *op, SlapReply *rs )
 	rs->sr_msgid = (rs->sr_tag != LBER_SEQUENCE) ? op->o_msgid : 0;
 
 	if ( send_ldap_response( op, rs ) == SLAP_CB_CONTINUE ) {
-		Statslog( LDAP_DEBUG_STATS,
-			"%s RESULT tag=%lu err=%d text=%s\n",
+		ETIME_SETUP;
+		StatslogEtime( LDAP_DEBUG_STATS,
+			"%s RESULT tag=%lu err=%d "ETIME_LOGFMT"text=%s\n",
 			op->o_log_prefix, rs->sr_tag, rs->sr_err,
 			rs->sr_text ? rs->sr_text : "" );
 	}
@@ -929,8 +961,9 @@ slap_send_ldap_extended( Operation *op, SlapReply *rs )
 	rs->sr_msgid = (rs->sr_tag != LBER_SEQUENCE) ? op->o_msgid : 0;
 
 	if ( send_ldap_response( op, rs ) == SLAP_CB_CONTINUE ) {
-		Statslog( LDAP_DEBUG_STATS,
-			"%s RESULT oid=%s err=%d text=%s\n",
+		ETIME_SETUP;
+		StatslogEtime( LDAP_DEBUG_STATS,
+			"%s RESULT oid=%s err=%d "ETIME_LOGFMT"text=%s\n",
 			op->o_log_prefix, rs->sr_rspoid ? rs->sr_rspoid : "",
 			rs->sr_err, rs->sr_text ? rs->sr_text : "" );
 	}

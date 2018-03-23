@@ -26,9 +26,7 @@
 #ifndef SLAPD_META_H
 #define SLAPD_META_H
 
-#if LDAP_EXPERIMENTAL > 0
-#	define SLAPD_META_CLIENT_PR 1
-#endif /* LDAP_EXPERIMENTAL */
+#define SLAPD_META_CLIENT_PR 1
 
 #include "proto-meta.h"
 

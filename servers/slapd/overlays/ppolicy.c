@@ -31,7 +31,7 @@
 #include "lutil.h"
 #include "slap.h"
 #ifdef SLAPD_DYNAMIC_MODULES
-#include <ltdl.h>
+#	include <ltdl.h>
 #endif
 #include <ac/errno.h>
 #include <ac/time.h>
@@ -342,13 +342,17 @@ account_locked( Operation *op, Entry *e,
 			time_t then, now;
 			Modifications *m;
 
-			if (!pp->pwdLockoutDuration)
-				return 1;
-
 			if ((then = parse_time( vals[0].bv_val )) == (time_t)0)
 				return 1;
 
 			now = ldap_time_steady();
+
+			/* Still in the future? not yet in effect */
+			if (now < then)
+				return 0;
+
+			if (!pp->pwdLockoutDuration)
+				return 1;
 
 			if (now < then + pp->pwdLockoutDuration)
 				return 1;

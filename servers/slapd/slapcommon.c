@@ -317,6 +317,10 @@ slap_tool_init(
 		mode |= SLAP_TOOL_READMAIN | SLAP_TOOL_READONLY;
 		break;
 
+	case SLAPMODIFY:
+		options = "b:cd:f:F:gj:l:n:o:qsS:uvw";
+		break;
+
 	case SLAPSCHEMA:
 		options = "a:b:cd:f:F:gH:l:n:o:s:v";
 		mode |= SLAP_TOOL_READMAIN | SLAP_TOOL_READONLY;
@@ -505,6 +509,7 @@ slap_tool_init(
 		case 's':
 			switch ( tool ) {
 			case SLAPADD:
+			case SLAPMODIFY:
 				/* no schema check */
 				mode |= SLAP_TOOL_NO_SCHEMA_CHECK;
 				break;
@@ -576,6 +581,7 @@ slap_tool_init(
 	switch ( tool ) {
 	case SLAPADD:
 	case SLAPCAT:
+	case SLAPMODIFY:
 	case SLAPSCHEMA:
 		if ( ( argc != optind ) || (dbnum >= 0 && base.bv_val != NULL ) ) {
 			usage( tool, progname );
@@ -667,6 +673,7 @@ slap_tool_init(
 	case SLAPADD:
 	case SLAPCAT:
 	case SLAPINDEX:
+	case SLAPMODIFY:
 	case SLAPSCHEMA:
 		if ( !nbackends ) {
 			fprintf( stderr, "No databases found "

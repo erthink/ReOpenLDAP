@@ -1,0 +1,77 @@
+#!/bin/bash
+## $ReOpenLDAP$
+## Copyright 1998-2018 ReOpenLDAP AUTHORS: please see AUTHORS file.
+## All rights reserved.
+##
+## This file is part of ReOpenLDAP.
+##
+## Redistribution and use in source and binary forms, with or without
+## modification, are permitted only as authorized by the OpenLDAP
+## Public License.
+##
+## A copy of this license is available in the file LICENSE in the
+## top-level directory of the distribution or, alternatively, at
+## <http://www.OpenLDAP.org/license.html>.
+
+echo "running defines.sh"
+. $SRCDIR/scripts/defines.sh
+
+mkdir -p $TESTDIR $DBDIR1
+
+echo "Running slapadd to build slapd database..."
+config_filter $BACKEND $MONITORDB < $CONF > $ADDCONF
+$SLAPADD -f $ADDCONF -l $LDIFORDERED
+RC=$?
+if test $RC != 0 ; then
+	echo "slapadd failed ($RC)!"
+	exit $RC
+fi
+
+echo "Testing modify, add, and delete using slapmodify..."
+$SLAPMODIFY -f $ADDCONF -d $LVL -l $LDIFMODIFY > $TESTOUT 2>&1
+RC=$?
+if test $RC != 0 ; then
+	echo "slapmodify failed ($RC)!"
+	exit $RC
+fi
+
+echo "Starting slapd on TCP/IP port $PORT1..."
+config_filter $BACKEND $MONITORDB < $CONF > $CONF1
+$SLAPD -f $CONF1 -h $URI1 -d $LVL $TIMING > $LOG1 2>&1 &
+PID=$!
+if test $WAIT != 0 ; then
+    echo PID $PID
+    read foo
+fi
+KILLPIDS="$PID"
+check_running 1
+
+echo "Using ldapsearch to retrieve all the entries..."
+$LDAPSEARCH -S "" -b "$BASEDN" -h $LOCALHOST -p $PORT1 > $SEARCHOUT 2>&1
+RC=$?
+if test $RC != 0 ; then
+	echo "ldapsearch failed ($RC)!"
+	killservers
+	exit $RC
+fi
+
+LDIF=$MODIFYOUTMASTER
+
+echo "Filtering ldapsearch results..."
+$LDIFFILTER < $SEARCHOUT > $SEARCHFLT
+echo "Filtering original ldif used to create database..."
+$LDIFFILTER < $LDIF > $LDIFFLT
+echo "Comparing filter output..."
+$CMP $SEARCHFLT $LDIFFLT > $CMPOUT
+
+if test $? != 0 ; then
+	echo "modify operations did not complete correctly"
+	echo $SEARCHFLT $LDIFFLT
+	$DIFF $SEARCHFLT $LDIFFLT
+	killservers
+	exit 1
+fi
+
+killservers
+echo ">>>>> Test succeeded"
+exit 0

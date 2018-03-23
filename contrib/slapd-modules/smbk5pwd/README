@@ -25,7 +25,7 @@ To use the overlay, add:
 	moduleload contrib-smbk5pwd.la
 	...
 
-	database bdb
+	database mdb
 	...
 	overlay smbk5pwd
 

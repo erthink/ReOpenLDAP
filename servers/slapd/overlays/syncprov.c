@@ -93,7 +93,7 @@ typedef struct syncops {
 #define	OS_REF_PREPARE		0x0800
 #define	OS_REF_ABANDON		0x1000
 #define	OS_REF_UNLINK		0x2000
-#define OS_REF_CLOSE		0x4000
+#define	OS_REF_CLOSE		0x4000
 #define	OS_REF_MASK			0x7F00
 
 #define	PS_TASK_QUEUED		OS_REF_PLAYBACK
@@ -1405,6 +1405,7 @@ syncprov_op_abandon( Operation *op, SlapReply *rs )
 
 	ldap_pvt_thread_mutex_lock( &si->si_ops_mutex );
 	for (pso = &si->si_ops; (so = *pso) != NULL; pso = &so->s_next) {
+		assert(so->s_next != so);
 		if ( so->s_op && so->s_op->o_connid == op->o_connid
 				&& so->s_op->o_msgid == op->orn_msgid ) {
 			ldap_pvt_thread_mutex_lock( &so->s_mutex );

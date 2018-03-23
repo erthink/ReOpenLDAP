@@ -117,7 +117,7 @@ static int ldap_chain_db_open_one( BackendDB *be );
 typedef struct ldap_chain_cb_t {
 	ldap_chain_status_t	lb_status;
 	ldap_chain_t		*lb_lc;
-	BI_op_func		*lb_op_f;
+	slap_operation_t	lb_op_type;
 	int			lb_depth;
 } ldap_chain_cb_t;
 
@@ -125,7 +125,7 @@ static int
 ldap_chain_op(
 	Operation	*op,
 	SlapReply	*rs,
-	BI_op_func	*op_f,
+	slap_operation_t op_type,
 	BerVarray	ref,
 	int		depth );
 
@@ -315,7 +315,8 @@ ldap_chain_cb_search_response( Operation *op, SlapReply *rs )
 			&& lb->lb_depth < lb->lb_lc->lc_max_depth
 			&& rs->sr_ref != NULL )
 		{
-			rs->sr_err = ldap_chain_op( op, rs, lb->lb_op_f, rs->sr_ref, lb->lb_depth );
+			rs->sr_err = ldap_chain_op( op, rs, lb->lb_op_type,
+				rs->sr_ref, lb->lb_depth );
 		}
 
 		/* back-ldap tried to send result */
@@ -359,7 +360,8 @@ retry:;
 
 		case LDAP_REFERRAL:
 			if ( lb->lb_depth < lb->lb_lc->lc_max_depth && rs->sr_ref != NULL ) {
-				rs->sr_err = ldap_chain_op( op, rs, lb->lb_op_f, rs->sr_ref, lb->lb_depth );
+				rs->sr_err = ldap_chain_op( op, rs, lb->lb_op_type,
+					rs->sr_ref, lb->lb_depth );
 				goto retry;
 			}
 
@@ -394,7 +396,7 @@ static int
 ldap_chain_op(
 	Operation	*op,
 	SlapReply	*rs,
-	BI_op_func	*op_f,
+	slap_operation_t op_type,
 	BerVarray	ref,
 	int		depth )
 {
@@ -605,10 +607,10 @@ Document: RFC 4511
 				op->o_log_prefix, ref->bv_val, temporary ? "temporary" : "caching" );
 		}
 
-		lb->lb_op_f = op_f;
+		lb->lb_op_type = op_type;
 		lb->lb_depth = depth + 1;
 
-		rc = op_f( op, &rs2 );
+		rc = (&lback->bi_op_bind)[ op_type ]( op, &rs2 );
 
 		/* note the first error */
 		if ( first_rc == -1 ) {
@@ -878,7 +880,7 @@ ldap_chain_search(
 				op->o_log_prefix, ref->bv_val, temporary ? "temporary" : "caching" );
 		}
 
-		lb->lb_op_f = lback->bi_op_search;
+		lb->lb_op_type = op_search;
 		lb->lb_depth = depth + 1;
 
 		/* FIXME: should we also copy filter and scope?
@@ -1047,7 +1049,7 @@ ldap_chain_response( Operation *op, SlapReply *rs )
 		/* FIXME: can we really get a referral for binds? */
 		op->o_req_ndn = slap_empty_bv;
 		op->o_conn = NULL;
-		rc = ldap_chain_op( op, rs, lback->bi_op_bind, ref, 0 );
+		rc = ldap_chain_op( op, rs, op_bind, ref, 0 );
 		op->o_req_ndn = rndn;
 		op->o_conn = conn;
 		}
@@ -1055,26 +1057,26 @@ ldap_chain_response( Operation *op, SlapReply *rs )
 
 	case LDAP_REQ_ADD:
 		assert(slap_biglock_owned(op->o_bd));
-		rc = ldap_chain_op( op, rs, lback->bi_op_add, ref, 0 );
+		rc = ldap_chain_op( op, rs, op_add, ref, 0 );
 		break;
 
 	case LDAP_REQ_DELETE:
 		assert(slap_biglock_owned(op->o_bd));
-		rc = ldap_chain_op( op, rs, lback->bi_op_delete, ref, 0 );
+		rc = ldap_chain_op( op, rs, op_delete, ref, 0 );
 		break;
 
 	case LDAP_REQ_MODRDN:
 		assert(slap_biglock_owned(op->o_bd));
-		rc = ldap_chain_op( op, rs, lback->bi_op_modrdn, ref, 0 );
+		rc = ldap_chain_op( op, rs, op_modrdn, ref, 0 );
 		break;
 
 	case LDAP_REQ_MODIFY:
 		assert(slap_biglock_owned(op->o_bd));
-		rc = ldap_chain_op( op, rs, lback->bi_op_modify, ref, 0 );
+		rc = ldap_chain_op( op, rs, op_modify, ref, 0 );
 		break;
 
 	case LDAP_REQ_COMPARE:
-		rc = ldap_chain_op( op, rs, lback->bi_op_compare, ref, 0 );
+		rc = ldap_chain_op( op, rs, op_compare, ref, 0 );
 		if ( rs->sr_err == LDAP_COMPARE_TRUE || rs->sr_err == LDAP_COMPARE_FALSE ) {
 			rc = LDAP_SUCCESS;
 		}
@@ -1091,8 +1093,7 @@ ldap_chain_response( Operation *op, SlapReply *rs )
 			 * to check limits, to make sure safe defaults
 			 * are in place */
 			if ( op->ors_limit != NULL || limits_check( op, rs ) == 0 ) {
-				rc = ldap_chain_op( op, rs, lback->bi_op_search, ref, 0 );
-
+				rc = ldap_chain_op( op, rs, op_search, ref, 0 );
 			} else {
 				rc = SLAP_CB_CONTINUE;
 			}
@@ -1100,7 +1101,7 @@ ldap_chain_response( Operation *op, SlapReply *rs )
 	    	break;
 
 	case LDAP_REQ_EXTENDED:
-		rc = ldap_chain_op( op, rs, lback->bi_extended, ref, 0 );
+		rc = ldap_chain_op( op, rs, op_extended, ref, 0 );
 		/* FIXME: ldap_back_extended() by design
 		 * doesn't send result; frontend is expected
 		 * to send it... */

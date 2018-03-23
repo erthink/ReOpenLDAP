@@ -22,10 +22,12 @@
 #include "back-mdb.h"
 
 typedef struct Ecount {
-	ber_len_t len;
+	ber_len_t len;	/* total entry size */
+	ber_len_t dlen;	/* contiguous data size */
 	int nattrs;
 	int nvals;
 	int offset;
+	Attribute *multi;
 } Ecount;
 
 static int mdb_entry_partsize(struct mdb_info *mdb, MDBX_txn *txn, Entry *e,
@@ -33,6 +35,228 @@ static int mdb_entry_partsize(struct mdb_info *mdb, MDBX_txn *txn, Entry *e,
 static int mdb_entry_encode(Operation *op, Entry *e, MDBX_val *data,
 	Ecount *ec);
 static Entry *mdb_entry_alloc( Operation *op, int nattrs, int nvals );
+
+#define ID2VKSZ	(sizeof(ID)+2)
+
+int
+mdb_id2v_compare(
+	const MDBX_val *usrkey,
+	const MDBX_val *curkey
+)
+{
+	unsigned short *uv, *cv;
+	ID ui, ci;
+
+	memcpy(&ui, usrkey->iov_base, sizeof(ID));
+	memcpy(&ci, curkey->iov_base, sizeof(ID));
+	if (ui < ci)
+		return -1;
+	if (ui > ci)
+		return 1;
+	uv = usrkey->iov_base;
+	cv = curkey->iov_base;
+	return uv[sizeof(ID)/2] - cv[sizeof(ID)/2];
+}
+
+/* usrkey[0] is the key in DB format, as described at mdb_mval_put.
+ * usrkey[1] is the value we'll actually match against.
+ * usrkey[2] is the attributeDescription for this value.
+ */
+int
+mdb_id2v_dupsort(
+	const MDBX_val *usrkey,
+	const MDBX_val *curkey
+)
+{
+	AttributeDescription *ad = usrkey[2].iov_base;
+	struct berval bv1, bv2;
+	int match;
+	unsigned short s;
+	char *ptr;
+
+	ptr = curkey->iov_base + curkey->iov_len - 2;
+	memcpy(&s, ptr, 2);
+	bv2.bv_val = curkey->iov_base;
+	bv2.bv_len = curkey->iov_len - 3;
+	if (s)
+		bv2.bv_len -= (s+1);
+
+	bv1.bv_val = usrkey[1].iov_base;
+	bv1.bv_len = usrkey[1].iov_len;
+
+	if (ad) {
+		MatchingRule *mr = ad->ad_type->sat_equality;
+		int rc = mr->smr_match(&match, SLAP_MR_EQUALITY
+			| SLAP_MR_VALUE_OF_ASSERTION_SYNTAX
+			| SLAP_MR_ASSERTED_VALUE_NORMALIZED_MATCH
+			| SLAP_MR_ATTRIBUTE_VALUE_NORMALIZED_MATCH,
+			ad->ad_type->sat_syntax, mr, &bv1, &bv2);
+		assert(rc == LDAP_SUCCESS);
+		(void) rc;
+	} else {
+		match = ber_bvcmp(&bv1, &bv2);
+	}
+
+	return match;
+}
+
+/* Values are stored as
+ * [normalized-value NUL ] original-value NUL 2-byte-len
+ * The trailing 2-byte-len is zero if there is no normalized value.
+ * Otherwise, it is the length of the original-value.
+ */
+int mdb_mval_put(Operation *op, MDBX_cursor *mc, ID id, Attribute *a)
+{
+	struct mdb_info *mdb = (struct mdb_info *) op->o_bd->be_private;
+	MDBX_val key, data[3];
+	char *buf;
+	char ivk[ID2VKSZ];
+	unsigned i;
+	unsigned short s;
+	int rc, len;
+
+	memcpy(ivk, &id, sizeof(id));
+	s = mdb->mi_adxs[a->a_desc->ad_index];
+	memcpy(ivk+sizeof(ID), &s, 2);
+	key.iov_base = &ivk;
+	key.iov_len = sizeof(ivk);
+	if ((a->a_desc->ad_type->sat_flags & SLAP_AT_ORDERED) || a->a_desc == slap_schema.si_ad_objectClass)
+		data[2].iov_base = NULL;
+	else
+		data[2].iov_base = a->a_desc;
+
+	for (i=0; i<a->a_numvals; i++) {
+		len = a->a_nvals[i].bv_len + 1 + 2;
+		if (a->a_nvals != a->a_vals) {
+			len += a->a_vals[i].bv_len + 1;
+			data[1].iov_base = a->a_nvals[i].bv_val;
+			data[1].iov_len = a->a_nvals[i].bv_len;
+		} else {
+			data[1].iov_base = a->a_vals[i].bv_val;
+			data[1].iov_len = a->a_vals[i].bv_len;
+		}
+		data[0].iov_len = len;
+		buf = op->o_tmpalloc( len, op->o_tmpmemctx );
+		data[0].iov_base = buf;
+		memcpy(buf, a->a_nvals[i].bv_val, a->a_nvals[i].bv_len);
+		buf += a->a_nvals[i].bv_len;
+		*buf++ = 0;
+		if (a->a_nvals != a->a_vals) {
+			s = a->a_vals[i].bv_len;
+			memcpy(buf, a->a_vals[i].bv_val, a->a_vals[i].bv_len);
+			buf += a->a_vals[i].bv_len;
+			*buf++ = 0;
+			memcpy(buf, &s, 2);
+		} else {
+			*buf++ = 0;
+			*buf++ = 0;
+		}
+		rc = mdbx_cursor_put(mc, &key, data, 0);
+		op->o_tmpfree( data[0].iov_base, op->o_tmpmemctx );
+		if (rc)
+			return rc;
+	}
+	return 0;
+}
+
+int mdb_mval_del(Operation *op, MDBX_cursor *mc, ID id, Attribute *a)
+{
+	struct mdb_info *mdb = (struct mdb_info *) op->o_bd->be_private;
+	MDBX_val key, data[3];
+	char ivk[ID2VKSZ];
+	unsigned i;
+	int rc = MDBX_SUCCESS;
+	unsigned short s;
+
+	memcpy(ivk, &id, sizeof(id));
+	s = mdb->mi_adxs[a->a_desc->ad_index];
+	memcpy(ivk+sizeof(ID), &s, 2);
+	key.iov_base = &ivk;
+	key.iov_len = sizeof(ivk);
+	if ((a->a_desc->ad_type->sat_flags & SLAP_AT_ORDERED) || a->a_desc == slap_schema.si_ad_objectClass)
+		data[2].iov_base = NULL;
+	else
+		data[2].iov_base = a->a_desc;
+
+	if (a->a_numvals) {
+		for (i=0; i<a->a_numvals; i++) {
+			data[0].iov_base = a->a_nvals[i].bv_val;
+			data[0].iov_len = a->a_nvals[i].bv_len+1;
+			if (a->a_nvals != a->a_vals) {
+				data[1].iov_base = a->a_nvals[i].bv_val;
+				data[1].iov_len = a->a_nvals[i].bv_len;
+			} else {
+				data[1].iov_base = a->a_vals[i].bv_val;
+				data[1].iov_len = a->a_vals[i].bv_len;
+			}
+			rc = mdbx_cursor_get(mc, &key, data, MDBX_GET_BOTH_RANGE);
+			if (rc)
+				return rc;
+			rc = mdbx_cursor_del(mc, 0);
+			if (rc)
+				return rc;
+		}
+	} else {
+		rc = mdbx_cursor_get(mc, &key, data, MDBX_SET);
+		if (rc)
+			return rc;
+		rc = mdbx_cursor_del(mc, MDBX_NODUPDATA);
+	}
+	return rc;
+}
+
+static int mdb_mval_get(Operation *op, MDBX_cursor *mc, ID id, Attribute *a, int have_nvals)
+{
+	struct mdb_info *mdb = (struct mdb_info *) op->o_bd->be_private;
+	MDBX_val key, data[3];
+	char *ptr;
+	char ivk[ID2VKSZ];
+	unsigned i;
+	int rc;
+	unsigned short s;
+
+	memcpy(ivk, &id, sizeof(id));
+	s = mdb->mi_adxs[a->a_desc->ad_index];
+	memcpy(ivk+sizeof(ID), &s, 2);
+	key.iov_base = &ivk;
+	key.iov_len = sizeof(ivk);
+
+	/* not needed */
+	if ((a->a_desc->ad_type->sat_flags & SLAP_AT_ORDERED) || a->a_desc == slap_schema.si_ad_objectClass)
+		data[2].iov_base = NULL;
+	else
+		data[2].iov_base = a->a_desc;
+
+	if (have_nvals)
+		a->a_nvals = a->a_vals + a->a_numvals + 1;
+	else
+		a->a_nvals = a->a_vals;
+	for (i=0; i<a->a_numvals; i++) {
+		if (!i)
+			rc = mdbx_cursor_get(mc, &key, data, MDBX_SET);
+		else
+			rc = mdbx_cursor_get(mc, &key, data, MDBX_NEXT_DUP);
+		if (rc)
+			return rc;
+		ptr = (char*)data[0].iov_base + data[0].iov_len - 2;
+		memcpy(&s, ptr, 2);
+		if (have_nvals) {
+			a->a_nvals[i].bv_val = data[0].iov_base;
+			a->a_vals[i].bv_len = s;
+			a->a_vals[i].bv_val = ptr - a->a_vals[i].bv_len - 1;
+			a->a_nvals[i].bv_len = a->a_vals[i].bv_val - a->a_nvals[i].bv_val - 1;
+		} else {
+			assert(!s);
+			a->a_vals[i].bv_val = data[0].iov_base;
+			a->a_vals[i].bv_len = data[0].iov_len - 3;
+		}
+	}
+	BER_BVZERO(&a->a_vals[i]);
+	if (have_nvals) {
+		BER_BVZERO(&a->a_nvals[i]);
+	}
+	return 0;
+}
 
 #define ADD_FLAGS	(MDBX_NOOVERWRITE|MDBX_APPEND)
 
@@ -46,7 +270,7 @@ static int mdb_id2entry_put(
 	struct mdb_info *mdb = (struct mdb_info *) op->o_bd->be_private;
 	Ecount ec;
 	MDBX_val key, data;
-	int rc;
+	int rc, adding = flag;
 
 	/* We only store rdns, and they go in the dn2id database. */
 
@@ -62,8 +286,11 @@ static int mdb_id2entry_put(
 	if (e->e_id < mdb_read_nextid(mdb))
 		flag &= ~MDBX_APPEND;
 
+	if (mdb->mi_maxentrysize && ec.len > mdb->mi_maxentrysize)
+		return LDAP_ADMINLIMIT_EXCEEDED;
+
 again:
-	data.iov_len = ec.len;
+	data.iov_len = ec.dlen;
 	if ( mc )
 		rc = mdbx_cursor_put( mc, &key, &data, flag );
 	else
@@ -72,6 +299,31 @@ again:
 		rc = mdb_entry_encode( op, e, &data, &ec );
 		if( rc != LDAP_SUCCESS )
 			return rc;
+		/* Handle adds of large multi-valued attrs here.
+		 * Modifies handle them directly.
+		 */
+		if (adding && ec.multi) {
+			MDBX_cursor *mvc;
+			Attribute *a;
+			rc = mdbx_cursor_open( txn, mdb->mi_dbis[MDB_ID2VAL], &mvc );
+			if( !rc ) {
+				for ( a = ec.multi; a; a=a->a_next ) {
+					if (!(a->a_flags & SLAP_ATTR_BIG_MULTI))
+						continue;
+					rc = mdb_mval_put( op, mvc, e->e_id, a );
+					if( rc )
+						break;
+				}
+				mdbx_cursor_close( mvc );
+			}
+			if ( rc ) {
+				Debug( LDAP_DEBUG_ANY,
+					"mdb_id2entry_put: mdb_mval_put failed: %s(%d) \"%s\"\n",
+					mdbx_strerror(rc), rc,
+					e->e_nname.bv_val );
+				return LDAP_OTHER;
+			}
+		}
 	}
 	if (rc) {
 		/* Was there a hole from slapadd? */
@@ -91,10 +343,7 @@ again:
 
 /*
  * This routine adds (or updates) an entry on disk.
- * The cache should be already be updated.
  */
-
-
 int mdb_id2entry_add(
 	Operation *op,
 	MDBX_txn *txn,
@@ -186,7 +435,7 @@ int mdb_id2entry(
 		rc = MDBX_NOTFOUND;
 	if ( rc ) return rc;
 
-	rc = mdb_entry_decode( op, mdbx_cursor_txn( mc ), &data, e );
+	rc = mdb_entry_decode( op, mdbx_cursor_txn( mc ), &data, id, e );
 	if ( rc ) return rc;
 
 	(*e)->e_id = id;
@@ -204,6 +453,7 @@ int mdb_id2entry_delete(
 	struct mdb_info *mdb = (struct mdb_info *) be->be_private;
 	MDBX_dbi dbi = mdb->mi_id2entry;
 	MDBX_val key;
+	MDBX_cursor *mvc;
 	int rc;
 
 	key.iov_base = &e->e_id;
@@ -211,7 +461,29 @@ int mdb_id2entry_delete(
 
 	/* delete from database */
 	rc = mdbx_del( tid, dbi, &key, NULL );
+	if (rc)
+		return rc;
+	rc = mdbx_cursor_open( tid, mdb->mi_dbis[MDB_ID2VAL], &mvc );
+	if (rc)
+		return rc;
 
+	rc = mdbx_cursor_get( mvc, &key, NULL, MDBX_SET_RANGE );
+	if (rc) {
+		if (rc == MDBX_NOTFOUND)
+			rc = MDBX_SUCCESS;
+		return rc;
+	}
+	while (*(ID *)key.iov_base == e->e_id ) {
+		rc = mdbx_cursor_del( mvc, MDBX_NODUPDATA );
+		if (rc)
+			return rc;
+		rc = mdbx_cursor_get( mvc, &key, NULL, MDBX_GET_CURRENT );
+		if (rc) {
+			if (rc == MDBX_NOTFOUND)
+				rc = MDBX_SUCCESS;
+			break;
+		}
+	}
 	return rc;
 }
 
@@ -278,7 +550,7 @@ int mdb_entry_release(
 				moi = (mdb_op_info *)oex;
 				/* If it was setup by entry_get we should probably free it */
 				assert( moi->moi_ref > 0 );
-				if ( moi->moi_flag & MOI_FREEIT ) {
+				if (( moi->moi_flag & (MOI_FREEIT|MOI_KEEPER)) == MOI_FREEIT ) {
 					if ( --moi->moi_ref < 1 ) {
 						int __maybe_unused rc2 = mdbx_txn_reset( moi->moi_txn );
 						assert(rc2 == MDBX_SUCCESS);
@@ -460,7 +732,12 @@ mdb_opinfo_get( Operation *op, struct mdb_info *mdb, int rdonly, mdb_op_info **m
 				moi->moi_txn = mdb_tool_txn;
 			} else {
 				assert(slap_biglock_owned(op->o_bd));
-				rc = mdbx_txn_begin( mdb->mi_dbenv, NULL, 0, &moi->moi_txn );
+				int flag = 0;
+#ifdef SLAP_CONTROL_X_LAZY_COMMIT
+				if ( get_lazyCommit( op ))
+					flag |= MDBX_NOSYNC; /* LY: TODO LAZY-SYNC */
+#endif /* SLAP_CONTROL_X_LAZY_COMMIT */
+				rc = mdbx_txn_begin( mdb->mi_dbenv, NULL, flag, &moi->moi_txn );
 				if (rc) {
 					Debug( LDAP_DEBUG_ANY, "mdb_opinfo_get: mdbx_txn_begin() err %s(%d)\n",
 						mdbx_strerror(rc), rc );
@@ -525,15 +802,57 @@ ok:
 	return 0;
 }
 
+#ifdef LDAP_X_TXN
+int mdb_txn( Operation *op, int txnop, OpExtra **ptr )
+{
+	struct mdb_info *mdb = (struct mdb_info *) op->o_bd->be_private;
+	mdb_op_info **moip = (mdb_op_info **)ptr, *moi = *moip;
+	int rc;
+
+	switch( txnop ) {
+	case SLAP_TXN_BEGIN:
+		/* LY: TODO: deadlock is possible between write-mutex
+		 * inside MDB-backend and syncprov_info_t.si_resp_mutex. */
+		/* LY: TODO: support for bi_op_txn() in biglock */
+		if (op->o_bd->bd_biglock_mode > SLAPD_BIGLOCK_NONE
+				|| quorum_syncrepl_maxrefresh(op->o_bd) > 1) {
+			Debug( LDAP_DEBUG_ANY, "mdb_txn: avoid deadlock - reject SLAP_TXN_BEGIN if biglock or multiple sync-refresh enabled\n" );
+			return LDAP_OTHER;
+		}
+
+		rc = mdb_opinfo_get( op, mdb, 0, moip );
+		if ( !rc ) {
+			moi = *moip;
+			moi->moi_flag |= MOI_KEEPER;
+		}
+		return rc;
+	case SLAP_TXN_COMMIT:
+		rc = mdbx_txn_commit( moi->moi_txn );
+		if ( rc )
+			mdb->mi_numads = 0;
+		op->o_tmpfree( moi, op->o_tmpmemctx );
+		return rc;
+	case SLAP_TXN_ABORT:
+		mdb->mi_numads = 0;
+		mdbx_txn_abort( moi->moi_txn );
+		op->o_tmpfree( moi, op->o_tmpmemctx );
+		return 0;
+	}
+	return LDAP_OTHER;
+}
+#endif /* LDAP_X_TXN */
+
 /* Count up the sizes of the components of an entry */
 static int mdb_entry_partsize(struct mdb_info *mdb, MDBX_txn *txn, Entry *e,
 	Ecount *eh)
 {
-	ber_len_t len;
-	int i, nat = 0, nval = 0, nnval = 0;
+	ber_len_t len, dlen;
+	int i, nat = 0, nval = 0, nnval = 0, doff = 0;
 	Attribute *a;
 
+	eh->multi = NULL;
 	len = 4*sizeof(int);	/* nattrs, nvals, ocflags, offset */
+	dlen = len;
 	for (a=e->e_attrs; a; a=a->a_next) {
 		/* For AttributeDesc, we only store the attr index */
 		nat++;
@@ -547,9 +866,21 @@ static int mdb_entry_partsize(struct mdb_info *mdb, MDBX_txn *txn, Entry *e,
 				return rc;
 		}
 		len += 2*sizeof(int);	/* AD index, numvals */
+		dlen += 2*sizeof(int);
 		nval += a->a_numvals + 1;	/* empty berval at end */
+		if (a->a_numvals > mdb->mi_multi_hi)
+			a->a_flags |= SLAP_ATTR_BIG_MULTI;
+		if (a->a_flags & SLAP_ATTR_BIG_MULTI)
+			doff += a->a_numvals;
 		for (i=0; i<a->a_numvals; i++) {
-			len += a->a_vals[i].bv_len + 1 + sizeof(int);	/* len */
+			int alen = a->a_vals[i].bv_len + 1 + sizeof(int);	/* len */
+			len += alen;
+			if (a->a_flags & SLAP_ATTR_BIG_MULTI) {
+				if (!eh->multi)
+					eh->multi = a;
+			} else {
+				dlen += alen;
+			}
 		}
 		if (a->a_nvals != a->a_vals) {
 			if (! reopenldap_mode_righteous())
@@ -559,8 +890,14 @@ static int mdb_entry_partsize(struct mdb_info *mdb, MDBX_txn *txn, Entry *e,
 		dont_skip_dups:
 					nval += a->a_numvals + 1;
 					nnval++;
-					for (i=0; i<a->a_numvals; i++)
-						len += a->a_nvals[i].bv_len + 1 + sizeof(int);
+					if (a->a_flags & SLAP_ATTR_BIG_MULTI)
+						doff += a->a_numvals;
+					for (i=0; i<a->a_numvals; i++) {
+						int alen = a->a_nvals[i].bv_len + 1 + sizeof(int);
+						len += alen;
+						if (!(a->a_flags & SLAP_ATTR_BIG_MULTI))
+							dlen += alen;
+					}
 					break;
 				}
 			}
@@ -568,34 +905,45 @@ static int mdb_entry_partsize(struct mdb_info *mdb, MDBX_txn *txn, Entry *e,
 	}
 	if (! reopenldap_mode_righteous()) {
 		/* padding */
-		len = (len + sizeof(ID)-1) & ~(sizeof(ID)-1);
+		dlen = (dlen + sizeof(ID)-1) & ~(sizeof(ID)-1);
 	}
 	eh->len = len;
+	eh->dlen = dlen;
 	eh->nattrs = nat;
 	eh->nvals = nval;
-	eh->offset = nat + nval - nnval;
+	eh->offset = nat + nval - nnval - doff;
 	return 0;
 }
 
-#define HIGH_BIT (1<<(sizeof(unsigned int)*CHAR_BIT-1))
+/* Flag bits for an encoded attribute */
+#define MDB_AT_SORTED	(1<<(sizeof(unsigned int)*CHAR_BIT-1))
+	/* the values are in sorted order */
+#define MDB_AT_MULTI	(1<<(sizeof(unsigned int)*CHAR_BIT-2))
+	/* the values of this multi-valued attr are stored separately */
+
+#define MDB_AT_NVALS	(1<<(sizeof(unsigned int)*CHAR_BIT-1))
+	/* this attribute has normalized values */
 
 /* Flatten an Entry into a buffer. The buffer starts with the count of the
  * number of attributes in the entry, the total number of values in the
  * entry, and the e_ocflags. It then contains a list of integers for each
  * attribute. For each attribute the first integer gives the index of the
  * matching AttributeDescription, followed by the number of values in the
- * attribute. If the high bit of the attr index is set, the attribute's
- * values are already sorted.
- * If the high bit of numvals is set, the attribute also has normalized
- * values present. (Note - a_numvals is an unsigned int, so this means
- * it's possible to receive an attribute that we can't encode due to size
- * overflow. In practice, this should not be an issue.) Then the length
- * of each value is listed. If there are normalized values, their lengths
- * come next. This continues for each attribute. After all of the lengths
- * for the last attribute, the actual values are copied, with a NUL
- * terminator after each value. The buffer is padded to the sizeof(ID).
- * The entire buffer size is precomputed so that a single malloc can be
- * performed.
+ * attribute. If the MDB_AT_SORTED bit of the attr index is set, the
+ * attribute's values are already sorted. If the MDB_AT_MULTI bit of the
+ * attr index is set, the values are stored separately.
+ *
+ * If the MDB_AT_NVALS bit of numvals is set, the attribute also has
+ * normalized values present. (Note - a_numvals is an unsigned int, so this
+ * means it's possible to receive an attribute that we can't encode due
+ * to size overflow. In practice, this should not be an issue.)
+ *
+ * Then the length of each value is listed. If there are normalized values,
+ * their lengths come next. This continues for each attribute. After all
+ * of the lengths for the last attribute, the actual values are copied,
+ * with a NUL terminator after each value.
+ * The buffer is padded to the sizeof(ID). The entire buffer size is
+ * precomputed so that a single malloc can be performed.
  */
 static int mdb_entry_encode(Operation *op, Entry *e, MDBX_val *data, Ecount *eh)
 {
@@ -623,8 +971,10 @@ static int mdb_entry_encode(Operation *op, Entry *e, MDBX_val *data, Ecount *eh)
 		if (!a->a_desc->ad_index)
 			return LDAP_UNDEFINED_TYPE;
 		l = mdb->mi_adxs[a->a_desc->ad_index];
+		if (a->a_flags & SLAP_ATTR_BIG_MULTI)
+			l |= MDB_AT_MULTI;
 		if (a->a_flags & SLAP_ATTR_SORTED_VALS)
-			l |= HIGH_BIT;
+			l |= MDB_AT_SORTED;
 		*lp++ = l;
 
 		i = 0;
@@ -637,30 +987,37 @@ static int mdb_entry_encode(Operation *op, Entry *e, MDBX_val *data, Ecount *eh)
 			if (reopenldap_mode_righteous()) {
 				for (i=0; i<a->a_numvals; i++) {
 					if (! bvmatch(&a->a_vals[i], &a->a_nvals[i])) {
-						l |= HIGH_BIT;
+						l |= MDB_AT_NVALS;
 						break;
 					}
 				}
 			} else {
-				l |= HIGH_BIT;
+				l |= MDB_AT_NVALS;
 			}
 		}
 		*lp++ = l;
-		if (l) {
-			for (i=0; i<a->a_numvals; i++) {
-				*lp++ = a->a_vals[i].bv_len;
-				memcpy(ptr, a->a_vals[i].bv_val,
-					a->a_vals[i].bv_len);
-				ptr += a->a_vals[i].bv_len;
-				*ptr++ = '\0';
-			}
-			if (l & HIGH_BIT) {
+
+		if (a->a_flags & SLAP_ATTR_BIG_MULTI) {
+			continue;
+		} else {
+			if (l) {
+				for (i=0; a->a_vals[i].bv_val; i++);
+				assert( i == a->a_numvals );
 				for (i=0; i<a->a_numvals; i++) {
-					*lp++ = a->a_nvals[i].bv_len;
-					memcpy(ptr, a->a_nvals[i].bv_val,
-						a->a_nvals[i].bv_len);
-					ptr += a->a_nvals[i].bv_len;
+					*lp++ = a->a_vals[i].bv_len;
+					memcpy(ptr, a->a_vals[i].bv_val,
+						a->a_vals[i].bv_len);
+					ptr += a->a_vals[i].bv_len;
 					*ptr++ = '\0';
+				}
+				if (l & MDB_AT_NVALS) {
+					for (i=0; i<a->a_numvals; i++) {
+						*lp++ = a->a_nvals[i].bv_len;
+						memcpy(ptr, a->a_nvals[i].bv_val,
+							a->a_nvals[i].bv_len);
+						ptr += a->a_nvals[i].bv_len;
+						*ptr++ = '\0';
+					}
 				}
 			}
 		}
@@ -678,7 +1035,7 @@ static int mdb_entry_encode(Operation *op, Entry *e, MDBX_val *data, Ecount *eh)
  * you can not free individual attributes or names from this
  * structure. Attempting to do so will likely corrupt memory.
  */
-int mdb_entry_decode(Operation *op, MDBX_txn *txn, MDBX_val *data, Entry **e)
+int mdb_entry_decode(Operation *op, MDBX_txn *txn, MDBX_val *data, ID id, Entry **e)
 {
 	struct mdb_info *mdb = (struct mdb_info *) op->o_bd->be_private;
 	int i, j, nattrs, nvals;
@@ -689,6 +1046,7 @@ int mdb_entry_decode(Operation *op, MDBX_txn *txn, MDBX_val *data, Entry **e)
 	unsigned int *lp = (unsigned int *)data->iov_base;
 	unsigned char *ptr;
 	BerVarray bptr;
+	MDBX_cursor *mvc = NULL;
 
 	Debug( LDAP_DEBUG_TRACE,
 		"=> mdb_entry_decode:\n" );
@@ -706,43 +1064,48 @@ int mdb_entry_decode(Operation *op, MDBX_txn *txn, MDBX_val *data, Entry **e)
 	ptr = (unsigned char *)(lp + i);
 
 	for (;nattrs>0; nattrs--) {
-		int have_nval = 0;
+		int have_nval = 0, multi = 0;
 		a->a_flags = SLAP_ATTR_DONT_FREE_DATA | SLAP_ATTR_DONT_FREE_VALS;
 		i = *lp++;
-		if (i & HIGH_BIT) {
-			i ^= HIGH_BIT;
+		if (i & MDB_AT_SORTED) {
+			i ^= MDB_AT_SORTED;
 			a->a_flags |= SLAP_ATTR_SORTED_VALS;
+		}
+		if (i & MDB_AT_MULTI) {
+			i ^= MDB_AT_MULTI;
+			a->a_flags |= SLAP_ATTR_BIG_MULTI;
+			multi = 1;
 		}
 		if (i > slap_tsan__read_int(&mdb->mi_numads)) {
 			rc = mdb_ad_read(mdb, txn);
 			if (rc)
-				return rc;
+				goto leave;
 			if (i > slap_tsan__read_int(&mdb->mi_numads)) {
 				Debug( LDAP_DEBUG_ANY,
 					"mdb_entry_decode: attribute index %d not recognized\n",
 					i );
-				return LDAP_OTHER;
+				rc = LDAP_OTHER;
+				goto leave;
 			}
 		}
 		a->a_desc = mdb->mi_ads[i];
 		a->a_numvals = *lp++;
-		if (a->a_numvals & HIGH_BIT) {
-			a->a_numvals ^= HIGH_BIT;
+		if (a->a_numvals & MDB_AT_NVALS) {
+			a->a_numvals ^= MDB_AT_NVALS;
 			have_nval = 1;
 		}
 		a->a_vals = bptr;
-		for (i=0; i<a->a_numvals; i++) {
-			bptr->bv_len = *lp++;;
-			bptr->bv_val = (char *)ptr;
-			ptr += bptr->bv_len+1;
-			bptr++;
-		}
-		bptr->bv_val = NULL;
-		bptr->bv_len = 0;
-		bptr++;
-
-		if (have_nval) {
-			a->a_nvals = bptr;
+		if (multi) {
+			if (!mvc) {
+				rc = mdbx_cursor_open(txn, mdb->mi_dbis[MDB_ID2VAL], &mvc);
+				if (rc)
+					goto leave;
+			}
+			mdb_mval_get(op, mvc, id, a, have_nval);
+			bptr += a->a_numvals + 1;
+			if (have_nval)
+				bptr += a->a_numvals + 1;
+		} else {
 			for (i=0; i<a->a_numvals; i++) {
 				bptr->bv_len = *lp++;
 				bptr->bv_val = (char *)ptr;
@@ -752,9 +1115,23 @@ int mdb_entry_decode(Operation *op, MDBX_txn *txn, MDBX_val *data, Entry **e)
 			bptr->bv_val = NULL;
 			bptr->bv_len = 0;
 			bptr++;
-		} else {
-			a->a_nvals = a->a_vals;
+
+			if (have_nval) {
+				a->a_nvals = bptr;
+				for (i=0; i<a->a_numvals; i++) {
+					bptr->bv_len = *lp++;
+					bptr->bv_val = (char *)ptr;
+					ptr += bptr->bv_len+1;
+					bptr++;
+				}
+				bptr->bv_val = NULL;
+				bptr->bv_len = 0;
+				bptr++;
+			} else {
+				a->a_nvals = a->a_vals;
+			}
 		}
+
 		/* FIXME: This is redundant once a sorted entry is saved into the DB */
 		if (( a->a_desc->ad_type->sat_flags & SLAP_AT_SORTED_VAL )
 			&& !(a->a_flags & SLAP_ATTR_SORTED_VALS)) {
@@ -766,7 +1143,7 @@ int mdb_entry_decode(Operation *op, MDBX_txn *txn, MDBX_val *data, Entry **e)
 				Debug( LDAP_DEBUG_ANY,
 					"mdb_entry_decode: attributeType %s value #%d provided more than once\n",
 					a->a_desc->ad_cname.bv_val, j );
-				return rc;
+				goto leave;
 			}
 		}
 		a->a_next = a+1;
@@ -777,5 +1154,10 @@ done:
 
 	Debug(LDAP_DEBUG_TRACE, "<= mdb_entry_decode\n" );
 	*e = x;
-	return 0;
+	rc = 0;
+
+leave:
+	if (mvc)
+		mdbx_cursor_close(mvc);
+	return rc;
 }

@@ -36,11 +36,12 @@ static slap_response sock_over_response;
 enum {
 	BS_EXT = 1,
 	BS_OPS,
-	BS_RESP
+	BS_RESP,
+	BS_DNPAT
 };
 
 /* The number of overlay-only config attrs */
-#define NUM_OV_ATTRS	2
+#define NUM_OV_ATTRS	3
 
 static ConfigTable bscfg[] = {
 	{ "sockops", "ops", 2, 0, 0, ARG_MAGIC|BS_OPS,
@@ -53,6 +54,11 @@ static ConfigTable bscfg[] = {
 			"DESC 'Response types to forward' "
 			"EQUALITY caseIgnoreMatch "
 			"SYNTAX OMsDirectoryString )", NULL, NULL },
+	{ "sockdnpat", "regexp", 2, 2, 0, ARG_MAGIC|BS_DNPAT,
+		bs_cf_gen, "( OLcfgDbAt:7.5 NAME 'olcOvSocketDNpat' "
+			"DESC 'DN pattern to match' "
+			"EQUALITY caseIgnoreMatch "
+			"SYNTAX OMsDirectoryString SINGLE-VALUE )", NULL, NULL },
 
 	{ "socketpath", "pathname", 2, 2, 0, ARG_STRING|ARG_OFFSET,
 		(void *)offsetof(struct sockinfo, si_sockpath),
@@ -86,7 +92,8 @@ static ConfigOCs osocs[] = {
 		"SUP olcOverlayConfig "
 		"MUST olcDbSocketPath "
 		"MAY ( olcDbSocketExtensions $ "
-			" olcOvSocketOps $ olcOvSocketResps ) )",
+			" olcOvSocketOps $ olcOvSocketResps $ "
+			" olcOvSocketDNpat ) )",
 			Cft_Overlay, bscfg },
 	{ NULL, 0, NULL }
 };
@@ -152,6 +159,9 @@ bs_cf_gen( ConfigArgs *c )
 			return mask_to_verbs( ov_ops, si->si_ops, &c->rvalue_vals );
 		case BS_RESP:
 			return mask_to_verbs( ov_resps, si->si_resps, &c->rvalue_vals );
+		case BS_DNPAT:
+			value_add_one( &c->rvalue_vals, &si->si_dnpatstr );
+			return 0;
 		}
 	} else if ( c->op == LDAP_MOD_DELETE ) {
 		switch( c->type ) {
@@ -188,6 +198,11 @@ bs_cf_gen( ConfigArgs *c )
 					si->si_resps ^= dels;
 			}
 			return rc;
+		case BS_DNPAT:
+			regfree( &si->si_dnpat );
+			ch_free( si->si_dnpatstr.bv_val );
+			BER_BVZERO( &si->si_dnpatstr );
+			return 0;
 		}
 
 	} else {
@@ -198,6 +213,13 @@ bs_cf_gen( ConfigArgs *c )
 			return verbs_to_mask( c->argc, c->argv, ov_ops, &si->si_ops );
 		case BS_RESP:
 			return verbs_to_mask( c->argc, c->argv, ov_resps, &si->si_resps );
+		case BS_DNPAT:
+			if ( !regcomp( &si->si_dnpat, c->argv[1], REG_EXTENDED|REG_ICASE|REG_NOSUB )) {
+				ber_str2bv( c->argv[1], 0, 1, &si->si_dnpatstr );
+				return 0;
+			} else {
+				return 1;
+			}
 		}
 	}
 	return 1;
@@ -273,6 +295,10 @@ static int sock_over_op(
 	}
 	si = on->on_bi.bi_private;
 	if ( !(si->si_ops & sockopflags[which]))
+		return SLAP_CB_CONTINUE;
+
+	if ( !BER_BVISEMPTY( &si->si_dnpatstr ) &&
+		regexec( &si->si_dnpat, op->o_req_ndn.bv_val, 0, NULL, 0 ))
 		return SLAP_CB_CONTINUE;
 
 	op->o_bd->be_private = si;

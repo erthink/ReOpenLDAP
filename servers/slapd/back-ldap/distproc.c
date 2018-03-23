@@ -210,9 +210,7 @@ static int		sc_returnContRef;
 #define get_returnContRef(op)		((op)->o_returnContRef & SLAP_CONTROL_MASK)
 
 static struct berval	slap_EXOP_CHAINEDREQUEST = BER_BVC( LDAP_EXOP_X_CHAINEDREQUEST );
-#if LDAP_EXPERIMENTAL > 0
 static struct berval	slap_FEATURE_CANCHAINOPS = BER_BVC( LDAP_FEATURE_X_CANCHAINOPS );
-#endif
 
 static BackendInfo	*lback;
 
@@ -960,7 +958,6 @@ distproc_initialize( void )
 		return rc;
 	}
 
-#if LDAP_EXPERIMENTAL > 0
 	rc = supported_feature_load( &slap_FEATURE_CANCHAINOPS );
 	if ( rc != LDAP_SUCCESS ) {
 		Debug( LDAP_DEBUG_ANY, "slapd-distproc: "
@@ -968,7 +965,6 @@ distproc_initialize( void )
 			rc );
 		return rc;
 	}
-#endif
 
 	rc = register_supported_control( LDAP_CONTROL_X_RETURNCONTREF,
 			SLAP_CTRL_GLOBAL|SLAP_CTRL_ACCESS|SLAP_CTRL_HIDE, NULL,

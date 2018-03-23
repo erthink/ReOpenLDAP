@@ -332,8 +332,7 @@ OL_ARG_ENABLE(experimental,[  --enable-experimental   enable experimental and de
 OL_ARG_ENABLE(check,[  --enable-check          enable internal checking and assertions], no, [no yes always default])dnl
 OL_ARG_ENABLE(hipagut,[  --enable-hipagut        enable internal memory allocation debugger], no, [no yes always extra])dnl
 OL_ARG_ENABLE(proctitle,[  --enable-proctitle      enable proctitle support], yes)dnl
-dnl OL_ARG_ENABLE(referrals,[  --enable-referrals      enable LDAPv2+ Referrals (experimental)], no)dnl
-ol_enable_referrals=${ol_enable_referrals-no}
+OL_ARG_ENABLE(referrals,[  --enable-referrals      enable LDAPv2+ Referrals (experimental)], no)dnl
 OL_ARG_ENABLE(ipv6,[  --enable-ipv6           enable IPv6 support], auto)dnl
 OL_ARG_ENABLE(local,[  --enable-local          enable AF_LOCAL (AF_UNIX) socket support], auto)dnl
 OL_ARG_ENABLE(deprecated,[  --enable-deprecated     enable deprecated interfaces of libreldap], no, [no yes])dnl
@@ -463,7 +462,7 @@ OL_ARG_ENABLE(wrappers,[    --enable-wrappers	  enable tcp wrapper support], no)
 dnl ----------------------------------------------------------------
 dnl SLAPD Backend Options
 slapd_backends="mdb bdb dnssrv hdb ldap meta monitor ndb null passwd perl \
-	relay shell sock sql"
+	relay shell sock sql wt asyncmeta"
 
 AC_ARG_ENABLE(xxslapbackends,[
 SLAPD Backend Options:])
@@ -482,6 +481,8 @@ OL_ARG_ENABLE(ldap,[    --enable-ldap	  enable ldap backend],
 	no, [no yes mod], ol_enable_backends)dnl
 OL_ARG_ENABLE(meta,[    --enable-meta	  enable metadirectory backend],
 	no, [no yes mod], ol_enable_backends)dnl
+OL_ARG_ENABLE(asyncmeta,[    --enable-asyncmeta	  enable asynchronous metadirectory backend],
+	no, [no yes mod], ol_enable_backends)dnl
 OL_ARG_ENABLE(monitor,[    --enable-monitor	  enable monitor backend],
 	yes, [no yes mod], ol_enable_backends)dnl
 OL_ARG_ENABLE(ndb,[    --enable-ndb	  enable MySQL NDB Cluster backend],
@@ -499,6 +500,8 @@ OL_ARG_ENABLE(shell,[    --enable-shell	  enable shell backend],
 OL_ARG_ENABLE(sock,[    --enable-sock	  enable sock backend],
 	no, [no yes mod], ol_enable_backends)dnl
 OL_ARG_ENABLE(sql,[    --enable-sql	  enable sql backend],
+	no, [no yes mod], ol_enable_backends)dnl
+OL_ARG_ENABLE(wt,[    --enable-wt		  enable WiredTiger backend],
 	no, [no yes mod], ol_enable_backends)dnl
 
 dnl ----------------------------------------------------------------
@@ -686,6 +689,16 @@ if test $ol_enable_meta/$ol_enable_ldap = yes/no ; then
 	AC_MSG_ERROR([--enable-meta requires --enable-ldap])
 fi
 
+if test $ol_enable_asyncmeta/$ol_enable_ldap = yes/no ; then
+	AC_MSG_ERROR([--enable-asyncmeta requires --enable-ldap])
+fi
+
+if test $ol_enable_lmpasswd = yes ; then
+	if test $ol_with_tls = no ; then
+		AC_MSG_ERROR([LAN Manager passwords require OpenSSL])
+	fi
+fi
+
 if test $ol_enable_spasswd = yes ; then
 	if test $ol_with_cyrus_sasl = no ; then
 		AC_MSG_ERROR([options require --with-cyrus-sasl])
@@ -720,6 +733,11 @@ PERL_LIBS=
 PERL_CPPFLAGS=
 PERL_LDFLAGS=
 PERL_RDIR=
+
+WT_CPPFLAGS=
+WT_CFLAGS=
+WT_LIBS=
+WT_LIBDIR=
 
 SQL_LIBS=
 SQL_INCLUDES=
@@ -1947,6 +1965,34 @@ if test $ol_enable_ndb != no ; then
 	fi
 fi
 
+dnl ----------------------------------------------------------------
+dnl WiredTiger
+ol_link_wt=no
+if test $ol_enable_wt != no ; then
+	AC_CHECK_PROG(PKGCONFIG,pkg-config,yes)
+	if test "$PKGCONFIG" != yes ; then
+		AC_MSG_ERROR([could not locate pkg-config])
+	fi
+	WT_CPPFLAGS=`pkg-config --cflags-only-I wiredtiger`
+	WT_CFLAGS=`pkg-config --cflags-only-other wiredtiger`
+	WT_LIBS=`pkg-config --libs-only-l wiredtiger`
+	WT_LIBDIR=`pkg-config --libs-only-L wiredtiger`
+
+	save_CFLAGS="$CFLAGS"
+	save_LDFLAGS="$LDFLAGS"
+	CFLAGS="$WT_CFLAGS"
+	CPPFLAGS="$WT_CPPFLAGS"
+	LDFLAGS="$WT_LIBDIR $WT_LIBS"
+	AC_CHECK_HEADERS([wiredtiger.h])
+	AC_CHECK_LIB(wiredtiger,wiredtiger_version,[: ok],[
+		AC_MSG_ERROR([could not locate wiredtiger library])
+	])
+	CFLAGS="$save_CFLAGS"
+	CPPFLAGS="$save_CPPFLAGS"
+	LDFLAGS="$save_LDFLAGS"
+	ol_link_wt=yes
+fi
+
 #dnl ----------------------------------------------------------------
 #
 # LY: libuci was never used ever, including in the original OpenLDAP. (2.4.x, 2.5.x).
@@ -2550,6 +2596,19 @@ if test "$ol_enable_meta" != no ; then
 	AC_DEFINE_UNQUOTED(SLAPD_META,$MFLAG,[define to support LDAP Metadirectory backend])
 fi
 
+if test "$ol_enable_asyncmeta" != no ; then
+	ol_enable_slapd=yes
+	ol_enable_rewrite=yes
+	if test "$ol_enable_asyncmeta" = mod ; then
+		SLAPD_DYNAMIC_BACKENDS="$SLAPD_DYNAMIC_BACKENDS asyncmeta"
+		MFLAG=SLAPD_MOD_DYNAMIC
+	else
+		SLAPD_STATIC_BACKENDS="$SLAPD_STATIC_BACKENDS asyncmeta"
+		MFLAG=SLAPD_MOD_STATIC
+	fi
+	AC_DEFINE_UNQUOTED(SLAPD_ASYNCMETA,$MFLAG,[define to support LDAP Async Metadirectory backend])
+fi
+
 if test "$ol_enable_ndb" != no ; then
 	ol_enable_slapd=yes
 	if test "$ol_enable_ndb" = mod ; then
@@ -2647,6 +2706,18 @@ if test "$ol_link_sql" != no ; then
 		MFLAG=SLAPD_MOD_STATIC
 	fi
 	AC_DEFINE_UNQUOTED(SLAPD_SQL,$MFLAG,[define to support SQL backend])
+fi
+
+if test "$ol_link_wt" != no ; then
+	ol_enable_slapd=yes
+	if test "$ol_enable_wt" = mod; then
+		SLAPD_DYNAMIC_BACKENDS="$SLAPD_DYNAMIC_BACKENDS wt"
+		MFLAG=SLAPD_MOD_DYNAMIC
+	else
+		SLAPD_STATIC_BACKENDS="$SLAPD_STATIC_BACKENDS wt"
+		MFLAG=SLAPD_MOD_STATIC
+	fi
+	AC_DEFINE_UNQUOTED(SLAPD_WT,$MFLAG,[define to support WiredTiger backend])
 fi
 
 if test "$ol_enable_accesslog" != no ; then
@@ -2972,6 +3043,9 @@ AM_CONDITIONAL([SLAPD_DYNACL], [test $ol_enable_dynacl != no])
 	AM_CONDITIONAL([BUILD_META], [test $ol_enable_meta != no])
 	AM_CONDITIONAL([META_DYNAMIC], [test $ol_enable_meta = mod])
 
+	AM_CONDITIONAL([BUILD_ASYNCMETA], [test $ol_enable_asyncmeta != no])
+	AM_CONDITIONAL([ASYNCMETA_DYNAMIC], [test $ol_enable_asyncmeta = mod])
+
 	AM_CONDITIONAL([BUILD_NDB], [test $ol_enable_ndb != no])
 	AM_CONDITIONAL([NDB_DYNAMIC], [test $ol_enable_ndb = mod])
 
@@ -2995,6 +3069,9 @@ AM_CONDITIONAL([SLAPD_DYNACL], [test $ol_enable_dynacl != no])
 
 	AM_CONDITIONAL([BUILD_SQL], [test $ol_enable_sql != no])
 	AM_CONDITIONAL([SQL_DYNAMIC], [test $ol_enable_sql = mod])
+
+	AM_CONDITIONAL([BUILD_WT], [test $ol_enable_wt != no])
+	AM_CONDITIONAL([WT_DYNAMIC], [test $ol_enable_wt = mod])
 
 #dnl overlays
 	AM_CONDITIONAL([BUILD_ACCESSLOG], [test $ol_enable_accesslog != no])
@@ -3087,6 +3164,11 @@ AC_SUBST(PERL_LDFLAGS)
 AC_SUBST(PERL_LIBS)
 AC_SUBST(PERL_RDIR)
 
+AC_SUBST(WT_CPPFLAGS)
+AC_SUBST(WT_CFLAGS)
+AC_SUBST(WT_LIBS)
+AC_SUBST(WT_LIBDIR)
+
 AC_SUBST(SQL_LIBS)
 AC_SUBST(SQL_INCLUDES)
 
@@ -3118,6 +3200,9 @@ AC_SUBST(SECURITY_LIBS)
 
 SLAPD_LIBS="$SLAPD_LIBS $SLAPD_SLP_LIBS $SLAPD_GMP_LIBS $SLAPD_TCPWRAP_LIBS"
 AC_SUBST(SLAPD_LIBS)
+
+AC_SUBST(WT_INCS)
+AC_SUBST(WT_LIBS)
 
 dnl ----------------------------------------------------------------
 dnl final help output
@@ -3155,6 +3240,7 @@ AC_CONFIG_FILES(
 		servers/slapd/back-null/Makefile
 		servers/slapd/back-ldap/Makefile
 		servers/slapd/back-meta/Makefile
+		servers/slapd/back-asyncmeta/Makefile
 		servers/slapd/back-relay/Makefile
 		servers/slapd/back-sock/Makefile
 
@@ -3165,6 +3251,7 @@ AC_CONFIG_FILES(
 		servers/slapd/back-perl/Makefile
 		servers/slapd/back-shell/Makefile servers/slapd/shell-backends/Makefile
 		servers/slapd/back-sql/Makefile
+		servers/slapd/back-wt/Makefile
 
 	doc/man/Makefile
 	doc/man/ru/Makefile

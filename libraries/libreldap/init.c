@@ -272,7 +272,7 @@ static void openldap_ldap_init_w_conf(
 				break;
 			case ATTR_SASL:
 #ifdef HAVE_CYRUS_SASL
-			   	ldap_int_sasl_config( gopts, attrs[i].offset, opt );
+				ldap_int_sasl_config( gopts, attrs[i].offset, opt );
 #endif
 				break;
 			case ATTR_GSSAPI:
@@ -282,7 +282,7 @@ static void openldap_ldap_init_w_conf(
 				break;
 			case ATTR_TLS:
 #ifdef WITH_TLS
-			   	ldap_int_tls_config( NULL, attrs[i].offset, opt );
+				ldap_pvt_tls_config( NULL, attrs[i].offset, opt );
 #endif
 				break;
 			case ATTR_OPT_TV: {
@@ -427,7 +427,7 @@ static void openldap_ldap_init_w_env(
 			break;
 		case ATTR_SASL:
 #ifdef HAVE_CYRUS_SASL
-		   	ldap_int_sasl_config( gopts, attrs[i].offset, value );
+			ldap_int_sasl_config( gopts, attrs[i].offset, value );
 #endif
 		   	break;
 		case ATTR_GSSAPI:
@@ -437,7 +437,7 @@ static void openldap_ldap_init_w_env(
 			break;
 		case ATTR_TLS:
 #ifdef WITH_TLS
-		   	ldap_int_tls_config( NULL, attrs[i].offset, value );
+			ldap_pvt_tls_config( NULL, attrs[i].offset, value );
 #endif
 		   	break;
 		case ATTR_OPT_TV: {

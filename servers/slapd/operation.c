@@ -28,18 +28,12 @@
 #include "slapi/slapi.h"
 #endif
 
-static ldap_pvt_thread_mutex_t	slap_op_mutex;
-static time_t last_time;
-static int last_incr;
-
 void slap_op_init(void)
 {
-	ldap_pvt_thread_mutex_init( &slap_op_mutex );
 }
 
 void slap_op_destroy(void)
 {
-	ldap_pvt_thread_mutex_destroy( &slap_op_mutex );
 }
 
 static void
@@ -149,16 +143,12 @@ slap_op_free( Operation *op, void *ctx )
 void
 slap_op_time(time_t *t, int *nop)
 {
-	ldap_pvt_thread_mutex_lock( &slap_op_mutex );
-	*t = ldap_time_steady();
-	if ( *t == last_time ) {
-		*nop = ++last_incr;
-	} else {
-		last_time = *t;
-		last_incr = 0;
-		*nop = 0;
-	}
-	ldap_pvt_thread_mutex_unlock( &slap_op_mutex );
+	struct timeval tv;
+	unsigned sametick;
+
+	sametick = ldap_timeval_realtime( &tv );
+	*t = tv.tv_sec;
+	*nop = tv.tv_usec + sametick;
 }
 
 Operation *
