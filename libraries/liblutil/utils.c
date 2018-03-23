@@ -537,59 +537,25 @@ scale( int new, lutil_int_decnum *prev, unsigned char *tmp )
 int
 lutil_str2bin( struct berval *in, struct berval *out, void *ctx )
 {
-	char *pin, *pout;
-	char *end;
-	int i, chunk, len, rc = 0, hex = 0;
+	char *pout = out->bv_val;
+
 	if ( !out || !out->bv_val || out->bv_len < in->bv_len )
 		return -1;
 
-	pout = out->bv_val;
+	char *pin, *end;
+	int i, chunk, len, rc = 0;
 	/* Leading "0x" for hex input */
 	if ( in->bv_len > 2 && in->bv_val[0] == '0' &&
 		( in->bv_val[1] == 'x' || in->bv_val[1] == 'X' ) )
 	{
 		len = in->bv_len - 2;
 		pin = in->bv_val + 2;
-		hex = 1;
 	} else if ( in->bv_len > 3 && in->bv_val[0] == '\'' &&
 		in->bv_val[in->bv_len-2] == '\'' &&
 		in->bv_val[in->bv_len-1] == 'H' )
 	{
 		len = in->bv_len - 3;
 		pin = in->bv_val + 1;
-		hex = 1;
-	}
-	if ( hex ) {
-#define HEXMAX	(2 * sizeof(long))
-		unsigned long l;
-		char tbuf[HEXMAX+1];
-
-		/* Convert a longword at a time, but handle leading
-		 * odd bytes first
-		 */
-		chunk = len % HEXMAX;
-		if ( !chunk )
-			chunk = HEXMAX;
-
-		while ( len ) {
-			int ochunk;
-			memcpy( tbuf, pin, chunk );
-			tbuf[chunk] = '\0';
-			errno = 0;
-			l = strtoul( tbuf, &end, 16 );
-			if ( errno )
-				return -1;
-			ochunk = (chunk + 1)/2;
-			for ( i = ochunk - 1; i >= 0; i-- ) {
-				pout[i] = l & 0xff;
-				l >>= 8;
-			}
-			pin += chunk;
-			pout += ochunk;
-			len -= chunk;
-			chunk = HEXMAX;
-		}
-		out->bv_len = pout - out->bv_val;
 	} else {
 	/* Decimal */
 #define	DECMAX	8	/* 8 digits at a time */
@@ -661,7 +627,39 @@ decfail:
 		if ( tmp != tmpbuf ) {
 			ber_memfree_x( tmp, ctx );
 		}
+		return rc;
 	}
+
+#define HEXMAX	(2 * sizeof(long))
+	unsigned long l;
+	char tbuf[HEXMAX+1];
+
+	/* Convert a longword at a time, but handle leading
+	 * odd bytes first
+	 */
+	chunk = len % HEXMAX;
+	if ( !chunk )
+		chunk = HEXMAX;
+
+	while ( len ) {
+		int ochunk;
+		memcpy( tbuf, pin, chunk );
+		tbuf[chunk] = '\0';
+		errno = 0;
+		l = strtoul( tbuf, &end, 16 );
+		if ( errno )
+			return -1;
+		ochunk = (chunk + 1)/2;
+		for ( i = ochunk - 1; i >= 0; i-- ) {
+			pout[i] = l & 0xff;
+			l >>= 8;
+		}
+		pin += chunk;
+		pout += ochunk;
+		len -= chunk;
+		chunk = HEXMAX;
+	}
+	out->bv_len = pout - out->bv_val;
 	return rc;
 }
 

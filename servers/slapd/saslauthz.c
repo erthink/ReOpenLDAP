@@ -386,7 +386,7 @@ is_dn:		bv.bv_len = in->bv_len - ( bv.bv_val - in->bv_val );
 	}
 
 	/*
-	 * ldap:///<base>??<scope>?<filter>
+	 * ldap:///<base>?<scope>?<filter>
 	 * <scope> ::= {base|one|subtree}
 	 *
 	 * <scope> defaults to "base"
@@ -736,7 +736,7 @@ is_dn:		bv.bv_len = val->bv_len - ( bv.bv_val - val->bv_val );
 	}
 
 	/*
-	 * ldap:///<base>??<scope>?<filter>
+	 * ldap:///<base>?<scope>?<filter>
 	 * <scope> ::= {base|one|subtree}
 	 *
 	 * <scope> defaults to "base"
@@ -1150,7 +1150,7 @@ is_dn:		bv.bv_len = uri->bv_len - (bv.bv_val - uri->bv_val);
 	}
 
 	/*
-	 * ldap:///<base>??<scope>?<filter>
+	 * ldap:///<base>?<scope>?<filter>
 	 * <scope> ::= {base|one|subtree}
 	 *
 	 * <scope> defaults to "base"
