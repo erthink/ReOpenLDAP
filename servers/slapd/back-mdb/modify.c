@@ -82,7 +82,7 @@ mdb_modify_idxflags(
 
 int mdb_modify_internal(
 	Operation *op,
-	MDB_txn *tid,
+	MDBX_txn *tid,
 	Modifications *modlist,
 	Entry *e,
 	const char **text,
@@ -465,7 +465,7 @@ mdb_modify( Operation *op, SlapReply *rs )
 	int		manageDSAit = get_manageDSAit( op );
 	char textbuf[SLAP_TEXT_BUFLEN];
 	size_t textlen = sizeof textbuf;
-	MDB_txn	*txn = NULL;
+	MDBX_txn	*txn = NULL;
 	mdb_op_info opinfo = {{{ 0 }}}, *moi = &opinfo;
 	Entry		dummy = {0};
 
@@ -528,7 +528,7 @@ txnReturn:
 	if( rs->sr_err != 0 ) {
 		Debug( LDAP_DEBUG_TRACE,
 			LDAP_XSTRING(mdb_modify) ": txn_begin failed: "
-			"%s (%d)\n", mdb_strerror(rs->sr_err), rs->sr_err );
+			"%s (%d)\n", mdbx_strerror(rs->sr_err), rs->sr_err );
 		rs->sr_err = LDAP_OTHER;
 		rs->sr_text = "internal error";
 		goto return_results;
@@ -553,7 +553,7 @@ txnReturn:
 			LDAP_XSTRING(mdb_modify) ": dn2entry failed (%d)\n",
 			rs->sr_err );
 		switch( rs->sr_err ) {
-		case MDB_NOTFOUND:
+		case MDBX_NOTFOUND:
 			break;
 		case LDAP_BUSY:
 			rs->sr_text = "ldap server busy";
@@ -567,7 +567,7 @@ txnReturn:
 
 	/* acquire and lock entry */
 	/* FIXME: dn2entry() should return non-glue entry */
-	if (( rs->sr_err == MDB_NOTFOUND ) ||
+	if (( rs->sr_err == MDBX_NOTFOUND ) ||
 		( !manageDSAit && e && is_entry_glue( e )))
 	{
 		if ( e != NULL ) {
@@ -689,12 +689,12 @@ txnReturn:
 		if( op->o_noop ) {
 			assert(numads > -1);
 			mdb->mi_numads = numads;
-			mdb_txn_abort( txn );
+			mdbx_txn_abort( txn );
 			rs->sr_err = LDAP_X_NO_OPERATION;
 			txn = NULL;
 			goto return_results;
 		} else {
-			rs->sr_err = mdb_txn_commit( txn );
+			rs->sr_err = mdbx_txn_commit( txn );
 			if ( rs->sr_err ) {
 				assert(numads > -1);
 				mdb->mi_numads = numads;
@@ -707,7 +707,7 @@ txnReturn:
 		Debug( LDAP_DEBUG_ANY,
 			LDAP_XSTRING(mdb_modify) ": txn_%s failed: %s (%d)\n",
 			op->o_noop ? "abort (no-op)" : "commit",
-			mdb_strerror(rs->sr_err), rs->sr_err );
+			mdbx_strerror(rs->sr_err), rs->sr_err );
 		rs->sr_err = LDAP_OTHER;
 		rs->sr_text = "commit failed";
 
@@ -744,7 +744,7 @@ done:
 		if ( txn != NULL ) {
 			assert(numads > -1);
 			mdb->mi_numads = numads;
-			mdb_txn_abort( txn );
+			mdbx_txn_abort( txn );
 		}
 		if ( moi->moi_oe.oe_key )
 			LDAP_SLIST_REMOVE( &op->o_extra, &moi->moi_oe, OpExtra, oe_next );

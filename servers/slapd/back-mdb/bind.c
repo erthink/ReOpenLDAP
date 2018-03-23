@@ -30,7 +30,7 @@ mdb_bind( Operation *op, SlapReply *rs )
 
 	AttributeDescription *password = slap_schema.si_ad_userPassword;
 
-	MDB_txn		*rtxn;
+	MDBX_txn		*rtxn;
 	mdb_op_info	opinfo = {{{0}}}, *moi = &opinfo;
 
 	Debug( LDAP_DEBUG_ARGS,
@@ -69,7 +69,7 @@ mdb_bind( Operation *op, SlapReply *rs )
 	rs->sr_err = mdb_dn2entry( op, rtxn, NULL, &op->o_req_ndn, &e, NULL, 0 );
 
 	switch(rs->sr_err) {
-	case MDB_NOTFOUND:
+	case MDBX_NOTFOUND:
 		rs->sr_err = LDAP_INVALID_CREDENTIALS;
 		goto done;
 	case 0:
@@ -133,8 +133,8 @@ mdb_bind( Operation *op, SlapReply *rs )
 
 done:
 	if ( moi == &opinfo || --moi->moi_ref < 1 ) {
-		int __maybe_unused rc2 = mdb_txn_reset( moi->moi_txn );
-		assert(rc2 == MDB_SUCCESS);
+		int __maybe_unused rc2 = mdbx_txn_reset( moi->moi_txn );
+		assert(rc2 == MDBX_SUCCESS);
 		if ( moi->moi_oe.oe_key )
 			LDAP_SLIST_REMOVE( &op->o_extra, &moi->moi_oe, OpExtra, oe_next );
 		if ( moi->moi_flag & MOI_FREEIT )

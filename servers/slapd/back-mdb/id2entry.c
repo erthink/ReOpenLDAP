@@ -28,62 +28,62 @@ typedef struct Ecount {
 	int offset;
 } Ecount;
 
-static int mdb_entry_partsize(struct mdb_info *mdb, MDB_txn *txn, Entry *e,
+static int mdb_entry_partsize(struct mdb_info *mdb, MDBX_txn *txn, Entry *e,
 	Ecount *eh);
-static int mdb_entry_encode(Operation *op, Entry *e, MDB_val *data,
+static int mdb_entry_encode(Operation *op, Entry *e, MDBX_val *data,
 	Ecount *ec);
 static Entry *mdb_entry_alloc( Operation *op, int nattrs, int nvals );
 
-#define ADD_FLAGS	(MDB_NOOVERWRITE|MDB_APPEND)
+#define ADD_FLAGS	(MDBX_NOOVERWRITE|MDBX_APPEND)
 
 static int mdb_id2entry_put(
 	Operation *op,
-	MDB_txn *txn,
-	MDB_cursor *mc,
+	MDBX_txn *txn,
+	MDBX_cursor *mc,
 	Entry *e,
 	int flag )
 {
 	struct mdb_info *mdb = (struct mdb_info *) op->o_bd->be_private;
 	Ecount ec;
-	MDB_val key, data;
+	MDBX_val key, data;
 	int rc;
 
 	/* We only store rdns, and they go in the dn2id database. */
 
-	key.mv_data = &e->e_id;
-	key.mv_size = sizeof(ID);
+	key.iov_base = &e->e_id;
+	key.iov_len = sizeof(ID);
 
 	rc = mdb_entry_partsize( mdb, txn, e, &ec );
 	if (rc)
 		return LDAP_OTHER;
 
-	flag |= MDB_RESERVE;
+	flag |= MDBX_RESERVE;
 
 	if (e->e_id < mdb_read_nextid(mdb))
-		flag &= ~MDB_APPEND;
+		flag &= ~MDBX_APPEND;
 
 again:
-	data.mv_size = ec.len;
+	data.iov_len = ec.len;
 	if ( mc )
-		rc = mdb_cursor_put( mc, &key, &data, flag );
+		rc = mdbx_cursor_put( mc, &key, &data, flag );
 	else
-		rc = mdb_put( txn, mdb->mi_id2entry, &key, &data, flag );
-	if (rc == MDB_SUCCESS) {
+		rc = mdbx_put( txn, mdb->mi_id2entry, &key, &data, flag );
+	if (rc == MDBX_SUCCESS) {
 		rc = mdb_entry_encode( op, e, &data, &ec );
 		if( rc != LDAP_SUCCESS )
 			return rc;
 	}
 	if (rc) {
 		/* Was there a hole from slapadd? */
-		if ( (flag & MDB_NOOVERWRITE) && data.mv_size == 0 ) {
+		if ( (flag & MDBX_NOOVERWRITE) && data.iov_len == 0 ) {
 			flag &= ~ADD_FLAGS;
 			goto again;
 		}
 		Debug( LDAP_DEBUG_ANY,
-			"mdb_id2entry_put: mdb_put failed: %s(%d) \"%s\"\n",
-			mdb_strerror(rc), rc,
+			"mdb_id2entry_put: mdbx_put failed: %s(%d) \"%s\"\n",
+			mdbx_strerror(rc), rc,
 			e->e_nname.bv_val );
-		if ( rc != MDB_KEYEXIST )
+		if ( rc != MDBX_KEYEXIST )
 			rc = LDAP_OTHER;
 	}
 	return rc;
@@ -97,8 +97,8 @@ again:
 
 int mdb_id2entry_add(
 	Operation *op,
-	MDB_txn *txn,
-	MDB_cursor *mc,
+	MDBX_txn *txn,
+	MDBX_cursor *mc,
 	Entry *e )
 {
 	return mdb_id2entry_put(op, txn, mc, e, ADD_FLAGS);
@@ -106,8 +106,8 @@ int mdb_id2entry_add(
 
 int mdb_id2entry_update(
 	Operation *op,
-	MDB_txn *txn,
-	MDB_cursor *mc,
+	MDBX_txn *txn,
+	MDBX_cursor *mc,
 	Entry *e )
 {
 	return mdb_id2entry_put(op, txn, mc, e, 0);
@@ -115,41 +115,41 @@ int mdb_id2entry_update(
 
 int mdb_id2edata(
 	Operation *op,
-	MDB_cursor *mc,
+	MDBX_cursor *mc,
 	ID id,
-	MDB_val *data )
+	MDBX_val *data )
 {
-	MDB_val key;
+	MDBX_val key;
 	int rc;
 
-	key.mv_data = &id;
-	key.mv_size = sizeof(ID);
+	key.iov_base = &id;
+	key.iov_len = sizeof(ID);
 
 	/* fetch it */
-	rc = mdb_cursor_get( mc, &key, data, MDB_SET );
+	rc = mdbx_cursor_get( mc, &key, data, MDBX_SET );
 	/* stubs from missing parents - DB is actually invalid */
-	if ( rc == MDB_SUCCESS && !data->mv_size )
-		rc = MDB_NOTFOUND;
+	if ( rc == MDBX_SUCCESS && !data->iov_len )
+		rc = MDBX_NOTFOUND;
 	return rc;
 }
 
 int mdb_id2entry(
 	Operation *op,
-	MDB_cursor *mc,
+	MDBX_cursor *mc,
 	ID id,
 	Entry **e )
 {
-	MDB_val key, data;
+	MDBX_val key, data;
 	int rc = 0;
 
 	*e = NULL;
 
-	key.mv_data = &id;
-	key.mv_size = sizeof(ID);
+	key.iov_base = &id;
+	key.iov_len = sizeof(ID);
 
 	/* fetch it */
-	rc = mdb_cursor_get( mc, &key, &data, MDB_SET );
-	if ( rc == MDB_NOTFOUND ) {
+	rc = mdbx_cursor_get( mc, &key, &data, MDBX_SET );
+	if ( rc == MDBX_NOTFOUND ) {
 		/* Looking for root entry on an empty-dn suffix? */
 		if ( !id && BER_BVISEMPTY( &op->o_bd->be_nsuffix[0] )) {
 			struct berval gluebv = BER_BVC("glue");
@@ -178,15 +178,15 @@ int mdb_id2entry(
 			BER_BVZERO(bptr);
 			a->a_next = NULL;
 			*e = r;
-			return MDB_SUCCESS;
+			return MDBX_SUCCESS;
 		}
 	}
 	/* stubs from missing parents - DB is actually invalid */
-	if ( rc == MDB_SUCCESS && !data.mv_size )
-		rc = MDB_NOTFOUND;
+	if ( rc == MDBX_SUCCESS && !data.iov_len )
+		rc = MDBX_NOTFOUND;
 	if ( rc ) return rc;
 
-	rc = mdb_entry_decode( op, mdb_cursor_txn( mc ), &data, e );
+	rc = mdb_entry_decode( op, mdbx_cursor_txn( mc ), &data, e );
 	if ( rc ) return rc;
 
 	(*e)->e_id = id;
@@ -198,19 +198,19 @@ int mdb_id2entry(
 
 int mdb_id2entry_delete(
 	BackendDB *be,
-	MDB_txn *tid,
+	MDBX_txn *tid,
 	Entry *e )
 {
 	struct mdb_info *mdb = (struct mdb_info *) be->be_private;
-	MDB_dbi dbi = mdb->mi_id2entry;
-	MDB_val key;
+	MDBX_dbi dbi = mdb->mi_id2entry;
+	MDBX_val key;
 	int rc;
 
-	key.mv_data = &e->e_id;
-	key.mv_size = sizeof(ID);
+	key.iov_base = &e->e_id;
+	key.iov_len = sizeof(ID);
 
 	/* delete from database */
-	rc = mdb_del( tid, dbi, &key, NULL );
+	rc = mdbx_del( tid, dbi, &key, NULL );
 
 	return rc;
 }
@@ -280,8 +280,8 @@ int mdb_entry_release(
 				assert( moi->moi_ref > 0 );
 				if ( moi->moi_flag & MOI_FREEIT ) {
 					if ( --moi->moi_ref < 1 ) {
-						int __maybe_unused rc2 = mdb_txn_reset( moi->moi_txn );
-						assert(rc2 == MDB_SUCCESS);
+						int __maybe_unused rc2 = mdbx_txn_reset( moi->moi_txn );
+						assert(rc2 == MDBX_SUCCESS);
 						LDAP_SLIST_REMOVE( &op->o_extra, &moi->moi_oe, OpExtra, oe_next );
 						op->o_tmpfree( moi, op->o_tmpmemctx );
 					}
@@ -309,7 +309,7 @@ int mdb_entry_get(
 {
 	struct mdb_info *mdb = (struct mdb_info *) op->o_bd->be_private;
 	struct mdb_op_info *moi = NULL;
-	MDB_txn *txn = NULL;
+	MDBX_txn *txn = NULL;
 	Entry *e = NULL;
 	int	rc;
 	const char *at_name = at ? at->ad_cname.bv_val : "(null)";
@@ -328,7 +328,7 @@ int mdb_entry_get(
 	/* can we find entry */
 	rc = mdb_dn2entry( op, txn, NULL, ndn, &e, NULL, 0 );
 	switch( rc ) {
-	case MDB_NOTFOUND:
+	case MDBX_NOTFOUND:
 	case 0:
 		break;
 	default:
@@ -380,14 +380,14 @@ return_results:
 static void
 mdb_reader_free( void *key, void *data )
 {
-	MDB_txn *txn = data;
+	MDBX_txn *txn = data;
 
-	if ( txn ) LDAP_ENSURE( mdb_txn_abort( txn ) == MDB_SUCCESS );
+	if ( txn ) LDAP_ENSURE( mdbx_txn_abort( txn ) == MDBX_SUCCESS );
 }
 
 /* free up any keys used by the main thread */
 void
-mdb_reader_flush( MDB_env *env )
+mdb_reader_flush( MDBX_env *env )
 {
 	void *data;
 	void *ctx = ldap_pvt_thread_pool_context();
@@ -398,7 +398,7 @@ mdb_reader_flush( MDB_env *env )
 	}
 }
 
-extern MDB_txn *mdb_tool_txn;
+extern MDBX_txn *mdb_tool_txn;
 
 int
 mdb_opinfo_get( Operation *op, struct mdb_info *mdb, int rdonly, mdb_op_info **moip )
@@ -460,10 +460,10 @@ mdb_opinfo_get( Operation *op, struct mdb_info *mdb, int rdonly, mdb_op_info **m
 				moi->moi_txn = mdb_tool_txn;
 			} else {
 				assert(slap_biglock_owned(op->o_bd));
-				rc = mdb_txn_begin( mdb->mi_dbenv, NULL, 0, &moi->moi_txn );
+				rc = mdbx_txn_begin( mdb->mi_dbenv, NULL, 0, &moi->moi_txn );
 				if (rc) {
-					Debug( LDAP_DEBUG_ANY, "mdb_opinfo_get: mdb_txn_begin() err %s(%d)\n",
-						mdb_strerror(rc), rc );
+					Debug( LDAP_DEBUG_ANY, "mdb_opinfo_get: mdbx_txn_begin() err %s(%d)\n",
+						mdbx_strerror(rc), rc );
 				}
 				return rc;
 			}
@@ -479,35 +479,35 @@ mdb_opinfo_get( Operation *op, struct mdb_info *mdb, int rdonly, mdb_op_info **m
 		}
 		if ( !ctx ) {
 			/* Shouldn't happen unless we're single-threaded */
-			rc = mdb_txn_begin( mdb->mi_dbenv, NULL, MDB_RDONLY, &moi->moi_txn );
+			rc = mdbx_txn_begin( mdb->mi_dbenv, NULL, MDBX_RDONLY, &moi->moi_txn );
 			if (rc) {
-				Debug( LDAP_DEBUG_ANY, "mdb_opinfo_get: mdb_txn_begin() err %s(%d)\n",
-					mdb_strerror(rc), rc );
+				Debug( LDAP_DEBUG_ANY, "mdb_opinfo_get: mdbx_txn_begin() err %s(%d)\n",
+					mdbx_strerror(rc), rc );
 			}
 			return rc;
 		}
 workaround:
 		if ( ldap_pvt_thread_pool_getkey( ctx, mdb->mi_dbenv, &data, NULL ) ) {
-			rc = mdb_txn_begin( mdb->mi_dbenv, NULL, MDB_RDONLY, &moi->moi_txn );
+			rc = mdbx_txn_begin( mdb->mi_dbenv, NULL, MDBX_RDONLY, &moi->moi_txn );
 			if (rc) {
-				Debug( LDAP_DEBUG_ANY, "mdb_opinfo_get: mdb_txn_begin() err %s(%d)\n",
-					mdb_strerror(rc), rc );
+				Debug( LDAP_DEBUG_ANY, "mdb_opinfo_get: mdbx_txn_begin() err %s(%d)\n",
+					mdbx_strerror(rc), rc );
 				return rc;
 			}
 			data = moi->moi_txn;
 			if ( ( rc = ldap_pvt_thread_pool_setkey( ctx, mdb->mi_dbenv,
 				data, mdb_reader_free, NULL, NULL ) ) ) {
-				mdb_txn_abort( moi->moi_txn );
+				mdbx_txn_abort( moi->moi_txn );
 				moi->moi_txn = NULL;
 				Debug( LDAP_DEBUG_ANY, "mdb_opinfo_get: thread_pool_setkey failed err (%d)\n", rc );
 				return rc;
 			}
 		} else {
-			int rc = mdb_txn_renew( data );
+			int rc = mdbx_txn_renew( data );
 			if (unlikely(rc)) {
-				Debug( LDAP_DEBUG_ANY, "mdb_opinfo_get: mdb_txn_renew() err %s(%d)\n",
-					mdb_strerror(rc), rc );
-				assert( rc == MDB_SUCCESS );
+				Debug( LDAP_DEBUG_ANY, "mdb_opinfo_get: mdbx_txn_renew() err %s(%d)\n",
+					mdbx_strerror(rc), rc );
+				assert( rc == MDBX_SUCCESS );
 				mdb_reader_flush( mdb->mi_dbenv );
 				if (rc == EINVAL && ! slapd_shutdown)
 					goto workaround;
@@ -526,7 +526,7 @@ ok:
 }
 
 /* Count up the sizes of the components of an entry */
-static int mdb_entry_partsize(struct mdb_info *mdb, MDB_txn *txn, Entry *e,
+static int mdb_entry_partsize(struct mdb_info *mdb, MDBX_txn *txn, Entry *e,
 	Ecount *eh)
 {
 	ber_len_t len;
@@ -597,7 +597,7 @@ static int mdb_entry_partsize(struct mdb_info *mdb, MDB_txn *txn, Entry *e,
  * The entire buffer size is precomputed so that a single malloc can be
  * performed.
  */
-static int mdb_entry_encode(Operation *op, Entry *e, MDB_val *data, Ecount *eh)
+static int mdb_entry_encode(Operation *op, Entry *e, MDBX_val *data, Ecount *eh)
 {
 	struct mdb_info *mdb = (struct mdb_info *) op->o_bd->be_private;
 	ber_len_t i;
@@ -612,7 +612,7 @@ static int mdb_entry_encode(Operation *op, Entry *e, MDB_val *data, Ecount *eh)
 	if (is_entry_referral(e))
 		;	/* empty */
 
-	lp = (unsigned int *)data->mv_data;
+	lp = (unsigned int *)data->iov_base;
 	*lp++ = eh->nattrs;
 	*lp++ = eh->nvals;
 	*lp++ = (unsigned int)e->e_ocflags;
@@ -678,7 +678,7 @@ static int mdb_entry_encode(Operation *op, Entry *e, MDB_val *data, Ecount *eh)
  * you can not free individual attributes or names from this
  * structure. Attempting to do so will likely corrupt memory.
  */
-int mdb_entry_decode(Operation *op, MDB_txn *txn, MDB_val *data, Entry **e)
+int mdb_entry_decode(Operation *op, MDBX_txn *txn, MDBX_val *data, Entry **e)
 {
 	struct mdb_info *mdb = (struct mdb_info *) op->o_bd->be_private;
 	int i, j, nattrs, nvals;
@@ -686,7 +686,7 @@ int mdb_entry_decode(Operation *op, MDB_txn *txn, MDB_val *data, Entry **e)
 	Attribute *a;
 	Entry *x;
 	const char *text;
-	unsigned int *lp = (unsigned int *)data->mv_data;
+	unsigned int *lp = (unsigned int *)data->iov_base;
 	unsigned char *ptr;
 	BerVarray bptr;
 

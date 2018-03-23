@@ -262,44 +262,44 @@ mdb_show_key(
 int
 mdb_idl_fetch_key(
 	BackendDB	*be,
-	MDB_txn		*txn,
-	MDB_dbi		dbi,
-	MDB_val		*key,
+	MDBX_txn		*txn,
+	MDBX_dbi		dbi,
+	MDBX_val		*key,
 	ID			*ids,
-	MDB_cursor	**saved_cursor,
+	MDBX_cursor	**saved_cursor,
 	int			get_flag )
 {
-	MDB_val data, key2, *kptr;
-	MDB_cursor *cursor;
+	MDBX_val data, key2, *kptr;
+	MDBX_cursor *cursor;
 	ID *i;
 	size_t len;
 	int rc;
-	MDB_cursor_op opflag;
+	MDBX_cursor_op opflag;
 
 	char keybuf[16];
 
 	Debug( LDAP_DEBUG_ARGS,
 		"mdb_idl_fetch_key: %s\n",
-		mdb_show_key( keybuf, key->mv_data, key->mv_size ) );
+		mdb_show_key( keybuf, key->iov_base, key->iov_len ) );
 
 	assert( ids != NULL );
 
 	if ( saved_cursor && *saved_cursor ) {
-		opflag = MDB_NEXT;
+		opflag = MDBX_NEXT;
 	} else if ( get_flag == LDAP_FILTER_GE ) {
-		opflag = MDB_SET_RANGE;
+		opflag = MDBX_SET_RANGE;
 	} else if ( get_flag == LDAP_FILTER_LE ) {
-		opflag = MDB_FIRST;
+		opflag = MDBX_FIRST;
 	} else {
-		opflag = MDB_SET;
+		opflag = MDBX_SET;
 	}
 
 	/* If we're not reusing an existing cursor, get a new one */
-	if( opflag != MDB_NEXT ) {
-		rc = mdb_cursor_open( txn, dbi, &cursor );
+	if( opflag != MDBX_NEXT ) {
+		rc = mdbx_cursor_open( txn, dbi, &cursor );
 		if( rc != 0 ) {
 			Debug( LDAP_DEBUG_ANY, "=> mdb_idl_fetch_key: "
-				"cursor failed: %s (%d)\n", mdb_strerror(rc), rc );
+				"cursor failed: %s (%d)\n", mdbx_strerror(rc), rc );
 			return rc;
 		}
 	} else {
@@ -311,36 +311,36 @@ mdb_idl_fetch_key(
 	 * will be overwritten.
 	 */
 	if ( get_flag == LDAP_FILTER_LE || get_flag == LDAP_FILTER_GE ) {
-		key2.mv_data = keybuf;
-		key2.mv_size = key->mv_size;
-		memcpy( keybuf, key->mv_data, key->mv_size );
+		key2.iov_base = keybuf;
+		key2.iov_len = key->iov_len;
+		memcpy( keybuf, key->iov_base, key->iov_len );
 		kptr = &key2;
 	} else {
 		kptr = key;
 	}
-	len = key->mv_size;
-	rc = mdb_cursor_get( cursor, kptr, &data, opflag );
+	len = key->iov_len;
+	rc = mdbx_cursor_get( cursor, kptr, &data, opflag );
 
 	/* skip presence key on range inequality lookups */
-	while (rc == 0 && kptr->mv_size != len) {
-		rc = mdb_cursor_get( cursor, kptr, &data, MDB_NEXT_NODUP );
+	while (rc == 0 && kptr->iov_len != len) {
+		rc = mdbx_cursor_get( cursor, kptr, &data, MDBX_NEXT_NODUP );
 	}
 	/* If we're doing a LE compare and the new key is greater than
 	 * our search key, we're done
 	 */
-	if (rc == 0 && get_flag == LDAP_FILTER_LE && memcmp( kptr->mv_data,
-		key->mv_data, key->mv_size ) > 0 ) {
-		rc = MDB_NOTFOUND;
+	if (rc == 0 && get_flag == LDAP_FILTER_LE && memcmp( kptr->iov_base,
+		key->iov_base, key->iov_len ) > 0 ) {
+		rc = MDBX_NOTFOUND;
 	}
 	if (rc == 0) {
 		i = ids+1;
-		rc = mdb_cursor_get( cursor, key, &data, MDB_GET_MULTIPLE );
+		rc = mdbx_cursor_get( cursor, key, &data, MDBX_GET_MULTIPLE );
 		while (rc == 0) {
-			memcpy( i, data.mv_data, data.mv_size );
-			i += data.mv_size / sizeof(ID);
-			rc = mdb_cursor_get( cursor, key, &data, MDB_NEXT_MULTIPLE );
+			memcpy( i, data.iov_base, data.iov_len );
+			i += data.iov_len / sizeof(ID);
+			rc = mdbx_cursor_get( cursor, key, &data, MDBX_NEXT_MULTIPLE );
 		}
-		if ( rc == MDB_NOTFOUND ) rc = 0;
+		if ( rc == MDBX_NOTFOUND ) rc = 0;
 		ids[0] = i - &ids[1];
 		/* On disk, a range is denoted by 0 in the first element */
 		if (ids[1] == 0) {
@@ -350,12 +350,12 @@ mdb_idl_fetch_key(
 					MDB_IDL_RANGE_SIZE, ids[0] );
 				if (saved_cursor && *saved_cursor == cursor )
 					*saved_cursor = NULL;
-				mdb_cursor_close( cursor );
+				mdbx_cursor_close( cursor );
 				return -1;
 			}
 			MDB_IDL_RANGE( ids, ids[2], ids[3] );
 		}
-		data.mv_size = MDB_IDL_SIZEOF(ids);
+		data.iov_len = MDB_IDL_SIZEOF(ids);
 	}
 
 	if ( saved_cursor && rc == 0 ) {
@@ -365,30 +365,30 @@ mdb_idl_fetch_key(
 	else {
 		if (saved_cursor && *saved_cursor == cursor )
 			*saved_cursor = NULL;
-		mdb_cursor_close( cursor );
+		mdbx_cursor_close( cursor );
 	}
 
-	if( rc == MDB_NOTFOUND ) {
+	if( rc == MDBX_NOTFOUND ) {
 		return rc;
 
 	} else if( rc != 0 ) {
 		Debug( LDAP_DEBUG_ANY, "=> mdb_idl_fetch_key: "
 			"get failed: %s (%d)\n",
-			mdb_strerror(rc), rc );
+			mdbx_strerror(rc), rc );
 		return rc;
 
-	} else if ( data.mv_size == 0 || data.mv_size % sizeof( ID ) ) {
+	} else if ( data.iov_len == 0 || data.iov_len % sizeof( ID ) ) {
 		/* size not multiple of ID size */
 		Debug( LDAP_DEBUG_ANY, "=> mdb_idl_fetch_key: "
 			"odd size: expected %ld multiple, got %ld\n",
-			(long) sizeof( ID ), (long) data.mv_size );
+			(long) sizeof( ID ), (long) data.iov_len );
 		return -1;
 
-	} else if ( data.mv_size != MDB_IDL_SIZEOF(ids) ) {
+	} else if ( data.iov_len != MDB_IDL_SIZEOF(ids) ) {
 		/* size mismatch */
 		Debug( LDAP_DEBUG_ANY, "=> mdb_idl_fetch_key: "
 			"get size mismatch: expected %ld, got %ld\n",
-			(long) ((1 + ids[0]) * sizeof( ID )), (long) data.mv_size );
+			(long) ((1 + ids[0]) * sizeof( ID )), (long) data.iov_len );
 		return -1;
 	}
 
@@ -398,16 +398,16 @@ mdb_idl_fetch_key(
 int
 mdb_idl_insert_keys(
 	BackendDB	*be,
-	MDB_cursor	*cursor,
+	MDBX_cursor	*cursor,
 	struct berval *keys,
 	ID			id )
 {
 	struct mdb_info *mdb = be->be_private;
-	MDB_val key, data;
+	MDBX_val key, data;
 	ID lo, hi, *i;
 	char *err;
 	int	rc = 0, k;
-	unsigned int flag = MDB_NODUPDATA;
+	unsigned int flag = MDBX_NODUPDATA;
 #ifndef	MISALIGNED_OK
 	int kbuf[2];
 #endif
@@ -431,24 +431,24 @@ mdb_idl_insert_keys(
 	 */
 #ifndef MISALIGNED_OK
 	if (keys[k].bv_len & ALIGNER) {
-		key.mv_size = sizeof(kbuf);
-		key.mv_data = kbuf;
-		memcpy(key.mv_data, keys[k].bv_val, keys[k].bv_len);
+		key.iov_len = sizeof(kbuf);
+		key.iov_base = kbuf;
+		memcpy(key.iov_base, keys[k].bv_val, keys[k].bv_len);
 	} else
 #endif
 	{
-		key.mv_size = keys[k].bv_len;
-		key.mv_data = keys[k].bv_val;
+		key.iov_len = keys[k].bv_len;
+		key.iov_base = keys[k].bv_val;
 	}
-	rc = mdb_cursor_get( cursor, &key, &data, MDB_SET );
+	rc = mdbx_cursor_get( cursor, &key, &data, MDBX_SET );
 	err = "c_get";
 	if ( rc == 0 ) {
-		i = data.mv_data;
-		memcpy(&lo, data.mv_data, sizeof(ID));
+		i = data.iov_base;
+		memcpy(&lo, data.iov_base, sizeof(ID));
 		if ( lo != 0 ) {
 			/* not a range, count the number of items */
 			size_t count;
-			rc = mdb_cursor_count( cursor, &count );
+			rc = mdbx_cursor_count( cursor, &count );
 			if ( rc != 0 ) {
 				err = "c_count";
 				goto fail;
@@ -456,12 +456,12 @@ mdb_idl_insert_keys(
 			if ( count >= MDB_IDL_DB_MAX ) {
 			/* No room, convert to a range */
 				lo = *i;
-				rc = mdb_cursor_get( cursor, &key, &data, MDB_LAST_DUP );
-				if ( rc != 0 && rc != MDB_NOTFOUND ) {
+				rc = mdbx_cursor_get( cursor, &key, &data, MDBX_LAST_DUP );
+				if ( rc != 0 && rc != MDBX_NOTFOUND ) {
 					err = "c_get last_dup";
 					goto fail;
 				}
-				i = data.mv_data;
+				i = data.iov_base;
 				hi = *i;
 				/* Update hi/lo if needed */
 				if ( id < lo ) {
@@ -470,36 +470,36 @@ mdb_idl_insert_keys(
 					hi = id;
 				}
 				/* delete the old key */
-				rc = mdb_cursor_del( cursor, MDB_NODUPDATA );
+				rc = mdbx_cursor_del( cursor, MDBX_NODUPDATA );
 				if ( rc != 0 ) {
 					err = "c_del dups";
 					goto fail;
 				}
 				/* Store the range */
-				data.mv_size = sizeof(ID);
-				data.mv_data = &id;
+				data.iov_len = sizeof(ID);
+				data.iov_base = &id;
 				id = 0;
-				rc = mdb_cursor_put( cursor, &key, &data, 0 );
+				rc = mdbx_cursor_put( cursor, &key, &data, 0 );
 				if ( rc != 0 ) {
 					err = "c_put range";
 					goto fail;
 				}
 				id = lo;
-				rc = mdb_cursor_put( cursor, &key, &data, 0 );
+				rc = mdbx_cursor_put( cursor, &key, &data, 0 );
 				if ( rc != 0 ) {
 					err = "c_put lo";
 					goto fail;
 				}
 				id = hi;
-				rc = mdb_cursor_put( cursor, &key, &data, 0 );
+				rc = mdbx_cursor_put( cursor, &key, &data, 0 );
 				if ( rc != 0 ) {
 					err = "c_put hi";
 					goto fail;
 				}
 			} else {
-			/* There's room, just store it */
+				/* There's room, just store it */
 				if (id == mdb_read_nextid(mdb))
-					flag |= MDB_APPENDDUP;
+					flag |= MDBX_APPENDDUP;
 				goto put1;
 			}
 		} else {
@@ -510,36 +510,36 @@ mdb_idl_insert_keys(
 			hi = i[2];
 			if ( id < lo || id > hi ) {
 				/* position on lo */
-				rc = mdb_cursor_get( cursor, &key, &data, MDB_NEXT_DUP );
+				rc = mdbx_cursor_get( cursor, &key, &data, MDBX_NEXT_DUP );
 				if ( rc != 0 ) {
 					err = "c_get lo";
 					goto fail;
 				}
 				if ( id > hi ) {
 					/* position on hi */
-					rc = mdb_cursor_get( cursor, &key, &data, MDB_NEXT_DUP );
+					rc = mdbx_cursor_get( cursor, &key, &data, MDBX_NEXT_DUP );
 					if ( rc != 0 ) {
 						err = "c_get hi";
 						goto fail;
 					}
 				}
-				data.mv_size = sizeof(ID);
-				data.mv_data = &id;
+				data.iov_len = sizeof(ID);
+				data.iov_base = &id;
 				/* Replace the current lo/hi */
-				rc = mdb_cursor_put( cursor, &key, &data, MDB_CURRENT );
+				rc = mdbx_cursor_put( cursor, &key, &data, MDBX_CURRENT );
 				if ( rc != 0 ) {
 					err = "c_put lo/hi";
 					goto fail;
 				}
 			}
 		}
-	} else if ( rc == MDB_NOTFOUND ) {
-		flag &= ~MDB_APPENDDUP;
-put1:	data.mv_data = &id;
-		data.mv_size = sizeof(ID);
-		rc = mdb_cursor_put( cursor, &key, &data, flag );
+	} else if ( rc == MDBX_NOTFOUND ) {
+		flag &= ~MDBX_APPENDDUP;
+put1:		data.iov_base = &id;
+		data.iov_len = sizeof(ID);
+		rc = mdbx_cursor_put( cursor, &key, &data, flag );
 		/* Don't worry if it's already there */
-		if ( rc == MDB_KEYEXIST )
+		if ( rc == MDBX_KEYEXIST )
 			rc = 0;
 		if ( rc ) {
 			err = "c_put id";
@@ -549,7 +549,7 @@ put1:	data.mv_data = &id;
 		/* initial c_get failed, nothing was done */
 fail:
 		Debug( LDAP_DEBUG_ANY, "=> mdb_idl_insert_keys: "
-			"%s failed: %s (%d)\n", err, mdb_strerror(rc), rc );
+			"%s failed: %s (%d)\n", err, mdbx_strerror(rc), rc );
 		break;
 	}
 	}
@@ -559,12 +559,12 @@ fail:
 int
 mdb_idl_delete_keys(
 	BackendDB	*be,
-	MDB_cursor	*cursor,
+	MDBX_cursor	*cursor,
 	struct berval *keys,
 	ID			id )
 {
 	int	rc = 0, k;
-	MDB_val key, data;
+	MDBX_val key, data;
 	ID lo, hi, tmp, *i;
 	char *err;
 #ifndef	MISALIGNED_OK
@@ -589,29 +589,29 @@ mdb_idl_delete_keys(
 	 */
 #ifndef MISALIGNED_OK
 	if (keys[k].bv_len & ALIGNER) {
-		key.mv_size = sizeof(kbuf);
-		key.mv_data = kbuf;
-		memcpy(key.mv_data, keys[k].bv_val, keys[k].bv_len);
+		key.iov_len = sizeof(kbuf);
+		key.iov_base = kbuf;
+		memcpy(key.iov_base, keys[k].bv_val, keys[k].bv_len);
 	} else
 #endif
 	{
-		key.mv_size = keys[k].bv_len;
-		key.mv_data = keys[k].bv_val;
+		key.iov_len = keys[k].bv_len;
+		key.iov_base = keys[k].bv_val;
 	}
-	rc = mdb_cursor_get( cursor, &key, &data, MDB_SET );
+	rc = mdbx_cursor_get( cursor, &key, &data, MDBX_SET );
 	err = "c_get";
 	if ( rc == 0 ) {
-		memcpy( &tmp, data.mv_data, sizeof(ID) );
-		i = data.mv_data;
+		memcpy( &tmp, data.iov_base, sizeof(ID) );
+		i = data.iov_base;
 		if ( tmp != 0 ) {
 			/* Not a range, just delete it */
-			data.mv_data = &id;
-			rc = mdb_cursor_get( cursor, &key, &data, MDB_GET_BOTH );
+			data.iov_base = &id;
+			rc = mdbx_cursor_get( cursor, &key, &data, MDBX_GET_BOTH );
 			if ( rc != 0 ) {
 				err = "c_get id";
 				goto fail;
 			}
-			rc = mdb_cursor_del( cursor, 0 );
+			rc = mdbx_cursor_del( cursor, 0 );
 			if ( rc != 0 ) {
 				err = "c_del id";
 				goto fail;
@@ -631,24 +631,24 @@ mdb_idl_delete_keys(
 				}
 				if ( lo2 >= hi2 ) {
 				/* The range has collapsed... */
-					rc = mdb_cursor_del( cursor, MDB_NODUPDATA );
+					rc = mdbx_cursor_del( cursor, MDBX_NODUPDATA );
 					if ( rc != 0 ) {
 						err = "c_del dup";
 						goto fail;
 					}
 				} else {
 					/* position on lo */
-					rc = mdb_cursor_get( cursor, &key, &data, MDB_NEXT_DUP );
+					rc = mdbx_cursor_get( cursor, &key, &data, MDBX_NEXT_DUP );
 					if ( id == lo )
-						data.mv_data = &lo2;
+						data.iov_base = &lo2;
 					else {
 						/* position on hi */
-						rc = mdb_cursor_get( cursor, &key, &data, MDB_NEXT_DUP );
-						data.mv_data = &hi2;
+						rc = mdbx_cursor_get( cursor, &key, &data, MDBX_NEXT_DUP );
+						data.iov_base = &hi2;
 					}
 					/* Replace the current lo/hi */
-					data.mv_size = sizeof(ID);
-					rc = mdb_cursor_put( cursor, &key, &data, MDB_CURRENT );
+					data.iov_len = sizeof(ID);
+					rc = mdbx_cursor_put( cursor, &key, &data, MDBX_CURRENT );
 					if ( rc != 0 ) {
 						err = "c_put lo/hi";
 						goto fail;
@@ -659,11 +659,11 @@ mdb_idl_delete_keys(
 	} else {
 		/* initial c_get failed, nothing was done */
 fail:
-		if ( rc == MDB_NOTFOUND )
+		if ( rc == MDBX_NOTFOUND )
 			rc = 0;
 		if ( rc ) {
 			Debug( LDAP_DEBUG_ANY, "=> mdb_idl_delete_key: "
-				"%s failed: %s (%d)\n", err, mdb_strerror(rc), rc );
+				"%s failed: %s (%d)\n", err, mdbx_strerror(rc), rc );
 			break;
 		}
 	}

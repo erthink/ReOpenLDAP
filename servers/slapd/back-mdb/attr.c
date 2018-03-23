@@ -89,46 +89,46 @@ mdb_attr_mask(
 /* Open all un-opened index DB handles */
 int
 mdb_attr_dbs_open(
-	BackendDB *be, MDB_txn *tx0, ConfigReply *cr )
+	BackendDB *be, MDBX_txn *tx0, ConfigReply *cr )
 {
 	struct mdb_info *mdb = (struct mdb_info *) be->be_private;
-	MDB_txn *txn;
-	MDB_dbi *dbis = NULL;
+	MDBX_txn *txn;
+	MDBX_dbi *dbis = NULL;
 	int i, flags;
 	int rc;
 
 	txn = tx0;
 	if ( txn == NULL ) {
-		rc = mdb_txn_begin( mdb->mi_dbenv, NULL, 0, &txn );
+		rc = mdbx_txn_begin( mdb->mi_dbenv, NULL, 0, &txn );
 		if ( rc ) {
 			snprintf( cr->msg, sizeof(cr->msg), "database \"%s\": "
 				"txn_begin failed: %s (%d).",
-				be->be_suffix[0].bv_val, mdb_strerror(rc), rc );
+				be->be_suffix[0].bv_val, mdbx_strerror(rc), rc );
 			Debug( LDAP_DEBUG_ANY,
 				LDAP_XSTRING(mdb_attr_dbs) ": %s\n",
 				cr->msg );
 			return rc;
 		}
-		dbis = ch_calloc( 1, mdb->mi_nattrs * sizeof(MDB_dbi) );
+		dbis = ch_calloc( 1, mdb->mi_nattrs * sizeof(MDBX_dbi) );
 	} else {
 		rc = 0;
 	}
 
-	flags = MDB_DUPSORT|MDB_DUPFIXED|MDB_INTEGERDUP;
+	flags = MDBX_DUPSORT|MDBX_DUPFIXED|MDBX_INTEGERDUP;
 	if ( !(slapMode & SLAP_TOOL_READONLY) )
-		flags |= MDB_CREATE;
+		flags |= MDBX_CREATE;
 
 	for ( i=0; i<mdb->mi_nattrs; i++ ) {
 		if ( mdb->mi_attrs[i]->ai_dbi )	/* already open */
 			continue;
-		rc = mdb_dbi_open( txn, mdb->mi_attrs[i]->ai_desc->ad_type->sat_cname.bv_val,
+		rc = mdbx_dbi_open( txn, mdb->mi_attrs[i]->ai_desc->ad_type->sat_cname.bv_val,
 			flags, &mdb->mi_attrs[i]->ai_dbi );
 		if ( rc ) {
 			snprintf( cr->msg, sizeof(cr->msg), "database \"%s\": "
-				"mdb_dbi_open(%s) failed: %s (%d).",
+				"mdbx_dbi_open(%s) failed: %s (%d).",
 				be->be_suffix[0].bv_val,
 				mdb->mi_attrs[i]->ai_desc->ad_type->sat_cname.bv_val,
-				mdb_strerror(rc), rc );
+				mdbx_strerror(rc), rc );
 			Debug( LDAP_DEBUG_ANY,
 				LDAP_XSTRING(mdb_attr_dbs) ": %s\n",
 				cr->msg );
@@ -142,17 +142,17 @@ mdb_attr_dbs_open(
 	/* Only commit if this is our txn */
 	if ( tx0 == NULL ) {
 		if ( !rc ) {
-			rc = mdb_txn_commit( txn );
+			rc = mdbx_txn_commit( txn );
 			if ( rc ) {
 				snprintf( cr->msg, sizeof(cr->msg), "database \"%s\": "
 					"txn_commit failed: %s (%d).",
-					be->be_suffix[0].bv_val, mdb_strerror(rc), rc );
+					be->be_suffix[0].bv_val, mdbx_strerror(rc), rc );
 				Debug( LDAP_DEBUG_ANY,
 					LDAP_XSTRING(mdb_attr_dbs) ": %s\n",
 					cr->msg );
 			}
 		} else {
-			mdb_txn_abort( txn );
+			mdbx_txn_abort( txn );
 		}
 		/* Something failed, forget anything we just opened */
 		if ( rc ) {
@@ -178,7 +178,7 @@ mdb_attr_dbs_close(
 	int i;
 	for ( i=0; i<mdb->mi_nattrs; i++ )
 		if ( mdb->mi_attrs[i]->ai_dbi ) {
-			mdb_dbi_close( mdb->mi_dbenv, mdb->mi_attrs[i]->ai_dbi );
+			mdbx_dbi_close( mdb->mi_dbenv, mdb->mi_attrs[i]->ai_dbi );
 			mdb->mi_attrs[i]->ai_dbi = 0;
 		}
 }
@@ -535,20 +535,20 @@ void mdb_attr_flush( struct mdb_info *mdb )
 	}
 }
 
-int mdb_ad_read( struct mdb_info *mdb, MDB_txn *txn )
+int mdb_ad_read( struct mdb_info *mdb, MDBX_txn *txn )
 {
 	int i, rc;
-	MDB_cursor *mc;
-	MDB_val key, data;
+	MDBX_cursor *mc;
+	MDBX_val key, data;
 	struct berval bdata;
 	const char *text;
 	AttributeDescription *ad;
 
-	rc = mdb_cursor_open( txn, mdb->mi_ad2id, &mc );
+	rc = mdbx_cursor_open( txn, mdb->mi_ad2id, &mc );
 	if ( rc ) {
 		Debug( LDAP_DEBUG_ANY,
 			"mdb_ad_read: cursor_open failed %s(%d)\n",
-			mdb_strerror(rc), rc);
+			mdbx_strerror(rc), rc);
 		return rc;
 	}
 
@@ -556,14 +556,14 @@ int mdb_ad_read( struct mdb_info *mdb, MDB_txn *txn )
 
 	/* our array is 1-based, an index of 0 means no data */
 	i = mdb->mi_numads+1;
-	key.mv_size = sizeof(int);
-	key.mv_data = &i;
+	key.iov_len = sizeof(int);
+	key.iov_base = &i;
 
-	rc = mdb_cursor_get( mc, &key, &data, MDB_SET );
+	rc = mdbx_cursor_get( mc, &key, &data, MDBX_SET );
 
-	while ( rc == MDB_SUCCESS ) {
-		bdata.bv_len = data.mv_size;
-		bdata.bv_val = data.mv_data;
+	while ( rc == MDBX_SUCCESS ) {
+		bdata.bv_len = data.iov_len;
+		bdata.bv_val = data.iov_base;
 		ad = NULL;
 		rc = slap_bv2ad( &bdata, &ad, &text );
 		if ( rc ) {
@@ -579,23 +579,23 @@ int mdb_ad_read( struct mdb_info *mdb, MDB_txn *txn )
 			mdb->mi_ads[i] = ad;
 		}
 		i++;
-		rc = mdb_cursor_get( mc, &key, &data, MDB_NEXT );
+		rc = mdbx_cursor_get( mc, &key, &data, MDBX_NEXT );
 	}
 
 	mdb->mi_numads = i-1;
 	ldap_pvt_thread_mutex_unlock( &mdb->mi_ads_mutex );
-	mdb_cursor_close( mc );
+	mdbx_cursor_close( mc );
 
-	if ( rc == MDB_NOTFOUND )
+	if ( rc == MDBX_NOTFOUND )
 		rc = 0;
 
 	return rc;
 }
 
-int mdb_ad_get( struct mdb_info *mdb, MDB_txn *txn, AttributeDescription *ad )
+int mdb_ad_get( struct mdb_info *mdb, MDBX_txn *txn, AttributeDescription *ad )
 {
 	int i, rc;
-	MDB_val key, val;
+	MDBX_val key, val;
 
 	rc = mdb_ad_read( mdb, txn );
 	if (rc)
@@ -606,20 +606,20 @@ int mdb_ad_get( struct mdb_info *mdb, MDB_txn *txn, AttributeDescription *ad )
 
 	ldap_pvt_thread_mutex_lock( &mdb->mi_ads_mutex );
 	i = mdb->mi_numads+1;
-	key.mv_size = sizeof(int);
-	key.mv_data = &i;
-	val.mv_size = ad->ad_cname.bv_len;
-	val.mv_data = ad->ad_cname.bv_val;
+	key.iov_len = sizeof(int);
+	key.iov_base = &i;
+	val.iov_len = ad->ad_cname.bv_len;
+	val.iov_base = ad->ad_cname.bv_val;
 
-	rc = mdb_put( txn, mdb->mi_ad2id, &key, &val, 0 );
-	if ( rc == MDB_SUCCESS ) {
+	rc = mdbx_put( txn, mdb->mi_ad2id, &key, &val, 0 );
+	if ( rc == MDBX_SUCCESS ) {
 		mdb->mi_adxs[ad->ad_index] = i;
 		mdb->mi_ads[i] = ad;
 		mdb->mi_numads = i;
 	} else {
 		Debug( LDAP_DEBUG_ANY,
-			"mdb_ad_get: mdb_put failed %s(%d)\n",
-			mdb_strerror(rc), rc);
+			"mdb_ad_get: mdbx_put failed %s(%d)\n",
+			mdbx_strerror(rc), rc);
 	}
 
 	ldap_pvt_thread_mutex_unlock( &mdb->mi_ads_mutex );

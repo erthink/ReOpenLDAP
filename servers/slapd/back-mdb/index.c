@@ -75,7 +75,7 @@ int mdb_index_param(
 	Backend *be,
 	AttributeDescription *desc,
 	int ftype,
-	MDB_dbi *dbip,
+	MDBX_dbi *dbip,
 	slap_mask_t *maskp,
 	struct berval *prefixp )
 {
@@ -162,7 +162,7 @@ done:
 
 static int indexer(
 	Operation *op,
-	MDB_txn *txn,
+	MDBX_txn *txn,
 	struct mdb_attrinfo *ai,
 	AttributeDescription *ad,
 	struct berval *atname,
@@ -173,7 +173,7 @@ static int indexer(
 {
 	int rc = LDAP_OTHER;
 	struct berval *keys;
-	MDB_cursor *mc = ai->ai_cursor;
+	MDBX_cursor *mc = ai->ai_cursor;
 	mdb_idl_keyfunc *keyfunc;
 	char *err  __maybe_unused;
 
@@ -181,7 +181,7 @@ static int indexer(
 
 	if ( !mc ) {
 		err = "c_open";
-		rc = mdb_cursor_open( txn, ai->ai_dbi, &mc );
+		rc = mdbx_cursor_open( txn, ai->ai_dbi, &mc );
 		if ( rc ) goto done;
 		if ( slapMode & SLAP_TOOL_QUICK )
 			ai->ai_cursor = mc;
@@ -191,7 +191,7 @@ static int indexer(
 #ifdef MDB_TOOL_IDL_CACHING
 		if (( slapMode & SLAP_TOOL_QUICK ) && slap_tool_thread_max > 2 ) {
 			keyfunc = mdb_tool_idl_add;
-			mc = (MDB_cursor *)ai;
+			mc = (MDBX_cursor *)ai;
 		} else
 #endif
 			keyfunc = mdb_idl_insert_keys;
@@ -269,7 +269,7 @@ done:
 	if ( !(slapMode & SLAP_TOOL_QUICK)) {
 		if (mc == ai->ai_cursor)
 			ai->ai_cursor = NULL;
-		mdb_cursor_close( mc );
+		mdbx_cursor_close( mc );
 	}
 	switch( rc ) {
 	/* The callers all know how to deal with these results */
@@ -284,7 +284,7 @@ done:
 
 static int index_at_values(
 	Operation *op,
-	MDB_txn *txn,
+	MDBX_txn *txn,
 	AttributeDescription *ad,
 	AttributeType *type,
 	struct berval *tags,
@@ -373,7 +373,7 @@ static int index_at_values(
 
 int mdb_index_values(
 	Operation *op,
-	MDB_txn *txn,
+	MDBX_txn *txn,
 	AttributeDescription *desc,
 	BerVarray vals,
 	ID id,
@@ -441,7 +441,7 @@ mdb_index_recset(
 /* Apply the indices for the recset */
 int mdb_index_recrun(
 	Operation *op,
-	MDB_txn *txn,
+	MDBX_txn *txn,
 	struct mdb_info *mdb,
 	IndexRec *ir0,
 	ID id,
@@ -474,7 +474,7 @@ int mdb_index_recrun(
 int
 mdb_index_entry(
 	Operation *op,
-	MDB_txn *txn,
+	MDBX_txn *txn,
 	int opid,
 	Entry	*e )
 {

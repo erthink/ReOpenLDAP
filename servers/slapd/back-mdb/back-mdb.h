@@ -66,7 +66,7 @@ typedef struct mdb_monitor_t {
 struct re_s;
 
 struct mdb_info {
-	MDB_env		*mi_dbenv;
+	MDBX_env		*mi_dbenv;
 
 	/* DB_ENV parameters */
 	/* The DB_ENV can be tuned via DB_CONFIG */
@@ -90,14 +90,12 @@ struct mdb_info {
 	uint32_t	mi_txn_cp_kbyte;
 	struct re_s		*mi_txn_cp_task;
 	struct re_s		*mi_index_task;
-#ifdef MDBX_LIFORECLAIM
 	uint32_t	mi_renew_lag;
 	uint32_t	mi_renew_percent;
 #define MDBX_OOM_KILL	1
 #define MDBX_OOM_YIELD	2
 	int			mi_oom_flags;
 	uint64_t	mi_oom_timestamp_ns;
-#endif /* MDBX_LIFORECLAIM */
 
 	mdb_monitor_t	mi_monitor;
 
@@ -116,7 +114,7 @@ struct mdb_info {
 	ldap_pvt_thread_mutex_t	mi_ads_mutex;
 	int mi_numads;
 
-	MDB_dbi	mi_dbis[MDB_NDB];
+	MDBX_dbi	mi_dbis[MDB_NDB];
 	AttributeDescription *mi_ads[MDB_MAXADS];
 	int mi_adxs[MDB_MAXADS];
 };
@@ -136,7 +134,7 @@ ID mdb_read_nextid(struct mdb_info *mdb) {
 
 typedef struct mdb_op_info {
 	OpExtra		moi_oe;
-	MDB_txn*	moi_txn;
+	MDBX_txn*	moi_txn;
 	int			moi_ref;
 	char		moi_flag;
 } mdb_op_info;
@@ -174,9 +172,9 @@ typedef struct mdb_attrinfo {
 	TAvlnode *ai_root;		/* for tools */
 	void *ai_flist;		/* for tools */
 	void *ai_clist;		/* for tools */
-	MDB_cursor *ai_cursor;	/* for tools */
+	MDBX_cursor *ai_cursor;	/* for tools */
 	int ai_idx;	/* position in AI array */
-	MDB_dbi ai_dbi;
+	MDBX_dbi ai_dbi;
 } AttrInfo;
 
 /* These flags must not clash with SLAP_INDEX flags or ops in slap.h! */

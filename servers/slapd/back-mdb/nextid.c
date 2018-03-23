@@ -27,29 +27,29 @@ ID mdb_read_nextid(struct mdb_info *mdb) {
 }
 #endif
 
-int mdb_next_id( BackendDB *be, MDB_cursor *mc, ID *out )
+int mdb_next_id( BackendDB *be, MDBX_cursor *mc, ID *out )
 {
 	struct mdb_info *mdb = (struct mdb_info *) be->be_private;
 	int rc;
 	ID id = 0;
-	MDB_val key;
+	MDBX_val key;
 
-	rc = mdb_cursor_get(mc, &key, NULL, MDB_LAST);
+	rc = mdbx_cursor_get(mc, &key, NULL, MDBX_LAST);
 
 	switch(rc) {
-	case MDB_NOTFOUND:
+	case MDBX_NOTFOUND:
 		rc = 0;
 		*out = 1;
 		break;
 	case 0:
-		memcpy( &id, key.mv_data, sizeof( id ));
+		memcpy( &id, key.iov_base, sizeof( id ));
 		*out = ++id;
 		break;
 
 	default:
 		Debug( LDAP_DEBUG_ANY,
 			"=> mdb_next_id: get failed: %s (%d)\n",
-			mdb_strerror(rc), rc );
+			mdbx_strerror(rc), rc );
 		goto done;
 	}
 	mdb->_mi_nextid = *out;

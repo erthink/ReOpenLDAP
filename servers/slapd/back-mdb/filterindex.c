@@ -26,39 +26,39 @@
 
 static int presence_candidates(
 	Operation *op,
-	MDB_txn *rtxn,
+	MDBX_txn *rtxn,
 	AttributeDescription *desc,
 	ID *ids );
 
 static int equality_candidates(
 	Operation *op,
-	MDB_txn *rtxn,
+	MDBX_txn *rtxn,
 	AttributeAssertion *ava,
 	ID *ids,
 	ID *tmp );
 static int inequality_candidates(
 	Operation *op,
-	MDB_txn *rtxn,
+	MDBX_txn *rtxn,
 	AttributeAssertion *ava,
 	ID *ids,
 	ID *tmp,
 	int gtorlt );
 static int approx_candidates(
 	Operation *op,
-	MDB_txn *rtxn,
+	MDBX_txn *rtxn,
 	AttributeAssertion *ava,
 	ID *ids,
 	ID *tmp );
 static int substring_candidates(
 	Operation *op,
-	MDB_txn *rtxn,
+	MDBX_txn *rtxn,
 	SubstringsAssertion *sub,
 	ID *ids,
 	ID *tmp );
 
 static int list_candidates(
 	Operation *op,
-	MDB_txn *rtxn,
+	MDBX_txn *rtxn,
 	Filter *flist,
 	int ftype,
 	ID *ids,
@@ -68,7 +68,7 @@ static int list_candidates(
 static int
 ext_candidates(
         Operation *op,
-		MDB_txn *rtxn,
+		MDBX_txn *rtxn,
         MatchingRuleAssertion *mra,
         ID *ids,
         ID *tmp,
@@ -78,7 +78,7 @@ ext_candidates(
 static int
 comp_candidates (
 	Operation *op,
-	MDB_txn *rtxn,
+	MDBX_txn *rtxn,
 	MatchingRuleAssertion *mra,
 	ComponentFilter *f,
 	ID *ids,
@@ -88,7 +88,7 @@ comp_candidates (
 static int
 ava_comp_candidates (
 		Operation *op,
-		MDB_txn *rtxn,
+		MDBX_txn *rtxn,
 		AttributeAssertion *ava,
 		AttributeAliasing *aa,
 		ID *ids,
@@ -99,7 +99,7 @@ ava_comp_candidates (
 int
 mdb_filter_candidates(
 	Operation *op,
-	MDB_txn *rtxn,
+	MDBX_txn *rtxn,
 	Filter	*f,
 	ID *ids,
 	ID *tmp,
@@ -215,16 +215,16 @@ mdb_filter_candidates(
 		ID last = mdb_read_nextid(mdb);
 
 		if ( !last ) {
-			MDB_cursor *mc;
-			MDB_val key;
+			MDBX_cursor *mc;
+			MDBX_val key;
 
 			last = 0;
-			rc = mdb_cursor_open( rtxn, mdb->mi_id2entry, &mc );
+			rc = mdbx_cursor_open( rtxn, mdb->mi_id2entry, &mc );
 			if ( !rc ) {
-				rc = mdb_cursor_get( mc, &key, NULL, MDB_LAST );
+				rc = mdbx_cursor_get( mc, &key, NULL, MDBX_LAST );
 				if ( !rc )
-					memcpy( &last, key.mv_data, sizeof( last ));
-				mdb_cursor_close( mc );
+					memcpy( &last, key.iov_base, sizeof( last ));
+				mdbx_cursor_close( mc );
 			}
 		}
 		if ( last ) {
@@ -248,7 +248,7 @@ out:
 static int
 comp_list_candidates(
 	Operation *op,
-	MDB_txn *rtxn,
+	MDBX_txn *rtxn,
 	MatchingRuleAssertion* mra,
 	ComponentFilter	*flist,
 	int	ftype,
@@ -313,14 +313,14 @@ comp_list_candidates(
 static int
 comp_equality_candidates (
 	Operation *op,
-	MDB_txn *rtxn,
+	MDBX_txn *rtxn,
 	MatchingRuleAssertion *mra,
 	ComponentAssertion *ca,
 	ID *ids,
 	ID *tmp,
 	ID *stack)
 {
-	MDB_dbi	  dbi;
+	MDBX_dbi	  dbi;
 	int i;
 	int rc;
 	slap_mask_t mask;
@@ -388,7 +388,7 @@ comp_equality_candidates (
 	for ( i= 0; keys[i].bv_val != NULL; i++ ) {
 		rc = mdb_key_read( op->o_bd, rtxn, dbi, &keys[i], tmp, NULL, 0 );
 
-		if( rc == MDB_NOTFOUND ) {
+		if( rc == MDBX_NOTFOUND ) {
 			MDB_IDL_ZERO( ids );
 			rc = 0;
 			break;
@@ -423,7 +423,7 @@ comp_equality_candidates (
 static int
 ava_comp_candidates (
 	Operation *op,
-	MDB_txn *rtxn,
+	MDBX_txn *rtxn,
 	AttributeAssertion *ava,
 	AttributeAliasing *aa,
 	ID *ids,
@@ -446,7 +446,7 @@ ava_comp_candidates (
 static int
 comp_candidates (
 	Operation *op,
-	MDB_txn *rtxn,
+	MDBX_txn *rtxn,
 	MatchingRuleAssertion *mra,
 	ComponentFilter *f,
 	ID *ids,
@@ -489,7 +489,7 @@ comp_candidates (
 static int
 ext_candidates(
         Operation *op,
-		MDB_txn *rtxn,
+		MDBX_txn *rtxn,
         MatchingRuleAssertion *mra,
         ID *ids,
         ID *tmp,
@@ -512,7 +512,7 @@ ext_candidates(
 		if ( mra->ma_rule == slap_schema.si_mr_distinguishedNameMatch ) {
 base:
 			rc = mdb_dn2id( op, rtxn, NULL, &mra->ma_value, &id, NULL, NULL, NULL );
-			if ( rc == MDB_SUCCESS ) {
+			if ( rc == MDBX_SUCCESS ) {
 				mdb_idl_insert( ids, id );
 			}
 			return 0;
@@ -558,7 +558,7 @@ base:
 static int
 list_candidates(
 	Operation *op,
-	MDB_txn *rtxn,
+	MDBX_txn *rtxn,
 	Filter	*flist,
 	int		ftype,
 	ID *ids,
@@ -624,11 +624,11 @@ list_candidates(
 static int
 presence_candidates(
 	Operation *op,
-	MDB_txn *rtxn,
+	MDBX_txn *rtxn,
 	AttributeDescription *desc,
 	ID *ids )
 {
-	MDB_dbi dbi;
+	MDBX_dbi dbi;
 	int rc;
 	slap_mask_t mask;
 	struct berval prefix = {0, NULL};
@@ -670,7 +670,7 @@ presence_candidates(
 
 	rc = mdb_key_read( op->o_bd, rtxn, dbi, &prefix, ids, NULL, 0 );
 
-	if( rc == MDB_NOTFOUND ) {
+	if( rc == MDBX_NOTFOUND ) {
 		MDB_IDL_ZERO( ids );
 		rc = 0;
 	} else if( rc != LDAP_SUCCESS ) {
@@ -694,12 +694,12 @@ done:
 static int
 equality_candidates(
 	Operation *op,
-	MDB_txn *rtxn,
+	MDBX_txn *rtxn,
 	AttributeAssertion *ava,
 	ID *ids,
 	ID *tmp )
 {
-	MDB_dbi	dbi;
+	MDBX_dbi	dbi;
 	int i;
 	int rc;
 	slap_mask_t mask;
@@ -718,7 +718,7 @@ equality_candidates(
 			ids[0] = 1;
 			ids[1] = id;
 		}
-		if ( rc == MDB_NOTFOUND ) {
+		if ( rc == MDBX_NOTFOUND ) {
 			MDB_IDL_ZERO( ids );
 			rc = 0;
 		}
@@ -781,7 +781,7 @@ equality_candidates(
 	for ( i= 0; keys[i].bv_val != NULL; i++ ) {
 		rc = mdb_key_read( op->o_bd, rtxn, dbi, &keys[i], tmp, NULL, 0 );
 
-		if( rc == MDB_NOTFOUND ) {
+		if( rc == MDBX_NOTFOUND ) {
 			MDB_IDL_ZERO( ids );
 			rc = 0;
 			break;
@@ -825,12 +825,12 @@ equality_candidates(
 static int
 approx_candidates(
 	Operation *op,
-	MDB_txn *rtxn,
+	MDBX_txn *rtxn,
 	AttributeAssertion *ava,
 	ID *ids,
 	ID *tmp )
 {
-	MDB_dbi	dbi;
+	MDBX_dbi	dbi;
 	int i;
 	int rc;
 	slap_mask_t mask;
@@ -902,7 +902,7 @@ approx_candidates(
 	for ( i= 0; keys[i].bv_val != NULL; i++ ) {
 		rc = mdb_key_read( op->o_bd, rtxn, dbi, &keys[i], tmp, NULL, 0 );
 
-		if( rc == MDB_NOTFOUND ) {
+		if( rc == MDBX_NOTFOUND ) {
 			MDB_IDL_ZERO( ids );
 			rc = 0;
 			break;
@@ -944,12 +944,12 @@ approx_candidates(
 static int
 substring_candidates(
 	Operation *op,
-	MDB_txn *rtxn,
+	MDBX_txn *rtxn,
 	SubstringsAssertion	*sub,
 	ID *ids,
 	ID *tmp )
 {
-	MDB_dbi	dbi;
+	MDBX_dbi	dbi;
 	int i;
 	int rc;
 	slap_mask_t mask;
@@ -1017,7 +1017,7 @@ substring_candidates(
 	for ( i= 0; keys[i].bv_val != NULL; i++ ) {
 		rc = mdb_key_read( op->o_bd, rtxn, dbi, &keys[i], tmp, NULL, 0 );
 
-		if( rc == MDB_NOTFOUND ) {
+		if( rc == MDBX_NOTFOUND ) {
 			MDB_IDL_ZERO( ids );
 			rc = 0;
 			break;
@@ -1059,13 +1059,13 @@ substring_candidates(
 static int
 inequality_candidates(
 	Operation *op,
-	MDB_txn *rtxn,
+	MDBX_txn *rtxn,
 	AttributeAssertion *ava,
 	ID *ids,
 	ID *tmp,
 	int gtorlt )
 {
-	MDB_dbi	dbi;
+	MDBX_dbi	dbi;
 	int rc;
 	slap_mask_t mask;
 	struct berval prefix = {0, NULL};
@@ -1128,12 +1128,12 @@ inequality_candidates(
 		return 0;
 	}
 
-	MDB_cursor *cursor = NULL;
+	MDBX_cursor *cursor = NULL;
 	MDB_IDL_ZERO( ids );
 	while(1) {
 		rc = mdb_key_read( op->o_bd, rtxn, dbi, &keys[0], tmp, &cursor, gtorlt );
 
-		if( rc == MDB_NOTFOUND ) {
+		if( rc == MDBX_NOTFOUND ) {
 			rc = 0;
 			break;
 		} else if( rc != LDAP_SUCCESS ) {
@@ -1160,7 +1160,7 @@ inequality_candidates(
 	}
 	ber_bvarray_free_x( keys, op->o_tmpmemctx );
 	if (cursor)
-		mdb_cursor_close( cursor );
+		mdbx_cursor_close( cursor );
 
 	Debug( LDAP_DEBUG_TRACE,
 		"<= mdb_inequality_candidates: id=%ld, first=%ld, last=%ld\n",

@@ -32,7 +32,7 @@ void mdb_attr_flush( struct mdb_info *mdb );
 int mdb_attr_slot( struct mdb_info *mdb,
 	AttributeDescription *desc, int *insert );
 
-int mdb_attr_dbs_open( BackendDB *be, MDB_txn *txn, struct config_reply_s *cr );
+int mdb_attr_dbs_open( BackendDB *be, MDBX_txn *txn, struct config_reply_s *cr );
 void mdb_attr_dbs_close( struct mdb_info *mdb );
 
 int mdb_attr_index_config LDAP_P(( struct mdb_info *mdb,
@@ -46,8 +46,8 @@ void mdb_attr_index_free LDAP_P(( struct mdb_info *mdb,
 
 void mdb_attr_info_free( AttrInfo *ai );
 
-int mdb_ad_read( struct mdb_info *mdb, MDB_txn *txn );
-int mdb_ad_get( struct mdb_info *mdb, MDB_txn *txn, AttributeDescription *ad );
+int mdb_ad_read( struct mdb_info *mdb, MDBX_txn *txn );
+int mdb_ad_get( struct mdb_info *mdb, MDBX_txn *txn, AttributeDescription *ad );
 
 /*
  * config.c
@@ -59,7 +59,7 @@ int mdb_back_init_cf( BackendInfo *bi );
  * dn2entry.c
  */
 
-int mdb_dn2entry LDAP_P(( Operation *op, MDB_txn *tid, MDB_cursor *mc,
+int mdb_dn2entry LDAP_P(( Operation *op, MDBX_txn *tid, MDBX_cursor *mc,
 	struct berval *dn, Entry **e, ID *nsubs, int matched ));
 
 /*
@@ -68,8 +68,8 @@ int mdb_dn2entry LDAP_P(( Operation *op, MDB_txn *tid, MDB_cursor *mc,
 
 int mdb_dn2id(
 	Operation *op,
-	MDB_txn *txn,
-	MDB_cursor *mc,
+	MDBX_txn *txn,
+	MDBX_cursor *mc,
 	struct berval *ndn,
 	ID *id,
 	ID *nsubs,
@@ -78,8 +78,8 @@ int mdb_dn2id(
 
 int mdb_dn2id_add(
 	Operation *op,
-	MDB_cursor *mcp,
-	MDB_cursor *mcd,
+	MDBX_cursor *mcp,
+	MDBX_cursor *mcd,
 	ID pid,
 	ID nsubs,
 	int upsub,
@@ -87,25 +87,25 @@ int mdb_dn2id_add(
 
 int mdb_dn2id_delete(
 	Operation *op,
-	MDB_cursor *mc,
+	MDBX_cursor *mc,
 	ID id,
 	ID nsubs );
 
 int mdb_dn2id_children(
 	Operation *op,
-	MDB_txn *tid,
+	MDBX_txn *tid,
 	Entry *e );
 
 int mdb_dn2sups (
 	Operation *op,
-	MDB_txn *tid,
+	MDBX_txn *tid,
 	struct berval *dn,
 	ID *sups
 	);
 
 int mdb_dn2idl(
 	Operation *op,
-	MDB_txn *txn,
+	MDBX_txn *txn,
 	struct berval *ndn,
 	ID eid,
 	ID *ids,
@@ -113,21 +113,21 @@ int mdb_dn2idl(
 
 int mdb_dn2id_parent(
 	Operation *op,
-	MDB_txn *txn,
+	MDBX_txn *txn,
 	ID eid,
 	ID *idp );
 
 int mdb_id2name(
 	Operation *op,
-	MDB_txn *txn,
-	MDB_cursor **cursp,
+	MDBX_txn *txn,
+	MDBX_cursor **cursp,
 	ID eid,
 	struct berval *name,
 	struct berval *nname);
 
 int mdb_idscope(
 	Operation *op,
-	MDB_txn *txn,
+	MDBX_txn *txn,
 	ID base,
 	ID *ids,
 	ID *res );
@@ -150,7 +150,7 @@ void mdb_dn2id_wrestore(
 	Operation *op,
 	struct IdScopes *isc );
 
-MDB_cmp_func mdb_dup_compare;
+MDBX_cmp_func mdb_dup_compare;
 
 /*
  * filterentry.c
@@ -158,7 +158,7 @@ MDB_cmp_func mdb_dup_compare;
 
 int mdb_filter_candidates(
 	Operation *op,
-	MDB_txn *txn,
+	MDBX_txn *txn,
 	Filter	*f,
 	ID *ids,
 	ID *tmp,
@@ -170,40 +170,40 @@ int mdb_filter_candidates(
 
 int mdb_id2entry_add(
 	Operation *op,
-	MDB_txn *tid,
-	MDB_cursor *mc,
+	MDBX_txn *tid,
+	MDBX_cursor *mc,
 	Entry *e );
 
 int mdb_id2entry_update(
 	Operation *op,
-	MDB_txn *tid,
-	MDB_cursor *mc,
+	MDBX_txn *tid,
+	MDBX_cursor *mc,
 	Entry *e );
 
 int mdb_id2entry_delete(
 	BackendDB *be,
-	MDB_txn *tid,
+	MDBX_txn *tid,
 	Entry *e);
 
 int mdb_id2entry(
 	Operation *op,
-	MDB_cursor *mc,
+	MDBX_cursor *mc,
 	ID id,
 	Entry **e);
 
 int mdb_id2edata(
 	Operation *op,
-	MDB_cursor *mc,
+	MDBX_cursor *mc,
 	ID id,
-	MDB_val *data);
+	MDBX_val *data);
 
 int mdb_entry_return( Operation *op, Entry *e );
 BI_entry_release_rw mdb_entry_release;
 BI_entry_get_rw mdb_entry_get;
 
-int mdb_entry_decode( Operation *op, MDB_txn *txn, MDB_val *data, Entry **e );
+int mdb_entry_decode( Operation *op, MDBX_txn *txn, MDBX_val *data, Entry **e );
 
-void mdb_reader_flush( MDB_env *env );
+void mdb_reader_flush( MDBX_env *env );
 int mdb_opinfo_get( Operation *op, struct mdb_info *mdb, int rdonly, mdb_op_info **moi );
 
 /*
@@ -214,18 +214,18 @@ unsigned mdb_idl_search( ID *ids, ID id );
 
 int mdb_idl_fetch_key(
 	BackendDB	*be,
-	MDB_txn		*txn,
-	MDB_dbi		dbi,
-	MDB_val		*key,
+	MDBX_txn		*txn,
+	MDBX_dbi		dbi,
+	MDBX_val		*key,
 	ID			*ids,
-	MDB_cursor	**saved_cursor,
+	MDBX_cursor	**saved_cursor,
 	int                     get_flag );
 
 int mdb_idl_insert( ID *ids, ID id );
 
 typedef int (mdb_idl_keyfunc)(
 	BackendDB *be,
-	MDB_cursor *mc,
+	MDBX_cursor *mc,
 	struct berval *key,
 	ID id );
 
@@ -265,14 +265,14 @@ mdb_index_param LDAP_P((
 	Backend *be,
 	AttributeDescription *desc,
 	int ftype,
-	MDB_dbi *dbi,
+	MDBX_dbi *dbi,
 	slap_mask_t *mask,
 	struct berval *prefix ));
 
 extern int
 mdb_index_values LDAP_P((
 	Operation *op,
-	MDB_txn *txn,
+	MDBX_txn *txn,
 	AttributeDescription *desc,
 	BerVarray vals,
 	ID id,
@@ -289,13 +289,13 @@ mdb_index_recset LDAP_P((
 extern int
 mdb_index_recrun LDAP_P((
 	Operation *op,
-	MDB_txn *txn,
+	MDBX_txn *txn,
 	struct mdb_info *mdb,
 	IndexRec *ir,
 	ID id,
 	int base ));
 
-int mdb_index_entry LDAP_P(( Operation *op, MDB_txn *t, int r, Entry *e ));
+int mdb_index_entry LDAP_P(( Operation *op, MDBX_txn *t, int r, Entry *e ));
 
 #define mdb_index_entry_add(op,t,e) \
 	mdb_index_entry((op),(t),SLAP_INDEX_ADD_OP,(e))
@@ -309,18 +309,18 @@ int mdb_index_entry LDAP_P(( Operation *op, MDB_txn *t, int r, Entry *e ));
 extern int
 mdb_key_read(
     Backend	*be,
-	MDB_txn *txn,
-	MDB_dbi dbi,
+	MDBX_txn *txn,
+	MDBX_dbi dbi,
     struct berval *k,
 	ID *ids,
-    MDB_cursor **saved_cursor,
+    MDBX_cursor **saved_cursor,
         int get_flags );
 
 /*
  * nextid.c
  */
 
-int mdb_next_id( BackendDB *be, MDB_cursor *mc, ID *id );
+int mdb_next_id( BackendDB *be, MDBX_cursor *mc, ID *id );
 
 /*
  * modify.c
@@ -328,7 +328,7 @@ int mdb_next_id( BackendDB *be, MDB_cursor *mc, ID *id );
 
 int mdb_modify_internal(
 	Operation *op,
-	MDB_txn *tid,
+	MDBX_txn *tid,
 	Modifications *modlist,
 	Entry *e,
 	const char **text,
