@@ -43,24 +43,27 @@ else
 libmdbx_la_CFLAGS = -DNDEBUG=1 -DMDB_DEBUG=0
 endif
 libmdbx_la_LIBADD = $(LTHREAD_LIBS)
-libmdbx_la_SOURCES = ../../../libraries/libmdbx/mdbx.c
+libmdbx_srcdir = ../../../libraries/libmdbx
+libmdbx_la_SOURCES = ../../../libraries/libmdbx/src/version.c \
+	../../../libraries/libmdbx/src/lck-posix.c \
+	../../../libraries/libmdbx/src/mdbx.c \
+	../../../libraries/libmdbx/src/osal.c
 
-# LY: TODO
-EXTRA_DIST = ../../../libraries/libmdbx/barriers.h \
-	../../../libraries/libmdbx/CHANGES \
+EXTRA_DIST = ../../../libraries/libmdbx/LICENSE \
 	../../../libraries/libmdbx/COPYRIGHT \
-	../../../libraries/libmdbx/LICENSE\
-	../../../libraries/libmdbx/lmdb.h \
-	../../../libraries/libmdbx/Makefile\
-	../../../libraries/libmdbx/mdb.c \
-	../../../libraries/libmdbx/mdb_copy.1 \
-	../../../libraries/libmdbx/mdb_dump.1 \
-	../../../libraries/libmdbx/mdb_load.1 \
-	../../../libraries/libmdbx/mdb_stat.1 \
+	../../../libraries/libmdbx/README.md \
 	../../../libraries/libmdbx/mdbx.h \
-	../../../libraries/libmdbx/midl.c \
-	../../../libraries/libmdbx/midl.h \
-	../../../libraries/libmdbx/defs.h
+	../../../libraries/libmdbx/README-RU.md \
+	../../../libraries/libmdbx/AUTHORS \
+	../../../libraries/libmdbx/src/bits.h \
+	../../../libraries/libmdbx/src/defs.h \
+	../../../libraries/libmdbx/src/osal.h \
+	../../../libraries/libmdbx/.clang-format
+
+dist_man_MANS = ../../../libraries/libmdbx/src/tools/mdbx_dump.1 \
+	../../../libraries/libmdbx/src/tools/mdbx_copy.1 \
+	../../../libraries/libmdbx/src/tools/mdbx_stat.1 \
+	../../../libraries/libmdbx/src/tools/mdbx_load.1
 
 back_mdb_la_SOURCES = add.c attr.c banner.c bind.c compare.c \
 	config.c delete.c dn2entry.c dn2id.c extended.c filterindex.c \
@@ -68,14 +71,14 @@ back_mdb_la_SOURCES = add.c attr.c banner.c bind.c compare.c \
 	monitor.c nextid.c operational.c search.c tools.c \
 	back-mdb.h idl.h proto-mdb.h
 
-back_mdb_la_CFLAGS = -I$(srcdir)/.. -I$(top_srcdir)/libraries/libmdbx
+back_mdb_la_CFLAGS = -I$(srcdir)/.. -I../../../libraries/libmdbx
 back_mdb_la_LIBADD = libmdbx.la
 
-mdbx_chk_SOURCES = ../../../libraries/libmdbx/mdb_chk.c
-mdbx_copy_SOURCES = ../../../libraries/libmdbx/mdb_copy.c
-mdbx_dump_SOURCES = ../../../libraries/libmdbx/mdb_dump.c
-mdbx_load_SOURCES = ../../../libraries/libmdbx/mdb_load.c
-mdbx_stat_SOURCES = ../../../libraries/libmdbx/mdb_stat.c
+mdbx_chk_SOURCES = ../../../libraries/libmdbx/src/tools/mdbx_chk.c
+mdbx_copy_SOURCES = ../../../libraries/libmdbx/src/tools/mdbx_copy.c
+mdbx_dump_SOURCES = ../../../libraries/libmdbx/src/tools/mdbx_dump.c
+mdbx_load_SOURCES = ../../../libraries/libmdbx/src/tools/mdbx_load.c
+mdbx_stat_SOURCES = ../../../libraries/libmdbx/src/tools/mdbx_stat.c
 
 mdbx_chk_LDADD = libmdbx.la
 mdbx_copy_LDADD = libmdbx.la
