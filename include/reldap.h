@@ -59,17 +59,49 @@
 #	endif
 #endif /* __must_check_result */
 
+#ifndef __optimize
+#	if defined(__OPTIMIZE__)
+#		if defined(__clang__) && !__has_attribute(optimize)
+#			define __optimize(ops)
+#		elif defined(__GNUC__) || __has_attribute(optimize)
+#			define __optimize(ops) __attribute__((optimize(ops)))
+#		else
+#			define __optimize(ops)
+#		endif
+#	else
+#		define __optimize(ops)
+#	endif
+#endif /* __optimize */
+
 #ifndef __hot
-#	if defined(__GNUC__) && !defined(__clang__)
-#		define __hot __attribute__((hot, optimize("O3")))
+#	if defined(__OPTIMIZE__)
+#		if defined(__e2k__)
+#			define __hot __attribute__((hot)) __optimize(3)
+#		elif defined(__clang__) && !__has_attribute(hot)
+			/* just put frequently used functions in separate section */
+#			define __hot __attribute__((section("text.hot"))) __optimize("O3")
+#		elif defined(__GNUC__) || __has_attribute(hot)
+#			define __hot __attribute__((hot)) __optimize("O3")
+#		else
+#			define __hot  __optimize("O3")
+#		endif
 #	else
 #		define __hot
 #	endif
 #endif /* __hot */
 
 #ifndef __cold
-#	if defined(__GNUC__) && !defined(__clang__)
-#		define __cold __attribute__((cold, optimize("Os")))
+#	if defined(__OPTIMIZE__)
+#		if defined(__e2k__)
+#			define __cold __attribute__((cold)) __optimize(1)
+#		elif defined(__clang__) && !__has_attribute(cold)
+			/* just put infrequently used functions in separate section */
+#			define __cold __attribute__((section("text.unlikely"))) __optimize("Os")
+#		elif defined(__GNUC__) || __has_attribute(cold)
+#			define __cold __attribute__((cold)) __optimize("Os")
+#		else
+#			define __cold __optimize("Os")
+#		endif
 #	else
 #		define __cold
 #	endif
@@ -346,10 +378,12 @@ LDAP_END_DECL
 #	define VALGRIND_CHECK_MEM_IS_DEFINED(a,s) (0)
 #endif /* ! USE_VALGRIND */
 
-#if defined(__has_feature)
-#	if __has_feature(thread_sanitizer)
-#		define __SANITIZE_THREAD__ 1
-#	endif
+#if __has_feature(thread_sanitizer)
+#   define __SANITIZE_THREAD__ 1
+#endif
+
+#if __has_feature(address_sanitizer)
+#   define __SANITIZE_ADDRESS__ 1
 #endif
 
 #ifdef __SANITIZE_THREAD__
@@ -358,12 +392,6 @@ LDAP_END_DECL
 #else
 #	define ATTRIBUTE_NO_SANITIZE_THREAD
 #	define ATTRIBUTE_NO_SANITIZE_THREAD_INLINE __inline
-#endif
-
-#if defined(__has_feature)
-#	if __has_feature(address_sanitizer)
-#		define __SANITIZE_ADDRESS__ 1
-#	endif
 #endif
 
 #ifdef __SANITIZE_ADDRESS__
