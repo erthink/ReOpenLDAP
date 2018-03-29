@@ -227,6 +227,12 @@ fi
 
 step_finish "cleanup"
 ##############################################################################
+if [ ! -x ./configure -a ./bootstrap.sh ]; then
+	step_begin "bootstrap"
+	./bootstrap.sh || failure "bootstrap.sh"
+	step_finish "bootstrap"
+fi
+##############################################################################
 step_begin "distrib"
 
 if [ -d $HERE/.git ]; then
