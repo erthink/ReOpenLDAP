@@ -213,6 +213,7 @@ if [ $flag_clean -ne 0 ]; then
 				[ -d .ccache ] && echo " -e .ccache/"; \
 				[ -d tests/testrun ] && echo " -e tests/testrun/"; \
 				[ -f times.log ] && echo " -e times.log"; \
+				[ -f releasenotes.txt ] && echo " -e releasenotes.txt"; \
 			) || failure "cleanup"
 		git submodule foreach --recursive git clean -q -x -f -d || failure "cleanup-submodules"
 	else
@@ -244,7 +245,8 @@ if [ $flag_dist -ne 0 ]; then
 	make dist || failure "make dist"
 	dist=$(ls *.tar.* | sed 's/^\(.\+\)\.tar\..\+$/\1/g')
 	[ -n "$dist" ] && tar xaf *.tar.* && rm *.tar.* || failure "untar dist"
-	[ -s changelog.txt ] && cp changelog.txt $dist/
+	cp changelog.txt $dist/ || failure "cp changelog.txt"
+	[ -s releasenotes.txt ] && cp releasenotes.txt ${dist}/ || failure "cp releasenotes.txt"
 	tar caf $FILE $dist || failure "tar dist"
 	SUBDIR=$dist
 	[ -d "$SUBDIR" ] && cd "$SUBDIR" || failure "chdir dist"
@@ -265,8 +267,6 @@ fi
 step_finish "distrib"
 ##############################################################################
 step_begin "configure"
-
-LIBMDBX_DIR=$([ -d libraries/liblmdb ] && echo "libraries/liblmdb" || echo "libraries/libmdbx")
 
 if [ -s Makefile ]; then
 	notice "Makefile present, skip configure"
@@ -425,21 +425,8 @@ else
 		$CONFIGURE_ARGS || failure "configure"
 
 	find ./ -name Makefile -type f | xargs sed -e "s/STRIP = -s/STRIP =/g" -i \
-		|| failure "fixup build-id"
-
-	if [ -e ${LIBMDBX_DIR}/mdbx.h ]; then
-		find ./ -name Makefile | xargs -r sed -i 's/-Wall -g/-Wall -Werror -g/g' \
-			|| failure "fix-1"
-	else
-		find ./ -name Makefile | grep -v liblmdb | xargs -r sed -i 's/-Wall -g/-Wall -Werror -g/g' \
-			|| failure "fix-2"
-	fi
-
-	sed -e 's/ -lrt/ -Wl,--no-as-needed,-lrt/g' -i ${LIBMDBX_DIR}/Makefile
+		|| failure "fixup build-strip-symbols"
 fi
-
-[ -s changelog.txt ] && cp changelog.txt ${PREFIX}/
-[ -s releasenotes.txt ] && cp releasenotes.txt ${PREFIX}/
 
 step_finish "configure"
 ##############################################################################
@@ -464,6 +451,10 @@ rm -rf ${PREFIX}/var ${PREFIX}/include && ln -s /var ${PREFIX}/ \
 	|| failure "sweep-3"
 chmod -R u+w ${PREFIX}/etc/schema \
 	|| failure "sweep-4"
+cp changelog.txt ${PREFIX}/ \
+	|| failure "sweep-5"
+[ -s releasenotes.txt ] && cp releasenotes.txt ${PREFIX}/ \
+	|| failure "sweep-6"
 
 step_finish "sweep"
 ##############################################################################
