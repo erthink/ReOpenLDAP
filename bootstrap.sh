@@ -17,7 +17,7 @@ if [ "$1" = "--dont-cleanup" ]; then
 	shift
 else
 	rm -rf tests/testrun/*
-	if ! git clean -x -f -d -e tests/testrun; then
+	if ! git clean -x -f -d -e tests/testrun -e releasenotes.txt; then
 		echo "cleanup failed" >&2; exit 2
 	fi
 fi

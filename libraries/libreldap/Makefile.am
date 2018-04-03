@@ -44,7 +44,7 @@ libreldap_la_SOURCES = abandon.c add.c addentry.c assertion.c \
 	whoami.c crutch.c lber-int.h ldap-int.h ldap-tls.h
 
 # LY: append-hack CFLAGS to avoid lost symver's tags by LTO.
-nolto_CFLAGS := $(CFLAGS) $$(echo "$(CFLAGS)" | grep -q ' -flto' && echo '-fno-lto') -save-temps
+nolto_CFLAGS := $(CFLAGS) $$(echo "$(CFLAGS) $(EXTRA_CFLAGS)" | grep -q ' -flto' && echo '-fno-lto') -save-temps
 libreldap_la-crutch.o libreldap_la-crutch.lo crutch.o crutch.lo: CFLAGS = $(nolto_CFLAGS)
 
 if LDAP_DEPRECATED
