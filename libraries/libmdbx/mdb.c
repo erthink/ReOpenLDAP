@@ -44,10 +44,8 @@
 #	define _GNU_SOURCE
 #endif
 
-/* LY: Please do not ask us for Windows support, just never!
- * But you can make a fork for Windows, or become maintainer for FreeBSD... */
 #ifndef __gnu_linux__
-#	warning "This version of ReOpenMDBX supports only GNU Linux"
+#	warning "This version of libmdbx supports only GNU Linux"
 #endif
 
 #include <stddef.h>
@@ -56,21 +54,21 @@
 #include "./defs.h"
 
 #if !__GNUC_PREREQ(4,2)
-	/* LY: Actualy ReOpenMDBX was not tested with compilers
+	/* LY: Actualy libmdbx was not tested with compilers
 	 *     older than GCC 4.4 (from RHEL6).
 	 * But you could remove this #error and try to continue at your own risk.
 	 * In such case please don't rise up an issues related ONLY to old compilers.
 	 */
-#	warning "ReOpenMDBX required at least GCC 4.2 compatible C/C++ compiler."
+#	warning "libmdbx required at least GCC 4.2 compatible C/C++ compiler."
 #endif
 
 #if !__GLIBC_PREREQ(2,12)
-	/* LY: Actualy ReOpenMDBX was not tested with something
+	/* LY: Actualy libmdbx was not tested with something
 	 *     older than glibc 2.12 (from RHEL6).
 	 * But you could remove this #error and try to continue at your own risk.
 	 * In such case please don't rise up an issues related ONLY to old systems.
 	 */
-#	warning "ReOpenMDBX required at least GLIBC 2.12."
+#	warning "libmdbx required at least GLIBC 2.12."
 #endif
 
 #if MDB_DEBUG
@@ -2140,6 +2138,10 @@ mdb_page_alloc(MDB_cursor *mc, int num, MDB_page **mp, int flags)
 			/* If mc is updating the freeDB, then the freelist cannot play
 			 * catch-up with itself by growing while trying to save it. */
 			flags &= ~(MDBX_ALLOC_GC | MDBX_ALLOC_KICK | MDBX_COALESCE | MDBX_LIFORECLAIM);
+		} else if (unlikely(txn->mt_dbs[FREE_DBI].md_entries == 0)) {
+			/* avoid (recursive) search inside empty tree and while tree is updating,
+			 * https://github.com/leo-yuriev/libmdbx/issues/31 */
+			flags &= ~MDBX_ALLOC_GC;
 		}
 	}
 
