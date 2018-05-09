@@ -280,6 +280,12 @@ LDAP_F(int)
 ldap_pvt_thread_pool_destroy(ldap_pvt_thread_pool_t *pool, int run_pending);
 
 LDAP_F(int)
+ldap_pvt_thread_pool_close(ldap_pvt_thread_pool_t *pool, int run_pending);
+
+LDAP_F(int)
+ldap_pvt_thread_pool_free(ldap_pvt_thread_pool_t *pool);
+
+LDAP_F(int)
 ldap_pvt_thread_pool_getkey(void *ctx, void *key, void **data,
                             ldap_pvt_thread_pool_keyfree_t **kfree);
 

@@ -432,21 +432,20 @@ int ldap_pvt_thread_pool_submit2(ldap_pvt_thread_pool_t *tpool,
       pq->ltq_open_count--;
 
       if (pq->ltq_open_count == 0) {
-        /* no open threads at all?!?
-         */
+        /* no open threads at all?!? */
         ldap_int_thread_task_t *ptr;
 
-        /* let pool_destroy know there are no more threads */
+        /* let pool_close know there are no more threads */
         ldap_pvt_thread_cond_signal(&pq->ltq_cond);
 
-        LDAP_STAILQ_FOREACH(ptr, &pq->ltq_pending_list, ltt_next.q)
-        if (ptr == task)
-          break;
+        LDAP_STAILQ_FOREACH(ptr, &pq->ltq_pending_list, ltt_next.q) {
+          if (ptr == task)
+            break;
+        }
         if (ptr == task) {
           /* no open threads, task not handled, so
            * back out of ltp_pending_count, free the task,
-           * report the error.
-           */
+           * report the error. */
           pq->ltq_pending_count--;
           LDAP_STAILQ_REMOVE(&pq->ltq_pending_list, task,
                              ldap_int_thread_task_s, ltt_next.q);
@@ -489,14 +488,15 @@ int ldap_pvt_thread_pool_retract(void *cookie) {
     return (-1);
 
   ldap_pvt_thread_mutex_lock(&pq->ltq_mutex);
-  LDAP_STAILQ_FOREACH(task, &pq->ltq_pending_list, ltt_next.q)
-  if (task == ttmp) {
-    /* Could LDAP_STAILQ_REMOVE the task, but that
-     * walks ltp_pending_list again to find it.
-     */
-    task->ltt_start_routine = no_task;
-    task->ltt_arg = NULL;
-    break;
+  LDAP_STAILQ_FOREACH(task, &pq->ltq_pending_list, ltt_next.q) {
+    if (task == ttmp) {
+      /* Could LDAP_STAILQ_REMOVE the task, but that
+       * walks ltp_pending_list again to find it.
+       */
+      task->ltt_start_routine = no_task;
+      task->ltt_arg = NULL;
+      break;
+    }
   }
   ldap_pvt_thread_mutex_unlock(&pq->ltq_mutex);
   return task != NULL;
@@ -752,9 +752,23 @@ int ldap_pvt_thread_pool_backload(ldap_pvt_thread_pool_t *tpool) {
   return rc;
 }
 
-/* Destroy the pool after making its threads finish */
+/*
+ * wrapper for ldap_pvt_thread_pool_close+free(), left around
+ * for backwards compatibility
+ */
 int ldap_pvt_thread_pool_destroy(ldap_pvt_thread_pool_t *tpool,
                                  int run_pending) {
+  int rc;
+
+  if ((rc = ldap_pvt_thread_pool_close(tpool, run_pending))) {
+    return rc;
+  }
+
+  return ldap_pvt_thread_pool_free(tpool);
+}
+
+/* Shut down the pool making its threads finish */
+int ldap_pvt_thread_pool_close(ldap_pvt_thread_pool_t *tpool, int run_pending) {
   struct ldap_int_thread_pool_s *pool, *pptr;
   struct ldap_int_thread_poolq_s *pq;
   ldap_int_thread_task_t *task;
@@ -769,12 +783,10 @@ int ldap_pvt_thread_pool_destroy(ldap_pvt_thread_pool_t *tpool,
     return (-1);
 
   ldap_pvt_thread_mutex_lock(&ldap_pvt_thread_pool_mutex);
-  LDAP_STAILQ_FOREACH(pptr, &ldap_int_thread_pool_list, ltp_next)
-  if (pptr == pool)
-    break;
-  if (pptr == pool)
-    LDAP_STAILQ_REMOVE(&ldap_int_thread_pool_list, pool, ldap_int_thread_pool_s,
-                       ltp_next);
+  LDAP_STAILQ_FOREACH(pptr, &ldap_int_thread_pool_list, ltp_next) {
+    if (pptr == pool)
+      break;
+  }
   ldap_pvt_thread_mutex_unlock(&ldap_pvt_thread_pool_mutex);
 
   if (pool != pptr)
@@ -812,18 +824,50 @@ int ldap_pvt_thread_pool_destroy(ldap_pvt_thread_pool_t *tpool,
       LDAP_FREE(task);
     }
     ldap_pvt_thread_mutex_unlock(&pq->ltq_mutex);
-    ldap_pvt_thread_cond_destroy(&pq->ltq_cond);
-    ldap_pvt_thread_mutex_destroy(&pq->ltq_mutex);
   }
+
+  return (0);
+}
+
+/* Destroy the pool, everything must have already shut down */
+int ldap_pvt_thread_pool_free(ldap_pvt_thread_pool_t *tpool) {
+  struct ldap_int_thread_pool_s *pool, *pptr;
+  struct ldap_int_thread_poolq_s *pq;
+  int i;
+
+  if (tpool == NULL)
+    return (-1);
+
+  pool = *tpool;
+  if (pool == NULL)
+    return (-1);
+
+  ldap_pvt_thread_mutex_lock(&ldap_pvt_thread_pool_mutex);
+  LDAP_STAILQ_FOREACH(pptr, &ldap_int_thread_pool_list, ltp_next) {
+    if (pptr == pool)
+      break;
+  }
+  if (pptr == pool)
+    LDAP_STAILQ_REMOVE(&ldap_int_thread_pool_list, pool, ldap_int_thread_pool_s,
+                       ltp_next);
+  ldap_pvt_thread_mutex_unlock(&ldap_pvt_thread_pool_mutex);
+
+  if (pool != pptr)
+    return (-1);
 
   ldap_pvt_thread_cond_destroy(&pool->ltp_pcond);
   ldap_pvt_thread_cond_destroy(&pool->ltp_cond);
   ldap_pvt_thread_mutex_destroy(&pool->ltp_mutex);
   for (i = 0; i < pool->ltp_numqs; i++) {
     pq = pool->ltp_wqs[i];
-    if (pq->ltq_free) {
+
+    assert(!pq->ltq_open_count);
+    assert(LDAP_SLIST_EMPTY(&pq->ltq_free_list));
+    if (pq->ltq_free)
       LDAP_FREE(pq->ltq_free);
-    }
+
+    ldap_pvt_thread_cond_destroy(&pq->ltq_cond);
+    ldap_pvt_thread_mutex_destroy(&pq->ltq_mutex);
   }
   LDAP_FREE(pool->ltp_wqs);
   LDAP_FREE(pool);
