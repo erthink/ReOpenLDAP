@@ -2653,7 +2653,7 @@ loop:
     Debug(LDAP_DEBUG_ANY,
           "slapd shutdown: waiting for %d operations/tasks to finish\n", t);
   }
-  ldap_pvt_thread_pool_destroy(&connection_pool, 1);
+  ldap_pvt_thread_pool_close(&connection_pool, 1);
 
   return NULL;
 }
