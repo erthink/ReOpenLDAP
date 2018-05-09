@@ -2780,6 +2780,49 @@ void slap_sig_wake(int sig) {
   errno = save_errno;
 }
 
+int slap_pause_server(void) {
+  BackendInfo *bi;
+  int rc = LDAP_SUCCESS;
+
+  rc = ldap_pvt_thread_pool_pause(&connection_pool);
+
+  LDAP_STAILQ_FOREACH(bi, &backendInfo, bi_next) {
+    if (bi->bi_pause) {
+      rc = bi->bi_pause(bi);
+      if (rc != LDAP_SUCCESS) {
+        Debug(LDAP_DEBUG_ANY,
+              "slap_pause_server: "
+              "bi_pause failed for backend %s\n",
+              bi->bi_type);
+        return rc;
+      }
+    }
+  }
+
+  return rc;
+}
+
+int slap_unpause_server(void) {
+  BackendInfo *bi;
+  int rc = LDAP_SUCCESS;
+
+  LDAP_STAILQ_FOREACH(bi, &backendInfo, bi_next) {
+    if (bi->bi_unpause) {
+      rc = bi->bi_unpause(bi);
+      if (rc != LDAP_SUCCESS) {
+        Debug(LDAP_DEBUG_ANY,
+              "slap_unpause_server: "
+              "bi_unpause failed for backend %s\n",
+              bi->bi_type);
+        return rc;
+      }
+    }
+  }
+
+  rc = ldap_pvt_thread_pool_resume(&connection_pool);
+  return rc;
+}
+
 void slapd_add_internal(ber_socket_t s, int isactive) {
   slapd_add(s, isactive, NULL, -1);
 }

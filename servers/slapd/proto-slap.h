@@ -792,6 +792,9 @@ LDAP_SLAPD_F(void) slap_wake_listener(void);
 LDAP_SLAPD_F(void) slap_suspend_listeners(void);
 LDAP_SLAPD_F(void) slap_resume_listeners(void);
 
+LDAP_SLAPD_F(int) slap_pause_server(void);
+LDAP_SLAPD_F(int) slap_unpause_server(void);
+
 LDAP_SLAPD_F(void) slapd_set_write(ber_socket_t s, int wake);
 LDAP_SLAPD_F(void) slapd_clr_write(ber_socket_t s, int wake);
 LDAP_SLAPD_F(void) slapd_set_read(ber_socket_t s, int wake);
