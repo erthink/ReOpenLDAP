@@ -2364,6 +2364,8 @@ struct BackendInfo {
 #define SLAP_BFLAG_REFERRALS 0x2000U
 #define SLAP_BFLAG_SUBENTRIES 0x4000U
 #define SLAP_BFLAG_DYNAMIC 0x8000U
+#define SLAP_BFLAG_STANDALONE                                                  \
+  0x10000U /* started up regardless of whether any databases use it */
 
 /* overlay specific */
 #define SLAPO_BFLAG_SINGLE 0x01000000U

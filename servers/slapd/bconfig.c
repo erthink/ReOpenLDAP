@@ -1913,6 +1913,10 @@ static int config_generic(ConfigArgs *c) {
       Debug(LDAP_DEBUG_ANY, "%s: %s (%s)!\n", c->log, c->cr_msg, c->argv[1]);
       return ARG_BAD_CONF;
     }
+    if (c->bi->bi_flags & SLAP_BFLAG_STANDALONE) {
+      c->bi->bi_nDB++;
+      nbackends++;
+    }
     break;
 
   case CFG_DATABASE:
@@ -5888,6 +5892,11 @@ ok:
     if (coptr->co_type == Cft_Database) {
       rc = backend_startup_one(ca->be, &ca->reply);
 
+    } else if (coptr->co_type == Cft_Backend) {
+      if (ca->bi->bi_open) {
+        rc = ca->bi->bi_open(ca->bi);
+      }
+
     } else if (coptr->co_type == Cft_Overlay) {
       if (ca->bi->bi_db_open) {
         BackendInfo *bi_orig = ca->be->bd_info;
@@ -7587,6 +7596,7 @@ static int __config_back_db_open(BackendDB *be, ConfigReply *cr) {
    */
 
   c.line = 0;
+  i = 0;
   LDAP_STAILQ_FOREACH(bi, &backendInfo, bi_next) {
     if (!bi->bi_cf_ocs) {
       /* If it only supports the old config mech, complain. */
@@ -7598,12 +7608,13 @@ static int __config_back_db_open(BackendDB *be, ConfigReply *cr) {
       }
       continue;
     }
-    if (!bi->bi_private)
+    if (!bi->bi_private && !(bi->bi_flags & SLAP_BFLAG_STANDALONE))
       continue;
 
     rdn.bv_val = c.log;
-    rdn.bv_len = snprintf(rdn.bv_val, sizeof(c.log), "%s=%s",
-                          cfAd_backend->ad_cname.bv_val, bi->bi_type);
+    rdn.bv_len =
+        snprintf(rdn.bv_val, sizeof(c.log), "%s=" SLAP_X_ORDERED_FMT "%s",
+                 cfAd_backend->ad_cname.bv_val, i, bi->bi_type);
     if (rdn.bv_len >= sizeof(c.log)) {
       /* FIXME: holler ... */;
     }
@@ -7613,6 +7624,11 @@ static int __config_back_db_open(BackendDB *be, ConfigReply *cr) {
     if (!e) {
       return -1;
     }
+    if (bi->bi_cf_ocs && bi->bi_cf_ocs->co_cfadd) {
+      rs_reinit(&rs, REP_RESULT);
+      bi->bi_cf_ocs->co_cfadd(op, &rs, e, &c);
+    }
+    i++;
   }
 
   /* Create database nodes... */
