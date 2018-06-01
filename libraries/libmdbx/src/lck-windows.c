@@ -27,30 +27,23 @@
 /*----------------------------------------------------------------------------*/
 /* rthc */
 
-static CRITICAL_SECTION rthc_critical_section;
-
 static void NTAPI tls_callback(PVOID module, DWORD reason, PVOID reserved) {
-  (void)module;
   (void)reserved;
   switch (reason) {
   case DLL_PROCESS_ATTACH:
-    InitializeCriticalSection(&rthc_critical_section);
+    mdbx_rthc_global_init();
     break;
   case DLL_PROCESS_DETACH:
-    DeleteCriticalSection(&rthc_critical_section);
+    mdbx_rthc_global_dtor();
     break;
 
   case DLL_THREAD_ATTACH:
     break;
   case DLL_THREAD_DETACH:
-    mdbx_rthc_cleanup();
+    mdbx_rthc_thread_dtor(module);
     break;
   }
 }
-
-void mdbx_rthc_lock(void) { EnterCriticalSection(&rthc_critical_section); }
-
-void mdbx_rthc_unlock(void) { LeaveCriticalSection(&rthc_critical_section); }
 
 /* *INDENT-OFF* */
 /* clang-format off */
@@ -169,7 +162,10 @@ int mdbx_rdt_lock(MDBX_env *env) {
   /* transite from S-? (used) to S-E (locked), e.g. exclusive lock upper-part */
   if (flock(env->me_lfd, LCK_EXCLUSIVE | LCK_WAITFOR, LCK_UPPER))
     return MDBX_SUCCESS;
-  return GetLastError();
+
+  int rc = GetLastError();
+  ReleaseSRWLockShared(&env->me_remap_guard);
+  return rc;
 }
 
 void mdbx_rdt_unlock(MDBX_env *env) {
@@ -550,10 +546,12 @@ int mdbx_rpid_clear(MDBX_env *env) {
  *   or otherwise the errcode. */
 int mdbx_rpid_check(MDBX_env *env, mdbx_pid_t pid) {
   (void)env;
-  HANDLE hProcess = OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, FALSE, pid);
+  HANDLE hProcess = OpenProcess(SYNCHRONIZE, FALSE, pid);
   int rc;
-  if (hProcess) {
+  if (likely(hProcess)) {
     rc = WaitForSingleObject(hProcess, 0);
+    if (unlikely(rc == WAIT_FAILED))
+      rc = GetLastError();
     CloseHandle(hProcess);
   } else {
     rc = GetLastError();

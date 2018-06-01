@@ -385,7 +385,7 @@ mdb_cf_gen( ConfigArgs *c )
 
 		case MDB_ENVFLAGS:
 			if ( mdb->mi_dbenv_flags == MDBX_UTTERLY_NOSYNC )
-				rc = 1;
+				rc = 1; /* report "no flags", but return "ok" for MDB_DBNOSYNC/dbnosync */
 			else {
 				if ( mdb->mi_dbenv_flags )
 					mask_to_verbs( mdb_envflags, mdb->mi_dbenv_flags, &c->rvalue_vals );
