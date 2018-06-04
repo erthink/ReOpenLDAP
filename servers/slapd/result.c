@@ -309,9 +309,40 @@ slap_writewait_play(
 	}
 }
 
+enum counters_send_update_mode {
+	crutch_ldap_response /* sc_pdu += 1 */,
+	crutch_search_entry /* sc_entries += 1, sc_pdu +=1 */,
+	crutch_search_reference /* sc_refs += 1, sc_pdu += 1 */
+};
+
+static void send_ldap_ber__update_counters(
+	Operation *op,
+	int bytes,
+	enum counters_send_update_mode crutch)
+{
+	assert(bytes > 0);
+	ldap_pvt_thread_mutex_lock( &op->o_counters->sc_mutex );
+	ldap_pvt_mp_add_ulong( op->o_counters->sc_bytes, (unsigned long) bytes );
+	switch (crutch) {
+	case crutch_ldap_response:
+		ldap_pvt_mp_add_ulong( op->o_counters->sc_pdu, 1 );
+		break;
+	case crutch_search_entry:
+		ldap_pvt_mp_add_ulong( op->o_counters->sc_entries, 1 );
+		ldap_pvt_mp_add_ulong( op->o_counters->sc_pdu, 1 );
+		break;
+	case crutch_search_reference:
+		ldap_pvt_mp_add_ulong( op->o_counters->sc_refs, 1 );
+		ldap_pvt_mp_add_ulong( op->o_counters->sc_pdu, 1 );
+		break;
+	}
+	ldap_pvt_thread_mutex_unlock( &op->o_counters->sc_mutex );
+}
+
 static long send_ldap_ber(
 	Operation *op,
-	BerElement *ber )
+	BerElement *ber,
+	enum counters_send_update_mode crutch)
 {
 	Connection *conn = op->o_conn;
 	ber_len_t bytes;
@@ -356,6 +387,7 @@ static long send_ldap_ber(
 
 		if ( ber_flush2( conn->c_sb, ber, LBER_FLUSH_FREE_NEVER ) == 0 ) {
 			ret = bytes;
+			send_ldap_ber__update_counters(op, bytes, crutch);
 			break;
 		}
 
@@ -719,7 +751,7 @@ send_ldap_response(
 	}
 
 	/* send BER */
-	bytes = send_ldap_ber( op, ber );
+	bytes = send_ldap_ber( op, ber, crutch_ldap_response );
 #ifdef LDAP_CONNECTIONLESS
 	if (!op->o_conn || op->o_conn->c_is_udp == 0)
 #endif
@@ -733,11 +765,6 @@ send_ldap_response(
 
 		goto cleanup;
 	}
-
-	ldap_pvt_thread_mutex_lock( &op->o_counters->sc_mutex );
-	ldap_pvt_mp_add_ulong( op->o_counters->sc_pdu, 1 );
-	ldap_pvt_mp_add_ulong( op->o_counters->sc_bytes, (unsigned long)bytes );
-	ldap_pvt_thread_mutex_unlock( &op->o_counters->sc_mutex );
 
 cleanup:;
 	/* Tell caller that we did this for real, as opposed to being
@@ -1060,10 +1087,10 @@ slap_send_search_entry( Operation *op, SlapReply *rs )
 	if ( op->o_conn && op->o_conn->c_is_udp ) {
 		/* CONNECTIONLESS */
 		if ( op->o_protocol == LDAP_VERSION2 ) {
-	    	rc = ber_printf(ber, "t{O{" /*}}*/,
+		rc = ber_printf(ber, "t{O{" /*}}*/,
 				LDAP_RES_SEARCH_ENTRY, &rs->sr_entry->e_name );
 		} else {
-	    	rc = ber_printf( ber, "{it{O{" /*}}}*/, op->o_msgid,
+		rc = ber_printf( ber, "{it{O{" /*}}}*/, op->o_msgid,
 				LDAP_RES_SEARCH_ENTRY, &rs->sr_entry->e_name );
 		}
 	} else
@@ -1108,7 +1135,7 @@ slap_send_search_entry( Operation *op, SlapReply *rs )
 			char	*a_flags;
 			e_flags = slap_sl_calloc ( 1, i * sizeof(char *) + k, op->o_tmpmemctx );
 			if( e_flags == NULL ) {
-		    	Debug( LDAP_DEBUG_ANY,
+			Debug( LDAP_DEBUG_ANY,
 					"send_search_entry: conn %lu slap_sl_calloc failed\n",
 					op->o_connid );
 				ber_free( ber, 1 );
@@ -1126,7 +1153,7 @@ slap_send_search_entry( Operation *op, SlapReply *rs )
 
 			rc = filter_matched_values(op, rs->sr_entry->e_attrs, &e_flags) ;
 			if ( rc == -1 ) {
-			    	Debug( LDAP_DEBUG_ANY, "send_search_entry: "
+				Debug( LDAP_DEBUG_ANY, "send_search_entry: "
 					"conn %lu matched values filtering failed\n",
 					op->o_connid );
 				if ( op->o_res_ber == NULL ) ber_free_buf( ber );
@@ -1271,7 +1298,7 @@ slap_send_search_entry( Operation *op, SlapReply *rs )
 			tmp = slap_sl_realloc( e_flags, i * sizeof(char *) + k,
 				op->o_tmpmemctx );
 			if ( tmp == NULL ) {
-			    	Debug( LDAP_DEBUG_ANY,
+				Debug( LDAP_DEBUG_ANY,
 					"send_search_entry: conn %lu "
 					"not enough memory "
 					"for matched values filtering\n",
@@ -1292,7 +1319,7 @@ slap_send_search_entry( Operation *op, SlapReply *rs )
 			rc = filter_matched_values(op, rs->sr_operational_attrs, &e_flags) ;
 
 			if ( rc == -1 ) {
-			    	Debug( LDAP_DEBUG_ANY,
+				Debug( LDAP_DEBUG_ANY,
 					"send_search_entry: conn %lu "
 					"matched values filtering failed\n",
 					op->o_connid);
@@ -1440,7 +1467,7 @@ slap_send_search_entry( Operation *op, SlapReply *rs )
 	rs_flush_entry( op, rs, NULL );
 
 	if ( op->o_res_ber == NULL ) {
-		bytes = send_ldap_ber( op, ber );
+		bytes = send_ldap_ber( op, ber, crutch_search_entry );
 		ber_free_buf( ber );
 
 		if ( bytes < 0 ) {
@@ -1452,12 +1479,6 @@ slap_send_search_entry( Operation *op, SlapReply *rs )
 			goto error_return;
 		}
 		rs->sr_nentries++;
-
-		ldap_pvt_thread_mutex_lock( &op->o_counters->sc_mutex );
-		ldap_pvt_mp_add_ulong( op->o_counters->sc_bytes, (unsigned long)bytes );
-		ldap_pvt_mp_add_ulong( op->o_counters->sc_entries, 1 );
-		ldap_pvt_mp_add_ulong( op->o_counters->sc_pdu, 1 );
-		ldap_pvt_thread_mutex_unlock( &op->o_counters->sc_mutex );
 	}
 
 	Debug( LDAP_DEBUG_TRACE,
@@ -1608,18 +1629,10 @@ slap_send_search_reference( Operation *op, SlapReply *rs )
 #ifdef LDAP_CONNECTIONLESS
 	if (!op->o_conn || op->o_conn->c_is_udp == 0) {
 #endif
-	bytes = send_ldap_ber( op, ber );
+	bytes = send_ldap_ber( op, ber, crutch_search_reference );
 	ber_free_buf( ber );
 
-	if ( bytes < 0 ) {
-		rc = LDAP_UNAVAILABLE;
-	} else {
-		ldap_pvt_thread_mutex_lock( &op->o_counters->sc_mutex );
-		ldap_pvt_mp_add_ulong( op->o_counters->sc_bytes, (unsigned long)bytes );
-		ldap_pvt_mp_add_ulong( op->o_counters->sc_refs, 1 );
-		ldap_pvt_mp_add_ulong( op->o_counters->sc_pdu, 1 );
-		ldap_pvt_thread_mutex_unlock( &op->o_counters->sc_mutex );
-	}
+	if ( bytes < 0 ) rc = LDAP_UNAVAILABLE;
 #ifdef LDAP_CONNECTIONLESS
 	}
 #endif

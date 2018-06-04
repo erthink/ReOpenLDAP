@@ -97,7 +97,7 @@ typedef struct cached_query_s {
 /*
  * URL representation:
  *
- * ldap:///<base>??<scope>?<filter>?x-uuid=<uid>,x-template=<template>,x-attrset=<attrset>,x-expiry=<expiry>,x-refresh=<refresh>
+ * ldap:///<base>?<scope>?<filter>?x-uuid=<uid>,x-template=<template>,x-attrset=<attrset>,x-expiry=<expiry>,x-refresh=<refresh>
  *
  * <base> ::= CachedQuery.qbase->base
  * <scope> ::= CachedQuery.scope

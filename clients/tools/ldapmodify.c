@@ -229,7 +229,7 @@ main( int argc, char **argv )
 	FILE		*rejfp;
 	struct LDIFFP *ldiffp = NULL, ldifdummy = {0};
 	char		*matched_msg, *error_msg;
-	int		rc, retval, ldifrc;
+	int		rc, retval;
 	int		len;
 	int		i = 0, lmax = 0;
 	unsigned long	lineno, nextline = 0;
@@ -308,7 +308,7 @@ main( int argc, char **argv )
 
 	tool_server_controls( ld, c, i );
 
-	rc = 0;
+	int ldifrc = rc = 0;
 	retval = 0;
 	lineno = 1;
 	while (( rc == 0 || contoper ) && ( ldifrc = ldif_read_record( ldiffp, &nextline,

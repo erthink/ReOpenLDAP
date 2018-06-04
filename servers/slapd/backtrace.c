@@ -235,9 +235,11 @@ void backtrace_sigaction(int signum, siginfo_t *info, void* ptr) {
 	caller_address = (void *) uc->uc_mcontext.arm_pc;
 #elif defined(__mips__)
 	caller_address = (void *) uc->uc_mcontext.sc_pc;
+#elif defined(REG_PC) && defined(__e2k__)
+        caller_address = (void *) ((mcontext_t*) &uc->uc_mcontext)->mc_gregs[REG_PC];
 #else /* TODO support more arch(s) */
 #	warning Unsupported architecture.
-	caller_address = NULL;
+	caller_address = info->si_addr;
 #endif
 
 	int should_die = 0;
