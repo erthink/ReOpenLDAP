@@ -129,9 +129,10 @@ if test $RC != 0 ; then
 fi
 
 SEARCH=0
+DELAY=2
 
 SEARCH=`expr $SEARCH + 1`
-sleep $SLEEP0
+sleep $DELAY
 echo "# [$SEARCH] Searching the dynamic portion of the database..." >> $SEARCHOUT
 $LDAPSEARCH -S "" -b "$BASEDN" -h $LOCALHOST -p $PORT1 \
 	'(objectClass=dynamicObject)' '*' entryTtl \
@@ -235,7 +236,7 @@ if test $RC != 0 ; then
 fi
 
 SEARCH=`expr $SEARCH + 1`
-sleep $SLEEP0
+sleep $DELAY
 echo "# [$SEARCH] Searching the dynamic portion of the database..." >> $SEARCHOUT
 $LDAPSEARCH -S "" -b "$BASEDN" -h $LOCALHOST -p $PORT1 \
 	'(objectClass=dynamicObject)' '*' entryTtl \
@@ -307,7 +308,7 @@ if test $RC != 0 ; then
 fi
 
 SEARCH=`expr $SEARCH + 1`
-sleep $SLEEP0
+sleep $DELAY
 echo "# [$SEARCH] Searching the dynamic portion of the database..." >> $SEARCHOUT
 $LDAPSEARCH -S "" -b "$BASEDN" -h $LOCALHOST -p $PORT1 \
 	'(objectClass=dynamicObject)' '*' entryTtl \
@@ -333,7 +334,7 @@ if test $RC != 0 ; then
 fi
 
 SEARCH=`expr $SEARCH + 1`
-sleep $SLEEP0
+sleep $DELAY
 echo "# [$SEARCH] Searching the dynamic portion of the database..." >> $SEARCHOUT
 $LDAPSEARCH -S "" -b "$BASEDN" -h $LOCALHOST -p $PORT1 \
 	'(objectClass=dynamicObject)' '*' entryTtl \
@@ -357,7 +358,7 @@ if test $RC != 0 ; then
 fi
 
 SEARCH=`expr $SEARCH + 1`
-sleep $SLEEP0
+sleep $DELAY
 echo "# [$SEARCH] Searching the dynamic portion of the database..." >> $SEARCHOUT
 $LDAPSEARCH -S "" -b "$BASEDN" -h $LOCALHOST -p $PORT1 \
 	'(objectClass=dynamicObject)' '*' entryTtl \
@@ -564,7 +565,7 @@ if ! type paste >/dev/null 2>&1; then
 else
     echo "Checking entryTtl appears to decrease with time..."
     paste $SEARCHFLT2 $LDIFFLT2 | while read resultTTL savedTTL; do
-        if [ `expr $savedTTL - $resultTTL` -lt $SLEEP0 ]; then
+        if [ `expr $savedTTL - $resultTTL` -lt $DELAY ]; then
             echo "TTL has not reduced accordingly"
             exit 1
         fi
