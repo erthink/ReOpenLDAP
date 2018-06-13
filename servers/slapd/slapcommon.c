@@ -243,7 +243,7 @@ parse_slapopt( int tool, int *mode )
 			break;
 
 		default:
-			Debug( LDAP_DEBUG_ANY, "value-check meaningless for tool.\n" );
+			Debug( LDAP_DEBUG_ANY, "ldif-wrap meaningless for tool.\n" );
 			break;
 		}
 

@@ -1,3 +1,60 @@
+v1.1.8 2018-06-04
+=================
+
+## Briefly:
+ 1. Fixed MDBX major bug (DB corruption).
+ 2. Fixed slapd memory corruption and other segfaults.
+ 3. Fixed build for Elbrus architecture.
+
+### New features and Compatibility breaking: _none_
+
+### Documentation:
+2018-03-20 man: SASL_MECH/SASL_REALM are not user-only (ITS#8818).
+2018-02-27 man: fix SIGHUB typo.
+
+### Major and Security bugs:
+2018-05-04 mdbx: fix wrong freeDB search.
+2018-04-03 slapd: fix memory corruption in connection-handling code.
+2018-03-28 syncprov: fix op_response() segfault.
+
+### Minor bugs:
+2018-05-24 syncprov: import - don't check for existing value when deleting values (ITS#8616).
+2018-05-05 slapd: import - fix domainScope control to ensure the control value is absent (ITS#8840).
+2018-05-04 mdbx: backport - can't use fakepage mp_ptrs directly (ITS#8819).
+2018-05-04 mdbx: backport - fix regression in 0.9.19 (ITS#8760).
+2018-05-04 mdbx: backport - fix FIRST_DUP/LAST_DUP cursor bounds check (ITS#8722).
+
+### Performance:
+2018-05-04 mdbx: backport - XCURSOR_REFRESH() fixups/cleanup.
+2018-03-12 syncprov, syncrepl, accesslog: reduce unnecessary writes of contextCSN entry (ITS#8789).
+
+### Build:
+2018-05-04 mdbx: fix check make target (minor).
+2018-04-04 reopenldap: refine bootstrap.sh
+2018-03-29 automake: fix -fno-lto for ".symver memcpy_compat, memcpy@@@GLIBC_2.2.5"
+2018-03-12 liblutil: fix warning variable 'hex' set but not used (minor).
+2018-03-12 libreldap, slapd: avoid trigraphs in comments (minor).
+2018-03-12 ldapmodify: fix 'uninit' warnigs form lcc (minor).
+2018-03-12 libreldap: fix callbacks for NSPR.
+2018-03-12 libreldap: #ifdef for SSL_LIBRARY_VERSION_TLS_1_3.
+2018-03-12 liblutil: fix 'uninit' warnig from lcc (minor).
+
+### Cosmetics:
+2018-05-04 mdbx: minor fixup comments and warnings.
+2018-03-23 reopenldap: sync CHANGES.OpenLDAP.
+
+### Other:
+2018-05-24 tests: import - fix copypasta in its8444 regression script.
+2018-03-29 ci: add 'bootstrap' step info ps-build.sh
+2018-03-29 ci: drop support for old/legacy versions.
+2018-03-29 ci: rename CFLAGS to EXTRA_CFLAGS.
+2018-03-12 slapd: add backtrace support for Elbrus.
+2018-03-12 reopenldap: update reldap.h and ldap_cdefs.h for Elbrus.
+2018-03-12 libmdbx: update defs.h for Elbrus.
+2018-03-11 tests: import - Ensure there are no differences due to different checkpoints (ITS#8800).
+
+--------------------------------------------------------------------------------
+
 v1.1.7 2018-02-23, Red Army Soldier
 ===================================
 
