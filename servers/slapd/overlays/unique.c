@@ -857,6 +857,8 @@ static int unique_search(Operation *op, Operation *nop, struct berval *dn,
   slap_callback cb = {NULL, NULL, NULL, NULL}; /* XXX */
   unique_counter uq = {NULL, 0};
   int rc;
+  char *errmsg;
+  int errmsgsize;
 
   Debug(LDAP_DEBUG_TRACE, "==> unique_search %s\n", key->bv_val);
 
@@ -889,24 +891,30 @@ static int unique_search(Operation *op, Operation *nop, struct berval *dn,
   nop->o_bd = on->on_info->oi_origdb;
   rc = nop->o_bd->be_search(nop, &nrs);
   filter_free_x(nop, nop->ors_filter, 1);
-  op->o_tmpfree(key->bv_val, op->o_tmpmemctx);
 
   if (rc != LDAP_SUCCESS && rc != LDAP_NO_SUCH_OBJECT) {
     op->o_bd->bd_info = (BackendInfo *)on->on_info;
     send_ldap_error(op, rs, rc, "unique_search failed");
-    return (rs->sr_err);
-  }
+    rc = rs->sr_err;
+  } else if (uq.count) {
+    Debug(LDAP_DEBUG_TRACE, "=> unique_search found %d records\n", uq.count);
 
-  Debug(LDAP_DEBUG_TRACE, "=> unique_search found %d records\n", uq.count);
-
-  if (uq.count) {
+    errmsgsize = sizeof("non-unique attributes found with ") + key->bv_len;
+    errmsg = op->o_tmpalloc(errmsgsize, op->o_tmpmemctx);
+    snprintf(errmsg, errmsgsize, "non-unique attributes found with %s",
+             key->bv_val);
     op->o_bd->bd_info = (BackendInfo *)on->on_info;
-    send_ldap_error(op, rs, LDAP_CONSTRAINT_VIOLATION,
-                    "some attributes not unique");
-    return (rs->sr_err);
+    send_ldap_error(op, rs, LDAP_CONSTRAINT_VIOLATION, errmsg);
+    op->o_tmpfree(errmsg, op->o_tmpmemctx);
+    rc = rs->sr_err;
+  } else {
+    Debug(LDAP_DEBUG_TRACE, "=> unique_search found no records\n");
+    rc = SLAP_CB_CONTINUE;
   }
 
-  return (SLAP_CB_CONTINUE);
+  op->o_tmpfree(key->bv_val, op->o_tmpmemctx);
+
+  return rc;
 }
 
 static int unique_add(Operation *op, SlapReply *rs) {
