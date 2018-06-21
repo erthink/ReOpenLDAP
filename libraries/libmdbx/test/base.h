@@ -32,10 +32,10 @@
 #endif                          /* _MSC_VER (warnings) */
 
 /* If you wish to build your application for a previous Windows platform,
-* include WinSDKVer.h and set the _WIN32_WINNT macro to the platform you
-* wish to support before including SDKDDKVer.h.
-*
-* TODO: #define _WIN32_WINNT WIN32_MUSTDIE */
+ * include WinSDKVer.h and set the _WIN32_WINNT macro to the platform you
+ * wish to support before including SDKDDKVer.h.
+ *
+ * TODO: #define _WIN32_WINNT WIN32_MUSTDIE */
 #include <SDKDDKVer.h>
 #endif /* WINDOWS */
 
@@ -79,6 +79,10 @@
 #include "../mdbx.h"
 #include "../src/defs.h"
 #include "../src/osal.h"
+
+#if !defined(__thread) && (defined(_MSC_VER) || defined(__DMC__))
+#define __thread __declspec(thread)
+#endif /* __thread */
 
 #ifdef _MSC_VER
 #pragma warning(pop)
