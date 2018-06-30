@@ -1185,9 +1185,9 @@ slap_open_listener(
 	int *listeners,
 	int *cur )
 {
-	int	num, tmp, rc;
+	int	tmp, rc;
 	Listener l;
-	Listener *li;
+	Listener *li = NULL;
 	LDAPURLDesc *lud;
 	unsigned short port;
 	int err, addrlen = 0;
@@ -1201,6 +1201,8 @@ slap_open_listener(
 	 */
 	int	crit = 1;
 #endif /* LDAP_PF_LOCAL || SLAP_X_LISTENER_MOD */
+
+	Debug( LDAP_DEBUG_TRACE, "daemon: open listener %s\n", url);
 
 	rc = ldap_url_parse( url, &lud );
 
@@ -1281,16 +1283,6 @@ slap_open_listener(
 	if ( err ) {
 		slap_free_listener_addresses(sal);
 		return -1;
-	}
-
-	/* If we got more than one address returned, we need to make space
-	 * for it in the slap_listeners array.
-	 */
-	for ( num=0; sal[num]; num++ ) /* empty */;
-	if ( num > 1 ) {
-		*listeners += num-1;
-		slap_listeners = ch_realloc( slap_listeners,
-			(*listeners + 1) * sizeof(Listener *) );
 	}
 
 	psal = sal;
@@ -1478,6 +1470,15 @@ slap_open_listener(
 			break;
 		}
 
+		/* If we got more, we need to make space the slap_listeners array. */
+		if ( *cur == *listeners ) {
+			*listeners += 1;
+			slap_listeners = ch_realloc( slap_listeners,
+				(*listeners + 1) * sizeof(Listener *) );
+			if (! slap_listeners)
+				return ENOMEM;
+		}
+
 		memcpy(&l.sl_sa, *sal, addrlen);
 		ber_str2bv( url, 0, 1, &l.sl_url);
 		li = ch_malloc( sizeof( Listener ) );
@@ -1489,14 +1490,13 @@ slap_open_listener(
 
 	slap_free_listener_addresses(psal);
 
-	if ( l.sl_url.bv_val == NULL ) {
+	if ( li == NULL ) {
 		Debug( LDAP_DEBUG_TRACE,
 			"slap_open_listener: failed on %s\n", url );
-		return -1;
-	}
-
-	Debug( LDAP_DEBUG_TRACE, "daemon: listener initialized %s\n",
+	} else {
+		Debug( LDAP_DEBUG_TRACE, "daemon: listener initialized %s\n",
 		l.sl_url.bv_val );
+	}
 	return 0;
 }
 
@@ -1550,16 +1550,14 @@ slapd_daemon_init( const char *urls )
 	u = ldap_str2charray( urls, " " );
 
 	if( u == NULL || u[0] == NULL ) {
-		Debug( LDAP_DEBUG_ANY, "daemon_init: no urls (%s) provided.\n",
-			urls );
+		Debug( LDAP_DEBUG_ANY, "daemon_init: no urls (%s) provided.a\n", urls );
 		if ( u )
 			ldap_charray_free( u );
 		return -1;
 	}
 
 	for( i=0; u[i] != NULL; i++ ) {
-		Debug( LDAP_DEBUG_TRACE, "daemon_init: listen on %s\n",
-			u[i] );
+		Debug( LDAP_DEBUG_TRACE, "daemon_init: listen on %s\n", u[i] );
 	}
 
 	if( i == 0 ) {
@@ -1569,8 +1567,7 @@ slapd_daemon_init( const char *urls )
 		return -1;
 	}
 
-	Debug( LDAP_DEBUG_TRACE, "daemon_init: %d listeners to open...\n",
-		i );
+	Debug( LDAP_DEBUG_TRACE, "daemon_init: %d listeners to open...\n", i );
 	slap_listeners = ch_calloc( i+1, sizeof(Listener *) );
 
 	for(n = 0, j = 0; u[n]; n++ ) {
@@ -1581,9 +1578,12 @@ slapd_daemon_init( const char *urls )
 	}
 	slap_listeners[j] = NULL;
 
-	Debug( LDAP_DEBUG_TRACE, "daemon_init: %d listeners opened\n",
-		i );
-
+	if (j == 0) {
+		Debug( LDAP_DEBUG_TRACE, "daemon_init: no listeners opened (see previous errors)\n");
+		ldap_charray_free( u );
+		return -1;
+	}
+	Debug( LDAP_DEBUG_TRACE, "daemon_init: %d listeners opened\n", j );
 
 #ifdef HAVE_SLP
 	if( slapd_register_slp ) {
@@ -2179,6 +2179,10 @@ slapd_daemon_task(
 		}
 #endif /* LDAP_TCP_BUFFER */
 
+		Debug( LDAP_DEBUG_TRACE,
+			"daemon: listener %d, %s, socked %d\n", l,
+				slap_listeners[l]->sl_url.bv_val, slap_listeners[l]->sl_sd);
+
 		if ( listen( slap_listeners[l]->sl_sd, SLAPD_LISTEN_BACKLOG ) == -1 ) {
 			int err = sock_errno();
 
@@ -2217,8 +2221,8 @@ slapd_daemon_task(
 			}
 #endif /* LDAP_PF_INET6 */
 			Debug( LDAP_DEBUG_ANY,
-				"daemon: listen(%s, 5) failed errno=%d (%s)\n",
-					slap_listeners[l]->sl_url.bv_val, err,
+				"daemon: listen(%s, %i) failed errno=%d (%s)\n",
+					slap_listeners[l]->sl_url.bv_val, SLAPD_LISTEN_BACKLOG, err,
 					sock_errstr(err) );
 			return (void*)-1;
 		}
