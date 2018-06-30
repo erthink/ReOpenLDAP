@@ -23,11 +23,6 @@
 #   undef NDEBUG
 #endif
 
-/* Features under development */
-#ifndef MDBX_DEVEL
-#   define MDBX_DEVEL 0
-#endif
-
 /*----------------------------------------------------------------------------*/
 
 /* Should be defined before any includes */
@@ -39,6 +34,9 @@
 #endif
 
 #ifdef _MSC_VER
+#   if _MSC_VER < 1400
+#       error "Microsoft Visual C++ 8.0 (Visual Studio 2005) or later version is required"
+#   endif
 #   ifndef _CRT_SECURE_NO_WARNINGS
 #       define _CRT_SECURE_NO_WARNINGS
 #   endif
@@ -144,9 +142,9 @@
 #define MDBX_MAGIC UINT64_C(/* 56-bit prime */ 0x59659DBDEF4C11)
 
 /* The version number for a database's datafile format. */
-#define MDBX_DATA_VERSION ((MDBX_DEVEL) ? 255 : 2)
+#define MDBX_DATA_VERSION 2
 /* The version number for a database's lockfile format. */
-#define MDBX_LOCK_VERSION ((MDBX_DEVEL) ? 255 : 2)
+#define MDBX_LOCK_VERSION 2
 
 /* handle for the DB used to track free pages. */
 #define FREE_DBI 0
@@ -171,9 +169,7 @@ typedef uint32_t pgno_t;
 /* A transaction ID. */
 typedef uint64_t txnid_t;
 #define PRIaTXN PRIi64
-#if MDBX_DEVEL
-#define MIN_TXNID (UINT64_MAX - UINT32_MAX)
-#elif MDBX_DEBUG
+#if MDBX_DEBUG
 #define MIN_TXNID UINT64_C(0x100000000)
 #else
 #define MIN_TXNID UINT64_C(1)
@@ -374,19 +370,19 @@ typedef struct MDBX_page {
 #define PAGEHDRSZ ((unsigned)offsetof(MDBX_page, mp_data))
 
 /* The maximum size of a database page.
-*
-* It is 64K, but value-PAGEHDRSZ must fit in MDBX_page.mp_upper.
-*
-* MDBX will use database pages < OS pages if needed.
-* That causes more I/O in write transactions: The OS must
-* know (read) the whole page before writing a partial page.
-*
-* Note that we don't currently support Huge pages. On Linux,
-* regular data files cannot use Huge pages, and in general
-* Huge pages aren't actually pageable. We rely on the OS
-* demand-pager to read our data and page it out when memory
-* pressure from other processes is high. So until OSs have
-* actual paging support for Huge pages, they're not viable. */
+ *
+ * It is 64K, but value-PAGEHDRSZ must fit in MDBX_page.mp_upper.
+ *
+ * MDBX will use database pages < OS pages if needed.
+ * That causes more I/O in write transactions: The OS must
+ * know (read) the whole page before writing a partial page.
+ *
+ * Note that we don't currently support Huge pages. On Linux,
+ * regular data files cannot use Huge pages, and in general
+ * Huge pages aren't actually pageable. We rely on the OS
+ * demand-pager to read our data and page it out when memory
+ * pressure from other processes is high. So until OSs have
+ * actual paging support for Huge pages, they're not viable. */
 #define MAX_PAGESIZE 0x10000u
 #define MIN_PAGESIZE 512u
 
@@ -786,7 +782,7 @@ struct MDBX_env {
   } me_dbgeo;      /* */
 
 #if defined(_WIN32) || defined(_WIN64)
-  SRWLOCK me_remap_guard;
+  MDBX_srwlock me_remap_guard;
   /* Workaround for LockFileEx and WriteFile multithread bug */
   CRITICAL_SECTION me_windowsbug_lock;
 #else

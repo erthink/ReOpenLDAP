@@ -165,7 +165,7 @@ typedef pthread_t mdbx_tid_t;
 /*--------------------------------------------------------------------------*/
 
 #define MDBX_VERSION_MAJOR 0
-#define MDBX_VERSION_MINOR 1
+#define MDBX_VERSION_MINOR 2
 
 #if defined(LIBMDBX_EXPORTS)
 #define LIBMDBX_API __dll_export
@@ -202,6 +202,24 @@ typedef struct mdbx_build_info {
 
 extern LIBMDBX_API const mdbx_version_info mdbx_version;
 extern LIBMDBX_API const mdbx_build_info mdbx_build;
+
+#if defined(_WIN32) || defined(_WIN64)
+
+/* Dll initialization callback for ability to dynamically load MDBX DLL by
+ * LoadLibrary() on Windows versions before Windows Vista. This function MUST be
+ * called once from DllMain() for each reason (DLL_PROCESS_ATTACH,
+ * DLL_PROCESS_DETACH, DLL_THREAD_ATTACH and DLL_THREAD_DETACH). Do this
+ * carefully and ONLY when actual Windows version don't support initialization
+ * via "TLS Directory" (e.g .CRT$XL[A-Z] sections in executable or dll file). */
+
+#ifndef MDBX_CONFIG_MANUAL_TLS_CALLBACK
+#define MDBX_CONFIG_MANUAL_TLS_CALLBACK 0
+#endif
+#if MDBX_CONFIG_MANUAL_TLS_CALLBACK
+void LIBMDBX_API NTAPI mdbx_dll_callback(PVOID module, DWORD reason,
+                                         PVOID reserved);
+#endif /* MDBX_CONFIG_MANUAL_TLS_CALLBACK */
+#endif /* Windows */
 
 /* The name of the lock file in the DB environment */
 #define MDBX_LOCKNAME "/mdbx.lck"
@@ -270,9 +288,8 @@ typedef int(MDBX_cmp_func)(const MDBX_val *a, const MDBX_val *b);
 #define MDBX_MAPASYNC 0x100000u
 /* tie reader locktable slots to MDBX_txn objects instead of to threads */
 #define MDBX_NOTLS 0x200000u
-/* don't do any locking, caller must manage their own locks
- * WARNING: libmdbx don't support this mode. */
-#define MDBX_NOLOCK__UNSUPPORTED 0x400000u
+/* open DB in exclusive/monopolistic mode. */
+#define MDBX_EXCLUSIVE 0x400000u
 /* don't do readahead */
 #define MDBX_NORDAHEAD 0x800000u
 /* don't initialize malloc'd memory before writing to datafile */
@@ -340,33 +357,33 @@ typedef int(MDBX_cmp_func)(const MDBX_val *a, const MDBX_val *b);
 typedef enum MDBX_cursor_op {
   MDBX_FIRST,          /* Position at first key/data item */
   MDBX_FIRST_DUP,      /* MDBX_DUPSORT-only: Position at first data item
-                       * of current key. */
+                        * of current key. */
   MDBX_GET_BOTH,       /* MDBX_DUPSORT-only: Position at key/data pair. */
   MDBX_GET_BOTH_RANGE, /* MDBX_DUPSORT-only: position at key, nearest data. */
   MDBX_GET_CURRENT,    /* Return key/data at current cursor position */
   MDBX_GET_MULTIPLE,   /* MDBX_DUPFIXED-only: Return key and up to a page of
-                       * duplicate data items from current cursor position.
-                       * Move cursor to prepare for MDBX_NEXT_MULTIPLE.*/
+                        * duplicate data items from current cursor position.
+                        * Move cursor to prepare for MDBX_NEXT_MULTIPLE.*/
   MDBX_LAST,           /* Position at last key/data item */
   MDBX_LAST_DUP,       /* MDBX_DUPSORT-only: Position at last data item
-                       * of current key. */
+                        * of current key. */
   MDBX_NEXT,           /* Position at next data item */
   MDBX_NEXT_DUP,       /* MDBX_DUPSORT-only: Position at next data item
-                       * of current key. */
+                        * of current key. */
   MDBX_NEXT_MULTIPLE,  /* MDBX_DUPFIXED-only: Return key and up to a page of
-                       * duplicate data items from next cursor position.
-                       * Move cursor to prepare for MDBX_NEXT_MULTIPLE. */
+                        * duplicate data items from next cursor position.
+                        * Move cursor to prepare for MDBX_NEXT_MULTIPLE. */
   MDBX_NEXT_NODUP,     /* Position at first data item of next key */
   MDBX_PREV,           /* Position at previous data item */
   MDBX_PREV_DUP,       /* MDBX_DUPSORT-only: Position at previous data item
-                       * of current key. */
+                        * of current key. */
   MDBX_PREV_NODUP,     /* Position at last data item of previous key */
   MDBX_SET,            /* Position at specified key */
   MDBX_SET_KEY,        /* Position at specified key, return both key and data */
   MDBX_SET_RANGE,      /* Position at first key greater than or equal to
-                       * specified key. */
+                        * specified key. */
   MDBX_PREV_MULTIPLE   /* MDBX_DUPFIXED-only: Position at previous page and
-                       * return key and up to a page of duplicate data items. */
+                        * return key and up to a page of duplicate data items. */
 } MDBX_cursor_op;
 
 /* Return Codes
@@ -652,8 +669,6 @@ LIBMDBX_API int mdbx_env_create(MDBX_env **penv);
  *   - MDBX_EAGAIN   - the environment was locked by another process. */
 LIBMDBX_API int mdbx_env_open(MDBX_env *env, const char *path, unsigned flags,
                               mode_t mode);
-LIBMDBX_API int mdbx_env_open_ex(MDBX_env *env, const char *path,
-                                 unsigned flags, mode_t mode, int *exclusive);
 
 /* Copy an MDBX environment to the specified path, with options.
  *
@@ -966,7 +981,7 @@ LIBMDBX_API int mdbx_env_set_assert(MDBX_env *env, MDBX_assert_func *func);
  * Returns A non-zero error value on failure and 0 on success, some
  * possible errors are:
  *  - MDBX_PANIC         - a fatal error occurred earlier and the environment
-  *                        must be shut down.
+ *                        must be shut down.
  *  - MDBX_MAP_RESIZED   - another process wrote data beyond this MDBX_env's
  *                         mapsize and this environment's map must be resized
  *                         as well. See mdbx_env_set_mapsize().
@@ -1637,7 +1652,9 @@ typedef int MDBX_pgvisitor_func(uint64_t pgno, unsigned pgnumber, void *ctx,
 LIBMDBX_API int mdbx_env_pgwalk(MDBX_txn *txn, MDBX_pgvisitor_func *visitor,
                                 void *ctx);
 
-typedef struct mdbx_canary { uint64_t x, y, z, v; } mdbx_canary;
+typedef struct mdbx_canary {
+  uint64_t x, y, z, v;
+} mdbx_canary;
 
 LIBMDBX_API int mdbx_canary_put(MDBX_txn *txn, const mdbx_canary *canary);
 LIBMDBX_API int mdbx_canary_get(MDBX_txn *txn, mdbx_canary *canary);

@@ -1034,10 +1034,6 @@ LDAP_SLAPD_V (int) slapd_tcp_rmem;
 LDAP_SLAPD_V (int) slapd_tcp_wmem;
 #endif /* LDAP_TCP_BUFFER */
 
-#define	SLAP_FD2SOCK(s)	s
-#define	SLAP_SOCK2FD(s)	s
-#define	SLAP_SOCKNEW(s)	s
-
 /*
  * dn.c
  */

@@ -57,7 +57,7 @@ if test $RC != 0 ; then
 fi
 
 # Compare results, ignoring possible difference of IPv4/IPv6 localhost address
-localrewrite='s/=127\.0\.0\.1:/=LOCAL:/; s/=\[::1\]:/=LOCAL:/'
+localrewrite='s/=127\.0\.0\.1:/=LOCAL:/g; s/=\[::1\]:/=LOCAL:/g; s/127\.0\.0\.1/localhost/g'
 echo "Filtering ldapsearch results..."
 sed -e "$localrewrite" < $SEARCHOUT | $LDIFFILTER > $SEARCHFLT
 echo "Filtering expected data..."

@@ -1,0 +1,64 @@
+version: 2
+jobs:
+  build:
+    docker:
+      - image: circleci/buildpack-deps:bionic
+    environment:
+      - LIBTOOL_SUPPRESS_DEFAULT: no
+      - EXTRA_CFLAGS: "-Wall -Werror -g"
+      - SLAPD_TESTING_TIMEOUT: 555
+      - TEST_NOOK: test-nook
+      - SLAPD_LOCALHOST: 127.0.0.1
+    steps:
+      - checkout
+      - run: env
+      - run:
+          command: |
+            sudo apt update -q
+#            sudo apt upgrade -y -q
+      - run:
+          command: >
+            sudo apt install -y -q
+            uuid-dev libelf-dev krb5-multidev heimdal-multidev libcrack2-dev
+            libsasl2-dev libperl-dev libtool libltdl-dev binutils-dev libssl-dev
+            libgnutls28-dev libwrap0-dev unixodbc-dev libdb-dev gdb groff-base
+            libwiredtiger-dev
+      - run: ./bootstrap.sh --dont-cleanup
+      - run:
+          command: >
+            ./configure CFLAGS=-Ofast --prefix=${HOME}/_install --enable-check=always
+            --enable-hipagut=always --enable-debug --disable-syslog --enable-overlays
+            --enable-maintainer-mode --enable-dynacl --enable-aci --enable-crypt --enable-lmpasswd
+            --enable-spasswd --enable-slapi
+            --enable-rlookups --enable-wrappers --enable-backends
+            --disable-bdb --disable-hdb --disable-ndb --disable-modules
+            --enable-ci
+      - run: make --keep-going && make --keep-going install
+      - run:
+          timeout: 1800
+          command: |
+            ulimit -c unlimited
+            mkdir -p $TEST_NOOK
+            netstat -plntu
+            make test
+      - run:
+          command: >
+            make --keep-going dist
+            && mkdir _dist && (cd _dist && tar -xaf ../*.tar.* --strip=1
+            && ./configure CFLAGS=-Os --prefix=$HOME/_dist/_install
+            --enable-overlays=mod --enable-contrib --enable-experimental
+            --enable-debug --enable-dynacl --enable-aci --enable-crypt --enable-lmpasswd --enable-spasswd
+            --enable-slapi --enable-rlookups --enable-wrappers --enable-backends=mod
+            --disable-ndb --disable-dependency-tracking
+            && make --keep-going && make --keep-going install)
+      - run:
+          command: |
+            mkdir -p test-artifacts
+            if [ -n "$(ls -A build/*.rej build/*.orig)" ]; then mv --target-directory=test-artifacts build/*.rej build/*.orig; fi
+            if [ -n "$(ls -A $TEST_NOOK)" ]; then mv --target-directory=test-artifacts $TEST_NOOK; fi
+            if [ -n "$(ls -A tests/testrun)" ]; then mv --target-directory=test-artifacts test/testrun; fi
+            tar caf test-artifacts.tar.gz -C test-artifacts .
+          when: on_fail
+      - store_artifacts:
+          path: test-artifacts.tar.gz
+          destination: test-artifacts.tar.gz
