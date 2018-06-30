@@ -1214,7 +1214,7 @@ slap_open_listener(
 	}
 
 	l.sl_url.bv_val = NULL;
-	l.sl_mute = 0;
+	l.sl_mute = 1;
 	l.sl_busy = 0;
 
 #ifndef WITH_TLS
@@ -2215,6 +2215,7 @@ slapd_daemon_task(
 							"already listening on ::, assuming IPv4 included\n" );
 						slapd_close( slap_listeners[l]->sl_sd );
 						slap_listeners[l]->sl_sd = AC_SOCKET_INVALID;
+						slap_listeners[l]->sl_mute = 1;
 						continue;
 					}
 				}
@@ -2226,6 +2227,7 @@ slapd_daemon_task(
 					sock_errstr(err) );
 			return (void*)-1;
 		}
+		slap_listeners[l]->sl_mute = 0;
 
 		/* make the listening socket non-blocking */
 		if ( ber_pvt_socket_set_nonblock( slap_listeners[l]->sl_sd, 1 ) < 0 ) {
@@ -2881,6 +2883,11 @@ slap_suspend_listeners( void )
 	ldap_pvt_thread_mutex_lock( &tsan_mutex );
 #endif
 	for (i=0; slap_listeners[i]; i++) {
+		if (slap_listeners[i]->sl_mute || slap_listeners[i]->sl_sd == AC_SOCKET_INVALID)
+			continue;
+		Debug( LDAP_DEBUG_TRACE,
+			"daemon: suspend listener %d, %s, socked %d\n", i,
+			slap_listeners[i]->sl_url.bv_val, slap_listeners[i]->sl_sd);
 		slap_listeners[i]->sl_mute = 1;
 		listen( slap_listeners[i]->sl_sd, 0 );
 	}
@@ -2898,6 +2905,11 @@ slap_resume_listeners( void )
 	ldap_pvt_thread_mutex_lock( &tsan_mutex );
 #endif
 	for (i=0; slap_listeners[i]; i++) {
+		if (slap_listeners[i]->sl_mute == 0 || slap_listeners[i]->sl_sd == AC_SOCKET_INVALID)
+			continue;
+		Debug( LDAP_DEBUG_TRACE,
+			"daemon: resume listener %d, %s, socked %d\n", i,
+			slap_listeners[i]->sl_url.bv_val, slap_listeners[i]->sl_sd);
 		slap_listeners[i]->sl_mute = 0;
 		listen( slap_listeners[i]->sl_sd, SLAPD_LISTEN_BACKLOG );
 	}
