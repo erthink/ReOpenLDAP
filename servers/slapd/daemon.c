@@ -168,9 +168,9 @@ static pthread_mutex_t tsan_mutex = PTHREAD_MUTEX_INITIALIZER;
 typedef struct slap_daemon_st {
 	ldap_pvt_thread_mutex_t	sd_mutex;
 
-	ber_socket_t		sd_nactives;
-	int			sd_nwriters;
-	int			sd_nfds;
+	int		sd_nactives;
+	int		sd_nwriters;
+	int		sd_nfds;
 
 #if defined(HAVE_EPOLL)
 	struct epoll_event	*sd_epolls;
