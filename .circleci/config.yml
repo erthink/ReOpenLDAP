@@ -8,8 +8,10 @@ jobs:
       - EXTRA_CFLAGS: "-Wall -Werror -g"
       - SLAPD_TESTING_TIMEOUT: 555
       - TEST_NOOK: test-nook
+      - SLAPD_LOCALHOST: 127.0.0.1
     steps:
       - checkout
+      - run: env
       - run:
           command: |
             sudo apt update -q
