@@ -356,7 +356,7 @@ int connections_socket_trouble(ber_socket_t s)
 }
 
 Connection * connection_init(
-	ber_socket_t s,
+	const ber_socket_t s,
 	Listener *listener,
 	const char* dnsname,
 	const char* peername,
@@ -368,7 +368,7 @@ Connection * connection_init(
 	unsigned long id;
 	Connection *c;
 	int doinit = 0;
-	ber_socket_t sfd = SLAP_FD2SOCK(s);
+	ber_socket_t sfd = s;
 
 	assert( connections != NULL );
 
@@ -1268,20 +1268,19 @@ operations_error:
 static const Listener dummy_list = { BER_BVC(""), BER_BVC("") };
 
 Connection *connection_client_setup(
-	ber_socket_t s,
+	const ber_socket_t s,
 	ldap_pvt_thread_start_t *func,
 	void *arg )
 {
 	Connection *c;
-	ber_socket_t sfd = SLAP_SOCKNEW( s );
 
-	c = connection_init( sfd, (Listener *)&dummy_list, "", "",
+	c = connection_init( s, (Listener *)&dummy_list, "", "",
 		CONN_IS_CLIENT, 0, NULL
 		LDAP_PF_LOCAL_SENDMSG_ARG(NULL));
 	if ( c ) {
 		c->c_clientfunc = func;
 		c->c_clientarg = arg;
-		slapd_add_internal( sfd, 0 );
+		slapd_add_internal( s, 0 );
 	}
 	return c;
 }
