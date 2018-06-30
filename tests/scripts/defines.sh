@@ -288,8 +288,8 @@ SLAPPASSWD="$TIMEOUT_S $VALGRIND_CMD $SLAPD_SLAPD -Tpasswd"
 unset DIFF_OPTIONS
 SLAPDMTREAD=$PROGDIR/slapd_mtread
 LVL=${SLAPD_DEBUG-sync,stats,args,conns}
-LOCALHOST=localhost
-BASEPORT=${SLAPD_BASEPORT-9010}
+LOCALHOST=${SLAPD_LOCALHOST:-localhost}
+BASEPORT=${SLAPD_BASEPORT:-9010}
 # NOTE: -u/-c is not that portable...
 DIFF="diff -i"
 CMP="diff -i -Z"
