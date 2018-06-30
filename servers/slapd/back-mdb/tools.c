@@ -201,7 +201,7 @@ int mdb_tool_entry_close(
 #ifdef MDB_TOOL_IDL_CACHING
 	if ( mdb_tool_info ) {
 		int i;
-		set_shutdown( 1 );
+		set_shutdown( SHUT_WR );
 		ldap_pvt_thread_mutex_lock( &mdb_tool_index_mutex );
 
 		/* There might still be some threads starting */
@@ -221,7 +221,7 @@ int mdb_tool_entry_close(
 		ldap_pvt_thread_mutex_unlock( &mdb_tool_index_mutex );
 
 		mdb_tool_info = NULL;
-		set_shutdown( 0 );
+		set_shutdown( SHUT_RD );
 		ch_free( mdb_tool_index_rec );
 		mdb_tool_index_tcount = mdb_tool_threads - 1;
 		if (mdb_tool_txn)

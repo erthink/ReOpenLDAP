@@ -275,7 +275,7 @@ static slap_daemon_st slap_daemon[SLAPD_MAX_DAEMON_THREADS];
 		Debug( LDAP_DEBUG_ANY, \
 			"daemon: epoll_ctl(ADD,fd=%d) failed, errno=%d, shutting down\n", \
 			s, errno ); \
-		set_shutdown( 2 ); \
+		set_shutdown( SHUT_RDWR ); \
 	} \
 } while (0)
 
@@ -296,7 +296,7 @@ static slap_daemon_st slap_daemon[SLAPD_MAX_DAEMON_THREADS];
 		Debug( LDAP_DEBUG_ANY, \
 			"daemon: epoll_ctl(epfd=%d,DEL,fd=%d) failed, errno=%d, shutting down\n", \
 			slap_daemon[t].sd_epfd, s, errno ); \
-		if (errno != EBADF) set_shutdown( 2 ); \
+		if (errno != EBADF) set_shutdown( SHUT_RDWR ); \
 	} \
 	slap_daemon[t].sd_epolls[index] = \
 		slap_daemon[t].sd_epolls[slap_daemon[t].sd_nfds-1]; \
@@ -956,7 +956,7 @@ void
 slapd_shutsock( ber_socket_t s )
 {
 	Debug( LDAP_DEBUG_CONNS, "daemon: shutdown socket %ld\n", (long) s );
-	shutdown( s, 2 );
+	shutdown( s, SHUT_RDWR );
 }
 
 static void
@@ -2251,7 +2251,7 @@ slapd_daemon_task(
 		if ( ber_pvt_socket_set_nonblock( slap_listeners[l]->sl_sd, 1 ) < 0 ) {
 			Debug( LDAP_DEBUG_ANY, "slapd_daemon_task: "
 				"set nonblocking on a listening socket failed\n" );
-			set_shutdown( 2 );
+			set_shutdown( SHUT_RDWR );
 			return (void*)-1;
 		}
 
@@ -2300,14 +2300,14 @@ loop:
 				LDAP_STAILQ_FOREACH(be, &backendDB, be_next) {
 					be->be_restrictops |= SLAP_RESTRICT_OP_WRITES;
 				}
-				connections_shutdown( 1 );
+				connections_shutdown( SHUT_WR );
 				if (reopenldap_mode_righteous() && ! global_gentlehup) {
 					if (! global_idletimeout)
 						global_idletimeout = 5;
 					if (! global_writetimeout)
 						global_writetimeout = 5;
 				}
-				set_gentle_shutdown( 2 );
+				set_gentle_shutdown( SHUT_RDWR );
 			}
 
 			ldap_pvt_thread_mutex_lock( &slap_daemon[tid].sd_mutex );
@@ -2322,7 +2322,7 @@ loop:
 						ldap_pvt_thread_mutex_unlock( &slap_daemon[l].sd_mutex );
 					}
 					if ( !active )
-						set_shutdown( 1 );
+						set_shutdown( SHUT_WR );
 				}
 				if ( !active )
 					break;
@@ -2442,7 +2442,7 @@ loop:
 							sock_errstr( err ) );
 					}
 					if ( ebadf >= SLAPD_EBADF_LIMIT ) {
-						set_shutdown( 2 );
+						set_shutdown( SHUT_RDWR );
 					}
 				}
 			}
@@ -2726,8 +2726,8 @@ loop:
 	close_listeners( 1 );
 
 	if ( !slapd_gentle_shutdown ) {
-		set_abrupt_shutdown( 1 );
-		connections_shutdown( 0 );
+		set_abrupt_shutdown( SHUT_WR );
+		connections_shutdown( SHUT_RD );
 	}
 
 	if ( DebugTest( LDAP_DEBUG_ANY )) {
@@ -2848,10 +2848,10 @@ slap_sig_shutdown( int sig )
 			sig == SIGHUP
 #endif /* SIGHUP */
 		 ) && global_gentlehup && slapd_gentle_shutdown == 0 ) {
-		set_gentle_shutdown( 1 );
+		set_gentle_shutdown( SHUT_WR );
 	} else
 	{
-		set_shutdown ( 1 );
+		set_shutdown ( SHUT_WR );
 	}
 
 	for (i=0; i<slapd_daemon_threads; i++) {
