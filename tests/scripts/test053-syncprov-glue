@@ -74,6 +74,12 @@ olcDatabase: {0}config
 olcRootPW:< file://$CONFIGPWF
 
 EOF
+RC=$?
+if test $RC != 0 ; then
+	echo "slapadd(1) failed ($RC)!"
+	killservers
+	exit $RC
+fi
 
 echo "Initializing provider2 configurations..."
 $SLAPADD -F $CFPRO2 -n 0 <<EOF
@@ -87,6 +93,12 @@ olcDatabase: {0}config
 olcRootPW:< file://$CONFIGPWF
 
 EOF
+RC=$?
+if test $RC != 0 ; then
+	echo "slapadd(2) failed ($RC)!"
+	killservers
+	exit $RC
+fi
 
 $SLAPADD -F $CFCONS -n 0 <<EOF
 dn: cn=config
@@ -98,6 +110,12 @@ objectClass: olcDatabaseConfig
 olcDatabase: {0}config
 olcRootPW:< file://$CONFIGPWF
 EOF
+RC=$?
+if test $RC != 0 ; then
+	echo "slapadd(3) failed ($RC)!"
+	killservers
+	exit $RC
+fi
 
 echo "Starting provider slapd on TCP/IP port $PORT1..."
 cd $PRODDIR

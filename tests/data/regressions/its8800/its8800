@@ -56,7 +56,19 @@ for ((n=1; n<=$MMR; n++)); do
 	DBNOSYNC=yes config_filter $BACKEND ${AC_conf[monitor]} < $ITSDIR/slapd-provider${n}.ldif > $CONFLDIF
 
 	$SLAPADD -F $CFDIR -n 0 -l $CONFLDIF
+	RC=$?
+	if test $RC != 0 ; then
+		echo "slapadd(1) failed ($RC)!"
+		killservers
+		exit $RC
+	fi
 	$SLAPADD -F $CFDIR -q -b $BASEDN -l $ITSDIR/db.ldif
+	RC=$?
+	if test $RC != 0 ; then
+		echo "slapadd(2) failed ($RC)!"
+		killservers
+		exit $RC
+	fi
 done
 
 KILLPIDS=
@@ -122,6 +134,12 @@ mv $DBDIR.1 $DBDIR.1.orig
 mv $DBDIR.2 $DBDIR.2.orig
 mkdir -p $DBDIR.1 $DBDIR.2
 $SLAPADD -F $CFDIR -q -b $BASEDN -l $ITSDIR/db.ldif
+RC=$?
+if test $RC != 0 ; then
+	echo "slapadd(3) failed ($RC)!"
+	killservers
+	exit $RC
+fi
 echo "done"
 
 echo "Starting provider1 slapd on TCP/IP URI $URI1"
