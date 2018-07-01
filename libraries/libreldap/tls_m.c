@@ -1918,6 +1918,10 @@ tlsm_deferred_init( void *arg )
 					   "TLS: could not initialize moznss PEM module - error %d:%s.\n",
 					   pem_errcode, PR_ErrorToString( pem_errcode, PR_LANGUAGE_I_DEFAULT ) );
 
+				if (pem_errcode == PR_LOAD_LIBRARY_ERROR /* -5977 */)
+					Debug( LDAP_DEBUG_ANY,
+						   "TLS (MozNSS hint): Please check that libnsspem.so is available.\n" );
+
 				if ( errcode ) /* PEM is required */
 					return -1;
 
