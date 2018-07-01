@@ -36,23 +36,21 @@
 
 #include "slapconfig.h"
 
-#if LDAP_EXPERIMENTAL > 0
-	/*
-	 * Control that allows to access the private DB
-	 * instead of the public one
-	 */
-#	define	PCACHE_CONTROL_PRIVDB		"1.3.6.1.4.1.4203.666.11.9.5.1"
+/*
+ * Control that allows to access the private DB
+ * instead of the public one
+ */
+#define	PCACHE_CONTROL_PRIVDB		"1.3.6.1.4.1.4203.666.11.9.5.1"
 
-	/*
-	 * Extended Operation that allows to remove a query from the cache
-	 */
-#	define PCACHE_EXOP_QUERY_DELETE	"1.3.6.1.4.1.4203.666.11.9.6.1"
+/*
+ * Extended Operation that allows to remove a query from the cache
+ */
+#define PCACHE_EXOP_QUERY_DELETE	"1.3.6.1.4.1.4203.666.11.9.6.1"
 
-	/*
-	 * Monitoring
-	 */
-#	define PCACHE_MONITOR
-#endif /* LDAP_EXPERIMENTAL > 0 */
+/*
+ * Monitoring
+ */
+#define PCACHE_MONITOR
 
 /* query cache structs */
 /* query */
@@ -2811,17 +2809,16 @@ pcache_op_privdb(
 	/* map tag to operation */
 	type = slap_req2op( op->o_tag );
 	if ( type != SLAP_OP_LAST ) {
-		BI_op_func	**func;
+		BackendInfo	*bi = cm->db.bd_info;
 		int		rc;
 
 		/* execute, if possible */
-		func = &cm->db.be_bind;
-		if ( func[ type ] != NULL ) {
+		if ( (&bi->bi_op_bind)[ type ] ) {
 			Operation	op2 = *op;
 
 			op2.o_bd = &cm->db;
 
-			rc = func[ type ]( &op2, rs );
+			rc = (&bi->bi_op_bind)[ type ]( &op2, rs );
 			if ( type == SLAP_OP_BIND && rc == LDAP_SUCCESS ) {
 				op->o_conn->c_authz_cookie = cm->db.be_private;
 			}

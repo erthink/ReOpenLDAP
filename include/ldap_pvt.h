@@ -292,10 +292,26 @@ struct sb_sasl_generic_data {
 
 struct ldap;
 struct ldapmsg;
+struct ldifrecord;
 
 /* abandon */
 LDAP_F ( int ) ldap_pvt_discard LDAP_P((
 	struct ldap *ld, ber_int_t msgid ));
+
+/* init.c */
+LDAP_F( int )
+ldap_pvt_conf_option LDAP_P((
+	char *cmd, char *opt, int userconf ));
+
+/* ldifutil.c */
+LDAP_F( int )
+ldap_parse_ldif_record_x LDAP_P((
+	struct berval *rbuf,
+	unsigned long linenum,
+	struct ldifrecord *lr,
+	const char *errstr,
+	unsigned int flags,
+	void *ctx ));
 
 /* messages.c */
 LDAP_F( BerElement * )
@@ -374,7 +390,7 @@ LDAP_F(char*)
 ldap_pvt_strtok(char *str, const char *delim, char **pos);
 
 /* tls.c */
-LDAP_F (int) ldap_int_tls_config LDAP_P(( struct ldap *ld,
+LDAP_F (int) ldap_pvt_tls_config LDAP_P(( struct ldap *ld,
 	int option, const char *arg ));
 LDAP_F (int) ldap_pvt_tls_get_option LDAP_P(( struct ldap *ld,
 	int option, void *arg ));
@@ -399,12 +415,12 @@ LDAP_F (int) ldap_pvt_tls_get_my_dn LDAP_P(( void *ctx, struct berval *dn,
 LDAP_F (int) ldap_pvt_tls_get_peer_dn LDAP_P(( void *ctx, struct berval *dn,
 	LDAPDN_rewrite_dummy *func, unsigned flags ));
 LDAP_F (int) ldap_pvt_tls_get_strength LDAP_P(( void *ctx ));
-LDAP_F (int) ldap_pvt_tls_check_hostname( struct ldap *ld, void *s,
-	const char *name_in );
 LDAP_F (int) ldap_pvt_tls_get_unique LDAP_P(( void *ctx, struct berval *buf, int is_server ));
 LDAP_F (const char *) ldap_pvt_tls_get_version LDAP_P(( void *ctx ));
 LDAP_F (const char *) ldap_pvt_tls_get_cipher LDAP_P(( void *ctx ));
 LDAP_F (int) ldap_pvt_tls_get_peercert LDAP_P(( void *s, struct berval *der ));
+LDAP_F (int) ldap_pvt_tls_check_hostname( struct ldap *ld, void *s,
+	const char *name_in );
 
 LDAP_END_DECL
 

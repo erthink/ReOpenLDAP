@@ -337,6 +337,7 @@ typedef struct ww_ctx {
  * case return an LDAP_BUSY error - let the client know this search
  * couldn't succeed, but might succeed on a retry.
  */
+
 static void
 mdb_writewait( Operation *op, slap_callback *sc )
 {
@@ -344,6 +345,8 @@ mdb_writewait( Operation *op, slap_callback *sc )
 	if ( !ww->flag ) {
 		MDBX_val key, data;
 		int rc;
+
+		/* save cursor position and release read txn */
 		if ( ww->mcd ) {
 			ww->data.iov_base = NULL;
 			rc = mdbx_cursor_get( ww->mcd, &key, &data, MDBX_GET_CURRENT );
@@ -675,8 +678,7 @@ dn2entry_retry:
 		}
 	}
 
-	/* start cursor at beginning of candidates.
-	 */
+	/* start cursor at beginning of candidates. */
 	cursor = 0;
 
 	if ( candidates[0] == 0 ) {
@@ -913,7 +915,7 @@ notfound:
 				goto done;
 			}
 
-			rs->sr_err = mdb_entry_decode( op, ltid, &edata, &e );
+			rs->sr_err = mdb_entry_decode( op, ltid, &edata, id, &e );
 			if ( rs->sr_err ) {
 				rs->sr_err = LDAP_OTHER;
 				rs->sr_text = "internal error in mdb_entry_decode";
@@ -1221,7 +1223,7 @@ bailout:
 		assert(rc2 == MDBX_SUCCESS);
 		if ( moi->moi_oe.oe_key )
 			LDAP_SLIST_REMOVE( &op->o_extra, &moi->moi_oe, OpExtra, oe_next );
-		if ( moi->moi_flag & MOI_FREEIT )
+		if ( (moi->moi_flag & (MOI_FREEIT|MOI_KEEPER)) == MOI_FREEIT )
 			op->o_tmpfree( moi, op->o_tmpmemctx );
 	}
 

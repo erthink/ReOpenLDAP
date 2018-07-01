@@ -118,6 +118,10 @@ ldap_int_tls_destroy( struct ldapoptions *lo )
 		LDAP_FREE( lo->ldo_tls_dhfile );
 		lo->ldo_tls_dhfile = NULL;
 	}
+	if ( lo->ldo_tls_ecname ) {
+		LDAP_FREE( lo->ldo_tls_ecname );
+		lo->ldo_tls_ecname = NULL;
+	}
 	if ( lo->ldo_tls_cacertfile ) {
 		LDAP_FREE( lo->ldo_tls_cacertfile );
 		lo->ldo_tls_cacertfile = NULL;
@@ -162,22 +166,24 @@ ldap_pvt_tls_destroy( void )
  * Called once per implementation.
  */
 static int tls_impl_init(tls_impl *ti) {
-	LDAP_MUTEX_LOCK( &tls_def_ctx_mutex );
-
 	if (ti->ti_inited == 0) {
-#ifdef LDAP_R_COMPILE
-		ti->ti_thr_init();
-#endif
-		const int err = ti->ti_tls_init();
-		if (err == 0) {
-			ti->ti_inited = 1;
-		} else {
-			ti->ti_inited = -1;
-			Debug(LDAP_DEBUG_ANY, "tls_impl_init(): failed, rc %i\n", err);
-		}
-	}
+		LDAP_MUTEX_LOCK( &tls_def_ctx_mutex );
 
-	LDAP_MUTEX_UNLOCK( &tls_def_ctx_mutex );
+		if (ti->ti_inited == 0) {
+#ifdef LDAP_R_COMPILE
+			ti->ti_thr_init();
+#endif
+			const int err = ti->ti_tls_init();
+			if (err == 0) {
+				ti->ti_inited = 1;
+			} else {
+				ti->ti_inited = -1;
+				Debug(LDAP_DEBUG_ANY, "tls_impl_init(): failed, rc %i\n", err);
+			}
+		}
+
+		LDAP_MUTEX_UNLOCK( &tls_def_ctx_mutex );
+	}
 	return (ti->ti_inited == 1) ? 0 : -1;
 }
 
@@ -497,7 +503,7 @@ ldap_pvt_tls_check_hostname( LDAP *ld, void *s, const char *name_in )
 }
 
 int
-ldap_int_tls_config( LDAP *ld, int option, const char *arg )
+ldap_pvt_tls_config( LDAP *ld, int option, const char *arg )
 {
 	int i;
 
@@ -632,6 +638,10 @@ ldap_pvt_tls_get_option( LDAP *ld, int option, void *arg )
 	case LDAP_OPT_X_TLS_DHFILE:
 		*(char **)arg = lo->ldo_tls_dhfile ?
 			LDAP_STRDUP( lo->ldo_tls_dhfile ) : NULL;
+		break;
+	case LDAP_OPT_X_TLS_ECNAME:
+		*(char **)arg = lo->ldo_tls_ecname ?
+			LDAP_STRDUP( lo->ldo_tls_ecname ) : NULL;
 		break;
 	case LDAP_OPT_X_TLS_CRLFILE:	/* GnuTLS only */
 		*(char **)arg = lo->ldo_tls_crlfile ?
@@ -824,6 +834,10 @@ ldap_pvt_tls_set_option( LDAP *ld, int option, void *arg )
 	case LDAP_OPT_X_TLS_DHFILE:
 		if ( lo->ldo_tls_dhfile ) LDAP_FREE( lo->ldo_tls_dhfile );
 		lo->ldo_tls_dhfile = arg ? LDAP_STRDUP( (char *) arg ) : NULL;
+		return 0;
+	case LDAP_OPT_X_TLS_ECNAME:
+		if ( lo->ldo_tls_ecname ) LDAP_FREE( lo->ldo_tls_ecname );
+		lo->ldo_tls_ecname = arg ? LDAP_STRDUP( (char *) arg ) : NULL;
 		return 0;
 #if RELDAP_TLS == RELDAP_TLS_GNUTLS
 	case LDAP_OPT_X_TLS_CRLFILE:	/* GnuTLS only */

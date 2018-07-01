@@ -368,8 +368,8 @@ handle_private_option( int i )
 
 		crit = 0;
 		cvalue = NULL;
-		if( optarg[0] == '!' ) {
-			crit = 1;
+		while ( optarg[0] == '!' ) {
+			crit++;
 			optarg++;
 		}
 
@@ -633,6 +633,16 @@ handle_private_option( int i )
 #endif /* LDAP_CONTROL_X_DEREF */
 
 		} else if ( tool_is_oid( control ) ) {
+			if ( c != NULL ) {
+				int i;
+				for ( i = 0; i < nctrls; i++ ) {
+					if ( strcmp( control, c[ i ].ldctl_oid ) == 0 ) {
+						fprintf( stderr, "%s control previously specified\n", control );
+						exit( EXIT_FAILURE );
+					}
+				}
+			}
+
 			if ( ctrl_add() ) {
 				main_exit( EXIT_FAILURE );
 			}
@@ -942,7 +952,7 @@ getNextPage:
 			c[i].ldctl_oid = LDAP_CONTROL_DONTUSECOPY;
 			c[i].ldctl_value.bv_val = NULL;
 			c[i].ldctl_value.bv_len = 0;
-			c[i].ldctl_iscritical = dontUseCopy > 1;
+			c[i].ldctl_iscritical = dontUseCopy == 2;
 			i++;
 		}
 #endif

@@ -21,10 +21,6 @@
 
 #include "reldap.h"
 
-#if LDAP_EXPERIMENTAL > 0
-#	define SLAP_AUTH_DN	1
-#endif /* LDAP_EXPERIMENTAL > 0 */
-
 #include <stdio.h>
 #include <ctype.h>
 
@@ -37,6 +33,10 @@
 #include "ldif.h"
 #include "../back-ldap/back-ldap.h"
 #include "back-meta.h"
+
+#if LDAP_EXPERIMENTAL > 0
+#	define SLAP_AUTH_DN 1
+#endif /* LDAP_EXPERIMENTAL > 0 */
 
 static ConfigDriver meta_back_cf_gen;
 static ConfigLDAPadd meta_ldadd;

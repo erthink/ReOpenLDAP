@@ -738,6 +738,7 @@ ldif_send_entry( Operation *op, SlapReply *rs, Entry *e, int scope )
 				tl->entries = entries;
 			}
 			tl->entries[tl->ecount++] = e;
+			e->e_id = tl->ecount;
 			return rc;
 		}
 
@@ -1682,6 +1683,30 @@ ldif_back_entry_get(
 	return rc;
 }
 
+static int
+ldif_back_entry_release_rw (
+	Operation *op,
+	Entry *e,
+	int rw )
+{
+	ID id = e->e_id;
+
+	/* only tool mode assigns valid IDs */
+	if ( id != 0 && id != NOID )
+	{
+		struct ldif_tool *tl = &((struct ldif_info *) op->o_bd->be_private)->li_tool;
+
+		id--;
+
+		assert( id < tl->ecount );
+		assert( e == tl->entries[id] );
+		tl->entries[id] = NULL;
+	}
+
+	entry_free( e );
+	return 0;
+}
+
 
 /* Slap tools */
 
@@ -1762,6 +1787,23 @@ ldif_tool_entry_first_x( BackendDB *be, struct berval *base, int scope, Filter *
 	return ldif_tool_entry_next( be );
 }
 
+static ID
+ldif_tool_dn2id_get( BackendDB *be, struct berval *dn )
+{
+	struct ldif_tool *tl = &((struct ldif_info *) be->be_private)->li_tool;
+
+	Operation op = {0};
+
+	op.o_bd = be;
+	op.o_req_dn = *dn;
+	op.o_req_ndn = *dn;
+	op.ors_scope = LDAP_SCOPE_BASE;
+	if ( search_tree( &op, NULL ) != LDAP_SUCCESS ) {
+		return NOID;
+	}
+	return tl->ecount;
+}
+
 static Entry *
 ldif_tool_entry_get( BackendDB *be, ID id )
 {
@@ -1771,7 +1813,6 @@ ldif_tool_entry_get( BackendDB *be, ID id )
 	--id;
 	if ( id < tl->ecount ) {
 		e = tl->entries[id];
-		tl->entries[id] = NULL;
 	}
 	return e;
 }
@@ -1802,6 +1843,77 @@ ldif_tool_entry_put( BackendDB *be, Entry *e, struct berval *text )
 	if ( errmsg != NULL )
 		snprintf( text->bv_val, text->bv_len, "%s", errmsg );
 	return NOID;
+}
+
+static ID
+ldif_tool_entry_modify( BackendDB *be, Entry *e, struct berval *text )
+{
+	int rc;
+	const char *errmsg = NULL;
+	struct berval path;
+	Operation op = {0};
+
+	op.o_bd = be;
+	ndn2path( &op, &e->e_nname, &path, 0 );
+	rc = ldif_write_entry( &op, e, &path, NULL, &errmsg );
+	SLAP_FREE( path.bv_val );
+	if ( rc == LDAP_SUCCESS )
+		return 1;
+
+	if ( errmsg == NULL && rc != LDAP_OTHER )
+		errmsg = ldap_err2string( rc );
+	if ( errmsg != NULL )
+		snprintf( text->bv_val, text->bv_len, "%s", errmsg );
+	return NOID;
+}
+
+static int
+ldif_tool_entry_delete( BackendDB *be, struct berval *ndn, struct berval *text )
+{
+	struct ldif_tool *tl __maybe_unused = &((struct ldif_info *) be->be_private)->li_tool;
+	int rc = LDAP_SUCCESS;
+	const char *errmsg = NULL;
+	struct berval path;
+	Operation op = {0};
+
+	op.o_bd = be;
+	ndn2path( &op, ndn, &path, 0 );
+
+	ldif2dir_len( path );
+	ldif2dir_name( path );
+	if ( rmdir( path.bv_val ) < 0 ) {
+		switch ( errno ) {
+		case ENOTEMPTY:
+			rc = LDAP_NOT_ALLOWED_ON_NONLEAF;
+			break;
+		case ENOENT:
+			/* is leaf, go on */
+			break;
+		default:
+			rc = LDAP_OTHER;
+			errmsg = "internal error (cannot delete subtree directory)";
+			break;
+		}
+	}
+
+	if ( rc == LDAP_SUCCESS ) {
+		dir2ldif_name( path );
+		if ( unlink( path.bv_val ) < 0 ) {
+			rc = LDAP_NO_SUCH_OBJECT;
+			if ( errno != ENOENT ) {
+				rc = LDAP_OTHER;
+				errmsg = "internal error (cannot delete entry file)";
+			}
+		}
+	}
+
+	SLAP_FREE( path.bv_val );
+
+	if ( errmsg == NULL && rc != LDAP_OTHER )
+		errmsg = ldap_err2string( rc );
+	if ( errmsg != NULL )
+		snprintf( text->bv_val, text->bv_len, "%s", errmsg );
+	return rc;
 }
 
 
@@ -1888,6 +2000,7 @@ ldif_back_initialize( BackendInfo *bi )
 	bi->bi_connection_destroy = 0;
 
 	bi->bi_entry_get_rw = ldif_back_entry_get;
+	bi->bi_entry_release_rw = ldif_back_entry_release_rw;
 
 #if 0	/* NOTE: uncomment to completely disable access control */
 	bi->bi_access_allowed = slap_access_always_allowed;
@@ -1898,13 +2011,13 @@ ldif_back_initialize( BackendInfo *bi )
 	bi->bi_tool_entry_first = backend_tool_entry_first;
 	bi->bi_tool_entry_first_x = ldif_tool_entry_first_x;
 	bi->bi_tool_entry_next = ldif_tool_entry_next;
+	bi->bi_tool_dn2id_get = ldif_tool_dn2id_get;
 	bi->bi_tool_entry_get = ldif_tool_entry_get;
 	bi->bi_tool_entry_put = ldif_tool_entry_put;
+	bi->bi_tool_entry_modify = ldif_tool_entry_modify;
+	bi->bi_tool_entry_delete = ldif_tool_entry_delete;
 	bi->bi_tool_entry_reindex = 0;
 	bi->bi_tool_sync = 0;
-
-	bi->bi_tool_dn2id_get = 0;
-	bi->bi_tool_entry_modify = 0;
 
 	bi->bi_cf_ocs = ldifocs;
 

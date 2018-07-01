@@ -576,8 +576,6 @@ filter_free_x( Operation *op, Filter *f, int freeme )
 		break;
 	}
 
-	f->f_next = (void*) -1l;
-	f->f_un.f_un_complex = (void*) -1l;
 	if ( freeme ) {
 		op->o_tmpfree( f, op->o_tmpmemctx );
 	}

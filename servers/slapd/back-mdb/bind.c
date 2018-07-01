@@ -137,7 +137,7 @@ done:
 		assert(rc2 == MDBX_SUCCESS);
 		if ( moi->moi_oe.oe_key )
 			LDAP_SLIST_REMOVE( &op->o_extra, &moi->moi_oe, OpExtra, oe_next );
-		if ( moi->moi_flag & MOI_FREEIT )
+		if ( (moi->moi_flag & (MOI_FREEIT|MOI_KEEPER)) == MOI_FREEIT )
 			op->o_tmpfree( moi, op->o_tmpmemctx );
 	}
 	/* free entry and reader lock */

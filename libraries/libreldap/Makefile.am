@@ -30,18 +30,18 @@ libreldap_la_LDFLAGS = -no-undefined -export-dynamic \
 	-weak libldap.la -weak liblber.la
 
 libreldap_la_SOURCES = abandon.c add.c addentry.c assertion.c \
-	banner.c bprint.c cancel.c charray.c compare.c \
-	controls.c cyrus.c dds.c debug.c decode.c delete.c deref.c \
+	banner.c bprint.c cancel.c charray.c compare.c controls.c \
+	crutch.c cyrus.c dds.c debug.c decode.c delete.c deref.c \
 	dnssrv.c encode.c error.c extended.c fetch.c filter.c free.c \
 	getattr.c getdn.c getentry.c getvalues.c gssapi.c hipagut.c \
 	init.c io.c lber_options.c ldap_options.c ldap_sync.c ldif.c \
-	memory.c messages.c modify.c modrdn.c open.c ntlm.c os-ip.c \
-	os-local.c pagectrl.c passwd.c posix.c ppolicy.c references.c \
-	request.c result.c rq.c sasl.c schema.c lbase64.c \
+	ldifutil.c memory.c messages.c modify.c modrdn.c ntlm.c open.c \
+	os-ip.c os-local.c pagectrl.c passwd.c posix.c ppolicy.c \
+	references.c request.c result.c rq.c sasl.c schema.c lbase64.c \
 	search.c sockbuf.c sort.c sortctrl.c stctrl.c stdio.c string.c \
 	t61.c threads.c tls2.c tls_g.c tls_m.c tls_o.c tpool.c turn.c \
-	txn.c unbind.c url.c utf-8.c utf-8-conv.c util-int.c vlvctrl.c \
-	whoami.c crutch.c lber-int.h ldap-int.h ldap-tls.h
+	txn.c unbind.c url.c utf-8.c utf-8-conv.c util-int.c vc.c \
+	vlvctrl.c whoami.c lber-int.h ldap-int.h ldap-tls.h
 
 # LY: append-hack CFLAGS to avoid lost symver's tags by LTO.
 nolto_CFLAGS := $(CFLAGS) $$(echo "$(CFLAGS) $(EXTRA_CFLAGS)" | grep -q ' -flto' && echo '-fno-lto') -save-temps

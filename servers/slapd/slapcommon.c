@@ -226,7 +226,8 @@ parse_slapopt( int tool, int *mode )
 			break;
 		}
 
-	} else if ( strncasecmp( optarg, "ldif-wrap", len ) == 0 ) {
+	} else if ( ( strncasecmp( optarg, "ldif_wrap", len ) == 0 ) ||
+			( strncasecmp( optarg, "ldif-wrap", len ) == 0 ) ) {
 		switch ( tool ) {
 		case SLAPCAT:
 			if ( strcasecmp( p, "no" ) == 0 ) {
@@ -235,7 +236,7 @@ parse_slapopt( int tool, int *mode )
 			} else {
 				unsigned int u;
 				if ( lutil_atou( &u, p ) ) {
-					Debug( LDAP_DEBUG_ANY, "unable to parse ldif-wrap=\"%s\".\n", p );
+					Debug( LDAP_DEBUG_ANY, "unable to parse ldif_wrap=\"%s\".\n", p );
 					return -1;
 				}
 				ldif_wrap = (ber_len_t)u;
@@ -315,6 +316,10 @@ slap_tool_init(
 	case SLAPDN:
 		options = "d:f:F:No:Pv";
 		mode |= SLAP_TOOL_READMAIN | SLAP_TOOL_READONLY;
+		break;
+
+	case SLAPMODIFY:
+		options = "b:cd:f:F:gj:l:n:o:qsS:uvw";
 		break;
 
 	case SLAPSCHEMA:
@@ -505,6 +510,7 @@ slap_tool_init(
 		case 's':
 			switch ( tool ) {
 			case SLAPADD:
+			case SLAPMODIFY:
 				/* no schema check */
 				mode |= SLAP_TOOL_NO_SCHEMA_CHECK;
 				break;
@@ -576,6 +582,7 @@ slap_tool_init(
 	switch ( tool ) {
 	case SLAPADD:
 	case SLAPCAT:
+	case SLAPMODIFY:
 	case SLAPSCHEMA:
 		if ( ( argc != optind ) || (dbnum >= 0 && base.bv_val != NULL ) ) {
 			usage( tool, progname );
@@ -667,6 +674,7 @@ slap_tool_init(
 	case SLAPADD:
 	case SLAPCAT:
 	case SLAPINDEX:
+	case SLAPMODIFY:
 	case SLAPSCHEMA:
 		if ( !nbackends ) {
 			fprintf( stderr, "No databases found "

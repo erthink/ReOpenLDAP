@@ -95,7 +95,6 @@ typedef LDAP_STAILQ_HEAD(tcq, ldap_int_thread_task_s) ldap_int_tpool_plist_t;
 
 struct ldap_int_thread_poolq_s {
 	void *ltq_free;
-
 	struct ldap_int_thread_pool_s *ltq_pool;
 
 	/* protect members below */
