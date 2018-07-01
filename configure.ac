@@ -1168,9 +1168,11 @@ AC_SUBST(MOZNSS_LIBS)
 AC_SUBST(MOZNSS_CFLAGS)
 AM_CONDITIONAL([MOZNSS_AVAIL], [test $moznss_found = yes])
 if test $moznss_found = yes; then
-    AC_DEFINE(HAVE_MOZNSS, 1, [define if you have Mozill NSS])
+    AC_DEFINE(HAVE_MOZNSS, 1, [define if you have Mozilla NSS])
     save_CPPFLAGS=$CPPFLAGS
+    save_LIBS=$LIBS
     CPPFLAGS="$CPPFLAGS $MOZNSS_CFLAGS"
+    LIBS="$LIBS $MOZNSS_LIBS"
     AC_CHECK_HEADERS([nspr/nspr.h nspr4/nspr.h])
     if test $ac_cv_header_nspr_nspr_h != yes -a $ac_cv_header_nspr4_nspr_h != yes; then
 	AC_MSG_ERROR([could not locate nspr/nspr.h or nspr4/nspr.h])
@@ -1179,13 +1181,29 @@ if test $moznss_found = yes; then
     if test $ac_cv_header_nss_nss_h != yes -a $ac_cv_header_nss3_nss_h != yes; then
 	AC_MSG_ERROR([could not locate nss/nss.h or nss3/nss.h])
     fi
+
+    dnl The function PK11_CreateGenericObject is needed to load libnsspem.so
+    AC_CHECK_FUNC(PK11_CreateGenericObject, , [moznss_found=no])
+    AC_CHECK_LIB(nsspem, C_GetFunctionList, [moznss_pem=yes], [moznss_pem=no])
+
+    dnl NSS_InitContext() was introduced in NSS 3.12.5 and helps to prevent
+    dnl collisions on NSS initialization/shutdown with other libraries
+    AC_CHECK_FUNC(NSS_InitContext, [AC_DEFINE(HAVE_NSS_INITCONTEXT, 1, [if you have the NSS_InitContext function])])
+
+    if test $moznss_pem != yes; then
+	AC_MSG_WARN([libnsspem not found, assume MozNSS support for PEM is incomplete])
+    else
+	AC_DEFINE(HAVE_NSSPEM, 1, [define if you have Mozilla NSS PEM library])
+    fi
+
     CPPFLAGS=$save_CPPFLAGS
+    LIBS=$save_LIBS
 fi
 
 AM_CONDITIONAL([TLS_FALLBACK_AVAIL], [test $gnutls_found = yes -o $openssl_found = yes])
 
 if test $ol_with_tls = yes -o $ol_with_tls = auto; then
-    if test $moznss_found = yes; then
+    if test $moznss_found = yes -a $moznss_pem = yes; then
 	ol_with_tls=moznss
     elif test $gnutls_found = yes -a $ol_enable_lmpasswd != yes; then
 	ol_with_tls=gnutls
