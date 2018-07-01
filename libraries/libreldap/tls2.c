@@ -162,22 +162,24 @@ ldap_pvt_tls_destroy( void )
  * Called once per implementation.
  */
 static int tls_impl_init(tls_impl *ti) {
-	LDAP_MUTEX_LOCK( &tls_def_ctx_mutex );
-
 	if (ti->ti_inited == 0) {
-#ifdef LDAP_R_COMPILE
-		ti->ti_thr_init();
-#endif
-		const int err = ti->ti_tls_init();
-		if (err == 0) {
-			ti->ti_inited = 1;
-		} else {
-			ti->ti_inited = -1;
-			Debug(LDAP_DEBUG_ANY, "tls_impl_init(): failed, rc %i\n", err);
-		}
-	}
+		LDAP_MUTEX_LOCK( &tls_def_ctx_mutex );
 
-	LDAP_MUTEX_UNLOCK( &tls_def_ctx_mutex );
+		if (ti->ti_inited == 0) {
+#ifdef LDAP_R_COMPILE
+			ti->ti_thr_init();
+#endif
+			const int err = ti->ti_tls_init();
+			if (err == 0) {
+				ti->ti_inited = 1;
+			} else {
+				ti->ti_inited = -1;
+				Debug(LDAP_DEBUG_ANY, "tls_impl_init(): failed, rc %i\n", err);
+			}
+		}
+
+		LDAP_MUTEX_UNLOCK( &tls_def_ctx_mutex );
+	}
 	return (ti->ti_inited == 1) ? 0 : -1;
 }
 
