@@ -161,7 +161,7 @@ authzid_response(
 	ber_len_t len = 0;
 	int n = 0;
 
-	assert( rs->sr_tag = LDAP_RES_BIND );
+	assert( rs->sr_tag == LDAP_RES_BIND );
 
 	if ( rs->sr_err == LDAP_SASL_BIND_IN_PROGRESS ) {
 		authzid_conn_t *ac = op->o_controls[ authzid_cid ];
