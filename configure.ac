@@ -1307,7 +1307,7 @@ esac
 WITH_TLS=no
 if test $ol_link_tls = yes ; then
 	AC_DEFINE(WITH_TLS, 1, [define if you enabled TLS])
-	WITH_TLS=yes
+	WITH_TLS=$ol_with_tls
 	CFLAGS="$CFLAGS $TLS_CFLAGS"
 fi
 
