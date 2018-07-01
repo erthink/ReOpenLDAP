@@ -260,7 +260,7 @@ elif [ -n "$CI" ]; then
 		TIMEOUT_L="timeout -s SIGXCPU 7m"
 		TIMEOUT_H="timeout -s SIGXCPU 20m"
 	else
-		# LY: But disable timeouts for Travis/Circle as workaround coreutils sand docker bugs
+		# LY: But disable timeouts for Travis/Circle as workaround coreutils and docker bugs
 		TIMEOUT_S=""
 		TIMEOUT_L=""
 		TIMEOUT_H=""
@@ -780,18 +780,18 @@ function wait_syncrepl {
 	done
 }
 
-function check_running {
-	local port=$(($BASEPORT + $1))
+function check_running_uri {
+	local uri=$1
 	local caption=$2
 	local extra=$3
 	local i
 	if [ -n "$caption" ]; then caption+=" "; fi
-	echo "Using ldapsearch to check that ${caption}slapd is running (port $port)..."
+	echo "Using ldapsearch to check that ${caption}slapd is running (uri $uri)..."
 	for i in $SLEEP0 0.5 1 2 3 4 5 5; do
 		echo "Waiting $i seconds for ${caption}slapd to start..."
 		sleep $i
-		$LDAPSEARCH $extra -s base -b "$MONITOR" -h $LOCALHOST -p $port \
-			'(objectClass=*)' > /dev/null 2>&1
+		$LDAPSEARCH $extra -s base -b "$MONITOR" -H $uri \
+			'(objectClass=*)' > PROBE 2>&1
 		RC=$?
 		if test $RC = 0 ; then
 			break
@@ -803,6 +803,10 @@ function check_running {
 		killservers
 		exit $RC
 	fi
+}
+
+function check_running {
+	check_running_uri "ldap://$LOCALHOST:$(($BASEPORT + $1))" "$2" "$3"
 }
 
 function config_filter {
