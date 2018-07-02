@@ -157,7 +157,7 @@ BASE_TESTDIR=${USER_TESTDIR-$TESTWD/testrun}
 export SLAPD_TESTING_DIR=${BASE_TESTDIR}
 update_TESTDIR $BASE_TESTDIR
 SLAPD_SLAPD=${TOP_BUILDDIR}/servers/slapd/slapd
-CLIENTDIR=${TOP_BUILDDIR}/clients/tools
+CLIENTDIR=${LDAP_CLIENTDIR:-${TOP_BUILDDIR}/clients/tools}
 DRAINDIR=${TOP_SRCDIR}/tests
 
 SCHEMADIR=${USER_SCHEMADIR-./schema}
@@ -193,6 +193,8 @@ P2SRSLAVECONF=$DATADIR/slapd-syncrepl-slave-persist2.conf
 P3SRSLAVECONF=$DATADIR/slapd-syncrepl-slave-persist3.conf
 REFSLAVECONF=$DATADIR/slapd-ref-slave.conf
 SCHEMACONF=$DATADIR/slapd-schema.conf
+TLSCONF=$DATADIR/slapd-tls.conf
+TLSSASLCONF=$DATADIR/slapd-tls-sasl.conf
 GLUECONF=$DATADIR/slapd-glue.conf
 REFINTCONF=$DATADIR/slapd-refint.conf
 RETCODECONF=$DATADIR/slapd-retcode.conf
@@ -232,6 +234,7 @@ DYNAMICCONF=$DATADIR/slapd-dynamic.ldif
 
 
 # args
+SASLARGS="-Q"
 TOOLARGS="-x $LDAP_TOOLARGS"
 TOOLPROTO="-P 3"
 SYNCREPL_RETRY="1 +"
@@ -260,7 +263,7 @@ elif [ -n "$CI" ]; then
 		TIMEOUT_L="timeout -s SIGXCPU 7m"
 		TIMEOUT_H="timeout -s SIGXCPU 20m"
 	else
-		# LY: But disable timeouts for Travis/Circle as workaround coreutils sand docker bugs
+		# LY: But disable timeouts for Travis/Circle as workaround coreutils and docker bugs
 		TIMEOUT_S=""
 		TIMEOUT_L=""
 		TIMEOUT_H=""
@@ -289,6 +292,7 @@ unset DIFF_OPTIONS
 SLAPDMTREAD=$PROGDIR/slapd_mtread
 LVL=${SLAPD_DEBUG-sync,stats,args,conns}
 LOCALHOST=${SLAPD_LOCALHOST:-localhost}
+LOCALIP=127.0.0.1
 BASEPORT=${SLAPD_BASEPORT:-9010}
 # NOTE: -u/-c is not that portable...
 DIFF="diff -i"
@@ -298,7 +302,8 @@ CMPOUT=/dev/null
 SLAPD="$TIMEOUT_L $VALGRIND_CMD $SLAPD_SLAPD -D -s0 -d $LVL"
 SLAPD_HUGE="$TIMEOUT_H $VALGRIND_CMD $SLAPD_SLAPD -D -s0 -d $LVL"
 LDAPPASSWD="$TIMEOUT_S $VALGRIND_EX_CMD $CLIENTDIR/ldappasswd $TOOLARGS"
-LDAPSASLSEARCH="$TIMEOUT_S $VALGRIND_EX_CMD $CLIENTDIR/ldapsearch $TOOLPROTO $LDAP_TOOLARGS -LLL"
+LDAPSASLSEARCH="$TIMEOUT_S $VALGRIND_EX_CMD $CLIENTDIR/ldapsearch $SASLARGS $TOOLPROTO $LDAP_TOOLARGS -LLL"
+LDAPSASLWHOAMI="$TIMEOUT_S $VALGRIND_EX_CMD $CLIENTDIR/ldapwhoami $SASLARGS $LDAP_TOOLARGS"
 LDAPSEARCH="$TIMEOUT_S $VALGRIND_EX_CMD $CLIENTDIR/ldapsearch $TOOLPROTO $TOOLARGS -LLL"
 LDAPRSEARCH="$TIMEOUT_S $VALGRIND_EX_CMD $CLIENTDIR/ldapsearch $TOOLPROTO $TOOLARGS"
 LDAPDELETE="$TIMEOUT_S $VALGRIND_EX_CMD $CLIENTDIR/ldapdelete $TOOLPROTO $TOOLARGS"
@@ -322,11 +327,29 @@ PORT4=`expr $BASEPORT + 4`
 PORT5=`expr $BASEPORT + 5`
 PORT6=`expr $BASEPORT + 6`
 URI1="ldap://${LOCALHOST}:$PORT1/"
+URIP1="ldap://${LOCALIP}:$PORT1/"
 URI2="ldap://${LOCALHOST}:$PORT2/"
+URIP2="ldap://${LOCALIP}:$PORT2/"
 URI3="ldap://${LOCALHOST}:$PORT3/"
+URIP3="ldap://${LOCALIP}:$PORT3/"
 URI4="ldap://${LOCALHOST}:$PORT4/"
+URIP4="ldap://${LOCALIP}:$PORT4/"
 URI5="ldap://${LOCALHOST}:$PORT5/"
+URIP5="ldap://${LOCALIP}:$PORT5/"
 URI6="ldap://${LOCALHOST}:$PORT6/"
+URIP6="ldap://${LOCALIP}:$PORT6/"
+SURI1="ldaps://${LOCALHOST}:$PORT1/"
+SURIP1="ldaps://${LOCALIP}:$PORT1/"
+SURI2="ldaps://${LOCALHOST}:$PORT2/"
+SURIP2="ldaps://${LOCALIP}:$PORT2/"
+SURI3="ldaps://${LOCALHOST}:$PORT3/"
+SURIP3="ldaps://${LOCALIP}:$PORT3/"
+SURI4="ldaps://${LOCALHOST}:$PORT4/"
+SURIP4="ldaps://${LOCALIP}:$PORT4/"
+SURI5="ldaps://${LOCALHOST}:$PORT5/"
+SURIP5="ldaps://${LOCALIP}:$PORT5/"
+SURI6="ldaps://${LOCALHOST}:$PORT6/"
+SURIP6="ldaps://${LOCALIP}:$PORT6/"
 
 # LDIF
 LDIF=$DATADIR/test.ldif
@@ -780,18 +803,18 @@ function wait_syncrepl {
 	done
 }
 
-function check_running {
-	local port=$(($BASEPORT + $1))
+function check_running_uri {
+	local uri=$1
 	local caption=$2
 	local extra=$3
 	local i
 	if [ -n "$caption" ]; then caption+=" "; fi
-	echo "Using ldapsearch to check that ${caption}slapd is running (port $port)..."
+	echo "Using ldapsearch to check that ${caption}slapd is running (uri $uri)..."
 	for i in $SLEEP0 0.5 1 2 3 4 5 5; do
 		echo "Waiting $i seconds for ${caption}slapd to start..."
 		sleep $i
-		$LDAPSEARCH $extra -s base -b "$MONITOR" -h $LOCALHOST -p $port \
-			'(objectClass=*)' > /dev/null 2>&1
+		$LDAPSEARCH $extra -s base -b "$MONITOR" -H $uri \
+			'(objectClass=*)' > PROBE 2>&1
 		RC=$?
 		if test $RC = 0 ; then
 			break
@@ -803,6 +826,10 @@ function check_running {
 		killservers
 		exit $RC
 	fi
+}
+
+function check_running {
+	check_running_uri "ldap://$LOCALHOST:$(($BASEPORT + $1))" "$2" "$3"
 }
 
 function config_filter {
@@ -873,6 +900,24 @@ function config_filter {
 		-e "s;@PORT4@;${PORT4};g"			\
 		-e "s;@PORT5@;${PORT5};g"			\
 		-e "s;@PORT6@;${PORT6};g"			\
+		-e "s;@SURI1@;${SURI1};g"			\
+		-e "s;@SURI2@;${SURI2};g"			\
+		-e "s;@SURI3@;${SURI3};g"			\
+		-e "s;@SURI4@;${SURI4};g"			\
+		-e "s;@SURI5@;${SURI5};g"			\
+		-e "s;@SURI6@;${SURI6};g"			\
+		-e "s;@URIP1@;${URIP1};g"			\
+		-e "s;@URIP2@;${URIP2};g"			\
+		-e "s;@URIP3@;${URIP3};g"			\
+		-e "s;@URIP4@;${URIP4};g"			\
+		-e "s;@URIP5@;${URIP5};g"			\
+		-e "s;@URIP6@;${URIP6};g"			\
+		-e "s;@SURIP1@;${SURIP1};g"			\
+		-e "s;@SURIP2@;${SURIP2};g"			\
+		-e "s;@SURIP3@;${SURIP3};g"			\
+		-e "s;@SURIP4@;${SURIP4};g"			\
+		-e "s;@SURIP5@;${SURIP5};g"			\
+		-e "s;@SURIP6@;${SURIP6};g"			\
 		-e "s/@SASL_MECH@/${sasl_mech}/g"		\
 		-e "s;@TESTDIR@;${TESTDIR};g"			\
 		-e "s;@TESTWD@;${TESTWD};"			\

@@ -63,7 +63,7 @@ if test $WAIT != 0 ; then
 	read foo
 fi
 KILLPIDS="$PID"
-check_running 1 master "-D $MANAGERDN -w $PASSWD"
+check_running_uri $URI1 master "-D $MANAGERDN -w $PASSWD"
 
 echo "Using ldapadd to populate the master directory..."
 $LDAPADD -x -D "$MANAGERDN" -h $LOCALHOST -p $PORT1 -w $PASSWD < \
