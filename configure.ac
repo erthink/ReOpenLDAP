@@ -1221,7 +1221,7 @@ fi
 AM_CONDITIONAL([TLS_FALLBACK_AVAIL], [test $gnutls_found = yes -o $openssl_found = yes])
 
 if test $ol_with_tls = yes -o $ol_with_tls = auto; then
-    if test $moznss_found = yes -a $moznss_pem = yes; then
+    if test $moznss_found = yes -a "$moznss_pem" = yes; then
 	ol_with_tls=moznss
     elif test $gnutls_found = yes -a $ol_enable_lmpasswd != yes; then
 	ol_with_tls=gnutls
