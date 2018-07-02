@@ -1646,7 +1646,7 @@ memberof_db_init(
 			Debug( LDAP_DEBUG_ANY,
 					"memberof_db_init: "
 					"unable to find objectClass=\"%s\"\n",
-					SLAPD_GROUP_CLASS, 0, 0 );
+					SLAPD_GROUP_CLASS );
 			return 1;
 		}
 	}
@@ -2080,8 +2080,6 @@ memberof_db_open(
 {
 	slap_overinst	*on = (slap_overinst *)be->bd_info;
 	memberof_t	*mo = (memberof_t *)on->on_bi.bi_private;
-
-	int		rc;
 
 	if ( !mo->mo_ad_memberof ) {
 		mo->mo_ad_memberof = ad_memberOf;
