@@ -33,9 +33,10 @@ banner.c: Makefile
 	$(MKBANNER) --name backend_wt --global 'backend-wt' > $@
 endif
 
-back_wt_la_SOURCES = add.c attr.c back-wt.h banner.c bind.c \
-	compare.c config.c ctx.c delete.c dn2entry.c dn2id.c \
+back_wt_la_SOURCES = add.c attr.c back-wt.h bind.c cache.c \
+	compare.c config.c ctx.c delete.c dn2entry.c dn2id.c extended.c \
 	filterindex.c id2entry.c idl.c idl.h index.c init.c key.c \
-	modify.c nextid.c operational.c proto-wt.h search.c tools.c
+	modify.c modrdn.c nextid.c operational.c proto-wt.h search.c \
+	tools.c
 
 back_wt_la_LIBADD = $(WT_LIBS)

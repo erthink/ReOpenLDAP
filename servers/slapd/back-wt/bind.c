@@ -23,6 +23,7 @@
 
 #include <stdio.h>
 #include "back-wt.h"
+#include "slapconfig.h"
 
 int
 wt_bind( Operation *op, SlapReply *rs )

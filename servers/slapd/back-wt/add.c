@@ -290,7 +290,7 @@ wt_add( Operation *op, SlapReply *rs )
 	wt_next_id( op->o_bd, &eid );
 	op->ora_e->e_id = eid;
 
-	rc = wt_dn2id_add( op, wc->session, pid, op->ora_e );
+	rc = wt_dn2id_add( op, wc, pid, op->ora_e );
 	if( rc ){
 		Debug( LDAP_DEBUG_TRACE,
 			   LDAP_XSTRING(wt_add)
@@ -307,11 +307,10 @@ wt_add( Operation *op, SlapReply *rs )
 		goto return_results;
 	}
 
-	rc = wt_id2entry_add( op, wc->session, op->ora_e );
+	rc = wt_id2entry_add( op, wc, op->ora_e );
 	if ( rc ) {
 		Debug( LDAP_DEBUG_TRACE,
-			   LDAP_XSTRING(wt_add)
-			   ": id2entry_add failed: %s (%d)\n",
+			   "wt_add: id2entry_add failed: %s (%d)\n",
 			   wiredtiger_strerror(rc), rc );
 		if ( rc == LDAP_ADMINLIMIT_EXCEEDED ) {
 			rs->sr_err = LDAP_ADMINLIMIT_EXCEEDED;

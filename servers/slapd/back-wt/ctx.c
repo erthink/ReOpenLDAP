@@ -30,23 +30,33 @@ wt_ctx_init(struct wt_info *wi)
 	wc = ch_malloc( sizeof( wt_ctx ) );
 	if( !wc ) {
 		Debug( LDAP_DEBUG_ANY,
-			   LDAP_XSTRING(wt_ctx_init)
-			   ": cannot allocate memory\n" );
+			   "wt_ctx_init: cannot allocate memory\n" );
 		return NULL;
 	}
 
 	memset(wc, 0, sizeof(wt_ctx));
 
-	if(!wc->session){
-		rc = wi->wi_conn->open_session(wi->wi_conn, NULL, NULL, &wc->session);
-		if( rc ) {
-			Debug( LDAP_DEBUG_ANY,
-				   LDAP_XSTRING(wt_ctx_session)
-				   ": open_session error %s(%d)\n",
-				   wiredtiger_strerror(rc), rc );
-			return NULL;
-		}
+	rc = wi->wi_conn->open_session(wi->wi_conn, NULL, NULL, &wc->session);
+	if( rc ) {
+		Debug( LDAP_DEBUG_ANY,
+			   "wt_ctx_init: open_session error %s(%d)\n",
+			   wiredtiger_strerror(rc), rc  );
+		return NULL;
 	}
+
+	/* readonly mode */
+	if (!wi->wi_cache) {
+		return wc;
+	}
+
+	rc = wi->wi_cache->open_session(wi->wi_cache, NULL, NULL, &wc->cache_session);
+	if( rc ) {
+		Debug( LDAP_DEBUG_ANY,
+			   "wt_ctx_init: cannnot open cache session %s(%d)\n",
+			   wiredtiger_strerror(rc), rc );
+		return NULL;
+	}
+
 	return wc;
 }
 
@@ -56,9 +66,19 @@ wt_ctx_free( void *key, void *data )
 	wt_ctx *wc = data;
 
 	if(wc->session){
-		wc->session->close(wc->session, NULL);
+		/*
+		 * The session will close automatically when db closing.
+		 * We can close session here, but it's require to check db
+		 * status, otherwise it will cause SEGV.
+		 */
+		/*
+		if(IS_DB_OPEN) {
+		    wc->session->close(wc->session, NULL);
+		}
+		*/
 		wc->session = NULL;
 	}
+
 	ch_free(wc);
 }
 
@@ -69,17 +89,16 @@ wt_ctx_get(Operation *op, struct wt_info *wi){
 	wt_ctx *wc = NULL;
 
 	rc = ldap_pvt_thread_pool_getkey(op->o_threadctx,
-									 wt_ctx_get, &data, NULL );
+									 wi, &data, NULL );
 	if( rc ){
 		wc = wt_ctx_init(wi);
 		if( !wc ) {
 			Debug( LDAP_DEBUG_ANY,
-				   LDAP_XSTRING(wt_ctx)
-				   ": wt_ctx_init failed\n" );
+				   "wt_ctx_get: wt_ctx_init failed\n" );
 			return NULL;
 		}
 		rc = ldap_pvt_thread_pool_setkey( op->o_threadctx,
-										  wt_ctx_get, wc, wt_ctx_free,
+										  wi, wc, wt_ctx_free,
 										  NULL, NULL );
 		if( rc ) {
 			Debug( LDAP_DEBUG_ANY, "wt_ctx: setkey error(%d)\n", rc );
@@ -91,42 +110,56 @@ wt_ctx_get(Operation *op, struct wt_info *wi){
 }
 
 WT_CURSOR *
-wt_ctx_index_cursor(wt_ctx *wc, struct berval *name, int create)
+wt_ctx_open_index(wt_ctx *wc, struct berval *name, int create)
 {
-	WT_CURSOR *cursor = NULL;
+	WT_CURSOR **cursorp = NULL;
 	WT_SESSION *session = wc->session;
-	char tablename[1024];
+	char uri[1024];
 	int rc;
+	int i;
 
-	snprintf(tablename, sizeof(tablename), "table:%s", name->bv_val);
+	snprintf(uri, sizeof(uri), "table:%s", name->bv_val);
 
-	rc = session->open_cursor(session, tablename, NULL,
-							  "overwrite=false", &cursor);
+	for(i=0; wc->index[i] && i < WT_INDEX_CACHE_SIZE; i++){
+		if(!strcmp(uri, wc->index[i]->uri)){
+			return wc->index[i];
+		}
+	}
+
+	if (i >= WT_INDEX_CACHE_SIZE) {
+		Debug( LDAP_DEBUG_ANY,
+			   "wt_ctx_open_index: table \"%s\": "
+			   "Reached max size of cursor cache: see WT_INDEX_CACHE_SIZE.\n",
+			   uri);
+		return NULL;
+	}
+	cursorp = &wc->index[i];
+
+	rc = session->open_cursor(session, uri, NULL, "overwrite=false", cursorp);
 	if (rc == ENOENT && create) {
-		rc = session->create(session,
-							 tablename,
+		rc = session->create(session, uri,
 							 "key_format=uQ,"
 							 "value_format=x,"
 							 "columns=(key, id, none)");
 		if( rc ) {
 			Debug( LDAP_DEBUG_ANY,
-				   LDAP_XSTRING(indexer) ": table \"%s\": "
-				   "cannot create idnex table: %s (%d)\n",
-				   tablename, wiredtiger_strerror(rc), rc);
+				   "wt_ctx_open_index: table \"%s\": "
+				   "cannot create index table: %s (%d)\n",
+				   uri, wiredtiger_strerror(rc), rc);
 			return NULL;
 		}
-		rc = session->open_cursor(session, tablename, NULL,
-								  "overwrite=false", &cursor);
+		rc = session->open_cursor(session, uri, NULL,
+								  "overwrite=false", cursorp);
 	}
 	if ( rc ) {
 		Debug( LDAP_DEBUG_ANY,
-			   LDAP_XSTRING(wt_id2entry_put)
+			   "wt_ctx_open_index: table \"%s\": "
 			   ": open cursor failed: %s (%d)\n",
-			   wiredtiger_strerror(rc), rc );
+			   uri, wiredtiger_strerror(rc), rc);
 		return NULL;
 	}
 
-	return cursor;
+	return *cursorp;
 }
 
 /*

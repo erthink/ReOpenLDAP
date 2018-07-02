@@ -70,8 +70,7 @@ AttrInfo *wt_index_mask(
 	return 0;
 }
 
-/* This function is only called when evaluating search filters.
- */
+/* This function is only called when evaluating search filters. */
 int wt_index_param(
 	Backend *be,
 	AttributeDescription *desc,
@@ -146,10 +145,9 @@ static int indexer(
 	int rc = LDAP_SUCCESS, i;
 	struct berval *keys;
 	WT_CURSOR *cursor = NULL;
-	/* WT_SESSION *session = wc->session; */
 	assert( mask != 0 );
 
-	cursor = wt_ctx_index_cursor(wc, atname, 1);
+	cursor = wt_ctx_open_index(wc, atname, 1);
 	if( !cursor ) {
 		Debug( LDAP_DEBUG_ANY,
 			   LDAP_XSTRING(indexer)
@@ -232,7 +230,7 @@ static int indexer(
 
 done:
 	if(cursor){
-		cursor->close(cursor);
+		cursor->reset(cursor);
 	}
 	return rc;
 }
@@ -333,11 +331,13 @@ int wt_index_values(
 	ID id,
 	int opid )
 {
+	int rc;
+
 	/* Never index ID 0 */
 	if ( id == 0 )
 		return 0;
 
-	int rc = index_at_values( op, wc, desc,
+	rc = index_at_values( op, wc, desc,
 						  desc->ad_type, &desc->ad_tags,
 						  vals, id, opid );
 
@@ -347,6 +347,7 @@ int wt_index_values(
 int
 wt_index_entry( Operation *op, wt_ctx *wc, int opid, Entry *e )
 {
+	int rc;
 	Attribute *ap = e->e_attrs;
 
 	if ( e->e_id == 0 )
@@ -357,7 +358,7 @@ wt_index_entry( Operation *op, wt_ctx *wc, int opid, Entry *e )
 		   (long) e->e_id, e->e_dn ? e->e_dn : "" );
 
 	for ( ; ap != NULL; ap = ap->a_next ) {
-		int rc = wt_index_values( op, wc, ap->a_desc,
+		rc = wt_index_values( op, wc, ap->a_desc,
 							  ap->a_nvals, e->e_id, opid );
 		if( rc != LDAP_SUCCESS ) {
 			Debug( LDAP_DEBUG_TRACE,
