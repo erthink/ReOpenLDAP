@@ -1,3 +1,42 @@
+v1.1.9 2018-0?-??
+=================
+
+## Briefly:
+ 1. Fixed TLS/SSL major bugs (deadlocks and segfaults).
+ 2. Other minor bugs were fixed.
+ 3. Added TLS/SSL test into test suite.
+
+### New features and Compatibility breaking: _none_
+
+### Documentation: _none_
+
+### Major and Security bugs:
+2018-07-01 libreldap: fix init/shutdown races/segfaults with modern OpenSSL.
+2018-07-01 libreldap: fix deadlock/recursion inside tls-init internals.
+
+### Minor bugs:
+2018-07-01 libreldap: fix unlock in error-case inside thread-pool handle_pause().
+2018-07-01 libreldap: import - fix ber_realloc after a partial ber_flush (ITS#8864).
+2018-06-30 slapd: fix wrong/duplicate listening if bind failed.
+2018-06-13 slapd: import - fix ldif-wrap errmsg typo.
+
+### Performance:
+2018-06-30 slapd: minor refine suspend/refine listeners.
+
+### Build:
+2018-07-01 configure: add checking for libnsspem.
+
+### Cosmetics:
+2018-06-30 slapd: cleanup-drop SLAP_FD2SOCK/SLAP_SOCK2FD/SLAP_SOCKNEW.
+
+### Other:
+2018-07-01 libreldap: message-hint to check 'libnsspem.so' for TLS by MozNSS.
+2018-06-30 tests-ci: add SLAPD_LOCALHOST=127.0.0.1 for CircleCI 2.0 and Docker.
+2018-06-30 reopenldap-ci: migrate to Circle-CI 2.0
+2018-06-14 tests: explicit DELAY=2 for 046-dds TTL check.
+
+--------------------------------------------------------------------------------
+
 v1.1.8 2018-06-04
 =================
 
