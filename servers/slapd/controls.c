@@ -383,7 +383,7 @@ register_control_exop( const char *controloid, char *exopoid )
 {
 	struct slap_control *sc = NULL;
 	BerVarray extendedopsbv;
-	char **extendedops;
+	const char **extendedops;
 	int i;
 
 	if ( controloid == NULL || exopoid == NULL ) {
@@ -400,8 +400,7 @@ register_control_exop( const char *controloid, char *exopoid )
 
 	if ( !sc ) {
 		Debug( LDAP_DEBUG_ANY, "register_control_exop: "
-			"Control %s not registered.\n",
-			controloid, 0, 0 );
+			"Control %s not registered.\n", controloid );
 		return LDAP_PARAM_ERROR;
 	}
 
