@@ -34,7 +34,7 @@ cp -r $DATADIR/tls $TESTDIR
 cd $TESTWD
 
 echo "Running slapadd to build slapd database..."
-config_filter  $BACKEND $MONITORDB < $TLSSASLCONF > $CONF1
+config_filter  $BACKEND ${AC_conf[monitor]} < $TLSSASLCONF > $CONF1
 $SLAPADD -f $CONF1 -l $LDIFORDERED
 RC=$?
 if test $RC != 0 ; then
