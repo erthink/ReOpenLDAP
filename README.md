@@ -70,6 +70,7 @@ Optional Features:
   --enable-check          enable internal checking and assertions no|yes|always|default [no]
   --enable-hipagut        enable internal memory allocation debugger no|yes|always|extra [no]
   --enable-proctitle      enable proctitle support [yes]
+  --enable-referrals      enable LDAPv2+ Referrals (experimental) [no]
   --enable-ipv6           enable IPv6 support [auto]
   --enable-local          enable AF_LOCAL (AF_UNIX) socket support [auto]
   --enable-deprecated     enable deprecated interfaces of libreldap no|yes [no]
@@ -98,6 +99,7 @@ SLAPD Backend Options:
     --enable-dnssrv	  enable dnssrv backend no|yes|mod [no]
     --enable-ldap	  enable ldap backend no|yes|mod [no]
     --enable-meta	  enable metadirectory backend no|yes|mod [no]
+    --enable-asyncmeta	  enable asynchronous metadirectory backend no|yes|mod [no]
     --enable-monitor	  enable monitor backend no|yes|mod [yes]
     --enable-ndb	  enable MySQL NDB Cluster backend no|yes|mod [no]
     --enable-null	  enable null backend no|yes|mod [no]
@@ -107,6 +109,7 @@ SLAPD Backend Options:
     --enable-shell	  enable shell backend no|yes|mod [no]
     --enable-sock	  enable sock backend no|yes|mod [no]
     --enable-sql	  enable sql backend no|yes|mod [no]
+    --enable-wt		  enable WiredTiger backend no|yes|mod [no]
 
 SLAPD Overlay Options:
     --enable-overlays	  enable all available overlays no|yes|mod
