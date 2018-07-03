@@ -156,7 +156,11 @@ DATADIR=${USER_DATADIR-${TOP_SRCDIR}/tests/testdata}
 BASE_TESTDIR=${USER_TESTDIR-$TESTWD/testrun}
 export SLAPD_TESTING_DIR=${BASE_TESTDIR}
 update_TESTDIR $BASE_TESTDIR
-SLAPD_SLAPD=${TOP_BUILDDIR}/servers/slapd/slapd
+if [ -x ${TOP_BUILDDIR}/servers/slapd/.libs/lt-slapd ]; then
+	SLAPD_SLAPD=${TOP_BUILDDIR}/servers/slapd/.libs/lt-slapd
+else
+	SLAPD_SLAPD=${TOP_BUILDDIR}/servers/slapd/slapd
+fi
 CLIENTDIR=${LDAP_CLIENTDIR:-${TOP_BUILDDIR}/clients/tools}
 DRAINDIR=${TOP_SRCDIR}/tests
 

@@ -62,6 +62,13 @@ if test ! -x ${TOP_BUILDDIR}/servers/slapd/slapd ; then
 	exit 1
 fi
 
+if test ! -x ${TOP_BUILDDIR}/servers/slapd/.libs/lt-slapd \
+    && file -i ${TOP_BUILDDIR}/servers/slapd/slapd | grep -q 'text/x-shellscript'
+then
+    echo "Kick libtool wrapper for slapd"
+    ${TOP_BUILDDIR}/servers/slapd/slapd -VV >/dev/null 2>&1
+fi
+
 BACKEND=
 CLEAN=no
 WAIT=0
