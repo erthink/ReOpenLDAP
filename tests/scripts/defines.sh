@@ -156,8 +156,8 @@ DATADIR=${USER_DATADIR-${TOP_SRCDIR}/tests/testdata}
 BASE_TESTDIR=${USER_TESTDIR-$TESTWD/testrun}
 SLAPD_TESTING_DIR=${BASE_TESTDIR}
 update_TESTDIR $BASE_TESTDIR
-if [ -x ${TOP_BUILDDIR}/servers/slapd/.libs/slapd ]; then
-	SLAPD_SLAPD=${TOP_BUILDDIR}/servers/slapd/.libs/slapd
+if [ -x ${TOP_BUILDDIR}/servers/slapd/.libs/lt-slapd ]; then
+	SLAPD_SLAPD=${TOP_BUILDDIR}/servers/slapd/.libs/lt-slapd
 else
 	SLAPD_SLAPD=${TOP_BUILDDIR}/servers/slapd/slapd
 fi
