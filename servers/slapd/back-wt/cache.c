@@ -22,6 +22,7 @@
 #include "reldap.h"
 
 #include <stdio.h>
+#include <ac/string.h>
 #include "back-wt.h"
 #include "slapconfig.h"
 #include "idl.h"

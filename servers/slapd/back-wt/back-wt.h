@@ -65,7 +65,7 @@ struct wt_info {
 #define WT_INDEX_NDN "index:dn2id:ndn"
 #define WT_INDEX_PID "index:dn2id:pid"
 /* Currently, revdn is primary key, the revdn index is obsolete. */
-#define WT_INDEX_REVDN "index:dn2id:revdn"
+/* #define WT_INDEX_REVDN "index:dn2id:revdn" */
 
 /* table for cache */
 #define WT_TABLE_IDLCACHE "table:idlcache"

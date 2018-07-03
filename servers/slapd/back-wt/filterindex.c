@@ -502,9 +502,9 @@ comp_candidates (
 
 	if ( !f ) return LDAP_PROTOCOL_ERROR;
 
-	Debug( LDAP_DEBUG_FILTER, "comp_candidates\n", 0, 0, 0 );
+	Debug( LDAP_DEBUG_FILTER, "comp_candidates\n" );
 	/* TODO: */
-	Debug( LDAP_DEBUG_FILTER, "=> not implement yet\n", 0, 0, 0 );
+	Debug( LDAP_DEBUG_FILTER, "=> not implement yet\n" );
 	return( rc );
 }
 

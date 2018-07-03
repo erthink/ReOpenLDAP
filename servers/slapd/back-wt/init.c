@@ -105,6 +105,7 @@ wt_db_open( BackendDB *be, ConfigReply *cr )
 		goto readonly;
 	}
 
+#ifdef WT_INDEX_REVDN
 	/* checking for obsolete table */
 	rc = session->verify(session, WT_INDEX_REVDN, NULL);
 	if ( !rc ) {
@@ -114,6 +115,7 @@ wt_db_open( BackendDB *be, ConfigReply *cr )
 			   be->be_suffix[0].bv_val );
 		return -1;
 	}
+#endif /* WT_INDEX_REVDN */
 
 	/* create tables and indexes */
 	rc = session->create(session,
@@ -281,6 +283,9 @@ wt_back_initialize( BackendInfo *bi )
 		LDAP_CONTROL_POST_READ,
 		LDAP_CONTROL_SUBENTRIES,
 		LDAP_CONTROL_X_PERMISSIVE_MODIFY,
+#ifdef LDAP_X_TXN
+		LDAP_CONTROL_X_TXN_SPEC,
+#endif
 		NULL
 	};
 
@@ -324,10 +329,14 @@ wt_back_initialize( BackendInfo *bi )
 	bi->bi_op_abandon = 0;
 
 	bi->bi_extended = wt_extended;
+#ifdef LDAP_X_TXN
+	bi->bi_op_txn = 0;
+#endif
 
 	bi->bi_chk_referrals = 0;
 	bi->bi_operational = wt_operational;
 
+	bi->bi_has_subordinates = wt_hasSubordinates;
 	bi->bi_entry_release_rw = wt_entry_release;
 	bi->bi_entry_get_rw = wt_entry_get;
 
@@ -342,10 +351,7 @@ wt_back_initialize( BackendInfo *bi )
 	bi->bi_tool_sync = 0;
 	bi->bi_tool_dn2id_get = wt_tool_dn2id_get;
 	bi->bi_tool_entry_modify = wt_tool_entry_modify;
-
-#if LDAP_VENDOR_VERSION_MINOR == X || LDAP_VENDOR_VERSION_MINOR >= 5
 	bi->bi_tool_entry_delete = wt_tool_entry_delete;
-#endif
 
 	bi->bi_connection_init = 0;
 	bi->bi_connection_destroy = 0;
