@@ -151,9 +151,9 @@ if test $WAIT != 0 ; then
 	echo PID $PID
 	read foo
 fi
-check_running 1
 PIDS[1]=$PID
 KILLPIDS="$PID $KILLPIDS"
+check_running 1
 
 SYNCREPL_WAIT=$((SYNCREPL_WAIT * 2))
 echo "Sleeping $SYNCREPL_WAIT seconds to allow databases to sync..."

@@ -38,7 +38,7 @@ $SLAPPASSWD -g -n >$CONFIGPWF
 #
 
 echo "Starting slapd on TCP/IP port $PORT1... $PWD"
-config_filter $BACKEND $MONITORDB < $DYNAMICCONF > $CONFLDIF
+config_filter $BACKEND ${AC_conf[monitor]} < $DYNAMICCONF > $CONFLDIF
 $SLAPADD -F $CONFDIR -n 0 -l $CONFLDIF
 RC=$?
 if test $RC != 0 ; then
