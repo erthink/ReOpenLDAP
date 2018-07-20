@@ -238,9 +238,6 @@ AH_TOP([
 AH_BOTTOM([
 /* begin of reldap_autoconf.h.post */
 
-/* force LDAP_P to always include prototypes */
-#define LDAP_NEEDS_PROTOTYPES 1
-
 #ifdef HAVE_FEATURES_H
 #	include <features.h>
 #endif
