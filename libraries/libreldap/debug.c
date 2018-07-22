@@ -193,7 +193,7 @@ void ldap_debug_va( const char* fmt, va_list vl )
 	ldap_debug_unlock();
 }
 
-void ldap_debug_perror( LDAP *ld, LDAP_CONST char *str )
+void ldap_debug_perror( LDAP *ld, const char *str )
 {
 	assert( ld != NULL );
 	assert( LDAP_VALID( ld ) );

@@ -52,9 +52,9 @@
 int
 ldap_search_ext(
 	LDAP *ld,
-	LDAP_CONST char *base,
+	const char *base,
 	int scope,
-	LDAP_CONST char *filter,
+	const char *filter,
 	char **attrs,
 	int attrsonly,
 	LDAPControl **sctrls,
@@ -70,9 +70,9 @@ ldap_search_ext(
 int
 ldap_pvt_search(
 	LDAP *ld,
-	LDAP_CONST char *base,
+	const char *base,
 	int scope,
-	LDAP_CONST char *filter,
+	const char *filter,
 	char **attrs,
 	int attrsonly,
 	LDAPControl **sctrls,
@@ -133,9 +133,9 @@ ldap_pvt_search(
 int
 ldap_search_ext_s(
 	LDAP *ld,
-	LDAP_CONST char *base,
+	const char *base,
 	int scope,
-	LDAP_CONST char *filter,
+	const char *filter,
 	char **attrs,
 	int attrsonly,
 	LDAPControl **sctrls,
@@ -151,9 +151,9 @@ ldap_search_ext_s(
 int
 ldap_pvt_search_s(
 	LDAP *ld,
-	LDAP_CONST char *base,
+	const char *base,
 	int scope,
-	LDAP_CONST char *filter,
+	const char *filter,
 	char **attrs,
 	int attrsonly,
 	LDAPControl **sctrls,
@@ -197,9 +197,9 @@ ldap_pvt_search_s(
 BerElement *
 ldap_build_search_req(
 	LDAP *ld,
-	LDAP_CONST char *base,
+	const char *base,
 	ber_int_t scope,
-	LDAP_CONST char *filter,
+	const char *filter,
 	char **attrs,
 	ber_int_t attrsonly,
 	LDAPControl **sctrls,

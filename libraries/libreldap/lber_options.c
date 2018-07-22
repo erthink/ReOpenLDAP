@@ -121,7 +121,7 @@ int
 ber_set_option(
 	void	*item,
 	int		option,
-	LDAP_CONST void	*invalue)
+	const void	*invalue)
 {
 	BerElement *ber;
 

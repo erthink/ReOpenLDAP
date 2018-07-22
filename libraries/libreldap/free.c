@@ -62,7 +62,7 @@ ldap_memrealloc( void* p, ber_len_t s )
 }
 
 char *
-ldap_strdup( LDAP_CONST char *p )
+ldap_strdup( const char *p )
 {
 	return LDAP_STRDUP( p );
 }

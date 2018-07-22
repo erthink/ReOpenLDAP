@@ -31,7 +31,7 @@
 BerElement *
 ldap_build_delete_req(
 	LDAP *ld,
-	LDAP_CONST char *dn,
+	const char *dn,
 	LDAPControl **sctrls,
 	LDAPControl **cctrls,
 	int	*msgidp )
@@ -84,7 +84,7 @@ ldap_build_delete_req(
 int
 ldap_delete_ext(
 	LDAP *ld,
-	LDAP_CONST char* dn,
+	const char* dn,
 	LDAPControl **sctrls,
 	LDAPControl **cctrls,
 	int *msgidp )
@@ -120,7 +120,7 @@ ldap_delete_ext(
 int
 ldap_delete_ext_s(
 	LDAP *ld,
-	LDAP_CONST char *dn,
+	const char *dn,
 	LDAPControl **sctrls,
 	LDAPControl **cctrls )
 {
@@ -149,7 +149,7 @@ ldap_delete_ext_s(
  *	msgid = ldap_delete( ld, dn );
  */
 int
-ldap_delete( LDAP *ld, LDAP_CONST char *dn )
+ldap_delete( LDAP *ld, const char *dn )
 {
 	int msgid = 0;
 
@@ -166,7 +166,7 @@ ldap_delete( LDAP *ld, LDAP_CONST char *dn )
 
 
 int
-ldap_delete_s( LDAP *ld, LDAP_CONST char *dn )
+ldap_delete_s( LDAP *ld, const char *dn )
 {
 	return ldap_delete_ext_s( ld, dn, NULL, NULL );
 }

@@ -47,8 +47,8 @@
 BerElement *
 ldap_build_bind_req(
 	LDAP			*ld,
-	LDAP_CONST char	*dn,
-	LDAP_CONST char	*mechanism,
+	const char	*dn,
+	const char	*mechanism,
 	struct berval	*cred,
 	LDAPControl		**sctrls,
 	LDAPControl		**cctrls,
@@ -135,8 +135,8 @@ ldap_build_bind_req(
 int
 ldap_sasl_bind(
 	LDAP			*ld,
-	LDAP_CONST char	*dn,
-	LDAP_CONST char	*mechanism,
+	const char	*dn,
+	const char	*mechanism,
 	struct berval	*cred,
 	LDAPControl		**sctrls,
 	LDAPControl		**cctrls,
@@ -173,8 +173,8 @@ ldap_sasl_bind(
 int
 ldap_sasl_bind_s(
 	LDAP			*ld,
-	LDAP_CONST char	*dn,
-	LDAP_CONST char	*mechanism,
+	const char	*dn,
+	const char	*mechanism,
 	struct berval	*cred,
 	LDAPControl		**sctrls,
 	LDAPControl		**cctrls,
@@ -431,8 +431,8 @@ ldap_pvt_sasl_getmechs ( LDAP *ld, char **pmechlist )
 int
 ldap_sasl_interactive_bind(
 	LDAP *ld,
-	LDAP_CONST char *dn, /* usually NULL */
-	LDAP_CONST char *mechs,
+	const char *dn, /* usually NULL */
+	const char *mechs,
 	LDAPControl **serverControls,
 	LDAPControl **clientControls,
 	unsigned flags,
@@ -508,8 +508,8 @@ done:
 int
 ldap_sasl_interactive_bind_s(
 	LDAP *ld,
-	LDAP_CONST char *dn, /* usually NULL */
-	LDAP_CONST char *mechs,
+	const char *dn, /* usually NULL */
+	const char *mechs,
 	LDAPControl **serverControls,
 	LDAPControl **clientControls,
 	unsigned flags,

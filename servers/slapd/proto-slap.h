@@ -124,7 +124,7 @@ LDAP_SLAPD_F (int) acl_string_expand LDAP_P((
 /*
  * aclparse.c
  */
-LDAP_SLAPD_V (LDAP_CONST char *) style_strings[];
+LDAP_SLAPD_V (const char *) style_strings[];
 
 LDAP_SLAPD_F (int) parse_acl LDAP_P(( Backend *be,
 	const char *fname, int lineno,
@@ -543,7 +543,7 @@ LDAP_SLAPD_F (int) loglevel2bvarray LDAP_P(( int l, BerVarray *bva ));
 LDAP_SLAPD_F (const char *) loglevel2str LDAP_P(( int l ));
 LDAP_SLAPD_F (int) loglevel2bv LDAP_P(( int l, struct berval *bv ));
 LDAP_SLAPD_F (int) loglevel_print LDAP_P(( FILE *out ));
-LDAP_SLAPD_F (int) slap_cf_aux_table_parse LDAP_P(( const char *word, void *bc, slap_cf_aux_table *tab0, LDAP_CONST char *tabmsg ));
+LDAP_SLAPD_F (int) slap_cf_aux_table_parse LDAP_P(( const char *word, void *bc, slap_cf_aux_table *tab0, const char *tabmsg ));
 LDAP_SLAPD_F (int) slap_cf_aux_table_unparse LDAP_P(( void *bc, struct berval *bv, slap_cf_aux_table *tab0 ));
 
 /*

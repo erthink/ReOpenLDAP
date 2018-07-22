@@ -761,7 +761,7 @@ lutil_unparse_time(
  *	- if len is not NULL, *len will contain the length of the string printed so far
  */
 int
-lutil_snprintf( char *buf, ber_len_t bufsize, char **next, ber_len_t *len, LDAP_CONST char *fmt, ... )
+lutil_snprintf( char *buf, ber_len_t bufsize, char **next, ber_len_t *len, const char *fmt, ... )
 {
 	va_list		ap;
 	int		ret;

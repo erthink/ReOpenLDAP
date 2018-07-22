@@ -32,7 +32,6 @@
 #define LDAP_CONCAT(x,y)	LDAP_CONCAT1(x,y)
 #define LDAP_STRING(x)	#x /* stringify without expanding x */
 #define LDAP_XSTRING(x)	LDAP_STRING(x) /* expand x, then stringify */
-#define LDAP_CONST	const
 
 #ifndef __has_attribute
 #   define __has_attribute(x) (0)

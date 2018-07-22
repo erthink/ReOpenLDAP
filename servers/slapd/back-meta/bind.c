@@ -871,7 +871,7 @@ send_err:;
 int
 meta_back_default_rebind(
 	LDAP			*ld,
-	LDAP_CONST char		*url,
+	const char		*url,
 	ber_tag_t		request,
 	ber_int_t		msgid,
 	void			*params )

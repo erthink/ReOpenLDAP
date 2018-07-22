@@ -166,35 +166,35 @@ typedef struct ldap_structurerule {
 #define	LDAP_SCHEMA_SKIP			0x80U /* Don't malloc any result      */
 
 
-LDAP_F( LDAP_CONST char * )
+LDAP_F( const char * )
 ldap_syntax2name LDAP_P((
 	LDAPSyntax * syn ));
 
-LDAP_F( LDAP_CONST char * )
+LDAP_F( const char * )
 ldap_matchingrule2name LDAP_P((
 	LDAPMatchingRule * mr ));
 
-LDAP_F( LDAP_CONST char * )
+LDAP_F( const char * )
 ldap_matchingruleuse2name LDAP_P((
 	LDAPMatchingRuleUse * mru ));
 
-LDAP_F( LDAP_CONST char * )
+LDAP_F( const char * )
 ldap_attributetype2name LDAP_P((
 	LDAPAttributeType * at ));
 
-LDAP_F( LDAP_CONST char * )
+LDAP_F( const char * )
 ldap_objectclass2name LDAP_P((
 	LDAPObjectClass * oc ));
 
-LDAP_F( LDAP_CONST char * )
+LDAP_F( const char * )
 ldap_contentrule2name LDAP_P((
 	LDAPContentRule * cr ));
 
-LDAP_F( LDAP_CONST char * )
+LDAP_F( const char * )
 ldap_nameform2name LDAP_P((
 	LDAPNameForm * nf ));
 
-LDAP_F( LDAP_CONST char * )
+LDAP_F( const char * )
 ldap_structurerule2name LDAP_P((
 	LDAPStructureRule * sr ));
 
@@ -232,59 +232,59 @@ ldap_structurerule_free LDAP_P((
 
 LDAP_F( LDAPStructureRule * )
 ldap_str2structurerule LDAP_P((
-	LDAP_CONST char * s,
+	const char * s,
 	int * code,
-	LDAP_CONST char ** errp,
-	LDAP_CONST unsigned flags ));
+	const char ** errp,
+	const unsigned flags ));
 
 LDAP_F( LDAPNameForm * )
 ldap_str2nameform LDAP_P((
-	LDAP_CONST char * s,
+	const char * s,
 	int * code,
-	LDAP_CONST char ** errp,
-	LDAP_CONST unsigned flags ));
+	const char ** errp,
+	const unsigned flags ));
 
 LDAP_F( LDAPContentRule * )
 ldap_str2contentrule LDAP_P((
-	LDAP_CONST char * s,
+	const char * s,
 	int * code,
-	LDAP_CONST char ** errp,
-	LDAP_CONST unsigned flags ));
+	const char ** errp,
+	const unsigned flags ));
 
 LDAP_F( LDAPObjectClass * )
 ldap_str2objectclass LDAP_P((
-	LDAP_CONST char * s,
+	const char * s,
 	int * code,
-	LDAP_CONST char ** errp,
-	LDAP_CONST unsigned flags ));
+	const char ** errp,
+	const unsigned flags ));
 
 LDAP_F( LDAPAttributeType * )
 ldap_str2attributetype LDAP_P((
-	LDAP_CONST char * s,
+	const char * s,
 	int * code,
-	LDAP_CONST char ** errp,
-	LDAP_CONST unsigned flags ));
+	const char ** errp,
+	const unsigned flags ));
 
 LDAP_F( LDAPSyntax * )
 ldap_str2syntax LDAP_P((
-	LDAP_CONST char * s,
+	const char * s,
 	int * code,
-	LDAP_CONST char ** errp,
-	LDAP_CONST unsigned flags ));
+	const char ** errp,
+	const unsigned flags ));
 
 LDAP_F( LDAPMatchingRule * )
 ldap_str2matchingrule LDAP_P((
-	LDAP_CONST char * s,
+	const char * s,
 	int * code,
-	LDAP_CONST char ** errp,
-	LDAP_CONST unsigned flags ));
+	const char ** errp,
+	const unsigned flags ));
 
 LDAP_F( LDAPMatchingRuleUse * )
 ldap_str2matchingruleuse LDAP_P((
-	LDAP_CONST char * s,
+	const char * s,
 	int * code,
-	LDAP_CONST char ** errp,
-	LDAP_CONST unsigned flags ));
+	const char ** errp,
+	const unsigned flags ));
 
 LDAP_F( char * )
 ldap_structurerule2str LDAP_P((

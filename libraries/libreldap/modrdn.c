@@ -40,9 +40,9 @@
 BerElement *
 ldap_build_moddn_req(
 	LDAP *ld,
-	LDAP_CONST char *dn,
-	LDAP_CONST char *newrdn,
-	LDAP_CONST char *newSuperior,
+	const char *dn,
+	const char *newrdn,
+	const char *newSuperior,
 	int deleteoldrdn,
 	LDAPControl **sctrls,
 	LDAPControl **cctrls,
@@ -113,9 +113,9 @@ ldap_build_moddn_req(
 int
 ldap_rename(
 	LDAP *ld,
-	LDAP_CONST char *dn,
-	LDAP_CONST char *newrdn,
-	LDAP_CONST char *newSuperior,
+	const char *dn,
+	const char *newrdn,
+	const char *newSuperior,
 	int deleteoldrdn,
 	LDAPControl **sctrls,
 	LDAPControl **cctrls,
@@ -149,9 +149,9 @@ ldap_rename(
 int
 ldap_rename_s(
 	LDAP *ld,
-	LDAP_CONST char *dn,
-	LDAP_CONST char *newrdn,
-	LDAP_CONST char *newSuperior,
+	const char *dn,
+	const char *newrdn,
+	const char *newSuperior,
 	int deleteoldrdn,
 	LDAPControl **sctrls,
 	LDAPControl **cctrls )

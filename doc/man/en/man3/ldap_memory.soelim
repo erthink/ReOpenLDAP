@@ -33,7 +33,7 @@ ReOpenLDAP LDAP (libreldap, \-lreldap)
 .LP
 .BI "void *ldap_memrealloc(void *" p ", ber_len_t " s ");"
 .LP
-.BI "char *ldap_strdup(LDAP_CONST char *" p ");"
+.BI "char *ldap_strdup(const char *" p ");"
 
 .SH DESCRIPTION
 These routines are used to allocate/deallocate memory used/returned

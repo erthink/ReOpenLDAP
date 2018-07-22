@@ -211,7 +211,7 @@ ber_put_int(
 int
 ber_put_ostring(
 	BerElement *ber,
-	LDAP_CONST char *str,
+	const char *str,
 	ber_len_t len,
 	ber_tag_t tag )
 {
@@ -254,7 +254,7 @@ ber_put_berval(
 int
 ber_put_string(
 	BerElement *ber,
-	LDAP_CONST char *str,
+	const char *str,
 	ber_tag_t tag )
 {
 	assert( str != NULL );
@@ -265,7 +265,7 @@ ber_put_string(
 int
 ber_put_bitstring(
 	BerElement *ber,
-	LDAP_CONST char *str,
+	const char *str,
 	ber_len_t blen /* in bits */,
 	ber_tag_t tag )
 {
@@ -488,7 +488,7 @@ static ber_tag_t lber_int_null = 0;
 
 /* VARARGS */
 int
-ber_printf( BerElement *ber, LDAP_CONST char *fmt, ... )
+ber_printf( BerElement *ber, const char *fmt, ... )
 {
 	va_list		ap;
 	char		*s, **ss;

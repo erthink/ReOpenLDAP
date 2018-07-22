@@ -696,7 +696,7 @@ ber_tag_t
 ber_next_element(
 	BerElement *ber,
 	ber_len_t *len,
-	LDAP_CONST char *last )
+	const char *last )
 {
 	assert( ber != NULL );
 	assert( last != NULL );
@@ -712,11 +712,11 @@ ber_next_element(
 /* VARARGS */
 ber_tag_t
 ber_scanf ( BerElement *ber,
-	LDAP_CONST char *fmt,
+	const char *fmt,
 	... )
 {
 	va_list		ap;
-	LDAP_CONST char		*fmt_reset;
+	const char		*fmt_reset;
 	char		*s, **ss, ***sss;
 	struct berval	data, *bval, **bvp, ***bvpp;
 	ber_int_t	*i;

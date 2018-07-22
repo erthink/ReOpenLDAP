@@ -54,7 +54,7 @@ struct ldap_url_desc; /* avoid pulling in <ldap.h> */
 
 LDAP_F( int )
 ldap_url_parse_ext LDAP_P((
-	LDAP_CONST char *url,
+	const char *url,
 	struct ldap_url_desc **ludpp,
 	unsigned flags ));
 
@@ -77,14 +77,14 @@ LDAP_F (void) ldap_free_urllist LDAP_P((
 LDAP_F (int) ldap_pvt_scope2bv LDAP_P ((
 	int scope, struct berval *bv ));
 
-LDAP_F (LDAP_CONST char *) ldap_pvt_scope2str LDAP_P ((
+LDAP_F (const char *) ldap_pvt_scope2str LDAP_P ((
 	int scope ));
 
 LDAP_F (int) ldap_pvt_bv2scope LDAP_P ((
 	struct berval *bv ));
 
 LDAP_F (int) ldap_pvt_str2scope LDAP_P ((
-	LDAP_CONST char * ));
+	const char * ));
 
 LDAP_F( char * )
 ldap_pvt_ctime LDAP_P((
@@ -331,9 +331,9 @@ ldap_bv2escaped_filter_value_x LDAP_P(( struct berval *in, struct berval *out,
 
 LDAP_F (int) ldap_pvt_search LDAP_P((
 	struct ldap *ld,
-	LDAP_CONST char *base,
+	const char *base,
 	int scope,
-	LDAP_CONST char *filter,
+	const char *filter,
 	char **attrs,
 	int attrsonly,
 	struct ldapcontrol **sctrls,
@@ -345,9 +345,9 @@ LDAP_F (int) ldap_pvt_search LDAP_P((
 
 LDAP_F(int) ldap_pvt_search_s LDAP_P((
 	struct ldap *ld,
-	LDAP_CONST char *base,
+	const char *base,
 	int scope,
-	LDAP_CONST char *filter,
+	const char *filter,
 	char **attrs,
 	int attrsonly,
 	struct ldapcontrol **sctrls,

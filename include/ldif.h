@@ -51,7 +51,7 @@ LDAP_LDIF_V (int) ldif_debug;
 
 LDAP_LDIF_F( int )
 ldif_parse_line LDAP_P((
-	LDAP_CONST char *line,
+	const char *line,
 	char **name,
 	char **value,
 	ber_len_t *vlen ));
@@ -64,11 +64,11 @@ ldif_parse_line2 LDAP_P((
 	int *freeval ));
 
 LDAP_LDIF_F( FILE * )
-ldif_open_url LDAP_P(( LDAP_CONST char *urlstr ));
+ldif_open_url LDAP_P(( const char *urlstr ));
 
 LDAP_LDIF_F( int )
 ldif_fetch_url LDAP_P((
-	LDAP_CONST char *line,
+	const char *line,
 	char **value,
 	ber_len_t *vlen ));
 
@@ -76,7 +76,7 @@ LDAP_LDIF_F( char * )
 ldif_getline LDAP_P(( char **next ));
 
 LDAP_LDIF_F( int )
-ldif_countlines LDAP_P(( LDAP_CONST char *line ));
+ldif_countlines LDAP_P(( const char *line ));
 
 /* ldif_ropen, rclose, read_record - just for reading LDIF files,
  * no special open/close needed to write LDIF files.
@@ -87,11 +87,11 @@ typedef struct LDIFFP {
 } LDIFFP;
 
 LDAP_LDIF_F( LDIFFP * )
-ldif_open LDAP_P(( LDAP_CONST char *file, LDAP_CONST char *mode ));
+ldif_open LDAP_P(( const char *file, const char *mode ));
 
 /* ldif_open equivalent that opens ldif stream in memory rather than from file */
 LDAP_LDIF_F( LDIFFP * )
-ldif_open_mem LDAP_P(( char *ldif, size_t size, LDAP_CONST char *mode ));
+ldif_open_mem LDAP_P(( char *ldif, size_t size, const char *mode ));
 
 LDAP_LDIF_F( void )
 ldif_close LDAP_P(( LDIFFP * ));
@@ -105,8 +105,8 @@ ldif_read_record LDAP_P((
 
 LDAP_LDIF_F( int )
 ldif_must_b64_encode_register LDAP_P((
-	LDAP_CONST char *name,
-	LDAP_CONST char *oid ));
+	const char *name,
+	const char *oid ));
 
 LDAP_LDIF_F( void )
 ldif_must_b64_encode_release LDAP_P(( void ));
@@ -125,37 +125,37 @@ LDAP_LDIF_F( void )
 ldif_sput LDAP_P((
 	char **out,
 	int type,
-	LDAP_CONST char *name,
-	LDAP_CONST char *val,
+	const char *name,
+	const char *val,
 	ber_len_t vlen ));
 
 LDAP_LDIF_F( void )
 ldif_sput_wrap LDAP_P((
 	char **out,
 	int type,
-	LDAP_CONST char *name,
-	LDAP_CONST char *val,
+	const char *name,
+	const char *val,
 	ber_len_t vlen,
         ber_len_t wrap ));
 
 LDAP_LDIF_F( char * )
 ldif_put LDAP_P((
 	int type,
-	LDAP_CONST char *name,
-	LDAP_CONST char *val,
+	const char *name,
+	const char *val,
 	ber_len_t vlen ));
 
 LDAP_LDIF_F( char * )
 ldif_put_wrap LDAP_P((
 	int type,
-	LDAP_CONST char *name,
-	LDAP_CONST char *val,
+	const char *name,
+	const char *val,
 	ber_len_t vlen,
 	ber_len_t wrap ));
 
 LDAP_LDIF_F( int )
 ldif_is_not_printable LDAP_P((
-	LDAP_CONST char *val,
+	const char *val,
 	ber_len_t vlen ));
 
 LDAP_END_DECL

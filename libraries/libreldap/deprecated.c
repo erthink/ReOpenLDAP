@@ -59,7 +59,7 @@
  */
 
 int
-ldap_bind( LDAP *ld, LDAP_CONST char *dn, LDAP_CONST char *passwd, int authmethod )
+ldap_bind( LDAP *ld, const char *dn, const char *passwd, int authmethod )
 {
 	Debug( LDAP_DEBUG_TRACE, "ldap_bind\n" );
 
@@ -98,8 +98,8 @@ ldap_bind( LDAP *ld, LDAP_CONST char *dn, LDAP_CONST char *passwd, int authmetho
 int
 ldap_bind_s(
 	LDAP *ld,
-	LDAP_CONST char *dn,
-	LDAP_CONST char *passwd,
+	const char *dn,
+	const char *passwd,
 	int authmethod )
 {
 	Debug( LDAP_DEBUG_TRACE, "ldap_bind_s\n" );
@@ -133,7 +133,7 @@ ldap_bind_s(
  */
 
 LDAP *
-ldap_open( LDAP_CONST char *host, int port )
+ldap_open( const char *host, int port )
 {
 	int rc;
 	LDAP		*ld;
@@ -215,7 +215,7 @@ der_alloc( void )	/* deprecated */
  */
 int
 ldap_search(
-	LDAP *ld, LDAP_CONST char *base, int scope, LDAP_CONST char *filter,
+	LDAP *ld, const char *base, int scope, const char *filter,
 	char **attrs, int attrsonly )
 {
 	BerElement	*ber;
@@ -240,8 +240,8 @@ ldap_search(
 
 int
 ldap_search_st(
-	LDAP *ld, LDAP_CONST char *base, int scope,
-	LDAP_CONST char *filter, char **attrs,
+	LDAP *ld, const char *base, int scope,
+	const char *filter, char **attrs,
 	int attrsonly, struct timeval *timeout, LDAPMessage **res )
 {
 	int	msgid;
@@ -267,9 +267,9 @@ ldap_search_st(
 int
 ldap_search_s(
 	LDAP *ld,
-	LDAP_CONST char *base,
+	const char *base,
 	int scope,
-	LDAP_CONST char *filter,
+	const char *filter,
 	char **attrs,
 	int attrsonly,
 	LDAPMessage **res )
@@ -295,7 +295,7 @@ ldap_search_s(
  */
 int
 ldap_create_control(
-	LDAP_CONST char *requestOID,
+	const char *requestOID,
 	BerElement *ber,
 	int iscritical,
 	LDAPControl **ctrlp )
@@ -333,7 +333,7 @@ ldap_create_control(
  */
 LDAPControl *
 ldap_find_control(
-	LDAP_CONST char *oid,
+	const char *oid,
 	LDAPControl **ctrls )
 {
 	if( ctrls == NULL || *ctrls == NULL ) {
@@ -393,7 +393,7 @@ ldap_abandon( LDAP *ld, int msgid )
  */
 
 int
-ldap_add( LDAP *ld, LDAP_CONST char *dn, LDAPMod **attrs )
+ldap_add( LDAP *ld, const char *dn, LDAPMod **attrs )
 {
 	int rc;
 	int msgid = 0;
@@ -407,7 +407,7 @@ ldap_add( LDAP *ld, LDAP_CONST char *dn, LDAPMod **attrs )
 }
 
 int
-ldap_add_s( LDAP *ld, LDAP_CONST char *dn, LDAPMod **attrs )
+ldap_add_s( LDAP *ld, const char *dn, LDAPMod **attrs )
 {
 	return ldap_add_ext_s( ld, dn, attrs, NULL, NULL );
 }
@@ -427,8 +427,8 @@ ldap_add_s( LDAP *ld, LDAP_CONST char *dn, LDAPMod **attrs )
 int
 ldap_simple_bind(
 	LDAP *ld,
-	LDAP_CONST char *dn,
-	LDAP_CONST char *passwd )
+	const char *dn,
+	const char *passwd )
 {
 	int rc;
 	int msgid;
@@ -465,7 +465,7 @@ ldap_simple_bind(
  */
 
 int
-ldap_simple_bind_s( LDAP *ld, LDAP_CONST char *dn, LDAP_CONST char *passwd )
+ldap_simple_bind_s( LDAP *ld, const char *dn, const char *passwd )
 {
 	struct berval cred;
 
@@ -496,9 +496,9 @@ ldap_simple_bind_s( LDAP *ld, LDAP_CONST char *dn, LDAP_CONST char *passwd )
 int
 ldap_compare(
 	LDAP *ld,
-	LDAP_CONST char *dn,
-	LDAP_CONST char *attr,
-	LDAP_CONST char *value )
+	const char *dn,
+	const char *attr,
+	const char *value )
 {
 	int msgid = 0;
 	struct berval bvalue;
@@ -515,9 +515,9 @@ ldap_compare(
 int
 ldap_compare_s(
 	LDAP *ld,
-	LDAP_CONST char *dn,
-	LDAP_CONST char *attr,
-	LDAP_CONST char *value )
+	const char *dn,
+	const char *attr,
+	const char *value )
 {
 	struct berval bvalue;
 
@@ -541,7 +541,7 @@ ldap_compare_s(
  *	msgid = ldap_delete( ld, dn );
  */
 int
-ldap_delete( LDAP *ld, LDAP_CONST char *dn )
+ldap_delete( LDAP *ld, const char *dn )
 {
 	int msgid = 0;
 
@@ -557,7 +557,7 @@ ldap_delete( LDAP *ld, LDAP_CONST char *dn )
 }
 
 int
-ldap_delete_s( LDAP *ld, LDAP_CONST char *dn )
+ldap_delete_s( LDAP *ld, const char *dn )
 {
 	return ldap_delete_ext_s( ld, dn, NULL, NULL );
 }
@@ -566,7 +566,7 @@ ldap_delete_s( LDAP *ld, LDAP_CONST char *dn )
 
 /* deprecated */
 void
-ldap_perror( LDAP *ld, LDAP_CONST char *str )
+ldap_perror( LDAP *ld, const char *str )
 {
 	int i;
 
@@ -621,7 +621,7 @@ ldap_perror( LDAP *ld, LDAP_CONST char *str )
  *	msgid = ldap_modify( ld, dn, mods );
  */
 int
-ldap_modify( LDAP *ld, LDAP_CONST char *dn, LDAPMod **mods )
+ldap_modify( LDAP *ld, const char *dn, LDAPMod **mods )
 {
 	int rc, msgid;
 
@@ -636,7 +636,7 @@ ldap_modify( LDAP *ld, LDAP_CONST char *dn, LDAPMod **mods )
 }
 
 int
-ldap_modify_s( LDAP *ld, LDAP_CONST char *dn, LDAPMod **mods )
+ldap_modify_s( LDAP *ld, const char *dn, LDAPMod **mods )
 {
 	return ldap_modify_ext_s( ld, dn, mods, NULL, NULL );
 }
@@ -658,9 +658,9 @@ ldap_modify_s( LDAP *ld, LDAP_CONST char *dn, LDAPMod **mods )
 int
 ldap_rename2(
 	LDAP *ld,
-	LDAP_CONST char *dn,
-	LDAP_CONST char *newrdn,
-	LDAP_CONST char *newSuperior,
+	const char *dn,
+	const char *newrdn,
+	const char *newSuperior,
 	int deleteoldrdn )
 {
 	int msgid = -1;
@@ -677,9 +677,9 @@ ldap_rename2(
 int
 ldap_rename2_s(
 	LDAP *ld,
-	LDAP_CONST char *dn,
-	LDAP_CONST char *newrdn,
-	LDAP_CONST char *newSuperior,
+	const char *dn,
+	const char *newrdn,
+	const char *newSuperior,
 	int deleteoldrdn )
 {
 	return ldap_rename_s( ld, dn, newrdn, newSuperior,
@@ -687,7 +687,7 @@ ldap_rename2_s(
 }
 
 int
-ldap_modrdn( LDAP *ld, LDAP_CONST char *dn, LDAP_CONST char *newrdn )
+ldap_modrdn( LDAP *ld, const char *dn, const char *newrdn )
 {
 	int msgid = -1;
 	int rc;
@@ -713,8 +713,8 @@ ldap_modrdn( LDAP *ld, LDAP_CONST char *dn, LDAP_CONST char *newrdn )
  */
 int
 ldap_modrdn2( LDAP *ld,
-	LDAP_CONST char *dn,
-	LDAP_CONST char *newrdn,
+	const char *dn,
+	const char *newrdn,
 	int deleteoldrdn )
 {
 	int msgid = -1;
@@ -729,13 +729,13 @@ ldap_modrdn2( LDAP *ld,
 }
 
 int
-ldap_modrdn2_s( LDAP *ld, LDAP_CONST char *dn, LDAP_CONST char *newrdn, int deleteoldrdn )
+ldap_modrdn2_s( LDAP *ld, const char *dn, const char *newrdn, int deleteoldrdn )
 {
 	return ldap_rename_s( ld, dn, newrdn, NULL, deleteoldrdn, NULL, NULL );
 }
 
 int
-ldap_modrdn_s( LDAP *ld, LDAP_CONST char *dn, LDAP_CONST char *newrdn )
+ldap_modrdn_s( LDAP *ld, const char *dn, const char *newrdn )
 {
 	return ldap_rename_s( ld, dn, newrdn, NULL, 1, NULL, NULL );
 }
@@ -746,7 +746,7 @@ ldap_modrdn_s( LDAP *ld, LDAP_CONST char *dn, LDAP_CONST char *newrdn )
  * RFC 1823 ldap_dn2ufn
  */
 char *
-ldap_dn2ufn( LDAP_CONST char *dn )
+ldap_dn2ufn( const char *dn )
 {
 	char	*out = NULL;
 
@@ -759,7 +759,7 @@ ldap_dn2ufn( LDAP_CONST char *dn )
 }
 
 char *
-ldap_dn2dcedn( LDAP_CONST char *dn )
+ldap_dn2dcedn( const char *dn )
 {
 	char	*out = NULL;
 
@@ -772,7 +772,7 @@ ldap_dn2dcedn( LDAP_CONST char *dn )
 }
 
 char *
-ldap_dcedn2dn( LDAP_CONST char *dce )
+ldap_dcedn2dn( const char *dce )
 {
 	char	*out = NULL;
 
@@ -784,7 +784,7 @@ ldap_dcedn2dn( LDAP_CONST char *dce )
 }
 
 char *
-ldap_dn2ad_canonical( LDAP_CONST char *dn )
+ldap_dn2ad_canonical( const char *dn )
 {
 	char	*out = NULL;
 

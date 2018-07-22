@@ -238,7 +238,7 @@ get_modlist(
 
 static int
 bind_prompt( LDAP *ld,
-	LDAP_CONST char *url,
+	const char *url,
 	ber_tag_t request, ber_int_t msgid,
 	void *params )
 {

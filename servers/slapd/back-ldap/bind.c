@@ -1627,7 +1627,7 @@ ldap_back_dobind( ldapconn_t **lcp, Operation *op, SlapReply *rs, ldap_back_send
  * credentials as the original user on this session.
  */
 int
-ldap_back_default_rebind( LDAP *ld, LDAP_CONST char *url, ber_tag_t request,
+ldap_back_default_rebind( LDAP *ld, const char *url, ber_tag_t request,
 	ber_int_t msgid, void *params )
 {
 	ldapconn_t	*lc = (ldapconn_t *)params;

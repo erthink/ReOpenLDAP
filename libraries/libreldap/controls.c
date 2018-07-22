@@ -365,7 +365,7 @@ ldap_control_dup( const LDAPControl *c )
  */
 LDAPControl *
 ldap_control_find(
-	LDAP_CONST char *oid,
+	const char *oid,
 	LDAPControl **ctrls,
 	LDAPControl ***nextctrlp )
 {
@@ -395,7 +395,7 @@ ldap_control_find(
  */
 int
 ldap_control_create(
-	LDAP_CONST char *requestOID,
+	const char *requestOID,
 	int iscritical,
 	struct berval *value,
 	int dupval,

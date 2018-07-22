@@ -37,8 +37,8 @@
 BerElement *
 ldap_build_compare_req(
 	LDAP *ld,
-	LDAP_CONST char *dn,
-	LDAP_CONST char *attr,
+	const char *dn,
+	const char *attr,
 	struct berval *bvalue,
 	LDAPControl **sctrls,
 	LDAPControl **cctrls,
@@ -92,8 +92,8 @@ ldap_build_compare_req(
 int
 ldap_compare_ext(
 	LDAP *ld,
-	LDAP_CONST char *dn,
-	LDAP_CONST char *attr,
+	const char *dn,
+	const char *attr,
 	struct berval *bvalue,
 	LDAPControl **sctrls,
 	LDAPControl **cctrls,
@@ -128,8 +128,8 @@ ldap_compare_ext(
 int
 ldap_compare_ext_s(
 	LDAP *ld,
-	LDAP_CONST char *dn,
-	LDAP_CONST char *attr,
+	const char *dn,
+	const char *attr,
 	struct berval *bvalue,
 	LDAPControl **sctrl,
 	LDAPControl **cctrl )

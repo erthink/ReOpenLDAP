@@ -167,8 +167,8 @@ LBER_V (FILE *) ber_pvt_err_file;
 /* memory.c */
 	/* simple macros to realloc for now */
 LBER_V (BerMemoryFunctions *)	ber_int_memory_fns;
-LBER_F (char *)	ber_strndup( LDAP_CONST char *, ber_len_t );
-LBER_F (char *)	ber_strndup_x( LDAP_CONST char *, ber_len_t, void *ctx );
+LBER_F (char *)	ber_strndup( const char *, ber_len_t );
+LBER_F (char *)	ber_strndup_x( const char *, ber_len_t, void *ctx );
 
 #define LBER_MALLOC(s)		ber_memalloc((s))
 #define LBER_CALLOC(n,s)	ber_memcalloc((n),(s))

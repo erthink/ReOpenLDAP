@@ -293,9 +293,9 @@ typedef struct {
 	ldap_debug_thread_assert_mutex_owner( \
 		__FILE__, __LINE__, "owns(" #mutex ")", mutex )
 LDAP_F(void) ldap_debug_thread_assert_mutex_owner LDAP_P((
-	LDAP_CONST char *file,
+	const char *file,
 	int line,
-	LDAP_CONST char *msg,
+	const char *msg,
 	ldap_debug_thread_mutex_t *mutex ));
 #endif /* LDAP_DEBUG */
 

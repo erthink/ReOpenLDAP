@@ -60,7 +60,7 @@ static const char nib2b64[0x40] =
 
 int
 ldif_parse_line(
-    LDAP_CONST char	*line,
+    const char	*line,
     char	**typep,
     char	**valuep,
     ber_len_t *vlenp
@@ -241,7 +241,7 @@ ldif_parse_line2(
  */
 
 int
-ldif_countlines( LDAP_CONST char *buf )
+ldif_countlines( const char *buf )
 {
 	char *nl;
 	int ret = 0;
@@ -314,7 +314,7 @@ static must_b64_encode_s	*must_b64_encode = default_must_b64_encode;
  * be explicitly freed when no longer required
  */
 int
-ldif_must_b64_encode_register( LDAP_CONST char *name, LDAP_CONST char *oid )
+ldif_must_b64_encode_register( const char *name, const char *oid )
 {
 	int		i;
 	ber_len_t	len;
@@ -395,7 +395,7 @@ ldif_must_b64_encode_release( void )
  * of the attributeTypes listed in must_b64_encode
  */
 static int
-ldif_must_b64_encode( LDAP_CONST char *s )
+ldif_must_b64_encode( const char *s )
 {
 	int		i;
 	struct berval	bv;
@@ -424,8 +424,8 @@ void
 ldif_sput(
 	char **out,
 	int type,
-	LDAP_CONST char *name,
-	LDAP_CONST char *val,
+	const char *name,
+	const char *val,
 	ber_len_t vlen )
 {
 	ldif_sput_wrap( out, type, name, val, vlen, LDIF_LINE_WIDTH+LDIF_KLUDGE );
@@ -435,8 +435,8 @@ void
 ldif_sput_wrap(
 	char **out,
 	int type,
-	LDAP_CONST char *name,
-	LDAP_CONST char *val,
+	const char *name,
+	const char *val,
 	ber_len_t vlen,
         ber_len_t wrap )
 {
@@ -644,8 +644,8 @@ ldif_sput_wrap(
 char *
 ldif_put(
 	int type,
-	LDAP_CONST char *name,
-	LDAP_CONST char *val,
+	const char *name,
+	const char *val,
 	ber_len_t vlen )
 {
 	return ldif_put_wrap( type, name, val, vlen, LDIF_LINE_WIDTH );
@@ -654,8 +654,8 @@ ldif_put(
 char *
 ldif_put_wrap(
 	int type,
-	LDAP_CONST char *name,
-	LDAP_CONST char *val,
+	const char *name,
+	const char *val,
 	ber_len_t vlen,
 	ber_len_t wrap )
 {
@@ -680,7 +680,7 @@ ldif_put_wrap(
 }
 
 int ldif_is_not_printable(
-	LDAP_CONST char *val,
+	const char *val,
 	ber_len_t vlen )
 {
 	if( vlen == 0 || val == NULL  ) {
@@ -706,8 +706,8 @@ int ldif_is_not_printable(
 
 LDIFFP *
 ldif_open(
-	LDAP_CONST char *file,
-	LDAP_CONST char *mode
+	const char *file,
+	const char *mode
 )
 {
 	FILE *fp = fopen( file, mode );
@@ -725,7 +725,7 @@ LDIFFP *
 ldif_open_mem(
 	char *ldif,
 	size_t size,
-	LDAP_CONST char *mode
+	const char *mode
 )
 {
 	FILE *fp = fmemopen( ldif, size, mode );

@@ -162,7 +162,7 @@ ldap_build_add_req(
 int
 ldap_add_ext(
 	LDAP *ld,
-	LDAP_CONST char *dn,
+	const char *dn,
 	LDAPMod **attrs,
 	LDAPControl **sctrls,
 	LDAPControl **cctrls,
@@ -198,7 +198,7 @@ ldap_add_ext(
 int
 ldap_add_ext_s(
 	LDAP *ld,
-	LDAP_CONST char *dn,
+	const char *dn,
 	LDAPMod **attrs,
 	LDAPControl **sctrls,
 	LDAPControl **cctrls )

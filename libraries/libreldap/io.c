@@ -87,7 +87,7 @@ ber_read(
 ber_slen_t
 ber_write(
 	BerElement *ber,
-	LDAP_CONST char *buf,
+	const char *buf,
 	ber_len_t len,
 	int zero )	/* nonzero is unsupported from OpenLDAP 2.4.18 */
 {
