@@ -201,7 +201,7 @@ retrieve_matching_rule( char* mr_oid, AsnTypeId type ) {
 }
 
 void*
-comp_convert_attr_to_comp LDAP_P (( Attribute* a, Syntax *syn, struct berval* bv ))
+comp_convert_attr_to_comp ( Attribute* a, Syntax *syn, struct berval* bv )
 {
 	char* peek_head;
         int mode, bytesDecoded, size, rc;

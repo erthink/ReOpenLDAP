@@ -124,10 +124,10 @@ usage( void )
 	main_exit( EXIT_FAILURE );
 }
 
-static void print_entry LDAP_P((
+static void print_entry (
 	LDAP	*ld,
 	LDAPMessage	*entry,
-	int		attrsonly));
+	int		attrsonly);
 
 static void print_reference(
 	LDAP *ld,
@@ -146,7 +146,7 @@ static int print_result(
 	LDAPMessage *result,
 	int search );
 
-static int dosearch LDAP_P((
+static int dosearch (
 	LDAP	*ld,
 	char	*base,
 	int		scope,
@@ -157,7 +157,7 @@ static int dosearch LDAP_P((
 	LDAPControl **sctrls,
 	LDAPControl **cctrls,
 	struct timeval *timeout,
-	int	sizelimit ));
+	int	sizelimit );
 
 static char *tmpdir = NULL;
 static char *urlpre = NULL;

@@ -39,22 +39,22 @@ struct sockinfo {
 #define	SOCK_EXT_SSF		4
 #define	SOCK_EXT_CONNID		8
 
-extern FILE *opensock LDAP_P((
-	const char *sockpath));
+extern FILE *opensock (
+	const char *sockpath);
 
-extern void sock_print_suffixes LDAP_P((
+extern void sock_print_suffixes (
 	FILE *fp,
-	BackendDB *bd));
+	BackendDB *bd);
 
-extern void sock_print_conn LDAP_P((
+extern void sock_print_conn (
 	FILE *fp,
 	Connection *conn,
-	struct sockinfo *si));
+	struct sockinfo *si);
 
-extern int sock_read_and_send_results LDAP_P((
+extern int sock_read_and_send_results (
 	Operation *op,
 	SlapReply *rs,
-	FILE *fp));
+	FILE *fp);
 
 LDAP_END_DECL
 

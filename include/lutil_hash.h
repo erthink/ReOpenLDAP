@@ -27,19 +27,19 @@ struct lutil_HASHContext {
 };
 
 LDAP_LUTIL_F( void )
-lutil_HASHInit LDAP_P((
-	struct lutil_HASHContext *context));
+lutil_HASHInit (
+	struct lutil_HASHContext *context);
 
 LDAP_LUTIL_F( void )
-lutil_HASHUpdate LDAP_P((
+lutil_HASHUpdate (
 	struct lutil_HASHContext *context,
 	unsigned char const *buf,
-	ber_len_t len));
+	ber_len_t len);
 
 LDAP_LUTIL_F( void )
-lutil_HASHFinal LDAP_P((
+lutil_HASHFinal (
 	unsigned char digest[LUTIL_HASH_BYTES],
-	struct lutil_HASHContext *context));
+	struct lutil_HASHContext *context);
 
 typedef struct lutil_HASHContext lutil_HASH_CTX;
 

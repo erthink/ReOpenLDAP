@@ -28,9 +28,9 @@
 #define AVL_NONREENTRANT
 #include "avl.h"
 
-static void ravl_print LDAP_P(( Avlnode *root, int depth ));
-static void myprint LDAP_P(( Avlnode *root ));
-static int avl_strcmp LDAP_P(( const void *s, const void *t ));
+static void ravl_print( Avlnode *root, int depth );
+static void myprint( Avlnode *root );
+static int avl_strcmp( const void *s, const void *t );
 
 int
 main( int argc, char **argv )

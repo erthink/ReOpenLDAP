@@ -35,7 +35,7 @@ LDAP_LIBC_F(char*)(getpassphrase)();
 
 #else
 #define getpassphrase(p) lutil_getpass(p)
-LDAP_LUTIL_F(char*)(lutil_getpass) LDAP_P((const char *getpass));
+LDAP_LUTIL_F(char*)(lutil_getpass) (const char *getpass);
 #endif
 
 /* getopt() defines may be in separate include file */

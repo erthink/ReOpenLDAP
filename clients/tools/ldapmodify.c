@@ -82,22 +82,22 @@ static struct berval BV_NEWSUP = BER_BVC("newsuperior");
 #define	BV_CASEMATCH(a, b) \
 	((a)->bv_len == (b)->bv_len && 0 == strcasecmp((a)->bv_val, (b)->bv_val))
 
-static int process_ldif_rec LDAP_P(( char *rbuf, unsigned long lineno ));
-static int parse_ldif_control LDAP_P(( struct berval *val, LDAPControl ***pctrls ));
-static int domodify LDAP_P((
+static int process_ldif_rec ( char *rbuf, unsigned long lineno );
+static int parse_ldif_control ( struct berval *val, LDAPControl ***pctrls );
+static int domodify (
 	const char *dn,
 	LDAPMod **pmods,
 	LDAPControl **pctrls,
-	int newentry ));
-static int dodelete LDAP_P((
+	int newentry );
+static int dodelete (
 	const char *dn,
-	LDAPControl **pctrls ));
-static int dorename LDAP_P((
+	LDAPControl **pctrls );
+static int dorename (
 	const char *dn,
 	const char *newrdn,
 	const char *newsup,
 	int deleteoldrdn,
-	LDAPControl **pctrls ));
+	LDAPControl **pctrls );
 static int process_response(
 	LDAP *ld,
 	int msgid,

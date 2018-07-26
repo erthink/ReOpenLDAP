@@ -27,7 +27,6 @@
 #endif
 
 /* ANSI C or C++ */
-#define LDAP_P(protos)	protos
 #define LDAP_CONCAT1(x,y)	x ## y
 #define LDAP_CONCAT(x,y)	LDAP_CONCAT1(x,y)
 #define LDAP_STRING(x)	#x /* stringify without expanding x */

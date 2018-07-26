@@ -467,8 +467,8 @@ int GEncComponentGeneralizedTime (GenBuf *b, ComponentGeneralizedTime *gen_time)
 #define ExtractingComponentGeneralizedTime(mem_op,cr,data) NULL
 #define FreeComponentGeneralizedTime FreeComponentOcts
 
-typedef int converter_func LDAP_P ((
-	struct berval* in ));
+typedef int converter_func  (
+	struct berval* in );
 
 typedef struct asntype_to_syntax {
 	AsnTypeId	ats_typeId;
@@ -478,7 +478,6 @@ typedef struct asntype_to_syntax {
 	char		*ats_syn_oid;
 	Syntax		*ats_syn;
 } AsnTypetoSyntax;
-
 typedef struct asntype_to_comp_matchingrule {
 	AsnTypeId	atc_typeId;
 	char*	atc_equality;

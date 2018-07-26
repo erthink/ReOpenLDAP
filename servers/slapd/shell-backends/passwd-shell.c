@@ -36,8 +36,8 @@
 
 #include "shellutil.h"
 
-static void pwdfile_search LDAP_P(( struct ldop *op, FILE *ofp ));
-static struct ldentry *pw2entry LDAP_P(( struct ldop *op, struct passwd *pw ));
+static void pwdfile_search( struct ldop *op, FILE *ofp );
+static struct ldentry *pw2entry( struct ldop *op, struct passwd *pw );
 
 static char	tmpbuf[ MAXLINELEN * 2 ];
 

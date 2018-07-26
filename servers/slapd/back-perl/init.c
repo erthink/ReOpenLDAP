@@ -21,8 +21,8 @@
 extern char **environ;
 #endif
 
-static void perl_back_xs_init LDAP_P((PERL_BACK_XS_INIT_PARAMS));
-EXT void boot_DynaLoader LDAP_P((PERL_BACK_BOOT_DYNALOADER_PARAMS));
+static void perl_back_xs_init(PERL_BACK_XS_INIT_PARAMS);
+EXT void boot_DynaLoader(PERL_BACK_BOOT_DYNALOADER_PARAMS);
 
 PerlInterpreter *PERL_INTERPRETER = NULL;
 ldap_pvt_thread_mutex_t	perl_interpreter_mutex;

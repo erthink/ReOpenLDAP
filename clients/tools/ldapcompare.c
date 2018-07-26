@@ -81,14 +81,14 @@ usage( void )
 	exit( EXIT_FAILURE );
 }
 
-static int docompare LDAP_P((
+static int docompare (
 	LDAP *ld,
 	char *dn,
 	char *attr,
 	struct berval *bvalue,
 	int quiet,
 	LDAPControl **sctrls,
-	LDAPControl **cctrls));
+	LDAPControl **cctrls);
 
 
 const char options[] = "z"

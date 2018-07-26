@@ -41,10 +41,10 @@
 #include "ldap-int.h"
 
 /* local functions */
-static const char* skip_url_prefix LDAP_P((
+static const char* skip_url_prefix (
 	const char *url,
 	int *enclosedp,
-	const char **scheme ));
+	const char **scheme );
 
 int ldap_pvt_url_scheme2proto( const char *scheme )
 {

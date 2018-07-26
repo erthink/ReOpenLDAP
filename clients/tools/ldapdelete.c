@@ -42,14 +42,14 @@ static int	prune = 0;
 static int sizelimit = -1;
 
 
-static int dodelete LDAP_P((
+static int dodelete (
     LDAP *ld,
-    const char *dn));
+	const char *dn);
 
-static int deletechildren LDAP_P((
+static int deletechildren (
 	LDAP *ld,
 	const char *dn,
-	int subentries ));
+	int subentries );
 
 void
 usage( void )

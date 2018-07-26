@@ -109,31 +109,31 @@ extern tool_vars tool_globals;
 #define SLAP_TOOL_LDAPDN_PRETTY		SLAP_LDAPDN_PRETTY
 #define SLAP_TOOL_LDAPDN_NORMAL		(SLAP_LDAPDN_PRETTY << 1)
 
-void slap_tool_init LDAP_P((
+void slap_tool_init (
 	const char* name,
 	int tool,
-	int argc, char **argv ));
+	int argc, char **argv );
 
-int slap_tool_destroy LDAP_P((void));
+int slap_tool_destroy(void);
 
-int slap_tool_update_ctxcsn LDAP_P((
+int slap_tool_update_ctxcsn (
 	const char *progname,
 	unsigned long sid,
-	struct berval *bvtext ));
+	struct berval *bvtext );
 
-unsigned long slap_tool_update_ctxcsn_check LDAP_P((
+unsigned long slap_tool_update_ctxcsn_check (
 	const char *progname,
-	Entry *e ));
+	Entry *e );
 
-int slap_tool_update_ctxcsn_init LDAP_P((void));
+int slap_tool_update_ctxcsn_init(void);
 
-int slap_tool_entry_check LDAP_P((
+int slap_tool_entry_check (
 	const char *progname,
 	Operation *op,
 	Entry *e,
 	int lineno,
 	const char **text,
 	char *textbuf,
-	size_t textlen ));
+	size_t textlen );
 
 #endif /* SLAPCOMMON_H_ */

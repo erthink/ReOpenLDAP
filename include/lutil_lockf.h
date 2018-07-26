@@ -24,10 +24,10 @@
 LDAP_BEGIN_DECL
 
 LDAP_LUTIL_F( int )
-lutil_lockf LDAP_P(( int fd ));
+lutil_lockf( int fd );
 
 LDAP_LUTIL_F( int )
-lutil_unlockf LDAP_P(( int fd ));
+lutil_unlockf( int fd );
 
 LDAP_END_DECL
 

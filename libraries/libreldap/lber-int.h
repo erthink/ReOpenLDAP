@@ -133,14 +133,14 @@ struct sockbuf {
  * io.c
  */
 LBER_F( int )
-ber_realloc LDAP_P((
+ber_realloc (
 	BerElement *ber,
-	ber_len_t len ));
+	ber_len_t len );
 
-LBER_F (char *) ber_start LDAP_P(( BerElement * ));
-LBER_F (int) ber_len LDAP_P(( BerElement * ));
-LBER_F (int) ber_ptrlen LDAP_P(( BerElement * ));
-LBER_F (void) ber_rewind LDAP_P(( BerElement * ));
+LBER_F (char *) ber_start( BerElement * );
+LBER_F (int) ber_len( BerElement * );
+LBER_F (int) ber_ptrlen( BerElement * );
+LBER_F (void) ber_rewind( BerElement * );
 
 /*
  * bprint.c
@@ -148,18 +148,18 @@ LBER_F (void) ber_rewind LDAP_P(( BerElement * ));
 #define ber_log_printf ber_pvt_log_printf
 
 LBER_F( int )
-ber_log_bprint LDAP_P((
+ber_log_bprint (
 	int errlvl,
 	int loglvl,
 	const char *data,
-	ber_len_t len ));
+	ber_len_t len );
 
 LBER_F( int )
-ber_log_dump LDAP_P((
+ber_log_dump (
 	int errlvl,
 	int loglvl,
 	BerElement *ber,
-	int inout ));
+	int inout );
 
 LBER_V (BER_LOG_FN) ber_int_log_proc;
 LBER_V (FILE *) ber_pvt_err_file;
@@ -181,19 +181,19 @@ LBER_F (char *)	ber_strndup_x( const char *, ber_len_t, void *ctx );
 /* sockbuf.c */
 
 LBER_F(	int )
-ber_int_sb_init LDAP_P(( Sockbuf *sb ));
+ber_int_sb_init( Sockbuf *sb );
 
 LBER_F( int )
-ber_int_sb_close LDAP_P(( Sockbuf *sb ));
+ber_int_sb_close( Sockbuf *sb );
 
 LBER_F(	int )
-ber_int_sb_destroy LDAP_P(( Sockbuf *sb ));
+ber_int_sb_destroy( Sockbuf *sb );
 
 LBER_F( ber_slen_t )
-ber_int_sb_read LDAP_P(( Sockbuf *sb, void *buf, ber_len_t len ));
+ber_int_sb_read( Sockbuf *sb, void *buf, ber_len_t len );
 
 LBER_F( ber_slen_t )
-ber_int_sb_write LDAP_P(( Sockbuf *sb, void *buf, ber_len_t len ));
+ber_int_sb_write( Sockbuf *sb, void *buf, ber_len_t len );
 
 LDAP_END_DECL
 

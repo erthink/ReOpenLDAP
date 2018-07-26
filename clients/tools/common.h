@@ -108,30 +108,30 @@ extern const char	_Version[];
 /* Defined in main program */
 extern const char	options[];
 
-void usage LDAP_P(( void )) __attribute__((noreturn));
-int handle_private_option LDAP_P(( int i ));
+void usage ( void ) __attribute__((noreturn));
+int handle_private_option ( int i );
 
 /* Defined in common.c */
-void tool_init LDAP_P(( tool_type_t type ));
-void tool_common_usage LDAP_P(( void ));
-void tool_args LDAP_P(( int, char ** ));
-LDAP *tool_conn_setup LDAP_P(( int dont, void (*private_setup)( LDAP * ) ));
-void tool_bind LDAP_P(( LDAP * ));
-void tool_unbind LDAP_P(( LDAP * ));
-void tool_destroy LDAP_P(( void ));
-void tool_exit LDAP_P(( LDAP *ld, int status )) __attribute__((noreturn));
-void tool_server_controls LDAP_P(( LDAP *, LDAPControl *, int ));
-int tool_check_abandon LDAP_P(( LDAP *ld, int msgid ));
-void tool_perror LDAP_P((
+void tool_init ( tool_type_t type );
+void tool_common_usage ( void );
+void tool_args ( int, char ** );
+LDAP *tool_conn_setup ( int dont, void (*private_setup)( LDAP * ));
+void tool_bind ( LDAP * );
+void tool_unbind ( LDAP * );
+void tool_destroy ( void );
+void tool_exit ( LDAP *ld, int status ) __attribute__((noreturn));
+void tool_server_controls ( LDAP *, LDAPControl *, int );
+int tool_check_abandon ( LDAP *ld, int msgid );
+void tool_perror (
 	const char *func,
 	int err,
 	const char *extra,
 	const char *matched,
 	const char *info,
-	char **refs ));
-void tool_print_ctrls LDAP_P(( LDAP *ld, LDAPControl **ctrls ));
-int tool_write_ldif LDAP_P(( int type, char *name, char *value, ber_len_t vallen ));
-int tool_is_oid LDAP_P(( const char *s ));
+	char **refs );
+void tool_print_ctrls ( LDAP *ld, LDAPControl **ctrls );
+int tool_write_ldif ( int type, char *name, char *value, ber_len_t vallen );
+int tool_is_oid ( const char *s );
 
 
 LDAP_END_DECL

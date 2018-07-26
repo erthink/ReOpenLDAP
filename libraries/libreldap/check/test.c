@@ -39,16 +39,16 @@
 #include "../ldap-int.h"
 
 /* local functions */
-static char *get_line LDAP_P(( char *line, int len, FILE *fp, const char *prompt ));
-static char **get_list LDAP_P(( const char *prompt ));
-static int file_read LDAP_P(( const char *path, struct berval *bv ));
-static LDAPMod **get_modlist LDAP_P(( const char *prompt1,
-	const char *prompt2, const char *prompt3 ));
-static void handle_result LDAP_P(( LDAP *ld, LDAPMessage *lm ));
-static void print_ldap_result LDAP_P(( LDAP *ld, LDAPMessage *lm,
-	const char *s ));
-static void print_search_entry LDAP_P(( LDAP *ld, LDAPMessage *res ));
-static void free_list LDAP_P(( char **list ));
+static char *get_line( char *line, int len, FILE *fp, const char *prompt );
+static char **get_list( const char *prompt );
+static int file_read( const char *path, struct berval *bv );
+static LDAPMod **get_modlist ( const char *prompt1,
+	const char *prompt2, const char *prompt3 );
+static void handle_result( LDAP *ld, LDAPMessage *lm );
+static void print_ldap_result ( LDAP *ld, LDAPMessage *lm,
+	const char *s );
+static void print_search_entry( LDAP *ld, LDAPMessage *res );
+static void free_list( char **list );
 
 static char *dnsuffix;
 
@@ -193,10 +193,10 @@ get_modlist(
 			for ( i = 0; tmp.mod_values[i] != NULL; ++i )
 				;
 			bvals = (struct berval **)calloc( i + 1,
-			    sizeof( struct berval *));
+				sizeof( struct berval *);
 			for ( i = 0; tmp.mod_values[i] != NULL; ++i ) {
 				bvals[i] = (struct berval *)malloc(
-				    sizeof( struct berval ));
+					sizeof( struct berval );
 				if ( strncmp( tmp.mod_values[i], "{FILE}",
 				    6 ) == 0 ) {
 					if ( file_read( tmp.mod_values[i] + 6,

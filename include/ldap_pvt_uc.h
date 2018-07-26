@@ -37,8 +37,8 @@ LDAP_BEGIN_DECL
 typedef uint32_t ldap_unicode_t;
 
 /* Convert a string with csize octets per character to UTF-8 */
-LDAP_F( int ) ldap_ucs_to_utf8s LDAP_P((
-	struct berval *ucs, int csize, struct berval *utf8s ));
+LDAP_F( int ) ldap_ucs_to_utf8s (
+	struct berval *ucs, int csize, struct berval *utf8s );
 
 
 /* returns the number of bytes in the UTF-8 string */

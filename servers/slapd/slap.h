@@ -379,19 +379,19 @@ struct OidMacro {
 	LDAP_STAILQ_ENTRY(OidMacro) som_next;
 };
 
-typedef int slap_syntax_validate_func LDAP_P((
+typedef int slap_syntax_validate_func (
 	Syntax *syntax,
-	struct berval * in));
+	struct berval * in);
 
-typedef int slap_syntax_transform_func LDAP_P((
+typedef int slap_syntax_transform_func (
 	Syntax *syntax,
 	struct berval * in,
 	struct berval * out,
-	void *memctx));
+	void *memctx);
 
 #ifdef LDAP_COMP_MATCH
-typedef void* slap_component_transform_func LDAP_P((
-	struct berval * in ));
+typedef void* slap_component_transform_func (
+	struct berval * in );
 struct ComponentDesc;
 #endif
 
@@ -462,31 +462,31 @@ typedef struct slap_syntax_defs_rec {
 } slap_syntax_defs_rec;
 
 /* X -> Y Converter */
-typedef int slap_mr_convert_func LDAP_P((
+typedef int slap_mr_convert_func (
 	struct berval * in,
 	struct berval * out,
-	void *memctx ));
+	void *memctx );
 
 /* Normalizer */
-typedef int slap_mr_normalize_func LDAP_P((
+typedef int slap_mr_normalize_func (
 	slap_mask_t use,
 	Syntax *syntax, /* NULL if in is asserted value */
 	MatchingRule *mr,
 	struct berval *in,
 	struct berval *out,
-	void *memctx ));
+	void *memctx );
 
 /* Match (compare) function */
-typedef int slap_mr_match_func LDAP_P((
+typedef int slap_mr_match_func (
 	int *match,
 	slap_mask_t use,
 	Syntax *syntax,	/* syntax of stored value */
 	MatchingRule *mr,
 	struct berval *value,
-	void *assertValue ));
+	void *assertValue );
 
 /* Index generation function */
-typedef int slap_mr_indexer_func LDAP_P((
+typedef int slap_mr_indexer_func (
 	slap_mask_t use,
 	slap_mask_t mask,
 	Syntax *syntax,	/* syntax of stored value */
@@ -494,10 +494,10 @@ typedef int slap_mr_indexer_func LDAP_P((
 	struct berval *prefix,
 	BerVarray values,
 	BerVarray *keys,
-	void *memctx ));
+	void *memctx );
 
 /* Filter index function */
-typedef int slap_mr_filter_func LDAP_P((
+typedef int slap_mr_filter_func (
 	slap_mask_t use,
 	slap_mask_t mask,
 	Syntax *syntax,	/* syntax of stored value */
@@ -505,7 +505,7 @@ typedef int slap_mr_filter_func LDAP_P((
 	struct berval *prefix,
 	void *assertValue,
 	BerVarray *keys,
-	void *memctx ));
+	void *memctx );
 
 struct MatchingRule {
 	LDAPMatchingRule		smr_mrule;
@@ -1315,10 +1315,10 @@ typedef struct AuthorizationInformation {
 /*
  * "dynamic" ACL infrastructure (for ACIs and more)
  */
-typedef int (slap_dynacl_parse) LDAP_P(( const char *fname, int lineno,
-	const char *opts, slap_style_t, const char *, void **privp ));
-typedef int (slap_dynacl_unparse) LDAP_P(( void *priv, struct berval *bv ));
-typedef int (slap_dynacl_mask) LDAP_P((
+typedef int (slap_dynacl_parse) ( const char *fname, int lineno,
+	const char *opts, slap_style_t, const char *, void **privp );
+typedef int (slap_dynacl_unparse)( void *priv, struct berval *bv );
+typedef int (slap_dynacl_mask) (
 		void			*priv,
 		Operation		*op,
 		Entry			*e,
@@ -1327,8 +1327,8 @@ typedef int (slap_dynacl_mask) LDAP_P((
 		int			nmatch,
 		regmatch_t		*matches,
 		slap_access_t		*grant,
-		slap_access_t		*deny ));
-typedef int (slap_dynacl_destroy) LDAP_P(( void *priv ));
+		slap_access_t		*deny );
+typedef int (slap_dynacl_destroy)( void *priv );
 
 typedef struct slap_dynacl_t {
 	char			*da_name;
@@ -1654,12 +1654,12 @@ typedef struct slap_cf_aux_table {
 } slap_cf_aux_table;
 
 typedef int
-slap_cf_aux_table_parse_x LDAP_P((
+slap_cf_aux_table_parse_x (
 	struct berval *val,
 	void *bc,
 	slap_cf_aux_table *tab0,
 	const char *tabmsg,
-	int unparse ));
+	int unparse );
 
 #define SLAP_LIMIT_TIME	1
 #define SLAP_LIMIT_SIZE	2
@@ -2039,24 +2039,24 @@ struct BackendDB {
 };
 
 /* Backend function typedefs */
-typedef int (BI_bi_func) LDAP_P((BackendInfo *bi));
+typedef int (BI_bi_func)(BackendInfo *bi);
 typedef BI_bi_func BI_init;
 typedef BI_bi_func BI_open;
 typedef BI_bi_func BI_close;
 typedef BI_bi_func BI_destroy;
-typedef int (BI_config) LDAP_P((BackendInfo *bi,
+typedef int (BI_config) (BackendInfo *bi,
 	const char *fname, int lineno,
-	int argc, char **argv));
+	int argc, char **argv);
 
 typedef struct config_reply_s ConfigReply; /* slapconfig.h */
-typedef int (BI_db_func) LDAP_P((Backend *bd, ConfigReply *cr));
+typedef int (BI_db_func)(Backend *bd, ConfigReply *cr);
 typedef BI_db_func BI_db_init;
 typedef BI_db_func BI_db_open;
 typedef BI_db_func BI_db_close;
 typedef BI_db_func BI_db_destroy;
-typedef int (BI_db_config) LDAP_P((Backend *bd,
+typedef int (BI_db_config) (Backend *bd,
 	const char *fname, int lineno,
-	int argc, char **argv));
+	int argc, char **argv);
 
 typedef struct req_bind_s {
 	int rb_method;
@@ -2217,7 +2217,7 @@ struct SlapReply {
 #define	sr_rspdata sr_un.sru_extended.r_rspdata
 #define	sr_sasldata sr_un.sru_sasl.r_sasldata
 
-typedef int (BI_op_func) LDAP_P(( Operation *op, SlapReply *rs ));
+typedef int (BI_op_func)( Operation *op, SlapReply *rs );
 typedef BI_op_func BI_op_bind;
 typedef BI_op_func BI_op_unbind;
 typedef BI_op_func BI_op_search;
@@ -2232,39 +2232,39 @@ typedef BI_op_func BI_op_cancel;
 typedef BI_op_func BI_chk_referrals;
 typedef BI_op_func BI_chk_controls;
 typedef int (BI_entry_release_rw)
-	LDAP_P(( Operation *op, Entry *e, int rw ));
-typedef int (BI_entry_get_rw) LDAP_P(( Operation *op, struct berval *ndn,
-	ObjectClass *oc, AttributeDescription *at, int rw, Entry **e ));
-typedef int (BI_operational) LDAP_P(( Operation *op, SlapReply *rs ));
-typedef int (BI_has_subordinates) LDAP_P(( Operation *op,
-	Entry *e, int *hasSubs ));
-typedef int (BI_access_allowed) LDAP_P(( Operation *op, Entry *e,
+( Operation *op, Entry *e, int rw );
+typedef int (BI_entry_get_rw) ( Operation *op, struct berval *ndn,
+	ObjectClass *oc, AttributeDescription *at, int rw, Entry **e );
+typedef int (BI_operational)( Operation *op, SlapReply *rs );
+typedef int (BI_has_subordinates) ( Operation *op,
+	Entry *e, int *hasSubs );
+typedef int (BI_access_allowed) ( Operation *op, Entry *e,
 	AttributeDescription *desc, struct berval *val, slap_access_t access,
-	AccessControlState *state, slap_mask_t *maskp ));
-typedef int (BI_acl_group) LDAP_P(( Operation *op, Entry *target,
+	AccessControlState *state, slap_mask_t *maskp );
+typedef int (BI_acl_group) ( Operation *op, Entry *target,
 	struct berval *gr_ndn, struct berval *op_ndn,
-	ObjectClass *group_oc, AttributeDescription *group_at ));
-typedef int (BI_acl_attribute) LDAP_P(( Operation *op, Entry *target,
+	ObjectClass *group_oc, AttributeDescription *group_at );
+typedef int (BI_acl_attribute) ( Operation *op, Entry *target,
 	struct berval *entry_ndn, AttributeDescription *entry_at,
-	BerVarray *vals, slap_access_t access ));
+	BerVarray *vals, slap_access_t access );
 
-typedef int (BI_conn_func) LDAP_P(( BackendDB *bd, Connection *c ));
+typedef int (BI_conn_func)( BackendDB *bd, Connection *c );
 typedef BI_conn_func BI_connection_init;
 typedef BI_conn_func BI_connection_destroy;
 
-typedef int (BI_tool_entry_open) LDAP_P(( BackendDB *be, int mode ));
-typedef int (BI_tool_entry_close) LDAP_P(( BackendDB *be ));
-typedef ID (BI_tool_entry_first) LDAP_P(( BackendDB *be ));
-typedef ID (BI_tool_entry_first_x) LDAP_P(( BackendDB *be, struct berval *base, int scope, Filter *f ));
-typedef ID (BI_tool_entry_next) LDAP_P(( BackendDB *be ));
-typedef Entry* (BI_tool_entry_get) LDAP_P(( BackendDB *be, ID id ));
-typedef ID (BI_tool_entry_put) LDAP_P(( BackendDB *be, Entry *e,
-	struct berval *text ));
-typedef int (BI_tool_entry_reindex) LDAP_P(( BackendDB *be, ID id, AttributeDescription **adv ));
-typedef int (BI_tool_sync) LDAP_P(( BackendDB *be ));
-typedef ID (BI_tool_dn2id_get) LDAP_P(( BackendDB *be, struct berval *dn ));
-typedef ID (BI_tool_entry_modify) LDAP_P(( BackendDB *be, Entry *e,
-	struct berval *text ));
+typedef int (BI_tool_entry_open)( BackendDB *be, int mode );
+typedef int (BI_tool_entry_close)( BackendDB *be );
+typedef ID (BI_tool_entry_first)( BackendDB *be );
+typedef ID (BI_tool_entry_first_x)( BackendDB *be, struct berval *base, int scope, Filter *f );
+typedef ID (BI_tool_entry_next)( BackendDB *be );
+typedef Entry* (BI_tool_entry_get)( BackendDB *be, ID id );
+typedef ID (BI_tool_entry_put) ( BackendDB *be, Entry *e,
+	struct berval *text );
+typedef int (BI_tool_entry_reindex)( BackendDB *be, ID id, AttributeDescription **adv );
+typedef int (BI_tool_sync)( BackendDB *be );
+typedef ID (BI_tool_dn2id_get)( BackendDB *be, struct berval *dn );
+typedef ID (BI_tool_entry_modify) ( BackendDB *be, Entry *e,
+	struct berval *text );
 
 struct BackendInfo {
 	const char	*bi_type; /* type of backend */
@@ -3149,12 +3149,12 @@ struct Listener {
 	(SLAP_CTRL_ADD|SLAP_CTRL_DELETE|SLAP_CTRL_MODIFY|SLAP_CTRL_RENAME)
 #define SLAP_CTRL_ACCESS	(SLAP_CTRL_INTROGATE|SLAP_CTRL_UPDATE)
 
-typedef int (SLAP_CTRL_PARSE_FN) LDAP_P((
+typedef int (SLAP_CTRL_PARSE_FN) (
 	Operation *op,
 	SlapReply *rs,
-	LDAPControl *ctrl ));
+	LDAPControl *ctrl );
 
-typedef int (*SLAP_ENTRY_INFO_FN) LDAP_P(( void *arg, Entry *e ));
+typedef int (*SLAP_ENTRY_INFO_FN)( void *arg, Entry *e );
 
 #define SLAP_SLAB_SIZE	(1024*1024)
 #define SLAP_SLAB_STACK 1
@@ -3274,89 +3274,89 @@ struct ComponentAssertionValue {
 	char* cav_end;
 };
 
-typedef int encoder_func LDAP_P((
+typedef int encoder_func (
 	void* b,
-	void* comp));
+	void* comp);
 
-typedef int gser_decoder_func LDAP_P((
+typedef int gser_decoder_func (
 	void* mem_op,
 	void* b,
 	ComponentSyntaxInfo** comp_syn_info,
 	int* len,
-	int mode));
+	int mode);
 
-typedef int comp_free_func LDAP_P((
-	void* b));
+typedef int comp_free_func (
+	void* b);
 
-typedef int ber_decoder_func LDAP_P((
+typedef int ber_decoder_func (
 	void* mem_op,
 	void* b,
 	int tag,
 	int elmtLen,
 	ComponentSyntaxInfo* comp_syn_info,
 	int* len,
-	int mode));
+	int mode);
 
-typedef int ber_tag_decoder_func LDAP_P((
+typedef int ber_tag_decoder_func (
 	void* mem_op,
 	void* b,
 	ComponentSyntaxInfo* comp_syn_info,
 	int* len,
-	int mode));
+	int mode);
 
-typedef void* extract_component_from_id_func LDAP_P((
+typedef void* extract_component_from_id_func (
 	void* mem_op,
 	ComponentReference* cr,
-	void* comp ));
+	void* comp );
 
-typedef void* convert_attr_to_comp_func LDAP_P ((
+typedef void* convert_attr_to_comp_func (
         Attribute* a,
 	Syntax* syn,
-        struct berval* bv ));
+		struct berval* bv );
 
-typedef void* alloc_nibble_func LDAP_P ((
+typedef void* alloc_nibble_func (
 	int initial_size,
-	int increment_size ));
+	int increment_size );
 
-typedef void free_nibble_func LDAP_P ((
-	void* nm ));
+typedef void free_nibble_func (
+	void* nm );
 
-typedef void convert_assert_to_comp_func LDAP_P ((
+typedef void convert_assert_to_comp_func (
 	void *mem_op,
         ComponentSyntaxInfo* csi_attr,
         struct berval* bv,
         ComponentSyntaxInfo** csi,
         int* len,
-        int mode ));
+		int mode );
 
-typedef int convert_asn_to_ldap_func LDAP_P ((
+typedef int convert_asn_to_ldap_func (
         ComponentSyntaxInfo* csi,
-        struct berval *bv ));
+		struct berval *bv );
 
-typedef void free_component_func LDAP_P ((
-        void* mem_op));
+typedef void free_component_func (
+		void* mem_op);
 
-typedef int test_component_func LDAP_P ((
+typedef int test_component_func (
 	void* attr_mem_op,
 	void* assert_mem_op,
         ComponentSyntaxInfo* csi,
-	ComponentAssertion* ca));
+	ComponentAssertion* ca);
 
-typedef void* test_membership_func LDAP_P ((
-	void* in ));
+typedef void* test_membership_func (
+	void* in );
 
-typedef void* get_component_info_func LDAP_P ((
-	int in ));
+typedef void* get_component_info_func (
+	int in );
 
-typedef int component_encoder_func LDAP_P ((
+typedef int component_encoder_func (
 	void* mem_op,
 	ComponentSyntaxInfo* csi,
-	struct berval* nvals ));
+	struct berval* nvals );
 
-typedef int allcomponent_matching_func LDAP_P((
+typedef int allcomponent_matching_func (
 	char* oid,
 	ComponentSyntaxInfo* comp1,
-	ComponentSyntaxInfo* comp));
+	ComponentSyntaxInfo* comp);
 
 struct ComponentDesc {
 	/* Don't change the order of following four fields */

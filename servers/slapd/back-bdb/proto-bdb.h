@@ -47,14 +47,14 @@ void bdb_attr_flush( struct bdb_info *bdb );
 int bdb_attr_slot( struct bdb_info *bdb,
 	AttributeDescription *desc, int *insert );
 
-int bdb_attr_index_config LDAP_P(( struct bdb_info *bdb,
+int bdb_attr_index_config ( struct bdb_info *bdb,
 	const char *fname, int lineno,
-	int argc, char **argv, struct config_reply_s *cr ));
+	int argc, char **argv, struct config_reply_s *cr );
 
-void bdb_attr_index_unparse LDAP_P(( struct bdb_info *bdb, BerVarray *bva ));
-void bdb_attr_index_destroy LDAP_P(( struct bdb_info *bdb ));
-void bdb_attr_index_free LDAP_P(( struct bdb_info *bdb,
-	AttributeDescription *ad ));
+void bdb_attr_index_unparse( struct bdb_info *bdb, BerVarray *bva );
+void bdb_attr_index_destroy( struct bdb_info *bdb );
+void bdb_attr_index_free ( struct bdb_info *bdb,
+	AttributeDescription *ad );
 
 void bdb_attr_info_free( AttrInfo *ai );
 
@@ -88,9 +88,9 @@ bdb_db_findsize(
  */
 #define bdb_dn2entry				BDB_SYMBOL(dn2entry)
 
-int bdb_dn2entry LDAP_P(( Operation *op, DB_TXN *tid,
+int bdb_dn2entry ( Operation *op, DB_TXN *tid,
 	struct berval *dn, EntryInfo **e, int matched,
-	DB_LOCK *lock ));
+	DB_LOCK *lock );
 
 /*
  * dn2id.c
@@ -342,46 +342,46 @@ int bdb_idl_append_one( ID *ids, ID id );
 #define bdb_index_recrun			BDB_SYMBOL(index_recrun)
 
 extern AttrInfo *
-bdb_index_mask LDAP_P((
+bdb_index_mask (
 	Backend *be,
 	AttributeDescription *desc,
-	struct berval *name ));
+	struct berval *name );
 
 extern int
-bdb_index_param LDAP_P((
+bdb_index_param (
 	Backend *be,
 	AttributeDescription *desc,
 	int ftype,
 	DB **db,
 	slap_mask_t *mask,
-	struct berval *prefix ));
+	struct berval *prefix );
 
 extern int
-bdb_index_values LDAP_P((
+bdb_index_values (
 	Operation *op,
 	DB_TXN *txn,
 	AttributeDescription *desc,
 	BerVarray vals,
 	ID id,
-	int opid ));
+	int opid );
 
 extern int
-bdb_index_recset LDAP_P((
+bdb_index_recset (
 	struct bdb_info *bdb,
 	Attribute *a,
 	AttributeType *type,
 	struct berval *tags,
-	IndexRec *ir ));
+	IndexRec *ir );
 
 extern int
-bdb_index_recrun LDAP_P((
+bdb_index_recrun (
 	Operation *op,
 	struct bdb_info *bdb,
 	IndexRec *ir,
 	ID id,
-	int base ));
+	int base );
 
-int bdb_index_entry LDAP_P(( Operation *op, DB_TXN *t, int r, Entry *e ));
+int bdb_index_entry( Operation *op, DB_TXN *t, int r, Entry *e );
 
 #define bdb_index_entry_add(op,t,e) \
 	bdb_index_entry((op),(t),SLAP_INDEX_ADD_OP,(e))
