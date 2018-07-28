@@ -37,11 +37,11 @@ top-level directory of the distribution or, alternatively, at
 AC_PREREQ([2.69])dnl Required Autoconf version
 AC_REVISION([$Id: 8c9139400f1cfd3f68bc9b65828515fe85e91ee1 $])
 AC_INIT(
-	m4_esyscmd_s([build/BRANDING --package]),
-	m4_esyscmd_s([build/BRANDING --version-full]),
-	m4_esyscmd_s([build/BRANDING --bugs]),
-	m4_esyscmd_s([build/BRANDING --tarname]),
-	m4_esyscmd_s([build/BRANDING --url]))
+	[m4_esyscmd_s(build/BRANDING --package)],
+	[m4_esyscmd_s(build/BRANDING --version-full)],
+	[m4_esyscmd_s(build/BRANDING --bugs)],
+	[m4_esyscmd_s(build/BRANDING --tarname)],
+	[m4_esyscmd_s(build/BRANDING --url)])
 AC_CONFIG_MACRO_DIR([build/m4])
 dnl ----------------------------------------------------------------
 dnl OpenLDAP Autoconf Macros
@@ -61,9 +61,10 @@ dnl Determine host platform
 dnl		we try not to use this for much
 AC_CANONICAL_TARGET([])
 
-AM_INIT_AUTOMAKE([subdir-objects --warnings=no-portability --warnings=error dist-xz tar-pax no-dist-gzip])
+AM_INIT_AUTOMAKE([subdir-objects --warnings=all,no-override,no-portability,error dist-xz tar-pax no-dist-gzip])
 AM_SILENT_RULES([yes])
 AM_MAINTAINER_MODE([disable])
+AM_PROG_AR
 LT_CONFIG_LTDL_DIR([build/libltdl])
 LT_INIT([dlopen])
 
@@ -169,8 +170,8 @@ PKG_PROG_PKG_CONFIG
 if test -z "$PKG_CONFIG"; then
 	AC_MSG_FAILURE([pkg-config tool is required for ReOpenLDAP, please install it])
 fi
-AC_LIBTOOL_DLOPEN
-AC_PROG_LIBTOOL
+LT_PREREQ([2.4.2])
+LT_INIT([dlopen])
 LT_OUTPUT
 
 AC_DEFINE(_GNU_SOURCE, 1, [Enable GNU extensions.])
@@ -904,12 +905,12 @@ AC_CHECK_HEADERS( sys/ucred.h, [], [],
 ])
 dnl Check whether ucred is defined without _GNU_SOURCE
 AC_MSG_CHECKING(for struct ucred)
-AC_TRY_LINK([
+AC_LINK_IFELSE([AC_LANG_PROGRAM([[
 #include <sys/ucred.h>
 #include <sys/socket.h>
-],[
+]], [[
 struct ucred sucred; sucred.pid=0;
-],[has_ucred=yes],[has_ucred=no])
+]])],[has_ucred=yes],[has_ucred=no])
 AC_MSG_RESULT($has_ucred)
 if test ${has_ucred} = no ; then CFLAGS="$CFLAGS -D_GNU_SOURCE"; fi
 
