@@ -1,4 +1,4 @@
-v1.1.9 2018-0?-??
+v1.1.9 2018-08-??
 =================
 
 ## Briefly:
@@ -8,32 +8,46 @@ v1.1.9 2018-0?-??
 
 ### New features and Compatibility breaking: _none_
 
-### Documentation: _none_
+### Documentation:
+ * fix quoting example in man-pages.
+ * add `DN` qualifier and `regexp` for `sock` backend (ITS#8051).
+ * update libmdbx Project Status.
 
 ### Major and Security bugs:
-2018-07-01 libreldap: fix init/shutdown races/segfaults with modern OpenSSL.
-2018-07-01 libreldap: fix deadlock/recursion inside tls-init internals.
+ * libreldap: fix init/shutdown races/segfaults with modern OpenSSL.
+ * libreldap: fix deadlock/recursion inside `tls_init()` internals.
 
 ### Minor bugs:
-2018-07-01 libreldap: fix unlock in error-case inside thread-pool handle_pause().
-2018-07-01 libreldap: import - fix ber_realloc after a partial ber_flush (ITS#8864).
-2018-06-30 slapd: fix wrong/duplicate listening if bind failed.
-2018-06-13 slapd: import - fix ldif-wrap errmsg typo.
+ * libreldap: add printability checks on the dc `RDN` (ITS#8842).
+ * overlay-memberof: Improve `memberof cn=config` handling (ITS#8663).
+ * backend-glue: don't finish initialisation in tool mode unless requested (ITS#8667).
+ * backend-mdb, backend-bdb: don't convert `IDL` to range needlessly (ITS#8868).
+ * backend-sock: use a `regexp` (ITS#8051).
+ * backend-sock: add `DN` qualifier (ITS#8051).
+ * libreldap: fix unlock in error-case inside thread-pool `handle_pause()`.
+ * libreldap: fix `ber_realloc` after a partial `ber_flush` (ITS#8864).
+ * slapd: fix wrong/duplicate listening if bind failed.
+ * slapd: fix ldif-wrap errmsg typo.
 
 ### Performance:
-2018-06-30 slapd: minor refine suspend/refine listeners.
+ * slapd: minor refine suspend/refine listeners.
 
 ### Build:
-2018-07-01 configure: add checking for libnsspem.
+ * configure: update for modern libtool.
+ * configure: fix quoting for empty variable.
+ * configure: add TLS-tests.
+ * configure: add checking for `libnsspem`.
 
 ### Cosmetics:
-2018-06-30 slapd: cleanup-drop SLAP_FD2SOCK/SLAP_SOCK2FD/SLAP_SOCKNEW.
+ * libreldap: message-hint to check `libnsspem.so` for TLS by MozNSS.
+ * slapd: cleanup-drop `SLAP_FD2SOCK/SLAP_SOCK2FD/SLAP_SOCKNEW`.
 
 ### Other:
-2018-07-01 libreldap: message-hint to check 'libnsspem.so' for TLS by MozNSS.
-2018-06-30 tests-ci: add SLAPD_LOCALHOST=127.0.0.1 for CircleCI 2.0 and Docker.
-2018-06-30 reopenldap-ci: migrate to Circle-CI 2.0
-2018-06-14 tests: explicit DELAY=2 for 046-dds TTL check.
+ * tests: don't ignore `its8667` regression while CI/buzz-testing.
+ * tests: fix `$MONITORDB` usage.
+ * tests: add regression test for ITS#8616.
+ * tests: add TLS-tests.
+ * ci: migrate to Circle-CI 2.0
 
 --------------------------------------------------------------------------------
 
@@ -48,49 +62,45 @@ v1.1.8 2018-06-04
 ### New features and Compatibility breaking: _none_
 
 ### Documentation:
-2018-03-20 man: SASL_MECH/SASL_REALM are not user-only (ITS#8818).
-2018-02-27 man: fix SIGHUB typo.
+ * `SASL_MECH/SASL_REALM` are not user-only (ITS#8818).
+ * fix `SIGHUB` typo.
 
 ### Major and Security bugs:
-2018-05-04 mdbx: fix wrong freeDB search.
-2018-04-03 slapd: fix memory corruption in connection-handling code.
-2018-03-28 syncprov: fix op_response() segfault.
+ * fix wrong `freeDB` search.
+ * fix memory corruption in connection-handling code.
+ * fix `op_response()` segfault.
 
 ### Minor bugs:
-2018-05-24 syncprov: import - don't check for existing value when deleting values (ITS#8616).
-2018-05-05 slapd: import - fix domainScope control to ensure the control value is absent (ITS#8840).
-2018-05-04 mdbx: backport - can't use fakepage mp_ptrs directly (ITS#8819).
-2018-05-04 mdbx: backport - fix regression in 0.9.19 (ITS#8760).
-2018-05-04 mdbx: backport - fix FIRST_DUP/LAST_DUP cursor bounds check (ITS#8722).
+ * syncprov: don't check for existing value when deleting values (ITS#8616).
+ * slapd: fix `domainScope` control to ensure the control value is absent (ITS#8840).
+ * mdbx: can't use fakepage `mp_ptrs` directly (ITS#8819).
+ * mdbx: fix regression in 0.9.19 (ITS#8760).
+ * mdbx: fix `FIRST_DUP/LAST_DUP` cursor bounds check (ITS#8722).
 
 ### Performance:
-2018-05-04 mdbx: backport - XCURSOR_REFRESH() fixups/cleanup.
-2018-03-12 syncprov, syncrepl, accesslog: reduce unnecessary writes of contextCSN entry (ITS#8789).
+ * mdbx: `XCURSOR_REFRESH()` fixups/cleanup.
+ * syncprov, syncrepl, accesslog: reduce unnecessary writes of `contextCSN` entry (ITS#8789).
 
 ### Build:
-2018-05-04 mdbx: fix check make target (minor).
-2018-04-04 reopenldap: refine bootstrap.sh
-2018-03-29 automake: fix -fno-lto for ".symver memcpy_compat, memcpy@@@GLIBC_2.2.5"
-2018-03-12 liblutil: fix warning variable 'hex' set but not used (minor).
-2018-03-12 libreldap, slapd: avoid trigraphs in comments (minor).
-2018-03-12 ldapmodify: fix 'uninit' warnigs form lcc (minor).
-2018-03-12 libreldap: fix callbacks for NSPR.
-2018-03-12 libreldap: #ifdef for SSL_LIBRARY_VERSION_TLS_1_3.
-2018-03-12 liblutil: fix 'uninit' warnig from lcc (minor).
+ * mdbx: fix check make target (minor).
+ * reopenldap: refine `bootstrap.sh`.
+ * automake: fix `-fno-lto` for `.symver memcpy_compat, memcpy@@@GLIBC_2.2.5`
+ * liblutil: fix warning variable `hex` set but not used (minor).
+ * libreldap, slapd: avoid trigraphs in comments (minor).
+ * ldaptools: fix 'uninit' warnigs form lcc (minor).
+ * libreldap: fix callbacks for `NSPR`.
+ * libreldap: `#ifdef` for `SSL_LIBRARY_VERSION_TLS_1_3`.
 
 ### Cosmetics:
-2018-05-04 mdbx: minor fixup comments and warnings.
-2018-03-23 reopenldap: sync CHANGES.OpenLDAP.
+ * mdbx: minor fixup comments and warnings.
 
 ### Other:
-2018-05-24 tests: import - fix copypasta in its8444 regression script.
-2018-03-29 ci: add 'bootstrap' step info ps-build.sh
-2018-03-29 ci: drop support for old/legacy versions.
-2018-03-29 ci: rename CFLAGS to EXTRA_CFLAGS.
-2018-03-12 slapd: add backtrace support for Elbrus.
-2018-03-12 reopenldap: update reldap.h and ldap_cdefs.h for Elbrus.
-2018-03-12 libmdbx: update defs.h for Elbrus.
-2018-03-11 tests: import - Ensure there are no differences due to different checkpoints (ITS#8800).
+ * tests: fix copypasta in `its8444` regression script.
+ * ci: drop support for old/legacy versions.
+ * slapd: add backtrace support for _Elbrus_.
+ * reopenldap: update `reldap.h` and `ldap_cdefs.h` for _Elbrus_.
+ * libmdbx: update `defs.h` for _Elbrus_.
+ * tests: Ensure there are no differences due to different checkpoints (ITS#8800).
 
 --------------------------------------------------------------------------------
 
@@ -241,11 +251,11 @@ v1.1.6 2017-08-12
  * libreldap, mdbx: musl support.
  * contrib: argon2 password hashing module (ITS#8575).
  * libreldap: more for LibreSSL and OpenSSL 1.1.0c (ITS#8533, ITS#8353).
- * overlays: backport - add AutoCA overlay.
+ * overlays: add AutoCA overlay.
  * mdbx: support glibc < 2.18 for TLS cleanup on thread termination.
  * libreldap: adds ldif_open_mem() (ITS#8603).
- * slapd: backport - Add config support for binary values.
- * libreldap: backport - Add options to use DER format cert+keys directly.
+ * slapd: Add config support for binary values.
+ * libreldap: Add options to use DER format cert+keys directly.
  * proxy-cache, all: use LDAP_DEBUG_CACHE/Cache.
  * mdbx: don't ignore `data` arg in mdb_del() for libfpta.
  * mdbx: rework mdbx_replace() for libfpta.
@@ -270,20 +280,20 @@ v1.1.6 2017-08-12
  * man: Note that non-zero serverID's are required for MMR, and that serverID 0 is specific to single master replication only (ITS#8635).
  * man: Note that slapo-memberOf should not be used in a replicated environment (ITS#8613).
  * doc: cleanup tabs in CHANGES.OpenLDAP
- * doc: backport - Catalog of assigned OID arcs.
- * man: backport - Fix VV option information (ITS#7177, ITS#6339).
+ * doc: Catalog of assigned OID arcs.
+ * man: Fix VV option information (ITS#7177, ITS#6339).
  * man: Further clarification around replication information (ITS#8253).
  * Update CONTRIBUTING.md
  * mdbx: notes about free/reuse cursors.
  * slapd: refine note for Cyrus-SASL memleak.
  * contrib: minor Update TOTP README (ITS#8513).
- * man: backport - Add a manpage for slapo-autogroup (ITS#8569).
- * man: backport - Grammar and escaping fixes (ITS#8544).
- * man: backport - Clearly document rootdn requirement for the ppolicy overlay (ITS#8565).
+ * man: Add a manpage for slapo-autogroup (ITS#8569).
+ * man: Grammar and escaping fixes (ITS#8544).
+ * man: Clearly document rootdn requirement for the ppolicy overlay (ITS#8565).
  * mdbx: rework README.
 
 ### Major and Security bugs:
- * mdbx: backport - don't madvise(MADV_REMOVE).
+ * mdbx: don't madvise(MADV_REMOVE).
  * backend-mdb: fix double free on paged search with pagesize 0 (ITS#8655).
  * reldap: retry gnutls_handshake after GNUTLS_E_AGAIN (ITS#8650).
  * slapo-sssvlv: Cleanup double-free fix in sssvlv overlay (ITS#8592).
@@ -291,32 +301,32 @@ v1.1.6 2017-08-12
  * libreldap: use pthread_once() for SASL init (fix Debian Bug #860947).
  * mdbx: fix snap-state bug (backport).
  * slapd: fix segfault (ITS#8631)
- * libreldap: backport - Fixup cacert/cert/key options.
+ * libreldap: Fixup cacert/cert/key options.
  * libreldap: fix hipagut for ARM/ARM64 (and other where alignment is required).
  * overlay-sssvlv: try to fix double-free in server side sort (ITS#8592, ITS#8368).
- * libreldap: backport - Avoid hiding the error if user specified CA does not load (ITS#8529).
+ * libreldap: Avoid hiding the error if user specified CA does not load (ITS#8529).
  * syncrepl: fix refer to freed mem.
- * slapd: backport - fix sasl SEGV rebind in same session (ITS#8568).
+ * slapd: fix sasl SEGV rebind in same session (ITS#8568).
  * mdbx: CHANGES for glibc bugs #21031 and #21032.
 
 ### Minor bugs:
- * mdbx: backport - ITS#8699 more for cursor_del ITS#8622.
+ * mdbx: ITS#8699 more for cursor_del ITS#8622.
  * slapd: avoid hang/crash the backtrace_sigaction().
  * reopenldap: avoid deadlock/recursion in debug-output.
  * syncrepl: LDAP_PROTOCOL_ERROR if entryCSN missing in 'IDCLIP' mode.
- * mdbx: backport - fix mdbx_set_attr().
+ * mdbx: fix mdbx_set_attr().
  * mdbx: fix mdbx_txn_straggler() for write-txn (backport from devel).
  * mdbx: fix crash on twice txn-end (backport from devel).
  * reldap: check result of ldap_int_initialize in ldap_{get,set}_option (ITS#8648).
- * slapd: backport - fix LDAP_TAILQ macro, nice bug since 2002 (ITS#8576).
- * slapd, autoca-overlay: backport - Move privateKey schema into slapd.
- * slapd: backport - Update accesslog format and syncrepl consumer (ITS#6545).
- * libreldap: backport - Ensure that the deprecated API is not used when using OpenSSL 1.1 or later (ITS#8353, ITS#8533).
- * unique-overlay: backport - Allow empty mods (ITS#8266).
- * libutil, slapd: backport - Separate Avlnode and TAvlnode types (ITS#8625).
- * libreldap, slapd: backport - Fixes for multiple threadpool queues.
- * mdbx: backport - ITS#8622 fix xcursor after cursor_del.
- * slapd: backport - Deal with rDN correctly (ITS#8574).
+ * slapd: fix LDAP_TAILQ macro, nice bug since 2002 (ITS#8576).
+ * slapd, autoca-overlay: Move privateKey schema into slapd.
+ * slapd: Update accesslog format and syncrepl consumer (ITS#6545).
+ * libreldap: Ensure that the deprecated API is not used when using OpenSSL 1.1 or later (ITS#8353, ITS#8533).
+ * unique-overlay: Allow empty mods (ITS#8266).
+ * libutil, slapd: Separate Avlnode and TAvlnode types (ITS#8625).
+ * libreldap, slapd: Fixes for multiple threadpool queues.
+ * mdbx: ITS#8622 fix xcursor after cursor_del.
+ * slapd: Deal with rDN correctly (ITS#8574).
  * syncprov: fix possibility of use freed `pivot_csn`.
  * mdbx: fix cursor-untrack bug.
  * slapd: fix memleaks from mask_to_verbstring().
@@ -324,7 +334,7 @@ v1.1.6 2017-08-12
  * libreldap: fix minor PL_strdup(noforkenvvar) memleak.
  * slapd: workaround for Cyrus memleak.
  * backend-mdb: fix cursor leaks (follow libmdbx API changes).
- * libreldap: backport - Fail ldap_result if handle is already bad (ITS#8585).
+ * libreldap: Fail ldap_result if handle is already bad (ITS#8585).
  * mdbx: fix losing a zero-length value of sorted-dups (for libfpta).
  * slapd: fix slap_tls_get_config().
  * slapd: fix mr_index_cmp() for match-rules.
@@ -344,7 +354,7 @@ v1.1.6 2017-08-12
  * accesslog: fix missing op-tag.
  * syncrepl: allow empty sync-cookie for delta-mmr (accesslog).
  * mdbx: fix mdb_cursor_last (ITS#8557).
- * mdbx: backport - ITS#8558 fix mdb_load with escaped plaintext.
+ * mdbx: ITS#8558 fix mdb_load with escaped plaintext.
  * mdbx: fix cursor_count() for libfpta.
  * mdbx: mdb_chk - don't close dbi-handles, set_maxdbs() instead.
  * mdbx: fix MDB_GET_CURRENT for dupsort's subcursor.
@@ -381,7 +391,7 @@ v1.1.6 2017-08-12
  * mdbx: update links after move the repo.
  * ci: add Travis-CI status to README.md
  * reopenldap: add TODO.md
- * libreldap: backport - Fix minor typo (ITS#8643).
+ * libreldap: Fix minor typo (ITS#8643).
  * back-monitor: fix monitoredInfo.
  * reopenldap: fix 'emtpy' typos (ITS#8587).
  * syncprov: refine 'syncprov-sessionlog' config.
@@ -406,18 +416,18 @@ v1.1.6 2017-08-12
  * slapo-valsort: fix 'unused result' warnings around strtol().
  * slapd: log 'active_threads' on TRACE-level from daemon.
  * autoca-overlay: tweaks length of keys.
- * autoca-overlay: backport - Tweaks for OpenSSL 1.1 API deprecations.
+ * autoca-overlay: Tweaks for OpenSSL 1.1 API deprecations.
  * libreldap: add MAY_UNUSED to avoid warnings from Clang.
  * libreldap: remove needless conds.
  * test: add temporary workaround for issue#121.
  * test: add `dbnosync` flag for its4448.
- * slapd: backport - Tweak privateKeyValidate for PKCS#8.
- * libreldap: backport - Add GnuTLS support for direct DER config of cacert/cert/key.
+ * slapd: Tweak privateKeyValidate for PKCS#8.
+ * libreldap: Add GnuTLS support for direct DER config of cacert/cert/key.
  * autoca-overlay: squashed fixups.
- * libreldap: backport - Add ldap_pvt_thread_pool_queues decl.
- * slapd: backport - Fixup for binary config attrs.
+ * libreldap: Add ldap_pvt_thread_pool_queues decl.
+ * slapd: Fixup for binary config attrs.
  * slapd: minor fixup pause handling in config-backend.
- * slapd: backport - Support setting cacert/cert/key directly in cn=config entry.
+ * slapd: Support setting cacert/cert/key directly in cn=config entry.
  * libreldap: fix debug-log warning.
  * mdbx: don't close/lost DBI-handles on ro-txn renew/reset.
  * mdbx: don't close DBI-handles from R/O txn_abort().
@@ -428,7 +438,7 @@ v1.1.6 2017-08-12
  * mdbx: use MDB_SET_KEY inside mdbx_replace() for libfpta.
  * mdbx: fix MDB_CURRENT for mdb_cursor_put() with MDB_DUPSORT.
  * mdbx: refine mdbx_cursor_eof().
- * mdbx: backport - Tweak cursor_next C_EOF check.
+ * mdbx: Tweak cursor_next C_EOF check.
  * mdbx: rework TLS cleanup on thread termination.
  * mdbx: assert_fail() when `INDXSIZE(key) > nodemax`.
 
@@ -708,7 +718,7 @@ v1.1.2, 2016-07-30
  * syncprov: fixed RS_ASSERT failure inside mdb-search.
  * slapd: result-asserts (RS_ASSERT) now controlled by mode 'check/idkfa'.
  * pcache: fixed RS_ASSERT failure.
- * mdbx: backport - ITS#8209 fixed MDB_CP_COMPACT.
+ * mdbx: ITS#8209 fixed MDB_CP_COMPACT.
 
 ### Performance: _none_
 
@@ -732,8 +742,8 @@ v1.1.2, 2016-07-30
 ### Other:
  * libreldap, slapd: add and use ldap_debug_perror().
  * slapd: support ARM and MIPS for backtrace.
- * mdbx: backport - Refactor mdb_page_get().
- * mdbx: backport - Fix MDB_INTEGERKEY doc of integer types.
+ * mdbx: Refactor mdb_page_get().
+ * mdbx: Fix MDB_INTEGERKEY doc of integer types.
  * all: rework debug & logging.
  * slapd: LDAP_EXPERIMENTAL instead of LDAP_DEVEL.
  * slapd, libreldap: drop LDAP_TEST, introduce LDAP_CHECK.
@@ -775,10 +785,10 @@ v1.1.1, 2016-07-12
 ### Minor bugs:
  * install: hotfix slaptools install, sbin instead of libexec.
  * contrib-modules: hotfix - remove obsolete ad-hoc of copy register_at().
- * syncrepl: backport - ITS#8432 fix infinite looping mods in delta-mmr.
+ * syncrepl: ITS#8432 fix infinite looping mods in delta-mmr.
  * reopenldap: hotfix 'derived from' copy-paste error.
- * mdbx: backport - mdb_env_setup_locks() Plug mutexattr leak on error.
- * mdbx: backport - ITS#8339 Solaris 10/11 robust mutex fixes.
+ * mdbx: mdb_env_setup_locks() Plug mutexattr leak on error.
+ * mdbx: ITS#8339 Solaris 10/11 robust mutex fixes.
  * libreldap: fixed PR_GetUniqueIdentity() for ReOpenLDAP.
  * liblber: don't trap ber_memcpy_safe() when dst == src.
  * syncprov: kicks the connection from syncprov_unlink_syncop().
@@ -788,8 +798,8 @@ v1.1.1, 2016-07-12
  * syncprov: rework cancellation path in syncprov_matchops().
  * syncprov: fixed invalid status ContextCSN.
  * slapd: fixed handling idle/write timeouts.
- * accesslog: backport - ITS#8423 check for pause in accesslog_purge.
- * mdbx: backport - ITS#8424 init cursor in mdb_env_cwalk.
+ * accesslog: ITS#8423 check for pause in accesslog_purge.
+ * mdbx: ITS#8424 init cursor in mdb_env_cwalk.
 
 ### Performance: _none_
 
@@ -862,7 +872,7 @@ not reaches required performance, or just crashes).
  * slapd: 'keepalive' config option.
  * slapd: adds biglock's latency tracer (-DSLAPD_BIGLOCK_TRACELATENCY=deep).
  * mdbx: lifo-reclaimig for weak-to-steady conversion.
- * contrib: backport - ITS#6826 conversion scripts.
+ * contrib: ITS#6826 conversion scripts.
  * mdbx: simple ioarena-based benchmark.
  * syncrepl: 'require-present' config option.
  * syncprov: 'syncprov-showstatus' config option.
@@ -873,8 +883,8 @@ not reaches required performance, or just crashes).
 
 ### Major bugs:
  * syncrepl: fix RETARD_ALTER when no-cookie but incomming entryCSN is newer.
- * mdbx: backport - ITS#8412 fix NEXT_DUP after cursor_del.
- * mdbx: backport - ITS#8406 fix xcursors after cursor_del.
+ * mdbx: ITS#8412 fix NEXT_DUP after cursor_del.
+ * mdbx: ITS#8406 fix xcursors after cursor_del.
  * backend-mdb: fix 'forgotten txn' bug.
  * syncprov: fix error handling when syncprov_findcsn() fails.
  * syncprov: fix rare segfault in search_cleanup().
@@ -884,8 +894,8 @@ not reaches required performance, or just crashes).
  * syncprov: fix 'missing present-list' bug.
  * syncprov: avoid lock-order-reversal/deadlock (search under si-ops mutex).
  * slapd: fix segfault in connection_write().
- * mdbx: backport - ITS#8363 Fix off-by-one in mdb_midl_shrink().
- * mdbx: backport - ITS#8355 fix subcursors.
+ * mdbx: ITS#8363 Fix off-by-one in mdb_midl_shrink().
+ * mdbx: ITS#8355 fix subcursors.
  * syncprov: avoid deadlock with biglock and/or threadpool pausing.
 
 ### Minor bugs:
@@ -898,10 +908,10 @@ not reaches required performance, or just crashes).
  * backend-ldap: fix/remove gentle-kick.
  * mdbx: workaround for pthread_setspecific's memleak.
  * mdbx: clarify mdbx_oomkick() for LMDB-mode.
- * syncrepl: backport - ITS#8413 don't use str2filter on precomputable filters.
+ * syncrepl: ITS#8413 don't use str2filter on precomputable filters.
  * mdbx: always copy the rest of page (MDB_RESERVE case).
  * mdbx: fix nasty/stupid mistake in cmp-functions.
- * mdbx: backport - ITS#8393 fix MDB_GET_BOTH on non-dup record.
+ * mdbx: ITS#8393 fix MDB_GET_BOTH on non-dup record.
  * slapd: request thread-pool pause only for SLAP_SERVER_MODE.
  * slapd: fix backover bug (since 532929a0776d47753377461dcf89ff38aba61779).
  * syncrepl: enforce csn/cookie while recovering lost-delete(s).
@@ -911,7 +921,7 @@ not reaches required performance, or just crashes).
  * slapd: ignore EBADF in epoll_ctl(DEL).
  * syncprov: fix rare assert-failure on race with abandon.
  * mdbx: fix mdb_kill_page() for MDB_PAGEPERTURB.
- * libldap: backport - ITS#8385 Fix use-after-free with GnuTLS.
+ * libldap: ITS#8385 Fix use-after-free with GnuTLS.
  * syncprov: fix minor op-memleak.
  * syncrepl: don't skipping retarded DELETE-notification with UUID.
  * syncrepl: don't replicate glue-ancestors, but not an entry.
@@ -937,14 +947,14 @@ not reaches required performance, or just crashes).
  * mdbx: cleanup inherited errno's bug.
  * syncrepl: accept empty incoming cookies if iddqd/idclip is off.
  * syncprov: don't skip 1900-sub csn in SS_CHANGED case.
- * syncprov: backport - ITS#8365 partially revert ITS#8281.
+ * syncprov: ITS#8365 partially revert ITS#8281.
  * backend-mdb: more to avoid races on mi_numads.
- * backend-mdb: backport - ITS#8360 fix ad info after failed txn.
- * backend-mdb: backport - ITS#8226 limit size of read txns in searches.
+ * backend-mdb: ITS#8360 fix ad info after failed txn.
+ * backend-mdb: ITS#8226 limit size of read txns in searches.
  * slapd: cleanup bullshit around op->o_csn.
  * syncprov: wake waiting mod-ops when handle loop-pause.
  * syncprov: don't block mod-ops by waiting fetch-ops when pool-pause pending.
- * accesslog: backport - ITS#8351 fix callback init.
+ * accesslog: ITS#8351 fix callback init.
  * syncprov: mutual fetch/modify - wakes opposite if waiting was broken.
  * syncrepl: fix race on cookieState->cs_ref.
 
@@ -960,7 +970,7 @@ not reaches required performance, or just crashes).
  * mdbx: rework backlog for freeDB deletion.
  * mdbx: refine mdb_env_sync0().
  * mdbx: refine mdbx_cmp2int().
- * mdbx: backport - mdb_drop optimization.
+ * mdbx: mdb_drop optimization.
  * slapd: remove unused scoped-locks.
  * syncrepl: non-modal del_nonpresent().
  * syncprov: less locking for mock ContextCSN.
