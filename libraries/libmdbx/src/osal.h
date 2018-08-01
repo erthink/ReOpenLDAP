@@ -479,6 +479,7 @@ int mdbx_filesize(mdbx_filehandle_t fd, uint64_t *length);
 int mdbx_openfile(const char *pathname, int flags, mode_t mode,
                   mdbx_filehandle_t *fd, bool exclusive);
 int mdbx_closefile(mdbx_filehandle_t fd);
+int mdbx_removefile(const char *pathname);
 
 typedef struct mdbx_mmap_param {
   union {
@@ -551,7 +552,6 @@ int mdbx_lck_init(MDBX_env *env);
 
 int mdbx_lck_seize(MDBX_env *env);
 int mdbx_lck_downgrade(MDBX_env *env, bool complete);
-int mdbx_lck_upgrade(MDBX_env *env);
 void mdbx_lck_destroy(MDBX_env *env);
 
 int mdbx_rdt_lock(MDBX_env *env);
