@@ -40,4 +40,4 @@ back_bdb_la_SOURCES = add.c attr.c back-bdb.h banner.c bind.c \
 	trans.c
 
 back_bdb_la_LIBADD = $(BDB_LIBS)
-back_bdb_la_CFLAGS = -UBDB_HIER
+back_bdb_la_CFLAGS = -UBDB_HIER $(AM_CFLAGS)

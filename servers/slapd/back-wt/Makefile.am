@@ -17,7 +17,7 @@ pkglib_LTLIBRARIES =
 noinst_LTLIBRARIES =
 back_wt_la_LDFLAGS = -module $(WT_LIBDIR)
 AM_CPPFLAGS = -DSLAPD_IMPORT -I$(srcdir)/.. -I$(top_srcdir)/include $(WT_CPPFLAGS)
-AM_CLAGS = $(WT_CFLAGS)
+AM_CLAGS = $(WT_CFLAGS) $(AM_CFLAGS)
 
 if META_DYNAMIC
 pkglib_LTLIBRARIES += back_wt.la

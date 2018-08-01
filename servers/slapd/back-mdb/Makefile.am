@@ -35,12 +35,12 @@ endif
 
 if SLAPD_DEBUG
 if SLAPD_DEBUG_EXTRA
-libmdbx_la_CFLAGS = -UNDEBUG -DMDB_DEBUG=2
+libmdbx_la_CFLAGS = -UNDEBUG -DMDB_DEBUG=2 $(AM_CFLAGS)
 else
-libmdbx_la_CFLAGS = -UNDEBUG -DMDB_DEBUG=1
+libmdbx_la_CFLAGS = -UNDEBUG -DMDB_DEBUG=1 $(AM_CFLAGS)
 endif
 else
-libmdbx_la_CFLAGS = -DNDEBUG=1 -DMDB_DEBUG=0
+libmdbx_la_CFLAGS = -DNDEBUG=1 -DMDB_DEBUG=0 $(AM_CFLAGS)
 endif
 libmdbx_la_LIBADD = $(LTHREAD_LIBS)
 libmdbx_srcdir = ../../../libraries/libmdbx
@@ -71,7 +71,7 @@ back_mdb_la_SOURCES = add.c attr.c banner.c bind.c compare.c \
 	monitor.c nextid.c operational.c search.c tools.c \
 	back-mdb.h idl.h proto-mdb.h
 
-back_mdb_la_CFLAGS = -I$(srcdir)/.. -I../../../libraries/libmdbx
+back_mdb_la_CFLAGS = -I$(srcdir)/.. -I../../../libraries/libmdbx $(AM_CFLAGS)
 back_mdb_la_LIBADD = libmdbx.la
 
 mdbx_chk_SOURCES = ../../../libraries/libmdbx/src/tools/mdbx_chk.c
