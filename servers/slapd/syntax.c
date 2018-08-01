@@ -189,8 +189,7 @@ int syn_add(LDAPSyntax *syn, int user, slap_syntax_defs_rec *def,
       }
 
       assert((*lsei)->lsei_values != NULL);
-      if ((*lsei)->lsei_values[0] == NULL || *(*lsei)->lsei_values[0] == '\0' ||
-          (*lsei)->lsei_values[1] != NULL) {
+      if ((*lsei)->lsei_values[0] == NULL || (*lsei)->lsei_values[1] != NULL) {
         Debug(LDAP_DEBUG_ANY,
               "syn_add(%s): exactly one substitute syntax must be present\n",
               ssyn->ssyn_syn.syn_oid);
