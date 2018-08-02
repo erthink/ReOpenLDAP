@@ -1,5 +1,5 @@
-v1.1.9 2018-08-??
-=================
+v1.1.9 2018-08-02, Airborne Positive
+====================================
 
 ## Briefly:
  1. Fixed TLS/SSL major bugs (deadlocks and segfaults).

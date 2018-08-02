@@ -1,6 +1,6 @@
 New features and Compatibility breaking
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-2018-08-?? v1.1.9: none
+2018-08-02 v1.1.9: none
 2018-06-04 v1.1.8: none
 2018-02-23 v1.1.7
 2018-01-30 libreldap: import - Public key pinning support (ITS#8753).
@@ -95,7 +95,7 @@ New features and Compatibility breaking
 
 Documentation
 ~~~~~~~~~~~~~
-2018-08-?? v1.1.9
+2018-08-02 v1.1.9
 2018-07-04 man: import - fix quoting example.
 2018-05-10 mdbx: update Project Status.
 2018-07-04 man: import - use a regexp (ITS#8051).
@@ -174,7 +174,7 @@ Documentation
 
 Major and Security Bugs
 ~~~~~~~~~~~~~~~~~~~~~~~
-2018-08-?? v1.1.9
+2018-08-02 v1.1.9
 2018-07-01 libreldap: fix init/shutdown races/segfaults with modern OpenSSL.
 2018-07-01 libreldap: fix deadlock/recursion inside tls-init internals.
 2018-06-04 v1.1.8
@@ -285,7 +285,7 @@ Major and Security Bugs
 
 Minor Bugs
 ~~~~~~~~~~
-2018-08-?? v1.1.9
+2018-08-02 v1.1.9
 2018-07-10 libreldap: backport - Do some printability checks on the dc RDN (ITS#8842).
 2018-07-10 overlay-memberof, tests: backport - Improve memberof cn=config handling (ITS#8663).
 2018-07-09 backend-glue: import - Do not finish glue initialisation in tool mode unless requested (ITS#8667).
@@ -728,7 +728,7 @@ Minor Bugs
 
 Performance
 ~~~~~~~~~~~
-2018-08-?? v1.1.9
+2018-08-02 v1.1.9
 2018-06-30 slapd: minor refine suspend/refine listeners.
 2018-06-04 v1.1.8
 2018-05-04 mdbx: backport - XCURSOR_REFRESH() fixups/cleanup.
@@ -789,7 +789,7 @@ Performance
 
 Build
 ~~~~~
-2018-08-?? v1.1.9
+2018-08-02 v1.1.9
 2018-07-30 configure: update for modern libtool.
 2018-07-02 configure: fix quoting for empty variable.
 2018-07-01 configure: add checking for libnsspem.
@@ -935,7 +935,7 @@ Build
 
 Cosmetics
 ~~~~~~~~~
-2018-08-?? v1.1.9
+2018-08-02 v1.1.9
 2018-07-01 libreldap: message-hint to check 'libnsspem.so' for TLS by MozNSS.
 2018-06-30 slapd: cleanup-drop SLAP_FD2SOCK/SLAP_SOCK2FD/SLAP_SOCKNEW.
 2018-06-04 v1.1.8
@@ -1003,7 +1003,7 @@ Cosmetics
 
 Other
 ~~~~~
-2018-08-?? v1.1.9
+2018-08-02 v1.1.9
 2018-07-09 tests: don't ignore its8667 regression while CI/buzz-testing.
 2018-07-04 tests: backport - kick libtool wrapper for slapd.
 2018-07-04 tests: backport - fix $MONITORDB.
