@@ -2264,6 +2264,10 @@ is the maximum number of keepalive probes TCP should send before dropping
 the connection;
 .I interval
 is interval in seconds between individual keepalive probes.
+Only some systems support the customization of these values;
+the
+.B keepalive
+parameter is ignored otherwise, and system-wide settings are used.
 
 The
 .B starttls
