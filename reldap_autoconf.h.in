@@ -466,7 +466,7 @@
 /* Does hdb_generate_key_set_password() signature is modern */
 #undef HAVE_MODERN_HDB_GENERATE_KEY_SET_PASSWORD
 
-/* define if you have Mozill NSS */
+/* define if you have Mozilla NSS */
 #undef HAVE_MOZNSS
 
 /* Define to 1 if you have the <ndir.h> header file. */
@@ -486,6 +486,12 @@
 
 /* Define to 1 if you have the <nss3/nss.h> header file. */
 #undef HAVE_NSS3_NSS_H
+
+/* define if you have Mozilla NSS PEM library */
+#undef HAVE_NSSPEM
+
+/* if you have the NSS_InitContext function */
+#undef HAVE_NSS_INITCONTEXT
 
 /* Define to 1 if you have the <nss/nss.h> header file. */
 #undef HAVE_NSS_NSS_H

@@ -171,11 +171,12 @@ ETAGS = etags
 CTAGS = ctags
 CSCOPE = cscope
 am__DIST_COMMON = $(srcdir)/Makefile.in $(srcdir)/reldap_autoconf.h.in \
-	$(top_srcdir)/build/compile $(top_srcdir)/build/config.guess \
+	$(top_srcdir)/build/ar-lib $(top_srcdir)/build/compile \
+	$(top_srcdir)/build/config.guess \
 	$(top_srcdir)/build/config.sub $(top_srcdir)/build/install-sh \
 	$(top_srcdir)/build/ltmain.sh $(top_srcdir)/build/missing \
 	AUTHORS COPYING ChangeLog INSTALL NEWS README build/README \
-	build/compile build/config.guess build/config.sub \
+	build/ar-lib build/compile build/config.guess build/config.sub \
 	build/install-sh build/ltmain.sh build/missing
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
 distdir = $(PACKAGE)-$(VERSION)
@@ -954,7 +955,7 @@ uninstall-am:
 .PRECIOUS: Makefile
 
 @BEHIND_CURTIAN_TRUE@test:
-@BEHIND_CURTIAN_TRUE@	$(MAKE) -C tests check </dev/null
+@BEHIND_CURTIAN_TRUE@	$(MAKE) -C tests check
 
 @BEHIND_CURTIAN_TRUE@dist-hook:
 @BEHIND_CURTIAN_TRUE@	find $(distdir) -type f | xargs -r \
