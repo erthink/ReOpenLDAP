@@ -18,24 +18,24 @@
 
 LDAP_BEGIN_DECL
 
-extern BI_init		perl_back_initialize;
+extern BI_init perl_back_initialize;
 
-extern BI_close		perl_back_close;
+extern BI_close perl_back_close;
 
-extern BI_db_init	perl_back_db_init;
-extern BI_db_open	perl_back_db_open;
-extern BI_db_destroy	perl_back_db_destroy;
-extern BI_db_config	perl_back_db_config;
+extern BI_db_init perl_back_db_init;
+extern BI_db_open perl_back_db_open;
+extern BI_db_destroy perl_back_db_destroy;
+extern BI_db_config perl_back_db_config;
 
-extern BI_op_bind	perl_back_bind;
-extern BI_op_search	perl_back_search;
-extern BI_op_compare	perl_back_compare;
-extern BI_op_modify	perl_back_modify;
-extern BI_op_modrdn	perl_back_modrdn;
-extern BI_op_add	perl_back_add;
-extern BI_op_delete	perl_back_delete;
+extern BI_op_bind perl_back_bind;
+extern BI_op_search perl_back_search;
+extern BI_op_compare perl_back_compare;
+extern BI_op_modify perl_back_modify;
+extern BI_op_modrdn perl_back_modrdn;
+extern BI_op_add perl_back_add;
+extern BI_op_delete perl_back_delete;
 
-extern int perl_back_init_cf( BackendInfo *bi );
+extern int perl_back_init_cf(BackendInfo *bi);
 LDAP_END_DECL
 
 #endif /* PROTO_PERL_H */

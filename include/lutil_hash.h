@@ -23,23 +23,19 @@ LDAP_BEGIN_DECL
 #define LUTIL_HASH_BYTES 4
 
 struct lutil_HASHContext {
-	ber_uint_t hash;
+  ber_uint_t hash;
 };
 
-LDAP_LUTIL_F( void )
-lutil_HASHInit (
-	struct lutil_HASHContext *context);
+LDAP_LUTIL_F(void)
+lutil_HASHInit(struct lutil_HASHContext *context);
 
-LDAP_LUTIL_F( void )
-lutil_HASHUpdate (
-	struct lutil_HASHContext *context,
-	unsigned char const *buf,
-	ber_len_t len);
+LDAP_LUTIL_F(void)
+lutil_HASHUpdate(struct lutil_HASHContext *context, unsigned char const *buf,
+                 ber_len_t len);
 
-LDAP_LUTIL_F( void )
-lutil_HASHFinal (
-	unsigned char digest[LUTIL_HASH_BYTES],
-	struct lutil_HASHContext *context);
+LDAP_LUTIL_F(void)
+lutil_HASHFinal(unsigned char digest[LUTIL_HASH_BYTES],
+                struct lutil_HASHContext *context);
 
 typedef struct lutil_HASHContext lutil_HASH_CTX;
 

@@ -31,44 +31,40 @@
 #include "slap.h"
 #include <lutil.h>
 
-FILE *
-lock_fopen( const char *fname, const char *type, FILE **lfp )
-{
-	FILE	*fp;
-	char	buf[MAXPATHLEN];
+FILE *lock_fopen(const char *fname, const char *type, FILE **lfp) {
+  FILE *fp;
+  char buf[MAXPATHLEN];
 
-	/* open the lock file */
-	snprintf( buf, sizeof buf, "%s.lock", fname );
+  /* open the lock file */
+  snprintf(buf, sizeof buf, "%s.lock", fname);
 
-	if ( (*lfp = fopen( buf, "w" )) == NULL ) {
-		Debug( LDAP_DEBUG_ANY, "could not open \"%s\"\n", buf );
+  if ((*lfp = fopen(buf, "w")) == NULL) {
+    Debug(LDAP_DEBUG_ANY, "could not open \"%s\"\n", buf);
 
-		return( NULL );
-	}
+    return (NULL);
+  }
 
-	/* acquire the lock */
-	ldap_lockf( fileno(*lfp) );
+  /* acquire the lock */
+  ldap_lockf(fileno(*lfp));
 
-	/* open the log file */
-	if ( (fp = fopen( fname, type )) == NULL ) {
-		Debug( LDAP_DEBUG_ANY, "could not open \"%s\"\n", fname );
+  /* open the log file */
+  if ((fp = fopen(fname, type)) == NULL) {
+    Debug(LDAP_DEBUG_ANY, "could not open \"%s\"\n", fname);
 
-		ldap_unlockf( fileno(*lfp) );
-		fclose( *lfp );
-		*lfp = NULL;
-		return( NULL );
-	}
+    ldap_unlockf(fileno(*lfp));
+    fclose(*lfp);
+    *lfp = NULL;
+    return (NULL);
+  }
 
-	return( fp );
+  return (fp);
 }
 
-int
-lock_fclose( FILE *fp, FILE *lfp )
-{
-	int rc = fclose( fp );
-	/* unlock */
-	ldap_unlockf( fileno(lfp) );
-	fclose( lfp );
+int lock_fclose(FILE *fp, FILE *lfp) {
+  int rc = fclose(fp);
+  /* unlock */
+  ldap_unlockf(fileno(lfp));
+  fclose(lfp);
 
-	return( rc );
+  return (rc);
 }

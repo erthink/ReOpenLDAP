@@ -22,11 +22,11 @@
 #undef TOLOWER
 
 #ifdef C_UPPER_LOWER
-# define TOUPPER(c)	(islower(c) ? toupper(c) : (c))
-# define TOLOWER(c)	(isupper(c) ? tolower(c) : (c))
+#define TOUPPER(c) (islower(c) ? toupper(c) : (c))
+#define TOLOWER(c) (isupper(c) ? tolower(c) : (c))
 #else
-# define TOUPPER(c)	toupper(c)
-# define TOLOWER(c)	tolower(c)
+#define TOUPPER(c) toupper(c)
+#define TOLOWER(c) tolower(c)
 #endif
 
 #endif /* _AC_CTYPE_H */

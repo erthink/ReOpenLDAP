@@ -28,294 +28,286 @@
 
 static struct berval glue_bv = BER_BVC("glue");
 
-int
-ndb_back_delete( Operation *op, SlapReply *rs )
-{
-	Entry	e = {0};
-	Entry	p = {0};
-	int		manageDSAit = get_manageDSAit( op );
-	AttributeDescription *children = slap_schema.si_ad_children;
-	AttributeDescription *entry = slap_schema.si_ad_entry;
+int ndb_back_delete(Operation *op, SlapReply *rs) {
+  Entry e = {0};
+  Entry p = {0};
+  int manageDSAit = get_manageDSAit(op);
+  AttributeDescription *children = slap_schema.si_ad_children;
+  AttributeDescription *entry = slap_schema.si_ad_entry;
 
-	NdbArgs NA;
-	NdbRdns rdns;
-	struct berval matched;
+  NdbArgs NA;
+  NdbRdns rdns;
+  struct berval matched;
 
 #ifdef NDB_RETRY
-	int	num_retries = 0;
+  int num_retries = 0;
 #endif
 
-	int     rc;
+  int rc;
 
-	LDAPControl **preread_ctrl = NULL;
-	LDAPControl *ctrls[SLAP_MAX_RESPONSE_CONTROLS];
-	int num_ctrls = 0;
+  LDAPControl **preread_ctrl = NULL;
+  LDAPControl *ctrls[SLAP_MAX_RESPONSE_CONTROLS];
+  int num_ctrls = 0;
 
-	Debug( LDAP_DEBUG_ARGS, "==> " LDAP_XSTRING(ndb_back_delete) ": %s\n",
-		op->o_req_dn.bv_val );
+  Debug(LDAP_DEBUG_ARGS, "==> " LDAP_XSTRING(ndb_back_delete) ": %s\n",
+        op->o_req_dn.bv_val);
 
-	ctrls[num_ctrls] = 0;
+  ctrls[num_ctrls] = 0;
 
-	/* allocate CSN */
-	if ( BER_BVISEMPTY( &op->o_csn ) ) {
-		struct berval csn;
-		char csnbuf[LDAP_PVT_CSNSTR_BUFSIZE];
+  /* allocate CSN */
+  if (BER_BVISEMPTY(&op->o_csn)) {
+    struct berval csn;
+    char csnbuf[LDAP_PVT_CSNSTR_BUFSIZE];
 
-		csn.bv_val = csnbuf;
-		csn.bv_len = sizeof(csnbuf);
-		slap_get_csn( op, &csn );
-	}
+    csn.bv_val = csnbuf;
+    csn.bv_len = sizeof(csnbuf);
+    slap_get_csn(op, &csn);
+  }
 
-	if ( !be_issuffix( op->o_bd, &op->o_req_ndn ) ) {
-		dnParent( &op->o_req_dn, &p.e_name );
-		dnParent( &op->o_req_ndn, &p.e_nname );
-	}
+  if (!be_issuffix(op->o_bd, &op->o_req_ndn)) {
+    dnParent(&op->o_req_dn, &p.e_name);
+    dnParent(&op->o_req_ndn, &p.e_nname);
+  }
 
-	/* Get our NDB handle */
-	rs->sr_err = ndb_thread_handle( op, &NA.ndb );
-	rdns.nr_num = 0;
-	NA.rdns = &rdns;
-	NA.ocs = NULL;
-	NA.e = &e;
-	e.e_name = op->o_req_dn;
-	e.e_nname = op->o_req_ndn;
+  /* Get our NDB handle */
+  rs->sr_err = ndb_thread_handle(op, &NA.ndb);
+  rdns.nr_num = 0;
+  NA.rdns = &rdns;
+  NA.ocs = NULL;
+  NA.e = &e;
+  e.e_name = op->o_req_dn;
+  e.e_nname = op->o_req_ndn;
 
 #ifdef NDB_RETRY
-	if( 0 ) {
-retry:	/* transaction retry */
-		NA.txn->close();
-		NA.txn = NULL;
-		Debug( LDAP_DEBUG_TRACE,
-			"==> " LDAP_XSTRING(ndb_back_delete) ": retrying...\n" );
-		if ( slap_get_op_abandon(op) ) {
-			rs->sr_err = SLAPD_ABANDON;
-			goto return_results;
-		}
-		if ( NA.ocs ) {
-			ber_bvarray_free( NA.ocs );
-			NA.ocs = NULL;
-		}
-		ndb_trans_backoff( ++num_retries );
-	}
+  if (0) {
+  retry: /* transaction retry */
+    NA.txn->close();
+    NA.txn = NULL;
+    Debug(LDAP_DEBUG_TRACE,
+          "==> " LDAP_XSTRING(ndb_back_delete) ": retrying...\n");
+    if (slap_get_op_abandon(op)) {
+      rs->sr_err = SLAPD_ABANDON;
+      goto return_results;
+    }
+    if (NA.ocs) {
+      ber_bvarray_free(NA.ocs);
+      NA.ocs = NULL;
+    }
+    ndb_trans_backoff(++num_retries);
+  }
 #endif
-	/* begin transaction */
-	NA.txn = NA.ndb->startTransaction();
-	rs->sr_text = NULL;
-	if( !NA.txn ) {
-		Debug( LDAP_DEBUG_TRACE,
-			LDAP_XSTRING(ndb_back_delete) ": startTransaction failed: %s (%d)\n",
-			NA.ndb->getNdbError().message, NA.ndb->getNdbError().code );
-		rs->sr_err = LDAP_OTHER;
-		rs->sr_text = "internal error";
-		goto return_results;
-	}
+  /* begin transaction */
+  NA.txn = NA.ndb->startTransaction();
+  rs->sr_text = NULL;
+  if (!NA.txn) {
+    Debug(LDAP_DEBUG_TRACE,
+          LDAP_XSTRING(ndb_back_delete) ": startTransaction failed: %s (%d)\n",
+          NA.ndb->getNdbError().message, NA.ndb->getNdbError().code);
+    rs->sr_err = LDAP_OTHER;
+    rs->sr_text = "internal error";
+    goto return_results;
+  }
 
-	/* get entry */
-	rs->sr_err = ndb_entry_get_info( op, &NA, 1, &matched );
-	switch( rs->sr_err ) {
-	case 0:
-	case LDAP_NO_SUCH_OBJECT:
-		break;
+  /* get entry */
+  rs->sr_err = ndb_entry_get_info(op, &NA, 1, &matched);
+  switch (rs->sr_err) {
+  case 0:
+  case LDAP_NO_SUCH_OBJECT:
+    break;
 #ifdef NDB_RETRY
-	case DB_LOCK_DEADLOCK:
-	case DB_LOCK_NOTGRANTED:
-		goto retry;
+  case DB_LOCK_DEADLOCK:
+  case DB_LOCK_NOTGRANTED:
+    goto retry;
 #endif
-	case LDAP_BUSY:
-		rs->sr_text = "ldap server busy";
-		goto return_results;
-	default:
-		rs->sr_err = LDAP_OTHER;
-		rs->sr_text = "internal error";
-		goto return_results;
-	}
+  case LDAP_BUSY:
+    rs->sr_text = "ldap server busy";
+    goto return_results;
+  default:
+    rs->sr_err = LDAP_OTHER;
+    rs->sr_text = "internal error";
+    goto return_results;
+  }
 
-	if ( rs->sr_err == LDAP_NO_SUCH_OBJECT ||
-		( !manageDSAit && bvmatch( NA.ocs, &glue_bv ))) {
-		Debug( LDAP_DEBUG_ARGS,
-			"<=- " LDAP_XSTRING(ndb_back_delete) ": no such object %s\n",
-			op->o_req_dn.bv_val );
+  if (rs->sr_err == LDAP_NO_SUCH_OBJECT ||
+      (!manageDSAit && bvmatch(NA.ocs, &glue_bv))) {
+    Debug(LDAP_DEBUG_ARGS,
+          "<=- " LDAP_XSTRING(ndb_back_delete) ": no such object %s\n",
+          op->o_req_dn.bv_val);
 
-		if ( rs->sr_err == LDAP_NO_SUCH_OBJECT ) {
-			rs->sr_matched = matched.bv_val;
-			if ( NA.ocs )
-				ndb_check_referral( op, rs, &NA );
-		} else {
-			rs->sr_matched = p.e_name.bv_val;
-			rs->sr_err = LDAP_NO_SUCH_OBJECT;
-		}
-		goto return_results;
-	}
+    if (rs->sr_err == LDAP_NO_SUCH_OBJECT) {
+      rs->sr_matched = matched.bv_val;
+      if (NA.ocs)
+        ndb_check_referral(op, rs, &NA);
+    } else {
+      rs->sr_matched = p.e_name.bv_val;
+      rs->sr_err = LDAP_NO_SUCH_OBJECT;
+    }
+    goto return_results;
+  }
 
-	/* check parent for "children" acl */
-	rs->sr_err = access_allowed( op, &p,
-		children, NULL, ACL_WDEL, NULL );
+  /* check parent for "children" acl */
+  rs->sr_err = access_allowed(op, &p, children, NULL, ACL_WDEL, NULL);
 
-	if ( !rs->sr_err  ) {
-		Debug( LDAP_DEBUG_TRACE,
-			"<=- " LDAP_XSTRING(ndb_back_delete) ": no write "
-			"access to parent\n" );
-		rs->sr_err = LDAP_INSUFFICIENT_ACCESS;
-		rs->sr_text = "no write access to parent";
-		goto return_results;
-	}
+  if (!rs->sr_err) {
+    Debug(LDAP_DEBUG_TRACE,
+          "<=- " LDAP_XSTRING(ndb_back_delete) ": no write "
+                                               "access to parent\n");
+    rs->sr_err = LDAP_INSUFFICIENT_ACCESS;
+    rs->sr_text = "no write access to parent";
+    goto return_results;
+  }
 
-	rs->sr_err = ndb_entry_get_data( op, &NA, 1 );
+  rs->sr_err = ndb_entry_get_data(op, &NA, 1);
 
-	rs->sr_err = access_allowed( op, &e,
-		entry, NULL, ACL_WDEL, NULL );
+  rs->sr_err = access_allowed(op, &e, entry, NULL, ACL_WDEL, NULL);
 
-	if ( !rs->sr_err  ) {
-		Debug( LDAP_DEBUG_TRACE,
-			"<=- " LDAP_XSTRING(ndb_back_delete) ": no write access "
-			"to entry\n" );
-		rs->sr_err = LDAP_INSUFFICIENT_ACCESS;
-		rs->sr_text = "no write access to entry";
-		goto return_results;
-	}
+  if (!rs->sr_err) {
+    Debug(LDAP_DEBUG_TRACE,
+          "<=- " LDAP_XSTRING(ndb_back_delete) ": no write access "
+                                               "to entry\n");
+    rs->sr_err = LDAP_INSUFFICIENT_ACCESS;
+    rs->sr_text = "no write access to entry";
+    goto return_results;
+  }
 
-	if ( !manageDSAit && is_entry_referral( &e ) ) {
-		/* entry is a referral, don't allow delete */
-		rs->sr_ref = get_entry_referrals( op, &e );
+  if (!manageDSAit && is_entry_referral(&e)) {
+    /* entry is a referral, don't allow delete */
+    rs->sr_ref = get_entry_referrals(op, &e);
 
-		Debug( LDAP_DEBUG_TRACE,
-			LDAP_XSTRING(ndb_back_delete) ": entry is referral\n" );
+    Debug(LDAP_DEBUG_TRACE,
+          LDAP_XSTRING(ndb_back_delete) ": entry is referral\n");
 
-		rs->sr_err = LDAP_REFERRAL;
-		rs->sr_matched = e.e_name.bv_val;
-		rs->sr_flags = REP_REF_MUSTBEFREED;
-		goto return_results;
-	}
+    rs->sr_err = LDAP_REFERRAL;
+    rs->sr_matched = e.e_name.bv_val;
+    rs->sr_flags = REP_REF_MUSTBEFREED;
+    goto return_results;
+  }
 
-	if ( get_assert( op ) &&
-		( test_filter( op, &e, (Filter *)get_assertion( op )) != LDAP_COMPARE_TRUE ))
-	{
-		rs->sr_err = LDAP_ASSERTION_FAILED;
-		goto return_results;
-	}
+  if (get_assert(op) &&
+      (test_filter(op, &e, (Filter *)get_assertion(op)) != LDAP_COMPARE_TRUE)) {
+    rs->sr_err = LDAP_ASSERTION_FAILED;
+    goto return_results;
+  }
 
-	/* pre-read */
-	if( op->o_preread ) {
-		if( preread_ctrl == NULL ) {
-			preread_ctrl = &ctrls[num_ctrls++];
-			ctrls[num_ctrls] = NULL;
-		}
-		if( slap_read_controls( op, rs, &e,
-			&slap_pre_read_bv, preread_ctrl ) )
-		{
-			Debug( LDAP_DEBUG_TRACE,
-				"<=- " LDAP_XSTRING(ndb_back_delete) ": pre-read failed!\n" );
-			if ( op->o_preread & SLAP_CONTROL_CRITICAL ) {
-				/* FIXME: is it correct to abort
-				 * operation if control fails? */
-				goto return_results;
-			}
-		}
-	}
+  /* pre-read */
+  if (op->o_preread) {
+    if (preread_ctrl == NULL) {
+      preread_ctrl = &ctrls[num_ctrls++];
+      ctrls[num_ctrls] = NULL;
+    }
+    if (slap_read_controls(op, rs, &e, &slap_pre_read_bv, preread_ctrl)) {
+      Debug(LDAP_DEBUG_TRACE,
+            "<=- " LDAP_XSTRING(ndb_back_delete) ": pre-read failed!\n");
+      if (op->o_preread & SLAP_CONTROL_CRITICAL) {
+        /* FIXME: is it correct to abort
+         * operation if control fails? */
+        goto return_results;
+      }
+    }
+  }
 
-	/* Can't do it if we have kids */
-	rs->sr_err = ndb_has_children( &NA, &rc );
-	if ( rs->sr_err ) {
-		Debug(LDAP_DEBUG_ARGS,
-			"<=- " LDAP_XSTRING(ndb_back_delete)
-			": has_children failed: %s (%d)\n",
-			NA.txn->getNdbError().message, NA.txn->getNdbError().code );
-		rs->sr_err = LDAP_OTHER;
-		rs->sr_text = "internal error";
-		goto return_results;
-	}
-	if ( rc == LDAP_COMPARE_TRUE ) {
-		Debug(LDAP_DEBUG_ARGS,
-			"<=- " LDAP_XSTRING(ndb_back_delete)
-			": non-leaf %s\n",
-			op->o_req_dn.bv_val);
-		rs->sr_err = LDAP_NOT_ALLOWED_ON_NONLEAF;
-		rs->sr_text = "subordinate objects must be deleted first";
-		goto return_results;
-	}
+  /* Can't do it if we have kids */
+  rs->sr_err = ndb_has_children(&NA, &rc);
+  if (rs->sr_err) {
+    Debug(
+        LDAP_DEBUG_ARGS,
+        "<=- " LDAP_XSTRING(ndb_back_delete) ": has_children failed: %s (%d)\n",
+        NA.txn->getNdbError().message, NA.txn->getNdbError().code);
+    rs->sr_err = LDAP_OTHER;
+    rs->sr_text = "internal error";
+    goto return_results;
+  }
+  if (rc == LDAP_COMPARE_TRUE) {
+    Debug(LDAP_DEBUG_ARGS,
+          "<=- " LDAP_XSTRING(ndb_back_delete) ": non-leaf %s\n",
+          op->o_req_dn.bv_val);
+    rs->sr_err = LDAP_NOT_ALLOWED_ON_NONLEAF;
+    rs->sr_text = "subordinate objects must be deleted first";
+    goto return_results;
+  }
 
-	/* delete info */
-	rs->sr_err = ndb_entry_del_info( op->o_bd, &NA );
-	if ( rs->sr_err != 0 ) {
-		Debug(LDAP_DEBUG_TRACE,
-			"<=- " LDAP_XSTRING(ndb_back_delete) ": del_info failed: %s (%d)\n",
-			NA.txn->getNdbError().message, NA.txn->getNdbError().code);
-		rs->sr_text = "DN index delete failed";
-		rs->sr_err = LDAP_OTHER;
-		goto return_results;
-	}
+  /* delete info */
+  rs->sr_err = ndb_entry_del_info(op->o_bd, &NA);
+  if (rs->sr_err != 0) {
+    Debug(LDAP_DEBUG_TRACE,
+          "<=- " LDAP_XSTRING(ndb_back_delete) ": del_info failed: %s (%d)\n",
+          NA.txn->getNdbError().message, NA.txn->getNdbError().code);
+    rs->sr_text = "DN index delete failed";
+    rs->sr_err = LDAP_OTHER;
+    goto return_results;
+  }
 
-	/* delete data */
-	rs->sr_err = ndb_entry_del_data( op->o_bd, &NA );
-	if ( rs->sr_err != 0 ) {
-		Debug( LDAP_DEBUG_TRACE,
-			"<=- " LDAP_XSTRING(ndb_back_delete) ": del_data failed: %s (%d)\n",
-			NA.txn->getNdbError().message, NA.txn->getNdbError().code );
-		rs->sr_text = "entry delete failed";
-		rs->sr_err = LDAP_OTHER;
-		goto return_results;
-	}
+  /* delete data */
+  rs->sr_err = ndb_entry_del_data(op->o_bd, &NA);
+  if (rs->sr_err != 0) {
+    Debug(LDAP_DEBUG_TRACE,
+          "<=- " LDAP_XSTRING(ndb_back_delete) ": del_data failed: %s (%d)\n",
+          NA.txn->getNdbError().message, NA.txn->getNdbError().code);
+    rs->sr_text = "entry delete failed";
+    rs->sr_err = LDAP_OTHER;
+    goto return_results;
+  }
 
-	if( op->o_noop ) {
-		if (( rs->sr_err=NA.txn->execute( NdbTransaction::Rollback,
-			NdbOperation::AbortOnError, 1 )) != 0 ) {
-			rs->sr_text = "txn (no-op) failed";
-		} else {
-			rs->sr_err = LDAP_X_NO_OPERATION;
-		}
-	} else {
-		if (( rs->sr_err=NA.txn->execute( NdbTransaction::Commit,
-			NdbOperation::AbortOnError, 1 )) != 0 ) {
-			rs->sr_text = "txn_commit failed";
-		} else {
-			rs->sr_err = LDAP_SUCCESS;
-		}
-	}
+  if (op->o_noop) {
+    if ((rs->sr_err = NA.txn->execute(NdbTransaction::Rollback,
+                                      NdbOperation::AbortOnError, 1)) != 0) {
+      rs->sr_text = "txn (no-op) failed";
+    } else {
+      rs->sr_err = LDAP_X_NO_OPERATION;
+    }
+  } else {
+    if ((rs->sr_err = NA.txn->execute(NdbTransaction::Commit,
+                                      NdbOperation::AbortOnError, 1)) != 0) {
+      rs->sr_text = "txn_commit failed";
+    } else {
+      rs->sr_err = LDAP_SUCCESS;
+    }
+  }
 
-	if( rs->sr_err != LDAP_SUCCESS && rs->sr_err != LDAP_X_NO_OPERATION ) {
-		Debug( LDAP_DEBUG_TRACE,
-			LDAP_XSTRING(ndb_back_delete) ": txn_%s failed: %s (%d)\n",
-			op->o_noop ? "abort (no-op)" : "commit",
-			NA.txn->getNdbError().message, NA.txn->getNdbError().code );
-		rs->sr_err = LDAP_OTHER;
-		rs->sr_text = "commit failed";
+  if (rs->sr_err != LDAP_SUCCESS && rs->sr_err != LDAP_X_NO_OPERATION) {
+    Debug(LDAP_DEBUG_TRACE,
+          LDAP_XSTRING(ndb_back_delete) ": txn_%s failed: %s (%d)\n",
+          op->o_noop ? "abort (no-op)" : "commit",
+          NA.txn->getNdbError().message, NA.txn->getNdbError().code);
+    rs->sr_err = LDAP_OTHER;
+    rs->sr_text = "commit failed";
 
-		goto return_results;
-	}
-	NA.txn->close();
-	NA.txn = NULL;
+    goto return_results;
+  }
+  NA.txn->close();
+  NA.txn = NULL;
 
-	Debug( LDAP_DEBUG_TRACE,
-		LDAP_XSTRING(ndb_back_delete) ": deleted%s id=%08lx dn=\"%s\"\n",
-		op->o_noop ? " (no-op)" : "",
-		e.e_id, op->o_req_dn.bv_val );
-	rs->sr_err = LDAP_SUCCESS;
-	rs->sr_text = NULL;
-	if( num_ctrls ) rs->sr_ctrls = ctrls;
+  Debug(LDAP_DEBUG_TRACE,
+        LDAP_XSTRING(ndb_back_delete) ": deleted%s id=%08lx dn=\"%s\"\n",
+        op->o_noop ? " (no-op)" : "", e.e_id, op->o_req_dn.bv_val);
+  rs->sr_err = LDAP_SUCCESS;
+  rs->sr_text = NULL;
+  if (num_ctrls)
+    rs->sr_ctrls = ctrls;
 
 return_results:
-	if ( NA.ocs ) {
-		ber_bvarray_free_x( NA.ocs, op->o_tmpmemctx );
-		NA.ocs = NULL;
-	}
+  if (NA.ocs) {
+    ber_bvarray_free_x(NA.ocs, op->o_tmpmemctx);
+    NA.ocs = NULL;
+  }
 
-	/* free entry */
-	if( e.e_attrs != NULL ) {
-		attrs_free( e.e_attrs );
-		e.e_attrs = NULL;
-	}
+  /* free entry */
+  if (e.e_attrs != NULL) {
+    attrs_free(e.e_attrs);
+    e.e_attrs = NULL;
+  }
 
-	if( NA.txn != NULL ) {
-		NA.txn->execute( Rollback );
-		NA.txn->close();
-	}
+  if (NA.txn != NULL) {
+    NA.txn->execute(Rollback);
+    NA.txn->close();
+  }
 
-	send_ldap_result( op, rs );
-	slap_graduate_commit_csn( op );
+  send_ldap_result(op, rs);
+  slap_graduate_commit_csn(op);
 
-	if( preread_ctrl != NULL && (*preread_ctrl) != NULL ) {
-		slap_sl_free( (*preread_ctrl)->ldctl_value.bv_val, op->o_tmpmemctx );
-		slap_sl_free( *preread_ctrl, op->o_tmpmemctx );
-	}
-	return rs->sr_err;
+  if (preread_ctrl != NULL && (*preread_ctrl) != NULL) {
+    slap_sl_free((*preread_ctrl)->ldctl_value.bv_val, op->o_tmpmemctx);
+    slap_sl_free(*preread_ctrl, op->o_tmpmemctx);
+  }
+  return rs->sr_err;
 }

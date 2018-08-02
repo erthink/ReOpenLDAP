@@ -21,37 +21,28 @@
  *
  **********************************************************/
 
-int
-perl_back_close(
-	BackendInfo *bd
-)
-{
-	perl_destruct(PERL_INTERPRETER);
-	perl_free(PERL_INTERPRETER);
-	PERL_INTERPRETER = NULL;
+int perl_back_close(BackendInfo *bd) {
+  perl_destruct(PERL_INTERPRETER);
+  perl_free(PERL_INTERPRETER);
+  PERL_INTERPRETER = NULL;
 #ifdef PERL_SYS_TERM
-	PERL_SYS_TERM();
+  PERL_SYS_TERM();
 #endif
 
-	ldap_pvt_thread_mutex_destroy( &perl_interpreter_mutex );
+  ldap_pvt_thread_mutex_destroy(&perl_interpreter_mutex);
 
-	return 0;
+  return 0;
 }
 
-int
-perl_back_db_destroy(
-	BackendDB *be,
-	ConfigReply *cr
-)
-{
-	PerlBackend *pb = be->be_private;
+int perl_back_db_destroy(BackendDB *be, ConfigReply *cr) {
+  PerlBackend *pb = be->be_private;
 
-	ch_free( pb->pb_module_name );
-	ber_bvarray_free( pb->pb_module_path );
-	ber_bvarray_free( pb->pb_module_config );
+  ch_free(pb->pb_module_name);
+  ber_bvarray_free(pb->pb_module_path);
+  ber_bvarray_free(pb->pb_module_config);
 
-	free( be->be_private );
-	be->be_private = NULL;
+  free(be->be_private);
+  be->be_private = NULL;
 
-	return 0;
+  return 0;
 }

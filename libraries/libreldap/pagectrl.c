@@ -33,7 +33,7 @@
                      location in the search results.  NULL on the
                      first call.
     value      (OUT) Control value, SHOULD be freed by calling
-					 ldap_memfree() when done.
+                                         ldap_memfree() when done.
 
     pagedResultsControl ::= SEQUENCE {
             controlType     1.2.840.113556.1.4.319,
@@ -48,59 +48,52 @@
 
    ---------------------------------------------------------------------------*/
 
-int
-ldap_create_page_control_value(
-	LDAP *ld,
-	ber_int_t pagesize,
-	struct berval	*cookie,
-	struct berval	*value )
-{
-	BerElement	*ber = NULL;
-	ber_tag_t	tag;
-	struct berval	null_cookie = { 0, NULL };
+int ldap_create_page_control_value(LDAP *ld, ber_int_t pagesize,
+                                   struct berval *cookie,
+                                   struct berval *value) {
+  BerElement *ber = NULL;
+  ber_tag_t tag;
+  struct berval null_cookie = {0, NULL};
 
-	if ( ld == NULL || value == NULL ||
-		pagesize < 1 || pagesize > LDAP_MAXINT )
-	{
-		if ( ld )
-			ld->ld_errno = LDAP_PARAM_ERROR;
-		return LDAP_PARAM_ERROR;
-	}
+  if (ld == NULL || value == NULL || pagesize < 1 || pagesize > LDAP_MAXINT) {
+    if (ld)
+      ld->ld_errno = LDAP_PARAM_ERROR;
+    return LDAP_PARAM_ERROR;
+  }
 
-	assert( LDAP_VALID( ld ) );
+  assert(LDAP_VALID(ld));
 
-	value->bv_val = NULL;
-	value->bv_len = 0;
-	ld->ld_errno = LDAP_SUCCESS;
+  value->bv_val = NULL;
+  value->bv_len = 0;
+  ld->ld_errno = LDAP_SUCCESS;
 
-	if ( cookie == NULL ) {
-		cookie = &null_cookie;
-	}
+  if (cookie == NULL) {
+    cookie = &null_cookie;
+  }
 
-	ber = ldap_alloc_ber_with_options( ld );
-	if ( ber == NULL ) {
-		ld->ld_errno = LDAP_NO_MEMORY;
-		return ld->ld_errno;
-	}
+  ber = ldap_alloc_ber_with_options(ld);
+  if (ber == NULL) {
+    ld->ld_errno = LDAP_NO_MEMORY;
+    return ld->ld_errno;
+  }
 
-	tag = ber_printf( ber, "{iO}", pagesize, cookie );
-	if ( tag == LBER_ERROR ) {
-		ld->ld_errno = LDAP_ENCODING_ERROR;
-		goto done;
-	}
+  tag = ber_printf(ber, "{iO}", pagesize, cookie);
+  if (tag == LBER_ERROR) {
+    ld->ld_errno = LDAP_ENCODING_ERROR;
+    goto done;
+  }
 
-	if ( ber_flatten2( ber, value, 1 ) == -1 ) {
-		ld->ld_errno = LDAP_NO_MEMORY;
-	}
+  if (ber_flatten2(ber, value, 1) == -1) {
+    ld->ld_errno = LDAP_NO_MEMORY;
+  }
 
 done:;
-	if ( ber != NULL ) {
-		ber_free( ber, 1 );
-	}
+  if (ber != NULL) {
+    ber_free(ber, 1);
+  }
 
-	return ld->ld_errno;
+  return ld->ld_errno;
 }
-
 
 /* ---------------------------------------------------------------------------
     ldap_create_page_control
@@ -113,10 +106,10 @@ done:;
                      location in the search results.  NULL on the
                      first call.
     value      (OUT) Control value, SHOULD be freed by calling
-					 ldap_memfree() when done.
+                                         ldap_memfree() when done.
     iscritical  (IN) Criticality
     ctrlp      (OUT) LDAP control, SHOULD be freed by calling
-					 ldap_control_free() when done.
+                                         ldap_control_free() when done.
 
     pagedResultsControl ::= SEQUENCE {
             controlType     1.2.840.113556.1.4.319,
@@ -131,34 +124,27 @@ done:;
 
    ---------------------------------------------------------------------------*/
 
-int
-ldap_create_page_control(
-	LDAP		*ld,
-	ber_int_t	pagesize,
-	struct berval	*cookie,
-	int		iscritical,
-	LDAPControl	**ctrlp )
-{
-	struct berval	value;
+int ldap_create_page_control(LDAP *ld, ber_int_t pagesize,
+                             struct berval *cookie, int iscritical,
+                             LDAPControl **ctrlp) {
+  struct berval value;
 
-	if ( ctrlp == NULL ) {
-		ld->ld_errno = LDAP_PARAM_ERROR;
-		return ld->ld_errno;
-	}
+  if (ctrlp == NULL) {
+    ld->ld_errno = LDAP_PARAM_ERROR;
+    return ld->ld_errno;
+  }
 
-	ld->ld_errno = ldap_create_page_control_value( ld,
-		pagesize, cookie, &value );
-	if ( ld->ld_errno == LDAP_SUCCESS ) {
-		ld->ld_errno = ldap_control_create( LDAP_CONTROL_PAGEDRESULTS,
-			iscritical, &value, 0, ctrlp );
-		if ( ld->ld_errno != LDAP_SUCCESS ) {
-			LDAP_FREE( value.bv_val );
-		}
-	}
+  ld->ld_errno = ldap_create_page_control_value(ld, pagesize, cookie, &value);
+  if (ld->ld_errno == LDAP_SUCCESS) {
+    ld->ld_errno = ldap_control_create(LDAP_CONTROL_PAGEDRESULTS, iscritical,
+                                       &value, 0, ctrlp);
+    if (ld->ld_errno != LDAP_SUCCESS) {
+      LDAP_FREE(value.bv_val);
+    }
+  }
 
-	return ld->ld_errno;
+  return ld->ld_errno;
 }
-
 
 /* ---------------------------------------------------------------------------
     ldap_parse_pageresponse_control
@@ -173,44 +159,39 @@ ldap_create_page_control(
 
    ---------------------------------------------------------------------------*/
 
-int
-ldap_parse_pageresponse_control(
-	LDAP *ld,
-	LDAPControl *ctrl,
-	ber_int_t *countp,
-	struct berval *cookie )
-{
-	BerElement *ber;
-	ber_tag_t tag;
-	ber_int_t count;
+int ldap_parse_pageresponse_control(LDAP *ld, LDAPControl *ctrl,
+                                    ber_int_t *countp, struct berval *cookie) {
+  BerElement *ber;
+  ber_tag_t tag;
+  ber_int_t count;
 
-	if ( ld == NULL || ctrl == NULL || cookie == NULL ) {
-		if ( ld )
-			ld->ld_errno = LDAP_PARAM_ERROR;
-		return LDAP_PARAM_ERROR;
-	}
+  if (ld == NULL || ctrl == NULL || cookie == NULL) {
+    if (ld)
+      ld->ld_errno = LDAP_PARAM_ERROR;
+    return LDAP_PARAM_ERROR;
+  }
 
-	/* Create a BerElement from the berval returned in the control. */
-	ber = ber_init( &ctrl->ldctl_value );
+  /* Create a BerElement from the berval returned in the control. */
+  ber = ber_init(&ctrl->ldctl_value);
 
-	if ( ber == NULL ) {
-		ld->ld_errno = LDAP_NO_MEMORY;
-		return ld->ld_errno;
-	}
+  if (ber == NULL) {
+    ld->ld_errno = LDAP_NO_MEMORY;
+    return ld->ld_errno;
+  }
 
-	/* Extract the count and cookie from the control. */
-	tag = ber_scanf( ber, "{io}", &count, cookie );
-        ber_free( ber, 1 );
+  /* Extract the count and cookie from the control. */
+  tag = ber_scanf(ber, "{io}", &count, cookie);
+  ber_free(ber, 1);
 
-	if ( tag == LBER_ERROR ) {
-		ld->ld_errno = LDAP_DECODING_ERROR;
-	} else {
-		ld->ld_errno = LDAP_SUCCESS;
+  if (tag == LBER_ERROR) {
+    ld->ld_errno = LDAP_DECODING_ERROR;
+  } else {
+    ld->ld_errno = LDAP_SUCCESS;
 
-		if ( countp != NULL ) {
-			*countp = (unsigned long)count;
-		}
-	}
+    if (countp != NULL) {
+      *countp = (unsigned long)count;
+    }
+  }
 
-	return ld->ld_errno;
+  return ld->ld_errno;
 }

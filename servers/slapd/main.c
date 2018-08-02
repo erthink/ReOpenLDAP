@@ -37,42 +37,40 @@
 #include <malloc.h>
 #include <sys/prctl.h>
 #ifndef PR_SET_PTRACER
-#	define PR_SET_PTRACER 0x59616d61
-#	define PR_SET_PTRACER_ANY ((unsigned long)-1)
+#define PR_SET_PTRACER 0x59616d61
+#define PR_SET_PTRACER_ANY ((unsigned long)-1)
 #endif
 #else
-#	error "Linux is required for ReOpenLDAP"
+#error "Linux is required for ReOpenLDAP"
 #endif /* __linux__ */
 
 #ifdef LDAP_SIGCHLD
-static void wait4child( int sig );
+static void wait4child(int sig);
 #endif
 
-typedef int (MainFunc)( int argc, char *argv[] );
-extern MainFunc slapadd, slapcat, slapdn, slapindex, slappasswd,
-	slaptest, slapauth, slapacl, slapschema;
+typedef int(MainFunc)(int argc, char *argv[]);
+extern MainFunc slapadd, slapcat, slapdn, slapindex, slappasswd, slaptest,
+    slapauth, slapacl, slapschema;
 
 static struct {
-	char *name;
-	MainFunc *func;
-} tools[] = {
-	{"slapadd", slapadd},
-	{"slapcat", slapcat},
-	{"slapdn", slapdn},
-	{"slapindex", slapindex},
-	{"slappasswd", slappasswd},
-	{"slapschema", slapschema},
-	{"slaptest", slaptest},
-	{"slapauth", slapauth},
-	{"slapacl", slapacl},
-	/* NOTE: new tools must be added in chronological order,
-	 * not in alphabetical order, because for backwards
-	 * compatibility name[4] is used to identify the
-	 * tools; so name[4]=='a' must refer to "slapadd" and
-	 * not to "slapauth".  Alphabetical order can be used
-	 * for tools whose name[4] is not used yet */
-	{NULL, NULL}
-};
+  char *name;
+  MainFunc *func;
+} tools[] = {{"slapadd", slapadd},
+             {"slapcat", slapcat},
+             {"slapdn", slapdn},
+             {"slapindex", slapindex},
+             {"slappasswd", slappasswd},
+             {"slapschema", slapschema},
+             {"slaptest", slaptest},
+             {"slapauth", slapauth},
+             {"slapacl", slapacl},
+             /* NOTE: new tools must be added in chronological order,
+              * not in alphabetical order, because for backwards
+              * compatibility name[4] is used to identify the
+              * tools; so name[4]=='a' must refer to "slapadd" and
+              * not to "slapauth".  Alphabetical order can be used
+              * for tools whose name[4] is not used yet */
+             {NULL, NULL}};
 
 /*
  * when more than one slapd is running on one machine, each one might have
@@ -80,46 +78,44 @@ static struct {
  */
 
 const char SlapdVersionStr[] =
-	REOPENLDAP_PACKAGE " " REOPENLDAP_VERSION REOPENLDAP_BUILDID_SUFFIX \
-	" (" RELEASE_DATE ", " RELEASE_STAMP "), " \
-	"Standalone LDAP Server (slapd)";
+    REOPENLDAP_PACKAGE " " REOPENLDAP_VERSION REOPENLDAP_BUILDID_SUFFIX
+                       " (" RELEASE_DATE ", " RELEASE_STAMP "), "
+                       "Standalone LDAP Server (slapd)";
 
 extern OverlayInit slap_oinfo[];
 extern BackendInfo slap_binfo[];
 
-#define	CHECK_NONE	0x00
-#define	CHECK_CONFIG	0x01
-#define	CHECK_LOGLEVEL	0x02
+#define CHECK_NONE 0x00
+#define CHECK_CONFIG 0x01
+#define CHECK_LOGLEVEL 0x02
 static int check = CHECK_NONE;
 static int version = 0;
 
 void *slap_tls_ctx;
 LDAP *slap_tls_ld;
 
-static int
-slapd_opt_slp( const char *val, void *arg )
-{
+static int slapd_opt_slp(const char *val, void *arg) {
 #ifdef HAVE_SLP
-	/* NULL is default */
-	if ( val == NULL || *val == '(' || strcasecmp( val, "on" ) == 0 ) {
-		slapd_register_slp = 1;
-		slapd_slp_attrs = (val != NULL && *val == '(') ? val : NULL;
+  /* NULL is default */
+  if (val == NULL || *val == '(' || strcasecmp(val, "on") == 0) {
+    slapd_register_slp = 1;
+    slapd_slp_attrs = (val != NULL && *val == '(') ? val : NULL;
 
-	} else if ( strcasecmp( val, "off" ) == 0 ) {
-		slapd_register_slp = 0;
+  } else if (strcasecmp(val, "off") == 0) {
+    slapd_register_slp = 0;
 
-	/* NOTE: add support for URL specification? */
+    /* NOTE: add support for URL specification? */
 
-	} else {
-		fprintf(stderr, "unrecognized value \"%s\" for SLP option\n", val );
-		return -1;
-	}
+  } else {
+    fprintf(stderr, "unrecognized value \"%s\" for SLP option\n", val);
+    return -1;
+  }
 
-	return 0;
+  return 0;
 
 #else
-	fputs( "slapd: SLP support is not available\n", stderr );
-	return 0;
+  fputs("slapd: SLP support is not available\n", stderr);
+  return 0;
 #endif
 }
 
@@ -137,920 +133,900 @@ slapd_opt_slp( const char *val, void *arg )
  * error messages can be generated if a disabled option is requested.
  */
 struct option_helper {
-	struct berval	oh_name;
-	int		(*oh_fnc)(const char *val, void *arg);
-	void		*oh_arg;
-	const char	*oh_usage;
+  struct berval oh_name;
+  int (*oh_fnc)(const char *val, void *arg);
+  void *oh_arg;
+  const char *oh_usage;
 } option_helpers[] = {
-	{ BER_BVC("slp"),	slapd_opt_slp,	NULL, "slp[={on|off|(attrs)}] enable/disable SLP using (attrs)" },
-	{ BER_BVNULL, 0, NULL, NULL }
-};
+    {BER_BVC("slp"), slapd_opt_slp, NULL,
+     "slp[={on|off|(attrs)}] enable/disable SLP using (attrs)"},
+    {BER_BVNULL, 0, NULL, NULL}};
 
 #ifdef LDAP_SYSLOG
 #ifdef LOG_LOCAL4
-int
-parse_syslog_user( const char *arg, int *syslogUser )
-{
-	static slap_verbmasks syslogUsers[] = {
-		{ BER_BVC( "LOCAL0" ), LOG_LOCAL0 },
-		{ BER_BVC( "LOCAL1" ), LOG_LOCAL1 },
-		{ BER_BVC( "LOCAL2" ), LOG_LOCAL2 },
-		{ BER_BVC( "LOCAL3" ), LOG_LOCAL3 },
-		{ BER_BVC( "LOCAL4" ), LOG_LOCAL4 },
-		{ BER_BVC( "LOCAL5" ), LOG_LOCAL5 },
-		{ BER_BVC( "LOCAL6" ), LOG_LOCAL6 },
-		{ BER_BVC( "LOCAL7" ), LOG_LOCAL7 },
+int parse_syslog_user(const char *arg, int *syslogUser) {
+  static slap_verbmasks syslogUsers[] = {{BER_BVC("LOCAL0"), LOG_LOCAL0},
+                                         {BER_BVC("LOCAL1"), LOG_LOCAL1},
+                                         {BER_BVC("LOCAL2"), LOG_LOCAL2},
+                                         {BER_BVC("LOCAL3"), LOG_LOCAL3},
+                                         {BER_BVC("LOCAL4"), LOG_LOCAL4},
+                                         {BER_BVC("LOCAL5"), LOG_LOCAL5},
+                                         {BER_BVC("LOCAL6"), LOG_LOCAL6},
+                                         {BER_BVC("LOCAL7"), LOG_LOCAL7},
 #ifdef LOG_USER
-		{ BER_BVC( "USER" ), LOG_USER },
+                                         {BER_BVC("USER"), LOG_USER},
 #endif /* LOG_USER */
 #ifdef LOG_DAEMON
-		{ BER_BVC( "DAEMON" ), LOG_DAEMON },
+                                         {BER_BVC("DAEMON"), LOG_DAEMON},
 #endif /* LOG_DAEMON */
-		{ BER_BVNULL, 0 }
-	};
-	int i = verb_to_mask( arg, syslogUsers );
+                                         {BER_BVNULL, 0}};
+  int i = verb_to_mask(arg, syslogUsers);
 
-	if ( BER_BVISNULL( &syslogUsers[ i ].word ) ) {
-		Debug( LDAP_DEBUG_ANY,
-			"unrecognized syslog user \"%s\".\n",
-			arg );
-		return 1;
-	}
+  if (BER_BVISNULL(&syslogUsers[i].word)) {
+    Debug(LDAP_DEBUG_ANY, "unrecognized syslog user \"%s\".\n", arg);
+    return 1;
+  }
 
-	*syslogUser = syslogUsers[ i ].mask;
+  *syslogUser = syslogUsers[i].mask;
 
-	return 0;
+  return 0;
 }
 #endif /* LOG_LOCAL4 */
 
-int
-parse_syslog_severity( const char *arg, int *severity )
-{
-	static slap_verbmasks	str2syslog_level[] = {
-		{ BER_BVC( "EMERG" ),	LOG_EMERG },
-		{ BER_BVC( "ALERT" ),	LOG_ALERT },
-		{ BER_BVC( "CRIT" ),	LOG_CRIT },
-		{ BER_BVC( "ERR" ),	LOG_ERR },
-		{ BER_BVC( "WARNING" ),	LOG_WARNING },
-		{ BER_BVC( "NOTICE" ),	LOG_NOTICE },
-		{ BER_BVC( "INFO" ),	LOG_INFO },
-		{ BER_BVC( "DEBUG" ),	LOG_DEBUG },
-		{ BER_BVNULL, 0 }
-	};
-	int i = verb_to_mask( arg, str2syslog_level );
-	if ( BER_BVISNULL( &str2syslog_level[ i ].word ) ) {
-		Debug( LDAP_DEBUG_ANY,
-			"unknown syslog level \"%s\".\n",
-			arg );
-		return 1;
-	}
+int parse_syslog_severity(const char *arg, int *severity) {
+  static slap_verbmasks str2syslog_level[] = {{BER_BVC("EMERG"), LOG_EMERG},
+                                              {BER_BVC("ALERT"), LOG_ALERT},
+                                              {BER_BVC("CRIT"), LOG_CRIT},
+                                              {BER_BVC("ERR"), LOG_ERR},
+                                              {BER_BVC("WARNING"), LOG_WARNING},
+                                              {BER_BVC("NOTICE"), LOG_NOTICE},
+                                              {BER_BVC("INFO"), LOG_INFO},
+                                              {BER_BVC("DEBUG"), LOG_DEBUG},
+                                              {BER_BVNULL, 0}};
+  int i = verb_to_mask(arg, str2syslog_level);
+  if (BER_BVISNULL(&str2syslog_level[i].word)) {
+    Debug(LDAP_DEBUG_ANY, "unknown syslog level \"%s\".\n", arg);
+    return 1;
+  }
 
-	*severity = str2syslog_level[ i ].mask;
-	return 0;
+  *severity = str2syslog_level[i].mask;
+  return 0;
 }
 #endif /* LDAP_DEBUG && LDAP_SYSLOG */
 
-int
-parse_debug_unknowns( char **unknowns, int *levelp )
-{
-	int i, level, rc = 0;
+int parse_debug_unknowns(char **unknowns, int *levelp) {
+  int i, level, rc = 0;
 
-	for ( i = 0; unknowns[ i ] != NULL; i++ ) {
-		level = 0;
-		if ( str2loglevel( unknowns[ i ], &level )) {
-			fprintf( stderr,
-				"unrecognized log level \"%s\"\n", unknowns[ i ] );
-			rc = 1;
-		} else {
-			*levelp |= level;
-		}
-	}
-	return rc;
+  for (i = 0; unknowns[i] != NULL; i++) {
+    level = 0;
+    if (str2loglevel(unknowns[i], &level)) {
+      fprintf(stderr, "unrecognized log level \"%s\"\n", unknowns[i]);
+      rc = 1;
+    } else {
+      *levelp |= level;
+    }
+  }
+  return rc;
 }
 
-int
-parse_debug_level( const char *arg, int *levelp, char ***unknowns )
-{
-	int	level;
+int parse_debug_level(const char *arg, int *levelp, char ***unknowns) {
+  int level;
 
-	if ( arg && arg[ 0 ] != '-' && !isdigit( (unsigned char) arg[ 0 ] ) )
-	{
-		int	i;
-		char	**levels;
+  if (arg && arg[0] != '-' && !isdigit((unsigned char)arg[0])) {
+    int i;
+    char **levels;
 
-		levels = ldap_str2charray( arg, "," );
+    levels = ldap_str2charray(arg, ",");
 
-		for ( i = 0; levels[ i ] != NULL; i++ ) {
-			level = 0;
+    for (i = 0; levels[i] != NULL; i++) {
+      level = 0;
 
-			if ( str2loglevel( levels[ i ], &level ) ) {
-				/* remember this for later */
-				ldap_charray_add( unknowns, levels[ i ] );
-				fprintf( stderr,
-					"unrecognized log level \"%s\" (deferred)\n",
-					levels[ i ] );
-			} else {
-				*levelp |= level;
-			}
-		}
+      if (str2loglevel(levels[i], &level)) {
+        /* remember this for later */
+        ldap_charray_add(unknowns, levels[i]);
+        fprintf(stderr, "unrecognized log level \"%s\" (deferred)\n",
+                levels[i]);
+      } else {
+        *levelp |= level;
+      }
+    }
 
-		ldap_charray_free( levels );
+    ldap_charray_free(levels);
 
-	} else {
-		int rc;
+  } else {
+    int rc;
 
-		if ( arg[0] == '-' ) {
-			rc = lutil_atoix( &level, arg, 0 );
-		} else {
-			unsigned ulevel;
+    if (arg[0] == '-') {
+      rc = lutil_atoix(&level, arg, 0);
+    } else {
+      unsigned ulevel;
 
-			rc = lutil_atoux( &ulevel, arg, 0 );
-			level = (int)ulevel;
-		}
+      rc = lutil_atoux(&ulevel, arg, 0);
+      level = (int)ulevel;
+    }
 
-		if ( rc ) {
-			fprintf( stderr,
-				"unrecognized log level "
-				"\"%s\"\n", arg );
-			return 1;
-		}
+    if (rc) {
+      fprintf(stderr,
+              "unrecognized log level "
+              "\"%s\"\n",
+              arg);
+      return 1;
+    }
 
-		if ( level == 0 ) {
-			*levelp = 0;
+    if (level == 0) {
+      *levelp = 0;
 
-		} else {
-			*levelp |= level;
-		}
-	}
+    } else {
+      *levelp |= level;
+    }
+  }
 
-	return 0;
+  return 0;
 }
 
-static void
-usage( char *name )
-{
-	fprintf( stderr,
-		"usage: %s options\n", name );
-	fprintf( stderr,
+static void usage(char *name) {
+  fprintf(stderr, "usage: %s options\n", name);
+  fprintf(stderr,
 #ifdef __linux__
-		"\t-D\t\tTurns MALLOC_CHECK_=7 and enables attach a debugger\n"
+          "\t-D\t\tTurns MALLOC_CHECK_=7 and enables attach a debugger\n"
 #endif
-		"\t-4\t\tIPv4 only\n"
-		"\t-6\t\tIPv6 only\n"
-		"\t-T {acl|add|auth|cat|dn|index|passwd|test}\n"
-		"\t\t\tRun in Tool mode\n"
-		"\t-c cookie\tSync cookie of consumer\n"
-		"\t-d level\tDebug level" "\n"
-		"\t-f filename\tConfiguration file\n"
-		"\t-F dir\tConfiguration directory\n"
+          "\t-4\t\tIPv4 only\n"
+          "\t-6\t\tIPv6 only\n"
+          "\t-T {acl|add|auth|cat|dn|index|passwd|test}\n"
+          "\t\t\tRun in Tool mode\n"
+          "\t-c cookie\tSync cookie of consumer\n"
+          "\t-d level\tDebug level"
+          "\n"
+          "\t-f filename\tConfiguration file\n"
+          "\t-F dir\tConfiguration directory\n"
 #if defined(HAVE_SETUID) && defined(HAVE_SETGID)
-		"\t-g group\tGroup (id or name) to run as\n"
+          "\t-g group\tGroup (id or name) to run as\n"
 #endif
-		"\t-h URLs\t\tList of URLs to serve\n"
+          "\t-h URLs\t\tList of URLs to serve\n"
 #ifdef SLAP_DEFAULT_SYSLOG_USER
-		"\t-l facility\tSyslog facility (default: LOCAL4)\n"
+          "\t-l facility\tSyslog facility (default: LOCAL4)\n"
 #endif
-		"\t-n serverName\tService name\n"
-		"\t-o <opt>[=val] generic means to specify options" );
-	if ( !BER_BVISNULL( &option_helpers[0].oh_name ) ) {
-		int	i;
+          "\t-n serverName\tService name\n"
+          "\t-o <opt>[=val] generic means to specify options");
+  if (!BER_BVISNULL(&option_helpers[0].oh_name)) {
+    int i;
 
-		fprintf( stderr, "; supported options:\n" );
-		for ( i = 0; !BER_BVISNULL( &option_helpers[i].oh_name ); i++) {
-			fprintf( stderr, "\t\t%s\n", option_helpers[i].oh_usage );
-		}
-	} else {
-		fprintf( stderr, "\n" );
-	}
-	fprintf( stderr,
+    fprintf(stderr, "; supported options:\n");
+    for (i = 0; !BER_BVISNULL(&option_helpers[i].oh_name); i++) {
+      fprintf(stderr, "\t\t%s\n", option_helpers[i].oh_usage);
+    }
+  } else {
+    fprintf(stderr, "\n");
+  }
+  fprintf(stderr,
 #ifdef HAVE_CHROOT
-		"\t-r directory\tSandbox directory to chroot to\n"
+          "\t-r directory\tSandbox directory to chroot to\n"
 #endif
-		"\t-s level\tSyslog level\n"
+          "\t-s level\tSyslog level\n"
 #if defined(HAVE_SETUID) && defined(HAVE_SETGID)
-		"\t-u user\t\tUser (id or name) to run as\n"
+          "\t-u user\t\tUser (id or name) to run as\n"
 #endif
-		"\t-V\t\tprint version info (-VV exit afterwards, -VVV print\n"
-		"\t\t\tinfo about static overlays and backends)\n"
-		"\t-?\t\tThis help.\n"
-	);
+          "\t-V\t\tprint version info (-VV exit afterwards, -VVV print\n"
+          "\t\t\tinfo about static overlays and backends)\n"
+          "\t-?\t\tThis help.\n");
 }
 
-int main( int argc, char **argv )
-{
-	int		i, no_detach = 0;
-	int		rc = 1;
-	char *urls = NULL;
+int main(int argc, char **argv) {
+  int i, no_detach = 0;
+  int rc = 1;
+  char *urls = NULL;
 #if defined(HAVE_SETUID) && defined(HAVE_SETGID)
-	char *username = NULL;
-	char *groupname = NULL;
+  char *username = NULL;
+  char *groupname = NULL;
 #endif
 #if defined(HAVE_CHROOT)
-	char *sandbox = NULL;
+  char *sandbox = NULL;
 #endif
 #ifdef SLAP_DEFAULT_SYSLOG_USER
-	int syslogUser = SLAP_DEFAULT_SYSLOG_USER;
+  int syslogUser = SLAP_DEFAULT_SYSLOG_USER;
 #endif
 
-	int pid, waitfds[2];
-	int g_argc = argc;
-	char **g_argv = argv;
+  int pid, waitfds[2];
+  int g_argc = argc;
+  char **g_argv = argv;
 
-	char *configfile = NULL;
-	char *configdir = NULL;
-	char *serverName;
-	char *serverName_strdup = NULL;
-	int serverMode = SLAP_SERVER_MODE;
+  char *configfile = NULL;
+  char *configdir = NULL;
+  char *serverName;
+  char *serverName_strdup = NULL;
+  int serverMode = SLAP_SERVER_MODE;
 
-	struct sync_cookie_item *scp = NULL;
-	struct sync_cookie_item *scp_entry = NULL;
-	BerValue cookie_str;
+  struct sync_cookie_item *scp = NULL;
+  struct sync_cookie_item *scp_entry = NULL;
+  BerValue cookie_str;
 
-	char **debug_unknowns = NULL;
-	char **syslog_unknowns = NULL;
+  char **debug_unknowns = NULL;
+  char **syslog_unknowns = NULL;
 
-	char *serverNamePrefix = "";
-	size_t	l;
+  char *serverNamePrefix = "";
+  size_t l;
 
-	int slapd_pid_file_unlink = 0, slapd_args_file_unlink = 0;
-	int firstopt = 1;
+  int slapd_pid_file_unlink = 0, slapd_args_file_unlink = 0;
+  int firstopt = 1;
 
 #ifdef CSRIMALLOC
-	FILE *leakfile;
-	if( ( leakfile = fopen( "slapd.leak", "w" )) == NULL ) {
-		leakfile = stderr;
-	}
+  FILE *leakfile;
+  if ((leakfile = fopen("slapd.leak", "w")) == NULL) {
+    leakfile = stderr;
+  }
 #endif
 
 #if defined(__SANITIZE_THREAD__) || defined(__SANITIZE_ADDRESS__)
-	/* LY: enable backtrace, because coredump will unavailable. */
-	slap_backtrace_set_enable( 1 );
+  /* LY: enable backtrace, because coredump will unavailable. */
+  slap_backtrace_set_enable(1);
 #endif
 
 #ifdef SLAPD_ENABLE_CI
-	slap_setup_ci();
+  slap_setup_ci();
 #endif /* SLAPD_ENABLE_CI */
 
-	slap_sl_mem_init();
+  slap_sl_mem_init();
 
-	(void) ldap_pvt_thread_initialize();
+  (void)ldap_pvt_thread_initialize();
 
-	serverName = lutil_progname( "slapd", argc, argv );
+  serverName = lutil_progname("slapd", argc, argv);
 
-	if ( strcmp( serverName, "slapd" ) ) {
-		for (i=0; tools[i].name; i++) {
-			if ( !strcmp( serverName, tools[i].name ) ) {
-				rc = tools[i].func(argc, argv);
-				return rc;
-			}
-		}
-	}
+  if (strcmp(serverName, "slapd")) {
+    for (i = 0; tools[i].name; i++) {
+      if (!strcmp(serverName, tools[i].name)) {
+        rc = tools[i].func(argc, argv);
+        return rc;
+      }
+    }
+  }
 
-	while ( (i = getopt( argc, argv,
-				 "?c:d:f:F:h:n:o:s:tT:V"
+  while ((i = getopt(argc, argv,
+                     "?c:d:f:F:h:n:o:s:tT:V"
 #ifdef __linux__
-				"D"
+                     "D"
 #endif /* __linux__ */
 
 #ifdef LDAP_PF_INET6
-				"46"
+                     "46"
 #endif
 #ifdef HAVE_CHROOT
-				"r:"
+                     "r:"
 #endif
 #if defined(LDAP_DEBUG) && defined(LDAP_SYSLOG)
-				"S:"
+                     "S:"
 #ifdef LOG_LOCAL4
-				"l:"
+                     "l:"
 #endif
 #endif
 #if defined(HAVE_SETUID) && defined(HAVE_SETGID)
-				"u:g:"
+                     "u:g:"
 #endif
-			     )) != EOF ) {
-		switch ( i ) {
+                     )) != EOF) {
+    switch (i) {
 #ifdef __linux__
-		case 'D':
-			/* turn on malloc checking */
-			mallopt(M_CHECK_ACTION, 3);
-			/* turn on malloc memory filling */
-			mallopt(M_PERTURB, 111);
-			/* enable debugger attaching */
-			prctl(PR_SET_PTRACER, PR_SET_PTRACER_ANY, 0, 0, 0);
-			break;
+    case 'D':
+      /* turn on malloc checking */
+      mallopt(M_CHECK_ACTION, 3);
+      /* turn on malloc memory filling */
+      mallopt(M_PERTURB, 111);
+      /* enable debugger attaching */
+      prctl(PR_SET_PTRACER, PR_SET_PTRACER_ANY, 0, 0, 0);
+      break;
 #endif /* __linux__ */
 
 #ifdef LDAP_PF_INET6
-		case '4':
-			slap_inet4or6 = AF_INET;
-			break;
-		case '6':
-			slap_inet4or6 = AF_INET6;
-			break;
+    case '4':
+      slap_inet4or6 = AF_INET;
+      break;
+    case '6':
+      slap_inet4or6 = AF_INET6;
+      break;
 #endif
 
-		case 'h':	/* listen URLs */
-			if ( urls != NULL ) free( urls );
-			urls = ch_strdup( optarg );
-			break;
+    case 'h': /* listen URLs */
+      if (urls != NULL)
+        free(urls);
+      urls = ch_strdup(optarg);
+      break;
 
-		case 'c':	/* provide sync cookie, override if exist in replica */
-			scp = ch_malloc( sizeof( struct sync_cookie_item ));
-			LDAP_STAILQ_ENTRY_INIT( scp, sci_next );
-			slap_cookie_init( &scp->sci_cookie );
+    case 'c': /* provide sync cookie, override if exist in replica */
+      scp = ch_malloc(sizeof(struct sync_cookie_item));
+      LDAP_STAILQ_ENTRY_INIT(scp, sci_next);
+      slap_cookie_init(&scp->sci_cookie);
 
-			cookie_str.bv_val = optarg;
-			cookie_str.bv_len = strlen(optarg);
+      cookie_str.bv_val = optarg;
+      cookie_str.bv_len = strlen(optarg);
 
-			if ( slap_cookie_parse( &scp->sci_cookie, &cookie_str, NULL ) ) {
-				Debug( LDAP_DEBUG_ANY, "main: invalid cookie \"%s\"\n", optarg );
-				slap_cookie_free( &scp->sci_cookie, 0 );
-				ch_free( scp );
-				goto destroy;
-			}
+      if (slap_cookie_parse(&scp->sci_cookie, &cookie_str, NULL)) {
+        Debug(LDAP_DEBUG_ANY, "main: invalid cookie \"%s\"\n", optarg);
+        slap_cookie_free(&scp->sci_cookie, 0);
+        ch_free(scp);
+        goto destroy;
+      }
 
-			/* LY: it is not needed to lock mutex here, but to reminding */
-			ldap_pvt_thread_mutex_lock( &slap_sync_cookie_mutex );
+      /* LY: it is not needed to lock mutex here, but to reminding */
+      ldap_pvt_thread_mutex_lock(&slap_sync_cookie_mutex);
 
-			LDAP_STAILQ_FOREACH( scp_entry, &slap_sync_cookie, sci_next ) {
-				if ( scp->sci_cookie.rid == scp_entry->sci_cookie.rid ) {
-					Debug( LDAP_DEBUG_ANY,
-						    "main: duplicated replica id in cookies\n" );
-					slap_cookie_free( &scp->sci_cookie, 0 );
-					ch_free( scp );
-					goto destroy;
-				}
-			}
-			LDAP_STAILQ_INSERT_TAIL( &slap_sync_cookie, scp, sci_next );
+      LDAP_STAILQ_FOREACH(scp_entry, &slap_sync_cookie, sci_next) {
+        if (scp->sci_cookie.rid == scp_entry->sci_cookie.rid) {
+          Debug(LDAP_DEBUG_ANY, "main: duplicated replica id in cookies\n");
+          slap_cookie_free(&scp->sci_cookie, 0);
+          ch_free(scp);
+          goto destroy;
+        }
+      }
+      LDAP_STAILQ_INSERT_TAIL(&slap_sync_cookie, scp, sci_next);
 
-			ldap_pvt_thread_mutex_unlock( &slap_sync_cookie_mutex );
-			break;
+      ldap_pvt_thread_mutex_unlock(&slap_sync_cookie_mutex);
+      break;
 
-		case 'd': {	/* set debug level and 'do not detach' flag */
-			int	mask = 0;
+    case 'd': { /* set debug level and 'do not detach' flag */
+      int mask = 0;
 
-			if ( strcmp( optarg, "?" ) == 0 ) {
-				check |= CHECK_LOGLEVEL;
-				break;
-			}
+      if (strcmp(optarg, "?") == 0) {
+        check |= CHECK_LOGLEVEL;
+        break;
+      }
 
-			no_detach = 1;
-			if ( parse_debug_level( optarg, &mask, &debug_unknowns ) ) {
-				goto destroy;
-			}
+      no_detach = 1;
+      if (parse_debug_level(optarg, &mask, &debug_unknowns)) {
+        goto destroy;
+      }
 #ifdef LDAP_DEBUG
-			slap_set_debug_level(mask);
+      slap_set_debug_level(mask);
 #else
-			if ( mask != 0 || debug_unknowns )
-				fputs( "must be configured with '--enable-debug' for debugging\n", stderr );
+      if (mask != 0 || debug_unknowns)
+        fputs("must be configured with '--enable-debug' for debugging\n",
+              stderr);
 #endif /* LDAP_DEBUG */
-			} break;
+    } break;
 
-		case 'f':	/* read config file */
-			configfile = ch_strdup( optarg );
-			break;
+    case 'f': /* read config file */
+      configfile = ch_strdup(optarg);
+      break;
 
-		case 'F':	/* use config dir */
-			configdir = ch_strdup( optarg );
-			break;
+    case 'F': /* use config dir */
+      configdir = ch_strdup(optarg);
+      break;
 
-		case 'o': {
-			char		*val = strchr( optarg, '=' );
-			struct berval	opt;
+    case 'o': {
+      char *val = strchr(optarg, '=');
+      struct berval opt;
 
-			opt.bv_val = optarg;
+      opt.bv_val = optarg;
 
-			if ( val ) {
-				opt.bv_len = ( val - optarg );
-				val++;
+      if (val) {
+        opt.bv_len = (val - optarg);
+        val++;
 
-			} else {
-				opt.bv_len = strlen( optarg );
-			}
+      } else {
+        opt.bv_len = strlen(optarg);
+      }
 
-			for ( i = 0; !BER_BVISNULL( &option_helpers[i].oh_name ); i++ ) {
-				if ( ber_bvstrcasecmp( &option_helpers[i].oh_name, &opt ) == 0 ) {
-					assert( option_helpers[i].oh_fnc != NULL );
-					if ( (*option_helpers[i].oh_fnc)( val, option_helpers[i].oh_arg ) == -1 ) {
-						/* we assume the option parsing helper
-						 * issues appropriate and self-explanatory
-						 * error messages... */
-						goto stop;
-					}
-					break;
-				}
-			}
+      for (i = 0; !BER_BVISNULL(&option_helpers[i].oh_name); i++) {
+        if (ber_bvstrcasecmp(&option_helpers[i].oh_name, &opt) == 0) {
+          assert(option_helpers[i].oh_fnc != NULL);
+          if ((*option_helpers[i].oh_fnc)(val, option_helpers[i].oh_arg) ==
+              -1) {
+            /* we assume the option parsing helper
+             * issues appropriate and self-explanatory
+             * error messages... */
+            goto stop;
+          }
+          break;
+        }
+      }
 
-			if ( BER_BVISNULL( &option_helpers[i].oh_name ) ) {
-				goto unhandled_option;
-			}
-		} break;
+      if (BER_BVISNULL(&option_helpers[i].oh_name)) {
+        goto unhandled_option;
+      }
+    } break;
 
-		case 's': {	/* set syslog level */
-			int mask = 0;
+    case 's': { /* set syslog level */
+      int mask = 0;
 
-			if ( strcmp( optarg, "?" ) == 0 ) {
-				check |= CHECK_LOGLEVEL;
-				break;
-			}
+      if (strcmp(optarg, "?") == 0) {
+        check |= CHECK_LOGLEVEL;
+        break;
+      }
 
-			if ( parse_debug_level( optarg, &mask, &syslog_unknowns ) ) {
-				goto destroy;
-			}
+      if (parse_debug_level(optarg, &mask, &syslog_unknowns)) {
+        goto destroy;
+      }
 #ifdef LDAP_SYSLOG
-			slap_syslog_mask = mask;
+      slap_syslog_mask = mask;
 #else
-			if ( mask != 0 || syslog_unknowns )
-				fputs( "must configure with --enable-syslog for syslog\n", stderr );
+      if (mask != 0 || syslog_unknowns)
+        fputs("must configure with --enable-syslog for syslog\n", stderr);
 #endif /* LDAP_SYSLOG */
-		} break;
+    } break;
 
 #ifdef LDAP_SYSLOG
-		case 'S':
-			if ( parse_syslog_severity( optarg, &slap_syslog_severity ) ) {
-				goto destroy;
-			}
-			break;
+    case 'S':
+      if (parse_syslog_severity(optarg, &slap_syslog_severity)) {
+        goto destroy;
+      }
+      break;
 
 #ifdef LOG_LOCAL4
-		case 'l':	/* set syslog local user */
-			if ( parse_syslog_user( optarg, &syslogUser ) ) {
-				goto destroy;
-			}
-			break;
+    case 'l': /* set syslog local user */
+      if (parse_syslog_user(optarg, &syslogUser)) {
+        goto destroy;
+      }
+      break;
 #endif /* LOG_LOCAL4 */
 #endif /* LDAP_SYSLOG */
 
 #ifdef HAVE_CHROOT
-		case 'r':
-			if( sandbox ) free(sandbox);
-			sandbox = ch_strdup( optarg );
-			break;
+    case 'r':
+      if (sandbox)
+        free(sandbox);
+      sandbox = ch_strdup(optarg);
+      break;
 #endif
 
 #if defined(HAVE_SETUID) && defined(HAVE_SETGID)
-		case 'u':	/* user name */
-			if( username ) free(username);
-			username = ch_strdup( optarg );
-			break;
+    case 'u': /* user name */
+      if (username)
+        free(username);
+      username = ch_strdup(optarg);
+      break;
 
-		case 'g':	/* group name */
-			if( groupname ) free(groupname);
-			groupname = ch_strdup( optarg );
-			break;
+    case 'g': /* group name */
+      if (groupname)
+        free(groupname);
+      groupname = ch_strdup(optarg);
+      break;
 #endif /* SETUID && GETUID */
 
-		case 'n':  /* NT service name */
-			if (serverName_strdup) free( serverName_strdup );
-			serverName_strdup = ch_strdup( optarg );
-			serverName = serverName_strdup;
-			break;
+    case 'n': /* NT service name */
+      if (serverName_strdup)
+        free(serverName_strdup);
+      serverName_strdup = ch_strdup(optarg);
+      serverName = serverName_strdup;
+      break;
 
-		case 't':
-			/* deprecated; use slaptest instead */
-			fprintf( stderr, "option -t deprecated; "
-				"use slaptest command instead\n" );
-			check |= CHECK_CONFIG;
-			break;
+    case 't':
+      /* deprecated; use slaptest instead */
+      fprintf(stderr, "option -t deprecated; "
+                      "use slaptest command instead\n");
+      check |= CHECK_CONFIG;
+      break;
 
-		case 'V':
-			version++;
-			break;
+    case 'V':
+      version++;
+      break;
 
-		case 'T':
-			if ( firstopt == 0 ) {
-				fprintf( stderr, "warning: \"-T %s\" "
-					"should be the first option.\n",
-					optarg );
-			}
+    case 'T':
+      if (firstopt == 0) {
+        fprintf(stderr,
+                "warning: \"-T %s\" "
+                "should be the first option.\n",
+                optarg);
+      }
 
-			/* try full option string first */
-			for ( i = 0; tools[i].name; i++ ) {
-				if ( strcmp( optarg, &tools[i].name[4] ) == 0 ) {
-					rc = tools[i].func( argc, argv );
-					return rc;
-				}
-			}
+      /* try full option string first */
+      for (i = 0; tools[i].name; i++) {
+        if (strcmp(optarg, &tools[i].name[4]) == 0) {
+          rc = tools[i].func(argc, argv);
+          return rc;
+        }
+      }
 
-			/* try bits of option string (backward compatibility for single char) */
-			l = strlen( optarg );
-			for ( i = 0; tools[i].name; i++ ) {
-				if ( strncmp( optarg, &tools[i].name[4], l ) == 0 ) {
-					rc = tools[i].func( argc, argv );
-					return rc;
-				}
-			}
+      /* try bits of option string (backward compatibility for single char) */
+      l = strlen(optarg);
+      for (i = 0; tools[i].name; i++) {
+        if (strncmp(optarg, &tools[i].name[4], l) == 0) {
+          rc = tools[i].func(argc, argv);
+          return rc;
+        }
+      }
 
-			/* issue error */
-			serverName = optarg;
-			serverNamePrefix = "slap";
-			fprintf( stderr, "program name \"%s%s\" unrecognized; "
-					"aborting...\n", serverNamePrefix, serverName );
-			/* FALLTHRU */
-		case '?':
-		default:
-unhandled_option:;
-			usage( argv[0] );
-			rc = 1;
-			goto stop;
-		}
+      /* issue error */
+      serverName = optarg;
+      serverNamePrefix = "slap";
+      fprintf(stderr,
+              "program name \"%s%s\" unrecognized; "
+              "aborting...\n",
+              serverNamePrefix, serverName);
+      /* FALLTHRU */
+    case '?':
+    default:
+    unhandled_option:;
+      usage(argv[0]);
+      rc = 1;
+      goto stop;
+    }
 
-		if ( firstopt ) {
-			firstopt = 0;
-		}
-	}
+    if (firstopt) {
+      firstopt = 0;
+    }
+  }
 
-	if ( optind != argc )
-		goto unhandled_option;
+  if (optind != argc)
+    goto unhandled_option;
 
-	if ( version ) {
-		fprintf( stderr, "%s.\n", SlapdVersionStr );
-		if ( version > 2 ) {
-			fprintf( stderr, "Included static overlays:\n");
-			fprintf( stderr, "    %s\n", "glue" );
-			for ( i= 0 ; slap_oinfo[i].ov_type; i++ ) {
-				fprintf( stderr, "    %s\n", slap_oinfo[i].ov_type );
-			}
-			if ( slap_binfo[0].bi_type ) {
-				fprintf( stderr, "Included static backends:\n");
-				for ( i= 0 ; slap_binfo[i].bi_type; i++ ) {
-					fprintf( stderr, "    %s\n", slap_binfo[i].bi_type );
-				}
-			}
-		}
+  if (version) {
+    fprintf(stderr, "%s.\n", SlapdVersionStr);
+    if (version > 2) {
+      fprintf(stderr, "Included static overlays:\n");
+      fprintf(stderr, "    %s\n", "glue");
+      for (i = 0; slap_oinfo[i].ov_type; i++) {
+        fprintf(stderr, "    %s\n", slap_oinfo[i].ov_type);
+      }
+      if (slap_binfo[0].bi_type) {
+        fprintf(stderr, "Included static backends:\n");
+        for (i = 0; slap_binfo[i].bi_type; i++) {
+          fprintf(stderr, "    %s\n", slap_binfo[i].bi_type);
+        }
+      }
+    }
 
-		if ( version > 1 ) goto stop;
-	}
+    if (version > 1)
+      goto stop;
+  }
 
 #ifdef LDAP_SYSLOG
-	{
-		char *logName;
-		logName = serverName;
+  {
+    char *logName;
+    logName = serverName;
 
 #ifdef LOG_LOCAL4
-		openlog( logName, OPENLOG_OPTIONS, syslogUser );
+    openlog(logName, OPENLOG_OPTIONS, syslogUser);
 #elif defined LOG_DEBUG
-		openlog( logName, OPENLOG_OPTIONS );
+    openlog(logName, OPENLOG_OPTIONS);
 #endif
-	}
+  }
 #endif /* LDAP_SYSLOG */
 
-	Debug( LDAP_DEBUG_ANY, "%s.\n", SlapdVersionStr );
+  Debug(LDAP_DEBUG_ANY, "%s.\n", SlapdVersionStr);
 
-	global_host = ldap_pvt_get_fqdn( NULL );
-	ber_str2bv( global_host, 0, 0, &global_host_bv );
+  global_host = ldap_pvt_get_fqdn(NULL);
+  ber_str2bv(global_host, 0, 0, &global_host_bv);
 
-	if( check == CHECK_NONE && slapd_daemon_init( urls ) != 0 ) {
-		rc = 1;
-		goto stop;
-	}
+  if (check == CHECK_NONE && slapd_daemon_init(urls) != 0) {
+    rc = 1;
+    goto stop;
+  }
 
 #if defined(HAVE_CHROOT)
-	if ( sandbox ) {
-		if ( chdir( sandbox ) ) {
-			perror("chdir");
-			rc = 1;
-			goto stop;
-		}
-		if ( chroot( sandbox ) ) {
-			perror("chroot");
-			rc = 1;
-			goto stop;
-		}
-		if ( chdir( "/" ) ) {
-			perror("chdir");
-			rc = 1;
-			goto stop;
-		}
-	}
+  if (sandbox) {
+    if (chdir(sandbox)) {
+      perror("chdir");
+      rc = 1;
+      goto stop;
+    }
+    if (chroot(sandbox)) {
+      perror("chroot");
+      rc = 1;
+      goto stop;
+    }
+    if (chdir("/")) {
+      perror("chdir");
+      rc = 1;
+      goto stop;
+    }
+  }
 #endif
 
 #if defined(HAVE_SETUID) && defined(HAVE_SETGID)
-	if ( username != NULL || groupname != NULL ) {
-		slap_init_user( username, groupname );
-	}
+  if (username != NULL || groupname != NULL) {
+    slap_init_user(username, groupname);
+  }
 #endif
 
-	extops_init();
-	lutil_passwd_init();
+  extops_init();
+  lutil_passwd_init();
 
 #ifdef WITH_TLS
-	rc = ldap_create( &slap_tls_ld );
-	if ( rc ) {
-		goto destroy;
-	}
-	/* Library defaults to full certificate checking. This is correct when
-	 * a client is verifying a server because all servers should have a
-	 * valid cert. But few clients have valid certs, so we want our default
-	 * to be no checking. The config file can override this as usual.
-	 */
-	rc = LDAP_OPT_X_TLS_NEVER;
-	(void) ldap_pvt_tls_set_option( slap_tls_ld, LDAP_OPT_X_TLS_REQUIRE_CERT, &rc );
+  rc = ldap_create(&slap_tls_ld);
+  if (rc) {
+    goto destroy;
+  }
+  /* Library defaults to full certificate checking. This is correct when
+   * a client is verifying a server because all servers should have a
+   * valid cert. But few clients have valid certs, so we want our default
+   * to be no checking. The config file can override this as usual.
+   */
+  rc = LDAP_OPT_X_TLS_NEVER;
+  (void)ldap_pvt_tls_set_option(slap_tls_ld, LDAP_OPT_X_TLS_REQUIRE_CERT, &rc);
 #endif
 
-	rc = slap_init( serverMode, serverName );
-	if ( rc ) {
-		goto destroy;
-	}
+  rc = slap_init(serverMode, serverName);
+  if (rc) {
+    goto destroy;
+  }
 
-	if ( read_config( configfile, configdir ) != 0 ) {
-		rc = 1;
+  if (read_config(configfile, configdir) != 0) {
+    rc = 1;
 
-		if ( check & CHECK_CONFIG ) {
-			fprintf( stderr, "config check failed\n" );
-		}
+    if (check & CHECK_CONFIG) {
+      fprintf(stderr, "config check failed\n");
+    }
 
-		goto destroy;
-	}
+    goto destroy;
+  }
 
-	if ( debug_unknowns ) {
-		int mask = LDAP_DEBUG_NONE;
-		rc = parse_debug_unknowns( debug_unknowns, &mask );
-		slap_set_debug_level(mask);
-		ldap_charray_free( debug_unknowns );
-		debug_unknowns = NULL;
-		if ( rc )
-			goto destroy;
-	}
+  if (debug_unknowns) {
+    int mask = LDAP_DEBUG_NONE;
+    rc = parse_debug_unknowns(debug_unknowns, &mask);
+    slap_set_debug_level(mask);
+    ldap_charray_free(debug_unknowns);
+    debug_unknowns = NULL;
+    if (rc)
+      goto destroy;
+  }
 
-	if ( syslog_unknowns ) {
-		int mask = LDAP_DEBUG_NONE;
-		rc = parse_debug_unknowns( syslog_unknowns, &mask );
+  if (syslog_unknowns) {
+    int mask = LDAP_DEBUG_NONE;
+    rc = parse_debug_unknowns(syslog_unknowns, &mask);
 #ifdef LDAP_SYSLOG
-		slap_syslog_mask = mask;
+    slap_syslog_mask = mask;
 #endif /* LDAP_SYSLOG */
-		ldap_charray_free( syslog_unknowns );
-		syslog_unknowns = NULL;
-		if ( rc )
-			goto destroy;
-	}
+    ldap_charray_free(syslog_unknowns);
+    syslog_unknowns = NULL;
+    if (rc)
+      goto destroy;
+  }
 
-	if ( check & CHECK_LOGLEVEL ) {
-		rc = 0;
-		goto destroy;
-	}
+  if (check & CHECK_LOGLEVEL) {
+    rc = 0;
+    goto destroy;
+  }
 
-	if ( check & CHECK_CONFIG ) {
-		fprintf( stderr, "config check succeeded\n" );
+  if (check & CHECK_CONFIG) {
+    fprintf(stderr, "config check succeeded\n");
 
-		check &= ~CHECK_CONFIG;
-		if ( check == CHECK_NONE ) {
-			rc = 0;
-			goto destroy;
-		}
-	}
+    check &= ~CHECK_CONFIG;
+    if (check == CHECK_NONE) {
+      rc = 0;
+      goto destroy;
+    }
+  }
 
-	if ( glue_sub_attach( 0 ) != 0 ) {
-		Debug( LDAP_DEBUG_ANY,
-		    "subordinate config error\n" );
+  if (glue_sub_attach(0) != 0) {
+    Debug(LDAP_DEBUG_ANY, "subordinate config error\n");
 
-		goto destroy;
-	}
+    goto destroy;
+  }
 
-	if ( slap_schema_check( ) != 0 ) {
-		Debug( LDAP_DEBUG_ANY,
-		    "schema prep error\n" );
+  if (slap_schema_check() != 0) {
+    Debug(LDAP_DEBUG_ANY, "schema prep error\n");
 
-		goto destroy;
-	}
+    goto destroy;
+  }
 
 #ifdef WITH_TLS
-	rc = ldap_pvt_tls_init();
-	if( rc != 0) {
-		Debug( LDAP_DEBUG_ANY,
-		    "main: TLS init failed: %d\n",
-		    rc );
-		rc = 1;
-		goto destroy;
-	}
+  rc = ldap_pvt_tls_init();
+  if (rc != 0) {
+    Debug(LDAP_DEBUG_ANY, "main: TLS init failed: %d\n", rc);
+    rc = 1;
+    goto destroy;
+  }
 
-	{
-		int opt = 1;
+  {
+    int opt = 1;
 
-		/* Force new ctx to be created */
-		rc = ldap_pvt_tls_set_option( slap_tls_ld, LDAP_OPT_X_TLS_NEWCTX, &opt );
-		if( rc == 0 ) {
-			/* The ctx's refcount is bumped up here */
-			ldap_pvt_tls_get_option( slap_tls_ld, LDAP_OPT_X_TLS_CTX, &slap_tls_ctx );
-			extop_register( &slap_EXOP_START_TLS, 0, starttls_extop );
-		} else if ( rc != LDAP_NOT_SUPPORTED ) {
-			Debug( LDAP_DEBUG_ANY,
-			    "main: TLS init def ctx failed: %d\n",
-			    rc );
-			rc = 1;
-			goto destroy;
-		}
-	}
+    /* Force new ctx to be created */
+    rc = ldap_pvt_tls_set_option(slap_tls_ld, LDAP_OPT_X_TLS_NEWCTX, &opt);
+    if (rc == 0) {
+      /* The ctx's refcount is bumped up here */
+      ldap_pvt_tls_get_option(slap_tls_ld, LDAP_OPT_X_TLS_CTX, &slap_tls_ctx);
+      extop_register(&slap_EXOP_START_TLS, 0, starttls_extop);
+    } else if (rc != LDAP_NOT_SUPPORTED) {
+      Debug(LDAP_DEBUG_ANY, "main: TLS init def ctx failed: %d\n", rc);
+      rc = 1;
+      goto destroy;
+    }
+  }
 #endif
 
 #ifdef HAVE_CYRUS_SASL
-	if( sasl_host == NULL ) {
-		sasl_host = ch_strdup( global_host );
-	}
+  if (sasl_host == NULL) {
+    sasl_host = ch_strdup(global_host);
+  }
 #endif
 
-	(void) SIGNAL( LDAP_SIGUSR1, slap_sig_wake );
-	(void) SIGNAL( LDAP_SIGUSR2, slap_sig_shutdown );
+  (void)SIGNAL(LDAP_SIGUSR1, slap_sig_wake);
+  (void)SIGNAL(LDAP_SIGUSR2, slap_sig_shutdown);
 
 #ifdef SIGPIPE
-	(void) SIGNAL( SIGPIPE, SIG_IGN );
+  (void)SIGNAL(SIGPIPE, SIG_IGN);
 #endif
 #ifdef SIGHUP
-	(void) SIGNAL( SIGHUP, slap_sig_shutdown );
+  (void)SIGNAL(SIGHUP, slap_sig_shutdown);
 #endif
-	(void) SIGNAL( SIGINT, slap_sig_shutdown );
-	(void) SIGNAL( SIGTERM, slap_sig_shutdown );
+  (void)SIGNAL(SIGINT, slap_sig_shutdown);
+  (void)SIGNAL(SIGTERM, slap_sig_shutdown);
 #ifdef LDAP_SIGCHLD
-	(void) SIGNAL( LDAP_SIGCHLD, wait4child );
+  (void)SIGNAL(LDAP_SIGCHLD, wait4child);
 #endif
 #ifdef SIGBREAK
-	/* SIGBREAK is generated when Ctrl-Break is pressed. */
-	(void) SIGNAL( SIGBREAK, slap_sig_shutdown );
+  /* SIGBREAK is generated when Ctrl-Break is pressed. */
+  (void)SIGNAL(SIGBREAK, slap_sig_shutdown);
 #endif
 
-	if ( !no_detach ) {
-		if ( lutil_pair( waitfds ) < 0 ) {
-			Debug( LDAP_DEBUG_ANY,
-				"main: lutil_pair failed\n" );
-			rc = 1;
-			goto destroy;
-		}
-		pid = lutil_detach( no_detach, 0 );
-		if ( pid ) {
-			char buf[4];
-			rc = EXIT_SUCCESS;
-			close( waitfds[1] );
-			if ( read( waitfds[0], buf, 1 ) != 1 )
-				rc = EXIT_FAILURE;
-			_exit( rc );
-		} else {
-			close( waitfds[0] );
-		}
+  if (!no_detach) {
+    if (lutil_pair(waitfds) < 0) {
+      Debug(LDAP_DEBUG_ANY, "main: lutil_pair failed\n");
+      rc = 1;
+      goto destroy;
+    }
+    pid = lutil_detach(no_detach, 0);
+    if (pid) {
+      char buf[4];
+      rc = EXIT_SUCCESS;
+      close(waitfds[1]);
+      if (read(waitfds[0], buf, 1) != 1)
+        rc = EXIT_FAILURE;
+      _exit(rc);
+    } else {
+      close(waitfds[0]);
+    }
 
 #ifdef SLAPD_ENABLE_CI
-		slap_setup_ci();
+    slap_setup_ci();
 #endif /* SLAPD_ENABLE_CI */
-	}
+  }
 
 #ifdef CSRIMALLOC
-	mal_leaktrace(1);
+  mal_leaktrace(1);
 #endif
 
-	if ( (check != CHECK_CONFIG) && (slapd_pid_file != NULL) ) {
-		FILE *fp = fopen( slapd_pid_file, "w" );
+  if ((check != CHECK_CONFIG) && (slapd_pid_file != NULL)) {
+    FILE *fp = fopen(slapd_pid_file, "w");
 
-		if ( fp == NULL ) {
-			int save_errno = errno;
+    if (fp == NULL) {
+      int save_errno = errno;
 
-			Debug( LDAP_DEBUG_ANY, "unable to open pid file "
-				"\"%s\": %d (%s)\n",
-				slapd_pid_file,
-				save_errno, STRERROR( save_errno ) );
+      Debug(LDAP_DEBUG_ANY,
+            "unable to open pid file "
+            "\"%s\": %d (%s)\n",
+            slapd_pid_file, save_errno, STRERROR(save_errno));
 
-			free( slapd_pid_file );
-			slapd_pid_file = NULL;
+      free(slapd_pid_file);
+      slapd_pid_file = NULL;
 
-			rc = 1;
-			goto destroy;
-		}
-		fprintf( fp, "%d\n", (int) getpid() );
-		fclose( fp );
-		slapd_pid_file_unlink = 1;
-	}
+      rc = 1;
+      goto destroy;
+    }
+    fprintf(fp, "%d\n", (int)getpid());
+    fclose(fp);
+    slapd_pid_file_unlink = 1;
+  }
 
-	if ( (check != CHECK_CONFIG) && (slapd_args_file != NULL) ) {
-		FILE *fp = fopen( slapd_args_file, "w" );
+  if ((check != CHECK_CONFIG) && (slapd_args_file != NULL)) {
+    FILE *fp = fopen(slapd_args_file, "w");
 
-		if ( fp == NULL ) {
-			int save_errno = errno;
+    if (fp == NULL) {
+      int save_errno = errno;
 
-			Debug( LDAP_DEBUG_ANY, "unable to open args file "
-				"\"%s\": %d (%s)\n",
-				slapd_args_file,
-				save_errno, STRERROR( save_errno ) );
+      Debug(LDAP_DEBUG_ANY,
+            "unable to open args file "
+            "\"%s\": %d (%s)\n",
+            slapd_args_file, save_errno, STRERROR(save_errno));
 
-			free( slapd_args_file );
-			slapd_args_file = NULL;
+      free(slapd_args_file);
+      slapd_args_file = NULL;
 
-			rc = 1;
-			goto destroy;
-		}
+      rc = 1;
+      goto destroy;
+    }
 
-		for ( i = 0; i < g_argc; i++ ) {
-			fprintf( fp, "%s ", g_argv[i] );
-		}
-		fprintf( fp, "\n" );
-		fclose( fp );
-		slapd_args_file_unlink = 1;
-	}
+    for (i = 0; i < g_argc; i++) {
+      fprintf(fp, "%s ", g_argv[i]);
+    }
+    fprintf(fp, "\n");
+    fclose(fp);
+    slapd_args_file_unlink = 1;
+  }
 
-	/*
-	 * FIXME: moved here from slapd_daemon_task()
-	 * because back-monitor db_open() needs it
-	 */
-	starttime = ldap_now_steady();
+  /*
+   * FIXME: moved here from slapd_daemon_task()
+   * because back-monitor db_open() needs it
+   */
+  starttime = ldap_now_steady();
 
-	connections_init();
+  connections_init();
 
-	if ( slap_startup( NULL ) != 0 ) {
-		rc = 1;
-		goto shutdown;
-	}
+  if (slap_startup(NULL) != 0) {
+    rc = 1;
+    goto shutdown;
+  }
 
-	Debug( LDAP_DEBUG_ANY, "slapd starting\n" );
+  Debug(LDAP_DEBUG_ANY, "slapd starting\n");
 
-	if ( !no_detach ) {
-		int ignore __maybe_unused = write( waitfds[1], "1", 1 );
-		close( waitfds[1] );
-	}
+  if (!no_detach) {
+    int ignore __maybe_unused = write(waitfds[1], "1", 1);
+    close(waitfds[1]);
+  }
 
-	rc = slapd_daemon();
+  rc = slapd_daemon();
 
 shutdown:
-	/* remember an error during shutdown */
-	rc |= slap_shutdown( NULL );
+  /* remember an error during shutdown */
+  rc |= slap_shutdown(NULL);
 
 destroy:
-	if ( check & CHECK_LOGLEVEL ) {
-		(void)loglevel_print( stdout );
-	}
-	/* remember an error during destroy */
-	rc |= slap_destroy();
+  if (check & CHECK_LOGLEVEL) {
+    (void)loglevel_print(stdout);
+  }
+  /* remember an error during destroy */
+  rc |= slap_destroy();
 
-	while ( !LDAP_STAILQ_EMPTY( &slap_sync_cookie )) {
-		scp = LDAP_STAILQ_FIRST( &slap_sync_cookie );
-		LDAP_STAILQ_REMOVE_HEAD( &slap_sync_cookie, sci_next );
-		slap_cookie_free( &scp->sci_cookie, 0 );
-		ch_free( scp );
-	}
+  while (!LDAP_STAILQ_EMPTY(&slap_sync_cookie)) {
+    scp = LDAP_STAILQ_FIRST(&slap_sync_cookie);
+    LDAP_STAILQ_REMOVE_HEAD(&slap_sync_cookie, sci_next);
+    slap_cookie_free(&scp->sci_cookie, 0);
+    ch_free(scp);
+  }
 
 #ifdef SLAPD_DYNAMIC_MODULES
-	module_kill();
+  module_kill();
 #endif
 
-	extops_destroy();
+  extops_destroy();
 
-	supported_feature_destroy();
-	entry_info_destroy();
+  supported_feature_destroy();
+  entry_info_destroy();
 
 stop:
-	Debug( LDAP_DEBUG_ANY, "slapd stopped.\n" );
-
+  Debug(LDAP_DEBUG_ANY, "slapd stopped.\n");
 
 #ifdef LOG_DEBUG
-	closelog();
+  closelog();
 #endif
-	slapd_daemon_destroy();
+  slapd_daemon_destroy();
 
-	controls_destroy();
+  controls_destroy();
 
-	filter_destroy();
+  filter_destroy();
 
-	quorum_global_destroy();
+  quorum_global_destroy();
 
-	schema_destroy();
+  schema_destroy();
 
-	lutil_passwd_destroy();
+  lutil_passwd_destroy();
 
 #ifdef WITH_TLS
-	if ( slap_tls_ld ) {
-		ldap_pvt_tls_ctx_free( slap_tls_ctx );
-		ldap_unbind_ext( slap_tls_ld, NULL, NULL );
-	}
-	ldap_pvt_tls_destroy();
+  if (slap_tls_ld) {
+    ldap_pvt_tls_ctx_free(slap_tls_ctx);
+    ldap_unbind_ext(slap_tls_ld, NULL, NULL);
+  }
+  ldap_pvt_tls_destroy();
 #endif
 
-	slap_sasl_regexp_destroy();
+  slap_sasl_regexp_destroy();
 
-	if ( slapd_pid_file_unlink ) {
-		unlink( slapd_pid_file );
-	}
-	if ( slapd_args_file_unlink ) {
-		unlink( slapd_args_file );
-	}
+  if (slapd_pid_file_unlink) {
+    unlink(slapd_pid_file);
+  }
+  if (slapd_args_file_unlink) {
+    unlink(slapd_args_file);
+  }
 
-	config_destroy();
+  config_destroy();
 
-	if ( configfile )
-		ch_free( configfile );
-	if ( configdir )
-		ch_free( configdir );
-	if ( urls )
-		ch_free( urls );
-	if ( global_host )
-		ch_free( global_host );
+  if (configfile)
+    ch_free(configfile);
+  if (configdir)
+    ch_free(configdir);
+  if (urls)
+    ch_free(urls);
+  if (global_host)
+    ch_free(global_host);
 
-	/* kludge, get symbols referenced */
-	tavl_free( NULL, NULL );
+  /* kludge, get symbols referenced */
+  tavl_free(NULL, NULL);
 
 #ifdef CSRIMALLOC
-	mal_dumpleaktrace( leakfile );
+  mal_dumpleaktrace(leakfile);
 #endif
 
-	if (serverName_strdup) free( serverName_strdup );
-	return rc;
+  if (serverName_strdup)
+    free(serverName_strdup);
+  return rc;
 }
-
 
 #ifdef LDAP_SIGCHLD
 
@@ -1058,24 +1034,22 @@ stop:
  *  Catch and discard terminated child processes, to avoid zombies.
  */
 
-static void
-wait4child( int sig )
-{
-    int save_errno = errno;
+static void wait4child(int sig) {
+  int save_errno = errno;
 
 #ifdef WNOHANG
-    do
-        errno = 0;
+  do
+    errno = 0;
 #ifdef HAVE_WAITPID
-    while ( waitpid( (pid_t)-1, NULL, WNOHANG ) > 0 || errno == EINTR );
+  while (waitpid((pid_t)-1, NULL, WNOHANG) > 0 || errno == EINTR);
 #else
-    while ( wait3( NULL, WNOHANG, NULL ) > 0 || errno == EINTR );
+  while (wait3(NULL, WNOHANG, NULL) > 0 || errno == EINTR);
 #endif
 #else
-    (void) wait( NULL );
+  (void)wait(NULL);
 #endif
-    (void) SIGNAL_REINSTALL( sig, wait4child );
-    errno = save_errno;
+  (void)SIGNAL_REINSTALL(sig, wait4child);
+  errno = save_errno;
 }
 
 #endif /* LDAP_SIGCHLD */

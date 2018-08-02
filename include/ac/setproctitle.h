@@ -18,14 +18,14 @@
 
 #ifdef LDAP_PROCTITLE
 
-#if defined( HAVE_LIBUTIL_H )
-#	include <libutil.h>
+#if defined(HAVE_LIBUTIL_H)
+#include <libutil.h>
 #else
-	/* use lutil version */
-	LDAP_LUTIL_F (void) (setproctitle) (const char *fmt, ...) \
-		__attribute__((format(printf, 1, 2)));
-	LDAP_LUTIL_V (int) Argc;
-	LDAP_LUTIL_V (char) **Argv;
+/* use lutil version */
+LDAP_LUTIL_F(void)
+(setproctitle)(const char *fmt, ...) __attribute__((format(printf, 1, 2)));
+LDAP_LUTIL_V(int) Argc;
+LDAP_LUTIL_V(char) * *Argv;
 #endif
 
 #endif /* LDAP_PROCTITLE */

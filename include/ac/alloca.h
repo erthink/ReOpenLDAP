@@ -19,24 +19,23 @@
 /*
  * use of alloca is disallowed as it is machine dependent
  */
-#error  "alloca() not supported, use malloc()"
+#error "alloca() not supported, use malloc()"
 
 /* AIX requires this to be the first thing in the file.  */
 #ifdef __GNUC__
-# define alloca __builtin_alloca
+#define alloca __builtin_alloca
 #else
-# ifdef HAVE_ALLOCA_H
-#  include <alloca.h>
-# else
-#  ifdef _AIX
+#ifdef HAVE_ALLOCA_H
+#include <alloca.h>
+#else
+#ifdef _AIX
 #pragma alloca
-#  else
-#   ifndef alloca /* predefined by HP cc +Olibcalls */
+#else
+#ifndef alloca /* predefined by HP cc +Olibcalls */
 extern char *(alloca)();
-#   endif
-#  endif
-# endif
 #endif
-
+#endif
+#endif
+#endif
 
 #endif /* _AC_ALLOCA_H */

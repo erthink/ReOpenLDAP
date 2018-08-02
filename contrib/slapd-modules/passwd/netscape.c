@@ -25,59 +25,47 @@
 static LUTIL_PASSWD_CHK_FUNC chk_ns_mta_md5;
 static const struct berval scheme = BER_BVC("{NS-MTA-MD5}");
 
-#define NS_MTA_MD5_PASSLEN	64
-static int chk_ns_mta_md5(
-	const struct berval *scheme,
-	const struct berval *passwd,
-	const struct berval *cred,
-	const char **text )
-{
-	lutil_MD5_CTX MD5context;
-	unsigned char MD5digest[LUTIL_MD5_BYTES], c;
-	char buffer[LUTIL_MD5_BYTES*2];
-	int i;
+#define NS_MTA_MD5_PASSLEN 64
+static int chk_ns_mta_md5(const struct berval *scheme,
+                          const struct berval *passwd,
+                          const struct berval *cred, const char **text) {
+  lutil_MD5_CTX MD5context;
+  unsigned char MD5digest[LUTIL_MD5_BYTES], c;
+  char buffer[LUTIL_MD5_BYTES * 2];
+  int i;
 
-	if( passwd->bv_len != NS_MTA_MD5_PASSLEN ) {
-		return LUTIL_PASSWD_ERR;
-	}
+  if (passwd->bv_len != NS_MTA_MD5_PASSLEN) {
+    return LUTIL_PASSWD_ERR;
+  }
 
-	/* hash credentials with salt */
-	lutil_MD5Init(&MD5context);
-	lutil_MD5Update(&MD5context,
-		(const unsigned char *) &passwd->bv_val[32],
-		32 );
+  /* hash credentials with salt */
+  lutil_MD5Init(&MD5context);
+  lutil_MD5Update(&MD5context, (const unsigned char *)&passwd->bv_val[32], 32);
 
-	c = 0x59;
-	lutil_MD5Update(&MD5context,
-		(const unsigned char *) &c,
-		1 );
+  c = 0x59;
+  lutil_MD5Update(&MD5context, (const unsigned char *)&c, 1);
 
-	lutil_MD5Update(&MD5context,
-		(const unsigned char *) cred->bv_val,
-		cred->bv_len );
+  lutil_MD5Update(&MD5context, (const unsigned char *)cred->bv_val,
+                  cred->bv_len);
 
-	c = 0xF7;
-	lutil_MD5Update(&MD5context,
-		(const unsigned char *) &c,
-		1 );
+  c = 0xF7;
+  lutil_MD5Update(&MD5context, (const unsigned char *)&c, 1);
 
-	lutil_MD5Update(&MD5context,
-		(const unsigned char *) &passwd->bv_val[32],
-		32 );
+  lutil_MD5Update(&MD5context, (const unsigned char *)&passwd->bv_val[32], 32);
 
-	lutil_MD5Final(MD5digest, &MD5context);
+  lutil_MD5Final(MD5digest, &MD5context);
 
-	for( i=0; i < sizeof( MD5digest ); i++ ) {
-		buffer[i+i]   = "0123456789abcdef"[(MD5digest[i]>>4) & 0x0F];
-		buffer[i+i+1] = "0123456789abcdef"[ MD5digest[i] & 0x0F];
-	}
+  for (i = 0; i < sizeof(MD5digest); i++) {
+    buffer[i + i] = "0123456789abcdef"[(MD5digest[i] >> 4) & 0x0F];
+    buffer[i + i + 1] = "0123456789abcdef"[MD5digest[i] & 0x0F];
+  }
 
-	/* compare */
-	return memcmp((char *)passwd->bv_val,
-		(char *)buffer, sizeof(buffer)) ? LUTIL_PASSWD_ERR : LUTIL_PASSWD_OK;
+  /* compare */
+  return memcmp((char *)passwd->bv_val, (char *)buffer, sizeof(buffer))
+             ? LUTIL_PASSWD_ERR
+             : LUTIL_PASSWD_OK;
 }
 
-SLAP_MODULE_ENTRY(pw_netscape, modinit) ( int argc, char *argv[] )
-{
-	return lutil_passwd_add( (struct berval *)&scheme, chk_ns_mta_md5, NULL );
+SLAP_MODULE_ENTRY(pw_netscape, modinit)(int argc, char *argv[]) {
+  return lutil_passwd_add((struct berval *)&scheme, chk_ns_mta_md5, NULL);
 }

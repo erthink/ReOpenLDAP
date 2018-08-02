@@ -22,38 +22,34 @@
 
 #ifdef __SANITIZE_THREAD__
 ATTRIBUTE_NO_SANITIZE_THREAD
-ID mdb_read_nextid(struct mdb_info *mdb) {
-	return mdb->_mi_nextid;
-}
+ID mdb_read_nextid(struct mdb_info *mdb) { return mdb->_mi_nextid; }
 #endif
 
-int mdb_next_id( BackendDB *be, MDB_cursor *mc, ID *out )
-{
-	struct mdb_info *mdb = (struct mdb_info *) be->be_private;
-	int rc;
-	ID id = 0;
-	MDB_val key;
+int mdb_next_id(BackendDB *be, MDB_cursor *mc, ID *out) {
+  struct mdb_info *mdb = (struct mdb_info *)be->be_private;
+  int rc;
+  ID id = 0;
+  MDB_val key;
 
-	rc = mdb_cursor_get(mc, &key, NULL, MDB_LAST);
+  rc = mdb_cursor_get(mc, &key, NULL, MDB_LAST);
 
-	switch(rc) {
-	case MDB_NOTFOUND:
-		rc = 0;
-		*out = 1;
-		break;
-	case 0:
-		memcpy( &id, key.mv_data, sizeof( id ));
-		*out = ++id;
-		break;
+  switch (rc) {
+  case MDB_NOTFOUND:
+    rc = 0;
+    *out = 1;
+    break;
+  case 0:
+    memcpy(&id, key.mv_data, sizeof(id));
+    *out = ++id;
+    break;
 
-	default:
-		Debug( LDAP_DEBUG_ANY,
-			"=> mdb_next_id: get failed: %s (%d)\n",
-			mdb_strerror(rc), rc );
-		goto done;
-	}
-	mdb->_mi_nextid = *out;
+  default:
+    Debug(LDAP_DEBUG_ANY, "=> mdb_next_id: get failed: %s (%d)\n",
+          mdb_strerror(rc), rc);
+    goto done;
+  }
+  mdb->_mi_nextid = *out;
 
 done:
-	return rc;
+  return rc;
 }

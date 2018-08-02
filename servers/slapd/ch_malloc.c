@@ -30,104 +30,79 @@
 #include "slap.h"
 
 BerMemoryFunctions ch_mfuncs = {
-	(BER_MEMALLOC_FN *)ch_malloc,
-	(BER_MEMCALLOC_FN *)ch_calloc,
-	(BER_MEMREALLOC_FN *)ch_realloc,
-	(BER_MEMFREE_FN *)ch_free
-};
+    (BER_MEMALLOC_FN *)ch_malloc, (BER_MEMCALLOC_FN *)ch_calloc,
+    (BER_MEMREALLOC_FN *)ch_realloc, (BER_MEMFREE_FN *)ch_free};
 
-void *
-ch_malloc(
-    ber_len_t	size
-)
-{
-	void	*new;
+void *ch_malloc(ber_len_t size) {
+  void *new;
 
-	if ( (new = (void *) ber_memalloc_x( size, NULL )) == NULL ) {
-		Debug( LDAP_DEBUG_ANY, "ch_malloc of %lu bytes failed\n",
-			(long) size );
-		LDAP_BUG();
-		exit( EXIT_FAILURE );
-	}
+  if ((new = (void *)ber_memalloc_x(size, NULL)) == NULL) {
+    Debug(LDAP_DEBUG_ANY, "ch_malloc of %lu bytes failed\n", (long)size);
+    LDAP_BUG();
+    exit(EXIT_FAILURE);
+  }
 
-	return( new );
+  return (new);
 }
 
-void *
-ch_realloc(
-    void		*block,
-    ber_len_t	size
-)
-{
-	void	*new, *ctx;
+void *ch_realloc(void *block, ber_len_t size) {
+  void *new, *ctx;
 
-	if ( block == NULL ) {
-		return( ch_malloc( size ) );
-	}
+  if (block == NULL) {
+    return (ch_malloc(size));
+  }
 
-	if( size == 0 ) {
-		ch_free( block );
-		return NULL;
-	}
+  if (size == 0) {
+    ch_free(block);
+    return NULL;
+  }
 
-	ctx = slap_sl_context( block );
-	if ( ctx ) {
-		return slap_sl_realloc( block, size, ctx );
-	}
+  ctx = slap_sl_context(block);
+  if (ctx) {
+    return slap_sl_realloc(block, size, ctx);
+  }
 
-	if ( (new = (void *) ber_memrealloc_x( block, size, NULL )) == NULL ) {
-		Debug( LDAP_DEBUG_ANY, "ch_realloc of %lu bytes failed\n",
-			(long) size );
-		LDAP_BUG();
-		exit( EXIT_FAILURE );
-	}
+  if ((new = (void *)ber_memrealloc_x(block, size, NULL)) == NULL) {
+    Debug(LDAP_DEBUG_ANY, "ch_realloc of %lu bytes failed\n", (long)size);
+    LDAP_BUG();
+    exit(EXIT_FAILURE);
+  }
 
-	return( new );
+  return (new);
 }
 
-void *
-ch_calloc(
-    ber_len_t	nelem,
-    ber_len_t	size
-)
-{
-	void	*new;
+void *ch_calloc(ber_len_t nelem, ber_len_t size) {
+  void *new;
 
-	if ( (new = (void *) ber_memcalloc_x( nelem, size, NULL )) == NULL ) {
-		Debug( LDAP_DEBUG_ANY, "ch_calloc of %lu elems of %lu bytes failed\n",
-		  (long) nelem, (long) size );
-		LDAP_BUG();
-		exit( EXIT_FAILURE );
-	}
+  if ((new = (void *)ber_memcalloc_x(nelem, size, NULL)) == NULL) {
+    Debug(LDAP_DEBUG_ANY, "ch_calloc of %lu elems of %lu bytes failed\n",
+          (long)nelem, (long)size);
+    LDAP_BUG();
+    exit(EXIT_FAILURE);
+  }
 
-	return( new );
+  return (new);
 }
 
-char *
-ch_strdup(
-    const char *string
-)
-{
-	char	*new;
+char *ch_strdup(const char *string) {
+  char *new;
 
-	if ( (new = ber_strdup_x( string, NULL )) == NULL ) {
-		Debug( LDAP_DEBUG_ANY, "ch_strdup(%s) failed\n", string );
-		LDAP_BUG();
-		exit( EXIT_FAILURE );
-	}
+  if ((new = ber_strdup_x(string, NULL)) == NULL) {
+    Debug(LDAP_DEBUG_ANY, "ch_strdup(%s) failed\n", string);
+    LDAP_BUG();
+    exit(EXIT_FAILURE);
+  }
 
-	return( new );
+  return (new);
 }
 
-void
-ch_free( void *ptr )
-{
-	void *ctx;
+void ch_free(void *ptr) {
+  void *ctx;
 
-	ctx = slap_sl_context( ptr );
-	if (ctx) {
-		slap_sl_free( ptr, ctx );
-	} else {
-		ber_memfree_x( ptr, NULL );
-	}
+  ctx = slap_sl_context(ptr);
+  if (ctx) {
+    slap_sl_free(ptr, ctx);
+  } else {
+    ber_memfree_x(ptr, NULL);
+  }
 }

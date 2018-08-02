@@ -41,136 +41,127 @@
  * The user and group arguments are freed.
  */
 
-void
-slap_init_user( char *user, char *group )
-{
-    uid_t	uid = 0;
-    gid_t	gid = 0;
-    int		got_uid = 0, got_gid = 0;
+void slap_init_user(char *user, char *group) {
+  uid_t uid = 0;
+  gid_t gid = 0;
+  int got_uid = 0, got_gid = 0;
 
-    if ( user ) {
-	struct passwd *pwd;
-	if ( isdigit( (unsigned char) *user ) ) {
-	    unsigned u;
+  if (user) {
+    struct passwd *pwd;
+    if (isdigit((unsigned char)*user)) {
+      unsigned u;
 
-	    got_uid = 1;
-	    if ( lutil_atou( &u, user ) != 0 ) {
-		Debug( LDAP_DEBUG_ANY, "Unble to parse user %s\n",
-		       user );
+      got_uid = 1;
+      if (lutil_atou(&u, user) != 0) {
+        Debug(LDAP_DEBUG_ANY, "Unble to parse user %s\n", user);
 
-		exit( EXIT_FAILURE );
-	    }
-	    uid = (uid_t)u;
+        exit(EXIT_FAILURE);
+      }
+      uid = (uid_t)u;
 #ifdef HAVE_GETPWUID
-	    pwd = getpwuid( uid );
-	    goto did_getpw;
+      pwd = getpwuid(uid);
+      goto did_getpw;
 #else
-	    free( user );
-	    user = NULL;
+      free(user);
+      user = NULL;
 #endif
-	} else {
-	    pwd = getpwnam( user );
-	did_getpw:
-	    if ( pwd == NULL ) {
-		Debug( LDAP_DEBUG_ANY, "No passwd entry for user %s\n",
-		       user );
+    } else {
+      pwd = getpwnam(user);
+    did_getpw:
+      if (pwd == NULL) {
+        Debug(LDAP_DEBUG_ANY, "No passwd entry for user %s\n", user);
 
-		exit( EXIT_FAILURE );
-	    }
-	    if ( got_uid ) {
-		free( user );
-		user = (pwd != NULL ? ch_strdup( pwd->pw_name ) : NULL);
-	    } else {
-		got_uid = 1;
-		uid = pwd->pw_uid;
-	    }
-	    got_gid = 1;
-	    gid = pwd->pw_gid;
+        exit(EXIT_FAILURE);
+      }
+      if (got_uid) {
+        free(user);
+        user = (pwd != NULL ? ch_strdup(pwd->pw_name) : NULL);
+      } else {
+        got_uid = 1;
+        uid = pwd->pw_uid;
+      }
+      got_gid = 1;
+      gid = pwd->pw_gid;
 #ifdef HAVE_ENDPWENT
-	    endpwent();
+      endpwent();
 #endif
-	}
     }
+  }
 
-    if ( group ) {
-	struct group *grp;
-	if ( isdigit( (unsigned char) *group )) {
-	    unsigned g;
+  if (group) {
+    struct group *grp;
+    if (isdigit((unsigned char)*group)) {
+      unsigned g;
 
-	    if ( lutil_atou( &g, group ) != 0 ) {
-		Debug( LDAP_DEBUG_ANY, "Unble to parse group %s\n",
-		       group );
+      if (lutil_atou(&g, group) != 0) {
+        Debug(LDAP_DEBUG_ANY, "Unble to parse group %s\n", group);
 
-		exit( EXIT_FAILURE );
-	    }
-	    gid = (uid_t)g;
+        exit(EXIT_FAILURE);
+      }
+      gid = (uid_t)g;
 #ifdef HAVE_GETGRGID
-	    grp = getgrgid( gid );
-	    goto did_group;
+      grp = getgrgid(gid);
+      goto did_group;
 #endif
-	} else {
-	    grp = getgrnam( group );
-	    if ( grp != NULL )
-		gid = grp->gr_gid;
-	did_group:
-	    if ( grp == NULL ) {
-		Debug( LDAP_DEBUG_ANY, "No group entry for group %s\n",
-		       group );
+    } else {
+      grp = getgrnam(group);
+      if (grp != NULL)
+        gid = grp->gr_gid;
+    did_group:
+      if (grp == NULL) {
+        Debug(LDAP_DEBUG_ANY, "No group entry for group %s\n", group);
 
-		exit( EXIT_FAILURE );
-	    }
-	}
-	free( group );
-	got_gid = 1;
+        exit(EXIT_FAILURE);
+      }
     }
+    free(group);
+    got_gid = 1;
+  }
 
-    if ( user ) {
-	if ( getuid() == 0 && initgroups( user, gid ) != 0 ) {
-	    Debug( LDAP_DEBUG_ANY,
-		   "Could not set the group access (gid) list\n" );
+  if (user) {
+    if (getuid() == 0 && initgroups(user, gid) != 0) {
+      Debug(LDAP_DEBUG_ANY, "Could not set the group access (gid) list\n");
 
-	    exit( EXIT_FAILURE );
-	}
-	free( user );
+      exit(EXIT_FAILURE);
     }
+    free(user);
+  }
 
 #ifdef HAVE_ENDGRENT
-    endgrent();
+  endgrent();
 #endif
 
-    if ( got_gid ) {
-	if ( setgid( gid ) != 0 ) {
-	    Debug( LDAP_DEBUG_ANY, "Could not set real group id to %d\n",
-		       (int) gid );
+  if (got_gid) {
+    if (setgid(gid) != 0) {
+      Debug(LDAP_DEBUG_ANY, "Could not set real group id to %d\n", (int)gid);
 
-	    exit( EXIT_FAILURE );
-	}
+      exit(EXIT_FAILURE);
+    }
 #ifdef HAVE_SETEGID
-	if ( setegid( gid ) != 0 ) {
-	    Debug( LDAP_DEBUG_ANY, "Could not set effective group id to %d\n",
-		       (int) gid );
+    if (setegid(gid) != 0) {
+      Debug(LDAP_DEBUG_ANY, "Could not set effective group id to %d\n",
+            (int)gid);
 
-	    exit( EXIT_FAILURE );
-	}
-#endif
+      exit(EXIT_FAILURE);
     }
+#endif
+  }
 
-    if ( got_uid ) {
-	if ( setuid( uid ) != 0 ) {
-	    Debug( LDAP_DEBUG_ANY, "Could not set real user id to %d\n",
-		       (int) uid );
+  if (got_uid) {
+    if (setuid(uid) != 0) {
+      Debug(LDAP_DEBUG_ANY, "Could not set real user id to %d\n", (int)uid);
 
-	    exit( EXIT_FAILURE );
-	}
+      exit(EXIT_FAILURE);
+    }
 #ifdef HAVE_SETEUID
-	if ( seteuid( uid ) != 0 ) {
-	    Debug( LDAP_DEBUG_ANY, "Could not set effective user id to %d\n",
-		       (int) uid );
+    if (seteuid(uid) != 0) {
+      Debug(LDAP_DEBUG_ANY, "Could not set effective user id to %d\n",
+            (int)uid);
 
-	    exit( EXIT_FAILURE );
-	}
-#endif
+      exit(EXIT_FAILURE);
     }
+#endif
+  }
 }
 
 #endif /* HAVE_PWD_H && HAVE_GRP_H */

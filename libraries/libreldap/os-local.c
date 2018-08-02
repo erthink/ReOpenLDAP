@@ -44,300 +44,289 @@
 #include "ldap-int.h"
 #include "ldap_defaults.h"
 
-#define oslocal_debug(ld,...) Debug(LDAP_DEBUG_TRACE, __VA_ARGS__)
+#define oslocal_debug(ld, ...) Debug(LDAP_DEBUG_TRACE, __VA_ARGS__)
 
-static void
-ldap_pvt_set_errno(int err)
-{
-	errno = err;
+static void ldap_pvt_set_errno(int err) { errno = err; }
+
+static int ldap_pvt_ndelay_on(LDAP *ld, int fd) {
+  oslocal_debug(ld, "ldap_ndelay_on: %d\n", fd);
+  return ber_pvt_socket_set_nonblock(fd, 1);
 }
 
-static int
-ldap_pvt_ndelay_on(LDAP *ld, int fd)
-{
-	oslocal_debug(ld, "ldap_ndelay_on: %d\n",fd);
-	return ber_pvt_socket_set_nonblock( fd, 1 );
+static int ldap_pvt_ndelay_off(LDAP *ld, int fd) {
+  oslocal_debug(ld, "ldap_ndelay_off: %d\n", fd);
+  return ber_pvt_socket_set_nonblock(fd, 0);
 }
 
-static int
-ldap_pvt_ndelay_off(LDAP *ld, int fd)
-{
-	oslocal_debug(ld, "ldap_ndelay_off: %d\n",fd);
-	return ber_pvt_socket_set_nonblock( fd, 0 );
-}
-
-static ber_socket_t
-ldap_pvt_socket(LDAP *ld)
-{
-	ber_socket_t s = socket(PF_LOCAL, SOCK_STREAM, 0);
-	oslocal_debug(ld, "ldap_new_socket: %d\n",s);
+static ber_socket_t ldap_pvt_socket(LDAP *ld) {
+  ber_socket_t s = socket(PF_LOCAL, SOCK_STREAM, 0);
+  oslocal_debug(ld, "ldap_new_socket: %d\n", s);
 #ifdef FD_CLOEXEC
-	fcntl(s, F_SETFD, FD_CLOEXEC);
+  fcntl(s, F_SETFD, FD_CLOEXEC);
 #endif
-	return ( s );
+  return (s);
 }
 
-static int
-ldap_pvt_close_socket(LDAP *ld, int s)
-{
-	oslocal_debug(ld, "%s: closing socket %d\n", __FUNCTION__, s);
-	return tcp_close(s);
+static int ldap_pvt_close_socket(LDAP *ld, int s) {
+  oslocal_debug(ld, "%s: closing socket %d\n", __FUNCTION__, s);
+  return tcp_close(s);
 }
 
 #undef TRACE
-#define TRACE do { \
-	char ebuf[128]; \
-	oslocal_debug(ld, \
-		"ldap_is_socket_ready: error on socket %d: errno: %d (%s)\n", \
-		s, \
-		errno, \
-		AC_STRERROR_R(errno, ebuf, sizeof ebuf)); \
-} while( 0 )
+#define TRACE                                                                  \
+  do {                                                                         \
+    char ebuf[128];                                                            \
+    oslocal_debug(                                                             \
+        ld, "ldap_is_socket_ready: error on socket %d: errno: %d (%s)\n", s,   \
+        errno, AC_STRERROR_R(errno, ebuf, sizeof ebuf));                       \
+  } while (0)
 
 /*
  * check the socket for errors after select returned.
  */
-static int
-ldap_pvt_is_socket_ready(LDAP *ld, int s)
-{
-	oslocal_debug(ld, "ldap_is_sock_ready: %d\n",s);
+static int ldap_pvt_is_socket_ready(LDAP *ld, int s) {
+  oslocal_debug(ld, "ldap_is_sock_ready: %d\n", s);
 
-#if defined( notyet ) /* && defined( SO_ERROR ) */
-{
-	int so_errno;
-	ber_socklen_t dummy = sizeof(so_errno);
-	if ( getsockopt( s, SOL_SOCKET, SO_ERROR, &so_errno, &dummy )
-		== AC_SOCKET_ERROR )
-	{
-		return -1;
-	}
-	if ( so_errno ) {
-		ldap_pvt_set_errno(so_errno);
-		TRACE;
-		return -1;
-	}
-	return 0;
-}
+#if defined(notyet) /* && defined( SO_ERROR ) */
+  {
+    int so_errno;
+    ber_socklen_t dummy = sizeof(so_errno);
+    if (getsockopt(s, SOL_SOCKET, SO_ERROR, &so_errno, &dummy) ==
+        AC_SOCKET_ERROR) {
+      return -1;
+    }
+    if (so_errno) {
+      ldap_pvt_set_errno(so_errno);
+      TRACE;
+      return -1;
+    }
+    return 0;
+  }
 #else
-{
-	/* error slippery */
-	struct sockaddr_un sa;
-	char ch;
-	ber_socklen_t dummy = sizeof(sa);
-	if ( getpeername( s, (struct sockaddr *) &sa, &dummy )
-		== AC_SOCKET_ERROR )
-	{
-		/* XXX: needs to be replace with ber_stream_read() */
-		int ignore __maybe_unused = read(s, &ch, 1);
-		TRACE;
-		return -1;
-	}
-	return 0;
-}
+  {
+    /* error slippery */
+    struct sockaddr_un sa;
+    char ch;
+    ber_socklen_t dummy = sizeof(sa);
+    if (getpeername(s, (struct sockaddr *)&sa, &dummy) == AC_SOCKET_ERROR) {
+      /* XXX: needs to be replace with ber_stream_read() */
+      int ignore __maybe_unused = read(s, &ch, 1);
+      TRACE;
+      return -1;
+    }
+    return 0;
+  }
 #endif
-	return -1;
+  return -1;
 }
 #undef TRACE
 
 #ifdef LDAP_PF_LOCAL_SENDMSG
-static const char abandonPDU[] = {LDAP_TAG_MESSAGE, 6,
-	LDAP_TAG_MSGID, 1, 0, LDAP_REQ_ABANDON, 1, 0};
+static const char abandonPDU[] = {
+    LDAP_TAG_MESSAGE, 6, LDAP_TAG_MSGID, 1, 0, LDAP_REQ_ABANDON, 1, 0};
 #endif
 
-static int
-ldap_pvt_connect(LDAP *ld, ber_socket_t s, struct sockaddr_un *sa, int async)
-{
-	int rc;
-	struct timeval	tv, *opt_tv = NULL;
+static int ldap_pvt_connect(LDAP *ld, ber_socket_t s, struct sockaddr_un *sa,
+                            int async) {
+  int rc;
+  struct timeval tv, *opt_tv = NULL;
 
-	if ( ld->ld_options.ldo_tm_net.tv_sec >= 0 ) {
-		tv = ld->ld_options.ldo_tm_net;
-		opt_tv = &tv;
-	}
+  if (ld->ld_options.ldo_tm_net.tv_sec >= 0) {
+    tv = ld->ld_options.ldo_tm_net;
+    opt_tv = &tv;
+  }
 
-	oslocal_debug(ld, "ldap_connect_timeout: fd: %d tm: %ld async: %d\n",
-		s, opt_tv ? tv.tv_sec : -1L, async);
+  oslocal_debug(ld, "ldap_connect_timeout: fd: %d tm: %ld async: %d\n", s,
+                opt_tv ? tv.tv_sec : -1L, async);
 
-	if ( ldap_pvt_ndelay_on(ld, s) == -1 ) return -1;
+  if (ldap_pvt_ndelay_on(ld, s) == -1)
+    return -1;
 
-	if ( connect(s, (struct sockaddr *) sa, sizeof(struct sockaddr_un))
-		!= AC_SOCKET_ERROR )
-	{
-		if ( ldap_pvt_ndelay_off(ld, s) == -1 ) return -1;
+  if (connect(s, (struct sockaddr *)sa, sizeof(struct sockaddr_un)) !=
+      AC_SOCKET_ERROR) {
+    if (ldap_pvt_ndelay_off(ld, s) == -1)
+      return -1;
 
 #ifdef LDAP_PF_LOCAL_SENDMSG
-	/* Send a dummy message with access rights. Remote side will
-	 * obtain our uid/gid by fstat'ing this descriptor. The
-	 * descriptor permissions must match exactly, and we also
-	 * send the socket name, which must also match.
-	 */
-sendcred:
-		{
-			int fds[2];
-			ber_socklen_t salen = sizeof(*sa);
-			if (pipe(fds) == 0) {
-				/* Abandon, noop, has no reply */
-				struct iovec iov;
-				struct msghdr msg = {0};
-# ifdef HAVE_STRUCT_MSGHDR_MSG_CONTROL
-# ifndef CMSG_SPACE
-# define CMSG_SPACE(len)	(_CMSG_ALIGN( sizeof(struct cmsghdr)) + _CMSG_ALIGN(len) )
-# endif
-# ifndef CMSG_LEN
-# define CMSG_LEN(len)		(_CMSG_ALIGN( sizeof(struct cmsghdr)) + (len) )
-# endif
-				union {
-					struct cmsghdr cm;
-					unsigned char control[CMSG_SPACE(sizeof(int))];
-				} control_un;
-				struct cmsghdr *cmsg;
-# endif /* HAVE_STRUCT_MSGHDR_MSG_CONTROL */
-				msg.msg_name = NULL;
-				msg.msg_namelen = 0;
-				iov.iov_base = (char *) abandonPDU;
-				iov.iov_len = sizeof abandonPDU;
-				msg.msg_iov = &iov;
-				msg.msg_iovlen = 1;
-# ifdef HAVE_STRUCT_MSGHDR_MSG_CONTROL
-				msg.msg_control = control_un.control;
-				msg.msg_controllen = sizeof( control_un.control );
-				msg.msg_flags = 0;
-
-				cmsg = CMSG_FIRSTHDR( &msg );
-				cmsg->cmsg_len = CMSG_LEN( sizeof(int) );
-				cmsg->cmsg_level = SOL_SOCKET;
-				cmsg->cmsg_type = SCM_RIGHTS;
-
-				*((int *)CMSG_DATA(cmsg)) = fds[0];
-# else
-				msg.msg_accrights = (char *)fds;
-				msg.msg_accrightslen = sizeof(int);
-# endif /* HAVE_STRUCT_MSGHDR_MSG_CONTROL */
-				getpeername( s, (struct sockaddr *) sa, &salen );
-				fchmod( fds[0], S_ISUID|S_IRWXU );
-				write( fds[1], sa, salen );
-				sendmsg( s, &msg, 0 );
-				close(fds[0]);
-				close(fds[1]);
-			}
-		}
+    /* Send a dummy message with access rights. Remote side will
+     * obtain our uid/gid by fstat'ing this descriptor. The
+     * descriptor permissions must match exactly, and we also
+     * send the socket name, which must also match.
+     */
+  sendcred : {
+    int fds[2];
+    ber_socklen_t salen = sizeof(*sa);
+    if (pipe(fds) == 0) {
+      /* Abandon, noop, has no reply */
+      struct iovec iov;
+      struct msghdr msg = {0};
+#ifdef HAVE_STRUCT_MSGHDR_MSG_CONTROL
+#ifndef CMSG_SPACE
+#define CMSG_SPACE(len) (_CMSG_ALIGN(sizeof(struct cmsghdr)) + _CMSG_ALIGN(len))
 #endif
-		return 0;
-	}
+#ifndef CMSG_LEN
+#define CMSG_LEN(len) (_CMSG_ALIGN(sizeof(struct cmsghdr)) + (len))
+#endif
+      union {
+        struct cmsghdr cm;
+        unsigned char control[CMSG_SPACE(sizeof(int))];
+      } control_un;
+      struct cmsghdr *cmsg;
+#endif /* HAVE_STRUCT_MSGHDR_MSG_CONTROL */
+      msg.msg_name = NULL;
+      msg.msg_namelen = 0;
+      iov.iov_base = (char *)abandonPDU;
+      iov.iov_len = sizeof abandonPDU;
+      msg.msg_iov = &iov;
+      msg.msg_iovlen = 1;
+#ifdef HAVE_STRUCT_MSGHDR_MSG_CONTROL
+      msg.msg_control = control_un.control;
+      msg.msg_controllen = sizeof(control_un.control);
+      msg.msg_flags = 0;
 
-	if ( errno != EINPROGRESS && errno != EWOULDBLOCK ) return -1;
+      cmsg = CMSG_FIRSTHDR(&msg);
+      cmsg->cmsg_len = CMSG_LEN(sizeof(int));
+      cmsg->cmsg_level = SOL_SOCKET;
+      cmsg->cmsg_type = SCM_RIGHTS;
+
+      *((int *)CMSG_DATA(cmsg)) = fds[0];
+#else
+      msg.msg_accrights = (char *)fds;
+      msg.msg_accrightslen = sizeof(int);
+#endif /* HAVE_STRUCT_MSGHDR_MSG_CONTROL */
+      getpeername(s, (struct sockaddr *)sa, &salen);
+      fchmod(fds[0], S_ISUID | S_IRWXU);
+      write(fds[1], sa, salen);
+      sendmsg(s, &msg, 0);
+      close(fds[0]);
+      close(fds[1]);
+    }
+  }
+#endif
+    return 0;
+  }
+
+  if (errno != EINPROGRESS && errno != EWOULDBLOCK)
+    return -1;
 
 #ifdef notyet
-	if ( async ) return -2;
+  if (async)
+    return -2;
 #endif
 
 #ifdef HAVE_POLL
-	{
-		struct pollfd fd;
-		int timeout = INFTIM;
+  {
+    struct pollfd fd;
+    int timeout = INFTIM;
 
-		if( opt_tv != NULL ) timeout = TV2MILLISEC( &tv );
+    if (opt_tv != NULL)
+      timeout = TV2MILLISEC(&tv);
 
-		fd.fd = s;
-		fd.events = POLL_WRITE;
+    fd.fd = s;
+    fd.events = POLL_WRITE;
 
-		do {
-			fd.revents = 0;
-			rc = poll( &fd, 1, timeout );
-		} while( rc == AC_SOCKET_ERROR && errno == EINTR &&
-			LDAP_BOOL_GET(&ld->ld_options, LDAP_BOOL_RESTART ));
+    do {
+      fd.revents = 0;
+      rc = poll(&fd, 1, timeout);
+    } while (rc == AC_SOCKET_ERROR && errno == EINTR &&
+             LDAP_BOOL_GET(&ld->ld_options, LDAP_BOOL_RESTART));
 
-		if( rc == AC_SOCKET_ERROR ) return rc;
+    if (rc == AC_SOCKET_ERROR)
+      return rc;
 
-		if( fd.revents & POLL_WRITE ) {
-			if ( ldap_pvt_is_socket_ready(ld, s) == -1 ) return -1;
-			if ( ldap_pvt_ndelay_off(ld, s) == -1 ) return -1;
+    if (fd.revents & POLL_WRITE) {
+      if (ldap_pvt_is_socket_ready(ld, s) == -1)
+        return -1;
+      if (ldap_pvt_ndelay_off(ld, s) == -1)
+        return -1;
 #ifdef LDAP_PF_LOCAL_SENDMSG
-			goto sendcred;
+      goto sendcred;
 #else
-			return ( 0 );
+      return (0);
 #endif
-		}
-	}
+    }
+  }
 #else
-	{
-		fd_set wfds, *z=NULL;
+  {
+    fd_set wfds, *z = NULL;
 
 #ifdef FD_SETSIZE
-		if ( s >= FD_SETSIZE ) {
-			rc = AC_SOCKET_ERROR;
-			oslocal_debug(ld, "%s: closing socket %d\n", __FUNCTION__, s);
-			tcp_close( s );
-			ldap_pvt_set_errno( EMFILE );
-			return rc;
-		}
+    if (s >= FD_SETSIZE) {
+      rc = AC_SOCKET_ERROR;
+      oslocal_debug(ld, "%s: closing socket %d\n", __FUNCTION__, s);
+      tcp_close(s);
+      ldap_pvt_set_errno(EMFILE);
+      return rc;
+    }
 #endif
-		do {
-			FD_ZERO(&wfds);
-			FD_SET(s, &wfds );
-			rc = select( ldap_int_tblsize, z, &wfds, z, opt_tv ? &tv : NULL );
-		} while( rc == AC_SOCKET_ERROR && errno == EINTR &&
-			LDAP_BOOL_GET(&ld->ld_options, LDAP_BOOL_RESTART ));
+    do {
+      FD_ZERO(&wfds);
+      FD_SET(s, &wfds);
+      rc = select(ldap_int_tblsize, z, &wfds, z, opt_tv ? &tv : NULL);
+    } while (rc == AC_SOCKET_ERROR && errno == EINTR &&
+             LDAP_BOOL_GET(&ld->ld_options, LDAP_BOOL_RESTART));
 
-		if( rc == AC_SOCKET_ERROR ) return rc;
+    if (rc == AC_SOCKET_ERROR)
+      return rc;
 
-		if ( FD_ISSET(s, &wfds) ) {
-			if ( ldap_pvt_is_socket_ready(ld, s) == -1 ) return -1;
-			if ( ldap_pvt_ndelay_off(ld, s) == -1 ) return -1;
+    if (FD_ISSET(s, &wfds)) {
+      if (ldap_pvt_is_socket_ready(ld, s) == -1)
+        return -1;
+      if (ldap_pvt_ndelay_off(ld, s) == -1)
+        return -1;
 #ifdef LDAP_PF_LOCAL_SENDMSG
-			goto sendcred;
+      goto sendcred;
 #else
-			return ( 0 );
+      return (0);
 #endif
-		}
-	}
+    }
+  }
 #endif
 
-	oslocal_debug(ld, "ldap_connect_timeout: timed out\n");
-	ldap_pvt_set_errno( ETIMEDOUT );
-	return ( -1 );
+  oslocal_debug(ld, "ldap_connect_timeout: timed out\n");
+  ldap_pvt_set_errno(ETIMEDOUT);
+  return (-1);
 }
 
-int
-ldap_connect_to_path(LDAP *ld, Sockbuf *sb, LDAPURLDesc *srv, int async)
-{
-	struct sockaddr_un	server;
-	ber_socket_t		s;
-	int			rc;
-	const char *path = srv->lud_host;
+int ldap_connect_to_path(LDAP *ld, Sockbuf *sb, LDAPURLDesc *srv, int async) {
+  struct sockaddr_un server;
+  ber_socket_t s;
+  int rc;
+  const char *path = srv->lud_host;
 
-	oslocal_debug(ld, "ldap_connect_to_path\n");
+  oslocal_debug(ld, "ldap_connect_to_path\n");
 
-	if ( path == NULL || path[0] == '\0' ) {
-		path = LDAPI_SOCK;
-	} else {
-		if ( strlen(path) > (sizeof( server.sun_path ) - 1) ) {
-			ldap_pvt_set_errno( ENAMETOOLONG );
-			return -1;
-		}
-	}
+  if (path == NULL || path[0] == '\0') {
+    path = LDAPI_SOCK;
+  } else {
+    if (strlen(path) > (sizeof(server.sun_path) - 1)) {
+      ldap_pvt_set_errno(ENAMETOOLONG);
+      return -1;
+    }
+  }
 
-	s = ldap_pvt_socket( ld );
-	if ( s == AC_SOCKET_INVALID ) {
-		return -1;
-	}
+  s = ldap_pvt_socket(ld);
+  if (s == AC_SOCKET_INVALID) {
+    return -1;
+  }
 
-	oslocal_debug(ld, "ldap_connect_to_path: Trying %s\n", path);
+  oslocal_debug(ld, "ldap_connect_to_path: Trying %s\n", path);
 
-	memset( &server, '\0', sizeof(server) );
-	server.sun_family = AF_LOCAL;
-	strcpy( server.sun_path, path );
+  memset(&server, '\0', sizeof(server));
+  server.sun_family = AF_LOCAL;
+  strcpy(server.sun_path, path);
 
-	rc = ldap_pvt_connect(ld, s, &server, async);
+  rc = ldap_pvt_connect(ld, s, &server, async);
 
-	if (rc == 0) {
-		rc = ldap_int_connect_cbs( ld, sb, &s, srv, (struct sockaddr *)&server );
-	}
-	if ( rc ) {
-		ldap_pvt_close_socket(ld, s);
-	}
-	return rc;
+  if (rc == 0) {
+    rc = ldap_int_connect_cbs(ld, sb, &s, srv, (struct sockaddr *)&server);
+  }
+  if (rc) {
+    ldap_pvt_close_socket(ld, s);
+  }
+  return rc;
 }
 #else
-static int dummy; /* generate also a warning: 'dummy' defined but not used (at least here) */
+static int dummy; /* generate also a warning: 'dummy' defined but not used (at
+                     least here) */
 #endif /* LDAP_PF_LOCAL */

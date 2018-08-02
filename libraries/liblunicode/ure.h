@@ -40,7 +40,6 @@
 
 #include "reldap.h"
 
-
 #include <stdio.h>
 
 LDAP_BEGIN_DECL
@@ -48,57 +47,57 @@ LDAP_BEGIN_DECL
 /*
  * Set of character class flags.
  */
-#define _URE_NONSPACING  0x00000001
-#define _URE_COMBINING   0x00000002
-#define _URE_NUMDIGIT    0x00000004
-#define _URE_NUMOTHER    0x00000008
-#define _URE_SPACESEP    0x00000010
-#define _URE_LINESEP     0x00000020
-#define _URE_PARASEP     0x00000040
-#define _URE_CNTRL       0x00000080
-#define _URE_PUA         0x00000100
+#define _URE_NONSPACING 0x00000001
+#define _URE_COMBINING 0x00000002
+#define _URE_NUMDIGIT 0x00000004
+#define _URE_NUMOTHER 0x00000008
+#define _URE_SPACESEP 0x00000010
+#define _URE_LINESEP 0x00000020
+#define _URE_PARASEP 0x00000040
+#define _URE_CNTRL 0x00000080
+#define _URE_PUA 0x00000100
 
-#define _URE_UPPER       0x00000200
-#define _URE_LOWER       0x00000400
-#define _URE_TITLE       0x00000800
-#define _URE_MODIFIER    0x00001000
+#define _URE_UPPER 0x00000200
+#define _URE_LOWER 0x00000400
+#define _URE_TITLE 0x00000800
+#define _URE_MODIFIER 0x00001000
 #define _URE_OTHERLETTER 0x00002000
-#define _URE_DASHPUNCT   0x00004000
-#define _URE_OPENPUNCT   0x00008000
-#define _URE_CLOSEPUNCT  0x00010000
-#define _URE_OTHERPUNCT  0x00020000
-#define _URE_MATHSYM     0x00040000
+#define _URE_DASHPUNCT 0x00004000
+#define _URE_OPENPUNCT 0x00008000
+#define _URE_CLOSEPUNCT 0x00010000
+#define _URE_OTHERPUNCT 0x00020000
+#define _URE_MATHSYM 0x00040000
 #define _URE_CURRENCYSYM 0x00080000
-#define _URE_OTHERSYM    0x00100000
+#define _URE_OTHERSYM 0x00100000
 
-#define _URE_LTR         0x00200000
-#define _URE_RTL         0x00400000
+#define _URE_LTR 0x00200000
+#define _URE_RTL 0x00400000
 
-#define _URE_EURONUM     0x00800000
-#define _URE_EURONUMSEP  0x01000000
+#define _URE_EURONUM 0x00800000
+#define _URE_EURONUMSEP 0x01000000
 #define _URE_EURONUMTERM 0x02000000
-#define _URE_ARABNUM     0x04000000
-#define _URE_COMMONSEP   0x08000000
+#define _URE_ARABNUM 0x04000000
+#define _URE_COMMONSEP 0x08000000
 
-#define _URE_BLOCKSEP    0x10000000
-#define _URE_SEGMENTSEP  0x20000000
+#define _URE_BLOCKSEP 0x10000000
+#define _URE_SEGMENTSEP 0x20000000
 
-#define _URE_WHITESPACE  0x40000000
-#define _URE_OTHERNEUT   0x80000000
+#define _URE_WHITESPACE 0x40000000
+#define _URE_OTHERNEUT 0x80000000
 
 /*
  * Error codes.
  */
-#define _URE_OK               0
-#define _URE_UNEXPECTED_EOS   -1
-#define _URE_CCLASS_OPEN      -2
+#define _URE_OK 0
+#define _URE_UNEXPECTED_EOS -1
+#define _URE_CCLASS_OPEN -2
 #define _URE_UNBALANCED_GROUP -3
 #define _URE_INVALID_PROPERTY -4
 
 /*
  * Options that can be combined for searching.
  */
-#define URE_IGNORE_NONSPACING      0x01
+#define URE_IGNORE_NONSPACING 0x01
 #define URE_DOT_MATCHES_SEPARATORS 0x02
 
 typedef unsigned long ucs4_t;
@@ -120,22 +119,20 @@ typedef struct _ure_dfa_t *ure_dfa_t;
  *
  *************************************************************************/
 
-LDAP_LUNICODE_F (ure_buffer_t) ure_buffer_create(void);
+LDAP_LUNICODE_F(ure_buffer_t) ure_buffer_create(void);
 
-LDAP_LUNICODE_F (void) ure_buffer_free(ure_buffer_t buf);
+LDAP_LUNICODE_F(void) ure_buffer_free(ure_buffer_t buf);
 
-LDAP_LUNICODE_F (ure_dfa_t)
-ure_compile (ucs2_t *re, unsigned long relen,
-			int casefold, ure_buffer_t buf);
+LDAP_LUNICODE_F(ure_dfa_t)
+ure_compile(ucs2_t *re, unsigned long relen, int casefold, ure_buffer_t buf);
 
-LDAP_LUNICODE_F (void) ure_dfa_free(ure_dfa_t dfa);
+LDAP_LUNICODE_F(void) ure_dfa_free(ure_dfa_t dfa);
 
-LDAP_LUNICODE_F (void) ure_write_dfa(ure_dfa_t dfa, FILE *out);
+LDAP_LUNICODE_F(void) ure_write_dfa(ure_dfa_t dfa, FILE *out);
 
-LDAP_LUNICODE_F (int)
-ure_exec (ure_dfa_t dfa, int flags, ucs2_t *text,
-		 unsigned long textlen, unsigned long *match_start,
-		 unsigned long *match_end);
+LDAP_LUNICODE_F(int)
+ure_exec(ure_dfa_t dfa, int flags, ucs2_t *text, unsigned long textlen,
+         unsigned long *match_start, unsigned long *match_end);
 
 /*************************************************************************
  *
@@ -144,9 +141,9 @@ ure_exec (ure_dfa_t dfa, int flags, ucs2_t *text,
  *
  *************************************************************************/
 
-LDAP_LUNICODE_F (ucs4_t) _ure_tolower(ucs4_t c);
+LDAP_LUNICODE_F(ucs4_t) _ure_tolower(ucs4_t c);
 
-LDAP_LUNICODE_F (int)
+LDAP_LUNICODE_F(int)
 _ure_matches_properties(unsigned long props, ucs4_t c);
 
 LDAP_END_DECL
