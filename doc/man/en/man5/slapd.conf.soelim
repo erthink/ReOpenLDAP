@@ -2337,6 +2337,12 @@ The
 parameter tells the underlying database that it can store changes without
 performing a full flush after each change. This may improve performance
 for the consumer, while sacrificing safety or durability.
+
+The
+.B requirecheckpresent
+option enforce resync, in case a data provider
+.BR syncprov
+skips the present phase during a refresh stage.
 .RE
 .TP
 .B updatedn <dn>
@@ -2355,11 +2361,6 @@ Specify the referral to pass back when
 .BR slapd (8)
 is asked to modify a replicated local database.
 If specified multiple times, each url is provided.
-.TP
-.B requirecheckpresent
-Enforce resync, in case a data provider
-.BR syncprov
-skips the present phase during a refresh stage.
 
 .SH DATABASE-SPECIFIC OPTIONS
 Each database may allow specific configuration options; they are
