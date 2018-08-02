@@ -33,7 +33,7 @@ am__tar = $${TAR-tar} cof - "$$tardir"
 if BEHIND_CURTIAN
 SUBDIRS += tests
 test:
-	$(MAKE) -C tests check </dev/null
+	$(MAKE) -C tests check
 
 dist-hook:
 	find $(distdir) -type f | xargs -r \

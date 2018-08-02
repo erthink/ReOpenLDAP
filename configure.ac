@@ -37,11 +37,11 @@ top-level directory of the distribution or, alternatively, at
 AC_PREREQ([2.69])dnl Required Autoconf version
 AC_REVISION([$Id: 8c9139400f1cfd3f68bc9b65828515fe85e91ee1 $])
 AC_INIT(
-	m4_esyscmd_s([build/BRANDING --package]),
-	m4_esyscmd_s([build/BRANDING --version-full]),
-	m4_esyscmd_s([build/BRANDING --bugs]),
-	m4_esyscmd_s([build/BRANDING --tarname]),
-	m4_esyscmd_s([build/BRANDING --url]))
+	[m4_esyscmd_s(build/BRANDING --package)],
+	[m4_esyscmd_s(build/BRANDING --version-full)],
+	[m4_esyscmd_s(build/BRANDING --bugs)],
+	[m4_esyscmd_s(build/BRANDING --tarname)],
+	[m4_esyscmd_s(build/BRANDING --url)])
 AC_CONFIG_MACRO_DIR([build/m4])
 dnl ----------------------------------------------------------------
 dnl OpenLDAP Autoconf Macros
@@ -61,9 +61,10 @@ dnl Determine host platform
 dnl		we try not to use this for much
 AC_CANONICAL_TARGET([])
 
-AM_INIT_AUTOMAKE([subdir-objects --warnings=no-portability --warnings=error dist-xz tar-pax no-dist-gzip])
+AM_INIT_AUTOMAKE([subdir-objects --warnings=all,no-override,no-portability,error dist-xz tar-pax no-dist-gzip])
 AM_SILENT_RULES([yes])
 AM_MAINTAINER_MODE([disable])
+AM_PROG_AR
 LT_CONFIG_LTDL_DIR([build/libltdl])
 LT_INIT([dlopen])
 
@@ -169,8 +170,8 @@ PKG_PROG_PKG_CONFIG
 if test -z "$PKG_CONFIG"; then
 	AC_MSG_FAILURE([pkg-config tool is required for ReOpenLDAP, please install it])
 fi
-AC_LIBTOOL_DLOPEN
-AC_PROG_LIBTOOL
+LT_PREREQ([2.4.2])
+LT_INIT([dlopen])
 LT_OUTPUT
 
 AC_DEFINE(_GNU_SOURCE, 1, [Enable GNU extensions.])
@@ -904,12 +905,12 @@ AC_CHECK_HEADERS( sys/ucred.h, [], [],
 ])
 dnl Check whether ucred is defined without _GNU_SOURCE
 AC_MSG_CHECKING(for struct ucred)
-AC_TRY_LINK([
+AC_LINK_IFELSE([AC_LANG_PROGRAM([[
 #include <sys/ucred.h>
 #include <sys/socket.h>
-],[
+]], [[
 struct ucred sucred; sucred.pid=0;
-],[has_ucred=yes],[has_ucred=no])
+]])],[has_ucred=yes],[has_ucred=no])
 AC_MSG_RESULT($has_ucred)
 if test ${has_ucred} = no ; then CFLAGS="$CFLAGS -D_GNU_SOURCE"; fi
 
@@ -1168,9 +1169,11 @@ AC_SUBST(MOZNSS_LIBS)
 AC_SUBST(MOZNSS_CFLAGS)
 AM_CONDITIONAL([MOZNSS_AVAIL], [test $moznss_found = yes])
 if test $moznss_found = yes; then
-    AC_DEFINE(HAVE_MOZNSS, 1, [define if you have Mozill NSS])
+    AC_DEFINE(HAVE_MOZNSS, 1, [define if you have Mozilla NSS])
     save_CPPFLAGS=$CPPFLAGS
+    save_LIBS=$LIBS
     CPPFLAGS="$CPPFLAGS $MOZNSS_CFLAGS"
+    LIBS="$LIBS $MOZNSS_LIBS"
     AC_CHECK_HEADERS([nspr/nspr.h nspr4/nspr.h])
     if test $ac_cv_header_nspr_nspr_h != yes -a $ac_cv_header_nspr4_nspr_h != yes; then
 	AC_MSG_ERROR([could not locate nspr/nspr.h or nspr4/nspr.h])
@@ -1179,13 +1182,29 @@ if test $moznss_found = yes; then
     if test $ac_cv_header_nss_nss_h != yes -a $ac_cv_header_nss3_nss_h != yes; then
 	AC_MSG_ERROR([could not locate nss/nss.h or nss3/nss.h])
     fi
+
+    dnl The function PK11_CreateGenericObject is needed to load libnsspem.so
+    AC_CHECK_FUNC(PK11_CreateGenericObject, , [moznss_found=no])
+    AC_CHECK_LIB(nsspem, C_GetFunctionList, [moznss_pem=yes], [moznss_pem=no])
+
+    dnl NSS_InitContext() was introduced in NSS 3.12.5 and helps to prevent
+    dnl collisions on NSS initialization/shutdown with other libraries
+    AC_CHECK_FUNC(NSS_InitContext, [AC_DEFINE(HAVE_NSS_INITCONTEXT, 1, [if you have the NSS_InitContext function])])
+
+    if test $moznss_pem != yes; then
+	AC_MSG_WARN([libnsspem not found, assume MozNSS support for PEM is incomplete])
+    else
+	AC_DEFINE(HAVE_NSSPEM, 1, [define if you have Mozilla NSS PEM library])
+    fi
+
     CPPFLAGS=$save_CPPFLAGS
+    LIBS=$save_LIBS
 fi
 
 AM_CONDITIONAL([TLS_FALLBACK_AVAIL], [test $gnutls_found = yes -o $openssl_found = yes])
 
 if test $ol_with_tls = yes -o $ol_with_tls = auto; then
-    if test $moznss_found = yes; then
+    if test $moznss_found = yes -a "$moznss_pem" = yes; then
 	ol_with_tls=moznss
     elif test $gnutls_found = yes -a $ol_enable_lmpasswd != yes; then
 	ol_with_tls=gnutls
@@ -1289,7 +1308,7 @@ esac
 WITH_TLS=no
 if test $ol_link_tls = yes ; then
 	AC_DEFINE(WITH_TLS, 1, [define if you enabled TLS])
-	WITH_TLS=yes
+	WITH_TLS=$ol_with_tls
 	CFLAGS="$CFLAGS $TLS_CFLAGS"
 fi
 

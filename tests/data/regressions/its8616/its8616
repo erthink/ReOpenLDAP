@@ -1,0 +1,240 @@
+#!/bin/bash
+## $ReOpenLDAP$
+## Copyright 1998-2018 ReOpenLDAP AUTHORS: please see AUTHORS file.
+## All rights reserved.
+##
+## This file is part of ReOpenLDAP.
+##
+## Redistribution and use in source and binary forms, with or without
+## modification, are permitted only as authorized by the OpenLDAP
+## Public License.
+##
+## A copy of this license is available in the file LICENSE in the
+## top-level directory of the distribution or, alternatively, at
+## <http://www.OpenLDAP.org/license.html>.
+
+echo "running defines.sh"
+. ${TOP_SRCDIR}/tests/scripts/defines.sh
+
+if test ${AC_conf[syncprov]} = no; then
+	echo "Syncrepl provider overlay not available, test skipped"
+	exit 0
+fi
+
+echo ""
+echo "  This test tracks a case where it was not possible to modify the syncprov overlay configuration"
+echo "  when the provider is dynamically configured for replication."
+echo "  See http://www.openldap.org/its/index.cgi/?findid=8616 for more information"
+echo ""
+
+PRODIR=$TESTDIR/pro
+CFPRO=$PRODIR/slapd.d
+
+mkdir -p $TESTDIR $DBDIR1 $PRODIR $CFPRO
+
+$SLAPPASSWD -g -n >$CONFIGPWF
+
+ITS=8616
+ITSDIR=$DATADIR/regressions/its$ITS
+
+echo "Starting provider slapd on TCP/IP port $PORT1..."
+config_filter $BACKEND ${AC_conf[monitor]} < $ITSDIR/slapd-provider.ldif > $CONFLDIF
+$SLAPADD -F $CFPRO -n 0 -l $CONFLDIF
+RC=$?
+if test $RC != 0 ; then
+	echo "slapadd failed: -F $CFPRO -n 0 -l $CONFLDIF ($RC)"
+	exit $RC
+fi
+$SLAPD -F $CFPRO -h $URI1 -d $LVL $TIMING > $LOG1 2>&1 &
+PID=$!
+if test $WAIT != 0 ; then
+	echo PID $PID
+	read foo
+fi
+KILLPIDS="$PID"
+check_running 1
+
+echo "Populating database on provider..."
+$LDAPADD -D $MANAGERDN -H $URI1 -w $PASSWD << EOMODS >> $TESTOUT 2>&1
+dn: dc=example,dc=com
+changetype: add
+objectClass: domain
+objectClass: top
+dc: example
+
+dn: ou=LDAPRoles,dc=example,dc=com
+objectClass: top
+objectClass: organizationalUnit
+ou: LDAPRoles
+
+dn: dc=users,dc=example,dc=com
+changetype: add
+dc: users
+objectClass: domain
+objectClass: top
+
+dn: uid=johndoe,dc=users,dc=example,dc=com
+changetype: add
+objectClass: inetOrgPerson
+objectClass: top
+sn: Doe
+cn: Johndoe
+uid: johndoe
+
+dn: cn=replicator,ou=LDAPRoles,dc=example,dc=com
+objectClass: top
+objectClass: simpleSecurityObject
+objectClass: organizationalRole
+userPassword: secret
+cn: replicator
+EOMODS
+
+RC=$?
+if test $RC != 0 ; then
+	echo "ldapadd failed ($RC)!"
+	killservers
+	exit $RC
+fi
+
+if [ ${AC_conf[syncprov]} = mod ]; then
+	echo "Configuring syncprov module on the provider..."
+	$LDAPADD -D cn=config -H $URI1 -y $CONFIGPWF <<EOF > $TESTOUT 2>&1
+dn: cn=module,cn=config
+objectClass: olcModuleList
+cn: module
+olcModulePath: $TESTWD/../servers/slapd/overlays
+olcModuleLoad: syncprov.la
+EOF
+	RC=$?
+	if test $RC != 0 ; then
+		echo "ldapadd failed for moduleLoad ($RC)!"
+		killservers
+		exit $RC
+	fi
+fi
+
+echo "Configuring replication on the provider..."
+$LDAPMODIFY -D cn=config -H $URI1 -y $CONFIGPWF <<EOF >>$TESTOUT 2>&1
+dn: olcOverlay={0}syncprov,olcDatabase={1}$BACKEND,cn=config
+changetype: add
+objectClass: olcOverlayConfig
+objectClass: olcConfig
+objectClass: top
+objectClass: olcSyncprovConfig
+olcOverlay: {0}syncprov
+olcSpSessionLog: 10000
+olcSpCheckpoint: 100 10
+EOF
+
+RC=$?
+if test $RC != 0 ; then
+	echo "ldapmodify failed ($RC)!"
+	killservers
+	exit $RC
+fi
+
+sleep $SLEEP0
+
+echo "Setting olcSpNoPresent to TRUE on the provider..."
+$LDAPMODIFY -D cn=config -H $URI1 -y $CONFIGPWF <<EOF >>$TESTOUT 2>&1
+dn: olcOverlay={0}syncprov,olcDatabase={1}$BACKEND,cn=config
+changetype: modify
+replace: olcSpNoPresent
+olcSpNoPresent: TRUE
+EOF
+
+RC=$?
+if test $RC != 0 ; then
+	echo "ldapmodify failed ($RC)!"
+	killservers
+	exit $RC
+fi
+
+sleep $SLEEP0
+
+echo "Changing olcSpNoPresent to FALSE on the provider..."
+$LDAPMODIFY -D cn=config -H $URI1 -y $CONFIGPWF <<EOF >>$TESTOUT 2>&1
+dn: olcOverlay={0}syncprov,olcDatabase={1}$BACKEND,cn=config
+changetype: modify
+replace: olcSpNoPresent
+olcSpNoPresent: FALSE
+EOF
+
+RC=$?
+if test $RC != 0 ; then
+	echo "ldapmodify failed ($RC)!"
+	killservers
+	exit $RC
+fi
+
+sleep $SLEEP0
+
+echo "Changing olcSpNoPresent back to TRUE on the provider..."
+$LDAPMODIFY -D cn=config -H $URI1 -y $CONFIGPWF <<EOF >>$TESTOUT 2>&1
+dn: olcOverlay={0}syncprov,olcDatabase={1}$BACKEND,cn=config
+changetype: modify
+replace: olcSpNoPresent
+olcSpNoPresent: TRUE
+EOF
+
+RC=$?
+if test $RC != 0 ; then
+	echo "ldapmodify failed ($RC)!"
+	killservers
+	exit $RC
+fi
+
+sleep $SLEEP0
+
+echo "Setting olcSpReloadHint to TRUE on the provider..."
+$LDAPMODIFY -D cn=config -H $URI1 -y $CONFIGPWF <<EOF >>$TESTOUT 2>&1
+dn: olcOverlay={0}syncprov,olcDatabase={1}$BACKEND,cn=config
+changetype: modify
+replace: olcSpReloadHint
+olcSpReloadHint: TRUE
+EOF
+
+RC=$?
+if test $RC != 0 ; then
+	echo "ldapmodify failed ($RC)!"
+	killservers
+	exit $RC
+fi
+
+sleep $SLEEP0
+
+echo "Changing olcSpReloadHint to FALSE on the provider..."
+$LDAPMODIFY -D cn=config -H $URI1 -y $CONFIGPWF <<EOF >>$TESTOUT 2>&1
+dn: olcOverlay={0}syncprov,olcDatabase={1}$BACKEND,cn=config
+changetype: modify
+replace: olcSpReloadHint
+olcSpReloadHint: FALSE
+EOF
+
+RC=$?
+if test $RC != 0 ; then
+	echo "ldapmodify failed ($RC)!"
+	killservers
+	exit $RC
+fi
+
+sleep $SLEEP0
+
+echo "Changing olcSpReloadHint back to TRUE on the provider..."
+$LDAPMODIFY -D cn=config -H $URI1 -y $CONFIGPWF <<EOF >>$TESTOUT 2>&1
+dn: olcOverlay={0}syncprov,olcDatabase={1}$BACKEND,cn=config
+changetype: modify
+replace: olcSpReloadHint
+olcSpReloadHint: TRUE
+EOF
+
+RC=$?
+if test $RC != 0 ; then
+	echo "ldapmodify failed ($RC)!"
+	killservers
+	exit $RC
+fi
+
+killservers
+echo ">>>>> Test succeeded"
+exit 0

@@ -93,6 +93,8 @@ static unsigned long tlso_thread_self( void )
 
 	return (unsigned long) ldap_pvt_thread_self();
 }
+#else
+static ldap_pvt_thread_mutex_t	tlso_mutex;
 #endif /* OPENSSL_VERSION_NUMBER < 0x10100000L */
 
 static void tlso_thr_init( void )
@@ -103,6 +105,8 @@ static void tlso_thr_init( void )
 	for( i=0; i< CRYPTO_NUM_LOCKS ; i++ ) {
 		ldap_pvt_thread_mutex_init( &tlso_mutexes[i] );
 	}
+#else
+	ldap_pvt_thread_mutex_init( &tlso_mutex );
 #endif
 	/* OpenSSL 1.1.x don't used locking callback
 	 * and corresponding defines are no-ops.
@@ -145,53 +149,8 @@ tlso_ca_list( char * bundle, char * dir, X509 *cert )
 	return ca_list;
 }
 
-/*
- * Initialize TLS subsystem. Should be called only once.
- */
-static int
-tlso_init( void )
-{
-	struct ldapoptions *lo = LDAP_INT_GLOBAL_OPT();
-	(void) tlso_seed_PRNG( lo->ldo_tls_randfile );
-
-#if OPENSSL_VERSION_NUMBER < 0x10100000L || defined(LIBRESSL_VERSION_NUMBER)
-	SSL_load_error_strings();
-	SSL_library_init();
-	OpenSSL_add_all_digests();
-#else
-	OPENSSL_init_ssl(0, NULL);
-#endif
-
-	/* FIXME: mod_ssl does this */
-	X509V3_add_standard_extensions();
-
-	return 0;
-}
-
-/*
- * Tear down the TLS subsystem. Should only be called once.
- */
-static void
-tlso_destroy( void )
-{
-	struct ldapoptions *lo = LDAP_INT_GLOBAL_OPT();
-
-#if OPENSSL_VERSION_NUMBER < 0x10100000 || defined(LIBRESSL_VERSION_NUMBER)
-	EVP_cleanup();
-#if OPENSSL_VERSION_NUMBER < 0x10000000
-	ERR_remove_state(0);
-#elif OPENSSL_VERSION_NUMBER < 0x10100000L || defined(LIBRESSL_VERSION_NUMBER)
-	/* deprecated in openssl-1.1 */
-	ERR_remove_thread_state(NULL);
-#endif
-	ERR_free_strings();
-#endif
-
-	if ( lo->ldo_tls_randfile ) {
-		LDAP_FREE( lo->ldo_tls_randfile );
-		lo->ldo_tls_randfile = NULL;
-	}
-}
+static int tlso_init( void );
+static void tlso_destroy( void );
 
 static tls_ctx *
 tlso_ctx_new( struct ldapoptions *lo )
@@ -998,6 +957,63 @@ static BIO_METHOD tlso_bio_method =
 static BIO_METHOD *tlso_bio_method = NULL;
 #endif
 
+/*
+ * Initialize TLS subsystem. Should be called only once.
+ */
+static int tlso_init( void )
+{
+	struct ldapoptions *lo = LDAP_INT_GLOBAL_OPT();
+	(void) tlso_seed_PRNG( lo->ldo_tls_randfile );
+
+#if OPENSSL_VERSION_NUMBER < 0x10100000L || defined(LIBRESSL_VERSION_NUMBER)
+	SSL_load_error_strings();
+	SSL_library_init();
+	OpenSSL_add_all_digests();
+#else
+	OPENSSL_init_ssl(0, NULL);
+#endif
+
+	/* FIXME: mod_ssl does this */
+	X509V3_add_standard_extensions();
+
+	return 0;
+}
+
+/*
+ * Tear down the TLS subsystem. Should only be called once.
+ */
+static void
+tlso_destroy( void )
+{
+#if OPENSSL_VERSION_NUMBER >= 0x10100000L && !defined(LIBRESSL_VERSION_NUMBER)
+	if ( NULL != tlso_bio_method ) {
+		ldap_pvt_thread_mutex_lock( &tlso_mutex );
+		BIO_METHOD *method = tlso_bio_method;
+		tlso_bio_method = NULL;
+		ldap_pvt_thread_mutex_unlock( &tlso_mutex );
+		if (method) BIO_meth_free(method);
+	}
+#endif
+
+	struct ldapoptions *lo = LDAP_INT_GLOBAL_OPT();
+
+#if OPENSSL_VERSION_NUMBER < 0x10100000 || defined(LIBRESSL_VERSION_NUMBER)
+	EVP_cleanup();
+#if OPENSSL_VERSION_NUMBER < 0x10000000
+	ERR_remove_state(0);
+#elif OPENSSL_VERSION_NUMBER < 0x10100000L || defined(LIBRESSL_VERSION_NUMBER)
+	/* deprecated in openssl-1.1 */
+	ERR_remove_thread_state(NULL);
+#endif
+	ERR_free_strings();
+#endif
+
+	if ( lo->ldo_tls_randfile ) {
+		LDAP_FREE( lo->ldo_tls_randfile );
+		lo->ldo_tls_randfile = NULL;
+	}
+}
+
 static int
 tlso_sb_setup( Sockbuf_IO_Desc *sbiod, void *arg )
 {
@@ -1017,17 +1033,24 @@ tlso_sb_setup( Sockbuf_IO_Desc *sbiod, void *arg )
 	bio = BIO_new( &tlso_bio_method );
 #else
 	if ( NULL == tlso_bio_method ) {
-		tlso_bio_method = BIO_meth_new(( 100 | 0x400 ), "sockbuf glue");
-		if ( NULL == tlso_bio_method
-		     || !BIO_meth_set_write(tlso_bio_method, tlso_bio_write)
-		     || !BIO_meth_set_read(tlso_bio_method, tlso_bio_read)
-		     || !BIO_meth_set_puts(tlso_bio_method, tlso_bio_puts)
-		     || !BIO_meth_set_gets(tlso_bio_method, tlso_bio_gets)
-		     || !BIO_meth_set_ctrl(tlso_bio_method, tlso_bio_ctrl)
-		     || !BIO_meth_set_create(tlso_bio_method, tlso_bio_create)
-		     || !BIO_meth_set_destroy(tlso_bio_method, tlso_bio_destroy)) {
-			return -1;
+		ldap_pvt_thread_mutex_lock( &tlso_mutex );
+		if ( NULL == tlso_bio_method ) {
+			BIO_METHOD *method = BIO_meth_new(( 100 | 0x400 ), "sockbuf glue");
+			if ( NULL == method
+				 || !BIO_meth_set_write(method, tlso_bio_write)
+				 || !BIO_meth_set_read(method, tlso_bio_read)
+				 || !BIO_meth_set_puts(method, tlso_bio_puts)
+				 || !BIO_meth_set_gets(method, tlso_bio_gets)
+				 || !BIO_meth_set_ctrl(method, tlso_bio_ctrl)
+				 || !BIO_meth_set_create(method, tlso_bio_create)
+				 || !BIO_meth_set_destroy(method, tlso_bio_destroy)) {
+				ldap_pvt_thread_mutex_unlock( &tlso_mutex );
+				if (method) BIO_meth_free(method);
+				return -1;
+			}
+			tlso_bio_method = method;
 		}
+		ldap_pvt_thread_mutex_unlock( &tlso_mutex );
 	}
 	bio = BIO_new(tlso_bio_method);
 	if ( NULL == bio ) {
@@ -1050,13 +1073,8 @@ tlso_sb_remove( Sockbuf_IO_Desc *sbiod )
 
 	p = (struct tls_data *)sbiod->sbiod_pvt;
 	SSL_free( p->session );
+	p->session = NULL;
 	LBER_FREE( sbiod->sbiod_pvt );
-#if OPENSSL_VERSION_NUMBER >= 0x10100000L && !defined(LIBRESSL_VERSION_NUMBER)
-	if ( NULL != tlso_bio_method ) {
-		BIO_meth_free(tlso_bio_method);
-		tlso_bio_method = NULL;
-	}
-#endif
 	sbiod->sbiod_pvt = NULL;
 	return 0;
 }
@@ -1065,11 +1083,15 @@ static int
 tlso_sb_close( Sockbuf_IO_Desc *sbiod )
 {
 	struct tls_data		*p;
-
 	assert( sbiod != NULL );
-	assert( sbiod->sbiod_pvt != NULL );
 
+	assert( SOCKBUF_VALID( sbiod->sbiod_sb ) );
+	sbiod->sbiod_sb->sb_trans_needs_read = 0;
+	sbiod->sbiod_sb->sb_trans_needs_write = 0;
+
+	assert( sbiod->sbiod_pvt != NULL );
 	p = (struct tls_data *)sbiod->sbiod_pvt;
+	p->sbiod = NULL;
 	SSL_shutdown( p->session );
 	return 0;
 }
@@ -1083,6 +1105,11 @@ tlso_sb_ctrl( Sockbuf_IO_Desc *sbiod, int opt, void *arg )
 	assert( sbiod->sbiod_pvt != NULL );
 
 	p = (struct tls_data *)sbiod->sbiod_pvt;
+	assert(p->sbiod && p->session);
+	if (unlikely(! p->sbiod || !p->session)) {
+		sock_errset(ESHUTDOWN);
+		return -1;
+	}
 
 	if ( opt == LBER_SB_OPT_GET_SSL ) {
 		*((tlso_session **)arg) = p->session;
@@ -1108,6 +1135,11 @@ tlso_sb_read( Sockbuf_IO_Desc *sbiod, void *buf, ber_len_t len)
 	assert( SOCKBUF_VALID( sbiod->sbiod_sb ) );
 
 	p = (struct tls_data *)sbiod->sbiod_pvt;
+	assert(p->sbiod && p->session);
+	if (unlikely(! p->sbiod || !p->session)) {
+		sock_errset(ESHUTDOWN);
+		return -1;
+	}
 
 	ret = SSL_read( p->session, (char *)buf, len );
 	err = SSL_get_error( p->session, ret );
@@ -1131,6 +1163,11 @@ tlso_sb_write( Sockbuf_IO_Desc *sbiod, void *buf, ber_len_t len)
 	assert( SOCKBUF_VALID( sbiod->sbiod_sb ) );
 
 	p = (struct tls_data *)sbiod->sbiod_pvt;
+	assert(p->sbiod && p->session);
+	if (unlikely(! p->sbiod || !p->session)) {
+		sock_errset(ESHUTDOWN);
+		return -1;
+	}
 
 	ret = SSL_write( p->session, (char *)buf, len );
 	err = SSL_get_error( p->session, ret );
