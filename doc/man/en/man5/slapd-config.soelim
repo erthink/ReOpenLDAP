@@ -1838,6 +1838,7 @@ FALSE, meaning the contextCSN is stored in the context entry.
 .B [logfilter=<filter str>]
 .B [syncdata=default|accesslog|changelog]
 .B [lazycommit]
+.B [requirecheckpresent]
 .RS
 Specify the current database as a replica which is kept up-to-date with the
 master content by establishing the current
@@ -1873,10 +1874,25 @@ specification as its result set. The consumer
 will send search requests to the provider
 .B slapd
 according to the search specification. The search specification includes
-.B searchbase, scope, filter, attrs, attrsonly, sizelimit,
+.BR searchbase ", " scope ", " filter ", " attrs ", " attrsonly ", " sizelimit ", "
 and
 .B timelimit
-parameters as in the normal search specification. The
+parameters as in the normal search specification.
+The \fBscope\fP defaults to \fBsub\fP, the \fBfilter\fP defaults to
+\fB(objectclass=*)\fP, while there is no default \fBsearchbase\fP. The
+\fBattrs\fP list defaults to \fB"*,+"\fP to return all user and operational
+attributes, and \fBattrsonly\fP is unset by default.
+The \fBsizelimit\fP and \fBtimelimit\fP only
+accept "unlimited" and positive integers, and both default to "unlimited".
+The \fBsizelimit\fP and \fBtimelimit\fP parameters define
+a consumer requested limitation on the number of entries that can be returned
+by the LDAP Content Synchronization operation; as such, it is intended
+to implement partial replication based on the size of the replicated database
+and on the time required by the synchronization.
+Note, however, that any provider-side limits for the replication identity
+will be enforced by the provider regardless of the limits requested
+by the LDAP Content Synchronization operation, much like for any other
+search operation.
 .B exattrs
 option may also be used to specify attributes that should be omitted
 from incoming entries.
@@ -1905,7 +1921,7 @@ operation, a synchronization search remains persistent in the provider slapd.
 Further updates to the master replica will generate
 .B searchResultEntry
 to the consumer slapd as the search responses to the persistent
-synchronization search. If the initial search fails due to an error, the
+synchronization search.  If the initial search fails due to an error, the
 next synchronization search operation is periodically rescheduled at an
 interval time (specified by
 .B interval
@@ -1919,11 +1935,20 @@ For example, retry="60 10 300 3" lets the consumer retry every 60 seconds
 for the first 10 times and then retry every 300 seconds for the next 3
 times before stop retrying. The `+' in <# of retries> means indefinite
 number of retries until success.
+If no
+.B retry
+was specified, by default syncrepl retries every hour forever.
 
 The schema checking can be enforced at the LDAP Sync
 consumer site by turning on the
 .B schemachecking
-parameter. The default is off.
+parameter. The default is \fBoff\fP.
+Schema checking \fBon\fP means that replicated entries must have
+a structural objectClass, must obey to objectClass requirements
+in terms of required/allowed attributes, and that naming attributes
+and distinguished values must be present.
+As a consequence, schema checking should be \fBoff\fP when partial
+replication is used.
 
 The
 .B network\-timeout
@@ -1946,6 +1971,7 @@ and
 .B credentials
 and should only be used when adequate security services
 (e.g. TLS or IPSEC) are in place.
+.B REMEMBER: simple bind credentials must be in cleartext!
 A
 .B bindmethod
 of
@@ -1967,10 +1993,16 @@ keyword above) for a SASL bind can be set with the
 option. A non default SASL realm can be set with the
 .B realm
 option.
+The identity used for synchronization by the consumer should be allowed
+to receive an unlimited number of entries in response to a search request.
 The provider, other than allow authentication of the syncrepl identity,
 should grant that identity appropriate access privileges to the data
 that is being replicated (\fBaccess\fP directive), and appropriate time
-and size limits (\fBlimits\fP directive).
+and size limits.
+This can be accomplished by either allowing unlimited \fBsizelimit\fP
+and \fBtimelimit\fP, or by setting an appropriate \fBlimits\fP statement
+in the consumer's configuration (see \fBsizelimit\fP and \fBlimits\fP
+for details).
 
 The
 .B keepalive
@@ -2027,6 +2059,12 @@ The
 parameter tells the underlying database that it can store changes without
 performing a full flush after each change. This may improve performance
 for the consumer, while sacrificing safety or durability.
+
+The
+.B requirecheckpresent
+option enforce resync, in case a data provider
+.BR syncprov
+skips the present phase during a refresh stage.
 .RE
 .TP
 .B olcUpdateDN: <dn>
@@ -2044,7 +2082,7 @@ used at the master.
 Specify the referral to pass back when
 .BR slapd (8)
 is asked to modify a replicated local database.
-If multiple values are specified, each url is provided.
+If specified multiple times, each url is provided.
 
 .SH DATABASE-SPECIFIC OPTIONS
 Each database may allow specific configuration options; they are
