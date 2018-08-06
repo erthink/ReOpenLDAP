@@ -8,7 +8,7 @@ sudo apt install -y -q \
 		build-essential pkg-config groff-base autoconf automake \
 		uuid-dev libelf-dev krb5-multidev heimdal-multidev libcrack2-dev \
 		libsasl2-dev libperl-dev libtool libltdl-dev binutils-dev libssl-dev \
-		libgnutls-dev libwrap0-dev unixodbc-dev libslp-dev libdb-dev gdb \
+		libgnutls28-dev libwrap0-dev unixodbc-dev libdb-dev gdb \
 	|| exit 1
 
 if [ -x ./configure ]; then
@@ -16,7 +16,7 @@ if [ -x ./configure ]; then
 		--enable-hipagut=always --enable-debug --disable-syslog --enable-overlays \
 		--disable-maintainer-mode --enable-dynacl --enable-aci --enable-crypt --enable-lmpasswd \
 		--enable-spasswd --enable-slapi \
-		--enable-rlookups --enable-slp --enable-wrappers --enable-backends \
+		--enable-rlookups --enable-wrappers --enable-backends \
 		--disable-bdb --disable-hdb --disable-ndb --disable-modules \
 	|| exit 2
 else
@@ -25,7 +25,7 @@ else
 		--enable-hipagut=always --enable-debug --disable-syslog --enable-overlays \
 		--enable-maintainer-mode --enable-dynacl --enable-aci --enable-crypt --enable-lmpasswd \
 		--enable-spasswd --enable-slapi \
-		--enable-rlookups --enable-slp --enable-wrappers --enable-backends \
+		--enable-rlookups --enable-wrappers --enable-backends \
 		--disable-bdb --disable-hdb --disable-ndb --disable-modules \
 	|| exit 2
 fi
