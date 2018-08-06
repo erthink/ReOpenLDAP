@@ -61,7 +61,23 @@ Below is a main configure's options, to see full list please run `./configure --
 for instance both `--libexecdir=DIR` and `--sysconfdir=DIR` are provided.
 
 ```
+Fine tuning of the installation directories:
+    ...
+  --libexecdir=DIR        program executables [EPREFIX/libexec]
+  --sysconfdir=DIR        read-only single-machine data [PREFIX/etc]
+  --sharedstatedir=DIR    modifiable architecture-independent data [PREFIX/com]
+  --localstatedir=DIR     modifiable single-machine data [PREFIX/var]
+  --runstatedir=DIR       modifiable per-process data [LOCALSTATEDIR/run]
+  --libdir=DIR            object code libraries [EPREFIX/lib]
+  --includedir=DIR        C header files [PREFIX/include]
+  --oldincludedir=DIR     C header files for non-gcc [/usr/include]
+  --datarootdir=DIR       read-only arch.-independent data root [PREFIX/share]
+  --datadir=DIR           read-only architecture-independent data [DATAROOTDIR]
+  --infodir=DIR           info documentation [DATAROOTDIR/info]
+    ...
+
 Optional Features:
+    ...
   --enable-debug          enable debug logging no|yes|extra [yes]
   --enable-ci             enable Continuous Integration stuff no|yes [no]
   --enable-syslog         enable syslog support [auto]
@@ -75,6 +91,7 @@ Optional Features:
   --enable-local          enable AF_LOCAL (AF_UNIX) socket support [auto]
   --enable-deprecated     enable deprecated interfaces of libreldap no|yes [no]
   --enable-valgrind       Whether to enable Valgrind on the unit tests
+    ...
 
 SLAPD (Standalone LDAP Daemon) Options:
   --enable-slapd	  enable building slapd [yes]
@@ -92,23 +109,23 @@ SLAPD (Standalone LDAP Daemon) Options:
     --enable-wrappers	  enable tcp wrapper support [no]
 
 SLAPD Backend Options:
-    --enable-backends	  enable all available backends no|yes|mod
+    --enable-backends	  enable all stable/non-experimental backends no|yes|mod
     --enable-mdb	  enable MDBX database backend no|yes|mod [yes]
-    --enable-hdb	  enable Hierarchical Berkeley DB backend no|yes|mod [no]
-    --enable-bdb	  enable Berkeley DB backend no|yes|mod [no]
-    --enable-dnssrv	  enable dnssrv backend no|yes|mod [no]
+    --enable-hdb	  enable Hierarchical Berkeley DB backend (obsolete) no|yes|mod [no]
+    --enable-bdb	  enable Berkeley DB backend (obsolete) no|yes|mod [no]
+    --enable-dnssrv	  enable dnssrv backend (experimental) no|yes|mod [no]
     --enable-ldap	  enable ldap backend no|yes|mod [no]
     --enable-meta	  enable metadirectory backend no|yes|mod [no]
-    --enable-asyncmeta	  enable asynchronous metadirectory backend no|yes|mod [no]
+    --enable-asyncmeta	  enable asynchronous metadirectory backend (experimental) no|yes|mod [no]
     --enable-monitor	  enable monitor backend no|yes|mod [yes]
-    --enable-ndb	  enable MySQL NDB Cluster backend no|yes|mod [no]
+    --enable-ndb	  enable MySQL NDB Cluster backend (experimental) no|yes|mod [no]
     --enable-null	  enable null backend no|yes|mod [no]
     --enable-passwd	  enable passwd backend no|yes|mod [no]
     --enable-perl	  enable perl backend no|yes|mod [no]
-    --enable-relay  	  enable relay backend no|yes|mod [yes]
+    --enable-relay  	  enable relay backend (experimental) no|yes|mod [yes]
     --enable-shell	  enable shell backend no|yes|mod [no]
     --enable-sock	  enable sock backend no|yes|mod [no]
-    --enable-sql	  enable sql backend no|yes|mod [no]
+    --enable-sql	  enable SQL backend (experimental and buggy) no|yes|mod [no]
     --enable-wt		  enable WiredTiger backend no|yes|mod [no]
 
 SLAPD Overlay Options:
@@ -136,6 +153,7 @@ SLAPD Overlay Options:
     --enable-valsort      Value Sorting overlay no|yes|mod [no]
 
 Optional Packages:
+    ...
   --with-cyrus-sasl	  with Cyrus SASL support [auto]
   --with-gssapi		  with GSSAPI support [auto]
   --with-fetch		  with fetch(3) URL support [auto]
@@ -143,4 +161,34 @@ Optional Packages:
   --with-yielding-select  with implicitly yielding select [auto]
   --with-mp               with multiple precision statistics auto|longlong|long|bignum|gmp [auto]
   --with-odbc             with specific ODBC support iodbc|unixodbc|auto [auto]
+
+Some influential environment variables:
+  ...
+  EXTRA_CFLAGS
+              Extra build-time CFLAGS, e.g. -Wall -Werror. Alternatively, ones
+              can be specified or overridden by invocation 'make
+              EXTRA_CFLAGS="a b c"'
+  ...
+  KRB5_CFLAGS C compiler flags for KRB5, overriding pkg-config
+  KRB5_LIBS   linker flags for KRB5, overriding pkg-config
+  HEIMDAL_CFLAGS
+              C compiler flags for HEIMDAL, overriding pkg-config
+  HEIMDAL_LIBS
+              linker flags for HEIMDAL, overriding pkg-config
+  LIBSODIUM_CFLAGS
+              C compiler flags for LIBSODIUM, overriding pkg-config
+  LIBSODIUM_LIBS
+              linker flags for LIBSODIUM, overriding pkg-config
+  UUID_CFLAGS C compiler flags for UUID, overriding pkg-config
+  UUID_LIBS   linker flags for UUID, overriding pkg-config
+  OPENSSL_CFLAGS
+              C compiler flags for OPENSSL, overriding pkg-config
+  OPENSSL_LIBS
+              linker flags for OPENSSL, overriding pkg-config
+  GNUTLS_CFLAGS
+              C compiler flags for GNUTLS, overriding pkg-config
+  GNUTLS_LIBS linker flags for GNUTLS, overriding pkg-config
+  MOZNSS_CFLAGS
+              C compiler flags for MOZNSS, overriding pkg-config
+  MOZNSS_LIBS linker flags for MOZNSS, overriding pkg-config
 ```
