@@ -39,21 +39,21 @@ static SLAP_CTRL_PARSE_FN parseRelax;
 static SLAP_CTRL_PARSE_FN parseSearchOptions;
 #ifdef SLAP_CONTROL_X_SORTEDRESULTS
 static SLAP_CTRL_PARSE_FN parseSortedResults;
-#endif
+#endif /* SLAP_CONTROL_X_SORTEDRESULTS */
 static SLAP_CTRL_PARSE_FN parseSubentries;
 #ifdef SLAP_CONTROL_X_TREE_DELETE
 static SLAP_CTRL_PARSE_FN parseTreeDelete;
-#endif
+#endif /* SLAP_CONTROL_X_TREE_DELETE */
 static SLAP_CTRL_PARSE_FN parseValuesReturnFilter;
 #ifdef SLAP_CONTROL_X_SESSION_TRACKING
 static SLAP_CTRL_PARSE_FN parseSessionTracking;
-#endif
+#endif /* SLAP_CONTROL_X_SESSION_TRACKING */
 #ifdef SLAP_CONTROL_X_WHATFAILED
 static SLAP_CTRL_PARSE_FN parseWhatFailed;
-#endif
+#endif /* SLAP_CONTROL_X_WHATFAILED */
 #ifdef SLAP_CONTROL_X_LAZY_COMMIT
 static SLAP_CTRL_PARSE_FN parseLazyCommit;
-#endif
+#endif /* SLAP_CONTROL_X_LAZY_COMMIT */
 
 #undef sc_mask /* avoid conflict with Irix 6.5 <sys/signal.h> */
 
@@ -110,7 +110,7 @@ static const char *manageDSAit_extops[] = {LDAP_EXOP_REFRESH, NULL};
 #ifdef SLAP_CONTROL_X_SESSION_TRACKING
 static const char *session_tracking_extops[] = {
     LDAP_EXOP_MODIFY_PASSWD, LDAP_EXOP_WHO_AM_I, LDAP_EXOP_REFRESH, NULL};
-#endif
+#endif /* SLAP_CONTROL_X_SESSION_TRACKING */
 
 static struct slap_control control_defs[] = {
     {LDAP_CONTROL_ASSERT, (int)offsetof(struct slap_control_ids, sc_assert),
@@ -135,7 +135,7 @@ static struct slap_control control_defs[] = {
      (int)offsetof(struct slap_control_ids, sc_sortedResults),
      SLAP_CTRL_GLOBAL | SLAP_CTRL_SEARCH | SLAP_CTRL_HIDE, NULL, NULL,
      parseSortedResults, LDAP_SLIST_ENTRY_INITIALIZER(next)},
-#endif
+#endif /* SLAP_CONTROL_X_SORTEDRESULTS */
     {LDAP_CONTROL_X_DOMAIN_SCOPE,
      (int)offsetof(struct slap_control_ids, sc_domainScope),
      SLAP_CTRL_GLOBAL | SLAP_CTRL_SEARCH | SLAP_CTRL_HIDE, NULL, NULL,
@@ -153,7 +153,7 @@ static struct slap_control control_defs[] = {
      (int)offsetof(struct slap_control_ids, sc_treeDelete),
      SLAP_CTRL_DELETE | SLAP_CTRL_HIDE, NULL, NULL, parseTreeDelete,
      LDAP_SLIST_ENTRY_INITIALIZER(next)},
-#endif
+#endif /* SLAP_CONTROL_X_TREE_DELETE */
     {LDAP_CONTROL_X_SEARCH_OPTIONS,
      (int)offsetof(struct slap_control_ids, sc_searchOptions),
      SLAP_CTRL_GLOBAL | SLAP_CTRL_SEARCH | SLAP_CTRL_HIDE, NULL, NULL,
@@ -172,7 +172,7 @@ static struct slap_control control_defs[] = {
      (int)offsetof(struct slap_control_ids, sc_txnSpec),
      SLAP_CTRL_UPDATE | SLAP_CTRL_HIDE, NULL, NULL, txn_spec_ctrl,
      LDAP_SLIST_ENTRY_INITIALIZER(next)},
-#endif
+#endif /* LDAP_X_TXN */
     {LDAP_CONTROL_MANAGEDSAIT,
      (int)offsetof(struct slap_control_ids, sc_manageDSAit), SLAP_CTRL_ACCESS,
      manageDSAit_extops, NULL, parseManageDSAit,
@@ -187,19 +187,19 @@ static struct slap_control control_defs[] = {
      SLAP_CTRL_GLOBAL | SLAP_CTRL_ACCESS | SLAP_CTRL_BIND | SLAP_CTRL_HIDE,
      session_tracking_extops, NULL, parseSessionTracking,
      LDAP_SLIST_ENTRY_INITIALIZER(next)},
-#endif
+#endif /* SLAP_CONTROL_X_SESSION_TRACKING*/
 #ifdef SLAP_CONTROL_X_WHATFAILED
     {LDAP_CONTROL_X_WHATFAILED,
      (int)offsetof(struct slap_control_ids, sc_whatFailed),
      SLAP_CTRL_GLOBAL | SLAP_CTRL_ACCESS | SLAP_CTRL_HIDE, NULL, NULL,
      parseWhatFailed, LDAP_SLIST_ENTRY_INITIALIZER(next)},
-#endif
+#endif /* SLAP_CONTROL_X_WHATFAILED */
 #ifdef SLAP_CONTROL_X_LAZY_COMMIT
     {LDAP_CONTROL_X_LAZY_COMMIT,
      (int)offsetof(struct slap_control_ids, sc_lazyCommit),
      SLAP_CTRL_GLOBAL | SLAP_CTRL_ACCESS | SLAP_CTRL_HIDE, NULL, NULL,
      parseLazyCommit, LDAP_SLIST_ENTRY_INITIALIZER(next)},
-#endif
+#endif /* SLAP_CONTROL_X_LAZY_COMMIT */
 
     {NULL, 0, 0, NULL, 0, NULL, LDAP_SLIST_ENTRY_INITIALIZER(next)}};
 
@@ -548,7 +548,7 @@ int slap_global_control(Operation *op, const char *oid, int *cid) {
 	Debug( LDAP_DEBUG_TRACE,
 		"slap_global_control: unavailable control: %s\n",
 		oid );
-#endif
+#endif /* 0 */
 
   return LDAP_COMPARE_FALSE;
 }
@@ -714,7 +714,7 @@ int get_ctrls2(Operation *op, SlapReply *rs, int sendres, ber_tag_t ctag) {
    * at all.
    */
   char *failed_oid = NULL;
-#endif
+#endif /* SLAP_CONTROL_X_WHATFAILED */
 
   len = ber_pvt_ber_remaining(ber);
 
@@ -750,7 +750,7 @@ int get_ctrls2(Operation *op, SlapReply *rs, int sendres, ber_tag_t ctag) {
 		rs->sr_text = "no memory";
 		goto return_results;
 	}
-#endif
+#endif /* 0 */
 
   op->o_ctrls[nctrls] = NULL;
 
@@ -779,7 +779,7 @@ int get_ctrls2(Operation *op, SlapReply *rs, int sendres, ber_tag_t ctag) {
 			rs->sr_text = "no memory";
 			goto return_results;
 		}
-#endif
+#endif /* 0 */
     op->o_ctrls = tctrls;
 
     op->o_ctrls[nctrls++] = c;
@@ -850,7 +850,7 @@ int get_ctrls2(Operation *op, SlapReply *rs, int sendres, ber_tag_t ctag) {
     if (rs->sr_err != LDAP_SUCCESS) {
 #ifdef SLAP_CONTROL_X_WHATFAILED
       failed_oid = c->ldctl_oid;
-#endif
+#endif /* SLAP_CONTROL_X_WHATFAILED */
       goto return_results;
     }
   }
@@ -927,7 +927,7 @@ return_results:
           slap_ctrl_whatFailed_add(op, rs, oids);
         }
       }
-#endif
+#endif /* SLAP_CONTROL_X_WHATFAILED */
 
       send_ldap_result(op, rs);
     }
@@ -1274,7 +1274,7 @@ static int parseSortedResults(Operation *op, SlapReply *rs, LDAPControl *ctrl) {
 
   return rc;
 }
-#endif
+#endif /* SLAP_CONTROL_X_SORTEDRESULTS */
 
 static int parseAssert(Operation *op, SlapReply *rs, LDAPControl *ctrl) {
   BerElement *ber;
@@ -1362,7 +1362,7 @@ static int parseReadAttrs(Operation *op, SlapReply *rs, LDAPControl *ctrl,
     rs->sr_text = READMSG(post, "cannot perform in transaction");
     return LDAP_UNWILLING_TO_PERFORM;
   }
-#endif
+#endif /* LDAP_X_TXN */
 
   ber = ber_init(&ctrl->ldctl_value);
   if (ber == NULL) {
@@ -1567,7 +1567,7 @@ static int parseTreeDelete(Operation *op, SlapReply *rs, LDAPControl *ctrl) {
 
   return LDAP_SUCCESS;
 }
-#endif
+#endif /* SLAP_CONTROL_X_TREE_DELETE */
 
 static int parseSearchOptions(Operation *op, SlapReply *rs, LDAPControl *ctrl) {
   BerElement *ber;
@@ -1915,7 +1915,7 @@ int slap_ctrl_session_tracking_request_add(Operation *op, SlapReply *rs,
 
   return slap_ctrl_session_tracking_add(op, rs, &ip, &name, &id, ctrl);
 }
-#endif
+#endif /* SLAP_CONTROL_X_SESSION_TRACKING */
 
 #ifdef SLAP_CONTROL_X_WHATFAILED
 static int parseWhatFailed(Operation *op, SlapReply *rs, LDAPControl *ctrl) {
@@ -1988,7 +1988,7 @@ int slap_ctrl_whatFailed_add(Operation *op, SlapReply *rs, char **oids) {
 done:;
   return rc;
 }
-#endif
+#endif /* SLAP_CONTROL_X_WHATFAILED */
 
 #ifdef SLAP_CONTROL_X_LAZY_COMMIT
 static int parseLazyCommit(Operation *op, SlapReply *rs, LDAPControl *ctrl) {
@@ -2007,4 +2007,4 @@ static int parseLazyCommit(Operation *op, SlapReply *rs, LDAPControl *ctrl) {
 
   return LDAP_SUCCESS;
 }
-#endif
+#endif /* SLAP_CONTROL_X_LAZY_COMMIT */
