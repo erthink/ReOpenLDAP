@@ -262,24 +262,14 @@ main( int argc, char **argv )
 			}
 			txn = 0;
 		}
-	}
-#endif
-
-	if ( 0
-#ifdef LDAP_X_TXN
-		|| txn
-#endif
-		)
-	{
-#ifdef LDAP_X_TXN
 		if( txn ) {
 			c[i].ldctl_oid = LDAP_CONTROL_X_TXN_SPEC;
 			c[i].ldctl_value = *txn_id;
 			c[i].ldctl_iscritical = 1;
 			i++;
 		}
-#endif
 	}
+#endif
 
 	tool_server_controls( ld, c, i );
 
