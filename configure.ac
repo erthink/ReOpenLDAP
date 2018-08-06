@@ -465,40 +465,40 @@ slapd_backends="mdb bdb dnssrv hdb ldap meta monitor ndb null passwd perl \
 AC_ARG_ENABLE(xxslapbackends,[
 SLAPD Backend Options:])
 
-OL_ARG_ENABLE(backends,[    --enable-backends	  enable all available backends],
+OL_ARG_ENABLE(backends,[    --enable-backends	  enable all stable/non-experimental backends],
 	--, [no yes mod])dnl
 OL_ARG_ENABLE(mdb,[    --enable-mdb	  enable MDBX database backend],
 	yes, [no yes mod], ol_enable_backends)dnl
-OL_ARG_ENABLE(hdb,[    --enable-hdb	  enable Hierarchical Berkeley DB backend],
+OL_ARG_ENABLE(hdb,[    --enable-hdb	  enable Hierarchical Berkeley DB backend (obsolete)],
 	no, [no yes mod], ol_enable_backends)dnl
-OL_ARG_ENABLE(bdb,[    --enable-bdb	  enable Berkeley DB backend],
+OL_ARG_ENABLE(bdb,[    --enable-bdb	  enable Berkeley DB backend (obsolete)],
 	no, [no yes mod], ol_enable_backends)dnl
-OL_ARG_ENABLE(dnssrv,[    --enable-dnssrv	  enable dnssrv backend],
-	no, [no yes mod], ol_enable_backends)dnl
+OL_ARG_ENABLE(dnssrv,[    --enable-dnssrv	  enable dnssrv backend (experimental)],
+	no, [no yes mod], ol_enable_experimental)dnl
 OL_ARG_ENABLE(ldap,[    --enable-ldap	  enable ldap backend],
 	no, [no yes mod], ol_enable_backends)dnl
 OL_ARG_ENABLE(meta,[    --enable-meta	  enable metadirectory backend],
 	no, [no yes mod], ol_enable_backends)dnl
-OL_ARG_ENABLE(asyncmeta,[    --enable-asyncmeta	  enable asynchronous metadirectory backend],
-	no, [no yes mod], ol_enable_backends)dnl
+OL_ARG_ENABLE(asyncmeta,[    --enable-asyncmeta	  enable asynchronous metadirectory backend (experimental)],
+	no, [no yes mod], ol_enable_experimental)dnl
 OL_ARG_ENABLE(monitor,[    --enable-monitor	  enable monitor backend],
 	yes, [no yes mod], ol_enable_backends)dnl
-OL_ARG_ENABLE(ndb,[    --enable-ndb	  enable MySQL NDB Cluster backend],
-	no, [no yes mod], ol_enable_backends)dnl
+OL_ARG_ENABLE(ndb,[    --enable-ndb	  enable MySQL NDB Cluster backend (experimental)],
+	no, [no yes mod], ol_enable_experimental)dnl
 OL_ARG_ENABLE(null,[    --enable-null	  enable null backend],
 	no, [no yes mod], ol_enable_backends)dnl
 OL_ARG_ENABLE(passwd,[    --enable-passwd	  enable passwd backend],
 	no, [no yes mod], ol_enable_backends)dnl
 OL_ARG_ENABLE(perl,[    --enable-perl	  enable perl backend],
 	no, [no yes mod], ol_enable_backends)dnl
-OL_ARG_ENABLE(relay,[    --enable-relay  	  enable relay backend],
-	yes, [no yes mod], ol_enable_backends)dnl
+OL_ARG_ENABLE(relay,[    --enable-relay  	  enable relay backend (experimental)],
+	yes, [no yes mod], ol_enable_experimental)dnl
 OL_ARG_ENABLE(shell,[    --enable-shell	  enable shell backend],
 	no, [no yes mod], ol_enable_backends)dnl
 OL_ARG_ENABLE(sock,[    --enable-sock	  enable sock backend],
 	no, [no yes mod], ol_enable_backends)dnl
-OL_ARG_ENABLE(sql,[    --enable-sql	  enable sql backend],
-	no, [no yes mod], ol_enable_backends)dnl
+OL_ARG_ENABLE(sql,[    --enable-sql	  enable SQL backend (experimental and buggy)],
+	no, [no yes mod], ol_enable_experimental)dnl
 OL_ARG_ENABLE(wt,[    --enable-wt		  enable WiredTiger backend],
 	no, [no yes mod], ol_enable_backends)dnl
 

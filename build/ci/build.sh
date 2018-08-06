@@ -40,10 +40,10 @@ configure() {
 	${srcdir}/configure "$@" > configure.log
 }
 
-flag_autoconf=0
-if [ ! -x configure ]; then
+flag_forceautoreconf=0
+if [ ! -x ${srcdir}/configure ]; then
 	notice "info: NOT saw ./configure, will bootstrap"
-	flag_autoconf=1
+	flag_forceautoreconf=1
 fi
 
 flag_dist=0
@@ -136,7 +136,7 @@ for arg in "$@"; do
 	--dist)
 		flag_dist=1
 		flag_clean=1
-		flag_autoconf=1
+		flag_forceautoreconf=1
 		;;
 	--no-dist)
 		flag_dist=0
@@ -148,10 +148,10 @@ for arg in "$@"; do
 		flag_insrc=0
 		;;
 	--autoconf)
-		flag_autoconf=1
+		flag_forceautoreconf=1
 		;;
 	--no-autoconf)
-		flag_autoconf=0
+		flag_forceautoreconf=0
 		flag_dist=0
 		;;
 	--hide)
@@ -465,15 +465,15 @@ echo "TOOLCHAIN	= $CC $CXX $AR $NM $RANLIB"
 
 if [ $flag_clean -ne 0 ]; then
 	notice "info: cleaning"
-	git clean -x -f -d -e ./ps -e .ccache/ -e tests/testrun/ -e times.log >/dev/null || failure "cleanup"
+	git clean -x -f -d -e .ccache/ -e tests/testrun/ -e times.log >/dev/null || failure "cleanup"
 	git submodule foreach --recursive git clean -x -f -d >/dev/null || failure "cleanup-submodules"
 fi
 
 #======================================================================
 
-if [ $flag_autoconf -ne 0 ]; then
-	if [ -s ./bootstrap.sh ]; then
-		./bootstrap.sh
+if [ $flag_forceautoreconf -ne 0 -o ! -x ${srcdir}/configure ]; then
+	if [ -s ${srcdir}/bootstrap.sh ]; then
+		${srcdir}/bootstrap.sh
 	elif [ -n "$(which autoreconf)" ] && autoreconf --version | grep -q 'autoreconf (GNU Autoconf) 2\.69'; then
 		notice "info: use autoreconf"
 		autoreconf --force --install --include=build || failure "autoreconf"
@@ -492,7 +492,7 @@ fi
 
 if [ $flag_dist -ne 0 ]; then
 	notice "info: make dist"
-	./configure || failure "configure dist"
+	${srcdir}/configure || failure "configure dist"
 	make dist || failure "make dist"
 	dist=$(ls *.tar.* | sed 's/^\(.\+\)\.tar\..\+$/\1/g')
 	tar xaf *.tar.* || failure "untar dist"
@@ -512,7 +512,7 @@ fi
 
 if [ ! -s ${build}/Makefile ]; then
 	mkdir -p ${build} && \
-	( cd ${build} && configure \
+	( cd ${build} && ${srcdir}/configure \
 			$(if [ $flag_nodeps -ne 0 ]; then echo "--disable-dependency-tracking"; fi) \
 			--prefix=$(pwd)/@install_here \
 			$CONFIGURE_ARGS --enable-overlays=${MOD} $NDB_CONFIG \
