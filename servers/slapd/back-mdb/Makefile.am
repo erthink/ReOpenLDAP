@@ -71,7 +71,7 @@ back_mdb_la_SOURCES = add.c attr.c banner.c bind.c compare.c \
 	monitor.c nextid.c operational.c search.c tools.c \
 	back-mdb.h idl.h proto-mdb.h
 
-back_mdb_la_CFLAGS = -I$(srcdir)/.. -I../../../libraries/libmdbx $(AM_CFLAGS)
+back_mdb_la_CFLAGS = -I$(srcdir)/.. -I$(top_srcdir)/libraries/libmdbx $(AM_CFLAGS)
 back_mdb_la_LIBADD = libmdbx.la
 
 mdbx_chk_SOURCES = ../../../libraries/libmdbx/src/tools/mdbx_chk.c
