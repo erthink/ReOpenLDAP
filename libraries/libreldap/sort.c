@@ -28,16 +28,16 @@
 struct entrything {
 	char		**et_vals;
 	LDAPMessage	*et_msg;
-	int 		(*et_cmp_fn) LDAP_P((const char *a, const char *b));
+	int 		(*et_cmp_fn)(const char *a, const char *b);
 };
 
-static int	et_cmp LDAP_P(( const void *aa, const void *bb));
+static int	et_cmp( const void *aa, const void *bb);
 
 
 int
 ldap_sort_strcasecmp(
-	LDAP_CONST void	*a,
-	LDAP_CONST void	*b
+	const void	*a,
+	const void	*b
 )
 {
 	return( strcasecmp( *(char *const *)a, *(char *const *)b ) );
@@ -77,8 +77,8 @@ int
 ldap_sort_entries(
     LDAP	*ld,
     LDAPMessage	**chain,
-    LDAP_CONST char	*attr,		/* NULL => sort by DN */
-    int		(*cmp) (LDAP_CONST  char *, LDAP_CONST char *)
+    const char	*attr,		/* NULL => sort by DN */
+    int		(*cmp) (const  char *, const char *)
 )
 {
 	int			i, count = 0;
@@ -158,7 +158,7 @@ int
 ldap_sort_values(
     LDAP	*ld,
     char	**vals,
-    int		(*cmp) (LDAP_CONST void *, LDAP_CONST void *)
+    int		(*cmp) (const void *, const void *)
 )
 {
 	int	nel;

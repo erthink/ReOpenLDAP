@@ -26,32 +26,11 @@
 #	define LDAP_END_DECL	/* end declarations */
 #endif
 
-#if !defined(LDAP_NO_PROTOTYPES) && ( defined(LDAP_NEEDS_PROTOTYPES) || \
-	defined(__STDC__) || defined(__cplusplus) || defined(c_plusplus) )
-
-	/* ANSI C or C++ */
-#	define LDAP_P(protos)	protos
-#	define LDAP_CONCAT1(x,y)	x ## y
-#	define LDAP_CONCAT(x,y)	LDAP_CONCAT1(x,y)
-#	define LDAP_STRING(x)	#x /* stringify without expanding x */
-#	define LDAP_XSTRING(x)	LDAP_STRING(x) /* expand x, then stringify */
-
-#ifndef LDAP_CONST
-#	define LDAP_CONST	const
-#endif
-
-#else /* no prototypes */
-
-	/* traditional C */
-#	define LDAP_P(protos)	()
-#	define LDAP_CONCAT(x,y)	x/**/y
-#	define LDAP_STRING(x)	"x"
-
-#ifndef LDAP_CONST
-#	define LDAP_CONST	/* no const */
-#endif
-
-#endif /* no prototypes */
+/* ANSI C or C++ */
+#define LDAP_CONCAT1(x,y)	x ## y
+#define LDAP_CONCAT(x,y)	LDAP_CONCAT1(x,y)
+#define LDAP_STRING(x)	#x /* stringify without expanding x */
+#define LDAP_XSTRING(x)	LDAP_STRING(x) /* expand x, then stringify */
 
 #ifndef __has_attribute
 #   define __has_attribute(x) (0)

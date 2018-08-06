@@ -425,7 +425,7 @@ int
 ldap_set_option(
 	LDAP	*ld,
 	int		option,
-	LDAP_CONST void	*invalue)
+	const void	*invalue)
 {
 	struct ldapoptions *lo;
 	int *dbglvl = NULL;

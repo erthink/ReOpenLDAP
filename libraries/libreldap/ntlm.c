@@ -30,7 +30,7 @@
 int
 ldap_ntlm_bind(
 	LDAP		*ld,
-	LDAP_CONST char	*dn,
+	const char	*dn,
 	ber_tag_t	tag,
 	struct berval	*cred,
 	LDAPControl	**sctrls,

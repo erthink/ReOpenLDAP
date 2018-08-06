@@ -37,7 +37,7 @@ int
 ldap_turn(
 	LDAP *ld,
 	int mutual,
-	LDAP_CONST char* identifier,
+	const char* identifier,
 	LDAPControl **sctrls,
 	LDAPControl **cctrls,
 	int *msgidp )
@@ -68,7 +68,7 @@ int
 ldap_turn_s(
 	LDAP *ld,
 	int mutual,
-	LDAP_CONST char* identifier,
+	const char* identifier,
 	LDAPControl **sctrls,
 	LDAPControl **cctrls )
 {

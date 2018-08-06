@@ -120,7 +120,7 @@ LDAP_BEGIN_DECL
  * call this function with some set of masks.
  */
 LDAP_LUNICODE_F (int)
-ucisprop LDAP_P((uint32_t code, uint32_t mask1, uint32_t mask2));
+ucisprop(uint32_t code, uint32_t mask1, uint32_t mask2);
 
 #define ucisalpha(cc) ucisprop(cc, UC_LU|UC_LL|UC_LM|UC_LO|UC_LT, 0)
 #define ucisdigit(cc) ucisprop(cc, UC_ND, 0)
@@ -209,9 +209,9 @@ ucisprop LDAP_P((uint32_t code, uint32_t mask1, uint32_t mask2));
  *
  **************************************************************************/
 
-LDAP_LUNICODE_F (uint32_t) uctoupper LDAP_P((uint32_t code));
-LDAP_LUNICODE_F (uint32_t) uctolower LDAP_P((uint32_t code));
-LDAP_LUNICODE_F (uint32_t) uctotitle LDAP_P((uint32_t code));
+LDAP_LUNICODE_F (uint32_t) uctoupper(uint32_t code);
+LDAP_LUNICODE_F (uint32_t) uctolower(uint32_t code);
+LDAP_LUNICODE_F (uint32_t) uctotitle(uint32_t code);
 
 /**************************************************************************
  *
@@ -224,20 +224,20 @@ LDAP_LUNICODE_F (uint32_t) uctotitle LDAP_P((uint32_t code));
  * If it returns 0, there is no composition.  Any other value indicates a
  * composition was returned in comp.
  */
-LDAP_LUNICODE_F (int) uccomp LDAP_P((uint32_t node1, uint32_t node2,
-		      uint32_t *comp));
+LDAP_LUNICODE_F (int) uccomp (uint32_t node1, uint32_t node2,
+			  uint32_t *comp);
 
 /*
  * Does Hangul composition on the string str with length len, and returns
  * the length of the composed string.
  */
-LDAP_LUNICODE_F (int) uccomp_hangul LDAP_P((uint32_t *str, int len));
+LDAP_LUNICODE_F (int) uccomp_hangul(uint32_t *str, int len);
 
 /*
  * Does canonical composition on the string str with length len, and returns
  * the length of the composed string.
  */
-LDAP_LUNICODE_F (int) uccanoncomp LDAP_P((uint32_t *str, int len));
+LDAP_LUNICODE_F (int) uccanoncomp(uint32_t *str, int len);
 
 /**************************************************************************
  *
@@ -251,24 +251,24 @@ LDAP_LUNICODE_F (int) uccanoncomp LDAP_P((uint32_t *str, int len));
  * returned.
  */
 LDAP_LUNICODE_F (int)
-ucdecomp LDAP_P((uint32_t code, uint32_t *num,
-		 uint32_t **decomp));
+ucdecomp (uint32_t code, uint32_t *num,
+		 uint32_t **decomp);
 
 /*
  * Equivalent to ucdecomp() except that it includes compatibility
  * decompositions.
  */
 LDAP_LUNICODE_F (int)
-uckdecomp LDAP_P((uint32_t code, uint32_t *num,
-		 uint32_t **decomp));
+uckdecomp (uint32_t code, uint32_t *num,
+		 uint32_t **decomp);
 
 /*
  * If the code is a Hangul syllable, this routine decomposes it into the array
  * passed.  The array size should be at least 3.
  */
 LDAP_LUNICODE_F (int)
-ucdecomp_hangul LDAP_P((uint32_t code, uint32_t *num,
-			uint32_t decomp[]));
+ucdecomp_hangul (uint32_t code, uint32_t *num,
+			uint32_t decomp[]);
 
 /*
  * This routine does canonical decomposition of the string in of length
@@ -277,16 +277,16 @@ ucdecomp_hangul LDAP_P((uint32_t code, uint32_t *num,
  * of the decomposed string if okay, and -1 on error.
  */
 LDAP_LUNICODE_F (int)
-uccanondecomp LDAP_P((const uint32_t *in, int inlen,
-		     uint32_t **out, int *outlen, void *ctx));
+uccanondecomp (const uint32_t *in, int inlen,
+			 uint32_t **out, int *outlen, void *ctx);
 
 /*
  * Equivalent to uccanondecomp() except that it includes compatibility
  * decompositions.
  */
 LDAP_LUNICODE_F (int)
-uccompatdecomp LDAP_P((const uint32_t *in, int inlen,
-		     uint32_t **out, int *outlen, void *ctx));
+uccompatdecomp (const uint32_t *in, int inlen,
+			 uint32_t **out, int *outlen, void *ctx);
 
 /**************************************************************************
  *
@@ -298,7 +298,7 @@ uccompatdecomp LDAP_P((const uint32_t *in, int inlen,
  * This will return the combining class for a character to be used with the
  * Canonical Ordering algorithm.
  */
-LDAP_LUNICODE_F (uint32_t) uccombining_class LDAP_P((uint32_t code));
+LDAP_LUNICODE_F (uint32_t) uccombining_class(uint32_t code);
 
 /**************************************************************************
  *
@@ -312,16 +312,16 @@ struct ucnumber {
 };
 
 LDAP_LUNICODE_F (int)
-ucnumber_lookup LDAP_P((uint32_t code, struct ucnumber *num));
+ucnumber_lookup(uint32_t code, struct ucnumber *num);
 
 LDAP_LUNICODE_F (int)
-ucdigit_lookup LDAP_P((uint32_t code, int *digit));
+ucdigit_lookup(uint32_t code, int *digit);
 
 /*
  * For compatibility with John Cowan's "uctype" package.
  */
-LDAP_LUNICODE_F (struct ucnumber) ucgetnumber LDAP_P((uint32_t code));
-LDAP_LUNICODE_F (int) ucgetdigit LDAP_P((uint32_t code));
+LDAP_LUNICODE_F (struct ucnumber) ucgetnumber(uint32_t code);
+LDAP_LUNICODE_F (int) ucgetdigit(uint32_t code);
 
 /**************************************************************************
  *
@@ -347,9 +347,9 @@ LDAP_LUNICODE_F (int) ucgetdigit LDAP_P((uint32_t code));
 /*
  * Functions to load, unload, and reload specific data files.
  */
-LDAP_LUNICODE_F (int) ucdata_load LDAP_P((char *paths, int mask));
-LDAP_LUNICODE_F (void) ucdata_unload LDAP_P((int mask));
-LDAP_LUNICODE_F (int) ucdata_reload LDAP_P((char *paths, int mask));
+LDAP_LUNICODE_F (int) ucdata_load(char *paths, int mask);
+LDAP_LUNICODE_F (void) ucdata_unload(int mask);
+LDAP_LUNICODE_F (int) ucdata_reload(char *paths, int mask);
 
 #ifdef UCDATA_DEPRECATED
 /*

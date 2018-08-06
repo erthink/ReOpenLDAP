@@ -48,7 +48,7 @@
 static void wait4child( int sig );
 #endif
 
-typedef int (MainFunc) LDAP_P(( int argc, char *argv[] ));
+typedef int (MainFunc)( int argc, char *argv[] );
 extern MainFunc slapadd, slapcat, slapdn, slapindex, slappasswd,
 	slaptest, slapauth, slapacl, slapschema, slapmodify;
 

@@ -25,34 +25,34 @@
 
 #include "ldap-int.h"
 
-static int put_simple_vrFilter LDAP_P((
+static int put_simple_vrFilter (
 	BerElement *ber,
-	char *str ));
+	char *str );
 
-static int put_vrFilter_list LDAP_P((
+static int put_vrFilter_list (
 	BerElement *ber,
-	char *str ));
+	char *str );
 
-static char *put_complex_filter LDAP_P((
+static char *put_complex_filter (
 	BerElement *ber,
 	char *str,
 	ber_tag_t tag,
-	int not ));
+	int not );
 
-static int put_simple_filter LDAP_P((
+static int put_simple_filter (
 	BerElement *ber,
-	char *str ));
+	char *str );
 
-static int put_substring_filter LDAP_P((
+static int put_substring_filter (
 	BerElement *ber,
 	char *type,
 	char *str,
-	char *nextstar ));
+	char *nextstar );
 
-static int put_filter_list LDAP_P((
+static int put_filter_list (
 	BerElement *ber,
 	char *str,
-	ber_tag_t tag ));
+	ber_tag_t tag );
 
 static int ldap_is_oid ( const char *str )
 {

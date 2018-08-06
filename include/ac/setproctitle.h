@@ -22,7 +22,7 @@
 #	include <libutil.h>
 #else
 	/* use lutil version */
-	LDAP_LUTIL_F (void) (setproctitle) LDAP_P((const char *fmt, ...)) \
+	LDAP_LUTIL_F (void) (setproctitle) (const char *fmt, ...) \
 		__attribute__((format(printf, 1, 2)));
 	LDAP_LUTIL_V (int) Argc;
 	LDAP_LUTIL_V (char) **Argv;

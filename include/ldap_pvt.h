@@ -31,15 +31,15 @@ LDAP_BEGIN_DECL
 #define LDAP_PROTO_EXT 4 /* user-defined socket/sockbuf */
 
 LDAP_F ( int )
-ldap_pvt_url_scheme2proto LDAP_P((
-	const char * ));
+ldap_pvt_url_scheme2proto (
+	const char * );
 LDAP_F ( int )
-ldap_pvt_url_scheme2tls LDAP_P((
-	const char * ));
+ldap_pvt_url_scheme2tls (
+	const char * );
 
 LDAP_F ( int )
-ldap_pvt_url_scheme_port LDAP_P((
-	const char *, int ));
+ldap_pvt_url_scheme_port (
+	const char *, int );
 
 struct ldap_url_desc; /* avoid pulling in <ldap.h> */
 
@@ -53,147 +53,147 @@ struct ldap_url_desc; /* avoid pulling in <ldap.h> */
 						 LDAP_PVT_URL_PARSE_DEF_PORT)
 
 LDAP_F( int )
-ldap_url_parse_ext LDAP_P((
-	LDAP_CONST char *url,
+ldap_url_parse_ext (
+	const char *url,
 	struct ldap_url_desc **ludpp,
-	unsigned flags ));
+	unsigned flags );
 
-LDAP_F (int) ldap_url_parselist LDAP_P((	/* deprecated, use ldap_url_parselist_ext() */
+LDAP_F (int) ldap_url_parselist (	/* deprecated, use ldap_url_parselist_ext() */
 	struct ldap_url_desc **ludlist,
-	const char *url ));
+	const char *url );
 
-LDAP_F (int) ldap_url_parselist_ext LDAP_P((
+LDAP_F (int) ldap_url_parselist_ext (
 	struct ldap_url_desc **ludlist,
 	const char *url,
 	const char *sep,
-	unsigned flags ));
+	unsigned flags );
 
-LDAP_F (char *) ldap_url_list2urls LDAP_P((
-	struct ldap_url_desc *ludlist ));
+LDAP_F (char *) ldap_url_list2urls (
+	struct ldap_url_desc *ludlist );
 
-LDAP_F (void) ldap_free_urllist LDAP_P((
-	struct ldap_url_desc *ludlist ));
+LDAP_F (void) ldap_free_urllist (
+	struct ldap_url_desc *ludlist );
 
-LDAP_F (int) ldap_pvt_scope2bv LDAP_P ((
-	int scope, struct berval *bv ));
+LDAP_F (int) ldap_pvt_scope2bv (
+	int scope, struct berval *bv );
 
-LDAP_F (LDAP_CONST char *) ldap_pvt_scope2str LDAP_P ((
-	int scope ));
+LDAP_F (const char *) ldap_pvt_scope2str (
+	int scope );
 
-LDAP_F (int) ldap_pvt_bv2scope LDAP_P ((
-	struct berval *bv ));
+LDAP_F (int) ldap_pvt_bv2scope (
+	struct berval *bv );
 
-LDAP_F (int) ldap_pvt_str2scope LDAP_P ((
-	LDAP_CONST char * ));
+LDAP_F (int) ldap_pvt_str2scope (
+	const char * );
 
 LDAP_F( char * )
-ldap_pvt_ctime LDAP_P((
+ldap_pvt_ctime (
 	slap_time_t time,
-	char *buf ));
+	char *buf );
 
 LDAP_F( struct tm * )
-ldap_pvt_gmtime LDAP_P((
+ldap_pvt_gmtime (
 	slap_time_t time,
-	struct tm *result ));
+	struct tm *result );
 
 LDAP_F( struct tm * )
-ldap_pvt_localtime LDAP_P((
+ldap_pvt_localtime (
 	slap_time_t time,
-	struct tm *result ));
+	struct tm *result );
 
 /* Get current time as a structured time */
 struct lutil_tm;
 LDAP_F( void )
-ldap_pvt_gettime LDAP_P(( struct lutil_tm * ));
+ldap_pvt_gettime ( struct lutil_tm * );
 
 /* use this macro to allocate buffer for ldap_pvt_csnstr */
 #define LDAP_PVT_CSNSTR_BUFSIZE	64
 LDAP_F( size_t )
 ldap_pvt_csnstr( char *buf, size_t len, unsigned int replica, unsigned int mod );
 
-LDAP_F( char *) ldap_pvt_get_fqdn LDAP_P(( char * ));
+LDAP_F( char *) ldap_pvt_get_fqdn ( char * );
 
 struct hostent;	/* avoid pulling in <netdb.h> */
 
 LDAP_F( int )
-ldap_pvt_gethostbyname_a LDAP_P((
+ldap_pvt_gethostbyname_a (
 	const char *name,
 	struct hostent *resbuf,
 	char **buf,
 	struct hostent **result,
-	int *herrno_ptr ));
+	int *herrno_ptr );
 
 LDAP_F( int )
-ldap_pvt_gethostbyaddr_a LDAP_P((
+ldap_pvt_gethostbyaddr_a (
 	const char *addr,
 	int len,
 	int type,
 	struct hostent *resbuf,
 	char **buf,
 	struct hostent **result,
-	int *herrno_ptr ));
+	int *herrno_ptr );
 
 struct sockaddr;
 
 LDAP_F( int )
-ldap_pvt_get_hname LDAP_P((
+ldap_pvt_get_hname (
 	const struct sockaddr * sa,
 	int salen,
 	char *name,
 	int namelen,
-	char **herr ));
+	char **herr );
 
 
 /* charray.c */
 
 LDAP_F( int )
-ldap_charray_add LDAP_P((
+ldap_charray_add (
     char	***a,
-    const char *s ));
+    const char *s );
 
 LDAP_F( int )
-ldap_charray_merge LDAP_P((
+ldap_charray_merge (
     char	***a,
-    char	**s ));
+    char	**s );
 
 LDAP_F( void )
-ldap_charray_free LDAP_P(( char **a ));
+ldap_charray_free ( char **a );
 
 LDAP_F( int )
-ldap_charray_inlist LDAP_P((
+ldap_charray_inlist (
     char	**a,
-    const char *s ));
+    const char *s );
 
 LDAP_F( char ** )
-ldap_charray_dup LDAP_P(( char **a ));
+ldap_charray_dup ( char **a );
 
 LDAP_F( char ** )
-ldap_str2charray LDAP_P((
+ldap_str2charray (
 	const char *str,
-	const char *brkstr ));
+	const char *brkstr );
 
 LDAP_F( char * )
-ldap_charray2str LDAP_P((
-	char **array, const char* sep ));
+ldap_charray2str (
+	char **array, const char* sep );
 
 /* getdn.c */
 
 #ifdef LDAP_AVA_NULL	/* in ldap.h */
-LDAP_F( void ) ldap_rdnfree_x LDAP_P(( LDAPRDN rdn, void *ctx ));
-LDAP_F( void ) ldap_dnfree_x LDAP_P(( LDAPDN dn, void *ctx ));
+LDAP_F( void ) ldap_rdnfree_x ( LDAPRDN rdn, void *ctx );
+LDAP_F( void ) ldap_dnfree_x ( LDAPDN dn, void *ctx );
 
-LDAP_F( int ) ldap_bv2dn_x LDAP_P((
-	struct berval *bv, LDAPDN *dn, unsigned flags, void *ctx ));
-LDAP_F( int ) ldap_dn2bv_x LDAP_P((
-	LDAPDN dn, struct berval *bv, unsigned flags, void *ctx ));
-LDAP_F( int ) ldap_bv2rdn_x LDAP_P((
-	struct berval *, LDAPRDN *, char **, unsigned flags, void *ctx ));
-LDAP_F( int ) ldap_rdn2bv_x LDAP_P((
-	LDAPRDN rdn, struct berval *bv, unsigned flags, void *ctx ));
+LDAP_F( int ) ldap_bv2dn_x (
+	struct berval *bv, LDAPDN *dn, unsigned flags, void *ctx );
+LDAP_F( int ) ldap_dn2bv_x (
+	LDAPDN dn, struct berval *bv, unsigned flags, void *ctx );
+LDAP_F( int ) ldap_bv2rdn_x (
+	struct berval *, LDAPRDN *, char **, unsigned flags, void *ctx );
+LDAP_F( int ) ldap_rdn2bv_x (
+	LDAPRDN rdn, struct berval *bv, unsigned flags, void *ctx );
 #endif /* LDAP_AVA_NULL */
 
 /* url.c */
-LDAP_F (void) ldap_pvt_hex_unescape LDAP_P(( char *s ));
+LDAP_F (void) ldap_pvt_hex_unescape ( char *s );
 
 /*
  * these macros assume 'x' is an ASCII x
@@ -217,32 +217,32 @@ LDAP_F (void) ldap_pvt_hex_unescape LDAP_P(( char *s ));
 /* controls.c */
 struct ldapcontrol;
 LDAP_F (int)
-ldap_pvt_put_control LDAP_P((
+ldap_pvt_put_control (
 	const struct ldapcontrol *c,
-	BerElement *ber ));
-LDAP_F (int) ldap_pvt_get_controls LDAP_P((
+	BerElement *ber );
+LDAP_F (int) ldap_pvt_get_controls (
 	BerElement *be,
-	struct ldapcontrol ***ctrlsp));
+	struct ldapcontrol ***ctrlsp);
 
 #ifdef HAVE_CYRUS_SASL
 /* cyrus.c */
 struct sasl_security_properties; /* avoid pulling in <sasl.h> */
-LDAP_F (int) ldap_pvt_sasl_secprops LDAP_P((
+LDAP_F (int) ldap_pvt_sasl_secprops (
 	const char *in,
-	struct sasl_security_properties *secprops ));
-LDAP_F (void) ldap_pvt_sasl_secprops_unparse LDAP_P((
+	struct sasl_security_properties *secprops );
+LDAP_F (void) ldap_pvt_sasl_secprops_unparse (
 	struct sasl_security_properties *secprops,
-	struct berval *out ));
+	struct berval *out );
 
-LDAP_F (void *) ldap_pvt_sasl_mutex_new LDAP_P((void));
-LDAP_F (int) ldap_pvt_sasl_mutex_lock LDAP_P((void *mutex));
-LDAP_F (int) ldap_pvt_sasl_mutex_unlock LDAP_P((void *mutex));
-LDAP_F (void) ldap_pvt_sasl_mutex_dispose LDAP_P((void *mutex));
+LDAP_F (void *) ldap_pvt_sasl_mutex_new (void);
+LDAP_F (int) ldap_pvt_sasl_mutex_lock (void *mutex);
+LDAP_F (int) ldap_pvt_sasl_mutex_unlock (void *mutex);
+LDAP_F (void) ldap_pvt_sasl_mutex_dispose (void *mutex);
 #endif /* HAVE_CYRUS_SASL */
 
 struct sockbuf; /* avoid pulling in <lber.h> */
-LDAP_F (int) ldap_pvt_sasl_install LDAP_P(( struct sockbuf *, void * ));
-LDAP_F (void) ldap_pvt_sasl_remove LDAP_P(( struct sockbuf * ));
+LDAP_F (int) ldap_pvt_sasl_install ( struct sockbuf *, void * );
+LDAP_F (void) ldap_pvt_sasl_remove ( struct sockbuf * );
 
 /*
  * SASL encryption support for LBER Sockbufs
@@ -295,61 +295,61 @@ struct ldapmsg;
 struct ldifrecord;
 
 /* abandon */
-LDAP_F ( int ) ldap_pvt_discard LDAP_P((
-	struct ldap *ld, ber_int_t msgid ));
+LDAP_F ( int ) ldap_pvt_discard (
+	struct ldap *ld, ber_int_t msgid );
 
 /* init.c */
 LDAP_F( int )
-ldap_pvt_conf_option LDAP_P((
-	char *cmd, char *opt, int userconf ));
+ldap_pvt_conf_option (
+	char *cmd, char *opt, int userconf );
 
 /* ldifutil.c */
 LDAP_F( int )
-ldap_parse_ldif_record_x LDAP_P((
+ldap_parse_ldif_record_x (
 	struct berval *rbuf,
 	unsigned long linenum,
 	struct ldifrecord *lr,
 	const char *errstr,
 	unsigned int flags,
-	void *ctx ));
+	void *ctx );
 
 /* messages.c */
 LDAP_F( BerElement * )
-ldap_get_message_ber LDAP_P((
-	struct ldapmsg * ));
+ldap_get_message_ber (
+	struct ldapmsg * );
 
 /* open */
-LDAP_F (int) ldap_open_internal_connection LDAP_P((
-	struct ldap  **ldp, ber_socket_t *fdp ));
+LDAP_F (int) ldap_open_internal_connection (
+	struct ldap  **ldp, ber_socket_t *fdp );
 
 /* sasl.c */
-LDAP_F (int) ldap_pvt_sasl_generic_install LDAP_P(( Sockbuf *sb,
-	struct sb_sasl_generic_install *install_arg ));
-LDAP_F (void) ldap_pvt_sasl_generic_remove LDAP_P(( Sockbuf *sb ));
+LDAP_F (int) ldap_pvt_sasl_generic_install ( Sockbuf *sb,
+	struct sb_sasl_generic_install *install_arg );
+LDAP_F (void) ldap_pvt_sasl_generic_remove ( Sockbuf *sb );
 
 /* search.c */
-LDAP_F( int ) ldap_pvt_put_filter LDAP_P((
+LDAP_F( int ) ldap_pvt_put_filter (
 	BerElement *ber,
-	const char *str ));
+	const char *str );
 
 LDAP_F( char * )
-ldap_pvt_find_wildcard LDAP_P((	const char *s ));
+ldap_pvt_find_wildcard (	const char *s );
 
 LDAP_F( ber_slen_t )
-ldap_pvt_filter_value_unescape LDAP_P(( char *filter ));
+ldap_pvt_filter_value_unescape ( char *filter );
 
 LDAP_F( ber_len_t )
-ldap_bv2escaped_filter_value_len LDAP_P(( struct berval *in ));
+ldap_bv2escaped_filter_value_len ( struct berval *in );
 
 LDAP_F( int )
-ldap_bv2escaped_filter_value_x LDAP_P(( struct berval *in, struct berval *out,
-	int inplace, void *ctx ));
+ldap_bv2escaped_filter_value_x ( struct berval *in, struct berval *out,
+	int inplace, void *ctx );
 
-LDAP_F (int) ldap_pvt_search LDAP_P((
+LDAP_F (int) ldap_pvt_search (
 	struct ldap *ld,
-	LDAP_CONST char *base,
+	const char *base,
 	int scope,
-	LDAP_CONST char *filter,
+	const char *filter,
 	char **attrs,
 	int attrsonly,
 	struct ldapcontrol **sctrls,
@@ -357,13 +357,13 @@ LDAP_F (int) ldap_pvt_search LDAP_P((
 	struct timeval *timeout,
 	int sizelimit,
 	int deref,
-	int *msgidp ));
+	int *msgidp );
 
-LDAP_F(int) ldap_pvt_search_s LDAP_P((
+LDAP_F(int) ldap_pvt_search_s (
 	struct ldap *ld,
-	LDAP_CONST char *base,
+	const char *base,
 	int scope,
-	LDAP_CONST char *filter,
+	const char *filter,
 	char **attrs,
 	int attrsonly,
 	struct ldapcontrol **sctrls,
@@ -371,54 +371,54 @@ LDAP_F(int) ldap_pvt_search_s LDAP_P((
 	struct timeval *timeout,
 	int sizelimit,
 	int deref,
-	struct ldapmsg **res ));
+	struct ldapmsg **res );
 
 /* string.c */
 LDAP_F( char * )
-ldap_pvt_str2upper LDAP_P(( char *str ));
+ldap_pvt_str2upper ( char *str );
 
 LDAP_F( char * )
-ldap_pvt_str2lower LDAP_P(( char *str ));
+ldap_pvt_str2lower ( char *str );
 
 LDAP_F( struct berval * )
-ldap_pvt_str2upperbv LDAP_P(( char *str, struct berval *bv ));
+ldap_pvt_str2upperbv ( char *str, struct berval *bv );
 
 LDAP_F( struct berval * )
-ldap_pvt_str2lowerbv LDAP_P(( char *str, struct berval *bv ));
+ldap_pvt_str2lowerbv ( char *str, struct berval *bv );
 
 LDAP_F(char*)
 ldap_pvt_strtok(char *str, const char *delim, char **pos);
 
 /* tls.c */
-LDAP_F (int) ldap_pvt_tls_config LDAP_P(( struct ldap *ld,
-	int option, const char *arg ));
-LDAP_F (int) ldap_pvt_tls_get_option LDAP_P(( struct ldap *ld,
-	int option, void *arg ));
-LDAP_F (int) ldap_pvt_tls_set_option LDAP_P(( struct ldap *ld,
-	int option, void *arg ));
+LDAP_F (int) ldap_pvt_tls_config ( struct ldap *ld,
+	int option, const char *arg );
+LDAP_F (int) ldap_pvt_tls_get_option ( struct ldap *ld,
+	int option, void *arg );
+LDAP_F (int) ldap_pvt_tls_set_option ( struct ldap *ld,
+	int option, void *arg );
 
-LDAP_F (void) ldap_pvt_tls_destroy LDAP_P(( void ));
-LDAP_F (int) ldap_pvt_tls_init LDAP_P(( void ));
-LDAP_F (int) ldap_pvt_tls_init_def_ctx LDAP_P(( int is_server ));
-LDAP_F (int) ldap_pvt_tls_accept LDAP_P(( Sockbuf *sb, void *ctx_arg ));
-LDAP_F (int) ldap_pvt_tls_inplace LDAP_P(( Sockbuf *sb ));
-LDAP_F (void *) ldap_pvt_tls_sb_ctx LDAP_P(( Sockbuf *sb ));
-LDAP_F (void) ldap_pvt_tls_ctx_free LDAP_P(( void * ));
+LDAP_F (void) ldap_pvt_tls_destroy ( void );
+LDAP_F (int) ldap_pvt_tls_init ( void );
+LDAP_F (int) ldap_pvt_tls_init_def_ctx ( int is_server );
+LDAP_F (int) ldap_pvt_tls_accept ( Sockbuf *sb, void *ctx_arg );
+LDAP_F (int) ldap_pvt_tls_inplace ( Sockbuf *sb );
+LDAP_F (void *) ldap_pvt_tls_sb_ctx ( Sockbuf *sb );
+LDAP_F (void) ldap_pvt_tls_ctx_free ( void * );
 
-typedef int LDAPDN_rewrite_dummy LDAP_P (( void *dn, unsigned flags ));
+typedef int LDAPDN_rewrite_dummy ( void *dn, unsigned flags );
 
-typedef int (LDAP_TLS_CONNECT_CB) LDAP_P (( struct ldap *ld, void *ssl,
-	void *ctx, void *arg ));
+typedef int (LDAP_TLS_CONNECT_CB) ( struct ldap *ld, void *ssl,
+	void *ctx, void *arg );
 
-LDAP_F (int) ldap_pvt_tls_get_my_dn LDAP_P(( void *ctx, struct berval *dn,
-	LDAPDN_rewrite_dummy *func, unsigned flags ));
-LDAP_F (int) ldap_pvt_tls_get_peer_dn LDAP_P(( void *ctx, struct berval *dn,
-	LDAPDN_rewrite_dummy *func, unsigned flags ));
-LDAP_F (int) ldap_pvt_tls_get_strength LDAP_P(( void *ctx ));
-LDAP_F (int) ldap_pvt_tls_get_unique LDAP_P(( void *ctx, struct berval *buf, int is_server ));
-LDAP_F (const char *) ldap_pvt_tls_get_version LDAP_P(( void *ctx ));
-LDAP_F (const char *) ldap_pvt_tls_get_cipher LDAP_P(( void *ctx ));
-LDAP_F (int) ldap_pvt_tls_get_peercert LDAP_P(( void *s, struct berval *der ));
+LDAP_F (int) ldap_pvt_tls_get_my_dn ( void *ctx, struct berval *dn,
+	LDAPDN_rewrite_dummy *func, unsigned flags );
+LDAP_F (int) ldap_pvt_tls_get_peer_dn ( void *ctx, struct berval *dn,
+	LDAPDN_rewrite_dummy *func, unsigned flags );
+LDAP_F (int) ldap_pvt_tls_get_strength ( void *ctx );
+LDAP_F (int) ldap_pvt_tls_get_unique ( void *ctx, struct berval *buf, int is_server );
+LDAP_F (const char *) ldap_pvt_tls_get_version ( void *ctx );
+LDAP_F (const char *) ldap_pvt_tls_get_cipher ( void *ctx );
+LDAP_F (int) ldap_pvt_tls_get_peercert ( void *s, struct berval *der );
 LDAP_F (int) ldap_pvt_tls_check_hostname( struct ldap *ld, void *s,
 	const char *name_in );
 

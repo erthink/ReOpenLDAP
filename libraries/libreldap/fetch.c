@@ -34,7 +34,7 @@
 
 FILE *
 ldif_open_url(
-	LDAP_CONST char *urlstr )
+	const char *urlstr )
 {
 	FILE *url;
 
@@ -80,7 +80,7 @@ ldif_open_url(
 
 int
 ldif_fetch_url(
-    LDAP_CONST char	*urlstr,
+    const char	*urlstr,
     char	**valuep,
     ber_len_t *vlenp )
 {

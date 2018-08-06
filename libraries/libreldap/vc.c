@@ -197,8 +197,8 @@ done:
 int
 ldap_verify_credentials(LDAP *ld,
 	struct berval	*cookie,
-	LDAP_CONST char *dn,
-	LDAP_CONST char *mechanism,
+	const char *dn,
+	const char *mechanism,
 	struct berval	*cred,
     LDAPControl		**vcctrls,
 	LDAPControl		**sctrls,
@@ -292,8 +292,8 @@ int
 ldap_verify_credentials_s(
 	LDAP *ld,
 	struct berval	*cookie,
-	LDAP_CONST char *dn,
-	LDAP_CONST char *mechanism,
+	const char *dn,
+	const char *mechanism,
 	struct berval	*cred,
     LDAPControl		**vcictrls,
 	LDAPControl		**sctrls,
@@ -328,8 +328,8 @@ ldap_verify_credentials_s(
 int
 ldap_verify_credentials_interactive (
 	LDAP *ld,
-	LDAP_CONST char *dn, /* usually NULL */
-	LDAP_CONST char *mech,
+	const char *dn, /* usually NULL */
+	const char *mech,
 	LDAPControl **vcControls,
 	LDAPControl **serverControls,
 	LDAPControl **clientControls,

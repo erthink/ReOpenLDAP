@@ -153,7 +153,7 @@ ldap_get_dn_ber( LDAP *ld, LDAPMessage *entry, BerElement **berout,
  * RFC 1823 ldap_explode_dn
  */
 char **
-ldap_explode_dn( LDAP_CONST char *dn, int notypes )
+ldap_explode_dn( const char *dn, int notypes )
 {
 	LDAPDN	tmpDN;
 	char	**values = NULL;
@@ -193,7 +193,7 @@ ldap_explode_dn( LDAP_CONST char *dn, int notypes )
 }
 
 char **
-ldap_explode_rdn( LDAP_CONST char *rdn, int notypes )
+ldap_explode_rdn( const char *rdn, int notypes )
 {
 	LDAPRDN		tmpRDN;
 	char		**values = NULL;
@@ -293,7 +293,7 @@ error_return:;
  * 	LDAP_DN_FORMAT_AD_CANONICAL	(?)
  */
 int
-ldap_dn_normalize( LDAP_CONST char *dnin,
+ldap_dn_normalize( const char *dnin,
 	unsigned fin, char **dnout, unsigned fout )
 {
 	int	rc;
@@ -612,7 +612,7 @@ ldap_dnfree_x( LDAPDN dn, void *ctx )
 #define	TMP_RDN_SLOTS	32
 
 int
-ldap_str2dn( LDAP_CONST char *str, LDAPDN *dn, unsigned flags )
+ldap_str2dn( const char *str, LDAPDN *dn, unsigned flags )
 {
 	struct berval	bv;
 
@@ -849,7 +849,7 @@ return_result:;
  * corresponds to the rdn separator or to '\0' in case the string is over.
  */
 int
-ldap_str2rdn( LDAP_CONST char *str, LDAPRDN *rdn,
+ldap_str2rdn( const char *str, LDAPRDN *rdn,
 	char **n_in, unsigned flags )
 {
 	struct berval	bv;

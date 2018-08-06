@@ -58,21 +58,21 @@ static int	ldapadd;
 static char *rejfile = NULL;
 static LDAP	*ld = NULL;
 
-static int process_ldif_rec LDAP_P(( char *rbuf, unsigned long lineno ));
-static int domodify LDAP_P((
+static int process_ldif_rec ( char *rbuf, unsigned long lineno );
+static int domodify (
 	const struct berval *dn,
 	LDAPMod **pmods,
 	LDAPControl **pctrls,
-	int newentry ));
-static int dodelete LDAP_P((
+	int newentry );
+static int dodelete (
 	const struct berval *dn,
-	LDAPControl **pctrls ));
-static int dorename LDAP_P((
+	LDAPControl **pctrls );
+static int dorename (
 	const struct berval *dn,
 	const struct berval *newrdn,
 	const struct berval *newsup,
 	int deleteoldrdn,
-	LDAPControl **pctrls ));
+	LDAPControl **pctrls );
 static int process_response(
 	LDAP *ld,
 	int msgid,

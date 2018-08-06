@@ -41,10 +41,10 @@
 #include "ldap-int.h"
 
 /* local functions */
-static const char* skip_url_prefix LDAP_P((
+static const char* skip_url_prefix (
 	const char *url,
 	int *enclosedp,
-	const char **scheme ));
+	const char **scheme );
 
 int ldap_pvt_url_scheme2proto( const char *scheme )
 {
@@ -115,7 +115,7 @@ ldap_pvt_url_scheme2tls( const char *scheme )
 }
 
 int
-ldap_is_ldap_url( LDAP_CONST char *url )
+ldap_is_ldap_url( const char *url )
 {
 	int	enclosed;
 	const char * scheme;
@@ -132,7 +132,7 @@ ldap_is_ldap_url( LDAP_CONST char *url )
 }
 
 int
-ldap_is_ldaps_url( LDAP_CONST char *url )
+ldap_is_ldaps_url( const char *url )
 {
 	int	enclosed;
 	const char * scheme;
@@ -149,7 +149,7 @@ ldap_is_ldaps_url( LDAP_CONST char *url )
 }
 
 int
-ldap_is_ldapi_url( LDAP_CONST char *url )
+ldap_is_ldapi_url( const char *url )
 {
 	int	enclosed;
 	const char * scheme;
@@ -167,7 +167,7 @@ ldap_is_ldapi_url( LDAP_CONST char *url )
 
 #ifdef LDAP_CONNECTIONLESS
 int
-ldap_is_ldapc_url( LDAP_CONST char *url )
+ldap_is_ldapc_url( const char *url )
 {
 	int	enclosed;
 	const char * scheme;
@@ -784,7 +784,7 @@ ldap_url_desc2str( LDAPURLDesc *u )
 }
 
 int
-ldap_url_parse_ext( LDAP_CONST char *url_in, LDAPURLDesc **ludpp, unsigned flags )
+ldap_url_parse_ext( const char *url_in, LDAPURLDesc **ludpp, unsigned flags )
 {
 /*
  *  Pick apart the pieces of an LDAP URL.
@@ -1161,7 +1161,7 @@ ldap_url_parse_ext( LDAP_CONST char *url_in, LDAPURLDesc **ludpp, unsigned flags
 }
 
 int
-ldap_url_parse( LDAP_CONST char *url_in, LDAPURLDesc **ludpp )
+ldap_url_parse( const char *url_in, LDAPURLDesc **ludpp )
 {
 	return ldap_url_parse_ext( url_in, ludpp, LDAP_PVT_URL_PARSE_HISTORIC );
 }

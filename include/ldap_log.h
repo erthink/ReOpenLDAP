@@ -144,17 +144,17 @@ LDAP_BEGIN_DECL
 	( ( ldap_debug_mask | slap_syslog_mask ) & (level) )
 
 /* debugging stuff */
-LDAP_LUTIL_F(int) ldap_debug_file LDAP_P(( FILE *file ));
+LDAP_LUTIL_F(int) ldap_debug_file( FILE *file );
 
-LDAP_LUTIL_F(void) ldap_debug_log LDAP_P((
+LDAP_LUTIL_F(void) ldap_debug_log (
 	int debug, int level,
-	const char* fmt, ... )) __attribute__((format(printf, 3, 4)));
+	const char* fmt, ... ) __attribute__((format(printf, 3, 4)));
 
-LDAP_LUTIL_F(void) ldap_debug_print LDAP_P((
-	const char* fmt, ... )) __attribute__((format(printf, 1, 2)));
+LDAP_LUTIL_F(void) ldap_debug_print (
+	const char* fmt, ... ) __attribute__((format(printf, 1, 2)));
 
-LDAP_LUTIL_F(void) ldap_debug_va LDAP_P((
-	const char* fmt, va_list args ));
+LDAP_LUTIL_F(void) ldap_debug_va (
+	const char* fmt, va_list args );
 
 LDAP_LUTIL_F(void) ldap_debug_lock(void);
 LDAP_LUTIL_F(int) ldap_debug_trylock(void);

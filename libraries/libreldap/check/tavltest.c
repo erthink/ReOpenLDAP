@@ -28,9 +28,9 @@
 #define AVL_INTERNAL
 #include "avl.h"
 
-static void ravl_print LDAP_P(( TAvlnode *root, int depth, int thread ));
-static void myprint LDAP_P(( TAvlnode *root ));
-static int avl_strcmp LDAP_P(( const void *s, const void *t ));
+static void ravl_print( TAvlnode *root, int depth, int thread );
+static void myprint( TAvlnode *root );
+static int avl_strcmp( const void *s, const void *t );
 
 int
 main( int argc, char **argv )

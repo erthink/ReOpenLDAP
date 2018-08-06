@@ -90,7 +90,7 @@ ReOpenLDAP LDAP (libreldap, \-lreldap)
 .LP
 .BI "int ldap_set_rebind_proc (LDAP *" ld ", LDAP_REBIND_PROC *" ldap_proc ", void *" params ");"
 .LP
-.BI "int (LDAP_REBIND_PROC)(LDAP *" ld ", LDAP_CONST char *" url ", ber_tag_t " request ", ber_int_t " msgid ", void *" params ");"
+.BI "int (LDAP_REBIND_PROC)(LDAP *" ld ", const char *" url ", ber_tag_t " request ", ber_int_t " msgid ", void *" params ");"
 
 .SH DESCRIPTION
 .LP

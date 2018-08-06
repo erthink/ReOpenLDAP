@@ -117,22 +117,22 @@ typedef struct _ucstring_t {
  * cursor motion should be provided.
  */
 LDAP_LUNICODE_F (ucstring_t *)
-ucstring_create LDAP_P((unsigned long *source,
+ucstring_create (unsigned long *source,
 		        unsigned long start,
 		        unsigned long end,
 		        int default_direction,
-		        int cursor_motion));
+				int cursor_motion);
 /*
  * This releases the string.
  */
-LDAP_LUNICODE_F (void) ucstring_free LDAP_P((ucstring_t *string));
+LDAP_LUNICODE_F (void) ucstring_free(ucstring_t *string);
 
 /*
  * This changes the cursor motion flag for the string.
  */
 LDAP_LUNICODE_F (int)
-ucstring_set_cursor_motion LDAP_P((ucstring_t *string,
-				   int cursor_motion));
+ucstring_set_cursor_motion (ucstring_t *string,
+				   int cursor_motion);
 
 /*
  * This function will move the cursor to the right depending on the
@@ -142,7 +142,7 @@ ucstring_set_cursor_motion LDAP_P((ucstring_t *string,
  * 1 is returned.
  */
 LDAP_LUNICODE_F (int)
-ucstring_cursor_right LDAP_P((ucstring_t *string, int count));
+ucstring_cursor_right(ucstring_t *string, int count);
 
 /*
  * This function will move the cursor to the left depending on the
@@ -152,15 +152,15 @@ ucstring_cursor_right LDAP_P((ucstring_t *string, int count));
  * 1 is returned.
  */
 LDAP_LUNICODE_F (int)
-ucstring_cursor_left LDAP_P((ucstring_t *string, int count));
+ucstring_cursor_left(ucstring_t *string, int count);
 
 /*
  * This routine retrieves the direction of the run containing the cursor
  * and the actual position in the original text string.
  */
 LDAP_LUNICODE_F (void)
-ucstring_cursor_info LDAP_P((ucstring_t *string, int *direction,
-			     unsigned long *position));
+ucstring_cursor_info (ucstring_t *string, int *direction,
+				 unsigned long *position);
 
 LDAP_END_DECL
 

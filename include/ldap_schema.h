@@ -166,193 +166,193 @@ typedef struct ldap_structurerule {
 #define	LDAP_SCHEMA_SKIP			0x80U /* Don't malloc any result      */
 
 
-LDAP_F( LDAP_CONST char * )
-ldap_syntax2name LDAP_P((
-	LDAPSyntax * syn ));
+LDAP_F( const char * )
+ldap_syntax2name (
+	LDAPSyntax * syn );
 
-LDAP_F( LDAP_CONST char * )
-ldap_matchingrule2name LDAP_P((
-	LDAPMatchingRule * mr ));
+LDAP_F( const char * )
+ldap_matchingrule2name (
+	LDAPMatchingRule * mr );
 
-LDAP_F( LDAP_CONST char * )
-ldap_matchingruleuse2name LDAP_P((
-	LDAPMatchingRuleUse * mru ));
+LDAP_F( const char * )
+ldap_matchingruleuse2name (
+	LDAPMatchingRuleUse * mru );
 
-LDAP_F( LDAP_CONST char * )
-ldap_attributetype2name LDAP_P((
-	LDAPAttributeType * at ));
+LDAP_F( const char * )
+ldap_attributetype2name (
+	LDAPAttributeType * at );
 
-LDAP_F( LDAP_CONST char * )
-ldap_objectclass2name LDAP_P((
-	LDAPObjectClass * oc ));
+LDAP_F( const char * )
+ldap_objectclass2name (
+	LDAPObjectClass * oc );
 
-LDAP_F( LDAP_CONST char * )
-ldap_contentrule2name LDAP_P((
-	LDAPContentRule * cr ));
+LDAP_F( const char * )
+ldap_contentrule2name (
+	LDAPContentRule * cr );
 
-LDAP_F( LDAP_CONST char * )
-ldap_nameform2name LDAP_P((
-	LDAPNameForm * nf ));
+LDAP_F( const char * )
+ldap_nameform2name (
+	LDAPNameForm * nf );
 
-LDAP_F( LDAP_CONST char * )
-ldap_structurerule2name LDAP_P((
-	LDAPStructureRule * sr ));
-
-LDAP_F( void )
-ldap_syntax_free LDAP_P((
-	LDAPSyntax * syn ));
+LDAP_F( const char * )
+ldap_structurerule2name (
+	LDAPStructureRule * sr );
 
 LDAP_F( void )
-ldap_matchingrule_free LDAP_P((
-	LDAPMatchingRule * mr ));
+ldap_syntax_free (
+	LDAPSyntax * syn );
 
 LDAP_F( void )
-ldap_matchingruleuse_free LDAP_P((
-	LDAPMatchingRuleUse * mr ));
+ldap_matchingrule_free (
+	LDAPMatchingRule * mr );
 
 LDAP_F( void )
-ldap_attributetype_free LDAP_P((
-	LDAPAttributeType * at ));
+ldap_matchingruleuse_free (
+	LDAPMatchingRuleUse * mr );
 
 LDAP_F( void )
-ldap_objectclass_free LDAP_P((
-	LDAPObjectClass * oc ));
+ldap_attributetype_free (
+	LDAPAttributeType * at );
 
 LDAP_F( void )
-ldap_contentrule_free LDAP_P((
-	LDAPContentRule * cr ));
+ldap_objectclass_free (
+	LDAPObjectClass * oc );
 
 LDAP_F( void )
-ldap_nameform_free LDAP_P((
-	LDAPNameForm * nf ));
+ldap_contentrule_free (
+	LDAPContentRule * cr );
 
 LDAP_F( void )
-ldap_structurerule_free LDAP_P((
-	LDAPStructureRule * sr ));
+ldap_nameform_free (
+	LDAPNameForm * nf );
+
+LDAP_F( void )
+ldap_structurerule_free (
+	LDAPStructureRule * sr );
 
 LDAP_F( LDAPStructureRule * )
-ldap_str2structurerule LDAP_P((
-	LDAP_CONST char * s,
+ldap_str2structurerule (
+	const char * s,
 	int * code,
-	LDAP_CONST char ** errp,
-	LDAP_CONST unsigned flags ));
+	const char ** errp,
+	const unsigned flags );
 
 LDAP_F( LDAPNameForm * )
-ldap_str2nameform LDAP_P((
-	LDAP_CONST char * s,
+ldap_str2nameform (
+	const char * s,
 	int * code,
-	LDAP_CONST char ** errp,
-	LDAP_CONST unsigned flags ));
+	const char ** errp,
+	const unsigned flags );
 
 LDAP_F( LDAPContentRule * )
-ldap_str2contentrule LDAP_P((
-	LDAP_CONST char * s,
+ldap_str2contentrule (
+	const char * s,
 	int * code,
-	LDAP_CONST char ** errp,
-	LDAP_CONST unsigned flags ));
+	const char ** errp,
+	const unsigned flags );
 
 LDAP_F( LDAPObjectClass * )
-ldap_str2objectclass LDAP_P((
-	LDAP_CONST char * s,
+ldap_str2objectclass (
+	const char * s,
 	int * code,
-	LDAP_CONST char ** errp,
-	LDAP_CONST unsigned flags ));
+	const char ** errp,
+	const unsigned flags );
 
 LDAP_F( LDAPAttributeType * )
-ldap_str2attributetype LDAP_P((
-	LDAP_CONST char * s,
+ldap_str2attributetype (
+	const char * s,
 	int * code,
-	LDAP_CONST char ** errp,
-	LDAP_CONST unsigned flags ));
+	const char ** errp,
+	const unsigned flags );
 
 LDAP_F( LDAPSyntax * )
-ldap_str2syntax LDAP_P((
-	LDAP_CONST char * s,
+ldap_str2syntax (
+	const char * s,
 	int * code,
-	LDAP_CONST char ** errp,
-	LDAP_CONST unsigned flags ));
+	const char ** errp,
+	const unsigned flags );
 
 LDAP_F( LDAPMatchingRule * )
-ldap_str2matchingrule LDAP_P((
-	LDAP_CONST char * s,
+ldap_str2matchingrule (
+	const char * s,
 	int * code,
-	LDAP_CONST char ** errp,
-	LDAP_CONST unsigned flags ));
+	const char ** errp,
+	const unsigned flags );
 
 LDAP_F( LDAPMatchingRuleUse * )
-ldap_str2matchingruleuse LDAP_P((
-	LDAP_CONST char * s,
+ldap_str2matchingruleuse (
+	const char * s,
 	int * code,
-	LDAP_CONST char ** errp,
-	LDAP_CONST unsigned flags ));
+	const char ** errp,
+	const unsigned flags );
 
 LDAP_F( char * )
-ldap_structurerule2str LDAP_P((
-	LDAPStructureRule * sr ));
+ldap_structurerule2str (
+	LDAPStructureRule * sr );
 
 LDAP_F( struct berval * )
-ldap_structurerule2bv LDAP_P((
-	LDAPStructureRule * sr, struct berval *bv ));
+ldap_structurerule2bv (
+	LDAPStructureRule * sr, struct berval *bv );
 
 LDAP_F( char * )
-ldap_nameform2str LDAP_P((
-	LDAPNameForm * nf ));
+ldap_nameform2str (
+	LDAPNameForm * nf );
 
 LDAP_F( struct berval * )
-ldap_nameform2bv LDAP_P((
-	LDAPNameForm * nf, struct berval *bv ));
+ldap_nameform2bv (
+	LDAPNameForm * nf, struct berval *bv );
 
 LDAP_F( char * )
-ldap_contentrule2str LDAP_P((
-	LDAPContentRule * cr ));
+ldap_contentrule2str (
+	LDAPContentRule * cr );
 
 LDAP_F( struct berval * )
-ldap_contentrule2bv LDAP_P((
-	LDAPContentRule * cr, struct berval *bv ));
+ldap_contentrule2bv (
+	LDAPContentRule * cr, struct berval *bv );
 
 LDAP_F( char * )
-ldap_objectclass2str LDAP_P((
-	LDAPObjectClass * oc ));
+ldap_objectclass2str (
+	LDAPObjectClass * oc );
 
 LDAP_F( struct berval * )
-ldap_objectclass2bv LDAP_P((
-	LDAPObjectClass * oc, struct berval *bv ));
+ldap_objectclass2bv (
+	LDAPObjectClass * oc, struct berval *bv );
 
 LDAP_F( char * )
-ldap_attributetype2str LDAP_P((
-	LDAPAttributeType * at ));
+ldap_attributetype2str (
+	LDAPAttributeType * at );
 
 LDAP_F( struct berval * )
-ldap_attributetype2bv LDAP_P((
-	LDAPAttributeType * at, struct berval *bv ));
+ldap_attributetype2bv (
+	LDAPAttributeType * at, struct berval *bv );
 
 LDAP_F( char * )
-ldap_syntax2str LDAP_P((
-	LDAPSyntax * syn ));
+ldap_syntax2str (
+	LDAPSyntax * syn );
 
 LDAP_F( struct berval * )
-ldap_syntax2bv LDAP_P((
-	LDAPSyntax * syn, struct berval *bv ));
+ldap_syntax2bv (
+	LDAPSyntax * syn, struct berval *bv );
 
 LDAP_F( char * )
-ldap_matchingrule2str LDAP_P((
-	LDAPMatchingRule * mr ));
+ldap_matchingrule2str (
+	LDAPMatchingRule * mr );
 
 LDAP_F( struct berval * )
-ldap_matchingrule2bv LDAP_P((
-	LDAPMatchingRule * mr, struct berval *bv ));
+ldap_matchingrule2bv (
+	LDAPMatchingRule * mr, struct berval *bv );
 
 LDAP_F( char * )
-ldap_matchingruleuse2str LDAP_P((
-	LDAPMatchingRuleUse * mru ));
+ldap_matchingruleuse2str (
+	LDAPMatchingRuleUse * mru );
 
 LDAP_F( struct berval * )
-ldap_matchingruleuse2bv LDAP_P((
-	LDAPMatchingRuleUse * mru, struct berval *bv ));
+ldap_matchingruleuse2bv (
+	LDAPMatchingRuleUse * mru, struct berval *bv );
 
 LDAP_F( char * )
-ldap_scherr2str LDAP_P((
-	int code )) __attribute__((const));
+ldap_scherr2str (
+	int code ) __attribute__((const));
 
 LDAP_END_DECL
 

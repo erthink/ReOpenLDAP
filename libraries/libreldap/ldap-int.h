@@ -490,56 +490,56 @@ ldap_int_bisect_delete( ber_int_t **vp, ber_len_t *np, int id, int idx );
  * in add.c
  */
 
-LDAP_F (BerElement *) ldap_build_add_req LDAP_P((
+LDAP_F (BerElement *) ldap_build_add_req (
 	LDAP *ld,
 	const char *dn,
 	LDAPMod **attrs,
 	LDAPControl **sctrls,
 	LDAPControl **cctrls,
-	ber_int_t *msgidp ));
+	ber_int_t *msgidp );
 
 /*
  * in lbase64.c
  */
 
-LDAP_F (int) ldap_int_decode_b64_inplace LDAP_P((
-	struct berval *value ));
+LDAP_F (int) ldap_int_decode_b64_inplace (
+	struct berval *value );
 
 /*
  * in compare.c
  */
 
-LDAP_F (BerElement *) ldap_build_compare_req LDAP_P((
+LDAP_F (BerElement *) ldap_build_compare_req (
 	LDAP *ld,
 	const char *dn,
 	const char *attr,
 	struct berval *bvalue,
 	LDAPControl **sctrls,
 	LDAPControl **cctrls,
-	ber_int_t *msgidp ));
+	ber_int_t *msgidp );
 
 /*
  * in delete.c
  */
 
-LDAP_F (BerElement *) ldap_build_delete_req LDAP_P((
+LDAP_F (BerElement *) ldap_build_delete_req (
 	LDAP *ld,
 	const char *dn,
 	LDAPControl **sctrls,
 	LDAPControl **cctrls,
-	ber_int_t *msgidp ));
+	ber_int_t *msgidp );
 
 /*
  * in extended.c
  */
 
-LDAP_F (BerElement *) ldap_build_extended_req LDAP_P((
+LDAP_F (BerElement *) ldap_build_extended_req (
 	LDAP *ld,
 	const char *reqoid,
 	struct berval *reqdata,
 	LDAPControl **sctrls,
 	LDAPControl **cctrls,
-	ber_int_t *msgidp ));
+	ber_int_t *msgidp );
 
 /*
  * in init.c
@@ -548,9 +548,9 @@ LDAP_F (BerElement *) ldap_build_extended_req LDAP_P((
 LDAP_V ( struct ldapoptions ) ldap_int_global_options;
 #define LDAP_INT_GLOBAL_OPT() (&ldap_int_global_options)
 
-LDAP_F ( void ) ldap_int_initialize LDAP_P((struct ldapoptions *, int *));
-LDAP_F ( void ) ldap_int_initialize_global_options LDAP_P((
-	struct ldapoptions *, int *));
+LDAP_F ( void ) ldap_int_initialize(struct ldapoptions *, int *);
+LDAP_F ( void ) ldap_int_initialize_global_options (
+	struct ldapoptions *, int *);
 
 /* memory.c */
 	/* simple macros to realloc for now */
@@ -579,19 +579,19 @@ LDAP_F (void) ldap_int_error_init( void );
  * in modify.c
  */
 
-LDAP_F (BerElement *) ldap_build_modify_req LDAP_P((
+LDAP_F (BerElement *) ldap_build_modify_req (
 	LDAP *ld,
 	const char *dn,
 	LDAPMod **mods,
 	LDAPControl **sctrls,
 	LDAPControl **cctrls,
-	ber_int_t *msgidp ));
+	ber_int_t *msgidp );
 
 /*
  * in modrdn.c
  */
 
-LDAP_F (BerElement *) ldap_build_moddn_req LDAP_P((
+LDAP_F (BerElement *) ldap_build_moddn_req (
 	LDAP *ld,
 	const char *dn,
 	const char *newrdn,
@@ -599,38 +599,38 @@ LDAP_F (BerElement *) ldap_build_moddn_req LDAP_P((
 	int deleteoldrdn,
 	LDAPControl **sctrls,
 	LDAPControl **cctrls,
-	ber_int_t *msgidp ));
+	ber_int_t *msgidp );
 
 /*
  * in unit-int.c
  */
-LDAP_F (void) ldap_int_utils_init LDAP_P(( void ));
+LDAP_F (void) ldap_int_utils_init( void );
 
 
 /*
  * in cache.c
  */
-LDAP_F (void) ldap_add_request_to_cache LDAP_P(( LDAP *ld, ber_tag_t msgtype,
-        BerElement *request ));
-LDAP_F (void) ldap_add_result_to_cache LDAP_P(( LDAP *ld, LDAPMessage *result ));
-LDAP_F (int) ldap_check_cache LDAP_P(( LDAP *ld, ber_tag_t msgtype, BerElement *request ));
+LDAP_F (void) ldap_add_request_to_cache ( LDAP *ld, ber_tag_t msgtype,
+		BerElement *request );
+LDAP_F (void) ldap_add_result_to_cache( LDAP *ld, LDAPMessage *result );
+LDAP_F (int) ldap_check_cache( LDAP *ld, ber_tag_t msgtype, BerElement *request );
 
 /*
  * in controls.c
  */
-LDAP_F (int) ldap_int_put_controls LDAP_P((
+LDAP_F (int) ldap_int_put_controls (
 	LDAP *ld,
 	LDAPControl *const *ctrls,
-	BerElement *ber ));
+	BerElement *ber );
 
-LDAP_F (int) ldap_int_client_controls LDAP_P((
+LDAP_F (int) ldap_int_client_controls (
 	LDAP *ld,
-	LDAPControl **ctrlp ));
+	LDAPControl **ctrlp );
 
 /*
  * in dsparse.c
  */
-LDAP_F (int) ldap_int_next_line_tokens LDAP_P(( char **bufp, ber_len_t *blenp, char ***toksp ));
+LDAP_F (int) ldap_int_next_line_tokens( char **bufp, ber_len_t *blenp, char ***toksp );
 
 
 /*
@@ -720,7 +720,7 @@ LDAP_F (const char *) ldap_int_msgtype2str( ber_tag_t tag );
 /*
  * in search.c
  */
-LDAP_F (BerElement *) ldap_build_search_req LDAP_P((
+LDAP_F (BerElement *) ldap_build_search_req (
 	LDAP *ld,
 	const char *base,
 	ber_int_t scope,
@@ -732,64 +732,64 @@ LDAP_F (BerElement *) ldap_build_search_req LDAP_P((
 	ber_int_t timelimit,
 	ber_int_t sizelimit,
 	ber_int_t deref,
-	ber_int_t *msgidp));
+	ber_int_t *msgidp);
 
 
 /*
  * in unbind.c
  */
-LDAP_F (int) ldap_ld_free LDAP_P((
+LDAP_F (int) ldap_ld_free (
 	LDAP *ld,
 	int close,
 	LDAPControl **sctrls,
-	LDAPControl **cctrls ));
+	LDAPControl **cctrls );
 
-LDAP_F (int) ldap_send_unbind LDAP_P((
+LDAP_F (int) ldap_send_unbind (
 	LDAP *ld,
 	Sockbuf *sb,
 	LDAPControl **sctrls,
-	LDAPControl **cctrls ));
+	LDAPControl **cctrls );
 
 /*
  * in url.c
  */
-LDAP_F (LDAPURLDesc *) ldap_url_dup LDAP_P((
-	LDAPURLDesc *ludp ));
+LDAP_F (LDAPURLDesc *) ldap_url_dup (
+	LDAPURLDesc *ludp );
 
-LDAP_F (LDAPURLDesc *) ldap_url_duplist LDAP_P((
-	LDAPURLDesc *ludlist ));
+LDAP_F (LDAPURLDesc *) ldap_url_duplist (
+	LDAPURLDesc *ludlist );
 
-LDAP_F (int) ldap_url_parsehosts LDAP_P((
+LDAP_F (int) ldap_url_parsehosts (
 	LDAPURLDesc **ludlist,
 	const char *hosts,
-	int port ));
+	int port );
 
-LDAP_F (char *) ldap_url_list2hosts LDAP_P((
-	LDAPURLDesc *ludlist ));
+LDAP_F (char *) ldap_url_list2hosts (
+	LDAPURLDesc *ludlist );
 
 /*
  * in cyrus.c
  */
 
-LDAP_F (int) ldap_int_sasl_init LDAP_P(( void ));
+LDAP_F (int) ldap_int_sasl_init( void );
 
-LDAP_F (int) ldap_int_sasl_open LDAP_P((
+LDAP_F (int) ldap_int_sasl_open (
 	LDAP *ld, LDAPConn *conn,
-	const char* host ));
-LDAP_F (int) ldap_int_sasl_close LDAP_P(( LDAP *ld, LDAPConn *conn ));
+	const char* host );
+LDAP_F (int) ldap_int_sasl_close( LDAP *ld, LDAPConn *conn );
 
-LDAP_F (int) ldap_int_sasl_external LDAP_P((
+LDAP_F (int) ldap_int_sasl_external (
 	LDAP *ld, LDAPConn *conn,
-	const char* authid, ber_len_t ssf ));
+	const char* authid, ber_len_t ssf );
 
-LDAP_F (int) ldap_int_sasl_get_option LDAP_P(( LDAP *ld,
-	int option, void *arg ));
-LDAP_F (int) ldap_int_sasl_set_option LDAP_P(( LDAP *ld,
-	int option, void *arg ));
-LDAP_F (int) ldap_int_sasl_config LDAP_P(( struct ldapoptions *lo,
-	int option, const char *arg ));
+LDAP_F (int) ldap_int_sasl_get_option ( LDAP *ld,
+	int option, void *arg );
+LDAP_F (int) ldap_int_sasl_set_option ( LDAP *ld,
+	int option, void *arg );
+LDAP_F (int) ldap_int_sasl_config ( struct ldapoptions *lo,
+	int option, const char *arg );
 
-LDAP_F (int) ldap_int_sasl_bind LDAP_P((
+LDAP_F (int) ldap_int_sasl_bind (
 	LDAP *ld,
 	const char *,
 	const char *,
@@ -801,47 +801,47 @@ LDAP_F (int) ldap_int_sasl_bind LDAP_P((
 	void *defaults,
 	LDAPMessage *result,
 	const char **rmech,
-	int *msgid ));
+	int *msgid );
 
 /* in sasl.c */
 
-LDAP_F (BerElement *) ldap_build_bind_req LDAP_P((
+LDAP_F (BerElement *) ldap_build_bind_req (
 	LDAP *ld,
 	const char *dn,
 	const char *mech,
 	struct berval *cred,
 	LDAPControl **sctrls,
 	LDAPControl **cctrls,
-	ber_int_t *msgidp ));
+	ber_int_t *msgidp );
 
 /* in schema.c */
-LDAP_F (char *) ldap_int_parse_numericoid LDAP_P((
+LDAP_F (char *) ldap_int_parse_numericoid (
 	const char **sp,
 	int *code,
-	const int flags ));
+	const int flags );
 
 /*
  * in tls.c
  */
-LDAP_F (int) ldap_int_tls_start LDAP_P(( LDAP *ld,
-	LDAPConn *conn, LDAPURLDesc *srv ));
+LDAP_F (int) ldap_int_tls_start ( LDAP *ld,
+	LDAPConn *conn, LDAPURLDesc *srv );
 
-LDAP_F (void) ldap_int_tls_destroy LDAP_P(( struct ldapoptions *lo ));
+LDAP_F (void) ldap_int_tls_destroy( struct ldapoptions *lo );
 
 /*
  *	in getvalues.c
  */
-LDAP_F (char **) ldap_value_dup LDAP_P((
-	char *const *vals ));
+LDAP_F (char **) ldap_value_dup (
+	char *const *vals );
 
 /*
  *	in gssapi.c
  */
 #ifdef HAVE_GSSAPI
-LDAP_F(int) ldap_int_gssapi_get_option LDAP_P(( LDAP *ld, int option, void *arg ));
-LDAP_F(int) ldap_int_gssapi_set_option LDAP_P(( LDAP *ld, int option, void *arg ));
-LDAP_F(int) ldap_int_gssapi_config LDAP_P(( struct ldapoptions *lo, int option, const char *arg ));
-LDAP_F(void) ldap_int_gssapi_close LDAP_P(( LDAP *ld, LDAPConn *lc ));
+LDAP_F(int) ldap_int_gssapi_get_option( LDAP *ld, int option, void *arg );
+LDAP_F(int) ldap_int_gssapi_set_option( LDAP *ld, int option, void *arg );
+LDAP_F(int) ldap_int_gssapi_config( struct ldapoptions *lo, int option, const char *arg );
+LDAP_F(void) ldap_int_gssapi_close( LDAP *ld, LDAPConn *lc );
 #endif
 
 LDAP_END_DECL

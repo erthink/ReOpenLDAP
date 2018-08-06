@@ -980,8 +980,8 @@ ldap_int_gssapi_set_option( LDAP *ld, int option, void *arg )
 int
 ldap_gssapi_bind(
 	LDAP *ld,
-	LDAP_CONST char *dn,
-	LDAP_CONST char *creds )
+	const char *dn,
+	const char *creds )
 {
 	return LDAP_NOT_SUPPORTED;
 }
@@ -989,8 +989,8 @@ ldap_gssapi_bind(
 int
 ldap_gssapi_bind_s(
 	LDAP *ld,
-	LDAP_CONST char *dn,
-	LDAP_CONST char *creds )
+	const char *dn,
+	const char *creds )
 {
 	if ( dn != NULL ) {
 		return LDAP_NOT_SUPPORTED;

@@ -81,7 +81,7 @@ ldap_connect( LDAP *ld )
  */
 
 LDAP *
-ldap_open( LDAP_CONST char *host, int port )
+ldap_open( const char *host, int port )
 {
 	int rc;
 	LDAP		*ld;
@@ -250,7 +250,7 @@ nomem:
  *	ld = ldap_init( host, port );
  */
 LDAP *
-ldap_init( LDAP_CONST char *defhost, int defport )
+ldap_init( const char *defhost, int defport )
 {
 	LDAP *ld;
 	int rc;
@@ -274,7 +274,7 @@ ldap_init( LDAP_CONST char *defhost, int defport )
 }
 
 int
-ldap_initialize( LDAP **ldp, LDAP_CONST char *url )
+ldap_initialize( LDAP **ldp, const char *url )
 {
 	int rc;
 	LDAP *ld;
@@ -304,7 +304,7 @@ int
 ldap_init_fd(
 	ber_socket_t fd,
 	int proto,
-	LDAP_CONST char *url,
+	const char *url,
 	LDAP **ldp
 )
 {

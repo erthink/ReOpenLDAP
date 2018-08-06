@@ -35,24 +35,24 @@ struct lutil_MD5Context {
 };
 
 LDAP_LUTIL_F( void )
-lutil_MD5Init LDAP_P((
-	struct lutil_MD5Context *context));
+lutil_MD5Init (
+	struct lutil_MD5Context *context);
 
 LDAP_LUTIL_F( void )
-lutil_MD5Update LDAP_P((
+lutil_MD5Update (
 	struct lutil_MD5Context *context,
 	unsigned char const *buf,
-	ber_len_t len));
+	ber_len_t len);
 
 LDAP_LUTIL_F( void )
-lutil_MD5Final LDAP_P((
+lutil_MD5Final (
 	unsigned char digest[16],
-	struct lutil_MD5Context *context));
+	struct lutil_MD5Context *context);
 
 LDAP_LUTIL_F( void )
-lutil_MD5Transform LDAP_P((
+lutil_MD5Transform (
 	ber_uint_t buf[4],
-	const unsigned char in[64]));
+	const unsigned char in[64]);
 
 /*
  * This is needed to make RSAREF happy on some MS-DOS compilers.

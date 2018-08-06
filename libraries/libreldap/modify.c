@@ -51,7 +51,7 @@
 BerElement *
 ldap_build_modify_req(
 	LDAP *ld,
-	LDAP_CONST char *dn,
+	const char *dn,
 	LDAPMod **mods,
 	LDAPControl **sctrls,
 	LDAPControl **cctrls,
@@ -142,7 +142,7 @@ ldap_build_modify_req(
  */
 int
 ldap_modify_ext( LDAP *ld,
-	LDAP_CONST char *dn,
+	const char *dn,
 	LDAPMod **mods,
 	LDAPControl **sctrls,
 	LDAPControl **cctrls,
@@ -170,7 +170,7 @@ ldap_modify_ext( LDAP *ld,
 }
 
 int
-ldap_modify_ext_s( LDAP *ld, LDAP_CONST char *dn,
+ldap_modify_ext_s( LDAP *ld, const char *dn,
 	LDAPMod **mods, LDAPControl **sctrl, LDAPControl **cctrl )
 {
 	int		rc;

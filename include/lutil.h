@@ -35,37 +35,37 @@ LDAP_BEGIN_DECL
 /* base64.c */
 
 LDAP_LUTIL_F( int )
-lutil_b64_ntop LDAP_P((
+lutil_b64_ntop (
 	unsigned char const *,
 	size_t,
 	char *,
-	size_t));
+	size_t);
 
 LDAP_LUTIL_F( int )
-lutil_b64_pton LDAP_P((
+lutil_b64_pton (
 	char const *,
 	unsigned char *,
-	size_t));
+	size_t);
 
 /* detach.c */
 LDAP_LUTIL_F( int )
-lutil_detach LDAP_P((
+lutil_detach (
 	int debug,
-	int do_close));
+	int do_close);
 
 /* entropy.c */
 LDAP_LUTIL_F( int )
-lutil_entropy LDAP_P((
+lutil_entropy (
 	unsigned char *buf,
-	ber_len_t nbytes ));
+	ber_len_t nbytes );
 
 /* passfile.c */
 struct berval;	/* avoid pulling in lber.h */
 
 LDAP_LUTIL_F( int )
-lutil_get_filed_password LDAP_P((
+lutil_get_filed_password (
 	const char *filename,
-	struct berval * ));
+	struct berval * );
 
 /* passwd.c */
 struct lutil_pw_scheme;
@@ -86,76 +86,76 @@ typedef int (LUTIL_PASSWD_HASH_FUNC) (
 	const char **text );
 
 LDAP_LUTIL_F( int )
-lutil_passwd_add LDAP_P((
+lutil_passwd_add (
 	struct berval *scheme,
 	LUTIL_PASSWD_CHK_FUNC *chk_fn,
-	LUTIL_PASSWD_HASH_FUNC *hash_fn ));
+	LUTIL_PASSWD_HASH_FUNC *hash_fn );
 
 LDAP_LUTIL_F( void )
-lutil_passwd_init LDAP_P(( void ));
+lutil_passwd_init( void );
 
 LDAP_LUTIL_F( void )
-lutil_passwd_destroy LDAP_P(( void ));
+lutil_passwd_destroy( void );
 
 LDAP_LUTIL_F( int )
-lutil_authpasswd LDAP_P((
+lutil_authpasswd (
 	const struct berval *passwd,	/* stored password */
 	const struct berval *cred,	/* user supplied value */
-	const char **methods ));
+	const char **methods );
 
 LDAP_LUTIL_F( int )
-lutil_authpasswd_hash LDAP_P((
+lutil_authpasswd_hash (
 	const struct berval *cred,
 	struct berval **passwd,	/* password to store */
 	struct berval **salt,	/* salt to store */
-	const char *method ));
+	const char *method );
 
 #ifdef SLAPD_CRYPT
-typedef int (lutil_cryptfunc) LDAP_P((
+typedef int (lutil_cryptfunc) (
 	const char *key,
 	const char *salt,
-	char **hash ));
+	char **hash );
 LDAP_LUTIL_V (lutil_cryptfunc *) lutil_cryptptr;
 #endif
 
 LDAP_LUTIL_F( int )
-lutil_passwd LDAP_P((
+lutil_passwd (
 	const struct berval *passwd,	/* stored password */
 	const struct berval *cred,	/* user supplied value */
 	const char **methods,
-	const char **text ));			/* error message */
+	const char **text );			/* error message */
 
 LDAP_LUTIL_F( int )
-lutil_passwd_generate LDAP_P(( struct berval *pw, ber_len_t ));
+lutil_passwd_generate( struct berval *pw, ber_len_t );
 
 LDAP_LUTIL_F( int )
-lutil_passwd_hash LDAP_P((
+lutil_passwd_hash (
 	const struct berval *passwd,
 	const char *method,
 	struct berval *hash,
-	const char **text ));
+	const char **text );
 
 LDAP_LUTIL_F( int )
-lutil_passwd_scheme LDAP_P((
-	const char *scheme ));
+lutil_passwd_scheme (
+	const char *scheme );
 
 LDAP_LUTIL_F( int )
-lutil_salt_format LDAP_P((
-	const char *format ));
+lutil_salt_format (
+	const char *format );
 
 LDAP_LUTIL_F( int )
-lutil_passwd_string64 LDAP_P((
+lutil_passwd_string64 (
 	const struct berval *sc,
 	const struct berval *hash,
 	struct berval *b64,
-	const struct berval *salt ));
+	const struct berval *salt );
 
 /* utils.c */
 LDAP_LUTIL_F( char* )
-lutil_progname LDAP_P((
+lutil_progname (
 	const char* name,
 	int argc,
-	char *argv[] ));
+	char *argv[] );
 
 typedef struct lutil_tm {
 	int tm_sec;	/* seconds 0-60 (1 leap second) */
@@ -176,24 +176,24 @@ typedef struct lutil_timet {
 
 /* Parse a timestamp string into a structure */
 LDAP_LUTIL_F( int )
-lutil_parsetime LDAP_P((
-	const char *atm, struct lutil_tm * ));
+lutil_parsetime (
+	const char *atm, struct lutil_tm * );
 
 /* Convert structured time to time in seconds since 1900 */
 LDAP_LUTIL_F( int )
-lutil_tm2time LDAP_P((
-	struct lutil_tm *, struct lutil_timet * ));
+lutil_tm2time (
+	struct lutil_tm *, struct lutil_timet * );
 
 #define	LUTIL_SLASHPATH(p)
 
 LDAP_LUTIL_F( char* )
-lutil_strcopy LDAP_P(( char *dst, const char *src ));
+lutil_strcopy( char *dst, const char *src );
 
 LDAP_LUTIL_F( char* )
-lutil_strncopy LDAP_P(( char *dst, const char *src, size_t n ));
+lutil_strncopy( char *dst, const char *src, size_t n );
 
 LDAP_LUTIL_F( char* )
-lutil_memcopy LDAP_P(( char *dst, const char *src, size_t n ));
+lutil_memcopy( char *dst, const char *src, size_t n );
 
 #define lutil_strbvcopy(a, bv) lutil_memcopy((a),(bv)->bv_val,(bv)->bv_len)
 
@@ -203,12 +203,12 @@ struct tm;
 #define LDAP_LUTIL_GENTIME_BUFSIZE	22
 #define lutil_gentime(s,m,t)	lutil_localtime((s),(m),(t),0)
 LDAP_LUTIL_F( size_t )
-lutil_localtime LDAP_P(( char *s, size_t smax, const struct tm *tm,
-			long delta ));
+lutil_localtime ( char *s, size_t smax, const struct tm *tm,
+			long delta );
 
 #ifndef HAVE_MKSTEMP
 LDAP_LUTIL_F( int )
-mkstemp LDAP_P (( char * template ));
+mkstemp( char * template );
 #endif
 
 /* sockpair.c */

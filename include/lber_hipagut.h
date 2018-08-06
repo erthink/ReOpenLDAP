@@ -48,30 +48,30 @@ struct lber_hipagut {
 };
 typedef struct lber_hipagut lber_hug_t;
 
-LBER_F(void) lber_hug_setup LDAP_P((
+LBER_F(void) lber_hug_setup (
 	lber_hug_t*,
-	const unsigned n42 ));
+	const unsigned n42 );
 
-LBER_F(void) lber_hug_drown LDAP_P((
-	lber_hug_t* ));
+LBER_F(void) lber_hug_drown (
+	lber_hug_t* );
 
 /* Return zero when no corruption detected, otherwise returns -1. */
-LBER_F(int) lber_hug_probe LDAP_P((
+LBER_F(int) lber_hug_probe (
 	const lber_hug_t*,
-	const unsigned n42 ));
+	const unsigned n42 );
 
-LBER_F(void) lber_hug_setup_link LDAP_P((
+LBER_F(void) lber_hug_setup_link (
 	lber_hug_t* slave,
-	const lber_hug_t* master ));
+	const lber_hug_t* master );
 
-LBER_F(void) lber_hug_drown_link LDAP_P((
+LBER_F(void) lber_hug_drown_link (
 	lber_hug_t* slave,
-	const lber_hug_t* master ));
+	const lber_hug_t* master );
 
 /* Return zero when no corruption detected, otherwise returns -1. */
-LBER_F(int) lber_hug_probe_link LDAP_P((
+LBER_F(int) lber_hug_probe_link (
 	const lber_hug_t* slave,
-	const lber_hug_t* master ));
+	const lber_hug_t* master );
 
 #define LBER_HUG_TETRAD(a, b, c, d) \
 	((a) << 24 | (b) << 16 | (c) << 8 | (d))
@@ -220,37 +220,37 @@ struct lber_hug_memchk {
 #define LBER_HUG_POISON_CALLOC_ALREADY	(LBER_HUG_POISON_CALLOC_SETUP | 0xFFu)
 #define LBER_HUG_POISON_DISABLED	LBER_HUG_DISABLED
 
-LBER_F(void*) lber_hug_memchk_setup LDAP_P((
+LBER_F(void*) lber_hug_memchk_setup (
 	struct lber_hug_memchk* memchunk,
 	size_t payload_size,
 	unsigned tag,
-	unsigned poison_mode ));
+	unsigned poison_mode );
 
-LBER_F(void*) lber_hug_memchk_drown LDAP_P(( void* payload, unsigned tag ));
-LBER_F(void) lber_hug_memchk_ensure LDAP_P(( const void* payload, unsigned tag ));
-LBER_F(size_t) lber_hug_memchk_size LDAP_P(( const void* payload, unsigned tag ));
+LBER_F(void*) lber_hug_memchk_drown ( void* payload, unsigned tag );
+LBER_F(void) lber_hug_memchk_ensure ( const void* payload, unsigned tag );
+LBER_F(size_t) lber_hug_memchk_size ( const void* payload, unsigned tag );
 
-LBER_F(unsigned) lber_hug_realloc_begin LDAP_P((
+LBER_F(unsigned) lber_hug_realloc_begin (
 	const void* payload,
 	unsigned tag,
-	size_t* old_size ));
-LBER_F(void*) lber_hug_realloc_undo LDAP_P((
+	size_t* old_size );
+LBER_F(void*) lber_hug_realloc_undo (
 	struct lber_hug_memchk* old_memchunk,
 	unsigned tag,
-	unsigned undo_key ));
-LBER_F(void*) lber_hug_realloc_commit LDAP_P((
+	unsigned undo_key );
+LBER_F(void*) lber_hug_realloc_commit (
 	size_t old_size,
 	struct lber_hug_memchk* new_memchunk,
 	unsigned tag,
-	size_t new_size ));
+	size_t new_size );
 
 /* Return zero when no corruption detected,
  * otherwise returns combination of OR'ed bits: 1, 2, 3. */
-LBER_F(int) lber_hug_memchk_probe LDAP_P((
+LBER_F(int) lber_hug_memchk_probe (
 	const void* payload,
 	unsigned tag,
 	size_t *length,
-	size_t *sequence ));
+	size_t *sequence );
 
 #endif /* LDAP_MEMORY_DEBUG > 0 */
 

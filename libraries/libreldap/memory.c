@@ -441,7 +441,7 @@ ber_bvdup(
 
 struct berval *
 ber_str2bv_x(
-	LDAP_CONST char *s, ber_len_t len, int dup, struct berval *bv,
+	const char *s, ber_len_t len, int dup, struct berval *bv,
 	void *ctx)
 {
 	struct berval *ret;
@@ -476,14 +476,14 @@ ber_str2bv_x(
 
 struct berval *
 ber_str2bv(
-	LDAP_CONST char *s, ber_len_t len, int dup, struct berval *bv)
+	const char *s, ber_len_t len, int dup, struct berval *bv)
 {
 	return ber_str2bv_x( s, len, dup, bv, NULL );
 }
 
 struct berval *
 ber_mem2bv_x(
-	LDAP_CONST char *s, ber_len_t len, int dup, struct berval *bv,
+	const char *s, ber_len_t len, int dup, struct berval *bv,
 	void *ctx)
 {
 	struct berval *ret;
@@ -520,13 +520,13 @@ ber_mem2bv_x(
 
 struct berval *
 ber_mem2bv(
-	LDAP_CONST char *s, ber_len_t len, int dup, struct berval *bv)
+	const char *s, ber_len_t len, int dup, struct berval *bv)
 {
 	return ber_mem2bv_x( s, len, dup, bv, NULL );
 }
 
 char *
-ber_strdup_x( LDAP_CONST char *s, void *ctx )
+ber_strdup_x( const char *s, void *ctx )
 {
 	char    *p;
 	size_t	len;
@@ -545,13 +545,13 @@ ber_strdup_x( LDAP_CONST char *s, void *ctx )
 }
 
 char *
-ber_strdup( LDAP_CONST char *s )
+ber_strdup( const char *s )
 {
 	return ber_strdup_x( s, NULL );
 }
 
 ber_len_t
-ber_strnlen( LDAP_CONST char *s, ber_len_t len )
+ber_strnlen( const char *s, ber_len_t len )
 {
 	ber_len_t l;
 
@@ -561,7 +561,7 @@ ber_strnlen( LDAP_CONST char *s, ber_len_t len )
 }
 
 char *
-ber_strndup_x( LDAP_CONST char *s, ber_len_t l, void *ctx )
+ber_strndup_x( const char *s, ber_len_t l, void *ctx )
 {
 	char    *p;
 	size_t	len;
@@ -581,7 +581,7 @@ ber_strndup_x( LDAP_CONST char *s, ber_len_t l, void *ctx )
 }
 
 char *
-ber_strndup( LDAP_CONST char *s, ber_len_t l )
+ber_strndup( const char *s, ber_len_t l )
 {
 	return ber_strndup_x( s, l, NULL );
 }
@@ -592,7 +592,7 @@ ber_strndup( LDAP_CONST char *s, ber_len_t l )
  * alloc'ed with the context ctx
  */
 struct berval *
-ber_bvreplace_x( struct berval *dst, LDAP_CONST struct berval *src, void *ctx )
+ber_bvreplace_x( struct berval *dst, const struct berval *src, void *ctx )
 {
 	if ( BER_BVISNULL( dst ) || dst->bv_len < src->bv_len ) {
 		dst->bv_val = ber_memrealloc_x( dst->bv_val, src->bv_len + 1, ctx );
@@ -605,7 +605,7 @@ ber_bvreplace_x( struct berval *dst, LDAP_CONST struct berval *src, void *ctx )
 }
 
 struct berval *
-ber_bvreplace( struct berval *dst, LDAP_CONST struct berval *src )
+ber_bvreplace( struct berval *dst, const struct berval *src )
 {
 	return ber_bvreplace_x( dst, src, NULL );
 }

@@ -28,7 +28,7 @@
 BerElement *
 ldap_build_extended_req(
 	LDAP			*ld,
-	LDAP_CONST char	*reqoid,
+	const char	*reqoid,
 	struct berval	*reqdata,
 	LDAPControl		**sctrls,
 	LDAPControl		**cctrls,
@@ -96,7 +96,7 @@ ldap_build_extended_req(
 int
 ldap_extended_operation(
 	LDAP			*ld,
-	LDAP_CONST char	*reqoid,
+	const char	*reqoid,
 	struct berval	*reqdata,
 	LDAPControl		**sctrls,
 	LDAPControl		**cctrls,
@@ -132,7 +132,7 @@ ldap_extended_operation(
 int
 ldap_extended_operation_s(
 	LDAP			*ld,
-	LDAP_CONST char	*reqoid,
+	const char	*reqoid,
 	struct berval	*reqdata,
 	LDAPControl		**sctrls,
 	LDAPControl		**cctrls,

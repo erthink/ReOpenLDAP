@@ -60,7 +60,7 @@ int * ber_errno_addr(void)
  * Print stuff
  */
 void __attribute__((weak))
-ber_debug_print( LDAP_CONST char *data )
+ber_debug_print( const char *data )
 {
 	assert( data != NULL );
 
@@ -123,7 +123,7 @@ ber_log_bprint(int errlvl,
 
 void
 ber_bprint(
-	LDAP_CONST char *data,
+	const char *data,
 	ber_len_t len )
 {
 	static const char hexdig[] = "0123456789abcdef";

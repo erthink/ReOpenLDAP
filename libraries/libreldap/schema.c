@@ -37,56 +37,56 @@ choose_name( char *names[], const char *fallback )
 	return (names != NULL && names[0] != NULL) ? names[0] : fallback;
 }
 
-LDAP_CONST char *
+const char *
 ldap_syntax2name( LDAPSyntax * syn )
 {
 	if (!syn) return NULL;
 	return( syn->syn_oid );
 }
 
-LDAP_CONST char *
+const char *
 ldap_matchingrule2name( LDAPMatchingRule * mr )
 {
 	if (!mr) return NULL;
 	return( choose_name( mr->mr_names, mr->mr_oid ) );
 }
 
-LDAP_CONST char *
+const char *
 ldap_matchingruleuse2name( LDAPMatchingRuleUse * mru )
 {
 	if (!mru) return NULL;
 	return( choose_name( mru->mru_names, mru->mru_oid ) );
 }
 
-LDAP_CONST char *
+const char *
 ldap_attributetype2name( LDAPAttributeType * at )
 {
 	if (!at) return NULL;
 	return( choose_name( at->at_names, at->at_oid ) );
 }
 
-LDAP_CONST char *
+const char *
 ldap_objectclass2name( LDAPObjectClass * oc )
 {
 	if (!oc) return NULL;
 	return( choose_name( oc->oc_names, oc->oc_oid ) );
 }
 
-LDAP_CONST char *
+const char *
 ldap_contentrule2name( LDAPContentRule * cr )
 {
 	if (!cr) return NULL;
 	return( choose_name( cr->cr_names, cr->cr_oid ) );
 }
 
-LDAP_CONST char *
+const char *
 ldap_nameform2name( LDAPNameForm * nf )
 {
 	if (!nf) return NULL;
 	return( choose_name( nf->nf_names, nf->nf_oid ) );
 }
 
-LDAP_CONST char *
+const char *
 ldap_structurerule2name( LDAPStructureRule * sr )
 {
 	if (!sr) return NULL;
@@ -1495,10 +1495,10 @@ ldap_syntax_free( LDAPSyntax * syn )
 }
 
 LDAPSyntax *
-ldap_str2syntax( LDAP_CONST char * s,
+ldap_str2syntax( const char * s,
 	int * code,
-	LDAP_CONST char ** errp,
-	LDAP_CONST unsigned flags )
+	const char ** errp,
+	const unsigned flags )
 {
 	tk_t kind;
 	const char * ss = s;
@@ -1638,10 +1638,10 @@ ldap_matchingrule_free( LDAPMatchingRule * mr )
 }
 
 LDAPMatchingRule *
-ldap_str2matchingrule( LDAP_CONST char * s,
+ldap_str2matchingrule( const char * s,
 	int * code,
-	LDAP_CONST char ** errp,
-	LDAP_CONST unsigned flags )
+	const char ** errp,
+	const unsigned flags )
 {
 	tk_t kind;
 	const char * ss = s;
@@ -1838,10 +1838,10 @@ ldap_matchingruleuse_free( LDAPMatchingRuleUse * mru )
 }
 
 LDAPMatchingRuleUse *
-ldap_str2matchingruleuse( LDAP_CONST char * s,
+ldap_str2matchingruleuse( const char * s,
 	int * code,
-	LDAP_CONST char ** errp,
-	LDAP_CONST unsigned flags )
+	const char ** errp,
+	const unsigned flags )
 {
 	tk_t kind;
 	const char * ss = s;
@@ -2041,10 +2041,10 @@ ldap_attributetype_free(LDAPAttributeType * at)
 }
 
 LDAPAttributeType *
-ldap_str2attributetype( LDAP_CONST char * s,
+ldap_str2attributetype( const char * s,
 	int * code,
-	LDAP_CONST char ** errp,
-	LDAP_CONST unsigned flags )
+	const char ** errp,
+	const unsigned flags )
 {
 	tk_t kind;
 	const char * ss = s;
@@ -2423,10 +2423,10 @@ ldap_objectclass_free(LDAPObjectClass * oc)
 }
 
 LDAPObjectClass *
-ldap_str2objectclass( LDAP_CONST char * s,
+ldap_str2objectclass( const char * s,
 	int * code,
-	LDAP_CONST char ** errp,
-	LDAP_CONST unsigned flags )
+	const char ** errp,
+	const unsigned flags )
 {
 	tk_t kind;
 	const char * ss = s;
@@ -2711,10 +2711,10 @@ ldap_contentrule_free(LDAPContentRule * cr)
 }
 
 LDAPContentRule *
-ldap_str2contentrule( LDAP_CONST char * s,
+ldap_str2contentrule( const char * s,
 	int * code,
-	LDAP_CONST char ** errp,
-	LDAP_CONST unsigned flags )
+	const char ** errp,
+	const unsigned flags )
 {
 	tk_t kind;
 	const char * ss = s;
@@ -2966,10 +2966,10 @@ ldap_structurerule_free(LDAPStructureRule * sr)
 }
 
 LDAPStructureRule *
-ldap_str2structurerule( LDAP_CONST char * s,
+ldap_str2structurerule( const char * s,
 	int * code,
-	LDAP_CONST char ** errp,
-	LDAP_CONST unsigned flags )
+	const char ** errp,
+	const unsigned flags )
 {
 	tk_t kind;
 	int ret;
@@ -3151,10 +3151,10 @@ ldap_nameform_free(LDAPNameForm * nf)
 }
 
 LDAPNameForm *
-ldap_str2nameform( LDAP_CONST char * s,
+ldap_str2nameform( const char * s,
 	int * code,
-	LDAP_CONST char ** errp,
-	LDAP_CONST unsigned flags )
+	const char ** errp,
+	const unsigned flags )
 {
 	tk_t kind;
 	const char * ss = s;

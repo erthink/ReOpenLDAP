@@ -35,14 +35,14 @@ int mdb_attr_slot( struct mdb_info *mdb,
 int mdb_attr_dbs_open( BackendDB *be, MDBX_txn *txn, struct config_reply_s *cr );
 void mdb_attr_dbs_close( struct mdb_info *mdb );
 
-int mdb_attr_index_config LDAP_P(( struct mdb_info *mdb,
+int mdb_attr_index_config ( struct mdb_info *mdb,
 	const char *fname, int lineno,
-	int argc, char **argv, struct config_reply_s *cr ));
+	int argc, char **argv, struct config_reply_s *cr );
 
-void mdb_attr_index_unparse LDAP_P(( struct mdb_info *mdb, BerVarray *bva ));
-void mdb_attr_index_destroy LDAP_P(( struct mdb_info *mdb ));
-void mdb_attr_index_free LDAP_P(( struct mdb_info *mdb,
-	AttributeDescription *ad ));
+void mdb_attr_index_unparse( struct mdb_info *mdb, BerVarray *bva );
+void mdb_attr_index_destroy( struct mdb_info *mdb );
+void mdb_attr_index_free ( struct mdb_info *mdb,
+	AttributeDescription *ad );
 
 void mdb_attr_info_free( AttrInfo *ai );
 
@@ -59,8 +59,8 @@ int mdb_back_init_cf( BackendInfo *bi );
  * dn2entry.c
  */
 
-int mdb_dn2entry LDAP_P(( Operation *op, MDBX_txn *tid, MDBX_cursor *mc,
-	struct berval *dn, Entry **e, ID *nsubs, int matched ));
+int mdb_dn2entry ( Operation *op, MDBX_txn *tid, MDBX_cursor *mc,
+	struct berval *dn, Entry **e, ID *nsubs, int matched );
 
 /*
  * dn2id.c
@@ -264,47 +264,47 @@ int mdb_idl_append_one( ID *ids, ID id );
  */
 
 extern AttrInfo *
-mdb_index_mask LDAP_P((
+mdb_index_mask (
 	Backend *be,
 	AttributeDescription *desc,
-	struct berval *name ));
+	struct berval *name );
 
 extern int
-mdb_index_param LDAP_P((
+mdb_index_param (
 	Backend *be,
 	AttributeDescription *desc,
 	int ftype,
 	MDBX_dbi *dbi,
 	slap_mask_t *mask,
-	struct berval *prefix ));
+	struct berval *prefix );
 
 extern int
-mdb_index_values LDAP_P((
+mdb_index_values (
 	Operation *op,
 	MDBX_txn *txn,
 	AttributeDescription *desc,
 	BerVarray vals,
 	ID id,
-	int opid ));
+	int opid );
 
 extern int
-mdb_index_recset LDAP_P((
+mdb_index_recset (
 	struct mdb_info *mdb,
 	Attribute *a,
 	AttributeType *type,
 	struct berval *tags,
-	IndexRec *ir ));
+	IndexRec *ir );
 
 extern int
-mdb_index_recrun LDAP_P((
+mdb_index_recrun (
 	Operation *op,
 	MDBX_txn *txn,
 	struct mdb_info *mdb,
 	IndexRec *ir,
 	ID id,
-	int base ));
+	int base );
 
-int mdb_index_entry LDAP_P(( Operation *op, MDBX_txn *t, int r, Entry *e ));
+int mdb_index_entry ( Operation *op, MDBX_txn *t, int r, Entry *e );
 
 #define mdb_index_entry_add(op,t,e) \
 	mdb_index_entry((op),(t),SLAP_INDEX_ADD_OP,(e))

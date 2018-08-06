@@ -16,8 +16,8 @@
 LDAP_BEGIN_DECL
 
 /* Can be done twice in libreldap.  See libreldap/ldap_thr_debug.h. */
-LDAP_F(int) ldap_int_thread_initialize LDAP_P(( void ));
-LDAP_F(int) ldap_int_thread_destroy    LDAP_P(( void ));
+LDAP_F(int) ldap_int_thread_initialize( void );
+LDAP_F(int) ldap_int_thread_destroy   ( void );
 
 LDAP_END_DECL
 
@@ -292,11 +292,11 @@ typedef struct {
 #define	LDAP_INT_THREAD_ASSERT_MUTEX_OWNER(mutex) \
 	ldap_debug_thread_assert_mutex_owner( \
 		__FILE__, __LINE__, "owns(" #mutex ")", mutex )
-LDAP_F(void) ldap_debug_thread_assert_mutex_owner LDAP_P((
-	LDAP_CONST char *file,
+LDAP_F(void) ldap_debug_thread_assert_mutex_owner (
+	const char *file,
 	int line,
-	LDAP_CONST char *msg,
-	ldap_debug_thread_mutex_t *mutex ));
+	const char *msg,
+	ldap_debug_thread_mutex_t *mutex );
 #endif /* LDAP_DEBUG */
 
 LDAP_END_DECL

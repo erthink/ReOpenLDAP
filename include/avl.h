@@ -71,75 +71,75 @@ struct tavlnode {
 #define	avl_lchild(x)	avl_child(x,0)
 #define	avl_rchild(x)	avl_child(x,1)
 
-typedef int		(*AVL_APPLY) LDAP_P((void *, void*));
-typedef int		(*AVL_CMP) LDAP_P((const void*, const void*));
-typedef int		(*AVL_DUP) LDAP_P((void*, void*));
-typedef void	(*AVL_FREE) LDAP_P((void*));
+typedef int		(*AVL_APPLY) (void *, void*);
+typedef int		(*AVL_CMP) (const void*, const void*);
+typedef int		(*AVL_DUP) (void*, void*);
+typedef void	(*AVL_FREE) (void*);
 
 LDAP_AVL_F( int )
-avl_free LDAP_P(( Avlnode *root, AVL_FREE dfree ));
+avl_free ( Avlnode *root, AVL_FREE dfree );
 
 LDAP_AVL_F( int )
-avl_insert LDAP_P((Avlnode **, void*, AVL_CMP, AVL_DUP));
+avl_insert (Avlnode **, void*, AVL_CMP, AVL_DUP);
 
 LDAP_AVL_F( void* )
-avl_delete LDAP_P((Avlnode **, void*, AVL_CMP));
+avl_delete (Avlnode **, void*, AVL_CMP);
 
 LDAP_AVL_F( void* )
-avl_find LDAP_P((Avlnode *, const void*, AVL_CMP));
+avl_find (Avlnode *, const void*, AVL_CMP);
 
 LDAP_AVL_F( Avlnode* )
-avl_find2 LDAP_P((Avlnode *, const void*, AVL_CMP));
+avl_find2 (Avlnode *, const void*, AVL_CMP);
 
 LDAP_AVL_F( void* )
-avl_find_lin LDAP_P((Avlnode *, const void*, AVL_CMP));
+avl_find_lin (Avlnode *, const void*, AVL_CMP);
 
 #ifdef AVL_NONREENTRANT
 LDAP_AVL_F( void* )
-avl_getfirst LDAP_P((Avlnode *));
+avl_getfirst (Avlnode *);
 
 LDAP_AVL_F( void* )
-avl_getnext LDAP_P((void));
+avl_getnext (void);
 #endif
 
 LDAP_AVL_F( int )
-avl_dup_error LDAP_P((void*, void*));
+avl_dup_error (void*, void*);
 
 LDAP_AVL_F( int )
-avl_dup_ok LDAP_P((void*, void*));
+avl_dup_ok (void*, void*);
 
 LDAP_AVL_F( int )
-avl_apply LDAP_P((Avlnode *, AVL_APPLY, void*, int, int));
+avl_apply (Avlnode *, AVL_APPLY, void*, int, int);
 
 LDAP_AVL_F( int )
-avl_prefixapply LDAP_P((Avlnode *, void*, AVL_CMP, void*, AVL_CMP, void*, int));
+avl_prefixapply (Avlnode *, void*, AVL_CMP, void*, AVL_CMP, void*, int);
 
 LDAP_AVL_F( int )
-tavl_free LDAP_P(( TAvlnode *root, AVL_FREE dfree ));
+tavl_free ( TAvlnode *root, AVL_FREE dfree );
 
 LDAP_AVL_F( int )
-tavl_insert LDAP_P((TAvlnode **, void*, AVL_CMP, AVL_DUP));
+tavl_insert (TAvlnode **, void*, AVL_CMP, AVL_DUP);
 
 LDAP_AVL_F( void* )
-tavl_delete LDAP_P((TAvlnode **, void*, AVL_CMP));
+tavl_delete (TAvlnode **, void*, AVL_CMP);
 
 LDAP_AVL_F( void* )
-tavl_find LDAP_P((TAvlnode *, const void*, AVL_CMP));
+tavl_find (TAvlnode *, const void*, AVL_CMP);
 
 LDAP_AVL_F( TAvlnode* )
-tavl_find2 LDAP_P((TAvlnode *, const void*, AVL_CMP));
+tavl_find2 (TAvlnode *, const void*, AVL_CMP);
 
 LDAP_AVL_F( TAvlnode* )
-tavl_find3 LDAP_P((TAvlnode *, const void*, AVL_CMP, int *ret));
+tavl_find3 (TAvlnode *, const void*, AVL_CMP, int *ret);
 
 #define	TAVL_DIR_LEFT	0
 #define	TAVL_DIR_RIGHT	1
 
 LDAP_AVL_F( TAvlnode* )
-tavl_end LDAP_P((TAvlnode *, int direction));
+tavl_end (TAvlnode *, int direction);
 
 LDAP_AVL_F( TAvlnode* )
-tavl_next LDAP_P((TAvlnode *, int direction));
+tavl_next (TAvlnode *, int direction);
 
 /* apply traversal types */
 #define AVL_PREORDER	1

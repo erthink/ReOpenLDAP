@@ -55,7 +55,7 @@ static struct berval BV_NEWSUP = BER_BVC("newsuperior");
 #define	BV_CASEMATCH(a, b) \
 	((a)->bv_len == (b)->bv_len && 0 == strcasecmp((a)->bv_val, (b)->bv_val))
 
-static int parse_ldif_control LDAP_P(( struct berval *bval, LDAPControl ***ppctrls ));
+static int parse_ldif_control ( struct berval *bval, LDAPControl ***ppctrls );
 
 void
 ldap_ldif_record_done( LDIFRecord *lr )

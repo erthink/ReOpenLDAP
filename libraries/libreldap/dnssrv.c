@@ -38,7 +38,7 @@
 #endif
 
 int ldap_dn2domain(
-	LDAP_CONST char *dn_in,
+	const char *dn_in,
 	char **domainp)
 {
 	int i, j;
@@ -125,7 +125,7 @@ return_error:
 }
 
 int ldap_domain2dn(
-	LDAP_CONST char *domain_in,
+	const char *domain_in,
 	char **dnp)
 {
 	char *domain, *s, *tok_r, *dn, *dntmp;
@@ -255,7 +255,7 @@ static void srv_shuffle(srv_record *a, int n) {
  * SRV record _ldap._tcp.domain).
  */
 int ldap_domain2hostlist(
-	LDAP_CONST char *domain,
+	const char *domain,
 	char **list )
 {
 #ifdef HAVE_RES_QUERY

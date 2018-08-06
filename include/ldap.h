@@ -764,12 +764,12 @@ typedef struct ldapmod {
  */
 typedef struct ldap LDAP;
 
-typedef int (*ldap_gentle_shutdown_f) LDAP_P(( LDAP	*ld ));
+typedef int (*ldap_gentle_shutdown_f)( LDAP	*ld );
 
 LDAP_F( ldap_gentle_shutdown_f )
-ldap_set_gentle_shutdown LDAP_P((
+ldap_set_gentle_shutdown (
 	LDAP	*ld,
-	ldap_gentle_shutdown_f gentle_shutdown ));
+	ldap_gentle_shutdown_f gentle_shutdown );
 
 #define LDAP_DEREF_NEVER		0x00
 #define LDAP_DEREF_SEARCHING	0x01
@@ -850,19 +850,19 @@ typedef enum {
  * If phase is LDAP_SYNC_CAPI_PRESENT or LDAP_SYNC_CAPI_DELETE,
  * only the DN should be in the LDAPMessage.
  */
-typedef int (*ldap_sync_search_entry_f) LDAP_P((
+typedef int (*ldap_sync_search_entry_f) (
 	ldap_sync_t			*ls,
 	LDAPMessage			*msg,
 	struct berval			*entryUUID,
-	ldap_sync_refresh_t		phase ));
+	ldap_sync_refresh_t		phase );
 
 /*
  * Called when a reference is returned; the client should know
  * what to do with it.
  */
-typedef int (*ldap_sync_search_reference_f) LDAP_P((
+typedef int (*ldap_sync_search_reference_f) (
 	ldap_sync_t			*ls,
-	LDAPMessage			*msg ));
+	LDAPMessage			*msg );
 
 /*
  * Called when specific intermediate/final messages are returned.
@@ -877,21 +877,21 @@ typedef int (*ldap_sync_search_reference_f) LDAP_P((
  * LDAP_SYNC_CAPI_DELETES_IDSET, syncUUIDs is an array of UUIDs
  * that are either present or have been deleted.
  */
-typedef int (*ldap_sync_intermediate_f) LDAP_P((
+typedef int (*ldap_sync_intermediate_f) (
 	ldap_sync_t			*ls,
 	LDAPMessage			*msg,
 	BerVarray			syncUUIDs,
-	ldap_sync_refresh_t		phase ));
+	ldap_sync_refresh_t		phase );
 
 /*
  * Called when a searchResultDone is returned.  In refreshAndPersist,
  * this can only occur if the search for any reason is being terminated
  * by the server.
  */
-typedef int (*ldap_sync_search_result_f) LDAP_P((
+typedef int (*ldap_sync_search_result_f) (
 	ldap_sync_t			*ls,
 	LDAPMessage			*msg,
-	int				refreshDeletes ));
+	int				refreshDeletes );
 
 /*
  * This structure contains all information about the persistent search;
@@ -951,10 +951,10 @@ struct ldap_conncb;
 struct sockaddr;
 
 /* Called after a connection is established */
-typedef int (ldap_conn_add_f) LDAP_P(( LDAP *ld, Sockbuf *sb, LDAPURLDesc *srv, struct sockaddr *addr,
-	struct ldap_conncb *ctx ));
+typedef int (ldap_conn_add_f) ( LDAP *ld, Sockbuf *sb, LDAPURLDesc *srv, struct sockaddr *addr,
+	struct ldap_conncb *ctx );
 /* Called before a connection is closed */
-typedef void (ldap_conn_del_f) LDAP_P(( LDAP *ld, Sockbuf *sb, struct ldap_conncb *ctx ));
+typedef void (ldap_conn_del_f)( LDAP *ld, Sockbuf *sb, struct ldap_conncb *ctx );
 
 /* Callbacks are pushed on a stack. Last one pushed is first one executed. The
  * delete callback is called with a NULL Sockbuf just before freeing the LDAP handle.
@@ -975,216 +975,216 @@ struct timeval;
  * in options.c:
  */
 LDAP_F( int )
-ldap_get_option LDAP_P((
+ldap_get_option (
 	LDAP *ld,
 	int option,
-	void *outvalue));
+	void *outvalue);
 
 LDAP_F( int )
-ldap_set_option LDAP_P((
+ldap_set_option (
 	LDAP *ld,
 	int option,
-	LDAP_CONST void *invalue));
+	const void *invalue);
 
 /* V3 REBIND Function Callback Prototype */
-typedef int (LDAP_REBIND_PROC) LDAP_P((
-	LDAP *ld, LDAP_CONST char *url,
+typedef int (LDAP_REBIND_PROC) (
+	LDAP *ld, const char *url,
 	ber_tag_t request, ber_int_t msgid,
-	void *params ));
+	void *params );
 
 LDAP_F( int )
-ldap_set_rebind_proc LDAP_P((
+ldap_set_rebind_proc (
 	LDAP *ld,
 	LDAP_REBIND_PROC *rebind_proc,
-	void *params ));
+	void *params );
 
 /* V3 referral selection Function Callback Prototype */
-typedef int (LDAP_NEXTREF_PROC) LDAP_P((
+typedef int (LDAP_NEXTREF_PROC) (
 	LDAP *ld, char ***refsp, int *cntp,
-	void *params ));
+	void *params );
 
 LDAP_F( int )
-ldap_set_nextref_proc LDAP_P((
+ldap_set_nextref_proc (
 	LDAP *ld,
 	LDAP_NEXTREF_PROC *nextref_proc,
-	void *params ));
+	void *params );
 
 /* V3 URLLIST Function Callback Prototype */
-typedef int (LDAP_URLLIST_PROC) LDAP_P((
+typedef int (LDAP_URLLIST_PROC) (
 	LDAP *ld,
 	LDAPURLDesc **urllist,
 	LDAPURLDesc **url,
-	void *params ));
+	void *params );
 
 LDAP_F( int )
-ldap_set_urllist_proc LDAP_P((
+ldap_set_urllist_proc (
 	LDAP *ld,
 	LDAP_URLLIST_PROC *urllist_proc,
-	void *params ));
+	void *params );
 
 /*
  * in controls.c:
  */
 LDAP_F( int )
-ldap_create_control LDAP_P((
-	LDAP_CONST char *requestOID,
+ldap_create_control (
+	const char *requestOID,
 	BerElement *ber,
 	int iscritical,
-	LDAPControl **ctrlp )) __reldap_deprecated_msg("use ldap_control_create");
+	LDAPControl **ctrlp ) __reldap_deprecated_msg("use ldap_control_create");
 
 LDAP_F( LDAPControl * )
-ldap_find_control LDAP_P((
-	LDAP_CONST char *oid,
-	LDAPControl **ctrls )) __reldap_deprecated_msg("use ldap_control_find");
+ldap_find_control (
+	const char *oid,
+	LDAPControl **ctrls ) __reldap_deprecated_msg("use ldap_control_find");
 
 LDAP_F( int )
-ldap_control_create LDAP_P((
-	LDAP_CONST char *requestOID,
+ldap_control_create (
+	const char *requestOID,
 	int iscritical,
 	struct berval *value,
 	int dupval,
-	LDAPControl **ctrlp ));
+	LDAPControl **ctrlp );
 
 LDAP_F( LDAPControl * )
-ldap_control_find LDAP_P((
-	LDAP_CONST char *oid,
+ldap_control_find (
+	const char *oid,
 	LDAPControl **ctrls,
-	LDAPControl ***nextctrlp ));
+	LDAPControl ***nextctrlp );
 
 LDAP_F( void )
-ldap_control_free LDAP_P((
-	LDAPControl *ctrl ));
+ldap_control_free (
+	LDAPControl *ctrl );
 
 LDAP_F( void )
-ldap_controls_free LDAP_P((
-	LDAPControl **ctrls ));
+ldap_controls_free (
+	LDAPControl **ctrls );
 
 LDAP_F( LDAPControl ** )
-ldap_controls_dup LDAP_P((
-	LDAPControl *LDAP_CONST *controls ));
+ldap_controls_dup (
+	LDAPControl *const *controls );
 
 LDAP_F( LDAPControl * )
-ldap_control_dup LDAP_P((
-	LDAP_CONST LDAPControl *c ));
+ldap_control_dup (
+	const LDAPControl *c );
 
 /*
  * in dnssrv.c:
  */
 LDAP_F( int )
-ldap_domain2dn LDAP_P((
-	LDAP_CONST char* domain,
-	char** dn ));
+ldap_domain2dn (
+	const char* domain,
+	char** dn );
 
 LDAP_F( int )
-ldap_dn2domain LDAP_P((
-	LDAP_CONST char* dn,
-	char** domain ));
+ldap_dn2domain (
+	const char* dn,
+	char** domain );
 
 LDAP_F( int )
-ldap_domain2hostlist LDAP_P((
-	LDAP_CONST char *domain,
-	char** hostlist ));
+ldap_domain2hostlist (
+	const char *domain,
+	char** hostlist );
 
 /*
  * in extended.c:
  */
 LDAP_F( int )
-ldap_extended_operation LDAP_P((
+ldap_extended_operation (
 	LDAP			*ld,
-	LDAP_CONST char	*reqoid,
+	const char	*reqoid,
 	struct berval	*reqdata,
 	LDAPControl		**serverctrls,
 	LDAPControl		**clientctrls,
-	int				*msgidp ));
+	int				*msgidp );
 
 LDAP_F( int )
-ldap_extended_operation_s LDAP_P((
+ldap_extended_operation_s (
 	LDAP			*ld,
-	LDAP_CONST char	*reqoid,
+	const char	*reqoid,
 	struct berval	*reqdata,
 	LDAPControl		**serverctrls,
 	LDAPControl		**clientctrls,
 	char			**retoidp,
-	struct berval	**retdatap ));
+	struct berval	**retdatap );
 
 LDAP_F( int )
-ldap_parse_extended_result LDAP_P((
+ldap_parse_extended_result (
 	LDAP			*ld,
 	LDAPMessage		*res,
 	char			**retoidp,
 	struct berval	**retdatap,
-	int				freeit ));
+	int				freeit );
 
 LDAP_F( int )
-ldap_parse_intermediate LDAP_P((
+ldap_parse_intermediate (
 	LDAP			*ld,
 	LDAPMessage		*res,
 	char			**retoidp,
 	struct berval	**retdatap,
 	LDAPControl		***serverctrls,
-	int				freeit ));
+	int				freeit );
 
 
 /*
  * in abandon.c:
  */
 LDAP_F( int )
-ldap_abandon_ext LDAP_P((
+ldap_abandon_ext (
 	LDAP			*ld,
 	int				msgid,
 	LDAPControl		**serverctrls,
-	LDAPControl		**clientctrls ));
+	LDAPControl		**clientctrls );
 
 LDAP_F( int )
-ldap_abandon LDAP_P((
+ldap_abandon (
 	LDAP *ld,
-	int msgid )) __reldap_deprecated_msg("use ldap_abandon_ext");
+	int msgid ) __reldap_deprecated_msg("use ldap_abandon_ext");
 
 /*
  * in add.c:
  */
 LDAP_F( int )
-ldap_add_ext LDAP_P((
+ldap_add_ext (
 	LDAP			*ld,
-	LDAP_CONST char	*dn,
+	const char	*dn,
 	LDAPMod			**attrs,
 	LDAPControl		**serverctrls,
 	LDAPControl		**clientctrls,
-	int 			*msgidp ));
+	int 			*msgidp );
 
 LDAP_F( int )
-ldap_add_ext_s LDAP_P((
+ldap_add_ext_s (
 	LDAP			*ld,
-	LDAP_CONST char	*dn,
+	const char	*dn,
 	LDAPMod			**attrs,
 	LDAPControl		**serverctrls,
-	LDAPControl		**clientctrls ));
+	LDAPControl		**clientctrls );
 
 LDAP_F( int )
-ldap_add LDAP_P((
+ldap_add (
 	LDAP *ld,
-	LDAP_CONST char *dn,
-	LDAPMod **attrs )) __reldap_deprecated_msg("use ldap_add_ext");
+	const char *dn,
+	LDAPMod **attrs ) __reldap_deprecated_msg("use ldap_add_ext");
 
 LDAP_F( int )
-ldap_add_s LDAP_P((
+ldap_add_s (
 	LDAP *ld,
-	LDAP_CONST char *dn,
-	LDAPMod **attrs ))__reldap_deprecated_msg("use ldap_add_ext_s");
+	const char *dn,
+	LDAPMod **attrs ) __reldap_deprecated_msg("use ldap_add_ext_s");
 
 
 /*
  * in sasl.c:
  */
 LDAP_F( int )
-ldap_sasl_bind LDAP_P((
+ldap_sasl_bind (
 	LDAP			*ld,
-	LDAP_CONST char	*dn,
-	LDAP_CONST char	*mechanism,
+	const char	*dn,
+	const char	*mechanism,
 	struct berval	*cred,
 	LDAPControl		**serverctrls,
 	LDAPControl		**clientctrls,
-	int				*msgidp ));
+	int				*msgidp );
 
 /* Interaction flags (should be passed about in a control)
  *  Automatic (default): use defaults, prompt otherwise
@@ -1200,14 +1200,14 @@ ldap_sasl_bind LDAP_P((
  *	when using Cyrus SASL, interact is pointer to sasl_interact_t
  *  should likely passed in a control (and provided controls)
  */
-typedef int (LDAP_SASL_INTERACT_PROC) LDAP_P((
-	LDAP *ld, unsigned flags, void* defaults, void *interact ));
+typedef int (LDAP_SASL_INTERACT_PROC) (
+	LDAP *ld, unsigned flags, void* defaults, void *interact );
 
 LDAP_F( int )
-ldap_sasl_interactive_bind LDAP_P((
+ldap_sasl_interactive_bind (
 	LDAP *ld,
-	LDAP_CONST char *dn, /* usually NULL */
-	LDAP_CONST char *saslMechanism,
+	const char *dn, /* usually NULL */
+	const char *saslMechanism,
 	LDAPControl **serverControls,
 	LDAPControl **clientControls,
 
@@ -1221,138 +1221,138 @@ ldap_sasl_interactive_bind LDAP_P((
 
 	/* returned during bind processing */
 	const char **rmech,
-	int *msgid ));
+	int *msgid );
 
 LDAP_F( int )
-ldap_sasl_interactive_bind_s LDAP_P((
+ldap_sasl_interactive_bind_s (
 	LDAP *ld,
-	LDAP_CONST char *dn, /* usually NULL */
-	LDAP_CONST char *saslMechanism,
+	const char *dn, /* usually NULL */
+	const char *saslMechanism,
 	LDAPControl **serverControls,
 	LDAPControl **clientControls,
 
 	/* should be client controls */
 	unsigned flags,
 	LDAP_SASL_INTERACT_PROC *proc,
-	void *defaults ));
+	void *defaults );
 
 LDAP_F( int )
-ldap_sasl_bind_s LDAP_P((
+ldap_sasl_bind_s (
 	LDAP			*ld,
-	LDAP_CONST char	*dn,
-	LDAP_CONST char	*mechanism,
+	const char	*dn,
+	const char	*mechanism,
 	struct berval	*cred,
 	LDAPControl		**serverctrls,
 	LDAPControl		**clientctrls,
-	struct berval	**servercredp ));
+	struct berval	**servercredp );
 
 LDAP_F( int )
-ldap_parse_sasl_bind_result LDAP_P((
+ldap_parse_sasl_bind_result (
 	LDAP			*ld,
 	LDAPMessage		*res,
 	struct berval	**servercredp,
-	int				freeit ));
+	int				freeit );
 
 /*
  * in deprecated.c:
  */
 LDAP_F( int )
-ldap_bind LDAP_P((
+ldap_bind (
 	LDAP *ld,
-	LDAP_CONST char *who,
-	LDAP_CONST char *passwd,
-	int authmethod )) __reldap_deprecated_msg("use ldap_sasl_bind");
+	const char *who,
+	const char *passwd,
+	int authmethod ) __reldap_deprecated_msg("use ldap_sasl_bind");
 
 LDAP_F( int )
-ldap_bind_s LDAP_P((
+ldap_bind_s (
 	LDAP *ld,
-	LDAP_CONST char *who,
-	LDAP_CONST char *cred,
-	int authmethod )) __reldap_deprecated_msg("use ldap_sasl_bind_s");
+	const char *who,
+	const char *cred,
+	int authmethod ) __reldap_deprecated_msg("use ldap_sasl_bind_s");
 
 LDAP_F( int )
-ldap_simple_bind LDAP_P((
+ldap_simple_bind (
 	LDAP *ld,
-	LDAP_CONST char *who,
-	LDAP_CONST char *passwd )) __reldap_deprecated_msg("use ldap_sasl_bind");
+	const char *who,
+	const char *passwd ) __reldap_deprecated_msg("use ldap_sasl_bind");
 
 LDAP_F( int )
-ldap_simple_bind_s LDAP_P((
+ldap_simple_bind_s (
 	LDAP *ld,
-	LDAP_CONST char *who,
-	LDAP_CONST char *passwd )) __reldap_deprecated_msg("use ldap_sasl_bind_s");
+	const char *who,
+	const char *passwd ) __reldap_deprecated_msg("use ldap_sasl_bind_s");
 
 
 /*
  * in compare.c:
  */
 LDAP_F( int )
-ldap_compare_ext LDAP_P((
+ldap_compare_ext (
 	LDAP			*ld,
-	LDAP_CONST char	*dn,
-	LDAP_CONST char	*attr,
+	const char	*dn,
+	const char	*attr,
 	struct berval	*bvalue,
 	LDAPControl		**serverctrls,
 	LDAPControl		**clientctrls,
-	int 			*msgidp ));
+	int 			*msgidp );
 
 LDAP_F( int )
-ldap_compare_ext_s LDAP_P((
+ldap_compare_ext_s (
 	LDAP			*ld,
-	LDAP_CONST char	*dn,
-	LDAP_CONST char	*attr,
+	const char	*dn,
+	const char	*attr,
 	struct berval	*bvalue,
 	LDAPControl		**serverctrls,
-	LDAPControl		**clientctrls ));
+	LDAPControl		**clientctrls );
 
 LDAP_F( int )
-ldap_compare LDAP_P((
+ldap_compare (
 	LDAP *ld,
-	LDAP_CONST char *dn,
-	LDAP_CONST char *attr,
-	LDAP_CONST char *value )) __reldap_deprecated_msg("use ldap_compare_ext");
+	const char *dn,
+	const char *attr,
+	const char *value ) __reldap_deprecated_msg("use ldap_compare_ext");
 
 LDAP_F( int )
-ldap_compare_s LDAP_P((
+ldap_compare_s (
 	LDAP *ld,
-	LDAP_CONST char *dn,
-	LDAP_CONST char *attr,
-	LDAP_CONST char *value )) __reldap_deprecated_msg("use ldap_compare_ext_s");
+	const char *dn,
+	const char *attr,
+	const char *value ) __reldap_deprecated_msg("use ldap_compare_ext_s");
 
 /*
  * in delete.c:
  */
 LDAP_F( int )
-ldap_delete_ext LDAP_P((
+ldap_delete_ext (
 	LDAP			*ld,
-	LDAP_CONST char	*dn,
+	const char	*dn,
 	LDAPControl		**serverctrls,
 	LDAPControl		**clientctrls,
-	int 			*msgidp ));
+	int 			*msgidp );
 
 LDAP_F( int )
-ldap_delete_ext_s LDAP_P((
+ldap_delete_ext_s (
 	LDAP			*ld,
-	LDAP_CONST char	*dn,
+	const char	*dn,
 	LDAPControl		**serverctrls,
-	LDAPControl		**clientctrls ));
+	LDAPControl		**clientctrls );
 
 LDAP_F( int )
-ldap_delete LDAP_P((
+ldap_delete (
 	LDAP *ld,
-	LDAP_CONST char *dn )) __reldap_deprecated_msg("use ldap_delete_ext");
+	const char *dn ) __reldap_deprecated_msg("use ldap_delete_ext");
 
 LDAP_F( int )
-ldap_delete_s LDAP_P((
+ldap_delete_s (
 	LDAP *ld,
-	LDAP_CONST char *dn )) __reldap_deprecated_msg("use ldap_delete_ext_s");
+	const char *dn ) __reldap_deprecated_msg("use ldap_delete_ext_s");
 
 
 /*
  * in error.c:
  */
 LDAP_F( int )
-ldap_parse_result LDAP_P((
+ldap_parse_result (
 	LDAP			*ld,
 	LDAPMessage		*res,
 	int				*errcodep,
@@ -1360,172 +1360,172 @@ ldap_parse_result LDAP_P((
 	char			**diagmsgp,
 	char			***referralsp,
 	LDAPControl		***serverctrls,
-	int				freeit ));
+	int				freeit );
 
 LBER_F( const char * )
 lber_strerror(int err);
 
 LDAP_F( char * )
-ldap_err2string LDAP_P((
-	int err ));
+ldap_err2string (
+	int err );
 
 LDAP_F( int )
-ldap_result2error LDAP_P((
+ldap_result2error (
 	LDAP *ld,
 	LDAPMessage *r,
-	int freeit ));
+	int freeit );
 
 LDAP_F( void )
-ldap_perror LDAP_P((
+ldap_perror (
 	LDAP *ld,
-	LDAP_CONST char *s )) __reldap_deprecated_msg("use ldap_err2string or ldap_debug_perror");
+	const char *s ) __reldap_deprecated_msg("use ldap_err2string or ldap_debug_perror");
 
-LDAP_F(void) ldap_debug_perror( LDAP *ld, LDAP_CONST char *str );
+LDAP_F(void) ldap_debug_perror( LDAP *ld, const char *str );
 
 /*
  * gssapi.c:
  */
 LDAP_F( int )
-ldap_gssapi_bind LDAP_P((
+ldap_gssapi_bind (
 	LDAP *ld,
-	LDAP_CONST char *dn,
-	LDAP_CONST char *creds ));
+	const char *dn,
+	const char *creds );
 
 LDAP_F( int )
-ldap_gssapi_bind_s LDAP_P((
+ldap_gssapi_bind_s (
 	LDAP *ld,
-	LDAP_CONST char *dn,
-	LDAP_CONST char *creds ));
+	const char *dn,
+	const char *creds );
 
 
 /*
  * in modify.c:
  */
 LDAP_F( int )
-ldap_modify_ext LDAP_P((
+ldap_modify_ext (
 	LDAP			*ld,
-	LDAP_CONST char	*dn,
+	const char	*dn,
 	LDAPMod			**mods,
 	LDAPControl		**serverctrls,
 	LDAPControl		**clientctrls,
-	int 			*msgidp ));
+	int 			*msgidp );
 
 LDAP_F( int )
-ldap_modify_ext_s LDAP_P((
+ldap_modify_ext_s (
 	LDAP			*ld,
-	LDAP_CONST char	*dn,
+	const char	*dn,
 	LDAPMod			**mods,
 	LDAPControl		**serverctrls,
-	LDAPControl		**clientctrls ));
+	LDAPControl		**clientctrls );
 
 LDAP_F( int )
-ldap_modify LDAP_P((
+ldap_modify (
 	LDAP *ld,
-	LDAP_CONST char *dn,
-	LDAPMod **mods )) __reldap_deprecated_msg("use ldap_modify_ext");
+	const char *dn,
+	LDAPMod **mods ) __reldap_deprecated_msg("use ldap_modify_ext");
 
 LDAP_F( int )
-ldap_modify_s LDAP_P((
+ldap_modify_s (
 	LDAP *ld,
-	LDAP_CONST char *dn,
-	LDAPMod **mods )) __reldap_deprecated_msg("use ldap_modify_ext_s");
+	const char *dn,
+	LDAPMod **mods ) __reldap_deprecated_msg("use ldap_modify_ext_s");
 
 
 /*
  * in modrdn.c:
  */
 LDAP_F( int )
-ldap_rename LDAP_P((
+ldap_rename (
 	LDAP *ld,
-	LDAP_CONST char *dn,
-	LDAP_CONST char *newrdn,
-	LDAP_CONST char *newSuperior,
+	const char *dn,
+	const char *newrdn,
+	const char *newSuperior,
 	int deleteoldrdn,
 	LDAPControl **sctrls,
 	LDAPControl **cctrls,
-	int *msgidp ));
+	int *msgidp );
 
 LDAP_F( int )
-ldap_rename_s LDAP_P((
+ldap_rename_s (
 	LDAP *ld,
-	LDAP_CONST char *dn,
-	LDAP_CONST char *newrdn,
-	LDAP_CONST char *newSuperior,
+	const char *dn,
+	const char *newrdn,
+	const char *newSuperior,
 	int deleteoldrdn,
 	LDAPControl **sctrls,
-	LDAPControl **cctrls ));
+	LDAPControl **cctrls );
 
 LDAP_F( int )
-ldap_rename2 LDAP_P((
+ldap_rename2 (
 	LDAP *ld,
-	LDAP_CONST char *dn,
-	LDAP_CONST char *newrdn,
-	LDAP_CONST char *newSuperior,
-	int deleteoldrdn )) __reldap_deprecated_msg("use ldap_rename");
+	const char *dn,
+	const char *newrdn,
+	const char *newSuperior,
+	int deleteoldrdn ) __reldap_deprecated_msg("use ldap_rename");
 
 LDAP_F( int )
-ldap_rename2_s LDAP_P((
+ldap_rename2_s (
 	LDAP *ld,
-	LDAP_CONST char *dn,
-	LDAP_CONST char *newrdn,
-	LDAP_CONST char *newSuperior,
-	int deleteoldrdn )) __reldap_deprecated_msg("use ldap_rename_s");
+	const char *dn,
+	const char *newrdn,
+	const char *newSuperior,
+	int deleteoldrdn ) __reldap_deprecated_msg("use ldap_rename_s");
 
 LDAP_F( int )
-ldap_modrdn LDAP_P((
+ldap_modrdn (
 	LDAP *ld,
-	LDAP_CONST char *dn,
-	LDAP_CONST char *newrdn )) __reldap_deprecated_msg("use ldap_rename");
+	const char *dn,
+	const char *newrdn ) __reldap_deprecated_msg("use ldap_rename");
 
 LDAP_F( int )
-ldap_modrdn_s LDAP_P((
+ldap_modrdn_s (
 	LDAP *ld,
-	LDAP_CONST char *dn,
-	LDAP_CONST char *newrdn )) __reldap_deprecated_msg("use ldap_rename_s");
+	const char *dn,
+	const char *newrdn ) __reldap_deprecated_msg("use ldap_rename_s");
 
 LDAP_F( int )
-ldap_modrdn2 LDAP_P((
+ldap_modrdn2 (
 	LDAP *ld,
-	LDAP_CONST char *dn,
-	LDAP_CONST char *newrdn,
-	int deleteoldrdn )) __reldap_deprecated_msg("use ldap_rename");
+	const char *dn,
+	const char *newrdn,
+	int deleteoldrdn ) __reldap_deprecated_msg("use ldap_rename");
 
 LDAP_F( int )
-ldap_modrdn2_s LDAP_P((
+ldap_modrdn2_s (
 	LDAP *ld,
-	LDAP_CONST char *dn,
-	LDAP_CONST char *newrdn,
-	int deleteoldrdn)) __reldap_deprecated_msg("use ldap_rename_s");
+	const char *dn,
+	const char *newrdn,
+	int deleteoldrdn) __reldap_deprecated_msg("use ldap_rename_s");
 
 /*
  * in open.c:
  */
 LDAP_F( LDAP * )
-ldap_init LDAP_P((
-	LDAP_CONST char *host,
-	int port ));
+ldap_init (
+	const char *host,
+	int port );
 
 LDAP_F( LDAP * )
-ldap_open LDAP_P((
-	LDAP_CONST char *host,
-	int port )) __reldap_deprecated_msg("use ldap_create or ldap_initialize");
+ldap_open (
+	const char *host,
+	int port ) __reldap_deprecated_msg("use ldap_create or ldap_initialize");
 
 LDAP_F( int )
-ldap_create LDAP_P((
-	LDAP **ldp ));
+ldap_create (
+	LDAP **ldp );
 
 LDAP_F( int )
-ldap_initialize LDAP_P((
+ldap_initialize (
 	LDAP **ldp,
-	LDAP_CONST char *url ));
+	const char *url );
 
 LDAP_F( LDAP * )
-ldap_dup LDAP_P((
-	LDAP *old ));
+ldap_dup (
+	LDAP *old );
 
 LDAP_F( int )
-ldap_init_fd LDAP_P((
-	ber_socket_t fd, int proto, LDAP_CONST char *url, LDAP **ldp ));
+ldap_init_fd (
+	ber_socket_t fd, int proto, const char *url, LDAP **ldp );
 
 LDAP_F( int )
 ldap_connect( LDAP *ld );
@@ -1535,117 +1535,117 @@ ldap_connect( LDAP *ld );
  */
 
 LDAP_F( int )
-ldap_tls_inplace LDAP_P((
-	LDAP *ld ));
+ldap_tls_inplace (
+	LDAP *ld );
 
 LDAP_F( int )
-ldap_start_tls LDAP_P((
+ldap_start_tls (
 	LDAP *ld,
 	LDAPControl **serverctrls,
 	LDAPControl **clientctrls,
-	int *msgidp ));
+	int *msgidp );
 
 LDAP_F( int )
-ldap_install_tls LDAP_P((
-	LDAP *ld ));
+ldap_install_tls (
+	LDAP *ld );
 
 LDAP_F( int )
-ldap_start_tls_s LDAP_P((
+ldap_start_tls_s (
 	LDAP *ld,
 	LDAPControl **serverctrls,
-	LDAPControl **clientctrls ));
+	LDAPControl **clientctrls );
 
 /*
  * in messages.c:
  */
 LDAP_F( LDAPMessage * )
-ldap_first_message LDAP_P((
+ldap_first_message (
 	LDAP *ld,
-	LDAPMessage *chain ));
+	LDAPMessage *chain );
 
 LDAP_F( LDAPMessage * )
-ldap_next_message LDAP_P((
+ldap_next_message (
 	LDAP *ld,
-	LDAPMessage *msg ));
+	LDAPMessage *msg );
 
 LDAP_F( int )
-ldap_count_messages LDAP_P((
+ldap_count_messages (
 	LDAP *ld,
-	LDAPMessage *chain ));
+	LDAPMessage *chain );
 
 /*
  * in references.c:
  */
 LDAP_F( LDAPMessage * )
-ldap_first_reference LDAP_P((
+ldap_first_reference (
 	LDAP *ld,
-	LDAPMessage *chain ));
+	LDAPMessage *chain );
 
 LDAP_F( LDAPMessage * )
-ldap_next_reference LDAP_P((
+ldap_next_reference (
 	LDAP *ld,
-	LDAPMessage *ref ));
+	LDAPMessage *ref );
 
 LDAP_F( int )
-ldap_count_references LDAP_P((
+ldap_count_references (
 	LDAP *ld,
-	LDAPMessage *chain ));
+	LDAPMessage *chain );
 
 LDAP_F( int )
-ldap_parse_reference LDAP_P((
+ldap_parse_reference (
 	LDAP			*ld,
 	LDAPMessage		*ref,
 	char			***referralsp,
 	LDAPControl		***serverctrls,
-	int				freeit));
+	int				freeit);
 
 
 /*
  * in getentry.c:
  */
 LDAP_F( LDAPMessage * )
-ldap_first_entry LDAP_P((
+ldap_first_entry (
 	LDAP *ld,
-	LDAPMessage *chain ));
+	LDAPMessage *chain );
 
 LDAP_F( LDAPMessage * )
-ldap_next_entry LDAP_P((
+ldap_next_entry (
 	LDAP *ld,
-	LDAPMessage *entry ));
+	LDAPMessage *entry );
 
 LDAP_F( int )
-ldap_count_entries LDAP_P((
+ldap_count_entries (
 	LDAP *ld,
-	LDAPMessage *chain ));
+	LDAPMessage *chain );
 
 LDAP_F( int )
-ldap_get_entry_controls LDAP_P((
+ldap_get_entry_controls (
 	LDAP			*ld,
 	LDAPMessage		*entry,
-	LDAPControl		***serverctrls));
+	LDAPControl		***serverctrls);
 
 
 /*
  * in addentry.c
  */
 LDAP_F( LDAPMessage * )
-ldap_delete_result_entry LDAP_P((
+ldap_delete_result_entry (
 	LDAPMessage **list,
-	LDAPMessage *e ));
+	LDAPMessage *e );
 
 LDAP_F( void )
-ldap_add_result_entry LDAP_P((
+ldap_add_result_entry (
 	LDAPMessage **list,
-	LDAPMessage *e ));
+	LDAPMessage *e );
 
 
 /*
  * in getdn.c
  */
 LDAP_F( char * )
-ldap_get_dn LDAP_P((
+ldap_get_dn (
 	LDAP *ld,
-	LDAPMessage *entry ));
+	LDAPMessage *entry );
 
 typedef struct ldap_ava {
 	struct berval la_attr;
@@ -1681,374 +1681,374 @@ typedef LDAPRDN* LDAPDN;
 #define LDAP_DN_P_NOSPACEAFTERRDN	0x2000U
 #define LDAP_DN_PEDANTIC			0xF000U
 
-LDAP_F( void ) ldap_rdnfree LDAP_P(( LDAPRDN rdn ));
-LDAP_F( void ) ldap_dnfree LDAP_P(( LDAPDN dn ));
+LDAP_F( void ) ldap_rdnfree( LDAPRDN rdn );
+LDAP_F( void ) ldap_dnfree( LDAPDN dn );
 
 LDAP_F( int )
-ldap_bv2dn LDAP_P((
+ldap_bv2dn (
 	struct berval *bv,
 	LDAPDN *dn,
-	unsigned flags ));
+	unsigned flags );
 
 LDAP_F( int )
-ldap_str2dn LDAP_P((
-	LDAP_CONST char *str,
+ldap_str2dn (
+	const char *str,
 	LDAPDN *dn,
-	unsigned flags ));
+	unsigned flags );
 
 LDAP_F( int )
-ldap_dn2bv LDAP_P((
+ldap_dn2bv (
 	LDAPDN dn,
 	struct berval *bv,
-	unsigned flags ));
+	unsigned flags );
 
 LDAP_F( int )
-ldap_dn2str LDAP_P((
+ldap_dn2str (
 	LDAPDN dn,
 	char **str,
-	unsigned flags ));
+	unsigned flags );
 
 LDAP_F( int )
-ldap_bv2rdn LDAP_P((
+ldap_bv2rdn (
 	struct berval *bv,
 	LDAPRDN *rdn,
 	char **next,
-	unsigned flags ));
+	unsigned flags );
 
 LDAP_F( int )
-ldap_str2rdn LDAP_P((
-	LDAP_CONST char *str,
+ldap_str2rdn (
+	const char *str,
 	LDAPRDN *rdn,
 	char **next,
-	unsigned flags ));
+	unsigned flags );
 
 LDAP_F( int )
-ldap_rdn2bv LDAP_P((
+ldap_rdn2bv (
 	LDAPRDN rdn,
 	struct berval *bv,
-	unsigned flags ));
+	unsigned flags );
 
 LDAP_F( int )
-ldap_rdn2str LDAP_P((
+ldap_rdn2str (
 	LDAPRDN rdn,
 	char **str,
-	unsigned flags ));
+	unsigned flags );
 
 LDAP_F( int )
-ldap_dn_normalize LDAP_P((
-	LDAP_CONST char *in, unsigned iflags,
-	char **out, unsigned oflags ));
+ldap_dn_normalize (
+	const char *in, unsigned iflags,
+	char **out, unsigned oflags );
 
 LDAP_F( char * )
-ldap_dn2ufn LDAP_P((
-	LDAP_CONST char *dn )) __reldap_deprecated_msg("use ldap_dn_normalize");
+ldap_dn2ufn (
+	const char *dn ) __reldap_deprecated_msg("use ldap_dn_normalize");
 
 LDAP_F( char ** )
-ldap_explode_dn LDAP_P((
-	LDAP_CONST char *dn,
-	int notypes ));
+ldap_explode_dn (
+	const char *dn,
+	int notypes );
 
 LDAP_F( char ** )
-ldap_explode_rdn LDAP_P((
-	LDAP_CONST char *rdn,
-	int notypes ));
+ldap_explode_rdn (
+	const char *rdn,
+	int notypes );
 
 typedef int LDAPDN_rewrite_func
-	LDAP_P(( LDAPDN dn, unsigned flags, void *ctx ));
+( LDAPDN dn, unsigned flags, void *ctx );
 
 LDAP_F( int )
-ldap_X509dn2bv LDAP_P(( void *x509_name, struct berval *dn,
-	LDAPDN_rewrite_func *func, unsigned flags ));
+ldap_X509dn2bv ( void *x509_name, struct berval *dn,
+	LDAPDN_rewrite_func *func, unsigned flags );
 
 LDAP_F( char * )
-ldap_dn2dcedn LDAP_P((
-	LDAP_CONST char *dn )) __reldap_deprecated_msg("use ldap_dn_normalize");
+ldap_dn2dcedn (
+	const char *dn ) __reldap_deprecated_msg("use ldap_dn_normalize");
 
 LDAP_F( char * )
-ldap_dcedn2dn LDAP_P((
-	LDAP_CONST char *dce )) __reldap_deprecated_msg("use ldap_dn_normalize");
+ldap_dcedn2dn (
+	const char *dce ) __reldap_deprecated_msg("use ldap_dn_normalize");
 
 LDAP_F( char * )
-ldap_dn2ad_canonical LDAP_P((
-	LDAP_CONST char *dn )) __reldap_deprecated_msg("use ldap_dn_normalize");
+ldap_dn2ad_canonical (
+	const char *dn ) __reldap_deprecated_msg("use ldap_dn_normalize");
 
 LDAP_F( int )
-ldap_get_dn_ber LDAP_P((
-	LDAP *ld, LDAPMessage *e, BerElement **berout, struct berval *dn ));
+ldap_get_dn_ber (
+	LDAP *ld, LDAPMessage *e, BerElement **berout, struct berval *dn );
 
 LDAP_F( int )
-ldap_get_attribute_ber LDAP_P((
+ldap_get_attribute_ber (
 	LDAP *ld, LDAPMessage *e, BerElement *ber, struct berval *attr,
-	struct berval **vals ));
+	struct berval **vals );
 
 /*
  * in getattr.c
  */
 LDAP_F( char * )
-ldap_first_attribute LDAP_P((
+ldap_first_attribute (
 	LDAP *ld,
 	LDAPMessage *entry,
-	BerElement **ber ));
+	BerElement **ber );
 
 LDAP_F( char * )
-ldap_next_attribute LDAP_P((
+ldap_next_attribute (
 	LDAP *ld,
 	LDAPMessage *entry,
-	BerElement *ber ));
+	BerElement *ber );
 
 
 /*
  * in getvalues.c
  */
 LDAP_F( struct berval ** )
-ldap_get_values_len LDAP_P((
+ldap_get_values_len (
 	LDAP *ld,
 	LDAPMessage *entry,
-	LDAP_CONST char *target ));
+	const char *target );
 
 LDAP_F( int )
-ldap_count_values_len LDAP_P((
-	struct berval **vals ));
+ldap_count_values_len (
+	struct berval **vals );
 
 LDAP_F( void )
-ldap_value_free_len LDAP_P((
-	struct berval **vals ));
+ldap_value_free_len (
+	struct berval **vals );
 
 LDAP_F( char ** )
-ldap_get_values LDAP_P((
+ldap_get_values (
 	LDAP *ld,
 	LDAPMessage *entry,
-	LDAP_CONST char *target ));
+	const char *target );
 
 LDAP_F( int )
-ldap_count_values LDAP_P((
-	char **vals ));
+ldap_count_values (
+	char **vals );
 
 LDAP_F( void )
-ldap_value_free LDAP_P((
-	char **vals ));
+ldap_value_free (
+	char **vals );
 
 /*
  * in result.c:
  */
 LDAP_F( int )
-ldap_result LDAP_P((
+ldap_result (
 	LDAP *ld,
 	int msgid,
 	int all,
 	struct timeval *timeout,
-	LDAPMessage **result ));
+	LDAPMessage **result );
 
 LDAP_F( int )
-ldap_msgtype LDAP_P((
-	LDAPMessage *lm ));
+ldap_msgtype (
+	LDAPMessage *lm );
 
 LDAP_F( int )
-ldap_msgid   LDAP_P((
-	LDAPMessage *lm ));
+ldap_msgid   (
+	LDAPMessage *lm );
 
 LDAP_F( int )
-ldap_msgfree LDAP_P((
-	LDAPMessage *lm ));
+ldap_msgfree (
+	LDAPMessage *lm );
 
 LDAP_F( int )
-ldap_msgdelete LDAP_P((
+ldap_msgdelete (
 	LDAP *ld,
-	int msgid ));
+	int msgid );
 
 
 /*
  * in search.c:
  */
 LDAP_F( int )
-ldap_bv2escaped_filter_value LDAP_P((
+ldap_bv2escaped_filter_value (
 	struct berval *in,
-	struct berval *out ));
+	struct berval *out );
 
 LDAP_F( int )
-ldap_search_ext LDAP_P((
+ldap_search_ext (
 	LDAP			*ld,
-	LDAP_CONST char	*base,
+	const char	*base,
 	int				scope,
-	LDAP_CONST char	*filter,
+	const char	*filter,
 	char			**attrs,
 	int				attrsonly,
 	LDAPControl		**serverctrls,
 	LDAPControl		**clientctrls,
 	struct timeval	*timeout,
 	int				sizelimit,
-	int				*msgidp ));
+	int				*msgidp );
 
 LDAP_F( int )
-ldap_search_ext_s LDAP_P((
+ldap_search_ext_s (
 	LDAP			*ld,
-	LDAP_CONST char	*base,
+	const char	*base,
 	int				scope,
-	LDAP_CONST char	*filter,
+	const char	*filter,
 	char			**attrs,
 	int				attrsonly,
 	LDAPControl		**serverctrls,
 	LDAPControl		**clientctrls,
 	struct timeval	*timeout,
 	int				sizelimit,
-	LDAPMessage		**res ));
+	LDAPMessage		**res );
 
 LDAP_F( int )
-ldap_search LDAP_P((
+ldap_search (
 	LDAP *ld,
-	LDAP_CONST char *base,
+	const char *base,
 	int scope,
-	LDAP_CONST char *filter,
+	const char *filter,
 	char **attrs,
-	int attrsonly )) __reldap_deprecated_msg("use ldap_search_ext");
+	int attrsonly ) __reldap_deprecated_msg("use ldap_search_ext");
 
 LDAP_F( int )
-ldap_search_s LDAP_P((
+ldap_search_s (
 	LDAP *ld,
-	LDAP_CONST char *base,
+	const char *base,
 	int scope,
-	LDAP_CONST char *filter,
+	const char *filter,
 	char **attrs,
 	int attrsonly,
-	LDAPMessage **res )) __reldap_deprecated_msg("use ldap_search_ext_s");
+	LDAPMessage **res ) __reldap_deprecated_msg("use ldap_search_ext_s");
 
 LDAP_F( int )
-ldap_search_st LDAP_P((
+ldap_search_st (
 	LDAP *ld,
-	LDAP_CONST char *base,
+	const char *base,
 	int scope,
-	LDAP_CONST char *filter,
+	const char *filter,
     char **attrs,
 	int attrsonly,
 	struct timeval *timeout,
-	LDAPMessage **res )) __reldap_deprecated_msg("use ldap_search_ext_s");
+	LDAPMessage **res ) __reldap_deprecated_msg("use ldap_search_ext_s");
 
 /*
  * in unbind.c
  */
 LDAP_F( int )
-ldap_unbind_ext LDAP_P((
+ldap_unbind_ext (
 	LDAP			*ld,
 	LDAPControl		**serverctrls,
-	LDAPControl		**clientctrls));
+	LDAPControl		**clientctrls);
 
 LDAP_F( int )
-ldap_unbind_ext_s LDAP_P((
+ldap_unbind_ext_s (
 	LDAP			*ld,
 	LDAPControl		**serverctrls,
-	LDAPControl		**clientctrls));
+	LDAPControl		**clientctrls);
 
 LDAP_F( int )
-ldap_destroy LDAP_P((
-	LDAP			*ld));
+ldap_destroy (
+	LDAP			*ld);
 
 LDAP_F( int )
-ldap_unbind LDAP_P((
-	LDAP *ld )) __reldap_deprecated_msg("use ldap_unbind_ext");
+ldap_unbind (
+	LDAP *ld ) __reldap_deprecated_msg("use ldap_unbind_ext");
 
 LDAP_F( int )
-ldap_unbind_s LDAP_P((
-	LDAP *ld )) __reldap_deprecated_msg("use ldap_unbind_ext_s");
+ldap_unbind_s (
+	LDAP *ld ) __reldap_deprecated_msg("use ldap_unbind_ext_s");
 
 /*
  * in filter.c
  */
 LDAP_F( int )
-ldap_put_vrFilter LDAP_P((
+ldap_put_vrFilter (
 	BerElement *ber,
-	const char *vrf ));
+	const char *vrf );
 
 /*
  * in free.c
  */
 
 LDAP_F( void * )
-ldap_memalloc LDAP_P((
-	ber_len_t s ));
+ldap_memalloc (
+	ber_len_t s );
 
 LDAP_F( void * )
-ldap_memrealloc LDAP_P((
+ldap_memrealloc (
 	void* p,
-	ber_len_t s ));
+	ber_len_t s );
 
 LDAP_F( void * )
-ldap_memcalloc LDAP_P((
+ldap_memcalloc (
 	ber_len_t n,
-	ber_len_t s ));
+	ber_len_t s );
 
 LDAP_F( void )
-ldap_memfree LDAP_P((
-	void* p ));
+ldap_memfree (
+	void* p );
 
 LDAP_F( void )
-ldap_memvfree LDAP_P((
-	void** v ));
+ldap_memvfree (
+	void** v );
 
 LDAP_F( char * )
-ldap_strdup LDAP_P((
-	LDAP_CONST char * ));
+ldap_strdup (
+	const char * );
 
 LDAP_F( void )
-ldap_mods_free LDAP_P((
+ldap_mods_free (
 	LDAPMod **mods,
-	int freemods ));
+	int freemods );
 
 
 /*
  * in sort.c
  */
-typedef int (LDAP_SORT_AD_CMP_PROC) LDAP_P((
-	LDAP_CONST char *left,
-	LDAP_CONST char *right ));
+typedef int (LDAP_SORT_AD_CMP_PROC) (
+	const char *left,
+	const char *right );
 
-typedef int (LDAP_SORT_AV_CMP_PROC) LDAP_P((
-	LDAP_CONST void *left,
-	LDAP_CONST void *right ));
+typedef int (LDAP_SORT_AV_CMP_PROC) (
+	const void *left,
+	const void *right );
 
 LDAP_F( int )
-ldap_sort_entries LDAP_P(( LDAP *ld,
+ldap_sort_entries ( LDAP *ld,
 	LDAPMessage **chain,
-	LDAP_CONST char *attr,
-	LDAP_SORT_AD_CMP_PROC *cmp ));
+	const char *attr,
+	LDAP_SORT_AD_CMP_PROC *cmp );
 
 LDAP_F( int )
-ldap_sort_values LDAP_P((
+ldap_sort_values (
 	LDAP *ld,
 	char **vals,
-	LDAP_SORT_AV_CMP_PROC *cmp ));
+	LDAP_SORT_AV_CMP_PROC *cmp );
 
 LDAP_F( int )
-ldap_sort_strcasecmp LDAP_P((
-	LDAP_CONST void *a,
-	LDAP_CONST void *b ));
+ldap_sort_strcasecmp (
+	const void *a,
+	const void *b );
 
 /*
  * in url.c
  */
 LDAP_F( int )
-ldap_is_ldap_url LDAP_P((
-	LDAP_CONST char *url ));
+ldap_is_ldap_url (
+	const char *url );
 
 LDAP_F( int )
-ldap_is_ldaps_url LDAP_P((
-	LDAP_CONST char *url ));
+ldap_is_ldaps_url (
+	const char *url );
 
 LDAP_F( int )
-ldap_is_ldapi_url LDAP_P((
-	LDAP_CONST char *url ));
+ldap_is_ldapi_url (
+	const char *url );
 
 LDAP_F( int )
-ldap_url_parse LDAP_P((
-	LDAP_CONST char *url,
-	LDAPURLDesc **ludpp ));
+ldap_url_parse (
+	const char *url,
+	LDAPURLDesc **ludpp );
 
 LDAP_F( char * )
-ldap_url_desc2str LDAP_P((
-	LDAPURLDesc *ludp ));
+ldap_url_desc2str (
+	LDAPURLDesc *ludp );
 
 LDAP_F( void )
-ldap_free_urldesc LDAP_P((
-	LDAPURLDesc *ludp ));
+ldap_free_urldesc (
+	LDAPURLDesc *ludp );
 
 
 /*
@@ -2058,17 +2058,17 @@ ldap_free_urldesc LDAP_P((
 #define LDAP_API_FEATURE_CANCEL 1000
 
 LDAP_F( int )
-ldap_cancel LDAP_P(( LDAP *ld,
+ldap_cancel ( LDAP *ld,
 	int cancelid,
 	LDAPControl		**sctrls,
 	LDAPControl		**cctrls,
-	int				*msgidp ));
+	int				*msgidp );
 
 LDAP_F( int )
-ldap_cancel_s LDAP_P(( LDAP *ld,
+ldap_cancel_s ( LDAP *ld,
 	int cancelid,
 	LDAPControl **sctrl,
-	LDAPControl **cctrl ));
+	LDAPControl **cctrl );
 
 /*
  * LDAP Turn Extended Operation <draft-zeilenga-ldap-turn-xx.txt>
@@ -2077,19 +2077,19 @@ ldap_cancel_s LDAP_P(( LDAP *ld,
 #define LDAP_API_FEATURE_TURN 1000
 
 LDAP_F( int )
-ldap_turn LDAP_P(( LDAP *ld,
+ldap_turn ( LDAP *ld,
 	int mutual,
-	LDAP_CONST char* identifier,
+	const char* identifier,
 	LDAPControl		**sctrls,
 	LDAPControl		**cctrls,
-	int				*msgidp ));
+	int				*msgidp );
 
 LDAP_F( int )
-ldap_turn_s LDAP_P(( LDAP *ld,
+ldap_turn_s ( LDAP *ld,
 	int mutual,
-	LDAP_CONST char* identifier,
+	const char* identifier,
 	LDAPControl **sctrl,
-	LDAPControl **cctrl ));
+	LDAPControl **cctrl );
 
 /*
  * LDAP Paged Results
@@ -2098,33 +2098,33 @@ ldap_turn_s LDAP_P(( LDAP *ld,
 #define LDAP_API_FEATURE_PAGED_RESULTS 2000
 
 LDAP_F( int )
-ldap_create_page_control_value LDAP_P((
+ldap_create_page_control_value (
 	LDAP *ld,
 	ber_int_t pagesize,
 	struct berval *cookie,
-	struct berval *value ));
+	struct berval *value );
 
 LDAP_F( int )
-ldap_create_page_control LDAP_P((
+ldap_create_page_control (
 	LDAP *ld,
 	ber_int_t pagesize,
 	struct berval *cookie,
 	int iscritical,
-	LDAPControl **ctrlp ));
+	LDAPControl **ctrlp );
 
 LDAP_F( int )
-ldap_parse_page_control LDAP_P((
+ldap_parse_page_control (
 	LDAP *ld,
 	LDAPControl **ctrls,
 	ber_int_t *count,
-	struct berval **cookie )) __reldap_deprecated_msg("use ldap_parse_pageresponse_control");
+	struct berval **cookie ) __reldap_deprecated_msg("use ldap_parse_pageresponse_control");
 
 LDAP_F( int )
-ldap_parse_pageresponse_control LDAP_P((
+ldap_parse_pageresponse_control (
 	LDAP *ld,
 	LDAPControl *ctrl,
 	ber_int_t *count,
-	struct berval *cookie ));
+	struct berval *cookie );
 
 /*
  * LDAP Server Side Sort
@@ -2140,33 +2140,33 @@ typedef struct ldapsortkey {
 } LDAPSortKey;
 
 LDAP_F( int )
-ldap_create_sort_keylist LDAP_P((
+ldap_create_sort_keylist (
 	LDAPSortKey ***sortKeyList,
-	char *keyString ));
+	char *keyString );
 
 LDAP_F( void )
-ldap_free_sort_keylist LDAP_P((
-	LDAPSortKey **sortkeylist ));
+ldap_free_sort_keylist (
+	LDAPSortKey **sortkeylist );
 
 LDAP_F( int )
-ldap_create_sort_control_value LDAP_P((
+ldap_create_sort_control_value (
 	LDAP *ld,
 	LDAPSortKey **keyList,
-	struct berval *value ));
+	struct berval *value );
 
 LDAP_F( int )
-ldap_create_sort_control LDAP_P((
+ldap_create_sort_control (
 	LDAP *ld,
 	LDAPSortKey **keyList,
 	int iscritical,
-	LDAPControl **ctrlp ));
+	LDAPControl **ctrlp );
 
 LDAP_F( int )
-ldap_parse_sortresponse_control LDAP_P((
+ldap_parse_sortresponse_control (
 	LDAP *ld,
 	LDAPControl *ctrl,
 	ber_int_t *result,
-	char **attribute ));
+	char **attribute );
 
 /*
  * LDAP Virtual List View
@@ -2187,25 +2187,25 @@ typedef struct ldapvlvinfo {
 } LDAPVLVInfo;
 
 LDAP_F( int )
-ldap_create_vlv_control_value LDAP_P((
+ldap_create_vlv_control_value (
 	LDAP *ld,
 	LDAPVLVInfo *ldvlistp,
-	struct berval *value));
+	struct berval *value);
 
 LDAP_F( int )
-ldap_create_vlv_control LDAP_P((
+ldap_create_vlv_control (
 	LDAP *ld,
 	LDAPVLVInfo *ldvlistp,
-	LDAPControl **ctrlp ));
+	LDAPControl **ctrlp );
 
 LDAP_F( int )
-ldap_parse_vlvresponse_control LDAP_P((
+ldap_parse_vlvresponse_control (
 	LDAP          *ld,
 	LDAPControl   *ctrls,
 	ber_int_t *target_posp,
 	ber_int_t *list_countp,
 	struct berval **contextp,
-	int           *errcodep ));
+	int           *errcodep );
 
 /*
  * LDAP Verify Credentials
@@ -2213,23 +2213,23 @@ ldap_parse_vlvresponse_control LDAP_P((
 #define LDAP_API_FEATURE_VERIFY_CREDENTIALS 1000
 
 LDAP_F( int )
-ldap_verify_credentials LDAP_P((
+ldap_verify_credentials (
 	LDAP		*ld,
 	struct berval	*cookie,
-	LDAP_CONST char	*dn,
-	LDAP_CONST char	*mechanism,
+	const char	*dn,
+	const char	*mechanism,
 	struct berval	*cred,
 	LDAPControl	**ctrls,
 	LDAPControl	**serverctrls,
 	LDAPControl	**clientctrls,
-	int		*msgidp ));
+	int		*msgidp );
 
 LDAP_F( int )
-ldap_verify_credentials_s LDAP_P((
+ldap_verify_credentials_s (
 	LDAP		*ld,
 	struct berval	*cookie,
-	LDAP_CONST char	*dn,
-	LDAP_CONST char	*mechanism,
+	const char	*dn,
+	const char	*mechanism,
 	struct berval	*cred,
 	LDAPControl	**vcictrls,
 	LDAPControl	**serverctrls,
@@ -2238,27 +2238,27 @@ ldap_verify_credentials_s LDAP_P((
 	char			**diagmsgp,
 	struct berval	**scookie,
 	struct berval	**servercredp,
-	LDAPControl	***vcoctrls));
+	LDAPControl	***vcoctrls);
 
 
 LDAP_F( int )
-ldap_parse_verify_credentials LDAP_P((
+ldap_parse_verify_credentials (
 	LDAP		*ld,
 	LDAPMessage	*res,
 	int			*code,
 	char			**diagmsgp,
 	struct berval	**cookie,
 	struct berval	**servercredp,
-	LDAPControl	***vcctrls));
+	LDAPControl	***vcctrls);
 
 /* not yet implemented */
 /* #define LDAP_API_FEATURE_VERIFY_CREDENTIALS_INTERACTIVE 1000 */
 #ifdef LDAP_API_FEATURE_VERIFY_CREDENTIALS_INTERACTIVE
 LDAP_F( int )
-ldap_verify_credentials_interactive LDAP_P((
+ldap_verify_credentials_interactive (
 	LDAP *ld,
-	LDAP_CONST char *dn, /* usually NULL */
-	LDAP_CONST char *saslMechanism,
+	const char *dn, /* usually NULL */
+	const char *saslMechanism,
 	LDAPControl **vcControls,
 	LDAPControl **serverControls,
 	LDAPControl **clientControls,
@@ -2274,7 +2274,7 @@ ldap_verify_credentials_interactive LDAP_P((
 
 	/* returned during bind processing */
 	const char **rmech,
-	int *msgid ));
+	int *msgid );
 #endif
 
 /*
@@ -2284,23 +2284,23 @@ ldap_verify_credentials_interactive LDAP_P((
 #define LDAP_API_FEATURE_WHOAMI 1000
 
 LDAP_F( int )
-ldap_parse_whoami LDAP_P((
+ldap_parse_whoami (
 	LDAP *ld,
 	LDAPMessage *res,
-	struct berval **authzid ));
+	struct berval **authzid );
 
 LDAP_F( int )
-ldap_whoami LDAP_P(( LDAP *ld,
+ldap_whoami ( LDAP *ld,
 	LDAPControl		**sctrls,
 	LDAPControl		**cctrls,
-	int				*msgidp ));
+	int				*msgidp );
 
 LDAP_F( int )
-ldap_whoami_s LDAP_P((
+ldap_whoami_s (
 	LDAP *ld,
 	struct berval **authzid,
 	LDAPControl **sctrls,
-	LDAPControl **cctrls ));
+	LDAPControl **cctrls );
 
 /*
  * LDAP Password Modify
@@ -2309,29 +2309,29 @@ ldap_whoami_s LDAP_P((
 #define LDAP_API_FEATURE_PASSWD_MODIFY 1000
 
 LDAP_F( int )
-ldap_parse_passwd LDAP_P((
+ldap_parse_passwd (
 	LDAP *ld,
 	LDAPMessage *res,
-	struct berval *newpasswd ));
+	struct berval *newpasswd );
 
 LDAP_F( int )
-ldap_passwd LDAP_P(( LDAP *ld,
+ldap_passwd ( LDAP *ld,
 	struct berval	*user,
 	struct berval	*oldpw,
 	struct berval	*newpw,
 	LDAPControl		**sctrls,
 	LDAPControl		**cctrls,
-	int				*msgidp ));
+	int				*msgidp );
 
 LDAP_F( int )
-ldap_passwd_s LDAP_P((
+ldap_passwd_s (
 	LDAP *ld,
 	struct berval	*user,
 	struct berval	*oldpw,
 	struct berval	*newpw,
 	struct berval *newpasswd,
 	LDAPControl **sctrls,
-	LDAPControl **cctrls ));
+	LDAPControl **cctrls );
 
 #ifdef LDAP_CONTROL_PASSWORDPOLICYREQUEST
 /*
@@ -2354,20 +2354,20 @@ typedef enum passpolicyerror_enum {
 } LDAPPasswordPolicyError;
 
 LDAP_F( int )
-ldap_create_passwordpolicy_control LDAP_P((
+ldap_create_passwordpolicy_control (
         LDAP *ld,
-        LDAPControl **ctrlp ));
+		LDAPControl **ctrlp );
 
 LDAP_F( int )
-ldap_parse_passwordpolicy_control LDAP_P((
+ldap_parse_passwordpolicy_control (
         LDAP *ld,
         LDAPControl *ctrl,
         ber_int_t *expirep,
         ber_int_t *gracep,
-        LDAPPasswordPolicyError *errorp ));
+		LDAPPasswordPolicyError *errorp );
 
 LDAP_F( const char * )
-ldap_passwordpolicy_err2txt LDAP_P(( LDAPPasswordPolicyError ));
+ldap_passwordpolicy_err2txt( LDAPPasswordPolicyError );
 #endif /* LDAP_CONTROL_PASSWORDPOLICYREQUEST */
 
 /*
@@ -2377,59 +2377,59 @@ ldap_passwordpolicy_err2txt LDAP_P(( LDAPPasswordPolicyError ));
 #define LDAP_API_FEATURE_REFRESH 1000
 
 LDAP_F( int )
-ldap_parse_refresh LDAP_P((
+ldap_parse_refresh (
 	LDAP *ld,
 	LDAPMessage *res,
-	ber_int_t *newttl ));
+	ber_int_t *newttl );
 
 LDAP_F( int )
-ldap_refresh LDAP_P(( LDAP *ld,
+ldap_refresh ( LDAP *ld,
 	struct berval	*dn,
 	ber_int_t ttl,
 	LDAPControl		**sctrls,
 	LDAPControl		**cctrls,
-	int				*msgidp ));
+	int				*msgidp );
 
 LDAP_F( int )
-ldap_refresh_s LDAP_P((
+ldap_refresh_s (
 	LDAP *ld,
 	struct berval	*dn,
 	ber_int_t ttl,
 	ber_int_t *newttl,
 	LDAPControl **sctrls,
-	LDAPControl **cctrls ));
+	LDAPControl **cctrls );
 
 /*
  * LDAP Transactions
  */
 #ifdef LDAP_X_TXN
 LDAP_F( int )
-ldap_txn_start LDAP_P(( LDAP *ld,
+ldap_txn_start ( LDAP *ld,
 	LDAPControl		**sctrls,
 	LDAPControl		**cctrls,
-	int				*msgidp ));
+	int				*msgidp );
 
 LDAP_F( int )
-ldap_txn_start_s LDAP_P(( LDAP *ld,
+ldap_txn_start_s ( LDAP *ld,
 	LDAPControl **sctrl,
 	LDAPControl **cctrl,
-	struct berval **rettxnid ));
+	struct berval **rettxnid );
 
 LDAP_F( int )
-ldap_txn_end LDAP_P(( LDAP *ld,
+ldap_txn_end ( LDAP *ld,
 	int	commit,
 	struct berval	*txnid,
 	LDAPControl		**sctrls,
 	LDAPControl		**cctrls,
-	int				*msgidp ));
+	int				*msgidp );
 
 LDAP_F( int )
-ldap_txn_end_s LDAP_P(( LDAP *ld,
+ldap_txn_end_s ( LDAP *ld,
 	int	commit,
 	struct berval *txnid,
 	LDAPControl **sctrl,
 	LDAPControl **cctrl,
-	int *retidp ));
+	int *retidp );
 #endif
 
 /*
@@ -2442,45 +2442,45 @@ LDAP_F(const char*) ldap_sync_state2str( int state );
  * initialize the persistent search structure
  */
 LDAP_F( ldap_sync_t * )
-ldap_sync_initialize LDAP_P((
-	ldap_sync_t	*ls ));
+ldap_sync_initialize (
+	ldap_sync_t	*ls );
 
 /*
  * destroy the persistent search structure
  */
 LDAP_F( void )
-ldap_sync_destroy LDAP_P((
+ldap_sync_destroy (
 	ldap_sync_t	*ls,
-	int		freeit ));
+	int		freeit );
 
 /*
  * initialize a refreshOnly sync
  */
 LDAP_F( int )
-ldap_sync_init LDAP_P((
+ldap_sync_init (
 	ldap_sync_t	*ls,
-	int		mode ));
+	int		mode );
 
 /*
  * initialize a refreshOnly sync
  */
 LDAP_F( int )
-ldap_sync_init_refresh_only LDAP_P((
-	ldap_sync_t	*ls ));
+ldap_sync_init_refresh_only (
+	ldap_sync_t	*ls );
 
 /*
  * initialize a refreshAndPersist sync
  */
 LDAP_F( int )
-ldap_sync_init_refresh_and_persist LDAP_P((
-	ldap_sync_t	*ls ));
+ldap_sync_init_refresh_and_persist (
+	ldap_sync_t	*ls );
 
 /*
  * poll for new responses
  */
 LDAP_F( int )
-ldap_sync_poll LDAP_P((
-	ldap_sync_t	*ls ));
+ldap_sync_poll (
+	ldap_sync_t	*ls );
 
 #ifdef LDAP_CONTROL_X_SESSION_TRACKING
 
@@ -2488,31 +2488,31 @@ ldap_sync_poll LDAP_P((
  * in stctrl.c
  */
 LDAP_F( int )
-ldap_create_session_tracking_value LDAP_P((
+ldap_create_session_tracking_value (
 	LDAP		*ld,
 	char		*sessionSourceIp,
 	char		*sessionSourceName,
 	char		*formatOID,
 	struct berval	*sessionTrackingIdentifier,
-	struct berval	*value ));
+	struct berval	*value );
 
 LDAP_F( int )
-ldap_create_session_tracking_control LDAP_P((
+ldap_create_session_tracking_control (
 	LDAP		*ld,
 	char		*sessionSourceIp,
 	char		*sessionSourceName,
 	char		*formatOID,
 	struct berval	*sessionTrackingIdentifier,
-	LDAPControl	**ctrlp ));
+	LDAPControl	**ctrlp );
 
 LDAP_F( int )
-ldap_parse_session_tracking_control LDAP_P((
+ldap_parse_session_tracking_control (
 	LDAP *ld,
 	LDAPControl *ctrl,
 	struct berval *ip,
 	struct berval *name,
 	struct berval *oid,
-	struct berval *id ));
+	struct berval *id );
 
 #endif /* LDAP_CONTROL_X_SESSION_TRACKING */
 
@@ -2520,17 +2520,17 @@ ldap_parse_session_tracking_control LDAP_P((
  * in assertion.c
  */
 LDAP_F (int)
-ldap_create_assertion_control_value LDAP_P((
+ldap_create_assertion_control_value (
 	LDAP		*ld,
 	char		*assertion,
-	struct berval	*value ));
+	struct berval	*value );
 
 LDAP_F( int )
-ldap_create_assertion_control LDAP_P((
+ldap_create_assertion_control (
 	LDAP		*ld,
 	char		*filter,
 	int		iscritical,
-	LDAPControl	**ctrlp ));
+	LDAPControl	**ctrlp );
 
 /*
  * in deref.c
@@ -2555,33 +2555,33 @@ typedef struct LDAPDerefRes {
 } LDAPDerefRes;
 
 LDAP_F( int )
-ldap_create_deref_control_value LDAP_P((
+ldap_create_deref_control_value (
 	LDAP *ld,
 	LDAPDerefSpec *ds,
-	struct berval *value ));
+	struct berval *value );
 
 LDAP_F( int )
-ldap_create_deref_control LDAP_P((
+ldap_create_deref_control (
 	LDAP		*ld,
 	LDAPDerefSpec	*ds,
 	int		iscritical,
-	LDAPControl	**ctrlp ));
+	LDAPControl	**ctrlp );
 
 LDAP_F( void )
-ldap_derefresponse_free LDAP_P((
-	LDAPDerefRes *dr ));
+ldap_derefresponse_free (
+	LDAPDerefRes *dr );
 
 LDAP_F( int )
-ldap_parse_derefresponse_control LDAP_P((
+ldap_parse_derefresponse_control (
 	LDAP *ld,
 	LDAPControl *ctrl,
-	LDAPDerefRes **drp ));
+	LDAPDerefRes **drp );
 
 LDAP_F( int )
-ldap_parse_deref_control LDAP_P((
+ldap_parse_deref_control (
 	LDAP		*ld,
 	LDAPControl	**ctrls,
-	LDAPDerefRes	**drp ));
+	LDAPDerefRes	**drp );
 
 /*
  * high level LDIF to LDAP structure support
@@ -2642,16 +2642,16 @@ typedef struct ldifrecord {
 
 /* free internal fields - does not free the LDIFRecord */
 LDAP_F( void )
-ldap_ldif_record_done LDAP_P((
-	LDIFRecord *lr ));
+ldap_ldif_record_done (
+	LDIFRecord *lr );
 
 LDAP_F( int )
-ldap_parse_ldif_record LDAP_P((
+ldap_parse_ldif_record (
 	struct berval *rbuf,
 	unsigned long linenum,
 	LDIFRecord *lr,
 	const char *errstr,
-	unsigned int flags ));
+	unsigned int flags );
 
 /*
  * hacks for NTLM
@@ -2659,19 +2659,19 @@ ldap_parse_ldif_record LDAP_P((
 #define LDAP_AUTH_NTLM_REQUEST	((ber_tag_t) 0x8aU)
 #define LDAP_AUTH_NTLM_RESPONSE	((ber_tag_t) 0x8bU)
 LDAP_F( int )
-ldap_ntlm_bind LDAP_P((
+ldap_ntlm_bind (
 	LDAP		*ld,
-	LDAP_CONST char	*dn,
+	const char	*dn,
 	ber_tag_t	tag,
 	struct berval	*cred,
 	LDAPControl	**sctrls,
 	LDAPControl	**cctrls,
-	int		*msgidp ));
+	int		*msgidp );
 LDAP_F( int )
-ldap_parse_ntlm_bind_result LDAP_P((
+ldap_parse_ntlm_bind_result (
 	LDAP		*ld,
 	LDAPMessage	*res,
-	struct berval	*challenge));
+	struct berval	*challenge);
 
 LDAP_END_DECL
 #endif /* _LDAP_H */

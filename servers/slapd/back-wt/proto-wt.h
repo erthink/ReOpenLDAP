@@ -84,12 +84,12 @@ wt_idl_union(
  */
 
 extern AttrInfo *
-wt_index_mask LDAP_P((
+wt_index_mask (
 	Backend *be,
 	AttributeDescription *desc,
-	struct berval *atname ));
+	struct berval *atname );
 
-int wt_index_entry LDAP_P(( Operation *op, wt_ctx *wc, int r, Entry *e ));
+int wt_index_entry ( Operation *op, wt_ctx *wc, int r, Entry *e );
 int wt_index_values(
 	Operation *op,
 	wt_ctx *wc,

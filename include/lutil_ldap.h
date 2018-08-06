@@ -26,21 +26,21 @@
 LDAP_BEGIN_DECL
 
 LDAP_LUTIL_F( void )
-lutil_sasl_freedefs LDAP_P((
-	void *defaults ));
+lutil_sasl_freedefs (
+	void *defaults );
 
 LDAP_LUTIL_F( void * )
-lutil_sasl_defaults LDAP_P((
+lutil_sasl_defaults (
 	LDAP *ld,
 	char *mech,
 	char *realm,
 	char *authcid,
 	char *passwd,
-	char *authzid ));
+	char *authzid );
 
 LDAP_LUTIL_F( int )
-lutil_sasl_interact LDAP_P((
-	LDAP *ld, unsigned flags, void *defaults, void *p ));
+lutil_sasl_interact (
+	LDAP *ld, unsigned flags, void *defaults, void *p );
 
 LDAP_END_DECL
 

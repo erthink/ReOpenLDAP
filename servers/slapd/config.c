@@ -1469,7 +1469,7 @@ static slap_cf_aux_table bindkey[] = {
  */
 
 int
-slap_cf_aux_table_parse( const char *word, void *dst, slap_cf_aux_table *tab0, LDAP_CONST char *tabmsg )
+slap_cf_aux_table_parse( const char *word, void *dst, slap_cf_aux_table *tab0, const char *tabmsg )
 {
 	int rc = SLAP_CONF_UNKNOWN;
 	slap_cf_aux_table *tab;

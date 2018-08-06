@@ -41,15 +41,15 @@
 #include "ldap_log.h"
 #include "lutil.h"
 
-static int ldap_abandoned LDAP_P(( LDAP *ld, ber_int_t msgid ));
-static int ldap_mark_abandoned LDAP_P(( LDAP *ld, ber_int_t msgid ));
-static int wait4msg LDAP_P(( LDAP *ld, ber_int_t msgid, int all, struct timeval *timeout,
-	LDAPMessage **result ));
-static ber_tag_t try_read1msg LDAP_P(( LDAP *ld, ber_int_t msgid,
-	int all, LDAPConn *lc, LDAPMessage **result ));
-static ber_tag_t build_result_ber LDAP_P(( LDAP *ld, BerElement **bp, LDAPRequest *lr ));
-static void merge_error_info LDAP_P(( LDAP *ld, LDAPRequest *parentr, LDAPRequest *lr ));
-static LDAPMessage * chkResponseList LDAP_P(( LDAP *ld, int msgid, int all));
+static int ldap_abandoned( LDAP *ld, ber_int_t msgid );
+static int ldap_mark_abandoned( LDAP *ld, ber_int_t msgid );
+static int wait4msg ( LDAP *ld, ber_int_t msgid, int all, struct timeval *timeout,
+	LDAPMessage **result );
+static ber_tag_t try_read1msg ( LDAP *ld, ber_int_t msgid,
+	int all, LDAPConn *lc, LDAPMessage **result );
+static ber_tag_t build_result_ber( LDAP *ld, BerElement **bp, LDAPRequest *lr );
+static void merge_error_info( LDAP *ld, LDAPRequest *parentr, LDAPRequest *lr );
+static LDAPMessage * chkResponseList( LDAP *ld, int msgid, int all);
 
 #define LDAP_MSG_X_KEEP_LOOKING		(-2)
 

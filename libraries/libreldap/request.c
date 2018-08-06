@@ -51,9 +51,9 @@
 #define LDAP_RES_UNLOCK_IF(nolock)
 #endif
 
-static LDAPConn *find_connection LDAP_P(( LDAP *ld, LDAPURLDesc *srv, int any ));
-static void use_connection LDAP_P(( LDAP *ld, LDAPConn *lc ));
-static void ldap_free_request_int LDAP_P(( LDAP *ld, LDAPRequest *lr ));
+static LDAPConn *find_connection( LDAP *ld, LDAPURLDesc *srv, int any );
+static void use_connection( LDAP *ld, LDAPConn *lc );
+static void ldap_free_request_int( LDAP *ld, LDAPRequest *lr );
 
 static BerElement *
 re_encode_request( LDAP *ld,

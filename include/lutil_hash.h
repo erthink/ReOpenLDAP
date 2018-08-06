@@ -38,38 +38,38 @@ typedef struct lutil_HASHContext {
 #endif /* HAVE_LONG_LONG */
 
 LDAP_LUTIL_F( void )
-lutil_HASHInit LDAP_P((
-	lutil_HASH_CTX *context));
+lutil_HASHInit (
+	lutil_HASH_CTX *context);
 
 LDAP_LUTIL_F( void )
-lutil_HASHUpdate LDAP_P((
+lutil_HASHUpdate (
 	lutil_HASH_CTX *context,
 	unsigned char const *buf,
-	ber_len_t len));
+	ber_len_t len);
 
 LDAP_LUTIL_F( void )
-lutil_HASHFinal LDAP_P((
+lutil_HASHFinal (
 	unsigned char digest[LUTIL_HASH_BYTES],
-	lutil_HASH_CTX *context));
+	lutil_HASH_CTX *context);
 
 #ifdef HAVE_LONG_LONG
 
 #define LUTIL_HASH64_BYTES	8
 
 LDAP_LUTIL_F( void )
-lutil_HASH64Init LDAP_P((
-	lutil_HASH_CTX *context));
+lutil_HASH64Init (
+	lutil_HASH_CTX *context);
 
 LDAP_LUTIL_F( void )
-lutil_HASH64Update LDAP_P((
+lutil_HASH64Update (
 	lutil_HASH_CTX *context,
 	unsigned char const *buf,
-	ber_len_t len));
+	ber_len_t len);
 
 LDAP_LUTIL_F( void )
-lutil_HASH64Final LDAP_P((
+lutil_HASH64Final (
 	unsigned char digest[LUTIL_HASH64_BYTES],
-	lutil_HASH_CTX *context));
+	lutil_HASH_CTX *context);
 
 #endif /* HAVE_LONG_LONG */
 
