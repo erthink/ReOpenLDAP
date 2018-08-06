@@ -1942,7 +1942,7 @@ if test $ol_enable_ndb != no ; then
 	dnl echo "mysql_cluster_path=$mysql_cluster_path"
 	AC_PATH_PROG(MYSQL,mysql_config,no,$mysql_cluster_path)
 	if test "$MYSQL" = no ; then
-		AC_MSG_ERROR([could not locate mysql_config])
+		AC_MSG_ERROR([could not locate mysql_config of mysql_cluster (NDB backend)])
 	fi
 
 	SQL_INC=`$MYSQL --include`
