@@ -25,51 +25,46 @@
 
 #include "slap.h"
 
+Filter *str2filter_x(Operation *op, const char *str) {
+  int rc;
+  Filter *f = NULL;
+  BerElementBuffer berbuf;
+  BerElement *ber = (BerElement *)&berbuf;
+  const char *text = NULL;
 
-Filter *
-str2filter_x( Operation *op, const char *str )
-{
-	int rc;
-	Filter	*f = NULL;
-	BerElementBuffer berbuf;
-	BerElement *ber = (BerElement *)&berbuf;
-	const char *text = NULL;
+  Debug(LDAP_DEBUG_FILTER, "str2filter \"%s\"\n", str);
 
-	Debug( LDAP_DEBUG_FILTER, "str2filter \"%s\"\n", str );
+  if (str == NULL || *str == '\0') {
+    return NULL;
+  }
 
-	if ( str == NULL || *str == '\0' ) {
-		return NULL;
-	}
+  ber_init2(ber, NULL, LBER_USE_DER);
+  if (op->o_tmpmemctx) {
+    ber_set_option(ber, LBER_OPT_BER_MEMCTX, &op->o_tmpmemctx);
+  }
 
-	ber_init2( ber, NULL, LBER_USE_DER );
-	if ( op->o_tmpmemctx ) {
-		ber_set_option( ber, LBER_OPT_BER_MEMCTX, &op->o_tmpmemctx );
-	}
+  rc = ldap_pvt_put_filter(ber, str);
+  if (rc < 0) {
+    goto done;
+  }
 
-	rc = ldap_pvt_put_filter( ber, str );
-	if( rc < 0 ) {
-		goto done;
-	}
+  ber_reset(ber, 1);
 
-	ber_reset( ber, 1 );
-
-	rc = get_filter( op, ber, &f, &text );
+  rc = get_filter(op, ber, &f, &text);
 
 done:
-	ber_free_buf( ber );
+  ber_free_buf(ber);
 
-	return f;
+  return f;
 }
 
-Filter *
-str2filter( const char *str )
-{
-	Operation op = {0};
-	Opheader ohdr = {0};
+Filter *str2filter(const char *str) {
+  Operation op = {0};
+  Opheader ohdr = {0};
 
-	op.o_hdr = &ohdr;
-	op.o_tmpmemctx = NULL;
-	op.o_tmpmfuncs = &ch_mfuncs;
+  op.o_hdr = &ohdr;
+  op.o_tmpmemctx = NULL;
+  op.o_tmpmfuncs = &ch_mfuncs;
 
-	return str2filter_x( &op, str );
+  return str2filter_x(&op, str);
 }

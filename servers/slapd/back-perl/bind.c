@@ -20,58 +20,57 @@
  * Bind
  *
  **********************************************************/
-int
-perl_back_bind(
-	Operation *op,
-	SlapReply *rs )
-{
-	int count;
+int perl_back_bind(Operation *op, SlapReply *rs) {
+  int count;
 
-	PerlBackend *perl_back = (PerlBackend *) op->o_bd->be_private;
+  PerlBackend *perl_back = (PerlBackend *)op->o_bd->be_private;
 
-	/* allow rootdn as a means to auth without the need to actually
- 	 * contact the proxied DSA */
-	switch ( be_rootdn_bind( op, rs ) ) {
-	case SLAP_CB_CONTINUE:
-		break;
+  /* allow rootdn as a means to auth without the need to actually
+   * contact the proxied DSA */
+  switch (be_rootdn_bind(op, rs)) {
+  case SLAP_CB_CONTINUE:
+    break;
 
-	default:
-		return rs->sr_err;
-	}
+  default:
+    return rs->sr_err;
+  }
 
-	PERL_SET_CONTEXT( PERL_INTERPRETER );
-	ldap_pvt_thread_mutex_lock( &perl_interpreter_mutex );
+  PERL_SET_CONTEXT(PERL_INTERPRETER);
+  ldap_pvt_thread_mutex_lock(&perl_interpreter_mutex);
 
-	{
-		dSP; ENTER; SAVETMPS;
+  {
+    dSP;
+    ENTER;
+    SAVETMPS;
 
-		PUSHMARK(SP);
-		XPUSHs( perl_back->pb_obj_ref );
-		XPUSHs(sv_2mortal(newSVpv( op->o_req_dn.bv_val , op->o_req_dn.bv_len)));
-		XPUSHs(sv_2mortal(newSVpv( op->orb_cred.bv_val , op->orb_cred.bv_len)));
-		PUTBACK;
+    PUSHMARK(SP);
+    XPUSHs(perl_back->pb_obj_ref);
+    XPUSHs(sv_2mortal(newSVpv(op->o_req_dn.bv_val, op->o_req_dn.bv_len)));
+    XPUSHs(sv_2mortal(newSVpv(op->orb_cred.bv_val, op->orb_cred.bv_len)));
+    PUTBACK;
 
-		count = call_method("bind", G_SCALAR);
+    count = call_method("bind", G_SCALAR);
 
-		SPAGAIN;
+    SPAGAIN;
 
-		if (count != 1) {
-			croak("Big trouble in back_bind\n");
-		}
+    if (count != 1) {
+      croak("Big trouble in back_bind\n");
+    }
 
-		rs->sr_err = POPi;
+    rs->sr_err = POPi;
 
+    PUTBACK;
+    FREETMPS;
+    LEAVE;
+  }
 
-		PUTBACK; FREETMPS; LEAVE;
-	}
+  ldap_pvt_thread_mutex_unlock(&perl_interpreter_mutex);
 
-	ldap_pvt_thread_mutex_unlock( &perl_interpreter_mutex );
+  Debug(LDAP_DEBUG_ANY, "Perl BIND returned 0x%04x\n", rs->sr_err);
 
-	Debug( LDAP_DEBUG_ANY, "Perl BIND returned 0x%04x\n", rs->sr_err );
+  /* frontend will send result on success (0) */
+  if (rs->sr_err != LDAP_SUCCESS)
+    send_ldap_result(op, rs);
 
-	/* frontend will send result on success (0) */
-	if( rs->sr_err != LDAP_SUCCESS )
-		send_ldap_result( op, rs );
-
-	return ( rs->sr_err );
+  return (rs->sr_err);
 }

@@ -28,42 +28,35 @@
 #include "slap.h"
 #include "back-sock.h"
 
-int
-sock_back_add(
-    Operation	*op,
-    SlapReply	*rs )
-{
-	struct sockinfo	*si = (struct sockinfo *) op->o_bd->be_private;
-	AttributeDescription *entry = slap_schema.si_ad_entry;
-	FILE			*fp;
-	int			len;
+int sock_back_add(Operation *op, SlapReply *rs) {
+  struct sockinfo *si = (struct sockinfo *)op->o_bd->be_private;
+  AttributeDescription *entry = slap_schema.si_ad_entry;
+  FILE *fp;
+  int len;
 
-	if ( ! access_allowed( op, op->oq_add.rs_e,
-		entry, NULL, ACL_WADD, NULL ) )
-	{
-		send_ldap_error( op, rs, LDAP_INSUFFICIENT_ACCESS, NULL );
-		return -1;
-	}
+  if (!access_allowed(op, op->oq_add.rs_e, entry, NULL, ACL_WADD, NULL)) {
+    send_ldap_error(op, rs, LDAP_INSUFFICIENT_ACCESS, NULL);
+    return -1;
+  }
 
-	if ( (fp = opensock( si->si_sockpath )) == NULL ) {
-		send_ldap_error( op, rs, LDAP_OTHER,
-		    "could not open socket" );
-		return( -1 );
-	}
+  if ((fp = opensock(si->si_sockpath)) == NULL) {
+    send_ldap_error(op, rs, LDAP_OTHER, "could not open socket");
+    return (-1);
+  }
 
-	/* write out the request to the add process */
-	fprintf( fp, "ADD\n" );
-	fprintf( fp, "msgid: %ld\n", (long) op->o_msgid );
-	sock_print_conn( fp, op->o_conn, si );
-	sock_print_suffixes( fp, op->o_bd );
-	ldap_pvt_thread_mutex_lock( &entry2str_mutex );
-	fprintf( fp, "%s", entry2str( op->oq_add.rs_e, &len ) );
-	ldap_pvt_thread_mutex_unlock( &entry2str_mutex );
-	fprintf (fp, "\n" );
+  /* write out the request to the add process */
+  fprintf(fp, "ADD\n");
+  fprintf(fp, "msgid: %ld\n", (long)op->o_msgid);
+  sock_print_conn(fp, op->o_conn, si);
+  sock_print_suffixes(fp, op->o_bd);
+  ldap_pvt_thread_mutex_lock(&entry2str_mutex);
+  fprintf(fp, "%s", entry2str(op->oq_add.rs_e, &len));
+  ldap_pvt_thread_mutex_unlock(&entry2str_mutex);
+  fprintf(fp, "\n");
 
-	/* read in the result and send it along */
-	sock_read_and_send_results( op, rs, fp );
+  /* read in the result and send it along */
+  sock_read_and_send_results(op, rs, fp);
 
-	fclose( fp );
-	return( 0 );
+  fclose(fp);
+  return (0);
 }

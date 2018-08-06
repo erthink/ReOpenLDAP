@@ -48,9 +48,8 @@ typedef struct tio_fileinfo TFILE;
 /* Open a new TFILE based on the file descriptor. The timeout is set for any
    operation (value in milliseconds). */
 TFILE *tio_fdopen(int fd, int readtimeout, int writetimeout,
-                  size_t initreadsize, size_t maxreadsize,
-                  size_t initwritesize, size_t maxwritesize)
-  LIKE_MALLOC MUST_USE;
+                  size_t initreadsize, size_t maxreadsize, size_t initwritesize,
+                  size_t maxwritesize) LIKE_MALLOC MUST_USE;
 
 /* Read the specified number of bytes from the stream. */
 int tio_read(TFILE *fp, void *buf, size_t count);

@@ -19,37 +19,37 @@
 #include <sys/types.h>
 
 #ifdef HAVE_SYS_WAIT_H
-# include <sys/wait.h>
+#include <sys/wait.h>
 #endif
 
-#define LDAP_HI(s)	(((s) >> 8) & 0377)
-#define LDAP_LO(s)	((s) & 0377)
+#define LDAP_HI(s) (((s) >> 8) & 0377)
+#define LDAP_LO(s) ((s)&0377)
 
 /* These should work on non-POSIX UNIX platforms,
-	all bets on off on non-POSIX non-UNIX platforms... */
+        all bets on off on non-POSIX non-UNIX platforms... */
 #ifndef WIFEXITED
-# define WIFEXITED(s)	(LDAP_LO(s) == 0)
+#define WIFEXITED(s) (LDAP_LO(s) == 0)
 #endif
 #ifndef WEXITSTATUS
-# define WEXITSTATUS(s) LDAP_HI(s)
+#define WEXITSTATUS(s) LDAP_HI(s)
 #endif
 #ifndef WIFSIGNALED
-# define WIFSIGNALED(s) (LDAP_LO(s) > 0 && LDAP_HI(s) == 0)
+#define WIFSIGNALED(s) (LDAP_LO(s) > 0 && LDAP_HI(s) == 0)
 #endif
 #ifndef WTERMSIG
-# define WTERMSIG(s)	(LDAP_LO(s) & 0177)
+#define WTERMSIG(s) (LDAP_LO(s) & 0177)
 #endif
 #ifndef WIFSTOPPED
-# define WIFSTOPPED(s)	(LDAP_LO(s) == 0177 && LDAP_HI(s) != 0)
+#define WIFSTOPPED(s) (LDAP_LO(s) == 0177 && LDAP_HI(s) != 0)
 #endif
 #ifndef WSTOPSIG
-# define WSTOPSIG(s)	LDAP_HI(s)
+#define WSTOPSIG(s) LDAP_HI(s)
 #endif
 
 #ifdef WCONTINUED
-# define WAIT_FLAGS ( WNOHANG | WUNTRACED | WCONTINUED )
+#define WAIT_FLAGS (WNOHANG | WUNTRACED | WCONTINUED)
 #else
-# define WAIT_FLAGS ( WNOHANG | WUNTRACED )
+#define WAIT_FLAGS (WNOHANG | WUNTRACED)
 #endif
 
 #endif /* _AC_WAIT_H */

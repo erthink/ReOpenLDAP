@@ -25,130 +25,116 @@
 
 #include "ldap-int.h"
 
-int
-ldap_parse_refresh( LDAP *ld, LDAPMessage *res, ber_int_t *newttl )
-{
-	int		rc;
-	struct berval	*retdata = NULL;
-	ber_tag_t	tag;
-	BerElement	*ber;
+int ldap_parse_refresh(LDAP *ld, LDAPMessage *res, ber_int_t *newttl) {
+  int rc;
+  struct berval *retdata = NULL;
+  ber_tag_t tag;
+  BerElement *ber;
 
-	assert( ld != NULL );
-	assert( LDAP_VALID( ld ) );
-	assert( res != NULL );
-	assert( newttl != NULL );
+  assert(ld != NULL);
+  assert(LDAP_VALID(ld));
+  assert(res != NULL);
+  assert(newttl != NULL);
 
-	*newttl = 0;
+  *newttl = 0;
 
-	rc = ldap_parse_extended_result( ld, res, NULL, &retdata, 0 );
+  rc = ldap_parse_extended_result(ld, res, NULL, &retdata, 0);
 
-	if ( rc != LDAP_SUCCESS ) {
-		return rc;
-	}
+  if (rc != LDAP_SUCCESS) {
+    return rc;
+  }
 
-	if ( ld->ld_errno != LDAP_SUCCESS ) {
-		return ld->ld_errno;
-	}
+  if (ld->ld_errno != LDAP_SUCCESS) {
+    return ld->ld_errno;
+  }
 
-	if ( retdata == NULL ) {
-		rc = ld->ld_errno = LDAP_DECODING_ERROR;
-		return rc;
-	}
+  if (retdata == NULL) {
+    rc = ld->ld_errno = LDAP_DECODING_ERROR;
+    return rc;
+  }
 
-	ber = ber_init( retdata );
-	if ( ber == NULL ) {
-		rc = ld->ld_errno = LDAP_NO_MEMORY;
-		goto done;
-	}
+  ber = ber_init(retdata);
+  if (ber == NULL) {
+    rc = ld->ld_errno = LDAP_NO_MEMORY;
+    goto done;
+  }
 
-	/* check the tag */
-	tag = ber_scanf( ber, "{i}", newttl );
-	ber_free( ber, 1 );
+  /* check the tag */
+  tag = ber_scanf(ber, "{i}", newttl);
+  ber_free(ber, 1);
 
-	if ( tag != LDAP_TAG_EXOP_REFRESH_RES_TTL ) {
-		*newttl = 0;
-		rc = ld->ld_errno = LDAP_DECODING_ERROR;
-	}
+  if (tag != LDAP_TAG_EXOP_REFRESH_RES_TTL) {
+    *newttl = 0;
+    rc = ld->ld_errno = LDAP_DECODING_ERROR;
+  }
 
 done:;
-	if ( retdata ) {
-		ber_bvfree( retdata );
-	}
+  if (retdata) {
+    ber_bvfree(retdata);
+  }
 
-	return rc;
+  return rc;
 }
 
-int
-ldap_refresh(
-	LDAP		*ld,
-	struct berval	*dn,
-	ber_int_t		ttl,
-	LDAPControl	**sctrls,
-	LDAPControl	**cctrls,
-	int		*msgidp )
-{
-	struct berval	bv = { 0, NULL };
-        BerElement	*ber = NULL;
-	int		rc;
+int ldap_refresh(LDAP *ld, struct berval *dn, ber_int_t ttl,
+                 LDAPControl **sctrls, LDAPControl **cctrls, int *msgidp) {
+  struct berval bv = {0, NULL};
+  BerElement *ber = NULL;
+  int rc;
 
-	assert( ld != NULL );
-	assert( LDAP_VALID( ld ) );
-	assert( dn != NULL );
-	assert( msgidp != NULL );
+  assert(ld != NULL);
+  assert(LDAP_VALID(ld));
+  assert(dn != NULL);
+  assert(msgidp != NULL);
 
-	*msgidp = -1;
+  *msgidp = -1;
 
-	ber = ber_alloc_t( LBER_USE_DER );
+  ber = ber_alloc_t(LBER_USE_DER);
 
-	if ( ber == NULL ) {
-		ld->ld_errno = LDAP_NO_MEMORY;
-		return ld->ld_errno;
-	}
+  if (ber == NULL) {
+    ld->ld_errno = LDAP_NO_MEMORY;
+    return ld->ld_errno;
+  }
 
-	ber_printf( ber, "{tOtiN}",
-		LDAP_TAG_EXOP_REFRESH_REQ_DN, dn,
-		LDAP_TAG_EXOP_REFRESH_REQ_TTL, ttl );
+  ber_printf(ber, "{tOtiN}", LDAP_TAG_EXOP_REFRESH_REQ_DN, dn,
+             LDAP_TAG_EXOP_REFRESH_REQ_TTL, ttl);
 
-	rc = ber_flatten2( ber, &bv, 0 );
+  rc = ber_flatten2(ber, &bv, 0);
 
-	if ( rc < 0 ) {
-		rc = ld->ld_errno = LDAP_ENCODING_ERROR;
-		goto done;
-	}
+  if (rc < 0) {
+    rc = ld->ld_errno = LDAP_ENCODING_ERROR;
+    goto done;
+  }
 
-	rc = ldap_extended_operation( ld, LDAP_EXOP_REFRESH, &bv,
-		sctrls, cctrls, msgidp );
+  rc = ldap_extended_operation(ld, LDAP_EXOP_REFRESH, &bv, sctrls, cctrls,
+                               msgidp);
 
 done:;
-        ber_free( ber, 1 );
+  ber_free(ber, 1);
 
-	return rc;
+  return rc;
 }
 
-int
-ldap_refresh_s(
-	LDAP		*ld,
-	struct berval	*dn,
-	ber_int_t		ttl,
-	ber_int_t		*newttl,
-	LDAPControl	**sctrls,
-	LDAPControl	**cctrls )
-{
-	int		rc;
-	int		msgid;
-	LDAPMessage	*res;
+int ldap_refresh_s(LDAP *ld, struct berval *dn, ber_int_t ttl,
+                   ber_int_t *newttl, LDAPControl **sctrls,
+                   LDAPControl **cctrls) {
+  int rc;
+  int msgid;
+  LDAPMessage *res;
 
-	rc = ldap_refresh( ld, dn, ttl, sctrls, cctrls, &msgid );
-	if ( rc != LDAP_SUCCESS ) return rc;
+  rc = ldap_refresh(ld, dn, ttl, sctrls, cctrls, &msgid);
+  if (rc != LDAP_SUCCESS)
+    return rc;
 
-	rc = ldap_result( ld, msgid, LDAP_MSG_ALL, (struct timeval *)NULL, &res );
-	if( rc == -1 || !res ) return ld->ld_errno;
+  rc = ldap_result(ld, msgid, LDAP_MSG_ALL, (struct timeval *)NULL, &res);
+  if (rc == -1 || !res)
+    return ld->ld_errno;
 
-	rc = ldap_parse_refresh( ld, res, newttl );
-	if( rc != LDAP_SUCCESS ) {
-		ldap_msgfree( res );
-		return rc;
-	}
+  rc = ldap_parse_refresh(ld, res, newttl);
+  if (rc != LDAP_SUCCESS) {
+    ldap_msgfree(res);
+    return rc;
+  }
 
-	return ldap_result2error( ld, res, 1 );
+  return ldap_result2error(ld, res, 1);
 }

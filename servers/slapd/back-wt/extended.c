@@ -28,25 +28,21 @@
 #include "lber_pvt.h"
 
 static struct exop {
-	struct berval *oid;
-	BI_op_extended	*extended;
-} exop_table[] = {
-	{ NULL, NULL }
-};
+  struct berval *oid;
+  BI_op_extended *extended;
+} exop_table[] = {{NULL, NULL}};
 
-int
-wt_extended( Operation *op, SlapReply *rs )
-{
-	int i;
+int wt_extended(Operation *op, SlapReply *rs) {
+  int i;
 
-	for( i=0; exop_table[i].extended != NULL; i++ ) {
-		if( ber_bvcmp( exop_table[i].oid, &op->oq_extended.rs_reqoid ) == 0 ) {
-			return (exop_table[i].extended)( op, rs );
-		}
-	}
+  for (i = 0; exop_table[i].extended != NULL; i++) {
+    if (ber_bvcmp(exop_table[i].oid, &op->oq_extended.rs_reqoid) == 0) {
+      return (exop_table[i].extended)(op, rs);
+    }
+  }
 
-	rs->sr_text = "not supported within naming context";
-	return rs->sr_err = LDAP_UNWILLING_TO_PERFORM;
+  rs->sr_text = "not supported within naming context";
+  return rs->sr_err = LDAP_UNWILLING_TO_PERFORM;
 }
 
 /*

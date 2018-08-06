@@ -21,7 +21,7 @@
 #include <stdarg.h>
 
 #ifndef HAVE_STDARG
-#	define HAVE_STDARG 1
+#define HAVE_STDARG 1
 #endif
 
 #endif /* _AC_STDARG_H */

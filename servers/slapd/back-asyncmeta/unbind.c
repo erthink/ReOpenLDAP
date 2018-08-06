@@ -29,24 +29,19 @@
 #include "../back-ldap/back-ldap.h"
 #include "back-asyncmeta.h"
 
-int
-asyncmeta_back_conn_destroy(
-	Backend		*be,
-	Connection	*conn )
-{
-	a_metainfo_t	*mi = ( a_metainfo_t * )be->be_private;
-	int		i;
+int asyncmeta_back_conn_destroy(Backend *be, Connection *conn) {
+  a_metainfo_t *mi = (a_metainfo_t *)be->be_private;
+  int i;
 
-	Debug( LDAP_DEBUG_TRACE,
-		"=>asyncmeta_back_conn_destroy: fetching conn=%ld DN=\"%s\"\n",
-		conn->c_connid,
-		BER_BVISNULL( &conn->c_ndn ) ? "" : conn->c_ndn.bv_val );
-	/*
-	 * Cleanup rewrite session
-	 */
-	for ( i = 0; i < mi->mi_ntargets; ++i ) {
-		rewrite_session_delete( mi->mi_targets[ i ]->mt_rwmap.rwm_rw, conn );
-	}
+  Debug(LDAP_DEBUG_TRACE,
+        "=>asyncmeta_back_conn_destroy: fetching conn=%ld DN=\"%s\"\n",
+        conn->c_connid, BER_BVISNULL(&conn->c_ndn) ? "" : conn->c_ndn.bv_val);
+  /*
+   * Cleanup rewrite session
+   */
+  for (i = 0; i < mi->mi_ntargets; ++i) {
+    rewrite_session_delete(mi->mi_targets[i]->mt_rwmap.rwm_rw, conn);
+  }
 
-	return 0;
+  return 0;
 }

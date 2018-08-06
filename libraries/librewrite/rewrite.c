@@ -34,158 +34,142 @@
 #include <lutil.h>
 #include <ldap.h>
 
-static void
-apply(
-		FILE *fin,
-		const char *rewriteContext,
-		const char *arg
-)
-{
-	struct rewrite_info *info;
-	char *string, *sep, *result = NULL;
-	int rc;
-	void *cookie = &info;
+static void apply(FILE *fin, const char *rewriteContext, const char *arg) {
+  struct rewrite_info *info;
+  char *string, *sep, *result = NULL;
+  int rc;
+  void *cookie = &info;
 
-	info = rewrite_info_init( REWRITE_MODE_ERR );
+  info = rewrite_info_init(REWRITE_MODE_ERR);
 
-	if ( rewrite_read( fin, info ) != 0 ) {
-		exit( EXIT_FAILURE );
-	}
+  if (rewrite_read(fin, info) != 0) {
+    exit(EXIT_FAILURE);
+  }
 
-	rewrite_param_set( info, "prog", "rewrite" );
+  rewrite_param_set(info, "prog", "rewrite");
 
-	rewrite_session_init( info, cookie );
+  rewrite_session_init(info, cookie);
 
-	string = (char *)arg;
-	for ( sep = strchr( rewriteContext, ',' );
-			rewriteContext != NULL;
-			rewriteContext = sep,
-			sep ? sep = strchr( rewriteContext, ',' ) : NULL )
-	{
-		char	*errmsg = "";
+  string = (char *)arg;
+  for (sep = strchr(rewriteContext, ','); rewriteContext != NULL;
+       rewriteContext = sep, sep ? sep = strchr(rewriteContext, ',') : NULL) {
+    char *errmsg = "";
 
-		if ( sep != NULL ) {
-			sep[ 0 ] = '\0';
-			sep++;
-		}
-		/* rc = rewrite( info, rewriteContext, string, &result ); */
-		rc = rewrite_session( info, rewriteContext, string,
-				cookie, &result );
+    if (sep != NULL) {
+      sep[0] = '\0';
+      sep++;
+    }
+    /* rc = rewrite( info, rewriteContext, string, &result ); */
+    rc = rewrite_session(info, rewriteContext, string, cookie, &result);
 
-		switch ( rc ) {
-		case REWRITE_REGEXEC_OK:
-			errmsg = "ok";
-			break;
+    switch (rc) {
+    case REWRITE_REGEXEC_OK:
+      errmsg = "ok";
+      break;
 
-		case REWRITE_REGEXEC_ERR:
-			errmsg = "error";
-			break;
+    case REWRITE_REGEXEC_ERR:
+      errmsg = "error";
+      break;
 
-		case REWRITE_REGEXEC_STOP:
-			errmsg = "stop";
-			break;
+    case REWRITE_REGEXEC_STOP:
+      errmsg = "stop";
+      break;
 
-		case REWRITE_REGEXEC_UNWILLING:
-			errmsg = "unwilling to perform";
-			break;
+    case REWRITE_REGEXEC_UNWILLING:
+      errmsg = "unwilling to perform";
+      break;
 
-		default:
-			if (rc >= REWRITE_REGEXEC_USER) {
-				errmsg = "user-defined";
-			} else {
-				errmsg = "unknown";
-			}
-			break;
-		}
+    default:
+      if (rc >= REWRITE_REGEXEC_USER) {
+        errmsg = "user-defined";
+      } else {
+        errmsg = "unknown";
+      }
+      break;
+    }
 
-		fprintf( stdout, "%s -> %s [%d:%s]\n", string,
-				( result ? result : "(null)" ),
-				rc, errmsg );
-		if ( result == NULL ) {
-			break;
-		}
-		if ( string != arg && string != result ) {
-			free( string );
-		}
-		string = result;
-	}
+    fprintf(stdout, "%s -> %s [%d:%s]\n", string, (result ? result : "(null)"),
+            rc, errmsg);
+    if (result == NULL) {
+      break;
+    }
+    if (string != arg && string != result) {
+      free(string);
+    }
+    string = result;
+  }
 
-	if ( result && result != arg ) {
-		free( result );
-	}
+  if (result && result != arg) {
+    free(result);
+  }
 
-	rewrite_session_delete( info, cookie );
+  rewrite_session_delete(info, cookie);
 
-	rewrite_info_delete( &info );
+  rewrite_info_delete(&info);
 }
 
-int
-main( int argc, char *argv[] )
-{
-	FILE	*fin = NULL;
-	char	*rewriteContext = REWRITE_DEFAULT_CONTEXT;
-	int	debug = 0;
+int main(int argc, char *argv[]) {
+  FILE *fin = NULL;
+  char *rewriteContext = REWRITE_DEFAULT_CONTEXT;
+  int debug = 0;
 
-	while ( 1 ) {
-		int opt = getopt( argc, argv, "d:f:hr:" );
+  while (1) {
+    int opt = getopt(argc, argv, "d:f:hr:");
 
-		if ( opt == EOF ) {
-			break;
-		}
+    if (opt == EOF) {
+      break;
+    }
 
-		switch ( opt ) {
-		case 'd':
-			if ( lutil_atoi( &debug, optarg ) != 0 ) {
-				fprintf( stderr, "illegal log level '%s'\n",
-						optarg );
-				exit( EXIT_FAILURE );
-			}
-			break;
+    switch (opt) {
+    case 'd':
+      if (lutil_atoi(&debug, optarg) != 0) {
+        fprintf(stderr, "illegal log level '%s'\n", optarg);
+        exit(EXIT_FAILURE);
+      }
+      break;
 
-		case 'f':
-			fin = fopen( optarg, "r" );
-			if ( fin == NULL ) {
-				fprintf( stderr, "unable to open file '%s'\n",
-						optarg );
-				exit( EXIT_FAILURE );
-			}
-			break;
+    case 'f':
+      fin = fopen(optarg, "r");
+      if (fin == NULL) {
+        fprintf(stderr, "unable to open file '%s'\n", optarg);
+        exit(EXIT_FAILURE);
+      }
+      break;
 
-		case 'h':
-			fprintf( stderr,
-	"usage: rewrite [options] string\n"
-	"\n"
-	"\t\t-f file\t\tconfiguration file\n"
-	"\t\t-r rule[s]\tlist of comma-separated rules\n"
-	"\n"
-	"\tsyntax:\n"
-	"\t\trewriteEngine\t{on|off}\n"
-	"\t\trewriteContext\tcontextName [alias aliasedContextName]\n"
-	"\t\trewriteRule\tpattern subst [flags]\n"
-	"\n"
-				);
-			exit( EXIT_SUCCESS );
+    case 'h':
+      fprintf(stderr,
+              "usage: rewrite [options] string\n"
+              "\n"
+              "\t\t-f file\t\tconfiguration file\n"
+              "\t\t-r rule[s]\tlist of comma-separated rules\n"
+              "\n"
+              "\tsyntax:\n"
+              "\t\trewriteEngine\t{on|off}\n"
+              "\t\trewriteContext\tcontextName [alias aliasedContextName]\n"
+              "\t\trewriteRule\tpattern subst [flags]\n"
+              "\n");
+      exit(EXIT_SUCCESS);
 
-		case 'r':
-			rewriteContext = optarg;
-			break;
-		}
-	}
+    case 'r':
+      rewriteContext = optarg;
+      break;
+    }
+  }
 
-	if ( debug != 0 ) {
-		ber_set_option(NULL, LBER_OPT_DEBUG_LEVEL, &debug);
-		ldap_set_option(NULL, LDAP_OPT_DEBUG_LEVEL, &debug);
-	}
+  if (debug != 0) {
+    ber_set_option(NULL, LBER_OPT_DEBUG_LEVEL, &debug);
+    ldap_set_option(NULL, LDAP_OPT_DEBUG_LEVEL, &debug);
+  }
 
-	if ( optind >= argc ) {
-		return -1;
-	}
+  if (optind >= argc) {
+    return -1;
+  }
 
-	apply( ( fin ? fin : stdin ), rewriteContext, argv[ optind ] );
+  apply((fin ? fin : stdin), rewriteContext, argv[optind]);
 
-	if ( fin ) {
-		fclose( fin );
-	}
+  if (fin) {
+    fclose(fin);
+  }
 
-	return 0;
+  return 0;
 }

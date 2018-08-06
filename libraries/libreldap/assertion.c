@@ -22,76 +22,66 @@
 
 #include "ldap-int.h"
 
-int
-ldap_create_assertion_control_value(
-	LDAP		*ld,
-	char		*assertion,
-	struct berval	*value )
-{
-	BerElement		*ber = NULL;
-	int			err;
+int ldap_create_assertion_control_value(LDAP *ld, char *assertion,
+                                        struct berval *value) {
+  BerElement *ber = NULL;
+  int err;
 
-	if ( assertion == NULL || assertion[ 0 ] == '\0' ) {
-		ld->ld_errno = LDAP_PARAM_ERROR;
-		return ld->ld_errno;
-	}
+  if (assertion == NULL || assertion[0] == '\0') {
+    ld->ld_errno = LDAP_PARAM_ERROR;
+    return ld->ld_errno;
+  }
 
-	if ( value == NULL ) {
-		ld->ld_errno = LDAP_PARAM_ERROR;
-		return ld->ld_errno;
-	}
+  if (value == NULL) {
+    ld->ld_errno = LDAP_PARAM_ERROR;
+    return ld->ld_errno;
+  }
 
-	BER_BVZERO( value );
+  BER_BVZERO(value);
 
-	ber = ldap_alloc_ber_with_options( ld );
-	if ( ber == NULL ) {
-		ld->ld_errno = LDAP_NO_MEMORY;
-		return ld->ld_errno;
-	}
+  ber = ldap_alloc_ber_with_options(ld);
+  if (ber == NULL) {
+    ld->ld_errno = LDAP_NO_MEMORY;
+    return ld->ld_errno;
+  }
 
-	err = ldap_pvt_put_filter( ber, assertion );
-	if ( err < 0 ) {
-		ld->ld_errno = LDAP_ENCODING_ERROR;
-		goto done;
-	}
+  err = ldap_pvt_put_filter(ber, assertion);
+  if (err < 0) {
+    ld->ld_errno = LDAP_ENCODING_ERROR;
+    goto done;
+  }
 
-	err = ber_flatten2( ber, value, 1 );
-	if ( err < 0 ) {
-		ld->ld_errno = LDAP_NO_MEMORY;
-		goto done;
-	}
+  err = ber_flatten2(ber, value, 1);
+  if (err < 0) {
+    ld->ld_errno = LDAP_NO_MEMORY;
+    goto done;
+  }
 
 done:;
-	if ( ber != NULL ) {
-		ber_free( ber, 1 );
-	}
+  if (ber != NULL) {
+    ber_free(ber, 1);
+  }
 
-	return ld->ld_errno;
+  return ld->ld_errno;
 }
 
-int
-ldap_create_assertion_control(
-	LDAP		*ld,
-	char		*assertion,
-	int		iscritical,
-	LDAPControl	**ctrlp )
-{
-	struct berval	value;
+int ldap_create_assertion_control(LDAP *ld, char *assertion, int iscritical,
+                                  LDAPControl **ctrlp) {
+  struct berval value;
 
-	if ( ctrlp == NULL ) {
-		ld->ld_errno = LDAP_PARAM_ERROR;
-		return ld->ld_errno;
-	}
+  if (ctrlp == NULL) {
+    ld->ld_errno = LDAP_PARAM_ERROR;
+    return ld->ld_errno;
+  }
 
-	ld->ld_errno = ldap_create_assertion_control_value( ld,
-		assertion, &value );
-	if ( ld->ld_errno == LDAP_SUCCESS ) {
-		ld->ld_errno = ldap_control_create( LDAP_CONTROL_ASSERT,
-			iscritical, &value, 0, ctrlp );
-		if ( ld->ld_errno != LDAP_SUCCESS ) {
-			LDAP_FREE( value.bv_val );
-		}
-	}
+  ld->ld_errno = ldap_create_assertion_control_value(ld, assertion, &value);
+  if (ld->ld_errno == LDAP_SUCCESS) {
+    ld->ld_errno =
+        ldap_control_create(LDAP_CONTROL_ASSERT, iscritical, &value, 0, ctrlp);
+    if (ld->ld_errno != LDAP_SUCCESS) {
+      LDAP_FREE(value.bv_val);
+    }
+  }
 
-	return ld->ld_errno;
+  return ld->ld_errno;
 }

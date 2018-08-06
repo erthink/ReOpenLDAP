@@ -30,20 +30,18 @@
 #include "ldap_rq.h"
 
 /* function is unused */
-int
-asyncmeta_back_abandon( Operation *op, SlapReply *rs )
-{
-	Operation *t_op;
+int asyncmeta_back_abandon(Operation *op, SlapReply *rs) {
+  Operation *t_op;
 
-	/* Find the ops being abandoned */
-	ldap_pvt_thread_mutex_lock( &op->o_conn->c_mutex );
+  /* Find the ops being abandoned */
+  ldap_pvt_thread_mutex_lock(&op->o_conn->c_mutex);
 
-	LDAP_STAILQ_FOREACH( t_op, &op->o_conn->c_ops, o_next ) {
-		if ( t_op->o_msgid == op->orn_msgid ) {
-			slap_set_op_abandon(t_op, 1);
-		}
-	}
-	ldap_pvt_thread_mutex_unlock( &op->o_conn->c_mutex );
+  LDAP_STAILQ_FOREACH(t_op, &op->o_conn->c_ops, o_next) {
+    if (t_op->o_msgid == op->orn_msgid) {
+      slap_set_op_abandon(t_op, 1);
+    }
+  }
+  ldap_pvt_thread_mutex_unlock(&op->o_conn->c_mutex);
 
-	return LDAP_SUCCESS;
+  return LDAP_SUCCESS;
 }

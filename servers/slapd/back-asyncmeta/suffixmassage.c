@@ -57,53 +57,46 @@
 #include "../back-ldap/back-ldap.h"
 #include "back-asyncmeta.h"
 
-int
-asyncmeta_dn_massage(
-	a_dncookie	*dc,
-	struct berval	*dn,
-	struct berval	*res )
-{
-	int		rc = 0;
-	static char	*dmy = "";
+int asyncmeta_dn_massage(a_dncookie *dc, struct berval *dn,
+                         struct berval *res) {
+  int rc = 0;
+  static char *dmy = "";
 
-	switch ( rewrite_session( dc->target->mt_rwmap.rwm_rw, dc->ctx,
-				( dn->bv_val ? dn->bv_val : dmy ),
-				dc->conn, &res->bv_val ) )
-	{
-	case REWRITE_REGEXEC_OK:
-		if ( res->bv_val != NULL ) {
-			res->bv_len = strlen( res->bv_val );
-		} else {
-			*res = *dn;
-		}
-		Debug( LDAP_DEBUG_ARGS,
-			"[rw] %s: \"%s\" -> \"%s\"\n",
-			dc->ctx,
-			BER_BVISNULL( dn ) ? "" : dn->bv_val,
-			BER_BVISNULL( res ) ? "" : res->bv_val );
-		rc = LDAP_SUCCESS;
-		break;
+  switch (rewrite_session(dc->target->mt_rwmap.rwm_rw, dc->ctx,
+                          (dn->bv_val ? dn->bv_val : dmy), dc->conn,
+                          &res->bv_val)) {
+  case REWRITE_REGEXEC_OK:
+    if (res->bv_val != NULL) {
+      res->bv_len = strlen(res->bv_val);
+    } else {
+      *res = *dn;
+    }
+    Debug(LDAP_DEBUG_ARGS, "[rw] %s: \"%s\" -> \"%s\"\n", dc->ctx,
+          BER_BVISNULL(dn) ? "" : dn->bv_val,
+          BER_BVISNULL(res) ? "" : res->bv_val);
+    rc = LDAP_SUCCESS;
+    break;
 
-	case REWRITE_REGEXEC_UNWILLING:
-		if ( dc->rs ) {
-			dc->rs->sr_err = LDAP_UNWILLING_TO_PERFORM;
-			dc->rs->sr_text = "Operation not allowed";
-		}
-		rc = LDAP_UNWILLING_TO_PERFORM;
-		break;
+  case REWRITE_REGEXEC_UNWILLING:
+    if (dc->rs) {
+      dc->rs->sr_err = LDAP_UNWILLING_TO_PERFORM;
+      dc->rs->sr_text = "Operation not allowed";
+    }
+    rc = LDAP_UNWILLING_TO_PERFORM;
+    break;
 
-	case REWRITE_REGEXEC_ERR:
-		if ( dc->rs ) {
-			dc->rs->sr_err = LDAP_OTHER;
-			dc->rs->sr_text = "Rewrite error";
-		}
-		rc = LDAP_OTHER;
-		break;
-	}
+  case REWRITE_REGEXEC_ERR:
+    if (dc->rs) {
+      dc->rs->sr_err = LDAP_OTHER;
+      dc->rs->sr_text = "Rewrite error";
+    }
+    rc = LDAP_OTHER;
+    break;
+  }
 
-	if ( res->bv_val == dmy ) {
-		BER_BVZERO( res );
-	}
+  if (res->bv_val == dmy) {
+    BER_BVZERO(res);
+  }
 
-	return rc;
+  return rc;
 }

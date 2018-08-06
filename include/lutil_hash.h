@@ -25,51 +25,43 @@ LDAP_BEGIN_DECL
 #ifdef HAVE_LONG_LONG
 
 typedef union lutil_HASHContext {
-	ber_uint_t hash;
-	unsigned long long hash64;
+  ber_uint_t hash;
+  unsigned long long hash64;
 } lutil_HASH_CTX;
 
 #else /* !HAVE_LONG_LONG */
 
 typedef struct lutil_HASHContext {
-	ber_uint_t hash;
+  ber_uint_t hash;
 } lutil_HASH_CTX;
 
 #endif /* HAVE_LONG_LONG */
 
-LDAP_LUTIL_F( void )
-lutil_HASHInit (
-	lutil_HASH_CTX *context);
+LDAP_LUTIL_F(void)
+lutil_HASHInit(lutil_HASH_CTX *context);
 
-LDAP_LUTIL_F( void )
-lutil_HASHUpdate (
-	lutil_HASH_CTX *context,
-	unsigned char const *buf,
-	ber_len_t len);
+LDAP_LUTIL_F(void)
+lutil_HASHUpdate(lutil_HASH_CTX *context, unsigned char const *buf,
+                 ber_len_t len);
 
-LDAP_LUTIL_F( void )
-lutil_HASHFinal (
-	unsigned char digest[LUTIL_HASH_BYTES],
-	lutil_HASH_CTX *context);
+LDAP_LUTIL_F(void)
+lutil_HASHFinal(unsigned char digest[LUTIL_HASH_BYTES],
+                lutil_HASH_CTX *context);
 
 #ifdef HAVE_LONG_LONG
 
-#define LUTIL_HASH64_BYTES	8
+#define LUTIL_HASH64_BYTES 8
 
-LDAP_LUTIL_F( void )
-lutil_HASH64Init (
-	lutil_HASH_CTX *context);
+LDAP_LUTIL_F(void)
+lutil_HASH64Init(lutil_HASH_CTX *context);
 
-LDAP_LUTIL_F( void )
-lutil_HASH64Update (
-	lutil_HASH_CTX *context,
-	unsigned char const *buf,
-	ber_len_t len);
+LDAP_LUTIL_F(void)
+lutil_HASH64Update(lutil_HASH_CTX *context, unsigned char const *buf,
+                   ber_len_t len);
 
-LDAP_LUTIL_F( void )
-lutil_HASH64Final (
-	unsigned char digest[LUTIL_HASH64_BYTES],
-	lutil_HASH_CTX *context);
+LDAP_LUTIL_F(void)
+lutil_HASH64Final(unsigned char digest[LUTIL_HASH64_BYTES],
+                  lutil_HASH_CTX *context);
 
 #endif /* HAVE_LONG_LONG */
 

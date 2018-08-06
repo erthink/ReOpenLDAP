@@ -33,78 +33,78 @@
 
 #include <lber.h>
 
-static void usage( const char *name )
-{
-	fprintf( stderr, "usage: %s fmt\n", name );
+static void usage(const char *name) {
+  fprintf(stderr, "usage: %s fmt\n", name);
 }
 
-int
-main( int argc, char **argv )
-{
-	char *s;
+int main(int argc, char **argv) {
+  char *s;
 
-	ber_tag_t	tag;
-	ber_len_t	len;
+  ber_tag_t tag;
+  ber_len_t len;
 
-	BerElement	*ber;
-	Sockbuf		*sb;
-	int		fd;
+  BerElement *ber;
+  Sockbuf *sb;
+  int fd;
 
-	/* enable debugging */
-	int ival = -1;
-	ber_set_option( NULL, LBER_OPT_DEBUG_LEVEL, &ival );
+  /* enable debugging */
+  int ival = -1;
+  ber_set_option(NULL, LBER_OPT_DEBUG_LEVEL, &ival);
 
-	if ( argc < 2 ) {
-		usage( argv[0] );
-		return( EXIT_FAILURE );
-	}
+  if (argc < 2) {
+    usage(argv[0]);
+    return (EXIT_FAILURE);
+  }
 
 #ifdef HAVE_CONSOLE_H
-	ccommand( &argv );
-	cshow( stdout );
+  ccommand(&argv);
+  cshow(stdout);
 #endif
 
-	sb = ber_sockbuf_alloc();
-	fd = fileno( stdin );
-	ber_sockbuf_add_io( sb, &ber_sockbuf_io_fd, LBER_SBIOD_LEVEL_PROVIDER,
-		(void *)&fd );
+  sb = ber_sockbuf_alloc();
+  fd = fileno(stdin);
+  ber_sockbuf_add_io(sb, &ber_sockbuf_io_fd, LBER_SBIOD_LEVEL_PROVIDER,
+                     (void *)&fd);
 
-	ber = ber_alloc_t(LBER_USE_DER);
-	if( ber == NULL ) {
-		perror( "ber_alloc_t" );
-		return( EXIT_FAILURE );
-	}
+  ber = ber_alloc_t(LBER_USE_DER);
+  if (ber == NULL) {
+    perror("ber_alloc_t");
+    return (EXIT_FAILURE);
+  }
 
-	for (;;) {
-		tag = ber_get_next( sb, &len, ber);
-		if( tag != LBER_ERROR ) break;
+  for (;;) {
+    tag = ber_get_next(sb, &len, ber);
+    if (tag != LBER_ERROR)
+      break;
 
-		if( errno == EWOULDBLOCK ) continue;
-		if( errno == EAGAIN ) continue;
+    if (errno == EWOULDBLOCK)
+      continue;
+    if (errno == EAGAIN)
+      continue;
 
-		perror( "ber_get_next" );
-		return( EXIT_FAILURE );
-	}
+    perror("ber_get_next");
+    return (EXIT_FAILURE);
+  }
 
-	printf("decode: message tag 0x%lx and length %ld\n",
-		(unsigned long) tag, (long) len );
+  printf("decode: message tag 0x%lx and length %ld\n", (unsigned long)tag,
+         (long)len);
 
-	for( s = argv[1]; *s; s++ ) {
-		char buf[128];
-		char fmt[2];
-		fmt[0] = *s;
-		fmt[1] = '\0';
+  for (s = argv[1]; *s; s++) {
+    char buf[128];
+    char fmt[2];
+    fmt[0] = *s;
+    fmt[1] = '\0';
 
-		printf("decode: format %s\n", fmt );
-		len = sizeof(buf);
-		tag = ber_scanf( ber, fmt, &buf[0], &len );
+    printf("decode: format %s\n", fmt);
+    len = sizeof(buf);
+    tag = ber_scanf(ber, fmt, &buf[0], &len);
 
-		if( tag == LBER_ERROR ) {
-			perror( "ber_scanf" );
-			return( EXIT_FAILURE );
-		}
-	}
+    if (tag == LBER_ERROR) {
+      perror("ber_scanf");
+      return (EXIT_FAILURE);
+    }
+  }
 
-	ber_sockbuf_free( sb );
-	return( EXIT_SUCCESS );
+  ber_sockbuf_free(sb);
+  return (EXIT_SUCCESS);
 }

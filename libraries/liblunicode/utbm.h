@@ -65,9 +65,9 @@ typedef struct _utbm_pattern_t *utbm_pattern_t;
  *
  *************************************************************************/
 
-#define UTBM_CASEFOLD          0x01
+#define UTBM_CASEFOLD 0x01
 #define UTBM_IGNORE_NONSPACING 0x02
-#define UTBM_SPACE_COMPRESS    0x04
+#define UTBM_SPACE_COMPRESS 0x04
 
 /*************************************************************************
  *
@@ -75,18 +75,17 @@ typedef struct _utbm_pattern_t *utbm_pattern_t;
  *
  *************************************************************************/
 
-LDAP_LUNICODE_F (utbm_pattern_t) utbm_create_pattern(void);
+LDAP_LUNICODE_F(utbm_pattern_t) utbm_create_pattern(void);
 
-LDAP_LUNICODE_F (void) utbm_free_pattern(utbm_pattern_t pattern);
+LDAP_LUNICODE_F(void) utbm_free_pattern(utbm_pattern_t pattern);
 
-LDAP_LUNICODE_F (void)
-utbm_compile (ucs2_t *pat, unsigned long patlen,
-			 unsigned long flags, utbm_pattern_t pattern);
+LDAP_LUNICODE_F(void)
+utbm_compile(ucs2_t *pat, unsigned long patlen, unsigned long flags,
+             utbm_pattern_t pattern);
 
-LDAP_LUNICODE_F (int)
-utbm_exec (utbm_pattern_t pat, ucs2_t *text,
-		  unsigned long textlen, unsigned long *match_start,
-		  unsigned long *match_end);
+LDAP_LUNICODE_F(int)
+utbm_exec(utbm_pattern_t pat, ucs2_t *text, unsigned long textlen,
+          unsigned long *match_start, unsigned long *match_end);
 
 /*************************************************************************
  *
@@ -94,21 +93,20 @@ utbm_exec (utbm_pattern_t pat, ucs2_t *text,
  *
  *************************************************************************/
 
-LDAP_LUNICODE_F (int) _utbm_isspace(ucs4_t c, int compress);
+LDAP_LUNICODE_F(int) _utbm_isspace(ucs4_t c, int compress);
 
-LDAP_LUNICODE_F (int) _utbm_iscntrl(ucs4_t c);
+LDAP_LUNICODE_F(int) _utbm_iscntrl(ucs4_t c);
 
-LDAP_LUNICODE_F (int) _utbm_nonspacing(ucs4_t c);
+LDAP_LUNICODE_F(int) _utbm_nonspacing(ucs4_t c);
 
-LDAP_LUNICODE_F (ucs4_t) _utbm_tolower(ucs4_t c);
+LDAP_LUNICODE_F(ucs4_t) _utbm_tolower(ucs4_t c);
 
-LDAP_LUNICODE_F (ucs4_t) _utbm_toupper(ucs4_t c);
+LDAP_LUNICODE_F(ucs4_t) _utbm_toupper(ucs4_t c);
 
-LDAP_LUNICODE_F (ucs4_t) _utbm_totitle(ucs4_t c);
+LDAP_LUNICODE_F(ucs4_t) _utbm_totitle(ucs4_t c);
 
 LDAP_END_DECL
 
 #endif
-
 
 #endif /* _h_utbm */

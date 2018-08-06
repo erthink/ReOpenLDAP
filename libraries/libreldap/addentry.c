@@ -25,44 +25,40 @@
 
 #include "ldap-int.h"
 
-LDAPMessage *
-ldap_delete_result_entry( LDAPMessage **list, LDAPMessage *e )
-{
-	LDAPMessage	*tmp, *prev = NULL;
+LDAPMessage *ldap_delete_result_entry(LDAPMessage **list, LDAPMessage *e) {
+  LDAPMessage *tmp, *prev = NULL;
 
-	assert( list != NULL );
-	assert( e != NULL );
+  assert(list != NULL);
+  assert(e != NULL);
 
-	for ( tmp = *list; tmp != NULL && tmp != e; tmp = tmp->lm_chain )
-		prev = tmp;
+  for (tmp = *list; tmp != NULL && tmp != e; tmp = tmp->lm_chain)
+    prev = tmp;
 
-	if ( tmp == NULL )
-		return( NULL );
+  if (tmp == NULL)
+    return (NULL);
 
-	if ( prev == NULL ) {
-		if ( tmp->lm_chain )
-			tmp->lm_chain->lm_chain_tail = (*list)->lm_chain_tail;
-		*list = tmp->lm_chain;
-	} else {
-		prev->lm_chain = tmp->lm_chain;
-		if ( prev->lm_chain == NULL )
-			(*list)->lm_chain_tail = prev;
-	}
-	tmp->lm_chain = NULL;
+  if (prev == NULL) {
+    if (tmp->lm_chain)
+      tmp->lm_chain->lm_chain_tail = (*list)->lm_chain_tail;
+    *list = tmp->lm_chain;
+  } else {
+    prev->lm_chain = tmp->lm_chain;
+    if (prev->lm_chain == NULL)
+      (*list)->lm_chain_tail = prev;
+  }
+  tmp->lm_chain = NULL;
 
-	return( tmp );
+  return (tmp);
 }
 
-void
-ldap_add_result_entry( LDAPMessage **list, LDAPMessage *e )
-{
-	assert( list != NULL );
-	assert( e != NULL );
+void ldap_add_result_entry(LDAPMessage **list, LDAPMessage *e) {
+  assert(list != NULL);
+  assert(e != NULL);
 
-	e->lm_chain = *list;
-	if ( *list )
-		e->lm_chain_tail = (*list)->lm_chain_tail;
-	else
-		e->lm_chain_tail = e;
-	*list = e;
+  e->lm_chain = *list;
+  if (*list)
+    e->lm_chain_tail = (*list)->lm_chain_tail;
+  else
+    e->lm_chain_tail = e;
+  *list = e;
 }

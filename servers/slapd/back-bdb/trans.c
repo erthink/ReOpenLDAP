@@ -26,29 +26,28 @@
  * for Deadlock Rollback
  */
 
-void
-bdb_trans_backoff( int num_retries )
-{
-	int i;
-	int delay = 0;
-	int pow_retries = 1;
-	unsigned long key = 0;
-	unsigned long max_key = -1;
-	struct timeval timeout;
+void bdb_trans_backoff(int num_retries) {
+  int i;
+  int delay = 0;
+  int pow_retries = 1;
+  unsigned long key = 0;
+  unsigned long max_key = -1;
+  struct timeval timeout;
 
-	lutil_entropy( (unsigned char *) &key, sizeof( unsigned long ));
+  lutil_entropy((unsigned char *)&key, sizeof(unsigned long));
 
-	for ( i = 0; i < num_retries; i++ ) {
-		if ( i >= 5 ) break;
-		pow_retries *= 4;
-	}
+  for (i = 0; i < num_retries; i++) {
+    if (i >= 5)
+      break;
+    pow_retries *= 4;
+  }
 
-	delay = 16384 * (key * (double) pow_retries / (double) max_key);
-	delay = delay ? delay : 1;
+  delay = 16384 * (key * (double)pow_retries / (double)max_key);
+  delay = delay ? delay : 1;
 
-	Debug( LDAP_DEBUG_TRACE,  "delay = %d, num_retries = %d\n", delay, num_retries );
+  Debug(LDAP_DEBUG_TRACE, "delay = %d, num_retries = %d\n", delay, num_retries);
 
-	timeout.tv_sec = delay / 1000000;
-	timeout.tv_usec = delay % 1000000;
-	select( 0, NULL, NULL, NULL, &timeout );
+  timeout.tv_sec = delay / 1000000;
+  timeout.tv_usec = delay % 1000000;
+  select(0, NULL, NULL, NULL, &timeout);
 }

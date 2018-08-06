@@ -48,72 +48,65 @@
  * (Source: RFC 4511)
  */
 
-BerElement *
-ldap_build_modify_req(
-	LDAP *ld,
-	const char *dn,
-	LDAPMod **mods,
-	LDAPControl **sctrls,
-	LDAPControl **cctrls,
-	ber_int_t *msgidp )
-{
-	BerElement	*ber;
-	int		i, rc;
+BerElement *ldap_build_modify_req(LDAP *ld, const char *dn, LDAPMod **mods,
+                                  LDAPControl **sctrls, LDAPControl **cctrls,
+                                  ber_int_t *msgidp) {
+  BerElement *ber;
+  int i, rc;
 
-	/* create a message to send */
-	if ( (ber = ldap_alloc_ber_with_options( ld )) == NULL ) {
-		return( NULL );
-	}
+  /* create a message to send */
+  if ((ber = ldap_alloc_ber_with_options(ld)) == NULL) {
+    return (NULL);
+  }
 
-	LDAP_NEXT_MSGID( ld, *msgidp );
-	rc = ber_printf( ber, "{it{s{" /*}}}*/, *msgidp, LDAP_REQ_MODIFY, dn );
-	if ( rc == -1 ) {
-		ld->ld_errno = LDAP_ENCODING_ERROR;
-		ber_free( ber, 1 );
-		return( NULL );
-	}
+  LDAP_NEXT_MSGID(ld, *msgidp);
+  rc = ber_printf(ber, "{it{s{" /*}}}*/, *msgidp, LDAP_REQ_MODIFY, dn);
+  if (rc == -1) {
+    ld->ld_errno = LDAP_ENCODING_ERROR;
+    ber_free(ber, 1);
+    return (NULL);
+  }
 
-	/* allow mods to be NULL ("touch") */
-	if ( mods ) {
-		/* for each modification to be performed... */
-		for ( i = 0; mods[i] != NULL; i++ ) {
-			if (( mods[i]->mod_op & LDAP_MOD_BVALUES) != 0 ) {
-				rc = ber_printf( ber, "{e{s[V]N}N}",
-				    (ber_int_t) ( mods[i]->mod_op & ~LDAP_MOD_BVALUES ),
-				    mods[i]->mod_type, mods[i]->mod_bvalues );
-			} else {
-				rc = ber_printf( ber, "{e{s[v]N}N}",
-					(ber_int_t) mods[i]->mod_op,
-				    mods[i]->mod_type, mods[i]->mod_values );
-			}
+  /* allow mods to be NULL ("touch") */
+  if (mods) {
+    /* for each modification to be performed... */
+    for (i = 0; mods[i] != NULL; i++) {
+      if ((mods[i]->mod_op & LDAP_MOD_BVALUES) != 0) {
+        rc = ber_printf(ber, "{e{s[V]N}N}",
+                        (ber_int_t)(mods[i]->mod_op & ~LDAP_MOD_BVALUES),
+                        mods[i]->mod_type, mods[i]->mod_bvalues);
+      } else {
+        rc = ber_printf(ber, "{e{s[v]N}N}", (ber_int_t)mods[i]->mod_op,
+                        mods[i]->mod_type, mods[i]->mod_values);
+      }
 
-			if ( rc == -1 ) {
-				ld->ld_errno = LDAP_ENCODING_ERROR;
-				ber_free( ber, 1 );
-				return( NULL );
-			}
-		}
-	}
+      if (rc == -1) {
+        ld->ld_errno = LDAP_ENCODING_ERROR;
+        ber_free(ber, 1);
+        return (NULL);
+      }
+    }
+  }
 
-	if ( ber_printf( ber, /*{{*/ "N}N}" ) == -1 ) {
-		ld->ld_errno = LDAP_ENCODING_ERROR;
-		ber_free( ber, 1 );
-		return( NULL );
-	}
+  if (ber_printf(ber, /*{{*/ "N}N}") == -1) {
+    ld->ld_errno = LDAP_ENCODING_ERROR;
+    ber_free(ber, 1);
+    return (NULL);
+  }
 
-	/* Put Server Controls */
-	if( ldap_int_put_controls( ld, sctrls, ber ) != LDAP_SUCCESS ) {
-		ber_free( ber, 1 );
-		return( NULL );
-	}
+  /* Put Server Controls */
+  if (ldap_int_put_controls(ld, sctrls, ber) != LDAP_SUCCESS) {
+    ber_free(ber, 1);
+    return (NULL);
+  }
 
-	if ( ber_printf( ber, /*{*/ "N}" ) == -1 ) {
-		ld->ld_errno = LDAP_ENCODING_ERROR;
-		ber_free( ber, 1 );
-		return( NULL );
-	}
+  if (ber_printf(ber, /*{*/ "N}") == -1) {
+    ld->ld_errno = LDAP_ENCODING_ERROR;
+    ber_free(ber, 1);
+    return (NULL);
+  }
 
-	return( ber );
+  return (ber);
 }
 
 /*
@@ -133,57 +126,52 @@ ldap_build_modify_req(
  * Example:
  *	LDAPMod	*mods[] = {
  *			{ LDAP_MOD_ADD, "cn", { "babs jensen", "babs", 0 } },
- *			{ LDAP_MOD_REPLACE, "sn", { "babs jensen", "babs", 0 } },
- *			{ LDAP_MOD_DELETE, "ou", 0 },
- *			{ LDAP_MOD_INCREMENT, "uidNumber, { "1", 0 } }
+ *			{ LDAP_MOD_REPLACE, "sn", { "babs jensen", "babs", 0 }
+ *}, { LDAP_MOD_DELETE, "ou", 0 }, { LDAP_MOD_INCREMENT, "uidNumber, { "1", 0 }
+ *}
  *			0
  *		}
  *	rc=  ldap_modify_ext( ld, dn, mods, sctrls, cctrls, &msgid );
  */
-int
-ldap_modify_ext( LDAP *ld,
-	const char *dn,
-	LDAPMod **mods,
-	LDAPControl **sctrls,
-	LDAPControl **cctrls,
-	int *msgidp )
-{
-	BerElement	*ber;
-	int		rc;
-	ber_int_t	id;
+int ldap_modify_ext(LDAP *ld, const char *dn, LDAPMod **mods,
+                    LDAPControl **sctrls, LDAPControl **cctrls, int *msgidp) {
+  BerElement *ber;
+  int rc;
+  ber_int_t id;
 
-	Debug( LDAP_DEBUG_TRACE, "ldap_modify_ext\n" );
+  Debug(LDAP_DEBUG_TRACE, "ldap_modify_ext\n");
 
-	*msgidp = -1;
+  *msgidp = -1;
 
-	/* check client controls */
-	rc = ldap_int_client_controls( ld, cctrls );
-	if( rc != LDAP_SUCCESS ) return rc;
+  /* check client controls */
+  rc = ldap_int_client_controls(ld, cctrls);
+  if (rc != LDAP_SUCCESS)
+    return rc;
 
-	ber = ldap_build_modify_req( ld, dn, mods, sctrls, cctrls, &id );
-	if( !ber )
-		return ld->ld_errno;
+  ber = ldap_build_modify_req(ld, dn, mods, sctrls, cctrls, &id);
+  if (!ber)
+    return ld->ld_errno;
 
-	/* send the message */
-	*msgidp = ldap_send_initial_request( ld, LDAP_REQ_MODIFY, dn, ber, id );
-	return( *msgidp < 0 ? ld->ld_errno : LDAP_SUCCESS );
+  /* send the message */
+  *msgidp = ldap_send_initial_request(ld, LDAP_REQ_MODIFY, dn, ber, id);
+  return (*msgidp < 0 ? ld->ld_errno : LDAP_SUCCESS);
 }
 
-int
-ldap_modify_ext_s( LDAP *ld, const char *dn,
-	LDAPMod **mods, LDAPControl **sctrl, LDAPControl **cctrl )
-{
-	int		rc;
-	int		msgid;
-	LDAPMessage	*res;
+int ldap_modify_ext_s(LDAP *ld, const char *dn, LDAPMod **mods,
+                      LDAPControl **sctrl, LDAPControl **cctrl) {
+  int rc;
+  int msgid;
+  LDAPMessage *res;
 
-	rc = ldap_modify_ext( ld, dn, mods, sctrl, cctrl, &msgid );
+  rc = ldap_modify_ext(ld, dn, mods, sctrl, cctrl, &msgid);
 
-	if ( rc != LDAP_SUCCESS )
-		return( rc );
+  if (rc != LDAP_SUCCESS)
+    return (rc);
 
-	if ( ldap_result( ld, msgid, LDAP_MSG_ALL, (struct timeval *) NULL, &res ) == -1 || !res )
-		return( ld->ld_errno );
+  if (ldap_result(ld, msgid, LDAP_MSG_ALL, (struct timeval *)NULL, &res) ==
+          -1 ||
+      !res)
+    return (ld->ld_errno);
 
-	return( ldap_result2error( ld, res, 1 ) );
+  return (ldap_result2error(ld, res, 1));
 }

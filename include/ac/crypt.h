@@ -20,9 +20,9 @@
 
 /* crypt() may be defined in a separate include file */
 #ifdef HAVE_CRYPT_H
-#	include <crypt.h>
+#include <crypt.h>
 #else
-	extern char *(crypt)();
+extern char *(crypt)();
 #endif
 
 #endif /* _AC_CRYPT_H */

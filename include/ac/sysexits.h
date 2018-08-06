@@ -17,9 +17,9 @@
 #define _AC_SYSEXITS_H_
 
 #ifdef HAVE_SYSEXITS_H
-#	include <sysexits.h>
+#include <sysexits.h>
 #else
-#	include <sysexits-compat.h>
+#include <sysexits-compat.h>
 #endif
 
 #endif /* _AC_SYSEXITS_H_ */

@@ -18,15 +18,15 @@
 
 LDAP_BEGIN_DECL
 
-extern BI_init		passwd_back_initialize;
-extern BI_open		passwd_back_open;
-extern BI_destroy	passwd_back_destroy;
-extern BI_op_search	passwd_back_search;
+extern BI_init passwd_back_initialize;
+extern BI_open passwd_back_open;
+extern BI_destroy passwd_back_destroy;
+extern BI_op_search passwd_back_search;
 
-extern int passwd_back_init_cf( BackendInfo *bi );
+extern int passwd_back_init_cf(BackendInfo *bi);
 
-extern AttributeDescription	*ad_sn;
-extern AttributeDescription	*ad_desc;
+extern AttributeDescription *ad_sn;
+extern AttributeDescription *ad_desc;
 
 LDAP_END_DECL
 

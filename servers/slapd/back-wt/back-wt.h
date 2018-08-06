@@ -30,30 +30,30 @@
 #include "wiredtiger.h"
 
 /* The default search IDL stack cache depth */
-#define DEFAULT_SEARCH_STACK_DEPTH  16
+#define DEFAULT_SEARCH_STACK_DEPTH 16
 
 #define WT_CONFIG_MAX 2048
 
 struct wt_info {
-	WT_CONNECTION *wi_conn;
-	WT_CONNECTION *wi_cache;
-	char *wi_home;
-	char *wi_config;
-	ID	wi_lastid;
+  WT_CONNECTION *wi_conn;
+  WT_CONNECTION *wi_cache;
+  char *wi_home;
+  char *wi_config;
+  ID wi_lastid;
 
-	slap_mask_t wi_defaultmask;
-	int         wi_nattrs;
-	struct wt_attrinfo **wi_attrs;
-	void *wi_search_stack;
-	int wi_search_stack_depth;
+  slap_mask_t wi_defaultmask;
+  int wi_nattrs;
+  struct wt_attrinfo **wi_attrs;
+  void *wi_search_stack;
+  int wi_search_stack_depth;
 
-	struct re_s *wi_index_task;
+  struct re_s *wi_index_task;
 
-	int wi_flags;
-#define WT_IS_OPEN      0x01
-#define WT_OPEN_INDEX   0x02
-#define WT_DEL_INDEX    0x08
-#define WT_RE_OPEN      0x10
+  int wi_flags;
+#define WT_IS_OPEN 0x01
+#define WT_OPEN_INDEX 0x02
+#define WT_DEL_INDEX 0x08
+#define WT_RE_OPEN 0x10
 #define WT_NEED_UPGRADE 0x20
 #define WT_USE_IDLCACHE 0x40
 };
@@ -71,42 +71,42 @@ struct wt_info {
 #define WT_TABLE_IDLCACHE "table:idlcache"
 
 #define ITEMzero(item) (memset((item), 0, sizeof(WT_ITEM)))
-#define ITEM2bv(item,bv) ((bv)->bv_val = (item)->data, \
-						  (bv)->bv_len = (item)->size)
-#define bv2ITEM(bv,item) ((item)->data = (bv)->bv_val, \
-						 (item)->size = (bv)->bv_len )
+#define ITEM2bv(item, bv)                                                      \
+  ((bv)->bv_val = (item)->data, (bv)->bv_len = (item)->size)
+#define bv2ITEM(bv, item)                                                      \
+  ((item)->data = (bv)->bv_val, (item)->size = (bv)->bv_len)
 
 #define WT_INDEX_CACHE_SIZE 1024
 
 typedef struct {
-	WT_SESSION *session;
-	int is_begin_transaction;
-	WT_CURSOR *dn2id;
-	WT_CURSOR *dn2id_w;
-	WT_CURSOR *dn2id_ndn;
-	WT_CURSOR *dn2entry;
-	WT_CURSOR *id2entry;
-	WT_CURSOR *id2entry_add;
-	WT_CURSOR *id2entry_update;
-	WT_SESSION *cache_session;
-	WT_CURSOR *idlcache;
-	WT_CURSOR *index_pid;
-	WT_CURSOR *index[WT_INDEX_CACHE_SIZE];
+  WT_SESSION *session;
+  int is_begin_transaction;
+  WT_CURSOR *dn2id;
+  WT_CURSOR *dn2id_w;
+  WT_CURSOR *dn2id_ndn;
+  WT_CURSOR *dn2entry;
+  WT_CURSOR *id2entry;
+  WT_CURSOR *id2entry_add;
+  WT_CURSOR *id2entry_update;
+  WT_SESSION *cache_session;
+  WT_CURSOR *idlcache;
+  WT_CURSOR *index_pid;
+  WT_CURSOR *index[WT_INDEX_CACHE_SIZE];
 } wt_ctx;
 
 /* for the cache of attribute information (which are indexed, etc.) */
 typedef struct wt_attrinfo {
-	AttributeDescription *ai_desc; /* attribute description cn;lang-en */
-	slap_mask_t ai_indexmask;   /* how the attr is indexed  */
-	slap_mask_t ai_newmask; /* new settings to replace old mask */
-	#ifdef LDAP_COMP_MATCH
-	ComponentReference* ai_cr; /*component indexing*/
-	#endif
+  AttributeDescription *ai_desc; /* attribute description cn;lang-en */
+  slap_mask_t ai_indexmask;      /* how the attr is indexed  */
+  slap_mask_t ai_newmask;        /* new settings to replace old mask */
+#ifdef LDAP_COMP_MATCH
+  ComponentReference *ai_cr; /*component indexing*/
+#endif
 } AttrInfo;
 
 /* These flags must not clash with SLAP_INDEX flags or ops in slap.h! */
-#define	WT_INDEX_DELETING	0x8000U	/* index is being modified */
-#define	WT_INDEX_UPDATE_OP	0x03	/* performing an index update */
+#define WT_INDEX_DELETING 0x8000U /* index is being modified */
+#define WT_INDEX_UPDATE_OP 0x03   /* performing an index update */
 
 #include "proto-wt.h"
 

@@ -25,61 +25,54 @@
 #include <ac/string.h>
 #include "back-wt.h"
 
-int wt_next_id(BackendDB *be, ID *out){
-    struct wt_info *wi = (struct wt_info *) be->be_private;
-	*out = __sync_add_and_fetch(&wi->wi_lastid, 1);
-	return 0;
+int wt_next_id(BackendDB *be, ID *out) {
+  struct wt_info *wi = (struct wt_info *)be->be_private;
+  *out = __sync_add_and_fetch(&wi->wi_lastid, 1);
+  return 0;
 }
 
-int wt_last_id( BackendDB *be, WT_SESSION *session, ID *out )
-{
-    WT_CURSOR *cursor;
-    int rc;
-    uint64_t id;
+int wt_last_id(BackendDB *be, WT_SESSION *session, ID *out) {
+  WT_CURSOR *cursor;
+  int rc;
+  uint64_t id;
 
-    rc = session->open_cursor(session, WT_TABLE_ID2ENTRY, NULL, NULL, &cursor);
-    if(rc){
-		Debug( LDAP_DEBUG_ANY,
-			   LDAP_XSTRING(wt_last_id)
-			   ": open_cursor failed: %s (%d)\n",
-			   wiredtiger_strerror(rc), rc );
-		return rc;
+  rc = session->open_cursor(session, WT_TABLE_ID2ENTRY, NULL, NULL, &cursor);
+  if (rc) {
+    Debug(LDAP_DEBUG_ANY,
+          LDAP_XSTRING(wt_last_id) ": open_cursor failed: %s (%d)\n",
+          wiredtiger_strerror(rc), rc);
+    return rc;
+  }
+
+  rc = cursor->prev(cursor);
+  switch (rc) {
+  case 0:
+    rc = cursor->get_key(cursor, &id);
+    if (rc) {
+      Debug(LDAP_DEBUG_ANY,
+            LDAP_XSTRING(wt_last_id) ": get_key failed: %s (%d)\n",
+            wiredtiger_strerror(rc), rc);
+      return rc;
     }
+    *out = id;
+    break;
+  case WT_NOTFOUND:
+    /* no entry */
+    *out = 0;
+    break;
+  default:
+    Debug(LDAP_DEBUG_ANY, LDAP_XSTRING(wt_last_id) ": prev failed: %s (%d)\n",
+          wiredtiger_strerror(rc), rc);
+  }
 
-    rc = cursor->prev(cursor);
-	switch(rc) {
-	case 0:
-		rc = cursor->get_key(cursor, &id);
-		if ( rc ) {
-			Debug( LDAP_DEBUG_ANY,
-				   LDAP_XSTRING(wt_last_id)
-				   ": get_key failed: %s (%d)\n",
-				   wiredtiger_strerror(rc), rc );
-			return rc;
-		}
-		*out = id;
-		break;
-	case WT_NOTFOUND:
-        /* no entry */
-        *out = 0;
-		break;
-	default:
-		Debug( LDAP_DEBUG_ANY,
-			   LDAP_XSTRING(wt_last_id)
-			   ": prev failed: %s (%d)\n",
-			   wiredtiger_strerror(rc), rc );
-    }
+  rc = cursor->close(cursor);
+  if (rc) {
+    Debug(LDAP_DEBUG_ANY, LDAP_XSTRING(wt_last_id) ": close failed: %s (%d)\n",
+          wiredtiger_strerror(rc), rc);
+    return rc;
+  }
 
-    rc = cursor->close(cursor);
-    if ( rc ) {
-		Debug( LDAP_DEBUG_ANY,
-			   LDAP_XSTRING(wt_last_id)
-			   ": close failed: %s (%d)\n",
-			   wiredtiger_strerror(rc), rc );
-		return rc;
-    }
-
-    return 0;
+  return 0;
 }
 
 /*
