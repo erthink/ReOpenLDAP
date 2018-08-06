@@ -161,7 +161,7 @@ if [ -x ${TOP_BUILDDIR}/servers/slapd/.libs/lt-slapd ]; then
 else
 	SLAPD_SLAPD=${TOP_BUILDDIR}/servers/slapd/slapd
 fi
-CLIENTDIR=${TOP_BUILDDIR}/clients/tools
+CLIENTDIR=${LDAP_CLIENTDIR:-${TOP_BUILDDIR}/clients/tools}
 DRAINDIR=${TOP_SRCDIR}/tests
 
 SCHEMADIR=${USER_SCHEMADIR-./schema}

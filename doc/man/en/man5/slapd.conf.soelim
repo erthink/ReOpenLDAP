@@ -2337,16 +2337,16 @@ parameter is omitted or set to "default" then the log parameters are
 ignored.
 
 The
-.B lazycommit
-parameter tells the underlying database that it can store changes without
-performing a full flush after each change. This may improve performance
-for the consumer, while sacrificing safety or durability.
-
-The
 .B requirecheckpresent
 option enforce resync, in case a data provider
 .BR syncprov
 skips the present phase during a refresh stage.
+
+The
+.B lazycommit
+parameter tells the underlying database that it can store changes without
+performing a full flush after each change. This may improve performance
+for the consumer, while sacrificing safety or durability.
 .RE
 .TP
 .B updatedn <dn>

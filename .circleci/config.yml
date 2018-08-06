@@ -32,7 +32,7 @@ jobs:
             --enable-spasswd --enable-slapi
             --enable-rlookups --enable-wrappers --enable-backends
             --disable-bdb --disable-hdb --disable-ndb --disable-modules
-            --enable-ci
+            --enable-ci --with-tls
       - run: make --keep-going && make --keep-going install
       - run:
           timeout: 1800
