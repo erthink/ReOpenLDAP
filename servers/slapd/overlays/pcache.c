@@ -1066,11 +1066,12 @@ static int find_and_remove(struct berval *ber1, struct berval *ber2,
     }
     break;
   case 2: {
-    char *temp;
-    ber1->bv_val[ber1->bv_len] = '\0';
-    temp = strstr(ber1->bv_val, ber2->bv_val);
-    if (temp) {
-      strcpy(temp, temp + ber2->bv_len);
+    char *const needle =
+        memmem(ber1->bv_val, ber1->bv_len, ber2->bv_val, ber2->bv_len);
+    if (needle) {
+      char *const haystack_end = ber1->bv_val + ber1->bv_len;
+      char *const needle_end = needle + ber2->bv_len;
+      memcpy(needle, needle_end, haystack_end - needle_end);
       ber1->bv_len -= ber2->bv_len;
       ret = 1;
     }

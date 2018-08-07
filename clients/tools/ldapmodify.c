@@ -376,7 +376,7 @@ static int process_ldif_rec(char *rbuf, unsigned long linenum) {
   LDAPMod **pmods, *lm = NULL;
   int version;
   LDAPControl **pctrls;
-  int i, j, k, lines, idn, nmods;
+  int i, j, k, lines, idn = 0, nmods;
   struct berval *btype, *vals, **bvl, bv;
   char *freeval;
   unsigned char *mops = NULL;

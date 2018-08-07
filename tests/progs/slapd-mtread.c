@@ -98,19 +98,19 @@ static void thread_error(int idx, char *string) {
 }
 
 static void thread_output(int idx, char *string) {
-  char thrstr[BUFSIZ];
-
-  snprintf(thrstr, BUFSIZ, "tidx: %d says: %s", idx, string);
-  tester_error(thrstr);
+  char buf[BUFSIZ];
+  snprintf(buf, BUFSIZ, "tidx: %d says: %.*s", idx, (int)sizeof(buf) - 64,
+           string);
+  tester_error(buf);
 }
 
 static void thread_verbose(int idx, char *string) {
-  char thrstr[BUFSIZ];
-
-  if (!verbose)
-    return;
-  snprintf(thrstr, BUFSIZ, "tidx: %d says: %s", idx, string);
-  tester_error(thrstr);
+  if (verbose) {
+    char buf[BUFSIZ];
+    snprintf(buf, BUFSIZ, "tidx: %d says: %.*s", idx, (int)sizeof(buf) - 64,
+             string);
+    tester_error(buf);
+  }
 }
 
 static void usage(char *name, char opt) {
