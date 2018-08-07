@@ -1026,7 +1026,7 @@ fi
 dnl ----------------------------------------------------------------
 dnl UUID Support
 
-PKG_CHECK_MODULES(UUID, uuid, uuid_found=yes, uuid_found=no)
+PKG_CHECK_MODULES(UUID, uuid, uuid_found=yes, [PKG_CHECK_MODULES(UUID, ossp-uuid, uuid_found=yes, uuid_found=no)])
 AC_SUBST(UUID_LIBS)
 AC_SUBST(UUID_CFLAGS)
 if test $uuid_found = yes ; then
