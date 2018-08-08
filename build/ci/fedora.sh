@@ -17,7 +17,7 @@ sudo yum install -y \
 		libuuid-devel elfutils-libelf-devel krb5-devel heimdal-devel cracklib-devel \
 		cyrus-sasl-devel perl-devel perl-ExtUtils-Embed binutils-devel openssl-devel \
 		gnutls-devel unixODBC-devel libdb-devel gdb $TCPWRAPPERS_PACKAGE $NDBCLIENT_PACKAGE \
-		libsodium-devel \
+		libsodium-devel wiredtiger-devel \
 	|| exit 1
 
 [ -x ./configure ] || ./bootstrap.sh --dont-cleanup ] \
