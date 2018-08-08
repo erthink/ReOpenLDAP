@@ -1,6 +1,7 @@
 #!/bin/bash
 
 export EXTRA_CFLAGS="-Wall -Werror -g"
+export LIBTOOL_SUPPRESS_DEFAULT=no
 
 # tcp_wrappers-devel for '--enable-wrappers' was dropped in Fedora28
 TCPWRAPPERS_PACKAGE="`yum search -q tcp_wrappers-devel | grep tcp_wrappers-devel`"

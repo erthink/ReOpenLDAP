@@ -1,6 +1,7 @@
 #!/bin/bash
 
 export EXTRA_CFLAGS="-Wall -Werror -g"
+export LIBTOOL_SUPPRESS_DEFAULT=no
 
 sudo apt update -q
 
