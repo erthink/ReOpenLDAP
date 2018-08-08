@@ -300,6 +300,7 @@ int authzValidate(Syntax *syntax, struct berval *in) {
     id.bv_len = in->bv_len;
     id.bv_val = buf;
     strncpy(buf, in->bv_val, sizeof(buf));
+    buf[sizeof(buf) - 1] = '\0';
 
     rc = slap_parse_user(&id, &user, &realm, &mech);
     if (rc != LDAP_SUCCESS) {
@@ -593,7 +594,8 @@ static int authzPrettyNormal(struct berval *val, struct berval *normalized,
 
     id.bv_len = val->bv_len;
     id.bv_val = buf;
-    strncpy(buf, val->bv_val, sizeof(buf));
+    strncpy(buf, val->bv_val, sizeof(buf) - 1);
+    buf[sizeof(buf) - 1] = '\0';
 
     rc = slap_parse_user(&id, &user, &realm, &mech);
     if (rc != LDAP_SUCCESS) {
@@ -991,7 +993,8 @@ static int slap_parseURI(Operation *op, struct berval *uri, struct berval *base,
 
     id.bv_len = uri->bv_len;
     id.bv_val = buf;
-    strncpy(buf, uri->bv_val, sizeof(buf));
+    strncpy(buf, uri->bv_val, sizeof(buf) - 1);
+    buf[sizeof(buf) - 1] = '\0';
 
     rc = slap_parse_user(&id, &user, &realm, &mech);
     if (rc != LDAP_SUCCESS) {

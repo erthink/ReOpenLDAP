@@ -308,7 +308,7 @@ static int constraint_cf_gen(ConfigArgs *c) {
         ap.type = CONSTRAINT_REGEX;
         ap.re = ch_malloc(sizeof(regex_t));
         if ((err = regcomp(ap.re, c->argv[3], REG_EXTENDED)) != 0) {
-          char errmsg[1024];
+          char errmsg[sizeof(c->cr_msg) - 64];
 
           regerror(err, ap.re, errmsg, sizeof(errmsg));
           ch_free(ap.re);

@@ -848,14 +848,10 @@ static int meta_subtree_config(metatarget_t *mt, ConfigArgs *c) {
     break;
 
   case META_ST_REGEX: {
-    int rc;
-
-    rc = regcomp(&ms->ms_regex, pattern, REG_EXTENDED | REG_ICASE);
+    int rc = regcomp(&ms->ms_regex, pattern, REG_EXTENDED | REG_ICASE);
     if (rc != 0) {
-      char regerr[SLAP_TEXT_BUFLEN];
-
+      char regerr[sizeof(c->cr_msg) - 64];
       regerror(rc, &ms->ms_regex, regerr, sizeof(regerr));
-
       snprintf(c->cr_msg, sizeof(c->cr_msg),
                "regular expression \"%s\" bad because of %s", pattern, regerr);
       ch_free(ms);
@@ -2139,7 +2135,7 @@ static int meta_back_cf_gen(ConfigArgs *c) {
     mf = ch_malloc(sizeof(metafilter_t));
     rc = regcomp(&mf->mf_regex, c->argv[1], REG_EXTENDED);
     if (rc) {
-      char regerr[SLAP_TEXT_BUFLEN];
+      char regerr[sizeof(c->cr_msg) - 64];
       regerror(rc, &mf->mf_regex, regerr, sizeof(regerr));
       snprintf(c->cr_msg, sizeof(c->cr_msg),
                "regular expression \"%s\" bad because of %s", c->argv[1],

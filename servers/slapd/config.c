@@ -1038,7 +1038,8 @@ int config_verbmask2string(const slap_verbmasks *v, slap_mask_t m, char delim,
     return ARG_BAD_CONF;
 
   LDAP_ENSURE(value.bv_len < sizeof(c->log));
-  strncpy(c->value_string = c->log, value.bv_val, sizeof(c->log));
+  strncpy(c->value_string = c->log, value.bv_val, sizeof(c->log) - 1);
+  c->log[sizeof(c->log) - 1] = '\0';
   ch_free(value.bv_val);
   return 0;
 }

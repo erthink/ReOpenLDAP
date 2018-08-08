@@ -132,10 +132,8 @@ static void regtest(const char *fname, int lineno, char *pat) {
   }
 
   if ((e = regcomp(&re, buf, REG_EXTENDED | REG_ICASE))) {
-    char error[SLAP_TEXT_BUFLEN];
-
+    char error[sizeof(buf) - 64];
     regerror(e, &re, error, sizeof(error));
-
     snprintf(buf, sizeof(buf), "regular expression \"%s\" bad because of %s",
              pat, error);
     Debug(LDAP_DEBUG_ANY, "%s: line %d: %s\n", fname, lineno, buf);
@@ -279,7 +277,7 @@ static int check_scope(BackendDB *be, AccessControl *a) {
 int parse_acl(Backend *be, const char *fname, int lineno, int argc, char **argv,
               int pos) {
   int i;
-  char *left, *right, *style;
+  char *left, *right = NULL, *style;
   struct berval bv;
   AccessControl *a = NULL;
   Access *b = NULL;
@@ -476,10 +474,8 @@ int parse_acl(Backend *be, const char *fname, int lineno, int argc, char **argv,
               int e = regcomp(&a->acl_attrval_re, bv.bv_val,
                               REG_EXTENDED | REG_ICASE);
               if (e) {
-                char err[SLAP_TEXT_BUFLEN], buf[SLAP_TEXT_BUFLEN];
-
+                char buf[SLAP_TEXT_BUFLEN], err[sizeof(buf) - 64];
                 regerror(e, &a->acl_attrval_re, err, sizeof(err));
-
                 snprintf(buf, sizeof(buf),
                          "regular expression \"%s\" bad because of %s", right,
                          err);
@@ -617,8 +613,7 @@ int parse_acl(Backend *be, const char *fname, int lineno, int argc, char **argv,
           int e = regcomp(&a->acl_dn_re, a->acl_dn_pat.bv_val,
                           REG_EXTENDED | REG_ICASE);
           if (e) {
-            char err[SLAP_TEXT_BUFLEN], buf[SLAP_TEXT_BUFLEN];
-
+            char buf[SLAP_TEXT_BUFLEN], err[sizeof(buf) - 64];
             regerror(e, &a->acl_dn_re, err, sizeof(err));
             snprintf(buf, sizeof(buf),
                      "regular expression \"%s\" bad because of %s", right, err);

@@ -740,7 +740,7 @@ int slap_bv2undef_ad(struct berval *bv, AttributeDescription **ad,
 
     desc->ad_cname.bv_len = bv->bv_len;
     desc->ad_cname.bv_val = (char *)(desc + 1);
-    strncpy(desc->ad_cname.bv_val, bv->bv_val, bv->bv_len);
+    memcpy(desc->ad_cname.bv_val, bv->bv_val, bv->bv_len);
     desc->ad_cname.bv_val[bv->bv_len] = '\0';
 
     /* canonical to upper case */

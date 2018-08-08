@@ -99,12 +99,10 @@ void dealloc_config_entries() {
 }
 
 char *chomp(char *s) {
-  char *t = ber_memalloc(strlen(s) + 1);
-  strncpy(t, s, strlen(s) + 1);
-
-  if (t[strlen(t) - 1] == '\n') {
-    t[strlen(t) - 1] = '\0';
-  }
+  char *t = ber_strdup(s);
+  if (t)
+    for (size_t len = strlen(s); len > 0 && t[len - 1] == '\n';)
+      t[--len] = '\0';
 
   return t;
 }

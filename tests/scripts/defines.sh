@@ -16,6 +16,7 @@
 # LY: kill all slapd running in the current session
 pkill -SIGKILL -s 0 -u $EUID slapd
 pkill -SIGKILL -s 0 -u $EUID lt-slapd
+export LC_ALL=C
 TESTWD=$(pwd)
 umask 0002
 
@@ -300,7 +301,7 @@ LOCALIP=127.0.0.1
 BASEPORT=${SLAPD_BASEPORT:-9010}
 # NOTE: -u/-c is not that portable...
 DIFF="diff -i"
-CMP="diff -i -Z"
+CMP="diff -iZ"
 BCMP="diff -iB"
 CMPOUT=/dev/null
 SLAPD="$TIMEOUT_L $VALGRIND_CMD $SLAPD_SLAPD -D -s0 -d $LVL"
