@@ -56,7 +56,7 @@ int bdb_attr_slot(struct bdb_info *bdb, AttributeDescription *ad, int *ins) {
 }
 
 static int ainfo_insert(struct bdb_info *bdb, AttrInfo *a) {
-  int x;
+  int x = 0;
   int i = bdb_attr_slot(bdb, a->ai_desc, &x);
 
   /* Is it a dup? */

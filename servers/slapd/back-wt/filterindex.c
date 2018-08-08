@@ -434,15 +434,13 @@ static int substring_candidates(Operation *op, wt_ctx *wc,
 static int comp_candidates(Operation *op, wt_ctx *wc,
                            MatchingRuleAssertion *mra, ComponentFilter *f,
                            ID *ids, ID *tmp, ID *stack) {
-  int rc;
-
   if (!f)
     return LDAP_PROTOCOL_ERROR;
 
   Debug(LDAP_DEBUG_FILTER, "comp_candidates\n");
   /* TODO: */
-  Debug(LDAP_DEBUG_FILTER, "=> not implement yet\n");
-  return (rc);
+  Debug(LDAP_DEBUG_ANY, "=> not implement yet\n");
+  return LDAP_UNWILLING_TO_PERFORM;
 }
 
 #endif
