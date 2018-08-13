@@ -75,7 +75,7 @@ bool parse_option(int argc, char *const argv[], int &narg, const char *option,
   if (!parse_option(argc, argv, narg, option, &list))
     return false;
 
-  mask = 0;
+  unsigned clear = 0;
   while (*list) {
     if (*list == ',' || *list == ' ' || *list == '\t') {
       ++list;
@@ -83,14 +83,21 @@ bool parse_option(int argc, char *const argv[], int &narg, const char *option,
     }
 
     const char *const comma = strchr(list, ',');
+    const bool strikethrough = *list == '-' || *list == '~';
+    if (strikethrough || *list == '+')
+      ++list;
+    else
+      mask = clear;
     const size_t len = (comma) ? comma - list : strlen(list);
     const option_verb *scan = verbs;
+
     while (true) {
       if (!scan->verb)
         failure("Unknown verb '%.*s', for option '==%s'\n", (int)len, list,
                 option);
       if (strlen(scan->verb) == len && strncmp(list, scan->verb, len) == 0) {
-        mask |= scan->mask;
+        mask = strikethrough ? mask & ~scan->mask : mask | scan->mask;
+        clear = strikethrough ? clear & ~scan->mask : clear | scan->mask;
         list += len;
         break;
       }
@@ -111,7 +118,12 @@ bool parse_option(int argc, char *const argv[], int &narg, const char *option,
 
   char *suffix = nullptr;
   errno = 0;
-  unsigned long raw = strtoul(value_cstr, &suffix, 0);
+  unsigned long long raw = strtoull(value_cstr, &suffix, 0);
+  if ((suffix && *suffix) || errno) {
+    suffix = nullptr;
+    errno = 0;
+    raw = strtoull(value_cstr, &suffix, 10);
+  }
   if (errno)
     failure("Option '--%s' expects a numeric value (%s)\n", option,
             test_strerror(errno));
