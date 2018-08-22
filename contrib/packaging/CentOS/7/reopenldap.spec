@@ -387,6 +387,7 @@ exit 0
 %{_bindir}/ldap*
 %{_mandir}/man1/*
 %{_mandir}/ru/man1/*
+%ghost %config(noreplace,missingok) %attr(0640,ldap,ldap) %{_sysconfdir}/openldap/slapd.conf
 
 %files devel
 %{_includedir}/reopenldap/*
