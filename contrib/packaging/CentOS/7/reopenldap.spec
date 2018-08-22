@@ -328,7 +328,7 @@ exit 0
 %doc README.OpenLDAP
 %dir %{_sysconfdir}/openldap
 %dir %{_sysconfdir}/openldap/certs
-%config(noreplace) %{_sysconfdir}/openldap/ldap.conf
+%ghost %config(noreplace) %{_sysconfdir}/openldap/ldap.conf
 %{_libdir}/reopenldap/libreldap*.so*
 %{_libdir}/reopenldap/libreslapi*.so*
 #%{_mandir}/man5/ldif.5*
