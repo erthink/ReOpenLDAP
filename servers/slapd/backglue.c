@@ -215,8 +215,7 @@ static int glue_op_response(Operation *op, SlapReply *rs) {
 static int glue_op_func(Operation *op, SlapReply *rs) {
   slap_overinst *on = (slap_overinst *)op->o_bd->bd_info;
   BackendDB *b0 = op->o_bd;
-  BackendInfo *bi0 = op->o_bd->bd_info;
-  BI_op_modify **func;
+  BackendInfo *bi0 = op->o_bd->bd_info, *bi1;
   slap_operation_t which = op_bind;
   int rc;
 
@@ -249,11 +248,9 @@ static int glue_op_func(Operation *op, SlapReply *rs) {
     break;
   }
 
-  func = &op->o_bd->bd_info->bi_op_bind;
-  if (func[which])
-    rc = func[which](op, rs);
-  else
-    rc = SLAP_CB_BYPASS;
+  bi1 = op->o_bd->bd_info;
+  rc = (&bi1->bi_op_bind)[which] ? (&bi1->bi_op_bind)[which](op, rs)
+                                 : SLAP_CB_BYPASS;
 
   op->o_bd = b0;
   op->o_bd->bd_info = bi0;

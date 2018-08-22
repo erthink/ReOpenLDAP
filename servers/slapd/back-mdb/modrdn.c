@@ -31,8 +31,8 @@ int mdb_modrdn(Operation *op, SlapReply *rs) {
   /* LDAP v2 supporting correct attribute handling. */
   char textbuf[SLAP_TEXT_BUFLEN];
   size_t textlen = sizeof textbuf;
-  MDB_txn *txn = NULL;
-  MDB_cursor *mc = NULL;
+  MDBX_txn *txn = NULL;
+  MDBX_cursor *mc = NULL;
   struct mdb_op_info opinfo = {{{0}}}, *moi = &opinfo;
   Entry dummy = {0};
 
@@ -52,50 +52,13 @@ int mdb_modrdn(Operation *op, SlapReply *rs) {
   int parent_is_glue = 0;
   int parent_is_leaf = 0;
 
-#ifdef LDAP_X_TXN
-  int settle = 0;
-#endif
-
   Debug(LDAP_DEBUG_TRACE, "==>" LDAP_XSTRING(mdb_modrdn) "(%s,%s,%s)\n",
         op->o_req_dn.bv_val, op->oq_modrdn.rs_newrdn.bv_val,
         op->oq_modrdn.rs_newSup ? op->oq_modrdn.rs_newSup->bv_val : "NULL");
 
 #ifdef LDAP_X_TXN
-  if (op->o_txnSpec) {
-    /* acquire connection lock */
-    ldap_pvt_thread_mutex_lock(&op->o_conn->c_mutex);
-    if (op->o_conn->c_txn == CONN_TXN_INACTIVE) {
-      rs->sr_text = "invalid transaction identifier";
-      rs->sr_err = LDAP_X_TXN_ID_INVALID;
-      goto txnReturn;
-    } else if (op->o_conn->c_txn == CONN_TXN_SETTLE) {
-      settle = 1;
-      goto txnReturn;
-    }
-
-    if (op->o_conn->c_txn_backend == NULL) {
-      op->o_conn->c_txn_backend = op->o_bd;
-
-    } else if (op->o_conn->c_txn_backend != op->o_bd) {
-      rs->sr_text = "transaction cannot span multiple database contexts";
-      rs->sr_err = LDAP_AFFECTS_MULTIPLE_DSAS;
-      goto txnReturn;
-    }
-
-    /* insert operation into transaction */
-
-    rs->sr_text = "transaction specified";
-    rs->sr_err = LDAP_X_TXN_SPECIFY_OKAY;
-
-  txnReturn:
-    /* release connection lock */
-    ldap_pvt_thread_mutex_unlock(&op->o_conn->c_mutex);
-
-    if (!settle) {
-      send_ldap_result(op, rs);
-      return rs->sr_err;
-    }
-  }
+  if (op->o_txnSpec && txn_preop(op, rs))
+    return rs->sr_err;
 #endif
 
   ctrls[num_ctrls] = NULL;
@@ -107,7 +70,7 @@ int mdb_modrdn(Operation *op, SlapReply *rs) {
     Debug(LDAP_DEBUG_TRACE,
           LDAP_XSTRING(mdb_modrdn) ": txn_begin failed: "
                                    "%s (%d)\n",
-          mdb_strerror(rs->sr_err), rs->sr_err);
+          mdbx_strerror(rs->sr_err), rs->sr_err);
     rs->sr_err = LDAP_OTHER;
     rs->sr_text = "internal error";
     goto return_results;
@@ -133,18 +96,18 @@ int mdb_modrdn(Operation *op, SlapReply *rs) {
   /* Make sure parent entry exist and we can write its
    * children.
    */
-  rs->sr_err = mdb_cursor_open(txn, mdb->mi_dn2id, &mc);
+  rs->sr_err = mdbx_cursor_open(txn, mdb->mi_dn2id, &mc);
   if (rs->sr_err != 0) {
     Debug(LDAP_DEBUG_TRACE,
           "<=- " LDAP_XSTRING(mdb_modrdn) ": cursor_open failed: %s (%d)\n",
-          mdb_strerror(rs->sr_err), rs->sr_err);
+          mdbx_strerror(rs->sr_err), rs->sr_err);
     rs->sr_err = LDAP_OTHER;
     rs->sr_text = "DN cursor_open failed";
     goto return_results;
   }
   rs->sr_err = mdb_dn2entry(op, txn, mc, &p_ndn, &p, NULL, 0);
   switch (rs->sr_err) {
-  case MDB_NOTFOUND:
+  case MDBX_NOTFOUND:
     Debug(LDAP_DEBUG_TRACE,
           LDAP_XSTRING(mdb_modrdn) ": parent does not exist\n");
     rs->sr_ref = referral_rewrite(default_referral, NULL, &op->o_req_dn,
@@ -193,7 +156,7 @@ int mdb_modrdn(Operation *op, SlapReply *rs) {
   /* get entry */
   rs->sr_err = mdb_dn2entry(op, txn, mc, &op->o_req_ndn, &e, &nsubs, 0);
   switch (rs->sr_err) {
-  case MDB_NOTFOUND:
+  case MDBX_NOTFOUND:
     e = p;
     p = NULL;
   case 0:
@@ -208,7 +171,8 @@ int mdb_modrdn(Operation *op, SlapReply *rs) {
   }
 
   /* FIXME: dn2entry() should return non-glue entry */
-  if ((rs->sr_err == MDB_NOTFOUND) || (!manageDSAit && e && is_entry_glue(e))) {
+  if ((rs->sr_err == MDBX_NOTFOUND) ||
+      (!manageDSAit && e && is_entry_glue(e))) {
     if (e != NULL) {
       rs->sr_matched = ch_strdup(e->e_dn);
       if (is_entry_referral(e)) {
@@ -304,7 +268,7 @@ int mdb_modrdn(Operation *op, SlapReply *rs) {
       switch (rs->sr_err) {
       case 0:
         break;
-      case MDB_NOTFOUND:
+      case MDBX_NOTFOUND:
         Debug(LDAP_DEBUG_TRACE,
               LDAP_XSTRING(mdb_modrdn) ": newSup(ndn=%s) not here!\n",
               np_ndn->bv_val);
@@ -397,7 +361,7 @@ int mdb_modrdn(Operation *op, SlapReply *rs) {
   /* Shortcut the search */
   rs->sr_err = mdb_dn2id(op, txn, NULL, &new_ndn, &nid, NULL, NULL, NULL);
   switch (rs->sr_err) {
-  case MDB_NOTFOUND:
+  case MDBX_NOTFOUND:
     break;
   case 0:
     /* Allow rename to same DN */
@@ -437,7 +401,7 @@ int mdb_modrdn(Operation *op, SlapReply *rs) {
   if (rs->sr_err != 0) {
     Debug(LDAP_DEBUG_TRACE,
           "<=- " LDAP_XSTRING(mdb_modrdn) ": dn2id del failed: %s (%d)\n",
-          mdb_strerror(rs->sr_err), rs->sr_err);
+          mdbx_strerror(rs->sr_err), rs->sr_err);
     rs->sr_err = LDAP_OTHER;
     rs->sr_text = "DN index delete fail";
     goto return_results;
@@ -455,7 +419,7 @@ int mdb_modrdn(Operation *op, SlapReply *rs) {
   if (rs->sr_err != 0) {
     Debug(LDAP_DEBUG_TRACE,
           "<=- " LDAP_XSTRING(mdb_modrdn) ": dn2id add failed: %s (%d)\n",
-          mdb_strerror(rs->sr_err), rs->sr_err);
+          mdbx_strerror(rs->sr_err), rs->sr_err);
     rs->sr_err = LDAP_OTHER;
     rs->sr_text = "DN index add failed";
     goto return_results;
@@ -469,7 +433,7 @@ int mdb_modrdn(Operation *op, SlapReply *rs) {
   if (rs->sr_err != LDAP_SUCCESS) {
     Debug(LDAP_DEBUG_TRACE,
           "<=- " LDAP_XSTRING(mdb_modrdn) ": modify failed: %s (%d)\n",
-          mdb_strerror(rs->sr_err), rs->sr_err);
+          mdbx_strerror(rs->sr_err), rs->sr_err);
     if (dummy.e_attrs == e->e_attrs)
       dummy.e_attrs = NULL;
     goto return_results;
@@ -480,16 +444,20 @@ int mdb_modrdn(Operation *op, SlapReply *rs) {
   if (rs->sr_err != 0) {
     Debug(LDAP_DEBUG_TRACE,
           "<=- " LDAP_XSTRING(mdb_modrdn) ": id2entry failed: %s (%d)\n",
-          mdb_strerror(rs->sr_err), rs->sr_err);
-    rs->sr_err = LDAP_OTHER;
-    rs->sr_text = "entry update failed";
+          mdbx_strerror(rs->sr_err), rs->sr_err);
+    if (rs->sr_err == LDAP_ADMINLIMIT_EXCEEDED) {
+      rs->sr_text = "entry too big";
+    } else {
+      rs->sr_err = LDAP_OTHER;
+      rs->sr_text = "entry update failed";
+    }
     goto return_results;
   }
 
   if (p_ndn.bv_len != 0) {
     if ((parent_is_glue = is_entry_glue(p))) {
       rs->sr_err = mdb_dn2id_children(op, txn, p);
-      if (rs->sr_err != MDB_NOTFOUND) {
+      if (rs->sr_err != MDBX_NOTFOUND) {
         switch (rs->sr_err) {
         case 0:
           break;
@@ -497,7 +465,7 @@ int mdb_modrdn(Operation *op, SlapReply *rs) {
           Debug(LDAP_DEBUG_ARGS,
                 "<=- " LDAP_XSTRING(
                     mdb_modrdn) ": has_children failed: %s (%d)\n",
-                mdb_strerror(rs->sr_err), rs->sr_err);
+                mdbx_strerror(rs->sr_err), rs->sr_err);
           rs->sr_err = LDAP_OTHER;
           rs->sr_text = "internal error";
           goto return_results;
@@ -530,7 +498,7 @@ int mdb_modrdn(Operation *op, SlapReply *rs) {
     LDAP_SLIST_REMOVE(&op->o_extra, &opinfo.moi_oe, OpExtra, oe_next);
     opinfo.moi_oe.oe_key = NULL;
     if (op->o_noop) {
-      mdb_txn_abort(txn);
+      mdbx_txn_abort(txn);
       rs->sr_err = LDAP_X_NO_OPERATION;
       txn = NULL;
       /* Only free attrs if they were dup'd.  */
@@ -539,7 +507,7 @@ int mdb_modrdn(Operation *op, SlapReply *rs) {
       goto return_results;
 
     } else {
-      if ((rs->sr_err = mdb_txn_commit(txn)) != 0) {
+      if ((rs->sr_err = mdbx_txn_commit(txn)) != 0) {
         rs->sr_text = "txn_commit failed";
       } else {
         rs->sr_err = LDAP_SUCCESS;
@@ -550,7 +518,7 @@ int mdb_modrdn(Operation *op, SlapReply *rs) {
 
   if (rs->sr_err != LDAP_SUCCESS) {
     Debug(LDAP_DEBUG_ANY, LDAP_XSTRING(mdb_modrdn) ": %s : %s (%d)\n",
-          rs->sr_text, mdb_strerror(rs->sr_err), rs->sr_err);
+          rs->sr_text, mdbx_strerror(rs->sr_err), rs->sr_err);
     rs->sr_err = LDAP_OTHER;
 
     goto return_results;
@@ -605,13 +573,13 @@ done:
     mdb_entry_return(op, e);
   }
 
-  mdb_cursor_close(mc);
+  mdbx_cursor_close(mc);
   if (moi == &opinfo || --moi->moi_ref < 1) {
     if (txn != NULL)
-      mdb_txn_abort(txn);
+      mdbx_txn_abort(txn);
     if (moi->moi_oe.oe_key)
       LDAP_SLIST_REMOVE(&op->o_extra, &moi->moi_oe, OpExtra, oe_next);
-    if (moi->moi_flag & MOI_FREEIT)
+    if ((moi->moi_flag & (MOI_FREEIT | MOI_KEEPER)) == MOI_FREEIT)
       op->o_tmpfree(moi, op->o_tmpmemctx);
   }
 

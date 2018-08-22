@@ -80,6 +80,12 @@ olcDatabase: {0}config
 olcBiglock: local
 olcRootPW:< file://$CONFIGPWF
 EOF
+RC=$?
+if test $RC != 0 ; then
+	echo "slapadd failed ($RC)!"
+	killservers
+	exit $RC
+fi
 
 n=`expr $n + 1`
 done

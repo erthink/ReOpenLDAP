@@ -509,6 +509,16 @@ option.
 Read additional configuration information from the given file before
 continuing with the next line of the current file.
 .TP
+.B index_hash64 { on | off }
+Use a 64 bit hash for indexing. The default is to use 32 bit hashes.
+These hashes are used for equality and substring indexing. The 64 bit
+version may be needed to avoid index collisions when the number of
+indexed values exceeds ~64 million. (Note that substring indexing
+generates multiple index values per actual attribute value.)
+Indices generated with 32 bit hashes are incompatible with the 64 bit
+version, and vice versa. Any existing databases must be fully reloaded
+when changing this setting. This directive is only supported on 64 bit CPUs.
+.TP
 .B index_intlen <integer>
 Specify the key length for ordered integer indices. The most significant
 bytes of the binary integer will be used for index keys. The default
@@ -855,6 +865,17 @@ Specify which auxprop plugins to use for authentication lookups. The
 default is empty, which just uses slapd's internal support. Usually
 no other auxprop plugins are needed.
 .TP
+.B sasl\-auxprops\-dontusecopy <attr> [...]
+Specify which attribute(s) should be subject to the don't use copy control. This
+is necessary for some SASL mechanisms such as OTP to work in a replicated
+environment. The attribute "cmusaslsecretOTP" is the default value.
+.TP
+.B sasl\-auxprops\-dontusecopy\-ignore on | off
+Used to disable replication of the attribute(s) defined by
+sasl-auxprops-dontusecopy and instead use a local value for the attribute. This
+allows the SASL mechanism to continue to work if the master is offline. This can
+cause replication inconsistency. Defaults to off.
+.TP
 .B sasl\-host <fqdn>
 Used to specify the fully qualified domain name used for SASL processing.
 .TP
@@ -1009,6 +1030,11 @@ Note that some OS-es implement automatic TCP buffer tuning.
 .B threads <integer>
 Specify the maximum size of the primary thread pool.
 The default is 16; the minimum value is 2.
+.TP
+.B threadqueues <integer>
+Specify the number of work queues to use for the primary thread pool.
+The default is 1 and this is typically adequate for up to 8 CPU cores.
+The value should not exceed the number of CPUs in the system.
 .TP
 .B timelimit { <integer> | unlimited }
 .TP
@@ -1472,6 +1498,13 @@ You should append "!ADH" to your cipher suites to ensure that these suites
 are not used.
 When using Mozilla NSS these parameters are always generated randomly
 so this directive is ignored.
+.TP
+.B TLSECName <name>
+Specify the name of a curve to use for Elliptic curve Diffie-Hellman
+ephemeral key exchange.  This is required to enable ECDHE algorithms in
+OpenSSL.  This option is not used with GnuTLS; the curves may be
+chosen in the GnuTLS ciphersuite specification. This option is also
+ignored for Mozilla NSS.
 .TP
 .B TLSProtocolMin <major>[.<minor>]
 Specifies minimum SSL/TLS protocol version that will be negotiated.
@@ -2085,6 +2118,7 @@ the contextCSN is stored in the context entry.
 .B [logbase=<base DN>]
 .B [logfilter=<filter str>]
 .B [syncdata=default|accesslog|changelog]
+.B [lazycommit]
 .B [requirecheckpresent]
 .RS
 Specify the current database as a replica which is kept up-to-date with the
@@ -2307,6 +2341,12 @@ The
 option enforce resync, in case a data provider
 .BR syncprov
 skips the present phase during a refresh stage.
+
+The
+.B lazycommit
+parameter tells the underlying database that it can store changes without
+performing a full flush after each change. This may improve performance
+for the consumer, while sacrificing safety or durability.
 .RE
 .TP
 .B updatedn <dn>

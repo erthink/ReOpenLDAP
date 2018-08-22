@@ -29,8 +29,8 @@ int mdb_delete(Operation *op, SlapReply *rs) {
   int manageDSAit = get_manageDSAit(op);
   AttributeDescription *children = slap_schema.si_ad_children;
   AttributeDescription *entry = slap_schema.si_ad_entry;
-  MDB_txn *txn = NULL;
-  MDB_cursor *mc = NULL;
+  MDBX_txn *txn = NULL;
+  MDBX_cursor *mc = NULL;
   mdb_op_info opinfo = {{{0}}}, *moi = &opinfo;
 
   LDAPControl **preread_ctrl = NULL;
@@ -40,49 +40,12 @@ int mdb_delete(Operation *op, SlapReply *rs) {
   int parent_is_glue = 0;
   int parent_is_leaf = 0;
 
-#ifdef LDAP_X_TXN
-  int settle = 0;
-#endif
-
   Debug(LDAP_DEBUG_ARGS, "==> " LDAP_XSTRING(mdb_delete) ": %s\n",
         op->o_req_dn.bv_val);
 
 #ifdef LDAP_X_TXN
-  if (op->o_txnSpec) {
-    /* acquire connection lock */
-    ldap_pvt_thread_mutex_lock(&op->o_conn->c_mutex);
-    if (op->o_conn->c_txn == CONN_TXN_INACTIVE) {
-      rs->sr_text = "invalid transaction identifier";
-      rs->sr_err = LDAP_X_TXN_ID_INVALID;
-      goto txnReturn;
-    } else if (op->o_conn->c_txn == CONN_TXN_SETTLE) {
-      settle = 1;
-      goto txnReturn;
-    }
-
-    if (op->o_conn->c_txn_backend == NULL) {
-      op->o_conn->c_txn_backend = op->o_bd;
-
-    } else if (op->o_conn->c_txn_backend != op->o_bd) {
-      rs->sr_text = "transaction cannot span multiple database contexts";
-      rs->sr_err = LDAP_AFFECTS_MULTIPLE_DSAS;
-      goto txnReturn;
-    }
-
-    /* insert operation into transaction */
-
-    rs->sr_text = "transaction specified";
-    rs->sr_err = LDAP_X_TXN_SPECIFY_OKAY;
-
-  txnReturn:
-    /* release connection lock */
-    ldap_pvt_thread_mutex_unlock(&op->o_conn->c_mutex);
-
-    if (!settle) {
-      send_ldap_result(op, rs);
-      return rs->sr_err;
-    }
-  }
+  if (op->o_txnSpec && txn_preop(op, rs))
+    return rs->sr_err;
 #endif
 
   ctrls[num_ctrls] = 0;
@@ -94,7 +57,7 @@ int mdb_delete(Operation *op, SlapReply *rs) {
     Debug(LDAP_DEBUG_TRACE,
           LDAP_XSTRING(mdb_delete) ": txn_begin failed: "
                                    "%s (%d)\n",
-          mdb_strerror(rs->sr_err), rs->sr_err);
+          mdbx_strerror(rs->sr_err), rs->sr_err);
     rs->sr_err = LDAP_OTHER;
     rs->sr_text = "internal error";
     goto return_results;
@@ -115,7 +78,7 @@ int mdb_delete(Operation *op, SlapReply *rs) {
     dnParent(&op->o_req_ndn, &pdn);
   }
 
-  rs->sr_err = mdb_cursor_open(txn, mdb->mi_dn2id, &mc);
+  rs->sr_err = mdbx_cursor_open(txn, mdb->mi_dn2id, &mc);
   if (rs->sr_err) {
     rs->sr_err = LDAP_OTHER;
     rs->sr_text = "internal error";
@@ -125,7 +88,7 @@ int mdb_delete(Operation *op, SlapReply *rs) {
   rs->sr_err = mdb_dn2entry(op, txn, mc, &pdn, &p, NULL, 1);
   switch (rs->sr_err) {
   case 0:
-  case MDB_NOTFOUND:
+  case MDBX_NOTFOUND:
     break;
   case LDAP_BUSY:
     rs->sr_text = "ldap server busy";
@@ -135,7 +98,7 @@ int mdb_delete(Operation *op, SlapReply *rs) {
     rs->sr_text = "internal error";
     goto return_results;
   }
-  if (rs->sr_err == MDB_NOTFOUND) {
+  if (rs->sr_err == MDBX_NOTFOUND) {
     Debug(LDAP_DEBUG_ARGS,
           "<=- " LDAP_XSTRING(mdb_delete) ": no such object %s\n",
           op->o_req_dn.bv_val);
@@ -167,7 +130,7 @@ int mdb_delete(Operation *op, SlapReply *rs) {
   /* get entry */
   rs->sr_err = mdb_dn2entry(op, txn, mc, &op->o_req_ndn, &e, NULL, 0);
   switch (rs->sr_err) {
-  case MDB_NOTFOUND:
+  case MDBX_NOTFOUND:
     e = p;
     p = NULL;
   case 0:
@@ -182,7 +145,7 @@ int mdb_delete(Operation *op, SlapReply *rs) {
   }
 
   /* FIXME : dn2entry() should return non-glue entry */
-  if (rs->sr_err == MDB_NOTFOUND || (!manageDSAit && is_entry_glue(e))) {
+  if (rs->sr_err == MDBX_NOTFOUND || (!manageDSAit && is_entry_glue(e))) {
     Debug(LDAP_DEBUG_ARGS,
           "<=- " LDAP_XSTRING(mdb_delete) ": no such object %s\n",
           op->o_req_dn.bv_val);
@@ -295,7 +258,7 @@ int mdb_delete(Operation *op, SlapReply *rs) {
 
   /* Can't do it if we have kids */
   rs->sr_err = mdb_dn2id_children(op, txn, e);
-  if (rs->sr_err != MDB_NOTFOUND) {
+  if (rs->sr_err != MDBX_NOTFOUND) {
     switch (rs->sr_err) {
     case 0:
       Debug(LDAP_DEBUG_ARGS, "<=- " LDAP_XSTRING(mdb_delete) ": non-leaf %s\n",
@@ -306,7 +269,7 @@ int mdb_delete(Operation *op, SlapReply *rs) {
     default:
       Debug(LDAP_DEBUG_ARGS,
             "<=- " LDAP_XSTRING(mdb_delete) ": has_children failed: %s (%d)\n",
-            mdb_strerror(rs->sr_err), rs->sr_err);
+            mdbx_strerror(rs->sr_err), rs->sr_err);
       rs->sr_err = LDAP_OTHER;
       rs->sr_text = "internal error";
     }
@@ -315,13 +278,13 @@ int mdb_delete(Operation *op, SlapReply *rs) {
 
   /* delete from dn2id */
   rs->sr_err = mdb_dn2id_delete(op, mc, e->e_id, 1);
-  mdb_cursor_close(mc);
+  mdbx_cursor_close(mc);
   mc = NULL;
   if (rs->sr_err != 0) {
     Debug(LDAP_DEBUG_TRACE,
           "<=- " LDAP_XSTRING(mdb_delete) ": dn2id failed: "
                                           "%s (%d)\n",
-          mdb_strerror(rs->sr_err), rs->sr_err);
+          mdbx_strerror(rs->sr_err), rs->sr_err);
     rs->sr_text = "DN index delete failed";
     rs->sr_err = LDAP_OTHER;
     goto return_results;
@@ -333,7 +296,7 @@ int mdb_delete(Operation *op, SlapReply *rs) {
     Debug(LDAP_DEBUG_TRACE,
           "<=- " LDAP_XSTRING(mdb_delete) ": index failed: "
                                           "%s (%d)\n",
-          mdb_strerror(rs->sr_err), rs->sr_err);
+          mdbx_strerror(rs->sr_err), rs->sr_err);
     rs->sr_text = "entry index delete failed";
     rs->sr_err = LDAP_OTHER;
     goto return_results;
@@ -361,7 +324,7 @@ int mdb_delete(Operation *op, SlapReply *rs) {
     Debug(LDAP_DEBUG_TRACE,
           "<=- " LDAP_XSTRING(mdb_delete) ": id2entry failed: "
                                           "%s (%d)\n",
-          mdb_strerror(rs->sr_err), rs->sr_err);
+          mdbx_strerror(rs->sr_err), rs->sr_err);
     rs->sr_text = "entry delete failed";
     rs->sr_err = LDAP_OTHER;
     goto return_results;
@@ -370,7 +333,7 @@ int mdb_delete(Operation *op, SlapReply *rs) {
   if (pdn.bv_len != 0) {
     parent_is_glue = is_entry_glue(p);
     rs->sr_err = mdb_dn2id_children(op, txn, p);
-    if (rs->sr_err != MDB_NOTFOUND) {
+    if (rs->sr_err != MDBX_NOTFOUND) {
       switch (rs->sr_err) {
       case 0:
         break;
@@ -378,7 +341,7 @@ int mdb_delete(Operation *op, SlapReply *rs) {
         Debug(
             LDAP_DEBUG_ARGS,
             "<=- " LDAP_XSTRING(mdb_delete) ": has_children failed: %s (%d)\n",
-            mdb_strerror(rs->sr_err), rs->sr_err);
+            mdbx_strerror(rs->sr_err), rs->sr_err);
         rs->sr_err = LDAP_OTHER;
         rs->sr_text = "internal error";
         goto return_results;
@@ -393,19 +356,19 @@ int mdb_delete(Operation *op, SlapReply *rs) {
     LDAP_SLIST_REMOVE(&op->o_extra, &opinfo.moi_oe, OpExtra, oe_next);
     opinfo.moi_oe.oe_key = NULL;
     if (op->o_noop) {
-      mdb_txn_abort(txn);
+      mdbx_txn_abort(txn);
       rs->sr_err = LDAP_X_NO_OPERATION;
       txn = NULL;
       goto return_results;
     } else {
-      rs->sr_err = mdb_txn_commit(txn);
+      rs->sr_err = mdbx_txn_commit(txn);
     }
     txn = NULL;
   }
 
   if (rs->sr_err != 0) {
     Debug(LDAP_DEBUG_ANY, LDAP_XSTRING(mdb_delete) ": txn_%s failed: %s (%d)\n",
-          op->o_noop ? "abort (no-op)" : "commit", mdb_strerror(rs->sr_err),
+          op->o_noop ? "abort (no-op)" : "commit", mdbx_strerror(rs->sr_err),
           rs->sr_err);
     rs->sr_err = LDAP_OTHER;
     rs->sr_text = "commit failed";
@@ -437,17 +400,17 @@ return_results:
 
   if (moi == &opinfo || --moi->moi_ref < 1) {
     if (txn != NULL)
-      mdb_txn_abort(txn);
+      mdbx_txn_abort(txn);
     if (moi->moi_oe.oe_key)
       LDAP_SLIST_REMOVE(&op->o_extra, &moi->moi_oe, OpExtra, oe_next);
-    if (moi->moi_flag & MOI_FREEIT)
+    if ((moi->moi_flag & (MOI_FREEIT | MOI_KEEPER)) == MOI_FREEIT)
       op->o_tmpfree(moi, op->o_tmpmemctx);
   }
 
   send_ldap_result(op, rs);
   rs_send_cleanup(rs);
   slap_graduate_commit_csn(op);
-  mdb_cursor_close(mc);
+  mdbx_cursor_close(mc);
 
   if (preread_ctrl != NULL && (*preread_ctrl) != NULL) {
     slap_sl_free((*preread_ctrl)->ldctl_value.bv_val, op->o_tmpmemctx);

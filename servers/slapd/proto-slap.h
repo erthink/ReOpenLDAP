@@ -357,6 +357,21 @@ LDAP_SLAPD_F(struct berval *) be_root_dn(Backend *be);
 LDAP_SLAPD_F(int)
 be_entry_get_rw(Operation *o, struct berval *ndn, ObjectClass *oc,
                 AttributeDescription *at, int rw, Entry **e);
+
+#ifndef USE_RS_ASSERT
+#define USE_RS_ASSERT LDAP_CHECK
+#endif
+
+/* "backend->ophandler(op,rs)" wrappers, applied by contrib:wrap_slap_ops */
+#define SLAP_OP(which, op, rs) slap_bi_op((op)->o_bd->bd_info, which, op, rs)
+#define slap_be_op(be, which, op, rs) slap_bi_op((be)->bd_info, which, op, rs)
+#if !(defined(USE_RS_ASSERT) && (USE_RS_ASSERT))
+#define slap_bi_op(bi, which, op, rs) ((&(bi)->bi_op_bind)[which](op, rs))
+#endif
+LDAP_SLAPD_F(int)
+(slap_bi_op)(BackendInfo *bi, slap_operation_t which, Operation *op,
+             SlapReply *rs);
+
 LDAP_SLAPD_F(int) be_entry_release_rw(Operation *o, Entry *e, int rw);
 #define be_entry_release_r(o, e) be_entry_release_rw(o, e, 0)
 #define be_entry_release_w(o, e) be_entry_release_rw(o, e, 1)
@@ -559,6 +574,8 @@ slap_parse_ctrl(Operation *op, SlapReply *rs, LDAPControl *control,
                 const char **text);
 LDAP_SLAPD_F(int) get_ctrls(Operation *op, SlapReply *rs, int senderrors);
 LDAP_SLAPD_F(int)
+get_ctrls2(Operation *op, SlapReply *rs, int senderrors, ber_tag_t ctag);
+LDAP_SLAPD_F(int)
 register_supported_control2(const char *controloid, slap_mask_t controlmask,
                             const char *const *controlexops,
                             SLAP_CTRL_PARSE_FN *controlparsefn, unsigned flags,
@@ -568,6 +585,7 @@ register_supported_control2(const char *controloid, slap_mask_t controlmask,
 #ifdef SLAP_CONFIG_DELETE
 LDAP_SLAPD_F(int) unregister_supported_control(const char *controloid);
 #endif /* SLAP_CONFIG_DELETE */
+LDAP_SLAPD_F(int) register_control_exop(const char *controloid, char *exopoid);
 LDAP_SLAPD_F(int) slap_controls_init(void);
 LDAP_SLAPD_F(void) controls_destroy(void);
 LDAP_SLAPD_F(int) controls_root_dse_info(Entry *e);
@@ -677,6 +695,8 @@ int connections_socket_trouble(ber_socket_t s);
 LDAP_SLAPD_F(int) connection_read_activate(ber_socket_t s);
 LDAP_SLAPD_F(int) connection_write(ber_socket_t s);
 
+LDAP_SLAPD_F(void) connection_op_finish(Operation *op);
+
 LDAP_SLAPD_F(unsigned long) connections_nextid(void);
 
 LDAP_SLAPD_F(Connection *) connection_first(ber_socket_t *);
@@ -752,6 +772,7 @@ LDAP_SLAPD_F(int)
 quorum_syncrepl_gate(BackendDB *bd, void *instance_key, int in);
 LDAP_SLAPD_F(int)
 quorum_query_status(BackendDB *bd, int running_only, BerValue *, Operation *op);
+LDAP_SLAPD_F(int) quorum_syncrepl_maxrefresh(BackendDB *bd);
 
 /*
  * daemon.c
@@ -775,8 +796,12 @@ LDAP_SLAPD_F(void) slapd_set_write(ber_socket_t s, int wake);
 LDAP_SLAPD_F(void) slapd_clr_write(ber_socket_t s, int wake);
 LDAP_SLAPD_F(void) slapd_set_read(ber_socket_t s, int wake);
 LDAP_SLAPD_F(int) slapd_clr_read(ber_socket_t s, int wake);
+LDAP_SLAPD_F(int) slapd_wait_writer(ber_socket_t sd);
+LDAP_SLAPD_F(void) slapd_shutsock(ber_socket_t sd);
+#ifdef SLAPD_WRITE_TIMEOUT
 LDAP_SLAPD_F(void) slapd_clr_writetime(slap_time_t old);
 LDAP_SLAPD_F(slap_time_t) slapd_get_writetime(void);
+#endif /* SLAPD_WRITE_TIMEOUT */
 
 #ifdef __SANITIZE_THREAD__
 
@@ -962,6 +987,10 @@ extop_register_ex(const struct berval *exop_oid, slap_mask_t exop_flags,
 #define extop_register(exop_oid, exop_flags, exop_main)                        \
   extop_register_ex((exop_oid), (exop_flags), (exop_main), 0)
 
+LDAP_SLAPD_F(int)
+extop_unregister(const struct berval *ext_oid, SLAP_EXTOP_MAIN_FN *ext_main,
+                 unsigned unused_flags);
+
 LDAP_SLAPD_F(int) extops_init(void);
 
 LDAP_SLAPD_F(int) extops_destroy(void);
@@ -975,6 +1004,7 @@ LDAP_SLAPD_F(struct berval *) get_supported_extop(int index);
 LDAP_SLAPD_F(SLAP_CTRL_PARSE_FN) txn_spec_ctrl;
 LDAP_SLAPD_F(SLAP_EXTOP_MAIN_FN) txn_start_extop;
 LDAP_SLAPD_F(SLAP_EXTOP_MAIN_FN) txn_end_extop;
+LDAP_SLAPD_F(int) txn_preop(Operation *op, SlapReply *rs);
 #endif
 
 /*
@@ -1430,10 +1460,6 @@ get_alias_dn(Entry *e, struct berval *ndn, int *err, const char **text);
 /*
  * result.c
  */
-#ifndef USE_RS_ASSERT
-#define USE_RS_ASSERT LDAP_CHECK
-#endif
-
 #if USE_RS_ASSERT
 #ifdef __GNUC__
 #define RS_FUNC_ __FUNCTION__
@@ -1538,6 +1564,8 @@ slap_sasl_external(Connection *c,
                    slap_ssf_t ssf, /* relative strength of external security */
                    struct berval *authid); /* asserted authentication id */
 
+LDAP_SLAPD_F(int) slap_sasl_cbinding(Connection *c, struct berval *);
+
 LDAP_SLAPD_F(int) slap_sasl_reset(Connection *c);
 LDAP_SLAPD_F(int) slap_sasl_close(Connection *c);
 
@@ -1620,6 +1648,8 @@ mods_structural_class(Modifications *mods, struct berval *oc, const char **text,
 LDAP_SLAPD_V(int) schema_init_done;
 LDAP_SLAPD_F(int) slap_schema_init(void);
 LDAP_SLAPD_F(void) schema_destroy(void);
+
+LDAP_SLAPD_F(int) slap_hash64(int);
 
 LDAP_SLAPD_F(slap_mr_indexer_func) octetStringIndexer;
 LDAP_SLAPD_F(slap_mr_filter_func) octetStringFilter;
@@ -1812,6 +1842,10 @@ LDAP_SLAPD_V(struct berval) global_host_bv;
 LDAP_SLAPD_V(char *) global_realm;
 LDAP_SLAPD_V(char *) sasl_host;
 LDAP_SLAPD_V(char *) slap_sasl_auxprops;
+#ifdef SLAP_AUXPROP_DONTUSECOPY
+LDAP_SLAPD_V(int) slap_dontUseCopy_ignore;
+LDAP_SLAPD_V(BerVarray) slap_dontUseCopy_propnames;
+#endif /* SLAP_AUXPROP_DONTUSECOPY */
 LDAP_SLAPD_V(char **) default_passwd_hash;
 LDAP_SLAPD_V(struct berval) default_search_base;
 LDAP_SLAPD_V(struct berval) default_search_nbase;
@@ -1824,6 +1858,7 @@ LDAP_SLAPD_V(slap_time_t) starttime;
 
 LDAP_SLAPD_V(ldap_pvt_thread_pool_t) connection_pool;
 LDAP_SLAPD_V(int) connection_pool_max;
+LDAP_SLAPD_V(int) connection_pool_queues;
 LDAP_SLAPD_V(int) slap_tool_thread_max;
 
 LDAP_SLAPD_V(ldap_pvt_thread_mutex_t) entry2str_mutex;

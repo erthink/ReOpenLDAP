@@ -25,10 +25,10 @@
 #include "idl.h"
 
 /* read a key */
-int mdb_key_read(Backend *be, MDB_txn *txn, MDB_dbi dbi, struct berval *k,
-                 ID *ids, MDB_cursor **saved_cursor, int get_flag) {
+int mdb_key_read(Backend *be, MDBX_txn *txn, MDBX_dbi dbi, struct berval *k,
+                 ID *ids, MDBX_cursor **saved_cursor, int get_flag) {
   int rc;
-  MDB_val key;
+  MDBX_val key;
 #ifndef MISALIGNED_OK
   int kbuf[2];
 #endif
@@ -37,15 +37,15 @@ int mdb_key_read(Backend *be, MDB_txn *txn, MDB_dbi dbi, struct berval *k,
 
 #ifndef MISALIGNED_OK
   if (k->bv_len & ALIGNER) {
-    key.mv_size = sizeof(kbuf);
-    key.mv_data = kbuf;
+    key.iov_len = sizeof(kbuf);
+    key.iov_base = kbuf;
     kbuf[1] = 0;
     memcpy(kbuf, k->bv_val, k->bv_len);
   } else
 #endif
   {
-    key.mv_size = k->bv_len;
-    key.mv_data = k->bv_val;
+    key.iov_len = k->bv_len;
+    key.iov_base = k->bv_val;
   }
 
   rc = mdb_idl_fetch_key(be, txn, dbi, &key, ids, saved_cursor, get_flag);

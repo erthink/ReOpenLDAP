@@ -26,7 +26,7 @@
 
 LDAP_BEGIN_DECL
 
-#undef MDB_TOOL_IDL_CACHING /* currently broken */
+#undef MDB_TOOL_IDL_CACHING /* currently no perf gain */
 
 #define DN_BASE_PREFIX SLAP_INDEX_EQUALITY_PREFIX
 #define DN_ONE_PREFIX '%'
@@ -35,7 +35,8 @@ LDAP_BEGIN_DECL
 #define MDB_AD2ID 0
 #define MDB_DN2ID 1
 #define MDB_ID2ENTRY 2
-#define MDB_NDB 3
+#define MDB_ID2VAL 3
+#define MDB_NDB 4
 
 /* The default search IDL stack cache depth */
 #define DEFAULT_SEARCH_STACK_DEPTH 16
@@ -54,8 +55,8 @@ LDAP_BEGIN_DECL
 #define DEFAULT_RTXN_SIZE 10000
 
 #if LDAP_EXPERIMENTAL > 0
-#define MDB_MONITOR_IDX
-#endif /* LDAP_EXPERIMENTAL */
+#define MDB_MONITOR_IDX 1
+#endif /* LDAP_EXPERIMENTAL > 0 */
 
 typedef struct mdb_monitor_t {
   void *mdm_cb;
@@ -66,16 +67,16 @@ typedef struct mdb_monitor_t {
 struct re_s;
 
 struct mdb_info {
-  MDB_env *mi_dbenv;
+  MDBX_env *mi_dbenv;
 
   /* DB_ENV parameters */
-  /* The DB_ENV can be tuned via DB_CONFIG */
   char *mi_dbenv_home;
   uint32_t mi_dbenv_flags;
   int mi_dbenv_mode;
 
   size_t mi_mapsize;
   volatile ID _mi_nextid;
+  size_t mi_maxentrysize;
 
   slap_mask_t mi_defaultmask;
   int mi_nattrs;
@@ -88,16 +89,15 @@ struct mdb_info {
   int mi_txn_cp;
   uint32_t mi_txn_cp_period;
   uint32_t mi_txn_cp_kbyte;
+
   struct re_s *mi_txn_cp_task;
   struct re_s *mi_index_task;
-#ifdef MDBX_LIFORECLAIM
   uint32_t mi_renew_lag;
   uint32_t mi_renew_percent;
 #define MDBX_OOM_KILL 1
 #define MDBX_OOM_YIELD 2
   int mi_oom_flags;
   uint64_t mi_oom_timestamp_ns;
-#endif /* MDBX_LIFORECLAIM */
 
   mdb_monitor_t mi_monitor;
 
@@ -116,7 +116,14 @@ struct mdb_info {
   ldap_pvt_thread_mutex_t mi_ads_mutex;
   int mi_numads;
 
-  MDB_dbi mi_dbis[MDB_NDB];
+  unsigned mi_multi_hi;
+  /* more than this many values in an attr goes
+   * into a separate DB */
+  unsigned mi_multi_lo;
+  /* less than this many values in an attr goes
+   * back into main blob */
+
+  MDBX_dbi mi_dbis[MDB_NDB];
   AttributeDescription *mi_ads[MDB_MAXADS];
   int mi_adxs[MDB_MAXADS];
 };
@@ -132,43 +139,17 @@ static __inline ID mdb_read_nextid(struct mdb_info *mdb) {
 #define mi_id2entry mi_dbis[MDB_ID2ENTRY]
 #define mi_dn2id mi_dbis[MDB_DN2ID]
 #define mi_ad2id mi_dbis[MDB_AD2ID]
+#define mi_id2val mi_dbis[MDB_ID2VAL]
 
 typedef struct mdb_op_info {
   OpExtra moi_oe;
-  MDB_txn *moi_txn;
+  MDBX_txn *moi_txn;
   int moi_ref;
   char moi_flag;
 } mdb_op_info;
 #define MOI_READER 0x01
 #define MOI_FREEIT 0x02
-
-/* Copy an ID "src" to pointer "dst" in big-endian byte order */
-#define MDB_ID2DISK(src, dst)                                                  \
-  do {                                                                         \
-    int i0;                                                                    \
-    ID tmp;                                                                    \
-    unsigned char *_p;                                                         \
-    tmp = (src);                                                               \
-    _p = (unsigned char *)(dst);                                               \
-    for (i0 = sizeof(ID) - 1; i0 >= 0; i0--) {                                 \
-      _p[i0] = tmp & 0xff;                                                     \
-      tmp >>= 8;                                                               \
-    }                                                                          \
-  } while (0)
-
-/* Copy a pointer "src" to a pointer "dst" from big-endian to native order */
-#define MDB_DISK2ID(src, dst)                                                  \
-  do {                                                                         \
-    unsigned i0;                                                               \
-    ID tmp = 0;                                                                \
-    unsigned char *_p;                                                         \
-    _p = (unsigned char *)(src);                                               \
-    for (i0 = 0; i0 < sizeof(ID); i0++) {                                      \
-      tmp <<= 8;                                                               \
-      tmp |= *_p++;                                                            \
-    }                                                                          \
-    *(dst) = tmp;                                                              \
-  } while (0)
+#define MOI_KEEPER 0x04
 
 LDAP_END_DECL
 
@@ -180,13 +161,21 @@ typedef struct mdb_attrinfo {
 #ifdef LDAP_COMP_MATCH
   ComponentReference *ai_cr; /*component indexing*/
 #endif
-  TAvlnode *ai_root;     /* for tools */
-  void *ai_flist;        /* for tools */
-  void *ai_clist;        /* for tools */
-  MDB_cursor *ai_cursor; /* for tools */
-  int ai_idx;            /* position in AI array */
-  MDB_dbi ai_dbi;
+  TAvlnode *ai_root;      /* for tools */
+  void *ai_flist;         /* for tools */
+  void *ai_clist;         /* for tools */
+  MDBX_cursor *ai_cursor; /* for tools */
+  int ai_idx;             /* position in AI array */
+  MDBX_dbi ai_dbi;
 } AttrInfo;
+
+/* tool threaded indexer state */
+typedef struct mdb_attrixinfo {
+  OpExtra ai_oe;
+  void *ai_flist;
+  void *ai_clist;
+  AttrInfo *ai_ai;
+} AttrIxInfo;
 
 /* These flags must not clash with SLAP_INDEX flags or ops in slap.h! */
 #define MDB_INDEX_DELETING 0x8000U /* index is being modified */

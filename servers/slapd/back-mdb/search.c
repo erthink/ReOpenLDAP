@@ -24,7 +24,7 @@
 static int base_candidate(BackendDB *be, Entry *e, ID *ids);
 
 static int search_candidates(Operation *op, SlapReply *rs, Entry *e,
-                             IdScopes *isc, MDB_cursor *mci, ID *ids,
+                             IdScopes *isc, MDBX_cursor *mci, ID *ids,
                              ID *stack);
 
 static int parse_paged_cookie(Operation *op, SlapReply *rs);
@@ -36,7 +36,7 @@ static void send_paged_response(Operation *op, SlapReply *rs, ID *lastid,
  * dereferenced entry on success, NULL on any failure.
  */
 static Entry *deref_base(Operation *op, SlapReply *rs, Entry *e,
-                         Entry **matched, MDB_txn *txn, ID *tmp, ID *visited) {
+                         Entry **matched, MDBX_txn *txn, ID *tmp, ID *visited) {
   struct berval ndn;
 
   rs->sr_err = LDAP_ALIAS_DEREF_PROBLEM;
@@ -108,7 +108,7 @@ static Entry *deref_base(Operation *op, SlapReply *rs, Entry *e,
  * IDLs so this is never a problem.
  */
 static int search_aliases(Operation *op, SlapReply *rs, ID e_id, IdScopes *isc,
-                          MDB_cursor *mci, ID *stack) {
+                          MDBX_cursor *mci, ID *stack) {
   ID *aliases, *curscop, *visited, *newsubs, *oldsubs, *tmp;
   ID cursora, ida, cursoro, ido;
   Entry *matched, *a;
@@ -177,7 +177,7 @@ static int search_aliases(Operation *op, SlapReply *rs, ID e_id, IdScopes *isc,
          */
         ID2 mid;
         mid.mid = a->e_id;
-        mid.mval.mv_data = NULL;
+        mid.mval.iov_base = NULL;
         if (op->ors_scope == LDAP_SCOPE_SUBTREE) {
           isc->id = a->e_id;
           /* if ID is a child of any of our current scopes,
@@ -226,9 +226,9 @@ static int search_aliases(Operation *op, SlapReply *rs, ID e_id, IdScopes *isc,
      * we should never see the ID of an entry that doesn't exist.
      */
     {
-      MDB_val edata;
+      MDBX_val edata;
       rs->sr_err = mdb_id2edata(op, mci, ido, &edata);
-      if (rs->sr_err != MDB_SUCCESS) {
+      if (rs->sr_err != MDBX_SUCCESS) {
         goto nextido;
       }
       e_id = ido;
@@ -240,25 +240,25 @@ static int search_aliases(Operation *op, SlapReply *rs, ID e_id, IdScopes *isc,
 /* Get the next ID from the DB. Used if the candidate list is
  * a range and simple iteration hits missing entryIDs
  */
-static int mdb_get_nextid(MDB_cursor *mci, ID *cursor) {
-  MDB_val key;
+static int mdb_get_nextid(MDBX_cursor *mci, ID *cursor) {
+  MDBX_val key;
   ID id;
   int rc;
 
   id = *cursor + 1;
-  key.mv_data = &id;
-  key.mv_size = sizeof(ID);
-  rc = mdb_cursor_get(mci, &key, NULL, MDB_SET_RANGE);
+  key.iov_base = &id;
+  key.iov_len = sizeof(ID);
+  rc = mdbx_cursor_get(mci, &key, NULL, MDBX_SET_RANGE);
   if (rc)
     return rc;
-  memcpy(cursor, key.mv_data, sizeof(ID));
+  memcpy(cursor, key.iov_base, sizeof(ID));
   return 0;
 }
 
 static void scope_chunk_free(void *key, void *data) {
   ID2 *p1, *p2;
   for (p1 = data; p1; p1 = p2) {
-    p2 = p1[0].mval.mv_data;
+    p2 = p1[0].mval.iov_base;
     ber_memfree_x(p1, NULL);
   }
 }
@@ -271,7 +271,7 @@ static ID2 *scope_chunk_get(Operation *op) {
   if (!ret) {
     ret = ch_malloc(MDB_IDL_UM_SIZE * sizeof(ID2));
   } else {
-    void *r2 = ret[0].mval.mv_data;
+    void *r2 = ret[0].mval.iov_base;
     ldap_pvt_thread_pool_setkey(op->o_threadctx, (void *)scope_chunk_get, r2,
                                 scope_chunk_free, NULL, NULL);
   }
@@ -283,7 +283,7 @@ static void scope_chunk_ret(Operation *op, ID2 *scopes) {
 
   ldap_pvt_thread_pool_getkey(op->o_threadctx, (void *)scope_chunk_get, &ret,
                               NULL);
-  scopes[0].mval.mv_data = ret;
+  scopes[0].mval.iov_base = ret;
   ldap_pvt_thread_pool_setkey(op->o_threadctx, (void *)scope_chunk_get,
                               (void *)scopes, scope_chunk_free, NULL, NULL);
 }
@@ -291,10 +291,10 @@ static void scope_chunk_ret(Operation *op, ID2 *scopes) {
 static void *search_stack(Operation *op);
 
 typedef struct ww_ctx {
-  MDB_txn *txn;
-  MDB_cursor *mcd; /* if set, save cursor context */
+  MDBX_txn *txn;
+  MDBX_cursor *mcd; /* if set, save cursor context */
   ID key;
-  MDB_val data;
+  MDBX_val data;
   int flag;
   int nentries;
 } ww_ctx;
@@ -309,83 +309,82 @@ typedef struct ww_ctx {
  * case return an LDAP_BUSY error - let the client know this search
  * couldn't succeed, but might succeed on a retry.
  */
+
 static void mdb_writewait(Operation *op, slap_callback *sc) {
   ww_ctx *ww = sc->sc_private;
   if (!ww->flag) {
-    MDB_val key, data;
+    MDBX_val key, data;
     int rc;
+
+    /* save cursor position and release read txn */
     if (ww->mcd) {
       ww->data.iov_base = NULL;
-      rc = mdb_cursor_get(ww->mcd, &key, &data, MDB_GET_CURRENT);
-      if (likely(rc == MDB_SUCCESS)) {
-        memcpy(&ww->key, key.mv_data, sizeof(ID));
-        ww->data.mv_size = data.mv_size;
-        ww->data.mv_data = op->o_tmpalloc(data.mv_size, op->o_tmpmemctx);
-        memcpy(ww->data.mv_data, data.mv_data, data.mv_size);
+      rc = mdbx_cursor_get(ww->mcd, &key, &data, MDBX_GET_CURRENT);
+      if (likely(rc == MDBX_SUCCESS)) {
+        memcpy(&ww->key, key.iov_base, sizeof(ID));
+        ww->data.iov_len = data.iov_len;
+        ww->data.iov_base = op->o_tmpalloc(data.iov_len, op->o_tmpmemctx);
+        memcpy(ww->data.iov_base, data.iov_base, data.iov_len);
       }
     }
-#if MDBX_MODE_ENABLED
-    rc = mdb_txn_reset(ww->txn);
-    assert(rc == MDB_SUCCESS);
+    rc = mdbx_txn_reset(ww->txn);
+    assert(rc == MDBX_SUCCESS);
     (void)rc;
-#else
-    mdb_txn_reset(ww->txn);
-#endif /* MDBX_MODE_ENABLED */
     ww->flag = 1;
   }
 }
 
-static int mdb_waitfixup(Operation *op, ww_ctx *ww, MDB_cursor *mci,
-                         MDB_cursor *mcd, IdScopes *isc) {
-  MDB_val key;
+static int mdb_waitfixup(Operation *op, ww_ctx *ww, MDBX_cursor *mci,
+                         MDBX_cursor *mcd, IdScopes *isc) {
+  MDBX_val key;
   int rc = 0;
   ww->flag = 0;
   ww->nentries = 0;
-  rc = mdb_txn_renew(ww->txn);
-  assert(rc == MDB_SUCCESS);
-  rc = mdb_cursor_renew(ww->txn, mci);
-  assert(rc == MDB_SUCCESS);
-  rc = mdb_cursor_renew(ww->txn, mcd);
-  assert(rc == MDB_SUCCESS);
+  rc = mdbx_txn_renew(ww->txn);
+  assert(rc == MDBX_SUCCESS);
+  rc = mdbx_cursor_renew(ww->txn, mci);
+  assert(rc == MDBX_SUCCESS);
+  rc = mdbx_cursor_renew(ww->txn, mcd);
+  assert(rc == MDBX_SUCCESS);
 
-  key.mv_size = sizeof(ID);
+  key.iov_len = sizeof(ID);
   if (ww->mcd) { /* scope-based search using dn2id_walk */
     if (isc->numrdns)
       mdb_dn2id_wrestore(op, isc);
 
-    if (ww->data.mv_data) {
-      MDB_val data;
+    if (ww->data.iov_base) {
+      MDBX_val data;
 
-      key.mv_data = &ww->key;
+      key.iov_base = &ww->key;
       data = ww->data;
-      rc = mdb_cursor_get(mcd, &key, &data, MDB_GET_BOTH);
-      if (rc == MDB_NOTFOUND) {
+      rc = mdbx_cursor_get(mcd, &key, &data, MDBX_GET_BOTH);
+      if (rc == MDBX_NOTFOUND) {
         data = ww->data;
-        rc = mdb_cursor_get(mcd, &key, &data, MDB_GET_BOTH_RANGE);
+        rc = mdbx_cursor_get(mcd, &key, &data, MDBX_GET_BOTH_RANGE);
         /* the loop will skip this node using NEXT_DUP but we want it
          * sent, so go back one space first
          */
-        if (rc == MDB_SUCCESS)
-          mdb_cursor_get(mcd, &key, &data, MDB_PREV_DUP);
+        if (rc == MDBX_SUCCESS)
+          mdbx_cursor_get(mcd, &key, &data, MDBX_PREV_DUP);
         else
           rc = LDAP_BUSY;
       } else if (rc) {
         rc = LDAP_OTHER;
       }
-      op->o_tmpfree(ww->data.mv_data, op->o_tmpmemctx);
-      ww->data.mv_data = NULL;
+      op->o_tmpfree(ww->data.iov_base, op->o_tmpmemctx);
+      ww->data.iov_base = NULL;
     }
     ww->flag = 0;
   } else if (isc->scopes[0].mid > 1) { /* candidate-based search */
     int i;
     for (i = 1; i < isc->scopes[0].mid; i++) {
-      if (!isc->scopes[i].mval.mv_data)
+      if (!isc->scopes[i].mval.iov_base)
         continue;
-      key.mv_data = &isc->scopes[i].mid;
-      rc = mdb_cursor_get(mcd, &key, &isc->scopes[i].mval, MDB_SET_RANGE);
-      if (rc != MDB_SUCCESS) {
+      key.iov_base = &isc->scopes[i].mid;
+      rc = mdbx_cursor_get(mcd, &key, &isc->scopes[i].mval, MDBX_SET_RANGE);
+      if (rc != MDBX_SUCCESS) {
         /* LY: Yea, this is my paranoia */
-        rc = (rc == MDB_NOTFOUND) ? LDAP_BUSY : LDAP_OTHER;
+        rc = (rc == MDBX_NOTFOUND) ? LDAP_BUSY : LDAP_OTHER;
         break;
       }
     }
@@ -408,12 +407,12 @@ int mdb_search(Operation *op, SlapReply *rs) {
   int manageDSAit;
   int tentries = 0;
   IdScopes isc;
-  MDB_cursor *mci, *mcd;
+  MDBX_cursor *mci, *mcd;
   ww_ctx wwctx = {0};
   slap_callback cb = {0};
 
   mdb_op_info opinfo = {{{0}}}, *moi = &opinfo;
-  MDB_txn *ltid = NULL;
+  MDBX_txn *ltid = NULL;
 
   Debug(LDAP_DEBUG_TRACE, "=> " LDAP_XSTRING(mdb_search) "\n");
 
@@ -430,15 +429,15 @@ int mdb_search(Operation *op, SlapReply *rs) {
 
   ltid = moi->moi_txn;
 
-  rs->sr_err = mdb_cursor_open(ltid, mdb->mi_id2entry, &mci);
+  rs->sr_err = mdbx_cursor_open(ltid, mdb->mi_id2entry, &mci);
   if (rs->sr_err) {
     send_ldap_error(op, rs, LDAP_OTHER, "internal error");
     goto bailout;
   }
 
-  rs->sr_err = mdb_cursor_open(ltid, mdb->mi_dn2id, &mcd);
+  rs->sr_err = mdbx_cursor_open(ltid, mdb->mi_dn2id, &mcd);
   if (rs->sr_err) {
-    mdb_cursor_close(mci);
+    mdbx_cursor_close(mci);
     send_ldap_error(op, rs, LDAP_OTHER, "internal error");
     goto bailout;
   }
@@ -460,7 +459,7 @@ dn2entry_retry:
   rs->sr_err = mdb_dn2entry(op, ltid, mcd, &op->o_req_ndn, &e, &nsubs, 1);
 
   switch (rs->sr_err) {
-  case MDB_NOTFOUND:
+  case MDBX_NOTFOUND:
     matched = e;
     e = NULL;
     break;
@@ -506,7 +505,7 @@ dn2entry_retry:
 
         erefs = is_entry_referral(matched) ? get_entry_referrals(op, matched)
                                            : NULL;
-        if (rs->sr_err == MDB_NOTFOUND)
+        if (rs->sr_err == MDBX_NOTFOUND)
           rs->sr_err = LDAP_REFERRAL;
         rs->sr_matched = matched_dn.bv_val;
       }
@@ -604,31 +603,31 @@ dn2entry_retry:
   } else {
     if (op->ors_scope == LDAP_SCOPE_ONELEVEL) {
       size_t nkids;
-      MDB_val key, data;
-      key.mv_data = &base->e_id;
-      key.mv_size = sizeof(ID);
-      mdb_cursor_get(mcd, &key, &data, MDB_SET);
-      mdb_cursor_count(mcd, &nkids);
+      MDBX_val key, data;
+      key.iov_base = &base->e_id;
+      key.iov_len = sizeof(ID);
+      mdbx_cursor_get(mcd, &key, &data, MDBX_SET);
+      mdbx_cursor_count(mcd, &nkids);
       nsubs = nkids - 1;
     } else if (!base->e_id) {
       /* we don't maintain nsubs for entryID 0.
        * just grab entry count from id2entry stat
        */
-      MDB_stat ms;
-      mdb_stat(ltid, mdb->mi_id2entry, &ms);
+      MDBX_stat ms;
+      mdbx_dbi_stat(ltid, mdb->mi_id2entry, &ms, sizeof(ms));
       nsubs = ms.ms_entries;
     }
     MDB_IDL_ZERO(candidates);
     scopes[0].mid = 1;
     scopes[1].mid = base->e_id;
-    scopes[1].mval.mv_data = NULL;
+    scopes[1].mval.iov_base = NULL;
     rs->sr_err = search_candidates(op, rs, base, &isc, mci, candidates, stack);
     ncand = MDB_IDL_N(candidates);
     if (!base->e_id || ncand == NOID) {
       /* grab entry count from id2entry stat
        */
-      MDB_stat ms;
-      mdb_stat(ltid, mdb->mi_id2entry, &ms);
+      MDBX_stat ms;
+      mdbx_dbi_stat(ltid, mdb->mi_id2entry, &ms, sizeof(ms));
       if (!base->e_id)
         nsubs = ms.ms_entries;
       if (ncand == NOID)
@@ -636,8 +635,7 @@ dn2entry_retry:
     }
   }
 
-  /* start cursor at beginning of candidates.
-   */
+  /* start cursor at beginning of candidates. */
   cursor = 0;
 
   if (candidates[0] == 0) {
@@ -733,7 +731,7 @@ dn2entry_retry:
 
   while (id != NOID) {
     int scopeok;
-    MDB_val edata;
+    MDBX_val edata;
 
   loop_begin:
 
@@ -809,11 +807,11 @@ dn2entry_retry:
       isc.id = id;
       isc.nscope = 0;
       rs->sr_err = mdb_idscopes(op, &isc);
-      if (rs->sr_err == MDB_SUCCESS) {
+      if (rs->sr_err == MDBX_SUCCESS) {
         if (isc.nscope)
           scopeok = 1;
       } else {
-        if (rs->sr_err == MDB_NOTFOUND)
+        if (rs->sr_err == MDBX_NOTFOUND)
           goto notfound;
       }
       break;
@@ -833,7 +831,7 @@ dn2entry_retry:
 
       /* get the entry */
       rs->sr_err = mdb_id2edata(op, mci, id, &edata);
-      if (rs->sr_err == MDB_NOTFOUND) {
+      if (rs->sr_err == MDBX_NOTFOUND) {
       notfound:
         if (nsubs < ncand)
           goto loop_continue;
@@ -846,7 +844,7 @@ dn2entry_retry:
         } else {
           /* get the next ID from the DB */
           rs->sr_err = mdb_get_nextid(mci, &cursor);
-          if (rs->sr_err == MDB_NOTFOUND) {
+          if (rs->sr_err == MDBX_NOTFOUND) {
             break;
           }
           if (rs->sr_err) {
@@ -866,7 +864,7 @@ dn2entry_retry:
         goto done;
       }
 
-      rs->sr_err = mdb_entry_decode(op, ltid, &edata, &e);
+      rs->sr_err = mdb_entry_decode(op, ltid, &edata, id, &e);
       if (rs->sr_err) {
         rs->sr_err = LDAP_OTHER;
         rs->sr_text = "internal error in mdb_entry_decode";
@@ -1056,13 +1054,8 @@ dn2entry_retry:
     }
 
   loop_continue:
-#ifdef MDBX_LIFORECLAIM
     if (!wwctx.flag && mdb->mi_renew_lag) {
-#if MDBX_MODE_ENABLED
       int percentage, lag = mdbx_txn_straggler(wwctx.txn, &percentage);
-#else
-      int percentage, lag = mdb_txn_straggler(wwctx.txn, &percentage);
-#endif /* MDBX_MODE_ENABLED */
       if (lag >= mdb->mi_renew_lag && percentage >= mdb->mi_renew_percent) {
         if (moi == &opinfo) {
           Debug(LDAP_DEBUG_FILTER, "dreamcatcher: lag %d, percentage %u%%\n",
@@ -1074,7 +1067,6 @@ dn2entry_retry:
                 percentage);
       }
     }
-#endif /* MDBX_LIFORECLAIM */
 
     if (!wwctx.flag && mdb->mi_rtxn_size) {
       wwctx.nentries++;
@@ -1167,8 +1159,8 @@ done:
       scp = &(*scp)->sc_next;
     }
   }
-  mdb_cursor_close(mcd);
-  mdb_cursor_close(mci);
+  mdbx_cursor_close(mcd);
+  mdbx_cursor_close(mci);
   if (rs->sr_v2ref) {
     ber_bvarray_free(rs->sr_v2ref);
     rs->sr_v2ref = NULL;
@@ -1179,11 +1171,11 @@ done:
 
 bailout:
   if (moi == &opinfo || --moi->moi_ref < 1) {
-    int __maybe_unused rc2 = mdb_txn_reset(moi->moi_txn);
-    assert(rc2 == MDB_SUCCESS);
+    int __maybe_unused rc2 = mdbx_txn_reset(moi->moi_txn);
+    assert(rc2 == MDBX_SUCCESS);
     if (moi->moi_oe.oe_key)
       LDAP_SLIST_REMOVE(&op->o_extra, &moi->moi_oe, OpExtra, oe_next);
-    if (moi->moi_flag & MOI_FREEIT)
+    if ((moi->moi_flag & (MOI_FREEIT | MOI_KEEPER)) == MOI_FREEIT)
       op->o_tmpfree(moi, op->o_tmpmemctx);
   }
 
@@ -1263,7 +1255,7 @@ static void *search_stack(Operation *op) {
 }
 
 static int search_candidates(Operation *op, SlapReply *rs, Entry *e,
-                             IdScopes *isc, MDB_cursor *mci, ID *ids,
+                             IdScopes *isc, MDBX_cursor *mci, ID *ids,
                              ID *stack) {
   struct mdb_info *mdb = (struct mdb_info *)op->o_bd->be_private;
   int rc, depth = 1;

@@ -169,6 +169,12 @@ olcDatabase: {0}config
 olcRootPW:< file://$CONFIGPWF
 
 EOF
+RC=$?
+if test $RC != 0 ; then
+	echo "slapadd(1) failed ($RC)!"
+	killservers
+	exit $RC
+fi
 	ID=`expr $ID + 1`
 done
 
@@ -185,6 +191,12 @@ olcDatabase: {0}config
 olcRootPW:< file://$CONFIGPWF
 
 EOF
+RC=$?
+if test $RC != 0 ; then
+	echo "slapadd(2) failed ($RC)!"
+	killservers
+	exit $RC
+fi
 done
 
 echo "Starting central-master slapd on TCP/IP port $PORT1..."

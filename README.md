@@ -9,7 +9,7 @@ Production-ready replacement for OpenLDAP on Linux:
  - Clean build without warnings from modern compilers.
  - But only Linux supported, e.g no Windows, Mac OS, FreeBSD, Solaris or HP-UX.
 
-[![Build Status](https://travis-ci.org/leo-yuriev/ReOpenLDAP.svg?branch=master)](https://travis-ci.org/leo-yuriev/ReOpenLDAP)[![CircleCI](https://circleci.com/gh/leo-yuriev/ReOpenLDAP/tree/master.svg?style=svg)](https://circleci.com/gh/leo-yuriev/ReOpenLDAP/tree/master)
+[![Build Status](https://travis-ci.org/leo-yuriev/ReOpenLDAP.svg?branch=devel)](https://travis-ci.org/leo-yuriev/ReOpenLDAP)[![CircleCI](https://circleci.com/gh/leo-yuriev/ReOpenLDAP/tree/devel.svg?style=svg)](https://circleci.com/gh/leo-yuriev/ReOpenLDAP/tree/devel)
 
 ##### ReOpenLDAP is currently running in telcos across Russia:
  * Several clusters in full mesh multi-master replication topology, mostly with four nodes as a two geographically distributed pairs.
@@ -62,8 +62,7 @@ for instance both `--libexecdir=DIR` and `--sysconfdir=DIR` are provided.
 
 ```
 Fine tuning of the installation directories:
-  --bindir=DIR            user executables [EPREFIX/bin]
-  --sbindir=DIR           system admin executables [EPREFIX/sbin]
+    ...
   --libexecdir=DIR        program executables [EPREFIX/libexec]
   --sysconfdir=DIR        read-only single-machine data [PREFIX/etc]
   --sharedstatedir=DIR    modifiable architecture-independent data [PREFIX/com]
@@ -87,6 +86,7 @@ Optional Features:
   --enable-check          enable internal checking and assertions no|yes|always|default [no]
   --enable-hipagut        enable internal memory allocation debugger no|yes|always|extra [no]
   --enable-proctitle      enable proctitle support [yes]
+  --enable-referrals      enable LDAPv2+ Referrals (experimental) [no]
   --enable-ipv6           enable IPv6 support [auto]
   --enable-local          enable AF_LOCAL (AF_UNIX) socket support [auto]
   --enable-deprecated     enable deprecated interfaces of libreldap no|yes [no]
@@ -116,6 +116,7 @@ SLAPD Backend Options:
     --enable-dnssrv	  enable dnssrv backend (experimental) no|yes|mod [no]
     --enable-ldap	  enable ldap backend no|yes|mod [no]
     --enable-meta	  enable metadirectory backend no|yes|mod [no]
+    --enable-asyncmeta	  enable asynchronous metadirectory backend (experimental) no|yes|mod [no]
     --enable-monitor	  enable monitor backend no|yes|mod [yes]
     --enable-ndb	  enable MySQL NDB Cluster backend (experimental) no|yes|mod [no]
     --enable-null	  enable null backend no|yes|mod [no]
@@ -125,6 +126,7 @@ SLAPD Backend Options:
     --enable-shell	  enable shell backend no|yes|mod [no]
     --enable-sock	  enable sock backend no|yes|mod [no]
     --enable-sql	  enable SQL backend (experimental and buggy) no|yes|mod [no]
+    --enable-wt		  enable WiredTiger backend no|yes|mod [no]
 
 SLAPD Overlay Options:
     --enable-overlays	  enable all available overlays no|yes|mod
@@ -166,6 +168,7 @@ Some influential environment variables:
               Extra build-time CFLAGS, e.g. -Wall -Werror. Alternatively, ones
               can be specified or overridden by invocation 'make
               EXTRA_CFLAGS="a b c"'
+  ...
   KRB5_CFLAGS C compiler flags for KRB5, overriding pkg-config
   KRB5_LIBS   linker flags for KRB5, overriding pkg-config
   HEIMDAL_CFLAGS

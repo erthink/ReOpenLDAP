@@ -29,7 +29,7 @@
  */
 int mdb_hasSubordinates(Operation *op, Entry *e, int *hasSubordinates) {
   struct mdb_info *mdb = (struct mdb_info *)op->o_bd->be_private;
-  MDB_txn *rtxn;
+  MDBX_txn *rtxn;
   mdb_op_info opinfo = {{{0}}}, *moi = &opinfo;
   int rc;
 
@@ -53,7 +53,7 @@ int mdb_hasSubordinates(Operation *op, Entry *e, int *hasSubordinates) {
     *hasSubordinates = LDAP_COMPARE_TRUE;
     break;
 
-  case MDB_NOTFOUND:
+  case MDBX_NOTFOUND:
     *hasSubordinates = LDAP_COMPARE_FALSE;
     rc = LDAP_SUCCESS;
     break;
@@ -62,17 +62,17 @@ int mdb_hasSubordinates(Operation *op, Entry *e, int *hasSubordinates) {
     Debug(LDAP_DEBUG_ARGS,
           "<=- " LDAP_XSTRING(
               mdb_hasSubordinates) ": has_children failed: %s (%d)\n",
-          mdb_strerror(rc), rc);
+          mdbx_strerror(rc), rc);
     rc = LDAP_OTHER;
   }
 
 done:;
   if (moi == &opinfo || --moi->moi_ref < 1) {
-    int __maybe_unused rc2 = mdb_txn_reset(moi->moi_txn);
-    assert(rc2 == MDB_SUCCESS);
+    int __maybe_unused rc2 = mdbx_txn_reset(moi->moi_txn);
+    assert(rc2 == MDBX_SUCCESS);
     if (moi->moi_oe.oe_key)
       LDAP_SLIST_REMOVE(&op->o_extra, &moi->moi_oe, OpExtra, oe_next);
-    if (moi->moi_flag & MOI_FREEIT)
+    if ((moi->moi_flag & (MOI_FREEIT | MOI_KEEPER)) == MOI_FREEIT)
       op->o_tmpfree(moi, op->o_tmpmemctx);
   }
   return rc;

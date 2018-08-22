@@ -1350,6 +1350,7 @@ static int syncprov_op_abandon(Operation *op, SlapReply *rs) {
 
   ldap_pvt_thread_mutex_lock(&si->si_ops_mutex);
   for (pso = &si->si_ops; (so = *pso) != NULL; pso = &so->s_next) {
+    assert(so->s_next != so);
     if (so->s_op && so->s_op->o_connid == op->o_connid &&
         so->s_op->o_msgid == op->orn_msgid) {
       ldap_pvt_thread_mutex_lock(&so->s_mutex);

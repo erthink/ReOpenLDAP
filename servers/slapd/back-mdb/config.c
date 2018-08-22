@@ -38,12 +38,9 @@ enum {
   MDB_MAXREADERS,
   MDB_MAXSIZE,
   MDB_MODE,
-  MDB_SSTACK
-#ifdef MDBX_LIFORECLAIM
-  ,
+  MDB_SSTACK,
   MDBX_DREAMCATCHER,
   MDBX_OOMFLAGS
-#endif /* MDBX_LIFORECLAIM */
 };
 
 static ConfigTable mdbcfg[] = {
@@ -78,6 +75,12 @@ static ConfigTable mdbcfg[] = {
      "EQUALITY caseIgnoreMatch "
      "SYNTAX OMsDirectoryString )",
      NULL, NULL},
+    {"maxentrysize", "size", 2, 2, 0, ARG_ULONG | ARG_OFFSET,
+     (void *)offsetof(struct mdb_info, mi_maxentrysize),
+     "( OLcfgDbAt:12.4 NAME 'olcDbMaxEntrySize' "
+     "DESC 'Maximum size of an entry in bytes' "
+     "SYNTAX OMsInteger SINGLE-VALUE )",
+     NULL, NULL},
     {"maxreaders", "num", 2, 2, 0, ARG_UINT | ARG_MAGIC | MDB_MAXREADERS,
      mdb_cf_gen,
      "( OLcfgDbAt:12.1 NAME 'olcDbMaxReaders' "
@@ -95,6 +98,18 @@ static ConfigTable mdbcfg[] = {
      "DESC 'Unix permissions of database files' "
      "SYNTAX OMsDirectoryString SINGLE-VALUE )",
      NULL, NULL},
+    {"multival_hi", "num", 2, 2, 0, ARG_UINT | ARG_OFFSET,
+     (void *)offsetof(struct mdb_info, mi_multi_hi),
+     "( OLcfgDbAt:12.6 NAME 'olcDbMultivalHi' "
+     "DESC 'Threshold for splitting multivalued attr out of main blob' "
+     "SYNTAX OMsInteger SINGLE-VALUE )",
+     NULL, NULL},
+    {"multival_lo", "num", 2, 2, 0, ARG_UINT | ARG_OFFSET,
+     (void *)offsetof(struct mdb_info, mi_multi_lo),
+     "( OLcfgDbAt:12.7 NAME 'olcDbMultivalLo' "
+     "DESC 'Threshold for consolidating multivalued attr back into main blob' "
+     "SYNTAX OMsInteger SINGLE-VALUE )",
+     NULL, NULL},
     {"rtxnsize", "entries", 2, 2, 0, ARG_UINT | ARG_OFFSET,
      (void *)offsetof(struct mdb_info, mi_rtxn_size),
      "( OLcfgDbAt:12.5 NAME 'olcDbRtxnSize' "
@@ -107,8 +122,6 @@ static ConfigTable mdbcfg[] = {
      "DESC 'Depth of search stack in IDLs' "
      "SYNTAX OMsInteger SINGLE-VALUE )",
      NULL, NULL},
-
-#ifdef MDBX_LIFORECLAIM
     {"dreamcatcher", "lag> <percentage", 3, 3, 0, ARG_MAGIC | MDBX_DREAMCATCHER,
      mdb_cf_gen,
      "( OLcfgDbAt:12.42 NAME 'olcDbDreamcatcher' "
@@ -121,8 +134,6 @@ static ConfigTable mdbcfg[] = {
      "EQUALITY caseIgnoreMatch "
      "SYNTAX OMsDirectoryString SINGLE-VALUE )",
      NULL, NULL},
-#endif /* MDBX_LIFORECLAIM */
-
     {NULL, NULL, 0, 0, 0, ARG_IGNORED, NULL, NULL, NULL, NULL}};
 
 static ConfigOCs mdbocs[] = {
@@ -133,42 +144,34 @@ static ConfigOCs mdbocs[] = {
      "MUST olcDbDirectory "
      "MAY ( olcDbCheckpoint $ olcDbEnvFlags $ "
      "olcDbNoSync $ olcDbIndex $ olcDbMaxReaders $ olcDbMaxSize $ "
-#ifdef MDBX_LIFORECLAIM
      "olcDbDreamcatcher $ olcDbOomFlags $ "
-#endif /* MDBX_LIFORECLAIM */
-     "olcDbMode $ olcDbSearchStack $ olcDbRtxnSize ) )",
+     "olcDbMode $ olcDbSearchStack $ olcDbMaxEntrySize $ olcDbRtxnSize $ "
+     "olcDbMultivalHi $ olcDbMultivalLo ) )",
      Cft_Database, mdbcfg},
     {NULL, 0, NULL}};
 
 static slap_verbmasks mdb_envflags[] = {
-#ifdef MDBX_UTTERLY_NOSYNC
-    {BER_BVC("utterly-nosync"), MDBX_UTTERLY_NOSYNC},
-#endif
-    {BER_BVC("nosync"), MDB_NOSYNC},
-    {BER_BVC("nometasync"), MDB_NOMETASYNC},
-    {BER_BVC("writemap"), MDB_WRITEMAP},
-    {BER_BVC("mapasync"), MDB_MAPASYNC},
-    {BER_BVC("nordahead"), MDB_NORDAHEAD},
-#ifdef MDBX_LIFORECLAIM
+    {BER_BVC("nosync"), MDBX_UTTERLY_NOSYNC},
+    {BER_BVC("lazysync"), MDBX_NOSYNC},
+    {BER_BVC("nometasync"), MDBX_NOMETASYNC},
+    {BER_BVC("writemap"), MDBX_WRITEMAP},
+    {BER_BVC("mapasync"), MDBX_MAPASYNC},
+    {BER_BVC("nordahead"), MDBX_NORDAHEAD},
     {BER_BVC("lifo"), MDBX_LIFORECLAIM},
-#endif
-#ifdef MDBX_COALESCE
     {BER_BVC("coalesce"), MDBX_COALESCE},
-#endif
     {BER_BVNULL, 0}};
 
-#ifdef MDBX_LIFORECLAIM
 static slap_verbmasks oom_flags[] = {{BER_BVC("kill"), MDBX_OOM_KILL},
                                      {BER_BVC("yield"), MDBX_OOM_YIELD},
                                      {BER_BVNULL, 0}};
-#endif /* MDBX_LIFORECLAIM */
 
 /* perform periodic syncs */
 static void *mdb_checkpoint(void *ctx, void *arg) {
   struct re_s *rtask = arg;
   struct mdb_info *mdb = rtask->arg;
+  (void)ctx;
 
-  mdb_env_sync(mdb->mi_dbenv, 1);
+  mdbx_env_sync(mdb->mi_dbenv, 1);
   ldap_pvt_thread_mutex_lock(&slapd_rq.rq_mutex);
   ldap_pvt_runqueue_stoptask(&slapd_rq, rtask);
   ldap_pvt_thread_mutex_unlock(&slapd_rq.rq_mutex);
@@ -185,9 +188,9 @@ static void *mdb_online_index(void *ctx, void *arg) {
   OperationBuffer opbuf;
   Operation *op;
 
-  MDB_cursor *curs = NULL;
-  MDB_val key, data;
-  MDB_txn *txn;
+  MDBX_cursor *curs = NULL;
+  MDBX_val key, data;
+  MDBX_txn *txn;
   ID id;
   Entry *e;
   int rc, getnext = 1;
@@ -199,44 +202,44 @@ static void *mdb_online_index(void *ctx, void *arg) {
   op->o_bd = be;
 
   id = 1;
-  key.mv_size = sizeof(ID);
+  key.iov_len = sizeof(ID);
 
   while (1) {
     if (slapd_shutdown)
       break;
 
     assert(curs == NULL);
-    rc = mdb_txn_begin(mdb->mi_dbenv, NULL, 0, &txn);
+    rc = mdbx_txn_begin(mdb->mi_dbenv, NULL, 0, &txn);
     if (rc)
       break;
-    rc = mdb_cursor_open(txn, mdb->mi_id2entry, &curs);
+    rc = mdbx_cursor_open(txn, mdb->mi_id2entry, &curs);
     if (rc) {
-      mdb_txn_abort(txn);
+      mdbx_txn_abort(txn);
       break;
     }
     if (getnext) {
       getnext = 0;
-      key.mv_data = &id;
-      rc = mdb_cursor_get(curs, &key, &data, MDB_SET_RANGE);
+      key.iov_base = &id;
+      rc = mdbx_cursor_get(curs, &key, &data, MDBX_SET_RANGE);
       if (rc) {
-        mdb_cursor_close(curs);
+        mdbx_cursor_close(curs);
         curs = NULL;
 
-        mdb_txn_abort(txn);
-        if (rc == MDB_NOTFOUND)
+        mdbx_txn_abort(txn);
+        if (rc == MDBX_NOTFOUND)
           rc = 0;
         break;
       }
-      memcpy(&id, key.mv_data, sizeof(id));
+      memcpy(&id, key.iov_base, sizeof(id));
     }
 
     rc = mdb_id2entry(op, curs, id, &e);
-    mdb_cursor_close(curs);
+    mdbx_cursor_close(curs);
     curs = NULL;
 
     if (rc) {
-      mdb_txn_abort(txn);
-      if (rc == MDB_NOTFOUND) {
+      mdbx_txn_abort(txn);
+      if (rc == MDBX_NOTFOUND) {
         id++;
         getnext = 1;
         continue;
@@ -246,17 +249,17 @@ static void *mdb_online_index(void *ctx, void *arg) {
     rc = mdb_index_entry(op, txn, MDB_INDEX_UPDATE_OP, e);
     mdb_entry_return(op, e);
     if (rc == 0) {
-      rc = mdb_txn_commit(txn);
+      rc = mdbx_txn_commit(txn);
       txn = NULL;
     } else {
-      mdb_txn_abort(txn);
+      mdbx_txn_abort(txn);
       txn = NULL;
     }
     if (rc) {
       Debug(LDAP_DEBUG_ANY,
             LDAP_XSTRING(mdb_online_index) ": database %s: "
                                            "txn_commit failed: %s (%d)\n",
-            be->be_suffix[0].bv_val, mdb_strerror(rc), rc);
+            be->be_suffix[0].bv_val, mdbx_strerror(rc), rc);
       break;
     }
     id++;
@@ -299,7 +302,7 @@ static int mdb_cf_cleanup(ConfigArgs *c) {
       rc = c->be->bd_info->bi_db_open(c->be, &c->reply);
     /* If this fails, we need to restart */
     if (rc) {
-      set_shutdown(2);
+      set_shutdown(SHUT_RDWR);
       snprintf(c->cr_msg, sizeof(c->cr_msg), "failed to reopen database, rc=%d",
                rc);
       Debug(LDAP_DEBUG_ANY, LDAP_XSTRING(mdb_cf_cleanup) ": %s\n", c->cr_msg);
@@ -352,7 +355,6 @@ static int mdb_cf_gen(ConfigArgs *c) {
       }
       break;
 
-#ifdef MDBX_LIFORECLAIM
     case MDBX_DREAMCATCHER:
       if (mdb->mi_renew_lag) {
         char buf[64];
@@ -370,7 +372,6 @@ static int mdb_cf_gen(ConfigArgs *c) {
         rc = 1;
       }
       break;
-#endif /* MDBX_LIFORECLAIM */
 
     case MDB_DIRECTORY:
       if (mdb->mi_dbenv_home) {
@@ -381,26 +382,19 @@ static int mdb_cf_gen(ConfigArgs *c) {
       break;
 
     case MDB_DBNOSYNC:
-#ifdef MDBX_UTTERLY_NOSYNC
       if (mdb->mi_dbenv_flags == MDBX_UTTERLY_NOSYNC)
         c->value_int = 1;
       else if (mdb->mi_dbenv_flags == 0)
         c->value_int = 0;
       else
         rc = 1;
-#else
-      if (mdb->mi_dbenv_flags & MDB_NOSYNC)
-        c->value_int = 1;
-#endif /* MDBX_UTTERLY_NOSYNC */
       break;
 
     case MDB_ENVFLAGS:
-#ifdef MDBX_UTTERLY_NOSYNC
       if (mdb->mi_dbenv_flags == MDBX_UTTERLY_NOSYNC)
-        rc = 1;
-      else
-#endif /* MDBX_UTTERLY_NOSYNC */
-      {
+        rc = 1; /* report "no flags", but return "ok" for MDB_DBNOSYNC/dbnosync
+                 */
+      else {
         if (mdb->mi_dbenv_flags)
           mask_to_verbs(mdb_envflags, mdb->mi_dbenv_flags, &c->rvalue_vals);
         if (!c->rvalue_vals)
@@ -408,11 +402,9 @@ static int mdb_cf_gen(ConfigArgs *c) {
       }
       break;
 
-#ifdef MDBX_LIFORECLAIM
     case MDBX_OOMFLAGS:
       rc = config_verbmask2string(oom_flags, mdb->mi_oom_flags, ' ', c);
       break;
-#endif /* MDBX_LIFORECLAIM */
 
     case MDB_INDEX:
       mdb_attr_index_unparse(mdb, &c->rvalue_vals);
@@ -462,12 +454,10 @@ static int mdb_cf_gen(ConfigArgs *c) {
       }
       mdb->mi_txn_cp = 0;
       break;
-#ifdef MDBX_LIFORECLAIM
     case MDBX_DREAMCATCHER:
       mdb->mi_renew_lag = 0;
       mdb->mi_renew_percent = 0;
       break;
-#endif /* MDBX_LIFORECLAIM */
     case MDB_DIRECTORY:
       mdb->mi_flags |= MDB_RE_OPEN;
       ch_free(mdb->mi_dbenv_home);
@@ -476,13 +466,8 @@ static int mdb_cf_gen(ConfigArgs *c) {
       ldap_pvt_thread_pool_purgekey(mdb->mi_dbenv);
       break;
     case MDB_DBNOSYNC:
-#if MDBX_UTTERLY_NOSYNC
-      mdb_env_set_flags(mdb->mi_dbenv, MDBX_UTTERLY_NOSYNC, 0);
+      mdbx_env_set_flags(mdb->mi_dbenv, MDBX_UTTERLY_NOSYNC, 0);
       mdb->mi_dbenv_flags &= ~MDBX_UTTERLY_NOSYNC;
-#else
-      mdb_env_set_flags(mdb->mi_dbenv, MDB_NOSYNC, 0);
-      mdb->mi_dbenv_flags &= ~MDB_NOSYNC;
-#endif /* MDBX_UTTERLY_NOSYNC */
       break;
 
     case MDB_ENVFLAGS:
@@ -491,7 +476,7 @@ static int mdb_cf_gen(ConfigArgs *c) {
         for (i = 0; mdb_envflags[i].mask; i++) {
           if (mdb->mi_dbenv_flags & mdb_envflags[i].mask) {
             /* not all flags are runtime resettable */
-            rc = mdb_env_set_flags(mdb->mi_dbenv, mdb_envflags[i].mask, 0);
+            rc = mdbx_env_set_flags(mdb->mi_dbenv, mdb_envflags[i].mask, 0);
             if (rc) {
               mdb->mi_flags |= MDB_RE_OPEN;
               c->cleanup = mdb_cf_cleanup;
@@ -503,7 +488,7 @@ static int mdb_cf_gen(ConfigArgs *c) {
       } else {
         int i = verb_to_mask(c->line, mdb_envflags);
         if (mdb_envflags[i].mask & mdb->mi_dbenv_flags) {
-          rc = mdb_env_set_flags(mdb->mi_dbenv, mdb_envflags[i].mask, 0);
+          rc = mdbx_env_set_flags(mdb->mi_dbenv, mdb_envflags[i].mask, 0);
           if (rc) {
             mdb->mi_flags |= MDB_RE_OPEN;
             c->cleanup = mdb_cf_cleanup;
@@ -514,11 +499,9 @@ static int mdb_cf_gen(ConfigArgs *c) {
       }
       break;
 
-#ifdef MDBX_LIFORECLAIM
     case MDBX_OOMFLAGS:
       mdb->mi_oom_flags = 0;
       break;
-#endif /* MDBX_LIFORECLAIM */
 
     case MDB_INDEX:
       if (c->valx == -1) {
@@ -632,14 +615,8 @@ static int mdb_cf_gen(ConfigArgs *c) {
       return ARG_BAD_CONF;
     }
     mdb->mi_txn_cp_kbyte = l;
-#ifdef MDBX_LIFORECLAIM
     if (mdb->mi_flags & MDB_IS_OPEN)
-#if MDBX_MODE_ENABLED
       mdbx_env_set_syncbytes(mdb->mi_dbenv, mdb->mi_txn_cp_kbyte * 1024ull);
-#else
-      mdb_env_set_syncbytes(mdb->mi_dbenv, mdb->mi_txn_cp_kbyte * 1024ull);
-#endif /* MDBX_MODE_ENABLED */
-#endif /* MDBX_LIFORECLAIM */
     if (lutil_atolx(&l, c->argv[2], 0) != 0) {
       fprintf(stderr,
               "%s: "
@@ -680,7 +657,6 @@ static int mdb_cf_gen(ConfigArgs *c) {
     }
   } break;
 
-#ifdef MDBX_LIFORECLAIM
   case MDBX_DREAMCATCHER: {
     long l;
     if (lutil_atolx(&l, c->argv[1], 0) != 0 || l < 1) {
@@ -700,7 +676,6 @@ static int mdb_cf_gen(ConfigArgs *c) {
     }
     mdb->mi_renew_percent = l;
   } break;
-#endif /* MDBX_LIFORECLAIM */
 
   case MDB_DIRECTORY: {
     FILE *f;
@@ -733,23 +708,13 @@ static int mdb_cf_gen(ConfigArgs *c) {
   } break;
 
   case MDB_DBNOSYNC:
-#if MDBX_UTTERLY_NOSYNC
     if (c->value_int)
       mdb->mi_dbenv_flags |= MDBX_UTTERLY_NOSYNC;
     else
       mdb->mi_dbenv_flags &= ~MDBX_UTTERLY_NOSYNC;
     if (mdb->mi_flags & MDB_IS_OPEN) {
-      mdb_env_set_flags(mdb->mi_dbenv, MDBX_UTTERLY_NOSYNC, c->value_int);
+      mdbx_env_set_flags(mdb->mi_dbenv, MDBX_UTTERLY_NOSYNC, c->value_int);
     }
-#else
-    if (c->value_int)
-      mdb->mi_dbenv_flags |= MDB_NOSYNC;
-    else
-      mdb->mi_dbenv_flags &= ~MDB_NOSYNC;
-    if (mdb->mi_flags & MDB_IS_OPEN) {
-      mdb_env_set_flags(mdb->mi_dbenv, MDB_NOSYNC, c->value_int);
-    }
-#endif /* MDBX_UTTERLY_NOSYNC */
     break;
 
   case MDB_ENVFLAGS: {
@@ -758,7 +723,7 @@ static int mdb_cf_gen(ConfigArgs *c) {
       j = verb_to_mask(c->argv[i], mdb_envflags);
       if (mdb_envflags[j].mask) {
         if (mdb->mi_flags & MDB_IS_OPEN)
-          rc = mdb_env_set_flags(mdb->mi_dbenv, mdb_envflags[j].mask, 1);
+          rc = mdbx_env_set_flags(mdb->mi_dbenv, mdb_envflags[j].mask, 1);
         else
           rc = 0;
         if (rc) {
@@ -777,7 +742,6 @@ static int mdb_cf_gen(ConfigArgs *c) {
     }
   } break;
 
-#ifdef MDBX_LIFORECLAIM
   case MDBX_OOMFLAGS: {
     int i, j;
     mdb->mi_oom_flags = 0;
@@ -794,7 +758,6 @@ static int mdb_cf_gen(ConfigArgs *c) {
       }
     }
   } break;
-#endif /* MDBX_LIFORECLAIM */
 
   case MDB_INDEX:
     rc = mdb_attr_index_config(mdb, c->fname, c->lineno, c->argc - 1,

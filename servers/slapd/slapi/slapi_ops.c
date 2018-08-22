@@ -355,7 +355,6 @@ void slapi_int_connection_done_pb(Slapi_PBlock *pb) {
 
 static int slapi_int_func_internal_pb(Slapi_PBlock *pb,
                                       slap_operation_t which) {
-  BI_op_bind **func;
   SlapReply *rs = pb->pb_rs;
   int rc;
 
@@ -368,9 +367,7 @@ static int slapi_int_func_internal_pb(Slapi_PBlock *pb,
   }
 
   pb->pb_op->o_bd = frontendDB;
-  func = &frontendDB->be_bind;
-
-  return func[which](pb->pb_op, pb->pb_rs);
+  return (&frontendDB->be_bind)[which](pb->pb_op, pb->pb_rs);
 }
 
 int slapi_delete_internal_pb(Slapi_PBlock *pb) {

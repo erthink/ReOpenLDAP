@@ -67,4 +67,7 @@ smbk5pwd (overlay)
 trace (overlay)
 	Trace overlay invocation.
 
+usn (overlay)
+	Maintain usnCreated and usnChanged attrs similar to Microsoft AD.
+
 $ReOpenLDAP$

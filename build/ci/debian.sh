@@ -13,7 +13,7 @@ sudo apt install -y \
 		uuid-dev libelf-dev krb5-multidev heimdal-multidev libcrack2-dev \
 		libsasl2-dev libperl-dev libtool libltdl-dev binutils-dev libssl-dev \
 		libgnutls28-dev libwrap0-dev unixodbc-dev libdb-dev gdb ndbclient-dev \
-		libsodium-dev \
+		libsodium-dev libwiredtiger-dev \
 	|| exit 1
 
 [ -x ./configure ] || ./bootstrap.sh --dont-cleanup ] \

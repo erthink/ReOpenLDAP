@@ -3,19 +3,19 @@ sudo: false
 dist: trusty
 
 compiler:
-- gcc
-- clang
-
+ - gcc
+ - clang
 os:
-- linux
+ - linux
 
 env:
   global:
   - LIBTOOL_SUPPRESS_DEFAULT=no
   - UPLOAD_DIR=_4upload
   - TEST_NOOK="$UPLOAD_DIR/$TRAVIS_JOB_NUMBER-$TRAVIS_EVENT_TYPE-$TRAVIS_BRANCH$TRAVIS_TAG$TRAVIS_PULL_REQUEST_SLUG"
-  - EXTRA_CFLAGS="-Wall -Werror -ggdb3 -gdwarf-4"
+  - EXTRA_CFLAGS="-Wall -Werror -g"
   - SLAPD_TESTING_TIMEOUT=555
+  - secure: tN6pNcKWOaDe1yywS/6ikttSmzbfGnAsgA4+nLPzb2YfrgXWBUOyfup0ape2eVFWDqsBGpOijdQXV2cacM7jattNC9Gg1PB9uPBP7HayVb5RGOXhWVkIvyJ5eubsDhr0ua7OC0GlASkyiA57qgvsq1xK0XbWvy1ERisJILX3SsEeCBkm1G2sUPhojfIEHU2ZUHy31j9puqqhIOtrUpdPaoEFD1ZD6jB8V8gG4/7F1cEuZgfKBt//6r/M5z71bEFAEnDj6BaF93K/e+RMOUjlwzHIzqr0awfkHgUroGUlcQ1ALsmqXkru4Ho91PNLzr/VdW2L1X5n6Z18IKXVtp3J4II9cd6NBpYupmTp8pYw+RtGIbxjmDigHh7/yJTvKAJbQjZkfQ/LX6T76wiETQw7wSB1jBgIbJawjWBPljta+WYiobNJVXJ/QdzGBDpEfKxzmyVtti135yltEsaK8Ib8d2J5hXvuGMo/tGUTEeav3iDLxhJ87C58TBSqTPkvCmUte4CpUJGlMDOlvz5jNCneqOffQJ98vVx4GcZjdps0JqtrOzZxg+YuXapb2XVwXpMMdl2EWFWiWKISuGvLP1P/eYvIhu9kXXjJ8hKgdJ3KMII7GBbfN2OdRanH0q3DBEEkUQEhQ99la5ejQaxfMnWorNABI0QQoRWLd6rNWFrWgrY=
 
 addons:
   apt:
@@ -38,34 +38,52 @@ addons:
     - unixodbc-dev
     - libslp-dev
     - libdb-dev
+#    - libwiredtiger-dev
     - gdb
+  coverity_scan:
+    project:
+      name: "ReOpen/ReOpenLDAP"
+      version: 0.2
+      description: "Build submitted via Travis CI"
+    notification_email: leo@yuriev.ru
+    build_command_prepend: >
+      ./bootstrap.sh --dont-cleanup &&
+      ./configure --enable-overlays=mod --enable-contrib --enable-experimental --with-tls
+      --enable-check=always --enable-hipagut=always --enable-debug --enable-dynacl --enable-aci --enable-crypt
+      --enable-lmpasswd --enable-spasswd --enable-slapi --enable-rlookups --enable-slp
+      --enable-wrappers --enable-backends=mod --disable-ndb --disable-wt --disable-dependency-tracking
+    build_command: make --keep-going -j2
+    branch_pattern: coverity_scan
 
-before_script:
-- if [ ! -z "$encrypted_1572229a40f3_key" ]; then
-    openssl aes-256-cbc -K $encrypted_1572229a40f3_key -iv $encrypted_1572229a40f3_iv
-    -in build/ci/upload_rsa.enc -out ~/.ssh/id_rsa -d && chmod 600 ~/.ssh/id_rsa;
+before_script: |
+  if [ ! -z "$encrypted_1572229a40f3_key" ]; then
+    openssl aes-256-cbc -K $encrypted_1572229a40f3_key -iv $encrypted_1572229a40f3_iv -in build/ci/upload_rsa.enc -out ~/.ssh/id_rsa -d && chmod 600 ~/.ssh/id_rsa;
   fi
-- mkdir -p $TEST_NOOK
+  mkdir -p $TEST_NOOK
 
-script:
-- ./bootstrap.sh --dont-cleanup || cp build/*.rej build/*.orig $TEST_NOOK/
-  && ./configure CFLAGS=-Ofast --prefix=$HOME/_install --enable-check=always
-  --enable-hipagut=always --enable-debug --disable-syslog --enable-overlays
-  --enable-maintainer-mode --enable-dynacl --enable-aci --enable-crypt --enable-lmpasswd
-  --enable-spasswd --enable-slapi --enable-rlookups --enable-slp --enable-wrappers
-  --enable-backends --disable-bdb --disable-hdb --disable-ndb --disable-modules
-  --enable-ci
-- make --keep-going && make --keep-going install
-  && ulimit -c unlimited && make test </dev/null
-- make --keep-going dist
-  && mkdir _dist && (cd _dist && tar -xaf ../*.tar.* --strip=1
-  && ./configure CFLAGS=-Os --prefix=$HOME/_dist/_install
-  --enable-overlays=mod --enable-contrib --enable-experimental
-  --enable-debug --enable-dynacl --enable-aci --enable-crypt --enable-lmpasswd --enable-spasswd
-  --enable-slapi --enable-rlookups --enable-slp --enable-wrappers --enable-backends=mod
-  --disable-ndb --disable-dependency-tracking
-  && make --keep-going && make --keep-going install)
+#  if [ "${COVERITY_SCAN_BRANCH}" = 1 ]; then
+#    echo -n | openssl s_client -connect scan.coverity.com:443 | sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' | sudo tee -a /etc/ssl/certs/ca-
+#  fi
+
+script: |
+  if [ "${COVERITY_SCAN_BRANCH}" != 1 ]; then
+    ./bootstrap.sh --dont-cleanup || cp build/*.rej build/*.orig $TEST_NOOK/ \
+    && ./configure CFLAGS=-Ofast --prefix=$HOME/_install --enable-check=always --enable-hipagut=always --with-tls \
+      --enable-debug --disable-syslog --enable-overlays --enable-maintainer-mode --enable-dynacl \
+      --enable-aci --enable-crypt --enable-lmpasswd --enable-spasswd --enable-slapi --enable-rlookups \
+      --enable-slp --enable-wrappers --enable-backends --disable-bdb --disable-hdb --disable-ndb --disable-wt \
+      --disable-modules --enable-ci \
+    && make --keep-going && make --keep-going install \
+    && ulimit -c unlimited && make test </dev/null \
+    && make --keep-going dist && mkdir _dist && ( \
+    cd _dist && tar -xaf ../*.tar.* --strip=1 && \
+      ./configure CFLAGS=-Os --prefix=$HOME/_dist/_install --enable-overlays=mod --enable-contrib \
+        --enable-experimental --enable-debug --enable-dynacl --enable-aci --enable-crypt \
+        --enable-lmpasswd --enable-spasswd --enable-slapi --enable-rlookups --enable-slp \
+        --enable-wrappers --enable-backends=mod --disable-ndb --disable-wt --disable-dependency-tracking \
+      && make --keep-going && make --keep-going install );
+  fi
 
 after_failure:
-- test -n "$(ls -A tests/testrun)" && tar caf $TEST_NOOK/testrun.tar.gz -C tests/testrun .
-- scp -o StrictHostKeyChecking=no -B -P $UPLOAD_PORT -rp $UPLOAD_DIR/* $UPLOAD_USER@$UPLOAD_HOST:~/$TRAVIS_REPO_SLUG/ 2>&1 | sed -n 's/^.*: \([^:]\+$\)/\1/p'
+ - test -n "$(ls -A tests/testrun)" && tar caf $TEST_NOOK/testrun.tar.gz -C tests/testrun .
+ - scp -o StrictHostKeyChecking=no -B -P $UPLOAD_PORT -rp $UPLOAD_DIR/* $UPLOAD_USER@$UPLOAD_HOST:~/$TRAVIS_REPO_SLUG/ 2>&1 | sed -n 's/^.*: \([^:]\+$\)/\1/p'

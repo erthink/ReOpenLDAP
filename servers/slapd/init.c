@@ -53,6 +53,7 @@ BerVarray default_referral = NULL;
  */
 ldap_pvt_thread_pool_t connection_pool;
 int connection_pool_max = SLAP_MAX_WORKER_THREADS;
+int connection_pool_queues = 1;
 int slap_tool_thread_max = 1;
 
 slap_counters_t slap_counters, *slap_counters_list;
@@ -112,7 +113,8 @@ int slap_init(int mode, const char *name) {
 
     slap_name = name;
 
-    ldap_pvt_thread_pool_init(&connection_pool, connection_pool_max, 0);
+    ldap_pvt_thread_pool_init_q(&connection_pool, connection_pool_max, 0,
+                                connection_pool_queues);
 
     slap_counters_init(&slap_counters);
 

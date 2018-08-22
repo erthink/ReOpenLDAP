@@ -155,6 +155,10 @@ int do_modify(Operation *op, SlapReply *rs) {
 
   op->o_bd = frontendDB;
   rs->sr_err = slap_biglock_call_be(op_modify, op, rs);
+  if (rs->sr_err == SLAPD_ASYNCOP) {
+    /* skip cleanup */
+    return rs->sr_err;
+  }
 
 #ifdef LDAP_X_TXN
   if (rs->sr_err == LDAP_X_TXN_SPECIFY_OKAY) {

@@ -35,6 +35,10 @@
 #define SUFFIXM_CTX "<suffix massage>"
 #endif
 
+#if defined(SLAPD_MDBX) && defined(LDAP_X_TXN)
+BI_op_txn mdb_txn;
+#endif
+
 #define UUIDLEN 16
 #define HASHUUID 65003u /* LY: someone prime */
 typedef struct presentlist {
@@ -111,6 +115,10 @@ typedef struct syncinfo_s {
   int si_cookieAge;
   int si_slimit;
   int si_tlimit;
+#ifdef LDAP_X_TXN
+  OpExtra *si_refreshTxn;
+  int si_refreshCount;
+#endif /* LDAP_X_TXN */
   time_t si_refreshBeg;
   int si_got;
   ber_int_t si_msgid;
@@ -144,6 +152,9 @@ typedef struct syncinfo_s {
   char si_require_present; /* requre preset-check phase on refresh */
   char si_syncdata;
   char si_logstate;
+#ifdef SLAP_CONTROL_X_LAZY_COMMIT
+  char si_lazyCommit;
+#endif /* SLAP_CONTROL_X_LAZY_COMMIT */
   char si_too_old;
   char si_has_syncprov;
   char si_keep_cookie4search;
@@ -167,7 +178,7 @@ static struct berval *slap_uuidstr_from_normalized(struct berval *,
                                                    struct berval *, void *);
 static int syncrepl_add_glue_ancestors(Operation *op, Entry *e);
 static int syncrepl_resync_begin(syncinfo_t *si);
-static void syncrepl_resync_end(syncinfo_t *si, int rc);
+static void syncrepl_resync_end(syncinfo_t *si, int rc, Operation *op);
 
 /* delta-mmr overlay handler */
 static int syncrepl_op_modify(Operation *op, SlapReply *rs);
@@ -779,6 +790,12 @@ static int compare_cookies(struct sync_cookie *local,
 static int syncrepl_resync_begin(syncinfo_t *si) {
   assert(si->si_refreshBeg == 0);
   si->si_refreshDone = 0;
+  si->si_refreshBeg = 0;
+#ifdef LDAP_X_TXN
+  assert(si->si_refreshTxn == NULL);
+  si->si_refreshCount = 0;
+  si->si_refreshTxn = NULL;
+#endif /* LDAP_X_TXN */
   syncrepl_notify_quorum(si, QS_DIRTY);
 
   if (quorum_syncrepl_gate(si->si_wbe, si, 1)) {
@@ -793,7 +810,19 @@ static int syncrepl_resync_begin(syncinfo_t *si) {
   return LDAP_SUCCESS;
 }
 
-static void syncrepl_refresh_done(syncinfo_t *si, int rc) {
+static void syncrepl_refresh_done(syncinfo_t *si, int rc, Operation *op) {
+#ifdef LDAP_X_TXN
+  if (si->si_refreshCount && op) {
+    Debug(LDAP_DEBUG_SYNC, "syncrepl: refresh %s, commit %d items\n",
+          si->si_ridtxt, si->si_refreshCount);
+    assert(op->o_bd->bd_info->bi_op_txn != NULL);
+    LDAP_SLIST_REMOVE(&op->o_extra, si->si_refreshTxn, OpExtra, oe_next);
+    op->o_bd->bd_info->bi_op_txn(op, SLAP_TXN_COMMIT, &si->si_refreshTxn);
+    si->si_refreshCount = 0;
+    si->si_refreshTxn = NULL;
+  }
+#endif /* LDAP_X_TXN */
+
   if (rc == LDAP_SUCCESS || rc == LDAP_SYNC_REFRESH_REQUIRED)
     si->si_keep_cookie4search = 0;
 
@@ -809,12 +838,12 @@ static void syncrepl_refresh_done(syncinfo_t *si, int rc) {
   }
 }
 
-static void syncrepl_resync_end(syncinfo_t *si, int rc) {
+static void syncrepl_resync_end(syncinfo_t *si, int rc, Operation *op) {
   if (rc == SYNC_DONE || rc == SYNC_NEED_RESTART) {
     rc = LDAP_SUCCESS;
-    syncrepl_refresh_done(si, rc);
+    syncrepl_refresh_done(si, rc, op);
   } else if (rc != LDAP_SUCCESS)
-    syncrepl_refresh_done(si, rc);
+    syncrepl_refresh_done(si, rc, op);
 
   int status = QS_DIRTY;
   if (rc == LDAP_SUCCESS) {
@@ -1206,7 +1235,7 @@ static int syncrepl_process(Operation *op, syncinfo_t *si) {
         rc = syncrepl_cookie_push(si, op, &syncCookie, 1);
       if (rc == LDAP_SUCCESS && si->si_syncCookie.numcsns == 0)
         rc = LDAP_UNWILLING_TO_PERFORM;
-      syncrepl_refresh_done(si, rc);
+      syncrepl_refresh_done(si, rc, op);
 
       if (rc == LDAP_SUCCESS) {
         rc = SYNC_DONE;
@@ -1346,7 +1375,7 @@ static int syncrepl_process(Operation *op, syncinfo_t *si) {
           rc = syncrepl_cookie_push(si, op, &syncCookie, 1);
 
         if (refreshDone)
-          syncrepl_refresh_done(si, rc);
+          syncrepl_refresh_done(si, rc, op);
 
         Debug(
             LDAP_DEBUG_SYNC,
@@ -1389,6 +1418,13 @@ static int syncrepl_process(Operation *op, syncinfo_t *si) {
     bl = NULL;
 
     if (ldap_pvt_thread_pool_pausing(&connection_pool)) {
+      if (si->si_refreshCount) {
+        assert(si->si_refreshTxn != NULL);
+        LDAP_SLIST_REMOVE(&op->o_extra, si->si_refreshTxn, OpExtra, oe_next);
+        op->o_bd->bd_info->bi_op_txn(op, SLAP_TXN_COMMIT, &si->si_refreshTxn);
+        si->si_refreshCount = 0;
+        si->si_refreshTxn = NULL;
+      }
       rc = SYNC_PAUSED;
       break;
     }
@@ -1563,7 +1599,7 @@ static void *do_syncrepl(void *ctx, void *arg) {
     op->o_ndn = op->o_bd->be_rootndn;
     rc = syncrepl_process(op, si);
   }
-  syncrepl_resync_end(si, rc);
+  syncrepl_resync_end(si, rc, op);
 
 deleted:
   /* We got deleted while running on cn=config */
@@ -3075,6 +3111,42 @@ static int syncrepl_entry(syncinfo_t *si, Operation *op, Entry *entry,
   } else if (!BER_BVISEMPTY(&dni.csn_incomming)) {
     csn = &dni.csn_incomming;
     slap_op_csn_assign(op, csn);
+  }
+
+  if (!si->si_refreshDone) {
+#ifdef SLAP_CONTROL_X_LAZY_COMMIT
+    if (si->si_lazyCommit)
+      op->o_lazyCommit = SLAP_CONTROL_NONCRITICAL;
+#endif
+#ifdef LDAP_X_TXN
+    if (si->si_refreshCount == 500) {
+      assert(si->si_refreshTxn != NULL);
+      LDAP_SLIST_REMOVE(&op->o_extra, si->si_refreshTxn, OpExtra, oe_next);
+      op->o_bd->bd_info->bi_op_txn(op, SLAP_TXN_COMMIT, &si->si_refreshTxn);
+      si->si_refreshCount = 0;
+      si->si_refreshTxn = NULL;
+    }
+    if (op->o_bd->bd_info->bi_op_txn
+#ifdef SLAPD_MDBX
+        /* LY: TODO: deadlock is possible between write-mutex
+         * inside MDB-backend and syncprov_info_t.si_resp_mutex. */
+        && (
+#if SLAPD_MDBX != SLAPD_MOD_DYNAMIC
+               op->o_bd->bd_info->bi_op_txn != mdb_txn ||
+#endif
+               (quorum_syncrepl_maxrefresh(op->o_bd) == 1
+                /* LY: TODO: support for bi_op_txn() in biglock */
+                && op->o_bd->bd_biglock_mode <= SLAPD_BIGLOCK_NONE))
+#endif /* SLAPD_MDBX */
+    ) {
+      if (!si->si_refreshCount) {
+        assert(si->si_refreshTxn == NULL);
+        op->o_bd->bd_info->bi_op_txn(op, SLAP_TXN_BEGIN, &si->si_refreshTxn);
+      }
+      assert(si->si_refreshTxn != NULL);
+      si->si_refreshCount++;
+    }
+#endif /* LDAP_X_TXN */
   }
 
   slap_op_time(&op->o_time, &op->o_tincr);
@@ -4742,7 +4814,7 @@ void syncinfo_free(syncinfo_t *sie, int free_all) {
       ldap_pvt_thread_mutex_unlock(&slapd_rq.rq_mutex);
     }
 
-    syncrepl_resync_end(sie, LDAP_UNAVAILABLE);
+    syncrepl_resync_end(sie, LDAP_UNAVAILABLE, NULL);
     syncrepl_shutdown_io(sie);
 
     ldap_pvt_thread_mutex_destroy(&sie->si_mutex);
@@ -4911,6 +4983,7 @@ static int config_suffixm(ConfigArgs *c, syncinfo_t *si) {
 #define LOGFILTERSTR "logfilter"
 #define SUFFIXMSTR "suffixmassage"
 #define STRICT_REFRESH "strictrefresh"
+#define LAZY_COMMIT "lazycommit"
 #define REQUIRE_PRESENT "requirecheckpresent"
 
 /* FIXME: undocumented */
@@ -5374,6 +5447,10 @@ static int parse_syncrepl_line(ConfigArgs *c, syncinfo_t *si) {
     } else if (!strncasecmp(c->argv[i], STRICT_REFRESH,
                             STRLENOF(STRICT_REFRESH))) {
       si->si_strict_refresh = 1;
+#ifdef SLAP_CONTROL_X_LAZY_COMMIT
+    } else if (!strncasecmp(c->argv[i], LAZY_COMMIT, STRLENOF(LAZY_COMMIT))) {
+      si->si_lazyCommit = 1;
+#endif /* SLAP_CONTROL_X_LAZY_COMMIT */
     } else if (!strncasecmp(c->argv[i], REQUIRE_PRESENT,
                             STRLENOF(REQUIRE_PRESENT))) {
       si->si_require_present = 1;
@@ -5841,6 +5918,12 @@ static void syncrepl_unparse(syncinfo_t *si, struct berval *bv) {
       ptr = lutil_strcopy(ptr, bc.bv_val);
     }
   }
+
+#ifdef SLAP_CONTROL_X_LAZY_COMMIT
+  if (si->si_lazyCommit) {
+    ptr = lutil_strcopy(ptr, " " LAZY_COMMIT);
+  }
+#endif /*SLAP_CONTROL_X_LAZY_COMMIT */
 
   if (si->si_strict_refresh) {
     len = snprintf(ptr, WHATSLEFT, " " STRICT_REFRESH);

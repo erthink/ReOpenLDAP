@@ -113,6 +113,10 @@ void ldap_int_tls_destroy(struct ldapoptions *lo) {
     LDAP_FREE(lo->ldo_tls_dhfile);
     lo->ldo_tls_dhfile = NULL;
   }
+  if (lo->ldo_tls_ecname) {
+    LDAP_FREE(lo->ldo_tls_ecname);
+    lo->ldo_tls_ecname = NULL;
+  }
   if (lo->ldo_tls_cacertfile) {
     LDAP_FREE(lo->ldo_tls_cacertfile);
     lo->ldo_tls_cacertfile = NULL;
@@ -463,7 +467,7 @@ int ldap_pvt_tls_check_hostname(LDAP *ld, void *s, const char *name_in) {
   return LDAP_SUCCESS;
 }
 
-int ldap_int_tls_config(LDAP *ld, int option, const char *arg) {
+int ldap_pvt_tls_config(LDAP *ld, int option, const char *arg) {
   int i;
 
   switch (option) {
@@ -591,6 +595,9 @@ int ldap_pvt_tls_get_option(LDAP *ld, int option, void *arg) {
     break;
   case LDAP_OPT_X_TLS_DHFILE:
     *(char **)arg = lo->ldo_tls_dhfile ? LDAP_STRDUP(lo->ldo_tls_dhfile) : NULL;
+    break;
+  case LDAP_OPT_X_TLS_ECNAME:
+    *(char **)arg = lo->ldo_tls_ecname ? LDAP_STRDUP(lo->ldo_tls_ecname) : NULL;
     break;
   case LDAP_OPT_X_TLS_CRLFILE: /* GnuTLS only */
     *(char **)arg =
@@ -787,6 +794,11 @@ int ldap_pvt_tls_set_option(LDAP *ld, int option, void *arg) {
     if (lo->ldo_tls_dhfile)
       LDAP_FREE(lo->ldo_tls_dhfile);
     lo->ldo_tls_dhfile = arg ? LDAP_STRDUP((char *)arg) : NULL;
+    return 0;
+  case LDAP_OPT_X_TLS_ECNAME:
+    if (lo->ldo_tls_ecname)
+      LDAP_FREE(lo->ldo_tls_ecname);
+    lo->ldo_tls_ecname = arg ? LDAP_STRDUP((char *)arg) : NULL;
     return 0;
 #if RELDAP_TLS == RELDAP_TLS_GNUTLS
   case LDAP_OPT_X_TLS_CRLFILE: /* GnuTLS only */

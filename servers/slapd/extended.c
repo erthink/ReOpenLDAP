@@ -293,6 +293,49 @@ int extop_register_ex(const struct berval *exop_oid, slap_mask_t exop_flags,
   return 0;
 }
 
+int extop_unregister(const struct berval *exop_oid,
+                     SLAP_EXTOP_MAIN_FN *exop_main, unsigned unused_flags) {
+  struct berval oidm = BER_BVNULL;
+  struct extop_list *ext, **extp;
+  (void)unused_flags;
+
+  /* oid must be given */
+  if (exop_oid == NULL || BER_BVISNULL(exop_oid) || BER_BVISEMPTY(exop_oid)) {
+    return -1;
+  }
+
+  /* if it's not an oid, check if it's a macto */
+  if (numericoidValidate(NULL, (struct berval *)exop_oid) != LDAP_SUCCESS) {
+    oidm.bv_val = oidm_find(exop_oid->bv_val);
+    if (oidm.bv_val == NULL) {
+      return -1;
+    }
+    oidm.bv_len = strlen(oidm.bv_val);
+    exop_oid = &oidm;
+  }
+
+  /* lookup the oid */
+  for (extp = &supp_exop_list; *extp; extp = &(*extp)->next) {
+    if (bvmatch(exop_oid, &(*extp)->oid)) {
+      /* if ext_main is given, only remove if it matches */
+      if (exop_main != NULL && (*extp)->exop_main != exop_main) {
+        return -1;
+      }
+      break;
+    }
+  }
+
+  if (*extp == NULL) {
+    return -1;
+  }
+
+  ext = *extp;
+  *extp = (*extp)->next;
+
+  ch_free(ext);
+  return 0;
+}
+
 int extops_init(void) {
   int i;
 
@@ -300,6 +343,7 @@ int extops_init(void) {
     extop_register((struct berval *)builtin_extops[i].oid,
                    builtin_extops[i].flags, builtin_extops[i].exop_main);
   }
+
   return 0;
 }
 
@@ -322,7 +366,7 @@ static struct extop_list *find_extop(struct extop_list *list,
     if (bvmatch(&ext->oid, oid))
       return (ext);
   }
-  return (NULL);
+  return NULL;
 }
 
 const struct berval slap_EXOP_WHOAMI = BER_BVC(LDAP_EXOP_WHO_AM_I);

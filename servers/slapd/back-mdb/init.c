@@ -27,13 +27,13 @@
 #include "slapconfig.h"
 
 static const struct berval mdmi_databases[] = {BER_BVC("ad2i"), BER_BVC("dn2i"),
-                                               BER_BVC("id2e"), BER_BVNULL};
+                                               BER_BVC("id2e"), BER_BVC("id2v"),
+                                               BER_BVNULL};
 
-static int mdb_id_compare(const MDB_val *a, const MDB_val *b) {
-  return mdbx_cmp2int(*(ID *)a->mv_data, *(ID *)b->mv_data);
+static int mdb_id_compare(const MDBX_val *a, const MDBX_val *b) {
+  return mdbx_cmp2int(*(ID *)a->iov_base, *(ID *)b->iov_base);
 }
 
-#if MDBX_MODE_ENABLED
 static void mdbx_debug(int type, const char *function, int line,
                        const char *msg, va_list args) {
 #if LDAP_DEBUG > 1
@@ -54,14 +54,13 @@ static void mdbx_debug(int type, const char *function, int line,
   if (DebugTest(level))
     ldap_debug_va(msg, args);
 }
-#endif /* MDBX_MODE_ENABLED */
 
-#ifdef MDBX_LIFORECLAIM
 /* perform kick/kill a laggard readers */
-static int mdb_oom_handler(MDB_env *env, int pid, void *thread_id, size_t txnid,
-                           unsigned gap, int retry) {
+static int mdb_oom_handler(MDBX_env *env, int pid, mdbx_tid_t tid,
+                           uint64_t txnid, unsigned gap, int retry) {
   uint64_t now_ns = ldap_now_steady_ns();
-  struct mdb_info *mdb = mdb_env_get_userctx(env);
+  struct mdb_info *mdb = mdbx_env_get_userctx(env);
+  (void)tid;
 
   if (retry < 0) {
     double elapsed = (now_ns - mdb->mi_oom_timestamp_ns) * 1e-9;
@@ -121,7 +120,6 @@ static int mdb_oom_handler(MDB_env *env, int pid, void *thread_id, size_t txnid,
   mdb->mi_oom_timestamp_ns = 0;
   return -1;
 }
-#endif /* MDBX_LIFORECLAIM */
 
 static int mdb_db_init(BackendDB *be, ConfigReply *cr) {
   struct mdb_info *mdb;
@@ -130,20 +128,21 @@ static int mdb_db_init(BackendDB *be, ConfigReply *cr) {
   Debug(LDAP_DEBUG_TRACE,
         LDAP_XSTRING(mdb_db_init) ": Initializing mdb database\n");
 
-#if MDBX_MODE_ENABLED
-  unsigned flags = mdbx_setup_debug(MDBX_DBG_DNT, mdbx_debug, MDBX_DBG_DNT);
-  flags &= ~(MDBX_DBG_TRACE | MDBX_DBG_EXTRA | MDBX_DBG_ASSERT);
+  /* TODO: MDBX_DBG_AUDIT, MDBX_DBG_DUMP */
+  unsigned flags = mdbx_setup_debug(0, mdbx_debug);
+  flags &= ~(MDBX_DBG_ASSERT | MDBX_DBG_JITTER);
 
   if (reopenldap_mode_check())
     flags |= MDBX_DBG_ASSERT;
+  if (reopenldap_mode_jitter())
+    flags |= MDBX_DBG_JITTER;
 #if LDAP_DEBUG > 1
   flags |= MDBX_DBG_PRINT | MDBX_DBG_TRACE;
 #endif /* LDAP_DEBUG > 1 */
 #if LDAP_DEBUG > 2
   flags |= MDBX_DBG_EXTRA;
 #endif /* LDAP_DEBUG > 2 */
-  mdbx_setup_debug(flags, (MDBX_debug_func *)MDBX_DBG_DNT, MDBX_DBG_DNT);
-#endif /* MDBX_MODE_ENABLED */
+  mdbx_setup_debug(flags, mdbx_debug);
 
   /* allocate backend-database-specific stuff */
   mdb = (struct mdb_info *)ch_calloc(1, sizeof(struct mdb_info));
@@ -158,6 +157,8 @@ static int mdb_db_init(BackendDB *be, ConfigReply *cr) {
 
   mdb->mi_mapsize = DEFAULT_MAPSIZE;
   mdb->mi_rtxn_size = DEFAULT_RTXN_SIZE;
+  mdb->mi_multi_hi = UINT_MAX;
+  mdb->mi_multi_lo = UINT_MAX;
 
   be->be_private = mdb;
   be->be_cf_ocs = be->bd_info->bi_cf_ocs;
@@ -183,7 +184,7 @@ static int mdb_db_open(BackendDB *be, ConfigReply *cr) {
   struct stat stat1;
   uint32_t flags;
   char *dbhome;
-  MDB_txn *txn;
+  MDBX_txn *txn;
 
   if (be->be_suffix == NULL) {
     Debug(LDAP_DEBUG_ANY, LDAP_XSTRING(mdb_db_open) ": need suffix.\n");
@@ -207,68 +208,58 @@ static int mdb_db_open(BackendDB *be, ConfigReply *cr) {
   /* mdb is always clean */
   be->be_flags |= SLAP_DBFLAG_CLEAN;
 
-  rc = mdb_env_create(&mdb->mi_dbenv);
+  rc = mdbx_env_create(&mdb->mi_dbenv);
   if (rc != 0) {
     Debug(LDAP_DEBUG_ANY,
           LDAP_XSTRING(mdb_db_open) ": database \"%s\": "
-                                    "mdb_env_create failed: %s (%d).\n",
-          be->be_suffix[0].bv_val, mdb_strerror(rc), rc);
+                                    "mdbx_env_create failed: %s (%d).\n",
+          be->be_suffix[0].bv_val, mdbx_strerror(rc), rc);
     goto fail;
   }
 
-  mdb_env_set_userctx(mdb->mi_dbenv, mdb);
+  mdbx_env_set_userctx(mdb->mi_dbenv, mdb);
 
   if (mdb->mi_readers) {
-    rc = mdb_env_set_maxreaders(mdb->mi_dbenv, mdb->mi_readers);
+    rc = mdbx_env_set_maxreaders(mdb->mi_dbenv, mdb->mi_readers);
     if (rc != 0) {
-      Debug(
-          LDAP_DEBUG_ANY,
-          LDAP_XSTRING(mdb_db_open) ": database \"%s\": "
-                                    "mdb_env_set_maxreaders failed: %s (%d).\n",
-          be->be_suffix[0].bv_val, mdb_strerror(rc), rc);
+      Debug(LDAP_DEBUG_ANY,
+            LDAP_XSTRING(
+                mdb_db_open) ": database \"%s\": "
+                             "mdbx_env_set_maxreaders failed: %s (%d).\n",
+            be->be_suffix[0].bv_val, mdbx_strerror(rc), rc);
       goto fail;
     }
   }
 
-  rc = mdb_env_set_mapsize(mdb->mi_dbenv, mdb->mi_mapsize);
+  /* FIXME: use mdbx_env_set_geometry() */
+  rc = mdbx_env_set_mapsize(mdb->mi_dbenv, mdb->mi_mapsize);
   if (rc != 0) {
     Debug(LDAP_DEBUG_ANY,
           LDAP_XSTRING(mdb_db_open) ": database \"%s\": "
-                                    "mdb_env_set_mapsize failed: %s (%d).\n",
-          be->be_suffix[0].bv_val, mdb_strerror(rc), rc);
+                                    "mdbx_env_set_mapsize failed: %s (%d).\n",
+          be->be_suffix[0].bv_val, mdbx_strerror(rc), rc);
     goto fail;
   }
 
-  rc = mdb_env_set_maxdbs(mdb->mi_dbenv, MDB_INDICES);
+  rc = mdbx_env_set_maxdbs(mdb->mi_dbenv, MDB_INDICES);
   if (rc != 0) {
     Debug(LDAP_DEBUG_ANY,
           LDAP_XSTRING(mdb_db_open) ": database \"%s\": "
-                                    "mdb_env_set_maxdbs failed: %s (%d).\n",
-          be->be_suffix[0].bv_val, mdb_strerror(rc), rc);
+                                    "mdbx_env_set_maxdbs failed: %s (%d).\n",
+          be->be_suffix[0].bv_val, mdbx_strerror(rc), rc);
     goto fail;
   }
 
-#ifdef MDBX_LIFORECLAIM
-#if MDBX_MODE_ENABLED
   rc = mdbx_env_set_syncbytes(mdb->mi_dbenv, mdb->mi_txn_cp_kbyte * 1024ul);
-#else
-  rc = mdb_env_set_syncbytes(mdb->mi_dbenv, mdb->mi_txn_cp_kbyte * 1024ul);
-#endif /* MDBX_MODE_ENABLED */
   if (rc != 0) {
     Debug(LDAP_DEBUG_ANY,
-          LDAP_XSTRING(
-              mdb_db_open) ": database \"%s\": "
-                           "mdb_env_set_sync_threshold failed: %s (%d).\n",
-          be->be_suffix[0].bv_val, mdb_strerror(rc), rc);
+          LDAP_XSTRING(mdb_db_open) ": database \"%s\": "
+                                    "mdbx_env_set_syncbytes failed: %s (%d).\n",
+          be->be_suffix[0].bv_val, mdbx_strerror(rc), rc);
     goto fail;
   }
 
-#if MDBX_MODE_ENABLED
   mdbx_env_set_oomfunc(mdb->mi_dbenv, mdb_oom_handler);
-#else
-  mdb_env_set_oomfunc(mdb->mi_dbenv, mdb_oom_handler);
-#endif /* MDBX_MODE_ENABLED */
-
   if ((slapMode & SLAP_SERVER_MODE) && SLAP_MULTIMASTER(be) &&
       ((MDBX_OOM_YIELD & mdb->mi_oom_flags) == 0 || mdb->mi_renew_lag == 0)) {
     snprintf(cr->msg, sizeof(cr->msg),
@@ -278,7 +269,6 @@ static int mdb_db_open(BackendDB *be, ConfigReply *cr) {
              be->be_suffix[0].bv_val);
     Debug(LDAP_DEBUG_ANY, LDAP_XSTRING(mdb_db_open) ": %s\n", cr->msg);
   }
-#endif /* MDBX_LIFORECLAIM */
 
   dbhome = mdb->mi_dbenv_home;
 
@@ -289,81 +279,89 @@ static int mdb_db_open(BackendDB *be, ConfigReply *cr) {
 
   flags = mdb->mi_dbenv_flags;
 
-#ifdef MDBX_PAGEPERTURB
   if (reopenldap_mode_check())
     flags |= MDBX_PAGEPERTURB;
-#endif
 
   if (slapMode & SLAP_TOOL_QUICK)
-    flags |= MDB_NOSYNC | MDB_WRITEMAP;
+    flags |= MDBX_NOSYNC | MDBX_WRITEMAP;
 
   if (slapMode & SLAP_TOOL_READONLY)
-    flags |= MDB_RDONLY;
+    flags |= MDBX_RDONLY;
 
-  rc = mdb_env_open(mdb->mi_dbenv, dbhome, flags, mdb->mi_dbenv_mode);
+  rc = mdbx_env_open(mdb->mi_dbenv, dbhome, flags, mdb->mi_dbenv_mode);
 
   if (rc) {
     Debug(LDAP_DEBUG_ANY,
           LDAP_XSTRING(
               mdb_db_open) ": database \"%s\" cannot be opened: %s (%d). "
                            "Restore from backup!\n",
-          be->be_suffix[0].bv_val, mdb_strerror(rc), rc);
+          be->be_suffix[0].bv_val, mdbx_strerror(rc), rc);
     goto fail;
   }
 
-  rc = mdb_txn_begin(mdb->mi_dbenv, NULL, flags & MDB_RDONLY, &txn);
+  rc = mdbx_txn_begin(mdb->mi_dbenv, NULL, flags & MDBX_RDONLY, &txn);
   if (rc) {
     Debug(LDAP_DEBUG_ANY,
           LDAP_XSTRING(
               mdb_db_open) ": database \"%s\" cannot be opened: %s (%d). "
                            "Restore from backup!\n",
-          be->be_suffix[0].bv_val, mdb_strerror(rc), rc);
+          be->be_suffix[0].bv_val, mdbx_strerror(rc), rc);
     goto fail;
   }
 
   /* open (and create) main databases */
   for (i = 0; mdmi_databases[i].bv_val; i++) {
-    flags = MDB_INTEGERKEY;
+    flags = MDBX_INTEGERKEY;
     if (i == MDB_ID2ENTRY) {
       if (!(slapMode & (SLAP_TOOL_READMAIN | SLAP_TOOL_READONLY)))
-        flags |= MDB_CREATE;
+        flags |= MDBX_CREATE;
     } else {
       if (i == MDB_DN2ID)
-        flags |= MDB_DUPSORT;
+        flags |= MDBX_DUPSORT;
+      if (i == MDB_ID2VAL)
+        flags ^= MDBX_INTEGERKEY | MDBX_DUPSORT;
       if (!(slapMode & SLAP_TOOL_READONLY))
-        flags |= MDB_CREATE;
+        flags |= MDBX_CREATE;
     }
 
-    rc = mdb_dbi_open(txn, mdmi_databases[i].bv_val, flags, &mdb->mi_dbis[i]);
+    MDBX_cmp_func *keycmp = NULL;
+    MDBX_cmp_func *datacmp = NULL;
+    if (i == MDB_ID2ENTRY)
+      keycmp = mdb_id_compare;
+    else if (i == MDB_ID2VAL) {
+      keycmp = mdb_id2v_compare;
+      datacmp = mdb_id2v_dupsort;
+    } else if (i == MDB_DN2ID)
+      datacmp = mdb_dup_compare;
+
+    rc = mdbx_dbi_open_ex(txn, mdmi_databases[i].bv_val, flags,
+                          &mdb->mi_dbis[i], keycmp, datacmp);
 
     if (rc != 0) {
       snprintf(cr->msg, sizeof(cr->msg),
                "database \"%s\": "
-               "mdb_dbi_open(%s/%s) failed: %s (%d).",
+               "mdbx_dbi_open(%s/%s) failed: %s (%d).",
                be->be_suffix[0].bv_val, mdb->mi_dbenv_home,
-               mdmi_databases[i].bv_val, mdb_strerror(rc), rc);
+               mdmi_databases[i].bv_val, mdbx_strerror(rc), rc);
       Debug(LDAP_DEBUG_ANY, LDAP_XSTRING(mdb_db_open) ": %s\n", cr->msg);
       goto fail;
     }
 
-    if (i == MDB_ID2ENTRY)
-      mdb_set_compare(txn, mdb->mi_dbis[i], mdb_id_compare);
-    else if (i == MDB_DN2ID) {
-      MDB_cursor *mc;
-      MDB_val key, data;
-      mdb_set_dupsort(txn, mdb->mi_dbis[i], mdb_dup_compare);
+    if (i == MDB_DN2ID) {
+      MDBX_cursor *mc;
+      MDBX_val key, data;
       /* check for old dn2id format */
-      rc = mdb_cursor_open(txn, mdb->mi_dbis[i], &mc);
+      rc = mdbx_cursor_open(txn, mdb->mi_dbis[i], &mc);
       /* first record is always ID 0 */
-      rc = mdb_cursor_get(mc, &key, &data, MDB_FIRST);
+      rc = mdbx_cursor_get(mc, &key, &data, MDBX_FIRST);
       if (rc == 0) {
-        rc = mdb_cursor_get(mc, &key, &data, MDB_NEXT);
+        rc = mdbx_cursor_get(mc, &key, &data, MDBX_NEXT);
         if (rc == 0) {
           int len;
           unsigned char *ptr;
-          ptr = data.mv_data;
+          ptr = data.iov_base;
           len = (ptr[0] & 0x7f) << 8 | ptr[1];
-          if (data.mv_size < 2 * len + 4 + 2 * sizeof(ID)) {
+          if (data.iov_len < 2 * len + 4 + 2 * sizeof(ID)) {
             snprintf(cr->msg, sizeof(cr->msg),
                      "database \"%s\": DN index needs upgrade, "
                      "run \"slapindex entryDN\".",
@@ -375,7 +373,7 @@ static int mdb_db_open(BackendDB *be, ConfigReply *cr) {
           }
         }
       }
-      mdb_cursor_close(mc);
+      mdbx_cursor_close(mc);
       if (rc == LDAP_OTHER)
         goto fail;
     }
@@ -383,7 +381,7 @@ static int mdb_db_open(BackendDB *be, ConfigReply *cr) {
 
   rc = mdb_ad_read(mdb, txn);
   if (rc) {
-    mdb_txn_abort(txn);
+    mdbx_txn_abort(txn);
     goto fail;
   }
 
@@ -393,17 +391,17 @@ static int mdb_db_open(BackendDB *be, ConfigReply *cr) {
   if (!(slapMode & SLAP_TOOL_READONLY)) {
     rc = mdb_attr_dbs_open(be, txn, cr);
     if (rc) {
-      mdb_txn_abort(txn);
+      mdbx_txn_abort(txn);
       goto fail;
     }
   }
 
-  rc = mdb_txn_commit(txn);
+  rc = mdbx_txn_commit(txn);
   if (rc != 0) {
     Debug(LDAP_DEBUG_ANY,
           LDAP_XSTRING(mdb_db_open) ": database %s: "
                                     "txn_commit failed: %s (%d)\n",
-          be->be_suffix[0].bv_val, mdb_strerror(rc), rc);
+          be->be_suffix[0].bv_val, mdbx_strerror(rc), rc);
     goto fail;
   }
 
@@ -441,23 +439,23 @@ static int mdb_db_close(BackendDB *be, ConfigReply *cr) {
 
       mdb_attr_dbs_close(mdb);
       for (i = 0; i < MDB_NDB; i++)
-        mdb_dbi_close(mdb->mi_dbenv, mdb->mi_dbis[i]);
+        mdbx_dbi_close(mdb->mi_dbenv, mdb->mi_dbis[i]);
 
       /* force a sync, but not if we were ReadOnly,
        * and not in Quick mode.
        */
       if (!(slapMode & (SLAP_TOOL_QUICK | SLAP_TOOL_READONLY))) {
-        rc = mdb_env_sync(mdb->mi_dbenv, 1);
+        rc = mdbx_env_sync(mdb->mi_dbenv, 1);
         if (rc != 0) {
           Debug(LDAP_DEBUG_ANY,
                 "mdb_db_close: database \"%s\": "
                 "mdb_env_sync failed: %s (%d).\n",
-                be->be_suffix[0].bv_val, mdb_strerror(rc), rc);
+                be->be_suffix[0].bv_val, mdbx_strerror(rc), rc);
         }
       }
     }
 
-    mdb_env_close(mdb->mi_dbenv);
+    mdbx_env_close(mdb->mi_dbenv);
     mdb->mi_dbenv = NULL;
   }
 
@@ -523,25 +521,21 @@ int mdb_back_initialize(BackendInfo *bi) {
 
   bi->bi_controls = controls;
 
-  { /* version check */
-    int major, minor, patch, ver;
-    char *version = mdb_version(&major, &minor, &patch);
-    ver = (major << 24) | (minor << 16) | patch;
-    if (ver != MDB_VERSION_FULL) {
-      /* fail if a versions don't match */
-      Debug(LDAP_DEBUG_ANY,
-            LDAP_XSTRING(mdb_back_initialize) ": "
-                                              "MDB library version mismatch:"
-                                              " expected " MDB_VERSION_STRING
-                                              ","
-                                              " got %s\n",
-            version);
-      return -1;
-    }
-
-    Debug(LDAP_DEBUG_TRACE, LDAP_XSTRING(mdb_back_initialize) ": %s\n",
-          version);
+  /* version check */
+  if (mdbx_version.major != MDBX_VERSION_MAJOR ||
+      mdbx_version.minor != MDBX_VERSION_MINOR) {
+    /* fail if a versions don't match */
+    Debug(LDAP_DEBUG_ANY,
+          LDAP_XSTRING(mdb_back_initialize) ": "
+                                            "MDB library version mismatch:"
+                                            " expected %u.%u, got %u.%u\n",
+          MDBX_VERSION_MAJOR, MDBX_VERSION_MINOR, mdbx_version.major,
+          mdbx_version.minor);
+    return -1;
   }
+  Debug(LDAP_DEBUG_TRACE, LDAP_XSTRING(mdb_back_initialize) ": %u.%u.%u.%u\n",
+        mdbx_version.major, mdbx_version.minor, mdbx_version.release,
+        mdbx_version.revision);
 
   bi->bi_open = 0;
   bi->bi_close = 0;
@@ -563,6 +557,9 @@ int mdb_back_initialize(BackendInfo *bi) {
   bi->bi_op_search = mdb_search;
 
   bi->bi_op_unbind = 0;
+#ifdef LDAP_X_TXN
+  bi->bi_op_txn = mdb_txn;
+#endif
 
   bi->bi_extended = mdb_extended;
 
@@ -587,6 +584,7 @@ int mdb_back_initialize(BackendInfo *bi) {
   bi->bi_tool_sync = 0;
   bi->bi_tool_dn2id_get = mdb_tool_dn2id_get;
   bi->bi_tool_entry_modify = mdb_tool_entry_modify;
+  bi->bi_tool_entry_delete = mdb_tool_entry_delete;
 
   bi->bi_connection_init = 0;
   bi->bi_connection_destroy = 0;
@@ -597,7 +595,5 @@ int mdb_back_initialize(BackendInfo *bi) {
 }
 
 #if (SLAPD_MDBX == SLAPD_MOD_DYNAMIC)
-
 SLAP_BACKEND_INIT_MODULE(mdb)
-
-#endif /* SLAPD_MDB == SLAPD_MOD_DYNAMIC */
+#endif /* SLAPD_MDBX == SLAPD_MOD_DYNAMIC */

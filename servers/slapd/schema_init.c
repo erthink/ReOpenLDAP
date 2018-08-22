@@ -106,11 +106,56 @@
 
 #include "lutil.h"
 #include "lutil_hash.h"
+
+#ifdef LUTIL_HASH64_BYTES
+#define HASH_BYTES LUTIL_HASH64_BYTES
+#define HASH_LEN hashlen
+static void (*hashinit)(lutil_HASH_CTX *ctx) = lutil_HASHInit;
+static void (*hashupdate)(lutil_HASH_CTX *ctx, unsigned char const *buf,
+                          ber_len_t len) = lutil_HASHUpdate;
+static void (*hashfinal)(unsigned char digest[HASH_BYTES],
+                         lutil_HASH_CTX *ctx) = lutil_HASHFinal;
+static int hashlen = LUTIL_HASH_BYTES;
+#define HASH_Init(c) hashinit(c)
+#define HASH_Update(c, buf, len) hashupdate(c, buf, len)
+#define HASH_Final(d, c) hashfinal(d, c)
+
+/* Toggle between 32 and 64 bit hashing, default to 32 for compatibility
+   -1 to query, returns 1 if 64 bit, 0 if 32.
+   0/1 to set 32/64, returns 0 on success, -1 on failure */
+int slap_hash64(int onoff) {
+  if (onoff < 0) {
+    return hashlen == LUTIL_HASH64_BYTES;
+  } else if (onoff) {
+    hashinit = lutil_HASH64Init;
+    hashupdate = lutil_HASH64Update;
+    hashfinal = lutil_HASH64Final;
+    hashlen = LUTIL_HASH64_BYTES;
+  } else {
+    hashinit = lutil_HASHInit;
+    hashupdate = lutil_HASHUpdate;
+    hashfinal = lutil_HASHFinal;
+    hashlen = LUTIL_HASH_BYTES;
+  }
+  return 0;
+}
+
+#else
 #define HASH_BYTES LUTIL_HASH_BYTES
-#define HASH_CONTEXT lutil_HASH_CTX
+#define HASH_LEN HASH_BYTES
 #define HASH_Init(c) lutil_HASHInit(c)
 #define HASH_Update(c, buf, len) lutil_HASHUpdate(c, buf, len)
 #define HASH_Final(d, c) lutil_HASHFinal(d, c)
+
+int slap_has64(int onoff) {
+  if (onoff < 0)
+    return 0;
+  else
+    return onoff ? -1 : 0;
+}
+
+#endif
+#define HASH_CONTEXT lutil_HASH_CTX
 
 /* approx matching rules */
 #define directoryStringApproxMatchOID "1.3.6.1.4.1.4203.666.4.4"
@@ -661,7 +706,7 @@ int octetStringIndexer(slap_mask_t use, slap_mask_t flags, Syntax *syntax,
   unsigned char HASHdigest[HASH_BYTES];
   struct berval digest;
   digest.bv_val = (char *)HASHdigest;
-  digest.bv_len = sizeof(HASHdigest);
+  digest.bv_len = HASH_LEN;
 
   for (i = 0; !BER_BVISNULL(&values[i]); i++) {
     /* just count them */
@@ -696,7 +741,7 @@ int octetStringFilter(slap_mask_t use, slap_mask_t flags, Syntax *syntax,
   struct berval *value = (struct berval *)assertedValue;
   struct berval digest;
   digest.bv_val = (char *)HASHdigest;
-  digest.bv_len = sizeof(HASHdigest);
+  digest.bv_len = HASH_LEN;
 
   keys = slap_sl_malloc(sizeof(struct berval) * 2, ctx);
 
@@ -840,7 +885,7 @@ static int octetStringSubstringsIndexer(slap_mask_t use, slap_mask_t flags,
   unsigned char HASHdigest[HASH_BYTES];
   struct berval digest;
   digest.bv_val = (char *)HASHdigest;
-  digest.bv_len = sizeof(HASHdigest);
+  digest.bv_len = HASH_LEN;
 
   nkeys = 0;
 
@@ -986,7 +1031,7 @@ static int octetStringSubstringsFilter(slap_mask_t use, slap_mask_t flags,
   }
 
   digest.bv_val = (char *)HASHdigest;
-  digest.bv_len = sizeof(HASHdigest);
+  digest.bv_len = HASH_LEN;
 
   keys = slap_sl_malloc(sizeof(struct berval) * (nkeys + 1), ctx);
   nkeys = 0;

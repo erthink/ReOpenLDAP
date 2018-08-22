@@ -36,7 +36,6 @@
 
 #include "slapconfig.h"
 
-#if LDAP_EXPERIMENTAL > 0
 /*
  * Control that allows to access the private DB
  * instead of the public one
@@ -52,7 +51,6 @@
  * Monitoring
  */
 #define PCACHE_MONITOR
-#endif /* LDAP_EXPERIMENTAL > 0 */
 
 /* query cache structs */
 /* query */
@@ -2669,17 +2667,16 @@ static int pcache_op_privdb(Operation *op, SlapReply *rs) {
   /* map tag to operation */
   type = slap_req2op(op->o_tag);
   if (type != SLAP_OP_LAST) {
-    BI_op_func **func;
+    BackendInfo *bi = cm->db.bd_info;
     int rc;
 
     /* execute, if possible */
-    func = &cm->db.be_bind;
-    if (func[type] != NULL) {
+    if ((&bi->bi_op_bind)[type]) {
       Operation op2 = *op;
 
       op2.o_bd = &cm->db;
 
-      rc = func[type](&op2, rs);
+      rc = (&bi->bi_op_bind)[type](&op2, rs);
       if (type == SLAP_OP_BIND && rc == LDAP_SUCCESS) {
         op->o_conn->c_authz_cookie = cm->db.be_private;
       }
