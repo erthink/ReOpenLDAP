@@ -317,6 +317,11 @@ contrib_pw_argon2_la_SOURCES = banner.c passwd/argon2/pw-argon2.c
 contrib_pw_argon2_la_LIBADD = $(LIBSODIUM_LIBS)
 endif
 
+pkglib_LTLIBRARIES += contrib-mobiuniquemember.la
+contrib_mobiuniquemember_la_LDFLAGS = -module -export-dynamic \
+	-release $(API_LIB_RELEASE) -version-info $(API_LIB_VERSION)
+contrib_mobiuniquemember_la_SOURCES = mobiuniquemember/mobiuniquemember.c banner.c
+
 MAINT_CHARSET = utf8
 SUFFIXES = .soelim .man.in .man
 EXTRA_DIST += $(man_links)
