@@ -10,6 +10,8 @@ SLAPD_URLS="ldapi://%2Fvar%2Frun%2Fldapi ldap:///"
 
 # Any custom options
 #SLAPD_OPTIONS=""
+# Example of slpad.d-based configuration
+#SLAPD_OPTIONS="-F /etc/reopenldap/slapd.d"
 
 # Keytab location for GSSAPI Kerberos authentication
 #KRB5_KTNAME="FILE:/etc/openldap/ldap.keytab"

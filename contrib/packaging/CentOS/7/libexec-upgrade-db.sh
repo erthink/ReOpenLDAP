@@ -1,7 +1,7 @@
 #!/bin/sh
 # Author: Jan Vcelak <jvcelak@redhat.com>
 
-. /usr/libexec/openldap/functions
+. /usr/libexec/reopenldap/functions
 
 if [ `id -u` -ne 0 ]; then
 	error "You have to be root to run this command."

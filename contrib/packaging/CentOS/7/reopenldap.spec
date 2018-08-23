@@ -27,18 +27,19 @@ Requires:	rpm, coreutils, nss-tools
 %description
 The fork of OpenLDAP with a few new features (mostly for highload and multi-master clustering), additional bug fixing and code quality improvement.
 
-%package devel
-Summary: LDAP development libraries and header files
-Group: Development/Libraries
-Requires: %{name}%{?_isa} = %{version}-%{release}, cyrus-sasl-devel%{?_isa}
-
-%description devel
-The openldap-devel package includes the development libraries and
-header files needed for compiling applications that use LDAP
-(Lightweight Directory Access Protocol) internals. LDAP is a set of
-protocols for enabling directory services over the Internet. Install
-this package only if you plan to develop or will need to compile
-customized LDAP clients.
+# Disabled due to request: https://github.com/leo-yuriev/ReOpenLDAP/pull/145#issuecomment-358626660
+#%package devel
+#Summary: LDAP development libraries and header files
+#Group: Development/Libraries
+#Requires: %{name}%{?_isa} = %{version}-%{release}, cyrus-sasl-devel%{?_isa}
+#
+#%description devel
+#The openldap-devel package includes the development libraries and
+#header files needed for compiling applications that use LDAP
+#(Lightweight Directory Access Protocol) internals. LDAP is a set of
+#protocols for enabling directory services over the Internet. Install
+#this package only if you plan to develop or will need to compile
+#customized LDAP clients.
 
 %package servers
 Summary: LDAP server
@@ -327,7 +328,7 @@ exit 0
 %doc README.OpenLDAP
 %dir %{_sysconfdir}/reopenldap
 %dir %{_sysconfdir}/reopenldap/certs
-%ghost %config(noreplace) %{_sysconfdir}/reopenldap/ldap.conf
+%config(noreplace) %{_sysconfdir}/reopenldap/ldap.conf
 %{_libdir}/reopenldap/libreldap*.so*
 %{_libdir}/reopenldap/libreslapi*.so*
 #%{_mandir}/man5/ldif.5*
@@ -388,9 +389,10 @@ exit 0
 %{_mandir}/ru/man1/*
 %ghost %config(noreplace,missingok) %attr(0640,ldap,ldap) %{_sysconfdir}/reopenldap/slapd.conf
 
-%files devel
-%{_includedir}/reopenldap/*
-%{_mandir}/man3/*
+# https://github.com/leo-yuriev/ReOpenLDAP/pull/145#issuecomment-358626660
+#%files devel
+#%{_includedir}/reopenldap/*
+#%{_mandir}/man3/*
 
 
 %changelog

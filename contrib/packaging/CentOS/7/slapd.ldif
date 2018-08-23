@@ -10,9 +10,9 @@ olcArgsFile: /run/reopenldap/slapd.args
 olcPidFile: /run/reopenldap/slapd.pid
 olcLogLevel: stats
 # TLS settings
-olcTLSCACertificatePath: /etc/openldap/certs
+olcTLSCACertificatePath: /etc/reopenldap/certs
 olcTLSCertificateFile: "ReOpenLDAP Server"
-olcTLSCertificateKeyFile: /etc/openldap/certs/password
+olcTLSCertificateKeyFile: /etc/reopenldap/certs/password
 
 #
 # Do not enable referrals until AFTER you have a working directory
@@ -80,7 +80,7 @@ dn: cn=schema,cn=config
 objectClass: olcSchemaConfig
 cn: schema
 
-include: file:///etc/openldap/schema/core.ldif
+include: file:///etc/reopenldap/schema/core.ldif
 
 #
 # Frontend settings
