@@ -23,7 +23,6 @@ BuildRequires:	glibc-devel, libtool, libtool-ltdl-devel, groff, perl, perl-devel
 BuildRequires:	openssl-devel, nss-devel
 BuildRequires:	bc git
 Requires:	rpm, coreutils, nss-tools
-Conflicts:      openldap-servers, openldap-servers-sql, openldap-clients, openldap-devel
 
 %description
 The fork of OpenLDAP with a few new features (mostly for highload and multi-master clustering), additional bug fixing and code quality improvement.
@@ -96,7 +95,7 @@ export LDFLAGS="-pie"
 # enable experimental support for LDAP over UDP (LDAP_CONNECTIONLESS)
 export CFLAGS="${CFLAGS} %{optflags} -Wl,--as-needed -DLDAP_CONNECTIONLESS"
 %configure \
-   --sysconfdir=%{_sysconfdir}/openldap \
+   --sysconfdir=%{_sysconfdir}/reopenldap \
    --enable-deprecated \
    --enable-syslog \
    --enable-proctitle \
@@ -155,7 +154,7 @@ mkdir -p %{buildroot}%{_libdir}/
 make install DESTDIR=%{buildroot} STRIP=""
 
 # setup directories for TLS certificates
-mkdir -p %{buildroot}%{_sysconfdir}/openldap/certs
+mkdir -p %{buildroot}%{_sysconfdir}/reopenldap/certs
 
 # setup data and runtime directories
 mkdir -p %{buildroot}%{_sharedstatedir}
@@ -168,8 +167,8 @@ mkdir -p %{buildroot}%{_tmpfilesdir}/
 install -m 0644 %{packaging_dir}/slapd.tmpfiles %{buildroot}%{_tmpfilesdir}/slapd.conf
 
 # install default ldap.conf (customized)
-rm -f %{buildroot}%{_sysconfdir}/openldap/ldap.conf
-install -m 0644 %{packaging_dir}/ldap.conf %{buildroot}%{_sysconfdir}/openldap/ldap.conf
+rm -f %{buildroot}%{_sysconfdir}/reopenldap/ldap.conf
+install -m 0644 %{packaging_dir}/ldap.conf %{buildroot}%{_sysconfdir}/reopenldap/ldap.conf
 
 # Надо разобраться, что нам нужно из этих самых скриптов и кого из них запускать в %post.
 ## setup maintainance scripts
@@ -180,7 +179,7 @@ install -m 0755 %{packaging_dir}/libexec-check-config.sh %{buildroot}%{_libexecd
 install -m 0755 %{packaging_dir}/libexec-upgrade-db.sh %{buildroot}%{_libexecdir}/reopenldap/upgrade-db.sh
 
 # remove build root from config files and manual pages
-perl -pi -e "s|%{buildroot}||g" %{buildroot}%{_sysconfdir}/openldap/*.conf
+perl -pi -e "s|%{buildroot}||g" %{buildroot}%{_sysconfdir}/reopenldap/*.conf
 perl -pi -e "s|%{buildroot}||g" %{buildroot}%{_mandir}/*/*.*
 
 # install an init script for the servers
@@ -207,13 +206,13 @@ mkdir -p %{buildroot}%{_datadir}
 install -m 0755 -d %{buildroot}%{_datadir}/reopenldap-servers
 install -m 0644 %{packaging_dir}/slapd.ldif %{buildroot}%{_datadir}/reopenldap-servers/slapd.ldif
 install -m 0644 %{packaging_dir}/DB_CONFIG.example %{buildroot}%{_datadir}/reopenldap-servers/DB_CONFIG.example
-install -m 0700 -d %{buildroot}%{_sysconfdir}/openldap/slapd.d
-rm -f %{buildroot}%{_sysconfdir}/openldap/slapd.conf
-rm -f %{buildroot}%{_sysconfdir}/openldap/slapd.ldif
+install -m 0700 -d %{buildroot}%{_sysconfdir}/reopenldap/slapd.d
+rm -f %{buildroot}%{_sysconfdir}/reopenldap/slapd.conf
+rm -f %{buildroot}%{_sysconfdir}/reopenldap/slapd.ldif
 
 # move doc files out of _sysconfdir
-mv %{buildroot}%{_sysconfdir}/openldap/schema/README README.schema
-#mv %{buildroot}%{_sysconfdir}/schema %{buildroot}%{_sysconfdir}/openldap
+mv %{buildroot}%{_sysconfdir}/reopenldap/schema/README README.schema
+#mv %{buildroot}%{_sysconfdir}/schema %{buildroot}%{_sysconfdir}/reopenldap
 
 # remove files which we don't want packaged
 rm -f %{buildroot}%{_libdir}/reopenldap/*.la
@@ -249,13 +248,13 @@ exit 0
 %systemd_post slapd.service
 
 # generate configuration if necessary
-if [[ ! -f %{_sysconfdir}/openldap/slapd.d/cn=config.ldif && \
-      ! -f %{_sysconfdir}/openldap/slapd.conf
+if [[ ! -f %{_sysconfdir}/reopenldap/slapd.d/cn=config.ldif && \
+      ! -f %{_sysconfdir}/reopenldap/slapd.conf
    ]]; then
       # if there is no configuration available, generate one from the defaults
-      mkdir -p %{_sysconfdir}/openldap/slapd.d/ &>/dev/null || :
-      /usr/sbin/slapadd -F %{_sysconfdir}/openldap/slapd.d/ -n0 -l %{_datadir}/reopenldap-servers/slapd.ldif
-      chown -R ldap:ldap %{_sysconfdir}/openldap/slapd.d/
+      mkdir -p %{_sysconfdir}/reopenldap/slapd.d/ &>/dev/null || :
+      /usr/sbin/slapadd -F %{_sysconfdir}/reopenldap/slapd.d/ -n0 -l %{_datadir}/reopenldap-servers/slapd.ldif
+      chown -R ldap:ldap %{_sysconfdir}/reopenldap/slapd.d/
       %{systemctl_bin} try-restart slapd.service &>/dev/null
 fi
 start_slapd=0
@@ -326,9 +325,9 @@ exit 0
 %doc README
 %doc README.md
 %doc README.OpenLDAP
-%dir %{_sysconfdir}/openldap
-%dir %{_sysconfdir}/openldap/certs
-%ghost %config(noreplace) %{_sysconfdir}/openldap/ldap.conf
+%dir %{_sysconfdir}/reopenldap
+%dir %{_sysconfdir}/reopenldap/certs
+%ghost %config(noreplace) %{_sysconfdir}/reopenldap/ldap.conf
 %{_libdir}/reopenldap/libreldap*.so*
 %{_libdir}/reopenldap/libreslapi*.so*
 #%{_mandir}/man5/ldif.5*
@@ -337,8 +336,8 @@ exit 0
 %files servers
 %doc contrib/slapd-modules/smbk5pwd/README
 %doc README.schema
-%config(noreplace) %dir %attr(0750,ldap,ldap) %{_sysconfdir}/openldap/slapd.d
-%config(noreplace) %{_sysconfdir}/openldap/schema
+%config(noreplace) %dir %attr(0750,ldap,ldap) %{_sysconfdir}/reopenldap/slapd.d
+%config(noreplace) %{_sysconfdir}/reopenldap/schema
 %config(noreplace) %{_sysconfdir}/sysconfig/slapd
 %config(noreplace) %{_tmpfilesdir}/slapd.conf
 %dir %attr(0700,ldap,ldap) %{_sharedstatedir}/ldap
@@ -380,14 +379,14 @@ exit 0
 %{_mandir}/ru/man5/*
 %{_mandir}/ru/man8/*
 # obsolete configuration
-%ghost %config(noreplace,missingok) %attr(0640,ldap,ldap) %{_sysconfdir}/openldap/slapd.conf
-%ghost %config(noreplace,missingok) %attr(0640,ldap,ldap) %{_sysconfdir}/openldap/slapd.conf.bak
+%ghost %config(noreplace,missingok) %attr(0640,ldap,ldap) %{_sysconfdir}/reopenldap/slapd.conf
+%ghost %config(noreplace,missingok) %attr(0640,ldap,ldap) %{_sysconfdir}/reopenldap/slapd.conf.bak
 
 %files clients
 %{_bindir}/ldap*
 %{_mandir}/man1/*
 %{_mandir}/ru/man1/*
-%ghost %config(noreplace,missingok) %attr(0640,ldap,ldap) %{_sysconfdir}/openldap/slapd.conf
+%ghost %config(noreplace,missingok) %attr(0640,ldap,ldap) %{_sysconfdir}/reopenldap/slapd.conf
 
 %files devel
 %{_includedir}/reopenldap/*
