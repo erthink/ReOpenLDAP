@@ -220,6 +220,12 @@ rm -f %{buildroot}%{_libdir}/reopenldap/*.la
 rm -f %{buildroot}%{_mandir}/man5/ldif.5*
 rm -f %{buildroot}%{_mandir}/man5/ldap.conf.5*
 
+# Disabled due to request: https://github.com/leo-yuriev/ReOpenLDAP/pull/145#issuecomment-358626660
+# devel
+rm -f %{buildroot}%{_includedir}/reopenldap/*
+rm -f %{buildroot}%{_mandir}/man3/*
+
+
 %clean
 rm -rf %{buildroot}
 
