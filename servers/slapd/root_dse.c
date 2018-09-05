@@ -230,6 +230,9 @@ int root_dse_info(Connection *conn, Entry **entry, const char **text) {
       /* no suffix! */
       continue;
     }
+    if (SLAP_DBHIDDEN(be)) {
+      continue;
+    }
     if (SLAP_MONITOR(be)) {
       if (attr_merge_one(e, ad_monitorContext, &be->be_suffix[0],
                          &be->be_nsuffix[0])) {
