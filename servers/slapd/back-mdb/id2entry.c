@@ -256,7 +256,7 @@ static int mdb_mval_get(Operation *op, MDBX_cursor *mc, ID id, Attribute *a,
 static int mdb_id2entry_put(Operation *op, MDBX_txn *txn, MDBX_cursor *mc,
                             Entry *e, int flag) {
   struct mdb_info *mdb = (struct mdb_info *)op->o_bd->be_private;
-  Ecount ec;
+  Ecount ec = {0 /* LY: avoid 'may be un-initialized' warning from gcc */};
   MDBX_val key, data;
   int rc, adding = flag;
 
