@@ -41,6 +41,14 @@ void mdb_attr_index_unparse(struct mdb_info *mdb, BerVarray *bva);
 void mdb_attr_index_destroy(struct mdb_info *mdb);
 void mdb_attr_index_free(struct mdb_info *mdb, AttributeDescription *ad);
 
+int mdb_attr_multi_config(struct mdb_info *mdb, const char *fname, int lineno,
+                          int argc, char **argv, struct config_reply_s *cr);
+
+void mdb_attr_multi_unparse(struct mdb_info *mdb, BerVarray *bva);
+
+void mdb_attr_multi_thresh(struct mdb_info *mdb, AttributeDescription *ad,
+                           unsigned *hi, unsigned *lo);
+
 void mdb_attr_info_free(AttrInfo *ai);
 
 int mdb_ad_read(struct mdb_info *mdb, MDBX_txn *txn);

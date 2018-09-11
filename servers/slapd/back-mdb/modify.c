@@ -161,12 +161,14 @@ int mdb_modify_internal(Operation *op, MDBX_txn *tid, Modifications *modlist,
       if (err != LDAP_SUCCESS) {
         Debug(LDAP_DEBUG_ARGS, "mdb_modify_internal: %d %s\n", err, *text);
       } else {
+        unsigned hi;
         if (!aold)
           anew = attr_find(e->e_attrs, mod->sm_desc);
         else
           anew = aold;
+        mdb_attr_multi_thresh(mdb, mod->sm_desc, &hi, NULL);
         /* check for big multivalued attrs */
-        if (anew->a_numvals > mdb->mi_multi_hi)
+        if (anew->a_numvals > hi)
           anew->a_flags |= SLAP_ATTR_BIG_MULTI;
         if (anew->a_flags & SLAP_ATTR_BIG_MULTI) {
           if (!mvc) {
@@ -233,7 +235,9 @@ int mdb_modify_internal(Operation *op, MDBX_txn *tid, Modifications *modlist,
           if (mod->sm_numvals) {
             anew = attr_find(e->e_attrs, mod->sm_desc);
             if (anew) {
-              if (anew->a_numvals < mdb->mi_multi_lo) {
+              unsigned lo;
+              mdb_attr_multi_thresh(mdb, mod->sm_desc, NULL, &lo);
+              if (anew->a_numvals < lo) {
                 anew->a_flags ^= SLAP_ATTR_BIG_MULTI;
                 anew = NULL;
               } else {
@@ -264,6 +268,7 @@ int mdb_modify_internal(Operation *op, MDBX_txn *tid, Modifications *modlist,
       if (err != LDAP_SUCCESS) {
         Debug(LDAP_DEBUG_ARGS, "mdb_modify_internal: %d %s\n", err, *text);
       } else {
+        unsigned hi;
         got_delete = 1;
         if (a_flags & SLAP_ATTR_BIG_MULTI) {
           Attribute a_dummy;
@@ -281,7 +286,8 @@ int mdb_modify_internal(Operation *op, MDBX_txn *tid, Modifications *modlist,
             goto mval_fail;
         }
         anew = attr_find(e->e_attrs, mod->sm_desc);
-        if (mod->sm_numvals > mdb->mi_multi_hi) {
+        mdb_attr_multi_thresh(mdb, mod->sm_desc, &hi, NULL);
+        if (mod->sm_numvals > hi) {
           anew->a_flags |= SLAP_ATTR_BIG_MULTI;
           if (!mvc) {
             err = mdbx_cursor_open(tid, mdb->mi_dbis[MDB_ID2VAL], &mvc);

@@ -109,6 +109,9 @@ int mdb_attr_dbs_open(BackendDB *be, MDBX_txn *tx0, ConfigReply *cr) {
   for (i = 0; i < mdb->mi_nattrs; i++) {
     if (mdb->mi_attrs[i]->ai_dbi) /* already open */
       continue;
+    if (!(mdb->mi_attrs[i]->ai_indexmask ||
+          mdb->mi_attrs[i]->ai_newmask)) /* not an index record */
+      continue;
     rc =
         mdbx_dbi_open(txn, mdb->mi_attrs[i]->ai_desc->ad_type->sat_cname.bv_val,
                       flags, &mdb->mi_attrs[i]->ai_dbi);
@@ -333,6 +336,10 @@ int mdb_attr_index_config(struct mdb_info *mdb, const char *fname, int lineno,
 
     a = (AttrInfo *)ch_calloc(1, sizeof(AttrInfo));
     a->ai_desc = ad;
+    /* a->ai_dbi = 0 // LY: done by calloc */;
+    a->ai_multi_hi = UINT_MAX;
+    a->ai_multi_lo = UINT_MAX;
+
     if (mdb->mi_flags & MDB_IS_OPEN) {
       a->ai_newmask = mask;
     } else {
@@ -371,8 +378,16 @@ int mdb_attr_index_config(struct mdb_info *mdb, const char *fname, int lineno,
 #endif
     rc = ainfo_insert(mdb, a);
     if (rc) {
+      AttrInfo *b = mdb_attr_mask(mdb, ad);
+      /* If this is just a multival record, reuse it for index info */
+      if (!(b->ai_indexmask || b->ai_newmask) && b->ai_multi_lo < UINT_MAX) {
+        b->ai_indexmask = a->ai_indexmask;
+        b->ai_newmask = a->ai_newmask;
+        ch_free(a);
+        rc = 0;
+        continue;
+      }
       if (mdb->mi_flags & MDB_IS_OPEN) {
-        AttrInfo *b = mdb_attr_mask(mdb, ad);
         /* If there is already an index defined for this attribute
          * it must be replaced. Otherwise we end up with multiple
          * olcIndex values for the same attribute */
@@ -437,7 +452,149 @@ void mdb_attr_index_unparse(struct mdb_info *mdb, BerVarray *bva) {
     mdb_attr_index_unparser(&aidef, bva);
   }
   for (i = 0; i < mdb->mi_nattrs; i++)
-    mdb_attr_index_unparser(mdb->mi_attrs[i], bva);
+    if (mdb->mi_attrs[i]->ai_indexmask)
+      mdb_attr_index_unparser(mdb->mi_attrs[i], bva);
+}
+
+int mdb_attr_multi_config(struct mdb_info *mdb, const char *fname, int lineno,
+                          int argc, char **argv,
+                          struct config_reply_s *c_reply) {
+  int rc = 0;
+  int i;
+  unsigned hi, lo;
+  char **attrs, *next, *s;
+
+  attrs = ldap_str2charray(argv[0], ",");
+
+  if (attrs == NULL) {
+    fprintf(stderr,
+            "%s: line %d: "
+            "no attributes specified: %s\n",
+            fname, lineno, argv[0]);
+    return LDAP_PARAM_ERROR;
+  }
+
+  hi = strtoul(argv[1], &next, 10);
+  if (next == argv[1] || next[0] != ',')
+    goto badval;
+  s = next + 1;
+  lo = strtoul(s, &next, 10);
+  if (next == s || next[0] != '\0')
+    goto badval;
+
+  if (lo > hi) {
+  badval:
+    snprintf(c_reply->msg, sizeof(c_reply->msg), "invalid hi/lo thresholds");
+    fprintf(stderr, "%s: line %d: %s\n", fname, lineno, c_reply->msg);
+    return LDAP_PARAM_ERROR;
+  }
+
+  for (i = 0; attrs[i] != NULL; i++) {
+    AttrInfo *a;
+    AttributeDescription *ad;
+    const char *text;
+
+    if (strcasecmp(attrs[i], "default") == 0) {
+      mdb->mi_multi_hi = hi;
+      mdb->mi_multi_lo = lo;
+      continue;
+    }
+
+    ad = NULL;
+    rc = slap_str2ad(attrs[i], &ad, &text);
+
+    if (rc != LDAP_SUCCESS) {
+      if (c_reply) {
+        snprintf(c_reply->msg, sizeof(c_reply->msg),
+                 "multival attribute \"%s\" undefined", attrs[i]);
+
+        fprintf(stderr, "%s: line %d: %s\n", fname, lineno, c_reply->msg);
+      }
+      goto done;
+    }
+
+    a = (AttrInfo *)ch_calloc(1, sizeof(AttrInfo));
+
+    a->ai_desc = ad;
+    a->ai_multi_hi = hi;
+    a->ai_multi_lo = lo;
+
+    rc = ainfo_insert(mdb, a);
+    if (rc) {
+      AttrInfo *b = mdb_attr_mask(mdb, ad);
+      /* If this is just an index record, reuse it for multival info */
+      if (b->ai_multi_lo == UINT_MAX) {
+        b->ai_multi_hi = a->ai_multi_hi;
+        b->ai_multi_lo = a->ai_multi_lo;
+        ch_free(a);
+        rc = 0;
+        continue;
+      }
+      if (c_reply) {
+        snprintf(c_reply->msg, sizeof(c_reply->msg),
+                 "duplicate multival definition for attr \"%s\"", attrs[i]);
+        fprintf(stderr, "%s: line %d: %s\n", fname, lineno, c_reply->msg);
+      }
+
+      rc = LDAP_PARAM_ERROR;
+      goto done;
+    }
+  }
+
+done:
+  ldap_charray_free(attrs);
+
+  return rc;
+}
+
+static int mdb_attr_multi_unparser(void *v1, void *v2) {
+  AttrInfo *ai = v1;
+  BerVarray *bva = v2;
+  struct berval bv;
+  char digbuf[sizeof("4294967296,4294967296")];
+  char *ptr;
+
+  bv.bv_len = snprintf(digbuf, sizeof(digbuf), "%u,%u", ai->ai_multi_hi,
+                       ai->ai_multi_lo);
+  if (bv.bv_len) {
+    bv.bv_len += ai->ai_desc->ad_cname.bv_len + 1;
+    ptr = ch_malloc(bv.bv_len + 1);
+    bv.bv_val = lutil_strcopy(ptr, ai->ai_desc->ad_cname.bv_val);
+    *bv.bv_val++ = ' ';
+    strcpy(bv.bv_val, digbuf);
+    bv.bv_val = ptr;
+    ber_bvarray_add(bva, &bv);
+  }
+  return 0;
+}
+
+void mdb_attr_multi_unparse(struct mdb_info *mdb, BerVarray *bva) {
+  int i;
+
+  if (mdb->mi_multi_hi < UINT_MAX) {
+    aidef.ai_multi_hi = mdb->mi_multi_hi;
+    aidef.ai_multi_lo = mdb->mi_multi_lo;
+    mdb_attr_multi_unparser(&aidef, bva);
+  }
+  for (i = 0; i < mdb->mi_nattrs; i++)
+    if (mdb->mi_attrs[i]->ai_multi_hi < UINT_MAX)
+      mdb_attr_multi_unparser(mdb->mi_attrs[i], bva);
+}
+
+void mdb_attr_multi_thresh(struct mdb_info *mdb, AttributeDescription *ad,
+                           unsigned *hi, unsigned *lo) {
+  AttrInfo *ai = mdb_attr_mask(mdb, ad);
+  if (ai && ai->ai_multi_hi < UINT_MAX) {
+    if (hi)
+      *hi = ai->ai_multi_hi;
+    if (lo)
+      *lo = ai->ai_multi_lo;
+  } else {
+    if (hi)
+      *hi = mdb->mi_multi_hi;
+    if (lo)
+      *lo = mdb->mi_multi_lo;
+  }
 }
 
 void mdb_attr_info_free(AttrInfo *ai) {
@@ -473,12 +630,18 @@ void mdb_attr_flush(struct mdb_info *mdb) {
 
   for (i = 0; i < mdb->mi_nattrs; i++) {
     if (mdb->mi_attrs[i]->ai_indexmask & MDB_INDEX_DELETING) {
-      int j;
-      mdb_attr_info_free(mdb->mi_attrs[i]);
-      mdb->mi_nattrs--;
-      for (j = i; j < mdb->mi_nattrs; j++)
-        mdb->mi_attrs[j] = mdb->mi_attrs[j + 1];
-      i--;
+      /* if this is also a multival rec, just clear index */
+      if (mdb->mi_attrs[i]->ai_multi_lo < UINT_MAX) {
+        mdb->mi_attrs[i]->ai_indexmask = 0;
+        mdb->mi_attrs[i]->ai_newmask = 0;
+      } else {
+        int j;
+        mdb_attr_info_free(mdb->mi_attrs[i]);
+        mdb->mi_nattrs--;
+        for (j = i; j < mdb->mi_nattrs; j++)
+          mdb->mi_attrs[j] = mdb->mi_attrs[j + 1];
+        i--;
+      }
     }
   }
 }
