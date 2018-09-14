@@ -40,7 +40,8 @@ enum {
   MDB_MODE,
   MDB_SSTACK,
   MDBX_DREAMCATCHER,
-  MDBX_OOMFLAGS
+  MDBX_OOMFLAGS,
+  MDB_MULTIVAL,
 };
 
 static ConfigTable mdbcfg[] = {
@@ -98,17 +99,10 @@ static ConfigTable mdbcfg[] = {
      "DESC 'Unix permissions of database files' "
      "SYNTAX OMsDirectoryString SINGLE-VALUE )",
      NULL, NULL},
-    {"multival_hi", "num", 2, 2, 0, ARG_UINT | ARG_OFFSET,
-     (void *)offsetof(struct mdb_info, mi_multi_hi),
-     "( OLcfgDbAt:12.6 NAME 'olcDbMultivalHi' "
-     "DESC 'Threshold for splitting multivalued attr out of main blob' "
-     "SYNTAX OMsInteger SINGLE-VALUE )",
-     NULL, NULL},
-    {"multival_lo", "num", 2, 2, 0, ARG_UINT | ARG_OFFSET,
-     (void *)offsetof(struct mdb_info, mi_multi_lo),
-     "( OLcfgDbAt:12.7 NAME 'olcDbMultivalLo' "
-     "DESC 'Threshold for consolidating multivalued attr back into main blob' "
-     "SYNTAX OMsInteger SINGLE-VALUE )",
+    {"multival", "attr> <hi,lo", 3, 3, 0, ARG_MAGIC | MDB_MULTIVAL, mdb_cf_gen,
+     "( OLcfgDbAt:12.6 NAME 'olcDbMultival' "
+     "DESC 'Hi/Lo thresholds for splitting multivalued attr out of main blob' "
+     "SYNTAX OMsDirectoryString )",
      NULL, NULL},
     {"rtxnsize", "entries", 2, 2, 0, ARG_UINT | ARG_OFFSET,
      (void *)offsetof(struct mdb_info, mi_rtxn_size),
@@ -146,7 +140,7 @@ static ConfigOCs mdbocs[] = {
      "olcDbNoSync $ olcDbIndex $ olcDbMaxReaders $ olcDbMaxSize $ "
      "olcDbDreamcatcher $ olcDbOomFlags $ "
      "olcDbMode $ olcDbSearchStack $ olcDbMaxEntrySize $ olcDbRtxnSize $ "
-     "olcDbMultivalHi $ olcDbMultivalLo ) )",
+     "olcDbMultival ) )",
      Cft_Database, mdbcfg},
     {NULL, 0, NULL}};
 
@@ -423,6 +417,12 @@ static int mdb_cf_gen(ConfigArgs *c) {
     case MDB_MAXSIZE:
       c->value_ulong = mdb->mi_mapsize;
       break;
+
+    case MDB_MULTIVAL:
+      mdb_attr_multi_unparse(mdb, &c->rvalue_vals);
+      if (!c->rvalue_vals)
+        rc = 1;
+      break;
     }
     return rc;
   } else if (c->op == LDAP_MOD_DELETE) {
@@ -507,10 +507,11 @@ static int mdb_cf_gen(ConfigArgs *c) {
       if (c->valx == -1) {
         int i;
 
-        /* delete all (FIXME) */
+        /* delete all */
         for (i = 0; i < mdb->mi_nattrs; i++) {
           mdb->mi_attrs[i]->ai_indexmask |= MDB_INDEX_DELETING;
         }
+        mdb->mi_defaultmask = 0;
         mdb->mi_flags |= MDB_DEL_INDEX;
         c->cleanup = mdb_cf_cleanup;
 
@@ -551,6 +552,62 @@ static int mdb_cf_gen(ConfigArgs *c) {
             ai->ai_indexmask |= MDB_INDEX_DELETING;
             mdb->mi_flags |= MDB_DEL_INDEX;
             c->cleanup = mdb_cf_cleanup;
+          }
+
+          bv.bv_val[bv.bv_len] = sep;
+          ldap_charray_free(attrs);
+        }
+      }
+      break;
+    case MDB_MULTIVAL:
+      if (c->valx == -1) {
+        int i;
+
+        /* delete all */
+        for (i = 0; i < mdb->mi_nattrs; i++) {
+          mdb->mi_attrs[i]->ai_multi_hi = UINT_MAX;
+          mdb->mi_attrs[i]->ai_multi_lo = UINT_MAX;
+        }
+        mdb->mi_multi_hi = UINT_MAX;
+        mdb->mi_multi_lo = UINT_MAX;
+
+      } else {
+        struct berval bv, def = BER_BVC("default");
+        char *ptr;
+
+        for (ptr = c->line; !isspace((unsigned char)*ptr); ptr++)
+          ;
+
+        bv.bv_val = c->line;
+        bv.bv_len = ptr - bv.bv_val;
+        if (bvmatch(&bv, &def)) {
+          mdb->mi_multi_hi = UINT_MAX;
+          mdb->mi_multi_lo = UINT_MAX;
+
+        } else {
+          int i;
+          char **attrs;
+          char sep;
+
+          sep = bv.bv_val[bv.bv_len];
+          bv.bv_val[bv.bv_len] = '\0';
+          attrs = ldap_str2charray(bv.bv_val, ",");
+
+          for (i = 0; attrs[i]; i++) {
+            AttributeDescription *ad = NULL;
+            const char *text;
+            AttrInfo *ai;
+
+            slap_str2ad(attrs[i], &ad, &text);
+            /* if we got here... */
+            assert(ad != NULL);
+
+            ai = mdb_attr_mask(mdb, ad);
+            /* if we got here... */
+            assert(ai != NULL);
+
+            ai->ai_multi_hi = UINT_MAX;
+            ai->ai_multi_lo = UINT_MAX;
           }
 
           bv.bv_val[bv.bv_len] = sep;
@@ -811,6 +868,14 @@ static int mdb_cf_gen(ConfigArgs *c) {
       mdb->mi_flags |= MDB_RE_OPEN;
       c->cleanup = mdb_cf_cleanup;
     }
+    break;
+
+  case MDB_MULTIVAL:
+    rc = mdb_attr_multi_config(mdb, c->fname, c->lineno, c->argc - 1,
+                               &c->argv[1], &c->reply);
+
+    if (rc != LDAP_SUCCESS)
+      return 1;
     break;
   }
   return 0;

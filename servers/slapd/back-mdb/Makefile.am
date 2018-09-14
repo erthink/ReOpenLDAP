@@ -33,14 +33,15 @@ banner.c: Makefile
 	$(MKBANNER) --name backend_mdbx --global 'backend-mdbx' > $@ || $(RM) $@
 endif
 
+libmdbx_la_CFLAGS = -DSLAPD_LMDB_LEGACY=1
 if SLAPD_DEBUG
 if SLAPD_DEBUG_EXTRA
-libmdbx_la_CFLAGS = -UNDEBUG -DMDB_DEBUG=2 $(AM_CFLAGS)
+libmdbx_la_CFLAGS += -UNDEBUG -DMDBX_DEBUG=2 $(AM_CFLAGS)
 else
-libmdbx_la_CFLAGS = -UNDEBUG -DMDB_DEBUG=1 $(AM_CFLAGS)
+libmdbx_la_CFLAGS += -UNDEBUG -DMDBX_DEBUG=1 $(AM_CFLAGS)
 endif
 else
-libmdbx_la_CFLAGS = -DNDEBUG=1 -DMDB_DEBUG=0 $(AM_CFLAGS)
+libmdbx_la_CFLAGS += -DNDEBUG=1 -DMDBX_DEBUG=0 $(AM_CFLAGS)
 endif
 libmdbx_la_LIBADD = $(LTHREAD_LIBS)
 libmdbx_srcdir = ../../../libraries/libmdbx
