@@ -23,56 +23,40 @@ function probe {
 	echo "=============================================== $(date)"
 	echo "${caption}: $*"
 	rm -f ${TESTDB_PREFIX}* \
-		&& ./mdbx_test --pathname=${TESTDB_PREFIX}db "$@" | lz4 > log.lz4 \
+		&& ./mdbx_test --pathname=${TESTDB_PREFIX}db "$@" | lz4 > ${TESTDB_PREFIX}log.lz4 \
 		&& ./mdbx_chk -nvvv ${TESTDB_PREFIX}db | tee ${TESTDB_PREFIX}chk \
 		|| (echo "FAILED"; exit 1)
 }
 
 ###############################################################################
 
-caption="Failfast #1" probe \
-	--pagesize=min --size=6G --table=+data.dups --keylen.min=min --keylen.max=max --datalen.min=min --datalen.max=max \
-	--nops=99999 --batch.write=9 --mode=-writemap,-coalesce,+lifo --keygen.seed=248240655 --hill
-
-caption="Failfast #2" probe \
-	--pagesize=min --size=6G --table=-data.dups --keylen.min=min --keylen.max=max --datalen.min=min --datalen.max=1111 \
-	--nops=999999 --batch.write=999 --mode=+writemap,+coalesce,+lifo --keygen.seed=259083046 --hill
-
-caption="Failfast #3" probe \
-	--pagesize=min --size=6G --table=-data.dups --keylen.min=min --keylen.max=max --datalen.min=min --datalen.max=1111 \
-	--nops=999999 --batch.write=999 --mode=+writemap,+coalesce,+lifo --keygen.seed=522365681 --hill
-
-caption="Failfast #4" probe \
-	--pagesize=min --size=6G --table=-data.dups --keylen.min=min --keylen.max=max --datalen.min=min --datalen.max=1111 \
-	--nops=999999 --batch.write=9999 --mode=-writemap,+coalesce,+lifo --keygen.seed=866083781 --hill
-
-caption="Failfast #5" probe \
-	--pagesize=min --size=6G --table=-data.dups --keylen.min=min --keylen.max=max --datalen.min=min --datalen.max=1111 \
-	--nops=999999 --batch.write=999 --mode=+writemap,-coalesce,+lifo --keygen.seed=246539192 --hill
-
-caption="Failfast #6" probe \
-	--pagesize=min --size=6G --table=-data.dups --keylen.min=min --keylen.max=max --datalen.min=min --datalen.max=1111 \
-	--nops=999999 --batch.write=999 --mode=+writemap,+coalesce,+lifo --keygen.seed=540406278 --hill
-
-caption="Failfast #7" probe \
-	--pagesize=min --size=6G --table=+data.dups --keylen.min=min --keylen.max=max --datalen.min=min --datalen.max=max \
-	--nops=999999 --batch.write=999 --mode=-writemap,+coalesce,+lifo --keygen.seed=619798690 --hill
-
 count=0
 for nops in {2..7}; do
 	for ((wbatch=nops-1; wbatch > 0; --wbatch)); do
-		loops=$((1111/nops + 2))
+		loops=$(((3333 >> nops) / nops + 1))
 		for ((rep=0; rep++ < loops; )); do
 			for ((bits=2**${#options[@]}; --bits >= 0; )); do
 				seed=$(date +%N)
+				caption="Probe #$((++count)) int-key,w/o-dups, repeat ${rep} of ${loops}" probe \
+					--pagesize=min --size=6G --table=+key.integer,-data.dups --keylen.min=min --keylen.max=max --datalen.min=min --datalen.max=1111 \
+					--nops=$( rep9 $nops ) --batch.write=$( rep9 $wbatch ) --mode=$(bits2list options $bits) \
+					--keygen.seed=${seed} basic
+				caption="Probe #$((++count)) int-key,with-dups, repeat ${rep} of ${loops}" probe \
+					--pagesize=min --size=6G --table=+key.integer,+data.dups --keylen.min=min --keylen.max=max --datalen.min=min --datalen.max=max \
+					--nops=$( rep9 $nops ) --batch.write=$( rep9 $wbatch ) --mode=$(bits2list options $bits) \
+					--keygen.seed=${seed} basic
+				caption="Probe #$((++count)) int-key,int-data, repeat ${rep} of ${loops}" probe \
+					--pagesize=min --size=6G --table=+key.integer,+data.integer --keylen.min=min --keylen.max=max --datalen.min=min --datalen.max=max \
+					--nops=$( rep9 $nops ) --batch.write=$( rep9 $wbatch ) --mode=$(bits2list options $bits) \
+					--keygen.seed=${seed} basic
 				caption="Probe #$((++count)) w/o-dups, repeat ${rep} of ${loops}" probe \
 					--pagesize=min --size=6G --table=-data.dups --keylen.min=min --keylen.max=max --datalen.min=min --datalen.max=1111 \
 					--nops=$( rep9 $nops ) --batch.write=$( rep9 $wbatch ) --mode=$(bits2list options $bits) \
-					--keygen.seed=${seed} --hill
+					--keygen.seed=${seed} basic
 				caption="Probe #$((++count)) with-dups, repeat ${rep} of ${loops}" probe \
 					--pagesize=min --size=6G --table=+data.dups --keylen.min=min --keylen.max=max --datalen.min=min --datalen.max=max \
 					--nops=$( rep9 $nops ) --batch.write=$( rep9 $wbatch ) --mode=$(bits2list options $bits) \
-					--keygen.seed=${seed} --hill
+					--keygen.seed=${seed} basic
 			done
 		done
 	done
