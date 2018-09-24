@@ -357,10 +357,10 @@ static tls_session *tlsg_session_new(tls_ctx *ctx, int is_server) {
 
 static int tlsg_session_accept(tls_session *session) {
   tlsg_session *s = (tlsg_session *)session;
-  int rc;
+  int rc, retry;
 
-  for (rc = gnutls_handshake(s->session);
-       rc == GNUTLS_E_INTERRUPTED || rc == GNUTLS_E_AGAIN;
+  for (retry = 0, rc = gnutls_handshake(s->session);
+       (rc == GNUTLS_E_INTERRUPTED || rc == GNUTLS_E_AGAIN) && ++retry < 3;
        rc = gnutls_handshake(s->session))
     ;
   if (rc == 0 && s->ctx->reqcert != LDAP_OPT_X_TLS_NEVER) {
