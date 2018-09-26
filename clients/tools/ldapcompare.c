@@ -56,298 +56,271 @@
 
 #include "common.h"
 
-
 static int quiet = 0;
 
+void usage(void) {
+  fprintf(stderr, _("usage: %s [options] DN <attr:value|attr::b64value>\n"),
+          prog);
+  fprintf(stderr, _("where:\n"));
+  fprintf(stderr, _("  DN\tDistinguished Name\n"));
+  fprintf(stderr, _("  attr\tassertion attribute\n"));
+  fprintf(stderr, _("  value\tassertion value\n"));
+  fprintf(stderr, _("  b64value\tbase64 encoding of assertion value\n"));
 
-void
-usage( void )
-{
-	fprintf( stderr, _("usage: %s [options] DN <attr:value|attr::b64value>\n"), prog);
-	fprintf( stderr, _("where:\n"));
-	fprintf( stderr, _("  DN\tDistinguished Name\n"));
-	fprintf( stderr, _("  attr\tassertion attribute\n"));
-	fprintf( stderr, _("  value\tassertion value\n"));
-	fprintf( stderr, _("  b64value\tbase64 encoding of assertion value\n"));
-
-	fprintf( stderr, _("Compare options:\n"));
-	fprintf( stderr, _("  -E [!]<ext>[=<extparam>] compare extensions (! indicates criticality)\n"));
-	fprintf( stderr, _("             !dontUseCopy                (Don't Use Copy)\n"));
-	fprintf( stderr, _("  -M         enable Manage DSA IT control (-MM to make critical)\n"));
-	fprintf( stderr, _("  -P version protocol version (default: 3)\n"));
-	fprintf( stderr, _("  -z         Quiet mode,"
-		" don't print anything, use return values\n"));
-	tool_common_usage();
-	exit( EXIT_FAILURE );
+  fprintf(stderr, _("Compare options:\n"));
+  fprintf(stderr, _("  -E [!]<ext>[=<extparam>] compare extensions (! "
+                    "indicates criticality)\n"));
+  fprintf(stderr,
+          _("             !dontUseCopy                (Don't Use Copy)\n"));
+  fprintf(
+      stderr,
+      _("  -M         enable Manage DSA IT control (-MM to make critical)\n"));
+  fprintf(stderr, _("  -P version protocol version (default: 3)\n"));
+  fprintf(stderr, _("  -z         Quiet mode,"
+                    " don't print anything, use return values\n"));
+  tool_common_usage();
+  exit(EXIT_FAILURE);
 }
 
-static int docompare LDAP_P((
-	LDAP *ld,
-	char *dn,
-	char *attr,
-	struct berval *bvalue,
-	int quiet,
-	LDAPControl **sctrls,
-	LDAPControl **cctrls));
-
+static int docompare(LDAP *ld, char *dn, char *attr, struct berval *bvalue,
+                     int quiet, LDAPControl **sctrls, LDAPControl **cctrls);
 
 const char options[] = "z"
-	"Cd:D:e:h:H:IMnNO:o:p:P:QR:U:vVw:WxX:y:Y:Z";
+                       "Cd:D:e:h:H:IMnNO:o:p:P:QR:U:vVw:WxX:y:Y:Z";
 
 #ifdef LDAP_CONTROL_DONTUSECOPY
 int dontUseCopy = 0;
 #endif
 
-int
-handle_private_option( int i )
-{
-	char	*control, *cvalue;
-	int		crit;
+int handle_private_option(int i) {
+  char *control, *cvalue;
+  int crit;
 
-	switch ( i ) {
-	case 'E': /* compare extensions */
-		if( protocol == LDAP_VERSION2 ) {
-			fprintf( stderr, _("%s: -E incompatible with LDAPv%d\n"),
-				prog, protocol );
-			exit( EXIT_FAILURE );
-		}
+  switch (i) {
+  case 'E': /* compare extensions */
+    if (protocol == LDAP_VERSION2) {
+      fprintf(stderr, _("%s: -E incompatible with LDAPv%d\n"), prog, protocol);
+      exit(EXIT_FAILURE);
+    }
 
-		/* should be extended to support comma separated list of
-		 *	[!]key[=value] parameters, e.g.  -E !foo,bar=567
-		 */
+    /* should be extended to support comma separated list of
+     *	[!]key[=value] parameters, e.g.  -E !foo,bar=567
+     */
 
-		crit = 0;
-		cvalue = NULL;
-		if( optarg[0] == '!' ) {
-			crit = 1;
-			optarg++;
-		}
+    crit = 0;
+    cvalue = NULL;
+    if (optarg[0] == '!') {
+      crit = 1;
+      optarg++;
+    }
 
-		control = ber_strdup( optarg );
-		if ( (cvalue = strchr( control, '=' )) != NULL ) {
-			*cvalue++ = '\0';
-		}
+    control = ber_strdup(optarg);
+    if ((cvalue = strchr(control, '=')) != NULL) {
+      *cvalue++ = '\0';
+    }
 
 #ifdef LDAP_CONTROL_DONTUSECOPY
-		if ( strcasecmp( control, "dontUseCopy" ) == 0 ) {
-			if( dontUseCopy ) {
-				fprintf( stderr,
-					_("dontUseCopy control previously specified\n"));
-				exit( EXIT_FAILURE );
-			}
-			if( cvalue != NULL ) {
-				fprintf( stderr,
-					_("dontUseCopy: no control value expected\n") );
-				usage();
-			}
-			if( !crit ) {
-				fprintf( stderr,
-					_("dontUseCopy: critical flag required\n") );
-				usage();
-			}
+    if (strcasecmp(control, "dontUseCopy") == 0) {
+      if (dontUseCopy) {
+        fprintf(stderr, _("dontUseCopy control previously specified\n"));
+        exit(EXIT_FAILURE);
+      }
+      if (cvalue != NULL) {
+        fprintf(stderr, _("dontUseCopy: no control value expected\n"));
+        usage();
+      }
+      if (!crit) {
+        fprintf(stderr, _("dontUseCopy: critical flag required\n"));
+        usage();
+      }
 
-			dontUseCopy = 1 + crit;
-		} else
+      dontUseCopy = 1 + crit;
+    } else
 #endif
-		{
-			fprintf( stderr,
-				_("Invalid compare extension name: %s\n"), control );
-			usage();
-		}
-		break;
+    {
+      fprintf(stderr, _("Invalid compare extension name: %s\n"), control);
+      usage();
+    }
+    break;
 
-	case 'z':
-		quiet = 1;
-		break;
+  case 'z':
+    quiet = 1;
+    break;
 
-	default:
-		return 0;
-	}
-	return 1;
+  default:
+    return 0;
+  }
+  return 1;
 }
 
+int main(int argc, char **argv) {
+  char *compdn = NULL, *attrs = NULL;
+  char *sep;
+  int rc;
+  LDAP *ld = NULL;
+  struct berval bvalue = {0, NULL};
+  int i = 0;
+  LDAPControl c[1];
 
-int
-main( int argc, char **argv )
-{
-	char		*compdn = NULL, *attrs = NULL;
-	char		*sep;
-	int		rc;
-	LDAP		*ld = NULL;
-	struct berval	bvalue = { 0, NULL };
-	int		i = 0;
-	LDAPControl	c[1];
+  tool_init(TOOL_COMPARE);
+  prog = lutil_progname("ldapcompare", argc, argv);
 
+  tool_args(argc, argv);
 
-	tool_init( TOOL_COMPARE );
-	prog = lutil_progname( "ldapcompare", argc, argv );
+  if (argc - optind != 2) {
+    usage();
+  }
 
-	tool_args( argc, argv );
+  compdn = argv[optind++];
+  attrs = argv[optind++];
 
-	if ( argc - optind != 2 ) {
-		usage();
-	}
+  /* user passed in only 2 args, the last one better be in
+   * the form attr:value or attr::b64value
+   */
+  sep = strchr(attrs, ':');
+  if (!sep) {
+    usage();
+  }
 
-	compdn = argv[optind++];
-	attrs = argv[optind++];
+  *sep++ = '\0';
+  if (*sep != ':') {
+    bvalue.bv_val = strdup(sep);
+    bvalue.bv_len = strlen(bvalue.bv_val);
 
-	/* user passed in only 2 args, the last one better be in
-	 * the form attr:value or attr::b64value
-	 */
-	sep = strchr(attrs, ':');
-	if (!sep) {
-		usage();
-	}
+  } else {
+    /* it's base64 encoded. */
+    bvalue.bv_val = malloc(strlen(&sep[1]));
+    bvalue.bv_len = lutil_b64_pton(&sep[1], (unsigned char *)bvalue.bv_val,
+                                   strlen(&sep[1]));
 
-	*sep++='\0';
-	if ( *sep != ':' ) {
-		bvalue.bv_val = strdup( sep );
-		bvalue.bv_len = strlen( bvalue.bv_val );
+    if (bvalue.bv_len == (ber_len_t)-1) {
+      fprintf(stderr, _("base64 decode error\n"));
+      exit(-1);
+    }
+  }
 
-	} else {
-		/* it's base64 encoded. */
-		bvalue.bv_val = malloc( strlen( &sep[1] ));
-		bvalue.bv_len = lutil_b64_pton( &sep[1],
-			(unsigned char *) bvalue.bv_val, strlen( &sep[1] ));
+  ld = tool_conn_setup(0, 0);
 
-		if (bvalue.bv_len == (ber_len_t)-1) {
-			fprintf(stderr, _("base64 decode error\n"));
-			exit(-1);
-		}
-	}
+  tool_bind(ld);
 
-	ld = tool_conn_setup( 0, 0 );
-
-	tool_bind( ld );
-
-	if ( 0
+  if (0
 #ifdef LDAP_CONTROL_DONTUSECOPY
-		|| dontUseCopy
+      || dontUseCopy
 #endif
-		)
-	{
+  ) {
 #ifdef LDAP_CONTROL_DONTUSECOPY
-		if ( dontUseCopy ) {
-			c[i].ldctl_oid = LDAP_CONTROL_DONTUSECOPY;
-			c[i].ldctl_value.bv_val = NULL;
-			c[i].ldctl_value.bv_len = 0;
-			c[i].ldctl_iscritical = dontUseCopy > 1;
-			i++;
-		}
+    if (dontUseCopy) {
+      c[i].ldctl_oid = LDAP_CONTROL_DONTUSECOPY;
+      c[i].ldctl_value.bv_val = NULL;
+      c[i].ldctl_value.bv_len = 0;
+      c[i].ldctl_iscritical = dontUseCopy > 1;
+      i++;
+    }
 #endif
-	}
+  }
 
-	tool_server_controls( ld, c, i );
+  tool_server_controls(ld, c, i);
 
-	if ( verbose ) {
-		fprintf( stderr, _("DN:%s, attr:%s, value:%s\n"),
-			compdn, attrs, sep );
-	}
+  if (verbose) {
+    fprintf(stderr, _("DN:%s, attr:%s, value:%s\n"), compdn, attrs, sep);
+  }
 
-	rc = docompare( ld, compdn, attrs, &bvalue, quiet, NULL, NULL );
+  rc = docompare(ld, compdn, attrs, &bvalue, quiet, NULL, NULL);
 
-	free( bvalue.bv_val );
+  free(bvalue.bv_val);
 
-	tool_exit( ld, rc );
+  tool_exit(ld, rc);
 }
 
+static int docompare(LDAP *ld, char *dn, char *attr, struct berval *bvalue,
+                     int quiet, LDAPControl **sctrls, LDAPControl **cctrls) {
+  int rc, msgid, code;
+  LDAPMessage *res;
+  char *matcheddn;
+  char *text;
+  char **refs;
+  LDAPControl **ctrls = NULL;
 
-static int docompare(
-	LDAP *ld,
-	char *dn,
-	char *attr,
-	struct berval *bvalue,
-	int quiet,
-	LDAPControl **sctrls,
-	LDAPControl **cctrls )
-{
-	int		rc, msgid, code;
-	LDAPMessage	*res;
-	char		*matcheddn;
-	char		*text;
-	char		**refs;
-	LDAPControl **ctrls = NULL;
+  if (dont) {
+    return LDAP_SUCCESS;
+  }
 
-	if ( dont ) {
-		return LDAP_SUCCESS;
-	}
+  rc = ldap_compare_ext(ld, dn, attr, bvalue, sctrls, cctrls, &msgid);
+  if (rc == -1) {
+    return (rc);
+  }
 
-	rc = ldap_compare_ext( ld, dn, attr, bvalue,
-		sctrls, cctrls, &msgid );
-	if ( rc == -1 ) {
-		return( rc );
-	}
+  for (;;) {
+    struct timeval tv;
 
-	for ( ; ; ) {
-		struct timeval	tv;
+    tv.tv_sec = 0;
+    tv.tv_usec = 100000;
 
-		tv.tv_sec = 0;
-		tv.tv_usec = 100000;
+    if (tool_check_abandon(ld, msgid)) {
+      return LDAP_CANCELLED;
+    }
 
-		if ( tool_check_abandon( ld, msgid ) ) {
-			return LDAP_CANCELLED;
-		}
+    rc = ldap_result(ld, LDAP_RES_ANY, LDAP_MSG_ALL, &tv, &res);
+    if (rc < 0) {
+      tool_perror("ldap_result", rc, NULL, NULL, NULL, NULL);
+      return rc;
+    }
 
-		rc = ldap_result( ld, LDAP_RES_ANY, LDAP_MSG_ALL, &tv, &res );
-		if ( rc < 0 ) {
-			tool_perror( "ldap_result", rc, NULL, NULL, NULL, NULL );
-			return rc;
-		}
+    if (rc != 0) {
+      break;
+    }
+  }
 
-		if ( rc != 0 ) {
-			break;
-		}
-	}
+  rc = ldap_parse_result(ld, res, &code, &matcheddn, &text, &refs, &ctrls, 1);
 
-	rc = ldap_parse_result( ld, res, &code, &matcheddn, &text, &refs, &ctrls, 1 );
+  if (rc != LDAP_SUCCESS) {
+    fprintf(stderr, "%s: ldap_parse_result: %s (%d)\n", prog,
+            ldap_err2string(rc), rc);
+    return rc;
+  }
 
-	if( rc != LDAP_SUCCESS ) {
-		fprintf( stderr, "%s: ldap_parse_result: %s (%d)\n",
-			prog, ldap_err2string( rc ), rc );
-		return rc;
-	}
+  if (!quiet &&
+      (verbose ||
+       (code != LDAP_SUCCESS && code != LDAP_COMPARE_TRUE &&
+        code != LDAP_COMPARE_FALSE) ||
+       (matcheddn && *matcheddn) || (text && *text) || (refs && *refs))) {
+    printf(_("Compare Result: %s (%d)\n"), ldap_err2string(code), code);
 
-	if ( !quiet && ( verbose || ( code != LDAP_SUCCESS && code != LDAP_COMPARE_TRUE && code != LDAP_COMPARE_FALSE )||
-		(matcheddn && *matcheddn) || (text && *text) || (refs && *refs) ) )
-	{
-		printf( _("Compare Result: %s (%d)\n"),
-			ldap_err2string( code ), code );
+    if (text && *text) {
+      printf(_("Additional info: %s\n"), text);
+    }
 
-		if( text && *text ) {
-			printf( _("Additional info: %s\n"), text );
-		}
+    if (matcheddn && *matcheddn) {
+      printf(_("Matched DN: %s\n"), matcheddn);
+    }
 
-		if( matcheddn && *matcheddn ) {
-			printf( _("Matched DN: %s\n"), matcheddn );
-		}
+    if (refs) {
+      int i;
+      for (i = 0; refs[i]; i++) {
+        printf(_("Referral: %s\n"), refs[i]);
+      }
+    }
+  }
 
-		if( refs ) {
-			int i;
-			for( i=0; refs[i]; i++ ) {
-				printf(_("Referral: %s\n"), refs[i] );
-			}
-		}
-	}
+  /* if we were told to be quiet, use the return value. */
+  if (!quiet) {
+    if (code == LDAP_COMPARE_TRUE) {
+      printf(_("TRUE\n"));
+    } else if (code == LDAP_COMPARE_FALSE) {
+      printf(_("FALSE\n"));
+    } else {
+      printf(_("UNDEFINED\n"));
+    }
+  }
 
-	/* if we were told to be quiet, use the return value. */
-	if ( !quiet ) {
-		if ( code == LDAP_COMPARE_TRUE ) {
-			printf(_("TRUE\n"));
-		} else if ( code == LDAP_COMPARE_FALSE ) {
-			printf(_("FALSE\n"));
-		} else {
-			printf(_("UNDEFINED\n"));
-		}
-	}
+  if (ctrls) {
+    tool_print_ctrls(ld, ctrls);
+    ldap_controls_free(ctrls);
+  }
 
-	if ( ctrls ) {
-		tool_print_ctrls( ld, ctrls );
-		ldap_controls_free( ctrls );
-	}
+  ber_memfree(text);
+  ber_memfree(matcheddn);
+  ber_memvfree((void **)refs);
 
-	ber_memfree( text );
-	ber_memfree( matcheddn );
-	ber_memvfree( (void **) refs );
-
-	return( code );
+  return (code);
 }

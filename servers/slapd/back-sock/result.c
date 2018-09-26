@@ -37,131 +37,116 @@
  * more robust.
  */
 
-int
-sock_read_and_send_results(
-    Operation	*op,
-    SlapReply	*rs,
-    FILE	*fp )
-{
-	int	bsize, len;
-	char	*buf, *bp;
-	char	line[BUFSIZ];
-	char	ebuf[128];
+int sock_read_and_send_results(Operation *op, SlapReply *rs, FILE *fp) {
+  int bsize, len;
+  char *buf, *bp;
+  char line[BUFSIZ];
+  char ebuf[128];
 
-	(void) fflush(fp);
-	/* read in the result and send it along */
-	buf = (char *) ch_malloc( BUFSIZ );
-	buf[0] = '\0';
-	bsize = BUFSIZ;
-	bp = buf;
-	while ( !feof(fp) ) {
-		errno = 0;
-		if ( fgets( line, sizeof(line), fp ) == NULL ) {
-			if ( errno == EINTR ) continue;
+  (void)fflush(fp);
+  /* read in the result and send it along */
+  buf = (char *)ch_malloc(BUFSIZ);
+  buf[0] = '\0';
+  bsize = BUFSIZ;
+  bp = buf;
+  while (!feof(fp)) {
+    errno = 0;
+    if (fgets(line, sizeof(line), fp) == NULL) {
+      if (errno == EINTR)
+        continue;
 
-			Debug( LDAP_DEBUG_ANY, "sock: fgets failed: %s (%d)\n",
-				AC_STRERROR_R(errno, ebuf, sizeof ebuf), errno );
-			break;
-		}
+      Debug(LDAP_DEBUG_ANY, "sock: fgets failed: %s (%d)\n",
+            AC_STRERROR_R(errno, ebuf, sizeof ebuf), errno);
+      break;
+    }
 
-		Debug( LDAP_DEBUG_SHELL, "sock search reading line (%s)\n",
-		    line );
+    Debug(LDAP_DEBUG_SHELL, "sock search reading line (%s)\n", line);
 
-		/* ignore lines beginning with # (LDIFv1 comments) */
-		if ( *line == '#' ) {
-			continue;
-		}
+    /* ignore lines beginning with # (LDIFv1 comments) */
+    if (*line == '#') {
+      continue;
+    }
 
-		/* ignore lines beginning with DEBUG: */
-		if ( strncasecmp( line, "DEBUG:", 6 ) == 0 ) {
-			continue;
-		}
+    /* ignore lines beginning with DEBUG: */
+    if (strncasecmp(line, "DEBUG:", 6) == 0) {
+      continue;
+    }
 
-		if ( strncasecmp( line, "CONTINUE", 8 ) == 0 ) {
-			struct sockinfo	*si __maybe_unused = (struct sockinfo *) op->o_bd->be_private;
-			/* Only valid when operating as an overlay! */
-			assert( si->si_ops != 0 );
-			rs->sr_err = SLAP_CB_CONTINUE;
-			goto skip;
-		}
+    if (strncasecmp(line, "CONTINUE", 8) == 0) {
+      struct sockinfo *si __maybe_unused =
+          (struct sockinfo *)op->o_bd->be_private;
+      /* Only valid when operating as an overlay! */
+      assert(si->si_ops != 0);
+      rs->sr_err = SLAP_CB_CONTINUE;
+      goto skip;
+    }
 
-		len = strlen( line );
-		while ( bp + len + 1 - buf > bsize ) {
-			size_t offset = bp - buf;
-			bsize += BUFSIZ;
-			buf = (char *) ch_realloc( buf, bsize );
-			bp = &buf[offset];
-		}
-		strcpy( bp, line );
-		bp += len;
+    len = strlen(line);
+    while (bp + len + 1 - buf > bsize) {
+      size_t offset = bp - buf;
+      bsize += BUFSIZ;
+      buf = (char *)ch_realloc(buf, bsize);
+      bp = &buf[offset];
+    }
+    strcpy(bp, line);
+    bp += len;
 
-		/* line marked the end of an entry or result */
-		if ( *line == '\n' ) {
-			if ( strncasecmp( buf, "RESULT", 6 ) == 0 ) {
-				break;
-			}
+    /* line marked the end of an entry or result */
+    if (*line == '\n') {
+      if (strncasecmp(buf, "RESULT", 6) == 0) {
+        break;
+      }
 
-			if ( (rs->sr_entry = str2entry( buf, NULL )) == NULL ) {
-				Debug( LDAP_DEBUG_ANY, "str2entry(%s) failed\n",
-				    buf );
-			} else {
-				rs->sr_attrs = op->oq_search.rs_attrs;
-				rs->sr_flags = REP_ENTRY_MODIFIABLE;
-				send_search_entry( op, rs );
-				entry_free( rs->sr_entry );
-				rs->sr_attrs = NULL;
-			}
+      if ((rs->sr_entry = str2entry(buf, NULL)) == NULL) {
+        Debug(LDAP_DEBUG_ANY, "str2entry(%s) failed\n", buf);
+      } else {
+        rs->sr_attrs = op->oq_search.rs_attrs;
+        rs->sr_flags = REP_ENTRY_MODIFIABLE;
+        send_search_entry(op, rs);
+        entry_free(rs->sr_entry);
+        rs->sr_attrs = NULL;
+      }
 
-			bp = buf;
-		}
-	}
-	(void) str2result( buf, &rs->sr_err, (char **)&rs->sr_matched, (char **)&rs->sr_text );
+      bp = buf;
+    }
+  }
+  (void)str2result(buf, &rs->sr_err, (char **)&rs->sr_matched,
+                   (char **)&rs->sr_text);
 
-	/* otherwise, front end will send this result */
-	if ( rs->sr_err != 0 || op->o_tag != LDAP_REQ_BIND ) {
-		send_ldap_result( op, rs );
-	}
+  /* otherwise, front end will send this result */
+  if (rs->sr_err != 0 || op->o_tag != LDAP_REQ_BIND) {
+    send_ldap_result(op, rs);
+  }
 
 skip:
-	ch_free( buf );
+  ch_free(buf);
 
-	return( rs->sr_err );
+  return (rs->sr_err);
 }
 
-void
-sock_print_suffixes(
-    FILE	*fp,
-    Backend	*be
-)
-{
-	int	i;
+void sock_print_suffixes(FILE *fp, Backend *be) {
+  int i;
 
-	for ( i = 0; be->be_suffix[i].bv_val != NULL; i++ ) {
-		fprintf( fp, "suffix: %s\n", be->be_suffix[i].bv_val );
-	}
+  for (i = 0; be->be_suffix[i].bv_val != NULL; i++) {
+    fprintf(fp, "suffix: %s\n", be->be_suffix[i].bv_val);
+  }
 }
 
-void
-sock_print_conn(
-    FILE	*fp,
-    Connection	*conn,
-    struct sockinfo *si
-)
-{
-	if ( conn == NULL ) return;
+void sock_print_conn(FILE *fp, Connection *conn, struct sockinfo *si) {
+  if (conn == NULL)
+    return;
 
-	if( si->si_extensions & SOCK_EXT_BINDDN ) {
-		fprintf( fp, "binddn: %s\n",
-			conn->c_dn.bv_len ? conn->c_dn.bv_val : "" );
-	}
-	if( si->si_extensions & SOCK_EXT_PEERNAME ) {
-		fprintf( fp, "peername: %s\n",
-			conn->c_peer_name.bv_len ? conn->c_peer_name.bv_val : "" );
-	}
-	if( si->si_extensions & SOCK_EXT_SSF ) {
-		fprintf( fp, "ssf: %d\n", conn->c_ssf );
-	}
-	if( si->si_extensions & SOCK_EXT_CONNID ) {
-		fprintf( fp, "connid: %lu\n", conn->c_connid );
-	}
+  if (si->si_extensions & SOCK_EXT_BINDDN) {
+    fprintf(fp, "binddn: %s\n", conn->c_dn.bv_len ? conn->c_dn.bv_val : "");
+  }
+  if (si->si_extensions & SOCK_EXT_PEERNAME) {
+    fprintf(fp, "peername: %s\n",
+            conn->c_peer_name.bv_len ? conn->c_peer_name.bv_val : "");
+  }
+  if (si->si_extensions & SOCK_EXT_SSF) {
+    fprintf(fp, "ssf: %d\n", conn->c_ssf);
+  }
+  if (si->si_extensions & SOCK_EXT_CONNID) {
+    fprintf(fp, "connid: %lu\n", conn->c_connid);
+  }
 }

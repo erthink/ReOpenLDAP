@@ -20,12 +20,12 @@
 
 #undef SIGNAL
 
-#if defined( HAVE_SIGACTION )
+#if defined(HAVE_SIGACTION)
 #define SIGNAL lutil_sigaction
 typedef void (*lutil_sig_t)(int);
-LDAP_LUTIL_F(lutil_sig_t) lutil_sigaction( int sig, lutil_sig_t func );
-#define SIGNAL_REINSTALL(sig,act)	(void)0
-#elif defined( HAVE_SIGSET )
+LDAP_LUTIL_F(lutil_sig_t) lutil_sigaction(int sig, lutil_sig_t func);
+#define SIGNAL_REINSTALL(sig, act) (void)0
+#elif defined(HAVE_SIGSET)
 #define SIGNAL sigset
 #define SIGNAL_REINSTALL sigset
 #else
@@ -33,11 +33,11 @@ LDAP_LUTIL_F(lutil_sig_t) lutil_sigaction( int sig, lutil_sig_t func );
 #define SIGNAL_REINSTALL signal
 #endif
 
-#if !defined( LDAP_SIGUSR1 ) || !defined( LDAP_SIGUSR2 )
+#if !defined(LDAP_SIGUSR1) || !defined(LDAP_SIGUSR2)
 #undef LDAP_SIGUSR1
 #undef LDAP_SIGUSR2
-#define LDAP_SIGUSR1	SIGUSR1
-#define LDAP_SIGUSR2	SIGUSR2
+#define LDAP_SIGUSR1 SIGUSR1
+#define LDAP_SIGUSR2 SIGUSR2
 #endif
 
 #ifndef LDAP_SIGCHLD

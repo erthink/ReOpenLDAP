@@ -33,38 +33,34 @@
  * sets the supported operational attributes (if required)
  */
 
-int
-monitor_back_operational(
-	Operation	*op,
-	SlapReply	*rs )
-{
-	Attribute	**ap;
+int monitor_back_operational(Operation *op, SlapReply *rs) {
+  Attribute **ap;
 
-	assert( rs->sr_entry != NULL );
+  assert(rs->sr_entry != NULL);
 
-	for ( ap = &rs->sr_operational_attrs; *ap; ap = &(*ap)->a_next ) {
-		if ( (*ap)->a_desc == slap_schema.si_ad_hasSubordinates ) {
-			break;
-		}
-	}
+  for (ap = &rs->sr_operational_attrs; *ap; ap = &(*ap)->a_next) {
+    if ((*ap)->a_desc == slap_schema.si_ad_hasSubordinates) {
+      break;
+    }
+  }
 
-	if ( *ap == NULL &&
-		attr_find( rs->sr_entry->e_attrs, slap_schema.si_ad_hasSubordinates ) == NULL &&
-		( SLAP_OPATTRS( rs->sr_attr_flags ) ||
-			ad_inlist( slap_schema.si_ad_hasSubordinates, rs->sr_attrs ) ) )
-	{
-		int			hs;
-		monitor_entry_t	*mp;
+  if (*ap == NULL &&
+      attr_find(rs->sr_entry->e_attrs, slap_schema.si_ad_hasSubordinates) ==
+          NULL &&
+      (SLAP_OPATTRS(rs->sr_attr_flags) ||
+       ad_inlist(slap_schema.si_ad_hasSubordinates, rs->sr_attrs))) {
+    int hs;
+    monitor_entry_t *mp;
 
-		mp = ( monitor_entry_t * )rs->sr_entry->e_private;
+    mp = (monitor_entry_t *)rs->sr_entry->e_private;
 
-		assert( mp != NULL );
+    assert(mp != NULL);
 
-		hs = MONITOR_HAS_CHILDREN( mp );
-		*ap = slap_operational_hasSubordinate( hs );
-		assert( *ap != NULL );
-		ap = &(*ap)->a_next;
-	}
+    hs = MONITOR_HAS_CHILDREN(mp);
+    *ap = slap_operational_hasSubordinate(hs);
+    assert(*ap != NULL);
+    ap = &(*ap)->a_next;
+  }
 
-	return LDAP_SUCCESS;
+  return LDAP_SUCCESS;
 }

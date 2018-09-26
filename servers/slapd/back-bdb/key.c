@@ -25,79 +25,63 @@
 #include "idl.h"
 
 /* read a key */
-int
-bdb_key_read(
-	Backend	*be,
-	DB *db,
-	DB_TXN *txn,
-	struct berval *k,
-	ID *ids,
-	DBC **saved_cursor,
-	int get_flag
-)
-{
-	int rc;
-	DBT key;
+int bdb_key_read(Backend *be, DB *db, DB_TXN *txn, struct berval *k, ID *ids,
+                 DBC **saved_cursor, int get_flag) {
+  int rc;
+  DBT key;
 
-	Debug( LDAP_DEBUG_TRACE, "=> key_read\n" );
+  Debug(LDAP_DEBUG_TRACE, "=> key_read\n");
 
-	DBTzero( &key );
-	bv2DBT(k,&key);
-	key.ulen = key.size;
-	key.flags = DB_DBT_USERMEM;
+  DBTzero(&key);
+  bv2DBT(k, &key);
+  key.ulen = key.size;
+  key.flags = DB_DBT_USERMEM;
 
-	rc = bdb_idl_fetch_key( be, db, txn, &key, ids, saved_cursor, get_flag );
+  rc = bdb_idl_fetch_key(be, db, txn, &key, ids, saved_cursor, get_flag);
 
-	if( rc != LDAP_SUCCESS ) {
-		Debug( LDAP_DEBUG_TRACE, "<= bdb_index_read: failed (%d)\n",
-			rc );
-	} else {
-		Debug( LDAP_DEBUG_TRACE, "<= bdb_index_read %ld candidates\n",
-			(long) BDB_IDL_N(ids) );
-	}
+  if (rc != LDAP_SUCCESS) {
+    Debug(LDAP_DEBUG_TRACE, "<= bdb_index_read: failed (%d)\n", rc);
+  } else {
+    Debug(LDAP_DEBUG_TRACE, "<= bdb_index_read %ld candidates\n",
+          (long)BDB_IDL_N(ids));
+  }
 
-	return rc;
+  return rc;
 }
 
 /* Add or remove stuff from index files */
-int
-bdb_key_change(
-	Backend *be,
-	DB *db,
-	DB_TXN *txn,
-	struct berval *k,
-	ID id,
-	int op
-)
-{
-	int	rc;
-	DBT	key;
+int bdb_key_change(Backend *be, DB *db, DB_TXN *txn, struct berval *k, ID id,
+                   int op) {
+  int rc;
+  DBT key;
 
-	Debug( LDAP_DEBUG_TRACE, "=> key_change(%s,%lx)\n",
-		op == SLAP_INDEX_ADD_OP ? "ADD":"DELETE", (long) id );
+  Debug(LDAP_DEBUG_TRACE, "=> key_change(%s,%lx)\n",
+        op == SLAP_INDEX_ADD_OP ? "ADD" : "DELETE", (long)id);
 
-	DBTzero( &key );
-	bv2DBT(k,&key);
-	key.ulen = key.size;
-	key.flags = DB_DBT_USERMEM;
+  DBTzero(&key);
+  bv2DBT(k, &key);
+  key.ulen = key.size;
+  key.flags = DB_DBT_USERMEM;
 
-	if (op == SLAP_INDEX_ADD_OP) {
-		/* Add values */
+  if (op == SLAP_INDEX_ADD_OP) {
+    /* Add values */
 
 #ifdef BDB_TOOL_IDL_CACHING
-		if ( slapMode & SLAP_TOOL_QUICK )
-			rc = bdb_tool_idl_add( be, db, txn, &key, id );
-		else
+    if (slapMode & SLAP_TOOL_QUICK)
+      rc = bdb_tool_idl_add(be, db, txn, &key, id);
+    else
 #endif
-			rc = bdb_idl_insert_key( be, db, txn, &key, id );
-		if ( rc == DB_KEYEXIST ) rc = 0;
-	} else {
-		/* Delete values */
-		rc = bdb_idl_delete_key( be, db, txn, &key, id );
-		if ( rc == DB_NOTFOUND ) rc = 0;
-	}
+      rc = bdb_idl_insert_key(be, db, txn, &key, id);
+    if (rc == DB_KEYEXIST)
+      rc = 0;
+  } else {
+    /* Delete values */
+    rc = bdb_idl_delete_key(be, db, txn, &key, id);
+    if (rc == DB_NOTFOUND)
+      rc = 0;
+  }
 
-	Debug( LDAP_DEBUG_TRACE, "<= key_change %d\n", rc );
+  Debug(LDAP_DEBUG_TRACE, "<= key_change %d\n", rc);
 
-	return rc;
+  return rc;
 }

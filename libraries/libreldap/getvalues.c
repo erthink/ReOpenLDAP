@@ -26,182 +26,164 @@
 
 #include "ldap-int.h"
 
-struct berval **
-ldap_get_values_len( LDAP *ld, LDAPMessage *entry, LDAP_CONST char *target )
-{
-	BerElement	ber;
-	char		*attr;
-	int		found = 0;
-	struct berval	**vals;
+struct berval **ldap_get_values_len(LDAP *ld, LDAPMessage *entry,
+                                    const char *target) {
+  BerElement ber;
+  char *attr;
+  int found = 0;
+  struct berval **vals;
 
-	assert( ld != NULL );
-	assert( LDAP_VALID( ld ) );
-	assert( entry != NULL );
-	assert( target != NULL );
+  assert(ld != NULL);
+  assert(LDAP_VALID(ld));
+  assert(entry != NULL);
+  assert(target != NULL);
 
-	Debug( LDAP_DEBUG_TRACE, "ldap_get_values_len\n" );
+  Debug(LDAP_DEBUG_TRACE, "ldap_get_values_len\n");
 
-	ber = *entry->lm_ber;
+  ber = *entry->lm_ber;
 
-	/* skip sequence, dn, sequence of, and snag the first attr */
-	if ( ber_scanf( &ber, "{x{{a" /* }}} */, &attr ) == LBER_ERROR ) {
-		ld->ld_errno = LDAP_DECODING_ERROR;
-		return( NULL );
-	}
+  /* skip sequence, dn, sequence of, and snag the first attr */
+  if (ber_scanf(&ber, "{x{{a" /* }}} */, &attr) == LBER_ERROR) {
+    ld->ld_errno = LDAP_DECODING_ERROR;
+    return (NULL);
+  }
 
-	if ( strcasecmp( target, attr ) == 0 )
-		found = 1;
+  if (strcasecmp(target, attr) == 0)
+    found = 1;
 
-	/* break out on success, return out on error */
-	while ( ! found ) {
-		LDAP_FREE( attr );
-		attr = NULL;
+  /* break out on success, return out on error */
+  while (!found) {
+    LDAP_FREE(attr);
+    attr = NULL;
 
-		if ( ber_scanf( &ber, /*{*/ "x}{a" /*}*/, &attr ) == LBER_ERROR ) {
-			ld->ld_errno = LDAP_DECODING_ERROR;
-			return( NULL );
-		}
+    if (ber_scanf(&ber, /*{*/ "x}{a" /*}*/, &attr) == LBER_ERROR) {
+      ld->ld_errno = LDAP_DECODING_ERROR;
+      return (NULL);
+    }
 
-		if ( strcasecmp( target, attr ) == 0 )
-			break;
-	}
+    if (strcasecmp(target, attr) == 0)
+      break;
+  }
 
-	LDAP_FREE( attr );
-	attr = NULL;
+  LDAP_FREE(attr);
+  attr = NULL;
 
-	/*
-	 * if we get this far, we've found the attribute and are sitting
-	 * just before the set of values.
-	 */
+  /*
+   * if we get this far, we've found the attribute and are sitting
+   * just before the set of values.
+   */
 
-	if ( ber_scanf( &ber, "[V]", &vals ) == LBER_ERROR ) {
-		ld->ld_errno = LDAP_DECODING_ERROR;
-		return( NULL );
-	}
+  if (ber_scanf(&ber, "[V]", &vals) == LBER_ERROR) {
+    ld->ld_errno = LDAP_DECODING_ERROR;
+    return (NULL);
+  }
 
-	return( vals );
+  return (vals);
 }
 
-char **
-ldap_get_values( LDAP *ld, LDAPMessage *entry, LDAP_CONST char *target )
-{
-	BerElement	ber;
-	char		*attr;
-	int		found = 0;
-	char		**vals;
+char **ldap_get_values(LDAP *ld, LDAPMessage *entry, const char *target) {
+  BerElement ber;
+  char *attr;
+  int found = 0;
+  char **vals;
 
-	assert( ld != NULL );
-	assert( LDAP_VALID( ld ) );
-	assert( entry != NULL );
-	assert( target != NULL );
+  assert(ld != NULL);
+  assert(LDAP_VALID(ld));
+  assert(entry != NULL);
+  assert(target != NULL);
 
-	Debug( LDAP_DEBUG_TRACE, "ldap_get_values\n" );
+  Debug(LDAP_DEBUG_TRACE, "ldap_get_values\n");
 
-	ber = *entry->lm_ber;
+  ber = *entry->lm_ber;
 
-	/* skip sequence, dn, sequence of, and snag the first attr */
-	if ( ber_scanf( &ber, "{x{{a" /*}}}*/, &attr ) == LBER_ERROR ) {
-		ld->ld_errno = LDAP_DECODING_ERROR;
-		return( NULL );
-	}
+  /* skip sequence, dn, sequence of, and snag the first attr */
+  if (ber_scanf(&ber, "{x{{a" /*}}}*/, &attr) == LBER_ERROR) {
+    ld->ld_errno = LDAP_DECODING_ERROR;
+    return (NULL);
+  }
 
-	if ( strcasecmp( target, attr ) == 0 )
-		found = 1;
+  if (strcasecmp(target, attr) == 0)
+    found = 1;
 
-	/* break out on success, return out on error */
-	while ( ! found ) {
-		LDAP_FREE(attr);
-		attr = NULL;
+  /* break out on success, return out on error */
+  while (!found) {
+    LDAP_FREE(attr);
+    attr = NULL;
 
-		if ( ber_scanf( &ber, /*{*/ "x}{a" /*}*/, &attr ) == LBER_ERROR ) {
-			ld->ld_errno = LDAP_DECODING_ERROR;
-			return( NULL );
-		}
+    if (ber_scanf(&ber, /*{*/ "x}{a" /*}*/, &attr) == LBER_ERROR) {
+      ld->ld_errno = LDAP_DECODING_ERROR;
+      return (NULL);
+    }
 
-		if ( strcasecmp( target, attr ) == 0 )
-			break;
+    if (strcasecmp(target, attr) == 0)
+      break;
+  }
 
-	}
+  LDAP_FREE(attr);
+  attr = NULL;
 
-	LDAP_FREE(attr);
-	attr = NULL;
+  /*
+   * if we get this far, we've found the attribute and are sitting
+   * just before the set of values.
+   */
 
-	/*
-	 * if we get this far, we've found the attribute and are sitting
-	 * just before the set of values.
-	 */
+  if (ber_scanf(&ber, "[v]", &vals) == LBER_ERROR) {
+    ld->ld_errno = LDAP_DECODING_ERROR;
+    return (NULL);
+  }
 
-	if ( ber_scanf( &ber, "[v]", &vals ) == LBER_ERROR ) {
-		ld->ld_errno = LDAP_DECODING_ERROR;
-		return( NULL );
-	}
-
-	return( vals );
+  return (vals);
 }
 
-int
-ldap_count_values( char **vals )
-{
-	return( ldap_count_values_len( (struct berval **) vals ) );
+int ldap_count_values(char **vals) {
+  return (ldap_count_values_len((struct berval **)vals));
 }
 
-void
-ldap_value_free( char **vals )
-{
-	LDAP_VFREE( vals );
+void ldap_value_free(char **vals) { LDAP_VFREE(vals); }
+
+int ldap_count_values_len(struct berval **vals) {
+  int i;
+
+  if (vals == NULL)
+    return (0);
+
+  for (i = 0; vals[i] != NULL; i++)
+    ; /* NULL */
+
+  return (i);
 }
 
-int
-ldap_count_values_len( struct berval **vals )
-{
-	int	i;
+void ldap_value_free_len(struct berval **vals) { ber_bvecfree(vals); }
 
-	if ( vals == NULL )
-		return( 0 );
+char **ldap_value_dup(char *const *vals) {
+  char **new;
+  int i;
 
-	for ( i = 0; vals[i] != NULL; i++ )
-		;	/* NULL */
+  if (vals == NULL) {
+    return NULL;
+  }
 
-	return( i );
-}
+  for (i = 0; vals[i]; i++) {
+    ; /* Count the number of values */
+  }
 
-void
-ldap_value_free_len( struct berval **vals )
-{
-	ber_bvecfree( vals );
-}
+  if (i == 0) {
+    return NULL;
+  }
 
-char **
-ldap_value_dup( char *const *vals )
-{
-	char **new;
-	int i;
+  new = LDAP_MALLOC((i + 1) * sizeof(char *)); /* Alloc array of pointers */
+  if (new == NULL) {
+    return NULL;
+  }
 
-	if( vals == NULL ) {
-		return NULL;
-	}
+  for (i = 0; vals[i]; i++) {
+    new[i] = LDAP_STRDUP(vals[i]); /* Dup each value */
+    if (new[i] == NULL) {
+      LDAP_VFREE(new);
+      return NULL;
+    }
+  }
+  new[i] = NULL;
 
-	for( i=0; vals[i]; i++ ) {
-		;   /* Count the number of values */
-	}
-
-	if( i == 0 ) {
-		return NULL;
-	}
-
-	new = LDAP_MALLOC( (i+1)*sizeof(char *) );  /* Alloc array of pointers */
-	if( new == NULL ) {
-		return NULL;
-	}
-
-	for( i=0; vals[i]; i++ ) {
-		new[i] = LDAP_STRDUP( vals[i] );   /* Dup each value */
-		if( new[i] == NULL ) {
-			LDAP_VFREE( new );
-			return NULL;
-		}
-	}
-	new[i] = NULL;
-
-	return new;
+  return new;
 }

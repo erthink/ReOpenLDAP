@@ -73,7 +73,7 @@
     INT32   NSLCD_CONFIG_*
   the result value is:
     STRING  value, interpretation depending on request */
-#define NSLCD_ACTION_CONFIG_GET        0x00010001
+#define NSLCD_ACTION_CONFIG_GET 0x00010001
 
 /* return the message, if any, that is presented to the user when password
    modification through PAM is prohibited */
@@ -83,16 +83,16 @@
    single entry are:
      STRING      alias name
      STRINGLIST  alias rcpts */
-#define NSLCD_ACTION_ALIAS_BYNAME      0x00020001
-#define NSLCD_ACTION_ALIAS_ALL         0x00020008
+#define NSLCD_ACTION_ALIAS_BYNAME 0x00020001
+#define NSLCD_ACTION_ALIAS_ALL 0x00020008
 
 /* Ethernet address/name mapping NSS requests. The result values for a
    single entry are:
      STRING            ether name
      TYPE(uint8_t[6])  ether address */
-#define NSLCD_ACTION_ETHER_BYNAME      0x00030001
-#define NSLCD_ACTION_ETHER_BYETHER     0x00030002
-#define NSLCD_ACTION_ETHER_ALL         0x00030008
+#define NSLCD_ACTION_ETHER_BYNAME 0x00030001
+#define NSLCD_ACTION_ETHER_BYETHER 0x00030002
+#define NSLCD_ACTION_ETHER_ALL 0x00030008
 
 /* Group and group membership related NSS requests. The result values
    for a single entry are:
@@ -101,19 +101,19 @@
      INT32        group id
      STRINGLIST   members (usernames) of the group
      (not that the BYMEMER call returns an empty members list) */
-#define NSLCD_ACTION_GROUP_BYNAME      0x00040001
-#define NSLCD_ACTION_GROUP_BYGID       0x00040002
-#define NSLCD_ACTION_GROUP_BYMEMBER    0x00040006
-#define NSLCD_ACTION_GROUP_ALL         0x00040008
+#define NSLCD_ACTION_GROUP_BYNAME 0x00040001
+#define NSLCD_ACTION_GROUP_BYGID 0x00040002
+#define NSLCD_ACTION_GROUP_BYMEMBER 0x00040006
+#define NSLCD_ACTION_GROUP_ALL 0x00040008
 
 /* Hostname (/etc/hosts) lookup NSS requests. The result values
    for an entry are:
      STRING       host name
      STRINGLIST   host aliases
      ADDRESSLIST  host addresses */
-#define NSLCD_ACTION_HOST_BYNAME       0x00050001
-#define NSLCD_ACTION_HOST_BYADDR       0x00050002
-#define NSLCD_ACTION_HOST_ALL          0x00050008
+#define NSLCD_ACTION_HOST_BYNAME 0x00050001
+#define NSLCD_ACTION_HOST_BYADDR 0x00050002
+#define NSLCD_ACTION_HOST_ALL 0x00050008
 
 /* Netgroup NSS result entries contain a number of parts. A result entry
    starts with:
@@ -130,20 +130,20 @@
    A netgroup result entry is terminated by:
      INT32   NSLCD_NETGROUP_TYPE_END
    */
-#define NSLCD_ACTION_NETGROUP_BYNAME   0x00060001
-#define NSLCD_ACTION_NETGROUP_ALL      0x00060008
+#define NSLCD_ACTION_NETGROUP_BYNAME 0x00060001
+#define NSLCD_ACTION_NETGROUP_ALL 0x00060008
 #define NSLCD_NETGROUP_TYPE_NETGROUP 1
-#define NSLCD_NETGROUP_TYPE_TRIPLE   2
-#define NSLCD_NETGROUP_TYPE_END      3
+#define NSLCD_NETGROUP_TYPE_TRIPLE 2
+#define NSLCD_NETGROUP_TYPE_END 3
 
 /* Network name (/etc/networks) NSS requests. Result values for a single
    entry are:
      STRING       network name
      STRINGLIST   network aliases
      ADDRESSLIST  network addresses */
-#define NSLCD_ACTION_NETWORK_BYNAME    0x00070001
-#define NSLCD_ACTION_NETWORK_BYADDR    0x00070002
-#define NSLCD_ACTION_NETWORK_ALL       0x00070008
+#define NSLCD_ACTION_NETWORK_BYNAME 0x00070001
+#define NSLCD_ACTION_NETWORK_BYADDR 0x00070002
+#define NSLCD_ACTION_NETWORK_ALL 0x00070008
 
 /* User account (/etc/passwd) NSS requests. Result values are:
      STRING       user name
@@ -153,25 +153,25 @@
      STRING       gecos information
      STRING       home directory
      STRING       login shell */
-#define NSLCD_ACTION_PASSWD_BYNAME     0x00080001
-#define NSLCD_ACTION_PASSWD_BYUID      0x00080002
-#define NSLCD_ACTION_PASSWD_ALL        0x00080008
+#define NSLCD_ACTION_PASSWD_BYNAME 0x00080001
+#define NSLCD_ACTION_PASSWD_BYUID 0x00080002
+#define NSLCD_ACTION_PASSWD_ALL 0x00080008
 
 /* Protocol information requests. Result values are:
      STRING      protocol name
      STRINGLIST  protocol aliases
      INT32       protocol number */
-#define NSLCD_ACTION_PROTOCOL_BYNAME   0x00090001
+#define NSLCD_ACTION_PROTOCOL_BYNAME 0x00090001
 #define NSLCD_ACTION_PROTOCOL_BYNUMBER 0x00090002
-#define NSLCD_ACTION_PROTOCOL_ALL      0x00090008
+#define NSLCD_ACTION_PROTOCOL_ALL 0x00090008
 
 /* RPC information requests. Result values are:
      STRING      rpc name
      STRINGLIST  rpc aliases
      INT32       rpc number */
-#define NSLCD_ACTION_RPC_BYNAME        0x000a0001
-#define NSLCD_ACTION_RPC_BYNUMBER      0x000a0002
-#define NSLCD_ACTION_RPC_ALL           0x000a0008
+#define NSLCD_ACTION_RPC_BYNAME 0x000a0001
+#define NSLCD_ACTION_RPC_BYNUMBER 0x000a0002
+#define NSLCD_ACTION_RPC_ALL 0x000a0008
 
 /* Service (/etc/services) information requests. The BYNAME and BYNUMBER
    requests contain an extra protocol string in the request which, if not
@@ -180,9 +180,9 @@
      STRINGLIST  service aliases
      INT32       service (port) number
      STRING      service protocol */
-#define NSLCD_ACTION_SERVICE_BYNAME    0x000b0001
-#define NSLCD_ACTION_SERVICE_BYNUMBER  0x000b0002
-#define NSLCD_ACTION_SERVICE_ALL       0x000b0008
+#define NSLCD_ACTION_SERVICE_BYNAME 0x000b0001
+#define NSLCD_ACTION_SERVICE_BYNUMBER 0x000b0002
+#define NSLCD_ACTION_SERVICE_ALL 0x000b0008
 
 /* Extended user account (/etc/shadow) information requests. Result
    values for a single entry are:
@@ -195,8 +195,8 @@
      INT32   inact
      INT32   expire
      INT32   flag */
-#define NSLCD_ACTION_SHADOW_BYNAME     0x000c0001
-#define NSLCD_ACTION_SHADOW_ALL        0x000c0008
+#define NSLCD_ACTION_SHADOW_BYNAME 0x000c0001
+#define NSLCD_ACTION_SHADOW_ALL 0x000c0008
 
 /* PAM-related requests. The request parameters for all these requests
    begin with:
@@ -219,7 +219,7 @@
    authenticate as the administrator (set using rootpwmoddn).
    Some authorisation checks are already done during authentication so the
    response also includes authorisation information. */
-#define NSLCD_ACTION_PAM_AUTHC         0x000d0001
+#define NSLCD_ACTION_PAM_AUTHC 0x000d0001
 
 /* PAM authorisation check request. The result value consists of:
      INT32   authz NSLCD_PAM_* result code
@@ -228,18 +228,18 @@
    information. The authorisation error message, if supplied, will be used
    by the PAM module instead of a message that is generated by the PAM
    module itself. */
-#define NSLCD_ACTION_PAM_AUTHZ         0x000d0002
+#define NSLCD_ACTION_PAM_AUTHZ 0x000d0002
 
 /* PAM session open request. The result value consists of:
      STRING   session id
    This session id may be used to close this session with. */
-#define NSLCD_ACTION_PAM_SESS_O        0x000d0003
+#define NSLCD_ACTION_PAM_SESS_O 0x000d0003
 
 /* PAM session close request. This request has the following
    extra request value:
      STRING   session id
    and this calls only returns an empty response value. */
-#define NSLCD_ACTION_PAM_SESS_C        0x000d0004
+#define NSLCD_ACTION_PAM_SESS_C 0x000d0004
 
 /* PAM password modification request. This requests has the following extra
    request values:
@@ -249,7 +249,7 @@
    and returns there extra result values:
      INT32   NSLCD_PAM_* result code
      STRING  error message */
-#define NSLCD_ACTION_PAM_PWMOD         0x000d0005
+#define NSLCD_ACTION_PAM_PWMOD 0x000d0005
 
 /* User information change request. This request allows one to change
    their full name and other information. The request parameters for this
@@ -267,39 +267,39 @@
    (if the response is blank, the change went OK, otherwise the string
    contains an error message)
    */
-#define NSLCD_ACTION_USERMOD           0x000e0001
+#define NSLCD_ACTION_USERMOD 0x000e0001
 
 /* These are the possible values for the NSLCD_ACTION_USERMOD operation
    above. */
-#define NSLCD_USERMOD_END        0 /* end of change values */
-#define NSLCD_USERMOD_RESULT     1 /* global result value */
-#define NSLCD_USERMOD_FULLNAME   2 /* full name */
+#define NSLCD_USERMOD_END 0        /* end of change values */
+#define NSLCD_USERMOD_RESULT 1     /* global result value */
+#define NSLCD_USERMOD_FULLNAME 2   /* full name */
 #define NSLCD_USERMOD_ROOMNUMBER 3 /* room number */
-#define NSLCD_USERMOD_WORKPHONE  4 /* office phone number */
-#define NSLCD_USERMOD_HOMEPHONE  5 /* home phone number */
-#define NSLCD_USERMOD_OTHER      6 /* other info */
-#define NSLCD_USERMOD_HOMEDIR    7 /* home directory */
-#define NSLCD_USERMOD_SHELL      8 /* login shell */
+#define NSLCD_USERMOD_WORKPHONE 4  /* office phone number */
+#define NSLCD_USERMOD_HOMEPHONE 5  /* home phone number */
+#define NSLCD_USERMOD_OTHER 6      /* other info */
+#define NSLCD_USERMOD_HOMEDIR 7    /* home directory */
+#define NSLCD_USERMOD_SHELL 8      /* login shell */
 
 /* Request result codes. */
 #define NSLCD_RESULT_BEGIN 1
-#define NSLCD_RESULT_END   2
+#define NSLCD_RESULT_END 2
 
 /* Partial list of PAM result codes. */
-#define NSLCD_PAM_SUCCESS             0 /* everything ok */
-#define NSLCD_PAM_PERM_DENIED         6 /* Permission denied */
-#define NSLCD_PAM_AUTH_ERR            7 /* Authc failure */
-#define NSLCD_PAM_CRED_INSUFFICIENT   8 /* Cannot access authc data */
-#define NSLCD_PAM_AUTHINFO_UNAVAIL    9 /* Cannot retrieve authc info */
-#define NSLCD_PAM_USER_UNKNOWN       10 /* User not known */
-#define NSLCD_PAM_MAXTRIES           11 /* Retry limit reached */
-#define NSLCD_PAM_NEW_AUTHTOK_REQD   12 /* Password expired */
-#define NSLCD_PAM_ACCT_EXPIRED       13 /* Account expired */
-#define NSLCD_PAM_SESSION_ERR        14 /* Cannot make/remove session record */
-#define NSLCD_PAM_AUTHTOK_ERR        20 /* Authentication token manipulation error */
+#define NSLCD_PAM_SUCCESS 0           /* everything ok */
+#define NSLCD_PAM_PERM_DENIED 6       /* Permission denied */
+#define NSLCD_PAM_AUTH_ERR 7          /* Authc failure */
+#define NSLCD_PAM_CRED_INSUFFICIENT 8 /* Cannot access authc data */
+#define NSLCD_PAM_AUTHINFO_UNAVAIL 9  /* Cannot retrieve authc info */
+#define NSLCD_PAM_USER_UNKNOWN 10     /* User not known */
+#define NSLCD_PAM_MAXTRIES 11         /* Retry limit reached */
+#define NSLCD_PAM_NEW_AUTHTOK_REQD 12 /* Password expired */
+#define NSLCD_PAM_ACCT_EXPIRED 13     /* Account expired */
+#define NSLCD_PAM_SESSION_ERR 14      /* Cannot make/remove session record */
+#define NSLCD_PAM_AUTHTOK_ERR 20 /* Authentication token manipulation error */
 #define NSLCD_PAM_AUTHTOK_DISABLE_AGING 23 /* Password aging disabled */
-#define NSLCD_PAM_IGNORE             25 /* Ignore module */
-#define NSLCD_PAM_ABORT              26 /* Fatal error */
-#define NSLCD_PAM_AUTHTOK_EXPIRED    27 /* authentication token has expired */
+#define NSLCD_PAM_IGNORE 25                /* Ignore module */
+#define NSLCD_PAM_ABORT 26                 /* Fatal error */
+#define NSLCD_PAM_AUTHTOK_EXPIRED 27 /* authentication token has expired */
 
 #endif /* not _NSLCD_H */

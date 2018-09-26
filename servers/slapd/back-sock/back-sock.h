@@ -26,35 +26,26 @@
 LDAP_BEGIN_DECL
 
 struct sockinfo {
-	const char	*si_sockpath;
-	slap_mask_t	si_extensions;
-	slap_mask_t	si_ops;		/* overlay: operations to act on */
-	slap_mask_t	si_resps;	/* overlay: responses to forward */
-	regex_t	si_dnpat;		/* overlay: DN pattern to match */
-	struct berval 	si_dnpatstr;
+  const char *si_sockpath;
+  slap_mask_t si_extensions;
+  slap_mask_t si_ops;   /* overlay: operations to act on */
+  slap_mask_t si_resps; /* overlay: responses to forward */
+  regex_t si_dnpat;     /* overlay: DN pattern to match */
+  struct berval si_dnpatstr;
 };
 
-#define	SOCK_EXT_BINDDN	1
-#define	SOCK_EXT_PEERNAME	2
-#define	SOCK_EXT_SSF		4
-#define	SOCK_EXT_CONNID		8
+#define SOCK_EXT_BINDDN 1
+#define SOCK_EXT_PEERNAME 2
+#define SOCK_EXT_SSF 4
+#define SOCK_EXT_CONNID 8
 
-extern FILE *opensock LDAP_P((
-	const char *sockpath));
+extern FILE *opensock(const char *sockpath);
 
-extern void sock_print_suffixes LDAP_P((
-	FILE *fp,
-	BackendDB *bd));
+extern void sock_print_suffixes(FILE *fp, BackendDB *bd);
 
-extern void sock_print_conn LDAP_P((
-	FILE *fp,
-	Connection *conn,
-	struct sockinfo *si));
+extern void sock_print_conn(FILE *fp, Connection *conn, struct sockinfo *si);
 
-extern int sock_read_and_send_results LDAP_P((
-	Operation *op,
-	SlapReply *rs,
-	FILE *fp));
+extern int sock_read_and_send_results(Operation *op, SlapReply *rs, FILE *fp);
 
 LDAP_END_DECL
 

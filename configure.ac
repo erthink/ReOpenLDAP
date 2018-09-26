@@ -141,7 +141,7 @@ AC_SUBST(FIXUP_DIRS)
 
 AC_LANG([C])
 AC_ARG_VAR(EXTRA_CFLAGS, [Extra build-time CFLAGS, e.g. -Wall -Werror.
-		Alternatively, ones can be specified or overridden by invocation 'make EXTRA_CLAGS="a b c"'])
+		Alternatively, ones can be specified or overridden by invocation 'make EXTRA_CFLAGS="a b c"'])
 AC_PREFIX_DEFAULT("/opt/reopenldap")
 
 dnl ----------------------------------------------------------------
@@ -237,9 +237,6 @@ AH_TOP([
 ])
 AH_BOTTOM([
 /* begin of reldap_autoconf.h.post */
-
-/* force LDAP_P to always include prototypes */
-#define LDAP_NEEDS_PROTOTYPES 1
 
 #ifdef HAVE_FEATURES_H
 #	include <features.h>
@@ -469,38 +466,38 @@ slapd_backends="mdb bdb dnssrv hdb ldap meta monitor ndb null passwd perl \
 AC_ARG_ENABLE(xxslapbackends,[
 SLAPD Backend Options:])
 
-OL_ARG_ENABLE(backends,[    --enable-backends	  enable all available backends],
+OL_ARG_ENABLE(backends,[    --enable-backends	  enable all stable/non-experimental backends],
 	--, [no yes mod])dnl
 OL_ARG_ENABLE(mdb,[    --enable-mdb	  enable MDBX database backend],
 	yes, [no yes mod], ol_enable_backends)dnl
-OL_ARG_ENABLE(hdb,[    --enable-hdb	  enable Hierarchical Berkeley DB backend],
+OL_ARG_ENABLE(hdb,[    --enable-hdb	  enable Hierarchical Berkeley DB backend (obsolete)],
 	no, [no yes mod], ol_enable_backends)dnl
-OL_ARG_ENABLE(bdb,[    --enable-bdb	  enable Berkeley DB backend],
+OL_ARG_ENABLE(bdb,[    --enable-bdb	  enable Berkeley DB backend (obsolete)],
 	no, [no yes mod], ol_enable_backends)dnl
-OL_ARG_ENABLE(dnssrv,[    --enable-dnssrv	  enable dnssrv backend],
-	no, [no yes mod], ol_enable_backends)dnl
+OL_ARG_ENABLE(dnssrv,[    --enable-dnssrv	  enable dnssrv backend (experimental)],
+	no, [no yes mod], ol_enable_experimental)dnl
 OL_ARG_ENABLE(ldap,[    --enable-ldap	  enable ldap backend],
 	no, [no yes mod], ol_enable_backends)dnl
 OL_ARG_ENABLE(meta,[    --enable-meta	  enable metadirectory backend],
 	no, [no yes mod], ol_enable_backends)dnl
 OL_ARG_ENABLE(monitor,[    --enable-monitor	  enable monitor backend],
 	yes, [no yes mod], ol_enable_backends)dnl
-OL_ARG_ENABLE(ndb,[    --enable-ndb	  enable MySQL NDB Cluster backend],
-	no, [no yes mod], ol_enable_backends)dnl
+OL_ARG_ENABLE(ndb,[    --enable-ndb	  enable MySQL NDB Cluster backend (experimental)],
+	no, [no yes mod], ol_enable_experimental)dnl
 OL_ARG_ENABLE(null,[    --enable-null	  enable null backend],
 	no, [no yes mod], ol_enable_backends)dnl
 OL_ARG_ENABLE(passwd,[    --enable-passwd	  enable passwd backend],
 	no, [no yes mod], ol_enable_backends)dnl
 OL_ARG_ENABLE(perl,[    --enable-perl	  enable perl backend],
 	no, [no yes mod], ol_enable_backends)dnl
-OL_ARG_ENABLE(relay,[    --enable-relay  	  enable relay backend],
-	yes, [no yes mod], ol_enable_backends)dnl
+OL_ARG_ENABLE(relay,[    --enable-relay  	  enable relay backend (experimental)],
+	yes, [no yes mod], ol_enable_experimental)dnl
 OL_ARG_ENABLE(shell,[    --enable-shell	  enable shell backend],
 	no, [no yes mod], ol_enable_backends)dnl
 OL_ARG_ENABLE(sock,[    --enable-sock	  enable sock backend],
 	no, [no yes mod], ol_enable_backends)dnl
-OL_ARG_ENABLE(sql,[    --enable-sql	  enable sql backend],
-	no, [no yes mod], ol_enable_backends)dnl
+OL_ARG_ENABLE(sql,[    --enable-sql	  enable SQL backend (experimental and buggy)],
+	no, [no yes mod], ol_enable_experimental)dnl
 
 dnl ----------------------------------------------------------------
 dnl SLAPD Overlay Options
@@ -1029,7 +1026,7 @@ fi
 dnl ----------------------------------------------------------------
 dnl UUID Support
 
-PKG_CHECK_MODULES(UUID, uuid, uuid_found=yes, uuid_found=no)
+PKG_CHECK_MODULES(UUID, uuid, uuid_found=yes, [PKG_CHECK_MODULES(UUID, ossp-uuid, uuid_found=yes, uuid_found=no)])
 AC_SUBST(UUID_LIBS)
 AC_SUBST(UUID_CFLAGS)
 if test $uuid_found = yes ; then
@@ -1925,17 +1922,41 @@ ol_link_ndb=no
 if test $ol_enable_ndb != no ; then
 	mysql_cluster_path=$(find -L /opt /usr/local $(echo $PATH | tr ':' ' ') -maxdepth 2 -name 'mysql-cluster*' -type d 2>/dev/null -printf "%p/bin$PATH_SEPARATOR")
 	dnl echo "mysql_cluster_path=$mysql_cluster_path"
-	AC_PATH_PROG(MYSQL,mysql_config,no,$mysql_cluster_path)
-	if test "$MYSQL" = no ; then
-		AC_MSG_ERROR([could not locate mysql_config])
+	MYSQL_CONFIG=
+	AC_PATH_PROG(MYSQL_CONFIG,mysql_config,,$mysql_cluster_path$PATH)
+	if test -z "$MYSQL_CONFIG"; then
+		AC_MSG_ERROR([could not locate mysql_config for NDB backend])
+	fi
+	NDB_LDFLAGS="`$MYSQL_CONFIG --libs_r`"
+	MYSQL_NDB_INC="`$MYSQL_CONFIG --include`"
+
+	AC_MSG_CHECKING([for ndbclient include directory])
+	MYSQL_NDB_INCDIR="`$MYSQL_CONFIG --variable=pkgincludedir`";
+	if test -z "$MYSQL_NDB_INCDIR"; then
+		MYSQL_NDB_INCDIR="`$MYSQL_CONFIG --include | sed 's/^-I /-I/g' | tr '[[:space:]]' '\n' | grep ^-I | sed 's/^-I//' | head -n 1`";
+	fi
+	if test -n "$MYSQL_NDB_INCDIR" -a -d "$MYSQL_NDB_INCDIR/storage/ndb/ndbapi"; then
+		NDB_INCLUDES="$MYSQL_NDB_INC $MYSQL_NDB_INC/storage/ndb $MYSQL_NDB_INC/storage/ndb/ndbapi"
+		AC_MSG_RESULT([$MYSQL_NDB_INCDIR/storage/ndb/ndbapi])
+	else
+		AC_MSG_ERROR([could not locate .../storage/ndb/ndbapi for NDB backend])
 	fi
 
-	SQL_INC=`$MYSQL --include`
-	NDB_INCLUDES="$SQL_INC $SQL_INC/storage/ndb $SQL_INC/storage/ndb/ndbapi"
+	AC_MSG_CHECKING([for ndbclient libraries directory])
+	MYSQL_NDB_LIBDIR="`$MYSQL_CONFIG --variable=pkglibdir`";
+	if test -z "$MYSQL_NDB_LIBDIR"; then
+		MYSQL_NDB_LIBDIR="`$MYSQL_CONFIG --libs_r | sed 's/^-L /-L/g' | tr '[[:space:]]' '\n' | grep ^-L | sed 's/^-L//'`"
+	fi
+	if test -n "$MYSQL_NDB_LIBDIR" -a -d "$MYSQL_NDB_LIBDIR"; then
+		AC_MSG_RESULT([$MYSQL_NDB_LIBDIR])
+	else
+		AC_MSG_RESULT([none])
+	fi
+	NDB_LIBS="$NDB_LDFLAGS -lndbclient -lstdc++"
 
+	AC_MSG_CHECKING(for NdbApi.hpp)
 	save_CPPFLAGS="$CPPFLAGS"
 	CPPFLAGS="$NDB_INCLUDES"
-	AC_MSG_CHECKING(for NdbApi.hpp)
 	AC_PREPROC_IFELSE(
 		[AC_LANG_SOURCE([[#include <NdbApi.hpp>]])],
 			AC_MSG_RESULT(yes),
@@ -1943,26 +1964,25 @@ if test $ol_enable_ndb != no ; then
 	)
 	CPPFLAGS="$save_CPPFLAGS"
 
-	SQL_LIB="`$MYSQL --libs_r`"
-	NDB_LIBS="$SQL_LIB -lndbclient -lstdc++"
-
 	save_LDFLAGS="$LDFLAGS"
 	save_LIBS="$LIBS"
-	LDFLAGS="$SQL_LIB"
-	AC_CHECK_LIB(ndbclient,ndb_init,[: $SQL_LIB],[
+	LDFLAGS="$LDFLAGS $NDB_LDFLAGS"
+	AC_CHECK_LIB(ndbclient,ndb_init,[: $NDB_LDFLAGS],[
 		AC_MSG_ERROR([could not locate ndbclient library])
 	],[-lstdc++])
 	LIBS="$save_LIBS"
 	LDFLAGS="$save_LDFLAGS"
 
-	AC_MSG_CHECKING([ndb library present in ld.so search path])
-	NDB_LIBDIR="`$MYSQL --libs_r | sed 's/^-L /-L/g' | tr '[[:space:]]' '\n' | grep ^-L | sed 's/^-L//'`"
-	if ldconfig -v 2>/dev/null | grep -q "^$NDB_LIBDIR:"; then
-		AC_MSG_RESULT(yes)
-	else
-		AC_MSG_RESULT(no, -rpath option will be passed to linker)
-		NDB_LDFLAGS="$NDB_LDFLAGS -Wl,-rpath,$NDB_LIBDIR"
-		NDB_RDIR="$NDB_RDIR -R$NDB_LIBDIR"
+	NDB_RDIR=
+	if test -n "$MYSQL_NDB_LIBDIR"; then
+		AC_MSG_CHECKING([ndbclient library present in ld.so search path])
+		if ldconfig -v 2>/dev/null | grep -q "^$MYSQL_NDB_LIBDIR:"; then
+			AC_MSG_RESULT(yes)
+		else
+			AC_MSG_RESULT(no, -rpath option will be passed to linker)
+			NDB_LDFLAGS="$NDB_LDFLAGS -Wl,-rpath,$MYSQL_NDB_LIBDIR"
+			NDB_RDIR="-R$MYSQL_NDB_LIBDIR"
+		fi
 	fi
 fi
 

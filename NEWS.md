@@ -1,3 +1,67 @@
+v1.1.10 2018-09-26, Golden Bull
+===============================
+
+## Briefly:
+ 1. Prevention mdb-backend database corruption.
+
+    > Corresponding [rebalance bug](https://github.com/leo-yuriev/libmdbx/issues/38) inheritred from LMDB/OpenLDAP.
+    > Now it completely fixed in the `devel` branch and future ReOpenLDAP 1.2.x versions,
+    > where the new _libmdbx_ version is used.
+    >
+    > Unfortunately these fixes cannot be backported into the legacy _libmdbx_ version,
+    > which used in the `master` branch and 1.1.x versions.
+    > On the other hand, the conditions prerequisite for DB corruption are extremely rare and
+    > maybe cannot be reproduced by LDAP use cases.
+    >
+    > Therefore 1.1.10 and later 1.1.x releases (the `stable/1.1` branch) will not contain the complete fix,
+    > but only the minimal changes for prevention such corruption,
+    > i.e. will **return error and abort transaction instead of DB corruption**.
+
+ 2. Improvements for configure, building. Cleanup and reformatting the source code.
+ 3. Other minor bugs were fixed.
+
+### New features and Compatibility breaking: _none_
+
+### Documentation:
+ * mdbx: `mdb_cursor_del` don't invalidate the cursor (ITS#8857).
+ * mdbx: `GET_MULTIPLE` don't return the key (ITS#8908).
+ * doc: update `README.md`
+
+### Major and Security bugs:
+ * mdbx: prevent DB corruption due rebalance bugs.
+
+### Minor bugs:
+ * libreldap: fix "retry `gnutls_handshake` after `GNUTLS_E_AGAIN`" (ITS#8650).
+ * slapd: omit hidden DBs from rootDse (ITS#8912).
+ * slapd: fix `authz-policy all` condition (ITS#8909).
+ * backend-mdb, backend-bdb: fix index delete.
+
+### Performance: _none_
+
+### Build:
+ * reopenldap: fix GCC-8.x warnings.
+ * libreldap: add missing includes (ITS#8809).
+ * configure: rework search `NdbClient` headers and libraries.
+ * configure: add `OSSP-UUID` search for modern _Fedora/RHEL_.
+ * configure: fix `EXTRA_CFLAGS` typo.
+ * configure: explicit separation of experimental backends.
+ * configure: refine error-msg for mysql_cluster's `mysql_config`.
+
+### Cosmetics:
+ * reopenldap: fix typo with ITS#8843 description.
+ * reopenldap: reformat source code by `clang-format-6.0`.
+ * reopenldap: remove `LDAP_P` macro.
+ * reopenldap: drop `LDAP_CONST` macro.
+
+### Other:
+ * mdbx: drop inherited broken audit.
+ * tests: export `LC_ALL=C` as workaround as Fedora's `diff` utility bugs.
+ * ci: add `LIBTOOL_SUPPRESS_DEFAULT=no` into scripts.
+ * ci: add `ci/fedora.sh` script.
+ * ci: update `ci/debian.sh` script.
+
+--------------------------------------------------------------------------------
+
 v1.1.9 2018-08-02, Airborne Positive
 ====================================
 

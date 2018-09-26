@@ -28,32 +28,28 @@
 #include "slap.h"
 #include "shell.h"
 
-int
-shell_back_unbind(
-    Operation		*op,
-    SlapReply		*rs
-)
-{
-	struct shellinfo	*si = (struct shellinfo *) op->o_bd->be_private;
-	FILE			*rfp, *wfp;
+int shell_back_unbind(Operation *op, SlapReply *rs) {
+  struct shellinfo *si = (struct shellinfo *)op->o_bd->be_private;
+  FILE *rfp, *wfp;
 
-	if ( si->si_unbind == NULL ) {
-		return 0;
-	}
+  if (si->si_unbind == NULL) {
+    return 0;
+  }
 
-	if ( forkandexec( si->si_unbind, &rfp, &wfp ) == (pid_t)-1 ) {
-		return 0;
-	}
+  if (forkandexec(si->si_unbind, &rfp, &wfp) == (pid_t)-1) {
+    return 0;
+  }
 
-	/* write out the request to the unbind process */
-	fprintf( wfp, "UNBIND\n" );
-	fprintf( wfp, "msgid: %ld\n", (long) op->o_msgid );
-	print_suffixes( wfp, op->o_bd );
-	fprintf( wfp, "dn: %s\n", (op->o_conn->c_dn.bv_len ? op->o_conn->c_dn.bv_val : "") );
-	fclose( wfp );
+  /* write out the request to the unbind process */
+  fprintf(wfp, "UNBIND\n");
+  fprintf(wfp, "msgid: %ld\n", (long)op->o_msgid);
+  print_suffixes(wfp, op->o_bd);
+  fprintf(wfp, "dn: %s\n",
+          (op->o_conn->c_dn.bv_len ? op->o_conn->c_dn.bv_val : ""));
+  fclose(wfp);
 
-	/* no response to unbind */
-	fclose( rfp );
+  /* no response to unbind */
+  fclose(rfp);
 
-	return 0;
+  return 0;
 }

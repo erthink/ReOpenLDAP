@@ -22,58 +22,58 @@
 #include "slap.h"
 
 enum slaptool {
-	SLAPADD=1,	/* LDIF -> database tool */
-	SLAPCAT,	/* database -> LDIF tool */
-	SLAPDN,		/* DN check w/ syntax tool */
-	SLAPINDEX,	/* database index tool */
-	SLAPPASSWD,	/* password generation tool */
-	SLAPSCHEMA,	/* schema checking tool */
-	SLAPTEST,	/* slapd.conf test tool */
-	SLAPAUTH,	/* test authz-regexp and authc/authz stuff */
-	SLAPACL,	/* test acl */
-	SLAPLAST
+  SLAPADD = 1, /* LDIF -> database tool */
+  SLAPCAT,     /* database -> LDIF tool */
+  SLAPDN,      /* DN check w/ syntax tool */
+  SLAPINDEX,   /* database index tool */
+  SLAPPASSWD,  /* password generation tool */
+  SLAPSCHEMA,  /* schema checking tool */
+  SLAPTEST,    /* slapd.conf test tool */
+  SLAPAUTH,    /* test authz-regexp and authc/authz stuff */
+  SLAPACL,     /* test acl */
+  SLAPLAST
 };
 
 typedef struct tool_vars {
-	Backend *tv_be;
-	int tv_dbnum;
-	int tv_verbose;
-	int tv_quiet;
-	int tv_update_ctxcsn;
-	int tv_continuemode;
-	int tv_nosubordinates;
-	int tv_dryrun;
-	unsigned long tv_jumpline;
-	struct berval tv_sub_ndn;
-	int tv_scope;
-	Filter *tv_filter;
-	struct LDIFFP	*tv_ldiffp;
-	struct berval tv_baseDN;
-	struct berval tv_authcDN;
-	struct berval tv_authzDN;
-	struct berval tv_authcID;
-	struct berval tv_authzID;
-	struct berval tv_mech;
-	char	*tv_realm;
-	struct berval tv_listener_url;
-	struct berval tv_peer_domain;
-	struct berval tv_peer_name;
-	struct berval tv_sock_name;
-	slap_ssf_t tv_ssf;
-	slap_ssf_t tv_transport_ssf;
-	slap_ssf_t tv_tls_ssf;
-	slap_ssf_t tv_sasl_ssf;
-	unsigned tv_dn_mode;
-	unsigned int tv_csnsid;
-	ber_len_t tv_ldif_wrap;
-	char tv_maxcsnbuf[ LDAP_PVT_CSNSTR_BUFSIZE * ( SLAP_SYNC_SID_MAX + 1 ) ];
-	struct berval tv_maxcsn[ SLAP_SYNC_SID_MAX + 1 ];
+  Backend *tv_be;
+  int tv_dbnum;
+  int tv_verbose;
+  int tv_quiet;
+  int tv_update_ctxcsn;
+  int tv_continuemode;
+  int tv_nosubordinates;
+  int tv_dryrun;
+  unsigned long tv_jumpline;
+  struct berval tv_sub_ndn;
+  int tv_scope;
+  Filter *tv_filter;
+  struct LDIFFP *tv_ldiffp;
+  struct berval tv_baseDN;
+  struct berval tv_authcDN;
+  struct berval tv_authzDN;
+  struct berval tv_authcID;
+  struct berval tv_authzID;
+  struct berval tv_mech;
+  char *tv_realm;
+  struct berval tv_listener_url;
+  struct berval tv_peer_domain;
+  struct berval tv_peer_name;
+  struct berval tv_sock_name;
+  slap_ssf_t tv_ssf;
+  slap_ssf_t tv_transport_ssf;
+  slap_ssf_t tv_tls_ssf;
+  slap_ssf_t tv_sasl_ssf;
+  unsigned tv_dn_mode;
+  unsigned int tv_csnsid;
+  ber_len_t tv_ldif_wrap;
+  char tv_maxcsnbuf[LDAP_PVT_CSNSTR_BUFSIZE * (SLAP_SYNC_SID_MAX + 1)];
+  struct berval tv_maxcsn[SLAP_SYNC_SID_MAX + 1];
 } tool_vars;
 
 extern tool_vars tool_globals;
 
-#define	be tool_globals.tv_be
-#define	dbnum tool_globals.tv_dbnum
+#define be tool_globals.tv_be
+#define dbnum tool_globals.tv_dbnum
 #define verbose tool_globals.tv_verbose
 #define quiet tool_globals.tv_quiet
 #define jumpline tool_globals.tv_jumpline
@@ -106,34 +106,22 @@ extern tool_vars tool_globals;
 #define maxcsn tool_globals.tv_maxcsn
 #define maxcsnbuf tool_globals.tv_maxcsnbuf
 
-#define SLAP_TOOL_LDAPDN_PRETTY		SLAP_LDAPDN_PRETTY
-#define SLAP_TOOL_LDAPDN_NORMAL		(SLAP_LDAPDN_PRETTY << 1)
+#define SLAP_TOOL_LDAPDN_PRETTY SLAP_LDAPDN_PRETTY
+#define SLAP_TOOL_LDAPDN_NORMAL (SLAP_LDAPDN_PRETTY << 1)
 
-void slap_tool_init LDAP_P((
-	const char* name,
-	int tool,
-	int argc, char **argv ));
+void slap_tool_init(const char *name, int tool, int argc, char **argv);
 
-int slap_tool_destroy LDAP_P((void));
+int slap_tool_destroy(void);
 
-int slap_tool_update_ctxcsn LDAP_P((
-	const char *progname,
-	unsigned long sid,
-	struct berval *bvtext ));
+int slap_tool_update_ctxcsn(const char *progname, unsigned long sid,
+                            struct berval *bvtext);
 
-unsigned long slap_tool_update_ctxcsn_check LDAP_P((
-	const char *progname,
-	Entry *e ));
+unsigned long slap_tool_update_ctxcsn_check(const char *progname, Entry *e);
 
-int slap_tool_update_ctxcsn_init LDAP_P((void));
+int slap_tool_update_ctxcsn_init(void);
 
-int slap_tool_entry_check LDAP_P((
-	const char *progname,
-	Operation *op,
-	Entry *e,
-	int lineno,
-	const char **text,
-	char *textbuf,
-	size_t textlen ));
+int slap_tool_entry_check(const char *progname, Operation *op, Entry *e,
+                          int lineno, const char **text, char *textbuf,
+                          size_t textlen);
 
 #endif /* SLAPCOMMON_H_ */

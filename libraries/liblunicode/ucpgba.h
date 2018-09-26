@@ -57,29 +57,29 @@ LDAP_BEGIN_DECL
 /*
  * These are the flags for cursor motion.
  */
-#define UCPGBA_CURSOR_VISUAL  0
+#define UCPGBA_CURSOR_VISUAL 0
 #define UCPGBA_CURSOR_LOGICAL 1
 
 /*
  * This structure is used to contain runs of text in a particular direction.
  */
 typedef struct _ucrun_t {
-    struct _ucrun_t *visual_prev;  /* Pointer to the previous visual run.    */
-    struct _ucrun_t *visual_next;  /* Pointer to the next visual run.        */
+  struct _ucrun_t *visual_prev; /* Pointer to the previous visual run.    */
+  struct _ucrun_t *visual_next; /* Pointer to the next visual run.        */
 
-    struct _ucrun_t *logical_prev; /* Pointer to the previous logical run.   */
-    struct _ucrun_t *logical_next; /* Pointer to the next logical run.       */
+  struct _ucrun_t *logical_prev; /* Pointer to the previous logical run.   */
+  struct _ucrun_t *logical_next; /* Pointer to the next logical run.       */
 
-    int direction;                 /* Direction of the run.                  */
+  int direction; /* Direction of the run.                  */
 
-    long cursor;                   /* Position of "cursor" in the string.    */
+  long cursor; /* Position of "cursor" in the string.    */
 
-    unsigned long *chars;          /* List of characters for the run.        */
-    unsigned long *positions;      /* List of original positions in source.  */
+  unsigned long *chars;     /* List of characters for the run.        */
+  unsigned long *positions; /* List of original positions in source.  */
 
-    unsigned long *source;         /* The source string.                     */
-    unsigned long start;           /* Beginning offset in the source string. */
-    unsigned long end;             /* Ending offset in the source string.    */
+  unsigned long *source; /* The source string.                     */
+  unsigned long start;   /* Beginning offset in the source string. */
+  unsigned long end;     /* Ending offset in the source string.    */
 } ucrun_t;
 
 /*
@@ -87,21 +87,21 @@ typedef struct _ucrun_t {
  * platform specific.
  */
 typedef struct _ucstring_t {
-    int direction;                /* Overall direction of the string.       */
+  int direction; /* Overall direction of the string.       */
 
-    int cursor_motion;            /* Logical or visual cursor motion flag.  */
+  int cursor_motion; /* Logical or visual cursor motion flag.  */
 
-    ucrun_t *cursor;              /* The run containing the "cursor."       */
+  ucrun_t *cursor; /* The run containing the "cursor."       */
 
-    ucrun_t *logical_first;       /* First run in the logical order.        */
-    ucrun_t *logical_last;        /* Last run in the logical order.         */
+  ucrun_t *logical_first; /* First run in the logical order.        */
+  ucrun_t *logical_last;  /* Last run in the logical order.         */
 
-    ucrun_t *visual_first;        /* First run in the visual order.         */
-    ucrun_t *visual_last;         /* Last run in the visual order.          */
+  ucrun_t *visual_first; /* First run in the visual order.         */
+  ucrun_t *visual_last;  /* Last run in the visual order.          */
 
-    unsigned long *source;        /* The source string.                     */
-    unsigned long start;          /* The beginning offset in the source.    */
-    unsigned long end;            /* The ending offset in the source.       */
+  unsigned long *source; /* The source string.                     */
+  unsigned long start;   /* The beginning offset in the source.    */
+  unsigned long end;     /* The ending offset in the source.       */
 } ucstring_t;
 
 /***************************************************************************
@@ -116,23 +116,19 @@ typedef struct _ucstring_t {
  * of a string containing no strong direction characters and the default
  * cursor motion should be provided.
  */
-LDAP_LUNICODE_F (ucstring_t *)
-ucstring_create LDAP_P((unsigned long *source,
-		        unsigned long start,
-		        unsigned long end,
-		        int default_direction,
-		        int cursor_motion));
+LDAP_LUNICODE_F(ucstring_t *)
+ucstring_create(unsigned long *source, unsigned long start, unsigned long end,
+                int default_direction, int cursor_motion);
 /*
  * This releases the string.
  */
-LDAP_LUNICODE_F (void) ucstring_free LDAP_P((ucstring_t *string));
+LDAP_LUNICODE_F(void) ucstring_free(ucstring_t *string);
 
 /*
  * This changes the cursor motion flag for the string.
  */
-LDAP_LUNICODE_F (int)
-ucstring_set_cursor_motion LDAP_P((ucstring_t *string,
-				   int cursor_motion));
+LDAP_LUNICODE_F(int)
+ucstring_set_cursor_motion(ucstring_t *string, int cursor_motion);
 
 /*
  * This function will move the cursor to the right depending on the
@@ -141,8 +137,8 @@ ucstring_set_cursor_motion LDAP_P((ucstring_t *string,
  * A 0 is returned if no cursor motion is performed, otherwise a
  * 1 is returned.
  */
-LDAP_LUNICODE_F (int)
-ucstring_cursor_right LDAP_P((ucstring_t *string, int count));
+LDAP_LUNICODE_F(int)
+ucstring_cursor_right(ucstring_t *string, int count);
 
 /*
  * This function will move the cursor to the left depending on the
@@ -151,16 +147,16 @@ ucstring_cursor_right LDAP_P((ucstring_t *string, int count));
  * A 0 is returned if no cursor motion is performed, otherwise a
  * 1 is returned.
  */
-LDAP_LUNICODE_F (int)
-ucstring_cursor_left LDAP_P((ucstring_t *string, int count));
+LDAP_LUNICODE_F(int)
+ucstring_cursor_left(ucstring_t *string, int count);
 
 /*
  * This routine retrieves the direction of the run containing the cursor
  * and the actual position in the original text string.
  */
-LDAP_LUNICODE_F (void)
-ucstring_cursor_info LDAP_P((ucstring_t *string, int *direction,
-			     unsigned long *position));
+LDAP_LUNICODE_F(void)
+ucstring_cursor_info(ucstring_t *string, int *direction,
+                     unsigned long *position);
 
 LDAP_END_DECL
 

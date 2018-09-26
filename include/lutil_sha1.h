@@ -24,7 +24,6 @@
 
 LDAP_BEGIN_DECL
 
-
 /*
  * SHA-1 in C
  * By Steve Reid <steve@edmweb.com>
@@ -34,38 +33,32 @@ LDAP_BEGIN_DECL
 /* This code assumes char are 8-bits and uint32 are 32-bits */
 
 typedef struct {
-    uint32_t state[5];
-    uint32_t count[2];
-    unsigned char buffer[64];
+  uint32_t state[5];
+  uint32_t count[2];
+  unsigned char buffer[64];
 } lutil_SHA1_CTX;
 
-LDAP_LUTIL_F( void )
-lutil_SHA1Transform
-	LDAP_P((uint32_t state[5], const unsigned char buffer[64]));
+LDAP_LUTIL_F(void)
+lutil_SHA1Transform(uint32_t state[5], const unsigned char buffer[64]);
 
-LDAP_LUTIL_F( void  )
-lutil_SHA1Init
-	LDAP_P((lutil_SHA1_CTX *context));
+LDAP_LUTIL_F(void)
+lutil_SHA1Init(lutil_SHA1_CTX *context);
 
-LDAP_LUTIL_F( void  )
-lutil_SHA1Update
-	LDAP_P((lutil_SHA1_CTX *context, const unsigned char *data, uint32_t len));
+LDAP_LUTIL_F(void)
+lutil_SHA1Update(lutil_SHA1_CTX *context, const unsigned char *data,
+                 uint32_t len);
 
-LDAP_LUTIL_F( void  )
-lutil_SHA1Final
-	LDAP_P((unsigned char digest[20], lutil_SHA1_CTX *context));
+LDAP_LUTIL_F(void)
+lutil_SHA1Final(unsigned char digest[20], lutil_SHA1_CTX *context);
 
-LDAP_LUTIL_F( char * )
-lutil_SHA1End
-	LDAP_P((lutil_SHA1_CTX *, char *));
+LDAP_LUTIL_F(char *)
+lutil_SHA1End(lutil_SHA1_CTX *, char *);
 
-LDAP_LUTIL_F( char * )
-lutil_SHA1File
-	LDAP_P((char *, char *));
+LDAP_LUTIL_F(char *)
+lutil_SHA1File(char *, char *);
 
-LDAP_LUTIL_F( char * )
-lutil_SHA1Data
-	LDAP_P((const unsigned char *, size_t, char *));
+LDAP_LUTIL_F(char *)
+lutil_SHA1Data(const unsigned char *, size_t, char *);
 
 LDAP_END_DECL
 

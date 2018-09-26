@@ -35,78 +35,67 @@
 
 static char *hash[] = {
 #ifdef SLAP_AUTHPASSWD
-	"SHA1", "MD5",
+    "SHA1", "MD5",
 #else
 #ifdef SLAPD_CRYPT
-	"{CRYPT}",
+    "{CRYPT}",
 #endif
-	"{SSHA}", "{SMD5}",
-	"{SHA}", "{MD5}",
-	"{BOGUS}",
+    "{SSHA}",  "{SMD5}", "{SHA}", "{MD5}", "{BOGUS}",
 #endif
-	NULL
-};
+    NULL};
 
-static struct berval pw[] = {
-	{ sizeof("secret")-1,			"secret" },
-	{ sizeof("binary\0secret")-1,	"binary\0secret" },
-	{ 0, NULL }
-};
+static struct berval pw[] = {{sizeof("secret") - 1, "secret"},
+                             {sizeof("binary\0secret") - 1, "binary\0secret"},
+                             {0, NULL}};
 
-int
-main( int argc, char *argv[] )
-{
-	int i, j, rc;
-	struct berval *passwd;
+int main(int argc, char *argv[]) {
+  int i, j, rc;
+  struct berval *passwd;
 #ifdef SLAP_AUTHPASSWD
-	struct berval *salt;
+  struct berval *salt;
 #endif
-	struct berval bad;
-	bad.bv_val = "bad password";
-	bad.bv_len = sizeof("bad password")-1;
+  struct berval bad;
+  bad.bv_val = "bad password";
+  bad.bv_len = sizeof("bad password") - 1;
 
-	for( i= 0; hash[i]; i++ ) {
-		for( j = 0; pw[j].bv_len; j++ ) {
+  for (i = 0; hash[i]; i++) {
+    for (j = 0; pw[j].bv_len; j++) {
 #ifdef SLAP_AUTHPASSWD
-			rc = lutil_authpasswd_hash( &pw[j],
-				&passwd, &salt, hash[i] );
+      rc = lutil_authpasswd_hash(&pw[j], &passwd, &salt, hash[i]);
 
-			if( rc )
+      if (rc)
 #else
-			passwd = lutil_passwd_hash( &pw[j], hash[i] );
+      passwd = lutil_passwd_hash(&pw[j], hash[i]);
 
-			if( passwd == NULL )
+      if (passwd == NULL)
 #endif
-			{
-				printf("%s generate fail: %s (%d)\n",
-					hash[i], pw[j].bv_val, pw[j].bv_len );
-				continue;
-			}
-
+      {
+        printf("%s generate fail: %s (%d)\n", hash[i], pw[j].bv_val,
+               pw[j].bv_len);
+        continue;
+      }
 
 #ifdef SLAP_AUTHPASSWD
-			rc = lutil_authpasswd( &pw[j], passwd, salt, NULL );
+      rc = lutil_authpasswd(&pw[j], passwd, salt, NULL);
 #else
-			rc = lutil_passwd( passwd, &pw[j], NULL );
+      rc = lutil_passwd(passwd, &pw[j], NULL);
 #endif
 
-			printf("%s (%d): %s (%d)\t(%d) %s\n",
-				pw[j].bv_val, pw[j].bv_len, passwd->bv_val, passwd->bv_len,
-				rc, rc == 0 ? "OKAY" : "BAD" );
+      printf("%s (%d): %s (%d)\t(%d) %s\n", pw[j].bv_val, pw[j].bv_len,
+             passwd->bv_val, passwd->bv_len, rc, rc == 0 ? "OKAY" : "BAD");
 
 #ifdef SLAP_AUTHPASSWD
-			rc = lutil_authpasswd( passwd, salt, &bad, NULL );
+      rc = lutil_authpasswd(passwd, salt, &bad, NULL);
 #else
-			rc = lutil_passwd( passwd, &bad, NULL );
+      rc = lutil_passwd(passwd, &bad, NULL);
 #endif
 
-			printf("%s (%d): %s (%d)\t(%d) %s\n",
-				bad.bv_val, bad.bv_len, passwd->bv_val, passwd->bv_len,
-				rc, rc != 0 ? "OKAY" : "BAD" );
-		}
+      printf("%s (%d): %s (%d)\t(%d) %s\n", bad.bv_val, bad.bv_len,
+             passwd->bv_val, passwd->bv_len, rc, rc != 0 ? "OKAY" : "BAD");
+    }
 
-		printf("\n");
-	}
+    printf("\n");
+  }
 
-	return EXIT_SUCCESS;
+  return EXIT_SUCCESS;
 }

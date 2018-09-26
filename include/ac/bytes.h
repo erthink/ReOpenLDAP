@@ -23,17 +23,17 @@
  * Definitions for byte order, according to byte significance from low
  * address to high.
  */
-#define LITTLE_ENDIAN   1234    /* LSB first: i386, vax */
-#define BIG_ENDIAN  4321        /* MSB first: 68000, ibm, net */
-#define PDP_ENDIAN  3412        /* LSB first in word, MSW first in long */
+#define LITTLE_ENDIAN 1234 /* LSB first: i386, vax */
+#define BIG_ENDIAN 4321    /* MSB first: 68000, ibm, net */
+#define PDP_ENDIAN 3412    /* LSB first in word, MSW first in long */
 
 /* assume autoconf's AC_C_BIGENDIAN has been ran */
 /* if it hasn't, we assume (maybe falsely) the order is LITTLE ENDIAN */
-#	ifdef WORDS_BIGENDIAN
-#		define BYTE_ORDER  BIG_ENDIAN
-#	else
-#		define BYTE_ORDER  LITTLE_ENDIAN
-#	endif
+#ifdef WORDS_BIGENDIAN
+#define BYTE_ORDER BIG_ENDIAN
+#else
+#define BYTE_ORDER LITTLE_ENDIAN
+#endif
 
 #endif /* BYTE_ORDER */
 

@@ -41,13 +41,13 @@
 
 #include "slapd-common.h"
 
-static int
-do_bind( struct tester_conn_args *config, char *dn, int maxloop,
-	int force, int noinit, LDAP **ldp, int action_type, void *action );
+static int do_bind(struct tester_conn_args *config, char *dn, int maxloop,
+                   int force, int noinit, LDAP **ldp, int action_type,
+                   void *action);
 
-static int
-do_base( struct tester_conn_args *config, char *dn, char *base, char *filter, char *pwattr,
-	int force, int noinit, int action_type, void *action );
+static int do_base(struct tester_conn_args *config, char *dn, char *base,
+                   char *filter, char *pwattr, int force, int noinit,
+                   int action_type, void *action);
 
 /* This program can be invoked two ways: if -D is used to specify a Bind DN,
  * that DN will be used repeatedly for all of the Binds. If instead -b is used
@@ -56,459 +56,430 @@ do_base( struct tester_conn_args *config, char *dn, char *base, char *filter, ch
  * Bind request. All of the users must have identical passwords. Also it is
  * assumed that the users are all onelevel children of the base.
  */
-static void
-usage( char *name, char opt )
-{
-	if ( opt ) {
-		fprintf( stderr, "%s: unable to handle option \'%c\'\n\n",
-			name, opt );
-	}
+static void usage(char *name, char opt) {
+  if (opt) {
+    fprintf(stderr, "%s: unable to handle option \'%c\'\n\n", name, opt);
+  }
 
-	fprintf( stderr, "usage: %s " TESTER_COMMON_HELP
-		"[-b <baseDN> [-f <searchfilter>] [-a pwattr]] "
-		"[-B <extra>[,...]] "
-		"[-F] "
-		"[-I]\n",
-		name );
-	exit( EXIT_FAILURE );
+  fprintf(stderr,
+          "usage: %s " TESTER_COMMON_HELP
+          "[-b <baseDN> [-f <searchfilter>] [-a pwattr]] "
+          "[-B <extra>[,...]] "
+          "[-F] "
+          "[-I]\n",
+          name);
+  exit(EXIT_FAILURE);
 }
 
-int
-main( int argc, char **argv )
-{
-	int		i;
-	char		*base = NULL;
-	char		*filter = "(objectClass=person)";
-	char		*pwattr = NULL;
-	int		force = 0;
-	int		noinit = 1;
-	struct tester_conn_args	*config;
+int main(int argc, char **argv) {
+  int i;
+  char *base = NULL;
+  char *filter = "(objectClass=person)";
+  char *pwattr = NULL;
+  int force = 0;
+  int noinit = 1;
+  struct tester_conn_args *config;
 
-	/* extra action to do after bind... */
-	struct berval	type[] = {
-		BER_BVC( "tester=" ),
-		BER_BVC( "add=" ),
-		BER_BVC( "bind=" ),
-		BER_BVC( "modify=" ),
-		BER_BVC( "modrdn=" ),
-		BER_BVC( "read=" ),
-		BER_BVC( "search=" ),
-		BER_BVNULL
-	};
+  /* extra action to do after bind... */
+  struct berval type[] = {BER_BVC("tester="), BER_BVC("add="),
+                          BER_BVC("bind="),   BER_BVC("modify="),
+                          BER_BVC("modrdn="), BER_BVC("read="),
+                          BER_BVC("search="), BER_BVNULL};
 
-	LDAPURLDesc	*extra_ludp = NULL;
+  LDAPURLDesc *extra_ludp = NULL;
 
-	config = tester_init( "slapd-bind", TESTER_BIND );
+  config = tester_init("slapd-bind", TESTER_BIND);
 
-	/* by default, tolerate invalid credentials */
-	tester_ignore_str2errlist( "INVALID_CREDENTIALS" );
+  /* by default, tolerate invalid credentials */
+  tester_ignore_str2errlist("INVALID_CREDENTIALS");
 
-	while ( ( i = getopt( argc, argv, TESTER_COMMON_OPTS "a:B:b:Ff:I" ) ) != EOF )
-	{
-		switch ( i ) {
-		case 'a':
-			pwattr = optarg;
-			break;
+  while ((i = getopt(argc, argv, TESTER_COMMON_OPTS "a:B:b:Ff:I")) != EOF) {
+    switch (i) {
+    case 'a':
+      pwattr = optarg;
+      break;
 
-		case 'b':		/* base DN of a tree of user DNs */
-			base = optarg;
-			break;
+    case 'b': /* base DN of a tree of user DNs */
+      base = optarg;
+      break;
 
-		case 'B':
-			{
-			int	c;
+    case 'B': {
+      int c;
 
-			for ( c = 0; type[c].bv_val; c++ ) {
-				if ( strncasecmp( optarg, type[c].bv_val, type[c].bv_len ) == 0 )
-				{
-					break;
-				}
-			}
+      for (c = 0; type[c].bv_val; c++) {
+        if (strncasecmp(optarg, type[c].bv_val, type[c].bv_len) == 0) {
+          break;
+        }
+      }
 
-			if ( type[c].bv_val == NULL ) {
-				usage( argv[0], 'B' );
-			}
+      if (type[c].bv_val == NULL) {
+        usage(argv[0], 'B');
+      }
 
-			switch ( c ) {
-			case TESTER_TESTER:
-			case TESTER_BIND:
-				/* invalid */
-				usage( argv[0], 'B' );
+      switch (c) {
+      case TESTER_TESTER:
+      case TESTER_BIND:
+        /* invalid */
+        usage(argv[0], 'B');
 
-			case TESTER_SEARCH:
-				{
-				if ( ldap_url_parse( &optarg[type[c].bv_len], &extra_ludp ) != LDAP_URL_SUCCESS )
-				{
-					usage( argv[0], 'B' );
-				}
-				} break;
+      case TESTER_SEARCH: {
+        if (ldap_url_parse(&optarg[type[c].bv_len], &extra_ludp) !=
+            LDAP_URL_SUCCESS) {
+          usage(argv[0], 'B');
+        }
+      } break;
 
-			case TESTER_ADDEL:
-			case TESTER_MODIFY:
-			case TESTER_MODRDN:
-			case TESTER_READ:
-				/* nothing to do */
-				break;
+      case TESTER_ADDEL:
+      case TESTER_MODIFY:
+      case TESTER_MODRDN:
+      case TESTER_READ:
+        /* nothing to do */
+        break;
 
-			default:
-				LDAP_BUG();
-			}
+      default:
+        LDAP_BUG();
+      }
 
-			} break;
+    } break;
 
-		case 'f':
-			filter = optarg;
-			break;
+    case 'f':
+      filter = optarg;
+      break;
 
-		case 'F':
-			force++;
-			break;
+    case 'F':
+      force++;
+      break;
 
-		case 'I':
-			/* reuse connection */
-			noinit = 0;
-			break;
+    case 'I':
+      /* reuse connection */
+      noinit = 0;
+      break;
 
-		default:
-			if ( tester_config_opt( config, i, optarg ) == LDAP_SUCCESS ) {
-			break;
-		}
-			usage( argv[0], i );
-			break;
-	}
-	}
+    default:
+      if (tester_config_opt(config, i, optarg) == LDAP_SUCCESS) {
+        break;
+      }
+      usage(argv[0], i);
+      break;
+    }
+  }
 
-	tester_config_finish( config );
+  tester_config_finish(config);
 
-	for ( i = 0; i < config->outerloops; i++ ) {
-		int rc;
+  for (i = 0; i < config->outerloops; i++) {
+    int rc;
 
-		if ( base != NULL ) {
-			rc = do_base( config, config->binddn, base,
-				filter, pwattr, force, noinit, -1, NULL );
-		} else {
-			rc = do_bind( config, config->binddn,
-				config->loops, force, noinit, NULL, -1, NULL );
-		}
-		if ( rc == LDAP_SERVER_DOWN )
-			break;
-	}
+    if (base != NULL) {
+      rc = do_base(config, config->binddn, base, filter, pwattr, force, noinit,
+                   -1, NULL);
+    } else {
+      rc = do_bind(config, config->binddn, config->loops, force, noinit, NULL,
+                   -1, NULL);
+    }
+    if (rc == LDAP_SERVER_DOWN)
+      break;
+  }
 
-	exit( EXIT_SUCCESS );
+  exit(EXIT_SUCCESS);
 }
 
+static int do_bind(struct tester_conn_args *config, char *dn, int maxloop,
+                   int force, int noinit, LDAP **ldp, int action_type,
+                   void *action) {
+  LDAP *ld = ldp ? *ldp : NULL;
+  char *bindfunc = "ldap_sasl_bind_s";
+  int i, rc = -1;
 
-static int
-do_bind( struct tester_conn_args *config, char *dn, int maxloop,
-	int force, int noinit, LDAP **ldp, int action_type, void *action )
-{
-	LDAP	*ld = ldp ? *ldp : NULL;
-	char	*bindfunc = "ldap_sasl_bind_s";
-	int  	i, rc = -1;
+  /* for internal search */
+  int timelimit = 0;
+  int sizelimit = 0;
 
-	/* for internal search */
-	int	timelimit = 0;
-	int	sizelimit = 0;
+  switch (action_type) {
+  case -1:
+    break;
 
-	switch ( action_type ) {
-	case -1:
-		break;
+  case TESTER_SEARCH: {
+    LDAPURLDesc *ludp = (LDAPURLDesc *)action;
 
-	case TESTER_SEARCH:
-		{
-		LDAPURLDesc	*ludp = (LDAPURLDesc *)action;
+    assert(action != NULL);
 
-		assert( action != NULL );
+    if (ludp->lud_exts != NULL) {
+      for (i = 0; ludp->lud_exts[i] != NULL; i++) {
+        char *ext = ludp->lud_exts[i];
+        int crit = 0;
 
-		if ( ludp->lud_exts != NULL ) {
-			for ( i = 0; ludp->lud_exts[ i ] != NULL; i++ ) {
-				char	*ext = ludp->lud_exts[ i ];
-				int	crit = 0;
+        if (ext[0] == '!') {
+          crit++;
+          ext++;
+        }
 
-				if (ext[0] == '!') {
-					crit++;
-					ext++;
-				}
+        if (strncasecmp(ext, "x-timelimit=", STRLENOF("x-timelimit=")) == 0) {
+          if (lutil_atoi(&timelimit, &ext[STRLENOF("x-timelimit=")]) && crit) {
+            tester_error("unable to parse critical extension x-timelimit");
+          }
 
-				if ( strncasecmp( ext, "x-timelimit=", STRLENOF( "x-timelimit=" ) ) == 0 ) {
-					if ( lutil_atoi( &timelimit, &ext[ STRLENOF( "x-timelimit=" ) ] ) && crit ) {
-						tester_error( "unable to parse critical extension x-timelimit" );
-					}
+        } else if (strncasecmp(ext, "x-sizelimit=", STRLENOF("x-sizelimit=")) ==
+                   0) {
+          if (lutil_atoi(&sizelimit, &ext[STRLENOF("x-sizelimit=")]) && crit) {
+            tester_error("unable to parse critical extension x-sizelimit");
+          }
 
-				} else if ( strncasecmp( ext, "x-sizelimit=", STRLENOF( "x-sizelimit=" ) ) == 0 ) {
-					if ( lutil_atoi( &sizelimit, &ext[ STRLENOF( "x-sizelimit=" ) ] ) && crit ) {
-						tester_error( "unable to parse critical extension x-sizelimit" );
-					}
+        } else if (crit) {
+          tester_error("unknown critical extension");
+        }
+      }
+    }
+  } break;
 
-				} else if ( crit ) {
-					tester_error( "unknown critical extension" );
-				}
-			}
-		}
-		} break;
+  default:
+    /* nothing to do yet */
+    break;
+  }
 
-	default:
-		/* nothing to do yet */
-		break;
-	}
+  if (maxloop > 1) {
+    fprintf(stderr, "PID=%ld - Bind(%d): dn=\"%s\".\n", (long)pid, maxloop, dn);
+  }
 
-	if ( maxloop > 1 ) {
-		fprintf( stderr, "PID=%ld - Bind(%d): dn=\"%s\".\n",
-			 (long) pid, maxloop, dn );
-	}
-
-	for ( i = 0; i < maxloop; i++ ) {
-		if ( !noinit || ld == NULL ) {
-			tester_init_ld( &ld, config, TESTER_INIT_ONLY );
+  for (i = 0; i < maxloop; i++) {
+    if (!noinit || ld == NULL) {
+      tester_init_ld(&ld, config, TESTER_INIT_ONLY);
 
 #ifdef HAVE_CYRUS_SASL
-			if ( config->secprops != NULL ) {
-				rc = ldap_set_option( ld,
-						LDAP_OPT_X_SASL_SECPROPS, config->secprops );
+      if (config->secprops != NULL) {
+        rc = ldap_set_option(ld, LDAP_OPT_X_SASL_SECPROPS, config->secprops);
 
-				if( rc != LDAP_OPT_SUCCESS ) {
-					tester_ldap_error( ld, "ldap_set_option(SECPROPS)", NULL );
-					exit( EXIT_FAILURE );
-				}
-			}
+        if (rc != LDAP_OPT_SUCCESS) {
+          tester_ldap_error(ld, "ldap_set_option(SECPROPS)", NULL);
+          exit(EXIT_FAILURE);
+        }
+      }
 #endif
-		}
+    }
 
-		if ( config->authmethod == LDAP_AUTH_SASL ) {
+    if (config->authmethod == LDAP_AUTH_SASL) {
 #ifdef HAVE_CYRUS_SASL
-			bindfunc = "ldap_sasl_interactive_bind_s";
-			rc = ldap_sasl_interactive_bind_s( ld,
-					config->binddn,
-					config->mech,
-					NULL, NULL,
-					LDAP_SASL_QUIET,
-					lutil_sasl_interact,
-					config->defaults );
+      bindfunc = "ldap_sasl_interactive_bind_s";
+      rc = ldap_sasl_interactive_bind_s(ld, config->binddn, config->mech, NULL,
+                                        NULL, LDAP_SASL_QUIET,
+                                        lutil_sasl_interact, config->defaults);
 #else /* HAVE_CYRUS_SASL */
-			/* caller shouldn't have allowed this */
-			assert(0);
+      /* caller shouldn't have allowed this */
+      assert(0);
 #endif
-		} else if ( config->authmethod == LDAP_AUTH_SIMPLE ) {
-			bindfunc = "ldap_sasl_bind_s";
-			rc = ldap_sasl_bind_s( ld,
-					config->binddn, LDAP_SASL_SIMPLE,
-					&config->pass, NULL, NULL, NULL );
-		}
+    } else if (config->authmethod == LDAP_AUTH_SIMPLE) {
+      bindfunc = "ldap_sasl_bind_s";
+      rc = ldap_sasl_bind_s(ld, config->binddn, LDAP_SASL_SIMPLE, &config->pass,
+                            NULL, NULL, NULL);
+    }
 
-		if ( rc ) {
-			int first = tester_ignore_err( rc );
+    if (rc) {
+      int first = tester_ignore_err(rc);
 
-			/* if ignore.. */
-			if ( first ) {
-				/* only log if first occurrence */
-				if ( ( force < 2 && first > 0 ) || abs(first) == 1 ) {
-					tester_ldap_error( ld, bindfunc, NULL );
-				}
-				rc = LDAP_SUCCESS;
+      /* if ignore.. */
+      if (first) {
+        /* only log if first occurrence */
+        if ((force < 2 && first > 0) || abs(first) == 1) {
+          tester_ldap_error(ld, bindfunc, NULL);
+        }
+        rc = LDAP_SUCCESS;
 
-			} else {
-				tester_ldap_error( ld, bindfunc, NULL );
-			}
-		}
+      } else {
+        tester_ldap_error(ld, bindfunc, NULL);
+      }
+    }
 
-		switch ( action_type ) {
-		case -1:
-			break;
+    switch (action_type) {
+    case -1:
+      break;
 
-		case TESTER_SEARCH:
-			{
-			LDAPURLDesc	*ludp = (LDAPURLDesc *)action;
-			LDAPMessage	*res = NULL;
-			struct timeval	tv = { 0 }, *tvp = NULL;
+    case TESTER_SEARCH: {
+      LDAPURLDesc *ludp = (LDAPURLDesc *)action;
+      LDAPMessage *res = NULL;
+      struct timeval tv = {0}, *tvp = NULL;
 
-			if ( timelimit ) {
-				tv.tv_sec = timelimit;
-				tvp = &tv;
-			}
+      if (timelimit) {
+        tv.tv_sec = timelimit;
+        tvp = &tv;
+      }
 
-			assert( action != NULL );
+      assert(action != NULL);
 
-			rc = ldap_search_ext_s( ld,
-				ludp->lud_dn, ludp->lud_scope,
-				ludp->lud_filter, ludp->lud_attrs, 0,
-				NULL, NULL, tvp, sizelimit, &res );
-			ldap_msgfree( res );
-			} break;
+      rc = ldap_search_ext_s(ld, ludp->lud_dn, ludp->lud_scope,
+                             ludp->lud_filter, ludp->lud_attrs, 0, NULL, NULL,
+                             tvp, sizelimit, &res);
+      ldap_msgfree(res);
+    } break;
 
-		default:
-			/* nothing to do yet */
-			break;
-		}
+    default:
+      /* nothing to do yet */
+      break;
+    }
 
-		if ( !noinit ) {
-			ldap_unbind_ext( ld, NULL, NULL );
-			ld = NULL;
-		}
+    if (!noinit) {
+      ldap_unbind_ext(ld, NULL, NULL);
+      ld = NULL;
+    }
 
-		if ( rc != LDAP_SUCCESS ) {
-			break;
-		}
-	}
+    if (rc != LDAP_SUCCESS) {
+      break;
+    }
+  }
 
-	if ( maxloop > 1 ) {
-		fprintf( stderr, "  PID=%ld - Bind done (%d).\n", (long) pid, rc );
-	}
+  if (maxloop > 1) {
+    fprintf(stderr, "  PID=%ld - Bind done (%d).\n", (long)pid, rc);
+  }
 
-	if ( ldp && noinit ) {
-		*ldp = ld;
+  if (ldp && noinit) {
+    *ldp = ld;
 
-	} else if ( ld != NULL ) {
-		ldap_unbind_ext( ld, NULL, NULL );
-	}
+  } else if (ld != NULL) {
+    ldap_unbind_ext(ld, NULL, NULL);
+  }
 
-	return rc;
+  return rc;
 }
 
+static int do_base(struct tester_conn_args *config, char *dn, char *base,
+                   char *filter, char *pwattr, int force, int noinit,
+                   int action_type, void *action) {
+  LDAP *ld = NULL;
+  int i = 0;
+  int rc = LDAP_SUCCESS;
+  ber_int_t msgid;
+  LDAPMessage *res, *msg;
+  char **dns = NULL;
+  struct berval *creds = NULL;
+  char *attrs[] = {LDAP_NO_ATTRS, NULL};
+  int ndns = 0;
+  char *nullstr = "";
 
-static int
-do_base( struct tester_conn_args *config, char *dn, char *base, char *filter, char *pwattr,
-	int force, int noinit, int action_type, void *action )
-{
-	LDAP	*ld = NULL;
-	int  	i = 0;
-	int     rc = LDAP_SUCCESS;
-	ber_int_t msgid;
-	LDAPMessage *res, *msg;
-	char **dns = NULL;
-	struct berval *creds = NULL;
-	char *attrs[] = { LDAP_NO_ATTRS, NULL };
-	int ndns = 0;
-	char *nullstr = "";
+  tester_init_ld(&ld, config, 0);
 
-	tester_init_ld( &ld, config, 0 );
+  fprintf(stderr,
+          "PID=%ld - Bind(%d): base=\"%s\", filter=\"%s\" attr=\"%s\".\n",
+          (long)pid, config->loops, base, filter, pwattr);
 
-	fprintf( stderr, "PID=%ld - Bind(%d): base=\"%s\", filter=\"%s\" attr=\"%s\".\n",
-			(long) pid, config->loops, base, filter, pwattr );
+  if (pwattr != NULL) {
+    attrs[0] = pwattr;
+  }
+  rc = ldap_search_ext(ld, base, LDAP_SCOPE_SUBTREE, filter, attrs, 0, NULL,
+                       NULL, 0, 0, &msgid);
+  if (rc != LDAP_SUCCESS) {
+    tester_ldap_error(ld, "ldap_search_ext", NULL);
+    exit(EXIT_FAILURE);
+  }
 
-	if ( pwattr != NULL ) {
-		attrs[ 0 ] = pwattr;
-	}
-	rc = ldap_search_ext( ld, base, LDAP_SCOPE_SUBTREE,
-			filter, attrs, 0, NULL, NULL, 0, 0, &msgid );
-	if ( rc != LDAP_SUCCESS ) {
-		tester_ldap_error( ld, "ldap_search_ext", NULL );
-		exit( EXIT_FAILURE );
-	}
+  while ((rc = ldap_result(ld, LDAP_RES_ANY, LDAP_MSG_ONE, NULL, &res)) > 0) {
+    BerElement *ber;
+    struct berval bv;
+    int done = 0;
 
-	while ( ( rc = ldap_result( ld, LDAP_RES_ANY, LDAP_MSG_ONE, NULL, &res ) ) > 0 )
-	{
-		BerElement *ber;
-		struct berval bv;
-		int done = 0;
+    for (msg = ldap_first_message(ld, res); msg;
+         msg = ldap_next_message(ld, msg)) {
+      switch (ldap_msgtype(msg)) {
+      case LDAP_RES_SEARCH_ENTRY:
+        rc = ldap_get_dn_ber(ld, msg, &ber, &bv);
+        dns = realloc(dns, (ndns + 1) * sizeof(char *));
+        dns[ndns] = ber_strdup(bv.bv_val);
+        if (pwattr != NULL) {
+          struct berval **values = ldap_get_values_len(ld, msg, pwattr);
 
-		for ( msg = ldap_first_message( ld, res ); msg;
-			msg = ldap_next_message( ld, msg ) )
-		{
-			switch ( ldap_msgtype( msg ) ) {
-			case LDAP_RES_SEARCH_ENTRY:
-				rc = ldap_get_dn_ber( ld, msg, &ber, &bv );
-				dns = realloc( dns, (ndns + 1)*sizeof(char *) );
-				dns[ndns] = ber_strdup( bv.bv_val );
-				if ( pwattr != NULL ) {
-					struct berval	**values = ldap_get_values_len( ld, msg, pwattr );
+          creds = realloc(creds, (ndns + 1) * sizeof(struct berval));
+          if (values == NULL) {
+          novals:;
+            creds[ndns].bv_len = 0;
+            creds[ndns].bv_val = nullstr;
 
-					creds = realloc( creds, (ndns + 1)*sizeof(struct berval) );
-					if ( values == NULL ) {
-novals:;
-						creds[ndns].bv_len = 0;
-						creds[ndns].bv_val = nullstr;
+          } else {
+            static struct berval cleartext = BER_BVC("{CLEARTEXT} ");
+            struct berval value = *values[0];
 
-					} else {
-						static struct berval	cleartext = BER_BVC( "{CLEARTEXT} " );
-						struct berval		value = *values[ 0 ];
+            if (value.bv_val[0] == '{') {
+              char *end = ber_bvchr(&value, '}');
 
-						if ( value.bv_val[ 0 ] == '{' ) {
-							char *end = ber_bvchr( &value, '}' );
+              if (end) {
+                if (ber_bvcmp(&value, &cleartext) == 0) {
+                  value.bv_val += cleartext.bv_len;
+                  value.bv_len -= cleartext.bv_len;
 
-							if ( end ) {
-								if ( ber_bvcmp( &value, &cleartext ) == 0 ) {
-									value.bv_val += cleartext.bv_len;
-									value.bv_len -= cleartext.bv_len;
+                } else {
+                  ldap_value_free_len(values);
+                  goto novals;
+                }
+              }
+            }
 
-								} else {
-									ldap_value_free_len( values );
-									goto novals;
-								}
-							}
+            ber_dupbv(&creds[ndns], &value);
+            ldap_value_free_len(values);
+          }
+        }
+        ndns++;
+        ber_free(ber, 0);
+        break;
 
-						}
+      case LDAP_RES_SEARCH_RESULT:
+        done = 1;
+        break;
+      }
+      if (done)
+        break;
+    }
+    ldap_msgfree(res);
+    if (done)
+      break;
+  }
 
-						ber_dupbv( &creds[ndns], &value );
-						ldap_value_free_len( values );
-					}
-				}
-				ndns++;
-				ber_free( ber, 0 );
-				break;
+  uint64_t beg_ns = ldap_now_steady_ns();
+  if (ndns == 0) {
+    tester_error("No DNs");
+    return 1;
+  }
 
-			case LDAP_RES_SEARCH_RESULT:
-				done = 1;
-				break;
-			}
-			if ( done )
-				break;
-		}
-		ldap_msgfree( res );
-		if ( done ) break;
-	}
+  fprintf(stderr, "  PID=%ld - Bind base=\"%s\" filter=\"%s\" got %d values.\n",
+          (long)pid, base, filter, ndns);
 
-	uint64_t beg_ns = ldap_now_steady_ns();
-	if ( ndns == 0 ) {
-		tester_error( "No DNs" );
-		return 1;
-	}
+  /* Ok, got list of DNs, now start binding to each */
+  struct berval save_pass = config->pass;
+  for (i = 0; i < config->loops; i++) {
+    int j;
 
-	fprintf( stderr, "  PID=%ld - Bind base=\"%s\" filter=\"%s\" got %d values.\n",
-		(long) pid, base, filter, ndns );
+    j = lrand48() % ndns;
 
-	/* Ok, got list of DNs, now start binding to each */
-	struct berval save_pass = config->pass;
-	for ( i = 0; i < config->loops; i++ ) {
-		int		j;
+    if (creds && !BER_BVISEMPTY(&creds[j])) {
+      config->pass = creds[j];
+    }
 
-		j = lrand48() % ndns;
+    if (do_bind(config, dns[j], 1, force, noinit, &ld, action_type, action) &&
+        !force) {
+      break;
+    }
+  }
 
-		if ( creds && !BER_BVISEMPTY( &creds[j] ) ) {
-			config->pass = creds[j];
-		}
+  if (ld != NULL) {
+    ldap_unbind_ext(ld, NULL, NULL);
+    ld = NULL;
+  }
 
-		if ( do_bind( config, dns[j], 1, force, noinit, &ld,
-			action_type, action ) && !force )
-		{
-			break;
-		}
-	}
+  uint64_t end_ns = ldap_now_steady_ns();
+  fprintf(stderr, "  PID=%ld - Bind done %d in %.06f seconds.\n", (long)pid, i,
+          (end_ns - beg_ns) * 1e-9);
 
-	if ( ld != NULL ) {
-		ldap_unbind_ext( ld, NULL, NULL );
-		ld = NULL;
-	}
+  if (dns) {
+    for (i = 0; i < ndns; i++) {
+      ber_memfree(dns[i]);
+    }
+    free(dns);
+  }
 
-	uint64_t end_ns = ldap_now_steady_ns();
-	fprintf( stderr, "  PID=%ld - Bind done %d in %.06f seconds.\n",
-		(long) pid, i, (end_ns - beg_ns) * 1e-9);
+  if (creds) {
+    for (i = 0; i < ndns; i++) {
+      if (creds[i].bv_val != nullstr) {
+        ber_memfree(creds[i].bv_val);
+      }
+    }
+    free(creds);
+  }
+  config->pass = save_pass;
 
-	if ( dns ) {
-		for ( i = 0; i < ndns; i++ ) {
-			ber_memfree( dns[i] );
-		}
-		free( dns );
-	}
-
-	if ( creds ) {
-		for ( i = 0; i < ndns; i++ ) {
-			if ( creds[i].bv_val != nullstr ) {
-				ber_memfree( creds[i].bv_val );
-			}
-		}
-		free( creds );
-	}
-	config->pass = save_pass;
-
-	return 0;
+  return 0;
 }
