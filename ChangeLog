@@ -1,5 +1,6 @@
 New features and Compatibility breaking
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2018-09-26 v1.1.10: none
 2018-08-02 v1.1.9: none
 2018-06-04 v1.1.8: none
 2018-02-23 v1.1.7
@@ -95,6 +96,10 @@ New features and Compatibility breaking
 
 Documentation
 ~~~~~~~~~~~~~
+2018-09-26 v1.1.10
+2018-09-21 mdbx: import - `mdb_cursor_del` does not invalidate the cursor (ITS#8857).
+2018-09-21 mdbx: import - `GET_MULTIPLE` etc don't return the key (ITS#8908).
+2018-08-07 doc: update `README.md`
 2018-08-02 v1.1.9
 2018-07-04 man: import - fix quoting example.
 2018-05-10 mdbx: update Project Status.
@@ -174,6 +179,8 @@ Documentation
 
 Major and Security Bugs
 ~~~~~~~~~~~~~~~~~~~~~~~
+2018-09-26 v1.1.10
+2018-09-21 mdbx: backport - prevent DB corruption due rebalance bugs.
 2018-08-02 v1.1.9
 2018-07-01 libreldap: fix init/shutdown races/segfaults with modern OpenSSL.
 2018-07-01 libreldap: fix deadlock/recursion inside tls-init internals.
@@ -285,6 +292,11 @@ Major and Security Bugs
 
 Minor Bugs
 ~~~~~~~~~~
+2018-09-26 v1.1.10
+2018-09-24 libreldap: fix "retry `gnutls_handshake` after `GNUTLS_E_AGAIN`" (ITS#8650).
+2018-09-11 slap: import - omit hidden DBs from rootDse (ITS#8912).
+2018-09-11 backend-mdb, backend-bdb: import - fix index delete.
+2018-09-11 slapd: import - fix `authz-policy all` condition (ITS#8909).
 2018-08-02 v1.1.9
 2018-07-10 libreldap: backport - Do some printability checks on the dc RDN (ITS#8842).
 2018-07-10 overlay-memberof, tests: backport - Improve memberof cn=config handling (ITS#8663).
@@ -728,6 +740,7 @@ Minor Bugs
 
 Performance
 ~~~~~~~~~~~
+2018-09-26 v1.1.10: none
 2018-08-02 v1.1.9
 2018-06-30 slapd: minor refine suspend/refine listeners.
 2018-06-04 v1.1.8
@@ -789,6 +802,14 @@ Performance
 
 Build
 ~~~~~
+2018-09-26 v1.1.10
+2018-09-24 libreldap: import - add missing includes (ITS#8809).
+2018-08-08 reopenldap: fix GCC-8.x warnings.
+2018-08-08 configure: rework search `NdbClient` headers and libraries.
+2018-08-07 configure: add `OSSP-UUID` search for modern Fedora/RHEL.
+2018-08-07 configure: fix `EXTRA_CFLAGS` typo.
+2018-08-06 configure: explicit separation of experimental backends.
+2018-08-03 configure: refine error-msg for mysql_cluster's `mysql_config`.
 2018-08-02 v1.1.9
 2018-07-30 configure: update for modern libtool.
 2018-07-02 configure: fix quoting for empty variable.
@@ -935,6 +956,11 @@ Build
 
 Cosmetics
 ~~~~~~~~~
+2018-09-26 v1.1.10
+2018-09-11 reopenldap: fix typo with ITS#8843 description.
+2018-08-03 reopenldap: reformat source code by `clang-format-6.0`.
+2018-08-03 reopenldap: remove `LDAP_P` macro.
+2018-08-02 reopenldap: drop `LDAP_CONST` macro.
 2018-08-02 v1.1.9
 2018-07-01 libreldap: message-hint to check 'libnsspem.so' for TLS by MozNSS.
 2018-06-30 slapd: cleanup-drop SLAP_FD2SOCK/SLAP_SOCK2FD/SLAP_SOCKNEW.
@@ -1003,6 +1029,12 @@ Cosmetics
 
 Other
 ~~~~~
+2018-09-26 v1.1.10
+2018-09-21 mdbx: drop inherited broken audit.
+2018-08-09 ci: add `LIBTOOL_SUPPRESS_DEFAULT=no` into scripts.
+2018-08-07 tests: export `LC_ALL=C` as workaround as Fedora's `diff` utility bugs.
+2018-08-07 ci: add `ci/fedora.sh` script.
+2018-08-06 ci: update `ci/debian.sh` script.
 2018-08-02 v1.1.9
 2018-07-09 tests: don't ignore its8667 regression while CI/buzz-testing.
 2018-07-04 tests: backport - kick libtool wrapper for slapd.
