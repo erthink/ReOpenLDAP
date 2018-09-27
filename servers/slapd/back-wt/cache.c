@@ -28,22 +28,19 @@
 #include "idl.h"
 
 int wt_idlcache_get(wt_ctx *wc, struct berval *ndn, int scope, ID *ids) {
-  int rc;
+  int rc = 0;
   WT_ITEM item;
-  WT_SESSION *session = wc->cache_session;
-  WT_CURSOR *cursor = wc->idlcache;
+  WT_SESSION *session = wc->idlcache_session;
+  WT_CURSOR *cursor = NULL;
 
   Debug(LDAP_DEBUG_TRACE, "=> wt_idlcache_get(\"%s\", %d)\n", ndn->bv_val,
         scope);
 
-  if (!cursor) {
-    rc = session->open_cursor(session, WT_TABLE_IDLCACHE, NULL, NULL, &cursor);
-    if (rc) {
-      Debug(LDAP_DEBUG_ANY, "wt_idlcache_get: open_cursor failed: %s (%d)\n",
-            wiredtiger_strerror(rc), rc);
-      return rc;
-    }
-    wc->idlcache = cursor;
+  rc = session->open_cursor(session, WT_TABLE_IDLCACHE, NULL, NULL, &cursor);
+  if (rc) {
+    Debug(LDAP_DEBUG_ANY, "wt_idlcache_get: open_cursor failed: %s (%d)\n",
+          wiredtiger_strerror(rc), rc);
+    return rc;
   }
   cursor->set_key(cursor, ndn->bv_val, (int8_t)scope);
   rc = cursor->search(cursor);
@@ -52,30 +49,35 @@ int wt_idlcache_get(wt_ctx *wc, struct berval *ndn, int scope, ID *ids) {
     break;
   case WT_NOTFOUND:
     Debug(LDAP_DEBUG_TRACE, "<= wt_idlcache_get: miss\n");
-    return rc;
+    goto done;
   default:
     Debug(LDAP_DEBUG_ANY, "<= wt_idlcache_get: search failed: %s (%d)\n",
           wiredtiger_strerror(rc), rc);
-    return 0;
+    rc = 0;
+    goto done;
   }
   rc = cursor->get_value(cursor, &item);
   if (rc) {
     Debug(LDAP_DEBUG_ANY, "wt_idlcache_get: get_value failed: %s (%d)\n",
           wiredtiger_strerror(rc), rc);
-    return rc;
+    goto done;
   }
   memcpy(ids, item.data, item.size);
 
   Debug(LDAP_DEBUG_TRACE, "<= wt_idlcache_get: hit id=%ld first=%ld last=%ld\n",
         (long)ids[0], (long)WT_IDL_FIRST(ids), (long)WT_IDL_LAST(ids));
+done:
+  if (cursor) {
+    cursor->close(cursor);
+  }
   return rc;
 }
 
 int wt_idlcache_set(wt_ctx *wc, struct berval *ndn, int scope, ID *ids) {
-  int rc;
+  int rc = 0;
   WT_ITEM item;
-  WT_SESSION *session = wc->cache_session;
-  WT_CURSOR *cursor = wc->idlcache;
+  WT_SESSION *session = wc->idlcache_session;
+  WT_CURSOR *cursor = NULL;
 
   Debug(LDAP_DEBUG_TRACE, "=> wt_idlcache_set(\"%s\", %d)\n", ndn->bv_val,
         scope);
@@ -83,14 +85,11 @@ int wt_idlcache_set(wt_ctx *wc, struct berval *ndn, int scope, ID *ids) {
   item.size = WT_IDL_SIZEOF(ids);
   item.data = ids;
 
-  if (!cursor) {
-    rc = session->open_cursor(session, WT_TABLE_IDLCACHE, NULL, NULL, &cursor);
-    if (rc) {
-      Debug(LDAP_DEBUG_ANY, "wt_idlcache_set: open_cursor failed: %s (%d)\n",
-            wiredtiger_strerror(rc), rc);
-      return rc;
-    }
-    wc->idlcache = cursor;
+  rc = session->open_cursor(session, WT_TABLE_IDLCACHE, NULL, NULL, &cursor);
+  if (rc) {
+    Debug(LDAP_DEBUG_ANY, "wt_idlcache_set: open_cursor failed: %s (%d)\n",
+          wiredtiger_strerror(rc), rc);
+    return rc;
   }
   cursor->set_key(cursor, ndn->bv_val, (int8_t)scope);
   cursor->set_value(cursor, &item);
@@ -98,20 +97,24 @@ int wt_idlcache_set(wt_ctx *wc, struct berval *ndn, int scope, ID *ids) {
   if (rc) {
     Debug(LDAP_DEBUG_ANY, "wt_idlcache_set: insert failed: %s (%d)\n",
           wiredtiger_strerror(rc), rc);
-    return rc;
+    goto done;
   }
 
   Debug(LDAP_DEBUG_TRACE, "<= wt_idlcache_set: set idl size=%ld\n",
         (long)ids[0]);
+done:
+  if (cursor) {
+    cursor->close(cursor);
+  }
   return rc;
 }
 
 int wt_idlcache_clear(Operation *op, wt_ctx *wc, struct berval *ndn) {
   BackendDB *be = op->o_bd;
-  int rc;
+  int rc = 0;
   struct berval pdn = *ndn;
-  WT_SESSION *session = wc->cache_session;
-  WT_CURSOR *cursor = wc->idlcache;
+  WT_SESSION *session = wc->idlcache_session;
+  WT_CURSOR *cursor = NULL;
   int level = 0;
 
   Debug(LDAP_DEBUG_TRACE, "=> wt_idlcache_clear(\"%s\")\n", ndn->bv_val);
@@ -120,14 +123,11 @@ int wt_idlcache_clear(Operation *op, wt_ctx *wc, struct berval *ndn) {
     return 0;
   }
 
-  if (!cursor) {
-    rc = session->open_cursor(session, WT_TABLE_IDLCACHE, NULL, NULL, &cursor);
-    if (rc) {
-      Debug(LDAP_DEBUG_ANY, "wt_idlcache_clear: open_cursor failed: %s (%d)\n",
-            wiredtiger_strerror(rc), rc);
-      return rc;
-    }
-    wc->idlcache = cursor;
+  rc = session->open_cursor(session, WT_TABLE_IDLCACHE, NULL, NULL, &cursor);
+  if (rc) {
+    Debug(LDAP_DEBUG_ANY, "wt_idlcache_clear: open_cursor failed: %s (%d)\n",
+          wiredtiger_strerror(rc), rc);
+    return rc;
   }
 
   do {
@@ -145,6 +145,9 @@ int wt_idlcache_clear(Operation *op, wt_ctx *wc, struct berval *ndn) {
     level++;
   } while (!be_issuffix(be, &pdn));
 
+  if (cursor) {
+    cursor->close(cursor);
+  }
   return 0;
 }
 

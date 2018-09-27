@@ -88,8 +88,7 @@ typedef struct {
   WT_CURSOR *id2entry;
   WT_CURSOR *id2entry_add;
   WT_CURSOR *id2entry_update;
-  WT_SESSION *cache_session;
-  WT_CURSOR *idlcache;
+  WT_SESSION *idlcache_session;
   WT_CURSOR *index_pid;
   WT_CURSOR *index[WT_INDEX_CACHE_SIZE];
 } wt_ctx;
