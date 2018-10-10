@@ -137,6 +137,15 @@ typedef struct _FILE_PROVIDER_EXTERNAL_INFO_V1 {
 #define STATUS_INVALID_DEVICE_REQUEST ((NTSTATUS)0xC0000010L)
 #endif
 
+#ifndef FILE_DEVICE_FILE_SYSTEM
+#define FILE_DEVICE_FILE_SYSTEM 0x00000009
+#endif
+
+#ifndef FSCTL_GET_EXTERNAL_BACKING
+#define FSCTL_GET_EXTERNAL_BACKING                                             \
+  CTL_CODE(FILE_DEVICE_FILE_SYSTEM, 196, METHOD_BUFFERED, FILE_ANY_ACCESS)
+#endif
+
 #endif /* _WIN32 || _WIN64 */
 
 /*----------------------------------------------------------------------------*/
@@ -193,11 +202,9 @@ __cold void mdbx_panic(const char *fmt, ...) {
 
 /*----------------------------------------------------------------------------*/
 
-#ifndef mdbx_asprintf
-int mdbx_asprintf(char **strp, const char *fmt, ...) {
-  va_list ap, ones;
-
-  va_start(ap, fmt);
+#ifndef mdbx_vasprintf
+int mdbx_vasprintf(char **strp, const char *fmt, va_list ap) {
+  va_list ones;
   va_copy(ones, ap);
 #ifdef _MSC_VER
   int needed = _vscprintf(fmt, ap);
@@ -207,7 +214,6 @@ int mdbx_asprintf(char **strp, const char *fmt, ...) {
 #else
 #error FIXME
 #endif
-  va_end(ap);
 
   if (unlikely(needed < 0 || needed >= INT_MAX)) {
     *strp = nullptr;
@@ -218,7 +224,11 @@ int mdbx_asprintf(char **strp, const char *fmt, ...) {
   *strp = malloc(needed + 1);
   if (unlikely(*strp == nullptr)) {
     va_end(ones);
+#if defined(_WIN32) || defined(_WIN64)
     SetLastError(MDBX_ENOMEM);
+#else
+    errno = MDBX_ENOMEM;
+#endif
     return -1;
   }
 
@@ -236,6 +246,16 @@ int mdbx_asprintf(char **strp, const char *fmt, ...) {
     *strp = nullptr;
   }
   return actual;
+}
+#endif /* mdbx_vasprintf */
+
+#ifndef mdbx_asprintf
+int mdbx_asprintf(char **strp, const char *fmt, ...) {
+  va_list ap;
+  va_start(ap, fmt);
+  int rc = mdbx_vasprintf(strp, fmt, ap);
+  va_end(ap);
+  return rc;
 }
 #endif /* mdbx_asprintf */
 

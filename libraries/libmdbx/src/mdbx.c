@@ -1389,6 +1389,30 @@ void __cold mdbx_debug_log(int type, const char *function, int line,
   if (mdbx_debug_logger)
     mdbx_debug_logger(type, function, line, fmt, args);
   else {
+#if defined(_WIN32) || defined(_WIN64)
+    if (IsDebuggerPresent()) {
+      int prefix_len = 0;
+      char *prefix = nullptr;
+      if (function && line > 0)
+        prefix_len = mdbx_asprintf(&prefix, "%s:%d ", function, line);
+      else if (function)
+        prefix_len = mdbx_asprintf(&prefix, "%s: ", function);
+      else if (line > 0)
+        prefix_len = mdbx_asprintf(&prefix, "%d: ", line);
+      if (prefix_len > 0 && prefix) {
+        OutputDebugStringA(prefix);
+        free(prefix);
+      }
+      char *msg = nullptr;
+      int msg_len = mdbx_vasprintf(&msg, fmt, args);
+      if (msg_len > 0 && msg) {
+        OutputDebugStringA(msg);
+        free(msg);
+      }
+      va_end(args);
+      return;
+    }
+#endif
     if (function && line > 0)
       fprintf(stderr, "%s:%d ", function, line);
     else if (function)
@@ -3805,7 +3829,7 @@ static int mdbx_update_gc(MDBX_txn *txn) {
   MDBX_cursor mc;
   int rc = mdbx_cursor_init(&mc, txn, FREE_DBI);
   if (unlikely(rc != MDBX_SUCCESS))
-    goto bailout;
+    goto bailout_notracking;
 
   mc.mc_next = txn->mt_cursors[FREE_DBI];
   txn->mt_cursors[FREE_DBI] = &mc;
@@ -4423,6 +4447,7 @@ retry:
 bailout:
   txn->mt_cursors[FREE_DBI] = mc.mc_next;
 
+bailout_notracking:
   if (txn->mt_lifo_reclaimed) {
     MDBX_PNL_SIZE(txn->mt_lifo_reclaimed) = 0;
     if (txn != env->me_txn0) {
@@ -6926,13 +6951,20 @@ mapped:
   p = pgno2page(env, pgno);
 
 done:
-  if (unlikely(p->mp_pgno != pgno))
+  if (unlikely(p->mp_pgno != pgno)) {
+    mdbx_error("mismatch pgno %" PRIaPGNO " (actual) != %" PRIaPGNO
+               " (expected)",
+               p->mp_pgno, pgno);
     return MDBX_CORRUPTED;
+  }
 
   if (unlikely(p->mp_upper < p->mp_lower ||
                PAGEHDRSZ + p->mp_upper > env->me_psize) &&
-      !IS_OVERFLOW(p))
+      !IS_OVERFLOW(p)) {
+    mdbx_error("invalid page lower(%u)/upper(%u), pg-limit %u", p->mp_lower,
+               p->mp_upper, env->me_psize - PAGEHDRSZ);
     return MDBX_CORRUPTED;
+  }
   /* TODO: more checks here, including p->mp_validator */
 
   *ret = p;
