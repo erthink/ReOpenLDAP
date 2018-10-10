@@ -1447,7 +1447,7 @@ int fe_acl_group(Operation *op, Entry *target, struct berval *gr_ndn,
               op->o_private = o_priv;
               if (rc2 != 0) {
                 /* give up... */
-                rc = LDAP_OTHER;
+                rc = (rc2 == LDAP_NO_SUCH_OBJECT) ? rc2 : LDAP_OTHER;
                 goto loopit;
               }
             }
