@@ -1733,7 +1733,7 @@ static void print_syncinfo(BerValue *data) {
   ber_init2(syncinfo, data, 0);
 
   printf(_("# SyncInfo Received: "));
-  tag = ber_skip_tag(syncinfo, &len);
+  tag = ber_peek_tag(syncinfo, &len);
   switch (tag) {
   case LDAP_TAG_SYNC_NEW_COOKIE: {
     printf(_("new cookie\n"));
@@ -1754,7 +1754,11 @@ static void print_syncinfo(BerValue *data) {
   } break;
   case LDAP_TAG_SYNC_REFRESH_DELETE: {
     ber_int_t done = 1;
+
     printf(_("refresh delete\n"));
+    /* Skip sequence tag first */
+    ber_skip_tag(syncinfo, &len);
+
     tag = ber_peek_tag(syncinfo, &len);
     if (tag == LDAP_TAG_SYNC_COOKIE) {
       ber_scanf(syncinfo, "m", &cookie);
@@ -1782,7 +1786,11 @@ static void print_syncinfo(BerValue *data) {
   } break;
   case LDAP_TAG_SYNC_REFRESH_PRESENT: {
     ber_int_t done = 1;
+
     printf(_("refresh present\n"));
+    /* Skip sequence tag first */
+    ber_skip_tag(syncinfo, &len);
+
     tag = ber_peek_tag(syncinfo, &len);
     if (tag == LDAP_TAG_SYNC_COOKIE) {
       ber_scanf(syncinfo, "m", &cookie);
@@ -1813,6 +1821,9 @@ static void print_syncinfo(BerValue *data) {
     BerVarray uuids;
 
     printf(_("ID Set\n"));
+    /* Skip sequence tag first */
+    ber_skip_tag(syncinfo, &len);
+
     tag = ber_peek_tag(syncinfo, &len);
     if (tag == LDAP_TAG_SYNC_COOKIE) {
       ber_scanf(syncinfo, "m", &cookie);
