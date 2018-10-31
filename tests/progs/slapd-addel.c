@@ -32,13 +32,12 @@
 #include "ac/wait.h"
 
 #include "ldap.h"
+#include "ldif.h"
 #include "lutil.h"
 
 #include "slapd-common.h"
 
-static char *get_add_entry(char *filename, LDAPMod ***mods);
-
-static void do_addel(struct tester_conn_args *config, char *dn, LDAPMod **attrs,
+static void do_addel(struct tester_conn_args *config, LDIFRecord *record,
                      int friendly);
 
 static void usage(char *name, char opt) {
@@ -55,11 +54,13 @@ static void usage(char *name, char opt) {
 
 int main(int argc, char **argv) {
   int i;
-  char *filename = NULL;
-  char *entry = NULL;
+  char *filename = NULL, *buf = NULL;
   int friendly = 0;
-  LDAPMod **attrs = NULL;
+  struct LDIFFP *fp;
+  LDIFRecord record = {};
   struct tester_conn_args *config;
+  struct berval bv = {};
+  unsigned long lineno = 0;
 
   config = tester_init("slapd-addel", TESTER_ADDEL);
 
@@ -89,141 +90,45 @@ int main(int argc, char **argv) {
   if (filename == NULL)
     usage(argv[0], 0);
 
-  entry = get_add_entry(filename, &attrs);
-  if ((entry == NULL) || (*entry == '\0')) {
+  if ((fp = ldif_open(filename, "r")) == NULL) {
+    tester_perror(filename, "while reading ldif file");
+    exit(EXIT_FAILURE);
+  }
+
+  i = 0;
+  if (ldif_read_record(fp, &lineno, &buf, &i) < 0) {
+    tester_error("ldif_read_record failed");
+    exit(EXIT_FAILURE);
+  }
+  bv.bv_val = buf;
+  bv.bv_len = i;
+
+  if (ldap_parse_ldif_record(&bv, lineno, &record, "slapd-addel",
+                             LDIF_DEFAULT_ADD | LDIF_ENTRIES_ONLY)) {
+    tester_error("ldif_read_record failed");
+    exit(EXIT_FAILURE);
+  }
+  ldif_close(fp);
+
+  if ((record.lr_op != LDAP_REQ_ADD) || (!record.lrop_mods)) {
 
     fprintf(stderr, "%s: invalid entry DN in file \"%s\".\n", argv[0],
             filename);
     exit(EXIT_FAILURE);
   }
 
-  if ((attrs == NULL) || (*attrs == NULL)) {
-
-    fprintf(stderr, "%s: invalid attrs in file \"%s\".\n", argv[0], filename);
-    exit(EXIT_FAILURE);
-  }
-
   tester_config_finish(config);
 
   for (i = 0; i < config->outerloops; i++) {
-    do_addel(config, entry, attrs, friendly);
+    do_addel(config, &record, friendly);
   }
 
+  ber_memfree(buf);
   exit(EXIT_SUCCESS);
 }
 
-static void addmodifyop(LDAPMod ***pmodsp, int modop, char *attr, char *value,
-                        int vlen) {
-  LDAPMod **pmods;
-  int i, j;
-  struct berval *bvp;
-
-  pmods = *pmodsp;
-  modop |= LDAP_MOD_BVALUES;
-
-  i = 0;
-  if (pmods != NULL) {
-    for (; pmods[i] != NULL; ++i) {
-      if (strcasecmp(pmods[i]->mod_type, attr) == 0 &&
-          pmods[i]->mod_op == modop) {
-        break;
-      }
-    }
-  }
-
-  if (pmods == NULL || pmods[i] == NULL) {
-    if ((pmods = (LDAPMod **)realloc(pmods, (i + 2) * sizeof(LDAPMod *))) ==
-        NULL) {
-      tester_perror("realloc", NULL);
-      exit(EXIT_FAILURE);
-    }
-    *pmodsp = pmods;
-    pmods[i + 1] = NULL;
-    if ((pmods[i] = (LDAPMod *)calloc(1, sizeof(LDAPMod))) == NULL) {
-      tester_perror("calloc", NULL);
-      exit(EXIT_FAILURE);
-    }
-    pmods[i]->mod_op = modop;
-    if ((pmods[i]->mod_type = strdup(attr)) == NULL) {
-      tester_perror("strdup", NULL);
-      exit(EXIT_FAILURE);
-    }
-  }
-
-  if (value != NULL) {
-    j = 0;
-    if (pmods[i]->mod_bvalues != NULL) {
-      for (; pmods[i]->mod_bvalues[j] != NULL; ++j) {
-        ;
-      }
-    }
-    if ((pmods[i]->mod_bvalues = (struct berval **)ber_memrealloc(
-             pmods[i]->mod_bvalues, (j + 2) * sizeof(struct berval *))) ==
-        NULL) {
-      tester_perror("ber_memrealloc", NULL);
-      exit(EXIT_FAILURE);
-    }
-    pmods[i]->mod_bvalues[j + 1] = NULL;
-    if ((bvp = (struct berval *)ber_memalloc(sizeof(struct berval))) == NULL) {
-      tester_perror("ber_memalloc", NULL);
-      exit(EXIT_FAILURE);
-    }
-    pmods[i]->mod_bvalues[j] = bvp;
-
-    bvp->bv_len = vlen;
-    if ((bvp->bv_val = (char *)malloc(vlen + 1)) == NULL) {
-      tester_perror("malloc", NULL);
-      exit(EXIT_FAILURE);
-    }
-    memcpy(bvp->bv_val, value, vlen);
-    bvp->bv_val[vlen] = '\0';
-  }
-}
-
-static char *get_add_entry(char *filename, LDAPMod ***mods) {
-  FILE *fp;
-  char *entry = NULL;
-
-  if ((fp = fopen(filename, "r")) != NULL) {
-    char line[BUFSIZ];
-
-    if (fgets(line, BUFSIZ, fp)) {
-      char *nl;
-
-      if ((nl = strchr(line, '\r')) || (nl = strchr(line, '\n')))
-        *nl = '\0';
-      nl = line;
-      if (!strncasecmp(nl, "dn: ", 4))
-        nl += 4;
-      entry = strdup(nl);
-    }
-
-    while (fgets(line, BUFSIZ, fp)) {
-      char *nl;
-      char *value;
-
-      if ((nl = strchr(line, '\r')) || (nl = strchr(line, '\n')))
-        *nl = '\0';
-
-      if (*line == '\0')
-        break;
-      if (!(value = strchr(line, ':')))
-        break;
-
-      *value++ = '\0';
-      while (*value && isspace((unsigned char)*value))
-        value++;
-
-      addmodifyop(mods, LDAP_MOD_ADD, line, value, strlen(value));
-    }
-    fclose(fp);
-  }
-
-  return (entry);
-}
-
-static void do_addel(struct tester_conn_args *config, char *entry,
-                     LDAPMod **attrs, int friendly) {
+static void do_addel(struct tester_conn_args *config, LDIFRecord *record,
+                     int friendly) {
   LDAP *ld = NULL;
   int i = 0, do_retry = config->retries;
   int rc = LDAP_SUCCESS;
@@ -235,13 +140,14 @@ retry:;
 
   if (do_retry == config->retries) {
     fprintf(stderr, "PID=%ld - Add/Delete(%d): entry=\"%s\".\n", (long)pid,
-            config->loops, entry);
+            config->loops, record->lr_dn.bv_val);
   }
 
   for (; i < config->loops; i++) {
 
     /* add the entry */
-    rc = ldap_add_ext_s(ld, entry, attrs, NULL, NULL);
+    rc =
+        ldap_add_ext_s(ld, record->lr_dn.bv_val, record->lrop_mods, NULL, NULL);
     if (rc != LDAP_SUCCESS) {
       tester_ldap_error(ld, "ldap_add_ext_s", NULL);
       switch (rc) {
@@ -274,7 +180,7 @@ retry:;
 #endif
 
     /* now delete the entry again */
-    rc = ldap_delete_ext_s(ld, entry, NULL, NULL);
+    rc = ldap_delete_ext_s(ld, record->lr_dn.bv_val, NULL, NULL);
     if (rc != LDAP_SUCCESS) {
       tester_ldap_error(ld, "ldap_delete_ext_s", NULL);
       switch (rc) {
