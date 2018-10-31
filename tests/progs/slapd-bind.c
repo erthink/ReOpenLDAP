@@ -91,7 +91,7 @@ int main(int argc, char **argv) {
   config = tester_init("slapd-bind", TESTER_BIND);
 
   /* by default, tolerate invalid credentials */
-  tester_ignore_str2errlist("INVALID_CREDENTIALS");
+  tester_ignore_str2errlist("*INVALID_CREDENTIALS");
 
   while ((i = getopt(argc, argv, TESTER_COMMON_OPTS "a:B:b:Ff:I")) != EOF) {
     switch (i) {
