@@ -2,6 +2,7 @@
 
 ncpu=$((grep processor /proc/cpuinfo || echo ?) | wc -l)
 lalim=$((ncpu*4))
+export LC_ALL=C
 
 srcdir=$(pwd)
 

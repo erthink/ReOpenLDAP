@@ -1,5 +1,7 @@
 #!/bin/bash
 
+export LC_ALL=C
+
 teamcity_sync() {
 	[ -z "${TEAMCITY_PROCESS_FLOW_ID}" ] || sleep 1
 }
