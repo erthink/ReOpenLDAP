@@ -516,6 +516,6 @@ if [ ! -s ${build}/Makefile ]; then
 	) || failure "configure"
 fi
 
-make -C ${build} install
+make -C ${build} install || failure "install"
 
 echo "DONE"
