@@ -1727,7 +1727,7 @@ static void print_syncinfo(BerValue *data) {
   ber_tag_t tag;
   ber_len_t len;
 
-  if ((syncinfo = ber_alloc()) == NULL) {
+  if ((syncinfo = ber_alloc_t(0)) == NULL) {
     return;
   }
   ber_init2(syncinfo, data, 0);

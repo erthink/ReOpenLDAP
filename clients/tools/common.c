@@ -2258,7 +2258,6 @@ static int print_syncstate(LDAP *ld, LDAPControl *ctrl) {
   char buf[LDAP_LUTIL_UUIDSTR_BUFSIZE], *uuidstr = "(UUID malformed)";
   BerElement *ber;
   ber_tag_t tag;
-  ber_len_t len;
   ber_int_t state;
   int rc;
 
@@ -2329,7 +2328,6 @@ static int print_syncstate(LDAP *ld, LDAPControl *ctrl) {
 static int print_syncdone(LDAP *ld, LDAPControl *ctrl) {
   BerElement *ber;
   struct berval cookie = BER_BVNULL;
-  ber_tag_t tag;
   ber_len_t len;
   ber_int_t refreshDeletes = 0;
 
