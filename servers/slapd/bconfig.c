@@ -6154,7 +6154,7 @@ static int __config_back_add(Operation *op, SlapReply *rs) {
 
 out2:;
   if (dopause)
-    slap_unpause_server();
+    slap_biglock_pool_resume(op->o_bd);
 
 out:;
   {
@@ -6635,7 +6635,7 @@ static int __config_back_modify(Operation *op, SlapReply *rs) {
   }
 
   if (do_pause)
-    slap_unpause_server();
+    slap_biglock_pool_resume(op->o_bd);
 out:
   send_ldap_result(op, rs);
   slap_graduate_commit_csn(op);
@@ -6847,7 +6847,7 @@ static int __config_back_modrdn(Operation *op, SlapReply *rs) {
   }
 
   if (dopause)
-    slap_unpause_server();
+    slap_biglock_pool_resume(op->o_bd);
 out:
   send_ldap_result(op, rs);
   return rs->sr_err;
@@ -6905,7 +6905,7 @@ static int __config_back_delete(Operation *op, SlapReply *rs) {
         rs->sr_err = LDAP_OTHER;
         rs->sr_text = "objectclass not found";
         if (dopause)
-          slap_unpause_server();
+          slap_biglock_pool_resume(op->o_bd);
         goto out;
       }
       for (i = 0; !BER_BVISNULL(&oc_at->a_nvals[i]); i++) {
@@ -6924,7 +6924,7 @@ static int __config_back_delete(Operation *op, SlapReply *rs) {
              * here */
           }
           if (dopause)
-            slap_unpause_server();
+            slap_biglock_pool_resume(op->o_bd);
           goto out;
         }
         break;
@@ -6934,7 +6934,7 @@ static int __config_back_delete(Operation *op, SlapReply *rs) {
         rs->sr_err = LDAP_UNWILLING_TO_PERFORM;
         rs->sr_text = "Cannot delete config or frontend database";
         if (dopause)
-          slap_unpause_server();
+          slap_biglock_pool_resume(op->o_bd);
         goto out;
       }
       if (ce->ce_be->bd_info->bi_db_close) {
@@ -6997,7 +6997,7 @@ static int __config_back_delete(Operation *op, SlapReply *rs) {
     entry_free(ce->ce_entry);
     ch_free(ce);
     if (dopause)
-      slap_unpause_server();
+      slap_biglock_pool_resume(op->o_bd);
   } else {
     rs->sr_err = LDAP_UNWILLING_TO_PERFORM;
   }

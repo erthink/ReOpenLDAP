@@ -52,7 +52,7 @@ LDAP_SLAPD_F(int) slap_biglock_owned(BackendDB *be);
 LDAP_SLAPD_F(int) slap_biglock_pool_pausing(BackendDB *bd);
 LDAP_SLAPD_F(int) slap_biglock_pool_pause(BackendDB *be);
 LDAP_SLAPD_F(int) slap_biglock_pool_pausecheck(BackendDB *be);
-LDAP_SLAPD_F(void) slap_biglock_pool_resume(BackendDB *be);
+LDAP_SLAPD_F(int) slap_biglock_pool_resume(BackendDB *be);
 
 LDAP_SLAPD_F(void) memleak_crutch_push(void *p);
 LDAP_SLAPD_F(void) memleak_crutch_pop(void *p);
