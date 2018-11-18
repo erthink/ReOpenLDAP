@@ -297,6 +297,8 @@ int ldap_pvt_thread_pool_init_q(ldap_pvt_thread_pool_t *tpool, int max_threads,
 
   ldap_pvt_thread_mutex_lock(&ldap_pvt_thread_pool_mutex);
   LDAP_STAILQ_INSERT_TAIL(&ldap_int_thread_pool_list, pool, ltp_next);
+  *tpool = pool;
+  ldap_int_has_thread_pool++;
   ldap_pvt_thread_mutex_unlock(&ldap_pvt_thread_pool_mutex);
 
   /* Start no threads just yet.  That can break if the process forks
@@ -305,9 +307,6 @@ int ldap_pvt_thread_pool_init_q(ldap_pvt_thread_pool_t *tpool, int max_threads,
    * can't unlock/clean up other threads' locks and data structures,
    * unless pthread_atfork() handlers have been set up to do so.
    */
-
-  *tpool = pool;
-  ldap_int_has_thread_pool = 1;
   return 0;
 
   while (--i >= 0) {
@@ -847,9 +846,12 @@ int ldap_pvt_thread_pool_free(ldap_pvt_thread_pool_t *tpool) {
     if (pptr == pool)
       break;
   }
-  if (pptr == pool)
+  if (pptr == pool) {
     LDAP_STAILQ_REMOVE(&ldap_int_thread_pool_list, pool, ldap_int_thread_pool_s,
                        ltp_next);
+    *tpool = NULL;
+    ldap_int_has_thread_pool--;
+  }
   ldap_pvt_thread_mutex_unlock(&ldap_pvt_thread_pool_mutex);
 
   if (pool != pptr)
@@ -863,16 +865,13 @@ int ldap_pvt_thread_pool_free(ldap_pvt_thread_pool_t *tpool) {
 
     assert(!pq->ltq_open_count);
     assert(LDAP_SLIST_EMPTY(&pq->ltq_free_list));
-    if (pq->ltq_free)
-      LDAP_FREE(pq->ltq_free);
-
     ldap_pvt_thread_cond_destroy(&pq->ltq_cond);
     ldap_pvt_thread_mutex_destroy(&pq->ltq_mutex);
+    if (pq->ltq_free)
+      LDAP_FREE(pq->ltq_free);
   }
   LDAP_FREE(pool->ltp_wqs);
   LDAP_FREE(pool);
-  *tpool = NULL;
-  ldap_int_has_thread_pool = 0;
   return (0);
 }
 
