@@ -555,9 +555,13 @@ int slap_add_opattrs(Operation *op, const char **text, char *textbuf,
     }
     if (BER_BVISEMPTY(&op->o_csn)) {
       if (!gotcsn) {
-        csn.bv_val = csnbuf;
-        csn.bv_len = sizeof(csnbuf);
-        slap_get_csn(manage_ctxcsn ? op : NULL, &csn);
+        if (slap_serverID ||
+            (slapMode & (SLAP_SERVER_MODE | SLAP_SERVER_RUNNING)) !=
+                SLAP_SERVER_MODE) {
+          csn.bv_val = csnbuf;
+          csn.bv_len = sizeof(csnbuf);
+          slap_get_csn(manage_ctxcsn ? op : NULL, &csn);
+        }
       } else {
         if (manage_ctxcsn)
           slap_queue_csn(op, &csn);
@@ -608,7 +612,7 @@ int slap_add_opattrs(Operation *op, const char **text, char *textbuf,
                      NULL);
     }
 
-    if (!gotcsn) {
+    if (!gotcsn && !BER_BVISEMPTY(&csn)) {
       attr_merge_one(op->ora_e, slap_schema.si_ad_entryCSN, &csn, NULL);
     }
 

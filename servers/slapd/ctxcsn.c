@@ -227,7 +227,7 @@ Entry *slap_create_context_csn_entry(Backend *be, struct berval *context_csn) {
   return e;
 }
 
-void slap_queue_csn(Operation *op, struct berval *csn) {
+void slap_queue_csn(Operation *op, const struct berval *csn) {
   assert(slap_csn_verify_full(csn));
   struct slap_csn_entry *pending, *before;
   BackendDB *be = op->o_bd->bd_self;

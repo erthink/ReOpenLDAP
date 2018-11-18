@@ -817,9 +817,13 @@ void slap_mods_opattrs(Operation *op, Modifications **modsp,
 
     if (BER_BVISEMPTY(&op->o_csn)) {
       if (!gotcsn) {
-        csn.bv_val = csnbuf;
-        csn.bv_len = sizeof(csnbuf);
-        slap_get_csn(manage_ctxcsn ? op : NULL, &csn);
+        if (slap_serverID ||
+            (slapMode & (SLAP_SERVER_MODE | SLAP_SERVER_RUNNING)) !=
+                SLAP_SERVER_MODE) {
+          csn.bv_val = csnbuf;
+          csn.bv_len = sizeof(csnbuf);
+          slap_get_csn(manage_ctxcsn ? op : NULL, &csn);
+        }
       } else {
         if (manage_ctxcsn)
           slap_queue_csn(op, &csn);
@@ -844,13 +848,12 @@ void slap_mods_opattrs(Operation *op, Modifications **modsp,
     if (BER_BVISEMPTY(&op->o_dn)) {
       BER_BVSTR(&name, SLAPD_ANONYMOUS);
       nname = name;
-
     } else {
       name = op->o_dn;
       nname = op->o_ndn;
     }
 
-    if (!gotcsn) {
+    if (!gotcsn && !BER_BVISEMPTY(&csn)) {
       mod = (Modifications *)ch_malloc(sizeof(Modifications));
       mod->sml_op = LDAP_MOD_REPLACE;
       mod->sml_flags = SLAP_MOD_INTERNAL;
