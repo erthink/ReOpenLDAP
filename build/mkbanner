@@ -22,7 +22,7 @@ PACKAGE=$($BRANDING --package || echo undefined)
 VERSION=$($BRANDING --version || echo unknown)
 STAMP=$($BRANDING --stamp || echo unknown)
 PACKAGE_URL=$($BRANDING --url || echo unknown)
-WHOWHERE=$($BRANDING --whowhere || echo "$USER@$(uname -n):$(pwd)")
+WHOWHERE=$($BRANDING --whowhere || echo unknown)
 
 LOCAL='static __attribute__((unused,used))'
 GLOBAL='__attribute__((unused,used,visibility("default")))'

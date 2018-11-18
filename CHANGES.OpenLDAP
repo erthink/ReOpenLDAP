@@ -19,6 +19,7 @@ OpenLDAP 2.4.47 Engineering
 	WFE: Fixed slapo-syncprov with NULL modlist (ITS#8843)
 	Build Environment
 		Fixed missing includes with OpenSSL 1.0.2 (ITS#8809)
+		Added slapd reproducible build support (ITS#8928)
 	Contrib
 		Fixed slapo-pbkdf2 hash generation (ITS#8878)
 	Documentation

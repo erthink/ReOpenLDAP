@@ -49,7 +49,12 @@ PACKAGE_TARNAME=$(tr [:upper:] [:lower:] <<< "${PACKAGE}")
 API_LIB_RELEASE="${VERSION_MAJOR}.${VERSION_MINOR}"
 API_LIB_VERSION="${API_CURRENT}:${API_REVISON}:${API_AGE}"
 
-WHOWHERE="$(whoami || echo $USER)@$(uname -n):$(pwd)"
+# Reproducible builds set SOURCE_DATE_EPOCH, want constant strings
+if [ -n "${SOURCE_DATE_EPOCH}" ]; then
+	WHOWHERE="reopenldap.${SOURCE_DATE_EPOCH}@SOURCE_DATE_EPOCH"
+else
+	WHOWHERE="$(whoami || echo $USER)@$(uname -n):$(pwd)"
+fi
 
 #######################################################################
 
