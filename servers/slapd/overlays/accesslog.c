@@ -79,7 +79,7 @@ typedef struct log_info {
   struct berval li_uuid;
   int li_success;
   log_base *li_bases;
-  ldap_int_thread_mutex_recursive_t li_op_rmutex;
+  ldap_pvt_thread_mutex_t li_op_rmutex;
   ldap_pvt_thread_mutex_t li_log_mutex;
 } log_info;
 
@@ -1533,7 +1533,7 @@ static int do_accesslog_response(Operation *op, SlapReply *rs,
       Debug(LDAP_DEBUG_SYNC, "%s.%d: unlocking rmutex for tid %x\n",
             __FUNCTION__, __LINE__, op->o_tid);
 #endif
-      ldap_pvt_thread_mutex_recursive_unlock(&li->li_op_rmutex);
+      ldap_pvt_thread_mutex_unlock(&li->li_op_rmutex);
       need_unlock = 0;
     }
   }
@@ -1921,7 +1921,7 @@ exit_continue:
     Debug(LDAP_DEBUG_SYNC, "%s.%d: unlocking rmutex for tid %x\n", __FUNCTION__,
           __LINE__, op->o_tid);
 #endif
-    ldap_pvt_thread_mutex_recursive_unlock(&li->li_op_rmutex);
+    ldap_pvt_thread_mutex_unlock(&li->li_op_rmutex);
   }
   return SLAP_CB_CONTINUE;
 }
@@ -1981,7 +1981,7 @@ static int accesslog_mod_cleanup_and_unlock(Operation *op, SlapReply *rs) {
     Debug(LDAP_DEBUG_SYNC, "%s.%d: unlocking rmutex for tid %x\n", __FUNCTION__,
           __LINE__, op->o_tid);
 #endif
-    ldap_pvt_thread_mutex_recursive_unlock(&li->li_op_rmutex);
+    ldap_pvt_thread_mutex_unlock(&li->li_op_rmutex);
   }
   return 0;
 }
@@ -2023,7 +2023,7 @@ static int accesslog_op_mod(Operation *op, SlapReply *rs) {
     Debug(LDAP_DEBUG_SYNC, "accesslog_op_mod: locking rmutex for tid %x\n",
           op->o_tid);
 #endif
-    ldap_pvt_thread_mutex_recursive_lock(&li->li_op_rmutex);
+    ldap_pvt_thread_mutex_lock(&li->li_op_rmutex);
 #ifdef RMUTEX_DEBUG
     Debug(LDAP_DEBUG_STATS, "accesslog_op_mod: locked rmutex for tid %x\n",
           op->o_tid);
@@ -2212,7 +2212,7 @@ static int accesslog_db_destroy(BackendDB *be, ConfigReply *cr) {
     ch_free(la);
   }
   ldap_pvt_thread_mutex_destroy(&li->li_log_mutex);
-  ldap_pvt_thread_mutex_recursive_destroy(&li->li_op_rmutex);
+  ldap_pvt_thread_mutex_destroy(&li->li_op_rmutex);
   free(li);
   return LDAP_SUCCESS;
 }
