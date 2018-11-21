@@ -1758,13 +1758,24 @@ static int syncrepl_accesslog_mods(syncinfo_t *si, struct berval *vals,
             si->si_ridtxt, bv.bv_val, text);
       slap_mods_free(modlist, 1);
       modlist = NULL;
-      rc = -1;
+      rc = LDAP_PROTOCOL_ERROR;
       break;
     }
 
     /* Ignore dynamically generated attrs */
     if (ad->ad_type->sat_flags & SLAP_AT_DYNAMIC) {
       continue;
+    }
+
+    if (ad == slap_schema.si_ad_contextCSN) {
+      Debug(LDAP_DEBUG_ANY,
+            "syncrepl_accesslog_mods: %s "
+            "Unexpected attribute %s\n",
+            si->si_ridtxt, ad->ad_cname.bv_val);
+      slap_mods_free(modlist, 1);
+      modlist = NULL;
+      rc = LDAP_PROTOCOL_ERROR;
+      break;
     }
 
     /* Ignore excluded attrs */
@@ -2258,6 +2269,9 @@ static int syncrepl_message_to_op(syncinfo_t *si, Operation *op,
     return LDAP_PROTOCOL_ERROR;
   }
 
+  Debug(LDAP_DEBUG_SYNC, "syncrepl_message_to_op: %s tid %lx\n", si->si_ridtxt,
+        (long)op->o_tid);
+
   assert(slap_biglock_owned(op->o_bd));
   while ((rc = ldap_get_attribute_ber(si->si_ld, msg, ber, &bv, &bvals)) ==
          LDAP_SUCCESS) {
@@ -2340,15 +2354,14 @@ static int syncrepl_message_to_op(syncinfo_t *si, Operation *op,
   op->o_callback = &cb;
   slap_op_time(&op->o_time, &op->o_tincr);
 
-  Debug(LDAP_DEBUG_SYNC, "syncrepl_message_to_op: %s tid %lx\n", si->si_ridtxt,
-        (long)op->o_tid);
-
   switch (op->o_tag) {
   case LDAP_REQ_ADD:
   case LDAP_REQ_MODIFY:
     /* If we didn't get required data, bail */
-    if (!modlist)
+    if (!modlist) {
+      rc = LDAP_PROTOCOL_ERROR;
       goto done;
+    }
 
     rc = slap_mods_check(op, modlist, &text, txtbuf, textlen, NULL);
 
@@ -2376,11 +2389,61 @@ static int syncrepl_message_to_op(syncinfo_t *si, Operation *op,
         rc = op->o_bd->bd_info->bi_op_add(op, &rs);
         Debug(LDAP_DEBUG_SYNC, "syncrepl_message_to_op: %s be_add %s (%d)\n",
               si->si_ridtxt, op->o_req_dn.bv_val, rc);
+
         if (rc == LDAP_ALREADY_EXISTS) {
           /* FIXME: check for glue-object and remove it */
+          Attribute *remoteCSN =
+              attr_find(e->e_attrs, slap_schema.si_ad_entryCSN);
+          if (remoteCSN) {
+            slap_overinst *on = (slap_overinst *)op->o_bd->bd_info;
+            Entry *present;
+            if (overlay_entry_get_ov(op, &op->o_req_ndn, NULL, NULL, 0,
+                                     &present, on) == LDAP_SUCCESS) {
+              Attribute *presentCSN =
+                  attr_find(present->e_attrs, slap_schema.si_ad_entryCSN);
+              if (presentCSN &&
+                  !slap_csn_compare_sr(presentCSN->a_vals, remoteCSN->a_vals) &&
+                  0 <= slap_csn_compare_ts(presentCSN->a_vals,
+                                           remoteCSN->a_vals)) {
+
+                /* check attributes for any differences */
+                int mismatch = 0;
+                for (Attribute *ra = e->e_attrs; !mismatch && ra != NULL;
+                     ra = ra->a_next) {
+                  if (ra->a_desc == slap_schema.si_ad_entryCSN ||
+                      ra->a_desc == slap_schema.si_ad_createTimestamp ||
+                      ra->a_desc == slap_schema.si_ad_modifyTimestamp)
+                    continue;
+
+                  Attribute *pa = attr_find(present->e_attrs, ra->a_desc);
+                  if (!pa || ra->a_numvals != pa->a_numvals ||
+                      (ra->a_nvals != NULL) != (pa->a_nvals != NULL) ||
+                      ((ra->a_flags ^ pa->a_flags) &
+                       SLAP_ATTR_PERSISTENT_FLAGS) != 0)
+                    mismatch = 1;
+                  for (int i = 0; !mismatch && i < ra->a_numvals; ++i) {
+                    mismatch = ber_bvcmp(ra->a_vals + i, pa->a_vals + i);
+                    if (!mismatch && ra->a_nvals)
+                      mismatch = ber_bvcmp(ra->a_nvals + i, pa->a_nvals + i);
+                  }
+                }
+
+                if (!mismatch) {
+                  /* LY silently ignore obsolete updates */
+                  Debug(LDAP_DEBUG_SYNC,
+                        "syncrepl_message_to_op: ignore LDAP_ALREADY_EXISTS "
+                        "for %s\n",
+                        op->o_req_dn.bv_val);
+                  rc = LDAP_SUCCESS;
+                }
+              }
+            }
+            overlay_entry_release_ov(op, present, 0, on);
+          }
         }
         do_graduate = 0;
       }
+
       if (e == op->ora_e)
         be_entry_release_w(op, op->ora_e);
     } else {
@@ -2430,9 +2493,8 @@ static int syncrepl_message_to_op(syncinfo_t *si, Operation *op,
     op->orr_nnewrdn = nrdn;
     op->orr_deleteoldrdn = deleteOldRdn;
     op->orr_modlist = NULL;
-    if (slap_modrdn2mods(op, &rs)) {
+    if (slap_modrdn2mods(op, &rs))
       goto done;
-    }
 
     /* Append modlist for operational attrs */
     {
@@ -2455,6 +2517,8 @@ static int syncrepl_message_to_op(syncinfo_t *si, Operation *op,
     Debug(rc ? LDAP_DEBUG_ANY : LDAP_DEBUG_SYNC,
           "syncrepl_message_to_op: %s be_delete %s (%d)\n", si->si_ridtxt,
           op->o_req_dn.bv_val, rc);
+    if (rc == LDAP_NO_SUCH_OBJECT)
+      rc = LDAP_SUCCESS;
     do_graduate = 0;
     break;
   }
