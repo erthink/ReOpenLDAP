@@ -37,10 +37,24 @@ if test $dtest = N; then
 	exit 0
 fi
 
+# This mimics the scenario where a single server has been used until now (no
+# syncprov either, so no contextCSN) and we convert it to a delta-MMR setup:
+# 1. stop the server (note that there is likely no contextCSN in the DB at this point)
+# 2. configure all servers to delta-replicate from each other and start them up
+#    - empty servers will start with a refresh of the main DB
+#    - when the refresh is successful they should change over to replicating the log
+# 3. keep making changes on all servers to see things still work
+
 echo "This test tracks a case where slapd deadlocks during a significant write load"
 echo "See http://www.openldap.org/its/index.cgi/?findid=8752 for more information."
 
 MMR=4
+iterations=42000
+if [ -n "$CI" -o -n "$CIBUZZ_PID4" ]; then
+	iterations=4200
+fi
+check_sync_every=100
+MAPSIZE=`expr 100 \* 1024 \* 1024`
 XDIR=$TESTDIR/srv
 
 mkdir -p $TESTDIR
@@ -134,7 +148,8 @@ for ((n=1; n<=$MMR; n++)); do
 	MYLOG=`eval echo '$LOG'$n`
 	MYCONF=`eval echo '$CONF'$n`
 	echo "Starting provider slapd on TCP/IP URI $MYURI"
-	DBNOSYNC=yes config_filter $BACKEND ${AC_conf[monitor]} < $ITSDIR/slapd.conf.mmr | sed -e "s/MMR/$n/g" > $MYCONF
+	DBNOSYNC=yes config_filter $BACKEND ${AC_conf[monitor]} < $ITSDIR/slapd.conf.mmr \
+		| sed -e "s/@MMR@/$n/g" -e "s/wronglog/log/" -e "s/@MAPSIZE@/$MAPSIZE/" > $MYCONF
 
 	for ((j=1; j<=$MMR; j++)); do
 		MMCURI=`eval echo '$URI'$j`
@@ -153,7 +168,7 @@ done
 
 echo "Setting up accesslog on each master..."
 for ((n=1; n<=$MMR; n++)); do
-	echo "Modifying dn: cn=Elmer_Fudd,ou=People,dc=example,dc=com on master $n"
+	echo "Modifying dn: cn=Elmer_Fudd,ou=People,$BASEDN on master $n"
 	MYURI=`eval echo '$URI'$n`
 	$LDAPMODIFY -v -D "$MANAGERDN" -H $MYURI -w $PASSWD > \
 		$TESTOUT 2>&1 << EOMODS
@@ -172,15 +187,54 @@ EOMODS
 	sleep $SLEEP1
 done
 
-NNN=42000
-if [ -n "$CI" -o -n "$CIBUZZ_PID4" ]; then
-	NNN=4200
+#echo "Letting server 1 establish its own contextCSN..."
+#echo "Modifying dn: cn=Elmer_Fudd,ou=People,$BASEDN on $URI1"
+#$LDAPMODIFY -v -D "$MANAGERDN" -H $URI1 -w $PASSWD > \
+#    $TESTOUT 2>&1 << EOMODS
+#dn: cn=Elmer_Fudd,ou=People,$BASEDN
+#changetype: modify
+#replace: sn
+#sn: Fudd
+#EOMODS
+
+for i in 0 1 2 3 4 5; do
+	for ((j=1; j<=$MMR; j++)); do
+		MYURI=`eval echo '$URI'$j`
+		$LDAPSEARCH -b "$BASEDN" -H "$MYURI" \
+			'*' '+' >"$TESTDIR/server$j.out" 2>&1
+		RC=$?
+		if test $RC != 0 ; then
+			echo "ldapsearch failed ($RC)!"
+			killservers
+			exit $RC
+		fi
+		$LDIFFILTER -s ae < "$TESTDIR/server$j.out" > "$TESTDIR/server$j.flt"
+	done
+
+	in_sync=1
+	for ((k=2; k<=$MMR; k++)); do
+		$CMP "$TESTDIR/server1.flt" "$TESTDIR/server$k.flt" > $CMPOUT
+		if test $? != 0 ; then
+			in_sync=0
+			break
+		fi
+	done
+	if test $in_sync = 1; then
+		break
+	fi
+
+	echo "Waiting $SLEEP1 seconds for servers to catch up..."
+	sleep $SLEEP1
+done
+
+if test $in_sync = 0; then
+	echo "Servers did not replicate in time"
+	killservers
+	exit 1
 fi
 
-echo "Sleeping $SYNCREPL_WAIT seconds to ensure replication is reconciled between all nodes"
-echo "The next step of the test will perform $NNN random write operations and may take some time."
+echo "The next step of the test will perform $iterations random write operations and may take some time."
 echo "As this test is for a deadlock, it will take manual intervention to exit the test if one occurs."
-sleep $SYNCREPL_WAIT
 
 echo "Starting random master/entry modifications..."
 DN1="cn=Elmer_Fudd,ou=People,$BASEDN"
@@ -195,14 +249,14 @@ VAL3="Bunny"
 DN4="cn=Daffy_Duck,ou=People,$BASEDN"
 VAL4="Duck"
 
-for ((n=1; n<=$NNN; n++)); do
-	rvalue=$(( RANDOM % 4 + 1 ))
+for ((n=1; n<=$iterations; n++)); do
+	rvalue=$(( RANDOM % $MMR + 1 ))
 	MYURI=`eval echo '$URI'$rvalue`
 	rvalue=$(( RANDOM % 4 + 1 ))
 	MYDN=`eval echo '$DN'$rvalue`
 	rvalue=$(( RANDOM % 4 + 1 ))
 	MYVAL=`eval echo '$VAL'$rvalue`
-	(( n % 250 == 1 )) && echo "Modifying $MYURI entry $MYDN with value $MYVAL iteration $n of $NNN"
+	(( n % 250 == 1 )) && echo "Modifying $MYURI entry $MYDN with value $MYVAL iteration $n of $iterations"
 	$LDAPMODIFY -v -D "$MANAGERDN" -H $MYURI -w $PASSWD > \
 		$TESTOUT 2>&1 << EOMODS
 
@@ -216,6 +270,142 @@ EOMODS
 		echo "ldapmodify failed ($RC, $MYURI, $MYDN, $MYVAL)!"
 		killservers
 		exit $RC
+	fi
+
+	if [ "$check_sync_every" -gt 0 ] && [ `expr $n % $check_sync_every` = 0 ]; then
+		echo "Checking replication status before we start iteration $n..."
+		for i in 0 1 2 3 4 5; do
+			for ((j=1; j<=$MMR; j++)); do
+				MYURI=`eval echo '$URI'$j`
+				echo "Reading database from server $j..."
+				$LDAPSEARCH -b "$BASEDN" -H "$MYURI" \
+				'*' '+' >"$TESTDIR/server$j.out" 2>&1
+				RC=$?
+				if test $RC != 0 ; then
+					echo "ldapsearch failed ($RC)!"
+					killservers
+					exit $RC
+				fi
+				$LDIFFILTER -s ae < "$TESTDIR/server$j.out" > "$TESTDIR/server$j.flt"
+			done
+
+			in_sync=1
+			for ((k=2; k<=$MMR; k++)); do
+				$CMP "$TESTDIR/server1.flt" "$TESTDIR/server$k.flt" > $CMPOUT
+				if test $? != 0 ; then
+					in_sync=0
+					break
+				fi
+			done
+			if test $in_sync = 1; then
+				break
+			fi
+
+			echo "Waiting $SLEEP1 seconds for servers to catch up..."
+			sleep $SLEEP1
+		done
+
+		if test $in_sync = 0; then
+			echo "Servers did not replicate in time"
+			killservers
+			exit 1
+		fi
+	fi
+done
+
+kill -HUP $KILLPIDS
+wait $KILLPIDS
+
+echo "The next step of the test will perform $iterations random write operations and may take some time."
+echo "As this test is for a deadlock, it will take manual intervention to exit the test if one occurs."
+
+echo "Starting servers again, this time with the wrong logbase setting..."
+KILLPIDS=
+for ((n=1; n<=$MMR; n++)); do
+	MYURI=`eval echo '$URI'$n`
+	MYLOG=`eval echo '$LOG'$n`
+	MYCONF=`eval echo '$CONF'$n`
+	echo "Starting provider slapd on TCP/IP URI $MYURI"
+	DBNOSYNC=yes config_filter $BACKEND ${AC_conf[monitor]} < $ITSDIR/slapd.conf.mmr \
+		| sed -e "s/@MMR@/$n/g" -e "s/@MAPSIZE@/$MAPSIZE/" > $MYCONF
+
+	for ((j=1; j<=$MMR; j++)); do
+		MMCURI=`eval echo '$URI'$j`
+		sed -ie "s|MMC${j}|${MMCURI}|" $MYCONF
+	done
+	$SLAPD_HUGE -f $MYCONF -h $MYURI -d $LVL $TIMING |& gzip > $MYLOG.gz &
+	PID=$(jobs -p | tail -1)
+	if test $WAIT != 0 ; then
+		echo PID $PID
+		read foo
+	fi
+	KILLPIDS="$PID $KILLPIDS"
+	check_running $n
+done
+
+echo "Starting random master/entry modifications..."
+for ((n=1; n<=$iterations; n++)); do
+	seed=`date +%N|sed s/...$//`
+	rvalue=`echo|awk "BEGIN {srand($seed)
+	{print int(1+rand()*$MMR)}}"`
+	MYURI=`eval echo '$URI'$rvalue`
+	seed=`date +%N|sed s/...$//`
+	rvalue=`echo|awk "BEGIN {srand($seed)
+	{print int(1+rand()*4)}}"`
+	MYDN=`eval echo '$DN'$rvalue`
+	MYVAL=`eval echo '$VAL'$rvalue`
+	echo "Modifying $MYURI entry $MYDN with value $MYVAL iteration $n of $iterations"
+	$LDAPMODIFY -v -D "$MANAGERDN" -H $MYURI -w $PASSWD > $TESTOUT 2>&1 << EOMODS
+
+dn: $MYDN
+changetype: modify
+replace: sn
+sn: $MYVAL
+EOMODS
+	RC=$?
+	if test $RC != 0; then
+		echo "ldapmodify failed ($RC)"
+		killservers
+		exit 1
+	fi
+
+	if [ "$check_sync_every" -gt 0 ] && [ `expr $n % $check_sync_every` = 0 ]; then
+		echo "Checking replication status before we start iteration $n..."
+		for i in 0 1 2 3 4 5; do
+			for ((j=1; j<=$MMR; j++)); do
+				MYURI=`eval echo '$URI'$j`
+				echo "Reading database from server $j..."
+				$LDAPSEARCH -b "$BASEDN" -H "$MYURI" '*' '+' >"$TESTDIR/server$j.out" 2>&1
+				RC=$?
+				if test $RC != 0 ; then
+					echo "ldapsearch failed ($RC)!"
+					killservers
+					exit $RC
+				fi
+				$LDIFFILTER -s ae < "$TESTDIR/server$j.out" > "$TESTDIR/server$j.flt"
+			done
+
+			in_sync=1
+			for ((k=2; k<=$MMR; k++)); do
+				$CMP "$TESTDIR/server1.flt" "$TESTDIR/server$k.flt" > $CMPOUT
+				if test $? != 0 ; then
+					in_sync=0
+					break
+				fi
+			done
+			if test $in_sync = 1; then
+				break
+			fi
+
+			echo "Waiting $SLEEP1 seconds for servers to catch up..."
+			sleep $SLEEP1
+		done
+
+		if test $in_sync = 0; then
+			echo "Servers did not replicate in time"
+			killservers
+			exit 1
+		fi
 	fi
 done
 
