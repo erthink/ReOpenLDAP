@@ -1695,7 +1695,8 @@ static int do_accesslog_response(Operation *op, SlapReply *rs,
       }
       /* ITS#6545: when the same attribute is edited multiple times,
        * record the transition */
-      if (m->sml_next && m->sml_desc == m->sml_next->sml_desc) {
+      if (m->sml_next && m->sml_desc == m->sml_next->sml_desc &&
+          m->sml_op == m->sml_next->sml_op) {
         ber_str2bv(":", STRLENOF(":"), 1, &vals[i]);
         i++;
       }
@@ -2283,10 +2284,12 @@ static void *accesslog_db_root(void *ctx, void *arg) {
 
       a = attr_find(e_ctx->e_attrs, slap_schema.si_ad_contextCSN);
       if (a) {
-        /* FIXME: contextCSN could have multiple values!
-         * should select the one with the server's SID */
-        attr_merge_one(e, slap_schema.si_ad_entryCSN, &a->a_vals[0],
-                       &a->a_nvals[0]);
+        int i = a->a_numvals;
+        while (--i > 0)
+          if (slap_serverID == slap_csn_get_sid(a->a_vals + 1))
+            break;
+        attr_merge_one(e, slap_schema.si_ad_entryCSN, &a->a_vals[i],
+                       &a->a_nvals[i]);
         attr_merge(e, a->a_desc, a->a_vals, a->a_nvals);
       }
       be_entry_release_rw(op, e_ctx, 0);

@@ -740,7 +740,7 @@ LDAP_SLAPD_F(int) slap_get_commit_csn(Operation *, struct berval *maxcsn);
 LDAP_SLAPD_F(int) slap_graduate_commit_csn(Operation *);
 LDAP_SLAPD_F(Entry *) slap_create_context_csn_entry(Backend *, struct berval *);
 LDAP_SLAPD_F(int) slap_get_csn(Operation *, struct berval *);
-LDAP_SLAPD_F(void) slap_queue_csn(Operation *, struct berval *);
+LDAP_SLAPD_F(void) slap_queue_csn(Operation *, const struct berval *);
 LDAP_SLAPD_F(void) slap_free_commit_csn_list(struct be_pcl *list);
 LDAP_SLAPD_F(void) slap_op_csn_free(Operation *op);
 LDAP_SLAPD_F(void) slap_op_csn_clean(Operation *op);

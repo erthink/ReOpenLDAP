@@ -19,8 +19,7 @@ noinst_PROGRAMS = ldif_filter slapd_addel slapd_bind \
 
 AM_CPPFLAGS = -I$(top_srcdir)/include
 
-slap_LIBS = $(LDAP_LIBRELDAP_LA) $(LDAP_LIBLUTIL_LA) \
-	 $(LUTIL_LIBS) $(SECURITY_LIBS)
+slap_LIBS = $(LDAP_LIBRELDAP_LA) $(LDAP_LIBLUTIL_LA) $(LUTIL_LIBS)
 
 ldif_filter_SOURCES = ldif-filter.c
 ldif_filter_LDADD = $(slap_LIBS)

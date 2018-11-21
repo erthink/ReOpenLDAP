@@ -2,6 +2,7 @@
 
 ncpu=$((grep processor /proc/cpuinfo || echo ?) | wc -l)
 lalim=$((ncpu*4))
+export LC_ALL=C
 
 srcdir=$(pwd)
 
@@ -524,6 +525,6 @@ if [ ! -s ${build}/Makefile ]; then
 	) || failure "configure"
 fi
 
-make -C ${build} install
+make -C ${build} install || failure "install"
 
 echo "DONE"
