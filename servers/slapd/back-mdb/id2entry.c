@@ -589,8 +589,13 @@ return_results:
 static void mdb_reader_free(void *key, void *data) {
   MDBX_txn *txn = data;
 
-  if (txn)
-    LDAP_ENSURE(mdbx_txn_abort(txn) == MDBX_SUCCESS);
+  if (txn) {
+    int err = mdbx_txn_abort(txn);
+    Debug(LDAP_DEBUG_TRACE, "mdb_reader_free: mdbx_txn_abort() err=%d\n", err);
+    LDAP_ENSURE(
+        err == MDBX_SUCCESS ||
+        err == /* already completed and/or restarted */ MDBX_THREAD_MISMATCH);
+  }
 }
 
 /* free up any keys used by the main thread */
