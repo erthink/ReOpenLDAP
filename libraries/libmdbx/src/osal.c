@@ -53,6 +53,9 @@ static int ntstatus2errcode(NTSTATUS status) {
  * declare them here. Using these APIs also means we must link to
  * ntdll.dll, which is not linked by default in user code. */
 #pragma comment(lib, "ntdll.lib")
+#ifdef MDBX_AVOID_CRT
+#pragma comment(lib, "mdbx_ntdll_extra.lib")
+#endif
 
 extern NTSTATUS NTAPI NtCreateSection(
     OUT PHANDLE SectionHandle, IN ACCESS_MASK DesiredAccess,
@@ -154,13 +157,8 @@ typedef struct _FILE_PROVIDER_EXTERNAL_INFO_V1 {
 /* Prototype should match libc runtime. ISO POSIX (2003) & LSB 3.1 */
 __nothrow __noreturn void __assert_fail(const char *assertion, const char *file,
                                         unsigned line, const char *function);
-#else
-__extern_C __declspec(dllimport) void __cdecl _assert(char const *message,
-                                                      char const *filename,
-                                                      unsigned line);
 #endif /* _MSC_VER */
 
-#ifndef mdbx_assert_fail
 void __cold mdbx_assert_fail(const MDBX_env *env, const char *msg,
                              const char *func, int line) {
 #if MDBX_DEBUG
@@ -174,30 +172,48 @@ void __cold mdbx_assert_fail(const MDBX_env *env, const char *msg,
 
   if (mdbx_debug_logger)
     mdbx_debug_log(MDBX_DBG_ASSERT, func, line, "assert: %s\n", msg);
-#ifndef _MSC_VER
-  __assert_fail(msg, "mdbx", line, func);
+  else {
+#if defined(_WIN32) || defined(_WIN64)
+    char *message = nullptr;
+    const int num = mdbx_asprintf(&message, "\r\nMDBX-ASSERTION: %s, %s:%u",
+                                  msg, func ? func : "unknown", line);
+    if (num < 1 || !message)
+      message = "<troubles with assertion-message preparation>";
+    OutputDebugStringA(message);
+    if (IsDebuggerPresent())
+      DebugBreak();
 #else
-  _assert(msg, func, line);
-#endif /* _MSC_VER */
+    __assert_fail(msg, "mdbx", line, func);
+#endif
+  }
+
+#if defined(_WIN32) || defined(_WIN64)
+  FatalExit(ERROR_UNHANDLED_ERROR);
+#else
+  abort();
+#endif
 }
-#endif /* mdbx_assert_fail */
 
 __cold void mdbx_panic(const char *fmt, ...) {
   va_list ap;
   va_start(ap, fmt);
-#ifdef _MSC_VER
-  if (IsDebuggerPresent()) {
-    OutputDebugStringA("\r\n" FIXME "\r\n");
-    FatalExit(ERROR_UNHANDLED_ERROR);
-  }
-#elif _XOPEN_SOURCE >= 700 || _POSIX_C_SOURCE >= 200809L ||                    \
-    (__GLIBC_PREREQ(1, 0) && !__GLIBC_PREREQ(2, 10) && defined(_GNU_SOURCE))
-  vdprintf(STDERR_FILENO, fmt, ap);
-#else
-#error FIXME
-#endif
+
+  char *message = nullptr;
+  const int num = mdbx_vasprintf(&message, fmt, ap);
   va_end(ap);
+  if (num < 1 || !message)
+    message = "<troubles with panic-message preparation>";
+
+#if defined(_WIN32) || defined(_WIN64)
+  OutputDebugStringA("\r\nMDBX-PANIC: ");
+  OutputDebugStringA(message);
+  if (IsDebuggerPresent())
+    DebugBreak();
+  FatalExit(ERROR_UNHANDLED_ERROR);
+#else
+  __assert_fail(message, "mdbx", 0, "panic");
   abort();
+#endif
 }
 
 /*----------------------------------------------------------------------------*/
@@ -206,14 +222,7 @@ __cold void mdbx_panic(const char *fmt, ...) {
 int mdbx_vasprintf(char **strp, const char *fmt, va_list ap) {
   va_list ones;
   va_copy(ones, ap);
-#ifdef _MSC_VER
-  int needed = _vscprintf(fmt, ap);
-#elif defined(vsnprintf) || defined(_BSD_SOURCE) || _XOPEN_SOURCE >= 500 ||    \
-    defined(_ISOC99_SOURCE) || _POSIX_C_SOURCE >= 200112L
   int needed = vsnprintf(nullptr, 0, fmt, ap);
-#else
-#error FIXME
-#endif
 
   if (unlikely(needed < 0 || needed >= INT_MAX)) {
     *strp = nullptr;
@@ -221,7 +230,7 @@ int mdbx_vasprintf(char **strp, const char *fmt, va_list ap) {
     return needed;
   }
 
-  *strp = malloc(needed + 1);
+  *strp = mdbx_malloc(needed + 1);
   if (unlikely(*strp == nullptr)) {
     va_end(ones);
 #if defined(_WIN32) || defined(_WIN64)
@@ -232,17 +241,12 @@ int mdbx_vasprintf(char **strp, const char *fmt, va_list ap) {
     return -1;
   }
 
-#if defined(vsnprintf) || defined(_BSD_SOURCE) || _XOPEN_SOURCE >= 500 ||      \
-    defined(_ISOC99_SOURCE) || _POSIX_C_SOURCE >= 200112L
   int actual = vsnprintf(*strp, needed + 1, fmt, ones);
-#else
-#error FIXME
-#endif
   va_end(ones);
 
   assert(actual == needed);
   if (unlikely(actual < 0)) {
-    free(*strp);
+    mdbx_free(*strp);
     *strp = nullptr;
   }
   return actual;
@@ -261,8 +265,9 @@ int mdbx_asprintf(char **strp, const char *fmt, ...) {
 
 #ifndef mdbx_memalign_alloc
 int mdbx_memalign_alloc(size_t alignment, size_t bytes, void **result) {
-#if _MSC_VER
-  *result = _aligned_malloc(bytes, alignment);
+#if defined(_WIN32) || defined(_WIN64)
+  (void)alignment;
+  *result = VirtualAlloc(NULL, bytes, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
   return *result ? MDBX_SUCCESS : MDBX_ENOMEM /* ERROR_OUTOFMEMORY */;
 #elif __GLIBC_PREREQ(2, 16) || __STDC_VERSION__ >= 201112L
   *result = memalign(alignment, bytes);
@@ -278,13 +283,25 @@ int mdbx_memalign_alloc(size_t alignment, size_t bytes, void **result) {
 
 #ifndef mdbx_memalign_free
 void mdbx_memalign_free(void *ptr) {
-#if _MSC_VER
-  _aligned_free(ptr);
+#if defined(_WIN32) || defined(_WIN64)
+  VirtualFree(ptr, 0, MEM_RELEASE);
 #else
-  free(ptr);
+  mdbx_free(ptr);
 #endif
 }
 #endif /* mdbx_memalign_free */
+
+#ifndef mdbx_strdup
+char *mdbx_strdup(const char *str) {
+  if (!str)
+    return NULL;
+  size_t bytes = strlen(str) + 1;
+  char *dup = mdbx_malloc(bytes);
+  if (dup)
+    memcpy(dup, str, bytes);
+  return dup;
+}
+#endif /* mdbx_strdup */
 
 /*----------------------------------------------------------------------------*/
 
@@ -736,6 +753,19 @@ int mdbx_ftruncate(mdbx_filehandle_t fd, uint64_t length) {
 #endif
 }
 
+int mdbx_fseek(mdbx_filehandle_t fd, uint64_t pos) {
+#if defined(_WIN32) || defined(_WIN64)
+  LARGE_INTEGER li;
+  li.QuadPart = pos;
+  return SetFilePointerEx(fd, li, NULL, FILE_BEGIN) ? MDBX_SUCCESS
+                                                    : GetLastError();
+#else
+  STATIC_ASSERT_MSG(sizeof(off_t) >= sizeof(size_t),
+                    "libmdbx requires 64-bit file I/O on 64-bit systems");
+  return (lseek(fd, pos, SEEK_SET) < 0) ? errno : MDBX_SUCCESS;
+#endif
+}
+
 /*----------------------------------------------------------------------------*/
 
 int mdbx_thread_create(mdbx_thread_t *thread,
@@ -817,33 +847,47 @@ int mdbx_check4nonlocal(mdbx_filehandle_t handle, int flags) {
   }
 
   if (mdbx_GetVolumeInformationByHandleW && mdbx_GetFinalPathNameByHandleW) {
-    WCHAR PathBuffer[INT16_MAX];
+    WCHAR *PathBuffer = mdbx_malloc(sizeof(WCHAR) * INT16_MAX);
+    if (!PathBuffer)
+      return MDBX_ENOMEM;
+
+    int rc = MDBX_SUCCESS;
     DWORD VolumeSerialNumber, FileSystemFlags;
     if (!mdbx_GetVolumeInformationByHandleW(handle, PathBuffer, INT16_MAX,
                                             &VolumeSerialNumber, NULL,
-                                            &FileSystemFlags, NULL, 0))
-      return GetLastError();
+                                            &FileSystemFlags, NULL, 0)) {
+      rc = GetLastError();
+      goto bailout;
+    }
 
     if ((flags & MDBX_RDONLY) == 0) {
-      if (FileSystemFlags & (FILE_SEQUENTIAL_WRITE_ONCE |
-                             FILE_READ_ONLY_VOLUME | FILE_VOLUME_IS_COMPRESSED))
-        return ERROR_REMOTE_STORAGE_MEDIA_ERROR;
+      if (FileSystemFlags &
+          (FILE_SEQUENTIAL_WRITE_ONCE | FILE_READ_ONLY_VOLUME |
+           FILE_VOLUME_IS_COMPRESSED)) {
+        rc = ERROR_REMOTE_STORAGE_MEDIA_ERROR;
+        goto bailout;
+      }
     }
 
     if (!mdbx_GetFinalPathNameByHandleW(handle, PathBuffer, INT16_MAX,
-                                        FILE_NAME_NORMALIZED | VOLUME_NAME_NT))
-      return GetLastError();
+                                        FILE_NAME_NORMALIZED |
+                                            VOLUME_NAME_NT)) {
+      rc = GetLastError();
+      goto bailout;
+    }
 
     if (_wcsnicmp(PathBuffer, L"\\Device\\Mup\\", 12) == 0) {
-      if (!(flags & MDBX_EXCLUSIVE))
-        return ERROR_REMOTE_STORAGE_MEDIA_ERROR;
+      if (!(flags & MDBX_EXCLUSIVE)) {
+        rc = ERROR_REMOTE_STORAGE_MEDIA_ERROR;
+        goto bailout;
+      }
     } else if (mdbx_GetFinalPathNameByHandleW(handle, PathBuffer, INT16_MAX,
                                               FILE_NAME_NORMALIZED |
                                                   VOLUME_NAME_DOS)) {
       UINT DriveType = GetDriveTypeW(PathBuffer);
       if (DriveType == DRIVE_NO_ROOT_DIR &&
-          wcsncmp(PathBuffer, L"\\\\?\\", 4) == 0 &&
-          wcsncmp(PathBuffer + 5, L":\\", 2) == 0) {
+          _wcsnicmp(PathBuffer, L"\\\\?\\", 4) == 0 &&
+          _wcsnicmp(PathBuffer + 5, L":\\", 2) == 0) {
         PathBuffer[7] = 0;
         DriveType = GetDriveTypeW(PathBuffer + 4);
       }
@@ -857,7 +901,7 @@ int mdbx_check4nonlocal(mdbx_filehandle_t handle, int flags) {
       case DRIVE_REMOTE:
       default:
         if (!(flags & MDBX_EXCLUSIVE))
-          return ERROR_REMOTE_STORAGE_MEDIA_ERROR;
+          rc = ERROR_REMOTE_STORAGE_MEDIA_ERROR;
       // fall through
       case DRIVE_REMOVABLE:
       case DRIVE_FIXED:
@@ -865,6 +909,9 @@ int mdbx_check4nonlocal(mdbx_filehandle_t handle, int flags) {
         break;
       }
     }
+  bailout:
+    mdbx_free(PathBuffer);
+    return rc;
   }
 #else
   (void)handle;
@@ -1037,11 +1084,11 @@ int mdbx_mresize(int flags, mdbx_mmap_t *map, size_t size, size_t limit) {
                                    &ReservedSize, MEM_RESERVE, PAGE_NOACCESS);
   if (!NT_SUCCESS(status)) {
     ReservedAddress = NULL;
-    if (status != /* STATUS_CONFLICTING_ADDRESSES */ 0xC0000018 ||
-        limit == map->length)
+    if (status != /* STATUS_CONFLICTING_ADDRESSES */ 0xC0000018)
       goto bailout_ntstatus /* no way to recovery */;
 
-    /* assume we can change base address if mapping size changed */
+    /* assume we can change base address if mapping size changed or prev address
+     * couldn't be used */
     map->address = NULL;
   }
 
@@ -1098,8 +1145,8 @@ retry_mapview:;
 
   if (!NT_SUCCESS(status)) {
     if (status == /* STATUS_CONFLICTING_ADDRESSES */ 0xC0000018 &&
-        map->address && limit != map->length) {
-      /* try remap at another base address, but only if the limit is changing */
+        map->address) {
+      /* try remap at another base address */
       map->address = NULL;
       goto retry_mapview;
     }

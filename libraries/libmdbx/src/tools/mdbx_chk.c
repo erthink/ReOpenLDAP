@@ -1,4 +1,4 @@
-﻿/* mdbx_chk.c - memory-mapped database check tool */
+/* mdbx_chk.c - memory-mapped database check tool */
 
 /*
  * Copyright 2015-2018 Leonid Yuriev <leo@yuriev.ru>
@@ -97,7 +97,7 @@ const char *only_subdb;
 
 struct problem {
   struct problem *pr_next;
-  uint64_t count;
+  size_t count;
   const char *caption;
 };
 
@@ -141,12 +141,12 @@ static void
 static void pagemap_cleanup(void) {
   for (int i = CORE_DBS; ++i < MAX_DBI;) {
     if (walk.dbi[i].name) {
-      free((void *)walk.dbi[i].name);
+      mdbx_free((void *)walk.dbi[i].name);
       walk.dbi[i].name = NULL;
     }
   }
 
-  free(walk.pagemap);
+  mdbx_free(walk.pagemap);
   walk.pagemap = NULL;
 }
 
@@ -164,7 +164,7 @@ static walk_dbi_t *pagemap_lookup_dbi(const char *dbi_name, bool silent) {
       return NULL;
   }
 
-  dbi->name = strdup(dbi_name);
+  dbi->name = mdbx_strdup(dbi_name);
   if (verbose > 1 && !silent) {
     print(" - found '%s' area\n", dbi_name);
     fflush(NULL);
@@ -190,7 +190,7 @@ static void
         break;
 
     if (!p) {
-      p = calloc(1, sizeof(*p));
+      p = mdbx_calloc(1, sizeof(*p));
       p->caption = msg;
       p->pr_next = problems_list;
       problems_list = p;
@@ -221,8 +221,8 @@ static struct problem *problems_push(void) {
   return p;
 }
 
-static uint64_t problems_pop(struct problem *list) {
-  uint64_t count = 0;
+static size_t problems_pop(struct problem *list) {
+  size_t count = 0;
 
   if (problems_list) {
     int i;
@@ -231,9 +231,9 @@ static uint64_t problems_pop(struct problem *list) {
     for (i = 0; problems_list; ++i) {
       struct problem *p = problems_list->pr_next;
       count += problems_list->count;
-      print("%s%s (%" PRIu64 ")", i ? ", " : "", problems_list->caption,
+      print("%s%s (%" PRIuPTR ")", i ? ", " : "", problems_list->caption,
             problems_list->count);
-      free(problems_list);
+      mdbx_free(problems_list);
       problems_list = p;
     }
     print("\n");
@@ -267,7 +267,7 @@ static int pgvisitor(uint64_t pgno, unsigned pgnumber, void *ctx, int deep,
   else
     problem_add("deep", deep, "unknown area", "%s", dbi_name);
 
-  const uint64_t page_bytes = payload_bytes + header_bytes + unused_bytes;
+  const size_t page_bytes = payload_bytes + header_bytes + unused_bytes;
   walk.pgcount += pgnumber;
 
   const char *pagetype_caption;
@@ -351,7 +351,7 @@ static int pgvisitor(uint64_t pgno, unsigned pgnumber, void *ctx, int deep,
   if (pgnumber) {
     if (page_bytes != page_size) {
       problem_add("page", pgno, "misused",
-                  "%s-page: %" PRIu64 " != %" PRIu64 " (%" PRIuPTR
+                  "%s-page: %" PRIuPTR " != %" PRIuPTR " (%" PRIuPTR
                   "h + %" PRIuPTR "p + %" PRIuPTR "u)",
                   pagetype_caption, page_size, page_bytes, header_bytes,
                   payload_bytes, unused_bytes);
@@ -497,13 +497,13 @@ static int handle_maindb(const uint64_t record_number, const MDBX_val *key,
       return handle_userdb(record_number, key, data);
   }
 
-  name = malloc(key->iov_len + 1);
+  name = mdbx_malloc(key->iov_len + 1);
   memcpy(name, key->iov_base, key->iov_len);
   name[key->iov_len] = '\0';
   userdb_count++;
 
   rc = process_db(~0u, name, handle_userdb, false);
-  free(name);
+  mdbx_free(name);
   if (rc != MDBX_INCOMPATIBLE)
     return rc;
 
@@ -689,7 +689,7 @@ static int process_db(MDBX_dbi dbi_handle, char *dbi_name, visitor *handler,
 
   if (record_count != ms.ms_entries)
     problem_add("entry", record_count, "differentent number of entries",
-                "%" PRIuPTR " != %" PRIuPTR, record_count, ms.ms_entries);
+                "%" PRIu64 " != %" PRIu64, record_count, ms.ms_entries);
 bailout:
   problems_count = problems_pop(saved_list);
   if (!silent && verbose) {
@@ -1088,12 +1088,12 @@ int main(int argc, char *argv[]) {
 
   if (!dont_traversal) {
     struct problem *saved_list;
-    uint64_t traversal_problems;
+    size_t traversal_problems;
     uint64_t empty_pages, lost_bytes;
 
     print("Traversal b-tree by txn#%" PRIaTXN "...\n", txn->mt_txnid);
     fflush(NULL);
-    walk.pagemap = calloc((size_t)lastpgno, sizeof(*walk.pagemap));
+    walk.pagemap = mdbx_calloc((size_t)lastpgno, sizeof(*walk.pagemap));
     if (!walk.pagemap) {
       rc = errno ? errno : MDBX_ENOMEM;
       error("calloc failed, error %d %s\n", rc, mdbx_strerror(rc));
@@ -1181,9 +1181,9 @@ int main(int argc, char *argv[]) {
       print(" - summary: average fill %.1f%%",
             walk.total_payload_bytes * 100.0 / total_page_bytes);
       if (empty_pages)
-        print(", %" PRIuPTR " empty pages", empty_pages);
+        print(", %" PRIu64 " empty pages", empty_pages);
       if (lost_bytes)
-        print(", %" PRIuPTR " bytes lost", lost_bytes);
+        print(", %" PRIu64 " bytes lost", lost_bytes);
       print(", %" PRIuPTR " problems\n", traversal_problems);
     }
   } else if (verbose) {
