@@ -1,5 +1,5 @@
 ## $ReOpenLDAP$
-## Copyright 2017 ReOpenLDAP AUTHORS: please see AUTHORS file.
+## Copyright 2017-2018 ReOpenLDAP AUTHORS: please see AUTHORS file.
 ## All rights reserved.
 ##
 ## This file is part of ReOpenLDAP.
@@ -38,7 +38,7 @@ pkglib_LTLIBRARIES += contrib-gssacl.la
 contrib_gssacl_la_LDFLAGS = -module -export-dynamic \
 	-release $(API_LIB_RELEASE) -version-info $(API_LIB_VERSION)
 contrib_gssacl_la_SOURCES = acl/gssacl.c banner.c
-contrib_gssacl_la_CFLAGS = $(KRB5_CFLAGS)
+contrib_gssacl_la_CFLAGS = $(KRB5_CFLAGS) $(AM_CFLAGS)
 contrib_gssacl_la_LIBADD = $(KRB5_LIBS)
 endif
 endif
@@ -69,6 +69,11 @@ contrib_allowed_la_LDFLAGS = -module -export-dynamic \
 	-release $(API_LIB_RELEASE) -version-info $(API_LIB_VERSION)
 contrib_allowed_la_SOURCES = allowed/allowed.c banner.c
 
+pkglib_LTLIBRARIES += contrib-authzid.la
+contrib_authzid_la_LDFLAGS = -module -export-dynamic \
+	-release $(API_LIB_RELEASE) -version-info $(API_LIB_VERSION)
+contrib_authzid_la_SOURCES = authzid/authzid.c banner.c
+
 EXTRA_DIST += autogroup/README autogroup/slapo-autogroup.man.in
 pkglib_LTLIBRARIES += contrib-autogroup.la
 contrib_autogroup_la_LDFLAGS = -module -export-dynamic \
@@ -87,7 +92,7 @@ contrib_check_password_la_SOURCES = check_password/check_password.c banner.c
 contrib_check_password_la_CFLAGS = -Wno-deprecated-declarations $(CRACK_CFLAGS) \
     -DCRACKLIB_DICTPATH="\"$(CRACKLIB_DICTPATH)\"" \
     -DCHECKPASSWD_CONFIGFILE="\"$(CHECKPASSWD_CONFIGFILE)\"" \
-    -DCHECKPASSWD_DEBUG=1
+    -DCHECKPASSWD_DEBUG=1 $(AM_CFLAGS)
 contrib_check_password_la_LIBADD = $(CRACKLIB_LIBS)
 
 EXTRA_DIST += cloak/slapo-cloak.man.in
@@ -111,7 +116,7 @@ contrib_compmatch_la_SOURCES = banner.c comp_match/asn.h comp_match/asn_to_syn_m
 	comp_match/authorityKeyIdentifier.c comp_match/authorityKeyIdentifier.h \
 	comp_match/certificate.c comp_match/certificate.h comp_match/componentlib.c \
 	comp_match/componentlib.h comp_match/crl.c comp_match/crl.h comp_match/init.c
-contrib_compmatch_la_CFLAGS = -DUSE_GEN_BUF
+contrib_compmatch_la_CFLAGS = -DUSE_GEN_BUF $(AM_CFLAGS)
 contrib_compmatch_la_LIBADD = $(TLS_LIBS) -lsnacc
 endif
 endif
@@ -182,7 +187,7 @@ contrib_nssov_la_SOURCES = banner.c nssov/alias.c nssov/ether.c nssov/group.c \
 	nssov/nssov.c nssov/nssov.h nssov/nss-pam-ldapd/attrs.h \
 	nssov/nss-pam-ldapd/nslcd.h nssov/nss-pam-ldapd/nslcd-prot.h \
 	nssov/nss-pam-ldapd/tio.c nssov/nss-pam-ldapd/tio.h
-contrib_nssov_la_CFLAGS = -I$(srcdir)/nssov/nss-pam-ldapd
+contrib_nssov_la_CFLAGS = -I$(srcdir)/nssov/nss-pam-ldapd $(AM_CFLAGS)
 man5_MANS += nssov/slapo-nssov.man
 
 EXTRA_DIST += passwd/README \
@@ -195,7 +200,7 @@ contrib_pw_apr1_la_LDFLAGS = -module -export-dynamic \
 if HEIMDAL_AVAIL
 pkglib_LTLIBRARIES += contrib-pw-kerberos.la
 contrib_pw_kerberos_la_SOURCES = banner.c passwd/kerberos.c
-contrib_pw_kerberos_la_CFLAGS = -Wno-deprecated-declarations $(HEIMDAL_CFLAGS)
+contrib_pw_kerberos_la_CFLAGS = -Wno-deprecated-declarations $(HEIMDAL_CFLAGS) $(AM_CFLAGS)
 contrib_pw_kerberos_la_LIBADD = $(HEIMDAL_LIBS)
 contrib_pw_kerberos_la_LDFLAGS = -module -export-dynamic \
 	-release $(API_LIB_RELEASE) -version-info $(API_LIB_VERSION)
@@ -224,7 +229,7 @@ pkglib_LTLIBRARIES += contrib-pw-pbkdf2.la
 contrib_pw_pbkdf2_la_LDFLAGS = -module -export-dynamic \
 	-release $(API_LIB_RELEASE) -version-info $(API_LIB_VERSION)
 contrib_pw_pbkdf2_la_SOURCES = passwd/pbkdf2/pw-pbkdf2.c banner.c
-contrib_pw_pbkdf2_la_CFLAGS = $(TLS_FALLBACK_CFLAGS)
+contrib_pw_pbkdf2_la_CFLAGS = $(TLS_FALLBACK_CFLAGS) $(AM_CFLAGS)
 contrib_pw_pbkdf2_la_LIBADD = $(TLS_FALLBACK_LIBS)
 man5_MANS += passwd/pbkdf2/slapo-pw-pbkdf2.man
 endif
@@ -244,7 +249,7 @@ pkglib_LTLIBRARIES += contrib-pw-totp.la
 contrib_pw_totp_la_LDFLAGS = -module -export-dynamic \
 	-release $(API_LIB_RELEASE) -version-info $(API_LIB_VERSION)
 contrib_pw_totp_la_SOURCES = banner.c passwd/totp/slapd-totp.c
-contrib_pw_totp_la_CFLAGS = $(TLS_FALLBACK_CFLAGS)
+contrib_pw_totp_la_CFLAGS = $(TLS_FALLBACK_CFLAGS) $(AM_CFLAGS)
 contrib_pw_totp_la_LIBADD = $(TLS_FALLBACK_LIBS)
 man5_MANS += passwd/totp/slapo-totp.man
 endif
@@ -274,14 +279,14 @@ contrib_smbk5pwd_la_LDFLAGS = -module -export-dynamic \
 	-release $(API_LIB_RELEASE) -version-info $(API_LIB_VERSION)
 contrib_smbk5pwd_la_SOURCES = banner.c smbk5pwd/smbk5pwd.c
 # Omit DO_KRB5, DO_SAMBA or DO_SHADOW if you don't want to support it.
-contrib_smbk5pwd_la_CFLAGS = -DDO_SHADOW -Wno-deprecated-declarations
+contrib_smbk5pwd_la_CFLAGS = -DDO_SHADOW -Wno-deprecated-declarations $(AM_CFLAGS)
 contrib_smbk5pwd_la_LIBADD =
 if TLS_FALLBACK_AVAIL
-contrib_smbk5pwd_la_CFLAGS += $(TLS_FALLBACK_CFLAGS) -DDO_SAMBA
+contrib_smbk5pwd_la_CFLAGS += $(TLS_FALLBACK_CFLAGS) -DDO_SAMBA $(AM_CFLAGS)
 contrib_smbk5pwd_la_LIBADD += $(TLS_FALLBACK_LIBS)
 endif
 if HEIMDAL_AVAIL
-contrib_smbk5pwd_la_CFLAGS += -DDO_KRB5 $(HEIMDAL_CFLAGS)
+contrib_smbk5pwd_la_CFLAGS += -DDO_KRB5 $(HEIMDAL_CFLAGS) $(AM_CFLAGS)
 contrib_smbk5pwd_la_LIBADD += $(HEIMDAL_LIBS)
 endif
 man5_MANS += smbk5pwd/slapo-smbk5pwd.man
@@ -291,16 +296,31 @@ contrib_trace_la_LDFLAGS = -module -export-dynamic \
 	-release $(API_LIB_RELEASE) -version-info $(API_LIB_VERSION)
 contrib_trace_la_SOURCES = trace/trace.c banner.c
 
+EXTRA_DIST += usn/README
+pkglib_LTLIBRARIES += contrib-usn.la
+contrib_usn_la_LDFLAGS = -module -export-dynamic \
+	-release $(API_LIB_RELEASE) -version-info $(API_LIB_VERSION)
+contrib_usn_la_SOURCES = usn/usn.c banner.c
+
+pkglib_LTLIBRARIES += contrib-vc.la
+contrib_vc_la_LDFLAGS = -module -export-dynamic \
+	-release $(API_LIB_RELEASE) -version-info $(API_LIB_VERSION)
+contrib_vc_la_SOURCES = vc/vc.c banner.c
 
 EXTRA_DIST += passwd/argon2/README.md
 if LIBSODIUM_AVAIL
 pkglib_LTLIBRARIES += contrib-pw-argon2.la
-contrib_pw_argon2_la_CFLAGS = $(LIBSODIUM_CFLAGS)
+contrib_pw_argon2_la_CFLAGS = $(LIBSODIUM_CFLAGS) $(AM_CFLAGS)
 contrib_pw_argon2_la_LDFLAGS = -module -export-dynamic \
 	-release $(API_LIB_RELEASE) -version-info $(API_LIB_VERSION)
 contrib_pw_argon2_la_SOURCES = banner.c passwd/argon2/pw-argon2.c
 contrib_pw_argon2_la_LIBADD = $(LIBSODIUM_LIBS)
 endif
+
+pkglib_LTLIBRARIES += contrib-mobiuniquemember.la
+contrib_mobiuniquemember_la_LDFLAGS = -module -export-dynamic \
+	-release $(API_LIB_RELEASE) -version-info $(API_LIB_VERSION)
+contrib_mobiuniquemember_la_SOURCES = mobiuniquemember/mobiuniquemember.c banner.c
 
 MAINT_CHARSET = utf8
 SUFFIXES = .soelim .man.in .man

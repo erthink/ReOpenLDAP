@@ -1,5 +1,5 @@
 /* $ReOpenLDAP$ */
-/* Copyright 1992-2017 ReOpenLDAP AUTHORS: please see AUTHORS file.
+/* Copyright 1992-2018 ReOpenLDAP AUTHORS: please see AUTHORS file.
  * All rights reserved.
  *
  * This file is part of ReOpenLDAP.
@@ -29,30 +29,23 @@ LDAP_BEGIN_DECL
 #define LUTIL_MD5_BYTES 16
 
 struct lutil_MD5Context {
-	ber_uint_t buf[4];
-	ber_uint_t bits[2];
-	unsigned char in[64];
+  ber_uint_t buf[4];
+  ber_uint_t bits[2];
+  unsigned char in[64];
 };
 
-LDAP_LUTIL_F( void )
-lutil_MD5Init LDAP_P((
-	struct lutil_MD5Context *context));
+LDAP_LUTIL_F(void)
+lutil_MD5Init(struct lutil_MD5Context *context);
 
-LDAP_LUTIL_F( void )
-lutil_MD5Update LDAP_P((
-	struct lutil_MD5Context *context,
-	unsigned char const *buf,
-	ber_len_t len));
+LDAP_LUTIL_F(void)
+lutil_MD5Update(struct lutil_MD5Context *context, unsigned char const *buf,
+                ber_len_t len);
 
-LDAP_LUTIL_F( void )
-lutil_MD5Final LDAP_P((
-	unsigned char digest[16],
-	struct lutil_MD5Context *context));
+LDAP_LUTIL_F(void)
+lutil_MD5Final(unsigned char digest[16], struct lutil_MD5Context *context);
 
-LDAP_LUTIL_F( void )
-lutil_MD5Transform LDAP_P((
-	ber_uint_t buf[4],
-	const unsigned char in[64]));
+LDAP_LUTIL_F(void)
+lutil_MD5Transform(ber_uint_t buf[4], const unsigned char in[64]);
 
 /*
  * This is needed to make RSAREF happy on some MS-DOS compilers.

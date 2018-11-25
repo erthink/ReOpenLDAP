@@ -4,7 +4,7 @@
 // (c) Copyright 1999-2001 TimesTen Performance Software. All rights reserved.
 
 //// Note: This file was contributed by Sam Drake of TimesTen Performance
-////       Software for use and redistribution as an intregal part of
+////       Software for use and redistribution as an integral part of
 ////       OpenLDAP Software.  -Kdz
 
 #include <stdlib.h>
@@ -17,10 +17,10 @@
 #include <signal.h>
 
 TTConnectionPool pool;
-TTXlaConnection  conn;
-TTConnection     conn2;
-TTCmd            assignDn_ru;
-TTCmd            getNullDNs;
+TTXlaConnection conn;
+TTConnection conn2;
+TTCmd assignDn_ru;
+TTCmd getNullDNs;
 
 //----------------------------------------------------------------------
 // This class contains all the logic to be implemented whenever
@@ -30,7 +30,7 @@ TTCmd            getNullDNs;
 // create and populate the table.
 //----------------------------------------------------------------------
 
-class LDAPEntriesHandler: public TTXlaTableHandler {
+class LDAPEntriesHandler : public TTXlaTableHandler {
 private:
   // Definition of the columns in the table
   int Id;
@@ -41,23 +41,21 @@ private:
   int Dn_ru;
 
 protected:
-
 public:
-  LDAPEntriesHandler(TTXlaConnection& conn, const char* ownerP, const char* nameP);
+  LDAPEntriesHandler(TTXlaConnection &conn, const char *ownerP,
+                     const char *nameP);
   ~LDAPEntriesHandler();
 
-  virtual void HandleDelete(ttXlaUpdateDesc_t*);
-  virtual void HandleInsert(ttXlaUpdateDesc_t*);
-  virtual void HandleUpdate(ttXlaUpdateDesc_t*);
+  virtual void HandleDelete(ttXlaUpdateDesc_t *);
+  virtual void HandleInsert(ttXlaUpdateDesc_t *);
+  virtual void HandleUpdate(ttXlaUpdateDesc_t *);
 
-  static void ReverseAndUpper(char* dnP, int id, bool commit=true);
-
+  static void ReverseAndUpper(char *dnP, int id, bool commit = true);
 };
 
-LDAPEntriesHandler::LDAPEntriesHandler(TTXlaConnection& conn,
-				       const char* ownerP, const char* nameP) :
-  TTXlaTableHandler(conn, ownerP, nameP)
-{
+LDAPEntriesHandler::LDAPEntriesHandler(TTXlaConnection &conn,
+                                       const char *ownerP, const char *nameP)
+    : TTXlaTableHandler(conn, ownerP, nameP) {
   Id = Dn = Oc_map_id = Parent = Keyval = Dn_ru = -1;
 
   // We are looking for several particular named columns.  We need to get
@@ -93,16 +91,11 @@ LDAPEntriesHandler::LDAPEntriesHandler(TTXlaConnection& conn,
     cerr << "target table has no 'DN_RU' column" << endl;
     exit(1);
   }
-
 }
 
-LDAPEntriesHandler::~LDAPEntriesHandler()
-{
+LDAPEntriesHandler::~LDAPEntriesHandler() {}
 
-}
-
-void LDAPEntriesHandler::ReverseAndUpper(char* dnP, int id, bool commit)
-{
+void LDAPEntriesHandler::ReverseAndUpper(char *dnP, int id, bool commit) {
   TTStatus stat;
   char dn_rn[512];
   int i;
@@ -110,22 +103,20 @@ void LDAPEntriesHandler::ReverseAndUpper(char* dnP, int id, bool commit)
 
   // Reverse and upper case the given DN
 
-  for ((j=0, i = strlen(dnP)-1); i > -1; (j++, i--)) {
-    dn_rn[j] = toupper(*(dnP+i));
+  for ((j = 0, i = strlen(dnP) - 1); i > -1; (j++, i--)) {
+    dn_rn[j] = toupper(*(dnP + i));
   }
   dn_rn[j] = '\0';
-
 
   // Update the database
 
   try {
-    assignDn_ru.setParam(1, (char*) &dn_rn[0]);
+    assignDn_ru.setParam(1, (char *)&dn_rn[0]);
     assignDn_ru.setParam(2, id);
     assignDn_ru.Execute(stat);
-  }
-  catch (TTStatus stat) {
-    cerr << "Error updating id " << id << " ('" << dnP << "' to '"
-	 << dn_rn << "'): " << stat;
+  } catch (TTStatus stat) {
+    cerr << "Error updating id " << id << " ('" << dnP << "' to '" << dn_rn
+         << "'): " << stat;
     exit(1);
   }
 
@@ -134,36 +125,29 @@ void LDAPEntriesHandler::ReverseAndUpper(char* dnP, int id, bool commit)
   if (commit) {
     try {
       conn2.Commit(stat);
-    }
-    catch (TTStatus stat) {
+    } catch (TTStatus stat) {
       cerr << "Error committing update: " << stat;
       exit(1);
     }
   }
-
 }
 
-
-
-void LDAPEntriesHandler::HandleInsert(ttXlaUpdateDesc_t* p)
-{
-  char* dnP;
-  int   id;
+void LDAPEntriesHandler::HandleInsert(ttXlaUpdateDesc_t *p) {
+  char *dnP;
+  int id;
 
   row.Get(Dn, &dnP);
   cerr << "DN '" << dnP << "': Inserted ";
   row.Get(Id, &id);
 
   ReverseAndUpper(dnP, id);
-
 }
 
-void LDAPEntriesHandler::HandleUpdate(ttXlaUpdateDesc_t* p)
-{
-  char* newDnP;
-  char* oldDnP;
-  char  oDn[512];
-  int   id;
+void LDAPEntriesHandler::HandleUpdate(ttXlaUpdateDesc_t *p) {
+  char *newDnP;
+  char *oldDnP;
+  char oDn[512];
+  int id;
 
   // row is 'old'; row2 is 'new'
   row.Get(Dn, &oldDnP);
@@ -177,62 +161,52 @@ void LDAPEntriesHandler::HandleUpdate(ttXlaUpdateDesc_t* p)
     // The DN field changed, update it
     cerr << "(new DN: '" << newDnP << "')";
     ReverseAndUpper(newDnP, id);
-  }
-  else {
+  } else {
     // The DN field did NOT change, leave it alone
   }
 
   cerr << endl;
-
 }
 
-void LDAPEntriesHandler::HandleDelete(ttXlaUpdateDesc_t* p)
-{
-  char* dnP;
+void LDAPEntriesHandler::HandleDelete(ttXlaUpdateDesc_t *p) {
+  char *dnP;
 
   row.Get(Dn, &dnP);
   cerr << "DN '" << dnP << "': Deleted ";
 }
-
-
-
 
 //----------------------------------------------------------------------
 
 int pleaseStop = 0;
 
 extern "C" {
-  void
-  onintr(int sig)
-  {
-    pleaseStop = 1;
-    cerr << "Stopping...\n";
-  }
+void onintr(int sig) {
+  pleaseStop = 1;
+  cerr << "Stopping...\n";
+}
 };
 
 //----------------------------------------------------------------------
 
-int
-main(int argc, char* argv[])
-{
+int main(int argc, char *argv[]) {
 
-  char* ownerP;
+  char *ownerP;
 
-  TTXlaTableList list(&conn);	// List of tables to monitor
+  TTXlaTableList list(&conn); // List of tables to monitor
 
   // Handlers, one for each table we want to monitor
 
-  LDAPEntriesHandler* sampP = NULL;
+  LDAPEntriesHandler *sampP = NULL;
 
   // Misc stuff
 
   TTStatus stat;
 
-  ttXlaUpdateDesc_t ** arry;
+  ttXlaUpdateDesc_t **arry;
 
   int records;
 
-  SQLUBIGINT  oldsize;
+  SQLUBIGINT oldsize;
   int j;
 
   if (argc < 2) {
@@ -242,7 +216,7 @@ main(int argc, char* argv[])
 
   ownerP = argv[1];
 
-  signal(SIGINT, onintr);    /* signal for CTRL-C */
+  signal(SIGINT, onintr); /* signal for CTRL-C */
 
   // Before we do anything related to XLA, first we connect
   // to the database.  This is the connection we will use
@@ -252,24 +226,21 @@ main(int argc, char* argv[])
     cerr << "Connecting..." << endl;
 
     conn2.Connect("DSN=ldap_tt", stat);
-  }
-  catch (TTStatus stat) {
+  } catch (TTStatus stat) {
     cerr << "Error connecting to TimesTen: " << stat;
     exit(1);
   }
 
   try {
-    assignDn_ru.Prepare(&conn2,
-			"update ldap_entries set dn_ru=? where id=?",
-			"", stat);
+    assignDn_ru.Prepare(&conn2, "update ldap_entries set dn_ru=? where id=?",
+                        "", stat);
     getNullDNs.Prepare(&conn2,
-		       "select dn, id from ldap_entries "
-			"where dn_ru is null "
-			"for update",
-		       "", stat);
+                       "select dn, id from ldap_entries "
+                       "where dn_ru is null "
+                       "for update",
+                       "", stat);
     conn2.Commit(stat);
-  }
-  catch (TTStatus stat) {
+  } catch (TTStatus stat) {
     cerr << "Error preparing update: " << stat;
     exit(1);
   }
@@ -282,9 +253,10 @@ main(int argc, char* argv[])
     getNullDNs.Execute(stat);
     for (int k = 0;; k++) {
       getNullDNs.FetchNext(stat);
-      if (stat.rc == SQL_NO_DATA_FOUND) break;
-      char* dnP;
-      int   id;
+      if (stat.rc == SQL_NO_DATA_FOUND)
+        break;
+      char *dnP;
+      int id;
       getNullDNs.getColumn(1, &dnP);
       getNullDNs.getColumn(2, &id);
       // cerr << "Id " << id << ", Dn '" << dnP << "'" << endl;
@@ -294,26 +266,23 @@ main(int argc, char* argv[])
     }
     getNullDNs.Close(stat);
     conn2.Commit(stat);
-  }
-  catch (TTStatus stat) {
+  } catch (TTStatus stat) {
     cerr << "Error updating NULL rows: " << stat;
     exit(1);
   }
-
 
   // Go ahead and start up the change monitoring application
 
   cerr << "Starting change monitoring..." << endl;
   try {
     conn.Connect("DSN=ldap_tt", stat);
-  }
-  catch (TTStatus stat) {
+  } catch (TTStatus stat) {
     cerr << "Error connecting to TimesTen: " << stat;
     exit(1);
   }
 
   /* set and configure size of buffer */
-  conn.setXlaBufferSize((SQLUBIGINT) 1000000, &oldsize, stat);
+  conn.setXlaBufferSize((SQLUBIGINT)1000000, &oldsize, stat);
   if (stat.rc) {
     cerr << "Error setting buffer size " << stat << endl;
     exit(1);
@@ -345,7 +314,7 @@ main(int argc, char* argv[])
 
     // Interpret the updates
 
-    for(j=0;j < records;j++){
+    for (j = 0; j < records; j++) {
       ttXlaUpdateDesc_t *p;
 
       p = arry[j];
@@ -363,14 +332,12 @@ main(int argc, char* argv[])
     }
   } // end while pleasestop == 0
 
-
   // When we get to here, the program is exiting.
 
-  list.del(sampP);		// Take the table out of the list
+  list.del(sampP); // Take the table out of the list
   delete sampP;
 
   conn.setXlaBufferSize(oldsize, NULL, stat);
 
   return 0;
-
 }

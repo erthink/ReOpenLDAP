@@ -1,5 +1,5 @@
 /* $ReOpenLDAP$ */
-/* Copyright 1990-2017 ReOpenLDAP AUTHORS: please see AUTHORS file.
+/* Copyright 1990-2018 ReOpenLDAP AUTHORS: please see AUTHORS file.
  * All rights reserved.
  *
  * This file is part of ReOpenLDAP.
@@ -42,54 +42,46 @@
  * NULL-terminated UTF-8 string NOT INCLUDING the
  * termination.
  */
-ber_len_t ldap_utf8_bytes( const char * p )
-{
-	ber_len_t bytes;
+ber_len_t ldap_utf8_bytes(const char *p) {
+  ber_len_t bytes;
 
-	for( bytes=0; p[bytes]; bytes++ ) {
-		/* EMPTY */ ;
-	}
+  for (bytes = 0; p[bytes]; bytes++) {
+    /* EMPTY */;
+  }
 
-	return bytes;
+  return bytes;
 }
 
-ber_len_t ldap_utf8_chars( const char * p )
-{
-	/* could be optimized and could check for invalid sequences */
-	ber_len_t chars=0;
+ber_len_t ldap_utf8_chars(const char *p) {
+  /* could be optimized and could check for invalid sequences */
+  ber_len_t chars = 0;
 
-	for( ; *p ; LDAP_UTF8_INCR(p) ) {
-		chars++;
-	}
+  for (; *p; LDAP_UTF8_INCR(p)) {
+    chars++;
+  }
 
-	return chars;
+  return chars;
 }
 
 /* return offset to next character */
-int ldap_utf8_offset( const char * p )
-{
-	return LDAP_UTF8_NEXT(p) - p;
-}
+int ldap_utf8_offset(const char *p) { return LDAP_UTF8_NEXT(p) - p; }
 
 /*
  * Returns length indicated by first byte.
  */
 const char ldap_utf8_lentab[] = {
-	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-	0, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
-	2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
-	3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3,
-	4, 4, 4, 4, 4, 4, 4, 4, 5, 5, 5, 5, 6, 6, 0, 0 };
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
+    2, 2, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3,
+    3, 3, 4, 4, 4, 4, 4, 4, 4, 4, 5, 5, 5, 5, 6, 6, 0, 0};
 
-int ldap_utf8_charlen( const char * p )
-{
-	if (!(*p & 0x80))
-		return 1;
+int ldap_utf8_charlen(const char *p) {
+  if (!(*p & 0x80))
+    return 1;
 
-	return ldap_utf8_lentab[*(const unsigned char *)p ^ 0x80];
+  return ldap_utf8_lentab[*(const unsigned char *)p ^ 0x80];
 }
 
 /*
@@ -118,109 +110,119 @@ int ldap_utf8_charlen( const char * p )
 #undef c
 #define c const char
 c ldap_utf8_mintab[] = {
-	(c)0x20, (c)0x80, (c)0x80, (c)0x80, (c)0x80, (c)0x80, (c)0x80, (c)0x80,
-	(c)0x80, (c)0x80, (c)0x80, (c)0x80, (c)0x80, (c)0x80, (c)0x80, (c)0x80,
-	(c)0x30, (c)0x80, (c)0x80, (c)0x80, (c)0x80, (c)0x80, (c)0x80, (c)0x80,
-	(c)0x38, (c)0x80, (c)0x80, (c)0x80, (c)0x3c, (c)0x80, (c)0x00, (c)0x00 };
+    (c)0x20, (c)0x80, (c)0x80, (c)0x80, (c)0x80, (c)0x80, (c)0x80, (c)0x80,
+    (c)0x80, (c)0x80, (c)0x80, (c)0x80, (c)0x80, (c)0x80, (c)0x80, (c)0x80,
+    (c)0x30, (c)0x80, (c)0x80, (c)0x80, (c)0x80, (c)0x80, (c)0x80, (c)0x80,
+    (c)0x38, (c)0x80, (c)0x80, (c)0x80, (c)0x3c, (c)0x80, (c)0x00, (c)0x00};
 #undef c
 
-int ldap_utf8_charlen2( const char * p )
-{
-	int i = LDAP_UTF8_CHARLEN( p );
+int ldap_utf8_charlen2(const char *p) {
+  int i = LDAP_UTF8_CHARLEN(p);
 
-	if ( i > 2 ) {
-		if ( !( ldap_utf8_mintab[*p & 0x1f] & p[1] ) )
-			i = 0;
-	}
-	return i;
+  if (i > 2) {
+    if (!(ldap_utf8_mintab[*p & 0x1f] & p[1]))
+      i = 0;
+  }
+  return i;
 }
 
 /* conv UTF-8 to UCS-4, useful for comparisons */
-ldap_ucs4_t ldap_x_utf8_to_ucs4( const char * p )
-{
-    const unsigned char *c = (const unsigned char *) p;
-    ldap_ucs4_t ch;
-	int len, i;
-	static unsigned char mask[] = {
-		0, 0x7f, 0x1f, 0x0f, 0x07, 0x03, 0x01 };
+ldap_ucs4_t ldap_x_utf8_to_ucs4(const char *p) {
+  const unsigned char *c = (const unsigned char *)p;
+  ldap_ucs4_t ch;
+  int len, i;
+  static unsigned char mask[] = {0, 0x7f, 0x1f, 0x0f, 0x07, 0x03, 0x01};
 
-	len = LDAP_UTF8_CHARLEN2(p, len);
+  len = LDAP_UTF8_CHARLEN2(p, len);
 
-	if( len == 0 ) return LDAP_UCS4_INVALID;
+  if (len == 0)
+    return LDAP_UCS4_INVALID;
 
-	ch = c[0] & mask[len];
+  ch = c[0] & mask[len];
 
-	for(i=1; i < len; i++) {
-		if ((c[i] & 0xc0) != 0x80) {
-			return LDAP_UCS4_INVALID;
-		}
+  for (i = 1; i < len; i++) {
+    if ((c[i] & 0xc0) != 0x80) {
+      return LDAP_UCS4_INVALID;
+    }
 
-		ch <<= 6;
-		ch |= c[i] & 0x3f;
-	}
+    ch <<= 6;
+    ch |= c[i] & 0x3f;
+  }
 
-	return ch;
+  return ch;
 }
 
 /* conv UCS-4 to UTF-8, not used */
-int ldap_x_ucs4_to_utf8( ldap_ucs4_t c, char *buf )
-{
-	int len=0;
-	unsigned char* p = (unsigned char *) buf;
+int ldap_x_ucs4_to_utf8(ldap_ucs4_t c, char *buf) {
+  int len = 0;
+  unsigned char *p = (unsigned char *)buf;
 
-	/* not a valid Unicode character */
-	if ( c < 0 ) return 0;
+  /* not a valid Unicode character */
+  if (c < 0)
+    return 0;
 
-	/* Just return length, don't convert */
-	if(buf == NULL) {
-		if( c < 0x80 ) return 1;
-		else if( c < 0x800 ) return 2;
-		else if( c < 0x10000 ) return 3;
-		else if( c < 0x200000 ) return 4;
-		else if( c < 0x4000000 ) return 5;
-		else return 6;
-	}
+  /* Just return length, don't convert */
+  if (buf == NULL) {
+    if (c < 0x80)
+      return 1;
+    else if (c < 0x800)
+      return 2;
+    else if (c < 0x10000)
+      return 3;
+    else if (c < 0x200000)
+      return 4;
+    else if (c < 0x4000000)
+      return 5;
+    else
+      return 6;
+  }
 
-	if( c < 0x80 ) {
-		p[len++] = c;
+  if (c < 0x80) {
+    p[len++] = c;
 
-	} else if( c < 0x800 ) {
-		p[len++] = 0xc0 | ( c >> 6 );
-		p[len++] = 0x80 | ( c & 0x3f );
+  } else if (c < 0x800) {
+    p[len++] = 0xc0 | (c >> 6);
+    p[len++] = 0x80 | (c & 0x3f);
 
-	} else if( c < 0x10000 ) {
-		p[len++] = 0xe0 | ( c >> 12 );
-		p[len++] = 0x80 | ( (c >> 6) & 0x3f );
-		p[len++] = 0x80 | ( c & 0x3f );
+  } else if (c < 0x10000) {
+    p[len++] = 0xe0 | (c >> 12);
+    p[len++] = 0x80 | ((c >> 6) & 0x3f);
+    p[len++] = 0x80 | (c & 0x3f);
 
-	} else if( c < 0x200000 ) {
-		p[len++] = 0xf0 | ( c >> 18 );
-		p[len++] = 0x80 | ( (c >> 12) & 0x3f );
-		p[len++] = 0x80 | ( (c >> 6) & 0x3f );
-		p[len++] = 0x80 | ( c & 0x3f );
+  } else if (c < 0x200000) {
+    p[len++] = 0xf0 | (c >> 18);
+    p[len++] = 0x80 | ((c >> 12) & 0x3f);
+    p[len++] = 0x80 | ((c >> 6) & 0x3f);
+    p[len++] = 0x80 | (c & 0x3f);
 
-	} else if( c < 0x4000000 ) {
-		p[len++] = 0xf8 | ( c >> 24 );
-		p[len++] = 0x80 | ( (c >> 18) & 0x3f );
-		p[len++] = 0x80 | ( (c >> 12) & 0x3f );
-		p[len++] = 0x80 | ( (c >> 6) & 0x3f );
-		p[len++] = 0x80 | ( c & 0x3f );
+  } else if (c < 0x4000000) {
+    p[len++] = 0xf8 | (c >> 24);
+    p[len++] = 0x80 | ((c >> 18) & 0x3f);
+    p[len++] = 0x80 | ((c >> 12) & 0x3f);
+    p[len++] = 0x80 | ((c >> 6) & 0x3f);
+    p[len++] = 0x80 | (c & 0x3f);
 
-	} else /* if( c < 0x80000000 ) */ {
-		p[len++] = 0xfc | ( c >> 30 );
-		p[len++] = 0x80 | ( (c >> 24) & 0x3f );
-		p[len++] = 0x80 | ( (c >> 18) & 0x3f );
-		p[len++] = 0x80 | ( (c >> 12) & 0x3f );
-		p[len++] = 0x80 | ( (c >> 6) & 0x3f );
-		p[len++] = 0x80 | ( c & 0x3f );
-	}
+  } else /* if( c < 0x80000000 ) */ {
+    p[len++] = 0xfc | (c >> 30);
+    p[len++] = 0x80 | ((c >> 24) & 0x3f);
+    p[len++] = 0x80 | ((c >> 18) & 0x3f);
+    p[len++] = 0x80 | ((c >> 12) & 0x3f);
+    p[len++] = 0x80 | ((c >> 6) & 0x3f);
+    p[len++] = 0x80 | (c & 0x3f);
+  }
 
-	return len;
+  return len;
 }
 
-#define LDAP_UCS_UTF8LEN(c)	\
-	c < 0 ? 0 : (c < 0x80 ? 1 : (c < 0x800 ? 2 : (c < 0x10000 ? 3 : \
-	(c < 0x200000 ? 4 : (c < 0x4000000 ? 5 : 6)))))
+#define LDAP_UCS_UTF8LEN(c)                                                    \
+  c < 0 ? 0                                                                    \
+        : (c < 0x80                                                            \
+               ? 1                                                             \
+               : (c < 0x800                                                    \
+                      ? 2                                                      \
+                      : (c < 0x10000                                           \
+                             ? 3                                               \
+                             : (c < 0x200000 ? 4 : (c < 0x4000000 ? 5 : 6)))))
 
 /* Convert a string to UTF-8 format. The input string is expected to
  * have characters of 1, 2, or 4 octets (in network byte order)
@@ -231,62 +233,60 @@ int ldap_x_ucs4_to_utf8( ldap_ucs4_t c, char *buf )
  * for converting from T.61 coding rules to Unicode.)
  */
 
-int
-ldap_ucs_to_utf8s( struct berval *ucs, int csize, struct berval *utf8s )
-{
-	unsigned char *in, *end;
-	char *ptr;
-	ldap_ucs4_t u;
-	int i, l = 0;
+int ldap_ucs_to_utf8s(struct berval *ucs, int csize, struct berval *utf8s) {
+  unsigned char *in, *end;
+  char *ptr;
+  ldap_ucs4_t u;
+  int i, l = 0;
 
-	utf8s->bv_val = NULL;
-	utf8s->bv_len = 0;
+  utf8s->bv_val = NULL;
+  utf8s->bv_len = 0;
 
-	in = (unsigned char *)ucs->bv_val;
+  in = (unsigned char *)ucs->bv_val;
 
-	/* Make sure we stop at an even multiple of csize */
-	end = in + ( ucs->bv_len & ~(csize-1) );
+  /* Make sure we stop at an even multiple of csize */
+  end = in + (ucs->bv_len & ~(csize - 1));
 
-	for (; in < end; ) {
-		u = *in++;
-		if (csize > 1) {
-			u <<= 8;
-			u |= *in++;
-		}
-		if (csize > 2) {
-			u <<= 8;
-			u |= *in++;
-			u <<= 8;
-			u |= *in++;
-		}
-		i = LDAP_UCS_UTF8LEN(u);
-		if (i == 0)
-			return LDAP_INVALID_SYNTAX;
-		l += i;
-	}
+  for (; in < end;) {
+    u = *in++;
+    if (csize > 1) {
+      u <<= 8;
+      u |= *in++;
+    }
+    if (csize > 2) {
+      u <<= 8;
+      u |= *in++;
+      u <<= 8;
+      u |= *in++;
+    }
+    i = LDAP_UCS_UTF8LEN(u);
+    if (i == 0)
+      return LDAP_INVALID_SYNTAX;
+    l += i;
+  }
 
-	utf8s->bv_val = LDAP_MALLOC( l+1 );
-	if (utf8s->bv_val == NULL)
-		return LDAP_NO_MEMORY;
-	utf8s->bv_len = l;
+  utf8s->bv_val = LDAP_MALLOC(l + 1);
+  if (utf8s->bv_val == NULL)
+    return LDAP_NO_MEMORY;
+  utf8s->bv_len = l;
 
-	ptr = utf8s->bv_val;
-	for (in = (unsigned char *)ucs->bv_val; in < end; ) {
-		u = *in++;
-		if (csize > 1) {
-			u <<= 8;
-			u |= *in++;
-		}
-		if (csize > 2) {
-			u <<= 8;
-			u |= *in++;
-			u <<= 8;
-			u |= *in++;
-		}
-		ptr += ldap_x_ucs4_to_utf8(u, ptr);
-	}
-	*ptr = '\0';
-	return LDAP_SUCCESS;
+  ptr = utf8s->bv_val;
+  for (in = (unsigned char *)ucs->bv_val; in < end;) {
+    u = *in++;
+    if (csize > 1) {
+      u <<= 8;
+      u |= *in++;
+    }
+    if (csize > 2) {
+      u <<= 8;
+      u |= *in++;
+      u <<= 8;
+      u |= *in++;
+    }
+    ptr += ldap_x_ucs4_to_utf8(u, ptr);
+  }
+  *ptr = '\0';
+  return LDAP_SUCCESS;
 }
 
 /*
@@ -298,22 +298,21 @@ ldap_ucs_to_utf8s( struct berval *ucs, int csize, struct berval *utf8s )
  * are provided provided the start of the next character
  * is appears within the 6 bytes examined.
  */
-char* ldap_utf8_next( const char * p )
-{
-	int i;
-	const unsigned char *u = (const unsigned char *) p;
+char *ldap_utf8_next(const char *p) {
+  int i;
+  const unsigned char *u = (const unsigned char *)p;
 
-	if( LDAP_UTF8_ISASCII(u) ) {
-		return (char *) &p[1];
-	}
+  if (LDAP_UTF8_ISASCII(u)) {
+    return (char *)&p[1];
+  }
 
-	for( i=1; i<6; i++ ) {
-		if ( ( u[i] & 0xc0 ) != 0x80 ) {
-			return (char *) &p[i];
-		}
-	}
+  for (i = 1; i < 6; i++) {
+    if ((u[i] & 0xc0) != 0x80) {
+      return (char *)&p[i];
+    }
+  }
 
-	return (char *) &p[i];
+  return (char *)&p[i];
 }
 
 /*
@@ -325,18 +324,17 @@ char* ldap_utf8_next( const char * p )
  * are provided provided the start of the next character
  * is appears within the 6 bytes examined.
  */
-char* ldap_utf8_prev( const char * p )
-{
-	int i;
-	const unsigned char *u = (const unsigned char *) p;
+char *ldap_utf8_prev(const char *p) {
+  int i;
+  const unsigned char *u = (const unsigned char *)p;
 
-	for( i=-1; i>-6 ; i-- ) {
-		if ( ( u[i] & 0xc0 ) != 0x80 ) {
-			return (char *) &p[i];
-		}
-	}
+  for (i = -1; i > -6; i--) {
+    if ((u[i] & 0xc0) != 0x80) {
+      return (char *)&p[i];
+    }
+  }
 
-	return (char *) &p[i];
+  return (char *)&p[i];
 }
 
 /*
@@ -349,25 +347,24 @@ char* ldap_utf8_prev( const char * p )
  * are provided provided the start of the next character
  * is appears within the 6 bytes examined.
  */
-int ldap_utf8_copy( char* dst, const char *src )
-{
-	int i;
-	const unsigned char *u = (const unsigned char *) src;
+int ldap_utf8_copy(char *dst, const char *src) {
+  int i;
+  const unsigned char *u = (const unsigned char *)src;
 
-	dst[0] = src[0];
+  dst[0] = src[0];
 
-	if( LDAP_UTF8_ISASCII(u) ) {
-		return 1;
-	}
+  if (LDAP_UTF8_ISASCII(u)) {
+    return 1;
+  }
 
-	for( i=1; i<6; i++ ) {
-		if ( ( u[i] & 0xc0 ) != 0x80 ) {
-			return i;
-		}
-		dst[i] = src[i];
-	}
+  for (i = 1; i < 6; i++) {
+    if ((u[i] & 0xc0) != 0x80) {
+      return i;
+    }
+    dst[i] = src[i];
+  }
 
-	return i;
+  return i;
 }
 
 #ifndef UTF8_ALPHA_CTYPE
@@ -376,186 +373,180 @@ int ldap_utf8_copy( char* dst, const char *src )
  * Only deals with characters < 0x80 (ie: US-ASCII)
  */
 
-int ldap_utf8_isascii( const char * p )
-{
-	unsigned c = * (const unsigned char *) p;
-	return LDAP_ASCII(c);
+int ldap_utf8_isascii(const char *p) {
+  unsigned c = *(const unsigned char *)p;
+  return LDAP_ASCII(c);
 }
 
-int ldap_utf8_isdigit( const char * p )
-{
-	unsigned c = * (const unsigned char *) p;
+int ldap_utf8_isdigit(const char *p) {
+  unsigned c = *(const unsigned char *)p;
 
-	if(!LDAP_ASCII(c)) return 0;
+  if (!LDAP_ASCII(c))
+    return 0;
 
-	return LDAP_DIGIT( c );
+  return LDAP_DIGIT(c);
 }
 
-int ldap_utf8_isxdigit( const char * p )
-{
-	unsigned c = * (const unsigned char *) p;
+int ldap_utf8_isxdigit(const char *p) {
+  unsigned c = *(const unsigned char *)p;
 
-	if(!LDAP_ASCII(c)) return 0;
+  if (!LDAP_ASCII(c))
+    return 0;
 
-	return LDAP_HEX(c);
+  return LDAP_HEX(c);
 }
 
-int ldap_utf8_isspace( const char * p )
-{
-	unsigned c = * (const unsigned char *) p;
+int ldap_utf8_isspace(const char *p) {
+  unsigned c = *(const unsigned char *)p;
 
-	if(!LDAP_ASCII(c)) return 0;
+  if (!LDAP_ASCII(c))
+    return 0;
 
-	switch(c) {
-	case ' ':
-	case '\t':
-	case '\n':
-	case '\r':
-	case '\v':
-	case '\f':
-		return 1;
-	}
+  switch (c) {
+  case ' ':
+  case '\t':
+  case '\n':
+  case '\r':
+  case '\v':
+  case '\f':
+    return 1;
+  }
 
-	return 0;
+  return 0;
 }
 
 /*
  * These are not needed by the C SDK and are
  * not "good enough" for general use.
  */
-int ldap_utf8_isalpha( const char * p )
-{
-	unsigned c = * (const unsigned char *) p;
+int ldap_utf8_isalpha(const char *p) {
+  unsigned c = *(const unsigned char *)p;
 
-	if(!LDAP_ASCII(c)) return 0;
+  if (!LDAP_ASCII(c))
+    return 0;
 
-	return LDAP_ALPHA(c);
+  return LDAP_ALPHA(c);
 }
 
-int ldap_utf8_isalnum( const char * p )
-{
-	unsigned c = * (const unsigned char *) p;
+int ldap_utf8_isalnum(const char *p) {
+  unsigned c = *(const unsigned char *)p;
 
-	if(!LDAP_ASCII(c)) return 0;
+  if (!LDAP_ASCII(c))
+    return 0;
 
-	return LDAP_ALNUM(c);
+  return LDAP_ALNUM(c);
 }
 
-int ldap_utf8_islower( const char * p )
-{
-	unsigned c = * (const unsigned char *) p;
+int ldap_utf8_islower(const char *p) {
+  unsigned c = *(const unsigned char *)p;
 
-	if(!LDAP_ASCII(c)) return 0;
+  if (!LDAP_ASCII(c))
+    return 0;
 
-	return LDAP_LOWER(c);
+  return LDAP_LOWER(c);
 }
 
-int ldap_utf8_isupper( const char * p )
-{
-	unsigned c = * (const unsigned char *) p;
+int ldap_utf8_isupper(const char *p) {
+  unsigned c = *(const unsigned char *)p;
 
-	if(!LDAP_ASCII(c)) return 0;
+  if (!LDAP_ASCII(c))
+    return 0;
 
-	return LDAP_UPPER(c);
+  return LDAP_UPPER(c);
 }
 #endif
-
 
 /*
  * UTF-8 string routines
  */
 
 /* like strchr() */
-char * (ldap_utf8_strchr)( const char *str, const char *chr )
-{
-	for( ; *str != '\0'; LDAP_UTF8_INCR(str) ) {
-		if( ldap_x_utf8_to_ucs4( str ) == ldap_x_utf8_to_ucs4( chr ) ) {
-			return (char *) str;
-		}
-	}
+char *(ldap_utf8_strchr)(const char *str, const char *chr) {
+  for (; *str != '\0'; LDAP_UTF8_INCR(str)) {
+    if (ldap_x_utf8_to_ucs4(str) == ldap_x_utf8_to_ucs4(chr)) {
+      return (char *)str;
+    }
+  }
 
-	return NULL;
+  return NULL;
 }
 
 /* like strcspn() but returns number of bytes, not characters */
-ber_len_t (ldap_utf8_strcspn)( const char *str, const char *set )
-{
-	const char *cstr;
-	const char *cset;
+ber_len_t(ldap_utf8_strcspn)(const char *str, const char *set) {
+  const char *cstr;
+  const char *cset;
 
-	for( cstr = str; *cstr != '\0'; LDAP_UTF8_INCR(cstr) ) {
-		for( cset = set; *cset != '\0'; LDAP_UTF8_INCR(cset) ) {
-			if( ldap_x_utf8_to_ucs4( cstr ) == ldap_x_utf8_to_ucs4( cset ) ) {
-				return cstr - str;
-			}
-		}
-	}
+  for (cstr = str; *cstr != '\0'; LDAP_UTF8_INCR(cstr)) {
+    for (cset = set; *cset != '\0'; LDAP_UTF8_INCR(cset)) {
+      if (ldap_x_utf8_to_ucs4(cstr) == ldap_x_utf8_to_ucs4(cset)) {
+        return cstr - str;
+      }
+    }
+  }
 
-	return cstr - str;
+  return cstr - str;
 }
 
 /* like strspn() but returns number of bytes, not characters */
-ber_len_t (ldap_utf8_strspn)( const char *str, const char *set )
-{
-	const char *cstr;
-	const char *cset;
+ber_len_t(ldap_utf8_strspn)(const char *str, const char *set) {
+  const char *cstr;
+  const char *cset;
 
-	for( cstr = str; *cstr != '\0'; LDAP_UTF8_INCR(cstr) ) {
-		for( cset = set; ; LDAP_UTF8_INCR(cset) ) {
-			if( *cset == '\0' ) {
-				return cstr - str;
-			}
+  for (cstr = str; *cstr != '\0'; LDAP_UTF8_INCR(cstr)) {
+    for (cset = set;; LDAP_UTF8_INCR(cset)) {
+      if (*cset == '\0') {
+        return cstr - str;
+      }
 
-			if( ldap_x_utf8_to_ucs4( cstr ) == ldap_x_utf8_to_ucs4( cset ) ) {
-				break;
-			}
-		}
-	}
+      if (ldap_x_utf8_to_ucs4(cstr) == ldap_x_utf8_to_ucs4(cset)) {
+        break;
+      }
+    }
+  }
 
-	return cstr - str;
+  return cstr - str;
 }
 
 /* like strpbrk(), replaces strchr() as well */
-char *(ldap_utf8_strpbrk)( const char *str, const char *set )
-{
-	for( ; *str != '\0'; LDAP_UTF8_INCR(str) ) {
-		const char *cset;
+char *(ldap_utf8_strpbrk)(const char *str, const char *set) {
+  for (; *str != '\0'; LDAP_UTF8_INCR(str)) {
+    const char *cset;
 
-		for( cset = set; *cset != '\0'; LDAP_UTF8_INCR(cset) ) {
-			if( ldap_x_utf8_to_ucs4( str ) == ldap_x_utf8_to_ucs4( cset ) ) {
-				return (char *) str;
-			}
-		}
-	}
+    for (cset = set; *cset != '\0'; LDAP_UTF8_INCR(cset)) {
+      if (ldap_x_utf8_to_ucs4(str) == ldap_x_utf8_to_ucs4(cset)) {
+        return (char *)str;
+      }
+    }
+  }
 
-	return NULL;
+  return NULL;
 }
 
 /* like strtok_r(), not strtok() */
-char *(ldap_utf8_strtok)(char *str, const char *sep, char **last)
-{
-	char *begin;
-	char *end;
+char *(ldap_utf8_strtok)(char *str, const char *sep, char **last) {
+  char *begin;
+  char *end;
 
-	if( last == NULL ) return NULL;
+  if (last == NULL)
+    return NULL;
 
-	begin = str ? str : *last;
+  begin = str ? str : *last;
 
-	begin += ldap_utf8_strspn( begin, sep );
+  begin += ldap_utf8_strspn(begin, sep);
 
-	if( *begin == '\0' ) {
-		*last = NULL;
-		return NULL;
-	}
+  if (*begin == '\0') {
+    *last = NULL;
+    return NULL;
+  }
 
-	end = &begin[ ldap_utf8_strcspn( begin, sep ) ];
+  end = &begin[ldap_utf8_strcspn(begin, sep)];
 
-	if( *end != '\0' ) {
-		char *next = LDAP_UTF8_NEXT( end );
-		*end = '\0';
-		end = next;
-	}
+  if (*end != '\0') {
+    char *next = LDAP_UTF8_NEXT(end);
+    *end = '\0';
+    end = next;
+  }
 
-	*last = end;
-	return begin;
+  *last = end;
+  return begin;
 }

@@ -1,5 +1,5 @@
 /* $ReOpenLDAP$ */
-/* Copyright 1992-2017 ReOpenLDAP AUTHORS: please see AUTHORS file.
+/* Copyright 1992-2018 ReOpenLDAP AUTHORS: please see AUTHORS file.
  * All rights reserved.
  *
  * This file is part of ReOpenLDAP.
@@ -21,21 +21,21 @@
 #ifndef _AC_FDSET_H
 #define _AC_FDSET_H
 
-#if !defined( REOPENLDAP_FD_SETSIZE ) && !defined( FD_SETSIZE )
-#  define REOPENLDAP_FD_SETSIZE 4096
+#if !defined(REOPENLDAP_FD_SETSIZE) && !defined(FD_SETSIZE)
+#define REOPENLDAP_FD_SETSIZE 4096
 #endif
 
 #ifdef REOPENLDAP_FD_SETSIZE
-    /* assume installer desires to enlarge fd_set */
-#  ifdef HAVE_BITS_TYPES_H
-#    include <bits/types.h>
-#  endif
-#  ifdef __FD_SETSIZE
-#    undef __FD_SETSIZE
-#    define __FD_SETSIZE REOPENLDAP_FD_SETSIZE
-#  else
-#    define FD_SETSIZE REOPENLDAP_FD_SETSIZE
-#  endif
+/* assume installer desires to enlarge fd_set */
+#ifdef HAVE_BITS_TYPES_H
+#include <bits/types.h>
+#endif
+#ifdef __FD_SETSIZE
+#undef __FD_SETSIZE
+#define __FD_SETSIZE REOPENLDAP_FD_SETSIZE
+#else
+#define FD_SETSIZE REOPENLDAP_FD_SETSIZE
+#endif
 #endif
 
 #endif /* _AC_FDSET_H */

@@ -1,5 +1,5 @@
 # $ReOpenLDAP$
-# Copyright 2002-2017 ReOpenLDAP AUTHORS: please see AUTHORS file.
+# Copyright 2002-2018 ReOpenLDAP AUTHORS: please see AUTHORS file.
 # All rights reserved.
 #
 # This file is part of ReOpenLDAP.
@@ -46,7 +46,7 @@ Boyer-Moore searches on Unicode UCS2 text (handles high and low surrogates).
 
 Assumptions:
 
-  o  Search pattern and text already normalized in some fasion.
+  o  Search pattern and text already normalized in some fashion.
 
   o  Upper, lower, and title case conversions are one-to-one.
 
@@ -107,7 +107,7 @@ Sample pseudo-code fragment.
   utbm_compile(pattern, patternlen, flags, pat);
 
   /*
-   * Find the first occurance of the search pattern in the text.
+   * Find the first occurrence of the search pattern in the text.
    */
   if (utbm_exec(pat, text, textlen, &match_start, &match_end))
     printf("MATCH: %ld %ld\n", match_start, match_end);

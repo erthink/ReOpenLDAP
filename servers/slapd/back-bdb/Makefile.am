@@ -1,5 +1,5 @@
 ## $ReOpenLDAP$
-## Copyright 2017 ReOpenLDAP AUTHORS: please see AUTHORS file.
+## Copyright 2017-2018 ReOpenLDAP AUTHORS: please see AUTHORS file.
 ## All rights reserved.
 ##
 ## This file is part of ReOpenLDAP.
@@ -40,4 +40,4 @@ back_bdb_la_SOURCES = add.c attr.c back-bdb.h banner.c bind.c \
 	trans.c
 
 back_bdb_la_LIBADD = $(BDB_LIBS)
-back_bdb_la_CFLAGS = -UBDB_HIER
+back_bdb_la_CFLAGS = -UBDB_HIER $(AM_CFLAGS)

@@ -1,5 +1,5 @@
 /* $ReOpenLDAP$ */
-/* Copyright 2000-2017 ReOpenLDAP AUTHORS: please see AUTHORS file.
+/* Copyright 2000-2018 ReOpenLDAP AUTHORS: please see AUTHORS file.
  * All rights reserved.
  *
  * This file is part of ReOpenLDAP.
@@ -28,18 +28,13 @@
 #include "slap.h"
 #include "proto-dnssrv.h"
 
-int
-dnssrv_back_compare(
-	Operation	*op,
-	SlapReply	*rs
-)
-{
+int dnssrv_back_compare(Operation *op, SlapReply *rs) {
 #if 0
 	assert( get_manageDSAit( op ) );
 #endif
-	send_ldap_error( op, rs, LDAP_UNWILLING_TO_PERFORM,
-		"operation not supported within naming context (dns)" );
+  send_ldap_error(op, rs, LDAP_UNWILLING_TO_PERFORM,
+                  "operation not supported within naming context (dns)");
 
-	/* not implemented */
-	return 1;
+  /* not implemented */
+  return 1;
 }

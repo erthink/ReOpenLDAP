@@ -1,5 +1,5 @@
 /* $ReOpenLDAP$ */
-/* Copyright 1992-2017 ReOpenLDAP AUTHORS: please see AUTHORS file.
+/* Copyright 1992-2018 ReOpenLDAP AUTHORS: please see AUTHORS file.
  * All rights reserved.
  *
  * This file is part of ReOpenLDAP.
@@ -34,85 +34,81 @@
 #undef LOCK_API
 
 #if defined(HAVE_LOCKF) && defined(F_LOCK)
-#	define USE_LOCKF 1
-#	define LOCK_API	"lockf"
+#define USE_LOCKF 1
+#define LOCK_API "lockf"
 #endif
 
 #if !defined(LOCK_API) && defined(HAVE_FCNTL)
-#	ifdef HAVE_FCNTL_H
-#		include <fcntl.h>
-#	endif
-#	ifdef F_WRLCK
-#		define USE_FCNTL 1
-#		define LOCK_API	"fcntl"
-#	endif
+#ifdef HAVE_FCNTL_H
+#include <fcntl.h>
+#endif
+#ifdef F_WRLCK
+#define USE_FCNTL 1
+#define LOCK_API "fcntl"
+#endif
 #endif
 
 #if !defined(LOCK_API) && defined(HAVE_FLOCK)
-#	ifdef HAVE_SYS_FILE_H
-#		include <sys/file.h>
-#	endif
-#	define USE_FLOCK 1
-#	define LOCK_API	"flock"
+#ifdef HAVE_SYS_FILE_H
+#include <sys/file.h>
+#endif
+#define USE_FLOCK 1
+#define LOCK_API "flock"
 #endif
 
 #if !defined(USE_LOCKF) && !defined(USE_FCNTL) && !defined(USE_FLOCK)
-int lutil_lockf ( int fd ) {
-    fd = fd;
-    return 0;
+int lutil_lockf(int fd) {
+  fd = fd;
+  return 0;
 }
 
-int lutil_unlockf ( int fd ) {
-    fd = fd;
-    return 0;
+int lutil_unlockf(int fd) {
+  fd = fd;
+  return 0;
 }
 #endif
 
 #ifdef USE_LOCKF
-int lutil_lockf ( int fd ) {
-	/* use F_LOCK instead of F_TLOCK, ie: block */
-	return lockf( fd, F_LOCK, 0 );
+int lutil_lockf(int fd) {
+  /* use F_LOCK instead of F_TLOCK, ie: block */
+  return lockf(fd, F_LOCK, 0);
 }
 
-int lutil_unlockf ( int fd ) {
-	return lockf( fd, F_ULOCK, 0 );
-}
+int lutil_unlockf(int fd) { return lockf(fd, F_ULOCK, 0); }
 #endif
 
 #ifdef USE_FCNTL
-int lutil_lockf ( int fd ) {
-	struct flock file_lock;
+int lutil_lockf(int fd) {
+  struct flock file_lock;
 
-	memset( &file_lock, '\0', sizeof( file_lock ) );
-	file_lock.l_type = F_WRLCK;
-	file_lock.l_whence = SEEK_SET;
-	file_lock.l_start = 0;
-	file_lock.l_len = 0;
+  memset(&file_lock, '\0', sizeof(file_lock));
+  file_lock.l_type = F_WRLCK;
+  file_lock.l_whence = SEEK_SET;
+  file_lock.l_start = 0;
+  file_lock.l_len = 0;
 
-	/* use F_SETLKW instead of F_SETLK, ie: block */
-	return( fcntl( fd, F_SETLKW, &file_lock ) );
+  /* use F_SETLKW instead of F_SETLK, ie: block */
+  return (fcntl(fd, F_SETLKW, &file_lock));
 }
 
-int lutil_unlockf ( int fd ) {
-	struct flock file_lock;
+int lutil_unlockf(int fd) {
+  struct flock file_lock;
 
-	memset( &file_lock, '\0', sizeof( file_lock ) );
-	file_lock.l_type = F_UNLCK;
-	file_lock.l_whence = SEEK_SET;
-	file_lock.l_start = 0;
-	file_lock.l_len = 0;
+  memset(&file_lock, '\0', sizeof(file_lock));
+  file_lock.l_type = F_UNLCK;
+  file_lock.l_whence = SEEK_SET;
+  file_lock.l_start = 0;
+  file_lock.l_len = 0;
 
-	return( fcntl ( fd, F_SETLKW, &file_lock ) );
+  return (fcntl(fd, F_SETLKW, &file_lock));
 }
 #endif
 
 #ifdef USE_FLOCK
-int lutil_lockf ( int fd ) {
-	/* use LOCK_EX instead of LOCK_EX|LOCK_NB, ie: block */
-	return flock( fd, LOCK_EX );
+int lutil_lockf(int fd) {
+  /* use LOCK_EX instead of LOCK_EX|LOCK_NB, ie: block */
+  return flock(fd, LOCK_EX);
 }
 
-int lutil_unlockf ( int fd ) {
-	return flock( fd, LOCK_UN );
-}
+int lutil_unlockf(int fd) { return flock(fd, LOCK_UN); }
 #endif

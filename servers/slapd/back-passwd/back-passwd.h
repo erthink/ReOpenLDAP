@@ -1,5 +1,5 @@
 /* $ReOpenLDAP$ */
-/* Copyright 1990-2017 ReOpenLDAP AUTHORS: please see AUTHORS file.
+/* Copyright 1990-2018 ReOpenLDAP AUTHORS: please see AUTHORS file.
  * All rights reserved.
  *
  * This file is part of ReOpenLDAP.
@@ -22,9 +22,9 @@ LDAP_BEGIN_DECL
 
 extern ldap_pvt_thread_mutex_t passwd_mutex;
 
-extern BI_destroy	passwd_back_destroy;
+extern BI_destroy passwd_back_destroy;
 
-extern BI_op_search	passwd_back_search;
+extern BI_op_search passwd_back_search;
 
 LDAP_END_DECL
 

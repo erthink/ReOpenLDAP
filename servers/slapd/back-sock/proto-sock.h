@@ -1,5 +1,5 @@
 /* $ReOpenLDAP$ */
-/* Copyright 2007-2017 ReOpenLDAP AUTHORS: please see AUTHORS file.
+/* Copyright 2007-2018 ReOpenLDAP AUTHORS: please see AUTHORS file.
  * All rights reserved.
  *
  * This file is part of ReOpenLDAP.
@@ -23,25 +23,27 @@
 
 LDAP_BEGIN_DECL
 
-extern BI_init		sock_back_initialize;
+extern BI_init sock_back_initialize;
 
-extern BI_open		sock_back_open;
-extern BI_close		sock_back_close;
-extern BI_destroy	sock_back_destroy;
+extern BI_open sock_back_open;
+extern BI_close sock_back_close;
+extern BI_destroy sock_back_destroy;
 
-extern BI_db_init	sock_back_db_init;
-extern BI_db_destroy	sock_back_db_destroy;
+extern BI_db_init sock_back_db_init;
+extern BI_db_destroy sock_back_db_destroy;
 
-extern BI_op_bind	sock_back_bind;
-extern BI_op_unbind	sock_back_unbind;
-extern BI_op_search	sock_back_search;
-extern BI_op_compare	sock_back_compare;
-extern BI_op_modify	sock_back_modify;
-extern BI_op_modrdn	sock_back_modrdn;
-extern BI_op_add	sock_back_add;
-extern BI_op_delete	sock_back_delete;
+extern BI_op_bind sock_back_bind;
+extern BI_op_unbind sock_back_unbind;
+extern BI_op_search sock_back_search;
+extern BI_op_compare sock_back_compare;
+extern BI_op_modify sock_back_modify;
+extern BI_op_modrdn sock_back_modrdn;
+extern BI_op_add sock_back_add;
+extern BI_op_delete sock_back_delete;
 
-extern int sock_back_init_cf( BackendInfo *bi );
+extern BI_op_extended sock_back_extended;
+
+extern int sock_back_init_cf(BackendInfo *bi);
 
 LDAP_END_DECL
 

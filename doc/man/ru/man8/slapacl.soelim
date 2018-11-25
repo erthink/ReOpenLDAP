@@ -1,5 +1,5 @@
 .\" $ReOpenLDAP$
-.\" Copyright 1992-2017 ReOpenLDAP AUTHORS: please see AUTHORS file.
+.\" Copyright 1992-2018 ReOpenLDAP AUTHORS: please see AUTHORS file.
 .\" All rights reserved.
 .\"
 .\" This file is part of ReOpenLDAP.
@@ -119,7 +119,6 @@ slapacl \- проверка доступа к списку атрибутов.
 .RS
 Возможные опции/значения, специфичные для
 .BR slapacl :
-are:
 .RE
 .nf
 
@@ -207,6 +206,6 @@ are:
 .BR slaptest (8),
 .BR slapauth (8)
 .LP
-"Руководство администратора OpenLDAP" (http://www.OpenLDAP.org/doc/admin/, http://pro-ldap.ru/tr/admin24/).
+"Руководство администратора OpenLDAP" (http://www.OpenLDAP.org/doc/admin/, https://pro-ldap.ru/tr/admin24/).
 .SH "ПРИЗНАНИЕ ЗАСЛУГ"
 .so ../Project

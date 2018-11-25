@@ -1,6 +1,6 @@
 /* denyop.c - Denies operations */
 /* $ReOpenLDAP$ */
-/* Copyright 1992-2017 ReOpenLDAP AUTHORS: please see AUTHORS file.
+/* Copyright 1992-2018 ReOpenLDAP AUTHORS: please see AUTHORS file.
  * All rights reserved.
  *
  * This file is part of ReOpenLDAP.
@@ -35,185 +35,170 @@
  */
 
 enum {
-	denyop_add = 0,
-	denyop_bind,
-	denyop_compare,
-	denyop_delete,
-	denyop_extended,
-	denyop_modify,
-	denyop_modrdn,
-	denyop_search,
-	denyop_unbind
+  denyop_add = 0,
+  denyop_bind,
+  denyop_compare,
+  denyop_delete,
+  denyop_extended,
+  denyop_modify,
+  denyop_modrdn,
+  denyop_search,
+  denyop_unbind
 } denyop_e;
 
 typedef struct denyop_info {
-	int do_op[denyop_unbind + 1];
+  int do_op[denyop_unbind + 1];
 } denyop_info;
 
-static int
-denyop_func( Operation *op, SlapReply *rs )
-{
-	slap_overinst		*on = (slap_overinst *) op->o_bd->bd_info;
-	denyop_info		*oi = (denyop_info *)on->on_bi.bi_private;
-	int			deny = 0;
+static int denyop_func(Operation *op, SlapReply *rs) {
+  slap_overinst *on = (slap_overinst *)op->o_bd->bd_info;
+  denyop_info *oi = (denyop_info *)on->on_bi.bi_private;
+  int deny = 0;
 
-	switch( op->o_tag ) {
-	case LDAP_REQ_BIND:
-		deny = oi->do_op[denyop_bind];
-		break;
+  switch (op->o_tag) {
+  case LDAP_REQ_BIND:
+    deny = oi->do_op[denyop_bind];
+    break;
 
-	case LDAP_REQ_ADD:
-		deny = oi->do_op[denyop_add];
-		break;
+  case LDAP_REQ_ADD:
+    deny = oi->do_op[denyop_add];
+    break;
 
-	case LDAP_REQ_DELETE:
-		deny = oi->do_op[denyop_delete];
-		break;
+  case LDAP_REQ_DELETE:
+    deny = oi->do_op[denyop_delete];
+    break;
 
-	case LDAP_REQ_MODRDN:
-		deny = oi->do_op[denyop_modrdn];
-		break;
+  case LDAP_REQ_MODRDN:
+    deny = oi->do_op[denyop_modrdn];
+    break;
 
-	case LDAP_REQ_MODIFY:
-		deny = oi->do_op[denyop_modify];
-		break;
+  case LDAP_REQ_MODIFY:
+    deny = oi->do_op[denyop_modify];
+    break;
 
-	case LDAP_REQ_COMPARE:
-		deny = oi->do_op[denyop_compare];
-		break;
+  case LDAP_REQ_COMPARE:
+    deny = oi->do_op[denyop_compare];
+    break;
 
-	case LDAP_REQ_SEARCH:
-		deny = oi->do_op[denyop_search];
-		break;
+  case LDAP_REQ_SEARCH:
+    deny = oi->do_op[denyop_search];
+    break;
 
-	case LDAP_REQ_EXTENDED:
-		deny = oi->do_op[denyop_extended];
-		break;
+  case LDAP_REQ_EXTENDED:
+    deny = oi->do_op[denyop_extended];
+    break;
 
-	case LDAP_REQ_UNBIND:
-		deny = oi->do_op[denyop_unbind];
-		break;
-	}
+  case LDAP_REQ_UNBIND:
+    deny = oi->do_op[denyop_unbind];
+    break;
+  }
 
-	if ( !deny ) {
-		return SLAP_CB_CONTINUE;
-	}
+  if (!deny) {
+    return SLAP_CB_CONTINUE;
+  }
 
-	op->o_bd->bd_info = (BackendInfo *)on->on_info;
-	send_ldap_error( op, rs, LDAP_UNWILLING_TO_PERFORM,
-			"operation not allowed within namingContext" );
+  op->o_bd->bd_info = (BackendInfo *)on->on_info;
+  send_ldap_error(op, rs, LDAP_UNWILLING_TO_PERFORM,
+                  "operation not allowed within namingContext");
 
-	return 0;
+  return 0;
 }
 
-static int
-denyop_over_init(
-	BackendDB *be, ConfigReply *cr
-)
-{
-	slap_overinst		*on = (slap_overinst *) be->bd_info;
-	denyop_info		*oi;
+static int denyop_over_init(BackendDB *be, ConfigReply *cr) {
+  slap_overinst *on = (slap_overinst *)be->bd_info;
+  denyop_info *oi;
 
-	oi = (denyop_info *)ch_malloc(sizeof(denyop_info));
-	memset(oi, 0, sizeof(denyop_info));
-	on->on_bi.bi_private = oi;
+  oi = (denyop_info *)ch_malloc(sizeof(denyop_info));
+  memset(oi, 0, sizeof(denyop_info));
+  on->on_bi.bi_private = oi;
 
-	return 0;
+  return 0;
 }
 
-static int
-denyop_config(
-    BackendDB	*be,
-    const char	*fname,
-    int		lineno,
-    int		argc,
-    char	**argv
-)
-{
-	slap_overinst		*on = (slap_overinst *) be->bd_info;
-	denyop_info		*oi = (denyop_info *)on->on_bi.bi_private;
+static int denyop_config(BackendDB *be, const char *fname, int lineno, int argc,
+                         char **argv) {
+  slap_overinst *on = (slap_overinst *)be->bd_info;
+  denyop_info *oi = (denyop_info *)on->on_bi.bi_private;
 
-	if ( strcasecmp( argv[0], "denyop" ) == 0 ) {
-		char *op;
+  if (strcasecmp(argv[0], "denyop") == 0) {
+    char *op;
 
-		if ( argc != 2 ) {
-			Debug( LDAP_DEBUG_ANY, "%s: line %d: "
-				"operation list missing in "
-				"\"denyop <op-list>\" line.\n",
-				fname, lineno );
-			return( 1 );
-		}
+    if (argc != 2) {
+      Debug(LDAP_DEBUG_ANY,
+            "%s: line %d: "
+            "operation list missing in "
+            "\"denyop <op-list>\" line.\n",
+            fname, lineno);
+      return (1);
+    }
 
-		/* The on->on_bi.bi_private pointer can be used for
-		 * anything this instance of the overlay needs.
-		 */
+    /* The on->on_bi.bi_private pointer can be used for
+     * anything this instance of the overlay needs.
+     */
 
-		op = argv[1];
-		do {
-			char	*next = strchr( op, ',' );
+    op = argv[1];
+    do {
+      char *next = strchr(op, ',');
 
-			if ( next ) {
-				next[0] = '\0';
-				next++;
-			}
+      if (next) {
+        next[0] = '\0';
+        next++;
+      }
 
-			if ( strcmp( op, "add" ) == 0 ) {
-				oi->do_op[denyop_add] = 1;
+      if (strcmp(op, "add") == 0) {
+        oi->do_op[denyop_add] = 1;
 
-			} else if ( strcmp( op, "bind" ) == 0 ) {
-				oi->do_op[denyop_bind] = 1;
+      } else if (strcmp(op, "bind") == 0) {
+        oi->do_op[denyop_bind] = 1;
 
-			} else if ( strcmp( op, "compare" ) == 0 ) {
-				oi->do_op[denyop_compare] = 1;
+      } else if (strcmp(op, "compare") == 0) {
+        oi->do_op[denyop_compare] = 1;
 
-			} else if ( strcmp( op, "delete" ) == 0 ) {
-				oi->do_op[denyop_delete] = 1;
+      } else if (strcmp(op, "delete") == 0) {
+        oi->do_op[denyop_delete] = 1;
 
-			} else if ( strcmp( op, "extended" ) == 0 ) {
-				oi->do_op[denyop_extended] = 1;
+      } else if (strcmp(op, "extended") == 0) {
+        oi->do_op[denyop_extended] = 1;
 
-			} else if ( strcmp( op, "modify" ) == 0 ) {
-				oi->do_op[denyop_modify] = 1;
+      } else if (strcmp(op, "modify") == 0) {
+        oi->do_op[denyop_modify] = 1;
 
-			} else if ( strcmp( op, "modrdn" ) == 0 ) {
-				oi->do_op[denyop_modrdn] = 1;
+      } else if (strcmp(op, "modrdn") == 0) {
+        oi->do_op[denyop_modrdn] = 1;
 
-			} else if ( strcmp( op, "search" ) == 0 ) {
-				oi->do_op[denyop_search] = 1;
+      } else if (strcmp(op, "search") == 0) {
+        oi->do_op[denyop_search] = 1;
 
-			} else if ( strcmp( op, "unbind" ) == 0 ) {
-				oi->do_op[denyop_unbind] = 1;
+      } else if (strcmp(op, "unbind") == 0) {
+        oi->do_op[denyop_unbind] = 1;
 
-			} else {
-				Debug( LDAP_DEBUG_ANY, "%s: line %d: "
-					"unknown operation \"%s\" at "
-					"\"denyop <op-list>\" line.\n",
-					fname, lineno, op );
-				return( 1 );
-			}
+      } else {
+        Debug(LDAP_DEBUG_ANY,
+              "%s: line %d: "
+              "unknown operation \"%s\" at "
+              "\"denyop <op-list>\" line.\n",
+              fname, lineno, op);
+        return (1);
+      }
 
-			op = next;
-		} while ( op );
+      op = next;
+    } while (op);
 
-	} else {
-		return SLAP_CONF_UNKNOWN;
-	}
-	return 0;
+  } else {
+    return SLAP_CONF_UNKNOWN;
+  }
+  return 0;
 }
 
-static int
-denyop_destroy(
-	BackendDB *be, ConfigReply *cr
-)
-{
-	slap_overinst	*on = (slap_overinst *) be->bd_info;
-	denyop_info	*oi = (denyop_info *)on->on_bi.bi_private;
+static int denyop_destroy(BackendDB *be, ConfigReply *cr) {
+  slap_overinst *on = (slap_overinst *)be->bd_info;
+  denyop_info *oi = (denyop_info *)on->on_bi.bi_private;
 
-	if ( oi ) {
-		ch_free( oi );
-	}
+  if (oi) {
+    ch_free(oi);
+  }
 
-	return 0;
+  return 0;
 }
 
 /* This overlay is set up for dynamic loading via moduleload. For static
@@ -223,31 +208,28 @@ denyop_destroy(
 
 static slap_overinst denyop;
 
-static int
-denyop_initialize( void )
-{
-	memset( &denyop, 0, sizeof( slap_overinst ) );
-	denyop.on_bi.bi_type = "denyop";
-	denyop.on_bi.bi_db_init = denyop_over_init;
-	denyop.on_bi.bi_db_config = denyop_config;
-	denyop.on_bi.bi_db_destroy = denyop_destroy;
+static int denyop_initialize(void) {
+  memset(&denyop, 0, sizeof(slap_overinst));
+  denyop.on_bi.bi_type = "denyop";
+  denyop.on_bi.bi_db_init = denyop_over_init;
+  denyop.on_bi.bi_db_config = denyop_config;
+  denyop.on_bi.bi_db_destroy = denyop_destroy;
 
-	denyop.on_bi.bi_op_bind = denyop_func;
-	denyop.on_bi.bi_op_search = denyop_func;
-	denyop.on_bi.bi_op_compare = denyop_func;
-	denyop.on_bi.bi_op_modify = denyop_func;
-	denyop.on_bi.bi_op_modrdn = denyop_func;
-	denyop.on_bi.bi_op_add = denyop_func;
-	denyop.on_bi.bi_op_delete = denyop_func;
-	denyop.on_bi.bi_extended = denyop_func;
-	denyop.on_bi.bi_op_unbind = denyop_func;
+  denyop.on_bi.bi_op_bind = denyop_func;
+  denyop.on_bi.bi_op_search = denyop_func;
+  denyop.on_bi.bi_op_compare = denyop_func;
+  denyop.on_bi.bi_op_modify = denyop_func;
+  denyop.on_bi.bi_op_modrdn = denyop_func;
+  denyop.on_bi.bi_op_add = denyop_func;
+  denyop.on_bi.bi_op_delete = denyop_func;
+  denyop.on_bi.bi_extended = denyop_func;
+  denyop.on_bi.bi_op_unbind = denyop_func;
 
-	denyop.on_response = NULL /* denyop_response */ ;
+  denyop.on_response = NULL /* denyop_response */;
 
-	return overlay_register( &denyop );
+  return overlay_register(&denyop);
 }
 
-SLAP_MODULE_ENTRY(denyop, modinit) ( int argc, char *argv[] )
-{
-	return denyop_initialize();
+SLAP_MODULE_ENTRY(denyop, modinit)(int argc, char *argv[]) {
+  return denyop_initialize();
 }

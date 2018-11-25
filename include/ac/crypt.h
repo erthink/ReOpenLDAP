@@ -1,5 +1,5 @@
 /* $ReOpenLDAP$ */
-/* Copyright 1992-2017 ReOpenLDAP AUTHORS: please see AUTHORS file.
+/* Copyright 1992-2018 ReOpenLDAP AUTHORS: please see AUTHORS file.
  * All rights reserved.
  *
  * This file is part of ReOpenLDAP.
@@ -20,9 +20,9 @@
 
 /* crypt() may be defined in a separate include file */
 #ifdef HAVE_CRYPT_H
-#	include <crypt.h>
+#include <crypt.h>
 #else
-	extern char *(crypt)();
+extern char *(crypt)();
 #endif
 
 #endif /* _AC_CRYPT_H */

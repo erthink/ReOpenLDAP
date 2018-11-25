@@ -1,5 +1,5 @@
 /* $ReOpenLDAP$ */
-/* Copyright 2011-2017 ReOpenLDAP AUTHORS: please see AUTHORS file.
+/* Copyright 2011-2018 ReOpenLDAP AUTHORS: please see AUTHORS file.
  * All rights reserved.
  *
  * This file is part of ReOpenLDAP.
@@ -25,47 +25,37 @@
 #include "idl.h"
 
 /* read a key */
-int
-mdb_key_read(
-	Backend	*be,
-	MDB_txn *txn,
-	MDB_dbi dbi,
-	struct berval *k,
-	ID *ids,
-	MDB_cursor **saved_cursor,
-	int get_flag
-)
-{
-	int rc;
-	MDB_val key;
+int mdb_key_read(Backend *be, MDBX_txn *txn, MDBX_dbi dbi, struct berval *k,
+                 ID *ids, MDBX_cursor **saved_cursor, int get_flag) {
+  int rc;
+  MDBX_val key;
 #ifndef MISALIGNED_OK
-	int kbuf[2];
+  int kbuf[2];
 #endif
 
-	Debug( LDAP_DEBUG_TRACE, "=> key_read\n" );
+  Debug(LDAP_DEBUG_TRACE, "=> key_read\n");
 
 #ifndef MISALIGNED_OK
-	if (k->bv_len & ALIGNER) {
-		key.mv_size = sizeof(kbuf);
-		key.mv_data = kbuf;
-		kbuf[1] = 0;
-		memcpy(kbuf, k->bv_val, k->bv_len);
-	} else
+  if (k->bv_len & ALIGNER) {
+    key.iov_len = sizeof(kbuf);
+    key.iov_base = kbuf;
+    kbuf[1] = 0;
+    memcpy(kbuf, k->bv_val, k->bv_len);
+  } else
 #endif
-	{
-		key.mv_size = k->bv_len;
-		key.mv_data = k->bv_val;
-	}
+  {
+    key.iov_len = k->bv_len;
+    key.iov_base = k->bv_val;
+  }
 
-	rc = mdb_idl_fetch_key( be, txn, dbi, &key, ids, saved_cursor, get_flag );
+  rc = mdb_idl_fetch_key(be, txn, dbi, &key, ids, saved_cursor, get_flag);
 
-	if( rc != LDAP_SUCCESS ) {
-		Debug( LDAP_DEBUG_TRACE, "<= mdb_index_read: failed (%d)\n",
-			rc );
-	} else {
-		Debug( LDAP_DEBUG_TRACE, "<= mdb_index_read %ld candidates\n",
-			(long) MDB_IDL_N(ids) );
-	}
+  if (rc != LDAP_SUCCESS) {
+    Debug(LDAP_DEBUG_TRACE, "<= mdb_index_read: failed (%d)\n", rc);
+  } else {
+    Debug(LDAP_DEBUG_TRACE, "<= mdb_index_read %ld candidates\n",
+          (long)MDB_IDL_N(ids));
+  }
 
-	return rc;
+  return rc;
 }

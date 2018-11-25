@@ -1,5 +1,5 @@
 /* $ReOpenLDAP$ */
-/* Copyright 1990-2017 ReOpenLDAP AUTHORS: please see AUTHORS file.
+/* Copyright 1990-2018 ReOpenLDAP AUTHORS: please see AUTHORS file.
  * All rights reserved.
  *
  * This file is part of ReOpenLDAP.
@@ -13,7 +13,7 @@
  * <http://www.OpenLDAP.org/license.html>.
  */
 /* ACKNOWLEDGEMENTS:
- * This program was orignally developed by Kurt D. Zeilenga for inclusion in
+ * This program was originally developed by Kurt D. Zeilenga for inclusion in
  * OpenLDAP Software.
  */
 
@@ -33,63 +33,50 @@
 #include "ldap-int.h"
 #include "ldap_log.h"
 
-int
-ldap_turn(
-	LDAP *ld,
-	int mutual,
-	LDAP_CONST char* identifier,
-	LDAPControl **sctrls,
-	LDAPControl **cctrls,
-	int *msgidp )
-{
+int ldap_turn(LDAP *ld, int mutual, const char *identifier,
+              LDAPControl **sctrls, LDAPControl **cctrls, int *msgidp) {
 #ifdef LDAP_EXOP_X_TURN
-	BerElement *turnvalber = NULL;
-	struct berval *turnvalp = NULL;
-	int rc;
+  BerElement *turnvalber = NULL;
+  struct berval *turnvalp = NULL;
+  int rc;
 
-	turnvalber = ber_alloc_t( LBER_USE_DER );
-	if( mutual ) {
-		ber_printf( turnvalber, "{bs}", mutual, identifier );
-	} else {
-		ber_printf( turnvalber, "{s}", identifier );
-	}
-	ber_flatten( turnvalber, &turnvalp );
+  turnvalber = ber_alloc_t(LBER_USE_DER);
+  if (mutual) {
+    ber_printf(turnvalber, "{bs}", mutual, identifier);
+  } else {
+    ber_printf(turnvalber, "{s}", identifier);
+  }
+  ber_flatten(turnvalber, &turnvalp);
 
-	rc = ldap_extended_operation( ld, LDAP_EXOP_X_TURN,
-			turnvalp, sctrls, cctrls, msgidp );
-	ber_free( turnvalber, 1 );
-	return rc;
+  rc = ldap_extended_operation(ld, LDAP_EXOP_X_TURN, turnvalp, sctrls, cctrls,
+                               msgidp);
+  ber_free(turnvalber, 1);
+  return rc;
 #else
-	return LDAP_CONTROL_NOT_FOUND;
+  return LDAP_CONTROL_NOT_FOUND;
 #endif
 }
 
-int
-ldap_turn_s(
-	LDAP *ld,
-	int mutual,
-	LDAP_CONST char* identifier,
-	LDAPControl **sctrls,
-	LDAPControl **cctrls )
-{
+int ldap_turn_s(LDAP *ld, int mutual, const char *identifier,
+                LDAPControl **sctrls, LDAPControl **cctrls) {
 #ifdef LDAP_EXOP_X_TURN
-	BerElement *turnvalber = NULL;
-	struct berval *turnvalp = NULL;
-	int rc;
+  BerElement *turnvalber = NULL;
+  struct berval *turnvalp = NULL;
+  int rc;
 
-	turnvalber = ber_alloc_t( LBER_USE_DER );
-	if( mutual ) {
-		ber_printf( turnvalber, "{bs}", 0xFF, identifier );
-	} else {
-		ber_printf( turnvalber, "{s}", identifier );
-	}
-	ber_flatten( turnvalber, &turnvalp );
+  turnvalber = ber_alloc_t(LBER_USE_DER);
+  if (mutual) {
+    ber_printf(turnvalber, "{bs}", 0xFF, identifier);
+  } else {
+    ber_printf(turnvalber, "{s}", identifier);
+  }
+  ber_flatten(turnvalber, &turnvalp);
 
-	rc = ldap_extended_operation_s( ld, LDAP_EXOP_X_TURN,
-			turnvalp, sctrls, cctrls, NULL, NULL );
-	ber_free( turnvalber, 1 );
-	return rc;
+  rc = ldap_extended_operation_s(ld, LDAP_EXOP_X_TURN, turnvalp, sctrls, cctrls,
+                                 NULL, NULL);
+  ber_free(turnvalber, 1);
+  return rc;
 #else
-	return LDAP_CONTROL_NOT_FOUND;
+  return LDAP_CONTROL_NOT_FOUND;
 #endif
 }

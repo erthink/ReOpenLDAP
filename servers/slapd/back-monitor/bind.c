@@ -1,5 +1,5 @@
 /* $ReOpenLDAP$ */
-/* Copyright 2001-2017 ReOpenLDAP AUTHORS: please see AUTHORS file.
+/* Copyright 2001-2018 ReOpenLDAP AUTHORS: please see AUTHORS file.
  * All rights reserved.
  *
  * This file is part of ReOpenLDAP.
@@ -29,18 +29,16 @@
  * At present, only rootdn can bind with simple bind
  */
 
-int
-monitor_back_bind( Operation *op, SlapReply *rs )
-{
-	Debug(LDAP_DEBUG_ARGS, "==> monitor_back_bind: dn: %s\n",
-			op->o_req_dn.bv_val );
+int monitor_back_bind(Operation *op, SlapReply *rs) {
+  Debug(LDAP_DEBUG_ARGS, "==> monitor_back_bind: dn: %s\n",
+        op->o_req_dn.bv_val);
 
-	if ( be_isroot_pw( op ) ) {
-		return LDAP_SUCCESS;
-	}
+  if (be_isroot_pw(op)) {
+    return LDAP_SUCCESS;
+  }
 
-	rs->sr_err = LDAP_INVALID_CREDENTIALS;
-	send_ldap_result( op, rs );
+  rs->sr_err = LDAP_INVALID_CREDENTIALS;
+  send_ldap_result(op, rs);
 
-	return rs->sr_err;
+  return rs->sr_err;
 }

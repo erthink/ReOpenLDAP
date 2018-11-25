@@ -1,5 +1,5 @@
 .\" $ReOpenLDAP$
-.\" Copyright 1992-2017 ReOpenLDAP AUTHORS: please see AUTHORS file.
+.\" Copyright 1992-2018 ReOpenLDAP AUTHORS: please see AUTHORS file.
 .\" All rights reserved.
 .\"
 .\" This file is part of ReOpenLDAP.
@@ -41,7 +41,8 @@ slapo\-ppolicy \- наложение slapd политики паролей.
 пользователя выполняется от имени идентификационной сущности
 .BR rootdn ;
 на все операции, выполняемые от имени любой другой идентификационной сущности,
-могут накладываться ограничения, например, контроль доступа.
+могут накладываться ограничения, например, контроль доступа. Для этого наложения требуется,
+чтобы в целевой базе данных было настроено rootdn.
 .P
 Обратите внимание, что предложения IETF в области политики паролей для LDAP имеют смысл при работе
 с парольным атрибутом, имеющим одно значение, а атрибут userPassword позволяет хранить несколько
@@ -109,7 +110,7 @@ slapo\-ppolicy \- наложение slapd политики паролей.
         pwdLockout $ pwdLockoutDuration $
         pwdMaxFailure $ pwdFailureCountInterval $
         pwdMustChange $ pwdAllowUserChange $
-        pwdSafeModify ) )
+        pwdSafeModify $ pwdMaxRecordedFailure ) )
 .RE
 
 В данной реализации также предоставляется дополнительный объектный класс
@@ -339,6 +340,24 @@ slapo\-ppolicy \- наложение slapd политики паролей.
 .RS 4
 (  1.3.6.1.4.1.42.2.27.8.1.11
    NAME 'pwdMaxFailure'
+   EQUALITY integerMatch
+   SYNTAX 1.3.6.1.4.1.1466.115.121.1.27
+   SINGLE\-VALUE )
+.RE
+
+.B pwdMaxRecordedFailure
+.P
+Значением этого атрибута является максимальное количество неудачных попыток подсоединения, сведения
+о которых будут храниться в записи пользователя. При отсутствии атрибута
+.B pwdMaxRecordedFailure
+или когда его значением является ноль (0), в качестве значения по умолчанию будет использоваться
+значение атрибута
+.BR pwdMaxFailure .
+Если и оно равно нулю, значением по умолчанию будет 5.
+.LP
+.RS 4
+(  1.3.6.1.4.1.42.2.27.8.1.16
+   NAME 'pwdMaxRecordedFailure'
    EQUALITY integerMatch
    SYNTAX 1.3.6.1.4.1.1466.115.121.1.27
    SINGLE\-VALUE )
@@ -580,8 +599,10 @@ int
 .B pwdLockout
 политики паролей установлен в "TRUE", учётная запись может быть заблокирована (смотрите описание атрибута
 .B pwdLockout
-политики паролей). Если количество отметок времени превышает разрешённое в атрибуте
-.BR pwdMaxFailure ,
+политики паролей). Если количество отметок времени превышает разрешённое в атрибутах
+.B pwdMaxFailure
+или
+.BR pwdMaxRecordedFailure ,
 избыточные отметки могут быть удалены. При совершении успешной аутентификации от имени DN этой
 записи каталога (то есть этой учётной записи), атрибуты
 .B pwdFailureTime
@@ -711,7 +732,7 @@ ppolicy_default "cn=Standard,ou=Policies,dc=example,dc=com"
 .BR slapd\-config (5),
 .BR slapd\-chain (5).
 .LP
-"Руководство администратора OpenLDAP" (http://www.OpenLDAP.org/doc/admin/, http://pro-ldap.ru/tr/admin24/).
+"Руководство администратора OpenLDAP" (http://www.OpenLDAP.org/doc/admin/, https://pro-ldap.ru/tr/admin24/).
 .LP
 Предложения IETF по политике паролей LDAP документированы в черновом документе
 "draft-behera-ldap-password-policy-09.txt", авторы P. Behera, L. Poitou и J. Sermersheim.

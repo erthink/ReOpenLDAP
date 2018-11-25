@@ -1,0 +1,74 @@
+.\" $ReOpenLDAP$
+.\" Copyright 1992-2018 ReOpenLDAP AUTHORS: please see AUTHORS file.
+.\" All rights reserved.
+.\"
+.\" This file is part of ReOpenLDAP.
+.\"
+.\" Redistribution and use in source and binary forms, with or without
+.\" modification, are permitted only as authorized by the OpenLDAP
+.\" Public License.
+.\"
+.\" A copy of this license is available in the file LICENSE in the
+.\" top-level directory of the distribution or, alternatively, at
+.\" <http://www.OpenLDAP.org/license.html>.
+
+.TH SLAPO-PBIND 5 "@RELEASE_DATE@" "ReOpenLDAP @VERSION@"
+
+.SH НАЗВАНИЕ
+slapo\-pbind \- наложение прокси-подсоединений для slapd
+
+.SH ОБЗОР
+@SYSCONFDIR@/slapd.conf
+
+.SH ОПИСАНИЕ
+Наложение
+.BR slapd (8)
+.B pbind
+перенаправляет запросы Simple Bind, адресованные к локальной базе данных, на удалённый LDAP-сервер.
+Соединение с удалённым сервером управляется с помощью экземпляра механизма манипуляции данными ldap.
+
+.LP
+Наложение
+.B pbind
+использует подмножество директив конфигурации механизма манипуляции данными \fIldap\fP.
+Они подробно описаны в man-странице
+.BR slapd\-ldap (5).
+
+Примечание: данное наложение встроено в механизм манипуляции данными \fIldap\fP;
+оно не является отдельным модулем.
+
+.TP
+.B overlay pbind
+Эта директива добавляет наложение прокси-подсоединений к текущей базе данных механизма манипуляции
+данными. Наложение прокси-подсоединений может быть использовано с любым механизмом манипуляции
+данными, но главным образом оно предназначено для использования с механизмами, управляющими
+локальными хранилищами.
+
+.TP
+.B uri <ldapurl>
+Определяет URI LDAP-сервера, который должен использоваться.
+
+.TP
+.B tls <параметры TLS>
+Определяет использование TLS.
+
+.TP
+.B network\-timeout <время>
+Задаёт сетевой таймаут.
+
+.TP
+.B quarantine <параметры карантина>
+Включает карантин для URI, вернувших ответ
+.IR LDAP_UNAVAILABLE .
+
+.SH ФАЙЛЫ
+.TP
+@SYSCONFDIR@/slapd.conf
+конфигурационный файл slapd по умолчанию
+.SH СМОТРИТЕ ТАКЖЕ
+.BR slapd.conf (5),
+.BR slapd\-config (5),
+.BR slapd\-ldap (5),
+.BR slapd (8).
+.SH АВТОР
+Howard Chu

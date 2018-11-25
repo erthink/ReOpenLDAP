@@ -21,6 +21,7 @@ David Bender <codehero@yahoo.com>
 David M. Syzdek <syzdek@bindlebinaries.com>
 David Wilson <dw@botanicus.net>
 Devin J. Pohly <djpohly@gmail.com>
+Dmitrii Zolotov <dzolotov@herzen.spb.ru>
 Dmitry Kovalev <mit@openldap.org>
 Egor Levintsa <admin@pro-ldap.ru>
 Emily Backes <ebackes@symas.com>
@@ -39,6 +40,7 @@ HIRABAYASHI Satoshi <s_hira@nifty.com>
 Howard Chu <hyc@openldap.org>
 Hrvoje <hrvoje.habjanic@zg.t-com.hr>
 Ignacio Casal Quinteiro <ignacio.casal@nice-software.com>
+Ilya Shipitsin <chipitsine@gmail.com>
 James M Leddy <james.leddy@redhat.com>
 Jani Salonen <jani.salonen@eficode.com>
 Jan-Marek Glogowski <jan-marek.glogowski@muenchen.de>
@@ -85,6 +87,7 @@ Oskari Timperi <oskari.timperi@iki.fi>
 Paul B. Henson <henson@acm.org>
 Paul Terry <p.a.terry@gmail.com>
 Pavel Medvedev <pmedvedev@gmail.com>
+Pavel Tsaregorodtsev <ixpict@gmail.com>
 Peter Marschall <peter@adpm.de>
 Philip Guenther <guenther@sendmail.com>
 Philipp Storz <philipp.storz@bareos.com>
@@ -118,7 +121,7 @@ Tim Strobell <tim.strobell.ctr@nrl.navy.mil>
 Will Ballantyne <willb@openldap.org>
 W. Trevor King <wking@tremily.us>
 
-1998-2017 The OpenLDAP Foundation, <http://www.openldap.org/>.
+1998-2018 The OpenLDAP Foundation, <http://www.openldap.org/>.
 2015-2016 Peter-Service R&D LLC, <http://www.billing.ru/>.
 2007-2011 Suretec Systems Ltd.
 1999-2009 Symas Corporation.
@@ -129,5 +132,5 @@ W. Trevor King <wking@tremily.us>
 1997-2002 Computing Research Labs, New Mexico State University
 2002 F5 Networks, Inc.
 2002 myinternet Limited.
-1996, 1998 Internet Software Consortium.
+1996-1998 Internet Software Consortium.
 1992-1996 Regents of the University of Michigan, USA.

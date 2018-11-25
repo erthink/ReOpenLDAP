@@ -1,5 +1,5 @@
 /* $ReOpenLDAP$ */
-/* Copyright 2003-2017 ReOpenLDAP AUTHORS: please see AUTHORS file.
+/* Copyright 2003-2018 ReOpenLDAP AUTHORS: please see AUTHORS file.
  * All rights reserved.
  *
  * This file is part of ReOpenLDAP.
@@ -24,22 +24,19 @@
 
 #include "slap.h"
 
-extern OverlayInit	slap_oinfo[];
+extern OverlayInit slap_oinfo[];
 
-int
-overlay_init(void)
-{
-	int i, rc = 0;
+int overlay_init(void) {
+  int i, rc = 0;
 
-	for ( i= 0 ; slap_oinfo[i].ov_type; i++ ) {
-		rc = slap_oinfo[i].ov_init();
-		if ( rc ) {
-			Debug( LDAP_DEBUG_ANY,
-				"%s overlay setup failed, err %d\n",
-				slap_oinfo[i].ov_type, rc );
-			break;
-		}
-	}
+  for (i = 0; slap_oinfo[i].ov_type; i++) {
+    rc = slap_oinfo[i].ov_init();
+    if (rc) {
+      Debug(LDAP_DEBUG_ANY, "%s overlay setup failed, err %d\n",
+            slap_oinfo[i].ov_type, rc);
+      break;
+    }
+  }
 
-	return rc;
+  return rc;
 }

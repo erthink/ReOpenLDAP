@@ -1,5 +1,5 @@
 /* $ReOpenLDAP$ */
-/* Copyright 1992-2017 ReOpenLDAP AUTHORS: please see AUTHORS file.
+/* Copyright 1992-2018 ReOpenLDAP AUTHORS: please see AUTHORS file.
  * All rights reserved.
  *
  * This file is part of ReOpenLDAP.
@@ -25,22 +25,15 @@
 
 LDAP_BEGIN_DECL
 
-LDAP_LUTIL_F( void )
-lutil_sasl_freedefs LDAP_P((
-	void *defaults ));
+LDAP_LUTIL_F(void)
+lutil_sasl_freedefs(void *defaults);
 
-LDAP_LUTIL_F( void * )
-lutil_sasl_defaults LDAP_P((
-	LDAP *ld,
-	char *mech,
-	char *realm,
-	char *authcid,
-	char *passwd,
-	char *authzid ));
+LDAP_LUTIL_F(void *)
+lutil_sasl_defaults(LDAP *ld, char *mech, char *realm, char *authcid,
+                    char *passwd, char *authzid);
 
-LDAP_LUTIL_F( int )
-lutil_sasl_interact LDAP_P((
-	LDAP *ld, unsigned flags, void *defaults, void *p ));
+LDAP_LUTIL_F(int)
+lutil_sasl_interact(LDAP *ld, unsigned flags, void *defaults, void *p);
 
 LDAP_END_DECL
 

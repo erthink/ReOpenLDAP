@@ -1,5 +1,5 @@
 /* $ReOpenLDAP$ */
-/* Copyright 2000-2017 ReOpenLDAP AUTHORS: please see AUTHORS file.
+/* Copyright 2000-2018 ReOpenLDAP AUTHORS: please see AUTHORS file.
  * All rights reserved.
  *
  * This file is part of ReOpenLDAP.
@@ -24,10 +24,7 @@
 /*
  * Retrieves a builtin map
  */
-LDAP_REWRITE_F (struct rewrite_builtin_map *)
-rewrite_builtin_map_find(
-                struct rewrite_info *info,
-                const char *name
-);
+LDAP_REWRITE_F(struct rewrite_builtin_map *)
+rewrite_builtin_map_find(struct rewrite_info *info, const char *name);
 
 #endif /* MAP_H */

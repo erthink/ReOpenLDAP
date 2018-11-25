@@ -1,5 +1,5 @@
 /* $ReOpenLDAP$ */
-/* Copyright 1992-2017 ReOpenLDAP AUTHORS: please see AUTHORS file.
+/* Copyright 1992-2018 ReOpenLDAP AUTHORS: please see AUTHORS file.
  * All rights reserved.
  *
  * This file is part of ReOpenLDAP.
@@ -16,7 +16,7 @@
 #ifndef _AC_STDLIB_H
 #define _AC_STDLIB_H
 
-#if defined( HAVE_CSRIMALLOC )
+#if defined(HAVE_CSRIMALLOC)
 #include <stdio.h>
 #define MALLOC_TRACE
 #include <libmalloc.h>
@@ -26,12 +26,12 @@
 
 /* Ignore malloc.h if we have STDC_HEADERS */
 #if defined(HAVE_MALLOC_H) && !defined(STDC_HEADERS)
-#	include <malloc.h>
+#include <malloc.h>
 #endif
 
 #ifndef EXIT_SUCCESS
-#	define EXIT_SUCCESS 0
-#	define EXIT_FAILURE 1
+#define EXIT_SUCCESS 0
+#define EXIT_FAILURE 1
 #endif
 
 #ifdef HAVE_LIMITS_H
@@ -39,9 +39,9 @@
 #endif
 
 #if defined(LINE_MAX)
-#	define AC_LINE_MAX LINE_MAX
+#define AC_LINE_MAX LINE_MAX
 #else
-#	define AC_LINE_MAX 2048 /* POSIX MIN */
+#define AC_LINE_MAX 2048 /* POSIX MIN */
 #endif
 
 #endif /* _AC_STDLIB_H */

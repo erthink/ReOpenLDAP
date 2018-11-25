@@ -1,5 +1,5 @@
 /* $ReOpenLDAP$ */
-/* Copyright 1990-2017 ReOpenLDAP AUTHORS: please see AUTHORS file.
+/* Copyright 1990-2018 ReOpenLDAP AUTHORS: please see AUTHORS file.
  * All rights reserved.
  *
  * This file is part of ReOpenLDAP.
@@ -45,44 +45,43 @@
  * version of vsnprintf there.
  */
 #include <ac/signal.h>
-int ber_pvt_vsnprintf( char *str, size_t n, const char *fmt, va_list ap )
-{
-	int fds[2], res;
-	FILE *f;
-	RETSIGTYPE (*sig)();
+int ber_pvt_vsnprintf(char *str, size_t n, const char *fmt, va_list ap) {
+  int fds[2], res;
+  FILE *f;
+  RETSIGTYPE (*sig)();
 
-	if (pipe( fds )) return -1;
+  if (pipe(fds))
+    return -1;
 
-	f = fdopen( fds[1], "w" );
-	if ( !f ) {
-		close( fds[1] );
-		close( fds[0] );
-		return -1;
-	}
-	setvbuf( f, str, _IOFBF, n );
-	sig = signal( SIGPIPE, SIG_IGN );
-	close( fds[0] );
+  f = fdopen(fds[1], "w");
+  if (!f) {
+    close(fds[1]);
+    close(fds[0]);
+    return -1;
+  }
+  setvbuf(f, str, _IOFBF, n);
+  sig = signal(SIGPIPE, SIG_IGN);
+  close(fds[0]);
 
-	res = vfprintf( f, fmt, ap );
+  res = vfprintf(f, fmt, ap);
 
-	fclose( f );
-	signal( SIGPIPE, sig );
-	if ( res > 0 && res < n ) {
-		res = vsprintf( str, fmt, ap );
-	}
-	return res;
+  fclose(f);
+  signal(SIGPIPE, sig);
+  if (res > 0 && res < n) {
+    res = vsprintf(str, fmt, ap);
+  }
+  return res;
 }
 #endif /* !HAVE_VSNPRINTF */
 
 #ifndef HAVE_SNPRINTF
-int ber_pvt_snprintf( char *str, size_t n, const char *fmt, ... )
-{
-	va_list ap;
-	int res;
+int ber_pvt_snprintf(char *str, size_t n, const char *fmt, ...) {
+  va_list ap;
+  int res;
 
-	va_start( ap, fmt );
-	res = vsnprintf( str, n, fmt, ap );
-	va_end( ap );
-	return res;
+  va_start(ap, fmt);
+  res = vsnprintf(str, n, fmt, ap);
+  va_end(ap);
+  return res;
 }
 #endif /* !HAVE_SNPRINTF */

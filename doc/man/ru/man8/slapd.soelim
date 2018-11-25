@@ -1,5 +1,5 @@
 .\" $ReOpenLDAP$
-.\" Copyright 1992-2017 ReOpenLDAP AUTHORS: please see AUTHORS file.
+.\" Copyright 1992-2018 ReOpenLDAP AUTHORS: please see AUTHORS file.
 .\" All rights reserved.
 .\"
 .\" This file is part of ReOpenLDAP.
@@ -214,7 +214,7 @@ LDAP, LDAPS или LDAPI, поддержка последних двух схе�
 закодирован в формате URL, как и все остальные символы,
 являющиеся специальными для URL; таким образом, сокет
 
-        /usr/local/var/ldapi
+        @LOCALSTATEDIR@/ldapi
 
 должен быть указан как
 
@@ -373,7 +373,7 @@ slapd регистрируется на SLP DA с тремя атрибутам�
 .BR slapschema (8),
 .BR slaptest (8).
 .LP
-"Руководство администратора OpenLDAP" (http://www.OpenLDAP.org/doc/admin/, http://pro-ldap.ru/tr/admin24/).
+"Руководство администратора OpenLDAP" (http://www.OpenLDAP.org/doc/admin/, https://pro-ldap.ru/tr/admin24/).
 .SH "ИЗВЕСТНЫЕ ОШИБКИ"
 Смотрите http://www.openldap.org/its/ .
 .SH "ПРИЗНАНИЕ ЗАСЛУГ"

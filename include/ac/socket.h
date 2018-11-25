@@ -1,5 +1,5 @@
 /* $ReOpenLDAP$ */
-/* Copyright 1992-2017 ReOpenLDAP AUTHORS: please see AUTHORS file.
+/* Copyright 1992-2018 ReOpenLDAP AUTHORS: please see AUTHORS file.
  * All rights reserved.
  *
  * This file is part of ReOpenLDAP.
@@ -64,26 +64,26 @@
 #endif /* HAVE_PCNFS */
 
 #ifndef INADDR_LOOPBACK
-#define INADDR_LOOPBACK	(0x7f000001UL)
+#define INADDR_LOOPBACK (0x7f000001UL)
 #endif
 
 #ifndef MAXHOSTNAMELEN
-#define MAXHOSTNAMELEN  64
+#define MAXHOSTNAMELEN 64
 #endif
 
-#undef	sock_errno
-#undef	sock_errstr
-#define sock_errno()	errno
-#define sock_errstr(e)	STRERROR(e)
-#define sock_errset(e)	((void) (errno = (e)))
+#undef sock_errno
+#undef sock_errstr
+#define sock_errno() errno
+#define sock_errstr(e) STRERROR(e)
+#define sock_errset(e) ((void)(errno = (e)))
 
-#define tcp_read( s, buf, len)	read( s, buf, len )
-#define tcp_write( s, buf, len)	write( s, buf, len )
+#define tcp_read(s, buf, len) read(s, buf, len)
+#define tcp_write(s, buf, len) write(s, buf, len)
 
 #ifdef SHUT_RDWR
-#	define tcp_close( s )	(shutdown( s, SHUT_RDWR ), close( s ))
+#define tcp_close(s) (shutdown(s, SHUT_RDWR), close(s))
 #else
-#	define tcp_close( s )	close( s )
+#define tcp_close(s) close(s)
 #endif
 
 #ifdef HAVE_PIPE
@@ -91,93 +91,92 @@
  * Only use pipe() on systems where file and socket descriptors
  * are interchangable
  */
-#	define USE_PIPE HAVE_PIPE
+#define USE_PIPE HAVE_PIPE
 #endif
 
 #ifndef ioctl_t
-#	define ioctl_t				int
+#define ioctl_t int
 #endif
 
 #ifndef AC_SOCKET_INVALID
-#	define AC_SOCKET_INVALID	(-1)
+#define AC_SOCKET_INVALID (-1)
 #endif
 #ifndef AC_SOCKET_ERROR
-#	define AC_SOCKET_ERROR		(-1)
+#define AC_SOCKET_ERROR (-1)
 #endif
 
-#if !defined( HAVE_INET_ATON ) && !defined( inet_aton )
-#	define inet_aton ldap_pvt_inet_aton
+#if !defined(HAVE_INET_ATON) && !defined(inet_aton)
+#define inet_aton ldap_pvt_inet_aton
 struct in_addr;
-LDAP_F (int) ldap_pvt_inet_aton LDAP_P(( const char *, struct in_addr * ));
+LDAP_F(int) ldap_pvt_inet_aton(const char *, struct in_addr *);
 #endif
 
-#define AC_HTONL( l ) htonl( l )
-#define AC_NTOHL( l ) ntohl( l )
+#define AC_HTONL(l) htonl(l)
+#define AC_NTOHL(l) ntohl(l)
 
 /* htons()/ntohs() may be broken much like htonl()/ntohl() */
-#define AC_HTONS( s ) htons( s )
-#define AC_NTOHS( s ) ntohs( s )
+#define AC_HTONS(s) htons(s)
+#define AC_NTOHS(s) ntohs(s)
 
 #ifdef LDAP_PF_LOCAL
-#  if !defined( AF_LOCAL ) && defined( AF_UNIX )
-#    define AF_LOCAL	AF_UNIX
-#  endif
-#  if !defined( PF_LOCAL ) && defined( PF_UNIX )
-#    define PF_LOCAL	PF_UNIX
-#  endif
+#if !defined(AF_LOCAL) && defined(AF_UNIX)
+#define AF_LOCAL AF_UNIX
+#endif
+#if !defined(PF_LOCAL) && defined(PF_UNIX)
+#define PF_LOCAL PF_UNIX
+#endif
 #endif
 
 #ifndef INET_ADDRSTRLEN
-#	define INET_ADDRSTRLEN 16
+#define INET_ADDRSTRLEN 16
 #endif
 #ifndef INET6_ADDRSTRLEN
-#	define INET6_ADDRSTRLEN 46
+#define INET6_ADDRSTRLEN 46
 #endif
 
-#if defined( HAVE_GETADDRINFO ) || defined( HAVE_GETNAMEINFO )
-#	ifdef HAVE_GAI_STRERROR
-#		define AC_GAI_STRERROR(x)	(gai_strerror((x)))
-#	else
-#		define AC_GAI_STRERROR(x)	(ldap_pvt_gai_strerror((x)))
-		LDAP_F (char *) ldap_pvt_gai_strerror( int );
-#	endif
+#if defined(HAVE_GETADDRINFO) || defined(HAVE_GETNAMEINFO)
+#ifdef HAVE_GAI_STRERROR
+#define AC_GAI_STRERROR(x) (gai_strerror((x)))
+#else
+#define AC_GAI_STRERROR(x) (ldap_pvt_gai_strerror((x)))
+LDAP_F(char *) ldap_pvt_gai_strerror(int);
+#endif
 #endif
 
-#if defined(LDAP_PF_LOCAL) && \
-	!defined(HAVE_GETPEEREID) && \
-	!defined(HAVE_GETPEERUCRED) && \
-	!defined(SO_PEERCRED) && !defined(LOCAL_PEERCRED) && \
-	defined(HAVE_SENDMSG) && (defined(HAVE_STRUCT_MSGHDR_MSG_ACCRIGHTSLEN) || \
-	defined(HAVE_STRUCT_MSGHDR_MSG_CONTROL))
-#	define LDAP_PF_LOCAL_SENDMSG 1
+#if defined(LDAP_PF_LOCAL) && !defined(HAVE_GETPEEREID) &&                     \
+    !defined(HAVE_GETPEERUCRED) && !defined(SO_PEERCRED) &&                    \
+    !defined(LOCAL_PEERCRED) && defined(HAVE_SENDMSG) &&                       \
+    (defined(HAVE_STRUCT_MSGHDR_MSG_ACCRIGHTSLEN) ||                           \
+     defined(HAVE_STRUCT_MSGHDR_MSG_CONTROL))
+#define LDAP_PF_LOCAL_SENDMSG 1
 #endif
 
 #ifdef HAVE_GETPEEREID
-#define	LUTIL_GETPEEREID( s, uid, gid, bv )	getpeereid( s, uid, gid )
+#define LUTIL_GETPEEREID(s, uid, gid, bv) getpeereid(s, uid, gid)
 #elif defined(LDAP_PF_LOCAL_SENDMSG)
 struct berval;
-LDAP_LUTIL_F( int ) lutil_getpeereid( int s, uid_t *, gid_t *, struct berval *bv );
-#define	LUTIL_GETPEEREID( s, uid, gid, bv )	lutil_getpeereid( s, uid, gid, bv )
+LDAP_LUTIL_F(int) lutil_getpeereid(int s, uid_t *, gid_t *, struct berval *bv);
+#define LUTIL_GETPEEREID(s, uid, gid, bv) lutil_getpeereid(s, uid, gid, bv)
 #else
-LDAP_LUTIL_F( int ) lutil_getpeereid( int s, uid_t *, gid_t * );
-#define	LUTIL_GETPEEREID( s, uid, gid, bv )	lutil_getpeereid( s, uid, gid )
+LDAP_LUTIL_F(int) lutil_getpeereid(int s, uid_t *, gid_t *);
+#define LUTIL_GETPEEREID(s, uid, gid, bv) lutil_getpeereid(s, uid, gid)
 #endif
 
 /* DNS RFC defines max host name as 255. New systems seem to use 1024 */
 #ifndef NI_MAXHOST
-#define	NI_MAXHOST	256
+#define NI_MAXHOST 256
 #endif
 
 #ifdef HAVE_POLL
-# ifndef INFTIM
-#  define INFTIM (-1)
-# endif
+#ifndef INFTIM
+#define INFTIM (-1)
+#endif
 #undef POLL_OTHER
-#define POLL_OTHER   (POLLERR|POLLHUP)
+#define POLL_OTHER (POLLERR | POLLHUP)
 #undef POLL_READ
-#define POLL_READ    (POLLIN|POLLPRI|POLL_OTHER)
+#define POLL_READ (POLLIN | POLLPRI | POLL_OTHER)
 #undef POLL_WRITE
-#define POLL_WRITE   (POLLOUT|POLL_OTHER)
+#define POLL_WRITE (POLLOUT | POLL_OTHER)
 #endif
 
 #endif /* _AC_SOCKET_H_ */

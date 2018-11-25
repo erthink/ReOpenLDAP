@@ -1,5 +1,5 @@
 /* $ReOpenLDAP$ */
-/* Copyright 1990-2017 ReOpenLDAP AUTHORS: please see AUTHORS file.
+/* Copyright 1990-2018 ReOpenLDAP AUTHORS: please see AUTHORS file.
  * All rights reserved.
  *
  * This file is part of ReOpenLDAP.
@@ -32,101 +32,93 @@
 #include "ldap_dirs.h"
 #include "ldif.h"
 
-FILE *
-ldif_open_url(
-	LDAP_CONST char *urlstr )
-{
-	FILE *url;
+FILE *ldif_open_url(const char *urlstr) {
+  FILE *url;
 
-	if( strncasecmp( "file:", urlstr, sizeof("file:")-1 ) == 0 ) {
-		char *p;
-		urlstr += sizeof("file:")-1;
+  if (strncasecmp("file:", urlstr, sizeof("file:") - 1) == 0) {
+    char *p;
+    urlstr += sizeof("file:") - 1;
 
-		/* we don't check for LDAP_DIRSEP since URLs should contain '/' */
-		if ( urlstr[0] == '/' && urlstr[1] == '/' ) {
-			urlstr += 2;
-			/* path must be absolute if authority is present
-			 * technically, file://hostname/path is also legal but we don't
-			 * accept a non-empty hostname
-			 */
-			if ( urlstr[0] != '/' ) {
-				return NULL;
-			}
-		}
+    /* we don't check for LDAP_DIRSEP since URLs should contain '/' */
+    if (urlstr[0] == '/' && urlstr[1] == '/') {
+      urlstr += 2;
+      /* path must be absolute if authority is present
+       * technically, file://hostname/path is also legal but we don't
+       * accept a non-empty hostname
+       */
+      if (urlstr[0] != '/') {
+        return NULL;
+      }
+    }
 
-		p = ber_strdup( urlstr );
+    p = ber_strdup(urlstr);
 
-		/* But we should convert to LDAP_DIRSEP before use */
-		if ( LDAP_DIRSEP[0] != '/' ) {
-			char *s = p;
-			while (( s = strchr( s, '/' )))
-				*s++ = LDAP_DIRSEP[0];
-		}
+    /* But we should convert to LDAP_DIRSEP before use */
+    if (LDAP_DIRSEP[0] != '/') {
+      char *s = p;
+      while ((s = strchr(s, '/')))
+        *s++ = LDAP_DIRSEP[0];
+    }
 
-		ldap_pvt_hex_unescape( p );
+    ldap_pvt_hex_unescape(p);
 
-		url = fopen( p, "rb" );
+    url = fopen(p, "rb");
 
-		ber_memfree( p );
-	} else {
+    ber_memfree(p);
+  } else {
 #ifdef HAVE_FETCH
-		url = fetchGetURL( (char*) urlstr, "" );
+    url = fetchGetURL((char *)urlstr, "");
 #else
-		url = NULL;
+    url = NULL;
 #endif
-	}
-	return url;
+  }
+  return url;
 }
 
-int
-ldif_fetch_url(
-    LDAP_CONST char	*urlstr,
-    char	**valuep,
-    ber_len_t *vlenp )
-{
-	FILE *url;
-	char buffer[1024];
-	char *p = NULL;
-	size_t total;
-	size_t bytes;
+int ldif_fetch_url(const char *urlstr, char **valuep, ber_len_t *vlenp) {
+  FILE *url;
+  char buffer[1024];
+  char *p = NULL;
+  size_t total;
+  size_t bytes;
 
-	*valuep = NULL;
-	*vlenp = 0;
+  *valuep = NULL;
+  *vlenp = 0;
 
-	url = ldif_open_url( urlstr );
+  url = ldif_open_url(urlstr);
 
-	if( url == NULL ) {
-		return -1;
-	}
+  if (url == NULL) {
+    return -1;
+  }
 
-	total = 0;
+  total = 0;
 
-	while( (bytes = fread( buffer, 1, sizeof(buffer), url )) != 0 ) {
-		char *newp = ber_memrealloc( p, total + bytes + 1 );
-		if( newp == NULL ) {
-			ber_memfree( p );
-			fclose( url );
-			return -1;
-		}
-		p = newp;
-		memcpy( &p[total], buffer, bytes );
-		total += bytes;
-	}
+  while ((bytes = fread(buffer, 1, sizeof(buffer), url)) != 0) {
+    char *newp = ber_memrealloc(p, total + bytes + 1);
+    if (newp == NULL) {
+      ber_memfree(p);
+      fclose(url);
+      return -1;
+    }
+    p = newp;
+    memcpy(&p[total], buffer, bytes);
+    total += bytes;
+  }
 
-	fclose( url );
+  fclose(url);
 
-	if( total == 0 ) {
-		char *newp = ber_memrealloc( p, 1 );
-		if( newp == NULL ) {
-			ber_memfree( p );
-			return -1;
-		}
-		p = newp;
-	}
+  if (total == 0) {
+    char *newp = ber_memrealloc(p, 1);
+    if (newp == NULL) {
+      ber_memfree(p);
+      return -1;
+    }
+    p = newp;
+  }
 
-	p[total] = '\0';
-	*valuep = p;
-	*vlenp = total;
+  p[total] = '\0';
+  *valuep = p;
+  *vlenp = total;
 
-	return 0;
+  return 0;
 }

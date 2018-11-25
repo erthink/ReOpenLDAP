@@ -1,5 +1,5 @@
 /* $ReOpenLDAP$ */
-/* Copyright 1990-2017 ReOpenLDAP AUTHORS: please see AUTHORS file.
+/* Copyright 1990-2018 ReOpenLDAP AUTHORS: please see AUTHORS file.
  * All rights reserved.
  *
  * This file is part of ReOpenLDAP.
@@ -26,7 +26,7 @@
 #include "slap.h"
 
 #ifndef LDAP_COMP_MATCH
-#	error LDAP_COMP_MATCH is required for component-matching
+#error LDAP_COMP_MATCH is required for component-matching
 #endif
 
 typedef enum { ASN_BASIC, ASN_COMPOSITE } AsnType;
@@ -49,30 +49,30 @@ typedef enum { ASN_BASIC, ASN_COMPOSITE } AsnType;
  * b4 : if the 4th bit is clear, DecxxxContent is called
  * b4 : if the 4th bit is set, Decxxx is called, then it is cleared.
  */
-#define DEC_ALLOC_MODE_0        0x01
-#define DEC_ALLOC_MODE_1        0x02
-#define DEC_ALLOC_MODE_2        0x04
-#define CALL_TAG_DECODER        0x08
-#define CALL_CONTENT_DECODER    ~0x08
+#define DEC_ALLOC_MODE_0 0x01
+#define DEC_ALLOC_MODE_1 0x02
+#define DEC_ALLOC_MODE_2 0x04
+#define CALL_TAG_DECODER 0x08
+#define CALL_CONTENT_DECODER ~0x08
 /*
  * For Attribute Aliasing
  */
 #define MAX_ALIASING_ENTRY 128
 typedef struct comp_attribute_aliasing {
-	AttributeDescription*	aa_aliasing_ad;
-	AttributeDescription*	aa_aliased_ad;
-	ComponentFilter*	aa_cf;
-	MatchingRule*		aa_mr;
-	char*			aa_cf_str;
+  AttributeDescription *aa_aliasing_ad;
+  AttributeDescription *aa_aliased_ad;
+  ComponentFilter *aa_cf;
+  MatchingRule *aa_mr;
+  char *aa_cf_str;
 } AttributeAliasing;
 
 typedef struct comp_matchingrule_aliasing {
-	MatchingRule*	mra_aliasing_attr;
-	MatchingRule*	mra_aliased_attr;
-	AttributeDescription*	mra_attr;
-	ComponentFilter*	mra_cf;
-	MatchingRule*		mra_mr;
-	char*			mra_cf_str;
+  MatchingRule *mra_aliasing_attr;
+  MatchingRule *mra_aliased_attr;
+  AttributeDescription *mra_attr;
+  ComponentFilter *mra_cf;
+  MatchingRule *mra_mr;
+  char *mra_cf_str;
 } MatchingRuleAliasing;
 
 #endif

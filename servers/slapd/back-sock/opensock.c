@@ -1,5 +1,5 @@
 /* $ReOpenLDAP$ */
-/* Copyright 2007-2017 ReOpenLDAP AUTHORS: please see AUTHORS file.
+/* Copyright 2007-2018 ReOpenLDAP AUTHORS: please see AUTHORS file.
  * All rights reserved.
  *
  * This file is part of ReOpenLDAP.
@@ -36,36 +36,32 @@
  * if a hard limit reached
  */
 
-FILE *
-opensock(
-    const char	*sockpath
-)
-{
-	int	fd;
-	FILE	*fp;
-	struct sockaddr_un sockun;
+FILE *opensock(const char *sockpath) {
+  int fd;
+  FILE *fp;
+  struct sockaddr_un sockun;
 
-	fd = socket(PF_UNIX, SOCK_STREAM, 0);
-	if ( fd < 0 ) {
-		Debug( LDAP_DEBUG_ANY, "socket create failed\n" );
-		return( NULL );
-	}
+  fd = socket(PF_UNIX, SOCK_STREAM, 0);
+  if (fd < 0) {
+    Debug(LDAP_DEBUG_ANY, "socket create failed\n");
+    return (NULL);
+  }
 
-	sockun.sun_family = AF_UNIX;
-	sprintf(sockun.sun_path, "%.*s", (int)(sizeof(sockun.sun_path)-1),
-		sockpath);
-	if ( connect( fd, (struct sockaddr *)&sockun, sizeof(sockun) ) < 0 ) {
-		Debug( LDAP_DEBUG_ANY, "socket connect(%s) failed\n",
-			sockpath ? sockpath : "<null>" );
-		close( fd );
-		return( NULL );
-	}
+  sockun.sun_family = AF_UNIX;
+  sprintf(sockun.sun_path, "%.*s", (int)(sizeof(sockun.sun_path) - 1),
+          sockpath);
+  if (connect(fd, (struct sockaddr *)&sockun, sizeof(sockun)) < 0) {
+    Debug(LDAP_DEBUG_ANY, "socket connect(%s) failed\n",
+          sockpath ? sockpath : "<null>");
+    close(fd);
+    return (NULL);
+  }
 
-	if ( ( fp = fdopen( fd, "r+" ) ) == NULL ) {
-		Debug( LDAP_DEBUG_ANY, "fdopen failed\n" );
-		close( fd );
-		return( NULL );
-	}
+  if ((fp = fdopen(fd, "r+")) == NULL) {
+    Debug(LDAP_DEBUG_ANY, "fdopen failed\n");
+    close(fd);
+    return (NULL);
+  }
 
-	return( fp );
+  return (fp);
 }

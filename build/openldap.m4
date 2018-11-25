@@ -1,6 +1,6 @@
 dnl OpenLDAP Autoconf Macros
 dnl $ReOpenLDAP$
-dnl Copyright 1998-2017 ReOpenLDAP AUTHORS: please see AUTHORS file.
+dnl Copyright 1998-2018 ReOpenLDAP AUTHORS: please see AUTHORS file.
 dnl All rights reserved.
 dnl
 dnl This file is part of ReOpenLDAP.
@@ -534,7 +534,7 @@ if test $ac_cv_header_db_h = yes; then
 fi
 ])
 dnl --------------------------------------------------------------------
-dnl Check for version compatility with back-bdb
+dnl Check for version compatibility with back-bdb
 AC_DEFUN([OL_BDB_COMPAT],
 [AC_CACHE_CHECK([if Berkeley DB version supported by BDB/HDB backends], [ol_cv_bdb_compat],[
 	AC_EGREP_CPP(__db_version_compat,[
@@ -548,10 +548,10 @@ AC_DEFUN([OL_BDB_COMPAT],
 #	define DB_VERSION_MINOR 0
 #endif
 #ifndef DB_VERSION_PATCH
-#      define DB_VERSION_PATCH 0
+#	define DB_VERSION_PATCH 0
 #endif
 
-#define DB_VERSION_FULL        ((DB_VERSION_MAJOR<<16)|(DB_VERSION_MINOR<<8)|DB_VERSION_PATCH)
+#define DB_VERSION_FULL	((DB_VERSION_MAJOR<<16)|(DB_VERSION_MINOR<<8)|DB_VERSION_PATCH)
 
 /* require 4.4 or later, but less than 6.0.20 */
 #if DB_VERSION_FULL >= 0x040400 && DB_VERSION_FULL < 0x060014
@@ -719,7 +719,7 @@ dnl Check GNU Pth pthread Header
 dnl
 dnl defines ol_cv_header linux_threads to 'yes' or 'no'
 dnl		'no' implies pthreads.h is not LinuxThreads or pthreads.h
-dnl		doesn't exists.  Existance of pthread.h should separately
+dnl		doesn't exist.  Existence of pthread.h should separately
 dnl		checked.
 dnl
 AC_DEFUN([OL_HEADER_GNU_PTH_PTHREAD_H], [
@@ -740,7 +740,7 @@ dnl Check LinuxThreads Header
 dnl
 dnl defines ol_cv_header linux_threads to 'yes' or 'no'
 dnl		'no' implies pthreads.h is not LinuxThreads or pthreads.h
-dnl		doesn't exists.  Existance of pthread.h should separately
+dnl		doesn't exist.  Existence of pthread.h should separately
 dnl		checked.
 dnl
 AC_DEFUN([OL_HEADER_LINUX_THREADS], [
@@ -1097,7 +1097,7 @@ AC_DEFUN([OL_FUNC_GETHOSTBYADDR_R_NARGS],
 ])dnl
 dnl
 dnl --------------------------------------------------------------------
-dnl Check for Cyrus SASL version compatility
+dnl Check for Cyrus SASL version compatibility
 AC_DEFUN([OL_SASL_COMPAT],
 [AC_CACHE_CHECK([Cyrus SASL library version], [ol_cv_sasl_compat],[
 	AC_EGREP_CPP(__sasl_compat,[

@@ -1,5 +1,5 @@
 /* $ReOpenLDAP$ */
-/* Copyright 1999-2017 ReOpenLDAP AUTHORS: please see AUTHORS file.
+/* Copyright 1999-2018 ReOpenLDAP AUTHORS: please see AUTHORS file.
  * All rights reserved.
  *
  * This file is part of ReOpenLDAP.
@@ -24,29 +24,29 @@
 
 LDAP_BEGIN_DECL
 
-extern BI_init			meta_back_initialize;
+extern BI_init meta_back_initialize;
 
-extern BI_open			meta_back_open;
-extern BI_close			meta_back_close;
-extern BI_destroy		meta_back_destroy;
+extern BI_open meta_back_open;
+extern BI_close meta_back_close;
+extern BI_destroy meta_back_destroy;
 
-extern BI_db_init		meta_back_db_init;
-extern BI_db_open		meta_back_db_open;
-extern BI_db_destroy		meta_back_db_destroy;
-extern BI_db_config		meta_back_db_config;
+extern BI_db_init meta_back_db_init;
+extern BI_db_open meta_back_db_open;
+extern BI_db_destroy meta_back_db_destroy;
+extern BI_db_config meta_back_db_config;
 
-extern BI_op_bind		meta_back_bind;
-extern BI_op_search		meta_back_search;
-extern BI_op_compare		meta_back_compare;
-extern BI_op_modify		meta_back_modify;
-extern BI_op_modrdn		meta_back_modrdn;
-extern BI_op_add		meta_back_add;
-extern BI_op_delete		meta_back_delete;
-extern BI_op_abandon		meta_back_abandon;
+extern BI_op_bind meta_back_bind;
+extern BI_op_search meta_back_search;
+extern BI_op_compare meta_back_compare;
+extern BI_op_modify meta_back_modify;
+extern BI_op_modrdn meta_back_modrdn;
+extern BI_op_add meta_back_add;
+extern BI_op_delete meta_back_delete;
+extern BI_op_abandon meta_back_abandon;
 
-extern BI_connection_destroy	meta_back_conn_destroy;
+extern BI_connection_destroy meta_back_conn_destroy;
 
-int meta_back_init_cf( BackendInfo *bi );
+int meta_back_init_cf(BackendInfo *bi);
 
 LDAP_END_DECL
 

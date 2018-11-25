@@ -1,6 +1,6 @@
 #! /bin/bash
 ## $ReOpenLDAP$
-## Copyright 2016-2017 ReOpenLDAP AUTHORS: please see AUTHORS file.
+## Copyright 2016-2018 ReOpenLDAP AUTHORS: please see AUTHORS file.
 ## All rights reserved.
 ##
 ## This file is part of ReOpenLDAP.
@@ -19,8 +19,8 @@ failure() {
 }
 
 PACKAGE=ReOpenLDAP
-PACKAGE_URL="https://github.com/ReOpen/ReOpenLDAP/wiki"
-PACKAGE_BUGREPORT="https://github.com/ReOpen/ReOpenLDAP/issues"
+PACKAGE_URL="https://github.com/leo-yuriev/ReOpenLDAP/wiki"
+PACKAGE_BUGREPORT="https://github.com/leo-yuriev/ReOpenLDAP/issues"
 
 RELEASE_TYPE=Devel
 
@@ -28,9 +28,9 @@ VERSION_MAJOR=1
 VERSION_MINOR=2
 VERSION_PATCH_LEVEL=0
 
-API_CURRENT=12
-API_REVISON=7
-API_AGE=10
+API_CURRENT=14
+API_REVISON=2
+API_AGE=1
 
 VERSION="${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH_LEVEL}"
 VERSION_NUMBER=$(expr ${VERSION_MAJOR} '*' 10000 + ${VERSION_MINOR} '*' 100 + ${VERSION_PATCH_LEVEL})
@@ -49,7 +49,12 @@ PACKAGE_TARNAME=$(tr [:upper:] [:lower:] <<< "${PACKAGE}")
 API_LIB_RELEASE="${VERSION_MAJOR}.${VERSION_MINOR}"
 API_LIB_VERSION="${API_CURRENT}:${API_REVISON}:${API_AGE}"
 
-WHOWHERE="$(whoami || echo $USER)@$(uname -n):$(pwd)"
+# Reproducible builds set SOURCE_DATE_EPOCH, want constant strings
+if [ -n "${SOURCE_DATE_EPOCH}" ]; then
+	WHOWHERE="reopenldap.${SOURCE_DATE_EPOCH}@SOURCE_DATE_EPOCH"
+else
+	WHOWHERE="$(whoami || echo $USER)@$(uname -n):$(pwd)"
+fi
 
 #######################################################################
 

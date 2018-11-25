@@ -1,6 +1,6 @@
 #!/bin/bash
 ## $ReOpenLDAP$
-## Copyright 1998-2017 ReOpenLDAP AUTHORS: please see AUTHORS file.
+## Copyright 1998-2018 ReOpenLDAP AUTHORS: please see AUTHORS file.
 ## All rights reserved.
 ##
 ## This file is part of ReOpenLDAP.
@@ -169,6 +169,12 @@ olcDatabase: {0}config
 olcRootPW:< file://$CONFIGPWF
 
 EOF
+RC=$?
+if test $RC != 0 ; then
+	echo "slapadd(1) failed ($RC)!"
+	killservers
+	exit $RC
+fi
 	ID=`expr $ID + 1`
 done
 
@@ -185,6 +191,12 @@ olcDatabase: {0}config
 olcRootPW:< file://$CONFIGPWF
 
 EOF
+RC=$?
+if test $RC != 0 ; then
+	echo "slapadd(2) failed ($RC)!"
+	killservers
+	exit $RC
+fi
 done
 
 echo "Starting central-master slapd on TCP/IP port $PORT1..."
@@ -884,12 +896,12 @@ if test $RC != 0 ; then
 	exit $RC
 fi
 
-# Test for ITS#6716, modify on central-master to ensure that the CSN
-# order is "sid2 < sid3 < sid1".  When site1-master starts it is likely
-# to sync with central-master before it syncs with site1-master. When
-# central-master syncs with site1-master they will share the sid1 and
-# sid3 CSNs, the additonal sid2 CSN hold by site1-master will be the
-# oldest. Central-master will not receive the changes made on site1
+# Test for ITS#6716, modify on central master to ensure that the CSN
+# order is "sid2 < sid3 < sid1".  When site1 master starts it is likely
+# to sync with central master before it syncs with site1 master. When
+# central master syncs with site1 master they will share the sid1 and
+# sid3 CSNs, the additional sid2 CSN hold by site1 master will be the
+# oldest. Central master will not receive the changes made on site1
 # master unless it completely ignores the CSNs presented by central
 # master.
 echo "Using ldapmodify to modify central-master..."
@@ -978,7 +990,7 @@ if test $RC != 0 ; then
 	exit $RC
 fi
 
-# Test done, now some more intialization...
+# Test done, now some more initialization...
 
 echo "Adding syncrepl consumer on central-search..."
 $LDAPMODIFY -D cn=config -H $URI4 -y $CONFIGPWF <<EOF >> $TESTOUT 2>&1

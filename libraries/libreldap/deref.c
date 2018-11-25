@@ -1,5 +1,5 @@
 /* $ReOpenLDAP$ */
-/* Copyright 1990-2017 ReOpenLDAP AUTHORS: please see AUTHORS file.
+/* Copyright 1990-2018 ReOpenLDAP AUTHORS: please see AUTHORS file.
  * All rights reserved.
  *
  * This file is part of ReOpenLDAP.
@@ -26,255 +26,231 @@
 
 #include "ldap-int.h"
 
-int
-ldap_create_deref_control_value(
-	LDAP		*ld,
-	LDAPDerefSpec	*ds,
-	struct berval	*value )
-{
-	BerElement	*ber = NULL;
-	ber_tag_t	tag;
-	int		i;
+int ldap_create_deref_control_value(LDAP *ld, LDAPDerefSpec *ds,
+                                    struct berval *value) {
+  BerElement *ber = NULL;
+  ber_tag_t tag;
+  int i;
 
-	if ( ld == NULL || value == NULL || ds == NULL )
-	{
-		if ( ld )
-			ld->ld_errno = LDAP_PARAM_ERROR;
-		return LDAP_PARAM_ERROR;
-	}
+  if (ld == NULL || value == NULL || ds == NULL) {
+    if (ld)
+      ld->ld_errno = LDAP_PARAM_ERROR;
+    return LDAP_PARAM_ERROR;
+  }
 
-	assert( LDAP_VALID( ld ) );
+  assert(LDAP_VALID(ld));
 
-	value->bv_val = NULL;
-	value->bv_len = 0;
-	ld->ld_errno = LDAP_SUCCESS;
+  value->bv_val = NULL;
+  value->bv_len = 0;
+  ld->ld_errno = LDAP_SUCCESS;
 
-	ber = ldap_alloc_ber_with_options( ld );
-	if ( ber == NULL ) {
-		ld->ld_errno = LDAP_NO_MEMORY;
-		return ld->ld_errno;
-	}
+  ber = ldap_alloc_ber_with_options(ld);
+  if (ber == NULL) {
+    ld->ld_errno = LDAP_NO_MEMORY;
+    return ld->ld_errno;
+  }
 
-	tag = ber_printf( ber, "{" /*}*/ );
-	if ( tag == LBER_ERROR ) {
-		ld->ld_errno = LDAP_ENCODING_ERROR;
-		goto done;
-	}
+  tag = ber_printf(ber, "{" /*}*/);
+  if (tag == LBER_ERROR) {
+    ld->ld_errno = LDAP_ENCODING_ERROR;
+    goto done;
+  }
 
-	for ( i = 0; ds[i].derefAttr != NULL; i++ ) {
-		int j;
+  for (i = 0; ds[i].derefAttr != NULL; i++) {
+    int j;
 
-		tag = ber_printf( ber, "{s{" /*}}*/ , ds[i].derefAttr );
-		if ( tag == LBER_ERROR ) {
-			ld->ld_errno = LDAP_ENCODING_ERROR;
-			goto done;
-		}
+    tag = ber_printf(ber, "{s{" /*}}*/, ds[i].derefAttr);
+    if (tag == LBER_ERROR) {
+      ld->ld_errno = LDAP_ENCODING_ERROR;
+      goto done;
+    }
 
-		for ( j = 0; ds[i].attributes[j] != NULL; j++ ) {
-			tag = ber_printf( ber, "s", ds[i].attributes[ j ] );
-			if ( tag == LBER_ERROR ) {
-				ld->ld_errno = LDAP_ENCODING_ERROR;
-				goto done;
-			}
-		}
+    for (j = 0; ds[i].attributes[j] != NULL; j++) {
+      tag = ber_printf(ber, "s", ds[i].attributes[j]);
+      if (tag == LBER_ERROR) {
+        ld->ld_errno = LDAP_ENCODING_ERROR;
+        goto done;
+      }
+    }
 
-		tag = ber_printf( ber, /*{{*/ "}N}" );
-		if ( tag == LBER_ERROR ) {
-			ld->ld_errno = LDAP_ENCODING_ERROR;
-			goto done;
-		}
-	}
+    tag = ber_printf(ber, /*{{*/ "}N}");
+    if (tag == LBER_ERROR) {
+      ld->ld_errno = LDAP_ENCODING_ERROR;
+      goto done;
+    }
+  }
 
-	tag = ber_printf( ber, /*{*/ "}" );
-	if ( tag == LBER_ERROR ) {
-		ld->ld_errno = LDAP_ENCODING_ERROR;
-		goto done;
-	}
+  tag = ber_printf(ber, /*{*/ "}");
+  if (tag == LBER_ERROR) {
+    ld->ld_errno = LDAP_ENCODING_ERROR;
+    goto done;
+  }
 
-	if ( ber_flatten2( ber, value, 1 ) == -1 ) {
-		ld->ld_errno = LDAP_NO_MEMORY;
-	}
+  if (ber_flatten2(ber, value, 1) == -1) {
+    ld->ld_errno = LDAP_NO_MEMORY;
+  }
 
 done:;
-	if ( ber != NULL ) {
-		ber_free( ber, 1 );
-	}
+  if (ber != NULL) {
+    ber_free(ber, 1);
+  }
 
-	return ld->ld_errno;
+  return ld->ld_errno;
 }
 
-int
-ldap_create_deref_control(
-	LDAP		*ld,
-	LDAPDerefSpec	*ds,
-	int		iscritical,
-	LDAPControl	**ctrlp )
-{
-	struct berval	value;
+int ldap_create_deref_control(LDAP *ld, LDAPDerefSpec *ds, int iscritical,
+                              LDAPControl **ctrlp) {
+  struct berval value;
 
-	if ( ctrlp == NULL ) {
-		ld->ld_errno = LDAP_PARAM_ERROR;
-		return ld->ld_errno;
-	}
+  if (ctrlp == NULL) {
+    ld->ld_errno = LDAP_PARAM_ERROR;
+    return ld->ld_errno;
+  }
 
-	ld->ld_errno = ldap_create_deref_control_value( ld, ds, &value );
-	if ( ld->ld_errno == LDAP_SUCCESS ) {
-		ld->ld_errno = ldap_control_create( LDAP_CONTROL_X_DEREF,
-			iscritical, &value, 0, ctrlp );
-		if ( ld->ld_errno != LDAP_SUCCESS ) {
-			LDAP_FREE( value.bv_val );
-		}
-	}
+  ld->ld_errno = ldap_create_deref_control_value(ld, ds, &value);
+  if (ld->ld_errno == LDAP_SUCCESS) {
+    ld->ld_errno =
+        ldap_control_create(LDAP_CONTROL_X_DEREF, iscritical, &value, 0, ctrlp);
+    if (ld->ld_errno != LDAP_SUCCESS) {
+      LDAP_FREE(value.bv_val);
+    }
+  }
 
-	return ld->ld_errno;
+  return ld->ld_errno;
 }
 
-void
-ldap_derefresponse_free( LDAPDerefRes *dr )
-{
-	for ( ; dr; ) {
-		LDAPDerefRes *drnext = dr->next;
-		LDAPDerefVal *dv;
+void ldap_derefresponse_free(LDAPDerefRes *dr) {
+  for (; dr;) {
+    LDAPDerefRes *drnext = dr->next;
+    LDAPDerefVal *dv;
 
-		LDAP_FREE( dr->derefAttr );
-		LDAP_FREE( dr->derefVal.bv_val );
+    LDAP_FREE(dr->derefAttr);
+    LDAP_FREE(dr->derefVal.bv_val);
 
-		for ( dv = dr->attrVals; dv; ) {
-			LDAPDerefVal *dvnext = dv->next;
-			LDAP_FREE( dv->type );
-			ber_bvarray_free( dv->vals );
-			LDAP_FREE( dv );
-			dv = dvnext;
-		}
+    for (dv = dr->attrVals; dv;) {
+      LDAPDerefVal *dvnext = dv->next;
+      LDAP_FREE(dv->type);
+      ber_bvarray_free(dv->vals);
+      LDAP_FREE(dv);
+      dv = dvnext;
+    }
 
-		LDAP_FREE( dr );
+    LDAP_FREE(dr);
 
-		dr = drnext;
-	}
+    dr = drnext;
+  }
 }
 
-int
-ldap_parse_derefresponse_control(
-	LDAP		*ld,
-	LDAPControl	*ctrl,
-	LDAPDerefRes	**drp2 )
-{
-	BerElement *ber;
-	ber_tag_t tag;
-	ber_len_t len;
-	char *last;
-	LDAPDerefRes *drhead = NULL, **drp;
+int ldap_parse_derefresponse_control(LDAP *ld, LDAPControl *ctrl,
+                                     LDAPDerefRes **drp2) {
+  BerElement *ber;
+  ber_tag_t tag;
+  ber_len_t len;
+  char *last;
+  LDAPDerefRes *drhead = NULL, **drp;
 
-	if ( ld == NULL || ctrl == NULL || drp2 == NULL ) {
-		if ( ld )
-			ld->ld_errno = LDAP_PARAM_ERROR;
-		return LDAP_PARAM_ERROR;
-	}
+  if (ld == NULL || ctrl == NULL || drp2 == NULL) {
+    if (ld)
+      ld->ld_errno = LDAP_PARAM_ERROR;
+    return LDAP_PARAM_ERROR;
+  }
 
-	/* Create a BerElement from the berval returned in the control. */
-	ber = ber_init( &ctrl->ldctl_value );
+  /* Create a BerElement from the berval returned in the control. */
+  ber = ber_init(&ctrl->ldctl_value);
 
-	if ( ber == NULL ) {
-		ld->ld_errno = LDAP_NO_MEMORY;
-		return ld->ld_errno;
-	}
+  if (ber == NULL) {
+    ld->ld_errno = LDAP_NO_MEMORY;
+    return ld->ld_errno;
+  }
 
-	/* Extract the count and cookie from the control. */
-	drp = &drhead;
-	for ( tag = ber_first_element( ber, &len, &last );
-		tag != LBER_DEFAULT;
-		tag = ber_next_element( ber, &len, last ) )
-	{
-		LDAPDerefRes *dr;
-		LDAPDerefVal **dvp;
-		char *last2;
+  /* Extract the count and cookie from the control. */
+  drp = &drhead;
+  for (tag = ber_first_element(ber, &len, &last); tag != LBER_DEFAULT;
+       tag = ber_next_element(ber, &len, last)) {
+    LDAPDerefRes *dr;
+    LDAPDerefVal **dvp;
+    char *last2;
 
-		dr = LDAP_CALLOC( 1, sizeof(LDAPDerefRes) );
-		dvp = &dr->attrVals;
+    dr = LDAP_CALLOC(1, sizeof(LDAPDerefRes));
+    dvp = &dr->attrVals;
 
-		tag = ber_scanf( ber, "{ao", &dr->derefAttr, &dr->derefVal );
-		if ( tag == LBER_ERROR ) {
-			goto done;
-		}
+    tag = ber_scanf(ber, "{ao", &dr->derefAttr, &dr->derefVal);
+    if (tag == LBER_ERROR) {
+      goto done;
+    }
 
-		tag = ber_peek_tag( ber, &len );
-		if ( tag == (LBER_CONSTRUCTED|LBER_CLASS_CONTEXT) ) {
-			for ( tag = ber_first_element( ber, &len, &last2 );
-				tag != LBER_DEFAULT;
-				tag = ber_next_element( ber, &len, last2 ) )
-			{
-				LDAPDerefVal *dv;
+    tag = ber_peek_tag(ber, &len);
+    if (tag == (LBER_CONSTRUCTED | LBER_CLASS_CONTEXT)) {
+      for (tag = ber_first_element(ber, &len, &last2); tag != LBER_DEFAULT;
+           tag = ber_next_element(ber, &len, last2)) {
+        LDAPDerefVal *dv;
 
-				dv = LDAP_CALLOC( 1, sizeof(LDAPDerefVal) );
+        dv = LDAP_CALLOC(1, sizeof(LDAPDerefVal));
 
-				tag = ber_scanf( ber, "{a[W]}", &dv->type, &dv->vals );
-				if ( tag == LBER_ERROR ) {
-					goto done;
-				}
+        tag = ber_scanf(ber, "{a[W]}", &dv->type, &dv->vals);
+        if (tag == LBER_ERROR) {
+          goto done;
+        }
 
-				*dvp = dv;
-				dvp = &dv->next;
-			}
-		}
+        *dvp = dv;
+        dvp = &dv->next;
+      }
+    }
 
-		tag = ber_scanf( ber, "}" );
-		if ( tag == LBER_ERROR ) {
-			goto done;
-		}
+    tag = ber_scanf(ber, "}");
+    if (tag == LBER_ERROR) {
+      goto done;
+    }
 
-		*drp = dr;
-		drp = &dr->next;
-	}
+    *drp = dr;
+    drp = &dr->next;
+  }
 
-	tag = 0;
+  tag = 0;
 
 done:;
-        ber_free( ber, 1 );
+  ber_free(ber, 1);
 
-	if ( tag == LBER_ERROR ) {
-		if ( drhead != NULL ) {
-			ldap_derefresponse_free( drhead );
-		}
+  if (tag == LBER_ERROR) {
+    if (drhead != NULL) {
+      ldap_derefresponse_free(drhead);
+    }
 
-		*drp2 = NULL;
-		ld->ld_errno = LDAP_DECODING_ERROR;
+    *drp2 = NULL;
+    ld->ld_errno = LDAP_DECODING_ERROR;
 
-	} else {
-		*drp2 = drhead;
-		ld->ld_errno = LDAP_SUCCESS;
-	}
+  } else {
+    *drp2 = drhead;
+    ld->ld_errno = LDAP_SUCCESS;
+  }
 
-	return ld->ld_errno;
+  return ld->ld_errno;
 }
 
-int
-ldap_parse_deref_control(
-	LDAP		*ld,
-	LDAPControl	**ctrls,
-	LDAPDerefRes	**drp )
-{
-	LDAPControl *c;
+int ldap_parse_deref_control(LDAP *ld, LDAPControl **ctrls,
+                             LDAPDerefRes **drp) {
+  LDAPControl *c;
 
-	if ( drp == NULL ) {
-		ld->ld_errno = LDAP_PARAM_ERROR;
-		return ld->ld_errno;
-	}
+  if (drp == NULL) {
+    ld->ld_errno = LDAP_PARAM_ERROR;
+    return ld->ld_errno;
+  }
 
-	*drp = NULL;
+  *drp = NULL;
 
-	if ( ctrls == NULL ) {
-		ld->ld_errno =  LDAP_CONTROL_NOT_FOUND;
-		return ld->ld_errno;
-	}
+  if (ctrls == NULL) {
+    ld->ld_errno = LDAP_CONTROL_NOT_FOUND;
+    return ld->ld_errno;
+  }
 
-	c = ldap_control_find( LDAP_CONTROL_X_DEREF, ctrls, NULL );
-	if ( c == NULL ) {
-		/* No deref control was found. */
-		ld->ld_errno = LDAP_CONTROL_NOT_FOUND;
-		return ld->ld_errno;
-	}
+  c = ldap_control_find(LDAP_CONTROL_X_DEREF, ctrls, NULL);
+  if (c == NULL) {
+    /* No deref control was found. */
+    ld->ld_errno = LDAP_CONTROL_NOT_FOUND;
+    return ld->ld_errno;
+  }
 
-	ld->ld_errno = ldap_parse_derefresponse_control( ld, c, drp );
+  ld->ld_errno = ldap_parse_derefresponse_control(ld, c, drp);
 
-	return ld->ld_errno;
+  return ld->ld_errno;
 }

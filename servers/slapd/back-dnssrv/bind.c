@@ -1,5 +1,5 @@
 /* $ReOpenLDAP$ */
-/* Copyright 2000-2017 ReOpenLDAP AUTHORS: please see AUTHORS file.
+/* Copyright 2000-2018 ReOpenLDAP AUTHORS: please see AUTHORS file.
  * All rights reserved.
  *
  * This file is part of ReOpenLDAP.
@@ -28,50 +28,43 @@
 #include "slap.h"
 #include "proto-dnssrv.h"
 
-int
-dnssrv_back_bind(
-	Operation	*op,
-	SlapReply	*rs )
-{
-	Debug( LDAP_DEBUG_TRACE, "DNSSRV: bind dn=\"%s\" (%d)\n",
-		BER_BVISNULL( &op->o_req_dn ) ? "" : op->o_req_dn.bv_val,
-		op->orb_method );
+int dnssrv_back_bind(Operation *op, SlapReply *rs) {
+  Debug(LDAP_DEBUG_TRACE, "DNSSRV: bind dn=\"%s\" (%d)\n",
+        BER_BVISNULL(&op->o_req_dn) ? "" : op->o_req_dn.bv_val, op->orb_method);
 
-	/* allow rootdn as a means to auth without the need to actually
- 	 * contact the proxied DSA */
-	switch ( be_rootdn_bind( op, NULL ) ) {
-	case LDAP_SUCCESS:
-		/* frontend will send result */
-		return rs->sr_err;
+  /* allow rootdn as a means to auth without the need to actually
+   * contact the proxied DSA */
+  switch (be_rootdn_bind(op, NULL)) {
+  case LDAP_SUCCESS:
+    /* frontend will send result */
+    return rs->sr_err;
 
-	default:
-		/* treat failure and like any other bind, otherwise
-		 * it could reveal the DN of the rootdn */
-		break;
-	}
+  default:
+    /* treat failure and like any other bind, otherwise
+     * it could reveal the DN of the rootdn */
+    break;
+  }
 
-	if ( !BER_BVISNULL( &op->orb_cred ) &&
-		!BER_BVISEMPTY( &op->orb_cred ) )
-	{
-		/* simple bind */
-		Statslog( LDAP_DEBUG_STATS,
-		   	"%s DNSSRV BIND dn=\"%s\" provided cleartext passwd\n",
-	   		op->o_log_prefix,
-			BER_BVISNULL( &op->o_req_dn ) ? "" : op->o_req_dn.bv_val  );
+  if (!BER_BVISNULL(&op->orb_cred) && !BER_BVISEMPTY(&op->orb_cred)) {
+    /* simple bind */
+    Statslog(LDAP_DEBUG_STATS,
+             "%s DNSSRV BIND dn=\"%s\" provided cleartext passwd\n",
+             op->o_log_prefix,
+             BER_BVISNULL(&op->o_req_dn) ? "" : op->o_req_dn.bv_val);
 
-		send_ldap_error( op, rs, LDAP_UNWILLING_TO_PERFORM,
-			"you shouldn't send strangers your password" );
+    send_ldap_error(op, rs, LDAP_UNWILLING_TO_PERFORM,
+                    "you shouldn't send strangers your password");
 
-	} else {
-		/* unauthenticated bind */
-		/* NOTE: we're not going to get here anyway:
-		 * unauthenticated bind is dealt with by the frontend */
-		Debug( LDAP_DEBUG_TRACE, "DNSSRV: BIND dn=\"%s\"\n",
-			BER_BVISNULL( &op->o_req_dn ) ? "" : op->o_req_dn.bv_val );
+  } else {
+    /* unauthenticated bind */
+    /* NOTE: we're not going to get here anyway:
+     * unauthenticated bind is dealt with by the frontend */
+    Debug(LDAP_DEBUG_TRACE, "DNSSRV: BIND dn=\"%s\"\n",
+          BER_BVISNULL(&op->o_req_dn) ? "" : op->o_req_dn.bv_val);
 
-		send_ldap_error( op, rs, LDAP_UNWILLING_TO_PERFORM,
-			"anonymous bind expected" );
-	}
+    send_ldap_error(op, rs, LDAP_UNWILLING_TO_PERFORM,
+                    "anonymous bind expected");
+  }
 
-	return 1;
+  return 1;
 }

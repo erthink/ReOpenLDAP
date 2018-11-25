@@ -1,5 +1,5 @@
 /* $ReOpenLDAP$ */
-/* Copyright 1990-2017 ReOpenLDAP AUTHORS: please see AUTHORS file.
+/* Copyright 1990-2018 ReOpenLDAP AUTHORS: please see AUTHORS file.
  * All rights reserved.
  *
  * This file is part of ReOpenLDAP.
@@ -33,132 +33,117 @@
 
 static volatile sig_atomic_t gotsig;
 
-static void
-slapcat_sig( int sig )
-{
-	gotsig=1;
-}
+static void slapcat_sig(int sig) { gotsig = 1; }
 
-int
-slapschema( int argc, char **argv )
-{
-	ID id;
-	int rc = EXIT_SUCCESS;
-	const char *progname = "slapschema";
-	Connection conn = { 0 };
-	OperationBuffer	opbuf;
-	Operation *op = NULL;
-	void *thrctx;
-	int requestBSF = 0;
-	int doBSF = 0;
+int slapschema(int argc, char **argv) {
+  ID id;
+  int rc = EXIT_SUCCESS;
+  const char *progname = "slapschema";
+  Connection conn = {0};
+  OperationBuffer opbuf;
+  Operation *op = NULL;
+  void *thrctx;
+  int requestBSF = 0;
+  int doBSF = 0;
 
-	slap_tool_init( progname, SLAPCAT, argc, argv );
+  slap_tool_init(progname, SLAPCAT, argc, argv);
 
-	requestBSF = ( sub_ndn.bv_len || filter );
+  requestBSF = (sub_ndn.bv_len || filter);
 
 #ifdef SIGPIPE
-	(void) SIGNAL( SIGPIPE, slapcat_sig );
+  (void)SIGNAL(SIGPIPE, slapcat_sig);
 #endif
 #ifdef SIGHUP
-	(void) SIGNAL( SIGHUP, slapcat_sig );
+  (void)SIGNAL(SIGHUP, slapcat_sig);
 #endif
-	(void) SIGNAL( SIGINT, slapcat_sig );
-	(void) SIGNAL( SIGTERM, slapcat_sig );
+  (void)SIGNAL(SIGINT, slapcat_sig);
+  (void)SIGNAL(SIGTERM, slapcat_sig);
 
-	if( !be->be_entry_open ||
-		!be->be_entry_close ||
-		!( be->be_entry_first || be->be_entry_first_x ) ||
-		!be->be_entry_next ||
-		!be->be_entry_get )
-	{
-		fprintf( stderr, "%s: database doesn't support necessary operations.\n",
-			progname );
-		exit( EXIT_FAILURE );
-	}
+  if (!be->be_entry_open || !be->be_entry_close ||
+      !(be->be_entry_first || be->be_entry_first_x) || !be->be_entry_next ||
+      !be->be_entry_get) {
+    fprintf(stderr, "%s: database doesn't support necessary operations.\n",
+            progname);
+    exit(EXIT_FAILURE);
+  }
 
-	if( be->be_entry_open( be, 0 ) != 0 ) {
-		fprintf( stderr, "%s: could not open database.\n",
-			progname );
-		exit( EXIT_FAILURE );
-	}
+  if (be->be_entry_open(be, 0) != 0) {
+    fprintf(stderr, "%s: could not open database.\n", progname);
+    exit(EXIT_FAILURE);
+  }
 
-	thrctx = ldap_pvt_thread_pool_context();
-	connection_fake_init( &conn, &opbuf, thrctx );
-	op = &opbuf.ob_op;
-	op->o_tmpmemctx = NULL;
-	op->o_bd = be;
+  thrctx = ldap_pvt_thread_pool_context();
+  connection_fake_init(&conn, &opbuf, thrctx);
+  op = &opbuf.ob_op;
+  op->o_tmpmemctx = NULL;
+  op->o_bd = be;
 
+  if (!requestBSF && be->be_entry_first) {
+    id = be->be_entry_first(be);
 
-	if ( !requestBSF && be->be_entry_first ) {
-		id = be->be_entry_first( be );
+  } else {
+    if (be->be_entry_first_x) {
+      id = be->be_entry_first_x(be, sub_ndn.bv_len ? &sub_ndn : NULL, scope,
+                                filter);
 
-	} else {
-		if ( be->be_entry_first_x ) {
-			id = be->be_entry_first_x( be,
-				sub_ndn.bv_len ? &sub_ndn : NULL, scope, filter );
+    } else {
+      assert(be->be_entry_first != NULL);
+      doBSF = 1;
+      id = be->be_entry_first(be);
+    }
+  }
 
-		} else {
-			assert( be->be_entry_first != NULL );
-			doBSF = 1;
-			id = be->be_entry_first( be );
-		}
-	}
+  for (; id != NOID; id = be->be_entry_next(be)) {
+    Entry *e;
+    char textbuf[SLAP_TEXT_BUFLEN];
+    size_t textlen = sizeof(textbuf);
+    const char *text = NULL;
 
-	for ( ; id != NOID; id = be->be_entry_next( be ) ) {
-		Entry* e;
-		char textbuf[SLAP_TEXT_BUFLEN];
-		size_t textlen = sizeof(textbuf);
-		const char *text = NULL;
+    if (gotsig)
+      break;
 
-		if ( gotsig )
-			break;
+    e = be->be_entry_get(be, id);
+    if (e == NULL) {
+      printf("# no data for entry id=%08lx\n\n", (long)id);
+      rc = EXIT_FAILURE;
+      if (continuemode)
+        continue;
+      break;
+    }
 
-		e = be->be_entry_get( be, id );
-		if ( e == NULL ) {
-			printf("# no data for entry id=%08lx\n\n", (long) id );
-			rc = EXIT_FAILURE;
-			if( continuemode ) continue;
-			break;
-		}
+    if (doBSF) {
+      if (sub_ndn.bv_len && !dnIsSuffixScope(&e->e_nname, &sub_ndn, scope)) {
+        be_entry_release_r(op, e);
+        continue;
+      }
 
-		if ( doBSF ) {
-			if ( sub_ndn.bv_len && !dnIsSuffixScope( &e->e_nname, &sub_ndn, scope ) )
-			{
-				be_entry_release_r( op, e );
-				continue;
-			}
+      if (filter != NULL) {
+        int rc = test_filter(NULL, e, filter);
+        if (rc != LDAP_COMPARE_TRUE) {
+          be_entry_release_r(op, e);
+          continue;
+        }
+      }
+    }
 
+    if (verbose) {
+      printf("# id=%08lx\n", (long)id);
+    }
 
-			if ( filter != NULL ) {
-				int rc = test_filter( NULL, e, filter );
-				if ( rc != LDAP_COMPARE_TRUE ) {
-					be_entry_release_r( op, e );
-					continue;
-				}
-			}
-		}
+    rc = entry_schema_check(op, e, NULL, 0, 0, NULL, &text, textbuf, textlen);
+    if (rc != LDAP_SUCCESS) {
+      fprintf(ldiffp->fp, "# (%d) %s%s%s\n", rc, ldap_err2string(rc),
+              text ? ": " : "", text ? text : "");
+      fprintf(ldiffp->fp, "dn: %s\n\n", e->e_name.bv_val);
+    }
 
-		if( verbose ) {
-			printf( "# id=%08lx\n", (long) id );
-		}
+    be_entry_release_r(op, e);
+  }
 
-		rc = entry_schema_check( op, e, NULL, 0, 0, NULL,
-			&text, textbuf, textlen );
-		if ( rc != LDAP_SUCCESS ) {
-			fprintf( ldiffp->fp, "# (%d) %s%s%s\n",
-				rc, ldap_err2string( rc ),
-				text ? ": " : "",
-				text ? text : "" );
-			fprintf( ldiffp->fp, "dn: %s\n\n", e->e_name.bv_val );
-		}
+  be->be_entry_close(be);
 
-		be_entry_release_r( op, e );
-	}
+  if (slap_tool_destroy())
+    rc = EXIT_FAILURE;
 
-	be->be_entry_close( be );
-
-	if ( slap_tool_destroy() )
-		rc = EXIT_FAILURE;
-
-	return rc;
+  return rc;
 }

@@ -1,5 +1,5 @@
 /* $ReOpenLDAP$ */
-/* Copyright 1992-2017 ReOpenLDAP AUTHORS: please see AUTHORS file.
+/* Copyright 1992-2018 ReOpenLDAP AUTHORS: please see AUTHORS file.
  * All rights reserved.
  *
  * This file is part of ReOpenLDAP.
@@ -27,9 +27,9 @@ LDAP_BEGIN_DECL
 #define optopt lutil_optopt
 #define getopt lutil_getopt
 
-LDAP_LUTIL_V (char *) optarg;
-LDAP_LUTIL_V (int) optind, opterr, optopt;
-LDAP_LUTIL_F (int) getopt LDAP_P(( int, char * const [], const char *));
+LDAP_LUTIL_V(char *) optarg;
+LDAP_LUTIL_V(int) optind, opterr, optopt;
+LDAP_LUTIL_F(int) getopt(int, char *const[], const char *);
 
 LDAP_END_DECL
 

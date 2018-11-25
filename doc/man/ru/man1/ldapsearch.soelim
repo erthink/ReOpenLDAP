@@ -1,5 +1,5 @@
 .\" $ReOpenLDAP$
-.\" Copyright 1992-2017 ReOpenLDAP AUTHORS: please see AUTHORS file.
+.\" Copyright 1992-2018 ReOpenLDAP AUTHORS: please see AUTHORS file.
 .\" All rights reserved.
 .\"
 .\" This file is part of ReOpenLDAP.
@@ -126,7 +126,8 @@ ldapsearch \- инструмент поиска LDAP
 .SH ПАРАМЕТРЫ
 .TP
 .BR \-V [ V ]
-Вывод информации о версии. При указании \fB\-VV\fP выводится только информация о версии.
+Вывод информации о версии. При указании \fB\-VV\fP, после вывода информации о версии осуществляется выход.
+При указании \fB\-V\fP, после вывода информации о версии выполняется поиск согласно заданным критериям.
 .TP
 .BI \-d \ debuglevel
 Установить уровень отладки LDAP в \fIdebuglevel\fP. Чтобы этот параметр работал,

@@ -1,5 +1,5 @@
 /* $ReOpenLDAP$ */
-/* Copyright 1992-2017 ReOpenLDAP AUTHORS: please see AUTHORS file.
+/* Copyright 1992-2018 ReOpenLDAP AUTHORS: please see AUTHORS file.
  * All rights reserved.
  *
  * This file is part of ReOpenLDAP.
@@ -28,11 +28,11 @@
 #error "No POSIX REGEX available."
 
 #elif HAVE_GNUREGEX_H
-	/* system has GNU gnuregex.h */
-#	include <gnuregex.h>
+/* system has GNU gnuregex.h */
+#include <gnuregex.h>
 #else
-	/* have regex.h, assume it's POSIX compliant */
-#	include <regex.h>
+/* have regex.h, assume it's POSIX compliant */
+#include <regex.h>
 #endif /* regex.h */
 
 #endif /* _AC_REGEX_H_ */

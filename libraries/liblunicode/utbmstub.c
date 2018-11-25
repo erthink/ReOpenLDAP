@@ -1,5 +1,5 @@
 /* $ReOpenLDAP$ */
-/* Copyright 2002-2017 ReOpenLDAP AUTHORS: please see AUTHORS file.
+/* Copyright 2002-2018 ReOpenLDAP AUTHORS: please see AUTHORS file.
  * All rights reserved.
  *
  * This file is part of ReOpenLDAP.
@@ -47,59 +47,38 @@
  * Return non-zero for any character that should be considered the equivalent
  * of a space character.  Return zero otherwise.
  */
-int
-_utbm_isspace(ucs4_t c, int compress)
-{
-    if (compress)
-      return (c == 0x09 || c == 0x0a || c == 0x0d ||
-              c == 0x2028 || c == 0x2029 || _platform_isspace(c)) ? 1 : 0;
+int _utbm_isspace(ucs4_t c, int compress) {
+  if (compress)
+    return (c == 0x09 || c == 0x0a || c == 0x0d || c == 0x2028 || c == 0x2029 ||
+            _platform_isspace(c))
+               ? 1
+               : 0;
 
-    return _platform_isspace(c);
-
+  return _platform_isspace(c);
 }
 
 /*
  * Return non-zero if the character is a control character, or zero otherwise.
  */
-int
-_utbm_iscntrl(ucs4_t c)
-{
-    return 0;
-}
+int _utbm_iscntrl(ucs4_t c) { return 0; }
 
 /*
  * Return non-zero if the character is a non-spacing character, or zero
  * otherwise.
  */
-int
-_utbm_nonspacing(ucs4_t c)
-{
-    return 0;
-}
+int _utbm_nonspacing(ucs4_t c) { return 0; }
 
 /*
  * Convert a character to lower case.
  */
-ucs4_t
-_utbm_tolower(ucs4_t c)
-{
-    return c;
-}
+ucs4_t _utbm_tolower(ucs4_t c) { return c; }
 
 /*
  * Convert a character to upper case.
  */
-ucs4_t
-_utbm_toupper(ucs4_t c)
-{
-    return c;
-}
+ucs4_t _utbm_toupper(ucs4_t c) { return c; }
 
 /*
  * Convert a character to title case.
  */
-ucs4_t
-_utbm_totitle(ucs4_t c)
-{
-    return c;
-}
+ucs4_t _utbm_totitle(ucs4_t c) { return c; }

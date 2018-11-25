@@ -1,5 +1,5 @@
 /* $ReOpenLDAP$ */
-/* Copyright 1990-2017 ReOpenLDAP AUTHORS: please see AUTHORS file.
+/* Copyright 1990-2018 ReOpenLDAP AUTHORS: please see AUTHORS file.
  * All rights reserved.
  *
  * This file is part of ReOpenLDAP.
@@ -18,15 +18,15 @@
 
 LDAP_BEGIN_DECL
 
-extern BI_init		passwd_back_initialize;
-extern BI_open		passwd_back_open;
-extern BI_destroy	passwd_back_destroy;
-extern BI_op_search	passwd_back_search;
+extern BI_init passwd_back_initialize;
+extern BI_open passwd_back_open;
+extern BI_destroy passwd_back_destroy;
+extern BI_op_search passwd_back_search;
 
-extern int passwd_back_init_cf( BackendInfo *bi );
+extern int passwd_back_init_cf(BackendInfo *bi);
 
-extern AttributeDescription	*ad_sn;
-extern AttributeDescription	*ad_desc;
+extern AttributeDescription *ad_sn;
+extern AttributeDescription *ad_desc;
 
 LDAP_END_DECL
 

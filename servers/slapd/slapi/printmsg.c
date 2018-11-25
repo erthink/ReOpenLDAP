@@ -1,5 +1,5 @@
 /* $ReOpenLDAP$ */
-/* Copyright 2002-2017 ReOpenLDAP AUTHORS: please see AUTHORS file.
+/* Copyright 2002-2018 ReOpenLDAP AUTHORS: please see AUTHORS file.
  * All rights reserved.
  *
  * This file is part of ReOpenLDAP.
@@ -36,65 +36,60 @@
 
 /* Single threads access to routine */
 ldap_pvt_thread_mutex_t slapi_printmessage_mutex;
-char			*slapi_log_file = NULL;
-int			slapi_log_level = SLAPI_LOG_PLUGIN;
+char *slapi_log_file = NULL;
+int slapi_log_level = SLAPI_LOG_PLUGIN;
 
-int
-slapi_int_log_error(
-	int		level,
-	char		*subsystem,
-	char		*fmt,
-	va_list		arglist )
-{
-	int		rc = 0;
-	FILE		*fp = NULL;
+int slapi_int_log_error(int level, char *subsystem, char *fmt,
+                        va_list arglist) {
+  int rc = 0;
+  FILE *fp = NULL;
 
-	char		timeStr[100];
-	struct tm	*ltm;
-	time_t		currentTime;
+  char timeStr[100];
+  struct tm *ltm;
+  time_t currentTime;
 
-	assert( subsystem != NULL );
-	assert( fmt != NULL );
+  assert(subsystem != NULL);
+  assert(fmt != NULL);
 
-	ldap_pvt_thread_mutex_lock( &slapi_printmessage_mutex ) ;
+  ldap_pvt_thread_mutex_lock(&slapi_printmessage_mutex);
 
-	/* for now, we log all severities */
-	if ( level <= slapi_log_level ) {
-		fp = fopen( slapi_log_file, "a" );
-		if ( fp == NULL) {
-			rc = -1;
-			goto done;
-		}
+  /* for now, we log all severities */
+  if (level <= slapi_log_level) {
+    fp = fopen(slapi_log_file, "a");
+    if (fp == NULL) {
+      rc = -1;
+      goto done;
+    }
 
-		/*
-		 * FIXME: could block
-		 */
-		while ( lockf( fileno( fp ), F_LOCK, 0 ) != 0 ) {
-			/* DO NOTHING */ ;
-		}
+    /*
+     * FIXME: could block
+     */
+    while (lockf(fileno(fp), F_LOCK, 0) != 0) {
+      /* DO NOTHING */;
+    }
 
-		currentTime = ldap_time_steady();
-		ltm = localtime( &currentTime );
-		strftime( timeStr, sizeof(timeStr), "%x %X", ltm );
-		fputs( timeStr, fp );
+    currentTime = ldap_time_steady();
+    ltm = localtime(&currentTime);
+    strftime(timeStr, sizeof(timeStr), "%x %X", ltm);
+    fputs(timeStr, fp);
 
-		fprintf( fp, " %s: ", subsystem );
-		vfprintf( fp, fmt, arglist );
-		if ( fmt[ strlen( fmt ) - 1 ] != '\n' ) {
-			fputs( "\n", fp );
-		}
-		fflush( fp );
+    fprintf(fp, " %s: ", subsystem);
+    vfprintf(fp, fmt, arglist);
+    if (fmt[strlen(fmt) - 1] != '\n') {
+      fputs("\n", fp);
+    }
+    fflush(fp);
 
-		rc = lockf( fileno( fp ), F_ULOCK, 0 );
+    rc = lockf(fileno(fp), F_ULOCK, 0);
 
-		fclose( fp );
+    fclose(fp);
 
-	} else {
-		rc = -1;
-	}
+  } else {
+    rc = -1;
+  }
 
 done:
-	ldap_pvt_thread_mutex_unlock( &slapi_printmessage_mutex );
+  ldap_pvt_thread_mutex_unlock(&slapi_printmessage_mutex);
 
-	return rc;
+  return rc;
 }

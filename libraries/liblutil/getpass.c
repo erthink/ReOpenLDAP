@@ -1,5 +1,5 @@
 /* $ReOpenLDAP$ */
-/* Copyright 1992-2017 ReOpenLDAP AUTHORS: please see AUTHORS file.
+/* Copyright 1992-2018 ReOpenLDAP AUTHORS: please see AUTHORS file.
  * All rights reserved.
  *
  * This file is part of ReOpenLDAP.
@@ -46,69 +46,68 @@
 
 #include "ldap_defaults.h"
 
-#define PBUF	512
+#define PBUF 512
 
 #define TTY "/dev/tty"
 
-char *
-lutil_getpass( const char *prompt )
-{
-	static char pbuf[PBUF];
-	FILE *fi;
-	int c;
-	unsigned i;
+char *lutil_getpass(const char *prompt) {
+  static char pbuf[PBUF];
+  FILE *fi;
+  int c;
+  unsigned i;
 #if defined(HAVE_TERMIOS_H) || defined(HAVE_SGTTY_H)
-	TERMIO_TYPE ttyb;
-	TERMFLAG_TYPE flags = 0;
-	void (*sig)( int sig ) = NULL;
+  TERMIO_TYPE ttyb;
+  TERMFLAG_TYPE flags = 0;
+  void (*sig)(int sig) = NULL;
 #endif
 
-	if( prompt == NULL ) prompt = _("Password: ");
+  if (prompt == NULL)
+    prompt = _("Password: ");
 
 #ifdef DEBUG
-	if (debug & D_TRACE)
-		printf("->getpass(%s)\n", prompt);
+  if (debug & D_TRACE)
+    printf("->getpass(%s)\n", prompt);
 #endif
 
 #if defined(HAVE_TERMIOS_H) || defined(HAVE_SGTTY_H)
-	if ((fi = fopen(TTY, "r")) == NULL)
-		fi = stdin;
-	else
-		setbuf(fi, (char *)NULL);
-	if (fi != stdin) {
-		if (GETATTR(fileno(fi), &ttyb) < 0)
-			perror("GETATTR");
-		sig = SIGNAL (SIGINT, SIG_IGN);
-		flags = GETFLAGS( ttyb );
-		SETFLAGS( ttyb, flags & ~ECHO );
-		if (SETATTR(fileno(fi), &ttyb) < 0)
-			perror("SETATTR");
-	}
+  if ((fi = fopen(TTY, "r")) == NULL)
+    fi = stdin;
+  else
+    setbuf(fi, (char *)NULL);
+  if (fi != stdin) {
+    if (GETATTR(fileno(fi), &ttyb) < 0)
+      perror("GETATTR");
+    sig = SIGNAL(SIGINT, SIG_IGN);
+    flags = GETFLAGS(ttyb);
+    SETFLAGS(ttyb, flags & ~ECHO);
+    if (SETATTR(fileno(fi), &ttyb) < 0)
+      perror("SETATTR");
+  }
 #else
-	fi = stdin;
+  fi = stdin;
 #endif
-	fprintf(stderr, "%s", prompt);
-	fflush(stderr);
-	i = 0;
-	while ( (c = getc(fi)) != EOF && c != '\n' && c != '\r' )
-		if ( i < (sizeof(pbuf)-1) )
-			pbuf[i++] = c;
+  fprintf(stderr, "%s", prompt);
+  fflush(stderr);
+  i = 0;
+  while ((c = getc(fi)) != EOF && c != '\n' && c != '\r')
+    if (i < (sizeof(pbuf) - 1))
+      pbuf[i++] = c;
 #if defined(HAVE_TERMIOS_H) || defined(HAVE_SGTTY_H)
-	/* tidy up */
-	if (fi != stdin) {
-		fprintf(stderr, "\n");
-		fflush(stderr);
-		SETFLAGS( ttyb, flags );
-		if (SETATTR(fileno(fi), &ttyb) < 0)
-			perror("SETATTR");
-		(void) SIGNAL (SIGINT, sig);
-		(void) fclose(fi);
-	}
+  /* tidy up */
+  if (fi != stdin) {
+    fprintf(stderr, "\n");
+    fflush(stderr);
+    SETFLAGS(ttyb, flags);
+    if (SETATTR(fileno(fi), &ttyb) < 0)
+      perror("SETATTR");
+    (void)SIGNAL(SIGINT, sig);
+    (void)fclose(fi);
+  }
 #endif
-	if ( c == EOF )
-		return( NULL );
-	pbuf[i] = '\0';
-	return (pbuf);
+  if (c == EOF)
+    return (NULL);
+  pbuf[i] = '\0';
+  return (pbuf);
 }
 
 #endif /* !NEED_GETPASSPHRASE */

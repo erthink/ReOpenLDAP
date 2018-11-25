@@ -1,5 +1,5 @@
 /* $ReOpenLDAP$ */
-/* Copyright 1990-2017 ReOpenLDAP AUTHORS: please see AUTHORS file.
+/* Copyright 1990-2018 ReOpenLDAP AUTHORS: please see AUTHORS file.
  * All rights reserved.
  *
  * This file is part of ReOpenLDAP.
@@ -27,120 +27,105 @@
 
 #include "ldap-int.h"
 
-int
-ldap_ntlm_bind(
-	LDAP		*ld,
-	LDAP_CONST char	*dn,
-	ber_tag_t	tag,
-	struct berval	*cred,
-	LDAPControl	**sctrls,
-	LDAPControl	**cctrls,
-	int		*msgidp )
-{
-	BerElement	*ber;
-	int rc;
-	ber_int_t id;
+int ldap_ntlm_bind(LDAP *ld, const char *dn, ber_tag_t tag, struct berval *cred,
+                   LDAPControl **sctrls, LDAPControl **cctrls, int *msgidp) {
+  BerElement *ber;
+  int rc;
+  ber_int_t id;
 
-	Debug( LDAP_DEBUG_TRACE, "ldap_ntlm_bind\n" );
+  Debug(LDAP_DEBUG_TRACE, "ldap_ntlm_bind\n");
 
-	assert( ld != NULL );
-	assert( LDAP_VALID( ld ) );
-	assert( msgidp != NULL );
+  assert(ld != NULL);
+  assert(LDAP_VALID(ld));
+  assert(msgidp != NULL);
 
-	if( msgidp == NULL ) {
-		ld->ld_errno = LDAP_PARAM_ERROR;
-		return ld->ld_errno;
-	}
+  if (msgidp == NULL) {
+    ld->ld_errno = LDAP_PARAM_ERROR;
+    return ld->ld_errno;
+  }
 
-	/* create a message to send */
-	if ( (ber = ldap_alloc_ber_with_options( ld )) == NULL ) {
-		ld->ld_errno = LDAP_NO_MEMORY;
-		return ld->ld_errno;
-	}
+  /* create a message to send */
+  if ((ber = ldap_alloc_ber_with_options(ld)) == NULL) {
+    ld->ld_errno = LDAP_NO_MEMORY;
+    return ld->ld_errno;
+  }
 
-	assert( LBER_VALID( ber ) );
+  assert(LBER_VALID(ber));
 
-	LDAP_NEXT_MSGID( ld, id );
-	rc = ber_printf( ber, "{it{istON}" /*}*/,
-			 id, LDAP_REQ_BIND,
-			 ld->ld_version, dn, tag,
-			 cred );
+  LDAP_NEXT_MSGID(ld, id);
+  rc = ber_printf(ber, "{it{istON}" /*}*/, id, LDAP_REQ_BIND, ld->ld_version,
+                  dn, tag, cred);
 
-	/* Put Server Controls */
-	if( rc != LDAP_SUCCESS
-			|| ldap_int_put_controls( ld, sctrls, ber ) != LDAP_SUCCESS ) {
-		ber_free( ber, 1 );
-		return ld->ld_errno;
-	}
+  /* Put Server Controls */
+  if (rc != LDAP_SUCCESS ||
+      ldap_int_put_controls(ld, sctrls, ber) != LDAP_SUCCESS) {
+    ber_free(ber, 1);
+    return ld->ld_errno;
+  }
 
-	if ( ber_printf( ber, /*{*/ "N}" ) == -1 ) {
-		ld->ld_errno = LDAP_ENCODING_ERROR;
-		ber_free( ber, 1 );
-		return ld->ld_errno;
-	}
+  if (ber_printf(ber, /*{*/ "N}") == -1) {
+    ld->ld_errno = LDAP_ENCODING_ERROR;
+    ber_free(ber, 1);
+    return ld->ld_errno;
+  }
 
-	/* send the message */
-	*msgidp = ldap_send_initial_request( ld, LDAP_REQ_BIND, dn, ber, id );
+  /* send the message */
+  *msgidp = ldap_send_initial_request(ld, LDAP_REQ_BIND, dn, ber, id);
 
-	if(*msgidp < 0)
-		return ld->ld_errno;
+  if (*msgidp < 0)
+    return ld->ld_errno;
 
-	return LDAP_SUCCESS;
+  return LDAP_SUCCESS;
 }
 
-int
-ldap_parse_ntlm_bind_result(
-	LDAP		*ld,
-	LDAPMessage	*res,
-	struct berval	*challenge)
-{
-	ber_int_t	errcode;
-	ber_tag_t	tag;
-	BerElement	*ber;
+int ldap_parse_ntlm_bind_result(LDAP *ld, LDAPMessage *res,
+                                struct berval *challenge) {
+  ber_int_t errcode;
+  ber_tag_t tag;
+  BerElement *ber;
 
-	Debug( LDAP_DEBUG_TRACE, "ldap_parse_ntlm_bind_result\n" );
+  Debug(LDAP_DEBUG_TRACE, "ldap_parse_ntlm_bind_result\n");
 
-	assert( ld != NULL );
-	assert( LDAP_VALID( ld ) );
-	assert( res != NULL );
+  assert(ld != NULL);
+  assert(LDAP_VALID(ld));
+  assert(res != NULL);
 
-	if ( ld == NULL || res == NULL ) {
-		return LDAP_PARAM_ERROR;
-	}
+  if (ld == NULL || res == NULL) {
+    return LDAP_PARAM_ERROR;
+  }
 
-	if( res->lm_msgtype != LDAP_RES_BIND ) {
-		ld->ld_errno = LDAP_PARAM_ERROR;
-		return ld->ld_errno;
-	}
+  if (res->lm_msgtype != LDAP_RES_BIND) {
+    ld->ld_errno = LDAP_PARAM_ERROR;
+    return ld->ld_errno;
+  }
 
-	if ( ld->ld_error ) {
-		LDAP_FREE( ld->ld_error );
-		ld->ld_error = NULL;
-	}
-	if ( ld->ld_matched ) {
-		LDAP_FREE( ld->ld_matched );
-		ld->ld_matched = NULL;
-	}
+  if (ld->ld_error) {
+    LDAP_FREE(ld->ld_error);
+    ld->ld_error = NULL;
+  }
+  if (ld->ld_matched) {
+    LDAP_FREE(ld->ld_matched);
+    ld->ld_matched = NULL;
+  }
 
-	/* parse results */
+  /* parse results */
 
-	ber = ber_dup( res->lm_ber );
+  ber = ber_dup(res->lm_ber);
 
-	if( ber == NULL ) {
-		ld->ld_errno = LDAP_NO_MEMORY;
-		return ld->ld_errno;
-	}
+  if (ber == NULL) {
+    ld->ld_errno = LDAP_NO_MEMORY;
+    return ld->ld_errno;
+  }
 
-	tag = ber_scanf( ber, "{ioa" /*}*/,
-			 &errcode, challenge, &ld->ld_error );
-	ber_free( ber, 0 );
+  tag = ber_scanf(ber, "{ioa" /*}*/, &errcode, challenge, &ld->ld_error);
+  ber_free(ber, 0);
 
-	if( tag == LBER_ERROR ) {
-		ld->ld_errno = LDAP_DECODING_ERROR;
-		return ld->ld_errno;
-	}
+  if (tag == LBER_ERROR) {
+    ld->ld_errno = LDAP_DECODING_ERROR;
+    return ld->ld_errno;
+  }
 
-	ld->ld_errno = errcode;
+  ld->ld_errno = errcode;
 
-	return( ld->ld_errno );
+  return (ld->ld_errno);
 }

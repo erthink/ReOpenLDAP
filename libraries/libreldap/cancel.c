@@ -1,5 +1,5 @@
 /* $ReOpenLDAP$ */
-/* Copyright 1990-2017 ReOpenLDAP AUTHORS: please see AUTHORS file.
+/* Copyright 1990-2018 ReOpenLDAP AUTHORS: please see AUTHORS file.
  * All rights reserved.
  *
  * This file is part of ReOpenLDAP.
@@ -33,43 +33,32 @@
 #include "ldap-int.h"
 #include "ldap_log.h"
 
-int
-ldap_cancel(
-	LDAP		*ld,
-	int		cancelid,
-	LDAPControl	**sctrls,
-	LDAPControl	**cctrls,
-	int		*msgidp )
-{
-	BerElement *cancelidber = NULL;
-	struct berval *cancelidvalp = NULL;
-	int rc;
+int ldap_cancel(LDAP *ld, int cancelid, LDAPControl **sctrls,
+                LDAPControl **cctrls, int *msgidp) {
+  BerElement *cancelidber = NULL;
+  struct berval cancelidvalp = {0, NULL};
+  int rc;
 
-	cancelidber = ber_alloc_t( LBER_USE_DER );
-	ber_printf( cancelidber, "{i}", cancelid );
-	ber_flatten( cancelidber, &cancelidvalp );
-	rc = ldap_extended_operation( ld, LDAP_EXOP_CANCEL,
-		cancelidvalp, sctrls, cctrls, msgidp );
-	ber_free( cancelidber, 1 );
-	return rc;
+  cancelidber = ber_alloc_t(LBER_USE_DER);
+  ber_printf(cancelidber, "{i}", cancelid);
+  ber_flatten2(cancelidber, &cancelidvalp, 0);
+  rc = ldap_extended_operation(ld, LDAP_EXOP_CANCEL, &cancelidvalp, sctrls,
+                               cctrls, msgidp);
+  ber_free(cancelidber, 1);
+  return rc;
 }
 
-int
-ldap_cancel_s(
-	LDAP		*ld,
-	int		cancelid,
-	LDAPControl	**sctrls,
-	LDAPControl	**cctrls )
-{
-	BerElement *cancelidber = NULL;
-	struct berval *cancelidvalp = NULL;
-	int rc;
+int ldap_cancel_s(LDAP *ld, int cancelid, LDAPControl **sctrls,
+                  LDAPControl **cctrls) {
+  BerElement *cancelidber = NULL;
+  struct berval cancelidvalp = {0, NULL};
+  int rc;
 
-	cancelidber = ber_alloc_t( LBER_USE_DER );
-	ber_printf( cancelidber, "{i}", cancelid );
-	ber_flatten( cancelidber, &cancelidvalp );
-	rc = ldap_extended_operation_s( ld, LDAP_EXOP_CANCEL,
-		cancelidvalp, sctrls, cctrls, NULL, NULL );
-	ber_free( cancelidber, 1 );
-	return rc;
+  cancelidber = ber_alloc_t(LBER_USE_DER);
+  ber_printf(cancelidber, "{i}", cancelid);
+  ber_flatten2(cancelidber, &cancelidvalp, 0);
+  rc = ldap_extended_operation_s(ld, LDAP_EXOP_CANCEL, &cancelidvalp, sctrls,
+                                 cctrls, NULL, NULL);
+  ber_free(cancelidber, 1);
+  return rc;
 }

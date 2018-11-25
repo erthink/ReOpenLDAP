@@ -1,5 +1,5 @@
 ## $ReOpenLDAP$
-## Copyright 2017 ReOpenLDAP AUTHORS: please see AUTHORS file.
+## Copyright 2017-2018 ReOpenLDAP AUTHORS: please see AUTHORS file.
 ## All rights reserved.
 ##
 ## This file is part of ReOpenLDAP.
@@ -63,5 +63,5 @@ else
 endif
 
 # LY: TODO
-ldif dnssrv ldap meta monitor ndb null passwd perl relay shell sock sql:
+ldif dnssrv ldap meta asyncmeta monitor ndb null passwd perl relay shell sock sql wt:
 	@echo "Skip testing $@-backend for now (TODO)"

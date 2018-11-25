@@ -1,5 +1,5 @@
 /* $ReOpenLDAP$ */
-/* Copyright 1990-2017 ReOpenLDAP AUTHORS: please see AUTHORS file.
+/* Copyright 1990-2018 ReOpenLDAP AUTHORS: please see AUTHORS file.
  * All rights reserved.
  *
  * This file is part of ReOpenLDAP.
@@ -31,41 +31,17 @@
 /*
  * C-API deallocator
  */
-void
-ldap_memfree( void *p )
-{
-	LDAP_FREE( p );
-}
+void ldap_memfree(void *p) { LDAP_FREE(p); }
 
-void
-ldap_memvfree( void **v )
-{
-	LDAP_VFREE( v );
-}
+void ldap_memvfree(void **v) { LDAP_VFREE(v); }
 
-void *
-ldap_memalloc( ber_len_t s )
-{
-	return LDAP_MALLOC( s );
-}
+void *ldap_memalloc(ber_len_t s) { return LDAP_MALLOC(s); }
 
-void *
-ldap_memcalloc( ber_len_t n, ber_len_t s )
-{
-	return LDAP_CALLOC( n, s );
-}
+void *ldap_memcalloc(ber_len_t n, ber_len_t s) { return LDAP_CALLOC(n, s); }
 
-void *
-ldap_memrealloc( void* p, ber_len_t s )
-{
-	return LDAP_REALLOC( p, s );
-}
+void *ldap_memrealloc(void *p, ber_len_t s) { return LDAP_REALLOC(p, s); }
 
-char *
-ldap_strdup( LDAP_CONST char *p )
-{
-	return LDAP_STRDUP( p );
-}
+char *ldap_strdup(const char *p) { return LDAP_STRDUP(p); }
 
 /*
  * free a null-terminated array of pointers to mod structures. the
@@ -73,31 +49,29 @@ ldap_strdup( LDAP_CONST char *p )
  * flag is set.
  */
 
-void
-ldap_mods_free( LDAPMod **mods, int freemods )
-{
-	int	i;
+void ldap_mods_free(LDAPMod **mods, int freemods) {
+  int i;
 
-	if ( mods == NULL )
-		return;
+  if (mods == NULL)
+    return;
 
-	for ( i = 0; mods[i] != NULL; i++ ) {
-		if ( mods[i]->mod_op & LDAP_MOD_BVALUES ) {
-			if( mods[i]->mod_bvalues != NULL )
-				ber_bvecfree( mods[i]->mod_bvalues );
+  for (i = 0; mods[i] != NULL; i++) {
+    if (mods[i]->mod_op & LDAP_MOD_BVALUES) {
+      if (mods[i]->mod_bvalues != NULL)
+        ber_bvecfree(mods[i]->mod_bvalues);
 
-		} else if( mods[i]->mod_values != NULL ) {
-			LDAP_VFREE( mods[i]->mod_values );
-		}
+    } else if (mods[i]->mod_values != NULL) {
+      LDAP_VFREE(mods[i]->mod_values);
+    }
 
-		if ( mods[i]->mod_type != NULL ) {
-			LDAP_FREE( mods[i]->mod_type );
-		}
+    if (mods[i]->mod_type != NULL) {
+      LDAP_FREE(mods[i]->mod_type);
+    }
 
-		LDAP_FREE( (char *) mods[i] );
-	}
+    LDAP_FREE((char *)mods[i]);
+  }
 
-	if ( freemods ) {
-		LDAP_FREE( (char *) mods );
-	}
+  if (freemods) {
+    LDAP_FREE((char *)mods);
+  }
 }

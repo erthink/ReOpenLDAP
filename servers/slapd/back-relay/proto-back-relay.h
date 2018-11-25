@@ -1,5 +1,5 @@
 /* $ReOpenLDAP$ */
-/* Copyright 2004-2017 ReOpenLDAP AUTHORS: please see AUTHORS file.
+/* Copyright 2004-2018 ReOpenLDAP AUTHORS: please see AUTHORS file.
  * All rights reserved.
  *
  * This file is part of ReOpenLDAP.
@@ -25,25 +25,25 @@
 
 LDAP_BEGIN_DECL
 
-extern BI_init			relay_back_initialize;
+extern BI_init relay_back_initialize;
 
-extern BI_db_init		relay_back_db_init;
-extern BI_db_open		relay_back_db_open;
-extern BI_db_close		relay_back_db_close;
-extern BI_db_destroy		relay_back_db_destroy;
+extern BI_db_init relay_back_db_init;
+extern BI_db_open relay_back_db_open;
+extern BI_db_close relay_back_db_close;
+extern BI_db_destroy relay_back_db_destroy;
 
-extern BI_op_bind		relay_back_op_bind;
-extern BI_op_search		relay_back_op_search;
-extern BI_op_compare		relay_back_op_compare;
-extern BI_op_modify		relay_back_op_modify;
-extern BI_op_modrdn		relay_back_op_modrdn;
-extern BI_op_add		relay_back_op_add;
-extern BI_op_delete		relay_back_op_delete;
-extern BI_op_extended		relay_back_op_extended;
-extern BI_entry_release_rw	relay_back_entry_release_rw;
-extern BI_entry_get_rw		relay_back_entry_get_rw;
-extern BI_operational		relay_back_operational;
-extern BI_has_subordinates	relay_back_has_subordinates;
+extern BI_op_bind relay_back_op_bind;
+extern BI_op_search relay_back_op_search;
+extern BI_op_compare relay_back_op_compare;
+extern BI_op_modify relay_back_op_modify;
+extern BI_op_modrdn relay_back_op_modrdn;
+extern BI_op_add relay_back_op_add;
+extern BI_op_delete relay_back_op_delete;
+extern BI_op_extended relay_back_op_extended;
+extern BI_entry_release_rw relay_back_entry_release_rw;
+extern BI_entry_get_rw relay_back_entry_get_rw;
+extern BI_operational relay_back_operational;
+extern BI_has_subordinates relay_back_has_subordinates;
 
 LDAP_END_DECL
 

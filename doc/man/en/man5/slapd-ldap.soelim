@@ -1,5 +1,5 @@
 .\" $ReOpenLDAP$
-.\" Copyright 1992-2017 ReOpenLDAP AUTHORS: please see AUTHORS file.
+.\" Copyright 1992-2018 ReOpenLDAP AUTHORS: please see AUTHORS file.
 .\" All rights reserved.
 .\"
 .\" This file is part of ReOpenLDAP.
@@ -356,7 +356,7 @@ useful when the asserted identities do not exist on the remote server.
 
 Flags can be
 
-\fBoverride,[non\-]prescriptive,proxy\-authz\-[non\-]critical\fP
+\fBoverride,[non\-]prescriptive,proxy\-authz\-[non\-]critical,dn\-{authzid|whoami}\fP
 
 When the
 .B override
@@ -386,6 +386,15 @@ flag is used (the default), the proxyAuthz control is not marked as critical,
 in violation of RFC 4370.  Use of
 .B proxy\-authz\-critical
 is recommended.
+
+When the
+.B dn\-authzid
+flag is used, RFC 3829 LDAP Authorization Identity Controls
+is used to retrieve the identity associated to the SASL identity;
+when the
+.B dn\-whoami
+flag is used, RFC 4532 LDAP Who am I? Operation is performed
+after the bind for the same purpose.
 
 The TLS settings default to the same as the main slapd TLS settings,
 except for
@@ -462,6 +471,13 @@ If
 .BR yes ,
 do not return search reference responses.
 By default, they are returned unless request is LDAPv2.
+
+.TP
+.B omit-unknown-schema <NO|yes>
+If
+.BR yes ,
+do not return objectClasses or attributes that are not known to the local server.
+The default is to return all schema elements.
 
 .TP
 .B noundeffilter <NO|yes>
@@ -672,7 +688,7 @@ Password used with the
 .B idassert\-authcDN
 above.
 This directive is obsoleted by the
-.B crendentials
+.B credentials
 arg of
 .B idassert\-bind
 when \fIbindmethod\fP=\fBsimple\fP, and will be dismissed in the future.

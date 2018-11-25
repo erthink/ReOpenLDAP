@@ -1,5 +1,5 @@
 .\" $ReOpenLDAP$
-.\" Copyright 1992-2017 ReOpenLDAP AUTHORS: please see AUTHORS file.
+.\" Copyright 1992-2018 ReOpenLDAP AUTHORS: please see AUTHORS file.
 .\" All rights reserved.
 .\"
 .\" This file is part of ReOpenLDAP.
@@ -488,6 +488,16 @@ feature.  The default is 0. You may also want to set the
 .B olcWriteTimeout
 option.
 .TP
+.B olcIndexHash64: { on | off }
+Use a 64 bit hash for indexing. The default is to use 32 bit hashes.
+These hashes are used for equality and substring indexing. The 64 bit
+version may be needed to avoid index collisions when the number of
+indexed values exceeds ~64 million. (Note that substring indexing
+generates multiple index values per actual attribute value.)
+Indices generated with 32 bit hashes are incompatible with the 64 bit
+version, and vice versa. Any existing databases must be fully reloaded
+when changing this setting. This directive is only supported on 64 bit CPUs.
+.TP
 .B olcIndexIntLen: <integer>
 Specify the key length for ordered integer indices. The most significant
 bytes of the binary integer will be used for index keys. The default
@@ -711,6 +721,17 @@ Specify which auxprop plugins to use for authentication lookups. The
 default is empty, which just uses slapd's internal support. Usually
 no other auxprop plugins are needed.
 .TP
+.B olcSaslAuxpropsDontUseCopy: <attr> [...]
+Specify which attribute(s) should be subject to the don't use copy control. This
+is necessary for some SASL mechanisms such as OTP to work in a replicated
+environment. The attribute "cmusaslsecretOTP" is the default value.
+.TP
+.B olcSaslAuxpropsDontUseCopyIgnore TRUE | FALSE
+Used to disable replication of the attribute(s) defined by
+olcSaslAuxpropsDontUseCopy and instead use a local value for the attribute. This
+allows the SASL mechanism to continue to work if the master is offline. This can
+cause replication inconsistency. Defaults to FALSE.
+.TP
 .B olcSaslHost: <fqdn>
 Used to specify the fully qualified domain name used for SASL processing.
 .TP
@@ -805,6 +826,11 @@ Note that some OS-es implement automatic TCP buffer tuning.
 Specify the maximum size of the primary thread pool.
 The default is 16; the minimum value is 2.
 .TP
+.B olcThreadQueues: <integer>
+Specify the number of work queues to use for the primary thread pool.
+The default is 1 and this is typically adequate for up to 8 CPU cores.
+The value should not exceed the number of CPUs in the system.
+.TP
 .B olcToolThreads: <integer>
 Specify the maximum number of threads to use in tool mode.
 This should not be greater than the number of CPUs in the system.
@@ -833,7 +859,7 @@ Example:
 olcTLSCipherSuite: HIGH:MEDIUM:+SSLv2
 .TP
 .I GnuTLS:
-TLSCiphersuite SECURE256:!AES-128-CBC
+olcTLSCipherSuite: SECURE256:!AES-128-CBC
 .RE
 
 To check what ciphers a given spec selects in OpenSSL, use:
@@ -918,7 +944,7 @@ When using Mozilla NSS, olcTLSCertificateKeyFile specifies the name of
 a file that contains the password for the key for the certificate specified with
 olcTLSCertificateFile.  The modutil command can be used to turn off password
 protection for the cert/key database.  For example, if olcTLSCACertificatePath
-specifes /etc/reopenldap/certdb as the location of the cert/key database, use
+specifies /etc/reopenldap/certdb as the location of the cert/key database, use
 modutil to change the password to the empty string:
 .nf
 	modutil \-dbdir /etc/reopenldap/certdb \-changepw 'NSS Certificate DB'
@@ -940,6 +966,13 @@ You should append "!ADH" to your cipher suites to ensure that these suites
 are not used.
 When using Mozilla NSS these parameters are always generated randomly
 so this directive is ignored.
+.TP
+.B olcTLSECName: <name>
+Specify the name of a curve to use for Elliptic curve Diffie-Hellman
+ephemeral key exchange.  This is required to enable ECDHE algorithms in
+OpenSSL.  This option is not used with GnuTLS; the curves may be
+chosen in the GnuTLS ciphersuite specification. This option is also
+ignored for Mozilla NSS.
 .TP
 .B olcTLSProtocolMin: <major>[.<minor>]
 Specifies minimum SSL/TLS protocol version that will be negotiated.
@@ -1804,6 +1837,8 @@ FALSE, meaning the contextCSN is stored in the context entry.
 .B [logbase=<base DN>]
 .B [logfilter=<filter str>]
 .B [syncdata=default|accesslog|changelog]
+.B [requirecheckpresent]
+.B [lazycommit]
 .RS
 Specify the current database as a replica which is kept up-to-date with the
 master content by establishing the current
@@ -1839,10 +1874,25 @@ specification as its result set. The consumer
 will send search requests to the provider
 .B slapd
 according to the search specification. The search specification includes
-.B searchbase, scope, filter, attrs, attrsonly, sizelimit,
+.BR searchbase ", " scope ", " filter ", " attrs ", " attrsonly ", " sizelimit ", "
 and
 .B timelimit
-parameters as in the normal search specification. The
+parameters as in the normal search specification.
+The \fBscope\fP defaults to \fBsub\fP, the \fBfilter\fP defaults to
+\fB(objectclass=*)\fP, while there is no default \fBsearchbase\fP. The
+\fBattrs\fP list defaults to \fB"*,+"\fP to return all user and operational
+attributes, and \fBattrsonly\fP is unset by default.
+The \fBsizelimit\fP and \fBtimelimit\fP only
+accept "unlimited" and positive integers, and both default to "unlimited".
+The \fBsizelimit\fP and \fBtimelimit\fP parameters define
+a consumer requested limitation on the number of entries that can be returned
+by the LDAP Content Synchronization operation; as such, it is intended
+to implement partial replication based on the size of the replicated database
+and on the time required by the synchronization.
+Note, however, that any provider-side limits for the replication identity
+will be enforced by the provider regardless of the limits requested
+by the LDAP Content Synchronization operation, much like for any other
+search operation.
 .B exattrs
 option may also be used to specify attributes that should be omitted
 from incoming entries.
@@ -1871,7 +1921,7 @@ operation, a synchronization search remains persistent in the provider slapd.
 Further updates to the master replica will generate
 .B searchResultEntry
 to the consumer slapd as the search responses to the persistent
-synchronization search. If the initial search fails due to an error, the
+synchronization search.  If the initial search fails due to an error, the
 next synchronization search operation is periodically rescheduled at an
 interval time (specified by
 .B interval
@@ -1885,11 +1935,20 @@ For example, retry="60 10 300 3" lets the consumer retry every 60 seconds
 for the first 10 times and then retry every 300 seconds for the next 3
 times before stop retrying. The `+' in <# of retries> means indefinite
 number of retries until success.
+If no
+.B retry
+was specified, by default syncrepl retries every hour forever.
 
 The schema checking can be enforced at the LDAP Sync
 consumer site by turning on the
 .B schemachecking
-parameter. The default is off.
+parameter. The default is \fBoff\fP.
+Schema checking \fBon\fP means that replicated entries must have
+a structural objectClass, must obey to objectClass requirements
+in terms of required/allowed attributes, and that naming attributes
+and distinguished values must be present.
+As a consequence, schema checking should be \fBoff\fP when partial
+replication is used.
 
 The
 .B network\-timeout
@@ -1912,6 +1971,7 @@ and
 .B credentials
 and should only be used when adequate security services
 (e.g. TLS or IPSEC) are in place.
+.B REMEMBER: simple bind credentials must be in cleartext!
 A
 .B bindmethod
 of
@@ -1933,10 +1993,16 @@ keyword above) for a SASL bind can be set with the
 option. A non default SASL realm can be set with the
 .B realm
 option.
+The identity used for synchronization by the consumer should be allowed
+to receive an unlimited number of entries in response to a search request.
 The provider, other than allow authentication of the syncrepl identity,
 should grant that identity appropriate access privileges to the data
 that is being replicated (\fBaccess\fP directive), and appropriate time
-and size limits (\fBlimits\fP directive).
+and size limits.
+This can be accomplished by either allowing unlimited \fBsizelimit\fP
+and \fBtimelimit\fP, or by setting an appropriate \fBlimits\fP statement
+in the consumer's configuration (see \fBsizelimit\fP and \fBlimits\fP
+for details).
 
 The
 .B keepalive
@@ -1987,6 +2053,18 @@ to the obsolete \fIchangelog\fP format. If the
 .B syncdata
 parameter is omitted or set to "default" then the log parameters are
 ignored.
+
+The
+.B requirecheckpresent
+option enforce resync, in case a data provider
+.BR syncprov
+skips the present phase during a refresh stage.
+
+The
+.B lazycommit
+parameter tells the underlying database that it can store changes without
+performing a full flush after each change. This may improve performance
+for the consumer, while sacrificing safety or durability.
 .RE
 .TP
 .B olcUpdateDN: <dn>
@@ -2004,7 +2082,7 @@ used at the master.
 Specify the referral to pass back when
 .BR slapd (8)
 is asked to modify a replicated local database.
-If multiple values are specified, each url is provided.
+If specified multiple times, each url is provided.
 
 .SH DATABASE-SPECIFIC OPTIONS
 Each database may allow specific configuration options; they are

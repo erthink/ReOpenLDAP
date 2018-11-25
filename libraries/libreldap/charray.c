@@ -1,5 +1,5 @@
 /* $ReOpenLDAP$ */
-/* Copyright 1990-2017 ReOpenLDAP AUTHORS: please see AUTHORS file.
+/* Copyright 1990-2018 ReOpenLDAP AUTHORS: please see AUTHORS file.
  * All rights reserved.
  *
  * This file is part of ReOpenLDAP.
@@ -22,253 +22,231 @@
 
 #include "ldap-int.h"
 
-int
-ldap_charray_add(
-    char	***a,
-    const char *s
-)
-{
-	int	n;
+int ldap_charray_add(char ***a, const char *s) {
+  int n;
 
-	if ( *a == NULL ) {
-		*a = (char **) LDAP_MALLOC( 2 * sizeof(char *) );
-		n = 0;
+  if (*a == NULL) {
+    *a = (char **)LDAP_MALLOC(2 * sizeof(char *));
+    n = 0;
 
-		if( *a == NULL ) {
-			return -1;
-		}
+    if (*a == NULL) {
+      return -1;
+    }
 
-	} else {
-		char **new;
+  } else {
+    char **new;
 
-		for ( n = 0; *a != NULL && (*a)[n] != NULL; n++ ) {
-			;	/* NULL */
-		}
+    for (n = 0; *a != NULL && (*a)[n] != NULL; n++) {
+      ; /* NULL */
+    }
 
-		new = (char **) LDAP_REALLOC( (char *) *a,
-		    (n + 2) * sizeof(char *) );
+    new = (char **)LDAP_REALLOC((char *)*a, (n + 2) * sizeof(char *));
 
-		if( new == NULL ) {
-			/* caller is required to call ldap_charray_free(*a) */
-			return -1;
-		}
+    if (new == NULL) {
+      /* caller is required to call ldap_charray_free(*a) */
+      return -1;
+    }
 
-		*a = new;
-	}
+    *a = new;
+  }
 
-	(*a)[n] = LDAP_STRDUP(s);
+  (*a)[n] = LDAP_STRDUP(s);
 
-	if( (*a)[n] == NULL ) {
-		return 1;
-	}
+  if ((*a)[n] == NULL) {
+    return 1;
+  }
 
-	(*a)[++n] = NULL;
+  (*a)[++n] = NULL;
 
-	return 0;
+  return 0;
 }
 
-int
-ldap_charray_merge(
-    char	***a,
-    char	**s
-)
-{
-	int	i, n, nn;
-	char **aa;
+int ldap_charray_merge(char ***a, char **s) {
+  int i, n, nn;
+  char **aa;
 
-	for ( n = 0; *a != NULL && (*a)[n] != NULL; n++ ) {
-		;	/* NULL */
-	}
-	for ( nn = 0; s[nn] != NULL; nn++ ) {
-		;	/* NULL */
-	}
+  for (n = 0; *a != NULL && (*a)[n] != NULL; n++) {
+    ; /* NULL */
+  }
+  for (nn = 0; s[nn] != NULL; nn++) {
+    ; /* NULL */
+  }
 
-	aa = (char **) LDAP_REALLOC( (char *) *a, (n + nn + 1) * sizeof(char *) );
+  aa = (char **)LDAP_REALLOC((char *)*a, (n + nn + 1) * sizeof(char *));
 
-	if( aa == NULL ) {
-		return -1;
-	}
+  if (aa == NULL) {
+    return -1;
+  }
 
-	*a = aa;
+  *a = aa;
 
-	for ( i = 0; i < nn; i++ ) {
-		(*a)[n + i] = LDAP_STRDUP(s[i]);
+  for (i = 0; i < nn; i++) {
+    (*a)[n + i] = LDAP_STRDUP(s[i]);
 
-		if( (*a)[n + i] == NULL ) {
-			for( --i ; i >= 0 ; i-- ) {
-				LDAP_FREE( (*a)[n + i] );
-				(*a)[n + i] = NULL;
-			}
-			return -1;
-		}
-	}
+    if ((*a)[n + i] == NULL) {
+      for (--i; i >= 0; i--) {
+        LDAP_FREE((*a)[n + i]);
+        (*a)[n + i] = NULL;
+      }
+      return -1;
+    }
+  }
 
-	(*a)[n + nn] = NULL;
-	return 0;
+  (*a)[n + nn] = NULL;
+  return 0;
 }
 
-void
-ldap_charray_free( char **a )
-{
-	char	**p;
+void ldap_charray_free(char **a) {
+  char **p;
 
-	if ( a == NULL ) {
-		return;
-	}
+  if (a == NULL) {
+    return;
+  }
 
-	for ( p = a; *p != NULL; p++ ) {
-		if ( *p != NULL ) {
-			LDAP_FREE( *p );
-		}
-	}
+  for (p = a; *p != NULL; p++) {
+    if (*p != NULL) {
+      LDAP_FREE(*p);
+    }
+  }
 
-	LDAP_FREE( (char *) a );
+  LDAP_FREE((char *)a);
 }
 
-int
-ldap_charray_inlist(
-    char	**a,
-    const char *s
-)
-{
-	int	i;
+int ldap_charray_inlist(char **a, const char *s) {
+  int i;
 
-	if( a == NULL ) return 0;
+  if (a == NULL)
+    return 0;
 
-	for ( i=0; a[i] != NULL; i++ ) {
-		if ( strcasecmp( s, a[i] ) == 0 ) {
-			return 1;
-		}
-	}
+  for (i = 0; a[i] != NULL; i++) {
+    if (strcasecmp(s, a[i]) == 0) {
+      return 1;
+    }
+  }
 
-	return 0;
+  return 0;
 }
 
-char **
-ldap_charray_dup( char **a )
-{
-	int	i;
-	char	**new;
+char **ldap_charray_dup(char **a) {
+  int i;
+  char **new;
 
-	for ( i = 0; a[i] != NULL; i++ )
-		;	/* NULL */
+  for (i = 0; a[i] != NULL; i++)
+    ; /* NULL */
 
-	new = (char **) LDAP_MALLOC( (i + 1) * sizeof(char *) );
+  new = (char **)LDAP_MALLOC((i + 1) * sizeof(char *));
 
-	if( new == NULL ) {
-		return NULL;
-	}
+  if (new == NULL) {
+    return NULL;
+  }
 
-	for ( i = 0; a[i] != NULL; i++ ) {
-		new[i] = LDAP_STRDUP( a[i] );
+  for (i = 0; a[i] != NULL; i++) {
+    new[i] = LDAP_STRDUP(a[i]);
 
-		if( new[i] == NULL ) {
-			for( --i ; i >= 0 ; i-- ) {
-				LDAP_FREE( new[i] );
-			}
-			LDAP_FREE( new );
-			return NULL;
-		}
-	}
-	new[i] = NULL;
+    if (new[i] == NULL) {
+      for (--i; i >= 0; i--) {
+        LDAP_FREE(new[i]);
+      }
+      LDAP_FREE(new);
+      return NULL;
+    }
+  }
+  new[i] = NULL;
 
-	return( new );
+  return (new);
 }
 
-char **
-ldap_str2charray( const char *str_in, const char *brkstr )
-{
-	char	**res;
-	char	*str, *s;
-	char	*lasts;
-	int	i;
+char **ldap_str2charray(const char *str_in, const char *brkstr) {
+  char **res;
+  char *str, *s;
+  char *lasts;
+  int i;
 
-	/* protect the input string from strtok */
-	str = LDAP_STRDUP( str_in );
-	if( str == NULL ) {
-		return NULL;
-	}
+  /* protect the input string from strtok */
+  str = LDAP_STRDUP(str_in);
+  if (str == NULL) {
+    return NULL;
+  }
 
-	i = 1;
-	for ( s = str; ; LDAP_UTF8_INCR(s) ) {
-		s = ldap_utf8_strpbrk( s, brkstr );
-		if ( !s ) break;
-		i++;
-	}
+  i = 1;
+  for (s = str;; LDAP_UTF8_INCR(s)) {
+    s = ldap_utf8_strpbrk(s, brkstr);
+    if (!s)
+      break;
+    i++;
+  }
 
-	res = (char **) LDAP_MALLOC( (i + 1) * sizeof(char *) );
+  res = (char **)LDAP_MALLOC((i + 1) * sizeof(char *));
 
-	if( res == NULL ) {
-		LDAP_FREE( str );
-		return NULL;
-	}
+  if (res == NULL) {
+    LDAP_FREE(str);
+    return NULL;
+  }
 
-	i = 0;
+  i = 0;
 
-	for ( s = ldap_utf8_strtok( str, brkstr, &lasts );
-		s != NULL;
-		s = ldap_utf8_strtok( NULL, brkstr, &lasts ) )
-	{
-		res[i] = LDAP_STRDUP( s );
+  for (s = ldap_utf8_strtok(str, brkstr, &lasts); s != NULL;
+       s = ldap_utf8_strtok(NULL, brkstr, &lasts)) {
+    res[i] = LDAP_STRDUP(s);
 
-		if(res[i] == NULL) {
-			for( --i ; i >= 0 ; i-- ) {
-				LDAP_FREE( res[i] );
-			}
-			LDAP_FREE( res );
-			LDAP_FREE( str );
-			return NULL;
-		}
+    if (res[i] == NULL) {
+      for (--i; i >= 0; i--) {
+        LDAP_FREE(res[i]);
+      }
+      LDAP_FREE(res);
+      LDAP_FREE(str);
+      return NULL;
+    }
 
-		i++;
-	}
+    i++;
+  }
 
-	res[i] = NULL;
+  res[i] = NULL;
 
-	LDAP_FREE( str );
-	return( res );
+  LDAP_FREE(str);
+  return (res);
 }
 
-char * ldap_charray2str( char **a, const char *sep )
-{
-	char *s, **v, *p;
-	int len;
-	int slen;
+char *ldap_charray2str(char **a, const char *sep) {
+  char *s, **v, *p;
+  int len;
+  int slen;
 
-	if( sep == NULL ) sep = " ";
+  if (sep == NULL)
+    sep = " ";
 
-	slen = strlen( sep );
-	len = 0;
+  slen = strlen(sep);
+  len = 0;
 
-	for ( v = a; *v != NULL; v++ ) {
-		len += strlen( *v ) + slen;
-	}
+  for (v = a; *v != NULL; v++) {
+    len += strlen(*v) + slen;
+  }
 
-	if ( len == 0 ) {
-		return NULL;
-	}
+  if (len == 0) {
+    return NULL;
+  }
 
-	/* trim extra sep len */
-	len -= slen;
+  /* trim extra sep len */
+  len -= slen;
 
-	s = LDAP_MALLOC ( len + 1 );
+  s = LDAP_MALLOC(len + 1);
 
-	if ( s == NULL ) {
-		return NULL;
-	}
+  if (s == NULL) {
+    return NULL;
+  }
 
-	p = s;
-	for ( v = a; *v != NULL; v++ ) {
-		if ( v != a ) {
-			strncpy( p, sep, slen );
-			p += slen;
-		}
+  p = s;
+  for (v = a; *v != NULL; v++) {
+    if (v != a) {
+      memcpy(p, sep, slen);
+      p += slen;
+    }
 
-		len = strlen( *v );
-		strncpy( p, *v, len );
-		p += len;
-	}
+    len = strlen(*v);
+    memcpy(p, *v, len);
+    p += len;
+  }
 
-	*p = '\0';
-	return s;
+  *p = '\0';
+  return s;
 }

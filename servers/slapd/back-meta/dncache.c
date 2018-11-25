@@ -1,5 +1,5 @@
 /* $ReOpenLDAP$ */
-/* Copyright 1999-2017 ReOpenLDAP AUTHORS: please see AUTHORS file.
+/* Copyright 1999-2018 ReOpenLDAP AUTHORS: please see AUTHORS file.
  * All rights reserved.
  *
  * This file is part of ReOpenLDAP.
@@ -33,10 +33,10 @@
  */
 
 typedef struct metadncacheentry_t {
-	struct berval	dn;
-	int 		target;
+  struct berval dn;
+  int target;
 
-	time_t 		lastupdated;
+  time_t lastupdated;
 } metadncacheentry_t;
 
 /*
@@ -46,18 +46,14 @@ typedef struct metadncacheentry_t {
  * FIXME: modify avl stuff to delete an entry based on cmp
  * (e.g. when ttl expired?)
  */
-int
-meta_dncache_cmp(
-	const void	*c1,
-	const void	*c2 )
-{
-	metadncacheentry_t	*cc1 = ( metadncacheentry_t * )c1;
-	metadncacheentry_t	*cc2 = ( metadncacheentry_t * )c2;
+int meta_dncache_cmp(const void *c1, const void *c2) {
+  metadncacheentry_t *cc1 = (metadncacheentry_t *)c1;
+  metadncacheentry_t *cc2 = (metadncacheentry_t *)c2;
 
-	/*
-	 * case sensitive, because the dn MUST be normalized
-	 */
- 	return ber_bvcmp( &cc1->dn, &cc2->dn);
+  /*
+   * case sensitive, because the dn MUST be normalized
+   */
+  return ber_bvcmp(&cc1->dn, &cc2->dn);
 }
 
 /*
@@ -66,18 +62,14 @@ meta_dncache_cmp(
  * returns -1 in case a duplicate struct metadncacheentry has been inserted;
  * used by avl stuff
  */
-int
-meta_dncache_dup(
-	void		*c1,
-	void		*c2 )
-{
-	metadncacheentry_t	*cc1 = ( metadncacheentry_t * )c1;
-	metadncacheentry_t	*cc2 = ( metadncacheentry_t * )c2;
+int meta_dncache_dup(void *c1, void *c2) {
+  metadncacheentry_t *cc1 = (metadncacheentry_t *)c1;
+  metadncacheentry_t *cc2 = (metadncacheentry_t *)c2;
 
-	/*
-	 * case sensitive, because the dn MUST be normalized
-	 */
- 	return ( ber_bvcmp( &cc1->dn, &cc2->dn ) == 0 ) ? -1 : 0;
+  /*
+   * case sensitive, because the dn MUST be normalized
+   */
+  return (ber_bvcmp(&cc1->dn, &cc2->dn) == 0) ? -1 : 0;
 }
 
 /*
@@ -86,42 +78,37 @@ meta_dncache_dup(
  * returns the target a dn belongs to, or -1 in case the dn is not
  * in the cache
  */
-int
-meta_dncache_get_target(
-	metadncache_t	*cache,
-	struct berval	*ndn )
-{
-	metadncacheentry_t	tmp_entry,
-				*entry;
-	int			target = META_TARGET_NONE;
+int meta_dncache_get_target(metadncache_t *cache, struct berval *ndn) {
+  metadncacheentry_t tmp_entry, *entry;
+  int target = META_TARGET_NONE;
 
-	assert( cache != NULL );
-	assert( ndn != NULL );
+  assert(cache != NULL);
+  assert(ndn != NULL);
 
-	tmp_entry.dn = *ndn;
-	ldap_pvt_thread_mutex_lock( &cache->mutex );
-	entry = ( metadncacheentry_t * )avl_find( cache->tree,
-			( caddr_t )&tmp_entry, meta_dncache_cmp );
+  tmp_entry.dn = *ndn;
+  ldap_pvt_thread_mutex_lock(&cache->mutex);
+  entry = (metadncacheentry_t *)avl_find(cache->tree, (caddr_t)&tmp_entry,
+                                         meta_dncache_cmp);
 
-	if ( entry != NULL ) {
+  if (entry != NULL) {
 
-		/*
-		 * if cache->ttl < 0, cache never expires;
-		 * if cache->ttl = 0 no cache is used; shouldn't get here
-		 * else, cache is used with ttl
-		 */
-		if ( cache->ttl < 0 ) {
-			target = entry->target;
+    /*
+     * if cache->ttl < 0, cache never expires;
+     * if cache->ttl = 0 no cache is used; shouldn't get here
+     * else, cache is used with ttl
+     */
+    if (cache->ttl < 0) {
+      target = entry->target;
 
-		} else {
-			if ( entry->lastupdated+cache->ttl > ldap_time_steady() ) {
-				target = entry->target;
-			}
-		}
-	}
-	ldap_pvt_thread_mutex_unlock( &cache->mutex );
+    } else {
+      if (entry->lastupdated + cache->ttl > ldap_time_steady()) {
+        target = entry->target;
+      }
+    }
+  }
+  ldap_pvt_thread_mutex_unlock(&cache->mutex);
 
-	return target;
+  return target;
 }
 
 /*
@@ -130,62 +117,57 @@ meta_dncache_get_target(
  * updates target and lastupdated of a struct metadncacheentry if exists,
  * otherwise it gets created; returns -1 in case of error
  */
-int
-meta_dncache_update_entry(
-	metadncache_t	*cache,
-	struct berval	*ndn,
-	int 		target )
-{
-	metadncacheentry_t	*entry,
-				tmp_entry;
-	time_t			curr_time = 0L;
-	int			err = 0;
+int meta_dncache_update_entry(metadncache_t *cache, struct berval *ndn,
+                              int target) {
+  metadncacheentry_t *entry, tmp_entry;
+  time_t curr_time = 0L;
+  int err = 0;
 
-	assert( cache != NULL );
-	assert( ndn != NULL );
+  assert(cache != NULL);
+  assert(ndn != NULL);
 
-	/*
-	 * if cache->ttl < 0, cache never expires;
-	 * if cache->ttl = 0 no cache is used; shouldn't get here
-	 * else, cache is used with ttl
-	 */
-	if ( cache->ttl > 0 ) {
-		curr_time = ldap_time_steady();
-	}
+  /*
+   * if cache->ttl < 0, cache never expires;
+   * if cache->ttl = 0 no cache is used; shouldn't get here
+   * else, cache is used with ttl
+   */
+  if (cache->ttl > 0) {
+    curr_time = ldap_time_steady();
+  }
 
-	tmp_entry.dn = *ndn;
+  tmp_entry.dn = *ndn;
 
-	ldap_pvt_thread_mutex_lock( &cache->mutex );
-	entry = ( metadncacheentry_t * )avl_find( cache->tree,
-			( caddr_t )&tmp_entry, meta_dncache_cmp );
+  ldap_pvt_thread_mutex_lock(&cache->mutex);
+  entry = (metadncacheentry_t *)avl_find(cache->tree, (caddr_t)&tmp_entry,
+                                         meta_dncache_cmp);
 
-	if ( entry != NULL ) {
-		entry->target = target;
-		entry->lastupdated = curr_time;
+  if (entry != NULL) {
+    entry->target = target;
+    entry->lastupdated = curr_time;
 
-	} else {
-		entry = ch_malloc( sizeof( metadncacheentry_t ) + ndn->bv_len + 1 );
-		if ( entry == NULL ) {
-			err = -1;
-			goto error_return;
-		}
+  } else {
+    entry = ch_malloc(sizeof(metadncacheentry_t) + ndn->bv_len + 1);
+    if (entry == NULL) {
+      err = -1;
+      goto error_return;
+    }
 
-		entry->dn.bv_len = ndn->bv_len;
-		entry->dn.bv_val = (char *)&entry[ 1 ];
-		memcpy( entry->dn.bv_val, ndn->bv_val, ndn->bv_len );
-		entry->dn.bv_val[ ndn->bv_len ] = '\0';
+    entry->dn.bv_len = ndn->bv_len;
+    entry->dn.bv_val = (char *)&entry[1];
+    memcpy(entry->dn.bv_val, ndn->bv_val, ndn->bv_len);
+    entry->dn.bv_val[ndn->bv_len] = '\0';
 
-		entry->target = target;
-		entry->lastupdated = curr_time;
+    entry->target = target;
+    entry->lastupdated = curr_time;
 
-		err = avl_insert( &cache->tree, ( caddr_t )entry,
-				meta_dncache_cmp, meta_dncache_dup );
-	}
+    err = avl_insert(&cache->tree, (caddr_t)entry, meta_dncache_cmp,
+                     meta_dncache_dup);
+  }
 
 error_return:;
-	ldap_pvt_thread_mutex_unlock( &cache->mutex );
+  ldap_pvt_thread_mutex_unlock(&cache->mutex);
 
-	return err;
+  return err;
 }
 
 /*
@@ -194,29 +176,23 @@ error_return:;
  * updates target and lastupdated of a struct metadncacheentry if exists,
  * otherwise it gets created; returns -1 in case of error
  */
-int
-meta_dncache_delete_entry(
-	metadncache_t	*cache,
-	struct berval	*ndn )
-{
-	metadncacheentry_t	*entry,
-				tmp_entry;
+int meta_dncache_delete_entry(metadncache_t *cache, struct berval *ndn) {
+  metadncacheentry_t *entry, tmp_entry;
 
-	assert( cache != NULL );
-	assert( ndn != NULL );
+  assert(cache != NULL);
+  assert(ndn != NULL);
 
-	tmp_entry.dn = *ndn;
+  tmp_entry.dn = *ndn;
 
-	ldap_pvt_thread_mutex_lock( &cache->mutex );
-	entry = avl_delete( &cache->tree, ( caddr_t )&tmp_entry,
- 			meta_dncache_cmp );
-	ldap_pvt_thread_mutex_unlock( &cache->mutex );
+  ldap_pvt_thread_mutex_lock(&cache->mutex);
+  entry = avl_delete(&cache->tree, (caddr_t)&tmp_entry, meta_dncache_cmp);
+  ldap_pvt_thread_mutex_unlock(&cache->mutex);
 
-	if ( entry != NULL ) {
-		meta_dncache_free( ( void * )entry );
-	}
+  if (entry != NULL) {
+    meta_dncache_free((void *)entry);
+  }
 
-	return 0;
+  return 0;
 }
 
 /*
@@ -225,9 +201,4 @@ meta_dncache_delete_entry(
  * frees an entry
  *
  */
-void
-meta_dncache_free(
-	void		*e )
-{
-	free( e );
-}
+void meta_dncache_free(void *e) { free(e); }

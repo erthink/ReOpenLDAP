@@ -1,5 +1,5 @@
 /* $ReOpenLDAP$ */
-/* Copyright 1992-2017 ReOpenLDAP AUTHORS: please see AUTHORS file.
+/* Copyright 1992-2018 ReOpenLDAP AUTHORS: please see AUTHORS file.
  * All rights reserved.
  *
  * This file is part of ReOpenLDAP.
@@ -17,44 +17,44 @@
 #define _AC_UNISTD_H
 
 #ifdef HAVE_SYS_TYPES_H
-#	include <sys/types.h>
+#include <sys/types.h>
 #endif
 
 #ifdef HAVE_UNISTD_H
-#	include <unistd.h>
+#include <unistd.h>
 #endif
 
 #ifdef HAVE_PROCESS_H
-#	include <process.h>
+#include <process.h>
 #endif
 
 /* note: callers of crypt(3) should include <ac/crypt.h> */
 
 #if defined(HAVE_GETPASSPHRASE)
-LDAP_LIBC_F(char*)(getpassphrase)();
+LDAP_LIBC_F(char *)(getpassphrase)();
 
 #else
 #define getpassphrase(p) lutil_getpass(p)
-LDAP_LUTIL_F(char*)(lutil_getpass) LDAP_P((const char *getpass));
+LDAP_LUTIL_F(char *)(lutil_getpass)(const char *getpass);
 #endif
 
 /* getopt() defines may be in separate include file */
 #ifdef HAVE_GETOPT_H
-#	include <getopt.h>
+#include <getopt.h>
 
 #elif !defined(HAVE_GETOPT)
-	/* no getopt, assume we need getopt-compat.h */
-#	include <getopt-compat.h>
+/* no getopt, assume we need getopt-compat.h */
+#include <getopt-compat.h>
 
 #else
-	/* assume we need to declare these externs */
-	LDAP_LIBC_V (char *) optarg;
-	LDAP_LIBC_V (int) optind, opterr, optopt;
+/* assume we need to declare these externs */
+LDAP_LIBC_V(char *) optarg;
+LDAP_LIBC_V(int) optind, opterr, optopt;
 #endif
 
 /* use lutil file locking */
-#define ldap_lockf(x)	lutil_lockf(x)
-#define ldap_unlockf(x)	lutil_unlockf(x)
+#define ldap_lockf(x) lutil_lockf(x)
+#define ldap_unlockf(x) lutil_unlockf(x)
 #include <lutil_lockf.h>
 
 /*

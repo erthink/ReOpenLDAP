@@ -1,5 +1,5 @@
 /* $ReOpenLDAP$ */
-/* Copyright 2000-2017 ReOpenLDAP AUTHORS: please see AUTHORS file.
+/* Copyright 2000-2018 ReOpenLDAP AUTHORS: please see AUTHORS file.
  * All rights reserved.
  *
  * This file is part of ReOpenLDAP.
@@ -28,101 +28,97 @@
 #include "slap.h"
 #include "proto-dnssrv.h"
 
-int
-dnssrv_back_referrals(
-    Operation	*op,
-    SlapReply	*rs )
-{
-	int i;
-	int rc = LDAP_OTHER;
-	char *domain = NULL;
-	char *hostlist = NULL;
-	char **hosts = NULL;
-	BerVarray urls = NULL;
+int dnssrv_back_referrals(Operation *op, SlapReply *rs) {
+  int i;
+  int rc = LDAP_OTHER;
+  char *domain = NULL;
+  char *hostlist = NULL;
+  char **hosts = NULL;
+  BerVarray urls = NULL;
 
-	if ( BER_BVISEMPTY( &op->o_req_dn ) ) {
-		/* FIXME: need some means to determine whether the database
-		 * is a glue instance */
-		if ( SLAP_GLUE_INSTANCE( op->o_bd ) ) {
-			return LDAP_SUCCESS;
-		}
+  if (BER_BVISEMPTY(&op->o_req_dn)) {
+    /* FIXME: need some means to determine whether the database
+     * is a glue instance */
+    if (SLAP_GLUE_INSTANCE(op->o_bd)) {
+      return LDAP_SUCCESS;
+    }
 
-		rs->sr_text = "DNS SRV operation upon null (empty) DN disallowed";
-		return LDAP_UNWILLING_TO_PERFORM;
-	}
+    rs->sr_text = "DNS SRV operation upon null (empty) DN disallowed";
+    return LDAP_UNWILLING_TO_PERFORM;
+  }
 
-	if( get_manageDSAit( op ) ) {
-		if( op->o_tag == LDAP_REQ_SEARCH ) {
-			return LDAP_SUCCESS;
-		}
+  if (get_manageDSAit(op)) {
+    if (op->o_tag == LDAP_REQ_SEARCH) {
+      return LDAP_SUCCESS;
+    }
 
-		rs->sr_text = "DNS SRV problem processing manageDSAit control";
-		return LDAP_OTHER;
-	}
+    rs->sr_text = "DNS SRV problem processing manageDSAit control";
+    return LDAP_OTHER;
+  }
 
-	if( ldap_dn2domain( op->o_req_dn.bv_val, &domain ) || domain == NULL ) {
-		rs->sr_err = LDAP_REFERRAL;
-		rs->sr_ref = default_referral;
-		send_ldap_result( op, rs );
-		rs->sr_ref = NULL;
-		return LDAP_REFERRAL;
-	}
+  if (ldap_dn2domain(op->o_req_dn.bv_val, &domain) || domain == NULL) {
+    rs->sr_err = LDAP_REFERRAL;
+    rs->sr_ref = default_referral;
+    send_ldap_result(op, rs);
+    rs->sr_ref = NULL;
+    return LDAP_REFERRAL;
+  }
 
-	Debug( LDAP_DEBUG_TRACE, "DNSSRV: dn=\"%s\" -> domain=\"%s\"\n",
-		op->o_req_dn.bv_val, domain );
+  Debug(LDAP_DEBUG_TRACE, "DNSSRV: dn=\"%s\" -> domain=\"%s\"\n",
+        op->o_req_dn.bv_val, domain);
 
-	i = ldap_domain2hostlist( domain, &hostlist );
-	if ( i ) {
-		Debug( LDAP_DEBUG_TRACE,
-			"DNSSRV: domain2hostlist(%s) returned %d\n",
-			domain, i );
-		rs->sr_text = "no DNS SRV RR available for DN";
-		rc = LDAP_NO_SUCH_OBJECT;
-		goto done;
-	}
+  i = ldap_domain2hostlist(domain, &hostlist);
+  if (i) {
+    Debug(LDAP_DEBUG_TRACE, "DNSSRV: domain2hostlist(%s) returned %d\n", domain,
+          i);
+    rs->sr_text = "no DNS SRV RR available for DN";
+    rc = LDAP_NO_SUCH_OBJECT;
+    goto done;
+  }
 
-	hosts = ldap_str2charray( hostlist, " " );
+  hosts = ldap_str2charray(hostlist, " ");
 
-	if( hosts == NULL ) {
-		Debug( LDAP_DEBUG_TRACE, "DNSSRV: str2charrary error\n" );
-		rs->sr_text = "problem processing DNS SRV records for DN";
-		goto done;
-	}
+  if (hosts == NULL) {
+    Debug(LDAP_DEBUG_TRACE, "DNSSRV: str2charray error\n");
+    rs->sr_text = "problem processing DNS SRV records for DN";
+    goto done;
+  }
 
-	for( i=0; hosts[i] != NULL; i++) {
-		struct berval url;
+  for (i = 0; hosts[i] != NULL; i++) {
+    struct berval url;
 
-		url.bv_len = STRLENOF( "ldap://" ) + strlen( hosts[i] );
-		url.bv_val = ch_malloc( url.bv_len + 1 );
+    url.bv_len = STRLENOF("ldap://") + strlen(hosts[i]);
+    url.bv_val = ch_malloc(url.bv_len + 1);
 
-		strcpy( url.bv_val, "ldap://" );
-		strcpy( &url.bv_val[STRLENOF( "ldap://" )], hosts[i] );
+    strcpy(url.bv_val, "ldap://");
+    strcpy(&url.bv_val[STRLENOF("ldap://")], hosts[i]);
 
-		if ( ber_bvarray_add( &urls, &url ) < 0 ) {
-			free( url.bv_val );
-			rs->sr_text = "problem processing DNS SRV records for DN";
-			goto done;
-		}
-	}
+    if (ber_bvarray_add(&urls, &url) < 0) {
+      free(url.bv_val);
+      rs->sr_text = "problem processing DNS SRV records for DN";
+      goto done;
+    }
+  }
 
-	Statslog( LDAP_DEBUG_STATS,
-	    "%s DNSSRV p=%d dn=\"%s\" url=\"%s\"\n",
-	    op->o_log_prefix, op->o_protocol,
-		op->o_req_dn.bv_val, urls[0].bv_val );
+  Statslog(LDAP_DEBUG_STATS, "%s DNSSRV p=%d dn=\"%s\" url=\"%s\"\n",
+           op->o_log_prefix, op->o_protocol, op->o_req_dn.bv_val,
+           urls[0].bv_val);
 
-	Debug( LDAP_DEBUG_TRACE, "DNSSRV: dn=\"%s\" -> url=\"%s\"\n",
-		op->o_req_dn.bv_val, urls[0].bv_val );
+  Debug(LDAP_DEBUG_TRACE, "DNSSRV: dn=\"%s\" -> url=\"%s\"\n",
+        op->o_req_dn.bv_val, urls[0].bv_val);
 
-	rs->sr_ref = urls;
-	send_ldap_error( op, rs, LDAP_REFERRAL,
-		"DNS SRV generated referrals" );
-	rs->sr_ref = NULL;
-	rc = LDAP_REFERRAL;
+  rs->sr_ref = urls;
+  send_ldap_error(op, rs, LDAP_REFERRAL, "DNS SRV generated referrals");
+  rs->sr_ref = NULL;
+  rc = LDAP_REFERRAL;
 
 done:
-	if( domain != NULL ) ch_free( domain );
-	if( hostlist != NULL ) ch_free( hostlist );
-	if( hosts != NULL ) ldap_charray_free( hosts );
-	ber_bvarray_free( urls );
-	return rc;
+  if (domain != NULL)
+    ch_free(domain);
+  if (hostlist != NULL)
+    ch_free(hostlist);
+  if (hosts != NULL)
+    ldap_charray_free(hosts);
+  ber_bvarray_free(urls);
+  return rc;
 }

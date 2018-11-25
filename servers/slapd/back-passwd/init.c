@@ -1,5 +1,5 @@
 /* $ReOpenLDAP$ */
-/* Copyright 1990-2017 ReOpenLDAP AUTHORS: please see AUTHORS file.
+/* Copyright 1990-2018 ReOpenLDAP AUTHORS: please see AUTHORS file.
  * All rights reserved.
  *
  * This file is part of ReOpenLDAP.
@@ -29,89 +29,74 @@ AttributeDescription *ad_desc;
 
 static BI_db_init passwd_back_db_init;
 
-int
-passwd_back_initialize(
-    BackendInfo	*bi
-)
-{
-	ldap_pvt_thread_mutex_init( &passwd_mutex );
+int passwd_back_initialize(BackendInfo *bi) {
+  ldap_pvt_thread_mutex_init(&passwd_mutex);
 
-	bi->bi_open = passwd_back_open;
-	bi->bi_config = 0;
-	bi->bi_close = 0;
-	bi->bi_destroy = passwd_back_destroy;
+  bi->bi_open = passwd_back_open;
+  bi->bi_config = 0;
+  bi->bi_close = 0;
+  bi->bi_destroy = passwd_back_destroy;
 
-	bi->bi_db_init = passwd_back_db_init;
-	bi->bi_db_config = 0;
-	bi->bi_db_open = 0;
-	bi->bi_db_close = 0;
-	bi->bi_db_destroy = 0;
+  bi->bi_db_init = passwd_back_db_init;
+  bi->bi_db_config = 0;
+  bi->bi_db_open = 0;
+  bi->bi_db_close = 0;
+  bi->bi_db_destroy = 0;
 
-	bi->bi_op_bind = 0;
-	bi->bi_op_unbind = 0;
-	bi->bi_op_search = passwd_back_search;
-	bi->bi_op_compare = 0;
-	bi->bi_op_modify = 0;
-	bi->bi_op_modrdn = 0;
-	bi->bi_op_add = 0;
-	bi->bi_op_delete = 0;
-	bi->bi_op_abandon = 0;
+  bi->bi_op_bind = 0;
+  bi->bi_op_unbind = 0;
+  bi->bi_op_search = passwd_back_search;
+  bi->bi_op_compare = 0;
+  bi->bi_op_modify = 0;
+  bi->bi_op_modrdn = 0;
+  bi->bi_op_add = 0;
+  bi->bi_op_delete = 0;
+  bi->bi_op_abandon = 0;
 
-	bi->bi_extended = 0;
+  bi->bi_extended = 0;
 
-	bi->bi_chk_referrals = 0;
+  bi->bi_chk_referrals = 0;
 
-	bi->bi_connection_init = 0;
-	bi->bi_connection_destroy = 0;
+  bi->bi_connection_init = 0;
+  bi->bi_connection_destroy = 0;
 
-	return passwd_back_init_cf( bi );
+  return passwd_back_init_cf(bi);
 }
 
-int
-passwd_back_open(
-	BackendInfo *bi
-)
-{
-	const char	*text;
-	int		rc;
+int passwd_back_open(BackendInfo *bi) {
+  const char *text;
+  int rc;
 
-	rc = slap_str2ad( "sn", &ad_sn, &text );
-	if ( rc != LDAP_SUCCESS ) {
-		Debug( LDAP_DEBUG_ANY, "passwd_back_open: "
-			"slap_str2ad(\"%s\") returned %d: %s\n",
-			"sn", rc, text );
-		return -1;
-	}
-	rc = slap_str2ad( "description", &ad_desc, &text );
-	if ( rc != LDAP_SUCCESS ) {
-		Debug( LDAP_DEBUG_ANY, "passwd_back_open: "
-			"slap_str2ad(\"%s\") returned %d: %s\n",
-			"description", rc, text );
-		return -1;
-	}
+  rc = slap_str2ad("sn", &ad_sn, &text);
+  if (rc != LDAP_SUCCESS) {
+    Debug(LDAP_DEBUG_ANY,
+          "passwd_back_open: "
+          "slap_str2ad(\"%s\") returned %d: %s\n",
+          "sn", rc, text);
+    return -1;
+  }
+  rc = slap_str2ad("description", &ad_desc, &text);
+  if (rc != LDAP_SUCCESS) {
+    Debug(LDAP_DEBUG_ANY,
+          "passwd_back_open: "
+          "slap_str2ad(\"%s\") returned %d: %s\n",
+          "description", rc, text);
+    return -1;
+  }
 
-	return 0;
+  return 0;
 }
 
-int
-passwd_back_destroy(
-	BackendInfo *bi
-)
-{
-	ldap_pvt_thread_mutex_destroy( &passwd_mutex );
-	return 0;
+int passwd_back_destroy(BackendInfo *bi) {
+  ldap_pvt_thread_mutex_destroy(&passwd_mutex);
+  return 0;
 }
 
-static int
-passwd_back_db_init(
-	Backend *be,
-	struct config_reply_s *cr
-)
-{
-	be->be_cf_ocs = be->bd_info->bi_cf_ocs;
-	return 0;
+static int passwd_back_db_init(Backend *be, struct config_reply_s *cr) {
+  be->be_cf_ocs = be->bd_info->bi_cf_ocs;
+  return 0;
 }
 
 #if SLAPD_PASSWD == SLAPD_MOD_DYNAMIC
-SLAP_BACKEND_INIT_MODULE( passwd )
+SLAP_BACKEND_INIT_MODULE(passwd)
 #endif /* SLAPD_PASSWD == SLAPD_MOD_DYNAMIC */

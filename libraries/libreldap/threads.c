@@ -1,5 +1,5 @@
 /* $ReOpenLDAP$ */
-/* Copyright 1990-2017 ReOpenLDAP AUTHORS: please see AUTHORS file.
+/* Copyright 1990-2018 ReOpenLDAP AUTHORS: please see AUTHORS file.
  * All rights reserved.
  *
  * This file is part of ReOpenLDAP.
@@ -31,65 +31,46 @@
  *	see tpool.c for generic thread pool implementation
  */
 
+int ldap_pvt_thread_initialize(void) {
+  int rc;
+  static int init = 0;
 
-int ldap_pvt_thread_initialize( void )
-{
-	int rc;
-	static int init = 0;
-	ldap_pvt_thread_rmutex_t rm;
-	ldap_pvt_thread_t tid;
+  /* we only get one shot at this */
+  if (init++)
+    return -1;
 
-	/* we only get one shot at this */
-	if( init++ ) return -1;
-
-	rc = ldap_int_thread_initialize();
-	if( rc ) return rc;
+  rc = ldap_int_thread_initialize();
+  if (rc)
+    return rc;
 
 #ifndef LDAP_THREAD_HAVE_TPOOL
-	rc = ldap_int_thread_pool_startup();
-	if( rc ) return rc;
+  rc = ldap_int_thread_pool_startup();
+  if (rc)
+    return rc;
 #endif
 
-	/* kludge to pull symbol definitions in */
-	ldap_pvt_thread_rmutex_init( &rm );
-	tid = ldap_pvt_thread_self();
-	ldap_pvt_thread_rmutex_lock( &rm, tid );
-	ldap_pvt_thread_rmutex_trylock( &rm, tid );
-	ldap_pvt_thread_rmutex_unlock( &rm, tid );
-	ldap_pvt_thread_rmutex_unlock( &rm, tid );
-	ldap_pvt_thread_rmutex_destroy( &rm );
-
-	return 0;
+  /* kludge to pull symbol definitions in */
+  ldap_pvt_thread_self();
+  return 0;
 }
 
-int ldap_pvt_thread_destroy( void )
-{
+int ldap_pvt_thread_destroy(void) {
 #ifndef LDAP_THREAD_HAVE_TPOOL
-	(void) ldap_int_thread_pool_shutdown();
+  (void)ldap_int_thread_pool_shutdown();
 #endif
-	return ldap_int_thread_destroy();
+  return ldap_int_thread_destroy();
 }
-
 
 /*
  * Default implementations of some LDAP thread routines
  */
 
-
 #ifndef LDAP_THREAD_HAVE_GETCONCURRENCY
-int
-ldap_pvt_thread_get_concurrency ( void )
-{
-	return 1;
-}
+int ldap_pvt_thread_get_concurrency(void) { return 1; }
 #endif
 
 #ifndef LDAP_THREAD_HAVE_SETCONCURRENCY
-int
-ldap_pvt_thread_set_concurrency ( int concurrency )
-{
-	return 1;
-}
+int ldap_pvt_thread_set_concurrency(int concurrency) { return 1; }
 #endif
 
 #ifndef LDAP_THREAD_HAVE_SLEEP
@@ -97,12 +78,8 @@ ldap_pvt_thread_set_concurrency ( int concurrency )
  * Here we assume we have fully preemptive threads and that sleep()
  * does the right thing.
  */
-unsigned int
-ldap_pvt_thread_sleep(
-	unsigned int interval
-)
-{
-	sleep( interval );
-	return 0;
+unsigned int ldap_pvt_thread_sleep(unsigned int interval) {
+  sleep(interval);
+  return 0;
 }
 #endif

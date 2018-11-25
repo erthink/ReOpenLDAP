@@ -1,5 +1,5 @@
 /* $ReOpenLDAP$ */
-/* Copyright 1990-2017 ReOpenLDAP AUTHORS: please see AUTHORS file.
+/* Copyright 1990-2018 ReOpenLDAP AUTHORS: please see AUTHORS file.
  * All rights reserved.
  *
  * This file is part of ReOpenLDAP.
@@ -23,28 +23,25 @@
 
 #include "slap.h"
 
-int
-do_unbind( Operation *op, SlapReply *rs )
-{
-	Debug( LDAP_DEBUG_TRACE, "%s do_unbind\n",
-		op->o_log_prefix );
+int do_unbind(Operation *op, SlapReply *rs) {
+  Debug(LDAP_DEBUG_TRACE, "%s do_unbind\n", op->o_log_prefix);
 
-	/*
-	 * Parse the unbind request.  It looks like this:
-	 *
-	 *	UnBindRequest ::= NULL
-	 */
+  /*
+   * Parse the unbind request.  It looks like this:
+   *
+   *	UnBindRequest ::= NULL
+   */
 
-	Statslog( LDAP_DEBUG_STATS, "%s UNBIND\n", op->o_log_prefix );
+  Statslog(LDAP_DEBUG_STATS, "%s UNBIND\n", op->o_log_prefix);
 
-	if ( frontendDB->be_unbind ) {
-		op->o_bd = frontendDB;
-		(void)frontendDB->be_unbind( op, rs );
-		op->o_bd = NULL;
-	}
+  if (frontendDB->be_unbind) {
+    op->o_bd = frontendDB;
+    (void)frontendDB->be_unbind(op, rs);
+    op->o_bd = NULL;
+  }
 
-	/* pass the unbind to all backends */
-	(void)backend_unbind( op, rs );
+  /* pass the unbind to all backends */
+  (void)backend_unbind(op, rs);
 
-	return 0;
+  return 0;
 }

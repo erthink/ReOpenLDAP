@@ -1,5 +1,5 @@
 .\" $ReOpenLDAP$
-.\" Copyright 1992-2017 ReOpenLDAP AUTHORS: please see AUTHORS file.
+.\" Copyright 1992-2018 ReOpenLDAP AUTHORS: please see AUTHORS file.
 .\" All rights reserved.
 .\"
 .\" This file is part of ReOpenLDAP.
@@ -141,7 +141,7 @@ trying to return as much data as possible.
 If the value is set to \fBstop\fP, the search is terminated as soon
 as an error is returned by one target, and the error is immediately
 propagated to the client.
-If the value is set to \fBreport\fP, the search is continuated to the end
+If the value is set to \fBreport\fP, the search is continued to the end
 but, in case at least one target returned an error code, the first
 non-success error code is returned.
 
@@ -502,6 +502,15 @@ permissions, or the asserted identities must have appropriate
 .I authzFrom
 permissions.  Note, however, that the ID assertion feature is mostly
 useful when the asserted identities do not exist on the remote server.
+When
+.I bindmethod
+is
+.BR SASL ,
+the
+.I authcDN
+must be specified in addition to the
+.IR authcID ,
+although it is not used within the authentication process.
 
 Flags can be
 

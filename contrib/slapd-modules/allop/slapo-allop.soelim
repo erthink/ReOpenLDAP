@@ -1,5 +1,5 @@
 .\" $ReOpenLDAP$
-.\" Copyright 1992-2017 ReOpenLDAP AUTHORS: please see AUTHORS file.
+.\" Copyright 1992-2018 ReOpenLDAP AUTHORS: please see AUTHORS file.
 .\" All rights reserved.
 .\"
 .\" This file is part of ReOpenLDAP.
@@ -39,7 +39,7 @@ directive.
 .B allop-URI <ldapURI>
 Specify the base and the scope of search operations that trigger the overlay.
 By default, it is "ldap:///??base", i.e. it only applies to the rootDSE.
-This requires the overlay to be instantited as global.
+This requires the overlay to be instantiated as global.
 
 .SH EXAMPLES
 .LP
@@ -59,7 +59,7 @@ affects all requests
 affects only requests directed to the suffix of a database
 .nf
         # per database
-        database        bdb
+        database        mdb
         suffix          "dc=example,dc=com"
         # database specific directives ...
         overlay         allop

@@ -1,5 +1,5 @@
 /* $ReOpenLDAP$ */
-/* Copyright 1992-2017 ReOpenLDAP AUTHORS: please see AUTHORS file.
+/* Copyright 1992-2018 ReOpenLDAP AUTHORS: please see AUTHORS file.
  * All rights reserved.
  *
  * This file is part of ReOpenLDAP.
@@ -23,41 +23,40 @@
 
 #include <ldap_dirs.h>
 
-#define LDAP_CONF_FILE	LDAP_SYSCONFDIR LDAP_DIRSEP "ldap.conf"
+#define LDAP_CONF_FILE LDAP_SYSCONFDIR LDAP_DIRSEP "ldap.conf"
 #define LDAP_USERRC_FILE "ldaprc"
-#define LDAP_ENV_PREFIX	"LDAP"
-#define SASL_CONFIGPATH	LDAP_SYSCONFDIR LDAP_DIRSEP "sasl2"
+#define LDAP_ENV_PREFIX "LDAP"
+#define SASL_CONFIGPATH LDAP_SYSCONFDIR LDAP_DIRSEP "sasl2"
 
 #ifndef LDAPI_SOCK
-	/* default ldapi:// socket */
-#	define LDAPI_SOCK LDAP_RUNDIR LDAP_DIRSEP "slapd" LDAP_DIRSEP "ldapi"
+/* default ldapi:// socket */
+#define LDAPI_SOCK LDAP_RUNDIR LDAP_DIRSEP "slapd" LDAP_DIRSEP "ldapi"
 #endif
 
 /*
  * SLAPD DEFINITIONS
  */
-	/* location of the default slapd config file */
-#define SLAPD_DEFAULT_CONFIGFILE	LDAP_SYSCONFDIR LDAP_DIRSEP "slapd.conf"
-#define SLAPD_DEFAULT_CONFIGDIR		LDAP_SYSCONFDIR LDAP_DIRSEP "slapd.d"
-#define SLAPD_DEFAULT_DB_DIR		LDAP_VARDIR LDAP_DIRSEP "reopenldap-data"
-#define SLAPD_DEFAULT_DB_MODE		0600
-#define SLAPD_DEFAULT_UCDATA		LDAP_DATADIR LDAP_DIRSEP "ucdata"
-	/* default max deref depth for aliases */
-#define SLAPD_DEFAULT_MAXDEREFDEPTH	15
-	/* default sizelimit on number of entries from a search */
-#define SLAPD_DEFAULT_SIZELIMIT		500
-	/* default timelimit to spend on a search */
-#define SLAPD_DEFAULT_TIMELIMIT		3600
+/* location of the default slapd config file */
+#define SLAPD_DEFAULT_CONFIGFILE LDAP_SYSCONFDIR LDAP_DIRSEP "slapd.conf"
+#define SLAPD_DEFAULT_CONFIGDIR LDAP_SYSCONFDIR LDAP_DIRSEP "slapd.d"
+#define SLAPD_DEFAULT_DB_DIR LDAP_VARDIR LDAP_DIRSEP "reopenldap-data"
+#define SLAPD_DEFAULT_DB_MODE 0600
+#define SLAPD_DEFAULT_UCDATA LDAP_DATADIR LDAP_DIRSEP "ucdata"
+/* default max deref depth for aliases */
+#define SLAPD_DEFAULT_MAXDEREFDEPTH 15
+/* default sizelimit on number of entries from a search */
+#define SLAPD_DEFAULT_SIZELIMIT 500
+/* default timelimit to spend on a search */
+#define SLAPD_DEFAULT_TIMELIMIT 3600
 
 /* the following DNs must be normalized! */
-	/* dn of the default subschema subentry */
-#define SLAPD_SCHEMA_DN			"cn=Subschema"
-	/* dn of the default "monitor" subentry */
-#define SLAPD_MONITOR_DN		"cn=Monitor"
-
+/* dn of the default subschema subentry */
+#define SLAPD_SCHEMA_DN "cn=Subschema"
+/* dn of the default "monitor" subentry */
+#define SLAPD_MONITOR_DN "cn=Monitor"
 
 #ifndef SLAPD_BIGLOCK_TRACELATENCY
-#	define SLAPD_BIGLOCK_TRACELATENCY 0
+#define SLAPD_BIGLOCK_TRACELATENCY 0
 #endif
 
 #endif /* _LDAP_DEFAULTS_H */

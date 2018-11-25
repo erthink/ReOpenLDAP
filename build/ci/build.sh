@@ -2,6 +2,7 @@
 
 ncpu=$((grep processor /proc/cpuinfo || echo ?) | wc -l)
 lalim=$((ncpu*4))
+export LC_ALL=C
 
 srcdir=$(pwd)
 
@@ -40,17 +41,18 @@ configure() {
 	${srcdir}/configure "$@" > configure.log
 }
 
-flag_autoconf=0
+flag_forceautoreconf=0
+if [ ! -x ${srcdir}/configure ]; then
+	notice "info: NOT saw ./configure, will bootstrap"
+	flag_forceautoreconf=1
+fi
+
 flag_dist=0
 if [ -e configure.ac ]; then
 	notice "info: saw modern ./configure.ac"
-	modern_configure=1
 	flag_insrc=0
 else
-	notice "info: NOT saw modern ./configure.ac"
-	modern_configure=0
-	flag_autoconf=0
-	flag_insrc=1
+	failure "modern ./configure.ac is required"
 fi
 
 flag_debug=0
@@ -135,7 +137,7 @@ for arg in "$@"; do
 	--dist)
 		flag_dist=1
 		flag_clean=1
-		flag_autoconf=1
+		flag_forceautoreconf=1
 		;;
 	--no-dist)
 		flag_dist=0
@@ -147,10 +149,10 @@ for arg in "$@"; do
 		flag_insrc=0
 		;;
 	--autoconf)
-		flag_autoconf=1
+		flag_forceautoreconf=1
 		;;
 	--no-autoconf)
-		flag_autoconf=0
+		flag_forceautoreconf=0
 		flag_dist=0
 		;;
 	--hide)
@@ -191,7 +193,6 @@ for arg in "$@"; do
 	--no-clean | --do-not-clean)
 		flag_clean=0
 		flag_dist=0
-		flag_autoconf=0
 		;;
 	--size)
 		flag_O=-Os
@@ -282,15 +283,9 @@ fi
 if [ $flag_dynamic -ne 0 ]; then
 	MOD=mod
 	CONFIGURE_ARGS+=" --enable-shared --disable-static --enable-modules"
-	if [ $modern_configure -eq 0 ]; then
-		CONFIGURE_ARGS+=" --enable-dynamic"
-	fi
 else
 	MOD=yes
 	CONFIGURE_ARGS+=" --disable-shared --enable-static --disable-modules"
-	if [ $modern_configure -eq 0 ]; then
-		CONFIGURE_ARGS+=" --disable-dynamic"
-	fi
 fi
 
 CONFIGURE_ARGS+=" --enable-backends=${MOD}"
@@ -336,9 +331,9 @@ IODBC_INCLUDES=$([ -d /usr/include/iodbc ] && echo "-I/usr/include/iodbc")
 #======================================================================
 
 CPPFLAGS=
-CFLAGS="-Wall -ggdb3 -gdwarf-4"
+EXTRA_CFLAGS="-Wall -ggdb3 -gdwarf-4"
 if [ $flag_hide -ne 0 ]; then
-	CFLAGS+=" -fvisibility=hidden"
+	EXTRA_CFLAGS+=" -fvisibility=hidden"
 	if [ $flag_asan -ne 0 -o $flag_tsan -ne 0 ] && [ $flag_lto -ne 0 ]; then
 		notice "*** LTO will be disabled for ASAN/TSAN with --hide"
 		flag_lto=0
@@ -367,7 +362,7 @@ if [ -z "$CXX" ]; then
 fi
 
 if grep -q gcc <<< "$CC"; then
-	CFLAGS+=" -fvar-tracking-assignments"
+	EXTRA_CFLAGS+=" -fvar-tracking-assignments"
 elif grep -q clang <<< "$CC"; then
 	LLVM_VERSION="$($CC --version | sed -n 's/.\+ version \([0-9]\.[0-9]\)\.[0-9]-.*/\1/p')"
 	echo "LLVM_VERSION	= $LLVM_VERSION"
@@ -376,20 +371,20 @@ elif grep -q clang <<< "$CC"; then
 		LTO_PLUGIN=/usr/lib/LLVMgold.so
 	fi
 	echo "LTO_PLUGIN	= $LTO_PLUGIN"
-	CFLAGS+=" -Wno-pointer-bool-conversion"
+	EXTRA_CFLAGS+=" -Wno-pointer-bool-conversion"
 fi
 
 if [ $flag_debug -ne 0 ]; then
-	CFLAGS+=" -O0"
+	EXTRA_CFLAGS+=" -O0"
 else
-	CFLAGS+=" ${flag_O}"
+	EXTRA_CFLAGS+=" ${flag_O}"
 fi
 
 if [ $flag_lto -ne 0 ]; then
 	if grep -q gcc <<< "$CC" && $CC -v 2>&1 | grep -q -i lto \
 	&& [ -n "$(which gcc-ar$CC_VER_SUFF)" -a -n "$(which gcc-nm$CC_VER_SUFF)" -a -n "$(which gcc-ranlib$CC_VER_SUFF)" ]; then
 		notice "*** GCC Link-Time Optimization (LTO) will be used"
-		CFLAGS+=" -flto=jobserver -fno-fat-lto-objects -fuse-linker-plugin -fwhole-program"
+		EXTRA_CFLAGS+=" -flto=jobserver -fno-fat-lto-objects -fuse-linker-plugin -fwhole-program"
 		export AR=gcc-ar$CC_VER_SUFF NM=gcc-nm$CC_VER_SUFF RANLIB=gcc-ranlib$CC_VER_SUFF
 	elif grep -q clang <<< "$CC" && [ -e "$LTO_PLUGIN" -a -n "$(which ld.gold)" ]; then
 		notice "*** CLANG Link-Time Optimization (LTO) will be used"
@@ -420,37 +415,26 @@ if [ $flag_lto -ne 0 ]; then
 fi
 
 if [ $flag_check -ne 0 ]; then
-	CFLAGS+=" -fstack-protector-all"
-	if [ $modern_configure -ne 0 ]; then
-		CONFIGURE_ARGS+=" --enable-check=default --enable-hipagut=yes --enable-debug"
-	else
-		CFLAGS+=" -DLDAP_MEMORY_CHECK -DLDAP_MEMORY_DEBUG"
-		CONFIGURE_ARGS+=" --enable-debug"
-	fi
+	EXTRA_CFLAGS+=" -fstack-protector-all"
+	CONFIGURE_ARGS+=" --enable-check=default --enable-hipagut=yes --enable-debug"
 else
-	CFLAGS+=" -fstack-protector"
+	EXTRA_CFLAGS+=" -fstack-protector"
 	CONFIGURE_ARGS+=" --disable-debug"
 fi
 
 if [ $flag_valgrind -ne 0 ]; then
-	if [ $modern_configure -ne 0 ]; then
-		CONFIGURE_ARGS+=" --enable-valgrind"
-	else
-		CFLAGS+=" -DUSE_VALGRIND"
-	fi
+	CONFIGURE_ARGS+=" --enable-valgrind"
 else
-	if [ $modern_configure -ne 0 ]; then
-		CONFIGURE_ARGS+=" --disable-valgrind"
-	fi
+	CONFIGURE_ARGS+=" --disable-valgrind"
 fi
 
 if [ $flag_asan -ne 0 ]; then
 	if grep -q clang <<< "$CC"; then
-		CFLAGS+=" -fsanitize=address -D__SANITIZE_ADDRESS__=1 -pthread"
+		EXTRA_CFLAGS+=" -fsanitize=address -D__SANITIZE_ADDRESS__=1 -pthread"
 	elif $CC -v 2>&1 | grep -q -e 'gcc version [5-9]'; then
-		CFLAGS+=" -fsanitize=address -D__SANITIZE_ADDRESS__=1 -pthread"
+		EXTRA_CFLAGS+=" -fsanitize=address -D__SANITIZE_ADDRESS__=1 -pthread"
 		if [ $flag_dynamic -eq 0 ]; then
-			CFLAGS+=" -static-libasan"
+			EXTRA_CFLAGS+=" -static-libasan"
 		fi
 	else
 		notice "*** AddressSanitizer is unusable"
@@ -459,30 +443,21 @@ fi
 
 if [ $flag_tsan -ne 0 ]; then
 	if grep -q clang <<< "$CC"; then
-		CFLAGS+=" -fsanitize=thread -D__SANITIZE_THREAD__=1"
+		EXTRA_CFLAGS+=" -fsanitize=thread -D__SANITIZE_THREAD__=1"
 	elif $CC -v 2>&1 | grep -q -e 'gcc version [5-9]'; then
-		CFLAGS+=" -fsanitize=thread -D__SANITIZE_THREAD__=1"
+		EXTRA_CFLAGS+=" -fsanitize=thread -D__SANITIZE_THREAD__=1"
 		if [ $flag_dynamic -eq 0 ]; then
-			CFLAGS+=" -static-libtsan"
+			EXTRA_CFLAGS+=" -static-libtsan"
 		fi
 	else
 		notice "*** ThreadSanitizer is unusable"
 	fi
 fi
 
-if [ $modern_configure -ne 0 ]; then
-	notice "info: expect modern configure"
-	MDBX_NICK=mdb
-else
-	notice "info: care for old configure"
-	PATH=${NDB_PATH_ADD}$PATH
-	CPPFLAGS+=" $IODBC_INCLUDES $NDB_INCLUDES"
-	LDFLAGS+=" $NDB_LDFLAGS"
-	MDBX_NICK=mdb
-fi
-
-export CC CXX CFLAGS CPPFLAGS LDFLAGS CXXFLAGS="$CFLAGS"
-echo "CFLAGS		= ${CFLAGS}"
+MDBX_NICK=mdb
+export CC CXX EXTRA_CFLAGS CPPFLAGS LDFLAGS CXXFLAGS="$EXTRA_CFLAGS"
+export LIBTOOL_SUPPRESS_DEFAULT=no
+echo "EXTRA_CFLAGS	= ${EXTRA_CFLAGS}"
 echo "CPPFLAGS	= ${CPPFLAGS}"
 echo "PATH		= ${PATH}"
 echo "LD		= $(readlink -f $(which ld)) ${LDFLAGS}"
@@ -492,52 +467,42 @@ echo "TOOLCHAIN	= $CC $CXX $AR $NM $RANLIB"
 
 if [ $flag_clean -ne 0 ]; then
 	notice "info: cleaning"
-	git clean -x -f -d -e ./ps -e .ccache/ -e tests/testrun/ -e times.log >/dev/null || failure "cleanup"
+	git clean -x -f -d -e .ccache/ -e tests/testrun/ -e times.log >/dev/null || failure "cleanup"
 	git submodule foreach --recursive git clean -x -f -d >/dev/null || failure "cleanup-submodules"
 fi
 
 #======================================================================
 
-if [ $flag_autoconf -ne 0 ]; then
-	if [ $modern_configure -ne 0 ]; then
-		if [ -s ./bootstrap.sh ]; then
-			./bootstrap.sh
-		elif [ -n "$(which autoreconf)" ] && autoreconf --version | grep -q 'autoreconf (GNU Autoconf) 2\.69'; then
-			notice "info: use autoreconf"
-			autoreconf --force --install --include=build || failure "autoreconf"
-		elif [ -n "$(which autoreconf-2.69)" ]; then
-			notice "info: use autoreconf-2.69"
-			autoreconf-2.69 --force --install --include=build || failure "autoreconf-2.69"
-		elif [ -n "$(which autoreconf2.69)" ]; then
-			notice "info: use autoreconf2.69"
-			autoreconf2.69 --force --install --include=build || failure "autoreconf2.69"
-		else
-			notice "warning: no autoreconf-2.69, skip autoreconf"
-		fi
+if [ $flag_forceautoreconf -ne 0 -o ! -x ${srcdir}/configure ]; then
+	if [ -s ${srcdir}/bootstrap.sh ]; then
+		${srcdir}/bootstrap.sh
+	elif [ -n "$(which autoreconf)" ] && autoreconf --version | grep -q 'autoreconf (GNU Autoconf) 2\.69'; then
+		notice "info: use autoreconf"
+		autoreconf --force --install --include=build || failure "autoreconf"
+	elif [ -n "$(which autoreconf-2.69)" ]; then
+		notice "info: use autoreconf-2.69"
+		autoreconf-2.69 --force --install --include=build || failure "autoreconf-2.69"
+	elif [ -n "$(which autoreconf2.69)" ]; then
+		notice "info: use autoreconf2.69"
+		autoreconf2.69 --force --install --include=build || failure "autoreconf2.69"
 	else
-		notice "warning: unable autoreconf"
+		notice "warning: no autoreconf-2.69, skip autoreconf"
 	fi
 fi
 
 #======================================================================
 
 if [ $flag_dist -ne 0 ]; then
-	if [ $modern_configure -ne 0 ]; then
-		notice "info: make dist"
-		./configure || failure "configure dist"
-		make dist || failure "make dist"
-		dist=$(ls *.tar.* | sed 's/^\(.\+\)\.tar\..\+$/\1/g')
-		tar xaf *.tar.* || failure "untar dist"
-		[ -n "$dist" ] && [ -d "$dist" ] && cd "$dist" || failure "dir dist"
-		srcdir=$(pwd)
-	else
-		notice "warning: unable 'make dist'"
-	fi
+	notice "info: make dist"
+	${srcdir}/configure || failure "configure dist"
+	make dist || failure "make dist"
+	dist=$(ls *.tar.* | sed 's/^\(.\+\)\.tar\..\+$/\1/g')
+	tar xaf *.tar.* || failure "untar dist"
+	[ -n "$dist" ] && [ -d "$dist" ] && cd "$dist" || failure "dir dist"
+	srcdir=$(pwd)
 fi
 
 #======================================================================
-
-LIBMDBX_DIR=$([ -d libraries/liblmdb ] && echo "libraries/liblmdb" || echo "libraries/libmdbx")
 
 if [ $flag_insrc -ne 0 ]; then
 	notice "info: in-source build"
@@ -549,8 +514,8 @@ fi
 
 if [ ! -s ${build}/Makefile ]; then
 	mkdir -p ${build} && \
-	( cd ${build} && configure \
-			$(if [ $modern_configure -ne 0 -a $flag_nodeps -ne 0 ]; then echo "--disable-dependency-tracking"; fi) \
+	( cd ${build} && ${srcdir}/configure \
+			$(if [ $flag_nodeps -ne 0 ]; then echo "--disable-dependency-tracking"; fi) \
 			--prefix=$(pwd)/@install_here \
 			$CONFIGURE_ARGS --enable-overlays=${MOD} $NDB_CONFIG \
 			--enable-rewrite --enable-dynacl --enable-aci \
@@ -558,40 +523,8 @@ if [ ! -s ${build}/Makefile ]; then
 			$(if [ $flag_bdb -eq 0 ]; then echo "--disable-bdb --disable-hdb"; else echo "--enable-bdb=${MOD} --enable-hdb=${MOD}"; fi) \
 			$(if [ $flag_wt -eq 0 ]; then echo "--disable-wt"; else echo "--enable-wt=${MOD}"; fi) \
 	) || failure "configure"
-
-	find ${build} -name Makefile | xargs -r sed -i 's/-Wall -ggdb3/-Wall -Werror -ggdb3/g' || failure "prepare"
-
-	if [ $modern_configure -eq 0 -a $flag_nodeps -eq 0 ]; then
-		make -C ${build} -j 1 -l $lalim depend \
-			|| faulire "'make depend'"
-	fi
 fi
 
-if [ -e ${LIBMDBX_DIR}/mdbx.h ]; then
-	CFLAGS="-Werror $CFLAGS"
-	CXXFLAGS="-Werror $CXXFLAGS"
-fi
-export CFLAGS CXXFLAGS
-
-make -C ${build} -j $ncpu -l $lalim \
-	&& ([ ! -d ${build}/tests/progs ] || make -C ${build}/tests/progs -j $ncpu -l $lalim) \
-	&& make -j $ncpu -l $lalim -C ${LIBMDBX_DIR} \
-		all $(find ${LIBMDBX_DIR} -name 'mtest*.c' | xargs -n 1 -r -I '{}' basename '{}' .c) || failure "build"
-
-if [ $flag_exper -ne 0 -a $modern_configure -eq 0 ]; then
-	export LDAP_SRC=$(readlink -f ${srcdir}) LDAP_BUILD=$(readlink -f ${build})
-
-	for m in $(find contrib/slapd-modules -name Makefile -printf '%h\n'); do
-		if [ -e $m/BROKEN ]; then
-			echo "----------- EXTENTIONS: $m - expecting is BROKEN"
-			make -j $ncpu -l $lalim -C $m &>$m/build.log && failure "contrib-module '$m' is NOT broken as expected"
-		else
-			echo "----------- EXTENTIONS: $m - expecting is NOT broken"
-			make -j $ncpu -l $lalim -C $m || failure "contrib-module '$m' is BROKEN"
-		fi
-	done
-fi
-
-make -C ${build} install
+make -C ${build} install || failure "install"
 
 echo "DONE"

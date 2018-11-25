@@ -1,6 +1,6 @@
 #!/bin/bash
 ## $ReOpenLDAP$
-## Copyright 1998-2017 ReOpenLDAP AUTHORS: please see AUTHORS file.
+## Copyright 1998-2018 ReOpenLDAP AUTHORS: please see AUTHORS file.
 ## All rights reserved.
 ##
 ## This file is part of ReOpenLDAP.
@@ -60,6 +60,13 @@ export AC_VALGRIND_SUPPRESSIONS_FILES="$(readlink -f @srcdir@/@VALGRIND_SUPPRESS
 if test ! -x ${TOP_BUILDDIR}/servers/slapd/slapd ; then
 	echo "Could not locate slapd( $TOP_BUILDDIR )"
 	exit 1
+fi
+
+if test ! -x ${TOP_BUILDDIR}/servers/slapd/.libs/lt-slapd \
+    && file -i ${TOP_BUILDDIR}/servers/slapd/slapd | grep -q 'text/x-shellscript'
+then
+    echo "Kick libtool wrapper for slapd"
+    ${TOP_BUILDDIR}/servers/slapd/slapd -VV >/dev/null 2>&1
 fi
 
 BACKEND=
@@ -173,6 +180,7 @@ fi
 . $SRCDIR/scripts/defines.sh || exit 1
 
 SCRIPTDIR="${SRCDIR}/scripts"
+ITSDIR="${SRCDIR}/data/regressions"
 SCRIPTNAME="$1"
 shift
 
@@ -182,6 +190,10 @@ elif test -x "`echo ${SCRIPTDIR}/test*-${SCRIPTNAME}`"; then
 	SCRIPT="`echo ${SCRIPTDIR}/test*-${SCRIPTNAME}`"
 elif test -x "`echo ${SCRIPTDIR}/${SCRIPTNAME}-*`"; then
 	SCRIPT="`echo ${SCRIPTDIR}/${SCRIPTNAME}-*`"
+elif test -x "`echo ${SCRIPTDIR}/${SCRIPTNAME}-*`"; then
+	SCRIPT="`echo ${SCRIPTDIR}/${SCRIPTNAME}-*`"
+elif test -x "`echo ${ITSDIR}/${SCRIPTNAME}/${SCRIPTNAME}`"; then
+	SCRIPT="${ITSDIR}/${SCRIPTNAME}/${SCRIPTNAME}"
 else
 	echo "run: ${SCRIPTNAME} not found (or not executable)"
 	exit 1;

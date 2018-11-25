@@ -1,5 +1,5 @@
 /* $ReOpenLDAP$ */
-/* Copyright 1990-2017 ReOpenLDAP AUTHORS: please see AUTHORS file.
+/* Copyright 1990-2018 ReOpenLDAP AUTHORS: please see AUTHORS file.
  * All rights reserved.
  *
  * This file is part of ReOpenLDAP.
@@ -31,11 +31,11 @@
 #ifdef LDAP_CONTROL_PASSWORDPOLICYREQUEST
 
 /* IMPLICIT TAGS, all context-specific */
-#define PPOLICY_WARNING 0xa0L	/* constructed + 0 */
-#define PPOLICY_ERROR 0x81L		/* primitive + 1 */
+#define PPOLICY_WARNING 0xa0L /* constructed + 0 */
+#define PPOLICY_ERROR 0x81L   /* primitive + 1 */
 
-#define PPOLICY_EXPIRE 0x80L	/* primitive + 0 */
-#define PPOLICY_GRACE  0x81L	/* primitive + 1 */
+#define PPOLICY_EXPIRE 0x80L /* primitive + 0 */
+#define PPOLICY_GRACE 0x81L  /* primitive + 1 */
 
 /*---
    ldap_create_passwordpolicy_control
@@ -43,33 +43,28 @@
    Create and encode the Password Policy Request
 
    ld        (IN)  An LDAP session handle, as obtained from a call to
-				   ldap_init().
+                                   ldap_init().
 
    ctrlp     (OUT) A result parameter that will be assigned the address
-				   of an LDAPControl structure that contains the
-				   passwordPolicyRequest control created by this function.
-				   The memory occupied by the LDAPControl structure
-				   SHOULD be freed when it is no longer in use by
-				   calling ldap_control_free().
+                                   of an LDAPControl structure that contains the
+                                   passwordPolicyRequest control created by this
+ function. The memory occupied by the LDAPControl structure SHOULD be freed when
+ it is no longer in use by calling ldap_control_free().
 
 
    There is no control value for a password policy request
  ---*/
 
-int
-ldap_create_passwordpolicy_control( LDAP *ld,
-                                    LDAPControl **ctrlp )
-{
-	assert( ld != NULL );
-	assert( LDAP_VALID( ld ) );
-	assert( ctrlp != NULL );
+int ldap_create_passwordpolicy_control(LDAP *ld, LDAPControl **ctrlp) {
+  assert(ld != NULL);
+  assert(LDAP_VALID(ld));
+  assert(ctrlp != NULL);
 
-	ld->ld_errno = ldap_control_create( LDAP_CONTROL_PASSWORDPOLICYREQUEST,
-		0, NULL, 0, ctrlp );
+  ld->ld_errno = ldap_control_create(LDAP_CONTROL_PASSWORDPOLICYREQUEST, 0,
+                                     NULL, 0, ctrlp);
 
-	return ld->ld_errno;
+  return ld->ld_errno;
 }
-
 
 /*---
    ldap_parse_passwordpolicy_control
@@ -79,21 +74,22 @@ ldap_create_passwordpolicy_control( LDAP *ld,
    ld           (IN)   An LDAP session handle.
 
    ctrl         (IN)   The address of an
-					   LDAPControl structure, either obtained
-					   by running thorugh the list of response controls or
-					   by a call to ldap_control_find().
+                                           LDAPControl structure, either
+obtained by running through the list of response controls or by a call to
+ldap_control_find().
 
-   exptimep     (OUT)  This result parameter is filled in with the number of seconds before
-                                           the password will expire, if expiration is imminent
-                                           (imminency defined by the password policy). If expiration
-                                           is not imminent, the value is set to -1.
+   exptimep     (OUT)  This result parameter is filled in with the number of
+seconds before the password will expire, if expiration is imminent (imminency
+defined by the password policy). If expiration is not imminent, the value is set
+to -1.
 
-   gracep       (OUT)  This result parameter is filled in with the number of grace logins after
-                                           the password has expired, before no further login attempts
+   gracep       (OUT)  This result parameter is filled in with the number of
+grace logins after the password has expired, before no further login attempts
                                            will be allowed.
 
-   errorcodep   (OUT)  This result parameter is filled in with the error code of the password operation
-                                           If no error was detected, this error is set to PP_noError.
+   errorcodep   (OUT)  This result parameter is filled in with the error code of
+the password operation If no error was detected, this error is set to
+PP_noError.
 
    Ber encoding
 
@@ -114,100 +110,109 @@ ldap_create_passwordpolicy_control( LDAP *ld,
 
 ---*/
 
-int
-ldap_parse_passwordpolicy_control(
-	LDAP           *ld,
-	LDAPControl    *ctrl,
-	ber_int_t      *expirep,
-	ber_int_t      *gracep,
-	LDAPPasswordPolicyError *errorp )
-{
-	BerElement  *ber;
-	int exp = -1, grace = -1;
-	ber_tag_t tag;
-	ber_len_t berLen;
-        char *last;
-	int err = PP_noError;
+int ldap_parse_passwordpolicy_control(LDAP *ld, LDAPControl *ctrl,
+                                      ber_int_t *expirep, ber_int_t *gracep,
+                                      LDAPPasswordPolicyError *errorp) {
+  BerElement *ber;
+  int exp = -1, grace = -1;
+  ber_tag_t tag;
+  ber_len_t berLen;
+  char *last;
+  int err = PP_noError;
 
-	assert( ld != NULL );
-	assert( LDAP_VALID( ld ) );
-	assert( ctrl != NULL );
+  assert(ld != NULL);
+  assert(LDAP_VALID(ld));
+  assert(ctrl != NULL);
 
-	if ( !ctrl->ldctl_value.bv_val ) {
-		ld->ld_errno = LDAP_DECODING_ERROR;
-		return(ld->ld_errno);
-	}
+  if (!ctrl->ldctl_value.bv_val) {
+    ld->ld_errno = LDAP_DECODING_ERROR;
+    return (ld->ld_errno);
+  }
 
-	/* Create a BerElement from the berval returned in the control. */
-	ber = ber_init(&ctrl->ldctl_value);
+  /* Create a BerElement from the berval returned in the control. */
+  ber = ber_init(&ctrl->ldctl_value);
 
-	if (ber == NULL) {
-		ld->ld_errno = LDAP_NO_MEMORY;
-		return(ld->ld_errno);
-	}
+  if (ber == NULL) {
+    ld->ld_errno = LDAP_NO_MEMORY;
+    return (ld->ld_errno);
+  }
 
-	tag = ber_peek_tag( ber, &berLen );
-	if (tag != LBER_SEQUENCE) goto exit;
+  tag = ber_peek_tag(ber, &berLen);
+  if (tag != LBER_SEQUENCE)
+    goto exit;
 
-	for( tag = ber_first_element( ber, &berLen, &last );
-		tag != LBER_DEFAULT;
-		tag = ber_next_element( ber, &berLen, last ) )
-	{
-		switch (tag) {
-		case PPOLICY_WARNING:
-			ber_skip_tag(ber, &berLen );
-			tag = ber_peek_tag( ber, &berLen );
-			switch( tag ) {
-			case PPOLICY_EXPIRE:
-				if (ber_get_int( ber, &exp ) == LBER_DEFAULT) goto exit;
-				break;
-			case PPOLICY_GRACE:
-				if (ber_get_int( ber, &grace ) == LBER_DEFAULT) goto exit;
-				break;
-			default:
-				goto exit;
-			}
-			break;
-		case PPOLICY_ERROR:
-			if (ber_get_enum( ber, &err ) == LBER_DEFAULT) goto exit;
-			break;
-		default:
-			goto exit;
-		}
-	}
+  for (tag = ber_first_element(ber, &berLen, &last); tag != LBER_DEFAULT;
+       tag = ber_next_element(ber, &berLen, last)) {
+    switch (tag) {
+    case PPOLICY_WARNING:
+      ber_skip_tag(ber, &berLen);
+      tag = ber_peek_tag(ber, &berLen);
+      switch (tag) {
+      case PPOLICY_EXPIRE:
+        if (ber_get_int(ber, &exp) == LBER_DEFAULT)
+          goto exit;
+        break;
+      case PPOLICY_GRACE:
+        if (ber_get_int(ber, &grace) == LBER_DEFAULT)
+          goto exit;
+        break;
+      default:
+        goto exit;
+      }
+      break;
+    case PPOLICY_ERROR:
+      if (ber_get_enum(ber, &err) == LBER_DEFAULT)
+        goto exit;
+      break;
+    default:
+      goto exit;
+    }
+  }
 
-	ber_free(ber, 1);
+  ber_free(ber, 1);
 
-	/* Return data to the caller for items that were requested. */
-	if (expirep) *expirep = exp;
-	if (gracep) *gracep = grace;
-	if (errorp) *errorp = err;
+  /* Return data to the caller for items that were requested. */
+  if (expirep)
+    *expirep = exp;
+  if (gracep)
+    *gracep = grace;
+  if (errorp)
+    *errorp = err;
 
-	ld->ld_errno = LDAP_SUCCESS;
-	return(ld->ld_errno);
+  ld->ld_errno = LDAP_SUCCESS;
+  return (ld->ld_errno);
 
-  exit:
-	ber_free(ber, 1);
-	ld->ld_errno = LDAP_DECODING_ERROR;
-	return(ld->ld_errno);
+exit:
+  ber_free(ber, 1);
+  ld->ld_errno = LDAP_DECODING_ERROR;
+  return (ld->ld_errno);
 }
 
-const char *
-ldap_passwordpolicy_err2txt( LDAPPasswordPolicyError err )
-{
-	switch(err) {
-	case PP_passwordExpired: return "Password expired";
-	case PP_accountLocked: return "Account locked";
-	case PP_changeAfterReset: return "Password must be changed";
-	case PP_passwordModNotAllowed: return "Policy prevents password modification";
-	case PP_mustSupplyOldPassword: return "Policy requires old password in order to change password";
-	case PP_insufficientPasswordQuality: return "Password fails quality checks";
-	case PP_passwordTooShort: return "Password is too short for policy";
-	case PP_passwordTooYoung: return "Password has been changed too recently";
-	case PP_passwordInHistory: return "New password is in list of old passwords";
-	case PP_noError: return "No error";
-	default: return "Unknown error code";
-	}
+const char *ldap_passwordpolicy_err2txt(LDAPPasswordPolicyError err) {
+  switch (err) {
+  case PP_passwordExpired:
+    return "Password expired";
+  case PP_accountLocked:
+    return "Account locked";
+  case PP_changeAfterReset:
+    return "Password must be changed";
+  case PP_passwordModNotAllowed:
+    return "Policy prevents password modification";
+  case PP_mustSupplyOldPassword:
+    return "Policy requires old password in order to change password";
+  case PP_insufficientPasswordQuality:
+    return "Password fails quality checks";
+  case PP_passwordTooShort:
+    return "Password is too short for policy";
+  case PP_passwordTooYoung:
+    return "Password has been changed too recently";
+  case PP_passwordInHistory:
+    return "New password is in list of old passwords";
+  case PP_noError:
+    return "No error";
+  default:
+    return "Unknown error code";
+  }
 }
 
 #endif /* LDAP_CONTROL_PASSWORDPOLICYREQUEST */

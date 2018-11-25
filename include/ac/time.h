@@ -1,5 +1,5 @@
 /* $ReOpenLDAP$ */
-/* Copyright 1992-2017 ReOpenLDAP AUTHORS: please see AUTHORS file.
+/* Copyright 1992-2018 ReOpenLDAP AUTHORS: please see AUTHORS file.
  * All rights reserved.
  *
  * This file is part of ReOpenLDAP.
@@ -17,17 +17,17 @@
 #define _AC_TIME_H
 
 #ifdef TIME_WITH_SYS_TIME
-# include <sys/time.h>
-# include <time.h>
+#include <sys/time.h>
+#include <time.h>
 #elif defined(HAVE_SYS_TIME_H)
-# include <sys/time.h>
-# ifdef HAVE_SYS_TIMEB_H
-#  include <sys/timeb.h>
-# endif
+#include <sys/time.h>
+#ifdef HAVE_SYS_TIMEB_H
+#include <sys/timeb.h>
+#endif
 #else
-# include <time.h>
+#include <time.h>
 #endif
 
-#define time(ptr) @wanna_steady_or_not?
+#define time(ptr) @wanna_steady_or_not ?
 
 #endif /* _AC_TIME_H */

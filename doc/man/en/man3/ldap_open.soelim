@@ -1,5 +1,5 @@
 .\" $ReOpenLDAP$
-.\" Copyright 1992-2017 ReOpenLDAP AUTHORS: please see AUTHORS file.
+.\" Copyright 1992-2018 ReOpenLDAP AUTHORS: please see AUTHORS file.
 .\" All rights reserved.
 .\"
 .\" This file is part of ReOpenLDAP.
@@ -15,7 +15,7 @@
 .TH LDAP_OPEN 3 "@RELEASE_DATE@" "ReOpenLDAP @VERSION@"
 
 .SH NAME
-ldap_init, ldap_initialize, ldap_open \- Initialize the LDAP library and open a connection to an LDAP server
+ldap_init, ldap_initialize, ldap_open, ldap_init_fd \- Initialize the LDAP library and open a connection to an LDAP server
 
 .SH LIBRARY
 ReOpenLDAP LDAP (libreldap, \-lreldap)
@@ -44,6 +44,11 @@ LDAP **ldp;
 char *uri;
 .LP
 .ft B
+int ldap_connect(ldp)
+.ft
+LDAP *ldp;
+.LP
+.ft B
 int ldap_set_urllist_proc(ld, proc, params)
 .ft
 LDAP *ld;
@@ -57,9 +62,6 @@ LDAP *ld;
 LDAPURLDesc **urllist;
 LDAPURLDesc **url;
 void *params;
-.LP
-.ft B
-#include <ldap_pvt.h>
 .LP
 .ft B
 int ldap_init_fd(fd, proto, uri, ldp)
@@ -155,6 +157,12 @@ are deprecated in favor of
 .BR ldap_initialize() ,
 essentially because the latter allows to specify a schema in the URI
 and it explicitly returns an error code.
+.LP
+.B ldap_connect()
+causes a handle created by
+.B ldap_initialize()
+to connect to the server. This is useful in situations where a file
+descriptor is required before a request is performed.
 .LP
 .B ldap_init_fd()
 allows an LDAP structure to be initialized using an already-opened

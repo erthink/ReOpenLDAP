@@ -1,5 +1,5 @@
 .\" $ReOpenLDAP$
-.\" Copyright 1992-2017 ReOpenLDAP AUTHORS: please see AUTHORS file.
+.\" Copyright 1992-2018 ReOpenLDAP AUTHORS: please see AUTHORS file.
 .\" All rights reserved.
 .\"
 .\" This file is part of ReOpenLDAP.
@@ -96,7 +96,7 @@ option.
 .TP
 .B \-c
 Enable continue (ignore errors) mode.
-Multiple occorrences of
+Multiple occurrences of
 .B \-c
 make
 .BR slapcat (8)
@@ -163,7 +163,7 @@ Possible generic options/values are:
               syslog\-level=<level> (see `\-S' in slapd(8))
               syslog\-user=<user>   (see `\-l' in slapd(8))
 
-              ldif-wrap={no|<n>}
+              ldif_wrap={no|<n>}
 
 .in
 \fIn\fP is the number of columns allowed for the LDIF output

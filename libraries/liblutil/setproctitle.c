@@ -1,5 +1,5 @@
 /* $ReOpenLDAP$ */
-/* Copyright 1992-2017 ReOpenLDAP AUTHORS: please see AUTHORS file.
+/* Copyright 1992-2018 ReOpenLDAP AUTHORS: please see AUTHORS file.
  * All rights reserved.
  *
  * This file is part of ReOpenLDAP.
@@ -25,8 +25,8 @@
 #include <ac/string.h>
 #include <ac/stdarg.h>
 
-char	**Argv;		/* pointer to original (main's) argv */
-int	Argc;		/* original argc */
+char **Argv; /* pointer to original (main's) argv */
+int Argc;    /* original argc */
 
 /*
  * takes a printf-style format string (fmt) and up to three parameters (a,b,c)
@@ -34,35 +34,35 @@ int	Argc;		/* original argc */
  */
 
 /* VARARGS */
-void setproctitle( const char *fmt, ... )
-{
-	static char *endargv = (char *)0;
-	char	*s;
-	int		i;
-	char	buf[ 1024 ];
-	va_list	ap;
+void setproctitle(const char *fmt, ...) {
+  static char *endargv = (char *)0;
+  char *s;
+  int i;
+  char buf[1024];
+  va_list ap;
 
-	va_start(ap, fmt);
+  va_start(ap, fmt);
 
-	buf[sizeof(buf) - 1] = '\0';
-	vsnprintf( buf, sizeof(buf)-1, fmt, ap );
+  buf[sizeof(buf) - 1] = '\0';
+  vsnprintf(buf, sizeof(buf) - 1, fmt, ap);
 
-	va_end(ap);
+  va_end(ap);
 
-	if ( endargv == (char *)0 ) {
-		/* set pointer to end of original argv */
-		endargv = Argv[ Argc-1 ] + strlen( Argv[ Argc-1 ] );
-	}
-	/* make ps print "([prog name])" */
-	s = Argv[0];
-	*s++ = '-';
-	i = strlen( buf );
-	if ( i > endargv - s - 2 ) {
-		i = endargv - s - 2;
-		buf[ i ] = '\0';
-	}
-	strcpy( s, buf );
-	s += i;
-	while ( s < endargv ) *s++ = ' ';
+  if (endargv == (char *)0) {
+    /* set pointer to end of original argv */
+    endargv = Argv[Argc - 1] + strlen(Argv[Argc - 1]);
+  }
+  /* make ps print "([prog name])" */
+  s = Argv[0];
+  *s++ = '-';
+  i = strlen(buf);
+  if (i > endargv - s - 2) {
+    i = endargv - s - 2;
+    buf[i] = '\0';
+  }
+  strcpy(s, buf);
+  s += i;
+  while (s < endargv)
+    *s++ = ' ';
 }
 #endif /* NOSETPROCTITLE */

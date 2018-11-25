@@ -1,5 +1,5 @@
 /* $ReOpenLDAP$ */
-/* Copyright 1992-2017 ReOpenLDAP AUTHORS: please see AUTHORS file.
+/* Copyright 1992-2018 ReOpenLDAP AUTHORS: please see AUTHORS file.
  * All rights reserved.
  *
  * This file is part of ReOpenLDAP.
@@ -36,24 +36,19 @@
 
 #include "common.h"
 
-
-void
-usage( void )
-{
-	fprintf( stderr, _("Issue LDAP Who am I? operation to request user's authzid\n\n"));
-	fprintf( stderr, _("usage: %s [options]\n"), prog);
-	tool_common_usage();
-	exit( EXIT_FAILURE );
+void usage(void) {
+  fprintf(stderr,
+          _("Issue LDAP Who am I? operation to request user's authzid\n\n"));
+  fprintf(stderr, _("usage: %s [options]\n"), prog);
+  tool_common_usage();
+  exit(EXIT_FAILURE);
 }
 
-
 const char options[] = ""
-	"d:D:e:h:H:InNO:o:p:QR:U:vVw:WxX:y:Y:Z";
+                       "d:D:e:h:H:InNO:o:p:QR:U:vVw:WxX:y:Y:Z";
 
-int
-handle_private_option( int i )
-{
-	switch ( i ) {
+int handle_private_option(int i) {
+  switch (i) {
 #if 0
 		char	*control, *cvalue;
 		int		crit;
@@ -84,138 +79,133 @@ handle_private_option( int i )
 		usage();
 #endif
 
-	default:
-		return 0;
-	}
-	return 1;
+  default:
+    return 0;
+  }
+  return 1;
 }
 
+int main(int argc, char *argv[]) {
+  int rc;
+  LDAP *ld = NULL;
+  char *matcheddn = NULL, *text = NULL, **refs = NULL;
+  struct berval *authzid = NULL;
+  int id, code = 0;
+  LDAPMessage *res = NULL;
+  LDAPControl **ctrls = NULL;
 
-int
-main( int argc, char *argv[] )
-{
-	int		rc;
-	LDAP		*ld = NULL;
-	char		*matcheddn = NULL, *text = NULL, **refs = NULL;
-	struct berval	*authzid = NULL;
-	int		id, code = 0;
-	LDAPMessage	*res = NULL;
-	LDAPControl	**ctrls = NULL;
+  tool_init(TOOL_WHOAMI);
+  prog = lutil_progname("ldapwhoami", argc, argv);
 
-	tool_init( TOOL_WHOAMI );
-	prog = lutil_progname( "ldapwhoami", argc, argv );
+  /* LDAPv3 only */
+  protocol = LDAP_VERSION3;
 
-	/* LDAPv3 only */
-	protocol = LDAP_VERSION3;
+  tool_args(argc, argv);
 
-	tool_args( argc, argv );
+  if (argc - optind > 0) {
+    usage();
+  }
 
-	if( argc - optind > 0 ) {
-		usage();
-	}
+  ld = tool_conn_setup(0, 0);
 
-	ld = tool_conn_setup( 0, 0 );
+  tool_bind(ld);
 
-	tool_bind( ld );
+  if (dont) {
+    rc = LDAP_SUCCESS;
+    goto skip;
+  }
 
-	if ( dont ) {
-		rc = LDAP_SUCCESS;
-		goto skip;
-	}
+  tool_server_controls(ld, NULL, 0);
 
-	tool_server_controls( ld, NULL, 0 );
+  rc = ldap_whoami(ld, NULL, NULL, &id);
 
-	rc = ldap_whoami( ld, NULL, NULL, &id );
+  if (rc != LDAP_SUCCESS) {
+    tool_perror("ldap_whoami", rc, NULL, NULL, NULL, NULL);
+    rc = EXIT_FAILURE;
+    goto skip;
+  }
 
-	if( rc != LDAP_SUCCESS ) {
-		tool_perror( "ldap_whoami", rc, NULL, NULL, NULL, NULL );
-		rc = EXIT_FAILURE;
-		goto skip;
-	}
+  for (;;) {
+    struct timeval tv;
 
-	for ( ; ; ) {
-		struct timeval	tv;
+    if (tool_check_abandon(ld, id)) {
+      tool_exit(ld, LDAP_CANCELLED);
+    }
 
-		if ( tool_check_abandon( ld, id ) ) {
-			tool_exit( ld, LDAP_CANCELLED );
-		}
+    tv.tv_sec = 0;
+    tv.tv_usec = 100000;
 
-		tv.tv_sec = 0;
-		tv.tv_usec = 100000;
+    rc = ldap_result(ld, LDAP_RES_ANY, LDAP_MSG_ALL, &tv, &res);
+    if (rc < 0) {
+      tool_perror("ldap_result", rc, NULL, NULL, NULL, NULL);
+      tool_exit(ld, rc);
+    }
 
-		rc = ldap_result( ld, LDAP_RES_ANY, LDAP_MSG_ALL, &tv, &res );
-		if ( rc < 0 ) {
-			tool_perror( "ldap_result", rc, NULL, NULL, NULL, NULL );
-			tool_exit( ld, rc );
-		}
+    if (rc != 0) {
+      break;
+    }
+  }
 
-		if ( rc != 0 ) {
-			break;
-		}
-	}
+  rc = ldap_parse_result(ld, res, &code, &matcheddn, &text, &refs, &ctrls, 0);
 
-	rc = ldap_parse_result( ld, res,
-		&code, &matcheddn, &text, &refs, &ctrls, 0 );
+  if (rc == LDAP_SUCCESS) {
+    rc = code;
+  }
 
-	if ( rc == LDAP_SUCCESS ) {
-		rc = code;
-	}
+  if (rc != LDAP_SUCCESS) {
+    tool_perror("ldap_parse_result", rc, NULL, matcheddn, text, refs);
+    rc = EXIT_FAILURE;
+    goto skip;
+  }
 
-	if ( rc != LDAP_SUCCESS ) {
-		tool_perror( "ldap_parse_result", rc, NULL, matcheddn, text, refs );
-		rc = EXIT_FAILURE;
-		goto skip;
-	}
+  rc = ldap_parse_whoami(ld, res, &authzid);
 
-	rc = ldap_parse_whoami( ld, res, &authzid );
+  if (rc != LDAP_SUCCESS) {
+    tool_perror("ldap_parse_whoami", rc, NULL, NULL, NULL, NULL);
+    rc = EXIT_FAILURE;
+    goto skip;
+  }
 
-	if( rc != LDAP_SUCCESS ) {
-		tool_perror( "ldap_parse_whoami", rc, NULL, NULL, NULL, NULL );
-		rc = EXIT_FAILURE;
-		goto skip;
-	}
-
-	if( authzid != NULL ) {
-		if( authzid->bv_len == 0 ) {
-			printf(_("anonymous\n") );
-		} else {
-			printf("%s\n", authzid->bv_val );
-		}
-	}
+  if (authzid != NULL) {
+    if (authzid->bv_len == 0) {
+      printf(_("anonymous\n"));
+    } else {
+      printf("%s\n", authzid->bv_val);
+    }
+  }
 
 skip:
-	ldap_msgfree(res);
-	if ( verbose || code != LDAP_SUCCESS ||
-		( matcheddn && *matcheddn ) || ( text && *text ) || refs || ctrls )
-	{
-		printf( _("Result: %s (%d)\n"), ldap_err2string( code ), code );
+  ldap_msgfree(res);
+  if (verbose || code != LDAP_SUCCESS || (matcheddn && *matcheddn) ||
+      (text && *text) || refs || ctrls) {
+    printf(_("Result: %s (%d)\n"), ldap_err2string(code), code);
 
-		if( text && *text ) {
-			printf( _("Additional info: %s\n"), text );
-		}
+    if (text && *text) {
+      printf(_("Additional info: %s\n"), text);
+    }
 
-		if( matcheddn && *matcheddn ) {
-			printf( _("Matched DN: %s\n"), matcheddn );
-		}
+    if (matcheddn && *matcheddn) {
+      printf(_("Matched DN: %s\n"), matcheddn);
+    }
 
-		if( refs ) {
-			int i;
-			for( i=0; refs[i]; i++ ) {
-				printf(_("Referral: %s\n"), refs[i] );
-			}
-		}
+    if (refs) {
+      int i;
+      for (i = 0; refs[i]; i++) {
+        printf(_("Referral: %s\n"), refs[i]);
+      }
+    }
 
-		if (ctrls) {
-			tool_print_ctrls( ld, ctrls );
-			ldap_controls_free( ctrls );
-		}
-	}
+    if (ctrls) {
+      tool_print_ctrls(ld, ctrls);
+      ldap_controls_free(ctrls);
+    }
+  }
 
-	ber_memfree( text );
-	ber_memfree( matcheddn );
-	ber_memvfree( (void **) refs );
-	ber_bvfree( authzid );
+  ber_memfree(text);
+  ber_memfree(matcheddn);
+  ber_memvfree((void **)refs);
+  ber_bvfree(authzid);
 
-	/* disconnect from server */
-	tool_exit( ld, code == LDAP_SUCCESS ? EXIT_SUCCESS : EXIT_FAILURE );
+  /* disconnect from server */
+  tool_exit(ld, code == LDAP_SUCCESS ? EXIT_SUCCESS : EXIT_FAILURE);
 }

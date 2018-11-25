@@ -1,6 +1,6 @@
 #!/bin/bash
 ## $ReOpenLDAP$
-## Copyright 1998-2017 ReOpenLDAP AUTHORS: please see AUTHORS file.
+## Copyright 1998-2018 ReOpenLDAP AUTHORS: please see AUTHORS file.
 ## All rights reserved.
 ##
 ## This file is part of ReOpenLDAP.
@@ -22,7 +22,7 @@ ITSDIR=$DATADIR/regressions/its$ITS
 ITSCONF=$ITSDIR/slapd-glue.conf
 
 echo "Running multi-threaded slapadd in quick mode to build glued slapd databases..."
-config_filter $BACKEND ${AC_conf[monitor]} < $ITSCONF > $CONF1
+DBNOSYNC=yes config_filter $BACKEND ${AC_conf[monitor]} < $ITSCONF > $CONF1
 $SLAPADD -q -f $CONF1 -l $LDIFORDERED > $SLAPADDLOG1 2>&1
 RC=$?
 if test $RC != 0 ; then

@@ -1,6 +1,6 @@
 #!/bin/bash
 ## $ReOpenLDAP$
-## Copyright 1998-2017 ReOpenLDAP AUTHORS: please see AUTHORS file.
+## Copyright 1998-2018 ReOpenLDAP AUTHORS: please see AUTHORS file.
 ## All rights reserved.
 ##
 ## This file is part of ReOpenLDAP.
@@ -18,6 +18,11 @@ echo "running defines.sh"
 
 if test ${AC_conf[ldap]} = no ; then
 	echo "LDAP backend not available, test skipped"
+	exit 0
+fi
+
+if test $BACKEND = "ldap" ; then
+	echo "LDAP backend not valid, test skipped"
 	exit 0
 fi
 

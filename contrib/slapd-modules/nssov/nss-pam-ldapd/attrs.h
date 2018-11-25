@@ -24,7 +24,7 @@
 
 #include <features.h>
 
-/* These are macros to use some gcc-specific flags in case the're available
+/* These are macros to use some gcc-specific flags in case they're available
    and otherwise define them to empty strings. This allows us to give
    the compiler some extra information.
    See http://gcc.gnu.org/onlinedocs/gcc/Attribute-Syntax.html
@@ -33,16 +33,16 @@
 /* this is used to flag function parameters that are not used in the function
    body. */
 #if __GNUC_PREREQ(3, 0)
-#define UNUSED(x)   x __attribute__((__unused__))
+#define UNUSED(x) x __attribute__((__unused__))
 #else
-#define UNUSED(x)   x
+#define UNUSED(x) x
 #endif
 
 /* this is used to add extra format checking to the function calls as if this
    was a printf()-like function */
 #if __GNUC_PREREQ(3, 0)
-#define LIKE_PRINTF(format_idx, arg_idx) \
-                    __attribute__((__format__(__printf__, format_idx, arg_idx)))
+#define LIKE_PRINTF(format_idx, arg_idx)                                       \
+  __attribute__((__format__(__printf__, format_idx, arg_idx)))
 #else
 #define LIKE_PRINTF(format_idx, arg_idx) /* no attribute */
 #endif
@@ -50,9 +50,9 @@
 /* indicates that the function is "pure": its result is purely based on
    the parameters and has no side effects or used static data */
 #if __GNUC_PREREQ(3, 0)
-#define PURE        __attribute__((__pure__))
+#define PURE __attribute__((__pure__))
 #else
-#define PURE        /* no attribute */
+#define PURE /* no attribute */
 #endif
 
 /* the function returns a new data structure that has been freshly
@@ -65,16 +65,16 @@
 
 /* the function's return value should be used by the caller */
 #if __GNUC_PREREQ(3, 4)
-#define MUST_USE    __attribute__((__warn_unused_result__))
+#define MUST_USE __attribute__((__warn_unused_result__))
 #else
-#define MUST_USE    /* no attribute */
+#define MUST_USE /* no attribute */
 #endif
 
 /* the function's return value should be used by the caller */
 #if __GNUC_PREREQ(2, 5)
-#define NORETURN    __attribute__((__noreturn__))
+#define NORETURN __attribute__((__noreturn__))
 #else
-#define NORETURN    /* no attribute */
+#define NORETURN /* no attribute */
 #endif
 
 /* define __STRING if it's not yet defined */

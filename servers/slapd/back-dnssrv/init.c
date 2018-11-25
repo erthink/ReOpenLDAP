@@ -1,5 +1,5 @@
 /* $ReOpenLDAP$ */
-/* Copyright 2000-2017 ReOpenLDAP AUTHORS: please see AUTHORS file.
+/* Copyright 2000-2018 ReOpenLDAP AUTHORS: please see AUTHORS file.
  * All rights reserved.
  *
  * This file is part of ReOpenLDAP.
@@ -30,81 +30,60 @@
 #include "slapconfig.h"
 #include "proto-dnssrv.h"
 
-int
-dnssrv_back_initialize(
-    BackendInfo	*bi )
-{
-	static const char * const controls[] = {
-		LDAP_CONTROL_MANAGEDSAIT,
-		NULL
-	};
+int dnssrv_back_initialize(BackendInfo *bi) {
+  static const char *const controls[] = {LDAP_CONTROL_MANAGEDSAIT, NULL};
 
-	bi->bi_controls = controls;
+  bi->bi_controls = controls;
 
-	bi->bi_open = dnssrv_back_open;
-	bi->bi_config = 0;
-	bi->bi_close = 0;
-	bi->bi_destroy = 0;
+  bi->bi_open = dnssrv_back_open;
+  bi->bi_config = 0;
+  bi->bi_close = 0;
+  bi->bi_destroy = 0;
 
-	bi->bi_db_init = 0;
-	bi->bi_db_destroy = 0;
-	bi->bi_db_config = 0 /* dnssrv_back_db_config */;
-	bi->bi_db_open = 0;
-	bi->bi_db_close = 0;
+  bi->bi_db_init = 0;
+  bi->bi_db_destroy = 0;
+  bi->bi_db_config = 0 /* dnssrv_back_db_config */;
+  bi->bi_db_open = 0;
+  bi->bi_db_close = 0;
 
-	bi->bi_chk_referrals = dnssrv_back_referrals;
+  bi->bi_chk_referrals = dnssrv_back_referrals;
 
-	bi->bi_op_bind = dnssrv_back_bind;
-	bi->bi_op_search = dnssrv_back_search;
-	bi->bi_op_compare = 0 /* dnssrv_back_compare */;
-	bi->bi_op_modify = 0;
-	bi->bi_op_modrdn = 0;
-	bi->bi_op_add = 0;
-	bi->bi_op_delete = 0;
-	bi->bi_op_abandon = 0;
-	bi->bi_op_unbind = 0;
+  bi->bi_op_bind = dnssrv_back_bind;
+  bi->bi_op_search = dnssrv_back_search;
+  bi->bi_op_compare = 0 /* dnssrv_back_compare */;
+  bi->bi_op_modify = 0;
+  bi->bi_op_modrdn = 0;
+  bi->bi_op_add = 0;
+  bi->bi_op_delete = 0;
+  bi->bi_op_abandon = 0;
+  bi->bi_op_unbind = 0;
 
-	bi->bi_extended = 0;
+  bi->bi_extended = 0;
 
-	bi->bi_connection_init = 0;
-	bi->bi_connection_destroy = 0;
+  bi->bi_connection_init = 0;
+  bi->bi_connection_destroy = 0;
 
-	bi->bi_access_allowed = slap_access_always_allowed;
+  bi->bi_access_allowed = slap_access_always_allowed;
 
-	return 0;
+  return 0;
 }
 
-AttributeDescription	*ad_dc;
-AttributeDescription	*ad_associatedDomain;
+AttributeDescription *ad_dc;
+AttributeDescription *ad_associatedDomain;
 
-int
-dnssrv_back_open(
-    BackendInfo *bi )
-{
-	const char *text;
+int dnssrv_back_open(BackendInfo *bi) {
+  const char *text;
 
-	(void)slap_str2ad( "dc", &ad_dc, &text );
-	(void)slap_str2ad( "associatedDomain", &ad_associatedDomain, &text );
+  (void)slap_str2ad("dc", &ad_dc, &text);
+  (void)slap_str2ad("associatedDomain", &ad_associatedDomain, &text);
 
-	return 0;
+  return 0;
 }
 
-int
-dnssrv_back_db_init(
-	Backend	*be,
-	ConfigReply *cr)
-{
-	return 0;
-}
+int dnssrv_back_db_init(Backend *be, ConfigReply *cr) { return 0; }
 
-int
-dnssrv_back_db_destroy(
-	Backend	*be,
-	ConfigReply *cr )
-{
-	return 0;
-}
+int dnssrv_back_db_destroy(Backend *be, ConfigReply *cr) { return 0; }
 
 #if SLAPD_DNSSRV == SLAPD_MOD_DYNAMIC
-SLAP_BACKEND_INIT_MODULE( dnssrv )
+SLAP_BACKEND_INIT_MODULE(dnssrv)
 #endif /* SLAPD_DNSSRV == SLAPD_MOD_DYNAMIC */

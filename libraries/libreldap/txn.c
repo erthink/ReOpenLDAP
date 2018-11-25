@@ -1,5 +1,5 @@
 /* $ReOpenLDAP$ */
-/* Copyright 1990-2017 ReOpenLDAP AUTHORS: please see AUTHORS file.
+/* Copyright 1990-2018 ReOpenLDAP AUTHORS: please see AUTHORS file.
  * All rights reserved.
  *
  * This file is part of ReOpenLDAP.
@@ -13,7 +13,7 @@
  * <http://www.OpenLDAP.org/license.html>.
  */
 /* ACKNOWLEDGEMENTS:
- * This program was orignally developed by Kurt D. Zeilenga for inclusion
+ * This program was originally developed by Kurt D. Zeilenga for inclusion
  * in OpenLDAP Software.
  */
 
@@ -34,122 +34,100 @@
 #include "ldap_log.h"
 
 #ifdef LDAP_X_TXN
-int
-ldap_txn_start(
-	LDAP *ld,
-	LDAPControl **sctrls,
-	LDAPControl **cctrls,
-	int *msgidp )
-{
-	return ldap_extended_operation( ld, LDAP_EXOP_X_TXN_START,
-		NULL, sctrls, cctrls, msgidp );
+int ldap_txn_start(LDAP *ld, LDAPControl **sctrls, LDAPControl **cctrls,
+                   int *msgidp) {
+  return ldap_extended_operation(ld, LDAP_EXOP_X_TXN_START, NULL, sctrls,
+                                 cctrls, msgidp);
 }
 
-int
-ldap_txn_start_s(
-	LDAP *ld,
-	LDAPControl **sctrls,
-	LDAPControl **cctrls,
-	struct berval **txnid )
-{
-	assert( txnid != NULL );
+int ldap_txn_start_s(LDAP *ld, LDAPControl **sctrls, LDAPControl **cctrls,
+                     struct berval **txnid) {
+  assert(txnid != NULL);
 
-	return ldap_extended_operation_s( ld, LDAP_EXOP_X_TXN_START,
-		NULL, sctrls, cctrls, NULL, txnid );
+  return ldap_extended_operation_s(ld, LDAP_EXOP_X_TXN_START, NULL, sctrls,
+                                   cctrls, NULL, txnid);
 }
 
-int
-ldap_txn_end(
-	LDAP *ld,
-	int commit,
-	struct berval *txnid,
-	LDAPControl **sctrls,
-	LDAPControl **cctrls,
-	int *msgidp )
-{
-	int rc;
-	BerElement *txnber = NULL;
-	struct berval *txnval = NULL;
+int ldap_txn_end(LDAP *ld, int commit, struct berval *txnid,
+                 LDAPControl **sctrls, LDAPControl **cctrls, int *msgidp) {
+  int rc;
+  BerElement *txnber = NULL;
+  struct berval *txnval = NULL;
 
-	assert( txnid != NULL );
+  assert(txnid != NULL);
 
-	txnber = ber_alloc_t( LBER_USE_DER );
+  txnber = ber_alloc_t(LBER_USE_DER);
 
-	if( commit ) {
-		ber_printf( txnber, "{ON}", txnid );
-	} else {
-		ber_printf( txnber, "{bON}", commit, txnid );
-	}
+  if (commit) {
+    ber_printf(txnber, "{ON}", txnid);
+  } else {
+    ber_printf(txnber, "{bON}", commit, txnid);
+  }
 
-	ber_flatten( txnber, &txnval );
+  ber_flatten(txnber, &txnval);
 
-	rc = ldap_extended_operation( ld, LDAP_EXOP_X_TXN_END,
-		txnval, sctrls, cctrls, msgidp );
+  rc = ldap_extended_operation(ld, LDAP_EXOP_X_TXN_END, txnval, sctrls, cctrls,
+                               msgidp);
 
-	ber_free( txnber, 1 );
-	return rc;
+  ber_free(txnber, 1);
+  return rc;
 }
 
-int
-ldap_txn_end_s(
-	LDAP *ld,
-	int commit,
-	struct berval *txnid,
-	LDAPControl **sctrls,
-	LDAPControl **cctrls,
-	int *retidp )
-{
-	int rc;
-	BerElement *txnber = NULL;
-	struct berval *txnval = NULL;
-	struct berval *retdata = NULL;
+int ldap_txn_end_s(LDAP *ld, int commit, struct berval *txnid,
+                   LDAPControl **sctrls, LDAPControl **cctrls, int *retidp) {
+  int rc;
+  BerElement *txnber = NULL;
+  struct berval *txnval = NULL;
+  struct berval *retdata = NULL;
 
-	if ( retidp != NULL ) *retidp = -1;
+  if (retidp != NULL)
+    *retidp = -1;
 
-	txnber = ber_alloc_t( LBER_USE_DER );
+  txnber = ber_alloc_t(LBER_USE_DER);
 
-	if( commit ) {
-		ber_printf( txnber, "{ON}", txnid );
-	} else {
-		ber_printf( txnber, "{bON}", commit, txnid );
-	}
+  if (commit) {
+    ber_printf(txnber, "{ON}", txnid);
+  } else {
+    ber_printf(txnber, "{bON}", commit, txnid);
+  }
 
-	ber_flatten( txnber, &txnval );
+  ber_flatten(txnber, &txnval);
 
-	rc = ldap_extended_operation_s( ld, LDAP_EXOP_X_TXN_END,
-		txnval, sctrls, cctrls, NULL, &retdata );
+  rc = ldap_extended_operation_s(ld, LDAP_EXOP_X_TXN_END, txnval, sctrls,
+                                 cctrls, NULL, &retdata);
 
-	ber_free( txnber, 1 );
+  ber_free(txnber, 1);
 
-	/* parse retdata */
-	if( retdata != NULL ) {
-		BerElement *ber;
-		ber_tag_t tag;
-		ber_int_t retid;
+  /* parse retdata */
+  if (retdata != NULL) {
+    BerElement *ber;
+    ber_tag_t tag;
+    ber_int_t retid;
 
-		if( retidp == NULL ) goto done;
+    if (retidp == NULL)
+      goto done;
 
-		ber = ber_init( retdata );
+    ber = ber_init(retdata);
 
-		if( ber == NULL ) {
-			rc = ld->ld_errno = LDAP_NO_MEMORY;
-			goto done;
-		}
+    if (ber == NULL) {
+      rc = ld->ld_errno = LDAP_NO_MEMORY;
+      goto done;
+    }
 
-		tag = ber_scanf( ber, "i", &retid );
-		ber_free( ber, 1 );
+    tag = ber_scanf(ber, "i", &retid);
+    ber_free(ber, 1);
 
-		if ( tag != LBER_INTEGER ) {
-			rc = ld->ld_errno = LDAP_DECODING_ERROR;
-			goto done;
-		}
+    if (tag != LBER_INTEGER) {
+      rc = ld->ld_errno = LDAP_DECODING_ERROR;
+      goto done;
+    }
 
-		*retidp = (int) retid;
+    *retidp = (int)retid;
 
-done:
-		ber_bvfree( retdata );
-	}
+  done:
+    ber_bvfree(retdata);
+  }
 
-	return rc;
+  return rc;
 }
 #endif

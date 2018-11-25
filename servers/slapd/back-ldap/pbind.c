@@ -1,5 +1,5 @@
 /* $ReOpenLDAP$ */
-/* Copyright 1999-2017 ReOpenLDAP AUTHORS: please see AUTHORS file.
+/* Copyright 1999-2018 ReOpenLDAP AUTHORS: please see AUTHORS file.
  * All rights reserved.
  *
  * This file is part of ReOpenLDAP.
@@ -30,143 +30,116 @@
 #include "back-ldap.h"
 #include "slapconfig.h"
 
-static BackendInfo	*lback;
+static BackendInfo *lback;
 
 static slap_overinst ldappbind;
 
-static int
-ldap_pbind_bind(
-	Operation	*op,
-	SlapReply	*rs )
-{
-	slap_overinst	*on = (slap_overinst *) op->o_bd->bd_info;
-	void *private = op->o_bd->be_private;
-	void *bi = op->o_bd->bd_info;
-	int rc;
+static int ldap_pbind_bind(Operation *op, SlapReply *rs) {
+  slap_overinst *on = (slap_overinst *)op->o_bd->bd_info;
+  void *private = op->o_bd->be_private;
+  void *bi = op->o_bd->bd_info;
+  int rc;
 
-	op->o_bd->bd_info = lback;
-	op->o_bd->be_private = on->on_bi.bi_private;
-	rc = lback->bi_op_bind( op, rs );
-	op->o_bd->be_private = private;
-	op->o_bd->bd_info = bi;
+  op->o_bd->bd_info = lback;
+  op->o_bd->be_private = on->on_bi.bi_private;
+  rc = lback->bi_op_bind(op, rs);
+  op->o_bd->be_private = private;
+  op->o_bd->bd_info = bi;
 
-	return rc;
+  return rc;
 }
 
-static int
-ldap_pbind_db_init(
-	BackendDB *be,
-	ConfigReply *cr )
-{
-	slap_overinst	*on = (slap_overinst *)be->bd_info;
-	ConfigOCs	*be_cf_ocs = be->be_cf_ocs;
-	void		*private = be->be_private;
-	int rc;
+static int ldap_pbind_db_init(BackendDB *be, ConfigReply *cr) {
+  slap_overinst *on = (slap_overinst *)be->bd_info;
+  ConfigOCs *be_cf_ocs = be->be_cf_ocs;
+  void *private = be->be_private;
+  int rc;
 
-	if ( lback == NULL ) {
-		lback = backend_info( "ldap" );
+  if (lback == NULL) {
+    lback = backend_info("ldap");
 
-		if ( lback == NULL ) {
-			return 1;
-		}
-	}
+    if (lback == NULL) {
+      return 1;
+    }
+  }
 
-	rc = lback->bi_db_init( be, cr );
-	on->on_bi.bi_private = be->be_private;
-	be->be_cf_ocs = be_cf_ocs;
-	be->be_private = private;
+  rc = lback->bi_db_init(be, cr);
+  on->on_bi.bi_private = be->be_private;
+  be->be_cf_ocs = be_cf_ocs;
+  be->be_private = private;
 
-	return rc;
+  return rc;
 }
 
-static int
-ldap_pbind_db_open(
-	BackendDB	*be,
-	ConfigReply	*cr )
-{
-	slap_overinst	*on = (slap_overinst *) be->bd_info;
-	void	*private = be->be_private;
-	int		rc;
-	int		monitoring;
+static int ldap_pbind_db_open(BackendDB *be, ConfigReply *cr) {
+  slap_overinst *on = (slap_overinst *)be->bd_info;
+  void *private = be->be_private;
+  int rc;
+  int monitoring;
 
-    be->be_private = on->on_bi.bi_private;
-	monitoring = ( SLAP_DBFLAGS( be ) & SLAP_DBFLAG_MONITORING );
-	SLAP_DBFLAGS( be ) &= ~SLAP_DBFLAG_MONITORING;
-	rc = lback->bi_db_open( be, cr );
-	SLAP_DBFLAGS( be ) |= monitoring;
-	be->be_private = private;
+  be->be_private = on->on_bi.bi_private;
+  monitoring = (SLAP_DBFLAGS(be) & SLAP_DBFLAG_MONITORING);
+  SLAP_DBFLAGS(be) &= ~SLAP_DBFLAG_MONITORING;
+  rc = lback->bi_db_open(be, cr);
+  SLAP_DBFLAGS(be) |= monitoring;
+  be->be_private = private;
 
-	return rc;
+  return rc;
 }
 
-static int
-ldap_pbind_db_close(
-	BackendDB	*be,
-	ConfigReply	*cr )
-{
-	slap_overinst	*on = (slap_overinst *) be->bd_info;
-	void	*private = be->be_private;
-	int		rc;
+static int ldap_pbind_db_close(BackendDB *be, ConfigReply *cr) {
+  slap_overinst *on = (slap_overinst *)be->bd_info;
+  void *private = be->be_private;
+  int rc;
 
-    be->be_private = on->on_bi.bi_private;
-	rc = lback->bi_db_close( be, cr );
-	be->be_private = private;
+  be->be_private = on->on_bi.bi_private;
+  rc = lback->bi_db_close(be, cr);
+  be->be_private = private;
 
-	return rc;
+  return rc;
 }
 
-static int
-ldap_pbind_db_destroy(
-	BackendDB	*be,
-	ConfigReply	*cr )
-{
-	slap_overinst	*on = (slap_overinst *) be->bd_info;
-	void	*private = be->be_private;
-	int		rc;
+static int ldap_pbind_db_destroy(BackendDB *be, ConfigReply *cr) {
+  slap_overinst *on = (slap_overinst *)be->bd_info;
+  void *private = be->be_private;
+  int rc;
 
-    be->be_private = on->on_bi.bi_private;
-	rc = lback->bi_db_close( be, cr );
-	on->on_bi.bi_private = be->be_private;
-	be->be_private = private;
+  be->be_private = on->on_bi.bi_private;
+  rc = lback->bi_db_close(be, cr);
+  on->on_bi.bi_private = be->be_private;
+  be->be_private = private;
 
-	return rc;
+  return rc;
 }
 
-static int
-ldap_pbind_connection_destroy(
-	BackendDB *be,
-	Connection *conn
-)
-{
-	slap_overinst	*on = (slap_overinst *) be->bd_info;
-	void			*private = be->be_private;
-	int				rc;
+static int ldap_pbind_connection_destroy(BackendDB *be, Connection *conn) {
+  slap_overinst *on = (slap_overinst *)be->bd_info;
+  void *private = be->be_private;
+  int rc;
 
-	be->be_private = on->on_bi.bi_private;
-	rc = lback->bi_connection_destroy( be, conn );
-	be->be_private = private;
+  be->be_private = on->on_bi.bi_private;
+  rc = lback->bi_connection_destroy(be, conn);
+  be->be_private = private;
 
-	return rc;
+  return rc;
 }
 
-int
-pbind_initialize( void )
-{
-	int rc;
+int pbind_initialize(void) {
+  int rc;
 
-	ldappbind.on_bi.bi_type = "pbind";
-	ldappbind.on_bi.bi_db_init = ldap_pbind_db_init;
-	ldappbind.on_bi.bi_db_open = ldap_pbind_db_open;
-	ldappbind.on_bi.bi_db_close = ldap_pbind_db_close;
-	ldappbind.on_bi.bi_db_destroy = ldap_pbind_db_destroy;
+  ldappbind.on_bi.bi_type = "pbind";
+  ldappbind.on_bi.bi_db_init = ldap_pbind_db_init;
+  ldappbind.on_bi.bi_db_open = ldap_pbind_db_open;
+  ldappbind.on_bi.bi_db_close = ldap_pbind_db_close;
+  ldappbind.on_bi.bi_db_destroy = ldap_pbind_db_destroy;
 
-	ldappbind.on_bi.bi_op_bind = ldap_pbind_bind;
-	ldappbind.on_bi.bi_connection_destroy = ldap_pbind_connection_destroy;
+  ldappbind.on_bi.bi_op_bind = ldap_pbind_bind;
+  ldappbind.on_bi.bi_connection_destroy = ldap_pbind_connection_destroy;
 
-	rc = ldap_pbind_init_cf( &ldappbind.on_bi );
-	if ( rc ) {
-		return rc;
-	}
+  rc = ldap_pbind_init_cf(&ldappbind.on_bi);
+  if (rc) {
+    return rc;
+  }
 
-	return overlay_register( &ldappbind );
+  return overlay_register(&ldappbind);
 }

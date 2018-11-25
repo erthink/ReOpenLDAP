@@ -1,5 +1,5 @@
 /* $ReOpenLDAP$ */
-/* Copyright 2000-2017 ReOpenLDAP AUTHORS: please see AUTHORS file.
+/* Copyright 2000-2018 ReOpenLDAP AUTHORS: please see AUTHORS file.
  * All rights reserved.
  *
  * This file is part of ReOpenLDAP.
@@ -22,17 +22,16 @@
 #include "back-bdb.h"
 
 #if DB_VERSION_FULL < 0x04030000
-void bdb_errcall( const char *pfx, char * msg )
+void bdb_errcall(const char *pfx, char *msg)
 #else
-void bdb_errcall( const DB_ENV *env, const char *pfx, const char * msg )
+void bdb_errcall(const DB_ENV *env, const char *pfx, const char *msg)
 #endif
 {
-	Debug( LDAP_DEBUG_ANY, "bdb(%s): %s\n", pfx, msg );
+  Debug(LDAP_DEBUG_ANY, "bdb(%s): %s\n", pfx, msg);
 }
 
 #if DB_VERSION_FULL >= 0x04030000
-void bdb_msgcall( const DB_ENV *env, const char *msg )
-{
-	Debug( LDAP_DEBUG_TRACE, "bdb: %s\n", msg );
+void bdb_msgcall(const DB_ENV *env, const char *msg) {
+  Debug(LDAP_DEBUG_TRACE, "bdb: %s\n", msg);
 }
 #endif

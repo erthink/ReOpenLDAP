@@ -1,5 +1,5 @@
 /* $ReOpenLDAP$ */
-/* Copyright 2002-2017 ReOpenLDAP AUTHORS: please see AUTHORS file.
+/* Copyright 2002-2018 ReOpenLDAP AUTHORS: please see AUTHORS file.
  * All rights reserved.
  *
  * This file is part of ReOpenLDAP.
@@ -79,8 +79,8 @@ LDAP_BEGIN_DECL
 #define UC_SC 0x02000000 /* Symbol, Currency           */
 #define UC_SK 0x04000000 /* Symbol, Modifier           */
 #define UC_SO 0x08000000 /* Symbol, Other              */
-#define UC_L  0x10000000 /* Left-To-Right              */
-#define UC_R  0x20000000 /* Right-To-Left              */
+#define UC_L 0x10000000  /* Left-To-Right              */
+#define UC_R 0x20000000  /* Right-To-Left              */
 #define UC_EN 0x40000000 /* European Number            */
 #define UC_ES 0x80000000 /* European Number Separator  */
 
@@ -91,8 +91,8 @@ LDAP_BEGIN_DECL
 #define UC_ET 0x00000001 /* European Number Terminator */
 #define UC_AN 0x00000002 /* Arabic Number              */
 #define UC_CS 0x00000004 /* Common Number Separator    */
-#define UC_B  0x00000008 /* Block Separator            */
-#define UC_S  0x00000010 /* Segment Separator          */
+#define UC_B 0x00000008  /* Block Separator            */
+#define UC_S 0x00000010  /* Segment Separator          */
 #define UC_WS 0x00000020 /* Whitespace                 */
 #define UC_ON 0x00000040 /* Other Neutrals             */
 /*
@@ -119,24 +119,29 @@ LDAP_BEGIN_DECL
  * of properties.  The macros that test for various character properties all
  * call this function with some set of masks.
  */
-LDAP_LUNICODE_F (int)
-ucisprop LDAP_P((uint32_t code, uint32_t mask1, uint32_t mask2));
+LDAP_LUNICODE_F(int)
+ucisprop(uint32_t code, uint32_t mask1, uint32_t mask2);
 
-#define ucisalpha(cc) ucisprop(cc, UC_LU|UC_LL|UC_LM|UC_LO|UC_LT, 0)
+#define ucisalpha(cc) ucisprop(cc, UC_LU | UC_LL | UC_LM | UC_LO | UC_LT, 0)
 #define ucisdigit(cc) ucisprop(cc, UC_ND, 0)
-#define ucisalnum(cc) ucisprop(cc, UC_LU|UC_LL|UC_LM|UC_LO|UC_LT|UC_ND, 0)
-#define uciscntrl(cc) ucisprop(cc, UC_CC|UC_CF, 0)
-#define ucisspace(cc) ucisprop(cc, UC_ZS|UC_SS, 0)
+#define ucisalnum(cc)                                                          \
+  ucisprop(cc, UC_LU | UC_LL | UC_LM | UC_LO | UC_LT | UC_ND, 0)
+#define uciscntrl(cc) ucisprop(cc, UC_CC | UC_CF, 0)
+#define ucisspace(cc) ucisprop(cc, UC_ZS | UC_SS, 0)
 #define ucisblank(cc) ucisprop(cc, UC_ZS, 0)
-#define ucispunct(cc) ucisprop(cc, UC_PD|UC_PS|UC_PE|UC_PO, UC_PI|UC_PF)
-#define ucisgraph(cc) ucisprop(cc, UC_MN|UC_MC|UC_ME|UC_ND|UC_NL|UC_NO|\
-                               UC_LU|UC_LL|UC_LT|UC_LM|UC_LO|UC_PC|UC_PD|\
-                               UC_PS|UC_PE|UC_PO|UC_SM|UC_SM|UC_SC|UC_SK|\
-                               UC_SO, UC_PI|UC_PF)
-#define ucisprint(cc) ucisprop(cc, UC_MN|UC_MC|UC_ME|UC_ND|UC_NL|UC_NO|\
-                               UC_LU|UC_LL|UC_LT|UC_LM|UC_LO|UC_PC|UC_PD|\
-                               UC_PS|UC_PE|UC_PO|UC_SM|UC_SM|UC_SC|UC_SK|\
-                               UC_SO|UC_ZS, UC_PI|UC_PF)
+#define ucispunct(cc) ucisprop(cc, UC_PD | UC_PS | UC_PE | UC_PO, UC_PI | UC_PF)
+#define ucisgraph(cc)                                                          \
+  ucisprop(cc,                                                                 \
+           UC_MN | UC_MC | UC_ME | UC_ND | UC_NL | UC_NO | UC_LU | UC_LL |     \
+               UC_LT | UC_LM | UC_LO | UC_PC | UC_PD | UC_PS | UC_PE | UC_PO | \
+               UC_SM | UC_SM | UC_SC | UC_SK | UC_SO,                          \
+           UC_PI | UC_PF)
+#define ucisprint(cc)                                                          \
+  ucisprop(cc,                                                                 \
+           UC_MN | UC_MC | UC_ME | UC_ND | UC_NL | UC_NO | UC_LU | UC_LL |     \
+               UC_LT | UC_LM | UC_LO | UC_PC | UC_PD | UC_PS | UC_PE | UC_PO | \
+               UC_SM | UC_SM | UC_SC | UC_SK | UC_SO | UC_ZS,                  \
+           UC_PI | UC_PF)
 #define ucisupper(cc) ucisprop(cc, UC_LU, 0)
 #define ucislower(cc) ucisprop(cc, UC_LL, 0)
 #define ucistitle(cc) ucisprop(cc, UC_LT, 0)
@@ -145,8 +150,8 @@ ucisprop LDAP_P((uint32_t code, uint32_t mask1, uint32_t mask2));
 #define ucisisocntrl(cc) ucisprop(cc, UC_CC, 0)
 #define ucisfmtcntrl(cc) ucisprop(cc, UC_CF, 0)
 
-#define ucissymbol(cc) ucisprop(cc, UC_SM|UC_SC|UC_SO|UC_SK, 0)
-#define ucisnumber(cc) ucisprop(cc, UC_ND|UC_NO|UC_NL, 0)
+#define ucissymbol(cc) ucisprop(cc, UC_SM | UC_SC | UC_SO | UC_SK, 0)
+#define ucisnumber(cc) ucisprop(cc, UC_ND | UC_NO | UC_NL, 0)
 #define ucisnonspacing(cc) ucisprop(cc, UC_MN, 0)
 #define ucisopenpunct(cc) ucisprop(cc, UC_PS, 0)
 #define ucisclosepunct(cc) ucisprop(cc, UC_PE, 0)
@@ -165,15 +170,15 @@ ucisprop LDAP_P((uint32_t code, uint32_t mask1, uint32_t mask2));
  */
 #define ucisrtl(cc) ucisprop(cc, UC_R, 0)
 #define ucisltr(cc) ucisprop(cc, UC_L, 0)
-#define ucisstrong(cc) ucisprop(cc, UC_L|UC_R, 0)
-#define ucisweak(cc) ucisprop(cc, UC_EN|UC_ES, UC_ET|UC_AN|UC_CS)
-#define ucisneutral(cc) ucisprop(cc, 0, UC_B|UC_S|UC_WS|UC_ON)
-#define ucisseparator(cc) ucisprop(cc, 0, UC_B|UC_S)
+#define ucisstrong(cc) ucisprop(cc, UC_L | UC_R, 0)
+#define ucisweak(cc) ucisprop(cc, UC_EN | UC_ES, UC_ET | UC_AN | UC_CS)
+#define ucisneutral(cc) ucisprop(cc, 0, UC_B | UC_S | UC_WS | UC_ON)
+#define ucisseparator(cc) ucisprop(cc, 0, UC_B | UC_S)
 
 /*
  * Other macros inspired by John Cowan.
  */
-#define ucismark(cc) ucisprop(cc, UC_MN|UC_MC|UC_ME, 0)
+#define ucismark(cc) ucisprop(cc, UC_MN | UC_MC | UC_ME, 0)
 #define ucismodif(cc) ucisprop(cc, UC_LM, 0)
 #define ucisletnum(cc) ucisprop(cc, UC_NL, 0)
 #define ucisconnect(cc) ucisprop(cc, UC_PC, 0)
@@ -189,9 +194,13 @@ ucisprop LDAP_P((uint32_t code, uint32_t mask1, uint32_t mask2));
 #define ucislsep(cc) ucisprop(cc, UC_ZL, 0)
 #define ucispsep(cc) ucisprop(cc, UC_ZP, 0)
 
-#define ucisidentstart(cc) ucisprop(cc, UC_LU|UC_LL|UC_LT|UC_LO|UC_NL, 0)
-#define ucisidentpart(cc) ucisprop(cc, UC_LU|UC_LL|UC_LT|UC_LO|UC_NL|\
-                                   UC_MN|UC_MC|UC_ND|UC_PC|UC_CF, 0)
+#define ucisidentstart(cc)                                                     \
+  ucisprop(cc, UC_LU | UC_LL | UC_LT | UC_LO | UC_NL, 0)
+#define ucisidentpart(cc)                                                      \
+  ucisprop(cc,                                                                 \
+           UC_LU | UC_LL | UC_LT | UC_LO | UC_NL | UC_MN | UC_MC | UC_ND |     \
+               UC_PC | UC_CF,                                                  \
+           0)
 
 #define ucisdefined(cc) ucisprop(cc, 0, UC_CP)
 #define ucisundefined(cc) !ucisprop(cc, 0, UC_CP)
@@ -199,8 +208,8 @@ ucisprop LDAP_P((uint32_t code, uint32_t mask1, uint32_t mask2));
 /*
  * Other miscellaneous character property macros.
  */
-#define ucishan(cc) (((cc) >= 0x4e00 && (cc) <= 0x9fff) ||\
-                     ((cc) >= 0xf900 && (cc) <= 0xfaff))
+#define ucishan(cc)                                                            \
+  (((cc) >= 0x4e00 && (cc) <= 0x9fff) || ((cc) >= 0xf900 && (cc) <= 0xfaff))
 #define ucishangul(cc) ((cc) >= 0xac00 && (cc) <= 0xd7ff)
 
 /**************************************************************************
@@ -209,9 +218,9 @@ ucisprop LDAP_P((uint32_t code, uint32_t mask1, uint32_t mask2));
  *
  **************************************************************************/
 
-LDAP_LUNICODE_F (uint32_t) uctoupper LDAP_P((uint32_t code));
-LDAP_LUNICODE_F (uint32_t) uctolower LDAP_P((uint32_t code));
-LDAP_LUNICODE_F (uint32_t) uctotitle LDAP_P((uint32_t code));
+LDAP_LUNICODE_F(uint32_t) uctoupper(uint32_t code);
+LDAP_LUNICODE_F(uint32_t) uctolower(uint32_t code);
+LDAP_LUNICODE_F(uint32_t) uctotitle(uint32_t code);
 
 /**************************************************************************
  *
@@ -224,20 +233,19 @@ LDAP_LUNICODE_F (uint32_t) uctotitle LDAP_P((uint32_t code));
  * If it returns 0, there is no composition.  Any other value indicates a
  * composition was returned in comp.
  */
-LDAP_LUNICODE_F (int) uccomp LDAP_P((uint32_t node1, uint32_t node2,
-		      uint32_t *comp));
+LDAP_LUNICODE_F(int) uccomp(uint32_t node1, uint32_t node2, uint32_t *comp);
 
 /*
  * Does Hangul composition on the string str with length len, and returns
  * the length of the composed string.
  */
-LDAP_LUNICODE_F (int) uccomp_hangul LDAP_P((uint32_t *str, int len));
+LDAP_LUNICODE_F(int) uccomp_hangul(uint32_t *str, int len);
 
 /*
  * Does canonical composition on the string str with length len, and returns
  * the length of the composed string.
  */
-LDAP_LUNICODE_F (int) uccanoncomp LDAP_P((uint32_t *str, int len));
+LDAP_LUNICODE_F(int) uccanoncomp(uint32_t *str, int len);
 
 /**************************************************************************
  *
@@ -250,25 +258,22 @@ LDAP_LUNICODE_F (int) uccanoncomp LDAP_P((uint32_t *str, int len));
  * there is no decomposition.  Any other value indicates a decomposition was
  * returned.
  */
-LDAP_LUNICODE_F (int)
-ucdecomp LDAP_P((uint32_t code, uint32_t *num,
-		 uint32_t **decomp));
+LDAP_LUNICODE_F(int)
+ucdecomp(uint32_t code, uint32_t *num, uint32_t **decomp);
 
 /*
  * Equivalent to ucdecomp() except that it includes compatibility
  * decompositions.
  */
-LDAP_LUNICODE_F (int)
-uckdecomp LDAP_P((uint32_t code, uint32_t *num,
-		 uint32_t **decomp));
+LDAP_LUNICODE_F(int)
+uckdecomp(uint32_t code, uint32_t *num, uint32_t **decomp);
 
 /*
  * If the code is a Hangul syllable, this routine decomposes it into the array
  * passed.  The array size should be at least 3.
  */
-LDAP_LUNICODE_F (int)
-ucdecomp_hangul LDAP_P((uint32_t code, uint32_t *num,
-			uint32_t decomp[]));
+LDAP_LUNICODE_F(int)
+ucdecomp_hangul(uint32_t code, uint32_t *num, uint32_t decomp[]);
 
 /*
  * This routine does canonical decomposition of the string in of length
@@ -276,17 +281,17 @@ ucdecomp_hangul LDAP_P((uint32_t code, uint32_t *num,
  * The memory for out is allocated by this routine. It returns the length
  * of the decomposed string if okay, and -1 on error.
  */
-LDAP_LUNICODE_F (int)
-uccanondecomp LDAP_P((const uint32_t *in, int inlen,
-		     uint32_t **out, int *outlen, void *ctx));
+LDAP_LUNICODE_F(int)
+uccanondecomp(const uint32_t *in, int inlen, uint32_t **out, int *outlen,
+              void *ctx);
 
 /*
  * Equivalent to uccanondecomp() except that it includes compatibility
  * decompositions.
  */
-LDAP_LUNICODE_F (int)
-uccompatdecomp LDAP_P((const uint32_t *in, int inlen,
-		     uint32_t **out, int *outlen, void *ctx));
+LDAP_LUNICODE_F(int)
+uccompatdecomp(const uint32_t *in, int inlen, uint32_t **out, int *outlen,
+               void *ctx);
 
 /**************************************************************************
  *
@@ -298,7 +303,7 @@ uccompatdecomp LDAP_P((const uint32_t *in, int inlen,
  * This will return the combining class for a character to be used with the
  * Canonical Ordering algorithm.
  */
-LDAP_LUNICODE_F (uint32_t) uccombining_class LDAP_P((uint32_t code));
+LDAP_LUNICODE_F(uint32_t) uccombining_class(uint32_t code);
 
 /**************************************************************************
  *
@@ -307,21 +312,21 @@ LDAP_LUNICODE_F (uint32_t) uccombining_class LDAP_P((uint32_t code));
  **************************************************************************/
 
 struct ucnumber {
-    int numerator;
-    int denominator;
+  int numerator;
+  int denominator;
 };
 
-LDAP_LUNICODE_F (int)
-ucnumber_lookup LDAP_P((uint32_t code, struct ucnumber *num));
+LDAP_LUNICODE_F(int)
+ucnumber_lookup(uint32_t code, struct ucnumber *num);
 
-LDAP_LUNICODE_F (int)
-ucdigit_lookup LDAP_P((uint32_t code, int *digit));
+LDAP_LUNICODE_F(int)
+ucdigit_lookup(uint32_t code, int *digit);
 
 /*
  * For compatibility with John Cowan's "uctype" package.
  */
-LDAP_LUNICODE_F (struct ucnumber) ucgetnumber LDAP_P((uint32_t code));
-LDAP_LUNICODE_F (int) ucgetdigit LDAP_P((uint32_t code));
+LDAP_LUNICODE_F(struct ucnumber) ucgetnumber(uint32_t code);
+LDAP_LUNICODE_F(int) ucgetdigit(uint32_t code);
 
 /**************************************************************************
  *
@@ -333,23 +338,24 @@ LDAP_LUNICODE_F (int) ucgetdigit LDAP_P((uint32_t code));
  * Macros for specifying the data tables to be loaded, unloaded, or reloaded
  * by the ucdata_load(), ucdata_unload(), and ucdata_reload() routines.
  */
-#define UCDATA_CASE   0x01
-#define UCDATA_CTYPE  0x02
+#define UCDATA_CASE 0x01
+#define UCDATA_CTYPE 0x02
 #define UCDATA_DECOMP 0x04
-#define UCDATA_CMBCL  0x08
-#define UCDATA_NUM    0x10
-#define UCDATA_COMP   0x20
+#define UCDATA_CMBCL 0x08
+#define UCDATA_NUM 0x10
+#define UCDATA_COMP 0x20
 #define UCDATA_KDECOMP 0x40
 
-#define UCDATA_ALL (UCDATA_CASE|UCDATA_CTYPE|UCDATA_DECOMP|\
-                    UCDATA_CMBCL|UCDATA_NUM|UCDATA_COMP|UCDATA_KDECOMP)
+#define UCDATA_ALL                                                             \
+  (UCDATA_CASE | UCDATA_CTYPE | UCDATA_DECOMP | UCDATA_CMBCL | UCDATA_NUM |    \
+   UCDATA_COMP | UCDATA_KDECOMP)
 
 /*
  * Functions to load, unload, and reload specific data files.
  */
-LDAP_LUNICODE_F (int) ucdata_load LDAP_P((char *paths, int mask));
-LDAP_LUNICODE_F (void) ucdata_unload LDAP_P((int mask));
-LDAP_LUNICODE_F (int) ucdata_reload LDAP_P((char *paths, int mask));
+LDAP_LUNICODE_F(int) ucdata_load(char *paths, int mask);
+LDAP_LUNICODE_F(void) ucdata_unload(int mask);
+LDAP_LUNICODE_F(int) ucdata_reload(char *paths, int mask);
 
 #ifdef UCDATA_DEPRECATED
 /*

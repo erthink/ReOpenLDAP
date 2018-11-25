@@ -1,4 +1,4 @@
-dnl Copyright 1998-2017 ReOpenLDAP AUTHORS: please see AUTHORS file.
+dnl Copyright 1998-2018 ReOpenLDAP AUTHORS: please see AUTHORS file.
 dnl All rights reserved.
 dnl
 dnl This file is part of ReOpenLDAP.
@@ -21,7 +21,7 @@ define([AC_LIBTOOL_LANG_F77_CONFIG], [:])dnl
 define([AC_LIBTOOL_LANG_GCJ_CONFIG], [:])dnl
 dnl ================================================================
 dnl Configure.in for ReOpenLDAP
-AC_COPYRIGHT([[Copyright 1992-2017 ReOpenLDAP AUTHORS: please see AUTHORS file.
+AC_COPYRIGHT([[Copyright 1992-2018 ReOpenLDAP AUTHORS: please see AUTHORS file.
 All rights reserved.
 
 This file is part of ReOpenLDAP.
@@ -37,11 +37,11 @@ top-level directory of the distribution or, alternatively, at
 AC_PREREQ([2.69])dnl Required Autoconf version
 AC_REVISION([$Id: 8c9139400f1cfd3f68bc9b65828515fe85e91ee1 $])
 AC_INIT(
-	m4_esyscmd_s([build/BRANDING --package]),
-	m4_esyscmd_s([build/BRANDING --version-full]),
-	m4_esyscmd_s([build/BRANDING --bugs]),
-	m4_esyscmd_s([build/BRANDING --tarname]),
-	m4_esyscmd_s([build/BRANDING --url]))
+	[m4_esyscmd_s(build/BRANDING --package)],
+	[m4_esyscmd_s(build/BRANDING --version-full)],
+	[m4_esyscmd_s(build/BRANDING --bugs)],
+	[m4_esyscmd_s(build/BRANDING --tarname)],
+	[m4_esyscmd_s(build/BRANDING --url)])
 AC_CONFIG_MACRO_DIR([build/m4])
 dnl ----------------------------------------------------------------
 dnl OpenLDAP Autoconf Macros
@@ -61,9 +61,10 @@ dnl Determine host platform
 dnl		we try not to use this for much
 AC_CANONICAL_TARGET([])
 
-AM_INIT_AUTOMAKE([subdir-objects --warnings=no-portability --warnings=error dist-xz no-dist-gzip])
+AM_INIT_AUTOMAKE([subdir-objects --warnings=all,no-override,no-portability,error dist-xz tar-pax no-dist-gzip])
 AM_SILENT_RULES([yes])
 AM_MAINTAINER_MODE([disable])
+AM_PROG_AR
 LT_CONFIG_LTDL_DIR([build/libltdl])
 LT_INIT([dlopen])
 
@@ -139,7 +140,8 @@ FIXUP_DIRS="\$(SED) \
 AC_SUBST(FIXUP_DIRS)
 
 AC_LANG([C])
-AC_ARG_VAR(EXTRA_CFLAGS, [Extra build-time CFLAGS, e.g. -Wall -Werror])
+AC_ARG_VAR(EXTRA_CFLAGS, [Extra build-time CFLAGS, e.g. -Wall -Werror.
+		Alternatively, ones can be specified or overridden by invocation 'make EXTRA_CFLAGS="a b c"'])
 AC_PREFIX_DEFAULT("/opt/reopenldap")
 
 dnl ----------------------------------------------------------------
@@ -168,8 +170,8 @@ PKG_PROG_PKG_CONFIG
 if test -z "$PKG_CONFIG"; then
 	AC_MSG_FAILURE([pkg-config tool is required for ReOpenLDAP, please install it])
 fi
-AC_LIBTOOL_DLOPEN
-AC_PROG_LIBTOOL
+LT_PREREQ([2.4.2])
+LT_INIT([dlopen])
 LT_OUTPUT
 
 AC_DEFINE(_GNU_SOURCE, 1, [Enable GNU extensions.])
@@ -182,7 +184,7 @@ dnl ----------------------------------------------------------------
 
 AH_TOP([
 /* begin of reldap_autoconf.h.pre */
-/* Copyright 1992-2017 ReOpenLDAP AUTHORS: please see AUTHORS file.
+/* Copyright 1992-2018 ReOpenLDAP AUTHORS: please see AUTHORS file.
  * All rights reserved.
  *
  * This file is part of ReOpenLDAP.
@@ -236,9 +238,6 @@ AH_TOP([
 AH_BOTTOM([
 /* begin of reldap_autoconf.h.post */
 
-/* force LDAP_P to always include prototypes */
-#define LDAP_NEEDS_PROTOTYPES 1
-
 #ifdef HAVE_FEATURES_H
 #	include <features.h>
 #endif
@@ -278,7 +277,6 @@ AH_BOTTOM([
 
 AC_CONFIG_HEADERS([reldap_autoconf.h])
 AC_CONFIG_HEADERS([include/ldap_features.h])
-AC_CONFIG_HEADERS([include/ldap_dirs.h])
 AC_CONFIG_HEADERS([include/lber_types.h])
 
 dnl ================================================================
@@ -325,14 +323,14 @@ AC_SUBST(REOPENLDAP_BUILDID_SUFFIX)
 dnl ----------------------------------------------------------------
 dnl General "enable" options
 OL_ARG_ENABLE(debug,[  --enable-debug          enable debug logging], yes, [no yes extra])dnl
+OL_ARG_ENABLE(ci,[  --enable-ci             enable Continuous Integration stuff], no, [no yes])dnl
 OL_ARG_ENABLE(syslog,[  --enable-syslog         enable syslog support], auto)dnl
 OL_ARG_ENABLE(contrib,[  --enable-contrib        enable extra plugins and overlays], no, [no yes broken])dnl
 OL_ARG_ENABLE(experimental,[  --enable-experimental   enable experimental and developing features], no, [no yes])dnl
 OL_ARG_ENABLE(check,[  --enable-check          enable internal checking and assertions], no, [no yes always default])dnl
 OL_ARG_ENABLE(hipagut,[  --enable-hipagut        enable internal memory allocation debugger], no, [no yes always extra])dnl
 OL_ARG_ENABLE(proctitle,[  --enable-proctitle      enable proctitle support], yes)dnl
-dnl OL_ARG_ENABLE(referrals,[  --enable-referrals      enable LDAPv2+ Referrals (experimental)], no)dnl
-ol_enable_referrals=${ol_enable_referrals-no}
+OL_ARG_ENABLE(referrals,[  --enable-referrals      enable LDAPv2+ Referrals (experimental)], no)dnl
 OL_ARG_ENABLE(ipv6,[  --enable-ipv6           enable IPv6 support], auto)dnl
 OL_ARG_ENABLE(local,[  --enable-local          enable AF_LOCAL (AF_UNIX) socket support], auto)dnl
 OL_ARG_ENABLE(deprecated,[  --enable-deprecated     enable deprecated interfaces of libreldap], no, [no yes])dnl
@@ -357,6 +355,7 @@ else
 	AX_VALGRIND_DFLT([memcheck], [off])
 	AX_VALGRIND_CHECK
 fi
+AC_SUBST(VALGRIND_SUPPRESSIONS_FILES)
 
 case $ol_enable_experimental in
     yes)
@@ -461,42 +460,46 @@ OL_ARG_ENABLE(wrappers,[    --enable-wrappers	  enable tcp wrapper support], no)
 dnl ----------------------------------------------------------------
 dnl SLAPD Backend Options
 slapd_backends="mdb bdb dnssrv hdb ldap meta monitor ndb null passwd perl \
-	relay shell sock sql"
+	relay shell sock sql wt asyncmeta"
 
 AC_ARG_ENABLE(xxslapbackends,[
 SLAPD Backend Options:])
 
-OL_ARG_ENABLE(backends,[    --enable-backends	  enable all available backends],
+OL_ARG_ENABLE(backends,[    --enable-backends	  enable all stable/non-experimental backends],
 	--, [no yes mod])dnl
 OL_ARG_ENABLE(mdb,[    --enable-mdb	  enable MDBX database backend],
 	yes, [no yes mod], ol_enable_backends)dnl
-OL_ARG_ENABLE(hdb,[    --enable-hdb	  enable Hierarchical Berkeley DB backend],
+OL_ARG_ENABLE(hdb,[    --enable-hdb	  enable Hierarchical Berkeley DB backend (obsolete)],
 	no, [no yes mod], ol_enable_backends)dnl
-OL_ARG_ENABLE(bdb,[    --enable-bdb	  enable Berkeley DB backend],
+OL_ARG_ENABLE(bdb,[    --enable-bdb	  enable Berkeley DB backend (obsolete)],
 	no, [no yes mod], ol_enable_backends)dnl
-OL_ARG_ENABLE(dnssrv,[    --enable-dnssrv	  enable dnssrv backend],
-	no, [no yes mod], ol_enable_backends)dnl
+OL_ARG_ENABLE(dnssrv,[    --enable-dnssrv	  enable dnssrv backend (experimental)],
+	no, [no yes mod], ol_enable_experimental)dnl
 OL_ARG_ENABLE(ldap,[    --enable-ldap	  enable ldap backend],
 	no, [no yes mod], ol_enable_backends)dnl
 OL_ARG_ENABLE(meta,[    --enable-meta	  enable metadirectory backend],
 	no, [no yes mod], ol_enable_backends)dnl
+OL_ARG_ENABLE(asyncmeta,[    --enable-asyncmeta	  enable asynchronous metadirectory backend (experimental)],
+	no, [no yes mod], ol_enable_experimental)dnl
 OL_ARG_ENABLE(monitor,[    --enable-monitor	  enable monitor backend],
 	yes, [no yes mod], ol_enable_backends)dnl
-OL_ARG_ENABLE(ndb,[    --enable-ndb	  enable MySQL NDB Cluster backend],
-	no, [no yes mod], ol_enable_backends)dnl
+OL_ARG_ENABLE(ndb,[    --enable-ndb	  enable MySQL NDB Cluster backend (experimental)],
+	no, [no yes mod], ol_enable_experimental)dnl
 OL_ARG_ENABLE(null,[    --enable-null	  enable null backend],
 	no, [no yes mod], ol_enable_backends)dnl
 OL_ARG_ENABLE(passwd,[    --enable-passwd	  enable passwd backend],
 	no, [no yes mod], ol_enable_backends)dnl
 OL_ARG_ENABLE(perl,[    --enable-perl	  enable perl backend],
 	no, [no yes mod], ol_enable_backends)dnl
-OL_ARG_ENABLE(relay,[    --enable-relay  	  enable relay backend],
-	yes, [no yes mod], ol_enable_backends)dnl
+OL_ARG_ENABLE(relay,[    --enable-relay  	  enable relay backend (experimental)],
+	yes, [no yes mod], ol_enable_experimental)dnl
 OL_ARG_ENABLE(shell,[    --enable-shell	  enable shell backend],
 	no, [no yes mod], ol_enable_backends)dnl
 OL_ARG_ENABLE(sock,[    --enable-sock	  enable sock backend],
 	no, [no yes mod], ol_enable_backends)dnl
-OL_ARG_ENABLE(sql,[    --enable-sql	  enable sql backend],
+OL_ARG_ENABLE(sql,[    --enable-sql	  enable SQL backend (experimental and buggy)],
+	no, [no yes mod], ol_enable_experimental)dnl
+OL_ARG_ENABLE(wt,[    --enable-wt		  enable WiredTiger backend],
 	no, [no yes mod], ol_enable_backends)dnl
 
 dnl ----------------------------------------------------------------
@@ -573,6 +576,24 @@ PKG_CHECK_MODULES(HEIMDAL, heimdal-krb5 heimdal-kadm-server, heimdal_found=yes, 
 AC_SUBST(HEIMDAL_LIBS)
 AC_SUBST(HEIMDAL_CFLAGS)
 AM_CONDITIONAL([HEIMDAL_AVAIL], [test $heimdal_found = yes])
+if test $heimdal_found == yes; then
+	AC_MSG_CHECKING([for hdb_generate_key_set_password() signature])
+	saved_cflags="$CFLAGS"
+	CFLAGS="$CFLAGS $HEIMDAL_CFLAGS"
+	AC_COMPILE_IFELSE(
+		[AC_LANG_PROGRAM(
+		[[#include <heimdal/hdb.h>]],
+		[[krb5_context context; krb5_principal principal; Key *key; size_t size;]
+		[krb5_error_code rc = hdb_generate_key_set_password(context, principal, "", &key, &size);]
+		[return (int) rc;]])
+		],[
+			AC_MSG_RESULT([modern])
+			AC_DEFINE(HAVE_MODERN_HDB_GENERATE_KEY_SET_PASSWORD, 1, [Does hdb_generate_key_set_password() signature is modern])
+		],[
+			AC_MSG_RESULT([legacy])
+	])
+	CFLAGS="$saved_cflags"
+fi
 
 dnl ----------------------------------------------------------------
 # libsodium (argon2 hash)
@@ -666,14 +687,22 @@ if test $ol_enable_meta/$ol_enable_ldap = yes/no ; then
 	AC_MSG_ERROR([--enable-meta requires --enable-ldap])
 fi
 
+if test $ol_enable_asyncmeta/$ol_enable_ldap = yes/no ; then
+	AC_MSG_ERROR([--enable-asyncmeta requires --enable-ldap])
+fi
+
+if test $ol_enable_lmpasswd = yes ; then
+	if test $ol_with_tls = no ; then
+		AC_MSG_ERROR([LAN Manager passwords require OpenSSL])
+	fi
+fi
+
 if test $ol_enable_spasswd = yes ; then
 	if test $ol_with_cyrus_sasl = no ; then
 		AC_MSG_ERROR([options require --with-cyrus-sasl])
 	fi
 	ol_with_cyrus_sasl=yes
 fi
-
-AC_MSG_RESULT(done)
 
 dnl ----------------------------------------------------------------
 dnl Initialize vars
@@ -702,6 +731,11 @@ PERL_LIBS=
 PERL_CPPFLAGS=
 PERL_LDFLAGS=
 PERL_RDIR=
+
+WT_CPPFLAGS=
+WT_CFLAGS=
+WT_LIBS=
+WT_LIBDIR=
 
 SQL_LIBS=
 SQL_INCLUDES=
@@ -886,12 +920,12 @@ AC_CHECK_HEADERS( sys/ucred.h, [], [],
 ])
 dnl Check whether ucred is defined without _GNU_SOURCE
 AC_MSG_CHECKING(for struct ucred)
-AC_TRY_LINK([
+AC_LINK_IFELSE([AC_LANG_PROGRAM([[
 #include <sys/ucred.h>
 #include <sys/socket.h>
-],[
+]], [[
 struct ucred sucred; sucred.pid=0;
-],[has_ucred=yes],[has_ucred=no])
+]])],[has_ucred=yes],[has_ucred=no])
 AC_MSG_RESULT($has_ucred)
 if test ${has_ucred} = no ; then CFLAGS="$CFLAGS -D_GNU_SOURCE"; fi
 
@@ -920,7 +954,7 @@ AC_CHECK_FUNC(select, :, AC_MSG_ERROR([select() required.]))
 
 if test "${ac_cv_header_winsock_h}" != yes; then
 	dnl Select arg types
-	dnl (if this detection becomes permenent, it and the select() detection
+	dnl (if this detection becomes permanent, it and the select() detection
 	dnl should be done before the yielding select test)
 	AC_FUNC_SELECT_ARGTYPES
 fi
@@ -1010,7 +1044,7 @@ fi
 dnl ----------------------------------------------------------------
 dnl UUID Support
 
-PKG_CHECK_MODULES(UUID, uuid, uuid_found=yes, uuid_found=no)
+PKG_CHECK_MODULES(UUID, uuid, uuid_found=yes, [PKG_CHECK_MODULES(UUID, ossp-uuid, uuid_found=yes, uuid_found=no)])
 AC_SUBST(UUID_LIBS)
 AC_SUBST(UUID_CFLAGS)
 if test $uuid_found = yes ; then
@@ -1150,9 +1184,11 @@ AC_SUBST(MOZNSS_LIBS)
 AC_SUBST(MOZNSS_CFLAGS)
 AM_CONDITIONAL([MOZNSS_AVAIL], [test $moznss_found = yes])
 if test $moznss_found = yes; then
-    AC_DEFINE(HAVE_MOZNSS, 1, [define if you have Mozill NSS])
+    AC_DEFINE(HAVE_MOZNSS, 1, [define if you have Mozilla NSS])
     save_CPPFLAGS=$CPPFLAGS
+    save_LIBS=$LIBS
     CPPFLAGS="$CPPFLAGS $MOZNSS_CFLAGS"
+    LIBS="$LIBS $MOZNSS_LIBS"
     AC_CHECK_HEADERS([nspr/nspr.h nspr4/nspr.h])
     if test $ac_cv_header_nspr_nspr_h != yes -a $ac_cv_header_nspr4_nspr_h != yes; then
 	AC_MSG_ERROR([could not locate nspr/nspr.h or nspr4/nspr.h])
@@ -1161,13 +1197,29 @@ if test $moznss_found = yes; then
     if test $ac_cv_header_nss_nss_h != yes -a $ac_cv_header_nss3_nss_h != yes; then
 	AC_MSG_ERROR([could not locate nss/nss.h or nss3/nss.h])
     fi
+
+    dnl The function PK11_CreateGenericObject is needed to load libnsspem.so
+    AC_CHECK_FUNC(PK11_CreateGenericObject, , [moznss_found=no])
+    AC_CHECK_LIB(nsspem, C_GetFunctionList, [moznss_pem=yes], [moznss_pem=no])
+
+    dnl NSS_InitContext() was introduced in NSS 3.12.5 and helps to prevent
+    dnl collisions on NSS initialization/shutdown with other libraries
+    AC_CHECK_FUNC(NSS_InitContext, [AC_DEFINE(HAVE_NSS_INITCONTEXT, 1, [if you have the NSS_InitContext function])])
+
+    if test $moznss_pem != yes; then
+	AC_MSG_WARN([libnsspem not found, assume MozNSS support for PEM is incomplete])
+    else
+	AC_DEFINE(HAVE_NSSPEM, 1, [define if you have Mozilla NSS PEM library])
+    fi
+
     CPPFLAGS=$save_CPPFLAGS
+    LIBS=$save_LIBS
 fi
 
 AM_CONDITIONAL([TLS_FALLBACK_AVAIL], [test $gnutls_found = yes -o $openssl_found = yes])
 
 if test $ol_with_tls = yes -o $ol_with_tls = auto; then
-    if test $moznss_found = yes; then
+    if test $moznss_found = yes -a "$moznss_pem" = yes; then
 	ol_with_tls=moznss
     elif test $gnutls_found = yes -a $ol_enable_lmpasswd != yes; then
 	ol_with_tls=gnutls
@@ -1271,7 +1323,7 @@ esac
 WITH_TLS=no
 if test $ol_link_tls = yes ; then
 	AC_DEFINE(WITH_TLS, 1, [define if you enabled TLS])
-	WITH_TLS=yes
+	WITH_TLS=$ol_with_tls
 	CFLAGS="$CFLAGS $TLS_CFLAGS"
 fi
 
@@ -1526,7 +1578,7 @@ pthread_rwlock_t rwlock;
 			AC_DEFINE(HAVE_PTHREAD_DETACH,1,
 				[define if you have pthread_detach function])
 
-			dnl Check for setconcurreny functions
+			dnl Check for setconcurrency functions
 			AC_CHECK_FUNCS(	\
 				pthread_setconcurrency \
 				pthread_getconcurrency \
@@ -1803,7 +1855,7 @@ hosts_access(req)
 		AC_DEFINE(HAVE_TCPD,1, [define if you have -lwrap])
 		SLAPD_TCPWRAP_LIBS="$SLAPD_TCPWRAP_LIBS -lwrap"
 	elif test $ol_enable_wrappers = yes ; then
-		AC_MSG_ERROR([could not find TCP wrappers, select apppropriate options or disable])
+		AC_MSG_ERROR([could not find TCP wrappers, select appropriate options or disable])
 	else
 		AC_MSG_WARN([could not find TCP wrappers, support disabled])
 	fi
@@ -1888,17 +1940,41 @@ ol_link_ndb=no
 if test $ol_enable_ndb != no ; then
 	mysql_cluster_path=$(find -L /opt /usr/local $(echo $PATH | tr ':' ' ') -maxdepth 2 -name 'mysql-cluster*' -type d 2>/dev/null -printf "%p/bin$PATH_SEPARATOR")
 	dnl echo "mysql_cluster_path=$mysql_cluster_path"
-	AC_PATH_PROG(MYSQL,mysql_config,no,$mysql_cluster_path)
-	if test "$MYSQL" = no ; then
-		AC_MSG_ERROR([could not locate mysql_config])
+	MYSQL_CONFIG=
+	AC_PATH_PROG(MYSQL_CONFIG,mysql_config,,$mysql_cluster_path$PATH)
+	if test -z "$MYSQL_CONFIG"; then
+		AC_MSG_ERROR([could not locate mysql_config for NDB backend])
+	fi
+	NDB_LDFLAGS="`$MYSQL_CONFIG --libs_r`"
+	MYSQL_NDB_INC="`$MYSQL_CONFIG --include`"
+
+	AC_MSG_CHECKING([for ndbclient include directory])
+	MYSQL_NDB_INCDIR="`$MYSQL_CONFIG --variable=pkgincludedir`";
+	if test -z "$MYSQL_NDB_INCDIR"; then
+		MYSQL_NDB_INCDIR="`$MYSQL_CONFIG --include | sed 's/^-I /-I/g' | tr '[[:space:]]' '\n' | grep ^-I | sed 's/^-I//' | head -n 1`";
+	fi
+	if test -n "$MYSQL_NDB_INCDIR" -a -d "$MYSQL_NDB_INCDIR/storage/ndb/ndbapi"; then
+		NDB_INCLUDES="$MYSQL_NDB_INC $MYSQL_NDB_INC/storage/ndb $MYSQL_NDB_INC/storage/ndb/ndbapi"
+		AC_MSG_RESULT([$MYSQL_NDB_INCDIR/storage/ndb/ndbapi])
+	else
+		AC_MSG_ERROR([could not locate .../storage/ndb/ndbapi for NDB backend])
 	fi
 
-	SQL_INC=`$MYSQL --include`
-	NDB_INCLUDES="$SQL_INC $SQL_INC/storage/ndb $SQL_INC/storage/ndb/ndbapi"
+	AC_MSG_CHECKING([for ndbclient libraries directory])
+	MYSQL_NDB_LIBDIR="`$MYSQL_CONFIG --variable=pkglibdir`";
+	if test -z "$MYSQL_NDB_LIBDIR"; then
+		MYSQL_NDB_LIBDIR="`$MYSQL_CONFIG --libs_r | sed 's/^-L /-L/g' | tr '[[:space:]]' '\n' | grep ^-L | sed 's/^-L//'`"
+	fi
+	if test -n "$MYSQL_NDB_LIBDIR" -a -d "$MYSQL_NDB_LIBDIR"; then
+		AC_MSG_RESULT([$MYSQL_NDB_LIBDIR])
+	else
+		AC_MSG_RESULT([none])
+	fi
+	NDB_LIBS="$NDB_LDFLAGS -lndbclient -lstdc++"
 
+	AC_MSG_CHECKING(for NdbApi.hpp)
 	save_CPPFLAGS="$CPPFLAGS"
 	CPPFLAGS="$NDB_INCLUDES"
-	AC_MSG_CHECKING(for NdbApi.hpp)
 	AC_PREPROC_IFELSE(
 		[AC_LANG_SOURCE([[#include <NdbApi.hpp>]])],
 			AC_MSG_RESULT(yes),
@@ -1906,27 +1982,54 @@ if test $ol_enable_ndb != no ; then
 	)
 	CPPFLAGS="$save_CPPFLAGS"
 
-	SQL_LIB="`$MYSQL --libs_r`"
-	NDB_LIBS="$SQL_LIB -lndbclient -lstdc++"
-
 	save_LDFLAGS="$LDFLAGS"
 	save_LIBS="$LIBS"
-	LDFLAGS="$SQL_LIB"
-	AC_CHECK_LIB(ndbclient,ndb_init,[: $SQL_LIB],[
+	LDFLAGS="$LDFLAGS $NDB_LDFLAGS"
+	AC_CHECK_LIB(ndbclient,ndb_init,[: $NDB_LDFLAGS],[
 		AC_MSG_ERROR([could not locate ndbclient library])
 	],[-lstdc++])
 	LIBS="$save_LIBS"
 	LDFLAGS="$save_LDFLAGS"
 
-	AC_MSG_CHECKING([ndb library present in ld.so search path])
-	NDB_LIBDIR="`$MYSQL --libs_r | sed 's/^-L /-L/g' | tr '[[:space:]]' '\n' | grep ^-L | sed 's/^-L//'`"
-	if ldconfig -v 2>/dev/null | grep -q "^$NDB_LIBDIR:"; then
-		AC_MSG_RESULT(yes)
-	else
-		AC_MSG_RESULT(no, -rpath option will be passed to linker)
-		NDB_LDFLAGS="$NDB_LDFLAGS -Wl,-rpath,$NDB_LIBDIR"
-		NDB_RDIR="$NDB_RDIR -R$NDB_LIBDIR"
+	NDB_RDIR=
+	if test -n "$MYSQL_NDB_LIBDIR"; then
+		AC_MSG_CHECKING([ndbclient library present in ld.so search path])
+		if ldconfig -v 2>/dev/null | grep -q "^$MYSQL_NDB_LIBDIR:"; then
+			AC_MSG_RESULT(yes)
+		else
+			AC_MSG_RESULT(no, -rpath option will be passed to linker)
+			NDB_LDFLAGS="$NDB_LDFLAGS -Wl,-rpath,$MYSQL_NDB_LIBDIR"
+			NDB_RDIR="-R$MYSQL_NDB_LIBDIR"
+		fi
 	fi
+fi
+
+dnl ----------------------------------------------------------------
+dnl WiredTiger
+ol_link_wt=no
+if test $ol_enable_wt != no ; then
+	AC_CHECK_PROG(PKGCONFIG,pkg-config,yes)
+	if test "$PKGCONFIG" != yes ; then
+		AC_MSG_ERROR([could not locate pkg-config])
+	fi
+	WT_CPPFLAGS=`pkg-config --cflags-only-I wiredtiger`
+	WT_CFLAGS=`pkg-config --cflags-only-other wiredtiger`
+	WT_LIBS=`pkg-config --libs-only-l wiredtiger`
+	WT_LIBDIR=`pkg-config --libs-only-L wiredtiger`
+
+	save_CFLAGS="$CFLAGS"
+	save_LDFLAGS="$LDFLAGS"
+	CFLAGS="$WT_CFLAGS"
+	CPPFLAGS="$WT_CPPFLAGS"
+	LDFLAGS="$WT_LIBDIR $WT_LIBS"
+	AC_CHECK_HEADERS([wiredtiger.h])
+	AC_CHECK_LIB(wiredtiger,wiredtiger_version,[: ok],[
+		AC_MSG_ERROR([could not locate wiredtiger library])
+	])
+	CFLAGS="$save_CFLAGS"
+	CPPFLAGS="$save_CPPFLAGS"
+	LDFLAGS="$save_LDFLAGS"
+	ol_link_wt=yes
 fi
 
 #dnl ----------------------------------------------------------------
@@ -1988,8 +2091,8 @@ if test $ol_with_cyrus_sasl != no ; then
 
 		ac_save_LIBS="$LIBS"
 		LIBS="$LIBS $ol_link_sasl"
-		AC_CHECK_FUNC(sasl_version, [AC_DEFINE(HAVE_SASL_VERSION,1,
-			[define if your SASL library has sasl_version()])])
+		AC_CHECK_FUNC(sasl_version_info, [AC_DEFINE(HAVE_SASL_VERSION,1,
+			[define if your SASL library has sasl_version_info()])])
 		LIBS="$ac_save_LIBS"
 
 		WITH_SASL=yes
@@ -2054,10 +2157,16 @@ if test $ol_enable_crypt != no ; then
 		AC_CHECK_LIB(crypt, crypt, [LUTIL_LIBS="$LUTIL_LIBS -lcrypt"
 			have_crypt=yes], [have_crypt=no])])
 
+	LIBS="$TLS_LIBS $LIBS"
+	AC_CHECK_LIB(crypt, crypt_r, [have_crypt_r=yes], [have_crypt_r=no])
+
 	LIBS="$save_LIBS"
 
 	if test $have_crypt = yes ; then
 		AC_DEFINE(HAVE_CRYPT,1, [define if crypt(3) is available])
+		if test $have_crypt_r = yes ; then
+			AC_DEFINE(HAVE_CRYPT_R, 1, [define if crypt_r() is also available])
+		fi
 	else
 		AC_MSG_WARN([could not find crypt])
 		if test $ol_enable_crypt = yes ; then
@@ -2384,6 +2493,9 @@ case $ol_enable_debug in
 	AC_MSG_FAILURE([invalid --enable-debug value '$ol_enable_debug'])
 	;;
 esac
+if test "$ol_enable_ci" != no ; then
+	AC_DEFINE(SLAPD_ENABLE_CI,1,[define this to simplify Continuous Integration testing])
+fi
 
 if test "$ol_enable_syslog" != no ; then
 	AC_DEFINE(LDAP_SYSLOG,1,[define this to add syslog code])
@@ -2523,6 +2635,19 @@ if test "$ol_enable_meta" != no ; then
 	AC_DEFINE_UNQUOTED(SLAPD_META,$MFLAG,[define to support LDAP Metadirectory backend])
 fi
 
+if test "$ol_enable_asyncmeta" != no ; then
+	ol_enable_slapd=yes
+	ol_enable_rewrite=yes
+	if test "$ol_enable_asyncmeta" = mod ; then
+		SLAPD_DYNAMIC_BACKENDS="$SLAPD_DYNAMIC_BACKENDS asyncmeta"
+		MFLAG=SLAPD_MOD_DYNAMIC
+	else
+		SLAPD_STATIC_BACKENDS="$SLAPD_STATIC_BACKENDS asyncmeta"
+		MFLAG=SLAPD_MOD_STATIC
+	fi
+	AC_DEFINE_UNQUOTED(SLAPD_ASYNCMETA,$MFLAG,[define to support LDAP Async Metadirectory backend])
+fi
+
 if test "$ol_enable_ndb" != no ; then
 	ol_enable_slapd=yes
 	if test "$ol_enable_ndb" = mod ; then
@@ -2620,6 +2745,18 @@ if test "$ol_link_sql" != no ; then
 		MFLAG=SLAPD_MOD_STATIC
 	fi
 	AC_DEFINE_UNQUOTED(SLAPD_SQL,$MFLAG,[define to support SQL backend])
+fi
+
+if test "$ol_link_wt" != no ; then
+	ol_enable_slapd=yes
+	if test "$ol_enable_wt" = mod; then
+		SLAPD_DYNAMIC_BACKENDS="$SLAPD_DYNAMIC_BACKENDS wt"
+		MFLAG=SLAPD_MOD_DYNAMIC
+	else
+		SLAPD_STATIC_BACKENDS="$SLAPD_STATIC_BACKENDS wt"
+		MFLAG=SLAPD_MOD_STATIC
+	fi
+	AC_DEFINE_UNQUOTED(SLAPD_WT,$MFLAG,[define to support WiredTiger backend])
 fi
 
 if test "$ol_enable_accesslog" != no ; then
@@ -2866,7 +3003,6 @@ AC_SUBST(LDAP_LIBSLAPI_LA)
 
 dnl ----------------------------------------------------------------
 
-#AC_SUBST(LIBSRCS)
 AC_SUBST(WITH_SASL)
 AC_SUBST(WITH_TLS)
 AC_SUBST(WITH_ACI_ENABLED)
@@ -2878,8 +3014,6 @@ AM_CONDITIONAL([WITH_GSSAPI], [test $ol_with_gssapi = yes])
 if test $enable_shared = yes; then
 	AC_DEFINE(RELDAP_LIBS_SHARED,1,[--enable-shared=yes])
 fi
-#RELDAP_LIBS_SHARED=$enable_shared
-#AC_SUBST(RELDAP_LIBS_SHARED)
 
 AM_CONDITIONAL([BEHIND_CURTIAN], [test -x $ac_aux_dir/mkbanner -a -x $ac_aux_dir/BRANDING])
 if test -x $ac_aux_dir/mkbanner -a -x $ac_aux_dir/BRANDING; then
@@ -2948,6 +3082,9 @@ AM_CONDITIONAL([SLAPD_DYNACL], [test $ol_enable_dynacl != no])
 	AM_CONDITIONAL([BUILD_META], [test $ol_enable_meta != no])
 	AM_CONDITIONAL([META_DYNAMIC], [test $ol_enable_meta = mod])
 
+	AM_CONDITIONAL([BUILD_ASYNCMETA], [test $ol_enable_asyncmeta != no])
+	AM_CONDITIONAL([ASYNCMETA_DYNAMIC], [test $ol_enable_asyncmeta = mod])
+
 	AM_CONDITIONAL([BUILD_NDB], [test $ol_enable_ndb != no])
 	AM_CONDITIONAL([NDB_DYNAMIC], [test $ol_enable_ndb = mod])
 
@@ -2971,6 +3108,9 @@ AM_CONDITIONAL([SLAPD_DYNACL], [test $ol_enable_dynacl != no])
 
 	AM_CONDITIONAL([BUILD_SQL], [test $ol_enable_sql != no])
 	AM_CONDITIONAL([SQL_DYNAMIC], [test $ol_enable_sql = mod])
+
+	AM_CONDITIONAL([BUILD_WT], [test $ol_enable_wt != no])
+	AM_CONDITIONAL([WT_DYNAMIC], [test $ol_enable_wt = mod])
 
 #dnl overlays
 	AM_CONDITIONAL([BUILD_ACCESSLOG], [test $ol_enable_accesslog != no])
@@ -3040,7 +3180,6 @@ AM_CONDITIONAL([CONTRIB], [test "$ol_enable_contrib" != no])
 AM_CONDITIONAL([CONTRIB_BROKEN], [test "$ol_enable_contrib" = broken])
 
 AC_SUBST(LTHREAD_LIBS)
-AC_SUBST(LUTIL_LIBS)
 
 AC_SUBST(SLAPD_STATIC_BACKENDS)
 AC_SUBST(SLAPD_DYNAMIC_BACKENDS)
@@ -3062,6 +3201,11 @@ AC_SUBST(PERL_CPPFLAGS)
 AC_SUBST(PERL_LDFLAGS)
 AC_SUBST(PERL_LIBS)
 AC_SUBST(PERL_RDIR)
+
+AC_SUBST(WT_CPPFLAGS)
+AC_SUBST(WT_CFLAGS)
+AC_SUBST(WT_LIBS)
+AC_SUBST(WT_LIBDIR)
 
 AC_SUBST(SQL_LIBS)
 AC_SUBST(SQL_INCLUDES)
@@ -3091,9 +3235,14 @@ AC_SUBST(LDAP_LIBLUTIL_LA)
 
 SECURITY_LIBS="$SASL_LIBS $GSSAPI_LIBS $TLS_LIBS $AUTH_LIBS"
 AC_SUBST(SECURITY_LIBS)
+LUTIL_LIBS="$LUTIL_LIBS $SASL_LIBS $SECURITY_LIBS $UUID_LIBS"
+AC_SUBST(LUTIL_LIBS)
 
 SLAPD_LIBS="$SLAPD_LIBS $SLAPD_SLP_LIBS $SLAPD_GMP_LIBS $SLAPD_TCPWRAP_LIBS"
 AC_SUBST(SLAPD_LIBS)
+
+AC_SUBST(WT_INCS)
+AC_SUBST(WT_LIBS)
 
 dnl ----------------------------------------------------------------
 dnl final help output
@@ -3131,6 +3280,7 @@ AC_CONFIG_FILES(
 		servers/slapd/back-null/Makefile
 		servers/slapd/back-ldap/Makefile
 		servers/slapd/back-meta/Makefile
+		servers/slapd/back-asyncmeta/Makefile
 		servers/slapd/back-relay/Makefile
 		servers/slapd/back-sock/Makefile
 
@@ -3141,6 +3291,7 @@ AC_CONFIG_FILES(
 		servers/slapd/back-perl/Makefile
 		servers/slapd/back-shell/Makefile servers/slapd/shell-backends/Makefile
 		servers/slapd/back-sql/Makefile
+		servers/slapd/back-wt/Makefile
 
 	doc/man/Makefile
 	doc/man/ru/Makefile
@@ -3158,7 +3309,9 @@ if test -x $ac_aux_dir/BRANDING; then
 fi
 
 AM_SUBST_NOTMAKE(COMMON_MK, "include ${top_srcdir}/build/common.mk")
-AC_SUBST(AM_CFLAGS, "\$(EXTRA_CFLAGS)")
+AC_SUBST(AM_EXTRA_CFLAGS, "\$(if \$(subst undefined,,\$(flavor EXTRA_CFLAGS)),\$(EXTRA_CFLAGS),${EXTRA_CFLAGS})")
+AC_SUBST(AM_CFLAGS, "\$(AM_EXTRA_CFLAGS)")
+AM_SUBST_NOTMAKE(EXTRA_CFLAGS)
 
 AC_OUTPUT
 
@@ -3168,3 +3321,6 @@ if sed -i -e 's/\$pic_flag_for_symtable /&`echo -- "\$LTCFLAGS" | grep -q -w -- 
 else
 	AC_MSG_RESULT([something went wrong, not supported])
 fi
+
+dnl ----------------------------------------------------------------
+AC_MSG_RESULT(done)

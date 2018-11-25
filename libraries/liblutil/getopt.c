@@ -1,5 +1,5 @@
 /* $ReOpenLDAP$ */
-/* Copyright 1992-2017 ReOpenLDAP AUTHORS: please see AUTHORS file.
+/* Copyright 1992-2018 ReOpenLDAP AUTHORS: please see AUTHORS file.
  * All rights reserved.
  *
  * This file is part of ReOpenLDAP.
@@ -41,81 +41,66 @@
 int opterr = 1;
 int optind = 1;
 int optopt;
-char * optarg;
+char *optarg;
 
-static void ERR (char * const argv[], const char * s, char c)
-{
+static void ERR(char *const argv[], const char *s, char c) {
 #ifdef DF_TRACE_DEBUG
-printf("DF_TRACE_DEBUG: 	static void ERR () in getopt.c\n");
+  printf("DF_TRACE_DEBUG: 	static void ERR () in getopt.c\n");
 #endif
-	if (opterr)
-	{
-		char *ptr, outbuf[4096];
+  if (opterr) {
+    char *ptr, outbuf[4096];
 
-		ptr = lutil_strncopy(outbuf, argv[0], sizeof(outbuf) - 2);
-		ptr = lutil_strncopy(ptr, s, sizeof(outbuf)-2 -(ptr-outbuf));
-		*ptr++ = c;
-		*ptr++ = '\n';
-		(void) write(STDERR_FILENO,outbuf,ptr - outbuf);
-	}
+    ptr = lutil_strncopy(outbuf, argv[0], sizeof(outbuf) - 2);
+    ptr = lutil_strncopy(ptr, s, sizeof(outbuf) - 2 - (ptr - outbuf));
+    *ptr++ = c;
+    *ptr++ = '\n';
+    (void)write(STDERR_FILENO, outbuf, ptr - outbuf);
+  }
 }
 
-int getopt (int argc, char * const argv [], const char * opts)
-{
-	static int sp = 1, error = (int) '?';
-	static char sw = '-', eos = '\0', arg = ':';
-	register char c, * cp;
+int getopt(int argc, char *const argv[], const char *opts) {
+  static int sp = 1, error = (int)'?';
+  static char sw = '-', eos = '\0', arg = ':';
+  register char c, *cp;
 
 #ifdef DF_TRACE_DEBUG
-printf("DF_TRACE_DEBUG: 	int getopt () in getopt.c\n");
+  printf("DF_TRACE_DEBUG: 	int getopt () in getopt.c\n");
 #endif
 
-	if (sp == 1)
-	{
-		if (optind >= argc || argv[optind][0] != sw
-		|| argv[optind][1] == eos)
-			return EOF;
-		else if (strcmp(argv[optind],"--") == 0)
-		{
-			optind++;
-			return EOF;
-		}
-	}
-	c = argv[optind][sp];
-	optopt = (int) c;
-	if (c == arg || (cp = strchr(opts,c)) == NULL)
-	{
-		ERR(argv,_(": illegal option--"),c);
-		if (argv[optind][++sp] == eos)
-		{
-			optind++;
-			sp = 1;
-		}
-		return error;
-	}
-	else if (*++cp == arg)
-	{
-		if (argv[optind][sp + 1] != eos)
-			optarg = &argv[optind++][sp + 1];
-		else if (++optind >= argc)
-		{
-			ERR(argv,_(": option requires an argument--"),c);
-			sp = 1;
-			return error;
-		}
-		else
-			optarg = argv[optind++];
-		sp = 1;
-	}
-	else
-	{
-		if (argv[optind][++sp] == eos)
-		{
-			sp = 1;
-			optind++;
-		}
-		optarg = NULL;
-	}
-	return (int) c;
+  if (sp == 1) {
+    if (optind >= argc || argv[optind][0] != sw || argv[optind][1] == eos)
+      return EOF;
+    else if (strcmp(argv[optind], "--") == 0) {
+      optind++;
+      return EOF;
+    }
+  }
+  c = argv[optind][sp];
+  optopt = (int)c;
+  if (c == arg || (cp = strchr(opts, c)) == NULL) {
+    ERR(argv, _(": illegal option--"), c);
+    if (argv[optind][++sp] == eos) {
+      optind++;
+      sp = 1;
+    }
+    return error;
+  } else if (*++cp == arg) {
+    if (argv[optind][sp + 1] != eos)
+      optarg = &argv[optind++][sp + 1];
+    else if (++optind >= argc) {
+      ERR(argv, _(": option requires an argument--"), c);
+      sp = 1;
+      return error;
+    } else
+      optarg = argv[optind++];
+    sp = 1;
+  } else {
+    if (argv[optind][++sp] == eos) {
+      sp = 1;
+      optind++;
+    }
+    optarg = NULL;
+  }
+  return (int)c;
 }
 #endif /* HAVE_GETOPT */

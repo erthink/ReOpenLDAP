@@ -1,5 +1,5 @@
 /* $ReOpenLDAP$ */
-/* Copyright 1992-2017 ReOpenLDAP AUTHORS: please see AUTHORS file.
+/* Copyright 1992-2018 ReOpenLDAP AUTHORS: please see AUTHORS file.
  * All rights reserved.
  *
  * This file is part of ReOpenLDAP.
@@ -16,22 +16,22 @@
 #ifndef _AC_SYSLOG_H_
 #define _AC_SYSLOG_H_
 
-#if defined( HAVE_SYSLOG_H )
+#if defined(HAVE_SYSLOG_H)
 #include <syslog.h>
-#elif defined ( HAVE_SYS_SYSLOG_H )
+#elif defined(HAVE_SYS_SYSLOG_H)
 #include <sys/syslog.h>
 #endif
 
-#if defined( LOG_NDELAY ) && defined( LOG_NOWAIT )
-#	define OPENLOG_OPTIONS ( LOG_PID | LOG_NDELAY | LOG_NOWAIT )
-#elif defined( LOG_NDELAY )
-#	define OPENLOG_OPTIONS ( LOG_PID | LOG_NDELAY )
-#elif defined( LOG_NOWAIT )
-#	define OPENLOG_OPTIONS ( LOG_PID | LOG_NOWAIT )
-#elif defined( LOG_PID )
-#	define OPENLOG_OPTIONS ( LOG_PID )
+#if defined(LOG_NDELAY) && defined(LOG_NOWAIT)
+#define OPENLOG_OPTIONS (LOG_PID | LOG_NDELAY | LOG_NOWAIT)
+#elif defined(LOG_NDELAY)
+#define OPENLOG_OPTIONS (LOG_PID | LOG_NDELAY)
+#elif defined(LOG_NOWAIT)
+#define OPENLOG_OPTIONS (LOG_PID | LOG_NOWAIT)
+#elif defined(LOG_PID)
+#define OPENLOG_OPTIONS (LOG_PID)
 #else
-#   define OPENLOG_OPTIONS ( 0 )
+#define OPENLOG_OPTIONS (0)
 #endif
 
 #endif /* _AC_SYSLOG_H_ */

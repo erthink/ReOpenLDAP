@@ -1,5 +1,5 @@
 ## $ReOpenLDAP$
-## Copyright 2017 ReOpenLDAP AUTHORS: please see AUTHORS file.
+## Copyright 2017-2018 ReOpenLDAP AUTHORS: please see AUTHORS file.
 ## All rights reserved.
 ##
 ## This file is part of ReOpenLDAP.
@@ -33,7 +33,7 @@ am__tar = $${TAR-tar} cof - "$$tardir"
 if BEHIND_CURTIAN
 SUBDIRS += tests
 test:
-	$(MAKE) -C tests check </dev/null
+	$(MAKE) -C tests check
 
 dist-hook:
 	find $(distdir) -type f | xargs -r \

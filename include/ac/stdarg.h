@@ -1,5 +1,5 @@
 /* $ReOpenLDAP$ */
-/* Copyright 1992-2017 ReOpenLDAP AUTHORS: please see AUTHORS file.
+/* Copyright 1992-2018 ReOpenLDAP AUTHORS: please see AUTHORS file.
  * All rights reserved.
  *
  * This file is part of ReOpenLDAP.
@@ -21,7 +21,7 @@
 #include <stdarg.h>
 
 #ifndef HAVE_STDARG
-#	define HAVE_STDARG 1
+#define HAVE_STDARG 1
 #endif
 
 #endif /* _AC_STDARG_H */

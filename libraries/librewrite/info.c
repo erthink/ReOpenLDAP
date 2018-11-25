@@ -1,5 +1,5 @@
 /* $ReOpenLDAP$ */
-/* Copyright 2000-2017 ReOpenLDAP AUTHORS: please see AUTHORS file.
+/* Copyright 2000-2018 ReOpenLDAP AUTHORS: please see AUTHORS file.
  * All rights reserved.
  *
  * This file is part of ReOpenLDAP.
@@ -36,108 +36,100 @@ struct rewrite_context *rewrite_int_curr_context = NULL;
 /*
  * Inits the info
  */
-struct rewrite_info *
-rewrite_info_init(
-		int mode
-)
-{
-	struct rewrite_info *info;
-	struct rewrite_context *context;
+struct rewrite_info *rewrite_info_init(int mode) {
+  struct rewrite_info *info;
+  struct rewrite_context *context;
 
-	switch ( mode ) {
-	case REWRITE_MODE_ERR:
-	case REWRITE_MODE_OK:
-	case REWRITE_MODE_COPY_INPUT:
-	case REWRITE_MODE_USE_DEFAULT:
-		break;
-	default:
-		mode = REWRITE_MODE_USE_DEFAULT;
-		break;
-		/* return NULL */
-	}
+  switch (mode) {
+  case REWRITE_MODE_ERR:
+  case REWRITE_MODE_OK:
+  case REWRITE_MODE_COPY_INPUT:
+  case REWRITE_MODE_USE_DEFAULT:
+    break;
+  default:
+    mode = REWRITE_MODE_USE_DEFAULT;
+    break;
+    /* return NULL */
+  }
 
-	/*
-	 * Resets the running context for parsing ...
-	 */
-	rewrite_int_curr_context = NULL;
+  /*
+   * Resets the running context for parsing ...
+   */
+  rewrite_int_curr_context = NULL;
 
-	info = calloc( sizeof( struct rewrite_info ), 1 );
-	if ( info == NULL ) {
-		return NULL;
-	}
+  info = calloc(sizeof(struct rewrite_info), 1);
+  if (info == NULL) {
+    return NULL;
+  }
 
-	info->li_state = REWRITE_DEFAULT;
-	info->li_max_passes = REWRITE_MAX_PASSES;
-	info->li_max_passes_per_rule = REWRITE_MAX_PASSES;
-	info->li_rewrite_mode = mode;
+  info->li_state = REWRITE_DEFAULT;
+  info->li_max_passes = REWRITE_MAX_PASSES;
+  info->li_max_passes_per_rule = REWRITE_MAX_PASSES;
+  info->li_rewrite_mode = mode;
 
-	/*
-	 * Add the default (empty) rule
-	 */
-	context = rewrite_context_create( info, REWRITE_DEFAULT_CONTEXT );
-	if ( context == NULL ) {
-		free( info );
-		return NULL;
-	}
+  /*
+   * Add the default (empty) rule
+   */
+  context = rewrite_context_create(info, REWRITE_DEFAULT_CONTEXT);
+  if (context == NULL) {
+    free(info);
+    return NULL;
+  }
 
 #ifdef USE_REWRITE_LDAP_PVT_THREADS
-	if ( ldap_pvt_thread_rdwr_init( &info->li_cookies_mutex ) ) {
-		avl_free( info->li_context, rewrite_context_free );
-		free( info );
-		return NULL;
-	}
-	if ( ldap_pvt_thread_rdwr_init( &info->li_params_mutex ) ) {
-		ldap_pvt_thread_rdwr_destroy( &info->li_cookies_mutex );
-		avl_free( info->li_context, rewrite_context_free );
-		free( info );
-		return NULL;
-	}
+  if (ldap_pvt_thread_rdwr_init(&info->li_cookies_mutex)) {
+    avl_free(info->li_context, rewrite_context_free);
+    free(info);
+    return NULL;
+  }
+  if (ldap_pvt_thread_rdwr_init(&info->li_params_mutex)) {
+    ldap_pvt_thread_rdwr_destroy(&info->li_cookies_mutex);
+    avl_free(info->li_context, rewrite_context_free);
+    free(info);
+    return NULL;
+  }
 #endif /* USE_REWRITE_LDAP_PVT_THREADS */
 
-	return info;
+  return info;
 }
 
 /*
  * Cleans up the info structure
  */
-int
-rewrite_info_delete(
-		struct rewrite_info **pinfo
-)
-{
-	struct rewrite_info	*info;
+int rewrite_info_delete(struct rewrite_info **pinfo) {
+  struct rewrite_info *info;
 
-	assert( pinfo != NULL );
-	assert( *pinfo != NULL );
+  assert(pinfo != NULL);
+  assert(*pinfo != NULL);
 
-	info = *pinfo;
+  info = *pinfo;
 
-	if ( info->li_context ) {
-		avl_free( info->li_context, rewrite_context_free );
-	}
-	info->li_context = NULL;
+  if (info->li_context) {
+    avl_free(info->li_context, rewrite_context_free);
+  }
+  info->li_context = NULL;
 
-	if ( info->li_maps ) {
-		avl_free( info->li_maps, rewrite_builtin_map_free );
-	}
-	info->li_maps = NULL;
+  if (info->li_maps) {
+    avl_free(info->li_maps, rewrite_builtin_map_free);
+  }
+  info->li_maps = NULL;
 
-	rewrite_session_destroy( info );
+  rewrite_session_destroy(info);
 
 #ifdef USE_REWRITE_LDAP_PVT_THREADS
-	ldap_pvt_thread_rdwr_destroy( &info->li_cookies_mutex );
+  ldap_pvt_thread_rdwr_destroy(&info->li_cookies_mutex);
 #endif /* USE_REWRITE_LDAP_PVT_THREADS */
 
-	rewrite_param_destroy( info );
+  rewrite_param_destroy(info);
 
 #ifdef USE_REWRITE_LDAP_PVT_THREADS
-	ldap_pvt_thread_rdwr_destroy( &info->li_params_mutex );
+  ldap_pvt_thread_rdwr_destroy(&info->li_params_mutex);
 #endif /* USE_REWRITE_LDAP_PVT_THREADS */
 
-	free( info );
-	*pinfo = NULL;
+  free(info);
+  *pinfo = NULL;
 
-	return REWRITE_SUCCESS;
+  return REWRITE_SUCCESS;
 }
 
 /*
@@ -155,77 +147,62 @@ rewrite_info_delete(
  * 	- ok with copy of string as result,
  * 	- use the default rewrite context.
  */
-int
-rewrite(
-		struct rewrite_info *info,
-		const char *rewriteContext,
-		const char *string,
-		char **result
-)
-{
-	return rewrite_session( info, rewriteContext,
-			string, NULL, result );
+int rewrite(struct rewrite_info *info, const char *rewriteContext,
+            const char *string, char **result) {
+  return rewrite_session(info, rewriteContext, string, NULL, result);
 }
 
-int
-rewrite_session(
-		struct rewrite_info *info,
-		const char *rewriteContext,
-		const char *string,
-		const void *cookie,
-		char **result
-)
-{
-	struct rewrite_context *context;
-	struct rewrite_op op = { 0, 0, NULL, NULL, NULL };
-	int rc;
+int rewrite_session(struct rewrite_info *info, const char *rewriteContext,
+                    const char *string, const void *cookie, char **result) {
+  struct rewrite_context *context;
+  struct rewrite_op op = {0, 0, NULL, NULL, NULL};
+  int rc;
 
-	assert( info != NULL );
-	assert( rewriteContext != NULL );
-	assert( string != NULL );
-	assert( result != NULL );
+  assert(info != NULL);
+  assert(rewriteContext != NULL);
+  assert(string != NULL);
+  assert(result != NULL);
 
-	/*
-	 * cookie can be null; means: don't care about session stuff
-	 */
+  /*
+   * cookie can be null; means: don't care about session stuff
+   */
 
-	*result = NULL;
-	op.lo_cookie = cookie;
+  *result = NULL;
+  op.lo_cookie = cookie;
 
-	/*
-	 * Engine not on means no failure, but explicit no rewriting
-	 */
-	if ( info->li_state != REWRITE_ON ) {
-		rc = REWRITE_REGEXEC_OK;
-		goto rc_return;
-	}
+  /*
+   * Engine not on means no failure, but explicit no rewriting
+   */
+  if (info->li_state != REWRITE_ON) {
+    rc = REWRITE_REGEXEC_OK;
+    goto rc_return;
+  }
 
-	/*
-	 * Undefined context means no rewriting also
-	 * (conservative, are we sure it's what we want?)
-	 */
-	context = rewrite_context_find( info, rewriteContext );
-	if ( context == NULL ) {
-		switch ( info->li_rewrite_mode ) {
-		case REWRITE_MODE_ERR:
-			rc = REWRITE_REGEXEC_ERR;
-			goto rc_return;
+  /*
+   * Undefined context means no rewriting also
+   * (conservative, are we sure it's what we want?)
+   */
+  context = rewrite_context_find(info, rewriteContext);
+  if (context == NULL) {
+    switch (info->li_rewrite_mode) {
+    case REWRITE_MODE_ERR:
+      rc = REWRITE_REGEXEC_ERR;
+      goto rc_return;
 
-		case REWRITE_MODE_OK:
-			rc = REWRITE_REGEXEC_OK;
-			goto rc_return;
+    case REWRITE_MODE_OK:
+      rc = REWRITE_REGEXEC_OK;
+      goto rc_return;
 
-		case REWRITE_MODE_COPY_INPUT:
-			*result = strdup( string );
-			rc = ( *result != NULL ) ? REWRITE_REGEXEC_OK : REWRITE_REGEXEC_ERR;
-			goto rc_return;
+    case REWRITE_MODE_COPY_INPUT:
+      *result = strdup(string);
+      rc = (*result != NULL) ? REWRITE_REGEXEC_OK : REWRITE_REGEXEC_ERR;
+      goto rc_return;
 
-		case REWRITE_MODE_USE_DEFAULT:
-			context = rewrite_context_find( info,
-					REWRITE_DEFAULT_CONTEXT );
-			break;
-		}
-	}
+    case REWRITE_MODE_USE_DEFAULT:
+      context = rewrite_context_find(info, REWRITE_DEFAULT_CONTEXT);
+      break;
+    }
+  }
 
 #if 0 /* FIXME: not used anywhere! (debug? then, why strdup?) */
 	op.lo_string = strdup( string );
@@ -235,50 +212,49 @@ rewrite_session(
 	}
 #endif
 
-	/*
-	 * Applies rewrite context
-	 */
-	rc = rewrite_context_apply( info, &op, context, string, result );
-	assert( op.lo_depth == 0 );
+  /*
+   * Applies rewrite context
+   */
+  rc = rewrite_context_apply(info, &op, context, string, result);
+  assert(op.lo_depth == 0);
 
 #if 0 /* FIXME: not used anywhere! (debug? then, why strdup?) */
 	free( op.lo_string );
 #endif
 
-	switch ( rc ) {
-	/*
-	 * Success
-	 */
-	case REWRITE_REGEXEC_OK:
-	case REWRITE_REGEXEC_STOP:
-		/*
-		 * If rewrite succeeded return OK regardless of how
-		 * the successful rewriting was obtained!
-		 */
-		rc = REWRITE_REGEXEC_OK;
-		break;
+  switch (rc) {
+  /*
+   * Success
+   */
+  case REWRITE_REGEXEC_OK:
+  case REWRITE_REGEXEC_STOP:
+    /*
+     * If rewrite succeeded return OK regardless of how
+     * the successful rewriting was obtained!
+     */
+    rc = REWRITE_REGEXEC_OK;
+    break;
 
+  /*
+   * Internal or forced error, return = NULL; rc already OK.
+   */
+  case REWRITE_REGEXEC_UNWILLING:
+  case REWRITE_REGEXEC_ERR:
+    if (*result != NULL) {
+      if (*result != string) {
+        free(*result);
+      }
+      *result = NULL;
+    }
 
-	/*
-	 * Internal or forced error, return = NULL; rc already OK.
-	 */
-	case REWRITE_REGEXEC_UNWILLING:
-	case REWRITE_REGEXEC_ERR:
-		if ( *result != NULL ) {
-			if ( *result != string ) {
-				free( *result );
-			}
-			*result = NULL;
-		}
-
-	default:
-		break;
-	}
+  default:
+    break;
+  }
 
 rc_return:;
-	if ( op.lo_vars ) {
-		rewrite_var_delete( op.lo_vars );
-	}
+  if (op.lo_vars) {
+    rewrite_var_delete(op.lo_vars);
+  }
 
-	return rc;
+  return rc;
 }
