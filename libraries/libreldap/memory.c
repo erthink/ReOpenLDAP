@@ -347,7 +347,7 @@ int ber_bvecadd(struct berval ***bvec, struct berval *bv) {
 
 struct berval *ber_dupbv_x(struct berval *dst, const struct berval *src,
                            void *ctx) {
-  struct berval *dup;
+  struct berval *dup, tmp;
 
   if (unlikely(src == NULL)) {
     ber_errno = LBER_ERROR_PARAM;
@@ -355,7 +355,7 @@ struct berval *ber_dupbv_x(struct berval *dst, const struct berval *src,
   }
 
   if (dst) {
-    dup = dst;
+    dup = &tmp;
   } else {
     if ((dup = ber_memalloc_x(sizeof(struct berval), ctx)) == NULL) {
       return NULL;
@@ -365,18 +365,23 @@ struct berval *ber_dupbv_x(struct berval *dst, const struct berval *src,
   if (src->bv_val == NULL) {
     dup->bv_val = NULL;
     dup->bv_len = 0;
-    return dup;
+  } else {
+
+    if ((dup->bv_val = ber_memalloc_x(src->bv_len + 1, ctx)) == NULL) {
+      if (!dst)
+        ber_memfree_x(dup, ctx);
+      return NULL;
+    }
+
+    memcpy(dup->bv_val, src->bv_val, src->bv_len);
+    dup->bv_val[src->bv_len] = '\0';
+    dup->bv_len = src->bv_len;
   }
 
-  if ((dup->bv_val = ber_memalloc_x(src->bv_len + 1, ctx)) == NULL) {
-    if (!dst)
-      ber_memfree_x(dup, ctx);
-    return NULL;
+  if (dst) {
+    *dst = *dup;
+    dup = dst;
   }
-
-  memcpy(dup->bv_val, src->bv_val, src->bv_len);
-  dup->bv_val[src->bv_len] = '\0';
-  dup->bv_len = src->bv_len;
 
   return dup;
 }
