@@ -246,27 +246,27 @@ SYNCREPL_RETRY="1 +"
 
 if [ -n "$VALGRIND_CMD" ]; then
 	# LY: extra time for Valgrind's virtualization
-	TIMEOUT_S="timeout -s SIGXCPU 5m"
-	TIMEOUT_L="timeout -s SIGXCPU 45m"
+	TIMEOUT_S="timeout -s SIGXCPU 30m"
+	TIMEOUT_L="timeout -s SIGXCPU 60m"
 	TIMEOUT_H="timeout -s SIGXCPU 120m"
 	SLEEP0=${SLEEP0-3}
 	SLEEP1=${SLEEP1-15}
 	SYNCREPL_WAIT=${SYNCREPL_WAIT-30}
 	pkill -SIGKILL -s 0 -u $EUID memcheck-*
 elif [ -n "$CIBUZZ_PID4" ]; then
-	# LY: extra time for running on busy machine
-	TIMEOUT_S="timeout -s SIGXCPU 3m"
-	TIMEOUT_L="timeout -s SIGXCPU 10m"
-	TIMEOUT_H="timeout -s SIGXCPU 30m"
+	# LY: extra time for running ASAN on busy machine
+	TIMEOUT_S="timeout -s SIGXCPU 15m"
+	TIMEOUT_L="timeout -s SIGXCPU 30m"
+	TIMEOUT_H="timeout -s SIGXCPU 60m"
 	SLEEP0=${SLEEP0-1}
 	SLEEP1=${SLEEP1-7}
 	SYNCREPL_WAIT=${SYNCREPL_WAIT-30}
 elif [ -n "$CI" ]; then
 	if [ "$CI" = "TEAMCITY" ]; then
 		# LY: under Teamcity, take in account ASAN/TSAN and nice
-		TIMEOUT_S="timeout -s SIGXCPU 2m"
-		TIMEOUT_L="timeout -s SIGXCPU 7m"
-		TIMEOUT_H="timeout -s SIGXCPU 20m"
+		TIMEOUT_S="timeout -s SIGXCPU 7m"
+		TIMEOUT_L="timeout -s SIGXCPU 15m"
+		TIMEOUT_H="timeout -s SIGXCPU 30m"
 	else
 		# LY: But disable timeouts for Travis/Circle as workaround coreutils and docker bugs
 		TIMEOUT_S=""
@@ -277,10 +277,10 @@ elif [ -n "$CI" ]; then
 	SLEEP1=${SLEEP1-2}
 	SYNCREPL_WAIT=${SYNCREPL_WAIT-10}
 else
-	# LY: take in account -O0
-	TIMEOUT_S="timeout -s SIGXCPU 1m"
-	TIMEOUT_L="timeout -s SIGXCPU 5m"
-	TIMEOUT_H="timeout -s SIGXCPU 15m"
+	# LY: take in account -O0 and ASAN
+	TIMEOUT_S="timeout -s SIGXCPU 5m"
+	TIMEOUT_L="timeout -s SIGXCPU 10m"
+	TIMEOUT_H="timeout -s SIGXCPU 20m"
 	SLEEP0=${SLEEP0-0.1}
 	SLEEP1=${SLEEP1-1}
 	SYNCREPL_WAIT=${SYNCREPL_WAIT-5}
