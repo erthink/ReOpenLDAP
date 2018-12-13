@@ -138,6 +138,10 @@ void usage(void) {
   fprintf(stderr,
           _("             [!]showDeleted              (MS AD Show Deleted)\n"));
 #endif
+#ifdef LDAP_CONTROL_X_SERVER_NOTIFICATION
+  fprintf(stderr, _("             [!]serverNotif              (MS AD Server "
+                    "Notification)\n"));
+#endif
   fprintf(stderr, _("             [!]<oid>[=:<b64value>] (generic control; no "
                     "response handling)\n"));
   fprintf(stderr, _("  -f file    read operations from `file'\n"));
@@ -295,6 +299,10 @@ static void cleanup(void) {
 }
 
 static void main_exit(int rc) { tool_exit(ld, rc); }
+
+#ifdef LDAP_CONTROL_X_SERVER_NOTIFICATION
+static int serverNotif;
+#endif
 
 static int ctrl_add(void) {
   LDAPControl *tmpc;
@@ -688,7 +696,7 @@ int handle_private_option(int i) {
         }
         *cookiep = '\0';
       }
-      num = sscanf(cvalue, "%d", &tmp);
+      num = sscanf(cvalue, "%i", &tmp);
       if (num != 1) {
         fprintf(stderr, _("Invalid value for dirSync, %s.\n"), cvalue);
         exit(EXIT_FAILURE);
@@ -740,6 +748,19 @@ int handle_private_option(int i) {
       showDeleted = 1 + crit;
 #endif /* LDAP_CONTROL_X_SHOW_DELETED */
 
+#ifdef LDAP_CONTROL_X_SERVER_NOTIFICATION
+    } else if (strcasecmp(control, "serverNotif") == 0) {
+      if (serverNotif) {
+        fprintf(stderr, _("serverNotif control previously specified\n"));
+        exit(EXIT_FAILURE);
+      }
+      if (cvalue != NULL) {
+        fprintf(stderr, _("serverNotif: no control value expected\n"));
+        usage();
+      }
+
+      serverNotif = 1 + crit;
+#endif /* LDAP_CONTROL_X_SERVER_NOTIFICATION */
     } else if (tool_is_oid(control)) {
       if (c != NULL) {
         int i;
@@ -1035,6 +1056,9 @@ getNextPage:
 #ifdef LDAP_CONTROL_X_SHOW_DELETED
       || showDeleted
 #endif
+#ifdef LDAP_CONTROL_X_SERVER_NOTIFICATION
+      || serverNotif
+#endif
       || domainScope || pagedResults || ldapsync || sss || subentries ||
       valuesReturnFilter || vlv) {
 
@@ -1271,6 +1295,19 @@ getNextPage:
       c[i].ldctl_value.bv_val = NULL;
       c[i].ldctl_value.bv_len = 0;
       c[i].ldctl_iscritical = showDeleted > 1;
+      i++;
+    }
+#endif
+#ifdef LDAP_CONTROL_X_SERVER_NOTIFICATION
+    if (serverNotif) {
+      if (ctrl_add()) {
+        tool_exit(ld, EXIT_FAILURE);
+      }
+
+      c[i].ldctl_oid = LDAP_CONTROL_X_SERVER_NOTIFICATION;
+      c[i].ldctl_value.bv_val = NULL;
+      c[i].ldctl_value.bv_len = 0;
+      c[i].ldctl_iscritical = serverNotif > 1;
       i++;
     }
 #endif
