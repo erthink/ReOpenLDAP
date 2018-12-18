@@ -336,7 +336,6 @@ int unregister_supported_control(const char *controloid) {
 int register_control_exop(const char *controloid, char *exopoid) {
   struct slap_control *sc = NULL;
   BerVarray extendedopsbv;
-  const char **extendedops;
   int i;
 
   if (controloid == NULL || exopoid == NULL) {
@@ -359,17 +358,12 @@ int register_control_exop(const char *controloid, char *exopoid) {
     return LDAP_PARAM_ERROR;
   }
 
-  for (i = 0; sc->sc_extendedops && sc->sc_extendedops[i]; i++) {
-    if (strcmp(exopoid, sc->sc_extendedops[i]) == 0) {
+  for (i = 0; sc->sc_extendedopsbv && !BER_BVISNULL(&sc->sc_extendedopsbv[i]);
+       i++) {
+    if (strcmp(exopoid, sc->sc_extendedopsbv[i].bv_val) == 0) {
       return LDAP_SUCCESS;
     }
   }
-
-  extendedops = ber_memrealloc(sc->sc_extendedops, (i + 2) * sizeof(char *));
-  if (extendedops == NULL) {
-    return LDAP_NO_MEMORY;
-  }
-  sc->sc_extendedops = extendedops;
 
   extendedopsbv =
       ber_memrealloc(sc->sc_extendedopsbv, (i + 2) * sizeof(struct berval));
@@ -377,9 +371,6 @@ int register_control_exop(const char *controloid, char *exopoid) {
     return LDAP_NO_MEMORY;
   }
   sc->sc_extendedopsbv = extendedopsbv;
-
-  extendedops[i] = exopoid;
-  extendedops[i + 1] = NULL;
 
   ber_str2bv(exopoid, 0, 1, &extendedopsbv[i]);
   BER_BVZERO(&extendedopsbv[i + 1]);
