@@ -68,6 +68,7 @@ static ConfigTable adremapcfg[] = {
      "( OLcfgCtAt:6.1 "
      "NAME 'olcADremapDowncase' "
      "DESC 'List of attributes to casefold to lower case' "
+     "EQUALITY caseIgnoreMatch "
      "SYNTAX OMsDirectoryString )",
      NULL, NULL},
     {"adremap-dnmap",
@@ -79,6 +80,7 @@ static ConfigTable adremapcfg[] = {
      "objectclass of remote"
      " group, objectclass mapped group, objectclass of target entry, base DN "
      "of target entry' "
+     "EQUALITY caseIgnoreMatch "
      "SYNTAX OMsDirectoryString )",
      NULL, NULL},
     {NULL, NULL, 0, 0, 0, ARG_IGNORED}};

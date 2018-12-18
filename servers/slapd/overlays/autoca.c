@@ -69,10 +69,10 @@ static ObjectClass *oc_caObj, *oc_usrObj;
 
 static char *aca_attrs[] = {"( " ACA_SCHEMA_AT ".1 NAME 'cAPrivateKey' "
                             "DESC 'X.509 CA private key, use ;binary' "
-                            "SUP x509PrivateKey )",
+                            "SUP pKCS8PrivateKey )",
                             "( " ACA_SCHEMA_AT ".2 NAME 'userPrivateKey' "
                             "DESC 'X.509 user private key, use ;binary' "
-                            "SUP x509PrivateKey )",
+                            "SUP pKCS8PrivateKey )",
                             NULL};
 
 static struct {
@@ -693,52 +693,61 @@ static ConfigTable autoca_cfg[] = {
      autoca_cf,
      "( OLcfgOvAt:22.1 NAME 'olcACAuserClass' "
      "DESC 'ObjectClass of user entries' "
+     "EQUALITY caseIgnoreMatch "
      "SYNTAX OMsDirectoryString SINGLE-VALUE )",
      NULL, NULL},
     {"serverClass", "objectclass", 2, 2, 0,
      ARG_STRING | ARG_MAGIC | ACA_SRVCLASS, autoca_cf,
      "( OLcfgOvAt:22.2 NAME 'olcACAserverClass' "
      "DESC 'ObjectClass of server entries' "
+     "EQUALITY caseIgnoreMatch "
      "SYNTAX OMsDirectoryString SINGLE-VALUE )",
      NULL, NULL},
     {"userKeybits", "integer", 2, 2, 0, ARG_INT | ARG_MAGIC | ACA_USRKEYBITS,
      autoca_cf,
      "( OLcfgOvAt:22.3 NAME 'olcACAuserKeybits' "
      "DESC 'Size of PrivateKey for user entries' "
+     "EQUALITY integerMatch "
      "SYNTAX OMsInteger SINGLE-VALUE )",
      NULL, NULL},
     {"serverKeybits", "integer", 2, 2, 0, ARG_INT | ARG_MAGIC | ACA_SRVKEYBITS,
      autoca_cf,
      "( OLcfgOvAt:22.4 NAME 'olcACAserverKeybits' "
      "DESC 'Size of PrivateKey for server entries' "
+     "EQUALITY integerMatch "
      "SYNTAX OMsInteger SINGLE-VALUE )",
      NULL, NULL},
     {"caKeybits", "integer", 2, 2, 0, ARG_INT | ARG_MAGIC | ACA_CAKEYBITS,
      autoca_cf,
      "( OLcfgOvAt:22.5 NAME 'olcACAKeybits' "
      "DESC 'Size of PrivateKey for CA certificate' "
+     "EQUALITY integerMatch "
      "SYNTAX OMsInteger SINGLE-VALUE )",
      NULL, NULL},
     {"userDays", "integer", 2, 2, 0, ARG_INT | ARG_MAGIC | ACA_USRDAYS,
      autoca_cf,
      "( OLcfgOvAt:22.6 NAME 'olcACAuserDays' "
      "DESC 'Lifetime of user certificates in days' "
+     "EQUALITY integerMatch "
      "SYNTAX OMsInteger SINGLE-VALUE )",
      NULL, NULL},
     {"serverDays", "integer", 2, 2, 0, ARG_INT | ARG_MAGIC | ACA_SRVDAYS,
      autoca_cf,
      "( OLcfgOvAt:22.7 NAME 'olcACAserverDays' "
      "DESC 'Lifetime of server certificates in days' "
+     "EQUALITY integerMatch "
      "SYNTAX OMsInteger SINGLE-VALUE )",
      NULL, NULL},
     {"caDays", "integer", 2, 2, 0, ARG_INT | ARG_MAGIC | ACA_CADAYS, autoca_cf,
      "( OLcfgOvAt:22.8 NAME 'olcACADays' "
      "DESC 'Lifetime of CA certificate in days' "
+     "EQUALITY integerMatch "
      "SYNTAX OMsInteger SINGLE-VALUE )",
      NULL, NULL},
     {"localdn", "dn", 2, 2, 0, ARG_DN | ARG_MAGIC | ACA_LOCALDN, autoca_cf,
      "( OLcfgOvAt:22.9 NAME 'olcACAlocalDN' "
      "DESC 'DN of local server cert' "
+     "EQUALITY distinguishedNameMatch "
      "SYNTAX OMsDN SINGLE-VALUE )",
      NULL, NULL},
     {NULL, NULL, 0, 0, 0, ARG_IGNORED}};

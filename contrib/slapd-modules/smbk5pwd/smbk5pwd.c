@@ -715,18 +715,21 @@ static ConfigTable smbk5pwd_cfats[] = {
      smbk5pwd_cf_func,
      "( OLcfgCtAt:1.1 NAME 'olcSmbK5PwdEnable' "
      "DESC 'Modules to be enabled' "
+     "EQUALITY caseIgnoreMatch "
      "SYNTAX OMsDirectoryString )",
      NULL, NULL},
     {"smbk5pwd-must-change", "time", 2, 2, 0,
      ARG_MAGIC | ARG_INT | PC_SMB_MUST_CHANGE, smbk5pwd_cf_func,
      "( OLcfgCtAt:1.2 NAME 'olcSmbK5PwdMustChange' "
      "DESC 'Credentials validity interval' "
+     "EQUALITY integerMatch "
      "SYNTAX OMsInteger SINGLE-VALUE )",
      NULL, NULL},
     {"smbk5pwd-can-change", "time", 2, 2, 0,
      ARG_MAGIC | ARG_INT | PC_SMB_CAN_CHANGE, smbk5pwd_cf_func,
      "( OLcfgCtAt:1.3 NAME 'olcSmbK5PwdCanChange' "
      "DESC 'Credentials minimum validity interval' "
+     "EQUALITY integerMatch "
      "SYNTAX OMsInteger SINGLE-VALUE )",
      NULL, NULL},
 
