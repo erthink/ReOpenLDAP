@@ -35,12 +35,34 @@ API_AGE=1
 VERSION="${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH_LEVEL}"
 VERSION_NUMBER=$(expr ${VERSION_MAJOR} '*' 10000 + ${VERSION_MINOR} '*' 100 + ${VERSION_PATCH_LEVEL})
 
+function IS_GIT {
+        git rev-parse --git-dir 2>/dev/null
+        TMPRSLT=$?
+        if [[ $TMPRSLT -eq 0 ]]; then
+          return 0
+        else
+          return 1
+        fi
+}
+
 function RELEASE_DATE_CMD {
-	date --date=@$(git show -s --format=%ct HEAD) -u --iso-8601
+        IS_GIT
+        GITTEST=$?
+        if [[ $GITTEST -eq 0 ]]; then
+          date --date=@$(git show -s --format=%ct HEAD) -u --iso-8601
+        else
+          echo "${EXT_DATE:-`date -u --iso-8601`}" 
+        fi
 }
 
 function RELEASE_STAMP_CMD {
-	echo "g$(git show -s --abbrev=12 --format=%h HEAD)-t$(git show -s --abbrev=16 --format=%t HEAD)"
+        IS_GIT
+        GITTEST=$?
+        if [[ $GITTEST -eq 0 ]]; then
+          echo "g$(git show -s --abbrev=12 --format=%h HEAD)-t$(git show -s --abbrev=16 --format=%t HEAD)"
+        else 
+          echo "${EXT_HASH:-non-git}" 
+        fi
 }
 
 PACKAGE_TITLE="${PACKAGE} ${VERSION}-${RELEASE_TYPE}"
