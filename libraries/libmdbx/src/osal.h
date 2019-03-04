@@ -1,7 +1,7 @@
 /* https://en.wikipedia.org/wiki/Operating_system_abstraction_layer */
 
 /*
- * Copyright 2015-2018 Leonid Yuriev <leo@yuriev.ru>
+ * Copyright 2015-2019 Leonid Yuriev <leo@yuriev.ru>
  * and other libmdbx authors: please see AUTHORS file.
  * All rights reserved.
  *
@@ -626,6 +626,12 @@ typedef DWORD(WINAPI *MDBX_GetFinalPathNameByHandleW)(_In_ HANDLE hFile,
                                                       _In_ DWORD cchFilePath,
                                                       _In_ DWORD dwFlags);
 extern MDBX_GetFinalPathNameByHandleW mdbx_GetFinalPathNameByHandleW;
+
+typedef BOOL(WINAPI *MDBX_SetFileInformationByHandle)(
+    _In_ HANDLE hFile, _In_ FILE_INFO_BY_HANDLE_CLASS FileInformationClass,
+    _Out_ LPVOID lpFileInformation, _In_ DWORD dwBufferSize);
+
+extern MDBX_SetFileInformationByHandle mdbx_SetFileInformationByHandle;
 
 typedef NTSTATUS(NTAPI *MDBX_NtFsControlFile)(
     IN HANDLE FileHandle, IN OUT HANDLE Event,

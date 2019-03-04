@@ -1,5 +1,5 @@
-/*
- * Copyright 2015-2018 Leonid Yuriev <leo@yuriev.ru>
+﻿/*
+ * Copyright 2015-2019 Leonid Yuriev <leo@yuriev.ru>
  * and other libmdbx authors: please see AUTHORS file.
  * All rights reserved.
  *
@@ -5127,7 +5127,7 @@ static int __cold mdbx_read_header(MDBX_env *env, MDBX_meta *meta,
 
     /* LY: check and silently put mm_geo.now into [geo.lower...geo.upper].
      *
-     * Copy-with-compaction by previous version of libmfbx could produce DB-file
+     * Copy-with-compaction by previous version of libmdbx could produce DB-file
      * less than meta.geo.lower bound, in case actual filling is low or no data
      * at all. This is not a problem as there is no damage or loss of data.
      * Therefore it is better not to consider such situation as an error, but
@@ -5496,7 +5496,7 @@ fail:
 
 int __cold mdbx_env_get_maxkeysize(MDBX_env *env) {
   if (!env || env->me_signature != MDBX_ME_SIGNATURE || !env->me_maxkey_limit)
-    return -MDBX_EINVAL;
+    return (MDBX_EINVAL > 0) ? -MDBX_EINVAL : MDBX_EINVAL;
   return env->me_maxkey_limit;
 }
 
@@ -5729,19 +5729,21 @@ LIBMDBX_API int mdbx_env_set_geometry(MDBX_env *env, intptr_t size_lower,
     goto bailout;
   }
 
-  if (size_lower < 0) {
+  if (size_lower <= 0) {
     size_lower = MIN_MAPSIZE;
     if (MIN_MAPSIZE / pagesize < MIN_PAGENO)
       size_lower = MIN_PAGENO * pagesize;
   }
 
-  if (size_now < 0) {
+  if (size_now <= 0) {
     size_now = DEFAULT_MAPSIZE;
     if (size_now < size_lower)
       size_now = size_lower;
+    if (size_upper >= size_lower && size_now > size_upper)
+      size_now = size_upper;
   }
 
-  if (size_upper < 0) {
+  if (size_upper <= 0) {
     if ((size_t)size_now >= MAX_MAPSIZE / 2)
       size_upper = MAX_MAPSIZE;
     else if (MAX_MAPSIZE != MAX_MAPSIZE32 &&
@@ -6489,8 +6491,10 @@ int __cold mdbx_env_open(MDBX_env *env, const char *path, unsigned flags,
   int oflags;
   if (F_ISSET(flags, MDBX_RDONLY))
     oflags = O_RDONLY;
-  else
+  else if (mode != 0)
     oflags = O_RDWR | O_CREAT;
+  else
+    oflags = O_RDWR;
 
   rc = mdbx_openfile(dxb_pathname, oflags, mode, &env->me_fd,
                      (env->me_flags & MDBX_EXCLUSIVE) ? true : false);
@@ -7195,13 +7199,13 @@ static int mdbx_page_search(MDBX_cursor *mc, MDBX_val *key, int flags) {
       return rc;
     rc = mdbx_page_search(&mc2, &mc->mc_dbx->md_name, 0);
     if (unlikely(rc != MDBX_SUCCESS))
-      return rc;
+      return (rc == MDBX_NOTFOUND) ? MDBX_BAD_DBI : rc;
     {
       MDBX_val data;
       int exact = 0;
       MDBX_node *leaf = mdbx_node_search(&mc2, &mc->mc_dbx->md_name, &exact);
       if (!exact)
-        return MDBX_NOTFOUND;
+        return MDBX_BAD_DBI;
       if (unlikely((leaf->mn_flags & (F_DUPDATA | F_SUBDATA)) != F_SUBDATA))
         return MDBX_INCOMPATIBLE; /* not a named DB */
       rc = mdbx_node_read(&mc2, leaf, &data);
@@ -8300,7 +8304,7 @@ int mdbx_cursor_put(MDBX_cursor *mc, MDBX_val *key, MDBX_val *data,
         if (rc > 0) {
           rc = MDBX_NOTFOUND;
           mc->mc_ki[mc->mc_top]++;
-        } else {
+        } else if (unlikely(rc < 0 || (flags & MDBX_APPENDDUP) == 0)) {
           /* new key is <= last key */
           rc = MDBX_EKEYMISMATCH;
         }
@@ -10882,7 +10886,7 @@ static int mdbx_page_split(MDBX_cursor *mc, const MDBX_val *newkey,
        * This yields better packing during sequential inserts.
        */
       int dir;
-      if (nkeys < 20 || nsize > pmax / 16 || newindx >= nkeys) {
+      if (nkeys < 32 || nsize > pmax / 16 || newindx >= nkeys) {
         /* Find split point */
         psize = 0;
         if (newindx <= split_indx || newindx >= nkeys) {
@@ -12466,7 +12470,7 @@ int __cold mdbx_reader_list(MDBX_env *env, MDBX_msg_func *func, void *ctx) {
   int rc = 0, first = 1;
 
   if (unlikely(!env || !func))
-    return -MDBX_EINVAL;
+    return (MDBX_EINVAL > 0) ? -MDBX_EINVAL : MDBX_EINVAL;
 
   if (unlikely(env->me_signature != MDBX_ME_SIGNATURE))
     return MDBX_EBADSIGN;
@@ -12796,7 +12800,7 @@ __attribute__((no_sanitize_thread, noinline))
 int mdbx_txn_straggler(MDBX_txn *txn, int *percent)
 {
   if (unlikely(!txn))
-    return -MDBX_EINVAL;
+    return (MDBX_EINVAL > 0) ? -MDBX_EINVAL : MDBX_EINVAL;
 
   if (unlikely(txn->mt_signature != MDBX_MT_SIGNATURE))
     return MDBX_EBADSIGN;
@@ -12810,7 +12814,7 @@ int mdbx_txn_straggler(MDBX_txn *txn, int *percent)
       *percent =
           (int)((txn->mt_next_pgno * UINT64_C(100) + txn->mt_end_pgno / 2) /
                 txn->mt_end_pgno);
-    return -1;
+    return 0;
   }
 
   txnid_t recent;
@@ -13515,7 +13519,7 @@ __cold intptr_t mdbx_limits_keysize_max(intptr_t pagesize) {
   else if (unlikely(pagesize < (intptr_t)MIN_PAGESIZE ||
                     pagesize > (intptr_t)MAX_PAGESIZE ||
                     !mdbx_is_power2((size_t)pagesize)))
-    return -MDBX_EINVAL;
+    return (MDBX_EINVAL > 0) ? -MDBX_EINVAL : MDBX_EINVAL;
 
   return mdbx_maxkey(mdbx_nodemax(pagesize));
 }
@@ -13530,7 +13534,7 @@ __cold intptr_t mdbx_limits_dbsize_min(intptr_t pagesize) {
   else if (unlikely(pagesize < (intptr_t)MIN_PAGESIZE ||
                     pagesize > (intptr_t)MAX_PAGESIZE ||
                     !mdbx_is_power2((size_t)pagesize)))
-    return -MDBX_EINVAL;
+    return (MDBX_EINVAL > 0) ? -MDBX_EINVAL : MDBX_EINVAL;
 
   return MIN_PAGENO * pagesize;
 }
@@ -13541,7 +13545,7 @@ __cold intptr_t mdbx_limits_dbsize_max(intptr_t pagesize) {
   else if (unlikely(pagesize < (intptr_t)MIN_PAGESIZE ||
                     pagesize > (intptr_t)MAX_PAGESIZE ||
                     !mdbx_is_power2((size_t)pagesize)))
-    return -MDBX_EINVAL;
+    return (MDBX_EINVAL > 0) ? -MDBX_EINVAL : MDBX_EINVAL;
 
   const uint64_t limit = MAX_PAGENO * (uint64_t)pagesize;
   return (limit < (intptr_t)MAX_MAPSIZE) ? (intptr_t)limit
@@ -13554,7 +13558,7 @@ __cold intptr_t mdbx_limits_txnsize_max(intptr_t pagesize) {
   else if (unlikely(pagesize < (intptr_t)MIN_PAGESIZE ||
                     pagesize > (intptr_t)MAX_PAGESIZE ||
                     !mdbx_is_power2((size_t)pagesize)))
-    return -MDBX_EINVAL;
+    return (MDBX_EINVAL > 0) ? -MDBX_EINVAL : MDBX_EINVAL;
 
   return pagesize * (MDBX_DPL_TXNFULL - 1);
 }

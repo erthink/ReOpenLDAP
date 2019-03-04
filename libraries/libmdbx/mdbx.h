@@ -1,6 +1,6 @@
-/* LICENSE AND COPYRUSTING *****************************************************
+﻿/* LICENSE AND COPYRUSTING *****************************************************
  *
- * Copyright 2015-2018 Leonid Yuriev <leo@yuriev.ru>
+ * Copyright 2015-2019 Leonid Yuriev <leo@yuriev.ru>
  * and other libmdbx authors: please see AUTHORS file.
  * All rights reserved.
  *
@@ -60,8 +60,8 @@
 
 /* IMPENDING CHANGES WARNING ***************************************************
  *
- * MDBX is under active development, database format and API aren't stable
- * at least until 2018Q2. New version won't be backwards compatible. Main focus
+ * MDBX is under active non-public development, database format and API
+ * will be refined. New version won't be backwards compatible. Main focus
  * of the rework is to provide clear and robust API and new features.
  *
  ******************************************************************************/
@@ -610,7 +610,7 @@ LIBMDBX_API int mdbx_env_create(MDBX_env **penv);
  *  - MDBX_NOTLS
  *      Don't use Thread-Local Storage. Tie reader locktable slots to
  *      MDBX_txn objects instead of to threads. I.e. mdbx_txn_reset() keeps
- *      the slot reseved for the MDBX_txn object. A thread may use parallel
+ *      the slot reserved for the MDBX_txn object. A thread may use parallel
  *      read-only transactions. A read-only transaction may span threads if
  *      the user synchronizes its use. Applications that multiplex many
  *      user threads over individual OS threads need this option. Such an
@@ -1601,7 +1601,7 @@ LIBMDBX_API int mdbx_env_set_syncbytes(MDBX_env *env, size_t bytes);
  * [out] percent  Percentage of page allocation in the database.
  *
  * Returns Number of transactions committed after the given was started for
- * read, or -1 on failure. */
+ * read, or negative value on failure. */
 LIBMDBX_API int mdbx_txn_straggler(MDBX_txn *txn, int *percent);
 
 /* A callback function for killing a laggard readers,
