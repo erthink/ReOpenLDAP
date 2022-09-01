@@ -211,9 +211,9 @@ static int text_update(void **display_datap, double frac, time_t remaining_time,
     static const char fill_char = '#';
     static const char blank_char = ' ';
     char *bar_end = buf + bar_length;
-    char *bar_pos =
-        frac < 0.0 ? buf
-                   : frac < 1.0 ? buf + (int)(bar_lengthd * frac) : bar_end;
+    char *bar_pos = frac < 0.0   ? buf
+                    : frac < 1.0 ? buf + (int)(bar_lengthd * frac)
+                                 : bar_end;
 
     assert((buf_end - buf) > bar_length);
     while (buf < bar_end) {

@@ -802,6 +802,15 @@ int config_quorum(ConfigArgs *c) {
 
 //-----------------------------------------------------------------------------
 
+int quorum_syncrepl_maxrefresh(BackendDB *bd) {
+  slap_quorum_t *q = bd->bd_quorum;
+
+  if (!q || !q->qr_syncrepl_limit)
+    return INT_MAX;
+
+  return q->qr_syncrepl_limit;
+}
+
 int quorum_syncrepl_gate(BackendDB *bd, void *instance_key, int in) {
   slap_quorum_t *q;
   int rc;

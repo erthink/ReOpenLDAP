@@ -492,8 +492,10 @@ void slap_cookie_compose(BerValue *dst, BerVarray csns, int rid, int sid,
 
   if (csns && !BER_BVISNULL(csns)) {
     len += snprintf(buf + len, sizeof(buf) - len, "%scsn=", len ? "," : "") - 1;
-    for (csn = csns; !BER_BVISEMPTY(csn); ++csn)
+    for (csn = csns; !BER_BVISEMPTY(csn); ++csn) {
+      assert(strlen(csn->bv_val) == csn->bv_len);
       len += csn->bv_len + 1;
+    }
   }
 
   dst->bv_len = len;
@@ -578,6 +580,7 @@ int slap_cookie_merge_csnset(BackendDB *bd, struct sync_cookie *dst,
     slap_cookie_verify(dst);
 
   for (rc = 0; src && !BER_BVISEMPTY(src); ++src) {
+    assert(strlen(src->bv_val) == src->bv_len);
     int vector = slap_cookie_merge_csn(bd, dst, -1, src);
     if (vector > 0)
       rc = vector;
@@ -595,6 +598,7 @@ int slap_cookie_compare_csnset(struct sync_cookie *base, BerVarray next) {
     slap_cookie_verify(base);
 
   for (vector = 0; next && !BER_BVISEMPTY(next); ++next) {
+    assert(strlen(next->bv_val) == next->bv_len);
     int i, sid = slap_csn_get_sid(next);
     if (sid < 0) {
       vector = -1;
@@ -790,6 +794,7 @@ int slap_csns_validate_and_sort(BerVarray vals) {
   BerValue *r, *w, *end;
 
   for (r = w = vals; !BER_BVISEMPTY(r); ++r) {
+    assert(strlen(r->bv_val) == r->bv_len);
     /* LY: validate and filter-out invalid:
        { X1, Y2, bad, Z3, X4 | NULL } => { X1, Y2, Z3, X4 | bad, NULL } */
     if (unlikely(!slap_csn_verify_full(r))) {
@@ -823,6 +828,8 @@ int slap_csns_validate_and_sort(BerVarray vals) {
 
 int slap_csns_match(BerVarray a, BerVarray b) {
   while (a && !BER_BVISEMPTY(a) && b && !BER_BVISEMPTY(b)) {
+    assert(strlen(a->bv_val) == a->bv_len);
+    assert(strlen(b->bv_val) == b->bv_len);
     if (!slap_csn_match(a, b))
       return 0;
     ++a, ++b;
@@ -835,8 +842,10 @@ int slap_csns_length(BerVarray vals) {
   int res = 0;
 
   if (vals)
-    while (!BER_BVISEMPTY(vals))
+    while (!BER_BVISEMPTY(vals)) {
+      assert(strlen(vals->bv_val) == vals->bv_len);
       ++vals, ++res;
+    }
 
   return res;
 }
@@ -845,10 +854,12 @@ int slap_csns_compare(BerVarray next, BerVarray base) {
   int cmp, n, res = 0;
 
   for (n = 1; next && !BER_BVISEMPTY(next); ++next, ++n) {
+    assert(strlen(next->bv_val) == next->bv_len);
     if (!base || BER_BVISEMPTY(base))
       /* LY: eof of base, but next still continue, a new sid in the next. */
       return INT_MAX /* next > base */;
 
+    assert(strlen(base->bv_val) == base->bv_len);
     cmp = slap_csn_compare_sr(next, base);
     if (cmp > 0)
       /* LY: a base's sid is absent in the next. */
@@ -890,10 +901,12 @@ void slap_csns_debug(const char *prefix, const BerVarray csns) {
   int i;
 
   ldap_debug_print("%s: CSNs %p\n", prefix, csns);
-  for (i = 0; csns && !BER_BVISEMPTY(&csns[i]); ++i)
+  for (i = 0; csns && !BER_BVISEMPTY(&csns[i]); ++i) {
     ldap_debug_print("%s: %d) %s%s\n", prefix, i,
                      slap_csn_verify_full(&csns[i]) ? "" : "INVALID ",
                      csns[i].bv_val);
+    assert(strlen(csns[i].bv_val) == csns[i].bv_len);
+  }
 }
 
 void slap_csns_backward_debug(const char *prefix, const BerVarray current,

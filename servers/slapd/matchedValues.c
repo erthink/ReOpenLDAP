@@ -45,12 +45,10 @@ int filter_matched_values(Operation *op, Attribute *a, char ***e_flags) {
     switch (vrf->vrf_choice) {
     case SLAPD_FILTER_COMPUTED:
       Debug(LDAP_DEBUG_FILTER, "	COMPUTED %s (%d)\n",
-            vrf->vrf_result == LDAP_COMPARE_FALSE
-                ? "false"
-                : vrf->vrf_result == LDAP_COMPARE_TRUE
-                      ? "true"
-                      : vrf->vrf_result == SLAPD_COMPARE_UNDEFINED ? "undefined"
-                                                                   : "error",
+            vrf->vrf_result == LDAP_COMPARE_FALSE        ? "false"
+            : vrf->vrf_result == LDAP_COMPARE_TRUE       ? "true"
+            : vrf->vrf_result == SLAPD_COMPARE_UNDEFINED ? "undefined"
+                                                         : "error",
             vrf->vrf_result);
       /*This type of filter does not affect the result */
       rc = LDAP_SUCCESS;

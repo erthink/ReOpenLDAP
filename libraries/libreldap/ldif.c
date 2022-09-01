@@ -19,7 +19,6 @@
 #include "reldap.h"
 
 #include <stdio.h>
-
 #include <ac/stdlib.h>
 #include <ac/ctype.h>
 #include <ac/string.h>

@@ -14,7 +14,8 @@
 ##
 
 bin_PROGRAMS = ldapsearch ldapmodify ldapdelete ldapmodrdn \
-	ldappasswd ldapwhoami ldapcompare ldapexop ldapurl
+	ldappasswd ldapwhoami ldapvc ldapcompare ldapexop \
+	ldapurl
 
 AM_CPPFLAGS = -I$(top_srcdir)/include
 
@@ -50,6 +51,9 @@ ldapexop_LDADD = $(LDAP_LIBLUTIL_LA) $(LDAP_LIBRELDAP_LA)
 
 ldapurl_SOURCES = ldapurl.c banner.c common.h
 ldapurl_LDADD = $(LDAP_LIBLUTIL_LA) $(LDAP_LIBRELDAP_LA)
+
+ldapvc_SOURCES = common.c ldapvc.c banner.c common.h
+ldapvc_LDADD = $(LDAP_LIBLUTIL_LA) $(LDAP_LIBRELDAP_LA)
 
 install-exec-hook:
 	@if $(AM_V_P); then set -x; else echo "  LN       ldapmodify -> ldapadd"; fi; \

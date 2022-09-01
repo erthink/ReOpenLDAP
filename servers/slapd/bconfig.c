@@ -195,6 +195,8 @@ enum {
   CFG_LASTMOD,
   CFG_AZPOLICY,
   CFG_AZREGEXP,
+  CFG_AZDUC,
+  CFG_AZDUC_IGNORE,
   CFG_SASLSECP,
   CFG_SSTR_IF_MAX,
   CFG_SSTR_IF_MIN,
@@ -264,7 +266,7 @@ static OidRec OidMacros[] = {
  * OLcfg{Bk|Db}{Oc|At}:0		-> common
  * OLcfg{Bk|Db}{Oc|At}:1		-> back-bdb(/back-hdb)
  * OLcfg{Bk|Db}{Oc|At}:2		-> back-ldif
- * OLcfg{Bk|Db}{Oc|At}:3		-> back-ldap/meta
+ * OLcfg{Bk|Db}{Oc|At}:3		-> back-ldap/meta/asyncmeta
  * OLcfg{Bk|Db}{Oc|At}:4		-> back-monitor
  * OLcfg{Bk|Db}{Oc|At}:5		-> back-relay
  * OLcfg{Bk|Db}{Oc|At}:6		-> back-sql(/back-ndb)
@@ -274,6 +276,8 @@ static OidRec OidMacros[] = {
  * OLcfg{Bk|Db}{Oc|At}:10		-> back-shell
  * OLcfg{Bk|Db}{Oc|At}:11		-> back-perl
  * OLcfg{Bk|Db}{Oc|At}:12		-> back-mdb
+ * OLcfg{Bk|Db}{Oc|At}:13		-> back-wt
+ * OLcfg{Bk|Db}{Oc|At}:14		-> back-asyncmeta
  */
 
 /*
@@ -308,13 +312,13 @@ static ConfigTable config_back_cf_table[] = {
     {"", "", 0, 0, 0, ARG_MAGIC, &config_fname,
      "( OLcfgGlAt:78 NAME 'olcConfigFile' "
      "DESC 'File for slapd configuration directives' "
-     "EQUALITY caseIgnoreMatch "
+     "EQUALITY caseExactMatch "
      "SYNTAX OMsDirectoryString SINGLE-VALUE )",
      NULL, NULL},
     {"", "", 0, 0, 0, ARG_MAGIC, &config_cfdir,
      "( OLcfgGlAt:79 NAME 'olcConfigDir' "
      "DESC 'Directory for slapd configuration backend' "
-     "EQUALITY caseIgnoreMatch "
+     "EQUALITY caseExactMatch "
      "SYNTAX OMsDirectoryString SINGLE-VALUE )",
      NULL, NULL},
     {"access", NULL, 0, 0, 0, ARG_MAY_DB | ARG_MAGIC | CFG_ACL, &config_generic,
@@ -327,6 +331,7 @@ static ConfigTable config_back_cf_table[] = {
      ARG_MAY_DB | ARG_ON_OFF | ARG_MAGIC | CFG_ACL_ADD, &config_generic,
      "( OLcfgGlAt:86 NAME 'olcAddContentAcl' "
      "DESC 'Check ACLs against content of Add ops' "
+     "EQUALITY booleanMatch "
      "SYNTAX OMsBoolean SINGLE-VALUE )",
      NULL, NULL},
     {"allows", "features", 2, 0, 5, ARG_PRE_DB | ARG_MAGIC, &config_allows,
@@ -338,7 +343,7 @@ static ConfigTable config_back_cf_table[] = {
     {"argsfile", "file", 2, 2, 0, ARG_STRING, &slapd_args_file,
      "( OLcfgGlAt:3 NAME 'olcArgsFile' "
      "DESC 'File for slapd command line options' "
-     "EQUALITY caseIgnoreMatch "
+     "EQUALITY caseExactMatch "
      "SYNTAX OMsDirectoryString SINGLE-VALUE )",
      NULL, NULL},
     {"attributeoptions", NULL, 0, 0, 0, ARG_MAGIC | CFG_ATOPT, &config_generic,
@@ -386,15 +391,18 @@ static ConfigTable config_back_cf_table[] = {
     {"concurrency", "level", 2, 2, 0, ARG_INT | ARG_MAGIC | CFG_CONCUR,
      &config_generic,
      "( OLcfgGlAt:10 NAME 'olcConcurrency' "
+     "EQUALITY integerMatch "
      "SYNTAX OMsInteger SINGLE-VALUE )",
      NULL, NULL},
     {"conn_max_pending", "max", 2, 2, 0, ARG_INT, &slap_conn_max_pending,
      "( OLcfgGlAt:11 NAME 'olcConnMaxPending' "
+     "EQUALITY integerMatch "
      "SYNTAX OMsInteger SINGLE-VALUE )",
      NULL, NULL},
     {"conn_max_pending_auth", "max", 2, 2, 0, ARG_INT,
      &slap_conn_max_pending_auth,
      "( OLcfgGlAt:12 NAME 'olcConnMaxPendingAuth' "
+     "EQUALITY integerMatch "
      "SYNTAX OMsInteger SINGLE-VALUE )",
      NULL, NULL},
     {"database", "type", 2, 2, 0, ARG_MAGIC | CFG_DATABASE, &config_generic,
@@ -406,7 +414,14 @@ static ConfigTable config_back_cf_table[] = {
      ARG_PRE_BI | ARG_PRE_DB | ARG_DN | ARG_QUOTE | ARG_MAGIC,
      &config_search_base,
      "( OLcfgGlAt:14 NAME 'olcDefaultSearchBase' "
+     "EQUALITY distinguishedNameMatch "
      "SYNTAX OMsDN SINGLE-VALUE )",
+     NULL, NULL},
+    {"disabled", "on|off", 2, 2, 0,
+     ARG_DB | ARG_ON_OFF | ARG_MAGIC | CFG_DISABLED, &config_generic,
+     "( OLcfgDbAt:0.21 NAME 'olcDisabled' "
+     "EQUALITY booleanMatch "
+     "SYNTAX OMsBoolean SINGLE-VALUE )",
      NULL, NULL},
     {"disallows", "features", 2, 0, 8, ARG_PRE_DB | ARG_MAGIC,
      &config_disallows,
@@ -435,49 +450,64 @@ static ConfigTable config_back_cf_table[] = {
      ARG_IGNORED, NULL,
 #endif
      "( OLcfgGlAt:17 NAME 'olcGentleHUP' "
+     "EQUALITY booleanMatch "
      "SYNTAX OMsBoolean SINGLE-VALUE )",
      NULL, NULL},
     {"hidden", "on|off", 2, 2, 0, ARG_DB | ARG_ON_OFF | ARG_MAGIC | CFG_HIDDEN,
      &config_generic,
      "( OLcfgDbAt:0.17 NAME 'olcHidden' "
+     "EQUALITY booleanMatch "
      "SYNTAX OMsBoolean SINGLE-VALUE )",
      NULL, NULL},
     {"idletimeout", "timeout", 2, 2, 0, ARG_INT, &global_idletimeout,
      "( OLcfgGlAt:18 NAME 'olcIdleTimeout' "
+     "EQUALITY integerMatch "
      "SYNTAX OMsInteger SINGLE-VALUE )",
      NULL, NULL},
     {"include", "file", 2, 2, 0, ARG_MAGIC, &config_include,
      "( OLcfgGlAt:19 NAME 'olcInclude' "
      "SUP labeledURI )",
      NULL, NULL},
+    {"index_hash64", "on|off", 2, 2, 0, ARG_ON_OFF | ARG_MAGIC | CFG_IX_HASH64,
+     &config_generic,
+     "( OLcfgGlAt:94 NAME 'olcIndexHash64' "
+     "EQUALITY booleanMatch "
+     "SYNTAX OMsBoolean SINGLE-VALUE )",
+     NULL, NULL},
     {"index_substr_if_minlen", "min", 2, 2, 0,
      ARG_UINT | ARG_NONZERO | ARG_MAGIC | CFG_SSTR_IF_MIN, &config_generic,
      "( OLcfgGlAt:20 NAME 'olcIndexSubstrIfMinLen' "
+     "EQUALITY integerMatch "
      "SYNTAX OMsInteger SINGLE-VALUE )",
      NULL, NULL},
     {"index_substr_if_maxlen", "max", 2, 2, 0,
      ARG_UINT | ARG_NONZERO | ARG_MAGIC | CFG_SSTR_IF_MAX, &config_generic,
      "( OLcfgGlAt:21 NAME 'olcIndexSubstrIfMaxLen' "
+     "EQUALITY integerMatch "
      "SYNTAX OMsInteger SINGLE-VALUE )",
      NULL, NULL},
     {"index_substr_any_len", "len", 2, 2, 0, ARG_UINT | ARG_NONZERO,
      &index_substr_any_len,
      "( OLcfgGlAt:22 NAME 'olcIndexSubstrAnyLen' "
+     "EQUALITY integerMatch "
      "SYNTAX OMsInteger SINGLE-VALUE )",
      NULL, NULL},
     {"index_substr_any_step", "step", 2, 2, 0, ARG_UINT | ARG_NONZERO,
      &index_substr_any_step,
      "( OLcfgGlAt:23 NAME 'olcIndexSubstrAnyStep' "
+     "EQUALITY integerMatch "
      "SYNTAX OMsInteger SINGLE-VALUE )",
      NULL, NULL},
     {"index_intlen", "len", 2, 2, 0, ARG_UINT | ARG_MAGIC | CFG_IX_INTLEN,
      &config_generic,
      "( OLcfgGlAt:84 NAME 'olcIndexIntLen' "
+     "EQUALITY integerMatch "
      "SYNTAX OMsInteger SINGLE-VALUE )",
      NULL, NULL},
     {"lastmod", "on|off", 2, 2, 0,
      ARG_DB | ARG_ON_OFF | ARG_MAGIC | CFG_LASTMOD, &config_generic,
      "( OLcfgDbAt:0.4 NAME 'olcLastMod' "
+     "EQUALITY booleanMatch "
      "SYNTAX OMsBoolean SINGLE-VALUE )",
      NULL, NULL},
     {"ldapsyntax", "syntax", 2, 0, 0, ARG_PAREN | ARG_MAGIC | CFG_SYNTAX,
@@ -501,15 +531,18 @@ static ConfigTable config_back_cf_table[] = {
      ARG_UINT | ARG_MAGIC | CFG_LTHREADS, &config_generic,
 #endif
      "( OLcfgGlAt:93 NAME 'olcListenerThreads' "
+     "EQUALITY integerMatch "
      "SYNTAX OMsInteger SINGLE-VALUE )",
      NULL, NULL},
     {"localSSF", "ssf", 2, 2, 0, ARG_INT, &local_ssf,
      "( OLcfgGlAt:26 NAME 'olcLocalSSF' "
+     "EQUALITY integerMatch "
      "SYNTAX OMsInteger SINGLE-VALUE )",
      NULL, NULL},
     {"logfile", "file", 2, 2, 0, ARG_STRING | ARG_MAGIC | CFG_LOGFILE,
      &config_generic,
      "( OLcfgGlAt:27 NAME 'olcLogFile' "
+     "EQUALITY caseExactMatch "
      "SYNTAX OMsDirectoryString SINGLE-VALUE )",
      NULL, NULL},
     {"loglevel", "level", 2, 0, 0, ARG_MAGIC, &config_loglevel,
@@ -520,11 +553,13 @@ static ConfigTable config_back_cf_table[] = {
     {"maxDerefDepth", "depth", 2, 2, 0,
      ARG_DB | ARG_INT | ARG_MAGIC | CFG_DEPTH, &config_generic,
      "( OLcfgDbAt:0.6 NAME 'olcMaxDerefDepth' "
+     "EQUALITY integerMatch "
      "SYNTAX OMsInteger SINGLE-VALUE )",
      NULL, NULL},
     {"mirrormode", "on|off", 2, 2, 0,
      ARG_DB | ARG_ON_OFF | ARG_MAGIC | CFG_MIRRORMODE, &config_generic,
      "( OLcfgDbAt:0.16 NAME 'olcMirrorMode' "
+     "EQUALITY booleanMatch "
      "SYNTAX OMsBoolean SINGLE-VALUE )",
      NULL, NULL},
     {"moduleload", "file", 2, 0, 0,
@@ -544,11 +579,13 @@ static ConfigTable config_back_cf_table[] = {
      ARG_IGNORED, NULL,
 #endif
      "( OLcfgGlAt:31 NAME 'olcModulePath' "
+     "EQUALITY caseExactMatch "
      "SYNTAX OMsDirectoryString SINGLE-VALUE )",
      NULL, NULL},
     {"monitoring", "TRUE|FALSE", 2, 2, 0,
      ARG_MAGIC | CFG_MONITORING | ARG_DB | ARG_ON_OFF, &config_generic,
      "( OLcfgDbAt:0.18 NAME 'olcMonitoring' "
+     "EQUALITY booleanMatch "
      "SYNTAX OMsBoolean SINGLE-VALUE )",
      NULL, NULL},
     {"objectclass", "objectclass", 2, 0, 0, ARG_PAREN | ARG_MAGIC | CFG_OC,
@@ -573,6 +610,7 @@ static ConfigTable config_back_cf_table[] = {
     {"password-crypt-salt-format", "salt", 2, 2, 0,
      ARG_STRING | ARG_MAGIC | CFG_SALT, &config_generic,
      "( OLcfgGlAt:35 NAME 'olcPasswordCryptSaltFormat' "
+     "EQUALITY caseIgnoreMatch "
      "SYNTAX OMsDirectoryString SINGLE-VALUE )",
      NULL, NULL},
     {"password-hash", "hash", 2, 0, 0, ARG_MAGIC, &config_passwd_hash,
@@ -582,6 +620,7 @@ static ConfigTable config_back_cf_table[] = {
      NULL, NULL},
     {"pidfile", "file", 2, 2, 0, ARG_STRING, &slapd_pid_file,
      "( OLcfgGlAt:37 NAME 'olcPidFile' "
+     "EQUALITY caseExactMatch "
      "SYNTAX OMsDirectoryString SINGLE-VALUE )",
      NULL, NULL},
     {"plugin", NULL, 0, 0, 0,
@@ -601,11 +640,13 @@ static ConfigTable config_back_cf_table[] = {
      ARG_IGNORED, NULL,
 #endif
      "( OLcfgGlAt:39 NAME 'olcPluginLogFile' "
+     "EQUALITY caseExactMatch "
      "SYNTAX OMsDirectoryString SINGLE-VALUE )",
      NULL, NULL},
     {"readonly", "on|off", 2, 2, 0,
      ARG_MAY_DB | ARG_ON_OFF | ARG_MAGIC | CFG_RO, &config_generic,
      "( OLcfgGlAt:40 NAME 'olcReadOnly' "
+     "EQUALITY booleanMatch "
      "SYNTAX OMsBoolean SINGLE-VALUE )",
      NULL, NULL},
     {"referral", "url", 2, 2, 0, ARG_MAGIC, &config_referral,
@@ -653,6 +694,7 @@ static ConfigTable config_back_cf_table[] = {
      ARG_IGNORED, NULL,
 #endif
      "( OLcfgGlAt:49 NAME 'olcReverseLookup' "
+     "EQUALITY booleanMatch "
      "SYNTAX OMsBoolean SINGLE-VALUE )",
      NULL, NULL},
     {"rootdn", "dn", 2, 2, 0, ARG_DB | ARG_DN | ARG_QUOTE | ARG_MAGIC,
@@ -669,7 +711,8 @@ static ConfigTable config_back_cf_table[] = {
     {"rootpw", "password", 2, 2, 0, ARG_BERVAL | ARG_DB | ARG_MAGIC,
      &config_rootpw,
      "( OLcfgDbAt:0.9 NAME 'olcRootPW' "
-     "SYNTAX OMsDirectoryString SINGLE-VALUE )",
+     "EQUALITY octetStringMatch "
+     "SYNTAX OMsOctetString SINGLE-VALUE )",
      NULL, NULL},
     {"sasl-authz-policy", NULL, 2, 2, 0, ARG_MAGIC | CFG_AZPOLICY,
      &config_generic, NULL, NULL, NULL},
@@ -680,7 +723,28 @@ static ConfigTable config_back_cf_table[] = {
      ARG_IGNORED, NULL,
 #endif
      "( OLcfgGlAt:89 NAME 'olcSaslAuxprops' "
+     "EQUALITY caseIgnoreMatch "
      "SYNTAX OMsDirectoryString SINGLE-VALUE )",
+     NULL, NULL},
+    {"sasl-auxprops-dontusecopy", NULL, 2, 0, 0,
+#if defined(HAVE_CYRUS_SASL) && defined(SLAP_AUXPROP_DONTUSECOPY)
+     ARG_MAGIC | CFG_AZDUC, &config_generic,
+#else
+     ARG_IGNORED, NULL,
+#endif
+     "( OLcfgGlAt:91 NAME 'olcSaslAuxpropsDontUseCopy' "
+     "EQUALITY caseIgnoreMatch "
+     "SYNTAX OMsDirectoryString )",
+     NULL, NULL},
+    {"sasl-auxprops-dontusecopy-ignore", "true|FALSE", 2, 0, 0,
+#if defined(HAVE_CYRUS_SASL) && defined(SLAP_AUXPROP_DONTUSECOPY)
+     ARG_ON_OFF | CFG_AZDUC_IGNORE, &slap_dontUseCopy_ignore,
+#else
+     ARG_IGNORED, NULL,
+#endif
+     "( OLcfgGlAt:92 NAME 'olcSaslAuxpropsDontUseCopyIgnore' "
+     "EQUALITY booleanMatch "
+     "SYNTAX OMsBoolean SINGLE-VALUE )",
      NULL, NULL},
     {"sasl-host", "host", 2, 2, 0,
 #ifdef HAVE_CYRUS_SASL
@@ -689,6 +753,7 @@ static ConfigTable config_back_cf_table[] = {
      ARG_IGNORED, NULL,
 #endif
      "( OLcfgGlAt:53 NAME 'olcSaslHost' "
+     "EQUALITY caseIgnoreMatch "
      "SYNTAX OMsDirectoryString SINGLE-VALUE )",
      NULL, NULL},
     {"sasl-realm", "realm", 2, 2, 0,
@@ -698,6 +763,7 @@ static ConfigTable config_back_cf_table[] = {
      ARG_IGNORED, NULL,
 #endif
      "( OLcfgGlAt:54 NAME 'olcSaslRealm' "
+     "EQUALITY caseExactMatch "
      "SYNTAX OMsDirectoryString SINGLE-VALUE )",
      NULL, NULL},
     {"sasl-regexp", NULL, 3, 3, 0, ARG_MAGIC | CFG_AZREGEXP, &config_generic,
@@ -709,6 +775,7 @@ static ConfigTable config_back_cf_table[] = {
      ARG_IGNORED, NULL,
 #endif
      "( OLcfgGlAt:56 NAME 'olcSaslSecProps' "
+     "EQUALITY caseExactMatch "
      "SYNTAX OMsDirectoryString SINGLE-VALUE )",
      NULL, NULL},
     {"saslRegexp", NULL, 3, 3, 0, ARG_MAGIC | CFG_AZREGEXP, &config_generic,
@@ -732,16 +799,19 @@ static ConfigTable config_back_cf_table[] = {
      NULL, NULL},
     {"sizelimit", "limit", 2, 0, 0, ARG_MAY_DB | ARG_MAGIC, &config_sizelimit,
      "( OLcfgGlAt:60 NAME 'olcSizeLimit' "
+     "EQUALITY caseExactMatch "
      "SYNTAX OMsDirectoryString SINGLE-VALUE )",
      NULL, NULL},
     {"sockbuf_max_incoming", "max", 2, 2, 0, ARG_BER_LEN_T,
      &sockbuf_max_incoming,
      "( OLcfgGlAt:61 NAME 'olcSockbufMaxIncoming' "
+     "EQUALITY integerMatch "
      "SYNTAX OMsInteger SINGLE-VALUE )",
      NULL, NULL},
     {"sockbuf_max_incoming_auth", "max", 2, 2, 0, ARG_BER_LEN_T,
      &sockbuf_max_incoming_auth,
      "( OLcfgGlAt:62 NAME 'olcSockbufMaxIncomingAuth' "
+     "EQUALITY integerMatch "
      "SYNTAX OMsInteger SINGLE-VALUE )",
      NULL, NULL},
     {"sortvals", "attr", 2, 0, 0, ARG_MAGIC | CFG_SORTVALS, &config_generic,
@@ -753,6 +823,7 @@ static ConfigTable config_back_cf_table[] = {
     {"subordinate", "[advertise]", 1, 2, 0, ARG_DB | ARG_MAGIC,
      &config_subordinate,
      "( OLcfgDbAt:0.15 NAME 'olcSubordinate' "
+     "EQUALITY caseExactMatch "
      "SYNTAX OMsDirectoryString SINGLE-VALUE )",
      NULL, NULL},
     {"suffix", "suffix", 2, 2, 0, ARG_DB | ARG_DN | ARG_QUOTE | ARG_MAGIC,
@@ -765,6 +836,7 @@ static ConfigTable config_back_cf_table[] = {
      ARG_ON_OFF | ARG_DB | ARG_MAGIC | CFG_SYNC_SUBENTRY, &config_generic,
      "( OLcfgDbAt:0.19 NAME 'olcSyncUseSubentry' "
      "DESC 'Store sync context in a subentry' "
+     "EQUALITY booleanMatch "
      "SYNTAX OMsBoolean SINGLE-VALUE )",
      NULL, NULL},
     {"syncrepl", NULL, 0, 0, 0, ARG_DB | ARG_MAGIC, &config_syncrepl,
@@ -779,6 +851,7 @@ static ConfigTable config_back_cf_table[] = {
      ARG_MAGIC, &config_tcp_buffer,
 #endif /* LDAP_TCP_BUFFER */
      "( OLcfgGlAt:90 NAME 'olcTCPBuffer' "
+     "EQUALITY caseExactMatch "
      "DESC 'Custom TCP buffer size' "
      "SYNTAX OMsDirectoryString )",
      NULL, NULL},
@@ -789,10 +862,22 @@ static ConfigTable config_back_cf_table[] = {
      ARG_INT | ARG_MAGIC | CFG_THREADS, &config_generic,
 #endif
      "( OLcfgGlAt:66 NAME 'olcThreads' "
+     "EQUALITY integerMatch "
+     "SYNTAX OMsInteger SINGLE-VALUE )",
+     NULL, NULL},
+    {"threadqueues", "count", 2, 2, 0,
+#ifdef NO_THREADS
+     ARG_IGNORED, NULL,
+#else
+     ARG_INT | ARG_MAGIC | CFG_THREADQS, &config_generic,
+#endif
+     "( OLcfgGlAt:95 NAME 'olcThreadQueues' "
+     "EQUALITY integerMatch "
      "SYNTAX OMsInteger SINGLE-VALUE )",
      NULL, NULL},
     {"timelimit", "limit", 2, 0, 0, ARG_MAY_DB | ARG_MAGIC, &config_timelimit,
      "( OLcfgGlAt:67 NAME 'olcTimeLimit' "
+     "EQUALITY caseExactMatch "
      "SYNTAX OMsDirectoryString SINGLE-VALUE )",
      NULL, NULL},
     {"TLSCACertificate", NULL, 2, 2, 0,
@@ -803,6 +888,7 @@ static ConfigTable config_back_cf_table[] = {
 #endif
      "( OLcfgGlAt:97 NAME 'olcTLSCACertificate' "
      "DESC 'X.509 certificate, must use ;binary' "
+     "EQUALITY certificateExactMatch "
      "SYNTAX 1.3.6.1.4.1.1466.115.121.1.8 SINGLE-VALUE )",
      NULL, NULL},
     {"TLSCACertificateFile", NULL, 2, 2, 0,
@@ -812,6 +898,7 @@ static ConfigTable config_back_cf_table[] = {
      ARG_IGNORED, NULL,
 #endif
      "( OLcfgGlAt:68 NAME 'olcTLSCACertificateFile' "
+     "EQUALITY caseExactMatch "
      "SYNTAX OMsDirectoryString SINGLE-VALUE )",
      NULL, NULL},
     {"TLSCACertificatePath", NULL, 2, 2, 0,
@@ -821,6 +908,7 @@ static ConfigTable config_back_cf_table[] = {
      ARG_IGNORED, NULL,
 #endif
      "( OLcfgGlAt:69 NAME 'olcTLSCACertificatePath' "
+     "EQUALITY caseExactMatch "
      "SYNTAX OMsDirectoryString SINGLE-VALUE )",
      NULL, NULL},
     {"TLSCertificate", NULL, 2, 2, 0,
@@ -831,6 +919,7 @@ static ConfigTable config_back_cf_table[] = {
 #endif
      "( OLcfgGlAt:98 NAME 'olcTLSCertificate' "
      "DESC 'X.509 certificate, must use ;binary' "
+     "EQUALITY certificateExactMatch "
      "SYNTAX 1.3.6.1.4.1.1466.115.121.1.8 SINGLE-VALUE )",
      NULL, NULL},
     {"TLSCertificateFile", NULL, 2, 2, 0,
@@ -840,6 +929,7 @@ static ConfigTable config_back_cf_table[] = {
      ARG_IGNORED, NULL,
 #endif
      "( OLcfgGlAt:70 NAME 'olcTLSCertificateFile' "
+     "EQUALITY caseExactMatch "
      "SYNTAX OMsDirectoryString SINGLE-VALUE )",
      NULL, NULL},
     {"TLSCertificateKey", NULL, 2, 2, 0,
@@ -850,7 +940,8 @@ static ConfigTable config_back_cf_table[] = {
 #endif
      "( OLcfgGlAt:99 NAME 'olcTLSCertificateKey' "
      "DESC 'X.509 privateKey, must use ;binary' "
-     "SYNTAX 1.3.6.1.4.1.4203.666.2.13 SINGLE-VALUE )",
+     "EQUALITY privateKeyMatch "
+     "SYNTAX 1.2.840.113549.1.8.1.1 SINGLE-VALUE )",
      NULL, NULL},
     {"TLSCertificateKeyFile", NULL, 2, 2, 0,
 #ifdef WITH_TLS
@@ -859,6 +950,7 @@ static ConfigTable config_back_cf_table[] = {
      ARG_IGNORED, NULL,
 #endif
      "( OLcfgGlAt:71 NAME 'olcTLSCertificateKeyFile' "
+     "EQUALITY caseExactMatch "
      "SYNTAX OMsDirectoryString SINGLE-VALUE )",
      NULL, NULL},
     {"TLSCipherSuite", NULL, 2, 2, 0,
@@ -868,6 +960,7 @@ static ConfigTable config_back_cf_table[] = {
      ARG_IGNORED, NULL,
 #endif
      "( OLcfgGlAt:72 NAME 'olcTLSCipherSuite' "
+     "EQUALITY caseExactMatch "
      "SYNTAX OMsDirectoryString SINGLE-VALUE )",
      NULL, NULL},
     {"TLSCRLCheck", NULL, 2, 2, 0,
@@ -877,6 +970,7 @@ static ConfigTable config_back_cf_table[] = {
      ARG_IGNORED, NULL,
 #endif
      "( OLcfgGlAt:73 NAME 'olcTLSCRLCheck' "
+     "EQUALITY caseExactMatch "
      "SYNTAX OMsDirectoryString SINGLE-VALUE )",
      NULL, NULL},
     {"TLSCRLFile", NULL, 2, 2, 0,
@@ -886,6 +980,7 @@ static ConfigTable config_back_cf_table[] = {
      ARG_IGNORED, NULL,
 #endif
      "( OLcfgGlAt:82 NAME 'olcTLSCRLFile' "
+     "EQUALITY caseExactMatch "
      "SYNTAX OMsDirectoryString SINGLE-VALUE )",
      NULL, NULL},
     {"TLSRandFile", NULL, 2, 2, 0,
@@ -895,6 +990,7 @@ static ConfigTable config_back_cf_table[] = {
      ARG_IGNORED, NULL,
 #endif
      "( OLcfgGlAt:74 NAME 'olcTLSRandFile' "
+     "EQUALITY caseExactMatch "
      "SYNTAX OMsDirectoryString SINGLE-VALUE )",
      NULL, NULL},
     {"TLSVerifyClient", NULL, 2, 2, 0,
@@ -904,6 +1000,7 @@ static ConfigTable config_back_cf_table[] = {
      ARG_IGNORED, NULL,
 #endif
      "( OLcfgGlAt:75 NAME 'olcTLSVerifyClient' "
+     "EQUALITY caseExactMatch "
      "SYNTAX OMsDirectoryString SINGLE-VALUE )",
      NULL, NULL},
     {"TLSDHParamFile", NULL, 2, 2, 0,
@@ -913,6 +1010,17 @@ static ConfigTable config_back_cf_table[] = {
      ARG_IGNORED, NULL,
 #endif
      "( OLcfgGlAt:77 NAME 'olcTLSDHParamFile' "
+     "EQUALITY caseExactMatch "
+     "SYNTAX OMsDirectoryString SINGLE-VALUE )",
+     NULL, NULL},
+    {"TLSECName", NULL, 2, 2, 0,
+#ifdef WITH_TLS
+     CFG_TLS_ECNAME | ARG_STRING | ARG_MAGIC, &config_tls_option,
+#else
+     ARG_IGNORED, NULL,
+#endif
+     "( OLcfgGlAt:96 NAME 'olcTLSECName' "
+     "EQUALITY caseExactMatch "
      "SYNTAX OMsDirectoryString SINGLE-VALUE )",
      NULL, NULL},
     {"TLSProtocolMin", NULL, 2, 2, 0,
@@ -922,17 +1030,20 @@ static ConfigTable config_back_cf_table[] = {
      ARG_IGNORED, NULL,
 #endif
      "( OLcfgGlAt:87 NAME 'olcTLSProtocolMin' "
+     "EQUALITY caseExactMatch "
      "SYNTAX OMsDirectoryString SINGLE-VALUE )",
      NULL, NULL},
     {"tool-threads", "count", 2, 2, 0, ARG_INT | ARG_MAGIC | CFG_TTHREADS,
      &config_generic,
      "( OLcfgGlAt:80 NAME 'olcToolThreads' "
+     "EQUALITY integerMatch "
      "SYNTAX OMsInteger SINGLE-VALUE )",
      NULL, NULL},
     {"ucdata-path", "path", 2, 2, 0, ARG_IGNORED, NULL, NULL, NULL, NULL},
     {"updatedn", "dn", 2, 2, 0, ARG_DB | ARG_DN | ARG_QUOTE | ARG_MAGIC,
      &config_updatedn,
      "( OLcfgDbAt:0.12 NAME 'olcUpdateDN' "
+     "EQUALITY distinguishedNameMatch "
      "SYNTAX OMsDN SINGLE-VALUE )",
      NULL, NULL},
     {"updateref", "url", 2, 2, 0, ARG_DB | ARG_MAGIC, &config_updateref,
@@ -942,6 +1053,7 @@ static ConfigTable config_back_cf_table[] = {
      NULL, NULL},
     {"writetimeout", "timeout", 2, 2, 0, ARG_INT, &global_writetimeout,
      "( OLcfgGlAt:88 NAME 'olcWriteTimeout' "
+     "EQUALITY integerMatch "
      "SYNTAX OMsInteger SINGLE-VALUE )",
      NULL, NULL},
 
@@ -949,23 +1061,27 @@ static ConfigTable config_back_cf_table[] = {
      ARG_ON_OFF | ARG_MAGIC | CFG_BACKTRACE, &config_generic,
      "( OLcfgGlAt:0.42 NAME 'olcCrashBacktrace' "
      "DESC 'Backtrace generation on SIGSEGV/SIGABRT' "
+     "EQUALITY booleanMatch "
      "SYNTAX OMsBoolean SINGLE-VALUE )",
      NULL, NULL},
     {"memory-limit", "mbytes", 2, 2, 0, ARG_INT | ARG_MAGIC | CFG_MEMORY,
      &config_generic,
      "( OLcfgGlAt:0.43 NAME 'olcMemoryLimit' "
      "DESC 'Limit memory usage' "
+     "EQUALITY integerMatch "
      "SYNTAX OMsInteger SINGLE-VALUE )",
      NULL, NULL},
     {"coredump-limit", "mbytes", 2, 2, 0, ARG_INT | ARG_MAGIC | CFG_COREDUMP,
      &config_generic,
      "( OLcfgGlAt:0.44 NAME 'olcCoredumpLimit' "
      "DESC 'Limit coredump size' "
+     "EQUALITY integerMatch "
      "SYNTAX OMsInteger SINGLE-VALUE )",
      NULL, NULL},
     {"biglock", "mode", 2, 2, 0, ARG_DB | ARG_MAGIC, &config_biglock,
      "( OLcfgDbAt:0.45 NAME 'olcBiglock' "
      "DESC 'Synchronuzation mode for suffix/database' "
+     "EQUALITY caseIgnoreMatch "
      "SYNTAX OMsDirectoryString SINGLE-VALUE )",
      NULL, NULL},
     {"reopenldap", "[iddqd] [idkfa] [idclip] [jitter]", 0, 0, 0, ARG_MAGIC,
@@ -1034,21 +1150,25 @@ static ConfigOCs cf_ocs[] = {
      "olcConnMaxPending $ olcConnMaxPendingAuth $ "
      "olcDisallows $ olcGentleHUP $ olcIdleTimeout $ "
      "olcIndexSubstrIfMaxLen $ olcIndexSubstrIfMinLen $ "
-     "olcIndexSubstrAnyLen $ olcIndexSubstrAnyStep $ olcIndexIntLen $ "
+     "olcIndexSubstrAnyLen $ olcIndexSubstrAnyStep $ olcIndexHash64 $ "
+     "olcIndexIntLen $ "
      "olcListenerThreads $ olcLocalSSF $ olcLogFile $ olcLogLevel $ "
      "olcPasswordCryptSaltFormat $ olcPasswordHash $ olcPidFile $ "
      "olcPluginLogFile $ olcReadOnly $ olcReferral $ "
      "olcReplogFile $ olcRequires $ olcRestrict $ olcReverseLookup $ "
      "olcRootDSE $ "
-     "olcSaslAuxprops $ olcSaslHost $ olcSaslRealm $ olcSaslSecProps $ "
+     "olcSaslAuxprops $ olcSaslAuxpropsDontUseCopy $ "
+     "olcSaslAuxpropsDontUseCopyIgnore $ "
+     "olcSaslHost $ olcSaslRealm $ olcSaslSecProps $ "
      "olcSecurity $ olcServerID $ olcSizeLimit $ "
      "olcSockbufMaxIncoming $ olcSockbufMaxIncomingAuth $ "
      "olcTCPBuffer $ "
-     "olcThreads $ olcTimeLimit $ olcTLSCACertificateFile $ "
+     "olcThreads $ olcThreadQueues $ "
+     "olcTimeLimit $ olcTLSCACertificateFile $ "
      "olcTLSCACertificatePath $ olcTLSCertificateFile $ "
      "olcTLSCertificateKeyFile $ olcTLSCipherSuite $ olcTLSCRLCheck $ "
      "olcTLSCACertificate $ olcTLSCertificate $ olcTLSCertificateKey $ "
-     "olcTLSRandFile $ olcTLSVerifyClient $ olcTLSDHParamFile $ "
+     "olcTLSRandFile $ olcTLSVerifyClient $ olcTLSDHParamFile $ olcTLSECName $ "
      "olcTLSCRLFile $ olcTLSProtocolMin $ olcToolThreads $ olcWriteTimeout $ "
      "olcObjectIdentifier $ olcAttributeTypes $ olcObjectClasses $ "
      "olcCrashBacktrace $ olcMemoryLimit $ olcCoredumpLimit $ olcReOpenLDAP $ "
@@ -1072,7 +1192,7 @@ static ConfigOCs cf_ocs[] = {
      "DESC 'OpenLDAP Database-specific options' "
      "SUP olcConfig STRUCTURAL "
      "MUST olcDatabase "
-     "MAY ( olcHidden $ olcSuffix $ olcSubordinate $ olcAccess $ "
+     "MAY ( olcDisabled $ olcHidden $ olcSuffix $ olcSubordinate $ olcAccess $ "
      "olcAddContentAcl $ olcLastMod $ olcLimits $ "
      "olcMaxDerefDepth $ olcPlugin $ olcReadOnly $ olcReplica $ "
      "olcReplicaArgsFile $ olcReplicaPidFile $ olcReplicationInterval $ "
@@ -1087,7 +1207,8 @@ static ConfigOCs cf_ocs[] = {
      "NAME 'olcOverlayConfig' "
      "DESC 'OpenLDAP Overlay-specific options' "
      "SUP olcConfig STRUCTURAL "
-     "MUST olcOverlay )",
+     "MUST olcOverlay "
+     "MAY olcDisabled )",
      Cft_Overlay, NULL, cfAddOverlay},
     {"( OLcfgGlOc:6 "
      "NAME 'olcIncludeFile' "
@@ -1150,6 +1271,9 @@ static int config_generic(ConfigArgs *c) {
     case CFG_THREADS:
       c->value_int = connection_pool_max;
       break;
+    case CFG_THREADQS:
+      c->value_int = connection_pool_queues;
+      break;
     case CFG_TTHREADS:
       c->value_int = slap_tool_thread_max;
       break;
@@ -1207,6 +1331,47 @@ static int config_generic(ConfigArgs *c) {
         rc = 1;
       break;
 #ifdef HAVE_CYRUS_SASL
+#ifdef SLAP_AUXPROP_DONTUSECOPY
+    case CFG_AZDUC: {
+      static int duc_done = 0;
+
+      /* take the opportunity to initialize with known values */
+      if (!duc_done) {
+        struct berval duc[] = {BER_BVC("cmusaslsecretOTP"), BER_BVNULL};
+        int i;
+
+        for (i = 0; !BER_BVISNULL(&duc[i]); i++) {
+          const char *text = NULL;
+          AttributeDescription *ad = NULL;
+
+          if (slap_bv2ad(&duc[i], &ad, &text) == LDAP_SUCCESS) {
+            int gotit = 0;
+            if (slap_dontUseCopy_propnames) {
+              int j;
+
+              for (j = 0; !BER_BVISNULL(&slap_dontUseCopy_propnames[j]); j++) {
+                if (bvmatch(&slap_dontUseCopy_propnames[j], &ad->ad_cname)) {
+                  gotit = 1;
+                }
+              }
+            }
+
+            if (!gotit) {
+              value_add_one(&slap_dontUseCopy_propnames, &ad->ad_cname);
+            }
+          }
+        }
+
+        duc_done = 1;
+      }
+
+      if (slap_dontUseCopy_propnames != NULL) {
+        ber_bvarray_dup_x(&c->rvalue_vals, slap_dontUseCopy_propnames, NULL);
+      } else {
+        rc = 1;
+      }
+    } break;
+#endif /* SLAP_AUXPROP_DONTUSECOPY */
     case CFG_SASLSECP: {
       struct berval bv = BER_BVNULL;
       slap_sasl_secprops_unparse(&bv);
@@ -1219,6 +1384,23 @@ static int config_generic(ConfigArgs *c) {
 #endif
     case CFG_DEPTH:
       c->value_int = c->be->be_max_deref_depth;
+      break;
+    case CFG_DISABLED:
+      if (c->bi) {
+        /* overlay */
+        if (c->bi->bi_flags & SLAPO_BFLAG_DISABLED) {
+          c->value_int = 1;
+        } else {
+          rc = 1;
+        }
+      } else {
+        /* database */
+        if (SLAP_DBDISABLED(c->be)) {
+          c->value_int = 1;
+        } else {
+          rc = 1;
+        }
+      }
       break;
     case CFG_HIDDEN:
       if (SLAP_DBHIDDEN(c->be)) {
@@ -1371,6 +1553,9 @@ static int config_generic(ConfigArgs *c) {
     case CFG_SSTR_IF_MIN:
       c->value_uint = index_substr_if_minlen;
       break;
+    case CFG_IX_HASH64:
+      c->value_int = slap_hash64(-1);
+      break;
     case CFG_IX_INTLEN:
       c->value_int = index_intlen;
       break;
@@ -1457,6 +1642,7 @@ static int config_generic(ConfigArgs *c) {
     /* single-valued attrs, no-ops */
     case CFG_CONCUR:
     case CFG_THREADS:
+    case CFG_THREADQS:
     case CFG_TTHREADS:
     case CFG_LTHREADS:
     case CFG_RO:
@@ -1488,6 +1674,37 @@ static int config_generic(ConfigArgs *c) {
         SLAP_DBFLAGS(c->be) |= SLAP_DBFLAG_SINGLE_SHADOW;
       break;
 
+#if defined(HAVE_CYRUS_SASL) && defined(SLAP_AUXPROP_DONTUSECOPY)
+    case CFG_AZDUC:
+      if (c->valx < 0) {
+        if (slap_dontUseCopy_propnames != NULL) {
+          ber_bvarray_free(slap_dontUseCopy_propnames);
+          slap_dontUseCopy_propnames = NULL;
+        }
+
+      } else {
+        int i;
+
+        if (slap_dontUseCopy_propnames == NULL) {
+          rc = 1;
+          break;
+        }
+
+        for (i = 0;
+             !BER_BVISNULL(&slap_dontUseCopy_propnames[i]) && i < c->valx; i++)
+          ;
+        if (i < c->valx) {
+          rc = 1;
+          break;
+        }
+        ber_memfree(slap_dontUseCopy_propnames[i].bv_val);
+        for (; !BER_BVISNULL(&slap_dontUseCopy_propnames[i + 1]); i++) {
+          slap_dontUseCopy_propnames[i] = slap_dontUseCopy_propnames[i + 1];
+        }
+        BER_BVZERO(&slap_dontUseCopy_propnames[i]);
+      }
+      break;
+#endif /* SLAP_AUXPROP_DONTUSECOPY */
     case CFG_SALT:
       ch_free(passwd_salt);
       passwd_salt = NULL;
@@ -1521,6 +1738,25 @@ static int config_generic(ConfigArgs *c) {
     } break;
     case CFG_HIDDEN:
       c->be->be_flags &= ~SLAP_DBFLAG_HIDDEN;
+      break;
+
+    case CFG_DISABLED:
+      if (c->bi) {
+        c->bi->bi_flags &= ~SLAP_DBFLAG_DISABLED;
+        if (c->bi->bi_db_open) {
+          BackendInfo *bi_orig = c->be->bd_info;
+          c->be->bd_info = c->bi;
+          rc = c->bi->bi_db_open(c->be, &c->reply);
+          c->be->bd_info = bi_orig;
+        }
+      } else {
+        c->be->be_flags &= ~SLAP_DBFLAG_DISABLED;
+        rc = backend_startup_one(c->be, &c->reply);
+      }
+      break;
+
+    case CFG_IX_HASH64:
+      slap_hash64(0);
       break;
 
     case CFG_IX_INTLEN:
@@ -1741,6 +1977,10 @@ static int config_generic(ConfigArgs *c) {
       Debug(LDAP_DEBUG_ANY, "%s: %s (%s)!\n", c->log, c->cr_msg, c->argv[1]);
       return ARG_BAD_CONF;
     }
+    if (c->bi->bi_flags & SLAP_BFLAG_STANDALONE) {
+      c->bi->bi_nDB++;
+      nbackends++;
+    }
     break;
 
   case CFG_DATABASE:
@@ -1784,6 +2024,18 @@ static int config_generic(ConfigArgs *c) {
     if (slapMode & SLAP_SERVER_MODE)
       ldap_pvt_thread_pool_maxthreads(&connection_pool, c->value_int);
     connection_pool_max = c->value_int; /* save for reference */
+    break;
+
+  case CFG_THREADQS:
+    if (c->value_int < 1) {
+      snprintf(c->cr_msg, sizeof(c->cr_msg),
+               "threadqueuess=%d smaller than minimum value 1", c->value_int);
+      Debug(LDAP_DEBUG_ANY, "%s: %s.\n", c->log, c->cr_msg);
+      return 1;
+    }
+    if (slapMode & SLAP_SERVER_MODE)
+      ldap_pvt_thread_pool_queues(&connection_pool, c->value_int);
+    connection_pool_queues = c->value_int; /* save for reference */
     break;
 
   case CFG_TTHREADS:
@@ -1854,6 +2106,48 @@ static int config_generic(ConfigArgs *c) {
     break;
 
 #ifdef HAVE_CYRUS_SASL
+#ifdef SLAP_AUXPROP_DONTUSECOPY
+  case CFG_AZDUC: {
+    int arg, cnt;
+
+    for (arg = 1; arg < c->argc; arg++) {
+      int duplicate = 0, err;
+      AttributeDescription *ad = NULL;
+      const char *text = NULL;
+
+      err = slap_str2ad(c->argv[arg], &ad, &text);
+      if (err != LDAP_SUCCESS) {
+        snprintf(c->cr_msg, sizeof(c->cr_msg),
+                 "<%s>: attr #%d (\"%s\") unknown (err=%d \"%s\"; ignored)",
+                 c->argv[0], arg, c->argv[arg], err, text);
+        Debug(LDAP_DEBUG_ANY, "%s: %s\n", c->log, c->cr_msg);
+
+      } else {
+        if (slap_dontUseCopy_propnames != NULL) {
+          for (cnt = 0; !BER_BVISNULL(&slap_dontUseCopy_propnames[cnt]);
+               cnt++) {
+            if (bvmatch(&slap_dontUseCopy_propnames[cnt], &ad->ad_cname)) {
+              duplicate = 1;
+              break;
+            }
+          }
+        }
+
+        if (duplicate) {
+          snprintf(c->cr_msg, sizeof(c->cr_msg),
+                   "<%s>: attr #%d (\"%s\") already defined (ignored)",
+                   c->argv[0], arg, ad->ad_cname.bv_val);
+          Debug(LDAP_DEBUG_ANY, "%s: %s\n", c->log, c->cr_msg);
+          continue;
+        }
+
+        value_add_one(&slap_dontUseCopy_propnames, &ad->ad_cname);
+      }
+    }
+
+  } break;
+#endif /* SLAP_AUXPROP_DONTUSECOPY */
+
   case CFG_SASLSECP: {
     char *txt = slap_sasl_secprops(c->argv[1]);
     if (txt) {
@@ -1899,13 +2193,13 @@ static int config_generic(ConfigArgs *c) {
             break;
         }
       } else
-          /* If adding the first, and head exists, find its prev */
-          if (cfn->c_oc_head) {
-        for (oc_start(&oc); oc != cfn->c_oc_head;) {
-          prev = oc;
-          oc_next(&oc);
+        /* If adding the first, and head exists, find its prev */
+        if (cfn->c_oc_head) {
+          for (oc_start(&oc); oc != cfn->c_oc_head;) {
+            prev = oc;
+            oc_next(&oc);
+          }
         }
-      }
       /* else prev is NULL, append to end of global list */
     }
     if (parse_oc(c, &oc, prev))
@@ -1934,13 +2228,13 @@ static int config_generic(ConfigArgs *c) {
             break;
         }
       } else
-          /* If adding the first, and head exists, find its prev */
-          if (cfn->c_at_head) {
-        for (at_start(&at); at != cfn->c_at_head;) {
-          prev = at;
-          at_next(&at);
+        /* If adding the first, and head exists, find its prev */
+        if (cfn->c_at_head) {
+          for (at_start(&at); at != cfn->c_at_head;) {
+            prev = at;
+            at_next(&at);
+          }
         }
-      }
       /* else prev is NULL, append to end of global list */
     }
     if (parse_at(c, &at, prev))
@@ -1969,13 +2263,13 @@ static int config_generic(ConfigArgs *c) {
             break;
         }
       } else
-          /* If adding the first, and head exists, find its prev */
-          if (cfn->c_syn_head) {
-        for (syn_start(&syn); syn != cfn->c_syn_head;) {
-          prev = syn;
-          syn_next(&syn);
+        /* If adding the first, and head exists, find its prev */
+        if (cfn->c_syn_head) {
+          for (syn_start(&syn); syn != cfn->c_syn_head;) {
+            prev = syn;
+            syn_next(&syn);
+          }
         }
-      }
       /* else prev is NULL, append to end of global list */
     }
     if (parse_syn(c, &syn, prev))
@@ -2003,6 +2297,11 @@ static int config_generic(ConfigArgs *c) {
     for (i = 1; i < c->argc; i++)
       if (ad_define_option(c->argv[i], c->fname, c->lineno))
         return (1);
+    break;
+
+  case CFG_IX_HASH64:
+    if (slap_hash64(c->value_int != 0))
+      return 1;
     break;
 
   case CFG_IX_INTLEN:
@@ -2227,6 +2526,29 @@ static int config_generic(ConfigArgs *c) {
       SLAP_DBFLAGS(c->be) |= SLAP_DBFLAG_MONITORING;
     else
       SLAP_DBFLAGS(c->be) &= ~SLAP_DBFLAG_MONITORING;
+    break;
+
+  case CFG_DISABLED:
+    if (c->bi) {
+      if (c->value_int) {
+        if (c->bi->bi_db_close) {
+          BackendInfo *bi_orig = c->be->bd_info;
+          c->be->bd_info = c->bi;
+          c->bi->bi_db_close(c->be, &c->reply);
+          c->be->bd_info = bi_orig;
+        }
+        c->bi->bi_flags |= SLAPO_BFLAG_DISABLED;
+      } else {
+        c->bi->bi_flags &= ~SLAPO_BFLAG_DISABLED;
+      }
+    } else {
+      if (c->value_int) {
+        backend_shutdown(c->be);
+        SLAP_DBFLAGS(c->be) |= SLAP_DBFLAG_DISABLED;
+      } else {
+        SLAP_DBFLAGS(c->be) &= ~SLAP_DBFLAG_DISABLED;
+      }
+    }
     break;
 
   case CFG_HIDDEN:
@@ -4198,6 +4520,9 @@ static int config_tls_option(ConfigArgs *c) {
   case CFG_TLS_DH_FILE:
     flag = LDAP_OPT_X_TLS_DHFILE;
     break;
+  case CFG_TLS_ECNAME:
+    flag = LDAP_OPT_X_TLS_ECNAME;
+    break;
   case CFG_TLS_CRL_FILE:
     flag = LDAP_OPT_X_TLS_CRLFILE;
     break;
@@ -4283,7 +4608,7 @@ static int config_tls_config(ConfigArgs *c) {
     }
     return (ldap_pvt_tls_set_option(slap_tls_ld, flag, &i));
   } else {
-    return (ldap_int_tls_config(slap_tls_ld, flag, c->argv[1]));
+    return (ldap_pvt_tls_config(slap_tls_ld, flag, c->argv[1]));
   }
 }
 #endif /* WITH_TLS */
@@ -5631,6 +5956,11 @@ ok:
     if (coptr->co_type == Cft_Database) {
       rc = backend_startup_one(ca->be, &ca->reply);
 
+    } else if (coptr->co_type == Cft_Backend) {
+      if (ca->bi->bi_open) {
+        rc = ca->bi->bi_open(ca->bi);
+      }
+
     } else if (coptr->co_type == Cft_Overlay) {
       if (ca->bi->bi_db_open) {
         BackendInfo *bi_orig = ca->be->bd_info;
@@ -5897,7 +6227,7 @@ static int __config_back_add(Operation *op, SlapReply *rs) {
 
 out2:;
   if (dopause)
-    ldap_pvt_thread_pool_resume(&connection_pool);
+    slap_biglock_pool_resume(op->o_bd);
 
 out:;
   {
@@ -6378,7 +6708,7 @@ static int __config_back_modify(Operation *op, SlapReply *rs) {
   }
 
   if (do_pause)
-    ldap_pvt_thread_pool_resume(&connection_pool);
+    slap_biglock_pool_resume(op->o_bd);
 out:
   send_ldap_result(op, rs);
   slap_graduate_commit_csn(op);
@@ -6590,7 +6920,7 @@ static int __config_back_modrdn(Operation *op, SlapReply *rs) {
   }
 
   if (dopause)
-    ldap_pvt_thread_pool_resume(&connection_pool);
+    slap_biglock_pool_resume(op->o_bd);
 out:
   send_ldap_result(op, rs);
   return rs->sr_err;
@@ -6648,7 +6978,7 @@ static int __config_back_delete(Operation *op, SlapReply *rs) {
         rs->sr_err = LDAP_OTHER;
         rs->sr_text = "objectclass not found";
         if (dopause)
-          ldap_pvt_thread_pool_resume(&connection_pool);
+          slap_biglock_pool_resume(op->o_bd);
         goto out;
       }
       for (i = 0; !BER_BVISNULL(&oc_at->a_nvals[i]); i++) {
@@ -6667,7 +6997,7 @@ static int __config_back_delete(Operation *op, SlapReply *rs) {
              * here */
           }
           if (dopause)
-            ldap_pvt_thread_pool_resume(&connection_pool);
+            slap_biglock_pool_resume(op->o_bd);
           goto out;
         }
         break;
@@ -6677,7 +7007,7 @@ static int __config_back_delete(Operation *op, SlapReply *rs) {
         rs->sr_err = LDAP_UNWILLING_TO_PERFORM;
         rs->sr_text = "Cannot delete config or frontend database";
         if (dopause)
-          ldap_pvt_thread_pool_resume(&connection_pool);
+          slap_biglock_pool_resume(op->o_bd);
         goto out;
       }
       if (ce->ce_be->bd_info->bi_db_close) {
@@ -6740,7 +7070,7 @@ static int __config_back_delete(Operation *op, SlapReply *rs) {
     entry_free(ce->ce_entry);
     ch_free(ce);
     if (dopause)
-      ldap_pvt_thread_pool_resume(&connection_pool);
+      slap_biglock_pool_resume(op->o_bd);
   } else {
     rs->sr_err = LDAP_UNWILLING_TO_PERFORM;
   }
@@ -6812,10 +7142,22 @@ static int config_back_search(Operation *op, SlapReply *rs) {
 
 /* no-op, we never free entries */
 int config_entry_release(Operation *op, Entry *e, int rw) {
+  int rc = LDAP_SUCCESS;
+
   if (!e->e_private) {
-    entry_free(e);
+    BackendDB *be = op->o_bd;
+    CfBackInfo *cfb = be->be_private;
+    BackendInfo *bi = cfb->cb_db.bd_info;
+
+    if (bi && bi->bi_entry_release_rw) {
+      op->o_bd = &cfb->cb_db;
+      rc = bi->bi_entry_release_rw(op, e, rw);
+      op->o_bd = be;
+    } else {
+      entry_free(e);
+    }
   }
-  return LDAP_SUCCESS;
+  return rc;
 }
 
 /* return LDAP_SUCCESS IFF we can retrieve the specified entry.
@@ -7318,6 +7660,7 @@ static int __config_back_db_open(BackendDB *be, ConfigReply *cr) {
    */
 
   c.line = 0;
+  i = 0;
   LDAP_STAILQ_FOREACH(bi, &backendInfo, bi_next) {
     if (!bi->bi_cf_ocs) {
       /* If it only supports the old config mech, complain. */
@@ -7329,12 +7672,13 @@ static int __config_back_db_open(BackendDB *be, ConfigReply *cr) {
       }
       continue;
     }
-    if (!bi->bi_private)
+    if (!bi->bi_private && !(bi->bi_flags & SLAP_BFLAG_STANDALONE))
       continue;
 
     rdn.bv_val = c.log;
-    rdn.bv_len = snprintf(rdn.bv_val, sizeof(c.log), "%s=%s",
-                          cfAd_backend->ad_cname.bv_val, bi->bi_type);
+    rdn.bv_len =
+        snprintf(rdn.bv_val, sizeof(c.log), "%s=" SLAP_X_ORDERED_FMT "%s",
+                 cfAd_backend->ad_cname.bv_val, i, bi->bi_type);
     if (rdn.bv_len >= sizeof(c.log)) {
       /* FIXME: holler ... */;
     }
@@ -7344,6 +7688,11 @@ static int __config_back_db_open(BackendDB *be, ConfigReply *cr) {
     if (!e) {
       return -1;
     }
+    if (bi->bi_cf_ocs && bi->bi_cf_ocs->co_cfadd) {
+      rs_reinit(&rs, REP_RESULT);
+      bi->bi_cf_ocs->co_cfadd(op, &rs, e, &c);
+    }
+    i++;
   }
 
   /* Create database nodes... */
@@ -7622,6 +7971,16 @@ static ID config_tool_entry_next(BackendDB *be) {
     return NOID;
 }
 
+static ID config_tool_dn2id_get(Backend *be, struct berval *dn) {
+  CfBackInfo *cfb = be->be_private;
+  BackendInfo *bi = cfb->cb_db.bd_info;
+
+  if (bi && bi->bi_tool_dn2id_get)
+    return bi->bi_tool_dn2id_get(&cfb->cb_db, dn);
+
+  return NOID;
+}
+
 static Entry *config_tool_entry_get(BackendDB *be, ID id) {
   CfBackInfo *cfb = be->be_private;
   BackendInfo *bi = cfb->cb_db.bd_info;
@@ -7773,6 +8132,35 @@ static ID config_tool_entry_put(BackendDB *be, Entry *e, struct berval *text) {
     return NOID;
 }
 
+static ID config_tool_entry_modify(BackendDB *be, Entry *e,
+                                   struct berval *text) {
+  CfBackInfo *cfb = be->be_private;
+  BackendInfo *bi = cfb->cb_db.bd_info;
+  CfEntryInfo *ce, *last;
+  ID id = NOID;
+
+  ce = config_find_base(cfb->cb_root, &e->e_nname, &last);
+
+  if (ce && bi && bi->bi_tool_entry_modify)
+    id = bi->bi_tool_entry_modify(&cfb->cb_db, e, text);
+
+  return id;
+}
+
+static int config_tool_entry_delete(BackendDB *be, struct berval *ndn,
+                                    struct berval *text) {
+  CfBackInfo *cfb = be->be_private;
+  BackendInfo *bi = cfb->cb_db.bd_info;
+  CfEntryInfo *ce, *last;
+  int rc = LDAP_OTHER;
+
+  ce = config_find_base(cfb->cb_root, ndn, &last);
+  if (ce && bi && bi->bi_tool_entry_delete)
+    rc = bi->bi_tool_entry_delete(&cfb->cb_db, ndn, text);
+
+  return rc;
+}
+
 static struct {
   char *name;
   AttributeDescription **desc;
@@ -7863,8 +8251,11 @@ int config_back_initialize(BackendInfo *bi) {
   bi->bi_tool_entry_first = config_tool_entry_first;
   bi->bi_tool_entry_first_x = config_tool_entry_first_x;
   bi->bi_tool_entry_next = config_tool_entry_next;
+  bi->bi_tool_dn2id_get = config_tool_dn2id_get;
   bi->bi_tool_entry_get = config_tool_entry_get;
   bi->bi_tool_entry_put = config_tool_entry_put;
+  bi->bi_tool_entry_modify = config_tool_entry_modify;
+  bi->bi_tool_entry_delete = config_tool_entry_delete;
 
   argv[0] = "slapd";
   ca.argv = argv;

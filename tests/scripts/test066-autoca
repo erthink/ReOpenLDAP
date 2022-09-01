@@ -42,6 +42,12 @@ $SLAPPASSWD -g -n >$CONFIGPWF
 echo "Starting slapd on TCP/IP port $PORT1..."
 config_filter $BACKEND ${AC_conf[monitor]} < $DYNAMICCONF > $CONFLDIF
 $SLAPADD -F $CFDIR -n 0 -l $CONFLDIF
+RC=$?
+if test $RC != 0 ; then
+	echo "slapadd failed ($RC)!"
+	killservers
+	exit $RC
+fi
 $SLAPD -F $CFDIR -h $URI1 -d $LVL $TIMING > $LOG1 2>&1 &
 PID=$!
 if test $WAIT != 0 ; then

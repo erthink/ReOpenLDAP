@@ -39,18 +39,21 @@ static SLAP_CTRL_PARSE_FN parseRelax;
 static SLAP_CTRL_PARSE_FN parseSearchOptions;
 #ifdef SLAP_CONTROL_X_SORTEDRESULTS
 static SLAP_CTRL_PARSE_FN parseSortedResults;
-#endif
+#endif /* SLAP_CONTROL_X_SORTEDRESULTS */
 static SLAP_CTRL_PARSE_FN parseSubentries;
 #ifdef SLAP_CONTROL_X_TREE_DELETE
 static SLAP_CTRL_PARSE_FN parseTreeDelete;
-#endif
+#endif /* SLAP_CONTROL_X_TREE_DELETE */
 static SLAP_CTRL_PARSE_FN parseValuesReturnFilter;
 #ifdef SLAP_CONTROL_X_SESSION_TRACKING
 static SLAP_CTRL_PARSE_FN parseSessionTracking;
-#endif
+#endif /* SLAP_CONTROL_X_SESSION_TRACKING */
 #ifdef SLAP_CONTROL_X_WHATFAILED
 static SLAP_CTRL_PARSE_FN parseWhatFailed;
-#endif
+#endif /* SLAP_CONTROL_X_WHATFAILED */
+#ifdef SLAP_CONTROL_X_LAZY_COMMIT
+static SLAP_CTRL_PARSE_FN parseLazyCommit;
+#endif /* SLAP_CONTROL_X_LAZY_COMMIT */
 
 #undef sc_mask /* avoid conflict with Irix 6.5 <sys/signal.h> */
 
@@ -107,7 +110,7 @@ static const char *manageDSAit_extops[] = {LDAP_EXOP_REFRESH, NULL};
 #ifdef SLAP_CONTROL_X_SESSION_TRACKING
 static const char *session_tracking_extops[] = {
     LDAP_EXOP_MODIFY_PASSWD, LDAP_EXOP_WHO_AM_I, LDAP_EXOP_REFRESH, NULL};
-#endif
+#endif /* SLAP_CONTROL_X_SESSION_TRACKING */
 
 static struct slap_control control_defs[] = {
     {LDAP_CONTROL_ASSERT, (int)offsetof(struct slap_control_ids, sc_assert),
@@ -132,7 +135,7 @@ static struct slap_control control_defs[] = {
      (int)offsetof(struct slap_control_ids, sc_sortedResults),
      SLAP_CTRL_GLOBAL | SLAP_CTRL_SEARCH | SLAP_CTRL_HIDE, NULL, NULL,
      parseSortedResults, LDAP_SLIST_ENTRY_INITIALIZER(next)},
-#endif
+#endif /* SLAP_CONTROL_X_SORTEDRESULTS */
     {LDAP_CONTROL_X_DOMAIN_SCOPE,
      (int)offsetof(struct slap_control_ids, sc_domainScope),
      SLAP_CTRL_GLOBAL | SLAP_CTRL_SEARCH | SLAP_CTRL_HIDE, NULL, NULL,
@@ -150,7 +153,7 @@ static struct slap_control control_defs[] = {
      (int)offsetof(struct slap_control_ids, sc_treeDelete),
      SLAP_CTRL_DELETE | SLAP_CTRL_HIDE, NULL, NULL, parseTreeDelete,
      LDAP_SLIST_ENTRY_INITIALIZER(next)},
-#endif
+#endif /* SLAP_CONTROL_X_TREE_DELETE */
     {LDAP_CONTROL_X_SEARCH_OPTIONS,
      (int)offsetof(struct slap_control_ids, sc_searchOptions),
      SLAP_CTRL_GLOBAL | SLAP_CTRL_SEARCH | SLAP_CTRL_HIDE, NULL, NULL,
@@ -169,7 +172,7 @@ static struct slap_control control_defs[] = {
      (int)offsetof(struct slap_control_ids, sc_txnSpec),
      SLAP_CTRL_UPDATE | SLAP_CTRL_HIDE, NULL, NULL, txn_spec_ctrl,
      LDAP_SLIST_ENTRY_INITIALIZER(next)},
-#endif
+#endif /* LDAP_X_TXN */
     {LDAP_CONTROL_MANAGEDSAIT,
      (int)offsetof(struct slap_control_ids, sc_manageDSAit), SLAP_CTRL_ACCESS,
      manageDSAit_extops, NULL, parseManageDSAit,
@@ -184,13 +187,19 @@ static struct slap_control control_defs[] = {
      SLAP_CTRL_GLOBAL | SLAP_CTRL_ACCESS | SLAP_CTRL_BIND | SLAP_CTRL_HIDE,
      session_tracking_extops, NULL, parseSessionTracking,
      LDAP_SLIST_ENTRY_INITIALIZER(next)},
-#endif
+#endif /* SLAP_CONTROL_X_SESSION_TRACKING*/
 #ifdef SLAP_CONTROL_X_WHATFAILED
     {LDAP_CONTROL_X_WHATFAILED,
      (int)offsetof(struct slap_control_ids, sc_whatFailed),
      SLAP_CTRL_GLOBAL | SLAP_CTRL_ACCESS | SLAP_CTRL_HIDE, NULL, NULL,
      parseWhatFailed, LDAP_SLIST_ENTRY_INITIALIZER(next)},
-#endif
+#endif /* SLAP_CONTROL_X_WHATFAILED */
+#ifdef SLAP_CONTROL_X_LAZY_COMMIT
+    {LDAP_CONTROL_X_LAZY_COMMIT,
+     (int)offsetof(struct slap_control_ids, sc_lazyCommit),
+     SLAP_CTRL_GLOBAL | SLAP_CTRL_ACCESS | SLAP_CTRL_HIDE, NULL, NULL,
+     parseLazyCommit, LDAP_SLIST_ENTRY_INITIALIZER(next)},
+#endif /* SLAP_CONTROL_X_LAZY_COMMIT */
 
     {NULL, 0, 0, NULL, 0, NULL, LDAP_SLIST_ENTRY_INITIALIZER(next)}};
 
@@ -278,15 +287,6 @@ int register_supported_control2(const char *controloid, slap_mask_t controlmask,
 
   } else {
     if (sc->sc_extendedopsbv) {
-      /* FIXME: in principle, we should rather merge
-       * existing extops with those supported by the
-       * new control handling implementation.
-       * In fact, whether a control is compatible with
-       * an extop should not be a matter of implementation.
-       * We likely also need a means for a newly
-       * registered extop to declare that it is
-       * comptible with an already registered control.
-       */
       ber_bvarray_free(sc->sc_extendedopsbv);
       sc->sc_extendedopsbv = NULL;
       sc->sc_extendedops = NULL;
@@ -332,6 +332,51 @@ int unregister_supported_control(const char *controloid) {
   return 0;
 }
 #endif /* SLAP_CONFIG_DELETE */
+
+int register_control_exop(const char *controloid, char *exopoid) {
+  struct slap_control *sc = NULL;
+  BerVarray extendedopsbv;
+  int i;
+
+  if (controloid == NULL || exopoid == NULL) {
+    return LDAP_PARAM_ERROR;
+  }
+
+  for (i = 0; slap_known_controls[i]; i++) {
+    if (strcmp(controloid, slap_known_controls[i]) == 0) {
+      sc = find_ctrl(controloid);
+      assert(sc != NULL);
+      break;
+    }
+  }
+
+  if (!sc) {
+    Debug(LDAP_DEBUG_ANY,
+          "register_control_exop: "
+          "Control %s not registered.\n",
+          controloid);
+    return LDAP_PARAM_ERROR;
+  }
+
+  for (i = 0; sc->sc_extendedopsbv && !BER_BVISNULL(&sc->sc_extendedopsbv[i]);
+       i++) {
+    if (strcmp(exopoid, sc->sc_extendedopsbv[i].bv_val) == 0) {
+      return LDAP_SUCCESS;
+    }
+  }
+
+  extendedopsbv =
+      ber_memrealloc(sc->sc_extendedopsbv, (i + 2) * sizeof(struct berval));
+  if (extendedopsbv == NULL) {
+    return LDAP_NO_MEMORY;
+  }
+  sc->sc_extendedopsbv = extendedopsbv;
+
+  ber_str2bv(exopoid, 0, 1, &extendedopsbv[i]);
+  BER_BVZERO(&extendedopsbv[i + 1]);
+
+  return LDAP_SUCCESS;
+}
 
 /*
  * One-time initialization of internal controls.
@@ -494,7 +539,7 @@ int slap_global_control(Operation *op, const char *oid, int *cid) {
 	Debug( LDAP_DEBUG_TRACE,
 		"slap_global_control: unavailable control: %s\n",
 		oid );
-#endif
+#endif /* 0 */
 
   return LDAP_COMPARE_FALSE;
 }
@@ -642,6 +687,10 @@ int slap_parse_ctrl(Operation *op, SlapReply *rs, LDAPControl *control,
 }
 
 int get_ctrls(Operation *op, SlapReply *rs, int sendres) {
+  return get_ctrls2(op, rs, sendres, LDAP_TAG_CONTROLS);
+}
+
+int get_ctrls2(Operation *op, SlapReply *rs, int sendres, ber_tag_t ctag) {
   int nctrls = 0;
   ber_tag_t tag;
   ber_len_t len;
@@ -656,7 +705,7 @@ int get_ctrls(Operation *op, SlapReply *rs, int sendres) {
    * at all.
    */
   char *failed_oid = NULL;
-#endif
+#endif /* SLAP_CONTROL_X_WHATFAILED */
 
   len = ber_pvt_ber_remaining(ber);
 
@@ -666,7 +715,7 @@ int get_ctrls(Operation *op, SlapReply *rs, int sendres) {
     return rs->sr_err;
   }
 
-  if ((tag = ber_peek_tag(ber, &len)) != LDAP_TAG_CONTROLS) {
+  if ((tag = ber_peek_tag(ber, &len)) != ctag) {
     if (tag == LBER_ERROR) {
       rs->sr_err = SLAPD_DISCONNECT;
       rs->sr_text = "unexpected data in PDU";
@@ -692,7 +741,7 @@ int get_ctrls(Operation *op, SlapReply *rs, int sendres) {
 		rs->sr_text = "no memory";
 		goto return_results;
 	}
-#endif
+#endif /* 0 */
 
   op->o_ctrls[nctrls] = NULL;
 
@@ -721,7 +770,7 @@ int get_ctrls(Operation *op, SlapReply *rs, int sendres) {
 			rs->sr_text = "no memory";
 			goto return_results;
 		}
-#endif
+#endif /* 0 */
     op->o_ctrls = tctrls;
 
     op->o_ctrls[nctrls++] = c;
@@ -792,7 +841,7 @@ int get_ctrls(Operation *op, SlapReply *rs, int sendres) {
     if (rs->sr_err != LDAP_SUCCESS) {
 #ifdef SLAP_CONTROL_X_WHATFAILED
       failed_oid = c->ldctl_oid;
-#endif
+#endif /* SLAP_CONTROL_X_WHATFAILED */
       goto return_results;
     }
   }
@@ -869,7 +918,7 @@ return_results:
           slap_ctrl_whatFailed_add(op, rs, oids);
         }
       }
-#endif
+#endif /* SLAP_CONTROL_X_WHATFAILED */
 
       send_ldap_result(op, rs);
     }
@@ -1216,7 +1265,7 @@ static int parseSortedResults(Operation *op, SlapReply *rs, LDAPControl *ctrl) {
 
   return rc;
 }
-#endif
+#endif /* SLAP_CONTROL_X_SORTEDRESULTS */
 
 static int parseAssert(Operation *op, SlapReply *rs, LDAPControl *ctrl) {
   BerElement *ber;
@@ -1304,7 +1353,7 @@ static int parseReadAttrs(Operation *op, SlapReply *rs, LDAPControl *ctrl,
     rs->sr_text = READMSG(post, "cannot perform in transaction");
     return LDAP_UNWILLING_TO_PERFORM;
   }
-#endif
+#endif /* LDAP_X_TXN */
 
   ber = ber_init(&ctrl->ldctl_value);
   if (ber == NULL) {
@@ -1509,7 +1558,7 @@ static int parseTreeDelete(Operation *op, SlapReply *rs, LDAPControl *ctrl) {
 
   return LDAP_SUCCESS;
 }
-#endif
+#endif /* SLAP_CONTROL_X_TREE_DELETE */
 
 static int parseSearchOptions(Operation *op, SlapReply *rs, LDAPControl *ctrl) {
   BerElement *ber;
@@ -1857,7 +1906,7 @@ int slap_ctrl_session_tracking_request_add(Operation *op, SlapReply *rs,
 
   return slap_ctrl_session_tracking_add(op, rs, &ip, &name, &id, ctrl);
 }
-#endif
+#endif /* SLAP_CONTROL_X_SESSION_TRACKING */
 
 #ifdef SLAP_CONTROL_X_WHATFAILED
 static int parseWhatFailed(Operation *op, SlapReply *rs, LDAPControl *ctrl) {
@@ -1930,4 +1979,23 @@ int slap_ctrl_whatFailed_add(Operation *op, SlapReply *rs, char **oids) {
 done:;
   return rc;
 }
-#endif
+#endif /* SLAP_CONTROL_X_WHATFAILED */
+
+#ifdef SLAP_CONTROL_X_LAZY_COMMIT
+static int parseLazyCommit(Operation *op, SlapReply *rs, LDAPControl *ctrl) {
+  if (op->o_lazyCommit != SLAP_CONTROL_NONE) {
+    rs->sr_text = "\"Lazy Commit?\" control specified multiple times";
+    return LDAP_PROTOCOL_ERROR;
+  }
+
+  if (!BER_BVISNULL(&ctrl->ldctl_value)) {
+    rs->sr_text = "\"Lazy Commit?\" control value not absent";
+    return LDAP_PROTOCOL_ERROR;
+  }
+
+  op->o_lazyCommit =
+      ctrl->ldctl_iscritical ? SLAP_CONTROL_CRITICAL : SLAP_CONTROL_NONCRITICAL;
+
+  return LDAP_SUCCESS;
+}
+#endif /* SLAP_CONTROL_X_LAZY_COMMIT */

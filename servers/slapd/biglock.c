@@ -207,7 +207,7 @@ int slap_biglock_pool_pause(BackendDB *bd) {
   int res;
 
   if (bl == NULL || ldap_pvt_thread_self() != get_owner(bl)) {
-    res = ldap_pvt_thread_pool_pause(&connection_pool);
+    res = slap_pause_server();
   } else {
     int __maybe_unused rc, deep = bl->bl_recursion;
     assert(bl->bl_recursion > 0);
@@ -217,7 +217,7 @@ int slap_biglock_pool_pause(BackendDB *bd) {
     rc = ldap_pvt_thread_mutex_unlock(&bl->bl_mutex);
     assert(rc == 0);
 
-    res = ldap_pvt_thread_pool_pause(&connection_pool);
+    res = slap_pause_server();
 
     rc = ldap_pvt_thread_mutex_lock(&bl->bl_mutex);
     assert(rc == 0);
@@ -230,9 +230,7 @@ int slap_biglock_pool_pause(BackendDB *bd) {
   return res;
 }
 
-void slap_biglock_pool_resume(BackendDB *bd) {
-  ldap_pvt_thread_pool_resume(&connection_pool);
-}
+int slap_biglock_pool_resume(BackendDB *bd) { return slap_unpause_server(); }
 
 int slap_biglock_pool_pausing(BackendDB *bd) {
   return ldap_pvt_thread_pool_pausing(&connection_pool);

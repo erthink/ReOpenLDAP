@@ -27,10 +27,6 @@
 #include <ac/socket.h>
 #include <ac/string.h>
 
-#if LDAP_EXPERIMENTAL > 0
-#define SLAP_AUTH_DN 1
-#endif /* LDAP_EXPERIMENTAL > 0 */
-
 #define AVL_INTERNAL
 #include "slap.h"
 #include "back-ldap.h"
@@ -38,6 +34,10 @@
 #include "lutil_ldap.h"
 
 #define LDAP_CONTROL_OBSOLETE_PROXY_AUTHZ "2.16.840.1.113730.3.4.12"
+
+#if LDAP_EXPERIMENTAL > 0
+#define SLAP_AUTH_DN 1
+#endif /* LDAP_EXPERIMENTAL > 0 */
 
 #if LDAP_BACK_PRINT_CONNTREE > 0
 

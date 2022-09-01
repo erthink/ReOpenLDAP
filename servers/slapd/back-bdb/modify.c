@@ -429,49 +429,12 @@ int bdb_modify(Operation *op, SlapReply *rs) {
 
   int rc;
 
-#ifdef LDAP_X_TXN
-  int settle = 0;
-#endif
-
   Debug(LDAP_DEBUG_ARGS, LDAP_XSTRING(bdb_modify) ": %s\n",
         op->o_req_dn.bv_val);
 
 #ifdef LDAP_X_TXN
-  if (op->o_txnSpec) {
-    /* acquire connection lock */
-    ldap_pvt_thread_mutex_lock(&op->o_conn->c_mutex);
-    if (op->o_conn->c_txn == CONN_TXN_INACTIVE) {
-      rs->sr_text = "invalid transaction identifier";
-      rs->sr_err = LDAP_X_TXN_ID_INVALID;
-      goto txnReturn;
-    } else if (op->o_conn->c_txn == CONN_TXN_SETTLE) {
-      settle = 1;
-      goto txnReturn;
-    }
-
-    if (op->o_conn->c_txn_backend == NULL) {
-      op->o_conn->c_txn_backend = op->o_bd;
-
-    } else if (op->o_conn->c_txn_backend != op->o_bd) {
-      rs->sr_text = "transaction cannot span multiple database contexts";
-      rs->sr_err = LDAP_AFFECTS_MULTIPLE_DSAS;
-      goto txnReturn;
-    }
-
-    /* insert operation into transaction */
-
-    rs->sr_text = "transaction specified";
-    rs->sr_err = LDAP_X_TXN_SPECIFY_OKAY;
-
-  txnReturn:
-    /* release connection lock */
-    ldap_pvt_thread_mutex_unlock(&op->o_conn->c_mutex);
-
-    if (!settle) {
-      send_ldap_result(op, rs);
-      return rs->sr_err;
-    }
-  }
+  if (op->o_txnSpec && txn_preop(op, rs))
+    return rs->sr_err;
 #endif
 
   ctrls[num_ctrls] = NULL;
@@ -514,7 +477,14 @@ int bdb_modify(Operation *op, SlapReply *rs) {
   }
 
   /* begin transaction */
-  rs->sr_err = TXN_BEGIN(bdb->bi_dbenv, NULL, &ltid, bdb->bi_db_opflags);
+  {
+    int tflags = bdb->bi_db_opflags;
+#ifdef SLAP_CONTROL_X_LAZY_COMMIT
+    if (get_lazyCommit(op))
+      tflags |= DB_TXN_NOSYNC;
+#endif /* #ifdef SLAP_CONTROL_X_LAZY_COMMIT */
+    rs->sr_err = TXN_BEGIN(bdb->bi_dbenv, NULL, &ltid, tflags);
+  }
   rs->sr_text = NULL;
   if (rs->sr_err != 0) {
     Debug(LDAP_DEBUG_TRACE,

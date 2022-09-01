@@ -9,7 +9,7 @@ RUN apt-get update -qq && apt-get install -yqq --no-install-recommends build-ess
     git automake uuid-dev bc libelf-dev pkg-config libssl-dev libsasl2-dev\
     groff file libltdl-dev libltdl7 libmagic1 libtool libkrb5-dev man ca-certificates &&\
     mkdir /opt/reopenldap &&\
-    git clone https://github.com/ReOpen/ReOpenLDAP.git /opt/reopenldap.source &&\
+    git clone https://gitflic.ru/project/erthink/reopenldap.git /opt/reopenldap.source &&\
     cd /opt/reopenldap.source && ./configure --prefix /opt/reopenldap &&\
     make -j $(nproc) && make install && cd /opt/reopenldap && rm -rf /opt/reopenldap.source &&\
     apt-get remove -qq -y --purge automake build-essential libssl-dev libsasl2-dev git \

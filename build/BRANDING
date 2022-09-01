@@ -19,18 +19,18 @@ failure() {
 }
 
 PACKAGE=ReOpenLDAP
-PACKAGE_URL="https://github.com/leo-yuriev/ReOpenLDAP/wiki"
-PACKAGE_BUGREPORT="https://github.com/leo-yuriev/ReOpenLDAP/issues"
+PACKAGE_URL="https://gitflic.ru/project/erthink/reopenldap/wiki"
+PACKAGE_BUGREPORT="https://gitflic.ru/project/erthink/reopenldap/issue"
 
-RELEASE_TYPE=ReleaseEngineering
+RELEASE_TYPE=Devel
 
 VERSION_MAJOR=1
-VERSION_MINOR=1
-VERSION_PATCH_LEVEL=11
+VERSION_MINOR=2
+VERSION_PATCH_LEVEL=0
 
-API_CURRENT=12
-API_REVISON=8
-API_AGE=10
+API_CURRENT=14
+API_REVISON=2
+API_AGE=1
 
 VERSION="${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH_LEVEL}"
 VERSION_NUMBER=$(expr ${VERSION_MAJOR} '*' 10000 + ${VERSION_MINOR} '*' 100 + ${VERSION_PATCH_LEVEL})

@@ -535,8 +535,6 @@ void filter_free_x(Operation *op, Filter *f, int freeme) {
     break;
   }
 
-  f->f_next = (void *)-1l;
-  f->f_un.f_un_complex = (void *)-1l;
   if (freeme) {
     op->o_tmpfree(f, op->o_tmpmemctx);
   }
@@ -714,9 +712,9 @@ void filter2bv_undef_x(Operation *op, Filter *f, int noundef,
     fstr->bv_val = op->o_tmpalloc(fstr->bv_len + 128, op->o_tmpmemctx);
 
     snprintf(fstr->bv_val, fstr->bv_len + 1, "(%c)",
-             f->f_choice == LDAP_FILTER_AND
-                 ? '&'
-                 : f->f_choice == LDAP_FILTER_OR ? '|' : '!');
+             f->f_choice == LDAP_FILTER_AND  ? '&'
+             : f->f_choice == LDAP_FILTER_OR ? '|'
+                                             : '!');
 
     for (p = f->f_list; p != NULL; p = p->f_next) {
       len = fstr->bv_len;
@@ -1332,20 +1330,15 @@ static void simple_vrFilter2bv(Operation *op, ValuesReturnFilter *vrf,
   } break;
 
   case SLAPD_FILTER_COMPUTED:
-    ber_str2bv_x(vrf->vrf_result == LDAP_COMPARE_FALSE
-                     ? "(?=false)"
-                     : vrf->vrf_result == LDAP_COMPARE_TRUE
-                           ? "(?=true)"
-                           : vrf->vrf_result == SLAPD_COMPARE_UNDEFINED
-                                 ? "(?=undefined)"
-                                 : "(?=error)",
-                 vrf->vrf_result == LDAP_COMPARE_FALSE
-                     ? STRLENOF("(?=false)")
-                     : vrf->vrf_result == LDAP_COMPARE_TRUE
-                           ? STRLENOF("(?=true)")
-                           : vrf->vrf_result == SLAPD_COMPARE_UNDEFINED
-                                 ? STRLENOF("(?=undefined)")
-                                 : STRLENOF("(?=error)"),
+    ber_str2bv_x(vrf->vrf_result == LDAP_COMPARE_FALSE        ? "(?=false)"
+                 : vrf->vrf_result == LDAP_COMPARE_TRUE       ? "(?=true)"
+                 : vrf->vrf_result == SLAPD_COMPARE_UNDEFINED ? "(?=undefined)"
+                                                              : "(?=error)",
+                 vrf->vrf_result == LDAP_COMPARE_FALSE  ? STRLENOF("(?=false)")
+                 : vrf->vrf_result == LDAP_COMPARE_TRUE ? STRLENOF("(?=true)")
+                 : vrf->vrf_result == SLAPD_COMPARE_UNDEFINED
+                     ? STRLENOF("(?=undefined)")
+                     : STRLENOF("(?=error)"),
                  1, fstr, op->o_tmpmemctx);
     break;
 

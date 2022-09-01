@@ -1345,11 +1345,13 @@ static int syncprov_op_abandon(Operation *op, SlapReply *rs) {
   syncops *so, **pso;
 
   if (!si)
-    /* LY: workaround for https://github.com/leo-yuriev/ReOpenLDAP/issues/45 */
+    /* LY: workaround for
+     * todo4recovery://erased_by_github/erthink/ReOpenLDAP/issues/45 */
     return SLAP_CB_CONTINUE;
 
   ldap_pvt_thread_mutex_lock(&si->si_ops_mutex);
   for (pso = &si->si_ops; (so = *pso) != NULL; pso = &so->s_next) {
+    assert(so->s_next != so);
     if (so->s_op && so->s_op->o_connid == op->o_connid &&
         so->s_op->o_msgid == op->orn_msgid) {
       ldap_pvt_thread_mutex_lock(&so->s_mutex);
@@ -2603,7 +2605,7 @@ static void syncprov_detach_op(Operation *op, syncops *so, slap_overinst *on) {
   so->s_flags |= PS_IS_DETACHED;
   slap_set_op_abandon(op, 1);
   /* LY: Icing on the cake - this is a crutch/workaround
-   * for https://github.com/leo-yuriev/ReOpenLDAP/issues/47 */
+   * for todo4recovery://erased_by_github/erthink/ReOpenLDAP/issues/47 */
   op->o_msgid += ~((~0u) >> 1);
 
   /* Add op2 to conn so abandon will find us */
@@ -3351,24 +3353,28 @@ static ConfigTable spcfg[] = {
      sp_cf_gen,
      "( OLcfgOvAt:1.1 NAME 'olcSpCheckpoint' "
      "DESC 'ContextCSN checkpoint interval in ops and minutes' "
+     "EQUALITY caseIgnoreMatch "
      "SYNTAX OMsDirectoryString SINGLE-VALUE )",
      NULL, NULL},
     {"syncprov-sessionlog", "ops", 2, 2, 0, ARG_INT | ARG_MAGIC | SP_SESSL,
      sp_cf_gen,
      "( OLcfgOvAt:1.2 NAME 'olcSpSessionlog' "
      "DESC 'Session log size in ops' "
+     "EQUALITY integerMatch "
      "SYNTAX OMsInteger SINGLE-VALUE )",
      NULL, NULL},
     {"syncprov-nopresent", NULL, 2, 2, 0, ARG_ON_OFF | ARG_MAGIC | SP_NOPRES,
      sp_cf_gen,
      "( OLcfgOvAt:1.3 NAME 'olcSpNoPresent' "
      "DESC 'Omit Present phase processing' "
+     "EQUALITY booleanMatch "
      "SYNTAX OMsBoolean SINGLE-VALUE )",
      NULL, NULL},
     {"syncprov-reloadhint", NULL, 2, 2, 0, ARG_ON_OFF | ARG_MAGIC | SP_USEHINT,
      sp_cf_gen,
      "( OLcfgOvAt:1.4 NAME 'olcSpReloadHint' "
      "DESC 'Observe Reload Hint in Request control' "
+     "EQUALITY booleanMatch "
      "SYNTAX OMsBoolean SINGLE-VALUE )",
      NULL, NULL},
     {"syncprov-showstatus", "mode", 2, 2, 0,
@@ -3762,7 +3768,8 @@ static int syncprov_db_destroy(BackendDB *be, ConfigReply *cr) {
   syncprov_info_t *si = (syncprov_info_t *)on->on_bi.bi_private;
 
   if (si) {
-    /* LY: workaround for https://github.com/leo-yuriev/ReOpenLDAP/issues/45 */
+    /* LY: workaround for
+     * todo4recovery://erased_by_github/erthink/ReOpenLDAP/issues/45 */
     for (;;) {
       int drained, paused = -1;
 

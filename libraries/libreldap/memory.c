@@ -137,9 +137,10 @@ void *ber_memalloc_x(ber_len_t s, void *ctx) {
 void *ber_memalloc(ber_len_t s) { return ber_memalloc_x(s, NULL); }
 
 #define LIM_SQRT(t) /* some value < sqrt(max value of unsigned type t) */      \
-  ((0UL | (t)-1) >> 31 >> 31 > 1                                               \
-       ? ((t)1 << 32) - 1                                                      \
-       : (0UL | (t)-1) >> 31 ? 65535U : (0UL | (t)-1) >> 15 ? 255U : 15U)
+  ((0UL | (t)-1) >> 31 >> 31 > 1 ? ((t)1 << 32) - 1                            \
+   : (0UL | (t)-1) >> 31         ? 65535U                                      \
+   : (0UL | (t)-1) >> 15         ? 255U                                        \
+                                 : 15U)
 
 void *ber_memcalloc_x(ber_len_t n, ber_len_t s, void *ctx) {
   void *p;
@@ -378,12 +379,12 @@ struct berval *ber_dupbv_x(struct berval *dst, const struct berval *src,
     dup->bv_len = src->bv_len;
   }
 
-  if (dst) {
+  if (dup != &tmp)
+    return dup;
+  else {
     *dst = *dup;
-    dup = dst;
+    return dst;
   }
-
-  return dup;
 }
 
 struct berval *ber_dupbv(struct berval *dst, const struct berval *src) {

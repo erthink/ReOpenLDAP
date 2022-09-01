@@ -53,6 +53,7 @@ BerVarray default_referral = NULL;
  */
 ldap_pvt_thread_pool_t connection_pool;
 int connection_pool_max = SLAP_MAX_WORKER_THREADS;
+int connection_pool_queues = 1;
 int slap_tool_thread_max = 1;
 
 slap_counters_t slap_counters, *slap_counters_list;
@@ -112,7 +113,8 @@ int slap_init(int mode, const char *name) {
 
     slap_name = name;
 
-    ldap_pvt_thread_pool_init(&connection_pool, connection_pool_max, 0);
+    ldap_pvt_thread_pool_init_q(&connection_pool, connection_pool_max, 0,
+                                connection_pool_queues);
 
     slap_counters_init(&slap_counters);
 
@@ -181,6 +183,9 @@ int slap_startup(Backend *be) {
 int slap_shutdown(Backend *be) {
   Debug(LDAP_DEBUG_TRACE, "%s shutdown: initiated\n", slap_name);
 
+  /* Make sure the pool stops now even if we did not start up fully */
+  ldap_pvt_thread_pool_close(&connection_pool, 1);
+
   /* let backends do whatever cleanup they need to do */
   return backend_shutdown(be);
 }
@@ -193,6 +198,8 @@ int slap_destroy(void) {
   if (default_referral) {
     ber_bvarray_free(default_referral);
   }
+
+  ldap_pvt_thread_pool_free(&connection_pool);
 
   /* clear out any thread-keys for the main thread */
   ldap_pvt_thread_pool_context_reset(ldap_pvt_thread_pool_context());

@@ -840,7 +840,8 @@ int read_config_file(const char *fname, ConfigArgs *cf, ConfigTable *cft) {
         goto done;
       }
 
-    } else if (c->bi && !c->be) {
+    } else if ((c->bi && !c->be) ||
+               (c->bi && c->bi->bi_flags & SLAP_BFLAG_STANDALONE)) {
       rc = SLAP_CONF_UNKNOWN;
       if (c->bi->bi_cf_ocs) {
         ct = config_find_keyword(c->bi->bi_cf_ocs->co_table, c);
@@ -1904,7 +1905,7 @@ int bindconf_tls_set(slap_bindconf *bc, LDAP *ld) {
     }
   }
   if (bc->sb_tls_reqcert) {
-    rc = ldap_int_tls_config(ld, LDAP_OPT_X_TLS_REQUIRE_CERT,
+    rc = ldap_pvt_tls_config(ld, LDAP_OPT_X_TLS_REQUIRE_CERT,
                              bc->sb_tls_reqcert);
     if (rc) {
       Debug(LDAP_DEBUG_ANY,
@@ -1915,7 +1916,7 @@ int bindconf_tls_set(slap_bindconf *bc, LDAP *ld) {
       newctx = 1;
   }
   if (bc->sb_tls_protocol_min) {
-    rc = ldap_int_tls_config(ld, LDAP_OPT_X_TLS_PROTOCOL_MIN,
+    rc = ldap_pvt_tls_config(ld, LDAP_OPT_X_TLS_PROTOCOL_MIN,
                              bc->sb_tls_protocol_min);
     if (rc) {
       Debug(LDAP_DEBUG_ANY,
@@ -1927,7 +1928,7 @@ int bindconf_tls_set(slap_bindconf *bc, LDAP *ld) {
   }
 #if RELDAP_TLS == RELDAP_TLS_OPENSSL && defined(HAVE_OPENSSL_CRL)
   if (bc->sb_tls_crlcheck) {
-    rc = ldap_int_tls_config(ld, LDAP_OPT_X_TLS_CRLCHECK, bc->sb_tls_crlcheck);
+    rc = ldap_pvt_tls_config(ld, LDAP_OPT_X_TLS_CRLCHECK, bc->sb_tls_crlcheck);
     if (rc) {
       Debug(LDAP_DEBUG_ANY,
             "bindconf_tls_set: failed to set tls_crlcheck to %s\n",

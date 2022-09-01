@@ -129,8 +129,15 @@ LDAP_SLAPD_V(int) slap_syslog_severity;
   do {                                                                         \
     if (ldap_debug_mask & (level))                                             \
       ldap_debug_print(__VA_ARGS__);                                           \
-    if (slap_syslog_mask & (level))                                            \
+    else if (slap_syslog_mask & (level))                                       \
       syslog(LDAP_LEVEL_MASK((severity)), __VA_ARGS__);                        \
+  } while (0)
+#define vLog(level, severity, fmt, ap)                                         \
+  do {                                                                         \
+    if (ldap_debug_mask & (level))                                             \
+      ldap_debug_va(fmt, ap);                                                  \
+    else if (slap_syslog_mask & (level))                                       \
+      vsyslog(LDAP_LEVEL_MASK((severity)), fmt, ap);                           \
   } while (0)
 #elif !defined(LDAP_DEBUG) && (defined(LDAP_SYSLOG) && defined(SLAP_INSIDE))
 #define Log(level, severity, ...)                                              \
@@ -138,11 +145,21 @@ LDAP_SLAPD_V(int) slap_syslog_severity;
     if (slap_syslog_mask & (level))                                            \
       syslog(LDAP_LEVEL_MASK((severity)), __VA_ARGS__);                        \
   } while (0)
+#define vLog(level, severity, fmt, ap)                                         \
+  do {                                                                         \
+    if (slap_syslog_mask & (level))                                            \
+      vsyslog(LDAP_LEVEL_MASK((severity)), fmt, ap);                           \
+  } while (0)
 #else
 #define Log(level, severity, ...)                                              \
   do {                                                                         \
     if (ldap_debug_mask & (level))                                             \
       ldap_debug_print(__VA_ARGS__);                                           \
+  } while (0)
+#define vLog(level, severity, fmt, ap)                                         \
+  do {                                                                         \
+    if (ldap_debug_mask & (level))                                             \
+      ldap_debug_va(fmt, ap);                                                  \
   } while (0)
 #endif /* LDAP_DEBUG && LDAP_SYSLOG */
 

@@ -231,6 +231,9 @@ int backend_startup(Backend *be) {
   }
 
   if (be != NULL) {
+    /* silent noop if disabled */
+    if (SLAP_DBDISABLED(be))
+      return 0;
     if (be->bd_info->bi_open) {
       rc = be->bd_info->bi_open(be->bd_info);
       if (rc != 0) {
@@ -278,6 +281,8 @@ int backend_startup(Backend *be) {
   i = -1;
   LDAP_STAILQ_FOREACH(be, &backendDB, be_next) {
     i++;
+    if (SLAP_DBDISABLED(be))
+      continue;
     if (be->be_suffix == NULL) {
       Debug(LDAP_DEBUG_ANY,
             "backend_startup: warning, database %d (%s) "
@@ -338,6 +343,8 @@ int backend_shutdown(Backend *be) {
 
   /* close each backend database */
   LDAP_STAILQ_FOREACH(be, &backendDB, be_next) {
+    if (SLAP_DBDISABLED(be))
+      continue;
     if (be->bd_info->bi_db_close) {
       be->bd_info->bi_db_close(be, NULL);
     }
@@ -606,7 +613,7 @@ Backend *select_backend(struct berval *dn, int noSubs) {
   Backend *be;
 
   LDAP_STAILQ_FOREACH(be, &backendDB, be_next) {
-    if (be->be_nsuffix == NULL || SLAP_DBHIDDEN(be)) {
+    if (be->be_nsuffix == NULL || SLAP_DBHIDDEN(be) || SLAP_DBDISABLED(be)) {
       continue;
     }
 
@@ -780,6 +787,65 @@ int be_rootdn_bind(Operation *op, SlapReply *rs) {
       send_ldap_result(op, rs);
     }
   }
+
+  return rc;
+}
+
+/* Inlined in proto-slap.h, sans assertions, when !(USE_RS_ASSERT) */
+int(slap_bi_op)(BackendInfo *bi, slap_operation_t which, Operation *op,
+                SlapReply *rs) {
+  int rc;
+#ifndef slap_bi_op
+  void (*rsCheck)(const SlapReply *rs) =
+      which < op_aux_operational ? rs_assert_ready : rs_assert_ok;
+#else
+#define rsCheck(rs) ((void)0)
+#endif
+  BI_op_func *fn;
+
+  assert(bi != NULL);
+  assert((unsigned)which < (unsigned)op_last);
+
+  fn = (&bi->bi_op_bind)[which];
+
+  assert(op != NULL);
+  assert(rs != NULL);
+  assert(fn != 0);
+  rsCheck(rs);
+
+  rc = fn(op, rs);
+
+#ifndef slap_bi_op
+  if (rc != SLAP_CB_CONTINUE && rc != SLAP_CB_BYPASS) {
+    int err = rs->sr_err;
+
+    if (0) /* TODO */
+      if (err == LDAP_COMPARE_TRUE || err == LDAP_COMPARE_FALSE) {
+        assert(which == op_compare);
+        assert(rc == LDAP_SUCCESS);
+      }
+
+    rsCheck = which < op_extended ? rs_assert_done : rs_assert_ok;
+    if (which == op_aux_chk_referrals) {
+      if (rc == LDAP_SUCCESS)
+        rsCheck = rs_assert_ready;
+      else if (rc == LDAP_REFERRAL)
+        rsCheck = rs_assert_done;
+    } else if (which == op_bind) {
+      if (rc == LDAP_SUCCESS)
+        rsCheck = rs_assert_ok;
+    }
+
+    /* TODO: Just what is the relation between rc and rs->sr_err? */
+    if (rc != err && (rc != LDAP_SUCCESS || (err != LDAP_COMPARE_TRUE &&
+                                             err != LDAP_COMPARE_FALSE))) {
+      rs->sr_err = rc;
+      rsCheck(rs);
+      rs->sr_err = err;
+    }
+  }
+  rsCheck(rs);
+#endif
 
   return rc;
 }

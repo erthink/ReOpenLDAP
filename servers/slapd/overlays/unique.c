@@ -390,8 +390,7 @@ static int unique_cf_base(ConfigArgs *c) {
     }
     if (!legacy->uri && !private->legacy_strict_set) {
       unique_free_domain(legacy);
-    private
-      ->legacy = legacy = NULL;
+      private->legacy = legacy = NULL;
     }
     break;
   case LDAP_MOD_ADD:
@@ -485,8 +484,7 @@ static int unique_cf_attrs(ConfigArgs *c) {
       }
       if (!legacy->uri && !private->legacy_strict_set) {
         unique_free_domain(legacy);
-      private
-        ->legacy = legacy = NULL;
+        private->legacy = legacy = NULL;
       }
     }
     rc = 0;
@@ -588,12 +586,10 @@ static int unique_cf_strict(ConfigArgs *c) {
       legacy->strict = 0;
       if (!legacy->uri) {
         unique_free_domain(legacy);
-      private
-        ->legacy = NULL;
+        private->legacy = NULL;
       }
     }
-  private
-    ->legacy_strict_set = 0;
+    private->legacy_strict_set = 0;
     rc = 0;
     break;
   case LDAP_MOD_ADD:
@@ -612,8 +608,7 @@ static int unique_cf_strict(ConfigArgs *c) {
     /* ... not using ARG_ON_OFF makes this necessary too */
     assert(c->argc == 2);
     legacy->strict = (strcasecmp(c->argv[1], "TRUE") == 0);
-  private
-    ->legacy_strict_set = 1;
+    private->legacy_strict_set = 1;
     rc = 0;
     break;
   default:
@@ -643,8 +638,7 @@ static int unique_cf_uri(ConfigArgs *c) {
   case LDAP_MOD_DELETE:
     if (c->valx < 0) { /* delete them all! */
       unique_free_domain(domains);
-    private
-      ->domains = NULL;
+      private->domains = NULL;
     } else { /* delete just one */
       domainp = &private->domains;
       for (i = 0; i < c->valx && *domainp; ++i)

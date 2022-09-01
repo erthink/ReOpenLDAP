@@ -57,50 +57,13 @@ int bdb_modrdn(Operation *op, SlapReply *rs) {
   int parent_is_glue = 0;
   int parent_is_leaf = 0;
 
-#ifdef LDAP_X_TXN
-  int settle = 0;
-#endif
-
   Debug(LDAP_DEBUG_TRACE, "==>" LDAP_XSTRING(bdb_modrdn) "(%s,%s,%s)\n",
         op->o_req_dn.bv_val, op->oq_modrdn.rs_newrdn.bv_val,
         op->oq_modrdn.rs_newSup ? op->oq_modrdn.rs_newSup->bv_val : "NULL");
 
 #ifdef LDAP_X_TXN
-  if (op->o_txnSpec) {
-    /* acquire connection lock */
-    ldap_pvt_thread_mutex_lock(&op->o_conn->c_mutex);
-    if (op->o_conn->c_txn == CONN_TXN_INACTIVE) {
-      rs->sr_text = "invalid transaction identifier";
-      rs->sr_err = LDAP_X_TXN_ID_INVALID;
-      goto txnReturn;
-    } else if (op->o_conn->c_txn == CONN_TXN_SETTLE) {
-      settle = 1;
-      goto txnReturn;
-    }
-
-    if (op->o_conn->c_txn_backend == NULL) {
-      op->o_conn->c_txn_backend = op->o_bd;
-
-    } else if (op->o_conn->c_txn_backend != op->o_bd) {
-      rs->sr_text = "transaction cannot span multiple database contexts";
-      rs->sr_err = LDAP_AFFECTS_MULTIPLE_DSAS;
-      goto txnReturn;
-    }
-
-    /* insert operation into transaction */
-
-    rs->sr_text = "transaction specified";
-    rs->sr_err = LDAP_X_TXN_SPECIFY_OKAY;
-
-  txnReturn:
-    /* release connection lock */
-    ldap_pvt_thread_mutex_unlock(&op->o_conn->c_mutex);
-
-    if (!settle) {
-      send_ldap_result(op, rs);
-      return rs->sr_err;
-    }
-  }
+  if (op->o_txnSpec && txn_preop(op, rs))
+    return rs->sr_err;
 #endif
 
   ctrls[num_ctrls] = NULL;
@@ -110,7 +73,8 @@ int bdb_modrdn(Operation *op, SlapReply *rs) {
   if (0) {
   retry: /* transaction retry */
     if (dummy.e_attrs) {
-      attrs_free(dummy.e_attrs);
+      if (dummy.e_attrs != e->e_attrs)
+        attrs_free(dummy.e_attrs);
       dummy.e_attrs = NULL;
     }
     if (e != NULL) {
@@ -147,7 +111,14 @@ int bdb_modrdn(Operation *op, SlapReply *rs) {
   }
 
   /* begin transaction */
-  rs->sr_err = TXN_BEGIN(bdb->bi_dbenv, NULL, &ltid, bdb->bi_db_opflags);
+  {
+    int tflags = bdb->bi_db_opflags;
+#ifdef SLAP_CONTROL_X_LAZY_COMMIT
+    if (get_lazyCommit(op))
+      tflags |= DB_TXN_NOSYNC;
+#endif /* #ifdef SLAP_CONTROL_X_LAZY_COMMIT */
+    rs->sr_err = TXN_BEGIN(bdb->bi_dbenv, NULL, &ltid, tflags);
+  }
   rs->sr_text = NULL;
   if (rs->sr_err != 0) {
     Debug(LDAP_DEBUG_TRACE,
@@ -528,8 +499,6 @@ int bdb_modrdn(Operation *op, SlapReply *rs) {
     goto return_results;
   }
 
-  assert(op->orr_modlist != NULL);
-
   if (op->o_preread) {
     if (preread_ctrl == NULL) {
       preread_ctrl = &ctrls[num_ctrls++];
@@ -600,24 +569,26 @@ int bdb_modrdn(Operation *op, SlapReply *rs) {
 
   dummy.e_attrs = e->e_attrs;
 
-  /* modify entry */
-  rs->sr_err = bdb_modify_internal(op, lt2, op->orr_modlist, &dummy,
-                                   &rs->sr_text, textbuf, textlen);
-  if (rs->sr_err != LDAP_SUCCESS) {
-    Debug(LDAP_DEBUG_TRACE,
-          "<=- " LDAP_XSTRING(bdb_modrdn) ": modify failed: %s (%d)\n",
-          db_strerror(rs->sr_err), rs->sr_err);
-    if ((rs->sr_err == LDAP_INSUFFICIENT_ACCESS) && opinfo.boi_err) {
-      rs->sr_err = opinfo.boi_err;
+  if (op->orr_modlist != NULL) {
+    /* modify entry */
+    rs->sr_err = bdb_modify_internal(op, lt2, op->orr_modlist, &dummy,
+                                     &rs->sr_text, textbuf, textlen);
+    if (rs->sr_err != LDAP_SUCCESS) {
+      Debug(LDAP_DEBUG_TRACE,
+            "<=- " LDAP_XSTRING(bdb_modrdn) ": modify failed: %s (%d)\n",
+            db_strerror(rs->sr_err), rs->sr_err);
+      if ((rs->sr_err == LDAP_INSUFFICIENT_ACCESS) && opinfo.boi_err) {
+        rs->sr_err = opinfo.boi_err;
+      }
+      if (dummy.e_attrs == e->e_attrs)
+        dummy.e_attrs = NULL;
+      switch (rs->sr_err) {
+      case DB_LOCK_DEADLOCK:
+      case DB_LOCK_NOTGRANTED:
+        goto retry;
+      }
+      goto return_results;
     }
-    if (dummy.e_attrs == e->e_attrs)
-      dummy.e_attrs = NULL;
-    switch (rs->sr_err) {
-    case DB_LOCK_DEADLOCK:
-    case DB_LOCK_NOTGRANTED:
-      goto retry;
-    }
-    goto return_results;
   }
 
   /* id2entry index */
@@ -689,9 +660,6 @@ int bdb_modrdn(Operation *op, SlapReply *rs) {
     } else {
       rs->sr_err = LDAP_X_NO_OPERATION;
       ltid = NULL;
-      /* Only free attrs if they were dup'd.  */
-      if (dummy.e_attrs == e->e_attrs)
-        dummy.e_attrs = NULL;
       goto return_results;
     }
 
@@ -733,7 +701,7 @@ int bdb_modrdn(Operation *op, SlapReply *rs) {
     rs->sr_ctrls = ctrls;
 
 return_results:
-  if (dummy.e_attrs) {
+  if (dummy.e_attrs != e->e_attrs) {
     attrs_free(dummy.e_attrs);
   }
   send_ldap_result(op, rs);

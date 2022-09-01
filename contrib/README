@@ -14,7 +14,7 @@ top-level directory of the distribution or, alternatively, at
 ---
 
 ReOpenLDAP is developed and maintained by The ReOpenLDAP
-Project (https://github.com/leo-yuriev/ReOpenLDAP).
+Project (https://gitflic.ru/project/erthink/reopenldap).
 ReOpenLDAP is derived from OpenLDAP 2.4 Release.
 
 OpenLDAP is developed and maintained by The OpenLDAP Project
@@ -42,6 +42,9 @@ Current contributions:
 
 	slapi-plugins
 		SLAPI plugins
+
+        packaging/CentOS/7
+                Files required to perform RPM packaging for the whole project.
 
 
 OpenLDAP Contributing Guidelines are available at:

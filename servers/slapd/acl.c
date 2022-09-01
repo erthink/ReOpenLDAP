@@ -1688,9 +1688,9 @@ slap_acl_mask(AccessControl *a, AccessControl *prev, slap_mask_t *mask,
 
     Debug(LDAP_DEBUG_ACL, "<= acl_mask: [%d] applying %s (%s)\n", i,
           accessmask2str(modmask, accessmaskbuf, 1),
-          b->a_type == ACL_CONTINUE
-              ? "continue"
-              : b->a_type == ACL_BREAK ? "break" : "stop");
+          b->a_type == ACL_CONTINUE ? "continue"
+          : b->a_type == ACL_BREAK  ? "break"
+                                    : "stop");
     /* save old mask */
     oldmask = *mask;
 

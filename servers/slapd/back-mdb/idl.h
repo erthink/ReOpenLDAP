@@ -70,8 +70,8 @@
 /** An ID2 is an ID/value pair.
  */
 typedef struct ID2 {
-  ID mid;       /**< The ID */
-  MDB_val mval; /**< The value */
+  ID mid;        /**< The ID */
+  MDBX_val mval; /**< The value */
 } ID2;
 
 /** An ID2L is an ID2 List, a sorted array of ID2s.
@@ -82,8 +82,8 @@ typedef struct ID2 {
 typedef ID2 *ID2L;
 
 typedef struct IdScopes {
-  MDB_txn *mt;
-  MDB_cursor *mc;
+  MDBX_txn *mt;
+  MDBX_cursor *mc;
   ID id;
   ID2L scopes;
   ID2L sctmp;

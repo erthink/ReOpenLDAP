@@ -31,7 +31,7 @@ void mdb_attr_flush(struct mdb_info *mdb);
 int mdb_attr_slot(struct mdb_info *mdb, AttributeDescription *desc,
                   int *insert);
 
-int mdb_attr_dbs_open(BackendDB *be, MDB_txn *txn, struct config_reply_s *cr);
+int mdb_attr_dbs_open(BackendDB *be, MDBX_txn *txn, struct config_reply_s *cr);
 void mdb_attr_dbs_close(struct mdb_info *mdb);
 
 int mdb_attr_index_config(struct mdb_info *mdb, const char *fname, int lineno,
@@ -41,10 +41,18 @@ void mdb_attr_index_unparse(struct mdb_info *mdb, BerVarray *bva);
 void mdb_attr_index_destroy(struct mdb_info *mdb);
 void mdb_attr_index_free(struct mdb_info *mdb, AttributeDescription *ad);
 
+int mdb_attr_multi_config(struct mdb_info *mdb, const char *fname, int lineno,
+                          int argc, char **argv, struct config_reply_s *cr);
+
+void mdb_attr_multi_unparse(struct mdb_info *mdb, BerVarray *bva);
+
+void mdb_attr_multi_thresh(struct mdb_info *mdb, AttributeDescription *ad,
+                           unsigned *hi, unsigned *lo);
+
 void mdb_attr_info_free(AttrInfo *ai);
 
-int mdb_ad_read(struct mdb_info *mdb, MDB_txn *txn);
-int mdb_ad_get(struct mdb_info *mdb, MDB_txn *txn, AttributeDescription *ad);
+int mdb_ad_read(struct mdb_info *mdb, MDBX_txn *txn);
+int mdb_ad_get(struct mdb_info *mdb, MDBX_txn *txn, AttributeDescription *ad);
 
 /*
  * config.c
@@ -56,35 +64,35 @@ int mdb_back_init_cf(BackendInfo *bi);
  * dn2entry.c
  */
 
-int mdb_dn2entry(Operation *op, MDB_txn *tid, MDB_cursor *mc, struct berval *dn,
-                 Entry **e, ID *nsubs, int matched);
+int mdb_dn2entry(Operation *op, MDBX_txn *tid, MDBX_cursor *mc,
+                 struct berval *dn, Entry **e, ID *nsubs, int matched);
 
 /*
  * dn2id.c
  */
 
-int mdb_dn2id(Operation *op, MDB_txn *txn, MDB_cursor *mc, struct berval *ndn,
+int mdb_dn2id(Operation *op, MDBX_txn *txn, MDBX_cursor *mc, struct berval *ndn,
               ID *id, ID *nsubs, struct berval *matched,
               struct berval *nmatched);
 
-int mdb_dn2id_add(Operation *op, MDB_cursor *mcp, MDB_cursor *mcd, ID pid,
+int mdb_dn2id_add(Operation *op, MDBX_cursor *mcp, MDBX_cursor *mcd, ID pid,
                   ID nsubs, int upsub, Entry *e);
 
-int mdb_dn2id_delete(Operation *op, MDB_cursor *mc, ID id, ID nsubs);
+int mdb_dn2id_delete(Operation *op, MDBX_cursor *mc, ID id, ID nsubs);
 
-int mdb_dn2id_children(Operation *op, MDB_txn *tid, Entry *e);
+int mdb_dn2id_children(Operation *op, MDBX_txn *tid, Entry *e);
 
-int mdb_dn2sups(Operation *op, MDB_txn *tid, struct berval *dn, ID *sups);
+int mdb_dn2sups(Operation *op, MDBX_txn *tid, struct berval *dn, ID *sups);
 
-int mdb_dn2idl(Operation *op, MDB_txn *txn, struct berval *ndn, ID eid, ID *ids,
-               ID *stack);
+int mdb_dn2idl(Operation *op, MDBX_txn *txn, struct berval *ndn, ID eid,
+               ID *ids, ID *stack);
 
-int mdb_dn2id_parent(Operation *op, MDB_txn *txn, ID eid, ID *idp);
+int mdb_dn2id_parent(Operation *op, MDBX_txn *txn, ID eid, ID *idp);
 
-int mdb_id2name(Operation *op, MDB_txn *txn, MDB_cursor **cursp, ID eid,
+int mdb_id2name(Operation *op, MDBX_txn *txn, MDBX_cursor **cursp, ID eid,
                 struct berval *name, struct berval *nname);
 
-int mdb_idscope(Operation *op, MDB_txn *txn, ID base, ID *ids, ID *res);
+int mdb_idscope(Operation *op, MDBX_txn *txn, ID base, ID *ids, ID *res);
 
 struct IdScopes;
 
@@ -96,38 +104,49 @@ int mdb_dn2id_walk(Operation *op, struct IdScopes *isc);
 
 void mdb_dn2id_wrestore(Operation *op, struct IdScopes *isc);
 
-MDB_cmp_func mdb_dup_compare;
+MDBX_cmp_func mdb_dup_compare;
 
 /*
  * filterentry.c
  */
 
-int mdb_filter_candidates(Operation *op, MDB_txn *txn, Filter *f, ID *ids,
+int mdb_filter_candidates(Operation *op, MDBX_txn *txn, Filter *f, ID *ids,
                           ID *tmp, ID *stack);
 
 /*
  * id2entry.c
  */
 
-int mdb_id2entry_add(Operation *op, MDB_txn *tid, MDB_cursor *mc, Entry *e);
+MDBX_cmp_func mdb_id2v_compare;
+MDBX_cmp_func mdb_id2v_dupsort;
 
-int mdb_id2entry_update(Operation *op, MDB_txn *tid, MDB_cursor *mc, Entry *e);
+int mdb_id2entry_add(Operation *op, MDBX_txn *tid, MDBX_cursor *mc, Entry *e);
 
-int mdb_id2entry_delete(BackendDB *be, MDB_txn *tid, Entry *e);
+int mdb_id2entry_update(Operation *op, MDBX_txn *tid, MDBX_cursor *mc,
+                        Entry *e);
 
-int mdb_id2entry(Operation *op, MDB_cursor *mc, ID id, Entry **e);
+int mdb_id2entry_delete(BackendDB *be, MDBX_txn *tid, Entry *e);
 
-int mdb_id2edata(Operation *op, MDB_cursor *mc, ID id, MDB_val *data);
+int mdb_id2entry(Operation *op, MDBX_cursor *mc, ID id, Entry **e);
+
+int mdb_id2edata(Operation *op, MDBX_cursor *mc, ID id, MDBX_val *data);
 
 int mdb_entry_return(Operation *op, Entry *e);
 BI_entry_release_rw mdb_entry_release;
 BI_entry_get_rw mdb_entry_get;
+#ifdef LDAP_X_TXN
+BI_op_txn mdb_txn;
+#endif
 
-int mdb_entry_decode(Operation *op, MDB_txn *txn, MDB_val *data, Entry **e);
+int mdb_entry_decode(Operation *op, MDBX_txn *txn, MDBX_val *data, ID id,
+                     Entry **e);
 
-void mdb_reader_flush(MDB_env *env);
+void mdb_reader_flush(MDBX_env *env);
 int mdb_opinfo_get(Operation *op, struct mdb_info *mdb, int rdonly,
                    mdb_op_info **moi);
+
+int mdb_mval_put(Operation *op, MDBX_cursor *mc, ID id, Attribute *a);
+int mdb_mval_del(Operation *op, MDBX_cursor *mc, ID id, Attribute *a);
 
 /*
  * idl.c
@@ -135,12 +154,12 @@ int mdb_opinfo_get(Operation *op, struct mdb_info *mdb, int rdonly,
 
 unsigned mdb_idl_search(ID *ids, ID id);
 
-int mdb_idl_fetch_key(BackendDB *be, MDB_txn *txn, MDB_dbi dbi, MDB_val *key,
-                      ID *ids, MDB_cursor **saved_cursor, int get_flag);
+int mdb_idl_fetch_key(BackendDB *be, MDBX_txn *txn, MDBX_dbi dbi, MDBX_val *key,
+                      ID *ids, MDBX_cursor **saved_cursor, int get_flag);
 
 int mdb_idl_insert(ID *ids, ID id);
 
-typedef int(mdb_idl_keyfunc)(BackendDB *be, MDB_cursor *mc, struct berval *key,
+typedef int(mdb_idl_keyfunc)(BackendDB *be, MDBX_cursor *mc, struct berval *key,
                              ID id);
 
 mdb_idl_keyfunc mdb_idl_insert_keys;
@@ -165,10 +184,10 @@ extern AttrInfo *mdb_index_mask(Backend *be, AttributeDescription *desc,
                                 struct berval *name);
 
 extern int mdb_index_param(Backend *be, AttributeDescription *desc, int ftype,
-                           MDB_dbi *dbi, slap_mask_t *mask,
+                           MDBX_dbi *dbi, slap_mask_t *mask,
                            struct berval *prefix);
 
-extern int mdb_index_values(Operation *op, MDB_txn *txn,
+extern int mdb_index_values(Operation *op, MDBX_txn *txn,
                             AttributeDescription *desc, BerVarray vals, ID id,
                             int opid);
 
@@ -176,10 +195,10 @@ extern int mdb_index_recset(struct mdb_info *mdb, Attribute *a,
                             AttributeType *type, struct berval *tags,
                             IndexRec *ir);
 
-extern int mdb_index_recrun(Operation *op, MDB_txn *txn, struct mdb_info *mdb,
+extern int mdb_index_recrun(Operation *op, MDBX_txn *txn, struct mdb_info *mdb,
                             IndexRec *ir, ID id, int base);
 
-int mdb_index_entry(Operation *op, MDB_txn *t, int r, Entry *e);
+int mdb_index_entry(Operation *op, MDBX_txn *t, int r, Entry *e);
 
 #define mdb_index_entry_add(op, t, e)                                          \
   mdb_index_entry((op), (t), SLAP_INDEX_ADD_OP, (e))
@@ -190,21 +209,21 @@ int mdb_index_entry(Operation *op, MDB_txn *t, int r, Entry *e);
  * key.c
  */
 
-extern int mdb_key_read(Backend *be, MDB_txn *txn, MDB_dbi dbi,
-                        struct berval *k, ID *ids, MDB_cursor **saved_cursor,
+extern int mdb_key_read(Backend *be, MDBX_txn *txn, MDBX_dbi dbi,
+                        struct berval *k, ID *ids, MDBX_cursor **saved_cursor,
                         int get_flags);
 
 /*
  * nextid.c
  */
 
-int mdb_next_id(BackendDB *be, MDB_cursor *mc, ID *id);
+int mdb_next_id(BackendDB *be, MDBX_cursor *mc, ID *id);
 
 /*
  * modify.c
  */
 
-int mdb_modify_internal(Operation *op, MDB_txn *tid, Modifications *modlist,
+int mdb_modify_internal(Operation *op, MDBX_txn *tid, Modifications *modlist,
                         Entry *e, const char **text, char *textbuf,
                         size_t textlen);
 
@@ -255,6 +274,7 @@ extern BI_tool_entry_put mdb_tool_entry_put;
 extern BI_tool_entry_reindex mdb_tool_entry_reindex;
 extern BI_tool_dn2id_get mdb_tool_dn2id_get;
 extern BI_tool_entry_modify mdb_tool_entry_modify;
+extern BI_tool_entry_delete mdb_tool_entry_delete;
 
 extern mdb_idl_keyfunc mdb_tool_idl_add;
 

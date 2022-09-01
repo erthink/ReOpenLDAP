@@ -70,7 +70,8 @@ AttrInfo *mdb_index_mask(Backend *be, AttributeDescription *desc,
 /* This function is only called when evaluating search filters.
  */
 int mdb_index_param(Backend *be, AttributeDescription *desc, int ftype,
-                    MDB_dbi *dbip, slap_mask_t *maskp, struct berval *prefixp) {
+                    MDBX_dbi *dbip, slap_mask_t *maskp,
+                    struct berval *prefixp) {
   AttrInfo *ai;
   slap_mask_t mask, type = 0;
 
@@ -152,12 +153,12 @@ done:
   return LDAP_SUCCESS;
 }
 
-static int indexer(Operation *op, MDB_txn *txn, struct mdb_attrinfo *ai,
+static int indexer(Operation *op, MDBX_txn *txn, struct mdb_attrinfo *ai,
                    AttributeDescription *ad, struct berval *atname,
                    BerVarray vals, ID id, int opid, slap_mask_t mask) {
   int rc = LDAP_OTHER;
   struct berval *keys;
-  MDB_cursor *mc = ai->ai_cursor;
+  MDBX_cursor *mc = ai->ai_cursor;
   mdb_idl_keyfunc *keyfunc;
   char *err __maybe_unused;
 
@@ -165,7 +166,7 @@ static int indexer(Operation *op, MDB_txn *txn, struct mdb_attrinfo *ai,
 
   if (!mc) {
     err = "c_open";
-    rc = mdb_cursor_open(txn, ai->ai_dbi, &mc);
+    rc = mdbx_cursor_open(txn, ai->ai_dbi, &mc);
     if (rc)
       goto done;
     if (slapMode & SLAP_TOOL_QUICK)
@@ -175,8 +176,10 @@ static int indexer(Operation *op, MDB_txn *txn, struct mdb_attrinfo *ai,
   if (opid == SLAP_INDEX_ADD_OP) {
 #ifdef MDB_TOOL_IDL_CACHING
     if ((slapMode & SLAP_TOOL_QUICK) && slap_tool_thread_max > 2) {
+      AttrIxInfo *ax = (AttrIxInfo *)LDAP_SLIST_FIRST(&op->o_extra);
+      ax->ai_ai = ai;
       keyfunc = mdb_tool_idl_add;
-      mc = (MDB_cursor *)ai;
+      mc = (MDBX_cursor *)ax;
     } else
 #endif
       keyfunc = mdb_idl_insert_keys;
@@ -245,7 +248,7 @@ done:
   if (!(slapMode & SLAP_TOOL_QUICK)) {
     if (mc == ai->ai_cursor)
       ai->ai_cursor = NULL;
-    mdb_cursor_close(mc);
+    mdbx_cursor_close(mc);
   }
   switch (rc) {
   /* The callers all know how to deal with these results */
@@ -258,7 +261,7 @@ done:
   return rc;
 }
 
-static int index_at_values(Operation *op, MDB_txn *txn,
+static int index_at_values(Operation *op, MDBX_txn *txn,
                            AttributeDescription *ad, AttributeType *type,
                            struct berval *tags, BerVarray vals, ID id,
                            int opid) {
@@ -281,7 +284,7 @@ static int index_at_values(Operation *op, MDB_txn *txn,
   /* If this type has no AD, we've never used it before */
   if (type->sat_ad) {
     ai = mdb_attr_mask(op->o_bd->be_private, type->sat_ad);
-    if (ai) {
+    if (ai && (ai->ai_indexmask || ai->ai_newmask)) {
 #ifdef LDAP_COMP_MATCH
       /* component indexing */
       if (ai->ai_cr) {
@@ -319,7 +322,7 @@ static int index_at_values(Operation *op, MDB_txn *txn,
     if (desc) {
       ai = mdb_attr_mask(op->o_bd->be_private, desc);
 
-      if (ai) {
+      if (ai && (ai->ai_indexmask || ai->ai_newmask)) {
         if (opid == MDB_INDEX_UPDATE_OP)
           mask = ai->ai_newmask & ~ai->ai_indexmask;
         else
@@ -339,7 +342,7 @@ static int index_at_values(Operation *op, MDB_txn *txn,
   return LDAP_SUCCESS;
 }
 
-int mdb_index_values(Operation *op, MDB_txn *txn, AttributeDescription *desc,
+int mdb_index_values(Operation *op, MDBX_txn *txn, AttributeDescription *desc,
                      BerVarray vals, ID id, int opid) {
   int rc;
 
@@ -395,7 +398,7 @@ int mdb_index_recset(struct mdb_info *mdb, Attribute *a, AttributeType *type,
 }
 
 /* Apply the indices for the recset */
-int mdb_index_recrun(Operation *op, MDB_txn *txn, struct mdb_info *mdb,
+int mdb_index_recrun(Operation *op, MDBX_txn *txn, struct mdb_info *mdb,
                      IndexRec *ir0, ID id, int base) {
   IndexRec *ir;
   AttrList *al;
@@ -422,7 +425,7 @@ int mdb_index_recrun(Operation *op, MDB_txn *txn, struct mdb_info *mdb,
   return rc;
 }
 
-int mdb_index_entry(Operation *op, MDB_txn *txn, int opid, Entry *e) {
+int mdb_index_entry(Operation *op, MDBX_txn *txn, int opid, Entry *e) {
   int rc;
   Attribute *ap = e->e_attrs;
 #if 0 /* ifdef LDAP_COMP_MATCH */

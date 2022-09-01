@@ -1,10 +1,29 @@
+### The origin has been migrated to [GitFlic](https://gitflic.ru/project/erthink/reopenldap)
+since on 2022-04-15 the Github administration, without any warning
+nor explanation, deleted _ReOpenLDAP_ along with a lot of other projects,
+simultaneously blocking access for many developers.
+For the same reason ~~Github~~ is blacklisted forever.
+
+GitFlic's developers plan to support other languages,
+including English 和 中文, in the near future.
+
+### Основной репозиторий перемещен на [GitFlic](https://gitflic.ru/project/erthink/reopenldap)
+так как 15 апреля 2022 администрация Github без предупреждения и
+объяснения причин удалила _ReOpenLDAP_ вместе с массой других проектов,
+одновременно заблокировав доступ многим разработчикам.
+По этой же причине ~~Github~~ навсегда занесен в черный список.
+
+*The Future will (be) [Positive](https://www.ptsecurity.com). Всё будет хорошо.*
+
+--------------------------------------------------------------------------------
+
 v1.1.10 2018-09-26, Golden Bull
 ===============================
 
 ## Briefly:
  1. Prevention mdb-backend database corruption.
 
-    > Corresponding [rebalance bug](https://github.com/leo-yuriev/libmdbx/issues/38) inheritred from LMDB/OpenLDAP.
+    > Corresponding [rebalance bug](todo4recovery://erased_by_github/erthink/libmdbx/issues/38) inheritred from LMDB/OpenLDAP.
     > Now it completely fixed in the `devel` branch and future ReOpenLDAP 1.2.x versions,
     > where the new _libmdbx_ version is used.
     >

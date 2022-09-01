@@ -1501,9 +1501,9 @@ static int ldap_int_is_hexpair(char *s) {
 }
 
 static int ldap_int_unhex(int c) {
-  return (c >= '0' && c <= '9'
-              ? c - '0'
-              : c >= 'A' && c <= 'F' ? c - 'A' + 10 : c - 'a' + 10);
+  return (c >= '0' && c <= '9'   ? c - '0'
+          : c >= 'A' && c <= 'F' ? c - 'A' + 10
+                                 : c - 'a' + 10);
 }
 
 void ldap_pvt_hex_unescape(char *s) {

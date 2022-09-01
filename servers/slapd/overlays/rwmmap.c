@@ -657,9 +657,9 @@ static int rwm_int_filter_map_rewrite(Operation *op, dncookie *dc, Filter *f,
     fstr->bv_val = op->o_tmpalloc(fstr->bv_len + 128, op->o_tmpmemctx);
 
     snprintf(fstr->bv_val, fstr->bv_len + 1, "(%c)",
-             f->f_choice == LDAP_FILTER_AND
-                 ? '&'
-                 : f->f_choice == LDAP_FILTER_OR ? '|' : '!');
+             f->f_choice == LDAP_FILTER_AND  ? '&'
+             : f->f_choice == LDAP_FILTER_OR ? '|'
+                                             : '!');
 
     for (p = f->f_list; p != NULL; p = p->f_next) {
       int rc;

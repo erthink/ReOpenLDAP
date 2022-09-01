@@ -750,6 +750,7 @@ static ConfigTable rccfg[] = {
     {"retcode-parent", "dn", 2, 2, 0, ARG_MAGIC | ARG_DN | RC_PARENT, rc_cf_gen,
      "( OLcfgOvAt:20.1 NAME 'olcRetcodeParent' "
      "DESC '' "
+     "EQUALITY distinguishedNameMatch "
      "SYNTAX OMsDN SINGLE-VALUE )",
      NULL, NULL},
     {"retcode-item", "rdn> <retcode> <...", 3, 0, 0, ARG_MAGIC | RC_ITEM,
@@ -764,6 +765,7 @@ static ConfigTable rccfg[] = {
      (void *)offsetof(retcode_t, rd_indir),
      "( OLcfgOvAt:20.3 NAME 'olcRetcodeInDir' "
      "DESC '' "
+     "EQUALITY booleanMatch "
      "SYNTAX OMsBoolean SINGLE-VALUE )",
      NULL, NULL},
 
@@ -771,6 +773,7 @@ static ConfigTable rccfg[] = {
      (void *)offsetof(retcode_t, rd_sleep),
      "( OLcfgOvAt:20.4 NAME 'olcRetcodeSleep' "
      "DESC '' "
+     "EQUALITY integerMatch "
      "SYNTAX OMsInteger SINGLE-VALUE )",
      NULL, NULL},
 

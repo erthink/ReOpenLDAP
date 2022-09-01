@@ -279,13 +279,10 @@ typedef struct slap_idassert_t {
 #define LDAP_BACK_AUTH_OBSOLETE_ENCODING_WORKAROUND (0x10U)
 #define LDAP_BACK_AUTH_AUTHZ_ALL (0x20U)
 #define LDAP_BACK_AUTH_PROXYAUTHZ_CRITICAL (0x40U)
-
-#ifdef SLAP_AUTH_DN
 #define LDAP_BACK_AUTH_DN_AUTHZID (0x100U)
 #define LDAP_BACK_AUTH_DN_WHOAMI (0x200U)
 #define LDAP_BACK_AUTH_DN_MASK                                                 \
   (LDAP_BACK_AUTH_DN_AUTHZID | LDAP_BACK_AUTH_DN_WHOAMI)
-#endif /* SLAP_AUTH_DN */
 
 #define li_idassert_flags li_idassert.si_flags
 

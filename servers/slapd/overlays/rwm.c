@@ -1783,6 +1783,7 @@ static ConfigTable rwmcfg[] = {
      ARG_MAGIC | RWM_CF_T_F_SUPPORT, rwm_cf_gen,
      "( OLcfgOvAt:16.2 NAME 'olcRwmTFSupport' "
      "DESC 'Absolute filters support' "
+     "EQUALITY caseIgnoreMatch "
      "SYNTAX OMsDirectoryString "
      "SINGLE-VALUE )",
      NULL, NULL},
@@ -1800,6 +1801,7 @@ static ConfigTable rwmcfg[] = {
      ARG_MAGIC | ARG_ON_OFF | RWM_CF_NORMALIZE_MAPPED, rwm_cf_gen,
      "( OLcfgOvAt:16.4 NAME 'olcRwmNormalizeMapped' "
      "DESC 'Normalize mapped attributes/objectClasses' "
+     "EQUALITY booleanMatch "
      "SYNTAX OMsBoolean "
      "SINGLE-VALUE )",
      NULL, NULL},
@@ -1808,6 +1810,7 @@ static ConfigTable rwmcfg[] = {
      ARG_MAGIC | ARG_ON_OFF | RWM_CF_DROP_UNREQUESTED, rwm_cf_gen,
      "( OLcfgOvAt:16.5 NAME 'olcRwmDropUnrequested' "
      "DESC 'Drop unrequested attributes' "
+     "EQUALITY booleanMatch "
      "SYNTAX OMsBoolean "
      "SINGLE-VALUE )",
      NULL, NULL},

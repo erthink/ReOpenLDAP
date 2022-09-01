@@ -792,10 +792,9 @@ void ldap_dump_connection(LDAP *ld, LDAPConn *lconns, int all) {
             (lc->lconn_sb == ld->ld_sb) ? "  (default)" : "");
     }
     Debug(LDAP_DEBUG_TRACE, "  refcnt: %d  status: %s\n", lc->lconn_refcnt,
-          (lc->lconn_status == LDAP_CONNST_NEEDSOCKET)
-              ? "NeedSocket"
-              : (lc->lconn_status == LDAP_CONNST_CONNECTING) ? "Connecting"
-                                                             : "Connected");
+          (lc->lconn_status == LDAP_CONNST_NEEDSOCKET)   ? "NeedSocket"
+          : (lc->lconn_status == LDAP_CONNST_CONNECTING) ? "Connecting"
+                                                         : "Connected");
     Debug(LDAP_DEBUG_TRACE, "  last used: %s%s\n",
           ldap_pvt_ctime(lc->lconn_lastused, timebuf),
           lc->lconn_rebind_inprogress ? "  rebind in progress" : "");
@@ -836,17 +835,12 @@ void ldap_dump_requests_and_responses(LDAP *ld) {
   for (i = 0; lr != NULL; lr = lr->lr_next, i++) {
     Debug(LDAP_DEBUG_TRACE, " * msgid %d,  origid %d, status %s\n",
           lr->lr_msgid, lr->lr_origid,
-          (lr->lr_status == LDAP_REQST_INPROGRESS)
-              ? "InProgress"
-              : (lr->lr_status == LDAP_REQST_CHASINGREFS)
-                    ? "ChasingRefs"
-                    : (lr->lr_status == LDAP_REQST_NOTCONNECTED)
-                          ? "NotConnected"
-                          : (lr->lr_status == LDAP_REQST_WRITING)
-                                ? "Writing"
-                                : (lr->lr_status == LDAP_REQST_COMPLETED)
-                                      ? "RequestCompleted"
-                                      : "InvalidStatus");
+          (lr->lr_status == LDAP_REQST_INPROGRESS)     ? "InProgress"
+          : (lr->lr_status == LDAP_REQST_CHASINGREFS)  ? "ChasingRefs"
+          : (lr->lr_status == LDAP_REQST_NOTCONNECTED) ? "NotConnected"
+          : (lr->lr_status == LDAP_REQST_WRITING)      ? "Writing"
+          : (lr->lr_status == LDAP_REQST_COMPLETED)    ? "RequestCompleted"
+                                                       : "InvalidStatus");
     Debug(LDAP_DEBUG_TRACE, "   outstanding referrals %d, parent count %d\n",
           lr->lr_outrefcnt, lr->lr_parentcnt);
   }

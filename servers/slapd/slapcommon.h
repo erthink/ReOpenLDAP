@@ -26,6 +26,7 @@ enum slaptool {
   SLAPCAT,     /* database -> LDIF tool */
   SLAPDN,      /* DN check w/ syntax tool */
   SLAPINDEX,   /* database index tool */
+  SLAPMODIFY,  /* database modify tool */
   SLAPPASSWD,  /* password generation tool */
   SLAPSCHEMA,  /* schema checking tool */
   SLAPTEST,    /* slapd.conf test tool */
@@ -43,9 +44,9 @@ typedef struct tool_vars {
   int tv_continuemode;
   int tv_nosubordinates;
   int tv_dryrun;
+  int tv_scope;
   unsigned long tv_jumpline;
   struct berval tv_sub_ndn;
-  int tv_scope;
   Filter *tv_filter;
   struct LDIFFP *tv_ldiffp;
   struct berval tv_baseDN;

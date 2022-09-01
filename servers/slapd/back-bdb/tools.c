@@ -159,7 +159,7 @@ int bdb_tool_entry_open(BackendDB *be, int mode) {
 
 int bdb_tool_entry_close(BackendDB *be) {
   if (bdb_tool_info) {
-    set_shutdown(1);
+    set_shutdown(SHUT_WR);
 #ifdef USE_TRICKLE
     ldap_pvt_thread_mutex_lock(&bdb_tool_trickle_mutex);
 
@@ -198,7 +198,7 @@ int bdb_tool_entry_close(BackendDB *be) {
       bdb_tool_index_tcount = bdb_tool_threads - 1;
     }
     bdb_tool_info = NULL;
-    set_shutdown(0);
+    set_shutdown(SHUT_RD);
   }
 
   if (eh.bv.bv_val) {
@@ -937,6 +937,150 @@ done:
   }
 
   return e->e_id;
+}
+
+int bdb_tool_entry_delete(BackendDB *be, struct berval *ndn,
+                          struct berval *text) {
+  int rc;
+  struct bdb_info *bdb;
+  DB_TXN *tid = NULL;
+  Operation op = {0};
+  Opheader ohdr = {0};
+  EntryInfo *ei, *eip;
+  Entry *e = NULL;
+  DB_LOCK lock;
+
+  assert(be != NULL);
+  assert(slapMode & SLAP_TOOL_MODE);
+
+  assert(text != NULL);
+  assert(text->bv_val != NULL);
+  assert(text->bv_val[0] == '\0'); /* overconservative? */
+
+  assert(ndn != NULL);
+  assert(ndn->bv_val != NULL);
+
+  Debug(LDAP_DEBUG_TRACE, "=> " LDAP_XSTRING(bdb_tool_entry_delete) "( %s )\n",
+        ndn->bv_val);
+
+  bdb = (struct bdb_info *)be->be_private;
+
+  if (!(slapMode & SLAP_TOOL_QUICK)) {
+    if (cursor) {
+      cursor->c_close(cursor);
+      cursor = NULL;
+    }
+    rc = TXN_BEGIN(bdb->bi_dbenv, NULL, &tid, bdb->bi_db_opflags);
+    if (rc != 0) {
+      snprintf(text->bv_val, text->bv_len, "txn_begin failed: %s (%d)",
+               db_strerror(rc), rc);
+      Debug(LDAP_DEBUG_ANY, "=> " LDAP_XSTRING(bdb_tool_entry_delete) ": %s\n",
+            text->bv_val);
+      return LDAP_OTHER;
+    }
+  }
+
+  op.o_hdr = &ohdr;
+  op.o_bd = be;
+  op.o_tmpmemctx = NULL;
+  op.o_tmpmfuncs = &ch_mfuncs;
+
+  /* do the deletion */
+  rc = bdb_dn2entry(&op, tid, ndn, &ei, 1, &lock);
+  if (rc != 0) {
+    snprintf(text->bv_val, text->bv_len, "dn2entry failed: %s (%d)",
+             db_strerror(rc), rc);
+    Debug(LDAP_DEBUG_ANY, "=> " LDAP_XSTRING(bdb_tool_entry_delete) ": %s\n",
+          text->bv_val);
+    goto done;
+  }
+
+  e = ei->bei_e;
+  eip = ei->bei_parent;
+
+  rc = bdb_cache_children(&op, tid, e);
+  if (rc != DB_NOTFOUND) {
+    switch (rc) {
+    case 0:
+      snprintf(text->bv_val, text->bv_len,
+               "delete failed:"
+               " subordinate objects must be deleted first");
+      break;
+    default:
+      snprintf(text->bv_val, text->bv_len, "has_children failed: %s (%d)",
+               db_strerror(rc), rc);
+      break;
+    }
+    rc = -1;
+    Debug(LDAP_DEBUG_ANY, "=> " LDAP_XSTRING(mdb_tool_entry_delete) ": %s\n",
+          text->bv_val);
+    goto done;
+  }
+  rc = bdb_dn2id_delete(&op, tid, eip, e);
+  if (rc != 0) {
+    snprintf(text->bv_val, text->bv_len, "dn2entry failed: %s (%d)",
+             db_strerror(rc), rc);
+    Debug(LDAP_DEBUG_ANY, "=> " LDAP_XSTRING(bdb_tool_entry_delete) ": %s\n",
+          text->bv_val);
+    goto done;
+  }
+
+  rc = bdb_index_entry_del(&op, tid, e);
+  if (rc != 0) {
+    snprintf(text->bv_val, text->bv_len, "dn2entry failed: %s (%d)",
+             db_strerror(rc), rc);
+    Debug(LDAP_DEBUG_ANY, "=> " LDAP_XSTRING(bdb_tool_entry_delete) ": %s\n",
+          text->bv_val);
+    goto done;
+  }
+
+  rc = bdb_id2entry_delete(be, tid, e);
+  if (rc != 0) {
+    snprintf(text->bv_val, text->bv_len, "dn2entry failed: %s (%d)",
+             db_strerror(rc), rc);
+    Debug(LDAP_DEBUG_ANY, "=> " LDAP_XSTRING(bdb_tool_entry_delete) ": %s\n",
+          text->bv_val);
+    goto done;
+  }
+
+done:
+  /* Free the EntryInfo and the Entry */
+  if (e != NULL) {
+    bdb_entry_release(&op, e, 0);
+  }
+
+  if (rc == 0) {
+    if (!(slapMode & SLAP_TOOL_QUICK)) {
+      rc = TXN_COMMIT(tid, 0);
+      if (rc != 0) {
+        snprintf(text->bv_val, text->bv_len, "txn_commit failed: %s (%d)",
+                 db_strerror(rc), rc);
+        Debug(LDAP_DEBUG_ANY,
+              "=> " LDAP_XSTRING(bdb_tool_entry_delete) ": "
+                                                        "%s\n",
+              text->bv_val);
+      }
+    }
+
+  } else {
+    if (!(slapMode & SLAP_TOOL_QUICK)) {
+      TXN_ABORT(tid);
+      snprintf(text->bv_val, text->bv_len, "txn_aborted! %s (%d)",
+               db_strerror(rc), rc);
+      Debug(LDAP_DEBUG_ANY, "=> " LDAP_XSTRING(bdb_tool_entry_delete) ": %s\n",
+            text->bv_val);
+    }
+  }
+
+  if (cursor == NULL) {
+    int rc2 = bdb->bi_id2entry->bdi_db->cursor(bdb->bi_id2entry->bdi_db,
+                                               bdb->bi_cache.c_txn, &cursor,
+                                               bdb->bi_db_opflags);
+    if (!rc)
+      rc = rc2;
+  }
+
+  return rc;
 }
 
 #ifdef BDB_TOOL_IDL_CACHING

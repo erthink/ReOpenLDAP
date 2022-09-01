@@ -25,7 +25,7 @@ int mdb_compare(Operation *op, SlapReply *rs) {
   Entry *e = NULL;
   int manageDSAit = get_manageDSAit(op);
 
-  MDB_txn *rtxn;
+  MDBX_txn *rtxn;
   mdb_op_info opinfo = {{{0}}}, *moi = &opinfo;
 
   rs->sr_err = mdb_opinfo_get(op, mdb, 1, &moi);
@@ -42,7 +42,7 @@ int mdb_compare(Operation *op, SlapReply *rs) {
   /* get entry */
   rs->sr_err = mdb_dn2entry(op, rtxn, NULL, &op->o_req_ndn, &e, NULL, 1);
   switch (rs->sr_err) {
-  case MDB_NOTFOUND:
+  case MDBX_NOTFOUND:
   case 0:
     break;
   case LDAP_BUSY:
@@ -54,7 +54,7 @@ int mdb_compare(Operation *op, SlapReply *rs) {
     goto return_results;
   }
 
-  if (rs->sr_err == MDB_NOTFOUND) {
+  if (rs->sr_err == MDBX_NOTFOUND) {
     if (e != NULL) {
       /* return referral only if "disclose" is granted on the object */
       if (access_allowed(op, e, slap_schema.si_ad_entry, NULL, ACL_DISCLOSE,
@@ -110,11 +110,11 @@ return_results:
   }
 
   if (moi == &opinfo || --moi->moi_ref < 1) {
-    int __maybe_unused rc2 = mdb_txn_reset(moi->moi_txn);
-    assert(rc2 == MDB_SUCCESS);
+    int __maybe_unused rc2 = mdbx_txn_reset(moi->moi_txn);
+    assert(rc2 == MDBX_SUCCESS);
     if (moi->moi_oe.oe_key)
       LDAP_SLIST_REMOVE(&op->o_extra, &moi->moi_oe, OpExtra, oe_next);
-    if (moi->moi_flag & MOI_FREEIT)
+    if ((moi->moi_flag & (MOI_FREEIT | MOI_KEEPER)) == MOI_FREEIT)
       op->o_tmpfree(moi, op->o_tmpmemctx);
   }
   /* free entry */

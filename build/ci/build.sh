@@ -63,6 +63,7 @@ flag_O=-O2
 flag_clang=0
 flag_bdb=1
 flag_mdbx=1
+flag_wt=0
 flag_ndb=1
 flag_valgrind=0
 flag_asan=0
@@ -214,6 +215,12 @@ for arg in "$@"; do
 	--without-bdb)
 		flag_bdb=0
 		;;
+	--with-wt)
+		flag_wt=1
+		;;
+	--without-wt)
+		flag_wt=0
+		;;
 	--with-ndb)
 		flag_nbd=1
 		;;
@@ -226,6 +233,7 @@ for arg in "$@"; do
 		flag_tsan=0
 
 		flag_ndb=0
+		flag_wt=0
 		flag_bdb=0
 		flag_lto=0
 		flag_O=-Og
@@ -513,6 +521,7 @@ if [ ! -s ${build}/Makefile ]; then
 			--enable-rewrite --enable-dynacl --enable-aci \
 			$(if [ $flag_mdbx -eq 0 ]; then echo "--disable-${MDBX_NICK}"; else echo "--enable-${MDBX_NICK}=${MOD}"; fi) \
 			$(if [ $flag_bdb -eq 0 ]; then echo "--disable-bdb --disable-hdb"; else echo "--enable-bdb=${MOD} --enable-hdb=${MOD}"; fi) \
+			$(if [ $flag_wt -eq 0 ]; then echo "--disable-wt"; else echo "--enable-wt=${MOD}"; fi) \
 	) || failure "configure"
 fi
 

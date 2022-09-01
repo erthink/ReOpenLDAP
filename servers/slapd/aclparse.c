@@ -1512,14 +1512,14 @@ int parse_acl(Backend *be, const char *fname, int lineno, int argc, char **argv,
 
           } else
 #endif /* tolerate legacy "aci" <who> */
-              if (strncasecmp(left, "dynacl/", STRLENOF("dynacl/")) == 0) {
-            name = &left[STRLENOF("dynacl/")];
-            opts = strchr(name, '/');
-            if (opts) {
-              opts[0] = '\0';
-              opts++;
+            if (strncasecmp(left, "dynacl/", STRLENOF("dynacl/")) == 0) {
+              name = &left[STRLENOF("dynacl/")];
+              opts = strchr(name, '/');
+              if (opts) {
+                opts[0] = '\0';
+                opts++;
+              }
             }
-          }
 
           if (name) {
             if (slap_dynacl_config(fname, lineno, b, name, opts, sty, right)) {

@@ -551,9 +551,11 @@ int entry_id_cmp(const void *v_e1, const void *v_e2) {
 
 /* This is like a ber_len */
 #define entry_lenlen(l)                                                        \
-  (((l) < 0x80)                                                                \
-       ? 1                                                                     \
-       : ((l) < 0x100) ? 2 : ((l) < 0x10000) ? 3 : ((l) < 0x1000000) ? 4 : 5)
+  (((l) < 0x80)        ? 1                                                     \
+   : ((l) < 0x100)     ? 2                                                     \
+   : ((l) < 0x10000)   ? 3                                                     \
+   : ((l) < 0x1000000) ? 4                                                     \
+                       : 5)
 
 static void entry_putlen(unsigned char **buf, ber_len_t len) {
   ber_len_t lenlen = entry_lenlen(len);

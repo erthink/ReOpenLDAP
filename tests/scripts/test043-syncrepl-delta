@@ -24,7 +24,7 @@ if test ${AC_conf[accesslog]} = no; then
 	echo "Accesslog overlay not available, test skipped"
 	exit 0
 fi
-if test $BACKEND = ldif ; then
+if test $BACKEND = ldif; then
 	# Onelevel search does not return entries in order of creation or CSN.
 	echo "$BACKEND backend unsuitable for syncprov logdb, test skipped"
 	exit 0

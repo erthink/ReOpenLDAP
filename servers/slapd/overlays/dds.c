@@ -1198,24 +1198,28 @@ static ConfigTable dds_cfg[] = {
      dds_cfgen,
      "( OLcfgOvAt:9.1 NAME 'olcDDSstate' "
      "DESC 'RFC2589 Dynamic directory services state' "
+     "EQUALITY booleanMatch "
      "SYNTAX OMsBoolean "
      "SINGLE-VALUE )",
      NULL, NULL},
     {"dds-max-ttl", "ttl", 2, 2, 0, ARG_MAGIC | DDS_MAXTTL, dds_cfgen,
      "( OLcfgOvAt:9.2 NAME 'olcDDSmaxTtl' "
      "DESC 'RFC2589 Dynamic directory services max TTL' "
+     "EQUALITY caseIgnoreMatch "
      "SYNTAX OMsDirectoryString "
      "SINGLE-VALUE )",
      NULL, NULL},
     {"dds-min-ttl", "ttl", 2, 2, 0, ARG_MAGIC | DDS_MINTTL, dds_cfgen,
      "( OLcfgOvAt:9.3 NAME 'olcDDSminTtl' "
      "DESC 'RFC2589 Dynamic directory services min TTL' "
+     "EQUALITY caseIgnoreMatch "
      "SYNTAX OMsDirectoryString "
      "SINGLE-VALUE )",
      NULL, NULL},
     {"dds-default-ttl", "ttl", 2, 2, 0, ARG_MAGIC | DDS_DEFAULTTTL, dds_cfgen,
      "( OLcfgOvAt:9.4 NAME 'olcDDSdefaultTtl' "
      "DESC 'RFC2589 Dynamic directory services default TTL' "
+     "EQUALITY caseIgnoreMatch "
      "SYNTAX OMsDirectoryString "
      "SINGLE-VALUE )",
      NULL, NULL},
@@ -1223,6 +1227,7 @@ static ConfigTable dds_cfg[] = {
      "( OLcfgOvAt:9.5 NAME 'olcDDSinterval' "
      "DESC 'RFC2589 Dynamic directory services expiration "
      "task run interval' "
+     "EQUALITY caseIgnoreMatch "
      "SYNTAX OMsDirectoryString "
      "SINGLE-VALUE )",
      NULL, NULL},
@@ -1230,6 +1235,7 @@ static ConfigTable dds_cfg[] = {
      "( OLcfgOvAt:9.6 NAME 'olcDDStolerance' "
      "DESC 'RFC2589 Dynamic directory services additional "
      "TTL in expiration scheduling' "
+     "EQUALITY caseIgnoreMatch "
      "SYNTAX OMsDirectoryString "
      "SINGLE-VALUE )",
      NULL, NULL},
@@ -1237,6 +1243,7 @@ static ConfigTable dds_cfg[] = {
      ARG_MAGIC | ARG_INT | DDS_MAXDYNAMICOBJS, dds_cfgen,
      "( OLcfgOvAt:9.7 NAME 'olcDDSmaxDynamicObjects' "
      "DESC 'RFC2589 Dynamic directory services max number of dynamic objects' "
+     "EQUALITY integerMatch "
      "SYNTAX OMsInteger "
      "SINGLE-VALUE )",
      NULL, NULL},

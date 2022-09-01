@@ -139,6 +139,8 @@ static int over_db_open(BackendDB *be, ConfigReply *cr) {
   }
 
   for (; on && rc == 0; on = on->on_next) {
+    if (on->on_bi.bi_flags & SLAPO_BFLAG_DISABLED)
+      continue;
     db.bd_info = &on->on_bi;
     if (db.bd_info->bi_db_open) {
       rc = db.bd_info->bi_db_open(&db, cr);
@@ -155,6 +157,8 @@ static int over_db_close(BackendDB *be, ConfigReply *cr) {
   int rc = 0;
 
   for (; on && rc == 0; on = on->on_next) {
+    if (on->on_bi.bi_flags & SLAPO_BFLAG_DISABLED)
+      continue;
     be->bd_info = &on->on_bi;
     if (be->bd_info->bi_db_close) {
       rc = be->bd_info->bi_db_close(be, cr);
@@ -182,6 +186,8 @@ static int over_db_destroy(BackendDB *be, ConfigReply *cr) {
   }
 
   for (; on && rc == 0; on = on->on_next) {
+    if (on->on_bi.bi_flags & SLAPO_BFLAG_DISABLED)
+      continue;
     be->bd_info = &on->on_bi;
     if (be->bd_info->bi_db_destroy) {
       rc = be->bd_info->bi_db_destroy(be, cr);
@@ -209,6 +215,8 @@ static int over_back_response(Operation *op, SlapReply *rs) {
   db.be_flags |= SLAP_DBFLAG_OVERLAY;
   op->o_bd = &db;
   for (; on; on = on->on_next) {
+    if (on->on_bi.bi_flags & SLAPO_BFLAG_DISABLED)
+      continue;
     if (on->on_response) {
       db.bd_info = (BackendInfo *)on;
       rc = on->on_response(op, rs);
@@ -249,6 +257,8 @@ static int over_access_allowed(Operation *op, Entry *e,
   on = oi->oi_list;
 
   for (; on; on = on->on_next) {
+    if (on->on_bi.bi_flags & SLAPO_BFLAG_DISABLED)
+      continue;
     if (on->on_bi.bi_access_allowed) {
       /* NOTE: do not copy the structure until required */
       if (!SLAP_ISOVERLAY(op->o_bd)) {
@@ -293,6 +303,9 @@ static int over_access_allowed(Operation *op, Entry *e,
     be->bd_info = bi;
   }
   op->o_bd = be;
+  if (SLAP_ISOVERLAY(op->o_bd)) {
+    op->o_bd->bd_info = bi;
+  }
 
   return rc;
 }
@@ -306,6 +319,8 @@ int overlay_entry_get_ov(Operation *op, struct berval *dn, ObjectClass *oc,
   int rc = SLAP_CB_CONTINUE;
 
   for (; on; on = on->on_next) {
+    if (on->on_bi.bi_flags & SLAPO_BFLAG_DISABLED)
+      continue;
     if (on->on_bi.bi_entry_get_rw) {
       /* NOTE: do not copy the structure until required */
       if (!SLAP_ISOVERLAY(op->o_bd)) {
@@ -343,6 +358,9 @@ int overlay_entry_get_ov(Operation *op, struct berval *dn, ObjectClass *oc,
     be->bd_info = bi;
   }
   op->o_bd = be;
+  if (SLAP_ISOVERLAY(op->o_bd)) {
+    op->o_bd->bd_info = bi;
+  }
 
   return rc;
 }
@@ -368,6 +386,8 @@ int overlay_entry_release_ov(Operation *op, Entry *e, int rw,
   int rc = SLAP_CB_CONTINUE;
 
   for (; on; on = on->on_next) {
+    if (on->on_bi.bi_flags & SLAPO_BFLAG_DISABLED)
+      continue;
     if (on->on_bi.bi_entry_release_rw) {
       /* NOTE: do not copy the structure until required */
       if (!SLAP_ISOVERLAY(op->o_bd)) {
@@ -406,6 +426,9 @@ int overlay_entry_release_ov(Operation *op, Entry *e, int rw,
     be->bd_info = bi;
   }
   op->o_bd = be;
+  if (SLAP_ISOVERLAY(op->o_bd)) {
+    op->o_bd->bd_info = bi;
+  }
 
   return rc;
 }
@@ -440,6 +463,8 @@ static int over_acl_group(Operation *op, Entry *e, struct berval *gr_ndn,
   on = oi->oi_list;
 
   for (; on; on = on->on_next) {
+    if (on->on_bi.bi_flags & SLAPO_BFLAG_DISABLED)
+      continue;
     if (on->on_bi.bi_acl_group) {
       /* NOTE: do not copy the structure until required */
       if (!SLAP_ISOVERLAY(op->o_bd)) {
@@ -484,6 +509,9 @@ static int over_acl_group(Operation *op, Entry *e, struct berval *gr_ndn,
     be->bd_info = bi;
   }
   op->o_bd = be;
+  if (SLAP_ISOVERLAY(op->o_bd)) {
+    op->o_bd->bd_info = bi;
+  }
 
   return rc;
 }
@@ -507,6 +535,8 @@ static int over_acl_attribute(Operation *op, Entry *target,
   on = oi->oi_list;
 
   for (; on; on = on->on_next) {
+    if (on->on_bi.bi_flags & SLAPO_BFLAG_DISABLED)
+      continue;
     if (on->on_bi.bi_acl_attribute) {
       /* NOTE: do not copy the structure until required */
       if (!SLAP_ISOVERLAY(op->o_bd)) {
@@ -552,6 +582,9 @@ static int over_acl_attribute(Operation *op, Entry *target,
     be->bd_info = bi;
   }
   op->o_bd = be;
+  if (SLAP_ISOVERLAY(op->o_bd)) {
+    op->o_bd->bd_info = bi;
+  }
 
   return rc;
 }
@@ -599,31 +632,32 @@ static int op_rc[op_last] = {
 
 int overlay_op_walk(Operation *op, SlapReply *rs, slap_operation_t which,
                     slap_overinfo *oi, slap_overinst *on) {
-  BI_op_bind **func;
+  BackendInfo *bi;
   int rc = SLAP_CB_CONTINUE;
 
   for (; on; on = on->on_next) {
-    func = &on->on_bi.bi_op_bind;
-    if (func[which]) {
+    if (on->on_bi.bi_flags & SLAPO_BFLAG_DISABLED)
+      continue;
+    bi = &on->on_bi;
+    if ((&bi->bi_op_bind)[which]) {
       op->o_bd->bd_info = (BackendInfo *)on;
-      rc = func[which](op, rs);
+      rc = (&bi->bi_op_bind)[which](op, rs);
       if (rc != SLAP_CB_CONTINUE)
         break;
     }
   }
   if (rc == SLAP_CB_BYPASS)
     rc = SLAP_CB_CONTINUE;
-
   /* if an overlay halted processing, make sure
    * any previously set cleanup handlers are run
    */
   if (rc != SLAP_CB_CONTINUE)
     goto cleanup;
 
-  func = &oi->oi_orig->bi_op_bind;
-  if (func[which]) {
-    op->o_bd->bd_info = oi->oi_orig;
-    rc = func[which](op, rs);
+  bi = oi->oi_orig;
+  if ((&bi->bi_op_bind)[which]) {
+    op->o_bd->bd_info = bi;
+    rc = (&bi->bi_op_bind)[which](op, rs);
   }
   /* should not fall thru this far without anything happening... */
   if (rc == SLAP_CB_CONTINUE) {
@@ -647,11 +681,25 @@ int overlay_op_walk(Operation *op, SlapReply *rs, slap_operation_t which,
   return rc;
 }
 
+#if 0 /* Not needed since callback uses tmpalloc */
+static int
+over_op_func_cleanup( Operation *op, SlapReply *rs )
+{
+	slap_callback *cb = op->o_callback;
+	if ( rs->sr_type == REP_RESULT && cb != NULL) {
+		op->o_callback = cb->sc_next;
+		op->o_tmpfree( cb, op->o_tmpmemctx );
+	}
+	return SLAP_CB_CONTINUE;
+}
+#else
+#define over_op_func_cleanup NULL
+#endif
+
 static int over_op_func(Operation *op, SlapReply *rs, slap_operation_t which) {
   slap_overinfo *oi;
   slap_overinst *on;
   BackendDB *be = op->o_bd, db;
-  slap_callback cb = {NULL, over_back_response, NULL, NULL}, **sc;
   int rc = SLAP_CB_CONTINUE;
 
   /* FIXME: used to happen for instance during abandon
@@ -667,15 +715,28 @@ static int over_op_func(Operation *op, SlapReply *rs, slap_operation_t which) {
     compiler_barrier();
     op->o_bd = &db;
   }
-  cb.sc_next = op->o_callback;
-  cb.sc_private = oi;
-  op->o_callback = &cb;
+
+  slap_callback *cb = NULL;
+  if (op->o_tag != LDAP_REQ_ABANDON && op->o_tag != LDAP_REQ_UNBIND) {
+    cb = (slap_callback *)op->o_tmpcalloc(1, sizeof(slap_callback),
+                                          op->o_tmpmemctx);
+    cb->sc_cleanup = over_op_func_cleanup;
+    cb->sc_response = over_back_response;
+    cb->sc_writewait = NULL;
+    cb->sc_next = op->o_callback;
+    cb->sc_private = oi;
+    op->o_callback = cb;
+  }
 
   rc = overlay_op_walk(op, rs, which, oi, on);
-  for (sc = &op->o_callback; *sc; sc = &(*sc)->sc_next) {
-    if (*sc == &cb) {
-      *sc = cb.sc_next;
-      break;
+  if (rc != SLAPD_ASYNCOP && cb != NULL) {
+    slap_callback **sc;
+    for (sc = &op->o_callback; *sc; sc = &(*sc)->sc_next) {
+      if (*sc == cb) {
+        *sc = cb->sc_next;
+        op->o_tmpfree(cb, op->o_tmpmemctx);
+        break;
+      }
     }
   }
 
@@ -763,6 +824,8 @@ static int over_connection_func(BackendDB *bd, Connection *conn,
   }
 
   for (; on; on = on->on_next) {
+    if (on->on_bi.bi_flags & SLAPO_BFLAG_DISABLED)
+      continue;
     func = &on->on_bi.bi_connection_init;
     if (func[which]) {
       bd->bd_info = (BackendInfo *)on;

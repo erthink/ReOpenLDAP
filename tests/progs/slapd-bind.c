@@ -42,8 +42,8 @@
 #include "slapd-common.h"
 
 static int do_bind(struct tester_conn_args *config, char *dn, int maxloop,
-                   int force, int noinit, LDAP **ldp, int action_type,
-                   void *action);
+                   int force, int noinit, LDAP **ldp, struct berval *pass,
+                   int action_type, void *action);
 
 static int do_base(struct tester_conn_args *config, char *dn, char *base,
                    char *filter, char *pwattr, int force, int noinit,
@@ -91,7 +91,7 @@ int main(int argc, char **argv) {
   config = tester_init("slapd-bind", TESTER_BIND);
 
   /* by default, tolerate invalid credentials */
-  tester_ignore_str2errlist("INVALID_CREDENTIALS");
+  tester_ignore_str2errlist("*INVALID_CREDENTIALS");
 
   while ((i = getopt(argc, argv, TESTER_COMMON_OPTS "a:B:b:Ff:I")) != EOF) {
     switch (i) {
@@ -174,7 +174,7 @@ int main(int argc, char **argv) {
                    -1, NULL);
     } else {
       rc = do_bind(config, config->binddn, config->loops, force, noinit, NULL,
-                   -1, NULL);
+                   &config->pass, -1, NULL);
     }
     if (rc == LDAP_SERVER_DOWN)
       break;
@@ -184,8 +184,8 @@ int main(int argc, char **argv) {
 }
 
 static int do_bind(struct tester_conn_args *config, char *dn, int maxloop,
-                   int force, int noinit, LDAP **ldp, int action_type,
-                   void *action) {
+                   int force, int noinit, LDAP **ldp, struct berval *pass,
+                   int action_type, void *action) {
   LDAP *ld = ldp ? *ldp : NULL;
   char *bindfunc = "ldap_sasl_bind_s";
   int i, rc = -1;
@@ -259,17 +259,16 @@ static int do_bind(struct tester_conn_args *config, char *dn, int maxloop,
     if (config->authmethod == LDAP_AUTH_SASL) {
 #ifdef HAVE_CYRUS_SASL
       bindfunc = "ldap_sasl_interactive_bind_s";
-      rc = ldap_sasl_interactive_bind_s(ld, config->binddn, config->mech, NULL,
-                                        NULL, LDAP_SASL_QUIET,
-                                        lutil_sasl_interact, config->defaults);
+      rc = ldap_sasl_interactive_bind_s(ld, dn, config->mech, NULL, NULL,
+                                        LDAP_SASL_QUIET, lutil_sasl_interact,
+                                        config->defaults);
 #else /* HAVE_CYRUS_SASL */
       /* caller shouldn't have allowed this */
       assert(0);
 #endif
     } else if (config->authmethod == LDAP_AUTH_SIMPLE) {
       bindfunc = "ldap_sasl_bind_s";
-      rc = ldap_sasl_bind_s(ld, config->binddn, LDAP_SASL_SIMPLE, &config->pass,
-                            NULL, NULL, NULL);
+      rc = ldap_sasl_bind_s(ld, dn, LDAP_SASL_SIMPLE, pass, NULL, NULL, NULL);
     }
 
     if (rc) {
@@ -441,15 +440,17 @@ static int do_base(struct tester_conn_args *config, char *dn, char *base,
   /* Ok, got list of DNs, now start binding to each */
   struct berval save_pass = config->pass;
   for (i = 0; i < config->loops; i++) {
+    struct berval *pass = &config->pass;
     int j;
 
     j = lrand48() % ndns;
 
     if (creds && !BER_BVISEMPTY(&creds[j])) {
-      config->pass = creds[j];
+      pass = &creds[j];
     }
 
-    if (do_bind(config, dns[j], 1, force, noinit, &ld, action_type, action) &&
+    if (do_bind(config, dns[j], 1, force, noinit, &ld, pass, action_type,
+                action) &&
         !force) {
       break;
     }

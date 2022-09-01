@@ -16,7 +16,7 @@
 DIST_SUBDIRS = overlays slapi back-bdb back-dnssrv back-hdb \
 	back-ldap back-ldif back-mdb back-meta back-monitor back-ndb \
 	back-null back-passwd back-perl back-relay back-shell back-sock \
-	back-sql shell-backends
+	back-sql shell-backends back-wt back-asyncmeta
 
 SUBDIRS	= overlays
 
@@ -27,7 +27,7 @@ overlays_DYNAMIC =
 
 AM_CPPFLAGS = -I${top_srcdir}/include
 sbin_PROGRAMS = slapd
-slaptools = slapadd slapcat slapdn slapindex slappasswd slaptest slapauth slapacl slapschema
+slaptools = slapadd slapcat slapdn slapindex slappasswd slaptest slapauth slapacl slapschema slapmodify
 slapd_LDADD = overlays/liboverlays_builtin.la
 slapd_LDFLAGS =
 EXTRA_slapd_DEPENDENCIES =
@@ -93,6 +93,16 @@ backends_DYNAMIC += meta
 else
 backends_BUILTIN += meta
 slapd_LDADD += back-meta/back_meta.la
+endif
+endif
+
+if BUILD_ASYNCMETA
+SUBDIRS	+= back-asyncmeta
+if ASYNCMETA_DYNAMIC
+backends_DYNAMIC += asyncmeta
+else
+backends_BUILTIN += asyncmeta
+slapd_LDADD += back-asyncmeta/back_asyncmeta.la
 endif
 endif
 
@@ -197,6 +207,16 @@ backends_DYNAMIC += sql
 else
 backends_BUILTIN += sql
 slapd_LDADD += back-sql/back_sql.la
+endif
+endif
+
+if BUILD_WT
+SUBDIRS	+= back-wt
+if WT_DYNAMIC
+backends_DYNAMIC += wt
+else
+backends_BUILTIN += wt
+slapd_LDADD += back-wt/back_wt.la
 endif
 endif
 
@@ -398,11 +418,11 @@ slapd_SOURCES = abandon.c aci.c acl.c aclparse.c ad.c add.c \
 	referral.c result.c root_dse.c rurwl.c saslauthz.c sasl.c \
 	schema.c schema_check.c schema_init.c schemaparse.c \
 	schema_prep.c search.c sets.c slapacl.c slapadd.c slapauth.c \
-	slapcat.c slapcommon.c slapdn.c slapindex.c slappasswd.c \
-	slapschema.c slaptest.c sl_malloc.c starttls.c str2filter.c \
-	syncrepl.c syntax.c txn.c unbind.c user.c value.c alock.h \
-	component.h slapconfig.h proto-slap.h sets.h slapcommon.h \
-	slap.h
+	slapcat.c slapcommon.c slapdn.c slapindex.c slapmodify.c \
+	slappasswd.c slapschema.c slaptest.c sl_malloc.c starttls.c \
+	str2filter.c syncrepl.c syntax.c txn.c unbind.c user.c value.c \
+	alock.h component.h slapconfig.h proto-slap.h sets.h \
+	slapcommon.h slap.h
 
 schema_files = schema/collective.ldif schema/collective.schema \
 	schema/corba.ldif schema/corba.schema schema/core.ldif \

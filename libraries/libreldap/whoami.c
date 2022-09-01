@@ -42,10 +42,8 @@ int ldap_parse_whoami(LDAP *ld, LDAPMessage *res, struct berval **authzid) {
   *authzid = NULL;
 
   rc = ldap_parse_extended_result(ld, res, &retoid, authzid, 0);
-
   if (rc != LDAP_SUCCESS) {
     ldap_debug_perror(ld, "ldap_parse_whoami");
-    return rc;
   }
 
   ber_memfree(retoid);

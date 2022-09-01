@@ -142,6 +142,11 @@ static const char *slap_propnames[] = {"*slapConn",    "*slapAuthcDNlen",
                                        "*slapAuthcDN", "*slapAuthzDNlen",
                                        "*slapAuthzDN", NULL};
 
+#ifdef SLAP_AUXPROP_DONTUSECOPY
+int slap_dontUseCopy_ignore;
+BerVarray slap_dontUseCopy_propnames;
+#endif /* SLAP_AUXPROP_DONTUSECOPY */
+
 static Filter generic_filter = {LDAP_FILTER_PRESENT, {0}, NULL};
 static struct berval generic_filterstr = BER_BVC("(objectclass=*)");
 
@@ -170,8 +175,11 @@ static int sasl_ap_lookup(Operation *op, SlapReply *rs) {
   int rc, i;
   lookup_info *sl = (lookup_info *)op->o_callback->sc_private;
 
+  /* return the actual error code,
+   * to allow caller to handle specific errors
+   */
   if (rs->sr_type != REP_SEARCH)
-    return 0;
+    return rs->sr_err;
 
   for (i = 0; sl->list[i].name; i++) {
     const char *name = sl->list[i].name;
@@ -263,6 +271,10 @@ slap_auxprop_lookup(void *glob_context, sasl_server_params_t *sparams,
   Connection *conn = NULL;
   lookup_info sl;
   int rc = LDAP_SUCCESS;
+#ifdef SLAP_AUXPROP_DONTUSECOPY
+  int dontUseCopy = 0;
+  BackendDB *dontUseCopy_bd = NULL;
+#endif /* SLAP_AUXPROP_DONTUSECOPY */
 
   sl.list = sparams->utils->prop_get(sparams->propctx);
   sl.sparams = sparams;
@@ -301,6 +313,19 @@ slap_auxprop_lookup(void *glob_context, sasl_server_params_t *sparams,
             break;
         }
       }
+#ifdef SLAP_AUXPROP_DONTUSECOPY
+      if (slap_dontUseCopy_propnames != NULL) {
+        int j;
+        struct berval bv;
+        ber_str2bv(&sl.list[i].name[1], 0, 1, &bv);
+        for (j = 0; !BER_BVISNULL(&slap_dontUseCopy_propnames[j]); j++) {
+          if (bvmatch(&bv, &slap_dontUseCopy_propnames[j])) {
+            dontUseCopy = 1;
+            break;
+          }
+        }
+      }
+#endif /* SLAP_AUXPROP_DONTUSECOPY */
     }
   }
 
@@ -382,8 +407,22 @@ slap_auxprop_lookup(void *glob_context, sasl_server_params_t *sparams,
         }
       }
 
+#ifdef SLAP_AUXPROP_DONTUSECOPY
+      if (SLAP_SHADOW(op->o_bd) && dontUseCopy) {
+        dontUseCopy_bd = op->o_bd;
+        op->o_bd = frontendDB;
+      }
+
+    retry_dontUseCopy:;
+#endif /* SLAP_AUXPROP_DONTUSECOPY */
+
       if (op->o_bd->be_search) {
         SlapReply rs = {REP_RESULT};
+#ifdef SLAP_AUXPROP_DONTUSECOPY
+        LDAPControl **save_ctrls = NULL, c;
+        int save_dontUseCopy;
+#endif /* SLAP_AUXPROP_DONTUSECOPY */
+
         op->o_hdr = conn->c_sasl_bindop->o_hdr;
         op->o_controls = opbuf.ob_controls;
         op->o_tag = LDAP_REQ_SEARCH;
@@ -404,7 +443,49 @@ slap_auxprop_lookup(void *glob_context, sasl_server_params_t *sparams,
         /* FIXME: we want all attributes, right? */
         op->ors_attrs = NULL;
 
+#ifdef SLAP_AUXPROP_DONTUSECOPY
+        if (dontUseCopy) {
+          save_dontUseCopy = op->o_dontUseCopy;
+          if (!op->o_dontUseCopy) {
+            int cnt = 0;
+            save_ctrls = op->o_ctrls;
+            if (op->o_ctrls) {
+              for (; op->o_ctrls[cnt]; cnt++)
+                ;
+            }
+            op->o_ctrls = op->o_tmpcalloc(sizeof(LDAPControl *), cnt + 2,
+                                          op->o_tmpmemctx);
+            if (cnt) {
+              for (cnt = 0; save_ctrls[cnt]; cnt++) {
+                op->o_ctrls[cnt] = save_ctrls[cnt];
+              }
+            }
+            c.ldctl_oid = LDAP_CONTROL_DONTUSECOPY;
+            c.ldctl_iscritical = 1;
+            BER_BVZERO(&c.ldctl_value);
+            op->o_ctrls[cnt] = &c;
+          }
+          op->o_dontUseCopy = SLAP_CONTROL_CRITICAL;
+        }
+#endif /* SLAP_AUXPROP_DONTUSECOPY */
+
         rc = op->o_bd->be_search(op, &rs);
+
+#ifdef SLAP_AUXPROP_DONTUSECOPY
+        if (dontUseCopy) {
+          if (save_ctrls != op->o_ctrls) {
+            op->o_tmpfree(op->o_ctrls, op->o_tmpmemctx);
+            op->o_ctrls = save_ctrls;
+            op->o_dontUseCopy = save_dontUseCopy;
+          }
+
+          if (rs.sr_err == LDAP_UNAVAILABLE && slap_dontUseCopy_ignore) {
+            op->o_bd = dontUseCopy_bd;
+            dontUseCopy = 0;
+            goto retry_dontUseCopy;
+          }
+        }
+#endif /* SLAP_AUXPROP_DONTUSECOPY */
       }
     }
   }
@@ -420,7 +501,6 @@ static int slap_auxprop_store(void *glob_context, sasl_server_params_t *sparams,
                               unsigned ulen) {
   Operation op = {0};
   Opheader oph;
-  SlapReply rs = {REP_RESULT};
   int rc, i;
   unsigned j;
   Connection *conn = NULL;
@@ -430,6 +510,10 @@ static int slap_auxprop_store(void *glob_context, sasl_server_params_t *sparams,
   char textbuf[SLAP_TEXT_BUFLEN];
   const char *text;
   size_t textlen = sizeof(textbuf);
+#ifdef SLAP_AUXPROP_DONTUSECOPY
+  int dontUseCopy = 0;
+  BackendDB *dontUseCopy_bd = NULL;
+#endif /* SLAP_AUXPROP_DONTUSECOPY */
 
   /* just checking if we are enabled */
   if (!prctx)
@@ -456,6 +540,18 @@ static int slap_auxprop_store(void *glob_context, sasl_server_params_t *sparams,
         if (pr[i].values)
           op.o_req_ndn.bv_val = (char *)pr[i].values[0];
       }
+#ifdef SLAP_AUXPROP_DONTUSECOPY
+      if (slap_dontUseCopy_propnames != NULL) {
+        struct berval bv;
+        ber_str2bv(&pr[i].name[1], 0, 1, &bv);
+        for (j = 0; !BER_BVISNULL(&slap_dontUseCopy_propnames[j]); j++) {
+          if (bvmatch(&bv, &slap_dontUseCopy_propnames[j])) {
+            dontUseCopy = 1;
+            break;
+          }
+        }
+      }
+#endif /* SLAP_AUXPROP_DONTUSECOPY */
     }
   }
   if (!conn || !op.o_req_ndn.bv_val)
@@ -465,6 +561,14 @@ static int slap_auxprop_store(void *glob_context, sasl_server_params_t *sparams,
 
   if (!op.o_bd || !op.o_bd->bd_info->bi_op_modify)
     return SASL_FAIL;
+
+#ifdef SLAP_AUXPROP_DONTUSECOPY
+  if (SLAP_SHADOW(op.o_bd) && dontUseCopy) {
+    dontUseCopy_bd = op.o_bd;
+    op.o_bd = frontendDB;
+    op.o_dontUseCopy = SLAP_CONTROL_CRITICAL;
+  }
+#endif /* SLAP_AUXPROP_DONTUSECOPY */
 
   pr = sparams->utils->prop_get(prctx);
   if (!pr)
@@ -516,7 +620,21 @@ static int slap_auxprop_store(void *glob_context, sasl_server_params_t *sparams,
       op.o_req_dn = op.o_req_ndn;
       op.orm_modlist = modlist;
 
-      rc = slap_biglock_call_be(op_modify, &op, &rs);
+      for (;;) {
+        SlapReply rs = {REP_RESULT};
+        rc = slap_biglock_call_be(op_modify, &op, &rs);
+
+#ifdef SLAP_AUXPROP_DONTUSECOPY
+        if (dontUseCopy && rs.sr_err == LDAP_UNAVAILABLE &&
+            slap_dontUseCopy_ignore) {
+          op.o_bd = dontUseCopy_bd;
+          op.o_dontUseCopy = SLAP_CONTROL_NONE;
+          dontUseCopy = 0;
+          continue;
+        }
+#endif /* SLAP_AUXPROP_DONTUSECOPY */
+        break;
+      }
     }
   }
   slap_mods_free(modlist, 1);
@@ -1152,7 +1270,14 @@ int slap_sasl_destroy(void) {
   sasl_done();
 #else
   sasl_server_done();
-#endif
+#endif /* SASL_VERSION_FULL */
+
+#ifdef SLAP_AUXPROP_DONTUSECOPY
+  if (slap_dontUseCopy_propnames) {
+    ber_bvarray_free(slap_dontUseCopy_propnames);
+    slap_dontUseCopy_propnames = NULL;
+  }
+#endif /* SLAP_AUXPROP_DONTUSECOPY */
 
 #if USE_VALGRIND
   /* LY: Неоднозначная ситуация с этой утечкой:
@@ -1356,6 +1481,21 @@ int slap_sasl_external(Connection *conn, slap_ssf_t ssf,
   return LDAP_SUCCESS;
 }
 
+int slap_sasl_cbinding(Connection *conn, struct berval *cbv) {
+#ifdef SASL_CHANNEL_BINDING
+  sasl_channel_binding_t *cb = ch_malloc(sizeof(*cb) + cbv->bv_len);
+  ;
+  cb->name = "ldap";
+  cb->critical = 0;
+  cb->data = (unsigned char *)(cb + 1);
+  cb->len = cbv->bv_len;
+  memcpy((char *)cb->data, cbv->bv_val, cbv->bv_len);
+  sasl_setprop(conn->c_sasl_authctx, SASL_CHANNEL_BINDING, cb);
+  conn->c_sasl_cbind = cb;
+#endif
+  return LDAP_SUCCESS;
+}
+
 int slap_sasl_reset(Connection *conn) { return LDAP_SUCCESS; }
 
 char **slap_sasl_mechs(Connection *conn) {
@@ -1411,6 +1551,9 @@ int slap_sasl_close(Connection *conn) {
 
   free(conn->c_sasl_extra);
   conn->c_sasl_extra = NULL;
+
+  free(conn->c_sasl_cbind);
+  conn->c_sasl_cbind = NULL;
 
 #elif defined(SLAP_BUILTIN_SASL)
   SASL_CTX *ctx = conn->c_sasl_authctx;

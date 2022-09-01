@@ -106,11 +106,56 @@
 
 #include "lutil.h"
 #include "lutil_hash.h"
+
+#ifdef LUTIL_HASH64_BYTES
+#define HASH_BYTES LUTIL_HASH64_BYTES
+#define HASH_LEN hashlen
+static void (*hashinit)(lutil_HASH_CTX *ctx) = lutil_HASHInit;
+static void (*hashupdate)(lutil_HASH_CTX *ctx, unsigned char const *buf,
+                          ber_len_t len) = lutil_HASHUpdate;
+static void (*hashfinal)(unsigned char digest[HASH_BYTES],
+                         lutil_HASH_CTX *ctx) = lutil_HASHFinal;
+static int hashlen = LUTIL_HASH_BYTES;
+#define HASH_Init(c) hashinit(c)
+#define HASH_Update(c, buf, len) hashupdate(c, buf, len)
+#define HASH_Final(d, c) hashfinal(d, c)
+
+/* Toggle between 32 and 64 bit hashing, default to 32 for compatibility
+   -1 to query, returns 1 if 64 bit, 0 if 32.
+   0/1 to set 32/64, returns 0 on success, -1 on failure */
+int slap_hash64(int onoff) {
+  if (onoff < 0) {
+    return hashlen == LUTIL_HASH64_BYTES;
+  } else if (onoff) {
+    hashinit = lutil_HASH64Init;
+    hashupdate = lutil_HASH64Update;
+    hashfinal = lutil_HASH64Final;
+    hashlen = LUTIL_HASH64_BYTES;
+  } else {
+    hashinit = lutil_HASHInit;
+    hashupdate = lutil_HASHUpdate;
+    hashfinal = lutil_HASHFinal;
+    hashlen = LUTIL_HASH_BYTES;
+  }
+  return 0;
+}
+
+#else
 #define HASH_BYTES LUTIL_HASH_BYTES
-#define HASH_CONTEXT lutil_HASH_CTX
+#define HASH_LEN HASH_BYTES
 #define HASH_Init(c) lutil_HASHInit(c)
 #define HASH_Update(c, buf, len) lutil_HASHUpdate(c, buf, len)
 #define HASH_Final(d, c) lutil_HASHFinal(d, c)
+
+int slap_has64(int onoff) {
+  if (onoff < 0)
+    return 0;
+  else
+    return onoff ? -1 : 0;
+}
+
+#endif
+#define HASH_CONTEXT lutil_HASH_CTX
 
 /* approx matching rules */
 #define directoryStringApproxMatchOID "1.3.6.1.4.1.4203.666.4.4"
@@ -570,21 +615,31 @@ static int privateKeyValidate(Syntax *syntax, struct berval *val) {
   if (tag != LBER_SEQUENCE)
     return LDAP_INVALID_SYNTAX;
   tag = ber_peek_tag(ber, &len);
-  if (tag != LBER_INTEGER)
-    return LDAP_INVALID_SYNTAX;
-  tag = ber_get_int(ber, &version);
-  tag = ber_skip_tag(ber, &len); /* AlgorithmIdentifier */
-  if (tag != LBER_SEQUENCE)
-    return LDAP_INVALID_SYNTAX;
-  ber_skip_data(ber, len);
-  tag = ber_skip_tag(ber, &len); /* PrivateKey */
-  if (tag != LBER_OCTETSTRING)
-    return LDAP_INVALID_SYNTAX;
-  ber_skip_data(ber, len);
-  tag = ber_skip_tag(ber, &len);
-  if (tag == LBER_SET) { /* Optional Attributes */
+  if (tag != LBER_INTEGER) {
+    /* might be an encrypted key */
+    if (tag == LBER_SEQUENCE) { /* encryptionAlgorithm */
+      ber_skip_data(ber, len);
+      tag = ber_skip_tag(ber, &len); /* encryptedData */
+      if (tag != LBER_OCTETSTRING)
+        return LDAP_INVALID_SYNTAX;
+      ber_skip_data(ber, len);
+    } else
+      return LDAP_INVALID_SYNTAX;
+  } else {
+    tag = ber_get_int(ber, &version);
+    tag = ber_skip_tag(ber, &len); /* AlgorithmIdentifier */
+    if (tag != LBER_SEQUENCE)
+      return LDAP_INVALID_SYNTAX;
+    ber_skip_data(ber, len);
+    tag = ber_skip_tag(ber, &len); /* PrivateKey */
+    if (tag != LBER_OCTETSTRING)
+      return LDAP_INVALID_SYNTAX;
     ber_skip_data(ber, len);
     tag = ber_skip_tag(ber, &len);
+    if (tag == LBER_SET) { /* Optional Attributes */
+      ber_skip_data(ber, len);
+      tag = ber_skip_tag(ber, &len);
+    }
   }
 
   /* Must be at end now */
@@ -600,7 +655,9 @@ int octetStringMatch(int *matchp, slap_mask_t flags, Syntax *syntax,
   ber_slen_t d = (ber_slen_t)value->bv_len - (ber_slen_t)asserted->bv_len;
 
   /* For speed, order first by length, then by contents */
-  *matchp = d ? (sizeof(d) == sizeof(int) ? d : d < 0 ? -1 : 1)
+  *matchp = d ? (sizeof(d) == sizeof(int) ? d
+                 : d < 0                  ? -1
+                                          : 1)
               : memcmp(value->bv_val, asserted->bv_val, value->bv_len);
 
   return LDAP_SUCCESS;
@@ -618,7 +675,8 @@ int octetStringOrderingMatch(int *matchp, slap_mask_t flags, Syntax *syntax,
 
   if (match == 0)
     match = sizeof(v_len) == sizeof(int) ? (int)v_len - (int)av_len
-                                         : v_len < av_len ? -1 : v_len > av_len;
+            : v_len < av_len             ? -1
+                                         : v_len > av_len;
 
   /* If used in extensible match filter, match if value < asserted */
   if (flags & SLAP_MR_EXT)
@@ -661,7 +719,7 @@ int octetStringIndexer(slap_mask_t use, slap_mask_t flags, Syntax *syntax,
   unsigned char HASHdigest[HASH_BYTES];
   struct berval digest;
   digest.bv_val = (char *)HASHdigest;
-  digest.bv_len = sizeof(HASHdigest);
+  digest.bv_len = HASH_LEN;
 
   for (i = 0; !BER_BVISNULL(&values[i]); i++) {
     /* just count them */
@@ -696,7 +754,7 @@ int octetStringFilter(slap_mask_t use, slap_mask_t flags, Syntax *syntax,
   struct berval *value = (struct berval *)assertedValue;
   struct berval digest;
   digest.bv_val = (char *)HASHdigest;
-  digest.bv_len = sizeof(HASHdigest);
+  digest.bv_len = HASH_LEN;
 
   keys = slap_sl_malloc(sizeof(struct berval) * 2, ctx);
 
@@ -840,7 +898,7 @@ static int octetStringSubstringsIndexer(slap_mask_t use, slap_mask_t flags,
   unsigned char HASHdigest[HASH_BYTES];
   struct berval digest;
   digest.bv_val = (char *)HASHdigest;
-  digest.bv_len = sizeof(HASHdigest);
+  digest.bv_len = HASH_LEN;
 
   nkeys = 0;
 
@@ -986,7 +1044,7 @@ static int octetStringSubstringsFilter(slap_mask_t use, slap_mask_t flags,
   }
 
   digest.bv_val = (char *)HASHdigest;
-  digest.bv_len = sizeof(HASHdigest);
+  digest.bv_len = HASH_LEN;
 
   keys = slap_sl_malloc(sizeof(struct berval) * (nkeys + 1), ctx);
   nkeys = 0;
@@ -5867,7 +5925,7 @@ static slap_syntax_defs_rec syntax_defs[] = {
      NULL, authzValidate, authzPretty},
 
     /* PKCS#8 Private Keys for X.509 certificates */
-    {"( 1.3.6.1.4.1.4203.666.2.13 DESC 'OpenLDAP privateKey' )",
+    {"( 1.2.840.113549.1.8.1.1 DESC 'PKCS#8 PrivateKeyInfo' )",
      SLAP_SYNTAX_BINARY | SLAP_SYNTAX_BER, NULL, privateKeyValidate, NULL},
     {NULL, 0, NULL, NULL, NULL}};
 
@@ -6248,7 +6306,7 @@ static slap_mrule_defs_rec mrule_defs[] = {
      NULL, NULL, NULL},
 
     {"( 1.3.6.1.4.1.4203.666.4.13 NAME 'privateKeyMatch' "
-     "SYNTAX 1.3.6.1.4.1.4203.666.2.13 )", /* OpenLDAP privateKey */
+     "SYNTAX 1.2.840.113549.1.8.1.1 )", /* PKCS#8 privateKey */
      SLAP_MR_HIDE | SLAP_MR_EQUALITY, NULL, NULL, NULL, octetStringMatch, NULL,
      NULL, NULL},
 

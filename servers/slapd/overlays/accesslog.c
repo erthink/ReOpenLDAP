@@ -79,7 +79,7 @@ typedef struct log_info {
   struct berval li_uuid;
   int li_success;
   log_base *li_bases;
-  ldap_int_thread_mutex_recursive_t li_op_rmutex;
+  ldap_pvt_thread_mutex_t li_op_rmutex;
   ldap_pvt_thread_mutex_t li_log_mutex;
 } log_info;
 
@@ -99,6 +99,7 @@ static ConfigTable log_cfats[] = {
     {"logdb", "suffix", 2, 2, 0, ARG_DN | ARG_MAGIC | LOG_DB, log_cf_gen,
      "( OLcfgOvAt:4.1 NAME 'olcAccessLogDB' "
      "DESC 'Suffix of database for log content' "
+     "EQUALITY distinguishedNameMatch "
      "SUP distinguishedName SINGLE-VALUE )",
      NULL, NULL},
     {"logops", "op|writes|reads|session|all", 2, 0, 0, ARG_MAGIC | LOG_OPS,
@@ -111,17 +112,20 @@ static ConfigTable log_cfats[] = {
     {"logpurge", "age> <interval", 3, 3, 0, ARG_MAGIC | LOG_PURGE, log_cf_gen,
      "( OLcfgOvAt:4.3 NAME 'olcAccessLogPurge' "
      "DESC 'Log cleanup parameters' "
+     "EQUALITY caseIgnoreMatch "
      "SYNTAX OMsDirectoryString SINGLE-VALUE )",
      NULL, NULL},
     {"logsuccess", NULL, 2, 2, 0, ARG_MAGIC | ARG_ON_OFF | LOG_SUCCESS,
      log_cf_gen,
      "( OLcfgOvAt:4.4 NAME 'olcAccessLogSuccess' "
      "DESC 'Log successful ops only' "
+     "EQUALITY booleanMatch "
      "SYNTAX OMsBoolean SINGLE-VALUE )",
      NULL, NULL},
     {"logold", "filter", 2, 2, 0, ARG_MAGIC | LOG_OLD, log_cf_gen,
      "( OLcfgOvAt:4.5 NAME 'olcAccessLogOld' "
      "DESC 'Log old values when modifying entries matching the filter' "
+     "EQUALITY caseExactMatch "
      "SYNTAX OMsDirectoryString SINGLE-VALUE )",
      NULL, NULL},
     {"logoldattr", "attrs", 2, 0, 0, ARG_MAGIC | LOG_OLDATTR, log_cf_gen,
@@ -1514,7 +1518,7 @@ static int do_accesslog_response(Operation *op, SlapReply *rs,
       Debug(LDAP_DEBUG_SYNC, "%s.%d: unlocking rmutex for tid %x\n",
             __FUNCTION__, __LINE__, op->o_tid);
 #endif
-      ldap_pvt_thread_mutex_recursive_unlock(&li->li_op_rmutex);
+      ldap_pvt_thread_mutex_unlock(&li->li_op_rmutex);
       need_unlock = 0;
     }
   }
@@ -1881,6 +1885,11 @@ static int do_accesslog_response(Operation *op, SlapReply *rs,
   }
 
   slap_biglock_call_be(op_add, &op2, &rs2);
+  if (rs2.sr_err != LDAP_SUCCESS) {
+    Debug(LDAP_DEBUG_SYNC,
+          "accesslog_response: got result 0x%x adding log entry %s\n",
+          rs2.sr_err, op2.o_req_dn.bv_val);
+  }
   if (e == op2.ora_e)
     entry_free(e);
   e = NULL;
@@ -1897,7 +1906,7 @@ exit_continue:
     Debug(LDAP_DEBUG_SYNC, "%s.%d: unlocking rmutex for tid %x\n", __FUNCTION__,
           __LINE__, op->o_tid);
 #endif
-    ldap_pvt_thread_mutex_recursive_unlock(&li->li_op_rmutex);
+    ldap_pvt_thread_mutex_unlock(&li->li_op_rmutex);
   }
   return SLAP_CB_CONTINUE;
 }
@@ -1964,7 +1973,7 @@ static int accesslog_op_mod(Operation *op, SlapReply *rs) {
     Debug(LDAP_DEBUG_SYNC, "accesslog_op_mod: locking rmutex for tid %x\n",
           op->o_tid);
 #endif
-    ldap_pvt_thread_mutex_recursive_lock(&li->li_op_rmutex);
+    ldap_pvt_thread_mutex_lock(&li->li_op_rmutex);
 #ifdef RMUTEX_DEBUG
     Debug(LDAP_DEBUG_STATS, "accesslog_op_mod: locked rmutex for tid %x\n",
           op->o_tid);
@@ -2153,7 +2162,7 @@ static int accesslog_db_destroy(BackendDB *be, ConfigReply *cr) {
     ch_free(la);
   }
   ldap_pvt_thread_mutex_destroy(&li->li_log_mutex);
-  ldap_pvt_thread_mutex_recursive_destroy(&li->li_op_rmutex);
+  ldap_pvt_thread_mutex_destroy(&li->li_op_rmutex);
   free(li);
   return LDAP_SUCCESS;
 }
@@ -2342,9 +2351,6 @@ int accesslog_over_initialize() {
       Debug(LDAP_DEBUG_ANY, "accesslog_init: register_at failed\n");
       return -1;
     }
-#if !LDAP_EXPERIMENTAL
-    (*lattrs[i].ad)->ad_type->sat_flags |= SLAP_AT_HIDE;
-#endif /* LDAP_EXPERIMENTAL */
   }
 
   for (i = 0; locs[i].ot; i++) {
@@ -2355,9 +2361,6 @@ int accesslog_over_initialize() {
       Debug(LDAP_DEBUG_ANY, "accesslog_init: register_oc failed\n");
       return -1;
     }
-#if !LDAP_EXPERIMENTAL
-    (*locs[i].oc)->soc_flags |= SLAP_OC_HIDE;
-#endif /* LDAP_EXPERIMENTAL */
   }
 
   return overlay_register(&accesslog);

@@ -27,6 +27,10 @@ ldif_filter_LDADD = $(slap_LIBS)
 slapd_addel_SOURCES = slapd-addel.c slapd-common.c slapd-common.h
 slapd_addel_LDADD = $(slap_LIBS)
 
+# LY: slapd-auth.c is just a sample.
+#slapd_auth_SOURCES = slapd-auth.c slapd-common.c slapd-common.h
+#slapd_auth_LDADD = $(slap_LIBS)
+
 slapd_bind_SOURCES = slapd-bind.c slapd-common.c slapd-common.h
 slapd_bind_LDADD = $(slap_LIBS)
 

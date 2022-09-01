@@ -40,11 +40,11 @@ else
 fi
 
 if [ -z "$AUTORECONF" ]; then
-	if [ -n "$(which autoreconf)" ] && autoreconf --version | grep -q 'autoreconf (GNU Autoconf) 2\.69'; then
+	if [ -n "$(which autoreconf)" ] && autoreconf --version | grep -q 'autoreconf (GNU Autoconf) 2\.71'; then
 		AUTORECONF=$(which autoreconf)
-	elif [ -n "$(which autoreconf-2.69)" ]; then
+	elif [ -n "$(which autoreconf-2.71)" ]; then
 		AUTORECONF=$(which autoreconf-2.69)
-	elif [ -n "$(which autoreconf2.69)" ]; then
+	elif [ -n "$(which autoreconf2.71)" ]; then
 		AUTORECONF=$(which autoreconf2.69)
 	else
 		echo "no suitable autoreconf available" >&2; exit 2

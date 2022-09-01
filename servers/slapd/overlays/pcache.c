@@ -36,7 +36,6 @@
 
 #include "slapconfig.h"
 
-#if LDAP_EXPERIMENTAL > 0
 /*
  * Control that allows to access the private DB
  * instead of the public one
@@ -52,7 +51,6 @@
  * Monitoring
  */
 #define PCACHE_MONITOR
-#endif /* LDAP_EXPERIMENTAL > 0 */
 
 /* query cache structs */
 /* query */
@@ -2669,17 +2667,16 @@ static int pcache_op_privdb(Operation *op, SlapReply *rs) {
   /* map tag to operation */
   type = slap_req2op(op->o_tag);
   if (type != SLAP_OP_LAST) {
-    BI_op_func **func;
+    BackendInfo *bi = cm->db.bd_info;
     int rc;
 
     /* execute, if possible */
-    func = &cm->db.be_bind;
-    if (func[type] != NULL) {
+    if ((&bi->bi_op_bind)[type]) {
       Operation op2 = *op;
 
       op2.o_bd = &cm->db;
 
-      rc = func[type](&op2, rs);
+      rc = (&bi->bi_op_bind)[type](&op2, rs);
       if (type == SLAP_OP_BIND && rc == LDAP_SUCCESS) {
         op->o_conn->c_authz_cookie = cm->db.be_private;
       }
@@ -3507,6 +3504,7 @@ static ConfigTable pccfg[] = {
      6, 6, 0, ARG_MAGIC | ARG_NO_DELETE | PC_MAIN, pc_cf_gen,
      "( OLcfgOvAt:2.1 NAME ( 'olcPcache' 'olcProxyCache' ) "
      "DESC 'Proxy Cache basic parameters' "
+     "EQUALITY caseIgnoreMatch "
      "SYNTAX OMsDirectoryString SINGLE-VALUE )",
      NULL, NULL},
     {"pcacheAttrset", "index> <attributes...", 2, 0, 0, ARG_MAGIC | PC_ATTR,
@@ -3531,18 +3529,21 @@ static ConfigTable pccfg[] = {
      pc_cf_gen,
      "( OLcfgOvAt:2.4 NAME 'olcPcachePosition' "
      "DESC 'Response callback position in overlay stack' "
+     "EQUALITY caseIgnoreMatch "
      "SYNTAX OMsDirectoryString SINGLE-VALUE )",
      NULL, NULL},
     {"pcacheMaxQueries", "queries", 2, 2, 0, ARG_INT | ARG_MAGIC | PC_QUERIES,
      pc_cf_gen,
      "( OLcfgOvAt:2.5 NAME ( 'olcPcacheMaxQueries' 'olcProxyCacheQueries' ) "
      "DESC 'Maximum number of queries to cache' "
+     "EQUALITY integerMatch "
      "SYNTAX OMsInteger SINGLE-VALUE )",
      NULL, NULL},
     {"pcachePersist", "TRUE|FALSE", 2, 2, 0, ARG_ON_OFF | ARG_OFFSET,
      (void *)offsetof(cache_manager, save_queries),
      "( OLcfgOvAt:2.6 NAME ( 'olcPcachePersist' 'olcProxySaveQueries' ) "
      "DESC 'Save cached queries for hot restart' "
+     "EQUALITY booleanMatch "
      "SYNTAX OMsBoolean SINGLE-VALUE )",
      NULL, NULL},
     {"pcacheValidate", "TRUE|FALSE", 2, 2, 0, ARG_ON_OFF | ARG_OFFSET,
@@ -3550,12 +3551,14 @@ static ConfigTable pccfg[] = {
      "( OLcfgOvAt:2.7 NAME ( 'olcPcacheValidate' 'olcProxyCheckCacheability' ) "
      "DESC 'Check whether the results of a query are cacheable, e.g. for "
      "schema issues' "
+     "EQUALITY booleanMatch "
      "SYNTAX OMsBoolean SINGLE-VALUE )",
      NULL, NULL},
     {"pcacheOffline", "TRUE|FALSE", 2, 2, 0,
      ARG_ON_OFF | ARG_MAGIC | PC_OFFLINE, pc_cf_gen,
      "( OLcfgOvAt:2.8 NAME 'olcPcacheOffline' "
      "DESC 'Set cache to offline mode and disable expiration' "
+     "EQUALITY booleanMatch "
      "SYNTAX OMsBoolean SINGLE-VALUE )",
      NULL, NULL},
     {"pcacheBind", "filter> <attrset-index> <TTR> <scope> <base", 6, 6, 0,

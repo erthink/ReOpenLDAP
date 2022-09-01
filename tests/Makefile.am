@@ -63,5 +63,5 @@ else
 endif
 
 # LY: TODO
-ldif dnssrv ldap meta monitor ndb null passwd perl relay shell sock sql:
+ldif dnssrv ldap meta asyncmeta monitor ndb null passwd perl relay shell sock sql wt:
 	@echo "Skip testing $@-backend for now (TODO)"

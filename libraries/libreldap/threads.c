@@ -49,6 +49,8 @@ int ldap_pvt_thread_initialize(void) {
     return rc;
 #endif
 
+  /* kludge to pull symbol definitions in */
+  ldap_pvt_thread_self();
   return 0;
 }
 
