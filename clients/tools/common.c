@@ -222,9 +222,9 @@ static int st_value(LDAP *ld, struct berval *value) {
 
   } else
 #endif /* HAVE_CYRUS_SASL */
-      if (binddn != NULL) {
-    ber_str2bv(binddn, 0, 0, &id);
-  }
+    if (binddn != NULL) {
+      ber_str2bv(binddn, 0, 0, &id);
+    }
 
   if (ldap_create_session_tracking_value(
           ld, ip, name, LDAP_CONTROL_X_SESSION_TRACKING_USERNAME, &id,

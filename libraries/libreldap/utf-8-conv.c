@@ -223,24 +223,24 @@ int ldap_x_wc_to_utf8(char *utf8char, wchar_t wchar, size_t count) {
 
   } else
 #if SIZEOF_WCHAR_T > 4
-      /* UL is not strictly needed by ANSI C */
-      if (wchar < (wchar_t)0x80000000UL)
+    /* UL is not strictly needed by ANSI C */
+    if (wchar < (wchar_t)0x80000000UL)
 #endif /* SIZEOF_WCHAR_T > 4 */
-  {
-    if (count >= 6) {
-      utf8char[len++] = 0xfc | (wchar >> 30);
-      utf8char[len++] = 0x80 | ((wchar >> 24) & 0x3f);
-      utf8char[len++] = 0x80 | ((wchar >> 18) & 0x3f);
-      utf8char[len++] = 0x80 | ((wchar >> 12) & 0x3f);
-      utf8char[len++] = 0x80 | ((wchar >> 6) & 0x3f);
-      utf8char[len++] = 0x80 | (wchar & 0x3f);
-    }
+    {
+      if (count >= 6) {
+        utf8char[len++] = 0xfc | (wchar >> 30);
+        utf8char[len++] = 0x80 | ((wchar >> 24) & 0x3f);
+        utf8char[len++] = 0x80 | ((wchar >> 18) & 0x3f);
+        utf8char[len++] = 0x80 | ((wchar >> 12) & 0x3f);
+        utf8char[len++] = 0x80 | ((wchar >> 6) & 0x3f);
+        utf8char[len++] = 0x80 | (wchar & 0x3f);
+      }
 
 #if SIZEOF_WCHAR_T > 4
-  } else {
-    len = -1;
+    } else {
+      len = -1;
 #endif /* SIZEOF_WCHAR_T > 4 */
-  }
+    }
 
   return len;
 }

@@ -59,12 +59,10 @@ int test_filter(Operation *op, Entry *e, Filter *f) {
   switch (f->f_choice) {
   case SLAPD_FILTER_COMPUTED:
     Debug(LDAP_DEBUG_FILTER, "    COMPUTED %s (%d)\n",
-          f->f_result == LDAP_COMPARE_FALSE
-              ? "false"
-              : f->f_result == LDAP_COMPARE_TRUE
-                    ? "true"
-                    : f->f_result == SLAPD_COMPARE_UNDEFINED ? "undefined"
-                                                             : "error",
+          f->f_result == LDAP_COMPARE_FALSE        ? "false"
+          : f->f_result == LDAP_COMPARE_TRUE       ? "true"
+          : f->f_result == SLAPD_COMPARE_UNDEFINED ? "undefined"
+                                                   : "error",
           f->f_result);
 
     rc = f->f_result;

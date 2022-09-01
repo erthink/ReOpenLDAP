@@ -183,12 +183,10 @@ char *ldap_err2string(int err) {
 #undef C
 
   default:
-    m = (LDAP_API_ERROR(err)
-             ? N_("Unknown API error")
-             : LDAP_E_ERROR(err)
-                   ? N_("Unknown (extension) error")
-                   : LDAP_X_ERROR(err) ? N_("Unknown (private extension) error")
-                                       : N_("Unknown error"));
+    m = (LDAP_API_ERROR(err) ? N_("Unknown API error")
+         : LDAP_E_ERROR(err) ? N_("Unknown (extension) error")
+         : LDAP_X_ERROR(err) ? N_("Unknown (private extension) error")
+                             : N_("Unknown error"));
     break;
   }
 

@@ -473,9 +473,9 @@ static int asyncmeta_int_filter_map_rewrite(a_dncookie *dc, Filter *f,
         ber_memalloc_x(fstr->bv_len + 128, memctx); /* FIXME: why 128? */
 
     snprintf(fstr->bv_val, fstr->bv_len + 1, "(%c)",
-             f->f_choice == LDAP_FILTER_AND
-                 ? '&'
-                 : f->f_choice == LDAP_FILTER_OR ? '|' : '!');
+             f->f_choice == LDAP_FILTER_AND  ? '&'
+             : f->f_choice == LDAP_FILTER_OR ? '|'
+                                             : '!');
 
     for (p = f->f_list; p != NULL; p = p->f_next) {
       int rc;

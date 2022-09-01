@@ -30,7 +30,7 @@ static int put_simple_vrFilter(BerElement *ber, char *str);
 static int put_vrFilter_list(BerElement *ber, char *str);
 
 static char *put_complex_filter(BerElement *ber, char *str, ber_tag_t tag,
-                                int not);
+                                int not );
 
 static int put_simple_filter(BerElement *ber, char *str);
 
@@ -50,23 +50,22 @@ static int ldap_is_oid(const char *str) {
     }
     return 1;
 
-  } else if
-    LDAP_DIGIT(str[0]) {
-      int dot = 0;
-      for (i = 1; str[i]; i++) {
-        if (LDAP_DIGIT(str[i])) {
-          dot = 0;
+  } else if LDAP_DIGIT (str[0]) {
+    int dot = 0;
+    for (i = 1; str[i]; i++) {
+      if (LDAP_DIGIT(str[i])) {
+        dot = 0;
 
-        } else if (str[i] == '.') {
-          if (++dot > 1)
-            return 0;
-
-        } else {
+      } else if (str[i] == '.') {
+        if (++dot > 1)
           return 0;
-        }
+
+      } else {
+        return 0;
       }
-      return !dot;
     }
+    return !dot;
+  }
 
   return 0;
 }
@@ -87,30 +86,29 @@ static int ldap_is_desc(const char *str) {
     }
     return 1;
 
-  } else if
-    LDAP_DIGIT(str[0]) {
-      int dot = 0;
-      for (i = 1; str[i]; i++) {
-        if (str[i] == ';') {
-          if (dot)
-            return 0;
-          str = &str[i + 1];
-          goto options;
-        }
-
-        if (LDAP_DIGIT(str[i])) {
-          dot = 0;
-
-        } else if (str[i] == '.') {
-          if (++dot > 1)
-            return 0;
-
-        } else {
+  } else if LDAP_DIGIT (str[0]) {
+    int dot = 0;
+    for (i = 1; str[i]; i++) {
+      if (str[i] == ';') {
+        if (dot)
           return 0;
-        }
+        str = &str[i + 1];
+        goto options;
       }
-      return !dot;
+
+      if (LDAP_DIGIT(str[i])) {
+        dot = 0;
+
+      } else if (str[i] == '.') {
+        if (++dot > 1)
+          return 0;
+
+      } else {
+        return 0;
+      }
     }
+    return !dot;
+  }
 
   return 0;
 
@@ -263,7 +261,7 @@ ber_slen_t ldap_pvt_filter_value_unescape(char *fval) {
 }
 
 static char *put_complex_filter(BerElement *ber, char *str, ber_tag_t tag,
-                                int not) {
+                                int not ) {
   char *next;
 
   /*

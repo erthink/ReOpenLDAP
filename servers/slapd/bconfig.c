@@ -2193,13 +2193,13 @@ static int config_generic(ConfigArgs *c) {
             break;
         }
       } else
-          /* If adding the first, and head exists, find its prev */
-          if (cfn->c_oc_head) {
-        for (oc_start(&oc); oc != cfn->c_oc_head;) {
-          prev = oc;
-          oc_next(&oc);
+        /* If adding the first, and head exists, find its prev */
+        if (cfn->c_oc_head) {
+          for (oc_start(&oc); oc != cfn->c_oc_head;) {
+            prev = oc;
+            oc_next(&oc);
+          }
         }
-      }
       /* else prev is NULL, append to end of global list */
     }
     if (parse_oc(c, &oc, prev))
@@ -2228,13 +2228,13 @@ static int config_generic(ConfigArgs *c) {
             break;
         }
       } else
-          /* If adding the first, and head exists, find its prev */
-          if (cfn->c_at_head) {
-        for (at_start(&at); at != cfn->c_at_head;) {
-          prev = at;
-          at_next(&at);
+        /* If adding the first, and head exists, find its prev */
+        if (cfn->c_at_head) {
+          for (at_start(&at); at != cfn->c_at_head;) {
+            prev = at;
+            at_next(&at);
+          }
         }
-      }
       /* else prev is NULL, append to end of global list */
     }
     if (parse_at(c, &at, prev))
@@ -2263,13 +2263,13 @@ static int config_generic(ConfigArgs *c) {
             break;
         }
       } else
-          /* If adding the first, and head exists, find its prev */
-          if (cfn->c_syn_head) {
-        for (syn_start(&syn); syn != cfn->c_syn_head;) {
-          prev = syn;
-          syn_next(&syn);
+        /* If adding the first, and head exists, find its prev */
+        if (cfn->c_syn_head) {
+          for (syn_start(&syn); syn != cfn->c_syn_head;) {
+            prev = syn;
+            syn_next(&syn);
+          }
         }
-      }
       /* else prev is NULL, append to end of global list */
     }
     if (parse_syn(c, &syn, prev))

@@ -2599,8 +2599,9 @@ static int check_for_retard(syncinfo_t *si, struct sync_cookie *sc,
                             BerValue *csn_present, BerValue *csn_incomming) {
   int i, origin, rc = 0;
 
-  /* LY: This is fixes todo4recovery://erased_by_github/erthink/ReOpenLDAP/issues/43
-   * for most cases. */
+  /* LY: This is fixes
+   * todo4recovery://erased_by_github/erthink/ReOpenLDAP/issues/43 for most
+   * cases. */
 
   if (SLAP_MULTIMASTER(si->si_be)) {
     if (csn_incomming && csn_incomming->bv_len > 31) {

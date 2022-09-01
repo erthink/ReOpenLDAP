@@ -413,34 +413,34 @@ int ldap_sasl_interactive_bind(LDAP *ld, const char *dn, /* usually NULL */
   } else
 #endif
 
-      /* First time */
-      if (!result) {
+    /* First time */
+    if (!result) {
 
 #ifdef HAVE_CYRUS_SASL
-    if (mechs == NULL || *mechs == '\0') {
-      mechs = ld->ld_options.ldo_def_sasl_mech;
-    }
+      if (mechs == NULL || *mechs == '\0') {
+        mechs = ld->ld_options.ldo_def_sasl_mech;
+      }
 #endif
 
-    if (mechs == NULL || *mechs == '\0') {
-      /* FIXME: this needs to be asynchronous too;
-       * perhaps NULL should be disallowed for async usage?
-       */
-      rc = ldap_pvt_sasl_getmechs(ld, &smechs);
-      if (rc != LDAP_SUCCESS) {
-        goto done;
+      if (mechs == NULL || *mechs == '\0') {
+        /* FIXME: this needs to be asynchronous too;
+         * perhaps NULL should be disallowed for async usage?
+         */
+        rc = ldap_pvt_sasl_getmechs(ld, &smechs);
+        if (rc != LDAP_SUCCESS) {
+          goto done;
+        }
+
+        Debug(LDAP_DEBUG_TRACE,
+              "ldap_sasl_interactive_bind: server supports: %s\n", smechs);
+
+        mechs = smechs;
+
+      } else {
+        Debug(LDAP_DEBUG_TRACE,
+              "ldap_sasl_interactive_bind: user selected: %s\n", mechs);
       }
-
-      Debug(LDAP_DEBUG_TRACE,
-            "ldap_sasl_interactive_bind: server supports: %s\n", smechs);
-
-      mechs = smechs;
-
-    } else {
-      Debug(LDAP_DEBUG_TRACE, "ldap_sasl_interactive_bind: user selected: %s\n",
-            mechs);
     }
-  }
   rc = ldap_int_sasl_bind(ld, dn, mechs, serverControls, clientControls, flags,
                           interact, defaults, result, rmech, msgid);
 

@@ -1345,7 +1345,8 @@ static int syncprov_op_abandon(Operation *op, SlapReply *rs) {
   syncops *so, **pso;
 
   if (!si)
-    /* LY: workaround for todo4recovery://erased_by_github/erthink/ReOpenLDAP/issues/45 */
+    /* LY: workaround for
+     * todo4recovery://erased_by_github/erthink/ReOpenLDAP/issues/45 */
     return SLAP_CB_CONTINUE;
 
   ldap_pvt_thread_mutex_lock(&si->si_ops_mutex);
@@ -3767,7 +3768,8 @@ static int syncprov_db_destroy(BackendDB *be, ConfigReply *cr) {
   syncprov_info_t *si = (syncprov_info_t *)on->on_bi.bi_private;
 
   if (si) {
-    /* LY: workaround for todo4recovery://erased_by_github/erthink/ReOpenLDAP/issues/45 */
+    /* LY: workaround for
+     * todo4recovery://erased_by_github/erthink/ReOpenLDAP/issues/45 */
     for (;;) {
       int drained, paused = -1;
 

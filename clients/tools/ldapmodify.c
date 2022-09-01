@@ -450,14 +450,11 @@ static int domodify(const struct berval *dn, LDAPMod **pmods,
       for (i = 0; pmods[i] != NULL; ++i) {
         op = pmods[i]->mod_op & ~LDAP_MOD_BVALUES;
         printf("%s %s:\n",
-               op == LDAP_MOD_REPLACE
-                   ? _("replace")
-                   : op == LDAP_MOD_ADD
-                         ? _("add")
-                         : op == LDAP_MOD_INCREMENT
-                               ? _("increment")
-                               : op == LDAP_MOD_DELETE ? _("delete")
-                                                       : _("unknown"),
+               op == LDAP_MOD_REPLACE     ? _("replace")
+               : op == LDAP_MOD_ADD       ? _("add")
+               : op == LDAP_MOD_INCREMENT ? _("increment")
+               : op == LDAP_MOD_DELETE    ? _("delete")
+                                          : _("unknown"),
                pmods[i]->mod_type);
 
         if (pmods[i]->mod_bvalues != NULL) {

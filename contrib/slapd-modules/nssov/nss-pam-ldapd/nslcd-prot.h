@@ -121,18 +121,18 @@ static void debug_dump(const void *ptr, size_t size) {
     }                                                                          \
   }
 
-#define WRITE_STRINGLIST_EXCEPT(fp, arr, not)                                  \
+#define WRITE_STRINGLIST_EXCEPT(fp, arr, not )                                 \
   /* first determine length of array */                                        \
   tmp3int32 = 0;                                                               \
   for (tmp2int32 = 0; (arr)[tmp2int32] != NULL; tmp2int32++)                   \
-    if (strcmp((arr)[tmp2int32], (not)) != 0)                                  \
+    if (strcmp((arr)[tmp2int32], (not )) != 0)                                 \
       tmp3int32++;                                                             \
   /* write number of strings (mius one because we intend to skip one) */       \
   DEBUG_PRINT("WRITE_STRLST: var="__STRING(arr) " num=%d", (int)tmp3int32);    \
   WRITE_INT32(fp, tmp3int32);                                                  \
   /* write strings */                                                          \
   for (tmp2int32 = 0; (arr)[tmp2int32] != NULL; tmp2int32++) {                 \
-    if (strcmp((arr)[tmp2int32], (not)) != 0) {                                \
+    if (strcmp((arr)[tmp2int32], (not )) != 0) {                               \
       WRITE_STRING(fp, (arr)[tmp2int32]);                                      \
     }                                                                          \
   }

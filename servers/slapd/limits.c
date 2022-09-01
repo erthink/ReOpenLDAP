@@ -943,11 +943,10 @@ int limits_unparse_one(struct slap_limits_set *lim, int which,
     if (lim->lms_s_pr_total) {
       if (ptr_APPEND_LIT(" size.prtotal="))
         return -1;
-      if (lim->lms_s_pr_total == -1
-              ? ptr_APPEND_LIT("unlimited ")
-              : lim->lms_s_pr_total == -2
-                    ? ptr_APPEND_LIT("disabled ")
-                    : ptr_APPEND_FMT1("%d ", lim->lms_s_pr_total))
+      if (lim->lms_s_pr_total == -1 ? ptr_APPEND_LIT("unlimited ")
+          : lim->lms_s_pr_total == -2
+              ? ptr_APPEND_LIT("disabled ")
+              : ptr_APPEND_FMT1("%d ", lim->lms_s_pr_total))
         return -1;
     }
   }
