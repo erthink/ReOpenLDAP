@@ -378,12 +378,12 @@ struct berval *ber_dupbv_x(struct berval *dst, const struct berval *src,
     dup->bv_len = src->bv_len;
   }
 
-  if (dst) {
+  if (dup != &tmp)
+    return dup;
+  else {
     *dst = *dup;
-    dup = dst;
+    return dst;
   }
-
-  return dup;
 }
 
 struct berval *ber_dupbv(struct berval *dst, const struct berval *src) {

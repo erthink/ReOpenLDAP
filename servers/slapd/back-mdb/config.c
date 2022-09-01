@@ -156,7 +156,7 @@ static ConfigOCs mdbocs[] = {
 
 static slap_verbmasks mdb_envflags[] = {
     {BER_BVC("nosync"), MDBX_UTTERLY_NOSYNC},
-    {BER_BVC("lazysync"), MDBX_NOSYNC},
+    {BER_BVC("lazysync"), MDBX_SAFE_NOSYNC},
     {BER_BVC("nometasync"), MDBX_NOMETASYNC},
     {BER_BVC("writemap"), MDBX_WRITEMAP},
     {BER_BVC("mapasync"), MDBX_MAPASYNC},
@@ -175,7 +175,7 @@ static void *mdb_checkpoint(void *ctx, void *arg) {
   struct mdb_info *mdb = rtask->arg;
   (void)ctx;
 
-  mdbx_env_sync(mdb->mi_dbenv, 1);
+  mdbx_env_sync(mdb->mi_dbenv);
   ldap_pvt_thread_mutex_lock(&slapd_rq.rq_mutex);
   ldap_pvt_runqueue_stoptask(&slapd_rq, rtask);
   ldap_pvt_thread_mutex_unlock(&slapd_rq.rq_mutex);

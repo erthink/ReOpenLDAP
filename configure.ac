@@ -34,14 +34,9 @@ A copy of this license is available in the file LICENSE in the
 top-level directory of the distribution or, alternatively, at
 <http://www.OpenLDAP.org/license.html>.]])
 
-AC_PREREQ([2.69])dnl Required Autoconf version
+AC_PREREQ([2.71])dnl Required Autoconf version
 AC_REVISION([$Id: 8c9139400f1cfd3f68bc9b65828515fe85e91ee1 $])
-AC_INIT(
-	[m4_esyscmd_s(build/BRANDING --package)],
-	[m4_esyscmd_s(build/BRANDING --version-full)],
-	[m4_esyscmd_s(build/BRANDING --bugs)],
-	[m4_esyscmd_s(build/BRANDING --tarname)],
-	[m4_esyscmd_s(build/BRANDING --url)])
+AC_INIT([m4_esyscmd_s(build/BRANDING --package)],[m4_esyscmd_s(build/BRANDING --version-full)],[m4_esyscmd_s(build/BRANDING --bugs)],[m4_esyscmd_s(build/BRANDING --tarname)],[m4_esyscmd_s(build/BRANDING --url)])
 AC_CONFIG_MACRO_DIR([build/m4])
 dnl ----------------------------------------------------------------
 dnl OpenLDAP Autoconf Macros
@@ -145,17 +140,15 @@ AC_ARG_VAR(EXTRA_CFLAGS, [Extra build-time CFLAGS, e.g. -Wall -Werror.
 AC_PREFIX_DEFAULT("/opt/reopenldap")
 
 dnl ----------------------------------------------------------------
-AC_PROG_CC([gcc clang icc cc])
+AC_PROG_CC([gcc clang cc])
 if test "${ac_cv_prog_cc_stdc}" = no ; then
 	AC_MSG_ERROR([ReOpenLDAP requires compiler to support STDC constructs.])
 fi
-
-AC_PROG_CC_C99
 if test "$ac_cv_prog_cc_c99" = no; then
 	AC_MSG_ERROR([ReOpenLDAP requires compiler to support C99 constructs.])
 fi
 
-AC_PROG_CXX([g++ clang++ icpc c++])
+AC_PROG_CXX([g++ clang++ c++])
 AC_PROG_CPP
 AC_PROG_INSTALL
 AC_PROG_LN_S
@@ -2270,7 +2263,6 @@ AC_CHECK_TYPE([sig_atomic_t],,
 
 AC_TYPE_UID_T
 
-AC_HEADER_TIME
 AC_STRUCT_TM
 AC_CHECK_MEMBERS([struct stat.st_blksize])
 AC_CHECK_MEMBERS([struct passwd.pw_gecos],,,[$ac_includes_default

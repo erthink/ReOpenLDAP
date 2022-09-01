@@ -801,7 +801,6 @@ int handle_private_option(int i) {
 
         if (freeval) {
           c[nctrls - 1].ldctl_value = value;
-
         } else {
           ber_dupbv(&c[nctrls - 1].ldctl_value, &value);
         }
@@ -827,10 +826,8 @@ int handle_private_option(int i) {
   case 'l': /* time limit */
     if (strcasecmp(optarg, "none") == 0) {
       timelimit = 0;
-
     } else if (strcasecmp(optarg, "max") == 0) {
       timelimit = LDAP_MAXINT;
-
     } else {
       ival = strtol(optarg, &next, 10);
       if (next == NULL || next[0] != '\0') {
@@ -882,10 +879,8 @@ int handle_private_option(int i) {
   case 'z': /* size limit */
     if (strcasecmp(optarg, "none") == 0) {
       sizelimit = 0;
-
     } else if (strcasecmp(optarg, "max") == 0) {
       sizelimit = LDAP_MAXINT;
-
     } else {
       ival = strtol(optarg, &next, 10);
       if (next == NULL || next[0] != '\0') {

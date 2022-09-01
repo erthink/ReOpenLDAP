@@ -450,7 +450,7 @@ int mdb_idl_insert_keys(BackendDB *be, MDBX_cursor *cursor, struct berval *keys,
             hi = id;
           }
           /* delete the old key */
-          rc = mdbx_cursor_del(cursor, MDBX_NODUPDATA);
+          rc = mdbx_cursor_del(cursor, MDBX_ALLDUPS);
           if (rc != 0) {
             err = "c_del dups";
             goto fail;
@@ -1186,11 +1186,9 @@ unsigned mdb_id2l_search(ID2L ids, ID id) {
 
     if (val < 0) {
       n = pivot;
-
     } else if (val > 0) {
       base = cursor;
       n -= pivot + 1;
-
     } else {
       return cursor;
     }

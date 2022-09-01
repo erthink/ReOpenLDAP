@@ -940,6 +940,7 @@ int main(int argc, char **argv) {
   if (!no_detach) {
     int ignore __maybe_unused = write(waitfds[1], "1", 1);
     close(waitfds[1]);
+    ldap_debug_mask = 0;
   }
 
   rc = slapd_daemon();

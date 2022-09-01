@@ -75,6 +75,7 @@ servers/slapd/back-mdb/mdbx_copy
 servers/slapd/back-mdb/mdbx_dump
 servers/slapd/back-mdb/mdbx_load
 servers/slapd/back-mdb/mdbx_stat
+servers/slapd/back-mdb/mdbx_drop
 servers/slapd/builtin.c
 servers/slapd/shell-backends/passwd-shell
 servers/slapd/slapacl

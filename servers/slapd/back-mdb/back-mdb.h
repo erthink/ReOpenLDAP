@@ -18,6 +18,8 @@
 
 #include <reldap.h>
 #include "slap.h"
+
+#define MDBX_DEPRECATED
 #include "mdbx.h"
 
 #ifndef mdbx_cmp2int

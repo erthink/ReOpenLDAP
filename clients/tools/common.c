@@ -774,7 +774,7 @@ void tool_args(int argc, char **argv) {
 
           if (retcode == -1 || (unsigned)retcode > bv.bv_len) {
             fprintf(stderr, "Unable to parse value of general control %s\n",
-                    control);
+                    cvalue);
             usage();
           }
 
