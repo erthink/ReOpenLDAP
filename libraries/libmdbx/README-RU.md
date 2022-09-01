@@ -91,7 +91,7 @@ _libmdbx_ является результатом переработки и ра
 Memory-Mapped Database", известной под аббревиатурой
 [LMDB](https://en.wikipedia.org/wiki/Lightning_Memory-Mapped_Database).
 Изначально доработка производилась в составе проекта
-[ReOpenLDAP](https://github.com/leo-yuriev/ReOpenLDAP). Примерно за год
+[ReOpenLDAP](https://gitflic.ru/project/erthink/reopenldap). Примерно за год
 работы внесенные изменения приобрели самостоятельную ценность. Осенью
 2015 доработанный движок был выделен в отдельный проект, который был
 [представлен на конференции Highload++

@@ -1,7 +1,7 @@
 %global systemctl_bin /usr/bin/systemctl
 %define packaging_dir contrib/packaging/CentOS/7
-%global owner_ssh %(git config --get remote.origin.url | sed -n -e 's!^git@github.com:\\(.*\\)\\/.*$!\\1!p')
-%global owner_https %(git config --get remote.origin.url | sed -n -e 's!^https://github.com/\\(.*\\)\\/.*$!\\1!p')
+%global owner_ssh %(git config --get remote.origin.url | sed -n -e 's!^git@gitflic.ru:\\(.*\\)\\/.*$!\\1!p')
+%global owner_https %(git config --get remote.origin.url | sed -n -e 's!^https://gitflic.ru/project/\\(.*\\)\\/.*$!\\1!p')
 %global owner %{owner_ssh}%{owner_https}
 %global commit0 %(git log -n 1 --pretty=format:"%H")
 %global gittag0 %(git describe --abbrev=0 --tags)
@@ -15,8 +15,8 @@ Summary:	The fork of OpenLDAP with a few new features (mostly for highload and m
 
 Group:		System Environment/Daemons
 License:	AGPLv3
-URL:		https://github.com/%{owner}/ReOpenLDAP
-Source0:	https://github.com/%{owner}/%{name}/archive/%{commit0}.tar.gz
+URL:		https://gitflic.ru/project/%{owner}/reopenldap.git
+Source0:	https://gitflic.ru/project/%{owner}/reopenldap/file/downloadAll?commit=%{commit0}
 
 BuildRequires:	cyrus-sasl-devel, krb5-devel, tcp_wrappers-devel, unixODBC-devel libuuid-devel elfutils-libelf-devel
 BuildRequires:	glibc-devel, libtool, libtool-ltdl-devel, groff, perl, perl-devel, perl(ExtUtils::Embed)
@@ -27,7 +27,7 @@ Requires:	rpm, coreutils, nss-tools
 %description
 The fork of OpenLDAP with a few new features (mostly for highload and multi-master clustering), additional bug fixing and code quality improvement.
 
-# Disabled due to request: https://github.com/leo-yuriev/ReOpenLDAP/pull/145#issuecomment-358626660
+# Disabled due to request: todo4recovery://erased_by_github/erthink/ReOpenLDAP/pull/145#issuecomment-358626660
 #%package devel
 #Summary: LDAP development libraries and header files
 #Group: Development/Libraries
@@ -220,7 +220,7 @@ rm -f %{buildroot}%{_libdir}/reopenldap/*.la
 rm -f %{buildroot}%{_mandir}/man5/ldif.5*
 rm -f %{buildroot}%{_mandir}/man5/ldap.conf.5*
 
-# Disabled due to request: https://github.com/leo-yuriev/ReOpenLDAP/pull/145#issuecomment-358626660
+# Disabled due to request: todo4recovery://erased_by_github/erthink/ReOpenLDAP/pull/145#issuecomment-358626660
 # devel
 rm -f %{buildroot}%{_includedir}/reopenldap/*
 rm -f %{buildroot}%{_mandir}/man3/*
@@ -395,7 +395,7 @@ exit 0
 %{_mandir}/ru/man1/*
 %ghost %config(noreplace,missingok) %attr(0640,ldap,ldap) %{_sysconfdir}/reopenldap/slapd.conf
 
-# https://github.com/leo-yuriev/ReOpenLDAP/pull/145#issuecomment-358626660
+# todo4recovery://erased_by_github/erthink/ReOpenLDAP/pull/145#issuecomment-358626660
 #%files devel
 #%{_includedir}/reopenldap/*
 #%{_mandir}/man3/*
@@ -404,4 +404,4 @@ exit 0
 %changelog
 * Fri May 19 2017 Sergey Pechenko <s.pechenko@uiscom.ru> - 1.1.5-641ffb2.1
 - Initial bootstrapping ReOpenLDAP RPM specfile release. Based on contribution by Ivan Viktorov 
-(https://github.com/ReOpen/ReOpenLDAP/issues/33#issuecomment-249861076)
+(todo4recovery://erased_by_github/erthink/ReOpenLDAP/issues/33#issuecomment-249861076)

@@ -5,7 +5,7 @@ It's simplest way to test ReOpenLdap with Docker. You can build you own image or
 Clone the ReOpenLdap repository:
 
 ```bash
-git clone https://github.com/ReOpen/ReOpenLDAP.git
+git clone https://gitflic.ru/project/erthink/reopenldap.git
 cd ReOpenLDAP
 docker build -t reopenldap ./contrib/docker
 ```

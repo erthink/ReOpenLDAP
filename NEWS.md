@@ -4,7 +4,7 @@ v1.1.10 2018-09-26, Golden Bull
 ## Briefly:
  1. Prevention mdb-backend database corruption.
 
-    > Corresponding [rebalance bug](https://github.com/leo-yuriev/libmdbx/issues/38) inheritred from LMDB/OpenLDAP.
+    > Corresponding [rebalance bug](todo4recovery://erased_by_github/erthink/libmdbx/issues/38) inheritred from LMDB/OpenLDAP.
     > Now it completely fixed in the `devel` branch and future ReOpenLDAP 1.2.x versions,
     > where the new _libmdbx_ version is used.
     >

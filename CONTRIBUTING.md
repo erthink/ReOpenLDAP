@@ -13,7 +13,7 @@ Before contribute please see the LICENSE file included in the
 root directory of the source tree for extended license details.
 
 In general to contribute ReOpenLDAP you should accept both [AGPL](https://en.wikipedia.org/wiki/GNU_Affero_General_Public_License)
-and [OpenLDAP Public Licens](https://raw.github.com/leo-yuriev/ReOpenLDAP/master/LICENSE)
+and [OpenLDAP Public Licens](https://gitflic.ru/project/erthink/reopenldap/blob/raw?file=LICENSE)
 terms for contributions.
 
 

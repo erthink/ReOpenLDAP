@@ -388,7 +388,7 @@ default
 .B slapd
 configuration file
 .SH SEE ALSO
-.BR libmdbx (https://github.com/leo-yuriev/libmdbx/README.md),
+.BR libmdbx (https://gitflic.ru/project/erthink/libmdbx),
 .BR slapd.conf (5),
 .BR slapd\-config (5),
 .BR slapd (8),

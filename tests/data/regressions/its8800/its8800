@@ -176,7 +176,7 @@ for ((n=2; n<=$MMR; n++)); do
 	if test $RC != 0 ; then
 		echo "ERROR: Final LDIF files differ"
 		[ -n "$ITS8800_IGNORE_REASON" ] \
-			&& echo "$ITS8800_IGNORE_REASON: Ignore 8800 failure due a known https://github.com/leo-yuriev/ReOpenLDAP/issues/121" \
+			&& echo "$ITS8800_IGNORE_REASON: Ignore 8800 failure due a known todo4recovery://erased_by_github/erthink/ReOpenLDAP/issues/121" \
 		|| exit $RC
 	fi
 done

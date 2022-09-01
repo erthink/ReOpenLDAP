@@ -981,7 +981,7 @@ int ldap_back_monitor_db_close(BackendDB *be) {
     if (mss) {
       /* LY: Disallow opening from monitor-backend side,
        * untils ldap_back_monitor_destroy() will be called.
-       * Workaround for https://github.com/leo-yuriev/ReOpenLDAP/issues/15 */
+       * Workaround for todo4recovery://erased_by_github/erthink/ReOpenLDAP/issues/15 */
       mss[0].mss_open = ldap_back_monitor_conn_reject;
       mss[1].mss_open = ldap_back_monitor_conn_reject;
     }

@@ -19,8 +19,8 @@ failure() {
 }
 
 PACKAGE=ReOpenLDAP
-PACKAGE_URL="https://github.com/leo-yuriev/ReOpenLDAP/wiki"
-PACKAGE_BUGREPORT="https://github.com/leo-yuriev/ReOpenLDAP/issues"
+PACKAGE_URL="https://gitflic.ru/project/erthink/reopenldap/wiki"
+PACKAGE_BUGREPORT="https://gitflic.ru/project/erthink/reopenldap/issue"
 
 RELEASE_TYPE=Devel
 

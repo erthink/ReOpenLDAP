@@ -101,7 +101,7 @@ here.
 The _libmdbx_ design is based on [Lightning Memory-Mapped
 Database](https://en.wikipedia.org/wiki/Lightning_Memory-Mapped_Database).
 Initial development was going in
-[ReOpenLDAP](https://github.com/leo-yuriev/ReOpenLDAP) project, about a
+[ReOpenLDAP](https://gitflic.ru/project/erthink/reopenldap) project, about a
 year later it received separate development effort and in autumn 2015
 was isolated to separate project, which was [presented at Highload++
 2015 conference](http://www.highload.ru/2015/abstracts/1831.html).

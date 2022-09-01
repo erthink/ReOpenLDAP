@@ -31,7 +31,7 @@ package file paths, you could use this command:
   Specfile initially has been contributed by Ivan Viktorov
   (https://github.com/Ivan-Viktorov) as a comment on issue #34
   of original project
-  (https://github.com/ReOpen/ReOpenLDAP/issues/33#issuecomment-249861076).
+  (todo4recovery://erased_by_github/erthink/ReOpenLDAP/issues/33#issuecomment-249861076).
 
   Tune-up and bootsrapping has been implemented by
   Sergey Pechenko (https://github.com/tnt4brain/ReOpenLDAP/tree/devel)

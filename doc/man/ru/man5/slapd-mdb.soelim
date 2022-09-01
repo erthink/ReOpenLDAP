@@ -340,7 +340,7 @@ slapd\-mdb \- механизм манипуляции данными для slap
 .B slapd
 по умолчанию.
 .SH СМОТРИТЕ ТАКЖЕ
-.BR libmdbx (https://github.com/leo-yuriev/libmdbx/README-RU.md),
+.BR libmdbx (https://gitflic.ru/project/erthink/libmdbx),
 .BR slapd.conf (5),
 .BR slapd\-config (5),
 .BR slapd (8),

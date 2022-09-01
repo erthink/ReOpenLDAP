@@ -1,5 +1,5 @@
 - [ ] reimplement: ITS#8054 add queue time to log (a0cc1d9655da112a4d19cddf821460a4dedeed1c)
 - [ ] test: test066-autoca
-- [ ] fix: https://github.com/leo-yuriev/ReOpenLDAP/issues/121 and https://github.com/leo-yuriev/ReOpenLDAP/issues/102 (seems the same)
+- [ ] fix: todo4recovery://erased_by_github/erthink/ReOpenLDAP/issues/121 and todo4recovery://erased_by_github/erthink/ReOpenLDAP/issues/102 (seems the same)
 - [ ] test: use gdb as supervisor
 - [ ] ci: more for Travis-CI and https://circleci.com/
