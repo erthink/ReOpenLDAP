@@ -13,8 +13,6 @@ Production-ready replacement for OpenLDAP on Linux:
  - Clean build without warnings from modern compilers.
  - But only Linux supported, e.g no Windows, Mac OS, FreeBSD, Solaris or HP-UX.
 
-[![Build Status](https://travis-ci.org/leo-yuriev/ReOpenLDAP.svg?branch=devel)](https://travis-ci.org/leo-yuriev/ReOpenLDAP)[![CircleCI](https://circleci.com/gh/leo-yuriev/ReOpenLDAP/tree/devel.svg?style=svg)](https://circleci.com/gh/leo-yuriev/ReOpenLDAP/tree/devel)
-
 ##### ReOpenLDAP is currently running in telcos across Russia:
  * Several clusters in full mesh multi-master replication topology, mostly with four nodes as a two geographically distributed pairs.
  * Up to 100 million records and up to 100 GB of data on each node.

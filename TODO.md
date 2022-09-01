@@ -2,4 +2,3 @@
 - [ ] test: test066-autoca
 - [ ] fix: todo4recovery://erased_by_github/erthink/ReOpenLDAP/issues/121 and todo4recovery://erased_by_github/erthink/ReOpenLDAP/issues/102 (seems the same)
 - [ ] test: use gdb as supervisor
-- [ ] ci: more for Travis-CI and https://circleci.com/
