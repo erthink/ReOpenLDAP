@@ -49,9 +49,7 @@ libmdbx_la_SOURCES = ../../../libraries/libmdbx/mdbx.c
 
 EXTRA_DIST = ../../../libraries/libmdbx/LICENSE \
 	../../../libraries/libmdbx/README.md \
-	../../../libraries/libmdbx/mdbx.h \
-	../../../libraries/libmdbx/AUTHORS \
-	../../../libraries/libmdbx/.clang-format
+	../../../libraries/libmdbx/mdbx.h
 
 dist_man_MANS = \
 	../../../libraries/libmdbx/man1/mdbx_chk.1 \
