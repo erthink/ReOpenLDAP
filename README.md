@@ -38,10 +38,37 @@ due to replication troubles, inadequate performance or high risk of a crash.
 Therefore ReopenLDAP also known as "TelcoLDAP" - the telco-oriented fork of OpenLDAP.
 
 
+Краткая история
+---------------
+
+ReOpenLDAP был создан в 2015 году для решения проблем, возникших при использовании оригинального
+[OpenLDAP](https://ru.wikipedia.org/wiki/OpenLDAP) в инфраструктуре [ПАО «МегаФон»](https://corp.megafon.ru/),
+где LDAP-сервер был задействован в одной из подсистем инфраструктуры.
+
+ > NGDR представляет собой UDR (User Data Repository), согласно стандарту [3GPP 23.335](https://portal.3gpp.org/desktopmodules/Specifications/SpecificationDetails.aspx?specificationId=845),
+ > и является централизованным узлом для хранения данных обо всех видах услуг абонентов
+ > в ИТ-инфраструктуре оператора связи.
+
+Подобное применение предполагало промышленную эксплуатацию в режиме 24×7 специфического LDAP-каталога,
+размером 10-100 миллионов записей, в высоконагруженном сценарии (до 10К обновлений и до 50К чтений в секунду),
+и в топологии мульти-мастер.
+
+Можно сказать, что ReOpenLDAP появился вынужденно, в результате как некачественности родительского OpenLDAP,
+так и отказа принимать исправления. Symas Corp, как основные разработчики, коммитеры и владельцы кода OpenLDAP,
+не смогли решить возникшие проблемы, поэтому было решено попробовать сделать это самостоятельно.
+
+Как впоследствии выяснилось, ошибок в коде было кратно больше, чем можно было предполагать.
+Поэтому было затрачено больше усилий чем планировалось, а ReOpenLDAP по-прежнему представляет
+определённую ценность и (по имеющейся информации) является единственным LDAP-сервером,
+полноценно и надёжно поддерживающим мульти-мастер топологию для RFC-4533, в том числе в высоконагруженных сценариях.
+
+
 Features and Change List
 ------------------------
 
-Below is a list of main new features of ReOpenLDAP, for a description ones please see the corresponding man pages after installation, i.e. `man --manpath=CONFIGURED_PREFIX/share/man slapd.conf`.
+Below is a list of main new features of ReOpenLDAP,
+for a description ones please see the corresponding man pages after installation,
+i.e. `man --manpath=CONFIGURED_PREFIX/share/man slapd.conf`.
 
 For latest news and changes please refer to the [NEWS.md](NEWS.md) and [ChangeLog](ChangeLog).
 
@@ -65,7 +92,8 @@ List of changes emerged from OpenLDAP project could be seen in the [CHANGES.Open
 Installation
 ------------
 
-Traditional triade `./configure --prefix=YOUR_INSTALLATION_PREFIX YOUR_OPTIONS` && `make` && `make install`. However the `configure` will absent, in case you use development or a snapshot versions,
+Traditional triade `./configure --prefix=YOUR_INSTALLATION_PREFIX YOUR_OPTIONS` && `make` && `make install`.
+However the `configure` will absent, in case you use development or a snapshot versions,
 so you need run the `./bootstrap` to build them.
 
 For more information please see [INSTALL](INSTALL).
