@@ -675,7 +675,7 @@ int mdb_opinfo_get(Operation *op, struct mdb_info *mdb, int rdonly,
         int flag = 0;
 #ifdef SLAP_CONTROL_X_LAZY_COMMIT
         if (get_lazyCommit(op))
-          flag |= MDBX_NOSYNC; /* LY: TODO LAZY-SYNC */
+          flag |= MDBX_SAFE_NOSYNC;
 #endif                         /* SLAP_CONTROL_X_LAZY_COMMIT */
         rc = mdbx_txn_begin(mdb->mi_dbenv, NULL, flag, &moi->moi_txn);
         if (rc) {
