@@ -1,0 +1,107 @@
+bcrypt ReOpenLDAP support
+----------------------
+bcrypt.c provides support for bcrypt password hashes in ReOpenLDAP.
+
+About bcrypt
+------------
+Bcrypt is a modern password hashing method, based on the Blowfish block cipher.
+It is designed by Niels Provos and David Mazieres, and is used in OpenBSD.
+
+From Wikipedia:
+Besides incorporating a salt to protect against rainbow table attacks, bcrypt is
+an adaptive function: over time, the iteration count can be increased to make it
+slower, so it remains resistant to brute-force search attacks even with
+increasing computation power. (See 'Choosing a work factor' below.)
+
+A bcrypt hash in ReOpenLDAP looks like this:
+
+{BCRYPT}$2b$08$eSLWg21V/YvYvHYoWXFaKutal4LcolDv6.K/zgGmPJhDdytkb4yOe
+
+- {BCRYPT} is the name of the scheme
+- $2b$ means it will always use the 'safe', modern version of the algorithm, as
+  discussed in http://www.openwall.com/lists/announce/2011/07/17/1
+  The original safe version had the $2y$ prefix. OpenBSD 5.5+ has a different
+  prefix for the same thing, which is $2b$ so we prefer that.
+  See also http://www.openwall.com/lists/announce/2014/08/31/1
+- 08 is the work factor (this is the default)
+- Next is 16 bytes of random salt
+- The rest is the actual hash
+
+The work factor defines the number of rounds, and is a base 2 logarithm. So going
+from work factor 8 to 9 means the hash takes twice as much time to generate
+(and crack).
+
+Building
+--------
+1) Build and install ReOpenLDAP itself from the root of the distribution or
+from a git checkout
+
+$ ./configure --prefix=/usr/local --enable-contrib [other options you want]
+$ make depend
+$ make
+$ sudo make install
+
+2) Optional: Customize your setup
+
+Prefix
+The default prefix is /usr/local which means the module will be installed in
+/usr/local/lib/reopenldap. If you want to change that, edit the 'prefix'
+variable in the Makefile. It is probably best to set this to whatever you set
+the --prefix to in step 1.
+
+Work factor
+The default work factor used by OpenBSD for regular user passwords is 8. It is
+also the default used by this module. The work factor can be set in slapd.conf
+but you can also change the default work factor in the code by editing
+bcrypt.c: just set BCRYPT_DEFAULT_WORKFACTOR to the value you want.
+
+The work factor must be between 4 (very fast, not very safe) and 31 (insane,
+completely unusable; this will basically lock up the server).
+
+No matter what the work factor is set to in the code or in the configuration
+file, you will always be able to validate existing passwords that were hashed
+with different work factors.
+
+3) Edit your slapd.conf, and add:
+
+moduleload    contrib-pw-bcrypt.so WORKFACTOR
+(or wherever you ended up putting your module)
+
+The WORKFACTOR argument can be omitted, in which case slapd will use the default
+of 8 or whatever you set it to in step 3.
+
+If you want all your new hashes to use bcrypt (in Password Modify Extended
+Operations), set this in your slapd.conf:
+
+password-hash   {BCRYPT}
+
+However, make sure that all LDAP servers in your environment have the module
+loaded before you do this, otherwise your users will not be able to authenticate.
+
+6) Restart slapd.
+
+Testing
+-------
+Use slappasswd to generate some hashes.
+
+$ slappasswd -h '{BCRYPT}' -o module-load="<path-to-the-module>/contrib-pw-bcrypt.so" -s randompassword
+
+(Yes, the keyword here is 'module-load' with a - (dash). In slapd.conf the
+keyword is 'moduleload' without the dash.)
+
+Unfortunately, slappasswd does not allow providing any arguments to the module,
+so all hashes created with slappasswd will have the default work factor, which
+is 8 (or whatever you set it to in bcrypt.c if you edited that).
+
+Debugging
+---------
+To see what's going on, recompile with SLAPD_BCRYPT_DEBUG (use the commented-out
+DEFS in the Makefile), and then run slapd from the console:
+
+/usr/local/libexec/slapd -d
+
+WARNING: With debugging enabled, all passwords will be logged in plaintext!
+
+ACKNOWLEDGEMENT:
+This work is based on crypt_blowfish version 1.3 developed by Solar Designer,
+which is available at http://www.openwall.com/crypt/.

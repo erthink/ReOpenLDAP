@@ -322,6 +322,14 @@ contrib_mobiuniquemember_la_LDFLAGS = -module -export-dynamic \
 	-release $(API_LIB_RELEASE) -version-info $(API_LIB_VERSION)
 contrib_mobiuniquemember_la_SOURCES = mobiuniquemember/mobiuniquemember.c banner.c
 
+EXTRA_DIST += passwd/bcrypt/LICENSE passwd/bcrypt/README
+pkglib_LTLIBRARIES += contrib-pw-bcrypt.la
+contrib_pw_bcrypt_la_CFLAGS = -funroll-loops $(AM_CFLAGS)
+contrib_pw_bcrypt_la_LDFLAGS = -module -export-dynamic \
+	-release $(API_LIB_RELEASE) -version-info $(API_LIB_VERSION)
+contrib_pw_bcrypt_la_SOURCES = passwd/bcrypt/bcrypt.c \
+	passwd/bcrypt/crypt_blowfish.c passwd/bcrypt/crypt_blowfish.h
+
 MAINT_CHARSET = utf8
 SUFFIXES = .soelim .man.in .man
 EXTRA_DIST += $(man_links)
