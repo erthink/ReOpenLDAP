@@ -1,7 +1,7 @@
 ﻿/// \file mdbx.h++
 /// \brief The libmdbx C++ API header file.
 ///
-/// \author Copyright (c) 2020-2022, Leonid Yuriev <leo@yuriev.ru>.
+/// \author Copyright (c) 2020-2023, Leonid Yuriev <leo@yuriev.ru>.
 /// \copyright SPDX-License-Identifier: Apache-2.0
 ///
 /// Tested with:
@@ -223,9 +223,10 @@
 #endif /* MDBX_CXX20_UNLIKELY */
 
 #ifndef MDBX_HAVE_CXX20_CONCEPTS
-#if defined(DOXYGEN) ||                                                        \
-    (defined(__cpp_lib_concepts) && __cpp_lib_concepts >= 202002L)
+#if defined(__cpp_lib_concepts) && __cpp_lib_concepts >= 202002L
 #include <concepts>
+#define MDBX_HAVE_CXX20_CONCEPTS 1
+#elif defined(DOXYGEN)
 #define MDBX_HAVE_CXX20_CONCEPTS 1
 #else
 #define MDBX_HAVE_CXX20_CONCEPTS 0
@@ -233,7 +234,7 @@
 #endif /* MDBX_HAVE_CXX20_CONCEPTS */
 
 #ifndef MDBX_CXX20_CONCEPT
-#if MDBX_HAVE_CXX20_CONCEPTS
+#if MDBX_HAVE_CXX20_CONCEPTS || defined(DOXYGEN)
 #define MDBX_CXX20_CONCEPT(CONCEPT, NAME) CONCEPT NAME
 #else
 #define MDBX_CXX20_CONCEPT(CONCEPT, NAME) typename NAME
@@ -241,7 +242,7 @@
 #endif /* MDBX_CXX20_CONCEPT */
 
 #ifndef MDBX_ASSERT_CXX20_CONCEPT_SATISFIED
-#if MDBX_HAVE_CXX20_CONCEPTS
+#if MDBX_HAVE_CXX20_CONCEPTS || defined(DOXYGEN)
 #define MDBX_ASSERT_CXX20_CONCEPT_SATISFIED(CONCEPT, TYPE)                     \
   static_assert(CONCEPT<TYPE>)
 #else
@@ -287,7 +288,7 @@ namespace mdbx {
 // To enable all kinds of an compiler optimizations we use a byte-like type
 // that don't presumes aliases for pointers as does the `char` type and its
 // derivatives/typedefs.
-// Please see todo4recovery://erased_by_github/libmdbx/issues/263
+// Please see https://libmdbx.dqdkfa.ru/dead-github/issues/263
 // for reasoning of the use of `char8_t` type and switching to `__restrict__`.
 using byte = char8_t;
 #else
@@ -551,8 +552,11 @@ static MDBX_CXX14_CONSTEXPR size_t check_length(size_t headroom, size_t payload,
 /// \defgroup cxx_data slices and buffers
 /// @{
 
-#if MDBX_HAVE_CXX20_CONCEPTS
+#if MDBX_HAVE_CXX20_CONCEPTS || defined(DOXYGEN)
 
+/** \concept MutableByteProducer
+ *  \interface MutableByteProducer
+ *  \brief MutableByteProducer C++20 concept */
 template <typename T>
 concept MutableByteProducer = requires(T a, char array[42]) {
   { a.is_empty() } -> std::same_as<bool>;
@@ -560,6 +564,9 @@ concept MutableByteProducer = requires(T a, char array[42]) {
   { a.write_bytes(&array[0], size_t(42)) } -> std::same_as<char *>;
 };
 
+/** \concept ImmutableByteProducer
+ *  \interface ImmutableByteProducer
+ *  \brief ImmutableByteProducer C++20 concept */
 template <typename T>
 concept ImmutableByteProducer = requires(const T &a, char array[42]) {
   { a.is_empty() } -> std::same_as<bool>;
@@ -567,6 +574,9 @@ concept ImmutableByteProducer = requires(const T &a, char array[42]) {
   { a.write_bytes(&array[0], size_t(42)) } -> std::same_as<char *>;
 };
 
+/** \concept SliceTranscoder
+ *  \interface SliceTranscoder
+ *  \brief SliceTranscoder C++20 concept */
 template <typename T>
 concept SliceTranscoder = ImmutableByteProducer<T> &&
     requires(const slice &source, const T &a) {
@@ -2639,7 +2649,7 @@ public:
     return buffer(src, make_reference);
   }
 
-  static buffer key_from(const silo &&src) noexcept {
+  static buffer key_from(silo &&src) noexcept {
     return buffer(::std::move(src));
   }
 
@@ -3106,10 +3116,12 @@ public:
     operate_parameters(const operate_parameters &) noexcept = default;
     MDBX_CXX14_CONSTEXPR operate_parameters &
     operator=(const operate_parameters &) noexcept = default;
-    MDBX_env_flags_t
-    make_flags(bool accede = true, ///< \copydoc MDBX_ACCEDE
-               bool use_subdirectory =
-                   false ///< use subdirectory to place the DB files
+    MDBX_env_flags_t make_flags(
+        bool accede = true, ///< Allows accepting incompatible operating options
+                            ///< in case the database is already being used by
+                            ///< another process(es) \see MDBX_ACCEDE
+        bool use_subdirectory =
+            false ///< use subdirectory to place the DB files
     ) const;
     static env::mode mode_from_flags(MDBX_env_flags_t) noexcept;
     static env::durability durability_from_flags(MDBX_env_flags_t) noexcept;
@@ -3177,6 +3189,7 @@ public:
     /// \brief Returns the minimal values size in bytes for specified values
     /// mode.
     static inline size_t value_min(value_mode) noexcept;
+
     /// \brief Returns the maximal value size in bytes for specified page size
     /// and database flags.
     static inline size_t value_max(intptr_t pagesize, MDBX_db_flags_t flags);
@@ -3189,6 +3202,35 @@ public:
     /// \brief Returns the maximal value size in bytes for specified page size
     /// and values mode.
     static inline size_t value_max(const env &, value_mode);
+
+    /// \brief Returns maximal size of key-value pair to fit in a single page
+    /// for specified size and database flags.
+    static inline size_t pairsize4page_max(intptr_t pagesize,
+                                           MDBX_db_flags_t flags);
+    /// \brief Returns maximal size of key-value pair to fit in a single page
+    /// for specified page size and values mode.
+    static inline size_t pairsize4page_max(intptr_t pagesize, value_mode);
+    /// \brief Returns maximal size of key-value pair to fit in a single page
+    /// for given environment and database flags.
+    static inline size_t pairsize4page_max(const env &, MDBX_db_flags_t flags);
+    /// \brief Returns maximal size of key-value pair to fit in a single page
+    /// for specified page size and values mode.
+    static inline size_t pairsize4page_max(const env &, value_mode);
+
+    /// \brief Returns maximal data size in bytes to fit in a leaf-page or
+    /// single overflow/large-page for specified size and database flags.
+    static inline size_t valsize4page_max(intptr_t pagesize,
+                                          MDBX_db_flags_t flags);
+    /// \brief Returns maximal data size in bytes to fit in a leaf-page or
+    /// single overflow/large-page for specified page size and values mode.
+    static inline size_t valsize4page_max(intptr_t pagesize, value_mode);
+    /// \brief Returns maximal data size in bytes to fit in a leaf-page or
+    /// single overflow/large-page for given environment and database flags.
+    static inline size_t valsize4page_max(const env &, MDBX_db_flags_t flags);
+    /// \brief Returns maximal data size in bytes to fit in a leaf-page or
+    /// single overflow/large-page for specified page size and values mode.
+    static inline size_t valsize4page_max(const env &, value_mode);
+
     /// \brief Returns the maximal write transaction size (i.e. limit for
     /// summary volume of dirty pages) in bytes for specified page size.
     static inline size_t transaction_size_max(intptr_t pagesize);
@@ -3420,7 +3462,7 @@ public:
                               /// transactions since the current read
                               /// transaction started.
     size_t bytes_used; ///< The number of last used page in the MVCC-snapshot
-                       ///< which being read, i.e. database file can't shrinked
+                       ///< which being read, i.e. database file can't be shrunk
                        ///< beyond this.
     size_t bytes_retained; ///< The total size of the database pages that
                            ///< were retired by committed write transactions
@@ -3561,7 +3603,7 @@ public:
   void close(bool dont_sync = false);
 
   env_managed(env_managed &&) = default;
-  env_managed &operator=(env_managed &&other) {
+  env_managed &operator=(env_managed &&other) noexcept {
     if (MDBX_UNLIKELY(handle_))
       MDBX_CXX20_UNLIKELY {
         assert(handle_ != other.handle_);
@@ -3860,7 +3902,7 @@ class LIBMDBX_API_TYPE txn_managed : public txn {
 public:
   MDBX_CXX11_CONSTEXPR txn_managed() noexcept = default;
   txn_managed(txn_managed &&) = default;
-  txn_managed &operator=(txn_managed &&other) {
+  txn_managed &operator=(txn_managed &&other) noexcept {
     if (MDBX_UNLIKELY(handle_))
       MDBX_CXX20_UNLIKELY {
         assert(handle_ != other.handle_);
@@ -3875,12 +3917,31 @@ public:
 
   //----------------------------------------------------------------------------
 
-  /// \brief Abandon all the operations of the transaction instead of saving
-  /// them.
+  /// \brief Abandon all the operations of the transaction
+  /// instead of saving ones.
   void abort();
 
   /// \brief Commit all the operations of a transaction into the database.
   void commit();
+
+  using commit_latency = MDBX_commit_latency;
+
+  /// \brief Commit all the operations of a transaction into the database
+  /// and collect latency information.
+  void commit(commit_latency *);
+
+  /// \brief Commit all the operations of a transaction into the database
+  /// and collect latency information.
+  void commit(commit_latency &latency) { return commit(&latency); }
+
+  /// \brief Commit all the operations of a transaction into the database
+  /// and return latency information.
+  /// \returns latency information of commit stages.
+  commit_latency commit_get_latency() {
+    commit_latency result;
+    commit(&result);
+    return result;
+  }
 };
 
 /// \brief Unmanaged cursor.
@@ -4063,7 +4124,7 @@ public:
   void close();
 
   cursor_managed(cursor_managed &&) = default;
-  cursor_managed &operator=(cursor_managed &&other) {
+  cursor_managed &operator=(cursor_managed &&other) noexcept {
     if (MDBX_UNLIKELY(handle_))
       MDBX_CXX20_UNLIKELY {
         assert(handle_ != other.handle_);
@@ -4861,6 +4922,56 @@ inline size_t env::limits::value_max(const env &env, MDBX_db_flags_t flags) {
 
 inline size_t env::limits::value_max(const env &env, value_mode mode) {
   return value_max(env, MDBX_db_flags_t(mode));
+}
+
+inline size_t env::limits::pairsize4page_max(intptr_t pagesize,
+                                             MDBX_db_flags_t flags) {
+  const intptr_t result = mdbx_limits_pairsize4page_max(pagesize, flags);
+  if (result < 0)
+    MDBX_CXX20_UNLIKELY error::throw_exception(MDBX_EINVAL);
+  return static_cast<size_t>(result);
+}
+
+inline size_t env::limits::pairsize4page_max(intptr_t pagesize,
+                                             value_mode mode) {
+  return pairsize4page_max(pagesize, MDBX_db_flags_t(mode));
+}
+
+inline size_t env::limits::pairsize4page_max(const env &env,
+                                             MDBX_db_flags_t flags) {
+  const intptr_t result = mdbx_env_get_pairsize4page_max(env, flags);
+  if (result < 0)
+    MDBX_CXX20_UNLIKELY error::throw_exception(MDBX_EINVAL);
+  return static_cast<size_t>(result);
+}
+
+inline size_t env::limits::pairsize4page_max(const env &env, value_mode mode) {
+  return pairsize4page_max(env, MDBX_db_flags_t(mode));
+}
+
+inline size_t env::limits::valsize4page_max(intptr_t pagesize,
+                                            MDBX_db_flags_t flags) {
+  const intptr_t result = mdbx_limits_valsize4page_max(pagesize, flags);
+  if (result < 0)
+    MDBX_CXX20_UNLIKELY error::throw_exception(MDBX_EINVAL);
+  return static_cast<size_t>(result);
+}
+
+inline size_t env::limits::valsize4page_max(intptr_t pagesize,
+                                            value_mode mode) {
+  return valsize4page_max(pagesize, MDBX_db_flags_t(mode));
+}
+
+inline size_t env::limits::valsize4page_max(const env &env,
+                                            MDBX_db_flags_t flags) {
+  const intptr_t result = mdbx_env_get_valsize4page_max(env, flags);
+  if (result < 0)
+    MDBX_CXX20_UNLIKELY error::throw_exception(MDBX_EINVAL);
+  return static_cast<size_t>(result);
+}
+
+inline size_t env::limits::valsize4page_max(const env &env, value_mode mode) {
+  return valsize4page_max(env, MDBX_db_flags_t(mode));
 }
 
 inline size_t env::limits::transaction_size_max(intptr_t pagesize) {

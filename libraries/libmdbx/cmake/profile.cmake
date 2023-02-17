@@ -1,4 +1,4 @@
-##  Copyright (c) 2012-2022 Leonid Yuriev <leo@yuriev.ru>.
+##  Copyright (c) 2012-2023 Leonid Yuriev <leo@yuriev.ru>.
 ##
 ##  Licensed under the Apache License, Version 2.0 (the "License");
 ##  you may not use this file except in compliance with the License.
@@ -13,7 +13,9 @@
 ##  limitations under the License.
 ##
 
-if(CMAKE_VERSION VERSION_LESS 3.12)
+if(CMAKE_VERSION VERSION_LESS 3.8.2)
+  cmake_minimum_required(VERSION 3.0.2)
+elseif(CMAKE_VERSION VERSION_LESS 3.12)
   cmake_minimum_required(VERSION 3.8.2)
 else()
   cmake_minimum_required(VERSION 3.12)
