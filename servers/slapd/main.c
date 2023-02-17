@@ -940,7 +940,9 @@ int main(int argc, char **argv) {
   if (!no_detach) {
     int ignore __maybe_unused = write(waitfds[1], "1", 1);
     close(waitfds[1]);
+#ifdef LDAP_DEBUG
     ldap_debug_mask = 0;
+#endif /* LDAP_DEBUG */
   }
 
   rc = slapd_daemon();
