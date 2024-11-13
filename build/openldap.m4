@@ -398,7 +398,7 @@ AC_DEFUN([OL_BERKELEY_DB_VERSION],
 #ifndef NULL
 #define NULL ((void *)0)
 #endif
-main()
+int main()
 {
 #if DB_VERSION_MAJOR > 1
 	char *version;
@@ -447,7 +447,7 @@ AC_DEFUN([OL_BERKELEY_DB_THREAD],
 #ifndef NULL
 #define NULL ((void *)0)
 #endif
-main()
+int main()
 {
 	int rc;
 	u_int32_t flags = DB_CREATE |
@@ -794,7 +794,7 @@ AC_CACHE_CHECK([for compatible POSIX regex],ol_cv_c_posix_regex,[
 #include <sys/types.h>
 #include <regex.h>
 static char *pattern, *string;
-main()
+int main()
 {
 	int rc;
 	regex_t re;
@@ -821,7 +821,7 @@ AC_DEFUN([OL_C_UPPER_LOWER],
 [AC_CACHE_CHECK([if toupper() requires islower()],ol_cv_c_upper_lower,[
 	AC_RUN_IFELSE([AC_LANG_SOURCE([[
 #include <ctype.h>
-main()
+int main()
 {
 	if ('C' == toupper('C'))
 		exit(0);
