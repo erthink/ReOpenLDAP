@@ -965,7 +965,10 @@ dnl ----------------------------------------------------------------
 AC_CHECK_HEADERS( sys/epoll.h )
 if test "${ac_cv_header_sys_epoll_h}" = yes; then
 	AC_MSG_CHECKING(for epoll system call)
-	AC_RUN_IFELSE([AC_LANG_SOURCE([[int main(int argc, char **argv)
+	AC_RUN_IFELSE([AC_LANG_SOURCE([[
+#include <sys/epoll.h>
+#include <stdlib.h>
+int main(int argc, char **argv)
 {
 	int epfd = epoll_create(256);
 	exit (epfd == -1 ? 1 : 0);
