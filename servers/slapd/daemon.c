@@ -358,7 +358,7 @@ static slap_daemon_st slap_daemon[SLAPD_MAX_DAEMON_THREADS];
   } while (0)
 
 #elif defined(SLAP_X_DEVPOLL) && defined(HAVE_DEVPOLL)
-
+#error FIXME
 /*************************************************************
  * Use Solaris' (>= 2.7) /dev/poll infrastructure - poll(7d) *
  *************************************************************/
@@ -557,6 +557,7 @@ static slap_daemon_st slap_daemon[SLAPD_MAX_DAEMON_THREADS];
   } while (0)
 
 #else /* ! epoll && ! /dev/poll */
+#error FIXME
 
 /**************************************
  * Use select system call - select(2) *
@@ -643,7 +644,7 @@ static slap_daemon_st slap_daemon[SLAPD_MAX_DAEMON_THREADS];
 #define SLAP_EVENT_WAIT(t, tvp, nsp)                                           \
   do {                                                                         \
     *(nsp) = select(SLAP_EVENT_MAX(t), &readfds,                               \
-                    nwriters > 0 ? &writefds : NULL, NULL, (tvp));             \
+                    nwriters > 0 ? &writefds : NULL, NULL, /* FIXME */(tvp));  \
   } while (0)
 #endif /* ! epoll && ! /dev/poll */
 
