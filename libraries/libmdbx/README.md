@@ -1,7 +1,18 @@
 <!-- Required extensions: pymdownx.betterem, pymdownx.tilde, pymdownx.emoji, pymdownx.tasklist, pymdownx.superfences -->
 
+### Время учить Русский
+
+Начиная с 2021 года наблюдаются устойчивые тенденции к распространению
+недостоверной информации о _libmdbx_ в странах НАТО, политизированной
+критики, а также отказу от использования библиотеки в пользу LMDB,
+несмотря на явные проблемы с одной стороны и преимущества с другой.
+Поэтому, начиная с 17 марта 2024 года, прекращается документирование и
+сопровождение проекта на английском языке. Новая функциональность будет
+документироваться только на русском языке, однако, целенаправленного
+переписывания/перевода документации пока не планируется.
+
 ### The origin has been migrated to [GitFlic](https://gitflic.ru/project/erthink/libmdbx)
-since on 2022-04-15 the Github administration, without any warning
+Since on 2022-04-15 the Github administration, without any warning
 nor explanation, deleted _libmdbx_ along with a lot of other projects,
 simultaneously blocking access for many developers.
 For the same reason ~~Github~~ is blacklisted forever.
@@ -10,7 +21,7 @@ GitFlic's developers plan to support other languages,
 including English 和 中文, in the near future.
 
 ### Основной репозиторий перемещен на [GitFlic](https://gitflic.ru/project/erthink/libmdbx)
-так как 15 апреля 2022 администрация Github без предупреждения и
+Так как 15 апреля 2022 администрация Github без предупреждения и
 объяснения причин удалила _libmdbx_ вместе с массой других проектов,
 одновременно заблокировав доступ многим разработчикам.
 По этой же причине ~~Github~~ навсегда занесен в черный список.
@@ -277,7 +288,7 @@ the user's point of view.
    > and up to 30% faster when _libmdbx_ compiled with specific build options
    > which downgrades several runtime checks to be match with LMDB behaviour.
    >
-   > These and other results could be easily reproduced with [ioArena](https://abf.io/erthink/ioarena.git) just by `make bench-quartet` command,
+   > These and other results could be easily reproduced with [ioArena](https://abf.io/erthink/ioarena) just by `make bench-quartet` command,
    > including comparisons with [RockDB](https://en.wikipedia.org/wiki/RocksDB)
    > and [WiredTiger](https://en.wikipedia.org/wiki/WiredTiger).
 
@@ -659,7 +670,7 @@ Bindings
 Performance comparison
 ======================
 
-All benchmarks were done in 2015 by [IOArena](https://abf.io/erthink/ioarena.git)
+All benchmarks were done in 2015 by [IOArena](https://abf.io/erthink/ioarena)
 and multiple [scripts](https://github.com/pmwkaa/ioarena/tree/HL%2B%2B2015)
 runs on Lenovo Carbon-2 laptop, i7-4600U 2.1 GHz (2 physical cores, 4 HyperThreading cores), 8 Gb RAM,
 SSD SAMSUNG MZNTD512HAGL-000L1 (DXT23L0Q) 512 Gb.

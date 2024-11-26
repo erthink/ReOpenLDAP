@@ -1,10 +1,486 @@
 ChangeLog
----------
+=========
 
 English version [by Google](https://gitflic-ru.translate.goog/project/erthink/libmdbx/blob?file=ChangeLog.md&_x_tr_sl=ru&_x_tr_tl=en)
 and [by Yandex](https://translated.turbopages.org/proxy_u/ru-en.en/https/gitflic.ru/project/erthink/libmdbx/blob?file=ChangeLog.md).
 
-## v0.13 (в разработке)
+## v0.12.12 "Доллежаль" от 2024-10-27
+
+Поддерживающий выпуск с исправлением обнаруженных ошибок и устранением недочетов,
+в память о советском ученом-энергетике Николае Антоновиче Доллежаль в день 125-летия со дня его рождения.
+
+Это последний выпуск куста стабильных версий 0.12.x, спустя более двух
+лет после выпуска 0.12.1. Последующие выпуски 0.12.x будут формироваться
+только в случае существенных проблем/ошибок, вероятность чего близка к
+нулю. Для всех проектов находящихся в стадии активной разраборки
+рекомендуется использовать ветку `master`.
+
+```
+git diff' stat: x commits, y files changed, z insertions(+), zz deletions(-)
+Signed-off-by: Леонид Юрьев (Leonid Yuriev) <leo@yuriev.ru>
+```
+
+Значимые исправления:
+
+ - Исправление упущенного `TXN_END_EOTDONE` при сбое старта читающей транзакции.
+   Упомянутый флажок отсутствовал в пути разрушения транзакции при ошибке
+   её запуска. Из-за чего делалась попытка разрушить курсоры, что приводило
+   к падению **отладочных сборок**, так как в них соответствующий массив
+   намеренно заполнен некорректными указателями.
+
+ - Устранение возможности `SIGSEGV` внутри `coherency_check()` после
+   изменения геометрии другим процессом с увеличением верхнего размера БД
+   и увеличением БД больше предыдущего лимита.
+
+ - Доработка `mdbx_close_dbi()` для возврата ошибки при попытке закрыть
+   dbi-дескриптор таблицы, созданной и/или измененной в ещё выполняющейся
+   транзакции. Такое преждевременное закрытие дескриптора является неверным
+   использованием API и нарушением контракта/предусловий сформулированных
+   в описании `mdbx_close_dbi()`. Однако, вместо возврата ошибки
+   выполнялось некорректное закрытие дескриптора, что могло приводить к
+   созданию таблицы с пустым именем, утечки страниц БД и/или нарушению
+   структуры b-tree (неверной ссылкой на корень таблицы).
+   Добавлен соответствующий тест `extra/early_close_dbi`.
+
+
+
+--------------------------------------------------------------------------------
+
+
+## v0.12.11 "Лиза и Соня" от 2024-07-23
+
+Поддерживающий выпуск с исправлением обнаруженных ошибок и устранением недочетов,
+в память об убитых в Крыму девочках 2 и 9 лет.
+
+Лиза и Соня погибли 23 Июня 2024 на глазах у родителей, в результате
+удара по общественному городскому пляжу ракетами ATACMS с кассетными
+боеприпасами. Всего пострадало более 150 граждан России, в том числе 27
+детей. Ракеты были выпущенными украинскими бандеровцами/фашистами, но
+полетные задания формировались и загружались военными США, а управление
+и наведение ATACAMS невозможно без использования орбитальной группировки
+военных спутников США.
+
+
+```
+git diff' stat: 29 commits, 14 files changed, 379 insertions(+), 151 deletions(-)
+Signed-off-by: Леонид Юрьев (Leonid Yuriev) <leo@yuriev.ru>
+```
+
+Значимые исправления:
+
+ - Исправление для ОС Windows нарезки `FILE_SEGMENT_ELEMENT`.
+   Похоже что был потерян коммит входе работы над оптимизацией пути записи
+   на диск в ОС Windows. В текущем понимании, вероятность проявления ошибки
+   достаточно низкая, так как выявлена она была синтетическими тестами в
+   ходе других доработок, а соответствующих сообщений/жалоб не поступало. К
+   повреждению БД ошибка не приводила, так как сбой происходил до записи
+   данных с возвратом `ERROR_INVALID_PARAMETER` из системного вызова, т.е.
+   либо ошибка не проявлялась, либо транзакция не фиксировалась.
+
+ - Устранение вероятности `SIGSEGV` при включении логирования
+   уровня `MDBX_LOG_TRACE` в отладочных сборках.
+
+ - Исправление генерации исключения `key_exists` в C++ API.
+
+ - Исправление опечаток в документации и README.
+
+ - Исправление обработки курсоров, открытых в родительских транзакциях и
+   закрытых до завершения вложенных транзакций. В описанной ситуации
+   закрытые курсоры "воскрешались", что приводило к утечке памяти
+   выделенной под такие курсоры.
+
+ - Костыль для MSVC ARM/ARM64 для предотвращения ICE (Internal Compiler Error).
+
+ - Устранение `MDBX_EINVAL` для случая вызова `mdbx_env_remove(".")`.
+
+ - Исправление инверсии bool-результата `env::remove()` в C++ API.
+
+ - Исправление опечатки `равно`/`неравно` в условии внутри
+   `update_gc()`. Существенных последствий ошибки не было, но в
+   определенных сценариях, сходимость требовала еще одного цикла повтора
+   внутри update_gc().
+
+Прочие доработки:
+
+ - Проверка совместимости флагов GC/FreeDB на случай их изменения в будущих версиях.
+ - Очистка сообщений `FormatMessageA()` от концевых переводов строк.
+ - Уточнение макроса `__always_inline` для особо яблочных версий CLANG.
+ - Использование `\n` вместо `std::endl` в C++ API для разделения строк в кодировщиках данных.
+ - Проверка дополнительных и пока не используемых полей в meta-страницах.
+ - Отключение ненужной отладки внутри `txn_merge()`.
+ - Исправление условий и привязки к версиям компиляторов при формировании макроса `MDBX_DEPRECATED`.
+ - Больше атрибутов `__cold` для редко-используемых функций (backport).
+ - Добавление методов `buffer::append_bytes()` и `buffer::clear_and_reserve()`.
+ - Отключение установки признака фатальной ошибки для не-активной среды при отличии идентификатора процесса.
+
+
+--------------------------------------------------------------------------------
+
+
+## v0.12.10 "СЭМ" от 2024-03-12
+
+Поддерживающий выпуск с исправлением обнаруженных ошибок и устранением недочетов
+в память Героя России гвардии майора Дмитрия Семёнова с позывным "СЭМ".
+
+```
+git diff' stat: 19 commits, 57 files changed, 751 insertions(+), 331 deletions(-)
+Signed-off-by: Леонид Юрьев (Leonid Yuriev) <leo@yuriev.ru>
+```
+
+Благодарности:
+
+ - [Dvir H](https://t.me/Dvirsw) за [сообщение](https://t.me/libmdbx/5368)
+   об ошибке `MDBX_CORRUPTED` в сценарии работы в режиме `MDBX_DUPFIXED` и нечетной длиной
+   мульти-значений, с предоставлением точного минимального сценария воспроизведения.
+
+Значимые исправления и доработки:
+
+ - Устранение унаследованной от LMDB ошибки приводящей к повреждению БД при использовании `MDBX_DUPFIXED`.
+   Проблема была выявлена при расширении тестов сценариями с длинными мульти-значениями в режиме `MDBX_DUPFIXED`.
+   Сообщений о проявлении этой ошибки в эксплуатационных/продуктовых средах не поступало.
+
+   На LEAF2-страниц, используемых для компактного хранения мульти-значений фиксированной длины,
+   выполнялось резервирование места без учета возможности превышения размера страниц,
+   с последующим переполнением, повреждением структуры БД и/или повреждением содержимого ОЗУ.
+
+   Вероятность проявления ошибки существенно увеличивалась с увеличением размера/длины
+   мульти-значений/дубликатов и уменьшением размера страницы БД. Поэтому при использовании `MDBX_INTEGERDUP`
+   вероятность проявления близка к нулю, а сценарий такого проявления найти не удалось.
+
+   В MDBX ошибка присутствовала с момента отделения проекта от LMDB,
+   где эта ошибка присутствует более 11 лет, по настоящее время.
+
+ - Исправление ложной ошибки `MDBX_CORRUPTED (-30796)` в сценарии работы
+   в режиме `MDBX_DUPFIXED` и нечетной длиной мульти-значений.
+
+ - Исправление недочета корректировки сопутствующих курсоров при разделении страницы
+   по сценарию добавления пустой страницы слева.
+
+ - Доработка `rebalance()` ради уменьшения WAF. Новый функционал, включая
+   контролируемую пользователем опцию `enum MDBX_option_t`, будет доступен
+   в выпусках ветки `0.13.x`, а в этом выпуске доработка сводится к тактике
+   не-вовлечения чистой страницы при нехватке запаса страниц в ходе обновления GC,
+   за счет ухудшения баланса дерева страниц.
+
+ - Устранение упущения приводящего к нелогичной ситуации
+   `me_dxb_mmap.curren > me_dxb_mmap.limit` при "дребезге" размера БД.
+   В текущем понимании, последствий кроме срабатывания assert-проверки нет, а
+   вероятность проявления близка к нулю.
+
+ - Исправление в функционале обхода дерева, используемого утилитой
+   `mdbx_chk`, подсчета места затраченного на выравнивание на вложенной
+   под-странице, в случае нечетного количества dupfixed-элементов нечетного
+   размера.
+   Сообщений о проявлении этой ошибки в эксплуатационных/продуктовых средах не поступало.
+
+ - Исправление assert-проверки внутри `check_txn()` для случая завершенных транзакций в режиме `MDBX_NO_TLS`.
+   Последствий ошибки, кроме срабатывания assert-проверки в отладочных сборках, нет.
+
+ - Устранение ошибки при открытии БД на файловой системе только-для-чтения.
+
+ - Удалены излишне строгие проверки в утилите `mdbx_chk`, которые
+   приводили к ложно-позитивным ошибкам при проверке БД после серии
+   последних доработок. Подробности см в комментариях к коммитам [781b3f64d52b73cbaeb00a55811d1247c25624a8](https://gitflic.ru/project/erthink/libmdbx/commit/781b3f64d52b73cbaeb00a55811d1247c25624a8)
+   и [0741c81cfd8dc0864fcf55e04192b2207c8f68f7](https://gitflic.ru/project/erthink/libmdbx/commit/0741c81cfd8dc0864fcf55e04192b2207c8f68f7).
+
+Прочее:
+
+ - Расширение стохастического теста dupfixed-сценариями.
+ - Корректировка условия в assert-проверке для `MDBX_TXN_DRAINED_GC`.
+ - Добавление в jitter-сценарий простого теста сброса и перезапуска читающих транзакций.
+ - Вынужденное продолжение очистки/рефакторинга унаследованных ребусов в `cursor_put_nochecklen()`.
+ - Фиксация транзакции при ошибках теста для последующего анализа содержимого БД.
+ - Сопутствующий рефакторинг `node_shrink()` для ясности исходного кода.
+ - Приведение в соответствие протоколируемых имен тестов опциям командной строки.
+ - Добавление cmoke-теста `extra/dupfixed_addodd`.
+
+
+--------------------------------------------------------------------------------
+
+
+## v0.12.9 "Ясень-4" от 2023-12-11
+
+Стабилизирующий выпуск с исправлением обнаруженных ошибок и устранением недочетов.
+
+```
+git diff' stat: 32 commits, 8 files changed, 667 insertions(+), 401 deletions(-)
+Signed-off-by: Леонид Юрьев (Leonid Yuriev) <leo@yuriev.ru>
+```
+
+Исправления и доработки:
+
+ - Ликвидация зависимости от ранее удаленной опции `MDBX_ENABLE_PREFAULT`, из-за
+   чего опция `MDBX_ENABLE_MINCORE` не включалась автоматически, что приводило
+   к не-активации соответствующего улучшения и не-достижению  декларируемого уровня
+   производительности в сценариях использования в режиме `MDBX_WRITEMAP`.
+
+ - Исправление авто-установки `MDBX_ENV_CHECKPID` при отключении использования
+   функционала `madvise()` посредством опции сборки `MDBX_ENABLE_MADVISE=0`.
+   Из-за чего при поддержке системой `madvise(MADV_DONTFORK)` не включался контроль pid.
+
+ - Добавлена проверка переданного ключа на `NULL` при обработке `MDBX_GET_MULTIPLE`.
+
+ - Добавлена проверка номеров корневых страниц в `coherency_check()`.
+
+ - Обеспечен `const` для начала и конца диапазона в аргументах `mdbx_estimate_range()`.
+
+ - Из разрабатываемой версии перенесены не-нарушающие совместимости доработки C++ API:
+
+     - добавлен тип `mdbx::cursor::estimation_result`, а поведение методов
+      `cursor::estimate()` унифицировано с `cursor::move()`;
+     - для предотвращения незаметного неверного использования API, для инициализации
+       возвращаемых по ссылке срезов, вместо пустых срезов задействован `slice::invalid()`;
+     - добавлены дополнительные C++ операторы преобразования к типам C API;
+     - для совместимости со старыми стандартами C++ и старыми версиями STL перенесены
+       в public классы `buffer::move_assign_alloc` и `buffer::copy_assign_alloc`;
+     - добавлен тип `mdbx::default_buffer`;
+     - для срезов и буферов добавлены методы `hex_decode()`, `base64_decode()`, `base58_decode()`;
+     - добавлен тип `mdbx::comparator` и функций `mdbx::default_comparator()`;
+     - добавлены статические методы `buffer::hex()`, `base64()`, `base58()`;
+     - для транзакций и курсоров добавлены методы `get_/set_context`;
+     - добавлен метод `cursor::clone()`;
+
+ - Поддержка base58 приведена в соответствии с черновиком RFC.
+
+ - Переработка/исправление `to_hex()` и `from_hex()`.
+
+ - Уменьшение `MDBX_opt_rp_augment_limit` по умолчанию до 1/3 от текущего количества страниц в БД.
+
+Мелочи:
+
+ - Удаление устаревших `mdbx_set_compare()` и `mdbx_set_dupsort()`.
+ - Корректировка определения `MDBX_LAST_ADDED_ERRCODE`.
+ - Добавление в C++ API забытого исключения `mdbx::duplicated_lck_file`.
+ - Обновление патча для старых версий buildroot.
+ - Использование в API `const MDBX_txn` где это возможно.
+ - Удаление устаревшего упоминания `MDBX_EAGAIN`.
+ - Проверка pid процесса только в функциях API требующих активной среды/env.
+ - Исправление опечаток в комментариях, в том числе  в doxygen-описании.
+ - В тестах для совместимости с проблемными версиями glibc и glibc++
+   устранено использование `std::stoull()`.
+
+
+--------------------------------------------------------------------------------
+
+
+## v0.12.8 "Владимир Уткин" от 2023-10-17
+
+Стабилизирующий выпуск с исправлением обнаруженных ошибок и устранением недочетов,
+в день 100-летия со дня рождения выдающегося советского и российского ученого и конструктора [Влади́мира Фёдоровича У́ткина](https://ru.wikipedia.org/wiki/Уткин,_Владимир_Фёдорович).
+
+```
+git diff' stat: 24 commits, 18 files changed, 624 insertions(+), 94 deletions(-)
+Signed-off-by: Леонид Юрьев (Leonid Yuriev) <leo@yuriev.ru>
+```
+
+Благодарности:
+
+ - [Alain Picard](https://github.com/castortech) за сообщение о проблеме
+   с обработкой `MDBX_MULTIPLE` и помощь в тестировании.
+
+Исправления и доработки:
+
+ - Устранение регресса/ошибки в пути обработки `put(MDBX_MULTIPLE)` при пакетном/оптовом
+   помещении в БД множественных значений одного ключа (aka multi-value или dupsort).
+   Проявление проблемы зависит от компилятора и опций оптимизации/кодогенерации, но с большой вероятностью возвращается
+   ошибка `MDBX_BAD_VALSIZE` (`-30781`), а в отладочных сборках срабатывает проверка `cASSERT(mc, !"Invalid key-size")`.
+   Сценарии приводящие к другим проявлениям на данный момент не известны.
+
+ - Реализована перезапись в `mdbx_put(MDBX_CURRENT)` всех текущих мульти-значений ключа
+   при отсутствии флага `MDBX_NOOVERWRITE`. Ранее в такой ситуации возвращалась ошибка `MDBX_EMULTIVAL`.
+   В текущем понимании новое поведение более удобно и не создаёт проблем совместимости с ранее написанным кодом.
+
+ - Добавлена возможность использовать `mdbx_cursor_get(MDBX_GET_MULTIPLE)` без предварительной установки
+   курсора, совмещая операцию пакетного получения данных с позиционированием курсора на передаваемый ключ.
+
+ - Микрооптимизация и рефакторинг `cursor_put_nochecklen()` в продолжение исправления
+   регресса/ошибки в пути обработки `put(MDBX_MULTIPLE)`.
+
+ - Уточнение формулировок в описании API, в том числе пояснений о `SIGSEGV`
+   и недопустимости прямого изменения данных.
+
+Мелочи:
+
+ - Исправление несущественных предупреждений при `MDBX_ENABLE_PROFGC=ON`.
+ - Добавление `slice::as_pod<typename>()` в C++ API.
+ - Добавление перегрузки `txn::put_multiple()` и контроля POD в C++ API.
+ - Добавление smoke-теста для `put(MDBX_MULTIPLE)`.
+ - Добавление дополнительных smoke-тестов в область видимости ctest.
+ - Устранение жалоб Valgrind на инвариантное чтение неинициализированной памяти
+   и утечки памяти в одном из тестов.
+ - Костыль для глушения/игнорирования `EDEADLK` в ряде сценариев при
+   использовании Valgrind или ASAN. В частности, это устраняет
+   ложно-негативный результат проверки БД посредством `mdbx_chk -wc`,
+   т.е. проверку БД в кооперативном (не эксклюзивном) режиме чтения-записи
+   в сборках с поддержкой Valgrind или включеным ASAN. Для более подробной
+   информации см. [соответствующий коммит](https://gitflic.ru/project/erthink/libmdbx/commit/1aead6869a7eff1a85e400ab3eeecb4c8b904fe6).
+ - Доработка `mdbx_dump_val()` используемой для логирования и отладки.
+ - Устранение предупреждений Valgrind при логировании в отладочных сборках.
+ - Доработка использования `filesystem` для старых компиляторов.
+ - Сокращение излишнего вызова `osal_thread_self()`.
+ - Вывод информации о большинстве mdbx-опций при сборке посредством CMake.
+ - Добавление определений макросов для Doxygen.
+
+
+--------------------------------------------------------------------------------
+
+
+## v0.12.7 "Артек" от 2023-06-16
+
+Стабилизирующий выпуск с исправлением обнаруженных ошибок и устранением
+недочетов, в день основания международного детского центра [«Арте́к»](https://ru.wikipedia.org/wiki/Артек).
+
+```
+14 files changed, 222 insertions(+), 56 deletions(-)
+Signed-off-by: Леонид Юрьев (Leonid Yuriev) <leo@yuriev.ru>
+```
+
+Исправления и доработки:
+
+  - Исправление опечатки в имени переменной внутри `mdbx_env_turn_for_recovery()`,
+    что приводило к неверному поведению в некоторых ситуациях.
+
+    С точки зрения пользователя, с учетом актуальных сценариев использования
+    утилиты `mdbx_chk`, был только один специфический/редкий сценарий
+    проявления ошибки/проблемы - когда выполнялась проверка и активация
+    слабой/weak мета-страницы с НЕ-последней транзакцией после системной
+    аварии машины, где БД использовалась в хрупком/небезопасном режиме.
+    В сценарии, при успешной проверке целевой страницы и её последующей
+    активации выводилось сообщение об ошибке, связанной со срабатыванием
+    механизма контроля не-когерентности кэша файловой системы и отображенных
+    в ОЗУ данных БД. При этом БД успешно восстанавливалось и не было
+    каких-либо негативных последствия, кроме самого сообщения об ошибке.
+
+    Технически же ошибка проявлялась при "переключении" на мета-страницу,
+    когда у хотя-бы одной из двух других мета-страниц номер транзакции был
+    больше:
+
+      * Если содержимое других мета-страниц было корректным, а номера
+        связанных транзакций были больше, то результирующий номер транзакции в
+        целевой/активируемой мета-страницы устанавливается без учета этих
+        мета-страниц и мог быть меньше-или-равным.
+
+      * В результате, если такие мета-страницы были в статусе слабых/weak, то
+        при закрытии БД после переключения могла срабатывать защита от
+        не-когерентности unified buffer/page cache, а в отладочных сборках могла
+        срабатывать assert-проверка.
+
+      * Если же такие мета-страницы были в статусе сильных/steady, то
+        переключение на новую мета-страницу могло не давать эффекта либо
+        приводить к появлению двух мета-страниц с одинаковым номером транзакции,
+        что является ошибочной ситуацией.
+
+  - Обходное решение проблем сборки посредством GCC с использование опций `-m32 -arch=i686 -Ofast`.
+    Проблема обусловлена ошибкой GCC, из-за которой конструкция `__attribute__((__target__("sse2")))`
+    не включает полноценное использование инструкций SSE и SSE2, если это не было сделано посредством
+    опций командной строки, но была использована опция `-Ofast`. В результате сборка заканчивалась
+    сообщением об ошибке:
+        `error: inlining failed in call to 'always_inline' '_mm_movemask_ps': target specific option mismatch`
+
+  - Доработка режима "восстановления" БД и переключения на заданную мета-страницу:
+      * Устранение обновления без необходимости мета-страницы с увеличением номера транзакции;
+      * Устранение вывода (логирования) бессмысленного/лишнего предупреждения о пропуске обновления геометрии БД;
+      * Более ожидаемое и безопасное поведение при проверке БД с указанием целевой мета-страницы в режиме чтения-записи.
+
+    Теперь при открытии БД посредством `mdbx_env_open_for_recovery()` не
+    выполняется неявное изменение/обновление БД, в том числе при закрытии
+    БД. Это позволяет обезопасить БД (снизить шанс её разрушения) если
+    пользователь при попытке восстановления, либо просто в качестве
+    эксперимента, задал утилите `mdbx_chk` неверную или опасную комбинацию
+    параметров. При этом обычная проверка, как и явное переключение
+    мета-страниц, работают по-прежнему.
+
+Мелочи:
+
+ - Незначительное уточнение CMake-пробника для `std::filesystem`,
+   проверяющего необходимость линковки с дополнительными библиотеками C++.
+ - Устранение минорных предупреждений старых компиляторов в тестах.
+ - Устранение причины ложно-позитивного предупреждения новых версий GCC в C++ API.
+ - Исправление ссылки на репозиторий бенчмарка ioarena.
+ - Добавление перекрестных ссылок в doxygen-документацию по C++ API.
+ - Уточнение ограничений в разделе [Restrictions & Caveats](https://libmdbx.dqdkfa.ru/intro.html#restrictions).
+ - Исправление ссылок на описание `mdbx_canary_put()`.
+
+
+--------------------------------------------------------------------------------
+
+
+## v0.12.6 "ЦСКА" от 2023-04-29
+
+Стабилизирующий выпуск с исправлением обнаруженных ошибок и устранением
+недочетов, в день 100-летнего юбилея спортивного клуба [«ЦСКА»](https://ru.wikipedia.org/wiki/Центральный_спортивный_клуб_Армии).
+
+```
+14 files changed, 117 insertions(+), 83 deletions(-)
+Signed-off-by: Леонид Юрьев (Leonid Yuriev) <leo@yuriev.ru>
+```
+
+Мелочи:
+
+ - Обновление патча для старых версий buildroot.
+ - Использование clang-format-16.
+ - Использование `enum`-типов вместо `int` для устранения предупреждений GCC 13,
+   что могло ломать сборку в Fedora 38.
+
+
+--------------------------------------------------------------------------------
+
+
+## v0.12.5 "Динамо" от 2023-04-18
+
+Стабилизирующий выпуск с исправлением обнаруженных ошибок и устранением
+недочетов, в день 100-летнего юбилея спортивного общества [«Динамо»](https://ru.wikipedia.org/wiki/Динамо_(спортивное_общество)).
+
+```
+16 files changed, 686 insertions(+), 247 deletions(-)
+Signed-off-by: Леонид Юрьев (Leonid Yuriev) <leo@yuriev.ru>
+```
+
+Благодарности:
+
+ - Max <maxc0d3r@protonmail.com> за сообщение о проблеме экспорта из DSO/DLL
+   устаревших функций API.
+ - [`@calvin3721`](https://t.me/calvin3721) за сообщение о проблеме работы
+   `MainDB` с флагами не по-умолчанию.
+
+Исправления:
+
+ - Поправлен экспорт из DSO/DLL устаревших функций,
+   которые заменены на inline в текущем API.
+ - Устранено использование неверного компаратора при создании или пересоздании
+   `MainDB` с флагами/опциями предполагающим использование специфического
+   компаратора (не по-умолчанию).
+
+Мелочи:
+
+ - Удалена дублирующая диагностика внутри `node_read_bigdata()`.
+ - Исправлены ссылки в описании `mdbx_env_set_geometry()`.
+ - Добавлен отдельный тест `extra/upsert_alldups` для специфического
+   сценария замены/перезаписи одним значением всех multi-значений
+   соответствующих ключу, т.е. замена всех «дубликатов» одним значением.
+ - В C++ API добавлены варианты `buffer::key_from()` с явным именованием по типу данных.
+ - Добавлен отдельный тест `extra/maindb_ordinal` для специфического
+   сценария создания `MainDB` с флагами требующими использования
+   компаратора не по-умолчанию.
+ - Рефакторинг проверки "когерентности" мета-страниц.
+ - Корректировка `osal_vasprintf()` для устранения предупреждений статических анализаторов.
+
+
+--------------------------------------------------------------------------------
+
+
+## v0.12.4 "Арта-333" от 2023-03-03
+
+Стабилизирующий выпуск с исправлением обнаруженных ошибок, устранением
+недочетов и технических долгов. Ветка 0.12 считается готовой к
+продуктовому использованию, получает статус стабильной и далее будет
+получать только исправление ошибок. Разработка будет продолжена в ветке
+0.13, а ветка 0.11 становится архивной.
+
+```
+63 files changed, 1161 insertions(+), 569 deletions(-)
+Signed-off-by: Леонид Юрьев (Leonid Yuriev) <leo@yuriev.ru>
+```
 
 Благодарности:
 
@@ -15,7 +491,7 @@ and [by Yandex](https://translated.turbopages.org/proxy_u/ru-en.en/https/gitflic
  - Masatoshi Fukunaga <https://gitflic.ru/user/mah0x211> за сообщение о проблеме
    `put(MDBX_UPSERT+MDBX_ALLDUPS)` для случая замены всех значений в subDb.
 
-Исправления (без корректировок новых функций):
+Исправления:
 
  - Устранен регресс после коммита 474391c83c5f81def6fdf3b0b6f5716a87b78fbf,
    приводящий к возврату ERROR_SHARING_VIOLATION в Windows при открытии БД
@@ -61,12 +537,18 @@ and [by Yandex](https://translated.turbopages.org/proxy_u/ru-en.en/https/gitflic
  - Устранены предупреждения статического анализатора MSVC,
    все они были несущественные, либо ложные.
  - Устранено ложное предупреждение GCC при сборке для SH4.
+ - Добавлена поддержка ASAN (Address Sanitizer) при сборке посредством MSVC.
+ - Расширен набор перебираемых режимов в скрипте `test/long_stochastic.sh`,
+   добавлена опция `--extra`.
+ - В C++ API добавлена поддержка расширенных опций времени выполнения `mdbx::extra_runtime_option`,
+   аналогично `enum MDBX_option_t` из C API.
+ - Вывод всех счетчиков page-operations в `mdbx_stat`.
 
 
--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
 
 
-## v0.12.3 (Акула) от 2023-01-07
+## v0.12.3 "Акула" от 2023-01-07
 
 Выпуск с существенными доработками и новой функциональностью в память о закрытом open-source
 [проекте "Акула"](https://erigon.substack.com/p/winding-down-support-for-akula-project).
@@ -155,7 +637,7 @@ Signed-off-by: Леонид Юрьев (Leonid Yuriev) <leo@yuriev.ru>
 
  - Добавлен явный выбор `tls_model("local-dynamic")` для обхода проблемы
    `relocation R_X86_64_TPOFF32 against FOO cannot be used with -shared`
-   из-за ошибки в CLANG приводящей к использованию неверного режима `ls_model`.
+   из-за ошибки в CLANG приводящей к использованию неверного режима `tls_model`.
 
  - Изменение тактики слияния страниц при удалении.
    Теперь слияние выполняется преимущественно с уже измененной/грязной страницей.
@@ -206,10 +688,10 @@ Signed-off-by: Леонид Юрьев (Leonid Yuriev) <leo@yuriev.ru>
  - Рефакторинг и микрооптимизация.
 
 
--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
 
 
-## v0.12.2 (Иван Ярыгин) от 2022-11-11
+## v0.12.2 "Иван Ярыгин" от 2022-11-11
 
 Выпуск с существенными доработками и новой функциональностью
 в память о российском борце [Иване Сергеевиче Ярыгине](https://ru.wikipedia.org/wiki/Ярыгин,_Иван_Сергеевич).
@@ -272,7 +754,7 @@ Signed-off-by: Леонид Юрьев (Leonid Yuriev) <leo@yuriev.ru>
    суммарный размер пары ключ-значение.
 
  - Реализовано использование асинхронной (overlapped) записи в Windows,
-   включая использования небуфферизированного ввода-вывода и `WriteGather()`.
+   включая использования небуферизированного ввода-вывода и `WriteGather()`.
    Это позволяет сократить накладные расходы и частично обойти проблемы
    Windows с низкой производительностью ввода-вывода, включая большие
    задержки `FlushFileBuffers()`. Новый код также обеспечивает консолидацию
@@ -357,7 +839,7 @@ Signed-off-by: Леонид Юрьев (Leonid Yuriev) <leo@yuriev.ru>
 Мелочи:
 
  - Исторические ссылки cвязанные с удалённым на ~~github~~ проектом  перенаправлены на [web.archive.org](https://web.archive.org/web/https://github.com/erthink/libmdbx).
- - Синхронизированны конструкции CMake между проектами.
+ - Синхронизированы конструкции CMake между проектами.
  - Добавлено предупреждение о небезопасности RISC-V.
  - Добавлено описание параметров `MDBX_debug_func` и `MDBX_debug_func`.
  - Добавлено обходное решение для минимизации ложно-положительных
@@ -376,10 +858,10 @@ Signed-off-by: Леонид Юрьев (Leonid Yuriev) <leo@yuriev.ru>
  - Fixed minor MingGW warning.
 
 
--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
 
 
-## v0.12.1 (Positive Proxima) at 2022-08-24
+## v0.12.1 "Positive Proxima" at 2022-08-24
 
 The planned frontward release with new superior features on the day of 20 anniversary of [Positive Technologies](https://ptsecurty.com).
 
@@ -401,7 +883,7 @@ New:
  - Added the `gcrtime_seconds16dot16` counter to the "Page Operation Statistics" that accumulates time spent for GC searching and reclaiming.
  - Copy-with-compactification now clears/zeroes unused gaps inside database pages.
  - The `C` and `C++` APIs has been extended and/or refined to simplify using `wchar_t` pathnames.
-   On Windows the `mdbx_env_openW()`, ``mdbx_env_get_pathW()`()`, `mdbx_env_copyW()`, `mdbx_env_open_for_recoveryW()` are available for now,
+   On Windows the `mdbx_env_openW()`, `mdbx_env_get_pathW()`, `mdbx_env_copyW()`, `mdbx_env_open_for_recoveryW()` are available for now,
    but the `mdbx_env_get_path()` has been replaced in favor of `mdbx_env_get_pathW()`.
  - Added explicit error message for Buildroot's Microblaze toolchain maintainers.
  - Added `MDBX_MANAGE_BUILD_FLAGS` build options for CMake.
@@ -421,10 +903,54 @@ Fixes:
 Not a release but preparation for changing feature set and API.
 
 
--------------------------------------------------------------------------------
+********************************************************************************
 
 
-## v0.11.13 at (Swashplate) 2022-11-10
+## v0.11.14 "Sergey Kapitsa" at 2023-02-14
+
+The stable bugfix release in memory of [Sergey Kapitsa](https://en.wikipedia.org/wiki/Sergey_Kapitsa) on his 95th birthday.
+
+```
+22 files changed, 250 insertions(+), 174 deletions(-)
+Signed-off-by: Леонид Юрьев (Leonid Yuriev) <leo@yuriev.ru>
+```
+
+Fixes:
+ - backport: Fixed insignificant typo of `||` inside `#if` byte-order condition.
+ - backport: Fixed `SIGSEGV` or an erroneous call to `free()` in situations where
+   errors occur when reopening by `mdbx_env_open()` of a previously used
+   environment.
+ - backport: Fixed `cursor_put_nochecklen()` internals for case when dupsort'ed named subDb
+   contains a single key with multiple values (aka duplicates), which are replaced
+   with a single value by put-operation with the `MDBX_UPSERT+MDBX_ALLDUPS` flags.
+   In this case, the database becomes completely empty, without any pages.
+   However exactly this condition was not considered and thus wasn't handled correctly.
+   See [issue#8](https://gitflic.ru/project/erthink/libmdbx/issue/8) for more information.
+ - backport: Fixed extra assertion inside `override_meta()`, which could
+   lead to false-positive failing of the assertion in a debug builds during
+   DB recovery and auto-rollback.
+ - backport: Refined the `__cold`/`__hot` macros to avoid the
+   `error: inlining failed in call to ‘always_inline FOO(...)’: target specific option mismatch`
+   issue during build using GCC >10.x for SH4 arch.
+
+Minors:
+
+ - backport: Using the https://libmdbx.dqdkfa.ru/dead-github
+   for resources deleted by the Github' administration.
+ - backport: Fixed English typos.
+ - backport: Fixed proto of `__asan_default_options()`.
+ - backport: Fixed doxygen-description of C++ API, especially of C++20 concepts.
+ - backport: Refined `const` and `noexcept` for few C++ API methods.
+ - backport: Fixed copy&paste typo of "Getting started".
+ - backport: Update MithrilDB status.
+ - backport: Resolve false-posirive `used uninitialized` warning from GCC >10.x
+   while build for SH4 arch.
+
+
+--------------------------------------------------------------------------------
+
+
+## v0.11.13 at "Swashplate" 2022-11-10
 
 The stable bugfix release in memory of [Boris Yuryev](https://ru.wikipedia.org/wiki/Юрьев,_Борис_Николаевич) on his 133rd birthday.
 
@@ -452,7 +978,10 @@ Minors:
  - Use `--dont-check-ram-size` for small-tests make-targets (backport).
 
 
-## v0.11.12 (Эребуни) at 2022-10-12
+--------------------------------------------------------------------------------
+
+
+## v0.11.12 "Эребуни" at 2022-10-12
 
 The stable bugfix release.
 
@@ -474,7 +1003,10 @@ Minors:
  - Removed needless `LockFileEx()` inside `mdbx_env_copy()` (backport).
 
 
-## v0.11.11 (Тендра-1790) at 2022-09-11
+--------------------------------------------------------------------------------
+
+
+## v0.11.11 "Тендра-1790" at 2022-09-11
 
 The stable bugfix release.
 
@@ -490,7 +1022,10 @@ Fixes:
  - Fixed derived C++ builds by removing `MDBX_INTERNAL_FUNC` for `mdbx_w2mb()` and `mdbx_mb2w()`.
 
 
-## v0.11.10 (the TriColor) at 2022-08-22
+--------------------------------------------------------------------------------
+
+
+## v0.11.10 "the TriColor" at 2022-08-22
 
 The stable bugfix release.
 
@@ -520,8 +1055,10 @@ Minors:
  - Minor clarified `iov_page()` failure case.
 
 
+--------------------------------------------------------------------------------
 
-## v0.11.9 (Чирчик-1992) at 2022-08-02
+
+## v0.11.9 "Чирчик-1992" at 2022-08-02
 
 The stable bugfix release.
 
@@ -530,7 +1067,7 @@ The stable bugfix release.
 Signed-off-by: Леонид Юрьев (Leonid Yuriev) <leo@yuriev.ru>
 ```
 
-Acknowledgements:
+Acknowledgments:
 
  - [Alex Sharov](https://github.com/AskAlexSharov) and Erigon team for reporting and testing.
  - [Andrew Ashikhmin](https://gitflic.ru/user/yperbasis) for contributing.
@@ -559,14 +1096,14 @@ Minors:
  - Fixed `has no symbols` warning from Apple's ranlib.
 
 
--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
 
 
-## v0.11.8 (Baked Apple) at 2022-06-12
+## v0.11.8 "Baked Apple" at 2022-06-12
 
 The stable release with an important fixes and workaround for the critical macOS thread-local-storage issue.
 
-Acknowledgements:
+Acknowledgments:
 
  - [Masatoshi Fukunaga](https://github.com/mah0x211) for [Lua bindings](https://github.com/mah0x211/lua-libmdbx).
 
@@ -612,10 +1149,10 @@ Minors:
  - Don't provide nor report package information if used as a CMake subproject.
 
 
--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
 
 
-## v0.11.7 (Resurrected Sarmat) at 2022-04-22
+## v0.11.7 "Resurrected Sarmat" at 2022-04-22
 
 The stable risen release after the Github's intentional malicious disaster.
 
@@ -661,7 +1198,7 @@ Minors:
  - Switched to using `MDBX_EPERM` instead of `MDBX_RESULT_TRUE` to indicate that the geometry cannot be updated.
  - Added `NULL` checking during memory allocation inside `mdbx_chk`.
  - Resolved all warnings from MinGW while used without CMake.
- - Added inheretable `target_include_directories()` to `CMakeLists.txt` for easy integration.
+ - Added inheritable `target_include_directories()` to `CMakeLists.txt` for easy integration.
  - Added build-time checks and paranoid runtime assertions for the `off_t` arguments of `fcntl()` which are used for locking.
  - Added `-Wno-lto-type-mismatch` to avoid false-positive warnings from old GCC during LTO-enabled builds.
  - Added checking for TID (system thread id) to avoid hang on 32-bit Bionic/Android within `pthread_mutex_lock()`.
@@ -669,7 +1206,7 @@ Minors:
  - Added `CMAKE_HOST_ARCH` and `CMAKE_HOST_CAN_RUN_EXECUTABLES_BUILT_FOR_TARGET`.
 
 
--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
 
 
 ## v0.11.6 at 2022-03-24
@@ -678,7 +1215,7 @@ The stable release with the complete workaround for an incoherence flaw of Linux
 Nonetheless the cause for this trouble may be an issue of Intel CPU cache/MESI.
 See [issue#269](https://libmdbx.dqdkfa.ru/dead-github/issues/269) for more information.
 
-Acknowledgements:
+Acknowledgments:
 
  - [David Bouyssié](https://github.com/david-bouyssie) for [Scala bindings](https://github.com/david-bouyssie/mdbx4s).
  - [Michelangelo Riccobene](https://github.com/mriccobene) for reporting and testing.
@@ -698,12 +1235,15 @@ Minors:
  - Clarified error messages of a signature/version mismatch.
 
 
+--------------------------------------------------------------------------------
+
+
 ## v0.11.5 at 2022-02-23
 
 The release with the temporary hotfix for a flaw of Linux unified page/buffer cache.
 See [issue#269](https://libmdbx.dqdkfa.ru/dead-github/issues/269) for more information.
 
-Acknowledgements:
+Acknowledgments:
 
  - [Simon Leier](https://github.com/leisim) for reporting and testing.
  - [Kai Wetlesen](https://github.com/kaiwetlesen) for [RPMs](http://copr.fedorainfracloud.org/coprs/kwetlesen/libmdbx/).
@@ -727,11 +1267,14 @@ Minors:
  - Minor fixes Doxygen references, comments, descriptions, etc.
 
 
+--------------------------------------------------------------------------------
+
+
 ## v0.11.4 at 2022-02-02
 
 The stable release with fixes for large and huge databases sized of 4..128 TiB.
 
-Acknowledgements:
+Acknowledgments:
 
  - [Ledgerwatch](https://github.com/ledgerwatch), [Binance](https://github.com/binance-chain) and [Positive Technologies](https://www.ptsecurity.com/) teams for reporting, assistance in investigation and testing.
  - [Alex Sharov](https://github.com/AskAlexSharov) for reporting, testing and provide resources for remote debugging/investigation.
@@ -772,9 +1315,12 @@ Minors:
  - Using the `-fno-semantic interposition` option to reduce the overhead to calling self own public functions.
 
 
+--------------------------------------------------------------------------------
+
+
 ## v0.11.3 at 2021-12-31
 
-Acknowledgements:
+Acknowledgments:
 
  - [gcxfd <i@rmw.link>](https://github.com/gcxfd) for reporting, contributing and testing.
  - [장세연 (Чан Се Ен)](https://github.com/sasgas) for reporting and testing.
@@ -805,9 +1351,12 @@ Minors:
  - For compatibility reverted returning `MDBX_ENODATA`for some cases.
 
 
+--------------------------------------------------------------------------------
+
+
 ## v0.11.2 at 2021-12-02
 
-Acknowledgements:
+Acknowledgments:
 
  - [장세연 (Чан Се Ен)](https://github.com/sasgas) for contributing to C++ API.
  - [Alain Picard](https://github.com/castortech) for [Java bindings](https://github.com/castortech/mdbxjni).
@@ -831,6 +1380,9 @@ Minors:
  - Remove unneeded `#undef P_DIRTY`.
 
 
+--------------------------------------------------------------------------------
+
+
 ## v0.11.1 at 2021-10-23
 
 ### Backward compatibility break:
@@ -845,12 +1397,12 @@ This change is mostly invisible:
  - previously versions are unable to read/write a new DBs;
  - but the new release is able to handle an old DBs and will silently upgrade ones.
 
-Acknowledgements:
+Acknowledgments:
 
  - [Alex Sharov](https://github.com/AskAlexSharov) for reporting and testing.
 
 
--------------------------------------------------------------------------------
+********************************************************************************
 
 
 ## v0.10.5 at 2021-10-13 (obsolete, please use v0.11.1)
@@ -863,7 +1415,7 @@ Unfortunately, the `v0.10.5` accidentally comes not full-compatible with previou
 This cannot be fixed, as it requires fixing past versions, which as a result we will just get a current version.
 Therefore, it is recommended to use `v0.11.1` instead of `v0.10.5`.
 
-Acknowledgements:
+Acknowledgments:
 
  - [Noel Kuntze](https://github.com/Thermi) for immediately bug reporting.
 
@@ -879,9 +1431,12 @@ Minors:
  - Refined providing information for the `@MAIN` and `@GC` sub-databases of a last committed modification transaction's ID.
 
 
+--------------------------------------------------------------------------------
+
+
 ## v0.10.4 at 2021-10-10
 
-Acknowledgements:
+Acknowledgments:
 
  - [Artem Vorotnikov](https://github.com/vorot93) for support [Rust wrapper](https://github.com/vorot93/libmdbx-rs).
  - [Andrew Ashikhmin](https://github.com/yperbasis) for contributing to C++ API.
@@ -899,9 +1454,12 @@ Minors:
  - In debugging builds fixed a too small (single page) by default DB shrink threshold.
 
 
+--------------------------------------------------------------------------------
+
+
 ## v0.10.3 at 2021-08-27
 
-Acknowledgements:
+Acknowledgments:
 
  - [Francisco Vallarino](https://github.com/fjvallarino) for [Haskell bindings for libmdbx](https://hackage.haskell.org/package/libmdbx).
  - [Alex Sharov](https://github.com/AskAlexSharov) for reporting and testing.
@@ -927,9 +1485,12 @@ Minors:
  - Fixed CMake warning about compatibility with 3.8.2
 
 
+--------------------------------------------------------------------------------
+
+
 ## v0.10.2 at 2021-07-26
 
-Acknowledgements:
+Acknowledgments:
 
  - [Alex Sharov](https://github.com/AskAlexSharov) for reporting and testing.
  - [Andrea Lanfranchi](https://github.com/AndreaLanfranchi) for reporting bugs.
@@ -974,9 +1535,12 @@ Fixes:
  - Fixed [test framework keygen-related issue](https://libmdbx.dqdkfa.ru/dead-github/issues/127).
 
 
+--------------------------------------------------------------------------------
+
+
 ## v0.10.1 at 2021-06-01
 
-Acknowledgements:
+Acknowledgments:
 
  - [Alexey Akhunov](https://github.com/AlexeyAkhunov) and [Alex Sharov](https://github.com/AskAlexSharov) for bug reporting and testing.
  - [Andrea Lanfranchi](https://github.com/AndreaLanfranchi) for bug reporting and testing related to WSL2.
@@ -998,9 +1562,12 @@ Fixes:
  - Re-Fixed WSL1/WSL2 detection with distinguishing (https://libmdbx.dqdkfa.ru/dead-github/issues/97).
 
 
+--------------------------------------------------------------------------------
+
+
 ## v0.10.0 at 2021-05-09
 
-Acknowledgements:
+Acknowledgments:
 
  - [Mahlon E. Smith](https://github.com/mahlonsmith) for [Ruby bindings](https://rubygems.org/gems/mdbx/).
  - [Alex Sharov](https://github.com/AskAlexSharov) for [mdbx-go](https://github.com/torquem-ch/mdbx-go), bug reporting and testing.
@@ -1084,12 +1651,12 @@ Fixes:
  - Fixed building by MinGW for Windows (https://libmdbx.dqdkfa.ru/dead-github/issues/155).
 
 
--------------------------------------------------------------------------------
+********************************************************************************
 
 
 ## v0.9.3 at 2021-02-02
 
-Acknowledgements:
+Acknowledgments:
 
  - [Mahlon E. Smith](http://www.martini.nu/) for [FreeBSD port of libmdbx](https://svnweb.freebsd.org/ports/head/databases/mdbx/).
  - [장세연](http://www.castis.com) for bug fixing and PR.
@@ -1145,9 +1712,12 @@ Fixes:
  - Fixed operation on systems with unusual small/large page size, including PowerPC (https://libmdbx.dqdkfa.ru/dead-github/issues/157).
 
 
+--------------------------------------------------------------------------------
+
+
 ## v0.9.2 at 2020-11-27
 
-Acknowledgements:
+Acknowledgments:
 
  - Jens Alfke (Mobile Architect at [Couchbase](https://www.couchbase.com/)) for [NimDBX](https://github.com/snej/nimdbx).
  - Clément Renault (CTO at [MeiliSearch](https://www.meilisearch.com/)) for [mdbx-rs](https://github.com/Kerollmops/mdbx-rs).
@@ -1193,6 +1763,9 @@ Fixes:
  - Added workaround for Wine (https://github.com/miranda-ng/miranda-ng/issues/1209).
  - Fixed `ERROR_NOT_SUPPORTED` while opening DB by UNC pathnames (https://github.com/miranda-ng/miranda-ng/issues/2627).
  - Added handling `EXCEPTION_POSSIBLE_DEADLOCK` condition for Windows.
+
+
+--------------------------------------------------------------------------------
 
 
 ## v0.9.1 2020-09-30
@@ -1241,6 +1814,9 @@ Fixes:
  - Now C++ compiler optional for building by CMake.
 
 
+--------------------------------------------------------------------------------
+
+
 ## v0.9.0 2020-07-31 (not a release, but API changes)
 
 Added features:
@@ -1254,7 +1830,7 @@ Deprecated functions and flags:
    Please use the value-to-key functions to provide keys that are compatible with the built-in libmdbx comparators.
 
 
--------------------------------------------------------------------------------
+********************************************************************************
 
 
 ## 2020-07-06
@@ -1394,6 +1970,8 @@ Deprecated functions and flags:
  - API description.
  - Checking for non-local filesystems to avoid DB corruption.
 
--------------------------------------------------------------------------------
+
+********************************************************************************
+
 
 For early changes see the git commit history.

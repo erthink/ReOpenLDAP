@@ -1,4 +1,4 @@
-##  Copyright (c) 2012-2023 Leonid Yuriev <leo@yuriev.ru>.
+##  Copyright (c) 2012-2024 Leonid Yuriev <leo@yuriev.ru>.
 ##
 ##  Licensed under the Apache License, Version 2.0 (the "License");
 ##  you may not use this file except in compliance with the License.
@@ -348,6 +348,8 @@ endif()
 
 if(MSVC)
   check_compiler_flag("/WX" CC_HAS_WERROR)
+  check_compiler_flag("/fsanitize=address" CC_HAS_ASAN)
+  check_compiler_flag("/fsanitize=undefined" CC_HAS_UBSAN)
 else()
   #
   # GCC started to warn for unused result starting from 4.2, and
@@ -839,19 +841,26 @@ macro(setup_compile_flags)
   endif()
 
   if(ENABLE_ASAN)
-    add_compile_flags("C;CXX" "-fsanitize=address")
+    if(NOT MSVC)
+      add_compile_flags("C;CXX" "-fsanitize=address")
+    else()
+      add_compile_flags("C;CXX" "/fsanitize=address")
+    endif()
     add_definitions(-DASAN_ENABLED=1)
   endif()
 
   if(ENABLE_UBSAN)
-    add_compile_flags("C;CXX" "-fsanitize=undefined" "-fsanitize-undefined-trap-on-error")
+    if(NOT MSVC)
+      add_compile_flags("C;CXX" "-fsanitize=undefined" "-fsanitize-undefined-trap-on-error")
+    else()
+      add_compile_flags("C;CXX" "/fsanitize=undefined")
+    endif()
     add_definitions(-DUBSAN_ENABLED=1)
   endif()
 
   if(ENABLE_GCOV)
     if(NOT HAVE_GCOV)
-      message(FATAL_ERROR
-        "ENABLE_GCOV option requested but gcov library is not found")
+      message(FATAL_ERROR "ENABLE_GCOV option requested but gcov library is not found")
     endif()
 
     add_compile_flags("C;CXX" "-fprofile-arcs" "-ftest-coverage")
@@ -1030,9 +1039,15 @@ macro(probe_libcxx_filesystem)
         #endif
 
         int main(int argc, const char*argv[]) {
-          fs::path probe(argv[0]);
+          std::string str(argv[0]);
+          fs::path probe(str);
           if (argc != 1) throw fs::filesystem_error(std::string("fake"), std::error_code());
-          return fs::is_directory(probe.relative_path());
+          int r = fs::is_directory(probe.relative_path());
+          for (auto const& i : fs::directory_iterator(probe)) {
+            ++r;
+            (void)i;
+          }
+          return r;
         }
         ]])
       set(LIBCXX_FILESYSTEM "")
