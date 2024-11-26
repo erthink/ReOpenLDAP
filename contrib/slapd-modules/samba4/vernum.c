@@ -110,7 +110,7 @@ static int vernum_op_modify(Operation *op, SlapReply *rs) {
   for (mlp = &op->orm_modlist; *mlp != NULL; mlp = &(*mlp)->sml_next)
     /* goto tail */;
 
-    /* ITS#6561 */
+  /* ITS#6561 */
 #ifdef SLAP_MOD_ADD_IF_NOT_PRESENT
   /* the initial value is only added if the vernum attr is not present */
   ml = SLAP_CALLOC(sizeof(Modifications), 1);

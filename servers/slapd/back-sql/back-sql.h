@@ -365,10 +365,8 @@ typedef struct backsql_at_map_rec {
 } backsql_at_map_rec;
 
 #define BACKSQL_AT_MAP_REC_INIT                                                \
-  {                                                                            \
-    NULL, NULL, BER_BVC(""), BER_BVC(""), BER_BVNULL, BER_BVNULL, NULL, NULL,  \
-        NULL, 0, 0, NULL                                                       \
-  }
+  {NULL, NULL, BER_BVC(""), BER_BVC(""), BER_BVNULL, BER_BVNULL,               \
+   NULL, NULL, NULL,        0,           0,          NULL}
 
 /* define to uppercase filters only if the matching rule requires it
  * (currently broken) */
@@ -394,8 +392,7 @@ typedef struct berbuf {
   ber_len_t bb_len;
 } BerBuffer;
 
-#define BB_NULL                                                                \
-  { BER_BVNULL, 0 }
+#define BB_NULL {BER_BVNULL, 0}
 
 /*
  * Entry ID structure
@@ -425,10 +422,9 @@ typedef struct backsql_entryID {
 
 #ifdef BACKSQL_ARBITRARY_KEY
 #define BACKSQL_ENTRYID_INIT                                                   \
-  { BER_BVNULL, BER_BVNULL, 0, NULL, BER_BVNULL, BER_BVNULL, NULL }
+  {BER_BVNULL, BER_BVNULL, 0, NULL, BER_BVNULL, BER_BVNULL, NULL}
 #else /* ! BACKSQL_ARBITRARY_KEY */
-#define BACKSQL_ENTRYID_INIT                                                   \
-  { 0, 0, 0, NULL, BER_BVNULL, BER_BVNULL, NULL }
+#define BACKSQL_ENTRYID_INIT {0, 0, 0, NULL, BER_BVNULL, BER_BVNULL, NULL}
 #endif /* BACKSQL_ARBITRARY_KEY */
 
 /* the function must collect the entry associated to nbase */
@@ -436,11 +432,12 @@ typedef struct backsql_entryID {
 #define BACKSQL_ISF_GET_ENTRY (0x2U | BACKSQL_ISF_GET_ID)
 #define BACKSQL_ISF_GET_OC (0x4U | BACKSQL_ISF_GET_ID)
 #define BACKSQL_ISF_MATCHED 0x8U
-#define BACKSQL_IS_GET_ID(f) (((f)&BACKSQL_ISF_GET_ID) == BACKSQL_ISF_GET_ID)
+#define BACKSQL_IS_GET_ID(f) (((f) & BACKSQL_ISF_GET_ID) == BACKSQL_ISF_GET_ID)
 #define BACKSQL_IS_GET_ENTRY(f)                                                \
-  (((f)&BACKSQL_ISF_GET_ENTRY) == BACKSQL_ISF_GET_ENTRY)
-#define BACKSQL_IS_GET_OC(f) (((f)&BACKSQL_ISF_GET_OC) == BACKSQL_ISF_GET_OC)
-#define BACKSQL_IS_MATCHED(f) (((f)&BACKSQL_ISF_MATCHED) == BACKSQL_ISF_MATCHED)
+  (((f) & BACKSQL_ISF_GET_ENTRY) == BACKSQL_ISF_GET_ENTRY)
+#define BACKSQL_IS_GET_OC(f) (((f) & BACKSQL_ISF_GET_OC) == BACKSQL_ISF_GET_OC)
+#define BACKSQL_IS_MATCHED(f)                                                  \
+  (((f) & BACKSQL_ISF_MATCHED) == BACKSQL_ISF_MATCHED)
 typedef struct backsql_srch_info {
   Operation *bsi_op;
   SlapReply *bsi_rs;

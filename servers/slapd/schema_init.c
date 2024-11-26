@@ -5757,11 +5757,11 @@ static slap_syntax_defs_rec syntax_defs[] = {
     {"( 1.3.6.1.4.1.1466.115.121.1.8 DESC 'Certificate' " X_BINARY X_NOT_H_R
      ")",
      SLAP_SYNTAX_BINARY | SLAP_SYNTAX_BER, NULL, certificateValidate, NULL},
-    {"( 1.3.6.1.4.1.1466.115.121.1.9 DESC 'Certificate List' " X_BINARY
-         X_NOT_H_R ")",
+    {"( 1.3.6.1.4.1.1466.115.121.1.9 DESC 'Certificate "
+     "List' " X_BINARY X_NOT_H_R ")",
      SLAP_SYNTAX_BINARY | SLAP_SYNTAX_BER, NULL, certificateListValidate, NULL},
-    {"( 1.3.6.1.4.1.1466.115.121.1.10 DESC 'Certificate Pair' " X_BINARY
-         X_NOT_H_R ")",
+    {"( 1.3.6.1.4.1.1466.115.121.1.10 DESC 'Certificate "
+     "Pair' " X_BINARY X_NOT_H_R ")",
      SLAP_SYNTAX_BINARY | SLAP_SYNTAX_BER, NULL, sequenceValidate, NULL},
     {"( " attributeCertificateSyntaxOID
      " DESC 'X.509 AttributeCertificate' " X_BINARY X_NOT_H_R ")",
@@ -5848,8 +5848,8 @@ static slap_syntax_defs_rec syntax_defs[] = {
     {"( 1.3.6.1.4.1.1466.115.121.1.45 DESC 'SubtreeSpecification' )",
 #define subtreeSpecificationValidate UTF8StringValidate /* FIXME */
      0, NULL, subtreeSpecificationValidate, NULL},
-    {"( 1.3.6.1.4.1.1466.115.121.1.49 DESC 'Supported Algorithm' " X_BINARY
-         X_NOT_H_R ")",
+    {"( 1.3.6.1.4.1.1466.115.121.1.49 DESC 'Supported "
+     "Algorithm' " X_BINARY X_NOT_H_R ")",
      SLAP_SYNTAX_BINARY | SLAP_SYNTAX_BER, NULL, berValidate, NULL},
     {"( 1.3.6.1.4.1.1466.115.121.1.50 DESC 'Telephone Number' )", 0, NULL,
      printableStringValidate, NULL},

@@ -153,7 +153,7 @@ static int ldap_pvt_connect(LDAP *ld, ber_socket_t s, struct sockaddr_un *sa,
      * descriptor permissions must match exactly, and we also
      * send the socket name, which must also match.
      */
-  sendcred : {
+  sendcred: {
     int fds[2];
     ber_socklen_t salen = sizeof(*sa);
     if (pipe(fds) == 0) {

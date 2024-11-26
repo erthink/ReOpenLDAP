@@ -37,11 +37,11 @@ struct requirment {
 #define QR_DEMAND_RID (QR_VOTED_RID | QR_FLAG_AUTO)
 #define QR_DEMAND_SID (QR_VOTED_SID | QR_FLAG_DEMAND)
 
-#define QR_IS_RID(type) ((type)&QR_FLAG_RID)
+#define QR_IS_RID(type) ((type) & QR_FLAG_RID)
 #define QR_IS_SID(type) (!QR_IS_RID(type))
 
-#define QR_IS_DEMAND(type) ((type)&QR_FLAG_DEMAND)
-#define QR_IS_AUTO(type) ((type)&QR_FLAG_AUTO)
+#define QR_IS_DEMAND(type) ((type) & QR_FLAG_DEMAND)
+#define QR_IS_AUTO(type) ((type) & QR_FLAG_AUTO)
   short type, id;
 };
 

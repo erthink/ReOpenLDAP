@@ -139,16 +139,14 @@
     struct type *slh_first; /* first element */                                \
   }
 
-#define LDAP_SLIST_HEAD_INITIALIZER(head)                                      \
-  { NULL }
+#define LDAP_SLIST_HEAD_INITIALIZER(head) {NULL}
 
 #define LDAP_SLIST_ENTRY(type)                                                 \
   struct {                                                                     \
     struct type *sle_next; /* next element */                                  \
   }
 
-#define LDAP_SLIST_ENTRY_INITIALIZER(entry)                                    \
-  { NULL }
+#define LDAP_SLIST_ENTRY_INITIALIZER(entry) {NULL}
 
 /*
  * Singly-linked List functions.
@@ -161,10 +159,14 @@
   for ((var) = (head)->slh_first; (var); (var) = (var)->field.sle_next)
 
 #define LDAP_SLIST_INIT(head)                                                  \
-  { (head)->slh_first = NULL; }
+  {                                                                            \
+    (head)->slh_first = NULL;                                                  \
+  }
 
 #define LDAP_SLIST_ENTRY_INIT(var, field)                                      \
-  { (var)->field.sle_next = NULL; }
+  {                                                                            \
+    (var)->field.sle_next = NULL;                                              \
+  }
 
 #define LDAP_SLIST_INSERT_AFTER(slistelm, elm, field)                          \
   do {                                                                         \
@@ -206,16 +208,14 @@
     struct type **stqh_last; /* addr of last next element */                   \
   }
 
-#define LDAP_STAILQ_HEAD_INITIALIZER(head)                                     \
-  { NULL, &(head).stqh_first }
+#define LDAP_STAILQ_HEAD_INITIALIZER(head) {NULL, &(head).stqh_first}
 
 #define LDAP_STAILQ_ENTRY(type)                                                \
   struct {                                                                     \
     struct type *stqe_next; /* next element */                                 \
   }
 
-#define LDAP_STAILQ_ENTRY_INITIALIZER(entry)                                   \
-  { NULL }
+#define LDAP_STAILQ_ENTRY_INITIALIZER(entry) {NULL}
 
 /*
  * Singly-linked Tail queue functions.
@@ -229,7 +229,9 @@
   } while (0)
 
 #define LDAP_STAILQ_ENTRY_INIT(var, field)                                     \
-  { (var)->field.stqe_next = NULL; }
+  {                                                                            \
+    (var)->field.stqe_next = NULL;                                             \
+  }
 
 #define LDAP_STAILQ_FIRST(head) ((head)->stqh_first)
 
@@ -298,8 +300,7 @@
     struct type *lh_first; /* first element */                                 \
   }
 
-#define LDAP_LIST_HEAD_INITIALIZER(head)                                       \
-  { NULL }
+#define LDAP_LIST_HEAD_INITIALIZER(head) {NULL}
 
 #define LDAP_LIST_ENTRY(type)                                                  \
   struct {                                                                     \
@@ -307,8 +308,7 @@
     struct type **le_prev; /* address of previous next element */              \
   }
 
-#define LDAP_LIST_ENTRY_INITIALIZER(entry)                                     \
-  { NULL, NULL }
+#define LDAP_LIST_ENTRY_INITIALIZER(entry) {NULL, NULL}
 
 /*
  * List functions.
@@ -374,8 +374,7 @@
     struct type **tqh_last; /* addr of last next element */                    \
   }
 
-#define LDAP_TAILQ_HEAD_INITIALIZER(head)                                      \
-  { NULL, &(head).tqh_first }
+#define LDAP_TAILQ_HEAD_INITIALIZER(head) {NULL, &(head).tqh_first}
 
 #define LDAP_TAILQ_ENTRY(type)                                                 \
   struct {                                                                     \
@@ -383,8 +382,7 @@
     struct type **tqe_prev; /* address of previous next element */             \
   }
 
-#define LDAP_TAILQ_ENTRY_INITIALIZER(entry)                                    \
-  { NULL, NULL }
+#define LDAP_TAILQ_ENTRY_INITIALIZER(entry) {NULL, NULL}
 
 /*
  * Tail queue functions.
@@ -474,8 +472,7 @@
     struct type *cqh_last;  /* last element */                                 \
   }
 
-#define LDAP_CIRCLEQ_HEAD_INITIALIZER(head)                                    \
-  { (void *)&(head), (void *)&(head) }
+#define LDAP_CIRCLEQ_HEAD_INITIALIZER(head) {(void *)&(head), (void *)&(head)}
 
 #define LDAP_CIRCLEQ_ENTRY(type)                                               \
   struct {                                                                     \

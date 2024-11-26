@@ -3858,7 +3858,9 @@ static int config_disallows(ConfigArgs *c) {
 }
 
 static int config_requires(ConfigArgs *c) {
-  slap_mask_t requires = frontendDB->be_requires;
+  slap_mask_t
+    requires
+  = frontendDB->be_requires;
   int i, argc = c->argc;
   char **argv = c->argv;
 
@@ -3898,7 +3900,8 @@ static int config_requires(ConfigArgs *c) {
     }
     return ARG_BAD_CONF;
   }
-  c->be->be_requires = requires;
+  c->be->be_requires =
+    requires;
   return 0;
 }
 
@@ -3971,28 +3974,26 @@ static void loglevel_destroy(void) {
 }
 
 static int loglevel_init(void) {
-  slap_verbmasks lo[] = {
-    {BER_BVC("Any"), (slap_mask_t)LDAP_DEBUG_ANY},
-    {BER_BVC("Trace"), LDAP_DEBUG_TRACE},
-    {BER_BVC("Packets"), LDAP_DEBUG_PACKETS},
-    {BER_BVC("Args"), LDAP_DEBUG_ARGS},
-    {BER_BVC("Conns"), LDAP_DEBUG_CONNS},
-    {BER_BVC("BER"), LDAP_DEBUG_BER},
-    {BER_BVC("Filter"), LDAP_DEBUG_FILTER},
-    {BER_BVC("Config"), LDAP_DEBUG_CONFIG},
-    {BER_BVC("ACL"), LDAP_DEBUG_ACL},
-    {BER_BVC("Stats"), LDAP_DEBUG_STATS},
-    {BER_BVC("Stats2"), LDAP_DEBUG_STATS2},
-    {BER_BVC("Shell"), LDAP_DEBUG_SHELL},
-    {BER_BVC("Parse"), LDAP_DEBUG_PARSE},
-    {BER_BVC("Cache"), LDAP_DEBUG_CACHE},
+  slap_verbmasks lo[] = {{BER_BVC("Any"), (slap_mask_t)LDAP_DEBUG_ANY},
+                         {BER_BVC("Trace"), LDAP_DEBUG_TRACE},
+                         {BER_BVC("Packets"), LDAP_DEBUG_PACKETS},
+                         {BER_BVC("Args"), LDAP_DEBUG_ARGS},
+                         {BER_BVC("Conns"), LDAP_DEBUG_CONNS},
+                         {BER_BVC("BER"), LDAP_DEBUG_BER},
+                         {BER_BVC("Filter"), LDAP_DEBUG_FILTER},
+                         {BER_BVC("Config"), LDAP_DEBUG_CONFIG},
+                         {BER_BVC("ACL"), LDAP_DEBUG_ACL},
+                         {BER_BVC("Stats"), LDAP_DEBUG_STATS},
+                         {BER_BVC("Stats2"), LDAP_DEBUG_STATS2},
+                         {BER_BVC("Shell"), LDAP_DEBUG_SHELL},
+                         {BER_BVC("Parse"), LDAP_DEBUG_PARSE},
+                         {BER_BVC("Cache"), LDAP_DEBUG_CACHE},
 #if 0 /* no longer used (nor supported) */
 		{ BER_BVC("Index"),	LDAP_DEBUG_INDEX },
 #endif
-    {BER_BVC("Sync"), LDAP_DEBUG_SYNC},
-    {BER_BVC("None"), LDAP_DEBUG_NONE},
-    {BER_BVNULL, 0}
-  };
+                         {BER_BVC("Sync"), LDAP_DEBUG_SYNC},
+                         {BER_BVC("None"), LDAP_DEBUG_NONE},
+                         {BER_BVNULL, 0}};
 
   if (atexit(loglevel_destroy)) {
     perror("atexit(loglevel_destroy)");

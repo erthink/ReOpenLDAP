@@ -61,14 +61,14 @@ slap_set_join(SetCookie *cp, BerVarray lset, unsigned op, BerVarray rset);
 #define SLAP_SET_RREF SLAP_SET_REF
 #define SLAP_SET_RREFMASK 0x0F00
 
-#define SLAP_SET_RREF2REF(r) ((r)&SLAP_SET_RREFMASK)
+#define SLAP_SET_RREF2REF(r) ((r) & SLAP_SET_RREFMASK)
 
 #define SLAP_SET_LREFARR 0x1000
 #define SLAP_SET_LREFVAL 0x2000
 #define SLAP_SET_LREF (SLAP_SET_LREFARR | SLAP_SET_LREFVAL)
 #define SLAP_SET_LREFMASK 0xF000
 
-#define SLAP_SET_LREF2REF(r) (((r)&SLAP_SET_LREFMASK) >> 4)
+#define SLAP_SET_LREF2REF(r) (((r) & SLAP_SET_LREFMASK) >> 4)
 
 LDAP_END_DECL
 

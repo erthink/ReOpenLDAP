@@ -161,7 +161,7 @@ LDAP_BEGIN_DECL
 #define ASCII_ALNUM(c) (ASCII_ALPHA(c) || ASCII_DIGIT(c))
 #define ASCII_PRINTABLE(c) ((c) >= ' ' && (c) <= '~')
 
-#define SLAP_NIBBLE(c) ((c)&0x0f)
+#define SLAP_NIBBLE(c) ((c) & 0x0f)
 #define SLAP_ESCAPE_CHAR ('\\')
 #define SLAP_ESCAPE_LO(c) ("0123456789ABCDEF"[SLAP_NIBBLE(c)])
 #define SLAP_ESCAPE_HI(c) (SLAP_ESCAPE_LO((c) >> 4))
@@ -554,15 +554,15 @@ struct MatchingRule {
 #define SLAP_MR_DENORMALIZE (SLAP_MR_MUTATION_NORMALIZER)
 
 #define SLAP_MR_IS_VALUE_OF_ATTRIBUTE_SYNTAX(usage)                            \
-  ((usage)&SLAP_MR_VALUE_OF_ATTRIBUTE_SYNTAX)
+  ((usage) & SLAP_MR_VALUE_OF_ATTRIBUTE_SYNTAX)
 #define SLAP_MR_IS_VALUE_OF_ASSERTION_SYNTAX(usage)                            \
-  ((usage)&SLAP_MR_VALUE_OF_ASSERTION_SYNTAX)
+  ((usage) & SLAP_MR_VALUE_OF_ASSERTION_SYNTAX)
 #ifdef LDAP_DEBUG
-#define SLAP_MR_IS_VALUE_OF_SYNTAX(usage) ((usage)&SLAP_MR_VALUE_OF_SYNTAX)
+#define SLAP_MR_IS_VALUE_OF_SYNTAX(usage) ((usage) & SLAP_MR_VALUE_OF_SYNTAX)
 #else
 #define SLAP_MR_IS_VALUE_OF_SYNTAX(usage) (1)
 #endif
-#define SLAP_MR_IS_DENORMALIZE(usage) ((usage)&SLAP_MR_DENORMALIZE)
+#define SLAP_MR_IS_DENORMALIZE(usage) ((usage) & SLAP_MR_DENORMALIZE)
 
 /* either or both the asserted value or attribute value
  * may be provided in normalized form
@@ -571,21 +571,21 @@ struct MatchingRule {
 #define SLAP_MR_ATTRIBUTE_VALUE_NORMALIZED_MATCH 0x0008U
 
 #define SLAP_IS_MR_ASSERTION_SYNTAX_MATCH(usage)                               \
-  (!((usage)&SLAP_MR_ATTRIBUTE_SYNTAX_MATCH))
+  (!((usage) & SLAP_MR_ATTRIBUTE_SYNTAX_MATCH))
 #define SLAP_IS_MR_ATTRIBUTE_SYNTAX_MATCH(usage)                               \
-  ((usage)&SLAP_MR_ATTRIBUTE_SYNTAX_MATCH)
+  ((usage) & SLAP_MR_ATTRIBUTE_SYNTAX_MATCH)
 
 #define SLAP_IS_MR_ATTRIBUTE_SYNTAX_CONVERTED_MATCH(usage)                     \
-  (((usage)&SLAP_MR_ATTRIBUTE_SYNTAX_CONVERTED_MATCH) ==                       \
+  (((usage) & SLAP_MR_ATTRIBUTE_SYNTAX_CONVERTED_MATCH) ==                     \
    SLAP_MR_ATTRIBUTE_SYNTAX_CONVERTED_MATCH)
 #define SLAP_IS_MR_ATTRIBUTE_SYNTAX_NONCONVERTED_MATCH(usage)                  \
-  (((usage)&SLAP_MR_ATTRIBUTE_SYNTAX_CONVERTED_MATCH) ==                       \
+  (((usage) & SLAP_MR_ATTRIBUTE_SYNTAX_CONVERTED_MATCH) ==                     \
    SLAP_MR_ATTRIBUTE_SYNTAX_MATCH)
 
 #define SLAP_IS_MR_ASSERTED_VALUE_NORMALIZED_MATCH(usage)                      \
-  ((usage)&SLAP_MR_ASSERTED_VALUE_NORMALIZED_MATCH)
+  ((usage) & SLAP_MR_ASSERTED_VALUE_NORMALIZED_MATCH)
 #define SLAP_IS_MR_ATTRIBUTE_VALUE_NORMALIZED_MATCH(usage)                     \
-  ((usage)&SLAP_MR_ATTRIBUTE_VALUE_NORMALIZED_MATCH)
+  ((usage) & SLAP_MR_ATTRIBUTE_VALUE_NORMALIZED_MATCH)
 
   Syntax *smr_syntax;
   slap_mr_convert_func *smr_convert;
@@ -987,11 +987,9 @@ struct AttributeAssertion {
 #endif
 };
 #ifdef LDAP_COMP_MATCH
-#define ATTRIBUTEASSERTION_INIT                                                \
-  { NULL, BER_BVNULL, NULL }
+#define ATTRIBUTEASSERTION_INIT {NULL, BER_BVNULL, NULL}
 #else
-#define ATTRIBUTEASSERTION_INIT                                                \
-  { NULL, BER_BVNULL }
+#define ATTRIBUTEASSERTION_INIT {NULL, BER_BVNULL}
 #endif
 
 struct SubstringsAssertion {
@@ -1067,7 +1065,7 @@ struct Filter {
 };
 
 /* compare routines can return undefined */
-#define SLAPD_COMPARE_UNDEFINED ((ber_int_t)-1)
+#define SLAPD_COMPARE_UNDEFINED ((ber_int_t) - 1)
 
 struct ValuesReturnFilter {
   ber_tag_t vrf_choice;
@@ -1329,7 +1327,7 @@ typedef struct Access {
   slap_control_t a_type;
 
 /* strip qualifiers */
-#define ACL_LEVEL(p) ((p)&ACL_LEVEL_MASK)
+#define ACL_LEVEL(p) ((p) & ACL_LEVEL_MASK)
 #define ACL_QUALIFIERS(p) ((p) & ~ACL_LEVEL_MASK)
 
 #define ACL_ACCESS2PRIV(access)                                                \
@@ -1393,7 +1391,7 @@ typedef struct Access {
 #define ACL_LVL_WRITE (ACL_PRIV_WRITE | ACL_LVL_READ)
 #define ACL_LVL_MANAGE (ACL_PRIV_MANAGE | ACL_LVL_WRITE)
 
-#define ACL_LVL(m, l) (((m)&ACL_PRIV_MASK) == ((l)&ACL_PRIV_MASK))
+#define ACL_LVL(m, l) (((m) & ACL_PRIV_MASK) == ((l) & ACL_PRIV_MASK))
 #define ACL_LVL_IS_NONE(m) ACL_LVL((m), ACL_LVL_NONE)
 #define ACL_LVL_IS_DISCLOSE(m) ACL_LVL((m), ACL_LVL_DISCLOSE)
 #define ACL_LVL_IS_AUTH(m) ACL_LVL((m), ACL_LVL_AUTH)
@@ -1535,8 +1533,7 @@ typedef struct AccessControlState {
   /* True if started to process frontend ACLs */
   int as_fe_done;
 } AccessControlState;
-#define ACL_STATE_INIT                                                         \
-  { NULL, ACL_NONE, NULL, 0, 0, ACL_PRIV_NONE, -1, 0 }
+#define ACL_STATE_INIT {NULL, ACL_NONE, NULL, 0, 0, ACL_PRIV_NONE, -1, 0}
 
 typedef struct AclRegexMatches {
   int dn_count;
@@ -2132,9 +2129,9 @@ typedef struct rep_search_s {
 #define SLAP_USERATTRS_NO (0x10U)
 #define SLAP_USERATTRS_YES (0x20U)
 #define SLAP_OPATTRS_MASK(f) ((f) & (SLAP_OPATTRS_NO | SLAP_OPATTRS_YES))
-#define SLAP_OPATTRS(f) (((f)&SLAP_OPATTRS_YES) == SLAP_OPATTRS_YES)
+#define SLAP_OPATTRS(f) (((f) & SLAP_OPATTRS_YES) == SLAP_OPATTRS_YES)
 #define SLAP_USERATTRS_MASK(f) ((f) & (SLAP_USERATTRS_NO | SLAP_USERATTRS_YES))
-#define SLAP_USERATTRS(f) (((f)&SLAP_USERATTRS_YES) == SLAP_USERATTRS_YES)
+#define SLAP_USERATTRS(f) (((f) & SLAP_USERATTRS_YES) == SLAP_USERATTRS_YES)
 
   Attribute *r_operational_attrs;
   AttributeName *r_attrs;
@@ -2746,7 +2743,7 @@ struct Operation {
 #define SLAP_CONTROL_DATA2 0x40
 #define SLAP_CONTROL_DATA3 0x80
 
-#define _SCM(x) ((x)&SLAP_CONTROL_MASK)
+#define _SCM(x) ((x) & SLAP_CONTROL_MASK)
 
   char o_ctrlflag[SLAP_MAX_CIDS]; /* per-control flags */
   void **o_controls;              /* per-control state */

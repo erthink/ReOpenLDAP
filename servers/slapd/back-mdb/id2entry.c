@@ -676,7 +676,7 @@ int mdb_opinfo_get(Operation *op, struct mdb_info *mdb, int rdonly,
 #ifdef SLAP_CONTROL_X_LAZY_COMMIT
         if (get_lazyCommit(op))
           flag |= MDBX_SAFE_NOSYNC;
-#endif                         /* SLAP_CONTROL_X_LAZY_COMMIT */
+#endif /* SLAP_CONTROL_X_LAZY_COMMIT */
         rc = mdbx_txn_begin(mdb->mi_dbenv, NULL, flag, &moi->moi_txn);
         if (rc) {
           Debug(LDAP_DEBUG_ANY, "mdb_opinfo_get: mdbx_txn_begin() err %s(%d)\n",

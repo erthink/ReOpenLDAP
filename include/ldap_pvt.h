@@ -157,7 +157,7 @@ LDAP_F(void) ldap_pvt_hex_unescape(char *s);
  * these macros assume 'x' is an ASCII x
  * and assume the "C" locale
  */
-#define LDAP_ASCII(c) (!((c)&0x80))
+#define LDAP_ASCII(c) (!((c) & 0x80))
 #define LDAP_SPACE(c) ((c) == ' ' || (c) == '\t' || (c) == '\n')
 #define LDAP_DIGIT(c) ((c) >= '0' && (c) <= '9')
 #define LDAP_LOWER(c) ((c) >= 'a' && (c) <= 'z')
@@ -401,8 +401,7 @@ typedef BIGNUM *ldap_pvt_mp_t;
 #include <gmp.h>
 
 typedef mpz_t ldap_pvt_mp_t;
-#define LDAP_PVT_MP_INIT                                                       \
-  { 0 }
+#define LDAP_PVT_MP_INIT {0}
 
 #define ldap_pvt_mp_init(mp) mpz_init((mp))
 

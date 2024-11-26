@@ -62,7 +62,7 @@ LDAP_BEGIN_DECL
   (0x80) /* Log level 2 function operational details                           \
           */
 	/* in case we need to reuse the unused bits of severity */
-#define LDAP_LEVEL_MASK(s) ((s)&0x7)
+#define LDAP_LEVEL_MASK(s) ((s) & 0x7)
 #else
 #define LDAP_LEVEL_MASK(s) (s)
 #endif

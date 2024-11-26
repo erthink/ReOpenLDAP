@@ -136,8 +136,8 @@ static uint32_t kdecomps_size;
 /*
  * Composition exclusion table stuff.
  */
-#define COMPEX_SET(c) (compexs[(c) >> 5] |= (1 << ((c)&31)))
-#define COMPEX_TEST(c) (compexs[(c) >> 5] & (1 << ((c)&31)))
+#define COMPEX_SET(c) (compexs[(c) >> 5] |= (1 << ((c) & 31)))
+#define COMPEX_TEST(c) (compexs[(c) >> 5] & (1 << ((c) & 31)))
 static uint32_t compexs[8192];
 
 /*

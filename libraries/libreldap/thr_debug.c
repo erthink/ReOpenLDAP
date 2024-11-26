@@ -261,26 +261,24 @@ static void get_options(void) {
   static const struct option_info_s {
     const char *name;
     int *var, val;
-  } option_info[] = {
-    {"off", &nodebug, 1},
-    {"noabort", &noabort, 1},
-    {"noerror", &noerror, 1},
-    {"nocount", &count, Count_no},
-    {"nosync", &nosync, 1},
+  } option_info[] = {{"off", &nodebug, 1},
+                     {"noabort", &noabort, 1},
+                     {"noerror", &noerror, 1},
+                     {"nocount", &count, Count_no},
+                     {"nosync", &nosync, 1},
 #if LDAP_THREAD_DEBUG_THREAD_ID + 0
-    {"threadID", &threadID, 1},
+                     {"threadID", &threadID, 1},
 #endif
 #ifdef LDAP_THREAD_DEBUG_WRAP
-    {"nomem", &nomem, 1},
-    {"noreinit", &noreinit, 1},
-    {"noalloc", &wraptype, Wrap_noalloc},
-    {"alloc", &wraptype, Wrap_alloc},
-    {"adjptr", &wraptype, Wrap_adjptr},
-    {"scramble", &wraptype, Wrap_scramble},
+                     {"nomem", &nomem, 1},
+                     {"noreinit", &noreinit, 1},
+                     {"noalloc", &wraptype, Wrap_noalloc},
+                     {"alloc", &wraptype, Wrap_alloc},
+                     {"adjptr", &wraptype, Wrap_adjptr},
+                     {"scramble", &wraptype, Wrap_scramble},
 #endif
-    {"tracethreads", &tracethreads, 1},
-    {NULL, NULL, 0}
-  };
+                     {"tracethreads", &tracethreads, 1},
+                     {NULL, NULL, 0}};
   const char *s = getenv("LDAP_THREAD_DEBUG");
   if (s != NULL) {
     while (*(s += strspn(s, ", \t\r\n")) != '\0') {
@@ -351,8 +349,7 @@ static void get_options(void) {
 /* Specialize this if the initializer is not appropriate. */
 /* The ASSERT_NO_OWNER() definition may also need an override. */
 #ifndef LDAP_DEBUG_THREAD_NONE
-#define LDAP_DEBUG_THREAD_NONE                                                 \
-  { -1 } /* "no thread" ldap_int_thread_t value */
+#define LDAP_DEBUG_THREAD_NONE {-1} /* "no thread" ldap_int_thread_t value */
 #endif
 
 static const ldap_int_thread_t ldap_debug_thread_none = LDAP_DEBUG_THREAD_NONE;
@@ -499,9 +496,12 @@ static int debug_already_initialized(const ldap_debug_usage_info_t *usage) {
 
 typedef void ldap_debug_thread_t;
 #define init_thread_info()                                                     \
-  {}
+  {                                                                            \
+  }
 #define with_thread_info_lock(statements)                                      \
-  { statements; }
+  {                                                                            \
+    statements;                                                                \
+  }
 #define thread_info_detached(t) 0
 #define add_thread_info(msg, thr, det) ((void)0)
 #define remove_thread_info(tinfo, msg) ((void)0)
@@ -541,7 +541,9 @@ static ldap_int_thread_mutex_t thread_info_mutex;
   {                                                                            \
     int rc_wtl_ = ldap_int_thread_mutex_lock(&thread_info_mutex);              \
     assert(rc_wtl_ == 0);                                                      \
-    { statements; }                                                            \
+    {                                                                          \
+      statements;                                                              \
+    }                                                                          \
     rc_wtl_ = ldap_int_thread_mutex_unlock(&thread_info_mutex);                \
     assert(rc_wtl_ == 0);                                                      \
   }

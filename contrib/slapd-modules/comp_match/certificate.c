@@ -356,8 +356,8 @@ PARAMS((b, tagId0, elmtLen0, v, bytesDecoded, mode),
 
 int GDecComponentAlgorithmIdentifier
 PARAMS((mem_op, b, v, bytesDecoded, mode),
-       void *mem_op _AND_ GenBuf *b _AND_ ComponentAlgorithmIdentifier **v _AND_
-           AsnLen *bytesDecoded _AND_ int mode) {
+       void *mem_op _AND_ GenBuf *b _AND_ ComponentAlgorithmIdentifier **v
+           _AND_ AsnLen *bytesDecoded _AND_ int mode) {
   char *peek_head, *peek_head2;
   int i, strLen, strLen2, rc, old_mode = mode;
   ComponentAlgorithmIdentifier *k, *t, c_temp;
@@ -734,10 +734,11 @@ void *ExtractingComponentExtension(void *mem_op, ComponentReference *cr,
   return NULL;
 } /* ExtractingComponentExtension */
 
-int BDecComponentExtension PARAMS(
-    (b, tagId0, elmtLen0, v, bytesDecoded, mode),
-    void *mem_op _AND_ GenBuf *b _AND_ AsnTag tagId0 _AND_ AsnLen elmtLen0 _AND_
-        ComponentExtension **v _AND_ AsnLen *bytesDecoded _AND_ int mode) {
+int BDecComponentExtension
+PARAMS((b, tagId0, elmtLen0, v, bytesDecoded, mode),
+       void *mem_op _AND_ GenBuf *b _AND_ AsnTag tagId0 _AND_ AsnLen elmtLen0
+           _AND_ ComponentExtension **v _AND_ AsnLen *bytesDecoded
+               _AND_ int mode) {
   int seqDone = FALSE;
   AsnLen totalElmtsLen1 = 0;
   AsnLen elmtLen1;
@@ -837,8 +838,8 @@ int BDecComponentExtension PARAMS(
 
 int GDecComponentExtension
 PARAMS((mem_op, b, v, bytesDecoded, mode),
-       void *mem_op _AND_ GenBuf *b _AND_ ComponentExtension **v _AND_
-           AsnLen *bytesDecoded _AND_ int mode) {
+       void *mem_op _AND_ GenBuf *b _AND_ ComponentExtension **v
+           _AND_ AsnLen *bytesDecoded _AND_ int mode) {
   char *peek_head, *peek_head2;
   int i, strLen, strLen2, rc, old_mode = mode;
   ComponentExtension *k, *t, c_temp;
@@ -1242,8 +1243,8 @@ void *ExtractingComponentValidity(void *mem_op, ComponentReference *cr,
 
 int BDecComponentValidity PARAMS(
     (b, tagId0, elmtLen0, v, bytesDecoded, mode),
-    void *mem_op _AND_ GenBuf *b _AND_ AsnTag tagId0 _AND_ AsnLen elmtLen0 _AND_
-        ComponentValidity **v _AND_ AsnLen *bytesDecoded _AND_ int mode) {
+    void *mem_op _AND_ GenBuf *b _AND_ AsnTag tagId0 _AND_ AsnLen elmtLen0
+        _AND_ ComponentValidity **v _AND_ AsnLen *bytesDecoded _AND_ int mode) {
   int seqDone = FALSE;
   AsnLen totalElmtsLen1 = 0;
   AsnLen elmtLen1;
@@ -1331,8 +1332,8 @@ int BDecComponentValidity PARAMS(
 
 int GDecComponentValidity
 PARAMS((mem_op, b, v, bytesDecoded, mode),
-       void *mem_op _AND_ GenBuf *b _AND_ ComponentValidity **v _AND_
-           AsnLen *bytesDecoded _AND_ int mode) {
+       void *mem_op _AND_ GenBuf *b _AND_ ComponentValidity **v
+           _AND_ AsnLen *bytesDecoded _AND_ int mode) {
   char *peek_head, *peek_head2;
   int i, strLen, strLen2, rc, old_mode = mode;
   ComponentValidity *k, *t, c_temp;
@@ -1749,10 +1750,11 @@ void *ExtractingComponentExtensions(void *mem_op, ComponentReference *cr,
   }
 } /* ExtractingComponentExtensions */
 
-int BDecComponentExtensions PARAMS(
-    (b, tagId0, elmtLen0, v, bytesDecoded, mode),
-    void *mem_op _AND_ GenBuf *b _AND_ AsnTag tagId0 _AND_ AsnLen elmtLen0 _AND_
-        ComponentExtensions **v _AND_ AsnLen *bytesDecoded _AND_ int mode) {
+int BDecComponentExtensions
+PARAMS((b, tagId0, elmtLen0, v, bytesDecoded, mode),
+       void *mem_op _AND_ GenBuf *b _AND_ AsnTag tagId0 _AND_ AsnLen elmtLen0
+           _AND_ ComponentExtensions **v _AND_ AsnLen *bytesDecoded
+               _AND_ int mode) {
   int seqDone = FALSE;
   AsnLen totalElmtsLen1 = 0;
   AsnLen elmtLen1;
@@ -1785,7 +1787,7 @@ int BDecComponentExtensions PARAMS(
                                   &totalElmtsLen1, mode);
       if (rc != LDAP_SUCCESS)
         return rc;
-    }    /* end of tag check if */
+    } /* end of tag check if */
     else /* wrong tag */
     {
       Asn1Error("Unexpected Tag\n");
@@ -1821,8 +1823,8 @@ int BDecComponentExtensions PARAMS(
 
 int GDecComponentExtensions
 PARAMS((mem_op, b, v, bytesDecoded, mode),
-       void *mem_op _AND_ GenBuf *b _AND_ ComponentExtensions **v _AND_
-           AsnLen *bytesDecoded _AND_ int mode) {
+       void *mem_op _AND_ GenBuf *b _AND_ ComponentExtensions **v
+           _AND_ AsnLen *bytesDecoded _AND_ int mode) {
   char *peek_head, *peek_head2;
   int i, strLen, strLen2, rc, old_mode = mode;
   ComponentExtensions *k, *t, c_temp;
@@ -1918,7 +1920,7 @@ int MatchingComponentRelativeDistinguishedName(
         break;
       }
     } /* end of inner for */
-  }   /* end of outer for */
+  } /* end of outer for */
 
   if (AsnListCount(v2) == 0)
     rc = LDAP_COMPARE_TRUE;
@@ -1993,8 +1995,8 @@ void *ExtractingComponentRelativeDistinguishedName(
 int BDecComponentRelativeDistinguishedName
 PARAMS((b, tagId0, elmtLen0, v, bytesDecoded, mode),
        void *mem_op _AND_ GenBuf *b _AND_ AsnTag tagId0 _AND_ AsnLen elmtLen0
-           _AND_ ComponentRelativeDistinguishedName **v _AND_
-               AsnLen *bytesDecoded _AND_ int mode) {
+           _AND_ ComponentRelativeDistinguishedName **v
+               _AND_ AsnLen *bytesDecoded _AND_ int mode) {
   int seqDone = FALSE;
   AsnLen totalElmtsLen1 = 0;
   AsnLen elmtLen1;
@@ -2028,7 +2030,7 @@ PARAMS((b, tagId0, elmtLen0, v, bytesDecoded, mode),
                                               tmpVar, &totalElmtsLen1, mode);
       if (rc != LDAP_SUCCESS)
         return rc;
-    }    /* end of tag check if */
+    } /* end of tag check if */
     else /* wrong tag */
     {
       Asn1Error("Unexpected Tag\n");
@@ -2234,10 +2236,11 @@ void *ExtractingComponentRDNSequence(void *mem_op, ComponentReference *cr,
   }
 } /* ExtractingComponentRDNSequence */
 
-int BDecComponentRDNSequence PARAMS(
-    (b, tagId0, elmtLen0, v, bytesDecoded, mode),
-    void *mem_op _AND_ GenBuf *b _AND_ AsnTag tagId0 _AND_ AsnLen elmtLen0 _AND_
-        ComponentRDNSequence **v _AND_ AsnLen *bytesDecoded _AND_ int mode) {
+int BDecComponentRDNSequence
+PARAMS((b, tagId0, elmtLen0, v, bytesDecoded, mode),
+       void *mem_op _AND_ GenBuf *b _AND_ AsnTag tagId0 _AND_ AsnLen elmtLen0
+           _AND_ ComponentRDNSequence **v _AND_ AsnLen *bytesDecoded
+               _AND_ int mode) {
   int seqDone = FALSE;
   AsnLen totalElmtsLen1 = 0;
   AsnLen elmtLen1;
@@ -2271,7 +2274,7 @@ int BDecComponentRDNSequence PARAMS(
           mem_op, b, tagId1, elmtLen1, tmpVar, &totalElmtsLen1, mode);
       if (rc != LDAP_SUCCESS)
         return rc;
-    }    /* end of tag check if */
+    } /* end of tag check if */
     else /* wrong tag */
     {
       Asn1Error("Unexpected Tag\n");
@@ -2311,8 +2314,8 @@ int BDecComponentRDNSequence PARAMS(
 
 int GDecComponentRDNSequence
 PARAMS((mem_op, b, v, bytesDecoded, mode),
-       void *mem_op _AND_ GenBuf *b _AND_ ComponentRDNSequence **v _AND_
-           AsnLen *bytesDecoded _AND_ int mode) {
+       void *mem_op _AND_ GenBuf *b _AND_ ComponentRDNSequence **v
+           _AND_ AsnLen *bytesDecoded _AND_ int mode) {
   char *peek_head, *peek_head2;
   int i, strLen, strLen2, rc, old_mode = mode;
   ComponentRDNSequence *k, *t, c_temp;
@@ -2790,10 +2793,11 @@ void *ExtractingComponentTBSCertificate(void *mem_op, ComponentReference *cr,
   return NULL;
 } /* ExtractingComponentTBSCertificate */
 
-int BDecComponentTBSCertificate PARAMS(
-    (b, tagId0, elmtLen0, v, bytesDecoded, mode),
-    void *mem_op _AND_ GenBuf *b _AND_ AsnTag tagId0 _AND_ AsnLen elmtLen0 _AND_
-        ComponentTBSCertificate **v _AND_ AsnLen *bytesDecoded _AND_ int mode) {
+int BDecComponentTBSCertificate
+PARAMS((b, tagId0, elmtLen0, v, bytesDecoded, mode),
+       void *mem_op _AND_ GenBuf *b _AND_ AsnTag tagId0 _AND_ AsnLen elmtLen0
+           _AND_ ComponentTBSCertificate **v _AND_ AsnLen *bytesDecoded
+               _AND_ int mode) {
   int seqDone = FALSE;
   AsnLen totalElmtsLen1 = 0;
   AsnLen elmtLen1;
@@ -3045,8 +3049,8 @@ int BDecComponentTBSCertificate PARAMS(
 
 int GDecComponentTBSCertificate
 PARAMS((mem_op, b, v, bytesDecoded, mode),
-       void *mem_op _AND_ GenBuf *b _AND_ ComponentTBSCertificate **v _AND_
-           AsnLen *bytesDecoded _AND_ int mode) {
+       void *mem_op _AND_ GenBuf *b _AND_ ComponentTBSCertificate **v
+           _AND_ AsnLen *bytesDecoded _AND_ int mode) {
   char *peek_head, *peek_head2;
   int i, strLen, strLen2, rc, old_mode = mode;
   ComponentTBSCertificate *k, *t, c_temp;
@@ -3382,10 +3386,11 @@ void *ExtractingComponentCertificate(void *mem_op, ComponentReference *cr,
   return NULL;
 } /* ExtractingComponentCertificate */
 
-int BDecComponentCertificate PARAMS(
-    (b, tagId0, elmtLen0, v, bytesDecoded, mode),
-    void *mem_op _AND_ GenBuf *b _AND_ AsnTag tagId0 _AND_ AsnLen elmtLen0 _AND_
-        ComponentCertificate **v _AND_ AsnLen *bytesDecoded _AND_ int mode) {
+int BDecComponentCertificate
+PARAMS((b, tagId0, elmtLen0, v, bytesDecoded, mode),
+       void *mem_op _AND_ GenBuf *b _AND_ AsnTag tagId0 _AND_ AsnLen elmtLen0
+           _AND_ ComponentCertificate **v _AND_ AsnLen *bytesDecoded
+               _AND_ int mode) {
   int seqDone = FALSE;
   AsnLen totalElmtsLen1 = 0;
   AsnLen elmtLen1;
@@ -3481,8 +3486,8 @@ int BDecComponentCertificate PARAMS(
 
 int GDecComponentCertificate
 PARAMS((mem_op, b, v, bytesDecoded, mode),
-       void *mem_op _AND_ GenBuf *b _AND_ ComponentCertificate **v _AND_
-           AsnLen *bytesDecoded _AND_ int mode) {
+       void *mem_op _AND_ GenBuf *b _AND_ ComponentCertificate **v
+           _AND_ AsnLen *bytesDecoded _AND_ int mode) {
   char *peek_head, *peek_head2;
   int i, strLen, strLen2, rc, old_mode = mode;
   ComponentCertificate *k, *t, c_temp;

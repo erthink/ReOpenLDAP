@@ -1160,7 +1160,7 @@ static unsigned char spmap[] = {
 };
 
 #define _ure_isspecial(cc)                                                     \
-  ((cc) > 0x20 && (cc) < 0x7f && (spmap[(cc) >> 3] & (1 << ((cc)&7))))
+  ((cc) > 0x20 && (cc) < 0x7f && (spmap[(cc) >> 3] & (1 << ((cc) & 7))))
 
 /*
  * Convert the regular expression into an NFA in a form that will be easy to

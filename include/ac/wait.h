@@ -23,7 +23,7 @@
 #endif
 
 #define LDAP_HI(s) (((s) >> 8) & 0377)
-#define LDAP_LO(s) ((s)&0377)
+#define LDAP_LO(s) ((s) & 0377)
 
 /* These should work on non-POSIX UNIX platforms,
         all bets on off on non-POSIX non-UNIX platforms... */

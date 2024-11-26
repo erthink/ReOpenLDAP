@@ -24,7 +24,8 @@ LDAP_BEGIN_DECL
 LDAP_LDIF_V(int) ldif_debug;
 
 #define LDIF_LINE_WIDTH 76 /* default maximum length of LDIF lines */
-#define LDIF_LINE_WIDTH_MAX ((ber_len_t)-1) /* maximum length of LDIF lines */
+#define LDIF_LINE_WIDTH_MAX ((ber_len_t) - 1) /* maximum length of LDIF lines  \
+                                               */
 #define LDIF_LINE_WIDTH_WRAP(wrap) ((wrap) == 0 ? LDIF_LINE_WIDTH : (wrap))
 
 /*
@@ -32,7 +33,7 @@ LDAP_LDIF_V(int) ldif_debug;
  * of an item that is "len" bytes long will take up.  Base64 encoding
  * uses one byte for every six bits in the value plus up to two pad bytes.
  */
-#define LDIF_BASE64_LEN(len) (((len)*4 / 3) + 3)
+#define LDIF_BASE64_LEN(len) (((len) * 4 / 3) + 3)
 
 /*
  * Macro to calculate maximum size that an LDIF-encoded type (length

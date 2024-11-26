@@ -772,7 +772,7 @@ int bdb_search(Operation *op, SlapReply *rs) {
     case LDAP_SCOPE_CHILDREN:
       if (id == base.e_id)
         break;
-        /* Fall-thru */
+      /* Fall-thru */
 #endif
     case LDAP_SCOPE_SUBTREE: {
       EntryInfo *tmp;

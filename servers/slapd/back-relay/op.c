@@ -40,8 +40,7 @@ static const struct relay_fail_modes_s {
 #define RB_CHK_REF (RB_REF | RB_SENDREF | LDAP_SUCCESS)
 } relay_fail_modes[relay_op_last] = {
 /* .rf_bd is unused when zero, otherwise both fields have RB_BDERR */
-#define RB_OP(b, o)                                                            \
-  { (b) | RB_BD2ERR(b), (o) | RB_BD2ERR(b) }
+#define RB_OP(b, o) {(b) | RB_BD2ERR(b), (o) | RB_BD2ERR(b)}
 #define RB_BD2ERR(b) ((b) ? RB_BDERR : 0)
     /* indexed by slap_operation_t: */
     RB_OP(RB_NO_BIND | RB_SEND, RB_NO_BIND | RB_SEND), /* Bind           */

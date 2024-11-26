@@ -85,7 +85,7 @@ LDAP_F(char *) ldap_utf8_strtok(char *sp, const char *sep, char **last);
 LDAP_V(const char) ldap_utf8_lentab[128];
 LDAP_V(const char) ldap_utf8_mintab[32];
 
-#define LDAP_UTF8_ISASCII(p) (!(*(const unsigned char *)(p)&0x80))
+#define LDAP_UTF8_ISASCII(p) (!(*(const unsigned char *)(p) & 0x80))
 #define LDAP_UTF8_CHARLEN(p)                                                   \
   (LDAP_UTF8_ISASCII(p)                                                        \
        ? 1                                                                     \
@@ -97,7 +97,7 @@ LDAP_V(const char) ldap_utf8_mintab[32];
  */
 #define LDAP_UTF8_CHARLEN2(p, l)                                               \
   (((l = LDAP_UTF8_CHARLEN(p)) < 3 ||                                          \
-    (ldap_utf8_mintab[*(const unsigned char *)(p)&0x1f] & (p)[1]))             \
+    (ldap_utf8_mintab[*(const unsigned char *)(p) & 0x1f] & (p)[1]))           \
        ? l                                                                     \
        : 0)
 

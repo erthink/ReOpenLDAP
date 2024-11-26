@@ -224,11 +224,11 @@ typedef struct a_metasingleconn_t {
 typedef struct a_metaconn_t {
   ldapconn_base_t lc_base;
 #define mc_base lc_base
-  //#define	mc_conn			mc_base.lcb_conn
-  //#define	mc_local_ndn		mc_base.lcb_local_ndn
-  //#define	mc_refcnt		mc_base.lcb_refcnt
-  //#define	mc_create_time		mc_base.lcb_create_time
-  //#define	mc_time			mc_base.lcb_time
+  // #define	mc_conn			mc_base.lcb_conn
+  // #define	mc_local_ndn		mc_base.lcb_local_ndn
+  // #define	mc_refcnt		mc_base.lcb_refcnt
+  // #define	mc_create_time		mc_base.lcb_create_time
+  // #define	mc_time			mc_base.lcb_time
 
   LDAP_TAILQ_ENTRY(a_metaconn_t) mc_q;
 

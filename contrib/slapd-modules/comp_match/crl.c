@@ -256,8 +256,8 @@ PARAMS((b, tagId0, elmtLen0, v, bytesDecoded, mode),
 
 int GDecComponentTBSCertListSeqOfSeq
 PARAMS((mem_op, b, v, bytesDecoded, mode),
-       void *mem_op _AND_ GenBuf *b _AND_ ComponentTBSCertListSeqOfSeq **v _AND_
-           AsnLen *bytesDecoded _AND_ int mode) {
+       void *mem_op _AND_ GenBuf *b _AND_ ComponentTBSCertListSeqOfSeq **v
+           _AND_ AsnLen *bytesDecoded _AND_ int mode) {
   char *peek_head, *peek_head2;
   int i, strLen, strLen2, rc, old_mode = mode;
   ComponentTBSCertListSeqOfSeq *k, *t, c_temp;
@@ -494,7 +494,7 @@ PARAMS((b, tagId0, elmtLen0, v, bytesDecoded, mode),
                                             &totalElmtsLen1, mode);
       if (rc != LDAP_SUCCESS)
         return rc;
-    }    /* end of tag check if */
+    } /* end of tag check if */
     else /* wrong tag */
     {
       Asn1Error("Unexpected Tag\n");
@@ -535,8 +535,8 @@ PARAMS((b, tagId0, elmtLen0, v, bytesDecoded, mode),
 
 int GDecComponentTBSCertListSeqOf
 PARAMS((mem_op, b, v, bytesDecoded, mode),
-       void *mem_op _AND_ GenBuf *b _AND_ ComponentTBSCertListSeqOf **v _AND_
-           AsnLen *bytesDecoded _AND_ int mode) {
+       void *mem_op _AND_ GenBuf *b _AND_ ComponentTBSCertListSeqOf **v
+           _AND_ AsnLen *bytesDecoded _AND_ int mode) {
   char *peek_head, *peek_head2;
   int i, strLen, strLen2, rc, old_mode = mode;
   ComponentTBSCertListSeqOf *k, *t, c_temp;
@@ -781,10 +781,11 @@ void *ExtractingComponentTBSCertList(void *mem_op, ComponentReference *cr,
   return NULL;
 } /* ExtractingComponentTBSCertList */
 
-int BDecComponentTBSCertList PARAMS(
-    (b, tagId0, elmtLen0, v, bytesDecoded, mode),
-    void *mem_op _AND_ GenBuf *b _AND_ AsnTag tagId0 _AND_ AsnLen elmtLen0 _AND_
-        ComponentTBSCertList **v _AND_ AsnLen *bytesDecoded _AND_ int mode) {
+int BDecComponentTBSCertList
+PARAMS((b, tagId0, elmtLen0, v, bytesDecoded, mode),
+       void *mem_op _AND_ GenBuf *b _AND_ AsnTag tagId0 _AND_ AsnLen elmtLen0
+           _AND_ ComponentTBSCertList **v _AND_ AsnLen *bytesDecoded
+               _AND_ int mode) {
   int seqDone = FALSE;
   AsnLen totalElmtsLen1 = 0;
   AsnLen elmtLen1;
@@ -958,8 +959,8 @@ int BDecComponentTBSCertList PARAMS(
 
 int GDecComponentTBSCertList
 PARAMS((mem_op, b, v, bytesDecoded, mode),
-       void *mem_op _AND_ GenBuf *b _AND_ ComponentTBSCertList **v _AND_
-           AsnLen *bytesDecoded _AND_ int mode) {
+       void *mem_op _AND_ GenBuf *b _AND_ ComponentTBSCertList **v
+           _AND_ AsnLen *bytesDecoded _AND_ int mode) {
   char *peek_head, *peek_head2;
   int i, strLen, strLen2, rc, old_mode = mode;
   ComponentTBSCertList *k, *t, c_temp;
@@ -1339,8 +1340,8 @@ PARAMS((b, tagId0, elmtLen0, v, bytesDecoded, mode),
 
 int GDecComponentCertificateList
 PARAMS((mem_op, b, v, bytesDecoded, mode),
-       void *mem_op _AND_ GenBuf *b _AND_ ComponentCertificateList **v _AND_
-           AsnLen *bytesDecoded _AND_ int mode) {
+       void *mem_op _AND_ GenBuf *b _AND_ ComponentCertificateList **v
+           _AND_ AsnLen *bytesDecoded _AND_ int mode) {
   char *peek_head, *peek_head2;
   int i, strLen, strLen2, rc, old_mode = mode;
   ComponentCertificateList *k, *t, c_temp;

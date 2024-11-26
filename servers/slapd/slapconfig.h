@@ -221,7 +221,7 @@ LDAP_SLAPD_V(int) config_shadow(ConfigArgs *c, slap_mask_t flag);
 
 /* Make sure we don't exceed the bits reserved for userland */
 #define config_check_userland(last)                                            \
-  assert((((last)-1) & ARGS_USERLAND) == ((last)-1));
+  assert((((last) - 1) & ARGS_USERLAND) == ((last) - 1));
 
 #define SLAP_X_ORDERED_FMT "{%d}"
 

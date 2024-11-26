@@ -187,10 +187,8 @@ ber_bvarray_dup_x(BerVarray *dst, BerVarray src, void *ctx);
   } while (0)
 
 #define BER_STRLENOF(s) (sizeof(s) - 1)
-#define BER_BVC(s)                                                             \
-  { BER_STRLENOF(s), (char *)(s) }
-#define BER_BVNULL                                                             \
-  { 0L, NULL }
+#define BER_BVC(s) {BER_STRLENOF(s), (char *)(s)}
+#define BER_BVNULL {0L, NULL}
 #define BER_BVZERO(bv)                                                         \
   do {                                                                         \
     (bv)->bv_len = 0;                                                          \

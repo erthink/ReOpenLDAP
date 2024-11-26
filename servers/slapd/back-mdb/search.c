@@ -793,7 +793,7 @@ dn2entry_retry:
     case LDAP_SCOPE_CHILDREN:
       if (id == base->e_id)
         break;
-        /* Fall-thru */
+      /* Fall-thru */
 #endif
     case LDAP_SCOPE_SUBTREE:
       if (id == base->e_id) {

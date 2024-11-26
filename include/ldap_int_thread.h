@@ -232,7 +232,7 @@ typedef struct {
 
 #define LDAP_DEBUG_MUTEX_NULL                                                  \
   {                                                                            \
-    LDAP_INT_MUTEX_NULL, { 0, 0, {0}, 0 } /*,owner*/                           \
+      LDAP_INT_MUTEX_NULL, {0, 0, {0}, 0} /*,owner*/                           \
   }
 #define LDAP_DEBUG_MUTEX_FIRSTCREATE(m)                                        \
   ((void)((m).usage.state || ldap_pvt_thread_mutex_init(&(m))))

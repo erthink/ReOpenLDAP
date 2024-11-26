@@ -603,7 +603,7 @@ typedef struct ldapcontrol {
 #define LDAP_SCOPE_SUB LDAP_SCOPE_SUBTREE
 #define LDAP_SCOPE_SUBORDINATE ((ber_int_t)0x0003) /* OpenLDAP extension */
 #define LDAP_SCOPE_CHILDREN LDAP_SCOPE_SUBORDINATE
-#define LDAP_SCOPE_DEFAULT ((ber_int_t)-1) /* OpenLDAP extension */
+#define LDAP_SCOPE_DEFAULT ((ber_int_t) - 1) /* OpenLDAP extension */
 
 /* substring filter component types */
 #define LDAP_SUBSTRING_INITIAL ((ber_tag_t)0x80U) /* context specific */

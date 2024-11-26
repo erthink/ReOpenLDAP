@@ -104,10 +104,11 @@ void *ExtractingComponentOtherName(void *mem_op, ComponentReference *cr,
   return NULL;
 } /* ExtractingComponentOtherName */
 
-int BDecComponentOtherName PARAMS(
-    (b, tagId0, elmtLen0, v, bytesDecoded, mode),
-    void *mem_op _AND_ GenBuf *b _AND_ AsnTag tagId0 _AND_ AsnLen elmtLen0 _AND_
-        ComponentOtherName **v _AND_ AsnLen *bytesDecoded _AND_ int mode) {
+int BDecComponentOtherName
+PARAMS((b, tagId0, elmtLen0, v, bytesDecoded, mode),
+       void *mem_op _AND_ GenBuf *b _AND_ AsnTag tagId0 _AND_ AsnLen elmtLen0
+           _AND_ ComponentOtherName **v _AND_ AsnLen *bytesDecoded
+               _AND_ int mode) {
   int seqDone = FALSE;
   AsnLen totalElmtsLen1 = 0;
   AsnLen elmtLen1;
@@ -193,8 +194,8 @@ int BDecComponentOtherName PARAMS(
 
 int GDecComponentOtherName
 PARAMS((mem_op, b, v, bytesDecoded, mode),
-       void *mem_op _AND_ GenBuf *b _AND_ ComponentOtherName **v _AND_
-           AsnLen *bytesDecoded _AND_ int mode) {
+       void *mem_op _AND_ GenBuf *b _AND_ ComponentOtherName **v
+           _AND_ AsnLen *bytesDecoded _AND_ int mode) {
   char *peek_head, *peek_head2;
   int i, strLen, strLen2, rc, old_mode = mode;
   ComponentOtherName *k, *t, c_temp;
@@ -351,10 +352,11 @@ void *ExtractingComponentORAddress(void *mem_op, ComponentReference *cr,
   return NULL;
 } /* ExtractingComponentORAddress */
 
-int BDecComponentORAddress PARAMS(
-    (b, tagId0, elmtLen0, v, bytesDecoded, mode),
-    void *mem_op _AND_ GenBuf *b _AND_ AsnTag tagId0 _AND_ AsnLen elmtLen0 _AND_
-        ComponentORAddress **v _AND_ AsnLen *bytesDecoded _AND_ int mode) {
+int BDecComponentORAddress
+PARAMS((b, tagId0, elmtLen0, v, bytesDecoded, mode),
+       void *mem_op _AND_ GenBuf *b _AND_ AsnTag tagId0 _AND_ AsnLen elmtLen0
+           _AND_ ComponentORAddress **v _AND_ AsnLen *bytesDecoded
+               _AND_ int mode) {
   int seqDone = FALSE;
   AsnLen totalElmtsLen1 = 0;
   AsnLen elmtLen1;
@@ -454,8 +456,8 @@ int BDecComponentORAddress PARAMS(
 
 int GDecComponentORAddress
 PARAMS((mem_op, b, v, bytesDecoded, mode),
-       void *mem_op _AND_ GenBuf *b _AND_ ComponentORAddress **v _AND_
-           AsnLen *bytesDecoded _AND_ int mode) {
+       void *mem_op _AND_ GenBuf *b _AND_ ComponentORAddress **v
+           _AND_ AsnLen *bytesDecoded _AND_ int mode) {
   char *peek_head, *peek_head2;
   int i, strLen, strLen2, rc, old_mode = mode;
   ComponentORAddress *k, *t, c_temp;
@@ -811,8 +813,8 @@ PARAMS((b, tagId0, elmtLen0, v, bytesDecoded, mode),
 
 int GDecComponentDirectoryString
 PARAMS((mem_op, b, v, bytesDecoded, mode),
-       void *mem_op _AND_ GenBuf *b _AND_ ComponentDirectoryString **v _AND_
-           AsnLen *bytesDecoded _AND_ int mode) {
+       void *mem_op _AND_ GenBuf *b _AND_ ComponentDirectoryString **v
+           _AND_ AsnLen *bytesDecoded _AND_ int mode) {
   char *peek_head, *peek_head2;
   int i, strLen, strLen2, rc, old_mode = mode;
   ComponentDirectoryString *k, *t, c_temp;
@@ -973,10 +975,11 @@ void *ExtractingComponentEDIPartyName(void *mem_op, ComponentReference *cr,
   return NULL;
 } /* ExtractingComponentEDIPartyName */
 
-int BDecComponentEDIPartyName PARAMS(
-    (b, tagId0, elmtLen0, v, bytesDecoded, mode),
-    void *mem_op _AND_ GenBuf *b _AND_ AsnTag tagId0 _AND_ AsnLen elmtLen0 _AND_
-        ComponentEDIPartyName **v _AND_ AsnLen *bytesDecoded _AND_ int mode) {
+int BDecComponentEDIPartyName
+PARAMS((b, tagId0, elmtLen0, v, bytesDecoded, mode),
+       void *mem_op _AND_ GenBuf *b _AND_ AsnTag tagId0 _AND_ AsnLen elmtLen0
+           _AND_ ComponentEDIPartyName **v _AND_ AsnLen *bytesDecoded
+               _AND_ int mode) {
   int seqDone = FALSE;
   AsnLen totalElmtsLen1 = 0;
   AsnLen elmtLen1;
@@ -1074,8 +1077,8 @@ int BDecComponentEDIPartyName PARAMS(
 
 int GDecComponentEDIPartyName
 PARAMS((mem_op, b, v, bytesDecoded, mode),
-       void *mem_op _AND_ GenBuf *b _AND_ ComponentEDIPartyName **v _AND_
-           AsnLen *bytesDecoded _AND_ int mode) {
+       void *mem_op _AND_ GenBuf *b _AND_ ComponentEDIPartyName **v
+           _AND_ AsnLen *bytesDecoded _AND_ int mode) {
   char *peek_head, *peek_head2;
   int i, strLen, strLen2, rc, old_mode = mode;
   ComponentEDIPartyName *k, *t, c_temp;
@@ -1370,10 +1373,11 @@ void *ExtractingComponentGeneralName(void *mem_op, ComponentReference *cr,
   return NULL;
 } /* ExtractingComponentGeneralName */
 
-int BDecComponentGeneralName PARAMS(
-    (b, tagId0, elmtLen0, v, bytesDecoded, mode),
-    void *mem_op _AND_ GenBuf *b _AND_ AsnTag tagId0 _AND_ AsnLen elmtLen0 _AND_
-        ComponentGeneralName **v _AND_ AsnLen *bytesDecoded _AND_ int mode) {
+int BDecComponentGeneralName
+PARAMS((b, tagId0, elmtLen0, v, bytesDecoded, mode),
+       void *mem_op _AND_ GenBuf *b _AND_ AsnTag tagId0 _AND_ AsnLen elmtLen0
+           _AND_ ComponentGeneralName **v _AND_ AsnLen *bytesDecoded
+               _AND_ int mode) {
   int seqDone = FALSE;
   AsnLen totalElmtsLen1 = 0;
   AsnLen elmtLen1;
@@ -1610,8 +1614,8 @@ int BDecComponentGeneralName PARAMS(
 
 int GDecComponentGeneralName
 PARAMS((mem_op, b, v, bytesDecoded, mode),
-       void *mem_op _AND_ GenBuf *b _AND_ ComponentGeneralName **v _AND_
-           AsnLen *bytesDecoded _AND_ int mode) {
+       void *mem_op _AND_ GenBuf *b _AND_ ComponentGeneralName **v
+           _AND_ AsnLen *bytesDecoded _AND_ int mode) {
   char *peek_head, *peek_head2;
   int i, strLen, strLen2, rc, old_mode = mode;
   ComponentGeneralName *k, *t, c_temp;
@@ -1825,10 +1829,11 @@ void *ExtractingComponentGeneralNames(void *mem_op, ComponentReference *cr,
   }
 } /* ExtractingComponentGeneralNames */
 
-int BDecComponentGeneralNames PARAMS(
-    (b, tagId0, elmtLen0, v, bytesDecoded, mode),
-    void *mem_op _AND_ GenBuf *b _AND_ AsnTag tagId0 _AND_ AsnLen elmtLen0 _AND_
-        ComponentGeneralNames **v _AND_ AsnLen *bytesDecoded _AND_ int mode) {
+int BDecComponentGeneralNames
+PARAMS((b, tagId0, elmtLen0, v, bytesDecoded, mode),
+       void *mem_op _AND_ GenBuf *b _AND_ AsnTag tagId0 _AND_ AsnLen elmtLen0
+           _AND_ ComponentGeneralNames **v _AND_ AsnLen *bytesDecoded
+               _AND_ int mode) {
   int seqDone = FALSE;
   AsnLen totalElmtsLen1 = 0;
   AsnLen elmtLen1;
@@ -1891,8 +1896,8 @@ int BDecComponentGeneralNames PARAMS(
 
 int GDecComponentGeneralNames
 PARAMS((mem_op, b, v, bytesDecoded, mode),
-       void *mem_op _AND_ GenBuf *b _AND_ ComponentGeneralNames **v _AND_
-           AsnLen *bytesDecoded _AND_ int mode) {
+       void *mem_op _AND_ GenBuf *b _AND_ ComponentGeneralNames **v
+           _AND_ AsnLen *bytesDecoded _AND_ int mode) {
   char *peek_head, *peek_head2;
   int i, strLen, strLen2, rc, old_mode = mode;
   ComponentGeneralNames *k, *t, c_temp;

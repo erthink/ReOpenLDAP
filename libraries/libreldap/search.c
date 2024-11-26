@@ -297,7 +297,7 @@ static char escape[128] = {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
 
                            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
                            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1};
-#define NEEDFLTESCAPE(c) ((c)&0x80 || escape[(unsigned)(c)])
+#define NEEDFLTESCAPE(c) ((c) & 0x80 || escape[(unsigned)(c)])
 
 /*
  * compute the length of the escaped value

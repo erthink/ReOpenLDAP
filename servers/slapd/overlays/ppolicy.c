@@ -191,8 +191,7 @@ static AttributeDescription *ad_pwdMinAge, *ad_pwdMaxAge, *ad_pwdInHistory,
     *ad_pwdMustChange, *ad_pwdAllowUserChange, *ad_pwdSafeModify,
     *ad_pwdAttribute, *ad_pwdMaxRecordedFailure;
 
-#define TAB(name)                                                              \
-  { #name, &ad_##name }
+#define TAB(name) {#name, &ad_##name}
 
 static struct schema_info pwd_UsSchema[] = {TAB(pwdAttribute),
                                             TAB(pwdMinAge),

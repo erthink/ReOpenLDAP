@@ -384,7 +384,7 @@ int ldap_dn_normalize(const char *dnin, unsigned fin, char **dnout,
   (LDAP_DN_ASCII_SPACE(c) || LDAP_DN_NEEDESCAPE(c))
 #define LDAP_DN_WILLESCAPE_CHAR(c)                                             \
   (LDAP_DN_RDN_SEP(c) || LDAP_DN_AVA_SEP(c) || LDAP_DN_ESCAPE(c))
-#define LDAP_DN_IS_PRETTY(f) ((f)&LDAP_DN_PRETTY)
+#define LDAP_DN_IS_PRETTY(f) ((f) & LDAP_DN_PRETTY)
 #define LDAP_DN_WILLESCAPE_HEX(f, c)                                           \
   ((!LDAP_DN_IS_PRETTY(f)) && LDAP_DN_WILLESCAPE_CHAR(c))
 
@@ -456,18 +456,18 @@ int ldap_dn_normalize(const char *dnin, unsigned fin, char **dnout,
 
 /* Composite rules */
 #define LDAP_DN_ALLOW_ONE_SPACE(f)                                             \
-  (LDAP_DN_LDAPV2(f) || !((f)&LDAP_DN_P_NOSPACEAFTERRDN))
+  (LDAP_DN_LDAPV2(f) || !((f) & LDAP_DN_P_NOSPACEAFTERRDN))
 #define LDAP_DN_ALLOW_SPACES(f)                                                \
   (LDAP_DN_LDAPV2(f) ||                                                        \
    !((f) & (LDAP_DN_P_NOLEADTRAILSPACES | LDAP_DN_P_NOSPACEAFTERRDN)))
-#define LDAP_DN_LDAP(f) (((f)&LDAP_DN_FORMAT_MASK) == LDAP_DN_FORMAT_LDAP)
-#define LDAP_DN_LDAPV3(f) (((f)&LDAP_DN_FORMAT_MASK) == LDAP_DN_FORMAT_LDAPV3)
-#define LDAP_DN_LDAPV2(f) (((f)&LDAP_DN_FORMAT_MASK) == LDAP_DN_FORMAT_LDAPV2)
-#define LDAP_DN_DCE(f) (((f)&LDAP_DN_FORMAT_MASK) == LDAP_DN_FORMAT_DCE)
-#define LDAP_DN_UFN(f) (((f)&LDAP_DN_FORMAT_MASK) == LDAP_DN_FORMAT_UFN)
+#define LDAP_DN_LDAP(f) (((f) & LDAP_DN_FORMAT_MASK) == LDAP_DN_FORMAT_LDAP)
+#define LDAP_DN_LDAPV3(f) (((f) & LDAP_DN_FORMAT_MASK) == LDAP_DN_FORMAT_LDAPV3)
+#define LDAP_DN_LDAPV2(f) (((f) & LDAP_DN_FORMAT_MASK) == LDAP_DN_FORMAT_LDAPV2)
+#define LDAP_DN_DCE(f) (((f) & LDAP_DN_FORMAT_MASK) == LDAP_DN_FORMAT_DCE)
+#define LDAP_DN_UFN(f) (((f) & LDAP_DN_FORMAT_MASK) == LDAP_DN_FORMAT_UFN)
 #define LDAP_DN_ADC(f)                                                         \
-  (((f)&LDAP_DN_FORMAT_MASK) == LDAP_DN_FORMAT_AD_CANONICAL)
-#define LDAP_DN_FORMAT(f) ((f)&LDAP_DN_FORMAT_MASK)
+  (((f) & LDAP_DN_FORMAT_MASK) == LDAP_DN_FORMAT_AD_CANONICAL)
+#define LDAP_DN_FORMAT(f) ((f) & LDAP_DN_FORMAT_MASK)
 
 /*
  * LDAPAVA helpers (will become part of the API for operations
@@ -1922,28 +1922,27 @@ static int strval2strlen(struct berval *val, unsigned flags, ber_len_t *len) {
       if (LDAP_DN_WILLESCAPE_CHAR(p[0])) {
 #endif
 
-      /*
-       * there might be some chars we want
-       * to escape in form of a couple
-       * of hexdigits for optimization purposes
-       */
-      l += 3;
+        /*
+         * there might be some chars we want
+         * to escape in form of a couple
+         * of hexdigits for optimization purposes
+         */
+        l += 3;
 
-    } else {
-      l += escaped_ascii_len;
-    }
+      } else {
+        l += escaped_ascii_len;
+      }
 #else  /* ! PRETTY_ESCAPE */
       l += 3;
 #endif /* ! PRETTY_ESCAPE */
+    } else {
+      l++;
+    }
   }
-  else {
-    l++;
-  }
-}
 
-*len = l;
+  *len = l;
 
-return (0);
+  return (0);
 }
 
 /*
@@ -2796,8 +2795,8 @@ int ldap_dn2bv_x(LDAPDN dn, struct berval *bv, unsigned flags, void *ctx) {
   ber_len_t len, l;
 
   /* stringifying helpers for LDAPv3/LDAPv2 */
-  int (*sv2l)(struct berval * v, unsigned f, ber_len_t *l);
-  int (*sv2s)(struct berval * v, char *s, unsigned f, ber_len_t *l);
+  int (*sv2l)(struct berval *v, unsigned f, ber_len_t *l);
+  int (*sv2s)(struct berval *v, char *s, unsigned f, ber_len_t *l);
 
   assert(bv != NULL);
   bv->bv_len = 0;

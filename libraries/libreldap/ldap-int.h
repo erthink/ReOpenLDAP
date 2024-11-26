@@ -217,7 +217,7 @@ struct ldapoptions {
   char *ldo_tls_pin_hashalg;
   struct berval ldo_tls_pin;
 #define LDAP_LDO_TLS_NULLARG                                                   \
-  , 0, 0, 0, {0, 0, 0, 0, 0, 0, 0, 0, 0}, 0, 0, 0, 0, 0, { 0, 0 }
+  , 0, 0, 0, {0, 0, 0, 0, 0, 0, 0, 0, 0}, 0, 0, 0, 0, 0, {0, 0}
 #else
 #define LDAP_LDO_TLS_NULLARG
 #endif
@@ -230,8 +230,7 @@ struct ldapoptions {
 
   /* SASL Security Properties */
   struct sasl_security_properties ldo_sasl_secprops;
-#define LDAP_LDO_SASL_NULLARG                                                  \
-  , 0, 0, 0, 0, { 0 }
+#define LDAP_LDO_SASL_NULLARG , 0, 0, 0, 0, {0}
 #else
 #define LDAP_LDO_SASL_NULLARG
 #endif

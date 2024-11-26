@@ -953,8 +953,8 @@ void *ldap_new_select_info(void) {
     return NULL;
 
 #ifdef HAVE_POLL
-    /* for UNIX poll(2) */
-    /* sip->si_maxfd=0 */
+  /* for UNIX poll(2) */
+  /* sip->si_maxfd=0 */
 #else
   /* for UNIX select(2) */
   FD_ZERO(&sip->si_readfds);

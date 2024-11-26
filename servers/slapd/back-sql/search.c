@@ -49,9 +49,9 @@ static int backsql_process_filter_attr(backsql_srch_info *bsi, Filter *f,
 
 /* NOTE: not supported when BACKSQL_ARBITRARY_KEY is defined */
 #ifndef BACKSQL_ARBITRARY_KEY
-#define SQL_TO_PAGECOOKIE(id, oc) (((id) << 6) | ((oc)&0x3F))
+#define SQL_TO_PAGECOOKIE(id, oc) (((id) << 6) | ((oc) & 0x3F))
 #define PAGECOOKIE_TO_SQL_ID(pc) ((pc) >> 6)
-#define PAGECOOKIE_TO_SQL_OC(pc) ((pc)&0x3F)
+#define PAGECOOKIE_TO_SQL_OC(pc) ((pc) & 0x3F)
 
 static int parse_paged_cookie(Operation *op, SlapReply *rs);
 

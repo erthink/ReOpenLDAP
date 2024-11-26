@@ -284,7 +284,7 @@ static slap_daemon_st slap_daemon[SLAPD_MAX_DAEMON_THREADS];
 #define SLAP_EPOLL_EV_PTRFD(t, ptr)                                            \
   (SLAP_EPOLL_EV_LISTENER(t, ptr)                                              \
        ? ((Listener *)ptr)->sl_sd                                              \
-       : (ber_socket_t)((int *)(ptr)-slap_daemon[t].sd_index))
+       : (ber_socket_t)((int *)(ptr) - slap_daemon[t].sd_index))
 
 #define SLAP_SOCK_DEL(t, s)                                                    \
   do {                                                                         \
@@ -644,7 +644,7 @@ static slap_daemon_st slap_daemon[SLAPD_MAX_DAEMON_THREADS];
 #define SLAP_EVENT_WAIT(t, tvp, nsp)                                           \
   do {                                                                         \
     *(nsp) = select(SLAP_EVENT_MAX(t), &readfds,                               \
-                    nwriters > 0 ? &writefds : NULL, NULL, /* FIXME */(tvp));  \
+                    nwriters > 0 ? &writefds : NULL, NULL, /* FIXME */ (tvp)); \
   } while (0)
 #endif /* ! epoll && ! /dev/poll */
 
@@ -2014,7 +2014,7 @@ static void *slapd_daemon_task(void *ptr) {
       continue;
 #endif /* LDAP_CONNECTIONLESS */
 
-      /* FIXME: TCP-only! */
+    /* FIXME: TCP-only! */
 #ifdef LDAP_TCP_BUFFER
     if (1) {
       int origsize, size, realsize, rc;

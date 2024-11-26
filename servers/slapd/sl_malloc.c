@@ -433,10 +433,10 @@ void *slap_sl_malloc(ber_len_t nett_size, void *ctx) {
 }
 
 #define LIM_SQRT(t) /* some value < sqrt(max value of unsigned type t) */      \
-  ((0UL | (t)-1) >> 31 >> 31 > 1 ? ((t)1 << 32) - 1                            \
-   : (0UL | (t)-1) >> 31         ? 65535U                                      \
-   : (0UL | (t)-1) >> 15         ? 255U                                        \
-                                 : 15U)
+  ((0UL | (t) - 1) >> 31 >> 31 > 1 ? ((t)1 << 32) - 1                          \
+   : (0UL | (t) - 1) >> 31         ? 65535U                                    \
+   : (0UL | (t) - 1) >> 15         ? 255U                                      \
+                                   : 15U)
 
 void *slap_sl_calloc(ber_len_t n, ber_len_t s, void *ctx) {
   struct slab_heap *sh = ctx;

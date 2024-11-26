@@ -80,9 +80,9 @@ static uint32_t masks32[32] = {
     0x02000000UL, 0x04000000UL, 0x08000000UL, 0x10000000UL, 0x20000000UL,
     0x40000000UL, 0x80000000UL};
 
-#define endian_short(cc) (((cc) >> 8) | (((cc)&0xff) << 8))
+#define endian_short(cc) (((cc) >> 8) | (((cc) & 0xff) << 8))
 #define endian_long(cc)                                                        \
-  ((((cc)&0xff) << 24) | ((((cc) >> 8) & 0xff) << 16) |                        \
+  ((((cc) & 0xff) << 24) | ((((cc) >> 8) & 0xff) << 16) |                      \
    ((((cc) >> 16) & 0xff) << 8) | ((cc) >> 24))
 
 #if !HARDCODE_DATA

@@ -581,7 +581,9 @@ finish:;
 	/* let send_ldap_result play cleanup handlers (ITS#4645) */
 	if ( rc != SLAPD_ABANDON )
 #endif
-  { send_ldap_result(op, rs); }
+  {
+    send_ldap_result(op, rs);
+  }
 
   (void)ldap_back_controls_free(op, rs, &ctrls);
 

@@ -1824,7 +1824,7 @@ LDAP_SLAPD_V(unsigned int) index_intlen;
 /* all signed integers from strings of this size need more than intlen bytes */
 /* i.e. log(10)*(index_intlen_strlen-2) > log(2)*(8*(index_intlen)-1) */
 LDAP_SLAPD_V(unsigned int) index_intlen_strlen;
-#define SLAP_INDEX_INTLEN_STRLEN(intlen) ((8 * (intlen)-1) * 146 / 485 + 3)
+#define SLAP_INDEX_INTLEN_STRLEN(intlen) ((8 * (intlen) - 1) * 146 / 485 + 3)
 
 LDAP_SLAPD_V(ber_len_t) sockbuf_max_incoming;
 LDAP_SLAPD_V(ber_len_t) sockbuf_max_incoming_auth;

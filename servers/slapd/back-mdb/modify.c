@@ -41,15 +41,15 @@ static void mdb_modify_idxflags(Operation *op, AttributeDescription *desc,
       if (ap)
         ap->a_flags |= SLAP_ATTR_IXDEL;
 
-        /* ITS#8678 FIXME
-         * If using 32bit hashes, or substring index, must account for
-         * possible index collisions. If no substring index, and using
-         * 64bit hashes, assume we don't need to check for collisions.
-         *
-         * In 2.5 use refcounts and avoid all of this mess.
-         */
+      /* ITS#8678 FIXME
+       * If using 32bit hashes, or substring index, must account for
+       * possible index collisions. If no substring index, and using
+       * 64bit hashes, assume we don't need to check for collisions.
+       *
+       * In 2.5 use refcounts and avoid all of this mess.
+       */
 
-        /* FIXME: use t1ha2_64() */
+      /* FIXME: use t1ha2_64() */
 #ifdef LUTIL_HASH64_BYTES
       const int hash32width = !slap_hash64(-1);
 #else

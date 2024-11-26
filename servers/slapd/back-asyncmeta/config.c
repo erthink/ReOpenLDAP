@@ -2639,32 +2639,32 @@ static int asyncmeta_back_cf_gen(ConfigArgs *c) {
       /* LY: guess this, but don't sure... */
       for (i = ix; i < cnt; i++) {
 #endif
-      ca.line = mt->mt_rwmap.rwm_bva_map[i].bv_val;
-      ca.argc = 0;
-      config_fp_parse_line(&ca);
+        ca.line = mt->mt_rwmap.rwm_bva_map[i].bv_val;
+        ca.argc = 0;
+        config_fp_parse_line(&ca);
 
-      argv[1] = ca.argv[0];
-      argv[2] = ca.argv[1];
-      argv[3] = ca.argv[2];
-      argv[4] = ca.argv[3];
+        argv[1] = ca.argv[0];
+        argv[2] = ca.argv[1];
+        argv[3] = ca.argv[2];
+        argv[4] = ca.argv[3];
 
-      ch_free(ca.argv);
-      ca.argv = argv;
-      ca.argc++;
-      rc =
-          asyncmeta_map_config(&ca, &mt->mt_rwmap.rwm_oc, &mt->mt_rwmap.rwm_at);
+        ch_free(ca.argv);
+        ca.argv = argv;
+        ca.argc++;
+        rc = asyncmeta_map_config(&ca, &mt->mt_rwmap.rwm_oc,
+                                  &mt->mt_rwmap.rwm_at);
 
-      ch_free(ca.tline);
-      ca.tline = NULL;
-      ca.argv = NULL;
+        ch_free(ca.tline);
+        ca.tline = NULL;
+        ca.argv = NULL;
 
-      /* in case of failure, restore
-       * the existing mapping */
-      if (rc) {
-        goto map_fail;
+        /* in case of failure, restore
+         * the existing mapping */
+        if (rc) {
+          goto map_fail;
+        }
       }
     }
-  }
 
     /* save the map info */
     argv[0] = ldap_charray2str(&c->argv[1], " ");
@@ -2694,93 +2694,92 @@ static int asyncmeta_back_cf_gen(ConfigArgs *c) {
       mt->mt_rwmap.rwm_oc = rwm_oc;
       mt->mt_rwmap.rwm_at = rwm_at;
     }
-  }
-  break;
+  } break;
 
-case LDAP_BACK_CFG_NRETRIES: {
-  int nretries = META_RETRY_UNDEFINED;
+  case LDAP_BACK_CFG_NRETRIES: {
+    int nretries = META_RETRY_UNDEFINED;
 
-  if (strcasecmp(c->argv[1], "forever") == 0) {
-    nretries = META_RETRY_FOREVER;
+    if (strcasecmp(c->argv[1], "forever") == 0) {
+      nretries = META_RETRY_FOREVER;
 
-  } else if (strcasecmp(c->argv[1], "never") == 0) {
-    nretries = META_RETRY_NEVER;
+    } else if (strcasecmp(c->argv[1], "never") == 0) {
+      nretries = META_RETRY_NEVER;
 
-  } else {
-    if (lutil_atoi(&nretries, c->argv[1]) != 0) {
+    } else {
+      if (lutil_atoi(&nretries, c->argv[1]) != 0) {
+        snprintf(c->cr_msg, sizeof(c->cr_msg),
+                 "unable to parse nretries {never|forever|<retries>}: \"%s\"",
+                 c->argv[1]);
+        Debug(LDAP_DEBUG_ANY, "%s: %s.\n", c->log, c->cr_msg);
+        return 1;
+      }
+    }
+
+    mc->mc_nretries = nretries;
+  } break;
+
+  case LDAP_BACK_CFG_VERSION:
+    assert(mc != NULL);
+    if (c->value_int != 0 &&
+        (c->value_int < LDAP_VERSION_MIN || c->value_int > LDAP_VERSION_MAX)) {
       snprintf(c->cr_msg, sizeof(c->cr_msg),
-               "unable to parse nretries {never|forever|<retries>}: \"%s\"",
-               c->argv[1]);
+               "unsupported protocol version \"%s\"", c->argv[1]);
       Debug(LDAP_DEBUG_ANY, "%s: %s.\n", c->log, c->cr_msg);
       return 1;
     }
-  }
+    mc->mc_version = c->value_int;
+    break;
 
-  mc->mc_nretries = nretries;
-} break;
+  case LDAP_BACK_CFG_NOREFS:
+    /* do not return search references */
+    assert(mc != NULL);
+    if (c->value_int) {
+      mc->mc_flags |= LDAP_BACK_F_NOREFS;
+    } else {
+      mc->mc_flags &= ~LDAP_BACK_F_NOREFS;
+    }
+    break;
 
-case LDAP_BACK_CFG_VERSION:
-  assert(mc != NULL);
-  if (c->value_int != 0 &&
-      (c->value_int < LDAP_VERSION_MIN || c->value_int > LDAP_VERSION_MAX)) {
-    snprintf(c->cr_msg, sizeof(c->cr_msg),
-             "unsupported protocol version \"%s\"", c->argv[1]);
-    Debug(LDAP_DEBUG_ANY, "%s: %s.\n", c->log, c->cr_msg);
-    return 1;
-  }
-  mc->mc_version = c->value_int;
-  break;
-
-case LDAP_BACK_CFG_NOREFS:
-  /* do not return search references */
-  assert(mc != NULL);
-  if (c->value_int) {
-    mc->mc_flags |= LDAP_BACK_F_NOREFS;
-  } else {
-    mc->mc_flags &= ~LDAP_BACK_F_NOREFS;
-  }
-  break;
-
-case LDAP_BACK_CFG_NOUNDEFFILTER:
-  /* do not propagate undefined search filters */
-  assert(mc != NULL);
-  if (c->value_int) {
-    mc->mc_flags |= LDAP_BACK_F_NOUNDEFFILTER;
-  } else {
-    mc->mc_flags &= ~LDAP_BACK_F_NOUNDEFFILTER;
-  }
-  break;
+  case LDAP_BACK_CFG_NOUNDEFFILTER:
+    /* do not propagate undefined search filters */
+    assert(mc != NULL);
+    if (c->value_int) {
+      mc->mc_flags |= LDAP_BACK_F_NOUNDEFFILTER;
+    } else {
+      mc->mc_flags &= ~LDAP_BACK_F_NOUNDEFFILTER;
+    }
+    break;
 
 #ifdef SLAPD_META_CLIENT_PR
-case LDAP_BACK_CFG_CLIENT_PR:
-  if (strcasecmp(c->argv[1], "accept-unsolicited") == 0) {
-    mc->mc_ps = META_CLIENT_PR_ACCEPT_UNSOLICITED;
+  case LDAP_BACK_CFG_CLIENT_PR:
+    if (strcasecmp(c->argv[1], "accept-unsolicited") == 0) {
+      mc->mc_ps = META_CLIENT_PR_ACCEPT_UNSOLICITED;
 
-  } else if (strcasecmp(c->argv[1], "disable") == 0) {
-    mc->mc_ps = META_CLIENT_PR_DISABLE;
+    } else if (strcasecmp(c->argv[1], "disable") == 0) {
+      mc->mc_ps = META_CLIENT_PR_DISABLE;
 
-  } else if (lutil_atoi(&mc->mc_ps, c->argv[1]) || mc->mc_ps < -1) {
-    snprintf(
-        c->cr_msg, sizeof(c->cr_msg),
-        "unable to parse client-pr {accept-unsolicited|disable|<size>}: \"%s\"",
-        c->argv[1]);
-    Debug(LDAP_DEBUG_ANY, "%s: %s.\n", c->log, c->cr_msg);
-    return (1);
-  }
-  break;
+    } else if (lutil_atoi(&mc->mc_ps, c->argv[1]) || mc->mc_ps < -1) {
+      snprintf(c->cr_msg, sizeof(c->cr_msg),
+               "unable to parse client-pr {accept-unsolicited|disable|<size>}: "
+               "\"%s\"",
+               c->argv[1]);
+      Debug(LDAP_DEBUG_ANY, "%s: %s.\n", c->log, c->cr_msg);
+      return (1);
+    }
+    break;
 #endif /* SLAPD_META_CLIENT_PR */
 
-case LDAP_BACK_CFG_KEEPALIVE:
-  slap_keepalive_parse(ber_bvstrdup(c->argv[1]), &mt->mt_tls.sb_keepalive, 0, 0,
-                       0);
-  break;
+  case LDAP_BACK_CFG_KEEPALIVE:
+    slap_keepalive_parse(ber_bvstrdup(c->argv[1]), &mt->mt_tls.sb_keepalive, 0,
+                         0, 0);
+    break;
 
-/* anything else */
-default:
-  return SLAP_CONF_UNKNOWN;
-}
+  /* anything else */
+  default:
+    return SLAP_CONF_UNKNOWN;
+  }
 
-return rc;
+  return rc;
 }
 
 int asyncmeta_back_init_cf(BackendInfo *bi) {

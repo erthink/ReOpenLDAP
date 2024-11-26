@@ -105,10 +105,8 @@ typedef struct ContinuationReference_t {
   struct berval cr_failedName;
 } ContinuationReference_t;
 #define CR_INIT                                                                \
-  {                                                                            \
-    NULL, BER_BVNULL, LDAP_DP_RT_UNKNOWN, BER_BVNULL, LDAP_DP_SS_UNKNOWN,      \
-        NULL, BER_BVNULL                                                       \
-  }
+  {NULL, BER_BVNULL, LDAP_DP_RT_UNKNOWN, BER_BVNULL, LDAP_DP_SS_UNKNOWN,       \
+   NULL, BER_BVNULL}
 
 #ifdef unused
 static struct berval bv2rt[] = {BER_BVC("superior"),

@@ -707,9 +707,7 @@ int be_isupdate_dn(Backend *be, struct berval *ndn) {
   return dn_match(&be->be_update_ndn, ndn);
 }
 
-struct berval *be_root_dn(Backend *be) {
-  return &be->be_rootdn;
-}
+struct berval *be_root_dn(Backend *be) { return &be->be_rootdn; }
 
 int be_isroot(Operation *op) { return be_isroot_dn(op->o_bd, &op->o_ndn); }
 
@@ -977,7 +975,8 @@ done:;
 int backend_check_restrictions(Operation *op, SlapReply *rs,
                                struct berval *opdata) {
   slap_mask_t restrictops;
-  slap_mask_t requires;
+  slap_mask_t
+    requires;
   slap_mask_t opflag;
   slap_mask_t exopflag = 0;
   slap_ssf_set_t ssfs, *ssf;
