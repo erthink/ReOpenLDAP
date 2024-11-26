@@ -968,6 +968,7 @@ EOF
 function run_testset {
 	FAILCOUNT=0
 	SKIPCOUNT=0
+	DONECOUNT=0
 	SLEEPTIME=10
 	RESULTS=$TESTWD/results
 
@@ -1077,8 +1078,16 @@ EOF
 
 			if test $RC -eq 0 ; then
 				cibuzz_report "<<< ${TEST_ITER}--${TEST_ID}"
-				[ -z "$CI" -a -z "$NO_COLLECT_SUCCESS" ] && collect_test $TEST_ID no
-				echo "<<<<< $BCMD completed ${TB}OK${TN} for $BACKEND_MODE."
+				if tail -n 1 $TESTDIR/main.log | grep -qi ' test skipped$' && test $(wc -l <$TESTDIR/main.log) -lt 10; then
+					echo "<<<<< $BCMD skipped for $BACKEND_MODE."
+					((SKIPCOUNT++))
+					RC="-"
+					teamcity_msg "testIgnored name='$TEST_ID'"
+				else
+					((DONECOUNT++))
+					[ -z "$CI" -a -z "$NO_COLLECT_SUCCESS" ] && collect_test $TEST_ID no
+					echo "<<<<< $BCMD completed ${TB}OK${TN} for $BACKEND_MODE."
+				fi
 			else
 				cibuzz_report "=== ${TEST_ITER}--${TEST_ID} = $RC"
 				collect_test $TEST_ID yes
@@ -1121,7 +1130,7 @@ EOF
 		fi
 	fi
 
-	echo "$SKIPCOUNT tests for $BACKEND_MODE were ${TB}skipped${TN}."
+	echo "############### Succeed $DONECOUNT tests for $BACKEND_MODE, were ${TB}skipped${TN} $SKIPCOUNT. ###############"
 	teamcity_msg "testSuiteFinished name='${TESTSET} for $BACKEND_MODE'"
 	exit $RC
 }
