@@ -102,12 +102,12 @@ man8_MANS = man8/slapcat.man man8/slappasswd.man \
 install-data-hook:
 	@if $(AM_V_P); then set -x; else echo "  LN       $(man_links)"; fi; \
 	(cd $(srcdir) && echo $(man_links) | tr -s '[:space:]' '\n' | xargs -r -I {} -n 1 \
-		sh -c 'xargs -I "#" -n 1 -r sh -c "cd $(DESTDIR)$(mandir_ru)/$$(dirname {}) && ln -s -f -T $$(basename {} .links) #" < $(srcdir)/{}' \
+		sh -c 'xargs -I "#" -n 1 -r sh -c "cd $(DESTDIR)$(mandir_ru)/$$(dirname {}) && ln -s -f -T $$(basename {} .links) #" < $(shell cd $(srcdir) && pwd)/{}' \
 		\;)
 
 uninstall-hook:
 	@if $(AM_V_P); then set -x; else echo "  RM       $(man_links)"; fi; \
 	(cd $(srcdir) && echo $(man_links) | tr -s '[:space:]' '\n' | xargs -r -I {} -n 1 \
-		sh -c 'xargs -I "#" -n 1 -r sh -c "rm -f $(DESTDIR)$(mandir_ru)/$$(dirname {})/#" < $(srcdir)/{}' \
+		sh -c 'xargs -I "#" -n 1 -r sh -c "rm -f $(DESTDIR)$(mandir_ru)/$$(dirname {})/#" < $(shell cd $(srcdir) && pwd)/{}' \
 		\;); \
 	find $(DESTDIR)$(mandir_ru) -depth -type d -empty -exec rmdir {} \;
