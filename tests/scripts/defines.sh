@@ -36,11 +36,7 @@ done
 AC_conf[aci]=${AC_ACI_ENABLED-no}
 AC_conf[tls]=${AC_WITH_TLS-no}
 USE_SASL=${SLAPD_USE_SASL-no}
-if [ $USE_SASL = no ]; then
-	AC_conf[sasl]=no
-else
-	AC_conf[sasl]=${AC_WITH_SASL-no}
-fi
+AC_conf[sasl]=${AC_WITH_SASL-no}
 
 TB="" TN=""
 if test -t 1 ; then

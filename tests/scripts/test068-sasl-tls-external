@@ -20,6 +20,10 @@ if test ${AC_conf[tls]} = no ; then
 	echo "TLS support not available, test skipped"
 	exit 0
 fi
+if test ${AC_conf[sasl]} = no ; then
+        echo "SASL support not available, test skipped"
+        exit 0
+fi
 if $LDAPSEARCH -o tls_cacert=$TESTDIR/tls/ca/certs/testsuiteCA.crt -o tls_reqcert=hard -H "ldaps://0.0.0.0" 2<&1 | grep -i -q  "Invalid general option name"
 then
     echo "ldap-client tools don't support TLS options, test skipped"
