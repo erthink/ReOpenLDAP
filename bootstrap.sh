@@ -1,6 +1,6 @@
 #!/bin/bash
 
-## Copyright 2017-2018 ReOpenLDAP AUTHORS: please see AUTHORS file.
+## Copyright 2017-2024 ReOpenLDAP AUTHORS: please see AUTHORS file.
 ## All rights reserved.
 ##
 ## This file is part of ReOpenLDAP.
@@ -15,6 +15,7 @@
 
 function failure() {
 	echo "Oops, $* failed ;(" >&2
+	echo "Do you have the necessary packages installed: autoconf, automake, libtool-ltdl-dev, patch ?"
 	exit 2
 }
 
@@ -40,8 +41,12 @@ else
 fi
 
 if [ -z "$AUTORECONF" ]; then
-	if [ -n "$(which autoreconf)" ] && autoreconf --version | grep -q 'autoreconf (GNU Autoconf) 2\.71'; then
+	if [ -n "$(which autoreconf)" ] && autoreconf --version | grep -q 'autoreconf (GNU Autoconf) 2\.7'; then
 		AUTORECONF=$(which autoreconf)
+	elif [ -n "$(which autoreconf-2.72)" ]; then
+		AUTORECONF=$(which autoreconf-2.72)
+	elif [ -n "$(which autoreconf2.72)" ]; then
+		AUTORECONF=$(which autoreconf2.72)
 	elif [ -n "$(which autoreconf-2.71)" ]; then
 		AUTORECONF=$(which autoreconf-2.71)
 	elif [ -n "$(which autoreconf2.71)" ]; then
