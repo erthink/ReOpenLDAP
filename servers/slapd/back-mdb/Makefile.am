@@ -48,6 +48,7 @@ libmdbx_srcdir = ../../../libraries/libmdbx
 libmdbx_la_SOURCES = ../../../libraries/libmdbx/mdbx.c
 
 EXTRA_DIST = ../../../libraries/libmdbx/LICENSE \
+	../../../libraries/libmdbx/NOTICE \
 	../../../libraries/libmdbx/README.md \
 	../../../libraries/libmdbx/mdbx.h
 

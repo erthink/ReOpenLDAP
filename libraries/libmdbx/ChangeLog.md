@@ -1,8 +1,289 @@
 ChangeLog
 =========
 
-English version [by Google](https://gitflic-ru.translate.goog/project/erthink/libmdbx/blob?file=ChangeLog.md&_x_tr_sl=ru&_x_tr_tl=en)
+English version [by liar Google](https://gitflic-ru.translate.goog/project/erthink/libmdbx/blob?file=ChangeLog.md&_x_tr_sl=ru&_x_tr_tl=en)
 and [by Yandex](https://translated.turbopages.org/proxy_u/ru-en.en/https/gitflic.ru/project/erthink/libmdbx/blob?file=ChangeLog.md).
+
+## v0.13.2 "Прошлогодний Снег" (Last Year's Snow) от 2024-12-11
+
+Поддерживающий выпуск с исправлением обнаруженных ошибок и устранением недочетов
+в день рождения и в память об [Алекса́ндре Миха́йловиче Тата́рском](https://ru.wikipedia.org/wiki/Татарский,_Александр_Михайлович),
+российском режиссёре-мультипликаторе, создавшем такие знаменитые
+мультфильмы как "Падал прошлогодний снег", "Пластилиновая ворона",
+заставку "Спокойной ночи, малыши!" и многие другие шедевры нашего
+детства.
+
+Новое:
+
+ - Ускорено обновление GC при возврате/помещении списков страниц в
+   сложных сценариях. Был доработан и активирован ранее отключенный
+   экспериментальный режим корректирующей обратной связи. Этим
+   принципиально улучшилась сходимость (сократилось количество повторных
+   попыток), а также устранен дефект приводящий к "зацикливанию" при
+   фиксации транзакций (с возвратом ошибки `MDBX_PROBLEM`) в редких
+   специфических условиях.
+   Подробности см. в описании коммита [`6c56ed97bbd8ca46abac61886a113ba31e5f1291`](https://gitflic.ru/project/erthink/libmdbx/commit/6c56ed97bbd8ca46abac61886a113ba31e5f1291).
+ - Включен стандарт `C23` в CMake-скриптах сборки.
+ - Добавлены T-макросы для парных `char`/`wchar_t` функций.
+ - Поддержка вложенных пишущих транзакций в C++ API.
+ - Переход на "Semantic Versioning 2" и экспорт информации о версии в `VERSION.json`.
+ - Добавлена поддержка переменной среды `SOURCE_DATE_EPOCH` для воспроизводимости сборок.
+   Прежний способ посредством `MDBX_BUILD_TIMESTAMP` также работает и имеет приоритет.
+ - Добавлена возможность указывать дополнительную информацию о сборке
+   libmdbx через опцию `MDBX_BUILD_METADATA`. Сейчас задаваемая информация
+   просто включается внутрь библиотеки в качестве значения
+   `mdbx_build.metadata`, а в дальнейшем также будет использоваться при
+   формировании пакетов и т.п.
+ - Добавлено логирование ошибок возвращаемых из API. Теперь для этого
+   достаточно задать уровень логирования `MDBX_LOG_DEBUG` (для логирования
+   ошибок за вычетом `MDBX_NOTFOUND`) или `MDBX_LOG_TRACE` (для логирования
+   всех ошибок, а также `MDBX_RESULT_TRUE`).
+ - Поддержка сборки посредством Conan.
+
+Изменение поведения:
+
+ - Добавлен метод `mdbx::cursor::get_multiple_samelength()` и
+   переименован `mdbx::txn::put_multiple_samelength()`.
+ - Для единообразия C++ API при выполнении операции `MDBX_GET_MULTIPLE`
+   теперь также возвращается значение самого ключа.
+ - Для размерных констант `mdbx::env::geometry` базовый тип изменен с
+   беззнакового `size_t` на знаковый `intptr_t`.
+ - Теперь выбор в пользу использования ntdll вместо CRT делается только
+   при явном отключении C++ API.
+ - Теперь выполняется освобождение памяти сброшенных/прерванных читающих
+   транзакций передаваемых в `mdbx_txn_commit()`. Соглашение по API требует
+   чтобы такие транзакции освобождались посредством `mdbx_txn_abort()`,
+   из-за чего функция `mdbx_txn_commit()` возвращала ошибку в таких
+   случаях, не разрушая сами транзакции. Это приводило к утечкам памяти
+   из-за ошибок в приложениях, что побудило изменить поведение.
+ - Использование макроса `__deprecated_enum` если он определен.
+ - При сборке посредством CMake выбор стандарта языка `C` теперь
+   выполняется с учётом `CMAKE_C_STANDARD`.
+ - Изменения в опциях сборки:
+   * опция `MDBX_OSX_SPEED_INSTEADOF_DURABILITY` переименована в
+     `MDBX_APPLE_SPEED_INSTEADOF_DURABILITY`, так как актуальна для всех
+     "Яблочных" платформ;
+   * опция `MDBX_MMAP_USE_MS_ASYNC` переименована в
+     `MDBX_MMAP_NEEDS_JOLT`, для более точного соответствия своей семантики;
+   * в CMake добавлена поддержка опции `MDBX_USE_MINCORE`;
+   * использование `madvise()` и родственных системных вызовов теперь
+     всегда включено, а опция `MDBX_ENABLE_MADVISE` удалена;
+   * удалены неиспользуемая опция `MDBX_USE_SYNCFILERANGE` и
+     неиспользуемый режим `MDBX_LOCKING_BENAPHORE`.
+
+Исправления:
+
+ - Устранен регресс возврата неверной информации из функций
+   `mdbx_env_stat_ex()` и `mdbx_env_stat()`. При рефакторинге до выпуска
+   v0.13.1 была допущена ошибка, из-за которой выполнялось суммирование
+   значений без очистки переданного пользователем буфера для результата.
+   Таким образом, возвращаемая информация была верной, только если память
+   используемая для размещения результата содержала нули на момент вызова
+   функции.
+ - Функция `mdbx_close_dbi()` доработана для возврата ошибки `MDBX_DANGLING_DBI`
+   при попытке закрыть dbi-дескриптор таблицы, созданной и/или измененной в
+   ещё выполняющейся транзакции. Такое преждевременное закрытие дескриптора
+   является неверным использованием API и нарушением контракта/предусловий
+   сформулированных в описании `mdbx_close_dbi()`. Однако, вместо возврата
+   ошибки выполнялось некорректное закрытие дескриптора, что могло
+   приводить к созданию таблицы с пустым именем, утечки страниц БД и/или
+   нарушению структуры b-tree (неверной ссылкой на корень таблицы).
+ - Исправлено открытие таблицы с пустым/нулевым именем, в том числе устранена
+   возможность `SIGSEGV` при закрытии её дескриптора.
+ - Добавлены упущенные inline-реализации `mdbx::cursor::upper_bound()` и `mdbx::cursor::upper_bound_multivalue()`.
+ - Продолжена корректировка описания С++ API для использования термина "таблица" вместо "sub-database".
+ - Исправлено проверяемое условие внутри `assert()` в пути обработки `MDBX_GET/NEXT/PREV_MULTIPLE`.
+ - На 32-битных платформах разрешено использовать 4-байтное выравнивание при получении 64-битных значений посредством `MDBX_MULTIPLE`.
+ - Добавлен костыль для устранения проблем из-за некорректной обработки `[[gnu::pure]]` в Apple Clang и MSVC.
+ - Поправлено определение `MDBX_DEPRECATED_ENUM` для старых компиляторов при включении С++11.
+ - Доработано использование `std::experimental::filesystem` для решения проблем со сборкой в старых компиляторах.
+ - Исправлена обработка `MDBX_GET_MULTIPLE` в специальных случаях и одного значения у ключа в позиции курсора.
+ - Исправление сборки при включении профилирования GC и `MDBX_ENABLE_DBI_SPARSE=OFF`.
+
+Мелочи:
+
+ - Теперь `MDBX_ENABLE_BIGFOOT` включена по-умолчанию вне зависимости от разрядности платформы.
+ - Дополнение README и исправление опечаток/орфографии.
+ - Использование `WIN32` вместо `${CMAKE_SYSTEM_NAME}`.
+ - Подавление параноидальных предупреждений MSVC в extra-тестах.
+ - Дополнение отладочного логирования внутри `dxb_resize()`.
+ - Добавление в сценарии CMake/CTest копирования dll под  Windows для работы исключений в тестах на C++.
+ - Добавление С++ теста `extra/open`.
+ - Доработка `osal_jitter()` для уменьшения задержек в тестах под Windows.
+ - Исправление максимальной длины значений в тесте `extra/crunched-delete`.
+ - Добавление логирования С++ исключений в `extra/dupfix_multiple`.
+ - Корректировка API-макросов для Doxygen.
+ - Уточнение описания `mdbx_dbi_close()` для случая хендлов измененных таблиц.
+ - Добавление теста `extra/early_close_dbi`.
+ - Доработка скрипта стохастического теста и его переименование в `stochastic.sh`.
+ - Доработка тестов для совместимости с режимами сборки до С++17.
+ - Добавление `.WAIT` для устранения коллизий при распараллеливании сборки посредстом GNU Make 4.4.
+
+--------------------------------------------------------------------------------
+
+## v0.13.1 "РДС-1" от 2024-08-29
+
+Новая версия со сменой лицензии, существенным расширением API,
+добавлением функционала и внутренними переработками. В том числе,
+с незначительным нарушением обратной совместимости API библиотеки.
+
+Новое:
+
+ - Изменение лицензии на Apache 2.0, пояснения и подробности в файле `COPYRIGHT`.
+
+ - Реструктуризация исходного кода с рефакторингом.
+
+ - Переработка курсоров для унификации поведения, более регулярного
+   кода, уменьшения количества ветвлений и машинных операций.
+
+ - Перенос функционала утилиты `mdbx_chk` внутрь библиотеки в виде
+   функции `mdbx_env_chk() `для проверка целостности структуры БД, в том
+   числе с вовлечением логики приложения.
+
+ - Опция `MDBX_opt_gc_time_limit` для более гибкого контроля времени
+   расходуемого на поиск последовательностей соседствующих свободных
+   страниц в GC.
+
+ - Снижение накладных расходов на запуск транзакций в сценариях с
+   большим количеством DBI-хендов, за счет отложенной/ленивой инициализации
+   элементов служебных таблиц. В том числе, механизм поддержки разреженных
+   наборов DBI-хендов, управляемый опцией сборки `MDBX_ENABLE_DBI_SPARSE`,
+   которая включена по-умолчанию.
+
+ - Снижение накладных расходов на открытие DBI-хендов. В том числе,
+   механизм отложенного освобождения и поддержки быстрого пути открытия без
+   использования блокировок, управляемый опцией сборки
+   `MDBX_ENABLE_DBI_LOCKFREE`, которая включена по-умолчанию.
+
+ - Поддержка "парковки" читающих транзакций с их вытеснением ради
+   переработки старых MVCC-снимков и предотвращения проблем вызываемых
+   приостановкой переработки мусора. Механизм парковки и вытеснения
+   припаркованных транзакций является как дополнением, так и более простой
+   в использовании альтернативой обратному вызову
+   [Handle-Slow-Readers](https://libmdbx.dqdkfa.ru/group__c__err.html#ga2cb11b56414c282fe06dd942ae6cade6).
+   Для удобства функции `mdbx_txn_park()` и `mdbx_txn_unpark()` имеют
+   дополнительные аргументы, позволяющие запросить автоматическую
+   "распарковку" припаркованных и перезапуск вытесненных транзакций.
+
+ - Расширение API позиционирования курсоров более удобными и очевидными
+   операциями по аналогии условиям `<`, `<=`, `==`, `>=`, `>` как для
+   ключей, так и для пар ключ-значение.
+
+ - Функции `mdbx_dbi_rename()` и `mdbx_dbi_rename2()` для переименования таблиц.
+
+ - Функции `mdbx_cursor_unbind()` и `mdbx_txn_release_all_cursors()` для
+   гибкого управления курсорами в сценариях повторного использования для
+   уменьшения накладных расходов.
+
+ - Функция `mdbx_env_resurrect_after_fork()` для восстановление открытой
+   среды работы с БД в дочернем процессе после ветвления/расщепления
+   процесса.
+
+ - Функция `mdbx_cursor_compare()` для сравнения позиций курсоров
+   аналогично оператору `<=>`.
+
+ - Функции `mdbx_cursor_scan()` и `mdbx_cursor_scan_from()` для
+   сканирования таблиц с использованием функционального предиката и
+   уменьшением сопутствующих накладных расходов.
+
+ - Функции `mdbx_cursor_on_first_dup()` и `mdbx_cursor_on_last_dup()`
+   для оценки позиции курсора.
+
+ - Функция `mdbx_preopen_snapinfo()` для получения информации о БД без
+   её открытия.
+
+ - Функция `mdbx_enumerate_tables()` для получение информации
+   об именованных пользовательских таблицах.
+
+ - Поддержка функций логирования обратного вызова без функционала
+   `vprintf()`, что существенно облегчает использование логирования в
+   привязках к другим языкам программирования.
+
+ - Режим работы `MDBX_NOSTICKYTHREADS` вместо `MDBX_NOTLS` для упрощения
+   интеграции с легковесными потоками/нитями их мультиплексирования вместе
+   с транзакциями по потокам операционной системы.
+
+ - Опция `MDBX_opt_prefer_waf_insteadof_balance`.
+
+ - Опции `MDBX_opt_subpage_limit`, `MDBX_opt_subpage_room_threshold`,
+   `MDBX_opt_subpage_reserve_prereq`, `MDBX_opt_subpage_reserve_limit`.
+
+ - Управление основной блокировкой lock/unlock/upgrade/downgrade для координации пишущих транзакций.
+
+ - Функции `mdbx_limits_keysize_min()` и `mdbx_limits_valsize_min()` для
+   получения нижней границы длины ключей и значений.
+
+ - Для идентификации БД добавлен UUID доступный в поле `mi_dxbid` структуры `MDBX_envinfo`,
+   получаемой посредством `mdbx_env_info_ex()`.
+
+ - Расширение API функциями lock/unlock/upgrade/downgrade основной блокировки.
+
+ - Добавление в API функций `mdbx_cursor_unbind()` и `mdbx_txn_release_all_cursors()`.
+
+ - Добавление в API функций `mdbx_txn_copy2pathname()` и `mdbx_txn_copy2fd()`.
+
+ - Добавление в утилиту `mdbx_copy` опций `-d` и `-p`.
+
+ - Расширение и доработка C++ API:
+
+     - добавлен тип `mdbx::cursor::estimate_result`, а поведение методов
+      `mdbx::cursor::estimate()` унифицировано с `mdbx::cursor::move()`;
+     - для предотвращения незаметного неверного использования API, для инициализации
+       возвращаемых по ссылке срезов, вместо пустых срезов задействован `mdbx::slice::invalid()`;
+     - добавлены дополнительные C++ операторы преобразования к типам C API;
+     - для совместимости со старыми стандартами C++ и старыми версиями STL перенесены
+       в public классы `mdbx::buffer::move_assign_alloc` и `mdbx::buffer::copy_assign_alloc`;
+     - добавлен тип `mdbx::default_buffer`;
+     - для срезов и буферов добавлены методы `mdbx::buffer::hex_decode()`, `mdbx::buffer::base64_decode()`, `mdbx::buffer::base58_decode()`;
+     - добавлен тип `mdbx::comparator` и функций `mdbx::default_comparator()`;
+     - добавлены статические методы `mdbx::buffer::hex()`, `mdbx::buffer::base64()`, `mdbx::buffer::base58()`;
+     - для транзакций и курсоров добавлены методы `get_/set_context`;
+     - добавлен метод `mdbx::cursor::clone()`;
+     - поддержка base58 переработана и приведена в соответствии с черновиком RFC,
+       в текущем понимании теперь это одна из самых высокопроизводительных реализаций base58;
+     - переработка `to_hex()` и `from_hex()`;
+     - добавлены перегрузи со `std::string_view` для методов `open_map`/`create_map`/`drop_map`/`clear_map`/`rename_map()`;
+     - добавлены перегрузки методов put/insert/upsert для `mdbx::pair`;
+     - добавлены методы принимающие имена таблиц/subDb через `mdbx::slice`.
+
+Нарушение совместимости:
+
+ - Использование термина "таблица" вместо "subDb".
+ - Опция `MDBX_COALESCE` объявлена устаревшей, так как соответствующий функционал всегда включен начиная с предыдущей версии 0.12.
+ - Опция `MDBX_NOTLS` объявлена устаревшей и заменена на `MDBX_NOSTICKYTHREADS`.
+ - Опция сборки `MDBX_USE_VALGRIND` заменена на общепринятую `ENABLE_MEMCHECK`.
+ - В структуре `MDBX_envinfo` серии полей вида `meta1`, `meta2` и `meta3` заменены на массивы вида `meta[3]`.
+ - В шаблонных классах и функциях С++ API по-умолчанию вместо `mdbx::legacy_buffer` использован тип `mdbx::default_buffer` использующий полиморфные аллокаторы С++ 17.
+ - Удаление `DEFAULT_MAPSIZE` и изменение геометрии по-умолчанию при создании БД.
+ - Возвращение `MDBX_TXN_INVALID` (`INT32_MIN`) вместо `-1`
+   из `mdbx_txn_flags()` при передаче невалидной транзакции.
+
+Исправления:
+
+ - Исправление упущенного `TXN_END_EOTDONE` при сбое старта читающей транзакции.
+   Упомянутый флажок отсутствовал в пути разрушения транзакции при ошибке
+   её запуска. Из-за чего делалась попытка разрушить курсоры, что приводило
+   к падению **отладочных сборок**, так как в них соответствующий массив
+   намеренно заполнен некорректными указателями.
+
+ - Устранение возможности `SIGSEGV` внутри `coherency_check()` после
+   изменения геометрии другим процессом с увеличением верхнего размера БД
+   и увеличением БД больше предыдущего лимита.
+
+ - Исправление assert-проверки при попытке создания таблицы с другими флагами/опциями.
+
+Мелочи:
+
+ - Обновление конфигурации Doxygen до 1.9.6.
+ - Добавление `--read-var-info=yes` для Valgrind.
+ - Вывод из `mdbx_chk` информации об уровне детализации/verbosity.
+
+## v0.13.0 от 2023-04-23
+
+Технический тэг, отмечающий начало ветки `0.13`
+с новым функционалом и изменением API.
+
+********************************************************************************
 
 ## v0.12.12 "Доллежаль" от 2024-10-27
 
@@ -42,10 +323,7 @@ Signed-off-by: Леонид Юрьев (Leonid Yuriev) <leo@yuriev.ru>
    структуры b-tree (неверной ссылкой на корень таблицы).
    Добавлен соответствующий тест `extra/early_close_dbi`.
 
-
-
 --------------------------------------------------------------------------------
-
 
 ## v0.12.11 "Лиза и Соня" от 2024-07-23
 
@@ -59,7 +337,6 @@ Signed-off-by: Леонид Юрьев (Leonid Yuriev) <leo@yuriev.ru>
 полетные задания формировались и загружались военными США, а управление
 и наведение ATACAMS невозможно без использования орбитальной группировки
 военных спутников США.
-
 
 ```
 git diff' stat: 29 commits, 14 files changed, 379 insertions(+), 151 deletions(-)
@@ -105,7 +382,7 @@ Signed-off-by: Леонид Юрьев (Leonid Yuriev) <leo@yuriev.ru>
  - Проверка совместимости флагов GC/FreeDB на случай их изменения в будущих версиях.
  - Очистка сообщений `FormatMessageA()` от концевых переводов строк.
  - Уточнение макроса `__always_inline` для особо яблочных версий CLANG.
- - Использование `\n` вместо `std::endl` в C++ API для разделения строк в кодировщиках данных.
+ - Использование `\n` вместо `std::endl` в C++ API при .
  - Проверка дополнительных и пока не используемых полей в meta-страницах.
  - Отключение ненужной отладки внутри `txn_merge()`.
  - Исправление условий и привязки к версиям компиляторов при формировании макроса `MDBX_DEPRECATED`.
@@ -113,9 +390,7 @@ Signed-off-by: Леонид Юрьев (Leonid Yuriev) <leo@yuriev.ru>
  - Добавление методов `buffer::append_bytes()` и `buffer::clear_and_reserve()`.
  - Отключение установки признака фатальной ошибки для не-активной среды при отличии идентификатора процесса.
 
-
 --------------------------------------------------------------------------------
-
 
 ## v0.12.10 "СЭМ" от 2024-03-12
 
@@ -194,9 +469,7 @@ Signed-off-by: Леонид Юрьев (Leonid Yuriev) <leo@yuriev.ru>
  - Приведение в соответствие протоколируемых имен тестов опциям командной строки.
  - Добавление cmoke-теста `extra/dupfixed_addodd`.
 
-
 --------------------------------------------------------------------------------
-
 
 ## v0.12.9 "Ясень-4" от 2023-12-11
 
@@ -226,7 +499,7 @@ Signed-off-by: Леонид Юрьев (Leonid Yuriev) <leo@yuriev.ru>
 
  - Из разрабатываемой версии перенесены не-нарушающие совместимости доработки C++ API:
 
-     - добавлен тип `mdbx::cursor::estimation_result`, а поведение методов
+     - добавлен тип `mdbx::cursor::estimate_result`, а поведение методов
       `cursor::estimate()` унифицировано с `cursor::move()`;
      - для предотвращения незаметного неверного использования API, для инициализации
        возвращаемых по ссылке срезов, вместо пустых срезов задействован `slice::invalid()`;
@@ -259,9 +532,7 @@ Signed-off-by: Леонид Юрьев (Leonid Yuriev) <leo@yuriev.ru>
  - В тестах для совместимости с проблемными версиями glibc и glibc++
    устранено использование `std::stoull()`.
 
-
 --------------------------------------------------------------------------------
-
 
 ## v0.12.8 "Владимир Уткин" от 2023-10-17
 
@@ -321,9 +592,7 @@ Signed-off-by: Леонид Юрьев (Leonid Yuriev) <leo@yuriev.ru>
  - Вывод информации о большинстве mdbx-опций при сборке посредством CMake.
  - Добавление определений макросов для Doxygen.
 
-
 --------------------------------------------------------------------------------
-
 
 ## v0.12.7 "Артек" от 2023-06-16
 
@@ -401,9 +670,7 @@ Signed-off-by: Леонид Юрьев (Leonid Yuriev) <leo@yuriev.ru>
  - Уточнение ограничений в разделе [Restrictions & Caveats](https://libmdbx.dqdkfa.ru/intro.html#restrictions).
  - Исправление ссылок на описание `mdbx_canary_put()`.
 
-
 --------------------------------------------------------------------------------
-
 
 ## v0.12.6 "ЦСКА" от 2023-04-29
 
@@ -422,9 +689,7 @@ Signed-off-by: Леонид Юрьев (Leonid Yuriev) <leo@yuriev.ru>
  - Использование `enum`-типов вместо `int` для устранения предупреждений GCC 13,
    что могло ломать сборку в Fedora 38.
 
-
 --------------------------------------------------------------------------------
-
 
 ## v0.12.5 "Динамо" от 2023-04-18
 
@@ -465,9 +730,7 @@ Signed-off-by: Леонид Юрьев (Leonid Yuriev) <leo@yuriev.ru>
  - Рефакторинг проверки "когерентности" мета-страниц.
  - Корректировка `osal_vasprintf()` для устранения предупреждений статических анализаторов.
 
-
 --------------------------------------------------------------------------------
-
 
 ## v0.12.4 "Арта-333" от 2023-03-03
 
@@ -538,15 +801,13 @@ Signed-off-by: Леонид Юрьев (Leonid Yuriev) <leo@yuriev.ru>
    все они были несущественные, либо ложные.
  - Устранено ложное предупреждение GCC при сборке для SH4.
  - Добавлена поддержка ASAN (Address Sanitizer) при сборке посредством MSVC.
- - Расширен набор перебираемых режимов в скрипте `test/long_stochastic.sh`,
+ - Расширен набор перебираемых режимов в скрипте `test/stochastic.sh`,
    добавлена опция `--extra`.
  - В C++ API добавлена поддержка расширенных опций времени выполнения `mdbx::extra_runtime_option`,
    аналогично `enum MDBX_option_t` из C API.
  - Вывод всех счетчиков page-operations в `mdbx_stat`.
 
-
 --------------------------------------------------------------------------------
-
 
 ## v0.12.3 "Акула" от 2023-01-07
 
@@ -687,9 +948,7 @@ Signed-off-by: Леонид Юрьев (Leonid Yuriev) <leo@yuriev.ru>
  - Переработка контроля "некогерентности" Unified page cache для уменьшения накладных расходов.
  - Рефакторинг и микрооптимизация.
 
-
 --------------------------------------------------------------------------------
-
 
 ## v0.12.2 "Иван Ярыгин" от 2022-11-11
 
@@ -848,7 +1107,7 @@ Signed-off-by: Леонид Юрьев (Leonid Yuriev) <leo@yuriev.ru>
  - Уменьшение в 42 раза значения по-умолчанию для `me_options.dp_limit`
    в отладочных сборках.
  - Добавление платформы `gcc-riscv64-linux-gnu` в список для цели `cross-gcc`.
- - Небольшие правки скрипта `long_stochastic.sh` для работы в Windows.
+ - Небольшие правки скрипта `stochastic.sh` для работы в Windows.
  - Удаление ненужного вызова `LockFileEx()` внутри `mdbx_env_copy()`.
  - Добавлено описание использования файловых дескрипторов в различных режимах.
  - Добавлено использование `_CrtDbgReport()` в отладочных сборках.
@@ -857,9 +1116,7 @@ Signed-off-by: Леонид Юрьев (Leonid Yuriev) <leo@yuriev.ru>
  - Fixed regression ASAN/Valgring-enabled builds.
  - Fixed minor MingGW warning.
 
-
 --------------------------------------------------------------------------------
-
 
 ## v0.12.1 "Positive Proxima" at 2022-08-24
 
@@ -897,14 +1154,11 @@ Fixes:
  - Don't check owner for finished transactions.
  - Fixed typo in `MDBX_EINVAL` which breaks MingGW builds with CLANG.
 
-
 ## v0.12.0 at 2022-06-19
 
 Not a release but preparation for changing feature set and API.
 
-
 ********************************************************************************
-
 
 ## v0.11.14 "Sergey Kapitsa" at 2023-02-14
 
@@ -946,9 +1200,7 @@ Minors:
  - backport: Resolve false-posirive `used uninitialized` warning from GCC >10.x
    while build for SH4 arch.
 
-
 --------------------------------------------------------------------------------
-
 
 ## v0.11.13 at "Swashplate" 2022-11-10
 
@@ -977,9 +1229,7 @@ Minors:
  - Stochastic scripts and CMake files synchronized with the `devel` branch.
  - Use `--dont-check-ram-size` for small-tests make-targets (backport).
 
-
 --------------------------------------------------------------------------------
-
 
 ## v0.11.12 "Эребуни" at 2022-10-12
 
@@ -1002,9 +1252,7 @@ Minors:
  - Fixed `-Wint-to-pointer-cast` warnings while casting to `mdbx_tid_t` (backport).
  - Removed needless `LockFileEx()` inside `mdbx_env_copy()` (backport).
 
-
 --------------------------------------------------------------------------------
-
 
 ## v0.11.11 "Тендра-1790" at 2022-09-11
 
@@ -1021,9 +1269,7 @@ Fixes:
  - Fixed an extra ensure/assertion check of `oldest_reader` inside `mdbx_txn_end()`.
  - Fixed derived C++ builds by removing `MDBX_INTERNAL_FUNC` for `mdbx_w2mb()` and `mdbx_mb2w()`.
 
-
 --------------------------------------------------------------------------------
-
 
 ## v0.11.10 "the TriColor" at 2022-08-22
 
@@ -1054,9 +1300,7 @@ Minors:
  - Use current transaction geometry for untouched parameters when `env_set_geometry()` called within a write transaction.
  - Minor clarified `iov_page()` failure case.
 
-
 --------------------------------------------------------------------------------
-
 
 ## v0.11.9 "Чирчик-1992" at 2022-08-02
 
@@ -1095,9 +1339,7 @@ Minors:
  - Updated Valgrind-suppressions file for modern GCC.
  - Fixed `has no symbols` warning from Apple's ranlib.
 
-
 --------------------------------------------------------------------------------
-
 
 ## v0.11.8 "Baked Apple" at 2022-06-12
 
@@ -1148,9 +1390,7 @@ Minors:
  - Now C++20 concepts used/enabled only when `__cpp_lib_concepts >= 202002`.
  - Don't provide nor report package information if used as a CMake subproject.
 
-
 --------------------------------------------------------------------------------
-
 
 ## v0.11.7 "Resurrected Sarmat" at 2022-04-22
 
@@ -1205,9 +1445,7 @@ Minors:
  - Reworked `MDBX_BUILD_TARGET` of CMake builds.
  - Added `CMAKE_HOST_ARCH` and `CMAKE_HOST_CAN_RUN_EXECUTABLES_BUILT_FOR_TARGET`.
 
-
 --------------------------------------------------------------------------------
-
 
 ## v0.11.6 at 2022-03-24
 
@@ -1234,9 +1472,7 @@ Minors:
  - Added minor workaround for AppleClang 13.3 bug.
  - Clarified error messages of a signature/version mismatch.
 
-
 --------------------------------------------------------------------------------
-
 
 ## v0.11.5 at 2022-02-23
 
@@ -1266,9 +1502,7 @@ Minors:
  - Reasonable paranoia that makes clarity for code readers.
  - Minor fixes Doxygen references, comments, descriptions, etc.
 
-
 --------------------------------------------------------------------------------
-
 
 ## v0.11.4 at 2022-02-02
 
@@ -1314,9 +1548,7 @@ Minors:
  - Clarified a comments and descriptions, etc.
  - Using the `-fno-semantic interposition` option to reduce the overhead to calling self own public functions.
 
-
 --------------------------------------------------------------------------------
-
 
 ## v0.11.3 at 2021-12-31
 
@@ -1350,9 +1582,7 @@ Minors:
  - [Fixed](https://libmdbx.dqdkfa.ru/dead-github/issues/253) `mdbx_override_meta()` to avoid false-positive assertions.
  - For compatibility reverted returning `MDBX_ENODATA`for some cases.
 
-
 --------------------------------------------------------------------------------
-
 
 ## v0.11.2 at 2021-12-02
 
@@ -1379,9 +1609,7 @@ Minors:
  - Added `MDBX_FORCE_BUILD_AS_MAIN_PROJECT` cmake option.
  - Remove unneeded `#undef P_DIRTY`.
 
-
 --------------------------------------------------------------------------------
-
 
 ## v0.11.1 at 2021-10-23
 
@@ -1401,9 +1629,7 @@ Acknowledgments:
 
  - [Alex Sharov](https://github.com/AskAlexSharov) for reporting and testing.
 
-
 ********************************************************************************
-
 
 ## v0.10.5 at 2021-10-13 (obsolete, please use v0.11.1)
 
@@ -1430,9 +1656,7 @@ Minors:
  - Refined handling of weak or invalid meta-pages while a DB opening.
  - Refined providing information for the `@MAIN` and `@GC` sub-databases of a last committed modification transaction's ID.
 
-
 --------------------------------------------------------------------------------
-
 
 ## v0.10.4 at 2021-10-10
 
@@ -1453,9 +1677,7 @@ Minors:
  - Removed extra transaction commit/restart inside test framework.
  - In debugging builds fixed a too small (single page) by default DB shrink threshold.
 
-
 --------------------------------------------------------------------------------
-
 
 ## v0.10.3 at 2021-08-27
 
@@ -1484,9 +1706,7 @@ Minors:
  - Fixed/workarounds for CLANG < 9.x
  - Fixed CMake warning about compatibility with 3.8.2
 
-
 --------------------------------------------------------------------------------
-
 
 ## v0.10.2 at 2021-07-26
 
@@ -1534,9 +1754,7 @@ Fixes:
  - Fixed `bootid` generation on Windows for case of change system' time.
  - Fixed [test framework keygen-related issue](https://libmdbx.dqdkfa.ru/dead-github/issues/127).
 
-
 --------------------------------------------------------------------------------
-
 
 ## v0.10.1 at 2021-06-01
 
@@ -1561,9 +1779,7 @@ Fixes:
  - Fixed rare unexpected `MDBX_PROBLEM` error during altering data in huge transactions due to wrong spilling/oust of dirty pages (https://libmdbx.dqdkfa.ru/dead-github/issues/195).
  - Re-Fixed WSL1/WSL2 detection with distinguishing (https://libmdbx.dqdkfa.ru/dead-github/issues/97).
 
-
 --------------------------------------------------------------------------------
-
 
 ## v0.10.0 at 2021-05-09
 
@@ -1650,9 +1866,7 @@ Fixes:
  - Fixed building for Windows target versions prior to Windows Vista (`WIN32_WINNT < 0x0600`).
  - Fixed building by MinGW for Windows (https://libmdbx.dqdkfa.ru/dead-github/issues/155).
 
-
 ********************************************************************************
-
 
 ## v0.9.3 at 2021-02-02
 
@@ -1711,9 +1925,7 @@ Fixes:
  - Fixed auto-recovery (`weak->steady` with the same boot-id) when Database size at last weak checkpoint is large than at last steady checkpoint.
  - Fixed operation on systems with unusual small/large page size, including PowerPC (https://libmdbx.dqdkfa.ru/dead-github/issues/157).
 
-
 --------------------------------------------------------------------------------
-
 
 ## v0.9.2 at 2020-11-27
 
@@ -1764,9 +1976,7 @@ Fixes:
  - Fixed `ERROR_NOT_SUPPORTED` while opening DB by UNC pathnames (https://github.com/miranda-ng/miranda-ng/issues/2627).
  - Added handling `EXCEPTION_POSSIBLE_DEADLOCK` condition for Windows.
 
-
 --------------------------------------------------------------------------------
-
 
 ## v0.9.1 2020-09-30
 
@@ -1813,9 +2023,7 @@ Fixes:
  - Workarounds for QEMU's bugs to run tests for cross-built[A library under QEMU.
  - Now C++ compiler optional for building by CMake.
 
-
 --------------------------------------------------------------------------------
-
 
 ## v0.9.0 2020-07-31 (not a release, but API changes)
 
@@ -1829,9 +2037,7 @@ Deprecated functions and flags:
  - Usage of custom comparators and the `mdbx_dbi_open_ex()` are deprecated, since such databases couldn't be checked by the `mdbx_chk` utility.
    Please use the value-to-key functions to provide keys that are compatible with the built-in libmdbx comparators.
 
-
 ********************************************************************************
-
 
 ## 2020-07-06
 
@@ -1848,7 +2054,6 @@ Deprecated functions and flags:
  - Remapping on-the-fly and of the database file was implemented.
    Now remapping with a change of address is performed automatically if there are no dependent readers in the current process.
 
-
 ## 2020-06-12
 
  - Minor change versioning. The last number in the version now means the number of commits since last release/tag.
@@ -1858,7 +2063,6 @@ Deprecated functions and flags:
  - Add support for huge transactions and `MDBX_HUGE_TRANSACTIONS` build-option (default `OFF`).
  - Refine LTO (link time optimization) for clang.
  - Force enabling exceptions handling for MSVC (`/EHsc` option).
-
 
 ## 2020-06-05
 
@@ -1905,7 +2109,6 @@ Deprecated functions and flags:
  - Minor fix/workaround to avoid UBSAN traps for `memcpy(ptr, NULL, 0)`.
  - Avoid some GCC-analyzer false-positive warnings.
 
-
 ## 2020-03-18
 
  - Workarounds for Wine (Windows compatibility layer for Linux).
@@ -1918,7 +2121,6 @@ Deprecated functions and flags:
  - Refine/clarify error messages.
  - Avoids extra error messages "bad txn" from mdbx_chk when DB is corrupted.
 
-
 ## 2020-01-21
 
  - Fix `mdbx_load` utility for custom comparators.
@@ -1930,7 +2132,6 @@ Deprecated functions and flags:
  - Fix `mdbx_env_set_geometry()` for large page size.
  - Fix env_set_geometry() for large pagesize.
  - Clarify API description & comments, fix typos.
-
 
 ## 2019-12-31
 
@@ -1946,7 +2147,6 @@ Deprecated functions and flags:
  - Interpret `ERROR_ACCESS_DENIED` from `OpenProcess()` as 'process exists'.
  - Avoid using `FILE_FLAG_NO_BUFFERING` for compatibility with small database pages.
  - Added install section for CMake.
-
 
 ## 2019-12-02
 
@@ -1970,8 +2170,6 @@ Deprecated functions and flags:
  - API description.
  - Checking for non-local filesystems to avoid DB corruption.
 
-
 ********************************************************************************
-
 
 For early changes see the git commit history.

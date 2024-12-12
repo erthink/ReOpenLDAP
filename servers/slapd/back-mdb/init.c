@@ -541,8 +541,8 @@ int mdb_back_initialize(BackendInfo *bi) {
     return -1;
   }
   Debug(LDAP_DEBUG_TRACE, LDAP_XSTRING(mdb_back_initialize) ": %u.%u.%u.%u\n",
-        mdbx_version.major, mdbx_version.minor, mdbx_version.release,
-        mdbx_version.revision);
+        mdbx_version.major, mdbx_version.minor, mdbx_version.patch,
+        mdbx_version.tweak);
 
   bi->bi_open = 0;
   bi->bi_close = 0;
