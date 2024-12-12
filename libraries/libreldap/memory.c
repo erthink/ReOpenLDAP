@@ -337,6 +337,22 @@ int ber_bvecadd_x(struct berval ***bvec, struct berval *bv, void *ctx) {
 
 int ber_bvecadd(struct berval ***bvec, struct berval *bv) { return ber_bvecadd_x(bvec, bv, NULL); }
 
+static struct berval *dupbv(struct berval *dup, const struct berval *src, void *ctx) {
+  if (src->bv_val == NULL) {
+    dup->bv_val = NULL;
+    dup->bv_len = 0;
+  } else {
+    if ((dup->bv_val = ber_memalloc_x(src->bv_len + 1, ctx)) == NULL)
+      return NULL;
+
+    memcpy(dup->bv_val, src->bv_val, src->bv_len);
+    dup->bv_val[src->bv_len] = '\0';
+    dup->bv_len = src->bv_len;
+  }
+
+  return dup;
+}
+
 struct berval *ber_dupbv_x(struct berval *dst, const struct berval *src, void *ctx) {
   struct berval *dup, tmp;
 
@@ -346,35 +362,21 @@ struct berval *ber_dupbv_x(struct berval *dst, const struct berval *src, void *c
   }
 
   if (dst) {
-    dup = &tmp;
+    dup = dupbv(&tmp, src, ctx);
+    if (dup) {
+      *dst = *dup;
+      return dst;
+    }
   } else {
-    if ((dup = ber_memalloc_x(sizeof(struct berval), ctx)) == NULL) {
-      return NULL;
+    dup = ber_memalloc_x(sizeof(struct berval), ctx);
+    if (dup) {
+      dst = dupbv(dup, src, ctx);
+      if (dst)
+        return dst;
+      ber_memfree_x(dup, ctx);
     }
   }
-
-  if (src->bv_val == NULL) {
-    dup->bv_val = NULL;
-    dup->bv_len = 0;
-  } else {
-
-    if ((dup->bv_val = ber_memalloc_x(src->bv_len + 1, ctx)) == NULL) {
-      if (!dst)
-        ber_memfree_x(dup, ctx);
-      return NULL;
-    }
-
-    memcpy(dup->bv_val, src->bv_val, src->bv_len);
-    dup->bv_val[src->bv_len] = '\0';
-    dup->bv_len = src->bv_len;
-  }
-
-  if (dup != &tmp)
-    return dup;
-  else {
-    *dst = *dup;
-    return dst;
-  }
+  return NULL;
 }
 
 struct berval *ber_dupbv(struct berval *dst, const struct berval *src) { return ber_dupbv_x(dst, src, NULL); }
